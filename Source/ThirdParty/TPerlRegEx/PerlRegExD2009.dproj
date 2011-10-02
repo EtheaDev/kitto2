@@ -1,0 +1,143 @@
+﻿	<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+		<PropertyGroup>
+			<ProjectGuid>{5a86e69b-444e-478a-93e7-bf0239e244e9}</ProjectGuid>
+			<MainSource>PerlRegExD2009.dpk</MainSource>
+			<Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+			<Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+			<DCC_DCCCompiler>DCC32</DCC_DCCCompiler>
+			<DCC_DependencyCheckOutputName>g:\JGsoft\Packages\PerlRegExD2009.bpl</DCC_DependencyCheckOutputName>
+			<ProjectVersion>12.0</ProjectVersion>
+			<Config Condition="'$(Config)'==''">Debug</Config>
+		</PropertyGroup>
+		<PropertyGroup Condition="'$(Config)'=='Base' or '$(Base)'!=''">
+			<Base>true</Base>
+		</PropertyGroup>
+		<PropertyGroup Condition="'$(Config)'=='Release' or '$(Cfg_1)'!=''">
+			<Cfg_1>true</Cfg_1>
+			<CfgParent>Base</CfgParent>
+			<Base>true</Base>
+		</PropertyGroup>
+		<PropertyGroup Condition="'$(Config)'=='Debug' or '$(Cfg_2)'!=''">
+			<Cfg_2>true</Cfg_2>
+			<CfgParent>Base</CfgParent>
+			<Base>true</Base>
+		</PropertyGroup>
+		<PropertyGroup Condition="'$(Base)'!=''">
+			<DCC_IMPLICIT_STRING_CAST_LOSS>false</DCC_IMPLICIT_STRING_CAST_LOSS>
+			<DCC_DcuOutput>r:\JGsoft\Bin\D2009</DCC_DcuOutput>
+			<DCC_IMPLICIT_STRING_CAST>false</DCC_IMPLICIT_STRING_CAST>
+			<DCC_BplOutput>g:\JGsoft\Packages</DCC_BplOutput>
+			<DCC_DcpOutput>g:\JGsoft\Packages</DCC_DcpOutput>
+			<DCC_WIDECHAR_REDUCED>false</DCC_WIDECHAR_REDUCED>
+			<DCC_ImageBase>00400000</DCC_ImageBase>
+			<DesignOnlyPackage>false</DesignOnlyPackage>
+			<DCC_WriteableConstants>true</DCC_WriteableConstants>
+			<DCC_LocalDebugSymbols>false</DCC_LocalDebugSymbols>
+			<DCC_Description>TPerlRegEx - Perl Compatible Regular Expressions VCL Component</DCC_Description>
+			<DCC_DependencyCheckOutputName>g:\JGsoft\Packages\PerlRegExD2009.bpl</DCC_DependencyCheckOutputName>
+			<DCC_AssertionsAtRuntime>false</DCC_AssertionsAtRuntime>
+			<DCC_OutputNeverBuildDcps>true</DCC_OutputNeverBuildDcps>
+			<GenDll>true</GenDll>
+			<DCC_DebugInformation>false</DCC_DebugInformation>
+			<DCC_SymbolReferenceInfo>0</DCC_SymbolReferenceInfo>
+			<GenPackage>true</GenPackage>
+		</PropertyGroup>
+		<PropertyGroup Condition="'$(Cfg_1)'!=''">
+			<Version>7.0</Version>
+			<DCC_AssertionsAtRuntime>False</DCC_AssertionsAtRuntime>
+			<DCC_DebugInformation>False</DCC_DebugInformation>
+			<DCC_WriteableConstants>True</DCC_WriteableConstants>
+			<DCC_LocalDebugSymbols>False</DCC_LocalDebugSymbols>
+			<DCC_SymbolReferenceInfo>0</DCC_SymbolReferenceInfo>
+			<DCC_DcuOutput>R:\JGsoft\Bin\D2009</DCC_DcuOutput>
+			<DCC_ObjOutput>R:\JGsoft\Bin\D2009</DCC_ObjOutput>
+			<DCC_HppOutput>R:\JGsoft\Bin\D2009</DCC_HppOutput>
+			<DCC_BplOutput>g:\JGsoft\Packages</DCC_BplOutput>
+			<DCC_DcpOutput>g:\JGsoft\Packages</DCC_DcpOutput>
+			<DCC_Define>RELEASE</DCC_Define>
+			<DCC_SYMBOL_PLATFORM>False</DCC_SYMBOL_PLATFORM>
+			<DCC_UNIT_PLATFORM>False</DCC_UNIT_PLATFORM>
+		</PropertyGroup>
+		<PropertyGroup Condition="'$(Cfg_2)'!=''">
+			<Version>7.0</Version>
+			<DCC_AssertionsAtRuntime>False</DCC_AssertionsAtRuntime>
+			<DCC_DebugInformation>False</DCC_DebugInformation>
+			<DCC_WriteableConstants>True</DCC_WriteableConstants>
+			<DCC_LocalDebugSymbols>False</DCC_LocalDebugSymbols>
+			<DCC_SymbolReferenceInfo>0</DCC_SymbolReferenceInfo>
+			<DCC_DcuOutput>R:\JGsoft\Bin\D2009</DCC_DcuOutput>
+			<DCC_ObjOutput>R:\JGsoft\Bin\D2009</DCC_ObjOutput>
+			<DCC_HppOutput>R:\JGsoft\Bin\D2009</DCC_HppOutput>
+			<DCC_BplOutput>g:\JGsoft\Packages</DCC_BplOutput>
+			<DCC_DcpOutput>g:\JGsoft\Packages</DCC_DcpOutput>
+			<DCC_SYMBOL_PLATFORM>False</DCC_SYMBOL_PLATFORM>
+			<DCC_UNIT_PLATFORM>False</DCC_UNIT_PLATFORM>
+		</PropertyGroup>
+		<ItemGroup>
+			<DelphiCompile Include="PerlRegExD2009.dpk">
+				<MainSource>MainSource</MainSource>
+			</DelphiCompile>
+			<DCCReference Include="PerlRegEx.dcr"/>
+			<DCCReference Include="vcl.dcp"/>
+			<DCCReference Include="rtl.dcp"/>
+			<DCCReference Include="PerlRegEx.pas"/>
+			<DCCReference Include="pcre.pas"/>
+			<DCCReference Include="PerlRegEx.dcr"/>
+			<BuildConfiguration Include="Base">
+				<Key>Base</Key>
+			</BuildConfiguration>
+			<BuildConfiguration Include="Debug">
+				<Key>Cfg_2</Key>
+				<CfgParent>Base</CfgParent>
+			</BuildConfiguration>
+			<BuildConfiguration Include="Release">
+				<Key>Cfg_1</Key>
+				<CfgParent>Base</CfgParent>
+			</BuildConfiguration>
+		</ItemGroup>
+		<Import Project="$(BDS)\Bin\CodeGear.Delphi.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Delphi.Targets')"/>
+		<ProjectExtensions>
+			<Borland.Personality>Delphi.Personality.12</Borland.Personality>
+			<Borland.ProjectType>Package</Borland.ProjectType>
+			<BorlandProject>
+				<Delphi.Personality>
+					<Parameters>
+						<Parameters Name="UseLauncher">False</Parameters>
+						<Parameters Name="LoadAllSymbols">True</Parameters>
+						<Parameters Name="LoadUnspecifiedSymbols">False</Parameters>
+					</Parameters>
+					<VersionInfo>
+						<VersionInfo Name="IncludeVerInfo">True</VersionInfo>
+						<VersionInfo Name="AutoIncBuild">False</VersionInfo>
+						<VersionInfo Name="MajorVer">1</VersionInfo>
+						<VersionInfo Name="MinorVer">0</VersionInfo>
+						<VersionInfo Name="Release">0</VersionInfo>
+						<VersionInfo Name="Build">0</VersionInfo>
+						<VersionInfo Name="Debug">False</VersionInfo>
+						<VersionInfo Name="PreRelease">False</VersionInfo>
+						<VersionInfo Name="Special">False</VersionInfo>
+						<VersionInfo Name="Private">False</VersionInfo>
+						<VersionInfo Name="DLL">False</VersionInfo>
+						<VersionInfo Name="Locale">1033</VersionInfo>
+						<VersionInfo Name="CodePage">1252</VersionInfo>
+					</VersionInfo>
+					<VersionInfoKeys>
+						<VersionInfoKeys Name="CompanyName">JGsoft</VersionInfoKeys>
+						<VersionInfoKeys Name="FileDescription">Perl Compatible Regular Expressions VCL Component Delphi 2009 Package</VersionInfoKeys>
+						<VersionInfoKeys Name="FileVersion">1.0.0.0</VersionInfoKeys>
+						<VersionInfoKeys Name="InternalName">PerlRegExD2009</VersionInfoKeys>
+						<VersionInfoKeys Name="LegalCopyright">Copyright (c) 1999-2008</VersionInfoKeys>
+						<VersionInfoKeys Name="LegalTrademarks"/>
+						<VersionInfoKeys Name="OriginalFilename">PerlRegExD2009</VersionInfoKeys>
+						<VersionInfoKeys Name="ProductName">Perl Compatible Regular Expressions VCL Component</VersionInfoKeys>
+						<VersionInfoKeys Name="ProductVersion">1.0.0.0</VersionInfoKeys>
+						<VersionInfoKeys Name="Comments">See http://www.regular-expressions.info/delphi.html for more information</VersionInfoKeys>
+					</VersionInfoKeys>
+					<Source>
+						<Source Name="MainSource">PerlRegExD2009.dpk</Source>
+					</Source>
+				</Delphi.Personality>
+			</BorlandProject>
+			<ProjectFileVersion>12</ProjectFileVersion>
+		</ProjectExtensions>
+	</Project>

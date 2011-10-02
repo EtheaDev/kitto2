@@ -1,0 +1,137 @@
+<?xml version='1.0' encoding='utf-8' ?>
+<!-- C++Builder XML Project -->
+<PROJECT>
+  <MACROS>
+    <VERSION value="BCB.06.00"/>
+    <PROJECT value="PCRELIB.dll"/>
+    <OBJFILES value="PCRELIB.obj pcre.obj study.obj maketables.obj get.obj"/>
+    <RESFILES value="pcrelib.res"/>
+    <IDLFILES value=""/>
+    <IDLGENFILES value=""/>
+    <DEFFILE value=""/>
+    <RESDEPEN value="$(RESFILES)"/>
+    <LIBFILES value=""/>
+    <LIBRARIES value=""/>
+    <SPARELIBS value=""/>
+    <PACKAGES value="vclx.bpi rtl.bpi vcl.bpi dbrtl.bpi vcldb.bpi bdertl.bpi vcldbx.bpi 
+      bcbsmp.bpi qrpt.bpi teeui.bpi teedb.bpi tee.bpi ibsmp.bpi nmfast.bpi 
+      inetdb.bpi inet.bpi AppRunC3.bpi BannerC3.bpi DigitsC3.bpi SplitItC3.bpi 
+      SuperTimerC3.bpi TikClockC3.bpi PerlRegExC3.bpi"/>
+    <PATHCPP value=".;"/>
+    <PATHPAS value=".;"/>
+    <PATHRC value=".;"/>
+    <PATHASM value=".;"/>
+    <DEBUGLIBPATH value="$(BCB)\lib\debug"/>
+    <RELEASELIBPATH value="$(BCB)\lib\release"/>
+    <LINKER value="ilink32"/>
+    <USERDEFINES value=""/>
+    <SYSDEFINES value="NO_STRICT;_NO_VCL"/>
+    <MAINSOURCE value="PCRELIB.cpp"/>
+    <INCLUDEPATH value="$(BCB)\include"/>
+    <LIBPATH value="$(BCB)\lib"/>
+    <WARNINGS value=""/>
+    <WARNOPTSTR value=""/>
+    <OTHERFILES value=""/>
+  </MACROS>
+  <OPTIONS>
+    <IDLCFLAGS value="-I$(BCB)\include -src_suffix cpp -boa"/>
+    <CFLAG1 value="-WD -O2 -w -Tkh30000 -X- -a8 -b -k- -vi -c -tWD -tWM"/>
+    <CFLAG2 value=""/>
+    <CFLAG3 value=""/>
+    <PFLAGS value="-$Y- -$L- -$D- -$C- -$A8 -v -M -JPHNE"/>
+    <RFLAGS value=""/>
+    <AFLAGS value="/mx /w2 /zn"/>
+    <LFLAGS value="-D&quot;&quot; -aa -Tpd -x -Gn -Gi"/>
+    <IFLAGS value=""/>
+    <OTHERFILES value=""/>
+  </OPTIONS>
+  <LINKER>
+    <ALLOBJ value="c0d32.obj $(OBJFILES)"/>
+    <ALLRES value="$(RESFILES)"/>
+    <ALLLIB value="$(LIBFILES) import32.lib cw32mt.lib"/>
+    <OTHERFILES value=""/>
+  </LINKER>
+  <FILELIST>
+      <FILE FILENAME="PCRELIB.cpp" FORMNAME="" UNITNAME="PCRELIB" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="pcre.c" FORMNAME="" UNITNAME="pcre" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="study.c" FORMNAME="" UNITNAME="study" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="maketables.c" FORMNAME="" UNITNAME="maketables" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="pcrelib.res" FORMNAME="" UNITNAME="pcrelib" CONTAINERID="ResTool" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="get.c" FORMNAME="" UNITNAME="get" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+  </FILELIST>
+  <BUILDTOOLS>
+  </BUILDTOOLS>
+
+  <IDEOPTIONS>
+[Version Info]
+IncludeVerInfo=1
+AutoIncBuild=0
+MajorVer=3
+MinorVer=4
+Release=1
+Build=0
+Debug=0
+PreRelease=0
+Special=0
+Private=0
+DLL=1
+Locale=1033
+CodePage=1252
+
+[Version Info Keys]
+CompanyName=JGsoft - Just Great Software
+FileDescription=Perl-Compatible Regular Expressions DLL (GUI)
+FileVersion=3.4.1.0
+InternalName=
+LegalCopyright=Copyright (c) 1997-2000 University of Cambridge; Copyright (C) 1999-2001  Jan Goyvaerts
+LegalTrademarks=
+OriginalFilename=
+ProductName=Perl-Compatible Regular Expressions
+ProductVersion=3.4
+Comments=pcre C library written by Philip Hazel &lt;ph10@cam.ac.uk&gt;.  DLL created by Jan Goyvaerts for use with TPerlRegEx VCL component &lt;http://www.jgsoft.com/vcl.html&gt;
+
+[HistoryLists\hlIncludePath]
+Count=1
+Item0=$(BCB)\include
+
+[HistoryLists\hlLibraryPath]
+Count=1
+Item0=$(BCB)\lib
+
+[HistoryLists\hlConditionals]
+Count=3
+Item0=NO_RECURSE
+Item1=SUPPORT_UTF8
+Item2=_NO_VCL
+
+[Debugging]
+DebugSourceDirs=
+
+[Parameters]
+RunParams=
+Launcher=
+UseLauncher=0
+DebugCWD=
+HostApplication=
+RemoteHost=
+RemotePath=
+RemoteLauncher=
+RemoteCWD=
+RemoteDebug=0
+
+[Compiler]
+ShowInfoMsgs=0
+LinkDebugVcl=0
+LinkCGLIB=0
+
+[CORBA]
+AddServerUnit=1
+AddClientUnit=1
+PrecompiledHeaders=1
+
+[Linker]
+LibPrefix=
+LibSuffix=
+LibVersion=
+  </IDEOPTIONS>
+</PROJECT>
