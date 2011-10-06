@@ -3,11 +3,11 @@ unit Kitto.Ext.Form;
 interface
 
 uses
-  Generics.Collections, DB,
+  Generics.Collections,
   Ext, ExtData, ExtForm,
-  EF.ObserverIntf, EF.Data,
-  Kitto.Ext.Base, Kitto.DataSetTree, Kitto.Ext.DataPanel, Kitto.Ext.Editors,
-  Kitto.Metadata.Views, Kitto.controller;
+  EF.ObserverIntf,
+  Kitto.Ext.Base, Kitto.Ext.DataPanel, Kitto.Ext.Editors,
+  Kitto.Metadata.Views, Kitto.Controller, Kitto.Store;
 
 type
   ///	<summary>
@@ -18,15 +18,11 @@ type
     FViewTable: TKViewTable;
     FDetailHostWindow: TKExtModalWindow;
     FView: TKDataView;
-    FDataSetTree: TKDataSetTree;
-    FMasterDataSet: TKMasterDataSet;
     FController: IKController;
     procedure SetViewTable(const AValue: TKViewTable);
   public
     destructor Destroy; override;
     property ViewTable: TKViewTable read FViewTable write SetViewTable;
-    property DataSetTree: TKDataSetTree read FDataSetTree write FDataSetTree;
-    property MasterDataSet: TKMasterDataSet read FMasterDataSet write FMasterDataSet;
     property View: TKDataView read FView write FView;
   published
     procedure ShowDetailWindow;
@@ -46,17 +42,18 @@ type
     FDetailButtons: TObjectList<TKExtDetailFormButton>;
     FOperation: string;
     FFocusEditor: IKExtEditor;
+    FStoreRecord: TKRecord;
     procedure CreateDetailToolbar;
     procedure CreateEditors(const AForceReadOnly: Boolean);
-    procedure DataToEditors;
-    procedure EnterEditMode;
+    procedure FocusFirstEditor;
   protected
-    procedure OpenDataSet; override;
+    procedure LoadData; override;
     procedure InitComponents; override;
     procedure DoDisplay; override;
   public
     destructor Destroy; override;
   published
+    procedure GetRecord;
     procedure SaveChanges;
     procedure CancelChanges;
   end;
@@ -80,6 +77,8 @@ end;
 
 procedure TKExtFormPanel.DoDisplay;
 begin
+  FStoreRecord := Config.GetObject('Sys/Record') as TKRecord;
+  Assert(Assigned(FStoreRecord));
   inherited;
   Title := ViewTable.DisplayLabel;
 end;
@@ -102,8 +101,6 @@ begin
       FDetailButtons.Add(TKExtDetailFormButton.AddTo(FDetailToolbar.Items));
       FDetailButtons[I].ViewTable := ViewTable.DetailTables[I];
       FDetailButtons[I].View := View;
-      FDetailButtons[I].DataSetTree := DataSetTree;
-      FDetailButtons[I].MasterDataSet := DataSet;
     end;
     Tbar := FDetailToolbar;
   end;
@@ -115,94 +112,92 @@ var
   LLayoutName: string;
 begin
   FreeAndNil(FEditors);
-  if DataSet.Active then
-  begin
-    FEditors := TList<IKExtEditor>.Create;
-    LLayoutProcessor := TKExtLayoutProcessor.Create;
-    try
-      LLayoutProcessor.ViewTable := ViewTable;
-      LLayoutProcessor.DataSet := DataSet;
-      LLayoutProcessor.FormPanel := FFormPanel;
-      LLayoutProcessor.OnNewEditor :=
-        procedure (AEditor: IKExtEditor)
-        begin
-          FEditors.Add(AEditor);
-        end;
-      LLayoutProcessor.ForceReadOnly := AForceReadOnly;
+  FEditors := TList<IKExtEditor>.Create;
+  LLayoutProcessor := TKExtLayoutProcessor.Create;
+  try
+    LLayoutProcessor.ViewTable := ViewTable;
+    LLayoutProcessor.StoreRecord := FStoreRecord;
+    LLayoutProcessor.FormPanel := FFormPanel;
+    LLayoutProcessor.OnNewEditor :=
+      procedure (AEditor: IKExtEditor)
+      begin
+        FEditors.Add(AEditor);
+      end;
+    LLayoutProcessor.ForceReadOnly := AForceReadOnly;
 
-      LLayoutName := ViewTable.GetString('Controller/Form/Layout');
-      if LLayoutName <> '' then
-        LLayoutProcessor.CreateEditors(View.Catalog.Layouts.FindLayout(LLayoutName))
-      else
-        LLayoutProcessor.CreateEditors(ViewTable.FindLayout('Form'));
-      FFocusEditor := LLayoutProcessor.FocusEditor;
-    finally
-      FreeAndNil(LLayoutProcessor);
-    end;
-    // Scroll back to top - can't do that until afterrender because body.dom is needed.
-    FFormPanel.On('afterrender', JSFunction(FFormPanel.JSName + '.body.dom.scrollTop = 0;'));
+    LLayoutName := ViewTable.GetString('Controller/Form/Layout');
+    if LLayoutName <> '' then
+      LLayoutProcessor.CreateEditors(View.Catalog.Layouts.FindLayout(LLayoutName))
+    else
+      LLayoutProcessor.CreateEditors(ViewTable.FindLayout('Form'));
+    FFocusEditor := LLayoutProcessor.FocusEditor;
+  finally
+    FreeAndNil(LLayoutProcessor);
   end;
+  // Scroll back to top - can't do that until afterrender because body.dom is needed.
+  FFormPanel.On('afterrender', JSFunction(FFormPanel.JSName + '.body.dom.scrollTop = 0;'));
 end;
 
-procedure TKExtFormPanel.OpenDataSet;
+procedure TKExtFormPanel.LoadData;
 begin
   inherited;
-  if SameText(FOperation, 'Add') and FIsReadOnly then
-    raise EEFError.Create(_('Operation Add not supported on read-only form.'));
-
   CreateEditors(FIsReadOnly);
 
-  DataSet.RecreateDetailDataSetLists;
+  //DataSet.RecreateDetailDataSetLists;
   CreateDetailToolbar;
 
-  EnterEditMode;
+  Session.JSCode(
+    FFormPanel.JSName + '.getForm().load({url:"' + MethodURI(GetRecord) + '",' +
+      'failure: function(form, action) { Ext.Msg.alert("' + _('Load failed.') + '", action.result.errorMessage);}});');
+
+  //EnterEditMode;
 end;
 
-procedure TKExtFormPanel.EnterEditMode;
+procedure TKExtFormPanel.FocusFirstEditor;
 begin
-  if not FIsReadOnly then
-  begin
-    if SameText(FOperation, 'Add') then
-      DataSet.Append
-    else
-      DataSet.Edit;
-  end;
-  // Do this always, as Append might have set default values.
-  DataToEditors;
   if Assigned (FFocusEditor) then
     FFocusEditor.AsExtFormField.Focus(False, 500);
+end;
+
+procedure TKExtFormPanel.GetRecord;
+begin
+  if Assigned(FStoreRecord) then
+    Session.Response := '{success:true,data:' + FStoreRecord.GetAsJSON + '}'
+  else
+    Session.Response := '{success:false}';
 end;
 
 procedure TKExtFormPanel.SaveChanges;
 var
   LValue: string;
   LEditor: IKExtEditor;
-  LField: TField;
+//  LField: TField;
 begin
   for LEditor in FEditors do
   begin
     LValue := Session.Query[LEditor.AsExtFormField.Name];
-    LField := DataSet.FieldByName(LEditor.AsExtFormField.Name);
-    if LField is TDateTimeField then
-    begin
-      if LValue = '' then
-        LField.Clear
-      else
-        LField.AsDateTime := StrToDate(LValue, Session.FormatSettings);
-      { TODO : support boolean values mapping }
-    end
-    else
-      LField.AsString := LValue;
-  end;
-  if not ViewTable.IsDetail then
-  begin
-    { TODO : support AIsInsertingMasterRecord argument. }
-    DataSetTree.WriteChanges(SameText(FOperation, 'Add'));
+{ TODO : implement }
+//    LField := DataSet.FieldByName(LEditor.AsExtFormField.Name);
+//    if LField is TDateTimeField then
+//    begin
+//      if LValue = '' then
+//        LField.Clear
+//      else
+//        LField.AsDateTime := StrToDate(LValue, Session.FormatSettings);
+//      { TODO : support boolean values mapping }
+//    end
+//    else
+//      LField.AsString := LValue;
+//  end;
+//  if not ViewTable.IsDetail then
+//  begin
+//    { TODO : support AIsInsertingMasterRecord argument. }
+//    ServerStore.WriteChanges(SameText(FOperation, 'Add'));
     ExtMessageBox.Alert(Title, 'Changes saved succesfully');
   end;
   NotifyObservers('Confirmed');
   if not CloseHostWindow then
-    EnterEditMode;
+    FocusFirstEditor;
 end;
 
 procedure TKExtFormPanel.InitComponents;
@@ -222,6 +217,8 @@ begin
     FIsReadOnly := View.GetBoolean('IsReadOnly') or ViewTable.IsReadOnly or View.GetBoolean('Controller/PreventEditing');
       { TODO : implement }
       //or not Environment.IsAccessGranted(View.GetResourceURI, ACM_MODIFY);
+  if SameText(FOperation, 'Add') and FIsReadOnly then
+    raise EEFError.Create(_('Operation Add not supported on read-only data.'));
 
   ExtQuickTips.Init(True);
 
@@ -270,18 +267,9 @@ end;
 
 procedure TKExtFormPanel.CancelChanges;
 begin
-  DataSet.Cancel;
   NotifyObservers('Canceled');
   if not CloseHostWindow then
-    EnterEditMode;
-end;
-
-procedure TKExtFormPanel.DataToEditors;
-var
-  LEditor: IKExtEditor;
-begin
-  for LEditor in FEditors do
-    LEditor.SetValueFromField(DataSet.FieldByName(LEditor.AsExtFormField.Name));
+    FocusFirstEditor;
 end;
 
 { TKExtDetailFormButton }
@@ -317,8 +305,6 @@ begin
   FreeAndNil(FController);
   FController := TKControllerFactory.Instance.CreateController(FView);
   FController.Config.SetObject('Sys/Container', FDetailHostWindow);
-  FController.Config.SetObject('Sys/DataSetTree', DataSetTree);
-  FController.Config.SetObject('Sys/DataSet', MasterDataSet.DetailDataSetListByViewTable(ViewTable).GetDataSetByMasterKey(MasterDataSet));
   FController.Display;
   FDetailHostWindow.Show;
 end;

@@ -22,9 +22,10 @@ type
   protected
     function BeforeHandleRequest: Boolean; override;
     procedure AfterHandleRequest; override;
-    function TryToServeFile: Boolean; override;
   public
     procedure AfterConstruction; override;
+    destructor Destroy; override;
+  public
     property Environment: TKEnvironment read GetEnvironment;
     procedure InitDefaultValues; override;
     procedure Home; override;
@@ -69,7 +70,7 @@ end;
 procedure TKExtSession.AfterConstruction;
 begin
   inherited;
-  SetEWEnvironmentSingleton(@GetSessionEnvironment);
+  SetEnvironmentSingleton(@GetSessionEnvironment);
 end;
 
 function TKExtSession.GetEnvironment: TKEnvironment;
@@ -98,6 +99,12 @@ begin
     if (LObject <> nil) and (PGarbage(LObject)^.Garbage <> nil) then
       Inc(Result);
   end;
+end;
+
+destructor TKExtSession.Destroy;
+begin
+  FreeAndNil(FEnvironment);
+  inherited;
 end;
 
 procedure TKExtSession.DisplayHomeView;
@@ -197,6 +204,7 @@ begin
   if LLanguageId <> '' then
     Language := LLanguageId;
   FFormatSettings := TFormatSettings.Create;
+  FFormatSettings.ShortTimeFormat := 'hh:mm:ss';
   { TODO : read default format settings from environment and allow to change them on a per-user basis. }
   Theme := Environment.Config.GetString('Ext/Theme');
 end;
@@ -241,14 +249,9 @@ begin
     SetStyle(LRule);
 end;
 
-function TKExtSession.TryToServeFile: Boolean;
-begin
-
-end;
-
 initialization
 
 finalization
-  SetEWEnvironmentSingleton(nil);
+  SetEnvironmentSingleton(nil);
 
 end.

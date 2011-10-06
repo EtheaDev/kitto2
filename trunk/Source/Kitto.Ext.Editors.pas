@@ -3,10 +3,10 @@ unit Kitto.Ext.Editors;
 interface
 
 uses
-  DB, Generics.Collections,
+  Generics.Collections,
   Ext, ExtPascal, ExtForm,
-  EF.Intf, EF.Data, EF.Classes, EF.Tree,
-  Kitto.Ext.Base, Kitto.Metadata.Views;
+  EF.Intf, EF.Classes, EF.Tree,
+  Kitto.Ext.Base, Kitto.Metadata.Views, Kitto.Store;
 
 type
   IKExtEditItem = interface(IEFInterface)
@@ -23,7 +23,6 @@ type
   IKExtEditor = interface(IKExtEditItem)
     ['{FF091C2F-A987-4D00-B985-9C00AE37CA5A}']
     function AsExtFormField: TExtFormField;
-    procedure SetValueFromField(const AField: TField);
   end;
 
   TKExtEditPanel = class(TExtFormFormPanel, IKExtEditItem, IKExtEditContainer)
@@ -93,7 +92,6 @@ type
     function Encapsulate(const AValue: IKExtEditor): IKExtEditor;
 
     function AsExtFormField: TExtFormField;
-    procedure SetValueFromField(const AField: TField);
     procedure SetOption(const AName, AValue: string);
   end;
 
@@ -108,7 +106,6 @@ type
     procedure SetOption(const AName, AValue: string);
     function AsExtObject: TExtObject; inline;
     function AsExtFormField: TExtFormField; inline;
-    procedure SetValueFromField(const AField: TField);
   end;
 
   TKExtFormTextField = class(TExtFormTextField, IKExtEditItem, IKExtEditor)
@@ -120,7 +117,6 @@ type
     procedure SetOption(const AName, AValue: string);
     function AsExtObject: TExtObject; inline;
     function AsExtFormField: TExtFormField; inline;
-    procedure SetValueFromField(const AField: TField);
   end;
 
   TKExtFormTextArea = class(TExtFormTextArea, IKExtEditItem, IKExtEditor)
@@ -132,7 +128,6 @@ type
     procedure SetOption(const AName, AValue: string);
     function AsExtObject: TExtObject; inline;
     function AsExtFormField: TExtFormField; inline;
-    procedure SetValueFromField(const AField: TField);
   end;
 
   TKExtFormCheckbox = class(TExtFormCheckbox, IKExtEditItem, IKExtEditor)
@@ -144,7 +139,6 @@ type
     procedure SetOption(const AName, AValue: string);
     function AsExtObject: TExtObject; inline;
     function AsExtFormField: TExtFormField; inline;
-    procedure SetValueFromField(const AField: TField);
   end;
 
   TKExtFormDateField = class(TExtFormDateField, IKExtEditItem, IKExtEditor)
@@ -156,7 +150,6 @@ type
     procedure SetOption(const AName, AValue: string);
     function AsExtObject: TExtObject; inline;
     function AsExtFormField: TExtFormField; inline;
-    procedure SetValueFromField(const AField: TField);
   end;
 
   TKExtFormTimeField = class(TExtFormTimeField, IKExtEditItem, IKExtEditor)
@@ -168,7 +161,6 @@ type
     procedure SetOption(const AName, AValue: string);
     function AsExtObject: TExtObject; inline;
     function AsExtFormField: TExtFormField; inline;
-    procedure SetValueFromField(const AField: TField);
   end;
 
   TKExtFormDateTimeField = class(TExtFormField, IKExtEditItem, IKExtEditor)
@@ -192,7 +184,6 @@ type
     procedure SetOption(const AName, AValue: string);
     function AsExtObject: TExtObject; inline;
     function AsExtFormField: TExtFormField; inline;
-    procedure SetValueFromField(const AField: TField);
 
     property DateFormat: string read FDateFormat write SetDateFormat;
     property DateConfig: TExtObject read FDateConfig write SetDateConfig;
@@ -205,7 +196,6 @@ type
     procedure SetOption(const AName, AValue: string);
     function AsExtObject: TExtObject; inline;
     function AsExtFormField: TExtFormField; inline;
-    procedure SetValueFromField(const AField: TField);
   end;
 
   TKExtLayoutDefaults = record
@@ -227,13 +217,13 @@ type
   private
     FViewTable: TKViewTable;
     FForceReadOnly: Boolean;
-    FDataSet: TDataSet;
     FOnNewEditor: TKExtLayoutOnNewEditor;
     FFormPanel: TKExtEditPanel;
     FFocusEditor: IKExtEditor;
     FDefaults: TKExtLayoutDefaults;
     FCurrentEditItem: IKExtEditItem;
     FEditContainers: TStack<IKExtEditContainer>;
+    FStoreRecord: TKRecord;
 
     function CreateEditItem(const AName, AValue: string;
       const AContainer: IKExtEditContainer): IKExtEditItem;
@@ -255,8 +245,8 @@ type
     property ViewTable: TKViewTable read FViewTable write FViewTable;
     property ForceReadOnly: Boolean read FForceReadOnly write FForceReadOnly;
     property FormPanel: TKExtEditPanel read FFormPanel write FFormPanel;
-    property DataSet: TDataSet read FDataSet write FDataSet;
     property OnNewEditor: TKExtLayoutOnNewEditor read FOnNewEditor write FOnNewEditor;
+    property StoreRecord: TKRecord read FStoreRecord write FStoreRecord;
 
     ///	<summary>
     ///	  Creates editors according to the specified layout or a default layout.
@@ -393,7 +383,6 @@ var
 begin
   Assert(Assigned(FViewTable));
   Assert(Assigned(FFormPanel));
-  Assert(Assigned(FDataSet));
   Assert(Assigned(ALayout));
 
   FCurrentEditItem := nil;
@@ -460,7 +449,7 @@ var
 begin
   Assert(Assigned(FViewTable));
   Assert(Assigned(FFormPanel));
-  Assert(Assigned(FDataSet));
+  Assert(Assigned(FStoreRecord));
 
   FFocusEditor := nil;
 
@@ -468,10 +457,10 @@ begin
     CreateEditorsFromLayout(ALayout)
   else
   begin
-    for I := 0 to FDataSet.FieldCount - 1 do
+    for I := 0 to FStoreRecord.FieldCount - 1 do
     begin
-      if FViewTable.IsFieldVisible(FViewTable.FieldByAliasedName(FDataSet.Fields[I].FieldName)) then
-        FFormPanel.AddChild(CreateEditor(FDataSet.Fields[I].FieldName, nil));
+      if FViewTable.IsFieldVisible(FViewTable.FieldByAliasedName(FStoreRecord.Fields[I].Name)) then
+        FFormPanel.AddChild(CreateEditor(FStoreRecord.Fields[I].Name, nil));
     end;
   end;
   if Assigned(FFocusEditor) then
@@ -513,7 +502,6 @@ var
   LDateField: TKExtFormDateField;
   LDateTimeField: TKExtFormDateTimeField;
   LTextField: TKExtFormTextField;
-  LField: TField;
   LDataField: TKViewField;
   LRowField: TKExtFormRowField;
   LNumberField: TKExtFormNumberField;
@@ -522,15 +510,14 @@ var
   LAllowedValues: TEFPairs;
   LTimeField: TKExtFormTimeField;
 begin
-  LField := FDataSet.FieldByName(AFieldName);
   LDataField := FViewTable.FieldByAliasedName(AFieldName);
 
   // Store common properties.
   LFieldWidth := LDataField.DisplayWidth;
-  LMaxLength := LField.Size;
+  LMaxLength := LDataField.Size;
   if LFieldWidth = 0 then
     // Blobs have Size = 0.
-    LFieldWidth := Min(IfThen(LField.Size = 0, FDefaults.MemoWidth, LField.Size), FDefaults.MaxFieldWidth);
+    LFieldWidth := Min(IfThen(LDataField.Size = 0, FDefaults.MemoWidth, LDataField.Size), FDefaults.MaxFieldWidth);
   // Minimum cap - avoids too short combo boxes.
   // Add 1 to compensate for Ext's imprecise conversion to pixels.
   LFieldWidth := Max(LFieldWidth, FDefaults.MinFieldWidth) + 1;
@@ -562,8 +549,8 @@ begin
       LComboBox.SelectOnFocus := False;
       LComboBox.Mode := 'local';
       // Enable the combo box to post its hidden value instead of the visible description.
-      LComboBox.HiddenName := LField.FieldName;
-      LComboBox.Id := LField.FieldName + '_DX';
+      LComboBox.HiddenName := LDataField.AliasedName;
+      //LComboBox.Id := LDataField.AliasedName + '_DX';
       if LLookupCommandText <> '' then
         LComboBox.StoreArray := FFormPanel.JSArray(DataSetToJSON(Environment.MainDBConnection, LLookupCommandText))
       else
@@ -580,8 +567,7 @@ begin
       raise;
     end;
   end
-  else if (LField.DataType in [ftMemo, ftWideMemo, ftFmtMemo, ftOraClob])
-    or ((LField.DataType in [ftString, ftWideString]) and (LField.Size div SizeOf(Char) >= MULTILINE_EDIT_THRESHOLD)) then
+  else if (LDataField.DataType = edtString) and ((LDataField.Size = 0) or (LDataField.Size div SizeOf(Char) >= MULTILINE_EDIT_THRESHOLD)) then
   begin
     LTextArea := TKExtFormTextArea.Create;
     try
@@ -595,8 +581,8 @@ begin
       //Anchor := '100%';
       if not LIsReadOnly then
       begin
-        if LField.Size > 0 then
-          LTextArea.MaxLength  := LField.Size;
+        if LDataField.Size > 0 then
+          LTextArea.MaxLength  := LDataField.Size;
         LTextArea.AllowBlank := not LIsRequired;
       end;
       LTextArea.Grow := True;
@@ -644,7 +630,7 @@ begin
       else
         LRowField.Width := FFormPanel.CharsToPixels(LFieldWidth + TRIGGER_WIDTH);
       // Don't use Delphi format here.
-      LTimeField.Format := DelphiDateFormatToJSDateFormat(Session.FormatSettings.ShortTimeFormat);
+      LTimeField.Format := DelphiTimeFormatToJSTimeFormat(Session.FormatSettings.ShortTimeFormat);
       if not LIsReadOnly then
         LTimeField.AllowBlank := not LIsRequired;
       Result := LTimeField;
@@ -663,8 +649,7 @@ begin
         LRowField.Width := FFormPanel.CharsToPixels(LFieldWidth + (2 * TRIGGER_WIDTH) + SPACER_WIDTH);
       // Don't use Delphi format here.
       LDateTimeField.DateFormat := DelphiDateFormatToJSDateFormat(Session.FormatSettings.ShortDateFormat);
-      { TODO : localize? }
-      LDateTimeField.TimeFormat := 'g:i:s';
+      LDateTimeField.TimeFormat := DelphiTimeFormatToJSTimeFormat(Session.FormatSettings.ShortTimeFormat);
       if not LIsReadOnly then
       begin
         LDateTimeField.DateConfig := FFormPanel.JSObject('allowBlank:false');
@@ -681,7 +666,7 @@ begin
       raise;
     end;
   end
-  else if LDataField.DataType in [edtInteger, edtCurrency, edtFloat, edtBcd] then
+  else if LDataField.DataType in [edtInteger, edtCurrency, edtFloat, edtDecimal] then
   begin
     LNumberField := TKExtFormNumberField.Create;
     try
@@ -691,7 +676,7 @@ begin
         LRowField.Width := FFormPanel.CharsToPixels(LFieldWidth);
       if not LIsReadOnly then
       begin
-        LNumberField.AllowDecimals := LDataField.DataType in [edtCurrency, edtFloat, edtBcd];
+        LNumberField.AllowDecimals := LDataField.DataType in [edtCurrency, edtFloat, edtDecimal];
         LNumberField.AllowNegative := True;
         if not LNumberField.AllowDecimals then
         begin
@@ -761,8 +746,8 @@ begin
 
   Result.AsExtFormField.AutoScroll := False; // Don't display a h. scrollbar for larger fields.
   if Result.AsExtFormField.Id = '' then
-    Result.AsExtFormField.Id := LField.FieldName;
-  Result.AsExtFormField.Name := LField.FieldName;
+    Result.AsExtFormField.Id := LDataField.AliasedName;
+  Result.AsExtFormField.Name := LDataField.AliasedName;
   Result.AsExtFormField.ReadOnly := LIsReadOnly;
   // Don't disable: it will be missing from the POST and SaveChanges does not handle that yet.
   { TODO : make disabling configurable - watch out for disabled fields changed by triggers (they should be POSTed) }
@@ -1012,13 +997,6 @@ begin
     InvalidOption(AName, AValue);
 end;
 
-procedure TKExtFormTextField.SetValueFromField(const AField: TField);
-begin
-  Assert(Assigned(AField));
-
-  Value := AField.AsString;
-end;
-
 function TKExtFormTextField._AddRef: Integer;
 begin
   Result := 0;
@@ -1062,13 +1040,6 @@ begin
   end;
 end;
 
-procedure TKExtFormTextArea.SetValueFromField(const AField: TField);
-begin
-  Assert(Assigned(AField));
-
-  Value := AField.AsString;
-end;
-
 function TKExtFormTextArea._AddRef: Integer;
 begin
   Result := 0;
@@ -1105,14 +1076,6 @@ procedure TKExtFormCheckbox.SetOption(const AName, AValue: string);
 begin
   if not SetExtFormFieldOption(AsExtFormField, AName, AValue) then
     InvalidOption(AName, AValue);
-end;
-
-procedure TKExtFormCheckbox.SetValueFromField(const AField: TField);
-begin
-  Assert(Assigned(AField));
-  Assert(AField.DataType in [ftBoolean, ftSmallint, ftInteger]);
-
-  SetValue(AField.AsBoolean);
 end;
 
 function TKExtFormCheckbox._AddRef: Integer;
@@ -1153,17 +1116,6 @@ begin
     InvalidOption(AName, AValue);
 end;
 
-procedure TKExtFormDateField.SetValueFromField(const AField: TField);
-begin
-  Assert(Assigned(AField));
-  Assert(AField.DataType in [ftDate, ftDateTime]);
-
-  if AField.AsDateTime = 0 then
-    Value := ''
-  else
-    Value := DateToStr(AField.AsDateTime, Session.FormatSettings);
-end;
-
 function TKExtFormDateField._AddRef: Integer;
 begin
   Result := 0;
@@ -1195,13 +1147,6 @@ begin
     else
       InvalidOption(AName, AValue);
   end;
-end;
-
-procedure TKExtFormComboBoxEditor.SetValueFromField(const AField: TField);
-begin
-  Assert(Assigned(AField));
-
-  Value := AField.AsString;
 end;
 
 { TKExtFormContainer }
@@ -1304,11 +1249,6 @@ begin
     FEditor.SetOption(AName, AValue);
 end;
 
-procedure TKExtFormRowField.SetValueFromField(const AField: TField);
-begin
-  FEditor.SetValueFromField(AField);
-end;
-
 { TKExtFormNumberField }
 
 function TKExtFormNumberField.AsExtFormField: TExtFormField;
@@ -1335,13 +1275,6 @@ procedure TKExtFormNumberField.SetOption(const AName, AValue: string);
 begin
   if not SetExtFormFieldOption(AsExtFormField, AName, AValue) then
     InvalidOption(AName, AValue);
-end;
-
-procedure TKExtFormNumberField.SetValueFromField(const AField: TField);
-begin
-  Assert(Assigned(AField));
-
-  Value := AField.AsString;
 end;
 
 function TKExtFormNumberField._AddRef: Integer;
@@ -1392,17 +1325,6 @@ procedure TKExtFormDateTimeField.SetOption(const AName, AValue: string);
 begin
   if not SetExtFormFieldOption(AsExtFormField, AName, AValue) then
     InvalidOption(AName, AValue);
-end;
-
-procedure TKExtFormDateTimeField.SetValueFromField(const AField: TField);
-begin
-  Assert(Assigned(AField));
-  Assert(AField.DataType in [ftDateTime, ftTimeStamp]);
-
-  if AField.AsDateTime = 0 then
-    Value := ''
-  else
-    Value := DateTimeToStr(AField.AsDateTime, Session.FormatSettings);
 end;
 
 function TKExtFormDateTimeField._AddRef: Integer;
@@ -1467,17 +1389,6 @@ procedure TKExtFormTimeField.SetOption(const AName, AValue: string);
 begin
   if not SetExtFormFieldOption(AsExtFormField, AName, AValue) then
     InvalidOption(AName, AValue);
-end;
-
-procedure TKExtFormTimeField.SetValueFromField(const AField: TField);
-begin
-  Assert(Assigned(AField));
-  Assert(AField.DataType in [ftDateTime, ftTime]);
-
-  if AField.AsDateTime = 0 then
-    Value := ''
-  else
-    Value := TimeToStr(AField.AsDateTime, Session.FormatSettings);
 end;
 
 function TKExtFormTimeField._AddRef: Integer;

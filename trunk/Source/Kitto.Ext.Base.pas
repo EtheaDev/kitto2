@@ -13,7 +13,7 @@ type
   ///	</summary>
   TKExtWindow = class(TExtWindow, IInterface, IEFInterface, IEFSubject, IEFObserver, IKController)
   private
-    FSubjObserverImpl: TEFClassesSubjectAndObserver;
+    FSubjObserverImpl: TEFSubjectAndObserver;
     FView: TKView;
     FConfig: TEFConfig;
     function GetView: TKView;
@@ -62,7 +62,7 @@ type
   ///	</summary>
   TKExtViewport = class(TExtViewport, IInterface, IEFInterface, IEFSubject, IEFObserver, IKController)
   private
-    FSubjObserverImpl: TEFClassesSubjectAndObserver;
+    FSubjObserverImpl: TEFSubjectAndObserver;
     FView: TKView;
     FConfig: TEFConfig;
     function GetView: TKView;
@@ -93,7 +93,7 @@ type
   ///	</summary>
   TKExtPanel = class(TExtPanel, IInterface, IEFInterface, IEFSubject, IEFObserver)
   private
-    FSubjObserverImpl: TEFClassesSubjectAndObserver;
+    FSubjObserverImpl: TEFSubjectAndObserver;
     FConfig: TEFConfig;
   protected
     function GetConfig: TEFConfig;
@@ -131,7 +131,7 @@ type
 
   TKExtFormComboBox = class(TExtFormComboBox, IInterface, IEFInterface, IEFSubject)
   private
-    FSubjObserverImpl: TEFClassesSubjectAndObserver;
+    FSubjObserverImpl: TEFSubjectAndObserver;
   public
     procedure AfterConstruction; override;
     destructor Destroy; override;
@@ -157,7 +157,7 @@ uses
 procedure TKExtWindow.AfterConstruction;
 begin
   inherited;
-  FSubjObserverImpl := TEFClassesSubjectAndObserver.Create;
+  FSubjObserverImpl := TEFSubjectAndObserver.Create;
 end;
 
 function TKExtWindow.AsObject: TObject;
@@ -246,7 +246,7 @@ end;
 procedure TKExtPanel.AfterConstruction;
 begin
   inherited;
-  FSubjObserverImpl := TEFClassesSubjectAndObserver.Create;
+  FSubjObserverImpl := TEFSubjectAndObserver.Create;
 end;
 
 function TKExtPanel.AsObject: TObject;
@@ -348,7 +348,7 @@ end;
 procedure TKExtViewport.AfterConstruction;
 begin
   inherited;
-  FSubjObserverImpl := TEFClassesSubjectAndObserver.Create;
+  FSubjObserverImpl := TEFSubjectAndObserver.Create;
 end;
 
 function TKExtViewport.AsObject: TObject;
@@ -456,7 +456,7 @@ end;
 procedure TKExtFormComboBox.AfterConstruction;
 begin
   inherited;
-  FSubjObserverImpl := TEFClassesSubjectAndObserver.Create;
+  FSubjObserverImpl := TEFSubjectAndObserver.Create;
 end;
 
 function TKExtFormComboBox.AsObject: TObject;

@@ -5,52 +5,27 @@ unit Kitto.SQL;
 interface
 
 uses
-  Classes, DB, Contnrs,
+  Classes, Generics.Collections,
   EF.Classes,  EF.DB,
   Kitto.Metadata.Models, Kitto.Metadata.Views;
 
 type
   TKSQLJoinBuilder = class;
 
-  {
-    A set of named queries, each built by the object itself.
-    This object can build queries in various ways (see the Add* methods).
-  }
+  ///	<summary>
+  ///	  Builds SQL statements on request.
+  ///	</summary>
   TKSQLQueryBuilder = class(TEFComponent)
   private
-    FDBQueryList: TEFDBQueryList;
     FJoinBuilder: TKSQLJoinBuilder;
-    function GetDBQuery(const ADBQueryName: string): IEFDBQuery;
   public
     procedure AfterConstruction; override;
     destructor Destroy; override;
     {
-      Creates a new query with given SQL statement and adds it to the list
-      under the specified name.
+      Builds and returns a SQL statement that selects all fields from
+      the specified view table.
     }
-    function AddFromSelectStatement(const ASQL: string; const AName: string): Integer;
-    {
-      Creates a new query with a SQL statement that selects all fields from
-      the specified GUI visual control's GUI field collection. The query is
-      added to the list under the specified name (AName), and the query's
-      DataSet is tagged with the value of AGUIVisualControlWithFields.
-      Returns the index of the new query in the list.
-    }
-    function AddFromDataViewTable(const AViewTable: TKViewTable;
-      const AName: string): Integer;
-    {
-      Removes the query with the specified name from the list and frees it.
-    }
-    procedure Remove(const AName: string);
-    {
-      Returns the index of the DBQuery with the given name, or -1 if it doesn't
-      exist.
-    }
-    function IndexOf(const AName: string): Integer;
-    {
-      Use this property to access an already added query by name.
-    }
-    property DBQueries[const AName: string]: IEFDBQuery read GetDBQuery; default;
+    function GetSelectStatement(const AViewTable: TKViewTable): string;
   end;
 
   TKSQLJoinType = (jtInner, jtLeft);
@@ -96,9 +71,8 @@ type
   }
   TKSQLJoinClauses = class
   private
-    FClauses: TObjectList;
-    function GetClause(const AIndex: Integer): TKSQLJoinClause;
-    function GetCount: Integer;
+    FClauses: TObjectList<TKSQLJoinClause>;
+    function GetClausesExist: Boolean;
   public
     procedure AfterConstruction; override;
     destructor Destroy; override;
@@ -106,8 +80,8 @@ type
     function GetAsString: string;
     procedure AddClause(const AClause: TKSQLJoinClause);
     procedure RemoveClause(const AJoinClause: TKSQLJoinClause);
-    property Count: Integer read GetCount;
     function ClauseExists(const AClause: TKSQLJoinClause): Boolean;
+    property ClausesExist: Boolean read GetClausesExist;
   end;
 
   {
@@ -124,7 +98,7 @@ type
       are found, and there's no params in the GUI field that help choosing one,
       an exception is raised.
     }
-    function GetForeignKey(const ADataViewField: TKViewField;
+    function GetReference(const ADataViewField: TKViewField;
       out ASourceTable: TKModel): TKModelReference;
   public
     procedure AfterConstruction; override;
@@ -143,7 +117,7 @@ type
 implementation
 
 uses
-  SysUtils, StrUtils, Generics.Collections,
+  SysUtils, StrUtils,
   EF.Intf, EF.Localization, EF.Types, EF.StrUtils,
   Kitto.Types, Kitto.Environment;
 
@@ -152,7 +126,6 @@ uses
 procedure TKSQLQueryBuilder.AfterConstruction;
 begin
   inherited;
-  FDBQueryList := TEFDBQueryList.Create;
   FJoinBuilder := TKSQLJoinBuilder.Create;
 end;
 
@@ -160,91 +133,42 @@ destructor TKSQLQueryBuilder.Destroy;
 begin
   inherited;
   FreeAndNil(FJoinBuilder);
-  FreeAndNil(FDBQueryList);
 end;
 
-function TKSQLQueryBuilder.IndexOf(const AName: string): Integer;
-begin
-  Result := FDBQueryList.IndexOf(AName);
-end;
-
-procedure TKSQLQueryBuilder.Remove(const AName: string);
+function TKSQLQueryBuilder.GetSelectStatement(
+  const AViewTable: TKViewTable): string;
 var
-  LDBQueryIntf: IEFDBQuery;
-begin
-  if IndexOf(AName) >= 0 then
-  begin
-    LDBQueryIntf := GetDBQuery(AName);
-    FDBQueryList.Remove(LDBQueryIntf);
-    FreeAndNilEFIntf(LDBQueryIntf);
-  end;
-end;
-
-function TKSQLQueryBuilder.GetDBQuery(const ADBQueryName: string): IEFDBQuery;
-begin
-  Result := FDBQueryList.GetDBQueryByName(ADBQueryName);
-end;
-
-function TKSQLQueryBuilder.AddFromDataViewTable(const AViewTable: TKViewTable;
-  const AName: string): Integer;
-var
-  LDBQueryIntf: IEFDBQuery;
-  LCommandText: string;
   LFieldNames: string;
   I: Integer;
 begin
   Assert(Assigned(AViewTable));
-  Assert(AName <> '');
 
-  LDBQueryIntf := Environment.MainDBConnection.CreateDBQuery;
-  try
-    LFieldNames := '';
-    for I := 0 to AViewTable.FieldCount - 1 do
-    begin
-      if LFieldNames = '' then
-        LFieldNames := AViewTable.Fields[I].AliasedNameOrExpression
-      else
-        LFieldNames := LFieldNames + ', ' + AViewTable.Fields[I].AliasedNameOrExpression;
-    end;
-    LCommandText :=
-      'select ' +  LFieldNames +
-      ' from ' + FJoinBuilder.BuildSQLFromClause(AViewTable);
-    if AViewTable.DefaultFilter <> '' then
-      LCommandText := LCommandText + ' where (' + AViewTable.DefaultFilter + ')';
-    if AViewTable.DefaultSorting <> '' then
-      LCommandText := LCommandText + ' order by ' + AViewTable.DefaultSorting;
-    LDBQueryIntf.CommandText := Environment.MacroExpansionEngine.Expand(LCommandText);
-    Result := FDBQueryList.Add(AName, LDBQueryIntf);
-  except
-    FreeAndNilEFIntf(LDBQueryIntf);
-    raise;
+  LFieldNames := '';
+  for I := 0 to AViewTable.FieldCount - 1 do
+  begin
+    if LFieldNames = '' then
+      LFieldNames := AViewTable.Fields[I].AliasedNameOrExpression
+    else
+      LFieldNames := LFieldNames + ', ' + AViewTable.Fields[I].AliasedNameOrExpression;
   end;
-
-  Assert(Result >= 0);
-end;
-
-function TKSQLQueryBuilder.AddFromSelectStatement(const ASQL, AName: string): Integer;
-var
-  LDBQueryIntf: IEFDBQuery;
-begin
-  LDBQueryIntf := Environment.MainDBConnection.CreateDBQuery;
-  try
-    LDBQueryIntf.CommandText := ASQL;
-    Result := FDBQueryList.Add(AName, LDBQueryIntf);
-  except
-    FreeAndNilEFIntf(LDBQueryIntf);
-    raise;
-  end;
+  Result :=
+    'select ' +  LFieldNames +
+    ' from ' + FJoinBuilder.BuildSQLFromClause(AViewTable);
+  if AViewTable.DefaultFilter <> '' then
+    Result := Result + ' where (' + AViewTable.DefaultFilter + ')';
+  if AViewTable.DefaultSorting <> '' then
+    Result := Result + ' order by ' + AViewTable.DefaultSorting;
+  Result := Environment.MacroExpansionEngine.Expand(Result);
 end;
 
 { TKSQLJoinBuilder }
 
-function TKSQLJoinBuilder.GetForeignKey(const ADataViewField: TKViewField;
+function TKSQLJoinBuilder.GetReference(const ADataViewField: TKViewField;
   out ASourceTable: TKModel): TKModelReference;
 var
   LTargetTable: TKModel;
-  LForeignKeys: TList<TKModelReference>;
-  LForeignKeyName: string;
+  LReferences: TList<TKModelReference>;
+  LReference: string;
 begin
   Assert(Assigned(FViewTable));
   Assert(Assigned(ADataViewField));
@@ -253,33 +177,33 @@ begin
   ASourceTable := FViewTable.Model;
   LTargetTable := ADataViewField.Model;
 
-  LForeignKeys := TList<TKModelReference>.Create;
+  LReferences := TList<TKModelReference>.Create;
   try
-    ASourceTable.GetReferencesToModel(LTargetTable, LForeignKeys);
+    ASourceTable.GetReferencesToModel(LTargetTable, LReferences);
 
     // Only one FK - must be the one we're after.
-    if LForeignKeys.Count = 1 then
-      Result := LForeignKeys[0]
+    if LReferences.Count = 1 then
+      Result := LReferences[0]
     // No FKs - no join possible. In the future we might add here ability
     // to find an indirect path but not right now.
-    else if LForeignKeys.Count = 0 then
+    else if LReferences.Count = 0 then
       raise EEFError.CreateFmt(_('No foreign keys found from table %s to table %s.'),
         [ASourceTable.ModelName, LTargetTable.ModelName])
     else
     begin
       // More than one foreign keys - select one.
-      LForeignKeyName := ADataViewField.GetString('ForeignKeyName');
-      if LForeignKeyName <> '' then
+      LReference := ADataViewField.GetString('Reference');
+      if LReference <> '' then
       begin
         // Exception if the specified FK is not existing or not pointing to the
         // right table.
-        Result := ASourceTable.ReferenceByName(LForeignKeyName);
+        Result := ASourceTable.ReferenceByName(LReference);
         if Result.ReferencedModel <> LTargetTable then
-          raise EEFError.CreateFmt(_('Foreign key %s does not refer to table %s.'), [LForeignKeyName, LTargetTable.ModelName]);
+          raise EEFError.CreateFmt(_('Foreign key %s does not refer to table %s.'), [LReference, LTargetTable.ModelName]);
       end;
     end;
   finally
-    FreeAndNil(LForeignKeys);
+    FreeAndNil(LReferences);
   end;
   if not Assigned(Result) then
     raise EEFError.CreateFmt(_('No suitable foreign key found for data view field %s in table %s.'),
@@ -288,7 +212,7 @@ end;
 
 procedure TKSQLJoinBuilder.AddJoinClause(const ADataViewField: TKViewField);
 var
-  LForeignKey: TKModelReference;
+  LReference: TKModelReference;
   LJoinClause: TKSQLJoinClause;
   I: Integer;
   LSourceTable: TKModel;
@@ -300,20 +224,20 @@ begin
   fields from the same referred table under a single join clause. }
   if ADataViewField.ModelName <> FViewTable.ModelName then
   begin
-    LForeignKey := GetForeignKey(ADataViewField, LSourceTable);
+    LReference := GetReference(ADataViewField, LSourceTable);
     LJoinClause := TKSQLJoinClause.Create;
     try
       LJoinClause.SourceTableName := FViewTable.ModelName;
-      LJoinClause.TargetTableName := LForeignKey.ReferencedModel.ModelName;
+      LJoinClause.TargetTableName := LReference.ReferencedModel.ModelName;
       { TODO : until the rewrite, we support a single foreign field for each
         foreign table, because we are using the table name as alias. }
       LJoinClause.TargetTableAliasName := ADataViewField.ModelName;
-      if LForeignKey.IsRequired then
+      if LReference.IsRequired then
         LJoinClause.JoinType := jtInner
       else
         LJoinClause.JoinType := jtLeft;
-      for I := 0 to LForeignKey.FieldCount - 1 do
-        LJoinClause.AddFieldPair(LForeignKey.Fields[I].FieldName, LForeignKey.ReferencedFields[I].FieldName);
+      for I := 0 to LReference.FieldCount - 1 do
+        LJoinClause.AddFieldPair(LReference.Fields[I].FieldName, LReference.ReferencedFields[I].FieldName);
       if FJoinClauses.ClauseExists(LJoinClause) then
         FreeAndNil(LJoinClause)
       else
@@ -342,7 +266,7 @@ begin
   Result := FViewTable.ModelName;
   for LFieldIndex := 0 to FViewTable.FieldCount - 1 do
     AddJoinClause(FViewTable.Fields[LFieldIndex]);
-  if FJoinClauses.Count > 0 then
+  if FJoinClauses.ClausesExist then
     Result := Result + sLineBreak + FJoinClauses.GetAsString;
 end;
 
@@ -369,7 +293,7 @@ end;
 procedure TKSQLJoinClauses.AfterConstruction;
 begin
   inherited;
-  FClauses := TObjectList.Create(True);
+  FClauses := TObjectList<TKSQLJoinClause>.Create(True);
 end;
 
 function TKSQLJoinClauses.ClauseExists(const AClause: TKSQLJoinClause): Boolean;
@@ -380,7 +304,7 @@ begin
 
   for I := 0 to FClauses.Count - 1 do
   begin
-    if GetClause(I).EqualsClause(AClause) then
+    if FClauses[I].EqualsClause(AClause) then
     begin
       Result := True;
       Break;
@@ -405,17 +329,12 @@ var
 begin
   Result := '';
   for I := 0 to FClauses.Count - 1 do
-    Result := Result + GetClause(I).GetAsString + sLineBreak;
+    Result := Result + FClauses[I].GetAsString + sLineBreak;
 end;
 
-function TKSQLJoinClauses.GetClause(const AIndex: Integer): TKSQLJoinClause;
+function TKSQLJoinClauses.GetClausesExist: Boolean;
 begin
-  Result := FClauses[AIndex] as TKSQLJoinClause;
-end;
-
-function TKSQLJoinClauses.GetCount: Integer;
-begin
-  Result := FClauses.Count;
+  Result := FClauses.Count > 0;
 end;
 
 procedure TKSQLJoinClauses.RemoveClause(const AJoinClause: TKSQLJoinClause);

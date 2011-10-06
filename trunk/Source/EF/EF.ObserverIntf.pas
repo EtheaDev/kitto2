@@ -1,55 +1,3 @@
-{*******************************************************************}
-{                                                                   }
-{   Ethea Foundation                                                }
-{   Interfaces and base implementation of the                       }
-{   observer design pattern.                                        }
-{                                                                   }
-{   Copyright (c) 2006-2010 Ethea Srl                               }
-{   ALL RIGHTS RESERVED / TUTTI I DIRITTI RISERVATI                 }
-{                                                                   }
-{*******************************************************************}
-{                                                                   }
-{   The entire contents of this file is protected by                }
-{   International Copyright Laws. Unauthorized reproduction,        }
-{   reverse-engineering, and distribution of all or any portion of  }
-{   the code contained in this file is strictly prohibited and may  }
-{   result in severe civil and criminal penalties and will be       }
-{   prosecuted to the maximum extent possible under the law.        }
-{                                                                   }
-{   RESTRICTIONS                                                    }
-{                                                                   }
-{   THE SOURCE CODE CONTAINED WITHIN THIS FILE AND ALL RELATED      }
-{   FILES OR ANY PORTION OF ITS CONTENTS SHALL AT NO TIME BE        }
-{   COPIED, TRANSFERRED, SOLD, DISTRIBUTED, OR OTHERWISE MADE       }
-{   AVAILABLE TO OTHER INDIVIDUALS WITHOUT EXPRESS WRITTEN CONSENT  }
-{   AND PERMISSION FROM ETHEA S.R.L.                                }
-{                                                                   }
-{   CONSULT THE END USER LICENSE AGREEMENT FOR INFORMATION ON       }
-{   ADDITIONAL RESTRICTIONS.                                        }
-{                                                                   }
-{*******************************************************************}
-{                                                                   }
-{   Il contenuto di questo file è protetto dalle leggi              }
-{   internazionali sul Copyright. Sono vietate la riproduzione, il  }
-{   reverse-engineering e la distribuzione non autorizzate di tutto }
-{   o parte del codice contenuto in questo file. Ogni infrazione    }
-{   sarà perseguita civilmente e penalmente a termini di legge.     }
-{                                                                   }
-{   RESTRIZIONI                                                     }
-{                                                                   }
-{   SONO VIETATE, SENZA IL CONSENSO SCRITTO DA PARTE DI             }
-{   ETHEA S.R.L., LA COPIA, LA VENDITA, LA DISTRIBUZIONE E IL       }
-{   TRASFERIMENTO A TERZI, A QUALUNQUE TITOLO, DEL CODICE SORGENTE  }
-{   CONTENUTO IN QUESTO FILE E ALTRI FILE AD ESSO COLLEGATI.        }
-{                                                                   }
-{   SI FACCIA RIFERIMENTO ALLA LICENZA D'USO PER INFORMAZIONI SU    }
-{   EVENTUALI RESTRIZIONI ULTERIORI.                                }
-{                                                                   }
-{*******************************************************************} 
-
-{
-  Defines the interfaces used to implement the observer pattern in EF.
-}
 unit EF.ObserverIntf;
 
 interface
@@ -92,7 +40,7 @@ type
 
     This class can also be embedded in order to delegate implementation to it.
   }
-  TEFClassesSubjectAndObserver = class(TEFNoRefCountObject, IEFSubject, IEFObserver)
+  TEFSubjectAndObserver = class(TEFNoRefCountObject, IEFSubject, IEFObserver)
   private
     FObservers: TInterfaceList;
   public
@@ -109,21 +57,21 @@ implementation
 uses
   SysUtils;
   
-{ TEFClassesSubjectAndObserver }
+{ TEFSubjectAndObserver }
 
-procedure TEFClassesSubjectAndObserver.AfterConstruction;
+procedure TEFSubjectAndObserver.AfterConstruction;
 begin
   inherited;
   FObservers := TInterfaceList.Create;
 end;
 
-destructor TEFClassesSubjectAndObserver.Destroy;
+destructor TEFSubjectAndObserver.Destroy;
 begin
   FreeAndNil(FObservers);
   inherited;
 end;
 
-procedure TEFClassesSubjectAndObserver.AttachObserver(
+procedure TEFSubjectAndObserver.AttachObserver(
   const AObserver: IEFObserver);
 begin
   if Assigned(AObserver) and Assigned(FObservers) then
@@ -133,14 +81,14 @@ begin
   end;
 end;
 
-procedure TEFClassesSubjectAndObserver.DetachObserver(
+procedure TEFSubjectAndObserver.DetachObserver(
   const AObserver: IEFObserver);
 begin
   if Assigned(AObserver) and Assigned(FObservers) then
     FObservers.Remove(AObserver);
 end;
 
-procedure TEFClassesSubjectAndObserver.NotifyObservers(const AContext: string);
+procedure TEFSubjectAndObserver.NotifyObservers(const AContext: string);
 var
   I: Integer;
 begin
@@ -149,7 +97,7 @@ begin
       (FObservers[I] as IEFObserver).UpdateObserver(Self, AContext);
 end;
 
-procedure TEFClassesSubjectAndObserver.UpdateObserver(const ASubject: IEFSubject;
+procedure TEFSubjectAndObserver.UpdateObserver(const ASubject: IEFSubject;
   const AContext: string);
 begin
 end;

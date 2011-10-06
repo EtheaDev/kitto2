@@ -13,7 +13,7 @@ interface
 
 uses
   Classes,
-  EF.Classes, EF.Tree;
+  EF.Classes, EF.Tree, EF.Environment;
 
 type
   {
@@ -30,6 +30,8 @@ type
   private
     FAuthData: TEFNode;
     FAuthMacroExpander: TEFNodeMacroExpander;
+    // Keep a reference in order to be able to call it in the destructor.
+    FEnvironment: IEFEnvironment;
   protected
     {
       Called at the beginning of the authentication process, before
@@ -274,12 +276,13 @@ begin
   inherited;
   FAuthData := TEFNode.Create;
   FAuthMacroExpander := TEFNodeMacroExpander.Create(FAuthData, 'Auth');
-  Environment.MacroExpansionEngine.AddExpander(FAuthMacroExpander);
+  FEnvironment := Environment;
+  FEnvironment.MacroExpansionEngine.AddExpander(FAuthMacroExpander);
 end;
 
 destructor TKAuthenticator.Destroy;
 begin
-  Environment.MacroExpansionEngine.RemoveExpander(FAuthMacroExpander);
+  FEnvironment.MacroExpansionEngine.RemoveExpander(FAuthMacroExpander);
   FreeAndNil(FAuthMacroExpander);
   FreeAndNil(FAuthData);
   inherited;

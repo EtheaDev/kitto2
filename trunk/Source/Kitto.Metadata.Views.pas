@@ -4,8 +4,8 @@ interface
 
 uses
   Types,
-  EF.Classes, EF.Data, EF.Tree,
-  Kitto.Metadata, Kitto.Metadata.Models;
+  EF.Classes, EF.Tree,
+  Kitto.Metadata, Kitto.Metadata.Models, Kitto.Store;
 
 type
   TKViews = class;
@@ -198,14 +198,12 @@ type
     ///	  Kind of layout to look for. Common kinds are 'List' and 'Form'.
     ///	</param>
     function FindLayout(const AKind: string): TKLayout;
+
+
     ///	<summary>
-    ///	  Finds and returns a reference to a layout named after the view's
-    ///	  PersistentName plus an underscore ('_') and the specified kind. If no
-    ///	  layout exists under that name, returns nil.
+    ///	  Creates and returns a store with the view's metadata.
     ///	</summary>
-    ///	<param name="AKind">
-    ///	  Kind of layout to look for. Common kinds are 'List' and 'Form'.
-    ///	</param>
+    function CreateStore: TKStore;
   end;
 
   TKDataView = class(TKView)
@@ -312,7 +310,7 @@ type
 implementation
 
 uses
-  SysUtils, StrUtils,
+  SysUtils, StrUtils, Variants,
   EF.StrUtils,
   Kitto.Types, Kitto.Environment;
 
@@ -445,6 +443,23 @@ begin
 end;
 
 { TKDataViewTable }
+
+function TKViewTable.CreateStore: TKStore;
+var
+  I: Integer;
+begin
+  Result := TKStore.Create;
+  try
+    // Set key.
+    Result.Key.SetFieldNames(GetKeyFieldAliasedNames);
+    // Set field names and data types.
+    for I := 0 to FieldCount - 1 do
+      Result.Header.AddChild(Fields[I].AliasedName).DataType := Fields[I].DataType;
+  except
+    FreeAndNil(Result);
+    raise;
+  end;
+end;
 
 function TKViewTable.DetailTableByName(const AName: string): TKViewTable;
 begin

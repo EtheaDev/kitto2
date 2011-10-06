@@ -39,7 +39,7 @@ type
     property Connection: TADOConnection read FConnection write FConnection;
   end;
 
-  type TEFDBADOQueryClass = class of TEFDBADOQuery;
+  TEFDBADOQueryClass = class of TEFDBADOQuery;
 
   {
     Encapsulates both a DB connection and a DB transaction.
@@ -129,7 +129,7 @@ type
   end;
 
   // Encapsulates a DB query, that is a DB command with an associated result set.
-  TEFDBADOQuery = class(TEFDBADOComponent, IEFInterface,
+  TEFDBADOQuery = class(TEFDBADOComponent, IInterface, IEFInterface,
     IEFDBComponent, IEFDBQuery, IEFDBCommand)
   private
     FQuery: TADOQuery;
@@ -178,7 +178,7 @@ implementation
 
 uses
   SysUtils, StrUtils, Variants, ADOInt,
-  EF.VariantUtils, EF.DB.Utils, EF.Data, EF.Types;
+  EF.VariantUtils, EF.DB.Utils, EF.Types, EF.Tree;
 
 function ADODataTypeToEFDataType(const AADODataType: Integer): TEFDataType;
 begin
@@ -193,7 +193,7 @@ begin
     adDate, adDBTimeStamp, adFileTime, adDBFileTime: Result := edtDateTime;
     adChar, adVarChar, adWChar, adBSTR, adVarWChar, adLongVarChar,
       adLongVarWChar: Result := edtString;
-    adDecimal, adNumeric, adVarNumeric: Result := edtBcd;
+    adDecimal, adNumeric, adVarNumeric: Result := edtDecimal;
   else
     Result := edtUnknown;
   end;
@@ -445,9 +445,9 @@ end;
 
 procedure TEFDBADOQuery.BeforeDestruction;
 begin
-  inherited;
   FreeAndNil(FQuery);
   FreeAndNil(FParams);
+  inherited;
 end;
 
 procedure TEFDBADOQuery.ConnectionChanged;

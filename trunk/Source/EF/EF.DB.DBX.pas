@@ -198,7 +198,7 @@ implementation
 
 uses
   SysUtils, RTLConsts, TypInfo,
-  EF.Localization, EF.Types, EF.Data;
+  EF.Localization, EF.Types, EF.Tree;
 
 function FbDataTypeToEFDataType(const AIBFbDataType: string): TEFDataType;
 begin
@@ -412,7 +412,7 @@ begin
   begin
     // Explicitly setting DriverName and ConnectionName should enable DBX's
     // re-reading of the params. Only setting those does not suffice.
-    FConnection.DriverName := Config.GetExpandedString('Connection/ConnectionName');
+    FConnection.ConnectionName := Config.GetExpandedString('Connection/ConnectionName');
     FConnection.DriverName := Config.GetExpandedString('Connection/DriverName');
     FConnection.Params.Text := Config.GetExpandedStrings('Connection');
     FConnection.Open;
@@ -496,6 +496,7 @@ end;
 
 function TEFDBDBXCommand.Execute: Integer;
 begin
+  Connection.Open;
   FQuery.ExecSQL;
   Result := FQuery.RowsAffected;
 end;
@@ -593,6 +594,7 @@ end;
 
 procedure TEFDBDBXQuery.Open;
 begin
+  Connection.Open;
   DataSet.Open;
 end;
 

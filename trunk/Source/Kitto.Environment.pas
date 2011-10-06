@@ -175,7 +175,7 @@ type
 ///	</summary>
 function Environment: TKEnvironment;
 
-procedure SetEWEnvironmentClass(const AValue: TKEnvironmentClass);
+procedure SetEnvironmentClass(const AValue: TKEnvironmentClass);
 
 type
   TKEnvironmentSingleton = function: TKEnvironment;
@@ -185,7 +185,7 @@ type
   function. Useful in web applications that create an environment instance
   for each user. Pass nil to restore the default singleton function.
 }
-procedure SetEWEnvironmentSingleton(const AValue: TKEnvironmentSingleton);
+procedure SetEnvironmentSingleton(const AValue: TKEnvironmentSingleton);
 
 type
   {
@@ -240,7 +240,7 @@ end;
 ///	  restore the default behaviour) in a balanced way (for example in the
 ///	  finalization section of the same unit).
 ///	</summary>
-procedure SetEWEnvironmentClass(const AValue: TKEnvironmentClass);
+procedure SetEnvironmentClass(const AValue: TKEnvironmentClass);
 begin
   FreeAndNil(_Environment);
   _EnvironmentClass := AValue;
@@ -248,7 +248,7 @@ begin
     _EnvironmentClass := TKEnvironment;
 end;
 
-procedure SetEWEnvironmentSingleton(const AValue: TKEnvironmentSingleton);
+procedure SetEnvironmentSingleton(const AValue: TKEnvironmentSingleton);
 begin
   if Addr(_EnvironmentSingleton) <> Addr(AValue) then
   begin
@@ -274,6 +274,7 @@ end;
 destructor TKEnvironment.Destroy;
 begin
   inherited;
+  FreeAndNil(FViews);
   FreeAndNil(FModels);
   FreeAndNil(FAccessControlHost);
   FreeAndNil(FAuthenticationHost);
@@ -537,11 +538,11 @@ end;
 
 initialization
   SetEnvironmentGetFunction(EnvironmentAsIntf);
-  //DefaultMacroExpansionEngine.AddExpander(TKMacroExpander.Create);
+  DefaultMacroExpansionEngine.AddExpander(TKMacroExpander.Create);
 
 finalization
   SetEnvironmentGetFunction(nil);
-  //DefaultMacroExpansionEngine.RemoveExpanders(TKMacroExpander);
+  DefaultMacroExpansionEngine.RemoveExpanders(TKMacroExpander);
   FreeAndNil(_Environment);
 
 end.

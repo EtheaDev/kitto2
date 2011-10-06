@@ -4,7 +4,7 @@ interface
 
 uses
   Types, Classes, Generics.Collections,
-  EF.Classes, EF.Data, EF.Tree,
+  EF.Classes, EF.Tree,
   Kitto.Metadata;
 
 type
@@ -475,7 +475,7 @@ begin
       edtTime: Result := 8;
       edtDateTime: Result := 19;
       edtBoolean: Result := 5;
-      edtCurrency, edtFloat, edtBcd: Result := 12;
+      edtCurrency, edtFloat, edtDecimal: Result := 12;
       edtObject: Result := 10;
     else
       Result := 20;

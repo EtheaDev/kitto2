@@ -121,7 +121,6 @@ begin
   finally
     ADataSet.EnableControls;
   end;
-
 end;
 
 end.

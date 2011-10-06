@@ -3,32 +3,30 @@ unit Kitto.Ext.DataPanel;
 interface
 
 uses
-  EF.Data, EF.Classes,
-  Kitto.Metadata.Views, Kitto.DataSetTree, Kitto.Ext.Base;
+  EF.Classes,
+  Kitto.Metadata.Views, Kitto.Ext.Base, Kitto.Store;
 
 type
   TKExtDataPanel = class(TKExtPanelController)
   private
-    FDataSetTree: TKDataSetTree;
-    FOwnsDataSetTree: Boolean;
-    FDataSet: TKMasterDataSet;
+    FServerStore: TKStore;
     FViewTable: TKViewTable;
-    function GetDataSet: TKMasterDataSet;
-    procedure InitDataSetTree;
+    procedure InitServerStore;
     function GetView: TKDataView;
+    function GetServerStore: TKStore;
   protected
-    function AutoOpenDataSet: Boolean;
-    procedure OpenDataSet; virtual;
+    function AutoLoadData: Boolean;
+    procedure LoadData; virtual;
     procedure CheckCanRead;
     procedure CreateToolbar; virtual;
     procedure DoDisplay; override;
     procedure InitComponents; virtual;
-    property DataSetTree: TKDataSetTree read FDataSetTree;
-    property DataSet: TKMasterDataSet read GetDataSet;
     property View: TKDataView read GetView;
+    property ServerStore: TKStore read GetServerStore;
     property ViewTable: TKViewTable read FViewTable;
     function GetFilterExpression: string; virtual;
   public
+    procedure AfterConstruction; override;
     destructor Destroy; override;
   end;
 
@@ -43,30 +41,22 @@ uses
 
 destructor TKExtDataPanel.Destroy;
 begin
-  if FOwnsDataSetTree then
-    FreeAndNil(FDataSetTree);
+  FreeAndNil(FServerStore);
   inherited;
-end;
-
-function TKExtDataPanel.GetDataSet: TKMasterDataSet;
-begin
-  Assert(View <> nil);
-
-  if not Assigned(FDataSet) then
-  begin
-    FDataSet := Config.GetObject('Sys/DataSet') as TKMasterDataSet;
-    if not Assigned(FDataSet) then
-    begin
-      Assert(Assigned(FDataSetTree));
-      FDataSet := FDataSetTree.MasterDataSet;
-    end;
-  end;
-  Result := FDataSet;
 end;
 
 function TKExtDataPanel.GetFilterExpression: string;
 begin
   Result := '';
+end;
+
+function TKExtDataPanel.GetServerStore: TKStore;
+begin
+  Assert(Assigned(ViewTable));
+
+  if not Assigned(FServerStore) then
+    FServerStore := ViewTable.CreateStore;
+  Result := FServerStore;
 end;
 
 function TKExtDataPanel.GetView: TKDataView;
@@ -89,9 +79,9 @@ begin
   Header := False;
 
   InitComponents;
-  InitDataSetTree;
+  InitServerStore;
   CheckCanRead;
-  OpenDataSet;
+  LoadData;
 end;
 
 procedure TKExtDataPanel.CheckCanRead;
@@ -110,35 +100,26 @@ procedure TKExtDataPanel.InitComponents;
 begin
 end;
 
-procedure TKExtDataPanel.InitDataSetTree;
+procedure TKExtDataPanel.InitServerStore;
 begin
   Assert(View <> nil);
   Assert(Assigned(FViewTable));
 
-  FDataSetTree := Config.GetObject('Sys/DataSetTree') as TKDataSetTree;
-  FOwnsDataSetTree := not Assigned(FDataSetTree);
-  if FOwnsDataSetTree then
-  begin
-    FDataSetTree := TKDataSetTree.Create;
-    FDataSetTree.DBConnection := Environment.MainDBConnection;
-    DataSetTree.Reset(FViewTable, GetFilterExpression);
-  end;
+{ TODO : ??? }
 end;
 
-procedure TKExtDataPanel.OpenDataSet;
+procedure TKExtDataPanel.LoadData;
 begin
-  if not DataSet.Active then
-  begin
-    if ViewTable.IsDetail then
-      DataSet.OpenDataSetAndCloseQuery
-    else if AutoOpenDataSet then
-      DataSet.OpenDataSetAndCloseQueryInTransaction
-    else
-      ; // show search tools that will open the dataset later.
-  end;
+  { TODO : load store }
 end;
 
-function TKExtDataPanel.AutoOpenDataSet: Boolean;
+procedure TKExtDataPanel.AfterConstruction;
+begin
+  inherited;
+
+end;
+
+function TKExtDataPanel.AutoLoadData: Boolean;
 begin
   Assert(ViewTable <> nil);
 

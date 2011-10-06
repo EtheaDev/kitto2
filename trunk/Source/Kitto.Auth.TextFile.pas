@@ -11,7 +11,7 @@ interface
 
 uses
   Classes,
-  EF.Data, EF.Tree,
+  EF.Tree,
   Kitto.Auth;
 
 type

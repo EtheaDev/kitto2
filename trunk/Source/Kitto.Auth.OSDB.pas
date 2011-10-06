@@ -11,7 +11,7 @@ interface
 
 uses
   DB,
-  EF.Data, EF.Tree,
+  EF.Tree,
   Kitto.Auth, Kitto.Auth.DB;
 
 { TODO : check comments and refactor }

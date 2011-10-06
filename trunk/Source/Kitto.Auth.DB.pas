@@ -5,7 +5,6 @@ unit Kitto.Auth.DB;
 interface
 
 uses
-  DB,
   EF.Classes, EF.Tree,
   Kitto.Auth;
 
@@ -14,7 +13,7 @@ type
     Represents a user record fetched from the database. It is used internally
     as a helper class.
   }
-  TKAuthenticationUser = class
+  TKAuthUser = class
   private
     FName: string;
     FPasswordHash: string;
@@ -102,12 +101,12 @@ type
       It is actually a template method that calls a set of virtual methods to
       do its job.
     }
-    function CreateAndReadUser(const AUserName: string; const AAuthData: TEFNode): TKAuthenticationUser;
+    function CreateAndReadUser(const AUserName: string; const AAuthData: TEFNode): TKAuthUser;
     {
       Creates and returns an empty instance of TKAuthenticationUser. Override
       this method if you need to use a descendant instead.
     }
-    function CreateUser: TKAuthenticationUser; virtual;
+    function CreateUser: TKAuthUser; virtual;
     {
       Returns the SQL statement to be executed just after authentication
       succeeded.
@@ -125,14 +124,14 @@ type
       it in authentication attempt. If AHashNeeded is True, the password hash
       will be returned instead of the clear password.
     }
-    function GetSuppliedPasswordHash(const AAuthenticationData: TEFNode;
+    function GetSuppliedPasswordHash(const AAuthData: TEFNode;
       const AHashNeeded: Boolean): string; virtual;
     {
       Extracts from AAuthenticationData the supplied user name, in order to use
       it in authentication attempt.
     }
     function GetSuppliedUserName(
-      const AAuthenticationData: TEFNode): string; virtual;
+      const AAuthData: TEFNode): string; virtual;
     {
       Executes the AfterAuthenticateCommandText, if any provided.
     }
@@ -170,8 +169,8 @@ type
       This method is usually overridden together with GetReadUserSQL, and
       possibly CreateUser.
     }
-    procedure ReadUserFromRecord(const AUser: TKAuthenticationUser;
-      const ADataSet: TDataSet; const AAuthData: TEFNode); virtual;
+    procedure ReadUserFromRecord(const AUser: TKAuthUser;
+      const ADBQuery: IEFDBQuery; const AAuthData: TEFNode); virtual;
   end;
 
 implementation
@@ -184,7 +183,7 @@ uses
 { TKDBAuthenticator }
 
 function TKDBAuthenticator.CreateAndReadUser(
-  const AUserName: string; const AAuthData: TEFNode): TKAuthenticationUser;
+  const AUserName: string; const AAuthData: TEFNode): TKAuthUser;
 var
   LQuery: IEFDBQuery;
 begin
@@ -200,7 +199,7 @@ begin
       try
         if LQuery.DataSet.IsEmpty then
           raise EKError.Create(_('Invalid login.'));
-        ReadUserFromRecord(Result, LQuery.DataSet, AAuthData);
+        ReadUserFromRecord(Result, LQuery, AAuthData);
       finally
         LQuery.Close;
       end;
@@ -213,9 +212,9 @@ begin
   end;
 end;
 
-function TKDBAuthenticator.CreateUser: TKAuthenticationUser;
+function TKDBAuthenticator.CreateUser: TKAuthUser;
 begin
-  Result := TKAuthenticationUser.Create;
+  Result := TKAuthUser.Create;
 end;
 
 function TKDBAuthenticator.IsPasswordMatching(const ASuppliedPasswordHash,
@@ -237,16 +236,16 @@ begin
 end;
 
 function TKDBAuthenticator.GetSuppliedPasswordHash(
-  const AAuthenticationData: TEFNode; const AHashNeeded: Boolean): string;
+  const AAuthData: TEFNode; const AHashNeeded: Boolean): string;
 begin
-  Result := Environment.MacroExpansionEngine.Expand(AAuthenticationData.GetString('UserPassword'));
+  Result := Environment.MacroExpansionEngine.Expand(AAuthData.GetString('UserPassword'));
   if AHashNeeded then
     Result := GetStringHash(Result);
 end;
 
-function TKDBAuthenticator.GetSuppliedUserName(const AAuthenticationData: TEFNode): string;
+function TKDBAuthenticator.GetSuppliedUserName(const AAuthData: TEFNode): string;
 begin
-  Result := Environment.MacroExpansionEngine.Expand(AAuthenticationData.GetString('UserName'));
+  Result := Environment.MacroExpansionEngine.Expand(AAuthData.GetString('UserName'));
 end;
 
 procedure TKDBAuthenticator.InternalAfterAuthenticate(const AAuthData: TEFNode);
@@ -277,8 +276,7 @@ begin
   end;
 end;
 
-procedure TKDBAuthenticator.InternalAuthenticate(
-  const AAuthData: TEFNode);
+procedure TKDBAuthenticator.InternalAuthenticate(const AAuthData: TEFNode);
 var
   LSuppliedUserName: string;
   LSuppliedPasswordHash: string;
@@ -299,7 +297,7 @@ begin
   end;
 
   if not IsPasswordMatching(LSuppliedPasswordHash, LStoredPasswordHash)
-    and (not LPassepartoutAuthentication) then
+      and (not LPassepartoutAuthentication) then
     raise EKError.Create(_('Invalid login.'));
 
   if LPassepartoutAuthentication then
@@ -343,23 +341,23 @@ begin
   end;
 end;
 
-procedure TKDBAuthenticator.ReadUserFromRecord(const AUser: TKAuthenticationUser;
-  const ADataSet: TDataSet; const AAuthData: TEFNode);
+procedure TKDBAuthenticator.ReadUserFromRecord(const AUser: TKAuthUser;
+  const ADBQuery: IEFDBQuery; const AAuthData: TEFNode);
 var
   I: Integer;
 begin
   Assert(Assigned(AUser));
-  Assert(Assigned(ADataSet));
+  Assert(Assigned(ADBQuery));
 
-  AUser.Name := ADataSet['EW_USER_NAME'];
-  AUser.PasswordHash := ADataSet['EW_PASSWORD_HASH'];
+  AUser.Name := ADBQuery.DataSet['EW_USER_NAME'];
+  AUser.PasswordHash := ADBQuery.DataSet['EW_PASSWORD_HASH'];
 
   // First N fields in the dataset go to the defined auth data nodes.
-  Assert(ADataSet.FieldCount >= AAuthData.ChildCount);
+  Assert(ADBQuery.DataSet.FieldCount >= AAuthData.ChildCount);
   for I := 0 to AAuthData.ChildCount - 1 do
-    AssignFieldValueToNode(ADataSet.Fields[I], AAuthData.Children[I]);
+    AAuthData.Children[I].AssignFieldValue(ADBQuery.DataSet.Fields[I]);
   // All fields go to auth data under their names.
-  AssignFieldsToNode(ADataSet.Fields, AAuthData);
+  AAuthData.AddFieldsAsChildren(ADBQuery.DataSet.Fields);
 end;
 
 { TKAuthenticationUser }

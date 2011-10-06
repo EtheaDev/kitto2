@@ -786,12 +786,9 @@ begin
 
   LQueryBuilder := TKSQLQueryBuilder.Create;
   try
-    LQueryBuilder.AddFromDataViewTable(FDataViewTable, MASTER_DATASET_NAME);
-    LDBQueryCommandText := LQueryBuilder.DBQueries[MASTER_DATASET_NAME].CommandText;
-
+    LDBQueryCommandText := LQueryBuilder.GetSelectStatement(FDataViewTable);
     if AAdditionalFilter <> '' then
       LDBQueryCommandText := AddToSQLWhereClause(LDBQueryCommandText, AAdditionalFilter);
-
     if Assigned(AKeySet) then
     begin
       LDBQueryCommandText := AddToSQLWhereClause(LDBQueryCommandText, KeySetToSQL(AKeySet));
@@ -799,8 +796,7 @@ begin
       CopyKeySetValuesToParams(AKeySet, DBQuery.Params);
     end
     else
-      DBQueryCommandText := LDBQueryCommandText;
-
+      DBQueryCommandText := LDBQueryCommandText; // creates DBQuery.
   finally
     FreeAndNil(LQueryBuilder);
   end;

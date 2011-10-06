@@ -514,6 +514,7 @@ var
 begin
   for I := 0 to FGarbageCollector.Count - 1 do
     if Assigned(FGarbageCollector.Objects[I]) and (PGarbage(FGarbageCollector.Objects[I])^.Garbage = Obj) then begin
+      PGarbage(FGarbageCollector.Objects[I])^.Garbage := nil;
       PGarbage(FGarbageCollector.Objects[I])^.Persistent := True;
       Exit;
     end;
