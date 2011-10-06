@@ -247,16 +247,16 @@ begin
             vtSingleLine: LStack.Push(LTop.AddChild(LName, LRawValue));
             vtMultiLineWithNL:
             begin
-              LCurrentValue := (LTop as TEFNode).RawValue;
+              LCurrentValue := (LTop as TEFNode).AsString;
               if LCurrentValue = '' then
                 LCurrentValue := LRawValue
               else
                 LCurrentValue := LCurrentValue + sLineBreak + LRawValue;
-              (LTop as TEFNode).RawValue := LCurrentValue;
+              (LTop as TEFNode).AsString := LCurrentValue;
             end;
             vtMultiLineWithSpace:
             begin
-              LCurrentValue := (LTop as TEFNode).RawValue;
+              LCurrentValue := (LTop as TEFNode).AsString;
               // When not preserving line breaks, empty lines mark paragraphs.
               if LRawValue = '' then
                 LCurrentValue := LCurrentValue + sLineBreak
@@ -264,7 +264,7 @@ begin
                 LCurrentValue := LRawValue
               else
                 LCurrentValue := LCurrentValue + ' ' + LRawValue;
-              (LTop as TEFNode).RawValue := LCurrentValue;
+              (LTop as TEFNode).AsString := LCurrentValue;
             end;
           end;
         end;
@@ -326,8 +326,9 @@ var
   I: Integer;
 begin
   AWriter.Write(StringOfChar(' ', AIndent) + ANode.Name + ':');
-  if ANode.RawValue <> '' then
-    AWriter.Write(StringOfChar(' ', FSpacingChars) + FQuote + ANode.RawValue + FQuote);
+  { TODO : format value }
+  if ANode.AsString <> '' then
+    AWriter.Write(StringOfChar(' ', FSpacingChars) + FQuote + ANode.AsString + FQuote);
   AWriter.WriteLine;
   for I := 0 to ANode.ChildCount - 1 do
     WriteNode(ANode.Children[I], AWriter, AIndent + FIndentChars);

@@ -5,8 +5,8 @@ interface
 uses
   Ext, ExtGrid, ExtData, ExtForm,
   EF.ObserverIntf, EF.Classes,
-  Kitto.Ext.Base, Kitto.Ext.DataPanel, Kitto.DataSetTree, Kitto.Types,
-  Kitto.Metadata.Views;
+  Kitto.Ext.Base, Kitto.Ext.DataPanel, Kitto.Types,
+  Kitto.Metadata.Views, Kitto.Store;
 
 type
   TKExtFilterPanel = class(TExtFormFormPanel)
@@ -32,12 +32,11 @@ type
     FTopToolbar: TExtToolbar;
     FFilterPanel: TKExtFilterPanel;
     procedure InitFieldsAndColumns;
-    // Opens an edit window on the master dataset's current record.
-    procedure ShowEditWindow(const AEditMode: TKEditMode);
-    procedure LocateRecordFromSession;
+    // Opens an edit window on the specified record.
+    procedure ShowEditWindow(const ARecord: TKRecord; const AEditMode: TKEditMode);
+    function LocateRecordFromSession: TKRecord;
     procedure RefreshData;
     function CreatePagingToolbar: TExtPagingToolbar;
-    procedure LoadData;
     procedure EditOrViewCurrentRecord;
     procedure WriteChanges;
     function CreateTopToolbar: TExtToolbar;
@@ -46,7 +45,7 @@ type
     function GetRefreshJSCode: string;
     function GetGroupingFieldName: string;
   protected
-    procedure OpenDataSet; override;
+    procedure LoadData; override;
     procedure InitComponents; override;
     function GetFilterExpression: string; override;
   public
@@ -64,11 +63,11 @@ type
 implementation
 
 uses
-  SysUtils, DB, Math, StrUtils, Variants, Types,
+  SysUtils, Math, StrUtils, Variants, Types,
   ExtPascal,
-  EF.Intf, EF.Localization, EF.StrUtils, EF.Data, EF.Tree,
+  EF.Intf, EF.Localization, EF.StrUtils, EF.Tree, EF.SQL,
   Kitto.Environment, Kitto.AccessControl, Kitto.Ext.Session, Kitto.Ext.Utils,
-  Kitto.Controller, Kitto.JSON, Kitto.Ext.Filters;
+  Kitto.Controller, Kitto.JSON, Kitto.Ext.Filters, Kitto.SQL;
 
 const
   DEFAULT_PAGE_RECORD_COUNT = 100;
@@ -81,8 +80,9 @@ procedure TKExtListPanel.DeleteCurrentRecord;
 begin
   Assert(ViewTable <> nil);
 
-  LocateRecordFromSession;
-  DataSet.Delete;
+{ TODO : implement delete/write }
+  //LocateRecordFromSession;
+  //DataSet.Delete;
   if not ViewTable.IsDetail then
     WriteChanges;
   RefreshData;
@@ -92,7 +92,8 @@ procedure TKExtListPanel.WriteChanges;
 begin
   Environment.MainDBConnection.StartTransaction;
   try
-    DataSetTree.WriteChanges(False);
+    { TODO : implement write }
+    //FStore.WriteChanges;
     Environment.MainDBConnection.CommitTransaction;
   except
     Environment.MainDBConnection.RollbackTransaction;
@@ -113,9 +114,26 @@ end;
 
 procedure TKExtListPanel.GetRecordPage;
 
-  function FieldValueAsJSON(const AField: TField): string;
+  function BuildCommandText(const AAdditionalFilter: string): string;
+  var
+    LQueryBuilder: TKSQLQueryBuilder;
   begin
-    Result := AField.AsString;
+    Assert(ViewTable <> nil);
+
+    LQueryBuilder := TKSQLQueryBuilder.Create;
+    try
+      Result := LQueryBuilder.GetSelectStatement(ViewTable);
+      if AAdditionalFilter <> '' then
+        Result := AddToSQLWhereClause(Result, AAdditionalFilter);
+{ TODO : implement keyset and parameterized queries when needed. }
+//      if Assigned(AKeySet) then
+//      begin
+//        Result := AddToSQLWhereClause(Result, KeySetToSQL(AKeySet));
+//        CopyKeySetValuesToParams(AKeySet, DBQuery.Params);
+//      end;
+    finally
+      FreeAndNil(LQueryBuilder);
+    end;
   end;
 
 var
@@ -123,9 +141,6 @@ var
   LStart: Integer;
   LLimit: Integer;
   LRecords: string;
-  LRecordIndex: Integer;
-  LFieldIndex: Integer;
-  LField: TExtDataField;
 begin
   Assert(Assigned(FGridPanel));
   Assert(FGridPanel.Columns.Count > 0);
@@ -134,38 +149,21 @@ begin
   Shall we provide a switch to turn it off on a form-by-form basis, or use
   FIRST/SKIP/ROWS to only fetch relevant rows in a database-dependent way?
   For now, let's just stick with full refresh always. }
-  DataSet.Close;
-  { TODO : reimplement or drop keyset }
-  DataSet.BuildCommandTextFromDataViewTable(nil, FFilterPanel.GetFilterExpression);
-  DataSet.OpenDataSetAndCloseQueryInTransaction;
+  ServerStore.Load(Environment.MainDBConnection,
+    BuildCommandText(FFilterPanel.GetFilterExpression));
 
   LStart := Session.QueryAsInteger['start'];
   LLimit := Session.QueryAsInteger['limit'];
-  LPageRecordCount := Min(Max(LLimit, DEFAULT_PAGE_RECORD_COUNT), DataSet.RecordCount - LStart);
+  LPageRecordCount := Min(Max(LLimit, DEFAULT_PAGE_RECORD_COUNT), ServerStore.RecordCount - LStart);
 
-  if not DataSet.IsEmpty then
-    DataSet.RecNo := Succ(LStart);
+  LRecords := ServerStore.GetAsJSON(LStart, LPageRecordCount);
 
-  LRecords := '';
-  for LRecordIndex := 0 to LPageRecordCount - 1 do
-  begin
-    LRecords := LRecords + '{';
-    for LFieldIndex := 0 to FReader.Fields.Count - 1 do
-    begin
-      LField := FReader.Fields[LFieldIndex] as TExtDataField;
-      LRecords := LRecords + '"' + LField.Name + '":"' + FieldValueAsJSON(DataSet.FieldByName(LField.Name)) + '"';
-      if LFieldIndex < FReader.Fields.Count - 1 then
-        LRecords := LRecords + ',';
-    end;
-    LRecords := AnsiReplaceStr(Trim(LRecords), #13#10, '<br/>') + '}';
-    LRecords := AnsiReplaceStr(LRecords, #10, '<br/>');
-    LRecords := AnsiReplaceStr(LRecords, #13, '<br/>');
-    if LRecordIndex < LPageRecordCount - 1 then
-      LRecords := LRecords + ',';
-    DataSet.Next;
-  end;
+  { TODO : not sure about the usefulness of this replace here }
+  LRecords := AnsiReplaceStr(LRecords, #13#10, '<br/>');
+  LRecords := AnsiReplaceStr(LRecords, #10, '<br/>');
+  LRecords := AnsiReplaceStr(LRecords, #13, '<br/>');
 
-  Session.Response := '{Total:' + IntToStr(DataSet.RecordCount) + ',Root:[' + LRecords + ']}';
+  Session.Response := '{Total:' + IntToStr(ServerStore.RecordCount) + ',Root:' + LRecords + '}';
 end;
 
 function TKExtListPanel.CreatePagingToolbar: TExtPagingToolbar;
@@ -286,8 +284,7 @@ begin
   FGridPanel.ColumnLines := True;
   FGridPanel.TrackMouseOver := True;
   LKeyFieldNames := Join(ViewTable.GetKeyFieldAliasedNames, ',');
-  FGridPanel.On('rowdblclick', AjaxSelection(RowDblClick,
-    TExtGridRowSelectionModel(FGridPanel.SelModel), LKeyFieldNames, LKeyFieldNames, []));
+  FGridPanel.On('rowdblclick', AjaxSelection(RowDblClick, LSelModel, LKeyFieldNames, LKeyFieldNames, []));
 
   // By default show paging toolbar unless the view is grouped.
   if ViewTable.GetBoolean('Controller/PagingTools', GetGroupingFieldName = '') then
@@ -372,8 +369,50 @@ var
   var
     LColumn: TExtGridColumn;
     LColumnWidth: Integer;
+
+    function CreateColumn: TExtGridColumn;
+    begin
+      case AViewField.DataType of
+        edtBoolean: Result := TExtGridBooleanColumn.AddTo(FGridPanel.Columns);
+        edtDate:
+        begin
+          Result := TExtGridDateColumn.AddTo(FGridPanel.Columns);
+          TExtGridDateColumn(Result).Format := DelphiDateFormatToJSDateFormat(Session.FormatSettings.ShortDateFormat);
+        end;
+        edtTime:
+        begin
+          Result := TExtGridDateColumn.AddTo(FGridPanel.Columns);
+          TExtGridDateColumn(Result).Format := DelphiDateFormatToJSDateFormat(Session.FormatSettings.ShortTimeFormat);
+        end;
+        edtDateTime:
+        begin
+          Result := TExtGridDateColumn.AddTo(FGridPanel.Columns);
+          TExtGridDateColumn(Result).Format :=
+            DelphiDateFormatToJSDateFormat(Session.FormatSettings.ShortDateFormat) + ' ' +
+            DelphiTimeFormatToJSTimeFormat(Session.FormatSettings.ShortTimeFormat);
+        end;
+        edtInteger:
+        begin
+          Result := TExtGridNumberColumn.AddTo(FGridPanel.Columns);
+          TExtGridNumberColumn(Result).Format := '0';
+        end;
+        edtFloat, edtDecimal:
+        begin
+          Result := TExtGridNumberColumn.AddTo(FGridPanel.Columns);
+          TExtGridNumberColumn(Result).Format := '0.00';
+        end;
+        edtCurrency:
+        begin
+          Result := TExtGridNumberColumn.AddTo(FGridPanel.Columns);
+          TExtGridNumberColumn(Result).Format := '0,0.00';
+        end;
+      else
+        Result := TExtGridColumn.AddTo(FGridPanel.Columns);
+      end;
+    end;
+
   begin
-    LColumn := TExtGridColumn.AddTo(FGridPanel.Columns);
+    LColumn := CreateColumn;
     LColumn.Sortable := not AViewField.IsBlob;
     LColumn.Header := AViewField.DisplayLabel;
     LColumn.Id := AViewField.AliasedName;
@@ -406,7 +445,7 @@ var
         LColumn.Align := alLeft;
       end;
     end
-    else if AViewField.DataType in [edtInteger, edtCurrency, edtFloat, edtBcd] then
+    else if AViewField.DataType in [edtInteger, edtCurrency, edtFloat, edtDecimal] then
     begin
       LColumn.Align := alRight;
     end
@@ -430,7 +469,6 @@ var
 
 begin
   Assert(ViewTable <> nil);
-  Assert(DataSet.Active);
 
   LLayoutName := ViewTable.GetString('Controller/List/Layout');
   if LLayoutName <> '' then
@@ -471,11 +509,11 @@ end;
 
 procedure TKExtListPanel.EditOrViewCurrentRecord;
 begin
-  LocateRecordFromSession;
-  ShowEditWindow(emEditCurrentRecord);
+  ShowEditWindow(LocateRecordFromSession, emEditCurrentRecord);
 end;
 
-procedure TKExtListPanel.ShowEditWindow(const AEditMode: TKEditMode);
+procedure TKExtListPanel.ShowEditWindow(const ARecord: TKRecord;
+  const AEditMode: TKEditMode);
 var
   LFormController: IKController;
   LFormControllerType: string;
@@ -488,6 +526,7 @@ var
   end;
 
 begin
+  Assert(Assigned(ARecord));
   Assert(View <> nil);
   Assert(ViewTable <> nil);
 
@@ -510,8 +549,8 @@ begin
   try
     LFormController.View := View;
     LFormController.Config.SetObject('Sys/Container', FEditHostWindow);
-    LFormController.Config.SetObject('Sys/DataSetTree', DataSetTree);
-    LFormController.Config.SetObject('Sys/DataSet', DataSet);
+    LFormController.Config.SetObject('Sys/Store', ServerStore);
+    LFormController.Config.SetObject('Sys/Record', ARecord);
     LFormController.Config.SetObject('Sys/ViewTable', ViewTable);
     LFormController.Config.SetObject('Sys/HostWindow', FEditHostWindow);
     (LFormController as IEFSubject).AttachObserver(Self);
@@ -535,59 +574,47 @@ begin
     RefreshData;
 end;
 
-procedure TKExtListPanel.LocateRecordFromSession;
+function TKExtListPanel.LocateRecordFromSession: TKRecord;
 var
-  LKeyValues: Variant;
-  LKeyFieldNames: TStringDynArray;
-  LAliasedFieldName: string;
-  LField: TKViewField;
+  LKeyValues: TStringDynArray;
   I: Integer;
 begin
   Assert(ViewTable <> nil);
+  Assert(ServerStore.RecordCount > 0);
 
-  // Build key variant array.
-  LKeyFieldNames := ViewTable.GetKeyFieldAliasedNames;
-  LKeyValues := VarArrayCreate([0, Length(LKeyFieldNames) - 1], varVariant);
-
-  I := 0;
-  for LAliasedFieldName in LKeyFieldNames do
+  SetLength(LKeyValues, ServerStore.Key.FieldCount);
+  for I := 0 to ServerStore.Key.FieldCount - 1 do
   begin
-    LField := ViewTable.FieldByAliasedName(LAliasedFieldName);
-    if LField.DataType = edtInteger then
-      LKeyValues[I] := Session.QueryAsInteger[LAliasedFieldName]
-    else if LField.DataType in [edtCurrency, edtFloat] then
-      LKeyValues[I] := Session.QueryAsDouble[LAliasedFieldName]
-    else if LField.DataType = edtBoolean then
-      LKeyValues[I] := Session.QueryAsDouble[LAliasedFieldName]
-    else if LField.DataType in [edtDate, edtTime, edtDateTime] then
-      LKeyValues[I] := Session.QueryAsTDateTime[LAliasedFieldName]
-    else
-      LKeyValues[I] := Session.Query[LAliasedFieldName];
-    Inc(I);
+    { TODO : support data types }
+    LKeyValues[I] := Session.Query[ServerStore.Key.Fields[I].Name];
   end;
-  if not DataSet.Locate(Join(LKeyFieldNames, ';'), LKeyValues, []) then
-    raise EKError.Create(_('Record not found.'));
+  Result := ServerStore.Records.GetRecordByKey(LKeyValues);
+//  if LField.DataType = edtInteger then
+//    LKeyValues[I] := Session.QueryAsInteger[LAliasedFieldName]
+//  else if LField.DataType in [edtCurrency, edtFloat] then
+//    LKeyValues[I] := Session.QueryAsDouble[LAliasedFieldName]
+//  else if LField.DataType = edtBoolean then
+//    LKeyValues[I] := Session.QueryAsDouble[LAliasedFieldName]
+//  else if LField.DataType in [edtDate, edtTime, edtDateTime] then
+//    LKeyValues[I] := Session.QueryAsTDateTime[LAliasedFieldName]
+//  else
+//    LKeyValues[I] := Session.Query[LAliasedFieldName];
 end;
 
 procedure TKExtListPanel.NewRecord(This: TExtButton; E: TExtEventObjectSingleton);
 begin
-  ShowEditWindow(emNewRecord);
+  ShowEditWindow(nil, emNewRecord);
 end;
 
-procedure TKExtListPanel.OpenDataSet;
+procedure TKExtListPanel.LoadData;
 begin
   inherited;
   Assert(Assigned(FGridPanel));
 
   if FGridPanel.Columns.Count = 0 then
     InitFieldsAndColumns;
-  if AutoOpenDataSet then
-    LoadData;
-end;
-
-procedure TKExtListPanel.LoadData;
-begin
-  RefreshData;
+  if AutoLoadData then
+    RefreshData;
 end;
 
 function TKExtListPanel.GetRefreshJSCode: string;

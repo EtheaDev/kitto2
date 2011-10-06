@@ -42,12 +42,13 @@ type
   end;
 
 function DelphiDateFormatToJSDateFormat(const ADateFormat: string): string;
+function DelphiTimeFormatToJSTimeFormat(const ATimeFormat: string): string;
 
 implementation
 
 uses
   SysUtils, StrUtils, HTTPApp,
-  EF.SysUtils, EF.Classes, EF.Data, EF.Localization,
+  EF.SysUtils, EF.Classes, EF.Localization,
   Kitto.Environment, Kitto.AccessControl, Kitto.Ext.Session, Kitto.Ext.Base;
 
 { TKExtTreeViewRenderer }
@@ -264,6 +265,13 @@ begin
   Result := ReplaceText(Result, 'yy', 'y');
   Result := ReplaceText(Result, 'dd', 'd');
   Result := ReplaceText(Result, 'mm', 'm');
+end;
+
+function DelphiTimeFormatToJSTimeFormat(const ATimeFormat: string): string;
+begin
+  Result := ReplaceText(ATimeFormat, 'hh', 'H');
+  Result := ReplaceText(Result, 'mm', 'i');
+  Result := ReplaceText(Result, 'ss', 's');
 end;
 
 end.

@@ -47,11 +47,14 @@ procedure NilEFIntf(var AEFIntferface);
 implementation
 
 procedure FreeAndNilEFIntf(var AEFIntferface);
+var
+  LObject: TObject;
 begin
   if Pointer(AEFIntferface) <> nil then
   begin
-    IEFInterface(AEFIntferface).AsObject.Free;
+    LObject := IEFInterface(AEFIntferface).AsObject;
     NilEFIntf(AEFIntferface);
+    LObject.Free;
   end;
 end;
 

@@ -22,6 +22,9 @@ type
     IEFInterface, IEFLocalizationTool)
   private
     const KITTO_TEXT_DOMAIN = 'Kitto';
+  private
+    FTextDomainBound: Boolean;
+    procedure EnsureTextDomainBound;
   public
     function AsObject: TObject;
     // Note: this tool doesn't make use of Id strings.
@@ -44,7 +47,7 @@ uses
 procedure TKdxgettextLocalizationTool.AfterConstruction;
 begin
   inherited;
-  gnugettext.bindtextdomain(KITTO_TEXT_DOMAIN, Environment.GetKittoHomePath + 'locale');
+  FTextDomainBound := False;
 end;
 
 function TKdxgettextLocalizationTool.AsObject: TObject;
@@ -64,6 +67,7 @@ end;
 
 procedure TKdxgettextLocalizationTool.TranslateComponent(const AComponent: TComponent);
 begin
+  EnsureTextDomainBound;
   gnugettext.TranslateComponent(AComponent, KITTO_TEXT_DOMAIN);
   gnugettext.TranslateComponent(AComponent, 'default');
 end;
@@ -71,10 +75,20 @@ end;
 function TKdxgettextLocalizationTool.TranslateString(const AString,
   AIdString: string): string;
 begin
+  EnsureTextDomainBound;
   // Look in the Kitto text domain first, then in the application domain.
   Result := gnugettext.dgettext(KITTO_TEXT_DOMAIN, AString);
   if Result = AString then
     Result := gnugettext.dgettext('default', AString);
+end;
+
+procedure TKdxgettextLocalizationTool.EnsureTextDomainBound;
+begin
+  if not FTextDomainBound then
+  begin
+    gnugettext.bindtextdomain(KITTO_TEXT_DOMAIN, Environment.GetKittoHomePath + 'locale');
+    FTextDomainBound := True;
+  end;
 end;
 
 initialization

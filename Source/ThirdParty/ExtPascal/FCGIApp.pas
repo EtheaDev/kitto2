@@ -88,6 +88,7 @@ type
     constructor Create(pTitle : string; ASessionClass : TCustomWebSessionClass; pPort : word = 2014; pMaxIdleMinutes : word = 30;
                        pShutdownAfterLastThreadDown : boolean = false; pMaxConns : integer = 1000); reintroduce;
     destructor Destroy; override;
+    procedure TerminateAllThreads;
   end;
 
 var
@@ -508,6 +509,7 @@ begin
       _CurrentFCGIThread.FSession.NewThread := false;
       _CurrentFCGIThread.FSession.FCustomResponseHeaders.Clear;
       _CurrentFCGIThread.FSession.ContentType := 'text/html';
+      FreeOnTerminate := True;
     end;
   finally
     Application.AccessThreads.Leave;
@@ -774,6 +776,21 @@ begin
   end;
 end;
 
+// Frees all threads regardless of expiration
+procedure TFCGIApplication.TerminateAllThreads;
+var
+  I: Integer;
+  Thread: TFCGIThread;
+begin
+  for I := Threads.Count - 1 downto 0 do begin
+    Thread := TFCGIThread(Threads.Objects[I]);
+    AccessThreads.Enter;
+    Thread.Free;
+    Threads.Delete(I);
+    AccessThreads.Leave;
+  end;
+end;
+
 function TFCGIApplication.GetTerminated : Boolean; begin
   Result := inherited GetTerminated or (Shutdown and (ThreadsCount = 0));
 end;
@@ -826,21 +843,24 @@ begin
   I := 0;
   FThreadsCount := -1;
   with TBlockSocket.Create do begin
-    Bind(Port, 1000);
-    if Error = 0 then
-      repeat
-        NewSocket := Accept(250);
-        if NewSocket <> 0 then TFCGIThread.Create(NewSocket);
-        if ((I mod 40) = 0) or GarbageNow then begin // A garbage for each 10 seconds
-          GarbageThreads;
-          GarbageNow := false;
-          I := 0;
-        end;
-        inc(I);
-      until Terminated
-    else
-      OnPortInUseError;
-    Free;
+    try
+      Bind(Port, 1000);
+      if Error = 0 then
+        repeat
+          NewSocket := Accept(250);
+          if NewSocket <> 0 then TFCGIThread.Create(NewSocket);
+          if ((I mod 40) = 0) or GarbageNow then begin // A garbage for each 10 seconds
+            GarbageThreads;
+            GarbageNow := false;
+            I := 0;
+          end;
+          inc(I);
+        until Terminated
+      else
+        OnPortInUseError;
+    finally
+      Free;
+    end;
   end;
 end;
 

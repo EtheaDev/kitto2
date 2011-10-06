@@ -30,8 +30,6 @@ type
     property AdditionalInfo: string read FAdditionalInfo;
   end;
 
-  TEFStringArray = array of string;
-
   TEFPair = TPair<string, string>;
   TEFPairs = array of TEFPair;
 

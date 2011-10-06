@@ -6,7 +6,7 @@ interface
 
 uses
   Types, SysUtils, Classes, DB, Generics.Collections,
-  EF.Intf, EF.Data, EF.Types, EF.Macros, EF.Tree, EF.ObserverIntf;
+  EF.Intf, EF.Types, EF.Macros, EF.Tree, EF.ObserverIntf;
 
 const
   {
@@ -100,7 +100,7 @@ type
       This method should use the passed data items' DataType to decide how to
       format the value, which it then returns as a string.
     }
-    function FormatValue(const AValue: TEFDataItem): string;
+    function FormatValue(const AValue: TEFNode): string;
   end;
 
   {
@@ -191,7 +191,7 @@ type
       const AAfter: IEFTreeItem = nil);
   end;
 
-  { TODO : inherit from TEFClassesSubjectAndObserver }
+  { TODO : inherit from TEFSubjectAndObserver }
   TEFComponent = class(TEFNoRefCountObject, IInterface, IEFInterface,
     IEFSubject, IEFObserver, IEFComponent)
   private

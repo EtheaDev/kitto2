@@ -1,8 +1,3 @@
-{
-  Defines the DB access controller and related classes and services.
-  This access controller uses a set of custom tables in the database to
-  check user permissions.
-}
 unit Kitto.AccessControl.DB;
 
 {$I Kitto.Defines.inc}
@@ -10,9 +5,9 @@ unit Kitto.AccessControl.DB;
 interface
 
 uses
-  Classes, DB, DBClient,
-  EF.Classes,
-  Kitto.AccessControl;
+  Classes,
+  EF.Classes, EF.Tree,
+  Kitto.AccessControl, Kitto.Store;
 
 type
   {
@@ -21,11 +16,13 @@ type
   }
   TKUserPermissionStorage = class(TEFComponent)
   private
+    // Field indexes.
+    const K_RESOURCE_URI_PATTERN = 0;
+    const K_ACCESS_MODES = 1;
+    const K_GRANT_VALUE = 2;
+  private
     FUserId: string;
-    FPermissions: TClientDataSet;
-    FPatternField: TField;
-    FModesField: TField;
-    FValueField: TField;
+    FPermissions: TKStore;
     FReadRolesCommandText: string;
     FReadPermissionsCommandText: string;
     procedure SetUserId(const AValue: string);
@@ -69,71 +66,66 @@ type
       read FReadRolesCommandText write FReadRolesCommandText;
   end;
 
-  {
-    The DB access controller uses a set of tables in the database to store
-    user permissions. The tables have fixed structures; to use different
-    table names or structures, create a descendant.
-
-    In order for this access controller to work, it is required that the
-    database contains the following tables:
-
-    EW_USER_ROLES
-    @table(
-      @rowHead(@cell(Field Name)@cell(Data Type)@cell(Description))
-      @row(@cell(EW_USER_NAME)@cell(string)@cell(Unique user identifier))
-      @row(@cell(EW_ROLE_NAME)@cell(string)@cell(Unique role identifier))
-    )
-    EW_USER_NAME + EW_ROLE_NAME are unique. This table holds the roles that
-    are assigned to each user.
-
-    EW_PERMISSIONS
-    @table(
-      @rowHead(@cell(Field Name)@cell(Data Type)@cell(Description))
-      @row(@cell(EW_RESOURCE_URI_PATTERN)@cell(string)@cell(Unique resource
-        URI; may contain the wildcards * and ?; may begin with ~, which has the
-        effect of negating the rest of the pattern; may contain macros, which
-        are expanded before evaluation; may contain a regular expression,
-        if prefixed with 'REGEX:', or a negated regular expression ('~REGEX:'.))
-      @row(@cell(EW_GRANTEE_NAME)@cell(string)@cell(User or role name.))
-      @row(@cell(EW_ACCESS_MODES)@cell(string)@cell(Comma-separated list of
-        access modes for which the permission is granted; no spaces allowed.))
-      @row(@cell(EW_GRANT_VALUE)@cell(string)@cell(Granted value; use '0' and
-        '1' for Boolean values.))
-    )
-    The first three fields are unique. This table holds the permissions granted
-    to each user or role.
-
-    The first time an access control method is called, the access controller
-    fetches all permission data for the specified user and all the roles granted
-    to him, and then checks how access is granted and returns the result.
-
-    Configuration items (should be specified in SecureConfiguration's slice
-    AccessControl.AccessController):
-    @table(
-      @row(
-        @cell(ReadPermissionsCommandText)@cell(String)@cell(Optional)
-        @cell(A SQL select statement that selects all permission records for a
-          grantee, with the fields EW_RESOURCE_URI_PATTERN, Kitto._ACCESS_MODES
-          and EW_GRANT_VALUE and a single string parameter that will be filled
-          in with the grantee name.
-
-          Example (this is also the default setting):
-            select EW_RESOURCE_URI_PATTERN, Kitto._ACCESS_MODES, Kitto._GRANT_VALUE
-            from EW_PERMISSIONS
-            where EW_GRANTEE_NAME = :EW_GRANTEE_NAME
-            order by EW_RESOURCE_URI_PATTERN, Kitto._ACCESS_MODES
-      ))@row(
-        @cell(ReadRolesCommandText)@cell(String)@cell(Optional)
-        @cell(A SQL select statement that selects all roles granted to a user,
-          with a single field called EW_ROLE_NAME and a single string parameter
-          that will be filled in with the user name.
-
-          Example (this is also the default setting):
-            select EW_ROLE_NAME from EW_USER_ROLES
-            where EW_USER_NAME = :EW_USER_NAME
-            order by EW_ROLE_NAME
-      ))
-  }
+  ///	<summary>
+  ///	  <para>
+  ///	    The DB access controller uses a set of tables in the database to
+  ///	    store user permissions. The tables have fixed structures; to use
+  ///	    different table names or structures, create a descendant.
+  ///	  </para>
+  ///	  <para>
+  ///	    In order for this access controller to work, it is required that the
+  ///	    database contains the following tables:
+  ///	  </para>
+  ///	  <para>
+  ///	    KITTO_USER_ROLES<br />This table holds the roles that are assigned to
+  ///	    each user.
+  ///	  </para>
+  ///	  <para>
+  ///	    Fields:<br />USER_NAME (String): Unique user identifier.<br />ROLE_NAM
+  ///	    E (String): Unique role identifier.<br />The USER_NAME + ROLE_NAME
+  ///	    combination must be unique.
+  ///	  </para>
+  ///	  <para>
+  ///	    KITTO_PERMISSIONS<br />This table holds the permissions granted to
+  ///	    each user or role.
+  ///	  </para>
+  ///	  <para>
+  ///	    Fields:<br />RESOURCE_URI_PATTERN (String): Unique resource URI; may
+  ///	    contain the wildcards * and ?; may begin with ~, which has the effect
+  ///	    of negating the rest of the pattern; may contain macros, which are
+  ///	    expanded before evaluation; may contain a regular expression, if
+  ///	    prefixed with 'REGEX:', or a negated regular expression ('~REGEX:').
+  ///	    <br />GRANTEE_NAME (String): User or role name.<br />ACCESS_MODES
+  ///	    (String): Comma-separated list of access modes for which the
+  ///	    permission is granted; no spaces allowed.<br />GRANT_VALUE (String):
+  ///	    Granted value; use '0' and '1' for Boolean values.<br />The first
+  ///	    three fields are unique. The first time an access control method is
+  ///	    called, the access controller fetches all permission data for the
+  ///	    specified user and all the roles granted to him, and then checks how
+  ///	    access is granted and returns the result.
+  ///	  </para>
+  ///	  <para>
+  ///	    Config parameters:
+  ///	  </para>
+  ///	  <para>
+  ///	    ReadPermissionsCommandText (String): A SQL select statement that
+  ///	    selects all permission records for a grantee, with the first three
+  ///	    fields representing the first tree fields in KITTO_PERMISSIONS and a
+  ///	    single string parameter that will be filled in with the grantee name.
+  ///	    Example (this is also the default setting): select
+  ///	    RESOURCE_URI_PATTERN, ACCESS_MODES, GRANT_VALUE from
+  ///	    KITTO_PERMISSIONS where GRANTEE_NAME = :GRANTEE_NAME order by
+  ///	    RESOURCE_URI_PATTERN, ACCESS_MODES.
+  ///	  </para>
+  ///	  <para>
+  ///	    ReadRolesCommandText (String): A SQL select statement that selects
+  ///	    all roles granted to a user, with a single field representing the 
+  ///	    role name and a single string parameter that will be filled in with
+  ///	    the user name. Example (this is also the default setting): select
+  ///	    ROLE_NAME from KITTO_USER_ROLES where USER_NAME = :USER_NAME order by
+  ///	    ROLE_NAME.
+  ///	  </para>
+  ///	</summary>
   TKDBAccessController = class(TKAccessController)
   private
     FUserPermissions: TStringList;
@@ -185,14 +177,14 @@ begin
     Result := TKUserPermissionStorage.Create;
     try
       Result.ReadPermissionsCommandText := Config.GetString('ReadPermissionsCommandText',
-        'select EW_RESOURCE_URI_PATTERN, Kitto._ACCESS_MODES, Kitto._GRANT_VALUE '
-        + 'from EW_PERMISSIONS '
-        + 'where EW_GRANTEE_NAME = :EW_GRANTEE_NAME '
-        + 'order by EW_RESOURCE_URI_PATTERN, Kitto._ACCESS_MODES');
+        'select RESOURCE_URI_PATTERN, ACCESS_MODES, GRANT_VALUE '
+        + 'from KITTO_PERMISSIONS '
+        + 'where GRANTEE_NAME = :GRANTEE_NAME '
+        + 'order by RESOURCE_URI_PATTERN, ACCESS_MODES');
       Result.ReadRolesCommandText := Config.GetString('ReadRolesCommandText',
-        'select EW_ROLE_NAME from EW_USER_ROLES '
-        + 'where EW_USER_NAME = :EW_USER_NAME '
-        + 'order by EW_ROLE_NAME');
+        'select ROLE_NAME from KITTO_USER_ROLES '
+        + 'where USER_NAME = :USER_NAME '
+        + 'order by ROLE_NAME');
       Result.UserId := AUserId;
       FUserPermissions.AddObject(AUserId, Result);
     except
@@ -222,14 +214,10 @@ end;
 procedure TKUserPermissionStorage.AfterConstruction;
 begin
   inherited;
-  FPermissions := TClientDataSet.Create(nil);
-  FPermissions.FieldDefs.Add('EW_RESOURCE_URI_PATTERN', ftString, 255, True);
-  FPermissions.FieldDefs.Add('EW_ACCESS_MODES', ftString, 255, True);
-  FPermissions.FieldDefs.Add('EW_GRANT_VALUE', ftString, 255, True);
-  FPermissions.CreateDataSet;
-  FPatternField := FPermissions.FieldByName('EW_RESOURCE_URI_PATTERN');
-  FModesField := FPermissions.FieldByName('EW_ACCESS_MODES');
-  FValueField := FPermissions.FieldByName('EW_GRANT_VALUE');
+  FPermissions := TKStore.Create;
+  FPermissions.Header.AddChild('K_RESOURCE_URI_PATTERN').DataType := edtString;
+  FPermissions.Header.AddChild('K_ACCESS_MODES').DataType := edtString;
+  FPermissions.Header.AddChild('K_GRANT_VALUE').DataType := edtString;
 end;
 
 destructor TKUserPermissionStorage.Destroy;
@@ -243,7 +231,7 @@ var
   LRoles: TStrings;
   LRoleIndex: Integer;
 begin
-  FPermissions.EmptyDataSet;
+  FPermissions.Records.Clear;
   if FUserId <> '' then
   begin
     LoadGranteePermissions(FUserId);
@@ -272,7 +260,7 @@ begin
     LPermissionQuery.Params[0].AsString := AGranteeId;
     LPermissionQuery.Open;
     try
-      AppendToDataSet(LPermissionQuery.DataSet, FPermissions);
+      FPermissions.Load(LPermissionQuery.DataSet, True);
     finally
       LPermissionQuery.Close;
     end;
@@ -281,16 +269,17 @@ begin
   end;
 end;
 
-function TKUserPermissionStorage.GetAccessGrantValue(const AResourceURI,
-  AMode: string): Variant;
+function TKUserPermissionStorage.GetAccessGrantValue(const AResourceURI, AMode: string): Variant;
 var
   LPattern: string;
+  I: Integer;
+  LRecord: TKRecord;
 begin
   Result := Null;
-  FPermissions.First;
-  while not FPermissions.Eof do
+  for I := 0 to FPermissions.RecordCount - 1 do
   begin
-    LPattern := FPatternField.AsString;
+    LRecord := FPermissions.Records[I];
+    LPattern := LRecord[K_RESOURCE_URI_PATTERN].AsString;
     // Only trigger macro expansion is a macro is found. Ugly, but more
     // efficient.
     if Pos('%', LPattern) > 0 then
@@ -301,11 +290,11 @@ begin
     // list of stored access modes. The checks for ',' are meant to rule out
     // false positives in an efficient, albeit not very elegant, way.
     if StrMatchesPatternOrRegex(AResourceURI, LPattern)
-      and ((Pos(AMode + ',', FModesField.AsString) > 0)
-      or (Pos(',' + AMode, FModesField.AsString) > 0)
-      or (AMode = FModesField.AsString)) then
+      and ((Pos(AMode + ',', LRecord[K_ACCESS_MODES].AsString) > 0)
+      or (Pos(',' + AMode, LRecord[K_ACCESS_MODES].AsString) > 0)
+      or (AMode = LRecord[K_ACCESS_MODES].AsString)) then
     begin
-      Result := FValueField.Value;
+      Result := LRecord[K_GRANT_VALUE].Value;
       // In standard modes (that only support TRUE or FALSE as grant values)
       // a FALSE value has a greater weight, so as soon as we find one we
       // keep it and break out. In all other cases the last pattern is the one
@@ -313,7 +302,6 @@ begin
       if IsStandardMode(AMode) and (Result = ACV_FALSE) then
         Break;
     end;
-    FPermissions.Next;
   end;
 end;
 

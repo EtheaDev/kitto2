@@ -6,7 +6,7 @@ interface
 
 uses
   SysUtils, DB, Classes, Generics.Collections,
-  EF.Intf, EF.Classes, EF.Data;
+  EF.Intf, EF.Classes, EF.Tree;
 
 type
   TEFDBSchemaInfo = class;
@@ -190,83 +190,18 @@ type
     ///	  A default implementation for IEFDBConnection's FormatValue method.
     ///	  Formats values in a way that should work for most database systems.
     ///	</summary>
-    function FormatValue(const AValue: TEFDataItem): string; virtual;
+    function FormatValue(const AValue: TEFNode): string; virtual;
   end;
 
-  {
-    A collection of named objects that implement IEFDBCommand.
-    This objects owns the objects it contains, and frees them
-    upon destruction.
-  }
-  TEFDBCommandList = class(TEFNoRefCountObject)
-  private
-    FCommandList: TStringList;
-    function GetDBCommand(const AIndex: Integer): IEFDBCommand;
-  protected
-    function GetCount: Integer;
-  public
-    procedure AfterConstruction; override;
-    destructor Destroy; override;
-    {
-      Returns the number of objects in list.
-    }
-    property Count: Integer read GetCount;
-    {
-      Returns references to the contained objects by index.
-    }
-    property DBCommands[const AIndex: Integer]: IEFDBCommand read GetDBCommand; default;
-    {
-      Adds an object under the given name.
-    }
-    function Add(const AName: string; const ADBCommand: IEFDBCommand): Integer;
-    {
-      Removes the object, but doesn't free it.
-    }
-    procedure Remove(const ADBCommand: IEFDBCommand);
-    {
-      Returns a reference to the object with the specified name.
-    }
-    function GetDBCommandByName(const AName: string): IEFDBCommand;
-    {
-      Returns the index of the object with the specified name.
-      Raises an exception if the object is not in list.
-    }
-    function GetDBCommandIndexByName(const AName: string): Integer;
-    {
-      Returns a reference to the object with the specified name.
-    }
-    function IndexOf(const AName: string): Integer;
-    {
-      Removes and frees all commands in the list.
-    }
-    procedure Clear;
-  end;
-
-  {
-    A collection of named objects that implement IEFDBQuery.
-    See TEFDBCommandList for details.
-  }
-  TEFDBQueryList = class(TEFDBCommandList)
-  private
-    function GetDBQuery(const AIndex: Integer): IEFDBQuery;
-  public
-    function Add(const AName: string; const ADBQuery: IEFDBQuery): Integer;
-    procedure Remove(const ADBQuery: IEFDBQuery);
-    property DBQueries[const AIndex: Integer]: IEFDBQuery read GetDBQuery; default;
-    function GetDBQueryByName(const AName: string): IEFDBQuery;
-    function GetDBQueryIndexByName(const AName: string): Integer;
-  end;
-
-  {
-    Base class for a factory of EF DB connection components.
-    Applications (or, more frequently, Addin packages) will define one or
-    more descendant classes to use as factories for the database components.
-    Each descendant factory encapsulates the creation of one particular breed
-    of database connection components (dbX, ADO, and so on).
-    Once a DB connection is created through a factory, use methods in the
-    connection object to create other kinds of components like commands and
-    queries.
-  }
+  ///	<summary>
+  ///	  Base class for a data access adapter. Descendants encapsulate specific
+  ///	  data access libraries or databases.
+  ///	</summary>
+  ///	<remarks>
+  ///	  Once a DB connection is created through an adapter, use methods in the
+  ///	  connection object to create other kinds of components like commands and
+  ///	  queries.
+  ///	</remarks>
   TEFDBAdapter = class(TEFComponent)
   protected
     function InternalCreateDBConnection: IEFDBConnection; virtual; abstract;
@@ -387,104 +322,6 @@ begin
   Result := InternalCreateDBInfo;
 end;
 
-{ TEFDBCommandList }
-
-function TEFDBCommandList.Add(const AName: string;
-  const ADBCommand: IEFDBCommand): Integer;
-begin
-  Result := FCommandList.AddObject(AName, ADBCommand.AsObject);
-end;
-
-procedure TEFDBCommandList.AfterConstruction;
-begin
-  inherited;
-  FCommandList := TStringList.Create;
-  FCommandList.Duplicates := dupError;
-  FCommandList.Sorted := True;
-end;
-
-destructor TEFDBCommandList.Destroy;
-begin
-  Clear;
-  FreeAndNil(FCommandList);
-  inherited;
-end;
-
-procedure TEFDBCommandList.Clear;
-var
-  LCommandIndex: Integer;
-  LDBCommandIntf: IEFDBCommand;
-begin
-  for LCommandIndex := FCommandList.Count - 1 downto 0 do
-  begin
-    LDBCommandIntf := DBCommands[LCommandIndex];
-    FCommandList.Delete(LCommandIndex);
-    FreeAndNilEFIntf(LDBCommandIntf);
-  end;
-end;
-
-function TEFDBCommandList.GetCount: Integer;
-begin
-  Result := FCommandList.Count;
-end;
-
-function TEFDBCommandList.GetDBCommandByName(
-  const AName: string): IEFDBCommand;
-begin
-  Result := GetDBCommand(GetDBCommandIndexByName(AName));
-end;
-
-function TEFDBCommandList.GetDBCommandIndexByName(
-  const AName: string): Integer;
-begin
-  Result := FCommandList.IndexOf(AName);
-  if Result < 0 then
-    raise EEFError.CreateFmt(_('Item %s not found.'), [AName]);
-end;
-
-function TEFDBCommandList.GetDBCommand(const AIndex: Integer): IEFDBCommand;
-begin
-  Result := (FCommandList.Objects[AIndex] as TEFNoRefCountObject) as IEFDBCommand;
-end;
-
-function TEFDBCommandList.IndexOf(const AName: string): Integer;
-begin
-  Result := FCommandList.IndexOf(AName);
-end;
-
-procedure TEFDBCommandList.Remove(const ADBCommand: IEFDBCommand);
-begin
-  FCommandList.Delete(FCommandList.IndexOfObject(ADBCommand.AsObject));
-end;
-
-{ TEFDBQueryList }
-
-function TEFDBQueryList.Add(const AName: string;
-  const ADBQuery: IEFDBQuery): Integer;
-begin
-  Result := inherited Add(AName, ADBQuery);
-end;
-
-function TEFDBQueryList.GetDBQueryByName(const AName: string): IEFDBQuery;
-begin
-  Result := inherited GetDBCommandByName(AName) as IEFDBQuery;
-end;
-
-function TEFDBQueryList.GetDBQueryIndexByName(const AName: string): Integer;
-begin
-  Result := inherited GetDBCommandIndexByName(AName);
-end;
-
-function TEFDBQueryList.GetDBQuery(const AIndex: Integer): IEFDBQuery;
-begin
-  Result := inherited DBCommands[AIndex] as IEFDBQuery;
-end;
-
-procedure TEFDBQueryList.Remove(const ADBQuery: IEFDBQuery);
-begin
-  inherited Remove(ADBQuery);
-end;
-
 { TEFDBConnection }
 
 procedure TEFDBConnection.AfterConnectionOpen(Sender: TObject);
@@ -514,7 +351,7 @@ begin
   FStandardFormatSettings.TimeSeparator := ':';
 end;
 
-function TEFDBConnection.FormatValue(const AValue: TEFDataItem): string;
+function TEFDBConnection.FormatValue(const AValue: TEFNode): string;
 begin
   Assert(Assigned(AValue));
 
@@ -522,25 +359,26 @@ begin
     Result := ''
   else
   begin
+{ TODO : implement data types }
     case AValue.DataType of
       edtString:
         Result := SQLQuotedStr(AValue.AsString);
       edtInteger:
         Result := AValue.AsString;
-      edtCurrency:
-        Result := FormatCurr('', AValue.AsCurrency, GetStandardFormatSettings);
-      edtFloat:
-        Result := FormatFloat('', AValue.AsFloat, GetStandardFormatSettings);
-      edtBcd:
-        Result := FormatFloat('', BcdToDouble(AValue.AsBcd), GetStandardFormatSettings);
+      //edtCurrency:
+        //Result := FormatCurr('', AValue.AsCurrency, GetStandardFormatSettings);
+      //edtFloat:
+        //Result := FormatFloat('', AValue.AsFloat, GetStandardFormatSettings);
+      //edtBcd:
+        //Result := FormatFloat('', BcdToDouble(AValue.AsBcd), GetStandardFormatSettings);
       edtBoolean:
         Result := IfThen(AValue.AsBoolean, '1', '0');
-      edtDate:
-        Result := SQLQuotedStr(FormatDateTime('yyyy/mm/dd', AValue.AsDate, GetStandardFormatSettings));
-      edtTime:
-        Result := SQLQuotedStr(FormatDateTime('hh:nn:ss', AValue.AsTime, GetStandardFormatSettings));
-      edtDateTime:
-        Result := SQLQuotedStr(FormatDateTime('yyyy/mm/dd hh:nn:ss', AValue.AsDate, GetStandardFormatSettings));
+      //edtDate:
+        //Result := SQLQuotedStr(FormatDateTime('yyyy/mm/dd', AValue.AsDate, GetStandardFormatSettings));
+      //edtTime:
+        //Result := SQLQuotedStr(FormatDateTime('hh:nn:ss', AValue.AsTime, GetStandardFormatSettings));
+      //edtDateTime:
+        //Result := SQLQuotedStr(FormatDateTime('yyyy/mm/dd hh:nn:ss', AValue.AsDateTime, GetStandardFormatSettings));
     else
       Result := SQLQuotedStr(AValue.AsString);
     end;

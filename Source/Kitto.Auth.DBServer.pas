@@ -9,7 +9,7 @@ unit Kitto.Auth.DBServer;
 interface
 
 uses
-  EF.Data, EF.Tree,
+  EF.Tree,
   Kitto.Auth;
 
 type
