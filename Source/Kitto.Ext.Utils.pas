@@ -85,11 +85,11 @@ begin
           try
             LMenuItem.Menu := LSubMenu;
             AddMenuItem(LViewRef.ViewRefs, LSubMenu);
-            if LSubMenu.Items.Count = 0 then
+            {if LSubMenu.Items.Count = 0 then
             begin
               LMenuItem.Menu := nil;
               FreeAndNil(LSubMenu);
-            end;
+            end;}
           except
             FreeAndNil(LSubMenu);
             raise;
@@ -151,13 +151,13 @@ begin
       begin
         LMenu := TExtMenuMenu.Create;
         try
-          LButton.Menu_ := LMenu;
+          LButton.Menu := LMenu;
           AddMenuItem(AViewRef.ViewRefs, LMenu);
-          if LMenu.Items.Count = 0 then
+          {if LMenu.Items.Count = 0 then
           begin
             LButton.Menu_ := nil;
             FreeAndNil(LMenu);
-          end;
+          end;}
         except
           FreeAndNil(LMenu);
           raise;

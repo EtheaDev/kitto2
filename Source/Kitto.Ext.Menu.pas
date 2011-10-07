@@ -8,20 +8,20 @@ uses
   Kitto.Metadata.Views, Kitto.Ext.Base, Kitto.Ext.Utils;
 
 type
-  {
-    A Tab panel that knows when its hosted panels are closed.
-  }
+  ///	<summary>
+  ///	  A tab panel that knows when its hosted panels are closed.
+  ///	</summary>
+  ///	<remarks>
+  ///	</remarks>
   TKExtHostPanel = class(TExtTabPanel)
-  protected
-    procedure InitDefaults; override;
   published
     procedure PanelClosed;
   end;
 
-  {
-    The main menu panel, with toolbar, status bar and navigation tree.
-    Hosts application panels.
-  }
+  ///	<summary>
+  ///	  A menu panel, with toolbar, status bar and navigation tree. Hosts views
+  ///	  as tab pages.
+  ///	</summary>
   TKExtMenuPanel = class(TKExtPanelController)
   private
     FToolbar: TExtToolbar;
@@ -52,14 +52,14 @@ type
     procedure ShowMemoryStatus;
   end;
 
-  TKExtMenuWindow = class(TKExtWindow)
+  TKExtMenuWindow = class(TKExtWindowController)
   private
     FMainMenuPanel: TKExtMenuPanel;
   protected
     procedure DoDisplay; override;
   end;
 
-  TKExtMenuViewport = class(TKExtViewport)
+  TKExtMenuViewport = class(TKExtViewportController)
   private
     FMainMenuPanel: TKExtMenuPanel;
   protected
@@ -70,7 +70,7 @@ implementation
 
 uses
   SysUtils, Types, Classes,
-  ExtPascalUtils,
+  ExtPascal, ExtPascalUtils,
   EF.StrUtils,
   Kitto.Ext.Session, Kitto.Environment, Kitto.Controller;
 
@@ -292,15 +292,13 @@ end;
 
 { TKExtHostPanel }
 
-procedure TKExtHostPanel.InitDefaults;
-begin
-  inherited;
-end;
-
 procedure TKExtHostPanel.PanelClosed;
+var
+  LPanel: TExtObject;
 begin
-  { TODO : Investigate AV. }
-  ParamAsObject('Panel').Free;
+  LPanel := ParamAsObject('Panel') as TExtObject;
+  Items.Remove(LPanel);
+  LPanel.Free;
 end;
 
 { TKExtMenuWindow }

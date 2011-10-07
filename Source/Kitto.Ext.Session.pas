@@ -41,6 +41,8 @@ type
     function GetGCObjectCount: Integer;
 
     property FormatSettings: TFormatSettings read FFormatSettings;
+
+    procedure GarbageDelete(const AObject: TObject);
   published
     procedure Logout;
   end;
@@ -73,6 +75,11 @@ begin
   SetEnvironmentSingleton(@GetSessionEnvironment);
 end;
 
+procedure TKExtSession.GarbageDelete(const AObject: TObject);
+begin
+  inherited GarbageDelete(AObject);
+end;
+
 function TKExtSession.GetEnvironment: TKEnvironment;
 begin
   if not Assigned(FEnvironment) then
@@ -103,6 +110,7 @@ end;
 
 destructor TKExtSession.Destroy;
 begin
+  FreeAndNilEFIntf(FHomeController);
   FreeAndNil(FEnvironment);
   inherited;
 end;
@@ -113,7 +121,7 @@ begin
   FreeAndNilEFIntf(FHomeController);
   FHomeController := TKControllerFactory.Instance.CreateController(
     Environment.Views.ViewByName(Environment.Config.GetString('Home/View', 'Main')));
-  TExtPanel(FHomeController.AsObject).SetVisible(False);
+  GarbageDelete(FHomeController.AsObject); // We're going to free it ourselves.
   FHomeController.Display;
 end;
 

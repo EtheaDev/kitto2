@@ -325,7 +325,8 @@ end;
 procedure TKViews.Close;
 begin
   inherited;
-  Layouts.Close;
+  if Assigned(FLayouts) then
+    FLayouts.Close;
 end;
 
 destructor TKViews.Destroy;

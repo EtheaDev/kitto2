@@ -26,7 +26,6 @@ type
     property ViewTable: TKViewTable read FViewTable;
     function GetFilterExpression: string; virtual;
   public
-    procedure AfterConstruction; override;
     destructor Destroy; override;
   end;
 
@@ -111,12 +110,6 @@ end;
 procedure TKExtDataPanel.LoadData;
 begin
   { TODO : load store }
-end;
-
-procedure TKExtDataPanel.AfterConstruction;
-begin
-  inherited;
-
 end;
 
 function TKExtDataPanel.AutoLoadData: Boolean;
