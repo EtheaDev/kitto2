@@ -529,7 +529,10 @@ var
   I : Integer;
 begin
   I := FGarbageCollector.IndexOf(GarbageFixName(Name));
-  if I >= 0 then PGarbage(FGarbageCollector.Objects[I])^.Persistent := True;
+  if I >= 0 then begin
+    PGarbage(FGarbageCollector.Objects[I])^.Garbage := nil;
+    PGarbage(FGarbageCollector.Objects[I])^.Persistent := True;
+  end;
 end;
 
 procedure TCustomWebSession.GarbageRemove(Obj : TObject);

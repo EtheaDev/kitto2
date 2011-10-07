@@ -312,6 +312,7 @@ type
     function SetText(Text : String) : TExtFunction;
     function Toggle : TExtFunction;
     function Unselect(Silent : Boolean = false) : TExtFunction;
+    destructor Destroy; override;
     property AllowChildren : Boolean read FAllowChildren write SetFAllowChildren;
     property AllowDrag : Boolean read FAllowDrag write SetFAllowDrag;
     property AllowDrop : Boolean read FAllowDrop write SetFAllowDrop;
@@ -1219,6 +1220,7 @@ procedure TExtTreeTreeNode.SetFText_(Value : String); begin
 end;
 
 procedure TExtTreeTreeNode.SetFUi(Value : TExtTreeTreeNodeUI); begin
+  FUi.Free;
   FUi := Value;
   Value.DeleteFromGarbage;
   JSCode(JSName + '.ui=' + VarToJSON([Value, false]) + ';');
@@ -1357,6 +1359,11 @@ end;
 function TExtTreeTreeNode.CollapseChildNodes(Deep : Boolean = false) : TExtFunction; begin
   JSCode(JSName + '.collapseChildNodes(' + VarToJSON([Deep]) + ');', 'TExtTreeTreeNode');
   Result := Self;
+end;
+
+destructor TExtTreeTreeNode.Destroy; begin
+  FUi.Free;
+  inherited;
 end;
 
 function TExtTreeTreeNode.Disable : TExtFunction; begin
@@ -1737,6 +1744,7 @@ procedure TExtTreeTreePanel.SetFRequestMethod(Value : String); begin
 end;
 
 procedure TExtTreeTreePanel.SetFRoot(Value : TExtTreeTreeNode); begin
+  FRoot.Free;
   FRoot := Value;
   Value.DeleteFromGarbage;
   JSCode('root:' + VarToJSON([Value, false]));

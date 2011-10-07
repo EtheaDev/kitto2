@@ -2386,12 +2386,14 @@ procedure TExtGridGridPanel.SetFSm(Value : TExtObject); begin
 end;
 
 procedure TExtGridGridPanel.SetFStateEvents(Value : TExtObjectList); begin
+  FStateEvents.Free;
   FStateEvents := Value;
   Value.DeleteFromGarbage;
   JSCode('stateEvents:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtGridGridPanel.SetFStore(Value : TExtDataStore); begin
+  FStore.Free;
   FStore := Value;
   Value.DeleteFromGarbage;
   JSCode('store:' + VarToJSON([Value, false]));
@@ -2408,6 +2410,7 @@ procedure TExtGridGridPanel.SetFTrackMouseOver(Value : Boolean); begin
 end;
 
 procedure TExtGridGridPanel.SetFView(Value : TExtObject); begin
+  FView.Free;
   FView := Value;
   Value.DeleteFromGarbage;
   JSCode('view:' + VarToJSON([Value, false]));
@@ -2922,6 +2925,7 @@ procedure TExtGridEditorGridPanel.SetFForceValidation(Value : Boolean); begin
 end;
 
 procedure TExtGridEditorGridPanel.SetFSelModel(Value : TExtObject); begin
+  FSelModel.Free;
   FSelModel := Value;
   Value.DeleteFromGarbage;
   JSCode('selModel:' + VarToJSON([Value, false]));

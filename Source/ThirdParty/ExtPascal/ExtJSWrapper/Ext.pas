@@ -10280,6 +10280,7 @@ procedure TExtContainer.SetFDefaultType(Value : TExtComponentXType); begin
 end;
 
 procedure TExtContainer.SetFDefaults(Value : TExtObject); begin
+  FDefaults.Free;
   FDefaults := Value;
   Value.DeleteFromGarbage;
   JSCode('defaults:' + VarToJSON([Value, false]));
@@ -10324,6 +10325,7 @@ procedure TExtContainer.SetFLayoutObject(Value : TExtObject); begin
 end;
 
 procedure TExtContainer.SetFLayoutConfig(Value : TExtObject); begin
+  FLayoutConfig.Free;
   FLayoutConfig := Value;
   Value.DeleteFromGarbage;
   JSCode('layoutConfig:' + VarToJSON([Value, false]));
@@ -10637,6 +10639,7 @@ procedure TExtButton.SetFIconCls(Value : String); begin
 end;
 
 procedure TExtButton.SetFMenu(Value : TExtUtilObservable); begin
+  FMenu.Free;
   FMenu := Value;
   Value.DeleteFromGarbage;
   JSCode('menu:' + VarToJSON([Value, false]));

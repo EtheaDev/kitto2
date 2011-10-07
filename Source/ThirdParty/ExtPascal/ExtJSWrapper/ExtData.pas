@@ -2377,6 +2377,7 @@ procedure TExtDataStore.SetFPruneModifiedRecords(Value : Boolean); begin
 end;
 
 procedure TExtDataStore.SetFReader(Value : TExtDataDataReader); begin
+  FReader.Free;
   FReader := Value;
   Value.DeleteFromGarbage;
   JSCode('reader:' + VarToJSON([Value, false]));
@@ -2393,6 +2394,7 @@ procedure TExtDataStore.SetFRestful(Value : Boolean); begin
 end;
 
 procedure TExtDataStore.SetFSortInfo(Value : TExtObject); begin
+  FSortInfo.Free;
   FSortInfo := Value;
   Value.DeleteFromGarbage;
   JSCode('sortInfo:' + VarToJSON([Value, false]));

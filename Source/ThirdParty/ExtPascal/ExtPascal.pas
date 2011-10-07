@@ -223,6 +223,8 @@ type
     constructor Create(pOwner : TExtObject = nil; pAttribute : string = '');
     destructor Destroy; override;
     procedure Add(Obj : TExtObject);
+    procedure Remove(Obj : TExtObject);
+    function IndexOf(Obj : TExtObject): Integer;
     function Count : integer;
   end;
 
@@ -960,6 +962,37 @@ function TExtObjectList.GetFObjects(I : integer) : TExtObject; begin
     Result := nil
 end;
 
+function TExtObjectList.IndexOf(Obj: TExtObject): Integer;
+var
+  I: Integer;
+begin
+  Result := -1;
+  for I := Low(FObjects) to High(FObjects) do
+  begin
+    if FObjects[I] = Obj then
+    begin
+      Result := I;
+      Break;
+    end;
+  end;
+end;
+
+procedure TExtObjectList.Remove(Obj: TExtObject);
+var
+  LIndex: Integer;
+  LLength: Integer;
+  I: Integer;
+begin
+  LIndex := IndexOf(Obj);
+  if LIndex >= 0 then
+  begin
+    LLength := Length(FObjects);
+    for I := LIndex + 1 to LLength - 1 do
+      FObjects[I - 1] := FObjects[I];
+    SetLength(FObjects, LLength - 1);
+  end;
+end;
+
 // Returns the number of Objects in the list
 function TExtObjectList.Count : integer; begin
   Result := length(FObjects)
@@ -1074,7 +1107,8 @@ Creates a TExtObject and generate corresponding JS code using <link TExtObject.J
 @param Owner Optional parameter used internally by <link TExtObject.JSObject, JSObject> and <link TExtObject.JSArray, JSArray> only
 }
 constructor TExtObject.Create(Owner : TExtObject = nil); begin
-  if Owner = nil then CreateVar(JSClassName + '({});');
+  //if Owner = nil then
+  CreateVar(JSClassName + '({});');// else Created := True;
 end;
 
 {
