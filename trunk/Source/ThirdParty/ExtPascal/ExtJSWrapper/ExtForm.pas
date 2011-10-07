@@ -3763,6 +3763,7 @@ end;
 destructor TExtFormFormPanel.Destroy; begin
   try
     FButtons.Free;
+    FForm.Free;
   except end;
   inherited;
 end;
@@ -4231,12 +4232,14 @@ procedure TExtFormComboBox.SetFShadowString(Value : String); begin
 end;
 
 procedure TExtFormComboBox.SetFStore(Value : TExtDataStore); begin
+  FStore.Free;
   FStore := Value;
   Value.DeleteFromGarbage;
   JSCode('store:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtFormComboBox.SetFStoreArray(Value : TExtObjectList); begin
+  FStoreArray.Free;
   FStoreArray := Value;
   Value.DeleteFromGarbage;
   JSCode('store:' + VarToJSON([Value, false]));
