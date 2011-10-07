@@ -196,11 +196,10 @@ begin
     FFilterPanel.Region := rgNorth;
     FFilterPanel.Title := _(ViewTable.GetString('Controller/Filters/DisplayLabel', 'Filters'));
     FFilterPanel.Collapsible := True;
-    //FFilterPanel.Layout := lyForm;
     FFilterPanel.Frame := True;
     FFilterPanel.Connector := ViewTable.GetString('Controller/Filters/Connector', 'and');
     FFilterPanel.Border := False;
-
+    FFilterPanel.AutoHeight := True;
     for I := 0 to LItems.ChildCount - 1 do
     begin
       // Currently unused.

@@ -60,11 +60,24 @@ begin
   if FRestart then
   begin
     FRestart := False;
-    { TODO : needed when you stop on form close, otherwise OnTerminate
-      is not called. Should be done in a different way. }
-    Sleep(100);
-    StartActionExecute(StartAction);
+    StartAction.Execute;
   end;
+end;
+
+procedure TKMainForm.StopActionExecute(Sender: TObject);
+begin
+  if Assigned(FKAppThread) then
+  begin
+    StatusBar.SimpleText := 'Stopping...';
+    FKAppThread.Terminate;
+    while Assigned(FKAppThread) do
+      Forms.Application.ProcessMessages;
+  end;
+end;
+
+procedure TKMainForm.StopActionUpdate(Sender: TObject);
+begin
+  (Sender as TAction).Enabled := Assigned(FKAppThread);
 end;
 
 procedure TKMainForm.RestartActionExecute(Sender: TObject);
@@ -100,6 +113,8 @@ end;
 procedure TKMainForm.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
   StopAction.Execute;
+  { TODO : needed otherwise OnTerminate is not called. Should be done in a different way. }
+  Sleep(500);
 end;
 
 procedure TKMainForm.FormShow(Sender: TObject);
@@ -137,21 +152,6 @@ end;
 procedure TKMainForm.StartActionUpdate(Sender: TObject);
 begin
   (Sender as TAction).Enabled := not Assigned(FKAppThread);
-end;
-
-procedure TKMainForm.StopActionExecute(Sender: TObject);
-begin
-  if Assigned(FKAppThread) then
-  begin
-    FCGIApp.Application.TerminateAllThreads;
-    FKAppThread.Terminate;
-    StatusBar.SimpleText := 'Stopping...';
-  end;
-end;
-
-procedure TKMainForm.StopActionUpdate(Sender: TObject);
-begin
-  (Sender as TAction).Enabled := Assigned(FKAppThread);
 end;
 
 end.
