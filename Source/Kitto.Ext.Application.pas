@@ -34,6 +34,7 @@ uses
 
 destructor TKExtAppThread.Destroy;
 begin
+  Application.TerminateAllThreads;
   FreeAndNil(Application);
   inherited;
 end;

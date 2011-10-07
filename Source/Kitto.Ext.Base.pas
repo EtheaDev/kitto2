@@ -487,7 +487,7 @@ begin
     // Don't call AddTo as a regular method: it will call AfterConstruction.
     TExtContainer(LContainer).Items.Add(Self);
 
-    if Config.GetBoolean('Controller/AllowClose', True) then
+    if View.GetBoolean('Controller/AllowClose', True) then
     begin
       Closable := True;
       On('close', TExtContainer(LContainer).Ajax('PanelClosed', ['Panel', '%0.nm']));
