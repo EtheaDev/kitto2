@@ -5,7 +5,7 @@ interface
 uses
   Ext, ExtGrid, ExtData, ExtForm,
   EF.ObserverIntf, EF.Classes,
-  Kitto.Ext.Base, Kitto.Ext.DataPanel, Kitto.Types,
+  Kitto.Ext.Base, Kitto.Ext.DataPanel, Kitto.Types, Kitto.Controller,
   Kitto.Metadata.Views, Kitto.Store;
 
 type
@@ -28,6 +28,7 @@ type
     FReader: TExtDataJsonReader;
     FGridView: TExtGridGridView;
     FEditHostWindow: TKExtModalWindow;
+    FFormController: IKController;
     FPagingToolbar: TExtPagingToolbar;
     FTopToolbar: TExtToolbar;
     FFilterPanel: TKExtFilterPanel;
@@ -67,7 +68,7 @@ uses
   ExtPascal,
   EF.Intf, EF.Localization, EF.StrUtils, EF.Tree, EF.SQL,
   Kitto.Environment, Kitto.AccessControl, Kitto.Ext.Session, Kitto.Ext.Utils,
-  Kitto.Controller, Kitto.JSON, Kitto.Ext.Filters, Kitto.SQL;
+  Kitto.JSON, Kitto.Ext.Filters, Kitto.SQL;
 
 const
   DEFAULT_PAGE_RECORD_COUNT = 100;
@@ -103,6 +104,7 @@ end;
 
 destructor TKExtListPanel.Destroy;
 begin
+  FreeAndNilEFIntf(FFormController);
   FreeAndNil(FEditHostWindow);
   inherited;
 end;
@@ -515,7 +517,6 @@ end;
 procedure TKExtListPanel.ShowEditWindow(const ARecord: TKRecord;
   const AEditMode: TKEditMode);
 var
-  LFormController: IKController;
   LFormControllerType: string;
 
   function IsReadOnly: Boolean;
@@ -545,20 +546,22 @@ begin
   //FEditHostWindow.On('close', Ajax(EditWindowClosed, ['Window', '%0.nm']));
 
   LFormControllerType := View.GetString('Controller/FormController/Type', 'Form');
-  LFormController := TKControllerFactory.Instance.CreateObject(LFormControllerType);
+  FreeAndNilEFIntf(FFormController);
+  FFormController := TKControllerFactory.Instance.CreateObject(LFormControllerType);
   try
-    LFormController.View := View;
-    LFormController.Config.SetObject('Sys/Container', FEditHostWindow);
-    LFormController.Config.SetObject('Sys/Store', ServerStore);
-    LFormController.Config.SetObject('Sys/Record', ARecord);
-    LFormController.Config.SetObject('Sys/ViewTable', ViewTable);
-    LFormController.Config.SetObject('Sys/HostWindow', FEditHostWindow);
-    (LFormController as IEFSubject).AttachObserver(Self);
+    Session.GarbageDelete(FFormController.AsObject); // We're going to free it ourselves.
+    FFormController.View := View;
+    FFormController.Config.SetObject('Sys/Container', FEditHostWindow);
+    FFormController.Config.SetObject('Sys/Store', ServerStore);
+    FFormController.Config.SetObject('Sys/Record', ARecord);
+    FFormController.Config.SetObject('Sys/ViewTable', ViewTable);
+    FFormController.Config.SetObject('Sys/HostWindow', FEditHostWindow);
+    (FFormController as IEFSubject).AttachObserver(Self);
     if AEditMode = emNewRecord then
-      LFormController.Config.SetString('Sys/Operation', 'Add');
-    LFormController.Display;
+      FFormController.Config.SetString('Sys/Operation', 'Add');
+    FFormController.Display;
   except
-    FreeAndNilEFIntf(LFormController);
+    FreeAndNilEFIntf(FFormController);
     raise;
   end;
   FEditHostWindow.Show;

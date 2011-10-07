@@ -880,12 +880,12 @@ end;
 
 function TKExtEditPanel._AddRef: Integer;
 begin
-  Result := 0;
+  Result := -1;
 end;
 
 function TKExtEditPanel._Release: Integer;
 begin
-  Result := 0;
+  Result := -1;
 end;
 
 { TKExtFormFieldSet }
@@ -924,12 +924,12 @@ end;
 
 function TKExtFormFieldSet._AddRef: Integer;
 begin
-  Result := 0;
+  Result := -1;
 end;
 
 function TKExtFormFieldSet._Release: Integer;
 begin
-  Result := 0;
+  Result := -1;
 end;
 
 { TKExtFormCompositeField }
@@ -961,12 +961,12 @@ end;
 
 function TKExtFormCompositeField._AddRef: Integer;
 begin
-  Result := 0;
+  Result := -1;
 end;
 
 function TKExtFormCompositeField._Release: Integer;
 begin
-  Result := 0;
+  Result := -1;
 end;
 
 { TKExtFormTextField }
@@ -999,12 +999,12 @@ end;
 
 function TKExtFormTextField._AddRef: Integer;
 begin
-  Result := 0;
+  Result := -1;
 end;
 
 function TKExtFormTextField._Release: Integer;
 begin
-  Result := 0;
+  Result := -1;
 end;
 
 { TKExtFormTextArea }
@@ -1042,12 +1042,12 @@ end;
 
 function TKExtFormTextArea._AddRef: Integer;
 begin
-  Result := 0;
+  Result := -1;
 end;
 
 function TKExtFormTextArea._Release: Integer;
 begin
-  Result := 0;
+  Result := -1;
 end;
 
 { TKExtFormCheckbox }
@@ -1080,12 +1080,12 @@ end;
 
 function TKExtFormCheckbox._AddRef: Integer;
 begin
-  Result := 0;
+  Result := -1;
 end;
 
 function TKExtFormCheckbox._Release: Integer;
 begin
-  Result := 0;
+  Result := -1;
 end;
 
 { TKExtFormDateField }
@@ -1118,12 +1118,12 @@ end;
 
 function TKExtFormDateField._AddRef: Integer;
 begin
-  Result := 0;
+  Result := -1;
 end;
 
 function TKExtFormDateField._Release: Integer;
 begin
-  Result := 0;
+  Result := -1;
 end;
 
 { TKExtFormComboBoxEditor }
@@ -1203,12 +1203,12 @@ end;
 
 function TKExtFormContainer._AddRef: Integer;
 begin
-  Result := 0;
+  Result := -1;
 end;
 
 function TKExtFormContainer._Release: Integer;
 begin
-  Result := 0;
+  Result := -1;
 end;
 
 { TKExtFormRow }
@@ -1279,12 +1279,12 @@ end;
 
 function TKExtFormNumberField._AddRef: Integer;
 begin
-  Result := 0;
+  Result := -1;
 end;
 
 function TKExtFormNumberField._Release: Integer;
 begin
-  Result := 0;
+  Result := -1;
 end;
 
 { TKExtFormDateTimeField }
@@ -1329,12 +1329,12 @@ end;
 
 function TKExtFormDateTimeField._AddRef: Integer;
 begin
-  Result := 0;
+  Result := -1;
 end;
 
 function TKExtFormDateTimeField._Release: Integer;
 begin
-  Result := 0;
+  Result := -1;
 end;
 
 procedure TKExtFormDateTimeField.SetDateConfig(const AValue: TExtObject);
@@ -1393,12 +1393,12 @@ end;
 
 function TKExtFormTimeField._AddRef: Integer;
 begin
-  Result := 0;
+  Result := -1;
 end;
 
 function TKExtFormTimeField._Release: Integer;
 begin
-  Result := 0;
+  Result := -1;
 end;
 
 initialization

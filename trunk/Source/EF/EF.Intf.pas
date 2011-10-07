@@ -86,12 +86,12 @@ end;
 
 function TEFNoRefCountObject._AddRef: Integer;
 begin
-  Result := 0;
+  Result := -1;
 end;
 
 function TEFNoRefCountObject._Release: Integer;
 begin
-  Result := 0;
+  Result := -1;
 end;
 
 end.
