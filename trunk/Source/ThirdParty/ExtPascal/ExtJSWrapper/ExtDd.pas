@@ -107,7 +107,7 @@ type
     function SetXConstraint(ILeft : Integer; IRight : Integer; ITickSize : Integer) : TExtFunction;
     function SetYConstraint(IUp : Integer; IDown : Integer; ITickSize : Integer) : TExtFunction;
     function StartDrag(X : Integer; Y : Integer) : TExtFunction;
-    function ToString : TExtFunction;
+    function ToString : TExtFunction; reintroduce;
     function Unlock : TExtFunction;
     function Unreg : TExtFunction;
     destructor Destroy; override;

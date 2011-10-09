@@ -48,7 +48,7 @@ type
     procedure DoLogout; virtual;
     procedure DoReconfig; virtual;
     procedure DoSetCookie(const Name, ValueRaw : string); virtual;
-    procedure DownloadBuffer(const FileName, Buffer : AnsiString; AContentType : string = '');
+    procedure DownloadBuffer(const FileName: string; const Buffer : AnsiString; AContentType : string = '');
     function DownloadContentType(const FileName, Default : string) : string;
     class function GetCurrentWebSession : TCustomWebSession; virtual; abstract;
     function GetDocumentRoot : string; virtual; abstract;
@@ -75,7 +75,7 @@ type
     function TryToServeFile: Boolean; virtual;
     function UploadBlockType(const Buffer : AnsiString; var MarkPos : Integer) : TUploadBlockType; virtual; abstract;
     function UploadNeedUnknownBlock : Boolean; virtual; abstract;
-    procedure UploadPrepare(const AContentType, Buffer : AnsiString; var FileMark : Integer);
+    procedure UploadPrepare(const AContentType: string; const Buffer : AnsiString; var FileMark : Integer);
     procedure UploadResponse(Success : Boolean);
     procedure UploadWriteFile(const Buffer : AnsiString; InitPos : Integer = 1);
     property Application : TCustomWebApplication read FApplication;
@@ -420,13 +420,13 @@ procedure TCustomWebSession.DoReconfig; begin end;
 // send cookie to response
 procedure TCustomWebSession.DoSetCookie(const Name, ValueRaw : string); begin end;
 
-procedure TCustomWebSession.DownloadBuffer(const FileName, Buffer : AnsiString; AContentType : string = ''); begin
+procedure TCustomWebSession.DownloadBuffer(const FileName: string; const Buffer : AnsiString; AContentType : string = ''); begin
   if AContentType = '' then
     ContentType := DownloadContentType(FileName, 'application/octet-stream')
   else
     ContentType := AContentType;
   CustomResponseHeaders['content-disposition'] := Format('attachment;filename="%s"', [ExtractFileName(FileName)]);
-  Response := Buffer;
+  Response := string(Buffer);
   IsDownload := True;
 end;
 
@@ -470,7 +470,7 @@ begin
   if SameText(Charset, 'utf-8') then
     Result := {$IFDEF MSWINDOWS}AnsiToUTF8{$ENDIF}(Response)
   else
-    Result := Response;
+    Result := AnsiString(Response);
 end;
 
 {
@@ -613,7 +613,7 @@ procedure TCustomWebSession.HandleRequest(const ARequest : AnsiString); begin
         if CanHandleUrlPath and not HandleUrlPath and not TryToServeFile then
           OnNotFoundError;
     except
-      on E: Exception do OnError(E.Message, PathInfo, ARequest);
+      on E: Exception do OnError(E.Message, PathInfo, string(ARequest));
     end;
   if CanCallAfterHandleRequest then AfterHandleRequest;
 end;
@@ -743,18 +743,18 @@ function TCustomWebSession.TryToServeFile : Boolean; begin
   Result := False;
 end;
 
-procedure TCustomWebSession.UploadPrepare(const AContentType, Buffer : AnsiString; var FileMark : Integer);
+procedure TCustomWebSession.UploadPrepare(const AContentType: string; const Buffer : AnsiString; var FileMark : Integer);
 var
   I, J: Integer;
 begin
   IsUpload := True;
   J := Pos('=', AContentType);
-  UploadMark := '--' + Copy(AContentType, J + 1, Length(AContentType));
+  UploadMark := '--' + AnsiString(Copy(AContentType, J + 1, Length(AContentType)));
   I := Pos(UploadMark, Buffer);
-  I := PosEx('filename="', Buffer, I);
+  I := PosEx('filename="', string(Buffer), I);
   FileMark := I;
-  J := PosEx('"', Buffer, I + 10);
-  FFileUploaded := ExtractFileName(Copy(Buffer, I + 10, J - I - 10));
+  J := PosEx('"', string(Buffer), I + 10);
+  FFileUploaded := ExtractFileName(Copy(string(Buffer), I + 10, J - I - 10));
   if FileUploaded <> '' then
     FFileUploadedFullName := DocumentRoot + UploadPath + '/' + FileUploaded
   else
@@ -787,8 +787,8 @@ begin
   case BlockType of
     ubtBegin: begin
       if UploadNeedUnknownBlock then Rewrite(F, 1);
-      I := PosEx(#13#10#13#10, Buffer, InitPos) + 4;
-      J := PosEx(UploadMark, Buffer, I);
+      I := PosEx(#13#10#13#10, string(Buffer), InitPos) + 4;
+      J := PosEx(string(UploadMark), string(Buffer), I);
       if J = 0 then begin
         Tam := Length(Buffer) - I + 1;
         BlockType := ubtUnknown;

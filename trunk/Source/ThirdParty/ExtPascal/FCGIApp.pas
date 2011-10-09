@@ -151,7 +151,7 @@ type
     procedure AddParam(var S : string; Param : array of string);
     procedure ReadRequestHeader(var RequestHeader : TStringList; Stream : AnsiString; ParseCookies : Boolean = False);
     procedure ReadBeginRequest(var FCGIHeader; Content : AnsiString);
-    procedure GetValues(Content : string);
+    procedure GetValues(Content : AnsiString);
     function HandleRequest(pRequest : AnsiString) : AnsiString;
     function SetCurrentFCGIThread : boolean;
   public
@@ -166,7 +166,7 @@ type
     procedure SendResponse(S : AnsiString; pRecType : TRecType = rtStdOut);
     procedure Execute; override;
     procedure SendEndRequest(Status : TProtocolStatus = psRequestComplete);
-    procedure SetResponseHeader(Header : AnsiString);
+    procedure SetResponseHeader(Header : string);
   end;
 
 threadvar
@@ -250,7 +250,7 @@ end;
 Appends or cleans HTTP response header. The HTTP response header is sent using <link TFCGIThread.SendResponse, SendResponse> method.
 @param Header Use '' to clean response header else Header parameter is appended to response header
 }
-procedure TFCGIThread.SetResponseHeader(Header : AnsiString); begin
+procedure TFCGIThread.SetResponseHeader(Header : string); begin
   FSession.FCustomResponseHeaders.Add(Header);
 end;
 
@@ -307,7 +307,7 @@ procedure TFCGIThread.SendEndRequest(Status : TProtocolStatus = psRequestComplet
       psUnknownRole : FSession.Alert('Unknown FastCGI Role received.');
       psBusy        : ;//Alert('Session is busy, try later.');
     end;
-    SendResponse(FSession.Response);
+    SendResponse(FSession.EncodeResponse);
   end;
   SendResponse(#0#0#0#0#0#0#0#0, rtEndRequest);
   Terminate;
@@ -365,17 +365,17 @@ begin
     if Len[1] > 0 then move(Stream[Pos], Param[1][1], Len[1]);
     inc(Pos, Len[1]);
     if Param[0] = 'HTTP_COOKIE' then begin
-      if ParseCookies then FSession.FCookies.DelimitedText := URLDecode(Param[1])
+      if ParseCookies then FSession.FCookies.DelimitedText := URLDecode(string(Param[1]))
     end
     else
-      RequestHeader.Values[Param[0]] := {$IFDEF MSWINDOWS}UTF8ToAnsi{$ENDIF}(Param[1]);
+      RequestHeader.Values[string(Param[0])] := string(Param[1]);
   end;
 end;
 
 // Sets FLastAccess, FPathInfo, FRequestMethod and FQuery internal fields
 function TFCGIThread.CompleteRequestHeaderInfo(Buffer : AnsiString; I : integer) : boolean;
 var
-  ReqMet, CT : AnsiString;
+  ReqMet, CT : string;
 begin
   FLastAccess := Now;
   with FSession do begin
@@ -443,7 +443,7 @@ end;
 Handles the FastCGI rtGetValues record type and sends a rtgetValuesResult record type
 @param Body of rtGetValues record type
 }
-procedure TFCGIThread.GetValues(Content : string);
+procedure TFCGIThread.GetValues(Content : AnsiString);
 var
   Values : TStringList;
   GetValuesResult : string;
@@ -498,7 +498,7 @@ begin
       end;
       with FSession do begin
         FScriptName := Self.FRequestHeader.Values['SCRIPT_NAME'];
-        if FScriptName[length(FScriptName)] <> '/' then FScriptName := FScriptName + '/';
+        if (FScriptName = '') or (FScriptName[length(FScriptName)] <> '/') then FScriptName := FScriptName + '/';
       end;
     end
     else begin
@@ -541,7 +541,7 @@ begin
   CurrentWebSession := FSession;
   FRequest := '';
   try
-    if Application.CanConnect(FSocket.GetHostAddress) then
+    if Application.CanConnect(string(FSocket.GetHostAddress)) then
       repeat
         if FSocket.WaitingData > 0 then begin
           Buffer := FSocket.RecvPacket;
@@ -597,7 +597,7 @@ begin
                       else
                         FRequest := FRequest + Content;
                 else
-                  SendResponse(char(FCGIHeader.RecType), rtUnknown);
+                  SendResponse(AnsiChar(FCGIHeader.RecType), rtUnknown);
                   Buffer := '';
                   sleep(200);
                   break;
@@ -910,7 +910,7 @@ end;
 
 function TFCGISession.GetDocumentRoot : string; begin
   Result := RequestHeader['DOCUMENT_ROOT'];
-  if (Result <> '') and (Result[Length(Result)] in ['/', '\']) then
+  if (Result <> '') and CharInSet(Result[Length(Result)], ['/', '\']) then
     Delete(Result, Length(Result), 1);
 end;
 
