@@ -547,8 +547,7 @@ begin
   //FEditHostWindow.On('close', Ajax(EditWindowClosed, ['Window', '%0.nm']));
 
   LFormControllerType := View.GetString('Controller/FormController', 'Form');
-  LFormController := TKControllerFactory.Instance.CreateController(View, FEditHostWindow, Self, LFormControllerType);
-  //Session.GarbageDelete(LFormController.AsObject); // We're going to free it ourselves.
+  LFormController := TKExtControllerFactory.Instance.CreateController(View, FEditHostWindow, Self, LFormControllerType);
   LFormController.Config.SetObject('Sys/Store', ServerStore);
   LFormController.Config.SetObject('Sys/Record', ARecord);
   LFormController.Config.SetObject('Sys/ViewTable', ViewTable);
@@ -659,9 +658,9 @@ begin
 end;
 
 initialization
-  TKControllerRegistry.Instance.RegisterClass('List', TKExtListPanelController);
+  TKExtControllerRegistry.Instance.RegisterClass('List', TKExtListPanelController);
 
 finalization
-  TKControllerRegistry.Instance.UnregisterClass('List');
+  TKExtControllerRegistry.Instance.UnregisterClass('List');
 
 end.

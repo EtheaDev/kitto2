@@ -4,7 +4,7 @@ interface
 
 uses
   SysUtils,
-  ExtPascal,
+  ExtPascal, Ext,
   Kitto.Ext.Controller, Kitto.Environment, Kitto.Metadata.Views, Kitto.Ext.Login;
 
 type
@@ -15,6 +15,7 @@ type
     FFormatSettings: TFormatSettings;
     FLoginWindow: TKExtLoginWindow;
     FIsAuthenticated: Boolean;
+    FViewHost: TExtTabPanel;
     function GetEnvironment: TKEnvironment;
     procedure LoadLibraries;
     procedure DisplayHomeView;
@@ -26,23 +27,39 @@ type
     procedure AfterConstruction; override;
     destructor Destroy; override;
   public
+    ///	<summary>
+    ///	  A reference to the panel to be used as the main view container.
+    ///	</summary>
+    property ViewHost: TExtTabPanel read FViewHost write FViewHost;
+
+    procedure DisplayView(const AName: string);
+
     property Environment: TKEnvironment read GetEnvironment;
     procedure InitDefaultValues; override;
     procedure Home; override;
-    {
-      Adds to the current session a style class named after AView's Name.
-      plus a '_icon' suffix, that sets background:url to the GUI element's
-      bitmap. Returns the class name so that it can be assigned to a component's
-      IconCls property.
-    }
-    function SetViewIconStyle(const AView: TKView; const AImageName: string = ''): string;
+
+    ///	<summary>
+    ///	  <para>
+    ///	    Adds to the current session a style class named after AView's
+    ///	    ImageName (or the specified custom AImageName) plus a '_img'
+    ///	    suffix, that sets background:url to the URL of the view's image.
+    ///	  </para>
+    ///	  <para>
+    ///	    The style class can have an optional custom prefix before the name
+    ///	    and custom rules attached to it.
+    ///	  </para>
+    ///	</summary>
+    ///	<returns>
+    ///	  Returns the class name so that it can be assigned to a component's
+    ///	  IconCls property.
+    ///	</returns>
+    function SetViewIconStyle(const AView: TKView; const AImageName: string = '';
+      const ACustomPrefix: string = ''; const ACustomRules: string = ''): string;
 
     // Test
     function GetGCObjectCount: Integer;
 
     property FormatSettings: TFormatSettings read FFormatSettings;
-
-    procedure GarbageDelete(const AObject: TObject);
   published
     procedure Logout;
   end;
@@ -53,7 +70,7 @@ implementation
 
 uses
   Classes, StrUtils, ActiveX, ComObj, Types,
-  ExtPascalUtils, Ext, ExtForm, FCGIApp,
+  ExtPascalUtils, ExtForm, FCGIApp,
   EF.Intf, EF.StrUtils,
   Kitto.Ext.Utils, Kitto.Auth, Kitto.Types;
 
@@ -73,11 +90,6 @@ procedure TKExtSession.AfterConstruction;
 begin
   inherited;
   SetEnvironmentSingleton(@GetSessionEnvironment);
-end;
-
-procedure TKExtSession.GarbageDelete(const AObject: TObject);
-begin
-  inherited GarbageDelete(AObject);
 end;
 
 function TKExtSession.GetEnvironment: TKEnvironment;
@@ -120,7 +132,7 @@ begin
   FIsAuthenticated := True;
   NilEFIntf(FHomeController);
 { TODO : have the session observe the home controller? }
-  FHomeController := TKControllerFactory.Instance.CreateController(
+  FHomeController := TKExtControllerFactory.Instance.CreateController(
     Environment.Views.ViewByName(Environment.Config.GetString('Home/View', 'Home')), nil);
   FHomeController.Display;
 end;
@@ -200,6 +212,19 @@ begin
   Home;
 end;
 
+procedure TKExtSession.DisplayView(const AName: string);
+var
+  LController: IKExtController;
+begin
+  Assert(AName <> '');
+  Assert(Assigned(FViewHost));
+
+  LController := TKExtControllerFactory.Instance.CreateController(
+    Environment.Views.ViewByName(AName), FViewHost);
+  LController.Display;
+  FViewHost.SetActiveTab(FViewHost.Items.Count - 1);
+end;
+
 procedure TKExtSession.InitDefaultValues;
 var
   LLanguageId: string;
@@ -231,26 +256,22 @@ begin
   Result := inherited BeforeHandleRequest;
 end;
 
-function TKExtSession.SetViewIconStyle(const AView: TKView; const AImageName: string): string;
-
-  function GetViewIconStyleClassName(const AView: TKView): string;
-  begin
-    Result := AView.PersistentName + '_icon';
-  end;
-
+function TKExtSession.SetViewIconStyle(const AView: TKView; const AImageName: string;
+  const ACustomPrefix: string; const ACustomRules: string): string;
 var
   LIconURL: string;
   LRule: string;
 begin
   Assert(Assigned(AView));
 
-  LIconURL := Environment.GetImageURL(IfThen(AImageName <> '', AImageName, AView.ImageName));
-  Result := GetViewIconStyleClassName(AView);
+  Result := IfThen(AImageName <> '', AImageName, AView.ImageName);
+  LIconURL := Environment.GetImageURL(Result);
+  Result := ACustomPrefix + Result + '_img';
   // The !important rule allows to use a non-specific selector, so that the icon
   // can be shared by different components.
   // no-repeat is added because some components (such as buttons) repeat by default
   // (others, such as menu items and tree nodes, don't).
-  LRule := '.' + Result + '{background: url(' + LIconURL + ') no-repeat left !important;}';
+  LRule := '.' + Result + ' {background: url(' + LIconURL + ') no-repeat left !important;' + ACustomRules + '}';
   if IsAjax then
     JSCode('addStyleRule("' + LRule + '", 0);')
   else

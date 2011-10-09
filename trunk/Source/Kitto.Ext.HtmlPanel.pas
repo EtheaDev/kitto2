@@ -1,5 +1,7 @@
 unit Kitto.Ext.HtmlPanel;
 
+{$I Kitto.Defines.inc}
+
 interface
 
 uses
@@ -14,22 +16,40 @@ type
 implementation
 
 uses
+  SysUtils,
   Ext,
+  EF.StrUtils,
   Kitto.Environment;
 
 { TKExtHtmlPanelController }
 
 procedure TKExtHtmlPanelController.DoDisplay;
+var
+  LFileName: string;
+  LFullFileName: string;
 begin
   inherited;
-  Title := 'Test';
+  Title := View.DisplayLabel;
+  AutoScroll := True;
+
+  LFileName := View.GetExpandedString('Controller/FileName');
+  if LFileName <> '' then
+  begin
+    LFullFileName := Environment.FindResourcePathName(LFileName);
+    if LFullFileName <> '' then
+      Html := Environment.MacroExpansionEngine.Expand(TextFileToString(LFullFileName))
+    else
+      Html := Format('File %s not found.', [LFileName]);
+  end
+  else
+    Html := 'FileName not specified.';
 end;
 
 initialization
-  TKControllerRegistry.Instance.RegisterClass('HtmlPanel', TKExtHtmlPanelController);
+  TKExtControllerRegistry.Instance.RegisterClass('HtmlPanel', TKExtHtmlPanelController);
 
 finalization
-  TKControllerRegistry.Instance.UnregisterClass('HtmlPanel');
+  TKExtControllerRegistry.Instance.UnregisterClass('HtmlPanel');
 
 end.
 

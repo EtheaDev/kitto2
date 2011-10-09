@@ -538,7 +538,10 @@ end;
 
 function TEFRegistry.GetClass(const AId: string): TClass;
 begin
-  Result := FClasses[AId];
+  if HasClass(AId) then
+    Result := FClasses[AId]
+  else
+    raise EEFError.CreateFmt('Class %s not found.', [AId]);
 end;
 
 procedure TEFRegistry.RegisterClass(const AId: string; const AClass: TClass);

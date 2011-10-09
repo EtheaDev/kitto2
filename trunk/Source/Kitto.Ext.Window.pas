@@ -56,18 +56,15 @@ var
 begin
   Assert(Assigned(View));
 
-  LSubView := Environment.Views.FindViewByNode(View.GetNode('Controller/SubView'));
-  if LSubView <> nil then
-  begin
-    FController := TKControllerFactory.Instance.CreateController(LSubView, Self);
-    FController.Display;
-  end;
+  LSubView := Environment.Views.ViewByNode(View.GetNode('Controller/SubView'));
+  FController := TKExtControllerFactory.Instance.CreateController(LSubView, Self);
+  FController.Display;
 end;
 
 initialization
-  TKControllerRegistry.Instance.RegisterClass('Window', TKExtWindowController);
+  TKExtControllerRegistry.Instance.RegisterClass('Window', TKExtWindowController);
 
 finalization
-  TKControllerRegistry.Instance.UnregisterClass('Window');
+  TKExtControllerRegistry.Instance.UnregisterClass('Window');
 
 end.

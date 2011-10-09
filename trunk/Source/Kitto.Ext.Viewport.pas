@@ -20,7 +20,7 @@ implementation
 
 uses
   Ext,
-  Kitto.Environment;
+  Kitto.Environment, Kitto.Metadata.Views;
 
 { TKExtViewportController }
 
@@ -40,24 +40,20 @@ end;
 
 procedure TKExtViewportController.CreateSubController;
 var
-  LSubViewName: string;
+  LSubView: TKView;
 begin
   Assert(Assigned(View));
 
-  LSubViewName := View.GetString('Controller/SubView');
-  if LSubViewName <> '' then
-  begin
-    FController := TKControllerFactory.Instance.CreateController(
-      Environment.Views.ViewByName(LSubViewName), Self);
-    FController.Display;
-  end;
+  LSubView := Environment.Views.ViewByNode(View.GetNode('Controller/SubView'));
+  FController := TKExtControllerFactory.Instance.CreateController(LSubView, Self);
+  FController.Display;
 end;
 
 initialization
-  TKControllerRegistry.Instance.RegisterClass('Viewport', TKExtViewportController);
+  TKExtControllerRegistry.Instance.RegisterClass('Viewport', TKExtViewportController);
 
 finalization
-  TKControllerRegistry.Instance.UnregisterClass('Viewport');
+  TKExtControllerRegistry.Instance.UnregisterClass('Viewport');
 
 end.
 

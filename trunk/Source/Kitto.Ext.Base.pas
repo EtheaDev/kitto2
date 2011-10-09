@@ -535,10 +535,6 @@ end;
 
 procedure TKExtPanelControllerBase.DoDisplay;
 begin
-  inherited;
-  Assert(View <> nil);
-
-  IconCls := Session.SetViewIconStyle(View);
 end;
 
 function TKExtPanelControllerBase.GetContainer: TExtContainer;

@@ -1,5 +1,7 @@
 unit Kitto.Ext.Form;
 
+{$I Kitto.Defines.inc}
+
 interface
 
 uses
@@ -69,14 +71,7 @@ uses
 { TKExtFormPanelController }
 
 destructor TKExtFormPanelController.Destroy;
-var
-  I: Integer;
 begin
-//  for I := 0 to FEditors.Count - 1 do
-//  begin
-//    FEditors[I] := nil;
-//  end;
-//  FreeAndNil(FEditors);
   FreeAndNil(FDetailButtons);
   inherited;
 end;
@@ -150,7 +145,7 @@ begin
   CreateEditors(FIsReadOnly);
 
   //DataSet.RecreateDetailDataSetLists;
-  //CreateDetailToolbar;
+  CreateDetailToolbar;
 
   Session.JSCode(
     FFormPanel.JSName + '.getForm().load({url:"' + MethodURI(GetRecord) + '",' +
@@ -309,15 +304,15 @@ begin
   FDetailHostWindow.Closable := True;
 
   FreeAndNil(FController);
-  FController := TKControllerFactory.Instance.CreateController(FView, FDetailHostWindow);
+  FController := TKExtControllerFactory.Instance.CreateController(FView, FDetailHostWindow);
   FController.Display;
   FDetailHostWindow.Show;
 end;
 
 initialization
-  TKControllerRegistry.Instance.RegisterClass('Form', TKExtFormPanelController);
+  TKExtControllerRegistry.Instance.RegisterClass('Form', TKExtFormPanelController);
 
 finalization
-  TKControllerRegistry.Instance.UnregisterClass('Form');
+  TKExtControllerRegistry.Instance.UnregisterClass('Form');
 
 end.

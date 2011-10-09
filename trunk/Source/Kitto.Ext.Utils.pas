@@ -3,7 +3,7 @@ unit Kitto.Ext.Utils;
 interface
 
 uses
-  Ext, ExtPascal, ExtMenu, ExtTree,
+  Ext, ExtPascal, ExtPascalUtils, ExtMenu, ExtTree,
   EF.ObserverIntf,
   Kitto.Ext.Controller, Kitto.Metadata.Views;
 
@@ -15,30 +15,29 @@ type
   TKExtTreeViewRenderer = class
   private
     FOwner: TExtObject;
+    FClickHandler: TExtProcedure;
     FAddedItems: Integer;
     procedure AddButton(const AViewRef: TKViewRef; const AContainer: TExtContainer);
     procedure AddMenuItem(const AViewRefs: TKViewRefs; const AMenu: TExtMenuMenu);
     procedure AddNode(const AViewRef: TKViewRef; const AParent: TExtTreeTreeNode);
-    function GetClickHandler(const AView: TKView): TExtFunction;
+    function GetClickFunction(const AView: TKView): TExtFunction;
   public
-    {
-      AOwner should publish the ExecuteGUIElement method. See GetClickHandler.
-    }
-    constructor Create(const AOwner: TExtObject);
-    {
-      Attaches to the container a set of buttons, one for each top-level
-      element of AGUIElements. Each button matching the realm name
-      has a submenu tree with the child GUI elements.
-      Returns the total number of effectively added items.
-    }
+    ///	<summary>
+    ///	  Attaches to the container a set of buttons, one for each top-level
+    ///	  element of the specified tree view. Each button has a submenu tree
+    ///	  with the child views. Returns the total number of effectively added
+    ///	  items.
+    ///	</summary>
     function RenderAsButtons(const ATreeView: TKTreeView;
-      const AContainer: TExtContainer): Integer;
-    {
-      Populates a tree view with all matching GUI elements.
-      Returns the total number of effectively added items.
-    }
-    function RenderAsTree(const ATreeView: TKTreeView;
-      const ARoot: TExtTreeTreeNode): Integer;
+      const AContainer: TExtContainer; const AOwner: TExtObject;
+      const AClickHandler: TExtProcedure): Integer;
+
+    ///	<summary>
+    ///	  Renders a tree under ARoot with all views in the tree view. Returns
+    ///	  the total number of effectively added items.
+    ///	</summary>
+    function RenderAsTree(const ATreeView: TKTreeView; const ARoot: TExtTreeTreeNode;
+      const AOwner: TExtObject; const AClickHandler: TExtProcedure): Integer;
   end;
 
 function DelphiDateFormatToJSDateFormat(const ADateFormat: string): string;
@@ -97,7 +96,7 @@ begin
         end
         else
         begin
-          LMenuItem.Handler := GetClickHandler(LViewRef.View);
+          LMenuItem.Handler := GetClickFunction(LViewRef.View);
           LMenuItem.Disabled := not LIsEnabled;
         end;
       except
@@ -108,21 +107,17 @@ begin
   end;
 end;
 
-constructor TKExtTreeViewRenderer.Create(const AOwner: TExtObject);
-begin
-  Assert(Assigned(AOwner));
-
-  inherited Create;
-  FOwner := AOwner;
-end;
-
-function TKExtTreeViewRenderer.GetClickHandler(
+function TKExtTreeViewRenderer.GetClickFunction(
   const AView: TKView): TExtFunction;
 begin
   Assert(Assigned(FOwner));
+  Assert(Assigned(FClickHandler));
 
   if Assigned(AView) then
-    Result := FOwner.Ajax('DisplayView', ['Name', AView.PersistentName])
+  begin
+    Assert(Session.ViewHost <> nil);
+    Result := FOwner.Ajax(FClickHandler, ['Name', AView.PersistentName, 'AutoCollapseMenu', True]);
+  end
   else
     Result := nil;
 end;
@@ -165,7 +160,7 @@ begin
       end
       else
       begin
-        LButton.Handler := GetClickHandler(AViewRef.View);
+        LButton.Handler := GetClickFunction(AViewRef.View);
         LButton.Disabled := not LIsEnabled;
       end;
     except
@@ -176,7 +171,9 @@ begin
 end;
 
 function TKExtTreeViewRenderer.RenderAsButtons(
-  const ATreeView: TKTreeView; const AContainer: TExtContainer): Integer;
+  const ATreeView: TKTreeView; const AContainer: TExtContainer;
+  const AOwner: TExtObject;
+  const AClickHandler: TExtProcedure): Integer;
 var
   I: Integer;
 
@@ -188,7 +185,11 @@ var
 begin
   Assert(Assigned(ATreeView));
   Assert(Assigned(AContainer));
+  Assert(Assigned(AOwner));
+  Assert(Assigned(AClickHandler));
 
+  FOwner := AOwner;
+  FClickHandler := AClickHandler;
   FAddedItems := 0;
   for I := 0 to ATreeView.ViewRefs.Count - 1 do
     AddButton(ATreeView.ViewRefs[I], AContainer);
@@ -224,7 +225,7 @@ begin
       end
       else
       begin
-        LNode.On('click', GetClickHandler(AViewRef.View));
+        LNode.On('click', GetClickFunction(AViewRef.View));
         LNode.Expandable := False;
         LNode.Expanded := False;
         LNode.Leaf := True;
@@ -240,7 +241,8 @@ begin
 end;
 
 function TKExtTreeViewRenderer.RenderAsTree(
-  const ATreeView: TKTreeView; const ARoot: TExtTreeTreeNode): Integer;
+  const ATreeView: TKTreeView; const ARoot: TExtTreeTreeNode;
+  const AOwner: TExtObject;  const AClickHandler: TExtProcedure): Integer;
 var
   I: Integer;
 
@@ -252,7 +254,11 @@ var
 begin
   Assert(Assigned(ATreeView));
   Assert(Assigned(ARoot));
+  Assert(Assigned(AOwner));
+  Assert(Assigned(AClickHandler));
 
+  FOwner := AOwner;
+  FClickHandler := AClickHandler;
   FAddedItems := 0;
   for I := 0 to ATreeView.ViewRefs.Count - 1 do
     AddNode(ATreeView.ViewRefs[I], ARoot);
