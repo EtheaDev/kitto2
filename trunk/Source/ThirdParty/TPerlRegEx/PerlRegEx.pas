@@ -234,11 +234,11 @@ begin
   RegisterComponents('JGsoft', [TPerlRegEx]);
 end;
 
-function FirstCap(const S: string): string;
+function FirstCap(const S: PCREString): PCREString;
 begin
   if S = '' then Result := ''
   else begin
-    Result := AnsiLowerCase(S);
+    Result := PCREString(AnsiLowerCase(string(S)));
   {$IFDEF UNICODE}
     CharUpperBuffW(@Result[1], 1);
   {$ELSE}
@@ -247,12 +247,12 @@ begin
   end
 end;
 
-function InitialCaps(const S: string): string;
+function InitialCaps(const S: PCREString): PCREString;
 var
   I: Integer;
   Up: Boolean;
 begin
-  Result := AnsiLowerCase(S);
+  Result := PCREString(AnsiLowerCase(string(S)));
   Up := True;
 {$IFDEF UNICODE}
   for I := 1 to Length(Result) do begin
@@ -364,8 +364,8 @@ var
       if Backreference <> '' then begin
         // Ignore warnings; converting to UTF-8 does not cause data loss
         case Mode of
-          'L', 'l': Backreference := AnsiLowerCase(Backreference);
-          'U', 'u': Backreference := AnsiUpperCase(Backreference);
+          'L', 'l': Backreference := PCREString(AnsiLowerCase(string(Backreference)));
+          'U', 'u': Backreference := PCREString(AnsiUpperCase(string(Backreference)));
           'F', 'f': Backreference := FirstCap(Backreference);
           'I', 'i': Backreference := InitialCaps(Backreference);
         end;
@@ -748,16 +748,16 @@ var
   Offset, Count: Integer;
 begin
   Assert(Strings <> nil, 'REQUIRE: Strings');
-  if (Limit = 1) or not Match then Strings.Add(Subject)
+  if (Limit = 1) or not Match then Strings.Add(string(Subject))
   else begin
     Offset := 1;
     Count := 1;
     repeat
-      Strings.Add(Copy(Subject, Offset, MatchedExpressionOffset - Offset));
+      Strings.Add(Copy(string(Subject), Offset, MatchedExpressionOffset - Offset));
       Inc(Count);
       Offset := MatchedExpressionOffset + MatchedExpressionLength;
     until ((Limit > 1) and (Count >= Limit)) or not MatchAgain;
-    Strings.Add(Copy(Subject, Offset, MaxInt));
+    Strings.Add(Copy(string(Subject), Offset, MaxInt));
   end
 end;
 
@@ -781,7 +781,7 @@ begin
   if not FCompiled then Compile;
   Hints := pcre_study(Pattern, 0, @Error);
   if Error <> nil then
-    raise Exception.Create('TPerlRegEx.Study() - Error studying the regex: ' + AnsiString(Error));
+    raise Exception.Create('TPerlRegEx.Study() - Error studying the regex: ' + string(AnsiString(Error)));
   FStudied := True
 end;
 
