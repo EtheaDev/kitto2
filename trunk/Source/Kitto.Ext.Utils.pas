@@ -5,7 +5,7 @@ interface
 uses
   Ext, ExtPascal, ExtMenu, ExtTree,
   EF.ObserverIntf,
-  Kitto.Controller, Kitto.Metadata.Views;
+  Kitto.Ext.Controller, Kitto.Metadata.Views;
 
 type
   ///	<summary>

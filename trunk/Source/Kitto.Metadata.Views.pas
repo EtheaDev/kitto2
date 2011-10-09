@@ -232,6 +232,10 @@ type
   public
     function ViewByName(const AName: string): TKView;
     function FindView(const AName: string): TKView;
+
+    function ViewByNode(const ANode: TEFNode): TKView;
+    function FindViewByNode(const ANode: TEFNode): TKView;
+
     property Layouts: TKLayouts read GetLayouts;
     procedure Open; override;
     procedure Close; override;
@@ -340,6 +344,11 @@ begin
   Result := FindObject(AName) as TKView;
 end;
 
+function TKViews.FindViewByNode(const ANode: TEFNode): TKView;
+begin
+  Result := FindObjectByNode(ANode) as TKView;
+end;
+
 function TKViews.GetLayouts: TKLayouts;
 begin
   if not Assigned(FLayouts) then
@@ -367,6 +376,11 @@ end;
 function TKViews.ViewByName(const AName: string): TKView;
 begin
   Result := ObjectByName(AName) as TKView;
+end;
+
+function TKViews.ViewByNode(const ANode: TEFNode): TKView;
+begin
+  Result := ObjectByNode(ANode) as TKView;
 end;
 
 { TKLayouts }
@@ -406,7 +420,7 @@ end;
 
 function TKView.GetControllerType: string;
 begin
-  Result := GetString('Controller/Type');
+  Result := GetString('Controller');
 end;
 
 function TKView.GetDisplayLabel: string;

@@ -7,7 +7,7 @@ uses
   Ext, ExtData, ExtForm,
   EF.ObserverIntf,
   Kitto.Ext.Base, Kitto.Ext.DataPanel, Kitto.Ext.Editors,
-  Kitto.Metadata.Views, Kitto.Controller, Kitto.Store;
+  Kitto.Metadata.Views, Kitto.Ext.Controller, Kitto.Store;
 
 type
   ///	<summary>
@@ -18,7 +18,7 @@ type
     FViewTable: TKViewTable;
     FDetailHostWindow: TKExtModalWindow;
     FView: TKDataView;
-    FController: IKController;
+    FController: IKExtController;
     procedure SetViewTable(const AValue: TKViewTable);
   public
     destructor Destroy; override;
@@ -31,17 +31,17 @@ type
   ///	<summary>
   ///	  The Form controller.
   ///	</summary>
-  TKExtFormPanel = class(TKExtDataPanel)
+  TKExtFormPanelController = class(TKExtDataPanelController)
   private
     FFormPanel: TKExtEditPanel;
     FIsReadOnly: Boolean;
-    FEditors: TList<IKExtEditor>;
+    //FEditors: TList<IKExtEditor>;
     FSaveButton: TExtButton;
     FCancelButton: TExtButton;
     FDetailToolbar: TExtToolbar;
     FDetailButtons: TObjectList<TKExtDetailFormButton>;
     FOperation: string;
-    FFocusEditor: IKExtEditor;
+    FFocusField: TExtFormField;
     FStoreRecord: TKRecord;
     procedure CreateDetailToolbar;
     procedure CreateEditors(const AForceReadOnly: Boolean);
@@ -66,16 +66,22 @@ uses
   Kitto.Environment, Kitto.AccessControl, Kitto.Ext.Session, Kitto.Ext.Utils,
   Kitto.JSON;
 
-{ TKExtFormPanel }
+{ TKExtFormPanelController }
 
-destructor TKExtFormPanel.Destroy;
+destructor TKExtFormPanelController.Destroy;
+var
+  I: Integer;
 begin
-  FreeAndNil(FEditors);
+//  for I := 0 to FEditors.Count - 1 do
+//  begin
+//    FEditors[I] := nil;
+//  end;
+//  FreeAndNil(FEditors);
   FreeAndNil(FDetailButtons);
   inherited;
 end;
 
-procedure TKExtFormPanel.DoDisplay;
+procedure TKExtFormPanelController.DoDisplay;
 begin
   FStoreRecord := Config.GetObject('Sys/Record') as TKRecord;
   Assert(Assigned(FStoreRecord));
@@ -83,7 +89,7 @@ begin
   Title := ViewTable.DisplayLabel;
 end;
 
-procedure TKExtFormPanel.CreateDetailToolbar;
+procedure TKExtFormPanelController.CreateDetailToolbar;
 var
   I: Integer;
 begin
@@ -106,23 +112,23 @@ begin
   end;
 end;
 
-procedure TKExtFormPanel.CreateEditors(const AForceReadOnly: Boolean);
+procedure TKExtFormPanelController.CreateEditors(const AForceReadOnly: Boolean);
 var
   LLayoutProcessor: TKExtLayoutProcessor;
   LLayoutName: string;
 begin
-  FreeAndNil(FEditors);
-  FEditors := TList<IKExtEditor>.Create;
+//  FreeAndNil(FEditors);
+//  FEditors := TList<IKExtEditor>.Create;
   LLayoutProcessor := TKExtLayoutProcessor.Create;
   try
     LLayoutProcessor.ViewTable := ViewTable;
     LLayoutProcessor.StoreRecord := FStoreRecord;
     LLayoutProcessor.FormPanel := FFormPanel;
-    LLayoutProcessor.OnNewEditor :=
-      procedure (AEditor: IKExtEditor)
-      begin
-        FEditors.Add(AEditor);
-      end;
+//    LLayoutProcessor.OnNewEditor :=
+//      procedure (AEditor: IKExtEditor)
+//      begin
+//        FEditors.Add(AEditor);
+//      end;
     LLayoutProcessor.ForceReadOnly := AForceReadOnly;
 
     LLayoutName := ViewTable.GetString('Controller/Form/Layout');
@@ -130,7 +136,7 @@ begin
       LLayoutProcessor.CreateEditors(View.Catalog.Layouts.FindLayout(LLayoutName))
     else
       LLayoutProcessor.CreateEditors(ViewTable.FindLayout('Form'));
-    FFocusEditor := LLayoutProcessor.FocusEditor;
+    FFocusField := LLayoutProcessor.FocusField;
   finally
     FreeAndNil(LLayoutProcessor);
   end;
@@ -138,13 +144,13 @@ begin
   FFormPanel.On('afterrender', JSFunction(FFormPanel.JSName + '.body.dom.scrollTop = 0;'));
 end;
 
-procedure TKExtFormPanel.LoadData;
+procedure TKExtFormPanelController.LoadData;
 begin
   inherited;
   CreateEditors(FIsReadOnly);
 
   //DataSet.RecreateDetailDataSetLists;
-  CreateDetailToolbar;
+  //CreateDetailToolbar;
 
   Session.JSCode(
     FFormPanel.JSName + '.getForm().load({url:"' + MethodURI(GetRecord) + '",' +
@@ -153,13 +159,13 @@ begin
   //EnterEditMode;
 end;
 
-procedure TKExtFormPanel.FocusFirstEditor;
+procedure TKExtFormPanelController.FocusFirstEditor;
 begin
-  if Assigned (FFocusEditor) then
-    FFocusEditor.AsExtFormField.Focus(False, 500);
+  if Assigned (FFocusField) then
+    FFocusField.Focus(False, 500);
 end;
 
-procedure TKExtFormPanel.GetRecord;
+procedure TKExtFormPanelController.GetRecord;
 begin
   if Assigned(FStoreRecord) then
     Session.Response := '{success:true,data:' + FStoreRecord.GetAsJSON + '}'
@@ -167,15 +173,15 @@ begin
     Session.Response := '{success:false}';
 end;
 
-procedure TKExtFormPanel.SaveChanges;
-var
-  LValue: string;
-  LEditor: IKExtEditor;
+procedure TKExtFormPanelController.SaveChanges;
+//var
+//  LValue: string;
+//  LEditor: IKExtEditor;
 //  LField: TField;
 begin
-  for LEditor in FEditors do
-  begin
-    LValue := Session.Query[LEditor.AsExtFormField.Name];
+//  for LEditor in FEditors do
+//  begin
+//    LValue := Session.Query[LEditor.AsExtFormField.Name];
 { TODO : implement }
 //    LField := DataSet.FieldByName(LEditor.AsExtFormField.Name);
 //    if LField is TDateTimeField then
@@ -193,14 +199,14 @@ begin
 //  begin
 //    { TODO : support AIsInsertingMasterRecord argument. }
 //    ServerStore.WriteChanges(SameText(FOperation, 'Add'));
-    ExtMessageBox.Alert(Title, 'Changes saved succesfully');
-  end;
+//    ExtMessageBox.Alert(Title, 'Changes saved succesfully');
+//  end;
   NotifyObservers('Confirmed');
   if not CloseHostWindow then
     FocusFirstEditor;
 end;
 
-procedure TKExtFormPanel.InitComponents;
+procedure TKExtFormPanelController.InitComponents;
 var
   LHostWindow: TExtWindow;
 begin
@@ -265,7 +271,7 @@ begin
   end;
 end;
 
-procedure TKExtFormPanel.CancelChanges;
+procedure TKExtFormPanelController.CancelChanges;
 begin
   NotifyObservers('Canceled');
   if not CloseHostWindow then
@@ -303,14 +309,13 @@ begin
   FDetailHostWindow.Closable := True;
 
   FreeAndNil(FController);
-  FController := TKControllerFactory.Instance.CreateController(FView);
-  FController.Config.SetObject('Sys/Container', FDetailHostWindow);
+  FController := TKControllerFactory.Instance.CreateController(FView, FDetailHostWindow);
   FController.Display;
   FDetailHostWindow.Show;
 end;
 
 initialization
-  TKControllerRegistry.Instance.RegisterClass('Form', TKExtFormPanel);
+  TKControllerRegistry.Instance.RegisterClass('Form', TKExtFormPanelController);
 
 finalization
   TKControllerRegistry.Instance.UnregisterClass('Form');

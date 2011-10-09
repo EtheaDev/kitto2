@@ -29,7 +29,7 @@ type
   TKAuthenticator = class(TEFComponent)
   private
     FAuthData: TEFNode;
-    FAuthMacroExpander: TEFNodeMacroExpander;
+    FAuthMacroExpander: TEFTreeMacroExpander;
     // Keep a reference in order to be able to call it in the destructor.
     FEnvironment: IEFEnvironment;
   protected
@@ -275,7 +275,7 @@ procedure TKAuthenticator.AfterConstruction;
 begin
   inherited;
   FAuthData := TEFNode.Create;
-  FAuthMacroExpander := TEFNodeMacroExpander.Create(FAuthData, 'Auth');
+  FAuthMacroExpander := TEFTreeMacroExpander.Create(FAuthData, 'Auth');
   FEnvironment := Environment;
   FEnvironment.MacroExpansionEngine.AddExpander(FAuthMacroExpander);
 end;

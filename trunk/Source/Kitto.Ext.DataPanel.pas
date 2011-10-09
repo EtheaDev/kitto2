@@ -7,7 +7,7 @@ uses
   Kitto.Metadata.Views, Kitto.Ext.Base, Kitto.Store;
 
 type
-  TKExtDataPanel = class(TKExtPanelController)
+  TKExtDataPanelController = class(TKExtPanelControllerBase)
   private
     FServerStore: TKStore;
     FViewTable: TKViewTable;
@@ -36,20 +36,20 @@ uses
   Ext,
   Kitto.Environment, Kitto.AccessControl;
 
-{ TKExtDataPanel }
+{ TKExtDataPanelController }
 
-destructor TKExtDataPanel.Destroy;
+destructor TKExtDataPanelController.Destroy;
 begin
   FreeAndNil(FServerStore);
   inherited;
 end;
 
-function TKExtDataPanel.GetFilterExpression: string;
+function TKExtDataPanelController.GetFilterExpression: string;
 begin
   Result := '';
 end;
 
-function TKExtDataPanel.GetServerStore: TKStore;
+function TKExtDataPanelController.GetServerStore: TKStore;
 begin
   Assert(Assigned(ViewTable));
 
@@ -58,12 +58,12 @@ begin
   Result := FServerStore;
 end;
 
-function TKExtDataPanel.GetView: TKDataView;
+function TKExtDataPanelController.GetView: TKDataView;
 begin
   Result := inherited GetView as TKDataView;
 end;
 
-procedure TKExtDataPanel.DoDisplay;
+procedure TKExtDataPanelController.DoDisplay;
 begin
   inherited;
   Assert(View is TKDataView);
@@ -83,7 +83,7 @@ begin
   LoadData;
 end;
 
-procedure TKExtDataPanel.CheckCanRead;
+procedure TKExtDataPanelController.CheckCanRead;
 begin
   Assert(View <> nil);
 
@@ -91,15 +91,15 @@ begin
   //Environment.CheckAccessGranted(View.GetResourceURI, ACM_READ);
 end;
 
-procedure TKExtDataPanel.CreateToolbar;
+procedure TKExtDataPanelController.CreateToolbar;
 begin
 end;
 
-procedure TKExtDataPanel.InitComponents;
+procedure TKExtDataPanelController.InitComponents;
 begin
 end;
 
-procedure TKExtDataPanel.InitServerStore;
+procedure TKExtDataPanelController.InitServerStore;
 begin
   Assert(View <> nil);
   Assert(Assigned(FViewTable));
@@ -107,12 +107,12 @@ begin
 { TODO : ??? }
 end;
 
-procedure TKExtDataPanel.LoadData;
+procedure TKExtDataPanelController.LoadData;
 begin
   { TODO : load store }
 end;
 
-function TKExtDataPanel.AutoLoadData: Boolean;
+function TKExtDataPanelController.AutoLoadData: Boolean;
 begin
   Assert(ViewTable <> nil);
 

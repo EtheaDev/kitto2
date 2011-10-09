@@ -93,6 +93,7 @@ type
 
     function AsExtFormField: TExtFormField;
     procedure SetOption(const AName, AValue: string);
+    destructor Destroy; override;
   end;
 
 { TODO : support the CheckboxGroup and Radiogroup containers? }
@@ -219,7 +220,7 @@ type
     FForceReadOnly: Boolean;
     FOnNewEditor: TKExtLayoutOnNewEditor;
     FFormPanel: TKExtEditPanel;
-    FFocusEditor: IKExtEditor;
+    FFocusField: TExtFormField;
     FDefaults: TKExtLayoutDefaults;
     FCurrentEditItem: IKExtEditItem;
     FEditContainers: TStack<IKExtEditContainer>;
@@ -258,10 +259,10 @@ type
     procedure CreateEditors(const ALayout: TKLayout);
 
     ///	<summary>
-    ///	  A reference to the first editor to focus. Only valid after calling
+    ///	  A reference to the first field to focus. Only valid after calling
     ///	  CreateEditors method.
     ///	</summary>
-    property FocusEditor: IKExtEditor read FFocusEditor;
+    property FocusField: TExtFormField read FFocusField;
   end;
 
 implementation
@@ -387,6 +388,7 @@ begin
 
   FCurrentEditItem := nil;
   FEditContainers.Clear;
+  FFormPanel.LabelAlign := laTop;
   for I := 0 to ALayout.ChildCount - 1 do
     ProcessLayoutNode(ALayout.Children[I]);
 end;
@@ -446,25 +448,28 @@ end;
 procedure TKExtLayoutProcessor.CreateEditors(const ALayout: TKLayout);
 var
   I: Integer;
+  LFieldName: string;
 begin
   Assert(Assigned(FViewTable));
   Assert(Assigned(FFormPanel));
   Assert(Assigned(FStoreRecord));
 
-  FFocusEditor := nil;
+  FFocusField := nil;
 
   if Assigned(ALayout) then
     CreateEditorsFromLayout(ALayout)
   else
   begin
+    FFormPanel.LabelAlign := laLeft;
     for I := 0 to FStoreRecord.FieldCount - 1 do
     begin
-      if FViewTable.IsFieldVisible(FViewTable.FieldByAliasedName(FStoreRecord.Fields[I].Name)) then
-        FFormPanel.AddChild(CreateEditor(FStoreRecord.Fields[I].Name, nil));
+      LFieldName := FStoreRecord.Fields[I].FieldName;
+      if FViewTable.IsFieldVisible(FViewTable.FieldByAliasedName(LFieldName)) then
+        FFormPanel.AddChild(CreateEditor(LFieldName, nil));
     end;
   end;
-  if Assigned(FFocusEditor) then
-    FFormPanel.On('afterrender', FFormPanel.JSFunction(FFocusEditor.AsExtFormField.JSName + '.focus(false, 1000);'));
+  if Assigned(FFocusField) then
+    FFormPanel.On('afterrender', FFormPanel.JSFunction(FFocusField.JSName + '.focus(false, 1000);'));
 end;
 
 function TKExtLayoutProcessor.CreateEditItem(const AName,
@@ -758,8 +763,8 @@ begin
   if Assigned(FOnNewEditor) then
     FOnNewEditor(Result);
 
-  if (FFocusEditor = nil) and not Result.AsExtFormField.ReadOnly and not Result.AsExtFormField.Disabled then
-    FFocusEditor := Result;
+  if (FFocusField = nil) and not Result.AsExtFormField.ReadOnly and not Result.AsExtFormField.Disabled then
+    FFocusField := Result.AsExtFormField;
 
   if Assigned(LRowField) then
     Result := LRowField.Encapsulate(Result);
@@ -856,7 +861,6 @@ end;
 procedure TKExtEditPanel.InitDefaults;
 begin
   inherited;
-  LabelAlign := laTop;
 end;
 
 function TKExtEditPanel.QueryInterface(const IID: TGUID; out Obj): HRESULT;
@@ -1230,6 +1234,12 @@ procedure TKExtFormRowField.InitDefaults;
 begin
   inherited;
   Layout := lyForm;
+end;
+
+destructor TKExtFormRowField.Destroy;
+begin
+  NilEFIntf(FEditor);
+  inherited;
 end;
 
 function TKExtFormRowField.Encapsulate(const AValue: IKExtEditor): IKExtEditor;
