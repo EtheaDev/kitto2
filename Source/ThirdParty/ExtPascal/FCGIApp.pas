@@ -49,6 +49,7 @@ type
     function UploadNeedUnknownBlock : Boolean; override;
   public
     constructor Create(AOwner : TObject); override;
+    destructor Destroy; override;
   end;
 
   TWebSession = class(TFCGISession);
@@ -882,6 +883,16 @@ end;
 
 function TFCGISession.CanHandleUrlPath : Boolean; begin
   Result := not IsUpload or (Pos('success:true', Response) <> 0);
+end;
+
+destructor TFCGISession.Destroy;
+begin
+  // Make sure objects find the session threadvar assigned when they are
+  // being garbage collected in case the session is being freed by a
+  // different thread. Otherwise objects don't mark themselves off the
+  // GC upon destruction and risk to be destroyed multiple times.
+  CurrentWebSession := Self;
+  inherited;
 end;
 
 procedure TFCGISession.DoLogout; begin
