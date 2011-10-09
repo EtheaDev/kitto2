@@ -536,7 +536,7 @@ begin
       if I = 0 then
         raise Exception.Create('Config Option: ' + JS + '<br/>is refering a previous request,' +
           '<br/>it''s not allowed in AJAX request or JS handler.<br/>Use equivalent Public Property or Method instead.');
-      if not(Response[I-1] in ['{', '[', '(', ';']) then JS := ',' + JS;
+      if not CharInSet(Response[I-1], ['{', '[', '(', ';']) then JS := ',' + JS;
     end;
   insert(JS, Response, I);
   if (pos('O' + IdentDelim, JS) <> 0) and (pos('O' + IdentDelim, JSName) <> 0) then begin
@@ -1737,7 +1737,7 @@ var
 begin
   I := pos('%', Param);
   if (I <> 0) and (I <> length(Param))  then
-    if Param[I+1] in ['0'..'9'] then
+    if CharInSet(Param[I+1], ['0'..'9']) then
       Result := '"+' + Param + '+"'
     else
       Result := '"+' + copy(Param, I+1, length(Param)) + '+"'
@@ -1755,7 +1755,7 @@ begin
       if Odd(I) then
         case VType of
           vtAnsiString : Result := Result + SurroundAjaxParam(string(VAnsiString));
-          vtString     : Result := Result + SurroundAjaxParam(VString^);
+          vtString     : Result := Result + SurroundAjaxParam(string(VString^));
           vtWideString : Result := Result + SurroundAjaxParam(string(VWideString));
           {$IFDEF UNICODE}
           vtUnicodeString : Result := Result + SurroundAjaxParam(string(VUnicodeString));
@@ -1767,19 +1767,19 @@ begin
           vtCurrency   : Result := Result + CurrToStr(VCurrency^);
           vtInt64      : Result := Result + IntToStr(VInt64^);
           vtVariant    : Result := Result + string(VVariant^);
-          vtChar       : Result := Result + VChar;
+          vtChar       : Result := Result + string(VChar);
           vtWideChar   : Result := Result + VWideChar;
         end
       else begin
         if Result <> '' then Result := Result + '&';
         case VType of
           vtAnsiString : Result := Result + string(VAnsiString) + '=';
-          vtString     : Result := Result + VString^ + '=';
+          vtString     : Result := Result + string(VString^) + '=';
           vtWideString : Result := Result + string(VWideString) + '=';
           {$IFDEF UNICODE}
           vtUnicodeString : Result := Result + string(VUnicodeString) + '=';
           {$ENDIF}
-          vtChar       : Result := Result + VChar + '=';
+          vtChar       : Result := Result + string(VChar) + '=';
           vtWideChar   : Result := Result + VWideChar + '=';
         else
           JSCode('Ext.Msg.show({title:"Error",msg:"Ajax method: ' + MethodName +
@@ -1824,7 +1824,7 @@ begin
   J := -1;
   I := pos('%', Command);
   while I <> 0 do begin
-    if Command[I+1] in ['0'..'9'] then begin
+    if CharInSet(Command[I+1], ['0'..'9']) then begin
       Command[I] := 'P';
       J := max(J, StrToInt(Command[I+1]));
     end;
@@ -1908,7 +1908,7 @@ begin
           inc(I);
         end;
         vtAnsiString: Result := Result + StrToJS(string(VAnsiString));
-        vtString:     Result := Result + StrToJS(VString^);
+        vtString:     Result := Result + StrToJS(string(VString^));
         vtWideString: Result := Result + StrToJS(string(VWideString));
         {$IFDEF UNICODE}
         vtUnicodeString: Result := Result + StrToJS(string(VUnicodeString));
@@ -1919,7 +1919,7 @@ begin
         vtCurrency:   Result := Result + CurrToStr(VCurrency^);
         vtInt64:      Result := Result + IntToStr(VInt64^);
         vtVariant:    Result := Result + string(VVariant^);
-        vtChar:       Result := Result + VChar;
+        vtChar:       Result := Result + string(VChar);
         vtWideChar:   Result := Result + VWideChar;
       end;
     if I < high(A) then Result := Result + ',';

@@ -157,8 +157,6 @@ function LengthRegExp(Rex : string; CountAll : Boolean = true) : integer;
 
 function JSDateToDateTime(JSDate : string) : TDateTime;
 
-function IsNumber(S : string) : boolean;
-
 {
 Encrypts a string using a simple and quick method, but not trivial.
 @param Value String to be encrypted.
@@ -356,7 +354,7 @@ begin
   end
   else begin
     I := pos('%', Result);
-    if (pos(';', Result) = 0) and (I <> 0) and ((length(Result) > 1) and (I < length(Result)) and (Result[I+1] in ['0'..'9'])) then begin // Has param place holder, ";" disable place holder
+    if (pos(';', Result) = 0) and (I <> 0) and ((length(Result) > 1) and (I < length(Result)) and CharInSet(Result[I+1], ['0'..'9'])) then begin // Has param place holder, ";" disable place holder
       J := FirstDelimiter(' "''[]{}><=!*-+/,', Result, I+2);
       if J = 0 then J := length(Result)+1;
       if J <> (length(Result)+1) then begin
@@ -369,7 +367,7 @@ begin
       end;
     end
     else
-      if (I = 1) and (length(Result) > 1) and (Result[2] in ['a'..'z', 'A'..'Z']) then
+      if (I = 1) and (length(Result) > 1) and CharInSet(Result[2], ['a'..'z', 'A'..'Z']) then
         Result := copy(Result, 2, length(Result))
       else
         Result := '"' + Result + '"'
@@ -396,7 +394,7 @@ begin
   Result := '';
   JS := GetEnumName(TypeInfo, Value);
   for I := 1 to length(JS) do
-    if JS[I] in ['A'..'Z'] then begin
+    if CharInSet(JS[I], ['A'..'Z']) then begin
       Result := LowerCase(copy(JS, I, 100));
       if Result = 'perc' then Result := '%';
       exit
@@ -432,7 +430,7 @@ var
 begin
   Result := false;
   for I := 1 to length(S) do
-    if S[I] in ['a'..'z'] then exit;
+    if CharInSet(S[I], ['a'..'z']) then exit;
   Result := true;
 end;
 
@@ -581,7 +579,7 @@ begin
           repeat
             inc(I);
             // find multiple statement block end
-            if (length(Res) >= I) and (Res[I] in ['{', '}', ';']) then backward := true;
+            if (length(Res) >= I) and CharInSet(Res[I], ['{', '}', ';']) then backward := true;
             if inNew and (length(Res) >= I) and (Res[I] = ']') then backward := true;
           until (I > length(Res)) or (Res[I] = ',') or backward;
           if not backward then // add new line
@@ -730,7 +728,7 @@ begin
   for I := 1 to length(Rex) do
     case Rex[I] of
       '\' :
-        if CountAll and (I < length(Rex)) and (Rex[I+1] in ['d', 'D', 'l', 'f', 'n', 'r', 's', 'S', 't', 'w', 'W']) then inc(Slash);
+        if CountAll and (I < length(Rex)) and CharInSet(Rex[I+1], ['d', 'D', 'l', 'f', 'n', 'r', 's', 'S', 't', 'w', 'W']) then inc(Slash);
       ',', '{' : begin
         N := '';
         if Slash > 1 then begin
@@ -757,15 +755,6 @@ end;
 function JSDateToDateTime(JSDate : string) : TDateTime; begin
   Result := EncodeDateTime(StrToInt(copy(JSDate, 12, 4)), AnsiIndexStr(copy(JSDate, 5, 3), ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']) +1,
     StrToInt(copy(JSDate, 9, 2)), StrToInt(copy(JSDate, 17, 2)), StrToInt(copy(JSDate, 20, 2)), StrToInt(copy(JSDate, 23, 2)), 0);
-end;
-
-function IsNumber(S : string) : boolean;
-var
-  C : integer;
-  D : double;
-begin
-  val(S, D, C);
-  Result := C = 0;
 end;
 
 function Encrypt(Value : string) : string;
@@ -828,7 +817,7 @@ function URLDecode(const Encoded : string) : string;
 var
   I : integer;
 begin
-  Result := {$IFDEF MSWINDOWS}UTF8ToAnsi{$ENDIF}(Encoded);
+  Result := Encoded;
   I := pos('%', Result);
   while I <> 0 do begin
     Result[I] := chr(StrToIntDef('$' + copy(Result, I+1, 2), 32));
@@ -850,7 +839,7 @@ var
 begin
   Result := '';
   for I := 1 to length(Decoded) do
-    if Decoded[I] in Allowed then
+    if CharInSet(Decoded[I], Allowed) then
       Result := Result + Decoded[I]
     else
       Result := Result + '%' + IntToHex(ord(Decoded[I]), 2);

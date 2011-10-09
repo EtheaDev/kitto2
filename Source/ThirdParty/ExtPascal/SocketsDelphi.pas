@@ -313,14 +313,14 @@ begin
   Result.s_addr:=0;
   for I:=1 to 4 do begin
     if I<4 then begin
-      J:=Pos('.',IP);
+      J:=Pos(AnsiString('.'),IP);
       If J=0 then exit;
       Dummy:=Copy(IP,1,J-1);
       Delete (IP,1,J);
     end
     else
       Dummy:=IP;
-    val(Dummy,k,J);
+    val(string(Dummy),k,J);
     array4int(Result.s_addr)[i]:=k;
     if J<>0 then Exit;
   end;

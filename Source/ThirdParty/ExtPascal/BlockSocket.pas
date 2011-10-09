@@ -22,7 +22,7 @@ type
 		destructor Destroy; override;
     procedure Bind(pPort, BackLog : word);
 		function Accept(Timeout : integer) : integer;
-    procedure Connect(Host : string; pPort : word);
+    procedure Connect(Host : AnsiString; pPort : word);
 		procedure Purge;
 		procedure Close;
     function RecvPacket : AnsiString;
@@ -31,7 +31,7 @@ type
     function WaitingData : cardinal;
     function CanRead(Timeout: Integer): Boolean;
     function Error : integer;
-    function GetHostAddress : string;
+    function GetHostAddress : AnsiString;
   end;
 
 implementation
@@ -68,7 +68,7 @@ Attempts to establish a new TCP connection, used on the client side
 @param Port Port number to connect
 @see Error
 }
-procedure TBlockSocket.Connect(Host : string; pPort : word); begin
+procedure TBlockSocket.Connect(Host : AnsiString; pPort : word); begin
   with RemoteSin do begin
     Sin_Family := AF_INET;
     Sin_Addr   := StrToNetAddr(Host);
@@ -96,7 +96,7 @@ destructor TBlockSocket.Destroy; begin
 end;
 
 // Returns the host IP address
-function TBlockSocket.GetHostAddress: string;
+function TBlockSocket.GetHostAddress: AnsiString;
 var
   Tam : integer;
   Addr: SockAddr;
