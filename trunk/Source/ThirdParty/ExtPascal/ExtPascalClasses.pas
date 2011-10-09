@@ -68,7 +68,7 @@ type
     procedure InitDefaultValues; virtual;
     procedure OnError(const Msg, Method, Params : string); virtual;
     procedure OnNotFoundError; virtual;
-    procedure SendResponse(const Msg : string); virtual; abstract;
+    procedure SendResponse(const Msg : AnsiString); virtual; abstract;
     procedure SetCookie(const Name, Value : string; Expires : TDateTime = 0; const Domain : string = '';
                         const Path : string = ''; Secure : Boolean = False);
     procedure SetQueryText(const AQueryStr : string; NeedDecode, Append : Boolean);
