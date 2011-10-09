@@ -44,7 +44,7 @@ type
     function GetDocumentRoot : string; override;
     function GetRequestHeader(const Name : string) : string; override;
     function GetWebServer : string; override;
-    procedure SendResponse(const Msg : string); override;
+    procedure SendResponse(const Msg : AnsiString); override;
     function UploadBlockType(const Buffer : AnsiString; var MarkPos : Integer) : TUploadBlockType; override;
     function UploadNeedUnknownBlock : Boolean; override;
   public
@@ -456,7 +456,7 @@ begin
   if Values.IndexOf('FCGI_MAX_REQS')   <> -1 then AddParam(GetValuesResult, ['FCGI_MAX_REQS',  IntToStr(Application.MaxConns)]);
   if Values.IndexOf('FCGI_MPXS_CONNS') <> -1 then AddParam(GetValuesResult, ['FCGI_MPXS_CONNS', '0']);
   Values.Free;
-  SendResponse(GetValuesResult, rtGetValuesResult);
+  SendResponse(AnsiString(GetValuesResult), rtGetValuesResult);
 end;
 
 {
@@ -563,7 +563,7 @@ begin
                   rtParams, rtStdIn, rtData :
                     if Content = '' then begin
                       if FCGIHeader.RecType = rtParams then begin
-                        ReadRequestHeader(FRequestHeader, FRequest, True);
+                        ReadRequestHeader(FRequestHeader, AnsiString(FRequest), True);
                         if SetCurrentFCGIThread then begin
                           FSession.IsUpload := _CurrentFCGIThread.CompleteRequestHeaderInfo(Buffer, I);
                           FSession.MaxUploadSize := _CurrentFCGIThread.FSession.MaxUploadSize;
@@ -580,7 +580,7 @@ begin
                       else begin
                         _CurrentFCGIThread.FSession.IsUpload := FSession.IsUpload;
                         _CurrentFCGIThread.FSession.Response := FSession.Response;
-                        FSession.Response := _CurrentFCGIThread.HandleRequest(FRequest);
+                        FSession.Response := string(_CurrentFCGIThread.HandleRequest(AnsiString(FRequest)));
                         FSession.FCustomResponseHeaders.Text := _CurrentFCGIThread.FSession.FCustomResponseHeaders.Text;
                         FSession.ContentType := _CurrentFCGIThread.FSession.ContentType;
                         FGarbage := _CurrentFCGIThread.FGarbage;
@@ -595,7 +595,7 @@ begin
                       if FSession.IsUpLoad then
                         FSession.UploadWriteFile(Content)
                       else
-                        FRequest := FRequest + Content;
+                        FRequest := FRequest + string(Content);
                 else
                   SendResponse(AnsiChar(FCGIHeader.RecType), rtUnknown);
                   Buffer := '';
@@ -614,7 +614,7 @@ begin
       Terminate;
   except
     on E : Exception do begin
-      Content := E.ClassName + ': ' + E.Message + ' at ' + IntToStr(integer(ExceptAddr));
+      Content := AnsiString(E.ClassName + ': ' + E.Message + ' at ' + IntToStr(integer(ExceptAddr)));
       SendResponse(Content);
       SendResponse(Content, rtStdErr);
       SendEndRequest;
@@ -640,15 +640,15 @@ The published method will use the Request as input and the Response as output.
 @return Response body to <link TFCGIThread.SendResponse, send>
 }
 function TFCGIThread.HandleRequest(pRequest : AnsiString) : AnsiString; begin
-  if (FRequestMethod = rmPost) and (pos('=', pRequest) <> 0) then
-    FSession.SetQueryText(pRequest, True, True)
+  if (FRequestMethod = rmPost) and (Pos(AnsiString('='), pRequest) <> 0) then
+    FSession.SetQueryText(string(pRequest), True, True)
   else
-    FRequest := pRequest;
+    FRequest := string(pRequest);
   if not FSession.IsUpload then FSession.Response := '';
   FSession.IsDownload := false;
   FSession.HandleRequest(pRequest);
   if FSession.IsDownload or (FSession.IsUpload and (FSession.Browser = brIE)) then
-    Result := FSession.Response
+    Result := AnsiString(FSession.Response)
   else
     Result := FSession.EncodeResponse;
 end;
@@ -923,7 +923,7 @@ function TFCGISession.GetWebServer : string; begin
   if Result = '' then Result := 'Embedded';
 end;
 
-procedure TFCGISession.SendResponse(const Msg : string); begin
+procedure TFCGISession.SendResponse(const Msg : AnsiString); begin
   TFCGIThread(FOwner).SendResponse(Msg);
 end;
 
