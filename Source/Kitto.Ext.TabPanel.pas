@@ -1,5 +1,7 @@
 unit Kitto.Ext.TabPanel;
 
+{$I Kitto.Defines.inc}
+
 interface
 
 uses
@@ -19,6 +21,7 @@ type
   protected
     procedure InitDefaults; override;
   public
+    procedure AfterConstruction; override;
     property View: TKView read FView write SetView;
   published
     procedure PanelClosed;
@@ -37,7 +40,7 @@ implementation
 uses
   ExtPascal,
   EF.Tree,
-  Kitto.Ext.Controller, Kitto.Environment;
+  Kitto.Ext.Controller, Kitto.Environment, Kitto.Ext.Session;
 
 { TKExtTabPanelController }
 
@@ -51,6 +54,7 @@ procedure TKExtTabPanelController.InitDefaults;
 begin
   inherited;
   Layout := lyFit;
+  Border := False;
 
   FTabPanel := TKExtTabPanel.AddTo(Items);
 end;
@@ -61,9 +65,16 @@ procedure TKExtTabPanel.InitDefaults;
 begin
   inherited;
   Border := False;
+  { TODO : remove this one all controllers set it by themselves. }
   Defaults := JSObject('autoscroll:true');
   EnableTabScroll := True;
   DeferredRender := True;
+end;
+
+procedure TKExtTabPanel.AfterConstruction;
+begin
+  inherited;
+  Session.ViewHost := Self;
 end;
 
 procedure TKExtTabPanel.DisplaySubViews;
@@ -74,15 +85,18 @@ var
 begin
   Assert(Assigned(FView));
 
-  LViews := View.GetNode('Controller/SubViews');
-  for I := 0 to LViews.ChildCount - 1 do
+  LViews := View.FindNode('Controller/SubViews');
+  if Assigned(LViews) then
   begin
-    LController := TKControllerFactory.Instance.CreateController(
-      Environment.Views.ViewByName(LViews.Children[I].Name), Self);
-    LController.Display;
+    for I := 0 to LViews.ChildCount - 1 do
+    begin
+      LController := TKExtControllerFactory.Instance.CreateController(
+        Environment.Views.ViewByNode(LViews.Children[I]), Self);
+      LController.Display;
+    end;
+    if Items.Count > 0 then
+      SetActiveTab(0);
   end;
-  if Items.Count > 0 then
-    SetActiveTab(0);
 end;
 
 procedure TKExtTabPanel.PanelClosed;
@@ -96,14 +110,16 @@ end;
 
 procedure TKExtTabPanel.SetView(const AValue: TKView);
 begin
+  Assert(Assigned(AValue));
+
   FView := AValue;
   DisplaySubViews;
 end;
 
 initialization
-  TKControllerRegistry.Instance.RegisterClass('TabPanel', TKExtTabPanelController);
+  TKExtControllerRegistry.Instance.RegisterClass('TabPanel', TKExtTabPanelController);
 
 finalization
-  TKControllerRegistry.Instance.UnregisterClass('TabPanel');
+  TKExtControllerRegistry.Instance.UnregisterClass('TabPanel');
 
 end.

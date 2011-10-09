@@ -1,5 +1,7 @@
 unit Kitto.Ext.BorderPanel;
 
+{$I Kitto.Defines.inc}
+
 interface
 
 uses
@@ -42,7 +44,7 @@ begin
   LSubView := Environment.Views.FindViewByNode(View.FindNode('Controller/' + GetRegionViewName(ARegion)));
   if LSubView <> nil then
   begin
-    FControllers[ARegion] := TKControllerFactory.Instance.CreateController(LSubView, Self);
+    FControllers[ARegion] := TKExtControllerFactory.Instance.CreateController(LSubView, Self);
     Assert(FControllers[ARegion].AsObject is TExtBoxComponent);
     TExtBoxComponent(FControllers[ARegion].AsObject).Region := ARegion;
     FControllers[ARegion].Display;
@@ -65,15 +67,16 @@ var
 begin
   inherited;
   Layout := lyBorder;
+  Border := False;
   for I := Low(FControllers) to High(FControllers) do
     CreateController(I);
 end;
 
 initialization
-  TKControllerRegistry.Instance.RegisterClass('BorderPanel', TKExtBorderPanelController);
+  TKExtControllerRegistry.Instance.RegisterClass('BorderPanel', TKExtBorderPanelController);
 
 finalization
-  TKControllerRegistry.Instance.UnregisterClass('BorderPanel');
+  TKExtControllerRegistry.Instance.UnregisterClass('BorderPanel');
 
 end.
 

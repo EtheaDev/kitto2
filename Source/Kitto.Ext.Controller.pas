@@ -43,16 +43,16 @@ type
 allow to overwrite registrations in order to override predefined controllers;
 keep track of all classes registered under the same name to handle
 de-registration gracefully. }
-  TKControllerRegistry = class(TEFRegistry)
+  TKExtControllerRegistry = class(TEFRegistry)
   private
-    class var FInstance: TKControllerRegistry;
-    class function GetInstance: TKControllerRegistry; static;
+    class var FInstance: TKExtControllerRegistry;
+    class function GetInstance: TKExtControllerRegistry; static;
   protected
     procedure BeforeRegisterClass(const AId: string; const AClass: TClass);
       override;
   public
     class destructor Destroy;
-    class property Instance: TKControllerRegistry read GetInstance;
+    class property Instance: TKExtControllerRegistry read GetInstance;
     procedure RegisterClass(const AId: string; const AClass: TExtObjectClass);
   end;
 
@@ -60,13 +60,13 @@ de-registration gracefully. }
   ///	  Queries the registry to create controllers by class Id. It is
   ///	  friend to TKControllerRegistry.
   ///	</summary>
-  TKControllerFactory = class
+  TKExtControllerFactory = class
   private
-    class var FInstance: TKControllerFactory;
-    class function GetInstance: TKControllerFactory; static;
+    class var FInstance: TKExtControllerFactory;
+    class function GetInstance: TKExtControllerFactory; static;
   public
     class destructor Destroy;
-    class property Instance: TKControllerFactory read GetInstance;
+    class property Instance: TKExtControllerFactory read GetInstance;
 
     function CreateController(const AView: TKView; const AContainer: TExtContainer;
       const AObserver: IEFObserver = nil; const ACustomType: string = ''): IKExtController;
@@ -77,9 +77,9 @@ implementation
 uses
   SysUtils;
 
-{ TKControllerRegistry }
+{ TKExtControllerRegistry }
 
-procedure TKControllerRegistry.BeforeRegisterClass(const AId: string;
+procedure TKExtControllerRegistry.BeforeRegisterClass(const AId: string;
   const AClass: TClass);
 begin
   if not AClass.InheritsFrom(TExtObject) or not Supports(AClass, IKExtController) then
@@ -87,42 +87,42 @@ begin
   inherited;
 end;
 
-class destructor TKControllerRegistry.Destroy;
+class destructor TKExtControllerRegistry.Destroy;
 begin
   FreeAndNil(FInstance);
 end;
 
-class function TKControllerRegistry.GetInstance: TKControllerRegistry;
+class function TKExtControllerRegistry.GetInstance: TKExtControllerRegistry;
 begin
   if FInstance = nil then
-    FInstance := TKControllerRegistry.Create;
+    FInstance := TKExtControllerRegistry.Create;
   Result := FInstance;
 end;
 
-procedure TKControllerRegistry.RegisterClass(const AId: string;
+procedure TKExtControllerRegistry.RegisterClass(const AId: string;
   const AClass: TExtObjectClass);
 begin
   inherited RegisterClass(AId, AClass);
 end;
 
-{ TKControllerFactory }
+{ TKExtControllerFactory }
 
-class destructor TKControllerFactory.Destroy;
+class destructor TKExtControllerFactory.Destroy;
 begin
   FreeAndNil(FInstance);
 end;
 
-class function TKControllerFactory.GetInstance: TKControllerFactory;
+class function TKExtControllerFactory.GetInstance: TKExtControllerFactory;
 begin
   if FInstance = nil then
-    FInstance := TKControllerFactory.Create;
-  Result := TKControllerFactory(FInstance);
+    FInstance := TKExtControllerFactory.Create;
+  Result := TKExtControllerFactory(FInstance);
 end;
 
 type
   TBreakExtObject = class(TExtObject);
 
-function TKControllerFactory.CreateController(const AView: TKView;
+function TKExtControllerFactory.CreateController(const AView: TKView;
   const AContainer: TExtContainer; const AObserver: IEFObserver;
   const ACustomType: string): IKExtController;
 var
@@ -140,7 +140,7 @@ begin
   if LType = '' then
     raise EKError.Create('Cannot create controller. Unspecified type.');
 
-  LClass := TExtObjectClass(TKControllerRegistry.Instance.GetClass(LType));
+  LClass := TExtObjectClass(TKExtControllerRegistry.Instance.GetClass(LType));
 
   if Assigned(AContainer) then
     LObject := LClass.AddTo(AContainer.Items)

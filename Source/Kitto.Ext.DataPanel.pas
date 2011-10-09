@@ -1,5 +1,7 @@
 unit Kitto.Ext.DataPanel;
 
+{$I Kitto.Defines.inc}
+
 interface
 
 uses
@@ -34,7 +36,7 @@ implementation
 uses
   SysUtils, StrUtils,
   Ext,
-  Kitto.Environment, Kitto.AccessControl;
+  Kitto.Environment, Kitto.AccessControl, Kitto.Ext.Session;
 
 { TKExtDataPanelController }
 
@@ -66,6 +68,8 @@ end;
 procedure TKExtDataPanelController.DoDisplay;
 begin
   inherited;
+  IconCls := Session.SetViewIconStyle(View);
+
   Assert(View is TKDataView);
 
   FViewTable := Config.GetObject('Sys/ViewTable') as TKViewTable;
