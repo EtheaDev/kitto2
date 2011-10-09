@@ -5,12 +5,12 @@ interface
 uses
   SysUtils,
   ExtPascal,
-  Kitto.Controller, Kitto.Environment, Kitto.Metadata.Views, Kitto.Ext.Login;
+  Kitto.Ext.Controller, Kitto.Environment, Kitto.Metadata.Views, Kitto.Ext.Login;
 
 type
   TKExtSession = class(TExtThread)
   private
-    FHomeController: IKController;
+    FHomeController: IKExtController;
     FEnvironment: TKEnvironment;
     FFormatSettings: TFormatSettings;
     FLoginWindow: TKExtLoginWindow;
@@ -110,7 +110,7 @@ end;
 
 destructor TKExtSession.Destroy;
 begin
-  FreeAndNilEFIntf(FHomeController);
+  NilEFIntf(FHomeController);
   FreeAndNil(FEnvironment);
   inherited;
 end;
@@ -118,10 +118,10 @@ end;
 procedure TKExtSession.DisplayHomeView;
 begin
   FIsAuthenticated := True;
-  FreeAndNilEFIntf(FHomeController);
+  NilEFIntf(FHomeController);
+{ TODO : have the session observe the home controller? }
   FHomeController := TKControllerFactory.Instance.CreateController(
-    Environment.Views.ViewByName(Environment.Config.GetString('Home/View', 'Main')));
-  GarbageDelete(FHomeController.AsObject); // We're going to free it ourselves.
+    Environment.Views.ViewByName(Environment.Config.GetString('Home/View', 'Home')), nil);
   FHomeController.Display;
 end;
 

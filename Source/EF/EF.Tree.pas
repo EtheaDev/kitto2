@@ -250,23 +250,26 @@ type
   end;
 
   ///	<summary>
-  ///	  A macro expander that expands all the data items contained in a TEFNode
-  ///	  object. Each macro in this format: %&lt;NameSpace&gt;:&lt;Path&gt;% is
-  ///	  expanded to the value of the child node located by the path in the node
-  ///	  this expander holds a reference to. &lt;NameSpace&gt; is a value set
-  ///	  upon creation. If it is '', then no ':' separator is required in the
-  ///	  macros.
+  ///	  <para>
+  ///	    A macro expander that expands all the strings contained in a TEFTree
+  ///	    object. Each macro in this format:
+  ///	  </para>
+  ///	  <para>
+  ///	    %&lt;NameSpace&gt;:&lt;Path&gt;%
+  ///	  </para>
+  ///	  <para>
+  ///	    is expanded to the string value of the tree node located by the path.
+  ///	    This macro expander holds a reference to a TEFTree. &lt;NameSpace&gt;
+  ///	    is a value set upon creation. If it is empty, then no ':' separator
+  ///	    is required in the macros.
+  ///	  </para>
   ///	</summary>
   ///	<remarks>
   ///	  <para>
   ///	    The need for a name space stems from the fact that you can have
   ///	    multiple macro expanders of this kind active at the same time, each
-  ///	    linked to a different node object, and use the namespace string to
+  ///	    linked to a different tree object, and use the namespace string to
   ///	    differentiate them.
-  ///	  </para>
-  ///	  <para>
-  ///	    Macros in values of nodes retrieved through macro expansion are not
-  ///	    themselves expanded. This is a known current limitation.
   ///	  </para>
   ///	  <para>
   ///	    This macro expander is not registered by default, as it needs a
@@ -275,14 +278,14 @@ type
   ///	    to an expansion engine, without registering it) as required.
   ///	  </para>
   ///	</remarks>
-  TEFNodeMacroExpander = class(TEFMacroExpander)
+  TEFTreeMacroExpander = class(TEFMacroExpander)
   private
-    FNode: TEFNode;
+    FTree: TEFTree;
     FPrefix: string;
   protected
     function InternalExpand(const AString: string): string; override;
   public
-    constructor Create(const ANode: TEFNode;
+    constructor Create(const ATree: TEFTree;
       const ANameSpace: string); reintroduce;
   end;
 
@@ -1099,13 +1102,13 @@ begin
   end;
 end;
 
-{ TEFNodeMacroExpander }
+{ TEFTreeMacroExpander }
 
-constructor TEFNodeMacroExpander.Create(const ANode: TEFNode;
+constructor TEFTreeMacroExpander.Create(const ATree: TEFTree;
   const ANameSpace: string);
 begin
   inherited Create;
-  FNode := ANode;
+  FTree := ATree;
   FPrefix := ANameSpace;
   if Trim(FPrefix) <> '' then
     FPrefix := FPrefix + ':'
@@ -1113,7 +1116,7 @@ begin
     FPrefix := '';
 end;
 
-function TEFNodeMacroExpander.InternalExpand(const AString: string): string;
+function TEFTreeMacroExpander.InternalExpand(const AString: string): string;
 var
   LIndex: Integer;
   LStart: Integer;
@@ -1129,15 +1132,15 @@ begin
     LStart := PosEx('%' + FPrefix, Result, LIndex);
     if LStart = 0 then
       Exit;
-    LPathStart := LStart + 1 + Length(FPrefix) + 1;
+    LPathStart := LStart + 1 + Length(FPrefix);
     LEnd := PosEx('%', Result, LStart + 1);
     if LEnd = 0 then
       Exit;
-    LNodePath := Copy(Result, LPathStart + 1, LEnd - LStart + 1);
-    LNodeValue := FNode.GetExpandedString(StripPrefixAndSuffix(LNodePath, '%', '%'));
+    LNodePath := Copy(Result, LPathStart, LEnd - LPathStart);
+    LNodeValue := FTree.GetExpandedString(StripPrefixAndSuffix(LNodePath, '%', '%'));
     if LNodeValue <> ''  then
     begin
-      Delete(Result, LStart, Length(LNodePath));
+      Delete(Result, LStart, LEnd - LStart + 1);
       Insert(LNodeValue, Result, LStart);
     end;
     LIndex := LEnd + 1;

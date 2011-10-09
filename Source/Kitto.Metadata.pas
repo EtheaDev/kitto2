@@ -10,10 +10,13 @@ type
   TKMetadata = class(TEFTree)
   private
     FPersistentName: string;
+    function GetIsPersistent: Boolean;
   public
     procedure Assign(const ASource: TEFTree); override;
 
     property PersistentName: string read FPersistentName write FPersistentName;
+
+    property IsPersistent: Boolean read GetIsPersistent;
   end;
 
   TKMetadataClass = class of TKMetadata;
@@ -59,6 +62,9 @@ type
     property Objects[I: Integer]: TKMetadata read GetObject;
     function FindObject(const AName: string): TKMetadata;
     function ObjectByName(const AName: string): TKMetadata;
+
+    function ObjectByNode(const ANode: TEFNode): TKMetadata;
+    function FindObjectByNode(const ANode: TEFNode): TKMetadata;
 
     procedure AddObject(const AObject: TKMetadata);
 
@@ -253,6 +259,36 @@ begin
     ObjectNotFound(AName);
 end;
 
+function TKMetadataCatalog.ObjectByNode(const ANode: TEFNode): TKMetadata;
+begin
+  Result := FindObjectByNode(ANode);
+  if Result = nil then
+    if Assigned(ANode) then
+      ObjectNotFound(ANode.Name + ':' + ANode.AsString)
+    else
+      ObjectNotFound('<nil>');
+end;
+
+function TKMetadataCatalog.FindObjectByNode(const ANode: TEFNode): TKMetadata;
+begin
+  if not Assigned(ANode) then
+    Result := nil
+  else if ANode.AsString <> '' then
+    Result := ObjectByName(ANode.AsString)
+  else if ANode.ChildCount > 0 then
+  begin
+    Result := GetObjectClassType.Create;
+    try
+      Result.Assign(ANode);
+    except
+      FreeAndNil(Result);
+      raise;
+    end;
+  end
+  else
+    Result := nil;
+end;
+
 procedure TKMetadataCatalog.ObjectNotFound(const AName: string);
 begin
   raise EKError.CreateFmt(_('Object %s not found.'), [AName]);
@@ -379,6 +415,11 @@ begin
   inherited;
   if ASource is TKMetadata then
     FPersistentName := TKMetadata(ASource).PersistentName;
+end;
+
+function TKMetadata.GetIsPersistent: Boolean;
+begin
+  Result := PersistentName <> '';
 end;
 
 end.

@@ -11,9 +11,7 @@ type
   ///	<summary>
   ///	  A tab panel that knows when its hosted panels are closed.
   ///	</summary>
-  ///	<remarks>
-  ///	</remarks>
-  TKExtHostPanel = class(TExtTabPanel)
+  TKExtTabPanel = class(TExtTabPanel)
   published
     procedure PanelClosed;
   end;
@@ -22,10 +20,10 @@ type
   ///	  A menu panel, with toolbar, status bar and navigation tree. Hosts views
   ///	  as tab pages.
   ///	</summary>
-  TKExtMenuPanel = class(TKExtPanelController)
+  TKExtMenuPanel = class(TKExtPanelControllerBase)
   private
     FToolbar: TExtToolbar;
-    FHostPanel: TKExtHostPanel;
+    FTabPanel: TKExtTabPanel;
     FStatusBar: TExtUxStatusBar;
     FNavigationPanel: TExtPanel;
     FMenuRenderer: TKExtTreeViewRenderer;
@@ -52,14 +50,14 @@ type
     procedure ShowMemoryStatus;
   end;
 
-  TKExtMenuWindow = class(TKExtWindowController)
+  TKExtMenuWindow = class(TKExtWindowControllerBase)
   private
     FMainMenuPanel: TKExtMenuPanel;
   protected
     procedure DoDisplay; override;
   end;
 
-  TKExtMenuViewport = class(TKExtViewportController)
+  TKExtMenuViewport = class(TKExtViewportControllerBase)
   private
     FMainMenuPanel: TKExtMenuPanel;
   protected
@@ -72,7 +70,7 @@ uses
   SysUtils, Types, Classes,
   ExtPascal, ExtPascalUtils,
   EF.StrUtils,
-  Kitto.Ext.Session, Kitto.Environment, Kitto.Controller;
+  Kitto.Ext.Session, Kitto.Environment, Kitto.Ext.Controller;
 
 { TKExtMenuPanel }
 
@@ -84,15 +82,14 @@ end;
 
 procedure TKExtMenuPanel.DisplayView;
 var
-  LController: IKController;
+  LController: IKExtController;
 begin
   LController := TKControllerFactory.Instance.CreateController(
-    Environment.Views.ViewByName(Session.Query['Name']), Self);
-  LController.Config.SetObject('Sys/Container', FHostPanel);
+    Environment.Views.ViewByName(Session.Query['Name']), FTabPanel, Self);
   LController.Display;
   if Session.QueryAsBoolean['AutoCollapseMenu'] then
     FMenuPanel.Collapse(True);
-  FHostPanel.SetActiveTab(FHostPanel.Items.Count - 1);
+  FTabPanel.SetActiveTab(FTabPanel.Items.Count - 1);
 end;
 
 procedure TKExtMenuPanel.DoDisplay;
@@ -220,24 +217,19 @@ begin
     end;
   end;
 
-  // Center: host for GUI elements.
-  FHostPanel := TKExtHostPanel.AddTo(Items);
-  FHostPanel.Region := rgCenter;
-  FHostPanel.Border := False;
-  FHostPanel.Defaults := JSObject('autoscroll:true');
-  FHostPanel.EnableTabScroll := True;
-  { TODO :
-Currently needed to correctly display filters in AutoViews
-(otherwise only those in the active page are rendered ok).
-Fix the filter initialization sequence in List controller and
-try again with deferred render. }
-  FHostPanel.DeferredRender := False;
+  // Center: displays view is tabs.
+  FTabPanel := TKExtTabPanel.AddTo(Items);
+  FTabPanel.Region := rgCenter;
+  FTabPanel.Border := False;
+  FTabPanel.Defaults := JSObject('autoscroll:true');
+  FTabPanel.EnableTabScroll := True;
+  FTabPanel.DeferredRender := True;
 
   CreateWelcomeFrames;
   DisplayAutoViews;
 
-  if FHostPanel.Items.Count > 0 then
-    FHostPanel.SetActiveTab(0);
+  if FTabPanel.Items.Count > 0 then
+    FTabPanel.SetActiveTab(0);
 end;
 
 procedure TKExtMenuPanel.CreateWelcomeFrames;
@@ -247,7 +239,7 @@ begin
   LWelcomeFileName := Environment.FindResourcePathName('Welcome.html');
   if LWelcomeFileName <> '' then
   begin
-    FWelcomePanel := TExtPanel.AddTo(FHostPanel.Items);
+    FWelcomePanel := TExtPanel.AddTo(FTabPanel.Items);
     FWelcomePanel.Title := 'Welcome';
     FWelcomePanel.Html := Environment.MacroExpansionEngine.Expand(TextFileToString(LWelcomeFileName));
     FWelcomePanel.Closable := True;
@@ -261,15 +253,14 @@ procedure TKExtMenuPanel.DisplayAutoViews;
 var
   LViews: TStringDynArray;
   LViewName: string;
-  LController: IKController;
+  LController: IKExtController;
 begin
   { TODO : allow to specify initial views by access role as well }
   LViews := View.GetStringArray('Controller/AutoViews');
   for LViewName in LViews do
   begin
     LController := TKControllerFactory.Instance.CreateController(
-      Environment.Views.ViewByName(LViewName), Self);
-    LController.Config.SetObject('Sys/Container', FHostPanel);
+      Environment.Views.ViewByName(LViewName), FTabPanel, Self);
     LController.Display;
   end;
 end;
@@ -292,7 +283,7 @@ end;
 
 { TKExtHostPanel }
 
-procedure TKExtHostPanel.PanelClosed;
+procedure TKExtTabPanel.PanelClosed;
 var
   LPanel: TExtObject;
 begin

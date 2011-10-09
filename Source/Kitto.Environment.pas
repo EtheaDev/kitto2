@@ -6,7 +6,7 @@ interface
 
 uses
   Generics.Collections,
-  EF.Macros, EF.Classes,  EF.DB, EF.Environment,
+  EF.Macros, EF.Classes,  EF.DB, EF.Environment, EF.Tree,
   Kitto.Auth, Kitto.AccessControl, Kitto.Metadata, Kitto.Metadata.Models,
   Kitto.Metadata.Views;
 
@@ -26,6 +26,7 @@ type
     FViews: TKViews;
     FConfig: TEFConfig;
     FResourcePathsURLs: TDictionary<string, string>;
+    FMacroExpander: TEFMacroExpander;
     function GetMainDBConnection: IEFDBConnection;
     function GetMainDBAdapter: TEFDBAdapter;
     function GetMacroExpansionEngine: TEFMacroExpansionEngine;
@@ -188,15 +189,23 @@ type
 procedure SetEnvironmentSingleton(const AValue: TKEnvironmentSingleton);
 
 type
-  {
-    A macro expander that can expand EW globally available macros.
-    Macros supported (case-sensitive):
-    @table(
-      @row(
-        @cell(%HOME_PATH%)@cell(Environment.GetAppHomePath))
-    )
-  }
-  TKMacroExpander = class(TEFMacroExpander)
+  ///	<summary>
+  ///	  <para>
+  ///	    A macro expander that can expand globally available macros.
+  ///	  </para>
+  ///	  <para>
+  ///	    %HOME_PATH% = Environment.GetAppHomePath.
+  ///	  </para>
+  ///	  <para>
+  ///	    It also expands any macros in the Config namespace to the
+  ///	    corresponding environment config string. Example:
+  ///	  </para>
+  ///	  <para>
+  ///	    %Config:AppTitle% = The string value of the AppTitle node in
+  ///	    Config.yaml.
+  ///	  </para>
+  ///	</summary>
+  TKMacroExpander = class(TEFTreeMacroExpander)
   protected
     function InternalExpand(const AString: string): string; override;
   end;
@@ -205,7 +214,7 @@ implementation
 
 uses
   SysUtils, Variants, StrUtils,
-  EF.Intf, EF.SysUtils, EF.StrUtils, EF.Localization, EF.Types, EF.Tree,
+  EF.Intf, EF.SysUtils, EF.StrUtils, EF.Localization, EF.Types,
   Kitto.Types;
 
 var
@@ -269,11 +278,15 @@ begin
   LLanguageId := Config.GetString('LanguageId');
   if LLanguageId <> '' then
     EFLocalizationTool.ForceLanguage(LLanguageId);
+  FMacroExpander := TKMacroExpander.Create(Config, 'Config');
+  MacroExpansionEngine.AddExpander(FMacroExpander);
 end;
 
 destructor TKEnvironment.Destroy;
 begin
   inherited;
+  FMacroExpansionEngine.RemoveExpander(FMacroExpander);
+  FreeAndNil(FMacroExpander);
   FreeAndNil(FViews);
   FreeAndNil(FModels);
   FreeAndNil(FAccessControlHost);
@@ -538,11 +551,9 @@ end;
 
 initialization
   SetEnvironmentGetFunction(EnvironmentAsIntf);
-  DefaultMacroExpansionEngine.AddExpander(TKMacroExpander.Create);
 
 finalization
   SetEnvironmentGetFunction(nil);
-  DefaultMacroExpansionEngine.RemoveExpanders(TKMacroExpander);
   FreeAndNil(_Environment);
 
 end.

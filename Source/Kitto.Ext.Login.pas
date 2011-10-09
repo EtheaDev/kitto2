@@ -9,7 +9,7 @@ uses
 type
   TKExtOnLogin = procedure of object;
 
-  TKExtLoginWindow = class(TKExtWindowController)
+  TKExtLoginWindow = class(TKExtWindowControllerBase)
   private
     FUserName: TExtFormTextField;
     FPassword: TExtFormTextField;

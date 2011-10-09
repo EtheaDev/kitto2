@@ -5,7 +5,7 @@ interface
 uses
   Ext, ExtGrid, ExtData, ExtForm,
   EF.ObserverIntf, EF.Classes,
-  Kitto.Ext.Base, Kitto.Ext.DataPanel, Kitto.Types, Kitto.Controller,
+  Kitto.Ext.Base, Kitto.Ext.DataPanel, Kitto.Types, Kitto.Ext.Controller,
   Kitto.Metadata.Views, Kitto.Store;
 
 type
@@ -17,7 +17,7 @@ type
     function GetFilterExpression: string;
   end;
 
-  TKExtListPanel = class(TKExtDataPanel)
+  TKExtListPanelController = class(TKExtDataPanelController)
   private
     FGridPanel: TExtGridEditorGridPanel;
     FPageRecordCount: Integer;
@@ -28,7 +28,6 @@ type
     FReader: TExtDataJsonReader;
     FGridView: TExtGridGridView;
     FEditHostWindow: TKExtModalWindow;
-    FFormController: IKController;
     FPagingToolbar: TExtPagingToolbar;
     FTopToolbar: TExtToolbar;
     FFilterPanel: TKExtFilterPanel;
@@ -75,9 +74,9 @@ const
   { TODO : should we just fetch everything when grouping is enabled? }
   DEFAULT_GROUPING_PAGE_RECORD_COUNT = 1000;
 
-{ TKExtListPanel }
+{ TKExtListPanelController }
 
-procedure TKExtListPanel.DeleteCurrentRecord;
+procedure TKExtListPanelController.DeleteCurrentRecord;
 begin
   Assert(ViewTable <> nil);
 
@@ -89,7 +88,7 @@ begin
   RefreshData;
 end;
 
-procedure TKExtListPanel.WriteChanges;
+procedure TKExtListPanelController.WriteChanges;
 begin
   Environment.MainDBConnection.StartTransaction;
   try
@@ -102,9 +101,8 @@ begin
   end;
 end;
 
-destructor TKExtListPanel.Destroy;
+destructor TKExtListPanelController.Destroy;
 begin
-  FreeAndNilEFIntf(FFormController);
   FreeAndNil(FEditHostWindow);
   inherited;
 end;
@@ -114,7 +112,7 @@ end;
 //  FreeAndNil(FEditHostWindow);
 //end;
 
-procedure TKExtListPanel.GetRecordPage;
+procedure TKExtListPanelController.GetRecordPage;
 
   function BuildCommandText(const AAdditionalFilter: string): string;
   var
@@ -168,7 +166,7 @@ begin
   Session.Response := '{Total:' + IntToStr(ServerStore.RecordCount) + ',Root:' + LRecords + '}';
 end;
 
-function TKExtListPanel.CreatePagingToolbar: TExtPagingToolbar;
+function TKExtListPanelController.CreatePagingToolbar: TExtPagingToolbar;
 begin
   Assert(ViewTable <> nil);
 
@@ -179,12 +177,12 @@ begin
   Result := FPagingToolbar;
 end;
 
-function TKExtListPanel.GetFilterExpression: string;
+function TKExtListPanelController.GetFilterExpression: string;
 begin
   Result := FFilterPanel.GetFilterExpression;
 end;
 
-procedure TKExtListPanel.CreateFilterPanel;
+procedure TKExtListPanelController.CreateFilterPanel;
 var
   LItems: TEFNode;
   I: Integer;
@@ -209,7 +207,7 @@ begin
   end;
 end;
 
-function TKExtListPanel.CreateTopToolbar: TExtToolbar;
+function TKExtListPanelController.CreateTopToolbar: TExtToolbar;
 var
   LNewButton: TExtButton;
   LDeleteButton: TExtButton;
@@ -245,18 +243,18 @@ begin
   end;
 end;
 
-function TKExtListPanel.GetGroupingFieldName: string;
+function TKExtListPanelController.GetGroupingFieldName: string;
 begin
   Result := ViewTable.GetString('Controller/Grouping/FieldName');
 end;
 
-procedure TKExtListPanel.InitComponents;
+procedure TKExtListPanelController.InitComponents;
 var
   LSelModel: TExtGridRowSelectionModel;
   LKeyFieldNames: string;
 begin
   inherited;
-  Title := ViewTable.PluralDisplayLabel;
+  Title := Environment.MacroExpansionEngine.Expand(ViewTable.PluralDisplayLabel);
 
   { TODO : implement resource URIs }
   FIsAddAllowed := not ViewTable.GetBoolean('Controller/PreventAdding', False);
@@ -304,7 +302,7 @@ begin
     FGridPanel.Tbar := FTopToolbar;
 end;
 
-procedure TKExtListPanel.CreateStoreAndView;
+procedure TKExtListPanelController.CreateStoreAndView;
 var
   LGroupingFieldName: string;
   LGroupingMenu: Boolean;
@@ -359,7 +357,7 @@ begin
   FStore.Reader := FReader;
 end;
 
-procedure TKExtListPanel.InitFieldsAndColumns;
+procedure TKExtListPanelController.InitFieldsAndColumns;
 var
   I: Integer;
   LLayout: TKLayout;
@@ -503,20 +501,21 @@ begin
   FGridPanel.AutoExpandColumn := ViewTable.GetString('Controller/AutoExpandFieldName');
 end;
 
-procedure TKExtListPanel.RowDblClick;
+procedure TKExtListPanelController.RowDblClick;
 begin
   EditOrViewCurrentRecord;
 end;
 
-procedure TKExtListPanel.EditOrViewCurrentRecord;
+procedure TKExtListPanelController.EditOrViewCurrentRecord;
 begin
   ShowEditWindow(LocateRecordFromSession, emEditCurrentRecord);
 end;
 
-procedure TKExtListPanel.ShowEditWindow(const ARecord: TKRecord;
+procedure TKExtListPanelController.ShowEditWindow(const ARecord: TKRecord;
   const AEditMode: TKEditMode);
 var
   LFormControllerType: string;
+  LFormController: IKExtController;
 
   function IsReadOnly: Boolean;
   begin
@@ -530,11 +529,14 @@ begin
   Assert(View <> nil);
   Assert(ViewTable <> nil);
 
-  FreeAndNil(FEditHostWindow);
+  if Assigned(FEditHostWindow) then
+    FEditHostWindow.Free(True);
   FEditHostWindow := TKExtModalWindow.Create;
   FEditHostWindow.Width := ViewTable.GetInteger('Controller/PopupWindow/Width', FEditHostWindow.Width);
   FEditHostWindow.Height := ViewTable.GetInteger('Controller/PopupWindow/Height', FEditHostWindow.Height);
   FEditHostWindow.ResizeHandles := 'n s';
+
+  FEditHostWindow.Closable := True;
 
   if AEditMode = emNewRecord then
     FEditHostWindow.Title := Format(_('New %s'), [ViewTable.DisplayLabel])
@@ -544,39 +546,31 @@ begin
     FEditHostWindow.Title := Format(_('Edit %s'), [ViewTable.DisplayLabel]);
   //FEditHostWindow.On('close', Ajax(EditWindowClosed, ['Window', '%0.nm']));
 
-  LFormControllerType := View.GetString('Controller/FormController/Type', 'Form');
-  FreeAndNilEFIntf(FFormController);
-  FFormController := TKControllerFactory.Instance.CreateObject(LFormControllerType);
-  try
-    Session.GarbageDelete(FFormController.AsObject); // We're going to free it ourselves.
-    FFormController.View := View;
-    FFormController.Config.SetObject('Sys/Container', FEditHostWindow);
-    FFormController.Config.SetObject('Sys/Store', ServerStore);
-    FFormController.Config.SetObject('Sys/Record', ARecord);
-    FFormController.Config.SetObject('Sys/ViewTable', ViewTable);
-    FFormController.Config.SetObject('Sys/HostWindow', FEditHostWindow);
-    (FFormController as IEFSubject).AttachObserver(Self);
-    if AEditMode = emNewRecord then
-      FFormController.Config.SetString('Sys/Operation', 'Add');
-    FFormController.Display;
-  except
-    FreeAndNilEFIntf(FFormController);
-    raise;
-  end;
+  LFormControllerType := View.GetString('Controller/FormController', 'Form');
+  LFormController := TKControllerFactory.Instance.CreateController(View, FEditHostWindow, Self, LFormControllerType);
+  //Session.GarbageDelete(LFormController.AsObject); // We're going to free it ourselves.
+  LFormController.Config.SetObject('Sys/Store', ServerStore);
+  LFormController.Config.SetObject('Sys/Record', ARecord);
+  LFormController.Config.SetObject('Sys/ViewTable', ViewTable);
+  LFormController.Config.SetObject('Sys/HostWindow', FEditHostWindow);
+  if AEditMode = emNewRecord then
+    LFormController.Config.SetString('Sys/Operation', 'Add');
+  LFormController.Display;
+  //Pointer(LFormController) := nil;
   FEditHostWindow.Show;
 end;
 
-procedure TKExtListPanel.UpdateObserver(const ASubject: IEFSubject;
+procedure TKExtListPanelController.UpdateObserver(const ASubject: IEFSubject;
   const AContext: string);
 begin
   inherited;
   if (AContext = 'FilterChanged') then
     RefreshData;
-  if (AContext = 'Confirmed') and Supports(ASubject.AsObject, IKController) then
+  if (AContext = 'Confirmed') and Supports(ASubject.AsObject, IKExtController) then
     RefreshData;
 end;
 
-function TKExtListPanel.LocateRecordFromSession: TKRecord;
+function TKExtListPanelController.LocateRecordFromSession: TKRecord;
 var
   LKeyValues: TStringDynArray;
   I: Integer;
@@ -603,12 +597,12 @@ begin
 //    LKeyValues[I] := Session.Query[LAliasedFieldName];
 end;
 
-procedure TKExtListPanel.NewRecord(This: TExtButton; E: TExtEventObjectSingleton);
+procedure TKExtListPanelController.NewRecord(This: TExtButton; E: TExtEventObjectSingleton);
 begin
   ShowEditWindow(nil, emNewRecord);
 end;
 
-procedure TKExtListPanel.LoadData;
+procedure TKExtListPanelController.LoadData;
 begin
   inherited;
   Assert(Assigned(FGridPanel));
@@ -619,7 +613,7 @@ begin
     RefreshData;
 end;
 
-function TKExtListPanel.GetRefreshJSCode: string;
+function TKExtListPanelController.GetRefreshJSCode: string;
 begin
   Assert(Assigned(FStore));
 
@@ -629,7 +623,7 @@ begin
     Result := FStore.JSName + '.load({params:{start:0,limit:' + IntToStr(FPageRecordCount) + ',Obj:"' + JSName + '"}});';
 end;
 
-procedure TKExtListPanel.RefreshData;
+procedure TKExtListPanelController.RefreshData;
 begin
   Assert(Assigned(FStore));
 
@@ -665,7 +659,7 @@ begin
 end;
 
 initialization
-  TKControllerRegistry.Instance.RegisterClass('List', TKExtListPanel);
+  TKControllerRegistry.Instance.RegisterClass('List', TKExtListPanelController);
 
 finalization
   TKControllerRegistry.Instance.UnregisterClass('List');

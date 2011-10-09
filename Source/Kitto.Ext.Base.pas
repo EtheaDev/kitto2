@@ -5,22 +5,25 @@ interface
 uses
   ExtPascal, Ext, ExtForm,
   EF.Intf, EF.ObserverIntf, EF.Classes,
-  Kitto.Controller, Kitto.Metadata.Views;
+  Kitto.Ext.Controller, Kitto.Metadata.Views;
 
 type
   ///	<summary>
   ///	  Base Ext window with subject, observer and controller capabilities.
   ///	</summary>
-  TKExtWindowController = class(TExtWindow, IInterface, IEFInterface, IEFSubject, IEFObserver, IKController)
+  TKExtWindowControllerBase = class(TExtWindow, IInterface, IEFInterface, IEFSubject, IEFObserver, IKExtController)
   private
     FSubjObserverImpl: TEFSubjectAndObserver;
     FView: TKView;
     FConfig: TEFConfig;
+    FContainer: TExtContainer;
     function GetView: TKView;
     function GetConfig: TEFConfig;
   protected
     procedure SetView(const AValue: TKView);
     procedure DoDisplay; virtual;
+    function GetContainer: TExtContainer;
+    procedure SetContainer(const AValue: TExtContainer);
   public
     procedure AfterConstruction; override;
     destructor Destroy; override;
@@ -44,7 +47,7 @@ type
   {
     A modal window used to host panels.
   }
-  TKExtModalWindow = class(TKExtWindowController)
+  TKExtModalWindow = class(TKExtWindowControllerBase)
   protected
     procedure InitDefaults; override;
   public
@@ -60,16 +63,19 @@ type
   ///	<summary>
   ///	  Base ext viewport with subject, observer and controller capabilities.
   ///	</summary>
-  TKExtViewportController = class(TExtViewport, IInterface, IEFInterface, IEFSubject, IEFObserver, IKController)
+  TKExtViewportControllerBase = class(TExtViewport, IInterface, IEFInterface, IEFSubject, IEFObserver, IKExtController)
   private
     FSubjObserverImpl: TEFSubjectAndObserver;
     FView: TKView;
     FConfig: TEFConfig;
+    FContainer: TExtContainer;
     function GetView: TKView;
     function GetConfig: TEFConfig;
   protected
     procedure SetView(const AValue: TKView);
     procedure DoDisplay; virtual;
+    function GetContainer: TExtContainer;
+    procedure SetContainer(const AValue: TExtContainer);
   public
     procedure AfterConstruction; override;
     destructor Destroy; override;
@@ -91,7 +97,7 @@ type
   ///	<summary>
   ///	  Base Ext panel with subject and observer capabilities.
   ///	</summary>
-  TKExtPanel = class(TExtPanel, IInterface, IEFInterface, IEFSubject, IEFObserver)
+  TKExtPanelBase = class(TExtPanel, IInterface, IEFInterface, IEFSubject, IEFObserver)
   private
     FSubjObserverImpl: TEFSubjectAndObserver;
     FConfig: TEFConfig;
@@ -115,14 +121,19 @@ type
     property Config: TEFConfig read GetConfig;
   end;
 
-  TKExtPanelController = class(TKExtPanel, IKController)
+  TKExtPanelControllerBase = class(TKExtPanelBase, IKExtController)
   private
     FView: TKView;
+    FContainer: TExtContainer;
   protected
     function GetView: TKView;
     procedure SetView(const AValue: TKView);
     procedure DoDisplay; virtual;
+    function GetContainer: TExtContainer;
+    procedure SetContainer(const AValue: TExtContainer);
+    property Container: TExtContainer read GetContainer write SetContainer;
   public
+    destructor Destroy; override;
     property View: TKView read GetView write SetView;
     procedure Display;
   end;
@@ -149,165 +160,177 @@ uses
   EF.StrUtils, EF.Types,
   Kitto.Ext.Utils, Kitto.Ext.Session;
 
-{ TKExtWindowController }
+{ TKExtWindowControllerBase }
 
-procedure TKExtWindowController.AfterConstruction;
+procedure TKExtWindowControllerBase.AfterConstruction;
 begin
   inherited;
   FSubjObserverImpl := TEFSubjectAndObserver.Create;
 end;
 
-function TKExtWindowController.AsObject: TObject;
+function TKExtWindowControllerBase.AsObject: TObject;
 begin
   Result := Self;
 end;
 
-procedure TKExtWindowController.AttachObserver(const AObserver: IEFObserver);
+procedure TKExtWindowControllerBase.AttachObserver(const AObserver: IEFObserver);
 begin
   FSubjObserverImpl.AttachObserver(AObserver);
 end;
 
-destructor TKExtWindowController.Destroy;
+destructor TKExtWindowControllerBase.Destroy;
 begin
+  if Assigned(FView) and not FView.IsPersistent then
+    FreeAndNil(FView);
   FreeAndNil(FSubjObserverImpl);
   FreeAndNil(FConfig);
   inherited;
 end;
 
-procedure TKExtWindowController.DetachObserver(const AObserver: IEFObserver);
+procedure TKExtWindowControllerBase.DetachObserver(const AObserver: IEFObserver);
 begin
   FSubjObserverImpl.DetachObserver(AObserver);
 end;
 
-procedure TKExtWindowController.Display;
+procedure TKExtWindowControllerBase.Display;
 begin
   DoDisplay;
 end;
 
-procedure TKExtWindowController.DoDisplay;
+procedure TKExtWindowControllerBase.DoDisplay;
 begin
   Show;
 end;
 
-function TKExtWindowController.GetConfig: TEFConfig;
+function TKExtWindowControllerBase.GetConfig: TEFConfig;
 begin
   if not Assigned(FConfig) then
     FConfig := TEFConfig.Create;
   Result := FConfig;
 end;
 
-function TKExtWindowController.GetView: TKView;
+function TKExtWindowControllerBase.GetContainer: TExtContainer;
+begin
+  Result := FContainer;
+end;
+
+function TKExtWindowControllerBase.GetView: TKView;
 begin
   Result := FView;
 end;
 
-procedure TKExtWindowController.NotifyObservers(const AContext: string);
+procedure TKExtWindowControllerBase.NotifyObservers(const AContext: string);
 begin
   FSubjObserverImpl.NotifyObservers(AContext);
 end;
 
-procedure TKExtWindowController.PanelClosed;
+procedure TKExtWindowControllerBase.PanelClosed;
 begin
   NotifyObservers('Closed');
 end;
 
-function TKExtWindowController.QueryInterface(const IID: TGUID; out Obj): HRESULT;
+function TKExtWindowControllerBase.QueryInterface(const IID: TGUID; out Obj): HRESULT;
 begin
   // Don't delegate to FSubjObserverImpl. We want to expose our own interfaces
   // and get the callbacks.
   if GetInterface(IID, Obj) then Result := 0 else Result := E_NOINTERFACE;
 end;
 
-procedure TKExtWindowController.SetView(const AValue: TKView);
+procedure TKExtWindowControllerBase.SetContainer(const AValue: TExtContainer);
+begin
+  FContainer := AValue;
+end;
+
+procedure TKExtWindowControllerBase.SetView(const AValue: TKView);
 begin
   FView := AValue;
 end;
 
-procedure TKExtWindowController.UpdateObserver(const ASubject: IEFSubject;
+procedure TKExtWindowControllerBase.UpdateObserver(const ASubject: IEFSubject;
   const AContext: string);
 begin
 end;
 
-function TKExtWindowController._AddRef: Integer;
+function TKExtWindowControllerBase._AddRef: Integer;
 begin
   Result := -1;
 end;
 
-function TKExtWindowController._Release: Integer;
+function TKExtWindowControllerBase._Release: Integer;
 begin
   Result := -1;
 end;
 
-{ TKExtPanel }
+{ TKExtPanelBase }
 
-procedure TKExtPanel.AfterConstruction;
+procedure TKExtPanelBase.AfterConstruction;
 begin
   inherited;
   FSubjObserverImpl := TEFSubjectAndObserver.Create;
 end;
 
-function TKExtPanel.AsObject: TObject;
+function TKExtPanelBase.AsObject: TObject;
 begin
   Result := Self;
 end;
 
-procedure TKExtPanel.AttachObserver(const AObserver: IEFObserver);
+procedure TKExtPanelBase.AttachObserver(const AObserver: IEFObserver);
 begin
   FSubjObserverImpl.AttachObserver(AObserver);
 end;
 
-destructor TKExtPanel.Destroy;
+destructor TKExtPanelBase.Destroy;
 begin
   FreeAndNil(FSubjObserverImpl);
   FreeAndNil(FConfig);
   inherited;
 end;
 
-procedure TKExtPanel.DetachObserver(const AObserver: IEFObserver);
+procedure TKExtPanelBase.DetachObserver(const AObserver: IEFObserver);
 begin
   FSubjObserverImpl.DetachObserver(AObserver);
 end;
 
-function TKExtPanel.GetConfig: TEFConfig;
+function TKExtPanelBase.GetConfig: TEFConfig;
 begin
   if not Assigned(FConfig) then
     FConfig := TEFConfig.Create;
   Result := FConfig;
 end;
 
-procedure TKExtPanel.NotifyObservers(const AContext: string);
+procedure TKExtPanelBase.NotifyObservers(const AContext: string);
 begin
   FSubjObserverImpl.NotifyObservers(AContext);
 end;
 
-function TKExtPanel.QueryInterface(const IID: TGUID; out Obj): HRESULT;
+function TKExtPanelBase.QueryInterface(const IID: TGUID; out Obj): HRESULT;
 begin
   // Don't delegate to FSubjObserverImpl. We want to expose our own interfaces
   // and get the callbacks.
   if GetInterface(IID, Obj) then Result := 0 else Result := E_NOINTERFACE;
 end;
 
-procedure TKExtPanel.UpdateObserver(const ASubject: IEFSubject;
+procedure TKExtPanelBase.UpdateObserver(const ASubject: IEFSubject;
   const AContext: string);
 begin
 end;
 
-function TKExtPanel._AddRef: Integer;
+function TKExtPanelBase._AddRef: Integer;
 begin
   Result := -1;
 end;
 
-function TKExtPanel._Release: Integer;
+function TKExtPanelBase._Release: Integer;
 begin
   Result := -1;
 end;
 
-function TKExtPanel.GetHostWindow: TExtWindow;
+function TKExtPanelBase.GetHostWindow: TExtWindow;
 begin
   Result := Config.GetObject('Sys/HostWindow') as TExtWindow;
 end;
 
-function TKExtPanel.CloseHostWindow: Boolean;
+function TKExtPanelBase.CloseHostWindow: Boolean;
 var
   LHostWindow: TExtWindow;
 begin
@@ -317,86 +340,98 @@ begin
     LHostWindow.Close;
 end;
 
-{ TKExtViewportController }
+{ TKExtViewportControllerBase }
 
-procedure TKExtViewportController.AfterConstruction;
+procedure TKExtViewportControllerBase.AfterConstruction;
 begin
   inherited;
   FSubjObserverImpl := TEFSubjectAndObserver.Create;
 end;
 
-function TKExtViewportController.AsObject: TObject;
+function TKExtViewportControllerBase.AsObject: TObject;
 begin
   Result := Self;
 end;
 
-procedure TKExtViewportController.AttachObserver(const AObserver: IEFObserver);
+procedure TKExtViewportControllerBase.AttachObserver(const AObserver: IEFObserver);
 begin
   FSubjObserverImpl.AttachObserver(AObserver);
 end;
 
-destructor TKExtViewportController.Destroy;
+destructor TKExtViewportControllerBase.Destroy;
 begin
+  if Assigned(FView) and not FView.IsPersistent then
+    FreeAndNil(FView);
   FreeAndNil(FSubjObserverImpl);
   FreeAndNil(FConfig);
   inherited;
 end;
 
-procedure TKExtViewportController.DetachObserver(const AObserver: IEFObserver);
+procedure TKExtViewportControllerBase.DetachObserver(const AObserver: IEFObserver);
 begin
   FSubjObserverImpl.DetachObserver(AObserver);
 end;
 
-procedure TKExtViewportController.Display;
+procedure TKExtViewportControllerBase.Display;
 begin
   DoDisplay;
 end;
 
-procedure TKExtViewportController.DoDisplay;
+procedure TKExtViewportControllerBase.DoDisplay;
 begin
   Show;
 end;
 
-function TKExtViewportController.GetConfig: TEFConfig;
+function TKExtViewportControllerBase.GetConfig: TEFConfig;
 begin
   if not Assigned(FConfig) then
     FConfig := TEFConfig.Create;
   Result := FConfig;
 end;
 
-function TKExtViewportController.GetView: TKView;
+function TKExtViewportControllerBase.GetContainer: TExtContainer;
+begin
+  Result := FContainer;
+end;
+
+function TKExtViewportControllerBase.GetView: TKView;
 begin
   Result := FView;
 end;
 
-procedure TKExtViewportController.NotifyObservers(const AContext: string);
+procedure TKExtViewportControllerBase.NotifyObservers(const AContext: string);
 begin
   FSubjObserverImpl.NotifyObservers(AContext);
 end;
 
-function TKExtViewportController.QueryInterface(const IID: TGUID; out Obj): HRESULT;
+function TKExtViewportControllerBase.QueryInterface(const IID: TGUID; out Obj): HRESULT;
 begin
   // Don't delegate to FSubjObserverImpl. We want to expose our own interfaces
   // and get the callbacks.
   if GetInterface(IID, Obj) then Result := 0 else Result := E_NOINTERFACE;
 end;
 
-procedure TKExtViewportController.SetView(const AValue: TKView);
+procedure TKExtViewportControllerBase.SetContainer(const AValue: TExtContainer);
+begin
+  FContainer := AValue;
+end;
+
+procedure TKExtViewportControllerBase.SetView(const AValue: TKView);
 begin
   FView := AValue;
 end;
 
-procedure TKExtViewportController.UpdateObserver(const ASubject: IEFSubject;
+procedure TKExtViewportControllerBase.UpdateObserver(const ASubject: IEFSubject;
   const AContext: string);
 begin
 end;
 
-function TKExtViewportController._AddRef: Integer;
+function TKExtViewportControllerBase._AddRef: Integer;
 begin
   Result := -1;
 end;
 
-function TKExtViewportController._Release: Integer;
+function TKExtViewportControllerBase._Release: Integer;
 begin
   Result := -1;
 end;
@@ -474,38 +509,31 @@ begin
   Result := -1;
 end;
 
-{ TKExtPanelController }
+{ TKExtPanelControllerBase }
 
-procedure TKExtPanelController.Display;
-var
-  LContainer: TObject;
+destructor TKExtPanelControllerBase.Destroy;
 begin
-  LContainer := Config.GetObject('Sys/Container');
+  if Assigned(FView) and not FView.IsPersistent then
+    FreeAndNil(FView);
+  inherited;
+end;
 
-  if Assigned(LContainer) and (LContainer is TExtContainer) then
+procedure TKExtPanelControllerBase.Display;
+begin
+  if Container <> nil then
   begin
-    // Don't call AddTo as a regular method: it will call AfterConstruction.
-    TExtContainer(LContainer).Items.Add(Self);
-
     if View.GetBoolean('Controller/AllowClose', True) then
     begin
       Closable := True;
-      On('close', TExtContainer(LContainer).Ajax('PanelClosed', ['Panel', '%0.nm']));
+      On('close', Container.Ajax('PanelClosed', ['Panel', '%0.nm']));
     end
     else
       Closable := False;
-
-    // Initialization should be done here, after AddTo, not earlier.
-    DoDisplay;
-  end
-  else
-  begin
-    DoDisplay;
-    Show;
   end;
+  DoDisplay;
 end;
 
-procedure TKExtPanelController.DoDisplay;
+procedure TKExtPanelControllerBase.DoDisplay;
 begin
   inherited;
   Assert(View <> nil);
@@ -513,12 +541,22 @@ begin
   IconCls := Session.SetViewIconStyle(View);
 end;
 
-function TKExtPanelController.GetView: TKView;
+function TKExtPanelControllerBase.GetContainer: TExtContainer;
+begin
+  Result := FContainer;
+end;
+
+function TKExtPanelControllerBase.GetView: TKView;
 begin
   Result := FView;
 end;
 
-procedure TKExtPanelController.SetView(const AValue: TKView);
+procedure TKExtPanelControllerBase.SetContainer(const AValue: TExtContainer);
+begin
+  FContainer := AValue;
+end;
+
+procedure TKExtPanelControllerBase.SetView(const AValue: TKView);
 begin
   FView := AValue;
 end;
