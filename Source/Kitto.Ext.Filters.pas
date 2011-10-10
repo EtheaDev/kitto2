@@ -92,7 +92,7 @@ type
 implementation
 
 uses
-  SysUtils, Math,
+  SysUtils, Math, StrUtils,
   EF.Localization,  EF.Intf, EF.DB.Utils,
   Kitto.Types, Kitto.JSON, Kitto.Environment;
 
@@ -286,7 +286,7 @@ end;
 function TKDynaListFilter.GetExpression: string;
 begin
   if FCurrentValue <> '' then
-    Result := Format(FConfig.GetString('ExpressionFormat'), [FCurrentValue])
+    Result := ReplaceText(FConfig.GetExpandedString('ExpressionFormat'), '{value}', FCurrentValue)
   else
     Result := '';
 end;

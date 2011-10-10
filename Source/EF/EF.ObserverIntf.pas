@@ -80,8 +80,8 @@ procedure TEFSubjectAndObserver.AttachObserver(
 begin
   if Assigned(AObserver) and Assigned(FObservers) then
   begin
-    if FObservers.IndexOf(Pointer(AObserver)) < 0 then
-      FObservers.Add(Pointer(AObserver));
+    if FObservers.IndexOf(Pointer(AObserver.AsObject)) < 0 then
+      FObservers.Add(Pointer(AObserver.AsObject));
   end;
 end;
 
@@ -89,7 +89,7 @@ procedure TEFSubjectAndObserver.DetachObserver(
   const AObserver: IEFObserver);
 begin
   if Assigned(AObserver) and Assigned(FObservers) then
-    FObservers.Remove(Pointer(AObserver));
+    FObservers.Remove(Pointer(AObserver.AsObject));
 end;
 
 procedure TEFSubjectAndObserver.NotifyObservers(const AContext: string);

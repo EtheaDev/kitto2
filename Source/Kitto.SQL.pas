@@ -85,7 +85,7 @@ begin
   for I := 0 to AViewTable.FieldCount - 1 do
   begin
     if AViewTable.Fields[I].Model = AViewTable.Model then
-      AddSelectTerm(AViewTable.Fields[I].AliasedNameOrExpression)
+      AddSelectTerm(AViewTable.Fields[I].QualifiedAliasedNameOrExpression)
     else
       AddSelectTerm(GetReferencedFieldTerm(AViewTable.Fields[I]));
   end;
@@ -135,7 +135,7 @@ begin
   Result := Result + ' on (';
   for I := 0 to AReference.FieldCount - 1 do
   begin
-    Result := Result + AReference.Fields[I].FieldName + ' = ' + LRefAlias + '.' + AReference.ReferencedFields[I].FieldName;
+    Result := Result + AReference.Fields[I].QualifiedFieldName + ' = ' + LRefAlias + '.' + AReference.ReferencedFields[I].FieldName;
     if I < AReference.FieldCount - 1 then
       Result := Result + ' and ';
   end;
