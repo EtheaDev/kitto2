@@ -153,6 +153,21 @@ type
     procedure NotifyObservers(const AContext: string = ''); virtual;
   end;
 
+  TKExtFormTextField = class(TExtFormTextField, IInterface, IEFInterface, IEFSubject)
+  private
+    FSubjObserverImpl: TEFSubjectAndObserver;
+  public
+    procedure AfterConstruction; override;
+    destructor Destroy; override;
+    function AsObject: TObject; inline;
+    function QueryInterface(const IID: TGUID; out Obj): HRESULT; stdcall;
+    function _AddRef: Integer; stdcall;
+    function _Release: Integer; stdcall;
+    procedure AttachObserver(const AObserver: IEFObserver); virtual;
+    procedure DetachObserver(const AObserver: IEFObserver); virtual;
+    procedure NotifyObservers(const AContext: string = ''); virtual;
+  end;
+
 implementation
 
 uses
@@ -555,6 +570,55 @@ end;
 procedure TKExtPanelControllerBase.SetView(const AValue: TKView);
 begin
   FView := AValue;
+end;
+
+{ TKExtFormTextField }
+
+procedure TKExtFormTextField.AfterConstruction;
+begin
+  inherited;
+  FSubjObserverImpl := TEFSubjectAndObserver.Create;
+end;
+
+function TKExtFormTextField.AsObject: TObject;
+begin
+  Result := Self;
+end;
+
+procedure TKExtFormTextField.AttachObserver(const AObserver: IEFObserver);
+begin
+  FSubjObserverImpl.AttachObserver(AObserver);
+end;
+
+destructor TKExtFormTextField.Destroy;
+begin
+  FreeAndNil(FSubjObserverImpl);
+  inherited;
+end;
+
+procedure TKExtFormTextField.DetachObserver(const AObserver: IEFObserver);
+begin
+  FSubjObserverImpl.DetachObserver(AObserver);
+end;
+
+procedure TKExtFormTextField.NotifyObservers(const AContext: string);
+begin
+  FSubjObserverImpl.NotifyObservers(AContext);
+end;
+
+function TKExtFormTextField.QueryInterface(const IID: TGUID; out Obj): HRESULT;
+begin
+  if GetInterface(IID, Obj) then Result := 0 else Result := E_NOINTERFACE;
+end;
+
+function TKExtFormTextField._AddRef: Integer;
+begin
+  Result := -1;
+end;
+
+function TKExtFormTextField._Release: Integer;
+begin
+  Result := -1;
 end;
 
 end.
