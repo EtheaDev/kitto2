@@ -286,7 +286,7 @@ end;
 function TKDynaListFilter.GetExpression: string;
 begin
   if FCurrentValue <> '' then
-    Result := ReplaceText(FConfig.GetExpandedString('ExpressionFormat'), '{value}', FCurrentValue)
+    Result := ReplaceText(FConfig.GetExpandedString('ExpressionTemplate'), '{value}', FCurrentValue)
   else
     Result := '';
 end;
