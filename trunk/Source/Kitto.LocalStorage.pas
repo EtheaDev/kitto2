@@ -23,12 +23,12 @@ type
   TKLocalStorage = class(TEFComponent)
   private
     FBasePath: string;
-    function GetConfigFileName: string;
     function GetItemFileName(const AItemName: string): string;
     procedure LoadConfig;
     procedure SaveConfig;
     procedure SetBasePath(const AValue: string);
   protected
+    function GetConfigFileName: string; override;
     { TODO : Restore an automatic way to save config on change. }
     //procedure ConfigurationChanged; override;
   public
@@ -133,7 +133,7 @@ begin
   LFileName := GetConfigFileName;
   ForceDirectories(ExtractFilePath(LFileName));
 { TODO : Restore config I/O if needed. }
-  //Configuration.SaveToFile(LFileName);
+  //Config.SaveToFile(LFileName);
 end;
 
 function TKLocalStorage.LoadItem(const AItemName: string;

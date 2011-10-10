@@ -59,7 +59,7 @@ type
     function GetModel: TKModel;
     function GetExpression: string;
     function GetAlias: string;
-    function GetAliasedNameOrExpression: string;
+    function GetQualifiedAliasedNameOrExpression: string;
     function GetIsKey: Boolean;
     function GetSize: Integer;
     function GetIsBlob: Boolean;
@@ -71,7 +71,7 @@ type
     property ModelField: TKModelField read GetModelField;
     property Alias: string read GetAlias;
     property AliasedName: string read GetAliasedName;
-    property AliasedNameOrExpression: string read GetAliasedNameOrExpression;
+    property QualifiedAliasedNameOrExpression: string read GetQualifiedAliasedNameOrExpression;
     property QualifiedName: string read GetQualifiedName;
 
     ///	<summary>
@@ -757,7 +757,7 @@ begin
     raise EKError.CreateFmt('ViewField %s must have an alias.', [Name]);
 end;
 
-function TKViewField.GetAliasedNameOrExpression: string;
+function TKViewField.GetQualifiedAliasedNameOrExpression: string;
 var
   LExpression: string;
 begin
@@ -768,7 +768,7 @@ begin
     Result := LExpression + ' ' + FieldName
   else
   begin
-    Result := Name;
+    Result := QualifiedName;
     if Alias <> '' then
       Result := Result + ' ' + Alias;
   end;
