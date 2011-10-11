@@ -1,4 +1,4 @@
-  unit Kitto.Store;
+unit Kitto.Store;
 
 interface
 
@@ -455,6 +455,8 @@ class constructor TKField.Create;
 begin
   JSFormatSettings := TFormatSettings.Create;
   JSFormatSettings.DecimalSeparator := '.';
+  JSFormatSettings.ShortDateFormat := 'yyyy/mm/dd';
+  JSFormatSettings.ShortTimeFormat := 'hh:mm:ss';
 end;
 
 function TKField.GetAsJSON: string;
@@ -470,9 +472,9 @@ begin
   begin
     case DataType of
       edtUnknown, edtString, edtObject, edtInteger: Result := AsString;
-      edtDate: Result := DateToStr(AsDate, Session.FormatSettings);
-      edtTime: Result := TimeToStr(AsTime, Session.FormatSettings);
-      edtDateTime: Result := DateTimeToStr(AsDateTime, Session.FormatSettings);
+      edtDate: Result := DateToStr(AsDate, JSFormatSettings);
+      edtTime: Result := TimeToStr(AsTime, JSFormatSettings);
+      edtDateTime: Result := DateTimeToStr(AsDateTime, JSFormatSettings);
       edtBoolean: Result := BoolToStr(AsBoolean, True);
       edtCurrency, edtFloat, edtDecimal: Result := FloatToStr(AsFloat, JSFormatSettings);
     end;

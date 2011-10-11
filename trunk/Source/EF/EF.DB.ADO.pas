@@ -279,7 +279,10 @@ end;
 
 function TEFDBADOConnection.IsOpen: Boolean;
 begin
-  Result := FConnection.Connected;
+  if FConnection = nil then
+    Result := False
+  else
+    Result := FConnection.Connected;
 end;
 
 { TEFDBADOCommand }
