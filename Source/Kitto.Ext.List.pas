@@ -402,12 +402,12 @@ var
         edtFloat, edtDecimal:
         begin
           Result := TExtGridNumberColumn.AddTo(FGridPanel.Columns);
-          TExtGridNumberColumn(Result).Format := '0.00';
+          TExtGridNumberColumn(Result).Format := Session.AdaptExtNumberFormat('0.00');
         end;
         edtCurrency:
         begin
           Result := TExtGridNumberColumn.AddTo(FGridPanel.Columns);
-          TExtGridNumberColumn(Result).Format := '0,0.00';
+          TExtGridNumberColumn(Result).Format := Session.AdaptExtNumberFormat('0,0.00');
         end;
       else
         Result := TExtGridColumn.AddTo(FGridPanel.Columns);
@@ -466,8 +466,21 @@ var
   end;
 
   procedure AddReaderField(const AViewField: TKViewField);
+  var
+    LField: TExtDataField;
   begin
-    TExtDataField.AddTo(FReader.Fields).Name := AViewField.AliasedName;
+    LField := TExtDataField.AddTo(FReader.Fields);
+    LField.Name := AViewField.AliasedName;
+    case AViewField.DataType of
+      edtUnknown: LField.Type_ := 'auto';
+      edtString: LField.Type_ := 'string';
+      edtInteger: LField.Type_ := 'int';
+      edtDate, edtTime, edtDateTime: LField.Type_ := 'date';
+      edtBoolean: LField.Type_ := 'boolean';
+      edtCurrency, edtFloat, edtDecimal: LField.Type_ := 'float';
+      edtObject: raise EKError.CreateFmt(_('Data type %s not supported in JavaScript.'),
+        [EFDataTypeToString(AViewField.DataType)]);
+    end;
   end;
 
 begin
@@ -552,6 +565,7 @@ begin
 
   LFormControllerType := View.GetString('Controller/FormController', 'Form');
   LFormController := TKExtControllerFactory.Instance.CreateController(View, FEditHostWindow, Self, LFormControllerType);
+  LFormController.OwnsView := False;
   LFormController.Config.SetObject('Sys/Store', ServerStore);
   LFormController.Config.SetObject('Sys/Record', ARecord);
   LFormController.Config.SetObject('Sys/ViewTable', ViewTable);

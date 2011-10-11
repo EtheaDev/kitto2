@@ -60,6 +60,12 @@ type
     function GetGCObjectCount: Integer;
 
     property FormatSettings: TFormatSettings read FFormatSettings;
+
+    ///	<summary>Adapts a standard number format string (with , ad thousand
+    ///	separator and . as decimal separator) according to the
+    ///	FormatSettings.</summary>
+    function AdaptExtNumberFormat(const AFormat: string): string;
+
   published
     procedure Logout;
   end;
@@ -84,6 +90,24 @@ end;
 function Session: TKExtSession;
 begin
   Result := TKExtSession(CurrentWebSession);
+end;
+
+function TKExtSession.AdaptExtNumberFormat(const AFormat: string): string;
+var
+  I: Integer;
+begin
+  Result := AFormat;
+  if FormatSettings.DecimalSeparator = ',' then
+  begin
+    for I := 1 to Length(Result) do
+    begin
+      if Result[I] = '.' then
+        Result[I] := ','
+      else if Result[I] = ',' then
+        Result[I] := '.';
+    end;
+    Result := Result + '/i';
+  end;
 end;
 
 procedure TKExtSession.AfterConstruction;
