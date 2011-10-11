@@ -4,7 +4,7 @@ interface
 
 uses
   Types, DB,
-  EF.Classes, EF.Tree;
+  EF.Tree, EF.DB;
 
 type
   TKKeyField = class(TEFNode)
@@ -133,7 +133,7 @@ type
     property Records: TKRecords read GetRecords;
     property RecordCount: Integer read GetRecordCount;
 
-    procedure Load(const ADBConnection: IEFDBConnection;
+    procedure Load(const ADBConnection: TEFDBConnection;
       const ACommandText: string; const AAppend: Boolean = False); overload;
     procedure Load(const ADataSet: TDataSet; const AAppend: Boolean = False); overload;
 
@@ -144,7 +144,7 @@ implementation
 
 uses
   SysUtils, Math, FmtBcd,
-  EF.StrUtils, EF.Localization, EF.Intf, EF.DB.Utils,
+  EF.StrUtils, EF.Localization, EF.DB.Utils,
   Kitto.Types, Kitto.Ext.Session;
 
 { TKStore }
@@ -209,10 +209,10 @@ begin
   end;
 end;
 
-procedure TKStore.Load(const ADBConnection: IEFDBConnection;
+procedure TKStore.Load(const ADBConnection: TEFDBConnection;
   const ACommandText: string; const AAppend: Boolean = False);
 var
-  LDBQuery: IEFDBQuery;
+  LDBQuery: TEFDBQuery;
 begin
   Assert(Assigned(ADBConnection));
   Assert(ACommandText <> '');
@@ -227,7 +227,7 @@ begin
       LDBQuery.Close;
     end;
   finally
-    FreeAndNilEFIntf(LDBQuery);
+    FreeAndNil(LDBQuery);
   end;
 end;
 

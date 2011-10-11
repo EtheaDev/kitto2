@@ -4,7 +4,7 @@ interface
 
 uses
   DB,
-  EF.Types, EF.Classes;
+  EF.Types, EF.DB;
 
 ///	<summary>
 ///	  <para>
@@ -34,7 +34,7 @@ function PairsToJSON(const APairs: TEFPairs; const AReversed: Boolean = True): s
   This particular representation is useful for encoding a GUIField's
   LookupCommandText as a JSON array suitable for an ExtJS combo box.
 }
-function DataSetToJSON(const ADBConnection: IEFDBConnection; const ACommandText: string): string; overload;
+function DataSetToJSON(const ADBConnection: TEFDBConnection; const ACommandText: string): string; overload;
 
 {
   Builds a JSON representation of the dataset's fields values. Each record is enclosed
@@ -49,7 +49,8 @@ function DataSetToJSON(const ADataSet: TDataSet): string; overload;
 implementation
 
 uses
-  EF.Intf, EF.StrUtils;
+  SysUtils,
+  EF.StrUtils;
 
 function PairsToJSON(const APairs: TEFPairs; const AReversed: Boolean): string;
 var
@@ -67,9 +68,9 @@ begin
   end;
 end;
 
-function DataSetToJSON(const ADBConnection: IEFDBConnection; const ACommandText: string): string;
+function DataSetToJSON(const ADBConnection: TEFDBConnection; const ACommandText: string): string;
 var
-  LDBQuery: IEFDBQuery;
+  LDBQuery: TEFDBQuery;
 begin
   Assert(Assigned(ADBConnection));
   Assert(ADBConnection.IsOpen);
@@ -84,7 +85,7 @@ begin
       LDBQuery.Close;
     end;
   finally
-    FreeAndNilEFIntf(LDBQuery);
+    FreeAndNil(LDBQuery);
   end;
 end;
 

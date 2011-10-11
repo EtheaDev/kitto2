@@ -4,7 +4,7 @@ interface
 
 uses
   ExtPascal, Ext, ExtForm,
-  EF.Intf, EF.ObserverIntf, EF.Classes,
+  EF.Intf, EF.Tree, EF.ObserverIntf, EF.Classes,
   Kitto.Ext.Controller, Kitto.Metadata.Views;
 
 type
@@ -15,10 +15,10 @@ type
   private
     FSubjObserverImpl: TEFSubjectAndObserver;
     FView: TKView;
-    FConfig: TEFConfig;
+    FConfig: TEFNode;
     FContainer: TExtContainer;
     function GetView: TKView;
-    function GetConfig: TEFConfig;
+    function GetConfig: TEFNode;
   protected
     procedure SetView(const AValue: TKView);
     procedure DoDisplay; virtual;
@@ -37,7 +37,7 @@ type
     procedure NotifyObservers(const AContext: string = ''); virtual;
     procedure UpdateObserver(const ASubject: IEFSubject; const AContext: string = ''); virtual;
 
-    property Config: TEFConfig read GetConfig;
+    property Config: TEFNode read GetConfig;
     property View: TKView read GetView write SetView;
     procedure Display;
   published
@@ -67,10 +67,10 @@ type
   private
     FSubjObserverImpl: TEFSubjectAndObserver;
     FView: TKView;
-    FConfig: TEFConfig;
+    FConfig: TEFNode;
     FContainer: TExtContainer;
     function GetView: TKView;
-    function GetConfig: TEFConfig;
+    function GetConfig: TEFNode;
   protected
     procedure SetView(const AValue: TKView);
     procedure DoDisplay; virtual;
@@ -89,7 +89,7 @@ type
     procedure NotifyObservers(const AContext: string = ''); virtual;
     procedure UpdateObserver(const ASubject: IEFSubject; const AContext: string = ''); virtual;
 
-    property Config: TEFConfig read GetConfig;
+    property Config: TEFNode read GetConfig;
     property View: TKView read GetView write SetView;
     procedure Display;
   end;
@@ -100,9 +100,9 @@ type
   TKExtPanelBase = class(TExtPanel, IInterface, IEFInterface, IEFSubject, IEFObserver)
   private
     FSubjObserverImpl: TEFSubjectAndObserver;
-    FConfig: TEFConfig;
+    FConfig: TEFNode;
   protected
-    function GetConfig: TEFConfig;
+    function GetConfig: TEFNode;
     function CloseHostWindow: Boolean;
     function GetHostWindow: TExtWindow;
   public
@@ -118,7 +118,7 @@ type
     procedure NotifyObservers(const AContext: string = ''); virtual;
     procedure UpdateObserver(const ASubject: IEFSubject; const AContext: string = ''); virtual;
 
-    property Config: TEFConfig read GetConfig;
+    property Config: TEFNode read GetConfig;
   end;
 
   TKExtPanelControllerBase = class(TKExtPanelBase, IKExtController)
@@ -217,10 +217,10 @@ begin
   Show;
 end;
 
-function TKExtWindowControllerBase.GetConfig: TEFConfig;
+function TKExtWindowControllerBase.GetConfig: TEFNode;
 begin
   if not Assigned(FConfig) then
-    FConfig := TEFConfig.Create;
+    FConfig := TEFNode.Create;
   Result := FConfig;
 end;
 
@@ -306,10 +306,10 @@ begin
   FSubjObserverImpl.DetachObserver(AObserver);
 end;
 
-function TKExtPanelBase.GetConfig: TEFConfig;
+function TKExtPanelBase.GetConfig: TEFNode;
 begin
   if not Assigned(FConfig) then
-    FConfig := TEFConfig.Create;
+    FConfig := TEFNode.Create;
   Result := FConfig;
 end;
 
@@ -397,10 +397,10 @@ begin
   Show;
 end;
 
-function TKExtViewportControllerBase.GetConfig: TEFConfig;
+function TKExtViewportControllerBase.GetConfig: TEFNode;
 begin
   if not Assigned(FConfig) then
-    FConfig := TEFConfig.Create;
+    FConfig := TEFNode.Create;
   Result := FConfig;
 end;
 

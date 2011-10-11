@@ -143,7 +143,7 @@ implementation
 
 uses
   SysUtils, Variants,
-  EF.Intf, EF.DB.Utils, EF.RegEx,
+  EF.DB, EF.DB.Utils, EF.RegEx,
   Kitto.Environment;
   
 { TKDBAccessController }
@@ -249,7 +249,7 @@ end;
 procedure TKUserPermissionStorage.LoadGranteePermissions(
   const AGranteeId: string);
 var
-  LPermissionQuery: IEFDBQuery;
+  LPermissionQuery: TEFDBQuery;
 begin
   Assert(AGranteeId <> '');
   Assert(FReadPermissionsCommandText <> '');
@@ -265,7 +265,7 @@ begin
       LPermissionQuery.Close;
     end;
   finally
-    FreeAndNilEFIntf(LPermissionQuery);
+    FreeAndNil(LPermissionQuery);
   end;
 end;
 
@@ -308,7 +308,7 @@ end;
 procedure TKUserPermissionStorage.GetUserRoles(
   const AUserId: string; const ARoleList: TStrings);
 var
-  LRoleQuery: IEFDBQuery;
+  LRoleQuery: TEFDBQuery;
 begin
   Assert(AUserId <> '');
   Assert(Assigned(ARoleList));
@@ -329,7 +329,7 @@ begin
       LRoleQuery.Close;
     end;
   finally
-    FreeAndNilEFIntf(LRoleQuery);
+    FreeAndNil(LRoleQuery);
   end;
 end;
 

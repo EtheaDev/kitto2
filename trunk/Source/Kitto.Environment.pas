@@ -17,19 +17,18 @@ type
   }
   TKEnvironment = class(TEFComponent, IEFEnvironment)
   private
-    FDBConnections: TDictionary<string, Pointer>;
+    FDBConnections: TDictionary<string, TEFDBConnection>;
     FMacroExpansionEngine: TEFMacroExpansionEngine;
     FAccessControlHost: TKAccessControlHost;
     FAuthenticationHost: TKAuthenticationHost;
     FAppHomePath: string;
     FModels: TKModels;
     FViews: TKViews;
-    FConfig: TEFConfig;
     FResourcePathsURLs: TDictionary<string, string>;
     FMacroExpander: TEFMacroExpander;
-    function GetDBConnection(const ADatabaseName: string): IEFDBConnection;
+    function GetDBConnection(const ADatabaseName: string): TEFDBConnection;
     const MAIN_DB_NAME = 'Main';
-    function GetMainDBConnection: IEFDBConnection;
+    function GetMainDBConnection: TEFDBConnection;
     function GetDBAdapter(const ADatabaseName: string): TEFDBAdapter;
     function GetMacroExpansionEngine: TEFMacroExpansionEngine;
     function GetAccessControlHost: TKAccessControlHost;
@@ -57,7 +56,7 @@ type
     {
       Gives access to the database connection, created on demand.
     }
-    property MainDBConnection: IEFDBConnection read GetMainDBConnection;
+    property MainDBConnection: TEFDBConnection read GetMainDBConnection;
     {
       Returns True if the connection has been created.
     }
@@ -273,7 +272,7 @@ begin
   inherited;
   // Don't store interface reference to prevent the compiler from calling
   // _Release upon (or after) destruction.
-  FDBConnections := TDictionary<string, Pointer>.Create;
+  FDBConnections := TDictionary<string, TEFDBConnection>.Create;
   FResourcePathsURLs := TDictionary<string, string>.Create;
   SetupResourcePathsURLs;
   LLanguageId := Config.GetString('LanguageId');
@@ -313,19 +312,12 @@ end;
 procedure TKEnvironment.FinalizeDBConnections;
 var
   I: Integer;
-  LDBConnection: TObject;
-  LIntf: IEFDBConnection;
+  LDBConnection: TEFDBConnection;
 begin
-  for I := FDBConnections.Count - 1 downto 0 do
+  for I := 0 to FDBConnections.Count - 1 do
   begin
-    LDBConnection := TObject(FDBConnections.Values.ToArray[I]);
-    FDBConnections.Remove(FDBConnections.Keys.ToArray[I]);
-    if Supports(LDBConnection, IEFDBConnection, LIntf) then
-    begin
-      if LIntf.IsOpen then
-        LIntf.Close;
-      FreeAndNilEFIntf(LIntf);
-    end;
+    LDBConnection := FDBConnections.Values.ToArray[I];
+    FreeAndNil(LDBConnection);
   end;
 end;
 
@@ -340,12 +332,12 @@ begin
   Result := GetCurrentUserAccessGrantValue(AResourceURI, AMode, Null) = ACV_TRUE;
 end;
 
-function TKEnvironment.GetMainDBConnection: IEFDBConnection;
+function TKEnvironment.GetMainDBConnection: TEFDBConnection;
 begin
   Result := GetDBConnection(MAIN_DB_NAME);
 end;
 
-function TKEnvironment.GetDBConnection(const ADatabaseName: string): IEFDBConnection;
+function TKEnvironment.GetDBConnection(const ADatabaseName: string): TEFDBConnection;
 var
   LConfig: TEFNode;
 begin
@@ -356,10 +348,10 @@ begin
     LConfig := Config.FindNode('Databases/' + ADatabaseName + '/Config');
     if Assigned(LConfig) then
       Result.Config.AddChild(TEFNode.Clone(LConfig));
-    FDBConnections.Add(ADatabaseName, Pointer(Result.AsObject));
+    FDBConnections.Add(ADatabaseName, Result);
   end
   else
-    Result := TEFComponent(FDBConnections[ADatabaseName]) as IEFDBConnection;
+    Result := FDBConnections[ADatabaseName];
 end;
 
 function TKEnvironment.GetDBAdapter(const ADatabaseName: string): TEFDBAdapter;
@@ -525,7 +517,6 @@ begin
   if AValue <> FAppHomePath then
   begin
     FreeAndNil(FModels);
-    FreeAndNil(FConfig);
     FAppHomePath := AValue;
   end;
 end;

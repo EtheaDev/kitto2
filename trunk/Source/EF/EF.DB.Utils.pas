@@ -32,7 +32,7 @@ procedure AssignEFNodeToParam(const ASource: TEFNode; const ADestination: TParam
   SQL statement for efficiency reasons. May return an empty or unassigned
   Variant.
 }
-function GetSingletonValue(const ADBConnection: IEFDBConnection;
+function GetSingletonValue(const ADBConnection: TEFDBConnection;
   const ASQLStatement: string): Variant;
 
 {
@@ -40,7 +40,7 @@ function GetSingletonValue(const ADBConnection: IEFDBConnection;
   ASQLStatement. The item is the string representation of the first
   field. Returns the number of added items.
 }
-function GetStringsFromDB(const ADBConnection: IEFDBConnection;
+function GetStringsFromDB(const ADBConnection: TEFDBConnection;
   const ASQLStatement: string; const AStrings: TStrings): Integer;
 
 function GetFieldValuesAsStrings(const AField: TField): TStringDynArray;
@@ -49,7 +49,7 @@ implementation
 
 uses
   SysUtils, Variants, TypInfo, StrUtils, Provider,
-  EF.Intf, EF.Localization, EF.StrUtils;
+  EF.Localization, EF.StrUtils;
 
 procedure AssignEFNodeValueToParam(const ASource: TEFNode; const ADestination: TParam);
 begin
@@ -111,10 +111,10 @@ begin
   ADestination.Name := ASource.Name; 
 end;
 
-function GetSingletonValue(const ADBConnection: IEFDBConnection;
+function GetSingletonValue(const ADBConnection: TEFDBConnection;
   const ASQLStatement: string): Variant;
 var
-  LQuery: IEFDBQuery;
+  LQuery: TEFDBQuery;
 begin
   Assert(Assigned(ADBConnection));
   Assert(ASQLStatement <> '');
@@ -132,14 +132,14 @@ begin
       LQuery.Close;
     end;
   finally
-    FreeAndNilEFIntf(LQuery);
+    FreeAndNil(LQuery);
   end;
 end;
 
-function GetStringsFromDB(const ADBConnection: IEFDBConnection;
+function GetStringsFromDB(const ADBConnection: TEFDBConnection;
   const ASQLStatement: string; const AStrings: TStrings): Integer;
 var
-  LQuery: IEFDBQuery;
+  LQuery: TEFDBQuery;
 begin
   Assert(Assigned(ADBConnection));
   Assert(ASQLStatement <> '');
@@ -161,7 +161,7 @@ begin
       LQuery.Close;
     end;
   finally
-    FreeAndNilEFIntf(LQuery);
+    FreeAndNil(LQuery);
   end;
 end;
 
