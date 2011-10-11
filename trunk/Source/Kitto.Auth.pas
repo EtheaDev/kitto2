@@ -364,7 +364,7 @@ begin
     if FAuthenticatorId = '' then
       FAuthenticatorId := GetAuthenticatorIdFromEnvironment;
     FCurrentAuthenticator := FFactory.CreateObject(FAuthenticatorId);
-    LConfig := Environment.Config.FindNode('Authentication');
+    LConfig := Environment.Config.FindNode('Auth');
     if Assigned(LConfig) then
       for I := 0 to LConfig.ChildCount - 1 do
         FCurrentAuthenticator.Config.AddChild(TEFNode.Clone(LConfig.Children[I]));
@@ -374,7 +374,7 @@ end;
 
 class function TKAuthenticationHost.GetAuthenticatorIdFromEnvironment: string;
 begin
-  Result := Environment.Config.GetExpandedString('Authentication/Type', NULL_AUTHENTICATOR);
+  Result := Environment.Config.GetExpandedString('Auth', NULL_AUTHENTICATOR);
 end;
 
 class function TKAuthenticationHost.IsNullAuthenticator: Boolean;

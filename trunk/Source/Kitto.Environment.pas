@@ -17,7 +17,7 @@ type
   }
   TKEnvironment = class(TEFComponent, IEFEnvironment)
   private
-    FDBConnection: IEFDBConnection;
+    FDBConnections: TDictionary<string, Pointer>;
     FMacroExpansionEngine: TEFMacroExpansionEngine;
     FAccessControlHost: TKAccessControlHost;
     FAuthenticationHost: TKAuthenticationHost;
@@ -27,8 +27,10 @@ type
     FConfig: TEFConfig;
     FResourcePathsURLs: TDictionary<string, string>;
     FMacroExpander: TEFMacroExpander;
+    function GetDBConnection(const ADatabaseName: string): IEFDBConnection;
+    const MAIN_DB_NAME = 'Main';
     function GetMainDBConnection: IEFDBConnection;
-    function GetMainDBAdapter: TEFDBAdapter;
+    function GetDBAdapter(const ADatabaseName: string): TEFDBAdapter;
     function GetMacroExpansionEngine: TEFMacroExpansionEngine;
     function GetAccessControlHost: TKAccessControlHost;
     function GetAuthenticationHost: TKAuthenticationHost;
@@ -57,10 +59,6 @@ type
     }
     property MainDBConnection: IEFDBConnection read GetMainDBConnection;
     {
-      Gives access to the database factory.
-    }
-    property MainDBAdapter: TEFDBAdapter read GetMainDBAdapter;
-    {
       Returns True if the connection has been created.
     }
     function HasMainDBConnection: Boolean;
@@ -76,7 +74,7 @@ type
       Closes and destroys the database connection. Do it before unloading a
       package that implements the database access layer in use.
     }
-    procedure FinalizeDBConnection;
+    procedure FinalizeDBConnections;
     {
       Global expansion engine for EW applications. This should be used in place
       of EF's default expansion engine in EW applications, because it is
@@ -273,6 +271,9 @@ var
   LLanguageId: string;
 begin
   inherited;
+  // Don't store interface reference to prevent the compiler from calling
+  // _Release upon (or after) destruction.
+  FDBConnections := TDictionary<string, Pointer>.Create;
   FResourcePathsURLs := TDictionary<string, string>.Create;
   SetupResourcePathsURLs;
   LLanguageId := Config.GetString('LanguageId');
@@ -293,7 +294,8 @@ begin
   FreeAndNil(FAuthenticationHost);
   FreeAndNil(FMacroExpansionEngine);
   FreeAndNil(FResourcePathsURLs);
-  FinalizeDBConnection;
+  FinalizeDBConnections;
+  FreeAndNil(FDBConnections);
 end;
 
 procedure TKEnvironment.SetupResourcePathsURLs;
@@ -308,13 +310,22 @@ begin
     FResourcePathsURLs.Add(IncludeTrailingPathDelimiter(LPath), '/' + GetAppName + '-Kitto/');
 end;
 
-procedure TKEnvironment.FinalizeDBConnection;
+procedure TKEnvironment.FinalizeDBConnections;
+var
+  I: Integer;
+  LDBConnection: TObject;
+  LIntf: IEFDBConnection;
 begin
-  if Assigned(FDBConnection) then
+  for I := FDBConnections.Count - 1 downto 0 do
   begin
-    if FDBConnection.IsOpen then
-      FDBConnection.Close;
-    FreeAndNilEFIntf(FDBConnection);
+    LDBConnection := TObject(FDBConnections.Values.ToArray[I]);
+    FDBConnections.Remove(FDBConnections.Keys.ToArray[I]);
+    if Supports(LDBConnection, IEFDBConnection, LIntf) then
+    begin
+      if LIntf.IsOpen then
+        LIntf.Close;
+      FreeAndNilEFIntf(LIntf);
+    end;
   end;
 end;
 
@@ -330,23 +341,30 @@ begin
 end;
 
 function TKEnvironment.GetMainDBConnection: IEFDBConnection;
+begin
+  Result := GetDBConnection(MAIN_DB_NAME);
+end;
+
+function TKEnvironment.GetDBConnection(const ADatabaseName: string): IEFDBConnection;
 var
   LConfig: TEFNode;
 begin
-  if not Assigned(FDBConnection) then
+  if not FDBConnections.ContainsKey(ADatabaseName) then
   begin
-    FDBConnection := MainDBAdapter.CreateDBConnection;
-    FDBConnection.Config.AddChild(TEFNode.Clone(Config.GetNode('MainDatabase/Connection')));
-    LConfig := Config.FindNode('MainDatabase/Config');
+    Result := GetDBAdapter(ADatabaseName).CreateDBConnection;
+    Result.Config.AddChild(TEFNode.Clone(Config.GetNode('Databases/' + ADatabaseName + '/Connection')));
+    LConfig := Config.FindNode('Databases/' + ADatabaseName + '/Config');
     if Assigned(LConfig) then
-      FDBConnection.Config.AddChild(TEFNode.Clone(LConfig));
-  end;
-  Result := FDBConnection;
+      Result.Config.AddChild(TEFNode.Clone(LConfig));
+    FDBConnections.Add(ADatabaseName, Pointer(Result.AsObject));
+  end
+  else
+    Result := TEFComponent(FDBConnections[ADatabaseName]) as IEFDBConnection;
 end;
 
-function TKEnvironment.GetMainDBAdapter: TEFDBAdapter;
+function TKEnvironment.GetDBAdapter(const ADatabaseName: string): TEFDBAdapter;
 begin
-  Result := TEFDBAdapterRegistry.Instance[Config.GetExpandedString('MainDatabase/Adapter')];
+  Result := TEFDBAdapterRegistry.Instance[Config.GetExpandedString('Databases/' + ADatabaseName)];
 end;
 
 function TKEnvironment.GetMacroExpansionEngine: TEFMacroExpansionEngine;
@@ -432,7 +450,7 @@ end;
 
 function TKEnvironment.HasMainDBConnection: Boolean;
 begin
-  Result := Assigned(FDBConnection);
+  Result := FDBConnections.ContainsKey(MAIN_DB_NAME);
 end;
 
 procedure TKEnvironment.CheckAccessGranted(const AResourceURI, AMode: string);

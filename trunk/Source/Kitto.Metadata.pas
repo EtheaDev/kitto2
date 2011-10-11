@@ -40,9 +40,9 @@ type
     function GetObject(I: Integer): TKMetadata;
     function GetFullFileName(const AName: string): string;
     function ObjectExists(const AName: string): Boolean;
-    procedure ObjectNotFound(const AName: string);
     procedure DuplicateObjectError(const AName: string);
   protected
+    procedure ObjectNotFound(const AName: string);
     // Delete file and free object.
     procedure DisposeObject(const AObject: TKMetadata);
     property Reader: TEFYAMLReader read GetReader;
@@ -413,7 +413,7 @@ end;
 procedure TKMetadata.Assign(const ASource: TEFTree);
 begin
   inherited;
-  if ASource is TKMetadata then
+  if Assigned(ASource) and (ASource is TKMetadata) then
     FPersistentName := TKMetadata(ASource).PersistentName;
 end;
 

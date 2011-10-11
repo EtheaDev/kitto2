@@ -196,6 +196,7 @@ type
   protected
     procedure SetName(const AValue: string);
   public
+    procedure Assign(const ASource: TEFTree); override;
     property Parent: TEFTree read FParent;
     property Index: Integer read GetIndex;
     function GetEnumerator: TEnumerator<TEFNode>;
@@ -321,6 +322,17 @@ end;
 
 { TEFNode }
 
+procedure TEFNode.Assign(const ASource: TEFTree);
+begin
+  inherited;
+  if Assigned(ASource) then
+  begin
+    FName := TEFNode(ASource).Name;
+    FValue := TEFNode(ASource).Value;
+    FDataType := TEFNode(ASource).DataType;
+  end;
+end;
+
 procedure TEFNode.AssignFieldValue(const AField: TField);
 begin
   Assert(Assigned(AField));
@@ -374,11 +386,10 @@ end;
 
 constructor TEFNode.Clone(const ASource: TEFTree);
 begin
-  Assert(ASource is TEFNode);
+  Assert((ASource = nil) or (ASource is TEFNode));
 
   inherited;
-  FName := TEFNode(ASource).Name;
-  FValue := TEFNode(ASource).Value;
+  Assign(TEFNode(ASource));
 end;
 
 constructor TEFNode.Create(const AName: string);
@@ -703,11 +714,10 @@ procedure TEFTree.Assign(const ASource: TEFTree);
 var
   LNode: TEFNode;
 begin
-  Assert(Assigned(ASource));
-
   Clear;
-  for LNode in ASource.FNodes do
-    AddChild(GetChildClass(LNode.Name).Clone(LNode));
+  if Assigned(ASource) then
+    for LNode in ASource.FNodes do
+      AddChild(GetChildClass(LNode.Name).Clone(LNode));
 end;
 
 class function TEFTree.BooleanToValue(const ABoolean: Boolean): Variant;
@@ -727,8 +737,6 @@ end;
 
 constructor TEFTree.Clone(const ASource: TEFTree);
 begin
-  Assert(Assigned(ASource));
-
   Create;
   Assign(ASource);
 end;

@@ -11394,6 +11394,7 @@ procedure TExtPanel.SetFBaseCls(Value : String); begin
 end;
 
 procedure TExtPanel.SetFBbar(Value : TExtObject); begin
+  FBBar.Free;
   FBbar := Value;
   Value.DeleteFromGarbage;
   JSCode('bbar:' + VarToJSON([Value, false]));
@@ -11644,6 +11645,7 @@ procedure TExtPanel.SetFShim(Value : Boolean); begin
 end;
 
 procedure TExtPanel.SetFTbar(Value : TExtObject); begin
+  FTBar.Free;
   FTbar := Value;
   Value.DeleteFromGarbage;
   JSCode('tbar:' + VarToJSON([Value, false]));
@@ -13228,9 +13230,13 @@ procedure TExtPagingToolbar.SetFRefreshText(Value : String); begin
 end;
 
 procedure TExtPagingToolbar.SetFStore(Value : TExtDataStore); begin
+  if Value <> nil then
+    FStore.Free;
   FStore := Value;
-  Value.DeleteFromGarbage;
-  JSCode('store:' + VarToJSON([Value, false]));
+  if FStore <> nil then begin
+    FStore.DeleteFromGarbage;
+    JSCode('store:' + VarToJSON([FStore, false]));
+  end;
 end;
 
 procedure TExtPagingToolbar.SetFCursor(Value : Integer); begin
