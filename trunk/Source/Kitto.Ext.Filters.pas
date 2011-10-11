@@ -152,12 +152,14 @@ type
     const VALUE_FIELD = 0;
     const DISPLAY_FIELD = 1;
     function GetLargestFieldWidth(const AField: TField): Integer;
-    //procedure ComboBoxChange(This: TExtFormField; NewValue, OldValue: string);
-    procedure ComboBoxSelect(Combo: TExtFormComboBox; RecordJS: TExtDataRecord;
-      Index: Integer);
+//    procedure ComboBoxChange(This: TExtFormField; NewValue, OldValue: string);
+//    procedure ComboBoxSelect(Combo: TExtFormComboBox; RecordJS: TExtDataRecord;
+//      Index: Integer);
   public
     function GetExpression: string;
     procedure SetConfig(const AConfig: TEFNode); override;
+  published
+    procedure ComboBoxSelect;
   end;
 
   TKFreeSearchFilter = class(TKExtFormTextField, IKExtFilter)
@@ -358,10 +360,23 @@ end;
 
 { TKDynaListFilter }
 
-procedure TKDynaListFilter.ComboBoxSelect(Combo: TExtFormComboBox;
-  RecordJS: TExtDataRecord; Index: Integer);
+//procedure TKDynaListFilter.ComboBoxChange(This: TExtFormField; NewValue,
+//  OldValue: string);
+//begin
+//  FCurrentValue := NewValue;
+//  NotifyObservers('FilterChanged');
+//end;
+
+//procedure TKDynaListFilter.ComboBoxSelect(Combo: TExtFormComboBox;
+//  RecordJS: TExtDataRecord; Index: Integer);
+//begin
+//  FCurrentValue := FValues[Index];
+//  NotifyObservers('FilterChanged');
+//end;
+
+procedure TKDynaListFilter.ComboBoxSelect;
 begin
-  FCurrentValue := FValues[Index];
+  FCurrentValue := ParamAsString('Value');
   NotifyObservers('FilterChanged');
 end;
 
@@ -401,7 +416,9 @@ begin
   Editable := True;
   TypeAhead := True;
   LazyRender := True;
-  SelectOnFocus := False;
+  SelectOnFocus := True;
+  AutoSelect := False;
+  ForceSelection := True;
   Mode := 'local';
   LDBQuery := Environment.MainDBConnection.CreateDBQuery;
   try
@@ -429,7 +446,9 @@ we should include status information from all filters. Doable,
 by generating more JS code, but not now. }
   //On('select', JSFunction(AConfig.GetString('Sys/ApplyJSCode')));
   //OnChange := ComboBoxChange;
-  OnSelect := ComboBoxSelect;
+  // OnSelect only passes the relative index in the filtered list.
+  //OnSelect := ComboBoxSelect;
+  On('select', Ajax(ComboBoxSelect, ['Value', GetValue()]));
   FCurrentValue := '';
 end;
 

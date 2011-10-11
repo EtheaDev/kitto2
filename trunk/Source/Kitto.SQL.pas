@@ -165,7 +165,7 @@ begin
   Assert(Assigned(AReference));
 
   if not FReferenceAliases.ContainsKey(AReference) then
-    FReferenceAliases.Add(AReference, AReference.ConstraintName);
+    FReferenceAliases.Add(AReference, AReference.ReferenceName);
 end;
 
 function TKSQLQueryBuilder.GetViewFieldReference(const AViewField: TKViewField): TKModelreference;
