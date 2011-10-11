@@ -308,10 +308,15 @@ function StringToEFDataType(const AString: string): TEFDataType;
 var
   LValue: Integer;
 begin
-  LValue := GetEnumValue(TypeInfo(TEFDataType), 'edt' + AString);
-  if (LValue < 0) or (LValue > Ord(High(TEFDataType))) then
-    LValue := 0;
-  Result := TEFDataType(LValue);
+  if AString = '' then
+    Result := edtUnknown
+  else
+  begin
+    LValue := GetEnumValue(TypeInfo(TEFDataType), 'edt' + AString);
+    if (LValue < 0) or (LValue > Ord(High(TEFDataType))) then
+      raise EEFError.CreateFmt(_('Unknown datatype %s.'), [AString]);
+    Result := TEFDataType(LValue);
+  end;
 end;
 
 function GetVariantDataType(const AVariant: Variant): TEFDataType;

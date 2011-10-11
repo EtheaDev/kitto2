@@ -14,11 +14,6 @@ type
   ///	</summary>
   TEFSQLBuilder = class
   public
-    // Builds a parameterized SQL insert command with ATableName as target
-    // and AFieldNames as field and param names. AFieldNames is a list of
-    // field names.
-    class procedure BuildInsertCommand(const ATableName: string;
-      const AFieldNames: TStrings; const ACommand: TEFDBCommand);
     // Builds a SQL delete command with ATableName as target
     // and no where clause.
     class procedure BuildEmptyTableCommand(const ATableName: string;
@@ -36,6 +31,11 @@ type
     class procedure BuildLookupQuery(const ALookupTableName,
       ALookupResultFieldNames, ALookupKeyFieldNames,
       AKeyFieldNames: string; const AQuery: TEFDBQuery);
+    // Builds a parameterized SQL insert command with ATableName as target
+    // and AFieldNames as field and param names. AFieldNames is a list of
+    // field names.
+    class procedure BuildInsertCommand(const ATableName: string;
+      const AFieldNames: TStrings; const ACommand: TEFDBCommand);
     // Builds a parameterized SQL update command with ATableName as target,
     // AFieldNames as fields in the set clause and AKeyFieldNames as fields
     // in the where clause.
