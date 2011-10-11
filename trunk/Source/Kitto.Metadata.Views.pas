@@ -63,6 +63,7 @@ type
     function GetIsKey: Boolean;
     function GetSize: Integer;
     function GetIsBlob: Boolean;
+    function GetReference: TKModelReference;
   public
     function FindNode(const APath: string; const ACreateMissingNodes: Boolean = False): TEFNode; override;
 
@@ -73,6 +74,10 @@ type
     property AliasedName: string read GetAliasedName;
     property QualifiedAliasedNameOrExpression: string read GetQualifiedAliasedNameOrExpression;
     property QualifiedName: string read GetQualifiedName;
+
+    ///	<summary>If the view field is referenced, returns its reference,
+    ///	otherwise returns nil.</summary>
+    property Reference: TKModelReference read GetReference;
 
     ///	<summary>
     ///	  Extract and returns the model name from the Name. If no model name is
@@ -980,11 +985,28 @@ var
 begin
   LNameParts := Split(Name, '.');
   if Length(LNameParts) = 1 then
+    // <field name>
     Result := Table.ModelName
   else if Length(LNameParts) = 2 then
-    Result := LNameParts[0]
+    // <reference name>.<field name>
+    Result := Table.Model.ReferenceByName(LNameParts[0]).ReferencedModel.ModelName
   else
-    raise EKError.CreateFmt('Couldn''t determine table name for field %s.', [Name]);
+    raise EKError.CreateFmt('Couldn''t determine model name for field %s.', [Name]);
+end;
+
+function TKViewField.GetReference: TKModelReference;
+var
+  LNameParts: TStringDynArray;
+begin
+  LNameParts := Split(Name, '.');
+  if Length(LNameParts) = 1 then
+    // <field name>
+    Result := nil
+  else if Length(LNameParts) = 2 then
+    // <reference name>.<field name>
+    Result := Table.Model.ReferenceByName(LNameParts[0])
+  else
+    raise EKError.CreateFmt('Couldn''t determine reference for field %s.', [Name]);
 end;
 
 { TKViewRefs }

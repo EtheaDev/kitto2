@@ -84,7 +84,7 @@ begin
   FViewTable := AViewTable;
   for I := 0 to AViewTable.FieldCount - 1 do
   begin
-    if AViewTable.Fields[I].Model = AViewTable.Model then
+    if AViewTable.Fields[I].Reference = nil then
       AddSelectTerm(AViewTable.Fields[I].QualifiedAliasedNameOrExpression)
     else
       AddSelectTerm(GetReferencedFieldTerm(AViewTable.Fields[I]));
@@ -161,65 +161,20 @@ begin
 end;
 
 procedure TKSQLQueryBuilder.AddReferenceAlias(const AReference: TKModelReference);
-var
-  LAliasName: string;
-
-  procedure IncAliasName;
-  var
-    LCounter: Integer;
-  begin
-    if TryStrToInt(LAliasName[Length(LAliasName)], LCounter) then
-    begin
-      Assert(LCounter < 9);
-      LAliasName[Length(LAliasName)] := IntToStr(LCounter + 1)[1];
-    end
-    else
-      LAliasName := LAliasName + '2';
-  end;
-
 begin
+  Assert(Assigned(AReference));
+
   if not FReferenceAliases.ContainsKey(AReference) then
-  begin
-    LAliasName := AReference.ReferencedModel.ModelName;
-    while FReferenceAliases.ContainsValue(LAliasName) do
-      IncAliasName;
-    FReferenceAliases.Add(AReference, LAliasName);
-  end;
+    FReferenceAliases.Add(AReference, AReference.ConstraintName);
 end;
 
 function TKSQLQueryBuilder.GetViewFieldReference(const AViewField: TKViewField): TKModelreference;
-var
-  LReferenceName: string;
-  LReferences: TList<TKModelReference>;
 begin
-  Assert(Assigned(FViewTable));
   Assert(Assigned(AViewField));
 
-  Result := nil;
-  LReferences := TList<TKModelReference>.Create;
-  try
-    FViewTable.Model.GetReferencesToModel(AViewField.Model, LReferences);
-
-    // Only one reference - must be the one we're after.
-    if LReferences.Count = 1 then
-      Result := LReferences[0]
-    else if LReferences.Count > 1 then
-    begin
-      // More than one reference - select one.
-      LReferenceName := AViewField.GetString('Reference');
-      if LReferenceName <> '' then
-        // Exception if the specified FK is not existing or not pointing to the
-        // right table.
-        Result := FViewTable.Model.ReferenceByName(LReferenceName);
-    end;
-  finally
-    FreeAndNil(LReferences);
-  end;
-
+  Result := AViewField.Reference;
   if not Assigned(Result) then
     raise EKError.CreateFmt(_('No reference found for field %s.'), [AViewField.AliasedName]);
-  if Result.ReferencedModel <> AViewField.Model then
-    raise EKError.CreateFmt(_('Incorrect reference %s for field %s.'), [Result.ConstraintName, AViewField.AliasedName]);
 end;
 
 end.
