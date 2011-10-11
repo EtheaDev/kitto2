@@ -479,9 +479,7 @@ end;
 
 function TKView.GetChildClass(const AName: string): TEFNodeClass;
 begin
-  if SameText(AName, 'ViewConfig') then
-    Result := TEFConfig
-  else if SameText(AName, 'MainTable') then
+  if SameText(AName, 'MainTable') then
     Result := TKViewTable
   else
     Result := inherited GetChildClass(AName);

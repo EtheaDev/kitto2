@@ -7,14 +7,14 @@ interface
 uses
   Classes, DB, Contnrs,
   DBXCommon, SqlExpr,
-  EF.Intf, EF.Classes,  EF.DB;
+  EF.DB;
 
 type
   {
     Retrieves metadata from a database through DBX.
     Currently, only Firebird is supported.
   }
-  TEFDBDBXInfo = class(TEFDBInfo, IEFDBInfo)
+  TEFDBDBXInfo = class(TEFDBInfo)
   private
     FConnection: TSQLConnection;
   protected
@@ -33,18 +33,7 @@ type
   TEFSQLConnection = class(TSQLConnection)
   end;
 
-  {
-    Encapsulates a DBX DB connection.
-
-    Configuration items:
-    @table(
-      @row(
-        @cell(ConnectionString)@cell(string (optional))
-        @cell(Sets the value of the ConnectionString property.)
-      )
-    )
-  }
-  TEFDBDBXConnection = class(TEFDBConnection, IEFInterface, IEFDBConnection)
+  TEFDBDBXConnection = class(TEFDBConnection)
   private
     FConnection: TSQLConnection;
     FTransaction: TDBXTransaction;
@@ -68,48 +57,26 @@ type
       the connection is closed or destroyed.
     }
     function GetFetchSequenceGeneratorValueQuery(const ASequenceName: string): TEFDBDBXQuery;
-  protected
-    // IEFDBConnection
-    procedure Open;
-    procedure Close;
-    function IsOpen: Boolean;
-    function ExecuteImmediate(const AStatement: string): Integer;
-    procedure StartTransaction;
-    procedure CommitTransaction;
-    procedure RollbackTransaction;
-    function IsInTransaction: Boolean;
-    function GetLastAutoincValue(const ATableName: string = ''): Int64;
-    function FetchSequenceGeneratorValue(const ASequenceName: string): Int64;
-    function CreateDBCommand: IEFDBCommand; override;
-    function CreateDBQuery: IEFDBQuery;
   public
     procedure AfterConstruction; override;
     destructor Destroy; override;
-  end;
-
-  {
-    Base class for DBX DB components.
-  }
-  TEFDBDBXComponent = class(TEFComponent, IEFInterface, IEFDBComponent)
-  private
-    FConnection: IEFDBConnection;
-  protected
-    {
-      Called whenever the connection changes. Descendants override it to
-      link internal components to the new connection.
-    }
-    procedure ConnectionChanged; virtual;
   public
-    // IEFDBComponent
-    function GetConnection: IEFDBConnection;
-    procedure SetConnection(const AValue: IEFDBConnection);
-    property Connection: IEFDBConnection
-      read GetConnection write SetConnection;
+    procedure Open; override;
+    procedure Close; override;
+    function IsOpen: Boolean; override;
+    function ExecuteImmediate(const AStatement: string): Integer; override;
+    procedure StartTransaction; override;
+    procedure CommitTransaction; override;
+    procedure RollbackTransaction; override;
+    function IsInTransaction: Boolean; override;
+    function GetLastAutoincValue(const ATableName: string = ''): Int64; override;
+    function FetchSequenceGeneratorValue(const ASequenceName: string): Int64; override;
+    function CreateDBCommand: TEFDBCommand; override;
+    function CreateDBQuery: TEFDBQuery; override;
   end;
 
-  {
-    Customized TSQLQuery used inside TEFDBXCommand and TEFDBDBXQuery.
-  }
+  ///	<summary>Customized TSQLQuery used inside TEFDBXCommand and
+  ///	TEFDBDBXQuery.</summary>
   TEFSQLQuery = class(TSQLQuery)
   private
     {
@@ -124,65 +91,48 @@ type
     function ExecSQL(ExecDirect: Boolean = False): Integer; override;
   end;
 
-  {
-    Encapsulates a DB command.
-  }
-  TEFDBDBXCommand = class(TEFDBDBXComponent, IEFInterface,
-    IEFDBComponent, IEFDBCommand)
+  TEFDBDBXCommand = class(TEFDBCommand)
   private
     FQuery: TEFSQLQuery;
   protected
     procedure ConnectionChanged; override;
+    function GetCommandText: string; override;
+    procedure SetCommandText(const AValue: string); override;
+    function GetPrepared: Boolean; override;
+    procedure SetPrepared(const AValue: Boolean); override;
+    function GetParams: TParams; override;
+    procedure SetParams(const AValue: TParams); override;
   public
     procedure AfterConstruction; override;
-    procedure BeforeDestruction; override;
-    // IEFDBCommand
-    function GetCommandText: string;
-    procedure SetCommandText(const AValue: string);
-    property CommandText: string read GetCommandText write SetCommandText;
-    function GetPrepared: Boolean;
-    procedure SetPrepared(const AValue: Boolean);
-    property Prepared: Boolean read GetPrepared write SetPrepared;
-    function GetParams: TParams;
-    procedure SetParams(const AValue: TParams);
-    property Params: TParams read GetParams write SetParams;
-    function Execute: Integer;
+    destructor Destroy; override;
+  public
+    function Execute: Integer; override;
   end;
 
-  {
-    Encapsulates a DB query, that is a DB command with an associated result set.
-  }
-  TEFDBDBXQuery = class(TEFDBDBXComponent, IEFInterface,
-    IEFDBComponent, IEFDBQuery, IEFDBCommand)
+  TEFDBDBXQuery = class(TEFDBQuery)
   private
     FQuery: TEFSQLQuery;
   protected
     procedure ConnectionChanged; override;
+    function GetCommandText: string; override;
+    procedure SetCommandText(const AValue: string); override;
+    function GetPrepared: Boolean; override;
+    procedure SetPrepared(const AValue: Boolean); override;
+    function GetParams: TParams; override;
+    procedure SetParams(const AValue: TParams); override;
+    function GetDataSet: TDataSet; override;
+    function GetMasterSource: TDataSource; override;
+    procedure SetMasterSource(const AValue: TDataSource); override;
   public
     procedure AfterConstruction; override;
-    procedure BeforeDestruction; override;
-    // IEFDBQuery
-    function GetCommandText: string;
-    procedure SetCommandText(const AValue: string);
-    property CommandText: string read GetCommandText write SetCommandText;
-    function GetPrepared: Boolean;
-    procedure SetPrepared(const AValue: Boolean);
-    property Prepared: Boolean read GetPrepared write SetPrepared;
-    function GetParams: TParams;
-    procedure SetParams(const AValue: TParams);
-    property Params: TParams read GetParams write SetParams;
-    {
-      Execute and Open are synonims in this class. Execute always returns 0.
-    }
-    function Execute: Integer;
-    procedure Open;
-    procedure Close;
-    function IsOpen: Boolean;
-    function GetDataSet: TDataSet;
-    property DataSet: TDataSet read GetDataSet;
-    function GetMasterSource: TDataSource;
-    procedure SetMasterSource(const AValue: TDataSource);
-    property MasterSource: TDataSource read GetMasterSource write SetMasterSource;
+    destructor Destroy; override;
+  public
+    ///	<summary>Execute and Open are synonims in this class. Execute always
+    ///	returns 0.</summary>
+    function Execute: Integer; override;
+    procedure Open; override;
+    procedure Close; override;
+    function IsOpen: Boolean; override;
   end;
 
   {
@@ -190,8 +140,8 @@ type
   }
   TEFDBDBXAdapter = class(TEFDBAdapter)
   protected
-    function InternalCreateDBConnection: IEFDBConnection; override;
-    function InternalCreateDBInfo: IEFDBInfo; override;
+    function InternalCreateDBConnection: TEFDBConnection; override;
+    function InternalCreateDBInfo: TEFDBInfo; override;
   end;
 
 implementation
@@ -266,24 +216,24 @@ begin
     FConnection.CommitFreeAndNil(FTransaction);
 end;
 
-function TEFDBDBXConnection.CreateDBCommand: IEFDBCommand;
+function TEFDBDBXConnection.CreateDBCommand: TEFDBCommand;
 begin
   Result := TEFDBDBXCommand.Create;
   try
     Result.Connection := Self;
   except
-    FreeAndNilEFIntf(Result);
+    FreeAndNil(Result);
     raise;
   end;
 end;
 
-function TEFDBDBXConnection.CreateDBQuery: IEFDBQuery;
+function TEFDBDBXConnection.CreateDBQuery: TEFDBQuery;
 begin
   Result := TEFDBDBXQuery.Create;
   try
     Result.Connection := Self;
   except
-    FreeAndNilEFIntf(Result);
+    FreeAndNil(Result);
     raise;
   end;
 end;
@@ -370,7 +320,10 @@ end;
 
 function TEFDBDBXConnection.IsOpen: Boolean;
 begin
-  Result := FConnection.Connected;
+  if FConnection = nil then
+    Result := False
+  else
+    Result := FConnection.Connected;
 end;
 
 procedure TEFDBDBXConnection.OnConnectionStringChange(Sender: TObject);
@@ -433,23 +386,6 @@ begin
     FTransaction := FConnection.BeginTransaction;
 end;
 
-{ TEFDBDBXComponent }
-
-procedure TEFDBDBXComponent.ConnectionChanged;
-begin
-end;
-
-function TEFDBDBXComponent.GetConnection: IEFDBConnection;
-begin
-  Result := FConnection;
-end;
-
-procedure TEFDBDBXComponent.SetConnection(const AValue: IEFDBConnection);
-begin
-  FConnection := AValue;
-  ConnectionChanged;
-end;
-
 { TEFSQLQuery }
 
 procedure TEFSQLQuery.FixUnknownParamTypes;
@@ -482,10 +418,10 @@ begin
   FQuery := TEFSQLQuery.Create(nil);
 end;
 
-procedure TEFDBDBXCommand.BeforeDestruction;
+destructor TEFDBDBXCommand.Destroy;
 begin
-  inherited;
   FreeAndNil(FQuery);
+  inherited;
 end;
 
 procedure TEFDBDBXCommand.ConnectionChanged;
@@ -496,7 +432,7 @@ end;
 
 function TEFDBDBXCommand.Execute: Integer;
 begin
-  Connection.Open;
+  inherited;
   FQuery.ExecSQL;
   Result := FQuery.RowsAffected;
 end;
@@ -539,10 +475,10 @@ begin
   FQuery := TEFSQLQuery.Create(nil);
 end;
 
-procedure TEFDBDBXQuery.BeforeDestruction;
+destructor TEFDBDBXQuery.Destroy;
 begin
-  inherited;
   FreeAndNil(FQuery);
+  inherited;
 end;
 
 procedure TEFDBDBXQuery.Close;
@@ -558,6 +494,7 @@ end;
 
 function TEFDBDBXQuery.Execute: Integer;
 begin
+  inherited;
   Open;
   Result := 0;
 end;
@@ -621,12 +558,12 @@ end;
 
 { TEFDBDBXAdapter }
 
-function TEFDBDBXAdapter.InternalCreateDBConnection: IEFDBConnection;
+function TEFDBDBXAdapter.InternalCreateDBConnection: TEFDBConnection;
 begin
   Result := TEFDBDBXConnection.Create;
 end;
 
-function TEFDBDBXAdapter.InternalCreateDBInfo: IEFDBInfo;
+function TEFDBDBXAdapter.InternalCreateDBInfo: TEFDBInfo;
 begin
   Result := TEFDBDBXInfo.Create;
 end;

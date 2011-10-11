@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, Contnrs, DB, ADODB,
-  EF.Intf, EF.Classes,  EF.DB;
+  EF.DB;
 
 type
   {
@@ -26,7 +26,7 @@ type
     Retrieves metadata from a database through ADO. Currently only
     SQL Server is supported.
   }
-  TEFDBADOInfo = class(TEFDBInfo, IEFDBInfo)
+  TEFDBADOInfo = class(TEFDBInfo)
   private
     FConnection: TADOConnection;
   protected
@@ -41,67 +41,30 @@ type
 
   TEFDBADOQueryClass = class of TEFDBADOQuery;
 
-  {
-    Encapsulates both a DB connection and a DB transaction.
-
-    Configuration items:
-    
-      ConnectionString: string (required)
-        ADO database connection string.
-  }
-  TEFDBADOConnection = class(TEFDBConnection, IEFInterface,
-    IEFDBConnection)
+  TEFDBADOConnection = class(TEFDBConnection)
   private
     FConnection: TADOConnection;
   protected
-    // IEFDBConnection
-    procedure Open;
-    procedure Close;
-    function IsOpen: Boolean;
-    function ExecuteImmediate(const AStatement: string): Integer;
-    procedure StartTransaction;
-    procedure CommitTransaction;
-    procedure RollbackTransaction;
-    function IsInTransaction: Boolean;
-    function FetchSequenceGeneratorValue(const ASequenceName: string): Int64;
-    function GetLastAutoincValue(const ATableName: string = ''): Int64;
-    function CreateDBCommand: IEFDBCommand; override;
-    function CreateDBQuery: IEFDBQuery;
-  protected
-    function GetEFDBADOQueryClass: TEFDBADOQueryClass; virtual;
+    function GetQueryClass: TEFDBADOQueryClass; virtual;
   public
     procedure AfterConstruction; override;
     destructor Destroy; override;
-  end;
-
-  {
-    Base class for ADO DB components.
-  }
-  TEFDBADOComponent = class(TEFComponent, IEFInterface, IEFDBComponent)
-  private
-    FConnection: IEFDBConnection;
-  protected
-    {
-      Called whenever the connection changes. Descendants override it to
-      link internal components to the new connection.
-    }
-    procedure ConnectionChanged; virtual;
-    {
-      Descendants should call this method before executing a statement
-      against the database.
-    }
-    procedure InternalBeforeExecute; virtual;
   public
-    // IEFDBComponent
-    function GetConnection: IEFDBConnection;
-    procedure SetConnection(const AValue: IEFDBConnection);
-    property Connection: IEFDBConnection
-      read GetConnection write SetConnection;
+    procedure Open; override;
+    procedure Close; override;
+    function IsOpen: Boolean; override;
+    function ExecuteImmediate(const AStatement: string): Integer; override;
+    procedure StartTransaction; override;
+    procedure CommitTransaction; override;
+    procedure RollbackTransaction; override;
+    function IsInTransaction: Boolean; override;
+    function FetchSequenceGeneratorValue(const ASequenceName: string): Int64; override;
+    function GetLastAutoincValue(const ATableName: string = ''): Int64; override;
+    function CreateDBCommand: TEFDBCommand; override;
+    function CreateDBQuery: TEFDBQuery; override;
   end;
 
-  // Encapsulates a DB command.
-  TEFDBADOCommand = class(TEFDBADOComponent, IEFInterface,
-    IEFDBComponent, IEFDBCommand)
+  TEFDBADOCommand = class(TEFDBCommand)
   private
     FCommand: TADOCommand;
     FParams: TEFDBADOParams;
@@ -112,25 +75,20 @@ type
     procedure UpdateInternalCommandCommandText;
   protected
     procedure ConnectionChanged; override;
+    function GetCommandText: string; override;
+    procedure SetCommandText(const AValue: string); override;
+    function GetPrepared: Boolean; override;
+    procedure SetPrepared(const AValue: Boolean); override;
+    function GetParams: TParams; override;
+    procedure SetParams(const AValue: TParams); override;
   public
     procedure AfterConstruction; override;
-    procedure BeforeDestruction; override;
-    // IEFDBCommand
-    function GetCommandText: string;
-    procedure SetCommandText(const AValue: string);
-    property CommandText: string read GetCommandText write SetCommandText;
-    function GetPrepared: Boolean;
-    procedure SetPrepared(const AValue: Boolean);
-    property Prepared: Boolean read GetPrepared write SetPrepared;
-    function GetParams: TParams;
-    procedure SetParams(const AValue: TParams);
-    property Params: TParams read GetParams write SetParams;
-    function Execute: Integer;
+    destructor Destroy; override;
+  public
+    function Execute: Integer; override;
   end;
 
-  // Encapsulates a DB query, that is a DB command with an associated result set.
-  TEFDBADOQuery = class(TEFDBADOComponent, IInterface, IEFInterface,
-    IEFDBComponent, IEFDBQuery, IEFDBCommand)
+  TEFDBADOQuery = class(TEFDBQuery)
   private
     FQuery: TADOQuery;
     FParams: TEFDBADOParams;
@@ -142,36 +100,32 @@ type
   protected
     procedure ConnectionChanged; override;
     procedure SetQueryProperties; virtual;
+
+    function GetCommandText: string; override;
+    procedure SetCommandText(const AValue: string); override;
+    function GetPrepared: Boolean; override;
+    procedure SetPrepared(const AValue: Boolean); override;
+    function GetParams: TParams; override;
+    procedure SetParams(const AValue: TParams); override;
+    function GetDataSet: TDataSet; override;
+    function GetMasterSource: TDataSource; override;
+    procedure SetMasterSource(const AValue: TDataSource); override;
   public
     procedure AfterConstruction; override;
-    procedure BeforeDestruction; override;
-    // IEFDBQuery
-    function GetCommandText: string;
-    procedure SetCommandText(const AValue: string);
-    property CommandText: string read GetCommandText write SetCommandText;
-    function GetPrepared: Boolean;
-    procedure SetPrepared(const AValue: Boolean);
-    property Prepared: Boolean read GetPrepared write SetPrepared;
-    function GetParams: TParams;
-    procedure SetParams(const AValue: TParams);
-    property Params: TParams read GetParams write SetParams;
+    destructor Destroy; override;
+  public
     // Execute and Open are synonims in this class. Execute always returns 0.
-    function Execute: Integer;
-    procedure Open; virtual;
-    procedure Close;
-    function IsOpen: Boolean;
-    function GetDataSet: TDataSet;
-    property DataSet: TDataSet read GetDataSet;
-    function GetMasterSource: TDataSource;
-    procedure SetMasterSource(const AValue: TDataSource);
-    property MasterSource: TDataSource read GetMasterSource write SetMasterSource;
+    function Execute: Integer; override;
+    procedure Open; override;
+    procedure Close; override;
+    function IsOpen: Boolean; override;
   end;
 
   // A DB adapter that creates ADO objects.
   TEFDBADOAdapter = class(TEFDBAdapter)
   protected
-    function InternalCreateDBConnection: IEFDBConnection; override;
-    function InternalCreateDBInfo: IEFDBInfo; override;
+    function InternalCreateDBConnection: TEFDBConnection; override;
+    function InternalCreateDBInfo: TEFDBInfo; override;
   end;
 
 implementation
@@ -263,26 +217,26 @@ begin
     FConnection.RollbackTrans;
 end;
 
-function TEFDBADOConnection.CreateDBCommand: IEFDBCommand;
+function TEFDBADOConnection.CreateDBCommand: TEFDBCommand;
 begin
   Result := TEFDBADOCommand.Create;
   try
     Result.Connection := Self;
     Open;
   except
-    FreeAndNilEFIntf(Result);
+    FreeAndNil(Result);
     raise;
   end;
 end;
 
-function TEFDBADOConnection.CreateDBQuery: IEFDBQuery;
+function TEFDBADOConnection.CreateDBQuery: TEFDBQuery;
 begin
-  Result := GetEFDBADOQueryClass.Create;
+  Result := GetQueryClass.Create;
   try
     Result.Connection := Self;
     Open;
   except
-    FreeAndNilEFIntf(Result);
+    FreeAndNil(Result);
     raise;
   end;
 end;
@@ -311,7 +265,7 @@ begin
   Result := 0;
 end;
 
-function TEFDBADOConnection.GetEFDBADOQueryClass: TEFDBADOQueryClass;
+function TEFDBADOConnection.GetQueryClass: TEFDBADOQueryClass;
 begin
   Result := TEFDBADOQuery;
 end;
@@ -328,29 +282,6 @@ begin
   Result := FConnection.Connected;
 end;
 
-{ TEFDBADOComponent }
-
-procedure TEFDBADOComponent.ConnectionChanged;
-begin
-end;
-
-function TEFDBADOComponent.GetConnection: IEFDBConnection;
-begin
-  Result := FConnection;
-end;
-
-procedure TEFDBADOComponent.InternalBeforeExecute;
-begin
-  if not Connection.IsOpen then
-    Connection.Open;
-end;
-
-procedure TEFDBADOComponent.SetConnection(const AValue: IEFDBConnection);
-begin
-  FConnection := AValue;
-  ConnectionChanged;
-end;
-
 { TEFDBADOCommand }
 
 procedure TEFDBADOCommand.AfterConstruction;
@@ -360,18 +291,18 @@ begin
   FParams := TEFDBADOParams.Create(nil);
 end;
 
-procedure TEFDBADOCommand.BeforeDestruction;
+destructor TEFDBADOCommand.Destroy;
 begin
-  inherited;
   FreeAndNil(FCommand);
   FreeAndNil(FParams);
+  inherited;
 end;
 
 function TEFDBADOCommand.Execute: Integer;
 begin
   UpdateInternalCommandCommandText;
   UpdateInternalCommandParams;
-  InternalBeforeExecute;
+  inherited;
   FCommand.Execute(Result, EmptyParam);
 end;
 
@@ -443,7 +374,7 @@ begin
   FParams := TEFDBADOParams.Create(nil);
 end;
 
-procedure TEFDBADOQuery.BeforeDestruction;
+destructor TEFDBADOQuery.Destroy;
 begin
   FreeAndNil(FQuery);
   FreeAndNil(FParams);
@@ -459,6 +390,7 @@ end;
 
 function TEFDBADOQuery.Execute: Integer;
 begin
+  inherited;
   Open;
   Result := 0;
 end;
@@ -555,7 +487,7 @@ end;
 
 { TEFDBADOFactory }
 
-function TEFDBADOAdapter.InternalCreateDBConnection: IEFDBConnection;
+function TEFDBADOAdapter.InternalCreateDBConnection: TEFDBConnection;
 begin
   Result := TEFDBADOConnection.Create;
 end;
@@ -691,7 +623,7 @@ begin
   end;
 end;
 
-function TEFDBADOAdapter.InternalCreateDBInfo: IEFDBInfo;
+function TEFDBADOAdapter.InternalCreateDBInfo: TEFDBInfo;
 begin
   Result := TEFDBADOInfo.Create;
 end;

@@ -7,7 +7,7 @@ interface
 uses
   Classes,
   Ext, ExtPascal,
-  EF.ObserverIntf, EF.Classes,
+  EF.Intf, EF.ObserverIntf, EF.Tree, EF.Classes,
   Kitto.Types, Kitto.Metadata.Views;
 
 type
@@ -15,13 +15,16 @@ type
   ///	  Base interface for controllers. Controllers manages views to build
   ///   the user interface.
   ///	</summary>
-  IKExtController = interface(IEFComponent)
+  IKExtController = interface(IEFInterface)
     ['{FCDFC7CC-E202-4C20-961C-11255CABE497}']
 
     ///	<summary>
     ///	  Renders AView according to the Config.
     ///	</summary>
     procedure Display;
+
+    function GetConfig: TEFNode;
+    property Config: TEFNode read GetConfig;
 
     function GetView: TKView;
     procedure SetView(const AValue: TKView);

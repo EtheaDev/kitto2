@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, DB,
-  EF.Types, EF.Classes;
+  EF.Types, EF.DB;
 
 type
   ///	<summary>
@@ -18,33 +18,33 @@ type
     // and AFieldNames as field and param names. AFieldNames is a list of
     // field names.
     class procedure BuildInsertCommand(const ATableName: string;
-      const AFieldNames: TStrings; const ACommand: IEFDBCommand);
+      const AFieldNames: TStrings; const ACommand: TEFDBCommand);
     // Builds a SQL delete command with ATableName as target
     // and no where clause.
     class procedure BuildEmptyTableCommand(const ATableName: string;
-      const ACommand: IEFDBCommand);
+      const ACommand: TEFDBCommand);
     // Builds a parameterized SQL select query with ASelectList in the
     // select clause, ATableName as source and AKeyFieldNames as fields
     // in the where clause.
     class procedure BuildRecordExistsQuery(const ATableName: string;
       const ASelectList: string; const AKeyFieldNames: TStrings;
-      const AQuery: IEFDBQuery);
+      const AQuery: TEFDBQuery);
     // Builds a parameterized SQL select query with ALookupResultFieldNames in the
     // select clause, ALookupTableName as source and ALookupKeyFieldNames as fields
     // in the where clause. AKeyFieldNames are used as names for the params in
     // the where clause.
     class procedure BuildLookupQuery(const ALookupTableName,
       ALookupResultFieldNames, ALookupKeyFieldNames,
-      AKeyFieldNames: string; const AQuery: IEFDBQuery);
+      AKeyFieldNames: string; const AQuery: TEFDBQuery);
     // Builds a parameterized SQL update command with ATableName as target,
     // AFieldNames as fields in the set clause and AKeyFieldNames as fields
     // in the where clause.
     class procedure BuildUpdateCommand(const ATableName: string;
-      const AFieldNames, AKeyFieldNames: TStrings; const ACommand: IEFDBCommand);
+      const AFieldNames, AKeyFieldNames: TStrings; const ACommand: TEFDBCommand);
     // Builds a parameterized SQL delete command with ATableName as target
     // and AKeyFieldNames as fields in the where clause.
     class procedure BuildDeleteCommand(const ATableName: string;
-      const AKeyFieldNames: TStrings; const ACommand: IEFDBCommand);
+      const AKeyFieldNames: TStrings; const ACommand: TEFDBCommand);
   end;
 
 {
@@ -55,7 +55,7 @@ type
   The query may contain parameters, in which case you are required to pass
   ADBParams.
 }
-function SQLLookup(const ADBConnection: IEFDBConnection;
+function SQLLookup(const ADBConnection: TEFDBConnection;
   const ASQLStatement: string; const ADBParams: TParams = nil): Variant; overload;
 
 {
@@ -66,7 +66,7 @@ function SQLLookup(const ADBConnection: IEFDBConnection;
   The query may contain parameters, in which case they should all be assigned
   values before calling this function.
 }
-function SQLLookup(const AQuery: IEFDBQuery): Variant; overload;
+function SQLLookup(const AQuery: TEFDBQuery): Variant; overload;
 
 const
   // Quote character in SQL.
@@ -131,12 +131,12 @@ implementation
 
 uses
   SysUtils, StrUtils, Variants,
-  EF.Intf, EF.StrUtils, EF.Localization;
+  EF.StrUtils, EF.Localization;
 
 { TEFSQLBuilder }
 
 class procedure TEFSQLBuilder.BuildDeleteCommand(const ATableName: string;
-  const AKeyFieldNames: TStrings; const ACommand: IEFDBCommand);
+  const AKeyFieldNames: TStrings; const ACommand: TEFDBCommand);
 var
   LKeyFieldNameIndex: Integer;
   LCommandText: string;
@@ -169,7 +169,7 @@ begin
 end;
 
 class procedure TEFSQLBuilder.BuildEmptyTableCommand(const ATableName: string;
-  const ACommand: IEFDBCommand);
+  const ACommand: TEFDBCommand);
 begin
   Assert(Assigned(ACommand));
   if ATableName = '' then
@@ -181,7 +181,7 @@ begin
 end;
 
 class procedure TEFSQLBuilder.BuildInsertCommand(const ATableName: string;
-  const AFieldNames: TStrings; const ACommand: IEFDBCommand);
+  const AFieldNames: TStrings; const ACommand: TEFDBCommand);
 var
   LFieldNameIndex: Integer;
   LCommandText: string;
@@ -222,7 +222,7 @@ end;
 
 class procedure TEFSQLBuilder.BuildRecordExistsQuery(
   const ATableName: string; const ASelectList: string;
-  const AKeyFieldNames: TStrings; const AQuery: IEFDBQuery);
+  const AKeyFieldNames: TStrings; const AQuery: TEFDBQuery);
 var
   LKeyFieldNameIndex: Integer;
   LCommandText: string;
@@ -257,7 +257,7 @@ begin
 end;
 
 class procedure TEFSQLBuilder.BuildUpdateCommand(const ATableName: string;
-  const AFieldNames, AKeyFieldNames: TStrings; const ACommand: IEFDBCommand);
+  const AFieldNames, AKeyFieldNames: TStrings; const ACommand: TEFDBCommand);
 var
   LFieldNameIndex, LKeyFieldNameIndex: Integer;
   LCommandText: string;
@@ -311,7 +311,7 @@ end;
 
 class procedure TEFSQLBuilder.BuildLookupQuery(const ALookupTableName,
   ALookupResultFieldNames, ALookupKeyFieldNames, AKeyFieldNames: string;
-  const AQuery: IEFDBQuery);
+  const AQuery: TEFDBQuery);
 var
   LStatement: string;
 
@@ -363,10 +363,10 @@ begin
   AQuery.CommandText := LStatement;
 end;
 
-function SQLLookup(const ADBConnection: IEFDBConnection;
+function SQLLookup(const ADBConnection: TEFDBConnection;
   const ASQLStatement: string; const ADBParams: TParams = nil): Variant;
 var
-  LQuery: IEFDBQuery;
+  LQuery: TEFDBQuery;
 begin
   LQuery := ADBConnection.CreateDBQuery;
   try
@@ -375,11 +375,11 @@ begin
       LQuery.Params.AssignValues(ADBParams);
     Result := SQLLookup(LQuery);
   finally
-    FreeAndNilEFIntf(LQuery);
+    FreeAndNil(LQuery);
   end;
 end;
 
-function SQLLookup(const AQuery: IEFDBQuery): Variant; overload;
+function SQLLookup(const AQuery: TEFDBQuery): Variant; overload;
 var
   LFieldIndex: Integer;
 begin

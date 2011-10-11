@@ -5,7 +5,7 @@ unit Kitto.Auth.DB;
 interface
 
 uses
-  EF.Classes, EF.Tree,
+  EF.DB, EF.Tree,
   Kitto.Auth;
 
 type
@@ -170,14 +170,14 @@ type
       possibly CreateUser.
     }
     procedure ReadUserFromRecord(const AUser: TKAuthUser;
-      const ADBQuery: IEFDBQuery; const AAuthData: TEFNode); virtual;
+      const ADBQuery: TEFDBQuery; const AAuthData: TEFNode); virtual;
   end;
 
 implementation
 
 uses
   SysUtils, Classes, Variants,
-  EF.Intf, EF.Localization,  EF.Types, EF.StrUtils, EF.DB.Utils,
+  EF.Localization,  EF.Types, EF.StrUtils, EF.DB.Utils,
   Kitto.Types, Kitto.Environment;
 
 { TKDBAuthenticator }
@@ -185,7 +185,7 @@ uses
 function TKDBAuthenticator.CreateAndReadUser(
   const AUserName: string; const AAuthData: TEFNode): TKAuthUser;
 var
-  LQuery: IEFDBQuery;
+  LQuery: TEFDBQuery;
 begin
   Result := CreateUser;
   try
@@ -204,7 +204,7 @@ begin
         LQuery.Close;
       end;
     finally
-      FreeAndNilEFIntf(LQuery);
+      FreeAndNil(LQuery);
     end;
   except
     Result.Free;
@@ -250,9 +250,8 @@ end;
 
 procedure TKDBAuthenticator.InternalAfterAuthenticate(const AAuthData: TEFNode);
 var
-  LCommand: IEFDBCommand;
+  LCommand: TEFDBCommand;
   LAfterAuthenticateCommandText: string;
-  //LMacroExpander: TEFNodeMacroExpander;
 begin
   inherited;
   LAfterAuthenticateCommandText := GetAfterAuthenticateCommandText;
@@ -261,17 +260,10 @@ begin
   begin
     LCommand := Environment.MainDBConnection.CreateDBCommand;
     try
-// Shouldn't be needed (see base classes).
-//      LMacroExpander := TEFNodeMacroExpander.Create(AAuthData, 'Auth');
-//      try
-//        LAfterAuthenticateCommandText := LMacroExpander.Expand(LAfterAuthenticateCommandText);
-//      finally
-//        FreeAndNil(LMacroExpander);
-//      end;
       LCommand.CommandText := LAfterAuthenticateCommandText;
       LCommand.Execute;
     finally
-      FreeAndNilEFIntf(LCommand);
+      FreeAndNil(LCommand);
     end;
   end;
 end;
@@ -317,7 +309,7 @@ end;
 
 function TKDBAuthenticator.IsValidUserName(const AUserName: string): Boolean;
 var
-  LQuery: IEFDBQuery;
+  LQuery: TEFDBQuery;
 begin
   Result := False;
 
@@ -337,12 +329,12 @@ begin
       LQuery.Close;
     end;
   finally
-    FreeAndNilEFIntf(LQuery);
+    FreeAndNil(LQuery);
   end;
 end;
 
 procedure TKDBAuthenticator.ReadUserFromRecord(const AUser: TKAuthUser;
-  const ADBQuery: IEFDBQuery; const AAuthData: TEFNode);
+  const ADBQuery: TEFDBQuery; const AAuthData: TEFNode);
 var
   I: Integer;
 begin

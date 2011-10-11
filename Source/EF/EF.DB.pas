@@ -11,20 +11,6 @@ uses
 type
   TEFDBSchemaInfo = class;
 
-  IEFDBInfo = interface(IEFComponent)
-    ['{9F973AEB-F635-4C61-89DE-D1D85A396CF1}']
-    {
-      Access to the metadata information on the current database's metadata.
-    }
-    function GetSchema: TEFDBSchemaInfo;
-    property Schema: TEFDBSchemaInfo read GetSchema;
-    {
-      Ensures fresh metadata info is read from the database the next time Schema
-      is accessed.
-    }
-    procedure InvalidateInfo;
-  end;
-
   ///	<summary>
   ///	  A base class for database metadata info providers.
   ///	</summary>
@@ -173,6 +159,80 @@ type
     procedure Clear;
   end;
 
+  TEFDBConnection = class;
+
+  ///	<summary>Base class for components linked to a database
+  ///	connection.</summary>
+  TEFDBComponent = class(TEFComponent)
+  private
+    FConnection: TEFDBConnection;
+  protected
+    ///	<summary>Ensures the connection is open. Descendants should call this
+    ///	method before executing a command.</summary>
+    procedure InternalBeforeExecute;
+    function GetConnection: TEFDBConnection;
+    procedure SetConnection(const AValue: TEFDBConnection);
+
+    ///	<summary>Called whenever the connection changes. Descendants override
+    ///	it to link internal components to the new connection.</summary>
+    procedure ConnectionChanged; virtual;
+  public
+    property Connection: TEFDBConnection read GetConnection write SetConnection;
+  end;
+
+  ///	<summary>Base class for database commands that don't return data.</summary>
+  TEFDBCommand = class(TEFDBComponent)
+  protected
+    function GetCommandText: string; virtual; abstract;
+    procedure SetCommandText(const AValue: string); virtual; abstract;
+    function GetPrepared: Boolean; virtual; abstract;
+    procedure SetPrepared(const AValue: Boolean); virtual; abstract;
+    function GetParams: TParams; virtual; abstract;
+    procedure SetParams(const AValue: TParams); virtual; abstract;
+  public
+    ///	<summary>Contains the text of the statement to execute.</summary>
+    property CommandText: string read GetCommandText write SetCommandText;
+
+    ///	<summary>Manages prepared statements.</summary>
+    ///	<remarks>Not all database benefit from statement preparation.</remarks>
+    property Prepared: Boolean read GetPrepared write SetPrepared;
+
+    ///	<summary>Optional param values for CommandText.</summary>
+    property Params: TParams read GetParams write SetParams;
+
+    ///	<summary>Executes the command and returns the number of affected
+    ///	records, assuming the database is able to give this
+    ///	information.</summary>
+    function Execute: Integer; virtual;
+  end;
+
+  ///	<summary>Base class for database commands that return data.</summary>
+  TEFDBQuery = class(TEFDBCommand)
+  protected
+    function GetMasterSource: TDataSource; virtual; abstract;
+    procedure SetMasterSource(const AValue: TDataSource); virtual; abstract;
+    function GetDataSet: TDataSet; virtual; abstract;
+  public
+    ///	<summary>Opens the DataSet and starts returning data.</summary>
+    procedure Open; virtual; abstract;
+
+    ///	<summary>Frees the memory used by the data and closes or frees the
+    ///	DataSet.</summary>
+    procedure Close; virtual; abstract;
+
+    ///	<summary>Returns True if the DataSet is available.</summary>
+    function IsOpen: Boolean; virtual; abstract;
+
+    ///	<summary>Detail queries need a reference to their master query's
+    ///	DataSource for parameter binding.</summary>
+    property MasterSource: TDataSource read GetMasterSource write SetMasterSource;
+
+    ///	<summary>The data buffer.</summary>
+    ///	<remarks>Don't access DataSet before calling Open, or checking IsOpen:
+    ///	some descendants might not make it available in advance.</remarks>
+    property DataSet: TDataSet read GetDataSet;
+  end;
+
   ///	<summary>
   ///	  A base class for database connections.
   ///	</summary>
@@ -182,14 +242,65 @@ type
   protected
     function GetStandardFormatSettings: TFormatSettings;
     procedure AfterConnectionOpen(Sender: TObject);
-    function CreateDBCommand: IEFDBCommand; virtual; abstract;
   public
     procedure AfterConstruction; override;
+    destructor Destroy; override;
+  public
+    ///	<summary>Connects to the database.</summary>
+    procedure Open; virtual; abstract;
 
-    ///	<summary>
-    ///	  A default implementation for IEFDBConnection's FormatValue method.
-    ///	  Formats values in a way that should work for most database systems.
-    ///	</summary>
+    ///	<summary>Closes the connection to the database. As a result, open
+    ///	datasets might get closed as well or not, depending on the
+    ///	implementation.</summary>
+    procedure Close; virtual; abstract;
+
+    ///	<summary>Returns True if the connection to the database is open, False
+    ///	otherwise.</summary>
+    function IsOpen: Boolean; virtual; abstract;
+
+    ///	<summary>Executes a command and returns the number of affected records
+    ///	(if the database is able to return it).</summary>
+    ///	<remarks>Descendants may either make use of predefined functionality in
+    ///	a given database library, or create an instance of a command class, set
+    ///	its CommandText and Execute the command, then destroy the object and
+    ///	return.</remarks>
+    function ExecuteImmediate(const AStatement: string): Integer; virtual; abstract;
+
+    ///	<summary>Starts a new transaction.</summary>
+    procedure StartTransaction; virtual; abstract;
+
+    ///	<summary>Commits and ends a previously started transaction.</summary>
+    procedure CommitTransaction; virtual; abstract;
+
+    ///	<summary>Rollbacks and ends a previously started transaction.</summary>
+    procedure RollbackTransaction; virtual; abstract;
+
+    ///	<summary>Tells whether a transaction was started or not.</summary>
+    function IsInTransaction: Boolean; virtual; abstract;
+
+    ///	<summary>Fetches and returns a nEF sequence generator value. Use only
+    ///	with databases that support sequence generators (IB/Fb,	Oracle).</summary>
+    function FetchSequenceGeneratorValue(const ASequenceName: string): Int64; virtual; abstract;
+
+    ///	<summary>Returns the last generated auto-inc value for a given table
+    ///	(or globally, if the database doesn't support getting auto-inc values
+    ///	per table).</summary>
+    ///  <remarks>Use only with databases that support auto-inc semantics,
+    /// and according to the particular database specification.</remarks>
+    function GetLastAutoincValue(const ATableName: string = ''): Int64; virtual; abstract;
+
+    ///	<summary>Creates and returns an instance of the concrete command class,
+    /// linked to this connection.</summary>
+    function CreateDBCommand: TEFDBCommand; virtual; abstract;
+
+    ///	<summary>Creates and returns an instance of the concrete query class,
+    /// linked to this connection.</summary>
+    function CreateDBQuery: TEFDBQuery; virtual; abstract;
+
+    ///	<summary>Formats the specified value according to the database rules
+    ///	for SQL. The value formatted in this way can be used in queries. This
+    ///	method should use the passed node's DataType to decide how to format
+    ///	the value, which it then returns as a string.</summary>
     function FormatValue(const AValue: TEFNode): string; virtual;
   end;
 
@@ -204,11 +315,11 @@ type
   ///	</remarks>
   TEFDBAdapter = class(TEFComponent)
   protected
-    function InternalCreateDBConnection: IEFDBConnection; virtual; abstract;
-    function InternalCreateDBInfo: IEFDBInfo; virtual; abstract;
+    function InternalCreateDBConnection: TEFDBConnection; virtual; abstract;
+    function InternalCreateDBInfo: TEFDBInfo; virtual; abstract;
   public
-    function CreateDBConnection: IEFDBConnection;
-    function CreateDBInfo: IEFDBInfo;
+    function CreateDBConnection: TEFDBConnection;
+    function CreateDBInfo: TEFDBInfo;
   end;
   TEFDBAdapterClass = class of TEFDBAdapter;
 
@@ -312,12 +423,12 @@ end;
 
 { TEFDBAdapter }
 
-function TEFDBAdapter.CreateDBConnection: IEFDBConnection;
+function TEFDBAdapter.CreateDBConnection: TEFDBConnection;
 begin
   Result := InternalCreateDBConnection;
 end;
 
-function TEFDBAdapter.CreateDBInfo: IEFDBInfo;
+function TEFDBAdapter.CreateDBInfo: TEFDBInfo;
 begin
   Result := InternalCreateDBInfo;
 end;
@@ -327,7 +438,7 @@ end;
 procedure TEFDBConnection.AfterConnectionOpen(Sender: TObject);
 var
   LCommandText: string;
-  LCommand: IEFDBCommand;
+  LCommand: TEFDBCommand;
 begin
   LCommandText := Config.GetExpandedString('Config/AfterOpenCommandText');
   if LCommandText <> '' then
@@ -337,7 +448,7 @@ begin
       LCommand.CommandText := LCommandText;
       LCommand.Execute;
     finally
-      FreeAndNilEFIntf(LCommand);
+      FreeAndNil(LCommand);
     end;
   end;
 end;
@@ -349,6 +460,13 @@ begin
   FStandardFormatSettings.DecimalSeparator := '.';
   FStandardFormatSettings.DateSeparator := '-';
   FStandardFormatSettings.TimeSeparator := ':';
+end;
+
+destructor TEFDBConnection.Destroy;
+begin
+  if IsOpen then
+    Close;
+  inherited;
 end;
 
 function TEFDBConnection.FormatValue(const AValue: TEFNode): string;
@@ -603,6 +721,39 @@ end;
 function TEFDBSchemaInfo.GetTables(const AIndex: Integer): TEFDBTableInfo;
 begin
   Result := FTables[AIndex];
+end;
+
+{ TEFDBComponent }
+
+procedure TEFDBComponent.ConnectionChanged;
+begin
+end;
+
+function TEFDBComponent.GetConnection: TEFDBConnection;
+begin
+  Result := FConnection;
+end;
+
+procedure TEFDBComponent.InternalBeforeExecute;
+begin
+  Assert(Assigned(FConnection));
+
+  if not FConnection.IsOpen then
+    FConnection.Open;
+end;
+
+procedure TEFDBComponent.SetConnection(const AValue: TEFDBConnection);
+begin
+  FConnection := AValue;
+  ConnectionChanged;
+end;
+
+{ TEFDBCommand }
+
+function TEFDBCommand.Execute: Integer;
+begin
+  InternalBeforeExecute;
+  Result := 0;
 end;
 
 end.

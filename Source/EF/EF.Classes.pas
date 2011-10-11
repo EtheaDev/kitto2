@@ -15,170 +15,6 @@ const
   DEFAULT_LOG_LEVEL = 1;
 
 type
-  TEFConfig = class(TEFNode);
-
-{ TODO : Get rid of this and move Config to the controller interface }
-  IEFComponent = interface(IEFInterface)
-    ['{F4FA3F31-AE77-4847-A5DD-8F2DC9DDEBD1}']
-    function GetConfig: TEFConfig;
-    property Config: TEFConfig read GetConfig;
-  end;
-
-{ TODO : Get rid of DB-related interfaces, as single inheritance suffices now. }
-  IEFDBConnection = interface;
-  IEFDBCommand = interface;
-  IEFDBQuery = interface;
-
-  {
-    A connection to a database. It is in charge of
-    database access and transaction management.
-  }
-  IEFDBConnection = interface(IEFComponent)
-    ['{E084619B-D16D-4907-8E80-E33F55F60433}']
-    {
-      Connects to the database.
-    }
-    procedure Open;
-    {
-      Closes the connection to the database. As a result, open
-      datasets might get closed as well or not, depending on the
-      implementation.
-    }
-    procedure Close;
-    {
-      Returns True if the connection to the database is open, False otherwise.
-    }
-    function IsOpen: Boolean;
-    {
-      Executes a command and returns the number of affected records (assuming
-      the database is able to return it). Implementors may make use of
-      predefined functionality in a given database library, or create an
-      instance of whatever class implements IEFDBCommand, set its CommandText
-      and Execute the command, then destroy the object and return.
-    }
-    function ExecuteImmediate(const AStatement: string): Integer;
-    {
-      Starts a nEF transaction.
-    }
-    procedure StartTransaction;
-    {
-      Commits and ends a previously started transaction.
-    }
-    procedure CommitTransaction;
-    {
-      Rollbacks and ends a previously started transaction.
-    }
-    procedure RollbackTransaction;
-    {
-      Tells whether a transaction was started or not.
-    }
-    function IsInTransaction: Boolean;
-    {
-      Fetches and returns a nEF sequence generator value. Use only with
-      databases that support sequence generators (IB/Fb, Oracle).
-    }
-    function FetchSequenceGeneratorValue(const ASequenceName: string): Int64;
-    {
-      Returns the last generated auto-inc value for a given table (or globally,
-      if the database doesn't support getting auto-inc values per table). Use
-      only with databases that support auto-inc semantics, and according to the
-      particular database specification.
-    }
-    function GetLastAutoincValue(const ATableName: string = ''): Int64;
-    {
-      Creates and returns an instance of the concrete class that
-      implements IEFDBCommand, linked to this connection.
-    }
-    function CreateDBCommand: IEFDBCommand;
-    {
-      Creates and returns an instance of the concrete class that
-      implements IEFDBQuery, linked to this connection.
-    }
-    function CreateDBQuery: IEFDBQuery;
-    {
-      Formats the specified value according to the database rules for
-      SQL. The value formatted in this way can be used in queries.
-
-      This method should use the passed data items' DataType to decide how to
-      format the value, which it then returns as a string.
-    }
-    function FormatValue(const AValue: TEFNode): string;
-  end;
-
-  {
-    A data access component that needs a connection (and possibly a
-    transaction) to work.
-  }
-  IEFDBComponent = interface(IEFComponent)
-    ['{0BBA4B61-3696-4048-96B9-7155B75ACA38}']
-    function GetConnection: IEFDBConnection;
-    procedure SetConnection(const AValue: IEFDBConnection);
-    property Connection: IEFDBConnection read GetConnection write SetConnection;
-  end;
-
-  {
-    Executes a command that doesn't return any data.
-  }
-  IEFDBCommand = interface(IEFDBComponent)
-    ['{DD90B918-0E57-4648-A1D8-6D9C01678C0D}']
-    {
-      Contains the text of the statement to execute.
-    }
-    function GetCommandText: string;
-    procedure SetCommandText(const AValue: string);
-    property CommandText: string read GetCommandText write SetCommandText;
-    {
-      Manages prepared statements. Not all database might benefit from it.
-    }
-    function GetPrepared: Boolean;
-    procedure SetPrepared(const AValue: Boolean);
-    property Prepared: Boolean read GetPrepared write SetPrepared;
-    {
-      Optional param values for CommandText.
-    }
-    function GetParams: TParams;
-    procedure SetParams(const AValue: TParams);
-    property Params: TParams read GetParams write SetParams;
-    {
-      Executes the command and returns the number of affected records,
-      assuming the database is able to give this information.
-    }
-    function Execute: Integer;
-  end;
-
-  {
-    Executes a command that returns a data set.
-  }
-  IEFDBQuery = interface(IEFDBCommand)
-    ['{F6B0DAE8-F08D-406F-8EC4-98999C96D394}']
-    {
-      Executes the CommandText and reads the data into DataSet.
-    }
-    procedure Open;
-    {
-      Frees the memory used by the data and closes or frees DataSet.
-    }
-    procedure Close;
-    {
-      Returns True if the DataSet is available.
-    }
-    function IsOpen: Boolean;
-    {
-      Detail queries need a reference to their master query's DataSource for
-      parameter binding.
-    }
-    function GetMasterSource: TDataSource;
-    procedure SetMasterSource(const AValue: TDataSource);
-    property MasterSource: TDataSource read GetMasterSource write SetMasterSource;
-    {
-      The data buffer.
-      Don't access DataSet before calling Open, or checking IsOpen: some
-      classes might not make it available in advance.
-    }
-    function GetDataSet: TDataSet;
-    property DataSet: TDataSet read GetDataSet;
-  end;
-
   IEFTreeItem = interface(IEFInterface)
     ['{1C109A68-2108-4679-A76A-FC019B883A8B}']
     {
@@ -193,14 +29,13 @@ type
       const AAfter: IEFTreeItem = nil);
   end;
 
-  { TODO : inherit from TEFSubjectAndObserver }
-  TEFComponent = class(TEFNoRefCountObject, IInterface, IEFInterface,
-    IEFSubject, IEFObserver, IEFComponent)
+  TEFComponent = class(TEFSubjectAndObserver)
   private
     FOnLog: TEFLogEvent;
     FLogLevel: Integer;
     FObservers: TInterfaceList;
-    FConfig: TEFConfig;
+    FConfig: TEFNode;
+    function GetConfig: TEFNode;
   protected
     {
       Override this method to enable Config auto-load upon first request.
@@ -232,14 +67,6 @@ type
       exception with APropertyName in the message text is raised.
     }
     procedure CheckProperty(const ACondition: Boolean; const APropertyName: string);
-    {
-      Implements IEFSubject.Notify.
-    }
-    procedure NotifyObservers(const AContext: string = '');
-    {
-      Implements IEFObserver.Update.
-    }
-    procedure UpdateObserver(const ASubject: IEFSubject; const AContext: string = ''); virtual;
   public
     procedure AfterConstruction; override;
     destructor Destroy; override;
@@ -267,17 +94,8 @@ type
       have a level lower than or equal to this setting will be logged.
     }
     property LogLevel: Integer read FLogLevel write FLogLevel default DEFAULT_LOG_LEVEL;
-    {
-      Implements IEFSubject.Attach.
-    }
-    procedure AttachObserver(const AObserver: IEFObserver);
-    {
-      Implements IEFSubject.Detach.
-    }
-    procedure DetachObserver(const AObserver: IEFObserver);
 
-    function GetConfig: TEFConfig;
-    property Config: TEFConfig read GetConfig;
+    property Config: TEFNode read GetConfig;
   end;
 
   TEFComponentClass = class of TEFComponent;
@@ -396,15 +214,6 @@ begin
   Result := Self;
 end;
 
-procedure TEFComponent.AttachObserver(const AObserver: IEFObserver);
-begin
-  if Assigned(AObserver) and Assigned(FObservers) then
-  begin
-    if FObservers.IndexOf(AObserver) < 0 then
-      FObservers.Add(AObserver);
-  end;
-end;
-
 procedure TEFComponent.CheckProperty(const ACondition: Boolean;
   const APropertyName: string);
 begin
@@ -417,12 +226,6 @@ begin
   FreeAndNil(FConfig);
   FreeAndNil(FObservers);
   inherited;
-end;
-
-procedure TEFComponent.DetachObserver(const AObserver: IEFObserver);
-begin
-  if Assigned(AObserver) and Assigned(FObservers) then
-    FObservers.Remove(AObserver);
 end;
 
 procedure TEFComponent.DoLog(const AString: string; const ALogLevel: Integer = DEFAULT_LOG_LEVEL);
@@ -447,7 +250,7 @@ begin
   Result := InternalGetClassId;
 end;
 
-function TEFComponent.GetConfig: TEFConfig;
+function TEFComponent.GetConfig: TEFNode;
 var
   LConfigFileName: string;
 begin
@@ -455,9 +258,9 @@ begin
   begin
     LConfigFileName := GetConfigFileName;
     if LConfigFileName <> '' then
-      FConfig := TEFTreeFactory.LoadFromFile<TEFConfig>(LConfigFileName)
+      FConfig := TEFTreeFactory.LoadFromFile<TEFNode>(LConfigFileName)
     else
-      FConfig := TEFConfig.Create;
+      FConfig := TEFNode.Create;
   end;
   Result := FConfig;
 end;
@@ -484,20 +287,6 @@ end;
 function TEFComponent.InternalGetId: string;
 begin
   Result := GetClassId;
-end;
-
-procedure TEFComponent.NotifyObservers(const AContext: string = '');
-var
-  I: Integer;
-begin
-  if Assigned(FObservers) then
-    for I := FObservers.Count - 1 downto 0 do
-      (FObservers[I] as IEFObserver).UpdateObserver(Self, AContext);
-end;
-
-procedure TEFComponent.UpdateObserver(const ASubject: IEFSubject;
-  const AContext: string);
-begin
 end;
 
 { TEFRegistry }

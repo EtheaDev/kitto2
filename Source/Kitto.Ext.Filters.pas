@@ -175,7 +175,7 @@ implementation
 
 uses
   SysUtils, Math, StrUtils,
-  EF.Localization,  EF.Intf, EF.DB.Utils,
+  EF.Localization,  EF.DB, EF.DB.Utils,
   Kitto.Types, Kitto.JSON, Kitto.Environment;
 
 { TKExtFilterRegistry }
@@ -393,7 +393,7 @@ end;
 
 procedure TKDynaListFilter.SetConfig(const AConfig: TEFNode);
 var
-  LDBQuery: IEFDBQuery;
+  LDBQuery: TEFDBQuery;
 begin
   inherited;
   //ForceSelection := True;
@@ -417,7 +417,7 @@ begin
       LDBQuery.Close;
     end;
   finally
-    FreeAndNilEFIntf(LDBQuery);
+    FreeAndNil(LDBQuery);
   end;
   //PageSize := 10;
   //Resizable := True;
