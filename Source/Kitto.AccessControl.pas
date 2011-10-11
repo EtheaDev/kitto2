@@ -298,7 +298,7 @@ begin
     Assert(Assigned(FFactory));
 
     if FAccessControllerId = '' then
-      FAccessControllerId := Environment.Config.GetString('AccessControl/Type', NULL_ACCESS_CONTROLLER);
+      FAccessControllerId := Environment.Config.GetString('AccessControl', NULL_ACCESS_CONTROLLER);
     FCurrentAccessController := FFactory.CreateObject(FAccessControllerId);
     LConfig := Environment.Config.FindNode('AccessControl');
     if Assigned(LConfig) then

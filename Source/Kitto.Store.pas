@@ -462,7 +462,7 @@ begin
     edtTime: Result := '"' + TimeToStr(AsTime, Session.FormatSettings) + '"';
     edtDateTime: Result := '"' + DateTimeToStr(AsDateTime, Session.FormatSettings) + '"';
     edtBoolean: Result := BoolToStr(AsBoolean, True);
-    edtCurrency, edtFloat, edtDecimal: Result := FloatToStr(AsFloat, Session.FormatSettings);
+    edtCurrency, edtFloat, edtDecimal: Result := '"' + FloatToStr(AsFloat, Session.FormatSettings) + '"';
   end;
 end;
 

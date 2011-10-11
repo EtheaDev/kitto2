@@ -128,12 +128,14 @@ begin
 end;
 
 procedure TKExtSession.DisplayHomeView;
+var
+  LHomeView: TKView;
 begin
   FIsAuthenticated := True;
   NilEFIntf(FHomeController);
-{ TODO : have the session observe the home controller? }
-  FHomeController := TKExtControllerFactory.Instance.CreateController(
-    Environment.Views.ViewByName(Environment.Config.GetString('Home/View', 'Home')), nil);
+
+  LHomeView := Environment.Views.ViewByNode(Environment.Config.FindNode('HomeView'));
+  FHomeController := TKExtControllerFactory.Instance.CreateController(LHomeView, nil);
   FHomeController.Display;
 end;
 
@@ -151,8 +153,8 @@ begin
     DisplayHomeView
   else
   begin
-    LAutoUserName := Environment.Config.GetString('Authentication/AutoUserName');
-    LAutoUserPassword := Environment.Config.GetString('Authentication/AutoUserPassword');
+    LAutoUserName := Environment.Config.GetString('Auth/AutoUserName');
+    LAutoUserPassword := Environment.Config.GetString('Auth/AutoUserPassword');
     if (LAutoUserName <> '') and (LAutoUserPassword <> '') then
     begin
       { TODO : refactor authentication so that it doesn't raise exceptions }
@@ -284,3 +286,4 @@ finalization
   SetEnvironmentSingleton(nil);
 
 end.
+

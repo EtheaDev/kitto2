@@ -17,12 +17,14 @@ const
 type
   TEFConfig = class(TEFNode);
 
+{ TODO : Get rid of this and move Config to the controller interface }
   IEFComponent = interface(IEFInterface)
     ['{F4FA3F31-AE77-4847-A5DD-8F2DC9DDEBD1}']
     function GetConfig: TEFConfig;
     property Config: TEFConfig read GetConfig;
   end;
 
+{ TODO : Get rid of DB-related interfaces, as single inheritance suffices now. }
   IEFDBConnection = interface;
   IEFDBCommand = interface;
   IEFDBQuery = interface;

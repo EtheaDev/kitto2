@@ -150,7 +150,7 @@ begin
   FIRST/SKIP/ROWS to only fetch relevant rows in a database-dependent way?
   For now, let's just stick with full refresh always. }
   ServerStore.Load(Environment.MainDBConnection,
-    BuildCommandText(FFilterPanel.GetFilterExpression));
+    BuildCommandText(GetFilterExpression));
 
   LStart := Session.QueryAsInteger['start'];
   LLimit := Session.QueryAsInteger['limit'];
@@ -175,11 +175,15 @@ begin
   FPagingToolbar.DisplayInfo := False;
   FPagingToolbar.PageSize := FPageRecordCount;
   Result := FPagingToolbar;
+  FPagingToolbar.Store := nil; // Avoid double destruction of the store.
 end;
 
 function TKExtListPanelController.GetFilterExpression: string;
 begin
-  Result := FFilterPanel.GetFilterExpression;
+  if Assigned(FFilterPanel) then
+    Result := FFilterPanel.GetFilterExpression
+  else
+    Result := '';
 end;
 
 procedure TKExtListPanelController.CreateFilterPanel;
@@ -187,8 +191,8 @@ var
   LItems: TEFNode;
   I: Integer;
 begin
-  LItems := ViewTable.GetNode('Controller/Filters/Items');
-  if LItems.ChildCount > 0 then
+  LItems := ViewTable.FindNode('Controller/Filters/Items');
+  if Assigned(LItems) and (LItems.ChildCount > 0) then
   begin
     FFilterPanel := TKExtFilterPanel.AddTo(Items);
     FFilterPanel.Region := rgNorth;
@@ -222,7 +226,7 @@ begin
     LNewButton := TExtButton.AddTo(Result.Items);
     begin
       LNewButton.Text := 'New Record';
-      LNewButton.Icon := Environment.GetImageURL('new_record_16.png');
+      LNewButton.Icon := Environment.GetImageURL('new_record_16');
       LNewButton.Disabled := not FIsAddAllowed;
       if not LNewButton.Disabled then
         LNewButton.OnClick := NewRecord;
@@ -231,7 +235,7 @@ begin
     LDeleteButton := TExtButton.AddTo(Result.Items);
     begin
       LDeleteButton.Text := 'Delete Record';
-      LDeleteButton.Icon := Environment.GetImageURL('delete_record_16.png');
+      LDeleteButton.Icon := Environment.GetImageURL('delete_record_16');
       LDeleteButton.Disabled := not FIsDeleteAllowed;
       if not LDeleteButton.Disabled then
       begin

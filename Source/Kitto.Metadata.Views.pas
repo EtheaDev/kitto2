@@ -223,6 +223,8 @@ type
   private
     FLayouts: TKLayouts;
     function GetLayouts: TKLayouts;
+    function BuildView(const ANode: TEFNode;
+      const AViewBuilderName: string): TKView;
   protected
     procedure AfterCreateObject(const AObject: TKMetadata); override;
     function GetObjectClassType: TKMetadataClass; override;
@@ -311,6 +313,37 @@ type
     property ViewRefs: TKViewRefs read GetViewRefs;
   end;
 
+  TKViewBuilder = class(TKMetadata)
+  public
+    function BuildView: TKView; virtual; abstract;
+  end;
+
+  TKViewBuilderClass = class of TKViewBuilder;
+
+  TKViewBuilderRegistry = class(TEFRegistry)
+  private
+    class var FInstance: TKViewBuilderRegistry;
+    class function GetInstance: TKViewBuilderRegistry; static;
+    class destructor Destroy;
+  public
+    class property Instance: TKViewBuilderRegistry read GetInstance;
+    function GetClass(const AId: string): TKViewBuilderClass;
+  end;
+
+  TKViewBuilderFactory = class(TEFFactory)
+  private
+    class var FInstance: TKViewBuilderFactory;
+    class function GetInstance: TKViewBuilderFactory; static;
+  protected
+    function DoCreateObject(const AClass: TClass): TObject; override;
+  public
+    class destructor Destroy;
+  public
+    class property Instance: TKViewBuilderFactory read GetInstance;
+
+    function CreateObject(const AId: string): TKViewBuilder; reintroduce;
+  end;
+
 implementation
 
 uses
@@ -345,8 +378,39 @@ begin
 end;
 
 function TKViews.FindViewByNode(const ANode: TEFNode): TKView;
+var
+  LWords: TStringDynArray;
 begin
+  if Assigned(ANode) then
+  begin
+    LWords := Split(ANode.AsString);
+    if Length(LWords) >= 2 then
+    begin
+      // Two words: the first one is the verb.
+      if SameText(LWords[0], 'Build') then
+      begin
+        Result := BuildView(ANode, LWords[1]);
+        Exit;
+      end;
+    end;
+  end;
   Result := FindObjectByNode(ANode) as TKView;
+end;
+
+function TKViews.BuildView(const ANode: TEFNode; const AViewBuilderName: string): TKView;
+var
+  LViewBuilder: TKViewBuilder;
+begin
+  Assert(Assigned(ANode));
+  Assert(AViewBuilderName <> '');
+
+  LViewBuilder := TKViewBuilderFactory.Instance.CreateObject(AViewBuilderName);
+  try
+    LViewBuilder.Assign(ANode);
+    Result := LViewBuilder.BuildView;
+  finally
+    FreeAndNil(LViewBuilder);
+  end;
 end;
 
 function TKViews.GetLayouts: TKLayouts;
@@ -380,7 +444,12 @@ end;
 
 function TKViews.ViewByNode(const ANode: TEFNode): TKView;
 begin
-  Result := ObjectByNode(ANode) as TKView;
+  Result := FindViewByNode(ANode);
+  if not Assigned(Result) then
+    if Assigned(ANode) then
+      ObjectNotFound(ANode.Name + ':' + ANode.AsString)
+    else
+      ObjectNotFound('<nil>');
 end;
 
 { TKLayouts }
@@ -634,7 +703,7 @@ end;
 
 function TKViewTable.FindLayout(const AKind: string): TKLayout;
 begin
-  Result := View.Catalog.Layouts.FindLayout(View.PersistentName + '_' + AKind);
+  Result := Environment.Views.Layouts.FindLayout(View.PersistentName + '_' + AKind);
 end;
 
 function TKViewTable.GetTable(I: Integer): TKViewTable;
@@ -644,7 +713,7 @@ end;
 
 function TKViewTable.GetModelName: string;
 begin
-  Result := GetNode('ModelName', True).AsString;
+  Result := GetNode('Model', True).AsString;
 end;
 
 function TKViewTable.GetView: TKDataView;
@@ -991,6 +1060,50 @@ end;
 function TKTreeView.GetViewRefs: TKViewRefs;
 begin
   Result := GetNode('ViewRefs', True) as TKViewRefs;
+end;
+
+{ TKViewBuilderRegistry }
+
+class destructor TKViewBuilderRegistry.Destroy;
+begin
+  FreeAndNil(FInstance);
+end;
+
+function TKViewBuilderRegistry.GetClass(const AId: string): TKViewBuilderClass;
+begin
+  Result := TKViewBuilderClass(inherited GetClass(AId));
+end;
+
+class function TKViewBuilderRegistry.GetInstance: TKViewBuilderRegistry;
+begin
+  if FInstance = nil then
+    FInstance := TKViewBuilderRegistry.Create;
+  Result := FInstance;
+end;
+
+{ TKViewBuilderFactory }
+
+function TKViewBuilderFactory.CreateObject(const AId: string): TKViewBuilder;
+begin
+  Result := inherited CreateObject(AId) as TKViewBuilder;
+end;
+
+class destructor TKViewBuilderFactory.Destroy;
+begin
+  FreeAndNil(FInstance);
+end;
+
+function TKViewBuilderFactory.DoCreateObject(const AClass: TClass): TObject;
+begin
+  // Must use the virtual constructor in TEFTree.
+  Result := TKViewBuilderClass(AClass).Create;
+end;
+
+class function TKViewBuilderFactory.GetInstance: TKViewBuilderFactory;
+begin
+  if FInstance = nil then
+    FInstance := TKViewBuilderFactory.Create(TKViewBuilderRegistry.Instance);
+  Result := FInstance;
 end;
 
 initialization
