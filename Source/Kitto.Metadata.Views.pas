@@ -694,7 +694,7 @@ var
   I: Integer;
   LDataViewField: TKViewField;
 begin
-  Result := Model.Key.GetFieldNames;
+  Result := Model.GetKeyFieldNames;
   // Apply aliasing.
   for I := Low(Result) to High(Result) do
   begin

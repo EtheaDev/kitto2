@@ -105,33 +105,14 @@ type
     function FindField(const AName: string): TKModelField;
   end;
 
-  TKModelConstraint = class(TKMetadataItem)
+  TKModelSubobject = class(TKMetadataItem)
   private
     function GetModel: TKModel;
-    function GetQualifiedContraintName: string;
-  protected
-    function GetConstraintName: string; virtual; abstract;
   public
-    property ConstraintName: string read GetConstraintName;
-    property QualifiedContraintName: string read GetQualifiedContraintName;
     property Model: TKModel read GetModel;
   end;
 
-  TKModelKey = class(TKModelConstraint)
-  private
-    function GetField(I: Integer): TKModelField;
-    function GetFieldCount: Integer;
-  protected
-    function GetConstraintName: string; override;
-    function GetFields: TEFNode;
-  public
-    property FieldCount: Integer read GetFieldCount;
-    property Fields[I: Integer]: TKModelField read GetField;
-    function GetFieldNames: TStringDynArray;
-    function HasField(const AFieldName: string): Boolean;
-  end;
-
-  TKModelReference = class(TKModelConstraint)
+  TKModelReference = class(TKModelSubobject)
   private
     function GetField(I: Integer): TKModelField;
     function GetFieldCount: Integer;
@@ -141,9 +122,11 @@ type
     function GetIsRequired: Boolean;
     property ReferencedModelName: string read GetReeferencedModelName;
   protected
-    function GetConstraintName: string; override;
+    function GetReferenceName: string;
     function GetFields: TEFNode;
   public
+    property ReferenceName: string read GetReferenceName;
+
     property FieldCount: Integer read GetFieldCount;
     property Fields[I: Integer]: TKModelField read GetField;
     property ReferencedFields[I: Integer]: TKModelField read GetReferencedField;
@@ -173,7 +156,6 @@ type
     function GetReferenceCount: Integer;
     function GetReference(I: Integer): TKModelReference;
     function GetModelName: string;
-    function GetKey: TKModelKey;
     function GetDisplayLabel: string;
     function GetPluralDisplayLabel: string;
     function BeautifyModelName(const AModelName: string): string;
@@ -195,7 +177,7 @@ type
     function FieldByName(const AName: string): TKModelField;
     function FindField(const AName: string): TKModelField;
 
-    property Key: TKModelKey read GetKey;
+    function GetKeyFieldNames(const AQualify: Boolean = False): TStringDynArray;
 
     property ReferenceCount: Integer read GetReferenceCount;
     property References[I: Integer]: TKModelReference read GetReference;
@@ -324,9 +306,25 @@ begin
     Result := Pluralize(BeautifyModelName(ModelName));
 end;
 
-function TKModel.GetKey: TKModelKey;
+function TKModel.GetKeyFieldNames(const AQualify: Boolean = False): TStringDynArray;
+var
+  I: Integer;
+  J: Integer;
 begin
-  Result := FindChild('Key', True) as TKModelKey;
+  SetLength(Result, FieldCount);
+  J := 0;
+  for I := 0 to FieldCount - 1 do
+  begin
+    if Fields[I].IsKey then
+    begin
+      if AQualify then
+        Result[J] := Fields[I].QualifiedFieldName
+      else
+        Result[J] := Fields[I].FieldName;
+      Inc(J);
+    end;
+  end;
+  SetLength(Result, J);
 end;
 
 function TKModel.GetModelName: string;
@@ -338,8 +336,6 @@ function TKModel.GetChildClass(const AName: string): TEFNodeClass;
 begin
   if SameText(AName, 'Fields') then
     Result := TKModelFields
-  else if SameText(AName, 'Key') then
-    Result := TKModelKey
   else if SameText(AName, 'References') then
     Result := TKModelReferences
   else
@@ -347,18 +343,10 @@ begin
 end;
 
 function TKModel.GetDefaultSorting: string;
-var
-  LFieldNames: TStringDynArray;
-  I: Integer;
 begin
   Result := GetString('DefaultSorting');
   if Result = '' then
-  begin
-    SetLength(LFieldNames, Key.FieldCount);
-    for I := 0 to High(LFieldNames) do
-      LFieldNames[I] := Key.Fields[I].QualifiedFieldName;
-    Result := Join(LFieldNames, ', ');
-  end;
+    Result := Join(GetKeyFieldNames(True), ', ');
 end;
 
 function TKModel.GetDisplayLabel: string;
@@ -411,7 +399,7 @@ end;
 
 function TKModelField.GetIsKey: Boolean;
 begin
-  Result := Model.Key.HasField(FieldName);
+  Result := GetBoolean('IsKey');
 end;
 
 function TKModelField.GetIsReadOnly: Boolean;
@@ -545,50 +533,9 @@ begin
   Result := TKModelField;
 end;
 
-{ TKModelKey }
+{ TKModelSubobject }
 
-function TKModelKey.GetFields: TEFNode;
-begin
-  Result := FindChild('Fields', True);
-end;
-
-function TKModelKey.HasField(const AFieldName: string): Boolean;
-begin
-  Result := MatchText(AFieldName, GetFieldNames);
-end;
-
-function TKModelKey.GetConstraintName: string;
-begin
-  Result := AsString;
-end;
-
-function TKModelKey.GetField(I: Integer): TKModelField;
-begin
-  Result := Model.FieldByName(GetFields[I].Name);
-end;
-
-function TKModelKey.GetFieldCount: Integer;
-begin
-  Result := GetFields.ChildCount;
-end;
-
-function TKModelKey.GetFieldNames: TStringDynArray;
-var
-  I: Integer;
-begin
-  SetLength(Result, GetFieldCount);
-  for I := 0 to High(Result) do
-    Result[I] := Fields[I].FieldName;
-end;
-
-{ TKModelConstraint }
-
-function TKModelConstraint.GetQualifiedContraintName: string;
-begin
-  Result := Model.ModelName + '.' + ConstraintName;
-end;
-
-function TKModelConstraint.GetModel: TKModel;
+function TKModelSubobject.GetModel: TKModel;
 var
   LParent: TEFTree;
 begin
@@ -633,7 +580,7 @@ begin
   Result := AsString;
 end;
 
-function TKModelReference.GetConstraintName: string;
+function TKModelReference.GetReferenceName: string;
 begin
   Result := Name;
 end;
