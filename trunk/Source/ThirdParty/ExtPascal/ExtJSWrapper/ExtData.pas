@@ -266,7 +266,7 @@ type
     procedure SetFName(Value : String);
     procedure SetFSortDir(Value : String);
     procedure SetFSortType(Value : TExtFunction);
-    procedure SetFTypeJS(Value : String);
+    procedure SetFType_(Value : String);
   public
     function JSClassName : string; override;
     {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
@@ -279,7 +279,7 @@ type
     property Name : String read FName write SetFName;
     property SortDir : String read FSortDir write SetFSortDir;
     property SortType : TExtFunction read FSortType write SetFSortType;
-    property TypeJS : String read FTypeJS write SetFTypeJS;
+    property Type_ : String read FTypeJS write SetFType_;
   end;
 
   TExtDataSortTypesSingleton = class(TExtFunction)
@@ -1669,9 +1669,9 @@ procedure TExtDataField.SetFSortType(Value : TExtFunction); begin
   JSCode('sortType:' + VarToJSON([Value, true]));
 end;
 
-procedure TExtDataField.SetFTypeJS(Value : String); begin
+procedure TExtDataField.SetFType_(Value : String); begin
   FTypeJS := Value;
-  JSCode('typeJS:' + VarToJSON([Value]));
+  JSCode('type:' + VarToJSON([Value]));
 end;
 
 function TExtDataField.JSClassName : string; begin

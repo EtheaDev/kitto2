@@ -1,9 +1,9 @@
-unit Kitto.Store;
+  unit Kitto.Store;
 
 interface
 
 uses
-  Types, DB,
+  SysUtils, Types, DB,
   EF.Tree, EF.DB;
 
 type
@@ -28,6 +28,8 @@ type
 
   TKField = class(TEFNode)
   private
+    class var JSFormatSettings: TFormatSettings;
+    class constructor Create;
     function GetFieldName: string;
     function GetParentRecord: TKRecord;
     function GetAsJSONValue: string;
@@ -143,7 +145,7 @@ type
 implementation
 
 uses
-  SysUtils, Math, FmtBcd,
+  Math, FmtBcd,
   EF.StrUtils, EF.Localization, EF.DB.Utils,
   Kitto.Types, Kitto.Ext.Session;
 
@@ -449,6 +451,12 @@ end;
 
 { TKField }
 
+class constructor TKField.Create;
+begin
+  JSFormatSettings := TFormatSettings.Create;
+  JSFormatSettings.DecimalSeparator := '.';
+end;
+
 function TKField.GetAsJSON: string;
 begin
   Result := '"' + FieldName + '":' + AsJSONValue;
@@ -456,14 +464,20 @@ end;
 
 function TKField.GetAsJSONValue: string;
 begin
-  case DataType of
-    edtUnknown, edtString, edtObject, edtInteger: Result := '"' + AsString + '"';
-    edtDate: Result := '"' + DateToStr(AsDate, Session.FormatSettings) + '"';
-    edtTime: Result := '"' + TimeToStr(AsTime, Session.FormatSettings) + '"';
-    edtDateTime: Result := '"' + DateTimeToStr(AsDateTime, Session.FormatSettings) + '"';
-    edtBoolean: Result := BoolToStr(AsBoolean, True);
-    edtCurrency, edtFloat, edtDecimal: Result := '"' + FloatToStr(AsFloat, Session.FormatSettings) + '"';
+  if IsNull then
+    Result := 'null'
+  else
+  begin
+    case DataType of
+      edtUnknown, edtString, edtObject, edtInteger: Result := AsString;
+      edtDate: Result := DateToStr(AsDate, Session.FormatSettings);
+      edtTime: Result := TimeToStr(AsTime, Session.FormatSettings);
+      edtDateTime: Result := DateTimeToStr(AsDateTime, Session.FormatSettings);
+      edtBoolean: Result := BoolToStr(AsBoolean, True);
+      edtCurrency, edtFloat, edtDecimal: Result := FloatToStr(AsFloat, JSFormatSettings);
+    end;
   end;
+  Result := '"' + Result + '"';
 end;
 
 function TKField.GetFieldName: string;
