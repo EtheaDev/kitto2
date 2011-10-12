@@ -44,9 +44,7 @@ begin
   LModel := GetModel;
   Result := TKDataView.Create;
   try
-    LController := FindNode('Controller');
-    if Assigned(LController) then
-      Result.AddChild(TEFNode.Clone(LController));
+    LController := Result.AddChild(TEFNode.Clone(FindNode('Controller')));
     //Result.SetString('DisplayLabel', LModel.PluralDisplayLabel);
     Result.SetString('Controller', GetControllerType);
 
@@ -57,7 +55,7 @@ begin
 add all model fields, plus a lookup to the default field of each
 reference that is not to a master record. The default field is
 configured, or is the first non-key field by default. }
-    LMainTableController := LMainTable.AddChild(TEFNode.Create('Controller'));
+    LMainTableController := LMainTable.AddChild(TEFNode.Clone(FindNode('MainTable/Controller')));
 { TODO :
 don't set this when the controller has learned to query the model
 for cardinality estimate. }
