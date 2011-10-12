@@ -55,7 +55,7 @@ type
     function GetModelName: string;
     function GetFieldName: string;
     function GetEmptyAsNull: Boolean;
-    function GetDefaultValue: string;
+    function GetDefaultValue: Variant;
     function GetModel: TKModel;
     function GetExpression: string;
     function GetAlias: string;
@@ -97,7 +97,7 @@ type
     property IsRequired: Boolean read GetIsRequired;
     property IsReadOnly: Boolean read GetIsReadOnly;
     property EmptyAsNull: Boolean read GetEmptyAsNull;
-    property DefaultValue: string read GetDefaultValue;
+    property DefaultValue: Variant read GetDefaultValue;
     property Expression: string read GetExpression;
 
     property DisplayLabel: string read GetDisplayLabel;
@@ -204,11 +204,17 @@ type
     ///	</param>
     function FindLayout(const AKind: string): TKLayout;
 
-
     ///	<summary>
     ///	  Creates and returns a store with the view's metadata.
     ///	</summary>
     function CreateStore: TKStore;
+
+    ///	<summary>Creates and returns a node with one child for each default
+    ///	value as specified in the view table or model. Any default expression
+    ///	is evaluated at this time.</summary>
+    ///	<remarks>The caller is responsible for freeing the returned node
+    ///	object.</remarks>
+    function GetDefaultValues: TEFNode;
   end;
 
   TKDataView = class(TKView)
@@ -537,11 +543,13 @@ var
 begin
   Result := TKStore.Create;
   try
-    // Set key.
-    Result.Key.SetFieldNames(GetKeyFieldAliasedNames);
-    // Set field names and data types.
+    // Set field names and data types both in key and header.
     for I := 0 to FieldCount - 1 do
+    begin
+      if Fields[I].IsKey then
+        Result.Key.AddChild(Fields[I].AliasedName).DataType := Fields[I].DataType;
       Result.Header.AddChild(Fields[I].AliasedName).DataType := Fields[I].DataType;
+    end;
   except
     FreeAndNil(Result);
     raise;
@@ -587,8 +595,27 @@ end;
 function TKViewTable.GetDefaultSorting: string;
 begin
   Result := GetString('DefaultSorting');
-  if (Result = '') and (Model <> nil) then
+  if Result = '' then
     Result := Model.DefaultSorting;
+end;
+
+function TKViewTable.GetDefaultValues: TEFNode;
+var
+  I: Integer;
+  LValue: Variant;
+begin
+  Result := TEFNode.Create;
+  try
+    for I := 0 to FieldCount - 1 do
+    begin
+      LValue := Fields[I].DefaultValue;
+      if not VarIsNull(LValue) then
+        Result.AddChild(Fields[I].FieldName, LValue);
+    end;
+  except
+    FreeAndNil(Result);
+    raise;
+  end;
 end;
 
 function TKViewTable.GetDefaultFilter: string;
@@ -609,7 +636,7 @@ end;
 function TKViewTable.GetDisplayLabel: string;
 begin
   Result := GetString('DisplayLabel');
-  if (Result = '') and (Model <> nil) then
+  if Result = '' then
     Result := Model.DisplayLabel;
 end;
 
@@ -650,17 +677,14 @@ procedure TKViewTable.CreateDefaultFields;
 var
   I: Integer;
 begin
-  if Model <> nil then
-  begin
-    for I := 0 to Model.FieldCount - 1 do
-      GetNode('Fields').AddChild(TKViewField.Create(Model.Fields[I].FieldName));
-  end;
+  for I := 0 to Model.FieldCount - 1 do
+    GetNode('Fields').AddChild(TKViewField.Create(Model.Fields[I].FieldName));
 end;
 
 function TKViewTable.GetIsDetail: Boolean;
 begin
   // MainTable has the view as parent, other tables have the collection.
-  Result := not (Parent is TKViewTables);
+  Result := Parent is TKViewTables;
 end;
 
 function TKViewTable.GetIsReadOnly: Boolean;
@@ -685,7 +709,7 @@ end;
 function TKViewTable.GetPluralDisplayLabel: string;
 begin
   Result := GetString('PluralDisplayLabel');
-  if Result = '' then
+  if Result = ''then
     Result := Model.PluralDisplayLabel;
 end;
 
@@ -863,11 +887,9 @@ begin
   Result := Table.Model.Catalog.ModelByName(ModelName);
 end;
 
-function TKViewField.GetDefaultValue: string;
+function TKViewField.GetDefaultValue: Variant;
 begin
-  Result := GetString('DefaultValue');
-  if Result = '' then
-    Result := ModelField.DefaultValue;
+  Result := EvalExpression(GetValue('DefaultValue'));
 end;
 
 function TKViewField.GetDisplayLabel: string;
@@ -879,8 +901,8 @@ end;
 
 function TKViewField.GetDisplayWidth: Integer;
 begin
-  Result := GetInteger('DisplayWidth', -1);
-  if Result = -1 then
+  Result := GetInteger('DisplayWidth');
+  if Result = 0 then
     Result := ModelField.DisplayWidth;
 end;
 
@@ -889,17 +911,15 @@ var
   LNode: TEFNode;
 begin
   LNode := FindNode('EmptyAsNull');
-  if Assigned(LNode) then
-    Result := LNode.AsBoolean
+  if LNode = nil then
+    Result := ModelField.EmptyAsNull
   else
-    Result := ModelField.EmptyAsNull;
+    Result := LNode.AsBoolean;
 end;
 
 function TKViewField.GetExpression: string;
 begin
   Result := GetString('Expression');
-  if Result = '' then
-    Result := ModelField.Expression;
 end;
 
 function TKViewField.GetFieldName: string;
@@ -916,14 +936,8 @@ begin
 end;
 
 function TKViewField.GetIsVisible: Boolean;
-var
-  LNode: TEFNode;
 begin
-  LNode := FindNode('IsVisible');
-  if Assigned(LNode) then
-    Result := LNode.AsBoolean
-  else
-    Result := ModelField.IsVisible;
+  Result := GetBoolean('IsVisible', True);
 end;
 
 function TKViewField.GetQualifiedName: string;
@@ -936,8 +950,8 @@ end;
 
 function TKViewField.GetSize: Integer;
 begin
-  Result := GetInteger('Size', -1);
-  if Result = -1 then
+  Result := GetInteger('Size');
+  if Result = 0 then
     Result := ModelField.Size;
 end;
 
@@ -953,14 +967,8 @@ begin
 end;
 
 function TKViewField.GetIsReadOnly: Boolean;
-var
-  LNode: TEFNode;
 begin
-  LNode := FindNode('IsReadOnly');
-  if Assigned(LNode) then
-    Result := LNode.AsBoolean
-  else
-    Result := ModelField.IsReadOnly;
+  Result := GetBoolean('IsReadOnly');
 end;
 
 function TKViewField.GetIsRequired: Boolean;
@@ -968,10 +976,10 @@ var
   LNode: TEFNode;
 begin
   LNode := FindNode('IsRequired');
-  if Assigned(LNode) then
-    Result := LNode.AsBoolean
+  if LNode = nil then
+    Result := ModelField.IsRequired
   else
-    Result := ModelField.IsRequired;
+    Result := LNode.AsBoolean or ModelField.IsRequired;
 end;
 
 function TKViewField.GetTable: TKViewTable;
@@ -1135,4 +1143,5 @@ finalization
   TKMetadataRegistry.Instance.UnregisterClass('Tree');
 
 end.
+
 

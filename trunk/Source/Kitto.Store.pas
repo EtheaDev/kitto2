@@ -4,10 +4,17 @@ interface
 
 uses
   SysUtils, Types, DB,
-  EF.Tree, EF.DB;
+  EF.Tree, EF.DB,
+  Kitto.Metadata.Models;
 
 type
+  TKKey = class;
+
   TKKeyField = class(TEFNode)
+  private
+    function GetKey: TKKey;
+  public
+    property Key: TKKey read GetKey;
   end;
 
   TKKey = class(TEFNode)
@@ -23,17 +30,16 @@ type
     procedure SetFieldNames(const AFieldNames: TStringDynArray);
   end;
 
-  TKRecords = class;
   TKRecord = class;
 
   TKField = class(TEFNode)
   private
-    class var JSFormatSettings: TFormatSettings;
-    class constructor Create;
     function GetFieldName: string;
     function GetParentRecord: TKRecord;
     function GetAsJSONValue: string;
     procedure SetAsJSONValue(const AValue: string);
+  protected
+    function GetName: string; override;
   public
     property AsJSONValue: string read GetAsJSONValue write SetAsJSONValue;
     property ParentRecord: TKRecord read GetParentRecord;
@@ -43,8 +49,13 @@ type
     property FieldName: string read GetFieldName;
   end;
 
+  TKRecords = class;
+
+  TKRecordState = (rsNew, rsClean, rsDirty, rsDeleted);
+
   TKRecord = class(TEFNode)
   private
+    FState: TKRecordState;
     function GetRecords: TKRecords;
     function GetKey: TKKey;
     function GetField(I: Integer): TKField;
@@ -52,13 +63,14 @@ type
   protected
     function GetChildClass(const AName: string): TEFNodeClass; override;
   public
+    procedure AfterConstruction; override;
     property Records: TKRecords read GetRecords;
     property Key: TKKey read GetKey;
     property Fields[I: Integer]: TKField read GetField; default;
     property FieldCount: Integer read GetFieldCount;
     function FindField(const AFieldName: string): TKField;
     function FieldByName(const AFieldName: string): TKField;
-    function MatchesKeyValues(const AValues: TStringDynArray): Boolean;
+    function MatchesValues(const AValues: TEFNode): Boolean;
 
     ///	<summary>
     ///	  Clears its fields and reads fields and values from the current
@@ -66,7 +78,17 @@ type
     ///	</summary>
     procedure ReadFromFields(const AFields: TFields);
 
+    ///	<summary>Reads any values from the specified node by name. Fields whose
+    ///	names are not in the passed node are set to Null.</summary>
+    procedure ReadFromNode(const ANode: TEFNode);
+
     function GetAsJSON: string;
+
+    procedure MarkAsDirty;
+    procedure MarkAsDeleted;
+
+    procedure Save(const ADBConnection: TEFDBConnection; const AModel: TKModel;
+      const AUseTransaction: Boolean);
   end;
 
   TKStore = class;
@@ -75,7 +97,7 @@ type
   private
     FKey: TKKey;
     function GetRecordCount: Integer;
-    function GetRecord(I: Integer): TKRecord;
+    function GetRecordByIndex(I: Integer): TKRecord;
     procedure SetKey(const AValue: TKKey);
     function GetStore: TKStore;
   protected
@@ -87,9 +109,9 @@ type
     property Store: TKStore read GetStore;
 
     property Key: TKKey read FKey write SetKey;
-    function FindRecordByKey(const AValues: TStringDynArray): TKRecord;
-    function GetRecordByKey(const AValues: TStringDynArray): TKRecord;
-    property Records[I: Integer]: TKRecord read GetRecord; default;
+    function FindRecord(const AValues: TEFNode): TKRecord;
+    function GetRecord(const AValues: TEFNode): TKRecord;
+    property Records[I: Integer]: TKRecord read GetRecordByIndex; default;
     property RecordCount: Integer read GetRecordCount;
 
     ///	<summary>
@@ -99,12 +121,26 @@ type
     ///	<remarks>
     ///	  This method is meant to be used during data loading.
     ///	</remarks>
-    function AppendRecord(const ARecord: TKRecord): TKRecord;
+    function Append(const ARecord: TKRecord): TKRecord;
+
+    procedure Remove(const ARecord: TKRecord);
 
     function GetAsJSON(const AFrom: Integer = 0; const AFor: Integer = 0): string;
   end;
 
+  TKHeaderField = class(TEFNode)
+  private
+    function GetFieldName: string;
+  public
+    property FieldName: string read GetFieldName;
+  end;
+
   TKHeader = class(TEFNode)
+  private
+    function GetField(I: Integer): TKHeaderField;
+    function GetFieldCount: Integer;
+  protected
+    function GetChildClass(const AName: string): TEFNodeClass; override;
   public
     ///	<summary>
     ///	  Adds to ARecord one field node with no name and the correct datatype
@@ -115,6 +151,9 @@ type
     ///	  meant to be accessed by name in the header and by position in records.
     ///	</remarks>
     procedure Apply(const ARecord: TKRecord);
+
+    property FieldCount: Integer read GetFieldCount;
+    property Fields[I: Integer]: TKHeaderField read GetField;
   end;
 
   TKStore = class(TEFTree)
@@ -139,17 +178,38 @@ type
       const ACommandText: string; const AAppend: Boolean = False); overload;
     procedure Load(const ADataSet: TDataSet; const AAppend: Boolean = False); overload;
 
+    procedure Save(const ADBConnection: TEFDBConnection; const AModel: TKModel);
+
+    ///	<summary>Appends a record and fills it with the specified
+    ///	values.</summary>
+    function AppendRecord(const AValues: TEFNode): TKRecord;
+
+    ///	<summary>Removes the record from the store, if present.</summary>
+    ///	<remarks>Calling this method will NOT trigger any database operation.
+    ///	It is meant to cancel pending changes.</remarks>
+    ///	<seealso cref="TKRecord.MarkAsDeleted"></seealso>
+    procedure RemoveRecord(const ARecord: TKRecord);
+
     function GetAsJSON(const AFrom: Integer = -1; const AFor: Integer = -1): string;
   end;
 
 implementation
 
 uses
-  Math, FmtBcd,
+  Math, FmtBcd, Variants, StrUtils, TypInfo,
   EF.StrUtils, EF.Localization, EF.DB.Utils,
-  Kitto.Types, Kitto.Ext.Session;
+  Kitto.Types, Kitto.Ext.Session, Kitto.SQL;
 
 { TKStore }
+
+function TKStore.AppendRecord(const AValues: TEFNode): TKRecord;
+begin
+  Result := TKRecord.Create;
+  Header.Apply(Result);
+  Records.Append(Result);
+  if Assigned(AValues) then
+    Result.ReadFromNode(AValues);
+end;
 
 destructor TKStore.Destroy;
 begin
@@ -160,6 +220,11 @@ end;
 function TKStore.GetAsJSON(const AFrom: Integer; const AFor: Integer): string;
 begin
   Result := Records.GetAsJSON(AFrom, AFor);
+  { TODO : not sure about the usefulness of this replace here; verify that a
+    counter-replace is not needed when getting back data from the client. }
+  Result := AnsiReplaceStr(Result, #13#10, '<br/>');
+  Result := AnsiReplaceStr(Result, #10, '<br/>');
+  Result := AnsiReplaceStr(Result, #13, '<br/>');
 end;
 
 function TKStore.GetChildClass(const AName: string): TEFNodeClass;
@@ -203,12 +268,17 @@ begin
     Records.ClearChildren; // Doesn't clear the Key.
   while not ADataSet.Eof do
   begin
-    LRecord := Records.AppendRecord(TKRecord.Create);
+    LRecord := Records.Append(TKRecord.Create);
     Header.Apply(LRecord);
     Assert(LRecord.FieldCount = Header.ChildCount);
     LRecord.ReadFromFields(ADataSet.Fields);
     ADataSet.Next;
   end;
+end;
+
+procedure TKStore.RemoveRecord(const ARecord: TKRecord);
+begin
+  Records.Remove(ARecord);
 end;
 
 procedure TKStore.Load(const ADBConnection: TEFDBConnection;
@@ -233,6 +303,23 @@ begin
   end;
 end;
 
+procedure TKStore.Save(const ADBConnection: TEFDBConnection; const AModel: TKModel);
+var
+  I: Integer;
+begin
+  Assert(Assigned(ADBConnection));
+
+  ADBConnection.StartTransaction;
+  try
+    for I := 0 to RecordCount - 1 do
+      Records[I].Save(ADBConnection, AModel, False);
+    ADBConnection.CommitTransaction;
+  except
+    ADBConnection.RollbackTransaction;
+    raise;
+  end;
+end;
+
 procedure TKStore.SetKey(const AValue: TKKey);
 begin
   Records.Key := AValue;
@@ -240,7 +327,7 @@ end;
 
 { TKRecords }
 
-function TKRecords.AppendRecord(const ARecord: TKRecord): TKRecord;
+function TKRecords.Append(const ARecord: TKRecord): TKRecord;
 begin
   Assert(Assigned(ARecord));
 
@@ -259,17 +346,16 @@ begin
   inherited;
 end;
 
-function TKRecords.FindRecordByKey(const AValues: TStringDynArray): TKRecord;
+function TKRecords.FindRecord(const AValues: TEFNode): TKRecord;
 var
   I: Integer;
 begin
-  Assert(Length(AValues) > 0);
-  Assert(Length(AValues) = Key.FieldCount);
+  Assert(Assigned(AValues));
 
   Result := nil;
   for I := 0 to RecordCount - 1 do
   begin
-    if Records[I].MatchesKeyValues(AValues) then
+    if Records[I].MatchesValues(AValues) then
     begin
       Result := Records[I];
       Break;
@@ -302,11 +388,11 @@ begin
   Result := TKRecord;
 end;
 
-function TKRecords.GetRecordByKey(const AValues: TStringDynArray): TKRecord;
+function TKRecords.GetRecord(const AValues: TEFNode): TKRecord;
 begin
-  Result := FindRecordByKey(AValues);
+  Result := FindRecord(AValues);
   if not Assigned(Result) then
-    raise EKError.CreateFmt(_('Record not found for key %s.'), [AValues]);
+    raise EKError.CreateFmt(_('Record not found for predicate {%s}.'), [AValues.GetChildStrings(' and ', '=')]);
 end;
 
 function TKRecords.GetRecordCount: Integer;
@@ -319,12 +405,17 @@ begin
   Result := Parent as TKStore;
 end;
 
+procedure TKRecords.Remove(const ARecord: TKRecord);
+begin
+  RemoveChild(ARecord);
+end;
+
 procedure TKRecords.SetKey(const AValue: TKKey);
 begin
   FKey.Assign(AValue);
 end;
 
-function TKRecords.GetRecord(I: Integer): TKRecord;
+function TKRecords.GetRecordByIndex(I: Integer): TKRecord;
 begin
   Result := Children[I] as TKRecord;
 end;
@@ -358,6 +449,12 @@ begin
 end;
 
 { TKRecord }
+
+procedure TKRecord.AfterConstruction;
+begin
+  inherited;
+  FState := rsNew;
+end;
 
 function TKRecord.FieldByName(const AFieldName: string): TKField;
 begin
@@ -420,17 +517,30 @@ begin
   Result := Parent as TKRecords;
 end;
 
-function TKRecord.MatchesKeyValues(const AValues: TStringDynArray): Boolean;
+procedure TKRecord.MarkAsDeleted;
+begin
+  if FState = rsNew then
+    FState := rsClean
+  else
+    FState := rsDeleted;
+end;
+
+procedure TKRecord.MarkAsDirty;
+begin
+  if not (FState in [rsNew, rsDeleted]) then
+    FState := rsDirty;
+end;
+
+function TKRecord.MatchesValues(const AValues: TEFNode): Boolean;
 var
   I: Integer;
 begin
-  Assert(Length(AValues) > 0);
-  Assert(Length(AValues) = Key.FieldCount);
+  Assert(Assigned(AValues));
 
   Result := True;
-  for I := 0 to Key.FieldCount - 1 do
+  for I := 0 to AValues.ChildCount - 1 do
   begin
-    if FieldByName(Key[I].Name).AsString <> AValues[I] then
+    if not FieldByName(AValues[I].Name).EqualsValue(AValues[I].Value) then
     begin
       Result := False;
       Break;
@@ -447,17 +557,62 @@ begin
 
   for I := 0 to FieldCount - 1 do
     Fields[I].AssignFieldValue(AFields[I]);
+  FState := rsClean;
+end;
+
+procedure TKRecord.ReadFromNode(const ANode: TEFNode);
+var
+  I: Integer;
+begin
+  Assert(Assigned(ANode));
+
+  for I := 0 to FieldCount - 1 do
+    Fields[I].AssignValue(ANode.FindNode(Fields[I].FieldName));
+  if FState = rsClean then
+    FState := rsDirty;
+end;
+
+procedure TKRecord.Save(const ADBConnection: TEFDBConnection;
+  const AModel: TKModel; const AUseTransaction: Boolean);
+var
+  LDBCommand: TEFDBCommand;
+  LRowsAffected: Integer;
+begin
+  Assert(Assigned(ADBConnection));
+  Assert(Assigned(AModel));
+
+  if FState = rsClean then
+    Exit;
+
+  if AUseTransaction then
+    ADBConnection.StartTransaction;
+  try
+    LDBCommand := ADBConnection.CreateDBCommand;
+    try
+      case FState of
+        rsNew: TKSQLBuilder.BuildInsertCommand(AModel, LDBCommand, Self);
+        rsDirty: TKSQLBuilder.BuildUpdateCommand(AModel, LDBCommand, Self);
+        rsDeleted: TKSQLBuilder.BuildDeleteCommand(AModel, LDBCommand, Self);
+      else
+        raise EKError.CreateFmt('Unexpected record state %s.', [GetEnumName(TypeInfo(TKRecordState), Ord(FState))]);
+      end;
+      LRowsAffected := LDBCommand.Execute;
+      if LRowsAffected <> 1 then
+        raise EKError.CreateFmt('Update error. Rows affected: %d.', [LRowsAffected]);
+      if AUseTransaction then
+        ADBConnection.CommitTransaction;
+      FState := rsClean;
+    finally
+      FreeAndNil(LDBCommand);
+    end;
+  except
+    if AUseTransaction then
+      ADBConnection.RollbackTransaction;
+    raise;
+  end;
 end;
 
 { TKField }
-
-class constructor TKField.Create;
-begin
-  JSFormatSettings := TFormatSettings.Create;
-  JSFormatSettings.DecimalSeparator := '.';
-  JSFormatSettings.ShortDateFormat := 'yyyy/mm/dd';
-  JSFormatSettings.ShortTimeFormat := 'hh:mm:ss';
-end;
 
 function TKField.GetAsJSON: string;
 begin
@@ -472,11 +627,12 @@ begin
   begin
     case DataType of
       edtUnknown, edtString, edtObject, edtInteger: Result := AsString;
-      edtDate: Result := DateToStr(AsDate, JSFormatSettings);
-      edtTime: Result := TimeToStr(AsTime, JSFormatSettings);
-      edtDateTime: Result := DateTimeToStr(AsDateTime, JSFormatSettings);
+      edtDate: Result := DateToStr(AsDate, Session.JSFormatSettings);
+      edtTime: Result := TimeToStr(AsTime, Session.JSFormatSettings);
+      edtDateTime: Result := DateTimeToStr(AsDateTime, Session.JSFormatSettings);
       edtBoolean: Result := BoolToStr(AsBoolean, True);
-      edtCurrency, edtFloat, edtDecimal: Result := FloatToStr(AsFloat, JSFormatSettings);
+      edtCurrency: Result := FormatCurr(',0.00', AsCurrency, Session.JSFormatSettings);
+      edtFloat, edtDecimal: Result := FormatFloat(',0.00', AsFloat, Session.JSFormatSettings);
     end;
   end;
   Result := '"' + Result + '"';
@@ -485,6 +641,12 @@ end;
 function TKField.GetFieldName: string;
 begin
   Result := ParentRecord.Records.Store.Header.Children[Index].Name;
+end;
+
+function TKField.GetName: string;
+begin
+  // Needed for when the field is passed to clients expecting a plain node.
+  Result := FieldName;
 end;
 
 function TKField.GetParentRecord: TKRecord;
@@ -501,17 +663,17 @@ var
 begin
   if DataType = edtUnknown then
   begin
-    if TryStrToDateTime(AValue, LDateTime, Session.FormatSettings) then
+    if TryStrToDateTime(AValue, LDateTime, Session.UserFormatSettings) then
       AsDateTime := LDateTime
-    else if TryStrToDate(AValue, LDateTime, Session.FormatSettings) then
+    else if TryStrToDate(AValue, LDateTime, Session.UserFormatSettings) then
       AsDate := LDateTime
-    else if TryStrToTime(AValue, LDateTime, Session.FormatSettings) then
+    else if TryStrToTime(AValue, LDateTime, Session.UserFormatSettings) then
       AsTime := LDateTime
     else if TryStrToBool(AValue, LBoolean) then
       AsBoolean := LBoolean
     else if TryStrToInt(AValue, LInteger) then
       AsInteger := LInteger
-    else if TryStrToFloat(AValue, LDouble, Session.FormatSettings) then
+    else if TryStrToFloat(AValue, LDouble, Session.UserFormatSettings) then
       AsFloat := LDouble
     else
       AsString := AValue;
@@ -521,13 +683,13 @@ begin
     case DataType of
       edtString: AsString := AValue;
       edtInteger: AsInteger := StrToInt(AValue);
-      edtDate: AsDate := StrToDate(AValue, Session.FormatSettings);
-      edtTime: AsTime := StrToTime(AValue, Session.FormatSettings);
-      edtDateTime: AsDateTime := StrToDateTime(AValue, Session.FormatSettings);
+      edtDate: AsDate := StrToDate(AValue, Session.UserFormatSettings);
+      edtTime: AsTime := StrToTime(AValue, Session.UserFormatSettings);
+      edtDateTime: AsDateTime := StrToDateTime(AValue, Session.UserFormatSettings);
       edtBoolean: AsBoolean := StrToBool(AValue);
-      edtCurrency: AsCurrency := StrToCurr(AValue, Session.FormatSettings);
-      edtFloat: AsFloat := StrToFloat(AValue, Session.FormatSettings);
-      edtDecimal: AsDecimal := StrToBcd(AValue, Session.FormatSettings);
+      edtCurrency: AsCurrency := StrToCurr(AValue, Session.UserFormatSettings);
+      edtFloat: AsFloat := StrToFloat(AValue, Session.UserFormatSettings);
+      edtDecimal: AsDecimal := StrToBcd(AValue, Session.UserFormatSettings);
       edtObject: raise EKError.CreateFmt('SetAsJSONValue: Unsupported value %s for data type %s.',
         [AValue, EFDataTypeToString(DataType)]);
     end;
@@ -545,6 +707,35 @@ begin
   ARecord.ClearChildren;
   for I := 0 to ChildCount - 1 do
     ARecord.AddChild('').DataType := Children[I].DataType;
+end;
+
+function TKHeader.GetChildClass(const AName: string): TEFNodeClass;
+begin
+  Result := TKHeaderField;
+end;
+
+function TKHeader.GetField(I: Integer): TKHeaderField;
+begin
+  Result := Children[I] as TKHeaderField;
+end;
+
+function TKHeader.GetFieldCount: Integer;
+begin
+  Result := ChildCount;
+end;
+
+{ TKHeaderField }
+
+function TKHeaderField.GetFieldName: string;
+begin
+  Result := Name;
+end;
+
+{ TKKeyField }
+
+function TKKeyField.GetKey: TKKey;
+begin
+  Result := Parent as TKKey;
 end;
 
 end.

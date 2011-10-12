@@ -5,6 +5,7 @@ interface
 uses
   SysUtils,
   ExtPascal, Ext,
+  EF.Tree,
   Kitto.Ext.Controller, Kitto.Environment, Kitto.Metadata.Views, Kitto.Ext.Login;
 
 type
@@ -12,10 +13,11 @@ type
   private
     FHomeController: IKExtController;
     FEnvironment: TKEnvironment;
-    FFormatSettings: TFormatSettings;
+    FUserFormatSettings: TFormatSettings;
     FLoginWindow: TKExtLoginWindow;
     FIsAuthenticated: Boolean;
     FViewHost: TExtTabPanel;
+    FJSFormatSettings: TFormatSettings;
     function GetEnvironment: TKEnvironment;
     procedure LoadLibraries;
     procedure DisplayHomeView;
@@ -59,13 +61,21 @@ type
     // Test
     function GetGCObjectCount: Integer;
 
-    property FormatSettings: TFormatSettings read FFormatSettings;
+    property JSFormatSettings: TFormatSettings read FJSFormatSettings;
+    property UserFormatSettings: TFormatSettings read FUserFormatSettings;
 
     ///	<summary>Adapts a standard number format string (with , ad thousand
     ///	separator and . as decimal separator) according to the
     ///	FormatSettings.</summary>
     function AdaptExtNumberFormat(const AFormat: string): string;
 
+
+    ///	<summary>Tries to read from the session a value for each child node of
+    ///	ANode and interpret it according to the child's DataType. Read values
+    ///	are stored in the child nodes.</summary>
+    procedure GetQueryValues(const ANode: TEFNode; const AExpectJSFormat: Boolean);
+
+    procedure Flash(const AMessage: string);
   published
     procedure Logout;
   end;
@@ -77,7 +87,7 @@ implementation
 uses
   Classes, StrUtils, ActiveX, ComObj, Types,
   ExtPascalUtils, ExtForm, FCGIApp,
-  EF.Intf, EF.StrUtils,
+  EF.Intf, EF.StrUtils, EF.Localization,
   Kitto.Ext.Utils, Kitto.Auth, Kitto.Types;
 
 function GetSessionEnvironment: TKEnvironment;
@@ -97,7 +107,7 @@ var
   I: Integer;
 begin
   Result := AFormat;
-  if FormatSettings.DecimalSeparator = ',' then
+  if UserFormatSettings.DecimalSeparator = ',' then
   begin
     for I := 1 to Length(Result) do
     begin
@@ -141,6 +151,49 @@ begin
     LObject := FGarbageCollector.Objects[I];
     if (LObject <> nil) and (PGarbage(LObject)^.Garbage <> nil) then
       Inc(Result);
+  end;
+end;
+
+procedure TKExtSession.GetQueryValues(const ANode: TEFNode; const AExpectJSFormat: Boolean);
+var
+  I: Integer;
+  LChild: TEFNode;
+
+  function GetDateTime: TDateTime;
+  begin
+    if AExpectJSFormat then
+      Result := JSDateToDateTime(Session.Query[LChild.Name])
+    else
+      Result := StrToDateTime(Session.Query[LChild.Name], UserFormatSettings);
+  end;
+
+  function GetFloat: Double;
+  begin
+    if AExpectJSFormat then
+      Result := StrToFloat(Session.Query[LChild.Name], JSFormatSettings)
+    else
+      Result := StrToFloat(Session.Query[LChild.Name], UserFormatSettings);
+  end;
+
+begin
+  Assert(Assigned(ANode));
+
+  for I := 0 to ANode.ChildCount - 1 do
+  begin
+    LChild := ANode.Children[I];
+    Assert(LChild.Name <> '');
+    case LChild.DataType of
+      edtUnknown, edtString: LChild.AsString := Session.Query[LChild.Name];
+      edtInteger: LChild.AsInteger := Session.QueryAsInteger[LChild.Name];
+      edtBoolean: LChild.AsBoolean := Session.QueryAsBoolean[LChild.Name];
+      edtDate: LChild.AsDate := GetDateTime;
+      edtTime: LChild.AsTime := GetDateTime;
+      edtDateTime: LChild.AsDateTime := GetDateTime;
+      edtCurrency: LChild.AsCurrency := GetFloat;
+      edtFloat: LChild.AsFloat := GetFloat;
+      edtDecimal: LChild.AsDecimal := GetFloat;
+      edtObject: raise EKError.CreateFmt(_('Unsupported data type %s.'), [EFDataTypeToString(LChild.DataType)]);
+    end;
   end;
 end;
 
@@ -203,6 +256,12 @@ begin
   FLoginWindow.Show;
 end;
 
+procedure TKExtSession.Flash(const AMessage: string);
+begin
+  { TODO : move functionality into kitto-core.js. }
+  JSCode('Ext.example.msg("' + Environment.AppTitle + '", "' + AMessage + '");');
+end;
+
 procedure TKExtSession.LoadLibraries;
 
   procedure SetExistingLibrary(const ALibName: string);
@@ -221,6 +280,8 @@ begin
   SetLibrary(ExtPath + '/examples/ux/statusbar/StatusBar');
   SetCSS(ExtPath + '/examples/ux/statusbar/css/statusbar');
   SetLibrary(ExtPath + '/examples/form/DateTimeField');
+  SetLibrary(ExtPath + '/examples/shared/examples'); // For Ext.msg.
+  SetLibrary(ExtPath + '/src/locale/ext-lang-' + Language);
 
   SetLibrary(StripSuffix(Environment.GetResourceURL('js/kitto-core.js'), '.js'), False, False, True);
   SetExistingLibrary('application');
@@ -262,9 +323,16 @@ begin
   LLanguageId := Environment.Config.GetString('LanguageId');
   if LLanguageId <> '' then
     Language := LLanguageId;
-  FFormatSettings := TFormatSettings.Create;
-  FFormatSettings.ShortTimeFormat := 'hh:mm:ss';
+  FUserFormatSettings := TFormatSettings.Create;
+  FUserFormatSettings.ShortTimeFormat := 'hh:mm:ss';
   { TODO : read default format settings from environment and allow to change them on a per-user basis. }
+
+  FJSFormatSettings := TFormatSettings.Create;
+  FJSFormatSettings := TFormatSettings.Create;
+  FJSFormatSettings.DecimalSeparator := '.';
+  FJSFormatSettings.ShortDateFormat := 'yyyy/mm/dd';
+  FJSFormatSettings.ShortTimeFormat := 'hh:mm:ss';
+
   Theme := Environment.Config.GetString('Ext/Theme');
 end;
 
