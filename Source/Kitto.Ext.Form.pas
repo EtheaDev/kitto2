@@ -47,11 +47,11 @@ type
     FStoreRecord: TKRecord;
     procedure CreateDetailToolbar;
     procedure CreateEditors(const AForceReadOnly: Boolean);
-    procedure FocusFirstEditor;
+    procedure StartOperation;
+    procedure FocusFirstField;
   protected
     procedure LoadData; override;
     procedure InitComponents; override;
-    procedure DoDisplay; override;
   public
     destructor Destroy; override;
   published
@@ -64,7 +64,7 @@ implementation
 
 uses
   SysUtils, StrUtils,
-  EF.Localization, EF.Types, EF.Intf,
+  EF.Localization, EF.Types, EF.Intf, EF.Tree,
   Kitto.Environment, Kitto.AccessControl, Kitto.Ext.Session, Kitto.Ext.Utils,
   Kitto.JSON;
 
@@ -74,14 +74,6 @@ destructor TKExtFormPanelController.Destroy;
 begin
   FreeAndNil(FDetailButtons);
   inherited;
-end;
-
-procedure TKExtFormPanelController.DoDisplay;
-begin
-  FStoreRecord := Config.GetObject('Sys/Record') as TKRecord;
-  Assert(Assigned(FStoreRecord));
-  inherited;
-  Title := ViewTable.DisplayLabel;
 end;
 
 procedure TKExtFormPanelController.CreateDetailToolbar;
@@ -117,7 +109,7 @@ begin
   LLayoutProcessor := TKExtLayoutProcessor.Create;
   try
     LLayoutProcessor.ViewTable := ViewTable;
-    LLayoutProcessor.StoreRecord := FStoreRecord;
+    LLayoutProcessor.StoreHeader := ServerStore.Header;
     LLayoutProcessor.FormPanel := FFormPanel;
 //    LLayoutProcessor.OnNewEditor :=
 //      procedure (AEditor: IKExtEditor)
@@ -143,18 +135,33 @@ procedure TKExtFormPanelController.LoadData;
 begin
   inherited;
   CreateEditors(FIsReadOnly);
-
-  //DataSet.RecreateDetailDataSetLists;
   CreateDetailToolbar;
+  StartOperation;
+end;
 
+procedure TKExtFormPanelController.StartOperation;
+var
+  LDefaultValues: TEFNode;
+begin
+  if FOperation = 'Add' then
+  begin
+    Assert(not Assigned(FStoreRecord));
+    LDefaultValues := ViewTable.GetDefaultValues;
+    try
+      FStoreRecord := ServerStore.AppendRecord(LDefaultValues);
+    finally
+      FreeAndNil(LDefaultValues);
+    end;
+  end;
+
+  // Load data from FServerRecord.
   Session.JSCode(
     FFormPanel.JSName + '.getForm().load({url:"' + MethodURI(GetRecord) + '",' +
       'failure: function(form, action) { Ext.Msg.alert("' + _('Load failed.') + '", action.result.errorMessage);}});');
-
-  //EnterEditMode;
+  FocusFirstField;
 end;
 
-procedure TKExtFormPanelController.FocusFirstEditor;
+procedure TKExtFormPanelController.FocusFirstField;
 begin
   if Assigned (FFocusField) then
     FFocusField.Focus(False, 500);
@@ -162,43 +169,24 @@ end;
 
 procedure TKExtFormPanelController.GetRecord;
 begin
-  if Assigned(FStoreRecord) then
-    Session.Response := '{success:true,data:' + FStoreRecord.GetAsJSON + '}'
-  else
-    Session.Response := '{success:false}';
+  Assert(Assigned(FStoreRecord));
+
+  Session.Response := '{success:true,data:' + FStoreRecord.GetAsJSON + '}';
 end;
 
 procedure TKExtFormPanelController.SaveChanges;
-//var
-//  LValue: string;
-//  LEditor: IKExtEditor;
-//  LField: TField;
 begin
-//  for LEditor in FEditors do
-//  begin
-//    LValue := Session.Query[LEditor.AsExtFormField.Name];
-{ TODO : implement }
-//    LField := DataSet.FieldByName(LEditor.AsExtFormField.Name);
-//    if LField is TDateTimeField then
-//    begin
-//      if LValue = '' then
-//        LField.Clear
-//      else
-//        LField.AsDateTime := StrToDate(LValue, Session.FormatSettings);
-//      { TODO : support boolean values mapping }
-//    end
-//    else
-//      LField.AsString := LValue;
-//  end;
-//  if not ViewTable.IsDetail then
-//  begin
-//    { TODO : support AIsInsertingMasterRecord argument. }
-//    ServerStore.WriteChanges(SameText(FOperation, 'Add'));
-//    ExtMessageBox.Alert(Title, 'Changes saved succesfully');
-//  end;
+  Session.GetQueryValues(FStoreRecord, False);
+  FStoreRecord.MarkAsDirty;
+
+  if not ViewTable.IsDetail then
+  begin
+    FStoreRecord.Save(Environment.MainDBConnection, ViewTable.Model, True);
+    Session.Flash(_('Changes saved succesfully.'));
+  end;
   NotifyObservers('Confirmed');
   if not CloseHostWindow then
-    FocusFirstEditor;
+    StartOperation;
 end;
 
 procedure TKExtFormPanelController.InitComponents;
@@ -206,9 +194,14 @@ var
   LHostWindow: TExtWindow;
 begin
   inherited;
+  Title := ViewTable.DisplayLabel;
+
   FOperation := Config.GetString('Sys/Operation');
   if FOperation = '' then
     FOperation := View.GetString('Controller/Operation');
+
+  FStoreRecord := Config.GetObject('Sys/Record') as TKRecord;
+  Assert((FOperation = 'Add') or Assigned(FStoreRecord));
 
   if SameText(FOperation, 'Add') then
     FIsReadOnly := View.GetBoolean('IsReadOnly') or View.GetBoolean('Controller/PreventAdding')
@@ -268,9 +261,14 @@ end;
 
 procedure TKExtFormPanelController.CancelChanges;
 begin
+  if FOperation = 'Add' then
+  begin
+    ServerStore.RemoveRecord(FStoreRecord);
+    FStoreRecord := nil;
+  end;
   NotifyObservers('Canceled');
   if not CloseHostWindow then
-    FocusFirstEditor;
+    StartOperation;
 end;
 
 { TKExtDetailFormButton }

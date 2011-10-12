@@ -3988,7 +3988,7 @@ end;
 
 procedure TExtFormDateField.InitDefaults; begin
   inherited;
-  FAltFormats := 'm/d/Y/n/j/Y/n/j/y/m/j/y/n/d/y/m/j/Y/n/d/Y/m-d-y/m-d-Y/m/d/m-d/md/mdy/mdY/d/Y-m-d';
+  FAltFormats := 'm/d/Y|n/j/Y|n/j/y|m/j/y|n/d/y|m/j/Y|n/d/Y|m-d-y|m-d-Y|m/d|m-d|md|mdy|mdY|d|Y-m-d';
   FAutoCreateObject := TExtObject.CreateInternal(Self, 'autoCreate');
   FDisabledDates := TExtObjectList.Create(Self, 'disabledDates');
   FDisabledDatesText := 'Disabled';

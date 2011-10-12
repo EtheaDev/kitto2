@@ -13,6 +13,7 @@ type
   private
     FServerStore: TKStore;
     FViewTable: TKViewTable;
+    FOwnsServerStore: Boolean;
     procedure InitServerStore;
     function GetView: TKDataView;
     function GetServerStore: TKStore;
@@ -42,7 +43,8 @@ uses
 
 destructor TKExtDataPanelController.Destroy;
 begin
-  FreeAndNil(FServerStore);
+  if FOwnsServerStore then
+    FreeAndNil(FServerStore);
   inherited;
 end;
 
@@ -53,10 +55,8 @@ end;
 
 function TKExtDataPanelController.GetServerStore: TKStore;
 begin
-  Assert(Assigned(ViewTable));
+  Assert(Assigned(FServerStore));
 
-  if not Assigned(FServerStore) then
-    FServerStore := ViewTable.CreateStore;
   Result := FServerStore;
 end;
 
@@ -76,6 +76,15 @@ begin
   if FViewTable = nil then
     FViewTable := View.MainTable;
   Assert(Assigned(FViewTable));
+
+  FServerStore := Config.GetObject('Sys/ServerStore') as TKStore;
+  if FServerStore = nil then
+  begin
+    FServerStore := FViewTable.CreateStore;
+    FOwnsServerStore := True;
+  end
+  else
+    FOwnsServerStore := False;
 
   Layout := lyBorder;
   Border := False;

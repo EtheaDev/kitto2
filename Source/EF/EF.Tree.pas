@@ -91,6 +91,8 @@ type
     function GetNode(const APath: string; const ACreateMissingNodes: Boolean = False): TEFNode;
     procedure DeleteNode(const APath: string);
 
+    function GetValue(const APath: string; const ADefaultValue: Variant): Variant; overload;
+    function GetValue(const APath: string): Variant; overload;
     function GetBoolean(const APath: string; const ADefaultValue: Boolean = False): Boolean;
     function GetInteger(const APath: string; const ADefaultValue: Integer = 0): Integer;
     function GetString(const APath: string; const ADefaultValue: string = ''): string;
@@ -158,8 +160,6 @@ type
     FValue: Variant;
     FName: string;
     FDataType: TEFDataType;
-    function GetName: string;
-    function GetValue: Variant;
     function GetAsString: string;
     function GetAsInteger: Integer;
     function FindNodeFrom(const APath: TStringDynArray; const AIndex: Integer;
@@ -177,6 +177,7 @@ type
     procedure SetAsPairs(const AValue: TEFPairs);
     function GetAsPair: TEFPair;
     procedure SetAsPair(const AValue: TEFPair);
+    function GetValue: Variant;
     procedure SetValue(const AValue: Variant);
     function GetIndex: Integer;
     function GetIsNull: Boolean;
@@ -195,8 +196,10 @@ type
     procedure SetDataType(const AValue: TEFDataType);
   protected
     procedure SetName(const AValue: string);
+    function GetName: string; virtual;
   public
     procedure Assign(const ASource: TEFTree); override;
+    procedure AssignValue(const ASource: TEFNode);
     property Parent: TEFTree read FParent;
     property Index: Integer read GetIndex;
     function GetEnumerator: TEnumerator<TEFNode>;
@@ -235,6 +238,7 @@ type
     property IsNull: Boolean read GetIsNull;
     procedure SetToNull;
     function EqualsNode(const ANode: TEFNode): Boolean;
+    function EqualsValue(const AValue: Variant): Boolean;
 
     function GetChildStrings(const ASeparator: string = sLineBreak;
       const AConnector: string = '='; const ADefaultValue: string = ''): string; overload;
@@ -321,8 +325,31 @@ end;
 
 function GetVariantDataType(const AVariant: Variant): TEFDataType;
 begin
-{ TODO : implement }
-  Result := edtUnknown;
+  if VarIsType(AVariant, [varString, varOleStr, varUString]) then
+    Result := edtString
+  else if VarIsType(AVariant, [varShortInt, varByte, varWord, varLongWord, varSmallint, varInteger, varInt64, varUInt64]) then
+    Result := edtInteger
+  else if VarIsType(AVariant, [varDate]) then
+  begin
+    if TDateTime(AVariant) = Trunc(TDateTime(AVariant)) then
+      Result := edtDate
+    else if TDateTime(AVariant) = Frac(TDateTime(AVariant)) then
+      Result := edtTime
+    else
+      Result := edtDateTime;
+  end
+  else if VarIsType(AVariant, [varBoolean]) then
+    Result := edtBoolean
+  else if VarIsType(AVariant, [varCurrency]) then
+    Result := edtCurrency
+  else if VarIsFMTBcd(AVariant) then
+    Result := edtDecimal
+  else if VarIsType(AVariant, [varSingle, varDouble]) then
+    Result := edtFloat
+  else if VarIsType(AVariant, [varObject]) then
+    Result := edtObject
+  else
+    Result := edtUnknown;
 end;
 
 { TEFNode }
@@ -333,9 +360,19 @@ begin
   if Assigned(ASource) then
   begin
     FName := TEFNode(ASource).Name;
+    AssignValue(TEFNode(ASource));
+  end;
+end;
+
+procedure TEFNode.AssignValue(const ASource: TEFNode);
+begin
+  if Assigned(ASource) then
+  begin
     FValue := TEFNode(ASource).Value;
     FDataType := TEFNode(ASource).DataType;
-  end;
+  end
+  else
+    SetToNull;
 end;
 
 procedure TEFNode.AssignFieldValue(const AField: TField);
@@ -684,6 +721,11 @@ begin
     Result := False;
 end;
 
+function TEFNode.EqualsValue(const AValue: Variant): Boolean;
+begin
+  Result := Value = AValue;
+end;
+
 { TEFTree }
 
 procedure TEFTree.AddFieldsAsChildren(const AFields: TFields);
@@ -933,6 +975,23 @@ begin
   LNode := FindNode(APath);
   if Assigned(LNode) then
     Result := LNode.AsStringArray
+  else
+    Result := ADefaultValue;
+end;
+
+function TEFTree.GetValue(const APath: string): Variant;
+begin
+  Result := GetValue(APath, Null);
+end;
+
+function TEFTree.GetValue(const APath: string;
+  const ADefaultValue: Variant): Variant;
+var
+  LNode: TEFNode;
+begin
+  LNode := FindNode(APath);
+  if Assigned(LNode) then
+    Result := LNode.Value
   else
     Result := ADefaultValue;
 end;

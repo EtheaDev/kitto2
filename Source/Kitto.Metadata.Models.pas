@@ -26,11 +26,11 @@ type
     function GetIsKey: Boolean;
     function GetIsGenerated: Boolean;
     function GetEmptyAsNull: Boolean;
-    function GetDefaultValue: string;
+    function GetDefaultValue: Variant;
     function GetExpression: string;
   protected
     procedure GetFieldSpec(out ADataType: TEFDataType; out ASize: Integer;
-      out AIsRequired: Boolean);
+      out AIsRequired: Boolean; out AIsKey: Boolean);
     procedure SetFieldSpec(const ADataType: TEFDataType;
       const ASize: Integer; const AIsRequired: Boolean);
   public
@@ -92,7 +92,7 @@ type
     ///	<summary>
     ///	  Optional value to set for the field when a new record is created.
     ///	</summary>
-    property DefaultValue: string read GetDefaultValue;
+    property DefaultValue: Variant read GetDefaultValue;
 
     property IsKey: Boolean read GetIsKey;
   end;
@@ -209,11 +209,16 @@ type
     function FindModel(const AName: string): TKModel;
   end;
 
+///	<summary>Returns the input value unless it's a supported literal, in which
+///	case evaluates the literal and returns it. Used by model and view fields to
+///	compute default values.</summary>
+function EvalExpression(const AExpression: Variant): Variant;
+
 implementation
 
 uses
-  SysUtils, StrUtils,
-  EF.StrUtils;
+  SysUtils, StrUtils, Variants,
+  EF.StrUtils, EF.VariantUtils;
 
 function Pluralize(const AName: string): string;
 begin
@@ -225,6 +230,15 @@ begin
     else
       Result := Result + 's';
   end;
+end;
+
+function EvalExpression(const AExpression: Variant): Variant;
+begin
+  Result := AExpression;
+  if SameText(EFVarToStr(Result), '{date}') then
+    Result := Date
+  else if SameText(EFVarToStr(Result), '{now}') then
+    Result := Now;
 end;
 
 { TKModel }
@@ -365,12 +379,13 @@ end;
 { TKModelField }
 
 procedure TKModelField.GetFieldSpec(out ADataType: TEFDataType; out ASize: Integer;
-  out AIsRequired: Boolean);
+  out AIsRequired: Boolean; out AIsKey: Boolean);
 var
   LStrings: TStringDynArray;
 begin
-  AIsRequired := EndsText(' not null', AsString);
-  LStrings := SplitString(StripSuffix(AsString, ' not null'), '()');
+  AIsRequired := ContainsText(AsString, ' not null');
+  AIsKey := ContainsText(AsString, ' primary key');
+  LStrings := SplitString(StripSuffix(StripSuffix(AsString, ' primary key'), ' not null'), '()');
   if Length(LStrings) > 0 then
     ADataType := StringToEFDataType(LStrings[0])
   else
@@ -398,8 +413,12 @@ begin
 end;
 
 function TKModelField.GetIsKey: Boolean;
+var
+  LDataType: TEFDataType;
+  LSize: Integer;
+  LIsRequired: Boolean;
 begin
-  Result := GetBoolean('IsKey');
+  GetFieldSpec(LDataType, LSize, LIsRequired, Result);
 end;
 
 function TKModelField.GetIsReadOnly: Boolean;
@@ -411,8 +430,9 @@ function TKModelField.GetIsRequired: Boolean;
 var
   LDataType: TEFDataType;
   LSize: Integer;
+  LIsKey: Boolean;
 begin
-  GetFieldSpec(LDataType, LSize, Result);
+  GetFieldSpec(LDataType, LSize, Result, LIsKey);
 end;
 
 function TKModelField.GetIsVisible: Boolean;
@@ -435,13 +455,14 @@ function TKModelField.GetDataType: TEFDataType;
 var
   LSize: Integer;
   LIsRequired: Boolean;
+  LIsKey: Boolean;
 begin
-  GetFieldSpec(Result, LSize, LIsRequired);
+  GetFieldSpec(Result, LSize, LIsRequired, LIsKey);
 end;
 
-function TKModelField.GetDefaultValue: string;
+function TKModelField.GetDefaultValue: Variant;
 begin
-  Result := GetString('DefaultValue');
+  Result := EvalExpression(GetValue('DefaultValue'));
 end;
 
 function TKModelField.GetDisplayLabel: string;
@@ -501,8 +522,9 @@ function TKModelField.GetSize: Integer;
 var
   LDataType: TEFDataType;
   LIsRequired: Boolean;
+  LIsKey: Boolean;
 begin
-  GetFieldSpec(LDataType, Result, LIsRequired);
+  GetFieldSpec(LDataType, Result, LIsRequired, LIsKey);
 end;
 
 function TKModelField.GetModel: TKModel;

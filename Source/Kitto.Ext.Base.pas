@@ -250,7 +250,7 @@ end;
 
 procedure TKExtWindowControllerBase.NotifyObservers(const AContext: string);
 begin
-  FSubjObserverImpl.NotifyObservers(AContext);
+  FSubjObserverImpl.NotifyObserversOnBehalfOf(Self, AContext);
 end;
 
 procedure TKExtWindowControllerBase.PanelClosed;
@@ -334,7 +334,7 @@ end;
 
 procedure TKExtPanelBase.NotifyObservers(const AContext: string);
 begin
-  FSubjObserverImpl.NotifyObservers(AContext);
+  FSubjObserverImpl.NotifyObserversOnBehalfOf(Self, AContext);
 end;
 
 function TKExtPanelBase.QueryInterface(const IID: TGUID; out Obj): HRESULT;
@@ -441,7 +441,7 @@ end;
 
 procedure TKExtViewportControllerBase.NotifyObservers(const AContext: string);
 begin
-  FSubjObserverImpl.NotifyObservers(AContext);
+  FSubjObserverImpl.NotifyObserversOnBehalfOf(Self, AContext);
 end;
 
 function TKExtViewportControllerBase.QueryInterface(const IID: TGUID; out Obj): HRESULT;
@@ -536,7 +536,7 @@ end;
 
 procedure TKExtFormComboBox.NotifyObservers(const AContext: string);
 begin
-  FSubjObserverImpl.NotifyObservers(AContext);
+  FSubjObserverImpl.NotifyObserversOnBehalfOf(Self, AContext);
 end;
 
 function TKExtFormComboBox.QueryInterface(const IID: TGUID; out Obj): HRESULT;
@@ -649,7 +649,7 @@ end;
 
 procedure TKExtFormTextField.NotifyObservers(const AContext: string);
 begin
-  FSubjObserverImpl.NotifyObservers(AContext);
+  FSubjObserverImpl.NotifyObserversOnBehalfOf(Self, AContext);
 end;
 
 function TKExtFormTextField.QueryInterface(const IID: TGUID; out Obj): HRESULT;

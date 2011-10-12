@@ -54,6 +54,7 @@ type
     procedure AttachObserver(const AObserver: IEFObserver);
     procedure DetachObserver(const AObserver: IEFObserver);
     procedure NotifyObservers(const AContext: string = '');
+    procedure NotifyObserversOnBehalfOf(const ASubject: IEFSubject; const AContext: string = '');
   end;
 
 implementation
@@ -93,6 +94,12 @@ begin
 end;
 
 procedure TEFSubjectAndObserver.NotifyObservers(const AContext: string);
+begin
+  NotifyObserversOnBehalfOf(Self, AContext);
+end;
+
+procedure TEFSubjectAndObserver.NotifyObserversOnBehalfOf(
+  const ASubject: IEFSubject; const AContext: string);
 var
   I: Integer;
   LIntf: IEFObserver;
@@ -100,7 +107,7 @@ begin
   if Assigned(FObservers) then
     for I := FObservers.Count - 1 downto 0 do
       if Supports(TObject(FObservers[I]), IEFObserver, LIntf) then
-        LIntf.UpdateObserver(Self, AContext);
+        LIntf.UpdateObserver(ASubject, AContext);
 end;
 
 procedure TEFSubjectAndObserver.UpdateObserver(const ASubject: IEFSubject;

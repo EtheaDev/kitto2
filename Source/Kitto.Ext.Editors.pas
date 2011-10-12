@@ -226,7 +226,7 @@ type
     FDefaults: TKExtLayoutDefaults;
     FCurrentEditItem: IKExtEditItem;
     FEditContainers: TStack<IKExtEditContainer>;
-    FStoreRecord: TKRecord;
+    FStoreHeader: TKHeader;
 
     function CreateEditItem(const AName, AValue: string;
       const AContainer: IKExtEditContainer): IKExtEditItem;
@@ -249,7 +249,7 @@ type
     property ForceReadOnly: Boolean read FForceReadOnly write FForceReadOnly;
     property FormPanel: TKExtEditPanel read FFormPanel write FFormPanel;
     property OnNewEditor: TKExtLayoutOnNewEditor read FOnNewEditor write FOnNewEditor;
-    property StoreRecord: TKRecord read FStoreRecord write FStoreRecord;
+    property StoreHeader: TKHeader read FStoreHeader write FStoreHeader;
 
     ///	<summary>
     ///	  Creates editors according to the specified layout or a default layout.
@@ -454,7 +454,7 @@ var
 begin
   Assert(Assigned(FViewTable));
   Assert(Assigned(FFormPanel));
-  Assert(Assigned(FStoreRecord));
+  Assert(Assigned(FStoreHeader));
 
   FFocusField := nil;
 
@@ -463,9 +463,9 @@ begin
   else
   begin
     FFormPanel.LabelAlign := laLeft;
-    for I := 0 to FStoreRecord.FieldCount - 1 do
+    for I := 0 to FStoreHeader.FieldCount - 1 do
     begin
-      LFieldName := FStoreRecord.Fields[I].FieldName;
+      LFieldName := FStoreHeader.Fields[I].FieldName;
       if FViewTable.IsFieldVisible(FViewTable.FieldByAliasedName(LFieldName)) then
         FFormPanel.AddChild(CreateEditor(LFieldName, nil));
     end;
@@ -618,8 +618,8 @@ begin
         LDateField.Width := FFormPanel.CharsToPixels(LFieldWidth + TRIGGER_WIDTH)
       else
         LRowField.Width := FFormPanel.CharsToPixels(LFieldWidth + TRIGGER_WIDTH);
-      // Don't use Delphi format here.
-      LDateField.Format := DelphiDateFormatToJSDateFormat(Session.FormatSettings.ShortDateFormat);
+      LDateField.Format := DelphiDateFormatToJSDateFormat(Session.UserFormatSettings.ShortDateFormat);
+      LDateField.AltFormats := DelphiDateFormatToJSDateFormat(Session.JSFormatSettings.ShortDateFormat);
       if not LIsReadOnly then
         LDateField.AllowBlank := not LIsRequired;
       Result := LDateField;
@@ -637,7 +637,7 @@ begin
       else
         LRowField.Width := FFormPanel.CharsToPixels(LFieldWidth + TRIGGER_WIDTH);
       // Don't use Delphi format here.
-      LTimeField.Format := DelphiTimeFormatToJSTimeFormat(Session.FormatSettings.ShortTimeFormat);
+      LTimeField.Format := DelphiTimeFormatToJSTimeFormat(Session.UserFormatSettings.ShortTimeFormat);
       if not LIsReadOnly then
         LTimeField.AllowBlank := not LIsRequired;
       Result := LTimeField;
@@ -655,8 +655,8 @@ begin
       else
         LRowField.Width := FFormPanel.CharsToPixels(LFieldWidth + (2 * TRIGGER_WIDTH) + SPACER_WIDTH);
       // Don't use Delphi format here.
-      LDateTimeField.DateFormat := DelphiDateFormatToJSDateFormat(Session.FormatSettings.ShortDateFormat);
-      LDateTimeField.TimeFormat := DelphiTimeFormatToJSTimeFormat(Session.FormatSettings.ShortTimeFormat);
+      LDateTimeField.DateFormat := DelphiDateFormatToJSDateFormat(Session.UserFormatSettings.ShortDateFormat);
+      LDateTimeField.TimeFormat := DelphiTimeFormatToJSTimeFormat(Session.UserFormatSettings.ShortTimeFormat);
       if not LIsReadOnly then
       begin
         LDateTimeField.DateConfig := FFormPanel.JSObject('allowBlank:false');
@@ -684,8 +684,11 @@ begin
       if not LIsReadOnly then
       begin
         LNumberField.AllowDecimals := LDataField.DataType in [edtCurrency, edtFloat, edtDecimal];
+        LNumberField.DecimalSeparator := Session.UserFormatSettings.DecimalSeparator;
         LNumberField.AllowNegative := True;
-        if not LNumberField.AllowDecimals then
+        if LNumberField.AllowDecimals then
+          LNumberField.DecimalPrecision := 2
+        else
         begin
           LNode := LDataField.FindNode('MaxValue');
           if Assigned(LNode) then
