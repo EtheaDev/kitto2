@@ -9,7 +9,7 @@ interface
 
 uses
   Types, DB,
-  ExtPascal, ExtForm, ExtData,
+  Ext, ExtPascal, ExtForm, ExtData,
   EF.Classes, EF.Tree, EF.ObserverIntf,
   Kitto.Ext.Base;
 
@@ -124,9 +124,7 @@ type
     FActiveIndex: Integer;
     FItems: TEFNode;
     function GetLargestFilterDisplayLabelWidth: Integer;
-    function GetDefaultFilter: TEFNode;
-    procedure ComboBoxSelect(Combo: TExtFormComboBox; RecordJS: TExtDataRecord;
-      Index: Integer);
+    procedure ComboBoxSelect(Combo: TExtFormComboBox; RecordJS: TExtDataRecord; Index: Integer);
   public
     function GetExpression: string;
     procedure SetConfig(const AConfig: TEFNode); override;
@@ -159,7 +157,7 @@ type
     function GetExpression: string;
     procedure SetConfig(const AConfig: TEFNode); override;
   published
-    procedure ComboBoxSelect;
+    procedure Select;
   end;
 
   TKFreeSearchFilter = class(TKExtFormTextField, IKExtFilter)
@@ -173,12 +171,53 @@ type
     function GetExpression: string;
   end;
 
+  ///	<summary>Similar to a ListFilter, but uses a set of buttons instead of a
+  ///	combo box.</summary>
+{ TODO :
+Add parameter (or separate filter class) to allow several buttons
+pressed at the same time to generate a combined expression
+through a connector. }
+  TKButtonListFilter = class(TKExtPanelBase, IKExtFilter)
+  private
+    FConfig: TEFNode;
+    FItems: TEFNode;
+    FActiveIndex: Integer;
+    procedure ButtonClick(This: TExtButton; E: TExtEventObjectSingleton);
+  public
+    procedure SetConfig(const AConfig: TEFNode);
+    function AsExtObject: TExtObject;
+    function GetExpression: string;
+  published
+    procedure ButtonClick2;
+  end;
+
 implementation
 
 uses
   SysUtils, Math, StrUtils,
-  EF.Localization,  EF.DB, EF.DB.Utils,
+  EF.Localization,  EF.DB, EF.DB.Utils, EF.StrUtils,
   Kitto.Types, Kitto.JSON, Kitto.Environment;
+
+function GetDefaultFilter(const AItems: TEFNode): TEFNode;
+var
+  I: Integer;
+begin
+  Assert(Assigned(AItems));
+  Assert(AItems.ChildCount > 0);
+
+  Result := nil;
+  for I := 0 to AItems.ChildCount - 1 do
+  begin
+    if AItems.Children[I].GetBoolean('IsDefault') then
+    begin
+      Result := AItems.Children[I];
+      Break;
+    end;
+  end;
+  if (Result = nil) and (AItems.ChildCount > 0) then
+    Result := AItems.Children[0];
+end;
+
 
 { TKExtFilterRegistry }
 
@@ -284,25 +323,6 @@ begin
   end;
 end;
 
-function TKListFilter.GetDefaultFilter: TEFNode;
-var
-  I: Integer;
-begin
-  Assert(Assigned(FItems));
-
-  Result := nil;
-  for I := 0 to FItems.ChildCount - 1 do
-  begin
-    if FItems.Children[I].GetBoolean('IsDefault') then
-    begin
-      Result := FItems.Children[I];
-      Break;
-    end;
-  end;
-  if (Result = nil) and (FItems.ChildCount > 0) then
-    Result := FItems.Children[0];
-end;
-
 procedure TKListFilter.SetConfig(const AConfig: TEFNode);
 var
   LDefaultFilter: TEFNode;
@@ -330,7 +350,7 @@ we should include status information from all filters. Doable,
 by generating more JS code, but not now. }
   //On('select', JSFunction(AConfig.GetString('Sys/ApplyJSCode')));
   OnSelect := ComboBoxSelect;
-  LDefaultFilter := GetDefaultFilter;
+  LDefaultFilter := GetDefaultFilter(FItems);
   if Assigned(LDefaultFilter) then
   begin
     SetValue(LDefaultFilter.Name);
@@ -374,7 +394,7 @@ end;
 //  NotifyObservers('FilterChanged');
 //end;
 
-procedure TKDynaListFilter.ComboBoxSelect;
+procedure TKDynaListFilter.Select;
 begin
   FCurrentValue := ParamAsString('Value');
   NotifyObservers('FilterChanged');
@@ -448,7 +468,7 @@ by generating more JS code, but not now. }
   //OnChange := ComboBoxChange;
   // OnSelect only passes the relative index in the filtered list.
   //OnSelect := ComboBoxSelect;
-  On('select', Ajax(ComboBoxSelect, ['Value', GetValue()]));
+  On('select', Ajax(Select, ['Value', GetValue()]));
   FCurrentValue := '';
 end;
 
@@ -490,14 +510,89 @@ begin
     Result := '';
 end;
 
+{ TKButtonListFilter }
+
+function TKButtonListFilter.AsExtObject: TExtObject;
+begin
+  Result := Self;
+end;
+
+function TKButtonListFilter.GetExpression: string;
+begin
+  Assert(Assigned(FItems));
+
+  if (FActiveIndex >= 0) and (FActiveIndex < FItems.ChildCount) then
+    Result := FItems.Children[FActiveIndex].GetExpandedString('Expression')
+  else
+    Result := '';
+end;
+
+procedure TKButtonListFilter.SetConfig(const AConfig: TEFNode);
+var
+  I: Integer;
+  LButton: TExtButton;
+  LDefaultFilter: TEFNode;
+  LGroupName: string;
+begin
+  Assert(Assigned(AConfig));
+
+  FConfig := AConfig;
+  FieldLabel := _(AConfig.AsString);
+
+  FItems := FConfig.GetNode('Items');
+  Assert(Assigned(FItems));
+
+  Layout := lyColumn;
+  LGroupName := IntToStr(Integer(Pointer(Self)));
+
+  LDefaultFilter := GetDefaultFilter(FItems);
+
+  for I := 0 to FItems.ChildCount - 1 do
+  begin
+    LButton := TExtButton.AddTo(Items);
+    LButton.Text := _(FItems.Children[I].AsString);
+    //LButton.OnClick := ButtonClick;
+    LButton.EnableToggle := True;
+    LButton.ToggleGroup := LGroupName;
+    if FItems.Children[I] = LDefaultFilter then
+    begin
+      LButton.Pressed_ := True;
+      FActiveIndex := I;
+    end;
+{ TODO :
+In order to save a trip by calling the refresh code directly,
+we should include status information from all filters. Doable,
+by generating more JS code, but not now. }
+  //LButton.On('click', JSFunction(AConfig.GetString('Sys/ApplyJSCode')));
+    LButton.On('click', Ajax(ButtonClick2, ['Index', I, 'Pressed', LButton.Pressed__]));
+  end;
+end;
+
+procedure TKButtonListFilter.ButtonClick(This: TExtButton; E: TExtEventObjectSingleton);
+begin
+  FActiveIndex := StrToInt(StripPrefix(This.Id, 'B'));
+  NotifyObservers('FilterChanged');
+end;
+
+procedure TKButtonListFilter.ButtonClick2;
+begin
+  if ParamAsBoolean('Pressed') then
+    FActiveIndex := ParamAsInteger('Index')
+  else
+    FActiveIndex := -1;
+  NotifyObservers('FilterChanged');
+end;
+
 initialization
   TKExtFilterRegistry.Instance.RegisterClass('List', TKListFilter);
   TKExtFilterRegistry.Instance.RegisterClass('DynaList', TKDynaListFilter);
   TKExtFilterRegistry.Instance.RegisterClass('FreeSearch', TKFreeSearchFilter);
+  TKExtFilterRegistry.Instance.RegisterClass('ButtonList', TKButtonListFilter);
 
 finalization
   TKExtFilterRegistry.Instance.UnregisterClass('List');
   TKExtFilterRegistry.Instance.UnregisterClass('DynaList');
   TKExtFilterRegistry.Instance.UnregisterClass('FreeSearch');
+  TKExtFilterRegistry.Instance.UnregisterClass('ButtonList');
 
 end.
