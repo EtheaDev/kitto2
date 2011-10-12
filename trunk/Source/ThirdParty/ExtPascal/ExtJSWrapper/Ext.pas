@@ -2714,6 +2714,7 @@ type
     {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
     constructor Create;
     function GetPressed(Group : String) : TExtFunction;
+    function Pressed__ : TExtFunction;
     function GetTemplateArgs : TExtFunction;
     function GetText : TExtFunction;
     function HasVisibleMenu : TExtFunction;
@@ -10856,6 +10857,12 @@ end;
 
 function TExtButton.GetPressed(Group : String) : TExtFunction; begin
   JSCode(JSName + '.getPressed(' + VarToJSON([Group]) + ');', 'TExtButton');
+  Result := Self;
+end;
+
+function TExtButton.Pressed__ : TExtFunction;
+begin
+  JSCode(JSName + '.pressed;', 'TExtButton');
   Result := Self;
 end;
 
