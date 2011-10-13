@@ -93,7 +93,7 @@ end;
 
 procedure TKExtTreePanel.DisplayView;
 begin
-  Session.DisplayView(Session.Query['Name']);
+  Session.DisplayView(TKView(Session.QueryAsInteger['View']));
 end;
 
 initialization

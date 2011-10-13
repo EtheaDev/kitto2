@@ -40,7 +40,7 @@ end;
 
 procedure TKExtToolBarController.DisplayView;
 begin
-  Session.DisplayView(Session.Query['Name']);
+  Session.DisplayView(TKView(Session.QueryAsInteger['View']));
 end;
 
 procedure TKExtToolBarController.DoDisplay;
