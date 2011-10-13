@@ -6,7 +6,7 @@ interface
 
 uses
   Generics.Collections,
-  Ext, ExtPascal, ExtForm,
+  Ext, ExtPascal, ExtForm, ExtData,
   EF.Intf, EF.Classes, EF.Tree,
   Kitto.Ext.Base, Kitto.Metadata.Views, Kitto.Store;
 
@@ -88,9 +88,13 @@ type
   TKExtFormRowField = class(TKExtFormContainer, IKExtEditor)
   private
     FEditor: IKExtEditor;
+    FCharWidth: Integer;
+    procedure SetCharWidth(const AValue: Integer);
   protected
     procedure InitDefaults; override;
   public
+    property CharWidth: Integer read FCharWidth write SetCharWidth;
+
     function Encapsulate(const AValue: IKExtEditor): IKExtEditor;
 
     function AsExtFormField: TExtFormField;
@@ -195,10 +199,18 @@ type
   end;
 
   TKExtFormComboBoxEditor = class(TKExtFormComboBox, IKExtEditItem, IKExtEditor)
+  private
+    FServerStore: TKStore;
+    FLookupCommandText: string;
+    procedure SetupServerStore(const AViewField: TKViewField;
+      const ALookupCommandText: string);
   public
     procedure SetOption(const AName, AValue: string);
     function AsExtObject: TExtObject; inline;
     function AsExtFormField: TExtFormField; inline;
+    destructor Destroy; override;
+  published
+    procedure GetRecordPage;
   end;
 
   TKExtLayoutDefaults = record
@@ -210,8 +222,6 @@ type
     procedure Init;
   end;
 
-  TKExtLayoutOnNewEditor = reference to procedure (AEditor: IKExtEditor);
-
   ///	<summary>
   ///	  Creates editor based on layouts. Can synthesize a default layout if
   ///	  missing.
@@ -220,14 +230,29 @@ type
   private
     FViewTable: TKViewTable;
     FForceReadOnly: Boolean;
-    FOnNewEditor: TKExtLayoutOnNewEditor;
     FFormPanel: TKExtEditPanel;
     FFocusField: TExtFormField;
     FDefaults: TKExtLayoutDefaults;
     FCurrentEditItem: IKExtEditItem;
     FEditContainers: TStack<IKExtEditContainer>;
     FStoreHeader: TKHeader;
-
+    function TryCreateCheckBox(const AViewField: TKViewField): IKExtEditor;
+    function TryCreateDateField(const AViewField: TKViewField;
+      const ARowField: TKExtFormRowField; const AFieldWidth: Integer;
+      const AIsReadOnly: Boolean): IKExtEditor;
+    function TryCreateTimeField(const AViewField: TKViewField;
+      const ARowField: TKExtFormRowField; const AFieldWidth: Integer;
+      const AIsReadOnly: Boolean): IKExtEditor;
+    function TryCreateDateTimeField(const AViewField: TKViewField;
+      const ARowField: TKExtFormRowField; const AFieldWidth: Integer;
+      const AIsReadOnly: Boolean): IKExtEditor;
+    function TryCreateNumberField(const AViewField: TKViewField;
+      const ARowField: TKExtFormRowField; const AFieldWidth: Integer;
+      const AIsReadOnly: Boolean): IKExtEditor;
+    function CreateTextField(const AViewField: TKViewField;
+      const ARowField: TKExtFormRowField; const AFieldWidth: Integer;
+      const AIsReadOnly: Boolean): IKExtEditor;
+    const TRIGGER_WIDTH = 4;
     function CreateEditItem(const AName, AValue: string;
       const AContainer: IKExtEditContainer): IKExtEditItem;
 
@@ -240,6 +265,13 @@ type
     function CreateRow: IKExtEditItem;
     procedure CreateEditorsFromLayout(const ALayout: TKLayout);
     procedure ProcessLayoutNode(const ANode: TEFNode);
+    function GetLookupCommandText(const AViewField: TKViewField): string;
+    function TryCreateComboBox(const AViewField: TKViewField;
+      const ARowField: TKExtFormRowField; const AFieldWidth: Integer;
+      const AIsReadOnly: Boolean): IKExtEditor;
+    function TryCreateTextArea(const AViewField: TKViewField;
+      const ARowField: TKExtFormRowField; const AFieldWidth: Integer;
+      const AIsReadOnly: Boolean): IKExtEditor;
   public
     procedure AfterConstruction; override;
     destructor Destroy; override;
@@ -248,7 +280,6 @@ type
     property ViewTable: TKViewTable read FViewTable write FViewTable;
     property ForceReadOnly: Boolean read FForceReadOnly write FForceReadOnly;
     property FormPanel: TKExtEditPanel read FFormPanel write FFormPanel;
-    property OnNewEditor: TKExtLayoutOnNewEditor read FOnNewEditor write FOnNewEditor;
     property StoreHeader: TKHeader read FStoreHeader write FStoreHeader;
 
     ///	<summary>
@@ -271,8 +302,9 @@ implementation
 
 uses
   SysUtils, Classes, Math, StrUtils,
-  EF.StrUtils, EF.Localization, EF.YAML, EF.Types,
-  Kitto.Ext.Utils, Kitto.JSON, Kitto.Environment, Kitto.Ext.Session;
+  EF.StrUtils, EF.Localization, EF.YAML, EF.Types, EF.SQL,
+  Kitto.Ext.Utils, Kitto.JSON, Kitto.Environment, Kitto.Ext.Session, Kitto.SQL,
+  Kitto.Metadata.Models, Kitto.Types;
 
 const
   {
@@ -414,8 +446,6 @@ begin
 
   if MatchText(ANode.Name, ['Field', 'FieldSet', 'CompositeField', 'Row']) then
   begin
-    { TODO : make FFormPanel implement the container and item interfaces, to simplify code? }
-
     if FEditContainers.Count > 0 then
       FCurrentEditItem := CreateEditItem(ANode.Name, ANode.AsString, FEditContainers.Peek)
     else
@@ -423,7 +453,6 @@ begin
       FCurrentEditItem := CreateEditItem(ANode.Name, ANode.AsString, nil);
       FFormPanel.Items.Add(FCurrentEditItem.AsExtObject);
     end;
-
     if Supports(FCurrentEditItem, IKExtEditContainer, LIntf) then
       FEditContainers.Push(LIntf);
   end
@@ -491,106 +520,95 @@ begin
     Acontainer.AddChild(Result);
 end;
 
-function TKExtLayoutProcessor.CreateEditor(const AFieldName: string;
-  const AContainer: IKExtEditContainer): IKExtEditor;
-const
-  TRIGGER_WIDTH = 4;
-  SPACER_WIDTH = 1;
+function TKExtLayoutProcessor.GetLookupCommandText(const AViewField: TKViewField): string;
 var
-  LFieldWidth: Integer;
-  LMaxLength: Integer;
-  LIsReadOnly: Boolean;
-  LIsRequired: Boolean;
-  LLabel: string;
-  LLookupCommandText: string;
-  LComboBox: TKExtFormComboBoxEditor;
-  LTextArea: TKExtFormTextArea;
-  LCheckbox: TKExtFormCheckbox;
-  LDateField: TKExtFormDateField;
-  LDateTimeField: TKExtFormDateTimeField;
-  LTextField: TKExtFormTextField;
-  LDataField: TKViewField;
-  LRowField: TKExtFormRowField;
-  LNumberField: TKExtFormNumberField;
-  LNode: TEFNode;
-  LForceCase: string;
-  LAllowedValues: TEFPairs;
-  LTimeField: TKExtFormTimeField;
+  LReference: TKModelReference;
 begin
-  LDataField := FViewTable.FieldByAliasedName(AFieldName);
+  Result := AViewField.GetString('LookupCommandText');
+  if Result = '' then
+  begin
+    LReference := AViewField.Reference;
+    if Assigned(LReference) then
+    begin
+      Result := TKSQLBuilder.GetLookupSelectStatement(AViewField);
+      Result := AddToSQLWhereClause(Result, AViewField.ModelField.FieldName + ' like ''{query}%''');
+    end;
+  end;
+end;
 
-  // Store common properties.
-  LFieldWidth := LDataField.DisplayWidth;
-  LMaxLength := LDataField.Size;
-  if LFieldWidth = 0 then
-    // Blobs have Size = 0.
-    LFieldWidth := Min(IfThen(LDataField.Size = 0, FDefaults.MemoWidth, LDataField.Size), FDefaults.MaxFieldWidth);
-  // Minimum cap - avoids too short combo boxes.
-  // Add 1 to compensate for Ext's imprecise conversion to pixels.
-  LFieldWidth := Max(LFieldWidth, FDefaults.MinFieldWidth) + 1;
-
-  LIsReadOnly := LDataField.IsReadOnly or ViewTable.IsReadOnly or FForceReadOnly;
-  LIsRequired := LDataField.IsRequired;
-  LLabel := _(LDataField.DisplayLabel);
-  if not LIsReadOnly and LIsRequired then
-    LLabel := Format(FDefaults.RequiredLabelFormat, [LLabel]);
-
-  if AContainer is TKExtFormRow then
-    LRowField := TKExtFormRowField.Create
-  else
-    LRowField := nil;
-
-  LLookupCommandText := LDataField.GetString('Lookup/CommandText');
-  LAllowedValues := LDataField.GetChildrenAsPairs('Lookup/AllowedValues');
+function TKExtLayoutProcessor.TryCreateComboBox(const AViewField: TKViewField;
+  const ARowField: TKExtFormRowField; const AFieldWidth: Integer;
+  const AIsReadOnly: Boolean): IKExtEditor;
+var
+  LLookupCommandText: string;
+  LAllowedValues: TEFPairs;
+  LComboBox: TKExtFormComboBoxEditor;
+begin
+  LLookupCommandText := GetLookupCommandText(AViewField);
+  LAllowedValues := AViewField.GetChildrenAsPairs('AllowedValues');
   if (LLookupCommandText <> '') or (Length(LAllowedValues) > 0) then
   begin
     LComboBox := TKExtFormComboBoxEditor.Create;
     try
-      if not Assigned(LRowField) then
-        LComboBox.Width := FFormPanel.CharsToPixels(LFieldWidth + TRIGGER_WIDTH)
+      if not Assigned(ARowField) then
+        LComboBox.Width := LComboBox.CharsToPixels(AFieldWidth + TRIGGER_WIDTH)
       else
-        LRowField.Width := FFormPanel.CharsToPixels(LFieldWidth + TRIGGER_WIDTH);
+        ARowField.CharWidth := AFieldWidth + TRIGGER_WIDTH;
       LComboBox.TriggerAction := 'all';
       LComboBox.TypeAhead := True;
       LComboBox.LazyRender := True;
       LComboBox.SelectOnFocus := False;
-      LComboBox.Mode := 'local';
       // Enable the combo box to post its hidden value instead of the visible description.
-      LComboBox.HiddenName := LDataField.AliasedName;
+      LComboBox.HiddenName := AViewField.AliasedName;
       //LComboBox.Id := LDataField.AliasedName + '_DX';
-      if LLookupCommandText <> '' then
-        LComboBox.StoreArray := FFormPanel.JSArray(DataSetToJSON(Environment.MainDBConnection, LLookupCommandText))
-      else
-        LComboBox.StoreArray := FFormPanel.JSArray(PairsToJSON(LAllowedValues));
-      //LComboBox.PageSize := 10;
-      //LComboBox.Resizable := True;
-      //LComboBox.MinListWidth := LFieldWidth;
-      //LComboBox.MinHeight := LinesToPixels(5);
-      if not LIsReadOnly then
-        LComboBox.ForceSelection := LIsRequired;
+
+      if Length(LAllowedValues) > 0 then
+        LComboBox.StoreArray := LComboBox.JSArray(PairsToJSON(LAllowedValues))
+      else // LLookupCommandText <> ''
+      begin
+        if (AViewField.Reference <> nil) and AViewField.Reference.ReferencedModel.IsLarge then
+          LComboBox.SetupServerStore(AViewField, LLookupCommandText)
+        else
+        begin
+          LComboBox.Mode := 'local';
+          LComboBox.StoreArray := LComboBox.JSArray(DataSetToJSON(Environment.MainDBConnection, LLookupCommandText));
+        end;
+      end;
+      if not AIsReadOnly then
+        LComboBox.ForceSelection := AViewField.IsRequired;
       Result := LComboBox;
     except
       LComboBox.Free;
       raise;
     end;
   end
-  else if (LDataField.DataType = edtString) and ((LDataField.Size = 0) or (LDataField.Size div SizeOf(Char) >= MULTILINE_EDIT_THRESHOLD)) then
+  else
+    Result := nil;
+end;
+
+function TKExtLayoutProcessor.TryCreateTextArea(const AViewField: TKViewField;
+  const ARowField: TKExtFormRowField; const AFieldWidth: Integer;
+  const AIsReadOnly: Boolean): IKExtEditor;
+var
+  LTextArea: TKExtFormTextArea;
+begin
+  if (AViewField.DataType = edtString) and ((AViewField.Size = 0) or (AViewField.Size div SizeOf(Char) >= MULTILINE_EDIT_THRESHOLD)) then
   begin
     LTextArea := TKExtFormTextArea.Create;
     try
-      if not Assigned(LRowField) then
-        LTextArea.Width := FFormPanel.CharsToPixels(LFieldWidth)
+      if not Assigned(ARowField) then
+        LTextArea.Width := LTextArea.CharsToPixels(AFieldWidth)
       else
-        LRowField.Width := FFormPanel.CharsToPixels(LFieldWidth);
-      LTextArea.Height := FFormPanel.LinesToPixels(LDataField.GetInteger('EditLines', 5));
+        ARowField.CharWidth := AFieldWidth;
+      LTextArea.Height := LTextArea.LinesToPixels(AViewField.GetInteger('EditLines', 5));
       LTextArea.AutoScroll := True;
       // Set this if it's the last field.
       //Anchor := '100%';
-      if not LIsReadOnly then
+      if not AIsReadOnly then
       begin
-        if LDataField.Size > 0 then
-          LTextArea.MaxLength  := LDataField.Size;
-        LTextArea.AllowBlank := not LIsRequired;
+        if AViewField.Size > 0 then
+          LTextArea.MaxLength  := AViewField.Size;
+        LTextArea.AllowBlank := not AViewField.IsRequired;
       end;
       LTextArea.Grow := True;
       Result := LTextArea;
@@ -599,7 +617,15 @@ begin
       raise;
     end;
   end
-  else if LDataField.DataType = edtBoolean then
+  else
+    Result := nil;
+end;
+
+function TKExtLayoutProcessor.TryCreateCheckBox(const AViewField: TKViewField): IKExtEditor;
+var
+  LCheckbox: TKExtFormCheckbox;
+begin
+  if AViewField.DataType = edtBoolean then
   begin
     LCheckbox := TKExtFormCheckbox.Create;
     try
@@ -610,62 +636,94 @@ begin
       raise;
     end;
   end
-  else if LDataField.DataType = edtDate then
+  else
+    Result := nil;
+end;
+
+function TKExtLayoutProcessor.TryCreateDateField(const AViewField: TKViewField;
+  const ARowField: TKExtFormRowField; const AFieldWidth: Integer;
+  const AIsReadOnly: Boolean): IKExtEditor;
+var
+  LDateField: TKExtFormDateField;
+begin
+  if AViewField.DataType = edtDate then
   begin
     LDateField := TKExtFormDateField.Create;
     try
-      if not Assigned(LRowField) then
-        LDateField.Width := FFormPanel.CharsToPixels(LFieldWidth + TRIGGER_WIDTH)
+      if not Assigned(ARowField) then
+        LDateField.Width := LDateField.CharsToPixels(AFieldWidth + TRIGGER_WIDTH)
       else
-        LRowField.Width := FFormPanel.CharsToPixels(LFieldWidth + TRIGGER_WIDTH);
+        ARowField.CharWidth := AFieldWidth + TRIGGER_WIDTH;
       LDateField.Format := DelphiDateFormatToJSDateFormat(Session.UserFormatSettings.ShortDateFormat);
       LDateField.AltFormats := DelphiDateFormatToJSDateFormat(Session.JSFormatSettings.ShortDateFormat);
-      if not LIsReadOnly then
-        LDateField.AllowBlank := not LIsRequired;
+      if not AIsReadOnly then
+        LDateField.AllowBlank := not AViewField.IsRequired;
       Result := LDateField;
     except
       LDateField.Free;
       raise;
     end;
   end
-  else if LDataField.DataType = edtTime then
+  else
+    Result := nil;
+end;
+
+function TKExtLayoutProcessor.TryCreateTimeField(const AViewField: TKViewField;
+  const ARowField: TKExtFormRowField; const AFieldWidth: Integer;
+  const AIsReadOnly: Boolean): IKExtEditor;
+var
+  LTimeField: TKExtFormTimeField;
+begin
+  if AViewField.DataType = edtTime then
   begin
     LTimeField := TKExtFormTimeField.Create;
     try
-      if not Assigned(LRowField) then
-        LTimeField.Width := FFormPanel.CharsToPixels(LFieldWidth + TRIGGER_WIDTH)
+      if not Assigned(ARowField) then
+        LTimeField.Width := LTimeField.CharsToPixels(AFieldWidth + TRIGGER_WIDTH)
       else
-        LRowField.Width := FFormPanel.CharsToPixels(LFieldWidth + TRIGGER_WIDTH);
+        ARowField.CharWidth := AFieldWidth + TRIGGER_WIDTH;
       // Don't use Delphi format here.
       LTimeField.Format := DelphiTimeFormatToJSTimeFormat(Session.UserFormatSettings.ShortTimeFormat);
-      if not LIsReadOnly then
-        LTimeField.AllowBlank := not LIsRequired;
+      if not AIsReadOnly then
+        LTimeField.AllowBlank := not AViewField.IsRequired;
       Result := LTimeField;
     except
       LTimeField.Free;
       raise;
     end;
   end
-  else if LDataField.DataType = edtDateTime then
+  else
+    Result := nil;
+end;
+
+function TKExtLayoutProcessor.TryCreateDateTimeField(const AViewField: TKViewField;
+  const ARowField: TKExtFormRowField; const AFieldWidth: Integer;
+  const AIsReadOnly: Boolean): IKExtEditor;
+const
+  SPACER_WIDTH = 1;
+var
+  LDateTimeField: TKExtFormDateTimeField;
+begin
+  if AViewField.DataType = edtDateTime then
   begin
     LDateTimeField := TKExtFormDateTimeField.Create;
     try
-      if not Assigned(LRowField) then
-        LDateTimeField.Width := FFormPanel.CharsToPixels(LFieldWidth + (2 * TRIGGER_WIDTH) + SPACER_WIDTH)
+      if not Assigned(ARowField) then
+        LDateTimeField.Width := LDateTimeField.CharsToPixels(AFieldWidth + (2 * TRIGGER_WIDTH) + SPACER_WIDTH)
       else
-        LRowField.Width := FFormPanel.CharsToPixels(LFieldWidth + (2 * TRIGGER_WIDTH) + SPACER_WIDTH);
+        ARowField.CharWidth := AFieldWidth + (2 * TRIGGER_WIDTH) + SPACER_WIDTH;
       // Don't use Delphi format here.
       LDateTimeField.DateFormat := DelphiDateFormatToJSDateFormat(Session.UserFormatSettings.ShortDateFormat);
       LDateTimeField.TimeFormat := DelphiTimeFormatToJSTimeFormat(Session.UserFormatSettings.ShortTimeFormat);
-      if not LIsReadOnly then
+      if not AIsReadOnly then
       begin
-        LDateTimeField.DateConfig := FFormPanel.JSObject('allowBlank:false');
-        LDateTimeField.TimeConfig := FFormPanel.JSObject('allowBlank:false');
+        LDateTimeField.DateConfig := LDateTimeField.JSObject('allowBlank:false');
+        LDateTimeField.TimeConfig := LDateTimeField.JSObject('allowBlank:false');
       end
       else
       begin
-        LDateTimeField.DateConfig := FFormPanel.JSObject('readOnly:true');
-        LDateTimeField.TimeConfig := FFormPanel.JSObject('readOnly:true');
+        LDateTimeField.DateConfig := LDateTimeField.JSObject('readOnly:true');
+        LDateTimeField.TimeConfig := LDateTimeField.JSObject('readOnly:true');
       end;
       Result := LDateTimeField;
     except
@@ -673,27 +731,38 @@ begin
       raise;
     end;
   end
-  else if LDataField.DataType in [edtInteger, edtCurrency, edtFloat, edtDecimal] then
+  else
+    Result := nil;
+end;
+
+function TKExtLayoutProcessor.TryCreateNumberField(const AViewField: TKViewField;
+  const ARowField: TKExtFormRowField; const AFieldWidth: Integer;
+  const AIsReadOnly: Boolean): IKExtEditor;
+var
+  LNumberField: TKExtFormNumberField;
+  LNode: TEFNode;
+begin
+  if AViewField.DataType in [edtInteger, edtCurrency, edtFloat, edtDecimal] then
   begin
     LNumberField := TKExtFormNumberField.Create;
     try
-      if not Assigned(LRowField) then
-        LNumberField.Width := FFormPanel.CharsToPixels(LFieldWidth)
+      if not Assigned(ARowField) then
+        LNumberField.Width := LNumberField.CharsToPixels(AFieldWidth)
       else
-        LRowField.Width := FFormPanel.CharsToPixels(LFieldWidth);
-      if not LIsReadOnly then
+        ARowField.CharWidth := AFieldWidth;
+      if not AIsReadOnly then
       begin
-        LNumberField.AllowDecimals := LDataField.DataType in [edtCurrency, edtFloat, edtDecimal];
+        LNumberField.AllowDecimals := AViewField.DataType in [edtCurrency, edtFloat, edtDecimal];
         LNumberField.DecimalSeparator := Session.UserFormatSettings.DecimalSeparator;
         LNumberField.AllowNegative := True;
         if LNumberField.AllowDecimals then
           LNumberField.DecimalPrecision := 2
         else
         begin
-          LNode := LDataField.FindNode('MaxValue');
+          LNode := AViewField.FindNode('MaxValue');
           if Assigned(LNode) then
             LNumberField.MaxValue := LNode.AsInteger;
-          LNode := LDataField.FindNode('MinValue');
+          LNode := AViewField.FindNode('MinValue');
           if Assigned(LNode) then
             LNumberField.MinValue := LNode.AsInteger;
         end;
@@ -705,68 +774,120 @@ begin
     end;
   end
   else
-  begin
-    { TODO : support lookups with buttons and custom buttons as well (through field-level realms?) }
-    LTextField := TKExtFormTextField.Create;
-    try
-      if not Assigned(LRowField) then
-        LTextField.Width := FFormPanel.CharsToPixels(LFieldWidth)
-      else
-        LRowField.Width := FFormPanel.CharsToPixels(LFieldWidth);
-      if not LIsReadOnly then
-      begin
-        if LMaxLength <> 0 then
-          LTextField.MaxLength := LMaxLength;
-        LTextField.AllowBlank := not LIsRequired;
-      end;
-      Result := LTextField;
-    except
-      LTextField.Free;
-      raise;
-    end;
-  end;
+    Result := nil;
+end;
 
+function TKExtLayoutProcessor.CreateTextField(const AViewField: TKViewField;
+  const ARowField: TKExtFormRowField; const AFieldWidth: Integer;
+  const AIsReadOnly: Boolean): IKExtEditor;
+var
+  LTextField: TKExtFormTextField;
+begin
+  LTextField := TKExtFormTextField.Create;
+  try
+    if not Assigned(ARowField) then
+      LTextField.Width := LTextField.CharsToPixels(AFieldWidth)
+    else
+      ARowField.CharWidth := AFieldWidth;
+    if not AIsReadOnly then
+    begin
+      if AViewField.Size <> 0 then
+        LTextField.MaxLength := AViewField.Size;
+      LTextField.AllowBlank := not AViewField.IsRequired;
+    end;
+    Result := LTextField;
+  except
+    LTextField.Free;
+    raise;
+  end;
+end;
+
+function TKExtLayoutProcessor.CreateEditor(const AFieldName: string;
+  const AContainer: IKExtEditContainer): IKExtEditor;
+var
+  LFieldWidth: Integer;
+  LIsReadOnly: Boolean;
+  LLabel: string;
+  LViewField: TKViewField;
+  LRowField: TKExtFormRowField;
+  LForceCase: string;
+  LNode: TEFNode;
+begin
+  LViewField := FViewTable.FieldByAliasedName(AFieldName);
+
+  // Store common properties.
+  LFieldWidth := LViewField.DisplayWidth;
+  if LFieldWidth = 0 then
+    // Blobs have Size = 0.
+    LFieldWidth := Min(IfThen(LViewField.Size = 0, FDefaults.MemoWidth, LViewField.Size), FDefaults.MaxFieldWidth);
+  // Minimum cap - avoids too short combo boxes.
+  LFieldWidth := Max(LFieldWidth, FDefaults.MinFieldWidth);
+
+  LIsReadOnly := LViewField.IsReadOnly or ViewTable.IsReadOnly or FForceReadOnly;
+  LLabel := _(LViewField.DisplayLabel);
+  if not LIsReadOnly and LViewField.IsRequired then
+    LLabel := Format(FDefaults.RequiredLabelFormat, [LLabel]);
+
+  if AContainer is TKExtFormRow then
+    LRowField := TKExtFormRowField.Create
+  else
+    LRowField := nil;
+
+  Result := TryCreateComboBox(LViewField, LRowField, LFieldWidth, LIsReadOnly);
+  if Result = nil then
+    Result := TryCreateTextArea(LViewField, LRowField, LFieldWidth, LIsReadOnly);
+  if Result = nil then
+    Result := TryCreateCheckBox(LViewField);
+  if Result = nil then
+    Result := TryCreateDateField(LViewField, LRowField, LFieldWidth, LIsReadOnly);
+  if Result = nil then
+    Result := TryCreateTimeField(LViewField, LRowField, LFieldWidth, LIsReadOnly);
+  if Result = nil then
+    Result := TryCreateDateTimeField(LViewField, LRowField, LFieldWidth, LIsReadOnly);
+  if Result = nil then
+    Result := TryCreateNumberField(LViewField, LRowField, LFieldWidth, LIsReadOnly);
+  if Result = nil then
+    Result := CreateTextField(LViewField, LRowField, LFieldWidth, LIsReadOnly);
+
+{ TODO : refactor }
   // Setup some validation.
   if not LIsReadOnly and (Result.AsExtFormField is TExtFormTextField) then
   begin
-    LNode := LDataField.FindNode('MaxLength');
+    LNode := LViewField.FindNode('MaxLength');
     if Assigned(LNode) then
       TExtFormTextField(Result).MaxLength := LNode.AsInteger;
-    LNode := LDataField.FindNode('MinLength');
+    LNode := LViewField.FindNode('MinLength');
     if Assigned(LNode) then
       TExtFormTextField(Result).MinLength := LNode.AsInteger;
-    LNode := LDataField.FindNode('Validator');
+    LNode := LViewField.FindNode('Validator');
     if Assigned(LNode) then
-      TExtFormTextField(Result).Validator := FFormPanel.JSFunction('value', LNode.AsString);
+      TExtFormTextField(Result).Validator := TExtFormTextField(Result).JSFunction('value', LNode.AsString);
     { TODO : refactor this to unified field-level rules }
-    LNode := LDataField.FindNode('ValidationType'); // alpha alphanum email url
+    LNode := LViewField.FindNode('ValidationType'); // alpha alphanum email url
     if Assigned(LNode) then
       TExtFormTextField(Result).Vtype := LNode.AsString;
 
-    LForceCase := LDataField.GetString('ForceCase'); // upper lower caps none
+    LForceCase := LViewField.GetString('ForceCase'); // upper lower caps none
     if LForceCase <> '' then
       TExtFormTextField(Result).EnableKeyEvents := True;
     if SameText(LForceCase, 'Upper')  then
-      TExtFormTextField(Result).On('keyup', FFormPanel.JSFunction('field, e', 'field.setValue(field.getRawValue().toUpperCase());'))
+      TExtFormTextField(Result).On('keyup', TExtFormTextField(Result).JSFunction('field, e', 'field.setValue(field.getRawValue().toUpperCase());'))
     else if SameText(LForceCase, 'Lower')  then
-      TExtFormTextField(Result).On('keyup', FFormPanel.JSFunction('field, e', 'field.setValue(field.getRawValue().toLowerCase());'))
+      TExtFormTextField(Result).On('keyup', TExtFormTextField(Result).JSFunction('field, e', 'field.setValue(field.getRawValue().toLowerCase());'))
     else if SameText(LForceCase, 'Caps')  then
-      TExtFormTextField(Result).On('change', FFormPanel.JSFunction('field, newValue, oldValue', 'field.setValue(newValue.capitalize());'));
+      TExtFormTextField(Result).On('change', TExtFormTextField(Result).JSFunction('field, newValue, oldValue', 'field.setValue(newValue.capitalize());'));
   end;
 
   Result.AsExtFormField.AutoScroll := False; // Don't display a h. scrollbar for larger fields.
-  if Result.AsExtFormField.Id = '' then
-    Result.AsExtFormField.Id := LDataField.AliasedName;
-  Result.AsExtFormField.Name := LDataField.AliasedName;
+//  if Result.AsExtFormField.Id = '' then
+//    Result.AsExtFormField.Id := LViewField.AliasedName;
+  Result.AsExtFormField.Name := LViewField.AliasedName;
   Result.AsExtFormField.ReadOnly := LIsReadOnly;
   // Don't disable: it will be missing from the POST and SaveChanges does not handle that yet.
   { TODO : make disabling configurable - watch out for disabled fields changed by triggers (they should be POSTed) }
   //Disabled := ReadOnly;
   Result.AsExtFormField.FieldLabel := LLabel;
   Result.AsExtFormField.MsgTarget := LowerCase(FDefaults.MsgTarget);
-
-  if Assigned(FOnNewEditor) then
-    FOnNewEditor(Result);
 
   if (FFocusField = nil) and not Result.AsExtFormField.ReadOnly and not Result.AsExtFormField.Disabled then
     FFocusField := Result.AsExtFormField;
@@ -841,7 +962,7 @@ procedure TKExtLayoutDefaults.Init;
 begin
   MemoWidth := 60;
   MaxFieldWidth := 60;
-  MinFieldWidth := 10;
+  MinFieldWidth := 5;
   RequiredLabelFormat := '<b>%s*</b>';
   MsgTarget := 'Under'; // qtip title under side
 end;
@@ -1147,6 +1268,35 @@ begin
   Result := Self;
 end;
 
+destructor TKExtFormComboBoxEditor.Destroy;
+begin
+  FreeAndNil(FServerStore);
+  inherited;
+end;
+
+procedure TKExtFormComboBoxEditor.GetRecordPage;
+var
+  LStart: Integer;
+  LLimit: Integer;
+  LPageRecordCount: Integer;
+begin
+  Assert(Assigned(FServerStore));
+
+{ TODO : Fully refreshing at each page change might be inefficient.
+  Shall we provide a switch to turn it off on a form-by-form basis, or use
+  FIRST/SKIP/ROWS to only fetch relevant rows in a database-dependent way?
+  For now, let's just stick with full refresh always. }
+  FServerStore.Load(Environment.MainDBConnection,
+    ReplaceStr(FLookupCommandText, '{query}', ReplaceStr(Session.Query['query'], '''', '''''')));
+
+  LStart := Session.QueryAsInteger['start'];
+  LLimit := Session.QueryAsInteger['limit'];
+  LPageRecordCount := Min(Max(LLimit, DEFAULT_PAGE_RECORD_COUNT), FServerStore.RecordCount - LStart);
+
+  Session.Response := '{Total:' + IntToStr(FServerStore.RecordCount) + ',Root:'
+    + FServerStore.GetAsJSON(LStart, LPageRecordCount) + '}';
+end;
+
 procedure TKExtFormComboBoxEditor.SetOption(const AName, AValue: string);
 begin
   if not SetExtFormFieldOption(AsExtFormField, AName, AValue) then
@@ -1156,6 +1306,35 @@ begin
     else
       InvalidOption(AName, AValue);
   end;
+end;
+
+procedure TKExtFormComboBoxEditor.SetupServerStore(const AViewField: TKViewField;
+  const ALookupCommandText: string);
+var
+  I: Integer;
+begin
+  Assert(Assigned(AViewField));
+  Assert(Assigned(AViewField.Reference));
+  Assert(ALookupCommandText <> '');
+
+  FLookupCommandText := ALookupCommandText;
+  FreeAndNil(FServerStore);
+  FServerStore := AViewField.CreateStore;
+  Store := TExtDataStore.Create;
+  Store.Url := MethodURI(GetRecordPage);
+  Store.Reader := TExtDataJsonReader.Create(JSObject('')); // Must pass '' otherwise invalid code is generated.
+  TExtDataJsonReader(Store.Reader).Root := 'Root';
+  TExtDataJsonReader(Store.Reader).TotalProperty := 'Total';
+  for I := 0 to FServerStore.Header.FieldCount - 1 do
+    with TExtDataField.AddTo(Store.Reader.Fields) do
+      Name := FServerStore.Header.Fields[I].FieldName;
+  ValueField := FServerStore.Header.Fields[0].FieldName;
+  DisplayField := FServerStore.Header.Fields[1].FieldName;
+  MinChars := 4;
+  //PageSize := 20;
+  //Resizable := True;
+  //MinHeight := LinesToPixels(5);
+  Mode := 'remote';
 end;
 
 { TKExtFormContainer }
@@ -1252,10 +1431,17 @@ begin
   Assert(Assigned(AValue));
 
   FEditor := AValue;
-  FEditor.AsExtFormField.SetWidth('100%');
   Items.Add(FEditor.AsExtObject);
-  FEditor.AsExtFormField.Anchor := '-5';
+  FEditor.AsExtFormField.Width := CharsToPixels(FCharWidth - 1);
+  //FEditor.AsExtFormField.SetWidth('100%');
+  //FEditor.AsExtFormField.Anchor := '-5';
   Result := Self;
+end;
+
+procedure TKExtFormRowField.SetCharWidth(const AValue: Integer);
+begin
+  FCharWidth := AValue;
+  Width := CharsToPixels(AValue);
 end;
 
 procedure TKExtFormRowField.SetOption(const AName, AValue: string);

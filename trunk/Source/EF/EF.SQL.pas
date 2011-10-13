@@ -99,7 +99,7 @@ function SetSQLWhereClause(const ASQL, ANEFClause: string): string;
   connected to any existing text in the where clause through the specified
   connector.
 }
-function AddToSQLWhereClause(const ASQL, ANEFClause: string;
+function AddToSQLWhereClause(const ASQL, ANewClause: string;
   const AConnector: string = 'and'): string;
 
 {
@@ -638,18 +638,18 @@ begin
     [sqlGroup, sqlHaving, sqlUnion, sqlPlan, sqlOrder]);
 end;
 
-function AddToSQLWhereClause(const ASQL, ANEFClause: string;
+function AddToSQLWhereClause(const ASQL, ANewClause: string;
   const AConnector: string = 'and'): string;
 var
   LCurrentClause: string;
 begin
-  if ANEFClause <> '' then
+  if ANewClause <> '' then
   begin
     LCurrentClause := GetSQLWhereClause(ASQL);
     if LCurrentClause = '' then
-      LCurrentClause := ANEFClause
+      LCurrentClause := ANewClause
     else
-      LCurrentClause := LCurrentClause + ' ' + AConnector + ' ' + ANEFClause;
+      LCurrentClause := LCurrentClause + ' ' + AConnector + ' ' + ANewClause;
     Result := SetSQLWhereClause(ASQL, LCurrentClause);
   end
   else

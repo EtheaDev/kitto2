@@ -4,7 +4,7 @@ interface
 
 uses
   Types,
-  EF.Classes, EF.Tree,
+  EF.Classes, EF.Types, EF.Tree,
   Kitto.Metadata, Kitto.Metadata.Models, Kitto.Store;
 
 type
@@ -64,6 +64,7 @@ type
     function GetSize: Integer;
     function GetIsBlob: Boolean;
     function GetReference: TKModelReference;
+    function GetAllowedValues: TEFPairs;
   public
     function FindNode(const APath: string; const ACreateMissingNodes: Boolean = False): TEFNode; override;
 
@@ -74,6 +75,7 @@ type
     property AliasedName: string read GetAliasedName;
     property QualifiedAliasedNameOrExpression: string read GetQualifiedAliasedNameOrExpression;
     property QualifiedName: string read GetQualifiedName;
+    property AllowedValues: TEFPairs read GetAllowedValues;
 
     ///	<summary>If the view field is referenced, returns its reference,
     ///	otherwise returns nil.</summary>
@@ -105,6 +107,11 @@ type
     property DataType: TEFDataType read GetDataType;
     property Size: Integer read GetSize;
     property IsBlob: Boolean read GetIsBlob;
+
+    ///	<summary>Creates a store with the current field and all key fields of
+    ///	the referenced model. If reference = nil, an exception is
+    ///	raised.</summary>
+    function CreateStore: TKStore;
   end;
 
   TKViewFields = class(TKMetadataItem)
@@ -184,7 +191,7 @@ type
     ///	  Optional fixed order by expression to apply when building the select
     ///	  SQL statement to display data. Should refer to fields through
     ///	  qualified names (or ordinal numbers for expression-based fields).
-    ///   Defaults to DBTable.DefaultSorting.
+    ///   Defaults to Model.DefaultSorting.
     ///	</summary>
     property DefaultSorting: string read GetDefaultSorting;
 
@@ -535,7 +542,7 @@ begin
   Result := GetNode('MainTable', True) as TKViewTable;
 end;
 
-{ TKDataViewTable }
+{ TKViewTable }
 
 function TKViewTable.CreateStore: TKStore;
 var
@@ -620,7 +627,9 @@ end;
 
 function TKViewTable.GetDefaultFilter: string;
 begin
-  Result := GetString('DefaultWhereClause');
+  Result := GetString('DefaultFilter');
+  if Result = '' then
+    Result := Model.DefaultFilter;
 end;
 
 function TKViewTable.GetDetailTableCount: Integer;
@@ -828,7 +837,30 @@ begin
   Result := Parent as TKViewTable;
 end;
 
-{ TKDataViewField }
+{ TKViewField }
+
+function TKViewField.CreateStore: TKStore;
+var
+  I: Integer;
+  LField: TKModelField;
+begin
+  Assert(Reference <> nil);
+
+  Result := TKStore.Create;
+  try
+    for I := 0 to Reference.FieldCount - 1 do
+    begin
+      LField := Reference.ReferencedFields[I];
+      Result.Key.AddChild(LField.FieldName).DataType := LField.DataType;
+      Result.Header.AddChild(LField.FieldName).DataType := LField.DataType;
+    end;
+    if Result.Header.FindChild(AliasedName) = nil then
+      Result.Header.AddChild(AliasedName).DataType := DataType;
+  except
+    FreeAndNil(Result);
+    raise;
+  end;
+end;
 
 function TKViewField.FindNode(const APath: string;
   const ACreateMissingNodes: Boolean): TEFNode;
@@ -851,6 +883,13 @@ begin
     Result := Name;
   if (Result = '') or (Pos('.', Result) > 0) then
     raise EKError.CreateFmt('ViewField %s must have an alias.', [Name]);
+end;
+
+function TKViewField.GetAllowedValues: TEFPairs;
+begin
+  Result := GetChildrenAsPairs('AllowedValues');
+  if Result = nil then
+    Result := ModelField.AllowedValues;
 end;
 
 function TKViewField.GetQualifiedAliasedNameOrExpression: string;

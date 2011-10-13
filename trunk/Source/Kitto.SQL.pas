@@ -28,12 +28,6 @@ type
     function BuildJoin(const AReference: TKModelreference): string;
 
     function InternalGetSelectStatement(const AViewTable: TKViewTable): string;
-    procedure InternalBuildInsertCommand(const AModel: TKModel;
-      const ADBCommand: TEFDBCommand; const AValues: TEFNode);
-    procedure InternalBuildUpdateCommand(const AModel: TKModel;
-      const ADBCommand: TEFDBCommand; const AValues: TEFNode);
-    procedure InternalBuildDeleteCommand(const AModel: TKModel;
-      const ADBCommand: TEFDBCommand; const AValues: TEFNode);
   public
     procedure AfterConstruction; override;
     destructor Destroy; override;
@@ -44,6 +38,12 @@ type
     ///	  information.
     ///	</summary>
     class function GetSelectStatement(const AViewTable: TKViewTable): string;
+
+    ///	<summary>Builds and returns a SQL statement that selects the specified
+    ///	field plus all key fields from the specified field's table. AViewField
+    ///	must have an assigned Reference, otherwise an exception is
+    ///	raised.</summary>
+    class function GetLookupSelectStatement(const AViewField: TKViewField): string;
 
     ///	<summary>Builds in the specified command an insert statement against
     ///	the specified model's table with a parameter for each value in AValues.
@@ -73,7 +73,7 @@ implementation
 
 uses
   SysUtils, StrUtils, DB, Types,
-  EF.Intf, EF.Localization, EF.Types, EF.StrUtils, EF.DB.Utils,
+  EF.Intf, EF.Localization, EF.Types, EF.StrUtils, EF.DB.Utils, EF.SQL,
   Kitto.Types, Kitto.Environment;
 
 { TKSQLQueryBuilder }
@@ -94,50 +94,119 @@ end;
 
 class procedure TKSQLBuilder.BuildInsertCommand(const AModel: TKModel;
   const ADBCommand: TEFDBCommand; const AValues: TEFNode);
+var
+  LCommandText: string;
+  I: Integer;
 begin
   Assert(Assigned(AModel));
+  Assert(Assigned(ADBCommand));
   Assert(Assigned(AValues));
 
-  with TKSQLBuilder.Create do
-  begin
-    try
-      InternalBuildInsertCommand(AModel, ADBCommand, AValues);
-    finally
-      Free;
+  if ADBCommand.Prepared then
+    ADBCommand.Prepared := False;
+  ADBCommand.Params.BeginUpdate;
+  try
+    ADBCommand.Params.Clear;
+    LCommandText := 'insert into ' + AModel.ModelName + ' (';
+    for I := 0 to AValues.ChildCount - 1 do
+    begin
+      if I > 0 then
+        LCommandText := LCommandText + ', ';
+      LCommandText := LCommandText + AValues[I].Name;
     end;
+    LCommandText := LCommandText + ') values (';
+    for I := 0 to AValues.ChildCount - 1 do
+    begin
+      if I > 0 then
+        LCommandText := LCommandText + ', ';
+      LCommandText := LCommandText + ':' + AValues[I].Name;
+      ADBCommand.Params.CreateParam(ftUnknown, AValues[I].Name, ptInput);
+    end;
+    LCommandText := LCommandText + ')';
+    ADBCommand.CommandText := LCommandText;
+  finally
+    ADBCommand.Params.EndUpdate;
   end;
+  for I := 0 to AValues.ChildCount - 1 do
+    AssignEFNodeValueToParam(AValues[I], ADBCommand.Params[I]);
 end;
 
 class procedure TKSQLBuilder.BuildUpdateCommand(const AModel: TKModel;
   const ADBCommand: TEFDBCommand; const AValues: TEFNode);
+var
+  LCommandText: string;
+  I: Integer;
+  LKeyFields: TStringDynArray;
 begin
   Assert(Assigned(AModel));
+  Assert(Assigned(ADBCommand));
   Assert(Assigned(AValues));
 
-  with TKSQLBuilder.Create do
-  begin
-    try
-      InternalBuildUpdateCommand(AModel, ADBCommand, AValues);
-    finally
-      Free;
+  if ADBCommand.Prepared then
+    ADBCommand.Prepared := False;
+  ADBCommand.Params.BeginUpdate;
+  try
+    ADBCommand.Params.Clear;
+    LCommandText := 'update ' + AModel.ModelName + ' set ';
+    for I := 0 to AValues.ChildCount - 1 do
+    begin
+      if I > 0 then
+        LCommandText := LCommandText + ', ';
+      LCommandText := LCommandText + AValues[I].Name + ' = :' + AValues[I].Name;
+      ADBCommand.Params.CreateParam(ftUnknown, AValues[I].Name, ptInput);
     end;
+    LCommandText := LCommandText + ' where ';
+    LKeyFields := AModel.GetKeyFieldNames;
+    for I := 0 to Length(LKeyFields) - 1 do
+    begin
+      if I > 0 then
+        LCommandText := LCommandText + ' and ';
+      LCommandText := LCommandText + LKeyFields[I] + ' = :P_KEY' + IntToStr(I);
+      ADBCommand.Params.CreateParam(ftUnknown, 'P_KEY' + IntToStr(I), ptInput);
+    end;
+    ADBCommand.CommandText := LCommandText;
+  finally
+    ADBCommand.Params.EndUpdate;
   end;
+  for I := 0 to AValues.ChildCount - 1 do
+    AssignEFNodeValueToParam(AValues[I], ADBCommand.Params[I]);
+  for I := 0 to Length(LKeyFields) - 1 do
+    AssignEFNodeValueToParam(AValues.GetNode(LKeyFields[I]),
+      ADBCommand.Params.ParamByName('P_KEY' + IntToStr(I)));
 end;
 
 class procedure TKSQLBuilder.BuildDeleteCommand(const AModel: TKModel;
   const ADBCommand: TEFDBCommand; const AValues: TEFNode);
+var
+  LCommandText: string;
+  I: Integer;
+  LKeyFields: TStringDynArray;
 begin
   Assert(Assigned(AModel));
+  Assert(Assigned(ADBCommand));
   Assert(Assigned(AValues));
 
-  with TKSQLBuilder.Create do
-  begin
-    try
-      InternalBuildDeleteCommand(AModel, ADBCommand, AValues);
-    finally
-      Free;
+  if ADBCommand.Prepared then
+    ADBCommand.Prepared := False;
+  ADBCommand.Params.BeginUpdate;
+  try
+    ADBCommand.Params.Clear;
+    LCommandText := 'delete from ' + AModel.ModelName + ' where ';
+    LKeyFields := AModel.GetKeyFieldNames;
+    for I := 0 to Length(LKeyFields) - 1 do
+    begin
+      if I > 0 then
+        LCommandText := LCommandText + ' and ';
+      LCommandText := LCommandText + LKeyFields[I] + ' = :P_KEY' + IntToStr(I);
+      ADBCommand.Params.CreateParam(ftUnknown, 'P_KEY' + IntToStr(I), ptInput);
     end;
+    ADBCommand.CommandText := LCommandText;
+  finally
+    ADBCommand.Params.EndUpdate;
   end;
+  for I := 0 to Length(LKeyFields) - 1 do
+    AssignEFNodeValueToParam(AValues.GetNode(LKeyFields[I]),
+      ADBCommand.Params.ParamByName('P_KEY' + IntToStr(I)));
 end;
 
 procedure TKSQLBuilder.AfterConstruction;
@@ -176,6 +245,21 @@ begin
   Result := FViewTable.ModelName;
   for I := 0 to FReferenceAliases.Count - 1 do
     Result := Result + sLineBreak + BuildJoin(FReferenceAliases.Keys.ToArray[I]);
+end;
+
+class function TKSQLBuilder.GetLookupSelectStatement(
+  const AViewField: TKViewField): string;
+begin
+  Assert(Assigned(AViewField));
+  Assert(AViewField.Reference <> nil);
+
+  Result := 'select '
+    + Join(AViewField.Reference.GetReferencedFieldNames, ', ')
+    + ', ' + AViewField.ModelField.FieldName
+    + ' from ' + AViewField.ModelName
+    + ' order by ' + AViewField.ModelField.FieldName;
+  if AViewField.Model.DefaultFilter <> '' then
+    Result := AddToSQLWhereClause(Result, AViewField.Model.DefaultFilter);
 end;
 
 function TKSQLBuilder.BuildJoin(const AReference: TKModelreference): string;
@@ -267,123 +351,6 @@ begin
   if AViewTable.DefaultSorting <> '' then
     Result := Result + ' order by ' + AViewTable.DefaultSorting;
   Result := Environment.MacroExpansionEngine.Expand(Result);
-end;
-
-procedure TKSQLBuilder.InternalBuildInsertCommand(const AModel: TKModel;
-  const ADBCommand: TEFDBCommand; const AValues: TEFNode);
-var
-  LCommandText: string;
-  I: Integer;
-begin
-  Assert(Assigned(AModel));
-  Assert(Assigned(ADBCommand));
-  Assert(Assigned(AValues));
-
-  if ADBCommand.Prepared then
-    ADBCommand.Prepared := False;
-  ADBCommand.Params.BeginUpdate;
-  try
-    ADBCommand.Params.Clear;
-    LCommandText := 'insert into ' + AModel.ModelName + ' (';
-    for I := 0 to AValues.ChildCount - 1 do
-    begin
-      if I > 0 then
-        LCommandText := LCommandText + ', ';
-      LCommandText := LCommandText + AValues[I].Name;
-    end;
-    LCommandText := LCommandText + ') values (';
-    for I := 0 to AValues.ChildCount - 1 do
-    begin
-      if I > 0 then
-        LCommandText := LCommandText + ', ';
-      LCommandText := LCommandText + ':' + AValues[I].Name;
-      ADBCommand.Params.CreateParam(ftUnknown, AValues[I].Name, ptInput);
-    end;
-    LCommandText := LCommandText + ')';
-    ADBCommand.CommandText := LCommandText;
-  finally
-    ADBCommand.Params.EndUpdate;
-  end;
-  for I := 0 to AValues.ChildCount - 1 do
-    AssignEFNodeValueToParam(AValues[I], ADBCommand.Params[I]);
-end;
-
-procedure TKSQLBuilder.InternalBuildUpdateCommand(const AModel: TKModel;
-  const ADBCommand: TEFDBCommand; const AValues: TEFNode);
-var
-  LCommandText: string;
-  I: Integer;
-  LKeyFields: TStringDynArray;
-begin
-  Assert(Assigned(AModel));
-  Assert(Assigned(ADBCommand));
-  Assert(Assigned(AValues));
-
-  if ADBCommand.Prepared then
-    ADBCommand.Prepared := False;
-  ADBCommand.Params.BeginUpdate;
-  try
-    ADBCommand.Params.Clear;
-    LCommandText := 'update ' + AModel.ModelName + ' set ';
-    for I := 0 to AValues.ChildCount - 1 do
-    begin
-      if I > 0 then
-        LCommandText := LCommandText + ', ';
-      LCommandText := LCommandText + AValues[I].Name + ' = :' + AValues[I].Name;
-      ADBCommand.Params.CreateParam(ftUnknown, AValues[I].Name, ptInput);
-    end;
-    LCommandText := LCommandText + ' where ';
-    LKeyFields := AModel.GetKeyFieldNames;
-    for I := 0 to Length(LKeyFields) - 1 do
-    begin
-      if I > 0 then
-        LCommandText := LCommandText + ' and ';
-      LCommandText := LCommandText + LKeyFields[I] + ' = :P_KEY' + IntToStr(I);
-      ADBCommand.Params.CreateParam(ftUnknown, 'P_KEY' + IntToStr(I), ptInput);
-    end;
-    ADBCommand.CommandText := LCommandText;
-  finally
-    ADBCommand.Params.EndUpdate;
-  end;
-  for I := 0 to AValues.ChildCount - 1 do
-    AssignEFNodeValueToParam(AValues[I], ADBCommand.Params[I]);
-  for I := 0 to Length(LKeyFields) - 1 do
-    AssignEFNodeValueToParam(AValues.GetNode(LKeyFields[I]),
-      ADBCommand.Params.ParamByName('P_KEY' + IntToStr(I)));
-end;
-
-procedure TKSQLBuilder.InternalBuildDeleteCommand(const AModel: TKModel;
-  const ADBCommand: TEFDBCommand; const AValues: TEFNode);
-var
-  LCommandText: string;
-  I: Integer;
-  LKeyFields: TStringDynArray;
-begin
-  Assert(Assigned(AModel));
-  Assert(Assigned(ADBCommand));
-  Assert(Assigned(AValues));
-
-  if ADBCommand.Prepared then
-    ADBCommand.Prepared := False;
-  ADBCommand.Params.BeginUpdate;
-  try
-    ADBCommand.Params.Clear;
-    LCommandText := 'delete from ' + AModel.ModelName + ' where ';
-    LKeyFields := AModel.GetKeyFieldNames;
-    for I := 0 to Length(LKeyFields) - 1 do
-    begin
-      if I > 0 then
-        LCommandText := LCommandText + ' and ';
-      LCommandText := LCommandText + LKeyFields[I] + ' = :P_KEY' + IntToStr(I);
-      ADBCommand.Params.CreateParam(ftUnknown, 'P_KEY' + IntToStr(I), ptInput);
-    end;
-    ADBCommand.CommandText := LCommandText;
-  finally
-    ADBCommand.Params.EndUpdate;
-  end;
-  for I := 0 to Length(LKeyFields) - 1 do
-    AssignEFNodeValueToParam(AValues.GetNode(LKeyFields[I]),
-      ADBCommand.Params.ParamByName('P_KEY' + IntToStr(I)));
 end;
 
 end.

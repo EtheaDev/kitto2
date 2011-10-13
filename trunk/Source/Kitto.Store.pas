@@ -190,7 +190,7 @@ type
     ///	<seealso cref="TKRecord.MarkAsDeleted"></seealso>
     procedure RemoveRecord(const ARecord: TKRecord);
 
-    function GetAsJSON(const AFrom: Integer = -1; const AFor: Integer = -1): string;
+    function GetAsJSON(const AFrom: Integer = 0; const AFor: Integer = 0): string;
   end;
 
 implementation
@@ -220,11 +220,6 @@ end;
 function TKStore.GetAsJSON(const AFrom: Integer; const AFor: Integer): string;
 begin
   Result := Records.GetAsJSON(AFrom, AFor);
-  { TODO : not sure about the usefulness of this replace here; verify that a
-    counter-replace is not needed when getting back data from the client. }
-  Result := AnsiReplaceStr(Result, #13#10, '<br/>');
-  Result := AnsiReplaceStr(Result, #10, '<br/>');
-  Result := AnsiReplaceStr(Result, #13, '<br/>');
 end;
 
 function TKStore.GetChildClass(const AName: string): TEFNodeClass;
@@ -617,6 +612,11 @@ end;
 function TKField.GetAsJSON: string;
 begin
   Result := '"' + FieldName + '":' + AsJSONValue;
+  { TODO : not sure about the usefulness of this replace here; verify that a
+    counter-replace is not needed when getting back data from the client. }
+  Result := AnsiReplaceStr(Result, #13#10, '<br/>');
+  Result := AnsiReplaceStr(Result, #10, '<br/>');
+  Result := AnsiReplaceStr(Result, #13, '<br/>');
 end;
 
 function TKField.GetAsJSONValue: string;

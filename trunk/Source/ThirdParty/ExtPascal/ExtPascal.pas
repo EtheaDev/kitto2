@@ -1024,7 +1024,8 @@ Uses dynamic JS in browser.
 @return Pixels used by browser to render these Chars
 }
 function TExtObject.CharsToPixels(Chars : integer) : integer; begin
-  Result := JSExpression('%s * %.2f', [ExtUtilTextMetrics.GetWidth('g'), Chars * 1.1]);
+  // + 16 sort of compensates for text-to-border left and right margins.
+  Result := JSExpression('(%s * %d) + 16', [ExtUtilTextMetrics.GetWidth('g'), Chars]);
 end;
 
 {
