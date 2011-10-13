@@ -24,8 +24,8 @@ type
   TEFTree = class
   private
     FNodes: TEFNodes;
-    function GetChild(I: Integer): TEFNode;
-    function GetChildCount: Integer;
+    function GetChild(I: Integer): TEFNode; overload;
+    function GetChildCount: Integer; overload;
   protected
     function GetChildClass(const AName: string): TEFNodeClass; virtual;
   public
@@ -86,6 +86,9 @@ type
     procedure RemoveChild(const ANode: TEFNode);
     procedure ClearChildren;
     property NodeList: TEFNodes read FNodes;
+
+    function GetChildCount<T: class>: Integer; overload;
+    function GetChild<T: class>(const AIndex: Integer): T; overload;
 
     function FindNode(const APath: string; const ACreateMissingNodes: Boolean = False): TEFNode; virtual;
     function GetNode(const APath: string; const ACreateMissingNodes: Boolean = False): TEFNode;
@@ -839,6 +842,28 @@ begin
   Result := FNodes[I];
 end;
 
+function TEFTree.GetChild<T>(const AIndex: Integer): T;
+var
+  I: Integer;
+  LTIndex: Integer;
+begin
+  Result := nil;
+  LTIndex := 0;
+  for I := 0 to ChildCount - 1 do
+  begin
+    // Don't use "is" here. Either a bug in generics implementation or as designed.
+    if Children[I].InheritsFrom(T) then
+    begin
+      if LTIndex = AIndex then
+      begin
+        Result := T(Children[I]);
+        Break;
+      end;
+      Inc(LTIndex);
+    end;
+  end;
+end;
+
 function TEFTree.FindChild(const AName: string; const ACreateMissingNodes: Boolean): TEFNode;
 var
   I: Integer;
@@ -871,6 +896,19 @@ end;
 function TEFTree.GetChildCount: Integer;
 begin
   Result := FNodes.Count;
+end;
+
+function TEFTree.GetChildCount<T>: Integer;
+var
+  I: Integer;
+begin
+  Result := 0;
+  for I := 0 to ChildCount - 1 do
+  begin
+    // Don't use "is" here. Either a bug in generics implementation or as designed.
+    if Children[I].InheritsFrom(T) then
+      Inc(Result);
+  end;
 end;
 
 function TEFTree.GetChildrenAsPairs(const APath: string;
