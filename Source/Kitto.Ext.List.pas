@@ -69,7 +69,6 @@ uses
   Kitto.JSON, Kitto.Ext.Filters, Kitto.SQL;
 
 const
-  DEFAULT_PAGE_RECORD_COUNT = 100;
   { TODO : should we just fetch everything when grouping is enabled? }
   DEFAULT_GROUPING_PAGE_RECORD_COUNT = 1000;
 
@@ -114,7 +113,6 @@ var
   LPageRecordCount: Integer;
   LStart: Integer;
   LLimit: Integer;
-  LRecords: string;
 begin
 { TODO : Fully refreshing at each page change might be inefficient.
   Shall we provide a switch to turn it off on a form-by-form basis, or use
@@ -126,14 +124,8 @@ begin
   LLimit := Session.QueryAsInteger['limit'];
   LPageRecordCount := Min(Max(LLimit, DEFAULT_PAGE_RECORD_COUNT), ServerStore.RecordCount - LStart);
 
-  LRecords := ServerStore.GetAsJSON(LStart, LPageRecordCount);
-
-  { TODO : not sure about the usefulness of this replace here }
-  LRecords := AnsiReplaceStr(LRecords, #13#10, '<br/>');
-  LRecords := AnsiReplaceStr(LRecords, #10, '<br/>');
-  LRecords := AnsiReplaceStr(LRecords, #13, '<br/>');
-
-  Session.Response := '{Total:' + IntToStr(ServerStore.RecordCount) + ',Root:' + LRecords + '}';
+  Session.Response := '{Total:' + IntToStr(ServerStore.RecordCount) + ',Root:'
+    + ServerStore.GetAsJSON(LStart, LPageRecordCount) + '}';
 end;
 
 function TKExtListPanelController.CreatePagingToolbar: TExtPagingToolbar;
@@ -329,7 +321,7 @@ Note: remote sort passes params sort and dir. }
   FGridView.ForceFit := False;
 
   FStore.Url := MethodURI(GetRecordPage);
-  FReader :=  TExtDataJsonReader.Create(JSObject('')); // Must pass '' otherwise invalid code is generated.
+  FReader := TExtDataJsonReader.Create(JSObject('')); // Must pass '' otherwise invalid code is generated.
   FReader.Root := 'Root';
   FReader.TotalProperty := 'Total';
   FStore.Reader := FReader;

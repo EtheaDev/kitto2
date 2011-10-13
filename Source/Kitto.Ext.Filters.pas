@@ -182,13 +182,12 @@ through a connector. }
     FConfig: TEFNode;
     FItems: TEFNode;
     FActiveIndex: Integer;
-    procedure ButtonClick(This: TExtButton; E: TExtEventObjectSingleton);
   public
     procedure SetConfig(const AConfig: TEFNode);
     function AsExtObject: TExtObject;
     function GetExpression: string;
   published
-    procedure ButtonClick2;
+    procedure ButtonClick;
   end;
 
 implementation
@@ -564,17 +563,11 @@ In order to save a trip by calling the refresh code directly,
 we should include status information from all filters. Doable,
 by generating more JS code, but not now. }
   //LButton.On('click', JSFunction(AConfig.GetString('Sys/ApplyJSCode')));
-    LButton.On('click', Ajax(ButtonClick2, ['Index', I, 'Pressed', LButton.Pressed__]));
+    LButton.On('click', Ajax(ButtonClick, ['Index', I, 'Pressed', LButton.Pressed__]));
   end;
 end;
 
-procedure TKButtonListFilter.ButtonClick(This: TExtButton; E: TExtEventObjectSingleton);
-begin
-  FActiveIndex := StrToInt(StripPrefix(This.Id, 'B'));
-  NotifyObservers('FilterChanged');
-end;
-
-procedure TKButtonListFilter.ButtonClick2;
+procedure TKButtonListFilter.ButtonClick;
 begin
   if ParamAsBoolean('Pressed') then
     FActiveIndex := ParamAsInteger('Index')

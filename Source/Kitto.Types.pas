@@ -5,6 +5,9 @@ interface
 uses
   EF.Types;
 
+const
+  DEFAULT_PAGE_RECORD_COUNT = 100;
+
 type
   TKEditMode = (emNewRecord, emEditCurrentRecord);
 

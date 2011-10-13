@@ -4,7 +4,7 @@ interface
 
 uses
   Types, Classes, Generics.Collections,
-  EF.Classes, EF.Tree,
+  EF.Classes, EF.Tree, EF.Types,
   Kitto.Metadata;
 
 type
@@ -28,6 +28,7 @@ type
     function GetEmptyAsNull: Boolean;
     function GetDefaultValue: Variant;
     function GetExpression: string;
+    function GetAllowedValues: TEFPairs;
   protected
     procedure GetFieldSpec(out ADataType: TEFDataType; out ASize: Integer;
       out AIsRequired: Boolean; out AIsKey: Boolean);
@@ -76,6 +77,11 @@ type
     ///	  of these types, this property always returns True.
     ///	</remarks>
     property EmptyAsNull: Boolean read GetEmptyAsNull;
+
+    ///	<summary>If the field has a fixed list of allowed values, it is stored
+    ///	here. Each value has as an associated label.</summary>
+    ///	<remarks>Only string fields are currently supported.</remarks>
+    property AllowedValues: TEFPairs read GetAllowedValues;
 
     ///	<summary>
     ///	  Default label for this field in views. Defaults to a beautified field
@@ -132,6 +138,8 @@ type
     property ReferencedFields[I: Integer]: TKModelField read GetReferencedField;
     property ReferencedModel: TKModel read GetReferencedModel;
 
+    function GetReferencedFieldNames(const AQualify: Boolean = False): TStringDynArray;
+
     ///	<summary>
     ///	  True if all fields are required.
     ///	</summary>
@@ -161,6 +169,8 @@ type
     function BeautifyModelName(const AModelName: string): string;
     function GetIsReadOnly: Boolean;
     function GetDefaultSorting: string;
+    function GetIsLarge: Boolean;
+    function GetDefaultFilter: string;
   protected
     function GetFields: TKModelFields;
     function GetChildClass(const AName: string): TEFNodeClass; override;
@@ -186,6 +196,14 @@ type
     procedure GetReferencesToModel(const AModel: TKModel; const AList: TList<TKModelReference>);
 
     property IsReadOnly: Boolean read GetIsReadOnly;
+    property DefaultFilter: string read GetDefaultFilter;
+
+    ///	<summary>True if the model's underlying data store is a large une. Used
+    ///	to decide the kind of lookup combo box to create. Se this to True if
+    ///	the cardinality of the underlying database table exceeds what you are
+    ///	comfortable to put in an Ajax response (which typically contains
+    ///	several lookup sets).</summary>
+    property IsLarge: Boolean read GetIsLarge;
 
     ///	<summary>
     ///	  Optional fixed order by expression to apply when building the select
@@ -308,6 +326,11 @@ begin
   end;
 end;
 
+function TKModel.GetIsLarge: Boolean;
+begin
+  Result := GetBoolean('IsLarge');
+end;
+
 function TKModel.GetIsReadOnly: Boolean;
 begin
   Result := GetBoolean('IsReadOnly');
@@ -361,6 +384,11 @@ begin
   Result := GetString('DefaultSorting');
   if Result = '' then
     Result := Join(GetKeyFieldNames(True), ', ');
+end;
+
+function TKModel.GetDefaultFilter: string;
+begin
+  Result := GetString('DefaultFilter');
 end;
 
 function TKModel.GetDisplayLabel: string;
@@ -449,6 +477,11 @@ function TKModelField.BeautifyFieldName(const AFieldName: string): string;
 begin
   { TODO : allow to customize the beautifying function }
   Result := CamelToSpaced(UpperUnderscoreToCamel(AFieldName));
+end;
+
+function TKModelField.GetAllowedValues: TEFPairs;
+begin
+  Result := GetChildrenAsPairs('AllowedValues');
 end;
 
 function TKModelField.GetDataType: TEFDataType;
@@ -590,6 +623,18 @@ end;
 function TKModelReference.GetReferencedField(I: Integer): TKModelField;
 begin
   Result := ReferencedModel.FieldByName(GetFields[I].AsString);
+end;
+
+function TKModelReference.GetReferencedFieldNames(const AQualify: Boolean): TStringDynArray;
+var
+  I: Integer;
+begin
+  SetLength(Result, FieldCount);
+  for I := 0 to FieldCount - 1 do
+    if AQualify then
+      Result[I] := ReferencedFields[I].QualifiedFieldName
+    else
+      Result[I] := ReferencedFields[I].FieldName;
 end;
 
 function TKModelReference.GetReferencedModel: TKModel;
