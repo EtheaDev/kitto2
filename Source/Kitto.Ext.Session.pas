@@ -264,7 +264,15 @@ end;
 
 procedure TKExtSession.LoadLibraries;
 
-  procedure SetExistingLibrary(const ALibName: string);
+  procedure SetRequiredLibrary(const ALibName: string);
+  var
+    LLibURL: string;
+  begin
+    LLibURL := Environment.GetResourceURL(IncludeTrailingPathDelimiter('js') + ALibName + '.js');
+    SetLibrary(StripSuffix(LLibURL, '.js'), False, False, True);
+  end;
+
+  procedure SetOptionalLibrary(const ALibName: string);
   var
     LLibURL: string;
   begin
@@ -279,16 +287,15 @@ var
 begin
   SetLibrary(ExtPath + '/examples/ux/statusbar/StatusBar');
   SetCSS(ExtPath + '/examples/ux/statusbar/css/statusbar');
-  SetLibrary(ExtPath + '/examples/form/DateTimeField');
   SetLibrary(ExtPath + '/examples/shared/examples'); // For Ext.msg.
   SetLibrary(ExtPath + '/src/locale/ext-lang-' + Language);
-
-  SetLibrary(StripSuffix(Environment.GetResourceURL('js/kitto-core.js'), '.js'), False, False, True);
-  SetExistingLibrary('application');
+  SetRequiredLibrary('DateTimeField');
+  SetRequiredLibrary('kitto-core');
+  SetOptionalLibrary('application');
 
   LLibraries := Environment.Config.GetStringArray('JavaScriptLibraries');
   for LLibName in LLibraries do
-    SetExistingLibrary(LLibName);
+    SetRequiredLibrary(LLibName);
 end;
 
 procedure TKExtSession.Logout;
