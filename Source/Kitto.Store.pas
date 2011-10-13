@@ -634,8 +634,8 @@ begin
       edtCurrency: Result := FormatCurr(',0.00', AsCurrency, Session.JSFormatSettings);
       edtFloat, edtDecimal: Result := FormatFloat(',0.00', AsFloat, Session.JSFormatSettings);
     end;
+    Result := '"' + Result + '"';
   end;
-  Result := '"' + Result + '"';
 end;
 
 function TKField.GetFieldName: string;
