@@ -19,20 +19,20 @@ type
   private
     FDBConnections: TDictionary<string, TEFDBConnection>;
     FMacroExpansionEngine: TEFMacroExpansionEngine;
-    FAccessControlHost: TKAccessControlHost;
     FAppHomePath: string;
     FModels: TKModels;
     FViews: TKViews;
     FResourcePathsURLs: TDictionary<string, string>;
     FMacroExpander: TEFMacroExpander;
     FAuthenticator: TKAuthenticator;
+    FAC: TKAccessController;
     const MAIN_DB_NAME = 'Main';
+    function GetAC: TKAccessController;
     function GetDBConnection(const ADatabaseName: string): TEFDBConnection;
     function GetAuthenticator: TKAuthenticator;
     function GetMainDBConnection: TEFDBConnection;
     function GetDBAdapter(const ADatabaseName: string): TEFDBAdapter;
     function GetMacroExpansionEngine: TEFMacroExpansionEngine;
-    function GetAccessControlHost: TKAccessControlHost;
     function GetAppTitle: string;
     function GetAppName: string;
     function GetModels: TKModels;
@@ -86,21 +86,17 @@ type
     ///	<summary>Access to the current authenticator.</summary>
     property Authenticator: TKAuthenticator read GetAuthenticator;
 
-    {
-      A reference to the object that keeps track of the currently active access
-      controller, manages it and provides access control-related services.
-    }
-    property AccessControlHost: TKAccessControlHost read GetAccessControlHost;
-    {
-      Shortcut for AccessControlHost.CurrentAccessController.GetAccessGrantValue
-      that uses the currently logged in user id.
-    }
-    function GetCurrentUserAccessGrantValue(const AResourceURI, AMode: string;
+    ///	<summary>The current Access Controller.</summary>
+    property AC: TKAccessController read GetAC;
+
+    ///	<summary>Calls AC.GetAccessGrantValue passing the current user and
+    ///	returns the result.</summary>
+    function GetAccessGrantValue(const AResourceURI, AMode: string;
       const ADefaultValue: Variant): Variant;
-    {
-      Shortcut for GetCurrentUserAccessGrantValue for
-      Boolean values. Returns True if a value is granted and it equals ACV_TRUE.
-    }
+
+    ///	<summary>Shortcut for GetAccessGrantValue for Boolean
+    ///	values. Returns True if a value is granted and it equals
+    ///	ACV_TRUE.</summary>
     function IsAccessGranted(const AResourceURI, AMode: string): Boolean;
     {
       Calls IsAccessGranted and raises an "access denied" exception if the
@@ -288,8 +284,8 @@ begin
   FreeAndNil(FMacroExpander);
   FreeAndNil(FViews);
   FreeAndNil(FModels);
-  FreeAndNil(FAccessControlHost);
   FreeAndNil(FAuthenticator);
+  FreeAndNil(FAC);
   FreeAndNil(FMacroExpansionEngine);
   FreeAndNil(FResourcePathsURLs);
   FinalizeDBConnections;
@@ -328,7 +324,7 @@ end;
 function TKEnvironment.IsAccessGranted(const AResourceURI,
   AMode: string): Boolean;
 begin
-  Result := GetCurrentUserAccessGrantValue(AResourceURI, AMode, Null) = ACV_TRUE;
+  Result := GetAccessGrantValue(AResourceURI, AMode, Null) = ACV_TRUE;
 end;
 
 function TKEnvironment.GetMainDBConnection: TEFDBConnection;
@@ -451,13 +447,6 @@ begin
       Format(_('Resource URI: %s; access mode: %s.'), [AResourceURI, AMode]));
 end;
 
-function TKEnvironment.GetAccessControlHost: TKAccessControlHost;
-begin
-  if not Assigned(FAccessControlHost) then
-    FAccessControlHost := TKAccessControlHost.Create(EWAccessControllerFactory);
-  Result := FAccessControlHost;
-end;
-
 function TKEnvironment.GetAppTitle: string;
 begin
   Result := Config.GetString('AppTitle', 'Kitto');
@@ -481,16 +470,34 @@ begin
   Result := FAuthenticator;
 end;
 
+function TKEnvironment.GetAC: TKAccessController;
+var
+  LType: string;
+  LConfig: TEFNode;
+  I: Integer;
+begin
+  if not Assigned(FAC) then
+  begin
+    LType := Config.GetExpandedString('AccessControl', 'Null');
+    FAC := TKAccessControllerFactory.Instance.CreateObject(LType);
+    LConfig := Config.FindNode('AccessControl');
+    if Assigned(LConfig) then
+      for I := 0 to LConfig.ChildCount - 1 do
+        FAC.Config.AddChild(TEFNode.Clone(LConfig.Children[I]));
+  end;
+  Result := FAC;
+end;
+
 function TKEnvironment.GetConfigFileName: string;
 begin
   Result := GetMetadataPath + 'Config.yaml';
 end;
 
-function TKEnvironment.GetCurrentUserAccessGrantValue(const AResourceURI,
+function TKEnvironment.GetAccessGrantValue(const AResourceURI,
   AMode: string; const ADefaultValue: Variant): Variant;
 begin
-  Result := AccessControlHost.CurrentAccessController.GetAccessGrantValue(
-    Authenticator.UserName, AResourceURI, AMode, ADefaultValue);
+  Result := AC.GetAccessGrantValue(Authenticator.UserName,
+    AResourceURI, AMode, ADefaultValue);
 end;
 
 function TKEnvironment.GetImageURL(const AResourceName,
