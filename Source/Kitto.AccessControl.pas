@@ -14,178 +14,124 @@ uses
   Kitto.Types;
 
 type
-  {
-    Abstract base access controller. An access controller tells if and how a
-    user (identified by a string Id) is allowed to access a resource
-    (identified by a URI).
-
-    Only one access controller may be active at any one time. Applications
-    wanting to use a custom access control policy should create and register
-    an access controller, and then make it active through the EW access
-    control host.
-    @seealso(TKAccessControlHost)
-  }
+  ///	<summary>
+  ///	  <para>Abstract base access controller. An access controller tells if
+  ///	  and how a user (identified by a string Id) is allowed to access a
+  ///	  resource (identified by a URI).</para>
+  ///	  <para>Only one access controller may be active at any one time.</para>
+  ///	  <para>Applications wanting to use a custom access control policy should
+  ///	  create and register an access controller, and then make it active in
+  ///	  Config.yaml.</para>
+  ///	</summary>
   TKAccessController = class(TEFComponent)
   protected
     class function InternalGetClassId: string; override;
-    {
-      Implements GetAccessGrantValue; descendants must return a value that
-      depends on AMode. In most cases this value will have to be True if the
-      specified auser is allowed to access the resource and False otherwise.
-    }
+
+    ///	<summary>Implements GetAccessGrantValue; descendants must return a
+    ///	value that depends on AMode. In most cases this value will have to be
+    ///	True if the specified auser is allowed to access the resource and False
+    ///	otherwise, but it can be a value of any type.</summary>
     function InternalGetAccessGrantValue(
       const AUserId, AResourceURI, AMode: string): Variant; virtual; abstract;
   public
-    {
-      Returns the access grant value for the specified resource, mode and user.
-      This methods tells if the user can access the resource in the specified
-      mode, and how the access is granted. Generally, the return value would be
-      a Boolean, but - depending on the mode - it can be anything.
-
-      See the access control documentation for information about how to
-      construct a resource URI, where to get the user Id and what modes are
-      available.
-    }
+    ///	<summary>
+    ///	  <para>Returns the access grant value for the specified resource, mode
+    ///	  and user.</para>
+    ///	  <para>This methods tells if the user can access the resource in the
+    ///	  specified mode, and how the access is granted. Generally, the return
+    ///	  value would be a Boolean, but - depending on the mode - it can be
+    ///	  anything.</para>
+    ///	  <para>See the access control documentation for information about how
+    ///	  to construct a resource URI, where to get the user Id and what modes
+    ///	  are available.</para>
+    ///	</summary>
     function GetAccessGrantValue(const AUserId, AResourceURI, AMode: string;
       const ADefaultValue: Variant): Variant;
-  end;
 
-  {
-    Class reference for TKAccessController, used by the registry and factory.
-  }
+    ///	<summary>Shortcut for GetAccessGrantValue for Boolean values. Returns
+    ///	True if a value is granted and it equals ACV_TRUE.</summary>
+    function IsAccessGranted(const AUserId, AResourceURI, AMode: string): Boolean;
+
+    ///	<summary>Returns True if the specified access mode is a standard mode,
+    ///	that is one of the ACM_* constants (except ACM_ALL).</summary>
+    class function IsStandardMode(const AMode: string): Boolean;
+  end;
   TKAccessControllerClass = class of TKAccessController;
 
-  {
-    Base class for EW access control errors.
-  }
-  EKAccessControlError = class(EKError);
+  ///	<summary>Exception raised when access to a certain resource is
+  ///	deniend.</summary>
+  EKAccessDeniedError = class(EKError);
 
-  {
-    Exception raised when access to a certain resource is deniend.
-  }
-  EKAccessDeniedError = class(EKAccessControlError);
-
-  {
-    This class holds a list of registered access controller classes.
-  }
+  ///	<summary>This class holds a list of registered access controller
+  ///	classes.</summary>
   TKAccessControllerRegistry = class(TEFRegistry)
+  private
+    class var FInstance: TKAccessControllerRegistry;
+    class function GetInstance: TKAccessControllerRegistry; static;
   public
-    {
-      Adds an access controller class to the registry.
-    }
-    procedure RegisterClass(const AClass: TKAccessControllerClass);
-    {
-      Deletes a previously registered access controller class from the registry.
-    }
-    procedure UnregisterClass(const AClass: TKAccessControllerClass);
+    class destructor Destroy;
+    class property Instance: TKAccessControllerRegistry read GetInstance;
+
+    ///	<summary>Adds an access controller class to the registry.</summary>
+    procedure RegisterClass(const AId: string; const AClass: TKAccessControllerClass);
+
+    ///	<summary>Deletes a previously registered access controller class from
+    ///	the registry.</summary>
+    procedure UnregisterClass(const AId: string);
   end;
 
-  {
-    Uses the registry to create access controllers by class Id.
-    It is friend to TKAccessControllerRegistry.
-  }
+  ///	<summary>Uses the registry to create access controllers by class
+  ///	Id.</summary>
   TKAccessControllerFactory = class(TEFFactory)
+  private
+    class var FInstance: TKAccessControllerFactory;
+    class function GetInstance: TKAccessControllerFactory; static;
   public
-    {
-      Creates and returns an instance of the access controller class identified
-      by AClassId. Raises an exception if said class is not registered.
-    }
+    class destructor Destroy;
+    class property Instance: TKAccessControllerFactory read GetInstance;
+
+    ///	<summary>Creates and returns an instance of the access controller class
+    ///	identified by AClassId. Raises an exception if said class is not
+    ///	registered.</summary>
     function CreateObject(const AClassId: string): TKAccessController;
   end;
 
-{
-  Singleton access controller class registry. Used by access controllers and
-  by the access controller factory.
-}
-function EWAccessControllerRegistry: TKAccessControllerRegistry;
-
-{
-  Singleton access controller object factory. Used by the access control host.
-}
-function EWAccessControllerFactory: TKAccessControllerFactory;
-
-type
-  {
-    Keeps track of the currently active access controller, manages it and
-    provides access control-related services.
-  }
-  TKAccessControlHost = class(TEFComponent)
-  private
-    FFactory: TKAccessControllerFactory;
-    FCurrentAccessController: TKAccessController;
-    FAccessControllerId: string;
-    function GetCurrentAccessController: TKAccessController;
-  public
-    {
-      Accepts a reference to the factory that will be used to create the correct
-      access controller according to the secure configuration.
-    }
-    constructor Create(const AFactory: TKAccessControllerFactory);
-    destructor Destroy; override;
-    {
-      Gives access to the current access controller, created on demand.
-
-      The Id of the access controller is fetched from the AccessControllerId
-      item of the secure configuration. Default is 'Null'.
-    }
-    property CurrentAccessController: TKAccessController
-      read GetCurrentAccessController;
-  end;
-
 const
-  {
-   Ability to view a GUI element in a GUI.
-  }
+  ///	<summary>Ability to view a resource, such as a view. Resources for which
+  ///	access is not granted in this mode are invisible to the user.</summary>
   ACM_VIEW = 'VIEW';
-  {
-    Ability to execute a GUI element in a GUI; ability to run an EW program.
-  }
+
+  ///	<summary>Ability to execute a resource. If a user has access to a
+  ///	resource in VIEW mode but not RUN mode, he can see the menu item (or
+  ///	button) but not click it to display the resource.</summary>
   ACM_RUN = 'RUN';
-  {
-    Ability to display existing database records in a form GUI element.
-  }
+
+  ///	<summary>Ability to display data (such as a Model).</summary>
   ACM_READ = 'READ';
-  {
-    Ability to create new records in a form GUI element.
-  }
+
+  ///	<summary>Ability to create new records in a model.</summary>
   ACM_ADD = 'ADD';
-  {
-    Ability to modify existing database records in a form GUI element.
-  }
+
+  ///	<summary>Ability to modify existing model records.</summary>
   ACM_MODIFY = 'MODIFY';
-  {
-    Ability to delete records in a form GUI element.
-  }
+
+  ///	<summary>Ability to delete model records.</summary>
   ACM_DELETE = 'DELETE';
-  {
-    Enables the “Delete all” feature in a form GUI element.
-  }
-  ACM_DELETE_ALL = 'DELETE_ALL';
-  {
-    Unlimited access on a resource.
-  }
+
+  ///	<summary>Unlimited access on a resource.</summary>
   ACM_ALL = 'ALL';
 
-  {
-    This value is considered True (grant) when stored in a permission.
-  }
+  ///	<summary>This value is considered True (grant) when stored in a
+  ///	permission.</summary>
   ACV_TRUE = 1;
 
-  {
-    This value is considered False (deny) when stored in a permission.
-  }
+  ///	<summary>This value is considered False (deny) when stored in a
+  ///	permission.</summary>
   ACV_FALSE = 0;
 
-{
-  Returns True if the specified access mode is a standard mode, that is one
-  of the ACM_* constants (except ACM_ALL).
-}
-function IsStandardMode(const AMode: string): Boolean;
-
 type
-  {
-    The Null access controller always grants access. It is used by default.
-  }
+  ///	<summary>The Null access controller always grants access. It is used by
+  ///	default.</summary>
   TKNullAccessController = class(TKAccessController)
   protected
     function InternalGetAccessGrantValue(
@@ -199,45 +145,28 @@ uses
   EF.StrUtils, EF.Tree,
   Kitto.Environment;
 
-const
-  NULL_ACCESS_CONTROLLER = 'Null';
-
-var
-  _EWAccessControllerRegistry: TKAccessControllerRegistry;
-
-function EWAccessControllerRegistry: TKAccessControllerRegistry;
-begin
-  if not Assigned(_EWAccessControllerRegistry) then
-    _EWAccessControllerRegistry := TKAccessControllerRegistry.Create;
-  Result := _EWAccessControllerRegistry;
-end;
-
-var
-  _EWAccessControllerFactory: TKAccessControllerFactory;
-
-function EWAccessControllerFactory: TKAccessControllerFactory;
-begin
-  if not Assigned(_EWAccessControllerFactory) then
-    _EWAccessControllerFactory := TKAccessControllerFactory.Create(EWAccessControllerRegistry);
-  Result := _EWAccessControllerFactory;
-end;
-
-function IsStandardMode(const AMode: string): Boolean;
-begin
-  Result := MatchStr(AMode, [ACM_VIEW, ACM_RUN, ACM_READ, ACM_ADD, ACM_MODIFY,
-    ACM_DELETE, ACM_DELETE_ALL]);
-end;
-
 { TKAccessControllerRegistry }
 
-procedure TKAccessControllerRegistry.RegisterClass(const AClass: TKAccessControllerClass);
+class destructor TKAccessControllerRegistry.Destroy;
 begin
-  inherited RegisterClass(AClass.GetClassId, AClass);
+  FreeAndNil(FInstance);
 end;
 
-procedure TKAccessControllerRegistry.UnregisterClass(const AClass: TKAccessControllerClass);
+class function TKAccessControllerRegistry.GetInstance: TKAccessControllerRegistry;
 begin
-  inherited UnregisterClass(AClass.GetClassId);
+  if FInstance = nil then
+    FInstance := TKAccessControllerRegistry.Create;
+  Result := FInstance;
+end;
+
+procedure TKAccessControllerRegistry.RegisterClass(const AId: string; const AClass: TKAccessControllerClass);
+begin
+  inherited RegisterClass(AId, AClass);
+end;
+
+procedure TKAccessControllerRegistry.UnregisterClass(const AId: string);
+begin
+  inherited UnregisterClass(AId);
 end;
 
 { TKAccessControllerFactory }
@@ -247,7 +176,25 @@ begin
   Result := inherited CreateObject(AClassId) as TKAccessController;
 end;
 
+class destructor TKAccessControllerFactory.Destroy;
+begin
+  FreeAndNil(FInstance);
+end;
+
+class function TKAccessControllerFactory.GetInstance: TKAccessControllerFactory;
+begin
+  if FInstance = nil then
+    FInstance := TKAccessControllerFactory.Create(TKAccessControllerRegistry.Instance);
+  Result := FInstance;
+end;
+
 { TKAccessController }
+
+class function TKAccessController.IsStandardMode(const AMode: string): Boolean;
+begin
+  Result := MatchStr(AMode, [ACM_VIEW, ACM_RUN, ACM_READ, ACM_ADD, ACM_MODIFY,
+    ACM_DELETE]);
+end;
 
 function TKAccessController.GetAccessGrantValue(const AUserId, AResourceURI,
   AMode: string; const ADefaultValue: Variant): Variant;
@@ -273,39 +220,10 @@ begin
   Result := StripPrefixAndSuffix(inherited InternalGetClassId, 'K', 'AccessController');
 end;
 
-{ TKAccessControlHost }
-
-constructor TKAccessControlHost.Create(
-  const AFactory: TKAccessControllerFactory);
+function TKAccessController.IsAccessGranted(const AUserId, AResourceURI,
+  AMode: string): Boolean;
 begin
-  inherited Create;
-  FFactory := AFactory;
-end;
-
-destructor TKAccessControlHost.Destroy;
-begin
-  FreeAndNil(FCurrentAccessController);
-  inherited;
-end;
-
-function TKAccessControlHost.GetCurrentAccessController: TKAccessController;
-var
-  LConfig: TEFNode;
-  I: Integer;
-begin
-  if not Assigned(FCurrentAccessController) then
-  begin
-    Assert(Assigned(FFactory));
-
-    if FAccessControllerId = '' then
-      FAccessControllerId := Environment.Config.GetString('AccessControl', NULL_ACCESS_CONTROLLER);
-    FCurrentAccessController := FFactory.CreateObject(FAccessControllerId);
-    LConfig := Environment.Config.FindNode('AccessControl');
-    if Assigned(LConfig) then
-      for I := 0 to LConfig.ChildCount - 1 do
-        FCurrentAccessController.Config.AddChild(TEFNode.Clone(LConfig.Children[I]));
-  end;
-  Result := FCurrentAccessController;
+  Result := GetAccessGrantValue(AUserId, AResourceURI, AMode, Null) = ACV_TRUE;
 end;
 
 { TKNullAccessController }
@@ -320,11 +238,9 @@ begin
 end;
 
 initialization
-  EWAccessControllerRegistry.RegisterClass(TKNullAccessController);
+  TKAccessControllerRegistry.Instance.RegisterClass('Null', TKNullAccessController);
 
 finalization
-  EWAccessControllerRegistry.UnregisterClass(TKNullAccessController);
-  FreeAndNil(_EWAccessControllerFactory);
-  FreeAndNil(_EWAccessControllerRegistry);
+  TKAccessControllerRegistry.Instance.UnregisterClass('Null');
 
 end.
