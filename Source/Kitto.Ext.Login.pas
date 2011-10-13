@@ -15,13 +15,12 @@ type
     FPassword: TExtFormTextField;
     FButton: TExtButton;
     FOnLogin: TKExtOnLogin;
-    procedure DoAuthenticate;
   protected
     procedure InitDefaults; override;
   public
     property OnLogin: TKExtOnLogin read FOnLogin write FOnLogin;
 
-    class procedure Authenticate(const AUserName, AUserPassword: string);
+    class function Authenticate(const AUserName, APassword: string): Boolean;
   published
     procedure DoLogin;
   end;
@@ -37,44 +36,32 @@ uses
 
 procedure TKExtLoginWindow.DoLogin;
 begin
-  { TODO : refactor authenticators so that they don't necessarily raise exceptions }
-  try
-    DoAuthenticate;
+  if Authenticate(Session.Query['UserName'], Session.Query['Password']) then
+  begin
     Close;
     if Assigned(FOnLogin) then
       FOnLogin;
-  except
-    on E: EKError do
-    begin
-      ExtMessageBox.Alert(Title, E.Message, JSFunction(FUserName.JSName + '.focus(false, 500);'));
-      FUserName.Focus(False, 1000);
-    end;
+  end
+  else
+  begin
+    Session.Flash(_('Invalid login.'));
+    FUserName.Focus(False, 500);
   end;
 end;
 
-class procedure TKExtLoginWindow.Authenticate(const AUserName,
-  AUserPassword: string);
+class function TKExtLoginWindow.Authenticate(const AUserName, APassword: string): Boolean;
 var
-  LAuthenticationData: TEFNode;
+  LAuthData: TEFNode;
 begin
-  LAuthenticationData := TEFNode.Create;
+  LAuthData := TEFNode.Create;
   try
-    Environment.AuthenticationHost.CurrentAuthenticator.DefineAuthenticationData(LAuthenticationData);
-    try
-      LAuthenticationData.SetString('UserName', AUserName);
-      LAuthenticationData.SetString('UserPassword', AUserPassword);
-      Environment.AuthenticationHost.CurrentAuthenticator.Authenticate(LAuthenticationData);
-    except
-      raise;
-    end;
+    Environment.Authenticator.DefineAuthData(LAuthData);
+    LAuthData.SetString('UserName', AUserName);
+    LAuthData.SetString('Password', APassword);
+    Result := Environment.Authenticator.Authenticate(LAuthData);
   finally
-    LAuthenticationData.Free;
+    LAuthData.Free;
   end;
-end;
-
-procedure TKExtLoginWindow.DoAuthenticate;
-begin
-  Authenticate(Session.Query['UserName'], Session.Query['UserPassword']);
 end;
 
 procedure TKExtLoginWindow.InitDefaults;
@@ -82,8 +69,8 @@ begin
   inherited;
   Title := Environment.AppTitle;
   Modal := True;
-  Width := 366;
-  Height := 136;
+  Width := 246;
+  Height := 140;
   Plain := True;
   Layout := lyFit;
   Closable := False;
@@ -93,7 +80,7 @@ begin
     Border := False;
     ButtonAlign := baRight;
     BodyStyle := SetPaddings(5, 5);
-    Defaults := JSObject('width: 250');
+    Defaults := JSObject('width: 130');
     Frame := True;
     MonitorValid := True;
 
@@ -103,15 +90,16 @@ begin
     FUserName.AllowBlank := False;
 
     FPassword := TExtFormTextField.AddTo(Items);
-    FPassword.Name := 'UserPassword';
+    FPassword.Name := 'Password';
     FPassword.FieldLabel := _('Password');
     FPassword.InputType := itPassword;
     FPassword.AllowBlank := False;
 
     FButton := TExtButton.AddTo(Buttons);
+    FButton.Icon := Environment.GetImageURL('login');
     FButton.Text := _('Login');
-    FButton.Handler := Ajax(DoLogin, ['UserName', FUserName.GetValue, 'UserPassword', FPassword.GetValue]);
-    //LButton.Scale := 'medium';
+    FButton.Handler := Ajax(DoLogin, ['UserName', FUserName.GetValue, 'Password', FPassword.GetValue]);
+    FButton.Scale := 'medium';
     FButton.Plugins := JSObject('"defaultButton"', '', False);
     FButton.FormBind := True;
   end;

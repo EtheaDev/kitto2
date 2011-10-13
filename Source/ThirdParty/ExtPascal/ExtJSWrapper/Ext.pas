@@ -8347,6 +8347,7 @@ procedure TExtComponent.SetFOverCls(Value : String); begin
 end;
 
 procedure TExtComponent.SetFPlugins(Value : TExtObject); begin
+  FPlugins.Free;
   FPlugins := Value;
   Value.DeleteFromGarbage;
   JSCode('plugins:' + VarToJSON([Value, false]));

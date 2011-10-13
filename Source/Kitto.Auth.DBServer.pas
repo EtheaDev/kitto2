@@ -1,7 +1,9 @@
-{
-  Defines the DBServer authenticator and related classes and services.
-  This authenticator uses the database server to authenticate users.
-}
+///	<summary>
+///	  <para>Defines the DBServer authenticator and related classes and
+///	  services.</para>
+///	  <para>This authenticator uses the database server to authenticate
+///	  users.</para>
+///	</summary>
 unit Kitto.Auth.DBServer;
 
 {$I Kitto.Defines.inc}
@@ -13,20 +15,21 @@ uses
   Kitto.Auth;
 
 type
-  {
-    The DBServer authenticator uses the database server to authenticate users.
-    It needs the same items as its ancestor TKClassicAuthenticator.
-
-    In order for this authenticator to work, it is required that the user-name
-    and password placeholders in the database connection string stored in any
-    EW's configuration files are written as %auth:UserName% and
-    %auth:UserPassword%. When Authenticate is called, the authenticator will
-    allow macro substitution of those items and try to connect to the database.
-  }
+  ///	<summary>
+  ///	  <para>The DBServer authenticator uses the database server to
+  ///	  authenticate users.</para>
+  ///	  <para>It needs the same items as its ancestor <see cref=
+  ///	  "TKClassicAuthenticator" />.</para>
+  ///	  <para>In order for this authenticator to work, it is required that the
+  ///	  user-name and password placeholders in the database connection strings
+  ///	  stored in Config.yaml are written as <c>%Auth:UserName%</c> and
+  ///	  <c>%Auth:Password%</c>. When Authenticate is called, the authenticator
+  ///	  will allow macro substitution of these items and try to connect to the
+  ///	  database.</para>
+  ///	</summary>
   TKDBServerAuthenticator = class(TKClassicAuthenticator)
   protected
-    procedure InternalAuthenticate(
-      const AAuthenticationData: TEFNode); override;
+    function InternalAuthenticate(const AAuthData: TEFNode): Boolean; override;
   end;
   
 implementation
@@ -36,17 +39,21 @@ uses
 
 { TKDBServerAuthenticator }
 
-procedure TKDBServerAuthenticator.InternalAuthenticate(
-  const AAuthenticationData: TEFNode);
+function TKDBServerAuthenticator.InternalAuthenticate(const AAuthData: TEFNode): Boolean;
 begin
-  Environment.MainDBConnection.Open;
+  try
+    Environment.MainDBConnection.Open;
+    Result := True;
+  except
+    Result := False;
+  end;
 end;
 
 initialization
-  EWAuthenticatorRegistry.RegisterClass(TKDBServerAuthenticator);
+  TKAuthenticatorRegistry.Instance.RegisterClass('DBServer', TKDBServerAuthenticator);
 
 finalization
-  EWAuthenticatorRegistry.UnregisterClass(TKDBServerAuthenticator);
+  TKAuthenticatorRegistry.Instance.UnregisterClass('DBServer');
 
 end.
 

@@ -20,19 +20,19 @@ type
     FDBConnections: TDictionary<string, TEFDBConnection>;
     FMacroExpansionEngine: TEFMacroExpansionEngine;
     FAccessControlHost: TKAccessControlHost;
-    FAuthenticationHost: TKAuthenticationHost;
     FAppHomePath: string;
     FModels: TKModels;
     FViews: TKViews;
     FResourcePathsURLs: TDictionary<string, string>;
     FMacroExpander: TEFMacroExpander;
-    function GetDBConnection(const ADatabaseName: string): TEFDBConnection;
+    FAuthenticator: TKAuthenticator;
     const MAIN_DB_NAME = 'Main';
+    function GetDBConnection(const ADatabaseName: string): TEFDBConnection;
+    function GetAuthenticator: TKAuthenticator;
     function GetMainDBConnection: TEFDBConnection;
     function GetDBAdapter(const ADatabaseName: string): TEFDBAdapter;
     function GetMacroExpansionEngine: TEFMacroExpansionEngine;
     function GetAccessControlHost: TKAccessControlHost;
-    function GetAuthenticationHost: TKAuthenticationHost;
     function GetAppTitle: string;
     function GetAppName: string;
     function GetModels: TKModels;
@@ -82,11 +82,10 @@ type
       default EF macros are supported.
     }
     property MacroExpansionEngine: TEFMacroExpansionEngine read GetMacroExpansionEngine;
-    {
-      A reference to the object that keeps track of the currently active
-      authenticator, manages it and provides authentication-related services.
-    }
-    property AuthenticationHost: TKAuthenticationHost read GetAuthenticationHost;
+
+    ///	<summary>Access to the current authenticator.</summary>
+    property Authenticator: TKAuthenticator read GetAuthenticator;
+
     {
       A reference to the object that keeps track of the currently active access
       controller, manages it and provides access control-related services.
@@ -290,7 +289,7 @@ begin
   FreeAndNil(FViews);
   FreeAndNil(FModels);
   FreeAndNil(FAccessControlHost);
-  FreeAndNil(FAuthenticationHost);
+  FreeAndNil(FAuthenticator);
   FreeAndNil(FMacroExpansionEngine);
   FreeAndNil(FResourcePathsURLs);
   FinalizeDBConnections;
@@ -464,11 +463,22 @@ begin
   Result := Config.GetString('AppTitle', 'Kitto');
 end;
 
-function TKEnvironment.GetAuthenticationHost: TKAuthenticationHost;
+function TKEnvironment.GetAuthenticator: TKAuthenticator;
+var
+  LType: string;
+  LConfig: TEFNode;
+  I: Integer;
 begin
-  if not Assigned(FAuthenticationHost) then
-    FAuthenticationHost := TKAuthenticationHost.Create(EWAuthenticatorFactory);
-  Result := FAuthenticationHost;
+  if not Assigned(FAuthenticator) then
+  begin
+    LType := Config.GetExpandedString('Auth', 'Null');
+    FAuthenticator := TKAuthenticatorFactory.Instance.CreateObject(LType);
+    LConfig := Config.FindNode('Auth');
+    if Assigned(LConfig) then
+      for I := 0 to LConfig.ChildCount - 1 do
+        FAuthenticator.Config.AddChild(TEFNode.Clone(LConfig.Children[I]));
+  end;
+  Result := FAuthenticator;
 end;
 
 function TKEnvironment.GetConfigFileName: string;
@@ -480,8 +490,7 @@ function TKEnvironment.GetCurrentUserAccessGrantValue(const AResourceURI,
   AMode: string; const ADefaultValue: Variant): Variant;
 begin
   Result := AccessControlHost.CurrentAccessController.GetAccessGrantValue(
-    AuthenticationHost.CurrentAuthenticator.UserId, AResourceURI, AMode,
-      ADefaultValue);
+    Authenticator.UserName, AResourceURI, AMode, ADefaultValue);
 end;
 
 function TKEnvironment.GetImageURL(const AResourceName,
