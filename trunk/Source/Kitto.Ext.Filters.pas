@@ -485,12 +485,21 @@ begin
 end;
 
 procedure TKFreeSearchFilter.SetConfig(const AConfig: TEFNode);
+var
+  LAutoSearchAfterChars: Integer;
 begin
   Assert(Assigned(AConfig));
   FConfig := AConfig;
 
+  LAutoSearchAfterChars := AConfig.GetInteger('AutoSearchAfterChars', 4);
+  if LAutoSearchAfterChars <> 0 then
+  begin
+    // Auto-fire change event when at least MinChars characters are typed.
+    EnableKeyEvents := True;
+    On('keyup', JSFunction(Format('fireChangeAfterNChars(%s, %d);', [JSName, LAutoSearchAfterChars])));
+  end;
   FieldLabel := _(AConfig.AsString);
-  Width := CharsToPixels(AConfig.GetInteger('Width', 10));
+  Width := CharsToPixels(AConfig.GetInteger('Width', 20));
   OnChange := FieldChange;
   FCurrentValue := '';
 end;

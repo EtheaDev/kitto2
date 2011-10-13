@@ -80,3 +80,10 @@ Ext.apply(Ext.form.VTypes, {
     alpha_spaceText: 'This field only accepts letters and spaces.',
     alpha_spaceMask: /[a-z ]/i
 });
+
+function fireChangeAfterNChars(obj, minChars)
+{
+  var v = obj.getValue();
+  if (v.length >= minChars)
+    obj.fireEvent("change", v, v);
+}
