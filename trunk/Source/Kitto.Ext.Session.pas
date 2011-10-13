@@ -290,6 +290,7 @@ begin
   SetLibrary(ExtPath + '/examples/shared/examples'); // For Ext.msg.
   SetLibrary(ExtPath + '/src/locale/ext-lang-' + Language);
   SetRequiredLibrary('DateTimeField');
+  SetRequiredLibrary('DefaultButton');
   SetRequiredLibrary('kitto-core');
   SetOptionalLibrary('application');
 
