@@ -4,10 +4,37 @@ interface
 
 uses
   Ext, ExtPascal, ExtPascalUtils, ExtMenu, ExtTree,
-  EF.ObserverIntf,
+  EF.ObserverIntf, EF.Tree,
   Kitto.Ext.Controller, Kitto.Metadata.Views;
 
 type
+  TKExtTreeTreeNode = class(TExtTreeTreeNode)
+  private
+    FView: TKView;
+    procedure SetView(const AValue: TKView);
+  public
+    property View: TKView read FView write SetView;
+    destructor Destroy; override;
+  end;
+
+  TKExtButton = class(TExtButton)
+  private
+    FView: TKView;
+    procedure SetView(const AValue: TKView);
+  public
+    property View: TKView read FView write SetView;
+    destructor Destroy; override;
+  end;
+
+  TKExtMenuItem = class(TExtMenuItem)
+  private
+    FView: TKView;
+    procedure SetView(const AValue: TKView);
+  public
+    property View: TKView read FView write SetView;
+    destructor Destroy; override;
+  end;
+
   ///	<summary>
   ///	  Renders a tree view on a container in various ways: as a set of buttons
   ///	  with submenus, an Ext treeview control, etc.
@@ -17,10 +44,12 @@ type
     FOwner: TExtObject;
     FClickHandler: TExtProcedure;
     FAddedItems: Integer;
-    procedure AddButton(const AViewRef: TKViewRef; const AContainer: TExtContainer);
-    procedure AddMenuItem(const AViewRefs: TKViewRefs; const AMenu: TExtMenuMenu);
-    procedure AddNode(const AViewRef: TKViewRef; const AParent: TExtTreeTreeNode);
+    procedure AddButton(const ANode: TKTreeViewNode; const AContainer: TExtContainer);
+    procedure AddMenuItem(const ANode: TKTreeViewNode; const AMenu: TExtMenuMenu);
+    procedure AddNode(const ANode: TKTreeViewNode; const AParent: TExtTreeTreeNode);
     function GetClickFunction(const AView: TKView): TExtFunction;
+
+    function FindView(const ANode: TKTreeViewNode): TKView;
   public
     ///	<summary>
     ///	  Attaches to the container a set of buttons, one for each top-level
@@ -52,61 +81,6 @@ uses
 
 { TKExtTreeViewRenderer }
 
-procedure TKExtTreeViewRenderer.AddMenuItem(const AViewRefs: TKViewRefs;
-  const AMenu: TExtMenuMenu);
-var
-  I: Integer;
-  LViewRef: TKViewRef;
-  LMenuItem: TExtMenuItem;
-  LSubMenu: TExtMenuMenu;
-  LIsEnabled: Boolean;
-begin
-  Assert(Assigned(AViewRefs));
-  Assert(Assigned(AMenu));
-
-  for I := 0 to AViewRefs.Count - 1 do
-  begin
-    LViewRef := AViewRefs[I];
-
-    { TODO : implement AC }
-    //if Environment.IsAccessGranted(LViewRef.View.GetResourceURI, ACM_VIEW) then
-    begin
-      LIsEnabled := Assigned(LViewRef.View) {and Environment.IsAccessGranted(AViewRef.View.GetResourceURI, ACM_RUN)};
-      LMenuItem := TExtMenuItem.AddTo(AMenu.Items);
-      try
-        Inc(FAddedItems);
-        LMenuItem.Text := HTMLEncode(_(LViewRef.DisplayLabel));
-        if LViewRef.View <> nil then
-          LMenuItem.IconCls := Session.SetViewIconStyle(LViewRef.View, LViewRef.ImageName);
-        if LViewRef.ViewRefs.Count > 0 then
-        begin
-          LSubMenu := TExtMenuMenu.Create;
-          try
-            LMenuItem.Menu := LSubMenu;
-            AddMenuItem(LViewRef.ViewRefs, LSubMenu);
-            {if LSubMenu.Items.Count = 0 then
-            begin
-              LMenuItem.Menu := nil;
-              FreeAndNil(LSubMenu);
-            end;}
-          except
-            FreeAndNil(LSubMenu);
-            raise;
-          end;
-        end
-        else
-        begin
-          LMenuItem.Handler := GetClickFunction(LViewRef.View);
-          LMenuItem.Disabled := not LIsEnabled;
-        end;
-      except
-        FreeAndNil(LMenuItem);
-        raise;
-      end;
-    end;
-  end;
-end;
-
 function TKExtTreeViewRenderer.GetClickFunction(
   const AView: TKView): TExtFunction;
 begin
@@ -122,49 +96,153 @@ begin
     Result := nil;
 end;
 
-procedure TKExtTreeViewRenderer.AddButton(const AViewRef: TKViewRef;
+function TKExtTreeViewRenderer.FindView(const ANode: TKTreeViewNode): TKView;
+begin
+  if ANode is TKTreeViewFolder then
+    Result := nil
+  else
+    Result := Environment.Views.ViewByNode(ANode);
+end;
+
+procedure TKExtTreeViewRenderer.AddMenuItem(const ANode: TKTreeViewNode;
+  const AMenu: TExtMenuMenu);
+var
+  I: Integer;
+  LMenuItem: TKExtMenuItem;
+  LSubMenu: TExtMenuMenu;
+  LIsEnabled: Boolean;
+  LView: TKView;
+begin
+  Assert(Assigned(ANode));
+  Assert(Assigned(AMenu));
+
+  for I := 0 to ANode.ChildCount - 1 do
+  begin
+    if ANode.Children[I] is TKTreeViewNode then
+    begin
+      LView := FindView(TKTreeViewNode(ANode.Children[I]));
+
+      { TODO : implement AC }
+      //if not Assigned(LView) or Environment.IsAccessGranted(LViewRef.View.GetResourceURI, ACM_VIEW) then
+      begin
+        LIsEnabled := not Assigned(LView) {or Environment.IsAccessGranted(AViewRef.View.GetResourceURI, ACM_RUN)};
+        LMenuItem := TKExtMenuItem.AddTo(AMenu.Items);
+        try
+          Inc(FAddedItems);
+          LMenuItem.View := LView;
+
+          LMenuItem.Text := HTMLEncode(_(ANode.Children[I].AsString));
+          if Assigned(LMenuItem.View) then
+          begin
+            LMenuItem.IconCls := Session.SetViewIconStyle(LMenuItem.View, ANode.Children[I].GetString('ImageName'));
+            LMenuItem.On('click', GetClickFunction(LMenuItem.View));
+            LMenuItem.Disabled := not LIsEnabled;
+          end;
+          if ANode.Children[I].ChildCount > 0 then
+          begin
+            LSubMenu := TExtMenuMenu.Create;
+            try
+              LMenuItem.Menu := LSubMenu;
+              if ANode.Children[I] is TKTreeViewNode then
+                AddMenuItem(TKTreeViewNode(ANode.Children[I]), LSubMenu);
+            except
+              FreeAndNil(LSubMenu);
+              raise;
+            end;
+          end;
+        except
+          FreeAndNil(LMenuItem);
+          raise;
+        end;
+      end;
+    end;
+  end;
+end;
+
+procedure TKExtTreeViewRenderer.AddButton(const ANode: TKTreeViewNode;
   const AContainer: TExtContainer);
 var
-  LButton: TExtButton;
+  LButton: TKExtButton;
   LMenu: TExtMenuMenu;
   LIsEnabled: Boolean;
+  LView: TKView;
 begin
-  Assert(Assigned(AViewRef));
+  Assert(Assigned(ANode));
   Assert(Assigned(AContainer));
 
+  LView := FindView(ANode);
+
   { TODO : implement AC }
-  //if Environment.IsAccessGranted(AViewRef.View.GetResourceURI, ACM_VIEW) then
+  //if not Assigned(LView) or Environment.IsAccessGranted(AViewRef.View.GetResourceURI, ACM_VIEW) then
   begin
-    LIsEnabled := Assigned(AViewRef.View) {and Environment.IsAccessGranted(AViewRef.View.GetResourceURI, ACM_RUN)};
-    LButton := TExtButton.AddTo(AContainer.Items);
+    LIsEnabled := not Assigned(LView) {or Environment.IsAccessGranted(AViewRef.View.GetResourceURI, ACM_RUN)};
+    LButton := TKExtButton.AddTo(AContainer.Items);
     try
       Inc(FAddedItems);
-      LButton.Text := HTMLEncode(_(AViewRef.DisplayLabel));
-      if AViewRef.View <> nil then
-        LButton.IconCls := Session.SetViewIconStyle(AViewRef.View, AViewRef.ImageName);
-      if AViewRef.ViewRefs.Count > 0 then
+      LButton.View := LView;
+      LButton.Text := HTMLEncode(_(ANode.AsString));
+      if Assigned(LButton.View) then
+      begin
+        LButton.IconCls := Session.SetViewIconStyle(LButton.View, ANode.GetString('ImageName'));
+        LButton.On('click', GetClickFunction(LButton.View));
+        LButton.Disabled := not LIsEnabled;
+      end;
+      if ANode.ChildCount > 0 then
       begin
         LMenu := TExtMenuMenu.Create;
         try
           LButton.Menu := LMenu;
-          AddMenuItem(AViewRef.ViewRefs, LMenu);
-          {if LMenu.Items.Count = 0 then
-          begin
-            LButton.Menu_ := nil;
-            FreeAndNil(LMenu);
-          end;}
+          AddMenuItem(ANode, LMenu);
         except
           FreeAndNil(LMenu);
           raise;
         end;
-      end
-      else
-      begin
-        LButton.Handler := GetClickFunction(AViewRef.View);
-        LButton.Disabled := not LIsEnabled;
       end;
     except
       FreeAndNil(LButton);
+      raise;
+    end;
+  end;
+end;
+
+procedure TKExtTreeViewRenderer.AddNode(const ANode: TKTreeViewNode; const AParent: TExtTreeTreeNode);
+var
+  LNode: TKExtTreeTreeNode;
+  I: Integer;
+  LIsEnabled: Boolean;
+  LView: TKView;
+begin
+  Assert(Assigned(ANode));
+  Assert(Assigned(AParent));
+
+  LView := FindView(ANode);
+
+  { TODO : implement AC }
+  //if not Assigned(LView) or Environment.IsAccessGranted(LView.GetResourceURI, ACM_VIEW) then
+  begin
+    LIsEnabled := not Assigned(LView) {or Environment.IsAccessGranted(LView.GetResourceURI, ACM_RUN)};
+    LNode := TKExtTreeTreeNode.Create;
+    try
+      Inc(FAddedItems);
+      LNode.View := LView;
+      LNode.Text := HTMLEncode(_(ANode.AsString));
+      if Assigned(LNode.View) then
+      begin
+        LNode.IconCls := Session.SetViewIconStyle(LNode.View, ANode.GetString('ImageName'));
+        LNode.On('click', GetClickFunction(LNode.View));
+        LNode.Disabled := not LIsEnabled;
+      end;
+      if ANode.TreeViewNodeCount > 0 then
+      begin
+        for I := 0 to ANode.TreeViewNodeCount - 1 do
+          AddNode(TKTreeViewNode(ANode.TreeViewNodes[I]), LNode);
+        LNode.Expandable := True;
+        LNode.Expanded := True;
+        LNode.Leaf := False;
+      end;
+      AParent.AppendChild(LNode);
+    except
+      FreeAndNil(LNode);
       raise;
     end;
   end;
@@ -176,12 +254,6 @@ function TKExtTreeViewRenderer.RenderAsButtons(
   const AClickHandler: TExtProcedure): Integer;
 var
   I: Integer;
-
-  procedure EmptyContainer;
-  begin
-    { TODO : implement }
-  end;
-
 begin
   Assert(Assigned(ATreeView));
   Assert(Assigned(AContainer));
@@ -191,53 +263,9 @@ begin
   FOwner := AOwner;
   FClickHandler := AClickHandler;
   FAddedItems := 0;
-  for I := 0 to ATreeView.ViewRefs.Count - 1 do
-    AddButton(ATreeView.ViewRefs[I], AContainer);
+  for I := 0 to ATreeView.TreeViewNodeCount - 1 do
+    AddButton(ATreeView.TreeViewNodes[I], AContainer);
   Result := FAddedItems;
-end;
-
-procedure TKExtTreeViewRenderer.AddNode(const AViewRef: TKViewRef;
-  const AParent: TExtTreeTreeNode);
-var
-  LNode: TExtTreeTreeNode;
-  I: Integer;
-  LIsEnabled: Boolean;
-begin
-  Assert(Assigned(AViewRef));
-  Assert(Assigned(AParent));
-
-  { TODO : implement AC }
-  //if Environment.IsAccessGranted(AViewRef.GetResourceURI, ACM_VIEW) then
-  begin
-    LIsEnabled := Assigned(AViewRef.View) {and Environment.IsAccessGranted(AViewRef.View.GetResourceURI, ACM_RUN)};
-    LNode := TExtTreeTreeNode.Create;
-    try
-      LNode.Text := HTMLEncode(_(AViewRef.DisplayLabel));
-      if AViewRef.View <> nil then
-        LNode.IconCls := Session.SetViewIconStyle(AViewRef.View, AViewRef.ImageName);
-      if AViewRef.ViewRefs.Count > 0 then
-      begin
-        for I := 0 to AViewRef.ViewRefs.Count - 1 do
-          AddNode(AViewRef.ViewRefs[I], LNode);
-        LNode.Expandable := True;
-        LNode.Expanded := True;
-        LNode.Leaf := False;
-      end
-      else
-      begin
-        LNode.On('click', GetClickFunction(AViewRef.View));
-        LNode.Expandable := False;
-        LNode.Expanded := False;
-        LNode.Leaf := True;
-        LNode.Disabled := not LIsEnabled;
-      end;
-      AParent.AppendChild(LNode);
-      Inc(FAddedItems);
-    except
-      FreeAndNil(LNode);
-      raise;
-    end;
-  end;
 end;
 
 function TKExtTreeViewRenderer.RenderAsTree(
@@ -245,12 +273,6 @@ function TKExtTreeViewRenderer.RenderAsTree(
   const AOwner: TExtObject;  const AClickHandler: TExtProcedure): Integer;
 var
   I: Integer;
-
-  procedure EmptyTree;
-  begin
-    { TODO : implement }
-  end;
-
 begin
   Assert(Assigned(ATreeView));
   Assert(Assigned(ARoot));
@@ -260,8 +282,8 @@ begin
   FOwner := AOwner;
   FClickHandler := AClickHandler;
   FAddedItems := 0;
-  for I := 0 to ATreeView.ViewRefs.Count - 1 do
-    AddNode(ATreeView.ViewRefs[I], ARoot);
+  for I := 0 to ATreeView.TreeViewNodeCount - 1 do
+    AddNode(ATreeView.TreeViewNodes[I], ARoot);
   Result := FAddedItems;
 end;
 
@@ -278,6 +300,54 @@ begin
   Result := ReplaceText(ATimeFormat, 'hh', 'H');
   Result := ReplaceText(Result, 'mm', 'i');
   Result := ReplaceText(Result, 'ss', 's');
+end;
+
+{ TKExtTreeTreeNode }
+
+destructor TKExtTreeTreeNode.Destroy;
+begin
+  if Assigned(FView) and not FView.IsPersistent then
+    FreeAndNil(FView);
+  inherited;
+end;
+
+procedure TKExtTreeTreeNode.SetView(const AValue: TKView);
+begin
+  FView := AValue;
+  if Assigned(FView) then
+  begin
+    Expandable := False;
+    Expanded := False;
+    Leaf := True;
+  end;
+end;
+
+{ TKExtButton }
+
+destructor TKExtButton.Destroy;
+begin
+  if Assigned(FView) and not FView.IsPersistent then
+    FreeAndNil(FView);
+  inherited;
+end;
+
+procedure TKExtButton.SetView(const AValue: TKView);
+begin
+  FView := AValue;
+end;
+
+{ TKExtMenuItem }
+
+destructor TKExtMenuItem.Destroy;
+begin
+  if Assigned(FView) and not FView.IsPersistent then
+    FreeAndNil(FView);
+  inherited;
+end;
+
+procedure TKExtMenuItem.SetView(const AValue: TKView);
+begin
+  FView := AValue;
 end;
 
 end.

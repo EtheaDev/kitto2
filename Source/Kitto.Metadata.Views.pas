@@ -280,55 +280,35 @@ type
 
   end;
 
-  TKViewRefs = class;
-
-  ///	<summary>
-  ///	  An object that references a view. Used to refer to views from other
-  ///	  metadata objects. Has a list of children view references, forming
-  ///   a tree.
-  ///	</summary>
-  TKViewRef = class(TKMetadataItem)
+  ///	<summary>The type of nodes in a tree view.</summary>
+  TKTreeViewNode = class(TEFNode)
   private
-    function GetView: TKView;
-    function GetViewName: string;
-    function GetViewRefs: TKViewRefs;
-    function GetDisplayLabel: string;
-    function GetImageName: string;
+    function GetTreeViewNodeCount: Integer;
+    function GetTreeViewNode(I: Integer): TKTreeViewNode;
   protected
     function GetChildClass(const AName: string): TEFNodeClass; override;
   public
-    property ViewName: string read GetViewName;
-    property View: TKView read GetView;
-    property ViewRefs: TKViewRefs read GetViewRefs;
-    property DisplayLabel: string read GetDisplayLabel;
-    property ImageName: string read GetImageName;
+    property TreeViewNodeCount: Integer read GetTreeViewNodeCount;
+    property TreeViewNodes[I: Integer]: TKTreeViewNode read GetTreeViewNode;
   end;
 
-  ///	<summary>
-  ///	  A list of view references, part of TKViewRef.
-  ///	</summary>
-  TKViewRefs = class(TKMetadataItem)
-  private
-    function GetViewRef(I: Integer): TKViewRef;
-    function GetCount: Integer;
-  protected
-    function GetChildClass(const AName: string): TEFNodeClass; override;
-  public
-    property Count: Integer read GetCount;
-    property ViewRefs[I: Integer]: TKViewRef read GetViewRef; default;
-  end;
+  ///	<summary>A node in a tree view that is a folder (i.e. contains other
+  ///	nodes and doesn't represent a view).</summary>
+  TKTreeViewFolder = class(TKTreeViewNode);
 
   ///	<summary>
-  ///	  A view that is a tree of view references. Useful for menus, if used
-  ///   with action views.
+  ///	  A view that is a tree of views. Contains views and folders, which
+  ///  in turn contain views.
   ///	</summary>
   TKTreeView = class(TKView)
   private
-    function GetViewRefs: TKViewRefs;
+    function GetTreeViewNode(I: Integer): TKTreeViewNode;
+    function GetTreeViewNodeCount: Integer;
   protected
     function GetChildClass(const AName: string): TEFNodeClass; override;
   public
-    property ViewRefs: TKViewRefs read GetViewRefs;
+    property TreeViewNodeCount: Integer read GetTreeViewNodeCount;
+    property TreeViewNodes[I: Integer]: TKTreeViewNode read GetTreeViewNode;
   end;
 
   TKViewBuilder = class(TKMetadata)
@@ -1056,77 +1036,48 @@ begin
     raise EKError.CreateFmt('Couldn''t determine reference for field %s.', [Name]);
 end;
 
-{ TKViewRefs }
+{ TKTreeViewNode }
 
-function TKViewRefs.GetChildClass(const AName: string): TEFNodeClass;
+function TKTreeViewNode.GetChildClass(const AName: string): TEFNodeClass;
 begin
-  Result := TKViewRef;
-end;
-
-function TKViewRefs.GetViewRef(I: Integer): TKViewRef;
-begin
-  Result := Children[I] as TKViewRef;
-end;
-
-function TKViewRefs.GetCount: Integer;
-begin
-  Result := ChildCount;
-end;
-
-{ TKViewRef }
-
-function TKViewRef.GetChildClass(const AName: string): TEFNodeClass;
-begin
-  if SameText(AName, 'ViewRefs') then
-    Result := TKViewRefs
+  if SameText(AName, 'Folder') then
+    Result := TKTreeViewFolder
+  else if SameText(AName, 'View') then
+    Result := TKTreeViewNode
   else
     Result := inherited GetChildClass(AName);
 end;
 
-function TKViewRef.GetDisplayLabel: string;
+function TKTreeViewNode.GetTreeViewNode(I: Integer): TKTreeViewNode;
 begin
-  Result := AsString;
-  if (Result = '') and (View <> nil) then
-    Result := View.DisplayLabel;
-  if Result = '' then
-    Result := '<unknown>';
+  Result := GetChild<TKTreeViewNode>(I);
 end;
 
-function TKViewRef.GetImageName: string;
+function TKTreeViewNode.GetTreeViewNodeCount: Integer;
 begin
-  Result := GetString('ImageName');
-  if (Result = '') and (View <> nil) then
-    Result := View.ImageName;
-end;
-
-function TKViewRef.GetView: TKView;
-begin
-  Result := Environment.Views.FindView(ViewName);
-end;
-
-function TKViewRef.GetViewName: string;
-begin
-  Result := GetString('ViewName');
-end;
-
-function TKViewRef.GetViewRefs: TKViewRefs;
-begin
-  Result := GetNode('ViewRefs', True) as TKViewRefs;
+  Result := GetChildCount<TKTreeViewNode>;
 end;
 
 { TKTreeView }
 
 function TKTreeView.GetChildClass(const AName: string): TEFNodeClass;
 begin
-  if SameText(AName, 'ViewRefs') then
-    Result := TKViewRefs
+  if SameText(AName, 'Folder') then
+    Result := TKTreeViewFolder
+  else if SameText(AName, 'View') then
+    Result := TKTreeViewNode
   else
     Result := inherited GetChildClass(AName);
 end;
 
-function TKTreeView.GetViewRefs: TKViewRefs;
+function TKTreeView.GetTreeViewNode(I: Integer): TKTreeViewNode;
 begin
-  Result := GetNode('ViewRefs', True) as TKViewRefs;
+  Result := GetChild<TKTreeViewNode>(I);
+end;
+
+function TKTreeView.GetTreeViewNodeCount: Integer;
+begin
+  Result := GetChildCount<TKTreeViewNode>;
 end;
 
 { TKViewBuilderRegistry }
