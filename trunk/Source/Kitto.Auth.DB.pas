@@ -1,3 +1,5 @@
+///	<summary>Defines the DB authenticator, an authenticator that uses a custom
+///	table on the database to store users and passwords.</summary>
 unit Kitto.Auth.DB;
 
 {$I Kitto.Defines.inc}
@@ -9,10 +11,8 @@ uses
   Kitto.Auth;
 
 type
-  {
-    Represents a user record fetched from the database. It is used internally
-    as a helper class.
-  }
+  ///	<summary>User data read from the database. Used internally as a helper
+  ///	class.</summary>
   TKAuthUser = class
   private
     FName: string;
@@ -22,153 +22,160 @@ type
     property PasswordHash: string read FPasswordHash write FPasswordHash;
   end;
 
-  {
-    The DB authenticator uses a custom table in the database to authenticate
-    users. The table has fixed name and structure. To use a different table
-    name or structure, create a descendant.
-    The authenticator needs the same items as its ancestor
-    TKClassicAuthenticator.
-
-    In order for this authenticator to work, it is required that the database
-    contains a table called EW_USERS with the following structure:
-    @table(
-      @rowHead(@cell(Field Name)@cell(Data Type)@cell(Description))
-      @row(@cell(EW_USER_NAME)@cell(string)@cell(Unique user identifier))
-      @row(@cell(EW_PASSWORD_HASH)@cell(string)@cell(MD5 hash of the user's password))
-      @row(@cell(EW_IS_ACTIVE)@cell(bit, number)@cell(1 for active users))
-    )
-    When Authenticate is called, the authenticator will fetch the user record
-    (if active) and check the supplied password against the MD5 hash stored
-    there. You can use clear-text passwords instead of MD5 hashes through the
-    IsClearPassword configuration item. You can also override the SQL select
-    statement that is used to get the user record through the
-    ReadUserCommandText item, which allows you to use a different structure
-    without the need to define an inherited authenticator.
-
-    Configuration items (should be specified in SecureConfiguration's slice
-    Authentication.Authenticator):
-    @table(
-      @row(
-        @cell(IsClearPassword)@cell(Boolean)@cell(Optional, default False)
-        @cell(Set this item to True to signify that the password is stored in
-          clear, and not hashed, in the database.))
-      @row(
-        @cell(ReadUserCommandText)@cell(String)@cell(Optional)
-        @cell(A SQL select statement that selects a single user record,
-          with the fields EW_USER_NAME and EW_PASSWORD_HASH and a single
-          string parameter that will be filled in with the user name.
-
-          Example:
-            select UNAME as EW_USER_NAME, pwd as EW_PASSWORD_HASH
-            from USERS where ENABLED = 1 and UNAME = :P1
-
-          Any additional fields returned by the statement are kept as
-          part of the authentication data, in a Custom slice.
-
-          Example:
-            select EW_USER_NAME, Kitto._PASSWORD_HASH, SOMEFIELD
-            from EW_USERS where EW_IS_ACTIVE = 1 and EW_USER_NAME = :P1
-
-          The item Custom.SOMEFIELD will be available as part of the
-          authentication data (and as such, through the authentication-related
-          macros as well) for as long as the user is logged in. The item will
-          be of whatever data type SOMEFIELD is. You can have more than one
-          such items. This technique is useful to apply fixed user-dependent
-          filters to data sets and data partitioning among users, for example.))
-      @row(
-        @cell(IsPassepartoutEnabled)@cell(Boolean)@cell(Optional, default False)
-        @cell(Set this item to True to signify that the passepartout password is
-        enabled (that means that a user can authenticate by prompting its own
-        password or the passepartout password.)
-        If the user is granted access because of the use of PassepartoutPassword
-        as login password, the IsPassepartoutAuthentication Boolean item is set
-        to True into AuthenticationData (accessible through the EW Authenticator
-        that is accessibile through the EW Environment object). Use this configuration
-        item to discrimine between a regular user/password login and a user/passepartout
-        login.
-      @row(
-        @cell(PassepartoutPassword)@cell(String)@cell(Optional)
-        @cell(A password to be used as a passepartout for every user account.
-        Setting this parameter has no effect if IsPassepartoutEnabled is False.
-        The password is meant to be clear or hashed with respect to the IsClearPassword
-        parameter.)
-    )
-  }
+  ///	<summary>
+  ///	  <para>The DB authenticator uses a custom table in the database to
+  ///	  authenticate users. The table has fixed name and structure. To use a
+  ///	  different table name or structure, set parameters or create a
+  ///	  descendant. The authenticator needs the same auth items as its ancestor
+  ///	  <see cref="TKClassicAuthenticator" />.</para>
+  ///	  <para>In order for this authenticator to work, it is required that the
+  ///	  database contains a table called KITTO_USERS with the following
+  ///	  structure:</para>
+  ///	  <list type="table">
+  ///	    <listheader>
+  ///	      <term>Term</term>
+  ///	      <description>Description</description>
+  ///	    </listheader>
+  ///	    <item>
+  ///	      <term>USER_NAME</term>
+  ///	      <description>String uniquely identifying the user.</description>
+  ///	    </item>
+  ///	    <item>
+  ///	      <term>PASSWORD_HASH</term>
+  ///	      <description>String containing the MD5 hash of the user's
+  ///	      password.</description>
+  ///	    </item>
+  ///	    <item>
+  ///	      <term>IS_ACTIVE</term>
+  ///	      <description>Set to 0 to disable (ignore) a user. Disabled users
+  ///	      will not be able to log in.</description>
+  ///	    </item>
+  ///	  </list>
+  ///	  <para>When Authenticate is called, the authenticator fetches the user
+  ///	  record (if active) and checks the supplied password against the MD5
+  ///	  hash stored there. You can use clear-text passwords instead of MD5
+  ///	  hashes if you set the IsClearPassword parameter to True. You can also
+  ///	  override the SQL select statement used to get the user record through
+  ///	  the ReadUserCommandText parameter, which allows you to use a different
+  ///	  structure without the need to define an inherited authenticator.</para>
+  ///	  <para>Parameters:</para>
+  ///	  <list type="table">
+  ///	    <listheader>
+  ///	      <term>Term</term>
+  ///	      <description>Description</description>
+  ///	    </listheader>
+  ///	    <item>
+  ///	      <term>IsClearPassword</term>
+  ///	      <description>Set this item to True to signify that the password is
+  ///	      stored in clear, and not hashed, in the database. Default
+  ///	      False.</description>
+  ///	    </item>
+  ///	    <item>
+  ///	      <term>ReadUserCommandText</term>
+  ///	      <description>A SQL select statement that selects a single user
+  ///	      record, with the fields USER_NAME and PASSWORD_HASH and a single
+  ///	      string parameter that will be filled in with the user name.
+  ///	      Example: select UNAME as USER_NAME, pwd as PASSWORD_HASH from USERS
+  ///	      where ENABLED = 1 and UNAME = :P1 Any additional fields returned by
+  ///	      the statement are kept as part of the auth data. Example:select
+  ///	      USER_NAME, PASSWORD_HASH, SOMEFIELD from USERS where IS_ACTIVE = 1
+  ///	      and USER_NAME = :P1 The item SOMEFIELD will be available as part of
+  ///	      the auth data (and as such, through the authentication-related
+  ///	      macros as well) for as long as the user is logged in. The item will
+  ///	      be of whatever data type SOMEFIELD is. You can have more than one
+  ///	      such items. This technique is useful to apply fixed user-dependent
+  ///	      filters to data sets and data partitioning among users, for
+  ///	      example.</description>
+  ///	    </item>
+  ///	    <item>
+  ///	      <term>IsPassepartoutEnabled</term>
+  ///	      <description>Set this item to True to signify that the passepartout
+  ///	      password is enabled (that means that a user can authenticate wither
+  ///	      with her own password or the passepartout password). If the
+  ///	      passepartout password is used to log in, the
+  ///	      IsPassepartoutAuthentication Boolean item is set to True into
+  ///	      AuthData.</description>
+  ///	    </item>
+  ///	    <item>
+  ///	      <term>PassepartoutPassword</term>
+  ///	      <description>A password to be used as a passepartout for every user
+  ///	      account. Setting this parameter has no effect if
+  ///	      IsPassepartoutEnabled is not True. The value of this parameter
+  ///	      represents a cleartext or hashed password depending on the value of
+  ///	      IsClearPassword.</description>
+  ///	    </item>
+  ///	    <item>
+  ///	      <term>AfterAuthenticateCommandText</term>
+  ///	      <description>Optional SQL statement that will be executed just
+  ///	      after authentication. Supports macros, even authentication-related
+  ///	      ones.</description>
+  ///	    </item>
+  ///	  </list>
+  ///	</summary>
   TKDBAuthenticator = class(TKClassicAuthenticator)
   protected
-    {
-      Creates and returns an object with the user data read from the database.
-      It is actually a template method that calls a set of virtual methods to
-      do its job.
-    }
+    ///	<summary>Returns True if the passepartout mechanism is enabled and the
+    ///	supplied password matches the passpartout password.</summary>
+    function InternalAuthenticate(const AAuthData: TEFNode): Boolean; override;
+  protected
+    ///	<summary>Creates and returns an object with the user data read from the
+    ///	database. It is actually a template method that calls a set of virtual
+    ///	methods to do its job.</summary>
     function CreateAndReadUser(const AUserName: string; const AAuthData: TEFNode): TKAuthUser;
-    {
-      Creates and returns an empty instance of TKAuthenticationUser. Override
-      this method if you need to use a descendant instead.
-    }
+
+    ///	<summary>Creates and returns an empty instance of TKAuthUser. Override
+    ///	this method if you need to use a descendant instead.</summary>
     function CreateUser: TKAuthUser; virtual;
-    {
-      Returns the SQL statement to be executed just after authentication
-      succeeded.
-    }
+
+    ///	<summary>Returns the SQL statement to be executed just after
+    ///	authentication succeeded.</summary>
     function GetAfterAuthenticateCommandText: string; virtual;
-    {
-      Returns the SQL statement to be used to read the user data from the
-      database. Override this method to change the name or the structure of
-      the predefined table of users.
-    }
+
+    ///	<summary>Returns the SQL statement to be used to read the user data
+    ///	from the database. Override this method to change the name or the
+    ///	structure of the predefined table of users.</summary>
     function GetReadUserSQL(const AUserName: string): string; virtual;
 
-    {
-      Extracts from AAuthenticationData the supplied password, in order to use
-      it in authentication attempt. If AHashNeeded is True, the password hash
-      will be returned instead of the clear password.
-    }
+    ///	<summary>Extracts from AAuthData the supplied password, in order to use
+    ///	it in an authentication attempt. If AHashNeeded is True, the password
+    ///	hash will be returned instead of the clear password.</summary>
     function GetSuppliedPasswordHash(const AAuthData: TEFNode;
       const AHashNeeded: Boolean): string; virtual;
-    {
-      Extracts from AAuthenticationData the supplied user name, in order to use
-      it in authentication attempt.
-    }
-    function GetSuppliedUserName(
-      const AAuthData: TEFNode): string; virtual;
-    {
-      Executes the AfterAuthenticateCommandText, if any provided.
-    }
+
+    ///	<summary>Extracts from AAuthData the supplied user name, in order to
+    ///	use it in an authentication attempt.</summary>
+    function GetSuppliedUserName(const AAuthData: TEFNode): string; virtual;
+
+    ///	<summary>Executes the AfterAuthenticateCommandText, if any
+    ///	provided.</summary>
     procedure InternalAfterAuthenticate(const AAuthData: TEFNode); override;
-    {
-      Performs authentication against the EW database, also considering the
-      passepartout mechanism.
-    }
-    procedure InternalAuthenticate(const AAuthData: TEFNode); override;
-    {
-      Returns True if the passepartout mechanism is enabled and the supplied
-      password is matching the passpartout password.
-    }
+
+    ///	<summary>True if passepartout mode is enabled and the supplied password
+    ///	matches the passepartout password.</summary>
     function IsPassepartoutAuthentication(
       const ASuppliedPasswordHash: string): Boolean; virtual;
-    {
-      Returns True if ASuppliedPasswordHash is to be considered correctly matching
-      with respect to AStoredPasswordHash value.
-      This normally means that they are the same value. In descendant classes, if
-      you want to ignore the password matching, simply override this method to
-      return True.
-    }
+
+    ///	<summary>Returns True if ASuppliedPasswordHash matches
+    ///	AStoredPasswordHash. By default this means that they are the same
+    ///	value. A descendant might use different matching rules or disable
+    ///	matching altogether by overriding this method.</summary>
     function IsPasswordMatching(const ASuppliedPasswordHash: string;
       const AStoredPasswordHash: string): Boolean; virtual;
-    {
-      Returns True if AUserName is a valid user name with respect to the database
-      specified for authentication. It is implemented using GetReadUserSQL to
-      perform a query against the database to see if authentication data is
-      available for this user.
-    }
+
+    ///	<summary>Returns True if AUserName is a valid user name. It is
+    ///	implemented using GetReadUserSQL to perform a query against the
+    ///	database to see if authentication data is available for this
+    ///	user.</summary>
     function IsValidUserName(const AUserName: string): Boolean; virtual;
-    {
-      Reads data from the current record of ADataSet and stores it into AUser.
-      Override this method if your table of users has a non-default structure.
-      This method is usually overridden together with GetReadUserSQL, and
-      possibly CreateUser.
-    }
+
+    ///	<summary>
+    ///	  <para>Reads data from the current record of the specified DB query
+    ///	  and stores it into AUser.</para>
+    ///	  <para>Override this method if your table of users has a non-default
+    ///	  structure.</para>
+    ///	  <para>This method is usually overridden together with GetReadUserSQL,
+    ///	  and possibly also CreateUser.</para>
+    ///	</summary>
     procedure ReadUserFromRecord(const AUser: TKAuthUser;
       const ADBQuery: TEFDBQuery; const AAuthData: TEFNode); virtual;
   end;
@@ -197,8 +204,6 @@ begin
       LQuery.Params[0].AsString := AUserName;
       LQuery.Open;
       try
-        if LQuery.DataSet.IsEmpty then
-          raise EKError.Create(_('Invalid login.'));
         ReadUserFromRecord(Result, LQuery, AAuthData);
       finally
         LQuery.Close;
@@ -231,14 +236,14 @@ end;
 function TKDBAuthenticator.GetReadUserSQL(const AUserName: string): string;
 begin
   Result := Config.GetString('ReadUserCommandText',
-    'select EW_USER_NAME, Kitto._PASSWORD_HASH from EW_USERS ' +
-    'where EW_IS_ACTIVE = 1 and EW_USER_NAME = :EW_USER_NAME');
+    'select USER_NAME, PASSWORD_HASH from KITTO_USERS ' +
+    'where IS_ACTIVE = 1 and USER_NAME = :USER_NAME');
 end;
 
 function TKDBAuthenticator.GetSuppliedPasswordHash(
   const AAuthData: TEFNode; const AHashNeeded: Boolean): string;
 begin
-  Result := Environment.MacroExpansionEngine.Expand(AAuthData.GetString('UserPassword'));
+  Result := Environment.MacroExpansionEngine.Expand(AAuthData.GetString('Password'));
   if AHashNeeded then
     Result := GetStringHash(Result);
 end;
@@ -268,16 +273,16 @@ begin
   end;
 end;
 
-procedure TKDBAuthenticator.InternalAuthenticate(const AAuthData: TEFNode);
+function TKDBAuthenticator.InternalAuthenticate(const AAuthData: TEFNode): Boolean;
 var
   LSuppliedUserName: string;
   LSuppliedPasswordHash: string;
   LStoredPasswordHash: string;
-  LPassepartoutAuthentication: Boolean;
+  LIsPassepartoutAuthentication: Boolean;
 begin
   LSuppliedUserName := GetSuppliedUserName(AAuthData);
   LSuppliedPasswordHash := GetSuppliedPasswordHash(AAuthData, not Config.GetBoolean('IsClearPassword'));
-  LPassepartoutAuthentication := IsPassepartoutAuthentication(LSuppliedPasswordHash);
+  LIsPassepartoutAuthentication := IsPassepartoutAuthentication(LSuppliedPasswordHash);
 
   with CreateAndReadUser(LSuppliedUserName, AAuthData) do
   begin
@@ -288,11 +293,9 @@ begin
     end;
   end;
 
-  if not IsPasswordMatching(LSuppliedPasswordHash, LStoredPasswordHash)
-      and (not LPassepartoutAuthentication) then
-    raise EKError.Create(_('Invalid login.'));
+  Result := IsPasswordMatching(LSuppliedPasswordHash, LStoredPasswordHash) or LIsPassepartoutAuthentication;
 
-  if LPassepartoutAuthentication then
+  if LIsPassepartoutAuthentication then
     AAuthData.SetBoolean('IsPassepartoutAuthentication', True);
 end;
 
@@ -341,8 +344,8 @@ begin
   Assert(Assigned(AUser));
   Assert(Assigned(ADBQuery));
 
-  AUser.Name := ADBQuery.DataSet['EW_USER_NAME'];
-  AUser.PasswordHash := ADBQuery.DataSet['EW_PASSWORD_HASH'];
+  AUser.Name := ADBQuery.DataSet.FieldByName('USER_NAME').AsString;
+  AUser.PasswordHash := ADBQuery.DataSet.FieldByName('PASSWORD_HASH').AsString;
 
   // First N fields in the dataset go to the defined auth data nodes.
   Assert(ADBQuery.DataSet.FieldCount >= AAuthData.ChildCount);
@@ -352,13 +355,11 @@ begin
   AAuthData.AddFieldsAsChildren(ADBQuery.DataSet.Fields);
 end;
 
-{ TKAuthenticationUser }
-
 initialization
-  EWAuthenticatorRegistry.RegisterClass(TKDBAuthenticator);
+  TKAuthenticatorRegistry.Instance.RegisterClass('DB', TKDBAuthenticator);
 
 finalization
-  EWAuthenticatorRegistry.UnregisterClass(TKDBAuthenticator);
+  TKAuthenticatorRegistry.Instance.UnregisterClass('DB');
 
 end.
 

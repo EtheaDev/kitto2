@@ -1,8 +1,9 @@
-{
-  Defines the file-based authenticator and related classes and services.
-  This authenticator uses an external file containing user names and password
-  hashes to authenticate users.
-}
+///	<summary>
+///	  <para>Defines the file-based authenticator and related classes and
+///	  services.</para>
+///	  <para>This authenticator uses an external file containing user names and
+///	  password hashes to authenticate users.</para>
+///	</summary>
 unit Kitto.Auth.TextFile;
 
 {$I Kitto.Defines.inc}
@@ -15,62 +16,57 @@ uses
   Kitto.Auth;
 
 type
-  {
-    The File authenticator uses an external file to authenticate
-    users. The file should be a text file with a line for each user, in
-    the format:
-
-    <user name>=<password hash>
-
-    Conventionally, insert a # character at the beginning of a line to
-    temporarily disable a user. All lines beginning with # are ignored by
-    the authenticator.
-
-    The authenticator needs the same items as its ancestor
-    TKClassicAuthenticator.
-
-    In order for this authenticator to work, it is required that the
-    following file exists:
-
-    %HOME_PATH%\FileAuthenticator.txt
-
-    You can override the file name through the secure configuration item
-    Authentication.Authenticator.FileName (may contain macros).
-
-    When Authenticate is called, the authenticator will fetch the file data
-    (which is not cached, meaning it will be read anew at every authentication
-    request) and check the supplied credentials
-    against the user name and relevant password MD5 hash.
-
-    Configuration items (should be specified in SecureConfiguration's slice
-    Authentication.Authenticator):
-    @table(
-      @row(@cell(
-        IsClearPassword)@cell(
-        Boolean)@cell(
-        Set this item to true to signify that the password is stored in
-        clear, and not hashed, in the external file. Default False.)
-      )@row(@cell(
-        FileName)@cell(
-        String)@cell(
-        Overrides the predefined user list file name. May contain macros.)
-      )
-    )
-  }
-  TKFileAuthenticator = class(TKClassicAuthenticator)
+  ///	<summary>
+  ///	  <para>The TextFile authenticator uses an external text file to
+  ///	  authenticate users. The file should have a line for each user, in the
+  ///	  format:</para>
+  ///	  <para><c>&lt;user name&gt;=&lt;password hash&gt;</c></para>
+  ///	  <para>By convention, a # character at the beginning of a line disables
+  ///	  a user. All lines beginning with # are ignored by the
+  ///	  authenticator.</para>
+  ///	  <para>The authenticator needs the same auth items as its ancestor
+  ///	  TKClassicAuthenticator.</para>
+  ///	  <para>In order for this authenticator to work, it is required that the
+  ///	  following file exists:</para>
+  ///	  <para><c>%HOME_PATH%\Auth.txt</c></para>
+  ///	  <para>You can override the file name by means of the FileName parameter
+  ///	  (may contain macros).</para>
+  ///	  <para>When Authenticate is called, the authenticator fetches the file
+  ///	  data (which is not cached, meaning it is read anew at every
+  ///	  authentication request) and check the supplied credentials against the
+  ///	  user name and relevant password MD5 hash.</para>
+  ///	  <para>Parameters:</para>
+  ///	  <list type="table">
+  ///	    <listheader>
+  ///	      <term>Term</term>
+  ///	      <description>Description</description>
+  ///	    </listheader>
+  ///	    <item>
+  ///	      <term>IsClearPassword</term>
+  ///	      <description>Set this item to true to signify that the password is
+  ///	      stored in clear, and not hashed, in the external file. Default
+  ///	      False.</description>
+  ///	    </item>
+  ///	    <item>
+  ///	      <term>FileName</term>
+  ///	      <description>Overrides the predefined user list file name. May
+  ///	      contain macros.</description>
+  ///	    </item>
+  ///	  </list>
+  ///	</summary>
+  TKTextFileAuthenticator = class(TKClassicAuthenticator)
   private
     FUserList: TStrings;
   protected
-    {
-      Re-reads the contents of the user list from the external file and
-      loads them into the supplied string list object.
-    }
+    function InternalAuthenticate(const AAuthData: TEFNode): Boolean; override;
+  protected
+    ///	<summary>Re-reads the contents of the user list from the external file
+    ///	and loads them into the supplied string list object.</summary>
     procedure RefreshUserList(const AUserList: TStrings); virtual;
-    {
-      Returns the name of the external file (full path, may contain macros).
-    }
+
+    ///	<summary>Returns the name of the external file (full path, may contain
+    ///	macros).</summary>
     function GetUserListFileName: string; virtual;
-    procedure InternalAuthenticate(const AAuthData: TEFNode); override;
   public
     procedure AfterConstruction; override;
     destructor Destroy; override;
@@ -83,34 +79,34 @@ uses
   EF.Intf, EF.Localization, EF.Types, EF.StrUtils,
   Kitto.Environment;
 
-{ TKFileAuthenticator }
+{ TKTextFileAuthenticator }
 
-procedure TKFileAuthenticator.AfterConstruction;
+procedure TKTextFileAuthenticator.AfterConstruction;
 begin
   inherited;
   FUserList := TStringList.Create;
 end;
 
-destructor TKFileAuthenticator.Destroy;
+destructor TKTextFileAuthenticator.Destroy;
 begin
   FreeAndNil(FUserList);
   inherited;
 end;
 
-function TKFileAuthenticator.GetUserListFileName: string;
+function TKTextFileAuthenticator.GetUserListFileName: string;
 begin
   Result := Config.GetExpandedString('FileName', '%HOME_PATH%\FileAuthenticator.txt');
 end;
 
-procedure TKFileAuthenticator.InternalAuthenticate(
-  const AAuthData: TEFNode);
+function  TKTextFileAuthenticator.InternalAuthenticate(
+  const AAuthData: TEFNode): Boolean;
 var
   LSuppliedPasswordHash: string;
   LStoredPasswordHash: string;
   LUserName: string;
 begin
   LSuppliedPasswordHash := Environment.MacroExpansionEngine.Expand(
-    AAuthData.GetString('UserPassword'));
+    AAuthData.GetString('Password'));
 
   if not Config.GetBoolean('IsClearPassword') then
     LSuppliedPasswordHash := GetStringHash(LSuppliedPasswordHash);
@@ -122,11 +118,10 @@ begin
 
   LStoredPasswordHash := FUserList.Values[LUserName];
 
-  if LSuppliedPasswordHash <> LStoredPasswordHash then
-    raise EEFError.Create(_('Invalid login.'));
+  Result := LSuppliedPasswordHash = LStoredPasswordHash;
 end;
 
-procedure TKFileAuthenticator.RefreshUserList(const AUserList: TStrings);
+procedure TKTextFileAuthenticator.RefreshUserList(const AUserList: TStrings);
 var
   LFileName: string;
   LLineIndex: Integer;
@@ -145,10 +140,10 @@ begin
 end;
 
 initialization
-  EWAuthenticatorRegistry.RegisterClass(TKFileAuthenticator);
+  TKAuthenticatorRegistry.Instance.RegisterClass('TextFile', TKTextFileAuthenticator);
 
 finalization
-  EWAuthenticatorRegistry.UnregisterClass(TKFileAuthenticator);
+  TKAuthenticatorRegistry.Instance.UnregisterClass('TextFile');
 
 end.
 

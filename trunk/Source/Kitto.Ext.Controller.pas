@@ -123,7 +123,7 @@ class function TKExtControllerFactory.GetInstance: TKExtControllerFactory;
 begin
   if FInstance = nil then
     FInstance := TKExtControllerFactory.Create;
-  Result := TKExtControllerFactory(FInstance);
+  Result := FInstance;
 end;
 
 type

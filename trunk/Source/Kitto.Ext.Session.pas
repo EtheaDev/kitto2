@@ -15,7 +15,6 @@ type
     FEnvironment: TKEnvironment;
     FUserFormatSettings: TFormatSettings;
     FLoginWindow: TKExtLoginWindow;
-    FIsAuthenticated: Boolean;
     FViewHost: TExtTabPanel;
     FJSFormatSettings: TFormatSettings;
     function GetEnvironment: TKEnvironment;
@@ -209,7 +208,6 @@ procedure TKExtSession.DisplayHomeView;
 var
   LHomeView: TKView;
 begin
-  FIsAuthenticated := True;
   NilEFIntf(FHomeController);
 
   LHomeView := Environment.Views.ViewByNode(Environment.Config.FindNode('HomeView'));
@@ -220,29 +218,23 @@ end;
 procedure TKExtSession.Home;
 var
   LAutoUserName: string;
-  LAutoUserPassword: string;
+  LAutoPassword: string;
 begin
-  //if not IsAjax then
-  LoadLibraries;
+  if not IsAjax then
+    LoadLibraries;
 
-  if TKAuthenticationHost.IsNullAuthenticator then
-    FIsAuthenticated := True;
-  if FIsAuthenticated then
+  if Environment.Authenticator.IsAuthenticated then
     DisplayHomeView
   else
   begin
     LAutoUserName := Environment.Config.GetString('Auth/AutoUserName');
-    LAutoUserPassword := Environment.Config.GetString('Auth/AutoUserPassword');
-    if (LAutoUserName <> '') and (LAutoUserPassword <> '') then
+    LAutoPassword := Environment.Config.GetString('Auth/AutoPassword');
+    if (LAutoUserName <> '') and (LAutoPassword <> '') then
     begin
-      { TODO : refactor authentication so that it doesn't raise exceptions }
-      try
-        TKExtLoginWindow.Authenticate(LAutoUserName, LAutoUserPassword);
-        DisplayHomeView;
-      except
-        on E: EKError do
-          DoLogin;
-      end;
+      if TKExtLoginWindow.Authenticate(LAutoUserName, LAutoPassword) then
+        DisplayHomeView
+      else
+        DoLogin;
     end
     else
       DoLogin;
@@ -302,9 +294,7 @@ end;
 
 procedure TKExtSession.Logout;
 begin
-  { TODO : shorthen names and provide a logout method when refactoring this }
-  Environment.AuthenticationHost.CurrentAuthenticator.AuthenticationData.Clear;
-  FIsAuthenticated := False;
+  Environment.Authenticator.Logout;
   Home;
 end;
 
@@ -332,7 +322,6 @@ var
   LLanguageId: string;
 begin
   inherited;
-  FIsAuthenticated := False;
   ExtPath := Environment.Config.GetString('Ext/URL', '/ext');
   Charset := Environment.Config.GetString('Charset', 'utf-8');
   LLanguageId := Environment.Config.GetString('LanguageId');
