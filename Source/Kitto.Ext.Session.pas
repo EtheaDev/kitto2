@@ -34,7 +34,8 @@ type
     ///	</summary>
     property ViewHost: TExtTabPanel read FViewHost write FViewHost;
 
-    procedure DisplayView(const AName: string);
+    procedure DisplayView(const AName: string); overload;
+    procedure DisplayView(const AView: TKView); overload;
 
     property Environment: TKEnvironment read GetEnvironment;
     procedure InitDefaultValues; override;
@@ -308,14 +309,20 @@ begin
 end;
 
 procedure TKExtSession.DisplayView(const AName: string);
+begin
+  Assert(AName <> '');
+
+  DisplayView(Environment.Views.ViewByName(AName));
+end;
+
+procedure TKExtSession.DisplayView(const AView: TKView);
 var
   LController: IKExtController;
 begin
-  Assert(AName <> '');
+  Assert(Assigned(AView));
   Assert(Assigned(FViewHost));
 
-  LController := TKExtControllerFactory.Instance.CreateController(
-    Environment.Views.ViewByName(AName), FViewHost);
+  LController := TKExtControllerFactory.Instance.CreateController(AView, FViewHost);
   LController.Display;
   FViewHost.SetActiveTab(FViewHost.Items.Count - 1);
 end;
