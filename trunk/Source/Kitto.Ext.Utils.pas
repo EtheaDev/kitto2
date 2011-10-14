@@ -120,10 +120,9 @@ begin
   begin
     LView := FindView(ANode.TreeViewNodes[I]);
 
-    { TODO : implement AC }
-    //if not Assigned(LView) or Environment.IsAccessGranted(LViewRef.View.GetResourceURI, ACM_VIEW) then
+    if not Assigned(LView) or not LView.IsAccessGranted(ACM_VIEW) then
     begin
-      LIsEnabled := not Assigned(LView) or True{or Environment.IsAccessGranted(AViewRef.View.GetResourceURI, ACM_RUN)};
+      LIsEnabled := not Assigned(LView) or LView.IsAccessGranted(ACM_RUN);
       LMenuItem := TKExtMenuItem.AddTo(AMenu.Items);
       try
         Inc(FAddedItems);
@@ -168,10 +167,9 @@ begin
 
   LView := FindView(ANode);
 
-  { TODO : implement AC }
-  //if not Assigned(LView) or Environment.IsAccessGranted(AViewRef.View.GetResourceURI, ACM_VIEW) then
+  if not Assigned(LView) or LView.IsAccessGranted(ACM_VIEW) then
   begin
-    LIsEnabled := not Assigned(LView) or True{or Environment.IsAccessGranted(AViewRef.View.GetResourceURI, ACM_RUN)};
+    LIsEnabled := not Assigned(LView) or LView.IsAccessGranted(ACM_RUN);
     LButton := TKExtButton.AddTo(AContainer.Items);
     try
       Inc(FAddedItems);
@@ -214,10 +212,9 @@ begin
 
   LView := FindView(ANode);
 
-  { TODO : implement AC }
-  //if not Assigned(LView) or Environment.IsAccessGranted(LView.GetResourceURI, ACM_VIEW) then
+  if not Assigned(LView) or LView.IsAccessGranted(ACM_VIEW) then
   begin
-    LIsEnabled := not Assigned(LView) or True{or Environment.IsAccessGranted(LView.GetResourceURI, ACM_RUN)};
+    LIsEnabled := not Assigned(LView) or LView.IsAccessGranted(ACM_RUN);
     LNode := TKExtTreeTreeNode.Create;
     try
       Inc(FAddedItems);
