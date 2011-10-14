@@ -28,6 +28,8 @@ type
     FAuthMacroExpander: TEFTreeMacroExpander;
     // Keep a reference in order to be able to call it in the destructor.
     FEnvironment: IEFEnvironment;
+    FIsAuthenticated: Boolean;
+    procedure ClearAuthData;
   protected
     function GetIsAuthenticated: Boolean; virtual;
 
@@ -233,6 +235,7 @@ begin
   FAuthMacroExpander := TEFTreeMacroExpander.Create(FAuthData, 'Auth');
   FEnvironment := Environment;
   FEnvironment.MacroExpansionEngine.AddExpander(FAuthMacroExpander);
+  FIsAuthenticated := False;
 end;
 
 destructor TKAuthenticator.Destroy;
@@ -244,15 +247,20 @@ begin
 end;
 
 procedure TKAuthenticator.DefineAuthData(const AAuthData: TEFNode);
+var
+  I: Integer;
 begin
   Assert(Assigned(AAuthData));
 
   InternalDefineAuthData(AAuthData);
+  // Get meaningful defaults.
+  for I := 0 to AAuthData.ChildCount - 1 do
+    AAuthData.Children[I].AssignValue(Config.FindNode('Defaults/' + AAuthData.Children[I].Name));
 end;
 
 function TKAuthenticator.GetIsAuthenticated: Boolean;
 begin
-  Result := AuthData.ChildCount > 0;
+  Result := FIsAuthenticated;
 end;
 
 function TKAuthenticator.GetUserName: string;
@@ -267,7 +275,14 @@ end;
 
 procedure TKAuthenticator.Logout;
 begin
+  ClearAuthData;
+  FIsAuthenticated := False;
+end;
+
+procedure TKAuthenticator.ClearAuthData;
+begin
   AuthData.Clear;
+  DefineAuthData(AuthData);
 end;
 
 procedure TKAuthenticator.InternalAfterAuthenticate(
@@ -285,6 +300,7 @@ begin
   try
     InternalBeforeAuthenticate(AAuthData);
     Result := InternalAuthenticate(AAuthData);
+    FIsAuthenticated := Result;
     if Result then
     begin
       InternalAfterAuthenticate(AAuthData);
@@ -295,7 +311,7 @@ begin
     if not Result then
       // Make sure we don't expand any macro that hasn't passed
       // authentication.
-      AuthData.Clear;
+      Logout;
   end;
 end;
 

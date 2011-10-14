@@ -194,26 +194,30 @@ function TKDBAuthenticator.CreateAndReadUser(
 var
   LQuery: TEFDBQuery;
 begin
-  Result := CreateUser;
+  Result := nil;
+  LQuery := Environment.MainDBConnection.CreateDBQuery;
   try
-    LQuery := Environment.MainDBConnection.CreateDBQuery;
+    LQuery.CommandText := GetReadUserSQL(AUserName);
+    if LQuery.Params.Count <> 1 then
+      raise EKError.CreateFmt(_('Wrong authentication query text: %s'), [LQuery.CommandText]);
+    LQuery.Params[0].AsString := AUserName;
+    LQuery.Open;
     try
-      LQuery.CommandText := GetReadUserSQL(AUserName);
-      if LQuery.Params.Count <> 1 then
-        raise EKError.CreateFmt(_('Wrong authentication query text: %s'), [LQuery.CommandText]);
-      LQuery.Params[0].AsString := AUserName;
-      LQuery.Open;
-      try
-        ReadUserFromRecord(Result, LQuery, AAuthData);
-      finally
-        LQuery.Close;
+      if not LQuery.DataSet.IsEmpty then
+      begin
+        Result := TKAuthUser.Create;
+        try
+          ReadUserFromRecord(Result, LQuery, AAuthData);
+        except
+          Result.Free;
+          raise;
+        end;
       end;
     finally
-      FreeAndNil(LQuery);
+      LQuery.Close;
     end;
-  except
-    Result.Free;
-    raise;
+  finally
+    FreeAndNil(LQuery);
   end;
 end;
 
@@ -277,26 +281,26 @@ function TKDBAuthenticator.InternalAuthenticate(const AAuthData: TEFNode): Boole
 var
   LSuppliedUserName: string;
   LSuppliedPasswordHash: string;
-  LStoredPasswordHash: string;
   LIsPassepartoutAuthentication: Boolean;
+  LUser: TKAuthUser;
 begin
   LSuppliedUserName := GetSuppliedUserName(AAuthData);
   LSuppliedPasswordHash := GetSuppliedPasswordHash(AAuthData, not Config.GetBoolean('IsClearPassword'));
   LIsPassepartoutAuthentication := IsPassepartoutAuthentication(LSuppliedPasswordHash);
 
-  with CreateAndReadUser(LSuppliedUserName, AAuthData) do
-  begin
-    try
-      LStoredPasswordHash := PasswordHash;
-    finally
-      Free;
-    end;
+  LUser := CreateAndReadUser(LSuppliedUserName, AAuthData);
+  try
+    if Assigned(LUser) then
+    begin
+      Result := IsPasswordMatching(LSuppliedPasswordHash, LUser.PasswordHash) or LIsPassepartoutAuthentication;
+      if LIsPassepartoutAuthentication then
+        AAuthData.SetBoolean('IsPassepartoutAuthentication', True);
+    end
+    else
+      Result := False;
+  finally
+    FreeAndNil(LUser);
   end;
-
-  Result := IsPasswordMatching(LSuppliedPasswordHash, LStoredPasswordHash) or LIsPassepartoutAuthentication;
-
-  if LIsPassepartoutAuthentication then
-    AAuthData.SetBoolean('IsPassepartoutAuthentication', True);
 end;
 
 function TKDBAuthenticator.IsPassepartoutAuthentication(const ASuppliedPasswordHash: string): Boolean;

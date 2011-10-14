@@ -5,13 +5,18 @@ unit Kitto.Ext.StatusBar;
 interface
 
 uses
-  Ext, ExtUx,
+  Ext,
   Kitto.Ext.Base, Kitto.Metadata.Views;
 
 type
+  TKExtDefaultStatusBar = class(TKExtStatusBar)
+  public
+    procedure ClearStatus; override;
+  end;
+
   TKExtStatusBarController = class(TKExtPanelControllerBase)
   private
-    FStatusBar: TExtUxStatusBar;
+    FStatusBar: TKExtDefaultStatusBar;
   protected
     procedure InitDefaults; override;
     procedure DoDisplay; override;
@@ -29,8 +34,8 @@ uses
 procedure TKExtStatusBarController.DoDisplay;
 begin
   inherited;
-  FStatusBar.Text := View.GetExpandedString('Controller/Text');
-  FStatusBar.IconCls := Session.SetViewIconStyle(View, '', 'sb_', 'padding-left: 25px !important;');
+  FStatusBar.DefaultText := View.GetExpandedString('Controller/Text');
+  FStatusBar.DefaultIconCls := Session.SetViewIconStyle(View, '', 'sb_', 'padding-left: 25px !important;');
 end;
 
 procedure TKExtStatusBarController.InitDefaults;
@@ -40,7 +45,16 @@ begin
   AutoHeight := True;
   Border := False;
 
-  FStatusBar := TExtUxStatusBar.AddTo(Items);
+  FStatusBar := TKExtDefaultStatusBar.AddTo(Items);
+end;
+
+{ TKExtDefaultStatusBar }
+
+procedure TKExtDefaultStatusBar.ClearStatus;
+begin
+  inherited;
+  SetText(DefaultText);
+  SetIcon(DefaultIconCls);
 end;
 
 initialization

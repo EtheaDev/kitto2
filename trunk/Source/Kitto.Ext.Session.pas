@@ -6,7 +6,8 @@ uses
   SysUtils,
   ExtPascal, Ext,
   EF.Tree,
-  Kitto.Ext.Controller, Kitto.Environment, Kitto.Metadata.Views, Kitto.Ext.Login;
+  Kitto.Ext.Base, Kitto.Ext.Controller, Kitto.Environment, Kitto.Metadata.Views,
+  Kitto.Ext.Login;
 
 type
   TKExtSession = class(TExtThread)
@@ -17,10 +18,11 @@ type
     FLoginWindow: TKExtLoginWindow;
     FViewHost: TExtTabPanel;
     FJSFormatSettings: TFormatSettings;
+    FStatusHost: TKExtStatusBar;
     function GetEnvironment: TKEnvironment;
     procedure LoadLibraries;
     procedure DisplayHomeView;
-    procedure DoLogin;
+    procedure DisplayLoginWindow;
   protected
     function BeforeHandleRequest: Boolean; override;
     procedure AfterHandleRequest; override;
@@ -32,6 +34,11 @@ type
     ///	  A reference to the panel to be used as the main view container.
     ///	</summary>
     property ViewHost: TExtTabPanel read FViewHost write FViewHost;
+
+    ///	<summary>
+    ///	  A reference to the status bar to be used for wait messages.
+    ///	</summary>
+    property StatusHost: TKExtStatusBar read FStatusHost write FStatusHost;
 
     procedure DisplayView(const AName: string); overload;
     procedure DisplayView(const AView: TKView); overload;
@@ -216,32 +223,19 @@ begin
 end;
 
 procedure TKExtSession.Home;
-var
-  LAutoUserName: string;
-  LAutoPassword: string;
 begin
   if not IsAjax then
     LoadLibraries;
 
-  if Environment.Authenticator.IsAuthenticated then
+  // Try authentication with default credentials, if any, and skip login
+  // window if it succeeds.
+  if TKExtLoginWindow.Authenticate then
     DisplayHomeView
   else
-  begin
-    LAutoUserName := Environment.Config.GetString('Auth/AutoUserName');
-    LAutoPassword := Environment.Config.GetString('Auth/AutoPassword');
-    if (LAutoUserName <> '') and (LAutoPassword <> '') then
-    begin
-      if TKExtLoginWindow.Authenticate(LAutoUserName, LAutoPassword) then
-        DisplayHomeView
-      else
-        DoLogin;
-    end
-    else
-      DoLogin;
-  end;
+    DisplayLoginWindow;
 end;
 
-procedure TKExtSession.DoLogin;
+procedure TKExtSession.DisplayLoginWindow;
 begin
   FreeAndNil(FLoginWindow);
   FLoginWindow := TKExtLoginWindow.Create;
@@ -315,6 +309,8 @@ begin
   LController := TKExtControllerFactory.Instance.CreateController(AView, FViewHost);
   LController.Display;
   FViewHost.SetActiveTab(FViewHost.Items.Count - 1);
+  if Assigned(FStatusHost) then
+    FStatusHost.ClearStatus;
 end;
 
 procedure TKExtSession.InitDefaultValues;

@@ -3,7 +3,7 @@ unit Kitto.Ext.Base;
 interface
 
 uses
-  ExtPascal, Ext, ExtForm,
+  ExtPascal, Ext, ExtForm, ExtUx,
   EF.Intf, EF.Tree, EF.ObserverIntf, EF.Classes,
   Kitto.Ext.Controller, Kitto.Metadata.Views;
 
@@ -174,6 +174,15 @@ type
     procedure AttachObserver(const AObserver: IEFObserver); virtual;
     procedure DetachObserver(const AObserver: IEFObserver); virtual;
     procedure NotifyObservers(const AContext: string = ''); virtual;
+  end;
+
+  TKExtStatusBar = class(TExtUxStatusBar)
+  protected
+    procedure InitDefaults; override;
+  public
+    procedure SetErrorStatus(const AText: string);
+
+    procedure ClearStatus; virtual;
   end;
 
 implementation
@@ -665,6 +674,24 @@ end;
 function TKExtFormTextField._Release: Integer;
 begin
   Result := -1;
+end;
+
+{ TKExtStatusBar }
+
+procedure TKExtStatusBar.ClearStatus;
+begin
+  inherited ClearStatus;
+end;
+
+procedure TKExtStatusBar.InitDefaults;
+begin
+  inherited;
+  Session.StatusHost := Self;
+end;
+
+procedure TKExtStatusBar.SetErrorStatus(const AText: string);
+begin
+  SetStatus(JSObject(Format('text: "%s", iconCls:"x-status-error",clear:true', [AText])));
 end;
 
 end.
