@@ -11,17 +11,38 @@ type
   private
     FPersistentName: string;
     function GetIsPersistent: Boolean;
+    class function BeautifiedClassName: string; static;
   public
     procedure Assign(const ASource: TEFTree); override;
 
     property PersistentName: string read FPersistentName write FPersistentName;
 
     property IsPersistent: Boolean read GetIsPersistent;
+
+    ///	<summary>Returns a string URI that uniquely identifies the object, to
+    ///	be used for access control.</summary>
+    function GetResourceURI: string; virtual;
+
+    ///	<summary>Returns true if access is granted to the resource representing
+    ///	the metadata object in the specified mode. This is a shortcut to
+    ///	calling Environment.IsAccessGranted (possibly multiple times for
+    ///	cascading, and "or"ing the results).</summary>
+    function IsAccessGranted(const AMode: string): Boolean; virtual;
   end;
 
   TKMetadataClass = class of TKMetadata;
 
   TKMetadataItem = class(TEFNode)
+  public
+    ///	<summary>Returns a string URI that uniquely identifies the object, to
+    ///	be used for access control.</summary>
+    function GetResourceURI: string; virtual;
+
+    ///	<summary>Returns true if access is granted to the resource representing
+    ///	the metadata object in the specified mode. This is a shortcut to
+    ///	calling Environment.IsAccessGranted (possibly multiple times for
+    ///	cascading, and "or"ing the results).</summary>
+    function IsAccessGranted(const AMode: string): Boolean; virtual;
   end;
 
   TKMetadataCatalog = class
@@ -101,8 +122,8 @@ implementation
 
 uses
   SysUtils,
-  EF.Localization,
-  Kitto.Types;
+  EF.Localization, EF.StrUtils,
+  Kitto.Types, Kitto.Environment;
 
 { TKMetadataCatalog<T> }
 
@@ -420,6 +441,33 @@ end;
 function TKMetadata.GetIsPersistent: Boolean;
 begin
   Result := PersistentName <> '';
+end;
+
+function TKMetadata.GetResourceURI: string;
+begin
+  Result := 'metadata://' + BeautifiedClassName + '/' + PersistentName;
+end;
+
+function TKMetadata.IsAccessGranted(const AMode: string): Boolean;
+begin
+  Result := Environment.IsAccessGranted(GetResourceURI, AMode);
+end;
+
+class function TKMetadata.BeautifiedClassName: string;
+begin
+  Result := StripPrefix(ClassName, 'TK');
+end;
+
+{ TKMetadataItem }
+
+function TKMetadataItem.GetResourceURI: string;
+begin
+  Result := '';
+end;
+
+function TKMetadataItem.IsAccessGranted(const AMode: string): Boolean;
+begin
+  Result := Environment.IsAccessGranted(GetResourceURI, AMode);
 end;
 
 end.

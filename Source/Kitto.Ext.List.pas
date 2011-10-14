@@ -224,12 +224,12 @@ begin
   Title := Environment.MacroExpansionEngine.Expand(ViewTable.PluralDisplayLabel);
 
   { TODO : implement resource URIs }
-  FIsAddAllowed := not ViewTable.GetBoolean('Controller/PreventAdding', False);
-    //and Environment.IsAccessGranted(GUIForm.GetResourceURI, ACM_ADD);
-  FIsEditAllowed := not ViewTable.GetBoolean('Controller/PreventEditing', False);
-    //and Environment.IsAccessGranted(GUIForm.GetResourceURI, ACM_MODIFY);
-  FIsDeleteAllowed := not ViewTable.GetBoolean('Controller/PreventDeleting', False);
-    //and Environment.IsAccessGranted(GUIForm.GetResourceURI, ACM_DELETE);
+  FIsAddAllowed := not ViewTable.GetBoolean('Controller/PreventAdding')
+    and ViewTable.IsAccessGranted(ACM_ADD);
+  FIsEditAllowed := not ViewTable.GetBoolean('Controller/PreventEditing')
+    and ViewTable.IsAccessGranted(ACM_MODIFY);
+  FIsDeleteAllowed := not ViewTable.GetBoolean('Controller/PreventDeleting')
+    and ViewTable.IsAccessGranted(ACM_DELETE);
 
   CreateStoreAndView;
   CreateFilterPanel;
@@ -502,9 +502,8 @@ var
 
   function IsReadOnly: Boolean;
   begin
-    Result := View.GetBoolean('IsReadOnly') or ViewTable.IsReadOnly or View.GetBoolean('Controller/PreventEditing');
-      { TODO : implement }
-      //or not Environment.IsAccessGranted(View.GetResourceURI, ACM_MODIFY);
+    Result := View.GetBoolean('IsReadOnly') or ViewTable.IsReadOnly or View.GetBoolean('Controller/PreventEditing')
+      or not ViewTable.IsAccessGranted(ACM_MODIFY);
   end;
 
 begin

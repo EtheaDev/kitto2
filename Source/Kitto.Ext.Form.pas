@@ -204,13 +204,11 @@ begin
   Assert((FOperation = 'Add') or Assigned(FStoreRecord));
 
   if SameText(FOperation, 'Add') then
-    FIsReadOnly := View.GetBoolean('IsReadOnly') or View.GetBoolean('Controller/PreventAdding')
-      { TODO : implement }
-      //or not Environment.IsAccessGranted(View.GetResourceURI, ACM_ADD)
+    FIsReadOnly := View.GetBoolean('IsReadOnly') or ViewTable.IsReadOnly or View.GetBoolean('Controller/PreventAdding')
+      or not ViewTable.IsAccessGranted(ACM_ADD)
   else
-    FIsReadOnly := View.GetBoolean('IsReadOnly') or ViewTable.IsReadOnly or View.GetBoolean('Controller/PreventEditing');
-      { TODO : implement }
-      //or not Environment.IsAccessGranted(View.GetResourceURI, ACM_MODIFY);
+    FIsReadOnly := View.GetBoolean('IsReadOnly') or ViewTable.IsReadOnly or View.GetBoolean('Controller/PreventEditing')
+      or not ViewTable.IsAccessGranted(ACM_MODIFY);
   if SameText(FOperation, 'Add') and FIsReadOnly then
     raise EEFError.Create(_('Operation Add not supported on read-only data.'));
 

@@ -8,27 +8,7 @@ uses
   Types, SysUtils, Classes, DB, Generics.Collections,
   EF.Intf, EF.Types, EF.Macros, EF.Tree, EF.ObserverIntf;
 
-const
-  {
-    Default value for TEFComponent.LogLevel.
-  }
-  DEFAULT_LOG_LEVEL = 1;
-
 type
-  IEFTreeItem = interface(IEFInterface)
-    ['{1C109A68-2108-4679-A76A-FC019B883A8B}']
-    {
-      Reparents the specified item under the current object. The implementor
-      decides where the nEF item will go and how to unlink it from its previous
-      parent if any, as required. Items that are containers might host
-      reparented items as children, others as siblings.
-      AAfter optionally specifies a sibling item after which to add AItem
-      in the container's collection.
-    }
-    procedure ReparentItem(const AItem: IEFTreeItem;
-      const AAfter: IEFTreeItem = nil);
-  end;
-
   TEFComponent = class(TEFSubjectAndObserver)
   private
     FOnLog: TEFLogEvent;
@@ -36,6 +16,8 @@ type
     FObservers: TInterfaceList;
     FConfig: TEFNode;
     function GetConfig: TEFNode;
+  public
+    const DEFAULT_LOG_LEVEL = 1;
   protected
     {
       Override this method to enable Config auto-load upon first request.

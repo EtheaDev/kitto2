@@ -222,6 +222,10 @@ type
     ///	<remarks>The caller is responsible for freeing the returned node
     ///	object.</remarks>
     function GetDefaultValues: TEFNode;
+
+    function GetResourceURI: string; override;
+
+    function IsAccessGranted(const AMode: string): Boolean; override;
   end;
 
   TKDataView = class(TKView)
@@ -702,6 +706,26 @@ begin
     Result := Model.PluralDisplayLabel;
 end;
 
+function TKViewTable.GetResourceURI: string;
+
+  function GetPath: string;
+  var
+    LParent: TEFTree;
+  begin
+    Result := '';
+    LParent := Parent;
+    while (LParent is TKViewTables) or (LParent is TKViewTable) do
+    begin
+      if LParent is TKViewTable then
+        Result := Result + '/' + TKViewTable(LParent).ModelName;
+      LParent := (LParent as TEFNode).Parent;
+    end;
+  end;
+
+begin
+  Result := View.GetResourceURI + GetPath;
+end;
+
 function TKViewTable.GetKeyFieldAliasedNames: TStringDynArray;
 var
   I: Integer;
@@ -742,6 +766,13 @@ begin
     Result := TKViewTables(Parent).View as TKDataView
   else
     raise EKError.Create('Structure error. View not found for TKViewTable.');
+end;
+
+function TKViewTable.IsAccessGranted(const AMode: string): Boolean;
+begin
+  Result := Environment.IsAccessGranted(GetResourceURI, AMode)
+    and Environment.IsAccessGranted(View.GetResourceURI, AMode)
+    and Environment.IsAccessGranted(Model.GetResourceURI, AMode);
 end;
 
 function TKViewTable.IsFieldVisible(const AField: TKViewField): Boolean;
