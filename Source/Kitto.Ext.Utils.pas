@@ -90,7 +90,11 @@ begin
   if Assigned(AView) then
   begin
     Assert(Session.ViewHost <> nil);
-    Result := FOwner.Ajax(FClickHandler, ['View', Integer(AView), 'AutoCollapseMenu', True]);
+    if Session.StatusHost <> nil then
+      Result := FOwner.Ajax(FClickHandler, ['View', Integer(AView), 'AutoCollapseMenu', True,
+        'Dummy', Session.StatusHost.ShowBusy])
+    else
+      Result := FOwner.Ajax(FClickHandler, ['View', Integer(AView), 'AutoCollapseMenu', True]);
   end
   else
     Result := nil;
