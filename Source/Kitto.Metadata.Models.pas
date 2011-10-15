@@ -10,6 +10,24 @@ uses
 type
   TKModel = class;
 
+  TKRule = class(TKMetadataItem)
+  end;
+
+  TKRules = class(TKMetadataItem)
+  private
+    function GetRule(I: Integer): TKRule;
+    function GetRuleCount: Integer;
+  protected
+    function GetChildClass(const AName: string): TEFNodeClass; override;
+  public
+    property RuleCount: Integer read GetRuleCount;
+    property Rules[I: Integer]: TKRule read GetRule; default;
+
+    ///	<summary>Returns True if there's a rule of the same type as the passed
+    ///	one.</summary>
+    function HasRule(const ARule: TKRule): Boolean;
+  end;
+
   TKModelField = class(TKMetadataItem)
   private
     function GetFieldName: string;
@@ -29,17 +47,21 @@ type
     function GetDefaultValue: Variant;
     function GetExpression: string;
     function GetAllowedValues: TEFPairs;
+    function GetRules: TKRules;
+    function GetDecimalPrecision: Integer;
   protected
     procedure GetFieldSpec(out ADataType: TEFDataType; out ASize: Integer;
       out AIsRequired: Boolean; out AIsKey: Boolean);
     procedure SetFieldSpec(const ADataType: TEFDataType;
       const ASize: Integer; const AIsRequired: Boolean);
+    function GetChildClass(const AName: string): TEFNodeClass; override;
   public
     property Model: TKModel read GetModel;
     property FieldName: string read GetFieldName;
     property QualifiedFieldName: string read GetQualifiedFieldName;
     property DataType: TEFDataType read GetDataType;
     property Size: Integer read GetSize;
+    property DecimalPrecision: Integer read GetDecimalPrecision;
 
     ///	<summary>
     ///	  Default requiredness status of this field in views. Defaults to
@@ -63,6 +85,9 @@ type
     ///	</summary>
     property IsGenerated: Boolean read GetIsGenerated;
 
+    ///	<summary>A field that is not a physical field but rather computed by a
+    ///	SQL expression will have the expression stored in this
+    ///	property.</summary>
     property Expression: string read GetExpression;
 
     ///	<summary>
@@ -101,6 +126,8 @@ type
     property DefaultValue: Variant read GetDefaultValue;
 
     property IsKey: Boolean read GetIsKey;
+
+    property Rules: TKRules read GetRules;
   end;
 
   TKModelFields = class(TKMetadataItem)
@@ -171,6 +198,7 @@ type
     function GetDefaultSorting: string;
     function GetIsLarge: Boolean;
     function GetDefaultFilter: string;
+    function GetRules: TKRules;
   protected
     function GetFields: TKModelFields;
     function GetChildClass(const AName: string): TEFNodeClass; override;
@@ -211,6 +239,8 @@ type
     ///	  qualified names. Defaults to the list of fields in the key, if any.
     ///	</summary>
     property DefaultSorting: string read GetDefaultSorting;
+
+    property Rules: TKRules read GetRules;
   end;
 
   TKModels = class(TKMetadataCatalog)
@@ -326,6 +356,11 @@ begin
   end;
 end;
 
+function TKModel.GetRules: TKRules;
+begin
+  Result := GetNode('Rules') as TKRules;
+end;
+
 function TKModel.GetIsLarge: Boolean;
 begin
   Result := GetBoolean('IsLarge');
@@ -375,6 +410,8 @@ begin
     Result := TKModelFields
   else if SameText(AName, 'References') then
     Result := TKModelReferences
+  else if SameText(AName, 'Rules') then
+    Result := TKRules
   else
     Result := inherited GetChildClass(AName);
 end;
@@ -473,6 +510,11 @@ begin
   Result := Model.ModelName + '.' + FieldName;
 end;
 
+function TKModelField.GetRules: TKRules;
+begin
+  Result := GetNode('Rules') as TKRules;
+end;
+
 function TKModelField.BeautifyFieldName(const AFieldName: string): string;
 begin
   { TODO : allow to customize the beautifying function }
@@ -484,6 +526,14 @@ begin
   Result := GetChildrenAsPairs('AllowedValues');
 end;
 
+function TKModelField.GetChildClass(const AName: string): TEFNodeClass;
+begin
+  if SameText(AName, 'Rules') then
+    Result := TKRules
+  else
+    Result := inherited GetChildClass(AName);
+end;
+
 function TKModelField.GetDataType: TEFDataType;
 var
   LSize: Integer;
@@ -491,6 +541,11 @@ var
   LIsKey: Boolean;
 begin
   GetFieldSpec(Result, LSize, LIsRequired, LIsKey);
+end;
+
+function TKModelField.GetDecimalPrecision: Integer;
+begin
+  Result := GetInteger('DecimalPrecision', 2);
 end;
 
 function TKModelField.GetDefaultValue: Variant;
@@ -715,6 +770,28 @@ end;
 function TKModelReferences.GetChildClass(const AName: string): TEFNodeClass;
 begin
   Result := TKModelReference;
+end;
+
+{ TKRules }
+
+function TKRules.GetChildClass(const AName: string): TEFNodeClass;
+begin
+  Result := TKRule;
+end;
+
+function TKRules.GetRule(I: Integer): TKRule;
+begin
+  Result := Children[I] as TKRule;
+end;
+
+function TKRules.GetRuleCount: Integer;
+begin
+  Result := ChildCount;
+end;
+
+function TKRules.HasRule(const ARule: TKRule): Boolean;
+begin
+  Result := Assigned(ARule) and Assigned(FindChild(ARule.Name));
 end;
 
 end.

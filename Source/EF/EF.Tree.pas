@@ -3,12 +3,13 @@ unit EF.Tree;
 interface
 
 uses
-  SysUtils, Types, Variants, DB, FmtBcd, Generics.Collections,
+  SysUtils, Types, Variants, DB, FmtBcd, Generics.Collections, SyncObjs,
   EF.Types, EF.Macros;
 
 type
   TEFDataType = (edtUnknown, edtString, edtInteger, edtDate, edtTime, edtDateTime,
     edtBoolean, edtCurrency, edtFloat, edtObject, edtDecimal);
+  TEFDataTypes = set of TEFDataType;
 
 const
   AllDataTypes = [edtString, edtInteger, edtDate, edtTime, edtDateTime,
@@ -23,11 +24,14 @@ type
 
   TEFTree = class
   private
+    FCriticalSection: TCriticalSection;
     FNodes: TEFNodes;
     function GetChild(I: Integer): TEFNode; overload;
     function GetChildCount: Integer; overload;
   protected
     function GetChildClass(const AName: string): TEFNodeClass; virtual;
+    procedure EnterCS; virtual;
+    procedure LeaveCS; virtual;
   public
     destructor Destroy; override;
   public
@@ -834,6 +838,7 @@ end;
 destructor TEFTree.Destroy;
 begin
   FreeAndNil(FNodes);
+  FreeAndNil(FCriticalSection);
   inherited;
 end;
 
@@ -933,16 +938,21 @@ begin
     Result := nil
   else
   begin
-    LChild := FindChild(LPath[0], ACreateMissingNodes);
-    if Assigned(LChild) then
-    begin
-      if Length(LPath) = 1 then
-        Result := LChild
+    EnterCS;
+    try
+      LChild := FindChild(LPath[0], ACreateMissingNodes);
+      if Assigned(LChild) then
+      begin
+        if Length(LPath) = 1 then
+          Result := LChild
+        else
+          Result := LChild.FindNodeFrom(LPath, 1, ACreateMissingNodes);
+      end
       else
-        Result := LChild.FindNodeFrom(LPath, 1, ACreateMissingNodes);
-    end
-    else
-      Result := nil;
+        Result := nil;
+    finally
+      LeaveCS;
+    end;
   end;
 end;
 
@@ -1195,6 +1205,19 @@ end;
 class function TEFTree.TimeToValue(const ATime: TTime): Variant;
 begin
   Result := Frac(ATime);
+end;
+
+procedure TEFTree.EnterCS;
+begin
+  if not Assigned(FCriticalSection) then
+    FCriticalSection := TCriticalSection.Create;
+  FCriticalSection.Enter;
+end;
+
+procedure TEFTree.LeaveCS;
+begin
+  Assert(Assigned(FCriticalSection));
+  FCriticalSection.Leave;
 end;
 
 { TEFTreeFactory }

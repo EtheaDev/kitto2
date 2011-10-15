@@ -106,6 +106,7 @@ type
     procedure AfterConstruction; override;
     destructor Destroy; override;
   public
+    procedure Clear; override;
     property Store: TKStore read GetStore;
 
     property Key: TKKey read FKey write SetKey;
@@ -258,9 +259,8 @@ var
 begin
   Assert(Assigned(ADataSet));
 
-{ TODO : why Clear clears the Key as well? }
   if not AAppend then
-    Records.ClearChildren; // Doesn't clear the Key.
+    Records.Clear;
   while not ADataSet.Eof do
   begin
     LRecord := Records.Append(TKRecord.Create);
@@ -327,6 +327,13 @@ begin
   Assert(Assigned(ARecord));
 
   Result := TKRecord(AddChild(ARecord));
+end;
+
+procedure TKRecords.Clear;
+begin
+  inherited;
+  // Must keep the name even when cleared.
+  SetName('Records');
 end;
 
 procedure TKRecords.AfterConstruction;

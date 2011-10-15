@@ -252,6 +252,8 @@ type
     function CreateTextField(const AViewField: TKViewField;
       const ARowField: TKExtFormRowField; const AFieldWidth: Integer;
       const AIsReadOnly: Boolean): IKExtEditor;
+    procedure SetupRules(const AViewField: TKViewField;
+      const AFormField: TExtFormField);
     const TRIGGER_WIDTH = 4;
     function CreateEditItem(const AName, AValue: string;
       const AContainer: IKExtEditContainer): IKExtEditItem;
@@ -303,8 +305,8 @@ implementation
 uses
   SysUtils, Classes, Math, StrUtils,
   EF.StrUtils, EF.Localization, EF.YAML, EF.Types, EF.SQL,
-  Kitto.Ext.Utils, Kitto.JSON, Kitto.Environment, Kitto.Ext.Session, Kitto.SQL,
-  Kitto.Metadata.Models, Kitto.Types;
+  Kitto.JSON, Kitto.Environment, Kitto.SQL, Kitto.Metadata.Models, Kitto.Types,
+  Kitto.Rules, Kitto.Ext.Utils, Kitto.Ext.Session, Kitto.Ext.Rules;
 
 const
   {
@@ -740,7 +742,6 @@ function TKExtLayoutProcessor.TryCreateNumberField(const AViewField: TKViewField
   const AIsReadOnly: Boolean): IKExtEditor;
 var
   LNumberField: TKExtFormNumberField;
-  LNode: TEFNode;
 begin
   if AViewField.DataType in [edtInteger, edtCurrency, edtFloat, edtDecimal] then
   begin
@@ -756,16 +757,7 @@ begin
         LNumberField.DecimalSeparator := Session.UserFormatSettings.DecimalSeparator;
         LNumberField.AllowNegative := True;
         if LNumberField.AllowDecimals then
-          LNumberField.DecimalPrecision := 2
-        else
-        begin
-          LNode := AViewField.FindNode('MaxValue');
-          if Assigned(LNode) then
-            LNumberField.MaxValue := LNode.AsInteger;
-          LNode := AViewField.FindNode('MinValue');
-          if Assigned(LNode) then
-            LNumberField.MinValue := LNode.AsInteger;
-        end;
+          LNumberField.DecimalPrecision := AViewField.DecimalPrecision;
       end;
       Result := LNumberField;
     except
@@ -810,8 +802,6 @@ var
   LLabel: string;
   LViewField: TKViewField;
   LRowField: TKExtFormRowField;
-  LForceCase: string;
-  LNode: TEFNode;
 begin
   LViewField := FViewTable.FieldByAliasedName(AFieldName);
 
@@ -849,43 +839,12 @@ begin
   if Result = nil then
     Result := CreateTextField(LViewField, LRowField, LFieldWidth, LIsReadOnly);
 
-{ TODO : refactor }
-  // Setup some validation.
-  if not LIsReadOnly and (Result.AsExtFormField is TExtFormTextField) then
-  begin
-    LNode := LViewField.FindNode('MaxLength');
-    if Assigned(LNode) then
-      TExtFormTextField(Result).MaxLength := LNode.AsInteger;
-    LNode := LViewField.FindNode('MinLength');
-    if Assigned(LNode) then
-      TExtFormTextField(Result).MinLength := LNode.AsInteger;
-    LNode := LViewField.FindNode('Validator');
-    if Assigned(LNode) then
-      TExtFormTextField(Result).Validator := TExtFormTextField(Result).JSFunction('value', LNode.AsString);
-    { TODO : refactor this to unified field-level rules }
-    LNode := LViewField.FindNode('ValidationType'); // alpha alphanum email url
-    if Assigned(LNode) then
-      TExtFormTextField(Result).Vtype := LNode.AsString;
-
-    LForceCase := LViewField.GetString('ForceCase'); // upper lower caps none
-    if LForceCase <> '' then
-      TExtFormTextField(Result).EnableKeyEvents := True;
-    if SameText(LForceCase, 'Upper')  then
-      TExtFormTextField(Result).On('keyup', TExtFormTextField(Result).JSFunction('field, e', 'field.setValue(field.getRawValue().toUpperCase());'))
-    else if SameText(LForceCase, 'Lower')  then
-      TExtFormTextField(Result).On('keyup', TExtFormTextField(Result).JSFunction('field, e', 'field.setValue(field.getRawValue().toLowerCase());'))
-    else if SameText(LForceCase, 'Caps')  then
-      TExtFormTextField(Result).On('change', TExtFormTextField(Result).JSFunction('field, newValue, oldValue', 'field.setValue(newValue.capitalize());'));
-  end;
+  if not LIsReadOnly then
+    SetupRules(LViewField, Result.AsExtFormField);
 
   Result.AsExtFormField.AutoScroll := False; // Don't display a h. scrollbar for larger fields.
-//  if Result.AsExtFormField.Id = '' then
-//    Result.AsExtFormField.Id := LViewField.AliasedName;
   Result.AsExtFormField.Name := LViewField.AliasedName;
   Result.AsExtFormField.ReadOnly := LIsReadOnly;
-  // Don't disable: it will be missing from the POST and SaveChanges does not handle that yet.
-  { TODO : make disabling configurable - watch out for disabled fields changed by triggers (they should be POSTed) }
-  //Disabled := ReadOnly;
   Result.AsExtFormField.FieldLabel := LLabel;
   Result.AsExtFormField.MsgTarget := LowerCase(FDefaults.MsgTarget);
 
@@ -894,6 +853,40 @@ begin
 
   if Assigned(LRowField) then
     Result := LRowField.Encapsulate(Result);
+end;
+
+procedure TKExtLayoutProcessor.SetupRules(const AViewField: TKViewField;
+  const AFormField: TExtFormField);
+var
+  I: Integer;
+  LRuleImpl: TKRuleImpl;
+  LRule: TKRule;
+begin
+  // Apply rules at the View level.
+  for I := 0 to AViewField.Rules.RuleCount do
+  begin
+    LRule := AViewField.Rules[I];
+    LRuleImpl := TKRuleImplFactory.Instance.CreateObject(LRule.Name);
+    if LRuleImpl is TKExtRuleImpl then
+    begin
+      LRuleImpl.Rule := LRule;
+      TKExtRuleImpl(LRuleImpl).ApplyToFormField(AFormField);
+    end;
+  end;
+  // Apply rules at the model level that are not overwritten in the view.
+  for I := 0 to AViewField.ModelField.Rules.RuleCount do
+  begin
+    LRule := AViewField.ModelField.Rules[I];
+    if not AViewField.Rules.HasRule(LRule) then
+    begin
+      LRuleImpl := TKRuleImplFactory.Instance.CreateObject(LRule.Name);
+      if LRuleImpl is TKExtRuleImpl then
+      begin
+        LRuleImpl.Rule := LRule;
+        TKExtRuleImpl(LRuleImpl).ApplyToFormField(AFormField);
+      end;
+    end;
+  end;
 end;
 
 function TKExtLayoutProcessor.CreateFieldSet(const ATitle: string): IKExtEditItem;
