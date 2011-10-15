@@ -3,6 +3,7 @@ unit Kitto.MainFormUnit;
 interface
 
 uses
+  {$IF RTLVersion >= 23.0}Themes, Styles,{$IFEND}
   Windows, Messages, SysUtils, Variants, Classes, Graphics,
   Controls, Forms, Dialogs, ComCtrls, ToolWin, Kitto.Ext.Application,
   ActnList, Kitto.Environment, StdCtrls;
@@ -153,5 +154,10 @@ procedure TKMainForm.StartActionUpdate(Sender: TObject);
 begin
   (Sender as TAction).Enabled := not Assigned(FKAppThread);
 end;
+
+{$IF RTLVersion >= 23.0}
+initialization
+  TStyleManager.TrySetStyle('Aqua Light Slate');
+{$IFEND}
 
 end.

@@ -74,10 +74,6 @@ type
 
     ///	<summary>Adds an access controller class to the registry.</summary>
     procedure RegisterClass(const AId: string; const AClass: TKAccessControllerClass);
-
-    ///	<summary>Deletes a previously registered access controller class from
-    ///	the registry.</summary>
-    procedure UnregisterClass(const AId: string);
   end;
 
   ///	<summary>Uses the registry to create access controllers by class
@@ -162,11 +158,6 @@ end;
 procedure TKAccessControllerRegistry.RegisterClass(const AId: string; const AClass: TKAccessControllerClass);
 begin
   inherited RegisterClass(AId, AClass);
-end;
-
-procedure TKAccessControllerRegistry.UnregisterClass(const AId: string);
-begin
-  inherited UnregisterClass(AId);
 end;
 
 { TKAccessControllerFactory }

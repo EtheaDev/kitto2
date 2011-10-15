@@ -189,17 +189,20 @@ begin
   begin
     LChild := ANode.Children[I];
     Assert(LChild.Name <> '');
-    case LChild.DataType of
-      edtUnknown, edtString: LChild.AsString := Session.Query[LChild.Name];
-      edtInteger: LChild.AsInteger := Session.QueryAsInteger[LChild.Name];
-      edtBoolean: LChild.AsBoolean := Session.QueryAsBoolean[LChild.Name];
-      edtDate: LChild.AsDate := GetDateTime;
-      edtTime: LChild.AsTime := GetDateTime;
-      edtDateTime: LChild.AsDateTime := GetDateTime;
-      edtCurrency: LChild.AsCurrency := GetFloat;
-      edtFloat: LChild.AsFloat := GetFloat;
-      edtDecimal: LChild.AsDecimal := GetFloat;
-      edtObject: raise EKError.CreateFmt(_('Unsupported data type %s.'), [EFDataTypeToString(LChild.DataType)]);
+    if Session.Queries.IndexOfName(LChild.Name) >= 0 then
+    begin
+      case LChild.DataType of
+        edtUnknown, edtString: LChild.AsString := Session.Query[LChild.Name];
+        edtInteger: LChild.AsInteger := Session.QueryAsInteger[LChild.Name];
+        edtBoolean: LChild.AsBoolean := Session.QueryAsBoolean[LChild.Name];
+        edtDate: LChild.AsDate := GetDateTime;
+        edtTime: LChild.AsTime := GetDateTime;
+        edtDateTime: LChild.AsDateTime := GetDateTime;
+        edtCurrency: LChild.AsCurrency := GetFloat;
+        edtFloat: LChild.AsFloat := GetFloat;
+        edtDecimal: LChild.AsDecimal := GetFloat;
+        edtObject: raise EKError.CreateFmt(_('Unsupported data type %s.'), [EFDataTypeToString(LChild.DataType)]);
+      end;
     end;
   end;
 end;

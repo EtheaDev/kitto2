@@ -65,6 +65,10 @@ type
     function GetIsBlob: Boolean;
     function GetReference: TKModelReference;
     function GetAllowedValues: TEFPairs;
+    function GetRules: TKRules;
+    function GetDecimalPrecision: Integer;
+  protected
+    function GetChildClass(const AName: string): TEFNodeClass; override;
   public
     function FindNode(const APath: string; const ACreateMissingNodes: Boolean = False): TEFNode; override;
 
@@ -104,6 +108,7 @@ type
 
     property DisplayLabel: string read GetDisplayLabel;
     property DisplayWidth: Integer read GetDisplayWidth;
+    property DecimalPrecision: Integer read GetDecimalPrecision;
     property DataType: TEFDataType read GetDataType;
     property Size: Integer read GetSize;
     property IsBlob: Boolean read GetIsBlob;
@@ -112,6 +117,8 @@ type
     ///	the referenced model. If reference = nil, an exception is
     ///	raised.</summary>
     function CreateStore: TKStore;
+
+    property Rules: TKRules read GetRules;
   end;
 
   TKViewFields = class(TKMetadataItem)
@@ -152,8 +159,8 @@ type
     function GetMasterTable: TKViewTable;
     function GetDefaultSorting: string;
     function GetDefaultFilter: string;
-    procedure CreateDefaultFields;
     function GetView: TKDataView;
+    function GetRules: TKRules;
   protected
     function GetChildClass(const AName: string): TEFNodeClass; override;
     function GetFields: TKViewFields;
@@ -226,6 +233,8 @@ type
     function GetResourceURI: string; override;
 
     function IsAccessGranted(const AMode: string): Boolean; override;
+
+    property Rules: TKRules read GetRules;
   end;
 
   TKDataView = class(TKView)
@@ -574,6 +583,8 @@ begin
     Result := TKViewFields
   else if SameText(AName, 'DetailTables') then
     Result := TKViewTables
+  else if SameText(AName, 'Rules') then
+    Result := TKRules
   else
     Result := inherited GetChildClass(AName);
 end;
@@ -660,18 +671,19 @@ begin
 end;
 
 function TKViewTable.GetFields: TKViewFields;
+
+  procedure CreateDefaultFields;
+  var
+    I: Integer;
+  begin
+    for I := 0 to Model.FieldCount - 1 do
+      GetNode('Fields').AddChild(TKViewField.Create(Model.Fields[I].FieldName));
+  end;
+
 begin
   Result := GetNode('Fields', True) as TKViewFields;
   if Result.FieldCount = 0 then
     CreateDefaultFields;
-end;
-
-procedure TKViewTable.CreateDefaultFields;
-var
-  I: Integer;
-begin
-  for I := 0 to Model.FieldCount - 1 do
-    GetNode('Fields').AddChild(TKViewField.Create(Model.Fields[I].FieldName));
 end;
 
 function TKViewTable.GetIsDetail: Boolean;
@@ -724,6 +736,11 @@ function TKViewTable.GetResourceURI: string;
 
 begin
   Result := View.GetResourceURI + GetPath;
+end;
+
+function TKViewTable.GetRules: TKRules;
+begin
+  Result := GetNode('Rules', True) as TKRules;
 end;
 
 function TKViewTable.GetKeyFieldAliasedNames: TStringDynArray;
@@ -903,6 +920,14 @@ begin
     Result := ModelField.AllowedValues;
 end;
 
+function TKViewField.GetChildClass(const AName: string): TEFNodeClass;
+begin
+  if SameText(AName, 'Rules') then
+    Result := TKRules
+  else
+    Result := inherited GetChildClass(AName);
+end;
+
 function TKViewField.GetQualifiedAliasedNameOrExpression: string;
 var
   LExpression: string;
@@ -935,6 +960,13 @@ end;
 function TKViewField.GetModel: TKModel;
 begin
   Result := Table.Model.Catalog.ModelByName(ModelName);
+end;
+
+function TKViewField.GetDecimalPrecision: Integer;
+begin
+  Result := GetInteger('DecimalPrecision');
+  if Result = 0 then
+    Result := ModelField.DecimalPrecision;
 end;
 
 function TKViewField.GetDefaultValue: Variant;
@@ -1065,6 +1097,11 @@ begin
     Result := Table.Model.ReferenceByName(LNameParts[0])
   else
     raise EKError.CreateFmt('Couldn''t determine reference for field %s.', [Name]);
+end;
+
+function TKViewField.GetRules: TKRules;
+begin
+  Result := GetNode('Rules', True) as TKRules;
 end;
 
 { TKTreeViewNode }

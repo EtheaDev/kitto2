@@ -62,7 +62,7 @@ type
     }
     function HasMainDBConnection: Boolean;
     {
-      Returns True if the specified path is an EW Home path that can be opened.
+      Returns True if the specified path is the home of a Kitto application.
     }
     function CanOpen(const APath: string): Boolean;
     {
@@ -75,9 +75,9 @@ type
     }
     procedure FinalizeDBConnections;
     {
-      Global expansion engine for EW applications. This should be used in place
-      of EF's default expansion engine in EW applications, because it is
-      thread-safe when necessary. EW-specific macro expanders should be added
+      Global expansion engine. This should be used in place
+      of EF's default expansion engine in Kitto applications, because it is
+      thread-safe. Kitto-specific macro expanders should be added
       here at run time. This engine is chained to the default engine, so all
       default EF macros are supported.
     }

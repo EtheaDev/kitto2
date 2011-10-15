@@ -1,6 +1,6 @@
 ///	<summary>
 ///	  Defines the base authenticator and related classes and services.
-///	  Authenticators allow the creation of EW applications that require user
+///	  Authenticators allow the creation of applications that require user
 ///	  anthentication at startup.
 ///	</summary>
 unit Kitto.Auth;
@@ -138,10 +138,6 @@ type
 
     ///	<summary>Adds an authenticator class to the registry.</summary>
     procedure RegisterClass(const AId: string; const AClass: TKAuthenticatorClass);
-
-    ///	<summary>Deletes a previously registered authenticator class from the
-    ///	registry.</summary>
-    procedure UnregisterClass(const AId: string);
   end;
 
   ///	<summary>Creates authenticators by Id.</summary>
@@ -200,11 +196,6 @@ end;
 procedure TKAuthenticatorRegistry.RegisterClass(const AId: string; const AClass: TKAuthenticatorClass);
 begin
   inherited RegisterClass(AId, AClass);
-end;
-
-procedure TKAuthenticatorRegistry.UnregisterClass(const AId: string);
-begin
-  inherited UnregisterClass(AId);
 end;
 
 { TKAuthenticatorFactory }
