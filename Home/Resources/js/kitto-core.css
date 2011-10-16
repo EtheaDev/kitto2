@@ -1,0 +1,9 @@
+.x-form-invalid 
+{
+  background-color: #ffdddd;
+}
+
+.x-form-readonly
+{
+  color: #666666;
+}

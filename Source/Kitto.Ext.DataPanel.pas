@@ -11,12 +11,12 @@ uses
 type
   TKExtDataPanelController = class(TKExtPanelControllerBase)
   private
-    FServerStore: TKStore;
+    FServerStore: TKViewTableStore;
     FViewTable: TKViewTable;
     FOwnsServerStore: Boolean;
     procedure InitServerStore;
     function GetView: TKDataView;
-    function GetServerStore: TKStore;
+    function GetServerStore: TKViewTableStore;
   protected
     function AutoLoadData: Boolean;
     procedure LoadData; virtual;
@@ -25,7 +25,7 @@ type
     procedure DoDisplay; override;
     procedure InitComponents; virtual;
     property View: TKDataView read GetView;
-    property ServerStore: TKStore read GetServerStore;
+    property ServerStore: TKViewTableStore read GetServerStore;
     property ViewTable: TKViewTable read FViewTable;
     function GetFilterExpression: string; virtual;
   public
@@ -53,7 +53,7 @@ begin
   Result := '';
 end;
 
-function TKExtDataPanelController.GetServerStore: TKStore;
+function TKExtDataPanelController.GetServerStore: TKViewTableStore;
 begin
   Assert(Assigned(FServerStore));
 
@@ -77,7 +77,7 @@ begin
     FViewTable := View.MainTable;
   Assert(Assigned(FViewTable));
 
-  FServerStore := Config.GetObject('Sys/ServerStore') as TKStore;
+  FServerStore := Config.GetObject('Sys/ServerStore') as TKViewTableStore;
   if FServerStore = nil then
   begin
     FServerStore := FViewTable.CreateStore;

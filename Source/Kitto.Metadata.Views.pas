@@ -5,7 +5,7 @@ interface
 uses
   Types,
   EF.Classes, EF.Types, EF.Tree,
-  Kitto.Metadata, Kitto.Metadata.Models, Kitto.Store;
+  Kitto.Metadata, Kitto.Metadata.Models, Kitto.Store, Kitto.Rules;
 
 type
   TKViews = class;
@@ -119,6 +119,8 @@ type
     function CreateStore: TKStore;
 
     property Rules: TKRules read GetRules;
+
+    procedure ApplyRules(const AApplyProc: TKApplyRuleProc);
   end;
 
   TKViewFields = class(TKMetadataItem)
@@ -142,6 +144,57 @@ type
   TKLayout = class(TKMetadata)
   private
     FLayouts: TKLayouts;
+  end;
+
+  TKViewTableRecord = class;
+
+  TKViewTableStore = class(TKStore)
+  private
+    FViewTable: TKViewTable;
+    procedure SetupFields;
+  protected
+    function GetChildClass(const AName: string): TEFNodeClass; override;
+  public
+    constructor Create(const AViewTable: TKViewTable); reintroduce;
+
+    property ViewTable: TKViewTable read FViewTable;
+
+    procedure Load(const AFilter: string);
+
+    ///	<summary>Appends a record and fills it with the specified
+    ///	values.</summary>
+    function AppendRecord(const AValues: TEFNode): TKViewTableRecord;
+  end;
+
+  TKViewTableHeader = class(TKHeader)
+  protected
+    function GetChildClass(const AName: string): TEFNodeClass; override;
+  end;
+
+  TKViewTableHeaderField = class(TKHeaderField)
+  end;
+
+  TKViewTableRecords = class;
+
+  TKViewTableRecord = class(TKRecord)
+  private
+    function GetRecords: TKViewTableRecords;
+  public
+    property Records: TKViewTableRecords read GetRecords;
+    procedure Save(const AUseTransaction: Boolean);
+  end;
+
+  TKViewTableRecords = class(TKRecords)
+  private
+    function GetStore: TKViewTableStore;
+  protected
+    function GetChildClass(const AName: string): TEFNodeClass; override;
+  public
+    property Store: TKViewTableStore read GetStore;
+    function Append: TKViewTableRecord;
+  end;
+
+  TKViewTableField = class(TKField)
   end;
 
   TKViewTable = class(TKMetadataItem)
@@ -221,7 +274,7 @@ type
     ///	<summary>
     ///	  Creates and returns a store with the view's metadata.
     ///	</summary>
-    function CreateStore: TKStore;
+    function CreateStore: TKViewTableStore;
 
     ///	<summary>Creates and returns a node with one child for each default
     ///	value as specified in the view table or model. Any default expression
@@ -235,6 +288,7 @@ type
     function IsAccessGranted(const AMode: string): Boolean; override;
 
     property Rules: TKRules read GetRules;
+    procedure ApplyRules(const AApplyProc: TKApplyRuleProc);
   end;
 
   TKDataView = class(TKView)
@@ -360,7 +414,7 @@ implementation
 uses
   SysUtils, StrUtils, Variants,
   EF.StrUtils,
-  Kitto.Types, Kitto.Environment;
+  Kitto.Types, Kitto.Environment, Kitto.SQL;
 
 { TKViews }
 
@@ -537,23 +591,47 @@ end;
 
 { TKViewTable }
 
-function TKViewTable.CreateStore: TKStore;
+procedure TKViewTable.ApplyRules(const AApplyProc: TKApplyRuleProc);
 var
   I: Integer;
+  LRuleImpl: TKRuleImpl;
+  LRule: TKRule;
 begin
-  Result := TKStore.Create;
-  try
-    // Set field names and data types both in key and header.
-    for I := 0 to FieldCount - 1 do
-    begin
-      if Fields[I].IsKey then
-        Result.Key.AddChild(Fields[I].AliasedName).DataType := Fields[I].DataType;
-      Result.Header.AddChild(Fields[I].AliasedName).DataType := Fields[I].DataType;
+  Assert(Assigned(AApplyProc));
+
+  // Apply rules at the View level.
+  for I := 0 to Rules.RuleCount - 1 do
+  begin
+    LRule := Rules[I];
+    LRuleImpl := TKRuleImplFactory.Instance.CreateObject(LRule.Name);
+    try
+      LRuleImpl.Rule := LRule;
+      AApplyProc(LRuleImpl);
+    finally
+      FreeAndNil(LRuleImpl);
     end;
-  except
-    FreeAndNil(Result);
-    raise;
   end;
+  // Always apply rules at the model level as well. View-level record rules
+  // augment model-level rules but cannot overwrite or disable them.
+  for I := 0 to Model.Rules.RuleCount - 1 do
+  begin
+    LRule := Model.Rules[I];
+    if not Rules.HasRule(LRule) then
+    begin
+      LRuleImpl := TKRuleImplFactory.Instance.CreateObject(LRule.Name);
+      try
+        LRuleImpl.Rule := LRule;
+        AApplyProc(LRuleImpl);
+      finally
+        FreeAndNil(LRuleImpl);
+      end;
+    end;
+  end;
+end;
+
+function TKViewTable.CreateStore: TKViewTableStore;
+begin
+  Result := TKViewTableStore.Create(Self);
 end;
 
 function TKViewTable.DetailTableByName(const AName: string): TKViewTable;
@@ -866,6 +944,46 @@ begin
 end;
 
 { TKViewField }
+
+procedure TKViewField.ApplyRules(const AApplyProc: TKApplyRuleProc);
+var
+  I: Integer;
+  LRuleImpl: TKRuleImpl;
+  LRule: TKRule;
+begin
+  Assert(Assigned(AApplyProc));
+
+  // Apply rules at the View level.
+  for I := 0 to Rules.RuleCount - 1 do
+  begin
+    LRule := Rules[I];
+    LRuleImpl := TKRuleImplFactory.Instance.CreateObject(LRule.Name);
+    try
+      LRuleImpl.Rule := LRule;
+      AApplyProc(LRuleImpl);
+    finally
+      FreeAndNil(LRuleImpl);
+    end;
+  end;
+  // Apply rules at the model level that are not overwritten in the view.
+  // A field-level rule of given type (such as Maxlength) generally cannot
+  // be applied twice, and we don't have a way yet to avoid setting config
+  // options twice on a rule-by-rule basis.
+  for I := 0 to ModelField.Rules.RuleCount - 1 do
+  begin
+    LRule := ModelField.Rules[I];
+    if not Rules.HasRule(LRule) then
+    begin
+      LRuleImpl := TKRuleImplFactory.Instance.CreateObject(LRule.Name);
+      try
+        LRuleImpl.Rule := LRule;
+        AApplyProc(LRuleImpl);
+      finally
+        FreeAndNil(LRuleImpl);
+      end;
+    end;
+  end;
+end;
 
 function TKViewField.CreateStore: TKStore;
 var
@@ -1192,6 +1310,90 @@ begin
   Result := FInstance;
 end;
 
+{ TKViewTableStore }
+
+function TKViewTableStore.AppendRecord(
+  const AValues: TEFNode): TKViewTableRecord;
+begin
+  Result := inherited AppendRecord(AValues) as TKViewTableRecord;
+end;
+
+constructor TKViewTableStore.Create(const AViewTable: TKViewTable);
+begin
+  Assert(Assigned(AViewTable));
+
+  inherited Create;
+  FViewTable := AViewTable;
+  SetupFields;
+end;
+
+procedure TKViewTableStore.SetupFields;
+var
+  I: Integer;
+begin
+  // Set field names and data types both in key and header.
+  for I := 0 to FViewTable.FieldCount - 1 do
+  begin
+    if FViewTable.Fields[I].IsKey then
+      Key.AddChild(FViewTable.Fields[I].AliasedName).DataType := FViewTable.Fields[I].DataType;
+    Header.AddChild(FViewTable.Fields[I].AliasedName).DataType := FViewTable.Fields[I].DataType;
+  end;
+end;
+
+function TKViewTableStore.GetChildClass(const AName: string): TEFNodeClass;
+begin
+  if SameText(AName, 'Header') then
+    Result := TKViewTableHeader
+  else if SameText(AName, 'Records') then
+    Result := TKViewTableRecords
+  else
+    Result := inherited GetChildClass(AName);
+end;
+
+procedure TKViewTableStore.Load(const AFilter: string);
+var
+  LCommandText: string;
+begin
+  LCommandText := TKSQLBuilder.GetSelectStatement(FViewTable, AFilter);
+  inherited Load(Environment.MainDBConnection, LCommandText);
+end;
+
+{ TKViewTableHeader }
+
+function TKViewTableHeader.GetChildClass(const AName: string): TEFNodeClass;
+begin
+  Result := TKViewTableHeaderField;
+end;
+
+{ TKViewTableRecords }
+
+function TKViewTableRecords.Append: TKViewTableRecord;
+begin
+  Result := inherited Append as TKViewTableRecord;
+end;
+
+function TKViewTableRecords.GetChildClass(const AName: string): TEFNodeClass;
+begin
+  Result := TKViewTableRecord;
+end;
+
+function TKViewTableRecords.GetStore: TKViewTableStore;
+begin
+  Result := inherited Store as TKViewTableStore;
+end;
+
+{ TKViewTableRecord }
+
+function TKViewTableRecord.GetRecords: TKViewTableRecords;
+begin
+  Result := inherited Records as TKViewTableRecords;
+end;
+
+procedure TKViewTableRecord.Save(const AUseTransaction: Boolean);
+begin
+  inherited Save(Environment.MainDBConnection, Records.Store.ViewTable.Model, AUseTransaction);
+end;
+
 initialization
   TKMetadataRegistry.Instance.RegisterClass('Data', TKDataView);
   TKMetadataRegistry.Instance.RegisterClass('Tree', TKTreeView);
@@ -1201,5 +1403,3 @@ finalization
   TKMetadataRegistry.Instance.UnregisterClass('Tree');
 
 end.
-
-

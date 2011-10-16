@@ -185,7 +185,6 @@ type
     function GetAsPair: TEFPair;
     procedure SetAsPair(const AValue: TEFPair);
     function GetValue: Variant;
-    procedure SetValue(const AValue: Variant);
     function GetIndex: Integer;
     function GetIsNull: Boolean;
     function GetAsDate: TDate;
@@ -204,6 +203,7 @@ type
   protected
     procedure SetName(const AValue: string);
     function GetName: string; virtual;
+    procedure SetValue(const AValue: Variant); virtual;
   public
     procedure Assign(const ASource: TEFTree); override;
     procedure AssignValue(const ASource: TEFNode);

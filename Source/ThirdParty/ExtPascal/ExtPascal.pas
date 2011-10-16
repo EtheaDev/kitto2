@@ -342,7 +342,7 @@ begin
       if (Root = '') or ((Root <> '') and FileExists(Root + pLibrary + '.js')) then begin
         Libraries := Libraries + '<script src="' + pLibrary{$IFDEF DEBUGJS}+ IfThen(HasDebug, '-debug', ''){$ENDIF} + '.js"></script>'^M^J;
         if CSS then begin
-          if not FileExists(Root + pLibrary + '.css') then // Assume in /css like ux
+          if not DisableExistenceCheck and not FileExists(Root + pLibrary + '.css') then // Assume in /css like ux
             pLibrary := ExtractFilePath(pLibrary) + 'css/' + ExtractFileName(pLibrary);
           Libraries := Libraries + '<link rel=stylesheet href="' + pLibrary + '.css" />';
         end;

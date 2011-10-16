@@ -176,10 +176,16 @@ type
     FDateFormat: string;
     FDateConfig: TExtObject;
     FTimeConfig: TExtObject;
+    FAltFormats: string;
+    FAllowBlank: Boolean;
     procedure SetDateFormat(const AValue: string);
     procedure SetTimeFormat(const AValue: string);
+    procedure SetAltFormats(const AValue: string);
     procedure SetDateConfig(const AValue: TExtObject);
     procedure SetTimeConfig(const AValue: TExtObject);
+    procedure SetAllowBlank(const AValue: Boolean);
+    //procedure SetDateConfig(const AValue: TExtObject);
+    //procedure SetTimeConfig(const AValue: TExtObject);
   public
     destructor Destroy; override;
     function JSClassName: string; override;
@@ -193,9 +199,11 @@ type
     function AsExtFormField: TExtFormField; inline;
 
     property DateFormat: string read FDateFormat write SetDateFormat;
-    property DateConfig: TExtObject read FDateConfig write SetDateConfig;
+    //property DateConfig: TExtObject read FDateConfig write SetDateConfig;
     property TimeFormat: string read FTimeFormat write SetTimeFormat;
-    property TimeConfig: TExtObject read FTimeConfig write SetTimeConfig;
+    //property TimeConfig: TExtObject read FTimeConfig write SetTimeConfig;
+    property AltFormats: string read FAltFormats write SetAltFormats;
+    property AllowBlank: Boolean read FAllowBlank write SetAllowBlank;
   end;
 
   TKExtFormComboBoxEditor = class(TKExtFormComboBox, IKExtEditItem, IKExtEditor)
@@ -236,6 +244,7 @@ type
     FCurrentEditItem: IKExtEditItem;
     FEditContainers: TStack<IKExtEditContainer>;
     FStoreHeader: TKHeader;
+    const TRIGGER_WIDTH = 4;
     function TryCreateCheckBox(const AViewField: TKViewField): IKExtEditor;
     function TryCreateDateField(const AViewField: TKViewField;
       const ARowField: TKExtFormRowField; const AFieldWidth: Integer;
@@ -252,9 +261,6 @@ type
     function CreateTextField(const AViewField: TKViewField;
       const ARowField: TKExtFormRowField; const AFieldWidth: Integer;
       const AIsReadOnly: Boolean): IKExtEditor;
-    procedure SetupRules(const AViewField: TKViewField;
-      const AFormField: TExtFormField);
-    const TRIGGER_WIDTH = 4;
     function CreateEditItem(const AName, AValue: string;
       const AContainer: IKExtEditContainer): IKExtEditItem;
 
@@ -716,17 +722,20 @@ begin
         ARowField.CharWidth := AFieldWidth + (2 * TRIGGER_WIDTH) + SPACER_WIDTH;
       // Don't use Delphi format here.
       LDateTimeField.DateFormat := DelphiDateFormatToJSDateFormat(Session.UserFormatSettings.ShortDateFormat);
+      LDateTimeField.AltFormats := DelphiDateFormatToJSDateFormat(Session.JSFormatSettings.ShortDateFormat);
       LDateTimeField.TimeFormat := DelphiTimeFormatToJSTimeFormat(Session.UserFormatSettings.ShortTimeFormat);
       if not AIsReadOnly then
-      begin
-        LDateTimeField.DateConfig := LDateTimeField.JSObject('allowBlank:false');
-        LDateTimeField.TimeConfig := LDateTimeField.JSObject('allowBlank:false');
-      end
-      else
-      begin
-        LDateTimeField.DateConfig := LDateTimeField.JSObject('readOnly:true');
-        LDateTimeField.TimeConfig := LDateTimeField.JSObject('readOnly:true');
-      end;
+        LDateTimeField.AllowBlank := not AViewField.IsRequired;
+//      if not AIsReadOnly then
+//      begin
+//        LDateTimeField.DateConfig := LDateTimeField.JSObject('allowBlank:false');
+//        LDateTimeField.TimeConfig := LDateTimeField.JSObject('allowBlank:false');
+//      end
+//      else
+//      begin
+//        LDateTimeField.DateConfig := LDateTimeField.JSObject('readOnly:true');
+//        LDateTimeField.TimeConfig := LDateTimeField.JSObject('readOnly:true');
+//      end;
       Result := LDateTimeField;
     except
       LDateTimeField.Free;
@@ -802,6 +811,7 @@ var
   LLabel: string;
   LViewField: TKViewField;
   LRowField: TKExtFormRowField;
+  LFormField: TExtFormField;
 begin
   LViewField := FViewTable.FieldByAliasedName(AFieldName);
 
@@ -839,54 +849,29 @@ begin
   if Result = nil then
     Result := CreateTextField(LViewField, LRowField, LFieldWidth, LIsReadOnly);
 
+  LFormField := Result.AsExtFormField;
+
   if not LIsReadOnly then
-    SetupRules(LViewField, Result.AsExtFormField);
+    LViewField.ApplyRules(
+      procedure (const ARuleImpl: TKRuleImpl)
+      begin
+        if ARuleImpl is TKExtRuleImpl then
+          TKExtRuleImpl(ARuleImpl).ApplyToFormField(LFormField);
+      end);
 
-  Result.AsExtFormField.AutoScroll := False; // Don't display a h. scrollbar for larger fields.
-  Result.AsExtFormField.Name := LViewField.AliasedName;
-  Result.AsExtFormField.ReadOnly := LIsReadOnly;
-  Result.AsExtFormField.FieldLabel := LLabel;
-  Result.AsExtFormField.MsgTarget := LowerCase(FDefaults.MsgTarget);
+  if LIsReadOnly then
+    LFormField.Cls := 'x-form-readonly';
+  LFormField.AutoScroll := False; // Don't display a h. scrollbar for larger fields.
+  LFormField.Name := LViewField.AliasedName;
+  LFormField.ReadOnly := LIsReadOnly;
+  LFormField.FieldLabel := LLabel;
+  LFormField.MsgTarget := LowerCase(FDefaults.MsgTarget);
 
-  if (FFocusField = nil) and not Result.AsExtFormField.ReadOnly and not Result.AsExtFormField.Disabled then
-    FFocusField := Result.AsExtFormField;
+  if (FFocusField = nil) and not LFormField.ReadOnly and not LFormField.Disabled then
+    FFocusField := LFormField;
 
   if Assigned(LRowField) then
     Result := LRowField.Encapsulate(Result);
-end;
-
-procedure TKExtLayoutProcessor.SetupRules(const AViewField: TKViewField;
-  const AFormField: TExtFormField);
-var
-  I: Integer;
-  LRuleImpl: TKRuleImpl;
-  LRule: TKRule;
-begin
-  // Apply rules at the View level.
-  for I := 0 to AViewField.Rules.RuleCount do
-  begin
-    LRule := AViewField.Rules[I];
-    LRuleImpl := TKRuleImplFactory.Instance.CreateObject(LRule.Name);
-    if LRuleImpl is TKExtRuleImpl then
-    begin
-      LRuleImpl.Rule := LRule;
-      TKExtRuleImpl(LRuleImpl).ApplyToFormField(AFormField);
-    end;
-  end;
-  // Apply rules at the model level that are not overwritten in the view.
-  for I := 0 to AViewField.ModelField.Rules.RuleCount do
-  begin
-    LRule := AViewField.ModelField.Rules[I];
-    if not AViewField.Rules.HasRule(LRule) then
-    begin
-      LRuleImpl := TKRuleImplFactory.Instance.CreateObject(LRule.Name);
-      if LRuleImpl is TKExtRuleImpl then
-      begin
-        LRuleImpl.Rule := LRule;
-        TKExtRuleImpl(LRuleImpl).ApplyToFormField(AFormField);
-      end;
-    end;
-  end;
 end;
 
 function TKExtLayoutProcessor.CreateFieldSet(const ATitle: string): IKExtEditItem;
@@ -957,7 +942,7 @@ begin
   MaxFieldWidth := 60;
   MinFieldWidth := 5;
   RequiredLabelFormat := '<b>%s*</b>';
-  MsgTarget := 'Under'; // qtip title under side
+  MsgTarget := 'Qtip'; // qtip title under side
 end;
 
 { TKExtEditPanel }
@@ -1507,7 +1492,7 @@ end;
 
 function TKExtFormDateTimeField.JSClassName: string;
 begin
-  Result := 'Ext.ux.form.DateTime';
+  Result := 'Ext.ux.form.DateTimeField';
 end;
 
 function TKExtFormDateTimeField.QueryInterface(const IID: TGUID; out Obj): HRESULT;
@@ -1529,6 +1514,18 @@ end;
 function TKExtFormDateTimeField._Release: Integer;
 begin
   Result := -1;
+end;
+
+procedure TKExtFormDateTimeField.SetAllowBlank(const AValue: Boolean);
+begin
+  FAllowBlank := AValue;
+  JSCode('allowBlank:' + VarToJSON([AValue]));
+end;
+
+procedure TKExtFormDateTimeField.SetAltFormats(const AValue: string);
+begin
+  FAltFormats := AValue;
+  JSCode('altFormats:' + VarToJSON([AValue]));
 end;
 
 procedure TKExtFormDateTimeField.SetDateConfig(const AValue: TExtObject);
