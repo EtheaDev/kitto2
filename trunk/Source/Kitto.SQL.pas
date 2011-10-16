@@ -27,17 +27,18 @@ type
     function GetFromClause: string;
     function BuildJoin(const AReference: TKModelreference): string;
 
-    function InternalGetSelectStatement(const AViewTable: TKViewTable): string;
+    function InternalGetSelectStatement(const AViewTable: TKViewTable;
+      const AFilter: string): string;
   public
     procedure AfterConstruction; override;
     destructor Destroy; override;
 
     ///	<summary>
     ///	  Builds and returns a SQL statement that selects all fields from the
-    ///	  specified view table. Handles joins and table aliases based on model
-    ///	  information.
+    ///	  specified view table with an optional filter clause. Handles joins
+    ///   and table aliases based on model information.
     ///	</summary>
-    class function GetSelectStatement(const AViewTable: TKViewTable): string;
+    class function GetSelectStatement(const AViewTable: TKViewTable; const AFilter: string): string;
 
     ///	<summary>Builds and returns a SQL statement that selects the specified
     ///	field plus all key fields from the specified field's table. AViewField
@@ -78,14 +79,14 @@ uses
 
 { TKSQLQueryBuilder }
 
-class function TKSQLBuilder.GetSelectStatement(const AViewTable: TKViewTable): string;
+class function TKSQLBuilder.GetSelectStatement(const AViewTable: TKViewTable; const AFilter: string): string;
 begin
   Assert(Assigned(AViewTable));
 
   with TKSQLBuilder.Create do
   begin
     try
-      Result := InternalGetSelectStatement(AViewTable);
+      Result := InternalGetSelectStatement(AViewTable, AFilter);
     finally
       Free;
     end;
@@ -329,8 +330,8 @@ begin
     raise EKError.CreateFmt(_('No reference found for field %s.'), [AViewField.AliasedName]);
 end;
 
-function TKSQLBuilder.InternalGetSelectStatement(
-  const AViewTable: TKViewTable): string;
+function TKSQLBuilder.InternalGetSelectStatement(const AViewTable: TKViewTable;
+  const AFilter: string): string;
 var
   I: Integer;
 begin
@@ -348,6 +349,8 @@ begin
     ' from ' + GetFromClause;
   if AViewTable.DefaultFilter <> '' then
     Result := Result + ' where (' + AViewTable.DefaultFilter + ')';
+  if AFilter <> '' then
+    Result := AddToSQLWhereClause(Result, AFilter);
   if AViewTable.DefaultSorting <> '' then
     Result := Result + ' order by ' + AViewTable.DefaultSorting;
   Result := Environment.MacroExpansionEngine.Expand(Result);

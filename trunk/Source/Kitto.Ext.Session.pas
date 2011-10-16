@@ -254,12 +254,12 @@ end;
 
 procedure TKExtSession.LoadLibraries;
 
-  procedure SetRequiredLibrary(const ALibName: string);
+  procedure SetRequiredLibrary(const ALibName: string; const AIncludeCSS: Boolean = False);
   var
     LLibURL: string;
   begin
     LLibURL := Environment.GetResourceURL(IncludeTrailingPathDelimiter('js') + ALibName + '.js');
-    SetLibrary(StripSuffix(LLibURL, '.js'), False, False, True);
+    SetLibrary(StripSuffix(LLibURL, '.js'), AIncludeCSS, False, True);
   end;
 
   procedure SetOptionalLibrary(const ALibName: string);
@@ -281,7 +281,7 @@ begin
   SetLibrary(ExtPath + '/src/locale/ext-lang-' + Language);
   SetRequiredLibrary('DateTimeField');
   SetRequiredLibrary('DefaultButton');
-  SetRequiredLibrary('kitto-core');
+  SetRequiredLibrary('kitto-core', True);
   SetOptionalLibrary('application');
 
   LLibraries := Environment.Config.GetStringArray('JavaScriptLibraries');

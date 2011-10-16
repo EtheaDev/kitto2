@@ -40,6 +40,7 @@ type
     procedure SetAsJSONValue(const AValue: string);
   protected
     function GetName: string; override;
+    procedure SetValue(const AValue: Variant); override;
   public
     property AsJSONValue: string read GetAsJSONValue write SetAsJSONValue;
     property ParentRecord: TKRecord read GetParentRecord;
@@ -55,6 +56,7 @@ type
 
   TKRecord = class(TEFNode)
   private
+    FBackup: TEFNode;
     FState: TKRecordState;
     function GetRecords: TKRecords;
     function GetKey: TKKey;
@@ -64,6 +66,8 @@ type
     function GetChildClass(const AName: string): TEFNodeClass; override;
   public
     procedure AfterConstruction; override;
+    destructor Destroy; override;
+  public
     property Records: TKRecords read GetRecords;
     property Key: TKKey read GetKey;
     property Fields[I: Integer]: TKField read GetField; default;
@@ -89,6 +93,9 @@ type
 
     procedure Save(const ADBConnection: TEFDBConnection; const AModel: TKModel;
       const AUseTransaction: Boolean);
+
+    procedure Backup;
+    procedure Restore;
   end;
 
   TKStore = class;
@@ -115,15 +122,7 @@ type
     property Records[I: Integer]: TKRecord read GetRecordByIndex; default;
     property RecordCount: Integer read GetRecordCount;
 
-    ///	<summary>
-    ///	  Appends a record at the end of the store. Returns a reference to the
-    ///	  record just appended.
-    ///	</summary>
-    ///	<remarks>
-    ///	  This method is meant to be used during data loading.
-    ///	</remarks>
-    function Append(const ARecord: TKRecord): TKRecord;
-
+    function Append: TKRecord;
     procedure Remove(const ARecord: TKRecord);
 
     function GetAsJSON(const AFrom: Integer = 0; const AFor: Integer = 0): string;
@@ -199,15 +198,14 @@ implementation
 uses
   Math, FmtBcd, Variants, StrUtils, TypInfo,
   EF.StrUtils, EF.Localization, EF.DB.Utils,
-  Kitto.Types, Kitto.Ext.Session, Kitto.SQL;
+  Kitto.Types, Kitto.SQL, Kitto.Environment, Kitto.Ext.Session;
 
 { TKStore }
 
 function TKStore.AppendRecord(const AValues: TEFNode): TKRecord;
 begin
-  Result := TKRecord.Create;
+  Result := Records.Append;
   Header.Apply(Result);
-  Records.Append(Result);
   if Assigned(AValues) then
     Result.ReadFromNode(AValues);
 end;
@@ -263,7 +261,7 @@ begin
     Records.Clear;
   while not ADataSet.Eof do
   begin
-    LRecord := Records.Append(TKRecord.Create);
+    LRecord := Records.Append;
     Header.Apply(LRecord);
     Assert(LRecord.FieldCount = Header.ChildCount);
     LRecord.ReadFromFields(ADataSet.Fields);
@@ -322,11 +320,9 @@ end;
 
 { TKRecords }
 
-function TKRecords.Append(const ARecord: TKRecord): TKRecord;
+function TKRecords.Append: TKRecord;
 begin
-  Assert(Assigned(ARecord));
-
-  Result := TKRecord(AddChild(ARecord));
+  Result := AddChild('') as TKrecord;
 end;
 
 procedure TKRecords.Clear;
@@ -458,6 +454,19 @@ begin
   FState := rsNew;
 end;
 
+procedure TKRecord.Backup;
+begin
+  if not Assigned(FBackup) then
+    FBackup := TEFNode.Create;
+  FBackup.Assign(Self);
+end;
+
+destructor TKRecord.Destroy;
+begin
+  FreeAndNil(FBackup);
+  inherited;
+end;
+
 function TKRecord.FieldByName(const AFieldName: string): TKField;
 begin
   Result := FindField(AFieldName);
@@ -557,9 +566,15 @@ begin
   Assert(Assigned(AFields));
   Assert(AFields.Count >= FieldCount);
 
-  for I := 0 to FieldCount - 1 do
-    Fields[I].AssignFieldValue(AFields[I]);
-  FState := rsClean;
+  Backup;
+  try
+    for I := 0 to FieldCount - 1 do
+      Fields[I].AssignFieldValue(AFields[I]);
+    FState := rsClean;
+  except
+    Restore;
+    raise;
+  end;
 end;
 
 procedure TKRecord.ReadFromNode(const ANode: TEFNode);
@@ -568,10 +583,23 @@ var
 begin
   Assert(Assigned(ANode));
 
-  for I := 0 to FieldCount - 1 do
-    Fields[I].AssignValue(ANode.FindNode(Fields[I].FieldName));
-  if FState = rsClean then
-    FState := rsDirty;
+  Backup;
+  try
+    for I := 0 to FieldCount - 1 do
+      Fields[I].AssignValue(ANode.FindNode(Fields[I].FieldName));
+    if FState = rsClean then
+      FState := rsDirty;
+  except
+    Restore;
+    raise;
+  end;
+end;
+
+procedure TKRecord.Restore;
+begin
+  Assert(Assigned(FBackup));
+
+  Assign(FBackup);
 end;
 
 procedure TKRecord.Save(const ADBConnection: TEFDBConnection;
@@ -701,6 +729,13 @@ begin
         [AValue, EFDataTypeToString(DataType)]);
     end;
   end;
+end;
+
+procedure TKField.SetValue(const AValue: Variant);
+begin
+  if (AValue <> Value) and (ParentRecord <> nil) then
+    ParentRecord.MarkAsDirty;
+  inherited;
 end;
 
 { TKHeader }

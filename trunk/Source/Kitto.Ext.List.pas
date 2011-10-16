@@ -66,7 +66,7 @@ uses
   ExtPascal, ExtPascalUtils,
   EF.Intf, EF.Localization, EF.StrUtils, EF.Tree, EF.SQL,
   Kitto.Environment, Kitto.AccessControl, Kitto.Ext.Session, Kitto.Ext.Utils,
-  Kitto.JSON, Kitto.Ext.Filters, Kitto.SQL;
+  Kitto.JSON, Kitto.Ext.Filters;
 
 const
   { TODO : should we just fetch everything when grouping is enabled? }
@@ -99,16 +99,6 @@ end;
 //end;
 
 procedure TKExtListPanelController.GetRecordPage;
-
-  function BuildCommandText(const AAdditionalFilter: string): string;
-  begin
-    Assert(ViewTable <> nil);
-
-    Result := TKSQLBuilder.GetSelectStatement(ViewTable);
-    if AAdditionalFilter <> '' then
-      Result := AddToSQLWhereClause(Result, AAdditionalFilter);
-  end;
-
 var
   LPageRecordCount: Integer;
   LStart: Integer;
@@ -118,7 +108,7 @@ begin
   Shall we provide a switch to turn it off on a form-by-form basis, or use
   FIRST/SKIP/ROWS to only fetch relevant rows in a database-dependent way?
   For now, let's just stick with full refresh always. }
-  ServerStore.Load(Environment.MainDBConnection, BuildCommandText(GetFilterExpression));
+  ServerStore.Load(GetFilterExpression);
 
   LStart := Session.QueryAsInteger['start'];
   LLimit := Session.QueryAsInteger['limit'];

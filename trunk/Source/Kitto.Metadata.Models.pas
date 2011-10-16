@@ -358,7 +358,7 @@ end;
 
 function TKModel.GetRules: TKRules;
 begin
-  Result := GetNode('Rules') as TKRules;
+  Result := GetNode('Rules', True) as TKRules;
 end;
 
 function TKModel.GetIsLarge: Boolean;
@@ -512,7 +512,7 @@ end;
 
 function TKModelField.GetRules: TKRules;
 begin
-  Result := GetNode('Rules') as TKRules;
+  Result := GetNode('Rules', True) as TKRules;
 end;
 
 function TKModelField.BeautifyFieldName(const AFieldName: string): string;

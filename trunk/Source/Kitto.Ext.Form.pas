@@ -44,7 +44,7 @@ type
     FDetailButtons: TObjectList<TKExtDetailFormButton>;
     FOperation: string;
     FFocusField: TExtFormField;
-    FStoreRecord: TKRecord;
+    FStoreRecord: TKViewTableRecord;
     procedure CreateDetailToolbar;
     procedure CreateEditors(const AForceReadOnly: Boolean);
     procedure StartOperation;
@@ -65,8 +65,8 @@ implementation
 uses
   SysUtils, StrUtils,
   EF.Localization, EF.Types, EF.Intf, EF.Tree,
-  Kitto.Environment, Kitto.AccessControl, Kitto.Ext.Session, Kitto.Ext.Utils,
-  Kitto.JSON;
+  Kitto.Environment, Kitto.AccessControl, Kitto.JSON, Kitto.Rules,
+  Kitto.Ext.Session, Kitto.Ext.Utils;
 
 { TKExtFormPanelController }
 
@@ -176,12 +176,22 @@ end;
 
 procedure TKExtFormPanelController.SaveChanges;
 begin
-  Session.GetQueryValues(FStoreRecord, False);
-  FStoreRecord.MarkAsDirty;
+  FStoreRecord.Backup;
+  try
+    Session.GetQueryValues(FStoreRecord, False);
+    ViewTable.ApplyRules(
+      procedure (const ARuleImpl: TKRuleImpl)
+      begin
+        ARuleImpl.BeforeWrite(FStoreRecord);
+      end);
+  except
+    FStoreRecord.Restore;
+    raise;
+  end;
 
   if not ViewTable.IsDetail then
   begin
-    FStoreRecord.Save(Environment.MainDBConnection, ViewTable.Model, True);
+    FStoreRecord.Save(True);
     Session.Flash(_('Changes saved succesfully.'));
   end;
   NotifyObservers('Confirmed');
@@ -200,7 +210,7 @@ begin
   if FOperation = '' then
     FOperation := View.GetString('Controller/Operation');
 
-  FStoreRecord := Config.GetObject('Sys/Record') as TKRecord;
+  FStoreRecord := Config.GetObject('Sys/Record') as TKViewTableRecord;
   Assert((FOperation = 'Add') or Assigned(FStoreRecord));
 
   if SameText(FOperation, 'Add') then

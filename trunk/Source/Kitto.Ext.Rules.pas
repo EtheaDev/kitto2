@@ -93,13 +93,17 @@ type
   end;
 
   ///	<summary>Sets a specified javascript function as a validation function
-  ///	for a field.</summary>
-  ///	<remarks>The javascript function receives the field value in the
-  ///	<c>value</c> argument, and it should return true if validation passes and
-  ///	an error message otherwise. The function may hard-code the error message
-  ///	or use the <c>{errorMessage}</c> placeholder to use the rule message
-  ///	(stored in the <c>ErrorMessage</c> rule parameter). In the latter case,
-  ///	the message can be localized.</remarks>
+  ///	for a field or a record.</summary>
+  ///	<remarks>
+  ///	  <para>For single fields, the javascript function receives the field
+  ///	  value in the <c>value</c> argument, and it should return true if
+  ///	  validation passes and an error message otherwise.</para>
+  ///	  <para>For records, the rule is not yet implemented.</para>
+  ///	  <para>The function may hard-code the error message or use the
+  ///	  <c>{errorMessage}</c> placeholder to use the rule message (stored in
+  ///	  the <c>ErrorMessage</c> rule parameter). In the latter case, the
+  ///	  message can be localized.</para>
+  ///	</remarks>
   ///	<example>
   ///	  <code lang="Delphi">
   ///	Rules:
