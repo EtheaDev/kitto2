@@ -1,0 +1,191 @@
+- usa Firebird, che funziona di sicuro;
+- fai poche tabelle, tipo 5 tutto compreso;
+- usa nomi di tabelle al singolare, tabelle e campi tutto maiuscolo, con underscore, tipo FIRST_NAME (per la generazione automatica delle etichette);
+- per le chiavi primarie usa ID di 32 caratteri (tipo InstantObjects);
+- che ci sia almeno una tabella di lookup;
+- dai nomi alle chiavi esterne: usa DT_ come prefisso per quelle che fanno riferimento a un master da un detail, quello che vuoi (tipo FK_ per le altre).
+- mettici uno o più campi con validazioni: codice fiscale, e-mail;
+- uno o più campi con forzatura del case (upper/lower/camel, per es. forzare i codici fiscali in maiuscolo o le e-mail in minuscolo) o filtri (alpha/number/alpha_space, per es. camel e alpha+space per i nomi);
+- uno o più campi con elenco fisso di valori ammessi ma senza tabella di appoggio (tipo BLOOD_GROUP = [O, A, B, AB]);
+- uno o più "boolean" (cioè smallint 0/1 da rendere come checkbox);
+- una o più date (non datetime nè time, solo date);
+- un master/detail, due livelli;
+- se vuoi, qualcosa che abbia senso vedere in gruppi;
+- non te lo garantisco, anzi è improbabile che ci sia per tempo, ma ipotizza qualcosa che abbia senso vedere come grafico;
+
+le cose sopra conto di supportarle; tu comunque tienimi aggiornato con lo schema che sviluppi in modo che ti possa dire man mano cosa è
+supportato e cosa no. Sarebbe bene fare le cose in modo che il numero di click per ottenere l'applicazione con l'IDE sia ridotto al minimo.
+
+Ti allego in caso possa essere utile a qualcosa lo schema della demo che facemmo per Sedoc. Sempre che non porti sfiga. ;-)
+
+Non l'ho detto esplicitamente, ma sarebbe meglio se lo schema avesse i nomi in inglese (sempre per facilitare le generazioni automatiche di label). 
+Credo che se peschi un dominio abbastanza familiare nessuno abbia problemi a seguire. Pensi che sarebbe un problema e/o sarebbe meglio farlo in italiano?
+
+Mi è appena venuto in mente che il database EMPLOYEE di Firebird non sarebbe malaccio, almeno come ispirazione. 
+Però meglio farne uno noi seguendo le regole sotto, non abbiamo tempo ora per andare dietro alle piccole idiosincrasie.
+
+===================================================
+
+
+/*******************************************************************************
+ * Selected metadata objects
+ * -------------------------
+ * Extracted at 16/10/2011 2.25.00
+ ******************************************************************************/
+
+/*******************************************************************************
+ * Tables
+ * ------
+ * Extracted at 16/10/2011 2.25.00
+ ******************************************************************************/
+
+CREATE TABLE DOLL 
+(
+  DOLL_ID                   VARCHAR(    32) NOT NULL COLLATE UTF8,
+  DOLL_NAME                 VARCHAR(    40) NOT NULL COLLATE UTF8,
+  DATE_BOUGHT                  DATE,
+  HAIR_ID                   VARCHAR(    32)  COLLATE UTF8,
+  DRESS_SIZE                VARCHAR(     4),  /* allows only S, M, L, XL  */
+  MOM                       VARCHAR(    32) NOT NULL COLLATE UTF8,
+  ASPECT                    VARCHAR(  1024)  COLLATE UTF8,
+  PICTURE                      BLOB SUB_TYPE 0 SEGMENT SIZE 80
+);
+CREATE TABLE GIRL 
+(
+  GIRL_ID                 VARCHAR(    32) NOT NULL COLLATE UTF8,
+  GIRL_NAME               VARCHAR(    40) NOT NULL COLLATE UTF8,
+  AGE                     INTEGER,
+  HAIR_ID                 VARCHAR(    32) NOT NULL COLLATE UTF8,
+  PHONE                   VARCHAR(    16)  /* format to check  +CC0[n(nn)]-[mmmmmm(mmm)]  */
+);
+CREATE TABLE HAIR 
+(
+  HAIR_ID                 VARCHAR(    32) NOT NULL COLLATE UTF8,
+  HAIR_COLOR              VARCHAR(    80) NOT NULL COLLATE UTF8
+);
+CREATE TABLE INVITATION 
+(
+  INVITATION_ID              VARCHAR(    32) NOT NULL COLLATE UTF8,
+  PARTY_ID                   VARCHAR(    32) NOT NULL COLLATE UTF8,
+  GIRL_ID                    VARCHAR(    32) NOT NULL COLLATE UTF8,
+  ACCEPTED                  SMALLINT         /* Yes / No / Maybe(null)  */
+);
+CREATE TABLE PARTY 
+(
+  PARTY_ID                   VARCHAR(    32) NOT NULL COLLATE UTF8,
+  PARTY_DATE                    DATE         NOT NULL,
+  PARTY_TIME                    TIME         NOT NULL,
+  ADDRESS                    VARCHAR(   256) NOT NULL COLLATE UTF8
+);
+/*******************************************************************************
+ * Primary Key Constraints
+ * -----------------------
+ * Extracted at 16/10/2011 2.25.00
+ ******************************************************************************/
+
+ALTER TABLE DOLL ADD CONSTRAINT PK_DOLL PRIMARY KEY
+  (DOLL_ID);
+
+ALTER TABLE GIRL ADD CONSTRAINT PK_GIRL PRIMARY KEY
+  (GIRL_ID);
+
+ALTER TABLE HAIR ADD CONSTRAINT PK_HAIR PRIMARY KEY
+  (HAIR_ID);
+
+ALTER TABLE INVITATION ADD CONSTRAINT PK_INVITATION PRIMARY KEY
+  (INVITATION_ID);
+
+ALTER TABLE PARTY ADD CONSTRAINT PK_PARTY PRIMARY KEY
+  (PARTY_ID);
+
+/*******************************************************************************
+ * Foreign Key Constraints
+ * -----------------------
+ * Extracted at 16/10/2011 2.25.00
+ ******************************************************************************/
+
+ALTER TABLE DOLL ADD CONSTRAINT DT_DOLL_GIRL 
+  FOREIGN KEY (MOM) REFERENCES GIRL
+  (GIRL_ID) 
+  ON DELETE NO ACTION
+  ON UPDATE NO ACTION
+;
+
+ALTER TABLE DOLL ADD CONSTRAINT FK_DOLL_HAIR
+  FOREIGN KEY (HAIR_ID) REFERENCES HAIR
+  (HAIR_ID) 
+  ON DELETE NO ACTION
+  ON UPDATE NO ACTION
+;
+
+ALTER TABLE GIRL ADD CONSTRAINT FK_GIRL_HAIR 
+  FOREIGN KEY (HAIR_ID) REFERENCES HAIR
+  (HAIR_ID) 
+  ON DELETE NO ACTION
+  ON UPDATE NO ACTION
+;
+
+ALTER TABLE INVITATION ADD CONSTRAINT DT_INVITATION_PARTY 
+  FOREIGN KEY (PARTY_ID) REFERENCES PARTY
+  (PARTY_ID) 
+  ON DELETE NO ACTION
+  ON UPDATE NO ACTION
+;
+
+ALTER TABLE INVITATION ADD CONSTRAINT FK_INVITATION_GIRL 
+  FOREIGN KEY (GIRL_ID) REFERENCES GIRL
+  (GIRL_ID) 
+  ON DELETE NO ACTION
+  ON UPDATE NO ACTION
+;
+
+=====================================================
+/*
+  HAIR
+  ----
+  Exporting all rows
+*/
+INSERT INTO HAIR (HAIR_ID, HAIR_COLOR) VALUES ('1', 'Blond');
+INSERT INTO HAIR (HAIR_ID, HAIR_COLOR) VALUES ('2', 'Walnut');
+INSERT INTO HAIR (HAIR_ID, HAIR_COLOR) VALUES ('3', 'Black');
+INSERT INTO HAIR (HAIR_ID, HAIR_COLOR) VALUES ('4', 'Silver');
+INSERT INTO HAIR (HAIR_ID, HAIR_COLOR) VALUES ('5', 'Red');
+/* 5 row(s) exported */
+
+/*
+  GIRL
+  ---
+  Exporting all rows
+*/
+INSERT INTO GIRL (GIRL_ID, GIRL_NAME, AGE, HAIR_ID, PHONE) VALUES ('A', 'CHERRY',  13, '1', '+39051-9324752');
+INSERT INTO GIRL (GIRL_ID, GIRL_NAME, AGE, HAIR_ID, PHONE) VALUES ('B', 'LOUSIE',  15, '4', '+39011-9387495');
+INSERT INTO GIRL (GIRL_ID, GIRL_NAME, AGE, HAIR_ID, PHONE) VALUES ('C', 'AMANDA',  14, '2', '+440331-66782176');
+INSERT INTO GIRL (GIRL_ID, GIRL_NAME, AGE, HAIR_ID, PHONE) VALUES ('D', 'SHIRLEY', 11, '5', '+42032-7652435');
+INSERT INTO GIRL (GIRL_ID, GIRL_NAME, AGE, HAIR_ID, PHONE) VALUES ('E', 'DEBBIE',  16, '2', '+3902-487364281');
+/* 5 row(s) exported */
+
+/*
+  DOLL
+  ----
+  Exporting all rows
+*/
+INSERT INTO DOLL (DOLL_ID, DOLL_NAME, DATE_BOUGHT, HAIR_ID, DRESS_SIZE, MOM, ASPECT, PICTURE) VALUES ('0193347', 'SAMANTHA', '11/08/2010', '5', 'S',  'E', 'Dirty',   NULL);
+INSERT INTO DOLL (DOLL_ID, DOLL_NAME, DATE_BOUGHT, HAIR_ID, DRESS_SIZE, MOM, ASPECT, PICTURE) VALUES ('2213',    'ANDREA',   '08/19/2010', '2', 'L',  'C', 'Angry',   NULL);
+INSERT INTO DOLL (DOLL_ID, DOLL_NAME, DATE_BOUGHT, HAIR_ID, DRESS_SIZE, MOM, ASPECT, PICTURE) VALUES ('3325',    'BILLIE',   '03/11/2008', '3', 'M',  'A', 'Messy',   NULL);
+INSERT INTO DOLL (DOLL_ID, DOLL_NAME, DATE_BOUGHT, HAIR_ID, DRESS_SIZE, MOM, ASPECT, PICTURE) VALUES ('47568',   'BONNIE',   '12/17/2010', '3', 'S',  'B', 'Smiling', NULL);
+INSERT INTO DOLL (DOLL_ID, DOLL_NAME, DATE_BOUGHT, HAIR_ID, DRESS_SIZE, MOM, ASPECT, PICTURE) VALUES ('7676',    'DONNA',    '08/02/2009', '2', 'XL', 'D', 'Shiny',   NULL);
+INSERT INTO DOLL (DOLL_ID, DOLL_NAME, DATE_BOUGHT, HAIR_ID, DRESS_SIZE, MOM, ASPECT, PICTURE) VALUES ('985400',  'BRENDA',   '09/27/2009', '1', 'M',  'D', 'Curly',   NULL);
+/* 6 row(s) exported */
+
+/*
+  PARTY
+  -----
+  Exporting all rows
+*/
+INSERT INTO PARTY (PARTY_ID, PARTY_DATE, PARTY_TIME, ADDRESS) VALUES ('aswdeo', '12/10/2011', '21:00:00.000', 'Raspberry Circle, 2 - Manchester');
+INSERT INTO PARTY (PARTY_ID, PARTY_DATE, PARTY_TIME, ADDRESS) VALUES ('chdfhd', '12/02/2011', '17:30:00.000', 'Via col Vento, 20 - Verona');
+INSERT INTO PARTY (PARTY_ID, PARTY_DATE, PARTY_TIME, ADDRESS) VALUES ('oius',   '11/09/2011', '20:00:00.000', 'Rue de Lausanne, 11 - Genève');
+INSERT INTO PARTY (PARTY_ID, PARTY_DATE, PARTY_TIME, ADDRESS) VALUES ('vndjs',  '11/13/2011', '15:00:00.000', 'Wuthering Heights, 65 - Los Angeles');
+INSERT INTO PARTY (PARTY_ID, PARTY_DATE, PARTY_TIME, ADDRESS) VALUES ('ybyay',  '12/18/2011', '16:45:00.000', 'Paseo de Gracia, 101 - Barcelona');
+/* 5 row(s) exported */
+
