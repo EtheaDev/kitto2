@@ -202,12 +202,15 @@ type
   private
     function GetRecords: TKViewTableRecords;
     function GetDetailsStore(I: Integer): TKViewTableStore;
+  protected
+    procedure InternalAfterReadFromNode; override;
   public
     property Records: TKViewTableRecords read GetRecords;
     procedure CreateDetailStores;
     property DetailStores[I: Integer]: TKViewTableStore read GetDetailsStore;
     function AddDetailStore(const AStore: TKViewTableStore): TKViewTableStore;
     procedure Save(const AUseTransaction: Boolean);
+    procedure SetDetailFieldValues(const AMasterRecord: TKViewTableRecord);
   end;
 
   TKViewTableRecords = class(TKRecords)
@@ -1441,6 +1444,8 @@ function TKViewTableStore.AppendRecord(
   const AValues: TEFNode): TKViewTableRecord;
 begin
   Result := inherited AppendRecord(AValues) as TKViewTableRecord;
+  if Assigned(FMasterRecord) then
+    Result.SetDetailFieldValues(FMasterRecord);
 end;
 
 constructor TKViewTableStore.Create(const AViewTable: TKViewTable);
@@ -1570,9 +1575,39 @@ begin
   Result := inherited Records as TKViewTableRecords;
 end;
 
+procedure TKViewTableRecord.InternalAfterReadFromNode;
+begin
+  inherited;
+  if Records.Store.MasterRecord <> nil then
+    SetDetailFieldValues(Records.Store.MasterRecord);
+end;
+
 procedure TKViewTableRecord.Save(const AUseTransaction: Boolean);
 begin
   inherited Save(Environment.MainDBConnection, Records.Store.ViewTable.Model, AUseTransaction);
+end;
+
+procedure TKViewTableRecord.SetDetailFieldValues(
+  const AMasterRecord: TKViewTableRecord);
+var
+  LMasterFieldNames: TStringDynArray;
+  LDetailFieldNames: TStringDynArray;
+  I: Integer;
+begin
+  Assert(Records.Store.ViewTable.IsDetail);
+  // Get master and detail field names...
+  LMasterFieldNames := Records.Store.ViewTable.ReferenceToMaster.GetReferencedFieldNames;
+  Assert(Length(LMasterFieldNames) > 0);
+  LDetailFieldNames := Records.Store.ViewTable.ReferenceToMaster.GetFieldNames;
+  Assert(Length(LDetailFieldNames) = Length(LMasterFieldNames));
+  for I := 0 to High(LDetailFieldNames) do
+  begin
+    // ...alias them...
+    LMasterFieldNames[I] := Records.Store.ViewTable.MasterTable.FieldByName(LMasterFieldNames[I]).AliasedName;
+    LDetailFieldNames[I] := Records.Store.ViewTable.FieldByName(LDetailFieldNames[I]).AliasedName;
+    // ... and copy values.
+    GetNode(LDetailFieldNames[I]).AssignValue(AMasterRecord.GetNode(LMasterFieldNames[I]));
+  end;
 end;
 
 initialization
