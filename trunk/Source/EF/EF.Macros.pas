@@ -364,9 +364,10 @@ end;
 function TEFMacroExpansionEngine.RemoveExpander(
   const AExpander: TEFMacroExpander): Boolean;
 begin
-  Assert(Assigned(AExpander));
-
-  Result := Assigned(FExpanders.Extract(AExpander));
+  if Assigned(AExpander) then
+    Result := Assigned(FExpanders.Extract(AExpander))
+  else
+    Result := False;
 end;
 
 function TEFMacroExpansionEngine.IndexOfExpander(

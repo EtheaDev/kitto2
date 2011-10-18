@@ -86,9 +86,8 @@ begin
   else
     FOwnsServerStore := False;
 
-  Layout := lyBorder;
   Border := False;
-  Header := False;
+  Header := Config.GetBoolean('ShowHeader');
 
   InitComponents;
   InitServerStore;
@@ -100,8 +99,7 @@ procedure TKExtDataPanelController.CheckCanRead;
 begin
   Assert(View <> nil);
 
-{ TODO : implement GetResourceURI everywhere. }
-  //Environment.CheckAccessGranted(View.GetResourceURI, ACM_READ);
+  Environment.CheckAccessGranted(View.GetResourceURI, ACM_READ);
 end;
 
 procedure TKExtDataPanelController.CreateToolbar;
