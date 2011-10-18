@@ -1,5 +1,7 @@
 unit Kitto.Metadata.Views;
 
+{$I Kitto.Defines.inc}
+
 interface
 
 uses
@@ -14,10 +16,11 @@ type
   private
     FViews: TKViews;
     function GetControllerType: string;
-    function GetImageName: string;
   protected
+    const DEFAULT_IMAGE_NAME = 'default_view';
     function GetChildClass(const AName: string): TEFNodeClass; override;
     function GetDisplayLabel: string; virtual;
+    function GetImageName: string; virtual;
   public
     property Catalog: TKViews read FViews;
 
@@ -98,6 +101,10 @@ type
     ///	</summary>
     property FieldName: string read GetFieldName;
 
+    ///	<summary>Returns a minified name for use in JSON packets to save
+    ///	space.</summary>
+    function GetMinifiedName: string;
+
     property IsKey: Boolean read GetIsKey;
     property IsVisible: Boolean read GetIsVisible;
     property IsRequired: Boolean read GetIsRequired;
@@ -150,16 +157,31 @@ type
 
   TKViewTableStore = class(TKStore)
   private
+    FMasterRecord: TKViewTableRecord;
     FViewTable: TKViewTable;
     procedure SetupFields;
   protected
     function GetChildClass(const AName: string): TEFNodeClass; override;
   public
     constructor Create(const AViewTable: TKViewTable); reintroduce;
-
+    property MasterRecord: TKViewTableRecord read FMasterRecord write FMasterRecord;
     property ViewTable: TKViewTable read FViewTable;
 
     procedure Load(const AFilter: string);
+
+    ///	<summary>Loads a page of data according to AFrom and AFor arguments,
+    ///	and returns the total number of records in all pages.</summary>
+    ///	<param name="AFilter">Additional SQL filter.</param>
+    ///	<param name="AFrom">Number of the first record to retrieve
+    ///	(0-based).</param>
+    ///	<param name="ATo">Maximum count of records to retrieve.</param>
+    ///	<remarks>
+    ///	  <para>This method will perform two database queries, one to get the
+    ///	  total count and one to get the requested data page.</para>
+    ///	  <para>If AFrom or ATo are 0, the method calls <see cref=
+    ///	  "Load" />.</para>
+    ///	</remarks>
+    function LoadPage(const AFilter: string; const AFrom, AFor: Integer): Integer;
 
     ///	<summary>Appends a record and fills it with the specified
     ///	values.</summary>
@@ -179,8 +201,12 @@ type
   TKViewTableRecord = class(TKRecord)
   private
     function GetRecords: TKViewTableRecords;
+    function GetDetailsStore(I: Integer): TKViewTableStore;
   public
     property Records: TKViewTableRecords read GetRecords;
+    procedure CreateDetailStores;
+    property DetailStores[I: Integer]: TKViewTableStore read GetDetailsStore;
+    function AddDetailStore(const AStore: TKViewTableStore): TKViewTableStore;
     procedure Save(const AUseTransaction: Boolean);
   end;
 
@@ -214,6 +240,10 @@ type
     function GetDefaultFilter: string;
     function GetView: TKDataView;
     function GetRules: TKRules;
+    function GetImageName: string;
+    function GetModelDetailReferenceName: string;
+    function GetModelDetailReference: TKModelDetailReference;
+    function GetReferenceToDetail: TKModelReference;
   protected
     function GetChildClass(const AName: string): TEFNodeClass; override;
     function GetFields: TKViewFields;
@@ -221,8 +251,27 @@ type
   public
     property ModelName: string read GetModelName;
 
+    property ImageName: string read GetImageName;
+
     property IsDetail: Boolean read GetIsDetail;
     property MasterTable: TKViewTable read GetMasterTable;
+
+    ///	<summary>If the view table is a detail, this property contains the name
+    ///	of the detail reference in the master view table's model. Otherwise
+    ///	it's empty.</summary>
+    property ModelDetailReferenceName: string read GetModelDetailReferenceName;
+
+    ///	<summary>If the view table is a detail, this property returns the model
+    ///	detail reference in the master view table's model. Otherwise it's nil.
+    /// </summary>
+    property ModelDetailReference: TKModelDetailReference read GetModelDetailReference;
+
+    ///	<summary>If the view table 1s a detail, this property returns the
+    ///	reference from the view table's model to its master model. There might
+    ///	be more references from a detail to the same master (ex. multi-master
+    ///	details, such as children with two parents); if the metadata is
+    ///	complete, this property resolves ambiguities when they arise.</summary>
+    property ReferenceToMaster: TKModelReference read GetReferenceToDetail;
 
     property DisplayLabel: string read GetDisplayLabel;
     property PluralDisplayLabel: string read GetPluralDisplayLabel;
@@ -235,7 +284,7 @@ type
     function FindField(const AName: string): TKViewField;
     function FieldByName(const AName: string): TKViewField;
     function FieldByAliasedName(const AName: string): TKViewField;
-    function GetKeyFieldAliasedNames: TStringDynArray;
+    function GetKeyFieldAliasedNames(const AMinified: Boolean): TStringDynArray;
     function IsFieldVisible(const AField: TKViewField): Boolean;
 
     property IsReadOnly: Boolean read GetIsReadOnly;
@@ -289,6 +338,15 @@ type
 
     property Rules: TKRules read GetRules;
     procedure ApplyRules(const AApplyProc: TKApplyRuleProc);
+
+    ///	<summary>
+    ///	  <para>Minifies all field names contained in AText. Field names in
+    ///	  AText must be marked this way:<c>%F%FIELD_NAME%</c></para>
+    ///	  <para>which will be translated to <c>FIELD_NAME</c> if minification
+    ///	  is disabled or <c>F2</c> (assuming it's the third field in the view
+    ///	  table) if minification is enabled.</para>
+    ///	</summary>
+    function MinifyFieldNames(const AText: string): string;
   end;
 
   TKDataView = class(TKView)
@@ -297,6 +355,7 @@ type
   protected
     function GetChildClass(const AName: string): TEFNodeClass; override;
     function GetDisplayLabel: string; override;
+    function GetImageName: string; override;
   public
     property MainTable: TKViewTable read GetMainTable;
   end;
@@ -413,7 +472,7 @@ implementation
 
 uses
   SysUtils, StrUtils, Variants,
-  EF.StrUtils,
+  EF.DB, EF.StrUtils,
   Kitto.Types, Kitto.Environment, Kitto.SQL;
 
 { TKViews }
@@ -564,7 +623,7 @@ function TKView.GetImageName: string;
 begin
   Result := GetString('ImageName');
   if Result = '' then
-    Result := 'default_view';
+    Result := DEFAULT_IMAGE_NAME;
 end;
 
 { TKDataView }
@@ -582,6 +641,13 @@ begin
   Result := inherited GetDisplayLabel;
   if Result = '' then
     Result := MainTable.PluralDisplayLabel;
+end;
+
+function TKDataView.GetImageName: string;
+begin
+  Result := inherited GetImageName;
+  if Result = DEFAULT_IMAGE_NAME then
+    Result := MainTable.ImageName;
 end;
 
 function TKDataView.GetMainTable: TKViewTable;
@@ -672,6 +738,19 @@ begin
   Result := Environment.Models.FindModel(ModelName);
 end;
 
+function TKViewTable.GetModelDetailReference: TKModelDetailReference;
+begin
+  if Assigned(MasterTable) and (ModelDetailReferenceName <> '') then
+    Result := MasterTable.Model.FindDetailReference(ModelDetailReferenceName)
+  else
+    Result := nil;
+end;
+
+function TKViewTable.GetModelDetailReferenceName: string;
+begin
+  Result := GetString('DetailReference');
+end;
+
 function TKViewTable.GetDefaultSorting: string;
 begin
   Result := GetString('DefaultSorting');
@@ -719,7 +798,12 @@ function TKViewTable.GetDisplayLabel: string;
 begin
   Result := GetString('DisplayLabel');
   if Result = '' then
-    Result := Model.DisplayLabel;
+  begin
+    if IsDetail then
+      Result := ModelDetailReference.DisplayLabel
+    else
+      Result := Model.DisplayLabel;
+  end;
 end;
 
 function TKViewTable.GetField(I: Integer): TKViewField;
@@ -764,6 +848,13 @@ begin
     CreateDefaultFields;
 end;
 
+function TKViewTable.GetImageName: string;
+begin
+  Result := GetString('ImageName');
+  if Result = '' then
+    Result := Model.ImageName;
+end;
+
 function TKViewTable.GetIsDetail: Boolean;
 begin
   // MainTable has the view as parent, other tables have the collection.
@@ -796,6 +887,14 @@ begin
     Result := Model.PluralDisplayLabel;
 end;
 
+function TKViewTable.GetReferenceToDetail: TKModelReference;
+begin
+  if IsDetail then
+    Result := ModelDetailReference.Reference
+  else
+    Result := nil;
+end;
+
 function TKViewTable.GetResourceURI: string;
 
   function GetPath: string;
@@ -821,18 +920,23 @@ begin
   Result := GetNode('Rules', True) as TKRules;
 end;
 
-function TKViewTable.GetKeyFieldAliasedNames: TStringDynArray;
+function TKViewTable.GetKeyFieldAliasedNames(const AMinified: Boolean): TStringDynArray;
 var
   I: Integer;
-  LDataViewField: TKViewField;
+  LViewField: TKViewField;
 begin
   Result := Model.GetKeyFieldNames;
   // Apply aliasing.
   for I := Low(Result) to High(Result) do
   begin
-    LDataViewField := FindField(Result[I]);
-    if Assigned(LDataViewField) then
-      Result[I] := LDataViewField.AliasedName;
+    LViewField := FindField(Result[I]);
+    if Assigned(LViewField) then
+    begin
+      if AMinified then
+        Result[I] := LViewField.GetMinifiedName
+      else
+        Result[I] := LViewField.AliasedName;
+    end;
   end;
 end;
 
@@ -848,7 +952,10 @@ end;
 
 function TKViewTable.GetModelName: string;
 begin
-  Result := GetNode('Model', True).AsString;
+  if IsDetail then
+    Result := ModelDetailReference.DetailModel.ModelName
+  else
+    Result := GetNode('Model', True).AsString;
 end;
 
 function TKViewTable.GetView: TKDataView;
@@ -876,6 +983,15 @@ begin
 
   Result := AField.IsVisible
     or MatchText(AField.AliasedName, GetStringArray('Controller/VisibleFields'));
+end;
+
+function TKViewTable.MinifyFieldNames(const AText: string): string;
+var
+  I: Integer;
+begin
+  Result := AText;
+  for I := 0 to FieldCount - 1 do
+    Result := ReplaceText(Result, '%F%' + Fields[I].AliasedName + '%', Fields[I].GetMinifiedName);
 end;
 
 { TKDataViewTables }
@@ -1073,6 +1189,15 @@ end;
 function TKViewField.GetModelField: TKModelField;
 begin
   Result := Model.FieldByName(FieldName);
+end;
+
+function TKViewField.GetMinifiedName: string;
+begin
+  {$IFDEF KITTO_MINIFY}
+  Result := 'F' + IntToStr(Index);
+  {$ELSE}
+  Result := AliasedName;
+  {$ENDIF}
 end;
 
 function TKViewField.GetModel: TKModel;
@@ -1352,10 +1477,45 @@ end;
 
 procedure TKViewTableStore.Load(const AFilter: string);
 var
-  LCommandText: string;
+  LDBQuery: TEFDBQuery;
 begin
-  LCommandText := TKSQLBuilder.GetSelectStatement(FViewTable, AFilter);
-  inherited Load(Environment.MainDBConnection, LCommandText);
+  Assert(Assigned(FViewTable));
+
+  LDBQuery := Environment.MainDBConnection.CreateDBQuery;
+  try
+    TKSQLBuilder.BuildSelectQuery(FViewTable, AFilter, LDBQuery, FMasterRecord);
+    inherited Load(LDBQuery);
+  finally
+    FreeAndNil(LDBQuery);
+  end;
+end;
+
+function TKViewTableStore.LoadPage(const AFilter: string; const AFrom, AFor: Integer): Integer;
+var
+  LDBQuery: TEFDBQuery;
+begin
+  if (AFrom = 0) and (AFor = 0) then
+  begin
+    Load(AFilter);
+    Result := RecordCount;
+  end
+  else
+  begin
+    LDBQuery := Environment.MainDBConnection.CreateDBQuery;
+    try
+      TKSQLBuilder.BuildCountQuery(FViewTable, AFilter, LDBQuery, FMasterRecord);
+      LDBQuery.Open;
+      try
+        Result := LDBQuery.DataSet.Fields[0].AsInteger;
+      finally
+        LDBQuery.Close;
+      end;
+      TKSQLBuilder.BuildSelectQuery(FViewTable, AFilter, LDBQuery, FMasterRecord, AFrom, AFor);
+      inherited Load(LDBQuery);
+    finally
+      FreeAndNil(LDBQuery);
+    end;
+  end;
 end;
 
 { TKViewTableHeader }
@@ -1383,6 +1543,27 @@ begin
 end;
 
 { TKViewTableRecord }
+
+function TKViewTableRecord.AddDetailStore(const AStore: TKViewTableStore): TKViewTableStore;
+begin
+  Result := inherited AddDetailStore(AStore) as TKViewTableStore;
+end;
+
+procedure TKViewTableRecord.CreateDetailStores;
+var
+  I: Integer;
+begin
+  if DetailStoreCount = 0 then
+  begin
+    for I := 0 to Records.Store.ViewTable.DetailTableCount - 1 do
+      AddDetailStore(Records.Store.ViewTable.DetailTables[I].CreateStore);
+  end;
+end;
+
+function TKViewTableRecord.GetDetailsStore(I: Integer): TKViewTableStore;
+begin
+  Result := inherited DetailStores[I] as TKViewTableStore;
+end;
 
 function TKViewTableRecord.GetRecords: TKViewTableRecords;
 begin

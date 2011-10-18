@@ -82,17 +82,23 @@ function SQLQuotedStr(const AString: string): string;
 }
 function RemoveSQLQuotes(const AString: string): string;
 
-{
-  Returns the SQL where clause from a given SQL statement. The return value
-  does not include the "where" keyword.
-}
+///	<summary>Returns the SQL select clause (field list) from a given SQL
+/// statement. The return value does not include the "select" keyword.</summary>
+function GetSQLSelectClause(const ASQL: string): string;
+
+///	<summary>Returns the SQL from clause from a given SQL
+/// statement. The return value does not include the "from" keyword.</summary>
+function GetSQLFromClause(const ASQL: string): string;
+
+///	<summary>Returns the SQL where clause from a given SQL statement. The
+///	return value does not include the "where" keyword.</summary>
 function GetSQLWhereClause(const ASQL: string): string;
 
 {
   Changes the SQL where clause of a given SQL statement. If the statement
   doesn't initially have a where clause, it is added.
 }
-function SetSQLWhereClause(const ASQL, ANEFClause: string): string;
+function SetSQLWhereClause(const ASQL, ANewClause: string): string;
 
 {
   Adds text to the SQL where clause of a given statement; the nEF text is
@@ -101,6 +107,18 @@ function SetSQLWhereClause(const ASQL, ANEFClause: string): string;
 }
 function AddToSQLWhereClause(const ASQL, ANewClause: string;
   const AConnector: string = 'and'): string;
+
+{
+  Returns the SQL order by clause from a given SQL statement. The return value
+  does not include the "order by" keywords.
+}
+function GetSQLOrderByClause(const ASQL: string): string;
+
+{
+  Changes the SQL order by clause of a given SQL statement. If the statement
+  doesn't initially have an order by clause, it is added.
+}
+function SetSQLOrderByClause(const ASQL, ANewClause: string): string;
 
 {
   Returns the SQL into clause from a given SQL statement. This function works
@@ -552,7 +570,7 @@ end;
   AOtherClauses should contain a list of clauses that syntactically may
   follow the requested clause. Implements the SetSQL*Clause functions.
 }
-function SetSQLClause(const ASQL, AClause, ANEFClause: string;
+function SetSQLClause(const ASQL, AClause, ANewClause: string;
   AOtherClauses: array of string): string;
 var
   LSQL: string;
@@ -597,27 +615,38 @@ begin
     if LFoundClausePos > 0 then
     begin
       Result := Copy(Result, 1, LFoundClausePos - 1);
-      if ANEFClause <> '' then
-        Result := Result + ' ' + TranslateClause(AClause) + ' ' + ANEFClause;
+      if ANewClause <> '' then
+        Result := Result + ' ' + TranslateClause(AClause) + ' ' + ANewClause;
       // Other clauses are appended to the tail.
       LFirstOtherClausePos := GetFirstOtherClausePos(LSQL);
       if LFirstOtherClausePos <> 0 then
         Result := Result + ' ' + Copy(LSQL, LFirstOtherClausePos, MaxInt);
     end
-    else if ANEFClause <> '' then
+    else if ANewClause <> '' then
     begin
       // No clause, but other clauses found - insert my clause before them.
       LFirstOtherClausePos := GetFirstOtherClausePos(LSQL);
       if LFirstOtherClausePos <> 0 then
-        Insert(' ' + AClause + ' ' + ANEFClause + ' ', Result, LFirstOtherClausePos)
+        Insert(' ' + AClause + ' ' + ANewClause + ' ', Result, LFirstOtherClausePos)
       else
         // No other clauses - append.
-        Result := Result + ' ' + AClause + ' ' + ANEFClause;
+        Result := Result + ' ' + AClause + ' ' + ANewClause;
     end;
     Result := LStripper.Unstrip(Result);
   finally
     FreeAndNil(LStripper);
   end;
+end;
+
+function GetSQLSelectClause(const ASQL: string): string;
+begin
+  Result := GetSQLClause(ASQL, sqlSelect, [sqlFrom]);
+end;
+
+function GetSQLFromClause(const ASQL: string): string;
+begin
+  Result := GetSQLClause(ASQL, sqlFrom,
+    [sqlWhere, sqlGroup, sqlHaving, sqlUnion, sqlPlan, sqlOrder]);
 end;
 
 function GetSQLWhereClause(const ASQL: string): string;
@@ -632,9 +661,9 @@ begin
     ASQL, sqlInto, [sqlFrom]);
 end;
 
-function SetSQLWhereClause(const ASQL, ANEFClause: string): string;
+function SetSQLWhereClause(const ASQL, ANewClause: string): string;
 begin
-  Result := SetSQLClause(ASQL, sqlWhere, ANEFClause,
+  Result := SetSQLClause(ASQL, sqlWhere, ANewClause,
     [sqlGroup, sqlHaving, sqlUnion, sqlPlan, sqlOrder]);
 end;
 
@@ -654,6 +683,27 @@ begin
   end
   else
     Result := ASQL;
+end;
+
+function GetSQLOrderByClause(const ASQL: string): string;
+begin
+  Result := GetSQLClause(ASQL, sqlOrder, ['']);
+  if Result <> '' then
+    Result := GetSQLClause(Result, sqlBy, ['']);
+end;
+
+function SetSQLOrderByClause(const ASQL, ANewClause: string): string;
+const
+  sqlOrderBy = ' ' + sqlOrder + ' ' + sqlBy + ' ';
+var
+  FoundClausePos: Integer;
+begin
+  Result := ASQL;
+  FoundClausePos := WordPos(sqlOrder, Result);
+  if FoundClausePos > 0 then
+    Result := Copy(Result, 1, FoundClausePos - 1);
+  if ANewClause <> '' then
+    Result := Result + sqlOrderBy + ANewClause;
 end;
 
 function IsQuery(const ASQLStatement: string): Boolean;

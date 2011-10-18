@@ -31,6 +31,7 @@ type
     FPagingToolbar: TExtPagingToolbar;
     FTopToolbar: TExtToolbar;
     FFilterPanel: TKExtFilterPanel;
+    FMasterRecord: TKViewTableRecord;
     procedure InitFieldsAndColumns;
     // Opens an edit window on the specified record.
     procedure ShowEditWindow(const ARecord: TKRecord; const AEditMode: TKEditMode);
@@ -100,22 +101,27 @@ end;
 
 procedure TKExtListPanelController.GetRecordPage;
 var
-  LPageRecordCount: Integer;
   LStart: Integer;
   LLimit: Integer;
+  LTotal: Integer;
+  LData: string;
 begin
-{ TODO : Fully refreshing at each page change might be inefficient.
-  Shall we provide a switch to turn it off on a form-by-form basis, or use
-  FIRST/SKIP/ROWS to only fetch relevant rows in a database-dependent way?
-  For now, let's just stick with full refresh always. }
-  ServerStore.Load(GetFilterExpression);
-
+{ TODO : Fully refreshing at each page change might be inefficient. }
   LStart := Session.QueryAsInteger['start'];
   LLimit := Session.QueryAsInteger['limit'];
-  LPageRecordCount := Min(Max(LLimit, DEFAULT_PAGE_RECORD_COUNT), ServerStore.RecordCount - LStart);
 
-  Session.Response := '{Total:' + IntToStr(ServerStore.RecordCount) + ',Root:'
-    + ServerStore.GetAsJSON(LStart, LPageRecordCount) + '}';
+  if (LStart <> 0) or (LLimit <> 0) then
+  begin
+    LTotal := ServerStore.LoadPage(GetFilterExpression, LStart, LLimit);
+    LData := ServerStore.GetAsJSON(True);
+  end
+  else
+  begin
+    ServerStore.Load(GetFilterExpression);
+    LTotal := ServerStore.RecordCount;
+    LData := ServerStore.GetAsJSON(True, 0, Min(MAX_RECORD_COUNT, ServerStore.RecordCount));
+  end;
+  Session.Response := Format('{Total:%d,Root:%s}', [LTotal, LData]);
 end;
 
 function TKExtListPanelController.CreatePagingToolbar: TExtPagingToolbar;
@@ -191,7 +197,7 @@ begin
       LDeleteButton.Disabled := not FIsDeleteAllowed;
       if not LDeleteButton.Disabled then
       begin
-        LKeyFieldNames := Join(ViewTable.GetKeyFieldAliasedNames, ',');
+        LKeyFieldNames := Join(ViewTable.GetKeyFieldAliasedNames(True), ',');
         { TODO : Add client-side confirmation request. }
         LDeleteButton.On('click', AjaxSelection(DeleteCurrentRecord,
           TExtGridRowSelectionModel(FGridPanel.SelModel), LKeyFieldNames, LKeyFieldNames, []));
@@ -212,6 +218,15 @@ var
 begin
   inherited;
   Title := Environment.MacroExpansionEngine.Expand(ViewTable.PluralDisplayLabel);
+
+  if ViewTable.IsDetail then
+  begin
+    FMasterRecord := Config.GetObject('Sys/MasterRecord') as TKViewTableRecord;
+    Assert(Assigned(FMasterRecord));
+    ServerStore.MasterRecord := FMasterRecord;
+  end
+  else
+    FMasterRecord := nil;
 
   { TODO : implement resource URIs }
   FIsAddAllowed := not ViewTable.GetBoolean('Controller/PreventAdding')
@@ -239,7 +254,7 @@ begin
   FGridPanel.AutoWidth := True;
   FGridPanel.ColumnLines := True;
   FGridPanel.TrackMouseOver := True;
-  LKeyFieldNames := Join(ViewTable.GetKeyFieldAliasedNames, ',');
+  LKeyFieldNames := Join(ViewTable.GetKeyFieldAliasedNames(True), ',');
   FGridPanel.On('rowdblclick', AjaxSelection(RowDblClick, LSelModel, LKeyFieldNames, LKeyFieldNames, []));
 
   // By default show paging toolbar unless the view is grouped.
@@ -248,7 +263,7 @@ begin
     if GetGroupingFieldName <> '' then
       FPageRecordCount := ViewTable.GetInteger('Controller/PageRecordCount', DEFAULT_GROUPING_PAGE_RECORD_COUNT)
     else
-      FPageRecordCount := ViewTable.GetInteger('Controller/PageRecordCount', DEFAULT_PAGE_RECORD_COUNT);
+      FPageRecordCount := ViewTable.GetInteger('Controller/PageRecordCount', MAX_RECORD_COUNT);
     FGridPanel.Bbar := CreatePagingToolbar;
   end;
 
@@ -285,15 +300,17 @@ begin
         '{text} ({[values.rs.length]} {[values.rs.length > 1 ? "%ITEMS%" : "%ITEM"]})');
       LCountTemplate := ReplaceText(LCountTemplate, '%ITEMS%', _(ViewTable.GetString('Controller/Grouping/ShowCount/PluralItemName', 'items')));
       LCountTemplate := ReplaceText(LCountTemplate, '%ITEM%', _(ViewTable.GetString('Controller/Grouping/ShowCount/ItemName', 'item')));
+      LCountTemplate := ViewTable.MinifyFieldNames(LCountTemplate);
       TExtGridGroupingView(FGridView).GroupTextTpl := LCountTemplate;
     end;
     FStore := TExtDataGroupingStore.Create;
     //TExtDataGroupingStore(FStore).GroupOnSort := True;
     if LGroupingFieldName <> '' then
     begin
-      TExtDataGroupingStore(FStore).GroupField := LGroupingFieldName;
+      TExtDataGroupingStore(FStore).GroupField := ViewTable.FieldByAliasedName(LGroupingFieldName).GetMinifiedName;
       FStore.RemoteSort := False;
-      FStore.SortInfo := JSObject('field:"' + ViewTable.GetString('Controller/Grouping/SortFieldName', LGroupingFieldName) + '"');
+      FStore.SortInfo := JSObject('field:"' +
+        ViewTable.FieldByAliasedName(ViewTable.GetString('Controller/Grouping/SortFieldName', LGroupingFieldName)).GetMinifiedName + '"');
     end;
   end
   else
@@ -374,9 +391,8 @@ var
     LColumn := CreateColumn;
     LColumn.Sortable := not AViewField.IsBlob;
     LColumn.Header := AViewField.DisplayLabel;
-    LColumn.Id := AViewField.AliasedName;
-    { TODO : optimize size of JSON packets by using numbers? }
-    LColumn.DataIndex := AViewField.AliasedName;
+    //LColumn.Id := AViewField.GetMinifiedName;
+    LColumn.DataIndex := AViewField.GetMinifiedName;
 
     LColumnWidth := AViewField.DisplayWidth;
     if LColumnWidth = 0 then
@@ -426,7 +442,7 @@ var
     LField: TExtDataField;
   begin
     LField := TExtDataField.AddTo(FReader.Fields);
-    LField.Name := AViewField.AliasedName;
+    LField.Name := AViewField.GetMinifiedName;
     case AViewField.DataType of
       edtUnknown: LField.Type_ := 'auto';
       edtString: LField.Type_ := 'string';
@@ -507,8 +523,7 @@ begin
   FEditHostWindow.Width := ViewTable.GetInteger('Controller/PopupWindow/Width', FEditHostWindow.Width);
   FEditHostWindow.Height := ViewTable.GetInteger('Controller/PopupWindow/Height', FEditHostWindow.Height);
   FEditHostWindow.ResizeHandles := 'n s';
-
-  FEditHostWindow.Closable := True;
+  FEditHostWindow.Closable := False;
 
   if AEditMode = emNewRecord then
     FEditHostWindow.Title := Format(_('New %s'), [ViewTable.DisplayLabel])
@@ -551,7 +566,11 @@ begin
   LKey := TEFNode.Create;
   try
     LKey.Assign(ServerStore.Key);
-    Session.GetQueryValues(LKey, True);
+    Session.GetQueryValues(LKey, True,
+      function(const AName: string): string
+      begin
+        Result := ViewTable.FieldByName(AName).GetMinifiedName;
+      end);
     Result := ServerStore.Records.GetRecord(LKey);
   finally
     FreeAndNil(LKey);

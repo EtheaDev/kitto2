@@ -27,18 +27,34 @@ type
     function GetFromClause: string;
     function BuildJoin(const AReference: TKModelreference): string;
 
-    function InternalGetSelectStatement(const AViewTable: TKViewTable;
-      const AFilter: string): string;
+    procedure InternalBuildSelectQuery(const AViewTable: TKViewTable;
+      const AFilter: string; const ADBQuery: TEFDBQuery; const AMasterValues: TEFNode = nil;
+      const AFrom: Integer = 0; const AFor: Integer = 0);
+    procedure InternalBuildCountQuery(const AViewTable: TKViewTable;
+      const AFilter: string; const ADBQuery: TEFDBQuery;
+      const AMasterValues: TEFNode);
+    function GetSelectWhereClause(const AFilter: string;
+      const ADBQuery: TEFDBQuery): string;
   public
     procedure AfterConstruction; override;
     destructor Destroy; override;
 
     ///	<summary>
-    ///	  Builds and returns a SQL statement that selects all fields from the
-    ///	  specified view table with an optional filter clause. Handles joins
-    ///   and table aliases based on model information.
+    ///	  <para>Builds in the specified query a select statement that selects
+    ///	  all fields from the specified view table with an optional filter
+    ///	  clause. Handles joins and table aliases based on model
+    ///	  information.</para>
+    ///	  <para>If the view table is a detail table, a where clause with
+    ///	  parameters for the master fields is added as well, and param values
+    ///	  are set based on AMasterValues.</para>
     ///	</summary>
-    class function GetSelectStatement(const AViewTable: TKViewTable; const AFilter: string): string;
+    class procedure BuildSelectQuery(const AViewTable: TKViewTable; const AFilter: string;
+      const ADBQuery: TEFDBQuery; const AMasterValues: TEFNode = nil;
+      const AFrom: Integer = 0; const AFor: Integer = 0);
+
+    class procedure BuildCountQuery(const AViewTable: TKViewTable;
+      const AFilter: string; const ADBQuery: TEFDBQuery;
+      const AMasterValues: TEFNode);
 
     ///	<summary>Builds and returns a SQL statement that selects the specified
     ///	field plus all key fields from the specified field's table. AViewField
@@ -79,14 +95,31 @@ uses
 
 { TKSQLQueryBuilder }
 
-class function TKSQLBuilder.GetSelectStatement(const AViewTable: TKViewTable; const AFilter: string): string;
+class procedure TKSQLBuilder.BuildSelectQuery(const AViewTable: TKViewTable;
+  const AFilter: string; const ADBQuery: TEFDBQuery; const AMasterValues: TEFNode;
+  const AFrom: Integer; const AFor: Integer);
 begin
   Assert(Assigned(AViewTable));
 
   with TKSQLBuilder.Create do
   begin
     try
-      Result := InternalGetSelectStatement(AViewTable, AFilter);
+      InternalBuildSelectQuery(AViewTable, AFilter, ADBQuery, AMasterValues, AFrom, AFor);
+    finally
+      Free;
+    end;
+  end;
+end;
+
+class procedure TKSQLBuilder.BuildCountQuery(const AViewTable: TKViewTable;
+  const AFilter: string; const ADBQuery: TEFDBQuery; const AMasterValues: TEFNode);
+begin
+  Assert(Assigned(AViewTable));
+
+  with TKSQLBuilder.Create do
+  begin
+    try
+      InternalBuildCountQuery(AViewTable, AFilter, ADBQuery, AMasterValues);
     finally
       Free;
     end;
@@ -330,10 +363,48 @@ begin
     raise EKError.CreateFmt(_('No reference found for field %s.'), [AViewField.AliasedName]);
 end;
 
-function TKSQLBuilder.InternalGetSelectStatement(const AViewTable: TKViewTable;
-  const AFilter: string): string;
+function TKSQLBuilder.GetSelectWhereClause(const AFilter: string;
+  const ADBQuery: TEFDBQuery): string;
 var
   I: Integer;
+  LMasterFieldNames: TStringDynArray;
+  LDetailFieldNames: TStringDynArray;
+  LClause: string;
+begin
+  Result := '';
+  if FViewTable.DefaultFilter <> '' then
+    Result := Result + ' where (' + FViewTable.DefaultFilter + ')';
+  if AFilter <> '' then
+    Result := AddToSQLWhereClause(Result, AFilter);
+
+  if FViewTable.IsDetail then
+  begin
+    // Get master and detail field names...
+    LMasterFieldNames := FViewTable.ReferenceToMaster.GetReferencedFieldNames;
+    Assert(Length(LMasterFieldNames) > 0);
+    LDetailFieldNames := FViewTable.ReferenceToMaster.GetFieldNames;
+    Assert(Length(LDetailFieldNames) = Length(LMasterFieldNames));
+    LClause := '';
+    for I := 0 to High(LDetailFieldNames) do
+    begin
+      // ...and alias them.
+      LMasterFieldNames[I] := FViewTable.MasterTable.FieldByName(LMasterFieldNames[I]).AliasedName;
+      LDetailFieldNames[I] := FViewTable.FieldByName(LDetailFieldNames[I]).AliasedName;
+      LClause := LClause + LDetailFieldNames[I] + ' = :' + LMasterFieldNames[I];
+      ADBQuery.Params.CreateParam(ftUnknown, LMasterFieldNames[I], ptInput);
+      if I < High(LDetailFieldNames) then
+        LClause := LClause + ' and ';
+    end;
+    Result := AddToSQLWhereClause(Result, '(' + LClause + ')');
+  end;
+end;
+
+procedure TKSQLBuilder.InternalBuildSelectQuery(const AViewTable: TKViewTable;
+  const AFilter: string; const ADBQuery: TEFDBQuery; const AMasterValues: TEFNode;
+  const AFrom: Integer; const AFor: Integer);
+var
+  I: Integer;
+  LCommandText: string;
 begin
   Clear;
   FViewTable := AViewTable;
@@ -344,16 +415,58 @@ begin
     else
       AddSelectTerm(GetReferencedFieldTerm(AViewTable.Fields[I]));
   end;
-  Result :=
-    'select ' +  FSelectTerms +
-    ' from ' + GetFromClause;
-  if AViewTable.DefaultFilter <> '' then
-    Result := Result + ' where (' + AViewTable.DefaultFilter + ')';
-  if AFilter <> '' then
-    Result := AddToSQLWhereClause(Result, AFilter);
-  if AViewTable.DefaultSorting <> '' then
-    Result := Result + ' order by ' + AViewTable.DefaultSorting;
-  Result := Environment.MacroExpansionEngine.Expand(Result);
+
+  if ADBQuery.Prepared then
+    ADBQuery.Prepared := False;
+  ADBQuery.Params.BeginUpdate;
+  try
+    ADBQuery.Params.Clear;
+    LCommandText :=
+      'select ' +  FSelectTerms +
+      ' from ' + GetFromClause + GetSelectWhereClause(AFilter, ADBQuery);
+    if FViewTable.DefaultSorting <> '' then
+      LCommandText := LCommandText + ' order by ' + FViewTable.DefaultSorting;
+    LCommandText := ADBQuery.Connection.AddLimitClause(LCommandText, AFrom, AFor);
+    ADBQuery.CommandText := Environment.MacroExpansionEngine.Expand(LCommandText);
+  finally
+    ADBQuery.Params.EndUpdate;
+  end;
+  for I := 0 to ADBQuery.Params.Count - 1 do
+    AssignEFNodeValueToParam(AMasterValues.GetNode(ADBQuery.Params[I].Name), ADBQuery.Params[I]);
+end;
+
+procedure TKSQLBuilder.InternalBuildCountQuery(const AViewTable: TKViewTable;
+  const AFilter: string; const ADBQuery: TEFDBQuery;
+  const AMasterValues: TEFNode);
+var
+  I: Integer;
+  LCommandText: string;
+begin
+  Clear;
+  FViewTable := AViewTable;
+{ TODO :
+Process all fields to build the from clause. A future refactoring might
+build only those that affect the count (outer joins). }
+  for I := 0 to AViewTable.FieldCount - 1 do
+  begin
+    if AViewTable.Fields[I].Reference = nil then
+      AddSelectTerm(AViewTable.Fields[I].QualifiedAliasedNameOrExpression)
+    else
+      AddSelectTerm(GetReferencedFieldTerm(AViewTable.Fields[I]));
+  end;
+
+  if ADBQuery.Prepared then
+    ADBQuery.Prepared := False;
+  ADBQuery.Params.BeginUpdate;
+  try
+    ADBQuery.Params.Clear;
+    LCommandText := 'select count(*) from ' + GetFromClause + GetSelectWhereClause(AFilter, ADBQuery);
+    ADBQuery.CommandText := Environment.MacroExpansionEngine.Expand(LCommandText);
+  finally
+    ADBQuery.Params.EndUpdate;
+  end;
+  for I := 0 to ADBQuery.Params.Count - 1 do
+    AssignEFNodeValueToParam(AMasterValues.GetNode(ADBQuery.Params[I].Name), ADBQuery.Params[I]);
 end;
 
 end.

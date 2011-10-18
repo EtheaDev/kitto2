@@ -302,6 +302,21 @@ type
     ///	method should use the passed node's DataType to decide how to format
     ///	the value, which it then returns as a string.</summary>
     function FormatValue(const AValue: TEFNode): string; virtual;
+
+    ///	<summary>
+    ///	  <para>Adds a limit clause to the specified SQL statement, which must
+    ///	  be a select statement. The method transforms the select statement in
+    ///	  a way that is compatible to what the database expects for a limited
+    ///	  query. For standard-compliant databases such as Firebird you would
+    ///	  add a "rows M to N" clause after the order by clase. Others will
+    ///	  require some query rewriting.</para>
+    ///	  <para>The default implementation returns the standard-compliant
+    ///	  version.</para>
+    ///	  <para>If both AFrom and ATo are 0, the statement is returned
+    ///	  unchanged.</para>
+    ///	</summary>
+    function AddLimitClause(const ACommandText: string;
+      const AFrom, AFor: Integer): string; virtual;
   end;
 
   ///	<summary>
@@ -434,6 +449,25 @@ begin
 end;
 
 { TEFDBConnection }
+
+function TEFDBConnection.AddLimitClause(const ACommandText: string; const AFrom,
+  AFor: Integer): string;
+var
+  LOrderByClause: string;
+begin
+  Result := ACommandText;
+  if (AFrom <> 0) or (AFor <> 0) then
+  begin
+    LOrderByClause := GetSQLOrderByClause(ACommandText);
+    if LOrderByClause <> '' then
+      Result := SetSQLOrderByClause(ACommandText, LOrderByClause + ' ' +
+        Format(' rows %d to %d', [AFrom + 1, AFrom + 1 + AFor - 1]))
+    else
+      raise EEFError.Create('Cannot add limit clause without order by clause.');
+  end
+  else
+    Result := ACommandText;
+end;
 
 procedure TEFDBConnection.AfterConnectionOpen(Sender: TObject);
 var

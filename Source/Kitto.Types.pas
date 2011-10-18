@@ -6,7 +6,7 @@ uses
   EF.Types;
 
 const
-  DEFAULT_PAGE_RECORD_COUNT = 100;
+  MAX_RECORD_COUNT = 50;
 
 type
   TKEditMode = (emNewRecord, emEditCurrentRecord);
