@@ -239,7 +239,9 @@ var
 begin
   NilEFIntf(FHomeController);
 
-  LHomeView := Environment.Views.ViewByNode(Environment.Config.FindNode('HomeView'));
+  LHomeView := Environment.Views.FindViewByNode(Environment.Config.FindNode('HomeView'));
+  if not Assigned(LHomeView) then
+    LHomeView := Environment.Views.ViewByName('Home');
   FHomeController := TKExtControllerFactory.Instance.CreateController(LHomeView, nil);
   FHomeController.Display;
 end;

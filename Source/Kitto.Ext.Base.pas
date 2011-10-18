@@ -385,7 +385,6 @@ end;
 procedure TKExtPanelBase.InitDefaults;
 begin
   inherited;
-  Layout := lyBorder;
   Region := rgCenter;
 end;
 
