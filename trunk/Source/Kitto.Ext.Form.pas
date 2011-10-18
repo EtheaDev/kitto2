@@ -20,12 +20,15 @@ type
     FViewTable: TKViewTable;
     FDetailHostWindow: TKExtModalWindow;
     FView: TKDataView;
-    FController: IKExtController;
+    FServerStore: TKViewTableStore;
+    FStoreRecord: TKViewTableRecord;
     procedure SetViewTable(const AValue: TKViewTable);
   public
     destructor Destroy; override;
     property ViewTable: TKViewTable read FViewTable write SetViewTable;
     property View: TKDataView read FView write FView;
+    property ServerStore: TKViewTableStore read FServerStore write FServerStore;
+    property StoreRecord: TKViewTableRecord read FStoreRecord write FStoreRecord;
   published
     procedure ShowDetailWindow;
   end;
@@ -82,16 +85,19 @@ var
 begin
   Assert(ViewTable <> nil);
   Assert(FDetailToolbar = nil);
-
-  FreeAndNil(FDetailButtons);
+  Assert(Assigned(FStoreRecord));
 
   if ViewTable.DetailTableCount > 0 then
   begin
+    FStoreRecord.CreateDetailStores;
+    Assert(FStoreRecord.DetailStoreCount = ViewTable.DetailTableCount);
     FDetailToolbar := TExtToolbar.Create;
     FDetailButtons := TObjectList<TKExtDetailFormButton>.Create(False);
     for I := 0 to ViewTable.DetailTableCount - 1 do
     begin
       FDetailButtons.Add(TKExtDetailFormButton.AddTo(FDetailToolbar.Items));
+      FDetailButtons[I].ServerStore := FStoreRecord.DetailStores[I];
+      FDetailButtons[I].StoreRecord := FStoreRecord;
       FDetailButtons[I].ViewTable := ViewTable.DetailTables[I];
       FDetailButtons[I].View := View;
     end;
@@ -171,14 +177,18 @@ procedure TKExtFormPanelController.GetRecord;
 begin
   Assert(Assigned(FStoreRecord));
 
-  Session.Response := '{success:true,data:' + FStoreRecord.GetAsJSON + '}';
+  Session.Response := '{success:true,data:' + FStoreRecord.GetAsJSON(True) + '}';
 end;
 
 procedure TKExtFormPanelController.SaveChanges;
 begin
   FStoreRecord.Backup;
   try
-    Session.GetQueryValues(FStoreRecord, False);
+    Session.GetQueryValues(FStoreRecord, False,
+      function(const AName: string): string
+      begin
+        Result := ViewTable.FieldByName(AName).GetMinifiedName;
+      end);
     ViewTable.ApplyRules(
       procedure (const ARuleImpl: TKRuleImpl)
       begin
@@ -283,8 +293,7 @@ end;
 
 destructor TKExtDetailFormButton.Destroy;
 begin
-  FreeAndNil(FDetailHostWindow);
-  FreeAndNilEFIntf(FController);
+  //FreeAndNil(FDetailHostWindow);
   inherited;
 end;
 
@@ -294,24 +303,31 @@ begin
   if Assigned(FViewTable) then
   begin
     Text := FViewTable.DisplayLabel;
-    //Icon :=
+    Icon := Environment.GetImageURL(FViewTable.ImageName);
     Handler := Ajax(ShowDetailWindow, []);
   end;
 end;
 
 procedure TKExtDetailFormButton.ShowDetailWindow;
+var
+  LController: IKExtController;
 begin
   Assert(Assigned(FViewTable));
 
-  FreeAndNil(FDetailHostWindow);
+  if Assigned(FDetailHostWindow) then
+    FDetailHostWindow.Free(True);
   FDetailHostWindow := TKExtModalWindow.Create;
   { TODO : use a master-record-specific title - define a way to specify a record's caption }
-  FDetailHostWindow.Title := ViewTable.DisplayLabel;
+  FDetailHostWindow.Title := ViewTable.PluralDisplayLabel;
   FDetailHostWindow.Closable := True;
 
-  FreeAndNil(FController);
-  FController := TKExtControllerFactory.Instance.CreateController(FView, FDetailHostWindow);
-  FController.Display;
+  LController := TKExtControllerFactory.Instance.CreateController(FView, FDetailHostWindow);
+  LController.OwnsView := False;
+  LController.Config.SetObject('Sys/ServerStore', ServerStore);
+  LController.Config.SetObject('Sys/MasterRecord', FStoreRecord);
+  LController.Config.SetObject('Sys/ViewTable', ViewTable);
+  LController.Config.SetObject('Sys/HostWindow', FDetailHostWindow);
+  LController.Display;
   FDetailHostWindow.Show;
 end;
 

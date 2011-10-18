@@ -181,8 +181,6 @@ type
     procedure SetDateFormat(const AValue: string);
     procedure SetTimeFormat(const AValue: string);
     procedure SetAltFormats(const AValue: string);
-    procedure SetDateConfig(const AValue: TExtObject);
-    procedure SetTimeConfig(const AValue: TExtObject);
     procedure SetAllowBlank(const AValue: Boolean);
     //procedure SetDateConfig(const AValue: TExtObject);
     //procedure SetTimeConfig(const AValue: TExtObject);
@@ -862,7 +860,7 @@ begin
   if LIsReadOnly then
     LFormField.Cls := 'x-form-readonly';
   LFormField.AutoScroll := False; // Don't display a h. scrollbar for larger fields.
-  LFormField.Name := LViewField.AliasedName;
+  LFormField.Name := LViewField.GetMinifiedName;
   LFormField.ReadOnly := LIsReadOnly;
   LFormField.FieldLabel := LLabel;
   LFormField.MsgTarget := LowerCase(FDefaults.MsgTarget);
@@ -1269,10 +1267,10 @@ begin
 
   LStart := Session.QueryAsInteger['start'];
   LLimit := Session.QueryAsInteger['limit'];
-  LPageRecordCount := Min(Max(LLimit, DEFAULT_PAGE_RECORD_COUNT), FServerStore.RecordCount - LStart);
+  LPageRecordCount := Min(Max(LLimit, MAX_RECORD_COUNT), FServerStore.RecordCount - LStart);
 
   Session.Response := '{Total:' + IntToStr(FServerStore.RecordCount) + ',Root:'
-    + FServerStore.GetAsJSON(LStart, LPageRecordCount) + '}';
+    + FServerStore.GetAsJSON(True, LStart, LPageRecordCount) + '}';
 end;
 
 procedure TKExtFormComboBoxEditor.SetOption(const AName, AValue: string);
@@ -1305,9 +1303,18 @@ begin
   TExtDataJsonReader(Store.Reader).TotalProperty := 'Total';
   for I := 0 to FServerStore.Header.FieldCount - 1 do
     with TExtDataField.AddTo(Store.Reader.Fields) do
+      {$IFDEF KITTO_MINIFY}
+      Name := 'F' + IntToStr(I);
+      {$ELSE}
       Name := FServerStore.Header.Fields[I].FieldName;
+      {$ENDIF}
+  {$IFDEF KITTO_MINIFY}
+  ValueField := 'F0';
+  DisplayField := 'F1';
+  {$ELSE}
   ValueField := FServerStore.Header.Fields[0].FieldName;
   DisplayField := FServerStore.Header.Fields[1].FieldName;
+  {$ENDIF}
   MinChars := 4;
   //PageSize := 20;
   //Resizable := True;
@@ -1528,12 +1535,12 @@ begin
   JSCode('altFormats:' + VarToJSON([AValue]));
 end;
 
-procedure TKExtFormDateTimeField.SetDateConfig(const AValue: TExtObject);
-begin
-  FDateConfig := AValue;
-  AValue.DeleteFromGarbage;
-  JSCode('dateConfig:' + VarToJSON([AValue]));
-end;
+//procedure TKExtFormDateTimeField.SetDateConfig(const AValue: TExtObject);
+//begin
+//  FDateConfig := AValue;
+//  AValue.DeleteFromGarbage;
+//  JSCode('dateConfig:' + VarToJSON([AValue]));
+//end;
 
 procedure TKExtFormDateTimeField.SetDateFormat(const AValue: string);
 begin
@@ -1541,12 +1548,12 @@ begin
   JSCode('dateFormat:' + VarToJSON([AValue]));
 end;
 
-procedure TKExtFormDateTimeField.SetTimeConfig(const AValue: TExtObject);
-begin
-  FTimeConfig := AValue;
-  AValue.DeleteFromGarbage;
-  JSCode('timeConfig:' + VarToJSON([AValue]));
-end;
+//procedure TKExtFormDateTimeField.SetTimeConfig(const AValue: TExtObject);
+//begin
+//  FTimeConfig := AValue;
+//  AValue.DeleteFromGarbage;
+//  JSCode('timeConfig:' + VarToJSON([AValue]));
+//end;
 
 procedure TKExtFormDateTimeField.SetTimeFormat(const AValue: string);
 begin

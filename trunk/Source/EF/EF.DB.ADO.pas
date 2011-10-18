@@ -62,6 +62,8 @@ type
     function GetLastAutoincValue(const ATableName: string = ''): Int64; override;
     function CreateDBCommand: TEFDBCommand; override;
     function CreateDBQuery: TEFDBQuery; override;
+    function AddLimitClause(const ACommandText: string; const AFrom: Integer;
+      const AFor: Integer): string; override;
   end;
 
   TEFDBADOCommand = class(TEFDBCommand)
@@ -132,7 +134,7 @@ implementation
 
 uses
   SysUtils, StrUtils, Variants, ADOInt,
-  EF.VariantUtils, EF.DB.Utils, EF.Types, EF.Tree;
+  EF.VariantUtils, EF.DB.Utils, EF.Types, EF.Tree, EF.SQL;
 
 function ADODataTypeToEFDataType(const AADODataType: Integer): TEFDataType;
 begin
@@ -171,6 +173,37 @@ begin
 end;
 
 { TEFDBADOConnection }
+
+function TEFDBADOConnection.AddLimitClause(const ACommandText: string;
+  const AFrom, AFor: Integer): string;
+var
+  LSelectClause: string;
+  LOrderByClause: string;
+  LFromClause: string;
+  LWhereClause: string;
+begin
+  if (AFrom <> 0) or (AFor <> 0) then
+  begin
+    LSelectClause := GetSQLSelectClause(ACommandText);
+    LFromClause := GetSQLFromClause(ACommandText);
+    LWhereClause := GetSQLWhereClause(ACommandText);
+    if LWhereClause <> '' then
+      LWhereClause := ' where ' + LWhereClause;
+    LOrderByClause := GetSQLOrderByClause(ACommandText);
+    if LOrderByClause <> '' then
+      LOrderByClause := ' order by ' + LOrderByClause
+    else
+      raise EEFError.Create('Cannot add limit clause without order by clause.');
+{ TODO :
+Don't select the __ROWNUM field to save bandwidth?
+Select clause massaging would be required. }
+    Result := Format('select * from (select %s, row_number() over (%s) as __ROWNUM ' +
+      'from %s%s) as __OUTER where __OUTER.__ROWNUM between %d and %d',
+      [LSelectClause, LOrderByClause, LFromClause, LWhereClause, AFrom + 1, AFrom + 1 + AFor - 1]);
+  end
+  else
+    Result := inherited AddLimitClause(ACommandText, AFrom, AFor);
+end;
 
 procedure TEFDBADOConnection.AfterConstruction;
 begin
@@ -470,8 +503,8 @@ end;
 
 procedure TEFDBADOQuery.SetQueryProperties;
 begin
-  FQuery.CursorLocation := clUseServer;
-  FQuery.CursorType := ctKeyset;
+  FQuery.CursorLocation := clUseClient;
+  FQuery.CursorType := ctStatic;
 end;
 
 procedure TEFDBADOQuery.UpdateInternalQueryCommandText;

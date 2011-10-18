@@ -291,7 +291,7 @@ begin
     LPermissionQuery.Params[0].AsString := AGranteeId;
     LPermissionQuery.Open;
     try
-      FPermissions.Load(LPermissionQuery.DataSet, True);
+      FPermissions.Load(LPermissionQuery, True);
     finally
       LPermissionQuery.Close;
     end;

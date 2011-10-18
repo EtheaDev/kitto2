@@ -3,7 +3,7 @@ unit Kitto.Store;
 interface
 
 uses
-  SysUtils, Types, DB,
+  SysUtils, Types, DB, Generics.Collections,
   EF.Tree, EF.DB,
   Kitto.Metadata.Models;
 
@@ -38,6 +38,7 @@ type
     function GetParentRecord: TKRecord;
     function GetAsJSONValue: string;
     procedure SetAsJSONValue(const AValue: string);
+    function GetJSONName(const AMinified: Boolean): string;
   protected
     function GetName: string; override;
     procedure SetValue(const AValue: Variant); override;
@@ -45,11 +46,12 @@ type
     property AsJSONValue: string read GetAsJSONValue write SetAsJSONValue;
     property ParentRecord: TKRecord read GetParentRecord;
 
-    function GetAsJSON: string;
+    function GetAsJSON(const AMinified: Boolean): string;
 
     property FieldName: string read GetFieldName;
   end;
 
+  TKStore = class;
   TKRecords = class;
 
   TKRecordState = (rsNew, rsClean, rsDirty, rsDeleted);
@@ -58,10 +60,14 @@ type
   private
     FBackup: TEFNode;
     FState: TKRecordState;
+    FDetailStores: TObjectList<TKStore>;
     function GetRecords: TKRecords;
     function GetKey: TKKey;
     function GetField(I: Integer): TKField;
     function GetFieldCount: Integer;
+    function GetDetailsStore(I: Integer): TKStore;
+    function GetDetailStoreCount: Integer;
+    procedure EnsureDetailStores;
   protected
     function GetChildClass(const AName: string): TEFNodeClass; override;
   public
@@ -86,10 +92,14 @@ type
     ///	names are not in the passed node are set to Null.</summary>
     procedure ReadFromNode(const ANode: TEFNode);
 
-    function GetAsJSON: string;
+    function GetAsJSON(const AMinified: Boolean): string;
 
     procedure MarkAsDirty;
     procedure MarkAsDeleted;
+
+    property DetailStoreCount: Integer read GetDetailStoreCount;
+    property DetailStores[I: Integer]: TKStore read GetDetailsStore;
+    function AddDetailStore(const AStore: TKStore): TKStore;
 
     procedure Save(const ADBConnection: TEFDBConnection; const AModel: TKModel;
       const AUseTransaction: Boolean);
@@ -97,8 +107,6 @@ type
     procedure Backup;
     procedure Restore;
   end;
-
-  TKStore = class;
 
   TKRecords = class(TEFNode)
   private
@@ -125,7 +133,7 @@ type
     function Append: TKRecord;
     procedure Remove(const ARecord: TKRecord);
 
-    function GetAsJSON(const AFrom: Integer = 0; const AFor: Integer = 0): string;
+    function GetAsJSON(const AMinified: Boolean; const AFrom: Integer = 0; const AFor: Integer = 0): string;
   end;
 
   TKHeaderField = class(TEFNode)
@@ -176,7 +184,7 @@ type
 
     procedure Load(const ADBConnection: TEFDBConnection;
       const ACommandText: string; const AAppend: Boolean = False); overload;
-    procedure Load(const ADataSet: TDataSet; const AAppend: Boolean = False); overload;
+    procedure Load(const ADBQuery: TEFDBQuery; const AAppend: Boolean = False); overload;
 
     procedure Save(const ADBConnection: TEFDBConnection; const AModel: TKModel);
 
@@ -190,7 +198,7 @@ type
     ///	<seealso cref="TKRecord.MarkAsDeleted"></seealso>
     procedure RemoveRecord(const ARecord: TKRecord);
 
-    function GetAsJSON(const AFrom: Integer = 0; const AFor: Integer = 0): string;
+    function GetAsJSON(const AMinified: Boolean; const AFrom: Integer = 0; const AFor: Integer = 0): string;
   end;
 
 implementation
@@ -216,9 +224,9 @@ begin
   inherited;
 end;
 
-function TKStore.GetAsJSON(const AFrom: Integer; const AFor: Integer): string;
+function TKStore.GetAsJSON(const AMinified: Boolean; const AFrom: Integer; const AFor: Integer): string;
 begin
-  Result := Records.GetAsJSON(AFrom, AFor);
+  Result := Records.GetAsJSON(AMinified, AFrom, AFor);
 end;
 
 function TKStore.GetChildClass(const AName: string): TEFNodeClass;
@@ -251,21 +259,23 @@ begin
   Result := FindChild('Records', True) as TKRecords;
 end;
 
-procedure TKStore.Load(const ADataSet: TDataSet; const AAppend: Boolean);
+procedure TKStore.Load(const ADBQuery: TEFDBQuery; const AAppend: Boolean);
 var
   LRecord: TKRecord;
 begin
-  Assert(Assigned(ADataSet));
+  Assert(Assigned(ADBQuery));
 
   if not AAppend then
     Records.Clear;
-  while not ADataSet.Eof do
+  if not ADBQuery.IsOpen then
+    ADBQuery.Open;
+  while not ADBQuery.DataSet.Eof do
   begin
     LRecord := Records.Append;
     Header.Apply(LRecord);
     Assert(LRecord.FieldCount = Header.ChildCount);
-    LRecord.ReadFromFields(ADataSet.Fields);
-    ADataSet.Next;
+    LRecord.ReadFromFields(ADBQuery.DataSet.Fields);
+    ADBQuery.DataSet.Next;
   end;
 end;
 
@@ -287,7 +297,7 @@ begin
     LDBQuery.CommandText := ACommandText;
     LDBQuery.Open;
     try
-      Load(LDBQuery.DataSet, AAppend);
+      Load(LDBQuery, AAppend);
     finally
       LDBQuery.Close;
     end;
@@ -361,7 +371,7 @@ begin
   end;
 end;
 
-function TKRecords.GetAsJSON(const AFrom: Integer; const AFor: Integer): string;
+function TKRecords.GetAsJSON(const AMinified: Boolean; const AFrom: Integer; const AFor: Integer): string;
 var
   I: Integer;
   LTo: Integer;
@@ -374,7 +384,7 @@ begin
   Result := '[';
   for I := AFrom to LTo do
   begin
-    Result := Result + Records[I].GetAsJSON;
+    Result := Result + Records[I].GetAsJSON(AMinified);
     if I < RecordCount - 1 then
       Result := Result + ',';
   end;
@@ -448,6 +458,19 @@ end;
 
 { TKRecord }
 
+procedure TKRecord.EnsureDetailStores;
+begin
+  if not Assigned(FDetailStores) then
+    FDetailStores := TObjectList<TKStore>.Create;
+end;
+
+function TKRecord.AddDetailStore(const AStore: TKStore): TKStore;
+begin
+  EnsureDetailStores;
+  FDetailStores.Add(AStore);
+  Result := AStore;
+end;
+
 procedure TKRecord.AfterConstruction;
 begin
   inherited;
@@ -463,6 +486,7 @@ end;
 
 destructor TKRecord.Destroy;
 begin
+  FreeAndNil(FDetailStores);
   FreeAndNil(FBackup);
   inherited;
 end;
@@ -489,14 +513,14 @@ begin
   end;
 end;
 
-function TKRecord.GetAsJSON: string;
+function TKRecord.GetAsJSON(const AMinified: Boolean): string;
 var
   I: Integer;
 begin
   Result := '{';
   for I := 0 to FieldCount - 1 do
   begin
-    Result := Result + Fields[I].GetAsJSON;
+    Result := Result + Fields[I].GetAsJSON(AMinified);
     if I < FieldCount - 1 then
       Result := Result + ',';
   end;
@@ -506,6 +530,21 @@ end;
 function TKRecord.GetChildClass(const AName: string): TEFNodeClass;
 begin
   Result := TKField;
+end;
+
+function TKRecord.GetDetailsStore(I: Integer): TKStore;
+begin
+  Assert(Assigned(FDetailStores));
+
+  Result := FDetailStores[I];
+end;
+
+function TKRecord.GetDetailStoreCount: Integer;
+begin
+  if Assigned(FDetailStores) then
+    Result := FDetailStores.Count
+  else
+    Result := 0;
 end;
 
 function TKRecord.GetField(I: Integer): TKField;
@@ -644,9 +683,19 @@ end;
 
 { TKField }
 
-function TKField.GetAsJSON: string;
+function TKField.GetJSONName(const AMinified: Boolean): string;
 begin
-  Result := '"' + FieldName + '":' + AsJSONValue;
+  {$IFDEF KITTO_MINIFY}
+  if AMinified then
+    Result := 'F' + IntToStr(Index)
+  else
+  {$ENDIF}
+    Result := FieldName;
+end;
+
+function TKField.GetAsJSON(const AMinified: Boolean): string;
+begin
+  Result := '"' + GetJSONName(AMinified) + '":' + AsJSONValue;
   { TODO : not sure about the usefulness of this replace here; verify that a
     counter-replace is not needed when getting back data from the client. }
   Result := AnsiReplaceStr(Result, #13#10, '<br/>');

@@ -77,10 +77,18 @@ type
     function AdaptExtNumberFormat(const AFormat: string): string;
 
 
-    ///	<summary>Tries to read from the session a value for each child node of
-    ///	ANode and interpret it according to the child's DataType. Read values
-    ///	are stored in the child nodes.</summary>
-    procedure GetQueryValues(const ANode: TEFNode; const AExpectJSFormat: Boolean);
+    type TSessionKeyTranslator = reference to function(const AName: string): string;
+    ///	<summary>
+    ///	  <para>Tries to read from the session a value for each child node of
+    ///	  ANode and interpret it according to the child's DataType. Read values
+    ///	  are stored in the child nodes.</para>
+    ///	  <para>Pass a translation function if session key names do not match
+    ///	  wanted child node names and you need to translate them. The function
+    ///	  receives the child name and should return the corresponding session
+    ///	  key name.</para>
+    ///	</summary>
+    procedure GetQueryValues(const ANode: TEFNode; const AExpectJSFormat: Boolean;
+      const ATranslator: TSessionKeyTranslator = nil);
 
     procedure Flash(const AMessage: string);
   published
@@ -161,25 +169,35 @@ begin
   end;
 end;
 
-procedure TKExtSession.GetQueryValues(const ANode: TEFNode; const AExpectJSFormat: Boolean);
+procedure TKExtSession.GetQueryValues(const ANode: TEFNode; const AExpectJSFormat: Boolean;
+  const ATranslator: TSessionKeyTranslator);
 var
   I: Integer;
   LChild: TEFNode;
+  LName: string;
 
   function GetDateTime: TDateTime;
   begin
     if AExpectJSFormat then
-      Result := JSDateToDateTime(Session.Query[LChild.Name])
+      Result := JSDateToDateTime(Session.Query[LName])
     else
-      Result := StrToDateTime(Session.Query[LChild.Name], UserFormatSettings);
+      Result := StrToDateTime(Session.Query[LName], UserFormatSettings);
   end;
 
   function GetFloat: Double;
   begin
     if AExpectJSFormat then
-      Result := StrToFloat(Session.Query[LChild.Name], JSFormatSettings)
+      Result := StrToFloat(Session.Query[LName], JSFormatSettings)
     else
-      Result := StrToFloat(Session.Query[LChild.Name], UserFormatSettings);
+      Result := StrToFloat(Session.Query[LName], UserFormatSettings);
+  end;
+
+  function Translate(const AName: string): string;
+  begin
+    if Assigned(ATranslator) then
+      Result := ATranslator(AName)
+    else
+      Result := AName;
   end;
 
 begin
@@ -188,13 +206,14 @@ begin
   for I := 0 to ANode.ChildCount - 1 do
   begin
     LChild := ANode.Children[I];
-    Assert(LChild.Name <> '');
-    if Session.Queries.IndexOfName(LChild.Name) >= 0 then
+    LName := Translate(LChild.Name);
+    Assert(LName <> '');
+    if Session.Queries.IndexOfName(LName) >= 0 then
     begin
       case LChild.DataType of
-        edtUnknown, edtString: LChild.AsString := Session.Query[LChild.Name];
-        edtInteger: LChild.AsInteger := Session.QueryAsInteger[LChild.Name];
-        edtBoolean: LChild.AsBoolean := Session.QueryAsBoolean[LChild.Name];
+        edtUnknown, edtString: LChild.AsString := Session.Query[LName];
+        edtInteger: LChild.AsInteger := Session.QueryAsInteger[LName];
+        edtBoolean: LChild.AsBoolean := Session.QueryAsBoolean[LName];
         edtDate: LChild.AsDate := GetDateTime;
         edtTime: LChild.AsTime := GetDateTime;
         edtDateTime: LChild.AsDateTime := GetDateTime;
