@@ -70,6 +70,10 @@ type
     procedure EnsureDetailStores;
   protected
     function GetChildClass(const AName: string): TEFNodeClass; override;
+
+    ///	<summary>Called by ReadFromNode after setting all values. Descendants
+    ///	may overwrite some fields.</summary>
+    procedure InternalAfterReadFromNode; virtual;
   public
     procedure AfterConstruction; override;
     destructor Destroy; override;
@@ -626,12 +630,17 @@ begin
   try
     for I := 0 to FieldCount - 1 do
       Fields[I].AssignValue(ANode.FindNode(Fields[I].FieldName));
+    InternalAfterReadFromNode;
     if FState = rsClean then
       FState := rsDirty;
   except
     Restore;
     raise;
   end;
+end;
+
+procedure TKRecord.InternalAfterReadFromNode;
+begin
 end;
 
 procedure TKRecord.Restore;

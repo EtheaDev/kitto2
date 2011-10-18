@@ -149,12 +149,13 @@ procedure TKExtFormPanelController.StartOperation;
 var
   LDefaultValues: TEFNode;
 begin
+  Assert(Assigned(FStoreRecord));
+
   if FOperation = 'Add' then
   begin
-    Assert(not Assigned(FStoreRecord));
     LDefaultValues := ViewTable.GetDefaultValues;
     try
-      FStoreRecord := ServerStore.AppendRecord(LDefaultValues);
+      FStoreRecord.ReadFromNode(LDefaultValues);
     finally
       FreeAndNil(LDefaultValues);
     end;
@@ -222,6 +223,11 @@ begin
 
   FStoreRecord := Config.GetObject('Sys/Record') as TKViewTableRecord;
   Assert((FOperation = 'Add') or Assigned(FStoreRecord));
+  if FOperation = 'Add' then
+  begin
+    Assert(not Assigned(FStoreRecord));
+    FStoreRecord := ServerStore.AppendRecord(nil);
+  end;
 
   if SameText(FOperation, 'Add') then
     FIsReadOnly := View.GetBoolean('IsReadOnly') or ViewTable.IsReadOnly or View.GetBoolean('Controller/PreventAdding')

@@ -528,7 +528,7 @@ begin
   if AEditMode = emNewRecord then
     FEditHostWindow.Title := Format(_('New %s'), [ViewTable.DisplayLabel])
   else if IsReadOnly then
-    FEditHostWindow.Title := Format(_('View %s'), [ViewTable.DisplayLabel])
+    FEditHostWindow.Title := ViewTable.DisplayLabel
   else
     FEditHostWindow.Title := Format(_('Edit %s'), [ViewTable.DisplayLabel]);
   //FEditHostWindow.On('close', Ajax(EditWindowClosed, ['Window', '%0.nm']));
