@@ -257,8 +257,8 @@ begin
   LKeyFieldNames := Join(ViewTable.GetKeyFieldAliasedNames(True), ',');
   FGridPanel.On('rowdblclick', AjaxSelection(RowDblClick, LSelModel, LKeyFieldNames, LKeyFieldNames, []));
 
-  // By default show paging toolbar unless the view is grouped.
-  if ViewTable.GetBoolean('Controller/PagingTools', GetGroupingFieldName = '') then
+  // By default show paging toolbar if the model is large unless the view is grouped.
+  if ViewTable.GetBoolean('Controller/PagingTools', ViewTable.Model.IsLarge and (GetGroupingFieldName = '')) then
   begin
     if GetGroupingFieldName <> '' then
       FPageRecordCount := ViewTable.GetInteger('Controller/PageRecordCount', DEFAULT_GROUPING_PAGE_RECORD_COUNT)

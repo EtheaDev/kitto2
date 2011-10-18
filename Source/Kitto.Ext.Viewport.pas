@@ -9,7 +9,7 @@ type
   TKExtViewportController = class(TKExtViewportControllerBase)
   private
     FController: IKExtController;
-    procedure CreateSubController;
+    procedure CreateSubControllers;
   protected
     procedure DoDisplay; override;
   public
@@ -34,18 +34,17 @@ end;
 procedure TKExtViewportController.DoDisplay;
 begin
   inherited;
-  Layout := lyFit;
-  CreateSubController;
+  CreateSubControllers;
 end;
 
-procedure TKExtViewportController.CreateSubController;
+procedure TKExtViewportController.CreateSubControllers;
 var
-  LSubView: TKView;
+  LCenterView: TKView;
 begin
   Assert(Assigned(View));
 
-  LSubView := Environment.Views.ViewByNode(View.GetNode('Controller/SubView'));
-  FController := TKExtControllerFactory.Instance.CreateController(LSubView, Self);
+  LCenterView := Environment.Views.ViewByNode(View.GetNode('Controller/CenterView'));
+  FController := TKExtControllerFactory.Instance.CreateController(LCenterView, Self);
   FController.Display;
 end;
 

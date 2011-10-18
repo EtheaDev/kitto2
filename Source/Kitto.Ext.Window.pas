@@ -9,7 +9,7 @@ type
   TKExtWindowController = class(TKExtWindowControllerBase)
   private
     FController: IKExtController;
-    procedure CreateSubController;
+    procedure CreateSubControllers;
   protected
     procedure DoDisplay; override;
     procedure InitDefaults; override;
@@ -38,7 +38,7 @@ begin
   Title := _(View.GetExpandedString('DisplayLabel'));
   Width := View.GetInteger('Controller/Width', 800);
   Height := View.GetInteger('Controller/Height', 600);
-  CreateSubController;
+  CreateSubControllers;
   inherited;
 end;
 
@@ -47,17 +47,16 @@ begin
   inherited;
   Constrain := True;
   Closable := False;
-  Layout := lyFit;
 end;
 
-procedure TKExtWindowController.CreateSubController;
+procedure TKExtWindowController.CreateSubControllers;
 var
-  LSubView: TKView;
+  LCenterView: TKView;
 begin
   Assert(Assigned(View));
 
-  LSubView := Environment.Views.ViewByNode(View.GetNode('Controller/SubView'));
-  FController := TKExtControllerFactory.Instance.CreateController(LSubView, Self);
+  LCenterView := Environment.Views.ViewByNode(View.GetNode('Controller/CenterView'));
+  FController := TKExtControllerFactory.Instance.CreateController(LCenterView, Self);
   FController.Display;
 end;
 

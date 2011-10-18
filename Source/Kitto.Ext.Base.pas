@@ -27,6 +27,7 @@ type
     procedure SetContainer(const AValue: TExtContainer);
     function GetOwnsView: Boolean;
     procedure SetOwnsView(const AValue: Boolean);
+    procedure InitDefaults; override;
   public
     procedure AfterConstruction; override;
     destructor Destroy; override;
@@ -81,6 +82,7 @@ type
     procedure SetContainer(const AValue: TExtContainer);
     function GetOwnsView: Boolean;
     procedure SetOwnsView(const AValue: Boolean);
+    procedure InitDefaults; override;
   public
     procedure AfterConstruction; override;
     destructor Destroy; override;
@@ -109,6 +111,7 @@ type
     function GetConfig: TEFNode;
     function CloseHostWindow: Boolean;
     function GetHostWindow: TExtWindow;
+    procedure InitDefaults; override;
   public
     procedure AfterConstruction; override;
     destructor Destroy; override;
@@ -257,6 +260,12 @@ begin
   Result := FView;
 end;
 
+procedure TKExtWindowControllerBase.InitDefaults;
+begin
+  inherited;
+  Layout := lyBorder;
+end;
+
 procedure TKExtWindowControllerBase.NotifyObservers(const AContext: string);
 begin
   FSubjObserverImpl.NotifyObserversOnBehalfOf(Self, AContext);
@@ -373,6 +382,13 @@ begin
   Result := Config.GetObject('Sys/HostWindow') as TExtWindow;
 end;
 
+procedure TKExtPanelBase.InitDefaults;
+begin
+  inherited;
+  Layout := lyBorder;
+  Region := rgCenter;
+end;
+
 function TKExtPanelBase.CloseHostWindow: Boolean;
 var
   LHostWindow: TExtWindow;
@@ -446,6 +462,12 @@ end;
 function TKExtViewportControllerBase.GetView: TKView;
 begin
   Result := FView;
+end;
+
+procedure TKExtViewportControllerBase.InitDefaults;
+begin
+  inherited;
+  Layout := lyBorder;
 end;
 
 procedure TKExtViewportControllerBase.NotifyObservers(const AContext: string);

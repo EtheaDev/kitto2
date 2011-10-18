@@ -27,6 +27,7 @@ procedure TKExtHtmlPanelController.DoDisplay;
 var
   LFileName: string;
   LFullFileName: string;
+  LHtml: string;
 begin
   inherited;
   Title := View.DisplayLabel;
@@ -42,7 +43,13 @@ begin
       Html := Format('File %s not found.', [LFileName]);
   end
   else
-    Html := 'FileName not specified.';
+  begin
+    LHtml := View.GetExpandedString('Controller/Html');
+    if LHtml = '' then
+      Html := 'FileName or Html parameters not specified.'
+    else
+      Html := LHtml;
+  end
 end;
 
 initialization
