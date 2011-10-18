@@ -24,6 +24,7 @@ type
     procedure CreateToolbar; virtual;
     procedure DoDisplay; override;
     procedure InitComponents; virtual;
+    procedure InitDefaults; override;
     property View: TKDataView read GetView;
     property ServerStore: TKViewTableStore read GetServerStore;
     property ViewTable: TKViewTable read FViewTable;
@@ -108,6 +109,12 @@ end;
 
 procedure TKExtDataPanelController.InitComponents;
 begin
+end;
+
+procedure TKExtDataPanelController.InitDefaults;
+begin
+  inherited;
+  Layout := lyBorder;
 end;
 
 procedure TKExtDataPanelController.InitServerStore;
