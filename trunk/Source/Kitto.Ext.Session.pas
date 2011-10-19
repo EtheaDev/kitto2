@@ -199,9 +199,9 @@ end;
 
 destructor TKExtSession.Destroy;
 begin
+  inherited;
   NilEFIntf(FHomeController);
   FreeAndNil(FEnvironment);
-  inherited;
 end;
 
 procedure TKExtSession.DisplayHomeView;

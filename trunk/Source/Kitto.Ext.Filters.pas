@@ -171,8 +171,15 @@ type
     function GetExpression: string;
   end;
 
-  ///	<summary>Similar to a ListFilter, but uses a set of buttons instead of a
-  ///	combo box.</summary>
+  ///	<summary>
+  ///	  <para>Similar to a ListFilter, but uses a set of buttons instead of a
+  ///	  combo box.</para>
+  ///	  <para>The difference is that several buttons can be pressed at once, in
+  ///	  which case their expressions are concatenated with a Connector (default
+  ///	  'or').</para>
+  ///	  <para>All filters with IsDefault set to True are renderd as initially
+  ///	  pressed buttons.</para>
+  ///	</summary>
 { TODO :
 Add parameter (or separate filter class) to allow several buttons
 pressed at the same time to generate a combined expression
@@ -181,7 +188,7 @@ through a connector. }
   private
     FConfig: TEFNode;
     FItems: TEFNode;
-    FActiveIndex: Integer;
+    FSelected: array of Boolean;
   public
     procedure SetConfig(const AConfig: TEFNode);
     function AsExtObject: TExtObject;
@@ -526,21 +533,33 @@ begin
 end;
 
 function TKButtonListFilter.GetExpression: string;
+var
+  I: Integer;
+  LConnector: string;
 begin
   Assert(Assigned(FItems));
 
-  if (FActiveIndex >= 0) and (FActiveIndex < FItems.ChildCount) then
-    Result := FItems.Children[FActiveIndex].GetExpandedString('Expression')
-  else
-    Result := '';
+  Result := '';
+  for I := 0 to High(FSelected) do
+  begin
+    LConnector := FConfig.GetString('Connector', 'or');
+    if FSelected[I] then
+    begin
+      if Result = '' then
+        Result := FItems.Children[I].GetExpandedString('Expression')
+      else
+        Result := Result + ' ' + LConnector + ' ' + FItems.Children[I].GetExpandedString('Expression');
+    end;
+  end;
+  if Result <> '' then
+    Result := '(' + Result + ')';
 end;
 
 procedure TKButtonListFilter.SetConfig(const AConfig: TEFNode);
 var
   I: Integer;
   LButton: TExtButton;
-  LDefaultFilter: TEFNode;
-  LGroupName: string;
+  //LGroupName: string;
 begin
   Assert(Assigned(AConfig));
 
@@ -551,21 +570,20 @@ begin
   Assert(Assigned(FItems));
 
   Layout := lyColumn;
-  LGroupName := IntToStr(Integer(Pointer(Self)));
+  //LGroupName := IntToStr(Integer(Pointer(Self)));
 
-  LDefaultFilter := GetDefaultFilter(FItems);
-
+  SetLength(FSelected, FItems.ChildCount);
   for I := 0 to FItems.ChildCount - 1 do
   begin
     LButton := TExtButton.AddTo(Items);
     LButton.Text := _(FItems.Children[I].AsString);
-    //LButton.OnClick := ButtonClick;
+    LButton.AllowDepress := True;
     LButton.EnableToggle := True;
-    LButton.ToggleGroup := LGroupName;
-    if FItems.Children[I] = LDefaultFilter then
+    //LButton.ToggleGroup := LGroupName;
+    if FItems.Children[I].GetBoolean('IsDefault') then
     begin
       LButton.Pressed_ := True;
-      FActiveIndex := I;
+      FSelected[I] := True;
     end;
 { TODO :
 In order to save a trip by calling the refresh code directly,
@@ -578,10 +596,7 @@ end;
 
 procedure TKButtonListFilter.ButtonClick;
 begin
-  if ParamAsBoolean('Pressed') then
-    FActiveIndex := ParamAsInteger('Index')
-  else
-    FActiveIndex := -1;
+  FSelected[ParamAsInteger('Index')] := ParamAsBoolean('Pressed');
   NotifyObservers('FilterChanged');
 end;
 
