@@ -5,7 +5,7 @@ unit Kitto.Environment;
 interface
 
 uses
-  Generics.Collections,
+  SysUtils, Generics.Collections,
   EF.Macros, EF.Classes,  EF.DB, EF.Environment, EF.Tree,
   Kitto.Auth, Kitto.AccessControl, Kitto.Metadata, Kitto.Metadata.Models,
   Kitto.Metadata.Views;
@@ -26,6 +26,8 @@ type
     FMacroExpander: TEFMacroExpander;
     FAuthenticator: TKAuthenticator;
     FAC: TKAccessController;
+    FUserFormatSettings: TFormatSettings;
+    FJSFormatSettings: TFormatSettings;
     const MAIN_DB_NAME = 'Main';
     function GetAC: TKAccessController;
     function GetDBConnection(const ADatabaseName: string): TEFDBConnection;
@@ -160,6 +162,9 @@ type
       line argument or the executable directory.
     }
     function GetAppHomePath: string;
+
+    property JSFormatSettings: TFormatSettings read FJSFormatSettings;
+    property UserFormatSettings: TFormatSettings read FUserFormatSettings;
   end;
   TKEnvironmentClass = class of TKEnvironment;
 
@@ -205,8 +210,8 @@ type
 implementation
 
 uses
-  SysUtils, Variants, StrUtils,
-  EF.Intf, EF.SysUtils, EF.StrUtils, EF.Localization, EF.Types,
+  Variants, StrUtils,
+  EF.Intf, EF.SysUtils, EF.StrUtils, EF.Localization, EF.Types, EF.YAML,
   Kitto.Types;
 
 var
@@ -265,6 +270,18 @@ var
   LLanguageId: string;
 begin
   inherited;
+  { TODO : read default user format settings from config and allow to change them on a per-user basis. }
+  FUserFormatSettings := TFormatSettings.Create;
+  FUserFormatSettings.ShortTimeFormat := 'hh:mm:ss';
+
+  FJSFormatSettings := TFormatSettings.Create;
+  FJSFormatSettings := TFormatSettings.Create;
+  FJSFormatSettings.DecimalSeparator := '.';
+  FJSFormatSettings.ShortDateFormat := 'yyyy/mm/dd';
+  FJSFormatSettings.ShortTimeFormat := 'hh:mm:ss';
+
+  TEFYAMLReader.FormatSettings := FJSFormatSettings;
+
   // Don't store interface reference to prevent the compiler from calling
   // _Release upon (or after) destruction.
   FDBConnections := TDictionary<string, TEFDBConnection>.Create;

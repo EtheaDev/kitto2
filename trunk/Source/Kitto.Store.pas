@@ -720,12 +720,12 @@ begin
   begin
     case DataType of
       edtUnknown, edtString, edtObject, edtInteger: Result := AsString;
-      edtDate: Result := DateToStr(AsDate, Session.JSFormatSettings);
-      edtTime: Result := TimeToStr(AsTime, Session.JSFormatSettings);
-      edtDateTime: Result := DateTimeToStr(AsDateTime, Session.JSFormatSettings);
+      edtDate: Result := DateToStr(AsDate, Environment.JSFormatSettings);
+      edtTime: Result := TimeToStr(AsTime, Environment.JSFormatSettings);
+      edtDateTime: Result := DateTimeToStr(AsDateTime, Environment.JSFormatSettings);
       edtBoolean: Result := BoolToStr(AsBoolean, True);
-      edtCurrency: Result := FormatCurr(',0.00', AsCurrency, Session.JSFormatSettings);
-      edtFloat, edtDecimal: Result := FormatFloat(',0.00', AsFloat, Session.JSFormatSettings);
+      edtCurrency: Result := FormatCurr(',0.00', AsCurrency, Environment.JSFormatSettings);
+      edtFloat, edtDecimal: Result := FormatFloat(',0.00', AsFloat, Environment.JSFormatSettings);
     end;
     Result := '"' + Result + '"';
   end;
@@ -748,45 +748,8 @@ begin
 end;
 
 procedure TKField.SetAsJSONValue(const AValue: string);
-var
-  LDateTime: TDateTime;
-  LBoolean: Boolean;
-  LDouble: Double;
-  LInteger: Integer;
 begin
-  if DataType = edtUnknown then
-  begin
-    if TryStrToDateTime(AValue, LDateTime, Session.UserFormatSettings) then
-      AsDateTime := LDateTime
-    else if TryStrToDate(AValue, LDateTime, Session.UserFormatSettings) then
-      AsDate := LDateTime
-    else if TryStrToTime(AValue, LDateTime, Session.UserFormatSettings) then
-      AsTime := LDateTime
-    else if TryStrToBool(AValue, LBoolean) then
-      AsBoolean := LBoolean
-    else if TryStrToInt(AValue, LInteger) then
-      AsInteger := LInteger
-    else if TryStrToFloat(AValue, LDouble, Session.UserFormatSettings) then
-      AsFloat := LDouble
-    else
-      AsString := AValue;
-  end
-  else
-  begin
-    case DataType of
-      edtString: AsString := AValue;
-      edtInteger: AsInteger := StrToInt(AValue);
-      edtDate: AsDate := StrToDate(AValue, Session.UserFormatSettings);
-      edtTime: AsTime := StrToTime(AValue, Session.UserFormatSettings);
-      edtDateTime: AsDateTime := StrToDateTime(AValue, Session.UserFormatSettings);
-      edtBoolean: AsBoolean := StrToBool(AValue);
-      edtCurrency: AsCurrency := StrToCurr(AValue, Session.UserFormatSettings);
-      edtFloat: AsFloat := StrToFloat(AValue, Session.UserFormatSettings);
-      edtDecimal: AsDecimal := StrToBcd(AValue, Session.UserFormatSettings);
-      edtObject: raise EKError.CreateFmt('SetAsJSONValue: Unsupported value %s for data type %s.',
-        [AValue, EFDataTypeToString(DataType)]);
-    end;
-  end;
+  SetAsYamlValue(AValue, Environment.UserFormatSettings);
 end;
 
 procedure TKField.SetValue(const AValue: Variant);

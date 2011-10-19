@@ -6,7 +6,7 @@ unit EF.YAML;
 interface
 
 uses
-  Classes, Generics.Collections,
+  SysUtils, Classes, Generics.Collections,
   EF.Tree;
 
 type
@@ -33,10 +33,12 @@ type
   TEFYAMLReader = class
   private
     FParser: TEFYAMLParser;
+    class var FFormatSettings: TFormatSettings;
     function GetParser: TEFYAMLParser;
   public
     destructor Destroy; override;
     property Parser: TEFYAMLParser read GetParser;
+    class property FormatSettings: TFormatSettings read FFormatSettings write FFormatSettings;
   public
     procedure LoadTreeFromFile(const ATree: TEFTree; const AFileName: string);
     procedure LoadTreeFromStream(const ATree: TEFTree; const AStream: TStream);
@@ -59,7 +61,6 @@ type
 implementation
 
 uses
-  SysUtils,
   EF.Types, EF.StrUtils;
 
 { TEFYAMLParser }
@@ -244,7 +245,7 @@ begin
           else
             LTop := LStack.Peek;
           case Parser.LastValueType of
-            vtSingleLine: LStack.Push(LTop.AddChild(LName, LRawValue));
+            vtSingleLine: LStack.Push(LTop.AddChild(LName).SetAsYamlValue(LRawValue, FFormatSettings));
             vtMultiLineWithNL:
             begin
               LCurrentValue := (LTop as TEFNode).AsString;

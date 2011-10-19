@@ -353,19 +353,19 @@ var
         edtDate:
         begin
           Result := TExtGridDateColumn.AddTo(FGridPanel.Columns);
-          TExtGridDateColumn(Result).Format := DelphiDateFormatToJSDateFormat(Session.UserFormatSettings.ShortDateFormat);
+          TExtGridDateColumn(Result).Format := DelphiDateFormatToJSDateFormat(Environment.UserFormatSettings.ShortDateFormat);
         end;
         edtTime:
         begin
           Result := TExtGridDateColumn.AddTo(FGridPanel.Columns);
-          TExtGridDateColumn(Result).Format := DelphiDateFormatToJSDateFormat(Session.UserFormatSettings.ShortTimeFormat);
+          TExtGridDateColumn(Result).Format := DelphiDateFormatToJSDateFormat(Environment.UserFormatSettings.ShortTimeFormat);
         end;
         edtDateTime:
         begin
           Result := TExtGridDateColumn.AddTo(FGridPanel.Columns);
           TExtGridDateColumn(Result).Format :=
-            DelphiDateFormatToJSDateFormat(Session.UserFormatSettings.ShortDateFormat) + ' ' +
-            DelphiTimeFormatToJSTimeFormat(Session.UserFormatSettings.ShortTimeFormat);
+            DelphiDateFormatToJSDateFormat(Environment.UserFormatSettings.ShortDateFormat) + ' ' +
+            DelphiTimeFormatToJSTimeFormat(Environment.UserFormatSettings.ShortTimeFormat);
         end;
         edtInteger:
         begin
@@ -375,12 +375,12 @@ var
         edtFloat, edtDecimal:
         begin
           Result := TExtGridNumberColumn.AddTo(FGridPanel.Columns);
-          TExtGridNumberColumn(Result).Format := Session.AdaptExtNumberFormat('0.00');
+          TExtGridNumberColumn(Result).Format := AdaptExtNumberFormat('0.00', Environment.UserFormatSettings);
         end;
         edtCurrency:
         begin
           Result := TExtGridNumberColumn.AddTo(FGridPanel.Columns);
-          TExtGridNumberColumn(Result).Format := Session.AdaptExtNumberFormat('0,0.00');
+          TExtGridNumberColumn(Result).Format := AdaptExtNumberFormat('0,0.00', Environment.UserFormatSettings);
         end;
       else
         Result := TExtGridColumn.AddTo(FGridPanel.Columns);
