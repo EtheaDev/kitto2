@@ -14,10 +14,8 @@ type
   private
     FHomeController: IKExtController;
     FEnvironment: TKEnvironment;
-    FUserFormatSettings: TFormatSettings;
     FLoginWindow: TKExtLoginWindow;
     FViewHost: TExtTabPanel;
-    FJSFormatSettings: TFormatSettings;
     FStatusHost: TKExtStatusBar;
     function GetEnvironment: TKEnvironment;
     procedure LoadLibraries;
@@ -68,15 +66,6 @@ type
     // Test
     function GetGCObjectCount: Integer;
 
-    property JSFormatSettings: TFormatSettings read FJSFormatSettings;
-    property UserFormatSettings: TFormatSettings read FUserFormatSettings;
-
-    ///	<summary>Adapts a standard number format string (with , ad thousand
-    ///	separator and . as decimal separator) according to the
-    ///	FormatSettings.</summary>
-    function AdaptExtNumberFormat(const AFormat: string): string;
-
-
     type TSessionKeyTranslator = reference to function(const AName: string): string;
     ///	<summary>
     ///	  <para>Tries to read from the session a value for each child node of
@@ -115,24 +104,6 @@ end;
 function Session: TKExtSession;
 begin
   Result := TKExtSession(CurrentWebSession);
-end;
-
-function TKExtSession.AdaptExtNumberFormat(const AFormat: string): string;
-var
-  I: Integer;
-begin
-  Result := AFormat;
-  if UserFormatSettings.DecimalSeparator = ',' then
-  begin
-    for I := 1 to Length(Result) do
-    begin
-      if Result[I] = '.' then
-        Result[I] := ','
-      else if Result[I] = ',' then
-        Result[I] := '.';
-    end;
-    Result := Result + '/i';
-  end;
 end;
 
 procedure TKExtSession.AfterConstruction;
@@ -181,15 +152,15 @@ var
     if AExpectJSFormat then
       Result := JSDateToDateTime(Session.Query[LName])
     else
-      Result := StrToDateTime(Session.Query[LName], UserFormatSettings);
+      Result := StrToDateTime(Session.Query[LName], Environment.UserFormatSettings);
   end;
 
   function GetFloat: Double;
   begin
     if AExpectJSFormat then
-      Result := StrToFloat(Session.Query[LName], JSFormatSettings)
+      Result := StrToFloat(Session.Query[LName], Environment.JSFormatSettings)
     else
-      Result := StrToFloat(Session.Query[LName], UserFormatSettings);
+      Result := StrToFloat(Session.Query[LName], Environment.UserFormatSettings);
   end;
 
   function Translate(const AName: string): string;
@@ -347,16 +318,6 @@ begin
   LLanguageId := Environment.Config.GetString('LanguageId');
   if LLanguageId <> '' then
     Language := LLanguageId;
-  FUserFormatSettings := TFormatSettings.Create;
-  FUserFormatSettings.ShortTimeFormat := 'hh:mm:ss';
-  { TODO : read default format settings from environment and allow to change them on a per-user basis. }
-
-  FJSFormatSettings := TFormatSettings.Create;
-  FJSFormatSettings := TFormatSettings.Create;
-  FJSFormatSettings.DecimalSeparator := '.';
-  FJSFormatSettings.ShortDateFormat := 'yyyy/mm/dd';
-  FJSFormatSettings.ShortTimeFormat := 'hh:mm:ss';
-
   Theme := Environment.Config.GetString('Ext/Theme');
 end;
 

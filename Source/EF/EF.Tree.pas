@@ -242,6 +242,16 @@ type
     property AsFloat: Double read GetAsFloat write SetAsFloat;
     property AsDecimal: TBcd read GetAsDecimal write SetAsDecimal;
 
+    ///	<summary>Parses AValue trying to guess its data type and sets Value and
+    ///	DataType accordingly.</summary>
+    ///	<param name="AValue">Value to parse, usually read from a Yaml
+    ///	stream.</param>
+    ///	<param name="AFormatSettings">Format settings to use to parse the
+    ///	value. You can use Session.UserFormatSettings, or
+    ///	Session.JSFormatSettings, or custom settings.</param>
+    ///	<returns>Returns Self to allow for fluent calls.</returns>
+    function SetAsYamlValue(const AValue: string; const AFormatSettings: TFormatSettings): TEFNode;
+
     property IsNull: Boolean read GetIsNull;
     procedure SetToNull;
     function EqualsNode(const ANode: TEFNode): Boolean;
@@ -677,6 +687,49 @@ procedure TEFNode.SetAsTime(const AValue: TTime);
 begin
   FValue := TimeToValue(AValue);
   FDataType := edtTime;
+end;
+
+function TEFNode.SetAsYamlValue(const AValue: string; const AFormatSettings: TFormatSettings): TEFNode;
+var
+  LDateTime: TDateTime;
+  LBoolean: Boolean;
+  LDouble: Double;
+  LInteger: Integer;
+begin
+  if DataType = edtUnknown then
+  begin
+    if TryStrToInt(AValue, LInteger) then
+      AsInteger := LInteger
+    else if TryStrToFloat(AValue, LDouble, AFormatSettings) then
+      AsFloat := LDouble
+    else if TryStrToDateTime(AValue, LDateTime, AFormatSettings) then
+      AsDateTime := LDateTime
+    else if TryStrToDate(AValue, LDateTime, AFormatSettings) then
+      AsDate := LDateTime
+    else if TryStrToTime(AValue, LDateTime, AFormatSettings) then
+      AsTime := LDateTime
+    else if TryStrToBool(AValue, LBoolean) then
+      AsBoolean := LBoolean
+    else
+      AsString := AValue;
+  end
+  else
+  begin
+    case DataType of
+      edtString: AsString := AValue;
+      edtInteger: AsInteger := StrToInt(AValue);
+      edtDate: AsDate := StrToDate(AValue, AFormatSettings);
+      edtTime: AsTime := StrToTime(AValue, AFormatSettings);
+      edtDateTime: AsDateTime := StrToDateTime(AValue, AFormatSettings);
+      edtBoolean: AsBoolean := StrToBool(AValue);
+      edtCurrency: AsCurrency := StrToCurr(AValue, AFormatSettings);
+      edtFloat: AsFloat := StrToFloat(AValue, AFormatSettings);
+      edtDecimal: AsDecimal := StrToBcd(AValue, AFormatSettings);
+      edtObject: raise EEFError.CreateFmt('Invalid value %s for data type %s.',
+        [AValue, EFDataTypeToString(DataType)]);
+    end;
+  end;
+  Result := Self;
 end;
 
 procedure TEFNode.SetDataType(const AValue: TEFDataType);

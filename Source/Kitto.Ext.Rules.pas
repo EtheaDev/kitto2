@@ -78,7 +78,7 @@ type
   ///	<summary>Enforces a maximum character length for fields. Can be used as a
   ///	field-level rule.</summary>
   ///	<example>
-  ///	  <code lang="Delphi">
+  ///	  <code>
   ///	Rules:
   ///	  # Limit input in memo field.
   ///	  Maxlength: 400

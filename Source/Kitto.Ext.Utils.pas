@@ -3,6 +3,7 @@ unit Kitto.Ext.Utils;
 interface
 
 uses
+  SysUtils,
   Ext, ExtPascal, ExtPascalUtils, ExtMenu, ExtTree,
   EF.ObserverIntf, EF.Tree,
   Kitto.Ext.Controller, Kitto.Metadata.Views;
@@ -72,10 +73,15 @@ type
 function DelphiDateFormatToJSDateFormat(const ADateFormat: string): string;
 function DelphiTimeFormatToJSTimeFormat(const ATimeFormat: string): string;
 
+///	<summary>Adapts a standard number format string (with , as thousand
+///	separator and . as decimal separator) according to the
+///	specificed format settings for displaying to the user.</summary>
+function AdaptExtNumberFormat(const AFormat: string; const AFormatSettings: TFormatSettings): string;
+
 implementation
 
 uses
-  SysUtils, StrUtils, HTTPApp,
+  StrUtils, HTTPApp,
   EF.SysUtils, EF.Classes, EF.Localization,
   Kitto.Environment, Kitto.AccessControl, Kitto.Ext.Session, Kitto.Ext.Base;
 
@@ -300,6 +306,24 @@ begin
   Result := ReplaceText(ATimeFormat, 'hh', 'H');
   Result := ReplaceText(Result, 'mm', 'i');
   Result := ReplaceText(Result, 'ss', 's');
+end;
+
+function AdaptExtNumberFormat(const AFormat: string; const AFormatSettings: TFormatSettings): string;
+var
+  I: Integer;
+begin
+  Result := AFormat;
+  if AFormatSettings.DecimalSeparator = ',' then
+  begin
+    for I := 1 to Length(Result) do
+    begin
+      if Result[I] = '.' then
+        Result[I] := ','
+      else if Result[I] = ',' then
+        Result[I] := '.';
+    end;
+    Result := Result + '/i';
+  end;
 end;
 
 { TKExtTreeTreeNode }

@@ -319,9 +319,6 @@ const
   }
   MULTILINE_EDIT_THRESHOLD = 200;
 
-var
-  _JSFormatSettings: TFormatSettings;
-
 procedure InvalidOption(const AName, AValue: string);
 begin
   raise EEFError.CreateFmt(_('Unknown or misplaced option %s: %s.'), [AName, AValue]);
@@ -330,7 +327,7 @@ end;
 function OptionAsFloat(const AOptionValue: string): Double;
 begin
   // Floats in Yaml always use the dot as decimal separator.
-  if not TryStrToFloat(AOptionValue, Result, _JSFormatSettings) then
+  if not TryStrToFloat(AOptionValue, Result, Environment.JSFormatSettings) then
     raise EEFError.CreateFmt(_('Invalid value %s. Valid values: decimal numbers.'), [AOptionValue]);
 end;
 
@@ -660,8 +657,8 @@ begin
         LDateField.Width := LDateField.CharsToPixels(AFieldWidth + TRIGGER_WIDTH)
       else
         ARowField.CharWidth := AFieldWidth + TRIGGER_WIDTH;
-      LDateField.Format := DelphiDateFormatToJSDateFormat(Session.UserFormatSettings.ShortDateFormat);
-      LDateField.AltFormats := DelphiDateFormatToJSDateFormat(Session.JSFormatSettings.ShortDateFormat);
+      LDateField.Format := DelphiDateFormatToJSDateFormat(Environment.UserFormatSettings.ShortDateFormat);
+      LDateField.AltFormats := DelphiDateFormatToJSDateFormat(Environment.JSFormatSettings.ShortDateFormat);
       if not AIsReadOnly then
         LDateField.AllowBlank := not AViewField.IsRequired;
       Result := LDateField;
@@ -689,7 +686,7 @@ begin
       else
         ARowField.CharWidth := AFieldWidth + TRIGGER_WIDTH;
       // Don't use Delphi format here.
-      LTimeField.Format := DelphiTimeFormatToJSTimeFormat(Session.UserFormatSettings.ShortTimeFormat);
+      LTimeField.Format := DelphiTimeFormatToJSTimeFormat(Environment.UserFormatSettings.ShortTimeFormat);
       if not AIsReadOnly then
         LTimeField.AllowBlank := not AViewField.IsRequired;
       Result := LTimeField;
@@ -719,9 +716,9 @@ begin
       else
         ARowField.CharWidth := AFieldWidth + (2 * TRIGGER_WIDTH) + SPACER_WIDTH;
       // Don't use Delphi format here.
-      LDateTimeField.DateFormat := DelphiDateFormatToJSDateFormat(Session.UserFormatSettings.ShortDateFormat);
-      LDateTimeField.AltFormats := DelphiDateFormatToJSDateFormat(Session.JSFormatSettings.ShortDateFormat);
-      LDateTimeField.TimeFormat := DelphiTimeFormatToJSTimeFormat(Session.UserFormatSettings.ShortTimeFormat);
+      LDateTimeField.DateFormat := DelphiDateFormatToJSDateFormat(Environment.UserFormatSettings.ShortDateFormat);
+      LDateTimeField.AltFormats := DelphiDateFormatToJSDateFormat(Environment.JSFormatSettings.ShortDateFormat);
+      LDateTimeField.TimeFormat := DelphiTimeFormatToJSTimeFormat(Environment.UserFormatSettings.ShortTimeFormat);
       if not AIsReadOnly then
         LDateTimeField.AllowBlank := not AViewField.IsRequired;
 //      if not AIsReadOnly then
@@ -761,7 +758,7 @@ begin
       if not AIsReadOnly then
       begin
         LNumberField.AllowDecimals := AViewField.DataType in [edtCurrency, edtFloat, edtDecimal];
-        LNumberField.DecimalSeparator := Session.UserFormatSettings.DecimalSeparator;
+        LNumberField.DecimalSeparator := Environment.UserFormatSettings.DecimalSeparator;
         LNumberField.AllowNegative := True;
         if LNumberField.AllowDecimals then
           LNumberField.DecimalPrecision := AViewField.DecimalPrecision;
@@ -1598,9 +1595,5 @@ function TKExtFormTimeField._Release: Integer;
 begin
   Result := -1;
 end;
-
-initialization
-  _JSFormatSettings := TFormatSettings.Create;
-  _JSFormatSettings.DecimalSeparator := '.';
 
 end.
