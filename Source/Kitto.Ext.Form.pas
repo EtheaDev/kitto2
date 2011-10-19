@@ -188,7 +188,7 @@ begin
     Session.GetQueryValues(FStoreRecord, False,
       function(const AName: string): string
       begin
-        Result := ViewTable.FieldByName(AName).GetMinifiedName;
+        Result := ViewTable.FieldByAliasedName(AName).GetMinifiedName;
       end);
     ViewTable.ApplyRules(
       procedure (const ARuleImpl: TKRuleImpl)
@@ -202,6 +202,7 @@ begin
 
   if not ViewTable.IsDetail then
   begin
+    FStoreRecord.MarkAsDirty;
     FStoreRecord.Save(True);
     Session.Flash(_('Changes saved succesfully.'));
   end;

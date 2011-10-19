@@ -253,7 +253,7 @@ type
     function SetAsYamlValue(const AValue: string; const AFormatSettings: TFormatSettings): TEFNode;
 
     property IsNull: Boolean read GetIsNull;
-    procedure SetToNull;
+    procedure SetToNull; virtual;
     function EqualsNode(const ANode: TEFNode): Boolean;
     function EqualsValue(const AValue: Variant): Boolean;
 
@@ -614,48 +614,49 @@ end;
 
 procedure TEFNode.SetAsBoolean(const AValue: Boolean);
 begin
-  FValue := BooleanToValue(AValue);
+  Value := BooleanToValue(AValue);
+  FDataType := edtBoolean;
 end;
 
 procedure TEFNode.SetAsCurrency(const AValue: Currency);
 begin
-  FValue := CurrencyToValue(AValue);
+  Value := CurrencyToValue(AValue);
   FDataType := edtCurrency;
 end;
 
 procedure TEFNode.SetAsDate(const AValue: TDate);
 begin
-  FValue := DateToValue(AValue);
+  Value := DateToValue(AValue);
   FDataType := edtDate;
 end;
 
 procedure TEFNode.SetAsDateTime(const AValue: TDateTime);
 begin
-  FValue := DateTimeToValue(AValue);
+  Value := DateTimeToValue(AValue);
   FDataType := edtDateTime;
 end;
 
 procedure TEFNode.SetAsDecimal(const AValue: TBcd);
 begin
-  FValue := DecimalToValue(AValue);
+  Value := DecimalToValue(AValue);
   FDataType := edtDecimal;
 end;
 
 procedure TEFNode.SetAsFloat(const AValue: Double);
 begin
-  FValue := FloatToValue(AValue);
+  Value := FloatToValue(AValue);
   FDataType := edtFloat;
 end;
 
 procedure TEFNode.SetAsInteger(const AValue: Integer);
 begin
-  FValue := IntegerToValue(AValue);
+  Value := IntegerToValue(AValue);
   FDataType := edtInteger;
 end;
 
 procedure TEFNode.SetAsObject(const AValue: TObject);
 begin
-  FValue := ObjectToValue(AValue);
+  Value := ObjectToValue(AValue);
   FDataType := edtObject;
 end;
 
@@ -667,25 +668,25 @@ end;
 
 procedure TEFNode.SetAsPairs(const AValue: TEFPairs);
 begin
-  FValue := PairsToValue(AValue);
+  Value := PairsToValue(AValue);
   FDataType := edtString;
 end;
 
 procedure TEFNode.SetAsString(const AValue: string);
 begin
-  FValue := StringToValue(AValue);
+  Value := StringToValue(AValue);
   FDataType := edtString;
 end;
 
 procedure TEFNode.SetAsStringArray(const AValue: TStringDynArray);
 begin
-  FValue := StringArrayToValue(AValue);
+  Value := StringArrayToValue(AValue);
   FDataType := edtString;
 end;
 
 procedure TEFNode.SetAsTime(const AValue: TTime);
 begin
-  FValue := TimeToValue(AValue);
+  Value := TimeToValue(AValue);
   FDataType := edtTime;
 end;
 

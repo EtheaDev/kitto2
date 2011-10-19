@@ -43,6 +43,7 @@ type
     function GetName: string; override;
     procedure SetValue(const AValue: Variant); override;
   public
+    procedure SetToNull; override;
     property AsJSONValue: string read GetAsJSONValue write SetAsJSONValue;
     property ParentRecord: TKRecord read GetParentRecord;
 
@@ -59,6 +60,7 @@ type
   TKRecord = class(TEFNode)
   private
     FBackup: TEFNode;
+    { TODO : move state management in view table record }
     FState: TKRecordState;
     FDetailStores: TObjectList<TKStore>;
     function GetRecords: TKRecords;
@@ -69,6 +71,7 @@ type
     function GetDetailStoreCount: Integer;
     procedure EnsureDetailStores;
   protected
+    property State: TKRecordState read FState;
     function GetChildClass(const AName: string): TEFNodeClass; override;
 
     ///	<summary>Called by ReadFromNode after setting all values. Descendants
@@ -100,6 +103,7 @@ type
 
     procedure MarkAsDirty;
     procedure MarkAsDeleted;
+    procedure MarkAsClean;
 
     property DetailStoreCount: Integer read GetDetailStoreCount;
     property DetailStores[I: Integer]: TKStore read GetDetailsStore;
@@ -208,7 +212,7 @@ type
 implementation
 
 uses
-  Math, FmtBcd, Variants, StrUtils, TypInfo,
+  Math, FmtBcd, Variants, StrUtils,
   EF.StrUtils, EF.Localization, EF.DB.Utils,
   Kitto.Types, Kitto.SQL, Kitto.Environment, Kitto.Ext.Session;
 
@@ -571,6 +575,11 @@ begin
   Result := Parent as TKRecords;
 end;
 
+procedure TKRecord.MarkAsClean;
+begin
+  FState := rsClean;
+end;
+
 procedure TKRecord.MarkAsDeleted;
 begin
   if FState = rsNew then
@@ -652,42 +661,8 @@ end;
 
 procedure TKRecord.Save(const ADBConnection: TEFDBConnection;
   const AModel: TKModel; const AUseTransaction: Boolean);
-var
-  LDBCommand: TEFDBCommand;
-  LRowsAffected: Integer;
 begin
-  Assert(Assigned(ADBConnection));
-  Assert(Assigned(AModel));
 
-  if FState = rsClean then
-    Exit;
-
-  if AUseTransaction then
-    ADBConnection.StartTransaction;
-  try
-    LDBCommand := ADBConnection.CreateDBCommand;
-    try
-      case FState of
-        rsNew: TKSQLBuilder.BuildInsertCommand(AModel, LDBCommand, Self);
-        rsDirty: TKSQLBuilder.BuildUpdateCommand(AModel, LDBCommand, Self);
-        rsDeleted: TKSQLBuilder.BuildDeleteCommand(AModel, LDBCommand, Self);
-      else
-        raise EKError.CreateFmt('Unexpected record state %s.', [GetEnumName(TypeInfo(TKRecordState), Ord(FState))]);
-      end;
-      LRowsAffected := LDBCommand.Execute;
-      if LRowsAffected <> 1 then
-        raise EKError.CreateFmt('Update error. Rows affected: %d.', [LRowsAffected]);
-      if AUseTransaction then
-        ADBConnection.CommitTransaction;
-      FState := rsClean;
-    finally
-      FreeAndNil(LDBCommand);
-    end;
-  except
-    if AUseTransaction then
-      ADBConnection.RollbackTransaction;
-    raise;
-  end;
 end;
 
 { TKField }
@@ -750,6 +725,13 @@ end;
 procedure TKField.SetAsJSONValue(const AValue: string);
 begin
   SetAsYamlValue(AValue, Environment.UserFormatSettings);
+end;
+
+procedure TKField.SetToNull;
+begin
+  if not VarIsNull(Value) then
+    ParentRecord.MarkAsDirty;
+  inherited;
 end;
 
 procedure TKField.SetValue(const AValue: Variant);
