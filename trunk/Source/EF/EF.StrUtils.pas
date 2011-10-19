@@ -246,12 +246,9 @@ function SmartConcat(const ATerm1, AConcatString, ATerm2: string): string;
 }
 function FirstDifferent(const AValues: array of string; const AValue: string): string;
 
-{
-  Returns the MD5 hash of AString, encoded as a sequence of hex values.
-  The resulting string holds 32 hex digits, corresponding to 16 bytes.
-  This function is publicly available so that custom descendants of
-  TEFDBAuthenticator can still use MD5 hashing to handle passwords.
-}
+///	<summary>Returns the MD5 hash of AString, encoded as a sequence of
+///	lower-case hex values. The resulting string holds 32 hex digits,
+///	corresponding to 16 bytes.</summary>
 function GetStringHash(const AString: string): string;
 
 {
@@ -270,7 +267,7 @@ implementation
 
 uses
   SysUtils, StrUtils,
-  uMd5;
+  IdHashMessageDigest, IdHash;
 
 function RightPos(const ASubString, AString: string): Integer;
 var
@@ -708,26 +705,19 @@ begin
   Result := ReplaceStr(AString, #9, StringOfChar(' ', ASpacesPerTab));
 end;
 
-const
-  HEX_DIGITS_PER_BYTE = 2;
-
 function GetStringHash(const AString: string): string;
 var
-  LMd5Stream: TMd5Stream;
-  LDigest: TMd5Digest;
+  LHash: TIdHashMessageDigest5;
 begin
   if AString = '' then
     Result := ''
   else
   begin
-    LMd5Stream := TMd5Stream.Create;
+    LHash := TIdHashMessageDigest5.Create;
     try
-      LMd5Stream.Write(AString[1], Length(AString));
-      LDigest := LMd5Stream.Digest;
-      SetLength(Result, SizeOf(LDigest) * HEX_DIGITS_PER_BYTE);
-      BinToHex(PChar(@LDigest[0]), PChar(Result), SizeOf(LDigest));
+      Result := LowerCase(LHash.HashStringAsHex(AString));
     finally
-      LMd5Stream.Free;
+      FreeAndNil(LHash);
     end;
   end;
 end;
