@@ -534,7 +534,8 @@ begin
     if Assigned(LReference) then
     begin
       Result := TKSQLBuilder.GetLookupSelectStatement(AViewField);
-      Result := AddToSQLWhereClause(Result, AViewField.ModelField.FieldName + ' like ''{query}%''');
+      if AViewField.Model.IsLarge then
+        Result := AddToSQLWhereClause(Result, AViewField.ModelField.FieldName + ' like ''{query}%''');
     end;
   end;
 end;

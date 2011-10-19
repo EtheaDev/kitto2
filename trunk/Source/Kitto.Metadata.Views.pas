@@ -70,6 +70,7 @@ type
     function GetAllowedValues: TEFPairs;
     function GetRules: TKRules;
     function GetDecimalPrecision: Integer;
+    function GetFieldNameForUpdate: string;
   protected
     function GetChildClass(const AName: string): TEFNodeClass; override;
   public
@@ -87,6 +88,12 @@ type
     ///	<summary>If the view field is referenced, returns its reference,
     ///	otherwise returns nil.</summary>
     property Reference: TKModelReference read GetReference;
+
+    ///	<summary>If the field is referenced, returns the name of the first key
+    ///	field in the reference, otherwise returns the FieldName.</summary>
+    ///	<exception cref="EKError">The field is referenced and the reference has
+    ///	more than one key field.</exception>
+    property FieldNameForUpdate: string read GetFieldNameForUpdate;
 
     ///	<summary>
     ///	  Extract and returns the model name from the Name. If no model name is
@@ -474,7 +481,7 @@ type
 implementation
 
 uses
-  SysUtils, StrUtils, Variants,
+  SysUtils, StrUtils, Variants, TypInfo,
   EF.DB, EF.StrUtils,
   Kitto.Types, Kitto.Environment, Kitto.SQL;
 
@@ -1263,6 +1270,18 @@ begin
     raise EKError.CreateFmt('Couldn''t determine field name for field %s.', [Name]);
 end;
 
+function TKViewField.GetFieldNameForUpdate: string;
+begin
+  if Reference <> nil then
+  begin
+    if Reference.FieldCount <> 1 then
+      raise EKError.CreateFmt('Found zero or more than one key field in reference %s. Cannot set lookup value.', [Reference.ReferenceName]);
+    Result := Reference.Fields[0].FieldName
+  end
+  else
+    Result := FieldName;
+end;
+
 function TKViewField.GetIsVisible: Boolean;
 begin
   Result := GetBoolean('IsVisible', True);
@@ -1583,8 +1602,39 @@ begin
 end;
 
 procedure TKViewTableRecord.Save(const AUseTransaction: Boolean);
+var
+  LDBCommand: TEFDBCommand;
+  LRowsAffected: Integer;
 begin
-  inherited Save(Environment.MainDBConnection, Records.Store.ViewTable.Model, AUseTransaction);
+  if State = rsClean then
+    Exit;
+
+  if AUseTransaction then
+    Environment.MainDBConnection.StartTransaction;
+  try
+    LDBCommand := Environment.MainDBConnection.CreateDBCommand;
+    try
+      case State of
+        rsNew: TKSQLBuilder.BuildInsertCommand(Records.Store.ViewTable, LDBCommand, Self);
+        rsDirty: TKSQLBuilder.BuildUpdateCommand(Records.Store.ViewTable, LDBCommand, Self);
+        rsDeleted: TKSQLBuilder.BuildDeleteCommand(Records.Store.ViewTable, LDBCommand, Self);
+      else
+        raise EKError.CreateFmt('Unexpected record state %s.', [GetEnumName(TypeInfo(TKRecordState), Ord(State))]);
+      end;
+      LRowsAffected := LDBCommand.Execute;
+      if LRowsAffected <> 1 then
+        raise EKError.CreateFmt('Update error. Rows affected: %d.', [LRowsAffected]);
+      if AUseTransaction then
+        Environment.MainDBConnection.CommitTransaction;
+      MarkAsClean;
+    finally
+      FreeAndNil(LDBCommand);
+    end;
+  except
+    if AUseTransaction then
+      Environment.MainDBConnection.RollbackTransaction;
+    raise;
+  end;
 end;
 
 procedure TKViewTableRecord.SetDetailFieldValues(

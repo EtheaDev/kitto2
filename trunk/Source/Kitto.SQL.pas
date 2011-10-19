@@ -66,7 +66,7 @@ type
     ///	the specified model's table with a parameter for each value in AValues.
     ///	Also sets the parameter values, so that the command is ready for
     ///	execution.</summary>
-    class procedure BuildInsertCommand(const AModel: TKModel;
+    class procedure BuildInsertCommand(const AViewTable: TKViewTable;
       const ADBCommand: TEFDBCommand; const AValues: TEFNode);
 
     ///	<summary>Builds in the specified command an update statement against
@@ -74,7 +74,7 @@ type
     /// plus a where clause with a parameter for each key field.
     ///	Also sets the parameter values, so that the command is ready for
     ///	execution. AValues must contain at least the key fields.</summary>
-    class procedure BuildUpdateCommand(const AModel: TKModel;
+    class procedure BuildUpdateCommand(const AViewTable: TKViewTable;
       const ADBCommand: TEFDBCommand; const AValues: TEFNode);
 
     ///	<summary>Builds in the specified command a delete statement against
@@ -82,7 +82,7 @@ type
     /// each key field.
     ///	Also sets the parameter values, so that the command is ready for
     ///	execution. AValues must contain at least the key fields.</summary>
-    class procedure BuildDeleteCommand(const AModel: TKModel;
+    class procedure BuildDeleteCommand(const AViewTable: TKViewTable;
       const ADBCommand: TEFDBCommand; const AValues: TEFNode);
   end;
 
@@ -126,13 +126,16 @@ begin
   end;
 end;
 
-class procedure TKSQLBuilder.BuildInsertCommand(const AModel: TKModel;
+class procedure TKSQLBuilder.BuildInsertCommand(const AViewTable: TKViewTable;
   const ADBCommand: TEFDBCommand; const AValues: TEFNode);
 var
   LCommandText: string;
   I: Integer;
+  LViewField: TKViewField;
+  LFieldNames: string;
+  LValueNames: string;
 begin
-  Assert(Assigned(AModel));
+  Assert(Assigned(AViewTable));
   Assert(Assigned(ADBCommand));
   Assert(Assigned(AValues));
 
@@ -141,38 +144,47 @@ begin
   ADBCommand.Params.BeginUpdate;
   try
     ADBCommand.Params.Clear;
-    LCommandText := 'insert into ' + AModel.ModelName + ' (';
+    LCommandText := 'insert into ' + AViewTable.ModelName + ' (';
+    LFieldNames := '';
+    LValueNames := '';
     for I := 0 to AValues.ChildCount - 1 do
     begin
-      if I > 0 then
-        LCommandText := LCommandText + ', ';
-      LCommandText := LCommandText + AValues[I].Name;
+      LViewField := AViewTable.FieldByAliasedName(AValues[I].Name);
+      if LViewField.Model = AViewTable.Model then
+      begin
+        if LFieldNames = '' then
+        begin
+          LFieldNames := LViewField.FieldNameForUpdate;
+          LValueNames := ':' + AValues[I].Name;
+        end
+        else
+        begin
+          LFieldNames := LFieldNames + ', ' + LViewField.FieldNameForUpdate;
+          LValueNames := LValueNames + ', :' + AValues[I].Name;
+        end;
+        ADBCommand.Params.CreateParam(ftUnknown, AValues[I].Name, ptInput);
+      end;
     end;
-    LCommandText := LCommandText + ') values (';
-    for I := 0 to AValues.ChildCount - 1 do
-    begin
-      if I > 0 then
-        LCommandText := LCommandText + ', ';
-      LCommandText := LCommandText + ':' + AValues[I].Name;
-      ADBCommand.Params.CreateParam(ftUnknown, AValues[I].Name, ptInput);
-    end;
-    LCommandText := LCommandText + ')';
+    LCommandText := LCommandText + LFieldNames + ') values (' + LValueNames + ')';
     ADBCommand.CommandText := LCommandText;
   finally
     ADBCommand.Params.EndUpdate;
   end;
-  for I := 0 to AValues.ChildCount - 1 do
-    AssignEFNodeValueToParam(AValues[I], ADBCommand.Params[I]);
+  for I := 0 to ADBCommand.Params.Count - 1 do
+    AssignEFNodeValueToParam(AValues.GetNode(ADBCommand.Params[I].Name), ADBCommand.Params[I]);
 end;
 
-class procedure TKSQLBuilder.BuildUpdateCommand(const AModel: TKModel;
+class procedure TKSQLBuilder.BuildUpdateCommand(const AViewTable: TKViewTable;
   const ADBCommand: TEFDBCommand; const AValues: TEFNode);
 var
   LCommandText: string;
   I: Integer;
   LKeyFields: TStringDynArray;
+  LViewField: TKViewField;
+  LFieldNames: string;
+  LParamName: string;
 begin
-  Assert(Assigned(AModel));
+  Assert(Assigned(AViewTable));
   Assert(Assigned(ADBCommand));
   Assert(Assigned(AValues));
 
@@ -181,42 +193,46 @@ begin
   ADBCommand.Params.BeginUpdate;
   try
     ADBCommand.Params.Clear;
-    LCommandText := 'update ' + AModel.ModelName + ' set ';
+    LCommandText := 'update ' + AViewTable.ModelName + ' set ';
+    LFieldNames := '';
     for I := 0 to AValues.ChildCount - 1 do
     begin
-      if I > 0 then
-        LCommandText := LCommandText + ', ';
-      LCommandText := LCommandText + AValues[I].Name + ' = :' + AValues[I].Name;
-      ADBCommand.Params.CreateParam(ftUnknown, AValues[I].Name, ptInput);
+      LViewField := AViewTable.FieldByAliasedName(AValues[I].Name);
+      begin
+        if LFieldNames = '' then
+          LFieldNames := LViewField.FieldNameForUpdate + ' = :' + AValues[I].Name
+        else
+          LFieldNames := LFieldNames + ', ' + LViewField.FieldNameForUpdate + ' = :' + AValues[I].Name;
+        ADBCommand.Params.CreateParam(ftUnknown, AValues[I].Name, ptInput);
+      end;
     end;
-    LCommandText := LCommandText + ' where ';
-    LKeyFields := AModel.GetKeyFieldNames;
+    LCommandText := LCommandText + LFieldNames + ' where ';
+    LKeyFields := AViewTable.Model.GetKeyFieldNames;
     for I := 0 to Length(LKeyFields) - 1 do
     begin
+      LParamName := AViewTable.FieldByName(LKeyFields[I]).AliasedName;
       if I > 0 then
         LCommandText := LCommandText + ' and ';
-      LCommandText := LCommandText + LKeyFields[I] + ' = :P_KEY' + IntToStr(I);
-      ADBCommand.Params.CreateParam(ftUnknown, 'P_KEY' + IntToStr(I), ptInput);
+      LCommandText := LCommandText + LKeyFields[I] + ' = :' + LParamName;
+      ADBCommand.Params.CreateParam(ftUnknown, LParamName, ptInput);
     end;
     ADBCommand.CommandText := LCommandText;
   finally
     ADBCommand.Params.EndUpdate;
   end;
-  for I := 0 to AValues.ChildCount - 1 do
-    AssignEFNodeValueToParam(AValues[I], ADBCommand.Params[I]);
-  for I := 0 to Length(LKeyFields) - 1 do
-    AssignEFNodeValueToParam(AValues.GetNode(LKeyFields[I]),
-      ADBCommand.Params.ParamByName('P_KEY' + IntToStr(I)));
+  for I := 0 to ADBCommand.Params.Count - 1 do
+    AssignEFNodeValueToParam(AValues.GetNode(ADBCommand.Params[I].Name), ADBCommand.Params[I]);
 end;
 
-class procedure TKSQLBuilder.BuildDeleteCommand(const AModel: TKModel;
+class procedure TKSQLBuilder.BuildDeleteCommand(const AViewTable: TKViewTable;
   const ADBCommand: TEFDBCommand; const AValues: TEFNode);
 var
   LCommandText: string;
   I: Integer;
   LKeyFields: TStringDynArray;
+  LParamName: string;
 begin
-  Assert(Assigned(AModel));
+  Assert(Assigned(AViewTable));
   Assert(Assigned(ADBCommand));
   Assert(Assigned(AValues));
 
@@ -225,14 +241,15 @@ begin
   ADBCommand.Params.BeginUpdate;
   try
     ADBCommand.Params.Clear;
-    LCommandText := 'delete from ' + AModel.ModelName + ' where ';
-    LKeyFields := AModel.GetKeyFieldNames;
+    LCommandText := 'delete from ' + AViewTable.ModelName + ' where ';
+    LKeyFields := AViewTable.Model.GetKeyFieldNames;
     for I := 0 to Length(LKeyFields) - 1 do
     begin
+      LParamName := AViewTable.FieldByName(LKeyFields[I]).AliasedName;
       if I > 0 then
         LCommandText := LCommandText + ' and ';
-      LCommandText := LCommandText + LKeyFields[I] + ' = :P_KEY' + IntToStr(I);
-      ADBCommand.Params.CreateParam(ftUnknown, 'P_KEY' + IntToStr(I), ptInput);
+      LCommandText := LCommandText + LKeyFields[I] + ' = :' + LParamName;
+      ADBCommand.Params.CreateParam(ftUnknown, LParamName, ptInput);
     end;
     ADBCommand.CommandText := LCommandText;
   finally
