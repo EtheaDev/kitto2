@@ -149,17 +149,16 @@ begin
     LValueNames := '';
     for I := 0 to AValues.ChildCount - 1 do
     begin
-      LViewField := AViewTable.FieldByAliasedName(AValues[I].Name);
-      if LViewField.Model = AViewTable.Model then
+      if AViewTable.FindField(AValues[I].Name) <> nil then
       begin
         if LFieldNames = '' then
         begin
-          LFieldNames := LViewField.FieldNameForUpdate;
+          LFieldNames := AValues[I].Name;
           LValueNames := ':' + AValues[I].Name;
         end
         else
         begin
-          LFieldNames := LFieldNames + ', ' + LViewField.FieldNameForUpdate;
+          LFieldNames := LFieldNames + ', ' + AValues[I].Name;
           LValueNames := LValueNames + ', :' + AValues[I].Name;
         end;
         ADBCommand.Params.CreateParam(ftUnknown, AValues[I].Name, ptInput);
@@ -197,12 +196,12 @@ begin
     LFieldNames := '';
     for I := 0 to AValues.ChildCount - 1 do
     begin
-      LViewField := AViewTable.FieldByAliasedName(AValues[I].Name);
+      if AViewTable.FindField(AValues[I].Name) <> nil then
       begin
         if LFieldNames = '' then
-          LFieldNames := LViewField.FieldNameForUpdate + ' = :' + AValues[I].Name
+          LFieldNames := AValues[I].Name + ' = :' + AValues[I].Name
         else
-          LFieldNames := LFieldNames + ', ' + LViewField.FieldNameForUpdate + ' = :' + AValues[I].Name;
+          LFieldNames := LFieldNames + ', ' + AValues[I].Name + ' = :' + AValues[I].Name;
         ADBCommand.Params.CreateParam(ftUnknown, AValues[I].Name, ptInput);
       end;
     end;

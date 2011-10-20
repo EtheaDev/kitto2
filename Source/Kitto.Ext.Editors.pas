@@ -563,8 +563,7 @@ begin
       LComboBox.LazyRender := True;
       LComboBox.SelectOnFocus := False;
       // Enable the combo box to post its hidden value instead of the visible description.
-      LComboBox.Name := AViewField.FieldNameForUpdate;
-      LComboBox.HiddenName := AViewField.AliasedName;
+      LComboBox.HiddenName := AViewField.FieldNameForUpdate;
       //LComboBox.Id := LDataField.AliasedName + '_DX';
 
       if Length(LAllowedValues) > 0 then
@@ -859,8 +858,7 @@ begin
   if LIsReadOnly then
     LFormField.Cls := 'x-form-readonly';
   LFormField.AutoScroll := False; // Don't display a h. scrollbar for larger fields.
-  if LFormField.Name = '' then
-    LFormField.Name := LViewField.GetMinifiedName;
+  LFormField.Name := LViewField.GetMinifiedName;
   LFormField.ReadOnly := LIsReadOnly;
   LFormField.FieldLabel := LLabel;
   LFormField.MsgTarget := LowerCase(FDefaults.MsgTarget);
