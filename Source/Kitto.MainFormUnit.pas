@@ -119,8 +119,19 @@ begin
 end;
 
 procedure TKMainForm.FormShow(Sender: TObject);
+
+  function GetFileDate: string;
+  var
+    LInfo: TDateTimeInfoRec;
+  begin
+    if FileGetDateTimeInfo(ParamStr(0), LInfo) then
+      Result := DateTimeToStr(LInfo.CreationTime)
+    else
+      Result := '';
+  end;
+
 begin
-  Caption := Environment.AppTitle;
+  Caption := Format('%s - %s', [Environment.AppTitle, GetFileDate]);
   StartAction.Execute;
 end;
 
