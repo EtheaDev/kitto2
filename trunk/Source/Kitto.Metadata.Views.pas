@@ -71,6 +71,8 @@ type
     function GetRules: TKRules;
     function GetDecimalPrecision: Integer;
     function GetFieldNameForUpdate: string;
+    function GetCanInsert: Boolean;
+    function GetCanUpdate: Boolean;
   protected
     function GetChildClass(const AName: string): TEFNodeClass; override;
   public
@@ -84,6 +86,9 @@ type
     property QualifiedAliasedNameOrExpression: string read GetQualifiedAliasedNameOrExpression;
     property QualifiedName: string read GetQualifiedName;
     property AllowedValues: TEFPairs read GetAllowedValues;
+
+    property CanInsert: Boolean read GetCanInsert;
+    property CanUpdate: Boolean read GetCanUpdate;
 
     ///	<summary>If the view field is referenced, returns its reference,
     ///	otherwise returns nil.</summary>
@@ -1162,6 +1167,28 @@ begin
   Result := GetChildrenAsPairs('AllowedValues');
   if Result = nil then
     Result := ModelField.AllowedValues;
+end;
+
+function TKViewField.GetCanInsert: Boolean;
+var
+  LNode: TEFNode;
+begin
+  LNode := FindNode('CanInsert');
+  if LNode = nil then
+    Result := ModelField.CanInsert
+  else
+    Result := LNode.AsBoolean;
+end;
+
+function TKViewField.GetCanUpdate: Boolean;
+var
+  LNode: TEFNode;
+begin
+  LNode := FindNode('CanUpdate');
+  if LNode = nil then
+    Result := ModelField.CanUpdate
+  else
+    Result := LNode.AsBoolean;
 end;
 
 function TKViewField.GetChildClass(const AName: string): TEFNodeClass;
