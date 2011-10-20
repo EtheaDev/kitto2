@@ -120,6 +120,7 @@ end;
 
 procedure TKMainForm.FormShow(Sender: TObject);
 begin
+  Caption := Environment.AppTitle;
   StartAction.Execute;
 end;
 

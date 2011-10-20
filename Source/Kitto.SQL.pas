@@ -149,7 +149,8 @@ begin
     LValueNames := '';
     for I := 0 to AValues.ChildCount - 1 do
     begin
-      if AViewTable.FindField(AValues[I].Name) <> nil then
+      LViewField := AViewTable.FindField(AValues[I].Name);
+      if Assigned(LViewField) and LViewField.CanInsert then
       begin
         if LFieldNames = '' then
         begin
@@ -196,7 +197,8 @@ begin
     LFieldNames := '';
     for I := 0 to AValues.ChildCount - 1 do
     begin
-      if AViewTable.FindField(AValues[I].Name) <> nil then
+      LViewField := AViewTable.FindField(AValues[I].Name);
+      if Assigned(LViewField) and LViewField.CanUpdate then
       begin
         if LFieldNames = '' then
           LFieldNames := AValues[I].Name + ' = :' + AValues[I].Name

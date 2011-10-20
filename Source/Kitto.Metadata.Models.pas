@@ -51,6 +51,8 @@ type
     function GetAllowedValues: TEFPairs;
     function GetRules: TKRules;
     function GetDecimalPrecision: Integer;
+    function GetCanUpdate: Boolean;
+    function GetCanInsert: Boolean;
   protected
     procedure GetFieldSpec(out ADataType: TEFDataType; out ASize: Integer;
       out AIsRequired: Boolean; out AIsKey: Boolean);
@@ -91,6 +93,9 @@ type
     ///	SQL expression will have the expression stored in this
     ///	property.</summary>
     property Expression: string read GetExpression;
+
+    property CanInsert: Boolean read GetCanInsert;
+    property CanUpdate: Boolean read GetCanUpdate;
 
     ///	<summary>
     ///	  Indicates that an empty value input by the user should be converted
@@ -640,6 +645,16 @@ end;
 function TKModelField.GetAllowedValues: TEFPairs;
 begin
   Result := GetChildrenAsPairs('AllowedValues');
+end;
+
+function TKModelField.GetCanUpdate: Boolean;
+begin
+  Result := Expression = '';
+end;
+
+function TKModelField.GetCanInsert: Boolean;
+begin
+  Result := CanUpdate;
 end;
 
 function TKModelField.GetChildClass(const AName: string): TEFNodeClass;
