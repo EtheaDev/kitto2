@@ -473,10 +473,6 @@ object KMainForm: TKMainForm
     end
     object LogTabSheet: TTabSheet
       Caption = 'Log'
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object LogMemo: TMemo
         Left = 0
         Top = 0
@@ -509,6 +505,7 @@ object KMainForm: TKMainForm
     end
     object RestartAction: TAction
       Caption = 'Restart'
+      Visible = False
       OnExecute = RestartActionExecute
       OnUpdate = RestartActionUpdate
     end
