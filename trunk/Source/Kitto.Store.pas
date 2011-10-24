@@ -689,21 +689,7 @@ end;
 
 function TKField.GetAsJSONValue: string;
 begin
-  if IsNull then
-    Result := 'null'
-  else
-  begin
-    case DataType of
-      edtUnknown, edtString, edtObject, edtInteger: Result := AsString;
-      edtDate: Result := DateToStr(AsDate, Environment.JSFormatSettings);
-      edtTime: Result := TimeToStr(AsTime, Environment.JSFormatSettings);
-      edtDateTime: Result := DateTimeToStr(AsDateTime, Environment.JSFormatSettings);
-      edtBoolean: Result := BoolToStr(AsBoolean, True);
-      edtCurrency: Result := FormatCurr(',0.00', AsCurrency, Environment.JSFormatSettings);
-      edtFloat, edtDecimal: Result := FormatFloat(',0.00', AsFloat, Environment.JSFormatSettings);
-    end;
-    Result := '"' + Result + '"';
-  end;
+  Result := DataType.NodeToJSONValue(Self, Environment.JSFormatSettings);
 end;
 
 function TKField.GetFieldName: string;

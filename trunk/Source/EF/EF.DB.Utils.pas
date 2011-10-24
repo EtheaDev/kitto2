@@ -12,19 +12,7 @@ uses
   Copies the value from ASource to ADestination, taking ASource.DataType into
   account.
 }
-procedure AssignEFNodeValueToParam(const ASource: TEFNode; const ADestination: TParam);
-
-{
-  Copies the value from ASource to ADestination, taking ASource.DataType into
-  account.
-}
 procedure AssignParamValueToEFNode(const ASource: TParam; const ADestination: TEFNode);
-
-{
-  Copies the name and value from ASource to ADestination, taking
-  ASource.DataType into account.
-}
-procedure AssignEFNodeToParam(const ASource: TEFNode; const ADestination: TParam);
 
 {
   Returns the value of the first column of the first record of the cursor
@@ -50,32 +38,6 @@ implementation
 uses
   SysUtils, Variants, TypInfo, StrUtils, Provider,
   EF.Localization, EF.StrUtils;
-
-procedure AssignEFNodeValueToParam(const ASource: TEFNode; const ADestination: TParam);
-begin
-  Assert(Assigned(ASource));
-  Assert(Assigned(ADestination));
-
-  if ASource.IsNull then
-    ADestination.Clear
-  else
-  begin
-    case ASource.DataType of
-      edtUnknown, edtString: ADestination.AsString := ASource.AsString;
-      edtInteger: ADestination.AsInteger := ASource.AsInteger;
-      edtDate: ADestination.AsDate := ASource.AsDate;
-      edtTime: ADestination.AsTime := ASource.AsTime;
-      edtDateTime: ADestination.AsDateTime := ASource.AsDateTime;
-      edtBoolean: ADestination.AsBoolean := ASource.AsBoolean;
-      edtCurrency: ADestination.AsCurrency := ASource.AsCurrency;
-      edtFloat: ADestination.AsFloat := ASource.AsFloat;
-      edtDecimal: ADestination.AsFMTBCD := ASource.AsDecimal;
-    else
-      raise EEFError.CreateFmt('AssignEFNodeValueToParam: data type %s not supported',
-        [EFDataTypeToString(ASource.DataType)]);
-    end;
-  end;
-end;
 
 procedure AssignParamValueToEFNode(const ASource: TParam;
   const ADestination: TEFNode);
@@ -103,12 +65,6 @@ begin
         [GetEnumName(TypeInfo(TFieldType), Ord(ASource.DataType))]);
     end;
   end;
-end;
-
-procedure AssignEFNodeToParam(const ASource: TEFNode; const ADestination: TParam);
-begin
-  AssignEFNodeValueToParam(ASource, ADestination);
-  ADestination.Name := ASource.Name; 
 end;
 
 function GetSingletonValue(const ADBConnection: TEFDBConnection;
@@ -287,33 +243,6 @@ begin
     Result := Split(LString, '§');
   finally
     AField.DataSet.Bookmark := LBookmark;
-  end;
-end;
-
-procedure AssignNodeValueToParam(const ASource: TEFNode; const ADestination: TParam);
-begin
-  Assert(Assigned(ASource));
-  Assert(Assigned(ADestination));
-
-  if ASource.IsNull then
-    ADestination.Clear
-  else
-  begin
-    ADestination.AsString := ASource.AsString;
-    case ASource.DataType of
-      edtDecimal: ADestination.AsFMTBCD := ASource.AsDecimal;
-      edtBoolean: ADestination.AsBoolean := ASource.AsBoolean;
-      edtCurrency: ADestination.AsCurrency := ASource.AsCurrency;
-      edtDate: ADestination.AsDate := ASource.AsDate;
-      edtDateTime: ADestination.AsDateTime := ASource.AsDateTime;
-      edtFloat: ADestination.AsFloat := ASource.AsFloat;
-      edtInteger: ADestination.AsInteger := ASource.AsInteger;
-      edtTime: ADestination.AsTime := ASource.AsTime;
-      edtUnknown, edtString: ADestination.AsString := ASource.AsString;
-    else
-      raise EEFError.CreateFmt('AssignNodeValueToParam: data type %s not supported',
-        [EFDataTypeToString(ASource.DataType)]);
-    end;
   end;
 end;
 

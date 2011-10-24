@@ -10,7 +10,7 @@ interface
 uses
   Types, DB,
   Ext, ExtPascal, ExtForm, ExtData,
-  EF.Classes, EF.Tree, EF.ObserverIntf,
+  EF.Types, EF.Tree, EF.ObserverIntf,
   Kitto.Ext.Base;
 
 type

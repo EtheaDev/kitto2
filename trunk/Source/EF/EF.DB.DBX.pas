@@ -150,24 +150,24 @@ uses
   SysUtils, RTLConsts, TypInfo,
   EF.Localization, EF.Types, EF.Tree;
 
-function FbDataTypeToEFDataType(const AIBFbDataType: string): TEFDataType;
+function FbDataTypeToEFDataType(const AIBFbDataType: string): string;
 begin
   { TODO : Only text blobs supported for now. }
   if (AIBFbDataType = 'TEXT') or (AIBFbDataType = 'VARYING') or (AIBFbDataType = 'BLOB') then
-    Result := edtString
+    Result := 'String'
   else if (AIBFbDataType = 'SHORT') or (AIBFbDataType = 'LONG')
       or (AIBFbDataType = 'INT64') or (AIBFbDataType = 'QUAD') then
-    Result := edtInteger
+    Result := 'Integer'
   else if (AIBFbDataType = 'DATE') then
-    Result := edtDate
+    Result := 'Date'
   else if (AIBFbDataType = 'TIME') then
-    Result := edtTime
+    Result := 'Time'
   else if (AIBFbDataType = 'TIMESTAMP') then
-    Result := edtDateTime
+    Result := 'DateTime'
   else if (AIBFbDataType = 'FLOAT') or (AIBFbDataType = 'DOUBLE') then
-    Result := edtFloat
+    Result := 'Float'
   else
-    Result := edtUnknown;
+    Result := 'String';
 end;
 
 function FetchParam(const AParams: TStrings; const AParamName: string): string;
@@ -631,7 +631,8 @@ begin
       LColumn := TEFDBColumnInfo.Create;
       try
         LColumn.Name := Trim(LColumnQuery.FieldByName('COLUMN_NAME').AsString);
-        LColumn.DataType := FbDataTypeToEFDataType(Trim(LColumnQuery.FieldByName('DATA_TYPE').AsString));
+        LColumn.DataType := TEFDataTypeFactory.Instance.GetDataType(
+          FbDataTypeToEFDataType(Trim(LColumnQuery.FieldByName('DATA_TYPE').AsString)));
         LColumn.Size := LColumnQuery.FieldByName('CHARACTER_MAXIMUM_LENGTH').AsInteger;
         LColumn.IsRequired := LColumnQuery.FieldByName('IS_NOT_NULL').AsInteger = 1;
         ATable.AddColumn(LColumn);

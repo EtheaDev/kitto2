@@ -5,11 +5,20 @@ unit Kitto.Metadata.Models;
 interface
 
 uses
-  Types, Classes, Generics.Collections,
+  Types, SysUtils, Classes, DB, Generics.Collections,
   EF.Classes, EF.Tree, EF.Types,
   Kitto.Metadata;
 
 type
+  TKReferenceDataType = class(TEFDataType)
+  protected
+    procedure InternalFieldValueToNode(const AField: TField; const ANode: TEFNode); override;
+    procedure InternalYamlValueToNode(const AYamlValue: string; const ANode: TEFNode;
+      const AFormatSettings: TFormatSettings); override;
+  public
+    class function GetTypeName: string; override;
+  end;
+
   TKModel = class;
 
   TKRule = class(TKMetadataItem)
@@ -29,6 +38,8 @@ type
     ///	one.</summary>
     function HasRule(const ARule: TKRule): Boolean;
   end;
+
+  TKModelFields = class;
 
   TKModelField = class(TKMetadataItem)
   private
@@ -53,11 +64,17 @@ type
     function GetDecimalPrecision: Integer;
     function GetCanUpdate: Boolean;
     function GetCanInsert: Boolean;
+    function GetIsReference: Boolean;
+    function GetReferencedModel: TKModel;
+    function GetReferenceFieldNames: TStringDynArray;
+    function GetReferencedModelName: string;
+    function GetParentField: TKModelField;
+    function GetField(I: Integer): TKModelField;
+    function GetFieldCount: Integer;
+    function GetFields: TKModelFields;
   protected
     procedure GetFieldSpec(out ADataType: TEFDataType; out ASize: Integer;
-      out AIsRequired: Boolean; out AIsKey: Boolean);
-    procedure SetFieldSpec(const ADataType: TEFDataType;
-      const ASize: Integer; const AIsRequired: Boolean);
+      out AIsRequired: Boolean; out AIsKey: Boolean; out AReferencedModel: string);
     function GetChildClass(const AName: string): TEFNodeClass; override;
   public
     property Model: TKModel read GetModel;
@@ -66,6 +83,37 @@ type
     property DataType: TEFDataType read GetDataType;
     property Size: Integer read GetSize;
     property DecimalPrecision: Integer read GetDecimalPrecision;
+
+    ///	<summary>If the field is contained (as with local children of a
+    ///	reference fields), returns the parent field, otherwise nil.</summary>
+    property ParentField: TKModelField read GetParentField;
+
+    ///	<summary>True if the field is a reference.</summary>
+    property IsReference: Boolean read GetIsReference;
+
+    ///	<summary>If the field is part of a reference field, returns the number
+    ///	of physical fields that make up the reference.</summary>
+    property FieldCount: Integer read GetFieldCount;
+
+    ///	<summary>If the field is part of a reference field, returns the
+    ///	physical fields that make up the reference.</summary>
+    property Fields[I: Integer]: TKModelField read GetField;
+
+    ///	<summary>Returna the names of the sub-fields, if any.</summary>
+    function GetFieldNames: TStringDynArray;
+
+    ///	<summary>If the field is a reference, returns the referenced model's
+    ///	name, otherwise ''.</summary>
+    property ReferencedModelName: string read GetReferencedModelName;
+
+    ///	<summary>If the field is a reference, returns the referenced model,
+    ///	otherwise nil.</summary>
+    property ReferencedModel: TKModel read GetReferencedModel;
+
+    ///	<summary>If the field is a reference, returns the reference field names
+    ///	(that is the names of the fields, in the underlying table, that make up
+    ///	the foreign key to the referenced model.</summary>
+    property ReferenceFieldNames: TStringDynArray read GetReferenceFieldNames;
 
     ///	<summary>
     ///	  Default requiredness status of this field in views. Defaults to
@@ -138,11 +186,22 @@ type
   end;
 
   TKModelFields = class(TKMetadataItem)
+  private
+    function GetParentField: TKModelField;
+    function GetField(I: Integer): TKModelField;
+    function GetFieldCount: Integer;
   protected
     function GetChildClass(const AName: string): TEFNodeClass; override;
   public
     function FieldByName(const AName: string): TKModelField;
     function FindField(const AName: string): TKModelField;
+    property FieldCount: Integer read GetFieldCount;
+    property Fields[I: Integer]: TKModelField read GetField; default;
+    function GetFieldNames: TStringDynArray;
+
+    ///	<summary>If the fields are contained inside a parent field, this
+    ///	property returns the parent field, otherwise nil.</summary>
+    property ParentField: TKModelField read GetParentField;
   end;
 
   TKModelSubobject = class(TKMetadataItem)
@@ -152,49 +211,13 @@ type
     property Model: TKModel read GetModel;
   end;
 
-  TKModelReference = class(TKModelSubobject)
-  private
-    function GetField(I: Integer): TKModelField;
-    function GetFieldCount: Integer;
-    function GetReferencedModel: TKModel;
-    function GetReeferencedModelName: string;
-    function GetReferencedField(I: Integer): TKModelField;
-    function GetIsRequired: Boolean;
-    property ReferencedModelName: string read GetReeferencedModelName;
-    function GetReferenceName: string;
-    function GetFields: TEFNode;
-  public
-    property ReferenceName: string read GetReferenceName;
-
-    property FieldCount: Integer read GetFieldCount;
-    property Fields[I: Integer]: TKModelField read GetField;
-    property ReferencedFields[I: Integer]: TKModelField read GetReferencedField;
-    property ReferencedModel: TKModel read GetReferencedModel;
-
-    function GetFieldNames(const AQualify: Boolean = False): TStringDynArray;
-    function GetReferencedFieldNames(const AQualify: Boolean = False): TStringDynArray;
-
-    ///	<summary>
-    ///	  True if all fields are required.
-    ///	</summary>
-    property IsRequired: Boolean read GetIsRequired;
-  end;
-
-  TKModelReferences = class(TKMetadataItem)
-  protected
-    function GetChildClass(const AName: string): TEFNodeClass; override;
-  public
-    function ReferenceByName(const AName: string): TKModelReference;
-    function FindReference(const AName: string): TKModelReference;
-  end;
-
   TKModelDetailReference = class(TKModelSubobject)
   private
     function GetDetailReferenceName: string;
-    function GetReference: TKModelReference;
+    function GetReferenceField: TKModelField;
     function GetDetailModel: TKModel;
     function GetDetailModelName: string;
-    function GetReferenceName: string;
+    function GetReferenceFieldName: string;
     function GetDisplayLabel: string;
     function BeautifyDetailName(const ADetailName: string): string;
   public
@@ -203,12 +226,13 @@ type
     property DetailModel: TKModel read GetDetailModel;
     property DetailModelName: string read GetDetailModelName;
 
-    ///	<summary>Returns the counterpart reference in the detail model. If
-    ///	there's only one reference from detail to master, then it's assumed it
-    ///	is the one being looked for, otherwise its name is fetched from the
-    ///	Reference parametere of the DetailReference.</summary>
-    property Reference: TKModelReference read GetReference;
-    property ReferenceName: string read GetReferenceName;
+    ///	<summary>Returns the counterpart reference field in the detail model.
+    ///	If there's only one reference field from the detail model to this
+    ///	master model, then it's assumed it is the one being looked for,
+    ///	otherwise its name is fetched from the ReferenceField parameter of the
+    ///	DetailReference.</summary>
+    property ReferenceField: TKModelField read GetReferenceField;
+    property ReferenceFieldName: string read GetReferenceFieldName;
   end;
 
   TKModelDetailReferences = class(TKMetadataItem)
@@ -222,6 +246,7 @@ type
     property DetailReferenceCount: Integer read GetDetailReferenceCount;
     function DetailReferenceByName(const AName: string): TKModelDetailReference;
     function FindDetailReference(const AName: string): TKModelDetailReference;
+    function FindDetailReferenceTo(const AModel: TKModel): TKModelDetailReference;
   end;
 
   TKModels = class;
@@ -231,8 +256,6 @@ type
     FModels: TKModels;
     function GetFieldCount: Integer;
     function GetField(I: Integer): TKModelField;
-    function GetReferenceCount: Integer;
-    function GetReference(I: Integer): TKModelReference;
     function GetModelName: string;
     function GetDisplayLabel: string;
     function GetPluralDisplayLabel: string;
@@ -245,11 +268,14 @@ type
     function GetDetailReference(I: Integer): TKModelDetailReference;
     function GetDetailReferenceCount: Integer;
     function GetImageName: string;
+    function GetCaptionField: TKModelField;
+    function GetCaptionFieldName: string;
+    function GetKeyField(I: Integer): TKModelField;
+    function GetKeyFieldCount: Integer;
     const DEFAULT_IMAGE_NAME = 'default_model';
   protected
     function GetFields: TKModelFields;
     function GetChildClass(const AName: string): TEFNodeClass; override;
-    function GetReferences: TKModelReferences;
     function GetDetailReferences: TKModelDetailReferences;
   public
     property Catalog: TKModels read FModels;
@@ -265,18 +291,17 @@ type
     function FindField(const AName: string): TKModelField;
 
     function GetKeyFieldNames(const AQualify: Boolean = False): TStringDynArray;
-
-    property ReferenceCount: Integer read GetReferenceCount;
-    property References[I: Integer]: TKModelReference read GetReference;
-    function ReferenceByName(const AName: string): TKModelReference;
-    function FindReference(const AName: string): TKModelReference;
-    procedure GetReferencesToModel(const AModel: TKModel; const AList: TList<TKModelReference>);
-    function GetReferenceToModel(const AModel: TKModel; const AReferenceName: string = ''): TKModelReference;
+    property KeyFieldCount: Integer read GetKeyFieldCount;
+    property KeyFields[I: Integer]: TKModelField read GetKeyField;
 
     property DetailReferenceCount: Integer read GetDetailReferenceCount;
     property DetailReferences[I: Integer]: TKModelDetailReference read GetDetailReference;
     function DetailReferenceByName(const AName: string): TKModelDetailReference;
     function FindDetailReference(const AName: string): TKModelDetailReference;
+
+    ///	<summary>If there's exactly one detail reference to the specified
+    ///	model, returns it, otherwise returns nil.</summary>
+    function FindDetailReferenceTo(const AModel: TKModel): TKModelDetailReference;
 
     property IsReadOnly: Boolean read GetIsReadOnly;
     property DefaultFilter: string read GetDefaultFilter;
@@ -294,6 +319,9 @@ type
     ///	  qualified names. Defaults to the list of fields in the key, if any.
     ///	</summary>
     property DefaultSorting: string read GetDefaultSorting;
+
+    property CaptionFieldName: string read GetCaptionFieldName;
+    property CaptionField: TKModelField read GetCaptionField;
 
     property Rules: TKRules read GetRules;
   end;
@@ -320,9 +348,9 @@ function EvalExpression(const AExpression: Variant): Variant;
 implementation
 
 uses
-  SysUtils, StrUtils, Variants,
+  StrUtils, Variants,
   EF.StrUtils, EF.VariantUtils, EF.Localization,
-  Kitto.Types;
+  Kitto.Types, Kitto.Environment;
 
 function Pluralize(const AName: string): string;
 begin
@@ -362,19 +390,14 @@ begin
   Result := GetDetailReferences.FindDetailReference(AName);
 end;
 
+function TKModel.FindDetailReferenceTo(const AModel: TKModel): TKModelDetailReference;
+begin
+  Result := GetDetailReferences.FindDetailReferenceTo(AModel);
+end;
+
 function TKModel.FindField(const AName: string): TKModelField;
 begin
   Result := GetFields.FindField(AName);
-end;
-
-function TKModel.FindReference(const AName: string): TKModelReference;
-begin
-  Result := GetReferences.FindReference(AName);
-end;
-
-function TKModel.ReferenceByName(const AName: string): TKModelReference;
-begin
-  Result := GetReferences.ReferenceByName(AName);
 end;
 
 function TKModel.GetField(I: Integer): TKModelField;
@@ -384,73 +407,12 @@ end;
 
 function TKModel.GetFieldCount: Integer;
 begin
-  Result := GetFields.ChildCount;
+  Result := GetFields.FieldCount;
 end;
 
 function TKModel.GetFields: TKModelFields;
 begin
   Result := FindChild('Fields', True) as TKModelFields;
-end;
-
-function TKModel.GetReference(I: Integer): TKModelReference;
-begin
-  Result := GetReferences[I] as TKModelReference;
-end;
-
-function TKModel.GetReferenceCount: Integer;
-begin
-  Result := GetReferences.ChildCount;
-end;
-
-function TKModel.GetReferences: TKModelReferences;
-begin
-  Result := FindChild('References', True) as TKModelReferences;
-end;
-
-procedure TKModel.GetReferencesToModel(const AModel: TKModel;
-  const AList: TList<TKModelReference>);
-var
-  I: Integer;
-begin
-  Assert(Assigned(AList));
-
-  AList.Clear;
-  for I := 0 to ReferenceCount - 1 do
-  begin
-    if References[I].ReferencedModel = AModel then
-      AList.Add(References[I]);
-  end;
-end;
-
-function TKModel.GetReferenceToModel(const AModel: TKModel;
-  const AReferenceName: string): TKModelReference;
-var
-  LRefList: TList<TKModelReference>;
-begin
-  Assert(Assigned(AModel));
-
-  Result := nil;
-  if AReferenceName <> '' then
-  begin
-    Result := ReferenceByName(AReferenceName);
-    if Result.ReferencedModel <> AModel then
-      raise EKError.CreateFmt(_('Reference %s does not reference model %s.'), [AReferenceName, AModel.ModelName]);
-  end
-  else
-  begin
-    LRefList := TList<TKModelReference>.Create;
-    try
-      GetReferencesToModel(AModel, LRefList);
-      if LRefList.Count = 1 then
-        Result := LRefList[0]
-      else if LRefList.Count = 0 then
-        raise EKError.CreateFmt(_('No reference found in model %s to model %s.'), [ModelName, AModel.ModelName])
-      else
-        raise EKError.CreateFmt(_('Ambiguous reference in model %s to model %s.'), [ModelName, AModel.ModelName]);
-    finally
-      FreeAndNil(LRefList);
-    end;
-  end;
 end;
 
 function TKModel.GetRules: TKRules;
@@ -482,6 +444,20 @@ begin
     Result := Pluralize(BeautifyModelName(ModelName));
 end;
 
+function TKModel.GetKeyField(I: Integer): TKModelField;
+var
+  LKeyFieldNames: TStringDynArray;
+begin
+  LKeyFieldNames := GetKeyFieldNames;
+  Assert(Length(LKeyFieldNames) > I);
+  Result := FieldByName(LKeyFieldNames[I]);
+end;
+
+function TKModel.GetKeyFieldCount: Integer;
+begin
+  Result := Length(GetKeyFieldNames);
+end;
+
 function TKModel.GetKeyFieldNames(const AQualify: Boolean = False): TStringDynArray;
 var
   I: Integer;
@@ -508,12 +484,42 @@ begin
   Result := PersistentName;
 end;
 
+function TKModel.GetCaptionField: TKModelField;
+var
+  LFieldName: string;
+  I: Integer;
+begin
+  Result := nil;
+  LFieldName := CaptionFieldName;
+  if LFieldName <> '' then
+    Result := FieldByName(LFieldName)
+  else
+  begin
+    for I := 0 to FieldCount - 1 do
+    begin
+     if not Fields[I].IsKey then
+     begin
+       Result := Fields[I];
+       Break;
+     end;
+    end;
+    if (Result = nil) and (FieldCount > 0) then
+      Result := Fields[0];
+    if Result = nil then
+      raise EKError.CreateFmt('Cannot determine CaptionField for model %s.',
+        [ModelName]);
+  end;
+end;
+
+function TKModel.GetCaptionFieldName: string;
+begin
+  Result := GetString('CaptionField');
+end;
+
 function TKModel.GetChildClass(const AName: string): TEFNodeClass;
 begin
   if SameText(AName, 'Fields') then
     Result := TKModelFields
-  else if SameText(AName, 'References') then
-    Result := TKModelReferences
   else if SameText(AName, 'DetailReferences') then
     Result := TKModelDetailReferences
   else if SameText(AName, 'Rules') then
@@ -565,7 +571,7 @@ end;
 { TKModelField }
 
 procedure TKModelField.GetFieldSpec(out ADataType: TEFDataType; out ASize: Integer;
-  out AIsRequired: Boolean; out AIsKey: Boolean);
+  out AIsRequired: Boolean; out AIsKey: Boolean; out AReferencedModel: string);
 var
   LStrings: TStringDynArray;
 begin
@@ -573,24 +579,27 @@ begin
   AIsKey := ContainsText(AsString, ' primary key');
   LStrings := SplitString(StripSuffix(StripSuffix(AsString, ' primary key'), ' not null'), '()');
   if Length(LStrings) > 0 then
-    ADataType := StringToEFDataType(LStrings[0])
+    ADataType := TEFDataTypeFactory.Instance.GetDataType(LStrings[0])
   else
-    ADataType := edtUnknown;
+    ADataType := TEFDataTypeFactory.Instance.GetDataType('String');
   if Length(LStrings) > 1 then
-    ASize := StrToInt(LStrings[1])
+  begin
+    if ADataType is TKReferenceDataType then
+    begin
+      ASize := 0;
+      AReferencedModel := LStrings[1];
+    end
+    else
+    begin
+      ASize := StrToInt(LStrings[1]);
+      AReferencedModel := '';
+    end;
+  end
   else
+  begin
     ASize := 0;
-end;
-
-procedure TKModelField.SetFieldSpec(const ADataType: TEFDataType;
-  const ASize: Integer; const AIsRequired: Boolean);
-var
-  LDef: string;
-begin
-  LDef := EFDataTypeToString(ADataType);
-  if ASize <> 0 then
-    LDef := LDef + '(' + IntToStr(ASize) + ')';
-  AsString := LDef;
+    AReferencedModel := '';
+  end;
 end;
 
 function TKModelField.GetIsGenerated: Boolean;
@@ -603,8 +612,14 @@ var
   LDataType: TEFDataType;
   LSize: Integer;
   LIsRequired: Boolean;
+  LReferencedModel: string;
+  LParentField: TKModelField;
 begin
-  GetFieldSpec(LDataType, LSize, LIsRequired, Result);
+  LParentField := ParentField;
+  if Assigned(LParentField) then
+    Result := ParentField.IsKey
+  else
+    GetFieldSpec(LDataType, LSize, LIsRequired, Result, LReferencedModel);
 end;
 
 function TKModelField.GetIsReadOnly: Boolean;
@@ -612,13 +627,24 @@ begin
   Result := GetBoolean('IsReadOnly', False);
 end;
 
+function TKModelField.GetIsReference: Boolean;
+begin
+  Result := DataType is TKReferenceDataType;
+end;
+
 function TKModelField.GetIsRequired: Boolean;
 var
   LDataType: TEFDataType;
   LSize: Integer;
   LIsKey: Boolean;
+  LReferencedModel: string;
+  LParentField: TKModelField;
 begin
-  GetFieldSpec(LDataType, LSize, Result, LIsKey);
+  LParentField := ParentField;
+  if Assigned(LParentField) then
+    Result := ParentField.IsRequired
+  else
+    GetFieldSpec(LDataType, LSize, Result, LIsKey, LReferencedModel);
 end;
 
 function TKModelField.GetIsVisible: Boolean;
@@ -629,6 +655,37 @@ end;
 function TKModelField.GetQualifiedFieldName: string;
 begin
   Result := Model.ModelName + '.' + FieldName;
+end;
+
+function TKModelField.GetReferencedModel: TKModel;
+begin
+  if IsReference then
+    Result := Model.Catalog.ModelByName(ReferencedModelName)
+  else
+    Result := nil;
+end;
+
+function TKModelField.GetReferencedModelName: string;
+var
+  LDataType: TEFDataType;
+  LSize: Integer;
+  LIsRequired: Boolean;
+  LIsKey: Boolean;
+  LParentField: TKModelField;
+begin
+  LParentField := ParentField;
+  if Assigned(LParentField) and (LParentField.IsReference) then
+    Result := ParentField.ReferencedModelName
+  else
+    GetFieldSpec(LDataType, LSize, LIsRequired, LIsKey, Result);
+end;
+
+function TKModelField.GetReferenceFieldNames: TStringDynArray;
+begin
+  if IsReference then
+    Result := GetNode('Fields').GetChildNames
+  else
+    Result := nil;
 end;
 
 function TKModelField.GetRules: TKRules;
@@ -661,6 +718,8 @@ function TKModelField.GetChildClass(const AName: string): TEFNodeClass;
 begin
   if SameText(AName, 'Rules') then
     Result := TKRules
+  else if SameText(AName, 'Fields') then
+    Result := TKModelFields
   else
     Result := inherited GetChildClass(AName);
 end;
@@ -670,8 +729,14 @@ var
   LSize: Integer;
   LIsRequired: Boolean;
   LIsKey: Boolean;
+  LReferencedModel: string;
+  LParentField: TKModelField;
 begin
-  GetFieldSpec(Result, LSize, LIsRequired, LIsKey);
+  LParentField := ParentField;
+  if Assigned(LParentField) and ParentField.IsReference then
+    Result := ParentField.ReferencedModel.KeyFields[Index].DataType
+  else
+    GetFieldSpec(Result, LSize, LIsRequired, LIsKey, LReferencedModel);
 end;
 
 function TKModelField.GetDecimalPrecision: Integer;
@@ -682,6 +747,8 @@ end;
 function TKModelField.GetDefaultValue: Variant;
 begin
   Result := EvalExpression(GetValue('DefaultValue'));
+  if DataType is TEFStringDataType then
+    Result := Environment.MacroExpansionEngine.Expand(EFVarToStr(Result));
 end;
 
 function TKModelField.GetDisplayLabel: string;
@@ -695,27 +762,14 @@ function TKModelField.GetDisplayWidth: Integer;
 begin
   Result := GetInteger('DisplayWidth', -1);
   if Result = -1 then
-  begin
-    case DataType of
-      edtString: Result := Size;
-      edtInteger: Result := 5;
-      edtDate: Result := 10;
-      edtTime: Result := 8;
-      edtDateTime: Result := 19;
-      edtBoolean: Result := 5;
-      edtCurrency, edtFloat, edtDecimal: Result := 12;
-      edtObject: Result := 10;
-    else
-      Result := 20;
-    end;
-  end;
+    Result := DataType.GetDefaultDisplayWidth(Size);
 end;
 
 function TKModelField.GetEmptyAsNull: Boolean;
 var
   LNode: TEFNode;
 begin
-  if DataType in [edtString, edtDate, edtTime, edtDateTime] then
+  if DataType.SupportsEmptyAsNull then
   begin
     LNode := FindChild('EmptyAsNull', False);
     if Assigned(LNode) then
@@ -732,9 +786,29 @@ begin
   Result := GetString('Expression');
 end;
 
+function TKModelField.GetField(I: Integer): TKModelField;
+begin
+  Result := GetFields[I];
+end;
+
+function TKModelField.GetFieldCount: Integer;
+begin
+  Result := GetFields.ChildCount;
+end;
+
 function TKModelField.GetFieldName: string;
 begin
   Result := Name;
+end;
+
+function TKModelField.GetFieldNames: TStringDynArray;
+begin
+  Result := GetFields.GetFieldNames;
+end;
+
+function TKModelField.GetFields: TKModelFields;
+begin
+  Result := GetNode('Fields') as TKModelFields;
 end;
 
 function TKModelField.GetSize: Integer;
@@ -742,19 +816,27 @@ var
   LDataType: TEFDataType;
   LIsRequired: Boolean;
   LIsKey: Boolean;
+  LReferencedModel: string;
+  LParentField: TKModelField;
 begin
-  GetFieldSpec(LDataType, Result, LIsRequired, LIsKey);
+  LParentField := ParentField;
+  if Assigned(LParentField) and ParentField.IsReference then
+    Result := ParentField.ReferencedModel.KeyFields[Index].Size
+  else
+    GetFieldSpec(LDataType, Result, LIsRequired, LIsKey, LReferencedModel);
 end;
 
 function TKModelField.GetModel: TKModel;
 begin
-  Assert(Assigned(Parent));
-  Assert(Parent is TEFNode);
-  Assert(Assigned(TEFNode(Parent).Parent));
+  Result := GetRoot as TKModel;
+end;
 
-  Result := TEFNode(Parent).Parent as TKModel;
-
-  Assert(Assigned(Result));
+function TKModelField.GetParentField: TKModelField;
+begin
+  if Assigned(Parent) and (Parent is TKModelFields) then
+    Result := TKModelFields(Parent).ParentField
+  else
+    Result := nil;
 end;
 
 { TKModelFields }
@@ -774,6 +856,29 @@ begin
   Result := TKModelField;
 end;
 
+function TKModelFields.GetField(I: Integer): TKModelField;
+begin
+  Result := Children[I] as TKModelField;
+end;
+
+function TKModelFields.GetFieldCount: Integer;
+begin
+  Result := ChildCount;
+end;
+
+function TKModelFields.GetFieldNames: TStringDynArray;
+begin
+  Result := GetChildNames;
+end;
+
+function TKModelFields.GetParentField: TKModelField;
+begin
+  if Assigned(Parent) and (Parent is TKModelField) then
+    Result := TKModelField(Parent)
+  else
+    Result := nil;
+end;
+
 { TKModelSubobject }
 
 function TKModelSubobject.GetModel: TKModel;
@@ -787,83 +892,6 @@ begin
   Result := LParent as TKModel;
 
   Assert(Assigned(Result));
-end;
-
-{ TKModelReference }
-
-function TKModelReference.GetField(I: Integer): TKModelField;
-begin
-  Result := Model.FieldByName(GetFields[I].Name);
-end;
-
-function TKModelReference.GetFieldCount: Integer;
-begin
-  Result := GetFields.ChildCount;
-end;
-
-function TKModelReference.GetFieldNames(
-  const AQualify: Boolean): TStringDynArray;
-var
-  I: Integer;
-begin
-  SetLength(Result, FieldCount);
-  for I := 0 to FieldCount - 1 do
-    if AQualify then
-      Result[I] := Fields[I].QualifiedFieldName
-    else
-      Result[I] := Fields[I].FieldName;
-end;
-
-function TKModelReference.GetFields: TEFNode;
-begin
-  Result := FindChild('Fields');
-end;
-
-function TKModelReference.GetReferencedField(I: Integer): TKModelField;
-begin
-  Result := ReferencedModel.FieldByName(GetFields[I].AsString);
-end;
-
-function TKModelReference.GetReferencedFieldNames(const AQualify: Boolean): TStringDynArray;
-var
-  I: Integer;
-begin
-  SetLength(Result, FieldCount);
-  for I := 0 to FieldCount - 1 do
-    if AQualify then
-      Result[I] := ReferencedFields[I].QualifiedFieldName
-    else
-      Result[I] := ReferencedFields[I].FieldName;
-end;
-
-function TKModelReference.GetReferencedModel: TKModel;
-begin
-  Result := Model.Catalog.ModelByName(ReferencedModelName);
-end;
-
-function TKModelReference.GetReeferencedModelName: string;
-begin
-  Result := AsString;
-end;
-
-function TKModelReference.GetReferenceName: string;
-begin
-  Result := Name;
-end;
-
-function TKModelReference.GetIsRequired: Boolean;
-var
-  I: Integer;
-begin
-  Result := True;
-  for I := 0 to FieldCount - 1 do
-  begin
-    if not Fields[I].IsRequired then
-    begin
-      Result := False;
-      Break;
-    end;
-  end;
 end;
 
 { TKModels }
@@ -951,12 +979,15 @@ begin
     Result := BeautifyDetailName(DetailReferenceName);
 end;
 
-function TKModelDetailReference.GetReference: TKModelReference;
+function TKModelDetailReference.GetReferenceField: TKModelField;
 begin
-  Result := DetailModel.GetReferenceToModel(Model, ReferenceName);
+  Result := DetailModel.FindField(ReferenceFieldName);
+  if not Assigned(Result) or not (Result.IsReference) or not (Result.ReferencedModel = Model) then
+    raise EKError.CreateFmt('No reference field in detail model %s to detail reference %s in master model %s.',
+      [DetailModel.ModelName, DetailReferenceName, Model.ModelName]);
 end;
 
-function TKModelDetailReference.GetReferenceName: string;
+function TKModelDetailReference.GetReferenceFieldName: string;
 begin
   Result := GetString('Reference');
 end;
@@ -971,6 +1002,25 @@ end;
 function TKModelDetailReferences.FindDetailReference(const AName: string): TKModelDetailReference;
 begin
   Result := FindChild(AName) as TKModelDetailReference;
+end;
+
+function TKModelDetailReferences.FindDetailReferenceTo(const AModel: TKModel): TKModelDetailReference;
+var
+  I: Integer;
+  LCount: Integer;
+begin
+  Result := nil;
+  LCount := 0;
+  for I := 0 to DetailReferenceCount - 1 do
+  begin
+    if DetailReferences[I].DetailModel = AModel then
+    begin
+      Result := DetailReferences[I];
+      Inc(LCount);
+    end;
+  end;
+  if LCount <> 1 then
+    Result := nil;
 end;
 
 function TKModelDetailReferences.GetChildClass(const AName: string): TEFNodeClass;
@@ -988,21 +1038,29 @@ begin
   Result := ChildCount;
 end;
 
-{ TKModelReferences }
+{ TKReferenceDataType }
 
-function TKModelReferences.FindReference(const AName: string): TKModelReference;
+class function TKReferenceDataType.GetTypeName: string;
 begin
-  Result := FindChild(AName) as TKModelReference;
+  Result := 'Reference';
 end;
 
-function TKModelReferences.ReferenceByName(const AName: string): TKModelReference;
+procedure TKReferenceDataType.InternalFieldValueToNode(const AField: TField;
+  const ANode: TEFNode);
 begin
-  Result := ChildByName(AName) as TKModelReference;
+  ANode.Value := AField.Value;
 end;
 
-function TKModelReferences.GetChildClass(const AName: string): TEFNodeClass;
+procedure TKReferenceDataType.InternalYamlValueToNode(const AYamlValue: string;
+  const ANode: TEFNode; const AFormatSettings: TFormatSettings);
 begin
-  Result := TKModelReference;
+  raise EEFError.CreateFmt('%s.InternalYamlValueToNode: Unsupported call.', [ClassName]);
 end;
+
+initialization
+  TEFDataTypeRegistry.Instance.RegisterClass(TKReferenceDataType.GetTypeName, TKReferenceDataType);
+
+finalization
+  TEFDataTypeRegistry.Instance.UnregisterClass(TKReferenceDataType.GetTypeName);
 
 end.

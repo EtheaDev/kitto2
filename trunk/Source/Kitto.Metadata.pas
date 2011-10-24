@@ -4,7 +4,7 @@ interface
 
 uses
   Classes, Generics.Collections,
-  EF.Classes, EF.Tree, EF.YAML;
+  EF.Types, EF.Tree, EF.YAML;
 
 type
   TKMetadata = class(TEFTree)

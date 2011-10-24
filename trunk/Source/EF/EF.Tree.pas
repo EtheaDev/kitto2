@@ -7,18 +7,160 @@ uses
   EF.Types, EF.Macros;
 
 type
-  TEFDataType = (edtUnknown, edtString, edtInteger, edtDate, edtTime, edtDateTime,
-    edtBoolean, edtCurrency, edtFloat, edtObject, edtDecimal);
-  TEFDataTypes = set of TEFDataType;
-
-const
-  AllDataTypes = [edtString, edtInteger, edtDate, edtTime, edtDateTime,
-    edtBoolean, edtCurrency, edtFloat, edtDecimal];
-  NumericDataTypes = [edtInteger, edtCurrency, edtFloat, edtDecimal];
-  StringDataTypes = [edtString];
-
-type
   TEFNode = class;
+
+  TEFDataType = class
+  protected
+    procedure InternalNodeToParam(const ANode: TEFNode; const AParam: TParam); virtual;
+    procedure InternalFieldValueToNode(const AField: TField; const ANode: TEFNode); virtual;
+    procedure InternalYamlValueToNode(const AYamlValue: string; const ANode: TEFNode;
+      const AFormatSettings: TFormatSettings); virtual;
+    function InternalNodeToJSONValue(const ANode: TEFNode; const AJSFormatSettings: TFormatSettings): string; virtual;
+  public
+    class function GetTypeName: string; virtual;
+
+    procedure FieldValueToNode(const AField: TField; const ANode: TEFNode);
+    procedure NodeToParam(const ANode: TEFNode; const AParam: TParam);
+    procedure YamlValueToNode(const AYamlValue: string; const ANode: TEFNode;
+      const AFormatSettings: TFormatSettings);
+    function GetDefaultDisplayWidth(const ASize: Integer): Integer; virtual;
+    function SupportsEmptyAsNull: Boolean; virtual;
+    function IsBlob(const ASize: Integer): Boolean; virtual;
+    function NodeToJSONValue(const ANode: TEFNode; const AJSFormatSettings: TFormatSettings): string; virtual;
+    function GetJSTypeName: string; virtual;
+  end;
+  TEFDataTypeClass = class of TEFDataType;
+
+  TEFStringDataType = class(TEFDataType)
+  protected
+    procedure InternalNodeToParam(const ANode: TEFNode; const AParam: TParam); override;
+    procedure InternalFieldValueToNode(const AField: TField; const ANode: TEFNode); override;
+    procedure InternalYamlValueToNode(const AYamlValue: string; const ANode: TEFNode;
+      const AFormatSettings: TFormatSettings); override;
+  public
+    function GetDefaultDisplayWidth(const ASize: Integer): Integer; override;
+    function SupportsEmptyAsNull: Boolean; override;
+    function IsBlob(const ASize: Integer): Boolean; override;
+    function GetJSTypeName: string; override;
+  end;
+
+  TEFMemoDataType = class(TEFStringDataType)
+  end;
+
+  TEFDateDataType = class(TEFDataType)
+  protected
+    procedure InternalNodeToParam(const ANode: TEFNode; const AParam: TParam); override;
+    procedure InternalFieldValueToNode(const AField: TField; const ANode: TEFNode); override;
+    procedure InternalYamlValueToNode(const AYamlValue: string; const ANode: TEFNode;
+      const AFormatSettings: TFormatSettings); override;
+  public
+    function GetDefaultDisplayWidth(const ASize: Integer): Integer; override;
+    function SupportsEmptyAsNull: Boolean; override;
+    function InternalNodeToJSONValue(const ANode: TEFNode; const AJSFormatSettings: TFormatSettings): string; override;
+    function GetJSTypeName: string; override;
+  end;
+
+  TEFTimeDataType = class(TEFDataType)
+  protected
+    procedure InternalNodeToParam(const ANode: TEFNode; const AParam: TParam); override;
+    procedure InternalFieldValueToNode(const AField: TField; const ANode: TEFNode); override;
+    procedure InternalYamlValueToNode(const AYamlValue: string; const ANode: TEFNode;
+      const AFormatSettings: TFormatSettings); override;
+  public
+    function GetDefaultDisplayWidth(const ASize: Integer): Integer; override;
+    function SupportsEmptyAsNull: Boolean; override;
+    function InternalNodeToJSONValue(const ANode: TEFNode; const AJSFormatSettings: TFormatSettings): string; override;
+    function GetJSTypeName: string; override;
+  end;
+
+  TEFDateTimeDataType = class(TEFDataType)
+  protected
+    procedure InternalNodeToParam(const ANode: TEFNode; const AParam: TParam); override;
+    procedure InternalFieldValueToNode(const AField: TField; const ANode: TEFNode); override;
+    procedure InternalYamlValueToNode(const AYamlValue: string; const ANode: TEFNode;
+      const AFormatSettings: TFormatSettings); override;
+  public
+    function GetDefaultDisplayWidth(const ASize: Integer): Integer; override;
+    function SupportsEmptyAsNull: Boolean; override;
+    function InternalNodeToJSONValue(const ANode: TEFNode; const AJSFormatSettings: TFormatSettings): string; override;
+    function GetJSTypeName: string; override;
+  end;
+
+  TEFBooleanDataType = class(TEFDataType)
+  protected
+    procedure InternalNodeToParam(const ANode: TEFNode; const AParam: TParam); override;
+    procedure InternalFieldValueToNode(const AField: TField; const ANode: TEFNode); override;
+    procedure InternalYamlValueToNode(const AYamlValue: string; const ANode: TEFNode;
+      const AFormatSettings: TFormatSettings); override;
+  public
+    function GetDefaultDisplayWidth(const ASize: Integer): Integer; override;
+    function InternalNodeToJSONValue(const ANode: TEFNode; const AJSFormatSettings: TFormatSettings): string; override;
+    function GetJSTypeName: string; override;
+  end;
+
+  TEFNumericDataTypeBase = class(TEFDataType);
+
+  TEFIntegerDataType = class(TEFNumericDataTypeBase)
+  protected
+    procedure InternalNodeToParam(const ANode: TEFNode; const AParam: TParam); override;
+    procedure InternalFieldValueToNode(const AField: TField; const ANode: TEFNode); override;
+    procedure InternalYamlValueToNode(const AYamlValue: string; const ANode: TEFNode;
+      const AFormatSettings: TFormatSettings); override;
+  public
+    function GetDefaultDisplayWidth(const ASize: Integer): Integer; override;
+    function GetJSTypeName: string; override;
+  end;
+
+  TEFDecimalNumericDataTypeBase = class(TEFDataType);
+
+  TEFCurrencyDataType = class(TEFDecimalNumericDataTypeBase)
+  protected
+    procedure InternalNodeToParam(const ANode: TEFNode; const AParam: TParam); override;
+    procedure InternalFieldValueToNode(const AField: TField; const ANode: TEFNode); override;
+    procedure InternalYamlValueToNode(const AYamlValue: string; const ANode: TEFNode;
+      const AFormatSettings: TFormatSettings); override;
+  public
+    function GetDefaultDisplayWidth(const ASize: Integer): Integer; override;
+    function SupportsEmptyAsNull: Boolean; override;
+    function InternalNodeToJSONValue(const ANode: TEFNode; const AJSFormatSettings: TFormatSettings): string; override;
+    function GetJSTypeName: string; override;
+  end;
+
+  TEFFloatDataType = class(TEFDecimalNumericDataTypeBase)
+  protected
+    procedure InternalNodeToParam(const ANode: TEFNode; const AParam: TParam); override;
+    procedure InternalFieldValueToNode(const AField: TField; const ANode: TEFNode); override;
+    procedure InternalYamlValueToNode(const AYamlValue: string; const ANode: TEFNode;
+      const AFormatSettings: TFormatSettings); override;
+  public
+    function GetDefaultDisplayWidth(const ASize: Integer): Integer; override;
+    function SupportsEmptyAsNull: Boolean; override;
+    function InternalNodeToJSONValue(const ANode: TEFNode; const AJSFormatSettings: TFormatSettings): string; override;
+    function GetJSTypeName: string; override;
+  end;
+
+  TEFDecimalDataType = class(TEFDecimalNumericDataTypeBase)
+  protected
+    procedure InternalNodeToParam(const ANode: TEFNode; const AParam: TParam); override;
+    procedure InternalFieldValueToNode(const AField: TField; const ANode: TEFNode); override;
+    procedure InternalYamlValueToNode(const AYamlValue: string; const ANode: TEFNode;
+      const AFormatSettings: TFormatSettings); override;
+  public
+    function GetDefaultDisplayWidth(const ASize: Integer): Integer; override;
+    function SupportsEmptyAsNull: Boolean; override;
+    function InternalNodeToJSONValue(const ANode: TEFNode; const AJSFormatSettings: TFormatSettings): string; override;
+    function GetJSTypeName: string; override;
+  end;
+
+  TEFObjectDataType = class(TEFDataType)
+  protected
+    procedure InternalFieldValueToNode(const AField: TField; const ANode: TEFNode); override;
+    procedure InternalYamlValueToNode(const AYamlValue: string; const ANode: TEFNode;
+      const AFormatSettings: TFormatSettings); override;
+  public
+    function GetDefaultDisplayWidth(const ASize: Integer): Integer; override;
+  end;
+
   TEFNodeClass = class of TEFNode;
   TEFNodes = TObjectList<TEFNode>;
 
@@ -32,6 +174,7 @@ type
     function GetChildClass(const AName: string): TEFNodeClass; virtual;
     procedure EnterCS; virtual;
     procedure LeaveCS; virtual;
+    function GetRoot: TEFTree; virtual;
   public
     destructor Destroy; override;
   public
@@ -204,10 +347,12 @@ type
     procedure SetName(const AValue: string);
     function GetName: string; virtual;
     procedure SetValue(const AValue: Variant); virtual;
+    function GetRoot: TEFTree; override;
   public
     procedure Assign(const ASource: TEFTree); override;
     procedure AssignValue(const ASource: TEFNode);
     property Parent: TEFTree read FParent;
+    property Root: TEFTree read GetRoot;
     property Index: Integer read GetIndex;
     function GetEnumerator: TEnumerator<TEFNode>;
     constructor Create(const AName: string; const AValue: Variant); reintroduce; overload; virtual;
@@ -259,11 +404,14 @@ type
 
     function GetChildStrings(const ASeparator: string = sLineBreak;
       const AConnector: string = '='; const ADefaultValue: string = ''): string; overload;
+    function GetChildNames: TStringDynArray;
     function GetExpandedChildStrings(const ASeparator, AConnector,
       ADefaultValue: string): string;
     function GetChildPairs: TEFPairs;
 
     procedure AssignFieldValue(const AField: TField);
+    procedure AssignValueToParam(const AParam: TParam);
+    procedure AssignToParam(const AParam: TParam);
   end;
 
   TEFTreeFactory = class
@@ -311,62 +459,122 @@ type
       const ANameSpace: string); reintroduce;
   end;
 
-function StringToEFDataType(const AString: string): TEFDataType;
-function EFDataTypeToString(const ADataType: TEFDataType): string;
+type
+  TEFDataTypeRegistry = class(TEFRegistry)
+  private
+    class var FInstance: TEFDataTypeRegistry;
+    class function GetInstance: TEFDataTypeRegistry; static;
+    class destructor Destroy;
+  public
+    class property Instance: TEFDataTypeRegistry read GetInstance;
+    function GetClass(const AId: string): TEFDataTypeClass;
+  end;
+
+  TEFDataTypeFactory = class(TEFFactory)
+  private
+    FDataTypes: TDictionary<string, TEFDataType>;
+    class var FInstance: TEFDataTypeFactory;
+    class function GetInstance: TEFDataTypeFactory; static;
+  public
+    class destructor Destroy;
+  public
+    procedure AfterConstruction; override;
+    destructor Destroy; override;
+    class property Instance: TEFDataTypeFactory read GetInstance;
+
+    function GetDataType(const AId: string): TEFDataType;
+  end;
 
 implementation
 
 uses
-  StrUtils, TypInfo,
+  StrUtils, TypInfo, Math,
   EF.Environment, EF.Localization, EF.StrUtils, EF.YAML, EF.VariantUtils;
 
-function EFDataTypeToString(const ADataType: TEFDataType): string;
+{$IF RTLVersion < 23.0}
+const
+  varObject = $0049;
+{$IFEND}
+
+{ TEFDataTypeRegistry }
+
+class destructor TEFDataTypeRegistry.Destroy;
 begin
-  Result := StripPrefix(GetEnumName(TypeInfo(TEFDataType), Ord(ADataType)), 'edt');
+  FreeAndNil(FInstance);
 end;
 
-function StringToEFDataType(const AString: string): TEFDataType;
-var
-  LValue: Integer;
+function TEFDataTypeRegistry.GetClass(const AId: string): TEFDataTypeClass;
 begin
-  if AString = '' then
-    Result := edtUnknown
-  else
-  begin
-    LValue := GetEnumValue(TypeInfo(TEFDataType), 'edt' + AString);
-    if (LValue < 0) or (LValue > Ord(High(TEFDataType))) then
-      raise EEFError.CreateFmt(_('Unknown datatype %s.'), [AString]);
-    Result := TEFDataType(LValue);
-  end;
+  Result := TEFDataTypeClass(inherited GetClass(AId));
+end;
+
+class function TEFDataTypeRegistry.GetInstance: TEFDataTypeRegistry;
+begin
+  if FInstance = nil then
+    FInstance := TEFDataTypeRegistry.Create;
+  Result := FInstance;
+end;
+
+{ TEFDataTypeFactory }
+
+procedure TEFDataTypeFactory.AfterConstruction;
+begin
+  inherited;
+  FDataTypes := TDictionary<string, TEFDataType>.Create;
+end;
+
+destructor TEFDataTypeFactory.Destroy;
+begin
+  FreeAndNil(FDataTypes);
+  inherited;
+end;
+
+class destructor TEFDataTypeFactory.Destroy;
+begin
+  FreeAndNil(FInstance);
+end;
+
+function TEFDataTypeFactory.GetDataType(const AId: string): TEFDataType;
+begin
+  if not FDataTypes.ContainsKey(AId) then
+    FDataTypes.Add(AId, TEFDataType(CreateObject(AId)));
+  Result := FDataTypes[AId];
+end;
+
+class function TEFDataTypeFactory.GetInstance: TEFDataTypeFactory;
+begin
+  if FInstance = nil then
+    FInstance := TEFDataTypeFactory.Create(TEFDataTypeRegistry.Instance);
+  Result := FInstance;
 end;
 
 function GetVariantDataType(const AVariant: Variant): TEFDataType;
 begin
   if VarIsType(AVariant, [varString, varOleStr, varUString]) then
-    Result := edtString
+    Result := TEFDataTypeFactory.Instance.GetDataType('String')
   else if VarIsType(AVariant, [varShortInt, varByte, varWord, varLongWord, varSmallint, varInteger, varInt64, varUInt64]) then
-    Result := edtInteger
+    Result := TEFDataTypeFactory.Instance.GetDataType('Integer')
   else if VarIsType(AVariant, [varDate]) then
   begin
     if TDateTime(AVariant) = Trunc(TDateTime(AVariant)) then
-      Result := edtDate
+      Result := TEFDataTypeFactory.Instance.GetDataType('Date')
     else if TDateTime(AVariant) = Frac(TDateTime(AVariant)) then
-      Result := edtTime
+      Result := TEFDataTypeFactory.Instance.GetDataType('Time')
     else
-      Result := edtDateTime;
+      Result := TEFDataTypeFactory.Instance.GetDataType('DateTime');
   end
   else if VarIsType(AVariant, [varBoolean]) then
-    Result := edtBoolean
+    Result := TEFDataTypeFactory.Instance.GetDataType('Boolean')
   else if VarIsType(AVariant, [varCurrency]) then
-    Result := edtCurrency
+    Result := TEFDataTypeFactory.Instance.GetDataType('Currency')
   else if VarIsFMTBcd(AVariant) then
-    Result := edtDecimal
+    Result := TEFDataTypeFactory.Instance.GetDataType('Decimal')
   else if VarIsType(AVariant, [varSingle, varDouble]) then
-    Result := edtFloat
+    Result := TEFDataTypeFactory.Instance.GetDataType('Float')
   else if VarIsType(AVariant, [varObject]) then
-    Result := edtObject
+    Result := TEFDataTypeFactory.Instance.GetDataType('Object')
   else
-    Result := edtUnknown;
+    Result := TEFDataTypeFactory.Instance.GetDataType('String');
 end;
 
 { TEFNode }
@@ -392,48 +600,24 @@ begin
     SetToNull;
 end;
 
+procedure TEFNode.AssignValueToParam(const AParam: TParam);
+begin
+  Assert(Assigned(AParam));
+
+  DataType.NodeToParam(Self, AParam);
+end;
+
 procedure TEFNode.AssignFieldValue(const AField: TField);
 begin
   Assert(Assigned(AField));
 
-  if AField.IsNull then
-    SetToNull
-  else
-  begin
-    if DataType = edtUnknown then
-    begin
-      case AField.DataType of
-        ftString, ftMemo, ftFixedChar, ftWideString, ftWideMemo: AsString := AField.AsString;
-        ftSmallint, ftWord, ftInteger, ftAutoInc: AsInteger := AField.AsInteger;
-        ftBoolean: AsBoolean := AField.AsBoolean;
-        ftDate: AsDate := AField.AsDateTime;
-        ftTime: AsTime := AField.AsDateTime;
-        ftDateTime, ftTimeStamp: AsDateTime := AField.AsDateTime;
-        ftCurrency: AsCurrency := AField.AsCurrency;
-        ftFloat: AsFloat := AField.AsFloat;
-        ftBCD, ftFMTBcd: AsDecimal := AField.AsBCD;
-      else
-        raise EEFError.CreateFmt('AssignFieldValueToNode: data type %s not supported',
-          [GetEnumName(TypeInfo(TFieldType), Ord(AField.DataType))]);
-      end;
-    end
-    else
-    begin
-      case DataType of
-        edtString: AsString := AField.AsString;
-        edtInteger: AsInteger := AField.AsInteger;
-        edtBoolean: AsBoolean := AField.AsBoolean;
-        edtDate: AsDate := AField.AsDateTime;
-        edtTime: AsTime := AField.AsDateTime;
-        edtDateTime: AsDateTime := AField.AsDateTime;
-        edtCurrency: AsCurrency := AField.AsCurrency;
-        edtFloat: AsFloat := AField.AsFloat;
-        edtObject: raise EEFError.CreateFmt('AssignFieldValueToNode: data type %s not supported',
-          [EFDataTypeToString(DataType)]);
-        edtDecimal: AsDecimal := AField.AsBCD;
-      end;
-    end;
-  end;
+  DataType.FieldValueToNode(AField, Self);
+end;
+
+procedure TEFNode.AssignToParam(const AParam: TParam);
+begin
+  AssignValueToParam(AParam);
+  AParam.Name := Name;
 end;
 
 procedure TEFNode.Clear;
@@ -464,7 +648,6 @@ end;
 constructor TEFNode.Create(const AName: string; const AValue: Variant);
 begin
   inherited Create;
-  FDataType := edtUnknown;
   SetName(AName);
   Value := AValue;
 end;
@@ -560,6 +743,15 @@ begin
   end;
 end;
 
+function TEFNode.GetChildNames: TStringDynArray;
+var
+  I: Integer;
+begin
+  SetLength(Result, ChildCount);
+  for I := 0 to ChildCount - 1 do
+    Result[I] := Children[I].Name;
+end;
+
 function TEFNode.GetChildPairs: TEFPairs;
 var
   I: Integer;
@@ -607,6 +799,14 @@ begin
   Result := FName;
 end;
 
+function TEFNode.GetRoot: TEFTree;
+begin
+  if Assigned(Parent) then
+    Result := Parent.GetRoot
+  else
+    Result := inherited GetRoot;
+end;
+
 function TEFNode.GetValue: Variant;
 begin
   Result := FValue;
@@ -615,49 +815,49 @@ end;
 procedure TEFNode.SetAsBoolean(const AValue: Boolean);
 begin
   Value := BooleanToValue(AValue);
-  FDataType := edtBoolean;
+  FDataType := TEFDataTypeFactory.Instance.GetDataType('Boolean');
 end;
 
 procedure TEFNode.SetAsCurrency(const AValue: Currency);
 begin
   Value := CurrencyToValue(AValue);
-  FDataType := edtCurrency;
+  FDataType := TEFDataTypeFactory.Instance.GetDataType('Currency');
 end;
 
 procedure TEFNode.SetAsDate(const AValue: TDate);
 begin
   Value := DateToValue(AValue);
-  FDataType := edtDate;
+  FDataType := TEFDataTypeFactory.Instance.GetDataType('Date');
 end;
 
 procedure TEFNode.SetAsDateTime(const AValue: TDateTime);
 begin
   Value := DateTimeToValue(AValue);
-  FDataType := edtDateTime;
+  FDataType := TEFDataTypeFactory.Instance.GetDataType('DateTime');
 end;
 
 procedure TEFNode.SetAsDecimal(const AValue: TBcd);
 begin
   Value := DecimalToValue(AValue);
-  FDataType := edtDecimal;
+  FDataType := TEFDataTypeFactory.Instance.GetDataType('Decimal');
 end;
 
 procedure TEFNode.SetAsFloat(const AValue: Double);
 begin
   Value := FloatToValue(AValue);
-  FDataType := edtFloat;
+  FDataType := TEFDataTypeFactory.Instance.GetDataType('Float');
 end;
 
 procedure TEFNode.SetAsInteger(const AValue: Integer);
 begin
   Value := IntegerToValue(AValue);
-  FDataType := edtInteger;
+  FDataType := TEFDataTypeFactory.Instance.GetDataType('Integer');
 end;
 
 procedure TEFNode.SetAsObject(const AValue: TObject);
 begin
   Value := ObjectToValue(AValue);
-  FDataType := edtObject;
+  FDataType := TEFDataTypeFactory.Instance.GetDataType('Object');
 end;
 
 procedure TEFNode.SetAsPair(const AValue: TEFPair);
@@ -669,67 +869,30 @@ end;
 procedure TEFNode.SetAsPairs(const AValue: TEFPairs);
 begin
   Value := PairsToValue(AValue);
-  FDataType := edtString;
+  FDataType := TEFDataTypeFactory.Instance.GetDataType('String');
 end;
 
 procedure TEFNode.SetAsString(const AValue: string);
 begin
   Value := StringToValue(AValue);
-  FDataType := edtString;
+  FDataType := TEFDataTypeFactory.Instance.GetDataType('String');
 end;
 
 procedure TEFNode.SetAsStringArray(const AValue: TStringDynArray);
 begin
   Value := StringArrayToValue(AValue);
-  FDataType := edtString;
+  FDataType := TEFDataTypeFactory.Instance.GetDataType('String');
 end;
 
 procedure TEFNode.SetAsTime(const AValue: TTime);
 begin
   Value := TimeToValue(AValue);
-  FDataType := edtTime;
+  FDataType := TEFDataTypeFactory.Instance.GetDataType('Time');
 end;
 
 function TEFNode.SetAsYamlValue(const AValue: string; const AFormatSettings: TFormatSettings): TEFNode;
-var
-  LDateTime: TDateTime;
-  LBoolean: Boolean;
-  LDouble: Double;
-  LInteger: Integer;
 begin
-  if DataType = edtUnknown then
-  begin
-    if TryStrToInt(AValue, LInteger) then
-      AsInteger := LInteger
-    else if TryStrToFloat(AValue, LDouble, AFormatSettings) then
-      AsFloat := LDouble
-    else if TryStrToDateTime(AValue, LDateTime, AFormatSettings) then
-      AsDateTime := LDateTime
-    else if TryStrToDate(AValue, LDateTime, AFormatSettings) then
-      AsDate := LDateTime
-    else if TryStrToTime(AValue, LDateTime, AFormatSettings) then
-      AsTime := LDateTime
-    else if TryStrToBool(AValue, LBoolean) then
-      AsBoolean := LBoolean
-    else
-      AsString := AValue;
-  end
-  else
-  begin
-    case DataType of
-      edtString: AsString := AValue;
-      edtInteger: AsInteger := StrToInt(AValue);
-      edtDate: AsDate := StrToDate(AValue, AFormatSettings);
-      edtTime: AsTime := StrToTime(AValue, AFormatSettings);
-      edtDateTime: AsDateTime := StrToDateTime(AValue, AFormatSettings);
-      edtBoolean: AsBoolean := StrToBool(AValue);
-      edtCurrency: AsCurrency := StrToCurr(AValue, AFormatSettings);
-      edtFloat: AsFloat := StrToFloat(AValue, AFormatSettings);
-      edtDecimal: AsDecimal := StrToBcd(AValue, AFormatSettings);
-      edtObject: raise EEFError.CreateFmt('Invalid value %s for data type %s.',
-        [AValue, EFDataTypeToString(DataType)]);
-    end;
-  end;
+  DataType.YamlValueToNode(AValue, Self, AFormatSettings);
   Result := Self;
 end;
 
@@ -1058,6 +1221,11 @@ begin
     Result := ADefaultValue;
 end;
 
+function TEFTree.GetRoot: TEFTree;
+begin
+  Result := Self;
+end;
+
 function TEFTree.GetString(const APath, ADefaultValue: string): string;
 var
   LNode: TEFNode;
@@ -1333,5 +1501,537 @@ begin
     LIndex := LEnd + 1;
   until LIndex > Length(Result);
 end;
+
+{ TEFDataType }
+
+procedure TEFDataType.FieldValueToNode(const AField: TField; const ANode: TEFNode);
+begin
+  Assert(Assigned(AField));
+  Assert(Assigned(ANode));
+
+  if AField.IsNull then
+    ANode.SetToNull
+  else
+    InternalFieldValueToNode(AField, ANode);
+end;
+
+procedure TEFDataType.InternalFieldValueToNode(const AField: TField;
+  const ANode: TEFNode);
+begin
+  case AField.DataType of
+    ftString, ftMemo, ftFixedChar, ftWideString, ftWideMemo: ANode.AsString := AField.AsString;
+    ftSmallint, ftWord, ftInteger, ftAutoInc: ANode.AsInteger := AField.AsInteger;
+    ftBoolean: ANode.AsBoolean := AField.AsBoolean;
+    ftDate: ANode.AsDate := AField.AsDateTime;
+    ftTime: ANode.AsTime := AField.AsDateTime;
+    ftDateTime, ftTimeStamp: ANode.AsDateTime := AField.AsDateTime;
+    ftCurrency: ANode.AsCurrency := AField.AsCurrency;
+    ftFloat: ANode.AsFloat := AField.AsFloat;
+    ftBCD, ftFMTBcd: ANode.AsDecimal := AField.AsBCD;
+  else
+    raise EEFError.CreateFmt('TEFDataType.InternalFieldValueToNode: Field data type %s not supported.',
+      [GetEnumName(TypeInfo(TFieldType), Ord(AField.DataType))]);
+  end;
+end;
+
+function TEFDataType.InternalNodeToJSONValue(const ANode: TEFNode;
+  const AJSFormatSettings: TFormatSettings): string;
+begin
+  Result := ANode.AsString;
+end;
+
+procedure TEFDataType.InternalNodeToParam(const ANode: TEFNode;
+  const AParam: TParam);
+begin
+  raise EEFError.CreateFmt('%s.InternalNodeToParam: Unsupported call.', [ClassName]);
+end;
+
+procedure TEFDataType.InternalYamlValueToNode(const AYamlValue: string;
+  const ANode: TEFNode; const AFormatSettings: TFormatSettings);
+var
+  LInteger: Integer;
+  LDouble: Double;
+  LDateTime: TDateTime;
+  LBoolean: Boolean;
+begin
+  Assert(Assigned(ANode));
+
+  if TryStrToInt(AYamlValue, LInteger) then
+    ANode.AsInteger := LInteger
+  else if TryStrToFloat(AYamlValue, LDouble, AFormatSettings) then
+    ANode.AsFloat := LDouble
+  else if TryStrToDateTime(AYamlValue, LDateTime, AFormatSettings) then
+    ANode.AsDateTime := LDateTime
+  else if TryStrToDate(AYamlValue, LDateTime, AFormatSettings) then
+    ANode.AsDate := LDateTime
+  else if TryStrToTime(AYamlValue, LDateTime, AFormatSettings) then
+    ANode.AsTime := LDateTime
+  else if TryStrToBool(AYamlValue, LBoolean) then
+    ANode.AsBoolean := LBoolean
+  else
+    ANode.AsString := AYamlValue;
+end;
+
+function TEFDataType.IsBlob(const ASize: Integer): Boolean;
+begin
+  Result := False;
+end;
+
+function TEFDataType.NodeToJSONValue(const ANode: TEFNode;
+  const AJSFormatSettings: TFormatSettings): string;
+begin
+  Assert(Assigned(ANode));
+
+  if ANode.IsNull then
+    Result := 'null'
+  else
+    Result := '"' + InternalNodeToJSONValue(ANode, AJSFormatSettings) + '"';
+end;
+
+procedure TEFDataType.NodeToParam(const ANode: TEFNode; const AParam: TParam);
+begin
+  Assert(Assigned(ANode));
+  Assert(Assigned(AParam));
+
+  if ANode.IsNull then
+    AParam.Clear
+  else
+    InternalNodeToParam(ANode, AParam);
+end;
+
+function TEFDataType.SupportsEmptyAsNull: Boolean;
+begin
+  Result := False;
+end;
+
+function TEFDataType.GetDefaultDisplayWidth(const ASize: Integer): Integer;
+begin
+  Result := 20;
+end;
+
+function TEFDataType.GetJSTypeName: string;
+begin
+  Result := 'auto';
+end;
+
+class function TEFDataType.GetTypeName: string;
+begin
+  Result := StripPrefixAndSuffix(ClassName, 'TEF', 'DataType');
+end;
+
+procedure TEFDataType.YamlValueToNode(const AYamlValue: string;
+  const ANode: TEFNode; const AFormatSettings: TFormatSettings);
+begin
+  Assert(Assigned(ANode));
+
+  InternalYamlValueToNode(AYamlValue, ANode, AFormatSettings);
+end;
+
+{ TEFIntegerDataType }
+
+function TEFIntegerDataType.GetDefaultDisplayWidth(
+  const ASize: Integer): Integer;
+begin
+  Result := 5;
+end;
+
+function TEFIntegerDataType.GetJSTypeName: string;
+begin
+  Result := 'int';
+end;
+
+procedure TEFIntegerDataType.InternalFieldValueToNode(const AField: TField;
+  const ANode: TEFNode);
+begin
+  ANode.AsInteger := AField.AsInteger;
+end;
+
+procedure TEFIntegerDataType.InternalNodeToParam(const ANode: TEFNode;
+  const AParam: TParam);
+begin
+  AParam.AsInteger := ANode.AsInteger;
+end;
+
+procedure TEFIntegerDataType.InternalYamlValueToNode(const AYamlValue: string;
+  const ANode: TEFNode; const AFormatSettings: TFormatSettings);
+begin
+  ANode.AsInteger := StrToInt(AYamlValue);
+end;
+
+{ TEFDateDataType }
+
+function TEFDateDataType.GetDefaultDisplayWidth(const ASize: Integer): Integer;
+begin
+  Result := 10;
+end;
+
+function TEFDateDataType.GetJSTypeName: string;
+begin
+  Result := 'date';
+end;
+
+procedure TEFDateDataType.InternalFieldValueToNode(const AField: TField;
+  const ANode: TEFNode);
+begin
+  ANode.AsDate := AField.AsDateTime;
+end;
+
+function TEFDateDataType.InternalNodeToJSONValue(const ANode: TEFNode;
+  const AJSFormatSettings: TFormatSettings): string;
+begin
+  Result := DateToStr(ANode.AsDate, AJSFormatSettings);
+end;
+
+procedure TEFDateDataType.InternalNodeToParam(const ANode: TEFNode;
+  const AParam: TParam);
+begin
+  AParam.AsDate := ANode.AsDate;
+end;
+
+procedure TEFDateDataType.InternalYamlValueToNode(const AYamlValue: string;
+  const ANode: TEFNode; const AFormatSettings: TFormatSettings);
+begin
+  ANode.AsDate := StrToDate(AYamlValue, AFormatSettings);
+end;
+
+function TEFDateDataType.SupportsEmptyAsNull: Boolean;
+begin
+  Result := True;
+end;
+
+{ TEFTimeDataType }
+
+function TEFTimeDataType.GetDefaultDisplayWidth(const ASize: Integer): Integer;
+begin
+  Result := 8;
+end;
+
+function TEFTimeDataType.GetJSTypeName: string;
+begin
+  Result := 'date';
+end;
+
+procedure TEFTimeDataType.InternalFieldValueToNode(const AField: TField;
+  const ANode: TEFNode);
+begin
+  ANode.AsTime := AField.AsDateTime;
+end;
+
+function TEFTimeDataType.InternalNodeToJSONValue(const ANode: TEFNode;
+  const AJSFormatSettings: TFormatSettings): string;
+begin
+  // Apparently ExtJS can't interpret a JSON value as a time in a given format
+  // unless a date part is also included, so we include a dummy date.
+  Result := DateToStr(0, AJSFormatSettings) + ' ' + TimeToStr(ANode.AsTime, AJSFormatSettings);
+end;
+
+procedure TEFTimeDataType.InternalNodeToParam(const ANode: TEFNode;
+  const AParam: TParam);
+begin
+  AParam.AsTime := ANode.AsTime;
+end;
+
+procedure TEFTimeDataType.InternalYamlValueToNode(const AYamlValue: string;
+  const ANode: TEFNode; const AFormatSettings: TFormatSettings);
+begin
+  ANode.AsTime := StrToTime(AYamlValue, AFormatSettings);
+end;
+
+function TEFTimeDataType.SupportsEmptyAsNull: Boolean;
+begin
+  Result := True;
+end;
+
+{ TEFDateTimeDataType }
+
+function TEFDateTimeDataType.GetDefaultDisplayWidth(
+  const ASize: Integer): Integer;
+begin
+  Result := 19;
+end;
+
+function TEFDateTimeDataType.GetJSTypeName: string;
+begin
+  Result := 'date';
+end;
+
+procedure TEFDateTimeDataType.InternalFieldValueToNode(const AField: TField;
+  const ANode: TEFNode);
+begin
+  ANode.AsDateTime := AField.AsDateTime;
+end;
+
+function TEFDateTimeDataType.InternalNodeToJSONValue(const ANode: TEFNode;
+  const AJSFormatSettings: TFormatSettings): string;
+begin
+  Result := DateTimeToStr(ANode.AsDateTime, AJSFormatSettings);
+end;
+
+procedure TEFDateTimeDataType.InternalNodeToParam(const ANode: TEFNode;
+  const AParam: TParam);
+begin
+  AParam.AsDateTime := ANode.AsDateTime;
+end;
+
+procedure TEFDateTimeDataType.InternalYamlValueToNode(const AYamlValue: string;
+  const ANode: TEFNode; const AFormatSettings: TFormatSettings);
+begin
+  ANode.AsDateTime := StrToDateTime(AYamlValue, AFormatSettings);
+end;
+
+function TEFDateTimeDataType.SupportsEmptyAsNull: Boolean;
+begin
+  Result := True;
+end;
+
+{ TEFBooleanDataType }
+
+function TEFBooleanDataType.GetDefaultDisplayWidth(
+  const ASize: Integer): Integer;
+begin
+  Result := 5;
+end;
+
+function TEFBooleanDataType.GetJSTypeName: string;
+begin
+  Result := 'boolean';
+end;
+
+procedure TEFBooleanDataType.InternalFieldValueToNode(const AField: TField;
+  const ANode: TEFNode);
+begin
+  ANode.AsBoolean := AField.AsBoolean;
+end;
+
+function TEFBooleanDataType.InternalNodeToJSONValue(const ANode: TEFNode;
+  const AJSFormatSettings: TFormatSettings): string;
+begin
+  Result := BoolToStr(ANode.AsBoolean, True);
+end;
+
+procedure TEFBooleanDataType.InternalNodeToParam(const ANode: TEFNode;
+  const AParam: TParam);
+begin
+  AParam.AsBoolean := ANode.AsBoolean;
+end;
+
+procedure TEFBooleanDataType.InternalYamlValueToNode(const AYamlValue: string;
+  const ANode: TEFNode; const AFormatSettings: TFormatSettings);
+begin
+  ANode.AsBoolean := StrToBool(AYamlValue);
+end;
+
+{ TEFCurrencyDataType }
+
+function TEFCurrencyDataType.GetDefaultDisplayWidth(
+  const ASize: Integer): Integer;
+begin
+  Result := 12;
+end;
+
+function TEFCurrencyDataType.GetJSTypeName: string;
+begin
+  Result := 'float';
+end;
+
+procedure TEFCurrencyDataType.InternalFieldValueToNode(const AField: TField;
+  const ANode: TEFNode);
+begin
+  ANode.AsCurrency := AField.AsCurrency;
+end;
+
+function TEFCurrencyDataType.InternalNodeToJSONValue(const ANode: TEFNode;
+  const AJSFormatSettings: TFormatSettings): string;
+begin
+  Result := FormatCurr(',0.00', ANode.AsCurrency, AJSFormatSettings);
+end;
+
+procedure TEFCurrencyDataType.InternalNodeToParam(const ANode: TEFNode;
+  const AParam: TParam);
+begin
+  AParam.AsCurrency := ANode.AsCurrency;
+end;
+
+procedure TEFCurrencyDataType.InternalYamlValueToNode(const AYamlValue: string;
+  const ANode: TEFNode; const AFormatSettings: TFormatSettings);
+begin
+  ANode.AsCurrency := StrToCurr(AYamlValue);
+end;
+
+function TEFCurrencyDataType.SupportsEmptyAsNull: Boolean;
+begin
+  Result := True;
+end;
+
+{ TEFFloatDataType }
+
+function TEFFloatDataType.GetDefaultDisplayWidth(const ASize: Integer): Integer;
+begin
+  Result := 10;
+end;
+
+function TEFFloatDataType.GetJSTypeName: string;
+begin
+  Result := 'float';
+end;
+
+procedure TEFFloatDataType.InternalFieldValueToNode(const AField: TField;
+  const ANode: TEFNode);
+begin
+  ANode.AsFloat := AField.AsFloat;
+end;
+
+function TEFFloatDataType.InternalNodeToJSONValue(const ANode: TEFNode;
+  const AJSFormatSettings: TFormatSettings): string;
+begin
+  Result := FormatFloat(',0.00', ANode.AsFloat, AJSFormatSettings);
+end;
+
+procedure TEFFloatDataType.InternalNodeToParam(const ANode: TEFNode;
+  const AParam: TParam);
+begin
+  AParam.AsFloat := ANode.AsFloat;
+end;
+
+procedure TEFFloatDataType.InternalYamlValueToNode(const AYamlValue: string;
+  const ANode: TEFNode; const AFormatSettings: TFormatSettings);
+begin
+  ANode.AsFloat := StrToFloat(AYamlValue, AFormatSettings);
+end;
+
+function TEFFloatDataType.SupportsEmptyAsNull: Boolean;
+begin
+  Result := True;
+end;
+
+{ TEFObjectDataType }
+
+function TEFObjectDataType.GetDefaultDisplayWidth(
+  const ASize: Integer): Integer;
+begin
+  Result := 10;
+end;
+
+procedure TEFObjectDataType.InternalFieldValueToNode(const AField: TField;
+  const ANode: TEFNode);
+begin
+  raise EEFError.Create('TEFObjectDataType.InternalFieldValueToNode: Unsupported call.');
+end;
+
+procedure TEFObjectDataType.InternalYamlValueToNode(const AYamlValue: string;
+  const ANode: TEFNode; const AFormatSettings: TFormatSettings);
+begin
+  raise EEFError.Create('TEFObjectDataType.InternalYamlValueToNode: Unsupported call.');
+end;
+
+{ TEFDecimalDataType }
+
+function TEFDecimalDataType.GetDefaultDisplayWidth(
+  const ASize: Integer): Integer;
+begin
+  Result := 10;
+end;
+
+function TEFDecimalDataType.GetJSTypeName: string;
+begin
+  Result := 'float';
+end;
+
+procedure TEFDecimalDataType.InternalFieldValueToNode(const AField: TField;
+  const ANode: TEFNode);
+begin
+  ANode.AsDecimal := AField.AsBCD;
+end;
+
+function TEFDecimalDataType.InternalNodeToJSONValue(const ANode: TEFNode;
+  const AJSFormatSettings: TFormatSettings): string;
+begin
+  Result := FormatFloat(',0.00', BcdToDouble(ANode.AsDecimal), AJSFormatSettings);
+end;
+
+procedure TEFDecimalDataType.InternalNodeToParam(const ANode: TEFNode;
+  const AParam: TParam);
+begin
+  AParam.AsFMTBCD := ANode.AsDecimal;
+end;
+
+procedure TEFDecimalDataType.InternalYamlValueToNode(const AYamlValue: string;
+  const ANode: TEFNode; const AFormatSettings: TFormatSettings);
+begin
+  ANode.AsDecimal := StrToBcd(AYamlValue, AFormatSettings);
+end;
+
+function TEFDecimalDataType.SupportsEmptyAsNull: Boolean;
+begin
+  Result := True;
+end;
+
+{ TEFStringDataType }
+
+function TEFStringDataType.GetDefaultDisplayWidth(
+  const ASize: Integer): Integer;
+begin
+  Result := Max(Min(80, ASize), inherited GetDefaultDisplayWidth(ASize));
+end;
+
+function TEFStringDataType.GetJSTypeName: string;
+begin
+  Result := 'string';
+end;
+
+procedure TEFStringDataType.InternalFieldValueToNode(const AField: TField;
+  const ANode: TEFNode);
+begin
+  ANode.AsString := AField.AsString;
+end;
+
+procedure TEFStringDataType.InternalNodeToParam(const ANode: TEFNode;
+  const AParam: TParam);
+begin
+  AParam.AsString := ANode.AsString;
+end;
+
+procedure TEFStringDataType.InternalYamlValueToNode(const AYamlValue: string;
+  const ANode: TEFNode; const AFormatSettings: TFormatSettings);
+begin
+  ANode.AsString := AYamlValue;
+end;
+
+function TEFStringDataType.IsBlob(const ASize: Integer): Boolean;
+begin
+  { TODO : Support binary blobs as well. }
+  Result := ASize = 0;
+end;
+
+function TEFStringDataType.SupportsEmptyAsNull: Boolean;
+begin
+  Result := True;
+end;
+
+initialization
+  TEFDataTypeRegistry.Instance.RegisterClass(TEFStringDataType.GetTypeName, TEFStringDataType);
+  TEFDataTypeRegistry.Instance.RegisterClass(TEFMemoDataType.GetTypeName, TEFMemoDataType);
+  TEFDataTypeRegistry.Instance.RegisterClass(TEFIntegerDataType.GetTypeName, TEFIntegerDataType);
+  TEFDataTypeRegistry.Instance.RegisterClass(TEFDateDataType.GetTypeName, TEFDateDataType);
+  TEFDataTypeRegistry.Instance.RegisterClass(TEFTimeDataType.GetTypeName, TEFTimeDataType);
+  TEFDataTypeRegistry.Instance.RegisterClass(TEFDateTimeDataType.GetTypeName, TEFDateTimeDataType);
+  TEFDataTypeRegistry.Instance.RegisterClass(TEFBooleanDataType.GetTypeName, TEFBooleanDataType);
+  TEFDataTypeRegistry.Instance.RegisterClass(TEFFloatDataType.GetTypeName, TEFFloatDataType);
+  TEFDataTypeRegistry.Instance.RegisterClass(TEFCurrencyDataType.GetTypeName, TEFCurrencyDataType);
+  TEFDataTypeRegistry.Instance.RegisterClass(TEFDecimalDataType.GetTypeName, TEFDecimalDataType);
+  TEFDataTypeRegistry.Instance.RegisterClass(TEFObjectDataType.GetTypeName, TEFObjectDataType);
+
+finalization
+  TEFDataTypeRegistry.Instance.UnregisterClass(TEFStringDataType.GetTypeName);
+  TEFDataTypeRegistry.Instance.UnregisterClass(TEFMemoDataType.GetTypeName);
+  TEFDataTypeRegistry.Instance.UnregisterClass(TEFIntegerDataType.GetTypeName);
+  TEFDataTypeRegistry.Instance.UnregisterClass(TEFDateDataType.GetTypeName);
+  TEFDataTypeRegistry.Instance.UnregisterClass(TEFTimeDataType.GetTypeName);
+  TEFDataTypeRegistry.Instance.UnregisterClass(TEFDateTimeDataType.GetTypeName);
+  TEFDataTypeRegistry.Instance.UnregisterClass(TEFBooleanDataType.GetTypeName);
+  TEFDataTypeRegistry.Instance.UnregisterClass(TEFFloatDataType.GetTypeName);
+  TEFDataTypeRegistry.Instance.UnregisterClass(TEFCurrencyDataType.GetTypeName);
+  TEFDataTypeRegistry.Instance.UnregisterClass(TEFDecimalDataType.GetTypeName);
+  TEFDataTypeRegistry.Instance.UnregisterClass(TEFObjectDataType.GetTypeName);
 
 end.

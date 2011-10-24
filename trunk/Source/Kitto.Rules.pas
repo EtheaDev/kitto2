@@ -42,7 +42,7 @@ unit Kitto.Rules;
 interface
 
 uses
-  EF.Classes, EF.Tree,
+  EF.Types, EF.Tree,
   Kitto.Types, Kitto.Metadata.Models, Kitto.Store;
 
 type
@@ -52,8 +52,8 @@ type
     FRule: TKRule;
   protected
     procedure SetRule(const AValue: TKRule); virtual;
-    procedure CheckRuleParam(const APath: string; const ADataTypes: TEFDataTypes);
-    procedure CheckRuleValueParam(const ADataTypes: TEFDataTypes);
+    procedure CheckRuleParam(const APath: string);
+    procedure CheckRuleValueParam;
     class function GetClassId: string; virtual;
 
     ///	<summary>Returns the error message, which can be customized through the
@@ -131,28 +131,23 @@ procedure TKRuleImpl.BeforeWrite;
 begin
 end;
 
-procedure TKRuleImpl.CheckRuleParam(const APath: string;
-  const ADataTypes: TEFDataTypes);
+procedure TKRuleImpl.CheckRuleParam(const APath: string);
 var
   LNode: TEFNode;
 begin
   Assert(Assigned(Rule));
 
   LNode := Rule.FindNode(APath);
-  if not Assigned(LNode) then
+  if not Assigned(LNode) or LNode.IsNull or (LNode.AsString = '') then
     raise EKRuleError.CreateFmt('Missing parameter %s in rule %s', [APath, GetClassid]);
-  if not (LNode.DataType in ADataTypes) then
-    raise EKRuleError.CreateFmt('Wrong data type for parameter %s in rule %s', [APath, GetClassid]);
 end;
 
-procedure TKRuleImpl.CheckRuleValueParam(const ADataTypes: TEFDataTypes);
+procedure TKRuleImpl.CheckRuleValueParam;
 begin
   Assert(Assigned(Rule));
 
   if Rule.IsNull or (Rule.AsString = '') then
     raise EKRuleError.CreateFmt('Missing value in rule %s', [GetClassid]);
-  if not (Rule.DataType in ADataTypes) then
-    raise EKRuleError.CreateFmt('Wrong data type for rule %s', [GetClassid]);
 end;
 
 class function TKRuleImpl.GetClassId: string;

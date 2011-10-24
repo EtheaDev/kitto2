@@ -7,7 +7,7 @@ interface
 uses
   Classes, Generics.Collections,
   EF.Classes,  EF.Tree, EF.DB,
-  Kitto.Metadata.Models, Kitto.Metadata.Views;
+  Kitto.Metadata.Models, Kitto.Metadata.DataView;
 
 type
   ///	<summary>
@@ -15,17 +15,14 @@ type
   ///	</summary>
   TKSQLBuilder = class(TEFComponent)
   private
-    FReferenceAliases: TDictionary<TKModelReference, string>;
+    FUsedReferenceFields: TList<TKModelField>;
     FSelectTerms: string;
     FViewTable: TKViewTable;
     procedure Clear;
     procedure AddSelectTerm(const ATerm: string);
-    function GetReferencedFieldTerm(const AViewField: TKViewField): string;
-    function GetViewFieldReference(
-      const AViewField: TKViewField): TKModelreference;
-    procedure AddReferenceAlias(const AReference: TKModelReference);
+    procedure AddReferenceFieldTerms(const AViewField: TKViewField);
     function GetFromClause: string;
-    function BuildJoin(const AReference: TKModelreference): string;
+    function BuildJoin(const AReferenceField: TKModelField): string;
 
     procedure InternalBuildSelectQuery(const AViewTable: TKViewTable;
       const AFilter: string; const ADBQuery: TEFDBQuery; const AMasterValues: TEFNode = nil;
@@ -134,6 +131,23 @@ var
   LViewField: TKViewField;
   LFieldNames: string;
   LValueNames: string;
+  LSubFieldIndex: Integer;
+
+  procedure AddFieldName(const AFieldName: string);
+  begin
+    if LFieldNames = '' then
+    begin
+      LFieldNames := AFieldName;
+      LValueNames := ':' + AFieldName;
+    end
+    else
+    begin
+      LFieldNames := LFieldNames + ', ' + AFieldName;
+      LValueNames := LValueNames + ', :' + AFieldName;
+    end;
+    ADBCommand.Params.CreateParam(ftUnknown, AFieldName, ptInput);
+  end;
+
 begin
   Assert(Assigned(AViewTable));
   Assert(Assigned(ADBCommand));
@@ -152,17 +166,13 @@ begin
       LViewField := AViewTable.FindField(AValues[I].Name);
       if Assigned(LViewField) and LViewField.CanInsert then
       begin
-        if LFieldNames = '' then
+        if LViewField.IsReference then
         begin
-          LFieldNames := AValues[I].Name;
-          LValueNames := ':' + AValues[I].Name;
+          for LSubFieldIndex := 0 to LViewField.ModelField.FieldCount - 1 do
+            AddFieldName(LViewField.ModelField.Fields[LSubFieldIndex].FieldName);
         end
         else
-        begin
-          LFieldNames := LFieldNames + ', ' + AValues[I].Name;
-          LValueNames := LValueNames + ', :' + AValues[I].Name;
-        end;
-        ADBCommand.Params.CreateParam(ftUnknown, AValues[I].Name, ptInput);
+          AddFieldName(AValues[I].Name);
       end;
     end;
     LCommandText := LCommandText + LFieldNames + ') values (' + LValueNames + ')';
@@ -171,7 +181,7 @@ begin
     ADBCommand.Params.EndUpdate;
   end;
   for I := 0 to ADBCommand.Params.Count - 1 do
-    AssignEFNodeValueToParam(AValues.GetNode(ADBCommand.Params[I].Name), ADBCommand.Params[I]);
+    AValues.GetNode(ADBCommand.Params[I].Name).AssignValueToParam(ADBCommand.Params[I]);
 end;
 
 class procedure TKSQLBuilder.BuildUpdateCommand(const AViewTable: TKViewTable;
@@ -183,6 +193,17 @@ var
   LViewField: TKViewField;
   LFieldNames: string;
   LParamName: string;
+  LSubFieldIndex: Integer;
+
+  procedure AddFieldName(const AFieldName: string);
+  begin
+    if LFieldNames = '' then
+      LFieldNames := AFieldName + ' = :' + AFieldName
+    else
+      LFieldNames := LFieldNames + ', ' + AFieldName + ' = :' + AFieldName;
+    ADBCommand.Params.CreateParam(ftUnknown, AFieldName, ptInput);
+  end;
+
 begin
   Assert(Assigned(AViewTable));
   Assert(Assigned(ADBCommand));
@@ -200,11 +221,13 @@ begin
       LViewField := AViewTable.FindField(AValues[I].Name);
       if Assigned(LViewField) and LViewField.CanUpdate then
       begin
-        if LFieldNames = '' then
-          LFieldNames := AValues[I].Name + ' = :' + AValues[I].Name
+        if LViewField.IsReference then
+        begin
+          for LSubFieldIndex := 0 to LViewField.ModelField.FieldCount - 1 do
+            AddFieldName(LViewField.ModelField.Fields[LSubFieldIndex].FieldName);
+        end
         else
-          LFieldNames := LFieldNames + ', ' + AValues[I].Name + ' = :' + AValues[I].Name;
-        ADBCommand.Params.CreateParam(ftUnknown, AValues[I].Name, ptInput);
+          AddFieldName(AValues[I].Name);
       end;
     end;
     LCommandText := LCommandText + LFieldNames + ' where ';
@@ -222,7 +245,7 @@ begin
     ADBCommand.Params.EndUpdate;
   end;
   for I := 0 to ADBCommand.Params.Count - 1 do
-    AssignEFNodeValueToParam(AValues.GetNode(ADBCommand.Params[I].Name), ADBCommand.Params[I]);
+    AValues.GetNode(ADBCommand.Params[I].Name).AssignValueToParam(ADBCommand.Params[I]);
 end;
 
 class procedure TKSQLBuilder.BuildDeleteCommand(const AViewTable: TKViewTable;
@@ -256,28 +279,27 @@ begin
   finally
     ADBCommand.Params.EndUpdate;
   end;
-  for I := 0 to Length(LKeyFields) - 1 do
-    AssignEFNodeValueToParam(AValues.GetNode(LKeyFields[I]),
-      ADBCommand.Params.ParamByName('P_KEY' + IntToStr(I)));
+  for I := 0 to ADBCommand.Params.Count - 1 do
+    AValues.GetNode(ADBCommand.Params[I].Name).AssignValueToParam(ADBCommand.Params[I]);
 end;
 
 procedure TKSQLBuilder.AfterConstruction;
 begin
   inherited;
-  FReferenceAliases := TDictionary<TKModelReference, string>.Create;
+  FUsedReferenceFields := TList<TKModelField>.Create;
 end;
 
 destructor TKSQLBuilder.Destroy;
 begin
   inherited;
-  FreeAndNil(FReferenceAliases);
+  FreeAndNil(FUsedReferenceFields);
 end;
 
 procedure TKSQLBuilder.Clear;
 begin
   FViewTable := nil;
   FSelectTerms := '';
-  FReferenceAliases.Clear;
+  FUsedReferenceFields.Clear;
 end;
 
 procedure TKSQLBuilder.AddSelectTerm(const ATerm: string);
@@ -295,90 +317,81 @@ begin
   Assert(Assigned(FViewTable));
 
   Result := FViewTable.ModelName;
-  for I := 0 to FReferenceAliases.Count - 1 do
-    Result := Result + sLineBreak + BuildJoin(FReferenceAliases.Keys.ToArray[I]);
+  for I := 0 to FUsedReferenceFields.Count - 1 do
+    Result := Result + sLineBreak + BuildJoin(FUsedReferenceFields[I]);
 end;
 
 class function TKSQLBuilder.GetLookupSelectStatement(
   const AViewField: TKViewField): string;
+var
+  LLookupModel: TKModel;
 begin
   Assert(Assigned(AViewField));
-  Assert(AViewField.Reference <> nil);
+  Assert(AViewField.IsReference);
 
+  LLookupModel := AViewField.ModelField.ReferencedModel;
   Result := 'select '
-    + Join(AViewField.Reference.GetReferencedFieldNames, ', ')
-    + ', ' + AViewField.ModelField.FieldName
-    + ' from ' + AViewField.ModelName
-    + ' order by ' + AViewField.ModelField.FieldName;
-  if AViewField.Model.DefaultFilter <> '' then
-    Result := AddToSQLWhereClause(Result, AViewField.Model.DefaultFilter);
+    + Join(LLookupModel.GetKeyFieldNames, ', ');
+    if not LLookupModel.CaptionField.IsKey then
+      Result := Result + ', ' + LLookupModel.CaptionField.FieldName;
+    Result := Result + ' from ' + LLookupModel.ModelName
+    + ' order by ' + LLookupModel.CaptionField.FieldName;
+  if LLookupModel.DefaultFilter <> '' then
+    Result := AddToSQLWhereClause(Result, LLookupModel.DefaultFilter);
 end;
 
-function TKSQLBuilder.BuildJoin(const AReference: TKModelreference): string;
+function TKSQLBuilder.BuildJoin(const AReferenceField: TKModelField): string;
 
   function GetJoinKeyword: string;
   begin
-    if AReference.IsRequired then
+    if AReferenceField.IsRequired then
       Result := 'join'
     else
       Result := 'left join';
   end;
 
 var
-  LRefAlias: string;
   I: Integer;
+  LLocalFieldNames: TStringDynArray;
+  LForeignFieldNames: TStringDynArray;
 begin
-  Assert(Assigned(AReference));
+  Assert(Assigned(AReferenceField));
 
-  Result := GetJoinKeyword + ' ';
-  LRefAlias := FReferenceAliases[AReference];
-  if LRefAlias = AReference.ReferencedModel.ModelName then
-    Result := Result + LRefAlias
-  else
-    Result := Result + AReference.ReferencedModel.ModelName + ' ' + LRefAlias;
-  Result := Result + ' on (';
-  for I := 0 to AReference.FieldCount - 1 do
+  Result := GetJoinKeyword + ' ' + AReferenceField.FieldName + ' on (';
+  LLocalFieldNames := AReferenceField.ReferenceFieldNames;
+  Assert(Length(LLocalFieldNames) > 0);
+  LForeignFieldNames := AReferenceField.ReferencedModel.GetKeyFieldNames;
+  Assert(Length(LForeignFieldNames) = Length(LLocalFieldNames));
+
+  for I := Low(LLocalFieldNames) to High(LLocalFieldNames) do
   begin
-    Result := Result + AReference.Fields[I].QualifiedFieldName + ' = ' + LRefAlias + '.' + AReference.ReferencedFields[I].FieldName;
-    if I < AReference.FieldCount - 1 then
+    Result := Result + FViewTable.ModelName + '.' + LLocalFieldNames[I] + ' = ' + AReferenceField.FieldName + '.' + LForeignFieldNames[I];
+    if I < High(LLocalFieldNames) then
       Result := Result + ' and ';
   end;
   Result := Result + ')';
 end;
 
-function TKSQLBuilder.GetReferencedFieldTerm(const AViewField: TKViewField): string;
+procedure TKSQLBuilder.AddReferenceFieldTerms(const AViewField: TKViewField);
 var
-  LReference: TKModelReference;
+  LFieldNames: TStringDynArray;
+  I: Integer;
 begin
   Assert(Assigned(FViewTable));
   Assert(Assigned(AViewField));
-  Assert(FViewTable.Model <> AViewField.Model);
+  Assert(AViewField.IsReference);
 
-  if AViewField.Alias = '' then
-    raise EKError.CreateFmt(_('View field %s must have an alias.'), [AViewField.AliasedName]);
+  if not FUsedReferenceFields.Contains(AViewField.ModelField)   then
+    FUsedReferenceFields.Add(AViewField.ModelField);
 
-  LReference := GetViewFieldReference(AViewField);
-  AddReferenceAlias(LReference);
-
-  Result := FReferenceAliases[LReference] + '.' +
-    AViewField.FieldName + ' ' + AViewField.Alias;
-end;
-
-procedure TKSQLBuilder.AddReferenceAlias(const AReference: TKModelReference);
-begin
-  Assert(Assigned(AReference));
-
-  if not FReferenceAliases.ContainsKey(AReference) then
-    FReferenceAliases.Add(AReference, AReference.ReferenceName);
-end;
-
-function TKSQLBuilder.GetViewFieldReference(const AViewField: TKViewField): TKModelreference;
-begin
-  Assert(Assigned(AViewField));
-
-  Result := AViewField.Reference;
-  if not Assigned(Result) then
-    raise EKError.CreateFmt(_('No reference found for field %s.'), [AViewField.AliasedName]);
+  LFieldNames := AViewField.ModelField.ReferenceFieldNames;
+  for I := Low(LFieldNames) to High(LFieldNames) do
+    AddSelectTerm(FViewTable.ModelName + '.' + LFieldNames[I]);
+  // Add the caption field of the referenced model as well.
+  // The reference field name is used as table alias.
+  AddSelectTerm(AViewField.ModelField.FieldName + '.'
+    + AViewField.ModelField.ReferencedModel.CaptionField.FieldName
+    + ' ' + AViewField.ModelField.FieldName);
 end;
 
 function TKSQLBuilder.GetSelectWhereClause(const AFilter: string;
@@ -398,9 +411,9 @@ begin
   if FViewTable.IsDetail then
   begin
     // Get master and detail field names...
-    LMasterFieldNames := FViewTable.ReferenceToMaster.GetReferencedFieldNames;
+    LMasterFieldNames := FViewTable.MasterTable.Model.GetKeyFieldNames;
     Assert(Length(LMasterFieldNames) > 0);
-    LDetailFieldNames := FViewTable.ReferenceToMaster.GetFieldNames;
+    LDetailFieldNames := FViewTable.ModelDetailReference.ReferenceField.GetFieldNames;
     Assert(Length(LDetailFieldNames) = Length(LMasterFieldNames));
     LClause := '';
     for I := 0 to High(LDetailFieldNames) do
@@ -428,10 +441,10 @@ begin
   FViewTable := AViewTable;
   for I := 0 to AViewTable.FieldCount - 1 do
   begin
-    if AViewTable.Fields[I].Reference = nil then
-      AddSelectTerm(AViewTable.Fields[I].QualifiedAliasedNameOrExpression)
+    if AViewTable.Fields[I].IsReference then
+      AddReferenceFieldTerms(AViewTable.Fields[I])
     else
-      AddSelectTerm(GetReferencedFieldTerm(AViewTable.Fields[I]));
+      AddSelectTerm(AViewTable.Fields[I].QualifiedAliasedNameOrExpression);
   end;
 
   if ADBQuery.Prepared then
@@ -450,7 +463,7 @@ begin
     ADBQuery.Params.EndUpdate;
   end;
   for I := 0 to ADBQuery.Params.Count - 1 do
-    AssignEFNodeValueToParam(AMasterValues.GetNode(ADBQuery.Params[I].Name), ADBQuery.Params[I]);
+    AMasterValues.GetNode(ADBQuery.Params[I].Name).AssignValueToParam(ADBQuery.Params[I]);
 end;
 
 procedure TKSQLBuilder.InternalBuildCountQuery(const AViewTable: TKViewTable;
@@ -467,10 +480,10 @@ Process all fields to build the from clause. A future refactoring might
 build only those that affect the count (outer joins). }
   for I := 0 to AViewTable.FieldCount - 1 do
   begin
-    if AViewTable.Fields[I].Reference = nil then
-      AddSelectTerm(AViewTable.Fields[I].QualifiedAliasedNameOrExpression)
+    if AViewTable.Fields[I].IsReference then
+      AddReferenceFieldTerms(AViewTable.Fields[I])
     else
-      AddSelectTerm(GetReferencedFieldTerm(AViewTable.Fields[I]));
+      AddSelectTerm(AViewTable.Fields[I].QualifiedAliasedNameOrExpression);
   end;
 
   if ADBQuery.Prepared then
@@ -484,7 +497,7 @@ build only those that affect the count (outer joins). }
     ADBQuery.Params.EndUpdate;
   end;
   for I := 0 to ADBQuery.Params.Count - 1 do
-    AssignEFNodeValueToParam(AMasterValues.GetNode(ADBQuery.Params[I].Name), ADBQuery.Params[I]);
+    AMasterValues.GetNode(ADBQuery.Params[I].Name).AssignValueToParam(ADBQuery.Params[I]);
 end;
 
 end.

@@ -243,12 +243,15 @@ end;
 { TKUserPermissionStorage }
 
 procedure TKUserPermissionStorage.AfterConstruction;
+var
+  LStringDataType: TEFDataType;
 begin
   inherited;
+  LStringDataType := TEFDataTypeFactory.Instance.GetDataType('String');
   FPermissions := TKStore.Create;
-  FPermissions.Header.AddChild('RESOURCE_URI_PATTERN').DataType := edtString;
-  FPermissions.Header.AddChild('ACCESS_MODES').DataType := edtString;
-  FPermissions.Header.AddChild('GRANT_VALUE').DataType := edtString;
+  FPermissions.Header.AddChild('RESOURCE_URI_PATTERN').DataType := LStringDataType;
+  FPermissions.Header.AddChild('ACCESS_MODES').DataType := LStringDataType;
+  FPermissions.Header.AddChild('GRANT_VALUE').DataType := LStringDataType;
 end;
 
 destructor TKUserPermissionStorage.Destroy;

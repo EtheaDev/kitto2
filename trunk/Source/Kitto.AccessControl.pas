@@ -10,7 +10,7 @@ unit Kitto.AccessControl;
 interface
 
 uses
-  EF.Classes,
+  EF.Types, EF.Classes,
   Kitto.Types;
 
 type

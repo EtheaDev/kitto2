@@ -6,7 +6,7 @@ uses
   Ext, ExtGrid, ExtData, ExtForm,
   EF.ObserverIntf, EF.Classes,
   Kitto.Ext.Base, Kitto.Ext.DataPanel, Kitto.Types, Kitto.Ext.Controller,
-  Kitto.Metadata.Views, Kitto.Store;
+  Kitto.Metadata.Views, Kitto.Metadata.DataView, Kitto.Store;
 
 type
   TKExtFilterPanel = class(TExtFormFormPanel)
@@ -67,7 +67,7 @@ uses
   ExtPascal, ExtPascalUtils,
   EF.Intf, EF.Localization, EF.StrUtils, EF.Tree, EF.SQL,
   Kitto.Environment, Kitto.AccessControl, Kitto.Ext.Session, Kitto.Ext.Utils,
-  Kitto.JSON, Kitto.Ext.Filters;
+  Kitto.JSON, Kitto.Ext.Filters, Kitto.Metadata.Models;
 
 const
   { TODO : should we just fetch everything when grouping is enabled? }
@@ -83,7 +83,7 @@ begin
   if not ViewTable.IsDetail then
   begin
     ServerStore.Save(Environment.MainDBConnection, ViewTable.Model);
-    Session.Flash(_('Record deleted.'));
+    Session.Flash(Format(_('%s deleted.'), [ViewTable.DisplayLabel]));
   end;
   RefreshData;
 end;
@@ -183,7 +183,7 @@ begin
   begin
     LNewButton := TExtButton.AddTo(Result.Items);
     begin
-      LNewButton.Text := 'New Record';
+      LNewButton.Text := Format(_('New %s'), [ViewTable.DisplayLabel]);
       LNewButton.Icon := Environment.GetImageURL('new_record_16');
       LNewButton.Disabled := not FIsAddAllowed;
       if not LNewButton.Disabled then
@@ -192,7 +192,7 @@ begin
     TExtToolbarSpacer.AddTo(Result.Items);
     LDeleteButton := TExtButton.AddTo(Result.Items);
     begin
-      LDeleteButton.Text := 'Delete Record';
+      LDeleteButton.Text := Format(_('Delete %s'), [ViewTable.DisplayLabel]);
       LDeleteButton.Icon := Environment.GetImageURL('delete_record_16');
       LDeleteButton.Disabled := not FIsDeleteAllowed;
       if not LDeleteButton.Disabled then
@@ -297,9 +297,11 @@ begin
     if ViewTable.GetBoolean('Controller/Grouping/ShowCount') then
     begin
       LCountTemplate := ViewTable.GetString('Controller/Grouping/ShowCount/Template',
-        '{text} ({[values.rs.length]} {[values.rs.length > 1 ? "%ITEMS%" : "%ITEM"]})');
-      LCountTemplate := ReplaceText(LCountTemplate, '%ITEMS%', _(ViewTable.GetString('Controller/Grouping/ShowCount/PluralItemName', 'items')));
-      LCountTemplate := ReplaceText(LCountTemplate, '%ITEM%', _(ViewTable.GetString('Controller/Grouping/ShowCount/ItemName', 'item')));
+        '{text} ({[values.rs.length]} {[values.rs.length > 1 ? "%ITEMS%" : "%ITEM%"]})');
+      LCountTemplate := ReplaceText(LCountTemplate, '%ITEMS%',
+        _(ViewTable.GetString('Controller/Grouping/ShowCount/PluralItemName', ViewTable.PluralDisplayLabel)));
+      LCountTemplate := ReplaceText(LCountTemplate, '%ITEM%',
+        _(ViewTable.GetString('Controller/Grouping/ShowCount/ItemName', ViewTable.DisplayLabel)));
       LCountTemplate := ViewTable.MinifyFieldNames(LCountTemplate);
       TExtGridGroupingView(FGridView).GroupTextTpl := LCountTemplate;
     end;
@@ -347,44 +349,55 @@ var
     LColumnWidth: Integer;
 
     function CreateColumn: TExtGridColumn;
+    var
+      LDataType: TEFDataType;
     begin
-      case AViewField.DataType of
-        edtBoolean: Result := TExtGridBooleanColumn.AddTo(FGridPanel.Columns);
-        edtDate:
-        begin
-          Result := TExtGridDateColumn.AddTo(FGridPanel.Columns);
-          TExtGridDateColumn(Result).Format := DelphiDateFormatToJSDateFormat(Environment.UserFormatSettings.ShortDateFormat);
-        end;
-        edtTime:
-        begin
-          Result := TExtGridDateColumn.AddTo(FGridPanel.Columns);
-          TExtGridDateColumn(Result).Format := DelphiDateFormatToJSDateFormat(Environment.UserFormatSettings.ShortTimeFormat);
-        end;
-        edtDateTime:
-        begin
-          Result := TExtGridDateColumn.AddTo(FGridPanel.Columns);
-          TExtGridDateColumn(Result).Format :=
-            DelphiDateFormatToJSDateFormat(Environment.UserFormatSettings.ShortDateFormat) + ' ' +
-            DelphiTimeFormatToJSTimeFormat(Environment.UserFormatSettings.ShortTimeFormat);
-        end;
-        edtInteger:
-        begin
-          Result := TExtGridNumberColumn.AddTo(FGridPanel.Columns);
-          TExtGridNumberColumn(Result).Format := '0';
-        end;
-        edtFloat, edtDecimal:
-        begin
-          Result := TExtGridNumberColumn.AddTo(FGridPanel.Columns);
-          TExtGridNumberColumn(Result).Format := AdaptExtNumberFormat('0.00', Environment.UserFormatSettings);
-        end;
-        edtCurrency:
-        begin
-          Result := TExtGridNumberColumn.AddTo(FGridPanel.Columns);
-          TExtGridNumberColumn(Result).Format := AdaptExtNumberFormat('0,0.00', Environment.UserFormatSettings);
-        end;
+      LDataType := AViewField.DataType;
+      if LDataType is TKReferenceDataType then
+        LDataType := AViewField.ModelField.ReferencedModel.CaptionField.DataType;
+
+      if LDataType is TEFBooleanDataType then
+      begin
+        Result := TExtGridBooleanColumn.AddTo(FGridPanel.Columns);
+        Result.RendererExtFunction := JSFunction('V', 'return "<div class=''x-grid3-check-col"+(V?"-on":"")+"''></div>";');
+      end
+      else if LDataType is TEFDateDataType then
+      begin
+        Result := TExtGridDateColumn.AddTo(FGridPanel.Columns);
+        TExtGridDateColumn(Result).Format := DelphiDateFormatToJSDateFormat(Environment.UserFormatSettings.ShortDateFormat);
+      end
+      else if LDataType is TEFTimeDataType then
+      begin
+        Result := TExtGridDateColumn.AddTo(FGridPanel.Columns);
+        TExtGridDateColumn(Result).Format := DelphiTimeFormatToJSTimeFormat(Environment.UserFormatSettings.ShortTimeFormat);
+      end
+      else if LDataType is TEFDateTimeDataType then
+      begin
+        Result := TExtGridDateColumn.AddTo(FGridPanel.Columns);
+        TExtGridDateColumn(Result).Format :=
+          DelphiDateFormatToJSDateFormat(Environment.UserFormatSettings.ShortDateFormat) + ' ' +
+          DelphiTimeFormatToJSTimeFormat(Environment.UserFormatSettings.ShortTimeFormat);
+      end
+      else if LDataType is TEFIntegerDataType then
+      begin
+        Result := TExtGridNumberColumn.AddTo(FGridPanel.Columns);
+        TExtGridNumberColumn(Result).Format := '0';
+        Result.Align := alRight;
+      end
+      else if (LDataType is TEFFloatDataType) or (LDataType is TEFDecimalDataType) then
+      begin
+        Result := TExtGridNumberColumn.AddTo(FGridPanel.Columns);
+        TExtGridNumberColumn(Result).Format := AdaptExtNumberFormat('0.00', Environment.UserFormatSettings);
+        Result.Align := alRight;
+      end
+      else if LDataType is TEFCurrencyDataType then
+      begin
+        Result := TExtGridNumberColumn.AddTo(FGridPanel.Columns);
+        TExtGridNumberColumn(Result).Format := AdaptExtNumberFormat('0,0.00', Environment.UserFormatSettings);
+        Result.Align := alRight;
+      end
       else
         Result := TExtGridColumn.AddTo(FGridPanel.Columns);
-      end;
     end;
 
   begin
@@ -402,32 +415,6 @@ var
     { TODO : add in-place editing as an option. }
     LColumn.Editable := False;
     //LColumn.Editor := ...
-
-    if AViewField.DataType = edtBoolean then
-    begin
-      //LColumn.Align := alCenter;
-      LColumn.RendererExtFunction := JSFunction('V', 'return "<div class=''x-grid3-check-col"+(V?"-on":"")+"''></div>";');
-    end
-    { TODO : implement images and hidden text }
-    else if (AViewField.GetString('ImageNames') <> '') then
-    begin
-      if AViewField.GetBoolean('HideText') then
-      begin
-        LColumn.Align := alCenter;
-      end
-      else
-      begin
-        LColumn.Align := alLeft;
-      end;
-    end
-    else if AViewField.DataType in [edtInteger, edtCurrency, edtFloat, edtDecimal] then
-    begin
-      LColumn.Align := alRight;
-    end
-    else
-    begin
-      LColumn.Align := alLeft;
-    end;
     LColumn.Hidden := not ViewTable.IsFieldVisible(AViewField);
   end;
 
@@ -443,16 +430,7 @@ var
   begin
     LField := TExtDataField.AddTo(FReader.Fields);
     LField.Name := AViewField.GetMinifiedName;
-    case AViewField.DataType of
-      edtUnknown: LField.Type_ := 'auto';
-      edtString: LField.Type_ := 'string';
-      edtInteger: LField.Type_ := 'int';
-      edtDate, edtTime, edtDateTime: LField.Type_ := 'date';
-      edtBoolean: LField.Type_ := 'boolean';
-      edtCurrency, edtFloat, edtDecimal: LField.Type_ := 'float';
-      edtObject: raise EKError.CreateFmt(_('Data type %s not supported in JavaScript.'),
-        [EFDataTypeToString(AViewField.DataType)]);
-    end;
+    LField.Type_ := AViewField.DataType.GetJSTypeName;
   end;
 
 begin
