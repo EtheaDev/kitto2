@@ -54,6 +54,7 @@ type
     function GetCanInsert: Boolean;
     function GetCanUpdate: Boolean;
     function GetIsReference: Boolean;
+    function GetIsDetailReference: Boolean;
   protected
     function GetChildClass(const AName: string): TEFNodeClass; override;
   public
@@ -85,6 +86,15 @@ type
     ///	field is part of the containing view table's model and the underlying
     ///	model field is a reference field.</summary>
     property IsReference: Boolean read GetIsReference;
+
+    ///	<summary>
+    ///	  <para>Returns True if the field is the reference field of
+    ///	  MasterTable's model's detail reference to this vie wtable's
+    ///	  model.</para>
+    ///	  <para>IOW, returns True if the view table is a detail table and the
+    ///	  field is (part of) the link to its master table.</para>
+    ///	</summary>
+    property IsDetailReference: Boolean read GetIsDetailReference;
 
     ///	<summary>
     ///	  Extract and returns the model name from the Name. If no model name is
@@ -144,18 +154,21 @@ type
   end;
 
   TKViewTableRecord = class;
+  TKViewTableRecords = class;
 
   TKViewTableStore = class(TKStore)
   private
     FMasterRecord: TKViewTableRecord;
     FViewTable: TKViewTable;
     procedure SetupFields;
+    function GetRecords: TKViewTableRecords;
   protected
     function GetChildClass(const AName: string): TEFNodeClass; override;
   public
     constructor Create(const AViewTable: TKViewTable); reintroduce;
     property MasterRecord: TKViewTableRecord read FMasterRecord write FMasterRecord;
     property ViewTable: TKViewTable read FViewTable;
+    property Records: TKViewTableRecords read GetRecords;
 
     procedure Load(const AFilter: string);
 
@@ -176,6 +189,8 @@ type
     ///	<summary>Appends a record and fills it with the specified
     ///	values.</summary>
     function AppendRecord(const AValues: TEFNode): TKViewTableRecord;
+
+    procedure Save(const AUseTransaction: Boolean);
   end;
 
   TKViewTableHeader = class(TKHeader)
@@ -185,8 +200,6 @@ type
 
   TKViewTableHeaderField = class(TKHeaderField)
   end;
-
-  TKViewTableRecords = class;
 
   TKViewTableRecord = class(TKRecord)
   private
@@ -206,11 +219,13 @@ type
   TKViewTableRecords = class(TKRecords)
   private
     function GetStore: TKViewTableStore;
+    function GetRecord(I: Integer): TKViewTableRecord;
   protected
     function GetChildClass(const AName: string): TEFNodeClass; override;
   public
     property Store: TKViewTableStore read GetStore;
     function Append: TKViewTableRecord;
+    property Records[I: Integer]: TKViewTableRecord read GetRecord; default;
   end;
 
   TKViewTable = class(TKMetadataItem)
@@ -1093,6 +1108,11 @@ begin
   Result := DataType.IsBlob(Size);
 end;
 
+function TKViewField.GetIsDetailReference: Boolean;
+begin
+  Result := Table.IsDetail and (Table.ModelDetailReference.ReferenceField = ModelField);
+end;
+
 function TKViewField.GetIsKey: Boolean;
 begin
   Result := (ModelName = Table.ModelName) and ModelField.IsKey;
@@ -1163,6 +1183,24 @@ begin
   SetupFields;
 end;
 
+procedure TKViewTableStore.Save(const AUseTransaction: Boolean);
+var
+  I: Integer;
+begin
+  if AUseTransaction then
+    Environment.MainDBConnection.StartTransaction;
+  try
+    for I := 0 to RecordCount - 1 do
+      Records[I].Save(False);
+    if AUseTransaction then
+      Environment.MainDBConnection.CommitTransaction;
+  except
+    if AUseTransaction then
+      Environment.MainDBConnection.RollbackTransaction;
+    raise;
+  end;
+end;
+
 procedure TKViewTableStore.SetupFields;
 var
   LViewFieldIndex: Integer;
@@ -1203,6 +1241,11 @@ begin
     Result := TKViewTableRecords
   else
     Result := inherited GetChildClass(AName);
+end;
+
+function TKViewTableStore.GetRecords: TKViewTableRecords;
+begin
+  Result := inherited Records as TKViewTableRecords;
 end;
 
 procedure TKViewTableStore.Load(const AFilter: string);
@@ -1267,6 +1310,11 @@ begin
   Result := TKViewTableRecord;
 end;
 
+function TKViewTableRecords.GetRecord(I: Integer): TKViewTableRecord;
+begin
+  Result := inherited Records[I] as TKViewTableRecord;
+end;
+
 function TKViewTableRecords.GetStore: TKViewTableStore;
 begin
   Result := inherited Store as TKViewTableStore;
@@ -1311,6 +1359,7 @@ procedure TKViewTableRecord.Save(const AUseTransaction: Boolean);
 var
   LDBCommand: TEFDBCommand;
   LRowsAffected: Integer;
+  I: Integer;
 begin
   if State = rsClean then
     Exit;
@@ -1330,6 +1379,9 @@ begin
       LRowsAffected := LDBCommand.Execute;
       if LRowsAffected <> 1 then
         raise EKError.CreateFmt('Update error. Rows affected: %d.', [LRowsAffected]);
+      { TODO : implement cascade delete? }
+      for I := 0 to DetailStoreCount - 1 do
+        DetailStores[I].Save(False);
       if AUseTransaction then
         Environment.MainDBConnection.CommitTransaction;
       MarkAsClean;

@@ -572,7 +572,9 @@ begin
         end;
       end;
       if not AIsReadOnly then
-        LComboBox.ForceSelection := AViewField.IsRequired;
+        LComboBox.ForceSelection := AViewField.IsRequired
+      else
+        LComboBox.ReadOnly := True;
       Result := LComboBox;
     except
       LComboBox.Free;
@@ -814,6 +816,9 @@ begin
   LFieldWidth := Max(LFieldWidth, FDefaults.MinFieldWidth);
 
   LIsReadOnly := LViewField.IsReadOnly or ViewTable.IsReadOnly or FForceReadOnly;
+  if not LIsReadOnly and LViewField.IsDetailReference then
+    LIsReadOnly := True;
+
   LLabel := _(LViewField.DisplayLabel);
   if not LIsReadOnly and LViewField.IsRequired then
     LLabel := Format(FDefaults.RequiredLabelFormat, [LLabel]);
