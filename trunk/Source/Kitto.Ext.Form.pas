@@ -21,14 +21,14 @@ type
     FDetailHostWindow: TKExtModalWindow;
     FView: TKDataView;
     FServerStore: TKViewTableStore;
-    FStoreRecord: TKViewTableRecord;
+    FMasterRecord: TKViewTableRecord;
     procedure SetViewTable(const AValue: TKViewTable);
   public
     destructor Destroy; override;
     property ViewTable: TKViewTable read FViewTable write SetViewTable;
     property View: TKDataView read FView write FView;
     property ServerStore: TKViewTableStore read FServerStore write FServerStore;
-    property StoreRecord: TKViewTableRecord read FStoreRecord write FStoreRecord;
+    property MasterRecord: TKViewTableRecord read FMasterRecord write FMasterRecord;
   published
     procedure ShowDetailWindow;
   end;
@@ -97,7 +97,7 @@ begin
     begin
       FDetailButtons.Add(TKExtDetailFormButton.AddTo(FDetailToolbar.Items));
       FDetailButtons[I].ServerStore := FStoreRecord.DetailStores[I];
-      FDetailButtons[I].StoreRecord := FStoreRecord;
+      FDetailButtons[I].MasterRecord := FStoreRecord;
       FDetailButtons[I].ViewTable := ViewTable.DetailTables[I];
       FDetailButtons[I].View := View;
     end;
@@ -206,9 +206,9 @@ begin
     raise;
   end;
 
+  FStoreRecord.MarkAsDirty;
   if not ViewTable.IsDetail then
   begin
-    FStoreRecord.MarkAsDirty;
     FStoreRecord.Save(True);
     Session.Flash(_('Changes saved succesfully.'));
   end;
@@ -337,7 +337,7 @@ begin
   LController := TKExtControllerFactory.Instance.CreateController(FView, FDetailHostWindow);
   LController.OwnsView := False;
   LController.Config.SetObject('Sys/ServerStore', ServerStore);
-  LController.Config.SetObject('Sys/MasterRecord', FStoreRecord);
+  LController.Config.SetObject('Sys/MasterRecord', FMasterRecord);
   LController.Config.SetObject('Sys/ViewTable', ViewTable);
   LController.Config.SetObject('Sys/HostWindow', FDetailHostWindow);
   LController.Display;

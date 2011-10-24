@@ -82,7 +82,7 @@ begin
   LocateRecordFromSession.MarkAsDeleted;
   if not ViewTable.IsDetail then
   begin
-    ServerStore.Save(Environment.MainDBConnection, ViewTable.Model);
+    ServerStore.Save(True);
     Session.Flash(Format(_('%s deleted.'), [ViewTable.DisplayLabel]));
   end;
   RefreshData;
