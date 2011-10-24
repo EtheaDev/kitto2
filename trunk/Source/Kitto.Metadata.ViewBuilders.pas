@@ -29,7 +29,7 @@ implementation
 uses
   SysUtils,
   EF.Tree,
-  Kitto.Environment;
+  Kitto.Environment, Kitto.Metadata.DataView;
 
 { TKAutoViewBuilderBase }
 

@@ -315,7 +315,7 @@ begin
   FViewTable := AValue;
   if Assigned(FViewTable) then
   begin
-    Text := FViewTable.DisplayLabel;
+    Text := FViewTable.PluralDisplayLabel;
     Icon := Environment.GetImageURL(FViewTable.ImageName);
     Handler := Ajax(ShowDetailWindow, []);
   end;
