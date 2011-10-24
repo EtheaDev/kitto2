@@ -368,8 +368,8 @@ var
       end
       else if LDataType is TEFTimeDataType then
       begin
-        Result := TExtGridDateColumn.AddTo(FGridPanel.Columns);
-        TExtGridDateColumn(Result).Format := DelphiTimeFormatToJSTimeFormat(Environment.UserFormatSettings.ShortTimeFormat);
+        Result := TExtGridColumn.AddTo(FGridPanel.Columns);
+        //TExtGridDateColumn(Result).Format := DelphiTimeFormatToJSTimeFormat(Environment.UserFormatSettings.ShortTimeFormat);
       end
       else if LDataType is TEFDateTimeDataType then
       begin

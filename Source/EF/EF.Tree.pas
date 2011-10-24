@@ -70,7 +70,6 @@ type
     function GetDefaultDisplayWidth(const ASize: Integer): Integer; override;
     function SupportsEmptyAsNull: Boolean; override;
     function InternalNodeToJSONValue(const ANode: TEFNode; const AJSFormatSettings: TFormatSettings): string; override;
-    function GetJSTypeName: string; override;
   end;
 
   TEFDateTimeDataType = class(TEFDataType)
@@ -1706,11 +1705,6 @@ begin
   Result := 8;
 end;
 
-function TEFTimeDataType.GetJSTypeName: string;
-begin
-  Result := 'date';
-end;
-
 procedure TEFTimeDataType.InternalFieldValueToNode(const AField: TField;
   const ANode: TEFNode);
 begin
@@ -1720,9 +1714,7 @@ end;
 function TEFTimeDataType.InternalNodeToJSONValue(const ANode: TEFNode;
   const AJSFormatSettings: TFormatSettings): string;
 begin
-  // Apparently ExtJS can't interpret a JSON value as a time in a given format
-  // unless a date part is also included, so we include a dummy date.
-  Result := DateToStr(0, AJSFormatSettings) + ' ' + TimeToStr(ANode.AsTime, AJSFormatSettings);
+  Result := TimeToStr(ANode.AsTime, AJSFormatSettings);
 end;
 
 procedure TEFTimeDataType.InternalNodeToParam(const ANode: TEFNode;
