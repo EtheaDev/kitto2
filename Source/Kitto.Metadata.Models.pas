@@ -303,6 +303,10 @@ type
     ///	model, returns it, otherwise returns nil.</summary>
     function FindDetailReferenceTo(const AModel: TKModel): TKModelDetailReference;
 
+    ///	<summary>If there's exactly one field referencing the specified model,
+    ///	it is returned. Otherwise the method returns nil.</summary>
+    function FindReferenceField(const AModel: TKModel): TKModelField;
+
     property IsReadOnly: Boolean read GetIsReadOnly;
     property DefaultFilter: string read GetDefaultFilter;
 
@@ -398,6 +402,27 @@ end;
 function TKModel.FindField(const AName: string): TKModelField;
 begin
   Result := GetFields.FindField(AName);
+end;
+
+function TKModel.FindReferenceField(const AModel: TKModel): TKModelField;
+var
+  I: Integer;
+  LCount: Integer;
+begin
+  Assert(Assigned(AModel));
+
+  Result := nil;
+  LCount := 0;
+  for I := 0 to FieldCount - 1 do
+  begin
+    if Fields[I].IsReference and (Fields[I].ReferencedModel = AModel) then
+    begin
+      Result := Fields[I];
+      Inc(LCount);
+    end;
+  end;
+  if LCount <> 1 then
+    Result := nil;
 end;
 
 function TKModel.GetField(I: Integer): TKModelField;
@@ -981,15 +1006,20 @@ end;
 
 function TKModelDetailReference.GetReferenceField: TKModelField;
 begin
-  Result := DetailModel.FindField(ReferenceFieldName);
-  if not Assigned(Result) or not (Result.IsReference) or not (Result.ReferencedModel = Model) then
-    raise EKError.CreateFmt('No reference field in detail model %s to detail reference %s in master model %s.',
-      [DetailModel.ModelName, DetailReferenceName, Model.ModelName]);
+  Result := DetailModel.FindReferenceField(Model);
+  if Result = nil then
+  begin
+    if ReferenceFieldName <> '' then
+      Result := DetailModel.FieldByName(ReferenceFieldName);
+    if not Assigned(Result) or not Result.IsReference or not (Result.ReferencedModel = Model) then
+      raise EKError.CreateFmt('No reference field in detail model %s to detail reference %s in master model %s.',
+        [DetailModel.ModelName, DetailReferenceName, Model.ModelName]);
+  end;
 end;
 
 function TKModelDetailReference.GetReferenceFieldName: string;
 begin
-  Result := GetString('Reference');
+  Result := GetString('ReferenceField');
 end;
 
 { TKModelDetails }

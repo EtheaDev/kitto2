@@ -332,6 +332,11 @@ type
     ///	  table) if minification is enabled.</para>
     ///	</summary>
     function MinifyFieldNames(const AText: string): string;
+
+    ///	<summary>If the specified field exists in the view table, the method
+    ///	returns its AliasedName, otherwise the specified field name is
+    ///	returned.</summary>
+    function ApplyFieldAliasedName(const AFieldName: string): string;
   end;
 
   TKDataView = class(TKView)
@@ -382,6 +387,17 @@ begin
 end;
 
 { TKViewTable }
+
+function TKViewTable.ApplyFieldAliasedName(const AFieldName: string): string;
+var
+  LViewField: TKViewField;
+begin
+  LViewField := FindField(AFieldName);
+  if Assigned(LViewField) then
+    Result := LViewField.AliasedName
+  else
+    Result := AFieldName;
+end;
 
 procedure TKViewTable.ApplyRules(const AApplyProc: TKApplyRuleProc);
 var
@@ -472,10 +488,10 @@ end;
 function TKViewTable.GetModelDetailReference: TKModelDetailReference;
 begin
   Result := nil;
-  if Assigned(MasterTable) and (ModelDetailReferenceName <> '') then
+  if Assigned(MasterTable) then
   begin
     Result := MasterTable.Model.FindDetailreferenceTo(Model);
-    if not Assigned(Result) then
+    if not Assigned(Result) and (ModelDetailReferenceName <> '') then
       Result := MasterTable.Model.FindDetailReference(ModelDetailReferenceName);
   end;
   if not Assigned(Result) then
@@ -670,8 +686,28 @@ begin
 end;
 
 function TKViewTable.FindLayout(const AKind: string): TKLayout;
+
+  function GetViewTablePathName: string;
+  var
+    LMasterTable: TKViewTable;
+  begin
+    if MasterTable = nil then
+      Result := View.PersistentName
+    else
+    begin
+      Result := '';
+      LMasterTable := MasterTable;
+      while Assigned(LMasterTable) do
+      begin
+        Result := LMasterTable.Model.ModelName + '.' + Result;
+        LMasterTable := LMasterTable.MasterTable;
+      end;
+      Result := StripSuffix(View.PersistentName + '.' + Result, '.');
+    end;
+  end;
+
 begin
-  Result := Environment.Views.Layouts.FindLayout(View.PersistentName + '_' + AKind);
+  Result := Environment.Views.Layouts.FindLayout(GetViewTablePathName + '_' + AKind);
 end;
 
 function TKViewTable.GetTable(I: Integer): TKViewTable;
@@ -681,10 +717,7 @@ end;
 
 function TKViewTable.GetModelName: string;
 begin
-  if IsDetail then
-    Result := ModelDetailReference.DetailModel.ModelName
-  else
-    Result := GetNode('Model', True).AsString;
+  Result := GetNode('Model', True).AsString;
 end;
 
 function TKViewTable.GetView: TKDataView;
@@ -1326,8 +1359,8 @@ begin
   for I := 0 to High(LDetailFieldNames) do
   begin
     // ...alias them...
-    LMasterFieldNames[I] := Records.Store.ViewTable.MasterTable.FieldByName(LMasterFieldNames[I]).AliasedName;
-    LDetailFieldNames[I] := Records.Store.ViewTable.FieldByName(LDetailFieldNames[I]).AliasedName;
+    LMasterFieldNames[I] := Records.Store.ViewTable.MasterTable.ApplyFieldAliasedName(LMasterFieldNames[I]);
+    LDetailFieldNames[I] := Records.Store.ViewTable.ApplyFieldAliasedName(LDetailFieldNames[I]);
     // ... and copy values.
     GetNode(LDetailFieldNames[I]).AssignValue(AMasterRecord.GetNode(LMasterFieldNames[I]));
   end;

@@ -318,8 +318,6 @@ procedure TKClassicAuthenticator.InternalDefineAuthData(
 begin
   AAuthData.SetString('UserName', '');
   AAuthData.SetString('Password', '');
-  //AAuthenticationData.SetString('Sys/VisibleItemNames',
-  //  '"UserName=' + _('User name') + '","Password=' + _('Password') + '"');
 end;
 
 initialization

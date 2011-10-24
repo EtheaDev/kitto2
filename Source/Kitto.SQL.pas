@@ -357,7 +357,7 @@ var
 begin
   Assert(Assigned(AReferenceField));
 
-  Result := GetJoinKeyword + ' ' + AReferenceField.FieldName + ' on (';
+  Result := GetJoinKeyword + ' ' + AReferenceField.ReferencedModelName + ' on (';
   LLocalFieldNames := AReferenceField.ReferenceFieldNames;
   Assert(Length(LLocalFieldNames) > 0);
   LForeignFieldNames := AReferenceField.ReferencedModel.GetKeyFieldNames;
@@ -365,7 +365,8 @@ begin
 
   for I := Low(LLocalFieldNames) to High(LLocalFieldNames) do
   begin
-    Result := Result + FViewTable.ModelName + '.' + LLocalFieldNames[I] + ' = ' + AReferenceField.FieldName + '.' + LForeignFieldNames[I];
+    Result := Result + FViewTable.ModelName + '.' + LLocalFieldNames[I] + ' = '
+      + AReferenceField.ReferencedModelName + '.' + LForeignFieldNames[I];
     if I < High(LLocalFieldNames) then
       Result := Result + ' and ';
   end;
@@ -389,8 +390,7 @@ begin
     AddSelectTerm(FViewTable.ModelName + '.' + LFieldNames[I]);
   // Add the caption field of the referenced model as well.
   // The reference field name is used as table alias.
-  AddSelectTerm(AViewField.ModelField.FieldName + '.'
-    + AViewField.ModelField.ReferencedModel.CaptionField.FieldName
+  AddSelectTerm(AViewField.ModelField.ReferencedModel.CaptionField.QualifiedFieldName
     + ' ' + AViewField.ModelField.FieldName);
 end;
 
@@ -418,10 +418,9 @@ begin
     LClause := '';
     for I := 0 to High(LDetailFieldNames) do
     begin
-      // ...and alias them.
-      LMasterFieldNames[I] := FViewTable.MasterTable.FieldByName(LMasterFieldNames[I]).AliasedName;
-      LDetailFieldNames[I] := FViewTable.FieldByName(LDetailFieldNames[I]).AliasedName;
-      LClause := LClause + LDetailFieldNames[I] + ' = :' + LMasterFieldNames[I];
+      // ...and alias master field names. Don'alias detail field names used in the where clause.
+      LMasterFieldNames[I] := FViewTable.MasterTable.ApplyFieldAliasedName(LMasterFieldNames[I]);
+      LClause := LClause + FViewTable.ModelName + '.' + LDetailFieldNames[I] + ' = :' + LMasterFieldNames[I];
       ADBQuery.Params.CreateParam(ftUnknown, LMasterFieldNames[I], ptInput);
       if I < High(LDetailFieldNames) then
         LClause := LClause + ' and ';
