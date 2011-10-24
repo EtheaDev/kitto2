@@ -7,7 +7,7 @@ interface
 uses
   Classes,
   Ext, ExtPascal,
-  EF.Intf, EF.ObserverIntf, EF.Tree, EF.Classes,
+  EF.Intf, EF.ObserverIntf, EF.Tree, EF.Types,
   Kitto.Types, Kitto.Metadata.Views;
 
 type

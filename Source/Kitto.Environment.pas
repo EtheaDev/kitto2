@@ -28,6 +28,7 @@ type
     FAC: TKAccessController;
     FUserFormatSettings: TFormatSettings;
     FJSFormatSettings: TFormatSettings;
+    function GetMultiFieldSeparator: string;
     const MAIN_DB_NAME = 'Main';
     function GetAC: TKAccessController;
     function GetDBConnection(const ADatabaseName: string): TEFDBConnection;
@@ -47,42 +48,38 @@ type
   public
     procedure AfterConstruction; override;
     destructor Destroy; override;
-    {
-      A reference to the model catalog, opened on first access.
-    }
+  public
+    ///	<summary>A reference to the model catalog, opened on first
+    ///	access.</summary>
     property Models: TKModels read GetModels;
-    {
-      A reference to the model catalog, opened on first access.
-    }
+
+    ///	<summary>A reference to the model catalog, opened on first
+    ///	access.</summary>
     property Views: TKViews read GetViews;
-    {
-      Gives access to the database connection, created on demand.
-    }
+
+    ///	<summary>Gives access to the database connection, created on
+    ///	demand.</summary>
     property MainDBConnection: TEFDBConnection read GetMainDBConnection;
-    {
-      Returns True if the connection has been created.
-    }
+
+    ///	<summary>Returns True if the connection has been created.</summary>
     function HasMainDBConnection: Boolean;
-    {
-      Returns True if the specified path is the home of a Kitto application.
-    }
+
+    ///	<summary>Returns True if the specified path is the home of a Kitto
+    ///	application.</summary>
     function CanOpen(const APath: string): Boolean;
-    {
-      Returns the application title, to be used for captions, about boxes, etc.
-    }
+
+    ///	<summary>Returns the application title, to be used for captions, about
+    ///	boxes, etc.</summary>
     property AppTitle: string read GetAppTitle;
-    {
-      Closes and destroys the database connection. Do it before unloading a
-      package that implements the database access layer in use.
-    }
+
+    ///	<summary>Closes and destroys the database connections.</summary>
     procedure FinalizeDBConnections;
-    {
-      Global expansion engine. This should be used in place
-      of EF's default expansion engine in Kitto applications, because it is
-      thread-safe. Kitto-specific macro expanders should be added
-      here at run time. This engine is chained to the default engine, so all
-      default EF macros are supported.
-    }
+
+    ///	<summary>Global expansion engine. This should be used in place of EF's
+    ///	default expansion engine in Kitto applications, because it is
+    ///	thread-safe. Kitto-specific macro expanders should be added here at run
+    ///	time. This engine is chained to the default engine, so all default EF
+    ///	macros are supported.</summary>
     property MacroExpansionEngine: TEFMacroExpansionEngine read GetMacroExpansionEngine;
 
     ///	<summary>Access to the current authenticator.</summary>
@@ -100,10 +97,9 @@ type
     ///	values. Returns True if a value is granted and it equals
     ///	ACV_TRUE.</summary>
     function IsAccessGranted(const AResourceURI, AMode: string): Boolean;
-    {
-      Calls IsAccessGranted and raises an "access denied" exception if the
-      return value is not True.
-    }
+
+    ///	<summary>Calls IsAccessGranted and raises an "access denied" exception
+    ///	if the return value is not True.</summary>
     procedure CheckAccessGranted(const AResourceURI, AMode: string);
 
     ///	<summary>
@@ -152,19 +148,18 @@ type
 
     function GetImageURL(const AResourceName: string; const ASuffix: string = ''): string;
 
-    {
-      Returns the home path. In deployment, it is usually equal to
-      the application home path. In development, it might differ.
-    }
+    ///	<summary>Returns the home path. In deployment, it is usually equal to
+    ///	the application home path. In development, it might differ.</summary>
     function GetKittoHomePath: string;
-    {
-      Returns the application home path as specified by the 'home' command
-      line argument or the executable directory.
-    }
+
+    ///	<summary>Returns the application home path as specified by the 'home'
+    ///	command line argument or the executable's directory.</summary>
     function GetAppHomePath: string;
 
     property JSFormatSettings: TFormatSettings read FJSFormatSettings;
     property UserFormatSettings: TFormatSettings read FUserFormatSettings;
+
+    property MultiFieldSeparator: string read GetMultiFieldSeparator;
   end;
   TKEnvironmentClass = class of TKEnvironment;
 
@@ -178,11 +173,10 @@ procedure SetEnvironmentClass(const AValue: TKEnvironmentClass);
 type
   TKEnvironmentSingleton = function: TKEnvironment;
 
-{
-  Call this procedure at application startup to provide a custom singleton
-  function. Useful in web applications that create an environment instance
-  for each user. Pass nil to restore the default singleton function.
-}
+///	<summary>Call this procedure at application startup to provide a custom
+///	singleton function. Useful in web applications that create an environment
+///	instance for each user. Pass nil to restore the default singleton
+///	function.</summary>
 procedure SetEnvironmentSingleton(const AValue: TKEnvironmentSingleton);
 
 type
@@ -279,6 +273,8 @@ begin
   FJSFormatSettings.DecimalSeparator := '.';
   FJSFormatSettings.ShortDateFormat := 'yyyy/mm/dd';
   FJSFormatSettings.ShortTimeFormat := 'hh:mm:ss';
+  FJSFormatSettings.DateSeparator := '/';
+  FJSFormatSettings.TimeSeparator := ':';
 
   TEFYAMLReader.FormatSettings := FJSFormatSettings;
 
@@ -392,6 +388,11 @@ begin
     FModels.Open;
   end;
   Result := FModels;
+end;
+
+function TKEnvironment.GetMultiFieldSeparator: string;
+begin
+  Result := Config.GetString('MultiFieldSeparator', '~~~');
 end;
 
 function TKEnvironment.FindResourcePathName(const AResourceFileName: string): string;

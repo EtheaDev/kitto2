@@ -297,12 +297,6 @@ type
     /// linked to this connection.</summary>
     function CreateDBQuery: TEFDBQuery; virtual; abstract;
 
-    ///	<summary>Formats the specified value according to the database rules
-    ///	for SQL. The value formatted in this way can be used in queries. This
-    ///	method should use the passed node's DataType to decide how to format
-    ///	the value, which it then returns as a string.</summary>
-    function FormatValue(const AValue: TEFNode): string; virtual;
-
     ///	<summary>
     ///	  <para>Adds a limit clause to the specified SQL statement, which must
     ///	  be a select statement. The method transforms the select statement in
@@ -501,40 +495,6 @@ begin
   if IsOpen then
     Close;
   inherited;
-end;
-
-function TEFDBConnection.FormatValue(const AValue: TEFNode): string;
-begin
-  Assert(Assigned(AValue));
-
-  if AValue.AsString = '' then
-    Result := ''
-  else
-  begin
-{ TODO : implement data types }
-    case AValue.DataType of
-      edtString:
-        Result := SQLQuotedStr(AValue.AsString);
-      edtInteger:
-        Result := AValue.AsString;
-      //edtCurrency:
-        //Result := FormatCurr('', AValue.AsCurrency, GetStandardFormatSettings);
-      //edtFloat:
-        //Result := FormatFloat('', AValue.AsFloat, GetStandardFormatSettings);
-      //edtBcd:
-        //Result := FormatFloat('', BcdToDouble(AValue.AsBcd), GetStandardFormatSettings);
-      edtBoolean:
-        Result := IfThen(AValue.AsBoolean, '1', '0');
-      //edtDate:
-        //Result := SQLQuotedStr(FormatDateTime('yyyy/mm/dd', AValue.AsDate, GetStandardFormatSettings));
-      //edtTime:
-        //Result := SQLQuotedStr(FormatDateTime('hh:nn:ss', AValue.AsTime, GetStandardFormatSettings));
-      //edtDateTime:
-        //Result := SQLQuotedStr(FormatDateTime('yyyy/mm/dd hh:nn:ss', AValue.AsDateTime, GetStandardFormatSettings));
-    else
-      Result := SQLQuotedStr(AValue.AsString);
-    end;
-  end;
 end;
 
 function TEFDBConnection.GetStandardFormatSettings: TFormatSettings;

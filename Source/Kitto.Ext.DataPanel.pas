@@ -6,7 +6,7 @@ interface
 
 uses
   EF.Classes,
-  Kitto.Metadata.Views, Kitto.Ext.Base, Kitto.Store;
+  Kitto.Metadata.DataView, Kitto.Ext.Base, Kitto.Store;
 
 type
   TKExtDataPanelController = class(TKExtPanelControllerBase)

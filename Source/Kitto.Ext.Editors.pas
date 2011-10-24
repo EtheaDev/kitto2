@@ -8,7 +8,7 @@ uses
   Generics.Collections,
   Ext, ExtPascal, ExtForm, ExtData,
   EF.Intf, EF.Classes, EF.Tree,
-  Kitto.Ext.Base, Kitto.Metadata.Views, Kitto.Store;
+  Kitto.Ext.Base, Kitto.Metadata.Views, Kitto.Metadata.DataView, Kitto.Store;
 
 type
   IKExtEditItem = interface(IEFInterface)
@@ -482,7 +482,6 @@ end;
 procedure TKExtLayoutProcessor.CreateEditors(const ALayout: TKLayout);
 var
   I: Integer;
-  LFieldName: string;
 begin
   Assert(Assigned(FViewTable));
   Assert(Assigned(FFormPanel));
@@ -495,11 +494,10 @@ begin
   else
   begin
     FFormPanel.LabelAlign := laLeft;
-    for I := 0 to FStoreHeader.FieldCount - 1 do
+    for I := 0 to FViewTable.FieldCount - 1 do
     begin
-      LFieldName := FStoreHeader.Fields[I].FieldName;
-      if FViewTable.IsFieldVisible(FViewTable.FieldByAliasedName(LFieldName)) then
-        FFormPanel.AddChild(CreateEditor(LFieldName, nil));
+      if FViewTable.IsFieldVisible(FViewTable.Fields[I]) then
+        FFormPanel.AddChild(CreateEditor(FViewTable.Fields[I].FieldName, nil));
     end;
   end;
   if Assigned(FFocusField) then
@@ -524,20 +522,15 @@ begin
 end;
 
 function TKExtLayoutProcessor.GetLookupCommandText(const AViewField: TKViewField): string;
-var
-  LReference: TKModelReference;
 begin
-  Result := AViewField.GetString('LookupCommandText');
-  if Result = '' then
+  if AViewField.IsReference then
   begin
-    LReference := AViewField.Reference;
-    if Assigned(LReference) then
-    begin
-      Result := TKSQLBuilder.GetLookupSelectStatement(AViewField);
-      if AViewField.Model.IsLarge then
-        Result := AddToSQLWhereClause(Result, AViewField.ModelField.FieldName + ' like ''{query}%''');
-    end;
-  end;
+    Result := TKSQLBuilder.GetLookupSelectStatement(AViewField);
+    if AViewField.ModelField.ReferencedModel.IsLarge then
+      Result := AddToSQLWhereClause(Result, AViewField.ModelField.ReferencedModel.CaptionField.FieldName + ' like ''{query}%''');
+  end
+  else
+    Result := '';
 end;
 
 function TKExtLayoutProcessor.TryCreateComboBox(const AViewField: TKViewField;
@@ -563,14 +556,14 @@ begin
       LComboBox.LazyRender := True;
       LComboBox.SelectOnFocus := False;
       // Enable the combo box to post its hidden value instead of the visible description.
-      LComboBox.HiddenName := AViewField.FieldNameForUpdate;
+      LComboBox.HiddenName := AViewField.FieldNamesForUpdate;
       //LComboBox.Id := LDataField.AliasedName + '_DX';
 
       if Length(LAllowedValues) > 0 then
         LComboBox.StoreArray := LComboBox.JSArray(PairsToJSON(LAllowedValues))
       else // LLookupCommandText <> ''
       begin
-        if (AViewField.Reference <> nil) and AViewField.Reference.ReferencedModel.IsLarge then
+        if AViewField.IsReference and AViewField.ModelField.ReferencedModel.IsLarge then
           LComboBox.SetupServerStore(AViewField, LLookupCommandText)
         else
         begin
@@ -596,7 +589,7 @@ function TKExtLayoutProcessor.TryCreateTextArea(const AViewField: TKViewField;
 var
   LTextArea: TKExtFormTextArea;
 begin
-  if (AViewField.DataType = edtString) and ((AViewField.Size = 0) or (AViewField.Size div SizeOf(Char) >= MULTILINE_EDIT_THRESHOLD)) then
+  if AViewField.IsBlob or (AViewField.Size div SizeOf(Char) >= MULTILINE_EDIT_THRESHOLD) then
   begin
     LTextArea := TKExtFormTextArea.Create;
     try
@@ -629,7 +622,7 @@ function TKExtLayoutProcessor.TryCreateCheckBox(const AViewField: TKViewField): 
 var
   LCheckbox: TKExtFormCheckbox;
 begin
-  if AViewField.DataType = edtBoolean then
+  if AViewField.DataType is TEFBooleanDataType then
   begin
     LCheckbox := TKExtFormCheckbox.Create;
     try
@@ -650,7 +643,7 @@ function TKExtLayoutProcessor.TryCreateDateField(const AViewField: TKViewField;
 var
   LDateField: TKExtFormDateField;
 begin
-  if AViewField.DataType = edtDate then
+  if AViewField.DataType is TEFDateDataType then
   begin
     LDateField := TKExtFormDateField.Create;
     try
@@ -678,7 +671,7 @@ function TKExtLayoutProcessor.TryCreateTimeField(const AViewField: TKViewField;
 var
   LTimeField: TKExtFormTimeField;
 begin
-  if AViewField.DataType = edtTime then
+  if AViewField.DataType is TEFTimeDataType then
   begin
     LTimeField := TKExtFormTimeField.Create;
     try
@@ -688,6 +681,7 @@ begin
         ARowField.CharWidth := AFieldWidth + TRIGGER_WIDTH;
       // Don't use Delphi format here.
       LTimeField.Format := DelphiTimeFormatToJSTimeFormat(Environment.UserFormatSettings.ShortTimeFormat);
+      LTimeField.AltFormats := DelphiDateFormatToJSDateFormat(Environment.JSFormatSettings.ShortTimeFormat);
       if not AIsReadOnly then
         LTimeField.AllowBlank := not AViewField.IsRequired;
       Result := LTimeField;
@@ -708,7 +702,7 @@ const
 var
   LDateTimeField: TKExtFormDateTimeField;
 begin
-  if AViewField.DataType = edtDateTime then
+  if AViewField.DataType is TEFDateTimeDataType then
   begin
     LDateTimeField := TKExtFormDateTimeField.Create;
     try
@@ -748,7 +742,7 @@ function TKExtLayoutProcessor.TryCreateNumberField(const AViewField: TKViewField
 var
   LNumberField: TKExtFormNumberField;
 begin
-  if AViewField.DataType in [edtInteger, edtCurrency, edtFloat, edtDecimal] then
+  if AViewField.DataType is TEFNumericDataTypeBase then
   begin
     LNumberField := TKExtFormNumberField.Create;
     try
@@ -758,7 +752,7 @@ begin
         ARowField.CharWidth := AFieldWidth;
       if not AIsReadOnly then
       begin
-        LNumberField.AllowDecimals := AViewField.DataType in [edtCurrency, edtFloat, edtDecimal];
+        LNumberField.AllowDecimals := AViewField.DataType is TEFDecimalNumericDataTypeBase;
         LNumberField.DecimalSeparator := Environment.UserFormatSettings.DecimalSeparator;
         LNumberField.AllowNegative := True;
         if LNumberField.AllowDecimals then
@@ -1288,7 +1282,7 @@ var
   I: Integer;
 begin
   Assert(Assigned(AViewField));
-  Assert(Assigned(AViewField.Reference));
+  Assert(AViewField.IsReference);
   Assert(ALookupCommandText <> '');
 
   FLookupCommandText := ALookupCommandText;

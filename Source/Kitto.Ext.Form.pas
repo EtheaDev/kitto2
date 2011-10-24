@@ -9,7 +9,7 @@ uses
   Ext, ExtData, ExtForm,
   EF.ObserverIntf,
   Kitto.Ext.Base, Kitto.Ext.DataPanel, Kitto.Ext.Editors,
-  Kitto.Metadata.Views, Kitto.Ext.Controller, Kitto.Store;
+  Kitto.Metadata.Views, Kitto.Metadata.DataView, Kitto.Ext.Controller, Kitto.Store;
 
 type
   ///	<summary>
@@ -187,8 +187,14 @@ begin
   try
     Session.GetQueryValues(FStoreRecord, False,
       function(const AName: string): string
+      var
+        LViewField: TKViewField;
       begin
-        Result := ViewTable.FieldByAliasedName(AName).GetMinifiedName;
+        LViewField := ViewTable.FindFieldByAliasedName(AName);
+        if Assigned(LViewField) then
+          Result := LViewField.GetMinifiedName
+        else
+          Result := AName;
       end);
     ViewTable.ApplyRules(
       procedure (const ARuleImpl: TKRuleImpl)

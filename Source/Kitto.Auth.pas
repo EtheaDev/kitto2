@@ -11,7 +11,7 @@ interface
 
 uses
   Classes,
-  EF.Classes, EF.Tree, EF.Environment;
+  EF.Types, EF.Classes, EF.Tree, EF.Environment;
 
 type
   ///	<summary>
@@ -159,7 +159,7 @@ implementation
 
 uses
   SysUtils,
-  EF.StrUtils, EF.Localization, EF.Types,
+  EF.StrUtils, EF.Localization,
   Kitto.Environment;
 
 { TKNullAuthenticator }
@@ -329,3 +329,4 @@ finalization
   TKAuthenticatorRegistry.Instance.UnregisterClass('Null');
 
 end.
+

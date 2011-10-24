@@ -298,7 +298,7 @@ end;
 procedure TKExtMinValue.SetRule(const AValue: TKRule);
 begin
   inherited;
-  CheckRuleValueParam([edtInteger]);
+  CheckRuleValueParam;
 end;
 
 { TKExtMaxValue }
@@ -324,7 +324,7 @@ end;
 procedure TKExtMaxValue.SetRule(const AValue: TKRule);
 begin
   inherited;
-  CheckRuleValueParam([edtInteger]);
+  CheckRuleValueParam;
 end;
 
 { TKExtMinLength }
@@ -350,7 +350,7 @@ end;
 procedure TKExtMinLength.SetRule(const AValue: TKRule);
 begin
   inherited;
-  CheckRuleValueParam([edtInteger]);
+  CheckRuleValueParam;
 end;
 
 { TKExtMaxLength }
@@ -376,7 +376,7 @@ end;
 procedure TKExtMaxLength.SetRule(const AValue: TKRule);
 begin
   inherited;
-  CheckRuleValueParam([edtInteger]);
+  CheckRuleValueParam;
 end;
 
 { TKExtTemplate }
@@ -398,7 +398,7 @@ end;
 procedure TKExtTemplate.SetRule(const AValue: TKRule);
 begin
   inherited;
-  CheckRuleValueParam([edtString]);
+  CheckRuleValueParam;
 end;
 
 { TKExtSubType }
@@ -421,7 +421,7 @@ end;
 procedure TKExtSubType.SetRule(const AValue: TKRule);
 begin
   inherited;
-  CheckRuleValueParam([edtString]);
+  CheckRuleValueParam;
 end;
 
 { TKExtCharFilter }
@@ -444,7 +444,7 @@ end;
 procedure TKExtCharFilter.SetRule(const AValue: TKRule);
 begin
   inherited;
-  CheckRuleValueParam([edtString]);
+  CheckRuleValueParam;
 end;
 
 { TKExtCustomCharFilter }

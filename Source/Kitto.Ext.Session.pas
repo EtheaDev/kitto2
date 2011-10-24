@@ -89,7 +89,7 @@ function Session: TKExtSession;
 implementation
 
 uses
-  Classes, StrUtils, ActiveX, ComObj, Types,
+  Classes, StrUtils, ActiveX, ComObj, Types, FmtBcd,
   ExtPascalUtils, ExtForm, FCGIApp,
   EF.Intf, EF.StrUtils, EF.Localization,
   Kitto.Ext.Utils, Kitto.Auth, Kitto.Types;
@@ -181,18 +181,24 @@ begin
     Assert(LName <> '');
     if Session.Queries.IndexOfName(LName) >= 0 then
     begin
-      case LChild.DataType of
-        edtUnknown, edtString: LChild.AsString := Session.Query[LName];
-        edtInteger: LChild.AsInteger := Session.QueryAsInteger[LName];
-        edtBoolean: LChild.AsBoolean := Session.QueryAsBoolean[LName];
-        edtDate: LChild.AsDate := GetDateTime;
-        edtTime: LChild.AsTime := GetDateTime;
-        edtDateTime: LChild.AsDateTime := GetDateTime;
-        edtCurrency: LChild.AsCurrency := GetFloat;
-        edtFloat: LChild.AsFloat := GetFloat;
-        edtDecimal: LChild.AsDecimal := GetFloat;
-        edtObject: raise EKError.CreateFmt(_('Unsupported data type %s.'), [EFDataTypeToString(LChild.DataType)]);
-      end;
+      if LChild.DataType is TEFIntegerDataType then
+        LChild.AsInteger := Session.QueryAsInteger[LName]
+      else if LChild.DataType is TEFBooleanDataType then
+        LChild.AsBoolean := Session.QueryAsBoolean[LName]
+      else if LChild.DataType is TEFDateDataType then
+        LChild.AsDate := GetDateTime
+      else if LChild.DataType is TEFTimeDataType then
+        LChild.AsTime := GetDateTime
+      else if LChild.DataType is TEFDateTimeDataType then
+        LChild.AsDateTime := GetDateTime
+      else if LChild.DataType is TEFCurrencyDataType then
+        LChild.AsDateTime := GetFloat
+      else if LChild.DataType is TEFFloatDataType then
+        LChild.AsFloat := GetFloat
+      else if LChild.DataType is TEFDecimalDataType then
+        LChild.AsDecimal := DoubleToBcd(GetFloat)
+      else
+        LChild.AsString := Session.Query[LName];
     end;
   end;
 end;
