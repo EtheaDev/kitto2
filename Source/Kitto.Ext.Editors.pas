@@ -557,6 +557,7 @@ begin
       LComboBox.SelectOnFocus := False;
       // Enable the combo box to post its hidden value instead of the visible description.
       LComboBox.HiddenName := AViewField.FieldNamesForUpdate;
+      LComboBox.SubmitValue := True;
       //LComboBox.Id := LDataField.AliasedName + '_DX';
 
       if Length(LAllowedValues) > 0 then
