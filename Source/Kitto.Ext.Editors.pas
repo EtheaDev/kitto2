@@ -863,7 +863,7 @@ begin
 
   if LIsReadOnly then
     LFormField.Cls := 'x-form-readonly';
-  LFormField.AutoScroll := False; // Don't display a h. scrollbar for larger fields.
+  //LFormField.AutoScroll := False; // Don't display a h. scrollbar for larger fields.
   LFormField.Name := LViewField.GetMinifiedName;
   LFormField.ReadOnly := LIsReadOnly;
   LFormField.FieldLabel := LLabel;
@@ -1346,7 +1346,7 @@ end;
 procedure TKExtFormContainer.InitDefaults;
 begin
   inherited;
-  AutoScroll := False;
+  //AutoScroll := False;
 end;
 
 function TKExtFormContainer.InternalSetOption(const AName,

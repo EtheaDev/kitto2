@@ -65,7 +65,7 @@ procedure TKExtTabPanel.InitDefaults;
 begin
   inherited;
   Border := False;
-  { TODO : remove this one all controllers set it by themselves. }
+  { TODO : remove this once all controllers set it by themselves. }
   Defaults := JSObject('autoscroll:true');
   EnableTabScroll := True;
   DeferredRender := True;
