@@ -55,6 +55,7 @@ type
     function GetCanUpdate: Boolean;
     function GetIsReference: Boolean;
     function GetIsDetailReference: Boolean;
+    function GetHint: string;
   protected
     function GetChildClass(const AName: string): TEFNodeClass; override;
   public
@@ -122,6 +123,7 @@ type
     property Expression: string read GetExpression;
 
     property DisplayLabel: string read GetDisplayLabel;
+    property Hint: string read GetHint;
     property DisplayWidth: Integer read GetDisplayWidth;
     property DecimalPrecision: Integer read GetDecimalPrecision;
     property DataType: TEFDataType read GetDataType;
@@ -209,7 +211,7 @@ type
     procedure InternalAfterReadFromNode; override;
   public
     property Records: TKViewTableRecords read GetRecords;
-    procedure CreateDetailStores;
+    procedure EnsureDetailStores;
     property DetailStores[I: Integer]: TKViewTableStore read GetDetailsStore;
     function AddDetailStore(const AStore: TKViewTableStore): TKViewTableStore;
     procedure Save(const AUseTransaction: Boolean);
@@ -236,7 +238,7 @@ type
     function GetModelName: string;
     function GetModel: TKModel;
     function GetDetailTableCount: Integer;
-    function GetTable(I: Integer): TKViewTable;
+    function GetDetailTable(I: Integer): TKViewTable;
     function GetDisplayLabel: string;
     function GetPluralDisplayLabel: string;
     function GetIsReadOnly: Boolean;
@@ -305,7 +307,7 @@ type
     property DefaultSorting: string read GetDefaultSorting;
 
     property DetailTableCount: Integer read GetDetailTableCount;
-    property DetailTables[I: Integer]: TKViewTable read GetTable;
+    property DetailTables[I: Integer]: TKViewTable read GetDetailTable;
     function DetailTableByName(const AName: string): TKViewTable;
 
     property View: TKDataView read GetView;
@@ -554,7 +556,7 @@ end;
 
 function TKViewTable.GetDetailTableCount: Integer;
 begin
-  Result := GetDetailTables.ChildCount;
+  Result := GetDetailTables.GetChildCount<TKViewTable>;
 end;
 
 function TKViewTable.GetDetailTables: TKViewTables;
@@ -725,9 +727,9 @@ begin
   Result := Environment.Views.Layouts.FindLayout(GetViewTablePathName + '_' + AKind);
 end;
 
-function TKViewTable.GetTable(I: Integer): TKViewTable;
+function TKViewTable.GetDetailTable(I: Integer): TKViewTable;
 begin
-  Result := GetDetailTables.Children[I] as TKViewTable;
+  Result := GetDetailTables.GetChild<TKViewTable>(I);
 end;
 
 function TKViewTable.GetModelName: string;
@@ -1083,6 +1085,13 @@ begin
     Result := FieldName;
 end;
 
+function TKViewField.GetHint: string;
+begin
+  Result := GetString('Hint');
+  if Result = '' then
+    Result := ModelField.Hint;
+end;
+
 function TKViewField.GetIsVisible: Boolean;
 begin
   Result := GetBoolean('IsVisible', True);
@@ -1327,14 +1336,19 @@ begin
   Result := inherited AddDetailStore(AStore) as TKViewTableStore;
 end;
 
-procedure TKViewTableRecord.CreateDetailStores;
+procedure TKViewTableRecord.EnsureDetailStores;
 var
   I: Integer;
+  LStore: TKViewTableStore;
 begin
   if DetailStoreCount = 0 then
   begin
     for I := 0 to Records.Store.ViewTable.DetailTableCount - 1 do
-      AddDetailStore(Records.Store.ViewTable.DetailTables[I].CreateStore);
+    begin
+      LStore := Records.Store.ViewTable.DetailTables[I].CreateStore;
+      LStore.MasterRecord := Self;
+      AddDetailStore(LStore);
+    end;
   end;
 end;
 

@@ -72,6 +72,7 @@ type
     function GetField(I: Integer): TKModelField;
     function GetFieldCount: Integer;
     function GetFields: TKModelFields;
+    function GetHint: string;
   protected
     procedure GetFieldSpec(out ADataType: TEFDataType; out ASize: Integer;
       out AIsRequired: Boolean; out AIsKey: Boolean; out AReferencedModel: string);
@@ -168,6 +169,8 @@ type
     ///	  name. The beautifying function can be customized.
     ///	</summary>
     property DisplayLabel: string read GetDisplayLabel;
+
+    property Hint: string read GetHint;
 
     ///	<summary>
     ///	  Default width for this field in views. Defaults to the field size for
@@ -625,6 +628,11 @@ begin
     ASize := 0;
     AReferencedModel := '';
   end;
+end;
+
+function TKModelField.GetHint: string;
+begin
+  Result := GetString('Hint');
 end;
 
 function TKModelField.GetIsGenerated: Boolean;
