@@ -309,7 +309,9 @@ begin
   ExtQuickTips.Init(True);
 
   FTabPanel := TExtTabPanel.AddTo(Items);
+  FTabPanel.Border := False;
   FTabPanel.Region := rgCenter;
+  FTabPanel.AutoScroll := False;
   FTabPanel.SetActiveTab(0);
 
   FFormPanel := TKExtEditPanel.AddTo(FTabPanel.Items);

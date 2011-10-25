@@ -68,6 +68,7 @@ implementation
 
 uses
   SysUtils, StrUtils, Math,
+  ExtPascal,
   EF.Tree, EF.StrUtils, EF.Localization,
   Kitto.Metadata.Models, Kitto.Metadata.Views, Kitto.Environment,
   Kitto.AccessControl,
@@ -443,6 +444,7 @@ begin
     LFormController.Config.SetString('Sys/Operation', 'Add');
   LFormController.Display;
   FEditHostWindow.Show;
+  //JSCode('showWindow(' + FEditHostWindow.JSName + ', ' + TExtObject(LFormController.AsObject).JSName + ');');
 end;
 
 procedure TKExtGridPanel.SetViewTable(const AValue: TKViewTable);
