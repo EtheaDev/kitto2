@@ -70,6 +70,7 @@ type
     function GetDetailsStore(I: Integer): TKStore;
     function GetDetailStoreCount: Integer;
     procedure EnsureDetailStores;
+    function GetStore: TKStore;
   protected
     property State: TKRecordState read FState;
     function GetChildClass(const AName: string): TEFNodeClass; override;
@@ -82,6 +83,7 @@ type
     destructor Destroy; override;
   public
     property Records: TKRecords read GetRecords;
+    property Store: TKStore read GetStore;
     property Key: TKKey read GetKey;
     property Fields[I: Integer]: TKField read GetField; default;
     property FieldCount: Integer read GetFieldCount;
@@ -211,6 +213,8 @@ type
     function GetAsJSON(const AMinified: Boolean; const AFrom: Integer = 0; const AFor: Integer = 0): string;
 
     function ChangesPending: Boolean;
+
+    function CountRecords(const AFieldName: string; const AValue: Variant): Integer;
   end;
 
 implementation
@@ -242,6 +246,19 @@ begin
       Result := True;
       Break;
     end;
+  end;
+end;
+
+function TKStore.CountRecords(const AFieldName: string;
+  const AValue: Variant): Integer;
+var
+  I: Integer;
+begin
+  Result := 0;
+  for I := 0 to RecordCount - 1 do
+  begin
+    if Records[I].FieldByName(AFieldName).Value = AValue then
+      Inc(Result);
   end;
 end;
 
@@ -610,6 +627,11 @@ end;
 function TKRecord.GetRecords: TKRecords;
 begin
   Result := Parent as TKRecords;
+end;
+
+function TKRecord.GetStore: TKStore;
+begin
+  Result := Records.Store;
 end;
 
 procedure TKRecord.MarkAsClean;
