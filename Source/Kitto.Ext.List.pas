@@ -106,20 +106,28 @@ var
   LTotal: Integer;
   LData: string;
 begin
-{ TODO : Fully refreshing at each page change might be inefficient. }
-  LStart := Session.QueryAsInteger['start'];
-  LLimit := Session.QueryAsInteger['limit'];
-
-  if (LStart <> 0) or (LLimit <> 0) then
+  // Don't refresh if there are pending changes.
+  if ServerStore.ChangesPending then
   begin
-    LTotal := ServerStore.LoadPage(GetFilterExpression, LStart, LLimit);
+    LTotal := ServerStore.RecordCount;
     LData := ServerStore.GetAsJSON(True);
   end
   else
   begin
-    ServerStore.Load(GetFilterExpression);
-    LTotal := ServerStore.RecordCount;
-    LData := ServerStore.GetAsJSON(True, 0, Min(MAX_RECORD_COUNT, ServerStore.RecordCount));
+    LStart := Session.QueryAsInteger['start'];
+    LLimit := Session.QueryAsInteger['limit'];
+
+    if (LStart <> 0) or (LLimit <> 0) then
+    begin
+      LTotal := ServerStore.LoadPage(GetFilterExpression, LStart, LLimit);
+      LData := ServerStore.GetAsJSON(True);
+    end
+    else
+    begin
+      ServerStore.Load(GetFilterExpression);
+      LTotal := ServerStore.RecordCount;
+      LData := ServerStore.GetAsJSON(True, 0, Min(MAX_RECORD_COUNT, ServerStore.RecordCount));
+    end;
   end;
   Session.Response := Format('{Total:%d,Root:%s}', [LTotal, LData]);
 end;

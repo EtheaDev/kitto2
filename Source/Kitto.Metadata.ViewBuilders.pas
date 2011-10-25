@@ -35,22 +35,19 @@ uses
 
 function TKAutoViewBuilderBase.BuildView: TKView;
 var
-  LModel: TKModel;
   LMainTable: TKViewTable;
-  LFields: TKViewFields;
-  LController: TEFNode;
   LMainTableController: TEFNode;
 begin
-  LModel := GetModel;
+  GetModel;
   Result := TKDataView.Create;
   try
-    LController := Result.AddChild(TEFNode.Clone(FindNode('Controller')));
+    Result.AddChild(TEFNode.Clone(FindNode('Controller')));
     //Result.SetString('DisplayLabel', LModel.PluralDisplayLabel);
     Result.SetString('Controller', GetControllerType);
 
     LMainTable := Result.AddChild(TKViewTable.Create('MainTable')) as TKViewTable;
     LMainTable.SetString('Model', GetString('Model'));
-    LFields := LMainTable.AddChild(TKViewFields.Create('Fields')) as TKViewFields;
+    LMainTable.AddChild(TKViewFields.Create('Fields'));
     { TODO :
 add all model fields, plus a lookup to the default field of each
 reference that is not to a master record. The default field is

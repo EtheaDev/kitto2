@@ -114,6 +114,8 @@ type
 
     procedure Backup;
     procedure Restore;
+
+    function ChangesPending: Boolean;
   end;
 
   TKRecords = class(TEFNode)
@@ -207,6 +209,8 @@ type
     procedure RemoveRecord(const ARecord: TKRecord);
 
     function GetAsJSON(const AMinified: Boolean; const AFrom: Integer = 0; const AFor: Integer = 0): string;
+
+    function ChangesPending: Boolean;
   end;
 
 implementation
@@ -224,6 +228,21 @@ begin
   Header.Apply(Result);
   if Assigned(AValues) then
     Result.ReadFromNode(AValues);
+end;
+
+function TKStore.ChangesPending: Boolean;
+var
+  I: Integer;
+begin
+  Result := False;
+  for I := 0 to RecordCount - 1 do
+  begin
+    if Records[I].ChangesPending then
+    begin
+      Result := True;
+      Break;
+    end;
+  end;
 end;
 
 destructor TKStore.Destroy;
@@ -490,6 +509,24 @@ begin
   if not Assigned(FBackup) then
     FBackup := TEFNode.Create;
   FBackup.Assign(Self);
+end;
+
+function TKRecord.ChangesPending: Boolean;
+var
+  I: Integer;
+begin
+  Result := FState <> rsClean;
+  if not Result then
+  begin
+    for I := 0 to DetailStoreCount - 1 do
+    begin
+      if DetailStores[I].ChangesPending then
+      begin
+        Result := True;
+        Break;
+      end;
+    end;
+  end;
 end;
 
 destructor TKRecord.Destroy;
