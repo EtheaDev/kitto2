@@ -847,6 +847,12 @@ begin
 
   LFormField := Result.AsExtFormField;
 
+  if LFormField is TExtFormTextField then
+  begin
+    if LViewField.Hint <> '' then
+      TExtFormTextField(LFormField).EmptyText := _(LViewField.Hint);
+  end;
+
   if not LIsReadOnly then
     LViewField.ApplyRules(
       procedure (const ARuleImpl: TKRuleImpl)

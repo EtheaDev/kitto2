@@ -461,8 +461,9 @@ begin
   finally
     ADBQuery.Params.EndUpdate;
   end;
-  for I := 0 to ADBQuery.Params.Count - 1 do
-    AMasterValues.GetNode(ADBQuery.Params[I].Name).AssignValueToParam(ADBQuery.Params[I]);
+  if Assigned(AMastervalues) then
+    for I := 0 to ADBQuery.Params.Count - 1 do
+      AMasterValues.GetNode(ADBQuery.Params[I].Name).AssignValueToParam(ADBQuery.Params[I]);
 end;
 
 procedure TKSQLBuilder.InternalBuildCountQuery(const AViewTable: TKViewTable;

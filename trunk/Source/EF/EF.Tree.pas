@@ -1781,7 +1781,7 @@ end;
 function TEFBooleanDataType.GetDefaultDisplayWidth(
   const ASize: Integer): Integer;
 begin
-  Result := 5;
+  Result := 8;
 end;
 
 function TEFBooleanDataType.GetJSTypeName: string;

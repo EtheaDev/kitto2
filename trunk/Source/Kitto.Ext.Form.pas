@@ -8,8 +8,9 @@ uses
   Generics.Collections,
   Ext, ExtData, ExtForm,
   EF.ObserverIntf,
-  Kitto.Ext.Base, Kitto.Ext.DataPanel, Kitto.Ext.Editors,
-  Kitto.Metadata.Views, Kitto.Metadata.DataView, Kitto.Ext.Controller, Kitto.Store;
+  Kitto.Metadata.Views, Kitto.Metadata.DataView, Kitto.Store,
+  Kitto.Ext.Controller, Kitto.Ext.Base, Kitto.Ext.DataPanel, Kitto.Ext.Editors,
+  Kitto.Ext.GridPanel;
 
 type
   ///	<summary>
@@ -19,16 +20,12 @@ type
   private
     FViewTable: TKViewTable;
     FDetailHostWindow: TKExtModalWindow;
-    FView: TKDataView;
     FServerStore: TKViewTableStore;
-    FMasterRecord: TKViewTableRecord;
     procedure SetViewTable(const AValue: TKViewTable);
   public
     destructor Destroy; override;
     property ViewTable: TKViewTable read FViewTable write SetViewTable;
-    property View: TKDataView read FView write FView;
     property ServerStore: TKViewTableStore read FServerStore write FServerStore;
-    property MasterRecord: TKViewTableRecord read FMasterRecord write FMasterRecord;
   published
     procedure ShowDetailWindow;
   end;
@@ -38,6 +35,7 @@ type
   ///	</summary>
   TKExtFormPanelController = class(TKExtDataPanelController)
   private
+    FTabPanel: TExtTabPanel;
     FFormPanel: TKExtEditPanel;
     FIsReadOnly: Boolean;
     //FEditors: TList<IKExtEditor>;
@@ -45,13 +43,17 @@ type
     FCancelButton: TExtButton;
     FDetailToolbar: TExtToolbar;
     FDetailButtons: TObjectList<TKExtDetailFormButton>;
+    FDetailPanels: TObjectList<TKExtGridPanel>;
     FOperation: string;
     FFocusField: TExtFormField;
     FStoreRecord: TKViewTableRecord;
+    FDetailTabPanel: TExtTabPanel;
     procedure CreateDetailToolbar;
     procedure CreateEditors(const AForceReadOnly: Boolean);
     procedure StartOperation;
     procedure FocusFirstField;
+    procedure CreateDetailPanels;
+    procedure LoadDetailData;
   protected
     procedure LoadData; override;
     procedure InitComponents; override;
@@ -76,6 +78,7 @@ uses
 destructor TKExtFormPanelController.Destroy;
 begin
   FreeAndNil(FDetailButtons);
+  FreeAndNil(FDetailPanels);
   inherited;
 end;
 
@@ -85,11 +88,12 @@ var
 begin
   Assert(ViewTable <> nil);
   Assert(FDetailToolbar = nil);
+  Assert(FDetailButtons = nil);
   Assert(Assigned(FStoreRecord));
 
   if ViewTable.DetailTableCount > 0 then
   begin
-    FStoreRecord.CreateDetailStores;
+    FStoreRecord.EnsureDetailStores;
     Assert(FStoreRecord.DetailStoreCount = ViewTable.DetailTableCount);
     FDetailToolbar := TExtToolbar.Create;
     FDetailButtons := TObjectList<TKExtDetailFormButton>.Create(False);
@@ -97,11 +101,34 @@ begin
     begin
       FDetailButtons.Add(TKExtDetailFormButton.AddTo(FDetailToolbar.Items));
       FDetailButtons[I].ServerStore := FStoreRecord.DetailStores[I];
-      FDetailButtons[I].MasterRecord := FStoreRecord;
       FDetailButtons[I].ViewTable := ViewTable.DetailTables[I];
-      FDetailButtons[I].View := View;
     end;
     Tbar := FDetailToolbar;
+  end;
+end;
+
+procedure TKExtFormPanelController.CreateDetailPanels;
+var
+  I: Integer;
+begin
+  Assert(ViewTable <> nil);
+  Assert(FTabPanel <> nil);
+  Assert(FDetailPanels = nil);
+  Assert(Assigned(FStoreRecord));
+
+  if ViewTable.DetailTableCount > 0 then
+  begin
+    FStoreRecord.EnsureDetailStores;
+    Assert(FStoreRecord.DetailStoreCount = ViewTable.DetailTableCount);
+    FDetailToolbar := TExtToolbar.Create;
+    FDetailPanels := TObjectList<TKExtGridPanel>.Create(False);
+    for I := 0 to ViewTable.DetailTableCount - 1 do
+    begin
+      FDetailPanels.Add(TKExtGridPanel.AddTo(FTabPanel.Items));
+      FDetailPanels[I].ServerStore := FStoreRecord.DetailStores[I];
+      FDetailPanels[I].ViewTable := ViewTable.DetailTables[I];
+      FDetailPanels[I].Show;
+    end;
   end;
 end;
 
@@ -138,10 +165,16 @@ begin
 end;
 
 procedure TKExtFormPanelController.LoadData;
+var
+  LDetailStyle: string;
 begin
   inherited;
   CreateEditors(FIsReadOnly);
-  CreateDetailToolbar;
+  LDetailStyle := ViewTable.GetString('DetailTables/Controller/Style', 'Tabs');
+  if SameText(LDetailStyle, 'Tabs') then
+    CreateDetailPanels
+  else if SameText(LDetailStyle, 'Buttons') then
+    CreateDetailToolbar;
   StartOperation;
 end;
 
@@ -165,7 +198,19 @@ begin
   Session.JSCode(
     FFormPanel.JSName + '.getForm().load({url:"' + MethodURI(GetRecord) + '",' +
       'failure: function(form, action) { Ext.Msg.alert("' + _('Load failed.') + '", action.result.errorMessage);}});');
+  LoadDetailData;
   FocusFirstField;
+end;
+
+procedure TKExtFormPanelController.LoadDetailData;
+var
+  I: Integer;
+begin
+  if Assigned(FDetailPanels) then
+  begin
+    for I := 0 to FDetailPanels.Count - 1 do
+      FDetailPanels[I].LoadData;
+  end;
 end;
 
 procedure TKExtFormPanelController.FocusFirstField;
@@ -247,8 +292,12 @@ begin
 
   ExtQuickTips.Init(True);
 
-  FFormPanel := TKExtEditPanel.AddTo(Items);
-  FFormPanel.Region := rgCenter;
+  FTabPanel := TExtTabPanel.AddTo(Items);
+  FTabPanel.Region := rgCenter;
+  FTabPanel.SetActiveTab(0);
+
+  FFormPanel := TKExtEditPanel.AddTo(FTabPanel.Items);
+  FFormPanel.Title := ViewTable.DisplayLabel;
   FFormPanel.Border := False;
   FFormPanel.Header := False;
   FFormPanel.Frame := True;
@@ -330,14 +379,13 @@ begin
   if Assigned(FDetailHostWindow) then
     FDetailHostWindow.Free(True);
   FDetailHostWindow := TKExtModalWindow.Create;
-  { TODO : use a master-record-specific title - define a way to specify a record's caption }
+
   FDetailHostWindow.Title := ViewTable.PluralDisplayLabel;
   FDetailHostWindow.Closable := True;
 
-  LController := TKExtControllerFactory.Instance.CreateController(FView, FDetailHostWindow);
+  LController := TKExtControllerFactory.Instance.CreateController(FViewTable.View, FDetailHostWindow);
   LController.OwnsView := False;
   LController.Config.SetObject('Sys/ServerStore', ServerStore);
-  LController.Config.SetObject('Sys/MasterRecord', FMasterRecord);
   LController.Config.SetObject('Sys/ViewTable', ViewTable);
   LController.Config.SetObject('Sys/HostWindow', FDetailHostWindow);
   LController.Display;

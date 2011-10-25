@@ -28,7 +28,6 @@ type
     property View: TKDataView read GetView;
     property ServerStore: TKViewTableStore read GetServerStore;
     property ViewTable: TKViewTable read FViewTable;
-    function GetFilterExpression: string; virtual;
   public
     destructor Destroy; override;
   end;
@@ -47,11 +46,6 @@ begin
   if FOwnsServerStore then
     FreeAndNil(FServerStore);
   inherited;
-end;
-
-function TKExtDataPanelController.GetFilterExpression: string;
-begin
-  Result := '';
 end;
 
 function TKExtDataPanelController.GetServerStore: TKViewTableStore;
