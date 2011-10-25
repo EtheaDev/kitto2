@@ -42,6 +42,6 @@ Ext.apply(Ext.form.VTypes, {
 function fireChangeAfterNChars(obj, minChars)
 {
   var v = obj.getValue();
-  if (v.length >= minChars)
+  if (v.length >= minChars || v.length == 0)
     obj.fireEvent("change", v, v);
 }
