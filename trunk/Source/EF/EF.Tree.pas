@@ -523,7 +523,11 @@ begin
 end;
 
 destructor TEFDataTypeFactory.Destroy;
+var
+  LDataType: TEFDataType;
 begin
+  for LDataType in FDataTypes.Values.ToArray do
+    LDataType.Free;
   FreeAndNil(FDataTypes);
   inherited;
 end;
