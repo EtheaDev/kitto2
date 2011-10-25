@@ -75,15 +75,46 @@ type
     property Rule: TKRule read FRule write SetRule;
 
     ///	<summary>
-    ///	  <para>Server side validation before writing to the database.
-    ///	  Descendants should read the values in ARecord and call RaiseError
-    ///	  (which will raise an exception with the default or a custom message)
-    ///	  in order to stop the write operation and display an erro to the
-    ///	  user.</para>
-    ///	  <para>Descendants may also change values.</para>
+    ///	  <para>
+    ///	    Server side validation before writing a new record to the database.
+    ///	    Descendants should read the values in ARecord and call RaiseError
+    ///	    (which will raise an exception with the default or a custom
+    ///	    message) in order to stop the write operation and display an error
+    ///	    to the user.
+    ///	  </para>
+    ///	  <para>
+    ///	    Descendants may also change values.
+    ///	  </para>
     ///	</summary>
-    ///	<remarks>If an exception is raised, any change is lost.</remarks>
-    procedure BeforeWrite(const ARecord: TKRecord); virtual;
+    ///	<param name="ARecord">
+    ///	  The record being written to the database. It is usually an instance
+    ///	  of TKViewTableRecord.
+    ///	</param>
+    ///	<remarks>
+    ///	  If an exception is raised, any change is lost.
+    ///	</remarks>
+    procedure BeforeAdd(const ARecord: TKRecord); virtual;
+
+    ///	<summary>
+    ///	  <para>
+    ///	    Server side validation before updating an existing database record.
+    ///	    Descendants should read the values in ARecord and call RaiseError
+    ///	    (which will raise an exception with the default or a custom
+    ///	    message) in order to stop the write operation and display an error
+    ///	    to the user.
+    ///	  </para>
+    ///	  <para>
+    ///	    Descendants may also change values.
+    ///	  </para>
+    ///	</summary>
+    ///	<param name="ARecord">
+    ///	  The record being written to the database. It is usually an instance
+    ///	  of TKViewTableRecord.
+    ///	</param>
+    ///	<remarks>
+    ///	  If an exception is raised, any change is lost.
+    ///	</remarks>
+    procedure BeforeUpdate(const ARecord: TKRecord); virtual;
   end;
   TKRuleImplClass = class of TKRuleImpl;
 
@@ -127,7 +158,11 @@ uses
 
 { TKRuleImpl }
 
-procedure TKRuleImpl.BeforeWrite;
+procedure TKRuleImpl.BeforeAdd;
+begin
+end;
+
+procedure TKRuleImpl.BeforeUpdate(const ARecord: TKRecord);
 begin
 end;
 
@@ -152,7 +187,10 @@ end;
 
 class function TKRuleImpl.GetClassId: string;
 begin
-  Result := StripPrefix(ClassName, 'TK');
+  if StartsText('TK', ClassName) then
+    Result := StripPrefix(ClassName, 'TK')
+  else
+    Result := StripPrefix(ClassName, 'T');
 end;
 
 function TKRuleImpl.GetErrorMessage: string;

@@ -173,7 +173,7 @@ begin
   LDetailStyle := ViewTable.GetString('DetailTables/Controller/Style', 'Tabs');
   if SameText(LDetailStyle, 'Tabs') then
     CreateDetailPanels
-  else if SameText(LDetailStyle, 'Buttons') then
+  else if SameText(LDetailStyle, 'Popup') then
     CreateDetailToolbar;
   StartOperation;
 end;
@@ -241,14 +241,30 @@ begin
         else
           Result := AName;
       end);
-    ViewTable.ApplyRules(
-      procedure (const ARuleImpl: TKRuleImpl)
-      begin
-        ARuleImpl.BeforeWrite(FStoreRecord);
-      end);
+    if FOperation = 'Add' then
+      ViewTable.ApplyRules(
+        procedure (const ARuleImpl: TKRuleImpl)
+        begin
+          ARuleImpl.BeforeAdd(FStoreRecord);
+        end)
+    else
+      ViewTable.ApplyRules(
+        procedure (const ARuleImpl: TKRuleImpl)
+        begin
+          ARuleImpl.BeforeUpdate(FStoreRecord);
+        end);
   except
-    FStoreRecord.Restore;
-    raise;
+    on E: EKValidationError do
+    begin
+      FStoreRecord.Restore;
+      ExtMessageBox.Alert(Environment.AppTitle, E.Message);
+      Exit;
+    end;
+    on E: Exception do
+    begin
+      FStoreRecord.Restore;
+      raise;
+    end;
   end;
 
   FStoreRecord.MarkAsDirty;

@@ -207,10 +207,12 @@ type
   private
     function GetRecords: TKViewTableRecords;
     function GetDetailsStore(I: Integer): TKViewTableStore;
+    function GetStore: TKViewTableStore;
   protected
     procedure InternalAfterReadFromNode; override;
   public
     property Records: TKViewTableRecords read GetRecords;
+    property Store: TKViewTableStore read GetStore;
     procedure EnsureDetailStores;
     property DetailStores[I: Integer]: TKViewTableStore read GetDetailsStore;
     function AddDetailStore(const AStore: TKViewTableStore): TKViewTableStore;
@@ -1360,6 +1362,11 @@ end;
 function TKViewTableRecord.GetRecords: TKViewTableRecords;
 begin
   Result := inherited Records as TKViewTableRecords;
+end;
+
+function TKViewTableRecord.GetStore: TKViewTableStore;
+begin
+  Result := Records.Store;
 end;
 
 procedure TKViewTableRecord.InternalAfterReadFromNode;
