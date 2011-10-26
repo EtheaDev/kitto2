@@ -14,15 +14,13 @@ uses
 ///	    Example: Param1='Foo', Param2=20
 ///	  </para>
 ///	  <para>
-///	    Result: '["Foo", "Param1"], ["20", "Param2"]'
+///	    Result: '["Param1", "Foo"], ["Param2", "20"]'
 ///	  </para>
 ///	  <para>
-///	    This particular representation is useful for encoding a data view
-///	    field's AllowedValues as a JSON array suitable for an ExtJS combo box.
-///     Set AReversed to False to switch keys and values.
+///     Set AReversed to True to switch keys and values.
 ///	  </para>
 ///	</summary>
-function PairsToJSON(const APairs: TEFPairs; const AReversed: Boolean = True): string;
+function PairsToJSON(const APairs: TEFPairs; const AReversed: Boolean = False): string;
 
 {
   Builds a JSON representation of a dataset's fields values.

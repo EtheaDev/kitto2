@@ -3,7 +3,7 @@ unit EF.Tree;
 interface
 
 uses
-  SysUtils, Types, Variants, DB, FmtBcd, Generics.Collections, SyncObjs,
+  SysUtils, Types, Classes, Variants, DB, FmtBcd, Generics.Collections, SyncObjs,
   EF.Types, EF.Macros;
 
 type
@@ -301,6 +301,21 @@ type
     procedure SetBoolean(const APath: string; const AValue: Boolean);
 
     procedure AddFieldsAsChildren(const AFields: TFields);
+
+    type TNameTranslator = reference to function(const AName: string): string;
+
+    ///	<summary>
+    ///	  <para>Tries to read from AStrings a value for each child node
+    ///	  interpret it according to the child's DataType. Read values
+    ///	  are stored in the child nodes.</para>
+    ///	  <para>Pass a translation function if key names in AStrings do not match
+    ///	  wanted child node names and you need to translate them. The function
+    ///	  receives the child name and should return the corresponding
+    ///	  key name.</para>
+    ///	</summary>
+    procedure SetChildValuesfromStrings(const AStrings: TStrings;
+      const AUseJSDateFormat: Boolean; const AFormatSettings: TFormatSettings;
+      const ATranslator: TNameTranslator = nil);
   end;
 
   TEFNode = class(TEFTree)
@@ -487,7 +502,7 @@ type
 implementation
 
 uses
-  StrUtils, TypInfo, Math,
+  StrUtils, TypInfo, Math, DateUtils,
   EF.Environment, EF.Localization, EF.StrUtils, EF.YAML, EF.VariantUtils;
 
 {$IF RTLVersion < 23.0}
@@ -1400,6 +1415,70 @@ end;
 procedure TEFTree.SetBoolean(const APath: string; const AValue: Boolean);
 begin
   GetNode(APath, True).AsBoolean := AValue;
+end;
+
+procedure TEFTree.SetChildValuesfromStrings(const AStrings: TStrings;
+  const AUseJSDateFormat: Boolean; const AFormatSettings: TFormatSettings;
+  const ATranslator: TNameTranslator);
+var
+  I: Integer;
+  LChild: TEFNode;
+  LName: string;
+
+  function JSDateToDateTime(JSDate : string) : TDateTime; begin
+    Result := EncodeDateTime(StrToInt(copy(JSDate, 12, 4)), AnsiIndexStr(copy(JSDate, 5, 3), ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']) +1,
+      StrToInt(copy(JSDate, 9, 2)), StrToInt(copy(JSDate, 17, 2)), StrToInt(copy(JSDate, 20, 2)), StrToInt(copy(JSDate, 23, 2)), 0);
+  end;
+
+  function GetDateTime: TDateTime;
+  begin
+    if AUseJSDateFormat then
+      Result := JSDateToDateTime(AStrings.Values[LName])
+    else
+      Result := StrToDateTime(AStrings.Values[LName], AFormatSettings);
+  end;
+
+  function GetFloat: Double;
+  begin
+    Result := StrToFloat(AStrings.Values[LName], AFormatSettings)
+  end;
+
+  function Translate(const AName: string): string;
+  begin
+    if Assigned(ATranslator) then
+      Result := ATranslator(AName)
+    else
+      Result := AName;
+  end;
+
+begin
+  for I := 0 to ChildCount - 1 do
+  begin
+    LChild := Children[I];
+    LName := Translate(LChild.Name);
+    Assert(LName <> '');
+    if AStrings.IndexOfName(LName) >= 0 then
+    begin
+      if LChild.DataType is TEFIntegerDataType then
+        LChild.AsInteger := StrToInt(AStrings.Values[LName])
+      else if LChild.DataType is TEFBooleanDataType then
+        LChild.AsBoolean := StrToBool(AStrings.Values[LName])
+      else if LChild.DataType is TEFDateDataType then
+        LChild.AsDate := GetDateTime
+      else if LChild.DataType is TEFTimeDataType then
+        LChild.AsTime := GetDateTime
+      else if LChild.DataType is TEFDateTimeDataType then
+        LChild.AsDateTime := GetDateTime
+      else if LChild.DataType is TEFCurrencyDataType then
+        LChild.AsDateTime := GetFloat
+      else if LChild.DataType is TEFFloatDataType then
+        LChild.AsFloat := GetFloat
+      else if LChild.DataType is TEFDecimalDataType then
+        LChild.AsDecimal := DoubleToBcd(GetFloat)
+      else
+        LChild.AsString := AStrings.Values[LName];
+    end;
+  end;
 end;
 
 procedure TEFTree.SetInteger(const APath: string; const AValue: Integer);

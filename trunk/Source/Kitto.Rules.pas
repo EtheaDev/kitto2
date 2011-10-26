@@ -87,8 +87,8 @@ type
     ///	  </para>
     ///	</summary>
     ///	<param name="ARecord">
-    ///	  The record being written to the database. It is usually an instance
-    ///	  of TKViewTableRecord.
+    ///	  The record being created. It is usually an instance of
+    ///	  TKViewTableRecord.
     ///	</param>
     ///	<remarks>
     ///	  If an exception is raised, any change is lost.
@@ -112,9 +112,68 @@ type
     ///	  of TKViewTableRecord.
     ///	</param>
     ///	<remarks>
-    ///	  If an exception is raised, any change is lost.
+    ///	  <para>
+    ///	    If an exception is raised, any change is lost.
+    ///	  </para>
+    ///	  <para>
+    ///	    Changing key values has the effect of updating a different record.
+    ///	  </para>
     ///	</remarks>
     procedure BeforeUpdate(const ARecord: TKRecord); virtual;
+
+    ///	<summary>
+    ///	  <para>
+    ///	    Server side validation before deleting a database record.
+    ///	    Descendants should read the values in ARecord and call RaiseError
+    ///	    (which will raise an exception with the default or a custom
+    ///	    message) in order to stop the delete operation and display an error
+    ///	    to the user.
+    ///	  </para>
+    ///	  <para>
+    ///	    Descendants may also change values, although the changes are
+    ///	    meaningless.
+    ///	  </para>
+    ///	</summary>
+    ///	<param name="ARecord">
+    ///	  The record being deleted. It is usually an instance of
+    ///	  TKViewTableRecord.
+    ///	</param>
+    ///	<remarks>
+    ///	  Changing a key value will have the effect of deleting a different
+    ///	  record.
+    ///	</remarks>
+    procedure BeforeDelete(const ARecord: TKRecord); virtual;
+
+    ///	<summary>
+    ///	  Called after successfully writing a new record to the database. This
+    ///	  method can still raise an exception (by calling RaiseError) causing
+    ///	  the transaction to be rolled back.
+    ///	</summary>
+    ///	<remarks>
+    ///	  Any values set or changed at the database level (by database
+    ///	  triggers, for example), are not available at this point. Changes
+    ///	  performed in BeforeAdd by this or another rule are.
+    ///	</remarks>
+    procedure AfterAdd(const ARecord: TKRecord); virtual;
+
+    ///	<summary>
+    ///	  Called after successfully updating a record in the database. This
+    ///	  method can still raise an exception (by calling RaiseError) causing
+    ///	  the transaction to be rolled back.
+    ///	</summary>
+    ///	<remarks>
+    ///	  Any values set or changed at the database level (by database
+    ///	  triggers, for example), are not available at this point. Changes
+    ///	  performed in BeforeUpdate by this or another rule are.
+    ///	</remarks>
+    procedure AfterUpdate(const ARecord: TKRecord); virtual;
+
+    ///	<summary>
+    ///	  Called after successfully deleting a record in the database. This
+    ///	  method can still raise an exception (by calling RaiseError) causing
+    ///	  the transaction to be rolled back.
+    ///	</summary>
+    procedure AfterDelete(const ARecord: TKRecord); virtual;
   end;
   TKRuleImplClass = class of TKRuleImpl;
 
@@ -158,7 +217,23 @@ uses
 
 { TKRuleImpl }
 
+procedure TKRuleImpl.AfterAdd(const ARecord: TKRecord);
+begin
+end;
+
+procedure TKRuleImpl.AfterDelete(const ARecord: TKRecord);
+begin
+end;
+
+procedure TKRuleImpl.AfterUpdate(const ARecord: TKRecord);
+begin
+end;
+
 procedure TKRuleImpl.BeforeAdd;
+begin
+end;
+
+procedure TKRuleImpl.BeforeDelete(const ARecord: TKRecord);
 begin
 end;
 

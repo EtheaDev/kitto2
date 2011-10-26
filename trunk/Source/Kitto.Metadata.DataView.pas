@@ -208,28 +208,36 @@ type
     function GetRecords: TKViewTableRecords;
     function GetDetailsStore(I: Integer): TKViewTableStore;
     function GetStore: TKViewTableStore;
+    function GetViewTable: TKViewTable;
   protected
     procedure InternalAfterReadFromNode; override;
   public
     property Records: TKViewTableRecords read GetRecords;
     property Store: TKViewTableStore read GetStore;
+    property ViewTable: TKViewTable read GetViewTable;
     procedure EnsureDetailStores;
     property DetailStores[I: Integer]: TKViewTableStore read GetDetailsStore;
     function AddDetailStore(const AStore: TKViewTableStore): TKViewTableStore;
     procedure Save(const AUseTransaction: Boolean);
     procedure SetDetailFieldValues(const AMasterRecord: TKViewTableRecord);
+
+    procedure ApplyBeforeRules;
+    procedure ApplyAfterRules;
   end;
 
   TKViewTableRecords = class(TKRecords)
   private
     function GetStore: TKViewTableStore;
-    function GetRecord(I: Integer): TKViewTableRecord;
+    function GetRecord(I: Integer): TKViewTableRecord; overload;
   protected
     function GetChildClass(const AName: string): TEFNodeClass; override;
   public
     property Store: TKViewTableStore read GetStore;
     function Append: TKViewTableRecord;
     property Records[I: Integer]: TKViewTableRecord read GetRecord; default;
+
+    function FindRecord(const AValues: TEFNode): TKViewTableRecord;
+    function GetRecord(const AValues: TEFNode): TKViewTableRecord; overload;
   end;
 
   TKViewTable = class(TKMetadataItem)
@@ -1316,9 +1324,20 @@ begin
   Result := inherited Append as TKViewTableRecord;
 end;
 
+function TKViewTableRecords.FindRecord(const AValues: TEFNode): TKViewTableRecord;
+begin
+  Result := inherited FindRecord(AValues) as TKViewTableRecord;
+end;
+
 function TKViewTableRecords.GetChildClass(const AName: string): TEFNodeClass;
 begin
   Result := TKViewTableRecord;
+end;
+
+function TKViewTableRecords.GetRecord(
+  const AValues: TEFNode): TKViewTableRecord;
+begin
+  Result := inherited GetRecord(AValues) as TKViewTableRecord;
 end;
 
 function TKViewTableRecords.GetRecord(I: Integer): TKViewTableRecord;
@@ -1336,6 +1355,48 @@ end;
 function TKViewTableRecord.AddDetailStore(const AStore: TKViewTableStore): TKViewTableStore;
 begin
   Result := inherited AddDetailStore(AStore) as TKViewTableStore;
+end;
+
+procedure TKViewTableRecord.ApplyAfterRules;
+begin
+  case State of
+    rsNew: ViewTable.ApplyRules(
+      procedure (const ARuleImpl: TKRuleImpl)
+      begin
+        ARuleImpl.AfterAdd(Self);
+      end);
+    rsDirty: ViewTable.ApplyRules(
+      procedure (const ARuleImpl: TKRuleImpl)
+      begin
+        ARuleImpl.AfterUpdate(Self);
+      end);
+    rsDeleted: ViewTable.ApplyRules(
+      procedure (const ARuleImpl: TKRuleImpl)
+      begin
+        ARuleImpl.AfterDelete(Self);
+      end);
+  end;
+end;
+
+procedure TKViewTableRecord.ApplyBeforeRules;
+begin
+  case State of
+    rsNew: ViewTable.ApplyRules(
+      procedure (const ARuleImpl: TKRuleImpl)
+      begin
+        ARuleImpl.BeforeAdd(Self);
+      end);
+    rsDirty: ViewTable.ApplyRules(
+      procedure (const ARuleImpl: TKRuleImpl)
+      begin
+        ARuleImpl.BeforeUpdate(Self);
+      end);
+    rsDeleted: ViewTable.ApplyRules(
+      procedure (const ARuleImpl: TKRuleImpl)
+      begin
+        ARuleImpl.BeforeDelete(Self);
+      end);
+  end;
 end;
 
 procedure TKViewTableRecord.EnsureDetailStores;
@@ -1369,6 +1430,11 @@ begin
   Result := Records.Store;
 end;
 
+function TKViewTableRecord.GetViewTable: TKViewTable;
+begin
+  Result := Store.ViewTable;
+end;
+
 procedure TKViewTableRecord.InternalAfterReadFromNode;
 begin
   inherited;
@@ -1385,33 +1451,43 @@ begin
   if State = rsClean then
     Exit;
 
-  if AUseTransaction then
-    Environment.MainDBConnection.StartTransaction;
+  Backup;
   try
-    LDBCommand := Environment.MainDBConnection.CreateDBCommand;
+    // When deleting, BEFORE rules are applied before calling this method.
+    if State <> rsDeleted then
+      ApplyBeforeRules;
+    if AUseTransaction then
+      Environment.MainDBConnection.StartTransaction;
     try
-      case State of
-        rsNew: TKSQLBuilder.BuildInsertCommand(Records.Store.ViewTable, LDBCommand, Self);
-        rsDirty: TKSQLBuilder.BuildUpdateCommand(Records.Store.ViewTable, LDBCommand, Self);
-        rsDeleted: TKSQLBuilder.BuildDeleteCommand(Records.Store.ViewTable, LDBCommand, Self);
-      else
-        raise EKError.CreateFmt('Unexpected record state %s.', [GetEnumName(TypeInfo(TKRecordState), Ord(State))]);
+      LDBCommand := Environment.MainDBConnection.CreateDBCommand;
+      try
+        case State of
+          rsNew: TKSQLBuilder.BuildInsertCommand(Records.Store.ViewTable, LDBCommand, Self);
+          rsDirty: TKSQLBuilder.BuildUpdateCommand(Records.Store.ViewTable, LDBCommand, Self);
+          rsDeleted: TKSQLBuilder.BuildDeleteCommand(Records.Store.ViewTable, LDBCommand, Self);
+        else
+          raise EKError.CreateFmt('Unexpected record state %s.', [GetEnumName(TypeInfo(TKRecordState), Ord(State))]);
+        end;
+        LRowsAffected := LDBCommand.Execute;
+        if LRowsAffected <> 1 then
+          raise EKError.CreateFmt('Update error. Rows affected: %d.', [LRowsAffected]);
+        { TODO : implement cascade delete? }
+        for I := 0 to DetailStoreCount - 1 do
+          DetailStores[I].Save(False);
+        ApplyAfterRules;
+        if AUseTransaction then
+          Environment.MainDBConnection.CommitTransaction;
+        MarkAsClean;
+      finally
+        FreeAndNil(LDBCommand);
       end;
-      LRowsAffected := LDBCommand.Execute;
-      if LRowsAffected <> 1 then
-        raise EKError.CreateFmt('Update error. Rows affected: %d.', [LRowsAffected]);
-      { TODO : implement cascade delete? }
-      for I := 0 to DetailStoreCount - 1 do
-        DetailStores[I].Save(False);
+    except
       if AUseTransaction then
-        Environment.MainDBConnection.CommitTransaction;
-      MarkAsClean;
-    finally
-      FreeAndNil(LDBCommand);
+        Environment.MainDBConnection.RollbackTransaction;
+      raise;
     end;
   except
-    if AUseTransaction then
-      Environment.MainDBConnection.RollbackTransaction;
+    Restore;
     raise;
   end;
 end;
