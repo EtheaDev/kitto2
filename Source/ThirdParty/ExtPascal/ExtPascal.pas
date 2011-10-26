@@ -521,27 +521,29 @@ procedure TExtThread.JSCode(JS : string; JSClassName : string = ''; JSName : str
 var
   I, J : integer;
 begin
-  if JS[length(JS)] = ';' then begin // Command
-    I := pos('.', JS);
-    J := pos(IdentDelim, JS);
-    if (pos('Singleton', JSClassName) = 0) and (J > 0) and (J < I) and (pos(DeclareJS, JS) = 0) and not GarbageExists(copy(JS, J-1, I-J+1)) then
-      raise Exception.Create('Public property or Method: ''' + JSClassName + '.' + copy(JS, I+1, FirstDelimiter('=(', JS, I)-I-1) + ''' requires explicit ''var'' declaration.');
-    I := length(Response) + 1
-  end
-  else  // set attribute
-    if JSName = '' then
-      raise Exception.Create('Missing '';'' in command: ' + JS)
-    else begin
-      I := pos('/*' + JSName + '*/', Response);
-      if I = 0 then
-        raise Exception.Create('Config Option: ' + JS + '<br/>is refering a previous request,' +
-          '<br/>it''s not allowed in AJAX request or JS handler.<br/>Use equivalent Public Property or Method instead.');
-      if not CharInSet(Response[I-1], ['{', '[', '(', ';']) then JS := ',' + JS;
+  if JS <> '' then begin
+    if JS[length(JS)] = ';' then begin // Command
+      I := pos('.', JS);
+      J := pos(IdentDelim, JS);
+      if (pos('Singleton', JSClassName) = 0) and (J > 0) and (J < I) and (pos(DeclareJS, JS) = 0) and not GarbageExists(copy(JS, J-1, I-J+1)) then
+        raise Exception.Create('Public property or Method: ''' + JSClassName + '.' + copy(JS, I+1, FirstDelimiter('=(', JS, I)-I-1) + ''' requires explicit ''var'' declaration.');
+      I := length(Response) + 1
+    end
+    else  // set attribute
+      if JSName = '' then
+        raise Exception.Create('Missing '';'' in command: ' + JS)
+      else begin
+        I := pos('/*' + JSName + '*/', Response);
+        if I = 0 then
+          raise Exception.Create('Config Option: ' + JS + '<br/>is refering a previous request,' +
+            '<br/>it''s not allowed in AJAX request or JS handler.<br/>Use equivalent Public Property or Method instead.');
+        if not CharInSet(Response[I-1], ['{', '[', '(', ';']) then JS := ',' + JS;
+      end;
+    insert(JS, Response, I);
+    if (pos('O' + IdentDelim, JS) <> 0) and (pos('O' + IdentDelim, JSName) <> 0) then begin
+      if Owner <> '' then JSName := Owner;
+      RelocateVar(JS, JSName, I+length(JS));
     end;
-  insert(JS, Response, I);
-  if (pos('O' + IdentDelim, JS) <> 0) and (pos('O' + IdentDelim, JSName) <> 0) then begin
-    if Owner <> '' then JSName := Owner;
-    RelocateVar(JS, JSName, I+length(JS));
   end;
 end;
 
@@ -829,9 +831,6 @@ begin
       '<script>'^M^J +
       {$IFDEF DEBUGJS}BeautifyJS{$ENDIF}
       (IfThen(CustomJS = '', '', CustomJS + ^M^J) +
-      'Ext.onReady(function(){' +
-      'Ext.get("loading").remove();' +
-      'Ext.BLANK_IMAGE_URL="' + ExtPath + '/resources/images/default/s.gif";TextMetrics=Ext.util.TextMetrics.createInstance("body");'+
       'function AjaxError(m){Ext.Msg.show({title:"Ajax Error",msg:m,icon:Ext.Msg.ERROR,buttons:Ext.Msg.OK});};' +
       {$IFDEF DEBUGJS}
       'function AjaxSource(t,l,s){var w=new Ext.Window({title:"Ajax error: "+t+", Line: "+' + IfThen(Browser=brFirefox, '(l-%%)', '"Use Firefox to debug"') +
@@ -843,6 +842,9 @@ begin
       {$ENDIF}
       'function sleep(ms){var start=new Date().getTime();for(var i=0;i<1e7;i++)if((new Date().getTime()-start)>ms)break;};'+
       'function AjaxFailure(){AjaxError("Server unavailable, try later.");};' +
+      'Ext.onReady(function(){' +
+      'Ext.get("loading").remove();' +
+      'Ext.BLANK_IMAGE_URL="' + ExtPath + '/resources/images/default/s.gif";TextMetrics=Ext.util.TextMetrics.createInstance("body");'+
       'Download=Ext.DomHelper.append(document.body,{tag:"iframe",cls:"x-hidden"});' +
       Response) + '});'^M^J +
       '</script>'^M^J^M^J'</html>';

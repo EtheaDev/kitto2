@@ -3,7 +3,7 @@ unit Kitto.Ext.GridPanel;
 interface
 
 uses
-  Ext, ExtForm, ExtData, ExtGrid,
+  ExtPascal, Ext, ExtForm, ExtData, ExtGrid, ExtPascalUtils,
   EF.ObserverIntf,
   Kitto.Metadata.DataView, Kitto.Store, Kitto.Types,
   Kitto.Ext.Base;
@@ -49,6 +49,7 @@ type
     procedure EditOrViewCurrentRecord;
     procedure ShowEditWindow(const ARecord: TKRecord;
       const AEditMode: TKEditMode);
+    function GetSelectConfirmCall(const AMessage: string; const AMethod: TExtProcedure): string;
   protected
     procedure InitDefaults; override;
   public
@@ -68,7 +69,6 @@ implementation
 
 uses
   SysUtils, StrUtils, Math,
-  ExtPascal,
   EF.Tree, EF.StrUtils, EF.Localization,
   Kitto.Metadata.Models, Kitto.Metadata.Views, Kitto.Environment, Kitto.Rules,
   Kitto.AccessControl,
@@ -584,7 +584,6 @@ function TKExtGridPanel.CreateTopToolbar: TExtToolbar;
 var
   LNewButton: TExtButton;
   LDeleteButton: TExtButton;
-  LKeyFieldNames: string;
 begin
   Assert(ViewTable <> nil);
 
@@ -607,14 +606,17 @@ begin
       LDeleteButton.Icon := Environment.GetImageURL('delete_record_16');
       LDeleteButton.Disabled := not FIsDeleteAllowed;
       if not LDeleteButton.Disabled then
-      begin
-        LKeyFieldNames := Join(ViewTable.GetKeyFieldAliasedNames(True), ',');
-        { TODO : Add client-side confirmation request. }
-        LDeleteButton.On('click', AjaxSelection(DeleteCurrentRecord,
-          TExtGridRowSelectionModel(FGridPanel.SelModel), LKeyFieldNames, LKeyFieldNames, []));
-      end;
+        LDeleteButton.Handler := JSFunction(GetSelectConfirmCall(
+          Format(_('Selected %s will be deleted. Are you sure?'), [ViewTable.DisplayLabel]), DeleteCurrentRecord));
     end;
   end;
+end;
+
+function TKExtGridPanel.GetSelectConfirmCall(const AMessage: string; const AMethod: TExtProcedure): string;
+begin
+  Result := Format('confirmCall("%s", "%s", ajaxSingleSelection, {methodURL: "%s", selModel: %s, fieldNames: "%s"});',
+    [Environment.AppTitle, AMessage, MethodURI(AMethod), FGridPanel.SelModel.JSName,
+    Join(ViewTable.GetKeyFieldAliasedNames(True), ',')]);
 end;
 
 { TKExtFilterPanel }
