@@ -47,7 +47,6 @@ type
     FOperation: string;
     FFocusField: TExtFormField;
     FStoreRecord: TKViewTableRecord;
-    FDetailTabPanel: TExtTabPanel;
     procedure CreateDetailToolbar;
     procedure CreateEditors(const AForceReadOnly: Boolean);
     procedure StartOperation;
@@ -228,9 +227,10 @@ end;
 
 procedure TKExtFormPanelController.SaveChanges;
 begin
-  FStoreRecord.Backup;
   try
-    Session.GetQueryValues(FStoreRecord, False,
+    // Get POST values.
+    FStoreRecord.SetChildValuesfromStrings(Session.Queries,
+      False, Environment.UserFormatSettings,
       function(const AName: string): string
       var
         LViewField: TKViewField;
@@ -241,38 +241,23 @@ begin
         else
           Result := AName;
       end);
-    if FOperation = 'Add' then
-      ViewTable.ApplyRules(
-        procedure (const ARuleImpl: TKRuleImpl)
-        begin
-          ARuleImpl.BeforeAdd(FStoreRecord);
-        end)
-    else
-      ViewTable.ApplyRules(
-        procedure (const ARuleImpl: TKRuleImpl)
-        begin
-          ARuleImpl.BeforeUpdate(FStoreRecord);
-        end);
+
+    // Save record.
+    FStoreRecord.MarkAsModified;
+    if not ViewTable.IsDetail then
+    begin
+      FStoreRecord.Save(True);
+      Session.Flash(_('Changes saved succesfully.'));
+    end;
+
   except
     on E: EKValidationError do
     begin
-      FStoreRecord.Restore;
       ExtMessageBox.Alert(Environment.AppTitle, E.Message);
       Exit;
     end;
-    on E: Exception do
-    begin
-      FStoreRecord.Restore;
-      raise;
-    end;
   end;
 
-  FStoreRecord.MarkAsDirty;
-  if not ViewTable.IsDetail then
-  begin
-    FStoreRecord.Save(True);
-    Session.Flash(_('Changes saved succesfully.'));
-  end;
   NotifyObservers('Confirmed');
   if not CloseHostWindow then
     StartOperation;

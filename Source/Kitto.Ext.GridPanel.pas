@@ -44,7 +44,7 @@ type
     function GetGroupingFieldName: string;
     function CreateTopToolbar: TExtToolbar;
     function CreatePagingToolbar: TExtPagingToolbar;
-    function LocateRecordFromSession: TKRecord;
+    function LocateRecordFromSession: TKViewTableRecord;
     procedure RefreshData;
     procedure EditOrViewCurrentRecord;
     procedure ShowEditWindow(const ARecord: TKRecord;
@@ -70,7 +70,7 @@ uses
   SysUtils, StrUtils, Math,
   ExtPascal,
   EF.Tree, EF.StrUtils, EF.Localization,
-  Kitto.Metadata.Models, Kitto.Metadata.Views, Kitto.Environment,
+  Kitto.Metadata.Models, Kitto.Metadata.Views, Kitto.Environment, Kitto.Rules,
   Kitto.AccessControl,
   Kitto.Ext.Filters, Kitto.Ext.Session, Kitto.Ext.Utils, Kitto.Ext.Controller;
 
@@ -504,7 +504,7 @@ begin
   RefreshData;
 end;
 
-function TKExtGridPanel.LocateRecordFromSession: TKRecord;
+function TKExtGridPanel.LocateRecordFromSession: TKViewTableRecord;
 var
   LKey: TEFNode;
 begin
@@ -513,7 +513,7 @@ begin
   LKey := TEFNode.Create;
   try
     LKey.Assign(ServerStore.Key);
-    Session.GetQueryValues(LKey, True,
+    LKey.SetChildValuesfromStrings(Session.Queries, True, Environment.JSFormatSettings,
       function(const AName: string): string
       begin
         Result := ViewTable.FieldByName(AName).GetMinifiedName;
@@ -525,13 +525,34 @@ begin
 end;
 
 procedure TKExtGridPanel.DeleteCurrentRecord;
+var
+  LRecord: TKViewTableRecord;
 begin
   Assert(ViewTable <> nil);
 
-  LocateRecordFromSession.MarkAsDeleted;
+  // Apply BEFORE rules now even though actual save migh be deferred.
+  LRecord := LocateRecordFromSession;
+  LRecord.MarkAsDeleted;
+  try
+    LRecord.Backup;
+    try
+      LRecord.ApplyBeforeRules;
+    except
+      LRecord.Restore;
+      raise;
+    end;
+  except
+    on E: EKValidationError do
+    begin
+      LRecord.MarkAsClean;
+      ExtMessageBox.Alert(Environment.AppTitle, E.Message);
+      Exit;
+    end;
+  end;
+
   if not ViewTable.IsDetail then
   begin
-    ServerStore.Save(True);
+    LRecord.Save(True);
     Session.Flash(Format(_('%s deleted.'), [ViewTable.DisplayLabel]));
   end;
   RefreshData;

@@ -103,7 +103,7 @@ type
 
     function GetAsJSON(const AMinified: Boolean): string;
 
-    procedure MarkAsDirty;
+    procedure MarkAsModified;
     procedure MarkAsDeleted;
     procedure MarkAsClean;
 
@@ -647,7 +647,7 @@ begin
     FState := rsDeleted;
 end;
 
-procedure TKRecord.MarkAsDirty;
+procedure TKRecord.MarkAsModified;
 begin
   if not (FState in [rsNew, rsDeleted]) then
     FState := rsDirty;
@@ -775,14 +775,14 @@ end;
 procedure TKField.SetToNull;
 begin
   if not VarIsNull(Value) then
-    ParentRecord.MarkAsDirty;
+    ParentRecord.MarkAsModified;
   inherited;
 end;
 
 procedure TKField.SetValue(const AValue: Variant);
 begin
   if (AValue <> Value) and (ParentRecord <> nil) then
-    ParentRecord.MarkAsDirty;
+    ParentRecord.MarkAsModified;
   inherited;
 end;
 
