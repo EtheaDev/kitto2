@@ -130,7 +130,7 @@ begin
   begin
     LView := FindView(ANode.TreeViewNodes[I]);
 
-    if not Assigned(LView) or not LView.IsAccessGranted(ACM_VIEW) then
+    if not Assigned(LView) or LView.IsAccessGranted(ACM_VIEW) then
     begin
       LIsEnabled := not Assigned(LView) or LView.IsAccessGranted(ACM_RUN);
       LMenuItem := TKExtMenuItem.AddTo(AMenu.Items);
