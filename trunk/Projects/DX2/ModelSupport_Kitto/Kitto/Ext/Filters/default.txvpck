@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<nodeSet version="1.0">
+  <view uin="r0kq54tzdvi_v">
+    <property name="$defaultDiagram" value="true" />
+    <property name="$metaclass" value="Package Diagram" />
+    <property name="$name" value="default" />
+    <reference referencedUin="delphi:e_class:src:Kitto:Kitto.Ext.Filters.TKDynaListFilter">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:l_impl:src:Kitto:Kitto.Ext.Filters.TKDynaListFilter:Kitto.Ext.Filters.IKExtFilter" />
+      <reference referencedUin="delphi:l_gnt:src:Kitto:Kitto.Ext.Filters.TKDynaListFilter:Kitto.Ext.Filters.TKListFilterBase" />
+      <reference referencedUin="delphi:e_field:src:Kitto:Kitto.Ext.Filters.TKDynaListFilter.FValues" />
+      <reference referencedUin="delphi:e_field:src:Kitto:Kitto.Ext.Filters.TKDynaListFilter.FCurrentValue" />
+      <reference referencedUin="delphi:e_field:src:Kitto:Kitto.Ext.Filters.TKDynaListFilter.VALUE_FIELD" />
+      <reference referencedUin="delphi:e_field:src:Kitto:Kitto.Ext.Filters.TKDynaListFilter.DISPLAY_FIELD" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Ext.Filters.TKDynaListFilter.GetLargestFieldWidth(DB.TField)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Ext.Filters.TKDynaListFilter.GetExpression()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Ext.Filters.TKDynaListFilter.SetConfig(EF.Tree.TEFNode)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Ext.Filters.TKDynaListFilter.Select()" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:Kitto.Ext.Filters.TKListFilter">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:l_impl:src:Kitto:Kitto.Ext.Filters.TKListFilter:Kitto.Ext.Filters.IKExtFilter" />
+      <reference referencedUin="delphi:l_gnt:src:Kitto:Kitto.Ext.Filters.TKListFilter:Kitto.Ext.Filters.TKListFilterBase" />
+      <reference referencedUin="delphi:e_field:src:Kitto:Kitto.Ext.Filters.TKListFilter.FActiveIndex" />
+      <reference referencedUin="delphi:e_field:src:Kitto:Kitto.Ext.Filters.TKListFilter.FItems" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Ext.Filters.TKListFilter.GetLargestFilterDisplayLabelWidth()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Ext.Filters.TKListFilter.ComboBoxSelect(Kitto.Ext.Filters.TExtFormComboBox,Kitto.Ext.Filters.TExtDataRecord,System.Integer)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Ext.Filters.TKListFilter.GetExpression()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Ext.Filters.TKListFilter.SetConfig(EF.Tree.TEFNode)" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:Kitto.Ext.Filters.TKExtFilterFactory">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:l_ast:src:Kitto:Kitto.Ext.Filters.TKExtFilterFactory.Instance" />
+      <reference referencedUin="delphi:l_ast:src:Kitto:Kitto.Ext.Filters.TKExtFilterFactory.FInstance" />
+      <reference referencedUin="delphi:e_field:src:Kitto:Kitto.Ext.Filters.TKExtFilterFactory.FContainer" />
+      <reference referencedUin="delphi:e_field:src:Kitto:Kitto.Ext.Filters.TKExtFilterFactory.FInstance" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Ext.Filters.TKExtFilterFactory.GetInstance()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Ext.Filters.TKExtFilterFactory.CreateObject(System.string,Kitto.Ext.Filters.TExtObjectList)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Ext.Filters.TKExtFilterFactory.Destroy()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Ext.Filters.TKExtFilterFactory.DoCreateObject(System.TClass)" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.Ext.Filters.TKExtFilterFactory.Instance" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Ext.Filters.TKExtFilterFactory.CreateFilter(EF.Tree.TEFNode,EF.ObserverIntf.IEFObserver,Kitto.Ext.Filters.TExtObjectList)" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:Kitto.Ext.Filters.IKExtFilter">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Ext.Filters.IKExtFilter.GetExpression()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Ext.Filters.IKExtFilter.AsExtObject()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Ext.Filters.IKExtFilter.SetConfig(EF.Tree.TEFNode)" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:Kitto.Ext.Filters.TKFreeSearchFilter">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:l_impl:src:Kitto:Kitto.Ext.Filters.TKFreeSearchFilter:Kitto.Ext.Filters.IKExtFilter" />
+      <reference referencedUin="delphi:e_field:src:Kitto:Kitto.Ext.Filters.TKFreeSearchFilter.FCurrentValue" />
+      <reference referencedUin="delphi:e_field:src:Kitto:Kitto.Ext.Filters.TKFreeSearchFilter.FConfig" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Ext.Filters.TKFreeSearchFilter.FieldChange(Kitto.Ext.Filters.TExtFormField,System.string,System.string)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Ext.Filters.TKFreeSearchFilter.SetConfig(EF.Tree.TEFNode)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Ext.Filters.TKFreeSearchFilter.AsExtObject()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Ext.Filters.TKFreeSearchFilter.GetExpression()" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:Kitto.Ext.Filters.TKExtFilterRegistry">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:l_ast:src:Kitto:Kitto.Ext.Filters.TKExtFilterRegistry.Instance" />
+      <reference referencedUin="delphi:l_ast:src:Kitto:Kitto.Ext.Filters.TKExtFilterRegistry.FInstance" />
+      <reference referencedUin="delphi:e_field:src:Kitto:Kitto.Ext.Filters.TKExtFilterRegistry.FInstance" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Ext.Filters.TKExtFilterRegistry.GetInstance()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Ext.Filters.TKExtFilterRegistry.BeforeRegisterClass(System.string,System.TClass)" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.Ext.Filters.TKExtFilterRegistry.Instance" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Ext.Filters.TKExtFilterRegistry.Destroy()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Ext.Filters.TKExtFilterRegistry.GetClass(System.string)" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:Kitto.Ext.Filters.TKButtonListFilter">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:l_impl:src:Kitto:Kitto.Ext.Filters.TKButtonListFilter:Kitto.Ext.Filters.IKExtFilter" />
+      <reference referencedUin="delphi:e_field:src:Kitto:Kitto.Ext.Filters.TKButtonListFilter.FConfig" />
+      <reference referencedUin="delphi:e_field:src:Kitto:Kitto.Ext.Filters.TKButtonListFilter.FItems" />
+      <reference referencedUin="delphi:e_field:src:Kitto:Kitto.Ext.Filters.TKButtonListFilter.FSelected" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Ext.Filters.TKButtonListFilter.SetConfig(EF.Tree.TEFNode)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Ext.Filters.TKButtonListFilter.AsExtObject()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Ext.Filters.TKButtonListFilter.GetExpression()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Ext.Filters.TKButtonListFilter.ButtonClick()" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:Kitto.Ext.Filters.TKListFilterBase">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:e_field:src:Kitto:Kitto.Ext.Filters.TKListFilterBase.FConfig" />
+      <reference referencedUin="delphi:e_field:src:Kitto:Kitto.Ext.Filters.TKListFilterBase.TRIGGER_WIDTH" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Ext.Filters.TKListFilterBase.SetConfig(EF.Tree.TEFNode)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Ext.Filters.TKListFilterBase.AsExtObject()" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:Kitto.Ext.Filters.@unitclass">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Ext.Filters.@unitclass.GetDefaultFilter(EF.Tree.TEFNode)" />
+    </reference>
+  </view>
+</nodeSet>

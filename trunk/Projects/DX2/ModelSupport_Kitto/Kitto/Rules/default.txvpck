@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<nodeSet version="1.0">
+  <view uin="soqpekwvffi_v">
+    <property name="$defaultDiagram" value="true" />
+    <property name="$metaclass" value="Package Diagram" />
+    <property name="$name" value="default" />
+    <reference referencedUin="delphi:e_class:src:Kitto:Kitto.Rules.TKRuleImplClass">
+      <property name="$shortcutReference" value="true" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:Kitto.Rules.TKRuleImplFactory">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:l_ast:src:Kitto:Kitto.Rules.TKRuleImplFactory.Instance" />
+      <reference referencedUin="delphi:l_ast:src:Kitto:Kitto.Rules.TKRuleImplFactory.FInstance" />
+      <reference referencedUin="delphi:e_field:src:Kitto:Kitto.Rules.TKRuleImplFactory.FInstance" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Rules.TKRuleImplFactory.GetInstance()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Rules.TKRuleImplFactory.Destroy()" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.Rules.TKRuleImplFactory.Instance" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Rules.TKRuleImplFactory.CreateObject(System.string)" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:Kitto.Rules.TKRuleImplRegistry">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:l_ast:src:Kitto:Kitto.Rules.TKRuleImplRegistry.Instance" />
+      <reference referencedUin="delphi:l_ast:src:Kitto:Kitto.Rules.TKRuleImplRegistry.FInstance" />
+      <reference referencedUin="delphi:e_field:src:Kitto:Kitto.Rules.TKRuleImplRegistry.FInstance" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Rules.TKRuleImplRegistry.GetInstance()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Rules.TKRuleImplRegistry.Destroy()" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.Rules.TKRuleImplRegistry.Instance" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Rules.TKRuleImplRegistry.RegisterClass(System.string,Kitto.Rules.TKRuleImplClass)" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:Kitto.Rules.@unitclass">
+      <property name="$shortcutReference" value="true" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:Kitto.Rules.TKApplyRuleProc">
+      <property name="$shortcutReference" value="true" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:Kitto.Rules.TKRuleImpl">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:e_field:src:Kitto:Kitto.Rules.TKRuleImpl.FRule" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Rules.TKRuleImpl.SetRule(Kitto.Metadata.Models.TKRule)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Rules.TKRuleImpl.CheckRuleParam(System.string)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Rules.TKRuleImpl.CheckRuleValueParam()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Rules.TKRuleImpl.GetClassId()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Rules.TKRuleImpl.GetErrorMessage()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Rules.TKRuleImpl.InternalGetErrorMessage()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Rules.TKRuleImpl.RaiseError(System.string)" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.Rules.TKRuleImpl.Rule" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Rules.TKRuleImpl.BeforeAdd(Kitto.Store.TKRecord)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Rules.TKRuleImpl.BeforeUpdate(Kitto.Store.TKRecord)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Rules.TKRuleImpl.BeforeDelete(Kitto.Store.TKRecord)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Rules.TKRuleImpl.AfterAdd(Kitto.Store.TKRecord)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Rules.TKRuleImpl.AfterUpdate(Kitto.Store.TKRecord)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Rules.TKRuleImpl.AfterDelete(Kitto.Store.TKRecord)" />
+    </reference>
+  </view>
+</nodeSet>

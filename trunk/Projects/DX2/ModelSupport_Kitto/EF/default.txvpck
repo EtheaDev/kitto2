@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="utf-8"?>
+<nodeSet version="1.0">
+  <view uin="caqsmsmpgwq_v">
+    <property name="$defaultDiagram" value="true" />
+    <property name="$metaclass" value="Package Diagram" />
+    <property name="$name" value="default" />
+    <reference referencedUin="design:view:::up2xql1r6me_v">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.Macros.TEFFileMacroExpander" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.Macros.@unitclass" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.Macros.TEFCmdLineParamMacroExpander" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.Macros.TEFEnvironmentVariableMacroExpander" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.Macros.TEFPathMacroExpander" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.Macros.TEFDateTimeStrMacroExpander" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.Macros.TEFSysMacroExpander" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.Macros.TEFMacroExpander" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.Macros.TEFMacroExpansionEngine" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.Macros.TEFGUIDMacroExpander" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.Macros.TEFMacroExpanderClass" />
+    </reference>
+    <reference referencedUin="design:view:::8wyi1xjd4gm_v">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.Types.TEFRegistry" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.Types.TEFFactory" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.Types.TEFLogEvent" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.Types.EEFError" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.Types.@unitclass" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.Types.TEFPair" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.Types.TEFPairs" />
+    </reference>
+    <reference referencedUin="design:view:::9jmpucovyht_v">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.ObserverIntf.TEFSubjectAndObserver" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.ObserverIntf.IEFObserver" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.ObserverIntf.IEFSubject" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.ObserverIntf.@unitclass" />
+    </reference>
+    <reference referencedUin="design:view:::bplmiqkagqp_v">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.PluginManager.TEFBeforeUnloadPluginEvent" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.PluginManager.TEFBeforeLoadPluginEvent" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.PluginManager.@unitclass" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.PluginManager.TEFPluginInfo" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.PluginManager.TEFPluginErrorEvent" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.PluginManager.TEFPluginProc" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.PluginManager.TEFAfterLoadPluginEvent" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.PluginManager.TEFPluginManager" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.PluginManager.TEFAfterUnloadPluginEvent" />
+    </reference>
+    <reference referencedUin="design:view:::f98vc0kvx0m_v">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.VariantUtils.@unitclass" />
+    </reference>
+    <reference referencedUin="design:view:::5guov8533dl_v">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.RTTI.@unitclass" />
+    </reference>
+    <reference referencedUin="design:view:::96yov5b1r7o_v">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.RegEx.@unitclass" />
+    </reference>
+    <reference referencedUin="design:view:::jzgvl0gc7pi_v">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.Emailer.TEFEmailMessage" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.Emailer.TEFEmailer" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.Emailer.TEFEmailSender" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.Emailer.@unitclass" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.Emailer.TEFSMTPServerParams" />
+    </reference>
+    <reference referencedUin="design:view:::001tdxekyp_v">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.InvocationRegistry.TEFInvocationRegistry" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.InvocationRegistry.TEFInvocationItem" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.InvocationRegistry.TEFInvocationParams" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.InvocationRegistry.TEFInvocationProcedureTarget" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.InvocationRegistry.TEFInvocationTarget" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.InvocationRegistry.TEFInvocationMethodTarget" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.InvocationRegistry.TEFInvocationMethod" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.InvocationRegistry.TEFInvocationItemList" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.InvocationRegistry.@unitclass" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.InvocationRegistry.TEFInvocationRegistryIndex" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.InvocationRegistry.TEFInvocationRegistryURIHandler" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.InvocationRegistry.TEFInvocationProcedure" />
+    </reference>
+    <reference referencedUin="design:view:::70088boazcn_v">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.YAML.@unitclass" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.YAML.TEFYAMLParser" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.YAML.TEFYAMLReader" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.YAML.TEFYAMLWriter" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.YAML.TEFYAMLValueType" />
+    </reference>
+    <reference referencedUin="design:view:::1x5au9ob3qp_v">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.URIProcessor.TEFURIHandlerRegistry" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.URIProcessor.TEFURIHandler" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.URIProcessor.TEFURIHandlerClass" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.URIProcessor.TEFURI" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.URIProcessor.TEFURIProcessor" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.URIProcessor.@unitclass" />
+    </reference>
+    <reference referencedUin="design:view:::ftefdozw5gs_v">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.Intf.IEFInterface" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.Intf.@unitclass" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.Intf.TEFNoRefCountObject" />
+    </reference>
+    <reference referencedUin="design:view:::s3nm80h716f_v">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.SQL.TEFSQLStripper" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.SQL.TEFSQLBuilder" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.SQL.@unitclass" />
+    </reference>
+    <reference referencedUin="design:view:::eklepcbx3rp_v">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.MediaManager.TEFDirectoryMediaLibrary" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.MediaManager.TEFBuiltinMediaLibrary" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.MediaManager.TEFImageIndexMap" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.MediaManager.TEFMediaManager" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.MediaManager.TEFMediaLibrary" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.MediaManager.@unitclass" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.MediaManager.TEFResourceMediaLibrary" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.MediaManager.TEFNullMediaLibrary" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.MediaManager.TEFDLLMediaLibrary" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.MediaManager.TEFMediaIndex" />
+    </reference>
+    <reference referencedUin="design:view:::awtdf8rehuq_v">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.Shell.@unitclass" />
+    </reference>
+    <reference referencedUin="design:view:::saajn0d483t_v">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="design:view:::ee957u18j9h_v" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.Localization.TEFNullLocalizationTool" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.Localization.TEFLocalizationToolRegistry" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.Localization.@unitclass" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.Localization.IEFLocalizationTool" />
+    </reference>
+    <reference referencedUin="design:view:::tg2c06zq4yt_v">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.DB.TEFDBColumnInfo" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.DB.TEFDBComponent" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.DB.TEFDBQuery" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.DB.TEFDBItemInfo" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.DB.TEFDBTableInfo" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.DB.TEFDBForeignKeyInfo" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.DB.TEFDBAdapterClass" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.DB.TEFDBAdapterRegistry" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.DB.TEFDBCommand" />
+      <reference referencedUin="design:view:::3xjwfzw0stf_v" />
+      <reference referencedUin="design:view:::17ob03gvh6i_v" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.DB.TEFDBAdapter" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.DB.TEFDBConnection" />
+      <reference referencedUin="design:view:::pqerc7we47s_v" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.DB.TEFDBPrimaryKeyInfo" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.DB.TEFDBSchemaInfo" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.DB.TEFDBInfo" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.DB.@unitclass" />
+    </reference>
+    <reference referencedUin="design:view:::7g3cvkhko6t_v">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.Classes.@unitclass" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.Classes.TEFComponent" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.Classes.TEFComponentClass" />
+    </reference>
+    <reference referencedUin="design:view:::08ou7a00xrs_v">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.StrUtils.TEFStringStack" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.StrUtils.TEFStringTokenizer" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.StrUtils.@unitclass" />
+    </reference>
+    <reference referencedUin="design:view:::94gfmqizawi_v">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.Environment.IEFEnvironment" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.Environment.@unitclass" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.Environment.TEFEnvironmentGetFunction" />
+    </reference>
+    <reference referencedUin="design:view:::japodezp40s_v">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.DateUtils.@unitclass" />
+    </reference>
+    <reference referencedUin="design:view:::8ns4m7qzbj_v">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.Streams.@unitclass" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.Streams.TEFReadFilter" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.Streams.TEFBufferedReadFilter" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.Streams.TEFTextStream" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.Streams.TEFStreamDecorator" />
+    </reference>
+    <reference referencedUin="design:view:::fu5xt561onj_v">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.ShellURIHandler.@unitclass" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.ShellURIHandler.TEFShellURIHandler" />
+    </reference>
+    <reference referencedUin="design:view:::32wdshc0h0o_v">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.SysUtils.TEFFileLister" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.SysUtils.TEFDeleteDirectoryNotifyEvent" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.SysUtils.TEFSourceDestPathFileProcessor" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.SysUtils.TEFFileErrorAction" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.SysUtils.TEFFileProcessor" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.SysUtils.TEFSourcePathOnlyFileProcessor" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.SysUtils.TEFFileChecker" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.SysUtils.@unitclass" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.SysUtils.TEFStringArray" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.SysUtils.TEFProcessFileNotifyEvent" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.SysUtils.TEFFileCopier" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.SysUtils.TEFProcessFileErrorEvent" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.SysUtils.TEFFileWriter" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.SysUtils.TEFFileDeleter" />
+    </reference>
+    <reference referencedUin="design:view:::ppbaf9bg4fh_v">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.Tree.TEFDataType" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.Tree.TEFDataTypeClass" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.Tree.TEFNodes" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.Tree.TEFCurrencyDataType" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.Tree.TEFTree" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.Tree.TEFDateDataType" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.Tree.TEFIntegerDataType" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.Tree.TEFObjectDataType" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.Tree.TEFFloatDataType" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.Tree.TEFTimeDataType" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.Tree.TEFTreeMacroExpander" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.Tree.TEFNodeClass" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.Tree.TEFStringDataType" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.Tree.TEFDecimalDataType" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.Tree.TEFDataTypeFactory" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.Tree.TEFDateTimeDataType" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.Tree.TEFDataTypeRegistry" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.Tree.TEFMemoDataType" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.Tree.@unitclass" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.Tree.TEFTreeFactory" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.Tree.TEFNode" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.Tree.TEFBooleanDataType" />
+    </reference>
+  </view>
+</nodeSet>

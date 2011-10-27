@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<nodeSet version="1.0">
+  <view uin="5kiajcfuvhg_v">
+    <property name="$defaultDiagram" value="true" />
+    <property name="$metaclass" value="Package Diagram" />
+    <property name="$name" value="default" />
+    <reference referencedUin="delphi:e_class:src:Kitto:Kitto.Auth.OSDB.TKOSDBAuthenticator">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:e_field:src:Kitto:Kitto.Auth.OSDB.TKOSDBAuthenticator.FIsUsingSystemUserName" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Auth.OSDB.TKOSDBAuthenticator.IsPasswordMatching(System.string,System.string)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Auth.OSDB.TKOSDBAuthenticator.InternalBeforeAuthenticate(EF.Tree.TEFNode)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Auth.OSDB.TKOSDBAuthenticator.InternalDefineAuthData(EF.Tree.TEFNode)" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.Auth.OSDB.TKOSDBAuthenticator.IsUsingSystemUserName" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:Kitto.Auth.OSDB.@unitclass">
+      <property name="$shortcutReference" value="true" />
+    </reference>
+  </view>
+</nodeSet>

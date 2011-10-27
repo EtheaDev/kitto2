@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<nodeSet version="1.0">
+  <view uin="aw7no5n4ujq_v">
+    <property name="$defaultDiagram" value="true" />
+    <property name="$metaclass" value="Package Diagram" />
+    <property name="$name" value="default" />
+    <reference referencedUin="delphi:e_class:src:Kitto:Kitto.Types.@unitclass">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:e_field:src:Kitto:Kitto.Types.@unitclass.MAX_RECORD_COUNT" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:Kitto.Types.TKEditMode">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:e_field:src:Kitto:Kitto.Types.TKEditMode.emNewRecord" />
+      <reference referencedUin="delphi:e_field:src:Kitto:Kitto.Types.TKEditMode.emEditCurrentRecord" />
+    </reference>
+  </view>
+</nodeSet>

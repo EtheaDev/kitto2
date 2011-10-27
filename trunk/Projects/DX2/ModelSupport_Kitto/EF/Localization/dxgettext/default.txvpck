@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<nodeSet version="1.0">
+  <view uin="ee957u18j9h_v">
+    <property name="$defaultDiagram" value="true" />
+    <property name="$metaclass" value="Package Diagram" />
+    <property name="$name" value="default" />
+    <reference referencedUin="delphi:e_class:src:Kitto:EF.Localization.dxgettext.@unitclass">
+      <property name="$shortcutReference" value="true" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:EF.Localization.dxgettext.TEFdxgettextLocalizationTool">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.Localization.dxgettext.TEFdxgettextLocalizationTool.AsObject()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.Localization.dxgettext.TEFdxgettextLocalizationTool.TranslateString(System.string,System.string)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.Localization.dxgettext.TEFdxgettextLocalizationTool.TranslateComponent(Classes.TComponent)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.Localization.dxgettext.TEFdxgettextLocalizationTool.ForceLanguage(System.string)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.Localization.dxgettext.TEFdxgettextLocalizationTool.GetCurrentLanguageId()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.Localization.dxgettext.TEFdxgettextLocalizationTool.AfterConstruction()" />
+    </reference>
+  </view>
+</nodeSet>

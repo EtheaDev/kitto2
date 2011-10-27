@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<nodeSet version="1.0">
+  <view uin="jb34kz6t1bh_v">
+    <property name="$defaultDiagram" value="true" />
+    <property name="$metaclass" value="Package Diagram" />
+    <property name="$name" value="default" />
+    <reference referencedUin="delphi:e_class:src:Kitto:Kitto.Ext.BorderPanel.@unitclass">
+      <property name="$shortcutReference" value="true" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:Kitto.Ext.BorderPanel.TKExtBorderPanelController">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:e_field:src:Kitto:Kitto.Ext.BorderPanel.TKExtBorderPanelController.FControllers" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Ext.BorderPanel.TKExtBorderPanelController.CreateController(Kitto.Ext.BorderPanel.TExtBoxComponentRegion)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Ext.BorderPanel.TKExtBorderPanelController.GetRegionViewName(Kitto.Ext.BorderPanel.TExtBoxComponentRegion)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Ext.BorderPanel.TKExtBorderPanelController.DoDisplay()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Ext.BorderPanel.TKExtBorderPanelController.Destroy()" />
+    </reference>
+  </view>
+</nodeSet>

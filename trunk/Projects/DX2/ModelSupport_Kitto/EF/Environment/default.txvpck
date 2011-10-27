@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<nodeSet version="1.0">
+  <view uin="94gfmqizawi_v">
+    <property name="$defaultDiagram" value="true" />
+    <property name="$metaclass" value="Package Diagram" />
+    <property name="$name" value="default" />
+    <reference referencedUin="delphi:e_class:src:Kitto:EF.Environment.IEFEnvironment">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.Environment.IEFEnvironment.GetMacroExpansionEngine()" />
+      <reference referencedUin="delphi:e_property:src:Kitto:EF.Environment.IEFEnvironment.MacroExpansionEngine" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:EF.Environment.@unitclass">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:l_ast:src:Kitto:EF.Environment.@unitclass._ApplicationEnvironment" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.Environment.@unitclass.Environment()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.Environment.@unitclass.SetEnvironmentGetFunction(EF.Environment.TEFEnvironmentGetFunction)" />
+      <reference referencedUin="delphi:e_field:src:Kitto:EF.Environment.@unitclass._ApplicationEnvironment" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:EF.Environment.TEFEnvironmentGetFunction">
+      <property name="$shortcutReference" value="true" />
+    </reference>
+  </view>
+</nodeSet>

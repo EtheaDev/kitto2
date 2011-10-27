@@ -136,22 +136,22 @@ uses
   SysUtils, StrUtils, Variants, ADOInt,
   EF.VariantUtils, EF.DB.Utils, EF.Types, EF.Tree, EF.SQL;
 
-function ADODataTypeToEFDataType(const AADODataType: Integer): TEFDataType;
+function ADODataTypeToEFDataType(const AADODataType: Integer): string;
 begin
   case AADODataType of
     adTinyInt, adSmallInt, adError, adInteger, adUnsignedInt, adBigInt,
-      adUnsignedBigInt, adUnsignedTinyInt, adUnsignedSmallInt: Result := edtInteger;
-    adSingle, adDouble: Result := edtFloat;
-    adCurrency: Result := edtCurrency;
-    adBoolean: Result := edtBoolean;
-    adDBDate: Result := edtDate;
-    adDBTime: Result := edtTime;
-    adDate, adDBTimeStamp, adFileTime, adDBFileTime: Result := edtDateTime;
+      adUnsignedBigInt, adUnsignedTinyInt, adUnsignedSmallInt: Result := 'Integer';
+    adSingle, adDouble: Result := 'Float';
+    adCurrency: Result := 'Currency';
+    adBoolean: Result := 'Boolean';
+    adDBDate: Result := 'Date';
+    adDBTime: Result := 'Time';
+    adDate, adDBTimeStamp, adFileTime, adDBFileTime: Result := 'DateTime';
     adChar, adVarChar, adWChar, adBSTR, adVarWChar, adLongVarChar,
-      adLongVarWChar: Result := edtString;
-    adDecimal, adNumeric, adVarNumeric: Result := edtDecimal;
+      adLongVarWChar: Result := 'String';
+    adDecimal, adNumeric, adVarNumeric: Result := 'Decimal';
   else
-    Result := edtUnknown;
+    Result := 'String';
   end;
 end;
 
@@ -587,7 +587,8 @@ begin
       LColumn := TEFDBColumnInfo.Create;
       try
         LColumn.Name := LColumnDataSet.FieldByName('COLUMN_NAME').AsString;
-        LColumn.DataType := ADODataTypeToEFDataType(LColumnDataSet.FieldByName('DATA_TYPE').AsInteger);
+        LColumn.DataType := TEFDataTypeFactory.Instance.GetDataType(
+          ADODataTypeToEFDataType(LColumnDataSet.FieldByName('DATA_TYPE').AsInteger));
         LColumn.Size := LColumnDataSet.FieldByName('CHARACTER_MAXIMUM_LENGTH').AsInteger;
         LColumn.IsRequired := not LColumnDataSet.FieldByName('IS_NULLABLE').AsBoolean;
         ATable.AddColumn(LColumn);

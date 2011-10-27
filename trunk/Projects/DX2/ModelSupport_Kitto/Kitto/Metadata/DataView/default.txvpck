@@ -1,0 +1,237 @@
+<?xml version="1.0" encoding="utf-8"?>
+<nodeSet version="1.0">
+  <view uin="0007ctomxes_v">
+    <property name="$defaultDiagram" value="true" />
+    <property name="$metaclass" value="Package Diagram" />
+    <property name="$name" value="default" />
+    <reference referencedUin="delphi:e_class:src:Kitto:Kitto.Metadata.DataView.TKViewTableHeaderField">
+      <property name="$shortcutReference" value="true" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:Kitto.Metadata.DataView.TKViewFields">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:l_ast:src:Kitto:Kitto.Metadata.DataView.TKViewFields.Table" />
+      <reference referencedUin="delphi:l_ast:src:Kitto:Kitto.Metadata.DataView.TKViewFields.Fields[System.Integer]" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewFields.GetTable()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewFields.GetChildClass(System.string)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewFields.GetField(System.Integer)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewFields.GetFieldCount()" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.Metadata.DataView.TKViewFields.Table" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.Metadata.DataView.TKViewFields.FieldCount" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.Metadata.DataView.TKViewFields.Fields[System.Integer]" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewFields.FieldByAliasedName(System.string)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewFields.FindFieldByAliasedName(System.string)" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:Kitto.Metadata.DataView.TKViewTable">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:l_ast:src:Kitto:Kitto.Metadata.DataView.TKViewTable.DetailTables[System.Integer]" />
+      <reference referencedUin="delphi:l_ast:src:Kitto:Kitto.Metadata.DataView.TKViewTable.MasterTable" />
+      <reference referencedUin="delphi:l_ast:src:Kitto:Kitto.Metadata.DataView.TKViewTable.View" />
+      <reference referencedUin="delphi:l_ast:src:Kitto:Kitto.Metadata.DataView.TKViewTable.Fields[System.Integer]" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewTable.GetIsDetail()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewTable.GetField(System.Integer)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewTable.GetFieldCount()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewTable.GetModelName()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewTable.GetModel()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewTable.GetDetailTableCount()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewTable.GetDetailTable(System.Integer)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewTable.GetDisplayLabel()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewTable.GetPluralDisplayLabel()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewTable.GetIsReadOnly()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewTable.GetMasterTable()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewTable.GetDefaultSorting()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewTable.GetDefaultFilter()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewTable.GetView()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewTable.GetRules()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewTable.GetImageName()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewTable.GetModelDetailReferenceName()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewTable.GetModelDetailReference()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewTable.GetChildClass(System.string)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewTable.GetFields()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewTable.GetDetailTables()" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.Metadata.DataView.TKViewTable.ModelName" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.Metadata.DataView.TKViewTable.ImageName" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.Metadata.DataView.TKViewTable.IsDetail" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.Metadata.DataView.TKViewTable.MasterTable" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.Metadata.DataView.TKViewTable.ModelDetailReferenceName" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.Metadata.DataView.TKViewTable.ModelDetailReference" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.Metadata.DataView.TKViewTable.DisplayLabel" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.Metadata.DataView.TKViewTable.PluralDisplayLabel" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.Metadata.DataView.TKViewTable.Model" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.Metadata.DataView.TKViewTable.FieldCount" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.Metadata.DataView.TKViewTable.Fields[System.Integer]" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewTable.GetFieldNames()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewTable.FindField(System.string)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewTable.FieldByName(System.string)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewTable.FieldByAliasedName(System.string)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewTable.FindFieldByAliasedName(System.string)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewTable.GetKeyFieldAliasedNames(System.Boolean)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewTable.IsFieldVisible(Kitto.Metadata.DataView.TKViewField)" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.Metadata.DataView.TKViewTable.IsReadOnly" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.Metadata.DataView.TKViewTable.DefaultFilter" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.Metadata.DataView.TKViewTable.DefaultSorting" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.Metadata.DataView.TKViewTable.DetailTableCount" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.Metadata.DataView.TKViewTable.DetailTables[System.Integer]" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewTable.DetailTableByName(System.string)" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.Metadata.DataView.TKViewTable.View" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewTable.FindLayout(System.string)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewTable.CreateStore()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewTable.GetDefaultValues()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewTable.GetResourceURI()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewTable.IsAccessGranted(System.string)" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.Metadata.DataView.TKViewTable.Rules" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewTable.ApplyRules(Kitto.Rules.TKApplyRuleProc)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewTable.MinifyFieldNames(System.string)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewTable.ApplyFieldAliasedName(System.string)" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:Kitto.Metadata.DataView.TKViewTableStore">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:l_ast:src:Kitto:Kitto.Metadata.DataView.TKViewTableStore.FViewTable" />
+      <reference referencedUin="delphi:l_ast:src:Kitto:Kitto.Metadata.DataView.TKViewTableStore.ViewTable" />
+      <reference referencedUin="delphi:l_ast:src:Kitto:Kitto.Metadata.DataView.TKViewTableStore.Records" />
+      <reference referencedUin="delphi:l_ast:src:Kitto:Kitto.Metadata.DataView.TKViewTableStore.MasterRecord" />
+      <reference referencedUin="delphi:l_ast:src:Kitto:Kitto.Metadata.DataView.TKViewTableStore.FMasterRecord" />
+      <reference referencedUin="delphi:e_field:src:Kitto:Kitto.Metadata.DataView.TKViewTableStore.FMasterRecord" />
+      <reference referencedUin="delphi:e_field:src:Kitto:Kitto.Metadata.DataView.TKViewTableStore.FViewTable" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewTableStore.SetupFields()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewTableStore.GetRecords()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewTableStore.GetChildClass(System.string)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewTableStore.Create(Kitto.Metadata.DataView.TKViewTable)" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.Metadata.DataView.TKViewTableStore.MasterRecord" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.Metadata.DataView.TKViewTableStore.ViewTable" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.Metadata.DataView.TKViewTableStore.Records" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewTableStore.Load(System.string)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewTableStore.LoadPage(System.string,System.Integer,System.Integer)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewTableStore.AppendRecord(EF.Tree.TEFNode)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewTableStore.Save(System.Boolean)" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:Kitto.Metadata.DataView.TKViewTableRecords">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:l_ast:src:Kitto:Kitto.Metadata.DataView.TKViewTableRecords.Store" />
+      <reference referencedUin="delphi:l_ast:src:Kitto:Kitto.Metadata.DataView.TKViewTableRecords.Records[System.Integer]" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewTableRecords.GetStore()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewTableRecords.GetRecord(System.Integer)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewTableRecords.GetChildClass(System.string)" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.Metadata.DataView.TKViewTableRecords.Store" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewTableRecords.Append()" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.Metadata.DataView.TKViewTableRecords.Records[System.Integer]" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewTableRecords.FindRecord(EF.Tree.TEFNode)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewTableRecords.GetRecord(EF.Tree.TEFNode)" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:Kitto.Metadata.DataView.TKDataView">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:l_ast:src:Kitto:Kitto.Metadata.DataView.TKDataView.MainTable" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKDataView.GetMainTable()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKDataView.GetChildClass(System.string)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKDataView.GetDisplayLabel()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKDataView.GetImageName()" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.Metadata.DataView.TKDataView.MainTable" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:Kitto.Metadata.DataView.@unitclass">
+      <property name="$shortcutReference" value="true" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:Kitto.Metadata.DataView.TKViewField">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:l_ast:src:Kitto:Kitto.Metadata.DataView.TKViewField.Table" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewField.GetAliasedName()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewField.GetTable()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewField.GetIsVisible()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewField.GetModelField()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewField.GetDisplayLabel()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewField.GetDisplayWidth()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewField.GetDataType()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewField.GetIsRequired()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewField.GetIsReadOnly()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewField.GetQualifiedName()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewField.GetModelName()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewField.GetFieldName()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewField.GetEmptyAsNull()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewField.GetDefaultValue()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewField.GetModel()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewField.GetExpression()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewField.GetAlias()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewField.GetQualifiedAliasedNameOrExpression()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewField.GetIsKey()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewField.GetSize()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewField.GetIsBlob()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewField.GetAllowedValues()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewField.GetRules()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewField.GetDecimalPrecision()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewField.GetFieldNamesForUpdate()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewField.GetCanInsert()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewField.GetCanUpdate()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewField.GetIsReference()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewField.GetIsDetailReference()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewField.GetHint()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewField.GetChildClass(System.string)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewField.FindNode(System.string,System.Boolean)" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.Metadata.DataView.TKViewField.Table" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.Metadata.DataView.TKViewField.Model" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.Metadata.DataView.TKViewField.ModelField" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.Metadata.DataView.TKViewField.Alias" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.Metadata.DataView.TKViewField.AliasedName" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.Metadata.DataView.TKViewField.QualifiedAliasedNameOrExpression" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.Metadata.DataView.TKViewField.QualifiedName" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.Metadata.DataView.TKViewField.AllowedValues" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.Metadata.DataView.TKViewField.CanInsert" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.Metadata.DataView.TKViewField.CanUpdate" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.Metadata.DataView.TKViewField.FieldNamesForUpdate" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.Metadata.DataView.TKViewField.IsReference" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.Metadata.DataView.TKViewField.IsDetailReference" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.Metadata.DataView.TKViewField.ModelName" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.Metadata.DataView.TKViewField.FieldName" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewField.GetMinifiedName()" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.Metadata.DataView.TKViewField.IsKey" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.Metadata.DataView.TKViewField.IsVisible" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.Metadata.DataView.TKViewField.IsRequired" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.Metadata.DataView.TKViewField.IsReadOnly" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.Metadata.DataView.TKViewField.EmptyAsNull" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.Metadata.DataView.TKViewField.DefaultValue" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.Metadata.DataView.TKViewField.Expression" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.Metadata.DataView.TKViewField.DisplayLabel" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.Metadata.DataView.TKViewField.Hint" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.Metadata.DataView.TKViewField.DisplayWidth" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.Metadata.DataView.TKViewField.DecimalPrecision" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.Metadata.DataView.TKViewField.DataType" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.Metadata.DataView.TKViewField.Size" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.Metadata.DataView.TKViewField.IsBlob" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewField.CreateStore()" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.Metadata.DataView.TKViewField.Rules" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewField.ApplyRules(Kitto.Rules.TKApplyRuleProc)" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:Kitto.Metadata.DataView.TKViewTableHeader">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewTableHeader.GetChildClass(System.string)" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:Kitto.Metadata.DataView.TKViewTables">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:l_ast:src:Kitto:Kitto.Metadata.DataView.TKViewTables.Table" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewTables.GetTable()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewTables.GetView()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewTables.GetChildClass(System.string)" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.Metadata.DataView.TKViewTables.Table" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.Metadata.DataView.TKViewTables.View" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:Kitto.Metadata.DataView.TKViewTableRecord">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:l_ast:src:Kitto:Kitto.Metadata.DataView.TKViewTableRecord.ViewTable" />
+      <reference referencedUin="delphi:l_ast:src:Kitto:Kitto.Metadata.DataView.TKViewTableRecord.Records" />
+      <reference referencedUin="delphi:l_ast:src:Kitto:Kitto.Metadata.DataView.TKViewTableRecord.Store" />
+      <reference referencedUin="delphi:l_ast:src:Kitto:Kitto.Metadata.DataView.TKViewTableRecord.DetailStores[System.Integer]" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewTableRecord.GetRecords()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewTableRecord.GetDetailsStore(System.Integer)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewTableRecord.GetStore()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewTableRecord.GetViewTable()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewTableRecord.InternalAfterReadFromNode()" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.Metadata.DataView.TKViewTableRecord.Records" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.Metadata.DataView.TKViewTableRecord.Store" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.Metadata.DataView.TKViewTableRecord.ViewTable" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewTableRecord.EnsureDetailStores()" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.Metadata.DataView.TKViewTableRecord.DetailStores[System.Integer]" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewTableRecord.AddDetailStore(Kitto.Metadata.DataView.TKViewTableStore)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewTableRecord.Save(System.Boolean)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewTableRecord.SetDetailFieldValues(Kitto.Metadata.DataView.TKViewTableRecord)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewTableRecord.ApplyBeforeRules()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.DataView.TKViewTableRecord.ApplyAfterRules()" />
+    </reference>
+  </view>
+</nodeSet>

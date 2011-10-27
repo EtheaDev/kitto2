@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<nodeSet version="1.0">
+  <view uin="ssleho4m0wq_v">
+    <property name="$defaultDiagram" value="true" />
+    <property name="$metaclass" value="Package Diagram" />
+    <property name="$name" value="default" />
+    <reference referencedUin="design:view:::21u3dlcz0co_v">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:e_class:src:Kitto:Kitto.AccessControl.DB.TKDBAccessController" />
+      <reference referencedUin="delphi:e_class:src:Kitto:Kitto.AccessControl.DB.@unitclass" />
+      <reference referencedUin="delphi:e_class:src:Kitto:Kitto.AccessControl.DB.TKUserPermissionStorage" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:Kitto.AccessControl.@unitclass">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:e_field:src:Kitto:Kitto.AccessControl.@unitclass.ACM_VIEW" />
+      <reference referencedUin="delphi:e_field:src:Kitto:Kitto.AccessControl.@unitclass.ACM_RUN" />
+      <reference referencedUin="delphi:e_field:src:Kitto:Kitto.AccessControl.@unitclass.ACM_READ" />
+      <reference referencedUin="delphi:e_field:src:Kitto:Kitto.AccessControl.@unitclass.ACM_ADD" />
+      <reference referencedUin="delphi:e_field:src:Kitto:Kitto.AccessControl.@unitclass.ACM_MODIFY" />
+      <reference referencedUin="delphi:e_field:src:Kitto:Kitto.AccessControl.@unitclass.ACM_DELETE" />
+      <reference referencedUin="delphi:e_field:src:Kitto:Kitto.AccessControl.@unitclass.ACM_ALL" />
+      <reference referencedUin="delphi:e_field:src:Kitto:Kitto.AccessControl.@unitclass.ACV_TRUE" />
+      <reference referencedUin="delphi:e_field:src:Kitto:Kitto.AccessControl.@unitclass.ACV_FALSE" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:Kitto.AccessControl.TKAccessControllerClass">
+      <property name="$shortcutReference" value="true" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:Kitto.AccessControl.TKNullAccessController">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:l_gnt:src:Kitto:Kitto.AccessControl.TKNullAccessController:Kitto.AccessControl.TKAccessController" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.AccessControl.TKNullAccessController.InternalGetAccessGrantValue(System.string,System.string,System.string)" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:Kitto.AccessControl.TKAccessController">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.AccessControl.TKAccessController.InternalGetClassId()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.AccessControl.TKAccessController.InternalGetAccessGrantValue(System.string,System.string,System.string)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.AccessControl.TKAccessController.GetAccessGrantValue(System.string,System.string,System.string,System.Variant)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.AccessControl.TKAccessController.IsAccessGranted(System.string,System.string,System.string)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.AccessControl.TKAccessController.IsStandardMode(System.string)" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:Kitto.AccessControl.TKAccessControllerRegistry">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:l_ast:src:Kitto:Kitto.AccessControl.TKAccessControllerRegistry.Instance" />
+      <reference referencedUin="delphi:l_ast:src:Kitto:Kitto.AccessControl.TKAccessControllerRegistry.FInstance" />
+      <reference referencedUin="delphi:e_field:src:Kitto:Kitto.AccessControl.TKAccessControllerRegistry.FInstance" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.AccessControl.TKAccessControllerRegistry.GetInstance()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.AccessControl.TKAccessControllerRegistry.Destroy()" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.AccessControl.TKAccessControllerRegistry.Instance" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.AccessControl.TKAccessControllerRegistry.RegisterClass(System.string,Kitto.AccessControl.TKAccessControllerClass)" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:Kitto.AccessControl.TKAccessControllerFactory">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:l_ast:src:Kitto:Kitto.AccessControl.TKAccessControllerFactory.Instance" />
+      <reference referencedUin="delphi:l_ast:src:Kitto:Kitto.AccessControl.TKAccessControllerFactory.FInstance" />
+      <reference referencedUin="delphi:e_field:src:Kitto:Kitto.AccessControl.TKAccessControllerFactory.FInstance" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.AccessControl.TKAccessControllerFactory.GetInstance()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.AccessControl.TKAccessControllerFactory.Destroy()" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.AccessControl.TKAccessControllerFactory.Instance" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.AccessControl.TKAccessControllerFactory.CreateObject(System.string)" />
+    </reference>
+  </view>
+</nodeSet>

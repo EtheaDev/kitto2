@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<nodeSet version="1.0">
+  <view uin="saajn0d483t_v">
+    <property name="$defaultDiagram" value="true" />
+    <property name="$metaclass" value="Package Diagram" />
+    <property name="$name" value="default" />
+    <reference referencedUin="design:view:::ee957u18j9h_v">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.Localization.dxgettext.@unitclass" />
+      <reference referencedUin="delphi:e_class:src:Kitto:EF.Localization.dxgettext.TEFdxgettextLocalizationTool" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:EF.Localization.TEFNullLocalizationTool">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:l_impl:src:Kitto:EF.Localization.TEFNullLocalizationTool:EF.Localization.IEFLocalizationTool" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.Localization.TEFNullLocalizationTool.AsObject()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.Localization.TEFNullLocalizationTool.TranslateString(System.string,System.string)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.Localization.TEFNullLocalizationTool.TranslateComponent(Classes.TComponent)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.Localization.TEFNullLocalizationTool.ForceLanguage(System.string)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.Localization.TEFNullLocalizationTool.GetCurrentLanguageId()" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:EF.Localization.TEFLocalizationToolRegistry">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:l_ast:src:Kitto:EF.Localization.TEFLocalizationToolRegistry.CurrentTool" />
+      <reference referencedUin="delphi:l_ast:src:Kitto:EF.Localization.TEFLocalizationToolRegistry.FCurrentTool" />
+      <reference referencedUin="delphi:e_field:src:Kitto:EF.Localization.TEFLocalizationToolRegistry.FCurrentTool" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.Localization.TEFLocalizationToolRegistry.GetCurrentTool()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.Localization.TEFLocalizationToolRegistry.Destroy()" />
+      <reference referencedUin="delphi:e_property:src:Kitto:EF.Localization.TEFLocalizationToolRegistry.CurrentTool" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.Localization.TEFLocalizationToolRegistry.RegisterTool(EF.Localization.IEFLocalizationTool)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.Localization.TEFLocalizationToolRegistry.UnregisterTool()" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:EF.Localization.@unitclass">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:l_ast:src:Kitto:EF.Localization.@unitclass._EFLocalizationToolRegistry" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.Localization.@unitclass.EFLocalizationToolRegistry()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.Localization.@unitclass.EFLocalizationTool()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.Localization.@unitclass.TranslateString(System.string,System.string)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.Localization.@unitclass._(System.string,System.string)" />
+      <reference referencedUin="delphi:e_field:src:Kitto:EF.Localization.@unitclass._EFLocalizationToolRegistry" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:EF.Localization.IEFLocalizationTool">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.Localization.IEFLocalizationTool.TranslateString(System.string,System.string)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.Localization.IEFLocalizationTool.TranslateComponent(Classes.TComponent)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.Localization.IEFLocalizationTool.ForceLanguage(System.string)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.Localization.IEFLocalizationTool.GetCurrentLanguageId()" />
+    </reference>
+  </view>
+</nodeSet>

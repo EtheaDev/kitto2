@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<nodeSet version="1.0">
+  <view uin="e2dkeve1gm_v">
+    <property name="$defaultDiagram" value="true" />
+    <property name="$metaclass" value="Package Diagram" />
+    <property name="$name" value="default" />
+    <reference referencedUin="delphi:e_class:src:Kitto:Kitto.Ext.Session.TKExtSession">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:e_field:src:Kitto:Kitto.Ext.Session.TKExtSession.FHomeController" />
+      <reference referencedUin="delphi:e_field:src:Kitto:Kitto.Ext.Session.TKExtSession.FEnvironment" />
+      <reference referencedUin="delphi:e_field:src:Kitto:Kitto.Ext.Session.TKExtSession.FLoginWindow" />
+      <reference referencedUin="delphi:e_field:src:Kitto:Kitto.Ext.Session.TKExtSession.FViewHost" />
+      <reference referencedUin="delphi:e_field:src:Kitto:Kitto.Ext.Session.TKExtSession.FStatusHost" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Ext.Session.TKExtSession.GetEnvironment()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Ext.Session.TKExtSession.LoadLibraries()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Ext.Session.TKExtSession.DisplayHomeView()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Ext.Session.TKExtSession.DisplayLoginWindow()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Ext.Session.TKExtSession.BeforeHandleRequest()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Ext.Session.TKExtSession.AfterHandleRequest()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Ext.Session.TKExtSession.AfterConstruction()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Ext.Session.TKExtSession.Destroy()" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.Ext.Session.TKExtSession.ViewHost" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.Ext.Session.TKExtSession.StatusHost" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Ext.Session.TKExtSession.DisplayView(System.string)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Ext.Session.TKExtSession.DisplayView(Kitto.Metadata.Views.TKView)" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.Ext.Session.TKExtSession.Environment" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Ext.Session.TKExtSession.InitDefaultValues()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Ext.Session.TKExtSession.Home()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Ext.Session.TKExtSession.SetViewIconStyle(Kitto.Metadata.Views.TKView,System.string,System.string,System.string)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Ext.Session.TKExtSession.GetGCObjectCount()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Ext.Session.TKExtSession.Flash(System.string)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Ext.Session.TKExtSession.Logout()" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:Kitto.Ext.Session.TGarbage">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:e_field:src:Kitto:Kitto.Ext.Session.TGarbage.Garbage" />
+      <reference referencedUin="delphi:e_field:src:Kitto:Kitto.Ext.Session.TGarbage.Persistent" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:Kitto.Ext.Session.PGarbage">
+      <property name="$shortcutReference" value="true" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:Kitto.Ext.Session.@unitclass">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Ext.Session.@unitclass.Session()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Ext.Session.@unitclass.GetSessionEnvironment()" />
+    </reference>
+  </view>
+</nodeSet>

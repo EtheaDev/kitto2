@@ -22,6 +22,7 @@ var
   codice_fiscale_re = /^[a-zA-Z]{6}[0-9]{2}[abcdehlmprstABCDEHLMPRST]{1}[0-9]{2}([a-zA-Z]{1}[0-9]{3})[a-zA-Z]{1}$/,
   partita_iva_re = /^[0-9]{11}$/,
   alpha_space_re = /^[a-zA-Z_ ]+$/;
+  phone_number_re = /^\+[0-9]+\-[0-9]+$/
 Ext.apply(Ext.form.VTypes, {
     codice_fiscale: function(val, field) {
       return codice_fiscale_re.test(val) || partita_iva_re.test(val);
@@ -33,7 +34,13 @@ Ext.apply(Ext.form.VTypes, {
       return alpha_space_re.test(val);
     },
     alpha_spaceText: 'This field only accepts letters and spaces.',
-    alpha_spaceMask: /[a-z ]/i
+    alpha_spaceMask: /[a-z ]/i,
+
+    phone_number: function(val, field) {
+      return phone_number_re.test(val);
+    },
+    phone_numberText: 'Invalid phone number.',
+    phone_numberMask: /[a-z0-9\-\+]/
 });
 
 // Fires change event if the object value is at least

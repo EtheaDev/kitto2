@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<nodeSet version="1.0">
+  <view uin="hvisukd57jn_v">
+    <property name="$defaultDiagram" value="true" />
+    <property name="$metaclass" value="Package Diagram" />
+    <property name="$name" value="default" />
+    <reference referencedUin="delphi:e_class:src:Kitto:Kitto.Metadata.Views.TKViewBuilderFactory">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:l_ast:src:Kitto:Kitto.Metadata.Views.TKViewBuilderFactory.Instance" />
+      <reference referencedUin="delphi:l_ast:src:Kitto:Kitto.Metadata.Views.TKViewBuilderFactory.FInstance" />
+      <reference referencedUin="delphi:e_field:src:Kitto:Kitto.Metadata.Views.TKViewBuilderFactory.FInstance" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.Views.TKViewBuilderFactory.GetInstance()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.Views.TKViewBuilderFactory.DoCreateObject(System.TClass)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.Views.TKViewBuilderFactory.Destroy()" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.Metadata.Views.TKViewBuilderFactory.Instance" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.Views.TKViewBuilderFactory.CreateObject(System.string)" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:Kitto.Metadata.Views.@unitclass">
+      <property name="$shortcutReference" value="true" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:Kitto.Metadata.Views.TKViewBuilder">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.Views.TKViewBuilder.BuildView()" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:Kitto.Metadata.Views.TKViews">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:l_ast:src:Kitto:Kitto.Metadata.Views.TKViews.FLayouts" />
+      <reference referencedUin="delphi:l_ast:src:Kitto:Kitto.Metadata.Views.TKViews.Layouts" />
+      <reference referencedUin="delphi:e_field:src:Kitto:Kitto.Metadata.Views.TKViews.FLayouts" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.Views.TKViews.GetLayouts()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.Views.TKViews.BuildView(EF.Tree.TEFNode,System.string)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.Views.TKViews.AfterCreateObject(Kitto.Metadata.TKMetadata)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.Views.TKViews.GetObjectClassType()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.Views.TKViews.SetPath(System.string)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.Views.TKViews.Destroy()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.Views.TKViews.ViewByName(System.string)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.Views.TKViews.FindView(System.string)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.Views.TKViews.ViewByNode(EF.Tree.TEFNode)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.Views.TKViews.FindViewByNode(EF.Tree.TEFNode)" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.Metadata.Views.TKViews.Layouts" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.Views.TKViews.Open()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.Views.TKViews.Close()" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:Kitto.Metadata.Views.TKViewBuilderRegistry">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:l_ast:src:Kitto:Kitto.Metadata.Views.TKViewBuilderRegistry.Instance" />
+      <reference referencedUin="delphi:l_ast:src:Kitto:Kitto.Metadata.Views.TKViewBuilderRegistry.FInstance" />
+      <reference referencedUin="delphi:e_field:src:Kitto:Kitto.Metadata.Views.TKViewBuilderRegistry.FInstance" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.Views.TKViewBuilderRegistry.GetInstance()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.Views.TKViewBuilderRegistry.Destroy()" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.Metadata.Views.TKViewBuilderRegistry.Instance" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.Views.TKViewBuilderRegistry.GetClass(System.string)" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:Kitto.Metadata.Views.TKViewBuilderClass">
+      <property name="$shortcutReference" value="true" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:Kitto.Metadata.Views.TKLayouts">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.Views.TKLayouts.AfterCreateObject(Kitto.Metadata.TKMetadata)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.Views.TKLayouts.GetObjectClassType()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.Views.TKLayouts.LayoutByName(System.string)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.Views.TKLayouts.FindLayout(System.string)" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:Kitto.Metadata.Views.TKLayout">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:l_ast:src:Kitto:Kitto.Metadata.Views.TKLayout.FLayouts" />
+      <reference referencedUin="delphi:e_field:src:Kitto:Kitto.Metadata.Views.TKLayout.FLayouts" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:Kitto.Metadata.Views.TKView">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:l_ast:src:Kitto:Kitto.Metadata.Views.TKView.Catalog" />
+      <reference referencedUin="delphi:l_ast:src:Kitto:Kitto.Metadata.Views.TKView.FViews" />
+      <reference referencedUin="delphi:e_field:src:Kitto:Kitto.Metadata.Views.TKView.FViews" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.Views.TKView.GetControllerType()" />
+      <reference referencedUin="delphi:e_field:src:Kitto:Kitto.Metadata.Views.TKView.DEFAULT_IMAGE_NAME" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.Views.TKView.GetDisplayLabel()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.Views.TKView.GetImageName()" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.Metadata.Views.TKView.Catalog" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.Metadata.Views.TKView.DisplayLabel" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.Metadata.Views.TKView.ImageName" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.Metadata.Views.TKView.ControllerType" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:Kitto.Metadata.Views.TKActionView">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:l_gnt:src:Kitto:Kitto.Metadata.Views.TKActionView:Kitto.Metadata.Views.TKView" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:Kitto.Metadata.Views.TKTreeView">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:l_gnt:src:Kitto:Kitto.Metadata.Views.TKTreeView:Kitto.Metadata.Views.TKView" />
+      <reference referencedUin="delphi:l_ast:src:Kitto:Kitto.Metadata.Views.TKTreeView.TreeViewNodes[System.Integer]" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.Views.TKTreeView.GetTreeViewNode(System.Integer)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.Views.TKTreeView.GetTreeViewNodeCount()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.Views.TKTreeView.GetChildClass(System.string)" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.Metadata.Views.TKTreeView.TreeViewNodeCount" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.Metadata.Views.TKTreeView.TreeViewNodes[System.Integer]" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:Kitto.Metadata.Views.TKTreeViewNode">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:l_ast:src:Kitto:Kitto.Metadata.Views.TKTreeViewNode.TreeViewNodes[System.Integer]" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.Views.TKTreeViewNode.GetTreeViewNodeCount()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.Views.TKTreeViewNode.GetTreeViewNode(System.Integer)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Metadata.Views.TKTreeViewNode.GetChildClass(System.string)" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.Metadata.Views.TKTreeViewNode.TreeViewNodeCount" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.Metadata.Views.TKTreeViewNode.TreeViewNodes[System.Integer]" />
+    </reference>
+  </view>
+</nodeSet>

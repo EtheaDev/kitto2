@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<nodeSet version="1.0">
+  <view uin="s3nm80h716f_v">
+    <property name="$defaultDiagram" value="true" />
+    <property name="$metaclass" value="Package Diagram" />
+    <property name="$name" value="default" />
+    <reference referencedUin="delphi:e_class:src:Kitto:EF.SQL.TEFSQLStripper">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:e_field:src:Kitto:EF.SQL.TEFSQLStripper.FStrippedParts" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.SQL.TEFSQLStripper.RecursiveStrip(System.string)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.SQL.TEFSQLStripper.AfterConstruction()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.SQL.TEFSQLStripper.Destroy()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.SQL.TEFSQLStripper.Strip(System.string)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.SQL.TEFSQLStripper.Unstrip(System.string)" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:EF.SQL.TEFSQLBuilder">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.SQL.TEFSQLBuilder.BuildEmptyTableCommand(System.string,EF.DB.TEFDBCommand)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.SQL.TEFSQLBuilder.BuildRecordExistsQuery(System.string,System.string,Classes.TStrings,EF.DB.TEFDBQuery)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.SQL.TEFSQLBuilder.BuildLookupQuery(System.string,System.string,System.string,System.string,EF.DB.TEFDBQuery)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.SQL.TEFSQLBuilder.BuildInsertCommand(System.string,Classes.TStrings,EF.DB.TEFDBCommand)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.SQL.TEFSQLBuilder.BuildUpdateCommand(System.string,Classes.TStrings,Classes.TStrings,EF.DB.TEFDBCommand)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.SQL.TEFSQLBuilder.BuildDeleteCommand(System.string,Classes.TStrings,EF.DB.TEFDBCommand)" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:EF.SQL.@unitclass">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.SQL.@unitclass.SQLLookup(EF.DB.TEFDBConnection,System.string,DB.TParams)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.SQL.@unitclass.SQLLookup(EF.DB.TEFDBQuery)" />
+      <reference referencedUin="delphi:e_field:src:Kitto:EF.SQL.@unitclass.SQLQuote" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.SQL.@unitclass.SQLQuotedStr(System.string)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.SQL.@unitclass.RemoveSQLQuotes(System.string)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.SQL.@unitclass.GetSQLSelectClause(System.string)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.SQL.@unitclass.GetSQLFromClause(System.string)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.SQL.@unitclass.GetSQLWhereClause(System.string)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.SQL.@unitclass.SetSQLWhereClause(System.string,System.string)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.SQL.@unitclass.AddToSQLWhereClause(System.string,System.string,System.string)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.SQL.@unitclass.GetSQLOrderByClause(System.string)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.SQL.@unitclass.SetSQLOrderByClause(System.string,System.string)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.SQL.@unitclass.GetSQLIntoClause(System.string)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.SQL.@unitclass.IsQuery(System.string)" />
+      <reference referencedUin="delphi:e_field:src:Kitto:EF.SQL.@unitclass.EF_PARSER_SKIP_BEGIN_MARKER" />
+      <reference referencedUin="delphi:e_field:src:Kitto:EF.SQL.@unitclass.EF_PARSER_SKIP_END_MARKER" />
+      <reference referencedUin="delphi:e_field:src:Kitto:EF.SQL.@unitclass.sqlSelect" />
+      <reference referencedUin="delphi:e_field:src:Kitto:EF.SQL.@unitclass.sqlInto" />
+      <reference referencedUin="delphi:e_field:src:Kitto:EF.SQL.@unitclass.sqlFrom" />
+      <reference referencedUin="delphi:e_field:src:Kitto:EF.SQL.@unitclass.sqlWhere" />
+      <reference referencedUin="delphi:e_field:src:Kitto:EF.SQL.@unitclass.sqlOrder" />
+      <reference referencedUin="delphi:e_field:src:Kitto:EF.SQL.@unitclass.sqlGroup" />
+      <reference referencedUin="delphi:e_field:src:Kitto:EF.SQL.@unitclass.sqlBy" />
+      <reference referencedUin="delphi:e_field:src:Kitto:EF.SQL.@unitclass.sqlHaving" />
+      <reference referencedUin="delphi:e_field:src:Kitto:EF.SQL.@unitclass.sqlPlan" />
+      <reference referencedUin="delphi:e_field:src:Kitto:EF.SQL.@unitclass.sqlUnion" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.SQL.@unitclass.GetSQLClause(System.string,System.string,System.string[])" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.SQL.@unitclass.SetSQLClause(System.string,System.string,System.string,System.string[])" />
+    </reference>
+  </view>
+</nodeSet>

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<nodeSet version="1.0">
+  <view uin="kjl2fxvbyat_v">
+    <property name="$defaultDiagram" value="true" />
+    <property name="$metaclass" value="Package Diagram" />
+    <property name="$name" value="default" />
+    <reference referencedUin="delphi:e_class:src:Kitto:Kitto.LocalStorage.TKLocalStorage">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:e_field:src:Kitto:Kitto.LocalStorage.TKLocalStorage.FBasePath" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.LocalStorage.TKLocalStorage.GetItemFileName(System.string)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.LocalStorage.TKLocalStorage.LoadConfig()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.LocalStorage.TKLocalStorage.SaveConfig()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.LocalStorage.TKLocalStorage.SetBasePath(System.string)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.LocalStorage.TKLocalStorage.GetConfigFileName()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.LocalStorage.TKLocalStorage.SetDefaultBasePath(System.string,EF.Macros.TEFMacroExpansionEngine)" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.LocalStorage.TKLocalStorage.BasePath" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.LocalStorage.TKLocalStorage.LoadItem(System.string,Classes.TStream)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.LocalStorage.TKLocalStorage.SaveItem(System.string,Classes.TStream)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.LocalStorage.TKLocalStorage.ItemExists(System.string)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.LocalStorage.TKLocalStorage.DeleteItem(System.string)" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:Kitto.LocalStorage.@unitclass">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:l_ast:src:Kitto:Kitto.LocalStorage.@unitclass._LocalStorage" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.LocalStorage.@unitclass.LocalStorage()" />
+      <reference referencedUin="delphi:e_field:src:Kitto:Kitto.LocalStorage.@unitclass._LocalStorage" />
+    </reference>
+  </view>
+</nodeSet>

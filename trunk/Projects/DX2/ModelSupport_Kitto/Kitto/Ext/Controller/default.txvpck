@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<nodeSet version="1.0">
+  <view uin="nrshxuyc1xi_v">
+    <property name="$defaultDiagram" value="true" />
+    <property name="$metaclass" value="Package Diagram" />
+    <property name="$name" value="default" />
+    <reference referencedUin="delphi:e_class:src:Kitto:Kitto.Ext.Controller.@unitclass">
+      <property name="$shortcutReference" value="true" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:Kitto.Ext.Controller.TKExtControllerRegistry">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:l_ast:src:Kitto:Kitto.Ext.Controller.TKExtControllerRegistry.Instance" />
+      <reference referencedUin="delphi:l_ast:src:Kitto:Kitto.Ext.Controller.TKExtControllerRegistry.FInstance" />
+      <reference referencedUin="delphi:e_field:src:Kitto:Kitto.Ext.Controller.TKExtControllerRegistry.FInstance" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Ext.Controller.TKExtControllerRegistry.GetInstance()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Ext.Controller.TKExtControllerRegistry.BeforeRegisterClass(System.string,System.TClass)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Ext.Controller.TKExtControllerRegistry.Destroy()" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.Ext.Controller.TKExtControllerRegistry.Instance" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Ext.Controller.TKExtControllerRegistry.RegisterClass(System.string,Kitto.Ext.Controller.TExtObjectClass)" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:Kitto.Ext.Controller.IKExtController">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Ext.Controller.IKExtController.Display()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Ext.Controller.IKExtController.GetConfig()" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.Ext.Controller.IKExtController.Config" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Ext.Controller.IKExtController.GetView()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Ext.Controller.IKExtController.SetView(Kitto.Metadata.Views.TKView)" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.Ext.Controller.IKExtController.View" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Ext.Controller.IKExtController.GetOwnsView()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Ext.Controller.IKExtController.SetOwnsView(System.Boolean)" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.Ext.Controller.IKExtController.OwnsView" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Ext.Controller.IKExtController.GetContainer()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Ext.Controller.IKExtController.SetContainer(Kitto.Ext.Controller.TExtContainer)" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.Ext.Controller.IKExtController.Container" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:Kitto.Ext.Controller.TKExtControllerFactory">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:l_ast:src:Kitto:Kitto.Ext.Controller.TKExtControllerFactory.Instance" />
+      <reference referencedUin="delphi:l_ast:src:Kitto:Kitto.Ext.Controller.TKExtControllerFactory.FInstance" />
+      <reference referencedUin="delphi:e_field:src:Kitto:Kitto.Ext.Controller.TKExtControllerFactory.FInstance" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Ext.Controller.TKExtControllerFactory.GetInstance()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Ext.Controller.TKExtControllerFactory.Destroy()" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.Ext.Controller.TKExtControllerFactory.Instance" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Ext.Controller.TKExtControllerFactory.CreateController(Kitto.Metadata.Views.TKView,Kitto.Ext.Controller.TExtContainer,EF.ObserverIntf.IEFObserver,System.string)" />
+    </reference>
+  </view>
+</nodeSet>

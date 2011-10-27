@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<nodeSet version="1.0">
+  <view uin="pqerc7we47s_v">
+    <property name="$defaultDiagram" value="true" />
+    <property name="$metaclass" value="Package Diagram" />
+    <property name="$name" value="default" />
+    <reference referencedUin="delphi:e_class:src:Kitto:EF.DB.ADO.@unitclass">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.DB.ADO.@unitclass.ADODataTypeToEFDataType(System.Integer)" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:EF.DB.ADO.TEFDBADOQueryClass">
+      <property name="$shortcutReference" value="true" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:EF.DB.ADO.TEFDBADOConnection">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:e_field:src:Kitto:EF.DB.ADO.TEFDBADOConnection.FConnection" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.DB.ADO.TEFDBADOConnection.GetQueryClass()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.DB.ADO.TEFDBADOConnection.AfterConstruction()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.DB.ADO.TEFDBADOConnection.Destroy()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.DB.ADO.TEFDBADOConnection.Open()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.DB.ADO.TEFDBADOConnection.Close()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.DB.ADO.TEFDBADOConnection.IsOpen()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.DB.ADO.TEFDBADOConnection.ExecuteImmediate(System.string)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.DB.ADO.TEFDBADOConnection.StartTransaction()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.DB.ADO.TEFDBADOConnection.CommitTransaction()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.DB.ADO.TEFDBADOConnection.RollbackTransaction()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.DB.ADO.TEFDBADOConnection.IsInTransaction()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.DB.ADO.TEFDBADOConnection.FetchSequenceGeneratorValue(System.string)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.DB.ADO.TEFDBADOConnection.GetLastAutoincValue(System.string)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.DB.ADO.TEFDBADOConnection.CreateDBCommand()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.DB.ADO.TEFDBADOConnection.CreateDBQuery()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.DB.ADO.TEFDBADOConnection.AddLimitClause(System.string,System.Integer,System.Integer)" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:EF.DB.ADO.TEFDBADOInfo">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:e_field:src:Kitto:EF.DB.ADO.TEFDBADOInfo.FConnection" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.DB.ADO.TEFDBADOInfo.BeforeFetchInfo()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.DB.ADO.TEFDBADOInfo.FetchTables(EF.DB.TEFDBSchemaInfo)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.DB.ADO.TEFDBADOInfo.FetchTableColumns(EF.DB.TEFDBTableInfo)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.DB.ADO.TEFDBADOInfo.FetchTableForeignKeys(EF.DB.TEFDBTableInfo)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.DB.ADO.TEFDBADOInfo.FetchTablePrimaryKey(EF.DB.TEFDBTableInfo)" />
+      <reference referencedUin="delphi:e_property:src:Kitto:EF.DB.ADO.TEFDBADOInfo.Connection" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:EF.DB.ADO.TEFDBADOAdapter">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.DB.ADO.TEFDBADOAdapter.InternalCreateDBConnection()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.DB.ADO.TEFDBADOAdapter.InternalCreateDBInfo()" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:EF.DB.ADO.TEFDBADOCommand">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:l_ast:src:Kitto:EF.DB.ADO.TEFDBADOCommand.FParams" />
+      <reference referencedUin="delphi:e_field:src:Kitto:EF.DB.ADO.TEFDBADOCommand.FCommand" />
+      <reference referencedUin="delphi:e_field:src:Kitto:EF.DB.ADO.TEFDBADOCommand.FParams" />
+      <reference referencedUin="delphi:e_field:src:Kitto:EF.DB.ADO.TEFDBADOCommand.FCommandText" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.DB.ADO.TEFDBADOCommand.UpdateInternalCommandParams()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.DB.ADO.TEFDBADOCommand.UpdateInternalCommandCommandText()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.DB.ADO.TEFDBADOCommand.ConnectionChanged()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.DB.ADO.TEFDBADOCommand.GetCommandText()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.DB.ADO.TEFDBADOCommand.SetCommandText(System.string)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.DB.ADO.TEFDBADOCommand.GetPrepared()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.DB.ADO.TEFDBADOCommand.SetPrepared(System.Boolean)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.DB.ADO.TEFDBADOCommand.GetParams()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.DB.ADO.TEFDBADOCommand.SetParams(DB.TParams)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.DB.ADO.TEFDBADOCommand.AfterConstruction()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.DB.ADO.TEFDBADOCommand.Destroy()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.DB.ADO.TEFDBADOCommand.Execute()" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:EF.DB.ADO.TEFDBADOParams">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.DB.ADO.TEFDBADOParams.AssignValuesTo(ADODB.TParameters)" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:EF.DB.ADO.TEFDBADOQuery">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:l_ast:src:Kitto:EF.DB.ADO.TEFDBADOQuery.FParams" />
+      <reference referencedUin="delphi:e_field:src:Kitto:EF.DB.ADO.TEFDBADOQuery.FQuery" />
+      <reference referencedUin="delphi:e_field:src:Kitto:EF.DB.ADO.TEFDBADOQuery.FParams" />
+      <reference referencedUin="delphi:e_field:src:Kitto:EF.DB.ADO.TEFDBADOQuery.FCommandText" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.DB.ADO.TEFDBADOQuery.UpdateInternalQueryParams()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.DB.ADO.TEFDBADOQuery.UpdateInternalQueryCommandText()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.DB.ADO.TEFDBADOQuery.ConnectionChanged()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.DB.ADO.TEFDBADOQuery.SetQueryProperties()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.DB.ADO.TEFDBADOQuery.GetCommandText()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.DB.ADO.TEFDBADOQuery.SetCommandText(System.string)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.DB.ADO.TEFDBADOQuery.GetPrepared()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.DB.ADO.TEFDBADOQuery.SetPrepared(System.Boolean)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.DB.ADO.TEFDBADOQuery.GetParams()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.DB.ADO.TEFDBADOQuery.SetParams(DB.TParams)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.DB.ADO.TEFDBADOQuery.GetDataSet()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.DB.ADO.TEFDBADOQuery.GetMasterSource()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.DB.ADO.TEFDBADOQuery.SetMasterSource(DB.TDataSource)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.DB.ADO.TEFDBADOQuery.AfterConstruction()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.DB.ADO.TEFDBADOQuery.Destroy()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.DB.ADO.TEFDBADOQuery.Execute()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.DB.ADO.TEFDBADOQuery.Open()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.DB.ADO.TEFDBADOQuery.Close()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.DB.ADO.TEFDBADOQuery.IsOpen()" />
+    </reference>
+  </view>
+</nodeSet>
