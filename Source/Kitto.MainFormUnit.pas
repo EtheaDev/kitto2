@@ -24,6 +24,8 @@ type
     SessionCountLabel: TLabel;
     ToolButton3: TToolButton;
     RestartAction: TAction;
+    ConfigFileNameComboBox: TComboBox;
+    Label1: TLabel;
     procedure StartActionUpdate(Sender: TObject);
     procedure StopActionUpdate(Sender: TObject);
     procedure StartActionExecute(Sender: TObject);
@@ -33,6 +35,7 @@ type
     procedure RestartActionUpdate(Sender: TObject);
     procedure RestartActionExecute(Sender: TObject);
     procedure FormShow(Sender: TObject);
+    procedure ConfigFileNameComboBoxChange(Sender: TObject);
   private
     FKAppThread: TKExtAppThread;
     FRestart: Boolean;
@@ -40,6 +43,7 @@ type
     procedure KAppThreadTerminated(Sender: TObject);
     procedure UpdateSessionCountlabel;
     function GetSessionCount: Integer;
+    procedure FillConfigFileNameCombo;
     property KAppThread: TKExtAppThread read GetKAppThread;
   end;
 
@@ -52,6 +56,7 @@ implementation
 
 uses
   Math,
+  EF.SysUtils,
   FCGIApp;
 
 procedure TKMainForm.KAppThreadTerminated(Sender: TObject);
@@ -119,20 +124,22 @@ begin
 end;
 
 procedure TKMainForm.FormShow(Sender: TObject);
-
-  function GetFileDate: string;
-  var
-    LInfo: TDateTimeInfoRec;
-  begin
-    if FileGetDateTimeInfo(ParamStr(0), LInfo) then
-      Result := DateTimeToStr(LInfo.CreationTime)
-    else
-      Result := '';
-  end;
-
 begin
-  Caption := Format('%s - %s', [Environment.AppTitle, GetFileDate]);
+  FillConfigFileNameCombo;
   StartAction.Execute;
+end;
+
+procedure TKMainForm.ConfigFileNameComboBoxChange(Sender: TObject);
+begin
+  TKEnvironment.BaseConfigFileName := ConfigFileNameComboBox.Text;
+  Caption := Format('%s - %s', [Environment.AppTitle, GetFileDate]);
+end;
+
+procedure TKMainForm.FillConfigFileNameCombo;
+begin
+  FindAllFiles('yaml', Environment.GetMetadataPath, ConfigFileNameComboBox.Items, False, False);
+  if ConfigFileNameComboBox.Items.Count > 0 then
+    ConfigFileNameComboBox.ItemIndex := 0;
 end;
 
 function TKMainForm.GetKAppThread: TKExtAppThread;

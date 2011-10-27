@@ -244,6 +244,7 @@ begin
 
     // Save record.
     FStoreRecord.MarkAsModified;
+    FStoreRecord.ApplyBeforeRules;
     if not ViewTable.IsDetail then
     begin
       FStoreRecord.Save(True);

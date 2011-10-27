@@ -1359,43 +1359,55 @@ end;
 
 procedure TKViewTableRecord.ApplyAfterRules;
 begin
-  case State of
-    rsNew: ViewTable.ApplyRules(
-      procedure (const ARuleImpl: TKRuleImpl)
-      begin
-        ARuleImpl.AfterAdd(Self);
-      end);
-    rsDirty: ViewTable.ApplyRules(
-      procedure (const ARuleImpl: TKRuleImpl)
-      begin
-        ARuleImpl.AfterUpdate(Self);
-      end);
-    rsDeleted: ViewTable.ApplyRules(
-      procedure (const ARuleImpl: TKRuleImpl)
-      begin
-        ARuleImpl.AfterDelete(Self);
-      end);
+  Backup;
+  try
+    case State of
+      rsNew: ViewTable.ApplyRules(
+        procedure (const ARuleImpl: TKRuleImpl)
+        begin
+          ARuleImpl.AfterAdd(Self);
+        end);
+      rsDirty: ViewTable.ApplyRules(
+        procedure (const ARuleImpl: TKRuleImpl)
+        begin
+          ARuleImpl.AfterUpdate(Self);
+        end);
+      rsDeleted: ViewTable.ApplyRules(
+        procedure (const ARuleImpl: TKRuleImpl)
+        begin
+          ARuleImpl.AfterDelete(Self);
+        end);
+    end;
+  except
+    Restore;
+    raise;
   end;
 end;
 
 procedure TKViewTableRecord.ApplyBeforeRules;
 begin
-  case State of
-    rsNew: ViewTable.ApplyRules(
-      procedure (const ARuleImpl: TKRuleImpl)
-      begin
-        ARuleImpl.BeforeAdd(Self);
-      end);
-    rsDirty: ViewTable.ApplyRules(
-      procedure (const ARuleImpl: TKRuleImpl)
-      begin
-        ARuleImpl.BeforeUpdate(Self);
-      end);
-    rsDeleted: ViewTable.ApplyRules(
-      procedure (const ARuleImpl: TKRuleImpl)
-      begin
-        ARuleImpl.BeforeDelete(Self);
-      end);
+  Backup;
+  try
+    case State of
+      rsNew: ViewTable.ApplyRules(
+        procedure (const ARuleImpl: TKRuleImpl)
+        begin
+          ARuleImpl.BeforeAdd(Self);
+        end);
+      rsDirty: ViewTable.ApplyRules(
+        procedure (const ARuleImpl: TKRuleImpl)
+        begin
+          ARuleImpl.BeforeUpdate(Self);
+        end);
+      rsDeleted: ViewTable.ApplyRules(
+        procedure (const ARuleImpl: TKRuleImpl)
+        begin
+          ARuleImpl.BeforeDelete(Self);
+        end);
+    end;
+  except
+    Restore;
+    raise;
   end;
 end;
 
@@ -1451,43 +1463,35 @@ begin
   if State = rsClean then
     Exit;
 
-  Backup;
+  // BEFORE rules are applied before calling this method.
+  if AUseTransaction then
+    Environment.MainDBConnection.StartTransaction;
   try
-    // When deleting, BEFORE rules are applied before calling this method.
-    if State <> rsDeleted then
-      ApplyBeforeRules;
-    if AUseTransaction then
-      Environment.MainDBConnection.StartTransaction;
+    LDBCommand := Environment.MainDBConnection.CreateDBCommand;
     try
-      LDBCommand := Environment.MainDBConnection.CreateDBCommand;
-      try
-        case State of
-          rsNew: TKSQLBuilder.BuildInsertCommand(Records.Store.ViewTable, LDBCommand, Self);
-          rsDirty: TKSQLBuilder.BuildUpdateCommand(Records.Store.ViewTable, LDBCommand, Self);
-          rsDeleted: TKSQLBuilder.BuildDeleteCommand(Records.Store.ViewTable, LDBCommand, Self);
-        else
-          raise EKError.CreateFmt('Unexpected record state %s.', [GetEnumName(TypeInfo(TKRecordState), Ord(State))]);
-        end;
-        LRowsAffected := LDBCommand.Execute;
-        if LRowsAffected <> 1 then
-          raise EKError.CreateFmt('Update error. Rows affected: %d.', [LRowsAffected]);
-        { TODO : implement cascade delete? }
-        for I := 0 to DetailStoreCount - 1 do
-          DetailStores[I].Save(False);
-        ApplyAfterRules;
-        if AUseTransaction then
-          Environment.MainDBConnection.CommitTransaction;
-        MarkAsClean;
-      finally
-        FreeAndNil(LDBCommand);
+      case State of
+        rsNew: TKSQLBuilder.BuildInsertCommand(Records.Store.ViewTable, LDBCommand, Self);
+        rsDirty: TKSQLBuilder.BuildUpdateCommand(Records.Store.ViewTable, LDBCommand, Self);
+        rsDeleted: TKSQLBuilder.BuildDeleteCommand(Records.Store.ViewTable, LDBCommand, Self);
+      else
+        raise EKError.CreateFmt('Unexpected record state %s.', [GetEnumName(TypeInfo(TKRecordState), Ord(State))]);
       end;
-    except
+      LRowsAffected := LDBCommand.Execute;
+      if LRowsAffected <> 1 then
+        raise EKError.CreateFmt('Update error. Rows affected: %d.', [LRowsAffected]);
+      { TODO : implement cascade delete? }
+      for I := 0 to DetailStoreCount - 1 do
+        DetailStores[I].Save(False);
+      ApplyAfterRules;
       if AUseTransaction then
-        Environment.MainDBConnection.RollbackTransaction;
-      raise;
+        Environment.MainDBConnection.CommitTransaction;
+      MarkAsClean;
+    finally
+      FreeAndNil(LDBCommand);
     end;
   except
-    Restore;
+    if AUseTransaction then
+      Environment.MainDBConnection.RollbackTransaction;
     raise;
   end;
 end;

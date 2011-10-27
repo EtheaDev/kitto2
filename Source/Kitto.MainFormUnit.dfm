@@ -463,12 +463,32 @@ object KMainForm: TKMainForm
     object MonitorTabSheet: TTabSheet
       Caption = 'Monitor'
       ImageIndex = 1
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object SessionCountLabel: TLabel
         Left = 16
-        Top = 16
+        Top = 56
         Width = 90
         Height = 13
         Caption = 'SessionCountLabel'
+      end
+      object Label1: TLabel
+        Left = 16
+        Top = 7
+        Width = 80
+        Height = 13
+        Caption = 'Config File Name'
+      end
+      object ConfigFileNameComboBox: TComboBox
+        Left = 16
+        Top = 29
+        Width = 145
+        Height = 21
+        Style = csDropDownList
+        TabOrder = 0
+        OnChange = ConfigFileNameComboBoxChange
       end
     end
     object LogTabSheet: TTabSheet
