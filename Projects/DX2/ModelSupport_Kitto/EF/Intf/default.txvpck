@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<nodeSet version="1.0">
+  <view uin="ftefdozw5gs_v">
+    <property name="$defaultDiagram" value="true" />
+    <property name="$metaclass" value="Package Diagram" />
+    <property name="$name" value="default" />
+    <reference referencedUin="delphi:e_class:src:Kitto:EF.Intf.IEFInterface">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.Intf.IEFInterface.AsObject()" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:EF.Intf.@unitclass">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.Intf.@unitclass.FreeAndNilEFIntf(ref@)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.Intf.@unitclass.NilEFIntf(ref@)" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:EF.Intf.TEFNoRefCountObject">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:l_impl:src:Kitto:EF.Intf.TEFNoRefCountObject:EF.Intf.IEFInterface" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.Intf.TEFNoRefCountObject.QueryInterface(System.TGUID,out@)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.Intf.TEFNoRefCountObject._AddRef()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.Intf.TEFNoRefCountObject._Release()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.Intf.TEFNoRefCountObject.AsObject()" />
+    </reference>
+  </view>
+</nodeSet>

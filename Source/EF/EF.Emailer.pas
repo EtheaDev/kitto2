@@ -160,13 +160,13 @@ begin
     Port := FSMTPServerParams.Port;
     if FSMTPServerParams.HasAuthInfo then
     begin
-      AuthType := atDefault;
+      AuthType := satDefault;
       Username := SMTPServerParams.UserID;
       Password := SMTPServerParams.Password;
     end
     else
     begin
-      AuthType := atNone;
+      AuthType := satNone;
       Username := '';
       Password := '';
     end;

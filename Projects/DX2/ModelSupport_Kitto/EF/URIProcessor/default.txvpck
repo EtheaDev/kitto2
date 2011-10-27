@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<nodeSet version="1.0">
+  <view uin="1x5au9ob3qp_v">
+    <property name="$defaultDiagram" value="true" />
+    <property name="$metaclass" value="Package Diagram" />
+    <property name="$name" value="default" />
+    <reference referencedUin="delphi:e_class:src:Kitto:EF.URIProcessor.TEFURIHandlerRegistry">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:l_ast:src:Kitto:EF.URIProcessor.TEFURIHandlerRegistry.Handlers[System.Integer]" />
+      <reference referencedUin="delphi:e_field:src:Kitto:EF.URIProcessor.TEFURIHandlerRegistry.FHandlerClasses" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.URIProcessor.TEFURIHandlerRegistry.GetHandlerCount()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.URIProcessor.TEFURIHandlerRegistry.GetHandler(System.Integer)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.URIProcessor.TEFURIHandlerRegistry.Create()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.URIProcessor.TEFURIHandlerRegistry.Destroy()" />
+      <reference referencedUin="delphi:e_property:src:Kitto:EF.URIProcessor.TEFURIHandlerRegistry.HandlerCount" />
+      <reference referencedUin="delphi:e_property:src:Kitto:EF.URIProcessor.TEFURIHandlerRegistry.Handlers[System.Integer]" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.URIProcessor.TEFURIHandlerRegistry.RegisterHandler(EF.URIProcessor.TEFURIHandlerClass,System.Integer)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.URIProcessor.TEFURIHandlerRegistry.UnregisterHandler(EF.URIProcessor.TEFURIHandlerClass)" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:EF.URIProcessor.TEFURIHandler">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.URIProcessor.TEFURIHandler.InternalHandleURI(ref@System.string,ref@System.Boolean)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.URIProcessor.TEFURIHandler.Create()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.URIProcessor.TEFURIHandler.HandleURI(ref@System.string,ref@System.Boolean)" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:EF.URIProcessor.TEFURIHandlerClass">
+      <property name="$shortcutReference" value="true" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:EF.URIProcessor.TEFURI">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:e_field:src:Kitto:EF.URIProcessor.TEFURI.FParamList" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.URIProcessor.TEFURI.ParseParams()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.URIProcessor.TEFURI.GetParamString(System.Integer)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.URIProcessor.TEFURI.GetParamCount()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.URIProcessor.TEFURI.GetParamName(System.Integer)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.URIProcessor.TEFURI.GetParamValue(System.Integer)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.URIProcessor.TEFURI.Destroy()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.URIProcessor.TEFURI.ParamByName(System.string)" />
+      <reference referencedUin="delphi:e_property:src:Kitto:EF.URIProcessor.TEFURI.ParamCount" />
+      <reference referencedUin="delphi:e_property:src:Kitto:EF.URIProcessor.TEFURI.ParamStrings[System.Integer]" />
+      <reference referencedUin="delphi:e_property:src:Kitto:EF.URIProcessor.TEFURI.ParamNames[System.Integer]" />
+      <reference referencedUin="delphi:e_property:src:Kitto:EF.URIProcessor.TEFURI.ParamValues[System.Integer]" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:EF.URIProcessor.TEFURIProcessor">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:l_ast:src:Kitto:EF.URIProcessor.TEFURIProcessor.FRegistry" />
+      <reference referencedUin="delphi:e_field:src:Kitto:EF.URIProcessor.TEFURIProcessor.FRegistry" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.URIProcessor.TEFURIProcessor.Create(EF.URIProcessor.TEFURIHandlerRegistry)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.URIProcessor.TEFURIProcessor.HandleURI(ref@System.string)" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:EF.URIProcessor.@unitclass">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:l_ast:src:Kitto:EF.URIProcessor.@unitclass._EFURIHandlerRegistry" />
+      <reference referencedUin="delphi:l_ast:src:Kitto:EF.URIProcessor.@unitclass._EFURIProcessor" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.URIProcessor.@unitclass.URIProcessor()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.URIProcessor.@unitclass.URIHandlerRegistry()" />
+      <reference referencedUin="delphi:e_field:src:Kitto:EF.URIProcessor.@unitclass._EFURIProcessor" />
+      <reference referencedUin="delphi:e_field:src:Kitto:EF.URIProcessor.@unitclass._EFURIHandlerRegistry" />
+    </reference>
+  </view>
+</nodeSet>

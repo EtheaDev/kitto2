@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<nodeSet version="1.0">
+  <view uin="japodezp40s_v">
+    <property name="$defaultDiagram" value="true" />
+    <property name="$metaclass" value="Package Diagram" />
+    <property name="$name" value="default" />
+    <reference referencedUin="delphi:e_class:src:Kitto:EF.DateUtils.@unitclass">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.DateUtils.@unitclass.FillMonthDayList(System.TDateTime,Classes.TStrings,System.Boolean,System.string)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.DateUtils.@unitclass.AddIntervalToDayList(System.TDateTime,System.TDateTime,Classes.TStrings,System.Boolean,System.Boolean,System.string)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.DateUtils.@unitclass.RemoveIntervalFromDayList(System.TDateTime,System.TDateTime,Classes.TStrings,System.string)" />
+    </reference>
+  </view>
+</nodeSet>

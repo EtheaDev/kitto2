@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<nodeSet version="1.0">
+  <view uin="flu02gqu3mi_v">
+    <property name="$defaultDiagram" value="true" />
+    <property name="$metaclass" value="Package Diagram" />
+    <property name="$name" value="default" />
+    <reference referencedUin="delphi:e_class:src:Kitto:Kitto.Ext.StatusBar.@unitclass">
+      <property name="$shortcutReference" value="true" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:Kitto.Ext.StatusBar.TKExtDefaultStatusBar">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Ext.StatusBar.TKExtDefaultStatusBar.ClearStatus()" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:Kitto.Ext.StatusBar.TKExtStatusBarController">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:l_ast:src:Kitto:Kitto.Ext.StatusBar.TKExtStatusBarController.FStatusBar" />
+      <reference referencedUin="delphi:e_field:src:Kitto:Kitto.Ext.StatusBar.TKExtStatusBarController.FStatusBar" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Ext.StatusBar.TKExtStatusBarController.InitDefaults()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Ext.StatusBar.TKExtStatusBarController.DoDisplay()" />
+    </reference>
+  </view>
+</nodeSet>

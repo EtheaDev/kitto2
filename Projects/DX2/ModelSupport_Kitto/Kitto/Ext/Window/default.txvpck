@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<nodeSet version="1.0">
+  <view uin="oxhlwn0bdqq_v">
+    <property name="$defaultDiagram" value="true" />
+    <property name="$metaclass" value="Package Diagram" />
+    <property name="$name" value="default" />
+    <reference referencedUin="delphi:e_class:src:Kitto:Kitto.Ext.Window.@unitclass">
+      <property name="$shortcutReference" value="true" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:Kitto.Ext.Window.TKExtWindowController">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:e_field:src:Kitto:Kitto.Ext.Window.TKExtWindowController.FController" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Ext.Window.TKExtWindowController.CreateSubController()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Ext.Window.TKExtWindowController.DoDisplay()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Ext.Window.TKExtWindowController.InitDefaults()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Ext.Window.TKExtWindowController.Destroy()" />
+    </reference>
+  </view>
+</nodeSet>

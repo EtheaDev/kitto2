@@ -432,6 +432,9 @@ begin
   Assert(Assigned(Rule));
 
   inherited;
+  { TODO :
+Fix ExtPascal rewrite code or reimplement as named regex
+rendered in a dynamically included script. }
   if AField is TExtFormTextField then
     TExtFormTextField(AField).MaskRe := GetMask;
 end;

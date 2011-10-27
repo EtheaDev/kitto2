@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<nodeSet version="1.0">
+  <view uin="iguphwwa1kp_v">
+    <property name="$defaultDiagram" value="true" />
+    <property name="$metaclass" value="Package Diagram" />
+    <property name="$name" value="default" />
+    <reference referencedUin="design:view:::wh6e01027pj_v">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:e_class:src:Kitto:Kitto.Localization.dxgettext.@unitclass" />
+      <reference referencedUin="delphi:e_class:src:Kitto:Kitto.Localization.dxgettext.TKdxgettextLocalizationTool" />
+    </reference>
+  </view>
+</nodeSet>

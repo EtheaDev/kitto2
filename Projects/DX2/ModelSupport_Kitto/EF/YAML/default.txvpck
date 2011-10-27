@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<nodeSet version="1.0">
+  <view uin="70088boazcn_v">
+    <property name="$defaultDiagram" value="true" />
+    <property name="$metaclass" value="Package Diagram" />
+    <property name="$name" value="default" />
+    <reference referencedUin="delphi:e_class:src:Kitto:EF.YAML.@unitclass">
+      <property name="$shortcutReference" value="true" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:EF.YAML.TEFYAMLParser">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:l_ast:src:Kitto:EF.YAML.TEFYAMLParser.LastValueType" />
+      <reference referencedUin="delphi:l_ast:src:Kitto:EF.YAML.TEFYAMLParser.FNextValueType" />
+      <reference referencedUin="delphi:l_ast:src:Kitto:EF.YAML.TEFYAMLParser.FLastValueType" />
+      <reference referencedUin="delphi:e_field:src:Kitto:EF.YAML.TEFYAMLParser.FIndents" />
+      <reference referencedUin="delphi:e_field:src:Kitto:EF.YAML.TEFYAMLParser.FPrevIndent" />
+      <reference referencedUin="delphi:e_field:src:Kitto:EF.YAML.TEFYAMLParser.FLastValueType" />
+      <reference referencedUin="delphi:e_field:src:Kitto:EF.YAML.TEFYAMLParser.FLastIndentIncrement" />
+      <reference referencedUin="delphi:e_field:src:Kitto:EF.YAML.TEFYAMLParser.FNextValueType" />
+      <reference referencedUin="delphi:e_field:src:Kitto:EF.YAML.TEFYAMLParser.FMultiLineFirstLineIndent" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.YAML.TEFYAMLParser.AfterConstruction()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.YAML.TEFYAMLParser.Destroy()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.YAML.TEFYAMLParser.Reset()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.YAML.TEFYAMLParser.ParseLine(System.string,out@System.string,out@System.string)" />
+      <reference referencedUin="delphi:e_property:src:Kitto:EF.YAML.TEFYAMLParser.LastValueType" />
+      <reference referencedUin="delphi:e_property:src:Kitto:EF.YAML.TEFYAMLParser.LastIndentIncrement" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:EF.YAML.TEFYAMLReader">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:l_ast:src:Kitto:EF.YAML.TEFYAMLReader.Parser" />
+      <reference referencedUin="delphi:l_ast:src:Kitto:EF.YAML.TEFYAMLReader.FParser" />
+      <reference referencedUin="delphi:e_field:src:Kitto:EF.YAML.TEFYAMLReader.FParser" />
+      <reference referencedUin="delphi:e_field:src:Kitto:EF.YAML.TEFYAMLReader.FFormatSettings" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.YAML.TEFYAMLReader.GetParser()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.YAML.TEFYAMLReader.Destroy()" />
+      <reference referencedUin="delphi:e_property:src:Kitto:EF.YAML.TEFYAMLReader.Parser" />
+      <reference referencedUin="delphi:e_property:src:Kitto:EF.YAML.TEFYAMLReader.FormatSettings" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.YAML.TEFYAMLReader.LoadTreeFromFile(EF.Tree.TEFTree,System.string)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.YAML.TEFYAMLReader.LoadTreeFromStream(EF.Tree.TEFTree,Classes.TStream)" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:EF.YAML.TEFYAMLWriter">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:e_field:src:Kitto:EF.YAML.TEFYAMLWriter.FIndentChars" />
+      <reference referencedUin="delphi:e_field:src:Kitto:EF.YAML.TEFYAMLWriter.FSpacingChars" />
+      <reference referencedUin="delphi:e_field:src:Kitto:EF.YAML.TEFYAMLWriter.FQuote" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.YAML.TEFYAMLWriter.WriteNode(EF.Tree.TEFNode,Classes.TTextWriter,System.Integer)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.YAML.TEFYAMLWriter.AfterConstruction()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.YAML.TEFYAMLWriter.SaveTreeToFile(EF.Tree.TEFTree,System.string)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.YAML.TEFYAMLWriter.SaveTreeToStream(EF.Tree.TEFTree,Classes.TStream)" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:EF.YAML.TEFYAMLValueType">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:e_field:src:Kitto:EF.YAML.TEFYAMLValueType.vtSingleLine" />
+      <reference referencedUin="delphi:e_field:src:Kitto:EF.YAML.TEFYAMLValueType.vtMultiLineWithNL" />
+      <reference referencedUin="delphi:e_field:src:Kitto:EF.YAML.TEFYAMLValueType.vtMultiLineWithSpace" />
+    </reference>
+  </view>
+</nodeSet>

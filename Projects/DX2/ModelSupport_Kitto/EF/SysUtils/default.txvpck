@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="utf-8"?>
+<nodeSet version="1.0">
+  <view uin="32wdshc0h0o_v">
+    <property name="$defaultDiagram" value="true" />
+    <property name="$metaclass" value="Package Diagram" />
+    <property name="$name" value="default" />
+    <reference referencedUin="delphi:e_class:src:Kitto:EF.SysUtils.TEFFileLister">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:l_gnt:src:Kitto:EF.SysUtils.TEFFileLister:EF.SysUtils.TEFSourcePathOnlyFileProcessor" />
+      <reference referencedUin="delphi:l_ast:src:Kitto:EF.SysUtils.TEFFileLister.FFileFormats" />
+      <reference referencedUin="delphi:e_field:src:Kitto:EF.SysUtils.TEFFileLister.FFileFormats" />
+      <reference referencedUin="delphi:e_field:src:Kitto:EF.SysUtils.TEFFileLister.FFileNameList" />
+      <reference referencedUin="delphi:e_field:src:Kitto:EF.SysUtils.TEFFileLister.FFullPaths" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.SysUtils.TEFFileLister.DoProcessFile(System.string,System.string)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.SysUtils.TEFFileLister.ListFiles(Classes.TStrings,System.string[],System.Boolean)" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:EF.SysUtils.TEFDeleteDirectoryNotifyEvent">
+      <property name="$shortcutReference" value="true" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:EF.SysUtils.TEFSourceDestPathFileProcessor">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:l_gnt:src:Kitto:EF.SysUtils.TEFSourceDestPathFileProcessor:EF.SysUtils.TEFFileProcessor" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.SysUtils.TEFSourceDestPathFileProcessor.CheckPreconditions()" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:EF.SysUtils.TEFFileErrorAction">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:e_field:src:Kitto:EF.SysUtils.TEFFileErrorAction.eaRetry" />
+      <reference referencedUin="delphi:e_field:src:Kitto:EF.SysUtils.TEFFileErrorAction.eaSkip" />
+      <reference referencedUin="delphi:e_field:src:Kitto:EF.SysUtils.TEFFileErrorAction.eaAbort" />
+      <reference referencedUin="delphi:e_field:src:Kitto:EF.SysUtils.TEFFileErrorAction.eaFail" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:EF.SysUtils.TEFFileProcessor">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:l_ast:src:Kitto:EF.SysUtils.TEFFileProcessor.DefaultErrorAction" />
+      <reference referencedUin="delphi:l_ast:src:Kitto:EF.SysUtils.TEFFileProcessor.FDefaultErrorAction" />
+      <reference referencedUin="delphi:l_ast:src:Kitto:EF.SysUtils.TEFFileProcessor.AfterProcessFile" />
+      <reference referencedUin="delphi:l_ast:src:Kitto:EF.SysUtils.TEFFileProcessor.BeforeProcessFile" />
+      <reference referencedUin="delphi:l_ast:src:Kitto:EF.SysUtils.TEFFileProcessor.FBeforeProcessFile" />
+      <reference referencedUin="delphi:l_ast:src:Kitto:EF.SysUtils.TEFFileProcessor.FAfterProcessFile" />
+      <reference referencedUin="delphi:l_ast:src:Kitto:EF.SysUtils.TEFFileProcessor.OnProcessFileError" />
+      <reference referencedUin="delphi:l_ast:src:Kitto:EF.SysUtils.TEFFileProcessor.FOnProcessFileError" />
+      <reference referencedUin="delphi:e_field:src:Kitto:EF.SysUtils.TEFFileProcessor.FRecurseSubdirs" />
+      <reference referencedUin="delphi:e_field:src:Kitto:EF.SysUtils.TEFFileProcessor.FSourcePath" />
+      <reference referencedUin="delphi:e_field:src:Kitto:EF.SysUtils.TEFFileProcessor.FDestinationPath" />
+      <reference referencedUin="delphi:e_field:src:Kitto:EF.SysUtils.TEFFileProcessor.FOnProcessFileError" />
+      <reference referencedUin="delphi:e_field:src:Kitto:EF.SysUtils.TEFFileProcessor.FFileMask" />
+      <reference referencedUin="delphi:e_field:src:Kitto:EF.SysUtils.TEFFileProcessor.FRetryCount" />
+      <reference referencedUin="delphi:e_field:src:Kitto:EF.SysUtils.TEFFileProcessor.FRetryDelay" />
+      <reference referencedUin="delphi:e_field:src:Kitto:EF.SysUtils.TEFFileProcessor.FAfterProcessFile" />
+      <reference referencedUin="delphi:e_field:src:Kitto:EF.SysUtils.TEFFileProcessor.FBeforeProcessFile" />
+      <reference referencedUin="delphi:e_field:src:Kitto:EF.SysUtils.TEFFileProcessor.FDefaultErrorAction" />
+      <reference referencedUin="delphi:e_field:src:Kitto:EF.SysUtils.TEFFileProcessor.FExceptions" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.SysUtils.TEFFileProcessor.DoProcess(System.string,System.string)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.SysUtils.TEFFileProcessor.SetExceptions(Classes.TStrings)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.SysUtils.TEFFileProcessor.DoProcessFileError(SysUtils.Exception,System.string,System.string)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.SysUtils.TEFFileProcessor.Process()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.SysUtils.TEFFileProcessor.ProcessFile(System.string,System.string)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.SysUtils.TEFFileProcessor.DoProcessFile(System.string,System.string)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.SysUtils.TEFFileProcessor.CheckPreconditions()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.SysUtils.TEFFileProcessor.AfterProcessDirectory(System.string)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.SysUtils.TEFFileProcessor.Create()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.SysUtils.TEFFileProcessor.Destroy()" />
+      <reference referencedUin="delphi:e_property:src:Kitto:EF.SysUtils.TEFFileProcessor.SourcePath" />
+      <reference referencedUin="delphi:e_property:src:Kitto:EF.SysUtils.TEFFileProcessor.DestinationPath" />
+      <reference referencedUin="delphi:e_property:src:Kitto:EF.SysUtils.TEFFileProcessor.RecurseSubdirs" />
+      <reference referencedUin="delphi:e_property:src:Kitto:EF.SysUtils.TEFFileProcessor.FileMask" />
+      <reference referencedUin="delphi:e_property:src:Kitto:EF.SysUtils.TEFFileProcessor.OnProcessFileError" />
+      <reference referencedUin="delphi:e_property:src:Kitto:EF.SysUtils.TEFFileProcessor.DefaultErrorAction" />
+      <reference referencedUin="delphi:e_property:src:Kitto:EF.SysUtils.TEFFileProcessor.BeforeProcessFile" />
+      <reference referencedUin="delphi:e_property:src:Kitto:EF.SysUtils.TEFFileProcessor.AfterProcessFile" />
+      <reference referencedUin="delphi:e_property:src:Kitto:EF.SysUtils.TEFFileProcessor.RetryCount" />
+      <reference referencedUin="delphi:e_property:src:Kitto:EF.SysUtils.TEFFileProcessor.RetryDelay" />
+      <reference referencedUin="delphi:e_property:src:Kitto:EF.SysUtils.TEFFileProcessor.Exceptions" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:EF.SysUtils.TEFSourcePathOnlyFileProcessor">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:l_gnt:src:Kitto:EF.SysUtils.TEFSourcePathOnlyFileProcessor:EF.SysUtils.TEFFileProcessor" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:EF.SysUtils.TEFFileChecker">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:l_gnt:src:Kitto:EF.SysUtils.TEFFileChecker:EF.SysUtils.TEFSourcePathOnlyFileProcessor" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.SysUtils.TEFFileChecker.DoProcessFile(System.string,System.string)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.SysUtils.TEFFileChecker.CheckFiles()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.SysUtils.TEFFileChecker.CheckFile(System.string)" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:EF.SysUtils.@unitclass">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:l_ast:src:Kitto:EF.SysUtils.@unitclass.DEFAULT_DEFAULT_ERROR_ACTION" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.SysUtils.@unitclass.IsFileInUse(System.string)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.SysUtils.@unitclass.GetFileCount(System.string)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.SysUtils.@unitclass.GetFileSize(System.string)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.SysUtils.@unitclass.GetFileDateTime(System.string)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.SysUtils.@unitclass.RemoveTrailingPathDelim(System.string)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.SysUtils.@unitclass.ExtractFileFormat(System.string)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.SysUtils.@unitclass.IsAbsolutePath(System.string)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.SysUtils.@unitclass.FindAllFiles(System.string,System.string,Classes.TStrings,System.Boolean)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.SysUtils.@unitclass.FindAllFiles(System.string[],System.string,Classes.TStrings,System.Boolean)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.SysUtils.@unitclass.ExecuteApplication(System.string,System.Boolean)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.SysUtils.@unitclass.ExecuteApplication(System.string,Classes.TStrings)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.SysUtils.@unitclass.ExecuteApplication(System.string,System.string,System.Boolean)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.SysUtils.@unitclass.ExecuteApplication(System.string,out@System.Cardinal)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.SysUtils.@unitclass.TerminateApplication(System.Cardinal)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.SysUtils.@unitclass.TrimWorkingSet()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.SysUtils.@unitclass.RegDeleteKeyAndSubkeys(Registry.TRegistry,System.string)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.SysUtils.@unitclass.GetMachineName()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.SysUtils.@unitclass.GetUserName()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.SysUtils.@unitclass.ExpandEnvironmentVariables(System.string)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.SysUtils.@unitclass.SafeGetWindowsDirectory()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.SysUtils.@unitclass.SafeGetSystemDirectory()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.SysUtils.@unitclass.GetTempDirectory()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.SysUtils.@unitclass.GetTempFileName(System.string)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.SysUtils.@unitclass.GetCmdLineParamValue(System.string,System.string)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.SysUtils.@unitclass.GetUniqueFileName(System.string,System.string)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.SysUtils.@unitclass.GetFormatSettings()" />
+      <reference referencedUin="delphi:e_field:src:Kitto:EF.SysUtils.@unitclass.DEFAULT_RETRY_COUNT" />
+      <reference referencedUin="delphi:e_field:src:Kitto:EF.SysUtils.@unitclass.DEFAULT_RETRY_DELAY" />
+      <reference referencedUin="delphi:e_field:src:Kitto:EF.SysUtils.@unitclass.DEFAULT_RECURSE_SUBDIRS" />
+      <reference referencedUin="delphi:e_field:src:Kitto:EF.SysUtils.@unitclass.DEFAULT_FILE_MASK" />
+      <reference referencedUin="delphi:e_field:src:Kitto:EF.SysUtils.@unitclass.DEFAULT_DEFAULT_ERROR_ACTION" />
+      <reference referencedUin="delphi:e_field:src:Kitto:EF.SysUtils.@unitclass.DEFAULT_DELETE_EMPTY_ROOT_FOLDER" />
+      <reference referencedUin="delphi:e_field:src:Kitto:EF.SysUtils.@unitclass.DEFAULT_DELETE_EMPTY_SUBFOLDERS" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.SysUtils.@unitclass.DeleteFile(System.string)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.SysUtils.@unitclass.DeleteAllFiles(System.string)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.SysUtils.@unitclass.CopyFile(System.string,System.string)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.SysUtils.@unitclass.CopyAllFilesAndFolders(System.string,System.string,EF.SysUtils.TEFProcessFileNotifyEvent,EF.SysUtils.TEFProcessFileNotifyEvent)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.SysUtils.@unitclass.CopyAllFilesAndFoldersExcept(System.string,System.string,System.string[],EF.SysUtils.TEFProcessFileNotifyEvent,EF.SysUtils.TEFProcessFileNotifyEvent)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.SysUtils.@unitclass.CheckFileInUse(System.string)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.SysUtils.@unitclass.SameDirectory(System.string,System.string)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.SysUtils.@unitclass.GetCurrentProcessMemory()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.SysUtils.@unitclass.ShrinkProcessWorkingSet(System.Cardinal)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.SysUtils.@unitclass.InternalExecuteApplication(System.string,System.Integer,System.Boolean,System.Boolean,out@System.Cardinal,System.string,Classes.TStrings)" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:EF.SysUtils.TEFStringArray">
+      <property name="$shortcutReference" value="true" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:EF.SysUtils.TEFProcessFileNotifyEvent">
+      <property name="$shortcutReference" value="true" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:EF.SysUtils.TEFFileCopier">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:l_gnt:src:Kitto:EF.SysUtils.TEFFileCopier:EF.SysUtils.TEFSourceDestPathFileProcessor" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.SysUtils.TEFFileCopier.DoProcessFile(System.string,System.string)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.SysUtils.TEFFileCopier.CopyFiles()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.SysUtils.TEFFileCopier.CopyFile(System.string,System.string)" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:EF.SysUtils.TEFProcessFileErrorEvent">
+      <property name="$shortcutReference" value="true" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:EF.SysUtils.TEFFileWriter">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:l_gnt:src:Kitto:EF.SysUtils.TEFFileWriter:EF.SysUtils.TEFSourcePathOnlyFileProcessor" />
+      <reference referencedUin="delphi:e_field:src:Kitto:EF.SysUtils.TEFFileWriter.FFileContent" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.SysUtils.TEFFileWriter.DoProcessFile(System.string,System.string)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.SysUtils.TEFFileWriter.WriteFile(System.string,System.string)" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:EF.SysUtils.TEFFileDeleter">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:l_ast:src:Kitto:EF.SysUtils.TEFFileDeleter.AfterDeleteDirectory" />
+      <reference referencedUin="delphi:l_ast:src:Kitto:EF.SysUtils.TEFFileDeleter.BeforeDeleteDirectory" />
+      <reference referencedUin="delphi:l_ast:src:Kitto:EF.SysUtils.TEFFileDeleter.FBeforeDeleteDirectory" />
+      <reference referencedUin="delphi:l_ast:src:Kitto:EF.SysUtils.TEFFileDeleter.FAfterDeleteDirectory" />
+      <reference referencedUin="delphi:l_gnt:src:Kitto:EF.SysUtils.TEFFileDeleter:EF.SysUtils.TEFSourcePathOnlyFileProcessor" />
+      <reference referencedUin="delphi:e_field:src:Kitto:EF.SysUtils.TEFFileDeleter.FDeleteEmptyRootFolder" />
+      <reference referencedUin="delphi:e_field:src:Kitto:EF.SysUtils.TEFFileDeleter.FDeleteEmptySubfolders" />
+      <reference referencedUin="delphi:e_field:src:Kitto:EF.SysUtils.TEFFileDeleter.FAfterDeleteDirectory" />
+      <reference referencedUin="delphi:e_field:src:Kitto:EF.SysUtils.TEFFileDeleter.FBeforeDeleteDirectory" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.SysUtils.TEFFileDeleter.DeleteDirectory(System.string)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.SysUtils.TEFFileDeleter.DoDeleteDirectory(System.string)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.SysUtils.TEFFileDeleter.DoProcessFile(System.string,System.string)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.SysUtils.TEFFileDeleter.AfterProcessDirectory(System.string)" />
+      <reference referencedUin="delphi:e_property:src:Kitto:EF.SysUtils.TEFFileDeleter.BeforeDeleteDirectory" />
+      <reference referencedUin="delphi:e_property:src:Kitto:EF.SysUtils.TEFFileDeleter.AfterDeleteDirectory" />
+      <reference referencedUin="delphi:e_property:src:Kitto:EF.SysUtils.TEFFileDeleter.DeleteEmptyRootFolder" />
+      <reference referencedUin="delphi:e_property:src:Kitto:EF.SysUtils.TEFFileDeleter.DeleteEmptySubfolders" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.SysUtils.TEFFileDeleter.DeleteFiles()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.SysUtils.TEFFileDeleter.DeleteFile(System.string)" />
+    </reference>
+  </view>
+</nodeSet>

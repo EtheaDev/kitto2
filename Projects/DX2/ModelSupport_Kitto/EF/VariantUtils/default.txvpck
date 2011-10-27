@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<nodeSet version="1.0">
+  <view uin="f98vc0kvx0m_v">
+    <property name="$defaultDiagram" value="true" />
+    <property name="$metaclass" value="Package Diagram" />
+    <property name="$name" value="default" />
+    <reference referencedUin="delphi:e_class:src:Kitto:EF.VariantUtils.@unitclass">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.VariantUtils.@unitclass.EFVarToStr(System.Variant)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.VariantUtils.@unitclass.EFVarToDateTime(System.Variant)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.VariantUtils.@unitclass.EFVarToInt(System.Variant)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.VariantUtils.@unitclass.EFVarToFloat(System.Variant)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.VariantUtils.@unitclass.EFVarToCurrency(System.Variant)" />
+    </reference>
+  </view>
+</nodeSet>

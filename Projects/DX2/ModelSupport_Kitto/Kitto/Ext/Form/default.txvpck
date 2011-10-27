@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<nodeSet version="1.0">
+  <view uin="c0lzm6d6dsr_v">
+    <property name="$defaultDiagram" value="true" />
+    <property name="$metaclass" value="Package Diagram" />
+    <property name="$name" value="default" />
+    <reference referencedUin="delphi:e_class:src:Kitto:Kitto.Ext.Form.TKExtFormPanelController">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:e_field:src:Kitto:Kitto.Ext.Form.TKExtFormPanelController.FTabPanel" />
+      <reference referencedUin="delphi:e_field:src:Kitto:Kitto.Ext.Form.TKExtFormPanelController.FFormPanel" />
+      <reference referencedUin="delphi:e_field:src:Kitto:Kitto.Ext.Form.TKExtFormPanelController.FIsReadOnly" />
+      <reference referencedUin="delphi:e_field:src:Kitto:Kitto.Ext.Form.TKExtFormPanelController.FSaveButton" />
+      <reference referencedUin="delphi:e_field:src:Kitto:Kitto.Ext.Form.TKExtFormPanelController.FCancelButton" />
+      <reference referencedUin="delphi:e_field:src:Kitto:Kitto.Ext.Form.TKExtFormPanelController.FDetailToolbar" />
+      <reference referencedUin="delphi:e_field:src:Kitto:Kitto.Ext.Form.TKExtFormPanelController.FDetailButtons" />
+      <reference referencedUin="delphi:e_field:src:Kitto:Kitto.Ext.Form.TKExtFormPanelController.FDetailPanels" />
+      <reference referencedUin="delphi:e_field:src:Kitto:Kitto.Ext.Form.TKExtFormPanelController.FOperation" />
+      <reference referencedUin="delphi:e_field:src:Kitto:Kitto.Ext.Form.TKExtFormPanelController.FFocusField" />
+      <reference referencedUin="delphi:e_field:src:Kitto:Kitto.Ext.Form.TKExtFormPanelController.FStoreRecord" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Ext.Form.TKExtFormPanelController.CreateDetailToolbar()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Ext.Form.TKExtFormPanelController.CreateEditors(System.Boolean)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Ext.Form.TKExtFormPanelController.StartOperation()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Ext.Form.TKExtFormPanelController.FocusFirstField()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Ext.Form.TKExtFormPanelController.CreateDetailPanels()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Ext.Form.TKExtFormPanelController.LoadDetailData()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Ext.Form.TKExtFormPanelController.LoadData()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Ext.Form.TKExtFormPanelController.InitComponents()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Ext.Form.TKExtFormPanelController.Destroy()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Ext.Form.TKExtFormPanelController.GetRecord()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Ext.Form.TKExtFormPanelController.SaveChanges()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Ext.Form.TKExtFormPanelController.CancelChanges()" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:Kitto.Ext.Form.@unitclass">
+      <property name="$shortcutReference" value="true" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:Kitto.Ext.Form.TKExtDetailFormButton">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:e_field:src:Kitto:Kitto.Ext.Form.TKExtDetailFormButton.FViewTable" />
+      <reference referencedUin="delphi:e_field:src:Kitto:Kitto.Ext.Form.TKExtDetailFormButton.FDetailHostWindow" />
+      <reference referencedUin="delphi:e_field:src:Kitto:Kitto.Ext.Form.TKExtDetailFormButton.FServerStore" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Ext.Form.TKExtDetailFormButton.SetViewTable(Kitto.Metadata.DataView.TKViewTable)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Ext.Form.TKExtDetailFormButton.Destroy()" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.Ext.Form.TKExtDetailFormButton.ViewTable" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.Ext.Form.TKExtDetailFormButton.ServerStore" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Ext.Form.TKExtDetailFormButton.ShowDetailWindow()" />
+    </reference>
+  </view>
+</nodeSet>

@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<nodeSet version="1.0">
+  <view uin="up2xql1r6me_v">
+    <property name="$defaultDiagram" value="true" />
+    <property name="$metaclass" value="Package Diagram" />
+    <property name="$name" value="default" />
+    <reference referencedUin="delphi:e_class:src:Kitto:EF.Macros.TEFFileMacroExpander">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:l_gnt:src:Kitto:EF.Macros.TEFFileMacroExpander:EF.Macros.TEFMacroExpander" />
+      <reference referencedUin="delphi:e_field:src:Kitto:EF.Macros.TEFFileMacroExpander.FDefaultPath" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.Macros.TEFFileMacroExpander.ExpandParams(System.string,Classes.TStrings)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.Macros.TEFFileMacroExpander.InternalExpand(System.string)" />
+      <reference referencedUin="delphi:e_property:src:Kitto:EF.Macros.TEFFileMacroExpander.DefaultPath" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:EF.Macros.@unitclass">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:l_ast:src:Kitto:EF.Macros.@unitclass._DefaultMacroExpansionEngine" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.Macros.@unitclass.DefaultMacroExpansionEngine()" />
+      <reference referencedUin="delphi:e_field:src:Kitto:EF.Macros.@unitclass._DefaultMacroExpansionEngine" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:EF.Macros.TEFCmdLineParamMacroExpander">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:l_gnt:src:Kitto:EF.Macros.TEFCmdLineParamMacroExpander:EF.Macros.TEFMacroExpander" />
+      <reference referencedUin="delphi:e_field:src:Kitto:EF.Macros.TEFCmdLineParamMacroExpander.FParams" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.Macros.TEFCmdLineParamMacroExpander.ReadCmdLineParams()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.Macros.TEFCmdLineParamMacroExpander.AfterConstruction()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.Macros.TEFCmdLineParamMacroExpander.Destroy()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.Macros.TEFCmdLineParamMacroExpander.InternalExpand(System.string)" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:EF.Macros.TEFEnvironmentVariableMacroExpander">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:l_gnt:src:Kitto:EF.Macros.TEFEnvironmentVariableMacroExpander:EF.Macros.TEFMacroExpander" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.Macros.TEFEnvironmentVariableMacroExpander.InternalExpand(System.string)" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:EF.Macros.TEFPathMacroExpander">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:l_gnt:src:Kitto:EF.Macros.TEFPathMacroExpander:EF.Macros.TEFMacroExpander" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.Macros.TEFPathMacroExpander.InternalExpand(System.string)" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:EF.Macros.TEFDateTimeStrMacroExpander">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:l_gnt:src:Kitto:EF.Macros.TEFDateTimeStrMacroExpander:EF.Macros.TEFMacroExpander" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.Macros.TEFDateTimeStrMacroExpander.InternalExpand(System.string)" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:EF.Macros.TEFSysMacroExpander">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:l_gnt:src:Kitto:EF.Macros.TEFSysMacroExpander:EF.Macros.TEFMacroExpander" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.Macros.TEFSysMacroExpander.InternalExpand(System.string)" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:EF.Macros.TEFMacroExpander">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.Macros.TEFMacroExpander.ExpandMacros(System.string,System.string,System.string)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.Macros.TEFMacroExpander.InternalExpand(System.string)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.Macros.TEFMacroExpander.Create()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.Macros.TEFMacroExpander.Expand(System.string)" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:EF.Macros.TEFMacroExpansionEngine">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:l_ast:src:Kitto:EF.Macros.TEFMacroExpansionEngine.FPrevious" />
+      <reference referencedUin="delphi:e_field:src:Kitto:EF.Macros.TEFMacroExpansionEngine.FExpanders" />
+      <reference referencedUin="delphi:e_field:src:Kitto:EF.Macros.TEFMacroExpansionEngine.FPrevious" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.Macros.TEFMacroExpansionEngine.CallExpanders(System.string)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.Macros.TEFMacroExpansionEngine.Create(EF.Macros.TEFMacroExpansionEngine)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.Macros.TEFMacroExpansionEngine.Destroy()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.Macros.TEFMacroExpansionEngine.Expand(System.string)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.Macros.TEFMacroExpansionEngine.AddExpander(EF.Macros.TEFMacroExpander)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.Macros.TEFMacroExpansionEngine.RemoveExpander(EF.Macros.TEFMacroExpander)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.Macros.TEFMacroExpansionEngine.IndexOfExpander(EF.Macros.TEFMacroExpander)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.Macros.TEFMacroExpansionEngine.RemoveExpanders(EF.Macros.TEFMacroExpanderClass)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.Macros.TEFMacroExpansionEngine.ClearExpanders()" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:EF.Macros.TEFGUIDMacroExpander">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:l_gnt:src:Kitto:EF.Macros.TEFGUIDMacroExpander:EF.Macros.TEFMacroExpander" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.Macros.TEFGUIDMacroExpander.InternalExpand(System.string)" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:EF.Macros.TEFMacroExpanderClass">
+      <property name="$shortcutReference" value="true" />
+    </reference>
+  </view>
+</nodeSet>

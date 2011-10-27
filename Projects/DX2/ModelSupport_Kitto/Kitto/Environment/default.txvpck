@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<nodeSet version="1.0">
+  <view uin="jjjwbe92vzo_v">
+    <property name="$defaultDiagram" value="true" />
+    <property name="$metaclass" value="Package Diagram" />
+    <property name="$name" value="default" />
+    <reference referencedUin="delphi:e_class:src:Kitto:Kitto.Environment.@unitclass">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:l_ast:src:Kitto:Kitto.Environment.@unitclass._Environment" />
+      <reference referencedUin="delphi:l_ast:src:Kitto:Kitto.Environment.@unitclass._EnvironmentClass" />
+      <reference referencedUin="delphi:l_ast:src:Kitto:Kitto.Environment.@unitclass._EnvironmentSingleton" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Environment.@unitclass.Environment()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Environment.@unitclass.SetEnvironmentClass(Kitto.Environment.TKEnvironmentClass)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Environment.@unitclass.SetEnvironmentSingleton(Kitto.Environment.TKEnvironmentSingleton)" />
+      <reference referencedUin="delphi:e_field:src:Kitto:Kitto.Environment.@unitclass._Environment" />
+      <reference referencedUin="delphi:e_field:src:Kitto:Kitto.Environment.@unitclass._EnvironmentClass" />
+      <reference referencedUin="delphi:e_field:src:Kitto:Kitto.Environment.@unitclass._EnvironmentSingleton" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Environment.@unitclass.EnvironmentAsIntf()" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:Kitto.Environment.TKMacroExpander">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Environment.TKMacroExpander.InternalExpand(System.string)" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:Kitto.Environment.TKEnvironment">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:e_field:src:Kitto:Kitto.Environment.TKEnvironment.FDBConnections" />
+      <reference referencedUin="delphi:e_field:src:Kitto:Kitto.Environment.TKEnvironment.FMacroExpansionEngine" />
+      <reference referencedUin="delphi:e_field:src:Kitto:Kitto.Environment.TKEnvironment.FAppHomePath" />
+      <reference referencedUin="delphi:e_field:src:Kitto:Kitto.Environment.TKEnvironment.FModels" />
+      <reference referencedUin="delphi:e_field:src:Kitto:Kitto.Environment.TKEnvironment.FViews" />
+      <reference referencedUin="delphi:e_field:src:Kitto:Kitto.Environment.TKEnvironment.FResourcePathsURLs" />
+      <reference referencedUin="delphi:e_field:src:Kitto:Kitto.Environment.TKEnvironment.FMacroExpander" />
+      <reference referencedUin="delphi:e_field:src:Kitto:Kitto.Environment.TKEnvironment.FAuthenticator" />
+      <reference referencedUin="delphi:e_field:src:Kitto:Kitto.Environment.TKEnvironment.FAC" />
+      <reference referencedUin="delphi:e_field:src:Kitto:Kitto.Environment.TKEnvironment.FUserFormatSettings" />
+      <reference referencedUin="delphi:e_field:src:Kitto:Kitto.Environment.TKEnvironment.FJSFormatSettings" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Environment.TKEnvironment.GetMultiFieldSeparator()" />
+      <reference referencedUin="delphi:e_field:src:Kitto:Kitto.Environment.TKEnvironment.MAIN_DB_NAME" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Environment.TKEnvironment.GetAC()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Environment.TKEnvironment.GetDBConnection(System.string)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Environment.TKEnvironment.GetAuthenticator()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Environment.TKEnvironment.GetMainDBConnection()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Environment.TKEnvironment.GetDBAdapter(System.string)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Environment.TKEnvironment.GetMacroExpansionEngine()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Environment.TKEnvironment.GetAppTitle()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Environment.TKEnvironment.GetAppName()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Environment.TKEnvironment.GetModels()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Environment.TKEnvironment.GetViews()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Environment.TKEnvironment.GetMetadataPath()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Environment.TKEnvironment.SetupResourcePathsURLs()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Environment.TKEnvironment.SetAppHomePath(System.string)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Environment.TKEnvironment.GetConfigFileName()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Environment.TKEnvironment.AfterConstruction()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Environment.TKEnvironment.Destroy()" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.Environment.TKEnvironment.Models" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.Environment.TKEnvironment.Views" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.Environment.TKEnvironment.MainDBConnection" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Environment.TKEnvironment.HasMainDBConnection()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Environment.TKEnvironment.CanOpen(System.string)" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.Environment.TKEnvironment.AppTitle" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Environment.TKEnvironment.FinalizeDBConnections()" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.Environment.TKEnvironment.MacroExpansionEngine" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.Environment.TKEnvironment.Authenticator" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.Environment.TKEnvironment.AC" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Environment.TKEnvironment.GetAccessGrantValue(System.string,System.string,System.Variant)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Environment.TKEnvironment.IsAccessGranted(System.string,System.string)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Environment.TKEnvironment.CheckAccessGranted(System.string,System.string)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Environment.TKEnvironment.GetResourceURL(System.string)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Environment.TKEnvironment.FindResourceURL(System.string)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Environment.TKEnvironment.FindResourcePathName(System.string)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Environment.TKEnvironment.GetResourcePathName(System.string)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Environment.TKEnvironment.GetImageURL(System.string,System.string)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Environment.TKEnvironment.GetKittoHomePath()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:Kitto.Environment.TKEnvironment.GetAppHomePath()" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.Environment.TKEnvironment.JSFormatSettings" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.Environment.TKEnvironment.UserFormatSettings" />
+      <reference referencedUin="delphi:e_property:src:Kitto:Kitto.Environment.TKEnvironment.MultiFieldSeparator" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:Kitto.Environment.TKEnvironmentClass">
+      <property name="$shortcutReference" value="true" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:Kitto.Environment.TKEnvironmentSingleton">
+      <property name="$shortcutReference" value="true" />
+    </reference>
+  </view>
+</nodeSet>

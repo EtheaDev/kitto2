@@ -282,7 +282,7 @@ begin
   // (others, such as menu items and tree nodes, don't).
   LRule := '.' + Result + ' {background: url(' + LIconURL + ') no-repeat left !important;' + ACustomRules + '}';
   if IsAjax then
-    JSCode('addStyleRule("' + LRule + '", 0);')
+    JSCode('addStyleRule("' + LRule + '");')
   else
     SetStyle(LRule);
 end;

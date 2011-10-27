@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<nodeSet version="1.0">
+  <view uin="7g3cvkhko6t_v">
+    <property name="$defaultDiagram" value="true" />
+    <property name="$metaclass" value="Package Diagram" />
+    <property name="$name" value="default" />
+    <reference referencedUin="delphi:e_class:src:Kitto:EF.Classes.@unitclass">
+      <property name="$shortcutReference" value="true" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:EF.Classes.TEFComponent">
+      <property name="$shortcutReference" value="true" />
+      <reference referencedUin="delphi:e_field:src:Kitto:EF.Classes.TEFComponent.FOnLog" />
+      <reference referencedUin="delphi:e_field:src:Kitto:EF.Classes.TEFComponent.FLogLevel" />
+      <reference referencedUin="delphi:e_field:src:Kitto:EF.Classes.TEFComponent.FObservers" />
+      <reference referencedUin="delphi:e_field:src:Kitto:EF.Classes.TEFComponent.FConfig" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.Classes.TEFComponent.GetConfig()" />
+      <reference referencedUin="delphi:e_field:src:Kitto:EF.Classes.TEFComponent.DEFAULT_LOG_LEVEL" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.Classes.TEFComponent.GetConfigFileName()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.Classes.TEFComponent.InternalGetClassId()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.Classes.TEFComponent.InternalGetId()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.Classes.TEFComponent.DoLog(System.string,System.Integer)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.Classes.TEFComponent.DoLog(Classes.TStrings,System.string,System.Integer)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.Classes.TEFComponent.CheckProperty(System.Boolean,System.string)" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.Classes.TEFComponent.AfterConstruction()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.Classes.TEFComponent.Destroy()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.Classes.TEFComponent.GetClassId()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.Classes.TEFComponent.GetId()" />
+      <reference referencedUin="delphi:e_method:src:Kitto:EF.Classes.TEFComponent.AsObject()" />
+      <reference referencedUin="delphi:e_property:src:Kitto:EF.Classes.TEFComponent.OnLog" />
+      <reference referencedUin="delphi:e_property:src:Kitto:EF.Classes.TEFComponent.LogLevel" />
+      <reference referencedUin="delphi:e_property:src:Kitto:EF.Classes.TEFComponent.Config" />
+    </reference>
+    <reference referencedUin="delphi:e_class:src:Kitto:EF.Classes.TEFComponentClass">
+      <property name="$shortcutReference" value="true" />
+    </reference>
+  </view>
+</nodeSet>
