@@ -28,6 +28,7 @@ type
     FAC: TKAccessController;
     FUserFormatSettings: TFormatSettings;
     FJSFormatSettings: TFormatSettings;
+    class var FBaseConfigFileName: string;
     function GetMultiFieldSeparator: string;
     const MAIN_DB_NAME = 'Main';
     function GetAC: TKAccessController;
@@ -40,7 +41,6 @@ type
     function GetAppName: string;
     function GetModels: TKModels;
     function GetViews: TKViews;
-    function GetMetadataPath: string;
     procedure SetupResourcePathsURLs;
   protected
     procedure SetAppHomePath(const AValue: string);
@@ -49,6 +49,8 @@ type
     procedure AfterConstruction; override;
     destructor Destroy; override;
   public
+    function GetMetadataPath: string;
+
     ///	<summary>A reference to the model catalog, opened on first
     ///	access.</summary>
     property Models: TKModels read GetModels;
@@ -160,6 +162,9 @@ type
     property UserFormatSettings: TFormatSettings read FUserFormatSettings;
 
     property MultiFieldSeparator: string read GetMultiFieldSeparator;
+
+    class property BaseConfigFileName: string read FBaseConfigFileName write FBaseConfigFileName;
+    class constructor Create;
   end;
   TKEnvironmentClass = class of TKEnvironment;
 
@@ -465,6 +470,11 @@ begin
       Format(_('Resource URI: %s; access mode: %s.'), [AResourceURI, AMode]));
 end;
 
+class constructor TKEnvironment.Create;
+begin
+  FBaseConfigFileName := 'Config.yaml';
+end;
+
 function TKEnvironment.GetAppTitle: string;
 begin
   Result := Config.GetString('AppTitle', 'Kitto');
@@ -508,7 +518,7 @@ end;
 
 function TKEnvironment.GetConfigFileName: string;
 begin
-  Result := GetMetadataPath + 'Config.yaml';
+  Result := GetMetadataPath + FBaseConfigFileName;
 end;
 
 function TKEnvironment.GetAccessGrantValue(const AResourceURI,

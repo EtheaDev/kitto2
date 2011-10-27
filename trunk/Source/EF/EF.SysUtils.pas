@@ -71,7 +71,7 @@ function IsAbsolutePath(const APath: string): Boolean;
   flexibility then use TEFFileLister directly, or write a different wrapper.
 }
 procedure FindAllFiles(const AFileFormat, ARootPath: string; const AFileNames: TStrings;
-  const AIncludeSubFolders: Boolean = True); overload;
+  const AIncludeSubFolders: Boolean = True; const AFullPaths: Boolean = True); overload;
 
 {
   Appends to AFileNames the names of all files of one of the given formats
@@ -82,7 +82,8 @@ procedure FindAllFiles(const AFileFormat, ARootPath: string; const AFileNames: T
   flexibility then use TEFFileLister directly, or write a different wrapper.
 }
 procedure FindAllFiles(const AFileFormats: array of string; const ARootPath: string;
-  const AFileNames: TStrings; const AIncludeSubFolders: Boolean = True); overload;
+  const AFileNames: TStrings; const AIncludeSubFolders: Boolean = True;
+  const AFullPaths: Boolean = True); overload;
 
 {
   Executes an application synchronously (AWait = True) or Asynchronously (AWait = False).
@@ -649,6 +650,8 @@ function GetCurrentProcessMemory: Cardinal;
 }
 procedure ShrinkProcessWorkingSet(const AMaxMemory: Cardinal);
 
+function GetFileDate: string;
+
 implementation
 
 uses
@@ -1003,13 +1006,15 @@ begin
 end;
 
 procedure FindAllFiles(const AFileFormat: string; const ARootPath: string;
-  const AFileNames: TStrings; const AIncludeSubFolders: Boolean = True); overload;
+  const AFileNames: TStrings; const AIncludeSubFolders: Boolean = True;
+  const AFullPaths: Boolean = True); overload;
 begin
-  FindAllFiles([AFileFormat], ARootPath, AFileNames, AIncludeSubFolders);
+  FindAllFiles([AFileFormat], ARootPath, AFileNames, AIncludeSubFolders, AFullPaths);
 end;
 
 procedure FindAllFiles(const AFileFormats: array of string; const ARootPath: string;
-  const AFileNames: TStrings; const AIncludeSubFolders: Boolean = True);
+  const AFileNames: TStrings; const AIncludeSubFolders: Boolean = True;
+  const AFullPaths: Boolean = True);
 var
   LFileFormats: TEFStringArray;
   LFileFormatIndex: Integer;
@@ -1022,7 +1027,7 @@ begin
     try
       SourcePath := ARootPath;
       RecurseSubdirs := AIncludeSubFolders;
-      ListFiles(AFileNames, LFileFormats);
+      ListFiles(AFileNames, LFileFormats, AFullPaths);
     finally
       Free;
     end;
@@ -1611,6 +1616,16 @@ procedure ShrinkProcessWorkingSet(const AMaxMemory: Cardinal);
 begin
   if GetCurrentProcessMemory > AMaxMemory then
     EmptyWorkingSet(GetCurrentProcess);
+end;
+
+function GetFileDate: string;
+var
+  LInfo: TDateTimeInfoRec;
+begin
+  if FileGetDateTimeInfo(ParamStr(0), LInfo) then
+    Result := DateTimeToStr(LInfo.CreationTime)
+  else
+    Result := '';
 end;
 
 end.

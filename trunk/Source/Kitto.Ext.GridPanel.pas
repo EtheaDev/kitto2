@@ -534,13 +534,7 @@ begin
   LRecord := LocateRecordFromSession;
   LRecord.MarkAsDeleted;
   try
-    LRecord.Backup;
-    try
-      LRecord.ApplyBeforeRules;
-    except
-      LRecord.Restore;
-      raise;
-    end;
+    LRecord.ApplyBeforeRules;
   except
     on E: EKValidationError do
     begin

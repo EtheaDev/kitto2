@@ -71,6 +71,7 @@ type
     function GetDetailStoreCount: Integer;
     procedure EnsureDetailStores;
     function GetStore: TKStore;
+    function GetIsDeleted: Boolean;
   protected
     property State: TKRecordState read FState;
     function GetChildClass(const AName: string): TEFNodeClass; override;
@@ -107,6 +108,7 @@ type
     procedure MarkAsDeleted;
     procedure MarkAsClean;
 
+    property IsDeleted: Boolean read GetIsDeleted;
     property DetailStoreCount: Integer read GetDetailStoreCount;
     property DetailStores[I: Integer]: TKStore read GetDetailsStore;
     function AddDetailStore(const AStore: TKStore): TKStore;
@@ -257,7 +259,7 @@ begin
   Result := 0;
   for I := 0 to RecordCount - 1 do
   begin
-    if Records[I].FieldByName(AFieldName).Value = AValue then
+    if not Records[I].IsDeleted and (Records[I].FieldByName(AFieldName).Value = AValue) then
       Inc(Result);
   end;
 end;
@@ -425,14 +427,19 @@ begin
   else
     LTo := RecordCount - 1;
 
-  Result := '[';
+{ TODO : Fix looping so that a full page is returned even when there are deleted records. }
+  Result := '';
   for I := AFrom to LTo do
   begin
-    Result := Result + Records[I].GetAsJSON(AMinified);
-    if I < RecordCount - 1 then
-      Result := Result + ',';
+    if not Records[I].IsDeleted then
+    begin
+      if Result = '' then
+        Result := Records[I].GetAsJSON(AMinified)
+      else
+        Result := Result + ',' + Records[I].GetAsJSON(AMinified);
+    end;
   end;
-  Result := Result + ']';
+  Result := '[' + Result + ']';
 end;
 
 function TKRecords.GetChildClass(const AName: string): TEFNodeClass;
@@ -617,6 +624,11 @@ end;
 function TKRecord.GetFieldCount: Integer;
 begin
   Result := ChildCount;
+end;
+
+function TKRecord.GetIsDeleted: Boolean;
+begin
+  Result := FState = rsDeleted;
 end;
 
 function TKRecord.GetKey: TKKey;
