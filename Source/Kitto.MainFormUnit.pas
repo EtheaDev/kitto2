@@ -132,7 +132,7 @@ end;
 procedure TKMainForm.ConfigFileNameComboBoxChange(Sender: TObject);
 begin
   TKEnvironment.BaseConfigFileName := ConfigFileNameComboBox.Text;
-  Caption := Format('%s - %s', [Environment.AppTitle, GetFileDate]);
+  Caption := Format('%s - %s', [Environment.AppTitle, DateTimeToStr(GetFileDateTime(ParamStr(0)))]);
 end;
 
 procedure TKMainForm.FillConfigFileNameCombo;
