@@ -273,8 +273,10 @@ var
 
       if LDataType is TEFBooleanDataType then
       begin
-        Result := TExtGridBooleanColumn.AddTo(FGridPanel.Columns);
-        Result.RendererExtFunction := JSFunction('V', 'return "<div class=''x-grid3-check-col"+(V?"-on":"")+"''></div>";');
+        // Don't use TExtGridBooleanColumn here, otherwise the renderer will be inneffective.
+        Result := TExtGridColumn.AddTo(FGridPanel.Columns);
+        Result.RendererExtFunction := JSFunction('v',
+          'return String.format(''<div class="x-grid3-check-col{0}"></div>'', v ? "-on" : '''');');
       end
       else if LDataType is TEFDateDataType then
       begin

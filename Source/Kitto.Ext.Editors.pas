@@ -557,7 +557,6 @@ begin
       LComboBox.SelectOnFocus := False;
       // Enable the combo box to post its hidden value instead of the visible description.
       LComboBox.HiddenName := AViewField.FieldNamesForUpdate;
-      LComboBox.SubmitValue := True;
       //LComboBox.Id := LDataField.AliasedName + '_DX';
 
       if Length(LAllowedValues) > 0 then
@@ -860,6 +859,8 @@ begin
         if ARuleImpl is TKExtRuleImpl then
           TKExtRuleImpl(ARuleImpl).ApplyToFormField(LFormField);
       end);
+
+  LFormField.SubmitValue := not LIsReadOnly;
 
   if LIsReadOnly then
     LFormField.Cls := 'x-form-readonly';

@@ -302,8 +302,7 @@ type
 
     procedure AddFieldsAsChildren(const AFields: TFields);
 
-    type TNameTranslator = reference to function(const AName: string): string;
-
+    type TNameTranslator = reference to function (const AName: string): string;
     ///	<summary>
     ///	  <para>Tries to read from AStrings a value for each child node
     ///	  interpret it according to the child's DataType. Read values
@@ -315,7 +314,7 @@ type
     ///	</summary>
     procedure SetChildValuesfromStrings(const AStrings: TStrings;
       const AUseJSDateFormat: Boolean; const AFormatSettings: TFormatSettings;
-      const ATranslator: TNameTranslator = nil);
+      const ATranslator: TNameTranslator);
   end;
 
   TEFNode = class(TEFTree)
@@ -1457,12 +1456,13 @@ begin
     LChild := Children[I];
     LName := Translate(LChild.Name);
     Assert(LName <> '');
+    { TODO : handle null and EmptyAsNull }
     if AStrings.IndexOfName(LName) >= 0 then
     begin
       if LChild.DataType is TEFIntegerDataType then
         LChild.AsInteger := StrToInt(AStrings.Values[LName])
       else if LChild.DataType is TEFBooleanDataType then
-        LChild.AsBoolean := StrToBool(AStrings.Values[LName])
+        LChild.AsBoolean := MatchText(AStrings.Values[LName], ['on', 'true'])
       else if LChild.DataType is TEFDateDataType then
         LChild.AsDate := GetDateTime
       else if LChild.DataType is TEFTimeDataType then
@@ -1477,7 +1477,10 @@ begin
         LChild.AsDecimal := DoubleToBcd(GetFloat)
       else
         LChild.AsString := AStrings.Values[LName];
-    end;
+    end
+    // Checkboxes are not submitted when unchecked, which for us means False.
+    else if LChild.DataType is TEFBooleanDataType then
+      LChild.AsBoolean := False;
   end;
 end;
 
@@ -1875,13 +1878,21 @@ end;
 procedure TEFBooleanDataType.InternalFieldValueToNode(const AField: TField;
   const ANode: TEFNode);
 begin
-  ANode.AsBoolean := AField.AsBoolean;
+  { TODO : create a way to define the mapped values when writing fake boolean fields }
+  case AField.DataType of
+    ftBoolean: ANode.AsBoolean := AField.AsBoolean;
+    ftInteger, ftSmallint: ANode.AsBoolean := AField.AsInteger = 1;
+    ftString, ftWideString, ftFixedChar, ftFixedWideChar:
+      ANode.AsBoolean := MatchText(AField.AsString, ['true', 't', 'y', 'yes', 'on'])
+  else
+    inherited;
+  end;
 end;
 
 function TEFBooleanDataType.InternalNodeToJSONValue(const ANode: TEFNode;
   const AJSFormatSettings: TFormatSettings): string;
 begin
-  Result := BoolToStr(ANode.AsBoolean, True);
+  Result := IfThen(ANode.AsBoolean, 'true', 'false');
 end;
 
 procedure TEFBooleanDataType.InternalNodeToParam(const ANode: TEFNode;
