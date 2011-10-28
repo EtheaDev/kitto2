@@ -17,7 +17,7 @@ type
   TExtUxGridRowEditor = class;
   TExtUxGridTableGrid = class;
 
-  TExtUxGridCheckColumn = class(TExtFunction)
+  TExtUxGridCheckColumn = class(TExtGridColumn)
   public
     function JSClassName : string; override;
     {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}

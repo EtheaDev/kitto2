@@ -457,7 +457,7 @@ end;
 function BeautifyJS(const AScript : string; const StartingLevel : integer = 0; SplitHTMLNewLine : boolean = true) : string;
 var
   pBlockBegin, pBlockEnd, pPropBegin, pPropEnd, pStatEnd, {pFuncBegin,} pSqrBegin, pSqrEnd,
-  pFunction, pString, pOpPlus, pOpMinus, pOpTime, {pOpDivide,} pOpEqual, pRegex : integer;
+  pFunction, pString, pOpPlus, pOpNot, pOpMinus, pOpTime, {pOpDivide,} pOpEqual, pRegex : integer;
   P, Lvl : integer;
   Res : string;
 
@@ -512,6 +512,7 @@ begin
     pString     := PosEx('"', Res, P);
     pOpEqual    := PosEx('=', Res, P);
     pOpPlus     := PosEx('+', Res, P);
+    pOpNot      := PosEx('!', Res, P);
     pOpMinus    := PosEx('-', Res, P);
     pOpTime     := PosEx('*', Res, P);
     pBlockBegin := PosEx('{', Res, P);
@@ -525,7 +526,7 @@ begin
     pRegex      := PosEx('regex:', Res, P);
     // process what is found first
     P := MinValueOf([pBlockBegin, pBlockEnd, pPropBegin, pPropEnd, pStatEnd, {pFuncBegin,} pSqrBegin, pSqrEnd,
-                     pString, pOpEqual, pOpPlus, pOpMinus, pOpTime, {pOpDivide,} pFunction, pRegex]);
+                     pString, pOpEqual, pOpPlus, pOpNot, pOpMinus, pOpTime, {pOpDivide,} pFunction, pRegex]);
     // keep Ext's onReady function at the first line
     if (not onReady) and (P > 0) and (length(Res) >= P) and (res[p] = 'f') then
       if Copy(Res, P-9, 9) = '.onReady(' then begin
@@ -537,18 +538,24 @@ begin
       // reset inProp status based on minimum lvlProp
       if inProp then inProp := Lvl >= LvlProp; // or (lvl > StartingLevel);
       // process chars
-      case res[p] of // skip string by jump to the next mark
+      case Res[P] of // skip string by jump to the next mark
         '"' :
-          if Res[P+1] = '"' then // skip empty string
-            inc(P)
-          else
-            if SplitHTMLNewLine then // proceed html string value
-              P := SplitHTMLString(P, PosEx('"', Res, P+1))
-            else // just skip the string
-              P := PosEx('"', Res, P+1);
-        '=', '*', '/': begin // neat the math operator
+          if Res[P-1] <> '\' then begin // skip escaped "s
+            if Res[P+1] = '"' then // skip empty string
+              inc(P)
+            else
+              //if SplitHTMLNewLine then // proceed html string value
+              //  P := SplitHTMLString(P, PosEx('"', Res, P+1))
+              //else
+              begin// just skip the string
+                Inc(P);
+                while (Res[P] <> '"') or (Res[P-1] = '\') do // skip escaped "s
+                  Inc(P);
+              end;
+          end;
+        '-', '!', '+', '=', '*', '/': begin // neat the math operator
           insert(' ', Res, P);   inc(P);
-          if Res[P+1] = '=' then inc(P); // double equals
+          if (Res[P+1] = '=') or (Res[P+1] = '+') or (Res[P+1] = '-') then inc(P); // == or ++ or --
           insert(' ', Res, P+1); inc(P);
         end;
         '{' : // statement block begin
