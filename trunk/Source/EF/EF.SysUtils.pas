@@ -650,8 +650,6 @@ function GetCurrentProcessMemory: Cardinal;
 }
 procedure ShrinkProcessWorkingSet(const AMaxMemory: Cardinal);
 
-function GetFileDate: string;
-
 implementation
 
 uses
@@ -1616,16 +1614,6 @@ procedure ShrinkProcessWorkingSet(const AMaxMemory: Cardinal);
 begin
   if GetCurrentProcessMemory > AMaxMemory then
     EmptyWorkingSet(GetCurrentProcess);
-end;
-
-function GetFileDate: string;
-var
-  LInfo: TDateTimeInfoRec;
-begin
-  if FileGetDateTimeInfo(ParamStr(0), LInfo) then
-    Result := DateTimeToStr(LInfo.CreationTime)
-  else
-    Result := '';
 end;
 
 end.

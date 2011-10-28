@@ -540,7 +540,7 @@ destructor TEFDataTypeFactory.Destroy;
 var
   LDataType: TEFDataType;
 begin
-  for LDataType in FDataTypes.Values.ToArray do
+  for LDataType in FDataTypes.Values do
     LDataType.Free;
   FreeAndNil(FDataTypes);
   inherited;
