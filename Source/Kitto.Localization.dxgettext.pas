@@ -40,7 +40,7 @@ implementation
 
 uses
   gnugettext,
-  Kitto.Environment;
+  Kitto.Config;
 
 { TKdxgettextLocalizationTool }
 
@@ -86,7 +86,7 @@ procedure TKdxgettextLocalizationTool.EnsureTextDomainBound;
 begin
   if not FTextDomainBound then
   begin
-    gnugettext.bindtextdomain(KITTO_TEXT_DOMAIN, Environment.GetKittoHomePath + 'locale');
+    gnugettext.bindtextdomain(KITTO_TEXT_DOMAIN, TKConfig.Instance.GetKittoHomePath + 'locale');
     FTextDomainBound := True;
   end;
 end;

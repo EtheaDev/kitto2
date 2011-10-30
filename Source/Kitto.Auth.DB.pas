@@ -185,7 +185,7 @@ implementation
 uses
   SysUtils, Classes, Variants,
   EF.Localization,  EF.Types, EF.StrUtils, EF.DB.Utils,
-  Kitto.Types, Kitto.Environment;
+  Kitto.Types, Kitto.Config;
 
 { TKDBAuthenticator }
 
@@ -195,7 +195,7 @@ var
   LQuery: TEFDBQuery;
 begin
   Result := nil;
-  LQuery := Environment.MainDBConnection.CreateDBQuery;
+  LQuery := TKConfig.Instance.MainDBConnection.CreateDBQuery;
   try
     LQuery.CommandText := GetReadUserSQL(AUserName);
     if LQuery.Params.Count <> 1 then
@@ -247,14 +247,14 @@ end;
 function TKDBAuthenticator.GetSuppliedPasswordHash(
   const AAuthData: TEFNode; const AHashNeeded: Boolean): string;
 begin
-  Result := Environment.MacroExpansionEngine.Expand(AAuthData.GetString('Password'));
+  Result := TKConfig.Instance.MacroExpansionEngine.Expand(AAuthData.GetString('Password'));
   if AHashNeeded then
     Result := GetStringHash(Result);
 end;
 
 function TKDBAuthenticator.GetSuppliedUserName(const AAuthData: TEFNode): string;
 begin
-  Result := Environment.MacroExpansionEngine.Expand(AAuthData.GetString('UserName'));
+  Result := TKConfig.Instance.MacroExpansionEngine.Expand(AAuthData.GetString('UserName'));
 end;
 
 procedure TKDBAuthenticator.InternalAfterAuthenticate(const AAuthData: TEFNode);
@@ -267,7 +267,7 @@ begin
 
   if LAfterAuthenticateCommandText <> '' then
   begin
-    LCommand := Environment.MainDBConnection.CreateDBCommand;
+    LCommand := TKConfig.Instance.MainDBConnection.CreateDBCommand;
     try
       LCommand.CommandText := LAfterAuthenticateCommandText;
       LCommand.Execute;
@@ -320,7 +320,7 @@ var
 begin
   Result := False;
 
-  LQuery := Environment.MainDBConnection.CreateDBQuery;
+  LQuery := TKConfig.Instance.MainDBConnection.CreateDBQuery;
   try
     LQuery.CommandText := GetReadUserSQL(AUserName);
     if LQuery.Params.Count <> 1 then

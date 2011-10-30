@@ -1,4 +1,4 @@
-unit Kitto.Environment;
+unit Kitto.Config;
 
 {$I Kitto.Defines.inc}
 
@@ -6,29 +6,35 @@ interface
 
 uses
   SysUtils, Generics.Collections,
-  EF.Macros, EF.Classes,  EF.DB, EF.Environment, EF.Tree,
-  Kitto.Auth, Kitto.AccessControl, Kitto.Metadata, Kitto.Metadata.Models,
-  Kitto.Metadata.Views;
+  EF.Tree, EF.Macros, EF.Classes, EF.DB,
+  Kitto.Metadata.Models, Kitto.Metadata.Views, Kitto.Auth, Kitto.AccessControl;
 
 type
-  {
-    Provides access to the MetaSchema, GUICatalog, database connection and global
-    configuration information.
-  }
-  TKEnvironment = class(TEFComponent, IEFEnvironment)
+  TKConfigMacroExpander = class;
+
+  TKConfig = class;
+
+  TKGetConfig = reference to function: TKConfig;
+
+  TKConfig = class(TEFComponent)
   private
+  class var
+    FAppHomePath: string;
+    FJSFormatSettings: TFormatSettings;
+    FBaseConfigFileName: string;
+    FOnGetInstance: TKGetConfig;
+    FInstance: TKConfig;
+  var
     FDBConnections: TDictionary<string, TEFDBConnection>;
     FMacroExpansionEngine: TEFMacroExpansionEngine;
-    FAppHomePath: string;
     FModels: TKModels;
     FViews: TKViews;
     FResourcePathsURLs: TDictionary<string, string>;
-    FMacroExpander: TEFMacroExpander;
+    FMacroExpander: TKConfigMacroExpander;
     FAuthenticator: TKAuthenticator;
     FAC: TKAccessController;
     FUserFormatSettings: TFormatSettings;
-    FJSFormatSettings: TFormatSettings;
-    class var FBaseConfigFileName: string;
+    class function GetInstance: TKConfig; static;
     function GetMultiFieldSeparator: string;
     const MAIN_DB_NAME = 'Main';
     function GetAC: TKAccessController;
@@ -42,14 +48,50 @@ type
     function GetModels: TKModels;
     function GetViews: TKViews;
     procedure SetupResourcePathsURLs;
+    procedure FinalizeDBConnections;
   protected
     procedure SetAppHomePath(const AValue: string);
     function GetConfigFileName: string; override;
   public
     procedure AfterConstruction; override;
     destructor Destroy; override;
+    class constructor Create;
   public
-    function GetMetadataPath: string;
+    ///	<summary>Returns the application home path as specified by the 'home'
+    ///	command line argument or the executable's directory.</summary>
+    class function GetAppHomePath: string;
+
+    ///	<summary>Returns the home path. In deployment, it is usually equal to
+    ///	the application home path. In development, it might differ.</summary>
+    class function GetKittoHomePath: string;
+
+    ///	<summary>
+    ///	  Returns the full path of the Metadata directory inside the home path.
+    ///	</summary>
+    class function GetMetadataPath: string;
+
+    ///	<summary>
+    ///	  Format settings for Javascript/JSON data encoded in text format. use
+    ///	  it, don't change it.
+    ///	</summary>
+    class property JSFormatSettings: TFormatSettings read FJSFormatSettings;
+
+    ///	<summary>
+    ///	  Name of the config file. Defaults to Config.yaml. Changing this
+    ///	  property only affects instances created afterwards.
+    ///	</summary>
+    class property BaseConfigFileName: string read FBaseConfigFileName write FBaseConfigFileName;
+
+    ///	<summary>
+    ///	  Sets a global function that returns the global config object. In web
+    ///	  applications there will be a config object per session.
+    ///	</summary>
+    class property OnGetInstance: TKGetConfig read FOnGetInstance write FOnGetInstance;
+
+    ///	<summary>
+    ///	  Returns a singleton instance.
+    ///	</summary>
+    class property Instance: TKConfig read GetInstance;
 
     ///	<summary>A reference to the model catalog, opened on first
     ///	access.</summary>
@@ -66,22 +108,15 @@ type
     ///	<summary>Returns True if the connection has been created.</summary>
     function HasMainDBConnection: Boolean;
 
-    ///	<summary>Returns True if the specified path is the home of a Kitto
-    ///	application.</summary>
-    function CanOpen(const APath: string): Boolean;
-
     ///	<summary>Returns the application title, to be used for captions, about
     ///	boxes, etc.</summary>
     property AppTitle: string read GetAppTitle;
 
-    ///	<summary>Closes and destroys the database connections.</summary>
-    procedure FinalizeDBConnections;
-
-    ///	<summary>Global expansion engine. This should be used in place of EF's
-    ///	default expansion engine in Kitto applications, because it is
-    ///	thread-safe. Kitto-specific macro expanders should be added here at run
-    ///	time. This engine is chained to the default engine, so all default EF
-    ///	macros are supported.</summary>
+    ///	<summary>
+    ///	  Global expansion engine. Kitto-specific macro expanders should be
+    ///	  added here at run time. This engine is chained to the default engine,
+    ///	  so all default EF macros are supported.
+    ///	</summary>
     property MacroExpansionEngine: TEFMacroExpansionEngine read GetMacroExpansionEngine;
 
     ///	<summary>Access to the current authenticator.</summary>
@@ -150,47 +185,17 @@ type
 
     function GetImageURL(const AResourceName: string; const ASuffix: string = ''): string;
 
-    ///	<summary>Returns the home path. In deployment, it is usually equal to
-    ///	the application home path. In development, it might differ.</summary>
-    function GetKittoHomePath: string;
-
-    ///	<summary>Returns the application home path as specified by the 'home'
-    ///	command line argument or the executable's directory.</summary>
-    function GetAppHomePath: string;
-
-    property JSFormatSettings: TFormatSettings read FJSFormatSettings;
     property UserFormatSettings: TFormatSettings read FUserFormatSettings;
 
     property MultiFieldSeparator: string read GetMultiFieldSeparator;
-
-    class property BaseConfigFileName: string read FBaseConfigFileName write FBaseConfigFileName;
-    class constructor Create;
   end;
-  TKEnvironmentClass = class of TKEnvironment;
 
-///	<summary>
-///	  Singleton access to the environment object.
-///	</summary>
-function Environment: TKEnvironment;
-
-procedure SetEnvironmentClass(const AValue: TKEnvironmentClass);
-
-type
-  TKEnvironmentSingleton = function: TKEnvironment;
-
-///	<summary>Call this procedure at application startup to provide a custom
-///	singleton function. Useful in web applications that create an environment
-///	instance for each user. Pass nil to restore the default singleton
-///	function.</summary>
-procedure SetEnvironmentSingleton(const AValue: TKEnvironmentSingleton);
-
-type
   ///	<summary>
   ///	  <para>
   ///	    A macro expander that can expand globally available macros.
   ///	  </para>
   ///	  <para>
-  ///	    %HOME_PATH% = Environment.GetAppHomePath.
+  ///	    %HOME_PATH% = TKConfig.Instance.GetAppHomePath.
   ///	  </para>
   ///	  <para>
   ///	    It also expands any macros in the Config namespace to the
@@ -201,7 +206,7 @@ type
   ///	    Config.yaml.
   ///	  </para>
   ///	</summary>
-  TKMacroExpander = class(TEFTreeMacroExpander)
+  TKConfigMacroExpander = class(TEFTreeMacroExpander)
   protected
     function InternalExpand(const AString: string): string; override;
   end;
@@ -209,62 +214,11 @@ type
 implementation
 
 uses
-  Variants, StrUtils,
-  EF.Intf, EF.SysUtils, EF.StrUtils, EF.Localization, EF.Types, EF.YAML,
+  StrUtils, Variants,
+  EF.SysUtils, EF.YAML, EF.Localization,
   Kitto.Types;
 
-var
-  _Environment: TKEnvironment = nil;
-  _EnvironmentClass: TKEnvironmentClass = TKEnvironment;
-  _EnvironmentSingleton: TKEnvironmentSingleton = nil;
-
-function Environment: TKEnvironment;
-begin
-  if Assigned(_EnvironmentSingleton) then
-    Result := _EnvironmentSingleton
-  else
-  begin
-    if not Assigned(_Environment) then
-      _Environment := _EnvironmentClass.Create;
-    Result := _Environment;
-  end;
-end;
-
-function EnvironmentAsIntf: IEFEnvironment;
-begin
-  Result := Environment;
-end;
-
-///	<summary>
-///	  Substitutes the default environment class with a custom one. Call this
-///	  function early (for example, in the initialization section of the unit
-///	  that defines the new class). A custom environment object is useful in
-///	  that it may expose features used by custom forms and classes, like
-///	  additional configurable settings, additional database connection objects
-///	  and so on. Note: don't forget to set the class back to nil (which will
-///	  restore the default behaviour) in a balanced way (for example in the
-///	  finalization section of the same unit).
-///	</summary>
-procedure SetEnvironmentClass(const AValue: TKEnvironmentClass);
-begin
-  FreeAndNil(_Environment);
-  _EnvironmentClass := AValue;
-  if _EnvironmentClass = nil then
-    _EnvironmentClass := TKEnvironment;
-end;
-
-procedure SetEnvironmentSingleton(const AValue: TKEnvironmentSingleton);
-begin
-  if Addr(_EnvironmentSingleton) <> Addr(AValue) then
-  begin
-    FreeAndNil(_Environment);
-    _EnvironmentSingleton := AValue;
-  end;
-end;
-
-{ TKEnvironment }
-
-procedure TKEnvironment.AfterConstruction;
+procedure TKConfig.AfterConstruction;
 var
   LLanguageId: string;
 begin
@@ -272,16 +226,6 @@ begin
   { TODO : read default user format settings from config and allow to change them on a per-user basis. }
   FUserFormatSettings := TFormatSettings.Create;
   FUserFormatSettings.ShortTimeFormat := 'hh:mm:ss';
-
-  FJSFormatSettings := TFormatSettings.Create;
-  FJSFormatSettings := TFormatSettings.Create;
-  FJSFormatSettings.DecimalSeparator := '.';
-  FJSFormatSettings.ShortDateFormat := 'yyyy/mm/dd';
-  FJSFormatSettings.ShortTimeFormat := 'hh:mm:ss';
-  FJSFormatSettings.DateSeparator := '/';
-  FJSFormatSettings.TimeSeparator := ':';
-
-  TEFYAMLReader.FormatSettings := FJSFormatSettings;
 
   // Don't store interface reference to prevent the compiler from calling
   // _Release upon (or after) destruction.
@@ -291,26 +235,28 @@ begin
   LLanguageId := Config.GetString('LanguageId');
   if LLanguageId <> '' then
     EFLocalizationTool.ForceLanguage(LLanguageId);
-  FMacroExpander := TKMacroExpander.Create(Config, 'Config');
+  FMacroExpander := TKConfigMacroExpander.Create(Config, 'Config');
   MacroExpansionEngine.AddExpander(FMacroExpander);
 end;
 
-destructor TKEnvironment.Destroy;
+destructor TKConfig.Destroy;
 begin
   inherited;
   FMacroExpansionEngine.RemoveExpander(FMacroExpander);
   FreeAndNil(FMacroExpander);
   FreeAndNil(FViews);
   FreeAndNil(FModels);
+  if Assigned(FAuthenticator) then
+    FMacroExpansionEngine.RemoveExpander(FAuthenticator.MacroExpander);
   FreeAndNil(FAuthenticator);
   FreeAndNil(FAC);
-  FreeAndNil(FMacroExpansionEngine);
   FreeAndNil(FResourcePathsURLs);
   FinalizeDBConnections;
   FreeAndNil(FDBConnections);
+  FreeAndNil(FMacroExpansionEngine);
 end;
 
-procedure TKEnvironment.SetupResourcePathsURLs;
+procedure TKConfig.SetupResourcePathsURLs;
 var
   LPath: string;
 begin
@@ -322,7 +268,7 @@ begin
     FResourcePathsURLs.Add(IncludeTrailingPathDelimiter(LPath), '/' + GetAppName + '-Kitto/');
 end;
 
-procedure TKEnvironment.FinalizeDBConnections;
+procedure TKConfig.FinalizeDBConnections;
 var
   I: Integer;
   LDBConnection: TEFDBConnection;
@@ -334,23 +280,18 @@ begin
   end;
 end;
 
-function TKEnvironment.CanOpen(const APath: string): Boolean;
-begin
-  Result := DirectoryExists(IncludeTrailingPathDelimiter(APath) + 'Models');
-end;
-
-function TKEnvironment.IsAccessGranted(const AResourceURI,
+function TKConfig.IsAccessGranted(const AResourceURI,
   AMode: string): Boolean;
 begin
   Result := GetAccessGrantValue(AResourceURI, AMode, Null) = ACV_TRUE;
 end;
 
-function TKEnvironment.GetMainDBConnection: TEFDBConnection;
+function TKConfig.GetMainDBConnection: TEFDBConnection;
 begin
   Result := GetDBConnection(MAIN_DB_NAME);
 end;
 
-function TKEnvironment.GetDBConnection(const ADatabaseName: string): TEFDBConnection;
+function TKConfig.GetDBConnection(const ADatabaseName: string): TEFDBConnection;
 var
   LConfig: TEFNode;
 begin
@@ -367,24 +308,24 @@ begin
     Result := FDBConnections[ADatabaseName];
 end;
 
-function TKEnvironment.GetDBAdapter(const ADatabaseName: string): TEFDBAdapter;
+function TKConfig.GetDBAdapter(const ADatabaseName: string): TEFDBAdapter;
 begin
   Result := TEFDBAdapterRegistry.Instance[Config.GetExpandedString('Databases/' + ADatabaseName)];
 end;
 
-function TKEnvironment.GetMacroExpansionEngine: TEFMacroExpansionEngine;
+function TKConfig.GetMacroExpansionEngine: TEFMacroExpansionEngine;
 begin
   if not Assigned(FMacroExpansionEngine) then
-    FMacroExpansionEngine := TEFMacroExpansionEngine.Create(DefaultMacroExpansionEngine);
+    FMacroExpansionEngine := TEFMacroExpansionEngine.Create(TEFMacroExpansionEngine.Instance);
   Result := FMacroExpansionEngine;
 end;
 
-function TKEnvironment.GetMetadataPath: string;
+class function TKConfig.GetMetadataPath: string;
 begin
   Result := GetAppHomePath + IncludeTrailingPathDelimiter('Metadata');
 end;
 
-function TKEnvironment.GetModels: TKModels;
+function TKConfig.GetModels: TKModels;
 begin
   if not Assigned(FModels) then
   begin
@@ -395,12 +336,12 @@ begin
   Result := FModels;
 end;
 
-function TKEnvironment.GetMultiFieldSeparator: string;
+function TKConfig.GetMultiFieldSeparator: string;
 begin
   Result := Config.GetString('MultiFieldSeparator', '~~~');
 end;
 
-function TKEnvironment.FindResourcePathName(const AResourceFileName: string): string;
+function TKConfig.FindResourcePathName(const AResourceFileName: string): string;
 var
   I: Integer;
 begin
@@ -414,20 +355,20 @@ begin
     Result := '';
 end;
 
-function TKEnvironment.GetResourcePathName(const AResourceFileName: string): string;
+function TKConfig.GetResourcePathName(const AResourceFileName: string): string;
 begin
   Result := FindResourcePathName(AResourceFileName);
   if Result = '' then
     raise EKError.CreateFmt('Resource %s not found.', [AResourceFileName]);
 end;
 
-function TKEnvironment.FindResourceURL(const AResourceFileName: string): string;
+function TKConfig.FindResourceURL(const AResourceFileName: string): string;
 var
   I: Integer;
   LResultURL: string;
 begin
   I := 0;
-  LresultURL := '';
+  LResultURL := '';
   repeat
     Result := FResourcePathsURLs.Keys.ToArray[I] + AResourceFileName;
     LResultURL := FResourcePathsURLs.Values.ToArray[I] + ReplaceStr(AResourceFileName, '\', '/');
@@ -440,14 +381,14 @@ begin
     Result := ''
 end;
 
-function TKEnvironment.GetResourceURL(const AResourceFileName: string): string;
+function TKConfig.GetResourceURL(const AResourceFileName: string): string;
 begin
   Result := FindResourceURL(AResourceFileName);
   if Result = '' then
     raise EKError.CreateFmt('Resource %s not found.', [AResourceFileName]);
 end;
 
-function TKEnvironment.GetViews: TKViews;
+function TKConfig.GetViews: TKViews;
 begin
   if not Assigned(FViews) then
   begin
@@ -458,29 +399,38 @@ begin
   Result := FViews;
 end;
 
-function TKEnvironment.HasMainDBConnection: Boolean;
+function TKConfig.HasMainDBConnection: Boolean;
 begin
   Result := FDBConnections.ContainsKey(MAIN_DB_NAME);
 end;
 
-procedure TKEnvironment.CheckAccessGranted(const AResourceURI, AMode: string);
+procedure TKConfig.CheckAccessGranted(const AResourceURI, AMode: string);
 begin
   if not IsAccessGranted(AResourceURI, AMode) then
     raise EKAccessDeniedError.CreateWithAdditionalInfo(_('Access denied. The user is not allowed to perform this operation.'),
       Format(_('Resource URI: %s; access mode: %s.'), [AResourceURI, AMode]));
 end;
 
-class constructor TKEnvironment.Create;
+class constructor TKConfig.Create;
 begin
   FBaseConfigFileName := 'Config.yaml';
+
+  FJSFormatSettings := TFormatSettings.Create;
+  FJSFormatSettings := TFormatSettings.Create;
+  FJSFormatSettings.DecimalSeparator := '.';
+  FJSFormatSettings.ShortDateFormat := 'yyyy/mm/dd';
+  FJSFormatSettings.ShortTimeFormat := 'hh:mm:ss';
+  FJSFormatSettings.DateSeparator := '/';
+  FJSFormatSettings.TimeSeparator := ':';
+  TEFYAMLReader.FormatSettings := FJSFormatSettings;
 end;
 
-function TKEnvironment.GetAppTitle: string;
+function TKConfig.GetAppTitle: string;
 begin
   Result := Config.GetString('AppTitle', 'Kitto');
 end;
 
-function TKEnvironment.GetAuthenticator: TKAuthenticator;
+function TKConfig.GetAuthenticator: TKAuthenticator;
 var
   LType: string;
   LConfig: TEFNode;
@@ -490,6 +440,7 @@ begin
   begin
     LType := Config.GetExpandedString('Auth', 'Null');
     FAuthenticator := TKAuthenticatorFactory.Instance.CreateObject(LType);
+    MacroExpansionEngine.AddExpander(FAuthenticator.MacroExpander);
     LConfig := Config.FindNode('Auth');
     if Assigned(LConfig) then
       for I := 0 to LConfig.ChildCount - 1 do
@@ -498,7 +449,7 @@ begin
   Result := FAuthenticator;
 end;
 
-function TKEnvironment.GetAC: TKAccessController;
+function TKConfig.GetAC: TKAccessController;
 var
   LType: string;
   LConfig: TEFNode;
@@ -516,26 +467,25 @@ begin
   Result := FAC;
 end;
 
-function TKEnvironment.GetConfigFileName: string;
+function TKConfig.GetConfigFileName: string;
 begin
   Result := GetMetadataPath + FBaseConfigFileName;
 end;
 
-function TKEnvironment.GetAccessGrantValue(const AResourceURI,
+function TKConfig.GetAccessGrantValue(const AResourceURI,
   AMode: string; const ADefaultValue: Variant): Variant;
 begin
   Result := AC.GetAccessGrantValue(Authenticator.UserName,
     AResourceURI, AMode, ADefaultValue);
 end;
 
-function TKEnvironment.GetImageURL(const AResourceName,
-  ASuffix: string): string;
+function TKConfig.GetImageURL(const AResourceName, ASuffix: string): string;
 
   // Adds a .png extension to the resource name.
   // ASuffix, if specified, is added before the file extension.
   // If the image name ends with _ and a two-digit number among 16, 24, 32, and 48,
   // then the suffix is added before the _.
-  function AdaptWebResourceName(const AResourceName: string; const ASuffix: string = ''): string;
+  function AdaptImageName(const AResourceName: string; const ASuffix: string = ''): string;
 
     function HasSize(const AName: string): Boolean;
     begin
@@ -553,10 +503,23 @@ function TKEnvironment.GetImageURL(const AResourceName,
   end;
 
 begin
-  Result := GetResourceURL(AdaptWebResourceName(AResourceName, ASuffix));
+  Result := GetResourceURL(AdaptImageName(AResourceName, ASuffix));
 end;
 
-procedure TKEnvironment.SetAppHomePath(const AValue: string);
+class function TKConfig.GetInstance: TKConfig;
+begin
+  Result := nil;
+  if Assigned(FOnGetInstance) then
+    Result := FOnGetInstance();
+  if not Assigned(Result) then
+  begin
+    if not Assigned(FInstance) then
+      FInstance := TKConfig.Create;
+    Result := FInstance;
+  end;
+end;
+
+procedure TKConfig.SetAppHomePath(const AValue: string);
 begin
   if AValue <> FAppHomePath then
   begin
@@ -565,14 +528,14 @@ begin
   end;
 end;
 
-function TKEnvironment.GetAppName: string;
+function TKConfig.GetAppName: string;
 begin
   Result := Config.GetString('AppName');
   if Result = '' then
     Result := ChangeFileExt(ExtractFileName(ParamStr(0)), '');
 end;
 
-function TKEnvironment.GetAppHomePath: string;
+class function TKConfig.GetAppHomePath: string;
 begin
   if FAppHomePath = '' then
   begin
@@ -583,7 +546,7 @@ begin
   Result := IncludeTrailingPathDelimiter(FAppHomePath);
 end;
 
-function TKEnvironment.GetKittoHomePath: string;
+class function TKConfig.GetKittoHomePath: string;
 begin
   Result := ExtractFilePath(ParamStr(0)) + '..\Externals\Kitto\Home\';
   if not DirectoryExists(Result) then
@@ -594,21 +557,12 @@ begin
   end;
 end;
 
-{ TKMacroExpander }
+{ TKConfigMacroExpander }
 
-function TKMacroExpander.InternalExpand(const AString: string): string;
+function TKConfigMacroExpander.InternalExpand(const AString: string): string;
 begin
   Result := inherited InternalExpand(AString);
-  Result := ExpandMacros(Result, '%HOME_PATH%', Environment.GetAppHomePath);
+  Result := ExpandMacros(Result, '%HOME_PATH%', TKConfig.GetAppHomePath);
 end;
 
-initialization
-  SetEnvironmentGetFunction(EnvironmentAsIntf);
-
-finalization
-  SetEnvironmentGetFunction(nil);
-  FreeAndNil(_Environment);
-
 end.
-
-

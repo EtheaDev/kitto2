@@ -87,8 +87,8 @@ implementation
 
 uses
   SysUtils, StrUtils, DB, Types,
-  EF.Intf, EF.Localization, EF.Types, EF.StrUtils, EF.DB.Utils, EF.SQL,
-  Kitto.Types, Kitto.Environment;
+  EF.Intf, EF.Localization, EF.Types, EF.StrUtils, EF.DB.Utils, EF.SQL, EF.Macros,
+  Kitto.Types;
 
 { TKSQLQueryBuilder }
 
@@ -457,7 +457,7 @@ begin
     if FViewTable.DefaultSorting <> '' then
       LCommandText := LCommandText + ' order by ' + FViewTable.DefaultSorting;
     LCommandText := ADBQuery.Connection.AddLimitClause(LCommandText, AFrom, AFor);
-    ADBQuery.CommandText := Environment.MacroExpansionEngine.Expand(LCommandText);
+    ADBQuery.CommandText := TEFMacroExpansionEngine.Instance.Expand(LCommandText);
   finally
     ADBQuery.Params.EndUpdate;
   end;
@@ -492,7 +492,7 @@ build only those that affect the count (outer joins). }
   try
     ADBQuery.Params.Clear;
     LCommandText := 'select count(*) from ' + GetFromClause + GetSelectWhereClause(AFilter, ADBQuery);
-    ADBQuery.CommandText := Environment.MacroExpansionEngine.Expand(LCommandText);
+    ADBQuery.CommandText := TEFMacroExpansionEngine.Instance.Expand(LCommandText);
   finally
     ADBQuery.Params.EndUpdate;
   end;

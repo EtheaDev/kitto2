@@ -22,7 +22,7 @@ implementation
 uses
   Ext,
   EF.Localization,
-  Kitto.Environment, Kitto.Metadata.Views;
+  Kitto.Ext.Session, Kitto.Metadata.Views;
 
 { TKExtWindowController }
 
@@ -55,7 +55,7 @@ var
 begin
   Assert(Assigned(View));
 
-  LSubView := Environment.Views.ViewByNode(View.GetNode('Controller/SubView'));
+  LSubView := Session.Config.Views.ViewByNode(View.GetNode('Controller/SubView'));
   FController := TKExtControllerFactory.Instance.CreateController(LSubView, Self);
   FController.Display;
 end;

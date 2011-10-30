@@ -40,7 +40,7 @@ implementation
 uses
   ExtPascal,
   EF.Tree,
-  Kitto.Ext.Controller, Kitto.Environment, Kitto.Ext.Session;
+  Kitto.Ext.Controller, Kitto.Ext.Session;
 
 { TKExtTabPanelController }
 
@@ -54,7 +54,6 @@ procedure TKExtTabPanelController.InitDefaults;
 begin
   inherited;
   Layout := lyFit;
-  Border := False;
 
   FTabPanel := TKExtTabPanel.AddTo(Items);
 end;
@@ -91,7 +90,7 @@ begin
     for I := 0 to LViews.ChildCount - 1 do
     begin
       LController := TKExtControllerFactory.Instance.CreateController(
-        Environment.Views.ViewByNode(LViews.Children[I]), Self);
+        Session.Config.Views.ViewByNode(LViews.Children[I]), Self);
       LController.Display;
     end;
     if Items.Count > 0 then

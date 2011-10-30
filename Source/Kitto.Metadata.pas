@@ -25,7 +25,7 @@ type
 
     ///	<summary>Returns true if access is granted to the resource representing
     ///	the metadata object in the specified mode. This is a shortcut to
-    ///	calling Environment.IsAccessGranted (possibly multiple times for
+    ///	calling TKConfig.Instance.IsAccessGranted (possibly multiple times for
     ///	cascading, and "or"ing the results).</summary>
     function IsAccessGranted(const AMode: string): Boolean; virtual;
   end;
@@ -40,7 +40,7 @@ type
 
     ///	<summary>Returns true if access is granted to the resource representing
     ///	the metadata object in the specified mode. This is a shortcut to
-    ///	calling Environment.IsAccessGranted (possibly multiple times for
+    ///	calling TKConfig.Instance.IsAccessGranted (possibly multiple times for
     ///	cascading, and "or"ing the results).</summary>
     function IsAccessGranted(const AMode: string): Boolean; virtual;
   end;
@@ -123,7 +123,7 @@ implementation
 uses
   SysUtils,
   EF.Localization, EF.StrUtils,
-  Kitto.Types, Kitto.Environment;
+  Kitto.Types, Kitto.Config;
 
 { TKMetadataCatalog<T> }
 
@@ -450,7 +450,7 @@ end;
 
 function TKMetadata.IsAccessGranted(const AMode: string): Boolean;
 begin
-  Result := Environment.IsAccessGranted(GetResourceURI, AMode);
+  Result := TKConfig.Instance.IsAccessGranted(GetResourceURI, AMode);
 end;
 
 class function TKMetadata.BeautifiedClassName: string;
@@ -467,7 +467,7 @@ end;
 
 function TKMetadataItem.IsAccessGranted(const AMode: string): Boolean;
 begin
-  Result := Environment.IsAccessGranted(GetResourceURI, AMode);
+  Result := TKConfig.Instance.IsAccessGranted(GetResourceURI, AMode);
 end;
 
 end.

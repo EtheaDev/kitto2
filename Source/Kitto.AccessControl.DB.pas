@@ -175,7 +175,7 @@ implementation
 uses
   SysUtils, Variants,
   EF.DB, EF.DB.Utils, EF.RegEx,
-  Kitto.Environment;
+  Kitto.Config;
   
 { TKDBAccessController }
 
@@ -288,7 +288,7 @@ begin
   Assert(AGranteeId <> '');
   Assert(FReadPermissionsCommandText <> '');
 
-  LPermissionQuery := Environment.MainDBConnection.CreateDBQuery;
+  LPermissionQuery := TKConfig.Instance.MainDBConnection.CreateDBQuery;
   try
     LPermissionQuery.CommandText := FReadPermissionsCommandText;
     LPermissionQuery.Params[0].AsString := AGranteeId;
@@ -317,7 +317,7 @@ begin
     // Only trigger macro expansion is a macro is found. Ugly, but more
     // efficient.
     if Pos('%', LPattern) > 0 then
-      LPattern := Environment.MacroExpansionEngine.Expand(LPattern);
+      LPattern := TKConfig.Instance.MacroExpansionEngine.Expand(LPattern);
 
     // A match is found only if the resource URI pattern matches the given
     // resource URI and if the given access mode is equal to or part of the
@@ -348,7 +348,7 @@ begin
   Assert(Assigned(ARoleList));
   Assert(FReadRolesCommandText <> '');
 
-  LRoleQuery := Environment.MainDBConnection.CreateDBQuery;
+  LRoleQuery := TKConfig.Instance.MainDBConnection.CreateDBQuery;
   try
     LRoleQuery.CommandText := FReadRolesCommandText;
     LRoleQuery.Params[0].AsString := AUserId;

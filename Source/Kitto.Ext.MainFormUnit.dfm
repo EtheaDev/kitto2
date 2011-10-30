@@ -1,4 +1,4 @@
-object KMainForm: TKMainForm
+object KExtMainForm: TKExtMainForm
   Left = 0
   Top = 0
   Caption = 'Kitto Application'
@@ -463,13 +463,9 @@ object KMainForm: TKMainForm
     object MonitorTabSheet: TTabSheet
       Caption = 'Monitor'
       ImageIndex = 1
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object SessionCountLabel: TLabel
         Left = 16
-        Top = 56
+        Top = 48
         Width = 90
         Height = 13
         Caption = 'SessionCountLabel'
@@ -483,7 +479,7 @@ object KMainForm: TKMainForm
       end
       object ConfigFileNameComboBox: TComboBox
         Left = 16
-        Top = 29
+        Top = 21
         Width = 145
         Height = 21
         Style = csDropDownList
@@ -493,10 +489,6 @@ object KMainForm: TKMainForm
     end
     object LogTabSheet: TTabSheet
       Caption = 'Log'
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object LogMemo: TMemo
         Left = 0
         Top = 0

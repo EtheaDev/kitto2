@@ -9,7 +9,6 @@ uses
   EF.DB in '..\..\Source\EF\EF.DB.pas',
   EF.DB.Utils in '..\..\Source\EF\EF.DB.Utils.pas',
   EF.Emailer in '..\..\Source\EF\EF.Emailer.pas',
-  EF.Environment in '..\..\Source\EF\EF.Environment.pas',
   EF.Intf in '..\..\Source\EF\EF.Intf.pas',
   EF.InvocationRegistry in '..\..\Source\EF\EF.InvocationRegistry.pas',
   EF.Localization.dxgettext in '..\..\Source\EF\EF.Localization.dxgettext.pas',
@@ -38,7 +37,7 @@ uses
   Kitto.Auth.OSDB in '..\..\Source\Kitto.Auth.OSDB.pas',
   Kitto.Auth in '..\..\Source\Kitto.Auth.pas',
   Kitto.Auth.TextFile in '..\..\Source\Kitto.Auth.TextFile.pas',
-  Kitto.Environment in '..\..\Source\Kitto.Environment.pas',
+  Kitto.Config in '..\..\Source\Kitto.Config.pas',
   Kitto.Ext.AccordionPanel in '..\..\Source\Kitto.Ext.AccordionPanel.pas',
   Kitto.Ext.All in '..\..\Source\Kitto.Ext.All.pas',
   Kitto.Ext.Application in '..\..\Source\Kitto.Ext.Application.pas',
@@ -65,7 +64,7 @@ uses
   Kitto.JSON in '..\..\Source\Kitto.JSON.pas',
   Kitto.Localization.dxgettext in '..\..\Source\Kitto.Localization.dxgettext.pas',
   Kitto.LocalStorage in '..\..\Source\Kitto.LocalStorage.pas',
-  Kitto.MainFormUnit in '..\..\Source\Kitto.MainFormUnit.pas' {KMainForm},
+  Kitto.Ext.MainFormUnit in '..\..\Source\Kitto.Ext.MainFormUnit.pas' {KExtMainForm},
   Kitto.Metadata.DataView in '..\..\Source\Kitto.Metadata.DataView.pas',
   Kitto.Metadata.Models in '..\..\Source\Kitto.Metadata.Models.pas',
   Kitto.Metadata in '..\..\Source\Kitto.Metadata.pas',
@@ -81,6 +80,6 @@ uses
 begin
   Application.Initialize;
   Application.Title := 'Kitto';
-  Application.CreateForm(TKMainForm, KMainForm);
+  Application.CreateForm(TKExtMainForm, KExtMainForm);
   Application.Run;
 end.

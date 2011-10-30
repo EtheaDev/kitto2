@@ -138,8 +138,7 @@ implementation
 
 uses
   SysUtils, Variants,
-  EF.StrUtils, EF.Tree,
-  Kitto.Environment;
+  EF.StrUtils, EF.Tree;
 
 { TKAccessControllerRegistry }
 

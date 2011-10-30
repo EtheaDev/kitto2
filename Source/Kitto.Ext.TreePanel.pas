@@ -40,7 +40,7 @@ implementation
 uses
   SysUtils,
   Ext,
-  Kitto.Ext.Session, Kitto.Environment;
+  Kitto.Ext.Session;
 
 { TKExtTreePanelController }
 
@@ -55,10 +55,6 @@ procedure TKExtTreePanelController.InitDefaults;
 begin
   inherited;
   Layout := lyFit;
-  Border := False;
-  Split := True;
-  AutoWidth := True;
-  Collapsible := True;
 
   FTreePanel := TKExtTreePanel.AddTo(Items);
 end;
@@ -74,10 +70,10 @@ end;
 procedure TKExtTreePanel.InitDefaults;
 begin
   inherited;
-  Border := True;
   Root := TExtTreeTreeNode.Create;
   RootVisible := False;
   AutoScroll := True;
+  Border := False;
 end;
 
 procedure TKExtTreePanel.SetView(const AValue: TKView);
@@ -87,7 +83,7 @@ begin
   FView := AValue;
   if not Assigned(FTreeViewRenderer) then
     FTreeViewRenderer := TKExtTreeViewRenderer.Create;
-  FTreeViewRenderer.RenderAsTree(Environment.Views.ViewByNode(FView.GetNode('Controller/TreeView')) as TKTreeView,
+  FTreeViewRenderer.RenderAsTree(Session.Config.Views.ViewByNode(FView.GetNode('Controller/TreeView')) as TKTreeView,
     Root, Self, DisplayView);
 end;
 

@@ -83,7 +83,7 @@ implementation
 uses
   StrUtils, HTTPApp,
   EF.SysUtils, EF.Classes, EF.Localization,
-  Kitto.Environment, Kitto.AccessControl, Kitto.Ext.Session, Kitto.Ext.Base;
+  Kitto.Ext.Session, Kitto.AccessControl, Kitto.Ext.Base;
 
 { TKExtTreeViewRenderer }
 
@@ -111,7 +111,7 @@ begin
   if ANode is TKTreeViewFolder then
     Result := nil
   else
-    Result := Environment.Views.ViewByNode(ANode);
+    Result := Session.Config.Views.ViewByNode(ANode);
 end;
 
 procedure TKExtTreeViewRenderer.AddMenuItem(const ANode: TKTreeViewNode;

@@ -309,7 +309,7 @@ implementation
 uses
   SysUtils, Classes, Math, StrUtils,
   EF.StrUtils, EF.Localization, EF.YAML, EF.Types, EF.SQL,
-  Kitto.JSON, Kitto.Environment, Kitto.SQL, Kitto.Metadata.Models, Kitto.Types,
+  Kitto.JSON, Kitto.SQL, Kitto.Metadata.Models, Kitto.Types,
   Kitto.Rules, Kitto.Ext.Utils, Kitto.Ext.Session, Kitto.Ext.Rules;
 
 const
@@ -327,7 +327,7 @@ end;
 function OptionAsFloat(const AOptionValue: string): Double;
 begin
   // Floats in Yaml always use the dot as decimal separator.
-  if not TryStrToFloat(AOptionValue, Result, Environment.JSFormatSettings) then
+  if not TryStrToFloat(AOptionValue, Result, Session.Config.JSFormatSettings) then
     raise EEFError.CreateFmt(_('Invalid value %s. Valid values: decimal numbers.'), [AOptionValue]);
 end;
 
@@ -568,7 +568,7 @@ begin
         else
         begin
           LComboBox.Mode := 'local';
-          LComboBox.StoreArray := LComboBox.JSArray(DataSetToJSON(Environment.MainDBConnection, LLookupCommandText));
+          LComboBox.StoreArray := LComboBox.JSArray(DataSetToJSON(Session.Config.MainDBConnection, LLookupCommandText));
         end;
       end;
       if not AIsReadOnly then
@@ -653,8 +653,8 @@ begin
         LDateField.Width := LDateField.CharsToPixels(AFieldWidth + TRIGGER_WIDTH)
       else
         ARowField.CharWidth := AFieldWidth + TRIGGER_WIDTH;
-      LDateField.Format := DelphiDateFormatToJSDateFormat(Environment.UserFormatSettings.ShortDateFormat);
-      LDateField.AltFormats := DelphiDateFormatToJSDateFormat(Environment.JSFormatSettings.ShortDateFormat);
+      LDateField.Format := DelphiDateFormatToJSDateFormat(Session.Config.UserFormatSettings.ShortDateFormat);
+      LDateField.AltFormats := DelphiDateFormatToJSDateFormat(Session.Config.JSFormatSettings.ShortDateFormat);
       if not AIsReadOnly then
         LDateField.AllowBlank := not AViewField.IsRequired;
       Result := LDateField;
@@ -682,8 +682,8 @@ begin
       else
         ARowField.CharWidth := AFieldWidth + TRIGGER_WIDTH;
       // Don't use Delphi format here.
-      LTimeField.Format := DelphiTimeFormatToJSTimeFormat(Environment.UserFormatSettings.ShortTimeFormat);
-      LTimeField.AltFormats := DelphiDateFormatToJSDateFormat(Environment.JSFormatSettings.ShortTimeFormat);
+      LTimeField.Format := DelphiTimeFormatToJSTimeFormat(Session.Config.UserFormatSettings.ShortTimeFormat);
+      LTimeField.AltFormats := DelphiDateFormatToJSDateFormat(Session.Config.JSFormatSettings.ShortTimeFormat);
       if not AIsReadOnly then
         LTimeField.AllowBlank := not AViewField.IsRequired;
       Result := LTimeField;
@@ -713,9 +713,9 @@ begin
       else
         ARowField.CharWidth := AFieldWidth + (2 * TRIGGER_WIDTH) + SPACER_WIDTH;
       // Don't use Delphi format here.
-      LDateTimeField.DateFormat := DelphiDateFormatToJSDateFormat(Environment.UserFormatSettings.ShortDateFormat);
-      LDateTimeField.AltFormats := DelphiDateFormatToJSDateFormat(Environment.JSFormatSettings.ShortDateFormat);
-      LDateTimeField.TimeFormat := DelphiTimeFormatToJSTimeFormat(Environment.UserFormatSettings.ShortTimeFormat);
+      LDateTimeField.DateFormat := DelphiDateFormatToJSDateFormat(Session.Config.UserFormatSettings.ShortDateFormat);
+      LDateTimeField.AltFormats := DelphiDateFormatToJSDateFormat(Session.Config.JSFormatSettings.ShortDateFormat);
+      LDateTimeField.TimeFormat := DelphiTimeFormatToJSTimeFormat(Session.Config.UserFormatSettings.ShortTimeFormat);
       if not AIsReadOnly then
         LDateTimeField.AllowBlank := not AViewField.IsRequired;
 //      if not AIsReadOnly then
@@ -755,7 +755,7 @@ begin
       if not AIsReadOnly then
       begin
         LNumberField.AllowDecimals := AViewField.DataType is TEFDecimalNumericDataTypeBase;
-        LNumberField.DecimalSeparator := Environment.UserFormatSettings.DecimalSeparator;
+        LNumberField.DecimalSeparator := Session.Config.UserFormatSettings.DecimalSeparator;
         LNumberField.AllowNegative := True;
         if LNumberField.AllowDecimals then
           LNumberField.DecimalPrecision := AViewField.DecimalPrecision;
@@ -1267,7 +1267,7 @@ begin
   Shall we provide a switch to turn it off on a form-by-form basis, or use
   FIRST/SKIP/ROWS to only fetch relevant rows in a database-dependent way?
   For now, let's just stick with full refresh always. }
-  FServerStore.Load(Environment.MainDBConnection,
+  FServerStore.Load(Session.Config.MainDBConnection,
     ReplaceStr(FLookupCommandText, '{query}', ReplaceStr(Session.Query['query'], '''', '''''')));
 
   LStart := Session.QueryAsInteger['start'];

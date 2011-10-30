@@ -783,11 +783,14 @@ var
   I: Integer;
   Thread: TFCGIThread;
 begin
-  for I := Threads.Count - 1 downto 0 do begin
-    Thread := TFCGIThread(Threads.Objects[I]);
-    AccessThreads.Enter;
-    Thread.Free;
-    Threads.Delete(I);
+  AccessThreads.Enter;
+  try
+    for I := Threads.Count - 1 downto 0 do begin
+      Thread := TFCGIThread(Threads.Objects[I]);
+      Thread.Free;
+      Threads.Delete(I);
+    end;
+  finally
     AccessThreads.Leave;
   end;
 end;

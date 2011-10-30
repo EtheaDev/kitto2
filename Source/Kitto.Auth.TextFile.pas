@@ -77,7 +77,7 @@ implementation
 uses
   SysUtils,
   EF.Intf, EF.Localization, EF.Types, EF.StrUtils,
-  Kitto.Environment;
+  Kitto.Config;
 
 { TKTextFileAuthenticator }
 
@@ -105,13 +105,13 @@ var
   LStoredPasswordHash: string;
   LUserName: string;
 begin
-  LSuppliedPasswordHash := Environment.MacroExpansionEngine.Expand(
+  LSuppliedPasswordHash := TKConfig.Instance.MacroExpansionEngine.Expand(
     AAuthData.GetString('Password'));
 
   if not Config.GetBoolean('IsClearPassword') then
     LSuppliedPasswordHash := GetStringHash(LSuppliedPasswordHash);
 
-  LUserName := Environment.MacroExpansionEngine.Expand(
+  LUserName := TKConfig.Instance.MacroExpansionEngine.Expand(
     AAuthData.GetString('UserName'));
 
   RefreshUserList(FUserList);

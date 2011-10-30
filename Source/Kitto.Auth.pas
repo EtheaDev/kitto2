@@ -11,7 +11,7 @@ interface
 
 uses
   Classes,
-  EF.Types, EF.Classes, EF.Tree, EF.Environment;
+  EF.Macros, EF.Types, EF.Classes, EF.Tree;
 
 type
   ///	<summary>
@@ -25,9 +25,7 @@ type
   TKAuthenticator = class(TEFComponent)
   private
     FAuthData: TEFNode;
-    FAuthMacroExpander: TEFTreeMacroExpander;
-    // Keep a reference in order to be able to call it in the destructor.
-    FEnvironment: IEFEnvironment;
+    FMacroExpander: TEFMacroExpander;
     FIsAuthenticated: Boolean;
     procedure ClearAuthData;
   protected
@@ -95,6 +93,11 @@ type
     ///	<summary>Returns True if authentication has successfully taken
     ///	place.</summary>
     property IsAuthenticated: Boolean read GetIsAuthenticated;
+
+    ///	<summary>
+    ///	  Access to the authenticator macro expander, that expands auth data.
+    ///	</summary>
+    property MacroExpander: TEFMacroExpander read FMacroExpander;
   end;
   TKAuthenticatorClass = class of TKAuthenticator;
 
@@ -159,8 +162,7 @@ implementation
 
 uses
   SysUtils,
-  EF.StrUtils, EF.Localization,
-  Kitto.Environment;
+  EF.StrUtils, EF.Localization;
 
 { TKNullAuthenticator }
 
@@ -223,16 +225,13 @@ procedure TKAuthenticator.AfterConstruction;
 begin
   inherited;
   FAuthData := TEFNode.Create;
-  FAuthMacroExpander := TEFTreeMacroExpander.Create(FAuthData, 'Auth');
-  FEnvironment := Environment;
-  FEnvironment.MacroExpansionEngine.AddExpander(FAuthMacroExpander);
+  FMacroExpander := TEFTreeMacroExpander.Create(FAuthData, 'Auth');
   FIsAuthenticated := False;
 end;
 
 destructor TKAuthenticator.Destroy;
 begin
-  FEnvironment.MacroExpansionEngine.RemoveExpander(FAuthMacroExpander);
-  FreeAndNil(FAuthMacroExpander);
+  FreeAndNil(FMacroExpander);
   FreeAndNil(FAuthData);
   inherited;
 end;

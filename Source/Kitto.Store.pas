@@ -224,7 +224,7 @@ implementation
 uses
   Math, FmtBcd, Variants, StrUtils,
   EF.StrUtils, EF.Localization, EF.DB.Utils,
-  Kitto.Types, Kitto.SQL, Kitto.Environment, Kitto.Ext.Session;
+  Kitto.Types, Kitto.SQL, Kitto.Config, Kitto.Ext.Session;
 
 { TKStore }
 
@@ -760,7 +760,7 @@ end;
 
 function TKField.GetAsJSONValue: string;
 begin
-  Result := DataType.NodeToJSONValue(Self, Environment.JSFormatSettings);
+  Result := DataType.NodeToJSONValue(Self, TKConfig.Instance.JSFormatSettings);
 end;
 
 function TKField.GetFieldName: string;
@@ -781,7 +781,7 @@ end;
 
 procedure TKField.SetAsJSONValue(const AValue: string);
 begin
-  SetAsYamlValue(AValue, Environment.UserFormatSettings);
+  SetAsYamlValue(AValue, TKConfig.Instance.UserFormatSettings);
 end;
 
 procedure TKField.SetToNull;

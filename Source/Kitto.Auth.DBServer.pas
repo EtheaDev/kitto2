@@ -35,14 +35,14 @@ type
 implementation
 
 uses
-  Kitto.Environment;
+  Kitto.Config;
 
 { TKDBServerAuthenticator }
 
 function TKDBServerAuthenticator.InternalAuthenticate(const AAuthData: TEFNode): Boolean;
 begin
   try
-    Environment.MainDBConnection.Open;
+    TKConfig.Instance.MainDBConnection.Open;
     Result := True;
   except
     Result := False;

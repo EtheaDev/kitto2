@@ -1,106 +1,121 @@
-{
-  This unit defines classes and routines to help with macro-expansion in strings.
-  The macro-expansion engine can be extended by defining and registering custom
-  expander classes.
-}
+///	<summary>
+///	  This unit defines classes and routines to help with macro-expansion in
+///	  strings. The macro-expansion engine can be extended by defining and
+///	  registering custom expander classes.
+///	</summary>
 unit EF.Macros;
 
 interface
 
 uses
+  Generics.Collections,
   Classes, Contnrs;
   
 type
-  {
-    Abstract macro expander class. Descendants are able to expand a certain set
-    of macros in a given string. This class is used with
-    TEFMacroExpansionEngine but it can be used on its own as well.
-  }
+  ///	<summary>
+  ///	  Abstract macro expander class. Descendants are able to expand a certain
+  ///	  set of macros in a given string. This class is used with
+  ///	  TEFMacroExpansionEngine but it can be used on its own as well.
+  ///	</summary>
   TEFMacroExpander = class
   protected
-    {
-      Utility method: replaces all occurrences of AMacroName in AString with
-      AMacroValue, and returns the resulting string. Should be used by all
-      inherited classes to expand macros. Implements support for control
-      sequences such as %Q that encapsulates QuotedStr().
-    }
+    ///	<summary>
+    ///	  Utility method: replaces all occurrences of AMacroName in AString with
+    ///	  AMacroValue, and returns the resulting string. Should be used by all
+    ///	  inherited classes to expand macros. Implements support for control
+    ///	  sequences (such as %Q, that encapsulates QuotedStr()).
+    ///	</summary>
     function ExpandMacros(const AString, AMacroName, AMacroValue: string): string;
-    {
-      Implements Expand. The default implementation just returns the input
-      argument unchanged.
-    }
+
+    ///	<summary>
+    ///   Implements Expand. The default implementation just returns the input
+    ///   argument unchanged.
+    ///	</summary>
     function InternalExpand(const AString: string): string; virtual;
   public
-    {
-      Virtual constructor needed for polymorphic creation.
-    }
     constructor Create; virtual;
-    {
-      Expand all supported macros found in a given string, and returns the
-      string with macros expanded. Calls the virtual protected method
-      InternalExpand to do the job.
-    }
+
+    ///	<summary>
+    ///	  Expands all supported macros found in a given string, and returns the
+    ///	  string with macros expanded. Calls the virtual protected method
+    ///	  InternalExpand to do the job.
+    ///	</summary>
     function Expand(const AString: string): string;
   end;
-  {
-    Class reference for TEFMacroExpander, used for registering macro expanders.
-  }
   TEFMacroExpanderClass = class of TEFMacroExpander;
 
-  {
-    The engine is able to expand an open-ended set of macros in a given string.
-    Use AddExpander calls to add support for more macros, and call Expand to
-    trigger macro expansion.
+  TEFMacroExpansionEngine = class;
 
-    Alternatively, you can use a ready-made singleton engine which supports
-    all registered expanders out-of-the-box (see DefaultMacroExpansionEngine).
+  TEFGetMacroExpansionEngine = reference to function: TEFMacroExpansionEngine;
 
-    Macro expansion engines can be chained; each engine calls the previous
-    engine in the chain, if available, when invoked.
-  }
+  ///	<summary>
+  ///	  The engine is able to expand an open-ended set of macros in a given
+  ///	  string. Use AddExpander calls to add support for more macros, and call
+  ///	  Expand to trigger macro expansion. Alternatively, you can use a
+  ///	  ready-made singleton engine which supports all registered expanders
+  ///	  out-of-the-box. Macro expansion engines can be chained: each engine
+  ///	  calls the previous engine in the chain, if available, when invoked.
+  ///	</summary>
   TEFMacroExpansionEngine = class
   private
-    FExpanders: TObjectList;
+    FExpanders: TObjectList<TEFMacroExpander>;
     FPrevious: TEFMacroExpansionEngine;
+    class var FInstance: TEFMacroExpansionEngine;
+    class var FOnGetInstance: TEFGetMacroExpansionEngine;
     function CallExpanders(const AString: string): string;
+    class function GetInstance: TEFMacroExpansionEngine; static;
+    class destructor Destroy;
   public
     constructor Create(const APrevious: TEFMacroExpansionEngine = nil);
     destructor Destroy; override;
-    {
-      Expands all recognized macros in AString and returns the resulting string.
-      The result depends on the set of macro expanders used. Add a new macro
-      expander by calling AddExpander before calling Expand.
-      If no macro expanders are used, the result is the same as the input string.
-    }
-    function Expand(const AString: string): string;
-    {
-      Adds an expander to the list used by the Expand method.
-      Acquires ownership of AExpander, which means it will be destroyed when
-      RemoveExpanders or ClearExpanders are called, or when the current object
-      is itself destroyed.
-    }
-    procedure AddExpander(const AExpander: TEFMacroExpander);
-    {
-      Removes a previously added expander from the list used by the Expand
-      method. Returns True if the specified object was found and removed,
-      and False otherwise.
+  public
+    class property Instance: TEFMacroExpansionEngine read GetInstance;
 
-      Note: the removed object is NOT freed automatically.
-    }
+    class property OnGetInstance: TEFGetMacroExpansionEngine
+      read FOnGetInstance write FOnGetInstance;
+
+    ///	<summary>
+    ///	  Expands all recognized macros in AString and returns the resulting
+    ///	  string. The result depends on the set of macro expanders used. Add a
+    ///	  new macro expander by calling AddExpander before calling Expand. If
+    ///	  no macro expanders are used, the result is the same as the input
+    ///	  string.
+    ///	</summary>
+    function Expand(const AString: string): string;
+
+    ///	<summary>
+    ///	  Adds an expander to the list used by the Expand method. Acquires
+    ///	  ownership of AExpander, which means it will be destroyed when
+    ///	  RemoveExpanders or ClearExpanders are called, or when the current
+    ///	  object is itself destroyed.
+    ///	</summary>
+    procedure AddExpander(const AExpander: TEFMacroExpander);
+
+    ///	<summary>
+    ///	  Removes a previously added expander from the list used by the Expand
+    ///	  method. Returns True if the specified object was found and removed,
+    ///	  and False otherwise.
+    ///	</summary>
+    ///	<remarks>
+    ///	  The removed object is NOT freed automatically.
+    ///	</remarks>
     function RemoveExpander(const AExpander: TEFMacroExpander): Boolean;
-    {
-      Returns the index of a given expander in the list, or -1 if it is not
-      found. Use this method to check whether an expander is part of an
-      expansion engine.
-    }
+
+    ///	<summary>
+    ///	  Returns the index of a given expander in the list, or -1 if it is not
+    ///	  found. Use this method to check whether an expander is part of an
+    ///	  expansion engine.
+    ///	</summary>
     function IndexOfExpander(const AExpander: TEFMacroExpander): Integer;
-    {
-      Removes from the list and frees all expanders of the given class.
-    }
+
+    ///	<summary>
+    ///	  Removes from the list and frees all expanders of the given class.
+    ///	</summary>
     procedure RemoveExpanders(const AExpanderClass: TEFMacroExpanderClass);
-    {
-      Removes all expanders from the list and destroys them.
-    }
+
+    ///	<summary>
+    ///	  Removes all expanders from the list and destroys them.
+    ///	</summary>
     procedure ClearExpanders;
   end;
 
@@ -288,26 +303,11 @@ type
     function InternalExpand(const AString: string): string; override;
   end;
 
-{
-  Utility singleton instance that contains all registered expanders.
-}
-function DefaultMacroExpansionEngine: TEFMacroExpansionEngine;
-
 implementation
 
 uses
   Windows, SysUtils, DateUtils, StrUtils,
   EF.StrUtils, EF.SysUtils;
-
-var
-  _DefaultMacroExpansionEngine: TEFMacroExpansionEngine;
-
-function DefaultMacroExpansionEngine: TEFMacroExpansionEngine;
-begin
-  if not Assigned(_DefaultMacroExpansionEngine) then
-    _DefaultMacroExpansionEngine := TEFMacroExpansionEngine.Create;
-  Result := _DefaultMacroExpansionEngine;
-end;
 
 { TEFMacroExpander }
 
@@ -343,7 +343,12 @@ constructor TEFMacroExpansionEngine.Create(const APrevious: TEFMacroExpansionEng
 begin
   inherited Create;
   FPrevious := APrevious;
-  FExpanders := TObjectList.Create(True);
+  FExpanders := TObjectList<TEFMacroExpander>.Create(True);
+end;
+
+class destructor TEFMacroExpansionEngine.Destroy;
+begin
+  FreeAndNil(FInstance);
 end;
 
 destructor TEFMacroExpansionEngine.Destroy;
@@ -353,16 +358,14 @@ begin
   inherited;
 end;
 
-procedure TEFMacroExpansionEngine.AddExpander(
-  const AExpander: TEFMacroExpander);
+procedure TEFMacroExpansionEngine.AddExpander(const AExpander: TEFMacroExpander);
 begin
   Assert(Assigned(AExpander));
   
   FExpanders.Add(AExpander);
 end;
 
-function TEFMacroExpansionEngine.RemoveExpander(
-  const AExpander: TEFMacroExpander): Boolean;
+function TEFMacroExpansionEngine.RemoveExpander(const AExpander: TEFMacroExpander): Boolean;
 begin
   if Assigned(AExpander) then
     Result := Assigned(FExpanders.Extract(AExpander))
@@ -370,24 +373,22 @@ begin
     Result := False;
 end;
 
-function TEFMacroExpansionEngine.IndexOfExpander(
-  const AExpander: TEFMacroExpander): Integer;
+function TEFMacroExpansionEngine.IndexOfExpander(const AExpander: TEFMacroExpander): Integer;
 begin
   Assert(Assigned(AExpander));
 
   Result := FExpanders.IndexOf(AExpander);
 end;
 
-procedure TEFMacroExpansionEngine.RemoveExpanders(
-  const AExpanderClass: TEFMacroExpanderClass);
+procedure TEFMacroExpansionEngine.RemoveExpanders(const AExpanderClass: TEFMacroExpanderClass);
 var
-  LExpanderIndex: Integer;
+  I: Integer;
 begin
   Assert(Assigned(AExpanderClass));
-  
-  for LExpanderIndex := FExpanders.Count - 1 downto 0 do
-    if FExpanders[LExpanderIndex] is AExpanderClass then
-      FExpanders.Delete(LExpanderIndex);
+
+  for I := FExpanders.Count - 1 downto 0 do
+    if FExpanders[I] is AExpanderClass then
+      FExpanders.Delete(I);
 end;
 
 procedure TEFMacroExpansionEngine.ClearExpanders;
@@ -410,16 +411,29 @@ begin
   end;
 end;
 
+class function TEFMacroExpansionEngine.GetInstance: TEFMacroExpansionEngine;
+begin
+  Result := nil;
+  if Assigned(FOnGetInstance) then
+    Result := FOnGetInstance();
+  if not Assigned(Result) then
+  begin
+    if not Assigned(FInstance) then
+      FInstance := TEFMacroExpansionEngine.Create;
+    Result := FInstance;
+  end;
+end;
+
 function TEFMacroExpansionEngine.CallExpanders(const AString: string): string;
 var
-  LExpanderIndex: Integer;
+  I: Integer;
 begin
   if Assigned(FPrevious) then
     Result := FPrevious.Expand(AString)
   else
     Result := AString;
-  for LExpanderIndex := 0 to FExpanders.Count - 1 do
-    Result := TEFMacroExpander(FExpanders[LExpanderIndex]).Expand(Result);
+  for I := 0 to FExpanders.Count - 1 do
+    Result := TEFMacroExpander(FExpanders[I]).Expand(Result);
 end;
 
 { TEFPathMacroExpander }
@@ -637,21 +651,19 @@ begin
 end;
 
 initialization
-  DefaultMacroExpansionEngine.AddExpander(TEFPathMacroExpander.Create);
-  DefaultMacroExpansionEngine.AddExpander(TEFSysMacroExpander.Create);
-  DefaultMacroExpansionEngine.AddExpander(TEFEnvironmentVariableMacroExpander.Create);
-  DefaultMacroExpansionEngine.AddExpander(TEFCmdLineParamMacroExpander.Create);
-  DefaultMacroExpansionEngine.AddExpander(TEFDateTimeStrMacroExpander.Create);
-  DefaultMacroExpansionEngine.AddExpander(TEFGUIDMacroExpander.Create);
+  TEFMacroExpansionEngine.Instance.AddExpander(TEFPathMacroExpander.Create);
+  TEFMacroExpansionEngine.Instance.AddExpander(TEFSysMacroExpander.Create);
+  TEFMacroExpansionEngine.Instance.AddExpander(TEFEnvironmentVariableMacroExpander.Create);
+  TEFMacroExpansionEngine.Instance.AddExpander(TEFCmdLineParamMacroExpander.Create);
+  TEFMacroExpansionEngine.Instance.AddExpander(TEFDateTimeStrMacroExpander.Create);
+  TEFMacroExpansionEngine.Instance.AddExpander(TEFGUIDMacroExpander.Create);
 
 finalization
-  DefaultMacroExpansionEngine.RemoveExpanders(TEFPathMacroExpander);
-  DefaultMacroExpansionEngine.RemoveExpanders(TEFSysMacroExpander);
-  DefaultMacroExpansionEngine.RemoveExpanders(TEFEnvironmentVariableMacroExpander);
-  DefaultMacroExpansionEngine.RemoveExpanders(TEFCmdLineParamMacroExpander);
-  DefaultMacroExpansionEngine.RemoveExpanders(TEFDateTimeStrMacroExpander);
-  DefaultMacroExpansionEngine.RemoveExpanders(TEFGUIDMacroExpander);
-
-  FreeAndNil(_DefaultMacroExpansionEngine);
+  TEFMacroExpansionEngine.Instance.RemoveExpanders(TEFPathMacroExpander);
+  TEFMacroExpansionEngine.Instance.RemoveExpanders(TEFSysMacroExpander);
+  TEFMacroExpansionEngine.Instance.RemoveExpanders(TEFEnvironmentVariableMacroExpander);
+  TEFMacroExpansionEngine.Instance.RemoveExpanders(TEFCmdLineParamMacroExpander);
+  TEFMacroExpansionEngine.Instance.RemoveExpanders(TEFDateTimeStrMacroExpander);
+  TEFMacroExpansionEngine.Instance.RemoveExpanders(TEFGUIDMacroExpander);
 
 end.

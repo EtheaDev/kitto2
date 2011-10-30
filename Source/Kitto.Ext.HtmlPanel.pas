@@ -18,8 +18,8 @@ implementation
 uses
   SysUtils,
   Ext,
-  EF.StrUtils,
-  Kitto.Environment;
+  EF.StrUtils, EF.Macros,
+  Kitto.Ext.Session;
 
 { TKExtHtmlPanelController }
 
@@ -36,9 +36,9 @@ begin
   LFileName := View.GetExpandedString('Controller/FileName');
   if LFileName <> '' then
   begin
-    LFullFileName := Environment.FindResourcePathName(LFileName);
+    LFullFileName := Session.Config.FindResourcePathName(LFileName);
     if LFullFileName <> '' then
-      Html := Environment.MacroExpansionEngine.Expand(TextFileToString(LFullFileName))
+      Html := TEFMacroExpansionEngine.Instance.Expand(TextFileToString(LFullFileName))
     else
       Html := Format('File %s not found.', [LFileName]);
   end

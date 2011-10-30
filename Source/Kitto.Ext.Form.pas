@@ -69,7 +69,7 @@ implementation
 uses
   SysUtils, StrUtils,
   EF.Localization, EF.Types, EF.Intf, EF.Tree,
-  Kitto.Environment, Kitto.AccessControl, Kitto.JSON, Kitto.Rules,
+  Kitto.AccessControl, Kitto.JSON, Kitto.Rules,
   Kitto.Ext.Session, Kitto.Ext.Utils;
 
 { TKExtFormPanelController }
@@ -230,7 +230,7 @@ begin
   try
     // Get POST values.
     FStoreRecord.SetChildValuesfromStrings(Session.Queries,
-      False, Environment.UserFormatSettings,
+      False, Session.Config.UserFormatSettings,
       function(const AName: string): string
       var
         LViewField: TKViewField;
@@ -254,7 +254,7 @@ begin
   except
     on E: EKValidationError do
     begin
-      ExtMessageBox.Alert(Environment.AppTitle, E.Message);
+      ExtMessageBox.Alert(Session.Config.AppTitle, E.Message);
       Exit;
     end;
   end;
@@ -318,7 +318,7 @@ begin
     FSaveButton.FormBind := True;
     FSaveButton.Text := _('Save');
     FSaveButton.Tooltip := _('Save changes and finish editing');
-    FSaveButton.Icon := Environment.GetImageURL('ok');
+    FSaveButton.Icon := Session.Config.GetImageURL('ok');
     FSaveButton.Handler := AjaxForms(SaveChanges, [FFormPanel]);
     //FSaveButton.Handler := JSFunction(FFormPanel.JSName + '.getForm().doAction("submit", {success:"AjaxSuccess", failure:"AjaxFailure"});');
   end;
@@ -328,7 +328,7 @@ begin
   begin
     FCancelButton.Text := _('Close');
     FCancelButton.Tooltip := _('Close this panel');
-    FCancelButton.Icon := Environment.GetImageURL('close');
+    FCancelButton.Icon := Session.Config.GetImageURL('close');
     // No need for an ajax call when we just close the client-side panel.
     LHostWindow := GetHostWindow;
     if Assigned(LHostWindow) then
@@ -338,7 +338,7 @@ begin
   begin
     FCancelButton.Text := _('Cancel');
     FCancelButton.Tooltip := _('Cancel changes');
-    FCancelButton.Icon := Environment.GetImageURL('cancel');
+    FCancelButton.Icon := Session.Config.GetImageURL('cancel');
     FCancelButton.Handler := Ajax(CancelChanges);
   end;
 end;
@@ -369,7 +369,7 @@ begin
   if Assigned(FViewTable) then
   begin
     Text := FViewTable.PluralDisplayLabel;
-    Icon := Environment.GetImageURL(FViewTable.ImageName);
+    Icon := Session.Config.GetImageURL(FViewTable.ImageName);
     Handler := Ajax(ShowDetailWindow, []);
   end;
 end;

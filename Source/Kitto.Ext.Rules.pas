@@ -258,7 +258,7 @@ uses
   SysUtils, StrUtils,
   ExtPascalUtils,
   EF.Tree, EF.Localization, EF.StrUtils,
-  Kitto.Environment;
+  Kitto.Ext.Session;
 
 { TKExtRuleImpl }
 
@@ -391,7 +391,7 @@ begin
   begin
     TExtFormTextField(AField).Validator :=
       TExtFormTextField(AField).JSFunction('value',
-      ReplaceStr(Environment.MacroExpansionEngine.Expand(Rule.AsExpandedString), '{errorMessage}', StrToJS(GetErrorMessage)));
+      ReplaceStr(Session.Config.MacroExpansionEngine.Expand(Rule.AsExpandedString), '{errorMessage}', StrToJS(GetErrorMessage)));
   end;
 end;
 

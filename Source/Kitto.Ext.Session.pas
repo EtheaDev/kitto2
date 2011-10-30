@@ -6,26 +6,25 @@ uses
   SysUtils,
   ExtPascal, Ext,
   EF.Tree,
-  Kitto.Ext.Base, Kitto.Ext.Controller, Kitto.Environment, Kitto.Metadata.Views,
+  Kitto.Ext.Base, Kitto.Ext.Controller, Kitto.Config, Kitto.Metadata.Views,
   Kitto.Ext.Login;
 
 type
   TKExtSession = class(TExtThread)
   private
     FHomeController: IKExtController;
-    FEnvironment: TKEnvironment;
+    FConfig: TKConfig;
     FLoginWindow: TKExtLoginWindow;
     FViewHost: TExtTabPanel;
     FStatusHost: TKExtStatusBar;
-    function GetEnvironment: TKEnvironment;
     procedure LoadLibraries;
     procedure DisplayHomeView;
     procedure DisplayLoginWindow;
+    function GetConfig: TKConfig;
   protected
     function BeforeHandleRequest: Boolean; override;
     procedure AfterHandleRequest; override;
   public
-    procedure AfterConstruction; override;
     destructor Destroy; override;
   public
     ///	<summary>
@@ -41,7 +40,6 @@ type
     procedure DisplayView(const AName: string); overload;
     procedure DisplayView(const AView: TKView); overload;
 
-    property Environment: TKEnvironment read GetEnvironment;
     procedure InitDefaultValues; override;
     procedure Home; override;
 
@@ -67,6 +65,8 @@ type
     function GetGCObjectCount: Integer;
 
     procedure Flash(const AMessage: string);
+
+    property Config: TKConfig read GetConfig;
   published
     procedure Logout;
   end;
@@ -78,32 +78,19 @@ implementation
 uses
   Classes, StrUtils, ActiveX, ComObj, Types, FmtBcd,
   ExtPascalUtils, ExtForm, FCGIApp,
-  EF.Intf, EF.StrUtils, EF.Localization,
+  EF.Intf, EF.StrUtils, EF.Localization, EF.Macros,
   Kitto.Ext.Utils, Kitto.Auth, Kitto.Types;
-
-function GetSessionEnvironment: TKEnvironment;
-begin
-  Assert(Session <> nil);
-
-  Result := Session.Environment;
-end;
 
 function Session: TKExtSession;
 begin
   Result := TKExtSession(CurrentWebSession);
 end;
 
-procedure TKExtSession.AfterConstruction;
+function TKExtSession.GetConfig: TKConfig;
 begin
-  inherited;
-  SetEnvironmentSingleton(@GetSessionEnvironment);
-end;
-
-function TKExtSession.GetEnvironment: TKEnvironment;
-begin
-  if not Assigned(FEnvironment) then
-    FEnvironment := TKEnvironment.Create;
-  Result := FEnvironment;
+  if not Assigned(FConfig) then
+    FConfig := TKConfig.Create;
+  Result := FConfig;
 end;
 
 type
@@ -131,7 +118,7 @@ destructor TKExtSession.Destroy;
 begin
   inherited;
   NilEFIntf(FHomeController);
-  FreeAndNil(FEnvironment);
+  FreeAndNil(FConfig);
 end;
 
 procedure TKExtSession.DisplayHomeView;
@@ -140,9 +127,9 @@ var
 begin
   NilEFIntf(FHomeController);
 
-  LHomeView := Environment.Views.FindViewByNode(Environment.Config.FindNode('HomeView'));
+  LHomeView := Config.Views.FindViewByNode(Config.Config.FindNode('HomeView'));
   if not Assigned(LHomeView) then
-    LHomeView := Environment.Views.ViewByName('Home');
+    LHomeView := Config.Views.ViewByName('Home');
   FHomeController := TKExtControllerFactory.Instance.CreateController(LHomeView, nil);
   FHomeController.Display;
 end;
@@ -171,7 +158,7 @@ end;
 procedure TKExtSession.Flash(const AMessage: string);
 begin
   { TODO : move functionality into kitto-core.js. }
-  JSCode('Ext.example.msg("' + Environment.AppTitle + '", "' + AMessage + '");');
+  JSCode('Ext.example.msg("' + Config.AppTitle + '", "' + AMessage + '");');
 end;
 
 procedure TKExtSession.LoadLibraries;
@@ -180,7 +167,7 @@ procedure TKExtSession.LoadLibraries;
   var
     LLibURL: string;
   begin
-    LLibURL := Environment.GetResourceURL(IncludeTrailingPathDelimiter('js') + ALibName + '.js');
+    LLibURL := Config.GetResourceURL(IncludeTrailingPathDelimiter('js') + ALibName + '.js');
     SetLibrary(StripSuffix(LLibURL, '.js'), AIncludeCSS, False, True);
   end;
 
@@ -188,7 +175,7 @@ procedure TKExtSession.LoadLibraries;
   var
     LLibURL: string;
   begin
-    LLibURL := Environment.FindResourceURL(IncludeTrailingPathDelimiter('js') + ALibName + '.js');
+    LLibURL := Config.FindResourceURL(IncludeTrailingPathDelimiter('js') + ALibName + '.js');
     if LLibURL <> '' then
       SetLibrary(StripSuffix(LLibURL, '.js'), False, False, True);
   end;
@@ -206,14 +193,14 @@ begin
   SetRequiredLibrary('kitto-core', True);
   SetOptionalLibrary('application');
 
-  LLibraries := Environment.Config.GetStringArray('JavaScriptLibraries');
+  LLibraries := Config.Config.GetStringArray('JavaScriptLibraries');
   for LLibName in LLibraries do
     SetRequiredLibrary(LLibName);
 end;
 
 procedure TKExtSession.Logout;
 begin
-  Environment.Authenticator.Logout;
+  Config.Authenticator.Logout;
   Home;
 end;
 
@@ -221,7 +208,7 @@ procedure TKExtSession.DisplayView(const AName: string);
 begin
   Assert(AName <> '');
 
-  DisplayView(Environment.Views.ViewByName(AName));
+  DisplayView(Config.Views.ViewByName(AName));
 end;
 
 procedure TKExtSession.DisplayView(const AView: TKView);
@@ -243,12 +230,12 @@ var
   LLanguageId: string;
 begin
   inherited;
-  ExtPath := Environment.Config.GetString('Ext/URL', '/ext');
-  Charset := Environment.Config.GetString('Charset', 'utf-8');
-  LLanguageId := Environment.Config.GetString('LanguageId');
+  ExtPath := Config.Config.GetString('Ext/URL', '/ext');
+  Charset := Config.Config.GetString('Charset', 'utf-8');
+  LLanguageId := Config.Config.GetString('LanguageId');
   if LLanguageId <> '' then
     Language := LLanguageId;
-  Theme := Environment.Config.GetString('Ext/Theme');
+  Theme := Config.Config.GetString('Ext/Theme');
 end;
 
 procedure TKExtSession.AfterHandleRequest;
@@ -274,7 +261,7 @@ begin
   Assert(Assigned(AView));
 
   Result := IfThen(AImageName <> '', AImageName, AView.ImageName);
-  LIconURL := Environment.GetImageURL(Result);
+  LIconURL := Config.GetImageURL(Result);
   Result := ACustomPrefix + Result + '_img';
   // The !important rule allows to use a non-specific selector, so that the icon
   // can be shared by different components.
@@ -288,9 +275,27 @@ begin
 end;
 
 initialization
+  TEFMacroExpansionEngine.OnGetInstance :=
+    function: TEFMacroExpansionEngine
+    begin
+      if Session <> nil then
+        Result := Session.Config.MacroExpansionEngine
+      else
+        Result := nil;
+    end;
+
+  TKConfig.OnGetInstance :=
+    function: TKConfig
+    begin
+      if Session <> nil then
+        Result := Session.Config
+      else
+        Result := nil;
+    end;
 
 finalization
-  SetEnvironmentSingleton(nil);
+  TEFMacroExpansionEngine.OnGetInstance := nil;
+  TKConfig.OnGetInstance := nil;
 
 end.
 
