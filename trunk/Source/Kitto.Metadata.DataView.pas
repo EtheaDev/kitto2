@@ -76,7 +76,7 @@ type
     ///	<summary>
     ///	  <para>If the field is referenced, returns the names of the key fields
     ///	  in the reference, separated by
-    ///	  Environment.MultiFieldSeparator.</para>
+    ///	  TKConfig.Instance.MultiFieldSeparator.</para>
     ///	  <para>Otherwise, returns the FieldName.</para>
     ///	</summary>
     ///	<exception cref="EKError">The field is referenced and the reference has
@@ -381,8 +381,8 @@ implementation
 
 uses
   SysUtils, StrUtils, Variants, TypInfo,
-  EF.DB, EF.StrUtils, EF.VariantUtils,
-  Kitto.SQL, Kitto.Types, Kitto.Environment;
+  EF.DB, EF.StrUtils, EF.VariantUtils, EF.Macros,
+  Kitto.SQL, Kitto.Types, Kitto.Config;
 
 { TKDataView }
 
@@ -509,7 +509,7 @@ end;
 
 function TKViewTable.GetModel: TKModel;
 begin
-  Result := Environment.Models.FindModel(ModelName);
+  Result := TKConfig.Instance.Models.FindModel(ModelName);
 end;
 
 function TKViewTable.GetModelDetailReference: TKModelDetailReference;
@@ -734,7 +734,7 @@ function TKViewTable.FindLayout(const AKind: string): TKLayout;
   end;
 
 begin
-  Result := Environment.Views.Layouts.FindLayout(GetViewTablePathName + '_' + AKind);
+  Result := TKConfig.Instance.Views.Layouts.FindLayout(GetViewTablePathName + '_' + AKind);
 end;
 
 function TKViewTable.GetDetailTable(I: Integer): TKViewTable;
@@ -761,9 +761,9 @@ end;
 
 function TKViewTable.IsAccessGranted(const AMode: string): Boolean;
 begin
-  Result := Environment.IsAccessGranted(GetResourceURI, AMode)
-    and Environment.IsAccessGranted(View.GetResourceURI, AMode)
-    and Environment.IsAccessGranted(Model.GetResourceURI, AMode);
+  Result := TKConfig.Instance.IsAccessGranted(GetResourceURI, AMode)
+    and TKConfig.Instance.IsAccessGranted(View.GetResourceURI, AMode)
+    and TKConfig.Instance.IsAccessGranted(Model.GetResourceURI, AMode);
 end;
 
 function TKViewTable.IsFieldVisible(const AField: TKViewField): Boolean;
@@ -1041,7 +1041,7 @@ begin
   if VarIsNull(Result) then
     Result := ModelField.DefaultValue;
   if DataType is TEFStringDataType then
-    Result := Environment.MacroExpansionEngine.Expand(Result);
+    Result := TEFMacroExpansionEngine.Instance.Expand(Result);
 end;
 
 function TKViewField.GetDisplayLabel: string;
@@ -1090,7 +1090,7 @@ end;
 function TKViewField.GetFieldNamesForUpdate: string;
 begin
   if IsReference then
-    Result := Join(ModelField.GetFieldNames, Environment.MultiFieldSeparator)
+    Result := Join(ModelField.GetFieldNames, TKConfig.Instance.MultiFieldSeparator)
   else
     Result := FieldName;
 end;
@@ -1207,15 +1207,15 @@ var
   I: Integer;
 begin
   if AUseTransaction then
-    Environment.MainDBConnection.StartTransaction;
+    TKConfig.Instance.MainDBConnection.StartTransaction;
   try
     for I := 0 to RecordCount - 1 do
       Records[I].Save(False);
     if AUseTransaction then
-      Environment.MainDBConnection.CommitTransaction;
+      TKConfig.Instance.MainDBConnection.CommitTransaction;
   except
     if AUseTransaction then
-      Environment.MainDBConnection.RollbackTransaction;
+      TKConfig.Instance.MainDBConnection.RollbackTransaction;
     raise;
   end;
 end;
@@ -1273,7 +1273,7 @@ var
 begin
   Assert(Assigned(FViewTable));
 
-  LDBQuery := Environment.MainDBConnection.CreateDBQuery;
+  LDBQuery := TKConfig.Instance.MainDBConnection.CreateDBQuery;
   try
     TKSQLBuilder.BuildSelectQuery(FViewTable, AFilter, LDBQuery, FMasterRecord);
     inherited Load(LDBQuery);
@@ -1293,7 +1293,7 @@ begin
   end
   else
   begin
-    LDBQuery := Environment.MainDBConnection.CreateDBQuery;
+    LDBQuery := TKConfig.Instance.MainDBConnection.CreateDBQuery;
     try
       TKSQLBuilder.BuildCountQuery(FViewTable, AFilter, LDBQuery, FMasterRecord);
       LDBQuery.Open;
@@ -1465,9 +1465,9 @@ begin
 
   // BEFORE rules are applied before calling this method.
   if AUseTransaction then
-    Environment.MainDBConnection.StartTransaction;
+    TKConfig.Instance.MainDBConnection.StartTransaction;
   try
-    LDBCommand := Environment.MainDBConnection.CreateDBCommand;
+    LDBCommand := TKConfig.Instance.MainDBConnection.CreateDBCommand;
     try
       case State of
         rsNew: TKSQLBuilder.BuildInsertCommand(Records.Store.ViewTable, LDBCommand, Self);
@@ -1484,14 +1484,14 @@ begin
         DetailStores[I].Save(False);
       ApplyAfterRules;
       if AUseTransaction then
-        Environment.MainDBConnection.CommitTransaction;
+        TKConfig.Instance.MainDBConnection.CommitTransaction;
       MarkAsClean;
     finally
       FreeAndNil(LDBCommand);
     end;
   except
     if AUseTransaction then
-      Environment.MainDBConnection.RollbackTransaction;
+      TKConfig.Instance.MainDBConnection.RollbackTransaction;
     raise;
   end;
 end;

@@ -18,6 +18,7 @@ type
   private
     FStatusBar: TKExtDefaultStatusBar;
   protected
+    function GetDefaultSplit: Boolean; override;
     procedure InitDefaults; override;
     procedure DoDisplay; override;
   end;
@@ -27,7 +28,7 @@ implementation
 uses
   ExtPascal,
   EF.Tree,
-  Kitto.Ext.Controller, Kitto.Environment, Kitto.Ext.Session;
+  Kitto.Ext.Controller, Kitto.Ext.Session;
 
 { TKExtStatusBarController }
 
@@ -38,12 +39,16 @@ begin
   FStatusBar.DefaultIconCls := Session.SetViewIconStyle(View, '', 'sb_', 'padding-left: 25px !important;');
 end;
 
+function TKExtStatusBarController.GetDefaultSplit: Boolean;
+begin
+  Result := False;
+end;
+
 procedure TKExtStatusBarController.InitDefaults;
 begin
   inherited;
   Layout := lyFit;
   AutoHeight := True;
-  Border := False;
 
   FStatusBar := TKExtDefaultStatusBar.AddTo(Items);
 end;

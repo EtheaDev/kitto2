@@ -202,7 +202,7 @@ implementation
 uses
   SysUtils, Math, StrUtils,
   EF.Localization,  EF.DB, EF.DB.Utils, EF.StrUtils,
-  Kitto.Types, Kitto.JSON, Kitto.Environment;
+  Kitto.Types, Kitto.JSON, Kitto.Ext.Session;
 
 function GetDefaultFilter(const AItems: TEFNode): TEFNode;
 var
@@ -446,7 +446,7 @@ begin
   AutoSelect := False;
   ForceSelection := True;
   Mode := 'local';
-  LDBQuery := Environment.MainDBConnection.CreateDBQuery;
+  LDBQuery := Session.Config.MainDBConnection.CreateDBQuery;
   try
     LDBQuery.CommandText := FConfig.GetExpandedString('CommandText');
     LDBQuery.Open;

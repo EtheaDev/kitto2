@@ -1,4 +1,4 @@
-unit Kitto.MainFormUnit;
+unit Kitto.Ext.MainFormUnit;
 
 interface
 
@@ -6,10 +6,10 @@ uses
   {$IF RTLVersion >= 23.0}Themes, Styles,{$IFEND}
   Windows, Messages, SysUtils, Variants, Classes, Graphics,
   Controls, Forms, Dialogs, ComCtrls, ToolWin, Kitto.Ext.Application,
-  ActnList, Kitto.Environment, StdCtrls;
+  ActnList, Kitto.Config, StdCtrls;
 
 type
-  TKMainForm = class(TForm)
+  TKExtMainForm = class(TForm)
     ToolBar1: TToolBar;
     ToolButton1: TToolButton;
     ToolButton2: TToolButton;
@@ -39,6 +39,7 @@ type
   private
     FKAppThread: TKExtAppThread;
     FRestart: Boolean;
+    function IsStarted: Boolean;
     function GetKAppThread: TKExtAppThread;
     procedure KAppThreadTerminated(Sender: TObject);
     procedure UpdateSessionCountlabel;
@@ -48,7 +49,7 @@ type
   end;
 
 var
-  KMainForm: TKMainForm;
+  KExtMainForm: TKExtMainForm;
 
 implementation
 
@@ -59,7 +60,7 @@ uses
   EF.SysUtils,
   FCGIApp;
 
-procedure TKMainForm.KAppThreadTerminated(Sender: TObject);
+procedure TKExtMainForm.KAppThreadTerminated(Sender: TObject);
 begin
   FKAppThread := nil;
   StatusBar.SimpleText := 'Stopped';
@@ -70,45 +71,45 @@ begin
   end;
 end;
 
-procedure TKMainForm.StopActionExecute(Sender: TObject);
+procedure TKExtMainForm.StopActionExecute(Sender: TObject);
 begin
-  if Assigned(FKAppThread) then
+  if IsStarted then
   begin
     StatusBar.SimpleText := 'Stopping...';
     FKAppThread.Terminate;
-    while Assigned(FKAppThread) do
+    while IsStarted do
       Forms.Application.ProcessMessages;
   end;
 end;
 
-procedure TKMainForm.StopActionUpdate(Sender: TObject);
+procedure TKExtMainForm.StopActionUpdate(Sender: TObject);
 begin
-  (Sender as TAction).Enabled := Assigned(FKAppThread);
+  (Sender as TAction).Enabled := IsStarted;
 end;
 
-procedure TKMainForm.RestartActionExecute(Sender: TObject);
+procedure TKExtMainForm.RestartActionExecute(Sender: TObject);
 begin
   FRestart := True;
   StopAction.Execute;
 end;
 
-procedure TKMainForm.RestartActionUpdate(Sender: TObject);
+procedure TKExtMainForm.RestartActionUpdate(Sender: TObject);
 begin
-  (Sender as TAction).Enabled := Assigned(FKAppThread);
+  (Sender as TAction).Enabled := IsStarted;
 end;
 
-procedure TKMainForm.ActionListUpdate(Action: TBasicAction;
+procedure TKExtMainForm.ActionListUpdate(Action: TBasicAction;
   var Handled: Boolean);
 begin
   UpdateSessionCountlabel;
 end;
 
-procedure TKMainForm.UpdateSessionCountlabel;
+procedure TKExtMainForm.UpdateSessionCountlabel;
 begin
   SessionCountLabel.Caption := Format('Active Sessions: %d', [GetSessionCount]);
 end;
 
-function TKMainForm.GetSessionCount: Integer;
+function TKExtMainForm.GetSessionCount: Integer;
 begin
   if Assigned(FCGIApp.Application) then
     Result := Max(0, FCGIApp.Application.ThreadsCount)
@@ -116,62 +117,81 @@ begin
     Result := 0;
 end;
 
-procedure TKMainForm.FormClose(Sender: TObject; var Action: TCloseAction);
+function TKExtMainForm.IsStarted: Boolean;
+begin
+  Result := Assigned(FKAppThread);
+end;
+
+procedure TKExtMainForm.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
   StopAction.Execute;
   { TODO : needed otherwise OnTerminate is not called. Should be done in a different way. }
   Sleep(500);
 end;
 
-procedure TKMainForm.FormShow(Sender: TObject);
+procedure TKExtMainForm.FormShow(Sender: TObject);
 begin
   FillConfigFileNameCombo;
   StartAction.Execute;
 end;
 
-procedure TKMainForm.ConfigFileNameComboBoxChange(Sender: TObject);
+procedure TKExtMainForm.ConfigFileNameComboBoxChange(Sender: TObject);
+var
+  LConfig: TKConfig;
+  LWasStarted: Boolean;
 begin
-  TKEnvironment.BaseConfigFileName := ConfigFileNameComboBox.Text;
-  Caption := Format('%s - %s', [Environment.AppTitle, DateTimeToStr(GetFileDateTime(ParamStr(0)))]);
+  LWasStarted := IsStarted;
+  if LWasStarted then
+    StopAction.Execute;
+  TKConfig.BaseConfigFileName := ConfigFileNameComboBox.Text;
+  LConfig := TKConfig.Create;
+  try
+    Caption := Format('%s - %s', [LConfig.AppTitle, DateTimeToStr(GetFileDateTime(ParamStr(0)))]);
+  finally
+    FreeAndNil(LConfig);
+  end;
+{ TODO : fix the restart issue }
+//  if LWasStarted then
+//    StartAction.Execute;
 end;
 
-procedure TKMainForm.FillConfigFileNameCombo;
+procedure TKExtMainForm.FillConfigFileNameCombo;
 begin
-  FindAllFiles('yaml', Environment.GetMetadataPath, ConfigFileNameComboBox.Items, False, False);
+  FindAllFiles('yaml', TKConfig.GetMetadataPath, ConfigFileNameComboBox.Items, False, False);
   if ConfigFileNameComboBox.Items.Count > 0 then
     ConfigFileNameComboBox.ItemIndex := 0;
 end;
 
-function TKMainForm.GetKAppThread: TKExtAppThread;
+function TKExtMainForm.GetKAppThread: TKExtAppThread;
 var
-  LEnvironment: TKEnvironment;
+  LConfig: TKConfig;
 begin
   if not Assigned(FKAppThread) then
   begin
     FKAppThread := TKExtAppThread.Create(True);
     FKAppThread.OnTerminate := KAppThreadTerminated;
-    LEnvironment := TKEnvironment.Create;
+    LConfig := TKConfig.Create;
     try
-      FKAppThread.AppTitle := LEnvironment.AppTitle;
-      FKAppThread.TCPPort := LEnvironment.Config.GetInteger('TCPPort', 2014);
-      FKAppThread.SessionTimeout := LEnvironment.Config.GetInteger('SessionTimeout', 30);
+      FKAppThread.AppTitle := LConfig.AppTitle;
+      FKAppThread.TCPPort := LConfig.Config.GetInteger('TCPPort', 2014);
+      FKAppThread.SessionTimeout := LConfig.Config.GetInteger('SessionTimeout', 30);
       FKAppThread.FreeOnTerminate := True;
     finally
-      FreeAndNil(LEnvironment);
+      FreeAndNil(LConfig);
     end;
   end;
   Result := FKAppThread;
 end;
 
-procedure TKMainForm.StartActionExecute(Sender: TObject);
+procedure TKExtMainForm.StartActionExecute(Sender: TObject);
 begin
   KAppThread.Start;
   StatusBar.SimpleText := 'Started';
 end;
 
-procedure TKMainForm.StartActionUpdate(Sender: TObject);
+procedure TKExtMainForm.StartActionUpdate(Sender: TObject);
 begin
-  (Sender as TAction).Enabled := not Assigned(FKAppThread);
+  (Sender as TAction).Enabled := not IsStarted;
 end;
 
 {$IF RTLVersion >= 23.0}

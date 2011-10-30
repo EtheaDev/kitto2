@@ -13,7 +13,6 @@ type
   private
     FOnLog: TEFLogEvent;
     FLogLevel: Integer;
-    FObservers: TInterfaceList;
     FConfig: TEFNode;
     function GetConfig: TEFNode;
   public
@@ -94,7 +93,6 @@ procedure TEFComponent.AfterConstruction;
 begin
   inherited;
   FLogLevel := DEFAULT_LOG_LEVEL;
-  FObservers := TInterfaceList.Create;
 end;
 
 function TEFComponent.AsObject: TObject;
@@ -112,7 +110,6 @@ end;
 destructor TEFComponent.Destroy;
 begin
   FreeAndNil(FConfig);
-  FreeAndNil(FObservers);
   inherited;
 end;
 

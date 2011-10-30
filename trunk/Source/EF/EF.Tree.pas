@@ -502,7 +502,7 @@ implementation
 
 uses
   StrUtils, TypInfo, Math, DateUtils,
-  EF.Environment, EF.Localization, EF.StrUtils, EF.YAML, EF.VariantUtils;
+  EF.Localization, EF.StrUtils, EF.YAML, EF.VariantUtils;
 
 {$IF RTLVersion < 23.0}
 const
@@ -702,7 +702,7 @@ end;
 
 function TEFNode.GetAsExpandedString: string;
 begin
-  Result := Environment.MacroExpansionEngine.Expand(ASString);
+  Result := TEFMacroExpansionEngine.Instance.Expand(AsString);
 end;
 
 function TEFNode.GetAsFloat: Double;
@@ -1285,7 +1285,7 @@ end;
 
 function TEFTree.GetExpandedString(const APath, ADefaultValue: string): string;
 begin
-  Result := Environment.MacroExpansionEngine.Expand(GetString(APath, ADefaultValue));
+  Result := TEFMacroExpansionEngine.Instance.Expand(GetString(APath, ADefaultValue));
 end;
 
 function TEFTree.GetChildrenAsStrings(const APath, ASeparator, AConnector,

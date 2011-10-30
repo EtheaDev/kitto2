@@ -109,7 +109,6 @@
 			<DCCReference Include="..\..\Source\EF\EF.DB.pas"/>
 			<DCCReference Include="..\..\Source\EF\EF.DB.Utils.pas"/>
 			<DCCReference Include="..\..\Source\EF\EF.Emailer.pas"/>
-			<DCCReference Include="..\..\Source\EF\EF.Environment.pas"/>
 			<DCCReference Include="..\..\Source\EF\EF.Intf.pas"/>
 			<DCCReference Include="..\..\Source\EF\EF.InvocationRegistry.pas"/>
 			<DCCReference Include="..\..\Source\EF\EF.Localization.dxgettext.pas"/>
@@ -138,7 +137,7 @@
 			<DCCReference Include="..\..\Source\Kitto.Auth.OSDB.pas"/>
 			<DCCReference Include="..\..\Source\Kitto.Auth.pas"/>
 			<DCCReference Include="..\..\Source\Kitto.Auth.TextFile.pas"/>
-			<DCCReference Include="..\..\Source\Kitto.Environment.pas"/>
+			<DCCReference Include="..\..\Source\Kitto.Config.pas"/>
 			<DCCReference Include="..\..\Source\Kitto.Ext.AccordionPanel.pas"/>
 			<DCCReference Include="..\..\Source\Kitto.Ext.All.pas"/>
 			<DCCReference Include="..\..\Source\Kitto.Ext.Application.pas"/>
@@ -165,8 +164,8 @@
 			<DCCReference Include="..\..\Source\Kitto.JSON.pas"/>
 			<DCCReference Include="..\..\Source\Kitto.Localization.dxgettext.pas"/>
 			<DCCReference Include="..\..\Source\Kitto.LocalStorage.pas"/>
-			<DCCReference Include="..\..\Source\Kitto.MainFormUnit.pas">
-				<Form>KMainForm</Form>
+			<DCCReference Include="..\..\Source\Kitto.Ext.MainFormUnit.pas">
+				<Form>KExtMainForm</Form>
 			</DCCReference>
 			<DCCReference Include="..\..\Source\Kitto.Metadata.DataView.pas"/>
 			<DCCReference Include="..\..\Source\Kitto.Metadata.Models.pas"/>

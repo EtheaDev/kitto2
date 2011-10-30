@@ -33,7 +33,7 @@ uses
   SysUtils,
   ExtPascalUtils,
   EF.Classes, EF.Localization, EF.Tree,
-  Kitto.Types, Kitto.Environment, Kitto.Ext.Session;
+  Kitto.Types, Kitto.Ext.Session;
 
 { TKExtLoginWindow }
 
@@ -56,18 +56,18 @@ class function TKExtLoginWindow.Authenticate(const AUserName, APassword: string)
 var
   LAuthData: TEFNode;
 begin
-  if Environment.Authenticator.IsAuthenticated then
+  if Session.Config.Authenticator.IsAuthenticated then
     Result := True
   else
   begin
     LAuthData := TEFNode.Create;
     try
-      Environment.Authenticator.DefineAuthData(LAuthData);
+      Session.Config.Authenticator.DefineAuthData(LAuthData);
       if AUserName <> '' then
         LAuthData.SetString('UserName', AUserName);
       if APassword <> '' then
         LAuthData.SetString('Password', APassword);
-      Result := Environment.Authenticator.Authenticate(LAuthData);
+      Result := Session.Config.Authenticator.Authenticate(LAuthData);
     finally
       LAuthData.Free;
     end;
@@ -93,7 +93,7 @@ procedure TKExtLoginWindow.InitDefaults;
 
 begin
   inherited;
-  Title := Environment.AppTitle;
+  Title := Session.Config.AppTitle;
   Width := 246;
   Height := 120;
   Layout := lyFit;
@@ -113,12 +113,12 @@ begin
   FFormPanel.Bbar := FStatusBar;
 
   FButton := TExtButton.AddTo(FStatusBar.Items);
-  FButton.Icon := Environment.GetImageURL('login');
+  FButton.Icon := Session.Config.GetImageURL('login');
   FButton.Text := _('Login');
 
   FUserName := TExtFormTextField.AddTo(FFormPanel.Items);
   FUserName.Name := 'UserName';
-  FUserName.Value := Environment.Authenticator.AuthData.GetString('UserName');
+  FUserName.Value := Session.Config.Authenticator.AuthData.GetString('UserName');
   FUserName.FieldLabel := _('User Name');
   FUserName.AllowBlank := False;
   FUserName.Width := 136;
@@ -126,7 +126,7 @@ begin
 
   FPassword := TExtFormTextField.AddTo(FFormPanel.Items);
   FPassword.Name := 'Password';
-  FPassword.Value := Environment.Authenticator.AuthData.GetString('Password');
+  FPassword.Value := Session.Config.Authenticator.AuthData.GetString('Password');
   FPassword.FieldLabel := _('Password');
   FPassword.InputType := itPassword;
   FPassword.AllowBlank := False;
@@ -150,4 +150,5 @@ begin
 end;
 
 end.
+
 

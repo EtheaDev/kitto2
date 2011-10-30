@@ -357,7 +357,7 @@ implementation
 uses
   StrUtils, Variants,
   EF.StrUtils, EF.VariantUtils, EF.Localization,
-  Kitto.Types, Kitto.Environment;
+  Kitto.Types, Kitto.Config;
 
 function Pluralize(const AName: string): string;
 begin
@@ -781,7 +781,7 @@ function TKModelField.GetDefaultValue: Variant;
 begin
   Result := EvalExpression(GetValue('DefaultValue'));
   if DataType is TEFStringDataType then
-    Result := Environment.MacroExpansionEngine.Expand(EFVarToStr(Result));
+    Result := TKConfig.Instance.MacroExpansionEngine.Expand(EFVarToStr(Result));
 end;
 
 function TKModelField.GetDisplayLabel: string;

@@ -29,7 +29,7 @@ implementation
 uses
   SysUtils,
   EF.Tree,
-  Kitto.Environment, Kitto.Metadata.DataView;
+  Kitto.Config, Kitto.Metadata.DataView;
 
 { TKAutoViewBuilderBase }
 
@@ -66,7 +66,7 @@ end;
 
 function TKAutoViewBuilderBase.GetModel: TKModel;
 begin
-  Result := Environment.Models.ModelByName(GetString('Model'));
+  Result := TKConfig.Instance.Models.ModelByName(GetString('Model'));
 end;
 
 { TKAutoListViewBuilder }

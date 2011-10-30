@@ -9,7 +9,7 @@ uses
   Kitto.Ext.Base;
 
 type
-  TKExtFilterPanel = class(TExtFormFormPanel)
+  TKExtFilterPanel = class(TKExtPanelBase)
   private
     FConnector: string;
   protected
@@ -70,8 +70,7 @@ implementation
 uses
   SysUtils, StrUtils, Math,
   EF.Tree, EF.StrUtils, EF.Localization,
-  Kitto.Metadata.Models, Kitto.Metadata.Views, Kitto.Environment, Kitto.Rules,
-  Kitto.AccessControl,
+  Kitto.Metadata.Models, Kitto.Metadata.Views, Kitto.Rules, Kitto.AccessControl,
   Kitto.Ext.Filters, Kitto.Ext.Session, Kitto.Ext.Utils, Kitto.Ext.Controller;
 
   const
@@ -96,7 +95,6 @@ begin
     FFilterPanel.Collapsible := True;
     FFilterPanel.Frame := True;
     FFilterPanel.Connector := ViewTable.GetString('Controller/Filters/Connector', 'and');
-    FFilterPanel.Border := False;
     FFilterPanel.AutoHeight := True;
     for I := 0 to LItems.ChildCount - 1 do
     begin
@@ -281,19 +279,19 @@ var
       else if LDataType is TEFDateDataType then
       begin
         Result := TExtGridDateColumn.AddTo(FGridPanel.Columns);
-        TExtGridDateColumn(Result).Format := DelphiDateFormatToJSDateFormat(Environment.UserFormatSettings.ShortDateFormat);
+        TExtGridDateColumn(Result).Format := DelphiDateFormatToJSDateFormat(Session.Config.UserFormatSettings.ShortDateFormat);
       end
       else if LDataType is TEFTimeDataType then
       begin
         Result := TExtGridColumn.AddTo(FGridPanel.Columns);
-        //TExtGridDateColumn(Result).Format := DelphiTimeFormatToJSTimeFormat(Environment.UserFormatSettings.ShortTimeFormat);
+        //TExtGridDateColumn(Result).Format := DelphiTimeFormatToJSTimeFormat(Session.Config.UserFormatSettings.ShortTimeFormat);
       end
       else if LDataType is TEFDateTimeDataType then
       begin
         Result := TExtGridDateColumn.AddTo(FGridPanel.Columns);
         TExtGridDateColumn(Result).Format :=
-          DelphiDateFormatToJSDateFormat(Environment.UserFormatSettings.ShortDateFormat) + ' ' +
-          DelphiTimeFormatToJSTimeFormat(Environment.UserFormatSettings.ShortTimeFormat);
+          DelphiDateFormatToJSDateFormat(Session.Config.UserFormatSettings.ShortDateFormat) + ' ' +
+          DelphiTimeFormatToJSTimeFormat(Session.Config.UserFormatSettings.ShortTimeFormat);
       end
       else if LDataType is TEFIntegerDataType then
       begin
@@ -304,13 +302,13 @@ var
       else if (LDataType is TEFFloatDataType) or (LDataType is TEFDecimalDataType) then
       begin
         Result := TExtGridNumberColumn.AddTo(FGridPanel.Columns);
-        TExtGridNumberColumn(Result).Format := AdaptExtNumberFormat('0.00', Environment.UserFormatSettings);
+        TExtGridNumberColumn(Result).Format := AdaptExtNumberFormat('0.00', Session.Config.UserFormatSettings);
         Result.Align := alRight;
       end
       else if LDataType is TEFCurrencyDataType then
       begin
         Result := TExtGridNumberColumn.AddTo(FGridPanel.Columns);
-        TExtGridNumberColumn(Result).Format := AdaptExtNumberFormat('0,0.00', Environment.UserFormatSettings);
+        TExtGridNumberColumn(Result).Format := AdaptExtNumberFormat('0,0.00', Session.Config.UserFormatSettings);
         Result.Align := alRight;
       end
       else
@@ -515,7 +513,7 @@ begin
   LKey := TEFNode.Create;
   try
     LKey.Assign(ServerStore.Key);
-    LKey.SetChildValuesfromStrings(Session.Queries, True, Environment.JSFormatSettings,
+    LKey.SetChildValuesfromStrings(Session.Queries, True, Session.Config.JSFormatSettings,
       function(const AName: string): string
       begin
         Result := ViewTable.FieldByName(AName).GetMinifiedName;
@@ -541,7 +539,7 @@ begin
     on E: EKValidationError do
     begin
       LRecord.MarkAsClean;
-      ExtMessageBox.Alert(Environment.AppTitle, E.Message);
+      ExtMessageBox.Alert(Session.Config.AppTitle, E.Message);
       Exit;
     end;
   end;
@@ -590,7 +588,7 @@ begin
     LNewButton := TExtButton.AddTo(Result.Items);
     begin
       LNewButton.Text := Format(_('New %s'), [ViewTable.DisplayLabel]);
-      LNewButton.Icon := Environment.GetImageURL('new_record_16');
+      LNewButton.Icon := Session.Config.GetImageURL('new_record_16');
       LNewButton.Disabled := not FIsAddAllowed;
       if not LNewButton.Disabled then
         LNewButton.OnClick := NewRecord;
@@ -599,7 +597,7 @@ begin
     LDeleteButton := TExtButton.AddTo(Result.Items);
     begin
       LDeleteButton.Text := Format(_('Delete %s'), [ViewTable.DisplayLabel]);
-      LDeleteButton.Icon := Environment.GetImageURL('delete_record_16');
+      LDeleteButton.Icon := Session.Config.GetImageURL('delete_record_16');
       LDeleteButton.Disabled := not FIsDeleteAllowed;
       if not LDeleteButton.Disabled then
         LDeleteButton.Handler := JSFunction(GetSelectConfirmCall(
@@ -611,7 +609,7 @@ end;
 function TKExtGridPanel.GetSelectConfirmCall(const AMessage: string; const AMethod: TExtProcedure): string;
 begin
   Result := Format('confirmCall("%s", "%s", ajaxSingleSelection, {methodURL: "%s", selModel: %s, fieldNames: "%s"});',
-    [Environment.AppTitle, AMessage, MethodURI(AMethod), FGridPanel.SelModel.JSName,
+    [Session.Config.AppTitle, AMessage, MethodURI(AMethod), FGridPanel.SelModel.JSName,
     Join(ViewTable.GetKeyFieldAliasedNames(True), ',')]);
 end;
 
@@ -643,6 +641,7 @@ end;
 procedure TKExtFilterPanel.InitDefaults;
 begin
   inherited;
+  Border := False;
 end;
 
 end.

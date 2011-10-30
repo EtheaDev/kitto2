@@ -134,6 +134,7 @@ type
     FContainer: TExtContainer;
     FOwnsView: Boolean;
   protected
+    function GetDefaultSplit: Boolean; virtual;
     function GetView: TKView;
     procedure SetView(const AValue: TKView);
     procedure DoDisplay; virtual;
@@ -264,6 +265,8 @@ procedure TKExtWindowControllerBase.InitDefaults;
 begin
   inherited;
   Layout := lyBorder;
+  Border := False;
+  Plain := True;
 end;
 
 procedure TKExtWindowControllerBase.NotifyObservers(const AContext: string);
@@ -615,7 +618,44 @@ begin
 end;
 
 procedure TKExtPanelControllerBase.DoDisplay;
+var
+  LWidth: Integer;
+  LSplit: TEFNode;
+  LCollapsible: TEFNode;
+  LBorder: TEFNode;
 begin
+  Title := View.DisplayLabel;
+
+  Border := False;
+  LWidth := View.GetInteger('Controller/Width');
+  if LWidth <> 0 then
+  begin
+    Width := LWidth;
+    MinWidth := LWidth;
+  end;
+
+  LSplit := View.FindNode('Controller/Split');
+  if Assigned(LSplit) then
+    Split := LSplit.AsBoolean
+  else
+    Split := GetDefaultSplit;
+
+  LBorder := View.FindNode('Controller/Border');
+  if Assigned(LBorder) then
+    Border := LBorder.AsBoolean
+  else
+    Border := False;
+
+  LCollapsible := View.FindNode('Controller/Collapsible');
+  if Assigned(LCollapsible) then
+    Collapsible := LCollapsible.AsBoolean
+  else
+    Collapsible := False;
+end;
+
+function TKExtPanelControllerBase.GetDefaultSplit: Boolean;
+begin
+  Result := True;
 end;
 
 function TKExtPanelControllerBase.GetContainer: TExtContainer;
@@ -716,3 +756,4 @@ begin
 end;
 
 end.
+

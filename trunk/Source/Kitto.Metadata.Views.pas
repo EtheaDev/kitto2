@@ -149,7 +149,7 @@ implementation
 uses
   SysUtils, StrUtils, Variants, TypInfo,
   EF.DB, EF.StrUtils,
-  Kitto.Types, Kitto.Environment, Kitto.SQL;
+  Kitto.Types, Kitto.Config, Kitto.SQL;
 
 { TKViews }
 

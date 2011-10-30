@@ -37,7 +37,7 @@ implementation
 uses
   SysUtils, StrUtils,
   Ext,
-  Kitto.Environment, Kitto.AccessControl, Kitto.Ext.Session;
+  Kitto.Ext.Session, Kitto.AccessControl;
 
 { TKExtDataPanelController }
 
@@ -81,7 +81,6 @@ begin
   else
     FOwnsServerStore := False;
 
-  Border := False;
   Header := Config.GetBoolean('ShowHeader');
 
   InitComponents;
@@ -94,7 +93,7 @@ procedure TKExtDataPanelController.CheckCanRead;
 begin
   Assert(View <> nil);
 
-  Environment.CheckAccessGranted(View.GetResourceURI, ACM_READ);
+  Session.Config.CheckAccessGranted(View.GetResourceURI, ACM_READ);
 end;
 
 procedure TKExtDataPanelController.CreateToolbar;

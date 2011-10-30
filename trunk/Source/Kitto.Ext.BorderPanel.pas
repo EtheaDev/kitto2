@@ -25,7 +25,7 @@ implementation
 uses
   TypInfo,
   EF.Intf, EF.StrUtils,
-  Kitto.Environment, Kitto.Metadata.Views;
+  Kitto.Ext.Session, Kitto.Metadata.Views;
 
 { TKExtBorderPanelController }
 
@@ -41,7 +41,7 @@ begin
   Assert(Assigned(View));
 
 
-  LSubView := Environment.Views.FindViewByNode(View.FindNode('Controller/' + GetRegionViewName(ARegion)));
+  LSubView := Session.Config.Views.FindViewByNode(View.FindNode('Controller/' + GetRegionViewName(ARegion)));
   if LSubView <> nil then
   begin
     FControllers[ARegion] := TKExtControllerFactory.Instance.CreateController(LSubView, Self);
@@ -67,7 +67,6 @@ var
 begin
   inherited;
   Layout := lyBorder;
-  Border := False;
   for I := Low(FControllers) to High(FControllers) do
     CreateController(I);
 end;

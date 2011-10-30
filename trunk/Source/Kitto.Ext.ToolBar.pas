@@ -28,7 +28,7 @@ uses
   SysUtils,
   ExtPascal,
   EF.Tree,
-  Kitto.Ext.Controller, Kitto.Environment, Kitto.Ext.Session;
+  Kitto.Ext.Controller, Kitto.Ext.Session;
 
 { TKExtToolBarController }
 
@@ -48,7 +48,7 @@ begin
   inherited;
   if not Assigned(FTreeViewRenderer) then
     FTreeViewRenderer := TKExtTreeViewRenderer.Create;
-  FTreeViewRenderer.RenderAsButtons(Environment.Views.ViewByNode(View.GetNode('Controller/TreeView')) as TKTreeView,
+  FTreeViewRenderer.RenderAsButtons(Session.Config.Views.ViewByNode(View.GetNode('Controller/TreeView')) as TKTreeView,
     FToolBar, Self, DisplayView);
 end;
 
