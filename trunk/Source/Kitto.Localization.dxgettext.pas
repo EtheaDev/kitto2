@@ -16,7 +16,7 @@ uses
 
 type
   ///	<summary>
-  ///	  Localization tool that wraps dxgettext.
+  ///	  Localization tool that wraps dxgettext with Kitto-specific behaviour.
   ///	</summary>
   TKdxgettextLocalizationTool = class(TEFNoRefCountObject, IInterface,
     IEFInterface, IEFLocalizationTool)
@@ -27,7 +27,6 @@ type
     procedure EnsureTextDomainBound;
   public
     function AsObject: TObject;
-    // Note: this tool doesn't make use of Id strings.
     function TranslateString(const AString: string;
       const AIdString: string = ''): string;
     procedure TranslateComponent(const AComponent: TComponent);
@@ -92,9 +91,9 @@ begin
 end;
 
 initialization
-  EFLocalizationToolRegistry.RegisterTool(TKdxgettextLocalizationTool.Create);
+  TEFLocalizationToolRegistry.RegisterTool(TKdxgettextLocalizationTool.Create);
 
 finalization
-  EFLocalizationToolRegistry.UnregisterTool;
+  TEFLocalizationToolRegistry.UnregisterTool;
 
 end.

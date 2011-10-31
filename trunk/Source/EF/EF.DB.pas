@@ -1,3 +1,7 @@
+///	<summary>
+///	  DB-related classes. This unit defines the base classes that implement
+///	  EF's abstract data access framework.
+///	</summary>
 unit EF.DB;
 
 {$I EF.Defines.inc}
@@ -5,14 +9,15 @@ unit EF.DB;
 interface
 
 uses
-  SysUtils, DB, Classes, Generics.Collections,
+  Types, SysUtils, DB, Classes, Generics.Collections,
   EF.Intf, EF.Classes, EF.Tree;
 
 type
   TEFDBSchemaInfo = class;
 
   ///	<summary>
-  ///	  A base class for database metadata info providers.
+  ///	  A base class for database metadata info, useful for reverse engineering
+  ///	  of databases and generic database metadata access.
   ///	</summary>
   TEFDBInfo = class(TEFComponent)
   private
@@ -31,10 +36,10 @@ type
     procedure InvalidateInfo;
   end;
 
-  {
-    Base class for database metadata items, such as tables, columns and
-    constraints.
-  }
+  ///	<summary>
+  ///	  Base class for database metadata items, such as tables, columns and
+  ///	  constraints.
+  ///	</summary>
   TEFDBItemInfo = class(TPersistent)
   private
     FName: string;
@@ -42,10 +47,10 @@ type
     property Name: string read FName write FName;
   end;
 
-  {
-    Contains enough information to define a table's primary key.
-    It is not used alone, but together with TEFDBTableInfo.
-  }
+  ///	<summary>
+  ///	  Contains enough information to define a table's primary key. It is not
+  ///	  used alone, but together with TEFDBTableInfo.
+  ///	</summary>
   TEFDBPrimaryKeyInfo = class(TEFDBItemInfo)
   private
     FColumnNames: TStrings;
@@ -55,12 +60,13 @@ type
     property ColumnNames: TStrings read FColumnNames;
   end;
 
-  {
-    Contains enough information to define a table's column.
-    It is not used alone, but together with TEFDBTableInfo.
-
-    Note: domains are not yet supported.
-  }
+  ///	<summary>
+  ///	  Contains enough information to define a table's column. It is not used
+  ///	  alone, but together with TEFDBTableInfo.
+  ///	</summary>
+  ///	<remarks>
+  ///	  Domains are not supported. Only plain field types are recognized.
+  ///	</remarks>
   TEFDBColumnInfo = class(TEFDBItemInfo)
   private
     FIsRequired: Boolean;
@@ -68,18 +74,19 @@ type
     FSize: Integer;
   public
     property DataType: TEFDataType read FDataType write FDataType;
-    {
-      For string fields, this is the length in characters; for other data types,
-      it's 0.
-    }
+
+    ///	<summary>
+    ///	  For string fields, this is the length in characters; for other data
+    ///	  types, it's 0.
+    ///	</summary>
     property Size: Integer read FSize write FSize;
     property IsRequired: Boolean read FIsRequired write FIsRequired;
   end;
 
-  {
-    Contains enough information to define a table's foreign key.
-    It is not used alone, but together with TEFDBTableInfo.
-  }
+  ///	<summary>
+  ///	  Contains enough information to define a table's foreign key. It is not
+  ///	  used alone, but together with TEFDBTableInfo.
+  ///	</summary>
   TEFDBForeignKeyInfo = class(TEFDBItemInfo)
   private
     FColumnNames: TStrings;
@@ -95,9 +102,9 @@ type
     property ColumnCount: Integer read GetColumnCount;
   end;
 
-  {
-    Contains enough information to define a database table.
-  }
+  ///	<summary>
+  ///	  Contains enough information to describe a database table.
+  ///	</summary>
   TEFDBTableInfo = class(TEFDBItemInfo)
   private
     FColumns: TObjectList<TEFDBColumnInfo>;
@@ -121,9 +128,9 @@ type
     function AddForeignKey(const AForeignKey: TEFDBForeignKeyInfo): Integer;
   end;
 
-  {
-    Contains all database schema objects.
-  }
+  ///	<summary>
+  ///	  Contains all database schema objects.
+  ///	</summary>
   TEFDBSchemaInfo = class(TEFDBItemInfo)
   private
     FTables: TObjectList<TEFDBTableInfo>;
@@ -132,37 +139,38 @@ type
   public
     procedure AfterConstruction; override;
     destructor Destroy; override;
-    {
-      Indexed access to  the list of tables.
-    }
+  public
     property Tables[const AIndex: Integer]: TEFDBTableInfo read GetTables;
-    {
-      Number of tables in list.
-    }
     property TableCount: Integer read GetTableCount;
-    {
-      Returns a reference to the table with the given name, or nil.
-    }
+
+    ///	<summary>
+    ///	  Returns a reference to the table with the given name, or nil.
+    ///	</summary>
     function FindTable(const ATableName: string): TEFDBTableInfo;
-    {
-      Appends a nEF table to the end of the list. Returns the index
-      in the list of the nEFly added table.
-    }
+
+    ///	<summary>
+    ///	  Appends a new table to the end of the list. Returns the index in the
+    ///	  list of the newly added table.
+    ///	</summary>
     function AddTable(const ATable: TEFDBTableInfo): Integer;
-    {
-      Deletes all tables in list.
-    }
+
+    ///	<summary>
+    ///	  Deletes all tables in the list.
+    ///	</summary>
     procedure ClearTables;
-    {
-      Deletes all objects. Currently it is the same as ClearTables.
-    }
+
+    ///	<summary>
+    ///	  Deletes all objects. Currently it is the same as ClearTables.
+    ///	</summary>
     procedure Clear;
   end;
 
   TEFDBConnection = class;
 
-  ///	<summary>Base class for components linked to a database
-  ///	connection.</summary>
+  ///	<summary>
+  ///	  Base class for components linked to a database connection, such as
+  ///	  commands and queries.
+  ///	</summary>
   TEFDBComponent = class(TEFComponent)
   private
     FConnection: TEFDBConnection;
@@ -177,6 +185,9 @@ type
     ///	it to link internal components to the new connection.</summary>
     procedure ConnectionChanged; virtual;
   public
+    ///	<summary>
+    ///	  Database connection this component is linked to.
+    ///	</summary>
     property Connection: TEFDBConnection read GetConnection write SetConnection;
   end;
 
@@ -231,6 +242,22 @@ type
     ///	<remarks>Don't access DataSet before calling Open, or checking IsOpen:
     ///	some descendants might not make it available in advance.</remarks>
     property DataSet: TDataSet read GetDataSet;
+
+    ///	<summary>
+    ///	  Returns an array with all string values of the specified field in the
+    ///	  query's dataset. The query must be open.
+    ///	</summary>
+    function GetFieldValuesAsStrings(const AField: TField): TStringDynArray;
+
+    ///	<summary>
+    ///	  Opens he query and returns an array of values from the first row of
+    ///	  the result set, then closes the dataset. The returned array is
+    ///	  zero-based and has an element for each field in the result set. If no
+    ///	  rows are returned, the result is a single Null. The query may contain
+    ///	  parameters, in which case they should all be assigned values before
+    ///	  calling this function.
+    ///	</summary>
+    function SQLLookup: Variant;
   end;
 
   ///	<summary>
@@ -311,6 +338,23 @@ type
     ///	</summary>
     function AddLimitClause(const ACommandText: string;
       const AFrom, AFor: Integer): string; virtual;
+
+    ///	<summary>
+    ///	  Returns the value of the first column of the first record of the
+    ///	  cursor returned by ASQLStatement. It is advised to pass a
+    ///	  single-column singleton SQL statement for efficiency reasons. May
+    ///	  return an empty or unassigned Variant.
+    ///	</summary>
+    function GetSingletonValue(const ASQLStatement: string): Variant;
+
+    ///	<summary>
+    ///	  Executes the given SQL statement and returns an array of values from
+    ///	  the first row of the result set. The returned array is zero-based and
+    ///	  has an element for each field in the source select statement. If no
+    ///	  rows are returned, the result is a single Null. The query may contain
+    ///	  parameters, in which case you are required to pass ADBParams.
+    ///	</summary>
+    function SQLLookup(const ASQLStatement: string; const ADBParams: TParams = nil): Variant;
   end;
 
   ///	<summary>
@@ -365,8 +409,8 @@ type
 implementation
 
 uses
-  Contnrs, FMTBcd, StrUtils,
-  EF.SysUtils, EF.Localization, EF.Types, EF.SQL;
+  Variants, Contnrs, FMTBcd, StrUtils,
+  EF.SysUtils, EF.Localization, EF.Types, EF.SQL, EF.StrUtils;
 
 { TEFDBAdapterRegistry }
 
@@ -495,6 +539,46 @@ begin
   if IsOpen then
     Close;
   inherited;
+end;
+
+function TEFDBConnection.GetSingletonValue(
+  const ASQLStatement: string): Variant;
+var
+  LQuery: TEFDBQuery;
+begin
+  Assert(ASQLStatement <> '');
+
+  LQuery := CreateDBQuery;
+  try
+    LQuery.CommandText := ASQLStatement;
+    LQuery.Open;
+    try
+      if LQuery.DataSet.IsEmpty then
+        Result := Null
+      else
+        Result := LQuery.DataSet.Fields[0].Value;
+    finally
+      LQuery.Close;
+    end;
+  finally
+    FreeAndNil(LQuery);
+  end;
+end;
+
+function TEFDBConnection.SQLLookup(const ASQLStatement: string;
+  const ADBParams: TParams): Variant;
+var
+  LQuery: TEFDBQuery;
+begin
+  LQuery := CreateDBQuery;
+  try
+    LQuery.CommandText := ASQLStatement;
+    if Assigned(ADBParams) then
+      LQuery.Params.AssignValues(ADBParams);
+    Result := LQuery.SQLLookup;
+  finally
+    FreeAndNil(LQuery);
+  end;
 end;
 
 function TEFDBConnection.GetStandardFormatSettings: TFormatSettings;
@@ -748,6 +832,53 @@ function TEFDBCommand.Execute: Integer;
 begin
   InternalBeforeExecute;
   Result := 0;
+end;
+
+{ TEFDBQuery }
+
+function TEFDBQuery.GetFieldValuesAsStrings(const AField: TField): TStringDynArray;
+var
+  LBookmark: TBookmark;
+  LString: string;
+begin
+  Assert(Assigned(AField));
+  Assert(AField.DataSet = DataSet);
+
+  LBookmark := AField.DataSet.Bookmark;
+  try
+    LString := '';
+    AField.DataSet.First;
+    while not AField.DataSet.Eof do
+    begin
+      if LString = '' then
+        LString := AField.AsString
+      else
+        LString := LString + '§' + AField.AsString;
+      AField.DataSet.Next;
+    end;
+    Result := Split(LString, '§');
+  finally
+    AField.DataSet.Bookmark := LBookmark;
+  end;
+end;
+
+function TEFDBQuery.SQLLookup: Variant;
+var
+  LFieldIndex: Integer;
+begin
+  Open;
+  try
+    if DataSet.IsEmpty then
+      Result := Null
+    else
+    begin
+      Result := VarArrayCreate([0, DataSet.FieldCount - 1], varVariant);
+      for LFieldIndex := 0 to DataSet.FieldCount - 1 do
+        Result[LFieldIndex] := DataSet.Fields[LFieldIndex].Value;
+    end;
+  finally
+    Close;
+  end;
 end;
 
 end.

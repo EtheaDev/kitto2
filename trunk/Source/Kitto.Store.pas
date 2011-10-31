@@ -223,7 +223,7 @@ implementation
 
 uses
   Math, FmtBcd, Variants, StrUtils,
-  EF.StrUtils, EF.Localization, EF.DB.Utils,
+  EF.StrUtils, EF.Localization,
   Kitto.Types, Kitto.SQL, Kitto.Config, Kitto.Ext.Session;
 
 { TKStore }

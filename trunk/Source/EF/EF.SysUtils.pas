@@ -1,18 +1,10 @@
-{
-  This unit gathers system-related routines and classes.
-
-  Services provided by this unit fall in these categories:
-
-  - File services.
-
-  - Process services.
-
-  - Windows Registry access.
-
-  - Environment and localization.
-
-  - Security and network services.
-}
+///	<summary>
+///	  This unit gathers system-related routines and classes.<br />Services
+///	  provided by this unit fall in these categories:<br />- File services.
+///	  <br />- Process management services.<br />- Windows Registry access.
+///	  <br />- Environment and localization.<br />- Security and network
+///	  services.
+///	</summary>
 unit EF.SysUtils;
 
 {$I EF.Defines.inc}
@@ -20,232 +12,216 @@ unit EF.SysUtils;
 interface
 
 uses
-  Windows, Classes, RTLConsts, SysUtils, Registry;
+  Windows, Classes, RTLConsts, SysUtils, Registry, Types;
 
-{
-  Tries to open the file AFileName for writing, and returns False in case of
-  errors. Use it to know whether a file can be deleted/overwritten or not.
-}
+///	<summary>
+///	  Tries to open the file AFileName for writing, and returns False in case
+///	  of errors. Use it to know whether a file can be deleted/overwritten or
+///	  not.
+///	</summary>
 function IsFileInUse(const AFileName: string): Boolean;
 
-{
-  Returns the number of files in the given folder.
-  APatch should be an absolute or relative path name, with or without
-  trailing path delimiter.
-}
+///	<summary>
+///	  Returns the number of files in the given folder. APatch should be an
+///	  absolute or relative path name, with or without trailing path delimiter.
+///	</summary>
 function GetFileCount(const APath: string): Integer;
 
-{
-  Returns the size of the named file without opening the file.  If the file
-  doesn't exist, returns -1.
-  Note: it currently doesn't support files bigger than 2 GBs.
-}
+///	<summary>
+///	  Returns the size of the named file without opening the file. If the file
+///	  doesn't exist, returns -1.
+///	</summary>
+///	<remarks>
+///	  Currently this function doesn't support files bigger than 2 GBs.
+///	</remarks>
 function GetFileSize(const AFileName: string): Longint;
 
-{
-  Returns AFileName's OS timestamp.
-}
+///	<summary>
+///	  Returns AFileName's OS timestamp.
+///	</summary>
 function GetFileDateTime(const AFileName: string): TDateTime;
 
-{
-  Removes a trailing path delimiter from APath, if present.
-  It's the opposite of SysUtils.IncludeTrailingPathDelimiter.
-}
-function RemoveTrailingPathDelim(const APath: string): string;
+///	<summary>
+///	  Removes a trailing path delimiter from APath, if present. It's the
+///	  opposite of SysUtils.IncludeTrailingPathDelimiter.
+///	</summary>
+function RemoveTrailingPathDelimiter(const APath: string): string;
 
-{
-  Extract the file format from AFileName. The file format is the
-  file extension without the leading '.'.
-}
+///	<summary>
+///	  Extract the file format from AFileName. The file format is the file
+///	  extension without the leading '.'.
+///	</summary>
 function ExtractFileFormat(const AFileName: string): string;
 
-{
-  Tells whether APath is an absolute (True) or relative (False) path.
-}
+///	<summary>
+///	  Tells whether APath is an absolute (True) or relative (False) path.
+///	</summary>
 function IsAbsolutePath(const APath: string): Boolean;
 
-{
-  Appends to AFileNames the names of all files of the given format found in
-  ARootPath. By default includes also the files found in ARootPath's subfolders.
-  Note: This function is a wrapper around TEFFileLister. If you need more
-  flexibility then use TEFFileLister directly, or write a different wrapper.
-}
+///	<summary>
+///	  Appends to AFileNames the names of all files of the given format found in
+///	  ARootPath. By default includes also the files found in ARootPath's
+///	  subfolders.
+///	</summary>
+///	<remarks>
+///	  This function is a wrapper around TEFFileLister. If you need more
+///	  flexibility then use TEFFileLister directly, or write a different wrapper.
+///	</remarks>
 procedure FindAllFiles(const AFileFormat, ARootPath: string; const AFileNames: TStrings;
   const AIncludeSubFolders: Boolean = True; const AFullPaths: Boolean = True); overload;
 
-{
-  Appends to AFileNames the names of all files of one of the given formats
-  found in ARootPath. By default includes also the files found in ARootPath's
-  subfolders.
-  
-  Note: This function is a wrapper around TEFFileLister. If you need more
-  flexibility then use TEFFileLister directly, or write a different wrapper.
-}
+///	<summary>
+///	  Appends to AFileNames the names of all files of one of the given formats
+///	  found in ARootPath. By default includes also the files found in
+///	  ARootPath's subfolders.
+///	</summary>
+///	<remarks>
+///	  This function is a wrapper around TEFFileLister. If you need more
+///	  flexibility then use TEFFileLister directly, or write a different wrapper.
+///	</remarks>
 procedure FindAllFiles(const AFileFormats: array of string; const ARootPath: string;
   const AFileNames: TStrings; const AIncludeSubFolders: Boolean = True;
   const AFullPaths: Boolean = True); overload;
 
-{
-  Executes an application synchronously (AWait = True) or Asynchronously (AWait = False).
-  If AWait is True, the function waits that the launched process finishes,
-  and returns the process' exit code (or -1 in case of errors).
-  If AWait is False, the function returns 0 if the call succeeds or -1 in case
-  of errors.
-}
+///	<summary>
+///	  Executes an application synchronously (AWait = True) or Asynchronously
+///	  (AWait = False). If AWait is True, the function waits that the launched
+///	  process finishes, and returns the process' exit code (or -1 in case of
+///	  errors). If AWait is False, the function returns 0 if the call succeeds
+///	  or -1 in case of errors.
+///	</summary>
 function ExecuteApplication(const AFileName: string; const AWait: Boolean = False): Integer; overload;
 
-{
-  Executes an application synchronously and returns the application's exit
-  code (or -1 in case of errors) and the console output. Use this function to
-  execute console applications and command files. The application is run in
-  hidden state, so that no console window is displayed.
-}
+///	<summary>
+///	  Executes an application synchronously and returns the application's exit
+///	  code (or -1 in case of errors) and the console output. Use this function
+///	  to execute console applications and command files. The application is run
+///	  in hidden state, so that no console window is displayed.
+///	</summary>
 function ExecuteApplication(const AFileName: string; const AOutput: TStrings): Integer; overload;
 
-{
-  Executes an application synchronously (AWait = True) or Asynchronously (AWait = False),
-  with a specified working directory.
-}
+///	<summary>
+///	  Executes an application synchronously (AWait = True) or Asynchronously
+///	  (AWait = False), with a specified working directory.
+///	</summary>
 function ExecuteApplication(const AFileName, AWorkingDirectory: string; const AWait: Boolean = False): Integer; overload;
 
-{
-  Executes an application asynchronously, but the process handle is not closed.
-  Instead, it is retained and returned so that, for example,
-  TerminateApplication can be called later. The caller is responsible for
-  closing the process handle.
-}
+///	<summary>
+///	  Executes an application asynchronously, but the process handle is not
+///	  closed. Instead, it is retained and returned so that, for example,
+///	  TerminateApplication can be called later. The caller is responsible for
+///	  closing the process handle.
+///	</summary>
 function ExecuteApplication(const AFileName: string; out AProcessHandle: Cardinal): Integer; overload;
 
-{
-  Terminates the application and returns True. Returns False in case of an error.
-}
+///	<summary>
+///	  Terminates the application and returns True. Returns False in case of an
+///	  error.
+///	</summary>
 function TerminateApplication(const AProcessHandle: Cardinal): Boolean;
 
-{
-  Wraps SetProcessWorkingSetSize. See MSDN to know more about it.
-  Call this function periodically, or once after application startup, to unmap
-  all unused pages from the process' virtual memory space. This is the same thing
-  that happens on NT-based systems when the main window of an application is
-  minimized, and it is done to save memory.
-}
-procedure TrimWorkingSet;
+///	<summary>
+///	  Wraps SetProcessWorkingSetSize. See MSDN to know more about it. Call this
+///	  function periodically, or once after application startup, to unmap all
+///	  unused pages from the process' virtual memory space. This is the same
+///	  thing that happens on NT-based systems when the main window of an
+///	  application is minimized, and it is done to save memory.
+///	</summary>
+procedure TrimProcessWorkingSet;
 
-{
-  Deletes a Registry key and all its subkeys. Returns False in case of errors.
-  Returns True anyway if the key doesn't exist.
-}
+///	<summary>
+///	  Tries to return as much memory as possible to the OS, if the current
+///	  process' working set is greater than the specified number of bytes. This
+///	  reduces memory fragmentation in long running processes, such as services.
+///	  This function is inexpensive and it can be called very often. The cost of
+///	  shrinking the memory set will only occurr when it is greater than the
+///	  specified amount. Don't specify irrealistically lower amounts. Example:
+///	  EmptyProcessWorkingSet(200 * 1024 *1024);
+///	</summary>
+procedure ShrinkProcessWorkingSet(const AMaxMemory: Cardinal);
+
+///	<summary>
+///	  Deletes a Registry key and all its subkeys. Returns False in case of
+///	  errors. Returns True anyway if the key doesn't exist.
+///	</summary>
 function RegDeleteKeyAndSubkeys(const AParentKey: TRegistry; const AKeyToDelete: string): Boolean;
 
-{
-  Returns the network name of the machine.
-}
+///	<summary>
+///	  Returns the network name of the machine.
+///	</summary>
 function GetMachineName: string;
 
-{
-  Returns the network name of the currently logged on user.
-}
+///	<summary>
+///	  Returns the name of the currently logged on user.
+///	</summary>
 function GetUserName: string;
 
-{
-  Expands all environment variables found in AString and returns the resulting
-  string. It is a wrapper around the ExpandEnvironmentStrings API function.
-  Environment variable names should be enclosed between % characters and are
-  case-insensitive.
-}
+///	<summary>
+///	  Expands all environment variables found in AString and returns the
+///	  resulting string. It is a wrapper around the ExpandEnvironmentStrings API
+///	  function. Environment variable names should be enclosed between %
+///	  characters and are case-insensitive.
+///	</summary>
 function ExpandEnvironmentVariables(const AString: string): string;
 
-{
-  Wraps GetWindowsDirectory. Raises exceptions in case of buffer overflows.
-}
+///	<summary>
+///	  Wraps GetWindowsDirectory. Raises exceptions in case of buffer overflows.
+///	</summary>
 function SafeGetWindowsDirectory: string;
 
-{
-  Wraps GetSystemDirectory. Raises exceptions in case of buffer overflows.
-}
+///	<summary>
+///	  Wraps GetSystemDirectory. Raises exceptions in case of buffer overflows.
+///	</summary>
 function SafeGetSystemDirectory: string;
 
-{
-  Return the current user's temporary directory, including the trailing path
-  delimiter.
-}
+///	<summary>
+///	  Return the current user's temporary directory, including the trailing
+///	  path delimiter.
+///	</summary>
 function GetTempDirectory: string;
 
-{
-  Returns the randomly generated name of a non-existing file in the system's
-  temporary directory. You can pass a custom extension, otherwise the file
-  name will have .tmp extension.
-  @seealso(GetUniqueFileName)
-}
+///	<summary>
+///	  Returns the randomly generated name of a non-existing file in the
+///	  system's temporary directory. You can pass a custom extension, otherwise
+///	  the file name will have .tmp extension.
+///	</summary>
 function GetTempFileName(const AFileExtension: string = '.tmp'): string;
 
-{
-  Scans the command line and returns the value of the parameter that follows the
-  one with the specificed name (with leading - or /).
-  If the parameter is not found, ADefaultValue is returned.
-}
+///	<summary>
+///	  Scans the command line and returns the value of the parameter that
+///	  follows the one with the specificed name (with leading - or /). If the
+///	  parameter is not found, ADefaultValue is returned.
+///	</summary>
 function GetCmdLineParamValue(const AParamName: string; const ADefaultValue: string = ''): string;
 
-{
-  Returns a random file name which doesn't exists in APath and has extension
-  AExtension. Keeps generating random names until it finds a free name.
-  @seealso(GetTempFileName)
-}
+///	<summary>
+///	  Returns a random file name which doesn't exists in APath and has
+///	  extension AExtension. Keeps generating random names until it finds a free
+///	  name.
+///	</summary>
 function GetUniqueFileName(const APath, AExtension: string): string;
 
-{
-  Returns a new TFormatSettings records in a manner that unifies syntax for
-  different Delphi versions. Use it instead of GetLocaleFormatSettings
-  or TFormatSettings.Create.
-}
+///	<summary>
+///	  Returns a new TFormatSettings records in a manner that unifies syntax for
+///	  different Delphi versions. Use it instead of GetLocaleFormatSettings or
+///	  TFormatSettings.Create.
+///	</summary>
 function GetFormatSettings: TFormatSettings;
 
-const
-  {
-    Default value for TEFFileProcessor.RetryCount.
-  }
-  DEFAULT_RETRY_COUNT = 5;
-  {
-    Default value for TEFFileProcessor.RetryDelay.
-  }
-  DEFAULT_RETRY_DELAY = 2000;
-  {
-    Default value for TEFFileProcessor.RecurseSubdirs.
-  }
-  DEFAULT_RECURSE_SUBDIRS = True;
-  {
-    Default value for TEFFileProcessor.FileMask.
-  }
-  DEFAULT_FILE_MASK = '*.*';
-
 type
-  {
-    Type of the reference parameter in TEFProcessFileErrorEvent.
-  }
   TEFFileErrorAction = (eaRetry, eaSkip, eaAbort, eaFail);
 
-const
-  {
-    Default value for TEFFileProcessor.DefaultErrorAction.
-  }
-  DEFAULT_DEFAULT_ERROR_ACTION = eaFail;
-
-type
-  {
-    Type of TEFFileProcessor.BeforeProcessFile and TEFFileProcessor.AfterProcessFile.
-  }
   TEFProcessFileNotifyEvent = procedure (Sender: TObject; const ASourceFileName,
     ADestinationFileName: string) of object;
-  {
-    Type of TEFFileProcessor.OnProcessFileError.
-  }
+
   TEFProcessFileErrorEvent = procedure (Sender: TObject; const ASourceFileName,
     ADestinationFileName: string; const AError: Exception;
     var AAction: TEFFileErrorAction) of object;
 
-  {
-    Abstract base class for classes that do things to a file or a set of files
-    contained in a folder or in two parallel folder hierarchies.
-  }
+  ///	<summary>
+  ///	  Abstract base class for classes that do things to a file or a set of
+  ///	  files contained in a folder or in two parallel folder hierarchies.
+  ///	</summary>
   TEFFileProcessor = class
   private
     FRecurseSubdirs: Boolean;
@@ -261,394 +237,402 @@ type
     FExceptions: TStrings;
     procedure DoProcess(const ASourcePath, ADestinationPath: string);
     procedure SetExceptions(const AValue: TStrings);
-  protected
-    {
-      Fires OnProcessFileError.
-    }
-    function DoProcessFileError(const E: Exception; const ASourceFileName,
-      ADestinationFileName: string): TEFFileErrorAction;
-    {
-      Starts processing. Might be renamed (wrapped) in descendant.
-    }
-    procedure Process;
-    {
-      Process a single file. Ignores SourcePath and DestinationPath and invokes
-      the operation on the specified file(s).
-    }
-    procedure ProcessFile(const ASourceFileName, ADestinationFileName: string);
-    {
-      Implements the file process operation. Should be overridden in
-      descendants.
-    }
-    procedure DoProcessFile(const ASourceFileName, ADestinationFileName: string); virtual; abstract;
-    {
-      Called at the beginning of Process. This method should raise exceptions
-      if needed parameters are not specified or not valid.
-    }
-    procedure CheckPreconditions; virtual;
-    {
-      Called after processing each folder.
-      ADirectioryName does NOT contain any trailing PathDelim.
-    }
-    procedure AfterProcessDirectory(const ADirectoryName: string); virtual;
   public
     constructor Create; virtual;
     destructor Destroy; override;
-    {
-      Locates the files to process. Operations that work on two folders (such
-      as the copy operation) use both SourcePath and DestinationPath, while
-      operations that work on one folder only (such as the delete operation)
-      only need and use SourcePath.
-      @seealso(DestinationPath)
-    }
+  protected
+    ///	<summary>
+    ///	  Fires OnProcessFileError.
+    ///	</summary>
+    function DoProcessFileError(const E: Exception; const ASourceFileName,
+      ADestinationFileName: string): TEFFileErrorAction;
+
+    ///	<summary>
+    ///	  Starts processing. Might be renamed (wrapped) in descendant.
+    ///	</summary>
+    procedure Process;
+
+    ///	<summary>
+    ///	  Process a single file. Ignores SourcePath and DestinationPath and
+    ///	  invokes the operation on the specified file(s).
+    ///	</summary>
+    procedure ProcessFile(const ASourceFileName, ADestinationFileName: string);
+
+    ///	<summary>
+    ///	  Implements the file process operation. Should be overridden in
+    ///	  descendants.
+    ///	</summary>
+    procedure DoProcessFile(const ASourceFileName, ADestinationFileName: string); virtual; abstract;
+
+    ///	<summary>
+    ///	  Called at the beginning of Process. This method should raise
+    ///	  exceptions if needed parameters are not specified or not valid.
+    ///	</summary>
+    procedure CheckPreconditions; virtual;
+
+    ///	<summary>
+    ///	  Called after processing each folder. ADirectioryName does NOT contain
+    ///	  any trailing PathDelim.
+    ///	</summary>
+    procedure AfterProcessDirectory(const ADirectoryName: string); virtual;
+  public
+  const
+    DEFAULT_RETRY_COUNT = 5;
+    DEFAULT_RETRY_DELAY = 2000;
+    DEFAULT_RECURSE_SUBDIRS = True;
+    DEFAULT_FILE_MASK = '*.*';
+    DEFAULT_DEFAULT_ERROR_ACTION = eaFail;
+
+    ///	<summary>
+    ///	  Locates the files to process. Operations that work on two folders
+    ///	  (such as the copy operation) use both SourcePath and DestinationPath,
+    ///	  while operations that work on one folder only (such as the delete
+    ///	  operation) only need and use SourcePath.
+    ///	</summary>
     property SourcePath: string read FSourcePath write FSourcePath;
-    {
-      Locates the files to process. Operations that work on two folders (such
-      as the copy operation) use both SourcePath and DestinationPath, while
-      operations that work on one folder only (such as the delete operation)
-      only need and use SourcePath.
-      @seealso(SourcePath)
-    }
+
+    ///	<summary>
+    ///	  Locates the files to process. Operations that work on two folders
+    ///	  (such as the copy operation) use both SourcePath and DestinationPath,
+    ///	  while operations that work on one folder only (such as the delete
+    ///	  operation) only need and use SourcePath.
+    ///	</summary>
     property DestinationPath: string read FDestinationPath write FDestinationPath;
-    {
-      When True, causes the object to process ASourcePath's subfolders
-      recursively. Note: setting this property to True is incompatible with
-      any value for FileMask except '*.*'.
-      @seealso(FileMask)
-    }
+
+    ///	<summary>
+    ///	  When True, causes the object to process ASourcePath's subfolders
+    ///	  recursively.
+    ///	</summary>
+    ///	<remarks>
+    ///	  Setting this property to True is incompatible with any value for
+    ///	  FileMask except '*.*'.
+    ///	</remarks>
     property RecurseSubdirs: Boolean read FRecurseSubdirs write FRecurseSubdirs
       default DEFAULT_RECURSE_SUBDIRS;
-    {
-      Set this property to filter certain file types only. Supports the
-      wildcards * and ?.
-    }
+
+    ///	<summary>
+    ///	  Set this property to filter certain file types only. Supports the
+    ///	  wildcards * and ?.
+    ///	</summary>
     property FileMask: string read FFileMask write FFileMask; // default DEFAULT_FILE_MASK
-    {
-      This event is fired in case of errors, @bold(after) whatever number of
-      retries specified in RetryCount. The handler receives a reference
-      parameter called Action which may be set to one of the following values:
-      @table(
-        @row(
-          @cell(eaRetry)@cell(Immediately retry the operation on the current file))
-        @row(
-          @cell(eaSkip)@cell(Skip the current file and process the next file))
-        @row(
-          @cell(eaAbort)@cell(Raise a silent exception (EAbort)))
-        @row(
-          @cell(eaFail)@cell(Re-raise the original error))
-      )
-    }
+
+    ///	<summary>
+    ///	  This event is fired in case of errors, after whatever number of
+    ///	  retries specified in RetryCount. The handler receives a reference
+    ///	  parameter called Action which may be set to one of the following
+    ///	  values:<br />eaRetry: Immediately retry the operation on the current
+    ///	  file;<br />eaSkip: Skip the current file and process the next file;
+    ///	  <br />eaAbort: Raise a silent exception (EAbort);<br />eaFail:
+    ///	  Re-raise the original error.
+    ///	</summary>
     property OnProcessFileError: TEFProcessFileErrorEvent read FOnProcessFileError
       write FOnProcessFileError;
-    {
-      Default action in case of errors. When OnProcessFileError is handled, this
-      is the value passed to the handler, otherwise it's the value used to
-      decide what to do.
-    }
+
+    ///	<summary>
+    ///	  Default action in case of errors. When OnProcessFileError is handled,
+    ///	  this is the value passed to the handler, otherwise it's the value
+    ///	  used to decide what to do.
+    ///	</summary>
     property DefaultErrorAction: TEFFileErrorAction read FDefaultErrorAction
       write FDefaultErrorAction default DEFAULT_DEFAULT_ERROR_ACTION;
-    {
-      Fired before processing each file. The handler receives the file name(s)
-      in input.
-    }
+
+    ///	<summary>
+    ///	  Fired before processing each file. The handler receives the file
+    ///	  name(s) in input.
+    ///	</summary>
     property BeforeProcessFile: TEFProcessFileNotifyEvent read FBeforeProcessFile
       write FBeforeProcessFile;
-    {
-      Fired after processing each file. The handler receives the file name(s)
-      in input.
-    }
+
+    ///	<summary>
+    ///	  Fired after processing each file. The handler receives the file
+    ///	  name(s) in input.
+    ///	</summary>
     property AfterProcessFile: TEFProcessFileNotifyEvent read FAfterProcessFile
       write FAfterProcessFile;
-    {
-      Indicates how many times a failed operation should be retried.
-    }
+
+    ///	<summary>
+    ///	  Indicates how many times a failed operation should be retried.
+    ///	</summary>
     property RetryCount: Integer read FRetryCount write FRetryCount
       default DEFAULT_RETRY_COUNT;
-    {
-      Indicates how many milliseconds to wait between a try and the
-      next retry in case of errors.
-    }
+
+    ///	<summary>
+    ///	  Indicates how many milliseconds to wait between a try and the next
+    ///	  retry in case of errors.
+    ///	</summary>
     property RetryDelay: Integer read FRetryDelay write FRetryDelay
       default DEFAULT_RETRY_DELAY;
-    {
-      A list of exclusion patterns. Any file whose name matches one of the
-      exceptions is not processed.
-    }
+
+    ///	<summary>
+    ///	  A list of exclusion patterns. Any file whose name matches one of the
+    ///	  exceptions is not processed.
+    ///	</summary>
     property Exceptions: TStrings read FExceptions write SetExceptions;
   end;
 
-  {
-    Abstract base class for classes that do things to a file or a set of files
-    contained in a single folder.
-  }
+  ///	<summary>
+  ///	  Abstract base class for classes that do things to a file or a set of
+  ///	  files contained in a single folder.
+  ///	</summary>
   TEFSourcePathOnlyFileProcessor = class(TEFFileProcessor)
   end;
 
-const
-  {
-    Default value for TEFFileDeleter.DeleteEmptyRootFolder.
-  }
-  DEFAULT_DELETE_EMPTY_ROOT_FOLDER = False;
-  {
-    Default value for TEFFileDeleter.DeleteEmptySubfolders.
-  }
-  DEFAULT_DELETE_EMPTY_SUBFOLDERS = True;
-
-type
-  {
-    Type of TEFFileDeleter.BeforeDeleteDirectory and AfterDeleteDirectory.
-  }
   TEFDeleteDirectoryNotifyEvent = procedure (Sender: TObject; const DirectoryName: string) of object;
 
-  {
-    Deletes a file or a group of files contained in a folder.
-  }
+  ///	<summary>
+  ///	  Deletes a file or a group of files contained in a folder.
+  ///	</summary>
   TEFFileDeleter = class(TEFSourcePathOnlyFileProcessor)
   private
     FDeleteEmptyRootFolder: Boolean;
     FDeleteEmptySubfolders: Boolean;
     FAfterDeleteDirectory: TEFDeleteDirectoryNotifyEvent;
     FBeforeDeleteDirectory: TEFDeleteDirectoryNotifyEvent;
-    {
-      Deletes the specified folder by calling DoDeleteDirectory; handles
-      errors, retries, retry delays.
-    }
-    procedure DeleteDirectory(const ADirectoryName: string);
-    {
-      Tries to delete the specified folder; raises exceptions if it can't.
-    }
-    procedure DoDeleteDirectory(const ADirectoryName: string);
   protected
-    {
-      Implements the deletion of ASourceFileName.
-    }
+    ///	<summary>
+    ///	  Deletes the specified folder by calling DoDeleteDirectory; handles
+    ///	  errors, retries, retry delays.
+    ///	</summary>
+    procedure DeleteDirectory(const ADirectoryName: string);
+
+    ///	<summary>
+    ///	  Tries to delete the specified folder; raises exceptions if it can't.
+    ///	</summary>
+    procedure DoDeleteDirectory(const ADirectoryName: string);
+
+    ///	<summary>
+    ///	  Implements the deletion of ASourceFileName.
+    ///	</summary>
     procedure DoProcessFile(const ASourceFileName, ADestinationFileName: string); override;
-    {
-      Ensures any empty directories are deleted after deleting the files within,
-      if required. 
-    }
+
+    ///	<summary>
+    ///	  Ensures any empty directories are deleted after deleting the files
+    ///	  within, if required.
+    ///	</summary>
     procedure AfterProcessDirectory(const ADirectoryName: string); override;
   public
-    {
-      Fired before deleting a folder.
-    }
+  const
+    DEFAULT_DELETE_EMPTY_ROOT_FOLDER = False;
+    DEFAULT_DELETE_EMPTY_SUBFOLDERS = True;
+
+    ///	<summary>
+    ///	  Fired before deleting a folder.
+    ///	</summary>
     property BeforeDeleteDirectory: TEFDeleteDirectoryNotifyEvent read FBeforeDeleteDirectory
       write FBeforeDeleteDirectory;
-    {
-      Fired after a folder has been deleted.
-    }
+
+    ///	<summary>
+    ///	  Fired after a folder has been deleted.
+    ///	</summary>
     property AfterDeleteDirectory: TEFDeleteDirectoryNotifyEvent read FAfterDeleteDirectory
       write FAfterDeleteDirectory;
-    {
-      Set this property to True to cause the folder indicated by SourcePath
-      to be deleted, but only if it remains empty after deleting all requested
-      files and folders.
-      @seealso(FileMask)
-      @seealso(DeleteEmptySubfolders)
-    }
+
+    ///	<summary>
+    ///	  Set this property to True to cause the folder indicated by SourcePath
+    ///	  to be deleted, but only if it remains empty after deleting all
+    ///	  requested files and folders.
+    ///	</summary>
     property DeleteEmptyRootFolder: Boolean read FDeleteEmptyRootFolder write FDeleteEmptyRootFolder
       default DEFAULT_DELETE_EMPTY_ROOT_FOLDER;
-    {
-      Set this property to True to always delete a folder once all files in it
-      have been deleted. Warning: if you set a FileMask that doesn't cause the
-      deletion of all files, and set this property to True, you'll cause
-      a potentially endless loop of OnProcessFileError events, since you can
-      only delete a folder if it's empty.
-    }
+
+    ///	<summary>
+    ///	  Set this property to True to always delete a folder once all files in
+    ///	  it have been deleted. Warning: if you set a FileMask that doesn't
+    ///	  cause the deletion of all files, and set this property to True,
+    ///	  you'll cause a potentially endless loop of OnProcessFileError events,
+    ///	  since you can only delete a folder if it's empty.
+    ///	</summary>
     property DeleteEmptySubfolders: Boolean read FDeleteEmptySubfolders
       write FDeleteEmptySubfolders default DEFAULT_DELETE_EMPTY_SUBFOLDERS;
-    {
-      Deletes all files that match the settings.
-    }
+
+    ///	<summary>
+    ///	  Deletes all files that match the settings.
+    ///	</summary>
     procedure DeleteFiles;
-    {
-      Deletes a single file.
-    }
+
+    ///	<summary>
+    ///	  Deletes a single file.
+    ///	</summary>
     procedure DeleteFile(const AFileName: string);
   end;
 
-  {
-    Makes sure that a file (or a group of files) is writable and is not in
-    use. That is, it can be overwritten.
-  }
+  ///	<summary>
+  ///	  Makes sure that a file (or a group of files) is writable and is not in
+  ///	  use. That is, it can be overwritten.
+  ///	</summary>
   TEFFileChecker = class(TEFSourcePathOnlyFileProcessor)
   protected
-    {
-      Implements the overwrite check for ASourceFileName.
-    }
+    ///	<summary>
+    ///	  Implements the overwrite check for ASourceFileName.
+    ///	</summary>
     procedure DoProcessFile(const ASourceFileName, ADestinationFileName: string); override;
   public
-    {
-      Checks all files that match the settings.
-    }
+    ///	<summary>
+    ///	  Checks all files that match the settings.
+    ///	</summary>
     procedure CheckFiles;
-    {
-      Checks a single file.
-    }
+
+    ///	<summary>
+    ///	  Checks a single file.
+    ///	</summary>
     procedure CheckFile(const AFileName: string);
   end;
 
-  {
-    Writes some text content to a file. Works one file at a time.
-    An existing file is deleted and rewritten.
-  }
+  ///	<summary>
+  ///	  Writes some text content to a file. Works one file at a time. An
+  ///	  existing file is deleted and rewritten.
+  ///	</summary>
   TEFFileWriter = class(TEFSourcePathOnlyFileProcessor)
   private
     FFileContent: string;
   protected
-    {
-      Implements content writing on ASourceFileName.
-    }
+
+    ///	<summary>
+    ///	  Implements content writing on ASourceFileName.
+    ///	</summary>
     procedure DoProcessFile(const ASourceFileName, ADestinationFileName: string); override;
   public
-    {
-      Writes AContent to the specified file. If the file already exists it is
-      deleted before writing.
-    }
+    ///	<summary>
+    ///	  Writes AContent to the specified file. If the file already exists it
+    ///	  is deleted before writing.
+    ///	</summary>
     procedure WriteFile(const AFileName, AFileContent: string);
   end;
 
-  {
-    Type of a parameter of TEFFileLister.ListFiles. A dynamic array of strings.
-  }
-  TEFStringArray = array of string;
-
-  {
-    Lists all files of a given format (or array of formats) in a folder or
-    folder hierarchy.
-  }
+  ///	<summary>
+  ///	  Lists all files of a given format (or array of formats) in a folder or
+  ///	  folder hierarchy.
+  ///	</summary>
   TEFFileLister = class(TEFSourcePathOnlyFileProcessor)
   private
-    FFileFormats: TEFStringArray;
+    FFileFormats: TStringDynArray;
     FFileNameList: TStrings;
     FFullPaths: Boolean;
   protected
-    {
-      Adds ASourceFileName to the internal list, if allowed.
-    }
+
+    ///	<summary>
+    ///	  Adds ASourceFileName to the internal list, if allowed.
+    ///	</summary>
     procedure DoProcessFile(const ASourceFileName, ADestinationFileName: string); override;
   public
-    {
-      Adds the names of all files of the given formats to AFileNameList.
-      If AFullPaths is True (or RecurseSubDirs is True) then the added names
-      are full path names.
-
-      AFileFormats is an array of file formats, which are file extensions
-      without the dot. The special file format '*', meaning all file formats,
-      is supported.
-
-      The method returns the number of items added.
-    }
+    ///	<summary>
+    ///	  Adds the names of all files of the given formats to AFileNameList. If
+    ///	  AFullPaths is True (or RecurseSubDirs is True) then the added names
+    ///	  are full path names.
+    ///	</summary>
+    ///	<param name="AFileNameList">
+    ///	  List that will hold the file names.
+    ///	</param>
+    ///	<param name="AFileFormats">
+    ///	  An array of file formats, which are file extensions without the dot.
+    ///	  The special file format '*', meaning all file formats, is supported.
+    ///	</param>
+    ///	<param name="AFullPaths">
+    ///	  Pass True to get the full path names, False for just the file names.
+    ///	</param>
+    ///	<returns>
+    ///	  Returns the number of items added.
+    ///	</returns>
     function ListFiles(const AFileNameList: TStrings;
-      const AFileFormats: TEFStringArray;
+      const AFileFormats: TStringDynArray;
       const AFullPaths: Boolean = True): Integer;
   end;
 
-  {
-    Abstract base class for classes that do things to a file or a set of files
-    contained in two parallel folder hierarchies.
-  }
+  ///	<summary>
+  ///	  Abstract base class for classes that do things to a file or a set of
+  ///	  files contained in two parallel folder hierarchies.
+  ///	</summary>
   TEFSourceDestPathFileProcessor = class(TEFFileProcessor)
   protected
-    {
-      Checks that the destination file name is specified as well.
-    }
+
+    ///	<summary>
+    ///	  Checks that the destination file name is specified as well.
+    ///	</summary>
     procedure CheckPreconditions; override;
   end;
 
-  {
-    Copies a file or a group of files and folders.
-  }
+  ///	<summary>
+  ///	  Copies a file or a group of files and folders.
+  ///	</summary>
   TEFFileCopier = class(TEFSourceDestPathFileProcessor)
   protected
-    {
-      Implements the file copy operation.
-    }
+
+    ///	<summary>
+    ///	  Implements the file copy operation.
+    ///	</summary>
     procedure DoProcessFile(const ASourceFileName, ADestinationFileName: string); override;
   public
-    {
-      Copies all files that match the settings.
-    }
+
+    ///	<summary>
+    ///	  Copies all files that match the settings.
+    ///	</summary>
     procedure CopyFiles;
-    {
-      Copies a single file.
-    }
+
+    ///	<summary>
+    ///	  Copies a single file.
+    ///	</summary>
     procedure CopyFile(const ASourceFileName, ADestinationFileName: string);
   end;
 
-{
-  Deletes the specified file. It is a simple wrapper around TEFFileDeleter.
-  If you need more flexibility then use TEFFileDeleter directly or write a
-  different wrapper.
-}
+///	<summary>
+///	  Deletes the specified file. It is a simple wrapper around TEFFileDeleter.
+///	  If you need more flexibility then use TEFFileDeleter directly or write a
+///	  different wrapper.
+///	</summary>
 procedure DeleteFile(const AFileName: string);
 
-{
-  Deletes all files and folders in APath (but not APath itself).
-  It is a simple wrapper around TEFFileDeleter. If you need more flexibility
-  then use TEFFileDeleter directly or write a different wrapper.
-}
+///	<summary>
+///	  Deletes all files and folders in APath (but not APath itself). It is a
+///	  simple wrapper around TEFFileDeleter. If you need more flexibility then
+///	  use TEFFileDeleter directly or write a different wrapper.
+///	</summary>
 procedure DeleteAllFiles(const APath: string);
 
-{
-  Copies the specified file. It is a simple wrapper around TFileCopier.
-  If you need more flexibility then use TFileCopier directly or write a
-  different wrapper.
-}
+///	<summary>
+///	  Copies the specified file. It is a simple wrapper around TFileCopier. If
+///	  you need more flexibility then use TFileCopier directly or write a
+///	  different wrapper.
+///	</summary>
 procedure CopyFile(const ASourceFileName, ADestinationFileName: string);
 
-{
-  Copies all files and folders from ASourcePath to ADestinationPath.
-  It is a simple wrapper around TFileCopier. If you need more flexibility
-  then use TFileCopier directly or write a different wrapper.
-}
+///	<summary>
+///	  Copies all files and folders from ASourcePath to ADestinationPath. It is
+///	  a simple wrapper around TFileCopier. If you need more flexibility then
+///	  use TFileCopier directly or write a different wrapper.
+///	</summary>
 procedure CopyAllFilesAndFolders(const ASourcePath, ADestinationPath: string;
   const ABeforeEachFile: TEFProcessFileNotifyEvent = nil;
   const AAfterEachFile: TEFProcessFileNotifyEvent = nil);
 
-{
-  Copies all files and folders from ASourcePath to ADestinationPath, except
-  those matching the patterns specified in AExceptions. 
-  It is a simple wrapper around TFileCopier. If you need more flexibility
-  then use TFileCopier directly or write a different wrapper.
-}
+///	<summary>
+///	  Copies all files and folders from ASourcePath to ADestinationPath, except
+///	  those matching the patterns specified in AExceptions. It is a simple
+///	  wrapper around TFileCopier. If you need more flexibility then use
+///	  TFileCopier directly or write a different wrapper.
+///	</summary>
 procedure CopyAllFilesAndFoldersExcept(
   const ASourcePath, ADestinationPath: string;
   const AExceptions: array of string;
   const ABeforeEachFile: TEFProcessFileNotifyEvent = nil;
   const AAfterEachFile: TEFProcessFileNotifyEvent = nil);
 
-{
-  Checks that the specified file can be written to, otherwise raises an
-  exception. It is a simple wrapper around TEFFileChecker.
-  If you need more flexibility then use TEFFileChecker directly or write a
-  different wrapper.
-}
+///	<summary>
+///	  Checks that the specified file can be written to, otherwise raises an
+///	  exception. It is a simple wrapper around TEFFileChecker. If you need more
+///	  flexibility then use TEFFileChecker directly or write a different wrapper.
+///	</summary>
 procedure CheckFileInUse(const AFileName: string);
 
-{
-  Returns True if two strings refer to the same directory. Both must exist
-  for this function to work.
-}
+///	<summary>
+///	  Returns True if two strings refer to the same directory. Both must exist
+///	  for this function to work.
+///	</summary>
 function SameDirectory(const ADirectory1, ADirectory2: string): Boolean;
 
-{
-  Returns the number of bytes in the current process' working set.
-}
+///	<summary>
+///	  Returns the number of bytes in the current process' working set.
+///	</summary>
 function GetCurrentProcessMemory: Cardinal;
-
-{
-  Tries to return as much memory as possible to the OS, if the current
-  process' working set is greater than the specified number of bytes.
-  This reduces memory fragmentation in long running processes, such as
-  services.
-  This function is inexpensive and it can be called very often. The cost of
-  shrinking the memory set will only occurr when it is greater than the
-  specified amount. Don't specify irrealistically lower amounts. Example:
-
-  EmptyProcessWorkingSet(200 * 1024 *1024);
-}
-procedure ShrinkProcessWorkingSet(const AMaxMemory: Cardinal);
 
 implementation
 
@@ -884,7 +868,7 @@ begin
   {$IFEND}
 end;
 
-procedure TrimWorkingSet;
+procedure TrimProcessWorkingSet;
 var
   LMainHandle: THandle;
 begin
@@ -965,7 +949,7 @@ begin
   Result := LBuffer;
 end;
 
-function RemoveTrailingPathDelim(const APath: string): string;
+function RemoveTrailingPathDelimiter(const APath: string): string;
 begin
   Result := APath;
   if (Result <> '') and (Result[Length(Result)] = PathDelim) then
@@ -1014,7 +998,7 @@ procedure FindAllFiles(const AFileFormats: array of string; const ARootPath: str
   const AFileNames: TStrings; const AIncludeSubFolders: Boolean = True;
   const AFullPaths: Boolean = True);
 var
-  LFileFormats: TEFStringArray;
+  LFileFormats: TStringDynArray;
   LFileFormatIndex: Integer;
 begin
   SetLength(LFileFormats, Length(AFileFormats));
@@ -1261,7 +1245,7 @@ begin
       Windows.FindClose(LFileHandle);
     end;
   end;
-  AfterProcessDirectory(RemoveTrailingPathDelim(ASourcePath));
+  AfterProcessDirectory(RemoveTrailingPathDelimiter(ASourcePath));
 end;
 
 function TEFFileProcessor.DoProcessFileError(const E: Exception;
@@ -1333,7 +1317,7 @@ end;
 procedure TEFFileDeleter.AfterProcessDirectory(const ADirectoryName: string);
 begin
   inherited;
-  if ADirectoryName = RemoveTrailingPathDelim(SourcePath) then
+  if ADirectoryName = RemoveTrailingPathDelimiter(SourcePath) then
   begin
     if FDeleteEmptyRootFolder then
       DeleteDirectory(ADirectoryName);
@@ -1565,7 +1549,7 @@ begin
 end;
 
 function TEFFileLister.ListFiles(const AFileNameList: TStrings;
-  const AFileFormats: TEFStringArray; const AFullPaths: Boolean = True): Integer;
+  const AFileFormats: TStringDynArray; const AFullPaths: Boolean = True): Integer;
 var
   LInitialItemCount: Integer;
 begin

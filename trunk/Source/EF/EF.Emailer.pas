@@ -1,4 +1,9 @@
+///	<summary>
+///	  Utility classes for sending emails through Indy.
+///	</summary>
 unit EF.Emailer;
+
+{$I EF.Defines.inc}
 
 interface
 
@@ -8,9 +13,9 @@ uses
   IdMessageClient, IdSMTP, IdExplicitTLSClientServerBase, IdSMTPBase;
 
 type
-  {
-    Holds all data needed to use a SMTP Server.
-  }
+  ///	<summary>
+  ///	  SMTP server configuration data.
+  ///	</summary>
   TEFSMTPServerParams = class(TPersistent)
   private
     FUserId: string;
@@ -21,17 +26,26 @@ type
     procedure Assign(Source: TPersistent); override;
     property HostName: string read FHostName write FHostName;
     property Port: Integer read FPort write FPort;
-    // Only set this property if authentication is used.
+
+    ///	<summary>
+    ///	  Only set this property if authentication is used.
+    ///	</summary>
     property UserId: string read FUserId write FUserId;
-    // Only set this property if authentication is used.
+
+    ///	<summary>
+    ///	  Only set this property if authentication is used.
+    ///	</summary>
     property Password: string read FPassword write FPassword;
-    // Returns True if the object has both UserId and Password set.
+
+    ///	<summary>
+    ///	  Returns True if the object has both UserId and Password set.
+    ///	</summary>
     function HasAuthInfo: Boolean;
   end;
 
-  {
-    Holds all data needed to describe the sender of an e-mail message.
-  }
+  ///	<summary>
+  ///	  Describes an email sender.
+  ///	</summary>
   TEFEmailSender = class(TPersistent)
   private
     FName: string;
@@ -39,20 +53,32 @@ type
     FEmailAddress: string;
   public
     procedure Assign(Source: TPersistent); override;
-    // Sender name.
+
+    ///	<summary>
+    ///	  Sender name.
+    ///	</summary>
     property Name: string read FName write FName;
-    // Sender e-mail address.
+
+    ///	<summary>
+    ///	  Sender e-mail address.
+    ///	</summary>
     property EmailAddress: string read FEmailAddress write FEmailAddress;
-    // Optional reply-to address.
+
+    ///	<summary>
+    ///	  Optional reply-to address.
+    ///	</summary>
     property ReturnAddress: string read FReturnAddress write FReturnAddress;
-    // Checks that all required properties are set, and raises exceptions if
-    // the checks fail.
+
+    ///	<summary>
+    ///	  Checks that all required properties are set, and raises exceptions if
+    ///	  the checks fail.
+    ///	</summary>
     procedure CheckValid;
   end;
 
-  {
-    Holds all data needed to describe an e-mail message.
-  }
+  ///	<summary>
+  ///	  Describes an email message.
+  ///	</summary>
   TEFEmailMessage = class(TPersistent)
   private
     FToAddresses: string;
@@ -66,27 +92,48 @@ type
   public
     constructor Create;
     destructor Destroy; override;
-    // Subject line.
+
+    ///	<summary>
+    ///	  Subject line.
+    ///	</summary>
     property Subject: string read FSubject write FSubject;
-    // List of recipients, in RFC format.
+
+    ///	<summary>
+    ///	  List of recipients, in RFC format.
+    ///	</summary>
     property ToAddresses: string read FToAddresses write FToAddresses;
-    // List of CC recipients, in RFC format.
+
+    ///	<summary>
+    ///	  List of CC recipients, in RFC format.
+    ///	</summary>
     property CCAddresses: string read FCCAddresses write FCCAddresses;
-    // List of BCC recipients, in RFC format.
+
+    ///	<summary>
+    ///	  List of BCC recipients, in RFC format.
+    ///	</summary>
     property BCCAddresses: string read FBCCAddresses write FBCCAddresses;
-    // Message body (text or HTML).
+
+    ///	<summary>
+    ///	  Message body (text or HTML).
+    ///	</summary>
     property Body: string read FBody write FBody;
-    // Optional list of files to attach to the message before it is sent.
+
+    ///	<summary>
+    ///	  Optional list of files to attach to the message before it is sent.
+    ///	</summary>
     property AttachmentFileNames: TStrings
       read FAttachmentFileNames write SetAttachmentFileNames;
-    // Set this property to True to tell the e-mailer that this is a HTML
-    // message.
+
+    ///	<summary>
+    ///	  Set this property to True to tell the e-mailer that this is a HTML
+    ///	  message.
+    ///	</summary>
     property IsHTML: Boolean read FIsHTML write FISHTML;
   end;
 
-  {
-    Sends e-mail messages through a SMTP server.
-  }
+  ///	<summary>
+  ///	  Sends e-mail messages through a SMTP server.
+  ///	</summary>
   TEFEmailer = class(TComponent)
     FIdSMTP: TIdSMTP;
     FIdMessage: TIdMessage;
@@ -100,22 +147,22 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    // Sets all required server params before attempting to connect or send.
     property SMTPServerParams: TEFSMTPServerParams
       read FSMTPServerParams write SetSMTPServerParams;
-    // Connection management is automatic each time SendMail is called. If you
-    // need to call SendMail several times in a row, it is more efficient to
-    // manage the connection from the caller. Example:
-    // Connected := True;
-    // try
-    //   for I := ... do
-    //     SendMail(...);
-    // finally
-    //   Connected := False;
-    // end;
+
+    ///	<summary>
+    ///	  Connection management is automatic each time SendMail is called. If
+    ///	  you need to call SendMail several times in a row, it is more
+    ///	  efficient to manage the connection from the caller and doing it only
+    ///	  once.
+    ///	</summary>
     property Connected: Boolean read FConnected write SetConnected;
-    // Sends AEmailMessage using the sender information provided in AEmailSender
-    // and through the server specified in the SMTPServerParams property.
+
+    ///	<summary>
+    ///	  Sends AEmailMessage using the sender information provided in
+    ///	  AEmailSender and through the server specified in the SMTPServerParams
+    ///	  property.
+    ///	</summary>
     procedure SendMail(const AEmailSender: TEFEmailSender;
       const AEmailMessage: TEFEmailMessage);
   end;
@@ -123,11 +170,9 @@ type
 implementation
 
 uses
-  IdAttachmentFile, IdText;
+  IdAttachmentFile, IdText,
+  EF.Localization;
   
-resourcestring
-  SMissingEmailSender = 'Missing sender name or e-mail address.';
-
 { TEFEmailer }
 
 procedure TEFEmailer.SendMail(const AEmailSender: TEFEmailSender;
@@ -274,7 +319,7 @@ end;
 procedure TEFEmailSender.CheckValid;
 begin
   if (EmailAddress = '') or (Name = '') then
-    raise Exception.Create(SMissingEmailSender);
+    raise Exception.Create(_('Missing sender name or email address.'));
 end;
 
 { TEFEmailMessage }

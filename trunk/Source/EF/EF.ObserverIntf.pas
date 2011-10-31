@@ -1,4 +1,16 @@
+///	<summary>
+///	  <para>
+///	    This unit defines the interfaces and support classes that implement a
+///	    particular EF-specific flavour of the GoF Observer pattern.
+///	  </para>
+///	  <para>
+///	    This flavour introduces context strings and is designed to handle
+///	    interfaces that disable reference counting, as all EF interfaces do.
+///	  </para>
+///	</summary>
 unit EF.ObserverIntf;
+
+{$I EF.Defines.inc}
 
 interface
 

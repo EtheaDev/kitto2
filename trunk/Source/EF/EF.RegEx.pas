@@ -1,3 +1,6 @@
+///	<summary>
+///	  Regex support for EF applications. Wraps TPerlRegEx.
+///	</summary>
 unit EF.RegEx;
 
 {$I EF.Defines.inc}
@@ -15,22 +18,37 @@ interface
 ///	</summary>
 function StrMatchesPatternOrRegex(const AString, APatternOrRegex: string): Boolean;
 
+///	<summary>
+///	  Simple regex pattern matching.
+///	</summary>
+function RegExMatches(const AString, APattern: string): Boolean;
+
 implementation
 
 uses
-  SysUtils,
+  SysUtils, SyncObjs,
   PerlRegEx,
   EF.StrUtils;
 
 // Creating an instance of this component is costly, so we cache it.
 var
   _RegExEngine: TPerlRegEx;
+  _CriticalSection: TCriticalSection;
 
 function GetRegExEngine: TPerlRegEx;
 begin
-  if not Assigned(_RegExEngine) then
-    _RegExEngine := TPerlRegEx.Create(nil);
-  Result := _RegExEngine;
+  if Assigned(_RegExEngine) then
+    Result := _RegExEngine
+  else
+  begin
+    _CriticalSection.Enter;
+    try
+      _RegExEngine := TPerlRegEx.Create(nil);
+      Result := _RegExEngine;
+    finally
+      _CriticalSection.Enter;
+    end;
+  end;
 end;
 
 function RegExMatches(const AString, APattern: string): Boolean;
@@ -76,9 +94,11 @@ begin
 end;
 
 initialization
+  _CriticalSection := TCriticalSection.Create;
 
 finalization
   FreeAndNil(_RegExEngine);
+  FreeAndNil(_CriticalSection);
 
 end.
 

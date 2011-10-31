@@ -1,3 +1,6 @@
+///	<summary>
+///	  DBExpress-based database access layer.
+///	</summary>
 unit EF.DB.DBX;
 
 {$I EF.Defines.inc}
@@ -10,10 +13,10 @@ uses
   EF.DB;
 
 type
-  {
-    Retrieves metadata from a database through DBX.
-    Currently, only Firebird is supported.
-  }
+  ///	<summary>
+  ///	  Retrieves metadata from a database through DBX. Currently, only
+  ///	  Firebird is supported.
+  ///	</summary>
   TEFDBDBXInfo = class(TEFDBInfo)
   private
     FConnection: TSQLConnection;
@@ -40,22 +43,25 @@ type
     FConnectionString: TStrings;
     FFetchSequenceGeneratorValueQuery: TEFDBDBXQuery;
     FLastSequenceName: string;
-    {
-      Handles FConnectionString.OnChange; parses the connection string
-      and configures the internal connection accordingly.
-    }
+
+    ///	<summary>
+    ///	  Handles FConnectionString.OnChange; parses the connection string and
+    ///	  configures the internal connection accordingly.
+    ///	</summary>
     procedure OnConnectionStringChange(Sender: TObject);
-    {
-      Returns the SQL statement used to get the next value from a sequence
-      generator. Currently supports only Oracle and IB/Fb.
-    }
+
+    ///	<summary>
+    ///	  Returns the SQL statement used to get the next value from a sequence
+    ///	  generator. Currently supports only Oracle and IB/Fb.
+    ///	</summary>
     function GetFetchSequenceGeneratorValueSQL(
       const ASequenceName: string): string;
-    {
-      Returns a query to be used to fetch a sequence generator value.
-      The query is created upon first access and kept prepared until
-      the connection is closed or destroyed.
-    }
+
+    ///	<summary>
+    ///	  Returns a query to be used to fetch a sequence generator value. The
+    ///	  query is created upon first access and kept prepared until the
+    ///	  connection is closed or destroyed.
+    ///	</summary>
     function GetFetchSequenceGeneratorValueQuery(const ASequenceName: string): TEFDBDBXQuery;
   public
     procedure AfterConstruction; override;
@@ -79,11 +85,12 @@ type
   ///	TEFDBDBXQuery.</summary>
   TEFSQLQuery = class(TSQLQuery)
   private
-    {
-      Params of unknown type trigger the DBX error "No value for parameter X".
-      Detail queries of empty master datasets have params with unknown type,
-      so we patch the data type to avoid the error.
-    }
+
+    ///	<summary>
+    ///	  Params of unknown type trigger the DBX error "No value for parameter
+    ///	  X". Detail queries of empty master datasets have params with unknown
+    ///	  type, so we patch the data type to avoid the error.
+    ///	</summary>
     procedure FixUnknownParamTypes;
   protected
     procedure InternalOpen; override;
@@ -135,9 +142,6 @@ type
     function IsOpen: Boolean; override;
   end;
 
-  {
-    A factory that creates DBX DB objects.
-  }
   TEFDBDBXAdapter = class(TEFDBAdapter)
   protected
     function InternalCreateDBConnection: TEFDBConnection; override;
@@ -275,7 +279,7 @@ A better implementation would be to keep a list of them. }
     end;
   end;
   // Re-prepare the query in case it was unprepared (for example as a
-  // consequence of closing the connection.
+  // consequence of closing the connection).
   if not FFetchSequenceGeneratorValueQuery.Prepared then
     FFetchSequenceGeneratorValueQuery.Prepared := True;
   Result := FFetchSequenceGeneratorValueQuery;
@@ -367,7 +371,7 @@ begin
     // re-reading of the params. Only setting those does not suffice.
     FConnection.ConnectionName := Config.GetExpandedString('Connection/ConnectionName');
     FConnection.DriverName := Config.GetExpandedString('Connection/DriverName');
-    FConnection.Params.Text := Config.GetExpandedStrings('Connection');
+    FConnection.Params.Text := Config.GetChildrenAsExpandedStrings('Connection');
     FConnection.Open;
   end;
 end;

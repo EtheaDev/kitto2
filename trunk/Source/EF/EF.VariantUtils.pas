@@ -1,30 +1,33 @@
+///	<summary>
+///	  Variant-related utility routines.
+///	</summary>
 unit EF.VariantUtils;
 
 interface
 
-{
-  Converts AVariant to a string, returning '' for null/empty variants.
-}
+///	<summary>
+///	  Converts AVariant to a string, returning '' for null/empty variants.
+///	</summary>
 function EFVarToStr(const AVariant: Variant): string;
 
-{
-  Converts AVariant to a TDateTime, returning 0 for null/empty variants.
-}
+///	<summary>
+///	  Converts AVariant to a TDateTime, returning 0 for null/empty variants.
+///	</summary>
 function EFVarToDateTime(const AVariant: Variant): TDateTime;
 
-{
-  Converts AVariant to an Integer, returning 0 for null/empty variants.
-}
+///	<summary>
+///	  Converts AVariant to an Integer, returning 0 for null/empty variants.
+///	</summary>
 function EFVarToInt(const AVariant: Variant): Integer;
 
-{
-  Converts AVariant to a Double, returning 0 for null/empty variants.
-}
+///	<summary>
+///	  Converts AVariant to a Double, returning 0 for null/empty variants.
+///	</summary>
 function EFVarToFloat(const AVariant: Variant): Double;
 
-{
-  Converts AVariant to a Currency, returning 0 for null/empty variants.
-}
+///	<summary>
+///	  Converts AVariant to a Currency, returning 0 for null/empty variants.
+///	</summary>
 function EFVarToCurrency(const AVariant: Variant): Currency;
 
 implementation

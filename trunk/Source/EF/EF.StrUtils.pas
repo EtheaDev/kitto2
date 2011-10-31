@@ -1,249 +1,218 @@
 unit EF.StrUtils;
 
+{$I EF.Defines.inc}
+
 interface
 
 uses
   Types, Classes, DB,
   EF.Types;
 
-{
-  Returns the index of the last occurrence of ASubString in AString.
-  Returns 0 if ASubString is not contained in AString.
-}
+///	<summary>
+///	  Returns the index of the last occurrence of ASubString in AString.
+///	  Returns 0 if ASubString is not contained in AString.
+///	</summary>
 function RightPos(const ASubString, AString: string): Integer;
 
-{
-  Strips APrefix from the beginning of AString and ASuffix from the end of it,
-  if found. Returns the stripped string. If a prefix or suffix isn't found, then
-  that part of the input string is returned unchanged. The match is case
-  insensitive. Passing '' in APrefix or ASuffix suppresses stripping of that
-  part.
-}
+///	<summary>
+///	  Strips APrefix from the beginning of AString and ASuffix from the end of
+///	  it, if found. Returns the stripped string. If a prefix or suffix isn't
+///	  found, then that part of the input string is returned unchanged. The
+///	  match is case insensitive. Passing '' in APrefix or ASuffix suppresses
+///	  stripping of that part.
+///	</summary>
 function StripPrefixAndSuffix(const AString, APrefix, ASuffix: string): string;
 
-{
-  Strips APrefix from the beginning of AString, if found.
-  Returns the stripped string. If a prefix isn't found, then the input string
-  is returned unchanged. The match is case insensitive.
-}
+///	<summary>
+///	  Strips APrefix from the beginning of AString, if found. Returns the
+///	  stripped string. If a prefix isn't found, then the input string is
+///	  returned unchanged. The match is case insensitive.
+///	</summary>
 function StripPrefix(const AString, APrefix: string): string;
 
-{
-  Strips ASuffix from the end of AString, if found.
-  Returns the stripped string. If a suffix isn't found, then the input string
-  is returned unchanged. The match is case insensitive.
-}
+///	<summary>
+///	  Strips ASuffix from the end of AString, if found. Returns the stripped
+///	  string. If a suffix isn't found, then the input string is returned
+///	  unchanged. The match is case insensitive.
+///	</summary>
 function StripSuffix(const AString, ASuffix: string): string;
 
-{
-  Generates a random string of ALength characters in the 'A'..'Z' and '0'..'9'
-  printable sets.
-}
+///	<summary>
+///	  Generates a random string of ALength characters in the 'A'..'Z' and
+///	  '0'..'9' printable sets.
+///	</summary>
 function GetRandomString(const ALength: Integer): string;
 
-{
-  Returns True if APattern matches AString. APattern may contain
-  the following jolly characters:
-  ? matches any one character.
-  * matches any sequence of zero or more characters.
-  Everything else is compared literally in a case sensitive manner.
-}
+///	<summary>
+///	  Returns True if APattern matches AString. APattern may contain the
+///	  following jolly characters: ? matches any one character. * matches any
+///	  sequence of zero or more characters. Everything else is compared
+///	  literally in a case sensitive manner.
+///	</summary>
 function StrMatches(const AString, APattern: string): Boolean;
 
-{
-  Interprets a ~ character at the beginning of a pattern as
-  a negation symbol. Otherwise it's identical to StrMatches.
-}
+///	<summary>
+///	  Interprets a ~ character at the beginning of a pattern as a negation
+///	  symbol. Otherwise it's identical to StrMatches.
+///	</summary>
 function StrMatchesEx(const AString, APattern: string): Boolean;
 
-{
-  Returns the number of occurences of ASubstring in AString.
-}
+///	<summary>
+///	  Returns the number of occurences of ASubstring in AString.
+///	</summary>
 function CountSubstrings(const AString, ASubstring: string): Integer;
 
-{
-  Returns True if AString equals at least one of AStrings, False otherwise.
-  Wraps IndexStr, not present in all supported Delphi versions.
-}
+///	<summary>
+///	  Returns True if AString equals at least one of AStrings, False otherwise.
+///	  Wraps IndexStr, not present in all supported Delphi versions.
+///	</summary>
 function MatchStr(const AString: string; const AStrings: array of string): Boolean;
 
-{
-  Creates a new GUID and returns it as a string in a compact format (32 chars).
-}
+///	<summary>
+///	  Creates a new GUID and returns it as a string in a compact format (32
+///	  chars).
+///	</summary>
 function CreateCompactGuidStr: string;
 
-{
-  Creates a new GUID and returns it as a string.
-}
+///	<summary>
+///	  Creates a new GUID and returns it as a string.
+///	</summary>
 function CreateGuidStr: string;
 
-{
-  Strips and returns (in ASubstring) the initial part of AString until
-  ASeparator, or until the end of the string if ASeparator is not found.
-  If ARemoveSeparator is True, then the separator is stripped from AString
-  as well (but not included in the returned string anyway).
-  The function returns True ultil it has reached the end of AString. When the
-  function returns False, AString is always '', while ASubstring may or
-  may not be ''.
-}
+///	<summary>
+///	  Strips and returns (in ASubstring) the initial part of AString until
+///	  ASeparator, or until the end of the string if ASeparator is not found. If
+///	  ARemoveSeparator is True, then the separator is stripped from AString as
+///	  well (but not included in the returned string anyway). The function
+///	  returns True ultil it has reached the end of AString. When the function
+///	  returns False, AString is always '', while ASubstring may or may not be
+///	  ''.
+///	</summary>
 function FetchStr(var AString, ASubstring: string; const ASeparator: string = ';';
   const ARemoveSeparator: Boolean = True): Boolean;
 
-{
-  Works like Pos, except that it returns 0 if ASubString is not part of AString
-  as a whole word.
-
-  Note: this function is case insensitive.
-}
+///	<summary>
+///	  Works like Pos, except that it returns 0 if ASubString is not part of
+///	  AString as a whole word.
+///	</summary>
+///	<remarks>
+///	  This function is case insensitive.
+///	</remarks>
 function WordPos(const AWord, AString: string): Integer; overload;
 
-{
-  Calls the other version of WordPos for each items in AWords.
-  Returns a value <> 0 the first time that WordPos returns a value <> 0,
-  otherwise returns 0.
-
-  Note: this function is case insensitive.
-}
+///	<summary>
+///	  Calls the other version of WordPos for each item in AWords. Returns a
+///	  value &lt;&gt; 0 the first time that WordPos returns a value &lt;&gt; 0,
+///	  otherwise returns 0.
+///	</summary>
+///	<remarks>
+///	  This function is case insensitive.
+///	</remarks>
 function WordPos(const AWords: array of string;
   const AString: string): Integer; overload;
 
-{
-  If AString is shorter than AFinalLength characters, adds instances of
-  PadCharacter to the right of the string until it is long exactly
-  AFinalLength characters.
-  If AString is long exactly AFinalLength characters, it is returned unchanged.
-  If AString is longer than AFinalLength characters, an exception is raised. 
-}
+///	<summary>
+///	  If AString is shorter than AFinalLength characters, adds instances of
+///	  PadCharacter to the right of the string until it is long exactly
+///	  AFinalLength characters. If AString is long exactly AFinalLength
+///	  characters, it is returned unchanged. If AString is longer than
+///	  AFinalLength characters, an exception is raised.
+///	</summary>
 function PadRight(const AString: string;
   const AFinalLength: Integer; const APadCharacter: Char = ' '): string;
 
-{
-  If AString is shorter than AFinalLength characters, adds instances of
-  PadCharacter to the left of the string until it is long exactly
-  AFinalLength characters.
-  If AString is long exactly AFinalLength characters, it is returned unchanged.
-  If AString is longer than AFinalLength characters, an exception is raised. 
-}
+///	<summary>
+///	  If AString is shorter than AFinalLength characters, adds instances of
+///	  PadCharacter to the left of the string until it is long exactly
+///	  AFinalLength characters. If AString is long exactly AFinalLength
+///	  characters, it is returned unchanged. If AString is longer than
+///	  AFinalLength characters, an exception is raised.
+///	</summary>
 function PadLeft(const AString: string;
   const AFinalLength: Integer; const APadCharacter: Char = '0'): string;
 
-{
-  Reads a text file, line by line, and returns the content.
-}
+///	<summary>
+///	  Reads a text file, line by line, and returns the content.
+///	</summary>
 function TextFileToString(const AFileName: string): string;
 
-{
-  Writes AString to a text file.
-}
+///	<summary>
+///	  Writes AString to a text file.
+///	</summary>
 procedure StringToTextFile(const AString, AFileName: string);
 
-{
-  Appends AString to an existing text file. If the file doesn't exist,
-  works like StringToTextFile.
-}
+///	<summary>
+///	  Appends AString to an existing text file. If the file doesn't exist,
+///	  works like StringToTextFile.
+///	</summary>
 procedure AppendStringToTextFile(const AString, AFileName: string);
 
-{
-  Converts 'THIS_IS_A_STRING' to 'ThisIsAString'.
-}
+///	<summary>
+///	  Converts 'THIS_IS_A_STRING' to 'ThisIsAString'.
+///	</summary>
 function UpperUnderscoreToCamel(const AString: string): string;
 
-{
-  Converts 'ThisIsAString' to 'THIS_IS_A_STRING'.
-}
+///	<summary>
+///	  Converts 'ThisIsAString' to 'THIS_IS_A_STRING'.
+///	</summary>
 function CamelToUpperUnderscore(const AString: string): string;
 
-{
-  Converts 'ThisIsAString' to 'This Is A String'.
-}
+///	<summary>
+///	  Converts 'ThisIsAString' to 'This Is A String'.
+///	</summary>
 function CamelToSpaced(const AString: string): string;
 
-{
-  Tries to make the plural form of a specified singular name acoording
-  to the rules of the english language.
-}
+///	<summary>
+///	  Tries to make the plural form of a specified singular name acoording to
+///	  the rules of the english language.
+///	</summary>
 function MakePlural(const ASingularName: string): string;
 
-{
-  Returns the index of AValue in AStrings, which contains name=value pairs.
-}
+///	<summary>
+///	  Returns the index of AValue in AStrings, which contains name=value pairs.
+///	</summary>
 function GetIndexOfValue(const AStrings: TStrings; const AValue: string): Integer;
 
-{
-  Inserts ASubstring into AString at the specified position and returns the
-  resulting string.
-}
+///	<summary>
+///	  Inserts ASubstring into AString at the specified position and returns the
+///	  resulting string.
+///	</summary>
 function InsertStr(const ASubstring, AString: string; const AIndex: Integer): string;
 
-{
-  Returns the count of uninterrupted leading AChars in AString.
-  Returns 0 if AString does not begin with AChar.
-}
+///	<summary>
+///	  Returns the count of uninterrupted leading AChars in AString. Returns 0
+///	  if AString does not begin with AChar.
+///	</summary>
 function CountLeading(const AString: string; const AChar: Char): Integer;
 
-{
-  Converts all tab characters (#9) in AString with sequences of ASpacesPerTab
-  spaces, and returns the resulting string.
-}
+///	<summary>
+///	  Converts all tab characters (#9) in AString with sequences of
+///	  ASpacesPerTab spaces, and returns the resulting string.
+///	</summary>
 function TabsToSpaces(const AString: string; const ASpacesPerTab: Integer = 2): string;
 
-type
-  {
-    Splits a list of values separated by some customizable separator and
-    supplied as a string into a list of "tokens".
-  }
-  TEFStringTokenizer = class
-  private
-    FTokens: TStrings;
-    function GetToken(const AIndex: Integer): string;
-    function GetTokenCount: Integer;
-    procedure ExtractTokens(const ATokens: string; const ATokenSeparator: Char);
-  public
-    constructor Create(const ATokens: string; const ATokenSeparator: Char);
-    destructor Destroy; override;
-    property Tokens[const AIndex: Integer]: string read GetToken; default;
-    property TokenCount: Integer read GetTokenCount;
-    function IndexOfToken(const AToken: string): Integer;
-    {
-      Adds all tokens to AStrings. Returns the count of added strings.
-    }
-    function AddTokensToStrings(const AStrings: TStrings): Integer;
-  end;
-
-  {
-    A string list with a stack-like interface. It is not a strict stack, as it
-    retains the TStrings interface as well. The stack-like interface is added
-    for convenience only.
-  }
-  TEFStringStack = class(TStringList)
-  public
-    function Pop: string;
-    procedure Push(const AString: string);
-    function Peek: string;
-  end;
-
-{
-  Returns True if AString equals one of the strings in the specified
-  comma-separated list, and False otherwise.
-}
+///	<summary>
+///	  Returns True if AString equals one of the strings in the specified
+///	  comma-separated list, and False otherwise.
+///	</summary>
 function StringInCommaList(const AString, ACommaList: string): Boolean;
 
-{
-  Returns the number of items in ACommaList.
-}
+///	<summary>
+///	  Returns the number of items in ACommaList.
+///	</summary>
 function CommaListItemCount(const ACommaList: string): Integer;
 
-{
-  Returns ATerm1 + AConcatString + ATerm2. If either Term1 or Term2 is empty,
-  returns the other non-empty term without adding AConcatString.
-  If both ATerm1 and ATerm2 are empty, returns an empty string.
-}
+///	<summary>
+///	  Returns ATerm1 + AConcatString + ATerm2. If either Term1 or Term2 is
+///	  empty, returns the other non-empty term without adding AConcatString. If
+///	  both ATerm1 and ATerm2 are empty, returns an empty string.
+///	</summary>
 function SmartConcat(const ATerm1, AConcatString, ATerm2: string): string;
 
-{
-  Returns the first value in AValues that's different from AValue. If all
-  values in AValues are equal to AValue, then the function returns AValue.
-}
+///	<summary>
+///	  Returns the first value in AValues that's different from AValue. If all
+///	  values in AValues are equal to AValue, then the function returns AValue.
+///	</summary>
 function FirstDifferent(const AValues: array of string; const AValue: string): string;
 
 ///	<summary>Returns the MD5 hash of AString, encoded as a sequence of
@@ -251,16 +220,32 @@ function FirstDifferent(const AValues: array of string; const AValue: string): s
 ///	corresponding to 16 bytes.</summary>
 function GetStringHash(const AString: string): string;
 
-{
-  Converts an ISO day of week (week starts on monday) to a day of week
-  (week starts on sunday).
-}
-function IsoDayOfWeekToDayOfWeek(const ADay: Integer): Integer;
-
+///	<summary>
+///	  Splits the specified string based on the specified separator characters
+///	  and returns an array with the splitted elements.
+///	</summary>
+///	<param name="ASeparators">
+///	  One or more separator characters.
+///	</param>
 function Split(const AString: string; const ASeparators: string = ' '): TStringDynArray;
+
+///	<summary>
+///	  Joins the elements in the specified array with the specified separator
+///	  and returns the resulting string.
+///	</summary>
 function Join(const AStrings: TStringDynArray; const ASeparator: string = ''): string;
 
+///	<summary>
+///	  Splits the specified string based on the specified separator characters
+///	  and returns an array of pairs with the splitted elements, assuming the
+///	  strings are in pair (name=value) format.
+///	</summary>
 function SplitPairs(const AString: string; const ASeparators: string = ' '): TEFPairs;
+
+///	<summary>
+///	  Joins the pairs producing a string with a list of name=value pairs
+///	  separated by the specified separator.
+///	</summary>
 function JoinPairs(const APairs: TEFPairs; const ASeparator: string = ''): string;
 
 implementation
@@ -720,74 +705,6 @@ begin
       FreeAndNil(LHash);
     end;
   end;
-end;
-
-{ TEFStringTokenizer }
-
-constructor TEFStringTokenizer.Create(const ATokens: string; const ATokenSeparator: Char);
-begin
-  inherited Create;
-  FTokens := TStringList.Create;
-  ExtractTokens(ATokens, ATokenSeparator);
-end;
-
-destructor TEFStringTokenizer.Destroy;
-begin
-  FTokens.Free;
-  inherited;
-end;
-
-procedure TEFStringTokenizer.ExtractTokens(const ATokens: string;
-  const ATokenSeparator: Char);
-begin
-  FTokens.Text := StringReplace(ATokens, ATokenSeparator, sLineBreak, [rfReplaceAll]);
-end;
-
-function TEFStringTokenizer.IndexOfToken(const AToken: string): Integer;
-begin
-  Result := FTokens.IndexOf(AToken);
-end;
-
-function TEFStringTokenizer.GetToken(const AIndex: Integer): string;
-begin
-  Result := FTokens[AIndex];
-end;
-
-function TEFStringTokenizer.GetTokenCount: Integer;
-begin
-  Result := FTokens.Count;
-end;
-
-function TEFStringTokenizer.AddTokensToStrings(const AStrings: TStrings): Integer;
-begin
-  AStrings.AddStrings(FTokens);
-  Result := FTokens.Count;
-end;
-
-{ TEFStringStack }
-
-function TEFStringStack.Peek: string;
-begin
-  if Count > 0 then
-    Result := Strings[Count - 1]
-  else
-    Result := '';
-end;
-
-function TEFStringStack.Pop: string;
-begin
-  if Count > 0 then
-  begin
-    Result := Strings[Count - 1];
-    Delete(Count - 1);
-  end
-  else
-    Result := '';
-end;
-
-procedure TEFStringStack.Push(const AString: string);
-begin
-  Add(AString);
 end;
 
 function StringInCommaList(const AString, ACommaList: string): Boolean;

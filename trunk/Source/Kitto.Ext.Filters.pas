@@ -201,7 +201,7 @@ implementation
 
 uses
   SysUtils, Math, StrUtils,
-  EF.Localization,  EF.DB, EF.DB.Utils, EF.StrUtils,
+  EF.Localization,  EF.DB, EF.StrUtils,
   Kitto.Types, Kitto.JSON, Kitto.Ext.Session;
 
 function GetDefaultFilter(const AItems: TEFNode): TEFNode;
@@ -452,7 +452,7 @@ begin
     LDBQuery.Open;
     try
       Assert(LDBQuery.DataSet.FieldCount = 2);
-      FValues := GetFieldValuesAsStrings(LDBQuery.DataSet.Fields[VALUE_FIELD]);
+      FValues := LDBQuery.GetFieldValuesAsStrings(LDBQuery.DataSet.Fields[VALUE_FIELD]);
       Width := CharsToPixels(GetLargestFieldWidth(LDBQuery.DataSet.Fields[DISPLAY_FIELD]) + TRIGGER_WIDTH);
       { TODO : Future enhancement: make loading optionally dynamic }
       StoreArray := JSArray(DataSetToJSON(LDBQuery.DataSet));

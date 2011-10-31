@@ -1,13 +1,14 @@
-{
-  This unit contains a set of stream decorators to add buffering, textline
-  support and other features to VCL streams.
-}
+///	<summary>
+///	  This unit contains a set of stream decorators to add buffering, textline
+///	  support and other features to rtl streams.
+///	</summary>
+///	<remarks>
+///	  Some code in this unit is based on code by Julian M. Bucknall and
+///	  published on The Delphi Magazine.
+///	</remarks>
 unit EF.Streams;
 
-{
-  Some code in this unit is based on code by Julian M. Bucknall and
-  published on The Delphi Magazine.
-}
+{$I EF.Defines.inc}
 
 interface
 
@@ -15,11 +16,11 @@ uses
   Classes;
   
 type
-  {
-    Base class for all EF stream decorators and filters. It just forwards read
-    and write requestes to an internal stream object, a reference to which
-    is passed to the constructor.
-  }
+  ///	<summary>
+  ///	  Base class for all EF stream decorators and filters. It just forwards
+  ///	  read and write requestes to an internal stream object, a reference to
+  ///	  which is passed to the constructor.
+  ///	</summary>
   TEFStreamDecorator = class(TStream)
   private
     FStream: TStream;
@@ -27,36 +28,38 @@ type
     FOnEndOfStream: TNotifyEvent;
   protected
     property Stream: TStream read FStream;
-    {
-      Fires OnEndOfStream. Descendants that override Read without calling
-      inherited are required to call this method to signal that the stream is
-      over.
-    }
+
+    ///	<summary>
+    ///	  Fires OnEndOfStream. Descendants that override Read without calling
+    ///	  inherited are required to call this method to signal that the stream
+    ///	  is over.
+    ///	</summary>
     procedure DoEndOfStream;
   public
-    {
-      Creates an object that decorates AStream. If AOwnsStream is True, then
-      the decorator acquires ownership of the stream and will destroy it when
-      it is itself destroyed.
-    }
+    ///	<summary>
+    ///	  Creates an object that decorates AStream. If AOwnsStream is True,
+    ///	  then the decorator acquires ownership of the stream and will destroy
+    ///	  it when it is itself destroyed.
+    ///	</summary>
     constructor Create(const AStream: TStream; const AOwnsStream: Boolean = True);
     destructor Destroy; override;
     function Read(var Buffer; Count: Integer): Integer; override;
     function Write(const Buffer; Count: Integer): Integer; override;
     function Seek(Offset: Longint; Origin: Word): Longint; overload; override;
     function Seek(const Offset: Int64; Origin: TSeekOrigin): Int64; overload; override;
-    {
-      Fired when the end of the stream is reached while reading. IOW, when
-      Read's return value is less than its Count argument. Handle this event if
-      you do not have control over reads but still want to be notified when
-      the stream is over. 
-    }
+
+    ///	<summary>
+    ///	  Fired when the end of the stream is reached while reading. IOW, when
+    ///	  Read's return value is less than its Count argument. Handle this
+    ///	  event if you do not have control over reads but still want to be
+    ///	  notified when the stream is over.
+    ///	</summary>
     property OnEndOfStream: TNotifyEvent read FOnEndOfStream write FOnEndOfStream;
   end;
 
-  {
-    A stream filter that only allows sequential reading.
-  }
+  ///	<summary>
+  ///	  A stream filter that only allows sequential reading.
+  ///	</summary>
   TEFReadFilter = class(TEFStreamDecorator)
   private
     FGettingSize: Boolean;
@@ -66,21 +69,21 @@ type
     function Write(const Buffer; Count: Longint): Longint; override;
   end;
 
-  {
-    Adds buffering to the read stream filter. Use this class for efficient
-    reading from a file or other medium.
-  }
+  ///	<summary>
+  ///	  Adds buffering to the read stream filter. Use this class for efficient
+  ///	  reading from a file or other medium.
+  ///	</summary>
   TEFBufferedReadFilter = class(TEFReadFilter)
   private
     FBuffer: PChar;
     FBufferLength: Longint;
     FBufferPosition: Longint;
   protected
-    {
-      Reads new data from the internal stream into the buffer and resets the
-      buffer's current position. Returns True when it has read at least one
-      byte, False otherwise.
-    }
+    ///	<summary>
+    ///	  Reads new data from the internal stream into the buffer and resets
+    ///	  the buffer's current position. Returns True when it has read at least
+    ///	  one byte, False otherwise.
+    ///	</summary>
     function ReadNextBuffer: Boolean;
   public
     procedure AfterConstruction; override;
@@ -89,41 +92,51 @@ type
     function Seek(const Offset: Int64; Origin: TSeekOrigin): Int64; override;
   end;
 
-  {
-    A stream decorator that is able to read and write text lines to the
-    decorated stream. Use it with a buffered read filter to efficiently
-    read text lines from a file.
-  }
+  ///	<summary>
+  ///	  A stream decorator that is able to read and write text lines to the
+  ///	  decorated stream. Use it with a buffered read filter to efficiently
+  ///	  read text lines from a file.
+  ///	</summary>
   TEFTextStream = class(TEFStreamDecorator)
   private
     FLineBreak: string;
   public
-    {
-      ReadLn returns this value when there's no more text.
-    }
-    const EOT: string = #4;
-
     procedure AfterConstruction; override;
-    {
-      Line breaking sequence used to terminate lines written by WriteLn.
-      Defaults to sLineBreak.
+  public
+    const
+      ///	<summary>
+      ///	  ReadLn returns this value when there's no more text.
+      ///	</summary>
+      EOT: string = #4;
 
-      Note: Currently it is NOT used by ReadLn.
-    }
+    ///	<summary>
+    ///	  <para>
+    ///	    Line breaking sequence used to terminate lines written by WriteLn.
+    ///	    Defaults to sLineBreak.
+    ///	  </para>
+    ///	  <para>
+    ///	    Note: Currently it is NOT used by ReadLn.
+    ///	  </para>
+    ///	</summary>
     property LineBreak: string read FLineBreak write FLineBreak;
-    {
-      Reads text from the current position up to (but not including) the
-      next LF character, skipping any CR characters found. This supports both
-      LF (Linux) and CR+LF (Windows) line breaking styles. It doesn't currently
-      support the CR-only line breaking style.
-      Returns EOT when there's no more text.
 
-      Note: the value of the LineBreak property is ignored.
-    }
+    ///	<summary>
+    ///	  <para>
+    ///	    Reads text from the current position up to (but not including) the
+    ///	    next LF character, skipping any CR characters found. This supports
+    ///	    both LF (Linux) and CR+LF (Windows) line breaking styles. It
+    ///	    doesn't currently support the CR-only line breaking style. Returns
+    ///	    EOT when there's no more text.
+    ///	  </para>
+    ///	  <para>
+    ///	    Note: the value of the LineBreak property is ignored.
+    ///	  </para>
+    ///	</summary>
     function ReadLn: string;
-    {
-      Writes AString plus LineBreak to the stream.
-    }
+
+    ///	<summary>
+    ///	  Writes AString plus LineBreak to the stream.
+    ///	</summary>
     procedure WriteLn(const AString: string);
   end;
 

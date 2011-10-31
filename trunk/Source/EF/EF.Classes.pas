@@ -1,3 +1,6 @@
+///	<summary>
+///	  Defines a useful base TEFComponent base class and related classes.
+///	</summary>
 unit EF.Classes;
 
 {$I EF.Defines.inc}
@@ -5,10 +8,22 @@ unit EF.Classes;
 interface
 
 uses
-  Types, SysUtils, Classes, DB, Generics.Collections,
-  EF.Intf, EF.Types, EF.Macros, EF.Tree, EF.ObserverIntf;
+  Classes,
+  EF.Intf, EF.Types, EF.Tree, EF.ObserverIntf;
 
 type
+  ///	<summary>
+  ///	  <para>
+  ///	    Abstract class for configurable objects with logging and observer
+  ///	    capability. A TEFComponent:<br />- has class-level and object-level 
+  ///	    identification methods;<br />- has a Config that it can load from a
+  ///	    file;<br />- can be a subject and observer;<br />- has logging
+  ///	    capability.
+  ///	  </para>
+  ///	  <para>
+  ///	    Used as a base class for various kinds of objects in EF.
+  ///	  </para>
+  ///	</summary>
   TEFComponent = class(TEFSubjectAndObserver)
   private
     FOnLog: TEFLogEvent;
@@ -18,74 +33,107 @@ type
   public
     const DEFAULT_LOG_LEVEL = 1;
   protected
-    {
-      Override this method to enable Config auto-load upon first request.
-      The default implementation returns '', which disables auto-load.
-    }
+    ///	<summary>
+    ///	  Override this method to enable Config auto-load upon first request.
+    ///	  The default implementation returns '', which disables auto-load.
+    ///	</summary>
     function GetConfigFileName: string; virtual;
-    {
-      Implements GetClassId.
-    }
+
+    ///	<summary>
+    ///	  Implements GetClassId. Override this method to give the class a
+    ///	  custom string Id.
+    ///	</summary>
+    ///	<remarks>
+    ///	  Identifying classes by string-based Ids is useful in registration
+    ///	  frameworks, in which class Ids are read from a file and corresponding
+    ///	  class references must be retrieved from a registry object.
+    ///	</remarks>
     class function InternalGetClassId: string; virtual;
-    {
-      Implements GetId.
-    }
+
+    ///	<summary>
+    ///	  Implements GetId. Override this method to give the class a custom
+    ///	  object-level string Id.
+    ///	</summary>
+    ///	<remarks>
+    ///	  Identifying objects by string-based Ids is useful in registration
+    ///	  frameworks, in which object Ids are read from a file and
+    ///	  corresponding objects must be retrieved from a registry or factory
+    ///	  object.
+    ///	</remarks>
     function InternalGetId: string; virtual;
-    {
-      Fires OnLog.
-    }
+
+    ///	<summary>
+    ///	  Fires OnLog.
+    ///	</summary>
     procedure DoLog(const AString: string; const ALogLevel: Integer = DEFAULT_LOG_LEVEL); overload;
-    {
-      Calls DoLog for each line in AStrings, pre-pending ALinePrefix to
-      each line.
-    }
+
+    ///	<summary>
+    ///	  Calls DoLog for each line in AStrings, pre-pending ALinePrefix to
+    ///	  each line.
+    ///	</summary>
+    ///	<remarks>
+    ///	  By using this method, OnLog is called once for each string in
+    ///	  AStrings.
+    ///	</remarks>
     procedure DoLog(const AStrings: TStrings; const ALinePrefix: string = '';
       const ALogLevel: Integer = DEFAULT_LOG_LEVEL); overload;
-    {
-      Checks that a proprerty has an assigned/valid value, and raises a
-      generic exception otherwise. ACondition should evaluate to True if the
-      property is assigned/valid, and to False otherwise. In this case, an
-      exception with APropertyName in the message text is raised.
-    }
-    procedure CheckProperty(const ACondition: Boolean; const APropertyName: string);
   public
     procedure AfterConstruction; override;
     destructor Destroy; override;
-  public
-    {
-      Returns an identification string based on the class name. It can be used
-      by a registry to hold string identifiers for different classes.
-      By default it returns the class name without any 'T' or 'TEF' prefix.
-    }
-    class function GetClassId: string;
-    {
-      Returns an Id for the object. By default it returns the same as GetClassId.
-    }
-    function GetId: string;
-    {
-      From IEFInterface.
-    }
     function AsObject: TObject;
-    {
-      Fired each time the object needs to log information about its work.
-    }
+  public
+
+    ///	<summary>
+    ///	  <para>
+    ///	    Returns an identification string based on the class name.
+    ///	  </para>
+    ///	  <para>
+    ///	    By default, returns the class name without any 'T' or 'TEF' prefix.
+    ///	  </para>
+    ///	</summary>
+    ///	<remarks>
+    ///	  Identifying classes by string-based Ids is useful in registration
+    ///	  frameworks, in which class Ids are read from a file and corresponding
+    ///	  class references must be retrieved from a registry object.
+    ///	</remarks>
+    class function GetClassId: string;
+
+    ///	<summary>
+    ///	  Returns an identification string for the object. By default returns
+    ///	  the same value as GetClassId.
+    ///	</summary>
+    ///	<remarks>
+    ///	  Identifying objects by string-based Ids is useful in registration
+    ///	  frameworks, in which object Ids are read from a file and
+    ///	  corresponding objects must be retrieved from a registry or factory
+    ///	  object.
+    ///	</remarks>
+    function GetId: string;
+
+    ///	<summary>
+    ///	  Fired each time the object needs to log information about its work.
+    ///	</summary>
     property OnLog: TEFLogEvent read FOnLog write FOnLog;
-    {
-      Sets the logging level for this component. Only messages that
-      have a level lower than or equal to this setting will be logged.
-    }
+
+    ///	<summary>
+    ///	  Gets or sets the logging level for this component. Only messages that
+    ///	  have a level lower than or equal to this setting will be logged.
+    ///	</summary>
     property LogLevel: Integer read FLogLevel write FLogLevel default DEFAULT_LOG_LEVEL;
 
+    ///	<summary>
+    ///	  An internal tree-like config object used to set values that affect
+    ///	  the object's operations.
+    ///	</summary>
     property Config: TEFNode read GetConfig;
   end;
-
   TEFComponentClass = class of TEFComponent;
 
 implementation
 
 uses
-  StrUtils, TypInfo,
-  EF.SysUtils, EF.StrUtils, EF.Localization, EF.YAML;
+  SysUtils,
+  EF.StrUtils;
 
 { TEFComponent }
 
@@ -98,13 +146,6 @@ end;
 function TEFComponent.AsObject: TObject;
 begin
   Result := Self;
-end;
-
-procedure TEFComponent.CheckProperty(const ACondition: Boolean;
-  const APropertyName: string);
-begin
-  if not ACondition then
-    raise EEFError.CreateFmt(_('Unspecified property "%s".'), [APropertyName]);
 end;
 
 destructor TEFComponent.Destroy;
@@ -162,11 +203,10 @@ end;
 
 class function TEFComponent.InternalGetClassId: string;
 begin
-  // Strips standard prefix from the class name.
   // If the class name doesn't start with TEF, then let's at least
   // remove the T.
-  Result := StripPrefixAndSuffix(ClassName, 'T', '');
-  Result := StripPrefixAndSuffix(Result, 'EF', '');
+  Result := StripPrefix(ClassName, 'T');
+  Result := StripPrefix(Result, 'EF');
 end;
 
 function TEFComponent.InternalGetId: string;

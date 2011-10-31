@@ -815,7 +815,7 @@ begin
   // Minimum cap - avoids too short combo boxes.
   LFieldWidth := Max(LFieldWidth, FDefaults.MinFieldWidth);
 
-  LIsReadOnly := LViewField.IsReadOnly or ViewTable.IsReadOnly or FForceReadOnly;
+  LIsReadOnly := LViewField.IsReadOnly or not LViewField.CanUpdate or ViewTable.IsReadOnly or FForceReadOnly;
   if not LIsReadOnly and LViewField.IsDetailReference then
     LIsReadOnly := True;
 

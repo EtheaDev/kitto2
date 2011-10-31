@@ -87,7 +87,7 @@ implementation
 
 uses
   SysUtils, StrUtils, DB, Types,
-  EF.Intf, EF.Localization, EF.Types, EF.StrUtils, EF.DB.Utils, EF.SQL, EF.Macros,
+  EF.Intf, EF.Localization, EF.Types, EF.StrUtils, EF.SQL, EF.Macros,
   Kitto.Types;
 
 { TKSQLQueryBuilder }

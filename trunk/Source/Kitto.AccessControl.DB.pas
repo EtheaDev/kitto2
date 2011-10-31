@@ -174,7 +174,7 @@ implementation
 
 uses
   SysUtils, Variants,
-  EF.DB, EF.DB.Utils, EF.RegEx,
+  EF.DB, EF.RegEx,
   Kitto.Config;
   
 { TKDBAccessController }

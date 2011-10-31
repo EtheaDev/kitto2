@@ -1,4 +1,11 @@
+///	<summary>
+///	  All interfaces in EF are based on EFInterface and disable reference
+///	  counting. This unit defines the base interface and the norefcount-related
+///	  classes and utility routines.
+///	</summary>
 unit EF.Intf;
+
+{$I EF.Defines.inc}
 
 interface
 
@@ -18,7 +25,7 @@ type
 
   ///	<summary>
   ///	  Base class for objects that implement interfaces but disable reference
-  ///	  count.
+  ///	  counting.
   ///	</summary>
   TEFNoRefCountObject = class(TObject, IInterface, IEFInterface)
   public

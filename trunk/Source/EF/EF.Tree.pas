@@ -1,4 +1,10 @@
+///	<summary>
+///	  Defines the tree and node class that implement a tree of named data
+///	  values. A tree can represent a Yaml file or a JSON stream, for example.
+///	</summary>
 unit EF.Tree;
+
+{$I EF.Defines.inc}
 
 interface
 
@@ -9,6 +15,11 @@ uses
 type
   TEFNode = class;
 
+  ///	<summary>
+  ///	  Base class for node data types. The system supports pluggable data
+  ///	  types. Descendants of this class define how to interpret, store, copy,
+  ///	  encode and decode data of a particular type.
+  ///	</summary>
   TEFDataType = class
   protected
     procedure InternalNodeToParam(const ANode: TEFNode; const AParam: TParam); virtual;
@@ -28,6 +39,32 @@ type
     function IsBlob(const ASize: Integer): Boolean; virtual;
     function NodeToJSONValue(const ANode: TEFNode; const AJSFormatSettings: TFormatSettings): string; virtual;
     function GetJSTypeName: string; virtual;
+
+    function ValueToString(const AValue: Variant): string; virtual;
+    function ValueToInteger(const AValue: Variant): Integer; virtual;
+    function ValueToObject(const AValue: Variant): TObject; virtual;
+    function ValueToBoolean(const AValue: Variant): Boolean; virtual;
+    function ValueToStringArray(const AValue: Variant): TStringDynArray; virtual;
+    function ValueToPairs(const AValue: Variant): TEFPairs; virtual;
+    function ValueToDate(const AValue: Variant): TDate; virtual;
+    function ValueToTime(const AValue: Variant): TTime; virtual;
+    function ValueToDateTime(const AValue: Variant): TDateTime; virtual;
+    function ValueToCurrency(const AValue: Variant): Currency; virtual;
+    function ValueToFloat(const AValue: Variant): Double; virtual;
+    function ValueToDecimal(const AValue: Variant): TBcd; virtual;
+
+    function StringToValue(const AString: string): Variant; virtual;
+    function IntegerToValue(const AInteger: Integer): Variant; virtual;
+    function ObjectToValue(const AObject: TObject): Variant; virtual;
+    function BooleanToValue(const ABoolean: Boolean): Variant; virtual;
+    function StringArrayToValue(const AStringArray: TStringDynArray): Variant; virtual;
+    function PairsToValue(const APairs: TEFPairs): Variant; virtual;
+    function DateToValue(const ADate: TDate): Variant; virtual;
+    function TimeToValue(const ATime: TTime): Variant; virtual;
+    function DateTimeToValue(const ADateTime: TDateTime): Variant; virtual;
+    function CurrencyToValue(const ACurrency: Currency): Variant; virtual;
+    function FloatToValue(const AFloat: Double): Variant; virtual;
+    function DecimalToValue(const ADecimal: TBcd): Variant; virtual;
   end;
   TEFDataTypeClass = class of TEFDataType;
 
@@ -45,6 +82,8 @@ type
   end;
 
   TEFMemoDataType = class(TEFStringDataType)
+  public
+    function IsBlob(const ASize: Integer): Boolean; override;
   end;
 
   TEFDateDataType = class(TEFDataType)
@@ -151,6 +190,10 @@ type
     function GetJSTypeName: string; override;
   end;
 
+  ///	<summary>
+  ///	  Stores the address of an object. This is only used for in-memory
+  ///	  transfers, it is not persistable.
+  ///	</summary>
   TEFObjectDataType = class(TEFDataType)
   protected
     procedure InternalFieldValueToNode(const AField: TField; const ANode: TEFNode); override;
@@ -163,6 +206,9 @@ type
   TEFNodeClass = class of TEFNode;
   TEFNodes = TObjectList<TEFNode>;
 
+  ///	<summary>
+  ///	  The root of a tree. Contains a set of nodes which are in turn trees.
+  ///	</summary>
   TEFTree = class
   private
     FCriticalSection: TCriticalSection;
@@ -174,38 +220,28 @@ type
     procedure EnterCS; virtual;
     procedure LeaveCS; virtual;
     function GetRoot: TEFTree; virtual;
+
+    ///	<summary>
+    ///	  Access to the set of children as a list.
+    ///	</summary>
+    property NodeList: TEFNodes read FNodes;
   public
+    constructor Create; virtual;
     destructor Destroy; override;
   public
-    class function ValueToString(const AValue: Variant): string; static; inline;
-    class function ValueToInteger(const AValue: Variant): Integer; static; inline;
-    class function ValueToObject(const AValue: Variant): TObject; static; inline;
-    class function ValueToBoolean(const AValue: Variant): Boolean; static; inline;
-    class function ValueToStringArray(const AValue: Variant): TStringDynArray; static; inline;
-    class function ValueToPairs(const AValue: Variant): TEFPairs; static; inline;
-    class function ValueToDate(const AValue: Variant): TDate; static; inline;
-    class function ValueToTime(const AValue: Variant): TTime; static; inline;
-    class function ValueToDateTime(const AValue: Variant): TDateTime; static; inline;
-    class function ValueToCurrency(const AValue: Variant): Currency; static; inline;
-    class function ValueToFloat(const AValue: Variant): Double; static; inline;
-    class function ValueToDecimal(const AValue: Variant): TBcd; static; inline;
-
-    class function StringToValue(const AString: string): Variant; static; inline;
-    class function IntegerToValue(const AInteger: Integer): Variant; static; inline;
-    class function ObjectToValue(const AObject: TObject): Variant; static; inline;
-    class function BooleanToValue(const ABoolean: Boolean): Variant; static; inline;
-    class function StringArrayToValue(const AStringArray: TStringDynArray): Variant; static; inline;
-    class function PairsToValue(const APairs: TEFPairs): Variant; static; inline;
-    class function DateToValue(const ADate: TDate): Variant; static; inline;
-    class function TimeToValue(const ATime: TTime): Variant; static; inline;
-    class function DateTimeToValue(const ADateTime: TDateTime): Variant; static; inline;
-    class function CurrencyToValue(const ACurrency: Currency): Variant; static; inline;
-    class function FloatToValue(const AFloat: Double): Variant; static; inline;
-    class function DecimalToValue(const ADecimal: TBcd): Variant; static; inline;
-
-    constructor Create; virtual;
+    ///	<summary>
+    ///	  Creates a new tree holding a deep copy of the specified tree.
+    ///	</summary>
     constructor Clone(const ASource: TEFTree); virtual;
+
+    ///	<summary>
+    ///	  Clears the tree, recursively deleting all nodes.
+    ///	</summary>
     procedure Clear; virtual;
+
+    ///	<summary>
+    ///	  Makes the current object a copy of the specified tree.
+    ///	</summary>
     procedure Assign(const ASource: TEFTree); virtual;
 
     ///	<summary>
@@ -225,30 +261,140 @@ type
     ///	</summary>
     function AddChild(const AName: string): TEFNode; overload;
 
-    property Children[I: Integer]: TEFNode read GetChild; default;
+    ///	<summary>
+    ///	  Returns the count of direct children (of any type).
+    ///	</summary>
     property ChildCount: Integer read GetChildCount;
-    function FindChild(const AName: string; const ACreateMissingNodes: Boolean = False): TEFNode;
-    function ChildByName(const AName: string): TEFNode;
-    procedure RemoveChild(const ANode: TEFNode);
-    procedure ClearChildren;
-    property NodeList: TEFNodes read FNodes;
 
+    ///	<summary>
+    ///	  Indexed access to the list of direct children of any type.
+    ///	</summary>
+    property Children[I: Integer]: TEFNode read GetChild; default;
+
+    ///	<summary>
+    ///	  Finds a child node by name. Returns nil if not found.
+    ///	</summary>
+    function FindChild(const AName: string; const ACreateMissingNodes: Boolean = False): TEFNode;
+
+    ///	<summary>
+    ///	  Finds a child node by name. Raises an exception if not found.
+    ///	</summary>
+    function ChildByName(const AName: string): TEFNode;
+
+    ///	<summary>
+    ///	  Removes the child from the list of children, if present.
+    ///	</summary>
+    procedure RemoveChild(const ANode: TEFNode);
+
+    ///	<summary>
+    ///	  Removes all children, recursively.
+    ///	</summary>
+    procedure ClearChildren;
+
+    ///	<summary>
+    ///	  Returns the count of direct children of a specified type.
+    ///	</summary>
     function GetChildCount<T: class>: Integer; overload;
+
+    ///	<summary>
+    ///	  Indexed access to a list of children limited to the set of children
+    ///	  that are of the specified type.
+    ///	</summary>
     function GetChild<T: class>(const AIndex: Integer): T; overload;
 
+    ///	<summary>
+    ///	  Searches a node by a path. Separate hierarchy elements with a /.
+    ///	</summary>
+    ///	<param name="APath">
+    ///	  A string path. Example: Node/SubNode.
+    ///	</param>
+    ///	<param name="ACreateMissingNodes">
+    ///	  If True, creates any missing nodes throughout the path and the final
+    ///	  node as well. This guarantees that the result is not nil.
+    ///	</param>
+    ///	<returns>
+    ///	  The found node, or nil.
+    ///	</returns>
     function FindNode(const APath: string; const ACreateMissingNodes: Boolean = False): TEFNode; virtual;
+
+    ///	<summary>
+    ///	  Works like FindNode, but raises an exception if ACreateMissingNodes
+    ///	  is False and the wanted node does not exist.
+    ///	</summary>
+    ///	<param name="ACreateMissingNodes">
+    ///	  If True, creates any missing nodes throughout the path and the final
+    ///	  node as well. This guarantees that the result is not nil.
+    ///	</param>
+    ///	<returns>
+    ///	  The found node.
+    ///	</returns>
     function GetNode(const APath: string; const ACreateMissingNodes: Boolean = False): TEFNode;
+
+    ///	<summary>
+    ///	  Finds a node by path and, if found, deletes it.
+    ///	</summary>
     procedure DeleteNode(const APath: string);
 
+    ///	<summary>
+    ///	  Finds a node by path and, if found, returns its value, otherwise
+    ///	  returns ADefaultValue.
+    ///	</summary>
     function GetValue(const APath: string; const ADefaultValue: Variant): Variant; overload;
+
+    ///	<summary>
+    ///	  Finds a node by path and, if found, returns its value, otherwise
+    ///	  returns Null.
+    ///	</summary>
     function GetValue(const APath: string): Variant; overload;
+
+    ///	<summary>
+    ///	  Finds a node by path and, if found, returns its value as a Boolean,
+    ///	  otherwise returns ADefaultValue.
+    ///	</summary>
     function GetBoolean(const APath: string; const ADefaultValue: Boolean = False): Boolean;
+
+    ///	<summary>
+    ///	  Finds a node by path and, if found, returns its value as an Integer,
+    ///	  otherwise returns ADefaultValue.
+    ///	</summary>
     function GetInteger(const APath: string; const ADefaultValue: Integer = 0): Integer;
+
+    ///	<summary>
+    ///	  Finds a node by path and, if found, returns its value as a string,
+    ///	  otherwise returns ADefaultValue.
+    ///	</summary>
     function GetString(const APath: string; const ADefaultValue: string = ''): string;
+
+    ///	<summary>
+    ///	  Finds a node by path and, if found, returns its value as a Date,
+    ///	  otherwise returns ADefaultValue.
+    ///	</summary>
     function GetDate(const APath: string; const ADefaultValue: TDate = 0): TDate;
 
+    ///	<summary>
+    ///	  Finds a node by path and, if found, returns its value as an expanded
+    ///	  string, otherwise returns ADefaultValue.
+    ///	</summary>
+    ///	<returns>
+    ///	  The found node's string with any macros expanded.
+    ///	</returns>
+    ///	<remarks>
+    ///	  If the node is not found, macros in ADefaultValues are expanded as
+    ///	  well before returning it. This method guarantees that the return
+    ///	  value has all known macros expanded anyway.
+    ///	</remarks>
     function GetExpandedString(const APath: string; const ADefaultValue: string = ''): string;
+
+    ///	<summary>
+    ///	  Finds a node by path and, if found, returns its value as a string
+    ///	  array, otherwise returns ADefaultValue.
+    ///	</summary>
     function GetStringArray(const APath: string; const ADefaultValue: TStringDynArray = nil): TStringDynArray;
+
+    ///	<summary>
+    ///	  Finds a node by path and, if found, returns its value as a list of
+    ///	  pairs, otherwise returns ADefaultValue.
+    ///	</summary>
     function GetPairs(const APath: string; const ADefaultValue: TEFPairs = nil): TEFPairs;
 
     ///	<summary>
@@ -287,19 +433,47 @@ type
     function GetChildrenAsPairs(const APath: string; const ADefaultValue: TEFPairs = nil): TEFPairs;
 
     ///	<summary>
-    ///	  Same as GetStrings, but returns expanded strings: Each string is
+    ///	  Same as GetChildrenAsStrings, but returns expanded strings: Each string is
     ///	  passed to the macro expander before concatenation.
     ///	</summary>
-    function GetExpandedStrings(const APath: string; const ASeparator: string = sLineBreak;
+    function GetChildrenAsExpandedStrings(const APath: string; const ASeparator: string = sLineBreak;
       const AConnector: string = '='; const ADefaultValue: string = ''): string;
 
+    ///	<summary>
+    ///	  Finds a node by path and, if found, returns its value as an object,
+    ///	  otherwise returns ADefaultValue.
+    ///	</summary>
     function GetObject(const APath: string; const ADefaultValue: TObject = nil): TObject;
 
+    ///	<summary>
+    ///	  Sets a node value by path. The node is created if it doesn't exist
+    ///	  yet.
+    ///	</summary>
     procedure SetInteger(const APath: string; const AValue: Integer);
+
+    ///	<summary>
+    ///	  Sets a node value by path. The node is created if it doesn't exist
+    ///	  yet.
+    ///	</summary>
     procedure SetString(const APath: string; const AValue: string);
+
+    ///	<summary>
+    ///	  Sets a node value by path. The node is created if it doesn't exist
+    ///	  yet.
+    ///	</summary>
     procedure SetObject(const APath: string; const AValue: TObject);
+
+    ///	<summary>
+    ///	  Sets a node value by path. The node is created if it doesn't exist
+    ///	  yet.
+    ///	</summary>
     procedure SetBoolean(const APath: string; const AValue: Boolean);
 
+    ///	<summary>
+    ///	  Creates a children for each field in AField and sets its value to the
+    ///	  field's value. Node names are field names. Existing nodes are
+    ///	  overwritten.
+    ///	</summary>
     procedure AddFieldsAsChildren(const AFields: TFields);
 
     type TNameTranslator = reference to function (const AName: string): string;
@@ -317,6 +491,9 @@ type
       const ATranslator: TNameTranslator);
   end;
 
+  ///	<summary>
+  ///	  A node in a tree. Has a name and a value, anc can have subnodes.
+  ///	</summary>
   TEFNode = class(TEFTree)
   private
     FParent: TEFTree;
@@ -362,17 +539,61 @@ type
     procedure SetValue(const AValue: Variant); virtual;
     function GetRoot: TEFTree; override;
   public
-    procedure Assign(const ASource: TEFTree); override;
-    procedure AssignValue(const ASource: TEFNode);
-    property Parent: TEFTree read FParent;
-    property Root: TEFTree read GetRoot;
-    property Index: Integer read GetIndex;
     function GetEnumerator: TEnumerator<TEFNode>;
+  public
+    ///	<summary>
+    ///	  Copies everything from ASource, overwriting any existing data. if
+    ///	  ASource is a node, name and value are copied as well.
+    ///	</summary>
+    procedure Assign(const ASource: TEFTree); override;
+
+    ///	<summary>
+    ///	  Copies the value (and datatype) from the specified node. The name is
+    ///	  unchanged.
+    ///	</summary>
+    procedure AssignValue(const ASource: TEFNode);
+
+    ///	<summary>
+    ///	  A reference to the parent node, if any.
+    ///	</summary>
+    property Parent: TEFTree read FParent;
+
+    ///	<summary>
+    ///	  A reference to the root tree, if any.
+    ///	</summary>
+    property Root: TEFTree read GetRoot;
+
+    ///	<summary>
+    ///	  Index of the node in the parent's list of node.
+    ///	</summary>
+    ///	<value>
+    ///	  -1 if the node has no parent.
+    ///	</value>
+    property Index: Integer read GetIndex;
+
+    ///	<summary>
+    ///	  Creates a node with specified name and value.
+    ///	</summary>
     constructor Create(const AName: string; const AValue: Variant); reintroduce; overload; virtual;
+
+    ///	<summary>
+    ///	  Creates a node with specified name and no value.
+    ///	</summary>
     constructor Create(const AName: string); reintroduce; overload;
+
+    ///	<summary>
+    ///	  Creates a node with no name and no value.
+    ///	</summary>
     constructor Create; reintroduce; overload;
+
+    ///	<summary>
+    ///	  Creates a new node and assigns the specified node to it.
+    ///	</summary>
     constructor Clone(const ASource: TEFTree); override;
 
+    ///	<summary>
+    ///	  Deletes all subnodes, recursively.
+    ///	</summary>
     procedure Clear; override;
 
     ///	<summary>
@@ -381,23 +602,91 @@ type
     ///	</summary>
     procedure Delete;
 
+    ///	<summary>
+    ///	  Identifies the node among its siblings. Should be unique inside the
+    ///	  parent.
+    ///	</summary>
     property Name: string read GetName;
+
+    ///	<summary>
+    ///	  A reference to the node's data type. Should be an object managed by
+    ///	  the data type factory.
+    ///	</summary>
     property DataType: TEFDataType read FDataType write SetDataType;
+
+    ///	<summary>
+    ///	  Plain value of the node.
+    ///	</summary>
     property Value: Variant read GetValue write SetValue;
 
+    ///	<summary>
+    ///	  Node value as a string.
+    ///	</summary>
     property AsString: string read GetAsString write SetAsString;
+
+    ///	<summary>
+    ///	  Node value as a string array.
+    ///	</summary>
     property AsStringArray: TStringDynArray read GetAsStringArray write SetAsStringArray;
+
+    ///	<summary>
+    ///	  Node value as a pair.
+    ///	</summary>
     property AsPair: TEFPair read GetAsPair write SetAsPair;
+
+    ///	<summary>
+    ///	  Node value as a list of pairs.
+    ///	</summary>
     property AsPairs: TEFPairs read GetAsPairs write SetAsPairs;
+
+    ///	<summary>
+    ///	  Node value as an expanded string.
+    ///	</summary>
     property AsExpandedString: string read GetAsExpandedString;
+
+    ///	<summary>
+    ///	  Node value as an Integer.
+    ///	</summary>
     property AsInteger: Integer read GetAsInteger write SetAsInteger;
+
+    ///	<summary>
+    ///	  Node value as an object.
+    ///	</summary>
     property AsObject: TObject read GetAsObject write SetAsObject;
+
+    ///	<summary>
+    ///	  Node value as a Boolean.
+    ///	</summary>
     property AsBoolean: Boolean read GetAsBoolean write SetAsBoolean;
+
+    ///	<summary>
+    ///	  Node value as a Date.
+    ///	</summary>
     property AsDate: TDate read GetAsDate write SetAsDate;
+
+    ///	<summary>
+    ///	  Node value as a Time.
+    ///	</summary>
     property AsTime: TTime read GetAsTime write SetAsTime;
+
+    ///	<summary>
+    ///	  Node value as a DateTime.
+    ///	</summary>
     property AsDateTime: TDateTime read GetAsDateTime write SetAsDateTime;
+
+    ///	<summary>
+    ///	  Node value as a Currency.
+    ///	</summary>
     property AsCurrency: Currency read GetAsCurrency write SetAsCurrency;
+
+    ///	<summary>
+    ///	  Node value as a Double floating point value.
+    ///	</summary>
     property AsFloat: Double read GetAsFloat write SetAsFloat;
+
+    ///	<summary>
+    ///	  Node value as a decimal (BCD) value.
+    ///	</summary>
     property AsDecimal: TBcd read GetAsDecimal write SetAsDecimal;
 
     ///	<summary>Parses AValue trying to guess its data type and sets Value and
@@ -410,25 +699,90 @@ type
     ///	<returns>Returns Self to allow for fluent calls.</returns>
     function SetAsYamlValue(const AValue: string; const AFormatSettings: TFormatSettings): TEFNode;
 
+    ///	<summary>
+    ///	  True if the node is null. Null is meant as absence of a value. Nodes
+    ///	  are made null by calling their SetToNull method.
+    ///	</summary>
     property IsNull: Boolean read GetIsNull;
+
+    ///	<summary>
+    ///	  Sets the node to null, effectively clearing the value.
+    ///	</summary>
+    ///	<remarks>
+    ///	  Children are unaffected.
+    ///	</remarks>
     procedure SetToNull; virtual;
+
+    ///	<summary>
+    ///	  Returns true if the current node has the same name and value as the
+    ///	  specified node, or if both are null.
+    ///	</summary>
+    ///	<remarks>
+    ///	  Children are not considered.
+    ///	</remarks>
     function EqualsNode(const ANode: TEFNode): Boolean;
+
+    ///	<summary>
+    ///	  Returns True if the current node has specified value or if both
+    ///	  the node and the value are null.
+    ///	</summary>
+    ///	<remarks>
+    ///	  Children are not considered.
+    ///	</remarks>
     function EqualsValue(const AValue: Variant): Boolean;
 
+    ///	<summary>
+    ///	  Returns all child nodes as a string of name&lt;AConnector&gt;value
+    ///	  pairs separated by ASeparator.
+    ///	</summary>
     function GetChildStrings(const ASeparator: string = sLineBreak;
       const AConnector: string = '='; const ADefaultValue: string = ''): string; overload;
-    function GetChildNames: TStringDynArray;
+
+    ///	<summary>
+    ///	  Returns all child nodes as a string of name&lt;AConnector&gt;value
+    ///	  pairs separated by ASeparator. Values are expanded.
+    ///	</summary>
     function GetExpandedChildStrings(const ASeparator, AConnector,
       ADefaultValue: string): string;
+
+    ///	<summary>
+    ///	  Returns all child nodes as name/value pairs.
+    ///	</summary>
     function GetChildPairs: TEFPairs;
 
+    ///	<summary>
+    ///	  Returns an array of names of all direct children of the node.
+    ///	</summary>
+    function GetChildNames: TStringDynArray;
+
+    ///	<summary>
+    ///	  Assigns a field's value to the node. May also change or set the
+    ///	  node's datatype.
+    ///	</summary>
     procedure AssignFieldValue(const AField: TField);
+
+    ///	<summary>
+    ///	  Assigns the node's value to the specified param. May also set the
+    ///	  param's data type.
+    ///	</summary>
     procedure AssignValueToParam(const AParam: TParam);
+
+    ///	<summary>
+    ///	  Assigns the node's name and value to the specified param. May also
+    ///	  set the param's data type.
+    ///	</summary>
     procedure AssignToParam(const AParam: TParam);
   end;
 
+  ///	<summary>
+  ///	  Creates trees of specified types from files.
+  ///	</summary>
   TEFTreeFactory = class
   public
+    ///	<summary>
+    ///	  Loads the specified yaml file and builds a tree of the specified type
+    ///	  with all data in it.
+    ///	</summary>
     class function LoadFromFile<T: TEFTree, constructor>(const AFileName: string): T;
   end;
 
@@ -473,6 +827,9 @@ type
   end;
 
 type
+  ///	<summary>
+  ///	  Keeps track of all registered data types.
+  ///	</summary>
   TEFDataTypeRegistry = class(TEFRegistry)
   private
     class var FInstance: TEFDataTypeRegistry;
@@ -483,6 +840,9 @@ type
     function GetClass(const AId: string): TEFDataTypeClass;
   end;
 
+  ///	<summary>
+  ///	  Holds a list of registered data types and manages their lifetimes.
+  ///	</summary>
   TEFDataTypeFactory = class(TEFFactory)
   private
     FDataTypes: TDictionary<string, TEFDataType>;
@@ -490,11 +850,14 @@ type
     class function GetInstance: TEFDataTypeFactory; static;
   public
     class destructor Destroy;
-  public
     procedure AfterConstruction; override;
     destructor Destroy; override;
+  public
     class property Instance: TEFDataTypeFactory read GetInstance;
 
+    ///	<summary>
+    ///	  Returns a reference to the registered data type specified by name.
+    ///	</summary>
     function GetDataType(const AId: string): TEFDataType;
   end;
 
@@ -599,7 +962,7 @@ end;
 procedure TEFNode.Assign(const ASource: TEFTree);
 begin
   inherited;
-  if Assigned(ASource) then
+  if Assigned(ASource) and (ASource is TEFNode) then
   begin
     FName := TEFNode(ASource).Name;
     AssignValue(TEFNode(ASource));
@@ -677,27 +1040,27 @@ end;
 
 function TEFNode.GetAsBoolean: Boolean;
 begin
-  Result := ValueToBoolean(FValue);
+  Result := DataType.ValueToBoolean(FValue);
 end;
 
 function TEFNode.GetAsCurrency: Currency;
 begin
-  Result := ValueToCurrency(FValue);
+  Result := DataType.ValueToCurrency(FValue);
 end;
 
 function TEFNode.GetAsDate: TDate;
 begin
-  Result := ValueToDate(FValue);
+  Result := DataType.ValueToDate(FValue);
 end;
 
 function TEFNode.GetAsDateTime: TDateTime;
 begin
-  Result := ValueToDateTime(FValue);
+  Result := DataType.ValueToDateTime(FValue);
 end;
 
 function TEFNode.GetAsDecimal: TBcd;
 begin
-  Result := ValueToDecimal(FValue);
+  Result := DataType.ValueToDecimal(FValue);
 end;
 
 function TEFNode.GetAsExpandedString: string;
@@ -707,17 +1070,17 @@ end;
 
 function TEFNode.GetAsFloat: Double;
 begin
-  Result := ValueToFloat(FValue);
+  Result := DataType.ValueToFloat(FValue);
 end;
 
 function TEFNode.GetAsInteger: Integer;
 begin
-  Result := ValueToInteger(FValue);
+  Result := DataType.ValueToInteger(FValue);
 end;
 
 function TEFNode.GetAsObject: TObject;
 begin
-  Result := ValueToObject(FValue);
+  Result := DataType.ValueToObject(FValue);
 end;
 
 function TEFNode.GetAsPair: TEFPair;
@@ -727,22 +1090,22 @@ end;
 
 function TEFNode.GetAsPairs: TEFPairs;
 begin
-  Result := ValueToPairs(FValue);
+  Result := DataType.ValueToPairs(FValue);
 end;
 
 function TEFNode.GetAsString: string;
 begin
-  Result := ValueToString(FValue);
+  Result := DataType.ValueToString(FValue);
 end;
 
 function TEFNode.GetAsStringArray: TStringDynArray;
 begin
-  Result := ValueToStringArray(FValue);
+  Result := DataType.ValueToStringArray(FValue);
 end;
 
 function TEFNode.GetAsTime: TTime;
 begin
-  Result := ValueToTime(FValue);
+  Result := DataType.ValueToTime(FValue);
 end;
 
 function TEFNode.GetChildStrings(const ASeparator, AConnector,
@@ -831,50 +1194,50 @@ end;
 
 procedure TEFNode.SetAsBoolean(const AValue: Boolean);
 begin
-  Value := BooleanToValue(AValue);
   FDataType := TEFDataTypeFactory.Instance.GetDataType('Boolean');
+  Value := DataType.BooleanToValue(AValue);
 end;
 
 procedure TEFNode.SetAsCurrency(const AValue: Currency);
 begin
-  Value := CurrencyToValue(AValue);
   FDataType := TEFDataTypeFactory.Instance.GetDataType('Currency');
+  Value := DataType.CurrencyToValue(AValue);
 end;
 
 procedure TEFNode.SetAsDate(const AValue: TDate);
 begin
-  Value := DateToValue(AValue);
   FDataType := TEFDataTypeFactory.Instance.GetDataType('Date');
+  Value := DataType.DateToValue(AValue);
 end;
 
 procedure TEFNode.SetAsDateTime(const AValue: TDateTime);
 begin
-  Value := DateTimeToValue(AValue);
   FDataType := TEFDataTypeFactory.Instance.GetDataType('DateTime');
+  Value := DataType.DateTimeToValue(AValue);
 end;
 
 procedure TEFNode.SetAsDecimal(const AValue: TBcd);
 begin
-  Value := DecimalToValue(AValue);
   FDataType := TEFDataTypeFactory.Instance.GetDataType('Decimal');
+  Value := DataType.DecimalToValue(AValue);
 end;
 
 procedure TEFNode.SetAsFloat(const AValue: Double);
 begin
-  Value := FloatToValue(AValue);
   FDataType := TEFDataTypeFactory.Instance.GetDataType('Float');
+  Value := DataType.FloatToValue(AValue);
 end;
 
 procedure TEFNode.SetAsInteger(const AValue: Integer);
 begin
-  Value := IntegerToValue(AValue);
   FDataType := TEFDataTypeFactory.Instance.GetDataType('Integer');
+  Value := DataType.IntegerToValue(AValue);
 end;
 
 procedure TEFNode.SetAsObject(const AValue: TObject);
 begin
-  Value := ObjectToValue(AValue);
   FDataType := TEFDataTypeFactory.Instance.GetDataType('Object');
+  Value := DataType.ObjectToValue(AValue);
 end;
 
 procedure TEFNode.SetAsPair(const AValue: TEFPair);
@@ -885,26 +1248,26 @@ end;
 
 procedure TEFNode.SetAsPairs(const AValue: TEFPairs);
 begin
-  Value := PairsToValue(AValue);
   FDataType := TEFDataTypeFactory.Instance.GetDataType('String');
+  Value := DataType.PairsToValue(AValue);
 end;
 
 procedure TEFNode.SetAsString(const AValue: string);
 begin
-  Value := StringToValue(AValue);
   FDataType := TEFDataTypeFactory.Instance.GetDataType('String');
+  Value := DataType.StringToValue(AValue);
 end;
 
 procedure TEFNode.SetAsStringArray(const AValue: TStringDynArray);
 begin
-  Value := StringArrayToValue(AValue);
   FDataType := TEFDataTypeFactory.Instance.GetDataType('String');
+  Value := DataType.StringArrayToValue(AValue);
 end;
 
 procedure TEFNode.SetAsTime(const AValue: TTime);
 begin
-  Value := TimeToValue(AValue);
   FDataType := TEFDataTypeFactory.Instance.GetDataType('Time');
+  Value := DataType.TimeToValue(AValue);
 end;
 
 function TEFNode.SetAsYamlValue(const AValue: string; const AFormatSettings: TFormatSettings): TEFNode;
@@ -964,7 +1327,7 @@ end;
 
 function TEFNode.EqualsValue(const AValue: Variant): Boolean;
 begin
-  Result := Value = AValue;
+  Result := (Value = AValue) or (IsNull and VarIsNull(AValue));
 end;
 
 { TEFTree }
@@ -1008,11 +1371,6 @@ begin
       AddChild(GetChildClass(LNode.Name).Clone(LNode));
 end;
 
-class function TEFTree.BooleanToValue(const ABoolean: Boolean): Variant;
-begin
-  Result := ABoolean;
-end;
-
 procedure TEFTree.Clear;
 begin
   ClearChildren;
@@ -1035,29 +1393,9 @@ begin
   FNodes := TEFNodes.Create(True);
 end;
 
-class function TEFTree.CurrencyToValue(const ACurrency: Currency): Variant;
-begin
-  Result := ACurrency;
-end;
-
 procedure TEFTree.RemoveChild(const ANode: TEFNode);
 begin
   FNodes.Remove(ANode);
-end;
-
-class function TEFTree.DateTimeToValue(const ADateTime: TDateTime): Variant;
-begin
-  Result := ADateTime;
-end;
-
-class function TEFTree.DateToValue(const ADate: TDate): Variant;
-begin
-  Result := Trunc(ADate);
-end;
-
-class function TEFTree.DecimalToValue(const ADecimal: TBcd): Variant;
-begin
-  Result := BcdToDouble(ADecimal);
 end;
 
 procedure TEFTree.DeleteNode(const APath: string);
@@ -1190,11 +1528,6 @@ begin
   end;
 end;
 
-class function TEFTree.FloatToValue(const AFloat: Double): Variant;
-begin
-  Result := AFloat;
-end;
-
 function TEFTree.GetNode(const APath: string; const ACreateMissingNodes: Boolean): TEFNode;
 begin
   Result := FindNode(APath, ACreateMissingNodes);
@@ -1312,22 +1645,7 @@ begin
     Result := ADefaultValue;
 end;
 
-class function TEFTree.IntegerToValue(const AInteger: Integer): Variant;
-begin
-  Result := AInteger;
-end;
-
-class function TEFTree.ObjectToValue(const AObject: TObject): Variant;
-begin
-  Result := NativeInt(Pointer(AObject));
-end;
-
-class function TEFTree.PairsToValue(const APairs: TEFPairs): Variant;
-begin
-  Result := JoinPairs(APairs, ' ');
-end;
-
-function TEFTree.GetExpandedStrings(const APath, ASeparator, AConnector,
+function TEFTree.GetChildrenAsExpandedStrings(const APath, ASeparator, AConnector,
   ADefaultValue: string): string;
 var
   LNode: TEFNode;
@@ -1349,66 +1667,6 @@ begin
     Result := LNode.AsInteger
   else
     Result := ADefaultValue;
-end;
-
-class function TEFTree.ValueToBoolean(const AValue: Variant): Boolean;
-begin
-  Result := AValue;
-end;
-
-class function TEFTree.ValueToCurrency(const AValue: Variant): Currency;
-begin
-  Result := AValue;
-end;
-
-class function TEFTree.ValueToDate(const AValue: Variant): TDate;
-begin
-  Result := AValue;
-end;
-
-class function TEFTree.ValueToDateTime(const AValue: Variant): TDateTime;
-begin
-  Result := AValue;
-end;
-
-class function TEFTree.ValueToDecimal(const AValue: Variant): TBcd;
-begin
-  Result := VarToBcd(AValue);
-end;
-
-class function TEFTree.ValueToFloat(const AValue: Variant): Double;
-begin
-  Result := AValue;
-end;
-
-class function TEFTree.ValueToInteger(const AValue: Variant): Integer;
-begin
-  Result := AValue;
-end;
-
-class function TEFTree.ValueToObject(const AValue: Variant): TObject;
-begin
-  Result := TObject(NativeInt(AValue));
-end;
-
-class function TEFTree.ValueToPairs(const AValue: Variant): TEFPairs;
-begin
-  Result := SplitPairs(AValue, ' ');
-end;
-
-class function TEFTree.ValueToString(const AValue: Variant): string;
-begin
-  Result := EFVarToStr(AValue);
-end;
-
-class function TEFTree.ValueToStringArray(const AValue: Variant): TStringDynArray;
-begin
-  Result := Split(AValue, ' ');
-end;
-
-class function TEFTree.ValueToTime(const AValue: Variant): TTime;
-begin
-  Result := AValue;
 end;
 
 procedure TEFTree.SetBoolean(const APath: string; const AValue: Boolean);
@@ -1497,21 +1755,6 @@ end;
 procedure TEFTree.SetString(const APath, AValue: string);
 begin
   GetNode(APath, True).AsString := AValue;
-end;
-
-class function TEFTree.StringArrayToValue(const AStringArray: TStringDynArray): Variant;
-begin
-  Result := Join(AStringArray, ' ');
-end;
-
-class function TEFTree.StringToValue(const AString: string): Variant;
-begin
-  Result := AString;
-end;
-
-class function TEFTree.TimeToValue(const ATime: TTime): Variant;
-begin
-  Result := Frac(ATime);
 end;
 
 procedure TEFTree.EnterCS;
@@ -1710,6 +1953,126 @@ begin
   Assert(Assigned(ANode));
 
   InternalYamlValueToNode(AYamlValue, ANode, AFormatSettings);
+end;
+
+function TEFDataType.ValueToBoolean(const AValue: Variant): Boolean;
+begin
+  Result := AValue;
+end;
+
+function TEFDataType.ValueToCurrency(const AValue: Variant): Currency;
+begin
+  Result := AValue;
+end;
+
+function TEFDataType.ValueToDate(const AValue: Variant): TDate;
+begin
+  Result := AValue;
+end;
+
+function TEFDataType.ValueToDateTime(const AValue: Variant): TDateTime;
+begin
+  Result := AValue;
+end;
+
+function TEFDataType.ValueToDecimal(const AValue: Variant): TBcd;
+begin
+  Result := VarToBcd(AValue);
+end;
+
+function TEFDataType.ValueToFloat(const AValue: Variant): Double;
+begin
+  Result := AValue;
+end;
+
+function TEFDataType.ValueToInteger(const AValue: Variant): Integer;
+begin
+  Result := AValue;
+end;
+
+function TEFDataType.ValueToObject(const AValue: Variant): TObject;
+begin
+  Result := TObject(NativeInt(AValue));
+end;
+
+function TEFDataType.ValueToPairs(const AValue: Variant): TEFPairs;
+begin
+  Result := SplitPairs(AValue, ' ');
+end;
+
+function TEFDataType.ValueToString(const AValue: Variant): string;
+begin
+  Result := EFVarToStr(AValue);
+end;
+
+function TEFDataType.ValueToStringArray(const AValue: Variant): TStringDynArray;
+begin
+  Result := Split(AValue, ' ');
+end;
+
+function TEFDataType.ValueToTime(const AValue: Variant): TTime;
+begin
+  Result := AValue;
+end;
+
+function TEFDataType.StringArrayToValue(const AStringArray: TStringDynArray): Variant;
+begin
+  Result := Join(AStringArray, ' ');
+end;
+
+function TEFDataType.StringToValue(const AString: string): Variant;
+begin
+  Result := AString;
+end;
+
+function TEFDataType.TimeToValue(const ATime: TTime): Variant;
+begin
+  Result := Frac(ATime);
+end;
+
+function TEFDataType.BooleanToValue(const ABoolean: Boolean): Variant;
+begin
+  Result := ABoolean;
+end;
+
+function TEFDataType.DateTimeToValue(const ADateTime: TDateTime): Variant;
+begin
+  Result := ADateTime;
+end;
+
+function TEFDataType.DateToValue(const ADate: TDate): Variant;
+begin
+  Result := Trunc(ADate);
+end;
+
+function TEFDataType.DecimalToValue(const ADecimal: TBcd): Variant;
+begin
+  Result := BcdToDouble(ADecimal);
+end;
+
+function TEFDataType.CurrencyToValue(const ACurrency: Currency): Variant;
+begin
+  Result := ACurrency;
+end;
+
+function TEFDataType.FloatToValue(const AFloat: Double): Variant;
+begin
+  Result := AFloat;
+end;
+
+function TEFDataType.IntegerToValue(const AInteger: Integer): Variant;
+begin
+  Result := AInteger;
+end;
+
+function TEFDataType.ObjectToValue(const AObject: TObject): Variant;
+begin
+  Result := NativeInt(Pointer(AObject));
+end;
+
+function TEFDataType.PairsToValue(const APairs: TEFPairs): Variant;
+begin
+  Result := JoinPairs(APairs, ' ');
 end;
 
 { TEFIntegerDataType }
@@ -2085,11 +2448,17 @@ end;
 
 function TEFStringDataType.IsBlob(const ASize: Integer): Boolean;
 begin
-  { TODO : Support binary blobs as well. }
   Result := ASize = 0;
 end;
 
 function TEFStringDataType.SupportsEmptyAsNull: Boolean;
+begin
+  Result := True;
+end;
+
+{ TEFMemoDataType }
+
+function TEFMemoDataType.IsBlob(const ASize: Integer): Boolean;
 begin
   Result := True;
 end;
