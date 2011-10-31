@@ -46,10 +46,10 @@ type
     function CreatePagingToolbar: TExtPagingToolbar;
     function LocateRecordFromSession: TKViewTableRecord;
     procedure RefreshData;
-    procedure EditOrViewCurrentRecord;
     procedure ShowEditWindow(const ARecord: TKRecord;
       const AEditMode: TKEditMode);
     function GetSelectConfirmCall(const AMessage: string; const AMethod: TExtProcedure): string;
+    function IsReadOnly: Boolean;
   protected
     procedure InitDefaults; override;
   public
@@ -60,7 +60,7 @@ type
     procedure LoadData;
   published
     procedure GetRecordPage;
-    procedure RowDblClick;
+    procedure EditViewRecord;
     procedure NewRecord(This: TExtButton; E: TExtEventObjectSingleton);
     procedure DeleteCurrentRecord;
   end;
@@ -221,6 +221,8 @@ Note: remote sort passes params sort and dir. }
   FReader.Root := 'Root';
   FReader.TotalProperty := 'Total';
   FStore.Reader := FReader;
+
+  FStore.On('load', TExtGridRowSelectionModel(FGridPanel.SelModel).SelectFirstRow);
 
   FGridPanel.Store := FStore;
   FGridPanel.View := FGridView;
@@ -398,14 +400,17 @@ begin
   ShowEditWindow(nil, emNewRecord);
 end;
 
-procedure TKExtGridPanel.RowDblClick;
-begin
-  EditOrViewCurrentRecord;
-end;
-
-procedure TKExtGridPanel.EditOrViewCurrentRecord;
+procedure TKExtGridPanel.EditViewRecord;
 begin
   ShowEditWindow(LocateRecordFromSession, emEditCurrentRecord);
+end;
+
+function TKExtGridPanel.IsReadOnly: Boolean;
+begin
+  Result := ViewTable.View.GetBoolean('IsReadOnly')
+    or ViewTable.IsReadOnly
+    or ViewTable.View.GetBoolean('Controller/PreventEditing')
+    or not ViewTable.IsAccessGranted(ACM_MODIFY);
 end;
 
 procedure TKExtGridPanel.ShowEditWindow(const ARecord: TKRecord;
@@ -413,15 +418,6 @@ procedure TKExtGridPanel.ShowEditWindow(const ARecord: TKRecord;
 var
   LFormControllerType: string;
   LFormController: IKExtController;
-
-  function IsReadOnly: Boolean;
-  begin
-    Result := ViewTable.View.GetBoolean('IsReadOnly')
-      or ViewTable.IsReadOnly
-      or ViewTable.View.GetBoolean('Controller/PreventEditing')
-      or not ViewTable.IsAccessGranted(ACM_MODIFY);
-  end;
-
 begin
   Assert((AEditMode = emNewrecord) or Assigned(ARecord));
   Assert(ViewTable <> nil);
@@ -478,7 +474,7 @@ begin
   CreateFilterPanel;
 
   LKeyFieldNames := Join(ViewTable.GetKeyFieldAliasedNames(True), ',');
-  FGridPanel.On('rowdblclick', AjaxSelection(RowDblClick, FGridPanel.SelModel, LKeyFieldNames, LKeyFieldNames, []));
+  FGridPanel.On('rowdblclick', AjaxSelection(EditViewRecord, FGridPanel.SelModel, LKeyFieldNames, LKeyFieldNames, []));
 
   // By default show paging toolbar if the model is large unless the view is grouped.
   if ViewTable.GetBoolean('Controller/PagingTools', ViewTable.Model.IsLarge and (GetGroupingFieldName = '')) then
@@ -587,7 +583,9 @@ end;
 function TKExtGridPanel.CreateTopToolbar: TExtToolbar;
 var
   LNewButton: TExtButton;
+  LEditButton: TExtButton;
   LDeleteButton: TExtButton;
+  LKeyFieldNames: string;
 begin
   Assert(ViewTable <> nil);
 
@@ -604,6 +602,28 @@ begin
         LNewButton.OnClick := NewRecord;
     end;
     TExtToolbarSpacer.AddTo(Result.Items);
+
+    LEditButton := TExtButton.AddTo(Result.Items);
+    begin
+      if IsReadOnly then
+      begin
+        LEditButton.Text := Format(_('View %s'), [ViewTable.DisplayLabel]);
+        LEditButton.Icon := Session.Config.GetImageURL('view_record_16');
+      end
+      else
+      begin
+        LEditButton.Text := Format(_('Edit %s'), [ViewTable.DisplayLabel]);
+        LEditButton.Icon := Session.Config.GetImageURL('edit_record_16');
+        LEditButton.Disabled := not FIsEditAllowed;
+      end;
+      if not LEditButton.Disabled then
+      begin
+        LKeyFieldNames := Join(ViewTable.GetKeyFieldAliasedNames(True), ',');
+        LEditButton.On('click', AjaxSelection(EditViewRecord, FGridPanel.SelModel, LKeyFieldNames, LKeyFieldNames, []));
+      end;
+    end;
+    TExtToolbarSpacer.AddTo(Result.Items);
+
     LDeleteButton := TExtButton.AddTo(Result.Items);
     begin
       LDeleteButton.Text := Format(_('Delete %s'), [ViewTable.DisplayLabel]);
