@@ -2026,8 +2026,11 @@ begin
 end;
 
 function TEFDataType.TimeToValue(const ATime: TTime): Variant;
+var
+  LTime: TDateTime;
 begin
-  Result := Frac(ATime);
+  LTime := Frac(ATime);
+  Result := LTime;
 end;
 
 function TEFDataType.BooleanToValue(const ABoolean: Boolean): Variant;
@@ -2041,8 +2044,11 @@ begin
 end;
 
 function TEFDataType.DateToValue(const ADate: TDate): Variant;
+var
+  LDate: TDateTime;
 begin
-  Result := Trunc(ADate);
+  LDate := Trunc(ADate);
+  Result := LDate;
 end;
 
 function TEFDataType.DecimalToValue(const ADecimal: TBcd): Variant;
