@@ -1,3 +1,6 @@
+///	<summary>
+///	  ADO-based database access layer.
+///	</summary>
 unit EF.DB.ADO;
 
 {$I EF.Defines.inc}
@@ -9,23 +12,23 @@ uses
   EF.DB;
 
 type
-  {
-    Utility class used to adapt ADO's TParameters to the standard TParams.
-  }
+  ///	<summary>
+  ///	  Utility class used to adapt ADO's TParameters to the standard TParams.
+  ///	</summary>
   TEFDBADOParams = class(TParams)
   public
-    {
-      Sets the Value property of every parameter in ADestination whose name
-      matches the name of a parameter in the current object to that of
-      the current object's parameter.
-    }
+    ///	<summary>
+    ///	  Sets the Value property of every parameter in ADestination whose name
+    ///	  matches the name of a parameter in the current object to that of the
+    ///	  current object's parameter.
+    ///	</summary>
     procedure AssignValuesTo(const ADestination: TParameters);
   end;
 
-  {
-    Retrieves metadata from a database through ADO. Currently only
-    SQL Server is supported.
-  }
+  ///	<summary>
+  ///	  Retrieves metadata from a database through ADO. Currently only SQL
+  ///	  Server is supported.
+  ///	</summary>
   TEFDBADOInfo = class(TEFDBInfo)
   private
     FConnection: TADOConnection;
@@ -123,7 +126,6 @@ type
     function IsOpen: Boolean; override;
   end;
 
-  // A DB adapter that creates ADO objects.
   TEFDBADOAdapter = class(TEFDBAdapter)
   protected
     function InternalCreateDBConnection: TEFDBConnection; override;
@@ -134,7 +136,7 @@ implementation
 
 uses
   SysUtils, StrUtils, Variants, ADOInt,
-  EF.VariantUtils, EF.DB.Utils, EF.Types, EF.Tree, EF.SQL;
+  EF.VariantUtils, EF.Types, EF.Tree, EF.SQL;
 
 function ADODataTypeToEFDataType(const AADODataType: Integer): string;
 begin
@@ -218,8 +220,8 @@ begin
   if not FConnection.Connected then
   begin
     FConnection.ConnectionString := Config.GetExpandedString('Connection/ConnectionString');
-    { TODO : reimplement setting object properties from EF tree nodes via RTTI }
-    //Configuration.SetObjectProperties(FConnection, 'InternalConnection.');
+    { TODO : implement setting object properties from EF tree nodes via RTTI }
+    //Config.SetObjectProperties(FConnection, 'InternalConnection');
     FConnection.Open;
   end;
 end;
@@ -307,7 +309,7 @@ function TEFDBADOConnection.GetLastAutoincValue(
   const ATableName: string = ''): Int64;
 begin
   // Only supported with SQL Server.
-  Result := EFVarToInt(GetSingletonValue(Self, 'select @@IDENTITY'));
+  Result := EFVarToInt(GetSingletonValue('select @@IDENTITY'));
 end;
 
 function TEFDBADOConnection.IsOpen: Boolean;
@@ -364,8 +366,8 @@ begin
   FCommandText := AValue;
   LThrowaway := FCommandText;
   UniqueString(LThrowaway);
-  // Note: ParseSQL incorrectly behaves as its first parameter was passed
-  // by reference and modifies it. So we pass a throwaway string to it.
+  // Note: ParseSQL incorrectly behaves as if its first parameter was passed
+  // by reference and modifies it. So we must pass a disposable string to it.
   FParams.ParseSQL(LThrowaway, True);
 end;
 
@@ -481,8 +483,8 @@ begin
   FCommandText := AValue;
   LThrowaway := FCommandText;
   UniqueString(LThrowaway);
-  // Note: ParseSQL incorrectly behaves as its first parameter was passed
-  // by reference and modifies it. So we pass a throwaway string to it.
+  // Note: ParseSQL incorrectly behaves as if its first parameter was passed
+  // by reference and modifies it. So we pass a disposable string to it.
   FParams.ParseSQL(LThrowaway, True);
 end;
 

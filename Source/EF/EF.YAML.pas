@@ -12,6 +12,9 @@ uses
 type
   TEFYAMLValueType = (vtSingleLine, vtMultiLineWithNL, vtMultiLineWithSpace);
 
+  ///	<summary>
+  ///	  A parser for yaml data streams.
+  ///	</summary>
   TEFYAMLParser = class
   private
     FIndents: TList<Integer>;
@@ -24,12 +27,32 @@ type
     procedure AfterConstruction; override;
     destructor Destroy; override;
   public
+    ///	<summary>
+    ///	  Resets the parser, maeking it ready for parsing a new data stream.
+    ///	</summary>
     procedure Reset;
+
+    ///	<summary>
+    ///	  Parses a yaml line and returns name and value. Also sets the
+    ///	  LastValueType and LastIndentIncrement properties.
+    ///	</summary>
     function ParseLine(const ALine: string; out AName, AValue: string): Boolean;
+
+    ///	<summary>
+    ///	  Reports the type (not the data type) of the last parsed value, which
+    ///	  may be a single-line or multi-line (two kinds) value.
+    ///	</summary>
     property LastValueType: TEFYAMLValueType read FLastValueType;
+
+    ///	<summary>
+    ///	  Reports the indent increment of the last parsed line.
+    ///	</summary>
     property LastIndentIncrement: Integer read FLastIndentIncrement;
   end;
 
+  ///	<summary>
+  ///	  Reads yaml data from files or streams and constructs tree objects.
+  ///	</summary>
   TEFYAMLReader = class
   private
     FParser: TEFYAMLParser;
@@ -37,13 +60,20 @@ type
     function GetParser: TEFYAMLParser;
   public
     destructor Destroy; override;
-    property Parser: TEFYAMLParser read GetParser;
-    class property FormatSettings: TFormatSettings read FFormatSettings write FFormatSettings;
   public
+    property Parser: TEFYAMLParser read GetParser;
+
+    ///	<summary>
+    ///	  Format settings used to parse values.
+    ///	</summary>
+    class property FormatSettings: TFormatSettings read FFormatSettings write FFormatSettings;
     procedure LoadTreeFromFile(const ATree: TEFTree; const AFileName: string);
     procedure LoadTreeFromStream(const ATree: TEFTree; const AStream: TStream);
   end;
 
+  ///	<summary>
+  ///	  Writes a tree to a yaml file or stream.
+  ///	</summary>
   TEFYAMLWriter = class
   private
     FIndentChars: Integer;

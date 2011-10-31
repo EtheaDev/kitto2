@@ -47,7 +47,7 @@ implementation
 
 uses
   SysUtils, Classes,
-  EF.Intf, EF.Localization, EF.SysUtils, EF.Types, EF.DB.Utils;
+  EF.Intf, EF.Localization, EF.SysUtils, EF.Types;
 
 { TKOSDBAuthenticator }
 

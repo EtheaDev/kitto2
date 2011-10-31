@@ -184,7 +184,7 @@ implementation
 
 uses
   SysUtils, Classes, Variants,
-  EF.Localization,  EF.Types, EF.StrUtils, EF.DB.Utils,
+  EF.Localization,  EF.Types, EF.StrUtils,
   Kitto.Types, Kitto.Config;
 
 { TKDBAuthenticator }

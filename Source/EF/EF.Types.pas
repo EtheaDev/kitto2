@@ -1,3 +1,6 @@
+///	<summary>
+///	  Generally useful types.
+///	</summary>
 unit EF.Types;
 
 {$I EF.Defines.inc}
@@ -8,25 +11,29 @@ uses
   SysUtils, Generics.Collections;
 
 type
-  {
-    Many components in EF have OnLog events of this type.
-  }
+  ///	<summary>
+  ///	  Many components in EF have OnLog events of this type.
+  ///	</summary>
   TEFLogEvent = procedure (const ASender: TObject; const AString: string;
     const ALogLevel: Integer = 1) of object;
 
-  {
-    Base class for all EF exceptions.
-  }
+  ///	<summary>
+  ///	  Base class for all EF exceptions.
+  ///	</summary>
   EEFError = class(Exception)
   private
     FAdditionalInfo: string;
   public
+    ///	<summary>
+    ///	  Creates the exception with an additional message.
+    ///	</summary>
     constructor CreateWithAdditionalInfo(const AMessage, AAdditionalInfo: string);
-    {
-      An EF exception may optionally have additional information over what's
-      displayed in the Message. The value of this property is set upon
-      creation through the CreatEFithAdditionalInfo constructor.
-    }
+
+    ///	<summary>
+    ///	  An EF exception may optionally have additional information over
+    ///	  what's displayed in the Message. The value of this property is set
+    ///	  upon creation through the CreateWithAdditionalInfo constructor.
+    ///	</summary>
     property AdditionalInfo: string read FAdditionalInfo;
   end;
 
@@ -37,93 +44,113 @@ type
   ///	  Holds a list of registered classes and provides class references by
   ///	  string Ids.
   ///	</summary>
-  TEFRegistry = class
+  TEFRegistry = class abstract
   private
     FClasses: TDictionary<string, TClass>;
   protected
-    {
-      Called at the beginning of RegisterClass.
-    }
+    ///	<summary>
+    ///	  Called at the beginning of RegisterClass.
+    ///	</summary>
     procedure BeforeRegisterClass(const AId: string; const AClass: TClass); virtual;
-    {
-      Called at the end of RegisterClass, after successful registration.
-    }
+
+    ///	<summary>
+    ///	  Called at the end of RegisterClass, after successful registration.
+    ///	</summary>
     procedure AfterRegisterClass(const AId: string; const AClass: TClass); virtual;
-    {
-      Called at the beginning of UnregisterClass.
-    }
+
+    ///	<summary>
+    ///	  Called at the beginning of UnregisterClass.
+    ///	</summary>
     procedure BeforeUnregisterClass(const AId: string; const AClass: TClass); virtual;
-    {
-      Called at the end of UnregisterClass, after successful unregistration.
-    }
+
+    ///	<summary>
+    ///	  Called at the end of UnregisterClass, after successful unregistration.
+    ///	</summary>
     procedure AfterUnregisterClass(const AId: string; const AClass: TClass); virtual;
-    {
-      Holds the list of registered classes, each of which represented by its
-      Id and holding the class reference in Objects[]. Descendants may need to
-      access this object in order to add functionality.
-    }
+
+    ///	<summary>
+    ///	  Holds the list of registered classes, each of which represented by
+    ///	  its Id. Descendants may need to access this object in order to add
+    ///   functionality.
+    ///	</summary>
     property Classes: TDictionary<string, TClass> read FClasses;
   public
     constructor Create;
     destructor Destroy; override;
-    {
-      Adds a class to the registry.
-    }
+  public
+    ///	<summary>
+    ///	  Adds a class to the registry.
+    ///	</summary>
     procedure RegisterClass(const AId: string; const AClass: TClass);
-    {
-      Deletes a previously registered class from the registry.
-    }
+
+    ///	<summary>
+    ///	  Deletes a previously registered class from the registry.
+    ///	</summary>
     procedure UnregisterClass(const AId: string);
-    {
-      Returns True if a given class Id is registered.
-    }
+
+    ///	<summary>
+    ///	  Returns True if a given class Id is registered.
+    ///	</summary>
     function HasClass(const AId: string): Boolean;
-    {
-      Returns a class reference to the class identified by AClassId, if registered.
-      Otherwise an exception is raised.
-    }
+
+    ///	<summary>
+    ///	  Returns a class reference to the class identified by AClassId, if
+    ///	  registered. Otherwise an exception is raised.
+    ///	</summary>
     function GetClass(const AId: string): TClass;
-    {
-      Returns a class reference to the class identified by AClassId, if registered.
-      Otherwise returns nil.
-    }
+
+    ///	<summary>
+    ///	  Returns a class reference to the class identified by AClassId, if
+    ///	  registered. Otherwise returns nil.
+    ///	</summary>
     function FindClass(const AId: string): TClass;
   end;
 
-  {
-    Uses the registry to create objects by class id.
-    It is friend to a descendant of TEFRegistry.
-  }
-  TEFFactory = class
+  ///	<summary>
+  ///	  Uses the registry to create objects by class id. It is friend to a
+  ///	  descendant of TEFRegistry.
+  ///	</summary>
+  TEFFactory = class abstract
   private
     FRegistry: TEFRegistry;
   protected
+    ///	<summary>
+    ///	  Creates an object of the specified class.
+    ///	</summary>
     function DoCreateObject(const AClass: TClass): TObject; virtual;
-    {
-      A reference to the registry.
-    }
+
+    ///	<summary>
+    ///	  A reference to the registry being used.
+    ///	</summary>
     property Registry: TEFRegistry read Fregistry;
-    {
-      Called at the beginning of CreateObject, before checking if the class Id
-      is registered.
-    }
+
+    ///	<summary>
+    ///	  Called at the beginning of CreateObject, before checking if the class
+    ///	  Id is registered.
+    ///	</summary>
     procedure BeforeCreateObject(const AId: string); virtual;
-    {
-      Called after CreateObject has created the object and before it returns
-      it to the caller.
-    }
+
+    ///	<summary>
+    ///	  Called after CreateObject has created the object and before it
+    ///	  returns it to the caller.
+    ///	</summary>
     procedure AfterCreateObject(const AId: string;
       const AClass: TClass; const AObject: TObject); virtual;
   public
+    ///	<summary>
+    ///	  Pass a reference to the registry to use when constructing a factory.
+    ///	</summary>
     constructor Create(const ARegistry: TEFRegistry);
-    {
-      Creates and returns an instance of the class identified
-      by AClassId. Raises an exception if said class is not registered.
-    }
+
+    ///	<summary>
+    ///	  Creates and returns an instance of the class identified by AClassId.
+    ///	  Raises an exception if said class is not registered.
+    ///	</summary>
     function CreateObject(const AId: string): TObject;
-    {
-      Returns True if a given class Id is registered.
-    }
+
+    ///	<summary>
+    ///	  Returns True if a given class Id is registered.
+    ///	</summary>
     function HasClass(const AId: string): Boolean;
   end;
 

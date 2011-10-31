@@ -231,7 +231,7 @@ begin
   FDBConnections := TDictionary<string, TEFDBConnection>.Create;
   LLanguageId := Config.GetString('LanguageId');
   if LLanguageId <> '' then
-    EFLocalizationTool.ForceLanguage(LLanguageId);
+    TEFLocalizationToolRegistry.CurrentTool.ForceLanguage(LLanguageId);
   FMacroExpander := TKConfigMacroExpander.Create(Config, 'Config');
   MacroExpansionEngine.AddExpander(FMacroExpander);
 end;

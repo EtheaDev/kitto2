@@ -1,3 +1,7 @@
+///	<summary>
+///	  Classes and routines used for building, parsing and modifying SQL
+///	  statements.
+///	</summary>
 unit EF.SQL;
 
 {$I EF.Defines.inc}
@@ -47,39 +51,21 @@ type
       const AKeyFieldNames: TStrings; const ACommand: TEFDBCommand);
   end;
 
-{
-  Executes the given query and returns an array of values from the first row
-  of the result set. The returned array is zero-based and has an element for
-  each field in the source select statement.
-  If no rows are returned, the result is a single Null.
-  The query may contain parameters, in which case you are required to pass
-  ADBParams.
-}
-function SQLLookup(const ADBConnection: TEFDBConnection;
-  const ASQLStatement: string; const ADBParams: TParams = nil): Variant; overload;
-
-{
-  Executes the given query and returns an array of values from the first row
-  of the result set. The returned array is zero-based and has an element for
-  each field in the result set.
-  If no rows are returned, the result is a single Null.
-  The query may contain parameters, in which case they should all be assigned
-  values before calling this function.
-}
-function SQLLookup(const AQuery: TEFDBQuery): Variant; overload;
-
 const
-  // Quote character in SQL.
+  ///	<summary>
+  ///	  Quote character in SQL.
+  ///	</summary>
   SQLQuote = '''';
 
-{
-  Works like Delphi's QuotedStr, but uses SQLQuote instead of a hard-coded '.
-}
+///	<summary>
+///	  Works like Delphi's QuotedStr, but uses SQLQuote instead of a hard-coded
+///	  quote.
+///	</summary>
 function SQLQuotedStr(const AString: string): string;
 
-{
-  Removes leading and trailing SQLQuotes from the string.
-}
+///	<summary>
+///	  Removes leading and trailing SQLQuotes from the string.
+///	</summary>
 function RemoveSQLQuotes(const AString: string): string;
 
 ///	<summary>Returns the SQL select clause (field list) from a given SQL
@@ -94,55 +80,57 @@ function GetSQLFromClause(const ASQL: string): string;
 ///	return value does not include the "where" keyword.</summary>
 function GetSQLWhereClause(const ASQL: string): string;
 
-{
-  Changes the SQL where clause of a given SQL statement. If the statement
-  doesn't initially have a where clause, it is added.
-}
+///	<summary>
+///	  Changes the SQL where clause of a given SQL statement. If the statement
+///	  doesn't initially have a where clause, it is added.
+///	</summary>
 function SetSQLWhereClause(const ASQL, ANewClause: string): string;
 
-{
-  Adds text to the SQL where clause of a given statement; the nEF text is
-  connected to any existing text in the where clause through the specified
-  connector.
-}
+///	<summary>
+///	  Adds text to the SQL where clause of a given statement; the new text is
+///	  connected to any existing text in the where clause through the specified
+///	  connector.
+///	</summary>
 function AddToSQLWhereClause(const ASQL, ANewClause: string;
   const AConnector: string = 'and'): string;
 
-{
-  Returns the SQL order by clause from a given SQL statement. The return value
-  does not include the "order by" keywords.
-}
+///	<summary>
+///	  Returns the SQL order by clause from a given SQL statement. The return
+///	  value does not include the "order by" keywords.
+///	</summary>
 function GetSQLOrderByClause(const ASQL: string): string;
 
-{
-  Changes the SQL order by clause of a given SQL statement. If the statement
-  doesn't initially have an order by clause, it is added.
-}
+///	<summary>
+///	  Changes the SQL order by clause of a given SQL statement. If the
+///	  statement doesn't initially have an order by clause, it is added.
+///	</summary>
 function SetSQLOrderByClause(const ASQL, ANewClause: string): string;
 
-{
-  Returns the SQL into clause from a given SQL statement. This function works
-  on the into clause that can precede the from clause in some databases
-  (namely SQL Server).
-}
+///	<summary>
+///	  Returns the SQL into clause from a given SQL statement. This function
+///	  works on the into clause that may precede the from clause in some
+///	  databases (namely SQL Server).
+///	</summary>
 function GetSQLIntoClause(const ASQL: string): string;
 
-{
-  Returns True if the specified statement is a query, that is it returns
-  a result set. By default all select statements (except the
-  select ... into form) are queries and everything else is not.
-}
+///	<summary>
+///	  Returns True if the specified statement is a query, that is it returns a
+///	  result set. By default all select statements (except the select ... into
+///	  form) are queries and everything else is not.
+///	</summary>
 function IsQuery(const ASQLStatement: string): Boolean;
 
 const
-  {
-    Marks the beginning of a part of a SQL statement that the EF parser will ignore.
-  }
+  ///	<summary>
+  ///	  Marks the beginning of a part of a SQL statement that the EF parser
+  ///	  will ignore.
+  ///	</summary>
   EF_PARSER_SKIP_BEGIN_MARKER = '/**EF_PARSER_SKIP_BEGIN**/';
 
-  {
-    Marks the end of a part of a SQL statement that the EF parser will ignore.
-  }
+  ///	<summary>
+  ///	  Marks the end of a part of a SQL statement that the EF parser will
+  ///	  ignore.
+  ///	</summary>
   EF_PARSER_SKIP_END_MARKER = '/**EF_PARSER_SKIP_END**/';
 
 implementation
@@ -379,41 +367,6 @@ begin
   LStatement := BuildSelectStatement(ALookupResultFieldNames, ALookupTableName);
   AddWhereClause(LStatement, ALookupKeyFieldNames, AKeyFieldNames);
   AQuery.CommandText := LStatement;
-end;
-
-function SQLLookup(const ADBConnection: TEFDBConnection;
-  const ASQLStatement: string; const ADBParams: TParams = nil): Variant;
-var
-  LQuery: TEFDBQuery;
-begin
-  LQuery := ADBConnection.CreateDBQuery;
-  try
-    LQuery.CommandText := ASQLStatement;
-    if Assigned(ADBParams) then
-      LQuery.Params.AssignValues(ADBParams);
-    Result := SQLLookup(LQuery);
-  finally
-    FreeAndNil(LQuery);
-  end;
-end;
-
-function SQLLookup(const AQuery: TEFDBQuery): Variant; overload;
-var
-  LFieldIndex: Integer;
-begin
-  AQuery.Open;
-  try
-    if AQuery.DataSet.IsEmpty then
-      Result := Null
-    else
-    begin
-      Result := VarArrayCreate([0, AQuery.DataSet.FieldCount - 1], varVariant);
-      for LFieldIndex := 0 to AQuery.DataSet.FieldCount - 1 do
-        Result[LFieldIndex] := AQuery.DataSet.Fields[LFieldIndex].Value;
-    end;
-  finally
-    AQuery.Close;
-  end;
 end;
 
 function SQLQuotedStr(const AString: string): string;

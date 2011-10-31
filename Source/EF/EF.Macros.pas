@@ -5,6 +5,8 @@
 ///	</summary>
 unit EF.Macros;
 
+{$I EF.Defines.inc}
+
 interface
 
 uses

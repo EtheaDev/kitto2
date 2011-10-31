@@ -15,16 +15,16 @@ uses
   EF.Intf, EF.Localization;
   
 type
-  {
-    Localization tool that wraps dxgettext.
-  }
+  ///	<summary>
+  ///	  EF localization tool that wraps dxgettext.
+  ///	</summary>
+  ///	<remarks>
+  ///	  This tool doesn't make use of Id strings.
+  ///	</remarks>
   TEFdxgettextLocalizationTool = class(TEFNoRefCountObject, IInterface,
     IEFInterface, IEFLocalizationTool)
   public
-    // IEFInterface
     function AsObject: TObject;
-    // IEFLocalizationTool
-    // Note: this tool doesn't make use of Id strings.
     function TranslateString(const AString: string;
       const AIdString: string = ''): string;
     procedure TranslateComponent(const AComponent: TComponent);
@@ -72,9 +72,9 @@ begin
 end;
 
 initialization
-  EFLocalizationToolRegistry.RegisterTool(TEFdxgettextLocalizationTool.Create);
+  TEFLocalizationToolRegistry.RegisterTool(TEFdxgettextLocalizationTool.Create);
 
 finalization
-  EFLocalizationToolRegistry.UnregisterTool;
+  TEFLocalizationToolRegistry.UnregisterTool;
   
 end.
