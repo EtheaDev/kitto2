@@ -225,8 +225,9 @@ var
 begin
   inherited;
   { TODO : read default user format settings from config and allow to change them on a per-user basis. }
-  FUserFormatSettings := TFormatSettings.Create;
-  FUserFormatSettings.ShortTimeFormat := Config.GetString('UserFormats/ShortTime', 'hh:mm:ss');
+  FUserFormatSettings := GetFormatSettings;
+  FUserFormatSettings.ShortTimeFormat := Config.GetString('UserFormats/Time', FUserFormatSettings.ShortTimeFormat);
+  FUserFormatSettings.ShortDateFormat := Config.GetString('UserFormats/Date', FUserFormatSettings.ShortDateFormat);
 
   FDBConnections := TDictionary<string, TEFDBConnection>.Create;
   LLanguageId := Config.GetString('LanguageId');

@@ -73,6 +73,8 @@ type
     function GetFieldCount: Integer;
     function GetFields: TKModelFields;
     function GetHint: string;
+    function GetEditFormat: string;
+    function GetDisplayFormat: string;
   protected
     procedure GetFieldSpec(out ADataType: TEFDataType; out ASize: Integer;
       out AIsRequired: Boolean; out AIsKey: Boolean; out AReferencedModel: string);
@@ -84,6 +86,8 @@ type
     property DataType: TEFDataType read GetDataType;
     property Size: Integer read GetSize;
     property DecimalPrecision: Integer read GetDecimalPrecision;
+    property EditFormat: string read GetEditFormat;
+    property DisplayFormat: string read GetDisplayFormat;
 
     ///	<summary>If the field is contained (as with local children of a
     ///	reference fields), returns the parent field, otherwise nil.</summary>
@@ -784,6 +788,11 @@ begin
     Result := TKConfig.Instance.MacroExpansionEngine.Expand(EFVarToStr(Result));
 end;
 
+function TKModelField.GetDisplayFormat: string;
+begin
+  Result := GetString('DisplayFormat');
+end;
+
 function TKModelField.GetDisplayLabel: string;
 begin
   Result := GetString('DisplayLabel');
@@ -796,6 +805,11 @@ begin
   Result := GetInteger('DisplayWidth', -1);
   if Result = -1 then
     Result := DataType.GetDefaultDisplayWidth(Size);
+end;
+
+function TKModelField.GetEditFormat: string;
+begin
+  Result := GetString('EditFormat');
 end;
 
 function TKModelField.GetEmptyAsNull: Boolean;

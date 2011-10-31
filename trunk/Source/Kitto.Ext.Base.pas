@@ -623,16 +623,26 @@ var
   LSplit: TEFNode;
   LCollapsible: TEFNode;
   LBorder: TEFNode;
+  LHeight: Integer;
 begin
   Title := View.DisplayLabel;
 
   Border := False;
+
   LWidth := View.GetInteger('Controller/Width');
-  if LWidth <> 0 then
+  if LWidth > 0 then
   begin
     Width := LWidth;
     MinWidth := LWidth;
-  end;
+  end
+  else if LWidth = -1 then
+    AutoWidth := True;
+
+  LHeight := View.GetInteger('Controller/Height');
+  if LHeight <> 0 then
+    Height := LHeight
+  else if LHeight = -1 then
+    AutoHeight := True;
 
   LSplit := View.FindNode('Controller/Split');
   if Assigned(LSplit) then

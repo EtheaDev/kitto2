@@ -264,6 +264,7 @@ var
     function CreateColumn: TExtGridColumn;
     var
       LDataType: TEFDataType;
+      LFormat: string;
     begin
       LDataType := AViewField.DataType;
       if LDataType is TKReferenceDataType then
@@ -279,19 +280,28 @@ var
       else if LDataType is TEFDateDataType then
       begin
         Result := TExtGridDateColumn.AddTo(FGridPanel.Columns);
-        TExtGridDateColumn(Result).Format := DelphiDateFormatToJSDateFormat(Session.Config.UserFormatSettings.ShortDateFormat);
+        LFormat := AViewField.DisplayFormat;
+        if LFormat = '' then
+          LFormat := Session.Config.UserFormatSettings.ShortDateFormat;
+        TExtGridDateColumn(Result).Format := DelphiDateFormatToJSDateFormat(LFormat);
       end
       else if LDataType is TEFTimeDataType then
       begin
         Result := TExtGridColumn.AddTo(FGridPanel.Columns);
-        //TExtGridDateColumn(Result).Format := DelphiTimeFormatToJSTimeFormat(Session.Config.UserFormatSettings.ShortTimeFormat);
+        LFormat := AViewField.DisplayFormat;
+        if LFormat = '' then
+          LFormat := Session.Config.UserFormatSettings.ShortTimeFormat;
+        Result.RendererExtFunction := Result.JSFunction('v',
+          Format('return formatTime(v, "%s");', [DelphiTimeFormatToJSTimeFormat(LFormat)]));
       end
       else if LDataType is TEFDateTimeDataType then
       begin
         Result := TExtGridDateColumn.AddTo(FGridPanel.Columns);
-        TExtGridDateColumn(Result).Format :=
-          DelphiDateFormatToJSDateFormat(Session.Config.UserFormatSettings.ShortDateFormat) + ' ' +
-          DelphiTimeFormatToJSTimeFormat(Session.Config.UserFormatSettings.ShortTimeFormat);
+        LFormat := AViewField.DisplayFormat;
+        if LFormat = '' then
+          LFormat := Session.Config.UserFormatSettings.ShortDateFormat + ' ' +
+            Session.Config.UserFormatSettings.ShortTimeFormat;
+        TExtGridDateColumn(Result).Format := DelphiDateTimeFormatToJSDateTimeFormat(LFormat);
       end
       else if LDataType is TEFIntegerDataType then
       begin

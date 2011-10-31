@@ -70,6 +70,7 @@ type
       const AOwner: TExtObject; const AClickHandler: TExtProcedure): Integer;
   end;
 
+function DelphiDateTimeFormatToJSDateTimeFormat(const ADateTimeFormat: string): string;
 function DelphiDateFormatToJSDateFormat(const ADateFormat: string): string;
 function DelphiTimeFormatToJSTimeFormat(const ATimeFormat: string): string;
 
@@ -293,6 +294,12 @@ begin
   Result := FAddedItems;
 end;
 
+function DelphiDateTimeFormatToJSDateTimeFormat(const ADateTimeFormat: string): string;
+begin
+  Result := DelphiDateFormatToJSDateFormat(ADateTimeFormat);
+  Result := DelphiTimeFormatToJSTimeFormat(Result);
+end;
+
 function DelphiDateFormatToJSDateFormat(const ADateFormat: string): string;
 begin
   Result := ReplaceText(ADateFormat, 'yyyy', 'Y');
@@ -305,6 +312,7 @@ function DelphiTimeFormatToJSTimeFormat(const ATimeFormat: string): string;
 begin
   Result := ReplaceText(ATimeFormat, 'hh', 'H');
   Result := ReplaceText(Result, 'mm', 'i');
+  Result := ReplaceText(Result, 'nn', 'i');
   Result := ReplaceText(Result, 'ss', 's');
 end;
 

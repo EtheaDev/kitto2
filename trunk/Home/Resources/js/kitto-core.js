@@ -93,3 +93,16 @@ function confirmCall(title, question, functionToCall, functionParams)
     params: functionParams
   });
 };
+
+// Formats a time specified as a "hh:mm:ss" string
+// according to the specified format.
+// Note: currently this function only decides whether to cut off the seconds
+// part or not depending on the presence of "s" in the format string, which is
+// just what we need now. It should be rewritten to support true formatting.
+function formatTime(time, format)
+{
+  if (format.indexOf("s") > -1)
+    return time;
+  else
+    return time.substring(0, 5);
+};

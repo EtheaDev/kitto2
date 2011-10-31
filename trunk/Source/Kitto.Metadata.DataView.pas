@@ -56,6 +56,8 @@ type
     function GetIsReference: Boolean;
     function GetIsDetailReference: Boolean;
     function GetHint: string;
+    function GetEditFormat: string;
+    function GetDisplayFormat: string;
   protected
     function GetChildClass(const AName: string): TEFNodeClass; override;
   public
@@ -129,6 +131,8 @@ type
     property DataType: TEFDataType read GetDataType;
     property Size: Integer read GetSize;
     property IsBlob: Boolean read GetIsBlob;
+    property EditFormat: string read GetEditFormat;
+    property DisplayFormat: string read GetDisplayFormat;
 
     ///	<summary>Creates a store with the current field and all key fields of
     ///	the referenced model. If reference = nil, an exception is
@@ -1044,6 +1048,15 @@ begin
     Result := TEFMacroExpansionEngine.Instance.Expand(Result);
 end;
 
+function TKViewField.GetDisplayFormat: string;
+begin
+  Result := GetString('DisplayFormat');
+  if Result = '' then
+    Result := ModelField.DisplayFormat;
+  if Result = '' then
+    Result := EditFormat;
+end;
+
 function TKViewField.GetDisplayLabel: string;
 begin
   Result := GetString('DisplayLabel');
@@ -1056,6 +1069,13 @@ begin
   Result := GetInteger('DisplayWidth');
   if Result = 0 then
     Result := ModelField.DisplayWidth;
+end;
+
+function TKViewField.GetEditFormat: string;
+begin
+  Result := GetString('EditFormat');
+  if Result = '' then
+    Result := ModelField.EditFormat;
 end;
 
 function TKViewField.GetEmptyAsNull: Boolean;

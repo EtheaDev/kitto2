@@ -307,7 +307,7 @@ type
 implementation
 
 uses
-  SysUtils, Classes, Math, StrUtils,
+  Types, SysUtils, Classes, Math, StrUtils,
   EF.StrUtils, EF.Localization, EF.YAML, EF.Types, EF.SQL,
   Kitto.JSON, Kitto.SQL, Kitto.Metadata.Models, Kitto.Types,
   Kitto.Rules, Kitto.Ext.Utils, Kitto.Ext.Session, Kitto.Ext.Rules;
@@ -644,6 +644,7 @@ function TKExtLayoutProcessor.TryCreateDateField(const AViewField: TKViewField;
   const AIsReadOnly: Boolean): IKExtEditor;
 var
   LDateField: TKExtFormDateField;
+  LFormat: string;
 begin
   if AViewField.DataType is TEFDateDataType then
   begin
@@ -653,7 +654,10 @@ begin
         LDateField.Width := LDateField.CharsToPixels(AFieldWidth + TRIGGER_WIDTH)
       else
         ARowField.CharWidth := AFieldWidth + TRIGGER_WIDTH;
-      LDateField.Format := DelphiDateFormatToJSDateFormat(Session.Config.UserFormatSettings.ShortDateFormat);
+      LFormat := AViewField.EditFormat;
+      if LFormat = '' then
+        LFormat := Session.Config.UserFormatSettings.ShortDateFormat;
+      LDateField.Format := DelphiDateFormatToJSDateFormat(LFormat);
       LDateField.AltFormats := DelphiDateFormatToJSDateFormat(Session.Config.JSFormatSettings.ShortDateFormat);
       if not AIsReadOnly then
         LDateField.AllowBlank := not AViewField.IsRequired;
@@ -672,6 +676,7 @@ function TKExtLayoutProcessor.TryCreateTimeField(const AViewField: TKViewField;
   const AIsReadOnly: Boolean): IKExtEditor;
 var
   LTimeField: TKExtFormTimeField;
+  LFormat: string;
 begin
   if AViewField.DataType is TEFTimeDataType then
   begin
@@ -681,9 +686,12 @@ begin
         LTimeField.Width := LTimeField.CharsToPixels(AFieldWidth + TRIGGER_WIDTH)
       else
         ARowField.CharWidth := AFieldWidth + TRIGGER_WIDTH;
-      // Don't use Delphi format here.
-      LTimeField.Format := DelphiTimeFormatToJSTimeFormat(Session.Config.UserFormatSettings.ShortTimeFormat);
-      LTimeField.AltFormats := DelphiDateFormatToJSDateFormat(Session.Config.JSFormatSettings.ShortTimeFormat);
+
+      LFormat := AViewField.EditFormat;
+      if LFormat = '' then
+        LFormat := Session.Config.UserFormatSettings.ShortTimeFormat;
+      LTimeField.Format := DelphiTimeFormatToJSTimeFormat(LFormat);
+      LTimeField.AltFormats := DelphiTimeFormatToJSTimeFormat(Session.Config.JSFormatSettings.ShortTimeFormat);
       if not AIsReadOnly then
         LTimeField.AllowBlank := not AViewField.IsRequired;
       Result := LTimeField;
@@ -703,6 +711,9 @@ const
   SPACER_WIDTH = 1;
 var
   LDateTimeField: TKExtFormDateTimeField;
+  LFormats: TStringDynArray;
+  LDateFormat: string;
+  LTimeFormat: string;
 begin
   if AViewField.DataType is TEFDateTimeDataType then
   begin
@@ -713,8 +724,11 @@ begin
       else
         ARowField.CharWidth := AFieldWidth + (2 * TRIGGER_WIDTH) + SPACER_WIDTH;
       // Don't use Delphi format here.
-      LDateTimeField.DateFormat := DelphiDateFormatToJSDateFormat(Session.Config.UserFormatSettings.ShortDateFormat);
-      LDateTimeField.AltFormats := DelphiDateFormatToJSDateFormat(Session.Config.JSFormatSettings.ShortDateFormat);
+      LFormats := Split(AViewField.EditFormat, ' ');
+      LDateFormat := IfThen(Length(LFormats) > 0, LFormats[0], Session.Config.UserFormatSettings.ShortDateFormat);
+      LTimeFormat := IfThen(Length(LFormats) > 1, LFormats[1], Session.Config.UserFormatSettings.ShortTimeFormat);
+      LDateTimeField.DateFormat := DelphiDateFormatToJSDateFormat(LDateFormat);
+      LDateTimeField.AltFormats := DelphiDateFormatToJSDateFormat(LTimeFormat);
       LDateTimeField.TimeFormat := DelphiTimeFormatToJSTimeFormat(Session.Config.UserFormatSettings.ShortTimeFormat);
       if not AIsReadOnly then
         LDateTimeField.AllowBlank := not AViewField.IsRequired;
