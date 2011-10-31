@@ -2133,7 +2133,7 @@ end;
 function TEFDateDataType.InternalNodeToJSONValue(const ANode: TEFNode;
   const AJSFormatSettings: TFormatSettings): string;
 begin
-  Result := DateToStr(ANode.AsDate, AJSFormatSettings);
+  Result := FormatDateTime(AJSFormatSettings.ShortDateFormat, ANode.AsDate);
 end;
 
 procedure TEFDateDataType.InternalNodeToParam(const ANode: TEFNode;
@@ -2169,7 +2169,7 @@ end;
 function TEFTimeDataType.InternalNodeToJSONValue(const ANode: TEFNode;
   const AJSFormatSettings: TFormatSettings): string;
 begin
-  Result := TimeToStr(ANode.AsTime, AJSFormatSettings);
+  Result := FormatDateTime(AJSFormatSettings.ShortTimeFormat, ANode.AsTime);
 end;
 
 procedure TEFTimeDataType.InternalNodeToParam(const ANode: TEFNode;

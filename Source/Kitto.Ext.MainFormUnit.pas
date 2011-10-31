@@ -159,7 +159,10 @@ procedure TKExtMainForm.FillConfigFileNameCombo;
 begin
   FindAllFiles('yaml', TKConfig.GetMetadataPath, ConfigFileNameComboBox.Items, False, False);
   if ConfigFileNameComboBox.Items.Count > 0 then
+  begin
     ConfigFileNameComboBox.ItemIndex := 0;
+    ConfigFileNameComboBoxChange(ConfigFileNameComboBox);
+  end;
 end;
 
 function TKExtMainForm.GetKAppThread: TKExtAppThread;
