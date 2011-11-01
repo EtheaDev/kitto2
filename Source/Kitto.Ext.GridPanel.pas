@@ -35,6 +35,7 @@ type
     FFilterPanel: TKExtFilterPanel;
     FPageRecordCount: Integer;
     FServerStore: TKViewTableStore;
+    FSelModel: TExtGridRowSelectionModel;
     procedure InitFieldsAndColumns;
     procedure SetViewTable(const AValue: TKViewTable);
     procedure CreateFilterPanel;
@@ -222,15 +223,14 @@ Note: remote sort passes params sort and dir. }
   FReader.TotalProperty := 'Total';
   FStore.Reader := FReader;
 
-  FStore.On('load', TExtGridRowSelectionModel(FGridPanel.SelModel).SelectFirstRow);
+  // Javascript error if the containing tab panel has DeferredRender=True.
+  FStore.On('load', FSelModel.SelectFirstRow);
 
   FGridPanel.Store := FStore;
   FGridPanel.View := FGridView;
 end;
 
 procedure TKExtGridPanel.InitDefaults;
-var
-  LSelModel: TExtGridRowSelectionModel;
 begin
   inherited;
   Layout := lyBorder;
@@ -240,9 +240,9 @@ begin
   FGridPanel.Border := False;
   FGridPanel.Header := False;
   FGridPanel.Region := rgCenter;
-  LSelModel := TExtGridRowSelectionModel.Create;
-  LSelModel.SingleSelect := True;
-  FGridPanel.SelModel := LSelModel;
+  FSelModel := TExtGridRowSelectionModel.Create;
+  FSelModel.SingleSelect := True;
+  FGridPanel.SelModel := FSelModel;
   FGridPanel.StripeRows := True;
   FGridPanel.Frame := False;
   FGridPanel.AutoScroll := True;
@@ -474,7 +474,7 @@ begin
   CreateFilterPanel;
 
   LKeyFieldNames := Join(ViewTable.GetKeyFieldAliasedNames(True), ',');
-  FGridPanel.On('rowdblclick', AjaxSelection(EditViewRecord, FGridPanel.SelModel, LKeyFieldNames, LKeyFieldNames, []));
+  FGridPanel.On('rowdblclick', AjaxSelection(EditViewRecord, FSelModel, LKeyFieldNames, LKeyFieldNames, []));
 
   // By default show paging toolbar if the model is large unless the view is grouped.
   if ViewTable.GetBoolean('Controller/PagingTools', ViewTable.Model.IsLarge and (GetGroupingFieldName = '')) then
@@ -514,8 +514,6 @@ function TKExtGridPanel.LocateRecordFromSession: TKViewTableRecord;
 var
   LKey: TEFNode;
 begin
-  Assert(ServerStore.RecordCount > 0);
-
   LKey := TEFNode.Create;
   try
     LKey.Assign(ServerStore.Key);
@@ -594,44 +592,47 @@ begin
   if not ViewTable.IsReadOnly then
   begin
     LNewButton := TExtButton.AddTo(Result.Items);
-    begin
-      LNewButton.Text := Format(_('New %s'), [ViewTable.DisplayLabel]);
-      LNewButton.Icon := Session.Config.GetImageURL('new_record_16');
-      LNewButton.Disabled := not FIsAddAllowed;
-      if not LNewButton.Disabled then
-        LNewButton.OnClick := NewRecord;
-    end;
+    LNewButton.Text := Format(_('New %s'), [ViewTable.DisplayLabel]);
+    LNewButton.Icon := Session.Config.GetImageURL('new_record_16');
+    if not FIsAddAllowed then
+      LNewButton.Disabled := True
+    else
+      LNewButton.OnClick := NewRecord;
     TExtToolbarSpacer.AddTo(Result.Items);
 
     LEditButton := TExtButton.AddTo(Result.Items);
+    if IsReadOnly then
     begin
-      if IsReadOnly then
-      begin
-        LEditButton.Text := Format(_('View %s'), [ViewTable.DisplayLabel]);
-        LEditButton.Icon := Session.Config.GetImageURL('view_record_16');
-      end
+      LEditButton.Text := Format(_('View %s'), [ViewTable.DisplayLabel]);
+      LEditButton.Icon := Session.Config.GetImageURL('view_record_16');
+    end
+    else
+    begin
+      LEditButton.Text := Format(_('Edit %s'), [ViewTable.DisplayLabel]);
+      LEditButton.Icon := Session.Config.GetImageURL('edit_record_16');
+      if not FIsEditAllowed then
+        LEditButton.Disabled := True
       else
       begin
-        LEditButton.Text := Format(_('Edit %s'), [ViewTable.DisplayLabel]);
-        LEditButton.Icon := Session.Config.GetImageURL('edit_record_16');
-        LEditButton.Disabled := not FIsEditAllowed;
-      end;
-      if not LEditButton.Disabled then
-      begin
         LKeyFieldNames := Join(ViewTable.GetKeyFieldAliasedNames(True), ',');
-        LEditButton.On('click', AjaxSelection(EditViewRecord, FGridPanel.SelModel, LKeyFieldNames, LKeyFieldNames, []));
+        LEditButton.On('click', AjaxSelection(EditViewRecord, FSelModel, LKeyFieldNames, LKeyFieldNames, []));
+        TExtGridRowSelectionModel(FSelModel).On('selectionchange', JSFunction(
+          's', Format('%s.setDisabled(s.getCount() == 0);', [LEditButton.JSName])));
       end;
     end;
     TExtToolbarSpacer.AddTo(Result.Items);
 
     LDeleteButton := TExtButton.AddTo(Result.Items);
+    LDeleteButton.Text := Format(_('Delete %s'), [ViewTable.DisplayLabel]);
+    LDeleteButton.Icon := Session.Config.GetImageURL('delete_record_16');
+    if not FIsDeleteAllowed then
+      LDeleteButton.Disabled := True
+    else
     begin
-      LDeleteButton.Text := Format(_('Delete %s'), [ViewTable.DisplayLabel]);
-      LDeleteButton.Icon := Session.Config.GetImageURL('delete_record_16');
-      LDeleteButton.Disabled := not FIsDeleteAllowed;
-      if not LDeleteButton.Disabled then
-        LDeleteButton.Handler := JSFunction(GetSelectConfirmCall(
-          Format(_('Selected %s will be deleted. Are you sure?'), [ViewTable.DisplayLabel]), DeleteCurrentRecord));
+      LDeleteButton.Handler := JSFunction(GetSelectConfirmCall(
+        Format(_('Selected %s will be deleted. Are you sure?'), [ViewTable.DisplayLabel]), DeleteCurrentRecord));
+      TExtGridRowSelectionModel(FSelModel).On('selectionchange', JSFunction(
+      's', Format('%s.setDisabled(s.getCount() == 0);', [LDeleteButton.JSName])));
     end;
   end;
 end;
@@ -639,7 +640,7 @@ end;
 function TKExtGridPanel.GetSelectConfirmCall(const AMessage: string; const AMethod: TExtProcedure): string;
 begin
   Result := Format('confirmCall("%s", "%s", ajaxSingleSelection, {methodURL: "%s", selModel: %s, fieldNames: "%s"});',
-    [Session.Config.AppTitle, AMessage, MethodURI(AMethod), FGridPanel.SelModel.JSName,
+    [Session.Config.AppTitle, AMessage, MethodURI(AMethod), FSelModel.JSName,
     Join(ViewTable.GetKeyFieldAliasedNames(True), ',')]);
 end;
 
@@ -672,6 +673,7 @@ procedure TKExtFilterPanel.InitDefaults;
 begin
   inherited;
   Border := False;
+  Layout := lyForm;
 end;
 
 end.
