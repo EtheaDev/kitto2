@@ -223,7 +223,6 @@ Note: remote sort passes params sort and dir. }
   FReader.TotalProperty := 'Total';
   FStore.Reader := FReader;
 
-  // Javascript error if the containing tab panel has DeferredRender=True.
   FStore.On('load', FSelModel.SelectFirstRow);
 
   FGridPanel.Store := FStore;
@@ -242,6 +241,7 @@ begin
   FGridPanel.Region := rgCenter;
   FSelModel := TExtGridRowSelectionModel.Create;
   FSelModel.SingleSelect := True;
+  FSelModel.Grid := FGridPanel;
   FGridPanel.SelModel := FSelModel;
   FGridPanel.StripeRows := True;
   FGridPanel.Frame := False;
