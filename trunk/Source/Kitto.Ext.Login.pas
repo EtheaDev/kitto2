@@ -96,7 +96,6 @@ begin
   Title := Session.Config.AppTitle;
   Width := 246;
   Height := 120;
-  Layout := lyFit;
   Closable := False;
   Resizable := False;
 
@@ -105,6 +104,7 @@ begin
   FStatusBar.BusyText := _('Logging in...');
 
   FFormPanel := TExtFormFormPanel.AddTo(Items);
+  FFormPanel.Region := rgCenter;
   FFormPanel.LabelWidth := 70;
   FFormPanel.Border := False;
   FFormPanel.BodyStyle := SetPaddings(5, 5);

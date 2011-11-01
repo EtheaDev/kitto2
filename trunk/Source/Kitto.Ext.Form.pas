@@ -47,12 +47,13 @@ type
     FOperation: string;
     FFocusField: TExtFormField;
     FStoreRecord: TKViewTableRecord;
-    procedure CreateDetailToolbar;
     procedure CreateEditors(const AForceReadOnly: Boolean);
     procedure StartOperation;
     procedure FocusFirstField;
     procedure CreateDetailPanels;
+    procedure CreateDetailToolbar;
     procedure LoadDetailData;
+    function GetDetailStyle: string;
   protected
     procedure LoadData; override;
     procedure InitComponents; override;
@@ -111,12 +112,12 @@ var
   I: Integer;
 begin
   Assert(ViewTable <> nil);
-  Assert(FTabPanel <> nil);
   Assert(FDetailPanels = nil);
   Assert(Assigned(FStoreRecord));
 
   if ViewTable.DetailTableCount > 0 then
   begin
+    Assert(FTabPanel <> nil);
     FStoreRecord.EnsureDetailStores;
     Assert(FStoreRecord.DetailStoreCount = ViewTable.DetailTableCount);
     FDetailToolbar := TExtToolbar.Create;
@@ -163,13 +164,18 @@ begin
   FFormPanel.On('afterrender', JSFunction(FFormPanel.JSName + '.body.dom.scrollTop = 0;'));
 end;
 
+function TKExtFormPanelController.GetDetailStyle: string;
+begin
+  Result := ViewTable.GetString('DetailTables/Controller/Style', 'Tabs');
+end;
+
 procedure TKExtFormPanelController.LoadData;
 var
   LDetailStyle: string;
 begin
   inherited;
   CreateEditors(FIsReadOnly);
-  LDetailStyle := ViewTable.GetString('DetailTables/Controller/Style', 'Tabs');
+  LDetailStyle := GetDetailStyle;
   if SameText(LDetailStyle, 'Tabs') then
     CreateDetailPanels
   else if SameText(LDetailStyle, 'Popup') then
@@ -294,14 +300,22 @@ begin
 
   ExtQuickTips.Init(True);
 
-  FTabPanel := TExtTabPanel.AddTo(Items);
-  FTabPanel.Border := False;
-  FTabPanel.Region := rgCenter;
-  FTabPanel.AutoScroll := False;
-  FTabPanel.SetActiveTab(0);
-
-  FFormPanel := TKExtEditPanel.AddTo(FTabPanel.Items);
-  FFormPanel.Title := ViewTable.DisplayLabel;
+  if (ViewTable.DetailTableCount > 0) and SameText(GetDetailStyle, 'Tabs') then
+  begin
+    FTabPanel := TExtTabPanel.AddTo(Items);
+    FTabPanel.Border := False;
+    FTabPanel.Region := rgCenter;
+    FTabPanel.AutoScroll := False;
+    FTabPanel.SetActiveTab(0);
+    FFormPanel := TKExtEditPanel.AddTo(FTabPanel.Items);
+    FFormPanel.Title := ViewTable.DisplayLabel;
+  end
+  else
+  begin
+    FTabPanel := nil;
+    FFormPanel := TKExtEditPanel.AddTo(Items);
+    FFormPanel.Region := rgCenter;
+  end;
   FFormPanel.Border := False;
   FFormPanel.Header := False;
   FFormPanel.Frame := True;
