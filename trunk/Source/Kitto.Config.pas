@@ -105,26 +105,18 @@ type
     ///	</param>
     class function GetResourceURL(const AResourceFileName: string): string;
 
-    ///	<summary>
-    ///	  Returns the URL for the specified resource, based on the first
-    ///	  existing file in the ordered list of resource folders. If no existing
-    ///	  file is found, returns ''.
-    ///	</summary>
-    ///	<param name="AResourceFileName">
-    ///	  Resource file name relative to the resource folder. Examples:
-    ///	  some_image.png, js\some_library.js.
-    ///	</param>
+    ///	<summary>Returns the URL for the specified resource, based on the first
+    ///	existing file in the ordered list of resource folders. If no existing
+    ///	file is found, returns ''.</summary>
+    ///	<param name="AResourceFileName">Resource file name relative to the
+    ///	resource folder. Examples: some_image.png, js\some_library.js.</param>
     class function FindResourceURL(const AResourceFileName: string): string;
 
-    ///	<summary>
-    ///	  Returns the full pathname for the specified resource, based on the first
-    ///	  existing file in the ordered list of resource folders. If no existing
-    ///	  file is found, returns ''.
-    ///	</summary>
-    ///	<param name="AResourceFileName">
-    ///	  Resource file name relative to the resource folder. Examples:
-    ///	  some_image.png, js\some_library.js.
-    ///	</param>
+    ///	<summary>Returns the full pathname for the specified resource, based on
+    ///	the first existing file in the ordered list of resource folders. If no
+    ///	existing file is found, returns ''.</summary>
+    ///	<param name="AResourceFileName">Resource file name relative to the
+    ///	resource folder. Examples: some_image.png, js\some_library.js.</param>
     class function FindResourcePathName(const AResourceFileName: string): string;
 
     ///	<summary>

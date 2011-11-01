@@ -67,7 +67,8 @@ begin
   { TODO : remove this once all controllers set it by themselves. }
   Defaults := JSObject('autoscroll:true');
   EnableTabScroll := True;
-  DeferredRender := True;
+  // Javascript error in contained grid panels if DeferredRender=True.
+  DeferredRender := False;
 end;
 
 procedure TKExtTabPanel.AfterConstruction;
