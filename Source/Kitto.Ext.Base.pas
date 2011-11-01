@@ -528,7 +528,6 @@ begin
   inherited;
   Width := 600;
   Height := 400;
-  Layout := lyFit;
   Closable := False;
   Modal := True;
 end;
