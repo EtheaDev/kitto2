@@ -1,5 +1,7 @@
 unit Kitto.Ext.Login;
 
+{$I Kitto.Defines.inc}
+
 interface
 
 uses

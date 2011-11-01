@@ -5,6 +5,8 @@
 ///	</summary>
 unit Kitto.Ext.Filters;
 
+{$I Kitto.Defines.inc}
+
 interface
 
 uses

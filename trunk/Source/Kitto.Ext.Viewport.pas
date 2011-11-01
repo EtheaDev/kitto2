@@ -1,5 +1,7 @@
 unit Kitto.Ext.Viewport;
 
+{$I Kitto.Defines.inc}
+
 interface
 
 uses

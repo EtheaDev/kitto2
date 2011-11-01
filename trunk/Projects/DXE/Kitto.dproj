@@ -103,6 +103,9 @@
 			<DCCReference Include="..\..\Source\Kitto.Ext.HtmlPanel.pas"/>
 			<DCCReference Include="..\..\Source\Kitto.Ext.List.pas"/>
 			<DCCReference Include="..\..\Source\Kitto.Ext.Login.pas"/>
+			<DCCReference Include="..\..\Source\Kitto.Ext.MainFormUnit.pas">
+				<Form>KExtMainForm</Form>
+			</DCCReference>
 			<DCCReference Include="..\..\Source\Kitto.Ext.Rules.pas"/>
 			<DCCReference Include="..\..\Source\Kitto.Ext.Session.pas"/>
 			<DCCReference Include="..\..\Source\Kitto.Ext.StatusBar.pas"/>
@@ -114,10 +117,6 @@
 			<DCCReference Include="..\..\Source\Kitto.Ext.Window.pas"/>
 			<DCCReference Include="..\..\Source\Kitto.JSON.pas"/>
 			<DCCReference Include="..\..\Source\Kitto.Localization.dxgettext.pas"/>
-			<DCCReference Include="..\..\Source\Kitto.LocalStorage.pas"/>
-			<DCCReference Include="..\..\Source\Kitto.Ext.MainFormUnit.pas">
-				<Form>KExtMainForm</Form>
-			</DCCReference>
 			<DCCReference Include="..\..\Source\Kitto.Metadata.DataView.pas"/>
 			<DCCReference Include="..\..\Source\Kitto.Metadata.Models.pas"/>
 			<DCCReference Include="..\..\Source\Kitto.Metadata.pas"/>
@@ -150,7 +149,7 @@
 						<Source Name="MainSource">Kitto.dpr</Source>
 					</Source>
 					<VersionInfo>
-						<VersionInfo Name="IncludeVerInfo">True</VersionInfo>
+						<VersionInfo Name="IncludeVerInfo">False</VersionInfo>
 						<VersionInfo Name="AutoIncBuild">False</VersionInfo>
 						<VersionInfo Name="MajorVer">1</VersionInfo>
 						<VersionInfo Name="MinorVer">0</VersionInfo>
@@ -161,7 +160,7 @@
 						<VersionInfo Name="Special">False</VersionInfo>
 						<VersionInfo Name="Private">False</VersionInfo>
 						<VersionInfo Name="DLL">False</VersionInfo>
-						<VersionInfo Name="Locale">1033</VersionInfo>
+						<VersionInfo Name="Locale">1040</VersionInfo>
 						<VersionInfo Name="CodePage">1252</VersionInfo>
 					</VersionInfo>
 					<VersionInfoKeys>

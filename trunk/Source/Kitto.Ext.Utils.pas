@@ -1,5 +1,7 @@
 unit Kitto.Ext.Utils;
 
+{$I Kitto.Defines.inc}
+
 interface
 
 uses

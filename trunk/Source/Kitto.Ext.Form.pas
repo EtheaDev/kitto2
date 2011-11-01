@@ -141,8 +141,7 @@ begin
 //  FEditors := TList<IKExtEditor>.Create;
   LLayoutProcessor := TKExtLayoutProcessor.Create;
   try
-    LLayoutProcessor.ViewTable := ViewTable;
-    LLayoutProcessor.StoreHeader := ServerStore.Header;
+    LLayoutProcessor.DataRecord := FStoreRecord;
     LLayoutProcessor.FormPanel := FFormPanel;
 //    LLayoutProcessor.OnNewEditor :=
 //      procedure (AEditor: IKExtEditor)

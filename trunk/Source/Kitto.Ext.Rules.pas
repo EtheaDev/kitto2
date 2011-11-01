@@ -1,6 +1,8 @@
 ///	<summary>Ext-specific rule implementations.</summary>
 unit Kitto.Ext.Rules;
 
+{$I Kitto.Defines.inc}
+
 interface
 
 uses

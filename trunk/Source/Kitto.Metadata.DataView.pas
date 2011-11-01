@@ -1,5 +1,7 @@
 unit Kitto.Metadata.DataView;
 
+{$I Kitto.Defines.inc}
+
 interface
 
 uses
@@ -99,6 +101,11 @@ type
     ///	</summary>
     property IsDetailReference: Boolean read GetIsDetailReference;
 
+    ///	<summary>Creates a store with the current field and all key fields of
+    ///	the referenced model. If reference = nil, an exception is
+    ///	raised.</summary>
+    function CreateReferenceStore: TKStore;
+
     ///	<summary>
     ///	  Extract and returns the model name from the Name. If no model name is
     ///	  specified (because the field is part of the main model), returns the
@@ -133,11 +140,6 @@ type
     property IsBlob: Boolean read GetIsBlob;
     property EditFormat: string read GetEditFormat;
     property DisplayFormat: string read GetDisplayFormat;
-
-    ///	<summary>Creates a store with the current field and all key fields of
-    ///	the referenced model. If reference = nil, an exception is
-    ///	raised.</summary>
-    function CreateStore: TKStore;
 
     property Rules: TKRules read GetRules;
 
@@ -207,14 +209,25 @@ type
   TKViewTableHeaderField = class(TKHeaderField)
   end;
 
+  TKViewTableField = class(TKField)
+  private
+    function GetParentRecord: TKViewTableRecord;
+    function GetViewField: TKViewField;
+  public
+    property ParentRecord: TKViewTableRecord read GetParentRecord;
+    property ViewField: TKViewField read GetViewField;
+  end;
+
   TKViewTableRecord = class(TKRecord)
   private
     function GetRecords: TKViewTableRecords;
     function GetDetailsStore(I: Integer): TKViewTableStore;
     function GetStore: TKViewTableStore;
     function GetViewTable: TKViewTable;
+    function GetField(I: Integer): TKViewTableField;
   protected
     procedure InternalAfterReadFromNode; override;
+    function GetChildClass(const AName: string): TEFNodeClass; override;
   public
     property Records: TKViewTableRecords read GetRecords;
     property Store: TKViewTableStore read GetStore;
@@ -227,6 +240,10 @@ type
 
     procedure ApplyBeforeRules;
     procedure ApplyAfterRules;
+
+    property Fields[I: Integer]: TKViewTableField read GetField; default;
+    function FindField(const AFieldName: string): TKViewTableField;
+    function FieldByName(const AFieldName: string): TKViewTableField;
   end;
 
   TKViewTableRecords = class(TKRecords)
@@ -900,25 +917,25 @@ begin
   end;
 end;
 
-function TKViewField.CreateStore: TKStore;
+function TKViewField.CreateReferenceStore: TKStore;
 var
   I: Integer;
   LField: TKModelField;
+  LCaptionField: TKModelField;
 begin
   Assert(IsReference);
 
   Result := TKStore.Create;
   try
-    { TODO : set fields for lookup }
-//    for I := 0 to ReferencedFieldCount - 1 do
-//    begin
-//      LField := ReferencedModel.FieldByName(Fields[I].
-//
-//      Result.Key.AddChild(LField.FieldName).DataType := LField.DataType;
-//      Result.Header.AddChild(LField.FieldName).DataType := LField.DataType;
-//    end;
-//    if Result.Header.FindChild(AliasedName) = nil then
-//      Result.Header.AddChild(AliasedName).DataType := DataType;
+    for I := 0 to ModelField.ReferencedModel.KeyFieldCount - 1 do
+    begin
+      LField := ModelField.ReferencedModel.KeyFields[I];
+      Result.Key.AddChild(LField.FieldName).DataType := LField.DataType;
+      Result.Header.AddChild(LField.FieldName).DataType := LField.DataType;
+    end;
+    LCaptionField := ModelField.ReferencedModel.CaptionField;
+    if Result.Header.FindChild(LCaptionField.FieldName) = nil then
+      Result.Header.AddChild(LCaptionField.FieldName).DataType := LCaptionField.DataType;
   except
     FreeAndNil(Result);
     raise;
@@ -1447,9 +1464,29 @@ begin
   end;
 end;
 
+function TKViewTableRecord.FieldByName(const AFieldName: string): TKViewTableField;
+begin
+  Result := inherited FieldByName(AFieldName) as TKViewTableField;
+end;
+
+function TKViewTableRecord.FindField(const AFieldName: string): TKViewTableField;
+begin
+  Result := inherited FindField(AFieldName) as TKViewTableField;
+end;
+
+function TKViewTableRecord.GetChildClass(const AName: string): TEFNodeClass;
+begin
+  Result := TKViewTableField;
+end;
+
 function TKViewTableRecord.GetDetailsStore(I: Integer): TKViewTableStore;
 begin
   Result := inherited DetailStores[I] as TKViewTableStore;
+end;
+
+function TKViewTableRecord.GetField(I: Integer): TKViewTableField;
+begin
+  Result := inherited Fields[I] as TKViewTableField;
 end;
 
 function TKViewTableRecord.GetRecords: TKViewTableRecords;
@@ -1537,6 +1574,18 @@ begin
     // ... and copy values.
     GetNode(LDetailFieldNames[I]).AssignValue(AMasterRecord.GetNode(LMasterFieldNames[I]));
   end;
+end;
+
+{ TKViewTableField }
+
+function TKViewTableField.GetParentRecord: TKViewTableRecord;
+begin
+  Result := inherited ParentRecord as TKViewTableRecord;
+end;
+
+function TKViewTableField.GetViewField: TKViewField;
+begin
+  Result := ParentRecord.ViewTable.FieldByAliasedName(FieldName);
 end;
 
 initialization
