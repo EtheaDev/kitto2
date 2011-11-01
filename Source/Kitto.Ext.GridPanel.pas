@@ -1,5 +1,7 @@
 unit Kitto.Ext.GridPanel;
 
+{$I Kitto.Defines.inc}
+
 interface
 
 uses

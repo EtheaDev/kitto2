@@ -1,5 +1,7 @@
 unit Kitto.Metadata.ViewBuilders;
 
+{$I Kitto.Defines.inc}
+
 interface
 
 uses

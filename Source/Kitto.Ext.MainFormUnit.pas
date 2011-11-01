@@ -1,5 +1,7 @@
 unit Kitto.Ext.MainFormUnit;
 
+{$I Kitto.Defines.inc}
+
 interface
 
 uses

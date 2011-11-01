@@ -1,5 +1,7 @@
 unit Kitto.Store;
 
+{$I Kitto.Defines.inc}
+
 interface
 
 uses

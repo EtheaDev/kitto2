@@ -39,6 +39,8 @@
 ///	<seealso cref="TKRuleImpl">How to create custom rules.</seealso>
 unit Kitto.Rules;
 
+{$I Kitto.Defines.inc}
+
 interface
 
 uses

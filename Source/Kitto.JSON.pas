@@ -1,5 +1,7 @@
 unit Kitto.JSON;
 
+{$I Kitto.Defines.inc}
+
 interface
 
 uses

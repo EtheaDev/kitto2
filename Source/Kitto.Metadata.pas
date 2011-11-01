@@ -1,5 +1,7 @@
 unit Kitto.Metadata;
 
+{$I Kitto.Defines.inc}
+
 interface
 
 uses
