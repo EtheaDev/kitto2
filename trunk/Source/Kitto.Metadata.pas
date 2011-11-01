@@ -121,7 +121,7 @@ type
 implementation
 
 uses
-  SysUtils,
+  Windows, SysUtils,
   EF.Localization, EF.StrUtils,
   Kitto.Types, Kitto.Config;
 
