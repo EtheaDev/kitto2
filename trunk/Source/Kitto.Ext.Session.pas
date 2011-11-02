@@ -143,7 +143,7 @@ begin
 
   // Try authentication with default credentials, if any, and skip login
   // window if it succeeds.
-  if TKExtLoginWindow.Authenticate then
+  if TKExtLoginWindow.Authenticate(Query['UserName'], Query['Password']) then
     DisplayHomeView
   else
     DisplayLoginWindow;

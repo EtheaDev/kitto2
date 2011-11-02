@@ -2116,7 +2116,7 @@ end;
 
 function TEFDateDataType.GetDefaultDisplayWidth(const ASize: Integer): Integer;
 begin
-  Result := 10;
+  Result := 8;
 end;
 
 function TEFDateDataType.GetJSTypeName: string;
@@ -2157,7 +2157,7 @@ end;
 
 function TEFTimeDataType.GetDefaultDisplayWidth(const ASize: Integer): Integer;
 begin
-  Result := 8;
+  Result := 6;
 end;
 
 procedure TEFTimeDataType.InternalFieldValueToNode(const AField: TField;
@@ -2194,7 +2194,7 @@ end;
 function TEFDateTimeDataType.GetDefaultDisplayWidth(
   const ASize: Integer): Integer;
 begin
-  Result := 19;
+  Result := 15;
 end;
 
 function TEFDateTimeDataType.GetJSTypeName: string;
@@ -2426,7 +2426,7 @@ end;
 function TEFStringDataType.GetDefaultDisplayWidth(
   const ASize: Integer): Integer;
 begin
-  Result := Max(Min(80, ASize), inherited GetDefaultDisplayWidth(ASize));
+  Result := Min(80, ASize);
 end;
 
 function TEFStringDataType.GetJSTypeName: string;
