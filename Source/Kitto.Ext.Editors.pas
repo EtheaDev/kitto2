@@ -176,12 +176,14 @@ type
     FDateFormat: string;
     FDateConfig: TExtObject;
     FTimeConfig: TExtObject;
-    FAltFormats: string;
+    FAltDateFormats: string;
     FAllowBlank: Boolean;
+    FAltTimeFormats: string;
     procedure SetDateFormat(const AValue: string);
     procedure SetTimeFormat(const AValue: string);
-    procedure SetAltFormats(const AValue: string);
+    procedure SetAltDateFormats(const AValue: string);
     procedure SetAllowBlank(const AValue: Boolean);
+    procedure SetAltTimeFormats(const AValue: string);
     //procedure SetDateConfig(const AValue: TExtObject);
     //procedure SetTimeConfig(const AValue: TExtObject);
   public
@@ -200,7 +202,8 @@ type
     //property DateConfig: TExtObject read FDateConfig write SetDateConfig;
     property TimeFormat: string read FTimeFormat write SetTimeFormat;
     //property TimeConfig: TExtObject read FTimeConfig write SetTimeConfig;
-    property AltFormats: string read FAltFormats write SetAltFormats;
+    property AltDateFormats: string read FAltDateFormats write SetAltDateFormats;
+    property AltTimeFormats: string read FAltTimeFormats write SetAltTimeFormats;
     property AllowBlank: Boolean read FAllowBlank write SetAllowBlank;
   end;
 
@@ -724,13 +727,13 @@ begin
         LDateTimeField.Width := LDateTimeField.CharsToPixels(AFieldWidth + (2 * TRIGGER_WIDTH) + SPACER_WIDTH)
       else
         ARowField.CharWidth := AFieldWidth + (2 * TRIGGER_WIDTH) + SPACER_WIDTH;
-      // Don't use Delphi format here.
       LFormats := Split(AViewField.EditFormat, ' ');
       LDateFormat := IfThen(Length(LFormats) > 0, LFormats[0], Session.Config.UserFormatSettings.ShortDateFormat);
       LTimeFormat := IfThen(Length(LFormats) > 1, LFormats[1], Session.Config.UserFormatSettings.ShortTimeFormat);
       LDateTimeField.DateFormat := DelphiDateFormatToJSDateFormat(LDateFormat);
-      LDateTimeField.AltFormats := DelphiDateFormatToJSDateFormat(LTimeFormat);
+      LDateTimeField.AltDateFormats := DelphiDateFormatToJSDateFormat(Session.Config.JSFormatSettings.ShortDateFormat);
       LDateTimeField.TimeFormat := DelphiTimeFormatToJSTimeFormat(Session.Config.UserFormatSettings.ShortTimeFormat);
+      LDateTimeField.AltTimeFormats := DelphiTimeFormatToJSTimeFormat(Session.Config.JSFormatSettings.ShortTimeFormat);
       if not AIsReadOnly then
         LDateTimeField.AllowBlank := not AViewField.IsRequired;
 //      if not AIsReadOnly then
@@ -1564,10 +1567,16 @@ begin
   JSCode('allowBlank:' + VarToJSON([AValue]));
 end;
 
-procedure TKExtFormDateTimeField.SetAltFormats(const AValue: string);
+procedure TKExtFormDateTimeField.SetAltDateFormats(const AValue: string);
 begin
-  FAltFormats := AValue;
-  JSCode('altFormats:' + VarToJSON([AValue]));
+  FAltDateFormats := AValue;
+  JSCode('altDateFormats:' + VarToJSON([AValue]));
+end;
+
+procedure TKExtFormDateTimeField.SetAltTimeFormats(const AValue: string);
+begin
+  FAltTimeFormats := AValue;
+  JSCode('altTimeFormats:' + VarToJSON([AValue]));
 end;
 
 //procedure TKExtFormDateTimeField.SetDateConfig(const AValue: TExtObject);

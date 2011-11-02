@@ -354,10 +354,13 @@ var
   I: Integer;
   LLocalFieldNames: TStringDynArray;
   LForeignFieldNames: TStringDynArray;
+  LCorrelationName: string;
 begin
   Assert(Assigned(AReferenceField));
 
-  Result := GetJoinKeyword + ' ' + AReferenceField.ReferencedModelName + ' on (';
+  LCorrelationName := AReferenceField.FieldName;
+
+  Result := GetJoinKeyword + ' ' + AReferenceField.ReferencedModelName + ' ' + LCorrelationName + ' on (';
   LLocalFieldNames := AReferenceField.ReferenceFieldNames;
   Assert(Length(LLocalFieldNames) > 0);
   LForeignFieldNames := AReferenceField.ReferencedModel.GetKeyFieldNames;
@@ -366,7 +369,7 @@ begin
   for I := Low(LLocalFieldNames) to High(LLocalFieldNames) do
   begin
     Result := Result + FViewTable.ModelName + '.' + LLocalFieldNames[I] + ' = '
-      + AReferenceField.ReferencedModelName + '.' + LForeignFieldNames[I];
+      + LCorrelationName + '.' + LForeignFieldNames[I];
     if I < High(LLocalFieldNames) then
       Result := Result + ' and ';
   end;
@@ -382,7 +385,7 @@ begin
   Assert(Assigned(AViewField));
   Assert(AViewField.IsReference);
 
-  if not FUsedReferenceFields.Contains(AViewField.ModelField)   then
+  if not FUsedReferenceFields.Contains(AViewField.ModelField) then
     FUsedReferenceFields.Add(AViewField.ModelField);
 
   LFieldNames := AViewField.ModelField.ReferenceFieldNames;
@@ -390,7 +393,7 @@ begin
     AddSelectTerm(FViewTable.ModelName + '.' + LFieldNames[I]);
   // Add the caption field of the referenced model as well.
   // The reference field name is used as table alias.
-  AddSelectTerm(AViewField.ModelField.ReferencedModel.CaptionField.QualifiedFieldName
+  AddSelectTerm(AViewField.FieldName + '.' + AViewField.ModelField.ReferencedModel.CaptionField.FieldName
     + ' ' + AViewField.ModelField.FieldName);
 end;
 

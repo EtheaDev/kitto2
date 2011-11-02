@@ -802,8 +802,8 @@ end;
 
 function TKModelField.GetDisplayWidth: Integer;
 begin
-  Result := GetInteger('DisplayWidth', -1);
-  if Result = -1 then
+  Result := GetInteger('DisplayWidth');
+  if Result = 0 then
     Result := DataType.GetDefaultDisplayWidth(Size);
 end;
 

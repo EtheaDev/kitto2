@@ -14,6 +14,7 @@
  * fixes:
  * 15/04/09 - fix for bug date selection on grayed (non current month date) always set to '0:00'
  * 22/07/09    - compatibility for Ext 3.0
+ * 02/11/11 - added altDateFormats and altTimeFormats (Nando Dessena)
  */
 Ext.ns('Ext.ux.form');
 
@@ -54,6 +55,7 @@ Ext.DateTimePicker = Ext.extend(Ext.DatePicker, {
             var timeConfig = Ext.apply({}, {
                  id:this.id + '-time'
                 ,format:this.timeFormat || Ext.form.TimeField.prototype.format
+                ,altFormats:this.altTimeFormats
                 ,width:this.timeWidth
                 ,fieldLabel:this.timeLabel
                 ,selectOnFocus:true
@@ -73,7 +75,7 @@ Ext.DateTimePicker = Ext.extend(Ext.DatePicker, {
         if (this.tf){
             var dt = new Date();
             var timeval = this.tf.getValue();
-            value = Date.parseDate(value.format(this.dateFormat) + ' ' +timeval,this.format);
+            value = Date.parseDate(value.format(this.dateFormat) + ' ' + timeval, this.format);
         }
         return value;
     },
@@ -188,6 +190,7 @@ Ext.ux.form.DateTimeField = Ext.extend(Ext.form.DateField, {
     ,initComponent:function() {
         Ext.ux.form.DateTimeField.superclass.initComponent.call(this);
         this.format = this.dateFormat + ' ' + this.timeFormat;
+        this.altFormats = this.altDateFormats + ' ' + this.altTimeFormats;
         this.afterMethod('afterRender',function(){
             this.getEl().applyStyles('top:0');
         });
@@ -213,7 +216,9 @@ Ext.ux.form.DateTimeField = Ext.extend(Ext.form.DateField, {
             disabledDaysText : this.disabledDaysText,
             format : this.format,
             timeFormat: this.timeFormat,
+            altTimeFormats: this.altTimeFormats,
             dateFormat: this.dateFormat,
+            altDateFormats: this.altDateFormats,
             showToday : this.showToday,
             minText : String.format(this.minText, this.formatDate(this.minValue)),
             maxText : String.format(this.maxText, this.formatDate(this.maxValue))
