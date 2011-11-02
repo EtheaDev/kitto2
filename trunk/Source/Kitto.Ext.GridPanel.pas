@@ -48,7 +48,6 @@ type
     function CreateTopToolbar: TExtToolbar;
     function CreatePagingToolbar: TExtPagingToolbar;
     function LocateRecordFromSession: TKViewTableRecord;
-    procedure RefreshData;
     procedure ShowEditWindow(const ARecord: TKRecord;
       const AEditMode: TKEditMode);
     function GetSelectConfirmCall(const AMessage: string; const AMethod: TExtProcedure): string;
@@ -66,6 +65,7 @@ type
     procedure EditViewRecord;
     procedure NewRecord(This: TExtButton; E: TExtEventObjectSingleton);
     procedure DeleteCurrentRecord;
+    procedure RefreshData;
   end;
 
 implementation
@@ -584,14 +584,14 @@ function TKExtGridPanel.CreateTopToolbar: TExtToolbar;
 var
   LNewButton: TExtButton;
   LEditButton: TExtButton;
-  LDeleteButton: TExtButton;
+  LRefreshButton: TExtButton;
   LKeyFieldNames: string;
 begin
   Assert(ViewTable <> nil);
 
   Result := TExtToolbar.Create;
-  // Add buttons.
-  if not ViewTable.IsReadOnly then
+
+  if not IsReadOnly then
   begin
     LNewButton := TExtButton.AddTo(Result.Items);
     LNewButton.Text := Format(_('New %s'), [ViewTable.DisplayLabel]);
@@ -601,42 +601,53 @@ begin
     else
       LNewButton.OnClick := NewRecord;
     TExtToolbarSpacer.AddTo(Result.Items);
+  end;
 
-    LEditButton := TExtButton.AddTo(Result.Items);
-    if IsReadOnly then
-    begin
-      LEditButton.Text := Format(_('View %s'), [ViewTable.DisplayLabel]);
-      LEditButton.Icon := Session.Config.GetImageURL('view_record_16');
-    end
+  LEditButton := TExtButton.AddTo(Result.Items);
+  if IsReadOnly then
+  begin
+    LEditButton.Text := Format(_('View %s'), [ViewTable.DisplayLabel]);
+    LEditButton.Icon := Session.Config.GetImageURL('view_record_16');
+  end
+  else
+  begin
+    LEditButton.Text := Format(_('Edit %s'), [ViewTable.DisplayLabel]);
+    LEditButton.Icon := Session.Config.GetImageURL('edit_record_16');
+    if not FIsEditAllowed then
+      LEditButton.Disabled := True
     else
     begin
-      LEditButton.Text := Format(_('Edit %s'), [ViewTable.DisplayLabel]);
-      LEditButton.Icon := Session.Config.GetImageURL('edit_record_16');
-      if not FIsEditAllowed then
-        LEditButton.Disabled := True
-      else
-      begin
-        LKeyFieldNames := Join(ViewTable.GetKeyFieldAliasedNames(True), ',');
-        LEditButton.On('click', AjaxSelection(EditViewRecord, FSelModel, LKeyFieldNames, LKeyFieldNames, []));
-        TExtGridRowSelectionModel(FSelModel).On('selectionchange', JSFunction(
-          's', Format('%s.setDisabled(s.getCount() == 0);', [LEditButton.JSName])));
-      end;
-    end;
-    TExtToolbarSpacer.AddTo(Result.Items);
-
-    LDeleteButton := TExtButton.AddTo(Result.Items);
-    LDeleteButton.Text := Format(_('Delete %s'), [ViewTable.DisplayLabel]);
-    LDeleteButton.Icon := Session.Config.GetImageURL('delete_record_16');
-    if not FIsDeleteAllowed then
-      LDeleteButton.Disabled := True
-    else
-    begin
-      LDeleteButton.Handler := JSFunction(GetSelectConfirmCall(
-        Format(_('Selected %s will be deleted. Are you sure?'), [ViewTable.DisplayLabel]), DeleteCurrentRecord));
+      LKeyFieldNames := Join(ViewTable.GetKeyFieldAliasedNames(True), ',');
+      LEditButton.On('click', AjaxSelection(EditViewRecord, FSelModel, LKeyFieldNames, LKeyFieldNames, []));
       TExtGridRowSelectionModel(FSelModel).On('selectionchange', JSFunction(
-      's', Format('%s.setDisabled(s.getCount() == 0);', [LDeleteButton.JSName])));
+        's', Format('%s.setDisabled(s.getCount() == 0);', [LEditButton.JSName])));
     end;
   end;
+  TExtToolbarSpacer.AddTo(Result.Items);
+
+  if not IsReadOnly then
+  begin
+    LRefreshButton := TExtButton.AddTo(Result.Items);
+    LRefreshButton.Text := Format(_('Delete %s'), [ViewTable.DisplayLabel]);
+    LRefreshButton.Icon := Session.Config.GetImageURL('delete_record_16');
+    if not FIsDeleteAllowed then
+      LRefreshButton.Disabled := True
+    else
+    begin
+      LRefreshButton.Handler := JSFunction(GetSelectConfirmCall(
+        Format(_('Selected %s will be deleted. Are you sure?'), [ViewTable.DisplayLabel]), DeleteCurrentRecord));
+      TExtGridRowSelectionModel(FSelModel).On('selectionchange', JSFunction(
+      's', Format('%s.setDisabled(s.getCount() == 0);', [LRefreshButton.JSName])));
+    end;
+    TExtToolbarSpacer.AddTo(Result.Items);
+  end;
+
+  LRefreshButton := TExtButton.AddTo(Result.Items);
+  LRefreshButton.Icon := Session.Config.GetImageURL('arrow_refresh');
+  LRefreshButton.Handler := Ajax(RefreshData);
+  LRefreshButton.Tooltip := _('Refresh');
+  //TExtToolbarSpacer.AddTo(Result.Items);
+
 end;
 
 function TKExtGridPanel.GetSelectConfirmCall(const AMessage: string; const AMethod: TExtProcedure): string;
