@@ -1807,6 +1807,7 @@ var
   LEnd: Integer;
   LNodePath: string;
   LNodeValue: string;
+  LNode: TEFNode;
 begin
   Result := inherited InternalExpand(AString);
 
@@ -1820,9 +1821,10 @@ begin
     if LEnd = 0 then
       Exit;
     LNodePath := Copy(Result, LPathStart, LEnd - LPathStart);
-    LNodeValue := FTree.GetExpandedString(StripPrefixAndSuffix(LNodePath, '%', '%'));
-    if LNodeValue <> ''  then
+    LNode := FTree.FindNode(StripPrefixAndSuffix(LNodePath, '%', '%'));
+    if Assigned(LNode) then
     begin
+      LNodeValue := LNode.AsExpandedString;
       Delete(Result, LStart, LEnd - LStart + 1);
       Insert(LNodeValue, Result, LStart);
     end;
