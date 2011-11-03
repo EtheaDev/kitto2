@@ -54,6 +54,7 @@ type
       const AEditMode: TKEditMode);
     function GetSelectConfirmCall(const AMessage: string; const AMethod: TExtProcedure): string;
     function IsReadOnly: Boolean;
+    function GetOrderByClause: string;
   protected
     procedure InitDefaults; override;
   public
@@ -118,6 +119,17 @@ begin
     Result := '';
 end;
 
+function TKExtGridPanel.GetOrderByClause: string;
+var
+  LSortFieldName: string;
+begin
+  LSortFieldName := ViewTable.GetString('Controller/Grouping/SortFieldName', GetGroupingFieldName);
+  if LSortFieldName <> '' then
+    Result := ViewTable.FieldByName(LSortFieldName).QualifiedNameOrExpression
+  else
+    Result := ''
+end;
+
 procedure TKExtGridPanel.GetRecordPage;
 var
   LStart: Integer;
@@ -138,12 +150,12 @@ begin
 
     if (LStart <> 0) or (LLimit <> 0) then
     begin
-      LTotal := ServerStore.LoadPage(GetFilterExpression, LStart, LLimit);
+      LTotal := ServerStore.LoadPage(GetFilterExpression, GetOrderByClause, LStart, LLimit);
       LData := ServerStore.GetAsJSON(True);
     end
     else
     begin
-      ServerStore.Load(GetFilterExpression);
+      ServerStore.Load(GetFilterExpression, GetOrderByClause);
       LTotal := ServerStore.RecordCount;
       LData := ServerStore.GetAsJSON(True, 0, Min(MAX_RECORD_COUNT, ServerStore.RecordCount));
     end;
@@ -202,9 +214,9 @@ begin
     if LGroupingFieldName <> '' then
     begin
       TExtDataGroupingStore(FStore).GroupField := ViewTable.FieldByAliasedName(LGroupingFieldName).GetMinifiedName;
-      FStore.RemoteSort := False;
-      FStore.SortInfo := JSObject('field:"' +
-        ViewTable.FieldByAliasedName(ViewTable.GetString('Controller/Grouping/SortFieldName', LGroupingFieldName)).GetMinifiedName + '"');
+      FStore.RemoteSort := True;
+//      FStore.SortInfo := JSObject('field:"' +
+//        ViewTable.FieldByAliasedName(ViewTable.GetString('Controller/Grouping/SortFieldName', LGroupingFieldName)).GetMinifiedName + '"');
     end;
   end
   else

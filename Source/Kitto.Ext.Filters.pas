@@ -538,6 +538,7 @@ function TKButtonListFilter.GetExpression: string;
 var
   I: Integer;
   LConnector: string;
+  LExpression: string;
 begin
   Assert(Assigned(FItems));
 
@@ -547,10 +548,11 @@ begin
     LConnector := FConfig.GetString('Connector', 'or');
     if FSelected[I] then
     begin
+      LExpression := '(' + FItems.Children[I].GetExpandedString('Expression') + ')';
       if Result = '' then
-        Result := FItems.Children[I].GetExpandedString('Expression')
+        Result := LExpression
       else
-        Result := Result + ' ' + LConnector + ' ' + FItems.Children[I].GetExpandedString('Expression');
+        Result := Result + ' ' + LConnector + ' ' + LExpression;
     end;
   end;
   if Result <> '' then

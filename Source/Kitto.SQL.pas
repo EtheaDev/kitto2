@@ -25,8 +25,8 @@ type
     function BuildJoin(const AReferenceField: TKModelField): string;
 
     procedure InternalBuildSelectQuery(const AViewTable: TKViewTable;
-      const AFilter: string; const ADBQuery: TEFDBQuery; const AMasterValues: TEFNode = nil;
-      const AFrom: Integer = 0; const AFor: Integer = 0);
+      const AFilter: string; const AOrderBy: string; const ADBQuery: TEFDBQuery;
+      const AMasterValues: TEFNode = nil; const AFrom: Integer = 0; const AFor: Integer = 0);
     procedure InternalBuildCountQuery(const AViewTable: TKViewTable;
       const AFilter: string; const ADBQuery: TEFDBQuery;
       const AMasterValues: TEFNode);
@@ -46,7 +46,7 @@ type
     ///	  are set based on AMasterValues.</para>
     ///	</summary>
     class procedure BuildSelectQuery(const AViewTable: TKViewTable; const AFilter: string;
-      const ADBQuery: TEFDBQuery; const AMasterValues: TEFNode = nil;
+      const AOrderBy: string; const ADBQuery: TEFDBQuery; const AMasterValues: TEFNode = nil;
       const AFrom: Integer = 0; const AFor: Integer = 0);
 
     class procedure BuildCountQuery(const AViewTable: TKViewTable;
@@ -93,15 +93,15 @@ uses
 { TKSQLQueryBuilder }
 
 class procedure TKSQLBuilder.BuildSelectQuery(const AViewTable: TKViewTable;
-  const AFilter: string; const ADBQuery: TEFDBQuery; const AMasterValues: TEFNode;
-  const AFrom: Integer; const AFor: Integer);
+  const AFilter: string; const AOrderBy: string; const ADBQuery: TEFDBQuery;
+  const AMasterValues: TEFNode; const AFrom: Integer; const AFor: Integer);
 begin
   Assert(Assigned(AViewTable));
 
   with TKSQLBuilder.Create do
   begin
     try
-      InternalBuildSelectQuery(AViewTable, AFilter, ADBQuery, AMasterValues, AFrom, AFor);
+      InternalBuildSelectQuery(AViewTable, AFilter, AOrderBy, ADBQuery, AMasterValues, AFrom, AFor);
     finally
       Free;
     end;
@@ -433,8 +433,8 @@ begin
 end;
 
 procedure TKSQLBuilder.InternalBuildSelectQuery(const AViewTable: TKViewTable;
-  const AFilter: string; const ADBQuery: TEFDBQuery; const AMasterValues: TEFNode;
-  const AFrom: Integer; const AFor: Integer);
+  const AFilter: string; const AOrderBy: string; const ADBQuery: TEFDBQuery;
+  const AMasterValues: TEFNode; const AFrom: Integer; const AFor: Integer);
 var
   I: Integer;
   LCommandText: string;
@@ -457,8 +457,8 @@ begin
     LCommandText :=
       'select ' +  FSelectTerms +
       ' from ' + GetFromClause + GetSelectWhereClause(AFilter, ADBQuery);
-    if FViewTable.DefaultSorting <> '' then
-      LCommandText := LCommandText + ' order by ' + FViewTable.DefaultSorting;
+    if (AOrderBy <> '') or (FViewTable.DefaultSorting <> '') then
+      LCommandText := LCommandText + ' order by ' + IfThen(AOrderBy <> '', AOrderBy, FViewTable.DefaultSorting);
     LCommandText := ADBQuery.Connection.AddLimitClause(LCommandText, AFrom, AFor);
     ADBQuery.CommandText := TEFMacroExpansionEngine.Instance.Expand(LCommandText);
   finally

@@ -60,6 +60,7 @@ type
     function GetHint: string;
     function GetEditFormat: string;
     function GetDisplayFormat: string;
+    function GetQualifiedNameOrExpression: string;
   protected
     function GetChildClass(const AName: string): TEFNodeClass; override;
   public
@@ -72,6 +73,7 @@ type
     property AliasedName: string read GetAliasedName;
     property QualifiedAliasedNameOrExpression: string read GetQualifiedAliasedNameOrExpression;
     property QualifiedName: string read GetQualifiedName;
+    property QualifiedNameOrExpression: string read GetQualifiedNameOrExpression;
     property AllowedValues: TEFPairs read GetAllowedValues;
 
     property CanInsert: Boolean read GetCanInsert;
@@ -178,7 +180,7 @@ type
     property ViewTable: TKViewTable read FViewTable;
     property Records: TKViewTableRecords read GetRecords;
 
-    procedure Load(const AFilter: string);
+    procedure Load(const AFilter: string; const AOrderBy: string);
 
     ///	<summary>Loads a page of data according to AFrom and AFor arguments,
     ///	and returns the total number of records in all pages.</summary>
@@ -192,7 +194,7 @@ type
     ///	  <para>If AFrom or ATo are 0, the method calls <see cref=
     ///	  "Load" />.</para>
     ///	</remarks>
-    function LoadPage(const AFilter: string; const AFrom, AFor: Integer): Integer;
+    function LoadPage(const AFilter: string; const AOrderBy: string; const AFrom, AFor: Integer): Integer;
 
     ///	<summary>Appends a record and fills it with the specified
     ///	values.</summary>
@@ -1019,6 +1021,18 @@ begin
   end;
 end;
 
+function TKViewField.GetQualifiedNameOrExpression: string;
+var
+  LExpression: string;
+begin
+  if Name = '' then
+    raise EKError.Create('Missing field name.');
+  if Expression <> '' then
+    Result := Expression
+  else
+    Result := QualifiedName;
+end;
+
 function TKViewField.GetDataType: TEFDataType;
 var
   LDataTypeName: string;
@@ -1304,7 +1318,7 @@ begin
   Result := inherited Records as TKViewTableRecords;
 end;
 
-procedure TKViewTableStore.Load(const AFilter: string);
+procedure TKViewTableStore.Load(const AFilter: string; const AOrderBy: string);
 var
   LDBQuery: TEFDBQuery;
 begin
@@ -1312,20 +1326,21 @@ begin
 
   LDBQuery := TKConfig.Instance.MainDBConnection.CreateDBQuery;
   try
-    TKSQLBuilder.BuildSelectQuery(FViewTable, AFilter, LDBQuery, FMasterRecord);
+    TKSQLBuilder.BuildSelectQuery(FViewTable, AFilter, AOrderBy, LDBQuery, FMasterRecord);
     inherited Load(LDBQuery);
   finally
     FreeAndNil(LDBQuery);
   end;
 end;
 
-function TKViewTableStore.LoadPage(const AFilter: string; const AFrom, AFor: Integer): Integer;
+function TKViewTableStore.LoadPage(const AFilter: string; const AOrderBy: string;
+  const AFrom, AFor: Integer): Integer;
 var
   LDBQuery: TEFDBQuery;
 begin
   if (AFrom = 0) and (AFor = 0) then
   begin
-    Load(AFilter);
+    Load(AFilter, AOrderBy);
     Result := RecordCount;
   end
   else
@@ -1339,7 +1354,7 @@ begin
       finally
         LDBQuery.Close;
       end;
-      TKSQLBuilder.BuildSelectQuery(FViewTable, AFilter, LDBQuery, FMasterRecord, AFrom, AFor);
+      TKSQLBuilder.BuildSelectQuery(FViewTable, AFilter, AOrderBy, LDBQuery, FMasterRecord, AFrom, AFor);
       inherited Load(LDBQuery);
     finally
       FreeAndNil(LDBQuery);
