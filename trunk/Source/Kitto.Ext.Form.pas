@@ -172,7 +172,6 @@ procedure TKExtFormPanelController.LoadData;
 var
   LDetailStyle: string;
 begin
-  inherited;
   CreateEditors(FIsReadOnly);
   LDetailStyle := GetDetailStyle;
   if SameText(LDetailStyle, 'Tabs') then
