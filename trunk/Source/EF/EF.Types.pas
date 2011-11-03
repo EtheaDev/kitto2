@@ -208,8 +208,8 @@ end;
 
 function TEFRegistry.GetClass(const AId: string): TClass;
 begin
-  if HasClass(AId) then
-    Result := FClasses[AId]
+  if HasClass(UpperCase(AId)) then
+    Result := FClasses[UpperCase(AId)]
   else
     raise EEFError.CreateFmt('Class %s not found.', [AId]);
 end;
@@ -217,21 +217,21 @@ end;
 procedure TEFRegistry.RegisterClass(const AId: string; const AClass: TClass);
 begin
   BeforeRegisterClass(AId, AClass);
-  FClasses.Add(AId, AClass);
+  FClasses.Add(UpperCase(AId), AClass);
   AfterRegisterClass(AId, AClass);
 end;
 
 function TEFRegistry.HasClass(const AId: string): Boolean;
 begin
-  Result := FClasses.ContainsKey(AId);
+  Result := FClasses.ContainsKey(UpperCase(AId));
 end;
 
 procedure TEFRegistry.UnregisterClass(const AId: string);
 begin
   Assert(AId <> '');
 
-  if FClasses.ContainsKey(AId) then
-    FClasses.Remove(AId);
+  if FClasses.ContainsKey(UpperCase(AId)) then
+    FClasses.Remove(UpperCase(AId));
 end;
 
 { TEFFactory }
