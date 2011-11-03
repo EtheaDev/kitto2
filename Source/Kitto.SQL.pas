@@ -219,7 +219,7 @@ begin
     for I := 0 to AValues.ChildCount - 1 do
     begin
       LViewField := AViewTable.FindField(AValues[I].Name);
-      if Assigned(LViewField) and LViewField.CanUpdate then
+      if Assigned(LViewField) and LViewField.CanUpdate and not LViewField.IsKey then
       begin
         if LViewField.IsReference then
         begin

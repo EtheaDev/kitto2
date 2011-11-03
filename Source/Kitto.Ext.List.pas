@@ -37,7 +37,6 @@ end;
 
 procedure TKExtListPanelController.LoadData;
 begin
-  inherited;
   Assert(Assigned(FGridPanel));
 
   FGridPanel.LoadData;

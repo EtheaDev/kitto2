@@ -1717,7 +1717,9 @@ begin
     { TODO : handle null and EmptyAsNull }
     if AStrings.IndexOfName(LName) >= 0 then
     begin
-      if LChild.DataType is TEFIntegerDataType then
+      if AStrings.Values[LName] = '' then
+        LChild.SetToNull
+      else if LChild.DataType is TEFIntegerDataType then
         LChild.AsInteger := StrToInt(AStrings.Values[LName])
       else if LChild.DataType is TEFBooleanDataType then
         LChild.AsBoolean := MatchText(AStrings.Values[LName], ['on', 'true'])

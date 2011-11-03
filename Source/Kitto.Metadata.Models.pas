@@ -104,6 +104,9 @@ type
     ///	physical fields that make up the reference.</summary>
     property Fields[I: Integer]: TKModelField read GetField;
 
+    function FieldByName(const AName: string): TKModelField;
+    function FindField(const AName: string): TKModelField;
+
     ///	<summary>Returna the names of the sub-fields, if any.</summary>
     function GetFieldNames: TStringDynArray;
 
@@ -736,6 +739,16 @@ begin
   Result := CamelToSpaced(UpperUnderscoreToCamel(AFieldName));
 end;
 
+function TKModelField.FieldByName(const AName: string): TKModelField;
+begin
+  Result := GetFields.FieldByName(AName);
+end;
+
+function TKModelField.FindField(const AName: string): TKModelField;
+begin
+  Result := GetFields.FindField(AName);
+end;
+
 function TKModelField.GetAllowedValues: TEFPairs;
 begin
   Result := GetChildrenAsPairs('AllowedValues');
@@ -855,7 +868,7 @@ end;
 
 function TKModelField.GetFields: TKModelFields;
 begin
-  Result := GetNode('Fields') as TKModelFields;
+  Result := GetNode('Fields', True) as TKModelFields;
 end;
 
 function TKModelField.GetSize: Integer;
@@ -890,12 +903,25 @@ end;
 
 function TKModelFields.FieldByName(const AName: string): TKModelField;
 begin
-  Result := ChildByName(AName) as TKModelField;
+  Result := FindField(AName);
+  if not Assigned(Result) then
+    raise EKError.CreateFmt('Field %s not found.', [AName]);
 end;
 
 function TKModelFields.FindField(const AName: string): TKModelField;
+var
+  I: Integer;
 begin
   Result := FindChild(AName) as TKModelField;
+  if not Assigned(Result) then
+  begin
+    for I := 0 to FieldCount - 1 do
+    begin
+      Result := Fields[I].FindField(AName);
+      if Assigned(Result) then
+        Exit;
+    end;
+  end;
 end;
 
 function TKModelFields.GetChildClass(const AName: string): TEFNodeClass;

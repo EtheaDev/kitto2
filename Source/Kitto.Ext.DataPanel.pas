@@ -14,12 +14,11 @@ type
     FServerStore: TKViewTableStore;
     FViewTable: TKViewTable;
     FOwnsServerStore: Boolean;
-    procedure InitServerStore;
     function GetView: TKDataView;
     function GetServerStore: TKViewTableStore;
   protected
     function AutoLoadData: Boolean;
-    procedure LoadData; virtual;
+    procedure LoadData; virtual; abstract;
     procedure CheckCanRead;
     procedure CreateToolbar; virtual;
     procedure DoDisplay; override;
@@ -84,7 +83,6 @@ begin
   Header := Config.GetBoolean('ShowHeader');
 
   InitComponents;
-  InitServerStore;
   CheckCanRead;
   LoadData;
 end;
@@ -108,19 +106,6 @@ procedure TKExtDataPanelController.InitDefaults;
 begin
   inherited;
   Layout := lyBorder;
-end;
-
-procedure TKExtDataPanelController.InitServerStore;
-begin
-  Assert(View <> nil);
-  Assert(Assigned(FViewTable));
-
-{ TODO : ??? }
-end;
-
-procedure TKExtDataPanelController.LoadData;
-begin
-  { TODO : load store }
 end;
 
 function TKExtDataPanelController.AutoLoadData: Boolean;
