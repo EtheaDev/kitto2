@@ -331,17 +331,17 @@ begin
     FSaveButton.FormBind := True;
     FSaveButton.Text := _('Save');
     FSaveButton.Tooltip := _('Save changes and finish editing');
-    FSaveButton.Icon := Session.Config.GetImageURL('ok');
+    FSaveButton.Icon := Session.Config.GetImageURL('accept');
     FSaveButton.Handler := AjaxForms(SaveChanges, [FFormPanel]);
     //FSaveButton.Handler := JSFunction(FFormPanel.JSName + '.getForm().doAction("submit", {success:"AjaxSuccess", failure:"AjaxFailure"});');
   end;
   FCancelButton := TExtButton.AddTo(FFormPanel.Buttons);
   FCancelButton.Scale := View.GetString('Controller/ButtonScale', 'medium');
+  FCancelButton.Icon := Session.Config.GetImageURL('cancel');
   if FIsReadOnly then
   begin
     FCancelButton.Text := _('Close');
     FCancelButton.Tooltip := _('Close this panel');
-    FCancelButton.Icon := Session.Config.GetImageURL('close');
     // No need for an ajax call when we just close the client-side panel.
     LHostWindow := GetHostWindow;
     if Assigned(LHostWindow) then
@@ -351,7 +351,6 @@ begin
   begin
     FCancelButton.Text := _('Cancel');
     FCancelButton.Tooltip := _('Cancel changes');
-    FCancelButton.Icon := Session.Config.GetImageURL('cancel');
     FCancelButton.Handler := Ajax(CancelChanges);
   end;
 end;
