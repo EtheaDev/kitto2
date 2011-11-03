@@ -595,7 +595,7 @@ begin
   begin
     LNewButton := TExtButton.AddTo(Result.Items);
     LNewButton.Text := Format(_('New %s'), [ViewTable.DisplayLabel]);
-    LNewButton.Icon := Session.Config.GetImageURL('new_record_16');
+    LNewButton.Icon := Session.Config.GetImageURL('new_record');
     if not FIsAddAllowed then
       LNewButton.Disabled := True
     else
@@ -607,12 +607,12 @@ begin
   if IsReadOnly then
   begin
     LEditButton.Text := Format(_('View %s'), [ViewTable.DisplayLabel]);
-    LEditButton.Icon := Session.Config.GetImageURL('view_record_16');
+    LEditButton.Icon := Session.Config.GetImageURL('view_record');
   end
   else
   begin
     LEditButton.Text := Format(_('Edit %s'), [ViewTable.DisplayLabel]);
-    LEditButton.Icon := Session.Config.GetImageURL('edit_record_16');
+    LEditButton.Icon := Session.Config.GetImageURL('edit_record');
     if not FIsEditAllowed then
       LEditButton.Disabled := True
     else
@@ -629,7 +629,7 @@ begin
   begin
     LRefreshButton := TExtButton.AddTo(Result.Items);
     LRefreshButton.Text := Format(_('Delete %s'), [ViewTable.DisplayLabel]);
-    LRefreshButton.Icon := Session.Config.GetImageURL('delete_record_16');
+    LRefreshButton.Icon := Session.Config.GetImageURL('delete_record');
     if not FIsDeleteAllowed then
       LRefreshButton.Disabled := True
     else
@@ -643,7 +643,7 @@ begin
   end;
 
   LRefreshButton := TExtButton.AddTo(Result.Items);
-  LRefreshButton.Icon := Session.Config.GetImageURL('arrow_refresh');
+  LRefreshButton.Icon := Session.Config.GetImageURL('refresh');
   LRefreshButton.Handler := Ajax(RefreshData);
   LRefreshButton.Tooltip := _('Refresh');
   //TExtToolbarSpacer.AddTo(Result.Items);
