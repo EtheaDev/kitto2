@@ -25,6 +25,7 @@ type
     FOnGetInstance: TKGetConfig;
     FInstance: TKConfig;
     FResourcePathsURLs: TDictionary<string, string>;
+    FSystemHomePath: string;
   var
     FDBConnections: TDictionary<string, TEFDBConnection>;
     FMacroExpansionEngine: TEFMacroExpansionEngine;
@@ -34,6 +35,7 @@ type
     FAuthenticator: TKAuthenticator;
     FAC: TKAccessController;
     FUserFormatSettings: TFormatSettings;
+
     class function GetInstance: TKConfig; static;
     function GetMultiFieldSeparator: string;
     const MAIN_DB_NAME = 'Main';
@@ -49,22 +51,55 @@ type
     function GetViews: TKViews;
     class procedure SetupResourcePathsURLs;
     procedure FinalizeDBConnections;
+    class function GetAppHomePath: string; static;
+    class procedure SetAppHomePath(const AValue: string); static;
+    class function GetSystemHomePath: string; static;
+    class procedure SetSystemHomePath(const AValue: string); static;
   protected
-    procedure SetAppHomePath(const AValue: string);
     function GetConfigFileName: string; override;
+    class function FindSystemHomePath: string;
   public
     procedure AfterConstruction; override;
     destructor Destroy; override;
     class constructor Create;
     class destructor Destroy;
   public
-    ///	<summary>Returns the application home path as specified by the 'home'
-    ///	command line argument or the executable's directory.</summary>
-    class function GetAppHomePath: string;
 
-    ///	<summary>Returns the home path. In deployment, it is usually equal to
-    ///	the application home path. In development, it might differ.</summary>
-    class function GetKittoHomePath: string;
+    ///	<summary>
+    ///	  <para>Returns or changes the Application Home path.</para>
+    ///	  <para>The Application Home path defaults to the exe file directory
+    ///	  unless specified through the '-home' command line argument.</para>
+    ///	  <para>Setting this property, if necessary, should be done at
+    ///	  application startup, preferably in a unit's initialization
+    ///	  section.</para>
+    ///	</summary>
+    ///	<remarks>Changing this property affects all TKConfg instances created
+    ///	from that point on, not existing instances.</remarks>
+    class property AppHomePath: string read GetAppHomePath write SetAppHomePath;
+
+    ///	<summary>
+    ///	  <para>Returns or changes the System Home path, which is used to find
+    ///	  any resources that are not found in the Application Home path.
+    ///	  Generally, the System Home path contains all predefined metadata and
+    ///	  resources of the framework.</para>
+    ///	  <para>The System Home path defaults to a "Home" directory inside a
+    ///	  nearby directory named "Kitto". The following paths, relative to the
+    ///	  executable directory, are searched in order:</para>
+    ///	  <list type="number">
+    ///	    <item>..\Externals\Kitto\Home</item>
+    ///	    <item>..\..\Externals\Kitto\Home</item>
+    ///	    <item>..\..\..\Home</item>
+    ///	  </list>
+    ///	  <para>The first existing path is used. If none of these exist, the
+    ///	  value of AppHomePath is assumed.</para>
+    ///	  <para>If no default is suitable for your application, you can set
+    ///	  this property at application startup, preferably in a unit's
+    ///	  initialization section. If you also need to set AppHomePath, do it
+    ///	  <b>before</b> setting this property.</para>
+    ///	</summary>
+    ///	<remarks>Changing this property affects all TKConfg instances created
+    ///	from that point on, not existing instances.</remarks>
+    class property SystemHomePath: string read GetSystemHomePath write SetSystemHomePath;
 
     ///	<summary>
     ///	  Returns the full path of the Metadata directory inside the home path.
@@ -249,10 +284,11 @@ class procedure TKConfig.SetupResourcePathsURLs;
 var
   LPath: string;
 begin
+  FResourcePathsURLs.Clear;
   LPath := GetAppHomePath + 'Resources';
   if DirectoryExists(LPath) then
     FResourcePathsURLs.Add(IncludeTrailingPathDelimiter(LPath), '/' + GetAppName + '/');
-  LPath := GetKittoHomePath + 'Resources';
+  LPath := FindSystemHomePath + 'Resources';
   if DirectoryExists(LPath) and not FResourcePathsURLs.ContainsKey(IncludeTrailingPathDelimiter(LPath)) then
     FResourcePathsURLs.Add(IncludeTrailingPathDelimiter(LPath), '/' + GetAppName + '-Kitto/');
 end;
@@ -375,6 +411,15 @@ begin
   Result := FindResourceURL(AResourceFileName);
   if Result = '' then
     raise EKError.CreateFmt('Resource %s not found.', [AResourceFileName]);
+end;
+
+class function TKConfig.GetSystemHomePath: string;
+begin
+  if FSystemHomePath <> '' then
+    Result := FSystemHomePath
+  else
+    Result := FindSystemHomePath;
+  Result := IncludeTrailingPathDelimiter(Result);
 end;
 
 function TKConfig.GetViews: TKViews;
@@ -516,12 +561,21 @@ begin
   end;
 end;
 
-procedure TKConfig.SetAppHomePath(const AValue: string);
+class procedure TKConfig.SetAppHomePath(const AValue: string);
 begin
-  if AValue <> FAppHomePath then
+  if FAppHomePath <> AValue then
   begin
-    FreeAndNil(FModels);
     FAppHomePath := AValue;
+    SetupResourcePathsURLs;
+  end;
+end;
+
+class procedure TKConfig.SetSystemHomePath(const AValue: string);
+begin
+  if AValue <> SystemHomePath then
+  begin
+    FSystemHomePath := AValue;
+    SetupResourcePathsURLs;
   end;
 end;
 
@@ -541,14 +595,21 @@ begin
   Result := IncludeTrailingPathDelimiter(FAppHomePath);
 end;
 
-class function TKConfig.GetKittoHomePath: string;
+class function TKConfig.FindSystemHomePath: string;
+var
+  LExePath: string;
 begin
-  Result := ExtractFilePath(ParamStr(0)) + '..\Externals\Kitto\Home\';
+  LExePath := ExtractFilePath(ParamStr(0));
+  Result := LExePath + '..\Externals\Kitto\Home\';
   if not DirectoryExists(Result) then
   begin
-    Result := ExtractFilePath(ParamStr(0)) + '..\..\Externals\Kitto\Home\';
+    Result := LExePath + '..\..\Externals\Kitto\Home\';
     if not DirectoryExists(Result) then
-      Result := GetAppHomePath;
+    begin
+      Result := LExePath + '..\..\..\Home\';
+      if not DirectoryExists(Result) then
+        Result := GetAppHomePath;
+    end;
   end;
 end;
 

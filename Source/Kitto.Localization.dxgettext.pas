@@ -85,7 +85,7 @@ procedure TKdxgettextLocalizationTool.EnsureTextDomainBound;
 begin
   if not FTextDomainBound then
   begin
-    gnugettext.bindtextdomain(KITTO_TEXT_DOMAIN, TKConfig.Instance.GetKittoHomePath + 'locale');
+    gnugettext.bindtextdomain(KITTO_TEXT_DOMAIN, TKConfig.Instance.SystemHomePath + 'locale');
     FTextDomainBound := True;
   end;
 end;
