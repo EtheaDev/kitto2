@@ -40,7 +40,6 @@ type
     FSelModel: TExtGridRowSelectionModel;
     FIsAddVisible: Boolean;
     FIsDeleteVisible: Boolean;
-    procedure InitFieldsAndColumns;
     procedure SetViewTable(const AValue: TKViewTable);
     procedure CreateFilterPanel;
     procedure CreateStoreAndView;
@@ -63,6 +62,7 @@ type
     property ViewTable: TKViewTable read FViewTable write SetViewTable;
     property ServerStore: TKViewTableStore read FServerStore write FServerStore;
     procedure LoadData;
+    procedure InitFieldsAndColumns;
   published
     procedure GetRecordPage;
     procedure EditViewRecord;
@@ -78,10 +78,6 @@ uses
   EF.Tree, EF.StrUtils, EF.Localization,
   Kitto.Metadata.Models, Kitto.Metadata.Views, Kitto.Rules, Kitto.AccessControl,
   Kitto.Ext.Filters, Kitto.Ext.Session, Kitto.Ext.Utils, Kitto.Ext.Controller;
-
-  const
-  { TODO : should we just fetch everything when grouping is enabled? }
-  DEFAULT_GROUPING_PAGE_RECORD_COUNT = 1000;
 
 { TKExtGridPanel }
 
@@ -141,7 +137,7 @@ begin
   if ServerStore.ChangesPending then
   begin
     LTotal := ServerStore.RecordCount;
-    LData := ServerStore.GetAsJSON(True);
+    LData := ServerStore.GetAsJSON;
   end
   else
   begin
@@ -151,13 +147,13 @@ begin
     if (LStart <> 0) or (LLimit <> 0) then
     begin
       LTotal := ServerStore.LoadPage(GetFilterExpression, GetOrderByClause, LStart, LLimit);
-      LData := ServerStore.GetAsJSON(True);
+      LData := ServerStore.GetAsJSON;
     end
     else
     begin
       ServerStore.Load(GetFilterExpression, GetOrderByClause);
       LTotal := ServerStore.RecordCount;
-      LData := ServerStore.GetAsJSON(True, 0, Min(MAX_RECORD_COUNT, ServerStore.RecordCount));
+      LData := ServerStore.GetAsJSON(0, Min(MAX_RECORD_COUNT, ServerStore.RecordCount));
     end;
   end;
   Session.Response := Format('{Total:%d,Root:%s}', [LTotal, LData]);
@@ -206,17 +202,14 @@ begin
         _(ViewTable.GetString('Controller/Grouping/ShowCount/PluralItemName', ViewTable.PluralDisplayLabel)));
       LCountTemplate := ReplaceText(LCountTemplate, '%ITEM%',
         _(ViewTable.GetString('Controller/Grouping/ShowCount/ItemName', ViewTable.DisplayLabel)));
-      LCountTemplate := ViewTable.MinifyFieldNames(LCountTemplate);
       TExtGridGroupingView(FGridView).GroupTextTpl := LCountTemplate;
     end;
     FStore := TExtDataGroupingStore.Create;
     //TExtDataGroupingStore(FStore).GroupOnSort := True;
     if LGroupingFieldName <> '' then
     begin
-      TExtDataGroupingStore(FStore).GroupField := ViewTable.FieldByAliasedName(LGroupingFieldName).GetMinifiedName;
+      TExtDataGroupingStore(FStore).GroupField := LGroupingFieldName;
       FStore.RemoteSort := True;
-//      FStore.SortInfo := JSObject('field:"' +
-//        ViewTable.FieldByAliasedName(ViewTable.GetString('Controller/Grouping/SortFieldName', LGroupingFieldName)).GetMinifiedName + '"');
     end;
   end
   else
@@ -347,8 +340,7 @@ var
     LColumn := CreateColumn;
     LColumn.Sortable := not AViewField.IsBlob;
     LColumn.Header := AViewField.DisplayLabel;
-    //LColumn.Id := AViewField.GetMinifiedName;
-    LColumn.DataIndex := AViewField.GetMinifiedName;
+    LColumn.DataIndex := AViewField.AliasedName;
 
     LColumnWidth := AViewField.DisplayWidth;
     if LColumnWidth = 0 then
@@ -367,13 +359,25 @@ var
       AddGridColumn(AViewField);
   end;
 
-  procedure AddReaderField(const AViewField: TKViewField);
+  procedure DoAddReaderField(const AName, AType: string);
   var
     LField: TExtDataField;
   begin
     LField := TExtDataField.AddTo(FReader.Fields);
-    LField.Name := AViewField.GetMinifiedName;
-    LField.Type_ := AViewField.DataType.GetJSTypeName;
+    LField.Name := AName;
+    LField.Type_ := AType;
+  end;
+
+  procedure AddReaderField(const AViewField: TKViewField);
+  var
+    I: Integer;
+  begin
+    DoAddReaderField(AViewField.AliasedName, AViewField.DataType.GetJSTypeName);
+    if AViewField.IsReference then
+    begin
+      for I := 0 to AViewField.ModelField.FieldCount - 1 do
+        DoAddReaderField(AViewField.ModelField.Fields[I].FieldName, AViewField.ModelField.Fields[I].DataType.GetJSTypeName);
+    end;
   end;
 
 begin
@@ -489,16 +493,13 @@ begin
   CreateStoreAndView;
   CreateFilterPanel;
 
-  LKeyFieldNames := Join(ViewTable.GetKeyFieldAliasedNames(True), ',');
+  LKeyFieldNames := Join(ViewTable.GetKeyFieldAliasedNames(), ',');
   FGridPanel.On('rowdblclick', AjaxSelection(EditViewRecord, FSelModel, LKeyFieldNames, LKeyFieldNames, []));
 
-  // By default show paging toolbar if the model is large unless the view is grouped.
-  if ViewTable.GetBoolean('Controller/PagingTools', ViewTable.Model.IsLarge and (GetGroupingFieldName = '')) then
+  // By default show paging toolbar for large models.
+  if ViewTable.GetBoolean('Controller/PagingTools', ViewTable.Model.IsLarge) then
   begin
-    if GetGroupingFieldName <> '' then
-      FPageRecordCount := ViewTable.GetInteger('Controller/PageRecordCount', DEFAULT_GROUPING_PAGE_RECORD_COUNT)
-    else
-      FPageRecordCount := ViewTable.GetInteger('Controller/PageRecordCount', MAX_RECORD_COUNT);
+    FPageRecordCount := ViewTable.GetInteger('Controller/PageRecordCount', MAX_RECORD_COUNT);
     FGridPanel.Bbar := CreatePagingToolbar;
   end;
 
@@ -521,8 +522,8 @@ end;
 
 procedure TKExtGridPanel.LoadData;
 begin
-  if FGridPanel.Columns.Count = 0 then
-    InitFieldsAndColumns;
+//  if FGridPanel.Columns.Count = 0 then
+//    InitFieldsAndColumns;
   RefreshData;
 end;
 
@@ -536,7 +537,7 @@ begin
     LKey.SetChildValuesfromStrings(Session.Queries, True, Session.Config.JSFormatSettings,
       function(const AName: string): string
       begin
-        Result := ViewTable.FieldByName(AName).GetMinifiedName;
+        Result := ViewTable.FieldByName(AName).AliasedName;
       end);
     Result := ServerStore.Records.GetRecord(LKey);
   finally
@@ -632,7 +633,7 @@ begin
       LEditButton.Disabled := True
     else
     begin
-      LKeyFieldNames := Join(ViewTable.GetKeyFieldAliasedNames(True), ',');
+      LKeyFieldNames := Join(ViewTable.GetKeyFieldAliasedNames, ',');
       LEditButton.On('click', AjaxSelection(EditViewRecord, FSelModel, LKeyFieldNames, LKeyFieldNames, []));
       TExtGridRowSelectionModel(FSelModel).On('selectionchange', JSFunction(
         's', Format('%s.setDisabled(s.getCount() == 0);', [LEditButton.JSName])));
@@ -669,7 +670,7 @@ function TKExtGridPanel.GetSelectConfirmCall(const AMessage: string; const AMeth
 begin
   Result := Format('confirmCall("%s", "%s", ajaxSingleSelection, {methodURL: "%s", selModel: %s, fieldNames: "%s"});',
     [Session.Config.AppTitle, AMessage, MethodURI(AMethod), FSelModel.JSName,
-    Join(ViewTable.GetKeyFieldAliasedNames(True), ',')]);
+    Join(ViewTable.GetKeyFieldAliasedNames, ',')]);
 end;
 
 { TKExtFilterPanel }

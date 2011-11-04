@@ -40,7 +40,7 @@ type
     function GetParentRecord: TKRecord;
     function GetAsJSONValue: string;
     procedure SetAsJSONValue(const AValue: string);
-    function GetJSONName(const AMinified: Boolean): string;
+    function GetJSONName: string;
   protected
     function GetName: string; override;
     procedure SetValue(const AValue: Variant); override;
@@ -49,7 +49,7 @@ type
     property AsJSONValue: string read GetAsJSONValue write SetAsJSONValue;
     property ParentRecord: TKRecord read GetParentRecord;
 
-    function GetAsJSON(const AMinified: Boolean): string;
+    function GetAsJSON: string;
 
     property FieldName: string read GetFieldName;
   end;
@@ -104,7 +104,7 @@ type
     ///	names are not in the passed node are set to Null.</summary>
     procedure ReadFromNode(const ANode: TEFNode);
 
-    function GetAsJSON(const AMinified: Boolean): string;
+    function GetAsJSON: string;
 
     procedure MarkAsModified;
     procedure MarkAsDeleted;
@@ -149,7 +149,7 @@ type
     function Append: TKRecord;
     procedure Remove(const ARecord: TKRecord);
 
-    function GetAsJSON(const AMinified: Boolean; const AFrom: Integer = 0; const AFor: Integer = 0): string;
+    function GetAsJSON(const AFrom: Integer = 0; const AFor: Integer = 0): string;
   end;
 
   TKHeaderField = class(TEFNode)
@@ -214,7 +214,7 @@ type
     ///	<seealso cref="TKRecord.MarkAsDeleted"></seealso>
     procedure RemoveRecord(const ARecord: TKRecord);
 
-    function GetAsJSON(const AMinified: Boolean; const AFrom: Integer = 0; const AFor: Integer = 0): string;
+    function GetAsJSON(const AFrom: Integer = 0; const AFor: Integer = 0): string;
 
     function ChangesPending: Boolean;
 
@@ -272,9 +272,9 @@ begin
   inherited;
 end;
 
-function TKStore.GetAsJSON(const AMinified: Boolean; const AFrom: Integer; const AFor: Integer): string;
+function TKStore.GetAsJSON(const AFrom: Integer; const AFor: Integer): string;
 begin
-  Result := Records.GetAsJSON(AMinified, AFrom, AFor);
+  Result := Records.GetAsJSON(AFrom, AFor);
 end;
 
 function TKStore.GetChildClass(const AName: string): TEFNodeClass;
@@ -419,7 +419,7 @@ begin
   end;
 end;
 
-function TKRecords.GetAsJSON(const AMinified: Boolean; const AFrom: Integer; const AFor: Integer): string;
+function TKRecords.GetAsJSON(const AFrom: Integer; const AFor: Integer): string;
 var
   I: Integer;
   LTo: Integer;
@@ -436,9 +436,9 @@ begin
     if not Records[I].IsDeleted then
     begin
       if Result = '' then
-        Result := Records[I].GetAsJSON(AMinified)
+        Result := Records[I].GetAsJSON
       else
-        Result := Result + ',' + Records[I].GetAsJSON(AMinified);
+        Result := Result + ',' + Records[I].GetAsJSON;
     end;
   end;
   Result := '[' + Result + ']';
@@ -584,14 +584,14 @@ begin
   end;
 end;
 
-function TKRecord.GetAsJSON(const AMinified: Boolean): string;
+function TKRecord.GetAsJSON: string;
 var
   I: Integer;
 begin
   Result := '{';
   for I := 0 to FieldCount - 1 do
   begin
-    Result := Result + Fields[I].GetAsJSON(AMinified);
+    Result := Result + Fields[I].GetAsJSON;
     if I < FieldCount - 1 then
       Result := Result + ',';
   end;
@@ -740,19 +740,14 @@ end;
 
 { TKField }
 
-function TKField.GetJSONName(const AMinified: Boolean): string;
+function TKField.GetJSONName: string;
 begin
-  {$IFDEF KITTO_MINIFY}
-  if AMinified then
-    Result := 'F' + IntToStr(Index)
-  else
-  {$ENDIF}
-    Result := FieldName;
+  Result := FieldName;
 end;
 
-function TKField.GetAsJSON(const AMinified: Boolean): string;
+function TKField.GetAsJSON: string;
 begin
-  Result := '"' + GetJSONName(AMinified) + '":' + AsJSONValue;
+  Result := '"' + GetJSONName + '":' + AsJSONValue;
   { TODO : not sure about the usefulness of this replace here; verify that a
     counter-replace is not needed when getting back data from the client. }
   Result := AnsiReplaceStr(Result, #13#10, '<br/>');

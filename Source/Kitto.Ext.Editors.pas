@@ -887,7 +887,7 @@ begin
   if LIsReadOnly then
     LFormField.Cls := 'x-form-readonly';
   //LFormField.AutoScroll := False; // Don't display a h. scrollbar for larger fields.
-  LFormField.Name := LViewField.GetMinifiedName;
+  LFormField.Name := LViewField.AliasedName;
   LFormField.ReadOnly := LIsReadOnly;
   LFormField.FieldLabel := LLabel;
   LFormField.MsgTarget := LowerCase(FDefaults.MsgTarget);
@@ -1293,7 +1293,7 @@ begin
   LPageRecordCount := Min(Max(LLimit, MAX_RECORD_COUNT), FServerStore.RecordCount - LStart);
 
   Session.Response := '{Total:' + IntToStr(FServerStore.RecordCount) + ',Root:'
-    + FServerStore.GetAsJSON(True, LStart, LPageRecordCount) + '}';
+    + FServerStore.GetAsJSON(LStart, LPageRecordCount) + '}';
 end;
 
 procedure TKExtFormComboBoxEditor.InitDefaults;
@@ -1335,18 +1335,9 @@ begin
   TExtDataJsonReader(Store.Reader).TotalProperty := 'Total';
   for I := 0 to FServerStore.Header.FieldCount - 1 do
     with TExtDataField.AddTo(Store.Reader.Fields) do
-      {$IFDEF KITTO_MINIFY}
-      Name := 'F' + IntToStr(I);
-      {$ELSE}
       Name := FServerStore.Header.Fields[I].FieldName;
-      {$ENDIF}
-  {$IFDEF KITTO_MINIFY}
-  ValueField := 'F0';
-  DisplayField := 'F1';
-  {$ELSE}
   ValueField := FServerStore.Header.Fields[0].FieldName;
   DisplayField := FServerStore.Header.Fields[1].FieldName;
-  {$ENDIF}
   // This is a hack to show the current display value in the combo box
   // before dropping down the list and loading the data, which is good.
   // The BasicForm will set the value, the combo box will not find the
