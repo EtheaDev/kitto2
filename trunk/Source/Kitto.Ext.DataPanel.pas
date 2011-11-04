@@ -84,7 +84,9 @@ begin
 
   InitComponents;
   CheckCanRead;
-  LoadData;
+
+  if AutoLoadData then
+    LoadData;
 end;
 
 procedure TKExtDataPanelController.CheckCanRead;
@@ -112,7 +114,7 @@ function TKExtDataPanelController.AutoLoadData: Boolean;
 begin
   Assert(ViewTable <> nil);
 
-  Result := ViewTable.GetBoolean('Controller/AutoOpen', True);
+  Result := ViewTable.GetBoolean('Controller/AutoOpen', not ViewTable.Model.IsLarge);
 end;
 
 end.

@@ -226,7 +226,7 @@ procedure TKExtFormPanelController.GetRecord;
 begin
   Assert(Assigned(FStoreRecord));
 
-  Session.Response := '{success:true,data:' + FStoreRecord.GetAsJSON(True) + '}';
+  Session.Response := '{success:true,data:' + FStoreRecord.GetAsJSON + '}';
 end;
 
 procedure TKExtFormPanelController.SaveChanges;
@@ -241,7 +241,7 @@ begin
       begin
         LViewField := ViewTable.FindFieldByAliasedName(AName);
         if Assigned(LViewField) then
-          Result := LViewField.GetMinifiedName
+          Result := LViewField.AliasedName
         else
           Result := AName;
       end);

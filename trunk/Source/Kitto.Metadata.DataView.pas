@@ -121,10 +121,6 @@ type
     ///	</summary>
     property FieldName: string read GetFieldName;
 
-    ///	<summary>Returns a minified name for use in JSON packets to save
-    ///	space.</summary>
-    function GetMinifiedName: string;
-
     property IsKey: Boolean read GetIsKey;
     property IsVisible: Boolean read GetIsVisible;
     property IsRequired: Boolean read GetIsRequired;
@@ -319,7 +315,7 @@ type
     function FieldByName(const AName: string): TKViewField;
     function FieldByAliasedName(const AName: string): TKViewField;
     function FindFieldByAliasedName(const AAliasedName: string): TKViewField;
-    function GetKeyFieldAliasedNames(const AMinified: Boolean): TStringDynArray;
+    function GetKeyFieldAliasedNames: TStringDynArray;
     function IsFieldVisible(const AField: TKViewField): Boolean;
 
     property IsReadOnly: Boolean read GetIsReadOnly;
@@ -373,15 +369,6 @@ type
 
     property Rules: TKRules read GetRules;
     procedure ApplyRules(const AApplyProc: TKApplyRuleProc);
-
-    ///	<summary>
-    ///	  <para>Minifies all field names contained in AText. Field names in
-    ///	  AText must be marked this way:<c>%F%FIELD_NAME%</c></para>
-    ///	  <para>which will be translated to <c>FIELD_NAME</c> if minification
-    ///	  is disabled or <c>F2</c> (assuming it's the third field in the view
-    ///	  table) if minification is enabled.</para>
-    ///	</summary>
-    function MinifyFieldNames(const AText: string): string;
 
     ///	<summary>If the specified field exists in the view table, the method
     ///	returns its AliasedName, otherwise the specified field name is
@@ -715,7 +702,7 @@ begin
   Result := GetNode('Rules', True) as TKRules;
 end;
 
-function TKViewTable.GetKeyFieldAliasedNames(const AMinified: Boolean): TStringDynArray;
+function TKViewTable.GetKeyFieldAliasedNames: TStringDynArray;
 var
   I: Integer;
   LViewField: TKViewField;
@@ -726,12 +713,7 @@ begin
   begin
     LViewField := FindField(Result[I]);
     if Assigned(LViewField) then
-    begin
-      if AMinified then
-        Result[I] := LViewField.GetMinifiedName
-      else
-        Result[I] := LViewField.AliasedName;
-    end;
+      Result[I] := LViewField.AliasedName;
   end;
 end;
 
@@ -795,15 +777,6 @@ begin
 
   Result := AField.IsVisible
     or MatchText(AField.AliasedName, GetStringArray('Controller/VisibleFields'));
-end;
-
-function TKViewTable.MinifyFieldNames(const AText: string): string;
-var
-  I: Integer;
-begin
-  Result := AText;
-  for I := 0 to FieldCount - 1 do
-    Result := ReplaceText(Result, '%F%' + Fields[I].AliasedName + '%', Fields[I].GetMinifiedName);
 end;
 
 { TKViewTables }
@@ -1047,15 +1020,6 @@ end;
 function TKViewField.GetModelField: TKModelField;
 begin
   Result := Model.FieldByName(FieldName);
-end;
-
-function TKViewField.GetMinifiedName: string;
-begin
-  {$IFDEF KITTO_MINIFY}
-  Result := 'F' + IntToStr(Index);
-  {$ELSE}
-  Result := AliasedName;
-  {$ENDIF}
 end;
 
 function TKViewField.GetModel: TKModel;

@@ -33,6 +33,8 @@ begin
   FGridPanel := TKExtGridPanel.AddTo(Items);
   FGridPanel.ServerStore := ServerStore;
   FGridPanel.ViewTable := ViewTable;
+
+  FGridPanel.InitFieldsAndColumns;
 end;
 
 procedure TKExtListPanelController.LoadData;
