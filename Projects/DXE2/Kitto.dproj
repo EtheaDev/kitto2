@@ -56,7 +56,7 @@
 			<Icon_MainIcon>$(BDS)\bin\delphi_PROJECTICON.ico</Icon_MainIcon>
 			<DCC_ExeOutput>..\..\Home</DCC_ExeOutput>
 			<DCC_DcuOutput>..\..\Lib\DXE2\$(Config)\$(Platform)</DCC_DcuOutput>
-			<DCC_UnitSearchPath>..\..\Source\ThirdParty;..\..\Source\ThirdParty\TPerlRegEx;..\..\Source\ThirdParty\ExtPascal;..\..\Source\ThirdParty\ExtPascal\ExtJSWrapper;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
+			<DCC_UnitSearchPath>..\..\Source\ThirdParty;..\..\Source\ThirdParty\ExtPascal;..\..\Source\ThirdParty\ExtPascal\ExtJSWrapper;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
 			<DCC_WriteableConstants>true</DCC_WriteableConstants>
 			<DCC_E>false</DCC_E>
 			<DCC_ImageBase>00400000</DCC_ImageBase>
