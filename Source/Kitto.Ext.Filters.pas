@@ -79,9 +79,9 @@ type
     class function GetInstance: TKExtFilterFactory; static;
     function CreateObject(const AId: string;
       const AContainer: TExtObjectList): IKExtFilter;
-    class destructor Destroy;
   protected
     function DoCreateObject(const AClass: TClass): TObject; override;
+    class destructor Destroy;
   public
     class property Instance: TKExtFilterFactory read GetInstance;
 

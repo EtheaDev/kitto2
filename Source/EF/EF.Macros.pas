@@ -66,6 +66,7 @@ type
     class var FOnGetInstance: TEFGetMacroExpansionEngine;
     function CallExpanders(const AString: string): string;
     class function GetInstance: TEFMacroExpansionEngine; static;
+  protected
     class destructor Destroy;
   public
     constructor Create(const APrevious: TEFMacroExpansionEngine = nil);

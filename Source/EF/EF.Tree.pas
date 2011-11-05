@@ -834,6 +834,7 @@ type
   private
     class var FInstance: TEFDataTypeRegistry;
     class function GetInstance: TEFDataTypeRegistry; static;
+  protected
     class destructor Destroy;
   public
     class property Instance: TEFDataTypeRegistry read GetInstance;
@@ -2417,7 +2418,11 @@ end;
 procedure TEFDecimalDataType.InternalYamlValueToNode(const AYamlValue: string;
   const ANode: TEFNode; const AFormatSettings: TFormatSettings);
 begin
+  {$IFDEF D15+}
   ANode.AsDecimal := StrToBcd(AYamlValue, AFormatSettings);
+  {$ELSE}
+  ANode.AsDecimal := DoubleToBcd(StrToFloat(AYamlValue, AFormatSettings));
+  {$ENDIF}
 end;
 
 function TEFDecimalDataType.SupportsEmptyAsNull: Boolean;

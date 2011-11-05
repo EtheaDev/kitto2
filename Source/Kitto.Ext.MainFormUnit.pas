@@ -8,26 +8,26 @@ uses
   {$IF RTLVersion >= 23.0}Themes, Styles,{$IFEND}
   Windows, Messages, SysUtils, Variants, Classes, Graphics,
   Controls, Forms, Dialogs, ComCtrls, ToolWin, Kitto.Ext.Application,
-  ActnList, Kitto.Config, StdCtrls;
+  ActnList, Kitto.Config, StdCtrls, Buttons, ExtCtrls, ImgList;
 
 type
   TKExtMainForm = class(TForm)
-    ToolBar1: TToolBar;
-    ToolButton1: TToolButton;
-    ToolButton2: TToolButton;
     ActionList: TActionList;
     StartAction: TAction;
     StopAction: TAction;
-    StatusBar: TStatusBar;
     PageControl: TPageControl;
-    LogTabSheet: TTabSheet;
-    MonitorTabSheet: TTabSheet;
-    LogMemo: TMemo;
+    HomeTabSheet: TTabSheet;
     SessionCountLabel: TLabel;
-    ToolButton3: TToolButton;
     RestartAction: TAction;
     ConfigFileNameComboBox: TComboBox;
-    Label1: TLabel;
+    ConfigLinkLabel: TLabel;
+    StartSpeedButton: TSpeedButton;
+    StopSpeedButton: TSpeedButton;
+    ImageList: TImageList;
+    LogMemo: TMemo;
+    ControlPanel: TPanel;
+    AppTitleLabel: TLabel;
+    OpenConfigDialog: TOpenDialog;
     procedure StartActionUpdate(Sender: TObject);
     procedure StopActionUpdate(Sender: TObject);
     procedure StartActionExecute(Sender: TObject);
@@ -38,6 +38,7 @@ type
     procedure RestartActionExecute(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure ConfigFileNameComboBoxChange(Sender: TObject);
+    procedure ConfigLinkLabelClick(Sender: TObject);
   private
     FKAppThread: TKExtAppThread;
     FRestart: Boolean;
@@ -47,7 +48,11 @@ type
     procedure UpdateSessionCountlabel;
     function GetSessionCount: Integer;
     procedure FillConfigFileNameCombo;
+    procedure SetConfig(const AFileName: string);
+    procedure SelectConfigFile;
     property KAppThread: TKExtAppThread read GetKAppThread;
+    function HasConfigFileName: Boolean;
+    procedure Log(const AString: string);
   end;
 
 var
@@ -59,13 +64,14 @@ implementation
 
 uses
   Math,
-  EF.SysUtils,
+  EF.SysUtils, EF.Localization,
   FCGIApp;
 
 procedure TKExtMainForm.KAppThreadTerminated(Sender: TObject);
 begin
   FKAppThread := nil;
-  StatusBar.SimpleText := 'Stopped';
+  Log(_('Stopped'));
+  SessionCountLabel.Visible := False;
   if FRestart then
   begin
     FRestart := False;
@@ -73,11 +79,34 @@ begin
   end;
 end;
 
+procedure TKExtMainForm.ConfigLinkLabelClick(Sender: TObject);
+begin
+  SelectConfigFile;
+end;
+
+procedure TKExtMainForm.SelectConfigFile;
+begin
+  OpenConfigDialog.InitialDir := TKConfig.AppHomePath;
+  if OpenConfigDialog.Execute then
+  begin
+    // The Home is the parent directory of the Metadata directory.
+    TKConfig.AppHomePath := ExtractFilePath(OpenConfigDialog.FileName) + '..';
+    Caption := TKConfig.AppHomePath;
+    FillConfigFileNameCombo;
+    SetConfig(ExtractFileName(OpenConfigDialog.FileName));
+  end;
+end;
+
+procedure TKExtMainForm.Log(const AString: string);
+begin
+  LogMemo.Lines.Add(AString);
+end;
+
 procedure TKExtMainForm.StopActionExecute(Sender: TObject);
 begin
   if IsStarted then
   begin
-    StatusBar.SimpleText := 'Stopping...';
+    Log(_('Stopping...'));
     FKAppThread.Terminate;
     while IsStarted do
       Forms.Application.ProcessMessages;
@@ -108,7 +137,7 @@ end;
 
 procedure TKExtMainForm.UpdateSessionCountlabel;
 begin
-  SessionCountLabel.Caption := Format('Active Sessions: %d', [GetSessionCount]);
+  SessionCountLabel.Caption := Format(_('Active Sessions: %d'), [GetSessionCount]);
 end;
 
 function TKExtMainForm.GetSessionCount: Integer;
@@ -117,6 +146,11 @@ begin
     Result := Max(0, FCGIApp.Application.ThreadsCount)
   else
     Result := 0;
+end;
+
+function TKExtMainForm.HasConfigFileName: Boolean;
+begin
+  Result := ConfigFileNameComboBox.Text <> '';
 end;
 
 function TKExtMainForm.IsStarted: Boolean;
@@ -133,11 +167,21 @@ end;
 
 procedure TKExtMainForm.FormShow(Sender: TObject);
 begin
+  Caption := TKConfig.AppHomePath;
+  Log(Format(_('Build date: %s'), [DateTimeToStr(GetFileDateTime(ParamStr(0)))]));
   FillConfigFileNameCombo;
-  StartAction.Execute;
+  if HasConfigFileName then
+    StartAction.Execute
+  else
+    SelectConfigFile;
 end;
 
 procedure TKExtMainForm.ConfigFileNameComboBoxChange(Sender: TObject);
+begin
+  SetConfig(ConfigFileNameComboBox.Text);
+end;
+
+procedure TKExtMainForm.SetConfig(const AFileName: string);
 var
   LConfig: TKConfig;
   LWasStarted: Boolean;
@@ -145,10 +189,11 @@ begin
   LWasStarted := IsStarted;
   if LWasStarted then
     StopAction.Execute;
-  TKConfig.BaseConfigFileName := ConfigFileNameComboBox.Text;
+  ConfigFileNameComboBox.ItemIndex := ConfigFileNameComboBox.Items.IndexOf(AFileName);
+  TKConfig.BaseConfigFileName := AFileName;
   LConfig := TKConfig.Create;
   try
-    Caption := Format('%s - %s', [LConfig.AppTitle, DateTimeToStr(GetFileDateTime(ParamStr(0)))]);
+    AppTitleLabel.Caption := Format(_('Application: %s'), [LConfig.AppTitle]);
   finally
     FreeAndNil(LConfig);
   end;
@@ -179,7 +224,9 @@ begin
     try
       FKAppThread.AppTitle := LConfig.AppTitle;
       FKAppThread.TCPPort := LConfig.Config.GetInteger('TCPPort', 2014);
+      Log(Format('TCPPort: %d', [FKAppThread.TCPPort]));
       FKAppThread.SessionTimeout := LConfig.Config.GetInteger('SessionTimeout', 30);
+      Log(Format('SessionTimeout: %d', [FKAppThread.SessionTimeout]));
       FKAppThread.FreeOnTerminate := True;
     finally
       FreeAndNil(LConfig);
@@ -191,12 +238,13 @@ end;
 procedure TKExtMainForm.StartActionExecute(Sender: TObject);
 begin
   KAppThread.Start;
-  StatusBar.SimpleText := 'Started';
+  SessionCountLabel.Visible := True;
+  Log(_('Started'));
 end;
 
 procedure TKExtMainForm.StartActionUpdate(Sender: TObject);
 begin
-  (Sender as TAction).Enabled := not IsStarted;
+  (Sender as TAction).Enabled := HasConfigFileName and not IsStarted;
 end;
 
 {$IF RTLVersion >= 23.0}

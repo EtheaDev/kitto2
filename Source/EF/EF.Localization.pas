@@ -57,6 +57,7 @@ type
   private
     class var FCurrentTool: IEFLocalizationTool;
     class function GetCurrentTool: IEFLocalizationTool; static;
+  protected
     class destructor Destroy;
   public
 

@@ -1,44 +1,39 @@
 program Kitto;
 
+{
+  Note: This project is only used to group and compile Kitto source files.
+  It is not enabled as a Kitto application.
+  If run, it terminates imemdiately - this is as designed.
+}
+
 uses
-  Forms,
   EF.Classes in '..\..\Source\EF\EF.Classes.pas',
-  EF.DateUtils in '..\..\Source\EF\EF.DateUtils.pas',
+  EF.DB in '..\..\Source\EF\EF.DB.pas',
   EF.DB.ADO in '..\..\Source\EF\EF.DB.ADO.pas',
   EF.DB.DBX in '..\..\Source\EF\EF.DB.DBX.pas',
-  EF.DB in '..\..\Source\EF\EF.DB.pas',
-  EF.DB.Utils in '..\..\Source\EF\EF.DB.Utils.pas',
   EF.Emailer in '..\..\Source\EF\EF.Emailer.pas',
-  EF.Environment in '..\..\Source\EF\EF.Environment.pas',
   EF.Intf in '..\..\Source\EF\EF.Intf.pas',
-  EF.InvocationRegistry in '..\..\Source\EF\EF.InvocationRegistry.pas',
-  EF.Localization.dxgettext in '..\..\Source\EF\EF.Localization.dxgettext.pas',
   EF.Localization in '..\..\Source\EF\EF.Localization.pas',
+  EF.Localization.dxgettext in '..\..\Source\EF\EF.Localization.dxgettext.pas',
   EF.Macros in '..\..\Source\EF\EF.Macros.pas',
-  EF.MediaManager in '..\..\Source\EF\EF.MediaManager.pas',
   EF.ObserverIntf in '..\..\Source\EF\EF.ObserverIntf.pas',
-  EF.PluginManager in '..\..\Source\EF\EF.PluginManager.pas',
   EF.RegEx in '..\..\Source\EF\EF.RegEx.pas',
-  EF.RTTI in '..\..\Source\EF\EF.RTTI.pas',
-  EF.Shell in '..\..\Source\EF\EF.Shell.pas',
-  EF.ShellURIHandler in '..\..\Source\EF\EF.ShellURIHandler.pas',
   EF.SQL in '..\..\Source\EF\EF.SQL.pas',
   EF.Streams in '..\..\Source\EF\EF.Streams.pas',
   EF.StrUtils in '..\..\Source\EF\EF.StrUtils.pas',
   EF.SysUtils in '..\..\Source\EF\EF.SysUtils.pas',
   EF.Tree in '..\..\Source\EF\EF.Tree.pas',
   EF.Types in '..\..\Source\EF\EF.Types.pas',
-  EF.URIProcessor in '..\..\Source\EF\EF.URIProcessor.pas',
   EF.VariantUtils in '..\..\Source\EF\EF.VariantUtils.pas',
   EF.YAML in '..\..\Source\EF\EF.YAML.pas',
-  Kitto.AccessControl.DB in '..\..\Source\Kitto.AccessControl.DB.pas',
   Kitto.AccessControl in '..\..\Source\Kitto.AccessControl.pas',
+  Kitto.AccessControl.DB in '..\..\Source\Kitto.AccessControl.DB.pas',
+  Kitto.Auth in '..\..\Source\Kitto.Auth.pas',
   Kitto.Auth.DB in '..\..\Source\Kitto.Auth.DB.pas',
   Kitto.Auth.DBServer in '..\..\Source\Kitto.Auth.DBServer.pas',
   Kitto.Auth.OSDB in '..\..\Source\Kitto.Auth.OSDB.pas',
-  Kitto.Auth in '..\..\Source\Kitto.Auth.pas',
   Kitto.Auth.TextFile in '..\..\Source\Kitto.Auth.TextFile.pas',
-  Kitto.Environment in '..\..\Source\Kitto.Environment.pas',
+  Kitto.Config in '..\..\Source\Kitto.Config.pas',
   Kitto.Ext.AccordionPanel in '..\..\Source\Kitto.Ext.AccordionPanel.pas',
   Kitto.Ext.All in '..\..\Source\Kitto.Ext.All.pas',
   Kitto.Ext.Application in '..\..\Source\Kitto.Ext.Application.pas',
@@ -53,6 +48,7 @@ uses
   Kitto.Ext.HtmlPanel in '..\..\Source\Kitto.Ext.HtmlPanel.pas',
   Kitto.Ext.List in '..\..\Source\Kitto.Ext.List.pas',
   Kitto.Ext.Login in '..\..\Source\Kitto.Ext.Login.pas',
+  Kitto.Ext.MainFormUnit in '..\..\Source\Kitto.Ext.MainFormUnit.pas' {KExtMainForm},
   Kitto.Ext.Rules in '..\..\Source\Kitto.Ext.Rules.pas',
   Kitto.Ext.Session in '..\..\Source\Kitto.Ext.Session.pas',
   Kitto.Ext.StatusBar in '..\..\Source\Kitto.Ext.StatusBar.pas',
@@ -64,8 +60,6 @@ uses
   Kitto.Ext.Window in '..\..\Source\Kitto.Ext.Window.pas',
   Kitto.JSON in '..\..\Source\Kitto.JSON.pas',
   Kitto.Localization.dxgettext in '..\..\Source\Kitto.Localization.dxgettext.pas',
-  Kitto.LocalStorage in '..\..\Source\Kitto.LocalStorage.pas',
-  Kitto.MainFormUnit in '..\..\Source\Kitto.MainFormUnit.pas' {KMainForm},
   Kitto.Metadata.DataView in '..\..\Source\Kitto.Metadata.DataView.pas',
   Kitto.Metadata.Models in '..\..\Source\Kitto.Metadata.Models.pas',
   Kitto.Metadata in '..\..\Source\Kitto.Metadata.pas',
@@ -76,11 +70,5 @@ uses
   Kitto.Store in '..\..\Source\Kitto.Store.pas',
   Kitto.Types in '..\..\Source\Kitto.Types.pas';
 
-{$R *.res}
-
 begin
-  Application.Initialize;
-  Application.Title := 'Kitto';
-  Application.CreateForm(TKMainForm, KMainForm);
-  Application.Run;
 end.

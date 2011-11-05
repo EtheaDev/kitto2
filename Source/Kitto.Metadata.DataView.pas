@@ -995,8 +995,6 @@ begin
 end;
 
 function TKViewField.GetQualifiedNameOrExpression: string;
-var
-  LExpression: string;
 begin
   if Name = '' then
     raise EKError.Create('Missing field name.');

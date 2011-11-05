@@ -437,11 +437,11 @@ end;
 
 procedure TEFDBAdapterRegistry.BeforeDestruction;
 var
-  I: Integer;
+  LAdapter: TEFDBAdapter;
 begin
   inherited;
-  for I := FAdapters.Count - 1 downto 0 do
-    FAdapters.Values.ToArray[I].Free;
+  for LAdapter in FAdapters.Values do
+    LAdapter.Free;
   FAdapters.Clear;
   FreeAndNil(FAdapters);
 end;

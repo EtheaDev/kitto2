@@ -291,6 +291,7 @@ const
 implementation
 
 uses
+  {$IFDEF MSWINDOWS}{$IF RTLVersion <= 21}Windows,{$IFEND}{$ENDIF}
   SysUtils, StrUtils, Math, Ext, ExtUtil, ExtGrid, ExtForm;
 
 var
@@ -2009,6 +2010,11 @@ end;
 
 begin
   ExtUtilTextMetrics.FJSName := 'TextMetrics';
+  {$IF RTLVersion > 21}
   _JSFormatSettings := TFormatSettings.Create;
+  {$ELSE}
+  GetLocaleFormatSettings(GetThreadLocale, _JSFormatSettings);
+  {$IFEND}
   _JSFormatSettings.DecimalSeparator := '.';
+
 end.
