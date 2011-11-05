@@ -244,6 +244,7 @@ begin
   Result := FWriter;
 end;
 
+{$WARN SYMBOL_PLATFORM OFF}
 procedure TKMetadataCatalog.LoadIndex;
 var
   LResult: Integer;
@@ -257,6 +258,7 @@ begin
   end;
   FindClose(LSearchRec);
 end;
+{$WARN SYMBOL_PLATFORM ON}
 
 function TKMetadataCatalog.FindObject(const AName: string): TKMetadata;
 var

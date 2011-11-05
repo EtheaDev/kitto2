@@ -1,7 +1,12 @@
 program Kitto;
 
+{
+  Note: This project is only used to group and compile Kitto source files.
+  It is not enabled as a Kitto application.
+  If run, it terminates imemdiately - this is as designed.
+}
+
 uses
-  Forms,
   EF.Classes in '..\..\Source\EF\EF.Classes.pas',
   EF.DB in '..\..\Source\EF\EF.DB.pas',
   EF.DB.ADO in '..\..\Source\EF\EF.DB.ADO.pas',
@@ -65,11 +70,5 @@ uses
   Kitto.Store in '..\..\Source\Kitto.Store.pas',
   Kitto.Types in '..\..\Source\Kitto.Types.pas';
 
-{$R *.res}
-
 begin
-  Application.Initialize;
-  Application.Title := 'Kitto';
-  Application.CreateForm(TKExtMainForm, KExtMainForm);
-  Application.Run;
 end.

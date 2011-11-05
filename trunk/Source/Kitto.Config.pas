@@ -276,7 +276,6 @@ begin
   FreeAndNil(FAuthenticator);
   FreeAndNil(FAC);
   FinalizeDBConnections;
-  FreeAndNil(FDBConnections);
   FreeAndNil(FMacroExpansionEngine);
 end;
 
@@ -295,14 +294,11 @@ end;
 
 procedure TKConfig.FinalizeDBConnections;
 var
-  I: Integer;
   LDBConnection: TEFDBConnection;
 begin
-  for I := 0 to FDBConnections.Count - 1 do
-  begin
-    LDBConnection := FDBConnections.Values.ToArray[I];
-    FreeAndNil(LDBConnection);
-  end;
+  for LDBConnection in FDBConnections.Values do
+    LDBConnection.Free;
+  FreeAndNil(FDBConnections);
 end;
 
 function TKConfig.IsAccessGranted(const AResourceURI,
@@ -368,16 +364,19 @@ end;
 
 class function TKConfig.FindResourcePathName(const AResourceFileName: string): string;
 var
-  I: Integer;
+  LURL: string;
+  LPath: string;
 begin
-  I := 0;
-  repeat
-    Result := FResourcePathsURLs.Keys.ToArray[I] + AResourceFileName;
-    Inc(I);
-  until (I >= FResourcePathsURLs.Count) or FileExists(Result);
-
-  if not FileExists(Result) then
-    Result := '';
+  Result := '';
+  for LURL in FResourcePathsURLs.Keys do
+  begin
+    LPath := LURL + AResourceFileName;
+    if FileExists(LPath) then
+    begin
+      Result := LPath;
+      Break;
+    end;
+  end;
 end;
 
 class function TKConfig.GetResourcePathName(const AResourceFileName: string): string;
@@ -389,21 +388,19 @@ end;
 
 class function TKConfig.FindResourceURL(const AResourceFileName: string): string;
 var
-  I: Integer;
-  LResultURL: string;
+  LURL: string;
+  LPath: string;
 begin
-  I := 0;
-  LResultURL := '';
-  repeat
-    Result := FResourcePathsURLs.Keys.ToArray[I] + AResourceFileName;
-    LResultURL := FResourcePathsURLs.Values.ToArray[I] + ReplaceStr(AResourceFileName, '\', '/');
-    Inc(I);
-  until (I >= FResourcePathsURLs.Count) or FileExists(Result);
-
-  if FileExists(Result) then
-    Result := LResultURL
-  else
-    Result := ''
+  Result := '';
+  for LURL in FResourcePathsURLs.Keys do
+  begin
+    LPath := LURL + AResourceFileName;
+    if FileExists(LPath) then
+    begin
+      Result := FResourcePathsURLs[LURL] + ReplaceStr(AResourceFileName, '\', '/');
+      Break;
+    end;
+  end;
 end;
 
 class function TKConfig.GetResourceURL(const AResourceFileName: string): string;
@@ -452,8 +449,8 @@ begin
   FResourcePathsURLs := TDictionary<string, string>.Create;
   SetupResourcePathsURLs;
 
-  FJSFormatSettings := TFormatSettings.Create;
-  FJSFormatSettings := TFormatSettings.Create;
+  FJSFormatSettings := GetFormatSettings;
+  FJSFormatSettings := GetFormatSettings;
   FJSFormatSettings.DecimalSeparator := '.';
   FJSFormatSettings.ShortDateFormat := 'yyyy/mm/dd';
   FJSFormatSettings.ShortTimeFormat := 'hh:mm:ss';

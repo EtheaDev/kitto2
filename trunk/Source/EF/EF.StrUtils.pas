@@ -766,6 +766,40 @@ begin
     Result := 1;
 end;
 
+{$IFNDEF D15+}
+function SplitString(const S, Delimiters: string): TStringDynArray;
+var
+  StartIdx: Integer;
+  FoundIdx: Integer;
+  SplitPoints: Integer;
+  CurrentSplit: Integer;
+  i: Integer;
+begin
+  Result := nil;
+
+  if S <> '' then
+  begin
+    SplitPoints := 0;
+    for i := 1 to Length(S) do
+      if IsDelimiter(Delimiters, S, i) then
+        Inc(SplitPoints);
+    SetLength(Result, SplitPoints + 1);
+    StartIdx := 1;
+    CurrentSplit := 0;
+    repeat
+      FoundIdx := FindDelimiter(Delimiters, S, StartIdx);
+      if FoundIdx <> 0 then
+      begin
+        Result[CurrentSplit] := Copy(S, StartIdx, FoundIdx - StartIdx);
+        Inc(CurrentSplit);
+        StartIdx := FoundIdx + 1;
+      end;
+    until CurrentSplit = SplitPoints;
+    Result[SplitPoints] := Copy(S, StartIdx, Length(S) - StartIdx + 1);
+  end;
+end;
+{$ENDIF}
+
 function Split(const AString: string; const ASeparators: string): TStringDynArray;
 begin
   Result := SplitString(AString, ASeparators);

@@ -612,7 +612,7 @@ var
 begin
   AIsRequired := ContainsText(AsString, ' not null');
   AIsKey := ContainsText(AsString, ' primary key');
-  LStrings := SplitString(StripSuffix(StripSuffix(AsString, ' primary key'), ' not null'), '()');
+  LStrings := Split(StripSuffix(StripSuffix(AsString, ' primary key'), ' not null'), '()');
   if Length(LStrings) > 0 then
     ADataType := TEFDataTypeFactory.Instance.GetDataType(LStrings[0])
   else

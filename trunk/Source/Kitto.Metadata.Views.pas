@@ -124,6 +124,7 @@ type
   private
     class var FInstance: TKViewBuilderRegistry;
     class function GetInstance: TKViewBuilderRegistry; static;
+  protected
     class destructor Destroy;
   public
     class property Instance: TKViewBuilderRegistry read GetInstance;
