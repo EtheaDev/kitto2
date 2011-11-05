@@ -54,6 +54,7 @@ type
     function GetSelectConfirmCall(const AMessage: string; const AMethod: TExtProcedure): string;
     function IsReadOnly: Boolean;
     function GetOrderByClause: string;
+    procedure InitFieldsAndColumns;
   protected
     procedure InitDefaults; override;
   public
@@ -62,7 +63,6 @@ type
     property ViewTable: TKViewTable read FViewTable write SetViewTable;
     property ServerStore: TKViewTableStore read FServerStore write FServerStore;
     procedure LoadData;
-    procedure InitFieldsAndColumns;
   published
     procedure GetRecordPage;
     procedure EditViewRecord;
@@ -508,6 +508,8 @@ begin
     FreeAndNil(FTopToolbar)
   else
     FGridPanel.Tbar := FTopToolbar;
+
+  InitFieldsAndColumns;
 end;
 
 procedure TKExtGridPanel.UpdateObserver(const ASubject: IEFSubject;
