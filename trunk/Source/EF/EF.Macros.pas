@@ -511,7 +511,7 @@ var
 begin
   Result := inherited InternalExpand(AString);
   for LParamIndex := 0 to FParams.Count - 1 do
-    Result := ExpandMacros(Result, '%cmd:' + FParams.Names[LParamIndex] + '%',
+    Result := ExpandMacros(Result, '%Cmd:' + FParams.Names[LParamIndex] + '%',
       FParams.ValueFromIndex[LParamIndex]);
 end;
 

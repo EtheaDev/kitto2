@@ -26,6 +26,7 @@ type
     FInstance: TKConfig;
     FResourcePathsURLs: TDictionary<string, string>;
     FSystemHomePath: string;
+    function GetMainDBName: string;
   var
     FDBConnections: TDictionary<string, TEFDBConnection>;
     FMacroExpansionEngine: TEFMacroExpansionEngine;
@@ -309,7 +310,12 @@ end;
 
 function TKConfig.GetMainDBConnection: TEFDBConnection;
 begin
-  Result := GetDBConnection(MAIN_DB_NAME);
+  Result := GetDBConnection(GetMainDBName);
+end;
+
+function TKConfig.GetMainDBName: string;
+begin
+  Result := MAIN_DB_NAME;
 end;
 
 function TKConfig.GetDBConnection(const ADatabaseName: string): TEFDBConnection;

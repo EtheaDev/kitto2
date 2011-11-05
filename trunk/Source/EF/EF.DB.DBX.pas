@@ -63,6 +63,8 @@ type
     ///	  connection is closed or destroyed.
     ///	</summary>
     function GetFetchSequenceGeneratorValueQuery(const ASequenceName: string): TEFDBDBXQuery;
+  protected
+    function CreateDBEngineType: TEFDBEngineType; override;
   public
     procedure AfterConstruction; override;
     destructor Destroy; override;
@@ -101,6 +103,7 @@ type
   TEFDBDBXCommand = class(TEFDBCommand)
   private
     FQuery: TEFSQLQuery;
+    FCommandText: string;
   protected
     procedure ConnectionChanged; override;
     function GetCommandText: string; override;
@@ -119,6 +122,7 @@ type
   TEFDBDBXQuery = class(TEFDBQuery)
   private
     FQuery: TEFSQLQuery;
+    FCommandText: string;
   protected
     procedure ConnectionChanged; override;
     function GetCommandText: string; override;
@@ -151,8 +155,8 @@ type
 implementation
 
 uses
-  SysUtils, RTLConsts, TypInfo,
-  EF.Localization, EF.Types, EF.Tree;
+  SysUtils, StrUtils,
+  EF.StrUtils, EF.Localization, EF.Types, EF.Tree;
 
 function FbDataTypeToEFDataType(const AIBFbDataType: string): string;
 begin
@@ -210,6 +214,7 @@ end;
 
 procedure TEFDBDBXConnection.Close;
 begin
+  inherited;
   if FConnection.Connected then
     FConnection.Close;
 end;
@@ -229,6 +234,14 @@ begin
     FreeAndNil(Result);
     raise;
   end;
+end;
+
+function TEFDBDBXConnection.CreateDBEngineType: TEFDBEngineType;
+begin
+  if ContainsText(FConnection.DriverName, 'MSSQL') or ContainsText(FConnection.DriverName, 'SQLServer') then
+    Result := TEFSQLServerDBEngineType.Create
+  else
+    Result := inherited CreateDBEngineType;
 end;
 
 function TEFDBDBXConnection.CreateDBQuery: TEFDBQuery;
@@ -255,7 +268,7 @@ end;
 function TEFDBDBXConnection.GetFetchSequenceGeneratorValueQuery(
   const ASequenceName: string): TEFDBDBXQuery;
 begin
-  { TODO : 
+  { TODO :
 This remembers the last used sequence fetch query.
 A better implementation would be to keep a list of them. }
   if (ASequenceName <> FLastSequenceName) and (FLastSequenceName <> '') then
@@ -443,7 +456,7 @@ end;
 
 function TEFDBDBXCommand.GetCommandText: string;
 begin
-  Result := FQuery.SQL.Text;
+  Result := FCommandText;
 end;
 
 function TEFDBDBXCommand.GetParams: TParams;
@@ -458,7 +471,8 @@ end;
 
 procedure TEFDBDBXCommand.SetCommandText(const AValue: string);
 begin
-  FQuery.SQL.Text := AValue;
+  FCommandText := AValue;
+  FQuery.SQL.Text := ExpandCommandText(FCommandText);
 end;
 
 procedure TEFDBDBXCommand.SetParams(const AValue: TParams);
@@ -505,7 +519,7 @@ end;
 
 function TEFDBDBXQuery.GetCommandText: string;
 begin
-  Result := FQuery.SQL.Text;
+  Result := FCommandText;
 end;
 
 function TEFDBDBXQuery.GetDataSet: TDataSet;
@@ -541,7 +555,8 @@ end;
 
 procedure TEFDBDBXQuery.SetCommandText(const AValue: string);
 begin
-  FQuery.SQL.Text := AValue;
+  FCommandText := AValue;
+  FQuery.SQL.Text := ExpandCommandText(FCommandText);
 end;
 
 procedure TEFDBDBXQuery.SetMasterSource(const AValue: TDataSource);
