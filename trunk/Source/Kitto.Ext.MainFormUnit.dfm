@@ -427,13 +427,9 @@ object KExtMainForm: TKExtMainForm
     ActivePage = HomeTabSheet
     Align = alClient
     TabOrder = 0
-    ExplicitWidth = 461
-    ExplicitHeight = 294
     object HomeTabSheet: TTabSheet
       Caption = 'Home'
       ImageIndex = 1
-      ExplicitWidth = 453
-      ExplicitHeight = 266
       object LogMemo: TMemo
         Left = 0
         Top = 63
@@ -447,10 +443,8 @@ object KExtMainForm: TKExtMainForm
         Font.Style = []
         ParentFont = False
         ReadOnly = True
+        ScrollBars = ssVertical
         TabOrder = 0
-        ExplicitTop = 65
-        ExplicitWidth = 453
-        ExplicitHeight = 201
       end
       object ControlPanel: TPanel
         Left = 0
@@ -460,7 +454,6 @@ object KExtMainForm: TKExtMainForm
         Align = alTop
         BevelOuter = bvNone
         TabOrder = 1
-        ExplicitWidth = 453
         object SessionCountLabel: TLabel
           Left = 245
           Top = 25
@@ -557,7 +550,7 @@ object KExtMainForm: TKExtMainForm
     Left = 320
     Top = 65528
     Bitmap = {
-      494C010102004C00600010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C010102004C00640010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000001000000001002000000000000010
       0000000000000000000000000000000000000000000000000000000000000000
       00000000001E00000031000000330000003300000033000000310000001E0000

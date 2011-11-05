@@ -17,7 +17,7 @@ type
     function GetView: TKDataView;
     function GetServerStore: TKViewTableStore;
   protected
-    function AutoLoadData: Boolean;
+    function AutoLoadData: Boolean; virtual;
     procedure LoadData; virtual; abstract;
     procedure CheckCanRead;
     procedure CreateToolbar; virtual;

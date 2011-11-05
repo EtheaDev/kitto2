@@ -75,6 +75,7 @@ type
     function GetHint: string;
     function GetEditFormat: string;
     function GetDisplayFormat: string;
+    function GetQualifiedFieldNameOrExpression: string;
   protected
     procedure GetFieldSpec(out ADataType: TEFDataType; out ASize: Integer;
       out AIsRequired: Boolean; out AIsKey: Boolean; out AReferencedModel: string);
@@ -83,6 +84,8 @@ type
     property Model: TKModel read GetModel;
     property FieldName: string read GetFieldName;
     property QualifiedFieldName: string read GetQualifiedFieldName;
+    property QualifiedFieldNameOrExpression: string read GetQualifiedFieldNameOrExpression;
+
     property DataType: TEFDataType read GetDataType;
     property Size: Integer read GetSize;
     property DecimalPrecision: Integer read GetDecimalPrecision;
@@ -600,7 +603,10 @@ end;
 function TKModel.BeautifyModelName(const AModelName: string): string;
 begin
   { TODO : allow to customize the beautifying function }
-  Result := CamelToSpaced(UpperUnderscoreToCamel(AModelName));
+  Result := AModelName;
+  if (Result = UpperCase(Result)) or (Pos('_', Result) > 0) then
+    Result := UpperUnderscoreToCamel(Result);
+  Result := CamelToSpaced(Result);
 end;
 
 { TKModelField }
@@ -697,6 +703,14 @@ begin
   Result := Model.ModelName + '.' + FieldName;
 end;
 
+function TKModelField.GetQualifiedFieldNameOrExpression: string;
+begin
+  if Expression <> '' then
+    Result := Expression
+  else
+    Result := QualifiedFieldName;
+end;
+
 function TKModelField.GetReferencedModel: TKModel;
 begin
   if IsReference then
@@ -736,7 +750,10 @@ end;
 function TKModelField.BeautifyFieldName(const AFieldName: string): string;
 begin
   { TODO : allow to customize the beautifying function }
-  Result := CamelToSpaced(UpperUnderscoreToCamel(AFieldName));
+  Result := AFieldName;
+  if (Result = UpperCase(Result)) or (Pos('_', Result) > 0) then
+    Result := UpperUnderscoreToCamel(Result);
+  Result := CamelToSpaced(Result);
 end;
 
 function TKModelField.FieldByName(const AName: string): TKModelField;
@@ -1027,7 +1044,10 @@ end;
 function TKModelDetailReference.BeautifyDetailName(const ADetailName: string): string;
 begin
   { TODO : allow to customize the beautifying function }
-  Result := CamelToSpaced(UpperUnderscoreToCamel(ADetailName));
+  Result := ADetailName;
+  if (Result = UpperCase(Result)) or (Pos('_', Result) > 0) then
+    Result := UpperUnderscoreToCamel(Result);
+  Result := CamelToSpaced(Result);
 end;
 
 function TKModelDetailReference.GetDetailModel: TKModel;

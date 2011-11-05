@@ -1,4 +1,4 @@
-unit Kitto.Ext.Form;
+  unit Kitto.Ext.Form;
 
 {$I Kitto.Defines.inc}
 
@@ -57,6 +57,7 @@ type
   protected
     procedure LoadData; override;
     procedure InitComponents; override;
+    function AutoLoadData: Boolean; override;
   public
     destructor Destroy; override;
   published
@@ -352,6 +353,12 @@ begin
     FCancelButton.Tooltip := _('Cancel changes');
     FCancelButton.Handler := Ajax(CancelChanges);
   end;
+end;
+
+function TKExtFormPanelController.AutoLoadData: Boolean;
+begin
+  // A form is not subject to the AutoOpen parameter.
+  Result := True;
 end;
 
 procedure TKExtFormPanelController.CancelChanges;

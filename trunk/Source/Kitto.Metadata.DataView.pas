@@ -996,9 +996,9 @@ end;
 
 function TKViewField.GetQualifiedNameOrExpression: string;
 begin
-  if Name = '' then
-    raise EKError.Create('Missing field name.');
-  if Expression <> '' then
+  if IsReference then
+    Result := ModelField.ReferencedModel.CaptionField.QualifiedFieldNameOrExpression
+  else if Expression <> '' then
     Result := Expression
   else
     Result := QualifiedName;
