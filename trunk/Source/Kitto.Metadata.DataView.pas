@@ -997,7 +997,7 @@ end;
 function TKViewField.GetQualifiedNameOrExpression: string;
 begin
   if IsReference then
-    Result := ModelField.ReferencedModel.CaptionField.QualifiedFieldNameOrExpression
+    Result := FieldName + '.' + ModelField.ReferencedModel.CaptionField.FieldNameOrExpression
   else if Expression <> '' then
     Result := Expression
   else

@@ -76,6 +76,7 @@ type
     function GetEditFormat: string;
     function GetDisplayFormat: string;
     function GetQualifiedFieldNameOrExpression: string;
+    function GetFieldNameOrExpression: string;
   protected
     procedure GetFieldSpec(out ADataType: TEFDataType; out ASize: Integer;
       out AIsRequired: Boolean; out AIsKey: Boolean; out AReferencedModel: string);
@@ -83,6 +84,7 @@ type
   public
     property Model: TKModel read GetModel;
     property FieldName: string read GetFieldName;
+    property FieldNameOrExpression: string read GetFieldNameOrExpression;
     property QualifiedFieldName: string read GetQualifiedFieldName;
     property QualifiedFieldNameOrExpression: string read GetQualifiedFieldNameOrExpression;
 
@@ -876,6 +878,14 @@ end;
 function TKModelField.GetFieldName: string;
 begin
   Result := Name;
+end;
+
+function TKModelField.GetFieldNameOrExpression: string;
+begin
+  if Expression <> '' then
+    Result := Expression
+  else
+    Result := FieldName;
 end;
 
 function TKModelField.GetFieldNames: TStringDynArray;
