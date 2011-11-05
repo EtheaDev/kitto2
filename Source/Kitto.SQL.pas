@@ -459,7 +459,7 @@ begin
       ' from ' + GetFromClause + GetSelectWhereClause(AFilter, ADBQuery);
     if (AOrderBy <> '') or (FViewTable.DefaultSorting <> '') then
       LCommandText := LCommandText + ' order by ' + IfThen(AOrderBy <> '', AOrderBy, FViewTable.DefaultSorting);
-    LCommandText := ADBQuery.Connection.AddLimitClause(LCommandText, AFrom, AFor);
+    LCommandText := ADBQuery.Connection.DBEngineType.AddLimitClause(LCommandText, AFrom, AFor);
     ADBQuery.CommandText := TEFMacroExpansionEngine.Instance.Expand(LCommandText);
   finally
     ADBQuery.Params.EndUpdate;

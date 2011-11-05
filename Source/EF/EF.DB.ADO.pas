@@ -49,6 +49,7 @@ type
     FConnection: TADOConnection;
   protected
     function GetQueryClass: TEFDBADOQueryClass; virtual;
+    function CreateDBEngineType: TEFDBEngineType; override;
   public
     procedure AfterConstruction; override;
     destructor Destroy; override;
@@ -65,8 +66,6 @@ type
     function GetLastAutoincValue(const ATableName: string = ''): Int64; override;
     function CreateDBCommand: TEFDBCommand; override;
     function CreateDBQuery: TEFDBQuery; override;
-    function AddLimitClause(const ACommandText: string; const AFrom: Integer;
-      const AFor: Integer): string; override;
   end;
 
   TEFDBADOCommand = class(TEFDBCommand)
@@ -176,37 +175,6 @@ end;
 
 { TEFDBADOConnection }
 
-function TEFDBADOConnection.AddLimitClause(const ACommandText: string;
-  const AFrom, AFor: Integer): string;
-var
-  LSelectClause: string;
-  LOrderByClause: string;
-  LFromClause: string;
-  LWhereClause: string;
-begin
-  if (AFrom <> 0) or (AFor <> 0) then
-  begin
-    LSelectClause := GetSQLSelectClause(ACommandText);
-    LFromClause := GetSQLFromClause(ACommandText);
-    LWhereClause := GetSQLWhereClause(ACommandText);
-    if LWhereClause <> '' then
-      LWhereClause := ' where ' + LWhereClause;
-    LOrderByClause := GetSQLOrderByClause(ACommandText);
-    if LOrderByClause <> '' then
-      LOrderByClause := ' order by ' + LOrderByClause
-    else
-      raise EEFError.Create('Cannot add limit clause without order by clause.');
-{ TODO :
-Don't select the __ROWNUM field to save bandwidth?
-Select clause massaging would be required. }
-    Result := Format('select * from (select %s, row_number() over (%s) as __ROWNUM ' +
-      'from %s%s) as __OUTER where __OUTER.__ROWNUM between %d and %d',
-      [LSelectClause, LOrderByClause, LFromClause, LWhereClause, AFrom + 1, AFrom + 1 + AFor - 1]);
-  end
-  else
-    Result := inherited AddLimitClause(ACommandText, AFrom, AFor);
-end;
-
 procedure TEFDBADOConnection.AfterConstruction;
 begin
   inherited;
@@ -228,6 +196,7 @@ end;
 
 procedure TEFDBADOConnection.Close;
 begin
+  inherited;
   if FConnection.Connected then
     FConnection.Close;
 end;
@@ -262,6 +231,12 @@ begin
     FreeAndNil(Result);
     raise;
   end;
+end;
+
+function TEFDBADOConnection.CreateDBEngineType: TEFDBEngineType;
+begin
+  { TODO : Change type based on connection string. }
+  Result := TEFSQLServerDBEngineType.Create;
 end;
 
 function TEFDBADOConnection.CreateDBQuery: TEFDBQuery;
@@ -392,7 +367,7 @@ procedure TEFDBADOCommand.UpdateInternalCommandCommandText;
 begin
   if FCommand.CommandText <> FCommandText then
   begin
-    FCommand.CommandText := FCommandText;
+    FCommand.CommandText := ExpandCommandText(FCommandText);
     FCommand.Prepared := True;
   end;
 end;
@@ -511,11 +486,8 @@ end;
 
 procedure TEFDBADOQuery.UpdateInternalQueryCommandText;
 begin
-  if FQuery.SQL.Text <> FCommandText then
-  begin
-    FQuery.SQL.Text := FCommandText;
-    FQuery.Prepared := True;
-  end;
+  FQuery.SQL.Text := ExpandCommandText(FCommandText);
+  FQuery.Prepared := True;
 end;
 
 procedure TEFDBADOQuery.UpdateInternalQueryParams;

@@ -184,6 +184,10 @@ type
     ///	<summary>Called whenever the connection changes. Descendants override
     ///	it to link internal components to the new connection.</summary>
     procedure ConnectionChanged; virtual;
+
+    ///	<summary>Expands database-specific macros. Called before executing a
+    ///	command.</summary>
+    function ExpandCommandText(const ACommandText: string): string;
   public
     ///	<summary>
     ///	  Database connection this component is linked to.
@@ -260,26 +264,76 @@ type
     function SQLLookup: Variant;
   end;
 
+  ///	<summary>Descendants of this class encapsulate differences among
+  ///	different DB engines, mainly SQL dialect differences.</summary>
+  TEFDBEngineType = class(TEFComponent)
+  public
+    ///	<summary>
+    ///	  <para>Adds a limit clause to the specified SQL statement, which must
+    ///	  be a select statement. The method transforms the select statement in
+    ///	  a way that is compatible to what the database expects for a limited
+    ///	  query. For standard-compliant databases such as Firebird you would
+    ///	  add a "rows M to N" clause after the order by clase. Others will
+    ///	  require some degree of query rewriting.</para>
+    ///	  <para>The default implementation returns the standard-compliant
+    ///	  version.</para>
+    ///	  <para>If both AFrom and ATo are 0, the statement is returned
+    ///	  unchanged.</para>
+    ///	</summary>
+    function AddLimitClause(const ACommandText: string;
+      const AFrom, AFor: Integer): string; virtual;
+
+    ///	<summary>
+    ///	  <para>Expands database-specific macros. Called before executing a
+    ///	  command.</para>
+    ///	  <para>Supported macros:</para>
+    ///	  <list type="table">
+    ///	    <listheader>
+    ///	      <term>Macro Name</term>
+    ///	      <description>Expands to</description>
+    ///	    </listheader>
+    ///	    <item>
+    ///	      <term>%DB.CURRENT_DATE%</term>
+    ///	      <description>current_datetime, or getdate(), and so
+    ///	      on.</description>
+    ///	    </item>
+    ///	  </list>
+    ///	</summary>
+    function ExpandCommandText(const ACommandText: string): string; virtual;
+  end;
+
+  TEFSQLServerDBEngineType = class(TEFDBEngineType)
+  public
+    function AddLimitClause(const ACommandText: string; const AFrom: Integer;
+      const AFor: Integer): string; override;
+    function ExpandCommandText(const ACommandText: string): string; override;
+  end;
+
   ///	<summary>
   ///	  A base class for database connections.
   ///	</summary>
   TEFDBConnection = class(TEFComponent)
   private
+    FDBEngineType: TEFDBEngineType;
     FStandardFormatSettings: TFormatSettings;
+    function GetDBEngineType: TEFDBEngineType;
   protected
     function GetStandardFormatSettings: TFormatSettings;
     procedure AfterConnectionOpen(Sender: TObject);
+    function CreateDBEngineType: TEFDBEngineType; virtual;
   public
     procedure AfterConstruction; override;
     destructor Destroy; override;
   public
+    property DBEngineType: TEFDBEngineType read GetDBEngineType;
+
     ///	<summary>Connects to the database.</summary>
     procedure Open; virtual; abstract;
 
     ///	<summary>Closes the connection to the database. As a result, open
     ///	datasets might get closed as well or not, depending on the
     ///	implementation.</summary>
-    procedure Close; virtual; abstract;
+    procedure Close; virtual;
 
     ///	<summary>Returns True if the connection to the database is open, False
     ///	otherwise.</summary>
@@ -323,21 +377,6 @@ type
     ///	<summary>Creates and returns an instance of the concrete query class,
     /// linked to this connection.</summary>
     function CreateDBQuery: TEFDBQuery; virtual; abstract;
-
-    ///	<summary>
-    ///	  <para>Adds a limit clause to the specified SQL statement, which must
-    ///	  be a select statement. The method transforms the select statement in
-    ///	  a way that is compatible to what the database expects for a limited
-    ///	  query. For standard-compliant databases such as Firebird you would
-    ///	  add a "rows M to N" clause after the order by clase. Others will
-    ///	  require some query rewriting.</para>
-    ///	  <para>The default implementation returns the standard-compliant
-    ///	  version.</para>
-    ///	  <para>If both AFrom and ATo are 0, the statement is returned
-    ///	  unchanged.</para>
-    ///	</summary>
-    function AddLimitClause(const ACommandText: string;
-      const AFrom, AFor: Integer): string; virtual;
 
     ///	<summary>
     ///	  Returns the value of the first column of the first record of the
@@ -488,25 +527,6 @@ end;
 
 { TEFDBConnection }
 
-function TEFDBConnection.AddLimitClause(const ACommandText: string; const AFrom,
-  AFor: Integer): string;
-var
-  LOrderByClause: string;
-begin
-  Result := ACommandText;
-  if (AFrom <> 0) or (AFor <> 0) then
-  begin
-    LOrderByClause := GetSQLOrderByClause(ACommandText);
-    if LOrderByClause <> '' then
-      Result := SetSQLOrderByClause(ACommandText, LOrderByClause + ' ' +
-        Format(' rows %d to %d', [AFrom + 1, AFrom + 1 + AFor - 1]))
-    else
-      raise EEFError.Create('Cannot add limit clause without order by clause.');
-  end
-  else
-    Result := ACommandText;
-end;
-
 procedure TEFDBConnection.AfterConnectionOpen(Sender: TObject);
 var
   LCommandText: string;
@@ -538,7 +558,27 @@ destructor TEFDBConnection.Destroy;
 begin
   if IsOpen then
     Close;
+  FreeAndNil(FDBEngineType);
   inherited;
+end;
+
+function TEFDBConnection.GetDBEngineType: TEFDBEngineType;
+begin
+  if not IsOpen then
+    Open;
+  if not Assigned(FDBEngineType) then
+    FDBEngineType := CreateDBEngineType;
+  Result := FDBEngineType;
+end;
+
+procedure TEFDBConnection.Close;
+begin
+  FreeAndNil(FDBEngineType);
+end;
+
+function TEFDBConnection.CreateDBEngineType: TEFDBEngineType;
+begin
+  Result := TEFDBEngineType.Create;
 end;
 
 function TEFDBConnection.GetSingletonValue(
@@ -807,6 +847,14 @@ procedure TEFDBComponent.ConnectionChanged;
 begin
 end;
 
+function TEFDBComponent.ExpandCommandText(const ACommandText: string): string;
+begin
+  if Assigned(Connection) then
+    Result := Connection.DBEngineType.ExpandCommandText(ACommandText)
+  else
+    Result := ACommandText;
+end;
+
 function TEFDBComponent.GetConnection: TEFDBConnection;
 begin
   Result := FConnection;
@@ -879,6 +927,70 @@ begin
   finally
     Close;
   end;
+end;
+
+{ TEFDBEngineType }
+
+function TEFDBEngineType.AddLimitClause(const ACommandText: string; const AFrom,
+  AFor: Integer): string;
+var
+  LOrderByClause: string;
+begin
+  Result := ACommandText;
+  if (AFrom <> 0) or (AFor <> 0) then
+  begin
+    LOrderByClause := GetSQLOrderByClause(ACommandText);
+    if LOrderByClause <> '' then
+      Result := SetSQLOrderByClause(ACommandText, LOrderByClause + ' ' +
+        Format(' rows %d to %d', [AFrom + 1, AFrom + 1 + AFor - 1]))
+    else
+      raise EEFError.Create('Cannot add limit clause without order by clause.');
+  end
+  else
+    Result := ACommandText;
+end;
+
+function TEFDBEngineType.ExpandCommandText(const ACommandText: string): string;
+begin
+  Result := ReplaceText(ACommandText, '%DB.CURRENT_DATE%', 'current_date');
+end;
+
+{ TEFSQLServerDBEngineType }
+
+function TEFSQLServerDBEngineType.AddLimitClause(const ACommandText: string;
+  const AFrom, AFor: Integer): string;
+var
+  LSelectClause: string;
+  LOrderByClause: string;
+  LFromClause: string;
+  LWhereClause: string;
+begin
+  if (AFrom <> 0) or (AFor <> 0) then
+  begin
+    LSelectClause := GetSQLSelectClause(ACommandText);
+    LFromClause := GetSQLFromClause(ACommandText);
+    LWhereClause := GetSQLWhereClause(ACommandText);
+    if LWhereClause <> '' then
+      LWhereClause := ' where ' + LWhereClause;
+    LOrderByClause := GetSQLOrderByClause(ACommandText);
+    if LOrderByClause <> '' then
+      LOrderByClause := ' order by ' + LOrderByClause
+    else
+      raise EEFError.Create('Cannot add limit clause without order by clause.');
+{ TODO :
+Don't select the __ROWNUM field to save bandwidth?
+Select clause massaging would be required. }
+    Result := Format('select * from (select %s, row_number() over (%s) as __ROWNUM ' +
+      'from %s%s) as __OUTER where __OUTER.__ROWNUM between %d and %d',
+      [LSelectClause, LOrderByClause, LFromClause, LWhereClause, AFrom + 1, AFrom + 1 + AFor - 1]);
+  end
+  else
+    Result := inherited AddLimitClause(ACommandText, AFrom, AFor);
+end;
+
+function TEFSQLServerDBEngineType.ExpandCommandText(const ACommandText: string): string;
+begin
+  Result := ReplaceText(inherited ExpandCommandText(ACommandText), '%DB.CURRENT_DATE%', 'getdate()');
 end;
 
 end.

@@ -1,6 +1,8 @@
 AppTitle: Peoria Girls and their Dolls
 
 Databases:
+  # Switch Main and Other to swicth databases.
+
   Main: DBX
     Connection:
       DriverName: Firebird
@@ -11,6 +13,29 @@ Databases:
       WaitOnLocks: True
       IsolationLevel: ReadCommitted
       Trim Char: False
+
+  Other: DBX
+    Connection:
+      DriverName: MSSQL
+      HostName: localhost
+      DataBase: HelloKitto
+      OS Authentication: True
+
+  NotWorking: ADO
+    Connection:
+      # This doesn't work because of a bug with date and time fields in ADO/OLEDB.
+      # See http://qc.embarcadero.com/wc/qcmain.aspx?d=78910
+      ConnectionString: Provider=SQLOLEDB.1;User ID=sa;Password=;Initial Catalog=HelloKitto;Data Source=%COMPUTERNAME%
+      # Using the Native client fixes the date bug but still not the time bug.
+      ConnectionString: >
+        Provider=SQLNCLI10;
+        User ID=sa;
+        Password=;
+        Initial Catalog=HelloKitto;
+        Data Source=localhost;
+        Use Procedure for Prepare=1;
+        Auto Translate=True;
+        Packet Size=4096;
 
 Auth: DB
   Defaults:
