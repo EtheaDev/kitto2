@@ -27,7 +27,7 @@ implementation
 
 uses
   SysUtils, SyncObjs,
-  PerlRegEx,
+  {$IFDEF D15+}RegularExpressionsCore{$ELSE}PerlRegEx{$ENDIF},
   EF.StrUtils;
 
 // Creating an instance of this component is costly, so we cache it.
@@ -43,7 +43,7 @@ begin
   begin
     _CriticalSection.Enter;
     try
-      _RegExEngine := TPerlRegEx.Create(nil);
+      _RegExEngine := TPerlRegEx.Create;
       Result := _RegExEngine;
     finally
       _CriticalSection.Enter;
