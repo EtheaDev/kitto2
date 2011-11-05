@@ -1,0 +1,38 @@
+﻿Type: Data
+
+Controller: List
+  AllowClose: True
+
+MainTable:
+  Model: Party
+
+  Controller:
+    PopupWindow:
+      Width: 480
+      Height: 260
+
+    Grouping:
+      FieldName: Party_Period
+      # SortFieldName defaults to FieldName.
+      SortFieldName: Party_Period_Order
+      StartCollapsed: False
+      ShowName: False
+      ShowCount: True
+
+    Filters:
+      DisplayLabel: Search Parties
+      Items:
+        FreeSearch: Name/Address
+          ExpressionTemplate: >
+            upper(PARTY.ADDRESS) like upper('%{value}%') or upper(PARTY.PARTY_NAME) like upper('%{value}%')
+
+  DetailTables:
+    Controller:
+      # Tabs/Popup. Default = Tabs. 
+      Style: Tabs
+    Table:
+      Model: Invitation
+      Controller:
+        PopupWindow:
+          Width: 360
+          Height: 200

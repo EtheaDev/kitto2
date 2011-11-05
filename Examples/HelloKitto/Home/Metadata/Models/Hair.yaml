@@ -1,0 +1,9 @@
+ModelName: Hair
+DisplayLabel: Hair Type
+PluralDisplayLabel: Hair Types
+Fields:
+  Hair_Id: String(32) not null primary key
+    IsVisible: False
+    DefaultValue: %COMPACT_GUID%
+  Hair_Color: String(80) not null
+    DisplayWidth: 20

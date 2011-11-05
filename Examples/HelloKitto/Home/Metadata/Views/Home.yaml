@@ -1,0 +1,38 @@
+DisplayLabel: %Config:AppTitle%
+# Valid top-level controllers are Window and Viewport
+Controller: Window
+  Width: 1000
+  Height: 500
+
+  SubView:
+    Controller: BorderPanel
+      
+      WestView:
+        DisplayLabel: Navigation
+        Controller: BorderPanel
+          Width: 155
+          Collapsible: True
+          Border: True
+          NorthView:
+            Controller: HtmlPanel
+              Split: False
+              Html: <p><img src="%IMAGE(kitto_logo_150)%" width="150" height="47"></img></p>
+          CenterView:
+            Controller: TreePanel
+              TreeView: MainMenu
+      
+      CenterView:
+        Controller: TabPanel
+          Border: True
+          SubViews:
+            View: Girls
+            View: Dolls
+
+      .NorthView:
+        Controller: ToolBar
+          TreeView: MainMenu
+
+      SouthView:
+        Controller: StatusBar
+          Text: <p>User: %Auth:UserName%</p>
+        ImageName: user
