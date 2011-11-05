@@ -1,0 +1,32 @@
+Type: Data
+
+Controller: List
+  AllowClose: False
+
+MainTable:
+  Model: Doll
+
+  Controller:
+    AutoOpen: False
+
+    PopupWindow:
+      Width: 460
+      Height: 300
+
+    Grouping:
+      FieldName: Hair
+      StartCollapsed: False
+      ShowName: False
+      ShowCount: True
+        Template: {[values.rs.length]} Dolls have {text} hair
+      
+    Filters:
+      DisplayLabel: Choose Mom
+      Items:
+        DynaList: Mom
+          # CommandText must select the value field and the display field as the first two fields.
+          CommandText: |
+            select GIRL_ID, GIRL_NAME 
+            from GIRL order by GIRL_NAME
+          # ExpressionTemplate should contain a {value} placeholder for the value field selected by the CommandText.
+          ExpressionTemplate: DOLL.MOM_ID = '{value}'

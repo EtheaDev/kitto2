@@ -1,0 +1,14 @@
+ModelName: Invitation
+Fields:
+  Invitation_Id: String(32) not null primary key
+    IsVisible: False
+    DefaultValue: %COMPACT_GUID%
+  Party: Reference(Party) not null
+    Fields:
+      Party_Id:
+  Invitee: Reference(Girl) not null
+    Fields:
+      Invitee_Id:
+  Accepted: Boolean
+Rules:
+  CheckDuplicateInvitations:
