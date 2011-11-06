@@ -30,10 +30,10 @@ Name3=Help 3
 
 [Configurations\Help 2\{D3A588E0-9472-11D3-BDD1-0080C8BA053D}\AdditionalFiles]
 Count=4
-File0=..\..\..\..\..\..\..\..\Program Files (x86)\Doc-O-Matic 7 Express\graphics\footer-bkg-whitegradient.gif
-File1=..\..\..\..\..\..\..\..\Program Files (x86)\Doc-O-Matic 7 Express\graphics\header-bkg-whitegradient.gif
-File2=..\..\..\..\..\..\..\..\Program Files (x86)\Doc-O-Matic 7 Express\graphics\html_fullframegradient.gif
-File3=..\..\..\..\..\..\..\..\Program Files (x86)\Doc-O-Matic 7 Express\graphics\html_titlebkg.jpg
+File0=..\..\..\..\..\..\Program Files (x86)\Doc-O-Matic 7 Express\graphics\footer-bkg-whitegradient.gif
+File1=..\..\..\..\..\..\Program Files (x86)\Doc-O-Matic 7 Express\graphics\header-bkg-whitegradient.gif
+File2=..\..\..\..\..\..\Program Files (x86)\Doc-O-Matic 7 Express\graphics\html_fullframegradient.gif
+File3=..\..\..\..\..\..\Program Files (x86)\Doc-O-Matic 7 Express\graphics\html_titlebkg.jpg
 
 [Configurations\Help 2\{D3A588E0-9472-11D3-BDD1-0080C8BA053D}\General]
 ClearDirectoryBeforeExport=0
@@ -87,8 +87,8 @@ WindowPosition_Top=0
 
 [Configurations\Help 2\Image Paths]
 Count=2
-Path0=..\..\..\..\..\..\..\..\Program Files (x86)\Doc-O-Matic 7 Express\graphics
-Path1=..\..\..\..\..\..\..\..\Program Files (x86)\Doc-O-Matic 7 Express\graphics\en
+Path0=..\..\..\..\..\..\Program Files (x86)\Doc-O-Matic 7 Express\graphics
+Path1=..\..\..\..\..\..\Program Files (x86)\Doc-O-Matic 7 Express\graphics\en
 
 [Configurations\Help 2\Output Options]
 ClassHierarchyLayoutOutputDir=..\..\..\..\..\..\Documents\Doc-O-Matic\graphics
@@ -98,10 +98,10 @@ ID={D3A588E0-9472-11D3-BDD1-0080C8BA053D}
 
 [Configurations\Help 3\{D3A588E0-9472-11D3-BDD1-0080C8BA053D}\AdditionalFiles]
 Count=4
-File0=..\..\..\..\..\..\..\..\Program Files (x86)\Doc-O-Matic 7 Express\graphics\footer-bkg-whitegradient.gif
-File1=..\..\..\..\..\..\..\..\Program Files (x86)\Doc-O-Matic 7 Express\graphics\header-bkg-whitegradient.gif
-File2=..\..\..\..\..\..\..\..\Program Files (x86)\Doc-O-Matic 7 Express\graphics\html_fullframegradient.gif
-File3=..\..\..\..\..\..\..\..\Program Files (x86)\Doc-O-Matic 7 Express\graphics\html_titlebkg.jpg
+File0=..\..\..\..\..\..\Program Files (x86)\Doc-O-Matic 7 Express\graphics\footer-bkg-whitegradient.gif
+File1=..\..\..\..\..\..\Program Files (x86)\Doc-O-Matic 7 Express\graphics\header-bkg-whitegradient.gif
+File2=..\..\..\..\..\..\Program Files (x86)\Doc-O-Matic 7 Express\graphics\html_fullframegradient.gif
+File3=..\..\..\..\..\..\Program Files (x86)\Doc-O-Matic 7 Express\graphics\html_titlebkg.jpg
 
 [Configurations\Help 3\{D3A588E0-9472-11D3-BDD1-0080C8BA053D}\General]
 ClearDirectoryBeforeExport=0
@@ -155,8 +155,8 @@ WindowPosition_Top=0
 
 [Configurations\Help 3\Image Paths]
 Count=2
-Path0=..\..\..\..\..\..\..\..\Program Files (x86)\Doc-O-Matic 7 Express\graphics
-Path1=..\..\..\..\..\..\..\..\Program Files (x86)\Doc-O-Matic 7 Express\graphics\en
+Path0=..\..\..\..\..\..\Program Files (x86)\Doc-O-Matic 7 Express\graphics
+Path1=..\..\..\..\..\..\Program Files (x86)\Doc-O-Matic 7 Express\graphics\en
 
 [Configurations\Help 3\Output Options]
 ClassHierarchyLayoutOutputDir=..\..\..\..\..\..\Documents\Doc-O-Matic\graphics
@@ -166,10 +166,10 @@ ID={D3A588E0-9472-11D3-BDD1-0080C8BA053D}
 
 [Configurations\HTML Help\{D3A588E0-9472-11D3-BDD1-0080C8BA053D}\AdditionalFiles]
 Count=4
-File0=..\..\..\..\..\..\..\..\Program Files (x86)\Doc-O-Matic 7 Express\graphics\footer-bkg-whitegradient.gif
-File1=..\..\..\..\..\..\..\..\Program Files (x86)\Doc-O-Matic 7 Express\graphics\header-bkg-whitegradient.gif
-File2=..\..\..\..\..\..\..\..\Program Files (x86)\Doc-O-Matic 7 Express\graphics\html_fullframegradient.gif
-File3=..\..\..\..\..\..\..\..\Program Files (x86)\Doc-O-Matic 7 Express\graphics\html_titlebkg.jpg
+File0=..\..\..\..\..\..\Program Files (x86)\Doc-O-Matic 7 Express\graphics\footer-bkg-whitegradient.gif
+File1=..\..\..\..\..\..\Program Files (x86)\Doc-O-Matic 7 Express\graphics\header-bkg-whitegradient.gif
+File2=..\..\..\..\..\..\Program Files (x86)\Doc-O-Matic 7 Express\graphics\html_fullframegradient.gif
+File3=..\..\..\..\..\..\Program Files (x86)\Doc-O-Matic 7 Express\graphics\html_titlebkg.jpg
 
 [Configurations\HTML Help\{D3A588E0-9472-11D3-BDD1-0080C8BA053D}\General]
 ClearDirectoryBeforeExport=0
@@ -223,8 +223,8 @@ WindowPosition_Top=0
 
 [Configurations\HTML Help\Image Paths]
 Count=2
-Path0=..\..\..\..\..\..\..\..\Program Files (x86)\Doc-O-Matic 7 Express\graphics
-Path1=..\..\..\..\..\..\..\..\Program Files (x86)\Doc-O-Matic 7 Express\graphics\en
+Path0=..\..\..\..\..\..\Program Files (x86)\Doc-O-Matic 7 Express\graphics
+Path1=..\..\..\..\..\..\Program Files (x86)\Doc-O-Matic 7 Express\graphics\en
 
 [Configurations\HTML Help\Output Options]
 ClassHierarchyLayoutOutputDir=..\..\Docs\External\Reference\HtmlHelp\graphics
@@ -234,10 +234,10 @@ ID={D3A588E0-9472-11D3-BDD1-0080C8BA053D}
 
 [Configurations\HTML\{D3A588E0-9472-11D3-BDD1-0080C8BA053D}\AdditionalFiles]
 Count=4
-File0=..\..\..\..\..\..\..\..\Program Files (x86)\Doc-O-Matic 7 Express\graphics\footer-bkg-whitegradient.gif
-File1=..\..\..\..\..\..\..\..\Program Files (x86)\Doc-O-Matic 7 Express\graphics\header-bkg-whitegradient.gif
-File2=..\..\..\..\..\..\..\..\Program Files (x86)\Doc-O-Matic 7 Express\graphics\html_fullframegradient.gif
-File3=..\..\..\..\..\..\..\..\Program Files (x86)\Doc-O-Matic 7 Express\graphics\html_titlebkg.jpg
+File0=..\..\..\..\..\..\Program Files (x86)\Doc-O-Matic 7 Express\graphics\footer-bkg-whitegradient.gif
+File1=..\..\..\..\..\..\Program Files (x86)\Doc-O-Matic 7 Express\graphics\header-bkg-whitegradient.gif
+File2=..\..\..\..\..\..\Program Files (x86)\Doc-O-Matic 7 Express\graphics\html_fullframegradient.gif
+File3=..\..\..\..\..\..\Program Files (x86)\Doc-O-Matic 7 Express\graphics\html_titlebkg.jpg
 
 [Configurations\HTML\{D3A588E0-9472-11D3-BDD1-0080C8BA053D}\General]
 ClearDirectoryBeforeExport=1
@@ -291,8 +291,8 @@ WindowPosition_Top=0
 
 [Configurations\HTML\Image Paths]
 Count=2
-Path0=..\..\..\..\..\..\..\..\Program Files (x86)\Doc-O-Matic 7 Express\graphics
-Path1=..\..\..\..\..\..\..\..\Program Files (x86)\Doc-O-Matic 7 Express\graphics\en
+Path0=..\..\..\..\..\..\Program Files (x86)\Doc-O-Matic 7 Express\graphics
+Path1=..\..\..\..\..\..\Program Files (x86)\Doc-O-Matic 7 Express\graphics\en
 
 [Configurations\HTML\Output Options]
 ClassHierarchyLayoutOutputDir=..\..\..\..\..\..\Documents\Doc-O-Matic\graphics
@@ -935,7 +935,7 @@ ID9=9
 SavedValues=1
 
 [Source Files]
-Count=65
+Count=64
 File0=..\..\Source\EF\EF.Classes.pas
 File1=..\..\Source\EF\EF.DB.ADO.pas
 File10=..\..\Source\EF\EF.ObserverIntf.pas
@@ -987,17 +987,16 @@ File51=..\..\Source\Kitto.Ext.Viewport.pas
 File52=..\..\Source\Kitto.Ext.Window.pas
 File53=..\..\Source\Kitto.JSON.pas
 File54=..\..\Source\Kitto.Localization.dxgettext.pas
-File55=..\..\Source\Kitto.LocalStorage.pas
-File56=..\..\Source\Kitto.Metadata.DataView.pas
-File57=..\..\Source\Kitto.Metadata.Models.pas
-File58=..\..\Source\Kitto.Metadata.pas
-File59=..\..\Source\Kitto.Metadata.ViewBuilders.pas
+File55=..\..\Source\Kitto.Metadata.DataView.pas
+File56=..\..\Source\Kitto.Metadata.Models.pas
+File57=..\..\Source\Kitto.Metadata.pas
+File58=..\..\Source\Kitto.Metadata.ViewBuilders.pas
+File59=..\..\Source\Kitto.Metadata.Views.pas
 File6=..\..\Source\EF\EF.Intf.pas
-File60=..\..\Source\Kitto.Metadata.Views.pas
-File61=..\..\Source\Kitto.Rules.pas
-File62=..\..\Source\Kitto.SQL.pas
-File63=..\..\Source\Kitto.Store.pas
-File64=..\..\Source\Kitto.Types.pas
+File60=..\..\Source\Kitto.Rules.pas
+File61=..\..\Source\Kitto.SQL.pas
+File62=..\..\Source\Kitto.Store.pas
+File63=..\..\Source\Kitto.Types.pas
 File7=..\..\Source\EF\EF.Localization.dxgettext.pas
 File8=..\..\Source\EF\EF.Localization.pas
 File9=..\..\Source\EF\EF.Macros.pas
