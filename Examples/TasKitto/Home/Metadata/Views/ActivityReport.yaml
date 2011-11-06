@@ -1,22 +1,15 @@
 ﻿Type: Data
 
 Controller: List
-  AllowClose: True
 
 MainTable:
   PluralDisplayLabel: Activities by Type
   Model: ACTIVITY
 
   Controller:
-    PagingTools: False
-
     PopupWindow:
       Width: 580
-      Height: 320
-
-    List:
-      # A (grid) layout with this default name will be used if found.
-      #Layout: <view name>_List
+      Height: 340
 
     Form:
       Layout: ActivityInput_Form

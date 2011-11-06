@@ -1,15 +1,14 @@
 ﻿Type: Data
 
 Controller: List
-  AllowClose: True
 
 MainTable:
   Model: EMPLOYEE
 
   Controller:
     PopupWindow:
-      Width: 660
-      Height: 430
+      Width: 400
+      Height: 150
 
     Filters:
       DisplayLabel: Employee Filter

@@ -13,7 +13,5 @@ Folder: Maintenance
   View: Users
     ImageName: user
   View:
-    DisplayLabel: Change password
-  View:
     DisplayLabel: Logout
     ImageName: login

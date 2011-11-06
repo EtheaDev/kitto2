@@ -4,7 +4,7 @@ Fields:
     IsVisible: False
     DefaultValue: %COMPACT_GUID%
   PHASE_NAME:                String(40) not null
-    DisplayWidth: 12
+    DisplayWidth: 20
   PROJECT:                   Reference(PROJECT) not null
     Fields:
       PROJECT_ID:

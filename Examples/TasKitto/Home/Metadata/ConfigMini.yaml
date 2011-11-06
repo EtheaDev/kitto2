@@ -17,8 +17,8 @@ Auth: DB
   IsPassepartoutEnabled: True
   PassepartoutPassword: d8578edf8458ce06fbc5bb76a58c5ca4
   Defaults:
-    UserName: cwolter
-    Password: cwolter
+    UserName: admin
+    Password: admin
 
 AccessControl: Null
     
@@ -31,7 +31,7 @@ Ext:
   Theme: gray
   URL: /ext
 
-LanguageId: it
+LanguageId: en
 # Either utf-8 or a SBCS corresponding to the system code page
 # (such as iso-8859-1 for Western Europe). Defaults to utf-8.
 Charset: utf-8

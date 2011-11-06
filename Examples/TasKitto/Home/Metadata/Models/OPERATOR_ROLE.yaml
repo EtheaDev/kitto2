@@ -7,3 +7,5 @@ Fields:
   ROLE_NAME:                 String(20) not null
     DisplayWidth: 10
   FEE:                       Float
+    Rules:
+      MinValue: 0

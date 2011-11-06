@@ -4,5 +4,11 @@ Fields:
     IsVisible: False
     DefaultValue: %COMPACT_GUID%
   EMPLOYEE_NAME:             String(40) not null
-    DisplayWidth: 10
+    DisplayWidth: 20
   EMPLOYEE_TYPE:             String(20)
+    AllowedValues:
+      SYSTEM: System Operator
+      ACCT: Accountant
+      PROG: Programmer
+      PROJ_MGR: Project Manager
+      AN_PROG: Analyst Programmer
