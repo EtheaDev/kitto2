@@ -876,7 +876,7 @@ begin
 
   if not LIsReadOnly then
     LViewField.ApplyRules(
-      procedure (const ARuleImpl: TKRuleImpl)
+      procedure (ARuleImpl: TKRuleImpl)
       begin
         if ARuleImpl is TKExtRuleImpl then
           TKExtRuleImpl(ARuleImpl).ApplyToFormField(LFormField);

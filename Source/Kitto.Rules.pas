@@ -48,6 +48,10 @@ uses
   Kitto.Types, Kitto.Metadata.Models, Kitto.Store;
 
 type
+  EKRuleError = class(EKError);
+
+  EKValidationError = class(EKRuleError);
+
   ///	<summary>Base class for all classes that implement rules.</summary>
   TKRuleImpl = class
   private
@@ -72,9 +76,27 @@ type
 
     ///	<summary>Raises a validation error. If no message is passed, then the
     ///	result of GetErrorMessage is used.</summary>
-    procedure RaiseError(const AMessage: string = '');
+    procedure RaiseError(const AMessage: string = ''); overload;
+
+    ///	<summary>Raises a validation error formatted with params. If no message
+    /// is passed, then the result of GetErrorMessage is used.</summary>
+    procedure RaiseError(const AParams: array of const; const AMessage: string = ''); overload;
+
+    ///	<summary>Called by both BeforeAdd and BeforeUpdate. The default
+    ///	implementation does nothing.</summary>
+    procedure BeforeAddOrUpdate(const ARecord: TKRecord); virtual;
   public
     property Rule: TKRule read FRule write SetRule;
+
+    ///	<summary>Called when creating a new record before showing it in the
+    ///	user interface. Descendants may set computed default values
+    ///	(declarative default values are already applied when this method is
+    ///	called). Calling RaiseError in this method displays an error message to
+    ///	the user and aborts the insert operation.</summary>
+    ///	<param name="ARecord">The record being created. It is usually an
+    ///	instance of TKViewTableRecord.</param>
+    ///	<remarks>If an exception is raised, the insert is aborted.</remarks>
+    procedure NewRecord(const ARecord: TKRecord); virtual;
 
     ///	<summary>
     ///	  <para>
@@ -205,17 +227,19 @@ type
     function CreateObject(const AClassId: string): TKRuleImpl;
   end;
 
-  EKRuleError = class(EKError);
-
-  EKValidationError = class(EKRuleError);
-
-  TKApplyRuleProc = reference to procedure(const ARuleImpl: TKRuleImpl);
+  TKEnforceRange = class(TKRuleImpl)
+  protected
+    procedure SetRule(const AValue: TKRule); override;
+    procedure BeforeAddOrUpdate(const ARecord: TKRecord); override;
+    function InternalGetErrorMessage: string; override;
+  end;
 
 implementation
 
 uses
   SysUtils, StrUtils,
-  EF.StrUtils, EF.Localization;
+  EF.StrUtils, EF.Localization, EF.VariantUtils,
+  Kitto.Metadata.DataView;
 
 { TKRuleImpl }
 
@@ -231,7 +255,12 @@ procedure TKRuleImpl.AfterUpdate(const ARecord: TKRecord);
 begin
 end;
 
-procedure TKRuleImpl.BeforeAdd;
+procedure TKRuleImpl.BeforeAdd(const ARecord: TKRecord);
+begin
+  BeforeAddOrUpdate(ARecord);
+end;
+
+procedure TKRuleImpl.BeforeAddOrUpdate(const ARecord: TKRecord);
 begin
 end;
 
@@ -241,6 +270,7 @@ end;
 
 procedure TKRuleImpl.BeforeUpdate(const ARecord: TKRecord);
 begin
+  BeforeAddOrUpdate(ARecord);
 end;
 
 procedure TKRuleImpl.CheckRuleParam(const APath: string);
@@ -280,6 +310,15 @@ end;
 function TKRuleImpl.InternalGetErrorMessage: string;
 begin
   Result := Format(_('Rule %s failed.'), [GetClassId]);
+end;
+
+procedure TKRuleImpl.NewRecord(const ARecord: TKRecord);
+begin
+end;
+
+procedure TKRuleImpl.RaiseError(const AParams: array of const; const AMessage: string);
+begin
+  raise EKValidationError.CreateFmt(IfThen(AMessage = '', GetErrorMessage, AMessage), AParams);
 end;
 
 procedure TKRuleImpl.RaiseError(const AMessage: string);
@@ -330,5 +369,38 @@ begin
     FInstance := TKRuleImplFactory.Create(TKRuleImplRegistry.Instance);
   Result := FInstance;
 end;
+
+{ TKEnforceRange }
+
+procedure TKEnforceRange.BeforeAddOrUpdate(const ARecord: TKRecord);
+var
+  LFrom: TKViewTableField;
+  LTo: TKViewTableField;
+begin
+  inherited;
+  LFrom := (ARecord as TKViewTableRecord).FieldByName(Rule.GetString('From'));
+  LTo := (ARecord as TKViewTableRecord).FieldByName(Rule.GetString('To'));
+
+  if not IsRange(LFrom.Value, LTo.Value) then
+    RaiseError([LTo.ViewField.DisplayLabel, LFrom.ViewField.DisplayLabel]);
+end;
+
+function TKEnforceRange.InternalGetErrorMessage: string;
+begin
+  Result := _('%s must be greater than or equal to %s.');
+end;
+
+procedure TKEnforceRange.SetRule(const AValue: TKRule);
+begin
+  inherited;
+  CheckRuleParam('From');
+  CheckRuleParam('To');
+end;
+
+initialization
+  TKRuleImplRegistry.Instance.RegisterClass(TKEnforceRange.GetClassId, TKEnforceRange);
+
+finalization
+  TKRuleImplRegistry.Instance.UnregisterClass(TKEnforceRange.GetClassId);
 
 end.

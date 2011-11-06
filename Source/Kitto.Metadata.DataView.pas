@@ -5,7 +5,7 @@ unit Kitto.Metadata.DataView;
 interface
 
 uses
-  Types,
+  Types, SysUtils,
   EF.Types, EF.Tree,
   Kitto.Metadata, Kitto.Metadata.Models, Kitto.Metadata.Views, Kitto.Store,
   Kitto.Rules;
@@ -141,7 +141,7 @@ type
 
     property Rules: TKRules read GetRules;
 
-    procedure ApplyRules(const AApplyProc: TKApplyRuleProc);
+    procedure ApplyRules(const AApplyProc: TProc<TKRuleImpl>);
   end;
 
   TKViewFields = class(TKMetadataItem)
@@ -236,6 +236,7 @@ type
     procedure Save(const AUseTransaction: Boolean);
     procedure SetDetailFieldValues(const AMasterRecord: TKViewTableRecord);
 
+    procedure ApplyNewRecordRules;
     procedure ApplyBeforeRules;
     procedure ApplyAfterRules;
 
@@ -368,7 +369,7 @@ type
     function IsAccessGranted(const AMode: string): Boolean; override;
 
     property Rules: TKRules read GetRules;
-    procedure ApplyRules(const AApplyProc: TKApplyRuleProc);
+    procedure ApplyRules(const AApplyProc: TProc<TKRuleImpl>);
 
     ///	<summary>If the specified field exists in the view table, the method
     ///	returns its AliasedName, otherwise the specified field name is
@@ -390,7 +391,7 @@ type
 implementation
 
 uses
-  SysUtils, StrUtils, Variants, TypInfo,
+  StrUtils, Variants, TypInfo,
   EF.DB, EF.StrUtils, EF.VariantUtils, EF.Macros,
   Kitto.SQL, Kitto.Types, Kitto.Config;
 
@@ -436,7 +437,7 @@ begin
     Result := AFieldName;
 end;
 
-procedure TKViewTable.ApplyRules(const AApplyProc: TKApplyRuleProc);
+procedure TKViewTable.ApplyRules(const AApplyProc: TProc<TKRuleImpl>);
 var
   I: Integer;
   LRuleImpl: TKRuleImpl;
@@ -852,7 +853,7 @@ end;
 
 { TKViewField }
 
-procedure TKViewField.ApplyRules(const AApplyProc: TKApplyRuleProc);
+procedure TKViewField.ApplyRules(const AApplyProc: TProc<TKRuleImpl>);
 var
   I: Integer;
   LRuleImpl: TKRuleImpl;
@@ -1377,17 +1378,17 @@ begin
   try
     case State of
       rsNew: ViewTable.ApplyRules(
-        procedure (const ARuleImpl: TKRuleImpl)
+        procedure (ARuleImpl: TKRuleImpl)
         begin
           ARuleImpl.AfterAdd(Self);
         end);
       rsDirty: ViewTable.ApplyRules(
-        procedure (const ARuleImpl: TKRuleImpl)
+        procedure (ARuleImpl: TKRuleImpl)
         begin
           ARuleImpl.AfterUpdate(Self);
         end);
       rsDeleted: ViewTable.ApplyRules(
-        procedure (const ARuleImpl: TKRuleImpl)
+        procedure (ARuleImpl: TKRuleImpl)
         begin
           ARuleImpl.AfterDelete(Self);
         end);
@@ -1404,17 +1405,17 @@ begin
   try
     case State of
       rsNew: ViewTable.ApplyRules(
-        procedure (const ARuleImpl: TKRuleImpl)
+        procedure (ARuleImpl: TKRuleImpl)
         begin
           ARuleImpl.BeforeAdd(Self);
         end);
       rsDirty: ViewTable.ApplyRules(
-        procedure (const ARuleImpl: TKRuleImpl)
+        procedure (ARuleImpl: TKRuleImpl)
         begin
           ARuleImpl.BeforeUpdate(Self);
         end);
       rsDeleted: ViewTable.ApplyRules(
-        procedure (const ARuleImpl: TKRuleImpl)
+        procedure (ARuleImpl: TKRuleImpl)
         begin
           ARuleImpl.BeforeDelete(Self);
         end);
@@ -1423,6 +1424,15 @@ begin
     Restore;
     raise;
   end;
+end;
+
+procedure TKViewTableRecord.ApplyNewRecordRules;
+begin
+  ViewTable.ApplyRules(
+    procedure (ARuleImpl: TKRuleImpl)
+    begin
+      ARuleImpl.NewRecord(Self);
+    end);
 end;
 
 procedure TKViewTableRecord.EnsureDetailStores;

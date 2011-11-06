@@ -1,0 +1,7 @@
+ModelName: ACTIVITY_TYPE
+Fields:
+  TYPE_ID:                   String(32) not null primary key
+    IsVisible: False
+    DefaultValue: %COMPACT_GUID%
+  TYPE_NAME:                 String(20) not null
+    DisplayWidth: 10

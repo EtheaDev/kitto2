@@ -1,0 +1,5 @@
+ModelName: KITTO_USERS
+Fields:
+  USER_NAME:                 String(20) not null primary key
+  PASSWORD_HASH:             String(20) not null
+  IS_ACTIVE:                 Integer

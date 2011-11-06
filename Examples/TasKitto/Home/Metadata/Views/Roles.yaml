@@ -1,0 +1,26 @@
+﻿Type: Data
+
+Controller: List
+  AllowClose: True
+
+MainTable:
+  Model: OPERATOR_ROLE
+
+  Controller:
+    PagingTools: False
+
+    PopupWindow:
+      Width: 660
+      Height: 430
+
+    List:
+      # A (grid) layout with this default name will be used if found.
+      #Layout: <view name>_List
+
+    Form:
+      # A (grid) layout with this default name will be used if found.
+      #Layout: <view name>_Form
+
+    # One subnode for each field/value to be used to filter
+    # the dataset.
+    KeySet:

@@ -1,0 +1,8 @@
+ModelName: EMPLOYEE
+Fields:
+  EMPLOYEE_ID:               String(32) not null primary key
+    IsVisible: False
+    DefaultValue: %COMPACT_GUID%
+  EMPLOYEE_NAME:             String(40) not null
+    DisplayWidth: 10
+  EMPLOYEE_TYPE:             String(20)

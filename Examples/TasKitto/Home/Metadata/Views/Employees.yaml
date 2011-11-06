@@ -1,0 +1,20 @@
+﻿Type: Data
+
+Controller: List
+  AllowClose: True
+
+MainTable:
+  Model: EMPLOYEE
+
+  Controller:
+    PopupWindow:
+      Width: 660
+      Height: 430
+
+    Filters:
+      DisplayLabel: Employee Filter
+      Items:
+        FreeSearch: Search Name
+          # ExpressionTemplate should contain a {value} placeholder for the search term.
+          ExpressionTemplate: >
+            upper(EMPLOYEE_NAME) like upper('%{value}%')

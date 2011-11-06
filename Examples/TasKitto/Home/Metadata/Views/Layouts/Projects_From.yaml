@@ -1,0 +1,4 @@
+Field: CUSTOMER
+  DisplayWidth: 40
+Field: PROJECT_NAME
+Field: STATUS

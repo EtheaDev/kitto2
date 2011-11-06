@@ -218,7 +218,13 @@ type
 
     function ChangesPending: Boolean;
 
-    function CountRecords(const AFieldName: string; const AValue: Variant): Integer;
+    ///	<summary>Iterates all non-deleted records in the store calling AProc
+    ///	for each record.</summary>
+    ///	<param name="AProc">A procedure that receives a TKRecord.</param>
+    procedure Iterate(const AProc: TProc<TKRecord>);
+
+    function Count(const AFieldName: string; const AValue: Variant): Integer;
+    function Max(const AFieldName: string): Variant;
   end;
 
 implementation
@@ -253,17 +259,44 @@ begin
   end;
 end;
 
-function TKStore.CountRecords(const AFieldName: string;
-  const AValue: Variant): Integer;
+procedure TKStore.Iterate(const AProc: TProc<TKRecord>);
 var
   I: Integer;
 begin
-  Result := 0;
-  for I := 0 to RecordCount - 1 do
-  begin
-    if not Records[I].IsDeleted and (Records[I].FieldByName(AFieldName).Value = AValue) then
-      Inc(Result);
-  end;
+  if Assigned(AProc) then
+    for I := 0 to RecordCount - 1 do
+      if not Records[I].IsDeleted then
+        AProc(Records[I]);
+end;
+
+function TKStore.Count(const AFieldName: string; const AValue: Variant): Integer;
+var
+  LCount: Integer;
+  LValue: Variant;
+begin
+  LCount := 0;
+  LValue := AValue;
+  Iterate(
+    procedure (ARecord: TKRecord)
+    begin
+      if ARecord.FieldByName(AFieldName).Value = LValue then
+        Inc(LCount);
+    end);
+  Result := LCount;
+end;
+
+function TKStore.Max(const AFieldName: string): Variant;
+var
+  LMaxValue: Variant;
+begin
+  LMaxValue := Null;
+  Iterate(
+    procedure (ARecord: TKRecord)
+    begin
+      if VarIsNull(LMaxValue) or (LMaxValue < ARecord.FieldByName(AFieldName).Value) then
+        LMaxValue := ARecord.FieldByName(AFieldName).Value;
+    end);
+  Result := LMaxValue;
 end;
 
 destructor TKStore.Destroy;

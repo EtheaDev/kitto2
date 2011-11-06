@@ -378,7 +378,7 @@ begin
   begin
     if EndsText('y', Result) then
       Result := StripSuffix(Result, 'y') + 'ies'
-    else
+    else if not EndsText('s', Result) then
       Result := Result + 's';
   end;
 end;
@@ -481,7 +481,7 @@ function TKModel.GetPluralDisplayLabel: string;
 begin
   Result := GetString('PluralDisplayLabel');
   if Result = '' then
-    Result := Pluralize(BeautifyModelName(ModelName));
+    Result := Pluralize(DisplayLabel);
 end;
 
 function TKModel.GetKeyField(I: Integer): TKModelField;

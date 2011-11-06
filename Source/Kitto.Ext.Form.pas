@@ -1,4 +1,4 @@
-  unit Kitto.Ext.Form;
+unit Kitto.Ext.Form;
 
 {$I Kitto.Defines.inc}
 
@@ -188,22 +188,31 @@ var
 begin
   Assert(Assigned(FStoreRecord));
 
-  if FOperation = 'Add' then
-  begin
-    LDefaultValues := ViewTable.GetDefaultValues;
-    try
-      FStoreRecord.ReadFromNode(LDefaultValues);
-    finally
-      FreeAndNil(LDefaultValues);
+  try
+    if FOperation = 'Add' then
+    begin
+      LDefaultValues := ViewTable.GetDefaultValues;
+      try
+        FStoreRecord.ReadFromNode(LDefaultValues);
+        FStoreRecord.ApplyNewRecordRules;
+      finally
+        FreeAndNil(LDefaultValues);
+      end;
+    end;
+
+    // Load data from FServerRecord.
+    Session.JSCode(
+      FFormPanel.JSName + '.getForm().load({url:"' + MethodURI(GetRecord) + '",' +
+        'failure: function(form, action) { Ext.Msg.alert("' + _('Load failed.') + '", action.result.errorMessage);}});');
+    LoadDetailData;
+    FocusFirstField;
+  except
+    on E: EKValidationError do
+    begin
+      ExtMessageBox.Alert(Session.Config.AppTitle, E.Message);
+      CancelChanges;
     end;
   end;
-
-  // Load data from FServerRecord.
-  Session.JSCode(
-    FFormPanel.JSName + '.getForm().load({url:"' + MethodURI(GetRecord) + '",' +
-      'failure: function(form, action) { Ext.Msg.alert("' + _('Load failed.') + '", action.result.errorMessage);}});');
-  LoadDetailData;
-  FocusFirstField;
 end;
 
 procedure TKExtFormPanelController.LoadDetailData;
