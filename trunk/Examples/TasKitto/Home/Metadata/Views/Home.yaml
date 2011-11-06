@@ -2,11 +2,9 @@ DisplayLabel: %Config:AppTitle%
 # Valid top-level controllers are Window and Viewport
 Controller: Viewport
 
-  # This is an inline nameless view.
   SubView:
     Controller: BorderPanel
 
-      # Another inline view.
       WestView:
         DisplayLabel: Main Menu
         Controller: TreePanel

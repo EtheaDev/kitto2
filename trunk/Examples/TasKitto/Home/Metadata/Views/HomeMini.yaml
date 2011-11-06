@@ -5,7 +5,6 @@ Controller: Viewport
   SubView:
     Controller: BorderPanel
 
-      # Another inline view.
       .WestView:
         DisplayLabel: Main Menu
         Controller: TreePanel

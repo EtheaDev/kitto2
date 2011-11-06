@@ -1,7 +1,6 @@
 ﻿Type: Data
 
 Controller: List
-  AllowClose: True
 
 MainTable:
   Model: CUSTOMER

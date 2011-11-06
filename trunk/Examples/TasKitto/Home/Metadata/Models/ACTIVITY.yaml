@@ -4,7 +4,7 @@ Fields:
     IsVisible: False
     DefaultValue: %COMPACT_GUID%
   DESCRIPTION:               String(80) not null
-    DisplayWidth: 48
+    DisplayWidth: 50
   PHASE:                     Reference(PHASE) not null
     Fields:
       PHASE_ID:
@@ -30,9 +30,13 @@ Fields:
       Internal: Internal
       Done: Done
   DURATION:                  Float
-    DisplayWidth: 6
+    DisplayWidth: 8
     Expression: |
       case
         when (ACTIVITY.START_TIME is null) or (ACTIVITY.END_TIME is null) then 0
         else (ACTIVITY.END_TIME - ACTIVITY.START_TIME) / 3600
       end
+Rules:
+  EnforceRange:
+    From: START_TIME
+    To: END_TIME
