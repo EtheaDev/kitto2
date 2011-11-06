@@ -1,0 +1,20 @@
+Field: DESCRIPTION
+  DisplayWidth: 50
+Field: PHASE
+  DisplayWidth: 24
+Field: EMPLOYEE
+  CharWidth: 24
+Field: ROLE
+  CharWidth: 24
+Field: TYPE
+  CharWidth: 24
+Field: ACTIVITY_DATE
+  CharWidth: 16
+Field: START_TIME
+  CharWidth: 12
+Field: END_TIME
+  CharWidth: 12
+Field: DURATION
+  CharWidth: 12
+Field: STATUS
+  CharWidth: 10

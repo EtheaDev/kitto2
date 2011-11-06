@@ -1,0 +1,18 @@
+ModelName: CUSTOMER
+Fields:
+  CUSTOMER_ID:               String(32) not null primary key
+    IsVisible: False
+    DefaultValue: %COMPACT_GUID%
+  CUSTOMER_NAME:             String(40) not null
+  ADDRESS:                   String(60)
+  CITY:                      String(60)
+  PHONE:                     String(20)
+  EMAIL:                     String(60)
+  STATUS:                    String(10)
+    AllowedValues:
+      Prospect: Prospect
+      Active: Active
+      Inactive: Inactive
+
+DetailReferences:
+  PROJECT: PROJECT

@@ -30,6 +30,12 @@ function EFVarToFloat(const AVariant: Variant): Double;
 ///	</summary>
 function EFVarToCurrency(const AVariant: Variant): Currency;
 
+///	<summary>Returns True if ATo is greater than or equal to AFrom, and False
+///	otherwise.</summary>
+///	<remarks>If one or both values are not Null, the function returns
+///	True.</remarks>
+function IsRange(const AFrom, ATo: Variant): Boolean;
+
 implementation
 
 uses
@@ -73,6 +79,14 @@ begin
     Result := 0
   else
     Result := AVariant;
+end;
+
+function IsRange(const AFrom, ATo: Variant): Boolean;
+begin
+  if VarIsNull(AFrom) or VarIsNull(ATo) then
+    Result := True
+  else
+    Result := AFrom <= ATo;
 end;
 
 end.
