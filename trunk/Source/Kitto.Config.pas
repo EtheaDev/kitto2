@@ -48,7 +48,6 @@ type
     FMacroExpansionEngine: TEFMacroExpansionEngine;
     FModels: TKModels;
     FViews: TKViews;
-    FMacroExpander: TKConfigMacroExpander;
     FAuthenticator: TKAuthenticator;
     FAC: TKAccessController;
     FUserFormatSettings: TFormatSettings;
@@ -277,15 +276,11 @@ begin
   LLanguageId := Config.GetString('LanguageId');
   if LLanguageId <> '' then
     TEFLocalizationToolRegistry.CurrentTool.ForceLanguage(LLanguageId);
-  FMacroExpander := TKConfigMacroExpander.Create(Config, 'Config');
-  MacroExpansionEngine.AddExpander(FMacroExpander);
 end;
 
 destructor TKConfig.Destroy;
 begin
   inherited;
-  FMacroExpansionEngine.RemoveExpander(FMacroExpander);
-  FreeAndNil(FMacroExpander);
   FreeAndNil(FViews);
   FreeAndNil(FModels);
   if Assigned(FAuthenticator) then
@@ -359,7 +354,11 @@ end;
 function TKConfig.GetMacroExpansionEngine: TEFMacroExpansionEngine;
 begin
   if not Assigned(FMacroExpansionEngine) then
-    FMacroExpansionEngine := TEFMacroExpansionEngine.Create(TEFMacroExpansionEngine.Instance);
+  begin
+    FMacroExpansionEngine := TEFMacroExpansionEngine.Create;
+    AddStandardMacroExpanders(FMacroExpansionEngine);
+    FMacroExpansionEngine.AddExpander(TKConfigMacroExpander.Create(Config, 'Config'));
+  end;
   Result := FMacroExpansionEngine;
 end;
 
