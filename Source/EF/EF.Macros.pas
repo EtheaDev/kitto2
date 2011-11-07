@@ -322,11 +322,28 @@ type
     function InternalExpand(const AString: string): string; override;
   end;
 
+///	<summary>Creates and adds instances of all standard macro expanders to the
+///	specified macro expansion engine, which acquires ownership of
+///	them.</summary>
+procedure AddStandardMacroExpanders(const AMacroExpansionEngine: TEFMacroExpansionEngine);
+
 implementation
 
 uses
   Windows, SysUtils, DateUtils, StrUtils,
   EF.StrUtils, EF.SysUtils;
+
+procedure AddStandardMacroExpanders(const AMacroExpansionEngine: TEFMacroExpansionEngine);
+begin
+  Assert(Assigned(AMacroExpansionEngine));
+
+  AMacroExpansionEngine.AddExpander(TEFPathMacroExpander.Create);
+  AMacroExpansionEngine.AddExpander(TEFSysMacroExpander.Create);
+  AMacroExpansionEngine.AddExpander(TEFEnvironmentVariableMacroExpander.Create);
+  AMacroExpansionEngine.AddExpander(TEFCmdLineParamMacroExpander.Create);
+  AMacroExpansionEngine.AddExpander(TEFDateTimeStrMacroExpander.Create);
+  AMacroExpansionEngine.AddExpander(TEFGUIDMacroExpander.Create);
+end;
 
 { TEFMacroExpander }
 
@@ -668,21 +685,5 @@ begin
   Result := ExpandMacros(Result, '%GUID%', CreateGuidStr);
   Result := ExpandMacros(Result, '%COMPACT_GUID%', CreateCompactGuidStr);
 end;
-
-initialization
-  TEFMacroExpansionEngine.Instance.AddExpander(TEFPathMacroExpander.Create);
-  TEFMacroExpansionEngine.Instance.AddExpander(TEFSysMacroExpander.Create);
-  TEFMacroExpansionEngine.Instance.AddExpander(TEFEnvironmentVariableMacroExpander.Create);
-  TEFMacroExpansionEngine.Instance.AddExpander(TEFCmdLineParamMacroExpander.Create);
-  TEFMacroExpansionEngine.Instance.AddExpander(TEFDateTimeStrMacroExpander.Create);
-  TEFMacroExpansionEngine.Instance.AddExpander(TEFGUIDMacroExpander.Create);
-
-finalization
-  TEFMacroExpansionEngine.Instance.RemoveExpanders(TEFPathMacroExpander);
-  TEFMacroExpansionEngine.Instance.RemoveExpanders(TEFSysMacroExpander);
-  TEFMacroExpansionEngine.Instance.RemoveExpanders(TEFEnvironmentVariableMacroExpander);
-  TEFMacroExpansionEngine.Instance.RemoveExpanders(TEFCmdLineParamMacroExpander);
-  TEFMacroExpansionEngine.Instance.RemoveExpanders(TEFDateTimeStrMacroExpander);
-  TEFMacroExpansionEngine.Instance.RemoveExpanders(TEFGUIDMacroExpander);
 
 end.
