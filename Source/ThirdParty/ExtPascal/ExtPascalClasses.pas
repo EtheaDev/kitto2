@@ -163,7 +163,8 @@ type
 
 implementation
 
-uses StrUtils;
+uses
+  StrUtils, HTTPApp;
 
 const
   CBrowserNames: array[TBrowser] of string = ('Unknown', 'MSIE', 'Firefox', 'Chrome', 'Safari', 'Opera', 'Konqueror', 'Safari');
@@ -613,7 +614,7 @@ procedure TCustomWebSession.HandleRequest(const ARequest : AnsiString); begin
         if CanHandleUrlPath and not HandleUrlPath and not TryToServeFile then
           OnNotFoundError;
     except
-      on E: Exception do OnError(E.Message, PathInfo, string(ARequest));
+      on E: Exception do OnError(E.Message, PathInfo, string(HTTPDecode(ARequest)));
     end;
   if CanCallAfterHandleRequest then AfterHandleRequest;
 end;
