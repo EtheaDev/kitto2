@@ -226,11 +226,11 @@ begin
       Result.ReadPermissionsCommandText := Config.GetString('ReadPermissionsCommandText',
         'select RESOURCE_URI_PATTERN, ACCESS_MODES, GRANT_VALUE '
         + 'from KITTO_PERMISSIONS '
-        + 'where GRANTEE_NAME = :GRANTEE_NAME '
+        + 'where GRANTEE_NAME = :GRANTEE_NAME or GRANTEE_NAME = ''*'' '
         + 'order by RESOURCE_URI_PATTERN, ACCESS_MODES');
       Result.ReadRolesCommandText := Config.GetString('ReadRolesCommandText',
         'select ROLE_NAME from KITTO_USER_ROLES '
-        + 'where USER_NAME = :USER_NAME '
+        + 'where USER_NAME = :USER_NAME or USER_NAME = ''*'' '
         + 'order by ROLE_NAME');
       Result.UserId := AUserId;
       FUserPermissions.AddObject(AUserId, Result);
