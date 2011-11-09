@@ -337,6 +337,8 @@ type
     function GetStandardFormatSettings: TFormatSettings;
     procedure AfterConnectionOpen(Sender: TObject);
     function CreateDBEngineType: TEFDBEngineType; virtual;
+    procedure InternalOpen; virtual; abstract;
+    procedure InternalClose; virtual; abstract;
   public
     procedure AfterConstruction; override;
     destructor Destroy; override;
@@ -344,7 +346,7 @@ type
     property DBEngineType: TEFDBEngineType read GetDBEngineType;
 
     ///	<summary>Connects to the database.</summary>
-    procedure Open; virtual; abstract;
+    procedure Open; virtual;
 
     ///	<summary>Closes the connection to the database. As a result, open
     ///	datasets might get closed as well or not, depending on the
@@ -465,7 +467,7 @@ implementation
 
 uses
   Variants, Contnrs, FMTBcd, StrUtils,
-  EF.SysUtils, EF.Localization, EF.Types, EF.SQL, EF.StrUtils;
+  EF.SysUtils, EF.Localization, EF.Types, EF.SQL, EF.StrUtils, EF.Logger;
 
 { TEFDBAdapterRegistry }
 
@@ -589,6 +591,8 @@ end;
 
 procedure TEFDBConnection.Close;
 begin
+  TEFLogger.Log('Closing DB connection.', TEFLogger.LOG_MEDIUM);
+  InternalClose;
   FreeAndNil(FDBEngineType);
 end;
 
@@ -640,6 +644,12 @@ end;
 function TEFDBConnection.GetStandardFormatSettings: TFormatSettings;
 begin
   Result := FStandardFormatSettings;
+end;
+
+procedure TEFDBConnection.Open;
+begin
+  TEFLogger.Log('Opening DB connection.', TEFLogger.LOG_MEDIUM);
+  InternalOpen;
 end;
 
 { TEFDBInfo }

@@ -34,19 +34,41 @@ type
     procedure Execute; override;
   public
     destructor Destroy; override;
+  public
+    procedure Configure;
 
-    property AppTitle: string read FAppTitle write FAppTitle;
-    property TCPPort: Integer read FTCPPort write FTCPPort;
-    property SessionTimeout: Integer read FSessionTimeout write FSessionTimeout;
+    property AppTitle: string read FAppTitle;
+    property TCPPort: Integer read FTCPPort;
+    property SessionTimeout: Integer read FSessionTimeout;
   end;
 
 implementation
 
 uses
   SysUtils,
+  EF.Logger,
+  Kitto.Config,
   Kitto.Ext.Session;
 
 { TKExtAppThread }
+
+procedure TKExtAppThread.Configure;
+var
+  LConfig: TKConfig;
+begin
+  LConfig := TKConfig.Create;
+  try
+    TEFLogger.Log('Configuring thread...');
+    FAppTitle := LConfig.AppTitle;
+    FTCPPort := LConfig.Config.GetInteger('FastCGI/TCPPort', 2014);
+    FSessionTimeout := LConfig.Config.GetInteger('FastCGI/SessionTimeout', 30);
+    TEFLogger.Log('AppTitle: ' + FAppTitle);
+    TEFLogger.LogFmt('TCPPort: %d', [FTCPPort]);
+    TEFLogger.LogFmt('SessionTimeout: %d', [FSessionTimeout]);
+  finally
+    FreeAndNil(LConfig);
+  end;
+end;
 
 destructor TKExtAppThread.Destroy;
 begin

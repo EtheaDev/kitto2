@@ -438,6 +438,9 @@ end;
 
 procedure TKExtGridPanel.EditViewRecord;
 begin
+  { TODO : Make sure the view/edit button is disabled on the client when there are no records. }
+  if ServerStore.RecordCount = 0 then
+    Exit;
   ShowEditWindow(LocateRecordFromSession, emEditCurrentRecord);
 end;
 
@@ -647,15 +650,15 @@ begin
   begin
     LEditButton.Text := Format(_('Edit %s'), [ViewTable.DisplayLabel]);
     LEditButton.Icon := Session.Config.GetImageURL('edit_record');
-    if not FIsEditAllowed then
-      LEditButton.Disabled := True
-    else
-    begin
-      LKeyFieldNames := Join(ViewTable.GetKeyFieldAliasedNames, ',');
-      LEditButton.On('click', AjaxSelection(EditViewRecord, FSelModel, LKeyFieldNames, LKeyFieldNames, []));
-      TExtGridRowSelectionModel(FSelModel).On('selectionchange', JSFunction(
-        's', Format('%s.setDisabled(s.getCount() == 0);', [LEditButton.JSName])));
-    end;
+  end;
+  if not FIsEditAllowed then
+    LEditButton.Disabled := True
+  else
+  begin
+    LKeyFieldNames := Join(ViewTable.GetKeyFieldAliasedNames, ',');
+    LEditButton.On('click', AjaxSelection(EditViewRecord, FSelModel, LKeyFieldNames, LKeyFieldNames, []));
+    TExtGridRowSelectionModel(FSelModel).On('selectionchange', JSFunction(
+      's', Format('%s.setDisabled(s.getCount() == 0);', [LEditButton.JSName])));
   end;
   TExtToolbarSpacer.AddTo(Result.Items);
 

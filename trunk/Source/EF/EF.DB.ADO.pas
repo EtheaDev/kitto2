@@ -66,12 +66,12 @@ type
   protected
     function GetQueryClass: TEFDBADOQueryClass; virtual;
     function CreateDBEngineType: TEFDBEngineType; override;
+    procedure InternalOpen; override;
+    procedure InternalClose; override;
   public
     procedure AfterConstruction; override;
     destructor Destroy; override;
   public
-    procedure Open; override;
-    procedure Close; override;
     function IsOpen: Boolean; override;
     function ExecuteImmediate(const AStatement: string): Integer; override;
     procedure StartTransaction; override;
@@ -199,7 +199,7 @@ begin
   FConnection.AfterConnect := AfterConnectionOpen;
 end;
 
-procedure TEFDBADOConnection.Open;
+procedure TEFDBADOConnection.InternalOpen;
 begin
   if not FConnection.Connected then
   begin
@@ -210,9 +210,8 @@ begin
   end;
 end;
 
-procedure TEFDBADOConnection.Close;
+procedure TEFDBADOConnection.InternalClose;
 begin
-  inherited;
   if FConnection.Connected then
     FConnection.Close;
 end;

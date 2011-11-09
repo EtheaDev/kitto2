@@ -81,12 +81,12 @@ type
     function GetFetchSequenceGeneratorValueQuery(const ASequenceName: string): TEFDBDBXQuery;
   protected
     function CreateDBEngineType: TEFDBEngineType; override;
+    procedure InternalOpen; override;
+    procedure InternalClose; override;
   public
     procedure AfterConstruction; override;
     destructor Destroy; override;
   public
-    procedure Open; override;
-    procedure Close; override;
     function IsOpen: Boolean; override;
     function ExecuteImmediate(const AStatement: string): Integer; override;
     procedure StartTransaction; override;
@@ -228,9 +228,8 @@ begin
   inherited;
 end;
 
-procedure TEFDBDBXConnection.Close;
+procedure TEFDBDBXConnection.InternalClose;
 begin
-  inherited;
   if FConnection.Connected then
     FConnection.Close;
 end;
@@ -392,7 +391,7 @@ begin
   end;
 end;
 
-procedure TEFDBDBXConnection.Open;
+procedure TEFDBDBXConnection.InternalOpen;
 begin
   if not FConnection.Connected then
   begin

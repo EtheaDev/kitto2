@@ -124,8 +124,8 @@ begin
   begin
     Log(_('Stopping...'));
     FKAppThread.Terminate;
-    while IsStarted do
-      Forms.Application.ProcessMessages;
+//    while IsStarted do
+//      Forms.Application.ProcessMessages;
   end;
 end;
 
@@ -229,24 +229,15 @@ begin
 end;
 
 function TKExtMainForm.GetKAppThread: TKExtAppThread;
-var
-  LConfig: TKConfig;
 begin
   if not Assigned(FKAppThread) then
   begin
     FKAppThread := TKExtAppThread.Create(True);
+    FKAppThread.FreeOnTerminate := True;
     FKAppThread.OnTerminate := KAppThreadTerminated;
-    LConfig := TKConfig.Create;
-    try
-      FKAppThread.AppTitle := LConfig.AppTitle;
-      FKAppThread.TCPPort := LConfig.Config.GetInteger('TCPPort', 2014);
-      Log(Format('TCPPort: %d', [FKAppThread.TCPPort]));
-      FKAppThread.SessionTimeout := LConfig.Config.GetInteger('SessionTimeout', 30);
-      Log(Format('SessionTimeout: %d', [FKAppThread.SessionTimeout]));
-      FKAppThread.FreeOnTerminate := True;
-    finally
-      FreeAndNil(LConfig);
-    end;
+    FKAppThread.Configure;
+    Log(Format('TCPPort: %d', [FKAppThread.TCPPort]));
+    Log(Format('SessionTimeout: %d', [FKAppThread.SessionTimeout]));
   end;
   Result := FKAppThread;
 end;

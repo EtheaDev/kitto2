@@ -29,7 +29,7 @@ type
   private
     FPersistentName: string;
     function GetIsPersistent: Boolean;
-    class function BeautifiedClassName: string; static;
+    class function BeautifiedClassName: string;
   public
     procedure Assign(const ASource: TEFTree); override;
 
@@ -311,23 +311,26 @@ begin
 end;
 
 function TKMetadataCatalog.FindObjectByNode(const ANode: TEFNode): TKMetadata;
+var
+  LViewName: string;
 begin
-  if not Assigned(ANode) then
-    Result := nil
-  else if ANode.AsString <> '' then
-    Result := ObjectByName(ANode.AsString)
-  else if ANode.ChildCount > 0 then
+  Result := nil;
+  if Assigned(ANode) then
   begin
-    Result := GetObjectClassType.Create;
-    try
-      Result.Assign(ANode);
-    except
-      FreeAndNil(Result);
-      raise;
+    LViewName := ANode.AsExpandedString;
+    if LViewName <> '' then
+      Result := ObjectByName(LViewName)
+    else if ANode.ChildCount > 0 then
+    begin
+      Result := GetObjectClassType.Create;
+      try
+        Result.Assign(ANode);
+      except
+        FreeAndNil(Result);
+        raise;
+      end;
     end;
-  end
-  else
-    Result := nil;
+  end;
 end;
 
 procedure TKMetadataCatalog.ObjectNotFound(const AName: string);
