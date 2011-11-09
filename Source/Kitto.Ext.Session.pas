@@ -98,7 +98,8 @@ uses
   Classes, StrUtils, ActiveX, ComObj, Types, FmtBcd,
   ExtPascalUtils, ExtForm, FCGIApp,
   EF.Intf, EF.StrUtils, EF.Localization, EF.Macros, EF.Logger,
-  Kitto.Ext.Utils, Kitto.Auth, Kitto.Types;
+  Kitto.Auth, Kitto.Types, Kitto.AccessControl,
+  Kitto.Ext.Utils;
 
 function Session: TKExtSession;
 begin
@@ -237,11 +238,14 @@ begin
   Assert(Assigned(AView));
   Assert(Assigned(FViewHost));
 
-  LController := TKExtControllerFactory.Instance.CreateController(AView, FViewHost);
-  LController.Display;
-  FViewHost.SetActiveTab(FViewHost.Items.Count - 1);
-  if Assigned(FStatusHost) then
-    FStatusHost.ClearStatus;
+  if AView.IsAccessGranted(ACM_VIEW) then
+  begin
+    LController := TKExtControllerFactory.Instance.CreateController(AView, FViewHost);
+    LController.Display;
+    FViewHost.SetActiveTab(FViewHost.Items.Count - 1);
+    if Assigned(FStatusHost) then
+      FStatusHost.ClearStatus;
+  end;
 end;
 
 procedure TKExtSession.InitDefaultValues;

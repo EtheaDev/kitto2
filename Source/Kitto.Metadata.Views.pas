@@ -200,7 +200,7 @@ var
 begin
   if Assigned(ANode) then
   begin
-    LWords := Split(ANode.AsString);
+    LWords := Split(ANode.AsExpandedString);
     if Length(LWords) >= 2 then
     begin
       // Two words: the first one is the verb.
