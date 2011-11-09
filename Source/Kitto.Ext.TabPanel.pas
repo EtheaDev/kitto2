@@ -54,8 +54,10 @@ type
 implementation
 
 uses
+  SysUtils,
   ExtPascal,
   EF.Tree,
+  Kitto.AccessControl,
   Kitto.Ext.Controller, Kitto.Ext.Session;
 
 { TKExtTabPanelController }
@@ -98,6 +100,7 @@ var
   LController: IKExtController;
   LViews: TEFNode;
   I: Integer;
+  LView: TKView;
 begin
   Assert(Assigned(FView));
 
@@ -106,9 +109,14 @@ begin
   begin
     for I := 0 to LViews.ChildCount - 1 do
     begin
-      LController := TKExtControllerFactory.Instance.CreateController(
-        Session.Config.Views.ViewByNode(LViews.Children[I]), Self);
-      LController.Display;
+      LView := Session.Config.Views.ViewByNode(LViews.Children[I]);
+      if LView.IsAccessGranted(ACM_VIEW) then
+      begin
+        LController := TKExtControllerFactory.Instance.CreateController(LView, Self);
+        LController.Display;
+      end
+      else if not LView.IsPersistent then
+        FreeAndNil(LView);
     end;
     if Items.Count > 0 then
       SetActiveTab(0);

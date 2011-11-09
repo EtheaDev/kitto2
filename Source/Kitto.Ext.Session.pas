@@ -42,6 +42,7 @@ type
   protected
     function BeforeHandleRequest: Boolean; override;
     procedure AfterHandleRequest; override;
+    procedure AfterNewSession; override;
   public
     destructor Destroy; override;
   public
@@ -96,7 +97,7 @@ implementation
 uses
   Classes, StrUtils, ActiveX, ComObj, Types, FmtBcd,
   ExtPascalUtils, ExtForm, FCGIApp,
-  EF.Intf, EF.StrUtils, EF.Localization, EF.Macros,
+  EF.Intf, EF.StrUtils, EF.Localization, EF.Macros, EF.Logger,
   Kitto.Ext.Utils, Kitto.Auth, Kitto.Types;
 
 function Session: TKExtSession;
@@ -263,8 +264,15 @@ begin
   CoUninitialize;
 end;
 
+procedure TKExtSession.AfterNewSession;
+begin
+  inherited;
+  TEFLogger.LogFmt('New session %s.', [Cookie['FCGIThread']], TEFLogger.LOG_MEDIUM);
+end;
+
 function TKExtSession.BeforeHandleRequest: Boolean;
 begin
+  TEFLogger.LogStrings('BeforeHandleRequest', Queries, TEFLogger.LOG_DETAILED);
   { TODO : only do this when ADO is used }
   OleCheck(CoInitialize(nil));
   Result := inherited BeforeHandleRequest;

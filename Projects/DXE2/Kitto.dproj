@@ -110,6 +110,7 @@
 			<DCCReference Include="..\..\Source\EF\EF.Intf.pas"/>
 			<DCCReference Include="..\..\Source\EF\EF.Localization.pas"/>
 			<DCCReference Include="..\..\Source\EF\EF.Localization.dxgettext.pas"/>
+			<DCCReference Include="..\..\Source\EF\EF.Logger.pas"/>
 			<DCCReference Include="..\..\Source\EF\EF.Macros.pas"/>
 			<DCCReference Include="..\..\Source\EF\EF.ObserverIntf.pas"/>
 			<DCCReference Include="..\..\Source\EF\EF.RegEx.pas"/>
@@ -147,7 +148,13 @@
 				<Form>KExtMainForm</Form>
 			</DCCReference>
 			<DCCReference Include="..\..\Source\Kitto.Ext.Rules.pas"/>
+			<DCCReference Include="..\..\Source\Kitto.Ext.Service.pas">
+				<Form>KExtService</Form>
+				<FormType>dfm</FormType>
+				<DesignClass>TService</DesignClass>
+			</DCCReference>
 			<DCCReference Include="..\..\Source\Kitto.Ext.Session.pas"/>
+			<DCCReference Include="..\..\Source\Kitto.Ext.Start.pas"/>
 			<DCCReference Include="..\..\Source\Kitto.Ext.StatusBar.pas"/>
 			<DCCReference Include="..\..\Source\Kitto.Ext.TabPanel.pas"/>
 			<DCCReference Include="..\..\Source\Kitto.Ext.ToolBar.pas"/>
@@ -157,9 +164,9 @@
 			<DCCReference Include="..\..\Source\Kitto.Ext.Window.pas"/>
 			<DCCReference Include="..\..\Source\Kitto.JSON.pas"/>
 			<DCCReference Include="..\..\Source\Kitto.Localization.dxgettext.pas"/>
+			<DCCReference Include="..\..\Source\Kitto.Metadata.pas"/>
 			<DCCReference Include="..\..\Source\Kitto.Metadata.DataView.pas"/>
 			<DCCReference Include="..\..\Source\Kitto.Metadata.Models.pas"/>
-			<DCCReference Include="..\..\Source\Kitto.Metadata.pas"/>
 			<DCCReference Include="..\..\Source\Kitto.Metadata.ViewBuilders.pas"/>
 			<DCCReference Include="..\..\Source\Kitto.Metadata.Views.pas"/>
 			<DCCReference Include="..\..\Source\Kitto.Rules.pas"/>

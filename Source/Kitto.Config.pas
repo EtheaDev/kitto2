@@ -53,6 +53,13 @@ type
     FUserFormatSettings: TFormatSettings;
 
     class function GetInstance: TKConfig; static;
+    class function GetAppName: string; static;
+    class procedure SetupResourcePathsURLs;
+    class function GetAppHomePath: string; static;
+    class procedure SetAppHomePath(const AValue: string); static;
+    class function GetSystemHomePath: string; static;
+    class procedure SetSystemHomePath(const AValue: string); static;
+
     function GetMultiFieldSeparator: string;
     const MAIN_DB_NAME = 'Main';
     function GetAC: TKAccessController;
@@ -62,15 +69,9 @@ type
     function GetDBAdapter(const ADatabaseName: string): TEFDBAdapter;
     function GetMacroExpansionEngine: TEFMacroExpansionEngine;
     function GetAppTitle: string;
-    class function GetAppName: string;
     function GetModels: TKModels;
     function GetViews: TKViews;
-    class procedure SetupResourcePathsURLs;
     procedure FinalizeDBConnections;
-    class function GetAppHomePath: string; static;
-    class procedure SetAppHomePath(const AValue: string); static;
-    class function GetSystemHomePath: string; static;
-    class procedure SetSystemHomePath(const AValue: string); static;
   protected
     function GetConfigFileName: string; override;
     class function FindSystemHomePath: string;
@@ -80,6 +81,7 @@ type
     class constructor Create;
     class destructor Destroy;
   public
+   class property AppName: string read GetAppName;
 
     ///	<summary>
     ///	  <para>Returns or changes the Application Home path.</para>

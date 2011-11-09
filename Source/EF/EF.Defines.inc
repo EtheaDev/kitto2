@@ -33,6 +33,8 @@
   {$DEFINE D12+}
 {$ENDIF}
 
+// D2010
+
 {$IFDEF VER210}
   {$DEFINE D7+}
   {$DEFINE D9+}
@@ -42,6 +44,8 @@
   {$DEFINE D14}
   {$DEFINE D14+}
 {$ENDIF}
+
+// XE
 
 {$IFDEF VER220}
   {$DEFINE D7+}
@@ -53,6 +57,8 @@
   {$DEFINE D15}
   {$DEFINE D15+}
 {$ENDIF}
+
+// XE2
 
 {$IFDEF VER230}
   {$DEFINE D7+}
