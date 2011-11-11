@@ -404,13 +404,6 @@ end;
 
 { TKDynaListFilter }
 
-//procedure TKDynaListFilter.ComboBoxChange(This: TExtFormField; NewValue,
-//  OldValue: string);
-//begin
-//  FCurrentValue := NewValue;
-//  NotifyObservers('FilterChanged');
-//end;
-
 //procedure TKDynaListFilter.ComboBoxSelect(Combo: TExtFormComboBox;
 //  RecordJS: TExtDataRecord; Index: Integer);
 //begin
