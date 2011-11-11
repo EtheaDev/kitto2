@@ -591,7 +591,7 @@ end;
 
 procedure TEFDBConnection.Close;
 begin
-  TEFLogger.Log('Closing DB connection.', TEFLogger.LOG_MEDIUM);
+  TEFLogger.Instance.Log('Closing DB connection.', TEFLogger.LOG_MEDIUM);
   InternalClose;
   FreeAndNil(FDBEngineType);
 end;
@@ -648,7 +648,7 @@ end;
 
 procedure TEFDBConnection.Open;
 begin
-  TEFLogger.Log('Opening DB connection.', TEFLogger.LOG_MEDIUM);
+  TEFLogger.Instance.Log('Opening DB connection.', TEFLogger.LOG_MEDIUM);
   InternalOpen;
 end;
 

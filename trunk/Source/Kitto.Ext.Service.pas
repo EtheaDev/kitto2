@@ -77,15 +77,15 @@ end;
 
 procedure TKExtService.ServiceShutdown(Sender: TService);
 begin
-  TEFLogger.Log('Service shutdown.');
+  TEFLogger.Instance.Log('Service shutdown.');
   StopAndFreeThread;
 end;
 
 procedure TKExtService.ServiceStart(Sender: TService; var Started: Boolean);
 begin
-  TEFLogger.Log('Service start. Creating thread...');
+  TEFLogger.Instance.Log('Service start. Creating thread...');
   FThread := CreateThread;
-  TEFLogger.Log('Starting thread...');
+  TEFLogger.Instance.Log('Starting thread...');
   FThread.Start;
 end;
 

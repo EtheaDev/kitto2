@@ -24,9 +24,20 @@ uses
   {$IF RTLVersion >= 23.0}Themes, Styles,{$IFEND}
   Windows, Messages, SysUtils, Variants, Classes, Graphics,
   Controls, Forms, Dialogs, ComCtrls, ToolWin, Kitto.Ext.Application,
-  ActnList, Kitto.Config, StdCtrls, Buttons, ExtCtrls, ImgList;
+  ActnList, Kitto.Config, StdCtrls, Buttons, ExtCtrls, ImgList, EF.Logger;
 
 type
+  TKExtLogEvent = procedure (const AString: string) of object;
+
+  TKExtMainFormLogEndpoint = class(TEFLogEndpoint)
+  private
+    FOnLog: TKExtLogEvent;
+  protected
+    procedure DoLog(const AString: string); override;
+  public
+    property OnLog: TKExtLogEvent read FOnLog write FOnLog;
+  end;
+
   TKExtMainForm = class(TForm)
     ActionList: TActionList;
     StartAction: TAction;
@@ -55,9 +66,12 @@ type
     procedure FormShow(Sender: TObject);
     procedure ConfigFileNameComboBoxChange(Sender: TObject);
     procedure ConfigLinkLabelClick(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
   private
     FKAppThread: TKExtAppThread;
     FRestart: Boolean;
+    FLogEndPoint: TKExtMainFormLogEndpoint;
     function IsStarted: Boolean;
     function GetKAppThread: TKExtAppThread;
     procedure KAppThreadTerminated(Sender: TObject);
@@ -68,7 +82,7 @@ type
     procedure SelectConfigFile;
     property KAppThread: TKExtAppThread read GetKAppThread;
     function HasConfigFileName: Boolean;
-    procedure Log(const AString: string);
+    procedure DoLog(const AString: string);
   end;
 
 var
@@ -86,7 +100,7 @@ uses
 procedure TKExtMainForm.KAppThreadTerminated(Sender: TObject);
 begin
   FKAppThread := nil;
-  Log(_('Stopped'));
+  DoLog(_('Listener stopped'));
   SessionCountLabel.Visible := False;
   if FRestart then
   begin
@@ -113,7 +127,7 @@ begin
   end;
 end;
 
-procedure TKExtMainForm.Log(const AString: string);
+procedure TKExtMainForm.DoLog(const AString: string);
 begin
   LogMemo.Lines.Add(AString);
 end;
@@ -122,7 +136,7 @@ procedure TKExtMainForm.StopActionExecute(Sender: TObject);
 begin
   if IsStarted then
   begin
-    Log(_('Stopping...'));
+    DoLog(_('Stopping listener...'));
     FKAppThread.Terminate;
 //    while IsStarted do
 //      Forms.Application.ProcessMessages;
@@ -181,10 +195,21 @@ begin
   Sleep(500);
 end;
 
+procedure TKExtMainForm.FormCreate(Sender: TObject);
+begin
+  FLogEndPoint := TKExtMainFormLogEndpoint.Create;
+  FLogEndPoint.OnLog := DoLog;
+end;
+
+procedure TKExtMainForm.FormDestroy(Sender: TObject);
+begin
+  FreeAndNil(FLogEndPoint);
+end;
+
 procedure TKExtMainForm.FormShow(Sender: TObject);
 begin
   Caption := TKConfig.AppHomePath;
-  Log(Format(_('Build date: %s'), [DateTimeToStr(GetFileDateTime(ParamStr(0)))]));
+  DoLog(Format(_('Build date: %s'), [DateTimeToStr(GetFileDateTime(ParamStr(0)))]));
   FillConfigFileNameCombo;
   if HasConfigFileName then
     StartAction.Execute
@@ -236,8 +261,6 @@ begin
     FKAppThread.FreeOnTerminate := True;
     FKAppThread.OnTerminate := KAppThreadTerminated;
     FKAppThread.Configure;
-    Log(Format('TCPPort: %d', [FKAppThread.TCPPort]));
-    Log(Format('SessionTimeout: %d', [FKAppThread.SessionTimeout]));
   end;
   Result := FKAppThread;
 end;
@@ -246,12 +269,20 @@ procedure TKExtMainForm.StartActionExecute(Sender: TObject);
 begin
   KAppThread.Start;
   SessionCountLabel.Visible := True;
-  Log(_('Started'));
+  DoLog(_('Listener started'));
 end;
 
 procedure TKExtMainForm.StartActionUpdate(Sender: TObject);
 begin
   (Sender as TAction).Enabled := HasConfigFileName and not IsStarted;
+end;
+
+{ TKExtMainFormLogEndpoint }
+
+procedure TKExtMainFormLogEndpoint.DoLog(const AString: string);
+begin
+  if Assigned(FOnLog) then
+    FOnLog(AString);
 end;
 
 {$IF RTLVersion >= 23.0}

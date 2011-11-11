@@ -111,6 +111,8 @@
 			<DCCReference Include="..\..\Source\EF\EF.Localization.pas"/>
 			<DCCReference Include="..\..\Source\EF\EF.Localization.dxgettext.pas"/>
 			<DCCReference Include="..\..\Source\EF\EF.Logger.pas"/>
+			<DCCReference Include="..\..\Source\EF\EF.Logger.TextFile.pas"/>
+			<DCCReference Include="..\..\Source\EF\EF.Logger.CodeSite.pas"/>
 			<DCCReference Include="..\..\Source\EF\EF.Macros.pas"/>
 			<DCCReference Include="..\..\Source\EF\EF.ObserverIntf.pas"/>
 			<DCCReference Include="..\..\Source\EF\EF.RegEx.pas"/>
@@ -150,7 +152,6 @@
 			<DCCReference Include="..\..\Source\Kitto.Ext.Rules.pas"/>
 			<DCCReference Include="..\..\Source\Kitto.Ext.Service.pas">
 				<Form>KExtService</Form>
-				<FormType>dfm</FormType>
 				<DesignClass>TService</DesignClass>
 			</DCCReference>
 			<DCCReference Include="..\..\Source\Kitto.Ext.Session.pas"/>

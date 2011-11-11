@@ -271,12 +271,12 @@ end;
 procedure TKExtSession.AfterNewSession;
 begin
   inherited;
-  TEFLogger.LogFmt('New session %s.', [Cookie['FCGIThread']], TEFLogger.LOG_MEDIUM);
+  TEFLogger.Instance.LogFmt('New session %s.', [Cookie['FCGIThread']], TEFLogger.LOG_MEDIUM);
 end;
 
 function TKExtSession.BeforeHandleRequest: Boolean;
 begin
-  TEFLogger.LogStrings('BeforeHandleRequest', Queries, TEFLogger.LOG_DETAILED);
+  TEFLogger.Instance.LogStrings('BeforeHandleRequest', Queries, TEFLogger.LOG_DETAILED);
   { TODO : only do this when ADO is used }
   OleCheck(CoInitialize(nil));
   Result := inherited BeforeHandleRequest;
