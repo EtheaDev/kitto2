@@ -55,22 +55,25 @@ begin
 end;
 
 class procedure TKExtStart.Start;
-var
-  LConfig: TKConfig;
-begin
-  if IsUserAnAdmin then
+
+  procedure ConfigureLogging;
+  var
+    LConfig: TKConfig;
   begin
     LConfig := TKConfig.Create;
     try
-      TEFLogger.LogFileName :=
-        // Explicitly calling Expoand here makes sure macros are
-        // expanded even now that we have no session thus no macros.
-        LConfig.MacroExpansionEngine.Expand(LConfig.Config.GetString('Log/FileName'));
-      TEFLogger.LogLevel := LConfig.Config.GetInteger('Log/Level', TEFLogger.LogLevel);
+      TEFLogger.Instance.Configure(LConfig.Config.FindNode('Log'), LConfig.MacroExpansionEngine);
     finally
       FreeAndNil(LConfig);
     end;
-    TEFLogger.Log('Starting as service.');
+  end;
+
+begin
+  ConfigureLogging;
+
+  if IsUserAnAdmin then
+  begin
+    TEFLogger.Instance.Log('Starting as service.');
     if not SvcMgr.Application.DelayInitialize or SvcMgr.Application.Installing then
       SvcMgr.Application.Initialize;
     SvcMgr.Application.CreateForm(TKExtService, KExtService);
@@ -80,9 +83,7 @@ begin
   end
   else
   begin
-    TEFLogger.LogFileName := ''; // No logging in interactive mode.
-{ TODO : Log to screen in interactive mode. }
-    TEFLogger.Log('Starting as application.');
+    TEFLogger.Instance.Log('Starting as application.');
     Forms.Application.Initialize;
     Forms.Application.CreateForm(TKExtMainForm, KExtMainForm);
     Forms.Application.Run;

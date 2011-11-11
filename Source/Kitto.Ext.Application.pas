@@ -58,13 +58,13 @@ var
 begin
   LConfig := TKConfig.Create;
   try
-    TEFLogger.Log('Configuring thread...');
+    TEFLogger.Instance.Log('Configuring thread...');
     FAppTitle := LConfig.AppTitle;
     FTCPPort := LConfig.Config.GetInteger('FastCGI/TCPPort', 2014);
     FSessionTimeout := LConfig.Config.GetInteger('FastCGI/SessionTimeout', 30);
-    TEFLogger.Log('AppTitle: ' + FAppTitle);
-    TEFLogger.LogFmt('TCPPort: %d', [FTCPPort]);
-    TEFLogger.LogFmt('SessionTimeout: %d', [FSessionTimeout]);
+    TEFLogger.Instance.Log('AppTitle: ' + FAppTitle);
+    TEFLogger.Instance.LogFmt('TCPPort: %d', [FTCPPort]);
+    TEFLogger.Instance.LogFmt('SessionTimeout: %d', [FSessionTimeout]);
   finally
     FreeAndNil(LConfig);
   end;

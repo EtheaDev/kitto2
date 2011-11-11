@@ -16,6 +16,8 @@ uses
   EF.Localization in '..\..\Source\EF\EF.Localization.pas',
   EF.Localization.dxgettext in '..\..\Source\EF\EF.Localization.dxgettext.pas',
   EF.Logger in '..\..\Source\EF\EF.Logger.pas',
+  EF.Logger.TextFile in '..\..\Source\EF\EF.Logger.TextFile.pas',
+  EF.Logger.CodeSite in '..\..\Source\EF\EF.Logger.CodeSite.pas',
   EF.Macros in '..\..\Source\EF\EF.Macros.pas',
   EF.ObserverIntf in '..\..\Source\EF\EF.ObserverIntf.pas',
   EF.RegEx in '..\..\Source\EF\EF.RegEx.pas',
