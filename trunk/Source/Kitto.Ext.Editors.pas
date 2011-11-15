@@ -244,7 +244,7 @@ type
     MemoWidth: Integer;
     MaxFieldWidth: Integer;
     MinFieldWidth: Integer;
-    RequiredLabelFormat: string;
+    RequiredLabelTemplate: string;
     MsgTarget: string;
     procedure Init;
   end;
@@ -859,7 +859,7 @@ begin
 
   LLabel := _(LViewField.DisplayLabel);
   if not LIsReadOnly and LViewField.IsRequired then
-    LLabel := Format(FDefaults.RequiredLabelFormat, [LLabel]);
+    LLabel := ReplaceText(FDefaults.RequiredLabelTemplate, '{label}', LLabel);
 
   if AContainer is TKExtFormRow then
     LRowField := TKExtFormRowField.Create
@@ -967,8 +967,8 @@ begin
     FDefaults.MaxFieldWidth := OptionAsInteger(AValue)
   else if SameText(AName, 'MinFieldWidth') then
     FDefaults.MinFieldWidth := OptionAsInteger(AValue)
-  else if SameText(AName, 'RequiredLabelFormat') then
-    FDefaults.RequiredLabelFormat := AValue
+  else if SameText(AName, 'RequiredLabelTemplate') then
+    FDefaults.RequiredLabelTemplate := AValue
   else if SameText(AName, 'MsgTarget') then
     FDefaults.MsgTarget := OptionAsString(AValue, ['Qtip', 'Title', 'Under', 'Side'])
   else
@@ -982,7 +982,7 @@ begin
   MemoWidth := 60;
   MaxFieldWidth := 60;
   MinFieldWidth := 5;
-  RequiredLabelFormat := '<b>%s*</b>';
+  RequiredLabelTemplate := '<b>{label}*</b>';
   MsgTarget := 'Qtip'; // qtip title under side
 end;
 
