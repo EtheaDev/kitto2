@@ -19,7 +19,7 @@ unit Kitto.Ext.Service;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, SvcMgr, Dialogs,
+  Windows, Messages, SysUtils, Classes, SvcMgr,
   Kitto.Ext.Application;
 
 type

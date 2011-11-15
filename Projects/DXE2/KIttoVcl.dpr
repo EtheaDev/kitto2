@@ -1,4 +1,5 @@
-program Kitto;
+program KIttoVcl;
+
 
 {
   Note: This project is only used to group and compile Kitto source files.
@@ -70,7 +71,10 @@ uses
   Kitto.Rules in '..\..\Source\Kitto.Rules.pas',
   Kitto.SQL in '..\..\Source\Kitto.SQL.pas',
   Kitto.Store in '..\..\Source\Kitto.Store.pas',
-  Kitto.Types in '..\..\Source\Kitto.Types.pas';
+  Kitto.Types in '..\..\Source\Kitto.Types.pas',
+  Kitto.Ext.MainFormUnit in '..\..\Source\Kitto.Ext.MainFormUnit.pas' {KExtMainForm},
+  Kitto.Ext.Service in '..\..\Source\Kitto.Ext.Service.pas' {KExtService: TService},
+  Kitto.Ext.Start in '..\..\Source\Kitto.Ext.Start.pas';
 
 begin
 end.
