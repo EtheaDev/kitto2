@@ -83,6 +83,7 @@ type
     function GetChildClass(const AName: string): TEFNodeClass; override;
   public
     function FindNode(const APath: string; const ACreateMissingNodes: Boolean = False): TEFNode; override;
+    function IsAccessGranted(const AMode: string): Boolean; override;
 
     property Table: TKViewTable read GetTable;
     property Model: TKModel read GetModel;
@@ -417,7 +418,7 @@ implementation
 uses
   StrUtils, Variants, TypInfo,
   EF.DB, EF.StrUtils, EF.VariantUtils, EF.Macros,
-  Kitto.SQL, Kitto.Types, Kitto.Config;
+  Kitto.SQL, Kitto.Types, Kitto.Config, Kitto.AccessControl;
 
 { TKDataView }
 
@@ -1153,7 +1154,7 @@ end;
 
 function TKViewField.GetIsVisible: Boolean;
 begin
-  Result := GetBoolean('IsVisible', True);
+  Result := GetBoolean('IsVisible', True) and IsAccessGranted(ACM_VIEW);
 end;
 
 function TKViewField.GetQualifiedName: string;
@@ -1188,7 +1189,7 @@ end;
 
 function TKViewField.GetIsReadOnly: Boolean;
 begin
-  Result := GetBoolean('IsReadOnly');
+  Result := GetBoolean('IsReadOnly') or not IsAccessGranted(ACM_MODIFY);;
 end;
 
 function TKViewField.GetIsReference: Boolean;
@@ -1210,6 +1211,12 @@ end;
 function TKViewField.GetTable: TKViewTable;
 begin
   Result := (Parent as TKViewFields).Table;
+end;
+
+function TKViewField.IsAccessGranted(const AMode: string): Boolean;
+begin
+  Result := TKConfig.Instance.IsAccessGranted(GetResourceURI, AMode)
+    and TKConfig.Instance.IsAccessGranted(ModelField.GetResourceURI, AMode);
 end;
 
 function TKViewField.GetModelName: string;
