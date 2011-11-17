@@ -1,8 +1,7 @@
 program HelloKitto;
 
 uses
-  Forms,
-  Kitto.Ext.MainFormUnit,
+  Kitto.Ext.Start,
   DBXFirebird,
   DBXMSSQL,
   UseKitto in '..\..\Source\UseKitto.pas',
@@ -11,8 +10,5 @@ uses
 {$R *.res}
 
 begin
-  Application.Initialize;
-  Application.Title := 'HelloKitto';
-  Application.CreateForm(TKExtMainForm, KExtMainForm);
-  Application.Run;
+  TKExtStart.Start;
 end.

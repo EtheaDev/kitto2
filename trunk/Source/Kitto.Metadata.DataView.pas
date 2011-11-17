@@ -77,6 +77,8 @@ type
     function GetEditFormat: string;
     function GetDisplayFormat: string;
     function GetQualifiedNameOrExpression: string;
+    function GetReferenceField: TKModelField;
+    function GetBlankValue: Boolean;
   protected
     function GetChildClass(const AName: string): TEFNodeClass; override;
   public
@@ -109,6 +111,11 @@ type
     ///	field is part of the containing view table's model and the underlying
     ///	model field is a reference field.</summary>
     property IsReference: Boolean read GetIsReference;
+
+    ///	<summary>If the field is from a different model than the table's model,
+    ///	returns the model field that references its model, otherwise returns
+    ///	nil.</summary>
+    property ReferenceField: TKModelField read GetReferenceField;
 
     ///	<summary>
     ///	  <para>Returns True if the field is the reference field of
@@ -154,6 +161,7 @@ type
     property IsBlob: Boolean read GetIsBlob;
     property EditFormat: string read GetEditFormat;
     property DisplayFormat: string read GetDisplayFormat;
+    property BlankValue: Boolean read GetBlankValue;
 
     property Rules: TKRules read GetRules;
 
@@ -964,6 +972,17 @@ begin
     Result := ModelField.AllowedValues;
 end;
 
+function TKViewField.GetBlankValue: Boolean;
+var
+  LNode: TEFNode;
+begin
+  LNode := FindNode('BlankValue');
+  if LNode = nil then
+    Result := ModelField.GetBoolean('BlankValue')
+  else
+    Result := LNode.AsBoolean;
+end;
+
 function TKViewField.GetCanInsert: Boolean;
 var
   LNode: TEFNode;
@@ -1206,6 +1225,14 @@ begin
     Result := Table.Model.FieldByName(LNameParts[0]).ReferencedModel.ModelName
   else
     raise EKError.CreateFmt('Couldn''t determine model name for field %s.', [Name]);
+end;
+
+function TKViewField.GetReferenceField: TKModelField;
+begin
+  if Model <> Table.Model then
+    Result := Table.Model.FindReferenceField(Model)
+  else
+    Result := nil;
 end;
 
 function TKViewField.GetRules: TKRules;

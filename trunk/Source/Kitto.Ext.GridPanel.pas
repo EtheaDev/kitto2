@@ -91,8 +91,9 @@ implementation
 
 uses
   SysUtils, StrUtils, Math,
-  EF.Tree, EF.StrUtils, EF.Localization,
+  EF.Types, EF.Tree, EF.StrUtils, EF.Localization,
   Kitto.Metadata.Models, Kitto.Metadata.Views, Kitto.Rules, Kitto.AccessControl,
+  Kitto.JSON,
   Kitto.Ext.Filters, Kitto.Ext.Session, Kitto.Ext.Utils, Kitto.Ext.Controller;
 
 { TKExtGridPanel }
@@ -288,6 +289,28 @@ var
     LColumn: TExtGridColumn;
     LColumnWidth: Integer;
 
+    function SetRenderer(const AColumn: TExtGridColumn): Boolean;
+    var
+      LImages: TEFNode;
+      LPairs: TEFPairs;
+      I: Integer;
+    begin
+      Result := False;
+
+      LImages := AViewField.FindNode('Images');
+      if Assigned(LImages) and (LImages.ChildCount > 0) then
+      begin
+        // Expand image names to URLs.
+        LPairs := LImages.GetChildPairs;
+        for I := Low(LPairs) to High(LPairs) do
+          LPairs[I].Key := Session.Config.GetImageURL(LPairs[I].Key);
+        // Pass array to the client-side renderer.
+        AColumn.RendererExtFunction := AColumn.JSFunction('v',
+          Format('return formatWithImage(v, [%s], %s);',
+            [PairsToJSON(LPairs), IfThen(AViewField.BlankValue, 'false', 'true')]));
+      end;
+    end;
+
     function CreateColumn: TExtGridColumn;
     var
       LDataType: TEFDataType;
@@ -301,8 +324,8 @@ var
       begin
         // Don't use TExtGridBooleanColumn here, otherwise the renderer will be inneffective.
         Result := TExtGridColumn.AddTo(FGridPanel.Columns);
-        Result.RendererExtFunction := JSFunction('v',
-          'return String.format(''<div class="x-grid3-check-col{0}"></div>'', v ? "-on" : '''');');
+        if not SetRenderer(Result) then
+          Result.Renderer := 'checkboxRenderer';
       end
       else if LDataType is TEFDateDataType then
       begin
@@ -315,11 +338,14 @@ var
       else if LDataType is TEFTimeDataType then
       begin
         Result := TExtGridColumn.AddTo(FGridPanel.Columns);
-        LFormat := AViewField.DisplayFormat;
-        if LFormat = '' then
-          LFormat := Session.Config.UserFormatSettings.ShortTimeFormat;
-        Result.RendererExtFunction := Result.JSFunction('v',
-          Format('return formatTime(v, "%s");', [DelphiTimeFormatToJSTimeFormat(LFormat)]));
+        if not SetRenderer(Result) then
+        begin
+          LFormat := AViewField.DisplayFormat;
+          if LFormat = '' then
+            LFormat := Session.Config.UserFormatSettings.ShortTimeFormat;
+          Result.RendererExtFunction := Result.JSFunction('v',
+            Format('return formatTime(v, "%s");', [DelphiTimeFormatToJSTimeFormat(LFormat)]));
+        end;
       end
       else if LDataType is TEFDateTimeDataType then
       begin
@@ -333,23 +359,36 @@ var
       else if LDataType is TEFIntegerDataType then
       begin
         Result := TExtGridNumberColumn.AddTo(FGridPanel.Columns);
-        TExtGridNumberColumn(Result).Format := '0';
-        Result.Align := alRight;
+        if not SetRenderer(Result) then
+        begin
+          TExtGridNumberColumn(Result).Format := '0';
+          Result.Align := alRight;
+        end;
       end
       else if (LDataType is TEFFloatDataType) or (LDataType is TEFDecimalDataType) then
       begin
         Result := TExtGridNumberColumn.AddTo(FGridPanel.Columns);
-        TExtGridNumberColumn(Result).Format := AdaptExtNumberFormat('0.00', Session.Config.UserFormatSettings);
-        Result.Align := alRight;
+        if not SetRenderer(Result) then
+        begin
+          TExtGridNumberColumn(Result).Format := AdaptExtNumberFormat('0.00', Session.Config.UserFormatSettings);
+          Result.Align := alRight;
+        end;
       end
       else if LDataType is TEFCurrencyDataType then
       begin
         Result := TExtGridNumberColumn.AddTo(FGridPanel.Columns);
-        TExtGridNumberColumn(Result).Format := AdaptExtNumberFormat('0,0.00', Session.Config.UserFormatSettings);
-        Result.Align := alRight;
+        if not SetRenderer(Result) then
+        begin
+          { TODO : format as money }
+          TExtGridNumberColumn(Result).Format := AdaptExtNumberFormat('0,0.00', Session.Config.UserFormatSettings);
+          Result.Align := alRight;
+        end;
       end
       else
+      begin
         Result := TExtGridColumn.AddTo(FGridPanel.Columns);
+        SetRenderer(Result);
+      end;
     end;
 
   begin
