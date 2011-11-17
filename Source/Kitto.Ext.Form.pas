@@ -70,6 +70,7 @@ type
     procedure CreateDetailToolbar;
     procedure LoadDetailData;
     function GetDetailStyle: string;
+    procedure OnFieldChange(This: TExtFormField; NewValue: string; OldValue: string);
   protected
     procedure LoadData; override;
     procedure InitComponents; override;
@@ -160,6 +161,7 @@ begin
   try
     LLayoutProcessor.DataRecord := FStoreRecord;
     LLayoutProcessor.FormPanel := FFormPanel;
+    LLayoutProcessor.OnFieldChange := OnFieldChange;
 //    LLayoutProcessor.OnNewEditor :=
 //      procedure (AEditor: IKExtEditor)
 //      begin
@@ -240,6 +242,15 @@ begin
     for I := 0 to FDetailPanels.Count - 1 do
       FDetailPanels[I].LoadData;
   end;
+end;
+
+procedure TKExtFormPanelController.OnFieldChange(This: TExtFormField; NewValue,
+  OldValue: string);
+begin
+ { TODO : Implement auto-refresh of derived fields. }
+  // Find field.
+  // Don't update derived fields in record, as the change may be undone.
+  // Push updated values of derived fields to editors.
 end;
 
 procedure TKExtFormPanelController.FocusFirstField;

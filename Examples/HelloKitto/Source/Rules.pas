@@ -21,7 +21,7 @@ uses
 
 procedure TCheckDuplicateInvitations.BeforeAdd(const ARecord: TKRecord);
 begin
-  if ARecord.Store.CountRecords('INVITEE_ID', ARecord.FieldByName('INVITEE_ID').Value) > 1 then
+  if ARecord.Store.Count('INVITEE_ID', ARecord.FieldByName('INVITEE_ID').Value) > 1 then
     RaiseError(_('Cannot invite the same girl twice.'));
 end;
 

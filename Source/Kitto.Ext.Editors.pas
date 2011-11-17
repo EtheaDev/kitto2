@@ -262,7 +262,9 @@ type
     FDefaults: TKExtLayoutDefaults;
     FCurrentEditItem: IKExtEditItem;
     FEditContainers: TStack<IKExtEditContainer>;
+    FOnFieldChange: TExtFormFieldOnChange;
     function GetViewTable: TKViewTable;
+    function DerivedFieldsExist(const AViewField: TKViewField): Boolean;
     const TRIGGER_WIDTH = 4;
     function TryCreateCheckBox(const AViewField: TKViewField): IKExtEditor;
     function TryCreateDateField(const AViewField: TKViewField;
@@ -308,6 +310,7 @@ type
     property ViewTable: TKViewTable read GetViewTable;
     property ForceReadOnly: Boolean read FForceReadOnly write FForceReadOnly;
     property FormPanel: TKExtEditPanel read FFormPanel write FFormPanel;
+    property OnFieldChange: TExtFormFieldOnChange read FOnFieldChange write FOnFieldChange;
 
     ///	<summary>
     ///	  Creates editors according to the specified layout or a default layout.
@@ -514,7 +517,7 @@ begin
     for I := 0 to ViewTable.FieldCount - 1 do
     begin
       if ViewTable.IsFieldVisible(ViewTable.Fields[I]) then
-        FFormPanel.AddChild(CreateEditor(ViewTable.Fields[I].FieldName, nil));
+        FFormPanel.AddChild(CreateEditor(ViewTable.Fields[I].AliasedName, nil));
     end;
   end;
   if Assigned(FFocusField) then
@@ -853,7 +856,7 @@ begin
   // Minimum cap - avoids too short combo boxes.
   LFieldWidth := Max(LFieldWidth, FDefaults.MinFieldWidth);
 
-  LIsReadOnly := LViewField.IsReadOnly or not LViewField.CanUpdate or ViewTable.IsReadOnly or FForceReadOnly;
+  LIsReadOnly := LViewField.IsReadOnly or not LViewField.CanUpdate or ViewTable.IsReadOnly or FForceReadOnly or (LViewField.Model <> LViewField.Table.Model);
   if not LIsReadOnly and LViewField.IsDetailReference then
     LIsReadOnly := True;
 
@@ -902,17 +905,38 @@ begin
 
   if LIsReadOnly then
     LFormField.Cls := 'x-form-readonly';
-  //LFormField.AutoScroll := False; // Don't display a h. scrollbar for larger fields.
   LFormField.Name := LViewField.AliasedName;
   LFormField.ReadOnly := LIsReadOnly;
   LFormField.FieldLabel := LLabel;
   LFormField.MsgTarget := LowerCase(FDefaults.MsgTarget);
+
+  if DerivedFieldsExist(LViewField) then
+    LFormField.OnChange := FOnFieldChange;
 
   if (FFocusField = nil) and not LFormField.ReadOnly and not LFormField.Disabled then
     FFocusField := LFormField;
 
   if Assigned(LRowField) then
     Result := LRowField.Encapsulate(Result);
+end;
+
+function TKExtLayoutProcessor.DerivedFieldsExist(const AViewField: TKViewField): Boolean;
+var
+  LViewTable: TKViewTable;
+  LModelField: TKModelField;
+  I: Integer;
+begin
+  Result := False;
+  LViewTable := AViewField.Table;
+  LModelField := AViewField.ModelField;
+  for I := 0 to LViewTable.FieldCount - 1 do
+  begin
+    if LViewTable.Fields[I].ReferenceField = LModelField then
+    begin
+      Result := True;
+      Exit;
+    end;
+  end;
 end;
 
 function TKExtLayoutProcessor.CreateFieldSet(const ATitle: string): IKExtEditItem;

@@ -43,6 +43,13 @@ Ext.apply(Ext.form.VTypes, {
     phone_numberMask: /[a-z0-9\-\+]/
 });
 
+// Additional formats and renderers.
+Ext.apply(Ext.util.Format, {
+  checkboxRenderer: function(val) {
+    return String.format('<div class="x-grid3-check-col{0}"></div>', val ? "-on" : '');
+  }
+});
+
 // Fires change event if the object value is at least
 // minChars characters long. Also fires the event when the
 // value is empty. Used in filters.
@@ -105,4 +112,27 @@ function formatTime(time, format)
     return time;
   else
     return time.substring(0, 5);
+};
+
+// Renders an image with a value.
+// patterns is an array of arrays of two elements: image URL and regexp.
+// patterns are searched in order.
+// An image is rendered if v matches its regexp. Set includeValue to false
+// to display only the image and not the value (if there's no matching image,
+// the value is always displayed).
+function formatWithImage(v, patterns, includeValue)
+{
+  var image = null
+  for (var i = 0; i < patterns.length; i++)
+  {
+    var re = new RegExp(patterns[i][1]);
+    if (re.test(v)) {
+      image = patterns[i][0];
+      break;
+    }
+  }
+  if (image != null)
+    return '<img src="' + image + '">' + (includeValue ? '&nbsp;' + v : '');
+  else
+    return v;
 };
