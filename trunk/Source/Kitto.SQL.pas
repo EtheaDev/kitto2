@@ -97,6 +97,19 @@ type
     ///	execution. AValues must contain at least the key fields.</summary>
     class procedure BuildDeleteCommand(const AViewTable: TKViewTable;
       const ADBCommand: TEFDBCommand; const AValues: TEFNode);
+
+    ///	<summary>Builds in the specified query a select statement that selects
+    ///	all derived fields from the referenced model, locating the record by
+    ///	means of the specified key.</summary>
+    ///	<param name="AViewField">Originating reference field.</param>
+    ///	<param name="ADBQuery">Query object into which to build the statement
+    ///	and the params.</param>
+    ///	<param name="AKeyValues">Key values for the referenced model
+    ///	row.</param>
+    ///	<exception cref="Assert">The field must be a reference field and at
+    ///	least one derived field must exist in the view table.</exception>
+    class procedure BuildDerivedSelectQuery(const AViewField: TKViewField;
+      const ADBQuery: TEFDBQuery; const AKeyValues: string);
   end;
 
 implementation
@@ -297,6 +310,63 @@ begin
   end;
   for I := 0 to ADBCommand.Params.Count - 1 do
     AValues.GetNode(ADBCommand.Params[I].Name).AssignValueToParam(ADBCommand.Params[I]);
+end;
+
+class procedure TKSQLBuilder.BuildDerivedSelectQuery(const AViewField: TKViewField;
+  const ADBQuery: TEFDBQuery; const AKeyValues: string);
+var
+  LDerivedFields: TArray<TKViewField>;
+  LCommandText: string;
+  I: Integer;
+  LDerivedField: TKViewField;
+  LKeyFieldNames: TStringDynArray;
+  LModel: TKModel;
+  LClause: string;
+begin
+  Assert(Assigned(AViewField));
+  Assert(AViewField.IsReference);
+  Assert(Assigned(ADBQuery));
+
+  LDerivedFields := AViewField.GetDerivedFields;
+  Assert(Length(LDerivedFields) > 0);
+
+  LModel := AViewField.ModelField.ReferencedModel;
+
+  LCommandText := '';
+  for LDerivedField in LDerivedFields do
+  begin
+    if LCommandText = '' then
+      LCommandText := LDerivedField.ModelField.FieldName
+    else
+      LCommandText := LCommandText + ', ' + LDerivedField.ModelField.FieldName;
+  end;
+  LCommandText := 'select ' + LCommandText + ' from ' + LModel.ModelName;
+
+  if ADBQuery.Prepared then
+    ADBQuery.Prepared := False;
+  ADBQuery.Params.BeginUpdate;
+  try
+    ADBQuery.Params.Clear;
+
+    LKeyFieldNames := LModel.GetKeyFieldNames;
+    Assert(Length(LKeyFieldNames) > 0);
+    LClause := '';
+    for I := 0 to High(LKeyFieldNames) do
+    begin
+      if LClause = '' then
+        LClause := LKeyFieldNames[I] + ' = :' + LKeyFieldNames[I]
+      else
+        LClause := LClause + ' and ' + LKeyFieldNames[I] + ' = :' + LKeyFieldNames[I];
+      ADBQuery.Params.CreateParam(ftUnknown, LKeyFieldNames[I], ptInput);
+    end;
+    LCommandText := SetSQLWhereClause(LCommandText, LClause);
+    ADBQuery.CommandText := TEFMacroExpansionEngine.Instance.Expand(LCommandText);
+  finally
+    ADBQuery.Params.EndUpdate;
+  end;
+  { TODO : only single-field keys supported for now }
+  Assert(ADBQuery.Params.Count = 1);
+  ADBQuery.Params[0].Value := AKeyValues;
 end;
 
 procedure TKSQLBuilder.AfterConstruction;

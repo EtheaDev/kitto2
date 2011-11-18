@@ -21,7 +21,7 @@ unit Kitto.Metadata.DataView;
 interface
 
 uses
-  Types, SysUtils,
+  Types, SysUtils, Generics.Collections,
   EF.Types, EF.Tree,
   Kitto.Metadata, Kitto.Metadata.Models, Kitto.Metadata.Views, Kitto.Store,
   Kitto.Rules;
@@ -79,6 +79,7 @@ type
     function GetQualifiedNameOrExpression: string;
     function GetReferenceField: TKModelField;
     function GetBlankValue: Boolean;
+    function GetReferenceName: string;
   protected
     function GetChildClass(const AName: string): TEFNodeClass; override;
   public
@@ -140,6 +141,12 @@ type
     property ModelName: string read GetModelName;
 
     ///	<summary>
+    ///	  Extract and returns the reference name from the Name, or '' if the
+    ///	  field is not a reference field.
+    ///	</summary>
+    property ReferenceName: string read GetReferenceName;
+
+    ///	<summary>
     ///	  Extract and returns the field name without the model name qualifier.
     ///	  If the field is part of the main model, this is equal to Name.
     ///	</summary>
@@ -167,6 +174,23 @@ type
     property Rules: TKRules read GetRules;
 
     procedure ApplyRules(const AApplyProc: TProc<TKRuleImpl>);
+
+
+    ///	<summary>If the field is a reference field, creates and returns a list
+    ///	of view fields in the current view table from the same referenced
+    ///	model.</summary>
+    ///	<exception cref="Assert">Violation if IsReference is False.</exception>
+    ///	<example>If the field is a reference field called City, then all fields
+    ///	called City.* are added to the returned list.</example>
+    function GetDerivedFields: TArray<TKViewField>;
+
+    ///	<summary>Creates and loads a store with a record containing all derived
+    ///	values for a reference field. The caller is responsible for freeing the
+    ///	store object.</summary>
+    ///	<param name="AKeyValues">Key values for the record to fetch.</param>
+    ///	<exception cref="Assert">If the field is not a reference field, an
+    ///	assertion violation is raised.</exception>
+    function CreateDerivedFieldsStore(const AKeyValues: string): TKStore;
   end;
 
   TKViewFields = class(TKMetadataItem)
@@ -342,6 +366,8 @@ type
     function FieldByAliasedName(const AName: string): TKViewField;
     function FindFieldByAliasedName(const AAliasedName: string): TKViewField;
     function GetKeyFieldAliasedNames: TStringDynArray;
+    function GetFieldArray(AFilter: TFunc<TKViewField, Boolean>): TArray<TKViewField>;
+
     function IsFieldVisible(const AField: TKViewField): Boolean;
 
     property IsReadOnly: Boolean read GetIsReadOnly;
@@ -625,6 +651,24 @@ end;
 function TKViewTable.GetField(I: Integer): TKViewField;
 begin
   Result := GetFields[I];
+end;
+
+function TKViewTable.GetFieldArray(AFilter: TFunc<TKViewField, Boolean>): TArray<TKViewField>;
+var
+  LItems: Integer;
+  I: Integer;
+begin
+  Setlength(Result, FieldCount);
+  LItems := 0;
+  for I := 0 to FieldCount - 1 do
+  begin
+    if AFilter(Fields[I]) then
+    begin
+      Result[LItems] := Fields[I];
+      Inc(LItems);
+    end;
+  end;
+  SetLength(Result, LItems);
 end;
 
 function TKViewTable.GetFieldCount: Integer;
@@ -918,6 +962,36 @@ begin
   end;
 end;
 
+function TKViewField.CreateDerivedFieldsStore(
+  const AKeyValues: string): TKStore;
+var
+  LDerivedFields: TArray<TKViewField>;
+  LDerivedField: TKViewField;
+  LDBQuery: TEFDBQuery;
+begin
+  Assert(IsReference);
+
+  Result := TKStore.Create;
+  try
+    // Set header.
+    LDerivedFields := GetDerivedFields;
+    if Length(LDerivedFields) > 0 then
+      for LDerivedField in LDerivedFields do
+        Result.Header.AddChild(LDerivedField.AliasedName).DataType := LDerivedField.DataType;
+    // Get data.
+    LDBQuery := TKConfig.Instance.MainDBConnection.CreateDBQuery;
+    try
+      TKSQLBuilder.BuildDerivedSelectQuery(Self, LDBQuery, AKeyValues);
+      Result.Load(LDBQuery);
+    finally
+      FreeAndNil(LDBQuery);
+    end;
+  except
+    FreeAndNil(Result);
+    raise;
+  end;
+end;
+
 function TKViewField.CreateReferenceStore: TKStore;
 var
   I: Integer;
@@ -1078,6 +1152,18 @@ begin
     Result := TEFMacroExpansionEngine.Instance.Expand(Result);
 end;
 
+function TKViewField.GetDerivedFields: TArray<TKViewField>;
+begin
+  Assert(IsReference);
+
+  Result := Table.GetFieldArray(
+    function (AField: TKViewField): Boolean
+    begin
+      Result := AField.ReferenceName = FieldName;
+    end
+  );
+end;
+
 function TKViewField.GetDisplayFormat: string;
 begin
   Result := GetString('DisplayFormat');
@@ -1217,6 +1303,21 @@ function TKViewField.IsAccessGranted(const AMode: string): Boolean;
 begin
   Result := TKConfig.Instance.IsAccessGranted(GetResourceURI, AMode)
     and TKConfig.Instance.IsAccessGranted(ModelField.GetResourceURI, AMode);
+end;
+
+function TKViewField.GetReferenceName: string;
+var
+  LNameParts: TStringDynArray;
+begin
+  LNameParts := Split(Name, '.');
+  if Length(LNameParts) = 1 then
+    // <field name>
+    Result := ''
+  else if Length(LNameParts) = 2 then
+    // <reference name>.<field name>
+    Result := LNameParts[0]
+  else
+    raise EKError.CreateFmt('Couldn''t determine referenced model name for field %s.', [Name]);
 end;
 
 function TKViewField.GetModelName: string;
