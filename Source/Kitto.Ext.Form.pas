@@ -54,7 +54,6 @@ type
     FTabPanel: TExtTabPanel;
     FFormPanel: TKExtEditPanel;
     FIsReadOnly: Boolean;
-    //FEditors: TList<IKExtEditor>;
     FSaveButton: TExtButton;
     FCancelButton: TExtButton;
     FDetailToolbar: TExtToolbar;
@@ -63,6 +62,7 @@ type
     FOperation: string;
     FFocusField: TExtFormField;
     FStoreRecord: TKViewTableRecord;
+    FEditors: TList<IKExtEditor>;
     procedure CreateEditors(const AForceReadOnly: Boolean);
     procedure StartOperation;
     procedure FocusFirstField;
@@ -70,7 +70,8 @@ type
     procedure CreateDetailToolbar;
     procedure LoadDetailData;
     function GetDetailStyle: string;
-    procedure OnFieldChange(This: TExtFormField; NewValue: string; OldValue: string);
+    procedure OnFieldChange(AField: TExtFormField; ANewValue, AOldValue: string);
+    function FindEditor(const AFieldName: string): IKExtEditor;
   protected
     procedure LoadData; override;
     procedure InitComponents; override;
@@ -87,14 +88,15 @@ implementation
 
 uses
   SysUtils, StrUtils,
-  EF.Localization, EF.Types, EF.Intf, EF.Tree,
-  Kitto.AccessControl, Kitto.JSON, Kitto.Rules,
+  EF.Localization, EF.Types, EF.Intf, EF.Tree, EF.DB,
+  Kitto.AccessControl, Kitto.JSON, Kitto.Rules, Kitto.SQL,
   Kitto.Ext.Session, Kitto.Ext.Utils;
 
 { TKExtFormPanelController }
 
 destructor TKExtFormPanelController.Destroy;
 begin
+  FreeAndNil(FEditors);
   FreeAndNil(FDetailButtons);
   FreeAndNil(FDetailPanels);
   inherited;
@@ -155,18 +157,18 @@ var
   LLayoutProcessor: TKExtLayoutProcessor;
   LLayoutName: string;
 begin
-//  FreeAndNil(FEditors);
-//  FEditors := TList<IKExtEditor>.Create;
+  FreeAndNil(FEditors);
+  FEditors := TList<IKExtEditor>.Create;
   LLayoutProcessor := TKExtLayoutProcessor.Create;
   try
     LLayoutProcessor.DataRecord := FStoreRecord;
     LLayoutProcessor.FormPanel := FFormPanel;
     LLayoutProcessor.OnFieldChange := OnFieldChange;
-//    LLayoutProcessor.OnNewEditor :=
-//      procedure (AEditor: IKExtEditor)
-//      begin
-//        FEditors.Add(AEditor);
-//      end;
+    LLayoutProcessor.OnNewEditor :=
+      procedure (AEditor: IKExtEditor)
+      begin
+        FEditors.Add(AEditor);
+      end;
     LLayoutProcessor.ForceReadOnly := AForceReadOnly;
 
     LLayoutName := ViewTable.GetString('Controller/Form/Layout');
@@ -244,13 +246,55 @@ begin
   end;
 end;
 
-procedure TKExtFormPanelController.OnFieldChange(This: TExtFormField; NewValue,
-  OldValue: string);
+procedure TKExtFormPanelController.OnFieldChange(AField: TExtFormField;
+  ANewValue, AOldValue: string);
+var
+  LEditor: IKExtEditor;
+  LStore: TKStore;
+  I: Integer;
+  LDerivedEditor: IKExtEditor;
 begin
- { TODO : Implement auto-refresh of derived fields. }
-  // Find field.
-  // Don't update derived fields in record, as the change may be undone.
-  // Push updated values of derived fields to editors.
+  Assert(Assigned(AField));
+
+  if Supports(AField, IKExtEditor, LEditor) then
+  begin
+    Assert(LEditor.GetField.IsReference);
+
+    // Get derived values.
+    LStore := LEditor.GetField.CreateDerivedFieldsStore(ANewValue);
+    try
+      // Copy values to editors.
+      for I := 0 to LStore.Header.FieldCount - 1 do
+      begin
+        LDerivedEditor := FindEditor(LStore.Header.Fields[I].FieldName);
+        if Assigned(LDerivedEditor) then
+        begin
+          if LStore.RecordCount > 0 then
+            { TODO : need to format value? }
+            LDerivedEditor.AsExtFormField.SetValue(LStore.Records[0].Fields[I].AsString)
+          else
+            LDerivedEditor.AsExtFormField.SetValue('');
+        end;
+      end;
+    finally
+      FreeAndNil(LStore);
+    end;
+  end;
+end;
+
+function TKExtFormPanelController.FindEditor(const AFieldName: string): IKExtEditor;
+var
+  I: Integer;
+begin
+  Result := nil;
+  for I := 0 to FEditors.Count - 1 do
+  begin
+    if SameText(FEditors[I].GetField.AliasedName, AFieldName) then
+    begin
+      Result := FEditors[I];
+      Break;
+    end;
+  end;
 end;
 
 procedure TKExtFormPanelController.FocusFirstField;

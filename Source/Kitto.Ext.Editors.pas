@@ -21,7 +21,7 @@ unit Kitto.Ext.Editors;
 interface
 
 uses
-  Generics.Collections,
+  SysUtils, Generics.Collections,
   Ext, ExtPascal, ExtForm, ExtData,
   EF.Intf, EF.Classes, EF.Tree,
   Kitto.Ext.Base, Kitto.Metadata.Views, Kitto.Metadata.DataView, Kitto.Store;
@@ -41,6 +41,9 @@ type
   IKExtEditor = interface(IKExtEditItem)
     ['{FF091C2F-A987-4D00-B985-9C00AE37CA5A}']
     function AsExtFormField: TExtFormField;
+
+    function GetField: TKViewField;
+    procedure SetField(const AValue: TKViewField);
   end;
 
   TKExtEditPanel = class(TExtFormFormPanel, IKExtEditItem, IKExtEditContainer)
@@ -105,22 +108,26 @@ type
   private
     FEditor: IKExtEditor;
     FCharWidth: Integer;
+    FField: TKViewField;
     procedure SetCharWidth(const AValue: Integer);
   protected
     procedure InitDefaults; override;
   public
-    property CharWidth: Integer read FCharWidth write SetCharWidth;
-
+    destructor Destroy; override;
+  public
     function Encapsulate(const AValue: IKExtEditor): IKExtEditor;
-
+    property CharWidth: Integer read FCharWidth write SetCharWidth;
     function AsExtFormField: TExtFormField;
     procedure SetOption(const AName, AValue: string);
-    destructor Destroy; override;
+    function GetField: TKViewField;
+    procedure SetField(const AValue: TKViewField);
   end;
 
 { TODO : support the CheckboxGroup and Radiogroup containers? }
 
   TKExtFormNumberField = class(TExtFormNumberField, IKExtEditItem, IKExtEditor)
+  private
+    FField: TKViewField;
   public
     function AsObject: TObject; inline;
     function QueryInterface(const IID: TGUID; out Obj): HRESULT; stdcall;
@@ -129,9 +136,13 @@ type
     procedure SetOption(const AName, AValue: string);
     function AsExtObject: TExtObject; inline;
     function AsExtFormField: TExtFormField; inline;
+    function GetField: TKViewField;
+    procedure SetField(const AValue: TKViewField);
   end;
 
   TKExtFormTextField = class(TExtFormTextField, IKExtEditItem, IKExtEditor)
+  private
+    FField: TKViewField;
   public
     function AsObject: TObject; inline;
     function QueryInterface(const IID: TGUID; out Obj): HRESULT; stdcall;
@@ -140,9 +151,13 @@ type
     procedure SetOption(const AName, AValue: string);
     function AsExtObject: TExtObject; inline;
     function AsExtFormField: TExtFormField; inline;
+    function GetField: TKViewField;
+    procedure SetField(const AValue: TKViewField);
   end;
 
   TKExtFormTextArea = class(TExtFormTextArea, IKExtEditItem, IKExtEditor)
+  private
+    FField: TKViewField;
   public
     function AsObject: TObject; inline;
     function QueryInterface(const IID: TGUID; out Obj): HRESULT; stdcall;
@@ -151,9 +166,13 @@ type
     procedure SetOption(const AName, AValue: string);
     function AsExtObject: TExtObject; inline;
     function AsExtFormField: TExtFormField; inline;
+    function GetField: TKViewField;
+    procedure SetField(const AValue: TKViewField);
   end;
 
   TKExtFormCheckbox = class(TExtFormCheckbox, IKExtEditItem, IKExtEditor)
+  private
+    FField: TKViewField;
   public
     function AsObject: TObject; inline;
     function QueryInterface(const IID: TGUID; out Obj): HRESULT; stdcall;
@@ -162,9 +181,13 @@ type
     procedure SetOption(const AName, AValue: string);
     function AsExtObject: TExtObject; inline;
     function AsExtFormField: TExtFormField; inline;
+    function GetField: TKViewField;
+    procedure SetField(const AValue: TKViewField);
   end;
 
   TKExtFormDateField = class(TExtFormDateField, IKExtEditItem, IKExtEditor)
+  private
+    FField: TKViewField;
   public
     function AsObject: TObject; inline;
     function QueryInterface(const IID: TGUID; out Obj): HRESULT; stdcall;
@@ -173,9 +196,13 @@ type
     procedure SetOption(const AName, AValue: string);
     function AsExtObject: TExtObject; inline;
     function AsExtFormField: TExtFormField; inline;
+    function GetField: TKViewField;
+    procedure SetField(const AValue: TKViewField);
   end;
 
   TKExtFormTimeField = class(TExtFormTimeField, IKExtEditItem, IKExtEditor)
+  private
+    FField: TKViewField;
   public
     function AsObject: TObject; inline;
     function QueryInterface(const IID: TGUID; out Obj): HRESULT; stdcall;
@@ -184,6 +211,8 @@ type
     procedure SetOption(const AName, AValue: string);
     function AsExtObject: TExtObject; inline;
     function AsExtFormField: TExtFormField; inline;
+    function GetField: TKViewField;
+    procedure SetField(const AValue: TKViewField);
   end;
 
   TKExtFormDateTimeField = class(TExtFormField, IKExtEditItem, IKExtEditor)
@@ -195,6 +224,7 @@ type
     FAltDateFormats: string;
     FAllowBlank: Boolean;
     FAltTimeFormats: string;
+    FField: TKViewField;
     procedure SetDateFormat(const AValue: string);
     procedure SetTimeFormat(const AValue: string);
     procedure SetAltDateFormats(const AValue: string);
@@ -213,6 +243,8 @@ type
     procedure SetOption(const AName, AValue: string);
     function AsExtObject: TExtObject; inline;
     function AsExtFormField: TExtFormField; inline;
+    function GetField: TKViewField;
+    procedure SetField(const AValue: TKViewField);
 
     property DateFormat: string read FDateFormat write SetDateFormat;
     //property DateConfig: TExtObject read FDateConfig write SetDateConfig;
@@ -227,6 +259,7 @@ type
   private
     FServerStore: TKStore;
     FLookupCommandText: string;
+    FField: TKViewField;
     procedure SetupServerStore(const AField: TKViewTableField;
       const ALookupCommandText: string);
   protected
@@ -236,6 +269,8 @@ type
     function AsExtObject: TExtObject; inline;
     function AsExtFormField: TExtFormField; inline;
     destructor Destroy; override;
+    function GetField: TKViewField;
+    procedure SetField(const AValue: TKViewField);
   published
     procedure GetRecordPage;
   end;
@@ -263,6 +298,7 @@ type
     FCurrentEditItem: IKExtEditItem;
     FEditContainers: TStack<IKExtEditContainer>;
     FOnFieldChange: TExtFormFieldOnChange;
+    FOnNewEditor: TProc<IKExtEditor>;
     function GetViewTable: TKViewTable;
     function DerivedFieldsExist(const AViewField: TKViewField): Boolean;
     const TRIGGER_WIDTH = 4;
@@ -311,6 +347,7 @@ type
     property ForceReadOnly: Boolean read FForceReadOnly write FForceReadOnly;
     property FormPanel: TKExtEditPanel read FFormPanel write FFormPanel;
     property OnFieldChange: TExtFormFieldOnChange read FOnFieldChange write FOnFieldChange;
+    property OnNewEditor: TProc<IKExtEditor> read FOnNewEditor write FOnNewEditor;
 
     ///	<summary>
     ///	  Creates editors according to the specified layout or a default layout.
@@ -331,7 +368,7 @@ type
 implementation
 
 uses
-  Types, SysUtils, Classes, Math, StrUtils,
+  Types, Classes, Math, StrUtils,
   EF.StrUtils, EF.Localization, EF.YAML, EF.Types, EF.SQL,
   Kitto.JSON, Kitto.SQL, Kitto.Metadata.Models, Kitto.Types,
   Kitto.Rules, Kitto.Ext.Utils, Kitto.Ext.Session, Kitto.Ext.Rules;
@@ -865,7 +902,10 @@ begin
     LLabel := ReplaceText(FDefaults.RequiredLabelTemplate, '{label}', LLabel);
 
   if AContainer is TKExtFormRow then
-    LRowField := TKExtFormRowField.Create
+  begin
+    LRowField := TKExtFormRowField.Create;
+    LRowField.SetField(LViewField);
+  end
   else
     LRowField := nil;
 
@@ -884,6 +924,8 @@ begin
     Result := TryCreateNumberField(LViewField, LRowField, LFieldWidth, LIsReadOnly);
   if Result = nil then
     Result := CreateTextField(LViewField, LRowField, LFieldWidth, LIsReadOnly);
+
+  Result.SetField(LViewField);
 
   LFormField := Result.AsExtFormField;
 
@@ -918,6 +960,9 @@ begin
 
   if Assigned(LRowField) then
     Result := LRowField.Encapsulate(Result);
+
+  if Assigned(FOnNewEditor) then
+    FOnNewEditor(Result);
 end;
 
 function TKExtLayoutProcessor.DerivedFieldsExist(const AViewField: TKViewField): Boolean;
@@ -1159,9 +1204,19 @@ begin
   Result := Self;
 end;
 
+function TKExtFormTextField.GetField: TKViewField;
+begin
+  Result := FField;
+end;
+
 function TKExtFormTextField.QueryInterface(const IID: TGUID; out Obj): HRESULT;
 begin
   if GetInterface(IID, Obj) then Result := 0 else Result := E_NOINTERFACE;
+end;
+
+procedure TKExtFormTextField.SetField(const AValue: TKViewField);
+begin
+  FField := AValue;
 end;
 
 procedure TKExtFormTextField.SetOption(const AName, AValue: string);
@@ -1197,9 +1252,19 @@ begin
   Result := Self;
 end;
 
+function TKExtFormTextArea.GetField: TKViewField;
+begin
+  Result := FField;
+end;
+
 function TKExtFormTextArea.QueryInterface(const IID: TGUID; out Obj): HRESULT;
 begin
   if GetInterface(IID, Obj) then Result := 0 else Result := E_NOINTERFACE;
+end;
+
+procedure TKExtFormTextArea.SetField(const AValue: TKViewField);
+begin
+  FField := AValue;
 end;
 
 procedure TKExtFormTextArea.SetOption(const AName, AValue: string);
@@ -1240,9 +1305,19 @@ begin
   Result := Self;
 end;
 
+function TKExtFormCheckbox.GetField: TKViewField;
+begin
+  Result := FField;
+end;
+
 function TKExtFormCheckbox.QueryInterface(const IID: TGUID; out Obj): HRESULT;
 begin
   if GetInterface(IID, Obj) then Result := 0 else Result := E_NOINTERFACE;
+end;
+
+procedure TKExtFormCheckbox.SetField(const AValue: TKViewField);
+begin
+  FField := AValue;
 end;
 
 procedure TKExtFormCheckbox.SetOption(const AName, AValue: string);
@@ -1278,9 +1353,19 @@ begin
   Result := Self;
 end;
 
+function TKExtFormDateField.GetField: TKViewField;
+begin
+  Result := FField;
+end;
+
 function TKExtFormDateField.QueryInterface(const IID: TGUID; out Obj): HRESULT;
 begin
   if GetInterface(IID, Obj) then Result := 0 else Result := E_NOINTERFACE;
+end;
+
+procedure TKExtFormDateField.SetField(const AValue: TKViewField);
+begin
+  FField := AValue;
 end;
 
 procedure TKExtFormDateField.SetOption(const AName, AValue: string);
@@ -1317,6 +1402,11 @@ begin
   inherited;
 end;
 
+function TKExtFormComboBoxEditor.GetField: TKViewField;
+begin
+  Result := FField;
+end;
+
 procedure TKExtFormComboBoxEditor.GetRecordPage;
 var
   LStart: Integer;
@@ -1343,6 +1433,11 @@ begin
   TypeAhead := True;
   LazyRender := True;
   SelectOnFocus := False;
+end;
+
+procedure TKExtFormComboBoxEditor.SetField(const AValue: TKViewField);
+begin
+  FField := AValue;
 end;
 
 procedure TKExtFormComboBoxEditor.SetOption(const AName, AValue: string);
@@ -1492,10 +1587,20 @@ begin
   Result := Self;
 end;
 
+function TKExtFormRowField.GetField: TKViewField;
+begin
+  Result := FField;
+end;
+
 procedure TKExtFormRowField.SetCharWidth(const AValue: Integer);
 begin
   FCharWidth := AValue;
   Width := CharsToPixels(AValue);
+end;
+
+procedure TKExtFormRowField.SetField(const AValue: TKViewField);
+begin
+  FField := AValue;
 end;
 
 procedure TKExtFormRowField.SetOption(const AName, AValue: string);
@@ -1521,9 +1626,19 @@ begin
   Result := Self;
 end;
 
+function TKExtFormNumberField.GetField: TKViewField;
+begin
+  Result := FField;
+end;
+
 function TKExtFormNumberField.QueryInterface(const IID: TGUID; out Obj): HRESULT;
 begin
   if GetInterface(IID, Obj) then Result := 0 else Result := E_NOINTERFACE;
+end;
+
+procedure TKExtFormNumberField.SetField(const AValue: TKViewField);
+begin
+  FField := AValue;
 end;
 
 procedure TKExtFormNumberField.SetOption(const AName, AValue: string);
@@ -1564,6 +1679,11 @@ begin
   FreeAndNil(FDateConfig);
   FreeAndNil(FTimeConfig);
   inherited;
+end;
+
+function TKExtFormDateTimeField.GetField: TKViewField;
+begin
+  Result := FField;
 end;
 
 function TKExtFormDateTimeField.JSClassName: string;
@@ -1623,6 +1743,11 @@ begin
   JSCode('dateFormat:' + VarToJSON([AValue]));
 end;
 
+procedure TKExtFormDateTimeField.SetField(const AValue: TKViewField);
+begin
+  FField := AValue;
+end;
+
 //procedure TKExtFormDateTimeField.SetTimeConfig(const AValue: TExtObject);
 //begin
 //  FTimeConfig := AValue;
@@ -1653,9 +1778,19 @@ begin
   Result := Self;
 end;
 
+function TKExtFormTimeField.GetField: TKViewField;
+begin
+  Result := FField;
+end;
+
 function TKExtFormTimeField.QueryInterface(const IID: TGUID; out Obj): HRESULT;
 begin
   if GetInterface(IID, Obj) then Result := 0 else Result := E_NOINTERFACE;
+end;
+
+procedure TKExtFormTimeField.SetField(const AValue: TKViewField);
+begin
+  FField := AValue;
 end;
 
 procedure TKExtFormTimeField.SetOption(const AName, AValue: string);
