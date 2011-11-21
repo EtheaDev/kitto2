@@ -21,10 +21,11 @@ unit Kitto.Ext.GridPanel;
 interface
 
 uses
+  Generics.Collections,
   ExtPascal, Ext, ExtForm, ExtData, ExtGrid, ExtPascalUtils,
   EF.ObserverIntf,
-  Kitto.Metadata.DataView, Kitto.Store, Kitto.Types,
-  Kitto.Ext.Base;
+  Kitto.Metadata.Views, Kitto.Metadata.DataView, Kitto.Store, Kitto.Types,
+  Kitto.Ext.Base, Kitto.ext.Controller;
 
 type
   TKExtFilterPanel = class(TKExtPanelBase)
@@ -35,6 +36,22 @@ type
   public
     property Connector: string read FConnector write FConnector;
     function GetFilterExpression: string;
+  end;
+
+  TKExtActionButton = class(TExtButton)
+  private
+    FView: TKView;
+    FServerStore: TKViewTableStore;
+    FViewTable: TKViewTable;
+    procedure SetView(const AValue: TKView);
+  public
+    destructor Destroy; override;
+    property View: TKView read FView write SetView;
+    property ViewTable: TKViewTable read FViewTable write FViewTable;
+    property ServerStore: TKViewTableStore read FServerStore write FServerStore;
+  published
+    procedure ExecuteActionOnSelectedRow;
+    procedure ExecuteAction;
   end;
 
   TKExtGridPanel = class(TKExtPanelBase)
@@ -56,6 +73,7 @@ type
     FSelModel: TExtGridRowSelectionModel;
     FIsAddVisible: Boolean;
     FIsDeleteVisible: Boolean;
+    FButtonsRequiringSelection: TList<TExtObject>;
     procedure SetViewTable(const AValue: TKViewTable);
     procedure CreateFilterPanel;
     procedure CreateStoreAndView;
@@ -64,18 +82,21 @@ type
     function GetGroupingFieldName: string;
     function CreateTopToolbar: TExtToolbar;
     function CreatePagingToolbar: TExtPagingToolbar;
-    function LocateRecordFromSession: TKViewTableRecord;
     procedure ShowEditWindow(const ARecord: TKRecord;
       const AEditMode: TKEditMode);
     function GetSelectConfirmCall(const AMessage: string; const AMethod: TExtProcedure): string;
     function IsReadOnly: Boolean;
     function GetOrderByClause: string;
     procedure InitFieldsAndColumns;
+    function GetRowButtonsDisableJS: string;
+    function GetConfirmCall(const AMessage: string;
+      const AMethod: TExtProcedure): string;
   protected
     procedure InitDefaults; override;
   public
     procedure UpdateObserver(const ASubject: IEFSubject;
       const AContext: string = ''); override;
+    destructor Destroy; override;
     property ViewTable: TKViewTable read FViewTable write SetViewTable;
     property ServerStore: TKViewTableStore read FServerStore write FServerStore;
     procedure LoadData;
@@ -92,9 +113,29 @@ implementation
 uses
   SysUtils, StrUtils, Math,
   EF.Types, EF.Tree, EF.StrUtils, EF.Localization,
-  Kitto.Metadata.Models, Kitto.Metadata.Views, Kitto.Rules, Kitto.AccessControl,
-  Kitto.JSON,
-  Kitto.Ext.Filters, Kitto.Ext.Session, Kitto.Ext.Utils, Kitto.Ext.Controller;
+  Kitto.Metadata.Models, Kitto.Rules, Kitto.AccessControl, Kitto.JSON,
+  Kitto.Ext.Filters, Kitto.Ext.Session, Kitto.Ext.Utils;
+
+function LocateRecordFromSession(const AViewTable: TKViewTable;
+  const AServerStore: TKViewTableStore): TKViewTableRecord;
+var
+  LKey: TEFNode;
+begin
+  Assert(Assigned(AServerStore));
+
+  LKey := TEFNode.Create;
+  try
+    LKey.Assign(AServerStore.Key);
+    LKey.SetChildValuesfromStrings(Session.Queries, True, Session.Config.JSFormatSettings,
+      function(const AName: string): string
+      begin
+        Result := AViewTable.FieldByName(AName).AliasedName;
+      end);
+    Result := AServerStore.Records.GetRecord(LKey);
+  finally
+    FreeAndNil(LKey);
+  end;
+end;
 
 { TKExtGridPanel }
 
@@ -258,6 +299,7 @@ end;
 procedure TKExtGridPanel.InitDefaults;
 begin
   inherited;
+  FButtonsRequiringSelection := TList<TExtObject>.Create;
   Layout := lyBorder;
   Border := False;
   Header := False;
@@ -480,7 +522,7 @@ begin
   { TODO : Make sure the view/edit button is disabled on the client when there are no records. }
   if ServerStore.RecordCount = 0 then
     Exit;
-  ShowEditWindow(LocateRecordFromSession, emEditCurrentRecord);
+  ShowEditWindow(LocateRecordFromSession(ViewTable, ServerStore), emEditCurrentRecord);
 end;
 
 function TKExtGridPanel.IsReadOnly: Boolean;
@@ -561,6 +603,7 @@ begin
     FGridPanel.Bbar := CreatePagingToolbar;
   end;
 
+  FButtonsRequiringSelection.Clear;
   FTopToolbar := CreateTopToolbar;
   if FTopToolbar.Items.Count = 0 then
     FreeAndNil(FTopToolbar)
@@ -568,6 +611,21 @@ begin
     FGridPanel.Tbar := FTopToolbar;
 
   InitFieldsAndColumns;
+
+  if FButtonsRequiringSelection.Count > 0 then
+  begin
+    FSelModel.On('selectionchange', JSFunction('s', GetRowButtonsDisableJS));
+    On('afterrender', JSFunction(Format('var s = %s;', [FSelModel.JSName]) + GetRowButtonsDisableJS));
+  end;
+end;
+
+function TKExtGridPanel.GetRowButtonsDisableJS: string;
+var
+  I: Integer;
+begin
+  Result := 'var disabled = s.getCount() == 0;';
+  for I := 0 to FButtonsRequiringSelection.Count - 1 do
+    Result := Result + Format('%s.setDisabled(disabled);', [FButtonsRequiringSelection[I].JSName]);
 end;
 
 procedure TKExtGridPanel.UpdateObserver(const ASubject: IEFSubject;
@@ -587,24 +645,6 @@ begin
   RefreshData;
 end;
 
-function TKExtGridPanel.LocateRecordFromSession: TKViewTableRecord;
-var
-  LKey: TEFNode;
-begin
-  LKey := TEFNode.Create;
-  try
-    LKey.Assign(ServerStore.Key);
-    LKey.SetChildValuesfromStrings(Session.Queries, True, Session.Config.JSFormatSettings,
-      function(const AName: string): string
-      begin
-        Result := ViewTable.FieldByName(AName).AliasedName;
-      end);
-    Result := ServerStore.Records.GetRecord(LKey);
-  finally
-    FreeAndNil(LKey);
-  end;
-end;
-
 procedure TKExtGridPanel.DeleteCurrentRecord;
 var
   LRecord: TKViewTableRecord;
@@ -612,7 +652,7 @@ begin
   Assert(ViewTable <> nil);
 
   // Apply BEFORE rules now even though actual save migh be deferred.
-  LRecord := LocateRecordFromSession;
+  LRecord := LocateRecordFromSession(ViewTable, ServerStore);
   LRecord.MarkAsDeleted;
   try
     LRecord.ApplyBeforeRules;
@@ -631,6 +671,12 @@ begin
     Session.Flash(Format(_('%s deleted.'), [ViewTable.DisplayLabel]));
   end;
   RefreshData;
+end;
+
+destructor TKExtGridPanel.Destroy;
+begin
+  FreeAndNil(FButtonsRequiringSelection);
+  inherited;
 end;
 
 procedure TKExtGridPanel.RefreshData;
@@ -662,6 +708,12 @@ var
   LDeleteButton: TExtButton;
   LRefreshButton: TExtButton;
   LKeyFieldNames: string;
+  LToolViews: TEFNode;
+  I: Integer;
+  LToolButton: TKExtActionButton;
+  LConfirmationMessage: string;
+  LConfirmationJS: string;
+  LRequireSelection: Boolean;
 begin
   Assert(ViewTable <> nil);
 
@@ -676,9 +728,9 @@ begin
       LNewButton.Disabled := True
     else
       LNewButton.OnClick := NewRecord;
-    TExtToolbarSpacer.AddTo(Result.Items);
   end;
 
+  TExtToolbarSpacer.AddTo(Result.Items);
   LEditButton := TExtButton.AddTo(Result.Items);
   if IsReadOnly then
   begin
@@ -696,13 +748,12 @@ begin
   begin
     LKeyFieldNames := Join(ViewTable.GetKeyFieldAliasedNames, ',');
     LEditButton.On('click', AjaxSelection(EditViewRecord, FSelModel, LKeyFieldNames, LKeyFieldNames, []));
-    TExtGridRowSelectionModel(FSelModel).On('selectionchange', JSFunction(
-      's', Format('%s.setDisabled(s.getCount() == 0);', [LEditButton.JSName])));
+    FButtonsRequiringSelection.Add(LEditButton);
   end;
-  TExtToolbarSpacer.AddTo(Result.Items);
 
   if not IsReadOnly and FIsDeleteVisible then
   begin
+    TExtToolbarSpacer.AddTo(Result.Items);
     LDeleteButton := TExtButton.AddTo(Result.Items);
     LDeleteButton.Text := Format(_('Delete %s'), [ViewTable.DisplayLabel]);
     LDeleteButton.Icon := Session.Config.GetImageURL('delete_record');
@@ -712,18 +763,58 @@ begin
     begin
       LDeleteButton.Handler := JSFunction(GetSelectConfirmCall(
         Format(_('Selected %s will be deleted. Are you sure?'), [ViewTable.DisplayLabel]), DeleteCurrentRecord));
-      TExtGridRowSelectionModel(FSelModel).On('selectionchange', JSFunction(
-      's', Format('%s.setDisabled(s.getCount() == 0);', [LDeleteButton.JSName])));
+      FButtonsRequiringSelection.Add(LDeleteButton);
     end;
-    TExtToolbarSpacer.AddTo(Result.Items);
   end;
 
+  TExtToolbarSpacer.AddTo(Result.Items);
   LRefreshButton := TExtButton.AddTo(Result.Items);
   LRefreshButton.Text := _('Refresh');
   LRefreshButton.Icon := Session.Config.GetImageURL('refresh');
   LRefreshButton.Handler := Ajax(RefreshData);
   LRefreshButton.Tooltip := _('Refresh data');
-  //TExtToolbarSpacer.AddTo(Result.Items);
+
+  LToolViews := ViewTable.FindNode('Controller/List/ToolViews');
+  if Assigned(LToolViews) and (LToolViews.ChildCount > 0) then
+  begin
+    TExtToolbarSeparator.AddTo(Result.Items);
+    for I := 0 to LToolViews.ChildCount - 1 do
+    begin
+      LToolButton := TKExtActionButton.AddTo(Result.Items);
+      LToolButton.View := Session.Config.Views.ViewByNode(LToolViews.Children[I]);
+      LToolButton.ViewTable := ViewTable;
+      LToolButton.ServerStore := ServerStore;
+
+      // A Tool may or may not have a confirmation message and may or may not require
+      // a selected row. We must handle all combinations.
+      LConfirmationMessage := LToolButton.View.GetExpandedString('Controller/ConfirmationMessage');
+      LRequireSelection := LToolButton.View.GetBoolean('Controller/RequireSelection', True);
+
+      if LRequireSelection then
+        LConfirmationJS := GetSelectConfirmCall(LConfirmationMessage, LToolButton.ExecuteActionOnSelectedRow)
+      else
+        LConfirmationJS := GetConfirmCall(LConfirmationMessage, LToolButton.ExecuteAction);
+
+      if LConfirmationMessage <> '' then
+        LToolButton.Handler := JSFunction(LConfirmationJS)
+      else if LRequireSelection then
+      begin
+        LKeyFieldNames := Join(ViewTable.GetKeyFieldAliasedNames, ',');
+        LToolButton.On('click', AjaxSelection(LToolButton.ExecuteActionOnSelectedRow, FSelModel, LKeyFieldNames, LKeyFieldNames, []));
+      end
+      else
+        LToolButton.On('click', Ajax(LToolButton.ExecuteAction, []));
+      if LRequireSelection then
+        FButtonsRequiringSelection.Add(LToolButton);
+      TExtToolbarSpacer.AddTo(Result.Items);
+    end;
+  end;
+end;
+
+function TKExtGridPanel.GetConfirmCall(const AMessage: string; const AMethod: TExtProcedure): string;
+begin
+  Result := Format('confirmCall("%s", "%s", ajaxSimple, {methodURL: "%s"});',
+    [Session.Config.AppTitle, AMessage, MethodURI(AMethod)]);
 end;
 
 function TKExtGridPanel.GetSelectConfirmCall(const AMessage: string; const AMethod: TExtProcedure): string;
@@ -763,6 +854,63 @@ begin
   inherited;
   Border := False;
   Layout := lyForm;
+end;
+
+{ TKExtActionButton }
+
+destructor TKExtActionButton.Destroy;
+begin
+  if Assigned(FView) and not FView.IsPersistent then
+    FreeAndNil(FView);
+  inherited;
+end;
+
+procedure TKExtActionButton.ExecuteAction;
+var
+  LController: IKExtController;
+begin
+  Assert(Assigned(FView));
+  Assert(Assigned(FViewTable));
+  Assert(Assigned(FServerStore));
+
+  LController := TKExtControllerFactory.Instance.CreateController(FView, nil);
+  LController.OwnsView := False;
+  LController.Config.SetObject('Sys/ServerStore', FServerStore);
+  LController.Config.SetObject('Sys/ViewTable', FViewTable);
+  LController.Display;
+end;
+
+procedure TKExtActionButton.ExecuteActionOnSelectedRow;
+var
+  LRecord: TKViewTableRecord;
+  LController: IKExtController;
+begin
+  Assert(Assigned(FView));
+  Assert(Assigned(FViewTable));
+  Assert(Assigned(FServerStore));
+
+  LRecord := LocateRecordFromSession(FViewTable, FServerStore);
+  LController := TKExtControllerFactory.Instance.CreateController(FView, nil);
+  LController.OwnsView := False;
+  LController.Config.SetObject('Sys/ServerStore', FServerStore);
+  LController.Config.SetObject('Sys/Record', LRecord);
+  LController.Config.SetObject('Sys/ViewTable', FViewTable);
+  LController.Display;
+end;
+
+procedure TKExtActionButton.SetView(const AValue: TKView);
+var
+  LTooltip: string;
+begin
+  Assert(Assigned(AValue));
+
+  FView := AValue;
+
+  Text := FView.DisplayLabel;
+  Icon := Session.Config.GetImageURL(FView.ImageName);
+  LTooltip := FView.GetExpandedString('Hint');
+  if LTooltip <> '' then
+    Tooltip := LTooltip;
 end;
 
 end.

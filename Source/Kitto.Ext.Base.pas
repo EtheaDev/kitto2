@@ -168,6 +168,44 @@ type
     procedure Display;
   end;
 
+  ///	<summary>Base class for controllers that don't have a specific visual
+  ///	representation, yet can be used to render views, such as custom action
+  ///	controllers.</summary>
+  TKExtControllerBase = class(TExtObject, IInterface, IEFInterface, IKExtController)
+  private
+    FView: TKView;
+    FContainer: TExtContainer;
+    FOwnsView: Boolean;
+    FConfig: TEFNode;
+  protected
+    function GetView: TKView;
+    procedure SetView(const AValue: TKView);
+    procedure DoDisplay; virtual;
+    function GetContainer: TExtContainer;
+    procedure SetContainer(const AValue: TExtContainer);
+    property Container: TExtContainer read GetContainer write SetContainer;
+    function GetOwnsView: Boolean;
+    procedure SetOwnsView(const AValue: Boolean);
+    function GetConfig: TEFNode;
+  public
+    procedure AfterConstruction; override;
+    destructor Destroy; override;
+    function AsObject: TObject;
+    function QueryInterface(const IID: TGUID; out Obj): HRESULT; stdcall;
+    function _AddRef: Integer; stdcall;
+    function _Release: Integer; stdcall;
+    property View: TKView read GetView write SetView;
+    procedure Display;
+    property Config: TEFNode read GetConfig;
+  end;
+
+  ///	<summary>Base class for tool controllers.</summary>
+  TKExtToolController = class(TKExtControllerBase)
+  protected
+    procedure ExecuteTool; virtual;
+    procedure DoDisplay; override;
+  end;
+
   TKExtFormComboBox = class(TExtFormComboBox, IInterface, IEFInterface, IEFSubject)
   private
     FSubjObserverImpl: TEFSubjectAndObserver;
@@ -780,6 +818,100 @@ end;
 procedure TKExtStatusBar.SetErrorStatus(const AText: string);
 begin
   SetStatus(JSObject(Format('text: "%s", iconCls:"x-status-error",clear:true', [AText])));
+end;
+
+{ TKExtControllerBase }
+
+procedure TKExtControllerBase.AfterConstruction;
+begin
+  inherited;
+  FOwnsView := True;
+end;
+
+function TKExtControllerBase.AsObject: TObject;
+begin
+  Result := Self;
+end;
+
+destructor TKExtControllerBase.Destroy;
+begin
+  if FOwnsView and Assigned(FView) and not FView.IsPersistent then
+    FreeAndNil(FView);
+  FreeAndNil(FConfig);
+  inherited;
+end;
+
+procedure TKExtControllerBase.Display;
+begin
+  DoDisplay;
+end;
+
+procedure TKExtControllerBase.DoDisplay;
+begin
+end;
+
+function TKExtControllerBase.GetConfig: TEFNode;
+begin
+  if not Assigned(FConfig) then
+    FConfig := TEFNode.Create;
+  Result := FConfig;
+end;
+
+function TKExtControllerBase.GetContainer: TExtContainer;
+begin
+  Result := FContainer;
+end;
+
+function TKExtControllerBase.GetOwnsView: Boolean;
+begin
+  Result := FOwnsView;
+end;
+
+function TKExtControllerBase.GetView: TKView;
+begin
+  Result := FView;
+end;
+
+function TKExtControllerBase.QueryInterface(const IID: TGUID; out Obj): HRESULT;
+begin
+  if GetInterface(IID, Obj) then Result := 0 else Result := E_NOINTERFACE;
+end;
+
+procedure TKExtControllerBase.SetContainer(const AValue: TExtContainer);
+begin
+  FContainer := AValue;
+end;
+
+procedure TKExtControllerBase.SetOwnsView(const AValue: Boolean);
+begin
+  FOwnsView := AValue;
+end;
+
+procedure TKExtControllerBase.SetView(const AValue: TKView);
+begin
+  FView := AValue;
+end;
+
+function TKExtControllerBase._AddRef: Integer;
+begin
+  Result := 0;
+end;
+
+function TKExtControllerBase._Release: Integer;
+begin
+  Result := 0;
+end;
+
+{ TKExtActionController }
+
+procedure TKExtToolController.ExecuteTool;
+begin
+end;
+
+procedure TKExtToolController.DoDisplay;
+begin
+  inherited;
+  ExecuteTool;
 end;
 
 end.
