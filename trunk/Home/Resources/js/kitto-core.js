@@ -87,8 +87,27 @@ function ajaxSingleSelection(buttonId, text, obj)
   }
 };
 
+// Calls an Ajax method if buttonId is "yes". The method to
+// call is specified in obj.params.methodURL.
+// This function should be used as a message box handler.
+// All params specified above should be passed in the message
+// box opt config, inside an object called params.
+function ajaxSimple(buttonId, text, obj)
+{
+  if (buttonId == "yes")
+  {
+    return Ext.Ajax.request({
+      url: obj.params.methodURL,
+      params: "Ajax=1",
+      success: AjaxSuccess,
+      failure: AjaxFailure
+    });
+  }
+};
+
 // Asks a confirmation message and calls a specified function
-// when the dialog box is dismissed. Used together with ajaxSingleSelection.
+// when the dialog box is dismissed. Used together with ajaxSingleSelection
+// and ajaxSimple.
 function confirmCall(title, question, functionToCall, functionParams)
 {
   Ext.Msg.show({

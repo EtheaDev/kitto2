@@ -9,6 +9,9 @@
 			<Projects Include="..\..\..\..\Projects\DXE2\Kitto.dproj">
 				<Dependencies/>
 			</Projects>
+			<Projects Include="..\..\..\..\Projects\DXE2\KIttoVcl.dproj">
+				<Dependencies/>
+			</Projects>
 		</ItemGroup>
 		<ProjectExtensions>
 			<Borland.Personality>Default.Personality.12</Borland.Personality>
@@ -35,14 +38,23 @@
 		<Target Name="Kitto:Make">
 			<MSBuild Projects="..\..\..\..\Projects\DXE2\Kitto.dproj" Targets="Make"/>
 		</Target>
+		<Target Name="KIttoVcl">
+			<MSBuild Projects="..\..\..\..\Projects\DXE2\KIttoVcl.dproj"/>
+		</Target>
+		<Target Name="KIttoVcl:Clean">
+			<MSBuild Projects="..\..\..\..\Projects\DXE2\KIttoVcl.dproj" Targets="Clean"/>
+		</Target>
+		<Target Name="KIttoVcl:Make">
+			<MSBuild Projects="..\..\..\..\Projects\DXE2\KIttoVcl.dproj" Targets="Make"/>
+		</Target>
 		<Target Name="Build">
-			<CallTarget Targets="HelloKitto;Kitto"/>
+			<CallTarget Targets="HelloKitto;Kitto;KIttoVcl"/>
 		</Target>
 		<Target Name="Clean">
-			<CallTarget Targets="HelloKitto:Clean;Kitto:Clean"/>
+			<CallTarget Targets="HelloKitto:Clean;Kitto:Clean;KIttoVcl:Clean"/>
 		</Target>
 		<Target Name="Make">
-			<CallTarget Targets="HelloKitto:Make;Kitto:Make"/>
+			<CallTarget Targets="HelloKitto:Make;Kitto:Make;KIttoVcl:Make"/>
 		</Target>
 		<Import Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')" Project="$(BDS)\Bin\CodeGear.Group.Targets"/>
 	</Project>
