@@ -43,12 +43,10 @@ implementation
 {$R *.dfm}
 
 uses
-  CodeSiteLogging,
   EF.Logger;
 
 procedure ServiceController(CtrlCode: DWord); stdcall;
 begin
-  CodeSite.Send('ServiceController');
   KExtService.Controller(CtrlCode);
 end;
 
