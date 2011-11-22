@@ -135,6 +135,7 @@ type
     function Ajax(Method : TExtProcedure; Params : string) : TExtFunction; overload;
     function AddJSReturn(Expression : string; MethodsValues : array of const): string;
     function FindMethod(Method : TExtProcedure; var PascalName, ObjName : string) : TExtFunction;
+    function GetDownloadJS(Method: TExtProcedure; Params: array of const): string;
   protected
     FJSName    : string;  // Internal JavaScript name generated automatically by <link TExtObject.CreateJSName, CreateJSName>
     Created    : boolean; // Tests if object already created
@@ -193,6 +194,8 @@ type
     function AjaxForms(Method : TExtProcedure; Forms : array of TExtObject) : TExtFunction;
     function RequestDownload(Method : TExtProcedure) : TExtFunction; overload;
     function RequestDownload(Method : TExtProcedure; Params : array of const) : TExtFunction; overload;
+    procedure Download(Method : TExtProcedure); overload;
+    procedure Download(Method : TExtProcedure; Params : array of const); overload;
     function MethodURI(Method : TExtProcedure; Params : array of const) : string; overload;
     function MethodURI(Method : TExtProcedure) : string; overload;
     function MethodURI(MethodName : string; Params : array of const) : string; overload;
@@ -1100,6 +1103,30 @@ function TExtObject.DestroyJS : TExtFunction; begin
   Result := TExtFunction(Self)
 end;
 
+function TExtObject.GetDownloadJS(Method: TExtProcedure; Params: array of const): string;
+var
+  P, MetName, ObjName : string;
+begin
+  FindMethod(Method, MetName, ObjName);
+  P := FormatParams(MetName, Params);
+  if ObjName <> '' then begin
+    if P <> '' then P := P + '&';
+    P := P + 'Obj=' + ObjName;
+  end;
+  if P <> '' then P := '?' + P;
+  Result := 'Download.src="' + CurrentWebSession.MethodURI(MetName) + P + '";';
+end;
+
+procedure TExtObject.Download(Method: TExtProcedure; Params: array of const);
+begin
+  JSCode(GetDownloadJS(Method, Params));
+end;
+
+procedure TExtObject.Download(Method: TExtProcedure);
+begin
+  Download(Method, []);
+end;
+
 // <link TExtObject.DeleteFromGarbage, Removes object from Garbage Collector> and frees it
 destructor TExtObject.Destroy; begin
   if CurrentWebSession <> nil then TExtThread(CurrentWebSession).GarbageRemove(Self);
@@ -1204,17 +1231,8 @@ begin
 end;
 
 function TExtObject.RequestDownload(Method : TExtProcedure; Params : array of const): TExtFunction;
-var
-  P, MetName, ObjName : string;
 begin
-  FindMethod(Method, MetName, ObjName);
-  P := FormatParams(MetName, Params);
-  if ObjName <> '' then begin
-    if P <> '' then P := P + '&';
-    P := P + 'Obj=' + ObjName;
-  end;
-  if P <> '' then P := '?' + P;
-  Result := JSFunction('Download.src="' + CurrentWebSession.MethodURI(MetName) + P + '";')
+  Result := JSFunction(GetDownloadJS(Method, Params));
 end;
 
 function TExtObject.RequestDownload(Method : TExtProcedure) : TExtFunction; begin
