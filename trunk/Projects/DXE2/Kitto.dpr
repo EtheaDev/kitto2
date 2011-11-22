@@ -70,7 +70,8 @@ uses
   Kitto.Rules in '..\..\Source\Kitto.Rules.pas',
   Kitto.SQL in '..\..\Source\Kitto.SQL.pas',
   Kitto.Store in '..\..\Source\Kitto.Store.pas',
-  Kitto.Types in '..\..\Source\Kitto.Types.pas';
+  Kitto.Types in '..\..\Source\Kitto.Types.pas',
+  Kitto.Ext.DataTool in '..\..\Source\Kitto.Ext.DataTool.pas';
 
 begin
 end.
