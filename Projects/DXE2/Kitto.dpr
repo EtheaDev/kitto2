@@ -71,7 +71,8 @@ uses
   Kitto.SQL in '..\..\Source\Kitto.SQL.pas',
   Kitto.Store in '..\..\Source\Kitto.Store.pas',
   Kitto.Types in '..\..\Source\Kitto.Types.pas',
-  Kitto.Ext.DataTool in '..\..\Source\Kitto.Ext.DataTool.pas';
+  Kitto.Ext.DataTool in '..\..\Source\Kitto.Ext.DataTool.pas',
+  Kitto.Ext.StandardControllers in '..\..\Source\Kitto.Ext.StandardControllers.pas';
 
 begin
 end.
