@@ -28,6 +28,7 @@ uses
   , Kitto.Ext.HtmlPanel
   , Kitto.Ext.List
   , Kitto.Ext.Rules
+  , Kitto.Ext.StandardControllers
   , Kitto.Ext.StatusBar
   , Kitto.Ext.TabPanel
   , Kitto.Ext.ToolBar

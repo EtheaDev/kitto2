@@ -62,6 +62,8 @@ type
     procedure InitDefaultValues; override;
     procedure Home; override;
 
+    ///	<summary>Opens the specified URL in a new browser window/tab.</summary>
+    procedure Navigate(const AURL:string);
     ///	<summary>
     ///	  <para>
     ///	    Adds to the current session a style class named after AView's
@@ -222,6 +224,11 @@ procedure TKExtSession.Logout;
 begin
   Config.Authenticator.Logout;
   Home;
+end;
+
+procedure TKExtSession.Navigate(const AURL: string);
+begin
+  Response := Format('window.open("%s", "_blank");', [AURL]);
 end;
 
 procedure TKExtSession.DisplayView(const AName: string);
