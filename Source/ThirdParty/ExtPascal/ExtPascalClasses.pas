@@ -48,7 +48,7 @@ type
     procedure DoLogout; virtual;
     procedure DoReconfig; virtual;
     procedure DoSetCookie(const Name, ValueRaw : string); virtual;
-    procedure DownloadBuffer(const FileName: string; const Buffer : AnsiString; AContentType : string = '');
+    procedure DownloadBuffer(const FileName: string; const Size: Longint; const Buffer : AnsiString; AContentType : string = '');
     function DownloadContentType(const FileName, Default : string) : string;
     class function GetCurrentWebSession : TCustomWebSession; virtual; abstract;
     function GetDocumentRoot : string; virtual; abstract;
@@ -421,13 +421,14 @@ procedure TCustomWebSession.DoReconfig; begin end;
 // send cookie to response
 procedure TCustomWebSession.DoSetCookie(const Name, ValueRaw : string); begin end;
 
-procedure TCustomWebSession.DownloadBuffer(const FileName: string; const Buffer : AnsiString; AContentType : string = ''); begin
+procedure TCustomWebSession.DownloadBuffer(const FileName: string; const Size: Longint; const Buffer : AnsiString; AContentType : string = ''); begin
   if AContentType = '' then
     ContentType := DownloadContentType(FileName, 'application/octet-stream')
   else
     ContentType := AContentType;
   CustomResponseHeaders['content-disposition'] := Format('attachment;filename="%s"', [ExtractFileName(FileName)]);
-  Response := string(Buffer);
+	CustomResponseHeaders['Content-Length'] := IntToStr(Size);
+    Response := string(Buffer);
   IsDownload := True;
 end;
 
@@ -450,14 +451,16 @@ procedure TCustomWebSession.DownloadFile(const FileName : string; AContentType :
 var
   F : file;
   Buffer : AnsiString;
+  Size: Longint;
 begin
   if FileExists(FileName) then begin
     Assign(F, FileName);
     Reset(F, 1);
-    SetLength(Buffer, FileSize(F));
+    Size := FileSize(F);
+    SetLength(Buffer, Size);
     BlockRead(F, Buffer[1], Length(Buffer));
     Close(F);
-    DownloadBuffer(FileName, Buffer, AContentType);
+    DownloadBuffer(FileName, Size, Buffer, AContentType);
   end;
 end;
 
