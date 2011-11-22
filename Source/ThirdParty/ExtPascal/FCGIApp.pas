@@ -587,7 +587,7 @@ begin
                         FSession.IsDownload := _CurrentFCGIThread.FSession.IsDownload;
                         if (FSession.Response <> '') or (RequestMethod in [rmGet, rmHead]) then begin
                           if FSession.IsDownload then
-                            SendResponse(FSession.Response)
+                            SendResponse(AnsiString(FSession.Response))
                           else
                             SendResponse(FSession.EncodeResponse);
                         end;

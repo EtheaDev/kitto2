@@ -92,6 +92,7 @@ type
     destructor Destroy; override;
     procedure Alert(const Msg : string); virtual;
     procedure DownloadFile(const FileName : string; AContentType : string = '');
+    procedure DownloadStream(const Stream : TStream; const FileName : string; AContentType : string = '');
     procedure Refresh;
     function MethodURI(MethodName : string): string; overload;
     function MethodURI(Method : TExtProcedure): string; overload;
@@ -460,6 +461,21 @@ begin
     SetLength(Buffer, Size);
     BlockRead(F, Buffer[1], Length(Buffer));
     Close(F);
+    DownloadBuffer(FileName, Size, Buffer, AContentType);
+  end;
+end;
+
+procedure TCustomWebSession.DownloadStream(const Stream: TStream;
+  const FileName: string; AContentType: string);
+var
+  Buffer : AnsiString;
+  Size: Longint;
+begin
+  if Assigned(Stream) then begin
+    Size := Stream.Size;
+    SetLength(Buffer, Size);
+    Stream.Position := 0;
+    Stream.Read(Buffer[1], Length(Buffer));
     DownloadBuffer(FileName, Size, Buffer, AContentType);
   end;
 end;
