@@ -585,8 +585,12 @@ begin
                         FSession.ContentType := _CurrentFCGIThread.FSession.ContentType;
                         FGarbage := _CurrentFCGIThread.FGarbage;
                         FSession.IsDownload := _CurrentFCGIThread.FSession.IsDownload;
-                        if (FSession.Response <> '') or (RequestMethod in [rmGet, rmHead]) then
-                          SendResponse(FSession.EncodeResponse);
+                        if (FSession.Response <> '') or (RequestMethod in [rmGet, rmHead]) then begin
+                          if FSession.IsDownload then
+                            SendResponse(FSession.Response)
+                          else
+                            SendResponse(FSession.EncodeResponse);
+                        end;
                         SendEndRequest;
                       end;
                       FRequest := '';
