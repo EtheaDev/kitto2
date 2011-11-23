@@ -25,23 +25,59 @@ uses
   Kitto.Ext.DataTool;
 
 type
+  ///	<summary>Base class for URL controllers.</summary>
   TKExtURLControllerBase = class(TKExtDataToolController)
   protected
     function GetURL: string; virtual; abstract;
     procedure ExecuteTool; override;
   end;
 
-  ///	<summary>Navigates to a specified URL in a different browser
-  ///	window/tab.</summary>
+  ///	<summary>
+  ///	  <para>Navigates to a specified URL in a different browser
+  ///	  window/tab.</para>
+  ///	  <para>Params:</para>
+  ///	  <list type="table">
+  ///	    <listheader>
+  ///	      <term>Term</term>
+  ///	      <description>Description</description>
+  ///	    </listheader>
+  ///	    <item>
+  ///	      <term>TargetURL</term>
+  ///	      <description>URL to navigate to. May contain macros.</description>
+  ///	    </item>
+  ///	  </list>
+  ///	</summary>
   TKExtURLController = class(TKExtURLControllerBase)
   protected
     function GetURL: string; override;
   end;
 
-  ///	<summary>Navigates to a specified URL in a different browser window/tab.
-  ///	Several URLs can be specified and the choice is made by filtering on
-  ///	request headers (for example, you can navigate to a different URL
-  ///	depending on the client IP address or class of addresses).</summary>
+  ///	<summary>
+  ///	  <para>Navigates to a specified URL in a different browser window/tab.
+  ///	  Several URLs can be specified and the choice is made by filtering on
+  ///	  request headers (for example, you can navigate to a different URL
+  ///	  depending on the client IP address or class of addresses).</para>
+  ///	  <para>Params:</para>
+  ///	  <list type="table">
+  ///	    <listheader>
+  ///	      <term>Term</term>
+  ///	      <description>Description</description>
+  ///	    </listheader>
+  ///	    <item>
+  ///	      <term>Filters</term>
+  ///	      <description>A collection of filters. Each node contains a Header
+  ///	      to filter upon (ex. REMOTE_ADDR), a Pattern to match the header
+  ///	      value to, and a TargetURL which may contain macros.</description>
+  ///	    </item>
+  ///	    <item>
+  ///	      <term>DefaultURL</term>
+  ///	      <description>Optional URL to navigate to when no filters
+  ///	      apply.</description>
+  ///	    </item>
+  ///	  </list>
+  ///	</summary>
+  ///	<remarks>If no filters apply, and DefaultURL is not specified, navigation
+  ///	is not performed.</remarks>
   TKExtFilteredURLController = class(TKExtURLControllerBase)
   protected
     function GetURL: string; override;
@@ -49,6 +85,32 @@ type
 
   ///	<summary>Downloads a file that exists on disk or (by inheriting from it)
   ///	is prepared on demand as a file or stream.</summary>
+  ///	<remarks>
+  ///	  <para>This class can be uses as-is to serve existing files, or
+  ///	  inherited to serve on-demand files and streams.</para>
+  ///	  <para>Params for the as-is version:</para>
+  ///	  <list type="table">
+  ///	    <listheader>
+  ///	      <term>Term</term>
+  ///	      <description>Description</description>
+  ///	    </listheader>
+  ///	    <item>
+  ///	      <term>FileName</term>
+  ///	      <description>Name of the file to serve (complete with full path).
+  ///	      May contain macros.</description>
+  ///	    </item>
+  ///	    <item>
+  ///	      <term>ClientFileName</term>
+  ///	      <description>File name as passed to the client; if not specified,
+  ///	      the name portion of FileName is used.</description>
+  ///	    </item>
+  ///	    <item>
+  ///	      <term>ContentType</term>
+  ///	      <description>Content type passed to the client; if not specified,
+  ///	      it is derived from the file name's extension.</description>
+  ///	    </item>
+  ///	  </list>
+  ///	</remarks>
   TKExtDownloadFileController = class(TKExtDataToolController)
   protected
     procedure ExecuteTool; override;
@@ -61,11 +123,15 @@ type
     ///	<summary>If you are creating a file on demand, do it in this method. If
     ///	you are using streams, don't override this method and use CreateStream
     ///	instead.</summary>
+    ///	<param name="AFileName">File name as read from the FileName param or
+    ///	returned by GetDefaultFileName.</param>
     procedure PrepareFile(const AFileName: string); virtual;
 
     ///	<summary>Creates and returns a stream with the content to download.
     ///	Override this method if you are using streams as opposed to
     ///	files.</summary>
+    ///	<remarks>The caller will be responsible for freeing the stream when no
+    ///	longer needed.</remarks>
     function CreateStream: TStream; virtual;
   published
     procedure DownloadFile;
@@ -178,7 +244,6 @@ end;
 
 procedure TKExtDownloadFileController.PrepareFile(const AFileName: string);
 begin
-
 end;
 
 initialization
