@@ -21,7 +21,7 @@ unit EF.StrUtils;
 interface
 
 uses
-  Types, Classes, DB,
+  SysUtils, Types, Classes, DB,
   EF.Types;
 
 ///	<summary>
@@ -264,10 +264,15 @@ function SplitPairs(const AString: string; const ASeparators: string = ' '): TEF
 ///	</summary>
 function JoinPairs(const APairs: TEFPairs; const ASeparator: string = ''): string;
 
+///	<summary>Formats the specified number of bytes in GBs, MBs, KBs or bytes
+///	according to the size.</summary>
+///	<example>FormatByteSize(2560) yields '2.5 KBs'</example>
+function FormatByteSize(const AByteSize: Longint; const AFormatSettings: TFormatSettings): string;
+
 implementation
 
 uses
-  SysUtils, StrUtils,
+  StrUtils,
   IdHashMessageDigest, IdHash;
 
 function RightPos(const ASubString, AString: string): Integer;
@@ -862,6 +867,24 @@ begin
   for I := Low(APairs) to High(APairs) do
     LStrings[I] := APairs[I].Key + '=' + APairs[I].Value;
   Result := Join(LStrings, ASeparator);
+end;
+
+function FormatByteSize(const AByteSize: Longint;
+  const AFormatSettings: TFormatSettings): string;
+const
+  B = 1;
+  KB = 1024 * B;
+  MB = 1024 * KB;
+  GB = 1024 * MB;
+begin
+  if AByteSize > GB then
+    Result := FormatFloat('#.## GBs', AByteSize / GB, AFormatSettings)
+  else if AByteSize > MB then
+    Result := FormatFloat('#.## MBs', AByteSize / MB, AFormatSettings)
+  else if AByteSize > KB then
+    Result := FormatFloat('#.## KBs', AByteSize / KB, AFormatSettings)
+  else
+    Result := FormatFloat('#.## bytes', AByteSize, AFormatSettings);
 end;
 
 initialization
