@@ -788,7 +788,7 @@ begin
   if FileUploaded <> '' then
     Response := Format('{success:%s,file:"%s"}', [CBools[Success], FileUploaded])
   else
-    Response := '{success:false,message:"File not informed"}';
+    Response := '{success:false,message:"File upload error."}';
 end;
 
 procedure TCustomWebSession.UploadWriteFile(const Buffer : AnsiString; InitPos : Integer);

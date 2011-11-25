@@ -803,6 +803,7 @@ destructor TExtUxFormDateTime.Destroy; begin
 end;
 
 procedure TExtUxFormFileUploadField.SetFButtonCfg(Value : TExtObject); begin
+  FButtonCfg.Free;
   FButtonCfg := Value;
   Value.DeleteFromGarbage;
   JSCode('buttonCfg:' + VarToJSON([Value, false]));
