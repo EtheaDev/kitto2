@@ -605,8 +605,15 @@ procedure DeleteFile(const AFileName: string);
 procedure DeleteAllFiles(const APath: string);
 
 ///	<summary>
+///	  Deletes APath with all files and folders therein. It is a
+///	  simple wrapper around TEFFileDeleter. If you need more flexibility then
+///	  use TEFFileDeleter directly or write a different wrapper.
+///	</summary>
+procedure DeleteTree(const APath: string);
+
+///	<summary>
 ///	  Copies the specified file. It is a simple wrapper around TFileCopier. If
-///	  you need more flexibility then use TFileCopier directly or write a
+///	  you need more flexibility then use TEFFileCopier directly or write a
 ///	  different wrapper.
 ///	</summary>
 procedure CopyFile(const ASourceFileName, ADestinationFileName: string);
@@ -623,7 +630,7 @@ procedure CopyAllFilesAndFolders(const ASourcePath, ADestinationPath: string;
 ///	<summary>
 ///	  Copies all files and folders from ASourcePath to ADestinationPath, except
 ///	  those matching the patterns specified in AExceptions. It is a simple
-///	  wrapper around TFileCopier. If you need more flexibility then use
+///	  wrapper around TEFFileCopier. If you need more flexibility then use
 ///	  TFileCopier directly or write a different wrapper.
 ///	</summary>
 procedure CopyAllFilesAndFoldersExcept(
@@ -1069,6 +1076,21 @@ begin
       SourcePath := APath;
       DeleteEmptySubfolders := True;
       DeleteEmptyRootFolder := False;
+      DeleteFiles;
+    finally
+      Free;
+    end;
+  end;
+end;
+
+procedure DeleteTree(const APath: string);
+begin
+  with TEFFileDeleter.Create do
+  begin
+    try
+      SourcePath := APath;
+      DeleteEmptySubfolders := True;
+      DeleteEmptyRootFolder := True;
       DeleteFiles;
     finally
       Free;
