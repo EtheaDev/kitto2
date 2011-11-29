@@ -11,6 +11,7 @@ type
 {$M+}
   TCustomWebSession = class(TObject)
   private
+    FUploadedFileTooBig: Boolean;
     function CheckPassword(const RealPassword : string) : Boolean;
     function GetCookie(const Name : string): string;
     function GetQuery(const ParamName : string) : string;
@@ -76,7 +77,7 @@ type
     function UploadBlockType(const Buffer : AnsiString; var MarkPos : Integer) : TUploadBlockType; virtual; abstract;
     function UploadNeedUnknownBlock : Boolean; virtual; abstract;
     procedure UploadPrepare(const AContentType: string; const Buffer : AnsiString; var FileMark : Integer);
-    procedure UploadResponse(Success : Boolean);
+    procedure UploadResponse(Success : Boolean; const AMessage: string = '');
     procedure UploadWriteFile(const Buffer : AnsiString; InitPos : Integer = 1);
     property Application : TCustomWebApplication read FApplication;
     property DocumentRoot : string read GetDocumentRoot;
@@ -84,6 +85,7 @@ type
     property IsUpload : Boolean read FIsUpload write FIsUpload;
     property Owner : TObject read FOwner;
     property UploadMark : AnsiString read FUploadMark write FUploadMark;
+    function GetUploadedFileFullName(const UploadedFileName: string): string; virtual;
   public
     RequiresReload : boolean;
     Response: string;
@@ -768,6 +770,7 @@ var
   I, J: Integer;
 begin
   IsUpload := True;
+  FUploadedFileTooBig := False;
   J := Pos('=', AContentType);
   UploadMark := '--' + AnsiString(Copy(AContentType, J + 1, Length(AContentType)));
   I := Pos(UploadMark, Buffer);
@@ -776,19 +779,33 @@ begin
   J := PosEx('"', string(Buffer), I + 10);
   FFileUploaded := ExtractFileName(Copy(string(Buffer), I + 10, J - I - 10));
   if FileUploaded <> '' then
-    FFileUploadedFullName := DocumentRoot + UploadPath + '/' + FileUploaded
+    FFileUploadedFullName := GetUploadedFileFullName(FileUploaded)
   else
     UploadResponse(False);
 end;
 
-procedure TCustomWebSession.UploadResponse(Success : Boolean);
+function TCustomWebSession.GetUploadedFileFullName(const UploadedFileName: string): string;
+begin
+  Result := ReplaceStr(DocumentRoot + UploadPath + '/' + UploadedFileName, '/', PathDelim);
+end;
+
+procedure TCustomWebSession.UploadResponse(Success : Boolean; const AMessage: string);
 const
   CBools : array[Boolean] of string = ('false', 'true');
+
+  function GetMessage: string;
+  begin
+    if AMessage <> '' then
+      Result := AMessage
+    else
+      Result := 'File upload error.';
+  end;
+
 begin
   if FileUploaded <> '' then
-    Response := Format('{success:%s,file:"%s"}', [CBools[Success], FileUploaded])
+    Response := Format('{success:%s,file:"%s",message:"%s"}', [CBools[Success], FileUploaded, GetMessage])
   else
-    Response := '{success:false,message:"File upload error."}';
+    Response := Format('{success:false,message:"%s"}', [GetMessage]);
 end;
 
 procedure TCustomWebSession.UploadWriteFile(const Buffer : AnsiString; InitPos : Integer);
@@ -799,9 +816,15 @@ var
 begin
   if FileUploaded = '' then Exit;
   if MaxUploadSize = 0 then begin
-    UploadResponse(True);
+    UploadResponse(False, 'File upload disabled.');
+    Exit;
+  end
+  else if FUploadedFileTooBig then begin
+    UploadResponse(False, Format('File too big. Maximum allowed size is %s.',
+      [FormatByteSize(MaxUploadSize, FormatSettings)]));
     Exit;
   end;
+  ForceDirectories(ExtractFilePath(FileUploadedFullName));
   System.Assign(F, FileUploadedFullName);
   BlockType := UploadBlockType(Buffer, I);
   case BlockType of
@@ -825,6 +848,7 @@ begin
       Seek(F, FileSize(F));
       I := 1;
       Tam := Length(Buffer);
+      FUploadedFileTooBig := FileSize(F) + Tam > MaxUploadSize;
     end;
     ubtEnd: begin
       Reset(F, 1);
@@ -836,7 +860,7 @@ begin
   else
     Tam := 0; // to make compiler happy
   end;
-  if ((BlockType <> ubtUnknown) or UploadNeedUnknownBlock) and ((FileSize(F) + Tam) <= MaxUploadSize) then
+  if ((BlockType <> ubtUnknown) or UploadNeedUnknownBlock) and ((FileSize(F) + Tam) <= MaxUploadSize) and not FUploadedFileTooBig then
     BlockWrite(F, Buffer[I], Tam);
   Close(F);
 end;
