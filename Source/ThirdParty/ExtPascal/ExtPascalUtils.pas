@@ -11,7 +11,7 @@ unit ExtPascalUtils;
 interface
 
 uses
-  Classes, TypInfo;
+  SysUtils, Classes, TypInfo;
 
 const
   ExtPascalVersion = '0.9.9';
@@ -171,10 +171,16 @@ Decrypts a string that was previously crypted using the function <link Encrypt>.
 }
 function Decrypt(Value : string) : string;
 
+{
+Formats a size in bytes.
+}
+function FormatByteSize(const AByteSize: Longint;
+  const AFormatSettings: TFormatSettings): string;
+
 implementation
 
 uses
-  StrUtils, SysUtils, Math, DateUtils;
+  StrUtils, Math, DateUtils;
 
 {$IF not Defined(FPC) and (RTLVersion <= 17)}
 function TStringList.GetDelimitedText: string;
@@ -850,6 +856,24 @@ begin
       Result := Result + Decoded[I]
     else
       Result := Result + '%' + IntToHex(ord(Decoded[I]), 2);
+end;
+
+function FormatByteSize(const AByteSize: Longint;
+  const AFormatSettings: TFormatSettings): string;
+const
+  B = 1;
+  KB = 1024 * B;
+  MB = 1024 * KB;
+  GB = 1024 * MB;
+begin
+  if AByteSize > GB then
+    Result := FormatFloat('#.## GBs', AByteSize / GB, AFormatSettings)
+  else if AByteSize > MB then
+    Result := FormatFloat('#.## MBs', AByteSize / MB, AFormatSettings)
+  else if AByteSize > KB then
+    Result := FormatFloat('#.## KBs', AByteSize / KB, AFormatSettings)
+  else
+    Result := FormatFloat('#.## bytes', AByteSize, AFormatSettings);
 end;
 
 end.
