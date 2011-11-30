@@ -450,10 +450,16 @@ var
     LColumn.Hidden := not ViewTable.IsFieldVisible(AViewField);
   end;
 
+  function SupportedAsGridColumn(const AViewField: TKViewField): Boolean;
+  begin
+    Result := not (AViewField.DataType is TEFBlobDataType);
+  end;
+
   procedure AddColumn(const AViewField: TKViewField);
   begin
-    if ViewTable.IsFieldVisible(AViewField) or (AViewField.AliasedName = GetGroupingFieldName) then
-      AddGridColumn(AViewField);
+    if SupportedAsGridColumn(AViewField) then
+      if ViewTable.IsFieldVisible(AViewField) or (AViewField.AliasedName = GetGroupingFieldName) then
+        AddGridColumn(AViewField);
   end;
 
   procedure DoAddReaderField(const AName, AType: string);

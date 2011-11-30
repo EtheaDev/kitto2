@@ -657,6 +657,19 @@ function SameDirectory(const ADirectory1, ADirectory2: string): Boolean;
 ///	</summary>
 function GetCurrentProcessMemory: Cardinal;
 
+
+///	<summary>Tries to determine the type of the data stream by interpreting the
+///	first few bytes of the specified binary content. Currently supports several
+///	graphic image types and the pdf type.</summary>
+///	<param name="ABytes">Data stream. No need to pass all data; the first 10
+///	bytes are enough. If not enough data is passed, the default type is
+///	returned.</param>
+///	<param name="ADefault">Default value that will be returned if the data
+///	stream is not recognized.</param>
+///	<returns>A lowercase string (such as 'gif' or 'pdf') suitable as a file
+///	extension (without the dot).</returns>
+function GetDataType(const ABytes: TBytes; const ADefault: string): string;
+
 implementation
 
 uses
@@ -1636,6 +1649,43 @@ procedure ShrinkProcessWorkingSet(const AMaxMemory: Cardinal);
 begin
   if GetCurrentProcessMemory > AMaxMemory then
     EmptyWorkingSet(GetCurrentProcess);
+end;
+
+function GetDataType(const ABytes: TBytes; const ADefault: string): string;
+const
+  MIN_BYTES = 10;
+begin
+  Assert(Assigned(ABytes));
+
+  Result := ADefault;
+
+  if Length(ABytes) >= MIN_BYTES then
+  begin
+    if (ABytes[0] = 66) and (ABytes[1] = 77) then
+      Result := 'bmp'
+    else if ((ABytes[0] = 73) and (ABytes[1] = 73) and (ABytes[2] = 42) and (ABytes[3] = 0))
+        or ((ABytes[0] = 77) and (ABytes[1] = 77) and (ABytes[2] = 42) and (ABytes[3] = 0)) then
+      Result := 'tif'
+    else if (ABytes[6] = 74) and (ABytes[7] = 70) and (ABytes[8] = 73) and (ABytes[9] = 70)
+       or (ABytes[6] = 69) and (ABytes[7] = 120) and (ABytes[8] = 105) and (ABytes[9] = 102) then
+      Result := 'jpeg'
+    else if (ABytes[0] = 137 ) and (ABytes[1] = 80) and (ABytes[2] = 78) and (ABytes[3] = 71)
+        and (ABytes[4] = 13) and (ABytes[5] = 10) and (ABytes[6] = 26) and (ABytes[7] = 10) then
+      Result := 'png'
+    else if (ABytes[0] = 177) and (ABytes[1] = 104) and (ABytes[2] = 222) and (ABytes[3] = 58) then
+      Result := 'dcx'
+    else if ABytes[0] = 10 then
+      Result := 'pcx'
+    else if ((ABytes[0] = 215) and (ABytes[1] = 205) and (ABytes[2] = 198) and (ABytes[3] = 154))
+        or ((ABytes[0] = 1) and (ABytes[1] = 0) and (ABytes[2] = 0) and (ABytes[3] = 0)) then
+      Result := 'emf'
+    else if (ABytes[0] = $47) and (ABytes[1] = $49) and (ABytes[2] = $46) then
+      Result := 'gif'
+    else if (ABytes[0] = 0) and (ABytes[1] = 0) and (ABytes[2] = 1) and (ABytes[3] = 0) then
+      Result := 'ico'
+    else if (ABytes[0] = $25) and (ABytes[1] = $50) and (ABytes[2] = $44) and (ABytes[3] = $46) then
+      Result := 'pdf';
+  end;
 end;
 
 end.
