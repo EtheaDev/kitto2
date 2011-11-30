@@ -839,8 +839,11 @@ end;
 
 procedure TKField.SetValue(const AValue: Variant);
 begin
-  if (AValue <> Value) and (ParentRecord <> nil) then
-    ParentRecord.MarkAsModified;
+  { TODO : Find an efficient way to compare byte arrays; the <> operator won't do. }
+  // Don't use <> on arrays.
+  if VarIsArray(AValue) or (AValue <> Value) then
+    if ParentRecord <> nil then
+      ParentRecord.MarkAsModified;
   inherited;
 end;
 

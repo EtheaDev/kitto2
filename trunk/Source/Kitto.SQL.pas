@@ -23,7 +23,7 @@ interface
 uses
   Classes, Generics.Collections,
   EF.Classes,  EF.Tree, EF.DB,
-  Kitto.Metadata.Models, Kitto.Metadata.DataView;
+  Kitto.Store, Kitto.Metadata.Models, Kitto.Metadata.DataView;
 
 type
   ///	<summary>
@@ -80,7 +80,7 @@ type
     ///	Also sets the parameter values, so that the command is ready for
     ///	execution.</summary>
     class procedure BuildInsertCommand(const AViewTable: TKViewTable;
-      const ADBCommand: TEFDBCommand; const AValues: TEFNode);
+      const ADBCommand: TEFDBCommand; const AValues: TKRecord);
 
     ///	<summary>Builds in the specified command an update statement against
     ///	the specified model's table with a parameter for each value in AValues
@@ -88,7 +88,7 @@ type
     ///	Also sets the parameter values, so that the command is ready for
     ///	execution. AValues must contain at least the key fields.</summary>
     class procedure BuildUpdateCommand(const AViewTable: TKViewTable;
-      const ADBCommand: TEFDBCommand; const AValues: TEFNode);
+      const ADBCommand: TEFDBCommand; const AValues: TKRecord);
 
     ///	<summary>Builds in the specified command a delete statement against
     ///	the specified model's table with a where clause with a parameter for
@@ -96,7 +96,7 @@ type
     ///	Also sets the parameter values, so that the command is ready for
     ///	execution. AValues must contain at least the key fields.</summary>
     class procedure BuildDeleteCommand(const AViewTable: TKViewTable;
-      const ADBCommand: TEFDBCommand; const AValues: TEFNode);
+      const ADBCommand: TEFDBCommand; const AValues: TKRecord);
 
     ///	<summary>Builds in the specified query a select statement that selects
     ///	all derived fields from the referenced model, locating the record by
@@ -153,7 +153,7 @@ begin
 end;
 
 class procedure TKSQLBuilder.BuildInsertCommand(const AViewTable: TKViewTable;
-  const ADBCommand: TEFDBCommand; const AValues: TEFNode);
+  const ADBCommand: TEFDBCommand; const AValues: TKRecord);
 var
   LCommandText: string;
   I: Integer;
@@ -214,7 +214,7 @@ begin
 end;
 
 class procedure TKSQLBuilder.BuildUpdateCommand(const AViewTable: TKViewTable;
-  const ADBCommand: TEFDBCommand; const AValues: TEFNode);
+  const ADBCommand: TEFDBCommand; const AValues: TKRecord);
 var
   LCommandText: string;
   I: Integer;
@@ -278,7 +278,7 @@ begin
 end;
 
 class procedure TKSQLBuilder.BuildDeleteCommand(const AViewTable: TKViewTable;
-  const ADBCommand: TEFDBCommand; const AValues: TEFNode);
+  const ADBCommand: TEFDBCommand; const AValues: TKRecord);
 var
   LCommandText: string;
   I: Integer;

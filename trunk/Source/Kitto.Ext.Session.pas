@@ -21,13 +21,31 @@ unit Kitto.Ext.Session;
 interface
 
 uses
-  SysUtils,
+  SysUtils, Classes, Generics.Collections,
   ExtPascal, Ext,
   EF.Tree,
   Kitto.Ext.Base, Kitto.Ext.Controller, Kitto.Config, Kitto.Metadata.Views,
   Kitto.Ext.Login;
 
 type
+  TKExtUploadedFile = class
+  private
+    FContext: TObject;
+    FFullFileName: string;
+    FFileName: string;
+    FStream: TBytesStream;
+    function GetBytes: TBytes;
+  public
+    constructor Create(const AFileName, AFullFileName: string; const AContext: TObject);
+    destructor Destroy; override;
+    property FileName: string read FFileName;
+    property FullFileName: string read FFullFileName;
+    property Context: TObject read FContext;
+
+    property Bytes: TBytes read GetBytes;
+  end;
+
+
   TKExtSession = class(TExtThread)
   private
     FHomeController: IKExtController;
@@ -35,15 +53,20 @@ type
     FLoginWindow: TKExtLoginWindow;
     FViewHost: TExtTabPanel;
     FStatusHost: TKExtStatusBar;
+    FSessionId: string;
+    FUploadedFiles: TObjectList<TKExtUploadedFile>;
     procedure LoadLibraries;
     procedure DisplayHomeView;
     procedure DisplayLoginWindow;
     function GetConfig: TKConfig;
+    class constructor Create;
+    class destructor Destroy;
   protected
     function BeforeHandleRequest: Boolean; override;
     procedure AfterHandleRequest; override;
     procedure AfterNewSession; override;
   public
+    constructor Create(AOwner: TObject); override;
     destructor Destroy; override;
   public
     ///	<summary>
@@ -88,6 +111,24 @@ type
     procedure Flash(const AMessage: string);
 
     property Config: TKConfig read GetConfig;
+
+    ///	<summary>Called to signal that a new file has been uploaded. The
+    ///	descriptor holds information about the file and its context (for
+    ///	example which view is going to use it).</summary>
+    ///	<remarks>The session acquires ownership of the descriptor
+    ///	object.</remarks>
+    procedure AddUploadedFile(const AFileDescriptor: TKExtUploadedFile);
+
+    ///	<summary>Removes a previously added file descriptor. To be called once
+    ///	the uploaded file has been processed.</summary>
+    procedure RemoveUploadedFile(const AFileDescriptor: TKExtUploadedFile);
+
+    ///	<summary>Returns the first uploaded file descriptor matching the
+    ///	specified context, or nil if no descriptor is found.</summary>
+    function FindUploadedFile(const AContext: TObject): TKExtUploadedFile;
+
+    ///	<summary>Calls AProc for each uploaded file in list.</summary>
+    procedure EnumUploadedFiles(const AProc: TProc<TKExtUploadedFile>);
   published
     procedure Logout;
   end;
@@ -97,9 +138,9 @@ function Session: TKExtSession;
 implementation
 
 uses
-  Classes, StrUtils, ActiveX, ComObj, Types, FmtBcd,
+  StrUtils, ActiveX, ComObj, Types, FmtBcd,
   ExtPascalUtils, ExtForm, FCGIApp,
-  EF.Intf, EF.StrUtils, EF.Localization, EF.Macros, EF.Logger,
+  EF.Intf, EF.SysUtils, EF.StrUtils, EF.Localization, EF.Macros, EF.Logger,
   Kitto.Auth, Kitto.Types, Kitto.AccessControl,
   Kitto.Ext.Utils;
 
@@ -137,10 +178,26 @@ begin
 end;
 
 destructor TKExtSession.Destroy;
+var
+  LUploadDirectory: string;
 begin
   inherited;
+  // Delete upload folder only for valid sessions.
+  if FSessionId <> '' then
+  begin
+    LUploadDirectory := ReplaceStr(DocumentRoot + UploadPath, '/', '\');
+    if DirectoryExists(LUploadDirectory) then
+      DeleteTree(LUploadDirectory);
+  end;
   NilEFIntf(FHomeController);
   FreeAndNil(FConfig);
+  FreeAndNil(FUploadedFiles);
+end;
+
+class destructor TKExtSession.Destroy;
+begin
+  TEFMacroExpansionEngine.OnGetInstance := nil;
+  TKConfig.OnGetInstance := nil;
 end;
 
 procedure TKExtSession.DisplayHomeView;
@@ -177,6 +234,22 @@ begin
   FLoginWindow.Show;
 end;
 
+function TKExtSession.FindUploadedFile(
+  const AContext: TObject): TKExtUploadedFile;
+var
+  I: Integer;
+begin
+  Result := nil;
+  for I := 0 to FUploadedFiles.Count - 1 do
+  begin
+    if FUploadedFiles[I].Context = AContext then
+    begin
+      Result := FUploadedFiles[I];
+      Break;
+    end;
+  end;
+end;
+
 procedure TKExtSession.Flash(const AMessage: string);
 begin
   { TODO : move functionality into kitto-core.js. }
@@ -208,6 +281,10 @@ var
 begin
   SetLibrary(ExtPath + '/examples/ux/statusbar/StatusBar');
   SetCSS(ExtPath + '/examples/ux/statusbar/css/statusbar');
+
+  SetLibrary(ExtPath + '/examples/ux/fileuploadfield/FileUploadField');
+  SetCSS(ExtPath + '/examples/ux/fileuploadfield/css/fileuploadfield');
+
   SetLibrary(ExtPath + '/examples/shared/examples'); // For Ext.msg.
   SetLibrary(ExtPath + '/src/locale/ext-lang-' + Language);
   SetRequiredLibrary('DateTimeField');
@@ -229,6 +306,12 @@ end;
 procedure TKExtSession.Navigate(const AURL: string);
 begin
   Response := Format('window.open("%s", "_blank");', [AURL]);
+end;
+
+procedure TKExtSession.RemoveUploadedFile(
+  const AFileDescriptor: TKExtUploadedFile);
+begin
+  FUploadedFiles.Remove(AFileDescriptor);
 end;
 
 procedure TKExtSession.DisplayView(const AName: string);
@@ -255,6 +338,18 @@ begin
   end;
 end;
 
+procedure TKExtSession.EnumUploadedFiles(
+  const AProc: TProc<TKExtUploadedFile>);
+var
+  I: Integer;
+begin
+  if Assigned(AProc) then
+  begin
+    for I := 0 to FUploadedFiles.Count - 1 do
+      AProc(FUploadedFiles[I]);
+  end;
+end;
+
 procedure TKExtSession.InitDefaultValues;
 var
   LLanguageId: string;
@@ -268,6 +363,12 @@ begin
   Theme := Config.Config.GetString('Ext/Theme');
 end;
 
+procedure TKExtSession.AddUploadedFile(
+  const AFileDescriptor: TKExtUploadedFile);
+begin
+  FUploadedFiles.Add(AFileDescriptor);
+end;
+
 procedure TKExtSession.AfterHandleRequest;
 begin
   inherited;
@@ -278,7 +379,9 @@ end;
 procedure TKExtSession.AfterNewSession;
 begin
   inherited;
-  TEFLogger.Instance.LogFmt('New session %s.', [Cookie['FCGIThread']], TEFLogger.LOG_MEDIUM);
+  FSessionId := Cookie['FCGIThread'];
+  TEFLogger.Instance.LogFmt('New session %s.', [FSessionId], TEFLogger.LOG_MEDIUM);
+  UpLoadPath := '/uploads/' + Config.AppName + '/' + FSessionId;
 end;
 
 function TKExtSession.BeforeHandleRequest: Boolean;
@@ -287,6 +390,32 @@ begin
   { TODO : only do this when ADO is used }
   OleCheck(CoInitialize(nil));
   Result := inherited BeforeHandleRequest;
+end;
+
+constructor TKExtSession.Create(AOwner: TObject);
+begin
+  inherited;
+  FUploadedFiles := TObjectList<TKExtUploadedFile>.Create;
+end;
+
+class constructor TKExtSession.Create;
+begin
+  TEFMacroExpansionEngine.OnGetInstance :=
+    function: TEFMacroExpansionEngine
+    begin
+      if Session <> nil then
+        Result := Session.Config.MacroExpansionEngine
+      else
+        Result := nil;
+    end;
+  TKConfig.OnGetInstance :=
+    function: TKConfig
+    begin
+      if Session <> nil then
+        Result := Session.Config
+      else
+        Result := nil;
+    end;
 end;
 
 function TKExtSession.SetViewIconStyle(const AView: TKView; const AImageName: string;
@@ -311,28 +440,35 @@ begin
     SetStyle(LRule);
 end;
 
-initialization
-  TEFMacroExpansionEngine.OnGetInstance :=
-    function: TEFMacroExpansionEngine
-    begin
-      if Session <> nil then
-        Result := Session.Config.MacroExpansionEngine
-      else
-        Result := nil;
-    end;
+{ TKExtUploadedFile }
 
-  TKConfig.OnGetInstance :=
-    function: TKConfig
-    begin
-      if Session <> nil then
-        Result := Session.Config
-      else
-        Result := nil;
-    end;
+constructor TKExtUploadedFile.Create(const AFileName,
+  AFullFileName: string; const AContext: TObject);
+begin
+  inherited Create;
+  FFileName := AFileName;
+  FFullFileName := AFullFileName;
+  FContext := AContext;
+end;
 
-finalization
-  TEFMacroExpansionEngine.OnGetInstance := nil;
-  TKConfig.OnGetInstance := nil;
+destructor TKExtUploadedFile.Destroy;
+begin
+  FreeAndNil(FStream);
+  inherited;
+end;
+
+function TKExtUploadedFile.GetBytes: TBytes;
+begin
+  if not Assigned(FStream) then
+  begin
+    FStream := TBytesStream.Create;
+    FStream.LoadFromFile(FFullFileName);
+  end;
+  Result := FStream.Bytes;
+  // Reset length, as FStream.Bytes for some reason is rounded up.
+  SetLength(Result, FStream.Size);
+  Assert(FStream.Size = Length(Result));
+end;
 
 end.
 

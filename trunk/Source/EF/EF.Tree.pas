@@ -68,6 +68,7 @@ type
     function ValueToCurrency(const AValue: Variant): Currency; virtual;
     function ValueToFloat(const AValue: Variant): Double; virtual;
     function ValueToDecimal(const AValue: Variant): TBcd; virtual;
+    function ValueToBytes(const AValue: Variant): TBytes; virtual;
 
     function StringToValue(const AString: string): Variant; virtual;
     function IntegerToValue(const AInteger: Integer): Variant; virtual;
@@ -81,6 +82,7 @@ type
     function CurrencyToValue(const ACurrency: Currency): Variant; virtual;
     function FloatToValue(const AFloat: Double): Variant; virtual;
     function DecimalToValue(const ADecimal: TBcd): Variant; virtual;
+    function BytesToValue(const ABytes: TBytes): Variant; virtual;
   end;
   TEFDataTypeClass = class of TEFDataType;
 
@@ -98,6 +100,13 @@ type
   end;
 
   TEFMemoDataType = class(TEFStringDataType)
+  public
+    function IsBlob(const ASize: Integer): Boolean; override;
+  end;
+
+  TEFBlobDataType = class(TEFDataType)
+  protected
+    procedure InternalNodeToParam(const ANode: TEFNode; const AParam: TParam); override;
   public
     function IsBlob(const ASize: Integer): Boolean; override;
   end;
@@ -549,6 +558,8 @@ type
     function GetAsDecimal: TBcd;
     procedure SetAsDecimal(const AValue: TBcd);
     procedure SetDataType(const AValue: TEFDataType);
+    function GetAsBytes: TBytes;
+    procedure SetAsBytes(const AValue: TBytes);
   protected
     procedure SetName(const AValue: string);
     function GetName: string; virtual;
@@ -704,6 +715,8 @@ type
     ///	  Node value as a decimal (BCD) value.
     ///	</summary>
     property AsDecimal: TBcd read GetAsDecimal write SetAsDecimal;
+
+    property AsBytes: TBytes read GetAsBytes write SetAsBytes;
 
     ///	<summary>Parses AValue trying to guess its data type and sets Value and
     ///	DataType accordingly.</summary>
@@ -970,6 +983,8 @@ begin
     Result := TEFDataTypeFactory.Instance.GetDataType('Float')
   else if VarIsType(AVariant, [varObject]) then
     Result := TEFDataTypeFactory.Instance.GetDataType('Object')
+  else if VarIsArray(AVariant) then
+    Result := TEFDataTypeFactory.Instance.GetDataType('Blob')
   else
     Result := TEFDataTypeFactory.Instance.GetDataType('String');
 end;
@@ -1058,6 +1073,11 @@ end;
 function TEFNode.GetAsBoolean: Boolean;
 begin
   Result := DataType.ValueToBoolean(FValue);
+end;
+
+function TEFNode.GetAsBytes: TBytes;
+begin
+  Result := DataType.ValueToBytes(FValue);
 end;
 
 function TEFNode.GetAsCurrency: Currency;
@@ -1213,6 +1233,12 @@ procedure TEFNode.SetAsBoolean(const AValue: Boolean);
 begin
   FDataType := TEFDataTypeFactory.Instance.GetDataType('Boolean');
   Value := DataType.BooleanToValue(AValue);
+end;
+
+procedure TEFNode.SetAsBytes(const AValue: TBytes);
+begin
+  FDataType := TEFDataTypeFactory.Instance.GetDataType('Blob');
+  Value := DataType.BytesToValue(AValue);
 end;
 
 procedure TEFNode.SetAsCurrency(const AValue: Currency);
@@ -1864,8 +1890,7 @@ begin
     InternalFieldValueToNode(AField, ANode);
 end;
 
-procedure TEFDataType.InternalFieldValueToNode(const AField: TField;
-  const ANode: TEFNode);
+procedure TEFDataType.InternalFieldValueToNode(const AField: TField; const ANode: TEFNode);
 begin
   case AField.DataType of
     ftString, ftMemo, ftFixedChar, ftWideString, ftWideMemo: ANode.AsString := AField.AsString;
@@ -1877,6 +1902,7 @@ begin
     ftCurrency: ANode.AsCurrency := AField.AsCurrency;
     ftFloat: ANode.AsFloat := AField.AsFloat;
     ftBCD, ftFMTBcd: ANode.AsDecimal := AField.AsBCD;
+    ftBlob: ANode.AsBytes := AField.AsBytes;
   else
     raise EEFError.CreateFmt('TEFDataType.InternalFieldValueToNode: Field data type %s not supported.',
       [GetEnumName(TypeInfo(TFieldType), Ord(AField.DataType))]);
@@ -1981,6 +2007,11 @@ begin
   Result := AValue;
 end;
 
+function TEFDataType.ValueToBytes(const AValue: Variant): TBytes;
+begin
+  Result := AValue;
+end;
+
 function TEFDataType.ValueToCurrency(const AValue: Variant): Currency;
 begin
   Result := AValue;
@@ -2075,6 +2106,11 @@ end;
 function TEFDataType.DecimalToValue(const ADecimal: TBcd): Variant;
 begin
   Result := BcdToDouble(ADecimal);
+end;
+
+function TEFDataType.BytesToValue(const ABytes: TBytes): Variant;
+begin
+  Result := ABytes;
 end;
 
 function TEFDataType.CurrencyToValue(const ACurrency: Currency): Variant;
@@ -2494,9 +2530,31 @@ begin
   Result := True;
 end;
 
+{ TEFBlobDataType }
+
+procedure TEFBlobDataType.InternalNodeToParam(const ANode: TEFNode; const AParam: TParam);
+var
+  LStream: TBytesStream;
+begin
+  // Don't use AParam.AsBytes as it will set the data type to ftVarBytes, which
+  // is not universally supported by drivers.
+  LStream := TBytesStream.Create(ANode.AsBytes);
+  try
+    AParam.LoadFromStream(LStream, ftBlob);
+  finally
+    FreeAndNil(LStream);
+  end;
+end;
+
+function TEFBlobDataType.IsBlob(const ASize: Integer): Boolean;
+begin
+  Result := True;
+end;
+
 initialization
   TEFDataTypeRegistry.Instance.RegisterClass(TEFStringDataType.GetTypeName, TEFStringDataType);
   TEFDataTypeRegistry.Instance.RegisterClass(TEFMemoDataType.GetTypeName, TEFMemoDataType);
+  TEFDataTypeRegistry.Instance.RegisterClass(TEFBlobDataType.GetTypeName, TEFBlobDataType);
   TEFDataTypeRegistry.Instance.RegisterClass(TEFIntegerDataType.GetTypeName, TEFIntegerDataType);
   TEFDataTypeRegistry.Instance.RegisterClass(TEFDateDataType.GetTypeName, TEFDateDataType);
   TEFDataTypeRegistry.Instance.RegisterClass(TEFTimeDataType.GetTypeName, TEFTimeDataType);
@@ -2510,6 +2568,7 @@ initialization
 finalization
   TEFDataTypeRegistry.Instance.UnregisterClass(TEFStringDataType.GetTypeName);
   TEFDataTypeRegistry.Instance.UnregisterClass(TEFMemoDataType.GetTypeName);
+  TEFDataTypeRegistry.Instance.UnregisterClass(TEFBlobDataType.GetTypeName);
   TEFDataTypeRegistry.Instance.UnregisterClass(TEFIntegerDataType.GetTypeName);
   TEFDataTypeRegistry.Instance.UnregisterClass(TEFDateDataType.GetTypeName);
   TEFDataTypeRegistry.Instance.UnregisterClass(TEFTimeDataType.GetTypeName);

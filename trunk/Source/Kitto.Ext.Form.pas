@@ -62,7 +62,7 @@ type
     FOperation: string;
     FFocusField: TExtFormField;
     FStoreRecord: TKViewTableRecord;
-    FEditors: TList<IKExtEditor>;
+    FEditors: TList<TObject>;
     procedure CreateEditors(const AForceReadOnly: Boolean);
     procedure StartOperation;
     procedure FocusFirstField;
@@ -87,7 +87,7 @@ type
 implementation
 
 uses
-  SysUtils, StrUtils,
+  SysUtils, StrUtils, Classes,
   EF.Localization, EF.Types, EF.Intf, EF.Tree, EF.DB,
   Kitto.AccessControl, Kitto.JSON, Kitto.Rules, Kitto.SQL,
   Kitto.Ext.Session, Kitto.Ext.Utils;
@@ -158,7 +158,7 @@ var
   LLayoutName: string;
 begin
   FreeAndNil(FEditors);
-  FEditors := TList<IKExtEditor>.Create;
+  FEditors := TList<TObject>.Create;
   LLayoutProcessor := TKExtLayoutProcessor.Create;
   try
     LLayoutProcessor.DataRecord := FStoreRecord;
@@ -167,7 +167,7 @@ begin
     LLayoutProcessor.OnNewEditor :=
       procedure (AEditor: IKExtEditor)
       begin
-        FEditors.Add(AEditor);
+        FEditors.Add(AEditor.AsObject);
       end;
     LLayoutProcessor.ForceReadOnly := AForceReadOnly;
 
@@ -258,10 +258,10 @@ begin
 
   if Supports(AField, IKExtEditor, LEditor) then
   begin
-    Assert(LEditor.GetField.IsReference);
+    Assert(LEditor.GetRecordField.ViewField.IsReference);
 
     // Get derived values.
-    LStore := LEditor.GetField.CreateDerivedFieldsStore(ANewValue);
+    LStore := LEditor.GetRecordField.ViewField.CreateDerivedFieldsStore(ANewValue);
     try
       // Copy values to editors.
       for I := 0 to LStore.Header.FieldCount - 1 do
@@ -285,14 +285,18 @@ end;
 function TKExtFormPanelController.FindEditor(const AFieldName: string): IKExtEditor;
 var
   I: Integer;
+  LEditorIntf: IKExtEditor;
 begin
   Result := nil;
   for I := 0 to FEditors.Count - 1 do
   begin
-    if SameText(FEditors[I].GetField.AliasedName, AFieldName) then
+    if Supports(FEditors[I], IKExtEditor, LEditorIntf) then
     begin
-      Result := FEditors[I];
-      Break;
+      if SameText(LEditorIntf.GetRecordField.ViewField.AliasedName, AFieldName) then
+      begin
+        Result := LEditorIntf;
+        Break;
+      end;
     end;
   end;
 end;
@@ -325,6 +329,13 @@ begin
           Result := LViewField.AliasedName
         else
           Result := AName;
+      end);
+    // Get uploaded files.
+    Session.EnumUploadedFiles(
+      procedure (AFile: TKExtUploadedFile)
+      begin
+        if (AFile.Context is TKViewField) and (TKViewField(AFile.Context).Table = ViewTable) then
+          FStoreRecord.FieldByName(TKViewField(AFile.Context).AliasedName).AsBytes := AFile.Bytes;
       end);
 
     // Save record.
