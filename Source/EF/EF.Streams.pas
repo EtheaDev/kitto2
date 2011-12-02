@@ -29,7 +29,7 @@ unit EF.Streams;
 interface
 
 uses
-  Classes;
+  Classes, Generics.Collections;
   
 type
   ///	<summary>
@@ -156,10 +156,77 @@ type
     procedure WriteLn(const AString: string);
   end;
 
+type
+  ///	<summary>A stream decorator that is capable of outputting XML data such
+  ///	as tags and attributes, keeping track of the indent.</summary>
+  ///	<remarks>It only supports UTF-8 encoding.</remarks>
+  TEFXMLOutputStream = class(TEFTextStream)
+  private
+    ///	<summary>The indentation level used by WriteLnIndented is calculated
+    ///	based on the number of open tags. When this stream is used to write a
+    ///	piece of XML code (as opposed to the complete document), it might be
+    ///	useful to set an additional indent level; that's what this class does
+    ///	when it decorates a stream of the same type.</summary>
+    FAdditionalIndentLevel: Integer;
+    FOpenTags: TStack<string>;
+    function GetIndentLevel: Integer;
+    function GetOpenTags: TStack<string>;
+
+    ///	<summary>Encodes the attribute names and values as a string suitable
+    ///	for inclusion in a XML tag. If the arrays are empty, returns '',
+    ///	otherwise the return string includes a leading ' '.</summary>
+    function EncodeAttributes(const AAttributeNames,
+      AAttributeValues: array of string): string;
+    property OpenTags: TStack<string> read GetOpenTags;
+    procedure WriteLnIndented(const AString: string);
+
+    ///	<summary>Encodes AString. Call this method before writing anything (tag
+    ///	names, attribute names and values, characters). WriteLnIndented
+    ///	automatically calls ithis method. Currently only supports UTF-8
+    ///	encoding.</summary>
+    function EncodeString(const AString: string): string;
+  public
+    procedure AfterConstruction; override;
+    destructor Destroy; override;
+
+    ///	<summary>Writes the XML prolog. Call this before writing anything else
+    ///	if you are producing a well-formed XML document.</summary>
+    procedure WriteProlog;
+
+    ///	<summary>Opens a tag, optionally with attributes. AAttributeNames must
+    ///	have the same length as AAttributeValues.</summary>
+    procedure OpenTag(const ATagName: string); overload;
+    procedure OpenTag(const ATagName: string;
+      const AAttributeNames: array of string;
+      const AAttributeValues: array of string); overload;
+
+    ///	<summary>Opens a tag, writes ATagCharacters and closes it all in a
+    ///	single call. If ATagCharacter is empty, it uses the "&lt;ATagName
+    ///	/&gt;" syntax. Optionally writes also the attributes in the opening tag
+    ///	(in which case the tag cannot be empty).</summary>
+    procedure WriteTag(const ATagName: string; const ATagCharacters: string = ''); overload;
+    procedure WriteTag(const ATagName: string;
+      const AAttributeNames: array of string;
+      const AAttributeValues: array of string;
+      const ATagCharacters: string = ''); overload;
+
+    ///	<summary>Like WriteTag, but embeds ATagCharacters in a CDATA
+    ///	section.</summary>
+    procedure WriteCDATATag(const ATagName, ATagCharacters: string);
+
+    ///	<summary>Closes the last opened tag, if any, and returns its name. If
+    ///	no tag to close was found, it returns ''.</summary>
+    function CloseTag: string;
+
+    ///	<summary>Iteratively calls CloseTag until the stack of open tags is
+    ///	empty. It is called automatically upon destruction.</summary>
+    procedure CloseAllOpenTags;
+  end;
+
 implementation
 
 uses
-  SysUtils, Math;
+  SysUtils, StrUtils, Math;
 
 const
   {
@@ -382,6 +449,132 @@ var
 begin
   LBuffer := UTF8String(AString + FLineBreak);
   Write(LBuffer[1], Length(LBuffer));
+end;
+
+{ TEFXMLOutputStream }
+
+procedure TEFXMLOutputStream.AfterConstruction;
+begin
+  inherited;
+  if Stream is TEFXMLOutputStream then
+    FAdditionalIndentLevel := TEFXMLOutputStream(Stream).GetIndentLevel;
+end;
+
+procedure TEFXMLOutputStream.CloseAllOpenTags;
+begin
+  while CloseTag <> '' do
+    ;
+end;
+
+function TEFXMLOutputStream.CloseTag: string;
+begin
+  if OpenTags.Count = 0 then
+    Result := ''
+  else
+  begin
+    Result := OpenTags.Pop;
+    WriteLnIndented('</' + Result + '>');
+  end;
+end;
+
+destructor TEFXMLOutputStream.Destroy;
+begin
+  CloseAllOpenTags;
+  FreeAndNil(FOpenTags);
+  inherited;
+end;
+
+function TEFXMLOutputStream.GetIndentLevel: Integer;
+begin
+  Result := OpenTags.Count * 2;
+end;
+
+function TEFXMLOutputStream.GetOpenTags: TStack<string>;
+begin
+  if not Assigned(FOpenTags) then
+    FOpenTags := TStack<string>.Create;
+  Result := FOpenTags;
+end;
+
+function TEFXMLOutputStream.EncodeAttributes(const AAttributeNames: array of string;
+  const AAttributeValues: array of string): string;
+var
+  LAttributeIndex: Integer;
+begin
+  Assert(Length(AAttributeNames) = Length(AAttributeValues));
+  if Length(AAttributeNames) = 0 then
+    Result := ''
+  else
+  begin
+    Result := ' ';
+    for LAttributeIndex := Low(AAttributeNames) to High(AAttributeNames) do
+      Result := Result + AAttributeNames[LAttributeIndex] + '="' +
+        AAttributeValues[LAttributeIndex] + '" ';
+    // Remove the trailing space.
+    Delete(Result, Length(Result), 1);
+  end;
+end;
+
+function TEFXMLOutputStream.EncodeString(const AString: string): string;
+begin
+  // See TEFTextStream.WriteLn.
+  {$IFDEF UNICODE}
+  Result := AString;
+  {$ELSE}
+  Result := AnsiToUtf8(AString);
+  {$ENDIF}
+end;
+
+procedure TEFXMLOutputStream.OpenTag(const ATagName: string;
+  const AAttributeNames: array of string;
+  const AAttributeValues: array of string);
+begin
+  WriteLnIndented('<' + ATagName
+    + EncodeAttributes(AAttributeNames, AAttributeValues) + '>');
+  OpenTags.Push(ATagName);
+end;
+
+procedure TEFXMLOutputStream.OpenTag(const ATagName: string);
+begin
+  OpenTag(ATagName, [], []);
+end;
+
+procedure TEFXMLOutputStream.WriteTag(const ATagName: string;
+  const AAttributeNames, AAttributeValues: array of string;
+  const ATagCharacters: string);
+begin
+  if ATagCharacters <> '' then
+    WriteLnIndented('<' + ATagName
+      + EncodeAttributes(AAttributeNames, AAttributeValues) + '>'
+      + ATagCharacters + '</' + ATagName + '>')
+  else
+    WriteLnIndented('<' + ATagName
+      + EncodeAttributes(AAttributeNames, AAttributeValues) + ' />');
+end;
+
+procedure TEFXMLOutputStream.WriteTag(const ATagName: string;
+  const ATagCharacters: string = '');
+begin
+  WriteTag(ATagName, [], [], ATagCharacters);
+end;
+
+procedure TEFXMLOutputStream.WriteCDATATag(const ATagName: string;
+  const ATagCharacters: string);
+begin
+  WriteTag(ATagName, [], [], '<![CDATA[' + ATagCharacters + ']]>');
+end;
+
+procedure TEFXMLOutputStream.WriteLnIndented(const AString: string);
+var
+  LIndentStr: string;
+begin
+  LIndentStr := DupeString(' ', GetIndentLevel + FAdditionalIndentLevel);
+  WriteLn(LIndentStr + EncodeString(AString));
+end;
+
+procedure TEFXMLOutputStream.WriteProlog;
+begin
+  WriteLn('<?xml version="1.0" encoding="UTF-8" ?>');
 end;
 
 end.
