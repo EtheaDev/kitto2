@@ -56,6 +56,12 @@ begin
   Title := _(View.GetExpandedString('DisplayLabel'));
   Width := View.GetInteger('Controller/Width', 800);
   Height := View.GetInteger('Controller/Height', 600);
+  ResizeHandles := View.GetString('Controller/ResizeHandles');
+  Resizable := ResizeHandles <> '';
+  Maximizable := Resizable;
+
+  Draggable := View.GetBoolean('Controller/Movable');
+
   CreateSubController;
   inherited;
 end;
