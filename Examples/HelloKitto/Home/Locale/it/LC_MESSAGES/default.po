@@ -1,0 +1,112 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: 1.0\n"
+"POT-Creation-Date: 2012-01-31 12:27\n"
+"PO-Revision-Date: 2012-02-01 18:03+0100\n"
+"Last-Translator: Carlo Barazzetta <carlo.barazzetta@ethea.it>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: dxgettext 1.2.2\n"
+"Language-Team: \n"
+
+#: Rules.pas:25
+msgid "Cannot invite the same girl twice."
+msgstr "Non puoi invitare la stessa bambina due volte."
+
+msgid "Choose Mom"
+msgstr "Scegli la mamma"
+
+msgid "Address"
+msgstr "Indirizzo"
+
+msgid "Age"
+msgstr "Età"
+
+msgid "Aspect"
+msgstr "Aspetto"
+
+msgid "Birth Date"
+msgstr "Data di nascita"
+
+msgid "Black"
+msgstr "Nero"
+
+msgid "Blond"
+msgstr "Biondo"
+
+msgid "Doll"
+msgstr "Bambola"
+
+msgid "Dolls"
+msgstr "Bambole"
+
+msgid "Girl"
+msgstr "Bambina"
+
+msgid "Girls"
+msgstr "Bambine"
+
+msgid "Dress Size"
+msgstr "Taglia"
+
+msgid "Enter a catchy name"
+msgstr "Inserisci un nome accattivante"
+
+msgid "Girls Filter"
+msgstr "Filtra bambine"
+
+msgid "Hair"
+msgstr "Capelli"
+
+msgid "Hair Color"
+msgstr "Colore capelli"
+
+msgid "Hair Types"
+msgstr "Tipo capelli"
+
+msgid "Mom"
+msgstr "Mamma"
+
+msgid "Name"
+msgstr "Nome"
+
+msgid "Name/Address"
+msgstr "Nome/Indirizzo"
+
+msgid "Other options (samples)"
+msgstr "Altre opzioni (esempi)"
+
+msgid "Parties"
+msgstr "Feste"
+
+msgid "Party"
+msgstr "Festa"
+
+msgid "Party Date"
+msgstr "Data festa"
+
+msgid "Party Name"
+msgstr "Nome festa"
+
+msgid "Party Time"
+msgstr "Ora festa"
+
+msgid "Peoria Girls and their Dolls"
+msgstr "Le bambine di Peoria e le loro bambole"
+
+msgid "Phone"
+msgstr "Telefono"
+
+msgid "Red"
+msgstr "Rosso"
+
+msgid "Search Parties"
+msgstr "Ricerca feste"
+
+msgid "Silver"
+msgstr "Argento"
+
+msgid "Walnut"
+msgstr "Noce"
+
