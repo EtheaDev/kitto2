@@ -329,7 +329,7 @@ end;
 procedure TEFYAMLWriter.AfterConstruction;
 begin
   inherited;
-  FIndentChars := 4;
+  FIndentChars := 2;
   FSpacingChars := 1;
   FQuote := '';
 end;

@@ -22,9 +22,25 @@ interface
 
 uses
   Classes,
-  Kitto.Ext.DataTool;
+  Kitto.Ext.Base, Kitto.Ext.DataTool;
 
 type
+  ///	<summary>Logs the current user out ending the current session. Only
+  ///	useful if authentication is enabled.</summary>
+  TKExtLogoutController = class(TKExtToolController)
+  protected
+    procedure ExecuteTool; override;
+  public
+    ///	<summary>Returns the display label to use by default when not specified
+    ///	at the view or other level. Called through RTTI.</summary>
+    class function GetDefaultDisplayLabel: string;
+
+    ///	<summary>Returns the image name to use by default when not specified at
+    ///	the view or other level. Called through RTTI.</summary>
+    class function GetDefaultImageName: string;
+  end;
+
+
   ///	<summary>Base class for URL controllers.</summary>
   TKExtURLControllerBase = class(TKExtDataToolController)
   protected
@@ -141,7 +157,7 @@ implementation
 
 uses
   SysUtils,
-  EF.Tree, EF.RegEx,
+  EF.Tree, EF.RegEx, EF.Localization,
   Kitto.Ext.Session, Kitto.Ext.Controller;
 
 { TKExtURLControllerBase }
@@ -246,12 +262,32 @@ procedure TKExtDownloadFileController.PrepareFile(const AFileName: string);
 begin
 end;
 
+{ TKExtLogoutController }
+
+procedure TKExtLogoutController.ExecuteTool;
+begin
+  inherited;
+  Session.Logout;
+end;
+
+class function TKExtLogoutController.GetDefaultDisplayLabel: string;
+begin
+  Result := _('Logout');
+end;
+
+class function TKExtLogoutController.GetDefaultImageName: string;
+begin
+  Result := 'logout';
+end;
+
 initialization
+  TKExtControllerRegistry.Instance.RegisterClass('Logout', TKExtLogoutController);
   TKExtControllerRegistry.Instance.RegisterClass('URL', TKExtURLController);
   TKExtControllerRegistry.Instance.RegisterClass('FilteredURL', TKExtFilteredURLController);
   TKExtControllerRegistry.Instance.RegisterClass('DownloadFile', TKExtDownloadFileController);
 
 finalization
+  TKExtControllerRegistry.Instance.UnregisterClass('Logout');
   TKExtControllerRegistry.Instance.UnregisterClass('URL');
   TKExtControllerRegistry.Instance.UnregisterClass('FilteredURL');
   TKExtControllerRegistry.Instance.UnregisterClass('DownloadFile');

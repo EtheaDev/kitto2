@@ -100,9 +100,37 @@ function AdaptExtNumberFormat(const AFormat: string; const AFormatSettings: TFor
 implementation
 
 uses
-  StrUtils, HTTPApp,
+  StrUtils, HTTPApp, RTTI,
   EF.SysUtils, EF.Classes, EF.Localization,
   Kitto.Ext.Session, Kitto.AccessControl, Kitto.Ext.Base;
+
+function CallViewControllerStringMethod(const AView: TKView;
+  const AMethodName: string; const ADefaultValue: string): string;
+var
+  LControllerClass: TClass;
+  LContext: TRttiContext;
+  LMethod: TRttiMethod;
+begin
+  Assert(Assigned(AView));
+  Assert(AMethodName <> '');
+
+  LControllerClass := TKExtControllerRegistry.Instance.GetClass(AView.ControllerType);
+  LMethod := LContext.GetType(LControllerClass).GetMethod(AMethodName);
+  if Assigned(LMethod) then
+    Result := LMethod.Invoke(LControllerClass, []).AsString
+  else
+    Result := ADefaultValue;
+end;
+
+function GetImageName(const ANode: TKTreeViewNode; const AView: TKView): string;
+begin
+  Assert(Assigned(ANode));
+  Assert(Assigned(AView));
+
+  Result := ANode.GetString('ImageName');
+  if Result = '' then
+    Result := CallViewControllerStringMethod(AView, 'GetDefaultImageName', '');
+end;
 
 { TKExtTreeViewRenderer }
 
@@ -158,7 +186,7 @@ begin
         LMenuItem.View := LView;
         if Assigned(LMenuItem.View) then
         begin
-          LMenuItem.IconCls := Session.SetViewIconStyle(LMenuItem.View, ANode.TreeViewNodes[I].GetString('ImageName'));
+          LMenuItem.IconCls := Session.SetViewIconStyle(LMenuItem.View, GetImageName(ANode.TreeViewNodes[I], LMenuItem.View));
           LMenuItem.On('click', GetClickFunction(LMenuItem.View));
           LMenuItem.Disabled := not LIsEnabled;
         end
@@ -205,7 +233,7 @@ begin
       LButton.View := LView;
       if Assigned(LButton.View) then
       begin
-        LButton.IconCls := Session.SetViewIconStyle(LButton.View, ANode.GetString('ImageName'));
+        LButton.IconCls := Session.SetViewIconStyle(LButton.View, GetImageName(ANode, LButton.View));
         LButton.On('click', GetClickFunction(LButton.View));
         LButton.Disabled := not LIsEnabled;
       end
@@ -250,7 +278,7 @@ begin
       LNode.View := LView;
       if Assigned(LNode.View) then
       begin
-        LNode.IconCls := Session.SetViewIconStyle(LNode.View, ANode.GetString('ImageName'));
+        LNode.IconCls := Session.SetViewIconStyle(LNode.View, GetImageName(ANode, LNode.View));
         LNode.On('click', GetClickFunction(LNode.View));
         LNode.Disabled := not LIsEnabled;
       end
@@ -362,11 +390,16 @@ begin
 end;
 
 procedure TKExtTreeTreeNode.SetView(const AValue: TKView);
+var
+  LLabel: string;
 begin
   FView := AValue;
   if Assigned(FView) then
   begin
-    Text := HTMLEncode(_(FView.DisplayLabel));
+    LLabel := FView.DisplayLabel;
+    if LLabel = '' then
+      LLabel := CallViewControllerStringMethod(FView, 'GetDefaultDisplayLabel', LLabel);
+    Text := HTMLEncode(_(LLabel));
     Expandable := False;
     Expanded := False;
     Leaf := True;
@@ -383,10 +416,17 @@ begin
 end;
 
 procedure TKExtButton.SetView(const AValue: TKView);
+var
+  LLabel: string;
 begin
   FView := AValue;
   if Assigned(FView) then
-    Text := HTMLEncode(_(FView.DisplayLabel));  
+  begin
+    LLabel := FView.DisplayLabel;
+    if LLabel = '' then
+      LLabel := CallViewControllerStringMethod(FView, 'GetDefaultDisplayLabel', LLabel);
+    Text := HTMLEncode(_(LLabel));
+  end;
 end;
 
 { TKExtMenuItem }
@@ -399,10 +439,17 @@ begin
 end;
 
 procedure TKExtMenuItem.SetView(const AValue: TKView);
+var
+  LLabel: string;
 begin
   FView := AValue;
   if Assigned(FView) then
-    Text := HTMLEncode(_(FView.DisplayLabel));
+  begin
+    LLabel := FView.DisplayLabel;
+    if LLabel = '' then
+      LLabel := CallViewControllerStringMethod(FView, 'GetDefaultDisplayLabel', LLabel);
+    Text := HTMLEncode(_(LLabel));
+  end;
 end;
 
 end.

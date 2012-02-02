@@ -284,7 +284,6 @@ type
 
   TKModel = class(TKMetadata)
   private
-    FModels: TKModels;
     function GetFieldCount: Integer;
     function GetField(I: Integer): TKModelField;
     function GetModelName: string;
@@ -303,13 +302,14 @@ type
     function GetCaptionFieldName: string;
     function GetKeyField(I: Integer): TKModelField;
     function GetKeyFieldCount: Integer;
+    function GetCatalog: TKModels;
     const DEFAULT_IMAGE_NAME = 'default_model';
   protected
     function GetFields: TKModelFields;
     function GetChildClass(const AName: string): TEFNodeClass; override;
     function GetDetailReferences: TKModelDetailReferences;
   public
-    property Catalog: TKModels read FModels;
+    property Catalog: TKModels read GetCatalog;
 
     property ModelName: string read GetModelName;
     property DisplayLabel: string read GetDisplayLabel;
@@ -366,11 +366,10 @@ type
     function GetModelCount: Integer;
     function GetModel(I: Integer): TKModel;
   protected
-    procedure AfterCreateObject(const AObject: TKMetadata); override;
     function GetObjectClassType: TKMetadataClass; override;
   public
     property ModelCount: Integer read GetModelCount;
-    property Models[I: Integer]: TKModel read GetModel;
+    property Models[I: Integer]: TKModel read GetModel; default;
     function ModelByName(const AName: string): TKModel;
     function FindModel(const AName: string): TKModel;
   end;
@@ -570,6 +569,11 @@ end;
 function TKModel.GetCaptionFieldName: string;
 begin
   Result := GetString('CaptionField');
+end;
+
+function TKModel.GetCatalog: TKModels;
+begin
+  Result := inherited Catalog as TKModels;
 end;
 
 function TKModel.GetChildClass(const AName: string): TEFNodeClass;
@@ -1011,12 +1015,6 @@ begin
 end;
 
 { TKModels }
-
-procedure TKModels.AfterCreateObject(const AObject: TKMetadata);
-begin
-  inherited;
-  (AObject as TKModel).FModels := Self;
-end;
 
 function TKModels.FindModel(const AName: string): TKModel;
 begin

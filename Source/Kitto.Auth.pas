@@ -47,6 +47,9 @@ type
   protected
     function GetIsAuthenticated: Boolean; virtual;
 
+    ///	<summary>Implements the IsClearPassword property.</summary>
+    function GetIsClearPassword: Boolean; virtual;
+
     ///	<summary>Called at the beginning of the authentication process, before
     ///	InternalAuthenticate.</summary>
     procedure InternalBeforeAuthenticate(
@@ -72,6 +75,20 @@ type
     ///	'PUBLIC', while a descendant will return the user name or something
     ///	else, as needed.</summary>
     function GetUserName: string; virtual;
+
+    ///	<summary>For password-based authenticators, this function should return
+    ///	the current user's password (or hash). The default implementation
+    ///	returns a blank string.</summary>
+    function GetPassword: string; virtual;
+
+    ///	<summary>Changes the current user's password in whatever underlying
+    ///	storage the authenticator uses. Only makes sense for password-based
+    ///	authenticator. The default implementation does nothing.</summary>
+    ///	<remarks>After calling this method, the user stays authenticated and
+    ///	the session's password is updated (the password used when first
+    ///	authenticating is lost). This allows a usr to change his password more
+    ///	than once per session.</remarks>
+    procedure SetPassword(const AValue: string); virtual;
   public
     procedure AfterConstruction; override;
     destructor Destroy; override;
@@ -106,6 +123,16 @@ type
     ///	'PUBLIC'.</summary>
     property UserName: string read GetUserName;
 
+    ///	<summary>For password-based authenticators, returns the current user's
+    ///	password or hash. The default implementation returns a blank
+    ///	string.</summary>
+    property Password: string read GetPassword write SetPassword;
+
+    ///	<summary>Returns True if the autheticator uses clear passwords, False
+    ///	if hashing is used. Only meaningful for password-based authenticators.
+    ///	By default, returns True.</summary>
+    property IsClearPassword: Boolean read GetIsClearPassword;
+
     ///	<summary>Returns True if authentication has successfully taken
     ///	place.</summary>
     property IsAuthenticated: Boolean read GetIsAuthenticated;
@@ -129,6 +156,8 @@ type
     procedure InternalDefineAuthData(
       const AAuthData: TEFNode); override;
     function GetUserName: string; override;
+    function GetPassword: string; override;
+    procedure SetPassword(const AValue: string); override;
   end;
 
   {
@@ -269,6 +298,16 @@ begin
   Result := FIsAuthenticated;
 end;
 
+function TKAuthenticator.GetIsClearPassword: Boolean;
+begin
+  Result := True;
+end;
+
+function TKAuthenticator.GetPassword: string;
+begin
+  Result := '';
+end;
+
 function TKAuthenticator.GetUserName: string;
 begin
   Result := 'PUBLIC';
@@ -283,6 +322,10 @@ procedure TKAuthenticator.Logout;
 begin
   ClearAuthData;
   FIsAuthenticated := False;
+end;
+
+procedure TKAuthenticator.SetPassword(const AValue: string);
+begin
 end;
 
 procedure TKAuthenticator.ClearAuthData;
@@ -323,6 +366,11 @@ end;
 
 { TKClassicAuthenticator }
 
+function TKClassicAuthenticator.GetPassword: string;
+begin
+  Result := AuthData.GetString('Password');
+end;
+
 function TKClassicAuthenticator.GetUserName: string;
 begin
   Result := AuthData.GetString('UserName');
@@ -333,6 +381,11 @@ procedure TKClassicAuthenticator.InternalDefineAuthData(
 begin
   AAuthData.SetString('UserName', '');
   AAuthData.SetString('Password', '');
+end;
+
+procedure TKClassicAuthenticator.SetPassword(const AValue: string);
+begin
+  inherited;
 end;
 
 initialization

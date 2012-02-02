@@ -30,14 +30,14 @@ type
 
   TKView = class(TKMetadata)
   private
-    FViews: TKViews;
     function GetControllerType: string;
+    function GetCatalog: TKViews;
   protected
     const DEFAULT_IMAGE_NAME = 'default_view';
     function GetDisplayLabel: string; virtual;
     function GetImageName: string; virtual;
   public
-    property Catalog: TKViews read FViews;
+    property Catalog: TKViews read GetCatalog;
 
     property DisplayLabel: string read GetDisplayLabel;
     property ImageName: string read GetImageName;
@@ -61,13 +61,16 @@ type
     function GetLayouts: TKLayouts;
     function BuildView(const ANode: TEFNode;
       const AViewBuilderName: string): TKView;
+    function GetView(I: Integer): TKView;
+    function GetViewCount: Integer;
   protected
-    procedure AfterCreateObject(const AObject: TKMetadata); override;
     function GetObjectClassType: TKMetadataClass; override;
     procedure SetPath(const AValue: string); override;
   public
     destructor Destroy; override;
   public
+    property ViewCount: Integer read GetViewCount;
+    property Views[I: Integer]: TKView read GetView; default;
     function ViewByName(const AName: string): TKView;
     function FindView(const AName: string): TKView;
 
@@ -83,10 +86,15 @@ type
   ///	  A catalog of layouts. Internally used by the catalog of views.
   ///	</summary>
   TKLayouts = class(TKMetadataCatalog)
+  private
+    function GetLayout(I: Integer): TKLayout;
+    function GetLayoutCount: Integer;
   protected
     procedure AfterCreateObject(const AObject: TKMetadata); override;
     function GetObjectClassType: TKMetadataClass; override;
   public
+    property LayoutCount: Integer read GetLayoutCount;
+    property Layouts[I: Integer]: TKLayout read GetLayout; default;
     function LayoutByName(const AName: string): TKLayout;
     function FindLayout(const AName: string): TKLayout;
   end;
@@ -170,12 +178,6 @@ uses
 
 { TKViews }
 
-procedure TKViews.AfterCreateObject(const AObject: TKMetadata);
-begin
-  inherited;
-  (AObject as TKView).FViews := Self;
-end;
-
 procedure TKViews.Close;
 begin
   inherited;
@@ -242,6 +244,16 @@ begin
   Result := TKView;
 end;
 
+function TKViews.GetView(I: Integer): TKView;
+begin
+  Result := Objects[I] as TKView;
+end;
+
+function TKViews.GetViewCount: Integer;
+begin
+  Result := ObjectCount;
+end;
+
 procedure TKViews.Open;
 begin
   inherited;
@@ -282,6 +294,16 @@ begin
   Result := FindObject(AName) as TKLayout;
 end;
 
+function TKLayouts.GetLayout(I: Integer): TKLayout;
+begin
+  Result := Objects[I] as TKLayout;
+end;
+
+function TKLayouts.GetLayoutCount: Integer;
+begin
+  Result := ObjectCount;
+end;
+
 function TKLayouts.GetObjectClassType: TKMetadataClass;
 begin
   Result := TKLayout;
@@ -293,6 +315,11 @@ begin
 end;
 
 { TKView }
+
+function TKView.GetCatalog: TKViews;
+begin
+  Result := inherited Catalog as TKViews;
+end;
 
 function TKView.GetControllerType: string;
 begin

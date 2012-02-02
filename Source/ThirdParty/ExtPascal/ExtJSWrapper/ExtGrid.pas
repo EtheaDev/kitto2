@@ -2417,6 +2417,7 @@ procedure TExtGridGridPanel.SetFView(Value : TExtObject); begin
 end;
 
 procedure TExtGridGridPanel.SetFViewConfig(Value : TExtObject); begin
+  FViewConfig.Free;
   FViewConfig := Value;
   Value.DeleteFromGarbage;
   JSCode('viewConfig:' + VarToJSON([Value, false]));

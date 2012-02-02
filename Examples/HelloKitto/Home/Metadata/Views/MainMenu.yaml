@@ -11,8 +11,8 @@ Folder: Lookup tables
         PopupWindow:
           Width: 320
           Height: 160
-Folder: Other options (samples)
+Folder: User
   View:
-    DisplayLabel: Change password
+    Controller: ChangePassword
   View:
-    DisplayLabel: Logout
+    Controller: Logout

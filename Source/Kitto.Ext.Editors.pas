@@ -418,7 +418,7 @@ type
 implementation
 
 uses
-  Types, Math, StrUtils,
+  Types, Math, StrUtils, Windows,
   EF.SysUtils, EF.StrUtils, EF.Localization, EF.YAML, EF.Types, EF.SQL,
   Kitto.JSON, Kitto.SQL, Kitto.Metadata.Models, Kitto.Types,
   Kitto.Rules, Kitto.Ext.Utils, Kitto.Ext.Session, Kitto.Ext.Rules;
