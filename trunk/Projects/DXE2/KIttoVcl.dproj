@@ -99,8 +99,8 @@
 			<DCCReference Include="..\..\Source\EF\EF.Localization.pas"/>
 			<DCCReference Include="..\..\Source\EF\EF.Localization.dxgettext.pas"/>
 			<DCCReference Include="..\..\Source\EF\EF.Logger.pas"/>
-			<DCCReference Include="..\..\Source\EF\EF.Logger.TextFile.pas"/>
 			<DCCReference Include="..\..\Source\EF\EF.Logger.CodeSite.pas"/>
+			<DCCReference Include="..\..\Source\EF\EF.Logger.TextFile.pas"/>
 			<DCCReference Include="..\..\Source\EF\EF.Macros.pas"/>
 			<DCCReference Include="..\..\Source\EF\EF.ObserverIntf.pas"/>
 			<DCCReference Include="..\..\Source\EF\EF.RegEx.pas"/>
@@ -125,8 +125,10 @@
 			<DCCReference Include="..\..\Source\Kitto.Ext.Application.pas"/>
 			<DCCReference Include="..\..\Source\Kitto.Ext.Base.pas"/>
 			<DCCReference Include="..\..\Source\Kitto.Ext.BorderPanel.pas"/>
+			<DCCReference Include="..\..\Source\Kitto.Ext.ChangePassword.pas"/>
 			<DCCReference Include="..\..\Source\Kitto.Ext.Controller.pas"/>
 			<DCCReference Include="..\..\Source\Kitto.Ext.DataPanel.pas"/>
+			<DCCReference Include="..\..\Source\Kitto.Ext.DataTool.pas"/>
 			<DCCReference Include="..\..\Source\Kitto.Ext.Editors.pas"/>
 			<DCCReference Include="..\..\Source\Kitto.Ext.Filters.pas"/>
 			<DCCReference Include="..\..\Source\Kitto.Ext.Form.pas"/>
@@ -134,8 +136,17 @@
 			<DCCReference Include="..\..\Source\Kitto.Ext.HtmlPanel.pas"/>
 			<DCCReference Include="..\..\Source\Kitto.Ext.List.pas"/>
 			<DCCReference Include="..\..\Source\Kitto.Ext.Login.pas"/>
+			<DCCReference Include="..\..\Source\Kitto.Ext.MainFormUnit.pas">
+				<Form>KExtMainForm</Form>
+			</DCCReference>
 			<DCCReference Include="..\..\Source\Kitto.Ext.Rules.pas"/>
+			<DCCReference Include="..\..\Source\Kitto.Ext.Service.pas">
+				<Form>KExtService</Form>
+				<DesignClass>TService</DesignClass>
+			</DCCReference>
 			<DCCReference Include="..\..\Source\Kitto.Ext.Session.pas"/>
+			<DCCReference Include="..\..\Source\Kitto.Ext.StandardControllers.pas"/>
+			<DCCReference Include="..\..\Source\Kitto.Ext.Start.pas"/>
 			<DCCReference Include="..\..\Source\Kitto.Ext.StatusBar.pas"/>
 			<DCCReference Include="..\..\Source\Kitto.Ext.TabPanel.pas"/>
 			<DCCReference Include="..\..\Source\Kitto.Ext.ToolBar.pas"/>
@@ -154,14 +165,6 @@
 			<DCCReference Include="..\..\Source\Kitto.SQL.pas"/>
 			<DCCReference Include="..\..\Source\Kitto.Store.pas"/>
 			<DCCReference Include="..\..\Source\Kitto.Types.pas"/>
-			<DCCReference Include="..\..\Source\Kitto.Ext.MainFormUnit.pas">
-				<Form>KExtMainForm</Form>
-			</DCCReference>
-			<DCCReference Include="..\..\Source\Kitto.Ext.Service.pas">
-				<Form>KExtService</Form>
-				<DesignClass>TService</DesignClass>
-			</DCCReference>
-			<DCCReference Include="..\..\Source\Kitto.Ext.Start.pas"/>
 			<BuildConfiguration Include="Release">
 				<Key>Cfg_2</Key>
 				<CfgParent>Base</CfgParent>

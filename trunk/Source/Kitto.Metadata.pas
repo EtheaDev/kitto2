@@ -25,13 +25,19 @@ uses
   EF.Types, EF.Tree, EF.YAML;
 
 type
+  TKMetadataCatalog = class;
+
   TKMetadata = class(TEFTree)
   private
+    FCatalog: TKMetadataCatalog;
     FPersistentName: string;
     function GetIsPersistent: Boolean;
     class function BeautifiedClassName: string;
+    function GetPersistentFileName: string;
   public
     procedure Assign(const ASource: TEFTree); override;
+
+    property Catalog: TKMetadataCatalog read FCatalog;
 
     property PersistentName: string read FPersistentName write FPersistentName;
 
@@ -46,6 +52,9 @@ type
     ///	calling TKConfig.Instance.IsAccessGranted (possibly multiple times for
     ///	cascading, and "or"ing the results).</summary>
     function IsAccessGranted(const AMode: string): Boolean; virtual;
+
+    ///	<summary>Returns the full path name of the persistent file.</summary>
+    property PersistentFileName: string read GetPersistentFileName;
   end;
 
   TKMetadataClass = class of TKMetadata;
@@ -77,7 +86,6 @@ type
     procedure SaveObject(const AObject: TKMetadata);
     function GetWriter: TEFYAMLWriter;
     function GetObject(I: Integer): TKMetadata;
-    function GetFullFileName(const AName: string): string;
     function ObjectExists(const AName: string): Boolean;
     procedure DuplicateObjectError(const AName: string);
   protected
@@ -94,6 +102,11 @@ type
     destructor Destroy; override;
   public
     property Path: string read FPath write SetPath;
+
+    ///	<summary>Returns the full file name for the specified persistent
+    ///	name.</summary>
+    function GetFullFileName(const AName: string): string;
+
     procedure Open; virtual;
     procedure Close; virtual;
 
@@ -157,6 +170,7 @@ end;
 
 procedure TKMetadataCatalog.AfterCreateObject(const AObject: TKMetadata);
 begin
+  AObject.FCatalog := Self;
 end;
 
 procedure TKMetadataCatalog.Close;
@@ -464,6 +478,13 @@ end;
 function TKMetadata.GetIsPersistent: Boolean;
 begin
   Result := PersistentName <> '';
+end;
+
+function TKMetadata.GetPersistentFileName: string;
+begin
+  Assert(Assigned(FCatalog));
+
+  Result := FCatalog.GetFullFileName(PersistentName);
 end;
 
 function TKMetadata.GetResourceURI: string;

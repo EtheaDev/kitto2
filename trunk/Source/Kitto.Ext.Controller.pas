@@ -53,6 +53,8 @@ type
     function GetContainer: TExtContainer;
     procedure SetContainer(const AValue: TExtContainer);
     property Container: TExtContainer read GetContainer write SetContainer;
+
+    function SupportsContainer: Boolean;
   end;
 
   ///	<summary>
@@ -165,22 +167,21 @@ begin
 
   LClass := TExtObjectClass(TKExtControllerRegistry.Instance.GetClass(LType));
 
-  if Assigned(AContainer) then
-    LObject := LClass.AddTo(AContainer.Items)
-  else
-  begin
-    LObject := LClass.Create;
-    { TODO : fix virtual construction in ExtPascal! }
-    TBreakExtObject(LObject).InitDefaults;
-  end;
+  LObject := LClass.Create;
 
   if not Supports(LObject, IKExtController, Result) then
     raise EKError.Create('Object does not support IKController.');
 
+  { TODO : fix virtual construction in ExtPascal! }
+  TBreakExtObject(LObject).InitDefaults;
+  if Assigned(AContainer) and Result.SupportsContainer then
+    LObject.AddTo(AContainer.Items);
+
   Result.View := AView;
-  Result.Container := AContainer;
+  if Result.SupportsContainer then
+    Result.Container := AContainer;
   if Assigned(AObserver) and Supports(Result.AsObject, IEFSubject, LIntf) then
-    Lintf.AttachObserver(AObserver);
+    LIntf.AttachObserver(AObserver);
 end;
 
 end.

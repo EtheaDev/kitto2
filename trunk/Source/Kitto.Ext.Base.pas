@@ -58,6 +58,7 @@ type
     procedure DetachObserver(const AObserver: IEFObserver); virtual;
     procedure NotifyObservers(const AContext: string = ''); virtual;
     procedure UpdateObserver(const ASubject: IEFSubject; const AContext: string = ''); virtual;
+    function SupportsContainer: Boolean;
 
     property View: TKView read GetView write SetView;
     procedure Display;
@@ -113,6 +114,7 @@ type
     procedure DetachObserver(const AObserver: IEFObserver); virtual;
     procedure NotifyObservers(const AContext: string = ''); virtual;
     procedure UpdateObserver(const ASubject: IEFSubject; const AContext: string = ''); virtual;
+    function SupportsContainer: Boolean;
 
     property View: TKView read GetView write SetView;
     procedure Display;
@@ -164,6 +166,7 @@ type
   public
     procedure AfterConstruction; override;
     destructor Destroy; override;
+    function SupportsContainer: Boolean; virtual;
     property View: TKView read GetView write SetView;
     procedure Display;
   end;
@@ -194,6 +197,7 @@ type
     function QueryInterface(const IID: TGUID; out Obj): HRESULT; stdcall;
     function _AddRef: Integer; stdcall;
     function _Release: Integer; stdcall;
+    function SupportsContainer: Boolean; virtual;
     property View: TKView read GetView write SetView;
     procedure Display;
     property Config: TEFNode read GetConfig;
@@ -237,8 +241,6 @@ type
   end;
 
   TKExtStatusBar = class(TExtUxStatusBar)
-  protected
-    procedure InitDefaults; override;
   public
     procedure SetErrorStatus(const AText: string);
 
@@ -355,6 +357,11 @@ end;
 procedure TKExtWindowControllerBase.SetView(const AValue: TKView);
 begin
   FView := AValue;
+end;
+
+function TKExtWindowControllerBase.SupportsContainer: Boolean;
+begin
+  Result := False;
 end;
 
 procedure TKExtWindowControllerBase.UpdateObserver(const ASubject: IEFSubject;
@@ -555,6 +562,11 @@ begin
   FView := AValue;
 end;
 
+function TKExtViewportControllerBase.SupportsContainer: Boolean;
+begin
+  Result := False;
+end;
+
 procedure TKExtViewportControllerBase.UpdateObserver(const ASubject: IEFSubject;
   const AContext: string);
 begin
@@ -753,6 +765,11 @@ begin
   FView := AValue;
 end;
 
+function TKExtPanelControllerBase.SupportsContainer: Boolean;
+begin
+  Result := True;
+end;
+
 { TKExtFormTextField }
 
 procedure TKExtFormTextField.AfterConstruction;
@@ -807,12 +824,6 @@ end;
 procedure TKExtStatusBar.ClearStatus;
 begin
   inherited ClearStatus;
-end;
-
-procedure TKExtStatusBar.InitDefaults;
-begin
-  inherited;
-  Session.StatusHost := Self;
 end;
 
 procedure TKExtStatusBar.SetErrorStatus(const AText: string);
@@ -890,6 +901,11 @@ end;
 procedure TKExtControllerBase.SetView(const AValue: TKView);
 begin
   FView := AValue;
+end;
+
+function TKExtControllerBase.SupportsContainer: Boolean;
+begin
+  Result := True;
 end;
 
 function TKExtControllerBase._AddRef: Integer;

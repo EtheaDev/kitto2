@@ -188,7 +188,7 @@ type
 
   {
     A macro expander that expands all environment variables.
-    See EFSysUtils.ExpandEnvironmentVariables for details on
+    See EF.SysUtils.ExpandEnvironmentVariables for details on
     format and case sensitivity.
   }
   TEFEnvironmentVariableMacroExpander = class(TEFMacroExpander)
@@ -455,7 +455,10 @@ begin
   if not Assigned(Result) then
   begin
     if not Assigned(FInstance) then
+    begin
       FInstance := TEFMacroExpansionEngine.Create;
+      AddStandardMacroExpanders(FInstance);
+    end;
     Result := FInstance;
   end;
 end;

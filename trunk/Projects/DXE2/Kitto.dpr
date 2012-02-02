@@ -16,8 +16,8 @@ uses
   EF.Localization in '..\..\Source\EF\EF.Localization.pas',
   EF.Localization.dxgettext in '..\..\Source\EF\EF.Localization.dxgettext.pas',
   EF.Logger in '..\..\Source\EF\EF.Logger.pas',
-  EF.Logger.TextFile in '..\..\Source\EF\EF.Logger.TextFile.pas',
   EF.Logger.CodeSite in '..\..\Source\EF\EF.Logger.CodeSite.pas',
+  EF.Logger.TextFile in '..\..\Source\EF\EF.Logger.TextFile.pas',
   EF.Macros in '..\..\Source\EF\EF.Macros.pas',
   EF.ObserverIntf in '..\..\Source\EF\EF.ObserverIntf.pas',
   EF.RegEx in '..\..\Source\EF\EF.RegEx.pas',
@@ -42,8 +42,10 @@ uses
   Kitto.Ext.Application in '..\..\Source\Kitto.Ext.Application.pas',
   Kitto.Ext.Base in '..\..\Source\Kitto.Ext.Base.pas',
   Kitto.Ext.BorderPanel in '..\..\Source\Kitto.Ext.BorderPanel.pas',
+  Kitto.Ext.ChangePassword in '..\..\Source\Kitto.Ext.ChangePassword.pas',
   Kitto.Ext.Controller in '..\..\Source\Kitto.Ext.Controller.pas',
   Kitto.Ext.DataPanel in '..\..\Source\Kitto.Ext.DataPanel.pas',
+  Kitto.Ext.DataTool in '..\..\Source\Kitto.Ext.DataTool.pas',
   Kitto.Ext.Editors in '..\..\Source\Kitto.Ext.Editors.pas',
   Kitto.Ext.Filters in '..\..\Source\Kitto.Ext.Filters.pas',
   Kitto.Ext.Form in '..\..\Source\Kitto.Ext.Form.pas',
@@ -53,6 +55,7 @@ uses
   Kitto.Ext.Login in '..\..\Source\Kitto.Ext.Login.pas',
   Kitto.Ext.Rules in '..\..\Source\Kitto.Ext.Rules.pas',
   Kitto.Ext.Session in '..\..\Source\Kitto.Ext.Session.pas',
+  Kitto.Ext.StandardControllers in '..\..\Source\Kitto.Ext.StandardControllers.pas',
   Kitto.Ext.StatusBar in '..\..\Source\Kitto.Ext.StatusBar.pas',
   Kitto.Ext.TabPanel in '..\..\Source\Kitto.Ext.TabPanel.pas',
   Kitto.Ext.ToolBar in '..\..\Source\Kitto.Ext.ToolBar.pas',
@@ -70,9 +73,7 @@ uses
   Kitto.Rules in '..\..\Source\Kitto.Rules.pas',
   Kitto.SQL in '..\..\Source\Kitto.SQL.pas',
   Kitto.Store in '..\..\Source\Kitto.Store.pas',
-  Kitto.Types in '..\..\Source\Kitto.Types.pas',
-  Kitto.Ext.DataTool in '..\..\Source\Kitto.Ext.DataTool.pas',
-  Kitto.Ext.StandardControllers in '..\..\Source\Kitto.Ext.StandardControllers.pas';
+  Kitto.Types in '..\..\Source\Kitto.Types.pas';
 
 begin
 end.

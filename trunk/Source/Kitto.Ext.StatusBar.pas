@@ -26,6 +26,8 @@ uses
 
 type
   TKExtDefaultStatusBar = class(TKExtStatusBar)
+  protected
+    procedure InitDefaults; override;
   public
     procedure ClearStatus; override;
   end;
@@ -76,6 +78,12 @@ begin
   inherited;
   SetText(DefaultText);
   SetIcon(DefaultIconCls);
+end;
+
+procedure TKExtDefaultStatusBar.InitDefaults;
+begin
+  inherited;
+  Session.StatusHost := Self;
 end;
 
 initialization

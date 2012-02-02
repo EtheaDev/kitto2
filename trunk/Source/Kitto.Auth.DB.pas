@@ -93,7 +93,7 @@ type
   ///	      string parameter that will be filled in with the user name.
   ///	      Example: select UNAME as USER_NAME, pwd as PASSWORD_HASH from USERS
   ///	      where ENABLED = 1 and UNAME = :P1 Any additional fields returned by
-  ///	      the statement are kept as part of the auth data. Example:select
+  ///	      the statement are kept as part of the auth data. Example: select
   ///	      USER_NAME, PASSWORD_HASH, SOMEFIELD from USERS where IS_ACTIVE = 1
   ///	      and USER_NAME = :P1 The item SOMEFIELD will be available as part of
   ///	      the auth data (and as such, through the authentication-related
@@ -126,18 +126,45 @@ type
   ///	      after authentication. Supports macros, even authentication-related
   ///	      ones.</description>
   ///	    </item>
+  ///	    <item>
+  ///	      <term>SetPasswordCommandText</term>
+  ///	      <description>A SQL update statement that updates the password field
+  ///	      of a given user's record. The statement must have two params named
+  ///	      USER_NAME (that will be filled with the current user's name) and
+  ///	      PASSWORD_HASH (that will be filled with the new password or
+  ///	      password hash depending on the state of IsClearPassword). By
+  ///	      default, the standard KITTO_USERS table is updated. This statement
+  ///	      is executed when the authenticator's Password property is set in
+  ///	      code.</description>
+  ///	    </item>
   ///	  </list>
   ///	</summary>
   TKDBAuthenticator = class(TKClassicAuthenticator)
   protected
+    function GetIsClearPassword: Boolean; override;
+    procedure SetPassword(const AValue: string); override;
+
     ///	<summary>Returns True if the passepartout mechanism is enabled and the
     ///	supplied password matches the passpartout password.</summary>
     function InternalAuthenticate(const AAuthData: TEFNode): Boolean; override;
   protected
+    ///	<summary>Returns the SQL statement to be used to update the password
+    ///	(or password hash) in a user's record in the database. Override this
+    ///	method to change the name or the structure of the predefined table of
+    ///	users.</summary>
+    ///	<remarks>The statement should have two params named PASSWORD_HASH and
+    ///	USER_NAME that will be filled in with the data used to locate the
+    ///	record and update the password.</remarks>
+    function GetSetPasswordCommandText: string;
+
     ///	<summary>Creates and returns an object with the user data read from the
     ///	database. It is actually a template method that calls a set of virtual
     ///	methods to do its job.</summary>
     function CreateAndReadUser(const AUserName: string; const AAuthData: TEFNode): TKAuthUser;
+
+    ///	<summary>Executes the AfterAuthenticateCommandText, if any
+    ///	provided.</summary>
+    procedure InternalAfterAuthenticate(const AAuthData: TEFNode); override;
 
     ///	<summary>Creates and returns an empty instance of TKAuthUser. Override
     ///	this method if you need to use a descendant instead.</summary>
@@ -150,7 +177,7 @@ type
     ///	<summary>Returns the SQL statement to be used to read the user data
     ///	from the database. Override this method to change the name or the
     ///	structure of the predefined table of users.</summary>
-    function GetReadUserSQL(const AUserName: string): string; virtual;
+    function GetReadUserCommandText(const AUserName: string): string; virtual;
 
     ///	<summary>Extracts from AAuthData the supplied password, in order to use
     ///	it in an authentication attempt. If AHashNeeded is True, the password
@@ -161,10 +188,6 @@ type
     ///	<summary>Extracts from AAuthData the supplied user name, in order to
     ///	use it in an authentication attempt.</summary>
     function GetSuppliedUserName(const AAuthData: TEFNode): string; virtual;
-
-    ///	<summary>Executes the AfterAuthenticateCommandText, if any
-    ///	provided.</summary>
-    procedure InternalAfterAuthenticate(const AAuthData: TEFNode); override;
 
     ///	<summary>True if passepartout mode is enabled and the supplied password
     ///	matches the passepartout password.</summary>
@@ -213,7 +236,7 @@ begin
   Result := nil;
   LQuery := TKConfig.Instance.MainDBConnection.CreateDBQuery;
   try
-    LQuery.CommandText := GetReadUserSQL(AUserName);
+    LQuery.CommandText := GetReadUserCommandText(AUserName);
     if LQuery.Params.Count <> 1 then
       raise EKError.CreateFmt(_('Wrong authentication query text: %s'), [LQuery.CommandText]);
     LQuery.Params[0].AsString := AUserName;
@@ -253,7 +276,12 @@ begin
   Result := Config.GetExpandedString('AfterAuthenticateCommandText');
 end;
 
-function TKDBAuthenticator.GetReadUserSQL(const AUserName: string): string;
+function TKDBAuthenticator.GetIsClearPassword: Boolean;
+begin
+  Result := Config.GetBoolean('IsClearPassword');
+end;
+
+function TKDBAuthenticator.GetReadUserCommandText(const AUserName: string): string;
 begin
   Result := Config.GetString('ReadUserCommandText',
     'select USER_NAME, PASSWORD_HASH from KITTO_USERS ' +
@@ -301,7 +329,7 @@ var
   LUser: TKAuthUser;
 begin
   LSuppliedUserName := GetSuppliedUserName(AAuthData);
-  LSuppliedPasswordHash := GetSuppliedPasswordHash(AAuthData, not Config.GetBoolean('IsClearPassword'));
+  LSuppliedPasswordHash := GetSuppliedPasswordHash(AAuthData, not IsClearPassword);
   LIsPassepartoutAuthentication := IsPassepartoutAuthentication(LSuppliedPasswordHash);
 
   LUser := CreateAndReadUser(LSuppliedUserName, AAuthData);
@@ -338,7 +366,7 @@ begin
 
   LQuery := TKConfig.Instance.MainDBConnection.CreateDBQuery;
   try
-    LQuery.CommandText := GetReadUserSQL(AUserName);
+    LQuery.CommandText := GetReadUserCommandText(AUserName);
     if LQuery.Params.Count <> 1 then
       raise EKError.CreateFmt(_('Wrong authentication query text: %s'), [LQuery.CommandText]);
     LQuery.Params[0].AsString := AUserName;
@@ -373,6 +401,49 @@ begin
     AAuthData.Children[I].AssignFieldValue(ADBQuery.DataSet.Fields[I]);
   // All fields go to auth data under their names.
   AAuthData.AddFieldsAsChildren(ADBQuery.DataSet.Fields);
+end;
+
+procedure TKDBAuthenticator.SetPassword(const AValue: string);
+var
+  LPasswordHash: string;
+  LCommand: TEFDBCommand;
+  LCommandText: string;
+begin
+  inherited;
+  if IsClearPassword then
+    LPasswordHash := AValue
+  else
+    LPasswordHash := GetStringHash(AValue);
+
+  LCommandText := GetSetPasswordCommandText;
+  LCommand := TKConfig.Instance.MainDBConnection.CreateDBCommand;
+  try
+    LCommand.CommandText := LCommandText;
+    LCommand.Params.ParamByName('USER_NAME').AsString := UserName;
+    LCommand.Params.ParamByName('PASSWORD_HASH').AsString := LPasswordHash;
+    LCommand.Connection.StartTransaction;
+    try
+      if LCommand.Execute <> 1 then
+        raise EKError.Create(_('Error changing password.'));
+      LCommand.Connection.CommitTransaction;
+      if IsClearPassword then
+        AuthData.SetString('Password', AValue)
+      else
+        AuthData.SetString('Password', GetStringHash(AValue));
+    except
+      LCommand.Connection.RollbackTransaction;
+      raise;
+    end;
+  finally
+    FreeAndNil(LCommand);
+  end;
+end;
+
+function TKDBAuthenticator.GetSetPasswordCommandText: string;
+begin
+  Result := Config.GetString('SetPasswordCommandText',
+    'update KITTO_USERS set PASSWORD_HASH = :PASSWORD_HASH ' +
+    'where IS_ACTIVE = 1 and USER_NAME = :USER_NAME');
 end;
 
 initialization

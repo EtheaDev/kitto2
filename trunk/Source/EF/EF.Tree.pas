@@ -443,7 +443,28 @@ type
     ///	  to the arguments.
     ///	</returns>
     function GetChildrenAsStrings(const APath: string; const ASeparator: string = sLineBreak;
-      const AConnector: string = '='; const ADefaultValue: string = ''): string;
+      const AConnector: string = '='; const ADefaultValue: string = ''): string; overload;
+
+    ///	<summary>
+    ///	  Returns a list of all children of the specified node in the
+    ///	  form Name=AsString.
+    ///	</summary>
+    ///	<param name="APath">
+    ///	  Locates the parent node of the strings to extract.
+    ///	</param>
+    ///	<param name="AStrings">
+    ///	  Object to which strings are to be added. Any exiting contents are
+    ///   deleted.
+    ///	</param>
+    ///	<returns>
+    ///	  The number of appended items.
+    ///	</returns>
+    function GetChildrenAsStrings(const APath: string; const AStrings: TStrings): Integer; overload;
+
+    ///	<summary>Deletes all children nodes and replaces them with one node for
+    ///	each item in the specified string list. Strings must be in the form
+    ///	Name=Value.</summary>
+    procedure SetChildrenAsStrings(const APath: string; const AStrings: TStrings);
 
     ///	<summary>
     ///	  Returns an array of all children of the specified node, which must be
@@ -767,6 +788,17 @@ type
     function GetChildStrings(const ASeparator: string = sLineBreak;
       const AConnector: string = '='; const ADefaultValue: string = ''): string; overload;
 
+    ///	<summary>Adds to the specified string list all child nodes as strings
+    ///	in the form Name=Value. Returns the number of added items.</summary>
+    ///	<remarks>All existing contents in AStrings are deleted.</remarks>
+    function GetChildStrings(const AStrings: TStrings): Integer; overload;
+
+    ///	<summary>Deletes all children and adds a new children for each string
+    ///	in the specified string list. Strings must be in the form
+    ///	Name=Value.</summary>
+    ///	<remarks>All existing contents in AStrings are deleted.</remarks>
+    procedure SetChildStrings(const AStrings: TStrings);
+
     ///	<summary>
     ///	  Returns all child nodes as a string of name&lt;AConnector&gt;value
     ///	  pairs separated by ASeparator. Values are expanded.
@@ -813,6 +845,12 @@ type
     ///	  with all data in it.
     ///	</summary>
     class function LoadFromFile<T: TEFTree, constructor>(const AFileName: string): T;
+
+    ///	<summary>
+    ///	  Reloads the specified yaml file into an existing tree, overwriting
+    ///	  any data in it.
+    ///	</summary>
+    class procedure ReloadFromFile(const ATree: TEFTree; const AFileName: string);
   end;
 
   ///	<summary>
@@ -1145,6 +1183,14 @@ begin
   Result := DataType.ValueToTime(FValue);
 end;
 
+function TEFNode.GetChildStrings(const AStrings: TStrings): Integer;
+begin
+  Assert(Assigned(AStrings));
+
+  AStrings.Text := GetChildStrings;
+  Result := AStrings.Count;
+end;
+
 function TEFNode.GetChildStrings(const ASeparator, AConnector,
   ADefaultValue: string): string;
 var
@@ -1317,6 +1363,17 @@ function TEFNode.SetAsYamlValue(const AValue: string; const AFormatSettings: TFo
 begin
   DataType.YamlValueToNode(AValue, Self, AFormatSettings);
   Result := Self;
+end;
+
+procedure TEFNode.SetChildStrings(const AStrings: TStrings);
+var
+  I: Integer;
+begin
+  Assert(Assigned(AStrings));
+
+  ClearChildren;
+  for I := 0 to AStrings.Count - 1 do
+    AddChild(AStrings.Names[I], AStrings.ValueFromIndex[I]);
 end;
 
 procedure TEFNode.SetDataType(const AValue: TEFDataType);
@@ -1676,6 +1733,16 @@ begin
     Result := ADefaultValue;
 end;
 
+function TEFTree.GetChildrenAsStrings(const APath: string;
+  const AStrings: TStrings): Integer;
+begin
+  Assert(Assigned(AStrings));
+
+  AStrings.Text := GetChildrenAsStrings(APath);
+  Result := AStrings.Count;
+end;
+
+
 function TEFTree.GetDate(const APath: string;
   const ADefaultValue: TDate): TDate;
 var
@@ -1715,6 +1782,12 @@ end;
 procedure TEFTree.SetBoolean(const APath: string; const AValue: Boolean);
 begin
   GetNode(APath, True).AsBoolean := AValue;
+end;
+
+procedure TEFTree.SetChildrenAsStrings(const APath: string;
+  const AStrings: TStrings);
+begin
+  GetNode(APath, True).SetChildStrings(AStrings);
 end;
 
 procedure TEFTree.SetChildValuesfromStrings(const AStrings: TStrings;
@@ -1818,13 +1891,20 @@ end;
 { TEFTreeFactory }
 
 class function TEFTreeFactory.LoadFromFile<T>(const AFileName: string): T;
+begin
+  Result := T.Create;
+  ReloadFromFile(Result, AFileName);
+end;
+
+class procedure TEFTreeFactory.ReloadFromFile(const ATree: TEFTree; const AFileName: string);
 var
   LReader: TEFYAMLReader;
 begin
+  Assert(Assigned(ATree));
+
   LReader := TEFYAMLReader.Create;
   try
-    Result := T.Create;
-    LReader.LoadTreeFromFile(Result, AFileName);
+    LReader.LoadTreeFromFile(ATree, AFileName);
   finally
     FreeAndNil(LReader);
   end;

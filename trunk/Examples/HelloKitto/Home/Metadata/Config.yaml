@@ -1,7 +1,7 @@
 AppTitle: Peoria Girls and their Dolls
 
 Databases:
-  # Switch Main and Other to swicth databases.
+  # Switch Main and Other to switch databases.
 
   Main: DBX
     Connection:

@@ -59,6 +59,7 @@ type
     procedure DisplayHomeView;
     procedure DisplayLoginWindow;
     function GetConfig: TKConfig;
+    procedure ClearStatus;
     class constructor Create;
     class destructor Destroy;
   protected
@@ -332,10 +333,16 @@ begin
   begin
     LController := TKExtControllerFactory.Instance.CreateController(AView, FViewHost);
     LController.Display;
-    FViewHost.SetActiveTab(FViewHost.Items.Count - 1);
-    if Assigned(FStatusHost) then
-      FStatusHost.ClearStatus;
+    if LController.SupportsContainer then
+      FViewHost.SetActiveTab(FViewHost.Items.Count - 1);
+    ClearStatus;
   end;
+end;
+
+procedure TKExtSession.ClearStatus;
+begin
+  if Assigned(FStatusHost) then
+    FStatusHost.ClearStatus;
 end;
 
 procedure TKExtSession.EnumUploadedFiles(
