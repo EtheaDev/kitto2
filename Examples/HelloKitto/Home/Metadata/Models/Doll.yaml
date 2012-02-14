@@ -17,11 +17,11 @@ Fields:
   Dress_Size: String(4)
     DisplayWidth: 8
     AllowedValues:
-      XS: Extra Small
-      S: Small
-      M: Medium
-      L: Large
-      XL: Extra Large
+      XS: _(Extra Small)
+      S: _(Small)
+      M: _(Medium)
+      L: _(Large)
+      XL: _(Extra Large)
   Mom: Reference(Girl) not null
     Fields:
       Mom_Id:
@@ -29,3 +29,7 @@ Fields:
     DisplayWidth: 40
     Rules:
       MaxLength: 1024
+  Picture: Blob
+    Hint: Select a picture
+    MaxUploadSize: 102400
+    .DefaultFileName: test.gif

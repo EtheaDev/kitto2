@@ -35,7 +35,7 @@ implementation
 
 uses
   SysUtils, Forms, Classes, SvcMgr, ShlObj,
-  EF.SysUtils, EF.Logger,
+  EF.SysUtils, EF.Logger, EF.Localization,
   Kitto.Config,
   Kitto.Ext.MainFormUnit, Kitto.Ext.Service;
 
@@ -48,7 +48,7 @@ begin
   FServiceName := TKConfig.AppName;
   LConfig := TKConfig.Create;
   try
-    FServiceDisplayName := LConfig.AppTitle;
+    FServiceDisplayName := _(LConfig.AppTitle);
   finally
     FreeAndNil(LConfig);
   end;

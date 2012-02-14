@@ -28,6 +28,7 @@ interface
 
 uses
   Classes,
+  gnugettext,
   EF.Intf, EF.Localization;
   
 type
@@ -39,6 +40,8 @@ type
   ///	</remarks>
   TEFdxgettextLocalizationTool = class(TEFNoRefCountObject, IInterface,
     IEFInterface, IEFLocalizationTool)
+  private
+    FInstance: TGnuGettextInstance;
   public
     function AsObject: TObject;
     function TranslateString(const AString: string;
@@ -47,18 +50,20 @@ type
     procedure ForceLanguage(const ALanguageId: string);
     function GetCurrentLanguageId: string;
     procedure AfterConstruction; override;
+    destructor Destroy; override;
   end;
 
 implementation
 
 uses
-  gnugettext;
-  
+  SysUtils;
+
 { TEFdxgettextLocalizationTool }
 
 procedure TEFdxgettextLocalizationTool.AfterConstruction;
 begin
   inherited;
+  FInstance := TGnuGettextInstance.Create;
 end;
 
 function TEFdxgettextLocalizationTool.AsObject: TObject;
@@ -66,25 +71,31 @@ begin
   Result := Self;
 end;
 
+destructor TEFdxgettextLocalizationTool.Destroy;
+begin
+  FreeAndNil(FInstance);
+  inherited;
+end;
+
 procedure TEFdxgettextLocalizationTool.ForceLanguage(const ALanguageId: string);
 begin
-  gnugettext.UseLanguage(ALanguageId);
+  FInstance.UseLanguage(ALanguageId);
 end;
 
 function TEFdxgettextLocalizationTool.GetCurrentLanguageId: string;
 begin
-  Result := gnugettext.GetCurrentLanguage;
+  Result := FInstance.GetCurrentLanguage;
 end;
 
 procedure TEFdxgettextLocalizationTool.TranslateComponent(const AComponent: TComponent);
 begin
-  gnugettext.TranslateComponent(AComponent);
+  FInstance.TranslateComponent(AComponent);
 end;
 
 function TEFdxgettextLocalizationTool.TranslateString(const AString,
   AIdString: string): string;
 begin
-  Result := gnugettext.gettext(AString);
+  Result := FInstance.gettext(AString);
 end;
 
 initialization

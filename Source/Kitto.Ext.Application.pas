@@ -46,7 +46,7 @@ implementation
 
 uses
   SysUtils,
-  EF.Logger,
+  EF.Logger, EF.Localization,
   Kitto.Config,
   Kitto.Ext.Session;
 
@@ -62,7 +62,7 @@ begin
     FAppTitle := LConfig.AppTitle;
     FTCPPort := LConfig.Config.GetInteger('FastCGI/TCPPort', 2014);
     FSessionTimeout := LConfig.Config.GetInteger('FastCGI/SessionTimeout', 30);
-    TEFLogger.Instance.Log('AppTitle: ' + FAppTitle);
+    TEFLogger.Instance.Log('AppTitle: ' + _(FAppTitle));
     TEFLogger.Instance.LogFmt('TCPPort: %d', [FTCPPort]);
     TEFLogger.Instance.LogFmt('SessionTimeout: %d', [FSessionTimeout]);
   finally
@@ -80,7 +80,7 @@ end;
 procedure TKExtAppThread.Execute;
 begin
   FreeAndNil(Application);
-  Application := CreateWebApplication(FAppTitle, TKExtSession, FTCPPort, FSessionTimeout);
+  Application := CreateWebApplication(_(FAppTitle), TKExtSession, FTCPPort, FSessionTimeout);
   Application.Run(Self);
 end;
 

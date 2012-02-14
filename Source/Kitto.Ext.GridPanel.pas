@@ -666,7 +666,7 @@ begin
     on E: EKValidationError do
     begin
       LRecord.MarkAsClean;
-      ExtMessageBox.Alert(Session.Config.AppTitle, E.Message);
+      ExtMessageBox.Alert(_(Session.Config.AppTitle), E.Message);
       Exit;
     end;
   end;
@@ -820,13 +820,13 @@ end;
 function TKExtGridPanel.GetConfirmCall(const AMessage: string; const AMethod: TExtProcedure): string;
 begin
   Result := Format('confirmCall("%s", "%s", ajaxSimple, {methodURL: "%s"});',
-    [Session.Config.AppTitle, AMessage, MethodURI(AMethod)]);
+    [_(Session.Config.AppTitle), AMessage, MethodURI(AMethod)]);
 end;
 
 function TKExtGridPanel.GetSelectConfirmCall(const AMessage: string; const AMethod: TExtProcedure): string;
 begin
   Result := Format('confirmCall("%s", "%s", ajaxSingleSelection, {methodURL: "%s", selModel: %s, fieldNames: "%s"});',
-    [Session.Config.AppTitle, AMessage, MethodURI(AMethod), FSelModel.JSName,
+    [_(Session.Config.AppTitle), AMessage, MethodURI(AMethod), FSelModel.JSName,
     Join(ViewTable.GetKeyFieldAliasedNames, ',')]);
 end;
 

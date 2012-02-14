@@ -40,12 +40,10 @@ type
   IEFLocalizationTool = interface(IEFInterface)
     ['{68D1ED40-99EE-44B4-BEBE-0E07700E4C61}']
 
-    ///	<summary>
-    ///	  Translates a string in the default language to a string in the
-    ///	  current language. Some tools file strings giving an Id to each of
-    ///	  them. A particular tool might require you to pass AIdString, an
-    ///	  opaque string that uniquely identifies the string to translate.
-    ///	</summary>
+    ///	<summary>Translates a string in the default language to a string in the
+    ///	current language. Some tools file strings giving an Id to each of them.
+    ///	A particular tool might require you to pass AIdString, an opaque string
+    ///	that uniquely identifies the string to translate.</summary>
     function TranslateString(const AString: string; const AIdString: string = ''): string;
 
     ///	<summary>
@@ -109,20 +107,23 @@ type
     function GetCurrentLanguageId: string;
   end;
 
-///	<summary>
-///	  Shortcut for TEFLocalizationToolRegistry.CurrentTool.TranslateString.
-///	</summary>
+///	<summary>Shortcut for
+///	TEFLocalizationToolRegistry.CurrentTool.TranslateString.</summary>
+///	<param name="AString">String to translate. If the string is enclosed by
+///	'_(' and ')', these characters are stripped.</param>
 function TranslateString(const AString: string; const AIdString: string = ''): string;
 
-///	<summary>
-///	  Shortcut for TEFLocalizationToolRegistry.CurrentTool.TranslateString.
-///	</summary>
+///	<summary>Shortcut for
+///	TEFLocalizationToolRegistry.CurrentTool.TranslateString.</summary>
+///	<param name="AString">String to translate. If the string is enclosed by
+///	'_(' and ')', these characters are stripped.</param>
 function _(const AString: string; const AIdString: string = ''): string;
 
 implementation
 
 uses
-  SysUtils;
+  SysUtils,
+  EF.StrUtils;
 
 function EFLocalizationTool: IEFLocalizationTool;
 begin
@@ -134,7 +135,7 @@ begin
   if AString = '' then
     Result := ''
   else
-    Result := EFLocalizationTool.TranslateString(AString, AIdString);
+    Result := EFLocalizationTool.TranslateString(StripPrefixAndSuffix(AString, '_(', ')'), AIdString);
 end;
 
 function _(const AString: string; const AIdString: string = ''): string;

@@ -5,13 +5,24 @@ Controller: List
 
 MainTable:
   Model: Doll
+  Fields:
+    Doll_Id:
+    Doll_Name:
+    Date_Bought:
+    Hair:
+    Dress_Size:
+    Mom:
+    Mom.Phone: Mom_Phone
+      DisplayLabel: Mom's Phone
+    Aspect:
+    Picture:
 
   Controller:
     AutoOpen: False
 
     PopupWindow:
       Width: 460
-      Height: 300
+      Height: 360
 
     Grouping:
       FieldName: Hair
@@ -29,4 +40,4 @@ MainTable:
             select GIRL_ID, GIRL_NAME 
             from GIRL order by GIRL_NAME
           # ExpressionTemplate should contain a {value} placeholder for the value field selected by the CommandText.
-          ExpressionTemplate: DOLL.MOM_ID = '{value}'
+          ExpressionTemplate: Doll.Mom_Id = '{value}'
