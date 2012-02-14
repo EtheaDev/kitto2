@@ -6,35 +6,73 @@ uses
   Kitto.Ext.Controller, Kitto.Ext.DataTool, Kitto.Ext.Base;
 
 type
-  TTestRowAction = class(TKExtDataToolController)
+  TURLToolController = class(TKExtDataToolController)
+  protected
+    procedure ExecuteTool; override;
+  end;
+
+  TTestToolController = class(TKExtDataToolController)
   protected
     procedure ExecuteTool; override;
   published
     procedure Callback;
+    procedure DownloadFile;
   end;
 
 implementation
 
 uses
-  Ext;
+  SysUtils, Classes,
+  Ext,
+  Kitto.Ext.Session;
 
-{ TTestRowAction }
+{ TTestToolController }
 
-procedure TTestRowAction.Callback;
+procedure TTestToolController.Callback;
 begin
-  ExtMessageBox.Alert('Test Action', 'This is a callback');
+  ExtMessageBox.Alert('Test Tool', 'This is a callback');
 end;
 
-procedure TTestRowAction.ExecuteTool;
+procedure TTestToolController.ExecuteTool;
 begin
   inherited;
-  ExtMessageBox.Alert('Test Action', 'This is a custom action', Ajax(Callback));
+  //ExtMessageBox.Alert('Test Tool', 'This is a custom action', RequestDownload(DownloadFile));
+  Download(DownloadFile);
+end;
+
+procedure TTestToolController.DownloadFile;
+var
+  LStream: TFileStream;
+begin
+  LStream := TFileStream.Create('c:\temp\test2.pdf', fmOpenRead);
+  try
+    Session.DownloadStream(LStream, 'customfile.pdf');
+  finally
+    FreeAndNil(LStream);
+  end;
+  //Session.DownloadFile('c:\temp\test2.pdf');
+end;
+
+{ TURLToolController }
+
+procedure TURLToolController.ExecuteTool;
+var
+  LAddr: string;
+begin
+  inherited;
+  LAddr := Session.RequestHeader['REMOTE_ADDR'];
+  if LAddr = '127.0.0.1' then
+    Session.Navigate('http://www.ethea.it')
+  else
+    Session.Navigate('http://www.sencha.com');
 end;
 
 initialization
-  TKExtControllerRegistry.Instance.RegisterClass('TestRowAction', TTestRowAction);
+  TKExtControllerRegistry.Instance.RegisterClass('TestTool', TTestToolController);
+  TKExtControllerRegistry.Instance.RegisterClass('URLTool', TURLToolController);
 
 finalization
-  TKExtControllerRegistry.Instance.UnregisterClass('TestRowAction');
+  TKExtControllerRegistry.Instance.UnregisterClass('TestTool');
+  TKExtControllerRegistry.Instance.UnregisterClass('URLTool');
 
 end.

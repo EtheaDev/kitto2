@@ -139,7 +139,7 @@ begin
   FOldPasswordHash := TKConfig.Instance.Authenticator.Password;
 
   Modal := True;
-  Title := Session.Config.AppTitle;
+  Title := _(Session.Config.AppTitle);
   Width := 316;
   Height := 142;
   Closable := True;

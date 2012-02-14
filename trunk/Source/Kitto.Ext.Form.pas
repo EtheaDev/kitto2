@@ -229,7 +229,7 @@ begin
   except
     on E: EKValidationError do
     begin
-      ExtMessageBox.Alert(Session.Config.AppTitle, E.Message);
+      ExtMessageBox.Alert(_(Session.Config.AppTitle), E.Message);
       CancelChanges;
     end;
   end;
@@ -350,7 +350,7 @@ begin
   except
     on E: EKValidationError do
     begin
-      ExtMessageBox.Alert(Session.Config.AppTitle, E.Message);
+      ExtMessageBox.Alert(_(Session.Config.AppTitle), E.Message);
       Exit;
     end;
   end;

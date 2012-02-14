@@ -111,7 +111,7 @@ procedure TKExtLoginWindow.InitDefaults;
 
 begin
   inherited;
-  Title := Session.Config.AppTitle;
+  Title := _(Session.Config.AppTitle);
   Width := 246;
   Height := 120;
   Closable := False;

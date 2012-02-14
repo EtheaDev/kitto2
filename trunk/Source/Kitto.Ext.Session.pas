@@ -254,7 +254,7 @@ end;
 procedure TKExtSession.Flash(const AMessage: string);
 begin
   { TODO : move functionality into kitto-core.js. }
-  JSCode('Ext.example.msg("' + Config.AppTitle + '", "' + AMessage + '");');
+  JSCode('Ext.example.msg("' + _(Config.AppTitle) + '", "' + AMessage + '");');
 end;
 
 procedure TKExtSession.LoadLibraries;

@@ -234,7 +234,7 @@ begin
   TKConfig.BaseConfigFileName := AFileName;
   LConfig := TKConfig.Create;
   try
-    AppTitleLabel.Caption := Format(_('Application: %s'), [LConfig.AppTitle]);
+    AppTitleLabel.Caption := Format(_('Application: %s'), [_(LConfig.AppTitle)]);
   finally
     FreeAndNil(LConfig);
   end;

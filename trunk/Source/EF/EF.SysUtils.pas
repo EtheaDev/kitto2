@@ -210,6 +210,13 @@ function GetTempFileName(const AFileExtension: string = '.tmp'): string;
 ///	</summary>
 function GetCmdLineParamValue(const AParamName: string; const ADefaultValue: string = ''): string;
 
+///	<summary>Returns the full path of the Program Files(x86) directory, or the
+///	Program Files directory if the other does not exist.</summary>
+function GetProgramFilesx86Directory: string;
+
+///	<summary>Returns the full path of the Program Files directory.</summary>
+function GetProgramFilesDirectory: string;
+
 ///	<summary>
 ///	  Returns a random file name which doesn't exists in APath and has
 ///	  extension AExtension. Keeps generating random names until it finds a free
@@ -1067,6 +1074,20 @@ begin
       Break;
     end;
   end;
+end;
+
+function GetProgramFilesx86Directory: string;
+begin
+  Result := GetEnvironmentVariable('ProgramFiles(x86)');
+  if (Result = '') or not DirectoryExists(Result) then
+    Result := GetProgramFilesDirectory;
+end;
+
+function GetProgramFilesDirectory: string;
+begin
+  Result := GetEnvironmentVariable('ProgramFiles');
+  if (Result = '') or not DirectoryExists(Result) then
+    raise Exception.Create('Could not find Program Files directory.');
 end;
 
 procedure DeleteFile(const AFileName: string);
