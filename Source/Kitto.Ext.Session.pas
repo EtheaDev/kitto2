@@ -1,5 +1,5 @@
 ﻿{-------------------------------------------------------------------------------
-   Copyright 2011 Ethea S.r.l.
+   Copyright 2012 Ethea S.r.l.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
