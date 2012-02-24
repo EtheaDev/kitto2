@@ -76,6 +76,8 @@ type
     property ColumnNames: TStrings read FColumnNames;
   end;
 
+  TEFDBTableInfo = class;
+
   ///	<summary>
   ///	  Contains enough information to define a table's column. It is not used
   ///	  alone, but together with TEFDBTableInfo.
@@ -85,9 +87,11 @@ type
   ///	</remarks>
   TEFDBColumnInfo = class(TEFDBItemInfo)
   private
+    FTableInfo: TEFDBTableInfo;
     FIsRequired: Boolean;
     FDataType: TEFDataType;
     FSize: Integer;
+    function GetIsKey: Boolean;
   public
     property DataType: TEFDataType read FDataType write FDataType;
 
@@ -97,6 +101,10 @@ type
     ///	</summary>
     property Size: Integer read FSize write FSize;
     property IsRequired: Boolean read FIsRequired write FIsRequired;
+
+    ///	<summary>Returns True if the field is part of its table's primary
+    ///	key.</summary>
+    property IsKey: Boolean read GetIsKey;
   end;
 
   ///	<summary>
@@ -339,11 +347,20 @@ type
     function CreateDBEngineType: TEFDBEngineType; virtual;
     procedure InternalOpen; virtual; abstract;
     procedure InternalClose; virtual; abstract;
+    function InternalCreateDBInfo: TEFDBInfo; virtual; abstract;
   public
     procedure AfterConstruction; override;
     destructor Destroy; override;
   public
+    ///	<summary>A sub-object that customizes behaviour according to the
+    ///	particular database engine of this connection. May change at run-time
+    ///	(for adapters that support more than one database type, such as DBX or
+    ///	ADO) each time the connection is opened.</summary>
     property DBEngineType: TEFDBEngineType read GetDBEngineType;
+
+    ///	<summary>Creates and returns a database info object suitable to read
+    ///	database metadata.</summary>
+    function CreateDBInfo: TEFDBInfo;
 
     ///	<summary>Connects to the database.</summary>
     procedure Open; virtual;
@@ -426,10 +443,8 @@ type
   TEFDBAdapter = class(TEFComponent)
   protected
     function InternalCreateDBConnection: TEFDBConnection; virtual; abstract;
-    function InternalCreateDBInfo: TEFDBInfo; virtual; abstract;
   public
     function CreateDBConnection: TEFDBConnection;
-    function CreateDBInfo: TEFDBInfo;
   end;
   TEFDBAdapterClass = class of TEFDBAdapter;
 
@@ -538,11 +553,6 @@ begin
   Result := InternalCreateDBConnection;
 end;
 
-function TEFDBAdapter.CreateDBInfo: TEFDBInfo;
-begin
-  Result := InternalCreateDBInfo;
-end;
-
 { TEFDBConnection }
 
 procedure TEFDBConnection.AfterConnectionOpen(Sender: TObject);
@@ -599,6 +609,11 @@ end;
 function TEFDBConnection.CreateDBEngineType: TEFDBEngineType;
 begin
   Result := TEFDBEngineType.Create;
+end;
+
+function TEFDBConnection.CreateDBInfo: TEFDBInfo;
+begin
+  Result := InternalCreateDBInfo;
 end;
 
 function TEFDBConnection.GetSingletonValue(
@@ -701,6 +716,7 @@ end;
 
 function TEFDBTableInfo.AddColumn(const AColumn: TEFDBColumnInfo): Integer;
 begin
+  AColumn.FTableInfo := Self;
   Result := FColumns.Add(AColumn);
 end;
 
@@ -1017,6 +1033,15 @@ end;
 function TEFSQLServerDBEngineType.ExpandCommandText(const ACommandText: string): string;
 begin
   Result := ReplaceText(inherited ExpandCommandText(ACommandText), '%DB.CURRENT_DATE%', 'getdate()');
+end;
+
+{ TEFDBColumnInfo }
+
+function TEFDBColumnInfo.GetIsKey: Boolean;
+begin
+  Assert(Assigned(FTableInfo));
+
+  Result := FTableInfo.PrimaryKey.ColumnNames.IndexOf(Name) >= 0;
 end;
 
 end.

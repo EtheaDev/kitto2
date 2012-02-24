@@ -55,6 +55,7 @@ type
     procedure FetchTableForeignKeys(const ATable: TEFDBTableInfo);
     procedure FetchTablePrimaryKey(const ATable: TEFDBTableInfo);
   public
+    constructor Create(const AConnection: TADOConnection);
     property Connection: TADOConnection read FConnection write FConnection;
   end;
 
@@ -68,6 +69,7 @@ type
     function CreateDBEngineType: TEFDBEngineType; override;
     procedure InternalOpen; override;
     procedure InternalClose; override;
+    function InternalCreateDBInfo: TEFDBInfo; override;
   public
     procedure AfterConstruction; override;
     destructor Destroy; override;
@@ -144,7 +146,6 @@ type
   TEFDBADOAdapter = class(TEFDBAdapter)
   protected
     function InternalCreateDBConnection: TEFDBConnection; override;
-    function InternalCreateDBInfo: TEFDBInfo; override;
   end;
 
 implementation
@@ -214,6 +215,11 @@ procedure TEFDBADOConnection.InternalClose;
 begin
   if FConnection.Connected then
     FConnection.Close;
+end;
+
+function TEFDBADOConnection.InternalCreateDBInfo: TEFDBInfo;
+begin
+  Result := TEFDBADOInfo.Create(FConnection);
 end;
 
 procedure TEFDBADOConnection.StartTransaction;
@@ -561,6 +567,12 @@ begin
   end;
 end;
 
+constructor TEFDBADOInfo.Create(const AConnection: TADOConnection);
+begin
+  inherited Create;
+  FConnection := AConnection;
+end;
+
 procedure TEFDBADOInfo.FetchTableColumns(const ATable: TEFDBTableInfo);
 var
   LColumnDataSet: TADODataSet;
@@ -647,11 +659,6 @@ begin
   finally
     LForeignKeyDataSet.Free;
   end;
-end;
-
-function TEFDBADOAdapter.InternalCreateDBInfo: TEFDBInfo;
-begin
-  Result := TEFDBADOInfo.Create;
 end;
 
 initialization

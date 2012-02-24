@@ -85,6 +85,8 @@ type
     class property FormatSettings: TFormatSettings read FFormatSettings write FFormatSettings;
     procedure LoadTreeFromFile(const ATree: TEFTree; const AFileName: string);
     procedure LoadTreeFromStream(const ATree: TEFTree; const AStream: TStream);
+
+    class function LoadTree(const AFileName: string): TEFTree;
   end;
 
   ///	<summary>
@@ -104,10 +106,18 @@ type
     procedure SaveTreeToStream(const ATree: TEFTree; const AStream: TStream);
   end;
 
+function EncodeYAMLKey(const AKey: string): string;
+
 implementation
 
 uses
+  StrUtils,
   EF.Types, EF.StrUtils;
+
+function EncodeYAMLKey(const AKey: string): string;
+begin
+  Result := ReplaceStr(AKey, ':', '§');
+end;
 
 { TEFYAMLParser }
 
@@ -238,6 +248,24 @@ begin
   Result := FParser;
 end;
 
+class function TEFYAMLReader.LoadTree(const AFileName: string): TEFTree;
+var
+  LInstance: TEFYAMLReader;
+begin
+  LInstance := TEFYAMLReader.Create;
+  try
+    Result := TEFTree.Create;
+    try
+      LInstance.LoadTreeFromFile(Result, AFileName);
+    except
+      FreeAndNil(Result);
+      raise;
+    end;
+  finally
+    FreeAndNil(LInstance);
+  end;
+end;
+
 procedure TEFYAMLReader.LoadTreeFromFile(const ATree: TEFTree; const AFileName: string);
 var
   LFileStream: TFileStream;
@@ -359,6 +387,7 @@ begin
   LIndent := 0;
   LWriter := TStreamWriter.Create(AStream, TEncoding.UTF8);
   try
+    ATree.BeforeSave;
     for I := 0 to ATree.ChildCount - 1 do
       WriteNode(ATree.Children[I], LWriter, LIndent);
     LWriter.Flush;

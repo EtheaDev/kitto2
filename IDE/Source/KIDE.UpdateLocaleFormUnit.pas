@@ -5,10 +5,10 @@ interface
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ExtCtrls, KIDE.gettext, Vcl.StdCtrls,
-  Vcl.ActnList, Kitto.Metadata;
+  Vcl.ActnList, Kitto.Metadata, KIDE.BaseFormUnit;
 
 type
-  TUpdateLocaleForm = class(TForm)
+  TUpdateLocaleForm = class(TBaseForm)
     LocalePanel: TPanel;
     FileNamePanel: TPanel;
     StatusPanel: TPanel;
