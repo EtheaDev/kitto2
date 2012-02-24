@@ -75,6 +75,9 @@
 			<DCC_RemoteDebug>true</DCC_RemoteDebug>
 		</PropertyGroup>
 		<PropertyGroup Condition="'$(Cfg_1_Win32)'!=''">
+			<DCC_DebugDCUs>true</DCC_DebugDCUs>
+			<Icon_MainIcon>..\Bin\icon.ico</Icon_MainIcon>
+			<Debugger_RunParams>C:\Users\nandod\Ethea\CoWeb3\Home\CoWeb3.kproj</Debugger_RunParams>
 			<VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
 			<VerInfo_Locale>1033</VerInfo_Locale>
 			<DCC_RemoteDebug>false</DCC_RemoteDebug>
@@ -97,14 +100,36 @@
 			<DCCReference Include="KIDE.Project.pas"/>
 			<DCCReference Include="KIDE.Shell.pas"/>
 			<DCCReference Include="DirWatcher.pas"/>
-			<DCCReference Include="KIDE.ModelWizardFormUnit.pas">
-				<Form>ModelWizardForm</Form>
+			<DCCReference Include="KIDE.BaseWizardFormUnit.pas">
+				<Form>BaseWizardForm</Form>
 			</DCCReference>
 			<DCCReference Include="KIDE.UpdateLocaleFormUnit.pas">
 				<Form>UpdateLocaleForm</Form>
 			</DCCReference>
 			<DCCReference Include="KIDE.Utils.pas"/>
 			<DCCReference Include="KIDE.gettext.pas"/>
+			<DCCReference Include="KIDE.BaseFormUnit.pas">
+				<Form>BaseForm</Form>
+			</DCCReference>
+			<DCCReference Include="KIDE.ModelWizardFormUnit.pas">
+				<Form>ModelWizardForm</Form>
+			</DCCReference>
+			<DCCReference Include="KIDE.DatabaseFrameUnit.pas">
+				<Form>DatabaseFrame</Form>
+				<DesignClass>TFrame</DesignClass>
+			</DCCReference>
+			<DCCReference Include="KIDE.ModelCreator.pas"/>
+			<DCCReference Include="KIDE.MetadataHelpers.pas"/>
+			<DCCReference Include="KIDE.SplashFormUnit.pas">
+				<Form>SplashForm</Form>
+			</DCCReference>
+			<DCCReference Include="KIDE.ModelUpdateActionFrameUnit.pas">
+				<Form>ModelUpdateActionFrame</Form>
+				<DesignClass>TFrame</DesignClass>
+			</DCCReference>
+			<DCCReference Include="KIDE.WaitFormUnit.pas">
+				<Form>WaitForm</Form>
+			</DCCReference>
 			<BuildConfiguration Include="Release">
 				<Key>Cfg_2</Key>
 				<CfgParent>Base</CfgParent>

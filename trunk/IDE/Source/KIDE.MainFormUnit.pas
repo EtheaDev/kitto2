@@ -47,6 +47,8 @@ type
     UpdateLocaleFilesAction: TAction;
     TreePopupMenu: TPopupMenu;
     ApplicationEvents: TApplicationEvents;
+    NewProjectAction: TAction;
+    NewProjectDialog: TSaveDialog;
     procedure FileTreeViewCreateNodeClass(Sender: TCustomTreeView;
       var NodeClass: TTreeNodeClass);
     procedure ExitActionExecute(Sender: TObject);
@@ -65,6 +67,7 @@ type
     procedure UpdateLocaleFilesActionExecute(Sender: TObject);
     procedure TreePopupMenuPopup(Sender: TObject);
     procedure ApplicationEventsHint(Sender: TObject);
+    procedure NewProjectActionExecute(Sender: TObject);
   private
     procedure RebuildRecentProjectsMenu;
     procedure DoOpenProject(const AFileName: string);
@@ -72,6 +75,7 @@ type
     procedure SetStatus(const AMessage: string; const AArgs: array of const); overload;
     procedure SetStatus(const AMessage: string); overload;
     function GetSelectedFileTreeNode: TFileTreeNode;
+    procedure DoNewProject(const AFileName: string);
   public
     destructor Destroy; override;
   end;
@@ -84,6 +88,7 @@ implementation
 {$R *.dfm}
 
 uses
+  EF.Localization, EF.SysUtils,
   KIDE.MRUOptions, KIDE.ModelWizardFormUnit;
 
 procedure TMainForm.ApplicationEventsHint(Sender: TObject);
@@ -164,6 +169,9 @@ begin
     Height := TMRUOptions.Instance.GetInteger('MainForm/Height', Height);
   end;
   RebuildRecentProjectsMenu;
+
+  if (ParamCount = 1) and FileExists(ParamStr(1)) then
+    DoOpenProject(ParamStr(1));
 end;
 
 procedure TMainForm.ModelWizardActionExecute(Sender: TObject);
@@ -182,6 +190,17 @@ end;
 procedure TMainForm.ModelWizardActionUpdate(Sender: TObject);
 begin
   (Sender as TAction).Enabled := Assigned(TProject.CurrentProject);
+end;
+
+procedure TMainForm.NewProjectActionExecute(Sender: TObject);
+begin
+  NewProjectDialog.InitialDir := TMRUOptions.Instance.GetString('LastDir');
+
+  if NewProjectDialog.Execute(Handle) then
+  begin
+    DoNewProject(NewProjectDialog.FileName);
+    TMRUOptions.Instance.StoreString('LastDir', TProject.CurrentProject.Directory);
+  end;
 end;
 
 procedure TMainForm.OpenProjectActionExecute(Sender: TObject);
@@ -216,6 +235,20 @@ begin
   SetStatus('Project %s opened.', [TProject.CurrentProject.FileName]);
 end;
 
+procedure TMainForm.DoNewProject(const AFileName: string);
+begin
+  if not IsDirectoryEmpty(ExtractFilePath(AFileName)) then
+    if MessageDlg(_('The chosen directory is not empty. Files may be overwritten. Are you sure you want to continue?'), mtWarning, [mbYes, mbNo], 0) <> mrYes then
+      Abort;
+
+  { TODO : ask to save pending changes }
+  TProject.NewProject(AFileName);
+  TMRUOptions.Instance.StoreMRUItem('RecentProjects', TProject.CurrentProject.FileName);
+  RefreshFilesTreeView(FileTreeView, TProject.CurrentProject);
+  UpdateCaption;
+  SetStatus('Project %s created.', [TProject.CurrentProject.FileName]);
+end;
+
 procedure TMainForm.RebuildRecentProjectsMenu;
 const
   RECENT_PROJECTS_CAT = 'RecentProjects';
@@ -230,8 +263,11 @@ begin
     if ActionManager.Actions[I].Category = RECENT_PROJECTS_CAT then
       ActionManager.Actions[I].Free;
 
+  { TODO : find a more reliable way to identify the parent item. }
   LParentItem := ActionManager.ActionBars[1].Items[0].Items[1];
-  LParentItem.Items.Clear;
+  for I := LParentItem.Items.Count - 1 downto 2 do
+    LParentItem.Items.Delete(I);
+  //LParentItem.Items.Clear;
 
   LItems := TStringList.Create;
   try
@@ -255,6 +291,10 @@ procedure TMainForm.RefreshFileTreeActionExecute(Sender: TObject);
 begin
   Assert(Assigned(TProject.CurrentProject));
 
+{ TODO : check if any changes are pending and ask }
+  TProject.CurrentProject.Config.InvalidateConfig;
+  TProject.CurrentProject.Config.Models.Open;
+  TProject.CurrentProject.Config.Views.Open;
   RefreshFilesTreeView(FileTreeView, TProject.CurrentProject);
 end;
 
@@ -284,7 +324,6 @@ var
   LNode: TFileTreeNode;
   I: Integer;
   LItem: TFileTreeMenuItem;
-  LMetadata: TFileActionMetadata;
 begin
   TreePopupMenu.Items.Clear;
   LNode := GetSelectedFileTreeNode;
@@ -304,7 +343,7 @@ procedure TMainForm.UpdateCaption;
 var
   LCaption: string;
 begin
-  LCaption := 'KIDE';
+  LCaption := 'Kide';
   if Assigned(TProject.CurrentProject) then
     LCaption := ExtractFileName(TProject.CurrentProject.FileName) + ' - ' + LCaption;
   Caption := LCaption;

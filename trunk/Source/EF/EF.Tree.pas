@@ -253,6 +253,7 @@ type
   public
     constructor Create; virtual;
     destructor Destroy; override;
+    procedure BeforeSave; virtual;
   public
     ///	<summary>
     ///	  Creates a new tree holding a deep copy of the specified tree.
@@ -300,6 +301,17 @@ type
     ///	  Finds a child node by name. Returns nil if not found.
     ///	</summary>
     function FindChild(const AName: string; const ACreateMissingNodes: Boolean = False): TEFNode;
+
+    type
+      ///	<summary>Type used by FindChildByPredicate.</summary>
+      TPredicate = reference to function (const ANode: TEFNode): Boolean;
+
+    ///	<summary>
+    ///	  Finds a child node by predicate. The predicate function is called
+    ///   for each child and should return True if a child qualifies.
+    ///   If no qualifying child is found, the method return nil.
+    ///	</summary>
+    function FindChildByPredicate(const APredicate: TPredicate): TEFNode;
 
     ///	<summary>
     ///	  Finds a child node by name. Raises an exception if not found.
@@ -1471,6 +1483,10 @@ begin
       AddChild(GetChildClass(LNode.Name).Clone(LNode));
 end;
 
+procedure TEFTree.BeforeSave;
+begin
+end;
+
 procedure TEFTree.Clear;
 begin
   ClearChildren;
@@ -1542,20 +1558,31 @@ begin
 end;
 
 function TEFTree.FindChild(const AName: string; const ACreateMissingNodes: Boolean): TEFNode;
+begin
+  Result := FindChildByPredicate(
+    function (const ANode: TEFNode): Boolean
+    begin
+      Result := SameText(ANode.Name, AName);
+    end);
+  if (Result = nil) and ACreateMissingNodes then
+    Result := AddChild(AName, '');
+end;
+
+function TEFTree.FindChildByPredicate(const APredicate: TPredicate): TEFNode;
 var
   I: Integer;
 begin
+  Assert(Assigned(APredicate));
+
   Result := nil;
   for I := 0 to ChildCount - 1 do
   begin
-    if SameText(Children[I].Name, AName) then
+    if APredicate(Children[I]) then
     begin
       Result := Children[I];
       Break;
     end;
   end;
-  if (Result = nil) and ACreateMissingNodes then
-    Result := AddChild(AName, '');
 end;
 
 function TEFTree.ChildByName(const AName: string): TEFNode;

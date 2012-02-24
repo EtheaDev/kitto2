@@ -4,10 +4,15 @@ interface
 
 function ExtractLocaleNameFromFileName(const AFileName: string): string;
 
+procedure NotImplemented;
+
+function GetKIDEVersion: string;
+
 implementation
 
 uses
-  EF.StrUtils;
+  SysUtils, Dialogs,
+  EF.StrUtils, EF.Localization;
 
 function ExtractLocaleNameFromFileName(const AFileName: string): string;
 var
@@ -23,6 +28,27 @@ begin
   end
   else
     Result := AFileName;
+end;
+
+procedure NotImplemented;
+begin
+  MessageDlg(_('Not yet implemented.'), mtInformation, [mbOK], 0);
+end;
+
+function GetBuildDateTimeAsString: string;
+var
+  LDateTime: TDateTime;
+begin
+  if FileAge(ParamStr(0), LDateTime) then
+    Result := DateTimeToStr(LDateTime)
+  else
+    Result := _('unknown datetime');
+end;
+
+function GetKIDEVersion: string;
+begin
+  Result := Format(_('Pre-Release. Built on %s'),
+    [GetBuildDateTimeAsString]);
 end;
 
 end.

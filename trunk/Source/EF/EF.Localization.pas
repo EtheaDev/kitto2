@@ -122,7 +122,7 @@ function _(const AString: string; const AIdString: string = ''): string;
 implementation
 
 uses
-  SysUtils,
+  SysUtils, StrUtils,
   EF.StrUtils;
 
 function EFLocalizationTool: IEFLocalizationTool;
@@ -134,8 +134,10 @@ function TranslateString(const AString: string; const AIdString: string = ''): s
 begin
   if AString = '' then
     Result := ''
+  else if StartsStr('_(', AString) and EndsStr(')', AString) then
+    Result := EFLocalizationTool.TranslateString(StripPrefixAndSuffix(AString, '_(', ')'), AIdString)
   else
-    Result := EFLocalizationTool.TranslateString(StripPrefixAndSuffix(AString, '_(', ')'), AIdString);
+    Result := EFLocalizationTool.TranslateString(AString, AIdString);
 end;
 
 function _(const AString: string; const AIdString: string = ''): string;

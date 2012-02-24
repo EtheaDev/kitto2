@@ -44,6 +44,7 @@ type
     procedure FetchTablePrimaryKey(const ATable: TEFDBTableInfo);
     procedure GetIndexSegments(const AIndexName: string; const AList: TStrings);
   public
+    constructor Create(const AConnection: TSQLConnection);
     property Connection: TSQLConnection read FConnection write FConnection;
   end;
 
@@ -83,6 +84,7 @@ type
     function CreateDBEngineType: TEFDBEngineType; override;
     procedure InternalOpen; override;
     procedure InternalClose; override;
+    function InternalCreateDBInfo: TEFDBInfo; override;
   public
     procedure AfterConstruction; override;
     destructor Destroy; override;
@@ -165,7 +167,6 @@ type
   TEFDBDBXAdapter = class(TEFDBAdapter)
   protected
     function InternalCreateDBConnection: TEFDBConnection; override;
-    function InternalCreateDBInfo: TEFDBInfo; override;
   end;
 
 implementation
@@ -232,6 +233,11 @@ procedure TEFDBDBXConnection.InternalClose;
 begin
   if FConnection.Connected then
     FConnection.Close;
+end;
+
+function TEFDBDBXConnection.InternalCreateDBInfo: TEFDBInfo;
+begin
+  Result := TEFDBDBXInfo.Create(FConnection);
 end;
 
 procedure TEFDBDBXConnection.CommitTransaction;
@@ -597,11 +603,6 @@ begin
   Result := TEFDBDBXConnection.Create;
 end;
 
-function TEFDBDBXAdapter.InternalCreateDBInfo: TEFDBInfo;
-begin
-  Result := TEFDBDBXInfo.Create;
-end;
-
 { TEFDBDBXInfo }
 
 procedure TEFDBDBXInfo.BeforeFetchInfo;
@@ -641,6 +642,12 @@ begin
   finally
     LTableQuery.Free;
   end;
+end;
+
+constructor TEFDBDBXInfo.Create(const AConnection: TSQLConnection);
+begin
+  inherited Create;
+  FConnection := AConnection;
 end;
 
 procedure TEFDBDBXInfo.FetchTableColumns(const ATable: TEFDBTableInfo);

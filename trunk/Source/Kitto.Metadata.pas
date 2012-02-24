@@ -113,6 +113,9 @@ type
     property ObjectCount: Integer read GetObjectCount;
     property Objects[I: Integer]: TKMetadata read GetObject;
     function FindObject(const AName: string): TKMetadata;
+    type TPredicate = reference to function (const AObject: TKMetadata): Boolean;
+    function FindObjectByPredicate(const APredicate: TPredicate): TKMetadata;
+
     function ObjectByName(const AName: string): TKMetadata;
 
     function ObjectByNode(const ANode: TEFNode): TKMetadata;
@@ -305,6 +308,27 @@ begin
   end
   else
     Result := nil;
+end;
+
+function TKMetadataCatalog.FindObjectByPredicate(
+  const APredicate: TPredicate): TKMetadata;
+var
+  I: Integer;
+begin
+  Assert(Assigned(APredicate));
+
+  for I := 0 to FIndex.Count - 1 do
+  begin
+    Result := FIndex.Objects[I] as TKMetadata;
+    if Result = nil then
+    begin
+      Result := LoadObject(FIndex[I]);
+      FIndex.Objects[I] := Result;
+    end;
+    if APredicate(Result) then
+      Exit;
+  end;
+  Result := nil;
 end;
 
 function TKMetadataCatalog.ObjectByName(const AName: string): TKMetadata;

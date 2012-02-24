@@ -24,6 +24,7 @@ type
 
     procedure StoreString(const AKey, AValue: string);
     procedure StoreInteger(const AKey: string; const AValue: Integer);
+    procedure StoreBoolean(const AKey: string; const AValue: Boolean);
     procedure StoreMRUItem(const AKey, AValue: string);
 
     procedure Save;
@@ -69,6 +70,12 @@ begin
   finally
     FreeAndNil(LWriter);
   end;
+end;
+
+procedure TMRUOptions.StoreBoolean(const AKey: string; const AValue: Boolean);
+begin
+  SetBoolean(AKey, AValue);
+  Save;
 end;
 
 procedure TMRUOptions.StoreInteger(const AKey: string; const AValue: Integer);

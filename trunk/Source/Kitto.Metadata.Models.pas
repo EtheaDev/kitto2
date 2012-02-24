@@ -57,8 +57,12 @@ type
 
   TKModelFields = class;
 
+  TKModelField = class;
+
+  TKModelFieldPredicate = reference to function(const AField: TKModelField): Boolean;
+
   TKModelField = class(TKMetadataItem)
-  private
+  strict private
     function GetFieldName: string;
     function GetDataType: TEFDataType;
     function GetSize: Integer;
@@ -93,13 +97,22 @@ type
     function GetDisplayFormat: string;
     function GetQualifiedFieldNameOrExpression: string;
     function GetFieldNameOrExpression: string;
-  protected
+    function GetIsContained: Boolean;
+    function GetDBFieldName: string;
+    function GetPhysicalName: string; protected
     procedure GetFieldSpec(out ADataType: TEFDataType; out ASize: Integer;
       out AIsRequired: Boolean; out AIsKey: Boolean; out AReferencedModel: string);
     function GetChildClass(const AName: string): TEFNodeClass; override;
   public
+    procedure BeforeSave; override;
+  public
     property Model: TKModel read GetModel;
     property FieldName: string read GetFieldName;
+    property PhysicalName: string read GetPhysicalName;
+
+    ///	<summary>Returns the PhysicalName or, if not specified, the
+    ///	FieldName.</summary>
+    property DBFieldName: string read GetDBFieldName;
     property FieldNameOrExpression: string read GetFieldNameOrExpression;
     property QualifiedFieldName: string read GetQualifiedFieldName;
     property QualifiedFieldNameOrExpression: string read GetQualifiedFieldNameOrExpression;
@@ -114,6 +127,9 @@ type
     ///	reference fields), returns the parent field, otherwise nil.</summary>
     property ParentField: TKModelField read GetParentField;
 
+    ///	<summary>Returns True if the field has a ParentField.</summary>
+    property IsContained: Boolean read GetIsContained;
+
     ///	<summary>True if the field is a reference.</summary>
     property IsReference: Boolean read GetIsReference;
 
@@ -127,6 +143,8 @@ type
 
     function FieldByName(const AName: string): TKModelField;
     function FindField(const AName: string): TKModelField;
+    function FindFieldByPhysicalName(const APhysicalName: string): TKModelField;
+    function FindFieldByPredicate(const APredicate: TKModelFieldPredicate): TKModelField;
 
     ///	<summary>Returna the names of the sub-fields, if any.</summary>
     function GetFieldNames: TStringDynArray;
@@ -226,6 +244,8 @@ type
   public
     function FieldByName(const AName: string): TKModelField;
     function FindField(const AName: string): TKModelField;
+    function FindFieldByPhysicalName(const APhysicalName: string): TKModelField;
+    function FindFieldByPredicate(const APredicate: TKModelFieldPredicate): TKModelField;
     property FieldCount: Integer read GetFieldCount;
     property Fields[I: Integer]: TKModelField read GetField; default;
     function GetFieldNames: TStringDynArray;
@@ -289,7 +309,6 @@ type
     function GetModelName: string;
     function GetDisplayLabel: string;
     function GetPluralDisplayLabel: string;
-    function BeautifyModelName(const AModelName: string): string;
     function GetIsReadOnly: Boolean;
     function GetDefaultSorting: string;
     function GetIsLarge: Boolean;
@@ -303,7 +322,10 @@ type
     function GetKeyField(I: Integer): TKModelField;
     function GetKeyFieldCount: Integer;
     function GetCatalog: TKModels;
+    function GetDBTableName: string;
+    function GetPhysicalName: string;
     const DEFAULT_IMAGE_NAME = 'default_model';
+    class function BeautifyModelName(const AModelName: string): string;
   protected
     function GetFields: TKModelFields;
     function GetChildClass(const AName: string): TEFNodeClass; override;
@@ -312,6 +334,13 @@ type
     property Catalog: TKModels read GetCatalog;
 
     property ModelName: string read GetModelName;
+
+    property PhysicalName: string read GetPhysicalName;
+
+    ///	<summary>Returns the physical database table name (PhysicalName
+    ///	property) or, if not specified, the ModelName. It is the name to be
+    ///	used to update the physical table.</summary>
+    property DBTableName: string read GetDBTableName;
     property DisplayLabel: string read GetDisplayLabel;
     property PluralDisplayLabel: string read GetPluralDisplayLabel;
     property ImageName: string read GetImageName;
@@ -320,6 +349,7 @@ type
     property Fields[I: Integer]: TKModelField read GetField;
     function FieldByName(const AName: string): TKModelField;
     function FindField(const AName: string): TKModelField;
+    function FindFieldByPhysicalName(const APhysicalName: string): TKModelField;
 
     function GetKeyFieldNames(const AQualify: Boolean = False): TStringDynArray;
     property KeyFieldCount: Integer read GetKeyFieldCount;
@@ -336,7 +366,28 @@ type
 
     ///	<summary>If there's exactly one field referencing the specified model,
     ///	it is returned. Otherwise the method returns nil.</summary>
-    function FindReferenceField(const AModel: TKModel): TKModelField;
+    function FindReferenceField(const AModel: TKModel): TKModelField; overload;
+
+    ///	<summary>Finds and returns a field referencing a model with the
+    ///	specified name and all subfields listed in the specified field name
+    ///	array (and only these), otherwise nil.</summary>
+    ///	<param name="AModelName">Name of the referenced model.</param>
+    ///	<param name="AFieldNames">Names of the referencing fields.</param>
+    ///	<remarks>If AFieldNames contains only one item, a same-named reference
+    ///	field with no subfields does qualify as a return value. If AFieldNames
+    ///	contains several items (indicating a multi-field reference) then the
+    ///	name of the field does not matter and only the subfields
+    ///	contribute.</remarks>
+    function FindReferenceField(const AModelName: string;
+      const AFieldNames: TStringDynArray): TKModelField; overload;
+
+    ///	<summary>If a reference field with a ForeignKeyName property equals to
+    ///	the specified name exists, it is returned. Otherwise nil is
+    ///	returned.</summary>
+    ///	<param name="AForeignKeyName">Name of the database-level foreign
+    ///	key.</param>
+    ///	<remarks>Not all reference fields have a ForeignKeyName set.</remarks>
+    function FindReferenceField(const AForeignKeyName: string): TKModelField; overload;
 
     property IsReadOnly: Boolean read GetIsReadOnly;
     property DefaultFilter: string read GetDefaultFilter;
@@ -372,6 +423,7 @@ type
     property Models[I: Integer]: TKModel read GetModel; default;
     function ModelByName(const AName: string): TKModel;
     function FindModel(const AName: string): TKModel;
+    function FindModelByPhysicalName(const APhysicalName: string): TKModel;
   end;
 
 ///	<summary>Returns the input value unless it's a supported literal, in which
@@ -434,6 +486,69 @@ begin
   Result := GetFields.FindField(AName);
 end;
 
+function TKModel.FindFieldByPhysicalName(const APhysicalName: string): TKModelField;
+begin
+  Result := GetFields.FindFieldByPhysicalName(APhysicalName);
+end;
+
+function TKModel.FindReferenceField(const AForeignKeyName: string): TKModelField;
+var
+  I: Integer;
+begin
+  Assert(AForeignKeyName <> '');
+
+  Result := nil;
+  for I := 0 to FieldCount - 1 do
+  begin
+    if Fields[I].IsReference and SameText(Fields[I].GetString('FireignKeyName'), AForeignKeyName) then
+    begin
+      Result := Fields[I];
+      Break;
+    end;
+  end;
+end;
+
+function TKModel.FindReferenceField(const AModelName: string;
+  const AFieldNames: TStringDynArray): TKModelField;
+var
+  LFieldIdx: Integer;
+  LSubFieldIdx: Integer;
+  LFound: Boolean;
+begin
+  Assert(AModelName <> '');
+  Assert(Length(AFieldNames) > 0);
+
+  Result := nil;
+  for LFieldIdx := 0 to FieldCount - 1 do
+  begin
+    if Fields[LFieldIdx].IsReference and SameText(Fields[LFieldIdx].ReferencedModelName, AModelName) then
+    begin
+      if (Length(AFieldNames) = 1) and SameText(Fields[LFieldIdx].FieldName, AFieldNames[0]) then
+      begin
+        Result := Fields[LFieldIdx];
+        Break;
+      end
+      else if (Length(AFieldNames) > 1) and (Length(AFieldNames) = Fields[LFieldIdx].FieldCount) then
+      begin
+        LFound := True;
+        for LSubFieldIdx := Low(AFieldNames) to High(AFieldNames) do
+        begin
+          if Fields[LFieldIdx].FindField(AFieldNames[LSubFieldIdx]) = nil then
+          begin
+            LFound := False;
+            Break;
+          end;
+        end;
+        if LFound then
+        begin
+          Result := Fields[LFieldIdx];
+          Break;
+        end;
+      end;
+    end;
+  end;
+end;
+
 function TKModel.FindReferenceField(const AModel: TKModel): TKModelField;
 var
   I: Integer;
@@ -449,6 +564,8 @@ begin
     begin
       Result := Fields[I];
       Inc(LCount);
+      if LCount > 1 then
+        Break;
     end;
   end;
   if LCount <> 1 then
@@ -490,6 +607,11 @@ end;
 function TKModel.GetIsReadOnly: Boolean;
 begin
   Result := GetBoolean('IsReadOnly');
+end;
+
+function TKModel.GetPhysicalName: string;
+begin
+  Result := GetString('PhysicalName');
 end;
 
 function TKModel.GetPluralDisplayLabel: string;
@@ -610,6 +732,13 @@ begin
   Result := FindChild('DetailReferences', True) as TKModelDetailReferences;
 end;
 
+function TKModel.GetDBTableName: string;
+begin
+  Result := PhysicalName;
+  if Result = '' then
+    Result := ModelName;
+end;
+
 function TKModel.GetDefaultFilter: string;
 begin
   Result := GetString('DefaultFilter');
@@ -622,7 +751,7 @@ begin
     Result := BeautifyModelName(ModelName);
 end;
 
-function TKModel.BeautifyModelName(const AModelName: string): string;
+class function TKModel.BeautifyModelName(const AModelName: string): string;
 begin
   { TODO : allow to customize the beautifying function }
   Result := AModelName;
@@ -668,6 +797,11 @@ end;
 function TKModelField.GetHint: string;
 begin
   Result := GetString('Hint');
+end;
+
+function TKModelField.GetIsContained: Boolean;
+begin
+  Result := ParentField <> nil;
 end;
 
 function TKModelField.GetIsGenerated: Boolean;
@@ -778,6 +912,14 @@ begin
   Result := CamelToSpaced(Result);
 end;
 
+procedure TKModelField.BeforeSave;
+begin
+  inherited;
+  // Avoid storing the Fields node if it's empty.
+  if GetFields.FieldCount = 0 then
+    DeleteNode('Fields');
+end;
+
 function TKModelField.FieldByName(const AName: string): TKModelField;
 begin
   Result := GetFields.FieldByName(AName);
@@ -786,6 +928,22 @@ end;
 function TKModelField.FindField(const AName: string): TKModelField;
 begin
   Result := GetFields.FindField(AName);
+end;
+
+function TKModelField.FindFieldByPhysicalName(
+  const APhysicalName: string): TKModelField;
+begin
+  Result := GetFields.FindFieldByPhysicalName(APhysicalName);
+end;
+
+function TKModelField.FindFieldByPredicate(
+  const APredicate: TKModelFieldPredicate): TKModelField;
+begin
+  Result := FindChildByPredicate(
+    function (const ANode: TEFNode): Boolean
+    begin
+      Result := APredicate(ANode as TKModelField);
+    end) as TKModelField;
 end;
 
 function TKModelField.GetAllowedValues: TEFPairs;
@@ -826,6 +984,13 @@ begin
     Result := ParentField.ReferencedModel.KeyFields[Index].DataType
   else
     GetFieldSpec(Result, LSize, LIsRequired, LIsKey, LReferencedModel);
+end;
+
+function TKModelField.GetDBFieldName: string;
+begin
+  Result := PhysicalName;
+  if Result = '' then
+    Result := FieldName;
 end;
 
 function TKModelField.GetDecimalPrecision: Integer;
@@ -946,6 +1111,11 @@ begin
     Result := nil;
 end;
 
+function TKModelField.GetPhysicalName: string;
+begin
+
+end;
+
 { TKModelFields }
 
 function TKModelFields.FieldByName(const AName: string): TKModelField;
@@ -965,6 +1135,50 @@ begin
     for I := 0 to FieldCount - 1 do
     begin
       Result := Fields[I].FindField(AName);
+      if Assigned(Result) then
+        Exit;
+    end;
+  end;
+end;
+
+function TKModelFields.FindFieldByPhysicalName(
+  const APhysicalName: string): TKModelField;
+var
+  I: Integer;
+begin
+  Result := FindChildByPredicate(
+  function (const ANode: TEFNode): Boolean
+    begin
+      Result := (ANode as TKModelField).PhysicalName = APhysicalName;
+    end) as TKModelField;
+  if not Assigned(Result) then
+  begin
+    for I := 0 to FieldCount - 1 do
+    begin
+      Result := Fields[I].FindFieldByPhysicalName(APhysicalName);
+      if Assigned(Result) then
+        Exit;
+    end;
+  end;
+end;
+
+function TKModelFields.FindFieldByPredicate(
+  const APredicate: TKModelFieldPredicate): TKModelField;
+var
+  I: Integer;
+  LPredicate: TEFTree.TPredicate;
+begin
+  LPredicate :=
+    function (const ANode: TEFNode): Boolean
+    begin
+      Result := APredicate(ANode as TKModelField);
+    end;
+  Result := FindChildByPredicate(LPredicate) as TKModelField;
+  if not Assigned(Result) then
+  begin
+    for I := 0 to FieldCount - 1 do
+    begin
+      Result := Fields[I].FindFieldByPredicate(APredicate);
       if Assigned(Result) then
         Exit;
     end;
@@ -1019,6 +1233,15 @@ end;
 function TKModels.FindModel(const AName: string): TKModel;
 begin
   Result := FindObject(AName) as TKModel;
+end;
+
+function TKModels.FindModelByPhysicalName(const APhysicalName: string): TKModel;
+begin
+  Result := FindObjectByPredicate(
+    function (const AObject: TKMetadata): Boolean
+    begin
+      Result := SameText((AObject as TKModel).PhysicalName, APhysicalName);
+    end) as TKModel;
 end;
 
 function TKModels.GetObjectClassType: TKMetadataClass;

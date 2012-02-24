@@ -1,7 +1,7 @@
-object ModelWizardForm: TModelWizardForm
+object BaseForm: TBaseForm
   Left = 0
   Top = 0
-  Caption = 'Model Wizard'
+  Caption = 'BaseForm'
   ClientHeight = 202
   ClientWidth = 447
   Color = clBtnFace
@@ -11,6 +11,7 @@ object ModelWizardForm: TModelWizardForm
   Font.Name = 'Tahoma'
   Font.Style = []
   OldCreateOrder = False
+  ShowHint = True
   PixelsPerInch = 96
   TextHeight = 13
 end

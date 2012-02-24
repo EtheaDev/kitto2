@@ -142,6 +142,10 @@ type
     ///	  the object's operations.
     ///	</summary>
     property Config: TEFNode read GetConfig;
+
+    ///	<summary>Invalidates the internal config object so that it is
+    ///	re-created at next access.</summary>
+    procedure InvalidateConfig;
   end;
   TEFComponentClass = class of TEFComponent;
 
@@ -228,6 +232,11 @@ end;
 function TEFComponent.InternalGetId: string;
 begin
   Result := GetClassId;
+end;
+
+procedure TEFComponent.InvalidateConfig;
+begin
+  FreeAndNil(FConfig);
 end;
 
 end.

@@ -1,16 +1,6 @@
-object UpdateLocaleForm: TUpdateLocaleForm
-  Left = 0
-  Top = 0
+inherited UpdateLocaleForm: TUpdateLocaleForm
   Caption = 'Update Locale'
   ClientHeight = 105
-  ClientWidth = 447
-  Color = clBtnFace
-  Font.Charset = DEFAULT_CHARSET
-  Font.Color = clWindowText
-  Font.Height = -11
-  Font.Name = 'Tahoma'
-  Font.Style = []
-  OldCreateOrder = False
   PixelsPerInch = 96
   TextHeight = 13
   object LocalePanel: TPanel
@@ -50,8 +40,6 @@ object UpdateLocaleForm: TUpdateLocaleForm
     BevelOuter = bvNone
     Caption = 'FileNamePanel'
     TabOrder = 1
-    ExplicitLeft = 0
-    ExplicitWidth = 447
   end
   object StatusPanel: TPanel
     AlignWithMargins = True
@@ -68,7 +56,6 @@ object UpdateLocaleForm: TUpdateLocaleForm
     BevelOuter = bvNone
     Caption = 'StatusPanel'
     TabOrder = 2
-    ExplicitTop = 41
   end
   object Button1: TButton
     Left = 5

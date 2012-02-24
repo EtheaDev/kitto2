@@ -99,6 +99,10 @@ procedure FindAllFiles(const AFileFormats: array of string; const ARootPath: str
   const AFileNames: TStrings; const AIncludeSubFolders: Boolean = True;
   const AFullPaths: Boolean = True); overload;
 
+///	<summary>Returns True if the specified directory exists and is empty, False
+///	otherwise.</summary>
+function IsDirectoryEmpty(const APath: string): Boolean;
+
 ///	<summary>
 ///	  Executes an application synchronously (AWait = True) or Asynchronously
 ///	  (AWait = False). If AWait is True, the function waits that the launched
@@ -234,12 +238,12 @@ function GetFormatSettings: TFormatSettings;
 type
   TEFFileErrorAction = (eaRetry, eaSkip, eaAbort, eaFail);
 
-  TEFProcessFileNotifyEvent = procedure (Sender: TObject; const ASourceFileName,
-    ADestinationFileName: string) of object;
+  TEFProcessFileProc = reference to procedure (const ASourceFileName,
+    ADestinationFileName: string);
 
-  TEFProcessFileErrorEvent = procedure (Sender: TObject; const ASourceFileName,
+  TEFProcessFileErrorProc = reference to procedure (const ASourceFileName,
     ADestinationFileName: string; const AError: Exception;
-    var AAction: TEFFileErrorAction) of object;
+    var AAction: TEFFileErrorAction);
 
   ///	<summary>
   ///	  Abstract base class for classes that do things to a file or a set of
@@ -250,12 +254,12 @@ type
     FRecurseSubdirs: Boolean;
     FSourcePath: string;
     FDestinationPath: string;
-    FOnProcessFileError: TEFProcessFileErrorEvent;
+    FOnProcessFileError: TEFProcessFileErrorProc;
     FFileMask: string;
     FRetryCount: Integer;
     FRetryDelay: Integer;
-    FAfterProcessFile: TEFProcessFileNotifyEvent;
-    FBeforeProcessFile: TEFProcessFileNotifyEvent;
+    FAfterProcessFile: TEFProcessFileProc;
+    FBeforeProcessFile: TEFProcessFileProc;
     FDefaultErrorAction: TEFFileErrorAction;
     FExceptions: TStrings;
     procedure DoProcess(const ASourcePath, ADestinationPath: string);
@@ -348,7 +352,7 @@ type
     ///	  <br />eaAbort: Raise a silent exception (EAbort);<br />eaFail:
     ///	  Re-raise the original error.
     ///	</summary>
-    property OnProcessFileError: TEFProcessFileErrorEvent read FOnProcessFileError
+    property OnProcessFileError: TEFProcessFileErrorProc read FOnProcessFileError
       write FOnProcessFileError;
 
     ///	<summary>
@@ -363,14 +367,14 @@ type
     ///	  Fired before processing each file. The handler receives the file
     ///	  name(s) in input.
     ///	</summary>
-    property BeforeProcessFile: TEFProcessFileNotifyEvent read FBeforeProcessFile
+    property BeforeProcessFile: TEFProcessFileProc read FBeforeProcessFile
       write FBeforeProcessFile;
 
     ///	<summary>
     ///	  Fired after processing each file. The handler receives the file
     ///	  name(s) in input.
     ///	</summary>
-    property AfterProcessFile: TEFProcessFileNotifyEvent read FAfterProcessFile
+    property AfterProcessFile: TEFProcessFileProc read FAfterProcessFile
       write FAfterProcessFile;
 
     ///	<summary>
@@ -631,8 +635,8 @@ procedure CopyFile(const ASourceFileName, ADestinationFileName: string);
 ///	  use TFileCopier directly or write a different wrapper.
 ///	</summary>
 procedure CopyAllFilesAndFolders(const ASourcePath, ADestinationPath: string;
-  const ABeforeEachFile: TEFProcessFileNotifyEvent = nil;
-  const AAfterEachFile: TEFProcessFileNotifyEvent = nil);
+  const ABeforeEachFile: TEFProcessFileProc = nil;
+  const AAfterEachFile: TEFProcessFileProc = nil);
 
 ///	<summary>
 ///	  Copies all files and folders from ASourcePath to ADestinationPath, except
@@ -643,8 +647,8 @@ procedure CopyAllFilesAndFolders(const ASourcePath, ADestinationPath: string;
 procedure CopyAllFilesAndFoldersExcept(
   const ASourcePath, ADestinationPath: string;
   const AExceptions: array of string;
-  const ABeforeEachFile: TEFProcessFileNotifyEvent = nil;
-  const AAfterEachFile: TEFProcessFileNotifyEvent = nil);
+  const ABeforeEachFile: TEFProcessFileProc = nil;
+  const AAfterEachFile: TEFProcessFileProc = nil);
 
 ///	<summary>
 ///	  Checks that the specified file can be written to, otherwise raises an
@@ -1059,6 +1063,23 @@ begin
   end;
 end;
 
+function IsDirectoryEmpty(const APath: string): Boolean;
+var
+  LSearchRec: TSearchRec;
+begin
+  Result := False;
+  if DirectoryExists(APath) then
+  begin
+    try
+      Result := (FindFirst(IncludeTrailingPathDelimiter(APath) + '*.*', faAnyFile, LSearchRec) = 0)
+        and (FindNext(LSearchRec) = 0)
+        and (FindNext(LSearchRec) <> 0);
+    finally
+      FindClose(LSearchRec);
+    end;
+  end;
+end;
+
 function GetCmdLineParamValue(const AParamName: string; const ADefaultValue: string = ''): string;
 var
   LParamIndex: Integer;
@@ -1145,8 +1166,8 @@ begin
 end;
 
 procedure CopyAllFilesAndFolders(const ASourcePath, ADestinationPath: string;
-  const ABeforeEachFile: TEFProcessFileNotifyEvent;
-  const AAfterEachFile: TEFProcessFileNotifyEvent);
+  const ABeforeEachFile: TEFProcessFileProc;
+  const AAfterEachFile: TEFProcessFileProc);
 begin
   with TEFFileCopier.Create do
   begin
@@ -1165,8 +1186,8 @@ end;
 procedure CopyAllFilesAndFoldersExcept(
   const ASourcePath, ADestinationPath: string;
   const AExceptions: array of string;
-  const ABeforeEachFile: TEFProcessFileNotifyEvent = nil;
-  const AAfterEachFile: TEFProcessFileNotifyEvent = nil);
+  const ABeforeEachFile: TEFProcessFileProc = nil;
+  const AAfterEachFile: TEFProcessFileProc = nil);
 var
   LExceptionIndex: Integer;
 begin
@@ -1325,7 +1346,7 @@ function TEFFileProcessor.DoProcessFileError(const E: Exception;
 begin
   Result := FDefaultErrorAction;
   if Assigned(FOnProcessFileError) then
-    FOnProcessFileError(Self, ASourceFileName, ADestinationFileName, E, Result);
+    FOnProcessFileError(ASourceFileName, ADestinationFileName, E, Result);
 end;
 
 procedure TEFFileProcessor.ProcessFile(const ASourceFileName, ADestinationFileName: string);
@@ -1339,10 +1360,10 @@ begin
   begin
     try
       if Assigned(FBeforeProcessFile) then
-        FBeforeProcessFile(Self, ASourceFileName, ADestinationFileName);
+        FBeforeProcessFile(ASourceFileName, ADestinationFileName);
       DoProcessFile(ASourceFileName, ADestinationFileName);
       if Assigned(FAfterProcessFile) then
-        FAfterProcessFile(Self, ASourceFileName, ADestinationFileName);
+        FAfterProcessFile(ASourceFileName, ADestinationFileName);
       Break;
     except
       on E: Exception do

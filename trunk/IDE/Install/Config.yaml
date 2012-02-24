@@ -1,0 +1,11 @@
+Localization:
+  dxgettext:
+    URL: http://dxgettext.po.dk/
+  Yaml:
+    DefaultKeyNames:
+      Key: DisplayLabel
+      Key: Hint
+      Key: Folder
+      Key: ConfirmationMessage
+      Key: FreeSearch
+      Key: AppTitle

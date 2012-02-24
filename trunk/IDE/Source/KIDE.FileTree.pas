@@ -16,6 +16,7 @@ type
     procedure Clear;
   end;
 
+  // Base class for file and folder node handlers.
   TFileNodeHandler = class abstract
   protected
     function GetFileName: string; virtual;
@@ -74,6 +75,15 @@ type
     procedure ExecuteAction(const AIndex: Integer); override;
   end;
 
+  TGenericFolderNodeHandler = class(TFileNodeHandler);
+
+  TModelsFolderNodeHandler = class(TGenericFolderNodeHandler)
+  public
+    function GetActionCount: Integer; override;
+    function GetActionMetadata(const AIndex: Integer): TFileActionMetadata; override;
+    procedure ExecuteAction(const AIndex: Integer); override;
+  end;
+
   TFileTreeNode = class(TTreeNode)
   private
     FHandler: TFileNodeHandler;
@@ -81,6 +91,7 @@ type
     function GetActionMetadata(const AIndex: Integer): TFileActionMetadata;
   public
     procedure DefaultAction;
+    destructor Destroy; override;
 
     property ActionCount: Integer read GetActionCount;
     property ActionMetadata[const AIndex: Integer]: TFileActionMetadata read GetActionMetadata;
@@ -94,7 +105,7 @@ implementation
 uses
   SysUtils, StrUtils, Classes,
   EF.SysUtils, EF.StrUtils, EF.Localization,
-  KIDE.Shell, KIDE.Utils, KIDE.UpdateLocaleFormUnit;
+  KIDE.Shell, KIDE.Utils, KIDE.UpdateLocaleFormUnit, KIDE.ModelWizardFormUnit;
 
 procedure EditFile(const AFileName: string);
 begin
@@ -137,6 +148,7 @@ begin
   LParentNode := ATreeView.Items.AddChild(nil, _('Models')) as TFileTreeNode;
   LParentNode.ImageIndex := 0;
   LParentNode.SelectedIndex := LParentNode.ImageIndex;
+  LParentNode.FHandler := TModelsFolderNodeHandler.Create;
   for I := 0 to AProject.Config.Models.ModelCount - 1 do
   begin
     LModel := AProject.Config.Models[I];
@@ -242,6 +254,12 @@ procedure TFileTreeNode.DefaultAction;
 begin
   if Assigned(FHandler) then
     FHandler.ExecuteAction(0);
+end;
+
+destructor TFileTreeNode.Destroy;
+begin
+  FreeAndNil(FHandler);
+  inherited;
 end;
 
 procedure TFileTreeNode.ExecuteAction(const AIndex: Integer);
@@ -361,6 +379,35 @@ begin
     Result.DisplayLabel := _('Update...');
     Result.Hint := _('Updates the file with all translatable strings found in metadata files');
     Result.ImageIndex := 12;
+  end
+  else
+    Result := inherited GetActionMetadata(AIndex);
+end;
+
+{ TModelsFolderNodeHandler }
+
+procedure TModelsFolderNodeHandler.ExecuteAction(const AIndex: Integer);
+begin
+  if AIndex = GetActionCount - 1 then
+    TModelWizardForm.ShowDialog
+  else
+    inherited;
+end;
+
+function TModelsFolderNodeHandler.GetActionCount: Integer;
+begin
+  Result := 1;
+end;
+
+function TModelsFolderNodeHandler.GetActionMetadata(
+  const AIndex: Integer): TFileActionMetadata;
+begin
+  if AIndex = GetActionCount - 1 then
+  begin
+    Result.Clear;
+    Result.DisplayLabel := _('Update...');
+    Result.Hint := _('Updates models according to existing database tables');
+    Result.ImageIndex := 7;
   end
   else
     Result := inherited GetActionMetadata(AIndex);

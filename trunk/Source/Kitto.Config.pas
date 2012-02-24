@@ -21,7 +21,7 @@ unit Kitto.Config;
 interface
 
 uses
-  SysUtils, Generics.Collections,
+  SysUtils, Types, Generics.Collections,
   EF.Tree, EF.Macros, EF.Classes, EF.DB,
   Kitto.Metadata.Models, Kitto.Metadata.Views, Kitto.Auth, Kitto.AccessControl;
 
@@ -33,7 +33,7 @@ type
   TKGetConfig = reference to function: TKConfig;
 
   TKConfig = class(TEFComponent)
-  private
+  strict private
   class var
     FAppHomePath: string;
     FJSFormatSettings: TFormatSettings;
@@ -43,6 +43,7 @@ type
     FResourcePathsURLs: TDictionary<string, string>;
     FSystemHomePath: string;
     function GetMainDBName: string;
+    function GetDBConnectionNames: TStringDynArray;
   var
     FDBConnections: TDictionary<string, TEFDBConnection>;
     FMacroExpansionEngine: TEFMacroExpansionEngine;
@@ -61,7 +62,6 @@ type
     class procedure SetSystemHomePath(const AValue: string); static;
 
     function GetMultiFieldSeparator: string;
-    const MAIN_DB_NAME = 'Main';
     function GetAC: TKAccessController;
     function GetDBConnection(const ADatabaseName: string): TEFDBConnection;
     function GetAuthenticator: TKAuthenticator;
@@ -72,7 +72,7 @@ type
     function GetModels: TKModels;
     function GetViews: TKViews;
     procedure FinalizeDBConnections;
-  protected
+  strict protected
     function GetConfigFileName: string; override;
     class function FindSystemHomePath: string;
   public
@@ -193,12 +193,23 @@ type
     ///	access.</summary>
     property Views: TKViews read GetViews;
 
-    ///	<summary>Gives access to the database connection, created on
+    const MAIN_DB_NAME = 'Main';
+
+    ///	<summary>Gives access to the Main database connection, created on
     ///	demand.</summary>
     property MainDBConnection: TEFDBConnection read GetMainDBConnection;
 
-    ///	<summary>Returns True if the connection has been created.</summary>
+    ///	<summary>Returns True if the Main database connection has been created.
+    /// </summary>
     function HasMainDBConnection: Boolean;
+
+    ///	<summary>Gives access to a database connection by name, created on
+    ///	demand.</summary>
+    property DBConnections[const AName: string]: TEFDBConnection read GetDBConnection;
+
+    ///	<summary>Returns the names of all defined database
+    ///	connections.</summary>
+    property DBConnectionNames: TStringDynArray read GetDBConnectionNames;
 
     ///	<summary>Returns the application title, to be used for captions, about
     ///	boxes, etc.</summary>
@@ -346,6 +357,17 @@ begin
   end
   else
     Result := FDBConnections[ADatabaseName];
+end;
+
+function TKConfig.GetDBConnectionNames: TStringDynArray;
+var
+  LNode: TEFNode;
+begin
+  LNode := Config.FindNode('Databases');
+  if Assigned(LNode) then
+    Result := LNode.GetChildNames
+  else
+    Result := nil;
 end;
 
 function TKConfig.GetDBAdapter(const ADatabaseName: string): TEFDBAdapter;
@@ -645,7 +667,7 @@ var
   LName: string;
 begin
   Result := inherited InternalExpand(AString);
-  Result := ExpandMacros(Result, '%HOME_PATH%', TKConfig.GetAppHomePath);
+  Result := ExpandMacros(Result, '%HOME_PATH%', TKConfig.AppHomePath);
 
   LPosHead := Pos(IMAGE_MACRO_HEAD, Result);
   if LPosHead > 0 then

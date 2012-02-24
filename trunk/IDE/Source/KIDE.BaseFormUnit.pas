@@ -1,4 +1,4 @@
-unit KIDE.ModelWizardFormUnit;
+unit KIDE.BaseFormUnit;
 
 interface
 
@@ -7,7 +7,7 @@ uses
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs;
 
 type
-  TModelWizardForm = class(TForm)
+  TBaseForm = class(TForm)
   private
     { Private declarations }
   public
