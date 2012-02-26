@@ -599,7 +599,7 @@ begin
   CreateStoreAndView;
   CreateFilterPanel;
 
-  LKeyFieldNames := Join(ViewTable.GetKeyFieldAliasedNames(), ',');
+  LKeyFieldNames := Join(ViewTable.GetKeyFieldAliasedNames, ',');
   FGridPanel.On('rowdblclick', AjaxSelection(EditViewRecord, FSelModel, LKeyFieldNames, LKeyFieldNames, []));
 
   // By default show paging toolbar for large models.

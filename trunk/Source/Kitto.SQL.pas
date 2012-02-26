@@ -162,19 +162,19 @@ var
   LValueNames: string;
   LSubFieldIndex: Integer;
 
-  procedure AddFieldName(const AFieldName: string);
+  procedure AddFieldName(const AFieldName, AParamName: string);
   begin
     if LFieldNames = '' then
     begin
       LFieldNames := AFieldName;
-      LValueNames := ':' + AFieldName;
+      LValueNames := ':' + AParamName;
     end
     else
     begin
       LFieldNames := LFieldNames + ', ' + AFieldName;
-      LValueNames := LValueNames + ', :' + AFieldName;
+      LValueNames := LValueNames + ', :' + AParamName;
     end;
-    ADBCommand.Params.CreateParam(ftUnknown, AFieldName, ptInput);
+    ADBCommand.Params.CreateParam(ftUnknown, AParamName, ptInput);
   end;
 
 begin
@@ -187,7 +187,7 @@ begin
   ADBCommand.Params.BeginUpdate;
   try
     ADBCommand.Params.Clear;
-    LCommandText := 'insert into ' + AViewTable.ModelName + ' (';
+    LCommandText := 'insert into ' + AViewTable.Model.DBTableName + ' (';
     LFieldNames := '';
     LValueNames := '';
     for I := 0 to AValues.ChildCount - 1 do
@@ -198,10 +198,12 @@ begin
         if LViewField.IsReference then
         begin
           for LSubFieldIndex := 0 to LViewField.ModelField.FieldCount - 1 do
-            AddFieldName(LViewField.ModelField.Fields[LSubFieldIndex].FieldName);
+            AddFieldName(LViewField.ModelField.Fields[LSubFieldIndex].DBColumnName,
+              LViewField.ModelField.Fields[LSubFieldIndex].FieldName);
         end
         else
-          AddFieldName(AValues[I].Name);
+          AddFieldName(AViewTable.FieldByName(AValues[I].Name).ModelField.DBColumnName,
+            AValues[I].Name);
       end;
     end;
     LCommandText := LCommandText + LFieldNames + ') values (' + LValueNames + ')';
@@ -224,13 +226,13 @@ var
   LParamName: string;
   LSubFieldIndex: Integer;
 
-  procedure AddFieldName(const AFieldName: string);
+  procedure AddFieldName(const AFieldName, AParamName: string);
   begin
     if LFieldNames = '' then
-      LFieldNames := AFieldName + ' = :' + AFieldName
+      LFieldNames := AFieldName + ' = :' + AParamName
     else
-      LFieldNames := LFieldNames + ', ' + AFieldName + ' = :' + AFieldName;
-    ADBCommand.Params.CreateParam(ftUnknown, AFieldName, ptInput);
+      LFieldNames := LFieldNames + ', ' + AFieldName + ' = :' + AParamName;
+    ADBCommand.Params.CreateParam(ftUnknown, AParamName, ptInput);
   end;
 
 begin
@@ -243,7 +245,7 @@ begin
   ADBCommand.Params.BeginUpdate;
   try
     ADBCommand.Params.Clear;
-    LCommandText := 'update ' + AViewTable.ModelName + ' set ';
+    LCommandText := 'update ' + AViewTable.Model.DBTableName + ' set ';
     LFieldNames := '';
     for I := 0 to AValues.ChildCount - 1 do
     begin
@@ -253,14 +255,16 @@ begin
         if LViewField.IsReference then
         begin
           for LSubFieldIndex := 0 to LViewField.ModelField.FieldCount - 1 do
-            AddFieldName(LViewField.ModelField.Fields[LSubFieldIndex].FieldName);
+            AddFieldName(LViewField.ModelField.Fields[LSubFieldIndex].DBColumnName,
+              LViewField.ModelField.Fields[LSubFieldIndex].FieldName);
         end
         else
-          AddFieldName(AValues[I].Name);
+          AddFieldName(AViewTable.FieldByName(AValues[I].Name).ModelField.DBColumnName,
+            AValues[I].Name);
       end;
     end;
     LCommandText := LCommandText + LFieldNames + ' where ';
-    LKeyFields := AViewTable.Model.GetKeyFieldNames;
+    LKeyFields := AViewTable.Model.GetKeyDBColumnNames;
     for I := 0 to Length(LKeyFields) - 1 do
     begin
       LParamName := AViewTable.FieldByName(LKeyFields[I]).AliasedName;
@@ -294,8 +298,8 @@ begin
   ADBCommand.Params.BeginUpdate;
   try
     ADBCommand.Params.Clear;
-    LCommandText := 'delete from ' + AViewTable.ModelName + ' where ';
-    LKeyFields := AViewTable.Model.GetKeyFieldNames;
+    LCommandText := 'delete from ' + AViewTable.Model.DBTableName + ' where ';
+    LKeyFields := AViewTable.Model.GetKeyDBColumnNames;
     for I := 0 to Length(LKeyFields) - 1 do
     begin
       LParamName := AViewTable.FieldByName(LKeyFields[I]).AliasedName;
@@ -336,11 +340,11 @@ begin
   for LDerivedField in LDerivedFields do
   begin
     if LCommandText = '' then
-      LCommandText := LDerivedField.ModelField.FieldName
+      LCommandText := LDerivedField.ModelField.DBColumnName
     else
-      LCommandText := LCommandText + ', ' + LDerivedField.ModelField.FieldName;
+      LCommandText := LCommandText + ', ' + LDerivedField.ModelField.DBColumnName;
   end;
-  LCommandText := 'select ' + LCommandText + ' from ' + LModel.ModelName;
+  LCommandText := 'select ' + LCommandText + ' from ' + LModel.DBTableName;
 
   if ADBQuery.Prepared then
     ADBQuery.Prepared := False;
@@ -348,7 +352,7 @@ begin
   try
     ADBQuery.Params.Clear;
 
-    LKeyFieldNames := LModel.GetKeyFieldNames;
+    LKeyFieldNames := LModel.GetKeyDBColumnNames;
     Assert(Length(LKeyFieldNames) > 0);
     LClause := '';
     for I := 0 to High(LKeyFieldNames) do
@@ -402,7 +406,7 @@ var
 begin
   Assert(Assigned(FViewTable));
 
-  Result := FViewTable.ModelName;
+  Result := FViewTable.Model.DBTableName;
   for I := 0 to FUsedReferenceFields.Count - 1 do
     Result := Result + sLineBreak + BuildJoin(FUsedReferenceFields[I]);
 end;
@@ -417,11 +421,11 @@ begin
 
   LLookupModel := AViewField.ModelField.ReferencedModel;
   Result := 'select '
-    + Join(LLookupModel.GetKeyFieldNames, ', ');
+    + Join(LLookupModel.GetKeyDBColumnNames(False, True), ', ');
     if not LLookupModel.CaptionField.IsKey then
-      Result := Result + ', ' + LLookupModel.CaptionField.FieldName;
-    Result := Result + ' from ' + LLookupModel.ModelName
-    + ' order by ' + LLookupModel.CaptionField.FieldName;
+      Result := Result + ', ' + LLookupModel.CaptionField.AliasedDBColumnName;
+    Result := Result + ' from ' + LLookupModel.DBTableName
+    + ' order by ' + LLookupModel.CaptionField.DBColumnName;
   if LLookupModel.DefaultFilter <> '' then
     Result := AddToSQLWhereClause(Result, LLookupModel.DefaultFilter);
 end;
@@ -446,15 +450,15 @@ begin
 
   LCorrelationName := AReferenceField.FieldName;
 
-  Result := GetJoinKeyword + ' ' + AReferenceField.ReferencedModelName + ' ' + LCorrelationName + ' on (';
+  Result := GetJoinKeyword + ' ' + AReferenceField.ReferencedModel.DBTableName + ' ' + LCorrelationName + ' on (';
   LLocalFieldNames := AReferenceField.ReferenceFieldNames;
   Assert(Length(LLocalFieldNames) > 0);
-  LForeignFieldNames := AReferenceField.ReferencedModel.GetKeyFieldNames;
+  LForeignFieldNames := AReferenceField.ReferencedModel.GetKeyDBColumnNames;
   Assert(Length(LForeignFieldNames) = Length(LLocalFieldNames));
 
   for I := Low(LLocalFieldNames) to High(LLocalFieldNames) do
   begin
-    Result := Result + FViewTable.ModelName + '.' + LLocalFieldNames[I] + ' = '
+    Result := Result + FViewTable.Model.DBTableName + '.' + LLocalFieldNames[I] + ' = '
       + LCorrelationName + '.' + LForeignFieldNames[I];
     if I < High(LLocalFieldNames) then
       Result := Result + ' and ';
@@ -476,10 +480,10 @@ begin
 
   LFieldNames := AViewField.ModelField.ReferenceFieldNames;
   for I := Low(LFieldNames) to High(LFieldNames) do
-    AddSelectTerm(FViewTable.ModelName + '.' + LFieldNames[I]);
+    AddSelectTerm(FViewTable.Model.DBTableName + '.' + LFieldNames[I]);
   // Add the caption field of the referenced model as well.
   // The reference field name is used as table alias.
-  AddSelectTerm(AViewField.FieldName + '.' + AViewField.ModelField.ReferencedModel.CaptionField.FieldName
+  AddSelectTerm(AViewField.FieldName + '.' + AViewField.ModelField.ReferencedModel.CaptionField.DBColumnName
     + ' ' + AViewField.ModelField.FieldName);
 end;
 
@@ -500,7 +504,7 @@ begin
   if FViewTable.IsDetail then
   begin
     // Get master and detail field names...
-    LMasterFieldNames := FViewTable.MasterTable.Model.GetKeyFieldNames;
+    LMasterFieldNames := FViewTable.MasterTable.Model.GetKeyDBColumnNames;
     Assert(Length(LMasterFieldNames) > 0);
     LDetailFieldNames := FViewTable.ModelDetailReference.ReferenceField.GetFieldNames;
     Assert(Length(LDetailFieldNames) = Length(LMasterFieldNames));
@@ -509,7 +513,7 @@ begin
     begin
       // ...and alias master field names. Don'alias detail field names used in the where clause.
       LMasterFieldNames[I] := FViewTable.MasterTable.ApplyFieldAliasedName(LMasterFieldNames[I]);
-      LClause := LClause + FViewTable.ModelName + '.' + LDetailFieldNames[I] + ' = :' + LMasterFieldNames[I];
+      LClause := LClause + FViewTable.Model.DBTableName + '.' + LDetailFieldNames[I] + ' = :' + LMasterFieldNames[I];
       ADBQuery.Params.CreateParam(ftUnknown, LMasterFieldNames[I], ptInput);
       if I < High(LDetailFieldNames) then
         LClause := LClause + ' and ';

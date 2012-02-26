@@ -574,7 +574,7 @@ end;
 procedure StringToTextFile(const AString, AFileName: string;
   const AEncoding: TEncoding = nil);
 var
-  LFile: TextFile;
+  //LFile: TextFile;
   LFilePath: string;
   LWriter: TStreamWriter;
 begin

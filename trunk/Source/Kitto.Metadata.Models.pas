@@ -67,7 +67,7 @@ type
     function GetDataType: TEFDataType;
     function GetSize: Integer;
     function GetIsRequired: Boolean;
-    function GetQualifiedFieldName: string;
+    function GetQualifiedDBColumnName: string;
     function GetModel: TKModel;
     function GetDisplayLabel: string;
     function GetIsVisible: Boolean;
@@ -91,18 +91,20 @@ type
     function GetParentField: TKModelField;
     function GetField(I: Integer): TKModelField;
     function GetFieldCount: Integer;
-    function GetFields: TKModelFields;
     function GetHint: string;
     function GetEditFormat: string;
     function GetDisplayFormat: string;
-    function GetQualifiedFieldNameOrExpression: string;
+    function GetQualifiedDBColumnNameOrExpression: string;
     function GetFieldNameOrExpression: string;
     function GetIsContained: Boolean;
-    function GetDBFieldName: string;
-    function GetPhysicalName: string; protected
+    function GetDBColumnName: string;
+    function GetPhysicalName: string;
+    function GetAliasedDBColumnName: string; protected
     procedure GetFieldSpec(out ADataType: TEFDataType; out ASize: Integer;
       out AIsRequired: Boolean; out AIsKey: Boolean; out AReferencedModel: string);
     function GetChildClass(const AName: string): TEFNodeClass; override;
+  strict protected
+    function GetFields: TKModelFields;
   public
     procedure BeforeSave; override;
   public
@@ -112,10 +114,16 @@ type
 
     ///	<summary>Returns the PhysicalName or, if not specified, the
     ///	FieldName.</summary>
-    property DBFieldName: string read GetDBFieldName;
+    property DBColumnName: string read GetDBColumnName;
+
+    ///	<summary>Returns the physical column name (DBColumnName) plus, if the
+    ///	field has a different llogical name, a space and the logical name
+    ///	(FieldName).</summary>
+    property AliasedDBColumnName: string read GetAliasedDBColumnName;
+
     property FieldNameOrExpression: string read GetFieldNameOrExpression;
-    property QualifiedFieldName: string read GetQualifiedFieldName;
-    property QualifiedFieldNameOrExpression: string read GetQualifiedFieldNameOrExpression;
+    property QualifiedDBColumnName: string read GetQualifiedDBColumnName;
+    property QualifiedDBColumnNameOrExpression: string read GetQualifiedDBColumnNameOrExpression;
 
     property DataType: TEFDataType read GetDataType;
     property Size: Integer read GetSize;
@@ -351,10 +359,19 @@ type
     function FindField(const AName: string): TKModelField;
     function FindFieldByPhysicalName(const APhysicalName: string): TKModelField;
 
-    function GetKeyFieldNames(const AQualify: Boolean = False): TStringDynArray;
+    ///	<summary>Returns an array of key physical field names.</summary>
+    ///	<param name="AQualify">If True, each field name is prefixed with the
+    ///	table name and a dot.</param>
+    ///	<param name="AAlias">If True, makes it so that every field that has a
+    ///	different physical name is aliased (meaning the physical name is
+    ///	output, followed by a space and the FieldName).</param>
+    function GetKeyDBColumnNames(const AQualify: Boolean = False;
+      const AAlias: Boolean = False): TStringDynArray;
     property KeyFieldCount: Integer read GetKeyFieldCount;
     property KeyFields[I: Integer]: TKModelField read GetKeyField;
 
+    ///	<summary>Returns an array of key field names.</summary>
+    function GetKeyFieldNames: TStringDynArray;
     property DetailReferenceCount: Integer read GetDetailReferenceCount;
     property DetailReferences[I: Integer]: TKModelDetailReference read GetDetailReference;
     function DetailReferenceByName(const AName: string): TKModelDetailReference;
@@ -635,7 +652,8 @@ begin
   Result := Length(GetKeyFieldNames);
 end;
 
-function TKModel.GetKeyFieldNames(const AQualify: Boolean = False): TStringDynArray;
+function TKModel.GetKeyDBColumnNames(const AQualify: Boolean;
+  const AAlias: Boolean): TStringDynArray;
 var
   I: Integer;
   J: Integer;
@@ -647,9 +665,29 @@ begin
     if Fields[I].IsKey then
     begin
       if AQualify then
-        Result[J] := Fields[I].QualifiedFieldName
+        Result[J] := Fields[I].QualifiedDBColumnName
       else
-        Result[J] := Fields[I].FieldName;
+        Result[J] := Fields[I].DBColumnName;
+      if AAlias and not SameText(Fields[I].DBColumnName, Fields[I].FieldName) then
+        Result[J] := Result[J] + ' ' + Fields[I].FieldName;
+      Inc(J);
+    end;
+  end;
+  SetLength(Result, J);
+end;
+
+function TKModel.GetKeyFieldNames: TStringDynArray;
+var
+  I: Integer;
+  J: Integer;
+begin
+  SetLength(Result, FieldCount);
+  J := 0;
+  for I := 0 to FieldCount - 1 do
+  begin
+    if Fields[I].IsKey then
+    begin
+      Result[J] := Fields[I].FieldName;
       Inc(J);
     end;
   end;
@@ -714,7 +752,7 @@ function TKModel.GetDefaultSorting: string;
 begin
   Result := GetString('DefaultSorting');
   if Result = '' then
-    Result := Join(GetKeyFieldNames(True), ', ');
+    Result := Join(GetKeyDBColumnNames(True), ', ');
 end;
 
 function TKModel.GetDetailReference(I: Integer): TKModelDetailReference;
@@ -854,17 +892,17 @@ begin
   Result := GetBoolean('IsVisible', True);
 end;
 
-function TKModelField.GetQualifiedFieldName: string;
+function TKModelField.GetQualifiedDBColumnName: string;
 begin
-  Result := Model.ModelName + '.' + FieldName;
+  Result := Model.DBTableName + '.' + DBColumnName;
 end;
 
-function TKModelField.GetQualifiedFieldNameOrExpression: string;
+function TKModelField.GetQualifiedDBColumnNameOrExpression: string;
 begin
   if Expression <> '' then
     Result := Expression
   else
-    Result := QualifiedFieldName;
+    Result := QualifiedDBColumnName;
 end;
 
 function TKModelField.GetReferencedModel: TKModel;
@@ -946,6 +984,13 @@ begin
     end) as TKModelField;
 end;
 
+function TKModelField.GetAliasedDBColumnName: string;
+begin
+  Result := DBColumnName;
+  if Result <> FieldName then
+    Result := Result + ' ' + FieldName;
+end;
+
 function TKModelField.GetAllowedValues: TEFPairs;
 begin
   Result := GetChildrenAsPairs('AllowedValues');
@@ -986,7 +1031,7 @@ begin
     GetFieldSpec(Result, LSize, LIsRequired, LIsKey, LReferencedModel);
 end;
 
-function TKModelField.GetDBFieldName: string;
+function TKModelField.GetDBColumnName: string;
 begin
   Result := PhysicalName;
   if Result = '' then

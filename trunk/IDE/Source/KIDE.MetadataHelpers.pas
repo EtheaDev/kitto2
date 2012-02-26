@@ -11,8 +11,8 @@ type
   public
     procedure SetModelName(const AModelName: string);
     procedure DeleteDetailReference(const ADetailReference: TKModelDetailReference);
-    procedure DeleteField(const AField: TKModelField);
     procedure AddField(const AField: TKModelField);
+    procedure DeleteField(const AField: TKModelField);
   end;
 
   TKModelFieldHelper = class helper for TKModelField
@@ -23,6 +23,9 @@ type
 
     procedure SetIsKey(const AValue: Boolean);
     function EqualsColumnInfo(const AColumnInfo: TEFDBColumnInfo): Boolean;
+    function EqualsForeignKeyInfo(const AForeignKeyInfo: TEFDBForeignKeyInfo): Boolean;
+    procedure AddField(const AField: TKModelField);
+    procedure DeleteField(const AField: TKModelField);
   end;
 
   TKModelDetailReferencesHelper = class helper for TKModelDetailReferences
@@ -89,13 +92,56 @@ begin
   SetFieldSpec(LDataType, LSize, LIsRequired, AValue, LReferencedModel);
 end;
 
+procedure TKModelFieldHelper.AddField(const AField: TKModelField);
+begin
+  Assert(Assigned(AField));
+
+  GetFields.AddChild(AField);
+end;
+
+procedure TKModelFieldHelper.DeleteField(const AField: TKModelField);
+begin
+  Assert(Assigned(AField));
+
+  GetFields.RemoveChild(AField);
+end;
+
 function TKModelFieldHelper.EqualsColumnInfo(
   const AColumnInfo: TEFDBColumnInfo): Boolean;
 begin
   Result := False;
   if Assigned(AColumnInfo) then
-    Result := (DataType = AColumnInfo.DataType) and (Size = AColumnInfo.Size)
+    Result := (DBColumnName = AColumnInfo.Name)
+      and (DataType = AColumnInfo.DataType)
+      and (Size = AColumnInfo.Size)
       and (IsRequired = AColumnInfo.IsRequired);
+end;
+
+function TKModelFieldHelper.EqualsForeignKeyInfo(
+  const AForeignKeyInfo: TEFDBForeignKeyInfo): Boolean;
+
+  function EqualsColumnNames: Boolean;
+  var
+    I: Integer;
+  begin
+    Result := FieldCount = AForeignKeyInfo.ColumnCount;
+    if Result then
+    begin
+      for I := 0 to FieldCount - 1 do
+      begin
+        if AForeignKeyInfo.ColumnNames.IndexOf(Fields[I].DBColumnName) < 0 then
+        begin
+          Result := False;
+          Break;
+        end;
+      end;
+    end;
+  end;
+
+begin
+  Result := False;
+  if Assigned(AForeignKeyInfo) then
+    Result := (DBColumnName = AForeignKeyInfo.Name) and EqualsColumnNames;
 end;
 
 procedure TKModelFieldHelper.SetFieldSpec(const ADataType: TEFDataType;

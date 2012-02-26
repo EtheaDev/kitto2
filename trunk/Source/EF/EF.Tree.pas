@@ -1484,7 +1484,11 @@ begin
 end;
 
 procedure TEFTree.BeforeSave;
+var
+  I: Integer;
 begin
+  for I := 0 to ChildCount - 1 do
+    Children[I].BeforeSave;
 end;
 
 procedure TEFTree.Clear;

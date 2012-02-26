@@ -157,6 +157,7 @@ object MainForm: TMainForm
         Items = <
           item
             Action = NewProjectAction
+            Caption = '&New Project...'
             ImageIndex = 13
           end
           item
@@ -237,6 +238,14 @@ object MainForm: TMainForm
                 ImageIndex = 10
               end>
             Caption = '&Tools'
+          end
+          item
+            Items = <
+              item
+                Action = AboutAction
+                Caption = '&About...'
+              end>
+            Caption = '&Help'
           end>
         ActionBar = MainMenuBar
       end
@@ -300,6 +309,11 @@ object MainForm: TMainForm
       OnExecute = UpdateLocaleFilesActionExecute
       OnUpdate = UpdateLocaleFilesActionUpdate
     end
+    object AboutAction: TAction
+      Category = 'Help'
+      Caption = 'About...'
+      OnExecute = AboutActionExecute
+    end
   end
   object OpenProjectDialog: TOpenDialog
     DefaultExt = '.kproj'
@@ -307,7 +321,7 @@ object MainForm: TMainForm
     Options = [ofHideReadOnly, ofPathMustExist, ofFileMustExist, ofEnableSizing]
     Title = 'Open Kide Project'
     Left = 128
-    Top = 8
+    Top = 24
   end
   object ActionImages: TImageList
     ColorDepth = cd32Bit
@@ -867,6 +881,6 @@ object MainForm: TMainForm
     Options = [ofOverwritePrompt, ofHideReadOnly, ofPathMustExist, ofEnableSizing]
     Title = 'New Kide Project'
     Left = 216
-    Top = 8
+    Top = 24
   end
 end

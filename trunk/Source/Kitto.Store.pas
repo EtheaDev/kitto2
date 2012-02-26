@@ -131,9 +131,6 @@ type
     property DetailStores[I: Integer]: TKStore read GetDetailsStore;
     function AddDetailStore(const AStore: TKStore): TKStore;
 
-    procedure Save(const ADBConnection: TEFDBConnection; const AModel: TKModel;
-      const AUseTransaction: Boolean);
-
     procedure Backup;
     procedure Restore;
 
@@ -217,8 +214,6 @@ type
     procedure Load(const ADBConnection: TEFDBConnection;
       const ACommandText: string; const AAppend: Boolean = False); overload;
     procedure Load(const ADBQuery: TEFDBQuery; const AAppend: Boolean = False); overload;
-
-    procedure Save(const ADBConnection: TEFDBConnection; const AModel: TKModel);
 
     ///	<summary>Appends a record and fills it with the specified
     ///	values.</summary>
@@ -400,23 +395,6 @@ begin
     end;
   finally
     FreeAndNil(LDBQuery);
-  end;
-end;
-
-procedure TKStore.Save(const ADBConnection: TEFDBConnection; const AModel: TKModel);
-var
-  I: Integer;
-begin
-  Assert(Assigned(ADBConnection));
-
-  ADBConnection.StartTransaction;
-  try
-    for I := 0 to RecordCount - 1 do
-      Records[I].Save(ADBConnection, AModel, False);
-    ADBConnection.CommitTransaction;
-  except
-    ADBConnection.RollbackTransaction;
-    raise;
   end;
 end;
 
@@ -779,12 +757,6 @@ begin
   Assert(Assigned(FBackup));
 
   Assign(FBackup);
-end;
-
-procedure TKRecord.Save(const ADBConnection: TEFDBConnection;
-  const AModel: TKModel; const AUseTransaction: Boolean);
-begin
-
 end;
 
 { TKField }
