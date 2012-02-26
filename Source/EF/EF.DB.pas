@@ -161,6 +161,10 @@ type
     property ForeignKeyCount: Integer read GetForeignKeyCount;
     function FindForeignKey(const AForeignKeyName: string): TEFDBForeignKeyInfo;
     function AddForeignKey(const AForeignKey: TEFDBForeignKeyInfo): Integer;
+
+    ///	<summary>Returns a list of all foreign keys referencing the
+    ///	table.</summary>
+    procedure GetReferencingForeignKeys(const AList: TObjectList<TEFDBForeignKeyInfo>);
   end;
 
   ///	<summary>
@@ -182,6 +186,11 @@ type
     ///	  Returns a reference to the table with the given name, or nil.
     ///	</summary>
     function FindTable(const ATableName: string): TEFDBTableInfo;
+
+    ///	<summary>Globally finds a foreign key by name. Queries all tables until
+    ///	the requested foreign key is found. Returns False if no foreign key is
+    ///	found.</summary>
+    function FindForeignKey(const AForeignKeyName: string): TEFDBForeignKeyInfo;
 
     ///	<summary>
     ///	  Appends a new table to the end of the list. Returns the index in the
@@ -809,6 +818,22 @@ begin
   Result := FForeignKeys[AIndex];
 end;
 
+procedure TEFDBTableInfo.GetReferencingForeignKeys(
+  const AList: TObjectList<TEFDBForeignKeyInfo>);
+var
+  I: Integer;
+  J: Integer;
+begin
+  Assert(Assigned(AList));
+
+  for I := 0 to SchemaInfo.TableCount - 1 do
+  begin
+    for J := 0 to SchemaInfo.Tables[I].ForeignKeyCount - 1 do
+      if SameText(SchemaInfo.Tables[I].ForeignKeys[J].ForeignTableName, Name) then
+        AList.Add(SchemaInfo.Tables[I].ForeignKeys[J]);
+  end;
+end;
+
 { TEFDBPrimaryKeyInfo }
 
 procedure TEFDBPrimaryKeyInfo.AfterConstruction;
@@ -896,6 +921,23 @@ destructor TEFDBSchemaInfo.Destroy;
 begin
   FreeAndNil(FTables);
   inherited;
+end;
+
+function TEFDBSchemaInfo.FindForeignKey(
+  const AForeignKeyName: string): TEFDBForeignKeyInfo;
+var
+  I: Integer;
+begin
+  Result := nil;
+  if AForeignKeyName <> '' then
+  begin
+    for I := 0 to TableCount - 1 do
+    begin
+      Result := Tables[I].FindForeignKey(AForeignKeyName);
+      if Assigned(Result) then
+        Break;
+    end;
+  end;
 end;
 
 function TEFDBSchemaInfo.FindTable(const ATableName: string): TEFDBTableInfo;

@@ -33,6 +33,11 @@ type
     procedure DeleteDetailReference(const ADetailReference: TKModelDetailReference);
   end;
 
+  TKModelDetailReferenceHelper = class helper for TKModelDetailReference
+  public
+    function EqualsForeignKeyInfo(const AForeignKeyInfo: TEFDBForeignKeyInfo): Boolean;
+  end;
+
 implementation
 
 uses
@@ -111,7 +116,7 @@ function TKModelFieldHelper.EqualsColumnInfo(
 begin
   Result := False;
   if Assigned(AColumnInfo) then
-    Result := (DBColumnName = AColumnInfo.Name)
+    Result := SameText(DBColumnName, AColumnInfo.Name)
       and (DataType = AColumnInfo.DataType)
       and (Size = AColumnInfo.Size)
       and (IsRequired = AColumnInfo.IsRequired);
@@ -141,7 +146,7 @@ function TKModelFieldHelper.EqualsForeignKeyInfo(
 begin
   Result := False;
   if Assigned(AForeignKeyInfo) then
-    Result := (DBColumnName = AForeignKeyInfo.Name) and EqualsColumnNames;
+    Result := SameText(DBColumnName, AForeignKeyInfo.Name) and EqualsColumnNames;
 end;
 
 procedure TKModelFieldHelper.SetFieldSpec(const ADataType: TEFDataType;
@@ -160,6 +165,16 @@ begin
   if AIsKey then
     LSpec := LSpec + ' primary key';
   AsString := LSpec;
+end;
+
+{ TKModelDetailReferenceHelper }
+
+function TKModelDetailReferenceHelper.EqualsForeignKeyInfo(
+  const AForeignKeyInfo: TEFDBForeignKeyInfo): Boolean;
+begin
+  Result := False;
+  if Assigned(AForeignKeyInfo) then
+    Result := SameText(DBForeignKeyName, AForeignKeyInfo.Name);
 end;
 
 end.
