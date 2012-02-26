@@ -279,7 +279,12 @@ type
     function GetReferenceFieldName: string;
     function GetDisplayLabel: string;
     function BeautifyDetailName(const ADetailName: string): string;
+    function GetDBForeignKeyName: string;
+    function GetPhysicalName: string;
   public
+    property PhysicalName: string read GetPhysicalName;
+    ///	<summary>Returns PhysicalName.</summary>
+    property DBForeignKeyName: string read GetDBForeignKeyName;
     property DisplayLabel: string read GetDisplayLabel;
     property DetailReferenceName: string read GetDetailReferenceName;
     property DetailModel: TKModel read GetDetailModel;
@@ -306,6 +311,7 @@ type
     function DetailReferenceByName(const AName: string): TKModelDetailReference;
     function FindDetailReference(const AName: string): TKModelDetailReference;
     function FindDetailReferenceTo(const AModel: TKModel): TKModelDetailReference;
+    function FindDetailReferenceByPhysicalName(const APhysicalName: string): TKModelDetailReference;
   end;
 
   TKModels = class;
@@ -338,6 +344,8 @@ type
     function GetFields: TKModelFields;
     function GetChildClass(const AName: string): TEFNodeClass; override;
     function GetDetailReferences: TKModelDetailReferences;
+  public
+    procedure BeforeSave; override;
   public
     property Catalog: TKModels read GetCatalog;
 
@@ -376,6 +384,7 @@ type
     property DetailReferences[I: Integer]: TKModelDetailReference read GetDetailReference;
     function DetailReferenceByName(const AName: string): TKModelDetailReference;
     function FindDetailReference(const AName: string): TKModelDetailReference;
+    function FindDetailReferenceByPhysicalName(const APhysicalName: string): TKModelDetailReference;
 
     ///	<summary>If there's exactly one detail reference to the specified
     ///	model, returns it, otherwise returns nil.</summary>
@@ -478,6 +487,14 @@ end;
 
 { TKModel }
 
+procedure TKModel.BeforeSave;
+begin
+  inherited;
+  // Avoid storing the DetailReferences node if it's empty.
+  if GetDetailReferences.DetailReferenceCount = 0 then
+    DeleteNode('DetailReferences');
+end;
+
 function TKModel.DetailReferenceByName(const AName: string): TKModelDetailReference;
 begin
   Result := GetDetailReferences.DetailReferenceByName(AName);
@@ -491,6 +508,12 @@ end;
 function TKModel.FindDetailReference(const AName: string): TKModelDetailReference;
 begin
   Result := GetDetailReferences.FindDetailReference(AName);
+end;
+
+function TKModel.FindDetailReferenceByPhysicalName(
+  const APhysicalName: string): TKModelDetailReference;
+begin
+  Result := GetDetailReferences.FindDetailReferenceByPhysicalName(APhysicalName);
 end;
 
 function TKModel.FindDetailReferenceTo(const AModel: TKModel): TKModelDetailReference;
@@ -1192,7 +1215,7 @@ var
   I: Integer;
 begin
   Result := FindChildByPredicate(
-  function (const ANode: TEFNode): Boolean
+    function (const ANode: TEFNode): Boolean
     begin
       Result := (ANode as TKModelField).PhysicalName = APhysicalName;
     end) as TKModelField;
@@ -1342,6 +1365,11 @@ begin
   Result := CamelToSpaced(Result);
 end;
 
+function TKModelDetailReference.GetDBForeignKeyName: string;
+begin
+  Result := PhysicalName;
+end;
+
 function TKModelDetailReference.GetDetailModel: TKModel;
 begin
   Result := Model.Catalog.ModelByName(DetailModelName);
@@ -1362,6 +1390,11 @@ begin
   Result := GetString('DisplayLabel');
   if Result = '' then
     Result := BeautifyDetailName(DetailReferenceName);
+end;
+
+function TKModelDetailReference.GetPhysicalName: string;
+begin
+  Result := GetString('PhysicalName');
 end;
 
 function TKModelDetailReference.GetReferenceField: TKModelField;
@@ -1392,6 +1425,16 @@ end;
 function TKModelDetailReferences.FindDetailReference(const AName: string): TKModelDetailReference;
 begin
   Result := FindChild(AName) as TKModelDetailReference;
+end;
+
+function TKModelDetailReferences.FindDetailReferenceByPhysicalName(
+  const APhysicalName: string): TKModelDetailReference;
+begin
+  Result := FindChildByPredicate(
+    function (const ANode: TEFNode): Boolean
+    begin
+      Result := (ANode as TKModelDetailReference).PhysicalName = APhysicalName;
+    end) as TKModelDetailReference;
 end;
 
 function TKModelDetailReferences.FindDetailReferenceTo(const AModel: TKModel): TKModelDetailReference;

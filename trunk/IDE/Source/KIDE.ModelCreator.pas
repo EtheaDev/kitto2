@@ -9,6 +9,9 @@ uses
 
 type
   TModelUpdateOptions = record
+  private
+    function IsAllowed(AName, AFilter: string): Boolean;
+  public
     AddModels: Boolean;
     ModelNameFilter: string;
     UpdateModels: Boolean;
@@ -20,6 +23,7 @@ type
     DeleteDetails: Boolean;
 
     function IsNewModelAllowed(const AName: string): Boolean;
+    function IsDetailForeignKey(const AForeignKeyName: string): Boolean;
   end;
 
   TModelUpdateAction = class;
@@ -122,9 +126,36 @@ type
     property DetailReference: TKModelDetailReference read FDetailReference write FDetailReference;
   end;
 
+  TAddDetailReference = class(TDetailReferenceUpdateAction)
+  strict private
+    FForeignKeyInfo: TEFDBForeignKeyInfo;
+  strict protected
+    procedure InternalExecute; override;
+    function GetAsString: string; override;
+    function GetImageIndex: Integer; override;
+  public
+    constructor Create(const AModels: TKModels; const AModel: TKModel;
+      const AForeignKeyInfo: TEFDBForeignKeyInfo);
+  end;
+
+  TModifyDetailReference = class(TDetailReferenceUpdateAction)
+  strict private
+    FForeignKeyInfo: TEFDBForeignKeyInfo;
+  strict protected
+    procedure InternalExecute; override;
+    function GetAsString: string; override;
+    function GetImageIndex: Integer; override;
+  public
+    constructor Create(const AModels: TKModels; const AModel: TKModel;
+      const ADetailReference: TKModelDetailReference;
+      const AForeignKeyInfo: TEFDBForeignKeyInfo);
+  end;
+
   TDeleteDetailReference = class(TDetailReferenceUpdateAction)
   strict protected
     procedure InternalExecute; override;
+    function GetAsString: string; override;
+    function GetImageIndex: Integer; override;
   end;
 
   ///	<summary>Base class for actions that create and update model fields.</summary>
@@ -357,12 +388,17 @@ end;
 { TModelUpdateOptions }
 
 function TModelUpdateOptions.IsNewModelAllowed(const AName: string): Boolean;
+begin
+  Result := IsAllowed(AName, ModelNameFilter);
+end;
+
+function TModelUpdateOptions.IsAllowed(AName, AFilter: string): Boolean;
 var
   LPatterns: TStringDynArray;
   I: Integer;
 begin
   Result := False;
-  LPatterns := Split(ModelNameFilter);
+  LPatterns := Split(AFilter);
   for I := Low(LPatterns) to High(LPatterns) do
   begin
     if StrMatchesEx(AName, LPatterns[I]) then
@@ -371,6 +407,11 @@ begin
       Break;
     end;
   end;
+end;
+
+function TModelUpdateOptions.IsDetailForeignKey(const AForeignKeyName: string): Boolean;
+begin
+  Result := IsAllowed(AForeignKeyName, DetailNameFilter);
 end;
 
 { TModelUpdateAction }
@@ -500,8 +541,6 @@ end;
 constructor TDetailReferenceUpdateAction.Create(const AModels: TKModels;
   const AModel: TKModel; const ADetailReference: TKModelDetailReference);
 begin
-  Assert(Assigned(ADetailReference));
-
   inherited Create(AModels, AModel);
   FDetailReference := ADetailReference;
 end;
@@ -516,6 +555,18 @@ begin
 end;
 
 { TDeleteDetailReference }
+
+function TDeleteDetailReference.GetAsString: string;
+begin
+  Assert(Assigned(DetailReference));
+
+  Result := DetailReference.Name;
+end;
+
+function TDeleteDetailReference.GetImageIndex: Integer;
+begin
+  Result := 15;
+end;
 
 procedure TDeleteDetailReference.InternalExecute;
 begin
@@ -607,8 +658,24 @@ begin
 end;
 
 function TTableInfoModelUpdateAction.CreateDeleteDetailsSubActions: Boolean;
+var
+  I: Integer;
+  LDetail: TKModelDetailReference;
+  LForeignKeyInfo: TEFDBForeignKeyInfo;
 begin
-{ TODO : implement }
+  Assert(Assigned(FTableInfo));
+
+  Result := False;
+  for I := Model.DetailReferenceCount - 1 downto 0 do
+  begin
+    LDetail := Model.DetailReferences[I];
+    LForeignKeyInfo := FTableInfo.SchemaInfo.FindForeignKey(LDetail.DBForeignKeyName);
+    if not Assigned(LForeignKeyInfo) then
+    begin
+      SubActions.Add(TDeleteDetailReference.Create(Models, Model, LDetail));
+      Result := True;
+    end;
+  end;
 end;
 
 function TTableInfoModelUpdateAction.CreateDeleteFieldSubActions: Boolean;
@@ -657,8 +724,40 @@ begin
 end;
 
 function TTableInfoModelUpdateAction.CreateAddUpdateDetailSubActions: Boolean;
+var
+  I: Integer;
+  LForeignKeyList: TObjectList<TEFDBForeignKeyInfo>;
+  LForeignKeyInfo: TEFDBForeignKeyInfo;
+  LDetail: TKModelDetailReference;
 begin
-{ TODO : implement }
+  Assert(Assigned(FTableInfo));
+
+  Result := False;
+  LForeignKeyList := TObjectList<TEFDBForeignKeyInfo>.Create(False);
+  try
+    FTableInfo.GetReferencingForeignKeys(LForeignKeyList);
+    for I := 0 to LForeignKeyList.Count - 1 do
+    begin
+      LForeignKeyInfo := LForeignKeyList[I];
+      if FOptions.IsDetailForeignKey(LForeignKeyInfo.Name) then
+      begin
+        if Assigned(Model) then
+          LDetail := Model.FindDetailReferenceByPhysicalName(LForeignKeyInfo.Name)
+        else
+          LDetail := nil;
+
+        if not Assigned(LDetail) then
+          SubActions.Add(TAddDetailReference.Create(Models, Model, LForeignKeyInfo))
+        else
+        begin
+          if not LDetail.EqualsForeignKeyInfo(LForeignKeyInfo) then
+            SubActions.Add(TModifyDetailReference.Create(Models, Model, LDetail, LForeignKeyInfo));
+        end;
+      end;
+    end;
+  finally
+    FreeAndNil(LForeignKeyList);
+  end;
 end;
 
 function TTableInfoModelUpdateAction.CreateAddUpdateFieldSubActions: Boolean;
@@ -1075,6 +1174,65 @@ begin
         Model.DeleteField(LField);
     end;
   end;
+end;
+
+{ TAddDetailReference }
+
+constructor TAddDetailReference.Create(const AModels: TKModels;
+  const AModel: TKModel; const AForeignKeyInfo: TEFDBForeignKeyInfo);
+begin
+  Assert(Assigned(AForeignKeyInfo));
+
+  inherited Create(AModels, AModel, nil);
+  FForeignKeyInfo := AForeignKeyInfo;
+end;
+
+function TAddDetailReference.GetAsString: string;
+begin
+  Assert(Assigned(FForeignKeyInfo));
+
+  Result := BeautifyName(FForeignKeyInfo.Name);
+end;
+
+function TAddDetailReference.GetImageIndex: Integer;
+begin
+  Result := 14;
+end;
+
+procedure TAddDetailReference.InternalExecute;
+begin
+  inherited;
+
+end;
+
+{ TModifyDetailReference }
+
+constructor TModifyDetailReference.Create(const AModels: TKModels;
+  const AModel: TKModel; const ADetailReference: TKModelDetailReference;
+  const AForeignKeyInfo: TEFDBForeignKeyInfo);
+begin
+  Assert(Assigned(AForeignKeyInfo));
+
+  inherited Create(AModels, AModel, ADetailReference);
+  FForeignKeyInfo := AForeignKeyInfo;
+end;
+
+function TModifyDetailReference.GetAsString: string;
+begin
+  Assert(Assigned(DetailReference));
+
+  Result := DetailReference.Name;
+end;
+
+function TModifyDetailReference.GetImageIndex: Integer;
+begin
+  Result := 16;
+end;
+
+procedure TModifyDetailReference.InternalExecute;
+begin
+  inherited;
+
 end;
 
 end.
