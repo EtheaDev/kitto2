@@ -63,20 +63,22 @@ type
     property Name: string read FName write FName;
   end;
 
+  TEFDBTableInfo = class;
+
   ///	<summary>
   ///	  Contains enough information to define a table's primary key. It is not
   ///	  used alone, but together with TEFDBTableInfo.
   ///	</summary>
   TEFDBPrimaryKeyInfo = class(TEFDBItemInfo)
   private
+    FTableInfo: TEFDBTableInfo;
     FColumnNames: TStrings;
   public
     procedure AfterConstruction; override;
     destructor Destroy; override;
+    property TableInfo: TEFDBTableInfo read FTableInfo;
     property ColumnNames: TStrings read FColumnNames;
   end;
-
-  TEFDBTableInfo = class;
 
   ///	<summary>
   ///	  Contains enough information to define a table's column. It is not used
@@ -113,17 +115,24 @@ type
   ///	</summary>
   TEFDBForeignKeyInfo = class(TEFDBItemInfo)
   private
+    FTableInfo: TEFDBTableInfo;
     FColumnNames: TStrings;
     FForeignColumnNames: TStrings;
     FForeignTableName: string;
     function GetColumnCount: Integer;
+    function GetIsRequired: Boolean;
   public
     procedure AfterConstruction; override;
     destructor Destroy; override;
+    property TableInfo: TEFDBTableInfo read FTableInfo;
     property ColumnNames: TStrings read FColumnNames;
     property ForeignTableName: string read FForeignTableName write FForeignTableName;
     property ForeignColumnNames: TStrings read FForeignColumnNames;
     property ColumnCount: Integer read GetColumnCount;
+
+    ///	<summary>Returns True if at least one of the fields is
+    ///	required.</summary>
+    property IsRequired: Boolean read GetIsRequired;
   end;
 
   ///	<summary>
@@ -131,6 +140,7 @@ type
   ///	</summary>
   TEFDBTableInfo = class(TEFDBItemInfo)
   private
+    FSchemaInfo: TEFDBSchemaInfo;
     FColumns: TObjectList<TEFDBColumnInfo>;
     FPrimaryKey: TEFDBPrimaryKeyInfo;
     FForeignKeys: TObjectList<TEFDBForeignKeyInfo>;
@@ -141,6 +151,7 @@ type
   public
     procedure AfterConstruction; override;
     destructor Destroy; override;
+    property SchemaInfo: TEFDBSchemaInfo read FSchemaInfo;
     property Columns[const AIndex: Integer]: TEFDBColumnInfo read GetColumns;
     property ColumnCount: Integer read GetColumnCount;
     function FindColumn(const AColumnName: string): TEFDBColumnInfo;
@@ -716,13 +727,16 @@ end;
 
 function TEFDBTableInfo.AddColumn(const AColumn: TEFDBColumnInfo): Integer;
 begin
-  AColumn.FTableInfo := Self;
+  Assert(Assigned(AColumn));
+
   Result := FColumns.Add(AColumn);
+  AColumn.FTableInfo := Self;
 end;
 
 function TEFDBTableInfo.AddForeignKey(
   const AForeignKey: TEFDBForeignKeyInfo): Integer;
 begin
+  AForeignKey.FTableInfo := Self;
   Result := FForeignKeys.Add(AForeignKey);
 end;
 
@@ -731,6 +745,7 @@ begin
   inherited;
   FColumns := TObjectList<TEFDBColumnInfo>.Create(True);
   FPrimaryKey := TEFDBPrimaryKeyInfo.Create;
+  FPrimaryKey.FTableInfo := Self;
   FForeignKeys := TObjectList<TEFDBForeignKeyInfo>.Create(True);
 end;
 
@@ -814,7 +829,9 @@ procedure TEFDBForeignKeyInfo.AfterConstruction;
 begin
   inherited;
   FColumnNames := TStringList.Create;
+  TStringList(FColumnNames).CaseSensitive := False;
   FForeignColumnNames := TStringList.Create;
+  TStringList(FForeignColumnNames).CaseSensitive := False;
 end;
 
 destructor TEFDBForeignKeyInfo.Destroy;
@@ -829,11 +846,34 @@ begin
   Result := FColumnNames.Count;
 end;
 
+function TEFDBForeignKeyInfo.GetIsRequired: Boolean;
+var
+  I: Integer;
+  LColumnInfo: TEFDBColumnInfo;
+begin
+  Assert(Assigned(FTableInfo));
+
+  Result := False;
+  for I := 0 to ColumnCount - 1 do
+  begin
+    LColumnInfo := FTableInfo.FindColumn(ColumnNames[I]);
+    Assert(Assigned(LColumnInfo));
+    if LColumnInfo.IsRequired then
+    begin
+      Result := True;
+      Break;
+    end;
+  end;
+end;
+
 { TEFDBSchemaInfo }
 
 function TEFDBSchemaInfo.AddTable(const ATable: TEFDBTableInfo): Integer;
 begin
+  Assert(Assigned(ATable));
+
   Result := FTables.Add(ATable);
+  ATable.FSchemaInfo := Self;
 end;
 
 procedure TEFDBSchemaInfo.AfterConstruction;

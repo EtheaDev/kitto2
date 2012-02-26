@@ -49,6 +49,7 @@ type
     ApplicationEvents: TApplicationEvents;
     NewProjectAction: TAction;
     NewProjectDialog: TSaveDialog;
+    AboutAction: TAction;
     procedure FileTreeViewCreateNodeClass(Sender: TCustomTreeView;
       var NodeClass: TTreeNodeClass);
     procedure ExitActionExecute(Sender: TObject);
@@ -68,6 +69,7 @@ type
     procedure TreePopupMenuPopup(Sender: TObject);
     procedure ApplicationEventsHint(Sender: TObject);
     procedure NewProjectActionExecute(Sender: TObject);
+    procedure AboutActionExecute(Sender: TObject);
   private
     procedure RebuildRecentProjectsMenu;
     procedure DoOpenProject(const AFileName: string);
@@ -89,7 +91,12 @@ implementation
 
 uses
   EF.Localization, EF.SysUtils,
-  KIDE.MRUOptions, KIDE.ModelWizardFormUnit;
+  KIDE.MRUOptions, KIDE.ModelWizardFormUnit, KIDE.SplashFormUnit;
+
+procedure TMainForm.AboutActionExecute(Sender: TObject);
+begin
+  TSplashForm.ShowAbout;
+end;
 
 procedure TMainForm.ApplicationEventsHint(Sender: TObject);
 begin
