@@ -6,7 +6,8 @@ uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, KIDE.BaseWizardFormUnit, Vcl.ActnList,
   Vcl.StdCtrls, Vcl.ExtCtrls, Vcl.ComCtrls, KIDE.Project, Vcl.ImgList, EF.DB,
-  KIDE.DatabaseFrameUnit, Vcl.CheckLst, KIDE.ModelCreator, Vcl.Menus;
+  KIDE.DatabaseFrameUnit, Vcl.CheckLst, KIDE.ModelCreator, Vcl.Menus,
+  KIDE.ModelUpdateActionFrameUnit;
 
 type
   TModelWizardData = class
@@ -34,6 +35,7 @@ type
     property UpdateAction: TModelUpdateAction read FUpdateAction write SetUpdateAction;
     procedure ToggleActive;
     property IsActive: Boolean read GetIsActive write SetIsActive;
+    procedure UpdateCaption;
   end;
 
   TModelWizardForm = class(TBaseWizardForm)
@@ -71,11 +73,11 @@ type
     Label1: TLabel;
     Label3: TLabel;
     LogRichEdit: TMemo;
-    Label2: TLabel;
     DeleteReferencesCheckBox: TCheckBox;
     AddDetailsCheckBox: TCheckBox;
     DetailNameFilterEdit: TEdit;
     DeleteDetailsCheckBox: TCheckBox;
+    ActionFramePanel: TPanel;
     procedure FormCreate(Sender: TObject);
     procedure OptionsChange(Sender: TObject);
     procedure ModelsSelectCheckBoxClick(Sender: TObject);
@@ -88,6 +90,8 @@ type
     procedure DisableActionExecute(Sender: TObject);
     procedure ActionTreeViewMouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
+    procedure ActionTreeViewChange(Sender: TObject; Node: TTreeNode);
+    procedure ModelsListViewResize(Sender: TObject);
   private
     FProject: TProject;
     FData: TModelWizardData;
@@ -109,6 +113,11 @@ type
     procedure ClearLog;
     procedure UpdateModels;
     procedure LogString(const AString: string);
+    function GetActionFrame: TModelUpdateActionFrame;
+    procedure UpdateActionFrame;
+    function SelectedModelUpdateAction: TModelUpdateAction;
+    procedure UpdateTreeCaptions;
+    procedure UpdateModelListViewColumnWidth;
   protected
     procedure AfterEnterPage(const ACurrentPageIndex: Integer;
       const AOldPageIndex: Integer; const AGoingForward: Boolean); override;
@@ -117,6 +126,8 @@ type
     procedure AfterLeavePage(const AOldPageIndex: Integer;
       const ACurrentPageIndex: Integer; const AGoingForward: Boolean); override;
     procedure FinishWizard; override;
+    procedure BeforeLeavePage(const ACurrentPageIndex: Integer;
+      const ANewPageIndex: Integer; const AGoingForward: Boolean); override;
   public
     class procedure ShowDialog;
     constructor Create(AOwner: TComponent); override;
@@ -128,7 +139,7 @@ implementation
 {$R *.dfm}
 
 uses
-  Types,
+  Types, Winapi.CommCtrl,
   EF.Tree, EF.Localization,
   Kitto.Config,
   KIDE.MRUOptions, KIDE.WaitFormUnit;
@@ -221,6 +232,17 @@ begin
     ModelsSelectCheckBox.State := cbGrayed;
 end;
 
+procedure TModelWizardForm.ModelsListViewResize(Sender: TObject);
+begin
+  inherited;
+  UpdateModelListViewColumnWidth;
+end;
+
+procedure TModelWizardForm.UpdateModelListViewColumnWidth;
+begin
+  ModelsListView.Perform(LVM_SETCOLUMNWIDTH, 0, ModelsListView.ClientWidth);
+end;
+
 procedure TModelWizardForm.ModelsSelectCheckBoxClick(Sender: TObject);
 begin
   inherited;
@@ -273,20 +295,29 @@ var
 begin
   ShowDefaultWaitForm(_('Building Model Update List. Please wait...'));
   try
-    FData.Connection.Open;
-    LockWindowUpdate(ActionTreeView.Handle);
+    ActionTreeView.OnChange := nil;
     try
-      ActionTreeView.Items.Clear;
-      FreeAndNil(FUpdateActions);
-      { TODO : maybe display a waiting message }
-      FUpdateActions := FCreator.CreateModelUpdateList(FProject.Config.Models,
-        FData.DBInfo, FData.Options);
+      GetActionFrame.Free;
+      FData.Connection.Open;
+      LockWindowUpdate(ActionTreeView.Handle);
+      try
+        ActionTreeView.Items.Clear;
+        FreeAndNil(FUpdateActions);
+        { TODO : maybe display a waiting message }
+        FUpdateActions := FCreator.CreateModelUpdateList(FProject.Config.Models,
+          FData.DBInfo, FData.Options);
 
-      for I := 0 to FUpdateActions.Count - 1 do
-        AddUpdateActionTreeNode(nil, FUpdateActions[I]);
-      ActionTreeView.FullExpand;
+        for I := 0 to FUpdateActions.Count - 1 do
+          AddUpdateActionTreeNode(nil, FUpdateActions[I]);
+        ActionTreeView.FullExpand;
+        if ActionTreeView.Items.Count > 0 then
+          ActionTreeView.Selected := ActionTreeView.Items[0];
+        UpdateActionFrame;
+      finally
+        LockWindowUpdate(0);
+      end;
     finally
-      LockWindowUpdate(0);
+      ActionTreeView.OnChange := ActionTreeViewChange;
     end;
   finally
     HideDefaultWaitForm;
@@ -314,6 +345,46 @@ begin
       LogString(AString);
     end;
   FUpdateActions.Execute;
+end;
+
+procedure TModelWizardForm.ActionTreeViewChange(Sender: TObject;
+  Node: TTreeNode);
+begin
+  inherited;
+  UpdateActionFrame;
+end;
+
+function TModelWizardForm.GetActionFrame: TModelUpdateActionFrame;
+begin
+  if ActionFramePanel.ControlCount > 0 then
+    Result := ActionFramePanel.Controls[0] as TModelUpdateActionFrame
+  else
+    Result := nil;
+end;
+
+procedure TModelWizardForm.UpdateActionFrame;
+var
+  LFrame: TModelUpdateActionFrame;
+  LAction: TModelUpdateAction;
+begin
+  LFrame := GetActionFrame;
+  if Assigned(LFrame) then
+  begin
+    LFrame.SaveToAction;
+    UpdateTreeCaptions;
+    FreeAndNil(LFrame);
+  end;
+  LAction := SelectedModelUpdateAction;
+  if Assigned(LAction) then
+    CreateModelUpdateActionFrame(LAction, ActionFramePanel);
+end;
+
+procedure TModelWizardForm.UpdateTreeCaptions;
+var
+  I: Integer;
+begin
+  for I := 0 to ActionTreeView.Items.Count - 1 do
+    (ActionTreeView.Items[I] as TModelUpdateActionTreeNode).UpdateCaption;
 end;
 
 procedure TModelWizardForm.ActionTreeViewCreateNodeClass(
@@ -360,7 +431,11 @@ begin
   else if ACurrentPageIndex = PAGE_OPTIONS then
   begin
     PageTitle := _('Select Models to update and other options');
-    InitOptions;
+    if AGoingForward then
+    begin
+      InitOptions;
+      UpdateModelListViewColumnWidth;
+    end;
   end
   else if ACurrentPageIndex = PAGE_SELECT then
   begin
@@ -370,8 +445,8 @@ begin
   else if ACurrentPageIndex = PAGE_GO then
   begin
     PageTitle := _('Updating Models...');
-    Update;
-    UpdateModels;
+    if AGoingForward then
+      UpdateModels;
   end;
 end;
 
@@ -396,6 +471,30 @@ begin
     FData.Options.DetailNameFilter := DetailNameFilterEdit.Text;
     FData.Options.DeleteDetails := DeleteDetailsCheckBox.Checked;
     SaveOptionsMRU;
+  end;
+end;
+
+procedure TModelWizardForm.BeforeLeavePage(const ACurrentPageIndex,
+  ANewPageIndex: Integer; const AGoingForward: Boolean);
+var
+  LFrame: TModelUpdateActionFrame;
+begin
+  inherited;
+  if (ACurrentPageIndex = PAGE_SELECT) and AGoingForward then
+  begin
+    LFrame := GetActionFrame;
+    if Assigned(LFrame) then
+    begin
+      LFrame.SaveToAction;
+      FreeAndNil(LFrame);
+    end;
+  end
+  else if (ACurrentPageIndex = PAGE_GO) and not AGoingForward then
+  begin
+    GetActionFrame.Free;
+    FreeAndNil(FUpdateActions);
+    // Revert all in-memory changes.
+    FProject.Config.Models.Open;
   end;
 end;
 
@@ -493,6 +592,17 @@ begin
   Result := ActionTreeView.Selected as TModelUpdateActionTreeNode;
 end;
 
+function TModelWizardForm.SelectedModelUpdateAction: TModelUpdateAction;
+var
+  LNode: TModelUpdateActionTreeNode;
+begin
+  LNode := SelectedTreeNode;
+  if Assigned(LNode) then
+    Result := LNode.UpdateAction
+  else
+    Result := nil;
+end;
+
 { TModelWizardData }
 
 destructor TModelWizardData.Destroy;
@@ -548,6 +658,15 @@ end;
 procedure TModelUpdateActionTreeNode.ToggleActive;
 begin
   IsActive := not IsActive;
+end;
+
+procedure TModelUpdateActionTreeNode.UpdateCaption;
+var
+  I: Integer;
+begin
+  Text := FUpdateAction.AsString;
+  for I := 0 to Count - 1 do
+    (Item[I] as TModelUpdateActionTreeNode).UpdateCaption;
 end;
 
 procedure TModelUpdateActionTreeNode.UpdateChildrenState;

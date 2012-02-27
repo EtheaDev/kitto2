@@ -457,6 +457,8 @@ type
 ///	compute default values.</summary>
 function EvalExpression(const AExpression: Variant): Variant;
 
+function Pluralize(const AName: string): string;
+
 implementation
 
 uses
@@ -540,7 +542,7 @@ begin
   Result := nil;
   for I := 0 to FieldCount - 1 do
   begin
-    if Fields[I].IsReference and SameText(Fields[I].GetString('FireignKeyName'), AForeignKeyName) then
+    if Fields[I].IsReference and SameText(Fields[I].PhysicalName, AForeignKeyName) then
     begin
       Result := Fields[I];
       Break;
@@ -1181,7 +1183,7 @@ end;
 
 function TKModelField.GetPhysicalName: string;
 begin
-
+  Result := GetString('PhysicalName');
 end;
 
 { TKModelFields }

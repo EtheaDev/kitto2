@@ -10,6 +10,7 @@ type
   TKModelHelper = class helper for TKModel
   public
     procedure SetModelName(const AModelName: string);
+    procedure AddDetailReference(const ADetailReference: TKModelDetailReference);
     procedure DeleteDetailReference(const ADetailReference: TKModelDetailReference);
     procedure AddField(const AField: TKModelField);
     procedure DeleteField(const AField: TKModelField);
@@ -30,11 +31,13 @@ type
 
   TKModelDetailReferencesHelper = class helper for TKModelDetailReferences
   public
+    procedure AddDetailReference(const ADetailReference: TKModelDetailReference);
     procedure DeleteDetailReference(const ADetailReference: TKModelDetailReference);
   end;
 
   TKModelDetailReferenceHelper = class helper for TKModelDetailReference
   public
+    procedure Rename(const AName: string);
     function EqualsForeignKeyInfo(const AForeignKeyInfo: TEFDBForeignKeyInfo): Boolean;
   end;
 
@@ -44,6 +47,14 @@ uses
   Types, SysUtils;
 
 { TKModelHelper }
+
+procedure TKModelHelper.AddDetailReference(
+  const ADetailReference: TKModelDetailReference);
+begin
+  Assert(Assigned(ADetailReference));
+
+  GetDetailReferences.AddDetailReference(ADetailReference);
+end;
 
 procedure TKModelHelper.AddField(const AField: TKModelField);
 begin
@@ -74,6 +85,14 @@ begin
 end;
 
 { TKModelDetailReferencesHelper }
+
+procedure TKModelDetailReferencesHelper.AddDetailReference(
+  const ADetailReference: TKModelDetailReference);
+begin
+  Assert(Assigned(ADetailReference));
+
+  AddChild(ADetailReference);
+end;
 
 procedure TKModelDetailReferencesHelper.DeleteDetailReference(
   const ADetailReference: TKModelDetailReference);
@@ -175,6 +194,11 @@ begin
   Result := False;
   if Assigned(AForeignKeyInfo) then
     Result := SameText(DBForeignKeyName, AForeignKeyInfo.Name);
+end;
+
+procedure TKModelDetailReferenceHelper.Rename(const AName: string);
+begin
+  inherited SetName(AName);
 end;
 
 end.

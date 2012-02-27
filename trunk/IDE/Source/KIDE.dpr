@@ -27,7 +27,9 @@ uses
   KIDE.MetadataHelpers in 'KIDE.MetadataHelpers.pas',
   KIDE.SplashFormUnit in 'KIDE.SplashFormUnit.pas' {SplashForm},
   KIDE.ModelUpdateActionFrameUnit in 'KIDE.ModelUpdateActionFrameUnit.pas' {ModelUpdateActionFrame: TFrame},
-  KIDE.WaitFormUnit in 'KIDE.WaitFormUnit.pas' {WaitForm};
+  KIDE.WaitFormUnit in 'KIDE.WaitFormUnit.pas' {WaitForm},
+  KIDE.TableInfoModelUpdateActionFrameUnit in 'KIDE.TableInfoModelUpdateActionFrameUnit.pas' {TableInfoModelUpdateActionFrame: TFrame},
+  KIDE.DetailReferenceUpdateActionFrameUnit in 'KIDE.DetailReferenceUpdateActionFrameUnit.pas' {DetailReferenceUpdateActionFrame: TFrame};
 
 {$R *.res}
 
