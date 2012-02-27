@@ -3,8 +3,9 @@ unit KIDE.ModelCreator;
 interface
 
 uses
+  Vcl.Controls,
   SysUtils, Classes, Generics.Collections,
-  EF.DB,
+  EF.DB, EF.Tree,
   Kitto.Metadata.Models;
 
 type
@@ -39,10 +40,13 @@ type
 
   TModelUpdateAction = class
   strict private
+    FMetadata: TEFTree;
     FModels: TKModels;
     FModel: TKModel;
     FSubActions: TModelUpdateList;
-    FIsActive: Boolean; protected
+    FIsActive: Boolean;
+  private
+    function GetMetadata: TEFTree; protected
     FOnLog: TProc<string>;
     property Models: TKModels read FModels;
     procedure DoLog(const AString: string);
@@ -50,6 +54,8 @@ type
     procedure InternalExecute; virtual;
     function GetAsString: string; virtual;
     function GetImageIndex: Integer; virtual;
+    procedure InitMetadata; virtual;
+    procedure AddSubAction(const AAction: TModelUpdateAction);
   public
     constructor Create(const AModels: TKModels; const AModel: TKModel);
 
@@ -62,13 +68,17 @@ type
     property IsActive: Boolean read FIsActive write  FIsActive;
     property OnLog: TProc<string> read FOnLog write FOnLog;
     procedure Execute;
+
+    procedure DisplayPropertyFrame(const AContainer: TWinControl);
+    property Metadata: TEFTree read GetMetadata;
   end;
 
   ///	<summary>Base class for actions that create and update models.</summary>
   TTableInfoModelUpdateAction = class(TModelUpdateAction)
-  strict protected
+  strict private
     FOptions: TModelUpdateOptions;
     FTableInfo: TEFDBTableInfo;
+  strict protected
     function CreateAddUpdateFieldSubActions: Boolean;
     procedure SetPrimaryKey;
     function CreateDeleteFieldSubActions: Boolean;
@@ -76,7 +86,11 @@ type
     function CreateDeleteReferenceFieldSubActions: Boolean;
     function CreateAddUpdateDetailSubActions: Boolean;
     function CreateDeleteDetailsSubActions: Boolean;
+    procedure InitMetadata; override;
+    function GetAsString: string; override;
   public
+    property Options: TModelUpdateOptions read FOptions write FOptions;
+    property TableInfo: TEFDBTableInfo read FTableInfo;
     constructor Create(const AModels: TKModels; const ATableInfo: TEFDBTableInfo;
       const AOptions: TModelUpdateOptions);
   end;
@@ -86,7 +100,6 @@ type
     procedure Process;
   strict protected
     procedure InternalExecute; override;
-    function GetAsString: string; override;
     function GetImageIndex: Integer; override;
   public
     constructor Create(const AModels: TKModels; const ATableInfo: TEFDBTableInfo;
@@ -98,7 +111,6 @@ type
     FIsEffective: Boolean;
     procedure Process;
   strict protected
-    function GetAsString: string; override;
     procedure InternalExecute; override;
     function GetImageIndex: Integer; override;
   public
@@ -120,6 +132,8 @@ type
   TDetailReferenceUpdateAction = class(TModelUpdateAction)
   strict private
     FDetailReference: TKModelDetailReference;
+  strict protected
+    procedure Process; virtual;
   public
     constructor Create(const AModels: TKModels; const AModel: TKModel;
       const ADetailReference: TKModelDetailReference);
@@ -133,6 +147,7 @@ type
     procedure InternalExecute; override;
     function GetAsString: string; override;
     function GetImageIndex: Integer; override;
+    procedure InitMetadata; override;
   public
     constructor Create(const AModels: TKModels; const AModel: TKModel;
       const AForeignKeyInfo: TEFDBForeignKeyInfo);
@@ -145,6 +160,7 @@ type
     procedure InternalExecute; override;
     function GetAsString: string; override;
     function GetImageIndex: Integer; override;
+    procedure InitMetadata; override;
   public
     constructor Create(const AModels: TKModels; const AModel: TKModel;
       const ADetailReference: TKModelDetailReference;
@@ -153,9 +169,12 @@ type
 
   TDeleteDetailReference = class(TDetailReferenceUpdateAction)
   strict protected
+    procedure InitMetadata; override;
     procedure InternalExecute; override;
     function GetAsString: string; override;
     function GetImageIndex: Integer; override;
+    constructor Create(const AModels: TKModels; const AModel: TKModel;
+      const ADetailReference: TKModelDetailReference);
   end;
 
   ///	<summary>Base class for actions that create and update model fields.</summary>
@@ -201,6 +220,7 @@ type
 
   TReferenceFieldUpdateAction = class(TModelFieldUpdateAction)
   strict protected
+    procedure Process; virtual;
     ///	<summary>Adds to the specified field all subfields listed in the
     ///	specified foreign key info object. Any fields already existing in the
     ///	model, if not already part of the specified reference field, are moved
@@ -216,6 +236,7 @@ type
     procedure InternalExecute; override;
     function GetAsString: string; override;
     function GetImageIndex: Integer; override;
+    procedure InitMetadata; override;
   public
     constructor Create(const AModels: TKModels; const AModel: TKModel;
       const AForeignKeyInfo: TEFDBForeignKeyInfo);
@@ -238,6 +259,9 @@ type
     procedure InternalExecute; override;
     function GetAsString: string; override;
     function GetImageIndex: Integer; override;
+  public
+    constructor Create(const AModels: TKModels; const AModel: TKModel;
+      const AField: TKModelField);
   end;
 
   TModelCreator = class
@@ -266,8 +290,8 @@ implementation
 
 uses
   Types,
-  EF.StrUtils, EF.Localization, EF.Tree,
-  KIDE.MetadataHelpers;
+  EF.StrUtils, EF.Localization,
+  KIDE.MetadataHelpers, KIDE.ModelUpdateActionFrameUnit;
 
 function BeautifyName(const AName: string): string;
 begin
@@ -416,13 +440,25 @@ end;
 
 { TModelUpdateAction }
 
+procedure TModelUpdateAction.AddSubAction(const AAction: TModelUpdateAction);
+begin
+  Assert(Assigned(AAction));
+
+  AAction.OnLog :=
+    procedure (AString: string)
+    begin
+      DoLog('  ' + AString);
+    end;
+  SubActions.Add(AAction);
+end;
+
 constructor TModelUpdateAction.Create(const AModels: TKModels; const AModel: TKModel);
 begin
   Assert(Assigned(AModels));
 
   inherited Create;
-  FIsActive := True;
   FSubActions := TModelUpdateList.Create;
+  FIsActive := True;
   FModels := AModels;
   FModel := AModel;
 end;
@@ -430,7 +466,15 @@ end;
 destructor TModelUpdateAction.Destroy;
 begin
   FreeAndNil(FSubActions);
+  FreeAndNil(FMetadata);
   inherited;
+end;
+
+procedure TModelUpdateAction.DisplayPropertyFrame(const AContainer: TWinControl);
+begin
+  Assert(Assigned(AContainer));
+
+  CreateModelUpdateActionFrame(Self, AContainer);
 end;
 
 procedure TModelUpdateAction.DoLog(const AString: string);
@@ -461,6 +505,17 @@ end;
 function TModelUpdateAction.GetImageIndex: Integer;
 begin
   Result := 4;
+end;
+
+function TModelUpdateAction.GetMetadata: TEFTree;
+begin
+  if not Assigned(FMetadata) then
+    FMetadata := TEFTree.Create;
+  Result := FMetadata;
+end;
+
+procedure TModelUpdateAction.InitMetadata;
+begin
 end;
 
 procedure TModelUpdateAction.InternalExecute;
@@ -499,6 +554,7 @@ end;
 
 procedure TDeleteModel.Process;
 begin
+  InitMetadata;
 end;
 
 { TDeleteReferringReferences }
@@ -523,13 +579,13 @@ begin
       for LReferenceIndex := LReferringModel.FieldCount - 1 downto 0 do
       begin
         if LReferringModel.Fields[LReferenceIndex].ReferencedModel = Model then
-          SubActions.Add(TDeleteField.Create(Models, LReferringModel, LReferringModel.Fields[LReferenceIndex]));
+          AddSubAction(TDeleteField.Create(Models, LReferringModel, LReferringModel.Fields[LReferenceIndex]));
       end;
       // Then scan for detail references.
       for LReferenceIndex := LReferringModel.DetailReferenceCount - 1 downto 0 do
       begin
         if LReferringModel.DetailReferences[LReferenceIndex].ReferenceField.Model = Model then
-          SubActions.Add(TDeleteDetailReference.Create(Models, LReferringModel, LReferringModel.DetailReferences[LReferenceIndex]));
+          AddSubAction(TDeleteDetailReference.Create(Models, LReferringModel, LReferringModel.DetailReferences[LReferenceIndex]));
       end;
     end;
   end;
@@ -545,6 +601,11 @@ begin
   FDetailReference := ADetailReference;
 end;
 
+procedure TDetailReferenceUpdateAction.Process;
+begin
+  InitMetadata;
+end;
+
 { TModelFieldUpdateAction }
 
 constructor TModelFieldUpdateAction.Create(const AModels: TKModels;
@@ -555,6 +616,13 @@ begin
 end;
 
 { TDeleteDetailReference }
+
+constructor TDeleteDetailReference.Create(const AModels: TKModels;
+  const AModel: TKModel; const ADetailReference: TKModelDetailReference);
+begin
+  inherited Create(AModels, AModel, ADetailReference);
+  Process;
+end;
 
 function TDeleteDetailReference.GetAsString: string;
 begin
@@ -568,11 +636,21 @@ begin
   Result := 15;
 end;
 
+procedure TDeleteDetailReference.InitMetadata;
+begin
+  inherited;
+  Assert(Assigned(DetailReference));
+
+  Metadata.SetString('DetailReferenceName', DetailReference.Name);
+  Metadata.SetString('ForeignKeyName', DetailReference.DBForeignKeyName);
+end;
+
 procedure TDeleteDetailReference.InternalExecute;
 begin
   inherited;
   Assert(Assigned(DetailReference));
 
+  DoLog(Format(_('Deleting detail reference %s.'), [DetailReference.Name]));
   Model.DeleteDetailReference(DetailReference);
 end;
 
@@ -599,56 +677,6 @@ begin
   Model.DeleteField(Field);
 end;
 
-{ TTableInfoModelUpdateAction }
-
-(*
-procedure TTableInfoModelUpdateAction.ApplyForeignKeys(
-  const ATableInfo: TEFDBTableInfo; const AOptions: TModelUpdateOptions);
-var
-  I: Integer;
-  LForeignKey: TEFDBForeignKeyInfo;
-  LReferenceField: TKModelField;
-
-  function FindReferenceField: TKModelField;
-  begin
-    Result := Model.FindReferenceField(LForeignKey.Name);
-    if not Assigned(Result) then
-      Result := Model.FindReferenceField(LForeignKey.ForeignTableName,
-        Split(LForeignKey.ColumnNames.Text, sLineBreak));
-  end;
-
-begin
-  // Add new foreign keys and update existing ones.
-  for I := 0 to ATableInfo.ForeignKeyCount - 1 do
-  begin
-    LForeignKey := ATableInfo.ForeignKeys[I];
-    LReferenceField := FindReferenceField;
-    if not Assigned(LReferenceField) then
-    begin
-      LReferenceField := Model.AddReferenceField(
-      // Avoid logging the "updating foreign key" line.
-      AOptions.DisableLogging;
-    end;
-    LReferenceField.AssignForeignKeyInfo(LForeignKey, AOptions);
-    AOptions.EnableLogging;
-  end;
-
-  // Delete no longer existing foreign keys.
-  if AOptions.DeleteForeignKeys then
-  begin
-    for I := ForeignKeyCount - 1 downto 0 do
-    begin
-      if not Assigned(ATableInfo.FindForeignKey(ForeignKeys[I].Name)) then
-      begin
-        AOptions.LogFmt(Self, _('Deleting Foreign Key %s.%s (-> %s)'),
-          [Name, ForeignKeys[I].Name, ForeignKeys[I].ForeignTableName]);
-        DeleteForeignKey(I);
-      end;
-    end;
-  end;
-end;
-*)
-
 constructor TTableInfoModelUpdateAction.Create(const AModels: TKModels;
   const ATableInfo: TEFDBTableInfo; const AOptions: TModelUpdateOptions);
 begin
@@ -672,7 +700,7 @@ begin
     LForeignKeyInfo := FTableInfo.SchemaInfo.FindForeignKey(LDetail.DBForeignKeyName);
     if not Assigned(LForeignKeyInfo) then
     begin
-      SubActions.Add(TDeleteDetailReference.Create(Models, Model, LDetail));
+      AddSubAction(TDeleteDetailReference.Create(Models, Model, LDetail));
       Result := True;
     end;
   end;
@@ -693,7 +721,7 @@ begin
     LColumnInfo := FTableInfo.FindColumn(LField.DBColumnName);
     if not Assigned(LColumnInfo) then
     begin
-      SubActions.Add(TDeleteField.Create(Models, Model, LField));
+      AddSubAction(TDeleteField.Create(Models, Model, LField));
       Result := True;
     end;
   end;
@@ -716,11 +744,25 @@ begin
       LColumnInfo := FTableInfo.FindColumn(LField.DBColumnName);
       if not Assigned(LColumnInfo) then
       begin
-        SubActions.Add(TDeleteReferenceField.Create(Models, Model, LField));
+        AddSubAction(TDeleteReferenceField.Create(Models, Model, LField));
         Result := True;
       end;
     end;
   end;
+end;
+
+function TTableInfoModelUpdateAction.GetAsString: string;
+begin
+  Result := Metadata.GetString('ModelName');
+end;
+
+procedure TTableInfoModelUpdateAction.InitMetadata;
+begin
+  inherited;
+  Assert(Assigned(TableInfo));
+
+  Metadata.SetString('ModelName', BeautifyName(TableInfo.Name));
+  Metadata.SetString('PhysicalName', TableInfo.Name);
 end;
 
 function TTableInfoModelUpdateAction.CreateAddUpdateDetailSubActions: Boolean;
@@ -747,11 +789,11 @@ begin
           LDetail := nil;
 
         if not Assigned(LDetail) then
-          SubActions.Add(TAddDetailReference.Create(Models, Model, LForeignKeyInfo))
+          AddSubAction(TAddDetailReference.Create(Models, Model, LForeignKeyInfo))
         else
         begin
           if not LDetail.EqualsForeignKeyInfo(LForeignKeyInfo) then
-            SubActions.Add(TModifyDetailReference.Create(Models, Model, LDetail, LForeignKeyInfo));
+            AddSubAction(TModifyDetailReference.Create(Models, Model, LDetail, LForeignKeyInfo));
         end;
       end;
     end;
@@ -779,7 +821,7 @@ begin
 
     if not Assigned(LModelField) then
     begin
-      SubActions.Add(TAddField.Create(Models, Model, LColumnInfo));
+      AddSubAction(TAddField.Create(Models, Model, LColumnInfo));
       Result := True;
     end
     else
@@ -790,7 +832,7 @@ begin
       // processing foreign keys instead.
       if not LModelField.IsContained and not LModelField.EqualsColumnInfo(LColumnInfo) then
       begin
-        SubActions.Add(TModifyField.Create(Models, Model, LModelField, LColumnInfo));
+        AddSubAction(TModifyField.Create(Models, Model, LModelField, LColumnInfo));
         Result := True;
       end;
     end;
@@ -815,14 +857,14 @@ begin
       LReferenceField := nil;
 
     if not Assigned(LReferenceField) then
-      SubActions.Add(TAddReferenceField.Create(Models, Model, LForeignKeyInfo))
+      AddSubAction(TAddReferenceField.Create(Models, Model, LForeignKeyInfo))
     else
     begin
       if not LReferenceField.IsReference then
         raise Exception.CreateFmt('Field %s (%s) is not a reference field.',
           [LReferenceField.FieldName, LReferenceField.QualifiedDBColumnName]);
       if not LReferenceField.EqualsForeignKeyInfo(LForeignKeyInfo) then
-        SubActions.Add(TModifyReferenceField.Create(Models, Model, LReferenceField, LForeignKeyInfo));
+        AddSubAction(TModifyReferenceField.Create(Models, Model, LReferenceField, LForeignKeyInfo));
     end;
   end;
 end;
@@ -846,13 +888,6 @@ begin
   Process;
 end;
 
-function TAddModel.GetAsString: string;
-begin
-  Assert(Assigned(FTableInfo));
-
-  Result := BeautifyName(FTableInfo.Name);
-end;
-
 function TAddModel.GetImageIndex: Integer;
 begin
   Result := 5;
@@ -862,16 +897,18 @@ procedure TAddModel.InternalExecute;
 var
   I: Integer;
   LModelName: string;
+  LPhysicalName: string;
 begin
-  Assert(Assigned(FTableInfo));
+  Assert(Assigned(TableInfo));
 
-  LModelName := BeautifyName(FTableInfo.Name);
+  LModelName := Metadata.GetString('ModelName');
   DoLog(Format(_('Adding model %s.'), [LModelName]));
   Model := TKModel.Create;
   try
     Model.SetModelName(LModelName);
-    if LModelName <> FTableInfo.Name then
-      Model.SetString('PhysicalName', FTableInfo.Name);
+    LPhysicalName := Metadata.GetString('PhysicalName');
+    if LModelName <> LPhysicalName then
+      Model.SetString('PhysicalName', LPhysicalName);
     // Pass newly created model to subactions.
     for I := 0 to SubActions.Count - 1 do
       SubActions[I].Model := Model;
@@ -887,15 +924,16 @@ end;
 
 procedure TAddModel.Process;
 begin
+  InitMetadata;
   CreateAddUpdateFieldSubActions;
-  if FOptions.DeleteFields then
+  if Options.DeleteFields then
     CreateDeleteFieldSubActions;
   CreateAddUpdateReferenceFieldSubActions;
-  if FOptions.DeleteReferences then
+  if Options.DeleteReferences then
     CreateDeleteReferenceFieldSubActions;
-  if FOptions.AddDetails then
+  if Options.AddDetails then
     CreateAddUpdateDetailSubActions;
-  if FOptions.DeleteDetails then
+  if Options.DeleteDetails then
     CreateDeleteDetailsSubActions;
 end;
 
@@ -910,13 +948,6 @@ begin
   Process;
 end;
 
-function TModifyModel.GetAsString: string;
-begin
-  Assert(Assigned(Model));
-
-  Result := Model.ModelName;
-end;
-
 function TModifyModel.GetImageIndex: Integer;
 begin
   Result := 7;
@@ -925,9 +956,9 @@ end;
 procedure TModifyModel.InternalExecute;
 begin
   Assert(Assigned(Model));
-  DoLog(Format(_('Modifying model %s.'), [Model.ModelName]));
+  DoLog(Format(_('Modifying model %s.'), [Metadata.GetString('ModelName')]));
   inherited; // execute SubActions.
-  Assert(Assigned(FTableInfo));
+  Assert(Assigned(TableInfo));
 
   SetPrimaryKey;
 end;
@@ -939,11 +970,12 @@ end;
 
 procedure TModifyModel.Process;
 begin
+  InitMetadata;
   FIsEffective := FIsEffective and CreateAddUpdateFieldSubActions;
-  if FOptions.DeleteFields then
+  if Options.DeleteFields then
     FIsEffective := FIsEffective and CreateDeleteFieldSubActions;
   FIsEffective := FIsEffective and CreateAddUpdateReferenceFieldSubActions;
-  if FOptions.DeleteReferences then
+  if Options.DeleteReferences then
     FIsEffective := FIsEffective and CreateDeleteReferenceFieldSubActions;
 end;
 
@@ -1062,13 +1094,12 @@ begin
 
   inherited Create(AModels, AModel, nil);
   FForeignKeyInfo := AForeignKeyInfo;
+  Process;
 end;
 
 function TAddReferenceField.GetAsString: string;
 begin
-  Assert(Assigned(FForeignKeyInfo));
-
-  Result := BeautifyName(FForeignKeyInfo.Name);
+  Result := Metadata.GetString('ReferenceName');
 end;
 
 function TAddReferenceField.GetImageIndex: Integer;
@@ -1076,15 +1107,37 @@ begin
   Result := 11;
 end;
 
+procedure TAddReferenceField.InitMetadata;
+var
+  LReferencedModel: TKModel;
+begin
+  inherited;
+  Assert(Assigned(FForeignKeyInfo));
+  Assert(Assigned(Models));
+
+  LReferencedModel := Models.FindModelByPhysicalName(FForeignKeyInfo.ForeignTableName);
+  if Assigned(LReferencedModel) then
+    Metadata.SetString('ReferenceName', LReferencedModel.ModelName)
+  else
+    Metadata.SetString('ReferenceName', BeautifyName(FForeignKeyInfo.ForeignTableName));
+  Metadata.SetString('ForeignKeyName', FForeignKeyInfo.Name);
+  Metadata.SetBoolean('IsRequired', FForeignKeyInfo.IsRequired);
+end;
+
 procedure TAddReferenceField.InternalExecute;
+var
+  LFieldName: string;
 begin
   inherited;
   Assert(Assigned(Model));
   Assert(Assigned(FForeignKeyInfo));
 
-  Field := TKModelField.Create(BeautifyName(FForeignKeyInfo.Name));
+  LFieldName := Metadata.GetString('ReferenceName');
+  DoLog(Format(_('Adding reference field %s to Model %s.'), [LFieldName, Model.ModelName]));
+  Field := TKModelField.Create(LFieldName);
   Field.SetFieldSpec(TEFDataTypeFactory.Instance.GetDataType(TKReferenceDataType.GetTypeName),
-    0, FForeignKeyInfo.IsRequired, False, BeautifyName(FForeignKeyInfo.ForeignTableName));
+    0, Metadata.GetBoolean('IsRequired'), False, BeautifyName(FForeignKeyInfo.ForeignTableName));
+  Field.SetString('PhysicalName', Metadata.GetString('ForeignKeyName'));
   Model.AddField(Field);
   CreateMoveReferenceSubFields(Field, FForeignKeyInfo);
 end;
@@ -1099,6 +1152,7 @@ begin
 
   inherited Create(AModels, AModel, AReferenceField);
   FForeignKeyInfo := AForeignKeyInfo;
+  Process;
 end;
 
 function TModifyReferenceField.GetAsString: string;
@@ -1120,6 +1174,13 @@ begin
 end;
 
 { TDeleteReferenceField }
+
+constructor TDeleteReferenceField.Create(const AModels: TKModels;
+  const AModel: TKModel; const AField: TKModelField);
+begin
+  inherited Create(AModels, AModel, AField);
+  Process;
+end;
 
 function TDeleteReferenceField.GetAsString: string;
 begin
@@ -1176,6 +1237,11 @@ begin
   end;
 end;
 
+procedure TReferenceFieldUpdateAction.Process;
+begin
+  InitMetadata;
+end;
+
 { TAddDetailReference }
 
 constructor TAddDetailReference.Create(const AModels: TKModels;
@@ -1185,13 +1251,12 @@ begin
 
   inherited Create(AModels, AModel, nil);
   FForeignKeyInfo := AForeignKeyInfo;
+  Process;
 end;
 
 function TAddDetailReference.GetAsString: string;
 begin
-  Assert(Assigned(FForeignKeyInfo));
-
-  Result := BeautifyName(FForeignKeyInfo.Name);
+  Result := Metadata.GetString('DetailReferenceName');
 end;
 
 function TAddDetailReference.GetImageIndex: Integer;
@@ -1199,10 +1264,56 @@ begin
   Result := 14;
 end;
 
-procedure TAddDetailReference.InternalExecute;
+procedure TAddDetailReference.InitMetadata;
+var
+  LReferencedModel: TKModel;
 begin
   inherited;
+  Assert(Assigned(FForeignKeyInfo));
+  Assert(Assigned(Models));
 
+  LReferencedModel := Models.FindModelByPhysicalName(FForeignKeyInfo.TableInfo.Name);
+  if Assigned(LReferencedModel) then
+    Metadata.SetString('DetailReferenceName', Pluralize(LReferencedModel.ModelName))
+  else
+    Metadata.SetString('DetailReferenceName', Pluralize(BeautifyName(FForeignKeyInfo.TableInfo.Name)));
+  Metadata.SetString('ForeignKeyName', FForeignKeyInfo.Name);
+end;
+
+procedure TAddDetailReference.InternalExecute;
+var
+  LDetailReference: TKModelDetailReference;
+  LDetailReferenceName: string;
+  LDetailModel: TKModel;
+  LRefField: TKModelField;
+begin
+  inherited;
+  Assert(Assigned(Model));
+  Assert(Assigned(Models));
+  Assert(Assigned(FForeignKeyInfo));
+
+  LDetailReferenceName := Metadata.GetString('DetailReferenceName');
+  DoLog(Format(_('Adding detail reference %s to Model %s.'), [LDetailReferenceName, Model.ModelName]));
+  LDetailModel := Models.FindModelByPhysicalName(FForeignKeyInfo.TableInfo.Name);
+  if not Assigned(LDetailModel) then
+    DoLog(Format(_('Couldn''t find model for table %s. Skipping...'), [FForeignKeyInfo.TableInfo.Name]))
+  else
+  begin
+    LDetailReference := TKModelDetailReference.Create(LDetailReferenceName, LDetailModel.ModelName);
+    try
+      LDetailReference.SetString('PhysicalName', FForeignKeyInfo.Name);
+      LRefField := LDetailModel.FindReferenceField(FForeignKeyInfo.Name);
+      if Assigned(LRefField) then
+        LDetailReference.SetString('ReferenceField', LRefField.FieldName)
+      else
+        DoLog(Format(_('Couldn''t find a reference field in detail model %s for foreign key %s. Detail reference will be created without one.'),
+          [LDetailModel.ModelName, FForeignKeyInfo.Name]));
+      Model.AddDetailReference(LDetailReference);
+    except
+      FreeAndNil(LDetailReference);
+      raise;
+    end;
+  end;
 end;
 
 { TModifyDetailReference }
@@ -1215,6 +1326,7 @@ begin
 
   inherited Create(AModels, AModel, ADetailReference);
   FForeignKeyInfo := AForeignKeyInfo;
+  Process;
 end;
 
 function TModifyDetailReference.GetAsString: string;
@@ -1229,10 +1341,24 @@ begin
   Result := 16;
 end;
 
+procedure TModifyDetailReference.InitMetadata;
+begin
+  inherited;
+  Assert(Assigned(DetailReference));
+
+  Metadata.SetString('DetailReferenceName', DetailReference.Name);
+  Metadata.SetString('ForeignKeyName', DetailReference.DBForeignKeyName);
+end;
+
 procedure TModifyDetailReference.InternalExecute;
 begin
   inherited;
+  Assert(Assigned(Model));
+  Assert(Assigned(DetailReference));
+  Assert(Assigned(FForeignKeyInfo));
 
+  DoLog(Format(_('Modifying detail reference %s.'), [DetailReference.Name]));
+  DetailReference.Rename(Metadata.GetString('DetailReferenceName'));
 end;
 
 end.

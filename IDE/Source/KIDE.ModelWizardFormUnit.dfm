@@ -13,7 +13,7 @@ inherited ModelWizardForm: TModelWizardForm
     Top = 21
     Width = 511
     Height = 321
-    ActivePage = OptionsTabSheet
+    ActivePage = SelectTabSheet
     ExplicitTop = 21
     ExplicitWidth = 511
     ExplicitHeight = 321
@@ -626,7 +626,7 @@ inherited ModelWizardForm: TModelWizardForm
         Height = 311
         Align = alRight
         AutoSnap = False
-        MinSize = 50
+        MinSize = 100
         ResizeStyle = rsUpdate
         ExplicitLeft = 392
         ExplicitTop = 80
@@ -664,6 +664,7 @@ inherited ModelWizardForm: TModelWizardForm
           TabOrder = 0
           ViewStyle = vsList
           OnChange = ModelsListViewChange
+          OnResize = ModelsListViewResize
         end
         object ModelsSelectCheckBox: TCheckBox
           Left = 0
@@ -806,7 +807,8 @@ inherited ModelWizardForm: TModelWizardForm
         Left = 249
         Top = 0
         Height = 311
-        MinSize = 50
+        AutoSnap = False
+        MinSize = 100
         ResizeStyle = rsUpdate
         ExplicitLeft = 320
         ExplicitTop = 72
@@ -831,6 +833,7 @@ inherited ModelWizardForm: TModelWizardForm
           PopupMenu = TreePopupMenu
           ReadOnly = True
           TabOrder = 0
+          OnChange = ActionTreeViewChange
           OnCreateNodeClass = ActionTreeViewCreateNodeClass
           OnMouseDown = ActionTreeViewMouseDown
         end
@@ -857,12 +860,18 @@ inherited ModelWizardForm: TModelWizardForm
           Caption = 'Action properties'
           ExplicitWidth = 82
         end
-        object Label2: TLabel
-          Left = 72
-          Top = 80
-          Width = 82
-          Height = 13
-          Caption = 'Not Implemented'
+        object ActionFramePanel: TPanel
+          Left = 0
+          Top = 13
+          Width = 251
+          Height = 298
+          Align = alClient
+          BevelOuter = bvNone
+          TabOrder = 0
+          ExplicitLeft = 24
+          ExplicitTop = 104
+          ExplicitWidth = 185
+          ExplicitHeight = 41
         end
       end
     end

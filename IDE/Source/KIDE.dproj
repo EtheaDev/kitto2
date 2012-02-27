@@ -130,6 +130,16 @@
 			<DCCReference Include="KIDE.WaitFormUnit.pas">
 				<Form>WaitForm</Form>
 			</DCCReference>
+			<DCCReference Include="KIDE.TableInfoModelUpdateActionFrameUnit.pas">
+				<Form>TableInfoModelUpdateActionFrame</Form>
+				<FormType>dfm</FormType>
+				<DesignClass>TFrame</DesignClass>
+			</DCCReference>
+			<DCCReference Include="KIDE.DetailReferenceUpdateActionFrameUnit.pas">
+				<Form>DetailReferenceUpdateActionFrame</Form>
+				<FormType>dfm</FormType>
+				<DesignClass>TFrame</DesignClass>
+			</DCCReference>
 			<BuildConfiguration Include="Release">
 				<Key>Cfg_2</Key>
 				<CfgParent>Base</CfgParent>
