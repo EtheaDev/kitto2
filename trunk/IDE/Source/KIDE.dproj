@@ -92,53 +92,55 @@
 			<DelphiCompile Include="$(MainSource)">
 				<MainSource>MainSource</MainSource>
 			</DelphiCompile>
-			<DCCReference Include="KIDE.MainFormUnit.pas">
-				<Form>MainForm</Form>
+			<DCCReference Include="DBXDevartInterBase.pas"/>
+			<DCCReference Include="DBXDevartSQLServer.pas">
+				<Form>$R *.res</Form>
 			</DCCReference>
-			<DCCReference Include="KIDE.FileTree.pas"/>
-			<DCCReference Include="KIDE.MRUOptions.pas"/>
-			<DCCReference Include="KIDE.Project.pas"/>
-			<DCCReference Include="KIDE.Shell.pas"/>
 			<DCCReference Include="DirWatcher.pas"/>
-			<DCCReference Include="KIDE.BaseWizardFormUnit.pas">
-				<Form>BaseWizardForm</Form>
-			</DCCReference>
-			<DCCReference Include="KIDE.UpdateLocaleFormUnit.pas">
-				<Form>UpdateLocaleForm</Form>
-			</DCCReference>
-			<DCCReference Include="KIDE.Utils.pas"/>
-			<DCCReference Include="KIDE.gettext.pas"/>
 			<DCCReference Include="KIDE.BaseFormUnit.pas">
 				<Form>BaseForm</Form>
 			</DCCReference>
-			<DCCReference Include="KIDE.ModelWizardFormUnit.pas">
-				<Form>ModelWizardForm</Form>
+			<DCCReference Include="KIDE.BaseWizardFormUnit.pas">
+				<Form>BaseWizardForm</Form>
 			</DCCReference>
 			<DCCReference Include="KIDE.DatabaseFrameUnit.pas">
 				<Form>DatabaseFrame</Form>
 				<DesignClass>TFrame</DesignClass>
 			</DCCReference>
-			<DCCReference Include="KIDE.ModelCreator.pas"/>
-			<DCCReference Include="KIDE.MetadataHelpers.pas"/>
-			<DCCReference Include="KIDE.SplashFormUnit.pas">
-				<Form>SplashForm</Form>
+			<DCCReference Include="KIDE.DetailReferenceUpdateActionFrameUnit.pas">
+				<Form>DetailReferenceUpdateActionFrame</Form>
+				<DesignClass>TFrame</DesignClass>
 			</DCCReference>
+			<DCCReference Include="KIDE.FileTree.pas"/>
+			<DCCReference Include="KIDE.gettext.pas"/>
+			<DCCReference Include="KIDE.MainFormUnit.pas">
+				<Form>MainForm</Form>
+			</DCCReference>
+			<DCCReference Include="KIDE.MetadataHelpers.pas"/>
+			<DCCReference Include="KIDE.ModelCreator.pas"/>
 			<DCCReference Include="KIDE.ModelUpdateActionFrameUnit.pas">
 				<Form>ModelUpdateActionFrame</Form>
 				<DesignClass>TFrame</DesignClass>
 			</DCCReference>
-			<DCCReference Include="KIDE.WaitFormUnit.pas">
-				<Form>WaitForm</Form>
+			<DCCReference Include="KIDE.ModelWizardFormUnit.pas">
+				<Form>ModelWizardForm</Form>
+			</DCCReference>
+			<DCCReference Include="KIDE.MRUOptions.pas"/>
+			<DCCReference Include="KIDE.Project.pas"/>
+			<DCCReference Include="KIDE.Shell.pas"/>
+			<DCCReference Include="KIDE.SplashFormUnit.pas">
+				<Form>SplashForm</Form>
 			</DCCReference>
 			<DCCReference Include="KIDE.TableInfoModelUpdateActionFrameUnit.pas">
 				<Form>TableInfoModelUpdateActionFrame</Form>
-				<FormType>dfm</FormType>
 				<DesignClass>TFrame</DesignClass>
 			</DCCReference>
-			<DCCReference Include="KIDE.DetailReferenceUpdateActionFrameUnit.pas">
-				<Form>DetailReferenceUpdateActionFrame</Form>
-				<FormType>dfm</FormType>
-				<DesignClass>TFrame</DesignClass>
+			<DCCReference Include="KIDE.UpdateLocaleFormUnit.pas">
+				<Form>UpdateLocaleForm</Form>
+			</DCCReference>
+			<DCCReference Include="KIDE.Utils.pas"/>
+			<DCCReference Include="KIDE.WaitFormUnit.pas">
+				<Form>WaitForm</Form>
 			</DCCReference>
 			<BuildConfiguration Include="Release">
 				<Key>Cfg_2</Key>
