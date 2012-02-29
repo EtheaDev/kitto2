@@ -31,7 +31,8 @@ uses
   KIDE.TableInfoModelUpdateActionFrameUnit in 'KIDE.TableInfoModelUpdateActionFrameUnit.pas' {TableInfoModelUpdateActionFrame: TFrame},
   KIDE.UpdateLocaleFormUnit in 'KIDE.UpdateLocaleFormUnit.pas' {UpdateLocaleForm},
   KIDE.Utils in 'KIDE.Utils.pas',
-  KIDE.WaitFormUnit in 'KIDE.WaitFormUnit.pas' {WaitForm};
+  KIDE.WaitFormUnit in 'KIDE.WaitFormUnit.pas' {WaitForm},
+  KIDE.ModelFieldUpdateActionFrameUnit in 'KIDE.ModelFieldUpdateActionFrameUnit.pas' {ModelFieldUpdateActionFrame: TFrame};
 
 {$R *.res}
 

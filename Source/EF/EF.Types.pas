@@ -173,6 +173,7 @@ type
 implementation
 
 uses
+  Generics.Defaults,
   EF.Localization;
 
 { EEFError }
@@ -182,6 +183,26 @@ constructor EEFError.CreateWithAdditionalInfo(const AMessage,
 begin
   inherited Create(AMessage);
   FAdditionalInfo := AAdditionalInfo;
+end;
+
+type
+  TCaseInsEqualityComparer = class(TEqualityComparer<string>)
+  public
+    function Equals(const Left, Right: string): Boolean; override;
+    function GetHashCode(const Value: string): Integer; override;
+  end;
+
+function TCaseInsEqualityComparer.Equals(const Left, Right: string): Boolean;
+begin
+  Result := SameText(Left, Right);
+end;
+
+function TCaseInsEqualityComparer.GetHashCode(const Value: string): Integer;
+var
+  LString: string;
+begin
+  LString := UpperCase(Value);
+  Result := BobJenkinsHash(LString[1], Length(LString) * SizeOf(LString[1]), 0);
 end;
 
 { TEFRegistry }
@@ -205,7 +226,7 @@ end;
 constructor TEFRegistry.Create;
 begin
   inherited Create;
-  FClasses := TDictionary<string, TClass>.Create;
+  FClasses := TDictionary<string, TClass>.Create(TCaseInsEqualityComparer.Create);
 end;
 
 destructor TEFRegistry.Destroy;
@@ -224,8 +245,8 @@ end;
 
 function TEFRegistry.GetClass(const AId: string): TClass;
 begin
-  if HasClass(UpperCase(AId)) then
-    Result := FClasses[UpperCase(AId)]
+  if HasClass(AId) then
+    Result := FClasses[AId]
   else
     raise EEFError.CreateFmt('Class %s not found.', [AId]);
 end;
@@ -233,21 +254,21 @@ end;
 procedure TEFRegistry.RegisterClass(const AId: string; const AClass: TClass);
 begin
   BeforeRegisterClass(AId, AClass);
-  FClasses.Add(UpperCase(AId), AClass);
+  FClasses.Add(AId, AClass);
   AfterRegisterClass(AId, AClass);
 end;
 
 function TEFRegistry.HasClass(const AId: string): Boolean;
 begin
-  Result := FClasses.ContainsKey(UpperCase(AId));
+  Result := FClasses.ContainsKey(AId);
 end;
 
 procedure TEFRegistry.UnregisterClass(const AId: string);
 begin
   Assert(AId <> '');
 
-  if FClasses.ContainsKey(UpperCase(AId)) then
-    FClasses.Remove(UpperCase(AId));
+  if FClasses.ContainsKey(AId) then
+    FClasses.Remove(AId);
 end;
 
 { TEFFactory }

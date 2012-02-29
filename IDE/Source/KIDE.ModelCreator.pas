@@ -181,6 +181,8 @@ type
   TModelFieldUpdateAction = class(TModelUpdateAction)
   strict private
     FField: TKModelField;
+  strict protected
+    procedure Process; virtual;
   public
     constructor Create(const AModels: TKModels; const AModel: TKModel;
       const AField: TKModelField);
@@ -194,6 +196,7 @@ type
     procedure InternalExecute; override;
     function GetAsString: string; override;
     function GetImageIndex: Integer; override;
+    procedure InitMetadata; override;
   public
     constructor Create(const AModels: TKModels; const AModel: TKModel;
       const AColumnInfo: TEFDBColumnInfo);
@@ -206,6 +209,7 @@ type
     procedure InternalExecute; override;
     function GetAsString: string; override;
     function GetImageIndex: Integer; override;
+    procedure InitMetadata; override;
   public
     constructor Create(const AModels: TKModels; const AModel: TKModel;
       const AField: TKModelField; const AColumnInfo: TEFDBColumnInfo);
@@ -216,6 +220,8 @@ type
     procedure InternalExecute; override;
     function GetAsString: string; override;
     function GetImageIndex: Integer; override;
+    constructor Create(const AModels: TKModels; const AModel: TKModel;
+      const AField: TKModelField);
   end;
 
   TReferenceFieldUpdateAction = class(TModelFieldUpdateAction)
@@ -615,6 +621,11 @@ begin
   FField := AField;
 end;
 
+procedure TModelFieldUpdateAction.Process;
+begin
+  InitMetadata;
+end;
+
 { TDeleteDetailReference }
 
 constructor TDeleteDetailReference.Create(const AModels: TKModels;
@@ -655,6 +666,13 @@ begin
 end;
 
 { TDeleteField }
+
+constructor TDeleteField.Create(const AModels: TKModels; const AModel: TKModel;
+  const AField: TKModelField);
+begin
+  inherited Create(AModels, AModel, AField);
+  Process;
+end;
 
 function TDeleteField.GetAsString: string;
 begin
@@ -988,18 +1006,31 @@ begin
 
   inherited Create(AModels, AModel, nil);
   FColumnInfo := AColumnInfo;
+  Process;
 end;
 
 function TAddField.GetAsString: string;
 begin
-  Assert(Assigned(FColumnInfo));
-
-  Result := BeautifyName(FColumnInfo.Name);
+  Result := Metadata.GetString('FieldName');
 end;
 
 function TAddField.GetImageIndex: Integer;
 begin
   Result := 8;
+end;
+
+procedure TAddField.InitMetadata;
+begin
+  inherited;
+  Assert(Assigned(FColumnInfo));
+
+  Metadata.SetString('FieldName', BeautifyName(FColumnInfo.Name));
+  Metadata.SetString('PhysicalName', FColumnInfo.Name);
+
+  Metadata.SetString('DataType', FColumnInfo.DataType.GetTypeName);
+  Metadata.SetInteger('Size', FColumnInfo.Size);
+  Metadata.SetBoolean('IsRequired', FColumnInfo.IsRequired);
+  Metadata.SetBoolean('IsKey', FColumnInfo.IsKey);
 end;
 
 procedure TAddField.InternalExecute;
@@ -1011,14 +1042,17 @@ begin
   Assert(Assigned(Model));
   Assert(Assigned(FColumnInfo));
 
-  LFieldName := BeautifyName(FColumnInfo.Name);
+  LFieldName := Metadata.GetString('FieldName');
+
   DoLog(Format(_('Adding field %s to Model %s.'), [LFieldName, Model.ModelName]));
   LField := TKModelField.Create(LFieldName);
   try
     if LFieldName <> FColumnInfo.Name then
       LField.SetString('PhysicalName', FColumnInfo.Name);
-    LField.SetFieldSpec(FColumnInfo.DataType, FColumnInfo.Size,
-      FColumnInfo.IsRequired, FColumnInfo.IsKey, '');
+    LField.SetFieldSpec(
+      TEFDataTypeFactory.Instance.GetDataType(Metadata.GetString('DataType')),
+      Metadata.GetInteger('Size'), Metadata.GetBoolean('IsRequired'),
+      Metadata.GetBoolean('IsKey'), '');
     Model.AddField(LField);
   except
     FreeAndNil(LField);
@@ -1035,18 +1069,32 @@ begin
 
   inherited Create(AModels, AModel, AField);
   FColumnInfo := AColumnInfo;
+  Process;
 end;
 
 function TModifyField.GetAsString: string;
 begin
-  Assert(Assigned(Field));
-
-  Result := Field.FieldName;
+  Result := Metadata.GetString('FieldName');
 end;
 
 function TModifyField.GetImageIndex: Integer;
 begin
   Result := 10;
+end;
+
+procedure TModifyField.InitMetadata;
+begin
+  inherited;
+  Assert(Assigned(FColumnInfo));
+  Assert(Assigned(Field));
+
+  Metadata.SetString('FieldName', Field.FieldName);
+  Metadata.SetString('PhysicalName', FColumnInfo.Name);
+
+  Metadata.SetString('DataType', FColumnInfo.DataType.GetTypeName);
+  Metadata.SetInteger('Size', FColumnInfo.Size);
+  Metadata.SetBoolean('IsRequired', FColumnInfo.IsRequired);
+  Metadata.SetBoolean('IsKey', FColumnInfo.IsKey);
 end;
 
 procedure TModifyField.InternalExecute;
@@ -1057,8 +1105,11 @@ begin
   Assert(Assigned(FColumnInfo));
 
   DoLog(Format(_('Modifying field %s.%s.'), [Model.ModelName, Field.FieldName]));
-  Field.SetFieldSpec(FColumnInfo.DataType, FColumnInfo.Size,
-    FColumnInfo.IsRequired, FColumnInfo.IsKey, '');
+
+  Field.SetFieldSpec(
+    TEFDataTypeFactory.Instance.GetDataType(Metadata.GetString('DataType')),
+    Metadata.GetInteger('Size'), Metadata.GetBoolean('IsRequired'),
+    Metadata.GetBoolean('IsKey'), '');
 end;
 
 { TModelUpdateList }
