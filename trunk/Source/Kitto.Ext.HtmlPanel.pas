@@ -34,7 +34,7 @@ implementation
 uses
   SysUtils,
   Ext,
-  EF.StrUtils, EF.Macros,
+  EF.StrUtils, EF.Macros, EF.Localization,
   Kitto.Ext.Session;
 
 { TKExtHtmlPanelController }
@@ -46,7 +46,7 @@ var
   LHtml: string;
 begin
   inherited;
-  Title := View.DisplayLabel;
+  Title := _(View.DisplayLabel);
   AutoScroll := True;
 
   LFileName := View.GetExpandedString('Controller/FileName');

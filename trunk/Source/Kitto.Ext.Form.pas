@@ -365,7 +365,7 @@ var
   LHostWindow: TExtWindow;
 begin
   inherited;
-  Title := ViewTable.DisplayLabel;
+  Title := _(ViewTable.DisplayLabel);
 
   FOperation := Config.GetString('Sys/Operation');
   if FOperation = '' then
@@ -398,7 +398,7 @@ begin
     FTabPanel.AutoScroll := False;
     FTabPanel.SetActiveTab(0);
     FFormPanel := TKExtEditPanel.AddTo(FTabPanel.Items);
-    FFormPanel.Title := ViewTable.DisplayLabel;
+    FFormPanel.Title := _(ViewTable.DisplayLabel);
   end
   else
   begin
@@ -477,7 +477,7 @@ begin
   FViewTable := AValue;
   if Assigned(FViewTable) then
   begin
-    Text := FViewTable.PluralDisplayLabel;
+    Text := _(FViewTable.PluralDisplayLabel);
     Icon := Session.Config.GetImageURL(FViewTable.ImageName);
     Handler := Ajax(ShowDetailWindow, []);
   end;
@@ -493,7 +493,7 @@ begin
     FDetailHostWindow.Free(True);
   FDetailHostWindow := TKExtModalWindow.Create;
 
-  FDetailHostWindow.Title := ViewTable.PluralDisplayLabel;
+  FDetailHostWindow.Title := _(ViewTable.PluralDisplayLabel);
   FDetailHostWindow.Closable := True;
 
   LController := TKExtControllerFactory.Instance.CreateController(FViewTable.View, FDetailHostWindow);

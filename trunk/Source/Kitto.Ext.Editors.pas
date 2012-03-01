@@ -2111,7 +2111,7 @@ begin
   LFormPanel.Frame := True;
   LFormPanel.FileUpload := True;
   LUploadFormField := TKExtFormFileUploadField.AddTo(LFormPanel.Items);
-  LUploadFormField.FieldLabel := FRecordField.ViewField.DisplayLabel;
+  LUploadFormField.FieldLabel := _(FRecordField.ViewField.DisplayLabel);
   LUploadFormField.EmptyText := _('Select a file to upload');
   LUploadFormField.AllowBlank := False;
   LUploadFormField.Anchor := '0 5 0 0';
