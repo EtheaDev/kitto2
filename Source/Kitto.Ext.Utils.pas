@@ -396,7 +396,7 @@ begin
   FView := AValue;
   if Assigned(FView) then
   begin
-    LLabel := FView.DisplayLabel;
+    LLabel := _(FView.DisplayLabel);
     if LLabel = '' then
       LLabel := CallViewControllerStringMethod(FView, 'GetDefaultDisplayLabel', LLabel);
     Text := HTMLEncode(_(LLabel));
@@ -422,7 +422,7 @@ begin
   FView := AValue;
   if Assigned(FView) then
   begin
-    LLabel := FView.DisplayLabel;
+    LLabel := _(FView.DisplayLabel);
     if LLabel = '' then
       LLabel := CallViewControllerStringMethod(FView, 'GetDefaultDisplayLabel', LLabel);
     Text := HTMLEncode(_(LLabel));
@@ -445,7 +445,7 @@ begin
   FView := AValue;
   if Assigned(FView) then
   begin
-    LLabel := FView.DisplayLabel;
+    LLabel := _(FView.DisplayLabel);
     if LLabel = '' then
       LLabel := CallViewControllerStringMethod(FView, 'GetDefaultDisplayLabel', LLabel);
     Text := HTMLEncode(_(LLabel));

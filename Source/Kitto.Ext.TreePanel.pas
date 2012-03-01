@@ -56,6 +56,7 @@ implementation
 uses
   SysUtils,
   Ext,
+  EF.Localization,
   Kitto.Ext.Session;
 
 { TKExtTreePanelController }
@@ -63,7 +64,7 @@ uses
 procedure TKExtTreePanelController.DoDisplay;
 begin
   inherited;
-  Title := View.DisplayLabel;
+  Title := _(View.DisplayLabel);
   FTreePanel.View := View;
 end;
 

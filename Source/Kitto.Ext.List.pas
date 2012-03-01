@@ -36,6 +36,7 @@ implementation
 
 uses
   Ext,
+  EF.Localization,
   Kitto.Ext.Session, Kitto.Metadata.DataView,
   Kitto.Ext.Controller;
 
@@ -44,7 +45,7 @@ uses
 procedure TKExtListPanelController.InitComponents;
 begin
   inherited;
-  Title := Session.Config.MacroExpansionEngine.Expand(ViewTable.PluralDisplayLabel);
+  Title := _(Session.Config.MacroExpansionEngine.Expand(ViewTable.PluralDisplayLabel));
 
   FGridPanel := TKExtGridPanel.AddTo(Items);
   FGridPanel.ServerStore := ServerStore;

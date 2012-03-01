@@ -251,7 +251,7 @@ implementation
 
 uses
   SysUtils,
-  EF.StrUtils, EF.Types,
+  EF.StrUtils, EF.Types, EF.Localization,
   Kitto.Ext.Utils, Kitto.Ext.Session;
 
 { TKExtWindowControllerBase }
@@ -692,7 +692,7 @@ var
   LBorder: TEFNode;
   LHeight: Integer;
 begin
-  Title := View.DisplayLabel;
+  Title := _(View.DisplayLabel);
 
   Border := False;
 

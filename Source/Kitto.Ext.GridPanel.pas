@@ -436,7 +436,7 @@ var
   begin
     LColumn := CreateColumn;
     LColumn.Sortable := not AViewField.IsBlob;
-    LColumn.Header := AViewField.DisplayLabel;
+    LColumn.Header := _(AViewField.DisplayLabel);
     LColumn.DataIndex := AViewField.AliasedName;
 
     LColumnWidth := AViewField.DisplayWidth;
@@ -557,11 +557,11 @@ begin
   FEditHostWindow.Closable := False;
 
   if AEditMode = emNewRecord then
-    FEditHostWindow.Title := Format(_('New %s'), [ViewTable.DisplayLabel])
+    FEditHostWindow.Title := Format(_('Add %s'), [_(ViewTable.DisplayLabel)])
   else if IsReadOnly then
-    FEditHostWindow.Title := ViewTable.DisplayLabel
+    FEditHostWindow.Title := _(ViewTable.DisplayLabel)
   else
-    FEditHostWindow.Title := Format(_('Edit %s'), [ViewTable.DisplayLabel]);
+    FEditHostWindow.Title := Format(_('Edit %s'), [_(ViewTable.DisplayLabel)]);
   //FEditHostWindow.On('close', Ajax(EditWindowClosed, ['Window', '%0.nm']));
 
   LFormControllerType := ViewTable.View.GetString('Controller/FormController', 'Form');
@@ -587,7 +587,7 @@ begin
 
   FViewTable := AValue;
 
-  Title := FViewTable.PluralDisplayLabel;
+  Title := _(FViewTable.PluralDisplayLabel);
 
   FIsAddVisible := not ViewTable.GetBoolean('Controller/PreventAdding');
   FIsAddAllowed := FIsAddVisible and ViewTable.IsAccessGranted(ACM_ADD);
@@ -674,7 +674,7 @@ begin
   if not ViewTable.IsDetail then
   begin
     LRecord.Save(True);
-    Session.Flash(Format(_('%s deleted.'), [ViewTable.DisplayLabel]));
+    Session.Flash(Format(_('%s deleted.'), [_(ViewTable.DisplayLabel)]));
   end;
   RefreshData;
 end;
@@ -728,7 +728,7 @@ begin
   if not IsReadOnly and FIsAddVisible then
   begin
     LNewButton := TExtButton.AddTo(Result.Items);
-    LNewButton.Text := Format(_('New %s'), [ViewTable.DisplayLabel]);
+    LNewButton.Text := Format(_('Add %s'), [_(ViewTable.DisplayLabel)]);
     LNewButton.Icon := Session.Config.GetImageURL('new_record');
     if not FIsAddAllowed then
       LNewButton.Disabled := True
@@ -740,12 +740,12 @@ begin
   LEditButton := TExtButton.AddTo(Result.Items);
   if IsReadOnly then
   begin
-    LEditButton.Text := Format(_('View %s'), [ViewTable.DisplayLabel]);
+    LEditButton.Text := Format(_('View %s'), [_(ViewTable.DisplayLabel)]);
     LEditButton.Icon := Session.Config.GetImageURL('view_record');
   end
   else
   begin
-    LEditButton.Text := Format(_('Edit %s'), [ViewTable.DisplayLabel]);
+    LEditButton.Text := Format(_('Edit %s'), [_(ViewTable.DisplayLabel)]);
     LEditButton.Icon := Session.Config.GetImageURL('edit_record');
   end;
   if not FIsEditAllowed then
@@ -761,14 +761,14 @@ begin
   begin
     TExtToolbarSpacer.AddTo(Result.Items);
     LDeleteButton := TExtButton.AddTo(Result.Items);
-    LDeleteButton.Text := Format(_('Delete %s'), [ViewTable.DisplayLabel]);
+    LDeleteButton.Text := Format(_('Delete %s'), [_(ViewTable.DisplayLabel)]);
     LDeleteButton.Icon := Session.Config.GetImageURL('delete_record');
     if not FIsDeleteAllowed then
       LDeleteButton.Disabled := True
     else
     begin
       LDeleteButton.Handler := JSFunction(GetSelectConfirmCall(
-        Format(_('Selected %s will be deleted. Are you sure?'), [ViewTable.DisplayLabel]), DeleteCurrentRecord));
+        Format(_('Selected %s will be deleted. Are you sure?'), [_(ViewTable.DisplayLabel)]), DeleteCurrentRecord));
       FButtonsRequiringSelection.Add(LDeleteButton);
     end;
   end;
@@ -912,7 +912,7 @@ begin
 
   FView := AValue;
 
-  Text := FView.DisplayLabel;
+  Text := _(FView.DisplayLabel);
   Icon := Session.Config.GetImageURL(FView.ImageName);
   LTooltip := FView.GetExpandedString('Hint');
   if LTooltip <> '' then
