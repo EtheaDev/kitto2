@@ -53,7 +53,7 @@ type
     function GetDataType: TEFDataType;
     function GetIsRequired: Boolean;
     function GetIsReadOnly: Boolean;
-    function GetQualifiedName: string;
+    function GetQualifiedDBName: string;
     function GetModelName: string;
     function GetFieldName: string;
     function GetEmptyAsNull: Boolean;
@@ -61,7 +61,7 @@ type
     function GetModel: TKModel;
     function GetExpression: string;
     function GetAlias: string;
-    function GetQualifiedAliasedNameOrExpression: string;
+    function GetQualifiedAliasedDBNameOrExpression: string;
     function GetIsKey: Boolean;
     function GetSize: Integer;
     function GetIsBlob: Boolean;
@@ -76,7 +76,7 @@ type
     function GetHint: string;
     function GetEditFormat: string;
     function GetDisplayFormat: string;
-    function GetQualifiedNameOrExpression: string;
+    function GetQualifiedDBNameOrExpression: string;
     function GetReferenceField: TKModelField;
     function GetBlankValue: Boolean;
     function GetReferenceName: string;
@@ -91,9 +91,9 @@ type
     property ModelField: TKModelField read GetModelField;
     property Alias: string read GetAlias;
     property AliasedName: string read GetAliasedName;
-    property QualifiedAliasedNameOrExpression: string read GetQualifiedAliasedNameOrExpression;
-    property QualifiedName: string read GetQualifiedName;
-    property QualifiedNameOrExpression: string read GetQualifiedNameOrExpression;
+    property QualifiedAliasedDBNameOrExpression: string read GetQualifiedAliasedDBNameOrExpression;
+    property QualifiedDBName: string read GetQualifiedDBName;
+    property QualifiedDBNameOrExpression: string read GetQualifiedDBNameOrExpression;
     property AllowedValues: TEFPairs read GetAllowedValues;
 
     property CanInsert: Boolean read GetCanInsert;
@@ -1088,7 +1088,7 @@ begin
     Result := inherited GetChildClass(AName);
 end;
 
-function TKViewField.GetQualifiedAliasedNameOrExpression: string;
+function TKViewField.GetQualifiedAliasedDBNameOrExpression: string;
 var
   LExpression: string;
 begin
@@ -1099,20 +1099,20 @@ begin
     Result := LExpression + ' ' + FieldName
   else
   begin
-    Result := QualifiedName;
+    Result := QualifiedDBName;
     if Alias <> '' then
       Result := Result + ' ' + Alias;
   end;
 end;
 
-function TKViewField.GetQualifiedNameOrExpression: string;
+function TKViewField.GetQualifiedDBNameOrExpression: string;
 begin
   if IsReference then
     Result := FieldName + '.' + ModelField.ReferencedModel.CaptionField.FieldNameOrExpression
   else if Expression <> '' then
     Result := Expression
   else
-    Result := QualifiedName;
+    Result := QualifiedDBName;
 end;
 
 function TKViewField.GetDataType: TEFDataType;
@@ -1243,12 +1243,12 @@ begin
   Result := GetBoolean('IsVisible', True) and IsAccessGranted(ACM_VIEW);
 end;
 
-function TKViewField.GetQualifiedName: string;
+function TKViewField.GetQualifiedDBName: string;
 begin
   if Pos('.', Name) > 0 then
     Result := Name
   else
-    Result := GetModelName + '.' + GetFieldName;
+    Result := Model.DBTableName + '.' + ModelField.DBColumnName;
 end;
 
 function TKViewField.GetSize: Integer;

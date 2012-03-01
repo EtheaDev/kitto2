@@ -536,7 +536,7 @@ begin
     if AViewTable.Fields[I].IsReference then
       AddReferenceFieldTerms(AViewTable.Fields[I])
     else
-      AddSelectTerm(AViewTable.Fields[I].QualifiedAliasedNameOrExpression);
+      AddSelectTerm(AViewTable.Fields[I].QualifiedAliasedDBNameOrExpression);
   end;
 
   if ADBQuery.Prepared then
@@ -576,7 +576,7 @@ build only those that affect the count (outer joins). }
     if AViewTable.Fields[I].IsReference then
       AddReferenceFieldTerms(AViewTable.Fields[I])
     else
-      AddSelectTerm(AViewTable.Fields[I].QualifiedAliasedNameOrExpression);
+      AddSelectTerm(AViewTable.Fields[I].QualifiedAliasedDBNameOrExpression);
   end;
 
   if ADBQuery.Prepared then
