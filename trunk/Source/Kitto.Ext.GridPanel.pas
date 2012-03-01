@@ -179,7 +179,7 @@ var
 begin
   LSortFieldName := ViewTable.GetString('Controller/Grouping/SortFieldName', GetGroupingFieldName);
   if LSortFieldName <> '' then
-    Result := ViewTable.FieldByName(LSortFieldName).QualifiedNameOrExpression
+    Result := ViewTable.FieldByName(LSortFieldName).QualifiedDBNameOrExpression
   else
     Result := ''
 end;
