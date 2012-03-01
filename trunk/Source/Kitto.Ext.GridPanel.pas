@@ -780,7 +780,7 @@ begin
   LRefreshButton.Handler := Ajax(RefreshData);
   LRefreshButton.Tooltip := _('Refresh data');
 
-  LToolViews := ViewTable.FindNode('Controller/List/ToolViews');
+  LToolViews := ViewTable.FindNode('Controller/ToolViews');
   if Assigned(LToolViews) and (LToolViews.ChildCount > 0) then
   begin
     TExtToolbarSeparator.AddTo(Result.Items);
