@@ -1390,6 +1390,8 @@ end;
 function TKModelDetailReference.GetDisplayLabel: string;
 begin
   Result := GetString('DisplayLabel');
+  if (Result = '') and (DetailModel <> nil) then
+    Result := DetailModel.DisplayLabel;
   if Result = '' then
     Result := BeautifyDetailName(DetailReferenceName);
 end;
