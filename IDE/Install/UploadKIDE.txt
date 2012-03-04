@@ -1,0 +1,8 @@
+open 78.40.200.198
+ethea
+334_wbFTP
+cd ethea_web
+cd private
+binary
+put Output\KIDESetup.exe
+quit
