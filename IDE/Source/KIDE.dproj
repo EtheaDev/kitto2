@@ -5,7 +5,7 @@
 			<FrameworkType>VCL</FrameworkType>
 			<MainSource>KIDE.dpr</MainSource>
 			<Base>True</Base>
-			<Config Condition="'$(Config)'==''">Release</Config>
+			<Config Condition="'$(Config)'==''">Debug</Config>
 			<Platform Condition="'$(Platform)'==''">Win32</Platform>
 			<TargetedPlatforms>1</TargetedPlatforms>
 			<AppType>Application</AppType>
@@ -93,9 +93,7 @@
 				<MainSource>MainSource</MainSource>
 			</DelphiCompile>
 			<DCCReference Include="DBXDevartInterBase.pas"/>
-			<DCCReference Include="DBXDevartSQLServer.pas">
-				<Form>$R *.res</Form>
-			</DCCReference>
+			<DCCReference Include="DBXDevartSQLServer.pas"/>
 			<DCCReference Include="DirWatcher.pas"/>
 			<DCCReference Include="KIDE.BaseFormUnit.pas">
 				<Form>BaseForm</Form>
@@ -144,6 +142,11 @@
 			</DCCReference>
 			<DCCReference Include="KIDE.ModelFieldUpdateActionFrameUnit.pas">
 				<Form>ModelFieldUpdateActionFrame</Form>
+				<FormType>dfm</FormType>
+				<DesignClass>TFrame</DesignClass>
+			</DCCReference>
+			<DCCReference Include="KIDE.ReferenceFieldUpdateActionFrameUnit.pas">
+				<Form>ReferenceFieldUpdateActionFrame</Form>
 				<FormType>dfm</FormType>
 				<DesignClass>TFrame</DesignClass>
 			</DCCReference>

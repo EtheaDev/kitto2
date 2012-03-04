@@ -93,6 +93,7 @@ type
     FIsRequired: Boolean;
     FDataType: TEFDataType;
     FSize: Integer;
+    FScale: Integer;
     function GetIsKey: Boolean;
   public
     property DataType: TEFDataType read FDataType write FDataType;
@@ -102,6 +103,15 @@ type
     ///	  types, it's 0.
     ///	</summary>
     property Size: Integer read FSize write FSize;
+
+    ///	<summary>
+    ///	  For decimal fields, this is the number of supported decimal digits;
+    ///   for other data types, it's 0.
+    ///	</summary>
+    property Scale: Integer read FScale write FScale;
+
+    ///	<summary>True if the field is required (not null) at the database
+    ///	level, False otherwise.</summary>
     property IsRequired: Boolean read FIsRequired write FIsRequired;
 
     ///	<summary>Returns True if the field is part of its table's primary
@@ -165,6 +175,11 @@ type
     ///	<summary>Returns a list of all foreign keys referencing the
     ///	table.</summary>
     procedure GetReferencingForeignKeys(const AList: TObjectList<TEFDBForeignKeyInfo>);
+
+    ///	<summary>Returns a list of all foreign keys in this table referencing a
+    ///	given table.</summary>
+    procedure GetForeignKeysTo(const ATableName: string;
+      const AList: TObjectList<TEFDBForeignKeyInfo>);
   end;
 
   ///	<summary>
@@ -816,6 +831,18 @@ function TEFDBTableInfo.GetForeignKeys(
   const AIndex: Integer): TEFDBForeignKeyInfo;
 begin
   Result := FForeignKeys[AIndex];
+end;
+
+procedure TEFDBTableInfo.GetForeignKeysTo(const ATableName: string;
+  const AList: TObjectList<TEFDBForeignKeyInfo>);
+var
+  I: Integer;
+begin
+  Assert(Assigned(AList));
+
+  for I := 0 to ForeignKeyCount - 1 do
+    if SameText(ForeignKeys[I].ForeignTableName, ATableName) then
+      AList.Add(ForeignKeys[I]);
 end;
 
 procedure TEFDBTableInfo.GetReferencingForeignKeys(

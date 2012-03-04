@@ -19,7 +19,7 @@ type
   TKModelFieldHelper = class helper for TKModelField
   private
   public
-    procedure SetFieldSpec(const ADataType: TEFDataType; const ASize: Integer;
+    procedure SetFieldSpec(const ADataType: TEFDataType; const ASize, AScale: Integer;
       const AIsRequired, AIsKey: Boolean; const AReferencedModel: string);
 
     procedure SetIsKey(const AValue: Boolean);
@@ -107,13 +107,13 @@ end;
 procedure TKModelFieldHelper.SetIsKey(const AValue: Boolean);
 var
   LDataType: TEFDataType;
-  LSize: Integer;
+  LSize, LScale: Integer;
   LIsRequired: Boolean;
   LIsKey: Boolean;
   LReferencedModel: string;
 begin
-  GetFieldSpec(LDataType, LSize, LIsRequired, LIsKey, LReferencedModel);
-  SetFieldSpec(LDataType, LSize, LIsRequired, AValue, LReferencedModel);
+  GetFieldSpec(LDataType, LSize, LScale, LIsRequired, LIsKey, LReferencedModel);
+  SetFieldSpec(LDataType, LSize, LScale, LIsRequired, AValue, LReferencedModel);
 end;
 
 procedure TKModelFieldHelper.AddField(const AField: TKModelField);
@@ -169,7 +169,7 @@ begin
 end;
 
 procedure TKModelFieldHelper.SetFieldSpec(const ADataType: TEFDataType;
-  const ASize: Integer; const AIsRequired: Boolean; const AIsKey: Boolean;
+  const ASize, AScale: Integer; const AIsRequired: Boolean; const AIsKey: Boolean;
   const AReferencedModel: string);
 var
   LSpec: string;
@@ -178,7 +178,12 @@ begin
   if ADataType is TKReferenceDataType then
     LSpec := LSpec + '(' + AReferencedModel + ')'
   else if ASize <> 0 then
-    LSpec := LSpec + '(' + IntToStr(ASize) + ')';
+  begin
+    LSpec := LSpec + '(' + IntToStr(ASize);
+    if AScale <> 0 then
+      LSpec := LSpec + ', ' + IntToStr(AScale);
+    LSpec := LSpec + ')';
+  end;
   if AIsRequired then
     LSpec := LSpec + ' not null';
   if AIsKey then
