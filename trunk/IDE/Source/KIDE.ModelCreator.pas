@@ -226,7 +226,6 @@ type
 
   TReferenceFieldUpdateAction = class(TModelFieldUpdateAction)
   strict protected
-    procedure Process; virtual;
     ///	<summary>Adds to the specified field all subfields listed in the
     ///	specified foreign key info object. Any fields already existing in the
     ///	model, if not already part of the specified reference field, are moved
@@ -653,6 +652,7 @@ begin
   Assert(Assigned(DetailReference));
 
   Metadata.SetString('DetailReferenceName', DetailReference.Name);
+  Metadata.SetString('DetailModelName', DetailReference.DetailModelName);
   Metadata.SetString('ForeignKeyName', DetailReference.DBForeignKeyName);
 end;
 
@@ -1029,6 +1029,7 @@ begin
 
   Metadata.SetString('DataType', FColumnInfo.DataType.GetTypeName);
   Metadata.SetInteger('Size', FColumnInfo.Size);
+  Metadata.SetInteger('Scale', FColumnInfo.Scale);
   Metadata.SetBoolean('IsRequired', FColumnInfo.IsRequired);
   Metadata.SetBoolean('IsKey', FColumnInfo.IsKey);
 end;
@@ -1051,8 +1052,8 @@ begin
       LField.SetString('PhysicalName', FColumnInfo.Name);
     LField.SetFieldSpec(
       TEFDataTypeFactory.Instance.GetDataType(Metadata.GetString('DataType')),
-      Metadata.GetInteger('Size'), Metadata.GetBoolean('IsRequired'),
-      Metadata.GetBoolean('IsKey'), '');
+      Metadata.GetInteger('Size'), Metadata.GetInteger('Scale'),
+      Metadata.GetBoolean('IsRequired'), Metadata.GetBoolean('IsKey'), '');
     Model.AddField(LField);
   except
     FreeAndNil(LField);
@@ -1093,6 +1094,7 @@ begin
 
   Metadata.SetString('DataType', FColumnInfo.DataType.GetTypeName);
   Metadata.SetInteger('Size', FColumnInfo.Size);
+  Metadata.SetInteger('Scale', FColumnInfo.Scale);
   Metadata.SetBoolean('IsRequired', FColumnInfo.IsRequired);
   Metadata.SetBoolean('IsKey', FColumnInfo.IsKey);
 end;
@@ -1108,8 +1110,8 @@ begin
 
   Field.SetFieldSpec(
     TEFDataTypeFactory.Instance.GetDataType(Metadata.GetString('DataType')),
-    Metadata.GetInteger('Size'), Metadata.GetBoolean('IsRequired'),
-    Metadata.GetBoolean('IsKey'), '');
+    Metadata.GetInteger('Size'), Metadata.GetInteger('Scale'),
+    Metadata.GetBoolean('IsRequired'), Metadata.GetBoolean('IsKey'), '');
 end;
 
 { TModelUpdateList }
@@ -1161,16 +1163,40 @@ end;
 procedure TAddReferenceField.InitMetadata;
 var
   LReferencedModel: TKModel;
+  LReferenceName: string;
+
+  function GetCountOfForeignKeysReferencingTable: Integer;
+  var
+    LList: TObjectList<TEFDBForeignKeyInfo>;
+  begin
+    LList := TObjectList<TEFDBForeignKeyInfo>.Create(False);
+    try
+      FForeignKeyInfo.TableInfo.GetForeignKeysTo(FForeignKeyInfo.ForeignTableName, LList);
+      Result := LList.Count;
+    finally
+      FreeAndNil(LList);
+    end;
+  end;
+
 begin
   inherited;
   Assert(Assigned(FForeignKeyInfo));
   Assert(Assigned(Models));
 
-  LReferencedModel := Models.FindModelByPhysicalName(FForeignKeyInfo.ForeignTableName);
-  if Assigned(LReferencedModel) then
-    Metadata.SetString('ReferenceName', LReferencedModel.ModelName)
+  if FForeignKeyInfo.ColumnCount = 1 then
+    LReferenceName := BeautifyName(FForeignKeyInfo.ColumnNames[0])
+  else if GetCountOfForeignKeysReferencingTable = 1 then
+  begin
+    LReferencedModel := Models.FindModelByPhysicalName(FForeignKeyInfo.ForeignTableName);
+    if Assigned(LReferencedModel) then
+      LReferenceName := LReferencedModel.ModelName
+    else
+      LReferenceName := BeautifyName(FForeignKeyInfo.ForeignTableName);
+  end
   else
-    Metadata.SetString('ReferenceName', BeautifyName(FForeignKeyInfo.ForeignTableName));
+    LReferenceName := BeautifyName(FForeignKeyInfo.Name);
+
+  Metadata.SetString('ReferenceName', LReferenceName);
   Metadata.SetString('ForeignKeyName', FForeignKeyInfo.Name);
   Metadata.SetBoolean('IsRequired', FForeignKeyInfo.IsRequired);
 end;
@@ -1187,7 +1213,7 @@ begin
   DoLog(Format(_('Adding reference field %s to Model %s.'), [LFieldName, Model.ModelName]));
   Field := TKModelField.Create(LFieldName);
   Field.SetFieldSpec(TEFDataTypeFactory.Instance.GetDataType(TKReferenceDataType.GetTypeName),
-    0, Metadata.GetBoolean('IsRequired'), False, BeautifyName(FForeignKeyInfo.ForeignTableName));
+    0, 0, Metadata.GetBoolean('IsRequired'), False, BeautifyName(FForeignKeyInfo.ForeignTableName));
   Field.SetString('PhysicalName', Metadata.GetString('ForeignKeyName'));
   Model.AddField(Field);
   CreateMoveReferenceSubFields(Field, FForeignKeyInfo);
@@ -1288,11 +1314,6 @@ begin
   end;
 end;
 
-procedure TReferenceFieldUpdateAction.Process;
-begin
-  InitMetadata;
-end;
-
 { TAddDetailReference }
 
 constructor TAddDetailReference.Create(const AModels: TKModels;
@@ -1325,9 +1346,15 @@ begin
 
   LReferencedModel := Models.FindModelByPhysicalName(FForeignKeyInfo.TableInfo.Name);
   if Assigned(LReferencedModel) then
-    Metadata.SetString('DetailReferenceName', Pluralize(LReferencedModel.ModelName))
+  begin
+    Metadata.SetString('DetailReferenceName', Pluralize(LReferencedModel.ModelName));
+    Metadata.SetString('DetailModelName', LReferencedModel.ModelName);
+  end
   else
+  begin
     Metadata.SetString('DetailReferenceName', Pluralize(BeautifyName(FForeignKeyInfo.TableInfo.Name)));
+    Metadata.SetString('DetailModelName', BeautifyName(FForeignKeyInfo.TableInfo.Name));
+  end;
   Metadata.SetString('ForeignKeyName', FForeignKeyInfo.Name);
 end;
 
@@ -1398,6 +1425,7 @@ begin
   Assert(Assigned(DetailReference));
 
   Metadata.SetString('DetailReferenceName', DetailReference.Name);
+  Metadata.SetString('DetailModelName', DetailReference.DetailModelName);
   Metadata.SetString('ForeignKeyName', DetailReference.DBForeignKeyName);
 end;
 

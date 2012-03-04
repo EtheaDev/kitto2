@@ -32,7 +32,8 @@ uses
   KIDE.UpdateLocaleFormUnit in 'KIDE.UpdateLocaleFormUnit.pas' {UpdateLocaleForm},
   KIDE.Utils in 'KIDE.Utils.pas',
   KIDE.WaitFormUnit in 'KIDE.WaitFormUnit.pas' {WaitForm},
-  KIDE.ModelFieldUpdateActionFrameUnit in 'KIDE.ModelFieldUpdateActionFrameUnit.pas' {ModelFieldUpdateActionFrame: TFrame};
+  KIDE.ModelFieldUpdateActionFrameUnit in 'KIDE.ModelFieldUpdateActionFrameUnit.pas' {ModelFieldUpdateActionFrame: TFrame},
+  KIDE.ReferenceFieldUpdateActionFrameUnit in 'KIDE.ReferenceFieldUpdateActionFrameUnit.pas' {ReferenceFieldUpdateActionFrame: TFrame};
 
 {$R *.res}
 

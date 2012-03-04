@@ -32,7 +32,8 @@ implementation
 uses
   KIDE.TableInfoModelUpdateActionFrameUnit,
   KIDE.DetailReferenceUpdateActionFrameUnit,
-  KIDE.ModelFieldUpdateActionFrameUnit;
+  KIDE.ModelFieldUpdateActionFrameUnit,
+  KIDE.ReferenceFieldUpdateActionFrameUnit;
 
 function CreateModelUpdateActionFrame(const AAction: TModelUpdateAction;
   const AContainer: TWinControl): TModelUpdateActionFrame;
@@ -49,6 +50,8 @@ begin
     LClass := TDetailReferenceUpdateActionFrame
   else if (AAction is TAddField) or (AAction is TModifyField) then
     LClass := TModelFieldUpdateActionFrame
+  else if (AAction is TAddReferenceField) or (AAction is TModifyReferenceField) then
+    LClass := TReferenceFieldUpdateActionFrame
   else
     LClass := TModelUpdateActionFrame;
 

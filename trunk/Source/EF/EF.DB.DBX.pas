@@ -26,7 +26,7 @@ interface
 uses
   Classes, DB, Contnrs,
   DBXCommon, SqlExpr,
-  EF.DB;
+  EF.Tree, EF.DB;
 
 type
   ///	<summary>
@@ -36,13 +36,14 @@ type
   TEFDBDBXInfo = class(TEFDBInfo)
   private
     FConnection: TSQLConnection;
+    function DBXDataTypeToEFDataType(const ADBXDataType: TDBXType): TEFDataType;
+    procedure SetForeignKeyColumns(const AForeignKeyInfo: TEFDBForeignKeyInfo);
   protected
     procedure BeforeFetchInfo; override;
-    procedure FetchTables(const ASchema: TEFDBSchemaInfo); override;
-    procedure FetchTableColumns(const ATable: TEFDBTableInfo);
-    procedure FetchTableForeignKeys(const ATable: TEFDBTableInfo);
-    procedure FetchTablePrimaryKey(const ATable: TEFDBTableInfo);
-    procedure GetIndexSegments(const AIndexName: string; const AList: TStrings);
+    procedure FetchTables(const ASchemaInfo: TEFDBSchemaInfo); override;
+    procedure FetchTableColumns(const ATableInfo: TEFDBTableInfo);
+    procedure FetchTablePrimaryKey(const ATableInfo: TEFDBTableInfo);
+    procedure FetchTableForeignKeys(const ATableInfo: TEFDBTableInfo);
   public
     constructor Create(const AConnection: TSQLConnection);
     property Connection: TSQLConnection read FConnection write FConnection;
@@ -172,28 +173,8 @@ type
 implementation
 
 uses
-  SysUtils, StrUtils,
-  EF.StrUtils, EF.Localization, EF.Types, EF.Tree;
-
-function FbDataTypeToEFDataType(const AIBFbDataType: string): string;
-begin
-  { TODO : Only text blobs supported for now. }
-  if (AIBFbDataType = 'TEXT') or (AIBFbDataType = 'VARYING') or (AIBFbDataType = 'BLOB') then
-    Result := 'String'
-  else if (AIBFbDataType = 'SHORT') or (AIBFbDataType = 'LONG')
-      or (AIBFbDataType = 'INT64') or (AIBFbDataType = 'QUAD') then
-    Result := 'Integer'
-  else if (AIBFbDataType = 'DATE') then
-    Result := 'Date'
-  else if (AIBFbDataType = 'TIME') then
-    Result := 'Time'
-  else if (AIBFbDataType = 'TIMESTAMP') then
-    Result := 'DateTime'
-  else if (AIBFbDataType = 'FLOAT') or (AIBFbDataType = 'DOUBLE') then
-    Result := 'Float'
-  else
-    Result := 'String';
-end;
+  SysUtils, StrUtils, DBXMetaDataNames,
+  EF.StrUtils, EF.Localization, EF.Types;
 
 function FetchParam(const AParams: TStrings; const AParamName: string): string;
 var
@@ -611,36 +592,36 @@ begin
   Assert(Assigned(FConnection));
 end;
 
-procedure TEFDBDBXInfo.FetchTables(const ASchema: TEFDBSchemaInfo);
+procedure TEFDBDBXInfo.FetchTables(const ASchemaInfo: TEFDBSchemaInfo);
 var
-  LTableQuery: TSQLQuery;
-  LTable: TEFDBTableInfo;
+  LCommand: TDBXCommand;
+  LReader: TDBXReader;
+  LTableInfo: TEFDBTableInfo;
 begin
-  LTableQuery := TSQLQuery.Create(nil);
+  LCommand := FConnection.DBXConnection.CreateCommand;
   try
-    LTableQuery.SQLConnection := FConnection;
-    LTableQuery.SQL.Add('select RDB$RELATION_NAME TABLE_NAME');
-    LTableQuery.SQL.Add('from RDB$RELATIONS');
-    LTableQuery.SQL.Add('where RDB$SYSTEM_FLAG = 0 or RDB$SYSTEM_FLAG is null');
-    LTableQuery.SQL.Add('and RDB$VIEW_BLR is null');
-    LTableQuery.SQL.Add('order by RDB$RELATION_NAME');
-    LTableQuery.Open;
-    while not LTableQuery.Eof do
-    begin
-      LTable := TEFDBTableInfo.Create;
-      try
-        LTable.Name := Trim(LTableQuery.FieldByName('TABLE_NAME').AsString);
-        FetchTableColumns(LTable);
-        FetchTablePrimaryKey(LTable);
-        FetchTableForeignKeys(LTable);
-        ASchema.AddTable(LTable);
-      except
-        FreeAndNil(LTable);
+    LCommand.CommandType := TDBXCommandTypes.DbxMetaData;
+    LCommand.Text := TDBXMetaDataCommands.GetTables + ' [] ' + TDBXMetaDataTableTypes.Table;
+    LReader := LCommand.ExecuteQuery;
+    try
+      while LReader.Next do
+      begin
+        LTableInfo := TEFDBTableInfo.Create;
+        try
+          LTableInfo.Name := LReader.Value[TDBXTablesIndex.TableName].AsString;
+          FetchTableColumns(LTableInfo);
+          FetchTablePrimaryKey(LTableInfo);
+          FetchTableForeignKeys(LTableInfo);
+          ASchemaInfo.AddTable(LTableInfo);
+        except
+          FreeAndNil(LTableInfo);
+        end;
       end;
-      LTableQuery.Next;
+    finally
+      FreeAndNil(LReader);
     end;
   finally
-    LTableQuery.Free;
+    FreeAndNil(LCommand);
   end;
 end;
 
@@ -650,139 +631,183 @@ begin
   FConnection := AConnection;
 end;
 
-procedure TEFDBDBXInfo.FetchTableColumns(const ATable: TEFDBTableInfo);
+function TEFDBDBXInfo.DBXDataTypeToEFDataType(const ADBXDataType: TDBXType): TEFDataType;
 var
-  LColumnQuery: TSQLQuery;
-  LColumn: TEFDBColumnInfo;
+  LClass: TEFDataTypeClass;
 begin
-  LColumnQuery := TSQLQuery.Create(nil);
-  try
-    LColumnQuery.SQLConnection := FConnection;
-    LColumnQuery.SQL.Add('select RF.RDB$FIELD_NAME COLUMN_NAME, T.RDB$TYPE_NAME DATA_TYPE,');
-    LColumnQuery.SQL.Add('  F.RDB$CHARACTER_LENGTH CHARACTER_MAXIMUM_LENGTH,');
-    LColumnQuery.SQL.Add('  coalesce(RF.RDB$NULL_FLAG, 0) IS_NOT_NULL');
-    LColumnQuery.SQL.Add('from RDB$RELATION_FIELDS RF');
-    LColumnQuery.SQL.Add('join RDB$FIELDS F on RF.RDB$FIELD_SOURCE = F.RDB$FIELD_NAME');
-    LColumnQuery.SQL.Add('join RDB$TYPES T on F.RDB$FIELD_TYPE = T.RDB$TYPE and T.RDB$FIELD_NAME = ''RDB$FIELD_TYPE''');
-    LColumnQuery.SQL.Add('where RF.RDB$RELATION_NAME = ' + QuotedStr(ATable.Name));
-    LColumnQuery.SQL.Add('order by RF.RDB$FIELD_POSITION');
-    LColumnQuery.Open;
-    while not LColumnQuery.Eof do
-    begin
-      LColumn := TEFDBColumnInfo.Create;
-      try
-        LColumn.Name := Trim(LColumnQuery.FieldByName('COLUMN_NAME').AsString);
-        LColumn.DataType := TEFDataTypeFactory.Instance.GetDataType(
-          FbDataTypeToEFDataType(Trim(LColumnQuery.FieldByName('DATA_TYPE').AsString)));
-        LColumn.Size := LColumnQuery.FieldByName('CHARACTER_MAXIMUM_LENGTH').AsInteger;
-        LColumn.IsRequired := LColumnQuery.FieldByName('IS_NOT_NULL').AsInteger = 1;
-        ATable.AddColumn(LColumn);
-      except
-        FreeAndNil(LColumn);
-      end;
-      LColumnQuery.Next;
+  with TDBXDataTypes do
+  begin
+    case ADBXDataType of
+      DateType: LClass := TEFDateDataType;
+      TimeType: LClass := TEFTimeDataType;
+      DateTimeType, TimeStampType: LClass := TEFDateTimeDataType;
+      BlobType, BytesType, VarBytesType,
+        BinaryBlobType: LClass := TEFBlobDataType;
+      BooleanType: LClass := TEFBooleanDataType;
+      Int16Type, Int32Type, UInt16Type,
+        UInt32Type, Int8Type, UInt8Type: LClass := TEFIntegerDataType;
+      DoubleType, SingleType: LClass := TEFFloatDataType;
+      BcdType: LClass := TEFDecimalDataType;
+      CurrencyType: LClass := TEFCurrencyDataType;
+    else
+      LClass := TEFStringDataType;
     end;
-  finally
-    LColumnQuery.Free;
   end;
+  Result := TEFDataTypeFactory.Instance.GetDataType(LClass);
 end;
 
-procedure TEFDBDBXInfo.FetchTablePrimaryKey(const ATable: TEFDBTableInfo);
+procedure TEFDBDBXInfo.FetchTableColumns(const ATableInfo: TEFDBTableInfo);
 var
-  LPrimaryKeyQuery: TSQLQuery;
-begin
-  LPrimaryKeyQuery := TSQLQuery.Create(nil);
-  try
-    LPrimaryKeyQuery.SQLConnection := FConnection;
-    LPrimaryKeyQuery.SQL.Add('select RC.RDB$CONSTRAINT_NAME PK_NAME, S.RDB$FIELD_NAME COLUMN_NAME');
-    LPrimaryKeyQuery.SQL.Add('from RDB$RELATION_CONSTRAINTS RC');
-    LPrimaryKeyQuery.SQL.Add('join RDB$INDICES I on RC.RDB$INDEX_NAME = I.RDB$INDEX_NAME');
-    LPrimaryKeyQuery.SQL.Add('join RDB$INDEX_SEGMENTS S on I.RDB$INDEX_NAME = S.RDB$INDEX_NAME');
-    LPrimaryKeyQuery.SQL.Add('where RC.RDB$RELATION_NAME = ' + QuotedStr(ATable.Name));
-    LPrimaryKeyQuery.SQL.Add('and RC.RDB$CONSTRAINT_TYPE = ''PRIMARY KEY''');
-    LPrimaryKeyQuery.SQL.Add('order by S.RDB$FIELD_POSITION');
-    LPrimaryKeyQuery.Open;
-    while not LPrimaryKeyQuery.Eof do
-    begin
-      if ATable.PrimaryKey.Name = '' then
-        ATable.PrimaryKey.Name := Trim(LPrimaryKeyQuery.FieldByName('PK_NAME').AsString)
-      else if ATable.PrimaryKey.Name <> Trim(LPrimaryKeyQuery.FieldByName('PK_NAME').AsString) then
-        raise EEFError.Create('Error fetching primary key data for table ' + ATable.Name);
-      ATable.PrimaryKey.ColumnNames.Add(Trim(LPrimaryKeyQuery.FieldByName('COLUMN_NAME').AsString));
-      LPrimaryKeyQuery.Next;
-    end;
-  finally
-    LPrimaryKeyQuery.Free;
+  LCommand: TDBXCommand;
+  LReader: TDBXReader;
+  LColumnInfo: TEFDBColumnInfo;
+
+  function PatchSize(const ASize: Integer): Integer;
+  begin
+    if LColumnInfo.DataType.HasSize then
+      Result := ASize
+    else
+      Result := 0;
   end;
-end;
 
-procedure TEFDBDBXInfo.GetIndexSegments(const AIndexName: string;
-  const AList: TStrings);
-var
-  LSegments: TSQLQuery;
+  function PatchScale(const AScale: Integer): Integer;
+  begin
+    if LColumnInfo.DataType.HasScale then
+      Result := AScale
+    else
+      Result := 0;
+  end;
+
 begin
-  Assert(Assigned(AList));
-
-  LSegments := TSQLQuery.Create(nil);
+  LCommand := FConnection.DBXConnection.CreateCommand;
   try
-    LSegments.SQLConnection := FConnection;
-    LSegments.SQL.Add('select S.RDB$FIELD_NAME FIELD_NAME');
-    LSegments.SQL.Add('from RDB$INDEX_SEGMENTS S');
-    LSegments.SQL.Add('where S.RDB$INDEX_NAME = ' + QuotedStr(AIndexName));
-    LSegments.SQL.Add('order by S.RDB$FIELD_POSITION');
-    LSegments.Open;
+    LCommand.CommandType := TDBXCommandTypes.DbxMetaData;
+    LCommand.Text := TDBXMetaDataCommands.GetColumns + ' ' + ATableInfo.Name;
+    LReader := LCommand.ExecuteQuery;
     try
-      while not LSegments.Eof do
+      while LReader.Next do
       begin
-        AList.Add(Trim(LSegments.FieldByName('FIELD_NAME').AsString));
-        LSegments.Next;
+        LColumnInfo := TEFDBColumnInfo.Create;
+        try
+          LColumnInfo.Name := LReader.Value[TDBXColumnsIndex.ColumnName].AsString;
+          LColumnInfo.DataType := DBXDataTypeToEFDataType(LReader.Value[TDBXColumnsIndex.DbxDataType].AsInt32);
+          LColumnInfo.Size := PatchSize(LReader.Value[TDBXColumnsIndex.Precision].AsInt32);
+          LColumnInfo.Scale := PatchScale(LReader.Value[TDBXColumnsIndex.Scale].AsInt32);
+          LColumnInfo.IsRequired := not LReader.Value[TDBXColumnsIndex.IsNullable].AsBoolean;
+          ATableInfo.AddColumn(LColumnInfo);
+        except
+          FreeAndNil(LColumnInfo);
+        end;
       end;
     finally
-      LSegments.Close;
+      FreeAndNil(LReader);
     end;
   finally
-    FreeAndNil(LSegments);
+    FreeAndNil(LCommand);
   end;
 end;
 
-procedure TEFDBDBXInfo.FetchTableForeignKeys(const ATable: TEFDBTableInfo);
+procedure TEFDBDBXInfo.FetchTablePrimaryKey(const ATableInfo: TEFDBTableInfo);
 var
-  LConstraints: TSQLQuery;
-  LForeignKey: TEFDBForeignKeyInfo;
+  LCommand: TDBXCommand;
+  LReader: TDBXReader;
+  LCommand2: TDBXCommand;
+  LReader2: TDBXReader;
 begin
-  LConstraints := TSQLQuery.Create(nil);
+  LCommand := FConnection.DBXConnection.CreateCommand;
   try
-    LConstraints.SQLConnection := FConnection;
-    LConstraints.SQL.Add('select RC.RDB$CONSTRAINT_NAME FK_NAME, RC2.RDB$RELATION_NAME PK_TABLE_NAME,');
-    LConstraints.SQL.Add('  RC.RDB$INDEX_NAME INDEX_NAME, RC2.RDB$INDEX_NAME FOREIGN_INDEX_NAME');
-    LConstraints.SQL.Add('from RDB$RELATION_CONSTRAINTS RC');
-    LConstraints.SQL.Add('join RDB$REF_CONSTRAINTS REFC on RC.RDB$CONSTRAINT_NAME = REFC.RDB$CONSTRAINT_NAME');
-    LConstraints.SQL.Add('join RDB$RELATION_CONSTRAINTS RC2 on REFC.RDB$CONST_NAME_UQ = RC2.RDB$CONSTRAINT_NAME');
-    LConstraints.SQL.Add('where RC.RDB$RELATION_NAME = ' + QuotedStr(ATable.Name));
-    LConstraints.SQL.Add('and RC.RDB$CONSTRAINT_TYPE = ''FOREIGN KEY''');
-    LConstraints.SQL.Add('order by RC.RDB$CONSTRAINT_NAME');
-    LConstraints.Open;
+    LCommand.CommandType := TDBXCommandTypes.DbxMetaData;
+    LCommand.Text := TDBXMetaDataCommands.GetIndexes + ' ' + ATableInfo.Name;
+    LReader := LCommand.ExecuteQuery;
     try
-      while not LConstraints.Eof do
+      while LReader.Next do
       begin
-        LForeignKey := TEFDBForeignKeyInfo.Create;
+        if LReader.Value[TDBXIndexesIndex.IsPrimary].AsBoolean then
+        begin
+          ATableInfo.PrimaryKey.Name := LReader.Value[TDBXIndexesIndex.ConstraintName].AsString;
+          ATableInfo.PrimaryKey.ColumnNames.Clear;
+          LCommand2 := FConnection.DBXConnection.CreateCommand;
+          try
+            LCommand2.CommandType := TDBXCommandTypes.DbxMetaData;
+            LCommand2.Text := TDBXMetaDataCommands.GetIndexColumns + ' ' +
+              ATableInfo.Name + ' ' + LReader.Value[TDBXIndexesIndex.IndexName].AsString;
+            LReader2 := LCommand2.ExecuteQuery;
+            try
+              while LReader2.Next do
+                ATableInfo.PrimaryKey.ColumnNames.Add(
+                  LReader2.Value[TDBXIndexColumnsIndex.ColumnName].AsString);
+            finally
+              FreeAndNil(LReader2);
+            end;
+          finally
+            FreeAndNil(LCommand2);
+          end;
+        end;
+      end;
+    finally
+      FreeAndNil(LReader);
+    end;
+  finally
+    FreeAndNil(LCommand);
+  end;
+end;
+
+procedure TEFDBDBXInfo.FetchTableForeignKeys(const ATableInfo: TEFDBTableInfo);
+var
+  LCommand: TDBXCommand;
+  LReader: TDBXReader;
+  LForeignKeyInfo: TEFDBForeignKeyInfo;
+begin
+  LCommand := FConnection.DBXConnection.CreateCommand;
+  try
+    LCommand.CommandType := TDBXCommandTypes.DbxMetaData;
+    LCommand.Text := TDBXMetaDataCommands.GetForeignKeys + ' ' + ATableInfo.Name;
+    LReader := LCommand.ExecuteQuery;
+    try
+      while LReader.Next do
+      begin
+        LForeignKeyInfo := TEFDBForeignKeyInfo.Create;
         try
-          LForeignKey.Name := Trim(LConstraints.FieldByName('FK_NAME').AsString);
-          LForeignKey.ForeignTableName := Trim(LConstraints.FieldByName('PK_TABLE_NAME').AsString);
-          GetIndexSegments(Trim(LConstraints.FieldByName('INDEX_NAME').AsString), LForeignKey.ColumnNames);
-          GetIndexSegments(Trim(LConstraints.FieldByName('FOREIGN_INDEX_NAME').AsString), LForeignKey.ForeignColumnNames);
-          ATable.AddForeignKey(LForeignKey);
+          LForeignKeyInfo.Name := LReader.Value[TDBXForeignKeysIndex.ForeignKeyName].AsString;
+          ATableInfo.AddForeignKey(LForeignKeyInfo);
+          SetForeignKeyColumns(LForeignKeyInfo);
         except
-          FreeAndNil(LForeignKey);
+          FreeAndNil(LForeignKeyInfo);
           raise;
         end;
-        LConstraints.Next;
       end;
     finally
-      LConstraints.Close;
+      FreeAndNil(LReader);
     end;
   finally
-    LConstraints.Free;
+    FreeAndNil(LCommand);
+  end;
+end;
+
+procedure TEFDBDBXInfo.SetForeignKeyColumns(const AForeignKeyInfo: TEFDBForeignKeyInfo);
+var
+  LCommand: TDBXCommand;
+  LReader: TDBXReader;
+begin
+  LCommand := FConnection.DBXConnection.CreateCommand;
+  try
+    LCommand.CommandType := TDBXCommandTypes.DbxMetaData;
+    LCommand.Text := TDBXMetaDataCommands.GetForeignKeyColumns + ' '
+      + AForeignKeyInfo.TableInfo.Name + ' ' + AForeignKeyInfo.Name;
+    LReader := LCommand.ExecuteQuery;
+    try
+      while LReader.Next do
+      begin
+        if AForeignKeyInfo.ForeignTableName = '' then
+          AForeignKeyInfo.ForeignTableName := LReader.Value[TDBXForeignKeyColumnsIndex.PrimaryTableName].AsString;
+        AForeignKeyInfo.ColumnNames.Add(LReader.Value[TDBXForeignKeyColumnsIndex.ColumnName].AsString);
+        AForeignKeyInfo.ForeignColumnNames.Add(LReader.Value[TDBXForeignKeyColumnsIndex.PrimaryColumnName].AsString);
+      end;
+    finally
+      FreeAndNil(LReader);
+    end;
+  finally
+    FreeAndNil(LCommand);
   end;
 end;
 

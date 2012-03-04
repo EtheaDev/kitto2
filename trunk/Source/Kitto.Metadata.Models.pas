@@ -100,7 +100,7 @@ type
     function GetDBColumnName: string;
     function GetPhysicalName: string;
     function GetAliasedDBColumnName: string; protected
-    procedure GetFieldSpec(out ADataType: TEFDataType; out ASize: Integer;
+    procedure GetFieldSpec(out ADataType: TEFDataType; out ASize, AScale: Integer;
       out AIsRequired: Boolean; out AIsKey: Boolean; out AReferencedModel: string);
     function GetChildClass(const AName: string): TEFNodeClass; override;
   strict protected
@@ -825,14 +825,17 @@ end;
 
 { TKModelField }
 
-procedure TKModelField.GetFieldSpec(out ADataType: TEFDataType; out ASize: Integer;
+procedure TKModelField.GetFieldSpec(out ADataType: TEFDataType; out ASize, AScale: Integer;
   out AIsRequired: Boolean; out AIsKey: Boolean; out AReferencedModel: string);
 var
   LStrings: TStringDynArray;
 begin
   AIsRequired := ContainsText(AsString, ' not null');
   AIsKey := ContainsText(AsString, ' primary key');
-  LStrings := Split(StripSuffix(StripSuffix(AsString, ' primary key'), ' not null'), '()');
+  LStrings := Split(StripSuffix(StripSuffix(AsString, ' primary key'), ' not null'), '(,)');
+  while (Length(LStrings) > 0) and (Trim(LStrings[High(LStrings)]) = '') do
+    SetLength(LStrings, Length(LStrings) - 1);
+
   if Length(LStrings) > 0 then
     ADataType := TEFDataTypeFactory.Instance.GetDataType(LStrings[0])
   else
@@ -842,17 +845,21 @@ begin
     if ADataType is TKReferenceDataType then
     begin
       ASize := 0;
+      AScale := 0;
       AReferencedModel := LStrings[1];
     end
     else
     begin
-      ASize := StrToInt(LStrings[1]);
+      ASize := StrToInt(Trim(LStrings[1]));
+      if Length(LStrings) > 2 then
+        AScale := StrToInt(Trim(LStrings[2]));
       AReferencedModel := '';
     end;
   end
   else
   begin
     ASize := 0;
+    AScale := 0;
     AReferencedModel := '';
   end;
 end;
@@ -875,7 +882,7 @@ end;
 function TKModelField.GetIsKey: Boolean;
 var
   LDataType: TEFDataType;
-  LSize: Integer;
+  LSize, LScale: Integer;
   LIsRequired: Boolean;
   LReferencedModel: string;
   LParentField: TKModelField;
@@ -884,7 +891,7 @@ begin
   if Assigned(LParentField) then
     Result := ParentField.IsKey
   else
-    GetFieldSpec(LDataType, LSize, LIsRequired, Result, LReferencedModel);
+    GetFieldSpec(LDataType, LSize, LScale, LIsRequired, Result, LReferencedModel);
 end;
 
 function TKModelField.GetIsReadOnly: Boolean;
@@ -900,7 +907,7 @@ end;
 function TKModelField.GetIsRequired: Boolean;
 var
   LDataType: TEFDataType;
-  LSize: Integer;
+  LSize, LScale: Integer;
   LIsKey: Boolean;
   LReferencedModel: string;
   LParentField: TKModelField;
@@ -909,7 +916,7 @@ begin
   if Assigned(LParentField) then
     Result := ParentField.IsRequired
   else
-    GetFieldSpec(LDataType, LSize, Result, LIsKey, LReferencedModel);
+    GetFieldSpec(LDataType, LSize, LScale, Result, LIsKey, LReferencedModel);
 end;
 
 function TKModelField.GetIsVisible: Boolean;
@@ -941,7 +948,7 @@ end;
 function TKModelField.GetReferencedModelName: string;
 var
   LDataType: TEFDataType;
-  LSize: Integer;
+  LSize, LScale: Integer;
   LIsRequired: Boolean;
   LIsKey: Boolean;
   LParentField: TKModelField;
@@ -950,7 +957,7 @@ begin
   if Assigned(LParentField) and (LParentField.IsReference) then
     Result := ParentField.ReferencedModelName
   else
-    GetFieldSpec(LDataType, LSize, LIsRequired, LIsKey, Result);
+    GetFieldSpec(LDataType, LSize, LScale, LIsRequired, LIsKey, Result);
 end;
 
 function TKModelField.GetReferenceFieldNames: TStringDynArray;
@@ -1043,7 +1050,7 @@ end;
 
 function TKModelField.GetDataType: TEFDataType;
 var
-  LSize: Integer;
+  LSize, LScale: Integer;
   LIsRequired: Boolean;
   LIsKey: Boolean;
   LReferencedModel: string;
@@ -1053,7 +1060,7 @@ begin
   if Assigned(LParentField) and ParentField.IsReference then
     Result := ParentField.ReferencedModel.KeyFields[Index].DataType
   else
-    GetFieldSpec(Result, LSize, LIsRequired, LIsKey, LReferencedModel);
+    GetFieldSpec(Result, LSize, LScale, LIsRequired, LIsKey, LReferencedModel);
 end;
 
 function TKModelField.GetDBColumnName: string;
@@ -1156,6 +1163,7 @@ end;
 function TKModelField.GetSize: Integer;
 var
   LDataType: TEFDataType;
+  LScale: Integer;
   LIsRequired: Boolean;
   LIsKey: Boolean;
   LReferencedModel: string;
@@ -1165,7 +1173,7 @@ begin
   if Assigned(LParentField) and ParentField.IsReference then
     Result := ParentField.ReferencedModel.KeyFields[Index].Size
   else
-    GetFieldSpec(LDataType, Result, LIsRequired, LIsKey, LReferencedModel);
+    GetFieldSpec(LDataType, Result, LScale, LIsRequired, LIsKey, LReferencedModel);
 end;
 
 function TKModelField.GetModel: TKModel;

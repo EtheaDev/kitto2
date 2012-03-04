@@ -45,6 +45,8 @@ type
     function InternalNodeToJSONValue(const ANode: TEFNode; const AJSFormatSettings: TFormatSettings): string; virtual;
   public
     class function GetTypeName: string; virtual;
+    class function HasSize: Boolean; virtual;
+    class function HasScale: Boolean; virtual;
 
     procedure FieldValueToNode(const AField: TField; const ANode: TEFNode);
     procedure NodeToParam(const ANode: TEFNode; const AParam: TParam);
@@ -97,6 +99,7 @@ type
     function SupportsEmptyAsNull: Boolean; override;
     function IsBlob(const ASize: Integer): Boolean; override;
     function GetJSTypeName: string; override;
+    class function HasSize: Boolean; override;
   end;
 
   TEFMemoDataType = class(TEFStringDataType)
@@ -187,6 +190,8 @@ type
     function SupportsEmptyAsNull: Boolean; override;
     function InternalNodeToJSONValue(const ANode: TEFNode; const AJSFormatSettings: TFormatSettings): string; override;
     function GetJSTypeName: string; override;
+    class function HasSize: Boolean; override;
+    class function HasScale: Boolean; override;
   end;
 
   TEFFloatDataType = class(TEFDecimalNumericDataTypeBase)
@@ -213,6 +218,8 @@ type
     function SupportsEmptyAsNull: Boolean; override;
     function InternalNodeToJSONValue(const ANode: TEFNode; const AJSFormatSettings: TFormatSettings): string; override;
     function GetJSTypeName: string; override;
+    class function HasSize: Boolean; override;
+    class function HasScale: Boolean; override;
   end;
 
   ///	<summary>
@@ -941,7 +948,12 @@ type
     ///	<summary>
     ///	  Returns a reference to the registered data type specified by name.
     ///	</summary>
-    function GetDataType(const AId: string): TEFDataType;
+    function GetDataType(const AId: string): TEFDataType; overload;
+
+    ///	<summary>
+    ///	  Returns a reference to the registered data type specified by class.
+    ///	</summary>
+    function GetDataType(const ADataTypeClass: TEFDataTypeClass): TEFDataType; overload;
   end;
 
 implementation
@@ -1007,6 +1019,12 @@ begin
   if not FDataTypes.ContainsKey(AId) then
     FDataTypes.Add(AId, TEFDataType(CreateObject(AId)));
   Result := FDataTypes[AId];
+end;
+
+function TEFDataTypeFactory.GetDataType(
+  const ADataTypeClass: TEFDataTypeClass): TEFDataType;
+begin
+  Result := GetDataType(ADataTypeClass.GetTypeName);
 end;
 
 class function TEFDataTypeFactory.GetInstance: TEFDataTypeFactory;
@@ -2113,6 +2131,16 @@ begin
   Result := StripPrefixAndSuffix(ClassName, 'TEF', 'DataType');
 end;
 
+class function TEFDataType.HasScale: Boolean;
+begin
+  Result := False;
+end;
+
+class function TEFDataType.HasSize: Boolean;
+begin
+  Result := False;
+end;
+
 procedure TEFDataType.YamlValueToNode(const AYamlValue: string;
   const ANode: TEFNode; const AFormatSettings: TFormatSettings);
 begin
@@ -2465,6 +2493,16 @@ begin
   Result := 'float';
 end;
 
+class function TEFCurrencyDataType.HasScale: Boolean;
+begin
+  Result := True;
+end;
+
+class function TEFCurrencyDataType.HasSize: Boolean;
+begin
+  Result := True;
+end;
+
 procedure TEFCurrencyDataType.InternalFieldValueToNode(const AField: TField;
   const ANode: TEFNode);
 begin
@@ -2568,6 +2606,16 @@ begin
   Result := 'float';
 end;
 
+class function TEFDecimalDataType.HasScale: Boolean;
+begin
+  Result := True;
+end;
+
+class function TEFDecimalDataType.HasSize: Boolean;
+begin
+  Result := True;
+end;
+
 procedure TEFDecimalDataType.InternalFieldValueToNode(const AField: TField;
   const ANode: TEFNode);
 begin
@@ -2612,6 +2660,11 @@ end;
 function TEFStringDataType.GetJSTypeName: string;
 begin
   Result := 'string';
+end;
+
+class function TEFStringDataType.HasSize: Boolean;
+begin
+  Result := True;
 end;
 
 procedure TEFStringDataType.InternalFieldValueToNode(const AField: TField;

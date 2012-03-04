@@ -16,7 +16,7 @@ inherited DetailReferenceUpdateActionFrame: TDetailReferenceUpdateActionFrame
   end
   object ForeignKeyNameEdit: TLabeledEdit
     Left = 11
-    Top = 68
+    Top = 120
     Width = 222
     Height = 21
     Hint = 'Name of the referring foreign key in the database'
@@ -24,6 +24,18 @@ inherited DetailReferenceUpdateActionFrame: TDetailReferenceUpdateActionFrame
     EditLabel.Width = 87
     EditLabel.Height = 13
     EditLabel.Caption = 'Foreign Key Name'
+    ReadOnly = True
+    TabOrder = 2
+  end
+  object DetailModelNameEdit: TLabeledEdit
+    Left = 11
+    Top = 72
+    Width = 222
+    Height = 21
+    Anchors = [akLeft, akTop, akRight]
+    EditLabel.Width = 58
+    EditLabel.Height = 13
+    EditLabel.Caption = 'Detail Model'
     ReadOnly = True
     TabOrder = 1
   end

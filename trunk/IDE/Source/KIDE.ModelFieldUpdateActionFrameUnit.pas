@@ -16,6 +16,8 @@ type
     SizeEdit: TLabeledEdit;
     IsRequiredCheckBox: TCheckBox;
     IsKeyCheckBox: TCheckBox;
+    ScaleEdit: TLabeledEdit;
+    procedure ControlChange(Sender: TObject);
   strict
   private
     procedure FillDataTypeComboBoxList; protected
@@ -34,6 +36,23 @@ uses
   EF.Tree;
 
 { TModelFieldUpdateActionFrame }
+
+procedure TModelFieldUpdateActionFrame.ControlChange(Sender: TObject);
+var
+  LDataType: TEFDataType;
+begin
+  inherited;
+  if TEFDataTypeRegistry.Instance.HasClass(DataTypeComboBox.Text) then
+  begin
+    LDataType := TEFDataTypeFactory.Instance.GetDataType(DataTypeComboBox.Text);
+    SizeEdit.Enabled := LDataType.HasSize;
+    ScaleEdit.Enabled := LDataType.HasScale;
+  end;
+  if IsKeyCheckBox.Checked then
+    IsRequiredCheckBox.Checked := True;
+  if not IsRequiredCheckBox.Checked then
+    IsKeyCheckBox.Checked := False;
+end;
 
 constructor TModelFieldUpdateActionFrame.Create(AOwner: TComponent);
 begin
@@ -57,7 +76,8 @@ begin
   inherited;
   ModelUpdateAction.Metadata.SetString('FieldName', FieldNameEdit.Text);
   ModelUpdateAction.Metadata.SetString('DataType', DataTypeComboBox.Text);
-  ModelUpdateAction.Metadata.SetInteger('Size', StrToInt(SizeEdit.Text));
+  ModelUpdateAction.Metadata.SetInteger('Size', StrToIntDef(SizeEdit.Text, 0));
+  ModelUpdateAction.Metadata.SetInteger('Scale', StrToIntDef(ScaleEdit.Text, 0));
   ModelUpdateAction.Metadata.SetBoolean('IsRequired', IsRequiredCheckBox.Checked);
   ModelUpdateAction.Metadata.SetBoolean('IsKey', IsKeyCheckBox.Checked);
 end;
@@ -74,6 +94,7 @@ begin
 
     DataTypeComboBox.Text := AValue.Metadata.GetString('DataType');
     SizeEdit.Text := Avalue.Metadata.GetString('Size');
+    ScaleEdit.Text := Avalue.Metadata.GetString('Scale');
     IsRequiredCheckBox.Checked := AValue.Metadata.GetBoolean('IsRequired');
     IsKeyCheckBox.Checked := AValue.Metadata.GetBoolean('IsKey');
   end;

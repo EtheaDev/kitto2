@@ -11,6 +11,7 @@ type
   TDetailReferenceUpdateActionFrame = class(TModelUpdateActionFrame)
     DetailReferenceNameEdit: TLabeledEdit;
     ForeignKeyNameEdit: TLabeledEdit;
+    DetailModelNameEdit: TLabeledEdit;
   strict protected
     procedure SetModelUpdateAction(const AValue: TModelUpdateAction); override;
   public
@@ -36,6 +37,7 @@ begin
   if Assigned(AValue) then
   begin
     DetailReferenceNameEdit.Text := AValue.Metadata.GetString('DetailReferenceName');
+    DetailModelNameEdit.Text := AValue.Metadata.GetString('DetailModelName');
     ForeignKeyNameEdit.Text := AValue.Metadata.GetString('ForeignKeyName');
   end;
 end;
