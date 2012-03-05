@@ -54,15 +54,15 @@ type
   private
     function GetFieldName: string;
     function GetParentRecord: TKRecord;
-    function GetAsJSONValue: string;
-    procedure SetAsJSONValue(const AValue: string);
+    //procedure SetAsJSONValue(const AValue: string);
     function GetJSONName: string;
   protected
     function GetName: string; override;
     procedure SetValue(const AValue: Variant); override;
+    function GetAsJSONValue: string; virtual;
   public
     procedure SetToNull; override;
-    property AsJSONValue: string read GetAsJSONValue write SetAsJSONValue;
+    property AsJSONValue: string read GetAsJSONValue;// write SetAsJSONValue;
     property ParentRecord: TKRecord read GetParentRecord;
 
     function GetAsJSON: string;
@@ -802,10 +802,10 @@ begin
   Result := Parent as TKRecord;
 end;
 
-procedure TKField.SetAsJSONValue(const AValue: string);
-begin
-  SetAsYamlValue(AValue, TKConfig.Instance.UserFormatSettings);
-end;
+//procedure TKField.SetAsJSONValue(const AValue: string);
+//begin
+//  SetAsYamlValue(AValue, TKConfig.Instance.UserFormatSettings);
+//end;
 
 procedure TKField.SetToNull;
 begin

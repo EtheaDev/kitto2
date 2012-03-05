@@ -80,6 +80,7 @@ type
     function GetReferenceField: TKModelField;
     function GetBlankValue: Boolean;
     function GetReferenceName: string;
+    function GetDisplayTemplate: string;
   protected
     function GetChildClass(const AName: string): TEFNodeClass; override;
   public
@@ -170,6 +171,7 @@ type
     property EditFormat: string read GetEditFormat;
     property DisplayFormat: string read GetDisplayFormat;
     property BlankValue: Boolean read GetBlankValue;
+    property DisplayTemplate: string read GetDisplayTemplate;
 
     property Rules: TKRules read GetRules;
 
@@ -260,6 +262,8 @@ type
   private
     function GetParentRecord: TKViewTableRecord;
     function GetViewField: TKViewField;
+  strict protected
+    function GetAsJSONValue: string; override;
   public
     property ParentRecord: TKViewTableRecord read GetParentRecord;
     property ViewField: TKViewField read GetViewField;
@@ -1180,6 +1184,17 @@ begin
     Result := ModelField.DisplayLabel;
 end;
 
+function TKViewField.GetDisplayTemplate: string;
+var
+  LNode: TEFNode;
+begin
+  LNode := FindNode('DisplayTemplate');
+  if LNode = nil then
+    Result := ModelField.GetString('DisplayTemplate')
+  else
+    Result := LNode.AsString;
+end;
+
 function TKViewField.GetDisplayWidth: Integer;
 begin
   Result := GetInteger('DisplayWidth');
@@ -1716,6 +1731,50 @@ end;
 
 { TKViewTableField }
 
+function TKViewTableField.GetAsJSONValue: string;
+var
+  LDisplayTemplate: string;
+
+  function Unquote(const AString: string): string;
+  begin
+    if (Length(AString) >= 2) and (AString[1] = '"') and (AString[Length(AString)] = '"') then
+      Result := Copy(AString, 2, Length(AString) - 2)
+    else
+      Result := AString;
+  end;
+
+  function ReplaceFieldValues(const AString: string): string;
+  var
+    I: Integer;
+    LField: TKViewTableField;
+  begin
+    Result := AString;
+    for I := 0 to ViewField.Table.FieldCount - 1 do
+    begin
+      if ViewField.Table.Fields[I] <> ViewField then
+      begin
+        LField := ParentRecord.FindField(ViewField.Table.Fields[I].FieldName);
+        if Assigned(LField) then
+          Result := ReplaceText(Result, '{' + ViewField.Table.Fields[I].FieldName + '}',
+            Unquote(LField.AsJSONValue));
+      end;
+    end;
+  end;
+
+begin
+  Result := inherited GetAsJSONValue;
+  if Assigned(ViewField) then
+  begin
+    LDisplayTemplate := ViewField.DisplayTemplate;
+    if LDisplayTemplate <> '' then
+    begin
+      // Replace other field values, this field's value and add back quotes.
+      Result := '"' + ReplaceFieldValues(
+        ReplaceText(LDisplayTemplate, '{value}', Unquote(Result))) + '"';
+    end;
+  end;
+end;
+
 function TKViewTableField.GetParentRecord: TKViewTableRecord;
 begin
   Result := inherited ParentRecord as TKViewTableRecord;
@@ -1723,7 +1782,7 @@ end;
 
 function TKViewTableField.GetViewField: TKViewField;
 begin
-  Result := ParentRecord.ViewTable.FieldByAliasedName(FieldName);
+  Result := ParentRecord.ViewTable.FindFieldByAliasedName(FieldName);
 end;
 
 initialization

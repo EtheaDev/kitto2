@@ -334,7 +334,7 @@ var
     function SetRenderer(const AColumn: TExtGridColumn): Boolean;
     var
       LImages: TEFNode;
-      LPairs: TEFPairs;
+      LTriples: TEFTriples;
       I: Integer;
     begin
       Result := False;
@@ -342,14 +342,20 @@ var
       LImages := AViewField.FindNode('Images');
       if Assigned(LImages) and (LImages.ChildCount > 0) then
       begin
-        // Expand image names to URLs.
-        LPairs := LImages.GetChildPairs;
-        for I := Low(LPairs) to High(LPairs) do
-          LPairs[I].Key := Session.Config.GetImageURL(LPairs[I].Key);
+        // Get image list into array of triples (URL/regexp/template).
+        SetLength(LTriples, LImages.ChildCount);
+        for I := 0 to LImages.ChildCount - 1 do
+        begin
+          LTriples[I].Value1 := Session.Config.GetImageURL(LImages.Children[I].Name);
+          LTriples[I].Value2 := LImages.Children[I].AsExpandedString;
+          LTriples[I].Value3 := LImages.Children[I].GetExpandedString('DisplayTemplate');
+          if LTriples[I].Value3 = '' then
+            LTriples[I].Value3 := AViewField.DisplayTemplate;
+        end;
         // Pass array to the client-side renderer.
         AColumn.RendererExtFunction := AColumn.JSFunction('v',
           Format('return formatWithImage(v, [%s], %s);',
-            [PairsToJSON(LPairs), IfThen(AViewField.BlankValue, 'false', 'true')]));
+            [TriplesToJSON(LTriples), IfThen(AViewField.BlankValue, 'false', 'true')]));
       end;
     end;
 

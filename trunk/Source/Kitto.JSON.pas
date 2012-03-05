@@ -40,26 +40,37 @@ uses
 ///	</summary>
 function PairsToJSON(const APairs: TEFPairs; const AReversed: Boolean = False): string;
 
-{
-  Builds a JSON representation of a dataset's fields values.
-  Creates the dataset by executing the specified command text against the
-  specified DB connection.
-  Each record is enclosed in []s and each value is double-quoted.
-  Example:
-  '["IT", "ITALY"], ["UK", "UNITED KINGDOM"]'
-  This particular representation is useful for encoding a GUIField's
-  LookupCommandText as a JSON array suitable for an ExtJS combo box.
-}
+///	<summary>
+///	  <para>
+///	    Builds a JSON representation of the triples.
+///	  </para>
+///	  <para>
+///	    Example: A B C, One Two Three
+///	  </para>
+///	  <para>
+///	    Result: '["A", "B", "C"], ["One", "Two", '"Three"]'
+///	  </para>
+///	</summary>
+function TriplesToJSON(const ATriples: TEFTriples): string;
+
+///	<summary>Builds a JSON representation of a dataset's fields values. Creates
+///	the dataset by executing the specified command text against the specified
+///	DB connection. Each record is enclosed in []s and each value is
+///	double-quoted.</summary>
+///	<example>
+///	  <para><c>'["IT", "ITALY"], ["UK", "UNITED KINGDOM"]'</c></para>
+///	  <para>This particular representation is useful for encoding a GUIField's
+///	  LookupCommandText as a JSON array suitable for an ExtJS combo box.</para>
+///	</example>
 function DataSetToJSON(const ADBConnection: TEFDBConnection; const ACommandText: string): string; overload;
 
-{
-  Builds a JSON representation of the dataset's fields values. Each record is enclosed
-  in []s and each value is double-quoted.
-  Example:
-  '["IT", "ITALY"], ["UK", "UNITED KINGDOM"]'
-  This particular representation is useful for encoding a GUIField's
-  LookupCommandText as a JSON array suitable for an ExtJS combo box.
-}
+///	<summary>Builds a JSON representation of a dataset's fields values. Each
+/// record is enclosed in []s and each value is double-quoted.</summary>
+///	<example>
+///	  <para><c>'["IT", "ITALY"], ["UK", "UNITED KINGDOM"]'</c></para>
+///	  <para>This particular representation is useful for encoding a GUIField's
+///	  LookupCommandText as a JSON array suitable for an ExtJS combo box.</para>
+///	</example>
 function DataSetToJSON(const ADataSet: TDataSet): string; overload;
 
 implementation
@@ -80,6 +91,19 @@ begin
     else
       Result := Result + '["' + APairs[I].Key + '", "' + APairs[I].Value + '"]';
     if I < High(APairs) then
+      Result := Result + ',';
+  end;
+end;
+
+function TriplesToJSON(const ATriples: TEFTriples): string;
+var
+  I: Integer;
+begin
+  Result := '';
+  for I := Low(ATriples) to High(ATriples) do
+  begin
+    Result := Result + '["' + ATriples[I].Value1 + '", "' + ATriples[I].Value2 + '", "' + ATriples[I].Value3 +'"]';
+    if I < High(ATriples) then
       Result := Result + ',';
   end;
 end;

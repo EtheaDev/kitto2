@@ -134,23 +134,29 @@ function formatTime(time, format)
 };
 
 // Renders an image with a value.
-// patterns is an array of arrays of two elements: image URL and regexp.
-// patterns are searched in order.
+// Patterns is an array of arrays of two elements: image URL and regexp.
+// Patterns are searched in order.
 // An image is rendered if v matches its regexp. Set includeValue to false
 // to display only the image and not the value (if there's no matching image,
 // the value is always displayed).
 function formatWithImage(v, patterns, includeValue)
 {
-  var image = null
+  var image = null;
+  var customValue = "";
   for (var i = 0; i < patterns.length; i++)
   {
     var re = new RegExp(patterns[i][1]);
     if (re.test(v)) {
       image = patterns[i][0];
+      if (patterns[i].length >= 3)
+        customValue = patterns[i][2];
       break;
     }
   }
+  if (customValue != "")
+    v = customValue.replace('{value}', v);
   if (image != null)
+    // TODO: center image vertically?
     return '<img src="' + image + '">' + (includeValue ? '&nbsp;' + v : '');
   else
     return v;
