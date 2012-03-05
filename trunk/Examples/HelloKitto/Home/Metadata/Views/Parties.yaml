@@ -2,7 +2,8 @@
 
 Controller: List
   AllowClose: True
-
+  AllowMultipleInstances: True
+  
 MainTable:
   Model: Party
 
