@@ -66,7 +66,7 @@ var
   LName: string;
 begin
   DataTypeComboBox.Items.Clear;
-  LNames := TEFDataTypeRegistry.Instance.GetDataTypeNames;
+  LNames := TEFDataTypeRegistry.Instance.GetClassIds;
   for LName in LNames do
     DataTypeComboBox.Items.Add(LName);
 end;

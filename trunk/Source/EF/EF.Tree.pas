@@ -925,9 +925,6 @@ type
   public
     class property Instance: TEFDataTypeRegistry read GetInstance;
     function GetClass(const AId: string): TEFDataTypeClass;
-
-    ///	<summary>Returns a list of all registered data type names.</summary>
-    function GetDataTypeNames: TArray<string>;
   end;
 
   ///	<summary>
@@ -977,11 +974,6 @@ end;
 function TEFDataTypeRegistry.GetClass(const AId: string): TEFDataTypeClass;
 begin
   Result := TEFDataTypeClass(inherited GetClass(AId));
-end;
-
-function TEFDataTypeRegistry.GetDataTypeNames: TArray<string>;
-begin
-  Result := Classes.Keys.ToArray;
 end;
 
 class function TEFDataTypeRegistry.GetInstance: TEFDataTypeRegistry;
