@@ -495,8 +495,8 @@ begin
   SetupResourcePathsURLs;
 
   FJSFormatSettings := GetFormatSettings;
-  FJSFormatSettings := GetFormatSettings;
   FJSFormatSettings.DecimalSeparator := '.';
+  FJSFormatSettings.ThousandSeparator := ',';
   FJSFormatSettings.ShortDateFormat := 'yyyy/mm/dd';
   FJSFormatSettings.ShortTimeFormat := 'hh:mm:ss';
   FJSFormatSettings.DateSeparator := '/';
