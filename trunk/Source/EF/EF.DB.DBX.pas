@@ -601,7 +601,7 @@ begin
   LCommand := FConnection.DBXConnection.CreateCommand;
   try
     LCommand.CommandType := TDBXCommandTypes.DbxMetaData;
-    LCommand.Text := TDBXMetaDataCommands.GetTables + ' [] ' + TDBXMetaDataTableTypes.Table;
+    LCommand.Text := TDBXMetaDataCommands.GetTables + ' % ' + TDBXMetaDataTableTypes.Table;
     LReader := LCommand.ExecuteQuery;
     try
       while LReader.Next do

@@ -73,6 +73,7 @@ inherited ModelFieldUpdateActionFrame: TModelFieldUpdateActionFrame
     Top = 139
     Width = 58
     Height = 17
+    Anchors = [akTop, akRight]
     Caption = 'Is Key'
     TabOrder = 6
   end
