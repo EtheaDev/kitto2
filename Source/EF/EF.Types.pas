@@ -120,6 +120,10 @@ type
     ///	  registered. Otherwise returns nil.
     ///	</summary>
     function FindClass(const AId: string): TClass;
+
+    ///	<summary>Returns a sorted array with all registered class
+    ///	Ids.</summary>
+    function GetClassIds: TArray<string>;
   end;
 
   ///	<summary>
@@ -249,6 +253,25 @@ begin
     Result := FClasses[AId]
   else
     raise EEFError.CreateFmt('Class %s not found.', [AId]);
+end;
+
+function TEFRegistry.GetClassIds: TArray<string>;
+{$IFDEF D15+}
+begin
+  Result := Classes.Keys.ToArray;
+{$ELSE}
+var
+  LIndex: Integer;
+  LClassId: string;
+begin
+  SetLength(Result, Classes.Count);
+  LIndex := 0;
+  for LClassId in Classes.Keys do
+  begin
+    Result[LIndex] := LClassId;
+    Inc(LIndex);
+  end;
+{$ENDIF}
 end;
 
 procedure TEFRegistry.RegisterClass(const AId: string; const AClass: TClass);
