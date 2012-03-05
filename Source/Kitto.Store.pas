@@ -450,15 +450,18 @@ function TKRecords.GetAsJSON(const AFrom: Integer; const AFor: Integer): string;
 var
   I: Integer;
   LTo: Integer;
+  LCount: Integer;
 begin
   if AFor > 0 then
     LTo := Min(RecordCount - 1, AFrom + AFor - 1)
   else
     LTo := RecordCount - 1;
 
-{ TODO : Fix looping so that a full page is returned even when there are deleted records. }
+  // Loop so that a full page is returned even when there are deleted records.
   Result := '';
-  for I := AFrom to LTo do
+  LCount := LTo - AFrom + 1;
+  I := AFrom;
+  while LCount > 0 do
   begin
     if not Records[I].IsDeleted then
     begin
@@ -466,7 +469,9 @@ begin
         Result := Records[I].GetAsJSON
       else
         Result := Result + ',' + Records[I].GetAsJSON;
+      Dec(LCount);
     end;
+    Inc(I);
   end;
   Result := '[' + Result + ']';
 end;
