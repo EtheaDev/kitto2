@@ -279,6 +279,7 @@ begin
     FreeAndNil(FView);
   FreeAndNil(FSubjObserverImpl);
   FreeAndNil(FConfig);
+  Session.RemoveController(Self);
   inherited;
 end;
 
@@ -489,6 +490,7 @@ begin
     FreeAndNil(FView);
   FreeAndNil(FSubjObserverImpl);
   FreeAndNil(FConfig);
+  Session.RemoveController(Self);
   inherited;
 end;
 
@@ -666,6 +668,7 @@ destructor TKExtPanelControllerBase.Destroy;
 begin
   if FOwnsView and Assigned(FView) and not FView.IsPersistent then
     FreeAndNil(FView);
+  Session.RemoveController(Self);
   inherited;
 end;
 
@@ -849,6 +852,7 @@ begin
   if FOwnsView and Assigned(FView) and not FView.IsPersistent then
     FreeAndNil(FView);
   FreeAndNil(FConfig);
+  Session.RemoveController(Self);
   inherited;
 end;
 
