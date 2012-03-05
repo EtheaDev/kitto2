@@ -56,6 +56,15 @@ type
   TEFPair = TPair<string, string>;
   TEFPairs = array of TEFPair;
 
+  TEFTriple = record
+    Value1: string;
+    Value2: string;
+    Value3: string;
+    constructor Create(const AValue1, AVAlue2, AVAlue3: string);
+    procedure AssignPair(const APair: TEFPair);
+  end;
+  TEFTriples = array of TEFTriple;
+
   ///	<summary>
   ///	  Holds a list of registered classes and provides class references by
   ///	  string Ids.
@@ -336,6 +345,22 @@ end;
 function TEFFactory.HasClass(const AId: string): Boolean;
 begin
   Result := FRegistry.HasClass(AId);
+end;
+
+{ TEFTriple }
+
+procedure TEFTriple.AssignPair(const APair: TEFPair);
+begin
+  Value1 := APair.Key;
+  Value2 := APair.Value;
+  Value3 := '';
+end;
+
+constructor TEFTriple.Create(const AValue1, AVAlue2, AVAlue3: string);
+begin
+  Value1 := AValue1;
+  Value2 := AValue2;
+  Value3 := AValue3;
 end;
 
 end.
