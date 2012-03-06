@@ -31,5 +31,5 @@ Fields:
       MaxLength: 1024
   Picture: Blob
     Hint: Select a picture
-    MaxUploadSize: 102400
+    MaxUploadSize: 100KB
     .DefaultFileName: test.gif
