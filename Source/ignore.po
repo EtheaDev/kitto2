@@ -1,0 +1,16 @@
+#  Seems like a Font.Name extract
+#. KExtMainForm..PageControl..HomeTabSheet..LogMemo..Font.Name
+#: Kitto.Ext.MainFormUnit.dfm:448
+msgid "Courier New"
+msgstr ""
+
+#  Seems like a Font.Name extract
+#. KExtMainForm..Font.Name
+#: Kitto.Ext.MainFormUnit.dfm:11
+#. KExtMainForm..PageControl..HomeTabSheet..ControlPanel..AppTitleLabel..Font.Name
+#: Kitto.Ext.MainFormUnit.dfm:497
+#. KExtMainForm..PageControl..HomeTabSheet..ControlPanel..ConfigLinkLabel..Font.Name
+#: Kitto.Ext.MainFormUnit.dfm:513
+msgid "Tahoma"
+msgstr ""
+

@@ -56,16 +56,17 @@ type
     function GetParentRecord: TKRecord;
     //procedure SetAsJSONValue(const AValue: string);
     function GetJSONName: string;
+    function GetAsDisplayJSONValue: string;
   protected
     function GetName: string; override;
     procedure SetValue(const AValue: Variant); override;
-    function GetAsJSONValue: string; virtual;
+    function GetAsJSONValue(const AForDisplay: Boolean): string; virtual;
   public
     procedure SetToNull; override;
-    property AsJSONValue: string read GetAsJSONValue;// write SetAsJSONValue;
+
     property ParentRecord: TKRecord read GetParentRecord;
 
-    function GetAsJSON: string;
+    function GetAsJSON(const AForDisplay: Boolean): string;
 
     property FieldName: string read GetFieldName;
   end;
@@ -120,7 +121,7 @@ type
     ///	names are not in the passed node are set to Null.</summary>
     procedure ReadFromNode(const ANode: TEFNode);
 
-    function GetAsJSON: string;
+    function GetAsJSON(const AForDisplay: Boolean): string;
 
     procedure MarkAsModified;
     procedure MarkAsDeleted;
@@ -162,7 +163,8 @@ type
     function Append: TKRecord;
     procedure Remove(const ARecord: TKRecord);
 
-    function GetAsJSON(const AFrom: Integer = 0; const AFor: Integer = 0): string;
+    function GetAsJSON(const AForDisplay: Boolean;
+      const AFrom: Integer = 0; const AFor: Integer = 0): string;
   end;
 
   TKHeaderField = class(TEFNode)
@@ -225,7 +227,8 @@ type
     ///	<seealso cref="TKRecord.MarkAsDeleted"></seealso>
     procedure RemoveRecord(const ARecord: TKRecord);
 
-    function GetAsJSON(const AFrom: Integer = 0; const AFor: Integer = 0): string;
+    function GetAsJSON(const AForDisplay: Boolean; const AFrom: Integer = 0;
+      const AFor: Integer = 0): string;
 
     function ChangesPending: Boolean;
 
@@ -316,9 +319,10 @@ begin
   inherited;
 end;
 
-function TKStore.GetAsJSON(const AFrom: Integer; const AFor: Integer): string;
+function TKStore.GetAsJSON(const AForDisplay: Boolean; const AFrom: Integer;
+  const AFor: Integer): string;
 begin
-  Result := Records.GetAsJSON(AFrom, AFor);
+  Result := Records.GetAsJSON(AForDisplay, AFrom, AFor);
 end;
 
 function TKStore.GetChildClass(const AName: string): TEFNodeClass;
@@ -446,7 +450,8 @@ begin
   end;
 end;
 
-function TKRecords.GetAsJSON(const AFrom: Integer; const AFor: Integer): string;
+function TKRecords.GetAsJSON(const AForDisplay: Boolean;
+  const AFrom: Integer; const AFor: Integer): string;
 var
   I: Integer;
   LTo: Integer;
@@ -466,9 +471,9 @@ begin
     if not Records[I].IsDeleted then
     begin
       if Result = '' then
-        Result := Records[I].GetAsJSON
+        Result := Records[I].GetAsJSON(AForDisplay)
       else
-        Result := Result + ',' + Records[I].GetAsJSON;
+        Result := Result + ',' + Records[I].GetAsJSON(AForDisplay);
       Dec(LCount);
     end;
     Inc(I);
@@ -616,14 +621,14 @@ begin
   end;
 end;
 
-function TKRecord.GetAsJSON: string;
+function TKRecord.GetAsJSON(const AForDisplay: Boolean): string;
 var
   I: Integer;
 begin
   Result := '{';
   for I := 0 to FieldCount - 1 do
   begin
-    Result := Result + Fields[I].GetAsJSON;
+    Result := Result + Fields[I].GetAsJSON(AForDisplay);
     if I < FieldCount - 1 then
       Result := Result + ',';
   end;
@@ -771,17 +776,22 @@ begin
   Result := FieldName;
 end;
 
-function TKField.GetAsJSON: string;
+function TKField.GetAsDisplayJSONValue: string;
 begin
-  Result := '"' + GetJSONName + '":' + AsJSONValue;
-  { TODO : not sure about the usefulness of this replace here; verify that a
-    counter-replace is not needed when getting back data from the client. }
-  Result := AnsiReplaceStr(Result, #13#10, '<br/>');
-  Result := AnsiReplaceStr(Result, #10, '<br/>');
-  Result := AnsiReplaceStr(Result, #13, '<br/>');
+  Result := DataType.NodeToJSONValue(Self, TKConfig.Instance.JSFormatSettings);
 end;
 
-function TKField.GetAsJSONValue: string;
+function TKField.GetAsJSON(const AForDisplay: Boolean): string;
+begin
+  Result := '"' + GetJSONName + '":' + GetAsJSONValue(AForDisplay);
+  { TODO : not sure about the usefulness of this replace here; verify that a
+    counter-replace is not needed when getting back data from the client. }
+//  Result := AnsiReplaceStr(Result, #13#10, '<br/>');
+//  Result := AnsiReplaceStr(Result, #10, '<br/>');
+//  Result := AnsiReplaceStr(Result, #13, '<br/>');
+end;
+
+function TKField.GetAsJSONValue(const AForDisplay: Boolean): string;
 begin
   Result := DataType.NodeToJSONValue(Self, TKConfig.Instance.JSFormatSettings);
 end;

@@ -263,7 +263,7 @@ type
     function GetParentRecord: TKViewTableRecord;
     function GetViewField: TKViewField;
   strict protected
-    function GetAsJSONValue: string; override;
+    function GetAsJSONValue(const AForDisplay: Boolean): string; override;
   public
     property ParentRecord: TKViewTableRecord read GetParentRecord;
     property ViewField: TKViewField read GetViewField;
@@ -1731,7 +1731,7 @@ end;
 
 { TKViewTableField }
 
-function TKViewTableField.GetAsJSONValue: string;
+function TKViewTableField.GetAsJSONValue(const AForDisplay: Boolean): string;
 var
   LDisplayTemplate: string;
 
@@ -1756,14 +1756,14 @@ var
         LField := ParentRecord.FindField(ViewField.Table.Fields[I].FieldName);
         if Assigned(LField) then
           Result := ReplaceText(Result, '{' + ViewField.Table.Fields[I].FieldName + '}',
-            Unquote(LField.AsJSONValue));
+            Unquote(LField.GetAsJSONValue(True)));
       end;
     end;
   end;
 
 begin
-  Result := inherited GetAsJSONValue;
-  if Assigned(ViewField) then
+  Result := inherited GetAsJSONValue(AForDisplay);
+  if AForDisplay and Assigned(ViewField) then
   begin
     LDisplayTemplate := ViewField.DisplayTemplate;
     if LDisplayTemplate <> '' then

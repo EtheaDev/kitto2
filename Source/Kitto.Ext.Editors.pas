@@ -654,9 +654,13 @@ var
   LLookupCommandText: string;
   LAllowedValues: TEFPairs;
   LComboBox: TKExtFormComboBoxEditor;
+  I: Integer;
 begin
   LLookupCommandText := GetLookupCommandText(AField.ViewField);
-  LAllowedValues := AField.ViewField.GetChildrenAsPairs('AllowedValues');
+  LAllowedValues := AField.ViewField.GetChildrenAsPairs('AllowedValues', True);
+  // Translate allowed value descriptions if needed.
+  for I := Low(LAllowedValues) to High(LAllowedValues) do
+    LAllowedValues[I].Value := _(LAllowedValues[I].Value);
   if (LLookupCommandText <> '') or (Length(LAllowedValues) > 0) then
   begin
     LComboBox := TKExtFormComboBoxEditor.Create;
@@ -1536,7 +1540,7 @@ begin
   LPageRecordCount := Min(Max(LLimit, MAX_RECORD_COUNT), FServerStore.RecordCount - LStart);
 
   Session.Response := '{Total:' + IntToStr(FServerStore.RecordCount) + ',Root:'
-    + FServerStore.GetAsJSON(LStart, LPageRecordCount) + '}';
+    + FServerStore.GetAsJSON(False, LStart, LPageRecordCount) + '}';
 end;
 
 procedure TKExtFormComboBoxEditor.InitDefaults;

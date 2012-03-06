@@ -195,7 +195,7 @@ begin
   if ServerStore.ChangesPending then
   begin
     LTotal := ServerStore.RecordCount;
-    LData := ServerStore.GetAsJSON;
+    LData := ServerStore.GetAsJSON(True);
   end
   else
   begin
@@ -205,13 +205,13 @@ begin
     if (LStart <> 0) or (LLimit <> 0) then
     begin
       LTotal := ServerStore.LoadPage(GetFilterExpression, GetOrderByClause, LStart, LLimit);
-      LData := ServerStore.GetAsJSON;
+      LData := ServerStore.GetAsJSON(True);
     end
     else
     begin
       ServerStore.Load(GetFilterExpression, GetOrderByClause);
       LTotal := ServerStore.RecordCount;
-      LData := ServerStore.GetAsJSON(0, Min(MAX_RECORD_COUNT, ServerStore.RecordCount));
+      LData := ServerStore.GetAsJSON(True, 0, Min(MAX_RECORD_COUNT, ServerStore.RecordCount));
     end;
   end;
   Session.Response := Format('{Total:%d,Root:%s}', [LTotal, LData]);
