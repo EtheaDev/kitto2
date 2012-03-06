@@ -495,7 +495,9 @@ type
     ///	<returns>
     ///	  Array of name/value pairs.
     ///	</returns>
-    function GetChildrenAsPairs(const APath: string; const ADefaultValue: TEFPairs = nil): TEFPairs;
+    function GetChildrenAsPairs(const APath: string;
+      const AExpandMacrosInValues: Boolean = False;
+      const ADefaultValue: TEFPairs = nil): TEFPairs;
 
     ///	<summary>
     ///	  Same as GetChildrenAsStrings, but returns expanded strings: Each string is
@@ -600,6 +602,7 @@ type
     procedure SetDataType(const AValue: TEFDataType);
     function GetAsBytes: TBytes;
     procedure SetAsBytes(const AValue: TBytes);
+    function GetAsExpandedPair: TEFPair;
   protected
     procedure SetName(const AValue: string);
     function GetName: string; virtual;
@@ -700,6 +703,11 @@ type
     ///	  Node value as a pair.
     ///	</summary>
     property AsPair: TEFPair read GetAsPair write SetAsPair;
+
+    ///	<summary>
+    ///	  Node value as a pair with expanded macros in the value part.
+    ///	</summary>
+    property AsExpandedPair: TEFPair read GetAsExpandedPair;
 
     ///	<summary>
     ///	  Node value as a list of pairs.
@@ -828,7 +836,7 @@ type
     ///	<summary>
     ///	  Returns all child nodes as name/value pairs.
     ///	</summary>
-    function GetChildPairs: TEFPairs;
+    function GetChildPairs(const AExpandMacrosInValues: Boolean = False): TEFPairs;
 
     ///	<summary>
     ///	  Returns an array of names of all direct children of the node.
@@ -1168,6 +1176,11 @@ begin
   Result := DataType.ValueToDecimal(FValue);
 end;
 
+function TEFNode.GetAsExpandedPair: TEFPair;
+begin
+  Result := TEFPair.Create(Name, AsExpandedString);
+end;
+
 function TEFNode.GetAsExpandedString: string;
 begin
   Result := TEFMacroExpansionEngine.Instance.Expand(AsString);
@@ -1245,13 +1258,16 @@ begin
     Result[I] := Children[I].Name;
 end;
 
-function TEFNode.GetChildPairs: TEFPairs;
+function TEFNode.GetChildPairs(const AExpandMacrosInValues: Boolean): TEFPairs;
 var
   I: Integer;
 begin
   SetLength(Result, ChildCount);
   for I := 0 to ChildCount - 1 do
-    Result[I] := Children[I].AsPair;
+    if AExpandMacrosInValues then
+      Result[I] := Children[I].AsExpandedPair
+    else
+      Result[I] := Children[I].AsPair;
 end;
 
 function TEFNode.GetEnumerator: TEnumerator<TEFNode>;
@@ -1638,13 +1654,13 @@ begin
 end;
 
 function TEFTree.GetChildrenAsPairs(const APath: string;
-  const ADefaultValue: TEFPairs): TEFPairs;
+  const AExpandMacrosInValues: Boolean; const ADefaultValue: TEFPairs): TEFPairs;
 var
   LNode: TEFNode;
 begin
   LNode := FindNode(APath);
   if Assigned(LNode) then
-    Result := LNode.GetChildPairs
+    Result := LNode.GetChildPairs(AExpandMacrosInValues)
   else
     Result := ADefaultValue;
 end;
@@ -2177,8 +2193,16 @@ begin
 end;
 
 function TEFDataType.ValueToInteger(const AValue: Variant): Integer;
+const
+  KB = 1024;
+  MB = KB * 1024;
 begin
-  Result := AValue;
+  if EndsStr('MB', AValue) then
+    Result := MB * StrToInt(StripSuffix(AValue, 'MB'))
+  else if EndsStr('KB', AValue) then
+    Result := KB * StrToInt(StripSuffix(AValue, 'KB'))
+  else
+    Result := AValue;
 end;
 
 function TEFDataType.ValueToObject(const AValue: Variant): TObject;

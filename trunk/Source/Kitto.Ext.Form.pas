@@ -311,7 +311,7 @@ procedure TKExtFormPanelController.GetRecord;
 begin
   Assert(Assigned(FStoreRecord));
 
-  Session.Response := '{success:true,data:' + FStoreRecord.GetAsJSON + '}';
+  Session.Response := '{success:true,data:' + FStoreRecord.GetAsJSON(False) + '}';
 end;
 
 procedure TKExtFormPanelController.SaveChanges;
