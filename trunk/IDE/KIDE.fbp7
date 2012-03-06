@@ -74,6 +74,82 @@
             <Property MultiValue="0" name="UserName" type="string">nando</Property>
             <Property MultiValue="0" name="WorkFolder" type="string">C:\Users\nandod\Ethea\Kitto</Property>
           </Object>
+          <Object Class="TDeleteFilesAction" XMLID="{202C7E5C-8336-48A9-963E-9DA10A6E943A}">
+            <Property MultiValue="0" name="ActionComment" type="string"></Property>
+            <Property MultiValue="1" name="ActionDescription" type="string">
+              <![CDATA[Delete svnlog.txt]]>
+            </Property>
+            <Property name="ActionTextColor" type="Cardinal">0</Property>
+            <Property MultiValue="0" name="ActionTypeID" type="string"></Property>
+            <Property name="DeleteHidden" type="Boolean">False</Property>
+            <Property name="DeleteReadOnly" type="Boolean">False</Property>
+            <Property MultiValue="1" name="Description" type="string">
+              <![CDATA[Delete svnlog.txt]]>
+            </Property>
+            <Property name="Enabled" type="Boolean">True</Property>
+            <Property name="ExpandActionLogTitle" type="Boolean">True</Property>
+            <Property name="FailIfNoFile" type="Boolean">False</Property>
+            <Property MultiValue="0" name="FileSpec" type="string">C:\Users\nandod\Ethea\Kitto\svnlog.txt</Property>
+            <Property name="HideActionFromLog" type="Boolean">False</Property>
+            <Property name="IgnoreFailure" type="Boolean">False</Property>
+            <Property name="Locked" type="Boolean">False</Property>
+            <Property name="LogActionProperties" type="Boolean">False</Property>
+            <Property MultiValue="0" name="LogToVariable" type="TVariableName"></Property>
+            <Property name="MaxRetryAttempts" type="Cardinal">0</Property>
+            <Property name="PauseInterval" type="Cardinal">0</Property>
+            <Property name="RetryPauseInterval" type="Cardinal">1000</Property>
+            <Property name="SuppressStatusMessages" type="Boolean">False</Property>
+          </Object>
+          <Object Class="TRunDosCMDAction" XMLID="{CAECC4E4-153C-4F3B-AFBE-072D3836C8DF}">
+            <Property MultiValue="0" name="ActionComment" type="string"></Property>
+            <Property MultiValue="1" name="ActionDescription" type="string">
+              <![CDATA[Create svnlog.txt]]>
+            </Property>
+            <Property name="ActionTextColor" type="Cardinal">0</Property>
+            <Property MultiValue="0" name="ActionTypeID" type="string"></Property>
+            <Property name="CaptureOutput" type="Boolean">True</Property>
+            <Property MultiValue="1" name="Command" type="string">
+              <![CDATA[svn log -l 20 &gt;svnlog.txt]]>
+            </Property>
+            <Property MultiValue="1" name="Description" type="string">
+              <![CDATA[Create svnlog.txt]]>
+            </Property>
+            <Property name="Enabled" type="Boolean">True</Property>
+            <Property name="EnableLiveCapture" type="Boolean">True</Property>
+            <Property name="EnableReturnCodeCheck" type="Boolean">True</Property>
+            <Property name="EnableTimeout" type="Boolean">False</Property>
+            <Property name="ExpandActionLogTitle" type="Boolean">True</Property>
+            <Property name="ExpandImpersonationToken" type="Boolean">False</Property>
+            <Property MultiValue="0" name="ExtraCmdLineParamsAtEnd" type="string"></Property>
+            <Property MultiValue="0" name="ExtraCmdLineParamsAtStart" type="string"></Property>
+            <Property name="HideActionFromLog" type="Boolean">False</Property>
+            <Property name="HideWindow" type="Boolean">True</Property>
+            <Property name="IgnoreFailure" type="Boolean">False</Property>
+            <Property MultiValue="0" name="ImpersonateToken" type="string"></Property>
+            <Property name="ImpersonateUser" type="Boolean">False</Property>
+            <Property MultiValue="0" name="ImpersonateUserName" type="string"></Property>
+            <Property MultiValue="0" name="InputFile" type="string"></Property>
+            <Property name="Locked" type="Boolean">False</Property>
+            <Property name="LogActionProperties" type="Boolean">False</Property>
+            <Property name="LogOutput" type="Boolean">True</Property>
+            <Property name="LogProcessParameters" type="Boolean">True</Property>
+            <Property MultiValue="0" name="LogToVariable" type="TVariableName"></Property>
+            <Property name="MaxRetryAttempts" type="Cardinal">0</Property>
+            <Property MultiValue="1" name="Params" type="string">
+              <![CDATA[svn log -l 20 &gt;svnlog.txt]]>
+            </Property>
+            <Property name="PauseInterval" type="Cardinal">0</Property>
+            <Property name="RedirectStdErr" type="Boolean">True</Property>
+            <Property name="RetryPauseInterval" type="Cardinal">1000</Property>
+            <Property name="ReturnCodeComparator" type="TFBRunReturnCodeComparator">rcEqualTo</Property>
+            <Property name="ReturnCodeToCheck" type="Integer">0</Property>
+            <Property MultiValue="0" name="StartInDir" type="string">C:\Users\nandod\Ethea\Kitto</Property>
+            <Property name="SuppressStatusMessages" type="Boolean">False</Property>
+            <Property name="TerminateOnTimeout" type="Boolean">False</Property>
+            <Property name="TimeoutLength" type="Cardinal">1</Property>
+            <Property name="UseErrorDialogMonitor" type="Boolean">False</Property>
+            <Property name="WaitForCompletion" type="Boolean">True</Property>
+          </Object>
           <Object Class="TMSBuildAction" XMLID="{20562C42-11C5-4C3E-81AE-E57471C7AEDD}">
             <Property MultiValue="0" name="ActionComment" type="string"></Property>
             <Property MultiValue="1" name="ActionDescription" type="string">
@@ -218,7 +294,8 @@
             <Property name="ActionTextColor" type="Cardinal">0</Property>
             <Property MultiValue="0" name="ActionTypeID" type="string"></Property>
             <Property name="AttachmentsObject" type="TStrings">
-              <![CDATA[]]>
+              <![CDATA[C:\Users\nandod\Ethea\Kitto\svnlog.txt
+]]>
             </Property>
             <Property name="Authenticate" type="Boolean">True</Property>
             <Property name="BccSource" type="TEmailAddressSource">asSpecify</Property>
@@ -228,7 +305,7 @@
 
 http://www.ethea.it/private/KIDESetup.exe
 
-Per informazioni sulle novità, consultare il log svn del repository Kitto.
+Le ultime 20 novità sono elencate nel file allegato (nota: alcune di esse potrebbero essere già state incluse in build precedenti):
 
 Per segnalazioni, usare Mantis:
 
