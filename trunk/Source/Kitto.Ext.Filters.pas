@@ -531,7 +531,7 @@ end;
 function TKFreeSearchFilter.GetExpression: string;
 begin
   if FCurrentValue <> '' then
-    Result := ReplaceText(FConfig.GetExpandedString('ExpressionTemplate'), '{value}', FCurrentValue)
+    Result := ReplaceText(FConfig.GetExpandedString('ExpressionTemplate'), '{value}', ReplaceStr(FCurrentValue, '''', ''''''))
   else
     Result := '';
 end;
