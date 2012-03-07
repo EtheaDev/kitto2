@@ -34,12 +34,15 @@ type
     FFullFileName: string;
     FFileName: string;
     FStream: TBytesStream;
+    FOriginalFileName: string;
     function GetBytes: TBytes;
   public
-    constructor Create(const AFileName, AFullFileName: string; const AContext: TObject);
+    constructor Create(const AFileName, AFullFileName: string;
+      const AContext: TObject; const AOriginalFileName: string = '');
     destructor Destroy; override;
     property FileName: string read FFileName;
     property FullFileName: string read FFullFileName;
+    property OriginalFileName: string read FOriginalFileName;
     property Context: TObject read FContext;
 
     property Bytes: TBytes read GetBytes;
@@ -516,13 +519,14 @@ end;
 
 { TKExtUploadedFile }
 
-constructor TKExtUploadedFile.Create(const AFileName,
-  AFullFileName: string; const AContext: TObject);
+constructor TKExtUploadedFile.Create(const AFileName, AFullFileName: string;
+  const AContext: TObject; const AOriginalFileName: string = '');
 begin
   inherited Create;
   FFileName := AFileName;
   FFullFileName := AFullFileName;
   FContext := AContext;
+  FOriginalFileName := AOriginalFileName;
 end;
 
 destructor TKExtUploadedFile.Destroy;

@@ -81,6 +81,7 @@ type
     function GetBlankValue: Boolean;
     function GetReferenceName: string;
     function GetDisplayTemplate: string;
+    function GetFileNameField: string;
   protected
     function GetChildClass(const AName: string): TEFNodeClass; override;
   public
@@ -193,6 +194,11 @@ type
     ///	<exception cref="Assert">If the field is not a reference field, an
     ///	assertion violation is raised.</exception>
     function CreateDerivedFieldsStore(const AKeyValues: string): TKStore;
+
+    ///	<summary>For blob or file reference fields, optionally specifies the
+    ///	name of another field in the same view table that will store the
+    ///	original file name upon upload.</summary>
+    property FileNameField: string read GetFileNameField;
   end;
 
   TKViewFields = class(TKMetadataItem)
@@ -441,6 +447,11 @@ type
     function GetImageName: string; override;
   public
     property MainTable: TKViewTable read GetMainTable;
+  end;
+
+  TKFileReferenceDataType = class(TEFStringDataType)
+  public
+    class function GetTypeName: string; override;
   end;
 
 implementation
@@ -1246,6 +1257,13 @@ begin
     Result := FieldName;
 end;
 
+function TKViewField.GetFileNameField: string;
+begin
+  Result := GetString('FileNameField');
+  if Result = '' then
+    Result := ModelField.FileNameField;
+end;
+
 function TKViewField.GetHint: string;
 begin
   Result := GetString('Hint');
@@ -1785,10 +1803,19 @@ begin
   Result := ParentRecord.ViewTable.FindFieldByAliasedName(FieldName);
 end;
 
+{ TKFileReferenceDataType }
+
+class function TKFileReferenceDataType.GetTypeName: string;
+begin
+  Result := 'FileReference';
+end;
+
 initialization
   TKMetadataRegistry.Instance.RegisterClass('Data', TKDataView);
+  TEFDataTypeRegistry.Instance.RegisterClass(TKFileReferenceDataType.GetTypeName, TKFileReferenceDataType);
 
 finalization
   TKMetadataRegistry.Instance.UnregisterClass('Data');
+  TEFDataTypeRegistry.Instance.UnregisterClass(TKFileReferenceDataType.GetTypeName);
 
 end.

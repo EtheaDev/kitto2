@@ -99,7 +99,9 @@ type
     function GetIsContained: Boolean;
     function GetDBColumnName: string;
     function GetPhysicalName: string;
-    function GetAliasedDBColumnName: string; protected
+    function GetAliasedDBColumnName: string;
+  private
+    function GetFileNameField: string; protected
     procedure GetFieldSpec(out ADataType: TEFDataType; out ASize, AScale: Integer;
       out AIsRequired: Boolean; out AIsKey: Boolean; out AReferencedModel: string);
     function GetChildClass(const AName: string): TEFNodeClass; override;
@@ -240,6 +242,11 @@ type
     property IsKey: Boolean read GetIsKey;
 
     property Rules: TKRules read GetRules;
+
+    ///	<summary>For blob or file reference fields, optionally specifies the
+    ///	name of another field in the same model that will store the
+    ///	original file name upon upload.</summary>
+    property FileNameField: string read GetFileNameField;
   end;
 
   TKModelFields = class(TKMetadataItem)
@@ -862,6 +869,11 @@ begin
     AScale := 0;
     AReferencedModel := '';
   end;
+end;
+
+function TKModelField.GetFileNameField: string;
+begin
+  Result := GetString('FileNameField');
 end;
 
 function TKModelField.GetHint: string;
