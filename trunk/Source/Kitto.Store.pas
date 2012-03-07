@@ -54,9 +54,7 @@ type
   private
     function GetFieldName: string;
     function GetParentRecord: TKRecord;
-    //procedure SetAsJSONValue(const AValue: string);
     function GetJSONName: string;
-    function GetAsDisplayJSONValue: string;
   protected
     function GetName: string; override;
     procedure SetValue(const AValue: Variant); override;
@@ -776,19 +774,15 @@ begin
   Result := FieldName;
 end;
 
-function TKField.GetAsDisplayJSONValue: string;
-begin
-  Result := DataType.NodeToJSONValue(Self, TKConfig.Instance.JSFormatSettings);
-end;
-
 function TKField.GetAsJSON(const AForDisplay: Boolean): string;
 begin
   Result := '"' + GetJSONName + '":' + GetAsJSONValue(AForDisplay);
-  { TODO : not sure about the usefulness of this replace here; verify that a
-    counter-replace is not needed when getting back data from the client. }
-//  Result := AnsiReplaceStr(Result, #13#10, '<br/>');
-//  Result := AnsiReplaceStr(Result, #10, '<br/>');
-//  Result := AnsiReplaceStr(Result, #13, '<br/>');
+  if AForDisplay then
+  begin
+    Result := AnsiReplaceStr(Result, #13#10, '<br/>');
+    Result := AnsiReplaceStr(Result, #10, '<br/>');
+    Result := AnsiReplaceStr(Result, #13, '<br/>');
+  end;
 end;
 
 function TKField.GetAsJSONValue(const AForDisplay: Boolean): string;
@@ -811,11 +805,6 @@ function TKField.GetParentRecord: TKRecord;
 begin
   Result := Parent as TKRecord;
 end;
-
-//procedure TKField.SetAsJSONValue(const AValue: string);
-//begin
-//  SetAsYamlValue(AValue, TKConfig.Instance.UserFormatSettings);
-//end;
 
 procedure TKField.SetToNull;
 begin

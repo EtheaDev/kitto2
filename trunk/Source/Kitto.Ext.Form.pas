@@ -333,9 +333,21 @@ begin
     // Get uploaded files.
     Session.EnumUploadedFiles(
       procedure (AFile: TKExtUploadedFile)
+      var
+        LFileNameField: string;
       begin
         if (AFile.Context is TKViewField) and (TKViewField(AFile.Context).Table = ViewTable) then
-          FStoreRecord.FieldByName(TKViewField(AFile.Context).AliasedName).AsBytes := AFile.Bytes;
+        begin
+          if TKViewField(AFile.Context).DataType is TEFBlobDataType then
+            FStoreRecord.FieldByName(TKViewField(AFile.Context).AliasedName).AsBytes := AFile.Bytes
+          else if TKViewField(AFile.Context).DataType is TKFileReferenceDataType then
+            FStoreRecord.FieldByName(TKViewField(AFile.Context).AliasedName).AsString := AFile.FileName
+          else
+            raise Exception.CreateFmt(_('Data type %s does not support file upload.'), [TKViewField(AFile.Context).DataType.GetTypeName]);
+          LFileNameField := TKViewField(AFile.Context).FileNameField;
+          if LFileNameField <> ''then
+            FStoreRecord.FieldByName(LFileNameField).AsString := AFile.OriginalFileName;
+        end;
       end);
 
     // Save record.
