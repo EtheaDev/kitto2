@@ -812,7 +812,7 @@ function TKViewTable.FindLayout(const AKind: string): TKLayout;
       Result := View.PersistentName
     else
     begin
-      Result := '';
+      Result := Model.ModelName;
       LMasterTable := MasterTable;
       while Assigned(LMasterTable) do
       begin
