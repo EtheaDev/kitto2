@@ -100,8 +100,8 @@ function AdaptExtNumberFormat(const AFormat: string; const AFormatSettings: TFor
 implementation
 
 uses
-  StrUtils, HTTPApp, RTTI,
-  EF.SysUtils, EF.Classes, EF.Localization,
+  Types, StrUtils, HTTPApp, RTTI,
+  EF.SysUtils, EF.StrUtils, EF.Classes, EF.Localization,
   Kitto.Ext.Session, Kitto.AccessControl, Kitto.Ext.Base;
 
 function CallViewControllerStringMethod(const AView: TKView;
@@ -341,9 +341,14 @@ begin
 end;
 
 function DelphiDateTimeFormatToJSDateTimeFormat(const ADateTimeFormat: string): string;
+var
+  LFormats: TStringDynArray;
 begin
-  Result := DelphiDateFormatToJSDateFormat(ADateTimeFormat);
-  Result := DelphiTimeFormatToJSTimeFormat(Result);
+  LFormats := Split(ADateTimeFormat);
+  Assert(Length(LFormats) = 2);
+
+  Result := DelphiDateFormatToJSDateFormat(LFormats[0]) + ' ' +
+    DelphiTimeFormatToJSTimeFormat(LFormats[1]);
 end;
 
 function DelphiDateFormatToJSDateFormat(const ADateFormat: string): string;
