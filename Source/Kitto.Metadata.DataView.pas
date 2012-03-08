@@ -1387,8 +1387,10 @@ function TKViewTableStore.AppendRecord(
   const AValues: TEFNode): TKViewTableRecord;
 begin
   Result := inherited AppendRecord(AValues) as TKViewTableRecord;
-  if Assigned(FMasterRecord) then
-    Result.SetDetailFieldValues(FMasterRecord);
+  // The above will cause InternalAfterReadFromNode to be called.
+  // InternalAfterReadFromNode will call SetDetailFieldValues itself.
+  //if Assigned(FMasterRecord) then
+  //  Result.SetDetailFieldValues(FMasterRecord);
 end;
 
 constructor TKViewTableStore.Create(const AViewTable: TKViewTable);
