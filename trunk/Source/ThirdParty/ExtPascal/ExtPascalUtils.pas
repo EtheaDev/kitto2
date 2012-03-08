@@ -38,7 +38,8 @@ type
 
 procedure StrToTStrings(const S : string; List : TStrings);
 
-function URLDecode(const Encoded : string): string;
+function URLDecodeUTF8(const Encoded: string): string;
+function URLDecode(const Encoded : string) : string;
 
 function URLEncode(const Decoded : string): string;
 
@@ -837,6 +838,84 @@ begin
     Delete(Result, I+1, 2);
     I := pos('%', Result);
   end;
+end;
+
+// URLDecodeUTF8Impl adapted from http://koti.mbnet.fi/akini/delphi/urldecodeutf8/
+function URLDecodeUTF8Impl(const s: PAnsiChar; const buf: PWideChar;
+      var lenBuf: Cardinal): boolean; stdcall;
+var
+   sAnsi: ANSIString;    // normal ansi string
+   sUtf8: UTF8String;    // utf8-bytes string
+   sWide: WideString; // unicode string
+   i: Integer;
+   len: Cardinal;
+   CharCode: Cardinal;
+begin
+ sAnsi := s; // null-terminated str to pascal str
+ SetLength(sUtf8, Length(sAnsi));
+
+ // Convert URLEncoded str to utf8 str, it must
+ // use utf8 hex escaping for non us-ascii chars
+ //    +      = space
+ //    %2A    = *
+ //    %C3%84 = Ä (A with diaeresis)
+ i := 1;
+ len := 1;
+ while (i <= Length(sAnsi)) do
+  begin
+   if (sAnsi[i] <> '%') then
+    begin
+     if (sAnsi[i] = '+')
+      then sUtf8[len] := ' '
+      else sUtf8[len] := sAnsi[i];
+     Inc(len);
+    end else
+    begin
+     Inc(i); // skip the % char
+     try
+      CharCode := StrToInt('$' + Copy(string(sAnsi), i, 2));
+      sUtf8[len] := AnsiChar(CharCode);
+      Inc(len);
+     except
+     end;
+     Inc(i); // skip ESC, another +1 at end of loop
+    end;
+   Inc(i);
+  end;
+ Dec(len); // -1 to fix length (num of characters)
+ SetLength(sUtf8, len);
+
+ sWide := UTF8ToWideString(sUtf8); // utf8 string to unicode
+ len := Length(sWide);
+
+ if Assigned(buf) and (len < lenBuf) then
+  begin
+   // copy result into the buffer, buffer must have
+   // space for last null byte.
+   //    lenBuf=num of chars in buffer, not counting null
+   if (len > 0)
+    then Move(sWide[1], buf^, (len+1) * SizeOf(WideChar));
+   lenBuf := len;
+   Result := True;
+  end else
+  begin
+   // tell calling program how big the buffer
+   // should be to store all decoded characters,
+   // including trailing null value.
+   if (len > 0)
+    then lenBuf := len+1;
+   Result := False;
+  end;
+end;
+
+function URLDecodeUTF8(const Encoded: string): string;
+var
+  LBuffer: array [0..2048] of WideChar;
+  LBufferLength: Cardinal;
+begin
+   LBufferLength := Length(LBuffer);
+   URLDecodeUTF8Impl(PAnsiChar(AnsiString(Encoded)), LBuffer, LBufferLength);
+   Result := LBuffer;
 end;
 
 {

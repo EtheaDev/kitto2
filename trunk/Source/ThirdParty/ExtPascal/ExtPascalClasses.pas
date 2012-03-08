@@ -747,9 +747,14 @@ begin
     FQueries.DelimitedText := FQueries.DelimitedText + '&' + AQueryStr
   else
     FQueries.DelimitedText := AQueryStr;
+
   if NeedDecode then
-    for I := 0 to FQueries.Count - 1 do
-      FQueries[I] := URLDecode(FQueries[I]);
+    if SameText(Charset, 'utf-8') then
+      for I := 0 to FQueries.Count - 1 do
+        FQueries[I] := URLDecodeUTF8(FQueries[I])
+    else
+      for I := 0 to FQueries.Count - 1 do
+        FQueries[I] := URLDecode(FQueries[I]);
 end;
 
 procedure TCustomWebSession.Shutdown; begin
