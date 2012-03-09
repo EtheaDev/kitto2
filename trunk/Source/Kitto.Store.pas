@@ -787,7 +787,7 @@ end;
 
 function TKField.GetAsJSONValue(const AForDisplay: Boolean): string;
 begin
-  Result := DataType.NodeToJSONValue(Self, TKConfig.Instance.JSFormatSettings);
+  Result := DataType.NodeToJSONValue(AForDisplay, Self, TKConfig.Instance.JSFormatSettings);
 end;
 
 function TKField.GetFieldName: string;
