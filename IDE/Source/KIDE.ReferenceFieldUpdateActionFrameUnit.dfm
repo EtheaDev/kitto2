@@ -2,6 +2,13 @@ inherited ReferenceFieldUpdateActionFrame: TReferenceFieldUpdateActionFrame
   inherited Label1: TLabel
     Visible = False
   end
+  object ForeignKeyFieldsLabel: TLabel
+    Left = 11
+    Top = 95
+    Width = 87
+    Height = 13
+    Caption = 'Foreign Key Fields'
+  end
   object ReferenceNameEdit: TLabeledEdit
     Left = 11
     Top = 24
@@ -29,10 +36,20 @@ inherited ReferenceFieldUpdateActionFrame: TReferenceFieldUpdateActionFrame
   end
   object IsRequiredCheckBox: TCheckBox
     Left = 11
-    Top = 95
+    Top = 191
     Width = 102
     Height = 17
+    Anchors = [akLeft, akBottom]
     Caption = 'Is Required'
+    TabOrder = 3
+  end
+  object ForeignKeyFieldsMemo: TMemo
+    Left = 11
+    Top = 112
+    Width = 222
+    Height = 73
+    Anchors = [akLeft, akTop, akRight, akBottom]
+    ReadOnly = True
     TabOrder = 2
   end
 end
