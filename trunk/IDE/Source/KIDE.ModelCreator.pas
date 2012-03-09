@@ -294,7 +294,7 @@ type
 implementation
 
 uses
-  Types,
+  Types, StrUtils,
   EF.StrUtils, EF.Localization,
   KIDE.MetadataHelpers, KIDE.ModelUpdateActionFrameUnit;
 
@@ -832,26 +832,31 @@ begin
   for I := 0 to FTableInfo.ColumnCount - 1 do
   begin
     LColumnInfo := FTableInfo.Columns[I];
-    if Assigned(Model) then
-      LModelField := Model.FindFieldByPhysicalName(LColumnInfo.Name)
-    else
-      LModelField := nil;
+    // Skip fields that are part of foreign keys. They'll be dealt with in the
+    // FK pass.
+    if not LColumnInfo.IsForeignKey then
+    begin
+      if Assigned(Model) then
+        LModelField := Model.FindFieldByPhysicalName(LColumnInfo.Name)
+      else
+        LModelField := nil;
 
-    if not Assigned(LModelField) then
-    begin
-      AddSubAction(TAddField.Create(Models, Model, LColumnInfo));
-      Result := True;
-    end
-    else
-    begin
-      // Contained fields are not matched here, because getting their
-      // datatype and size requires looking at the reference table which might
-      // not exists ATM. Contained (reference) fields are accounted for when
-      // processing foreign keys instead.
-      if not LModelField.IsContained and not LModelField.EqualsColumnInfo(LColumnInfo) then
+      if not Assigned(LModelField) then
       begin
-        AddSubAction(TModifyField.Create(Models, Model, LModelField, LColumnInfo));
+        AddSubAction(TAddField.Create(Models, Model, LColumnInfo));
         Result := True;
+      end
+      else
+      begin
+        // Contained fields are not matched here, because getting their
+        // datatype and size requires looking at the reference table which might
+        // not exists ATM. Contained (reference) fields are accounted for when
+        // processing foreign keys instead.
+        if not LModelField.IsContained and not LModelField.EqualsColumnInfo(LColumnInfo) then
+        begin
+          AddSubAction(TModifyField.Create(Models, Model, LModelField, LColumnInfo));
+          Result := True;
+        end;
       end;
     end;
   end;
@@ -925,7 +930,7 @@ begin
   try
     Model.SetModelName(LModelName);
     LPhysicalName := Metadata.GetString('PhysicalName');
-    if LModelName <> LPhysicalName then
+    if not SameText(LModelName, LPhysicalName) then
       Model.SetString('PhysicalName', LPhysicalName);
     // Pass newly created model to subactions.
     for I := 0 to SubActions.Count - 1 do
@@ -1048,7 +1053,7 @@ begin
   DoLog(Format(_('Adding field %s to Model %s.'), [LFieldName, Model.ModelName]));
   LField := TKModelField.Create(LFieldName);
   try
-    if LFieldName <> FColumnInfo.Name then
+    if not SameText(LFieldName, FColumnInfo.Name) then
       LField.SetString('PhysicalName', FColumnInfo.Name);
     LField.SetFieldSpec(
       TEFDataTypeFactory.Instance.GetDataType(Metadata.GetString('DataType')),
@@ -1184,7 +1189,17 @@ begin
   Assert(Assigned(Models));
 
   if FForeignKeyInfo.ColumnCount = 1 then
-    LReferenceName := BeautifyName(FForeignKeyInfo.ColumnNames[0])
+  begin
+    // Try to create a good name for single-field references.
+    // The names of the parent and child fields must differ.
+    // Use the field name without the trailing 'Id', if there's one.
+    // Otherwise add 'Ref' suffix.
+    LReferenceName := BeautifyName(FForeignKeyInfo.ColumnNames[0]);
+    if EndsStr('Id', LReferenceName) then
+      LReferenceName := StripSuffix(LReferenceName, 'Id')
+    else
+      LReferenceName := LReferenceName + 'Ref';
+  end
   else if GetCountOfForeignKeysReferencingTable = 1 then
   begin
     LReferencedModel := Models.FindModelByPhysicalName(FForeignKeyInfo.ForeignTableName);
@@ -1198,12 +1213,14 @@ begin
 
   Metadata.SetString('ReferenceName', LReferenceName);
   Metadata.SetString('ForeignKeyName', FForeignKeyInfo.Name);
+  Metadata.SetString('ForeignKeyFields', FForeignKeyInfo.ColumnNames.Text);
   Metadata.SetBoolean('IsRequired', FForeignKeyInfo.IsRequired);
 end;
 
 procedure TAddReferenceField.InternalExecute;
 var
   LFieldName: string;
+  LPhysicalName: string;
 begin
   inherited;
   Assert(Assigned(Model));
@@ -1214,7 +1231,9 @@ begin
   Field := TKModelField.Create(LFieldName);
   Field.SetFieldSpec(TEFDataTypeFactory.Instance.GetDataType(TKReferenceDataType.GetTypeName),
     0, 0, Metadata.GetBoolean('IsRequired'), False, BeautifyName(FForeignKeyInfo.ForeignTableName));
-  Field.SetString('PhysicalName', Metadata.GetString('ForeignKeyName'));
+  LPhysicalName := Metadata.GetString('ForeignKeyName');
+  if not SameText(LPhysicalName, LFieldName) then
+    Field.SetString('PhysicalName', LPhysicalName);
   Model.AddField(Field);
   CreateMoveReferenceSubFields(Field, FForeignKeyInfo);
 end;
@@ -1294,17 +1313,19 @@ begin
 
   for I := 0 to AForeignKeyInfo.ColumnCount - 1 do
   begin
-    LField := Model.FindField(AForeignKeyInfo.ColumnNames[I]);
+    LField := Model.FindFieldByPhysicalName(AForeignKeyInfo.ColumnNames[I]);
     if not Assigned(LField) then
     begin
       LField := TKModelField.Create(BeautifyName(AForeignKeyInfo.ColumnNames[I]));
-      LField.SetString('PhysicalName', AForeignKeyInfo.ColumnNames[I]);
+      if not SameText(LField.FieldName, AForeignKeyInfo.ColumnNames[I]) then
+        LField.SetString('PhysicalName', AForeignKeyInfo.ColumnNames[I]);
       AField.AddField(LField);
     end
     else if LField.ParentField <> AField then
     begin
       LField2 := TKModelField.Clone(LField);
-      LField2.SetString('PhysicalName', AForeignKeyInfo.ColumnNames[I]);
+      if not SameText(LField2.FieldName, AForeignKeyInfo.ColumnNames[I]) then
+        LField2.SetString('PhysicalName', AForeignKeyInfo.ColumnNames[I]);
       AField.AddField(LField2);
       if Assigned(LField.ParentField) then
         LField.ParentField.DeleteField(LField)

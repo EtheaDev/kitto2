@@ -77,7 +77,7 @@
 		<PropertyGroup Condition="'$(Cfg_1_Win32)'!=''">
 			<DCC_DebugDCUs>true</DCC_DebugDCUs>
 			<Icon_MainIcon>..\Bin\icon.ico</Icon_MainIcon>
-			<Debugger_RunParams>C:\Users\nandod\Ethea\CoWeb3\Home\CoWeb3.kproj</Debugger_RunParams>
+			<Debugger_RunParams>C:\Users\nandod\Ethea\KItto\Examples\Kitto\Home\COWebKitto.kproj</Debugger_RunParams>
 			<VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
 			<VerInfo_Locale>1033</VerInfo_Locale>
 			<DCC_RemoteDebug>false</DCC_RemoteDebug>

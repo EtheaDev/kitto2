@@ -95,6 +95,7 @@ type
     FSize: Integer;
     FScale: Integer;
     function GetIsKey: Boolean;
+    function GetIsForeignKey: Boolean;
   public
     property DataType: TEFDataType read FDataType write FDataType;
 
@@ -117,6 +118,10 @@ type
     ///	<summary>Returns True if the field is part of its table's primary
     ///	key.</summary>
     property IsKey: Boolean read GetIsKey;
+
+    ///	<summary>Returns True if the field is part of any of its table's foreign
+    ///	keys.</summary>
+    property IsForeignKey: Boolean read GetIsForeignKey;
   end;
 
   ///	<summary>
@@ -1145,6 +1150,23 @@ begin
 end;
 
 { TEFDBColumnInfo }
+
+function TEFDBColumnInfo.GetIsForeignKey: Boolean;
+var
+  I: Integer;
+begin
+  Assert(Assigned(FTableInfo));
+
+  Result := False;
+  for I := 0 to FTableInfo.ForeignKeyCount - 1 do
+  begin
+    if FTableInfo.ForeignKeys[I].ColumnNames.IndexOf(Name) >= 0 then
+    begin
+      Result := True;
+      Break;
+    end;
+  end;
+end;
 
 function TEFDBColumnInfo.GetIsKey: Boolean;
 begin

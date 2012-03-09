@@ -12,6 +12,8 @@ type
     ReferenceNameEdit: TLabeledEdit;
     ForeignKeyNameEdit: TLabeledEdit;
     IsRequiredCheckBox: TCheckBox;
+    ForeignKeyFieldsMemo: TMemo;
+    ForeignKeyFieldsLabel: TLabel;
   private
   strict protected
     procedure SetModelUpdateAction(const AValue: TModelUpdateAction); override;
@@ -29,7 +31,6 @@ procedure TReferenceFieldUpdateActionFrame.SaveToAction;
 begin
   inherited;
   ModelUpdateAction.Metadata.SetString('ReferenceName', ReferenceNameEdit.Text);
-  ModelUpdateAction.Metadata.SetString('ForeignKeyName', ForeignKeyNameEdit.Text);
   ModelUpdateAction.Metadata.SetBoolean('IsRequired', IsRequiredCheckBox.Checked);
 end;
 
@@ -42,6 +43,7 @@ begin
     ReferenceNameEdit.Text := AValue.Metadata.GetString('ReferenceName');
     ReferenceNameEdit.ReadOnly := not (AValue is TAddReferenceField);
     ForeignKeyNameEdit.Text := AValue.Metadata.GetString('ForeignKeyName');
+    ForeignKeyFieldsMemo.Lines.Text := AValue.Metadata.GetString('ForeignKeyFields');
     IsRequiredCheckBox.Checked := AValue.Metadata.GetBoolean('IsRequired');
   end;
 end;
