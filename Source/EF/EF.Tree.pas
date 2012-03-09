@@ -1920,7 +1920,7 @@ begin
       else if LChild.DataType is TEFDateTimeDataType then
         LChild.AsDateTime := GetDateTime
       else if LChild.DataType is TEFCurrencyDataType then
-        LChild.AsDateTime := GetFloat
+        LChild.AsCurrency := GetFloat
       else if LChild.DataType is TEFFloatDataType then
         LChild.AsFloat := GetFloat
       else if LChild.DataType is TEFDecimalDataType then
