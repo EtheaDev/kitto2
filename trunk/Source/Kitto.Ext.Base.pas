@@ -35,7 +35,6 @@ type
     FView: TKView;
     FConfig: TEFNode;
     FContainer: TExtContainer;
-    FOwnsView: Boolean;
     function GetView: TKView;
     function GetConfig: TEFNode;
   protected
@@ -43,8 +42,6 @@ type
     procedure DoDisplay; virtual;
     function GetContainer: TExtContainer;
     procedure SetContainer(const AValue: TExtContainer);
-    function GetOwnsView: Boolean;
-    procedure SetOwnsView(const AValue: Boolean);
     procedure InitDefaults; override;
   public
     procedure AfterConstruction; override;
@@ -91,7 +88,6 @@ type
     FView: TKView;
     FConfig: TEFNode;
     FContainer: TExtContainer;
-    FOwnsView: Boolean;
     function GetView: TKView;
     function GetConfig: TEFNode;
   protected
@@ -99,8 +95,6 @@ type
     procedure DoDisplay; virtual;
     function GetContainer: TExtContainer;
     procedure SetContainer(const AValue: TExtContainer);
-    function GetOwnsView: Boolean;
-    procedure SetOwnsView(const AValue: Boolean);
     procedure InitDefaults; override;
   public
     procedure AfterConstruction; override;
@@ -152,7 +146,6 @@ type
   private
     FView: TKView;
     FContainer: TExtContainer;
-    FOwnsView: Boolean;
   protected
     function GetDefaultSplit: Boolean; virtual;
     function GetView: TKView;
@@ -161,10 +154,7 @@ type
     function GetContainer: TExtContainer;
     procedure SetContainer(const AValue: TExtContainer);
     property Container: TExtContainer read GetContainer write SetContainer;
-    function GetOwnsView: Boolean;
-    procedure SetOwnsView(const AValue: Boolean);
   public
-    procedure AfterConstruction; override;
     destructor Destroy; override;
     function SupportsContainer: Boolean; virtual;
     property View: TKView read GetView write SetView;
@@ -178,7 +168,6 @@ type
   private
     FView: TKView;
     FContainer: TExtContainer;
-    FOwnsView: Boolean;
     FConfig: TEFNode;
   protected
     function GetView: TKView;
@@ -187,11 +176,8 @@ type
     function GetContainer: TExtContainer;
     procedure SetContainer(const AValue: TExtContainer);
     property Container: TExtContainer read GetContainer write SetContainer;
-    function GetOwnsView: Boolean;
-    procedure SetOwnsView(const AValue: Boolean);
     function GetConfig: TEFNode;
   public
-    procedure AfterConstruction; override;
     destructor Destroy; override;
     function AsObject: TObject;
     function QueryInterface(const IID: TGUID; out Obj): HRESULT; stdcall;
@@ -259,7 +245,6 @@ uses
 procedure TKExtWindowControllerBase.AfterConstruction;
 begin
   inherited;
-  FOwnsView := True;
   FSubjObserverImpl := TEFSubjectAndObserver.Create;
 end;
 
@@ -275,8 +260,6 @@ end;
 
 destructor TKExtWindowControllerBase.Destroy;
 begin
-  if FOwnsView and Assigned(FView) and not FView.IsPersistent then
-    FreeAndNil(FView);
   FreeAndNil(FSubjObserverImpl);
   FreeAndNil(FConfig);
   Session.RemoveController(Self);
@@ -308,11 +291,6 @@ end;
 function TKExtWindowControllerBase.GetContainer: TExtContainer;
 begin
   Result := FContainer;
-end;
-
-function TKExtWindowControllerBase.GetOwnsView: Boolean;
-begin
-  Result := FOwnsView;
 end;
 
 function TKExtWindowControllerBase.GetView: TKView;
@@ -348,11 +326,6 @@ end;
 procedure TKExtWindowControllerBase.SetContainer(const AValue: TExtContainer);
 begin
   FContainer := AValue;
-end;
-
-procedure TKExtWindowControllerBase.SetOwnsView(const AValue: Boolean);
-begin
-  FOwnsView := AValue;
 end;
 
 procedure TKExtWindowControllerBase.SetView(const AValue: TKView);
@@ -470,7 +443,6 @@ end;
 procedure TKExtViewportControllerBase.AfterConstruction;
 begin
   inherited;
-  FOwnsView := True;
   FSubjObserverImpl := TEFSubjectAndObserver.Create;
 end;
 
@@ -486,8 +458,6 @@ end;
 
 destructor TKExtViewportControllerBase.Destroy;
 begin
-  if FOwnsView and Assigned(FView) and not FView.IsPersistent then
-    FreeAndNil(FView);
   FreeAndNil(FSubjObserverImpl);
   FreeAndNil(FConfig);
   Session.RemoveController(Self);
@@ -521,11 +491,6 @@ begin
   Result := FContainer;
 end;
 
-function TKExtViewportControllerBase.GetOwnsView: Boolean;
-begin
-  Result := FOwnsView;
-end;
-
 function TKExtViewportControllerBase.GetView: TKView;
 begin
   Result := FView;
@@ -552,11 +517,6 @@ end;
 procedure TKExtViewportControllerBase.SetContainer(const AValue: TExtContainer);
 begin
   FContainer := AValue;
-end;
-
-procedure TKExtViewportControllerBase.SetOwnsView(const AValue: Boolean);
-begin
-  FOwnsView := AValue;
 end;
 
 procedure TKExtViewportControllerBase.SetView(const AValue: TKView);
@@ -658,16 +618,8 @@ end;
 
 { TKExtPanelControllerBase }
 
-procedure TKExtPanelControllerBase.AfterConstruction;
-begin
-  inherited;
-  FOwnsView := True;
-end;
-
 destructor TKExtPanelControllerBase.Destroy;
 begin
-  if FOwnsView and Assigned(FView) and not FView.IsPersistent then
-    FreeAndNil(FView);
   Session.RemoveController(Self);
   inherited;
 end;
@@ -743,11 +695,6 @@ begin
   Result := FContainer;
 end;
 
-function TKExtPanelControllerBase.GetOwnsView: Boolean;
-begin
-  Result := FOwnsView;
-end;
-
 function TKExtPanelControllerBase.GetView: TKView;
 begin
   Result := FView;
@@ -756,11 +703,6 @@ end;
 procedure TKExtPanelControllerBase.SetContainer(const AValue: TExtContainer);
 begin
   FContainer := AValue;
-end;
-
-procedure TKExtPanelControllerBase.SetOwnsView(const AValue: Boolean);
-begin
-  FOwnsView := AValue;
 end;
 
 procedure TKExtPanelControllerBase.SetView(const AValue: TKView);
@@ -836,12 +778,6 @@ end;
 
 { TKExtControllerBase }
 
-procedure TKExtControllerBase.AfterConstruction;
-begin
-  inherited;
-  FOwnsView := True;
-end;
-
 function TKExtControllerBase.AsObject: TObject;
 begin
   Result := Self;
@@ -849,8 +785,6 @@ end;
 
 destructor TKExtControllerBase.Destroy;
 begin
-  if FOwnsView and Assigned(FView) and not FView.IsPersistent then
-    FreeAndNil(FView);
   FreeAndNil(FConfig);
   Session.RemoveController(Self);
   inherited;
@@ -877,11 +811,6 @@ begin
   Result := FContainer;
 end;
 
-function TKExtControllerBase.GetOwnsView: Boolean;
-begin
-  Result := FOwnsView;
-end;
-
 function TKExtControllerBase.GetView: TKView;
 begin
   Result := FView;
@@ -895,11 +824,6 @@ end;
 procedure TKExtControllerBase.SetContainer(const AValue: TExtContainer);
 begin
   FContainer := AValue;
-end;
-
-procedure TKExtControllerBase.SetOwnsView(const AValue: Boolean);
-begin
-  FOwnsView := AValue;
 end;
 
 procedure TKExtControllerBase.SetView(const AValue: TKView);

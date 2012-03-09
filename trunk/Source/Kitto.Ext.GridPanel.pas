@@ -45,7 +45,6 @@ type
     FViewTable: TKViewTable;
     procedure SetView(const AValue: TKView);
   public
-    destructor Destroy; override;
     property View: TKView read FView write SetView;
     property ViewTable: TKViewTable read FViewTable write FViewTable;
     property ServerStore: TKViewTableStore read FServerStore write FServerStore;
@@ -572,7 +571,6 @@ begin
 
   LFormControllerType := ViewTable.View.GetString('Controller/FormController', 'Form');
   LFormController := TKExtControllerFactory.Instance.CreateController(ViewTable.View, FEditHostWindow, Self, LFormControllerType);
-  LFormController.OwnsView := False;
   LFormController.Config.SetObject('Sys/ServerStore', ServerStore);
   if Assigned(ARecord) then
     LFormController.Config.SetObject('Sys/Record', ARecord);
@@ -870,13 +868,6 @@ end;
 
 { TKExtActionButton }
 
-destructor TKExtActionButton.Destroy;
-begin
-  if Assigned(FView) and not FView.IsPersistent then
-    FreeAndNil(FView);
-  inherited;
-end;
-
 procedure TKExtActionButton.ExecuteAction;
 var
   LController: IKExtController;
@@ -886,7 +877,6 @@ begin
   Assert(Assigned(FServerStore));
 
   LController := TKExtControllerFactory.Instance.CreateController(FView, nil);
-  LController.OwnsView := False;
   LController.Config.SetObject('Sys/ServerStore', FServerStore);
   LController.Config.SetObject('Sys/ViewTable', FViewTable);
   LController.Display;
@@ -903,7 +893,6 @@ begin
 
   LRecord := LocateRecordFromSession(FViewTable, FServerStore);
   LController := TKExtControllerFactory.Instance.CreateController(FView, nil);
-  LController.OwnsView := False;
   LController.Config.SetObject('Sys/ServerStore', FServerStore);
   LController.Config.SetObject('Sys/Record', LRecord);
   LController.Config.SetObject('Sys/ViewTable', FViewTable);

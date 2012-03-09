@@ -509,7 +509,6 @@ begin
   FDetailHostWindow.Closable := True;
 
   LController := TKExtControllerFactory.Instance.CreateController(FViewTable.View, FDetailHostWindow);
-  LController.OwnsView := False;
   LController.Config.SetObject('Sys/ServerStore', ServerStore);
   LController.Config.SetObject('Sys/ViewTable', ViewTable);
   LController.Config.SetObject('Sys/HostWindow', FDetailHostWindow);

@@ -202,14 +202,19 @@ var
 begin
   if Assigned(ANode) then
   begin
-    LWords := Split(ANode.AsExpandedString);
-    if Length(LWords) >= 2 then
+    Result := FindNonpersistentObject(ANode) as TKView;
+    if not Assigned(Result) then
     begin
-      // Two words: the first one is the verb.
-      if SameText(LWords[0], 'Build') then
+      LWords := Split(ANode.AsExpandedString);
+      if Length(LWords) >= 2 then
       begin
-        Result := BuildView(ANode, LWords[1]);
-        Exit;
+        // Two words: the first one is the verb.
+        if SameText(LWords[0], 'Build') then
+        begin
+          Result := BuildView(ANode, LWords[1]);
+          AddNonpersistentObject(Result, ANode);
+          Exit;
+        end;
       end;
     end;
   end;

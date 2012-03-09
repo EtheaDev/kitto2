@@ -33,7 +33,6 @@ type
     procedure SetView(const AValue: TKView);
   public
     property View: TKView read FView write SetView;
-    destructor Destroy; override;
   end;
 
   TKExtButton = class(TExtButton)
@@ -42,7 +41,6 @@ type
     procedure SetView(const AValue: TKView);
   public
     property View: TKView read FView write SetView;
-    destructor Destroy; override;
   end;
 
   TKExtMenuItem = class(TExtMenuItem)
@@ -51,7 +49,6 @@ type
     procedure SetView(const AValue: TKView);
   public
     property View: TKView read FView write SetView;
-    destructor Destroy; override;
   end;
 
   ///	<summary>
@@ -387,13 +384,6 @@ end;
 
 { TKExtTreeTreeNode }
 
-destructor TKExtTreeTreeNode.Destroy;
-begin
-  if Assigned(FView) and not FView.IsPersistent then
-    FreeAndNil(FView);
-  inherited;
-end;
-
 procedure TKExtTreeTreeNode.SetView(const AValue: TKView);
 var
   LLabel: string;
@@ -413,13 +403,6 @@ end;
 
 { TKExtButton }
 
-destructor TKExtButton.Destroy;
-begin
-  if Assigned(FView) and not FView.IsPersistent then
-    FreeAndNil(FView);
-  inherited;
-end;
-
 procedure TKExtButton.SetView(const AValue: TKView);
 var
   LLabel: string;
@@ -435,13 +418,6 @@ begin
 end;
 
 { TKExtMenuItem }
-
-destructor TKExtMenuItem.Destroy;
-begin
-  if Assigned(FView) and not FView.IsPersistent then
-    FreeAndNil(FView);
-  inherited;
-end;
 
 procedure TKExtMenuItem.SetView(const AValue: TKView);
 var

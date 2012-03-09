@@ -114,9 +114,7 @@ begin
       begin
         LController := TKExtControllerFactory.Instance.CreateController(LView, Self);
         LController.Display;
-      end
-      else if not LView.IsPersistent then
-        FreeAndNil(LView);
+      end;
     end;
     if Items.Count > 0 then
       SetActiveTab(0);
