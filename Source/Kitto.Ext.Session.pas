@@ -229,6 +229,7 @@ end;
 
 procedure TKExtSession.Home;
 begin
+  ExtQuickTips.Init(True);
   if not IsAjax then
     LoadLibraries;
 
