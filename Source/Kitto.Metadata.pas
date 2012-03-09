@@ -79,6 +79,7 @@ type
     FReader: TEFYAMLReader;
     FWriter: TEFYAMLWriter;
     FDisposedObjects: TList<TKMetadata>;
+    FNonpersistentObjects: TDictionary<TEFNode, TKMetadata>;
     procedure LoadIndex;
     function GetObjectCount: Integer;
     function GetReader: TEFYAMLReader;
@@ -97,6 +98,8 @@ type
     procedure AfterCreateObject(const AObject: TKMetadata); virtual;
     procedure SetPath(const AValue: string); virtual;
     function GetObjectClassType: TKMetadataClass; virtual; abstract;
+    function FindNonpersistentObject(const ANode: TEFNode): TKMetadata;
+    procedure AddNonpersistentObject(const AObject: TKMetadata; const ANode: TEFNode);
   public
     procedure AfterConstruction; override;
     destructor Destroy; override;
@@ -169,6 +172,7 @@ begin
   Findex.Duplicates := dupError;
   Findex.CaseSensitive := False;
   FDisposedObjects := TList<TKMetadata>.Create;
+  FNonpersistentObjects := TDictionary<TEFNode, TKMetadata>.Create;
 end;
 
 procedure TKMetadataCatalog.AfterCreateObject(const AObject: TKMetadata);
@@ -179,7 +183,12 @@ end;
 procedure TKMetadataCatalog.Close;
 var
   I: Integer;
+  LObject: TKMetadata;
 begin
+  for LObject in FNonpersistentObjects.Values do
+    LObject.Free;
+  FNonpersistentObjects.Clear;
+
   for I := FDisposedObjects.Count - 1 downto 0 do
   begin
     FDisposedObjects[I].Free;
@@ -220,6 +229,7 @@ begin
   Close;
   FreeAndNil(FIndex);
   FreeAndNil(FDisposedObjects);
+  FreeAndNil(FNonpersistentObjects);
   FreeAndNil(FReader);
   FreeAndNil(FWriter);
   inherited;
@@ -293,6 +303,15 @@ begin
 end;
 {$WARN SYMBOL_PLATFORM ON}
 
+function TKMetadataCatalog.FindNonpersistentObject(
+  const ANode: TEFNode): TKMetadata;
+begin
+  if FNonpersistentObjects.ContainsKey(ANode) then
+    Result := FNonpersistentObjects[ANode]
+  else
+    Result := nil;
+end;
+
 function TKMetadataCatalog.FindObject(const AName: string): TKMetadata;
 var
   LIndex: Integer;
@@ -350,22 +369,27 @@ end;
 
 function TKMetadataCatalog.FindObjectByNode(const ANode: TEFNode): TKMetadata;
 var
-  LViewName: string;
+  LObjectName: string;
 begin
   Result := nil;
   if Assigned(ANode) then
   begin
-    LViewName := ANode.AsExpandedString;
-    if LViewName <> '' then
-      Result := ObjectByName(LViewName)
-    else if ANode.ChildCount > 0 then
+    Result := FindNonpersistentObject(ANode);
+    if not Assigned(Result) then
     begin
-      Result := GetObjectClassType.Create;
-      try
-        Result.Assign(ANode);
-      except
-        FreeAndNil(Result);
-        raise;
+      LObjectName := ANode.AsExpandedString;
+      if LObjectName <> '' then
+        Result := ObjectByName(LObjectName)
+      else if ANode.ChildCount > 0 then
+      begin
+        Result := GetObjectClassType.Create;
+        try
+          Result.Assign(ANode);
+          AddNonpersistentObject(Result, ANode);
+        except
+          FreeAndNil(Result);
+          raise;
+        end;
       end;
     end;
   end;
@@ -415,6 +439,12 @@ begin
   end;
   if Result = nil then
     ObjectNotFound(AName);
+end;
+
+procedure TKMetadataCatalog.AddNonpersistentObject(const AObject: TKMetadata;
+  const ANode: TEFNode);
+begin
+  FNonpersistentObjects.Add(ANode, AObject);
 end;
 
 procedure TKMetadataCatalog.AddObject(const AObject: TKMetadata);

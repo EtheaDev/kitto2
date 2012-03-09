@@ -46,10 +46,6 @@ type
     procedure SetView(const AValue: TKView);
     property View: TKView read GetView write SetView;
 
-    function GetOwnsView: Boolean;
-    procedure SetOwnsView(const AValue: Boolean);
-    property OwnsView: Boolean read GetOwnsView write SetOwnsView;
-
     function GetContainer: TExtContainer;
     procedure SetContainer(const AValue: TExtContainer);
     property Container: TExtContainer read GetContainer write SetContainer;
