@@ -139,6 +139,7 @@ function formatTime(time, format)
 // An image is rendered if v matches its regexp. Set includeValue to false
 // to display only the image and not the value (if there's no matching image,
 // the value is always displayed).
+// Note: v is always used as the image tooltip (ext:qtip) and alt value.
 function formatWithImage(v, patterns, includeValue)
 {
   var image = null;
@@ -157,7 +158,7 @@ function formatWithImage(v, patterns, includeValue)
     v = customValue.replace('{value}', v);
   if (image != null)
     // TODO: center image vertically?
-    return '<img src="' + image + '">' + (includeValue ? '&nbsp;' + v : '');
+    return '<img src="' + image + '" alt="' + v + '" ext:qtip="' + v + '">' + (includeValue ? '&nbsp;' + v : '');
   else
     return v;
 };

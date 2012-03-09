@@ -400,8 +400,6 @@ begin
   if SameText(FOperation, 'Add') and FIsReadOnly then
     raise EEFError.Create(_('Operation Add not supported on read-only data.'));
 
-  ExtQuickTips.Init(True);
-
   if (ViewTable.DetailTableCount > 0) and SameText(GetDetailStyle, 'Tabs') then
   begin
     FTabPanel := TExtTabPanel.AddTo(Items);
