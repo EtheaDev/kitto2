@@ -408,7 +408,10 @@ var
         Result := TExtGridNumberColumn.AddTo(FGridPanel.Columns);
         if not SetRenderer(Result) then
         begin
-          TExtGridNumberColumn(Result).Format := '0';
+          LFormat := AViewField.DisplayFormat;
+          if LFormat = '' then
+            LFormat := '0,000'; // '0';
+          TExtGridNumberColumn(Result).Format := AdaptExtNumberFormat(LFormat, Session.Config.UserFormatSettings);
           Result.Align := alRight;
         end;
       end
@@ -417,7 +420,10 @@ var
         Result := TExtGridNumberColumn.AddTo(FGridPanel.Columns);
         if not SetRenderer(Result) then
         begin
-          TExtGridNumberColumn(Result).Format := AdaptExtNumberFormat('0.00', Session.Config.UserFormatSettings);
+          LFormat := AViewField.DisplayFormat;
+          if LFormat = '' then
+            LFormat := '0,000.' + DupeString('0', AViewField.DecimalPrecision);
+          TExtGridNumberColumn(Result).Format := AdaptExtNumberFormat(LFormat, Session.Config.UserFormatSettings);
           Result.Align := alRight;
         end;
       end
@@ -426,8 +432,11 @@ var
         Result := TExtGridNumberColumn.AddTo(FGridPanel.Columns);
         if not SetRenderer(Result) then
         begin
-          { TODO : format as money }
-          TExtGridNumberColumn(Result).Format := AdaptExtNumberFormat('0,0.00', Session.Config.UserFormatSettings);
+          { TODO : format as money? }
+          LFormat := AViewField.DisplayFormat;
+          if LFormat = '' then
+            LFormat := '0,000.00';
+          TExtGridNumberColumn(Result).Format := AdaptExtNumberFormat(LFormat, Session.Config.UserFormatSettings);
           Result.Align := alRight;
         end;
       end
