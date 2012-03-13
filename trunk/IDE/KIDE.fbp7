@@ -31,12 +31,15 @@
           <Object Class="TFBSubversionUpdate" XMLID="{4423E502-0A38-43E3-9665-1B3512871483}">
             <Property MultiValue="0" name="ActionComment" type="string"></Property>
             <Property MultiValue="1" name="ActionDescription" type="string">
-              <![CDATA[Subversion Update]]>
+              <![CDATA[Update svn working copy]]>
             </Property>
             <Property name="ActionTextColor" type="Cardinal">0</Property>
             <Property MultiValue="0" name="ActionTypeID" type="string"></Property>
             <Property MultiValue="0" name="ConfigDir" type="string"></Property>
             <Property MultiValue="0" name="Cookie" type="string">hBgbR/OXews=</Property>
+            <Property MultiValue="1" name="Description" type="string">
+              <![CDATA[Update svn working copy]]>
+            </Property>
             <Property MultiValue="0" name="Diff3Command" type="string"></Property>
             <Property name="Enabled" type="Boolean">True</Property>
             <Property name="EnableTimeout" type="Boolean">False</Property>
@@ -150,6 +153,165 @@
             <Property name="UseErrorDialogMonitor" type="Boolean">False</Property>
             <Property name="WaitForCompletion" type="Boolean">True</Property>
           </Object>
+          <Object Class="TMSBuildAction" XMLID="{FFD5048D-1137-4C93-9EA5-F5CD81951679}">
+            <Property MultiValue="0" name="ActionComment" type="string"></Property>
+            <Property MultiValue="1" name="ActionDescription" type="string">
+              <![CDATA[MSBuild Project [ C:\Users\nandod\Ethea\Kitto\Projects\DXE2\KittoTest.dproj ]]]>
+            </Property>
+            <Property name="ActionTextColor" type="Cardinal">0</Property>
+            <Property MultiValue="0" name="ActionTypeID" type="string"></Property>
+            <Property name="Architecture" type="TFBDotNetArchitectureVer">ta32</Property>
+            <Property MultiValue="0" name="BuildFile" type="string">C:\Users\nandod\Ethea\Kitto\Projects\DXE2\KittoTest.dproj</Property>
+            <Property name="DisableNodeReuse" type="Boolean">True</Property>
+            <Property name="Enabled" type="Boolean">True</Property>
+            <Property name="EnableTimeout" type="Boolean">False</Property>
+            <Property name="ExpandActionLogTitle" type="Boolean">True</Property>
+            <Property name="ExpandImpersonationToken" type="Boolean">False</Property>
+            <Property MultiValue="0" name="ExtraCmdLineParamsAtEnd" type="string"></Property>
+            <Property MultiValue="0" name="ExtraCmdLineParamsAtStart" type="string"></Property>
+            <Property name="HideActionFromLog" type="Boolean">False</Property>
+            <Property name="IgnoreFailure" type="Boolean">False</Property>
+            <Property MultiValue="0" name="ImpersonateToken" type="string"></Property>
+            <Property name="ImpersonateUser" type="Boolean">False</Property>
+            <Property MultiValue="0" name="ImpersonateUserName" type="string"></Property>
+            <Property name="Locked" type="Boolean">False</Property>
+            <Property name="LogActionProperties" type="Boolean">False</Property>
+            <Property name="LogLevel" type="TMSLogLevel">llNormal</Property>
+            <Property name="LogProcessParameters" type="Boolean">False</Property>
+            <Property MultiValue="0" name="LogToVariable" type="TVariableName"></Property>
+            <Property name="MaxCPUCount" type="Integer">0</Property>
+            <Property name="MaxRetryAttempts" type="Cardinal">0</Property>
+            <Property name="NoLogo" type="Boolean">True</Property>
+            <Property name="OutputToLog" type="Boolean">False</Property>
+            <Property name="OverrideSDKDefault" type="Boolean">False</Property>
+            <Property name="PauseInterval" type="Cardinal">0</Property>
+            <Property name="Properties" type="TStrings">
+              <![CDATA[Config=XMLTestRunner
+]]>
+            </Property>
+            <Property name="RetryPauseInterval" type="Cardinal">1000</Property>
+            <Property MultiValue="0" name="SDKVersion" type="string">v4.0</Property>
+            <Property name="StructuredLogging" type="Boolean">True</Property>
+            <Property name="SuppressStatusMessages" type="Boolean">False</Property>
+            <Property MultiValue="0" name="Targets" type="string">Build</Property>
+            <Property name="TerminateOnTimeout" type="Boolean">False</Property>
+            <Property name="TimeoutLength" type="Cardinal">2</Property>
+            <Property name="UseErrorDialogMonitor" type="Boolean">False</Property>
+          </Object>
+          <Object Class="TDeleteFilesAction" XMLID="{FE141C21-BD9F-4CAE-8DBE-9AF353DC60DF}">
+            <Property MultiValue="0" name="ActionComment" type="string"></Property>
+            <Property MultiValue="1" name="ActionDescription" type="string">
+              <![CDATA[Delete File(s) [ C:\Users\nandod\Ethea\Kitto\Bin\dunit-report.xml ]]]>
+            </Property>
+            <Property name="ActionTextColor" type="Cardinal">0</Property>
+            <Property MultiValue="0" name="ActionTypeID" type="string"></Property>
+            <Property name="DeleteHidden" type="Boolean">False</Property>
+            <Property name="DeleteReadOnly" type="Boolean">False</Property>
+            <Property name="Enabled" type="Boolean">True</Property>
+            <Property name="ExpandActionLogTitle" type="Boolean">True</Property>
+            <Property name="FailIfNoFile" type="Boolean">False</Property>
+            <Property MultiValue="0" name="FileSpec" type="string">C:\Users\nandod\Ethea\Kitto\Bin\dunit-report.xml</Property>
+            <Property name="HideActionFromLog" type="Boolean">False</Property>
+            <Property name="IgnoreFailure" type="Boolean">False</Property>
+            <Property name="Locked" type="Boolean">False</Property>
+            <Property name="LogActionProperties" type="Boolean">False</Property>
+            <Property MultiValue="0" name="LogToVariable" type="TVariableName"></Property>
+            <Property name="MaxRetryAttempts" type="Cardinal">0</Property>
+            <Property name="PauseInterval" type="Cardinal">0</Property>
+            <Property name="RetryPauseInterval" type="Cardinal">1000</Property>
+            <Property name="SuppressStatusMessages" type="Boolean">False</Property>
+          </Object>
+          <Object Class="TRunProgramAction" XMLID="{6E0AE13E-AC78-411B-A1CE-563BA7CCB443}">
+            <Property MultiValue="0" name="ActionComment" type="string"></Property>
+            <Property MultiValue="1" name="ActionDescription" type="string">
+              <![CDATA[Execute Program [ C:\Users\nandod\Ethea\Kitto\Bin\KittoTest.exe ]]]>
+            </Property>
+            <Property name="ActionTextColor" type="Cardinal">0</Property>
+            <Property MultiValue="0" name="ActionTypeID" type="string"></Property>
+            <Property name="CaptureOutput" type="Boolean">True</Property>
+            <Property name="Enabled" type="Boolean">True</Property>
+            <Property name="EnableLiveCapture" type="Boolean">True</Property>
+            <Property name="EnableReturnCodeCheck" type="Boolean">True</Property>
+            <Property name="EnableTimeout" type="Boolean">False</Property>
+            <Property name="ExpandActionLogTitle" type="Boolean">True</Property>
+            <Property name="ExpandImpersonationToken" type="Boolean">False</Property>
+            <Property MultiValue="0" name="ExtraCmdLineParamsAtEnd" type="string"></Property>
+            <Property MultiValue="0" name="ExtraCmdLineParamsAtStart" type="string"></Property>
+            <Property name="HideActionFromLog" type="Boolean">False</Property>
+            <Property name="HideWindow" type="Boolean">False</Property>
+            <Property name="IgnoreFailure" type="Boolean">False</Property>
+            <Property MultiValue="0" name="ImpersonateToken" type="string"></Property>
+            <Property name="ImpersonateUser" type="Boolean">False</Property>
+            <Property MultiValue="0" name="ImpersonateUserName" type="string"></Property>
+            <Property MultiValue="0" name="InputFile" type="string"></Property>
+            <Property name="Locked" type="Boolean">False</Property>
+            <Property name="LogActionProperties" type="Boolean">False</Property>
+            <Property name="LogOutput" type="Boolean">True</Property>
+            <Property name="LogProcessParameters" type="Boolean">True</Property>
+            <Property MultiValue="0" name="LogToVariable" type="TVariableName"></Property>
+            <Property name="MaxRetryAttempts" type="Cardinal">0</Property>
+            <Property MultiValue="0" name="Params" type="string"></Property>
+            <Property name="PauseInterval" type="Cardinal">0</Property>
+            <Property MultiValue="0" name="ProgramName" type="string">C:\Users\nandod\Ethea\Kitto\Bin\KittoTest.exe</Property>
+            <Property name="RedirectStdErr" type="Boolean">True</Property>
+            <Property name="RetryPauseInterval" type="Cardinal">1000</Property>
+            <Property name="ReturnCodeComparator" type="TFBRunReturnCodeComparator">rcEqualTo</Property>
+            <Property name="ReturnCodeToCheck" type="Integer">0</Property>
+            <Property MultiValue="0" name="StartInDir" type="string">C:\Users\nandod\Ethea\Kitto\Bin</Property>
+            <Property name="SuppressStatusMessages" type="Boolean">False</Property>
+            <Property name="TerminateOnTimeout" type="Boolean">False</Property>
+            <Property name="TimeoutLength" type="Cardinal">1</Property>
+            <Property name="UseErrorDialogMonitor" type="Boolean">False</Property>
+            <Property name="WaitForCompletion" type="Boolean">True</Property>
+          </Object>
+          <Object Class="TFBTextFindAction" XMLID="{C9C14056-74B9-4D96-AD79-6EE20D807071}">
+            <Property MultiValue="0" name="ActionComment" type="string"></Property>
+            <Property MultiValue="1" name="ActionDescription" type="string">
+              <![CDATA[Check dunit report]]>
+            </Property>
+            <Property name="ActionTextColor" type="Cardinal">0</Property>
+            <Property MultiValue="0" name="ActionTypeID" type="string"></Property>
+            <Property name="CaseSensitive" type="Boolean">False</Property>
+            <Property MultiValue="1" name="Description" type="string">
+              <![CDATA[Check dunit report]]>
+            </Property>
+            <Property MultiValue="0" name="DestinationFile" type="string"></Property>
+            <Property MultiValue="0" name="DestinationVariable" type="TVariableName"></Property>
+            <Property name="Enabled" type="Boolean">True</Property>
+            <Property name="ExpandActionLogTitle" type="Boolean">True</Property>
+            <Property name="ExpandVarsWhenReplacing" type="Boolean">True</Property>
+            <Property name="FailMatchCount" type="Integer">1</Property>
+            <Property name="FailOnMoreMatchCount" type="Integer">1</Property>
+            <Property MultiValue="0" name="FBVariable" type="TVariableName"></Property>
+            <Property name="FileSetCountAllMatches" type="Boolean">False</Property>
+            <Property MultiValue="0" name="FileSetName" type="string"></Property>
+            <Property name="HideActionFromLog" type="Boolean">False</Property>
+            <Property name="IgnoreFailure" type="Boolean">False</Property>
+            <Property name="Locked" type="Boolean">False</Property>
+            <Property name="LogActionProperties" type="Boolean">False</Property>
+            <Property MultiValue="0" name="LogToVariable" type="TVariableName"></Property>
+            <Property name="MatchRegExpr" type="Boolean">False</Property>
+            <Property name="MatchType" type="TMatchType">mtAll</Property>
+            <Property name="MatchWildcards" type="Boolean">False</Property>
+            <Property name="MaxRetryAttempts" type="Cardinal">0</Property>
+            <Property name="PauseInterval" type="Cardinal">0</Property>
+            <Property MultiValue="0" name="PutCountIntoVar" type="string"></Property>
+            <Property name="ReplacementMode" type="TFBReplaceMode">trNone</Property>
+            <Property MultiValue="0" name="ReplacementText" type="string"></Property>
+            <Property name="RetryPauseInterval" type="Cardinal">1000</Property>
+            <Property MultiValue="1" name="SearchString" type="string">
+              <![CDATA[&lt;Stat name=&quot;Success Rate&quot; result=&quot;100%%&quot; /&gt;]]>
+            </Property>
+            <Property MultiValue="0" name="SourcePath" type="string">C:\Users\nandod\Ethea\Kitto\Bin\dunit-report.xml</Property>
+            <Property name="Substitute" type="Boolean">False</Property>
+            <Property name="SuppressStatusMessages" type="Boolean">False</Property>
+            <Property name="TextFindBehaviour" type="TTextFindBehaviour">tfFailOnLess</Property>
+            <Property name="UseFileSet" type="Boolean">False</Property>
+            <Property name="UseVariable" type="Boolean">False</Property>
+            <Property name="WholeLinesOnly" type="Boolean">False</Property>
+            <Property name="WholeWords" type="Boolean">False</Property>
+            <Property name="WriteBOM" type="Boolean">True</Property>
+          </Object>
           <Object Class="TMSBuildAction" XMLID="{20562C42-11C5-4C3E-81AE-E57471C7AEDD}">
             <Property MultiValue="0" name="ActionComment" type="string"></Property>
             <Property MultiValue="1" name="ActionDescription" type="string">
@@ -251,7 +413,7 @@
             <Property name="ActionTextColor" type="Cardinal">0</Property>
             <Property MultiValue="0" name="ActionTypeID" type="string"></Property>
             <Property name="CaptureOutput" type="Boolean">True</Property>
-            <Property name="Enabled" type="Boolean">True</Property>
+            <Property name="Enabled" type="Boolean">False</Property>
             <Property name="EnableLiveCapture" type="Boolean">True</Property>
             <Property name="EnableReturnCodeCheck" type="Boolean">True</Property>
             <Property name="EnableTimeout" type="Boolean">False</Property>
@@ -322,7 +484,7 @@ Nando Dessena
             </Property>
             <Property name="CopyToSource" type="TEmailAddressSource">asSpecify</Property>
             <Property MultiValue="0" name="CopyToVariable" type="string"></Property>
-            <Property name="Enabled" type="Boolean">True</Property>
+            <Property name="Enabled" type="Boolean">False</Property>
             <Property name="EnableTimeout" type="Boolean">False</Property>
             <Property MultiValue="0" name="Encoding" type="string">UTF-8</Property>
             <Property MultiValue="0" name="EncryptedPassword" type="string">o2hrAltDb5k=</Property>

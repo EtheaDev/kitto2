@@ -1,0 +1,19 @@
+﻿FirstNode:
+  SubNode1:
+
+  # Here comes the second subnode.
+  SubNode2: Foo
+  BooleanSubNode3: True
+  MultiLineNode1: |
+    First line, then a break
+    Second line.
+OtherNode:
+  Item: Europe
+  Item: America
+  Item: Asia
+  Item: Australia
+# No way to preserve lines. > nodes are always written back word-wrapped
+# to 45 chars. In the future we might preserve lines for unchanged >
+# values only, but that's the best we can do. Use | nodes when you can.
+MultiLineNode2: >
+  Excuse me while I kiss the sky.

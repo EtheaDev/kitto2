@@ -254,8 +254,13 @@ type
   private
     FCriticalSection: TCriticalSection;
     FNodes: TEFNodes;
+    FAnnotations: TStrings;
     function GetChild(I: Integer): TEFNode; overload;
     function GetChildCount: Integer; overload;
+    function GetAnnotations: TStrings;
+    function GetAnnotation(const AIndex: Integer): string;
+    function GetAnnotationCount: Integer;
+    procedure SetAnnotation(const AIndex: Integer; const AValue: string);
   protected
     function GetChildClass(const AName: string): TEFNodeClass; virtual;
     procedure EnterCS; virtual;
@@ -565,6 +570,11 @@ type
     procedure SetChildValuesfromStrings(const AStrings: TStrings;
       const AUseJSDateFormat: Boolean; const AFormatSettings: TFormatSettings;
       const ATranslator: TNameTranslator);
+
+    property AnnotationCount: Integer read GetAnnotationCount;
+    property Annotations[const AIndex: Integer]: string read GetAnnotation write SetAnnotation;
+    function AddAnnotation(const AAnnotation: string): Integer;
+    procedure AssignAnnotations(const AStrings: TStrings);
   end;
 
   ///	<summary>
@@ -576,6 +586,7 @@ type
     FValue: Variant;
     FName: string;
     FDataType: TEFDataType;
+    FValueAttributes: string;
     function GetAsString: string;
     function GetAsInteger: Integer;
     function FindNodeFrom(const APath: TStringDynArray; const AIndex: Integer;
@@ -612,6 +623,8 @@ type
     function GetAsBytes: TBytes;
     procedure SetAsBytes(const AValue: TBytes);
     function GetAsExpandedPair: TEFPair;
+    function GetIsMultiLineValue: Boolean;
+    function GetIsMultiLineWithNLValue: Boolean;
   protected
     procedure SetName(const AValue: string);
     function GetName: string; virtual;
@@ -697,6 +710,12 @@ type
     ///	  Plain value of the node.
     ///	</summary>
     property Value: Variant read GetValue write SetValue;
+
+    ///	<summary>Used for I/O.</summary>
+    property ValueAttributes: string read FValueAttributes write FValueAttributes;
+
+    property IsMultiLineValue: Boolean read GetIsMultiLineValue;
+    property IsMultiLineWithNLValue: Boolean read GetIsMultiLineWithNLValue;
 
     ///	<summary>
     ///	  Node value as a string.
@@ -1307,6 +1326,17 @@ begin
     Result := -1;
 end;
 
+function TEFNode.GetIsMultiLineValue: Boolean;
+begin
+  Result := GetIsMultiLineWithNLValue or ContainsText(FValueAttributes, '>');
+end;
+
+function TEFNode.GetIsMultiLineWithNLValue: Boolean;
+begin
+  Result := ContainsText(FValueAttributes, '|')
+    or ContainsText(AsString, sLineBreak);
+end;
+
 function TEFNode.GetIsNull: Boolean;
 begin
   Result := VarIsNull(FValue);
@@ -1511,6 +1541,11 @@ begin
   Result := ANode;
 end;
 
+function TEFTree.AddAnnotation(const AAnnotation: string): Integer;
+begin
+  Result := GetAnnotations.Add(AAnnotation);
+end;
+
 function TEFTree.AddChild(const AName: string): TEFNode;
 begin
   Result := AddChild(GetChildClass(AName).Create(AName));
@@ -1524,6 +1559,11 @@ begin
   if Assigned(ASource) then
     for LNode in ASource.FNodes do
       AddChild(GetChildClass(LNode.Name).Clone(LNode));
+end;
+
+procedure TEFTree.AssignAnnotations(const AStrings: TStrings);
+begin
+  GetAnnotations.Assign(AStrings);
 end;
 
 procedure TEFTree.BeforeSave;
@@ -1573,6 +1613,7 @@ end;
 destructor TEFTree.Destroy;
 begin
   FreeAndNil(FNodes);
+  FreeAndNil(FAnnotations);
   FreeAndNil(FCriticalSection);
   inherited;
 end;
@@ -1707,6 +1748,23 @@ begin
   Result := FindNode(APath, ACreateMissingNodes);
   if not Assigned(Result) then
     raise EEFError.CreateFmt(_('Node %s not found.'), [APath]);
+end;
+
+function TEFTree.GetAnnotation(const AIndex: Integer): string;
+begin
+  Result := GetAnnotations[AIndex];
+end;
+
+function TEFTree.GetAnnotationCount: Integer;
+begin
+  Result := GetAnnotations.Count;
+end;
+
+function TEFTree.GetAnnotations: TStrings;
+begin
+  if not Assigned(FAnnotations) then
+    FAnnotations := TStringList.Create;
+  Result := FAnnotations;
 end;
 
 function TEFTree.GetBoolean(const APath: string;
@@ -1851,6 +1909,11 @@ begin
     Result := LNode.AsInteger
   else
     Result := ADefaultValue;
+end;
+
+procedure TEFTree.SetAnnotation(const AIndex: Integer; const AValue: string);
+begin
+  GetAnnotations[AIndex] := AValue;
 end;
 
 procedure TEFTree.SetBoolean(const APath: string; const AValue: Boolean);
