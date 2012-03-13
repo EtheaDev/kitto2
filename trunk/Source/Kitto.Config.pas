@@ -468,7 +468,7 @@ function TKConfig.GetViews: TKViews;
 begin
   if not Assigned(FViews) then
   begin
-    FViews := TKViews.Create;
+    FViews := TKViews.Create(Models);
     FViews.Path := GetMetadataPath + 'Views';
     FViews.Open;
   end;

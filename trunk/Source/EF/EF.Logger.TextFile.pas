@@ -23,13 +23,13 @@ uses
 
 type
   TEFTextFileLogEndpoint = class(TEFLogEndpoint)
-  private
+  strict private
     FStream: TEFTextStream;
     FFileName: string;
   class var
     FInstance: TEFTextFileLogEndpoint;
     function GetStream: TEFTextStream;
-  protected
+  strict protected
     procedure DoLog(const AString: string); override;
     procedure Configure(const AConfig: TEFNode;
       const AMacroExpansionEngine: TEFMacroExpansionEngine); override;

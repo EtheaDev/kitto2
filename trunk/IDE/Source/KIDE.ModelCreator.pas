@@ -1056,9 +1056,9 @@ begin
     if not SameText(LFieldName, FColumnInfo.Name) then
       LField.SetString('PhysicalName', FColumnInfo.Name);
     LField.SetFieldSpec(
-      TEFDataTypeFactory.Instance.GetDataType(Metadata.GetString('DataType')),
-      Metadata.GetInteger('Size'), Metadata.GetInteger('Scale'),
-      Metadata.GetBoolean('IsRequired'), Metadata.GetBoolean('IsKey'), '');
+      Metadata.GetString('DataType'), Metadata.GetInteger('Size'),
+      Metadata.GetInteger('Scale'), Metadata.GetBoolean('IsRequired'),
+      Metadata.GetBoolean('IsKey'), '');
     Model.AddField(LField);
   except
     FreeAndNil(LField);
@@ -1114,9 +1114,9 @@ begin
   DoLog(Format(_('Modifying field %s.%s.'), [Model.ModelName, Field.FieldName]));
 
   Field.SetFieldSpec(
-    TEFDataTypeFactory.Instance.GetDataType(Metadata.GetString('DataType')),
-    Metadata.GetInteger('Size'), Metadata.GetInteger('Scale'),
-    Metadata.GetBoolean('IsRequired'), Metadata.GetBoolean('IsKey'), '');
+    Metadata.GetString('DataType'), Metadata.GetInteger('Size'),
+    Metadata.GetInteger('Scale'), Metadata.GetBoolean('IsRequired'),
+    Metadata.GetBoolean('IsKey'), '');
 end;
 
 { TModelUpdateList }
@@ -1229,8 +1229,9 @@ begin
   LFieldName := Metadata.GetString('ReferenceName');
   DoLog(Format(_('Adding reference field %s to Model %s.'), [LFieldName, Model.ModelName]));
   Field := TKModelField.Create(LFieldName);
-  Field.SetFieldSpec(TEFDataTypeFactory.Instance.GetDataType(TKReferenceDataType.GetTypeName),
-    0, 0, Metadata.GetBoolean('IsRequired'), False, BeautifyName(FForeignKeyInfo.ForeignTableName));
+  Field.SetFieldSpec(TKReferenceDataType.GetTypeName, 0, 0,
+    Metadata.GetBoolean('IsRequired'), False,
+    BeautifyName(FForeignKeyInfo.ForeignTableName));
   LPhysicalName := Metadata.GetString('ForeignKeyName');
   if not SameText(LPhysicalName, LFieldName) then
     Field.SetString('PhysicalName', LPhysicalName);

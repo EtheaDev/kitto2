@@ -24,7 +24,7 @@ unit EF.Logger;
 interface
 
 uses
-  SysUtils, Classes, SyncObjs,
+  SysUtils, Types, Classes, SyncObjs,
   EF.ObserverIntf, EF.Tree, EF.Macros;
 
 type
@@ -67,9 +67,9 @@ type
   end;
 
   TEFLogEndpoint = class(TEFSubjectAndObserver)
-  private
+  strict private
     FIsEnabled: Boolean;
-  protected
+  strict protected
     function GetConfigPath: string; virtual;
     procedure Configure(const AConfig: TEFNode; const AMacroExpansionEngine: TEFMacroExpansionEngine); virtual;
     procedure DoLog(const AString: string); virtual; abstract;

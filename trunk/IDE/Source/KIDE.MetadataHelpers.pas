@@ -19,7 +19,7 @@ type
   TKModelFieldHelper = class helper for TKModelField
   private
   public
-    procedure SetFieldSpec(const ADataType: TEFDataType; const ASize, AScale: Integer;
+    procedure SetFieldSpec(const ADataType: string; const ASize, AScale: Integer;
       const AIsRequired, AIsKey: Boolean; const AReferencedModel: string);
 
     procedure SetIsKey(const AValue: Boolean);
@@ -106,7 +106,7 @@ end;
 
 procedure TKModelFieldHelper.SetIsKey(const AValue: Boolean);
 var
-  LDataType: TEFDataType;
+  LDataType: string;
   LSize, LScale: Integer;
   LIsRequired: Boolean;
   LIsKey: Boolean;
@@ -168,14 +168,14 @@ begin
     Result := SameText(DBColumnName, AForeignKeyInfo.Name) and EqualsColumnNames;
 end;
 
-procedure TKModelFieldHelper.SetFieldSpec(const ADataType: TEFDataType;
+procedure TKModelFieldHelper.SetFieldSpec(const ADataType: string;
   const ASize, AScale: Integer; const AIsRequired: Boolean; const AIsKey: Boolean;
   const AReferencedModel: string);
 var
   LSpec: string;
 begin
-  LSpec := ADataType.GetTypeName;
-  if ADataType is TKReferenceDataType then
+  LSpec := ADataType;
+  if AReferencedModel <> '' then
     LSpec := LSpec + '(' + AReferencedModel + ')'
   else if ASize <> 0 then
   begin
