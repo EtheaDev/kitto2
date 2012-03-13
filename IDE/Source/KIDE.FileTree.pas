@@ -75,13 +75,21 @@ type
     procedure ExecuteAction(const AIndex: Integer); override;
   end;
 
-  TGenericFolderNodeHandler = class(TFileNodeHandler);
+  TGenericFolderNodeHandler = class(TGenericFileNodeHandler)
+  public
+    procedure ExecuteAction(const AIndex: Integer); override;
+    function GetActionMetadata(const AIndex: Integer): TFileActionMetadata;
+      override;
+  end;
 
   TModelsFolderNodeHandler = class(TGenericFolderNodeHandler)
   public
     function GetActionCount: Integer; override;
     function GetActionMetadata(const AIndex: Integer): TFileActionMetadata; override;
     procedure ExecuteAction(const AIndex: Integer); override;
+  end;
+
+  TViewsFolderNodeHandler = class(TGenericFolderNodeHandler)
   end;
 
   TFileTreeNode = class(TTreeNode)
@@ -98,7 +106,15 @@ type
     procedure ExecuteAction(const AIndex: Integer);
   end;
 
-procedure RefreshFilesTreeView(const ATreeView: TTreeView; const AProject: TProject);
+  TResourceFileNodeHandler = class(TGenericFileNodeHandler)
+  end;
+
+  TResourceFolderNodeHandler = class(TGenericFolderNodeHandler)
+  end;
+
+procedure BuildMetadataTreeView(const ATreeView: TTreeView; const AProject: TProject);
+
+procedure BuildResourcesTreeView(const ATreeView: TTreeView; const AProject: TProject);
 
 implementation
 
@@ -109,10 +125,10 @@ uses
 
 procedure EditFile(const AFileName: string);
 begin
-  OpenDocument(AFileName, False);
+  EditDocument(AFileName, False);
 end;
 
-procedure RefreshFilesTreeView(const ATreeView: TTreeView; const AProject: TProject);
+procedure BuildMetadataTreeView(const ATreeView: TTreeView; const AProject: TProject);
 var
   LParentNode: TFileTreeNode;
   I: Integer;
@@ -148,7 +164,7 @@ begin
   LParentNode := ATreeView.Items.AddChild(nil, _('Models')) as TFileTreeNode;
   LParentNode.ImageIndex := 0;
   LParentNode.SelectedIndex := LParentNode.ImageIndex;
-  LParentNode.FHandler := TModelsFolderNodeHandler.Create;
+  LParentNode.FHandler := TModelsFolderNodeHandler.Create('');
   for I := 0 to AProject.Config.Models.ModelCount - 1 do
   begin
     LModel := AProject.Config.Models[I];
@@ -162,6 +178,7 @@ begin
   LParentNode := ATreeView.Items.AddChild(nil, _('Views')) as TFileTreeNode;
   LParentNode.ImageIndex := 0;
   LParentNode.SelectedIndex := LParentNode.ImageIndex;
+  LParentNode.FHandler := TViewsFolderNodeHandler.Create('');
   for I := 0 to AProject.Config.Views.ViewCount - 1 do
   begin
     LView := AProject.Config.Views[I];
@@ -182,6 +199,72 @@ begin
     LNode.SelectedIndex := LNode.ImageIndex;
     LNode.FHandler := TLayoutFileNodeHandler.Create(LLayout);
   end;
+
+  ATreeView.FullExpand;
+  if ATreeView.Items.Count > 0 then
+    ATreeView.Select(ATreeView.Items[0]);
+  ATreeView.Refresh;
+end;
+
+procedure AddResourceDirectoryNodes(const ATreeView: TTreeView;
+  const AParentNode: TFileTreeNode; const APath: string); forward;
+
+procedure AddResourceFileNode(const ATreeView: TTreeView;
+  const AParentNode: TFileTreeNode; const APath: string; const ASearchRec: TSearchRec);
+var
+  LNode: TFileTreeNode;
+begin
+  Assert(Assigned(ATreeView));
+
+  if (ASearchRec.Attr and faDirectory) = faDirectory then
+  begin
+    LNode := ATreeView.Items.AddChild(AParentNode, ASearchRec.Name) as TFileTreeNode;
+    LNode.ImageIndex := 0;
+    LNode.SelectedIndex := LNode.ImageIndex;
+    LNode.FHandler := TResourceFolderNodeHandler.Create(APath + ASearchRec.Name);
+    AddResourceDirectoryNodes(ATreeView, LNode, IncludeTrailingPathDelimiter(APath + ASearchRec.Name))
+  end
+  else
+  begin
+    LNode := ATreeView.Items.AddChild(AParentNode, ASearchRec.Name) as TFileTreeNode;
+    LNode.ImageIndex := 3;
+    LNode.SelectedIndex := LNode.ImageIndex;
+    LNode.FHandler := TResourceFileNodeHandler.Create(APath + ASearchRec.Name);
+  end;
+end;
+
+procedure AddResourceDirectoryNodes(const ATreeView: TTreeView;
+  const AParentNode: TFileTreeNode; const APath: string);
+var
+  LSearchRec: TSearchRec;
+begin
+  if FindFirst(APath + '*', faAnyFile, LSearchRec) = 0 then
+  begin
+    repeat
+      if (LSearchRec.Name <> '.') and (LSearchRec.Name <> '..') then
+        AddResourceFileNode(ATreeView, AParentNode, APath, LSearchRec);
+    until FindNext(LSearchRec) <> 0;
+
+    FindClose(LSearchRec);
+  end;
+end;
+
+procedure BuildResourcesTreeView(const ATreeView: TTreeView; const AProject: TProject);
+var
+  LParentNode: TFileTreeNode;
+  LFileNames: TStrings;
+  I: Integer;
+  LNode: TFileTreeNode;
+begin
+  Assert(Assigned(ATreeView));
+
+  ATreeView.Items.Clear;
+
+  if not Assigned(AProject) then
+    Exit;
+
+  // Resource files
+  AddResourceDirectoryNodes(ATreeView, nil, AProject.GetResourcesPath);
 
   // Locale files
   LParentNode := ATreeView.Items.AddChild(nil, _('Locales')) as TFileTreeNode;
@@ -206,6 +289,8 @@ begin
   end;
 
   ATreeView.FullExpand;
+  if ATreeView.Items.Count > 0 then
+    ATreeView.Select(ATreeView.Items[0]);
   ATreeView.Refresh;
 end;
 
@@ -411,6 +496,38 @@ begin
   end
   else
     Result := inherited GetActionMetadata(AIndex);
+end;
+
+{ TGenericFolderNodeHandler }
+
+procedure TGenericFolderNodeHandler.ExecuteAction(const AIndex: Integer);
+begin
+  case AIndex of
+    0:
+    begin
+      if not DirectoryExists(FileName) then
+        raise Exception.CreateFmt(_('Directory %s not found.'), [FileName]);
+      EditFile(FileName);
+    end;
+  else
+    inherited;
+  end;
+end;
+
+function TGenericFolderNodeHandler.GetActionMetadata(
+  const AIndex: Integer): TFileActionMetadata;
+begin
+  case AIndex of
+    0:
+    begin
+      Result.Clear;
+      Result.DisplayLabel := _('Open directory');
+      Result.Hint := _('Open the directory in Windows Explorer');
+      Result.ImageIndex := 11;
+    end;
+  else
+    Result := inherited GetActionMetadata(AIndex);
+  end;
 end;
 
 end.
