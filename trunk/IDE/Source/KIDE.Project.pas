@@ -40,6 +40,7 @@ type
     property Config: TProjectConfig read FConfig;
 
     procedure GetConfigFileNames(const AFileNames: TStrings);
+    function GetResourcesPath: string;
 
     // Project-scoped MRUs.
     procedure StoreString(const AKey, AValue: string);
@@ -76,6 +77,11 @@ end;
 class destructor TProject.Destroy;
 begin
   CloseProject;
+end;
+
+function TProject.GetResourcesPath: string;
+begin
+  Result := IncludeTrailingPathDelimiter(Config.AppHomePath + 'Resources');
 end;
 
 procedure TProject.GetConfigFileNames(const AFileNames: TStrings);

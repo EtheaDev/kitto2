@@ -13,12 +13,24 @@ interface
 ///	</summary>
 function OpenDocument(const AFileName: string; const AWait: Boolean = False): Integer;
 
+///	<summary>
+///	  <para>Opens a document with the default edit application synchronously
+///	  (AWait = True) or Asynchronously (AWait = False).</para>
+///	  <para>If AWait is True, the function waits that the launched process
+///	  finishes, and returns the process' exit code (or -1 in case of
+///	  errors).</para>
+///	  <para>If AWait is False, the function returns 0 if the call succeeds or
+///	  -1 in case of errors.</para>
+///	</summary>
+function EditDocument(const AFileName: string; const AWait: Boolean = False): Integer;
+
 implementation
 
 uses
   ShellAPI, Windows;
 
-function OpenDocument(const AFileName: string; const AWait: Boolean = False): Integer;
+function InternalOpenDocument(const AFileName: string; const AVerb: string;
+  const AWait: Boolean = False): Integer;
 var
   LExecInfo: TShellExecuteInfo;
   LReturnValue: Boolean;
@@ -47,6 +59,16 @@ begin
   end
   else
     Result := -1;
+end;
+
+function OpenDocument(const AFileName: string; const AWait: Boolean = False): Integer;
+begin
+  Result := InternalOpenDocument(AFileName, 'open', AWait);
+end;
+
+function EditDocument(const AFileName: string; const AWait: Boolean = False): Integer;
+begin
+  Result := InternalOpenDocument(AFileName, 'edit', AWait);
 end;
 
 end.

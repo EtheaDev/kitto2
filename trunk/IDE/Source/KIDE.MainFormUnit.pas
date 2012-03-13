@@ -45,13 +45,13 @@ type
     EditPanel: TPanel;
     BrowsePageControl: TPageControl;
     MetadataTabSheet: TTabSheet;
-    FileTreeView: TTreeView;
+    MetadataTreeView: TTreeView;
     OpenProjectAction: TAction;
     ExitAction: TAction;
     OpenProjectDialog: TOpenDialog;
     StatusBar: TStatusBar;
-    FileTreeActionToolBar: TActionToolBar;
-    RefreshFileTreeAction: TAction;
+    MetadataActionToolBar: TActionToolBar;
+    RefreshMetadataAction: TAction;
     ActionImages: TImageList;
     ModelWizardAction: TAction;
     CloseProjectAction: TAction;
@@ -75,16 +75,19 @@ type
     MessagesPopupActionBar: TPopupActionBar;
     Clear1: TMenuItem;
     Copy1: TMenuItem;
-    procedure FileTreeViewCreateNodeClass(Sender: TCustomTreeView;
+    ResourcesActionToolBar: TActionToolBar;
+    ResourcesTreeView: TTreeView;
+    ResourcesRefreshAction: TAction;
+    procedure BrowseTreeViewCreateNodeClass(Sender: TCustomTreeView;
       var NodeClass: TTreeNodeClass);
     procedure ExitActionExecute(Sender: TObject);
     procedure OpenProjectActionExecute(Sender: TObject);
     procedure OpenRecentProjectActionExecute(Sender: TObject);
     procedure FormCreate(Sender: TObject);
-    procedure RefreshFileTreeActionExecute(Sender: TObject);
-    procedure RefreshFileTreeActionUpdate(Sender: TObject);
+    procedure RefreshMetadataActionExecute(Sender: TObject);
+    procedure RefreshMetadataActionUpdate(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
-    procedure FileTreeViewDblClick(Sender: TObject);
+    procedure BrowseTreeViewDblClick(Sender: TObject);
     procedure ModelWizardActionUpdate(Sender: TObject);
     procedure ModelWizardActionExecute(Sender: TObject);
     procedure CloseProjectActionExecute(Sender: TObject);
@@ -102,6 +105,9 @@ type
     procedure ClearMessagesActionExecute(Sender: TObject);
     procedure CopyMessagesActionUpdate(Sender: TObject);
     procedure CopyMessagesActionExecute(Sender: TObject);
+    procedure ResourcesRefreshActionUpdate(Sender: TObject);
+    procedure ResourcesRefreshActionExecute(Sender: TObject);
+    procedure ValidateMetadataActionUpdate(Sender: TObject);
   private
     FLogEndpoint: TMainFormLogEndpoint;
     procedure RebuildRecentProjectsMenu;
@@ -109,12 +115,15 @@ type
     procedure UpdateCaption;
     procedure SetStatus(const AMessage: string; const AArgs: array of const); overload;
     procedure SetStatus(const AMessage: string); overload;
-    function GetSelectedFileTreeNode: TFileTreeNode;
+    function GetSelectedFileTreeNode(const ATreeView: TTreeView): TFileTreeNode;
     procedure DoNewProject(const AFileName: string);
     procedure ShowLog(const AShow: Boolean);
     procedure UpdateBottomPanelVisibility;
     function GetLogBitmap(const ATag: string): TBitmap;
     procedure ClearMessages;
+    procedure RefreshBrowseTreeViews;
+    procedure RefreshMetadataTreeView;
+    procedure RefreshResourcesTreeView;
   public
     destructor Destroy; override;
     procedure Log(const AString: string);
@@ -139,6 +148,18 @@ begin
   TSplashForm.ShowAbout;
 end;
 
+procedure TMainForm.ResourcesRefreshActionExecute(Sender: TObject);
+begin
+  Assert(Assigned(TProject.CurrentProject));
+
+  RefreshResourcesTreeView;
+end;
+
+procedure TMainForm.ResourcesRefreshActionUpdate(Sender: TObject);
+begin
+  (Sender as TAction).Enabled := Assigned(TProject.CurrentProject);
+end;
+
 procedure TMainForm.ApplicationEventsHint(Sender: TObject);
 begin
   SetStatus(Application.Hint);
@@ -157,7 +178,7 @@ end;
 procedure TMainForm.CloseProjectActionExecute(Sender: TObject);
 begin
   TProject.CloseProject;
-  RefreshFilesTreeView(FileTreeView, nil);
+  RefreshBrowseTreeViews;
   ClearMessages;
   SetStatus('Project closed.');
   UpdateCaption;
@@ -215,23 +236,23 @@ begin
   Close;
 end;
 
-procedure TMainForm.FileTreeViewCreateNodeClass(Sender: TCustomTreeView;
+procedure TMainForm.BrowseTreeViewCreateNodeClass(Sender: TCustomTreeView;
   var NodeClass: TTreeNodeClass);
 begin
   NodeClass := TFileTreeNode;
 end;
 
-procedure TMainForm.FileTreeViewDblClick(Sender: TObject);
+procedure TMainForm.BrowseTreeViewDblClick(Sender: TObject);
 var
   LNode: TFileTreeNode;
   LMousePos: TPoint;
 begin
-  LMousePos := FileTreeView.ScreenToClient(Mouse.CursorPos);
+  LMousePos := (Sender as TTreeView).ScreenToClient(Mouse.CursorPos);
 
-  LNode := FileTreeView.GetNodeAt(LMousePos.X, LMousePos.Y) as TFileTreeNode;
-  if Assigned(LNode) then
+  LNode := (Sender as TTreeView).GetNodeAt(LMousePos.X, LMousePos.Y) as TFileTreeNode;
+  if Assigned(LNode) and (LNode.Count = 0) then
   begin
-    FileTreeView.Selected := LNode;
+    (Sender as TTreeView).Selected := LNode;
     LNode.DefaultAction;
   end;
 end;
@@ -243,6 +264,7 @@ begin
 
   TMRUOptions.Instance.SetInteger('MainForm/WindowState', Ord(WindowState));
   TMRUOptions.Instance.SetInteger('MainForm/BrowsePanel/Width', BrowsePanel.Width);
+  TMRUOptions.Instance.SetInteger('MainForm/BrowsePageControl/ActivePageIndex', BrowsePageControl.ActivePageIndex);
   if WindowState = wsNormal then
   begin
     TMRUOptions.Instance.SetInteger('MainForm/Left', Left);
@@ -265,6 +287,7 @@ begin
     Height := TMRUOptions.Instance.GetInteger('MainForm/Height', Height);
   end;
   RebuildRecentProjectsMenu;
+  BrowsePageControl.ActivePageIndex := TMRUOptions.Instance.GetInteger('MainForm/BrowsePageControl/ActivePageIndex', BrowsePageControl.ActivePageIndex);
 
   if (ParamCount = 1) and FileExists(ParamStr(1)) then
     DoOpenProject(ParamStr(1));
@@ -277,7 +300,7 @@ begin
   LWizard := TModelWizardForm.Create(Self);
   try
     if LWizard.ShowModal = mrOk then
-      RefreshFileTreeAction.Execute;
+      RefreshMetadataAction.Execute;
   finally
     FreeAndNil(LWizard);
   end;
@@ -327,9 +350,25 @@ begin
   ClearMessages;
   TProject.OpenProject(AFileName);
   TMRUOptions.Instance.StoreMRUItem('RecentProjects', TProject.CurrentProject.FileName);
-  RefreshFilesTreeView(FileTreeView, TProject.CurrentProject);
+  RefreshBrowseTreeViews;
   UpdateCaption;
   SetStatus('Project %s opened.', [TProject.CurrentProject.FileName]);
+end;
+
+procedure TMainForm.RefreshBrowseTreeViews;
+begin
+  RefreshMetadataTreeView;
+  RefreshResourcesTreeView;
+end;
+
+procedure TMainForm.RefreshMetadataTreeView;
+begin
+  BuildMetadataTreeView(MetadataTreeView, TProject.CurrentProject);
+end;
+
+procedure TMainForm.RefreshResourcesTreeView;
+begin
+  BuildResourcesTreeView(ResourcesTreeView, TProject.CurrentProject);
 end;
 
 procedure TMainForm.DoNewProject(const AFileName: string);
@@ -341,7 +380,7 @@ begin
   { TODO : ask to save pending changes }
   TProject.NewProject(AFileName);
   TMRUOptions.Instance.StoreMRUItem('RecentProjects', TProject.CurrentProject.FileName);
-  RefreshFilesTreeView(FileTreeView, TProject.CurrentProject);
+  RefreshBrowseTreeViews;
   UpdateCaption;
   SetStatus('Project %s created.', [TProject.CurrentProject.FileName]);
 end;
@@ -384,7 +423,7 @@ begin
   end;
 end;
 
-procedure TMainForm.RefreshFileTreeActionExecute(Sender: TObject);
+procedure TMainForm.RefreshMetadataActionExecute(Sender: TObject);
 begin
   Assert(Assigned(TProject.CurrentProject));
 
@@ -392,10 +431,10 @@ begin
   TProject.CurrentProject.Config.InvalidateConfig;
   TProject.CurrentProject.Config.Models.Open;
   TProject.CurrentProject.Config.Views.Open;
-  RefreshFilesTreeView(FileTreeView, TProject.CurrentProject);
+  RefreshMetadataTreeView;
 end;
 
-procedure TMainForm.RefreshFileTreeActionUpdate(Sender: TObject);
+procedure TMainForm.RefreshMetadataActionUpdate(Sender: TObject);
 begin
   (Sender as TAction).Enabled := Assigned(TProject.CurrentProject);
 end;
@@ -411,9 +450,11 @@ begin
   SetStatus(AMessage, []);
 end;
 
-function TMainForm.GetSelectedFileTreeNode: TFileTreeNode;
+function TMainForm.GetSelectedFileTreeNode(const ATreeView: TTreeView): TFileTreeNode;
 begin
-  Result := FileTreeView.Selected as TFileTreeNode;
+  Assert(Assigned(ATreeView));
+
+  Result := ATreeView.Selected as TFileTreeNode;
 end;
 
 procedure TMainForm.Log(const AString: string);
@@ -482,7 +523,7 @@ var
   LItem: TFileTreeMenuItem;
 begin
   TreePopupMenu.Items.Clear;
-  LNode := GetSelectedFileTreeNode;
+  LNode := GetSelectedFileTreeNode((Sender as TPopupMenu).PopupComponent as TTreeView);
   if Assigned(LNode) then
   begin
     for I := 0 to LNode.ActionCount - 1 do
@@ -533,6 +574,11 @@ begin
   finally
     FreeAndNil(LViewValidator);
   end;
+end;
+
+procedure TMainForm.ValidateMetadataActionUpdate(Sender: TObject);
+begin
+  (Sender as TAction).Enabled := Assigned(TProject.CurrentProject);
 end;
 
 procedure TMainForm.ViewLogActionExecute(Sender: TObject);
