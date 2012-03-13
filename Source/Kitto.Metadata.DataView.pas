@@ -90,7 +90,13 @@ type
 
     property Table: TKViewTable read GetTable;
     property Model: TKModel read GetModel;
+
+    ///	<summary>Returns a reference to the model field, or raises an exception
+    ///	if the model field is not found.</summary>
     property ModelField: TKModelField read GetModelField;
+
+    ///	<summary>Returns a reference to the model field, or nil.</summary>
+    function FindModelField: TKModelField;
     property Alias: string read GetAlias;
     property AliasedName: string read GetAliasedName;
     property QualifiedAliasedDBNameOrExpression: string read GetQualifiedAliasedDBNameOrExpression;
@@ -586,7 +592,7 @@ end;
 
 function TKViewTable.GetModel: TKModel;
 begin
-  Result := TKConfig.Instance.Models.FindModel(ModelName);
+  Result := View.Catalog.Models.FindModel(ModelName);
 end;
 
 function TKViewTable.GetModelDetailReference: TKModelDetailReference;
@@ -824,7 +830,7 @@ function TKViewTable.FindLayout(const AKind: string): TKLayout;
   end;
 
 begin
-  Result := TKConfig.Instance.Views.Layouts.FindLayout(GetViewTablePathName + '_' + AKind);
+  Result := View.Catalog.Layouts.FindLayout(GetViewTablePathName + '_' + AKind);
 end;
 
 function TKViewTable.GetDetailTable(I: Integer): TKViewTable;
@@ -1030,6 +1036,11 @@ begin
     FreeAndNil(Result);
     raise;
   end;
+end;
+
+function TKViewField.FindModelField: TKModelField;
+begin
+  Result := Model.FindField(FieldName);
 end;
 
 function TKViewField.FindNode(const APath: string;

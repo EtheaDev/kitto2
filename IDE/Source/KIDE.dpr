@@ -33,7 +33,12 @@ uses
   KIDE.Utils in 'KIDE.Utils.pas',
   KIDE.WaitFormUnit in 'KIDE.WaitFormUnit.pas' {WaitForm},
   KIDE.ModelFieldUpdateActionFrameUnit in 'KIDE.ModelFieldUpdateActionFrameUnit.pas' {ModelFieldUpdateActionFrame: TFrame},
-  KIDE.ReferenceFieldUpdateActionFrameUnit in 'KIDE.ReferenceFieldUpdateActionFrameUnit.pas' {ReferenceFieldUpdateActionFrame: TFrame};
+  KIDE.ReferenceFieldUpdateActionFrameUnit in 'KIDE.ReferenceFieldUpdateActionFrameUnit.pas' {ReferenceFieldUpdateActionFrame: TFrame},
+  KIDE.EFHelpers in 'KIDE.EFHelpers.pas',
+  KIDE.ModelValidator in 'KIDE.ModelValidator.pas',
+  KIDE.Process in 'KIDE.Process.pas',
+  KIDE.ViewValidator in 'KIDE.ViewValidator.pas',
+  KIDE.TreeValidator in 'KIDE.TreeValidator.pas';
 
 {$R *.res}
 

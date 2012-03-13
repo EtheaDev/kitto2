@@ -7,9 +7,20 @@ uses
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ExtCtrls, Vcl.ActnCtrls,
   Vcl.ToolWin, Vcl.ActnMan, Vcl.ActnMenus, Vcl.PlatformDefaultStyleActnCtrls,
   Vcl.ActnList, Vcl.ComCtrls, KIDE.Project, Vcl.ImgList, Vcl.Menus,
-  KIDE.FileTree, Vcl.AppEvnts;
+  KIDE.FileTree, Vcl.AppEvnts, Vcl.StdCtrls, EF.Logger, Vcl.ActnPopup;
 
 type
+  TMainForm = class;
+
+  TMainFormLogEndpoint = class(TEFLogEndpoint)
+  strict private
+    FMainForm: TMainForm;
+  strict protected
+    procedure DoLog(const AString: string); override;
+  public
+    property MainForm: TMainForm read FMainForm write FMainForm;
+  end;
+
   TFileTreeMenuItem = class(TMenuItem)
   private
     FTreeNode: TFileTreeNode;
@@ -30,10 +41,10 @@ type
     MainActionToolBar: TActionToolBar;
     ClientPanel: TPanel;
     BrowsePanel: TPanel;
-    Splitter1: TSplitter;
+    BottomSplitter: TSplitter;
     EditPanel: TPanel;
     BrowsePageControl: TPageControl;
-    FilesTabSheet: TTabSheet;
+    MetadataTabSheet: TTabSheet;
     FileTreeView: TTreeView;
     OpenProjectAction: TAction;
     ExitAction: TAction;
@@ -50,6 +61,20 @@ type
     NewProjectAction: TAction;
     NewProjectDialog: TSaveDialog;
     AboutAction: TAction;
+    BottomPanel: TPanel;
+    BrowseSplitter: TSplitter;
+    BottomPageControl: TPageControl;
+    LogTabSheet: TTabSheet;
+    TabImages: TImageList;
+    ViewLogAction: TAction;
+    LogListBox: TListBox;
+    LogImages: TImageList;
+    ValidateMetadataAction: TAction;
+    ClearMessagesAction: TAction;
+    CopyMessagesAction: TAction;
+    MessagesPopupActionBar: TPopupActionBar;
+    Clear1: TMenuItem;
+    Copy1: TMenuItem;
     procedure FileTreeViewCreateNodeClass(Sender: TCustomTreeView;
       var NodeClass: TTreeNodeClass);
     procedure ExitActionExecute(Sender: TObject);
@@ -70,7 +95,15 @@ type
     procedure ApplicationEventsHint(Sender: TObject);
     procedure NewProjectActionExecute(Sender: TObject);
     procedure AboutActionExecute(Sender: TObject);
+    procedure ViewLogActionExecute(Sender: TObject);
+    procedure LogListBoxDrawItem(Control: TWinControl; Index: Integer;
+      Rect: TRect; State: TOwnerDrawState);
+    procedure ValidateMetadataActionExecute(Sender: TObject);
+    procedure ClearMessagesActionExecute(Sender: TObject);
+    procedure CopyMessagesActionUpdate(Sender: TObject);
+    procedure CopyMessagesActionExecute(Sender: TObject);
   private
+    FLogEndpoint: TMainFormLogEndpoint;
     procedure RebuildRecentProjectsMenu;
     procedure DoOpenProject(const AFileName: string);
     procedure UpdateCaption;
@@ -78,8 +111,14 @@ type
     procedure SetStatus(const AMessage: string); overload;
     function GetSelectedFileTreeNode: TFileTreeNode;
     procedure DoNewProject(const AFileName: string);
+    procedure ShowLog(const AShow: Boolean);
+    procedure UpdateBottomPanelVisibility;
+    function GetLogBitmap(const ATag: string): TBitmap;
+    procedure ClearMessages;
   public
     destructor Destroy; override;
+    procedure Log(const AString: string);
+    constructor Create(AOwner: TComponent); override;
   end;
 
 var
@@ -90,8 +129,10 @@ implementation
 {$R *.dfm}
 
 uses
+  Clipbrd,
   EF.Localization, EF.SysUtils,
-  KIDE.MRUOptions, KIDE.ModelWizardFormUnit, KIDE.SplashFormUnit;
+  KIDE.MRUOptions, KIDE.ModelWizardFormUnit, KIDE.SplashFormUnit,
+  KIDE.EFHelpers, KIDE.ModelValidator, KIDE.ViewValidator;
 
 procedure TMainForm.AboutActionExecute(Sender: TObject);
 begin
@@ -103,10 +144,21 @@ begin
   SetStatus(Application.Hint);
 end;
 
+procedure TMainForm.ClearMessagesActionExecute(Sender: TObject);
+begin
+  ClearMessages;
+end;
+
+procedure TMainForm.ClearMessages;
+begin
+  LogListBox.Clear;
+end;
+
 procedure TMainForm.CloseProjectActionExecute(Sender: TObject);
 begin
   TProject.CloseProject;
   RefreshFilesTreeView(FileTreeView, nil);
+  ClearMessages;
   SetStatus('Project closed.');
   UpdateCaption;
 end;
@@ -116,9 +168,46 @@ begin
   (Sender as TAction).Enabled := Assigned(TProject.CurrentProject);
 end;
 
+procedure TMainForm.CopyMessagesActionExecute(Sender: TObject);
+var
+  LText: string;
+  I: Integer;
+begin
+  if LogListBox.SelCount > 0 then
+  begin
+    LText := '';
+    for I := 0 to LogListBox.Count - 1 do
+    begin
+      if LogListBox.Selected[I] then
+      begin
+        if LText = '' then
+          LText := LogListBox.Items[I]
+        else
+          LText := LText + sLineBreak + LogListBox.Items[I];
+      end;
+    end;
+    Clipboard.AsText := LText;
+  end
+  else
+    Clipboard.AsText := LogListBox.Items.Text;
+end;
+
+procedure TMainForm.CopyMessagesActionUpdate(Sender: TObject);
+begin
+  (Sender as TAction).Enabled := LogListBox.Count > 0;
+end;
+
+constructor TMainForm.Create(AOwner: TComponent);
+begin
+  inherited;
+  FLogEndPoint := TMainFormLogEndpoint.Create;
+  FLogEndpoint.MainForm := Self;
+end;
+
 destructor TMainForm.Destroy;
 begin
   inherited;
+  FreeAndNil(FLogEndpoint);
 end;
 
 procedure TMainForm.ExitActionExecute(Sender: TObject);
@@ -235,6 +324,7 @@ end;
 procedure TMainForm.DoOpenProject(const AFileName: string);
 begin
   { TODO : ask to save pending changes }
+  ClearMessages;
   TProject.OpenProject(AFileName);
   TMRUOptions.Instance.StoreMRUItem('RecentProjects', TProject.CurrentProject.FileName);
   RefreshFilesTreeView(FileTreeView, TProject.CurrentProject);
@@ -326,6 +416,65 @@ begin
   Result := FileTreeView.Selected as TFileTreeNode;
 end;
 
+procedure TMainForm.Log(const AString: string);
+var
+  LString: string;
+  LTag: string;
+begin
+  LString := TEFLogger.ExtractTag(AString, LTag);
+
+  LogListBox.Items.BeginUpdate;
+  try
+    LogListBox.Items.AddObject(LString, GetLogBitmap(LTag));
+    LogListBox.ItemIndex := -1;
+    LogListBox.ItemIndex := LogListBox.Items.Count - 1;
+  finally
+    LogListBox.Items.EndUpdate;
+  end;
+  ViewLogAction.Checked := True;
+  ShowLog(True);
+  Update;
+end;
+
+function TMainForm.GetLogBitmap(const ATag: string): TBitmap;
+begin
+  if ATag <> '' then
+  begin
+    Result := TBitmap.Create;
+    try
+      if ATag = LOG_TAG_WARNING then
+        LogImages.GetBitmap(1, Result)
+      else if ATag = LOG_TAG_ERROR then
+        LogImages.GetBitmap(2, Result)
+      else
+        LogImages.GetBitmap(0, Result);
+    except
+      FreeAndNil(Result);
+      raise;
+    end;
+  end
+  else
+    Result := nil;
+end;
+
+procedure TMainForm.LogListBoxDrawItem(Control: TWinControl; Index: Integer;
+  Rect: TRect; State: TOwnerDrawState);
+var
+  LBitmap: TBitmap;
+  LOffset: Integer;
+begin
+  LogListBox.Canvas.FillRect(Rect);
+  LOffset := 8;
+  LBitmap := TBitmap(LogListBox.Items.Objects[Index]);
+  if LBitmap <> nil then
+  begin
+    LogListBox.Canvas.BrushCopy(Bounds(Rect.Left + 2, Rect.Top + 2, LBitmap.Width,
+      LBitmap.Height), LBitmap, Bounds(0, 0, LBitmap.Width, LBitmap.Height), clWhite);
+    LOffset := LOffset + LBitmap.Width;
+  end;
+  LogListBox.Canvas.TextOut(Rect.Left + LOffset, Rect.Top, LogListBox.Items[Index]);
+end;
+
 procedure TMainForm.TreePopupMenuPopup(Sender: TObject);
 var
   LNode: TFileTreeNode;
@@ -364,6 +513,54 @@ end;
 procedure TMainForm.UpdateLocaleFilesActionUpdate(Sender: TObject);
 begin
   (Sender as TAction).Enabled := Assigned(TProject.CurrentProject);
+end;
+
+procedure TMainForm.ValidateMetadataActionExecute(Sender: TObject);
+var
+  LModelValidator: TModelValidator;
+  LViewValidator: TViewValidator;
+begin
+  LModelValidator := TModelValidator.Create;
+  try
+    LModelValidator.Execute;
+  finally
+    FreeAndNil(LModelValidator);
+  end;
+
+  LViewValidator := TViewValidator.Create;
+  try
+    LViewValidator.Execute;
+  finally
+    FreeAndNil(LViewValidator);
+  end;
+end;
+
+procedure TMainForm.ViewLogActionExecute(Sender: TObject);
+begin
+  ShowLog((Sender as TAction).Checked);
+end;
+
+procedure TMainForm.ShowLog(const AShow: Boolean);
+begin
+  LogTabSheet.Visible := AShow;
+  UpdateBottomPanelVisibility;
+end;
+
+procedure TMainForm.UpdateBottomPanelVisibility;
+var
+  I: Integer;
+  LVisible: Boolean;
+begin
+  LVisible := False;
+  for I := 0 to BottomPageControl.PageCount - 1 do
+  begin
+    if BottomPageControl.Pages[I].Visible then
+    begin
+      LVisible := True;
+      Break;
+    end;
+  end;
+  BottomPanel.Visible := LVisible;
 end;
 
 { TFileTreeMenuItem }
@@ -406,6 +603,16 @@ begin
     ImageIndex := LMetadata.ImageIndex;
     Default := FActionIndex = 0;
   end;
+end;
+
+{ TMainFormLogEndpoint }
+
+procedure TMainFormLogEndpoint.DoLog(const AString: string);
+begin
+  inherited;
+  Assert(Assigned(FMainForm));
+
+  FMainForm.Log(AString);
 end;
 
 end.

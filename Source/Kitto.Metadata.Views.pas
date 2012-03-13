@@ -58,6 +58,7 @@ type
   TKViews = class(TKMetadataCatalog)
   private
     FLayouts: TKLayouts;
+    FModels: TKModels;
     function GetLayouts: TKLayouts;
     function BuildView(const ANode: TEFNode;
       const AViewBuilderName: string): TKView;
@@ -67,6 +68,7 @@ type
     function GetObjectClassType: TKMetadataClass; override;
     procedure SetPath(const AValue: string); override;
   public
+    constructor Create(const AModels: TKModels);
     destructor Destroy; override;
   public
     property ViewCount: Integer read GetViewCount;
@@ -77,6 +79,7 @@ type
     function ViewByNode(const ANode: TEFNode): TKView;
     function FindViewByNode(const ANode: TEFNode): TKView;
 
+    property Models: TKModels read FModels;
     property Layouts: TKLayouts read GetLayouts;
     procedure Open; override;
     procedure Close; override;
@@ -183,6 +186,12 @@ begin
   inherited;
   if Assigned(FLayouts) then
     FLayouts.Close;
+end;
+
+constructor TKViews.Create(const AModels: TKModels);
+begin
+  inherited Create;
+  FModels := AModels;
 end;
 
 destructor TKViews.Destroy;
