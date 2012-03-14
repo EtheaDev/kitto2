@@ -213,6 +213,19 @@ procedure AddResourceFileNode(const ATreeView: TTreeView;
   const AParentNode: TFileTreeNode; const APath: string; const ASearchRec: TSearchRec);
 var
   LNode: TFileTreeNode;
+
+  function GetFileImageIndex(const AExt: string): Integer;
+  begin
+    if MatchText(AExt, ['js']) then
+      Result := 18
+    else if MatchText(AExt, ['htm', 'html']) then
+      Result := 19
+    else    if MatchText(AExt, ['jpg', 'png', 'gif']) then
+      Result := 20
+    else
+      Result := 21;
+  end;
+
 begin
   Assert(Assigned(ATreeView));
 
@@ -227,7 +240,7 @@ begin
   else
   begin
     LNode := ATreeView.Items.AddChild(AParentNode, ASearchRec.Name) as TFileTreeNode;
-    LNode.ImageIndex := 3;
+    LNode.ImageIndex := GetFileImageIndex(ExtractFileFormat(ASearchRec.Name));
     LNode.SelectedIndex := LNode.ImageIndex;
     LNode.FHandler := TResourceFileNodeHandler.Create(APath + ASearchRec.Name);
   end;
