@@ -413,7 +413,7 @@
             <Property name="ActionTextColor" type="Cardinal">0</Property>
             <Property MultiValue="0" name="ActionTypeID" type="string"></Property>
             <Property name="CaptureOutput" type="Boolean">True</Property>
-            <Property name="Enabled" type="Boolean">False</Property>
+            <Property name="Enabled" type="Boolean">True</Property>
             <Property name="EnableLiveCapture" type="Boolean">True</Property>
             <Property name="EnableReturnCodeCheck" type="Boolean">True</Property>
             <Property name="EnableTimeout" type="Boolean">False</Property>
@@ -469,6 +469,8 @@ http://www.ethea.it/private/KIDESetup.exe
 
 Le ultime 20 novità sono elencate nel file allegato (nota: alcune di esse potrebbero essere già state incluse in build precedenti):
 
+Vi chiedo di segnalare situazioni di errori e incongruenze nei metadati che vorreste che la funzione di validazione segnalasse.
+
 Per segnalazioni, usare Mantis:
 
 http://mantis.ethea.it
@@ -484,7 +486,7 @@ Nando Dessena
             </Property>
             <Property name="CopyToSource" type="TEmailAddressSource">asSpecify</Property>
             <Property MultiValue="0" name="CopyToVariable" type="string"></Property>
-            <Property name="Enabled" type="Boolean">False</Property>
+            <Property name="Enabled" type="Boolean">True</Property>
             <Property name="EnableTimeout" type="Boolean">False</Property>
             <Property MultiValue="0" name="Encoding" type="string">UTF-8</Property>
             <Property MultiValue="0" name="EncryptedPassword" type="string">o2hrAltDb5k=</Property>
