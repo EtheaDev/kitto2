@@ -241,6 +241,7 @@ begin
   try
     LViewBuilder.Assign(ANode);
     Result := LViewBuilder.BuildView;
+    AfterCreateObject(Result);
   finally
     FreeAndNil(LViewBuilder);
   end;

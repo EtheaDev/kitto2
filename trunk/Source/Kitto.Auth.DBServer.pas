@@ -58,7 +58,7 @@ uses
 function TKDBServerAuthenticator.InternalAuthenticate(const AAuthData: TEFNode): Boolean;
 begin
   try
-    TKConfig.Instance.MainDBConnection.Open;
+    TKConfig.Instance.DefaultDBConnection.Open;
     Result := True;
   except
     Result := False;

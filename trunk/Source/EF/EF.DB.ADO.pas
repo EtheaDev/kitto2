@@ -201,10 +201,18 @@ begin
 end;
 
 procedure TEFDBADOConnection.InternalOpen;
+var
+  LConnectionString: string;
 begin
   if not FConnection.Connected then
   begin
-    FConnection.ConnectionString := Config.GetExpandedString('Connection/ConnectionString');
+    // Use a ConnectionString if specified, otherwise build one by concatenating
+    // child nodes as other database providers do.
+    LConnectionString := Config.GetExpandedString('Connection/ConnectionString');
+    if LConnectionString <> '' then
+      FConnection.ConnectionString := LConnectionString
+     else
+      FConnection.ConnectionString := Config.GetChildrenAsExpandedStrings('Connection', ';');
     { TODO : implement setting object properties from EF tree nodes via RTTI }
     //Config.SetObjectProperties(FConnection, 'InternalConnection');
     FConnection.Open;

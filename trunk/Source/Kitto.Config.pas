@@ -42,7 +42,6 @@ type
     FInstance: TKConfig;
     FResourcePathsURLs: TDictionary<string, string>;
     FSystemHomePath: string;
-    function GetMainDBName: string;
     function GetDBConnectionNames: TStringDynArray;
   var
     FDBConnections: TDictionary<string, TEFDBConnection>;
@@ -65,14 +64,16 @@ type
     function GetAC: TKAccessController;
     function GetDBConnection(const ADatabaseName: string): TEFDBConnection;
     function GetAuthenticator: TKAuthenticator;
-    function GetMainDBConnection: TEFDBConnection;
+    function GetDefaultDBConnection: TEFDBConnection;
     function GetDBAdapter(const ADatabaseName: string): TEFDBAdapter;
     function GetMacroExpansionEngine: TEFMacroExpansionEngine;
     function GetAppTitle: string;
     function GetModels: TKModels;
     function GetViews: TKViews;
     procedure FinalizeDBConnections;
-  strict protected
+  strict
+  private
+    function GetDefaultDBName: string; protected
     function GetConfigFileName: string; override;
     class function FindSystemHomePath: string;
   public
@@ -193,15 +194,17 @@ type
     ///	access.</summary>
     property Views: TKViews read GetViews;
 
-    const MAIN_DB_NAME = 'Main';
+    ///	<summary>Returns the default DB name, which can be configured through
+    ///	the DefaultDatabaseName config property. Default is 'Main'.</summary>
+    property DefaultDBName: string read GetDefaultDBName;
 
-    ///	<summary>Gives access to the Main database connection, created on
+    ///	<summary>Gives access to the default database connection, created on
     ///	demand.</summary>
-    property MainDBConnection: TEFDBConnection read GetMainDBConnection;
+    property DefaultDBConnection: TEFDBConnection read GetDefaultDBConnection;
 
     ///	<summary>Returns True if the Main database connection has been created.
     /// </summary>
-    function HasMainDBConnection: Boolean;
+    function HasDefaultDBConnection: Boolean;
 
     ///	<summary>Gives access to a database connection by name, created on
     ///	demand.</summary>
@@ -332,14 +335,9 @@ begin
   Result := GetAccessGrantValue(AResourceURI, AMode, Null) = ACV_TRUE;
 end;
 
-function TKConfig.GetMainDBConnection: TEFDBConnection;
+function TKConfig.GetDefaultDBConnection: TEFDBConnection;
 begin
-  Result := GetDBConnection(GetMainDBName);
-end;
-
-function TKConfig.GetMainDBName: string;
-begin
-  Result := MAIN_DB_NAME;
+  Result := GetDBConnection(GetDefaultDBName);
 end;
 
 function TKConfig.GetDBConnection(const ADatabaseName: string): TEFDBConnection;
@@ -368,6 +366,11 @@ begin
     Result := LNode.GetChildNames
   else
     Result := nil;
+end;
+
+function TKConfig.GetDefaultDBName: string;
+begin
+  Result := Config.GetExpandedString('DefaultDatabaseName', 'Main');
 end;
 
 function TKConfig.GetDBAdapter(const ADatabaseName: string): TEFDBAdapter;
@@ -475,9 +478,9 @@ begin
   Result := FViews;
 end;
 
-function TKConfig.HasMainDBConnection: Boolean;
+function TKConfig.HasDefaultDBConnection: Boolean;
 begin
-  Result := FDBConnections.ContainsKey(MAIN_DB_NAME);
+  Result := FDBConnections.ContainsKey(DefaultDBName);
 end;
 
 procedure TKConfig.CheckAccessGranted(const AResourceURI, AMode: string);
