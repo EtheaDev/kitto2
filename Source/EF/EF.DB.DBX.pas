@@ -382,8 +382,8 @@ procedure TEFDBDBXConnection.InternalOpen;
 begin
   if not FConnection.Connected then
   begin
-    // Explicitly setting DriverName and ConnectionName should enable DBX's
-    // re-reading of the params. Only setting those does not suffice.
+    // Explicitly setting DriverName and ConnectionName should force DBX to
+    // re-read the params. Just setting Params is not enough.
     FConnection.ConnectionName := Config.GetExpandedString('Connection/ConnectionName');
     FConnection.DriverName := Config.GetExpandedString('Connection/DriverName');
     FConnection.Params.Text := Config.GetChildrenAsExpandedStrings('Connection');

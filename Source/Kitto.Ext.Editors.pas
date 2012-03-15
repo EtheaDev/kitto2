@@ -702,7 +702,7 @@ begin
         else
         begin
           LComboBox.Mode := 'local';
-          LComboBox.StoreArray := LComboBox.JSArray(DataSetToJSON(Session.Config.MainDBConnection, LLookupCommandText));
+          LComboBox.StoreArray := LComboBox.JSArray(DataSetToJSON(Session.Config.DefaultDBConnection, LLookupCommandText));
         end;
       end;
       if not AIsReadOnly then
@@ -1522,7 +1522,7 @@ var
 begin
   Assert(Assigned(FServerStore));
 
-  FServerStore.Load(Session.Config.MainDBConnection,
+  FServerStore.Load(Session.Config.DefaultDBConnection,
     ReplaceStr(FLookupCommandText, '{query}', ReplaceStr(Session.Query['query'], '''', '''''')));
 
   LStart := Session.QueryAsInteger['start'];

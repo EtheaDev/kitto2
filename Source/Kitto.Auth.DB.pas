@@ -234,7 +234,7 @@ var
   LQuery: TEFDBQuery;
 begin
   Result := nil;
-  LQuery := TKConfig.Instance.MainDBConnection.CreateDBQuery;
+  LQuery := TKConfig.Instance.DefaultDBConnection.CreateDBQuery;
   try
     LQuery.CommandText := GetReadUserCommandText(AUserName);
     if LQuery.Params.Count <> 1 then
@@ -311,7 +311,7 @@ begin
 
   if LAfterAuthenticateCommandText <> '' then
   begin
-    LCommand := TKConfig.Instance.MainDBConnection.CreateDBCommand;
+    LCommand := TKConfig.Instance.DefaultDBConnection.CreateDBCommand;
     try
       LCommand.CommandText := LAfterAuthenticateCommandText;
       LCommand.Execute;
@@ -364,7 +364,7 @@ var
 begin
   Result := False;
 
-  LQuery := TKConfig.Instance.MainDBConnection.CreateDBQuery;
+  LQuery := TKConfig.Instance.DefaultDBConnection.CreateDBQuery;
   try
     LQuery.CommandText := GetReadUserCommandText(AUserName);
     if LQuery.Params.Count <> 1 then
@@ -416,7 +416,7 @@ begin
     LPasswordHash := GetStringHash(AValue);
 
   LCommandText := GetSetPasswordCommandText;
-  LCommand := TKConfig.Instance.MainDBConnection.CreateDBCommand;
+  LCommand := TKConfig.Instance.DefaultDBConnection.CreateDBCommand;
   try
     LCommand.CommandText := LCommandText;
     LCommand.Params.ParamByName('USER_NAME').AsString := UserName;

@@ -304,7 +304,7 @@ begin
   Assert(AGranteeId <> '');
   Assert(FReadPermissionsCommandText <> '');
 
-  LPermissionQuery := TKConfig.Instance.MainDBConnection.CreateDBQuery;
+  LPermissionQuery := TKConfig.Instance.DefaultDBConnection.CreateDBQuery;
   try
     LPermissionQuery.CommandText := FReadPermissionsCommandText;
     LPermissionQuery.Params[0].AsString := AGranteeId;
@@ -364,7 +364,7 @@ begin
   Assert(Assigned(ARoleList));
   Assert(FReadRolesCommandText <> '');
 
-  LRoleQuery := TKConfig.Instance.MainDBConnection.CreateDBQuery;
+  LRoleQuery := TKConfig.Instance.DefaultDBConnection.CreateDBQuery;
   try
     LRoleQuery.CommandText := FReadRolesCommandText;
     LRoleQuery.Params[0].AsString := AUserId;

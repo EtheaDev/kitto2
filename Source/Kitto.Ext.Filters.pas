@@ -457,7 +457,7 @@ begin
   AutoSelect := False;
   ForceSelection := True;
   Mode := 'local';
-  LDBQuery := Session.Config.MainDBConnection.CreateDBQuery;
+  LDBQuery := Session.Config.DefaultDBConnection.CreateDBQuery;
   try
     LDBQuery.CommandText := FConfig.GetExpandedString('CommandText');
     LDBQuery.Open;

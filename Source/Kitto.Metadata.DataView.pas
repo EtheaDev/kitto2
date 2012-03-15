@@ -1000,7 +1000,7 @@ begin
       for LDerivedField in LDerivedFields do
         Result.Header.AddChild(LDerivedField.AliasedName).DataType := LDerivedField.DataType;
     // Get data.
-    LDBQuery := TKConfig.Instance.MainDBConnection.CreateDBQuery;
+    LDBQuery := TKConfig.Instance.DefaultDBConnection.CreateDBQuery;
     try
       TKSQLBuilder.BuildDerivedSelectQuery(Self, LDBQuery, AKeyValues);
       Result.Load(LDBQuery);
@@ -1418,15 +1418,15 @@ var
   I: Integer;
 begin
   if AUseTransaction then
-    TKConfig.Instance.MainDBConnection.StartTransaction;
+    TKConfig.Instance.DefaultDBConnection.StartTransaction;
   try
     for I := 0 to RecordCount - 1 do
       Records[I].Save(False);
     if AUseTransaction then
-      TKConfig.Instance.MainDBConnection.CommitTransaction;
+      TKConfig.Instance.DefaultDBConnection.CommitTransaction;
   except
     if AUseTransaction then
-      TKConfig.Instance.MainDBConnection.RollbackTransaction;
+      TKConfig.Instance.DefaultDBConnection.RollbackTransaction;
     raise;
   end;
 end;
@@ -1484,7 +1484,7 @@ var
 begin
   Assert(Assigned(FViewTable));
 
-  LDBQuery := TKConfig.Instance.MainDBConnection.CreateDBQuery;
+  LDBQuery := TKConfig.Instance.DefaultDBConnection.CreateDBQuery;
   try
     TKSQLBuilder.BuildSelectQuery(FViewTable, AFilter, AOrderBy, LDBQuery, FMasterRecord);
     inherited Load(LDBQuery);
@@ -1505,7 +1505,7 @@ begin
   end
   else
   begin
-    LDBQuery := TKConfig.Instance.MainDBConnection.CreateDBQuery;
+    LDBQuery := TKConfig.Instance.DefaultDBConnection.CreateDBQuery;
     try
       TKSQLBuilder.BuildCountQuery(FViewTable, AFilter, LDBQuery, FMasterRecord);
       LDBQuery.Open;
@@ -1706,9 +1706,9 @@ begin
 
   // BEFORE rules are applied before calling this method.
   if AUseTransaction then
-    TKConfig.Instance.MainDBConnection.StartTransaction;
+    TKConfig.Instance.DefaultDBConnection.StartTransaction;
   try
-    LDBCommand := TKConfig.Instance.MainDBConnection.CreateDBCommand;
+    LDBCommand := TKConfig.Instance.DefaultDBConnection.CreateDBCommand;
     try
       case State of
         rsNew: TKSQLBuilder.BuildInsertCommand(Records.Store.ViewTable, LDBCommand, Self);
@@ -1725,14 +1725,14 @@ begin
         DetailStores[I].Save(False);
       ApplyAfterRules;
       if AUseTransaction then
-        TKConfig.Instance.MainDBConnection.CommitTransaction;
+        TKConfig.Instance.DefaultDBConnection.CommitTransaction;
       MarkAsClean;
     finally
       FreeAndNil(LDBCommand);
     end;
   except
     if AUseTransaction then
-      TKConfig.Instance.MainDBConnection.RollbackTransaction;
+      TKConfig.Instance.DefaultDBConnection.RollbackTransaction;
     raise;
   end;
 end;
