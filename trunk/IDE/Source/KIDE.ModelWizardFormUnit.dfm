@@ -17,6 +17,189 @@ inherited ModelWizardForm: TModelWizardForm
     ExplicitTop = 21
     ExplicitWidth = 511
     ExplicitHeight = 321
+    object OptionsTabSheet: TTabSheet
+      Caption = 'OptionsTabSheet'
+      ImageIndex = 2
+      TabVisible = False
+      object OptionsSplitter: TSplitter
+        Left = 237
+        Top = 0
+        Height = 311
+        Align = alRight
+        AutoSnap = False
+        MinSize = 100
+        ResizeStyle = rsUpdate
+        ExplicitLeft = 392
+        ExplicitTop = 80
+        ExplicitHeight = 100
+      end
+      object OptionsLeftPanel: TPanel
+        Left = 0
+        Top = 0
+        Width = 237
+        Height = 311
+        Align = alClient
+        BevelOuter = bvNone
+        TabOrder = 0
+        object ModelsLabel: TLabel
+          Left = 0
+          Top = 0
+          Width = 237
+          Height = 13
+          Align = alTop
+          Caption = 'Models to update'
+          ExplicitWidth = 83
+        end
+        object ModelsListView: TListView
+          Left = 0
+          Top = 13
+          Width = 237
+          Height = 278
+          Align = alClient
+          Checkboxes = True
+          Columns = <>
+          DoubleBuffered = True
+          MultiSelect = True
+          ParentDoubleBuffered = False
+          SortType = stText
+          TabOrder = 0
+          ViewStyle = vsList
+          OnChange = ModelsListViewChange
+          OnResize = ModelsListViewResize
+        end
+        object ModelsSelectCheckBox: TCheckBox
+          Left = 0
+          Top = 291
+          Width = 237
+          Height = 20
+          Align = alBottom
+          Caption = 'Select/Deselect All'
+          TabOrder = 1
+          OnClick = ModelsSelectCheckBoxClick
+        end
+      end
+      object OptionsRightPanel: TPanel
+        Left = 240
+        Top = 0
+        Width = 263
+        Height = 311
+        Align = alRight
+        BevelOuter = bvNone
+        TabOrder = 1
+        DesignSize = (
+          263
+          311)
+        object OptionsLabel: TLabel
+          AlignWithMargins = True
+          Left = 5
+          Top = 0
+          Width = 258
+          Height = 13
+          Margins.Left = 5
+          Margins.Top = 0
+          Margins.Right = 0
+          Margins.Bottom = 0
+          Align = alTop
+          Caption = 'Update options'
+          ExplicitWidth = 73
+        end
+        object ModelNameFilterEdit: TEdit
+          Left = 20
+          Top = 47
+          Width = 237
+          Height = 21
+          Hint = 
+            'Enter name filter patterns separated by spaces. Use * to add all' +
+            ' new models'
+          Anchors = [akLeft, akTop, akRight]
+          TabOrder = 1
+          OnChange = OptionsChange
+        end
+        object AddModelsCheckBox: TCheckBox
+          Left = 6
+          Top = 24
+          Width = 251
+          Height = 17
+          Anchors = [akLeft, akTop, akRight]
+          Caption = 'Add New Models'
+          TabOrder = 0
+          OnClick = OptionsChange
+        end
+        object DeleteModelsCheckBox: TCheckBox
+          Left = 6
+          Top = 98
+          Width = 251
+          Height = 17
+          Anchors = [akLeft, akTop, akRight]
+          Caption = 'Delete Not Existing Models'
+          TabOrder = 3
+          OnClick = OptionsChange
+        end
+        object DeleteFieldsCheckBox: TCheckBox
+          Left = 6
+          Top = 121
+          Width = 251
+          Height = 17
+          Anchors = [akLeft, akTop, akRight]
+          Caption = 'Delete Not Existing ModelFields'
+          TabOrder = 4
+          OnClick = OptionsChange
+        end
+        object UpdateModelsCheckBox: TCheckBox
+          Left = 6
+          Top = 74
+          Width = 251
+          Height = 17
+          Anchors = [akLeft, akTop, akRight]
+          Caption = 'Update Existing Models'
+          TabOrder = 2
+          OnClick = OptionsChange
+        end
+        object DeleteReferencesCheckBox: TCheckBox
+          Left = 6
+          Top = 144
+          Width = 251
+          Height = 17
+          Anchors = [akLeft, akTop, akRight]
+          Caption = 'Delete Not Existing References'
+          TabOrder = 5
+          OnClick = OptionsChange
+        end
+        object AddDetailsCheckBox: TCheckBox
+          Left = 6
+          Top = 167
+          Width = 251
+          Height = 17
+          Anchors = [akLeft, akTop, akRight]
+          Caption = 'Add Detail Relationships'
+          TabOrder = 6
+          OnClick = OptionsChange
+        end
+        object DetailNameFilterEdit: TEdit
+          Left = 20
+          Top = 190
+          Width = 237
+          Height = 21
+          Hint = 
+            'Enter name filter patterns separated by spaces. * treats all for' +
+            'eign keys as detail relationships, * treats all foreign keys as ' +
+            'lookup relationships'
+          Anchors = [akLeft, akTop, akRight]
+          TabOrder = 7
+          OnChange = OptionsChange
+        end
+        object DeleteDetailsCheckBox: TCheckBox
+          Left = 6
+          Top = 217
+          Width = 251
+          Height = 17
+          Anchors = [akLeft, akTop, akRight]
+          Caption = 'Delete Not Existing Detail References'
+          TabOrder = 8
+          OnClick = OptionsChange
+        end
+      end
+    end
     object DatabaseTabSheet: TTabSheet
       Caption = 'DatabaseTabSheet'
       TabVisible = False
@@ -79,7 +262,7 @@ inherited ModelWizardForm: TModelWizardForm
         end
         inherited ImageList: TImageList
           Bitmap = {
-            494C010101000800380020002000FFFFFFFF2110FFFFFFFFFFFFFFFF424D3600
+            494C0101010008003C0020002000FFFFFFFF2110FFFFFFFFFFFFFFFF424D3600
             0000000000003600000028000000800000002000000001002000000000000040
             0000000000000000000000000000000000000000000000000000000000000000
             0000000000000000000000000000000000000000000000000000000000000000
@@ -616,189 +799,6 @@ inherited ModelWizardForm: TModelWizardForm
         end
       end
     end
-    object OptionsTabSheet: TTabSheet
-      Caption = 'OptionsTabSheet'
-      ImageIndex = 2
-      TabVisible = False
-      object OptionsSplitter: TSplitter
-        Left = 237
-        Top = 0
-        Height = 311
-        Align = alRight
-        AutoSnap = False
-        MinSize = 100
-        ResizeStyle = rsUpdate
-        ExplicitLeft = 392
-        ExplicitTop = 80
-        ExplicitHeight = 100
-      end
-      object OptionsLeftPanel: TPanel
-        Left = 0
-        Top = 0
-        Width = 237
-        Height = 311
-        Align = alClient
-        BevelOuter = bvNone
-        TabOrder = 0
-        object ModelsLabel: TLabel
-          Left = 0
-          Top = 0
-          Width = 237
-          Height = 13
-          Align = alTop
-          Caption = 'Models to update'
-          ExplicitWidth = 83
-        end
-        object ModelsListView: TListView
-          Left = 0
-          Top = 13
-          Width = 237
-          Height = 278
-          Align = alClient
-          Checkboxes = True
-          Columns = <>
-          DoubleBuffered = True
-          MultiSelect = True
-          ParentDoubleBuffered = False
-          SortType = stText
-          TabOrder = 0
-          ViewStyle = vsList
-          OnChange = ModelsListViewChange
-          OnResize = ModelsListViewResize
-        end
-        object ModelsSelectCheckBox: TCheckBox
-          Left = 0
-          Top = 291
-          Width = 237
-          Height = 20
-          Align = alBottom
-          Caption = 'Select/Deselect All'
-          TabOrder = 1
-          OnClick = ModelsSelectCheckBoxClick
-        end
-      end
-      object OptionsRightPanel: TPanel
-        Left = 240
-        Top = 0
-        Width = 263
-        Height = 311
-        Align = alRight
-        BevelOuter = bvNone
-        TabOrder = 1
-        DesignSize = (
-          263
-          311)
-        object OptionsLabel: TLabel
-          AlignWithMargins = True
-          Left = 5
-          Top = 0
-          Width = 258
-          Height = 13
-          Margins.Left = 5
-          Margins.Top = 0
-          Margins.Right = 0
-          Margins.Bottom = 0
-          Align = alTop
-          Caption = 'Update options'
-          ExplicitWidth = 73
-        end
-        object ModelNameFilterEdit: TEdit
-          Left = 20
-          Top = 47
-          Width = 237
-          Height = 21
-          Hint = 
-            'Enter name filter patterns separated by spaces. Use * to add all' +
-            ' new models'
-          Anchors = [akLeft, akTop, akRight]
-          TabOrder = 1
-          OnChange = OptionsChange
-        end
-        object AddModelsCheckBox: TCheckBox
-          Left = 6
-          Top = 24
-          Width = 251
-          Height = 17
-          Anchors = [akLeft, akTop, akRight]
-          Caption = 'Add New Models'
-          TabOrder = 0
-          OnClick = OptionsChange
-        end
-        object DeleteModelsCheckBox: TCheckBox
-          Left = 6
-          Top = 98
-          Width = 251
-          Height = 17
-          Anchors = [akLeft, akTop, akRight]
-          Caption = 'Delete Not Existing Models'
-          TabOrder = 3
-          OnClick = OptionsChange
-        end
-        object DeleteFieldsCheckBox: TCheckBox
-          Left = 6
-          Top = 121
-          Width = 251
-          Height = 17
-          Anchors = [akLeft, akTop, akRight]
-          Caption = 'Delete Not Existing ModelFields'
-          TabOrder = 4
-          OnClick = OptionsChange
-        end
-        object UpdateModelsCheckBox: TCheckBox
-          Left = 6
-          Top = 74
-          Width = 251
-          Height = 17
-          Anchors = [akLeft, akTop, akRight]
-          Caption = 'Update Existing Models'
-          TabOrder = 2
-          OnClick = OptionsChange
-        end
-        object DeleteReferencesCheckBox: TCheckBox
-          Left = 6
-          Top = 144
-          Width = 251
-          Height = 17
-          Anchors = [akLeft, akTop, akRight]
-          Caption = 'Delete Not Existing References'
-          TabOrder = 5
-          OnClick = OptionsChange
-        end
-        object AddDetailsCheckBox: TCheckBox
-          Left = 6
-          Top = 167
-          Width = 251
-          Height = 17
-          Anchors = [akLeft, akTop, akRight]
-          Caption = 'Add Detail Relationships'
-          TabOrder = 6
-          OnClick = OptionsChange
-        end
-        object DetailNameFilterEdit: TEdit
-          Left = 20
-          Top = 190
-          Width = 237
-          Height = 21
-          Hint = 
-            'Enter name filter patterns separated by spaces. * treats all for' +
-            'eign keys as detail relationships, * treats all foreign keys as ' +
-            'lookup relationships'
-          Anchors = [akLeft, akTop, akRight]
-          TabOrder = 7
-          OnChange = OptionsChange
-        end
-        object DeleteDetailsCheckBox: TCheckBox
-          Left = 6
-          Top = 217
-          Width = 251
-          Height = 17
-          Anchors = [akLeft, akTop, akRight]
-          Caption = 'Delete Not Existing Detail References'
-          TabOrder = 8
-          OnClick = OptionsChange
-        end
-      end
-    end
     object SelectTabSheet: TTabSheet
       Caption = 'SelectTabSheet'
       ImageIndex = 1
@@ -868,10 +868,6 @@ inherited ModelWizardForm: TModelWizardForm
           Align = alClient
           BevelOuter = bvNone
           TabOrder = 0
-          ExplicitLeft = 24
-          ExplicitTop = 104
-          ExplicitWidth = 185
-          ExplicitHeight = 41
         end
       end
     end
@@ -936,7 +932,7 @@ inherited ModelWizardForm: TModelWizardForm
     Left = 320
     Top = 264
     Bitmap = {
-      494C010111007800F40010001000FFFFFFFF2110FFFFFFFFFFFFFFFF424D3600
+      494C010111007800F80010001000FFFFFFFF2110FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000005000000001002000000000000050
       0000000000000000000000000000000000000000002300000033000000330000
       00330000003300000033000000330000003300000033000000330000005C0000

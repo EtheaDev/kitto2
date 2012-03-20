@@ -21,15 +21,23 @@ unit Kitto.Metadata.ViewBuilders;
 interface
 
 uses
-  Kitto.Metadata.Models, Kitto.Metadata.Views;
+  EF.Tree,
+  Kitto.Metadata.Models, Kitto.Metadata.Views, Kitto.Metadata.DataView;
 
 type
   TKAutoViewBuilderBase = class(TKViewBuilder)
+  private
+    function BuildSearchString(const AFields: TKViewFields): string;
+    procedure AddFields(const AViewTable: TKViewTable; const AModel: TKModel);
+    procedure AddDetailTables(const AViewTable: TKViewTable;
+      const AModel: TKModel);
   protected
     function GetControllerType: string; virtual; abstract;
     function GetModel: TKModel;
   public
-    function BuildView: TKView; override;
+    function BuildView(const AViews: TKViews;
+      const APersistentName: string = '';
+      const ANode: TEFNode = nil): TKView; override;
   end;
 
   TKAutoListViewBuilder = class(TKAutoViewBuilderBase)
@@ -46,45 +54,157 @@ implementation
 
 uses
   SysUtils,
-  EF.Tree,
-  Kitto.Config, Kitto.Metadata.DataView;
+  EF.Localization,
+  Kitto.Config;
 
 { TKAutoViewBuilderBase }
 
-function TKAutoViewBuilderBase.BuildView: TKView;
+procedure TKAutoViewBuilderBase.AddFields(const AViewTable: TKViewTable;
+  const AModel: TKModel);
+var
+  LFields: TKViewFields;
+  I: Integer;
+  LField: TKModelField;
+  LViewField: TKViewField;
+begin
+  Assert(Assigned(AViewTable));
+  Assert(Assigned(AModel));
+
+  LFields := AViewTable.AddChild(TKViewFields.Create('Fields')) as TKViewFields;
+  for I := 0 to AModel.FieldCount - 1 do
+  begin
+    LField := AModel.Fields[I];
+
+    LViewField := TKViewField.Create;
+    try
+      if LField.IsReference and not Assigned(LField.ReferencedModel.FindDetailReferenceByField(LField)) then
+      begin
+        // Add caption field of referenced model.
+        LViewField.Rename(LField.ReferencedModel.ModelName + '.' +
+          LField.ReferencedModel.CaptionField.FieldName);
+        // AsString is the alias name.
+        LViewField.AsString := LField.ReferencedModel.ModelName;
+      end
+      else
+      begin
+        // Add plain field.
+        LViewField.Rename(LField.FieldName);
+      end;
+      LFields.AddChild(LViewField);
+    except
+      FreeAndNil(LViewField);
+      raise;
+    end;
+  end;
+end;
+
+procedure TKAutoViewBuilderBase.AddDetailTables(const AViewTable: TKViewTable;
+  const AModel: TKModel);
+var
+  I: Integer;
+  LDetailTable: TKViewTable;
+begin
+  Assert(Assigned(AViewTable));
+  Assert(Assigned(AModel));
+
+  for I := 0 to AModel.DetailReferenceCount - 1 do
+  begin
+    LDetailTable := TKViewTable.Create;
+    try
+      LDetailTable.SetString('Model', AModel.DetailReferences[I].DetailModel.ModelName);
+      AViewTable.AddDetailTable(LDetailTable);
+      AddFields(LDetailTable, LDetailTable.Model);
+      AddDetailTables(LDetailTable, LDetailTable.Model);
+    except
+      FreeAndNil(LDetailTable);
+    end;
+  end;
+end;
+
+function TKAutoViewBuilderBase.BuildView(const AViews: TKViews;
+  const APersistentName: string; const ANode: TEFNode): TKView;
 var
   LMainTable: TKViewTable;
   LMainTableController: TEFNode;
+  LModel: TKModel;
+  I: Integer;
+  LFilters: TEFNode;
+  LFilterItems: TEFNode;
+  LSearchItem: TEFNode;
+  LDetailTable: TKViewTable;
+  LSourceControllerNode: TEFNode;
+  LSourceMainTableControllerNode: TEFNode;
 begin
-  GetModel;
+  inherited;
+  LModel := GetModel;
   Result := TKDataView.Create;
   try
-    Result.AddChild(TEFNode.Clone(FindNode('Controller')));
+    Result.SetString('Type', 'Data');
+    if APersistentName <> '' then
+    begin
+      Result.PersistentName := APersistentName;
+      AViews.AddObject(Result);
+    end
+    else if ANode <> nil then
+      AViews.AddNonpersistentObject(Result, ANode);
+    LSourceControllerNode := FindNode('Controller');
+    if Assigned(LSourceControllerNode) then
+      Result.AddChild(TEFNode.Clone(LSourceControllerNode));
     //Result.SetString('DisplayLabel', LModel.PluralDisplayLabel);
     Result.SetString('Controller', GetControllerType);
 
     LMainTable := Result.AddChild(TKViewTable.Create('MainTable')) as TKViewTable;
-    LMainTable.SetString('Model', GetString('Model'));
-    LMainTable.AddChild(TKViewFields.Create('Fields'));
-    { TODO :
-add all model fields, plus a lookup to the default field of each
-reference that is not to a master record. The default field is
-configured, or is the first non-key field by default. }
-    LMainTableController := LMainTable.AddChild(TEFNode.Clone(FindNode('MainTable/Controller')));
-{ TODO :
-don't set this when the controller has learned to query the model
-for cardinality estimate. }
-    LMainTableController.SetBoolean('PagingTools', True);
-{ TODO : create default filtering options based on model metadata }
+    LMainTable.SetString('Model', LModel.ModelName);
+    AddFields(LMainTable, LModel);
+    AddDetailTables(LMainTable, LModel);
+
+    LSourceMainTableControllerNode := FindNode('MainTable/Controller');
+    if Assigned(LSourceMainTableControllerNode) then
+      LMainTableController := LMainTable.AddChild(TEFNode.Clone(LSourceMainTableControllerNode))
+    else
+      LMainTableController := LMainTable.AddChild('Controller');
+
+    LFilters := LMainTableController.AddChild('Filters');
+    LFilters.SetString('DisplayLabel', _(Format('Search %s', [LModel.PluralDisplayLabel])));
+    LFilterItems := LFilters.AddChild('Items');
+    LSearchItem := LFilterItems.AddChild('FreeSearch', _('Free Search'));
+    LSearchItem.SetString('ExpressionTemplate', BuildSearchString(
+      LMainTable.ChildByName('Fields') as TKViewFields));
   except
+    if APersistentName <> '' then
+      AViews.DeleteObject(Result)
+    else if ANode <> nil then
+      AViews.DeleteNonpersistentObject(ANode);
     FreeAndNil(Result);
     raise;
   end;
 end;
 
+function TKAutoViewBuilderBase.BuildSearchString(const AFields: TKViewFields): string;
+var
+  I: Integer;
+begin
+  Assert(Assigned(AFields));
+
+  Result := '';
+  for I := 0 to AFields.FieldCount - 1 do
+  begin
+    if AFields[I].IsVisible and AFields[I].DataType.IsText then
+    begin
+      if Result = '' then
+        Result := '(' + AFields[I].QualifiedDBName + ' like ''%{value}%'')'
+      else
+        Result := Result + ' or (' + AFields[I].QualifiedDBName + ' like ''%{value}%'')';
+    end;
+  end;
+end;
+
 function TKAutoViewBuilderBase.GetModel: TKModel;
 begin
-  Result := TKConfig.Instance.Models.ModelByName(GetString('Model'));
+  Assert(Assigned(Views));
+  Assert(Assigned(Views.Models));
+
+  Result := Views.Models.ModelByName(GetString('Model'));
 end;
 
 { TKAutoListViewBuilder }

@@ -20,7 +20,6 @@ type
     procedure RefreshConfig;
     class procedure SetCurrentProject(const AValue: TProject); static;
     function GetSourceDirectory: string;
-    function GetMRUKeyName: string;
     class procedure ApplyProjectTemplate(const ATemplateName,
       AProjectFileName: string); static;
   public
@@ -33,6 +32,7 @@ type
     destructor Destroy; override;
 
     property FileName: string read FFileName;
+    function GetMRUKeyName: string;
 
     property Directory: string read GetDirectory;
     property SourceDirectory: string read GetSourceDirectory;
@@ -43,15 +43,15 @@ type
     function GetResourcesPath: string;
 
     // Project-scoped MRUs.
-    procedure StoreString(const AKey, AValue: string);
-    procedure StoreInteger(const AKey: string; const AValue: Integer);
-    procedure StoreBoolean(const AKey: string; const AValue: Boolean);
+    procedure StoreMRUString(const AKey, AValue: string);
+    procedure StoreMRUInteger(const AKey: string; const AValue: Integer);
+    procedure StoreMRUBoolean(const AKey: string; const AValue: Boolean);
     procedure StoreMRUItem(const AKey, AValue: string);
-    procedure StoreStrings(const AKey: string; const AStrings: TStrings);
+    procedure StoreMRUStrings(const AKey: string; const AStrings: TStrings);
 
-    procedure RetrieveStrings(const AKey: string; const AStrings: TStrings);
-    function RetrieveString(const AKey: string; const ADefault: string = ''): string;
-    function RetrieveBoolean(const AKey: string; const ADefault: Boolean = False): Boolean;
+    procedure RetrieveMRUStrings(const AKey: string; const AStrings: TStrings);
+    function RetrieveMRUString(const AKey: string; const ADefault: string = ''): string;
+    function RetrieveMRUBoolean(const AKey: string; const ADefault: Boolean = False): Boolean;
   end;
 
 implementation
@@ -149,18 +149,18 @@ begin
   FConfig := TProjectConfig.Create;
 end;
 
-function TProject.RetrieveBoolean(const AKey: string;
+function TProject.RetrieveMRUBoolean(const AKey: string;
   const ADefault: Boolean): Boolean;
 begin
   Result := TMRUOptions.Instance.GetBoolean(GetMRUKeyName + '/' + AKey, ADefault);
 end;
 
-function TProject.RetrieveString(const AKey, ADefault: string): string;
+function TProject.RetrieveMRUString(const AKey, ADefault: string): string;
 begin
   Result := TMRUOptions.Instance.GetString(GetMRUKeyName + '/' + AKey, ADefault);
 end;
 
-procedure TProject.RetrieveStrings(const AKey: string;
+procedure TProject.RetrieveMRUStrings(const AKey: string;
   const AStrings: TStrings);
 begin
   TMRUOptions.Instance.GetChildrenAsStrings(GetMRUKeyName + '/' + AKey, AStrings);
@@ -172,7 +172,7 @@ begin
   FCurrentProject := AValue;
 end;
 
-procedure TProject.StoreInteger(const AKey: string; const AValue: Integer);
+procedure TProject.StoreMRUInteger(const AKey: string; const AValue: Integer);
 begin
   TMRUOptions.Instance.StoreInteger(GetMRUKeyName + '/' + AKey, AValue);
 end;
@@ -182,17 +182,17 @@ begin
   TMRUOptions.Instance.StoreMRUItem(GetMRUKeyName + '/' + AKey, AValue);
 end;
 
-procedure TProject.StoreString(const AKey, AValue: string);
+procedure TProject.StoreMRUString(const AKey, AValue: string);
 begin
   TMRUOptions.Instance.StoreString(GetMRUKeyName + '/' + AKey, AValue);
 end;
 
-procedure TProject.StoreBoolean(const AKey: string; const AValue: Boolean);
+procedure TProject.StoreMRUBoolean(const AKey: string; const AValue: Boolean);
 begin
   TMRUOptions.Instance.StoreBoolean(GetMRUKeyName + '/' + AKey, AValue);
 end;
 
-procedure TProject.StoreStrings(const AKey: string; const AStrings: TStrings);
+procedure TProject.StoreMRUStrings(const AKey: string; const AStrings: TStrings);
 begin
   TMRUOptions.Instance.SetChildrenAsStrings(GetMRUKeyName + '/' + AKey, AStrings);
   TMRUOptions.Instance.Save;

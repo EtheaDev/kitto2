@@ -141,8 +141,18 @@ type
   end;
 
   TKViewBuilder = class(TKMetadata)
+  strict private
+    FViews: TKViews;
+  private
+    FPersistentName: string;
+    FNode: TEFNode;
+  strict protected
+    property Views: TKViews read FViews;
+    property PersistentName: string read FPersistentName;
   public
-    function BuildView: TKView; virtual; abstract;
+    function BuildView(const AViews: TKViews;
+      const APersistentName: string = '';
+      const ANode: TEFNode = nil): TKView; virtual;
   end;
 
   TKViewBuilderClass = class of TKViewBuilder;
@@ -221,7 +231,6 @@ begin
         if SameText(LWords[0], 'Build') then
         begin
           Result := BuildView(ANode, LWords[1]);
-          AddNonpersistentObject(Result, ANode);
           Exit;
         end;
       end;
@@ -240,7 +249,7 @@ begin
   LViewBuilder := TKViewBuilderFactory.Instance.CreateObject(AViewBuilderName);
   try
     LViewBuilder.Assign(ANode);
-    Result := LViewBuilder.BuildView;
+    Result := LViewBuilder.BuildView(Self, '', ANode);
     AfterCreateObject(Result);
   finally
     FreeAndNil(LViewBuilder);
@@ -439,6 +448,20 @@ begin
   if FInstance = nil then
     FInstance := TKViewBuilderFactory.Create(TKViewBuilderRegistry.Instance);
   Result := FInstance;
+end;
+
+{ TKViewBuilder }
+
+function TKViewBuilder.BuildView(const AViews: TKViews;
+  const APersistentName: string; const ANode: TEFNode): TKView;
+begin
+  Assert(Assigned(AViews));
+  Assert(Assigned(AViews.Models));
+
+  FViews := AViews;
+  FPersistentName := APersistentName;
+  FNode := ANode;
+  Result := nil;
 end;
 
 initialization

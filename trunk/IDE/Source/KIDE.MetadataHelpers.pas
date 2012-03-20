@@ -3,8 +3,8 @@ unit KIDE.MetadataHelpers;
 interface
 
 uses
-  EF.Tree, EF.DB,
-  Kitto.Metadata.Models;
+  EF.DB,
+  Kitto.Metadata.Models, Kitto.Metadata.DataView;
 
 type
   TKModelHelper = class helper for TKModel
@@ -37,7 +37,6 @@ type
 
   TKModelDetailReferenceHelper = class helper for TKModelDetailReference
   public
-    procedure Rename(const AName: string);
     function EqualsForeignKeyInfo(const AForeignKeyInfo: TEFDBForeignKeyInfo): Boolean;
   end;
 
@@ -199,11 +198,6 @@ begin
   Result := False;
   if Assigned(AForeignKeyInfo) then
     Result := SameText(DBForeignKeyName, AForeignKeyInfo.Name);
-end;
-
-procedure TKModelDetailReferenceHelper.Rename(const AName: string);
-begin
-  inherited SetName(AName);
 end;
 
 end.

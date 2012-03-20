@@ -350,6 +350,8 @@ type
     function GetFields: TKViewFields;
     function GetDetailTables: TKViewTables;
   public
+    procedure BeforeSave; override;
+
     property ModelName: string read GetModelName;
 
     property ImageName: string read GetImageName;
@@ -406,6 +408,7 @@ type
     property DetailTableCount: Integer read GetDetailTableCount;
     property DetailTables[I: Integer]: TKViewTable read GetDetailTable;
     function DetailTableByName(const AName: string): TKViewTable;
+    procedure AddDetailTable(const AViewTable: TKViewTable);
 
     property View: TKDataView read GetView;
 
@@ -498,6 +501,13 @@ end;
 
 { TKViewTable }
 
+procedure TKViewTable.AddDetailTable(const AViewTable: TKViewTable);
+begin
+  Assert(Assigned(AViewTable));
+
+  GetDetailTables.AddChild(AViewTable);
+end;
+
 function TKViewTable.ApplyFieldAliasedName(const AFieldName: string): string;
 var
   LViewField: TKViewField;
@@ -545,6 +555,13 @@ begin
       end;
     end;
   end;
+end;
+
+procedure TKViewTable.BeforeSave;
+begin
+  inherited;
+  if DetailTableCount = 0 then
+    DeleteNode('DetailTables');
 end;
 
 function TKViewTable.CreateStore: TKViewTableStore;
@@ -600,7 +617,7 @@ begin
   Result := nil;
   if Assigned(MasterTable) then
   begin
-    Result := MasterTable.Model.FindDetailreferenceTo(Model);
+    Result := MasterTable.Model.FindDetailReferenceByModel(Model);
     if not Assigned(Result) and (ModelDetailReferenceName <> '') then
       Result := MasterTable.Model.FindDetailReference(ModelDetailReferenceName);
   end;

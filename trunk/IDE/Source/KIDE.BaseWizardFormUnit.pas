@@ -171,6 +171,8 @@ end;
 
 procedure TBaseWizardForm.FinishWizard;
 begin
+  BeforeLeavePage(PageControl.ActivePageIndex, -1, True);
+  AfterLeavePage(PageControl.ActivePageIndex, -1, True);
 end;
 
 procedure TBaseWizardForm.FormShow(Sender: TObject);

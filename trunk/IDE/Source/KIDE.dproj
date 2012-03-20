@@ -155,6 +155,11 @@
 			<DCCReference Include="KIDE.Process.pas"/>
 			<DCCReference Include="KIDE.ViewValidator.pas"/>
 			<DCCReference Include="KIDE.TreeValidator.pas"/>
+			<DCCReference Include="KIDE.DataViewWizardFormUnit.pas">
+				<Form>DataViewWizardForm</Form>
+				<FormType>dfm</FormType>
+			</DCCReference>
+			<DCCReference Include="KIDE.Config.pas"/>
 			<BuildConfiguration Include="Release">
 				<Key>Cfg_2</Key>
 				<CfgParent>Base</CfgParent>

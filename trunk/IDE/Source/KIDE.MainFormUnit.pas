@@ -25,13 +25,16 @@ type
   private
     FTreeNode: TFileTreeNode;
     FActionIndex: Integer;
-    procedure SetTreeNode(const AValue: TFileTreeNode);
-    procedure SetActionIndex(const AValue: Integer);
-    procedure RefreshActionProperties;
+    FHandlerList: TFileNodeHandlerList;
+    FRefreshProc: TProc;
+    procedure RefreshProperties;
   public
     constructor Create(AOwner: TComponent); override;
-    property TreeNode: TFileTreeNode read FTreeNode write SetTreeNode;
-    property ActionIndex: Integer read FActionIndex write SetActionIndex;
+    destructor Destroy; override;
+    procedure Setup(const ANode: TFileTreeNode; const AActionIndex: Integer;
+      const ASelection: TFileNodeHandlerList; const ARefreshProc: TProc);
+    property TreeNode: TFileTreeNode read FTreeNode;
+    property ActionIndex: Integer read FActionIndex;
     procedure Click; override;
   end;
 
@@ -108,6 +111,8 @@ type
     procedure ResourcesRefreshActionUpdate(Sender: TObject);
     procedure ResourcesRefreshActionExecute(Sender: TObject);
     procedure ValidateMetadataActionUpdate(Sender: TObject);
+    procedure BrowseTreeViewMouseDown(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
   private
     FLogEndpoint: TMainFormLogEndpoint;
     procedure RebuildRecentProjectsMenu;
@@ -124,6 +129,8 @@ type
     procedure RefreshBrowseTreeViews;
     procedure RefreshMetadataTreeView;
     procedure RefreshResourcesTreeView;
+    function GetSelectedFileTreeNodeList(
+      const ATreeView: TTreeView): TFileNodeHandlerList;
   public
     destructor Destroy; override;
     procedure Log(const AString: string);
@@ -246,6 +253,7 @@ procedure TMainForm.BrowseTreeViewDblClick(Sender: TObject);
 var
   LNode: TFileTreeNode;
   LMousePos: TPoint;
+  LList: TFileNodeHandlerList;
 begin
   LMousePos := (Sender as TTreeView).ScreenToClient(Mouse.CursorPos);
 
@@ -253,7 +261,12 @@ begin
   if Assigned(LNode) and (LNode.Count = 0) then
   begin
     (Sender as TTreeView).Selected := LNode;
-    LNode.DefaultAction;
+    LList := GetSelectedFileTreeNodeList(Sender as TTreeView);
+    try
+      LNode.ExecuteDefaultAction(LList);
+    finally
+      FreeAndNil(LList);
+    end;
   end;
 end;
 
@@ -276,8 +289,14 @@ begin
 end;
 
 procedure TMainForm.FormCreate(Sender: TObject);
+var
+  LWindowState: TWindowState;
 begin
-  WindowState := TWindowState(TMRUOptions.Instance.GetInteger('MainForm/WindowState', Ord(WindowState)));
+  LWindowState := TWindowState(TMRUOptions.Instance.GetInteger('MainForm/WindowState', Ord(WindowState)));
+  if LWindowState in [wsNormal, wsMaximized] then
+    WindowState := LWindowState
+  else
+    WindowState := wsNormal;
   BrowsePanel.Width := TMRUOptions.Instance.GetInteger('MainForm/BrowsePanel/Width', BrowsePanel.Width);
   if WindowState = wsNormal then
   begin
@@ -291,6 +310,13 @@ begin
 
   if (ParamCount = 1) and FileExists(ParamStr(1)) then
     DoOpenProject(ParamStr(1));
+end;
+
+procedure TMainForm.BrowseTreeViewMouseDown(Sender: TObject;
+  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+  if Button = mbRight then
+    (Sender as TTreeView).Selected := (Sender as TTreeView).GetNodeAt(X, Y);
 end;
 
 procedure TMainForm.ModelWizardActionExecute(Sender: TObject);
@@ -457,6 +483,22 @@ begin
   Result := ATreeView.Selected as TFileTreeNode;
 end;
 
+function TMainForm.GetSelectedFileTreeNodeList(const ATreeView: TTreeView): TFileNodeHandlerList;
+var
+  I: Integer;
+begin
+  Assert(Assigned(ATreeView));
+
+  Result := TFileNodeHandlerList.Create;
+  try
+    for I := 0 to ATreeView.SelectionCount - 1 do
+      Result.Add((ATreeView.Selections[I] as TFileTreeNode).Handler);
+  except
+    FreeAndNil(Result);
+    raise;
+  end;
+end;
+
 procedure TMainForm.Log(const AString: string);
 var
   LString: string;
@@ -521,17 +563,31 @@ var
   LNode: TFileTreeNode;
   I: Integer;
   LItem: TFileTreeMenuItem;
+  LList: TFileNodeHandlerList;
+  LTreeView: TTreeView;
 begin
   TreePopupMenu.Items.Clear;
-  LNode := GetSelectedFileTreeNode((Sender as TPopupMenu).PopupComponent as TTreeView);
+  LTreeView := (Sender as TPopupMenu).PopupComponent as TTreeView;
+  LNode := GetSelectedFileTreeNode(LTreeView);
   if Assigned(LNode) then
   begin
-    for I := 0 to LNode.ActionCount - 1 do
-    begin
-      LItem := TFileTreeMenuItem.Create(Self);
-      LItem.TreeNode := LNode;
-      LItem.ActionIndex := I;
-      TreePopupMenu.Items.Add(LItem);
+    LList := GetSelectedFileTreeNodeList((Sender as TPopupMenu).PopupComponent as TTreeView);
+    try
+      for I := 0 to LNode.ActionCount - 1 do
+      begin
+        LItem := TFileTreeMenuItem.Create(Self);
+        LItem.Setup(LNode, I, LList,
+          procedure
+          begin
+            if LTreeView = MetadataTreeView then
+              RefreshMetadataTreeView
+            else if LTreeView = ResourcesTreeView then
+              RefreshResourcesTreeView;
+          end);
+        TreePopupMenu.Items.Add(LItem);
+      end;
+    finally
+      FreeAndNil(LList);
     end;
   end;
 end;
@@ -615,19 +671,24 @@ procedure TFileTreeMenuItem.Click;
 begin
   inherited;
   if Assigned(FTreeNode) and (FActionIndex >= 0) and (FActionIndex < FTreeNode.ActionCount) then
-    FTreeNode.ExecuteAction(FActionIndex);
+  begin
+    FTreeNode.ExecuteAction(FActionIndex, FHandlerList);
+    if FTreeNode.Handler.GetActionMetadata(FActionIndex).RefreshAfterExecute then
+      if Assigned(FRefreshProc) then
+        FRefreshProc;
+  end;
 end;
 
-procedure TFileTreeMenuItem.SetActionIndex(const AValue: Integer);
+procedure TFileTreeMenuItem.Setup(const ANode: TFileTreeNode;
+  const AActionIndex: Integer; const ASelection: TFileNodeHandlerList;
+  const ARefreshProc: TProc);
 begin
-  FActionIndex := AValue;
-  RefreshActionProperties;
-end;
-
-procedure TFileTreeMenuItem.SetTreeNode(const AValue: TFileTreeNode);
-begin
-  FTreeNode := AValue;
-  RefreshActionProperties;
+  FTreeNode := ANode;
+  FActionIndex := AActionIndex;
+  FHandlerList.Clear;
+  FHandlerList.AddRange(ASelection);
+  FRefreshProc := ARefreshProc;
+  RefreshProperties;
 end;
 
 constructor TFileTreeMenuItem.Create(AOwner: TComponent);
@@ -635,9 +696,16 @@ begin
   inherited;
   FTreeNode := nil;
   FActionIndex := -1;
+  FHandlerList := TFileNodeHandlerList.Create;
 end;
 
-procedure TFileTreeMenuItem.RefreshActionProperties;
+destructor TFileTreeMenuItem.Destroy;
+begin
+  FreeAndNil(FHandlerList);
+  inherited;
+end;
+
+procedure TFileTreeMenuItem.RefreshProperties;
 var
   LMetadata: TFileActionMetadata;
 begin
@@ -647,7 +715,8 @@ begin
     Caption := LMetadata.DisplayLabel;
     Hint := LMetadata.Hint;
     ImageIndex := LMetadata.ImageIndex;
-    Default := FActionIndex = 0;
+    Default := (FTreeNode.Count = 0) and (FActionIndex = 0);
+    Enabled := LMetadata.IsEnabled(FHandlerList);
   end;
 end;
 

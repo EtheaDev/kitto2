@@ -84,11 +84,11 @@ type
     function GetObjectCount: Integer;
     function GetReader: TEFYAMLReader;
     function LoadObject(const AName: string): TKMetadata;
-    procedure SaveObject(const AObject: TKMetadata);
     function GetWriter: TEFYAMLWriter;
     function GetObject(I: Integer): TKMetadata;
     function ObjectExists(const AName: string): Boolean;
     procedure DuplicateObjectError(const AName: string);
+    procedure AfterAddObject(const AObject: TKMetadata);
   protected
     procedure ObjectNotFound(const AName: string);
     // Delete file and free object.
@@ -98,11 +98,12 @@ type
     procedure AfterCreateObject(const AObject: TKMetadata); virtual;
     procedure SetPath(const AValue: string); virtual;
     function GetObjectClassType: TKMetadataClass; virtual; abstract;
-    function FindNonpersistentObject(const ANode: TEFNode): TKMetadata;
-    procedure AddNonpersistentObject(const AObject: TKMetadata; const ANode: TEFNode);
   public
     procedure AfterConstruction; override;
     destructor Destroy; override;
+    function FindNonpersistentObject(const ANode: TEFNode): TKMetadata;
+    procedure AddNonpersistentObject(const AObject: TKMetadata; const ANode: TEFNode);
+    procedure DeleteNonpersistentObject(const ANode: TEFNode);
   public
     property Path: string read FPath write SetPath;
 
@@ -125,6 +126,7 @@ type
     function FindObjectByNode(const ANode: TEFNode): TKMetadata;
 
     procedure AddObject(const AObject: TKMetadata);
+    procedure DeleteObject(const AObject: TKMetadata);
 
     ///	<summary>
     ///	  Marks the object as disposed and removes it from the index (but
@@ -140,6 +142,8 @@ type
     ///	  marked for disposition.
     ///	</summary>
     procedure SaveAll;
+
+    procedure SaveObject(const AObject: TKMetadata);
   end;
 
   TKMetadataRegistry = class(TEFRegistry)
@@ -176,6 +180,11 @@ begin
 end;
 
 procedure TKMetadataCatalog.AfterCreateObject(const AObject: TKMetadata);
+begin
+  AObject.FCatalog := Self;
+end;
+
+procedure TKMetadataCatalog.AfterAddObject(const AObject: TKMetadata);
 begin
   AObject.FCatalog := Self;
 end;
@@ -222,6 +231,17 @@ end;
 procedure TKMetadataCatalog.DuplicateObjectError(const AName: string);
 begin
   raise EKError.CreateFmt(_('Duplicate object %s.'), [AName]);
+end;
+
+procedure TKMetadataCatalog.DeleteNonpersistentObject(const ANode: TEFNode);
+begin
+  FNonpersistentObjects.Remove(ANode);
+end;
+
+procedure TKMetadataCatalog.DeleteObject(const AObject: TKMetadata);
+begin
+  if ObjectExists(AObject.PersistentName) then
+    FIndex.Delete(FIndex.IndexOf(AObject.PersistentName));
 end;
 
 destructor TKMetadataCatalog.Destroy;
@@ -445,6 +465,7 @@ procedure TKMetadataCatalog.AddNonpersistentObject(const AObject: TKMetadata;
   const ANode: TEFNode);
 begin
   FNonpersistentObjects.Add(ANode, AObject);
+  AfterAddObject(AObject);
 end;
 
 procedure TKMetadataCatalog.AddObject(const AObject: TKMetadata);
@@ -455,6 +476,7 @@ begin
   if ObjectExists(AObject.PersistentName) then
     DuplicateObjectError(AObject.PersistentName);
   FIndex.AddObject(AObject.PersistentName, AObject);
+  AfterAddObject(AObject);
 end;
 
 procedure TKMetadataCatalog.SetPath(const AValue: string);
