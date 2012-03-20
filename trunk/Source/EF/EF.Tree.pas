@@ -1107,6 +1107,7 @@ begin
   begin
     FName := TEFNode(ASource).Name;
     AssignValue(TEFNode(ASource));
+    FValueAttributes := TEFNode(ASource).ValueAttributes;
   end;
 end;
 
@@ -1571,8 +1572,12 @@ var
 begin
   Clear;
   if Assigned(ASource) then
+  begin
+    if ASource.AnnotationCount > 0 then
+      GetAnnotations.Assign(ASource.FAnnotations);
     for LNode in ASource.FNodes do
       AddChild(GetChildClass(LNode.Name).Clone(LNode));
+  end;
 end;
 
 procedure TEFTree.AssignAnnotations(const AStrings: TStrings);
@@ -1771,7 +1776,10 @@ end;
 
 function TEFTree.GetAnnotationCount: Integer;
 begin
-  Result := GetAnnotations.Count;
+  if not Assigned(FAnnotations) then
+    Result := 0
+  else
+    Result := FAnnotations.Count;
 end;
 
 function TEFTree.GetAnnotations: TStrings;

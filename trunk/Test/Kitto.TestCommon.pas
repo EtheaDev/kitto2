@@ -4,10 +4,18 @@ interface
 
 function GetWorkDirectory: string;
 
+procedure RunRegisteredKittoTests;
+
 implementation
 
 uses
+  {$IFDEF USE_XML}XMLTestRunner{$ELSE}GUITestRunner{$ENDIF},
   SysUtils;
+
+procedure RunRegisteredKittoTests;
+begin
+  RunRegisteredTests;
+end;
 
 function GetWorkDirectory: string;
 begin

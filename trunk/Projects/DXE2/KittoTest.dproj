@@ -5,7 +5,7 @@
 			<FrameworkType>VCL</FrameworkType>
 			<MainSource>KittoTest.dpr</MainSource>
 			<Base>True</Base>
-			<Config Condition="'$(Config)'==''">XMLTestRunner</Config>
+			<Config Condition="'$(Config)'==''">Debug</Config>
 			<Platform Condition="'$(Platform)'==''">Win32</Platform>
 			<TargetedPlatforms>1</TargetedPlatforms>
 			<AppType>Application</AppType>
@@ -108,6 +108,7 @@
 			</DelphiCompile>
 			<DCCReference Include="..\..\Test\EF.YAMLTest.pas"/>
 			<DCCReference Include="..\..\Test\Kitto.TestCommon.pas"/>
+			<DCCReference Include="..\..\Test\EF.TreeTest.pas"/>
 			<BuildConfiguration Include="Release">
 				<Key>Cfg_2</Key>
 				<CfgParent>Base</CfgParent>

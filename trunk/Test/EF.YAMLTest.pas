@@ -39,6 +39,7 @@ type
     procedure TestRead;
     procedure TestReadAnnotations;
     procedure TestReadWrite;
+    procedure TestReadCloneWrite;
   end;
 
 implementation
@@ -99,6 +100,29 @@ begin
     CheckEquals('# Here comes the second subnode.', LTree.Children[0].Children[1].Annotations[1]);
   finally
     FreeAndNil(LTree);
+  end;
+end;
+
+procedure TEFYAMLTestCase.TestReadCloneWrite;
+var
+  LTree1, LTree2: TEFTree;
+  LOrig: string;
+  LSaved: string;
+begin
+  LTree1 := TEFTree.Create;
+  try
+    FReader.LoadTreeFromFile(LTree1, GetWorkDirectory + FILENAME);
+    LTree2 := TEFTree.Clone(LTree1);
+    try
+      FWriter.SaveTreeToFile(LTree2, GetWorkDirectory + SAVED_FILENAME);
+    finally
+      FreeAndNil(LTree2);
+    end;
+    LOrig := TextFileToString(GetWorkDirectory + FILENAME);
+    LSaved := TextFileToString(GetWorkDirectory + SAVED_FILENAME);
+    CheckEqualsString(LOrig, LSaved);
+  finally
+    FreeAndNil(LTree1);
   end;
 end;
 
