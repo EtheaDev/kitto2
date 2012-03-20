@@ -30,6 +30,8 @@ type
 
   TKConfig = class;
 
+  TKConfigClass = class of TKConfig;
+
   TKGetConfig = reference to function: TKConfig;
 
   TKConfig = class(TEFComponent)
@@ -42,7 +44,7 @@ type
     FInstance: TKConfig;
     FResourcePathsURLs: TDictionary<string, string>;
     FSystemHomePath: string;
-    function GetDBConnectionNames: TStringDynArray;
+    FConfigClass: TKConfigClass;
   var
     FDBConnections: TDictionary<string, TEFDBConnection>;
     FMacroExpansionEngine: TEFMacroExpansionEngine;
@@ -60,6 +62,7 @@ type
     class function GetSystemHomePath: string; static;
     class procedure SetSystemHomePath(const AValue: string); static;
 
+    function GetDBConnectionNames: TStringDynArray;
     function GetMultiFieldSeparator: string;
     function GetAC: TKAccessController;
     function GetDBConnection(const ADatabaseName: string): TEFDBConnection;
@@ -71,9 +74,8 @@ type
     function GetModels: TKModels;
     function GetViews: TKViews;
     procedure FinalizeDBConnections;
-  strict
-  private
-    function GetDefaultDBName: string; protected
+    function GetDefaultDBName: string;
+  strict protected
     function GetConfigFileName: string; override;
     class function FindSystemHomePath: string;
   public
@@ -82,7 +84,9 @@ type
     class constructor Create;
     class destructor Destroy;
   public
-   class property AppName: string read GetAppName;
+    class procedure SetConfigClass(const AValue: TKConfigClass);
+
+    class property AppName: string read GetAppName;
 
     ///	<summary>
     ///	  <para>Returns or changes the Application Home path.</para>
@@ -234,7 +238,7 @@ type
     ///	<summary>Calls AC.GetAccessGrantValue passing the current user and
     ///	returns the result.</summary>
     function GetAccessGrantValue(const AResourceURI, AMode: string;
-      const ADefaultValue: Variant): Variant;
+      const ADefaultValue: Variant): Variant; virtual;
 
     ///	<summary>Shortcut for GetAccessGrantValue for Boolean
     ///	values. Returns True if a value is granted and it equals
@@ -492,6 +496,7 @@ end;
 
 class constructor TKConfig.Create;
 begin
+  FConfigClass := TKConfig;
   FBaseConfigFileName := 'Config.yaml';
 
   FResourcePathsURLs := TDictionary<string, string>.Create;
@@ -601,7 +606,7 @@ begin
   if not Assigned(Result) then
   begin
     if not Assigned(FInstance) then
-      FInstance := TKConfig.Create;
+      FInstance := FConfigClass.Create;
     Result := FInstance;
   end;
 end;
@@ -613,6 +618,11 @@ begin
     FAppHomePath := AValue;
     SetupResourcePathsURLs;
   end;
+end;
+
+class procedure TKConfig.SetConfigClass(const AValue: TKConfigClass);
+begin
+  FConfigClass := AValue;
 end;
 
 class procedure TKConfig.SetSystemHomePath(const AValue: string);

@@ -56,6 +56,7 @@ type
     function GetDefaultDisplayWidth(const ASize: Integer): Integer; virtual;
     function SupportsEmptyAsNull: Boolean; virtual;
     function IsBlob(const ASize: Integer): Boolean; virtual;
+    function IsText: Boolean; virtual;
     function NodeToJSONValue(const AForDisplay: Boolean; const ANode: TEFNode;
       const AJSFormatSettings: TFormatSettings): string; virtual;
     function GetJSTypeName: string; virtual;
@@ -102,6 +103,7 @@ type
     function IsBlob(const ASize: Integer): Boolean; override;
     function GetJSTypeName: string; override;
     class function HasSize: Boolean; override;
+    function IsText: Boolean; override;
   end;
 
   TEFMemoDataType = class(TEFStringDataType)
@@ -699,6 +701,9 @@ type
     ///	  parent.
     ///	</summary>
     property Name: string read GetName;
+
+    ///	<summary>Renames the node. Normally shouldn't be used.</summary>
+    procedure Rename(const ANewName: string);
 
     ///	<summary>
     ///	  A reference to the node's data type. Should be an object managed by
@@ -1360,6 +1365,11 @@ begin
   Result := FValue;
 end;
 
+procedure TEFNode.Rename(const ANewName: string);
+begin
+  SetName(ANewName);
+end;
+
 procedure TEFNode.SetAsBoolean(const AValue: Boolean);
 begin
   FDataType := TEFDataTypeFactory.Instance.GetDataType('Boolean');
@@ -1529,6 +1539,8 @@ end;
 
 function TEFTree.AddChild(const AName: string; const AValue: Variant): TEFNode;
 begin
+  Assert(AName <> '');
+
   Result := AddChild(GetChildClass(AName).Create(AName, AValue));
 end;
 
@@ -1548,6 +1560,8 @@ end;
 
 function TEFTree.AddChild(const AName: string): TEFNode;
 begin
+  Assert(AName <> '');
+
   Result := AddChild(GetChildClass(AName).Create(AName));
 end;
 
@@ -2169,6 +2183,11 @@ begin
   Result := False;
 end;
 
+function TEFDataType.IsText: Boolean;
+begin
+  Result := False;
+end;
+
 function TEFDataType.NodeToJSONValue(const AForDisplay: Boolean;
   const ANode: TEFNode; const AJSFormatSettings: TFormatSettings): string;
 begin
@@ -2785,6 +2804,11 @@ end;
 function TEFStringDataType.IsBlob(const ASize: Integer): Boolean;
 begin
   Result := ASize = 0;
+end;
+
+function TEFStringDataType.IsText: Boolean;
+begin
+  Result := True;
 end;
 
 function TEFStringDataType.SupportsEmptyAsNull: Boolean;

@@ -3,17 +3,32 @@ unit KIDE.FileTree;
 interface
 
 uses
-  Vcl.ComCtrls,
+  Generics.Collections, Vcl.ComCtrls,
   Kitto.Metadata, Kitto.Metadata.Models, Kitto.Metadata.Views,
   KIDE.Project;
 
 type
+  TFileNodeHandler = class;
+
+  TFileNodeHandlerList = class(TList<TFileNodeHandler>)
+  private
+    function GetIsHomogeneous: Boolean;
+  public
+    property IsHomogeneous: Boolean read GetIsHomogeneous;
+  end;
+
   TFileActionMetadata = record
     DisplayLabel: string;
     Hint: string;
     ImageIndex: Integer;
+    EnableOnHomogeneousMultiSelect: Boolean;
+    EnableOnHeterogenousMultiSelect: Boolean;
+    RefreshAfterExecute: Boolean;
+    function EnableOnMultiSelect: Boolean;
   public
     procedure Clear;
+
+    function IsEnabled(const ASelection: TFileNodeHandlerList): Boolean;
   end;
 
   // Base class for file and folder node handlers.
@@ -24,7 +39,8 @@ type
     property FileName: string read GetFileName;
     function GetActionCount: Integer; virtual;
     function GetActionMetadata(const AIndex: Integer): TFileActionMetadata; virtual;
-    procedure ExecuteAction(const AIndex: Integer); virtual;
+    procedure ExecuteAction(const AIndex: Integer;
+      const ASelection: TFileNodeHandlerList); virtual;
   end;
 
   TMetadataFileNodeHandler = class abstract(TFileNodeHandler)
@@ -37,6 +53,10 @@ type
   private
     function GetModel: TKModel;
   public
+    function GetActionCount: Integer; override;
+    function GetActionMetadata(const AIndex: Integer): TFileActionMetadata; override;
+    procedure ExecuteAction(const AIndex: Integer;
+      const ASelection: TFileNodeHandlerList); override;
     property Model: TKModel read GetModel;
     constructor Create(const AModel: TKModel);
   end;
@@ -72,12 +92,14 @@ type
   public
     function GetActionCount: Integer; override;
     function GetActionMetadata(const AIndex: Integer): TFileActionMetadata; override;
-    procedure ExecuteAction(const AIndex: Integer); override;
+    procedure ExecuteAction(const AIndex: Integer;
+      const ASelection: TFileNodeHandlerList); override;
   end;
 
   TGenericFolderNodeHandler = class(TGenericFileNodeHandler)
   public
-    procedure ExecuteAction(const AIndex: Integer); override;
+    procedure ExecuteAction(const AIndex: Integer;
+      const ASelection: TFileNodeHandlerList); override;
     function GetActionMetadata(const AIndex: Integer): TFileActionMetadata;
       override;
   end;
@@ -86,10 +108,14 @@ type
   public
     function GetActionCount: Integer; override;
     function GetActionMetadata(const AIndex: Integer): TFileActionMetadata; override;
-    procedure ExecuteAction(const AIndex: Integer); override;
+    procedure ExecuteAction(const AIndex: Integer;
+      const ASelection: TFileNodeHandlerList); override;
   end;
 
   TViewsFolderNodeHandler = class(TGenericFolderNodeHandler)
+  end;
+
+  TLayoutsFolderNodeHandler = class(TGenericFolderNodeHandler)
   end;
 
   TFileTreeNode = class(TTreeNode)
@@ -98,12 +124,15 @@ type
     function GetActionCount: Integer;
     function GetActionMetadata(const AIndex: Integer): TFileActionMetadata;
   public
-    procedure DefaultAction;
     destructor Destroy; override;
+
+    property Handler: TFileNodeHandler read FHandler;
 
     property ActionCount: Integer read GetActionCount;
     property ActionMetadata[const AIndex: Integer]: TFileActionMetadata read GetActionMetadata;
-    procedure ExecuteAction(const AIndex: Integer);
+    procedure ExecuteAction(const AIndex: Integer;
+      const ASelection: TFileNodeHandlerList);
+    procedure ExecuteDefaultAction(const ASelection: TFileNodeHandlerList);
   end;
 
   TResourceFileNodeHandler = class(TGenericFileNodeHandler)
@@ -121,7 +150,8 @@ implementation
 uses
   SysUtils, StrUtils, Classes,
   EF.SysUtils, EF.StrUtils, EF.Localization,
-  KIDE.Shell, KIDE.Utils, KIDE.UpdateLocaleFormUnit, KIDE.ModelWizardFormUnit;
+  KIDE.Shell, KIDE.Utils, KIDE.UpdateLocaleFormUnit, KIDE.ModelWizardFormUnit,
+  KIDE.DataViewWizardFormUnit;
 
 procedure EditFile(const AFileName: string);
 begin
@@ -164,7 +194,7 @@ begin
   LParentNode := ATreeView.Items.AddChild(nil, _('Models')) as TFileTreeNode;
   LParentNode.ImageIndex := 0;
   LParentNode.SelectedIndex := LParentNode.ImageIndex;
-  LParentNode.FHandler := TModelsFolderNodeHandler.Create('');
+  LParentNode.FHandler := TModelsFolderNodeHandler.Create(AProject.Config.Models.Path);
   for I := 0 to AProject.Config.Models.ModelCount - 1 do
   begin
     LModel := AProject.Config.Models[I];
@@ -178,7 +208,7 @@ begin
   LParentNode := ATreeView.Items.AddChild(nil, _('Views')) as TFileTreeNode;
   LParentNode.ImageIndex := 0;
   LParentNode.SelectedIndex := LParentNode.ImageIndex;
-  LParentNode.FHandler := TViewsFolderNodeHandler.Create('');
+  LParentNode.FHandler := TViewsFolderNodeHandler.Create(AProject.Config.Views.Path);
   for I := 0 to AProject.Config.Views.ViewCount - 1 do
   begin
     LView := AProject.Config.Views[I];
@@ -191,6 +221,7 @@ begin
   LParentNode := ATreeView.Items.AddChild(LParentNode, _('Layouts')) as TFileTreeNode;
   LParentNode.ImageIndex := 0;
   LParentNode.SelectedIndex := LParentNode.ImageIndex;
+  LParentNode.FHandler := TLayoutsFolderNodeHandler.Create(AProject.Config.Views.Layouts.Path);
   for I := 0 to AProject.Config.Views.Layouts.LayoutCount - 1 do
   begin
     LLayout := AProject.Config.Views.Layouts[I];
@@ -315,6 +346,71 @@ begin
   FMetadata := AModel;
 end;
 
+procedure TModelFileNodeHandler.ExecuteAction(const AIndex: Integer;
+  const ASelection: TFileNodeHandlerList);
+
+  procedure CallPassingModelList(const AProc: TProc<TKModelList>);
+  var
+    LModelList: TKModelList;
+    I: Integer;
+  begin
+    LModelList := TKModelList.Create;
+    try
+      for I := 0 to ASelection.Count - 1 do
+        LModelList.Add((ASelection[I] as TModelFileNodeHandler).Model);
+      AProc(LModelList);
+    finally
+      FreeAndNil(LModelList);
+    end;
+  end;
+
+begin
+  if AIndex = GetActionCount - 2 then
+    CallPassingModelList(
+      procedure(AList: TKModelList)
+      begin
+        TModelWizardForm.ShowDialog(AList);
+      end)
+  else if AIndex = GetActionCount - 1 then
+    CallPassingModelList(
+      procedure(AList: TKModelList)
+      begin
+        TDataViewWizardForm.ShowDialog(AList);
+      end)
+  else
+    inherited;
+end;
+
+function TModelFileNodeHandler.GetActionCount: Integer;
+begin
+  Result := inherited GetActionCount + 2;
+end;
+
+function TModelFileNodeHandler.GetActionMetadata(
+  const AIndex: Integer): TFileActionMetadata;
+begin
+  if AIndex = GetActionCount - 2 then
+  begin
+    Result.Clear;
+    Result.DisplayLabel := _('Update...');
+    Result.Hint := _('Updates selected model(s) according to existing database tables');
+    Result.ImageIndex := 7;
+    Result.EnableOnHomogeneousMultiSelect := True;
+    Result.RefreshAfterExecute := True;
+  end
+  else if AIndex = GetActionCount - 1 then
+  begin
+    Result.Clear;
+    Result.DisplayLabel := _('Create DataView...');
+    Result.Hint := _('Creates a DataView based on the selected model(s)');
+    Result.ImageIndex := 22;
+    Result.EnableOnHomogeneousMultiSelect := True;
+    Result.RefreshAfterExecute := True;
+  end
+  else
+    Result := inherited GetActionMetadata(AIndex);
+end;
+
 function TModelFileNodeHandler.GetModel: TKModel;
 begin
   Result := FMetadata as TKModel;
@@ -348,10 +444,10 @@ end;
 
 { TFileTreeNode }
 
-procedure TFileTreeNode.DefaultAction;
+procedure TFileTreeNode.ExecuteDefaultAction(const ASelection: TFileNodeHandlerList);
 begin
   if Assigned(FHandler) then
-    FHandler.ExecuteAction(0);
+    FHandler.ExecuteAction(0, ASelection);
 end;
 
 destructor TFileTreeNode.Destroy;
@@ -360,10 +456,11 @@ begin
   inherited;
 end;
 
-procedure TFileTreeNode.ExecuteAction(const AIndex: Integer);
+procedure TFileTreeNode.ExecuteAction(const AIndex: Integer;
+  const ASelection: TFileNodeHandlerList);
 begin
   if Assigned(FHandler) then
-    FHandler.ExecuteAction(AIndex);
+    FHandler.ExecuteAction(AIndex, ASelection);
 end;
 
 function TFileTreeNode.GetActionCount: Integer;
@@ -384,7 +481,8 @@ end;
 
 { TFileNodeHandler }
 
-procedure TFileNodeHandler.ExecuteAction(const AIndex: Integer);
+procedure TFileNodeHandler.ExecuteAction(const AIndex: Integer;
+  const ASelection: TFileNodeHandlerList);
 begin
   case AIndex of
     0:
@@ -451,11 +549,38 @@ begin
   DisplayLabel := '';
   Hint := '';
   ImageIndex := -1;
+  EnableOnHomogeneousMultiSelect := False;
+  EnableOnHeterogenousMultiSelect := False;
+  RefreshAfterExecute := False;
+end;
+
+function TFileActionMetadata.EnableOnMultiSelect: Boolean;
+begin
+  Result := EnableOnHomogeneousMultiSelect or EnableOnHeterogenousMultiSelect;
+end;
+
+function TFileActionMetadata.IsEnabled(
+  const ASelection: TFileNodeHandlerList): Boolean;
+begin
+  Assert(Assigned(ASelection));
+
+  case ASelection.Count of
+    0: Result := False;
+    1: Result := True;
+    else
+    begin
+      if ASelection.IsHomogeneous then
+        Result := EnableOnMultiSelect
+      else
+        Result := EnableOnHeterogenousMultiSelect;
+    end;
+  end;
 end;
 
 { TLocaleFileNodeHandler }
 
-procedure TLocaleFileNodeHandler.ExecuteAction(const AIndex: Integer);
+procedure TLocaleFileNodeHandler.ExecuteAction(const AIndex: Integer;
+  const ASelection: TFileNodeHandlerList);
 begin
   if AIndex = GetActionCount - 1 then
     TUpdateLocaleForm.ShowDialog(FileName)
@@ -484,17 +609,18 @@ end;
 
 { TModelsFolderNodeHandler }
 
-procedure TModelsFolderNodeHandler.ExecuteAction(const AIndex: Integer);
+procedure TModelsFolderNodeHandler.ExecuteAction(const AIndex: Integer;
+  const ASelection: TFileNodeHandlerList);
 begin
   if AIndex = GetActionCount - 1 then
-    TModelWizardForm.ShowDialog
+    TModelWizardForm.ShowDialog(nil)
   else
     inherited;
 end;
 
 function TModelsFolderNodeHandler.GetActionCount: Integer;
 begin
-  Result := 1;
+  Result := inherited GetActionCount + 1;
 end;
 
 function TModelsFolderNodeHandler.GetActionMetadata(
@@ -513,7 +639,8 @@ end;
 
 { TGenericFolderNodeHandler }
 
-procedure TGenericFolderNodeHandler.ExecuteAction(const AIndex: Integer);
+procedure TGenericFolderNodeHandler.ExecuteAction(const AIndex: Integer;
+  const ASelection: TFileNodeHandlerList);
 begin
   case AIndex of
     0:
@@ -540,6 +667,31 @@ begin
     end;
   else
     Result := inherited GetActionMetadata(AIndex);
+  end;
+end;
+
+{ TFileNodeHandlerList }
+
+function TFileNodeHandlerList.GetIsHomogeneous: Boolean;
+var
+  LItem: TFileNodeHandler;
+  LClassType: TClass;
+begin
+  Result := Count = 1;
+  if Count > 1 then
+  begin
+    Result := True;
+    LClassType := nil;
+    for LItem in Self do
+    begin
+      if LClassType = nil then
+        LClassType := LItem.ClassType
+      else if LClassType <> LItem.ClassType then
+      begin
+        Result := False;
+        Break;
+      end;
+    end;
   end;
 end;
 

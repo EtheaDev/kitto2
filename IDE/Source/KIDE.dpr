@@ -38,7 +38,9 @@ uses
   KIDE.ModelValidator in 'KIDE.ModelValidator.pas',
   KIDE.Process in 'KIDE.Process.pas',
   KIDE.ViewValidator in 'KIDE.ViewValidator.pas',
-  KIDE.TreeValidator in 'KIDE.TreeValidator.pas';
+  KIDE.TreeValidator in 'KIDE.TreeValidator.pas',
+  KIDE.DataViewWizardFormUnit in 'KIDE.DataViewWizardFormUnit.pas' {DataViewWizardForm},
+  KIDE.Config in 'KIDE.Config.pas';
 
 {$R *.res}
 

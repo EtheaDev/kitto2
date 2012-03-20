@@ -135,7 +135,7 @@ begin
   if DBListView.Items.Count > 0 then
   begin
     DBListView.Selected := DBListView.FindCaption(0,
-      IfThen(ADefaultDBName <> '', ADefaultDBName, TKConfig.MAIN_DB_NAME),
+      IfThen(ADefaultDBName <> '', ADefaultDBName, AConfig.DefaultDBName),
       False, True, False);
     if DBListView.Selected = nil then
       DBListView.Selected := DBListView.Items[0];

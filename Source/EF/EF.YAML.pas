@@ -116,7 +116,7 @@ implementation
 
 uses
   StrUtils,
-  EF.Types, EF.StrUtils;
+  EF.Types, EF.StrUtils, EF.Localization;
 
 function EncodeYAMLKey(const AKey: string): string;
 begin
@@ -283,7 +283,13 @@ begin
 
   LFileStream := TFileStream.Create(AFileName, fmOpenRead + fmShareDenyWrite);
   try
-    LoadTreeFromStream(ATree, LFileStream);
+    try
+      LoadTreeFromStream(ATree, LFileStream);
+    except
+      on E: Exception do
+        raise Exception.CreateFmt(_('Error %s while loading file %s.'),
+          [E.Message, AFileName]);
+    end;
   finally
     FreeAndNil(LFileStream);
   end;

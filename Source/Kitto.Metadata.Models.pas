@@ -318,7 +318,8 @@ type
     property DetailReferenceCount: Integer read GetDetailReferenceCount;
     function DetailReferenceByName(const AName: string): TKModelDetailReference;
     function FindDetailReference(const AName: string): TKModelDetailReference;
-    function FindDetailReferenceTo(const AModel: TKModel): TKModelDetailReference;
+    function FindDetailReferenceToModel(const AModel: TKModel): TKModelDetailReference;
+    function FindDetailReferenceToField(const AField: TKModelField): TKModelDetailReference;
     function FindDetailReferenceByPhysicalName(const APhysicalName: string): TKModelDetailReference;
   end;
 
@@ -396,7 +397,11 @@ type
 
     ///	<summary>If there's exactly one detail reference to the specified
     ///	model, returns it, otherwise returns nil.</summary>
-    function FindDetailReferenceTo(const AModel: TKModel): TKModelDetailReference;
+    function FindDetailReferenceByModel(const AModel: TKModel): TKModelDetailReference;
+
+    ///	<summary>Returns the first found detail reference to the specified
+    ///	reference field. If not found, returns nil.</summary>
+    function FindDetailReferenceByField(const AField: TKModelField): TKModelDetailReference;
 
     ///	<summary>If there's exactly one field referencing the specified model,
     ///	it is returned. Otherwise the method returns nil.</summary>
@@ -444,6 +449,11 @@ type
     property CaptionField: TKModelField read GetCaptionField;
 
     property Rules: TKRules read GetRules;
+  end;
+
+  TKModelList = class(TList<TKModel>)
+  public
+    procedure AddModelNamesToStrings(const AStrings: TStrings);
   end;
 
   TKModels = class(TKMetadataCatalog)
@@ -520,15 +530,20 @@ begin
   Result := GetDetailReferences.FindDetailReference(AName);
 end;
 
+function TKModel.FindDetailReferenceByField(const AField: TKModelField): TKModelDetailReference;
+begin
+  Result := GetDetailReferences.FindDetailReferenceToField(AField);
+end;
+
 function TKModel.FindDetailReferenceByPhysicalName(
   const APhysicalName: string): TKModelDetailReference;
 begin
   Result := GetDetailReferences.FindDetailReferenceByPhysicalName(APhysicalName);
 end;
 
-function TKModel.FindDetailReferenceTo(const AModel: TKModel): TKModelDetailReference;
+function TKModel.FindDetailReferenceByModel(const AModel: TKModel): TKModelDetailReference;
 begin
-  Result := GetDetailReferences.FindDetailReferenceTo(AModel);
+  Result := GetDetailReferences.FindDetailReferenceToModel(AModel);
 end;
 
 function TKModel.FindField(const AName: string): TKModelField;
@@ -1481,7 +1496,24 @@ begin
     end) as TKModelDetailReference;
 end;
 
-function TKModelDetailReferences.FindDetailReferenceTo(const AModel: TKModel): TKModelDetailReference;
+function TKModelDetailReferences.FindDetailReferenceToField(
+  const AField: TKModelField): TKModelDetailReference;
+var
+  I: Integer;
+begin
+  Result := nil;
+  for I := 0 to DetailReferenceCount - 1 do
+  begin
+    if DetailReferences[I].ReferenceField = AField then
+    begin
+      Result := DetailReferences[I];
+      Break;
+    end;
+  end;
+end;
+
+function TKModelDetailReferences.FindDetailReferenceToModel(
+  const AModel: TKModel): TKModelDetailReference;
 var
   I: Integer;
   LCount: Integer;
@@ -1532,6 +1564,18 @@ procedure TKReferenceDataType.InternalYamlValueToNode(const AYamlValue: string;
   const ANode: TEFNode; const AFormatSettings: TFormatSettings);
 begin
   raise EEFError.CreateFmt('%s.InternalYamlValueToNode: Unsupported call.', [ClassName]);
+end;
+
+{ TKModelList }
+
+procedure TKModelList.AddModelNamesToStrings(const AStrings: TStrings);
+var
+  LModel: TKModel;
+begin
+  Assert(Assigned(LModel));
+
+  for LModel in Self do
+    AStrings.Add(LModel.ModelName);
 end;
 
 initialization
