@@ -2,15 +2,13 @@ program KittoTest;
 
 uses
   Vcl.Forms,
-  TestFramework,
-  {$IFDEF USE_XML}XMLTestRunner{$ELSE}GUITestRunner{$ENDIF},
   EF.YAMLTest in '..\..\Test\EF.YAMLTest.pas',
-  Kitto.TestCommon in '..\..\Test\Kitto.TestCommon.pas';
+  Kitto.TestCommon in '..\..\Test\Kitto.TestCommon.pas',
+  EF.TreeTest in '..\..\Test\EF.TreeTest.pas';
 
 {$R *.res}
 
 begin
   Application.Initialize;
-  RunRegisteredTests;
-
+  RunRegisteredKittoTests;
 end.
