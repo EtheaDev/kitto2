@@ -267,7 +267,6 @@ end;
 
 procedure TKExtSession.Flash(const AMessage: string);
 begin
-  { TODO : move functionality into kitto-core.js. }
   JSCode('Ext.example.msg("' + _(Config.AppTitle) + '", "' + AMessage + '");');
 end;
 
@@ -281,13 +280,19 @@ procedure TKExtSession.LoadLibraries;
     SetLibrary(StripSuffix(LLibURL, '.js'), AIncludeCSS, False, True);
   end;
 
-  procedure SetOptionalLibrary(const ALibName: string);
+  procedure SetOptionalLibrary(const ALibName: string; const AIncludeCSS: Boolean = False);
   var
     LLibURL: string;
   begin
     LLibURL := Config.FindResourceURL(IncludeTrailingPathDelimiter('js') + ALibName + '.js');
     if LLibURL <> '' then
       SetLibrary(StripSuffix(LLibURL, '.js'), False, False, True);
+    if AIncludeCSS then
+    begin
+      LLibURL := Config.FindResourceURL(IncludeTrailingPathDelimiter('js') + ALibName + '.css');
+      if LLibURL <> '' then
+        SetCSS(StripSuffix(LLibURL, '.css'), False);
+    end;
   end;
 
 var
@@ -305,7 +310,7 @@ begin
   SetRequiredLibrary('DateTimeField');
   SetRequiredLibrary('DefaultButton');
   SetRequiredLibrary('kitto-core', True);
-  SetOptionalLibrary('application');
+  SetOptionalLibrary('application', True);
 
   LLibraries := Config.Config.GetStringArray('JavaScriptLibraries');
   for LLibName in LLibraries do

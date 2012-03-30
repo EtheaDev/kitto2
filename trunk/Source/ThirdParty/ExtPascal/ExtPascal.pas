@@ -335,7 +335,7 @@ procedure TExtThread.SetLibrary(pLibrary : string = ''; CSS : boolean = false; H
 var
   Root : string;
 begin
-  if pos(pLibrary, Libraries) = 0 then
+  if pos(pLibrary + '.js', Libraries) = 0 then
     if pLibrary = '' then
       Libraries := '' // Clear Libraries
     else begin
@@ -368,13 +368,13 @@ procedure TExtThread.SetCSS(pCSS : string; Check : boolean = true);
 var
   Root : string;
 begin
-  if pos(pCSS, Libraries) = 0 then
+  if pos(pCSS + '.css', Libraries) = 0 then
     if pCSS = '' then
       Libraries := '' // Clear Libraries
     else begin
       Root := RequestHeader['DOCUMENT_ROOT'];
       if Check and (Root <> '') and not FileExists(Root + pCSS + '.css') then
-        raise Exception.Create('Library: ' + Root + pCSS + '.js not found')
+        raise Exception.Create('Stylesheet: ' + Root + pCSS + '.css not found')
       else
         Libraries := Libraries + '<link rel=stylesheet href="' + pCSS + '.css" />';
     end;
