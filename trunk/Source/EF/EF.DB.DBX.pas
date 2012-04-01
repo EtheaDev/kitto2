@@ -205,6 +205,8 @@ end;
 destructor TEFDBDBXConnection.Destroy;
 begin
   FreeAndNil(FFetchSequenceGeneratorValueQuery);
+  if Assigned(FConnection) then
+    FConnection.Close;
   FreeAndNil(FConnection);
   FreeAndNIl(FConnectionString);
   inherited;

@@ -1572,8 +1572,6 @@ procedure TKModelList.AddModelNamesToStrings(const AStrings: TStrings);
 var
   LModel: TKModel;
 begin
-  Assert(Assigned(LModel));
-
   for LModel in Self do
     AStrings.Add(LModel.ModelName);
 end;

@@ -127,11 +127,9 @@ var
   LMainTable: TKViewTable;
   LMainTableController: TEFNode;
   LModel: TKModel;
-  I: Integer;
   LFilters: TEFNode;
   LFilterItems: TEFNode;
   LSearchItem: TEFNode;
-  LDetailTable: TKViewTable;
   LSourceControllerNode: TEFNode;
   LSourceMainTableControllerNode: TEFNode;
 begin

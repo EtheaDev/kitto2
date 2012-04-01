@@ -212,6 +212,7 @@ type
     FOnRowremoved : TExtGridGridViewOnRowremoved;
     FOnRowsinserted : TExtGridGridViewOnRowsinserted;
     FOnRowupdated : TExtGridGridViewOnRowupdated;
+    FGetRowClass: TExtFunction;
     procedure SetFAutoFill(Value : Boolean);
     procedure SetFCellSelector(Value : String);
     procedure SetFCellSelectorDepth(Value : Integer);
@@ -239,6 +240,7 @@ type
     procedure SetFOnRowremoved(Value : TExtGridGridViewOnRowremoved);
     procedure SetFOnRowsinserted(Value : TExtGridGridViewOnRowsinserted);
     procedure SetFOnRowupdated(Value : TExtGridGridViewOnRowupdated);
+    procedure SetFGetRowClass(const Value: TExtFunction);
   protected
     procedure InitDefaults; override;
     procedure HandleEvent(const AEvtName: string); override;
@@ -255,7 +257,6 @@ type
     function GetCell(Row : Integer; Col : Integer) : TExtFunction;
     function GetHeaderCell(Index : Integer) : TExtFunction;
     function GetRow(Index : Integer) : TExtFunction;
-    function GetRowClass(RecordJS : TExtDataRecord; Index : Integer; RowParams : TExtObject; Store : TExtDataStore) : TExtFunction;
     function Refresh(HeadersToo : Boolean = false) : TExtFunction;
     function ScrollToTop : TExtFunction;
     destructor Destroy; override;
@@ -267,6 +268,7 @@ type
     property EmptyText : String read FEmptyText write SetFEmptyText;
     property EnableRowBody : Boolean read FEnableRowBody write SetFEnableRowBody;
     property ForceFit : Boolean read FForceFit write SetFForceFit;
+    property GetRowClass : TExtFunction read FGetRowClass write SetFGetRowClass;
     property HeadersDisabled : Boolean read FHeadersDisabled write SetFHeadersDisabled;
     property RowBodySelector : String read FRowBodySelector write SetFRowBodySelector;
     property RowBodySelectorDepth : Integer read FRowBodySelectorDepth write SetFRowBodySelectorDepth;
@@ -1234,6 +1236,12 @@ procedure TExtGridGridView.SetFForceFit(Value : Boolean); begin
   JSCode('forceFit:' + VarToJSON([Value]));
 end;
 
+procedure TExtGridGridView.SetFGetRowClass(const Value: TExtFunction);
+begin
+  FGetRowClass := Value;
+  JSCode('getRowClass:' + VarToJSON([Value]));
+end;
+
 procedure TExtGridGridView.SetFHeadersDisabled(Value : Boolean); begin
   FHeadersDisabled := Value;
   JSCode('headersDisabled:' + VarToJSON([Value]));
@@ -1424,11 +1432,6 @@ end;
 
 function TExtGridGridView.GetRow(Index : Integer) : TExtFunction; begin
   JSCode(JSName + '.getRow(' + VarToJSON([Index]) + ');', 'TExtGridGridView');
-  Result := Self;
-end;
-
-function TExtGridGridView.GetRowClass(RecordJS : TExtDataRecord; Index : Integer; RowParams : TExtObject; Store : TExtDataStore) : TExtFunction; begin
-  JSCode(JSName + '.getRowClass(' + VarToJSON([RecordJS, false, Index, RowParams, false, Store, false]) + ');', 'TExtGridGridView');
   Result := Self;
 end;
 
