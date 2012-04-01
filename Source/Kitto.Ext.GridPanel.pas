@@ -23,9 +23,9 @@ interface
 uses
   Generics.Collections,
   ExtPascal, Ext, ExtForm, ExtData, ExtGrid, ExtPascalUtils,
-  EF.ObserverIntf,
+  EF.ObserverIntf, EF.Types,
   Kitto.Metadata.Views, Kitto.Metadata.DataView, Kitto.Store, Kitto.Types,
-  Kitto.Ext.Base, Kitto.ext.Controller;
+  Kitto.Ext.Base, Kitto.Ext.Controller;
 
 type
   TKExtFilterPanel = class(TKExtPanelBase)
@@ -90,6 +90,7 @@ type
     function GetRowButtonsDisableJS: string;
     function GetConfirmCall(const AMessage: string;
       const AMethod: TExtProcedure): string;
+    function GetRowColorPatterns(out AFieldName: string): TEFPairs;
   protected
     procedure InitDefaults; override;
   public
@@ -111,7 +112,7 @@ implementation
 
 uses
   SysUtils, StrUtils, Math,
-  EF.Types, EF.Tree, EF.StrUtils, EF.Localization,
+  EF.Tree, EF.StrUtils, EF.Localization,
   Kitto.Metadata.Models, Kitto.Rules, Kitto.AccessControl, Kitto.JSON,
   Kitto.Ext.Filters, Kitto.Ext.Session, Kitto.Ext.Utils;
 
@@ -236,6 +237,9 @@ var
   LGroupingMenu: Boolean;
   LCountTemplate: string;
   LGroupingFieldName: string;
+  LRowClassProvider: string;
+  LRowColorPatterns: TEFPairs;
+  LRowColorFieldName: string;
 begin
   { TODO : investigate the row body feature }
   LGroupingFieldName := GetGroupingFieldName;
@@ -280,8 +284,19 @@ Note: remote sort passes params sort and dir. }
   end;
   FGridView.EmptyText := _('No data to display.');
   FGridView.EnableRowBody := True;
-  { TODO : make it configurable? }
+  { TODO : make ForceFit configurable? }
   FGridView.ForceFit := False;
+  LRowClassProvider := ViewTable.GetExpandedString('Controller/RowClassProvider');
+  if LRowClassProvider <> '' then
+    FGridView.JSCode('getRowClass:' + LRowClassProvider)
+  else
+  begin
+    LRowColorPatterns := GetRowColorPatterns(LRowColorFieldName);
+    if Length(LRowColorPatterns) > 0 then
+      FGridView.JSCode('getRowClass:' +
+        Format('function (r) { return getRowColorStyleRule(r, ''%s'', [%s]);}',
+          [LRowColorFieldName, PairsToJSON(LRowColorPatterns)]));
+  end;
 
   FStore.Url := MethodURI(GetRecordPage);
   FReader := TExtDataJsonReader.Create(JSObject('')); // Must pass '' otherwise invalid code is generated.
@@ -543,6 +558,47 @@ begin
   if ServerStore.RecordCount = 0 then
     Exit;
   ShowEditWindow(LocateRecordFromSession(ViewTable, ServerStore), emEditCurrentRecord);
+end;
+
+function TKExtGridPanel.GetRowColorPatterns(out AFieldName: string): TEFPairs;
+
+  function GetFieldColors(const AField: TKViewField): TEFPairs;
+  begin
+    Result := AField.GetChildrenAsPairs('Colors', True);
+  end;
+
+  function HasFieldColors(const AField: TKViewField): Boolean;
+  begin
+    Result := Assigned(AField.FindNode('Colors'));
+  end;
+
+var
+  LFieldNode: TEFNode;
+  I: Integer;
+begin
+  AFieldName := '';
+  Result := nil;
+  LFieldNode := ViewTable.FindNode('Controller/RowColorField');
+  if Assigned (LFieldNode) then
+  begin
+    AFieldName := LFieldNode.AsExpandedString;
+    if LFieldNode.ChildCount > 0 then
+      Result := LFieldNode.GetChildPairs(True)
+    else
+      Result := GetFieldColors(ViewTable.FieldByName(LFieldNode.AsExpandedString));
+  end
+  else
+  begin
+    for I := 0 to ViewTable.FieldCount - 1 do
+    begin
+      if HasFieldColors(ViewTable.Fields[I]) then
+      begin
+        AFieldName := ViewTable.Fields[I].FieldName;
+        Result := GetFieldColors(ViewTable.Fields[I]);
+        Break;
+      end;
+    end;
+  end;
 end;
 
 function TKExtGridPanel.IsReadOnly: Boolean;

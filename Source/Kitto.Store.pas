@@ -409,7 +409,7 @@ end;
 
 function TKRecords.Append: TKRecord;
 begin
-  Result := AddChild('') as TKrecord;
+  Result := AddChild('Record') as TKrecord;
 end;
 
 procedure TKRecords.Clear;
@@ -833,7 +833,7 @@ begin
 
   ARecord.ClearChildren;
   for I := 0 to ChildCount - 1 do
-    ARecord.AddChild('').DataType := Children[I].DataType;
+    ARecord.AddChild(Children[I].Name).DataType := Children[I].DataType;
 end;
 
 function TKHeader.GetChildClass(const AName: string): TEFNodeClass;

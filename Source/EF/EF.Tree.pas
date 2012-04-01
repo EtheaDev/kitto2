@@ -635,6 +635,9 @@ type
   public
     function GetEnumerator: TEnumerator<TEFNode>;
   public
+    function FindNode(const APath: string;
+      const ACreateMissingNodes: Boolean = False): TEFNode; override;
+
     ///	<summary>
     ///	  Copies everything from ASource, overwriting any existing data. if
     ///	  ASource is a node, name and value are copied as well.
@@ -1492,6 +1495,15 @@ end;
 procedure TEFNode.SetToNull;
 begin
   FValue := Null;
+end;
+
+function TEFNode.FindNode(const APath: string;
+  const ACreateMissingNodes: Boolean): TEFNode;
+begin
+  if APath = '' then
+    Result := Self
+  else
+    Result := inherited FindNode(APath, ACreateMissingNodes);
 end;
 
 function TEFNode.FindNodeFrom(const APath: TStringDynArray;

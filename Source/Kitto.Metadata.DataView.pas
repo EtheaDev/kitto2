@@ -184,7 +184,6 @@ type
 
     procedure ApplyRules(const AApplyProc: TProc<TKRuleImpl>);
 
-
     ///	<summary>If the field is a reference field, creates and returns a list
     ///	of view fields in the current view table from the same referenced
     ///	model.</summary>
