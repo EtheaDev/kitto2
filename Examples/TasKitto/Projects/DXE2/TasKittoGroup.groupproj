@@ -6,9 +6,6 @@
 			<Projects Include="TasKitto.dproj">
 				<Dependencies/>
 			</Projects>
-			<Projects Include="..\..\..\..\Projects\DXE2\Kitto.dproj">
-				<Dependencies/>
-			</Projects>
 		</ItemGroup>
 		<ProjectExtensions>
 			<Borland.Personality>Default.Personality.12</Borland.Personality>
@@ -26,23 +23,14 @@
 		<Target Name="TasKitto:Make">
 			<MSBuild Projects="TasKitto.dproj" Targets="Make"/>
 		</Target>
-		<Target Name="Kitto">
-			<MSBuild Projects="..\..\..\..\Projects\DXE2\Kitto.dproj"/>
-		</Target>
-		<Target Name="Kitto:Clean">
-			<MSBuild Projects="..\..\..\..\Projects\DXE2\Kitto.dproj" Targets="Clean"/>
-		</Target>
-		<Target Name="Kitto:Make">
-			<MSBuild Projects="..\..\..\..\Projects\DXE2\Kitto.dproj" Targets="Make"/>
-		</Target>
 		<Target Name="Build">
-			<CallTarget Targets="TasKitto;Kitto"/>
+			<CallTarget Targets="TasKitto"/>
 		</Target>
 		<Target Name="Clean">
-			<CallTarget Targets="TasKitto:Clean;Kitto:Clean"/>
+			<CallTarget Targets="TasKitto:Clean"/>
 		</Target>
 		<Target Name="Make">
-			<CallTarget Targets="TasKitto:Make;Kitto:Make"/>
+			<CallTarget Targets="TasKitto:Make"/>
 		</Target>
 		<Import Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')" Project="$(BDS)\Bin\CodeGear.Group.Targets"/>
 	</Project>
