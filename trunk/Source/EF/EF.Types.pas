@@ -61,7 +61,7 @@ type
     Value2: string;
     Value3: string;
     constructor Create(const AValue1, AVAlue2, AVAlue3: string);
-    procedure AssignPair(const APair: TEFPair);
+    procedure AssignPair({$IFDEF D15+}const {$ENDIF}APair: TEFPair);
   end;
   TEFTriples = array of TEFTriple;
 
@@ -349,7 +349,7 @@ end;
 
 { TEFTriple }
 
-procedure TEFTriple.AssignPair(const APair: TEFPair);
+procedure TEFTriple.AssignPair({$IFDEF D15+}const {$ENDIF}APair: TEFPair);
 begin
   Value1 := APair.Key;
   Value2 := APair.Value;
