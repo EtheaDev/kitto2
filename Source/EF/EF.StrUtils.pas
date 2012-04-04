@@ -574,7 +574,6 @@ end;
 procedure StringToTextFile(const AString, AFileName: string;
   const AEncoding: TEncoding = nil);
 var
-  //LFile: TextFile;
   LFilePath: string;
   LWriter: TStreamWriter;
 begin
@@ -588,16 +587,6 @@ begin
   finally
     LWriter.Free;
   end;
-
-  (*
-  AssignFile(LFile, AFileName);
-  try
-    Rewrite(LFile);
-    Write(LFile, AString);
-  finally
-    CloseFile(LFile);
-  end;
-  *)
 end;
 
 procedure AppendStringToTextFile(const AString, AFileName: string);

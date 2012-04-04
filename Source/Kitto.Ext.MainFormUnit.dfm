@@ -432,10 +432,6 @@ object KExtMainForm: TKExtMainForm
     object HomeTabSheet: TTabSheet
       Caption = 'Home'
       ImageIndex = 1
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object LogMemo: TMemo
         Left = 0
         Top = 63
@@ -461,7 +457,7 @@ object KExtMainForm: TKExtMainForm
         BevelOuter = bvNone
         TabOrder = 1
         object SessionCountLabel: TLabel
-          Left = 245
+          Left = 240
           Top = 25
           Width = 90
           Height = 13
@@ -469,7 +465,7 @@ object KExtMainForm: TKExtMainForm
           Visible = False
         end
         object StartSpeedButton: TSpeedButton
-          Left = 199
+          Left = 194
           Top = 22
           Width = 20
           Height = 20
@@ -478,7 +474,7 @@ object KExtMainForm: TKExtMainForm
           Transparent = False
         end
         object StopSpeedButton: TSpeedButton
-          Left = 221
+          Left = 216
           Top = 22
           Width = 20
           Height = 20
@@ -486,7 +482,7 @@ object KExtMainForm: TKExtMainForm
           Flat = True
         end
         object AppTitleLabel: TLabel
-          Left = 8
+          Left = 4
           Top = 45
           Width = 199
           Height = 13
@@ -497,9 +493,10 @@ object KExtMainForm: TKExtMainForm
           Font.Name = 'Tahoma'
           Font.Style = [fsBold]
           ParentFont = False
+          ShowAccelChar = False
         end
         object ConfigLinkLabel: TLabel
-          Left = 8
+          Left = 4
           Top = 5
           Width = 80
           Height = 13
@@ -517,7 +514,7 @@ object KExtMainForm: TKExtMainForm
           OnClick = ConfigLinkLabelClick
         end
         object ConfigFileNameComboBox: TComboBox
-          Left = 8
+          Left = 4
           Top = 22
           Width = 185
           Height = 21
@@ -555,7 +552,7 @@ object KExtMainForm: TKExtMainForm
     Left = 320
     Top = 65528
     Bitmap = {
-      494C010102004C007C0010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C010102004C00800010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000001000000001002000000000000010
       0000000000000000000000000000000000000000000000000000000000000000
       00000000001E00000031000000330000003300000033000000310000001E0000

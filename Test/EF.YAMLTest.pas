@@ -45,7 +45,7 @@ type
 implementation
 
 uses
-  SysUtils,
+  Windows, SysUtils,
   EF.Tree, EF.StrUtils,
   Kitto.TestCommon;
 
