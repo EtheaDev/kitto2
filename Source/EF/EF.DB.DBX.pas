@@ -36,8 +36,11 @@ type
   TEFDBDBXInfo = class(TEFDBInfo)
   private
     FConnection: TSQLConnection;
+    FServerCharSet: string;
     function DBXDataTypeToEFDataType(const ADBXDataType: TDBXType): TEFDataType;
     procedure SetForeignKeyColumns(const AForeignKeyInfo: TEFDBForeignKeyInfo);
+    procedure StoreServerCharSet;
+    procedure RestoreServerCharSet;
   protected
     procedure BeforeFetchInfo; override;
     procedure FetchTables(const ASchemaInfo: TEFDBSchemaInfo); override;
@@ -600,31 +603,66 @@ var
   LReader: TDBXReader;
   LTableInfo: TEFDBTableInfo;
 begin
-  LCommand := FConnection.DBXConnection.CreateCommand;
+  StoreServerCharSet;
   try
-    LCommand.CommandType := TDBXCommandTypes.DbxMetaData;
-    LCommand.Text := TDBXMetaDataCommands.GetTables + ' % ' + TDBXMetaDataTableTypes.Table;
-    LReader := LCommand.ExecuteQuery;
+    FConnection.Open;
     try
-      while LReader.Next do
-      begin
-        LTableInfo := TEFDBTableInfo.Create;
+      LCommand := FConnection.DBXConnection.CreateCommand;
+      try
+        LCommand.CommandType := TDBXCommandTypes.DbxMetaData;
+        LCommand.Text := TDBXMetaDataCommands.GetTables + ' % ' + TDBXMetaDataTableTypes.Table;
+        LReader := LCommand.ExecuteQuery;
         try
-          LTableInfo.Name := LReader.Value[TDBXTablesIndex.TableName].AsString;
-          FetchTableColumns(LTableInfo);
-          FetchTablePrimaryKey(LTableInfo);
-          FetchTableForeignKeys(LTableInfo);
-          ASchemaInfo.AddTable(LTableInfo);
-        except
-          FreeAndNil(LTableInfo);
+          while LReader.Next do
+          begin
+            LTableInfo := TEFDBTableInfo.Create;
+            try
+              LTableInfo.Name := LReader.Value[TDBXTablesIndex.TableName].AsString;
+              FetchTableColumns(LTableInfo);
+              FetchTablePrimaryKey(LTableInfo);
+              FetchTableForeignKeys(LTableInfo);
+              ASchemaInfo.AddTable(LTableInfo);
+            except
+              FreeAndNil(LTableInfo);
+              raise;
+            end;
+          end;
+        finally
+          FreeAndNil(LReader);
         end;
+      finally
+        FreeAndNil(LCommand);
       end;
     finally
-      FreeAndNil(LReader);
+      FConnection.Close;
     end;
   finally
-    FreeAndNil(LCommand);
+    RestoreServerCharSet;
   end;
+end;
+
+procedure TEFDBDBXInfo.StoreServerCharSet;
+begin
+  Assert(Assigned(FConnection));
+
+  // Workaround for Firebird driver bug
+  // http://qc.embarcadero.com/wc/qcmain.aspx?d=90414
+  FServerCharSet := FConnection.Params.Values['ServerCharSet'];
+  if SameText(FConnection.DriverName, 'Firebird') then
+  begin
+    FConnection.Params.Values['ServerCharSet'] := 'NONE';
+    FConnection.Close;
+  end;
+end;
+
+procedure TEFDBDBXInfo.RestoreServerCharSet;
+begin
+  Assert(Assigned(FConnection));
+
+  // Workaround for Firebird driver bug
+  // http://qc.embarcadero.com/wc/qcmain.aspx?d=90414
+  if SameText(FConnection.DriverName, 'Firebird') then
+    FConnection.Params.Values['ServerCharSet'] := FServerCharSet;
 end;
 
 constructor TEFDBDBXInfo.Create(const AConnection: TSQLConnection);
