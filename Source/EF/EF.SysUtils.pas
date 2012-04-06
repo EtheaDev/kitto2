@@ -99,6 +99,16 @@ procedure FindAllFiles(const AFileFormats: array of string; const ARootPath: str
   const AFileNames: TStrings; const AIncludeSubFolders: Boolean = True;
   const AFullPaths: Boolean = True); overload;
 
+type
+  TDirectoryProc = TProc<string>;
+
+///	<summary>Calls the specified procedure once for each directory directly
+///	underneath the specified root path.</summary>
+///	<remarks>This function is a wrapper around TEFFileLister. If you need more
+///	flexibility then use TEFFileLister directly, or write a different
+///	wrapper.</remarks>
+procedure EnumDirectories(const ARootPath: string; const AProc: TDirectoryProc);
+
 ///	<summary>Returns True if the specified directory exists and is empty, False
 ///	otherwise.</summary>
 function IsDirectoryEmpty(const APath: string): Boolean;
@@ -238,6 +248,9 @@ function GetFormatSettings: TFormatSettings;
 type
   TEFFileErrorAction = (eaRetry, eaSkip, eaAbort, eaFail);
 
+  TEFBeforeProcessFileProc = reference to procedure (const ASourceFileName: string;
+    var ADestinationFileName: string; var AAllow: Boolean);
+
   TEFProcessFileProc = reference to procedure (const ASourceFileName,
     ADestinationFileName: string);
 
@@ -259,7 +272,7 @@ type
     FRetryCount: Integer;
     FRetryDelay: Integer;
     FAfterProcessFile: TEFProcessFileProc;
-    FBeforeProcessFile: TEFProcessFileProc;
+    FBeforeProcessFile: TEFBeforeProcessFileProc;
     FDefaultErrorAction: TEFFileErrorAction;
     FExceptions: TStrings;
     procedure DoProcess(const ASourcePath, ADestinationPath: string);
@@ -367,7 +380,7 @@ type
     ///	  Fired before processing each file. The handler receives the file
     ///	  name(s) in input.
     ///	</summary>
-    property BeforeProcessFile: TEFProcessFileProc read FBeforeProcessFile
+    property BeforeProcessFile: TEFBeforeProcessFileProc read FBeforeProcessFile
       write FBeforeProcessFile;
 
     ///	<summary>
@@ -635,7 +648,7 @@ procedure CopyFile(const ASourceFileName, ADestinationFileName: string);
 ///	  use TFileCopier directly or write a different wrapper.
 ///	</summary>
 procedure CopyAllFilesAndFolders(const ASourcePath, ADestinationPath: string;
-  const ABeforeEachFile: TEFProcessFileProc = nil;
+  const ABeforeEachFile: TEFBeforeProcessFileProc = nil;
   const AAfterEachFile: TEFProcessFileProc = nil);
 
 ///	<summary>
@@ -647,7 +660,7 @@ procedure CopyAllFilesAndFolders(const ASourcePath, ADestinationPath: string;
 procedure CopyAllFilesAndFoldersExcept(
   const ASourcePath, ADestinationPath: string;
   const AExceptions: array of string;
-  const ABeforeEachFile: TEFProcessFileProc = nil;
+  const ABeforeEachFile: TEFBeforeProcessFileProc = nil;
   const AAfterEachFile: TEFProcessFileProc = nil);
 
 ///	<summary>
@@ -1063,6 +1076,24 @@ begin
   end;
 end;
 
+procedure EnumDirectories(const ARootPath: string; const AProc: TDirectoryProc);
+var
+  LSearchRec: TSearchRec;
+  LResult: Integer;
+begin
+  Assert(Assigned(AProc));
+  Assert(DirectoryExists(ARootPath));
+
+  LResult := FindFirst(IncludeTrailingPathDelimiter(ARootPath) + '*.*', faDirectory, LSearchRec);
+  while LResult = 0 do
+  begin
+    if ((LSearchRec.Attr and faDirectory <> 0) and (LSearchRec.Name <> '.') and (LSearchRec.Name <> '..')) then
+      AProc(LSearchRec.Name);
+    LResult := FindNext(LSearchRec);
+  end;
+  FindClose(LSearchRec);
+end;
+
 function IsDirectoryEmpty(const APath: string): Boolean;
 var
   LSearchRec: TSearchRec;
@@ -1166,7 +1197,7 @@ begin
 end;
 
 procedure CopyAllFilesAndFolders(const ASourcePath, ADestinationPath: string;
-  const ABeforeEachFile: TEFProcessFileProc;
+  const ABeforeEachFile: TEFBeforeProcessFileProc;
   const AAfterEachFile: TEFProcessFileProc);
 begin
   with TEFFileCopier.Create do
@@ -1186,7 +1217,7 @@ end;
 procedure CopyAllFilesAndFoldersExcept(
   const ASourcePath, ADestinationPath: string;
   const AExceptions: array of string;
-  const ABeforeEachFile: TEFProcessFileProc = nil;
+  const ABeforeEachFile: TEFBeforeProcessFileProc = nil;
   const AAfterEachFile: TEFProcessFileProc = nil);
 var
   LExceptionIndex: Integer;
@@ -1353,17 +1384,24 @@ procedure TEFFileProcessor.ProcessFile(const ASourceFileName, ADestinationFileNa
 var
   LRetries: Integer;
   LRetryDelay: Integer;
+  LAllow: Boolean;
+  LDestinationFileName: string;
 begin
   LRetries := FRetryCount;
   LRetryDelay := FRetryDelay;
   while True do
   begin
     try
+      LAllow := True;
+      LDestinationFileName := ADestinationFileName;
       if Assigned(FBeforeProcessFile) then
-        FBeforeProcessFile(ASourceFileName, ADestinationFileName);
-      DoProcessFile(ASourceFileName, ADestinationFileName);
-      if Assigned(FAfterProcessFile) then
-        FAfterProcessFile(ASourceFileName, ADestinationFileName);
+        FBeforeProcessFile(ASourceFileName, LDestinationFileName, LAllow);
+      if LAllow then
+      begin
+        DoProcessFile(ASourceFileName, LDestinationFileName);
+        if Assigned(FAfterProcessFile) then
+          FAfterProcessFile(ASourceFileName, LDestinationFileName);
+      end;
       Break;
     except
       on E: Exception do
