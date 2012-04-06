@@ -551,22 +551,17 @@ end;
 
 function TextFileToString(const AFileName: string): string;
 var
-  LFile: TextFile;
-  LBuffer: string;
+  LStrings: TStrings;
 begin
   Result := '';
   if FileExists(AFileName) then
   begin
-    AssignFile(LFile, AFileName);
+    LStrings := TStringList.Create;
     try
-      Reset(LFile);
-      while not Eof(LFile) do
-      begin
-        Readln(LFile, LBuffer);
-        Result := Result + LBuffer + sLineBreak;
-      end;
+      LStrings.LoadFromFile(AFileName);
+      Result := LStrings.Text;
     finally
-      CloseFile(LFile);
+      FreeAndNil(LStrings);
     end;
   end;
 end;
@@ -576,16 +571,19 @@ procedure StringToTextFile(const AString, AFileName: string;
 var
   LFilePath: string;
   LWriter: TStreamWriter;
+  LStrings: TStrings;
 begin
   LFilePath := ExtractFilePath(AFileName);
   if LFilePath <> '' then
     ForceDirectories(LFilePath);
 
-  LWriter := TStreamWriter.Create(AFileName, False, AEncoding);
+  LStrings := TStringList.Create;
   try
-    LWriter.Write(AString);
+    LStrings.Text := AString;
+    LStrings.WriteBOM := False;
+    LStrings.SaveToFile(AFileName, AEncoding);
   finally
-    LWriter.Free;
+    FreeAndNil(LStrings);
   end;
 end;
 
