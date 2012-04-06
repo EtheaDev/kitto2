@@ -538,7 +538,7 @@ type
     ///	  Sets a node value by path. The node is created if it doesn't exist
     ///	  yet.
     ///	</summary>
-    procedure SetString(const APath: string; const AValue: string);
+    function SetString(const APath: string; const AValue: string): TEFNode;
 
     ///	<summary>
     ///	  Sets a node value by path. The node is created if it doesn't exist
@@ -855,6 +855,11 @@ type
     ///	in the form Name=Value. Returns the number of added items.</summary>
     ///	<remarks>All existing contents in AStrings are deleted.</remarks>
     function GetChildStrings(const AStrings: TStrings): Integer; overload;
+
+    ///	<summary>Adds to the specified string list all child node values.
+    ///	Returns the number of added items.</summary>
+    ///	<remarks>All existing contents in AStrings are deleted.</remarks>
+    function GetChildValues(const AStrings: TStrings): Integer; overload;
 
     ///	<summary>Deletes all children and adds a new children for each string
     ///	in the specified string list. Strings must be in the form
@@ -1268,6 +1273,18 @@ begin
   Assert(Assigned(AStrings));
 
   AStrings.Text := GetChildStrings;
+  Result := AStrings.Count;
+end;
+
+function TEFNode.GetChildValues(const AStrings: TStrings): Integer;
+var
+  I: Integer;
+begin
+  Assert(Assigned(AStrings));
+
+  AStrings.Text := GetChildStrings;
+  for I := 0 to AStrings.Count - 1 do
+    AStrings[I] := AStrings.ValueFromIndex[I];
   Result := AStrings.Count;
 end;
 
@@ -2041,9 +2058,10 @@ begin
   GetNode(APath, True).AsObject := AValue;
 end;
 
-procedure TEFTree.SetString(const APath, AValue: string);
+function TEFTree.SetString(const APath, AValue: string): TEFNode;
 begin
-  GetNode(APath, True).AsString := AValue;
+  Result := GetNode(APath, True);
+  Result.AsString := AValue;
 end;
 
 procedure TEFTree.EnterCS;
