@@ -91,7 +91,8 @@ type
     procedure LoadTreeFromFile(const ATree: TEFTree; const AFileName: string);
     procedure LoadTreeFromStream(const ATree: TEFTree; const AStream: TStream);
 
-    class function LoadTree(const AFileName: string): TEFTree;
+    class function LoadTree(const AFileName: string): TEFTree; overload;
+    class procedure LoadTree(const ATree: TEFTree; const AFileName: string); overload;
   end;
 
   ///	<summary>
@@ -108,6 +109,14 @@ type
   public
     procedure SaveTreeToFile(const ATree: TEFTree; const AFileName: string);
     procedure SaveTreeToStream(const ATree: TEFTree; const AStream: TStream);
+
+    class procedure SaveTree(const ATree: TEFTree; const AFileName: string);
+  end;
+
+  TEFTreeHelper = class helper for TEFTree
+  public
+    function LoadFromYamlFile(const AFileName: string): TEFTree;
+    function SaveToYamlFile(const AFileName: string): TEFTree;
   end;
 
 function EncodeYAMLKey(const AKey: string): string;
@@ -258,18 +267,27 @@ begin
 end;
 
 class function TEFYAMLReader.LoadTree(const AFileName: string): TEFTree;
+begin
+  Result := TEFTree.Create;
+  try
+    LoadTree(Result, AFileName);
+  except
+    FreeAndNil(Result);
+    raise;
+  end;
+end;
+
+class procedure TEFYAMLReader.LoadTree(const ATree: TEFTree; const AFileName: string);
 var
   LInstance: TEFYAMLReader;
 begin
+  Assert(AFileName <> '');
+  Assert(FileExists(AFileName));
+  Assert(Assigned(ATree));
+
   LInstance := TEFYAMLReader.Create;
   try
-    Result := TEFTree.Create;
-    try
-      LInstance.LoadTreeFromFile(Result, AFileName);
-    except
-      FreeAndNil(Result);
-      raise;
-    end;
+    LInstance.LoadTreeFromFile(ATree, AFileName);
   finally
     FreeAndNil(LInstance);
   end;
@@ -321,7 +339,7 @@ begin
   try
     LStack := TStack<TEFNode>.Create;
     try
-      ATree.Clear;
+      ATree.ClearChildren;
       Parser.Reset;
 
       repeat
@@ -384,6 +402,22 @@ begin
   inherited;
   FIndentChars := 2;
   FSpacingChars := 1;
+end;
+
+class procedure TEFYAMLWriter.SaveTree(const ATree: TEFTree;
+  const AFileName: string);
+var
+  LWriter: TEFYAMLWriter;
+begin
+  Assert(Assigned(ATree));
+  Assert(AFileName <> '');
+
+  LWriter := TEFYAMLWriter.Create;
+  try
+    LWriter.SaveTreeToFile(ATree, AFileName);
+  finally
+    FreeAndNil(LWriter);
+  end;
 end;
 
 procedure TEFYAMLWriter.SaveTreeToFile(const ATree: TEFTree; const AFileName: string);
@@ -471,6 +505,20 @@ begin
     AWriter.WriteLine;
   for I := 0 to ANode.ChildCount - 1 do
     WriteNode(ANode.Children[I], AWriter, AIndent + FIndentChars);
+end;
+
+{ TEFTreeHelper }
+
+function TEFTreeHelper.LoadFromYamlFile(const AFileName: string): TEFTree;
+begin
+  TEFYAMLReader.LoadTree(Self, AFileName);
+  Result := Self;
+end;
+
+function TEFTreeHelper.SaveToYamlFile(const AFileName: string): TEFTree;
+begin
+  TEFYAMLWriter.SaveTree(Self, AFileName);
+  Result := Self;
 end;
 
 end.
