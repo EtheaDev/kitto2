@@ -2,6 +2,25 @@
 
 Controller: List
   AllowClose: False
+  Filters:
+    DisplayLabel: Girls Filter
+    Connector: and
+    Items:
+      ButtonList: Hair Color
+        Items:
+          All: All
+            Expression: 1 = 1
+            IsDefault: True
+          Blond: Blond
+            Expression: HAIR.HAIR_COLOR = 'Blond'
+          Walnut: Walnut
+            Expression: HAIR.HAIR_COLOR = 'Walnut'
+          Black: Black
+            Expression: HAIR.HAIR_COLOR = 'Black'
+          Silver: Silver
+            Expression: HAIR.HAIR_COLOR = 'Silver'
+          Red: Red
+            Expression: HAIR.HAIR_COLOR = 'Red'
 
 MainTable:
   Model: Girl
@@ -11,23 +30,3 @@ MainTable:
     PopupWindow:
       Width: 460
       Height: 230
-
-    Filters:
-      DisplayLabel: Girls Filter
-      Connector: and
-      Items:
-        ButtonList: Hair Color
-          Items:
-            All: All
-              Expression: 1 = 1
-              IsDefault: True
-            Blond: Blond
-              Expression: HAIR.HAIR_COLOR = 'Blond'
-            Walnut: Walnut
-              Expression: HAIR.HAIR_COLOR = 'Walnut'
-            Black: Black
-              Expression: HAIR.HAIR_COLOR = 'Black'
-            Silver: Silver
-              Expression: HAIR.HAIR_COLOR = 'Silver'
-            Red: Red
-              Expression: HAIR.HAIR_COLOR = 'Red'
