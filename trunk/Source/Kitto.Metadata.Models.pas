@@ -467,6 +467,11 @@ type
     property Models[I: Integer]: TKModel read GetModel; default;
     function ModelByName(const AName: string): TKModel;
     function FindModel(const AName: string): TKModel;
+
+    ///	<summary>Returns a reference to the first found model with the
+    ///	specified physical name. If a model has no custom physical name
+    ///	specified, the (case insensitive) match is done on its name
+    ///	instead.</summary>
     function FindModelByPhysicalName(const APhysicalName: string): TKModel;
   end;
 
@@ -1364,8 +1369,11 @@ function TKModels.FindModelByPhysicalName(const APhysicalName: string): TKModel;
 begin
   Result := FindObjectByPredicate(
     function (const AObject: TKMetadata): Boolean
+    var
+      LModel: TKModel;
     begin
-      Result := SameText((AObject as TKModel).PhysicalName, APhysicalName);
+      LModel := AObject as TKModel;
+      Result := SameText(IfThen(LModel.PhysicalName <> '', LModel.PhysicalName, LModel.ModelName), APhysicalName);
     end) as TKModel;
 end;
 

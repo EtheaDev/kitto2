@@ -602,6 +602,7 @@ var
   LCommand: TDBXCommand;
   LReader: TDBXReader;
   LTableInfo: TEFDBTableInfo;
+  LCommandText: string;
 begin
   StoreServerCharSet;
   try
@@ -610,7 +611,10 @@ begin
       LCommand := FConnection.DBXConnection.CreateCommand;
       try
         LCommand.CommandType := TDBXCommandTypes.DbxMetaData;
-        LCommand.Text := TDBXMetaDataCommands.GetTables + ' % ' + TDBXMetaDataTableTypes.Table;
+        LCommandText := TDBXMetaDataCommands.GetTables + ' % ' + TDBXMetaDataTableTypes.Table;
+        if ViewsAsTables then
+          LCommandText := LCommandText + ' ' + TDBXMetaDataTableTypes.View;
+        LCommand.Text := LCommandText;
         LReader := LCommand.ExecuteQuery;
         try
           while LReader.Next do
@@ -619,8 +623,11 @@ begin
             try
               LTableInfo.Name := LReader.Value[TDBXTablesIndex.TableName].AsString;
               FetchTableColumns(LTableInfo);
-              FetchTablePrimaryKey(LTableInfo);
-              FetchTableForeignKeys(LTableInfo);
+              if SameText(LReader.Value[TDBXTablesIndex.TableType].AsString, 'TABLE') then
+              begin
+                FetchTablePrimaryKey(LTableInfo);
+                FetchTableForeignKeys(LTableInfo);
+              end;
               ASchemaInfo.AddTable(LTableInfo);
             except
               FreeAndNil(LTableInfo);

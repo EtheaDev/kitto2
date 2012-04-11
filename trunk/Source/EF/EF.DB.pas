@@ -39,8 +39,10 @@ type
   private
     FSchema: TEFDBSchemaInfo;
     FIsInfoFetched: Boolean;
+    FViewsAsTables: Boolean;
     procedure EnsureInfo;
     procedure FetchInfo;
+    procedure SetViewsAsTables(const AValue: Boolean);
   protected
     procedure BeforeFetchInfo; virtual;
     function GetSchema: TEFDBSchemaInfo;
@@ -48,7 +50,17 @@ type
   public
     procedure AfterConstruction; override;
     destructor Destroy; override;
+
+    ///	<summary>Gives access to the schema information, read on first
+    ///	access.</summary>
     property Schema: TEFDBSchemaInfo read GetSchema;
+
+    ///	<summary>If true, database views are read as well when reading tables.
+    ///	Otherwise views are ignored.</summary>
+    property ViewsAsTables: Boolean read FViewsAsTables write SetViewsAsTables;
+
+    ///	<summary>Invalidates info so that it is read again next time Schema is
+    ///	accessed.</summary>
     procedure InvalidateInfo;
   end;
 
@@ -713,6 +725,7 @@ procedure TEFDBInfo.AfterConstruction;
 begin
   inherited;
   FSchema := TEFDBSchemaInfo.Create;
+  FViewsAsTables := False;
 end;
 
 procedure TEFDBInfo.BeforeFetchInfo;
@@ -750,6 +763,11 @@ end;
 procedure TEFDBInfo.InvalidateInfo;
 begin
   FIsInfoFetched := False;
+end;
+
+procedure TEFDBInfo.SetViewsAsTables(const AValue: Boolean);
+begin
+  FViewsAsTables := AValue;
 end;
 
 { TEFDBTableInfo }
