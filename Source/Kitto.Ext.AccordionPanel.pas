@@ -25,9 +25,12 @@ uses
   Kitto.Ext.Base, Kitto.Metadata.Views;
 
 type
+  ///	<summary>Displays subviews/controllers in an accordion.</summary>
+  ///	<remarks>All contained views and controllers must have
+  ///	ShowHeader=True.</remarks>
   TKExtAccordionPanelController = class(TKExtPanelControllerBase)
   private
-    procedure DisplaySubViews;
+    procedure DisplaySubViewsAndControllers;
   protected
     procedure DoDisplay; override;
   end;
@@ -35,9 +38,10 @@ type
 implementation
 
 uses
+  SysUtils,
   ExtPascal, ExtLayout,
-  EF.Tree,
-  Kitto.Ext.Controller, Kitto.Ext.Session;
+  EF.Tree, EF.Localization,
+  Kitto.Types, Kitto.AccessControl, Kitto.Ext.Controller, Kitto.Ext.Session;
 
 { TKExtAccordionPanelController }
 
@@ -46,28 +50,42 @@ begin
   inherited;
   Layout := lyAccordion;
   { TODO : make these customizable }
-  Width := 180;
   MinSize := 20;
   MaxSize := 400;
 
   LayoutConfig := JSObject('animate:true');
-  DisplaySubViews;
+  DisplaySubViewsAndControllers;
 end;
 
-procedure TKExtAccordionPanelController.DisplaySubViews;
+procedure TKExtAccordionPanelController.DisplaySubViewsAndControllers;
 var
   LController: IKExtController;
   LViews: TEFNode;
   I: Integer;
+  LView: TKView;
 begin
-  LViews := View.FindNode('Controller/SubViews');
+  LViews := Config.FindNode('SubViews');
   if Assigned(LViews) then
   begin
     for I := 0 to LViews.ChildCount - 1 do
     begin
-      LController := TKExtControllerFactory.Instance.CreateController(
-        Session.Config.Views.ViewByNode(LViews.Children[I]), Self);
-      LController.Display;
+      if SameText(LViews.Children[I].Name, 'View') then
+      begin
+        LView := Session.Config.Views.ViewByNode(LViews.Children[I]);
+        if LView.IsAccessGranted(ACM_VIEW) then
+        begin
+          LController := TKExtControllerFactory.Instance.CreateController(LView, Self);
+          LController.Display;
+        end;
+      end
+      else if SameText(LViews.Children[I].Name, 'Controller') then
+      begin
+        LController := TKExtControllerFactory.Instance.CreateController(View, Self, LViews.Children[I]);
+        InitSubController(LController);
+        LController.Display;
+      end
+      else
+        raise EKError.Create(_('AccordionPanel''s SubViews node may only contain View or Controller subnodes.'));
     end;
     if Items.Count > 0 then
       On('afterrender', JSFunction(JSName + '.getLayout().setActiveItem(0);'));

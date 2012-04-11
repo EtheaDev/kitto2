@@ -347,7 +347,7 @@ end;
 
 function TKView.GetControllerType: string;
 begin
-  Result := GetString('Controller');
+  Result := GetExpandedString('Controller');
 end;
 
 function TKView.GetDisplayLabel: string;

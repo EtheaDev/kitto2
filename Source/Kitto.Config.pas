@@ -112,6 +112,7 @@ type
     ///	    <item>..\Externals\Kitto\Home</item>
     ///	    <item>..\..\Externals\Kitto\Home</item>
     ///	    <item>..\..\..\Home</item>
+    ///	    <item>%KITTO%\Home</item>
     ///	  </list>
     ///	  <para>The first existing path is used. If none of these exist, the
     ///	  value of AppHomePath is assumed.</para>
@@ -663,7 +664,11 @@ begin
     begin
       Result := LExePath + '..\..\..\Home\';
       if not DirectoryExists(Result) then
-        Result := GetAppHomePath;
+      begin
+        Result := ExpandEnvironmentVariables('%KITTO%\Home\');
+        if not DirectoryExists(Result) then
+          Result := GetAppHomePath;
+      end;
     end;
   end;
 end;

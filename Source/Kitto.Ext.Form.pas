@@ -50,7 +50,7 @@ type
   ///	  The Form controller.
   ///	</summary>
   TKExtFormPanelController = class(TKExtDataPanelController)
-  private
+  strict private
     FTabPanel: TExtTabPanel;
     FFormPanel: TKExtEditPanel;
     FIsReadOnly: Boolean;
@@ -72,11 +72,11 @@ type
     function GetDetailStyle: string;
     procedure OnFieldChange(AField: TExtFormField; ANewValue, AOldValue: string);
     function FindEditor(const AFieldName: string): IKExtEditor;
-  protected
-    procedure LoadData; override;
+  strict protected
+    procedure DoDisplay; override;
     procedure InitComponents; override;
-    function AutoLoadData: Boolean; override;
   public
+    procedure LoadData; override;
     destructor Destroy; override;
   published
     procedure GetRecord;
@@ -88,8 +88,8 @@ implementation
 
 uses
   SysUtils, StrUtils, Classes,
-  EF.Localization, EF.Types, EF.Intf, EF.Tree, EF.DB,
-  Kitto.AccessControl, Kitto.JSON, Kitto.Rules, Kitto.SQL,
+  EF.Localization, EF.Types, EF.Intf, EF.Tree, EF.DB, EF.JSON,
+  Kitto.AccessControl, Kitto.Rules, Kitto.SQL,
   Kitto.Ext.Session, Kitto.Ext.Utils;
 
 { TKExtFormPanelController }
@@ -100,6 +100,12 @@ begin
   FreeAndNil(FDetailButtons);
   FreeAndNil(FDetailPanels);
   inherited;
+end;
+
+procedure TKExtFormPanelController.DoDisplay;
+begin
+  inherited;
+  LoadData;
 end;
 
 procedure TKExtFormPanelController.CreateDetailToolbar;
@@ -381,7 +387,7 @@ begin
 
   FOperation := Config.GetString('Sys/Operation');
   if FOperation = '' then
-    FOperation := View.GetString('Controller/Operation');
+    FOperation := Config.GetString('Operation');
 
   FStoreRecord := Config.GetObject('Sys/Record') as TKViewTableRecord;
   Assert((FOperation = 'Add') or Assigned(FStoreRecord));
@@ -392,10 +398,10 @@ begin
   end;
 
   if SameText(FOperation, 'Add') then
-    FIsReadOnly := View.GetBoolean('IsReadOnly') or ViewTable.IsReadOnly or View.GetBoolean('Controller/PreventAdding')
+    FIsReadOnly := View.GetBoolean('IsReadOnly') or ViewTable.IsReadOnly or Config.GetBoolean('PreventAdding')
       or not ViewTable.IsAccessGranted(ACM_ADD)
   else
-    FIsReadOnly := View.GetBoolean('IsReadOnly') or ViewTable.IsReadOnly or View.GetBoolean('Controller/PreventEditing')
+    FIsReadOnly := View.GetBoolean('IsReadOnly') or ViewTable.IsReadOnly or Config.GetBoolean('PreventEditing')
       or not ViewTable.IsAccessGranted(ACM_MODIFY);
   if SameText(FOperation, 'Add') and FIsReadOnly then
     raise EEFError.Create(_('Operation Add not supported on read-only data.'));
@@ -428,7 +434,7 @@ begin
   if not FIsReadOnly then
   begin
     FSaveButton := TExtButton.AddTo(FFormPanel.Buttons);
-    FSaveButton.Scale := View.GetString('Controller/ButtonScale', 'medium');
+    FSaveButton.Scale := Config.GetString('ButtonScale', 'medium');
     FSaveButton.FormBind := True;
     FSaveButton.Text := _('Save');
     FSaveButton.Tooltip := _('Save changes and finish editing');
@@ -437,7 +443,7 @@ begin
     //FSaveButton.Handler := JSFunction(FFormPanel.JSName + '.getForm().doAction("submit", {success:"AjaxSuccess", failure:"AjaxFailure"});');
   end;
   FCancelButton := TExtButton.AddTo(FFormPanel.Buttons);
-  FCancelButton.Scale := View.GetString('Controller/ButtonScale', 'medium');
+  FCancelButton.Scale := Config.GetString('ButtonScale', 'medium');
   FCancelButton.Icon := Session.Config.GetImageURL('cancel');
   if FIsReadOnly then
   begin
@@ -454,12 +460,6 @@ begin
     FCancelButton.Tooltip := _('Cancel changes');
     FCancelButton.Handler := Ajax(CancelChanges);
   end;
-end;
-
-function TKExtFormPanelController.AutoLoadData: Boolean;
-begin
-  // A form is not subject to the AutoOpen parameter.
-  Result := True;
 end;
 
 procedure TKExtFormPanelController.CancelChanges;

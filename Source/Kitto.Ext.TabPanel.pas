@@ -22,33 +22,39 @@ interface
 
 uses
   Ext,
-  Kitto.Ext.Base, Kitto.Metadata.Views;
+  EF.Tree,
+  Kitto.Ext.Base, Kitto.Ext.Controller, Kitto.Metadata.Views;
 
 type
+  TKExtTabPanelController = class;
+
   ///	<summary>
   ///	  A tab panel that knows when its hosted panels are closed. Used
   ///   by the TabPanel controller.
   ///	</summary>
   TKExtTabPanel = class(TExtTabPanel)
   private
+    FConfig: TEFTree;
     FView: TKView;
-    procedure DisplaySubViews;
-    procedure SetView(const AValue: TKView);
+    FOwner: TKExtTabPanelController;
   protected
     procedure InitDefaults; override;
   public
     procedure AfterConstruction; override;
-    property View: TKView read FView write SetView;
+    procedure DisplaySubViewsAndControllers;
+    destructor Destroy; override;
   published
     procedure PanelClosed;
   end;
 
   TKExtTabPanelController = class(TKExtPanelControllerBase)
-  private
+  strict private
     FTabPanel: TKExtTabPanel;
-  protected
+  strict protected
     procedure InitDefaults; override;
     procedure DoDisplay; override;
+  public
+    procedure InitSubController(const AController: IKExtController); override;
   end;
 
 implementation
@@ -56,24 +62,32 @@ implementation
 uses
   SysUtils,
   ExtPascal,
-  EF.Tree,
-  Kitto.AccessControl,
-  Kitto.Ext.Controller, Kitto.Ext.Session;
+  EF.Localization,
+  Kitto.AccessControl, Kitto.Types,
+  Kitto.Ext.Session;
 
 { TKExtTabPanelController }
 
 procedure TKExtTabPanelController.DoDisplay;
 begin
   inherited;
-  FTabPanel.View := View;
+  FTabPanel.FConfig := Config;
+  FTabPanel.FOwner := Self;
+  FTabPanel.FView := View;
+  FTabPanel.DisplaySubViewsAndControllers;
 end;
 
 procedure TKExtTabPanelController.InitDefaults;
 begin
   inherited;
   Layout := lyFit;
-
   FTabPanel := TKExtTabPanel.AddTo(Items);
+end;
+
+procedure TKExtTabPanelController.InitSubController(
+  const AController: IKExtController);
+begin
+  inherited;
 end;
 
 { TKExtTabPanel }
@@ -92,29 +106,50 @@ end;
 procedure TKExtTabPanel.AfterConstruction;
 begin
   inherited;
-  Session.ViewHost := Self;
+  if Session.ViewHost = nil then
+    Session.ViewHost := Self;
 end;
 
-procedure TKExtTabPanel.DisplaySubViews;
+destructor TKExtTabPanel.Destroy;
+begin
+  if Session.ViewHost = Self then
+    Session.ViewHost := nil;
+  inherited;
+end;
+
+procedure TKExtTabPanel.DisplaySubViewsAndControllers;
 var
   LController: IKExtController;
   LViews: TEFNode;
   I: Integer;
   LView: TKView;
 begin
+  Assert(Assigned(FOwner));
+  Assert(Assigned(FConfig));
   Assert(Assigned(FView));
 
-  LViews := View.FindNode('Controller/SubViews');
+  LViews := FConfig.FindNode('SubViews');
   if Assigned(LViews) then
   begin
     for I := 0 to LViews.ChildCount - 1 do
     begin
-      LView := Session.Config.Views.ViewByNode(LViews.Children[I]);
-      if LView.IsAccessGranted(ACM_VIEW) then
+      if SameText(LViews.Children[I].Name, 'View') then
       begin
-        LController := TKExtControllerFactory.Instance.CreateController(LView, Self);
+        LView := Session.Config.Views.ViewByNode(LViews.Children[I]);
+        if LView.IsAccessGranted(ACM_VIEW) then
+        begin
+          LController := TKExtControllerFactory.Instance.CreateController(LView, Self);
+          LController.Display;
+        end;
+      end
+      else if SameText(LViews.Children[I].Name, 'Controller') then
+      begin
+        LController := TKExtControllerFactory.Instance.CreateController(FView, Self, LViews.Children[I]);
+        FOwner.InitSubController(LController);
         LController.Display;
-      end;
+      end
+      else
+        raise EKError.Create(_('TabPanel''s SubViews node may only contain View or Controller subnodes.'));
     end;
     if Items.Count > 0 then
       SetActiveTab(0);
@@ -128,14 +163,6 @@ begin
   LPanel := ParamAsObject('Panel') as TExtObject;
   Items.Remove(LPanel);
   LPanel.Free;
-end;
-
-procedure TKExtTabPanel.SetView(const AValue: TKView);
-begin
-  Assert(Assigned(AValue));
-
-  FView := AValue;
-  DisplaySubViews;
 end;
 
 initialization

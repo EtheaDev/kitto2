@@ -21,42 +21,200 @@ unit Kitto.Ext.List;
 interface
 
 uses
-  Kitto.Ext.DataPanel, Kitto.Ext.GridPanel;
+  Classes,
+  Ext, ExtPascal,
+  EF.Tree, EF.ObserverIntf,
+  Kitto.Metadata.DataView, Kitto.Ext.Base, Kitto.Ext.DataPanelComposite;
 
 type
-  TKExtListPanelController = class(TKExtDataPanelController)
+  TKExtFilterPanel = class(TKExtPanelBase)
   private
-    FGridPanel: TKExtGridPanel;
+    FConnector: string;
+    FOnChange: TNotifyEvent;
+    procedure DoChange;
   protected
-    procedure LoadData; override;
+    procedure InitDefaults; override;
+  public
+    procedure Configure(const AConfig: TEFNode);
+    function GetFilterExpression: string;
+    procedure UpdateObserver(const ASubject: IEFSubject;
+      const AContext: string = ''); override;
+    property OnChange: TNotifyEvent read FOnChange write FOnChange;
+  end;
+
+  ///	<summary>Provides the filtering feature for contained multi-record data
+  ///	panels.</summary>
+  TKExtListPanelController = class(TKExtDataPanelCompositeController)
+  strict private
+    FFilterPanel: TKExtFilterPanel;
+    FCenterControllerConfig: TEFNode;
+    function GetCenterRegionControllerConfig: TEFNode;
+    procedure CreateFilterPanel;
+    procedure FilterPanelChange(Sender: TObject);
+  strict protected
     procedure InitComponents; override;
+    function GetRegionControllerName(const ARegion: TExtBoxComponentRegion): string; override;
+    function GetRegionControllerConfig(const ARegion: TExtBoxComponentRegion): TEFNode; override;
+    function GetFilterExpression: string; override;
+    procedure SetViewTable(const AValue: TKViewTable); override;
+  public
+    procedure AfterConstruction; override;
+    destructor Destroy; override;
   end;
 
 implementation
 
 uses
-  Ext,
+  SysUtils,
   EF.Localization,
-  Kitto.Ext.Session, Kitto.Metadata.DataView,
-  Kitto.Ext.Controller;
+  Kitto.Ext.Session, Kitto.Ext.Controller, Kitto.Ext.Filters;
+
+{ TKExtFilterPanel }
+
+procedure TKExtFilterPanel.Configure(const AConfig: TEFNode);
+var
+  LItems: TEFNode;
+  I: Integer;
+begin
+  Assert(Assigned(AConfig));
+
+  Title := _(AConfig.GetString('DisplayLabel', _('Search')));
+  FConnector := AConfig.GetString('Connector', 'and');
+
+  LItems := AConfig.GetNode('Items');
+  for I := 0 to LItems.ChildCount - 1 do
+  begin
+    // Currently unused.
+//    LItems.Children[I].SetString('Sys/ApplyJSCode', GetRefreshJSCode);
+    TKExtFilterFactory.Instance.CreateFilter(LItems.Children[I], Self, Items);
+  end;
+end;
+
+procedure TKExtFilterPanel.DoChange;
+begin
+  if Assigned(FOnChange) then
+    FOnChange(Self);
+end;
+
+function TKExtFilterPanel.GetFilterExpression: string;
+var
+  LIntf: IKExtFilter;
+  I: Integer;
+  LExpression: string;
+begin
+  Result := '';
+  for I := 0 to Items.Count - 1 do
+  begin
+    if Supports(Items[I], IKExtFilter, LIntf) then
+    begin
+      LExpression := LIntf.GetExpression;
+      if LExpression <> '' then
+      begin
+        if Result = '' then
+          Result := '(' + LExpression + ')'
+        else
+          Result := Result + ' ' + FConnector + ' ' + '(' + LExpression + ')';
+      end;
+    end;
+  end;
+end;
+
+procedure TKExtFilterPanel.InitDefaults;
+begin
+  inherited;
+  Border := False;
+  Layout := lyForm;
+  Region := rgNorth;
+  Collapsible := True;
+  Frame := True;
+  AutoHeight := True;
+end;
+
+procedure TKExtFilterPanel.UpdateObserver(const ASubject: IEFSubject;
+  const AContext: string);
+begin
+  inherited;
+  if AContext = 'FilterChanged' then
+    DoChange;
+end;
 
 { TKExtListPanelController }
+
+function TKExtListPanelController.GetFilterExpression: string;
+begin
+  if Assigned(FFilterPanel) then
+    Result := FFilterPanel.GetFilterExpression
+  else
+    Result := inherited GetFilterExpression;
+end;
+
+procedure TKExtListPanelController.CreateFilterPanel;
+var
+  LItems: TEFNode;
+begin
+  Assert(ViewTable <> nil);
+
+  LItems := Config.FindNode('Filters/Items');
+  if Assigned(LItems) and (LItems.ChildCount > 0) then
+  begin
+    FFilterPanel := TKExtFilterPanel.AddTo(Items);
+    FFilterPanel.OnChange := FilterPanelChange;
+    FFilterPanel.Configure(LItems.Parent as TEFNode);
+  end;
+end;
+
+procedure TKExtListPanelController.FilterPanelChange(Sender: TObject);
+begin
+  RefilterData((Sender as TKExtFilterPanel).GetFilterExpression);
+end;
+
+procedure TKExtListPanelController.AfterConstruction;
+begin
+  inherited;
+  FCenterControllerConfig := TEFNode.Create('CenterController', 'GridPanel');
+end;
+
+destructor TKExtListPanelController.Destroy;
+begin
+  FreeAndNil(FCenterControllerConfig);
+  inherited;
+end;
+
+function TKExtListPanelController.GetCenterRegionControllerConfig: TEFNode;
+begin
+  Result := Config.FindNode('CenterController');
+  if Result = nil then
+    Result := FCenterControllerConfig;
+end;
+
+function TKExtListPanelController.GetRegionControllerConfig(
+  const ARegion: TExtBoxComponentRegion): TEFNode;
+begin
+  if ARegion = rgCenter then
+    Result := GetCenterRegionControllerConfig
+  else
+    Result := inherited GetRegionControllerConfig(ARegion);
+end;
+
+function TKExtListPanelController.GetRegionControllerName(
+  const ARegion: TExtBoxComponentRegion): string;
+begin
+  if ARegion = rgCenter then
+    Result := 'GridPanel'
+  else
+    Result := inherited GetRegionControllerName(ARegion);
+end;
 
 procedure TKExtListPanelController.InitComponents;
 begin
   inherited;
   Title := _(Session.Config.MacroExpansionEngine.Expand(ViewTable.PluralDisplayLabel));
-
-  FGridPanel := TKExtGridPanel.AddTo(Items);
-  FGridPanel.ServerStore := ServerStore;
-  FGridPanel.ViewTable := ViewTable;
 end;
 
-procedure TKExtListPanelController.LoadData;
+procedure TKExtListPanelController.SetViewTable(const AValue: TKViewTable);
 begin
-  Assert(Assigned(FGridPanel));
-
-  FGridPanel.LoadData;
+  inherited;
+  CreateFilterPanel;
 end;
 
 initialization

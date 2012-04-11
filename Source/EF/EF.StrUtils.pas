@@ -570,7 +570,6 @@ procedure StringToTextFile(const AString, AFileName: string;
   const AEncoding: TEncoding = nil);
 var
   LFilePath: string;
-  LWriter: TStreamWriter;
   LStrings: TStrings;
 begin
   LFilePath := ExtractFilePath(AFileName);

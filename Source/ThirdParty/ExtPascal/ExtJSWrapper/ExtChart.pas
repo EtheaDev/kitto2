@@ -112,6 +112,7 @@ type
     property TypeJS : String read FTypeJS write SetFTypeJS;
     property DisplayName : String read FDisplayName write SetFDisplayName;
     property LabelRenderer : TExtFunction read FLabelRenderer write SetFLabelRenderer;
+    procedure SetLabelRenderer(Value : String);
     property Title : String read FTitle write SetFTitle;
   end;
 
@@ -254,7 +255,7 @@ type
 
   TExtChartChart = class(TExtFlashComponent)
   private
-    FChartStyle : TExtChartStyle;
+    FChartStyle : TExtObject;
     FDisableCaching : Boolean;
     FExtraStyle : TExtObject;
     FSeriesStyles : TExtObject;
@@ -268,7 +269,7 @@ type
     FSeries : TExtObjectList;
     FOnBeforerefresh : TExtChartChartOnBeforerefresh;
     FOnRefresh : TExtChartChartOnRefresh;
-    procedure SetFChartStyle(Value : TExtChartStyle);
+    procedure SetFChartStyle(Value : TExtObject);
     procedure SetFDisableCaching(Value : Boolean);
     procedure SetFExtraStyle(Value : TExtObject);
     procedure SetFSeriesStyles(Value : TExtObject);
@@ -295,7 +296,7 @@ type
     function SetStyle(Name : String; Value : TExtObject) : TExtFunction;
     function SetStyles(Styles : TExtObject) : TExtFunction;
     destructor Destroy; override;
-    property ChartStyle : TExtChartStyle read FChartStyle write SetFChartStyle;
+    property ChartStyle : TExtObject read FChartStyle write SetFChartStyle;
     property DisableCaching : Boolean read FDisableCaching write SetFDisableCaching;
     property ExtraStyle : TExtObject read FExtraStyle write SetFExtraStyle;
     property SeriesStyles : TExtObject read FSeriesStyles write SetFSeriesStyles;
@@ -418,10 +419,11 @@ end;
 
 procedure TExtChartSeries.SetFTypeJS(Value : String); begin
   FTypeJS := Value;
-  JSCode(JSName + '.typeJS=' + VarToJSON([Value]) + ';');
+  JSCode(JSName + '.type=' + VarToJSON([Value]) + ';');
 end;
 
 procedure TExtChartSeries.SetFStyle(Value : TExtChartSeriesStyle); begin
+  FStyle.Free;
   FStyle := Value;
   Value.DeleteFromGarbage;
   JSCode('style:' + VarToJSON([Value, false]));
@@ -482,6 +484,11 @@ end;
 procedure TExtChartAxis.SetFTypeJS(Value : String); begin
   FTypeJS := Value;
   JSCode(JSName + '.typeJS=' + VarToJSON([Value]) + ';');
+end;
+
+procedure TExtChartAxis.SetLabelRenderer(Value: String);
+begin
+  JSCode('labelRenderer:' + Value);
 end;
 
 procedure TExtChartAxis.SetFDisplayName(Value : String); begin
@@ -689,7 +696,8 @@ end;
 
 {$IFDEF FPC}constructor TExtChartColumnSeries.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
 
-procedure TExtChartChart.SetFChartStyle(Value : TExtChartStyle); begin
+procedure TExtChartChart.SetFChartStyle(Value : TExtObject); begin
+  FChartStyle.Free;
   FChartStyle := Value;
   Value.DeleteFromGarbage;
   JSCode('chartStyle:' + VarToJSON([Value, false]));
@@ -701,6 +709,7 @@ procedure TExtChartChart.SetFDisableCaching(Value : Boolean); begin
 end;
 
 procedure TExtChartChart.SetFExtraStyle(Value : TExtObject); begin
+  FExtraStyle.Free;
   FExtraStyle := Value;
   Value.DeleteFromGarbage;
   JSCode('extraStyle:' + VarToJSON([Value, false]));
@@ -718,6 +727,7 @@ procedure TExtChartChart.SetFUrl(Value : String); begin
 end;
 
 procedure TExtChartChart.SetFStore(Value : TExtDataStore); begin
+  FStore.Free;
   FStore := Value;
   Value.DeleteFromGarbage;
   JSCode('store:' + VarToJSON([Value, false]));
@@ -734,12 +744,14 @@ procedure TExtChartChart.SetFXField(Value : String); begin
 end;
 
 procedure TExtChartChart.SetFXAxis(Value : TExtChartAxis); begin
+  FXAxis.Free;
   FXAxis := Value;
   Value.DeleteFromGarbage;
   JSCode('xAxis:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtChartChart.SetFYAxis(Value : TExtChartAxis); begin
+  FYAxis.Free;
   FYAxis := Value;
   Value.DeleteFromGarbage;
   JSCode('yAxis:' + VarToJSON([Value, false]));

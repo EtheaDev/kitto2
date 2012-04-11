@@ -49,7 +49,7 @@ begin
   Title := _(View.DisplayLabel);
   AutoScroll := True;
 
-  LFileName := View.GetExpandedString('Controller/FileName');
+  LFileName := Config.GetExpandedString('FileName');
   if LFileName <> '' then
   begin
     LFullFileName := Session.Config.FindResourcePathName(LFileName);
@@ -60,7 +60,7 @@ begin
   end
   else
   begin
-    LHtml := View.GetExpandedString('Controller/Html');
+    LHtml := Config.GetExpandedString('Html');
     if LHtml = '' then
       Html := 'FileName or Html parameters not specified.'
     else

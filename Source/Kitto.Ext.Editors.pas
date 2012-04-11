@@ -440,8 +440,8 @@ implementation
 
 uses
   Types, Math, StrUtils, Windows,
-  EF.SysUtils, EF.StrUtils, EF.Localization, EF.YAML, EF.Types, EF.SQL,
-  Kitto.JSON, Kitto.SQL, Kitto.Metadata.Models, Kitto.Types,
+  EF.SysUtils, EF.StrUtils, EF.Localization, EF.YAML, EF.Types, EF.SQL, EF.JSON,
+  Kitto.SQL, Kitto.Metadata.Models, Kitto.Types,
   Kitto.Rules, Kitto.Ext.Utils, Kitto.Ext.Session, Kitto.Ext.Rules;
 
 const
@@ -1527,7 +1527,7 @@ begin
 
   LStart := Session.QueryAsInteger['start'];
   LLimit := Session.QueryAsInteger['limit'];
-  LPageRecordCount := Min(Max(LLimit, MAX_RECORD_COUNT), FServerStore.RecordCount - LStart);
+  LPageRecordCount := Min(Max(LLimit, 100), FServerStore.RecordCount - LStart);
 
   Session.Response := '{Total:' + IntToStr(FServerStore.RecordCount) + ',Root:'
     + FServerStore.GetAsJSON(False, LStart, LPageRecordCount) + '}';

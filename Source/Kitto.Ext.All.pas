@@ -24,8 +24,10 @@ uses
   Kitto.Ext.AccordionPanel
   , Kitto.Ext.BorderPanel
   , Kitto.Ext.ChangePassword
+  , Kitto.Ext.ChartPanel
   , Kitto.Ext.Filters
   , Kitto.Ext.Form
+  , Kitto.Ext.GridPanel
   , Kitto.Ext.HtmlPanel
   , Kitto.Ext.List
   , Kitto.Ext.Rules
