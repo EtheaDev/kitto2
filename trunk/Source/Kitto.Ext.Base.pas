@@ -244,6 +244,7 @@ type
 implementation
 
 uses
+  StrUtils,
   EF.StrUtils, EF.Types, EF.Localization,
   Kitto.Ext.Utils, Kitto.Ext.Session;
 
@@ -654,23 +655,35 @@ var
   LBorder: TEFNode;
   LHeight: Integer;
   LHeader: TEFNode;
+  LWidthStr: string;
+  LHeightStr: string;
 begin
   Title := _(Config.GetExpandedString('Title', View.DisplayLabel));
 
-  LWidth := Config.GetInteger('Width');
-  if LWidth > 0 then
+  LWidthStr := Config.GetString('Width');
+  if TryStrToInt(LWidthStr, LWidth) then
   begin
-    Width := LWidth;
-    MinWidth := LWidth;
+    if LWidth > 0 then
+    begin
+      Width := LWidth;
+      MinWidth := LWidth;
+    end
+    else if LWidth = -1 then
+      AutoWidth := True;
   end
-  else if LWidth = -1 then
-    AutoWidth := True;
+  else if LWidthStr <> '' then
+    JSCode('width: ' + ReplaceText(LWidthStr, '{screenWidth}', 'document.documentElement.clientWidth'));
 
-  LHeight := Config.GetInteger('Height');
-  if LHeight <> 0 then
-    Height := LHeight
-  else if LHeight = -1 then
-    AutoHeight := True;
+  LHeightStr := Config.GetString('Height');
+  if TryStrToInt(LHeightStr, LHeight) then
+  begin
+    if LHeight > 0 then
+      Height := LHeight
+    else if LHeight = -1 then
+      AutoHeight := True;
+  end
+  else if LHeightStr <> '' then
+    JSCode('height: ' + ReplaceText(LHeightStr, '{screenHeight}', 'document.documentElement.clientHeight'));
 
   LSplit := Config.FindNode('Split');
   if Assigned(LSplit) then
