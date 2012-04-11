@@ -388,8 +388,11 @@ end;
 
 procedure TKListFilter.ComboBoxSelect(Combo: TExtFormComboBox; RecordJS: TExtDataRecord; Index: Integer);
 begin
-  FActiveIndex := Index;
-  NotifyObservers('FilterChanged');
+  if FActiveIndex <> Index then
+  begin
+    FActiveIndex := Index;
+    NotifyObservers('FilterChanged');
+  end;
 end;
 
 function TKListFilter.GetExpression: string;
@@ -412,9 +415,15 @@ end;
 //end;
 
 procedure TKDynaListFilter.Select;
+var
+  LNewValue: string;
 begin
-  FCurrentValue := ParamAsString('Value');
-  NotifyObservers('FilterChanged');
+  LNewValue := ParamAsString('Value');
+  if FCurrentValue <> LNewValue then
+  begin
+    FCurrentValue := LNewValue;
+    NotifyObservers('FilterChanged');
+  end;
 end;
 
 function TKDynaListFilter.GetExpression: string;
@@ -516,16 +525,19 @@ begin
     EnableKeyEvents := True;
     On('keyup', JSFunction(Format('fireChangeAfterNChars(%s, %d);', [JSName, LAutoSearchAfterChars])));
   end;
+  OnChange := FieldChange;
   FieldLabel := _(AConfig.AsString);
   Width := CharsToPixels(AConfig.GetInteger('Width', 20));
-  OnChange := FieldChange;
   FCurrentValue := '';
 end;
 
 procedure TKFreeSearchFilter.FieldChange(This: TExtFormField; NewValue: string; OldValue: string);
 begin
-  FCurrentValue := NewValue;
-  NotifyObservers('FilterChanged');
+  if FCurrentValue <> NewValue then
+  begin
+    FCurrentValue := NewValue;
+    NotifyObservers('FilterChanged');
+  end;
 end;
 
 function TKFreeSearchFilter.GetExpression: string;
@@ -608,9 +620,17 @@ by generating more JS code, but not now. }
 end;
 
 procedure TKButtonListFilter.ButtonClick;
+var
+  LPressed: Boolean;
+  LIndex: Integer;
 begin
-  FSelected[ParamAsInteger('Index')] := ParamAsBoolean('Pressed');
-  NotifyObservers('FilterChanged');
+  LIndex := ParamAsInteger('Index');
+  LPressed := ParamAsBoolean('Pressed');
+  if FSelected[LIndex] <> LPressed then
+  begin
+    FSelected[LIndex] := LPressed;
+    NotifyObservers('FilterChanged');
+  end;
 end;
 
 initialization
