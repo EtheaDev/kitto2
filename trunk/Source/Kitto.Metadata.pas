@@ -89,6 +89,7 @@ type
     function ObjectExists(const AName: string): Boolean;
     procedure DuplicateObjectError(const AName: string);
     procedure AfterAddObject(const AObject: TKMetadata);
+    function FixObjectClassType(const AObject: TKMetadata): TKMetadata;
   protected
     procedure ObjectNotFound(const AName: string);
     // Delete file and free object.
@@ -405,6 +406,8 @@ begin
         Result := GetObjectClassType.Create;
         try
           Result.Assign(ANode);
+          // Change object type according to the declaration, if present.
+          Result := FixObjectClassType(Result);
           AddNonpersistentObject(Result, ANode);
         except
           FreeAndNil(Result);
@@ -428,37 +431,44 @@ end;
 function TKMetadataCatalog.LoadObject(const AName: string): TKMetadata;
 var
   LFileName: string;
-  LDeclaredClassType: TKMetadataClass;
-  LObject: TKMetadata;
-  LDeclaredClassName: string;
 begin
   Result := nil;
   LFileName := GetFullFileName(AName);
   if FileExists(LFileName) then
   begin
-    LObject := GetObjectClassType.Create;
-    LObject.PersistentName := AName;
-    Reader.LoadTreeFromFile(LObject, LFileName);
-
+    Result := GetObjectClassType.Create;
+    Result.PersistentName := AName;
+    Reader.LoadTreeFromFile(Result, LFileName);
     // Change object type according to the declaration, if present.
-    LDeclaredClassName := LObject.GetString('Type');
-    if LDeclaredClassName <> '' then
-    begin
-      LDeclaredClassType := TKMetadataRegistry.Instance.GetClass(LDeclaredClassName);
-      if LDeclaredClassType <> LObject.ClassType then
-      begin
-        Result := LDeclaredClassType.Clone(LObject);
-        FreeAndNil(LObject);
-      end
-      else
-        Result := LObject;
-    end
-    else
-      Result := LObject;
+    Result := FixObjectClassType(Result);
     AfterCreateObject(Result);
   end;
   if Result = nil then
     ObjectNotFound(AName);
+end;
+
+function TKMetadataCatalog.FixObjectClassType(const AObject: TKMetadata): TKMetadata;
+var
+  LDeclaredClassName: string;
+  LDeclaredClassType: TKMetadataClass;
+begin
+  Assert(Assigned(AObject));
+
+  // Change object type according to the declaration, if present.
+  LDeclaredClassName := AObject.GetString('Type');
+  if LDeclaredClassName <> '' then
+  begin
+    LDeclaredClassType := TKMetadataRegistry.Instance.GetClass(LDeclaredClassName);
+    if LDeclaredClassType <> AObject.ClassType then
+    begin
+      Result := LDeclaredClassType.Clone(AObject);
+      AObject.Free;
+    end
+    else
+      Result := AObject;
+  end
+  else
+    Result := AObject;
 end;
 
 procedure TKMetadataCatalog.AddNonpersistentObject(const AObject: TKMetadata;

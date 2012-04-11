@@ -23,9 +23,6 @@ interface
 uses
   EF.Types;
 
-const
-  MAX_RECORD_COUNT = 100;
-
 type
   TKEditMode = (emNewRecord, emEditCurrentRecord);
 

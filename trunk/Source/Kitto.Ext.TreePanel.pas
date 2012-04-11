@@ -22,6 +22,7 @@ interface
 
 uses
   ExtTree,
+  EF.Tree,
   Kitto.Ext.Base, Kitto.Ext.Controller, Kitto.Metadata.Views, Kitto.Ext.Utils;
 
 type
@@ -33,6 +34,7 @@ type
   private
     FView: TKView;
     FTreeViewRenderer: TKExtTreeViewRenderer;
+    FConfig: TEFNode;
     procedure SetView(const AValue: TKView);
   protected
     procedure InitDefaults; override;
@@ -65,6 +67,7 @@ procedure TKExtTreePanelController.DoDisplay;
 begin
   inherited;
   Title := _(View.DisplayLabel);
+  FTreePanel.FConfig := Config;
   FTreePanel.View := View;
 end;
 
@@ -100,7 +103,7 @@ begin
   FView := AValue;
   if not Assigned(FTreeViewRenderer) then
     FTreeViewRenderer := TKExtTreeViewRenderer.Create;
-  FTreeViewRenderer.RenderAsTree(Session.Config.Views.ViewByNode(FView.GetNode('Controller/TreeView')) as TKTreeView,
+  FTreeViewRenderer.RenderAsTree(Session.Config.Views.ViewByNode(FConfig.GetNode('TreeView')) as TKTreeView,
     Root, Self, DisplayView);
 end;
 

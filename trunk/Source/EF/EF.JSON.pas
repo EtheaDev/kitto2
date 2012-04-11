@@ -1,3 +1,5 @@
+unit EF.JSON;
+
 {-------------------------------------------------------------------------------
    Copyright 2012 Ethea S.r.l.
 
@@ -14,9 +16,7 @@
    limitations under the License.
 -------------------------------------------------------------------------------}
 
-unit Kitto.JSON;
-
-{$I Kitto.Defines.inc}
+{$I EF.Defines.inc}
 
 interface
 

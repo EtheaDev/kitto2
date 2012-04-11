@@ -53,7 +53,7 @@ uses
 procedure TKExtStatusBarController.DoDisplay;
 begin
   inherited;
-  FStatusBar.DefaultText := View.GetExpandedString('Controller/Text');
+  FStatusBar.DefaultText := Config.GetExpandedString('Text');
   FStatusBar.DefaultIconCls := Session.SetViewIconStyle(View, '', 'sb_', 'padding-left: 25px !important;');
 end;
 

@@ -21,7 +21,7 @@ unit Kitto.Ext.Controller;
 interface
 
 uses
-  Classes,
+  SysUtils, Classes,
   Ext, ExtPascal,
   EF.Intf, EF.ObserverIntf, EF.Tree, EF.Types,
   Kitto.Types, Kitto.Metadata.Views;
@@ -89,14 +89,23 @@ de-registration gracefully. }
     class destructor Destroy;
     class property Instance: TKExtControllerFactory read GetInstance;
 
+    ///	<summary>Creates a controller for the specified view.</summary>
+    ///	<param name="AView">A reference to the view to control. The view
+    ///	object's lifetime is managed externally.</param>
+    ///	<param name="AContainer">Visual container to which to add the newly
+    ///	created controller.</param>
+    ///	<param name="AConfig">Optional controller config node. If not
+    ///	specified, it is taken from the view's 'Controller' node.</param>
+    ///	<param name="AObserver">Optional observer that will receive events
+    ///	posted by the controller.</param>
+    ///	<param name="ACustomType">Custom controller type, used to override the
+    ///	one specified in the view.</param>
     function CreateController(const AView: TKView; const AContainer: TExtContainer;
-      const AObserver: IEFObserver = nil; const ACustomType: string = ''): IKExtController;
+      const AConfig: TEFNode = nil; const AObserver: IEFObserver = nil;
+      const ACustomType: string = ''): IKExtController;
   end;
 
 implementation
-
-uses
-  SysUtils;
 
 { TKExtControllerRegistry }
 
@@ -144,8 +153,8 @@ type
   TBreakExtObject = class(TExtObject);
 
 function TKExtControllerFactory.CreateController(const AView: TKView;
-  const AContainer: TExtContainer; const AObserver: IEFObserver;
-  const ACustomType: string): IKExtController;
+  const AContainer: TExtContainer; const AConfig: TEFNode;
+  const AObserver: IEFObserver; const ACustomType: string): IKExtController;
 var
   LClass: TExtObjectClass;
   LIntf: IEFSubject;
@@ -155,6 +164,9 @@ begin
   Assert(AView <> nil);
 
   LType := ACustomType;
+  if LType = '' then
+    if Assigned(AConfig) then
+      LType := AConfig.AsExpandedString;
   if LType = '' then
     LType := AView.ControllerType;
 
@@ -173,6 +185,10 @@ begin
   if Assigned(AContainer) and Result.SupportsContainer then
     LObject.AddTo(AContainer.Items);
 
+  if AConfig <> nil then
+    Result.Config.Assign(AConfig)
+  else
+    Result.Config.Assign(AView.FindNode('Controller'));
   Result.View := AView;
   if Result.SupportsContainer then
     Result.Container := AContainer;

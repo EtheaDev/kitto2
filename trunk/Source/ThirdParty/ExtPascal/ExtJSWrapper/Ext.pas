@@ -10316,8 +10316,10 @@ procedure TExtContainer.SetFItemsArray(Value : TExtObjectList); begin
 end;
 
 procedure TExtContainer.SetFLayout(Value : TExtContainerLayout); begin
-  FLayout := Value;
-  JSCode('layout:"' + EnumToJSString(TypeInfo(TExtContainerLayout), ord(Value)) + '"');
+  if FLayout <> Value then begin
+    FLayout := Value;
+    JSCode('layout:"' + EnumToJSString(TypeInfo(TExtContainerLayout), ord(Value)) + '"');
+  end;
 end;
 
 procedure TExtContainer.SetFLayoutObject(Value : TExtObject); begin
@@ -11464,8 +11466,10 @@ procedure TExtPanel.SetFBodyStyleFunction(Value : TExtFunction); begin
 end;
 
 procedure TExtPanel.SetFBorder(Value : Boolean); begin
-  FBorder := Value;
-  JSCode('border:' + VarToJSON([Value]));
+  if FBorder <> Value then begin
+    FBorder := Value;
+    JSCode('border:' + VarToJSON([Value]));
+  end;
 end;
 
 procedure TExtPanel.SetFButtonAlign(Value : TExtPanelButtonAlign); begin
@@ -11565,8 +11569,10 @@ procedure TExtPanel.SetFFrame(Value : Boolean); begin
 end;
 
 procedure TExtPanel.SetFHeader(Value : Boolean); begin
-  FHeader := Value;
-  JSCode('header:' + VarToJSON([Value]));
+  if FHeader <> Value then begin
+    FHeader := Value;
+    JSCode('header:' + VarToJSON([Value]));
+  end;
 end;
 
 procedure TExtPanel.SetFHeaderAsText(Value : Boolean); begin
@@ -11672,11 +11678,13 @@ procedure TExtPanel.SetFTbarCfg(Value : TExtObject); begin
 end;
 
 procedure TExtPanel.SetFTitle(Value : String); begin
-  FTitle := Value;
-  if not ConfigAvailable(JSName) then
-    SetTitle(Value)
-  else
-    JSCode('title:' + VarToJSON([Value]));
+  if FTitle <> Value then begin
+    FTitle := Value;
+    if not ConfigAvailable(JSName) then
+      SetTitle(Value)
+    else
+      JSCode('title:' + VarToJSON([Value]));
+  end;
 end;
 
 procedure TExtPanel.SetFTitleCollapse(Value : Boolean); begin
@@ -11891,6 +11899,7 @@ procedure TExtPanel.InitDefaults; begin
   FDd := TExtDdDragSource.CreateInternal(Self, 'dd');
   FFooter_ := TExtElement.CreateInternal(Self, 'footer');
   FHeader_ := TExtElement.CreateInternal(Self, 'header');
+  FHeader := True;
 end;
 
 {$IFDEF FPC}constructor TExtPanel.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}

@@ -278,6 +278,7 @@ var
 implementation
 
 procedure TExtUtilObservable.SetFListeners(Value : TExtObject); begin
+  FListeners.Free;
   FListeners := Value;
   Value.DeleteFromGarbage;
   JSCode('listeners:' + VarToJSON([Value, false]));

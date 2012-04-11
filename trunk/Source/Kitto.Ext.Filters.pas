@@ -219,8 +219,8 @@ implementation
 
 uses
   SysUtils, Math, StrUtils,
-  EF.Localization,  EF.DB, EF.StrUtils,
-  Kitto.Types, Kitto.JSON, Kitto.Ext.Session;
+  EF.Localization,  EF.DB, EF.StrUtils, EF.JSON,
+  Kitto.Types, Kitto.Ext.Session;
 
 function GetDefaultFilter(const AItems: TEFNode): TEFNode;
 var

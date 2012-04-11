@@ -21,11 +21,17 @@ unit Kitto.Ext.Base;
 interface
 
 uses
+  SysUtils,
   ExtPascal, Ext, ExtForm, ExtUx,
   EF.Intf, EF.Tree, EF.ObserverIntf, EF.Classes,
   Kitto.Ext.Controller, Kitto.Metadata.Views;
 
 type
+  TKExtContainerHelper = class helper for TExtContainer
+  public
+    procedure Apply(const AProc: TProc<TExtObject>);
+  end;
+
   ///	<summary>
   ///	  Base Ext window with subject, observer and controller capabilities.
   ///	</summary>
@@ -143,10 +149,10 @@ type
   end;
 
   TKExtPanelControllerBase = class(TKExtPanelBase, IKExtController)
-  private
+  strict private
     FView: TKView;
     FContainer: TExtContainer;
-  protected
+  strict protected
     function GetDefaultSplit: Boolean; virtual;
     function GetView: TKView;
     procedure SetView(const AValue: TKView);
@@ -154,6 +160,7 @@ type
     function GetContainer: TExtContainer;
     procedure SetContainer(const AValue: TExtContainer);
     property Container: TExtContainer read GetContainer write SetContainer;
+    procedure InitSubController(const AController: IKExtController); virtual;
   public
     destructor Destroy; override;
     function SupportsContainer: Boolean; virtual;
@@ -187,6 +194,7 @@ type
     property View: TKView read GetView write SetView;
     procedure Display;
     property Config: TEFNode read GetConfig;
+    procedure Apply(const AProc: TProc<IKExtController>); virtual;
   end;
 
   ///	<summary>Base class for tool controllers.</summary>
@@ -236,7 +244,6 @@ type
 implementation
 
 uses
-  SysUtils,
   EF.StrUtils, EF.Types, EF.Localization,
   Kitto.Ext.Utils, Kitto.Ext.Session;
 
@@ -628,7 +635,7 @@ procedure TKExtPanelControllerBase.Display;
 begin
   if Container <> nil then
   begin
-    if View.GetBoolean('Controller/AllowClose', True) then
+    if Config.GetBoolean('AllowClose', True) then
     begin
       Closable := True;
       On('close', Container.Ajax('PanelClosed', ['Panel', '%0.nm']));
@@ -646,12 +653,11 @@ var
   LCollapsible: TEFNode;
   LBorder: TEFNode;
   LHeight: Integer;
+  LHeader: TEFNode;
 begin
-  Title := _(View.DisplayLabel);
+  Title := _(Config.GetExpandedString('Title', View.DisplayLabel));
 
-  Border := False;
-
-  LWidth := View.GetInteger('Controller/Width');
+  LWidth := Config.GetInteger('Width');
   if LWidth > 0 then
   begin
     Width := LWidth;
@@ -660,34 +666,40 @@ begin
   else if LWidth = -1 then
     AutoWidth := True;
 
-  LHeight := View.GetInteger('Controller/Height');
+  LHeight := Config.GetInteger('Height');
   if LHeight <> 0 then
     Height := LHeight
   else if LHeight = -1 then
     AutoHeight := True;
 
-  LSplit := View.FindNode('Controller/Split');
+  LSplit := Config.FindNode('Split');
   if Assigned(LSplit) then
     Split := LSplit.AsBoolean
   else
     Split := GetDefaultSplit;
 
-  LBorder := View.FindNode('Controller/Border');
+  LBorder := Config.FindNode('Border');
   if Assigned(LBorder) then
     Border := LBorder.AsBoolean
   else
     Border := False;
 
-  LCollapsible := View.FindNode('Controller/Collapsible');
+  LCollapsible := Config.FindNode('Collapsible');
   if Assigned(LCollapsible) then
     Collapsible := LCollapsible.AsBoolean
   else
     Collapsible := False;
+
+  LHeader := Config.FindNode('ShowHeader');
+  if Assigned(LHeader) then
+    Header := LHeader.AsBoolean
+  else
+    Header := False;
 end;
 
 function TKExtPanelControllerBase.GetDefaultSplit: Boolean;
 begin
-  Result := True;
+  Result := False;
 end;
 
 function TKExtPanelControllerBase.GetContainer: TExtContainer;
@@ -698,6 +710,18 @@ end;
 function TKExtPanelControllerBase.GetView: TKView;
 begin
   Result := FView;
+end;
+
+procedure TKExtPanelControllerBase.InitSubController(
+  const AController: IKExtController);
+var
+  LSysConfigNode: TEFNode;
+begin
+  Assert(Assigned(AController));
+
+  LSysConfigNode := Config.FindNode('Sys');
+  if Assigned(LSysConfigNode) then
+    AController.Config.GetNode('Sys', True).Assign(LSysConfigNode);
 end;
 
 procedure TKExtPanelControllerBase.SetContainer(const AValue: TExtContainer);
@@ -778,6 +802,13 @@ end;
 
 { TKExtControllerBase }
 
+procedure TKExtControllerBase.Apply(const AProc: TProc<IKExtController>);
+begin
+  Assert(Assigned(AProc));
+
+  AProc(Self);
+end;
+
 function TKExtControllerBase.AsObject: TObject;
 begin
   Result := Self;
@@ -856,6 +887,22 @@ procedure TKExtToolController.DoDisplay;
 begin
   inherited;
   ExecuteTool;
+end;
+
+{ TKExtContainerHelper }
+
+procedure TKExtContainerHelper.Apply(const AProc: TProc<TExtObject>);
+var
+  I: Integer;
+begin
+  Assert(Assigned(AProc));
+
+  for I := 0 to Items.Count - 1 do
+  begin
+    AProc(Items[I]);
+    if Items[I] is TExtContainer then
+      TExtContainer(Items[I]).Apply(AProc);
+  end;
 end;
 
 end.

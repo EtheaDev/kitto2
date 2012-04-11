@@ -190,7 +190,7 @@ var
   LTargetURL: string;
 begin
   Result := '';
-  LFilters := View.FindNode('Controller/Filters');
+  LFilters := Config.FindNode('Filters');
   if Assigned(LFilters) and (LFilters.ChildCount > 0) then
   begin
     for I := 0 to LFilters.ChildCount - 1 do
@@ -205,7 +205,7 @@ begin
       end;
     end;
     if Result = '' then
-      Result := View.GetExpandedString('Controller/DefaultURL');
+      Result := Config.GetExpandedString('DefaultURL');
   end;
 end;
 
@@ -228,14 +228,14 @@ var
   LStream: TStream;
 begin
   inherited;
-  LFileName := View.GetExpandedString('Controller/FileName', GetDefaultFileName);
+  LFileName := Config.GetExpandedString('FileName', GetDefaultFileName);
   if LFileName <> '' then
   begin
     PrepareFile(LFileName);
     LStream := TFileStream.Create(LFileName, fmOpenRead);
     try
-      Session.DownloadStream(LStream, View.GetExpandedString('Controller/ClientFileName',
-        ExtractFileName(LFileName)), View.GetExpandedString('Controller/ContentType'));
+      Session.DownloadStream(LStream, Config.GetExpandedString('ClientFileName',
+        ExtractFileName(LFileName)), Config.GetExpandedString('ContentType'));
     finally
       FreeAndNil(LStream);
     end;
@@ -245,8 +245,8 @@ begin
     LStream := CreateStream;
     try
       if Assigned(LStream) then
-        Session.DownloadStream(LStream, View.GetExpandedString('Controller/ClientFileName',
-          ExtractFileName(LFileName)), View.GetExpandedString('Controller/ContentType'));
+        Session.DownloadStream(LStream, Config.GetExpandedString('ClientFileName',
+          ExtractFileName(LFileName)), Config.GetExpandedString('ContentType'));
     finally
       FreeAndNil(LStream);
     end;

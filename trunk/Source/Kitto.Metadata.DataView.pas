@@ -122,6 +122,11 @@ type
     ///	model field is a reference field.</summary>
     property IsReference: Boolean read GetIsReference;
 
+    ///	<summary>Returns the field's DataType, unless it's a reference field,
+    ///	in which case returns the data type of the referenced model's
+    ///	CaptionField.</summary>
+    function GetActualDataType: TEFDataType;
+
     ///	<summary>If the field is from a different model than the table's model,
     ///	returns the model field that references its model, otherwise returns
     ///	nil.</summary>
@@ -350,6 +355,8 @@ type
     function GetDetailTables: TKViewTables;
   public
     procedure BeforeSave; override;
+    function FindNode(const APath: string;
+      const ACreateMissingNodes: Boolean = False): TEFNode; override;
 
     property ModelName: string read GetModelName;
 
@@ -849,6 +856,15 @@ begin
   Result := View.Catalog.Layouts.FindLayout(GetViewTablePathName + '_' + AKind);
 end;
 
+function TKViewTable.FindNode(const APath: string;
+  const ACreateMissingNodes: Boolean): TEFNode;
+begin
+  Result := inherited FindNode(APath, ACreateMissingNodes);
+  if not Assigned(Result) then
+    // ACreateMissingNodes is False here.
+    Result := Model.FindNode(APath, False);
+end;
+
 function TKViewTable.GetDetailTable(I: Integer): TKViewTable;
 begin
   Result := GetDetailTables.GetChild<TKViewTable>(I);
@@ -1066,6 +1082,13 @@ begin
   if not Assigned(Result) then
     // ACreateMissingNodes is False here.
     Result := ModelField.FindNode(APath, False);
+end;
+
+function TKViewField.GetActualDataType: TEFDataType;
+begin
+  Result := DataType;
+  if Result is TKReferenceDataType then
+    Result := ModelField.ReferencedModel.CaptionField.DataType;
 end;
 
 function TKViewField.GetAlias: string;
