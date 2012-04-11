@@ -59,8 +59,6 @@ function TriplesToJSON(const ATriples: TEFTriples): string;
 ///	double-quoted.</summary>
 ///	<example>
 ///	  <para><c>'["IT", "ITALY"], ["UK", "UNITED KINGDOM"]'</c></para>
-///	  <para>This particular representation is useful for encoding a GUIField's
-///	  LookupCommandText as a JSON array suitable for an ExtJS combo box.</para>
 ///	</example>
 function DataSetToJSON(const ADBConnection: TEFDBConnection; const ACommandText: string): string; overload;
 
@@ -68,8 +66,6 @@ function DataSetToJSON(const ADBConnection: TEFDBConnection; const ACommandText:
 /// record is enclosed in []s and each value is double-quoted.</summary>
 ///	<example>
 ///	  <para><c>'["IT", "ITALY"], ["UK", "UNITED KINGDOM"]'</c></para>
-///	  <para>This particular representation is useful for encoding a GUIField's
-///	  LookupCommandText as a JSON array suitable for an ExtJS combo box.</para>
 ///	</example>
 function DataSetToJSON(const ADataSet: TDataSet): string; overload;
 

@@ -130,6 +130,7 @@ type
     FRoundMajorUnit : Boolean;
     FScale : String;
     FSnapToUnits : Boolean;
+    FStackingEnabled : Boolean;
     procedure SetFAdjustMaximumByMajorUnit(Value : Boolean);
     procedure SetFAdjustMinimumByMajorUnit(Value : Boolean);
     procedure SetFAlwaysShowZero(Value : Boolean);
@@ -142,6 +143,7 @@ type
     procedure SetFRoundMajorUnit(Value : Boolean);
     procedure SetFScale(Value : String);
     procedure SetFSnapToUnits(Value : Boolean);
+    procedure SetFStackingEnabled(Value : Boolean);
   public
     function JSClassName : string; override;
     {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
@@ -157,6 +159,7 @@ type
     property RoundMajorUnit : Boolean read FRoundMajorUnit write SetFRoundMajorUnit;
     property Scale : String read FScale write SetFScale;
     property SnapToUnits : Boolean read FSnapToUnits write SetFSnapToUnits;
+    property StackingEnabled : Boolean read FStackingEnabled write SetFStackingEnabled;
   end;
 
   TExtChartTimeAxis = class(TExtChartAxis)
@@ -414,12 +417,12 @@ end;
 
 procedure TExtChartSeries.SetFDisplayName(Value : String); begin
   FDisplayName := Value;
-  JSCode(JSName + '.displayName=' + VarToJSON([Value]) + ';');
+  JSCode('displayName:' + VarToJSON([Value]));
 end;
 
 procedure TExtChartSeries.SetFTypeJS(Value : String); begin
   FTypeJS := Value;
-  JSCode(JSName + '.type=' + VarToJSON([Value]) + ';');
+  JSCode('type:' + VarToJSON([Value]));
 end;
 
 procedure TExtChartSeries.SetFStyle(Value : TExtChartSeriesStyle); begin
@@ -572,6 +575,12 @@ procedure TExtChartNumericAxis.SetFSnapToUnits(Value : Boolean); begin
   JSCode(JSName + '.snapToUnits=' + VarToJSON([Value]) + ';');
 end;
 
+procedure TExtChartNumericAxis.SetFStackingEnabled(Value: Boolean);
+begin
+  FStackingEnabled := Value;
+  JSCode('stackingEnabled:' + VarToJSON([Value]));
+end;
+
 function TExtChartNumericAxis.JSClassName : string; begin
   Result := 'Ext.chart.NumericAxis';
 end;
@@ -620,7 +629,7 @@ end;
 
 procedure TExtChartTimeAxis.SetFStackingEnabled(Value : Boolean); begin
   FStackingEnabled := Value;
-  JSCode(JSName + '.stackingEnabled=' + VarToJSON([Value]) + ';');
+  JSCode('stackingEnabled:' + VarToJSON([Value]));
 end;
 
 function TExtChartTimeAxis.JSClassName : string; begin
@@ -637,7 +646,7 @@ end;
 
 procedure TExtChartCartesianSeries.SetFAxis(Value : String); begin
   FAxis := Value;
-  JSCode(JSName + '.axis=' + VarToJSON([Value]) + ';');
+  JSCode('axis:' + VarToJSON([Value]));
 end;
 
 procedure TExtChartCartesianSeries.SetFShowInLegend(Value : Boolean); begin
@@ -647,12 +656,12 @@ end;
 
 procedure TExtChartCartesianSeries.SetFXField(Value : String); begin
   FXField := Value;
-  JSCode(JSName + '.xField=' + VarToJSON([Value]) + ';');
+  JSCode('xField:' + VarToJSON([Value]));
 end;
 
 procedure TExtChartCartesianSeries.SetFYField(Value : String); begin
   FYField := Value;
-  JSCode(JSName + '.yField=' + VarToJSON([Value]) + ';');
+  JSCode('yField:' + VarToJSON([Value]));
 end;
 
 function TExtChartCartesianSeries.JSClassName : string; begin
