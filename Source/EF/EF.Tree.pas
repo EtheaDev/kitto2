@@ -109,6 +109,7 @@ type
   TEFMemoDataType = class(TEFStringDataType)
   public
     function IsBlob(const ASize: Integer): Boolean; override;
+    class function HasSize: Boolean; override;
   end;
 
   TEFBlobDataType = class(TEFDataType)
@@ -2657,7 +2658,7 @@ end;
 
 class function TEFCurrencyDataType.HasSize: Boolean;
 begin
-  Result := True;
+  Result := False;
 end;
 
 procedure TEFCurrencyDataType.InternalFieldValueToNode(const AField: TField;
@@ -2867,6 +2868,11 @@ begin
 end;
 
 { TEFMemoDataType }
+
+class function TEFMemoDataType.HasSize: Boolean;
+begin
+  Result := False;
+end;
 
 function TEFMemoDataType.IsBlob(const ASize: Integer): Boolean;
 begin
