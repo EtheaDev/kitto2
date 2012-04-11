@@ -543,6 +543,7 @@ procedure TEFDBADOInfo.FetchTables(const ASchema: TEFDBSchemaInfo);
 var
   LTableDataSet: TADODataSet;
   LTable: TEFDBTableInfo;
+  LTableType: string;
 begin
   LTableDataSet := TADODataSet.Create(nil);
   try
@@ -551,7 +552,8 @@ begin
       EmptyParam, LTableDataSet);
     while not LTableDataSet.Eof do
     begin
-      if MatchStr(LTableDataSet.FieldByName('TABLE_TYPE').AsString, ['TABLE', 'VIEF']) then
+      LTableType := LTableDataSet.FieldByName('TABLE_TYPE').AsString;
+      if SameText(LTableType, 'Table') or (ViewsAsTables and SameText(LTableType, 'VIEW')) then
       begin
         LTable := TEFDBTableInfo.Create;
         try
