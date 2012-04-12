@@ -22,7 +22,7 @@ interface
 
 uses
   SysUtils,
-  ExtPascal, Ext, ExtForm, ExtUx,
+  ExtPascal, ExtPascalUtils, Ext, ExtForm, ExtUx,
   EF.Intf, EF.Tree, EF.ObserverIntf, EF.Classes,
   Kitto.Ext.Controller, Kitto.Metadata.Views;
 
@@ -148,11 +148,29 @@ type
     property Config: TEFNode read GetConfig;
   end;
 
+  TKExtActionButton = class(TExtButton)
+  strict private
+    FView: TKView;
+  strict protected
+    procedure InitController(const AController: IKExtController); virtual;
+    procedure SetView(const AValue: TKView); virtual;
+  public
+    property View: TKView read FView write SetView;
+  published
+    procedure ExecuteAction;
+  end;
+
+  TKExtActionButtonClass = class of TKExtActionButton;
+
   TKExtPanelControllerBase = class(TKExtPanelBase, IKExtController)
   strict private
     FView: TKView;
     FContainer: TExtContainer;
+    FTopToolbar: TExtToolbar;
+    procedure CreateTopToolbar;
   strict protected
+    function GetConfirmCall(const AMessage: string;
+      const AMethod: TExtProcedure): string;
     function GetDefaultSplit: Boolean; virtual;
     function GetView: TKView;
     procedure SetView(const AValue: TKView);
@@ -161,6 +179,29 @@ type
     procedure SetContainer(const AValue: TExtContainer);
     property Container: TExtContainer read GetContainer write SetContainer;
     procedure InitSubController(const AController: IKExtController); virtual;
+    property TopToolbar: TExtToolbar read FTopToolbar;
+    procedure BeforeCreateTopToolbar; virtual;
+    procedure AfterCreateTopToolbar; virtual;
+
+    ///	<summary>Adds built-in buttons to the top toolbar.</summary>
+    procedure AddTopToolbarButtons; virtual;
+
+    ///	<summary>Adds ToolView buttons to the top toolbar. Called after
+    ///	AddTopToolbarButtons so that these stay at the end.</summary>
+    procedure AddTopToolbarToolViewButtons; virtual;
+
+    ///	<summary>Adds to the specified toolbar buttons for any ToolViews
+    ///	configured in the specified node.</summary>
+    ///	<param name="AConfigNode">ToolViews node. If nil or childrenless, no
+    ///	buttons are added.</param>
+    ///	<param name="AToolbar">Destination toolbar.</param>
+    procedure AddToolViewButtons(const AConfigNode: TEFNode; const AToolbar: TExtToolbar);
+
+    ///	<summary>Adds an action button representing the specified tool view to
+    ///	the specified toolbar. Override this method to create action buttons of
+    ///	classes inherited from the base TKExtActionButton.</summary>
+    function AddActionButton(const AView: TKView;
+      const AToolbar: TExtToolbar): TKExtActionButton; virtual;
   public
     destructor Destroy; override;
     function SupportsContainer: Boolean; virtual;
@@ -708,6 +749,92 @@ begin
     Header := LHeader.AsBoolean
   else
     Header := False;
+
+  CreateTopToolbar;
+end;
+
+procedure TKExtPanelControllerBase.AddTopToolbarButtons;
+begin
+end;
+
+function TKExtPanelControllerBase.AddActionButton(
+  const AView: TKView; const AToolbar: TExtToolbar): TKExtActionButton;
+var
+  LConfirmationMessage: string;
+  LConfirmationJS: string;
+begin
+  Assert(Assigned(AView));
+  Assert(Assigned(AToolbar));
+
+  Result := TKExtActionButton.AddTo(AToolbar.Items);
+  Result.View := AView;
+
+  // A Tool may or may not have a confirmation message.
+  LConfirmationMessage := AView.GetExpandedString('Controller/ConfirmationMessage');
+  LConfirmationJS := GetConfirmCall(LConfirmationMessage, Result.ExecuteAction);
+  if LConfirmationMessage <> '' then
+    Result.Handler := JSFunction(LConfirmationJS)
+  else
+    Result.On('click', Ajax(Result.ExecuteAction, []));
+end;
+
+procedure TKExtPanelControllerBase.AddToolViewButtons(
+  const AConfigNode: TEFNode; const AToolbar: TExtToolbar);
+var
+  I: Integer;
+  LView: TKView;
+  //LToolButton: TKExtActionButton;
+begin
+  Assert(Assigned(AToolbar));
+
+  if Assigned(AConfigNode) and (AConfigNode.ChildCount > 0) then
+  begin
+    TExtToolbarSeparator.AddTo(AToolbar.Items);
+    for I := 0 to AConfigNode.ChildCount - 1 do
+    begin
+      LView := Session.Config.Views.ViewByNode(AConfigNode.Children[I]);
+      {LToolButton := }AddActionButton(LView, AToolbar);
+      TExtToolbarSpacer.AddTo(AToolbar.Items);
+    end;
+  end;
+end;
+
+function TKExtPanelControllerBase.GetConfirmCall(const AMessage: string; const AMethod: TExtProcedure): string;
+begin
+  Result := Format('confirmCall("%s", "%s", ajaxSimple, {methodURL: "%s"});',
+    [_(Session.Config.AppTitle), AMessage, MethodURI(AMethod)]);
+end;
+
+procedure TKExtPanelControllerBase.AfterCreateTopToolbar;
+begin
+end;
+
+procedure TKExtPanelControllerBase.BeforeCreateTopToolbar;
+begin
+end;
+
+procedure TKExtPanelControllerBase.AddTopToolbarToolViewButtons;
+begin
+  AddToolViewButtons(Config.FindNode('ToolViews'), TopToolbar);
+end;
+
+procedure TKExtPanelControllerBase.CreateTopToolbar;
+begin
+  BeforeCreateTopToolbar;
+
+  FTopToolbar := TExtToolbar.Create;
+  try
+    AddTopToolbarButtons;
+    AddTopToolbarToolViewButtons;
+  except
+    FreeAndNil(FTopToolbar);
+    raise;
+  end;
+  if FTopToolbar.Items.Count = 0 then
+    FreeAndNil(FTopToolbar)
+  else
+    Tbar := TopToolbar;
+  AfterCreateTopToolbar;
 end;
 
 function TKExtPanelControllerBase.GetDefaultSplit: Boolean;
@@ -916,6 +1043,38 @@ begin
     if Items[I] is TExtContainer then
       TExtContainer(Items[I]).Apply(AProc);
   end;
+end;
+
+{ TKExtActionButton }
+
+procedure TKExtActionButton.ExecuteAction;
+var
+  LController: IKExtController;
+begin
+  Assert(Assigned(FView));
+
+  LController := TKExtControllerFactory.Instance.CreateController(FView, nil);
+  InitController(LController);
+  LController.Display;
+end;
+
+procedure TKExtActionButton.InitController(const AController: IKExtController);
+begin
+end;
+
+procedure TKExtActionButton.SetView(const AValue: TKView);
+var
+  LTooltip: string;
+begin
+  Assert(Assigned(AValue));
+
+  FView := AValue;
+
+  Text := _(FView.DisplayLabel);
+  Icon := Session.Config.GetImageURL(FView.ImageName);
+  LTooltip := FView.GetExpandedString('Hint');
+  if LTooltip <> '' then
+    Tooltip := LTooltip;
 end;
 
 end.

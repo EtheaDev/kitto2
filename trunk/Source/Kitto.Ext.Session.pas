@@ -25,7 +25,7 @@ uses
   ExtPascal, Ext,
   EF.Tree,
   Kitto.Ext.Base, Kitto.Ext.Controller, Kitto.Config, Kitto.Metadata.Views,
-  Kitto.Ext.Login;
+  Kitto.Metadata.DataView, Kitto.Ext.Login;
 
 type
   TKExtUploadedFile = class
@@ -142,6 +142,11 @@ type
     ///	nothing happens. Used by view hosts to notify the session that a
     ///	controller was closed.</summary>
     procedure RemoveController(const AObject: TObject);
+
+    ///	<summary>Finds and returns a record from the specified store using the
+    ///	key values currently stored in the session query strings.</summary>
+    function LocateRecordFromQueries(const AViewTable: TKViewTable;
+      const AServerStore: TKViewTableStore): TKViewTableRecord;
   published
     procedure Logout;
   end;
@@ -160,6 +165,30 @@ uses
 function Session: TKExtSession;
 begin
   Result := TKExtSession(CurrentWebSession);
+end;
+
+{ TKExtSession }
+
+function TKExtSession.LocateRecordFromQueries(const AViewTable: TKViewTable;
+  const AServerStore: TKViewTableStore): TKViewTableRecord;
+var
+  LKey: TEFNode;
+begin
+  Assert(Assigned(AViewTable));
+  Assert(Assigned(AServerStore));
+
+  LKey := TEFNode.Create;
+  try
+    LKey.Assign(AServerStore.Key);
+    LKey.SetChildValuesfromStrings(Queries, True, Config.JSFormatSettings,
+      function(const AName: string): string
+      begin
+        Result := AViewTable.FieldByName(AName).AliasedName;
+      end);
+    Result := AServerStore.Records.GetRecord(LKey);
+  finally
+    FreeAndNil(LKey);
+  end;
 end;
 
 function TKExtSession.GetConfig: TKConfig;
