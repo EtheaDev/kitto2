@@ -125,7 +125,7 @@ function TKAutoViewBuilderBase.BuildView(const AViews: TKViews;
   const APersistentName: string; const ANode: TEFNode): TKView;
 var
   LMainTable: TKViewTable;
-  LMainTableController: TEFNode;
+  //LMainTableController: TEFNode;
   LModel: TKModel;
   LFilters: TEFNode;
   LFilterItems: TEFNode;
@@ -166,9 +166,9 @@ begin
 
     LSourceMainTableControllerNode := FindNode('MainTable/Controller');
     if Assigned(LSourceMainTableControllerNode) then
-      LMainTableController := LMainTable.AddChild(TEFNode.Clone(LSourceMainTableControllerNode))
+      {LMainTableController := }LMainTable.AddChild(TEFNode.Clone(LSourceMainTableControllerNode))
     else
-      LMainTableController := LMainTable.AddChild('Controller');
+      {LMainTableController := }LMainTable.AddChild('Controller');
   except
     if APersistentName <> '' then
       AViews.DeleteObject(Result)

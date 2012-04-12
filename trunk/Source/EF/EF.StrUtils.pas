@@ -148,9 +148,10 @@ function PadLeft(const AString: string;
   const AFinalLength: Integer; const APadCharacter: Char = '0'): string;
 
 ///	<summary>
-///	  Reads a text file, line by line, and returns the content.
+///	  Reads a text file and returns the content.
 ///	</summary>
-function TextFileToString(const AFileName: string): string;
+function TextFileToString(const AFileName: string;
+  const AEncoding: TEncoding = nil): string;
 
 ///	<summary>
 ///	  Writes AString to a text file.
@@ -162,7 +163,8 @@ procedure StringToTextFile(const AString, AFileName: string;
 ///	  Appends AString to an existing text file. If the file doesn't exist,
 ///	  works like StringToTextFile.
 ///	</summary>
-procedure AppendStringToTextFile(const AString, AFileName: string);
+procedure AppendStringToTextFile(const AString, AFileName: string;
+  const AEncoding: TEncoding = nil);
 
 ///	<summary>
 ///	  Converts 'THIS_IS_A_STRING' to 'ThisIsAString'.
@@ -549,7 +551,7 @@ begin
   Result := InternalPad(False, AString, AFinalLength, APadCharacter);
 end;
 
-function TextFileToString(const AFileName: string): string;
+function TextFileToString(const AFileName: string; const AEncoding: TEncoding): string;
 var
   LStrings: TStrings;
 begin
@@ -558,7 +560,10 @@ begin
   begin
     LStrings := TStringList.Create;
     try
-      LStrings.LoadFromFile(AFileName);
+      if AEncoding = nil then
+        LStrings.LoadFromFile(AFileName)
+      else
+        LStrings.LoadFromFile(AFileName, AEncoding);
       Result := LStrings.Text;
     finally
       FreeAndNil(LStrings);
@@ -566,40 +571,53 @@ begin
   end;
 end;
 
+procedure AppendStringToStream(const AString: string; const AStream: TStream;
+  const AEncoding: TEncoding);
+var
+  LBuffer: TBytes;
+begin
+  Assert(Assigned(AStream));
+
+  if AEncoding <> nil then
+    LBuffer := AEncoding.GetBytes(AString)
+  else
+    LBuffer := TEncoding.Default.GetBytes(AString);
+  AStream.WriteBuffer(LBuffer[0], Length(LBuffer));
+end;
+
 procedure StringToTextFile(const AString, AFileName: string;
-  const AEncoding: TEncoding = nil);
+  const AEncoding: TEncoding);
 var
   LFilePath: string;
-  LStrings: TStrings;
+  LStream: TStream;
 begin
   LFilePath := ExtractFilePath(AFileName);
   if LFilePath <> '' then
     ForceDirectories(LFilePath);
 
-  LStrings := TStringList.Create;
+  LStream := TFileStream.Create(AFileName, fmCreate);
   try
-    LStrings.Text := AString;
-    LStrings.WriteBOM := False;
-    LStrings.SaveToFile(AFileName, AEncoding);
+    AppendStringToStream(AString, LStream, AEncoding);
   finally
-    FreeAndNil(LStrings);
+    LStream.Free;
   end;
 end;
 
-procedure AppendStringToTextFile(const AString, AFileName: string);
+procedure AppendStringToTextFile(const AString, AFileName: string;
+  const AEncoding: TEncoding);
 var
-  LFile: TextFile;
+  LStream: TStream;
 begin
   if not FileExists(AFileName) then
-    StringToTextFile(AString, AFileName)
+    StringToTextFile(AString, AFileName, AEncoding)
   else
   begin
-    AssignFile(LFile, AFileName);
+    LStream := TFileStream.Create(AFileName, fmOpenWrite);
     try
-      Append(LFile);
-      Write(LFile, AString);
+      LStream.Seek(0, soFromEnd);
+      AppendStringToStream(AString, LStream, AEncoding);
     finally
-      CloseFile(LFile);
+      LStream.Free;
     end;
   end;
 end;
