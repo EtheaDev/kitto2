@@ -393,11 +393,11 @@ var
 begin
   Assert(ViewTable <> nil);
 
-  LLayoutName := ViewTable.GetString('Controller/List/Layout');
+  LLayoutName := ViewTable.GetString('Controller/Grid/Layout');
   if LLayoutName <> '' then
     LLayout := ViewTable.View.Catalog.Layouts.FindLayout(LLayoutName)
   else
-    LLayout := ViewTable.FindLayout('List');
+    LLayout := ViewTable.FindLayout('Grid');
 
   if LLayout <> nil then
   begin

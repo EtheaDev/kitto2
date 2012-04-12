@@ -124,7 +124,6 @@ begin
   inherited;
   Border := False;
   Layout := lyForm;
-  Region := rgNorth;
   Collapsible := True;
   Frame := True;
   AutoHeight := True;
@@ -152,12 +151,11 @@ procedure TKExtListPanelController.CreateFilterPanel;
 var
   LItems: TEFNode;
 begin
-  Assert(ViewTable <> nil);
-
   LItems := Config.FindNode('Filters/Items');
   if Assigned(LItems) and (LItems.ChildCount > 0) then
   begin
     FFilterPanel := TKExtFilterPanel.AddTo(Items);
+    FFilterPanel.Region := rgNorth;
     FFilterPanel.OnChange := FilterPanelChange;
     FFilterPanel.Configure(LItems.Parent as TEFNode);
   end;
@@ -192,6 +190,9 @@ function TKExtListPanelController.GetRegionControllerConfig(
 begin
   if ARegion = rgCenter then
     Result := GetCenterRegionControllerConfig
+  else if (ARegion = rgNorth) and Assigned(Config.FindNode('Filters/Items')) then
+    // Preserve the filter panel's region.
+    Result := nil
   else
     Result := inherited GetRegionControllerConfig(ARegion);
 end;
@@ -201,6 +202,9 @@ function TKExtListPanelController.GetRegionControllerName(
 begin
   if ARegion = rgCenter then
     Result := 'GridPanel'
+  else if (ARegion = rgNorth) and Assigned(Config.FindNode('Filters/Items')) then
+    // Preserve the filter panel's region.
+    Result := ''
   else
     Result := inherited GetRegionControllerName(ARegion);
 end;
