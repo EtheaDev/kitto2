@@ -63,8 +63,6 @@ type
     procedure DisplayLoginWindow;
     function GetConfig: TKConfig;
     procedure ClearStatus;
-    class constructor Create;
-    class destructor Destroy;
     function DisplayNewController(const AView: TKView): IKExtController;
     function FindOpenController(const AView: TKView): IKExtController;
     procedure SetViewHostActiveTab(const AObject: TObject);
@@ -75,6 +73,8 @@ type
   public
     constructor Create(AOwner: TObject); override;
     destructor Destroy; override;
+    class constructor Create;
+    class destructor Destroy;
   public
     ///	<summary>
     ///	  A reference to the panel to be used as the main view container.

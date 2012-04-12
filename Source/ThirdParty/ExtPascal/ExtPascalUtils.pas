@@ -175,8 +175,7 @@ function Decrypt(Value : string) : string;
 {
 Formats a size in bytes.
 }
-function FormatByteSize(const AByteSize: Longint;
-  const AFormatSettings: TFormatSettings): string;
+function FormatByteSize(const AByteSize: Longint): string;
 
 implementation
 
@@ -937,8 +936,7 @@ begin
       Result := Result + '%' + IntToHex(ord(Decoded[I]), 2);
 end;
 
-function FormatByteSize(const AByteSize: Longint;
-  const AFormatSettings: TFormatSettings): string;
+function FormatByteSize(const AByteSize: Longint): string;
 const
   B = 1;
   KB = 1024 * B;
@@ -946,13 +944,13 @@ const
   GB = 1024 * MB;
 begin
   if AByteSize > GB then
-    Result := FormatFloat('#.## GBs', AByteSize / GB, AFormatSettings)
+    Result := FormatFloat('#.## GBs', AByteSize / GB)
   else if AByteSize > MB then
-    Result := FormatFloat('#.## MBs', AByteSize / MB, AFormatSettings)
+    Result := FormatFloat(',#.## MBs', AByteSize / MB)
   else if AByteSize > KB then
-    Result := FormatFloat('#.## KBs', AByteSize / KB, AFormatSettings)
+    Result := FormatFloat(',#.## KBs', AByteSize / KB)
   else
-    Result := FormatFloat('#.## bytes', AByteSize, AFormatSettings);
+    Result := FormatFloat(',# bytes', AByteSize);
 end;
 
 end.

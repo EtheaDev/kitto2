@@ -826,7 +826,7 @@ begin
   end
   else if FUploadedFileTooBig then begin
     UploadResponse(False, Format('File too big. Maximum allowed size is %s.',
-      [FormatByteSize(MaxUploadSize, FormatSettings)]));
+      [FormatByteSize(MaxUploadSize)]));
     Exit;
   end;
   ForceDirectories(ExtractFilePath(FileUploadedFullName));
