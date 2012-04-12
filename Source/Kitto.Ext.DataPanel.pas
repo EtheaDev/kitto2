@@ -21,12 +21,25 @@ unit Kitto.Ext.DataPanel;
 interface
 
 uses
-  Ext, ExtData,
+  Ext, ExtPascal, ExtPascalUtils, ExtData,
   EF.Classes,
-  Kitto.Metadata.DataView, Kitto.Store,
+  Kitto.Metadata.Views, Kitto.Metadata.DataView, Kitto.Store,
   Kitto.Ext.Base, Kitto.Ext.Controller, Kitto.Ext.BorderPanel;
 
 type
+  TKExtDataActionButton = class(TKExtActionButton)
+  strict private
+    FServerStore: TKViewTableStore;
+    FViewTable: TKViewTable;
+  strict protected
+    procedure InitController(const AController: IKExtController); override;
+  public
+    property ViewTable: TKViewTable read FViewTable write FViewTable;
+    property ServerStore: TKViewTableStore read FServerStore write FServerStore;
+  published
+    procedure ExecuteActionOnSelectedRow;
+  end;
+
   ///	<summary>Base class for controllers that handle database records (either
   ///	single records or record sets).</summary>
   TKExtDataPanelController = class abstract(TKExtBorderPanelController)
@@ -49,11 +62,17 @@ type
     procedure InitComponents; virtual;
     procedure InitDefaults; override;
     procedure InitSubController(const AController: IKExtController); override;
+    procedure AddTopToolbarButtons; override;
     property View: TKDataView read GetView;
     property ClientStore: TExtDataStore read FClientStore;
     property ClientReader: TExtDataJsonReader read FClientReader;
     function CreateClientStore: TExtDataStore; virtual;
     function CreateClientReader: TExtDataJsonReader; virtual;
+    function AddActionButton(const AView: TKView;
+      const AToolbar: TExtToolbar): TKExtActionButton; override;
+    function GetSelectConfirmCall(const AMessage: string;
+      const AMethod: TExtProcedure): string; virtual;
+    function GetSelectCall(const AMethod: TExtProcedure): TExtFunction; virtual;
   public
     destructor Destroy; override;
     procedure LoadData; virtual; abstract;
@@ -62,16 +81,15 @@ type
     property ServerStore: TKViewTableStore read FServerStore write FServerStore;
   published
     procedure GetRecordPage;
-    procedure RefreshData; virtual; abstract;
+    procedure RefreshData; virtual;
   end;
 
 implementation
 
 uses
-  ExtPascal,
   SysUtils, StrUtils, Math,
-  EF.Tree, EF.Localization,
-  Kitto.AccessControl, Kitto.Ext.Session;
+  EF.StrUtils, EF.Tree, EF.Localization,
+  Kitto.Types, Kitto.AccessControl, Kitto.Ext.Session;
 
 { TKExtDataPanelController }
 
@@ -123,6 +141,64 @@ begin
 
   InitComponents;
   CheckCanRead;
+end;
+
+function TKExtDataPanelController.GetSelectConfirmCall(const AMessage: string; const AMethod: TExtProcedure): string;
+begin
+  raise EKError.Create(_('Actions that require selection are not supported in this controller.'));
+end;
+
+function TKExtDataPanelController.GetSelectCall(const AMethod: TExtProcedure): TExtFunction;
+begin
+  raise EKError.Create(_('Actions that require selection are not supported in this controller.'));
+end;
+
+function TKExtDataPanelController.AddActionButton(const AView: TKView;
+  const AToolbar: TExtToolbar): TKExtActionButton;
+var
+  LConfirmationMessage: string;
+  LRequireSelection: Boolean;
+  LConfirmationJS: string;
+begin
+  Assert(Assigned(AView));
+  Assert(Assigned(AToolbar));
+  Assert(Assigned(ViewTable));
+  Assert(Assigned(ServerStore));
+
+  Result := TKExtDataActionButton.AddTo(AToolbar.Items);
+  Result.View := AView;
+  TKExtDataActionButton(Result).ViewTable := ViewTable;
+  TKExtDataActionButton(Result).ServerStore := ServerStore;
+
+  // A Tool may or may not have a confirmation message and may or may not require
+  // a selected row. We must handle all combinations.
+  LConfirmationMessage := AView.GetExpandedString('Controller/ConfirmationMessage');
+  LRequireSelection := AView.GetBoolean('Controller/RequireSelection', True);
+
+  if LRequireSelection then
+    LConfirmationJS := GetSelectConfirmCall(LConfirmationMessage, TKExtDataActionButton(Result).ExecuteActionOnSelectedRow)
+  else
+    LConfirmationJS := GetConfirmCall(LConfirmationMessage, Result.ExecuteAction);
+
+  if LConfirmationMessage <> '' then
+    Result.Handler := JSFunction(LConfirmationJS)
+  else if LRequireSelection then
+    Result.On('click', GetSelectCall(TKExtDataActionButton(Result).ExecuteActionOnSelectedRow))
+  else
+    Result.On('click', Ajax(Result.ExecuteAction, []));
+end;
+
+procedure TKExtDataPanelController.AddTopToolbarButtons;
+var
+  LRefreshButton: TExtButton;
+begin
+  TExtToolbarSpacer.AddTo(TopToolbar.Items);
+  LRefreshButton := TExtButton.AddTo(TopToolbar.Items);
+  LRefreshButton.Tooltip := _('Refresh');
+  LRefreshButton.Icon := Session.Config.GetImageURL('refresh');
+  LRefreshButton.Handler := Ajax(RefreshData);
+  LRefreshButton.Tooltip := _('Refresh data');
+  inherited;
 end;
 
 procedure TKExtDataPanelController.CheckCanRead;
@@ -255,6 +331,10 @@ begin
   AController.Config.SetObject('Sys/ServerStore', FServerStore);
 end;
 
+procedure TKExtDataPanelController.RefreshData;
+begin
+end;
+
 procedure TKExtDataPanelController.SetViewTable(const AValue: TKViewTable);
 begin
   FViewTable := AValue;
@@ -262,6 +342,37 @@ begin
   FClientStore := CreateClientStore;
   FClientReader := CreateClientReader;
   FClientStore.Reader := FClientReader;
+end;
+
+{ TKExtDataActionButton }
+
+procedure TKExtDataActionButton.ExecuteActionOnSelectedRow;
+var
+  LRecord: TKViewTableRecord;
+  LController: IKExtController;
+begin
+  Assert(Assigned(View));
+  Assert(Assigned(FViewTable));
+  Assert(Assigned(FServerStore));
+
+  LRecord := Session.LocateRecordFromQueries(FViewTable, FServerStore);
+  LController := TKExtControllerFactory.Instance.CreateController(View, nil);
+  InitController(LController);
+  LController.Config.SetObject('Sys/Record', LRecord);
+  LController.Display;
+end;
+
+
+procedure TKExtDataActionButton.InitController(
+  const AController: IKExtController);
+begin
+  inherited;
+  Assert(Assigned(FViewTable));
+  Assert(Assigned(FServerStore));
+  Assert(Assigned(AController));
+
+  AController.Config.SetObject('Sys/ServerStore', FServerStore);
+  AController.Config.SetObject('Sys/ViewTable', FViewTable);
 end;
 
 end.
