@@ -261,7 +261,10 @@ begin
   ExtQuickTips.Init(True);
 
   if not IsAjax then
+  begin
     LoadLibraries;
+    JSCode('kittoInit();');
+  end;
 
   // Try authentication with default credentials, if any, and skip login
   // window if it succeeds.
@@ -340,6 +343,7 @@ begin
   SetRequiredLibrary('DateTimeField');
   SetRequiredLibrary('DefaultButton');
   SetRequiredLibrary('kitto-core', True);
+  SetRequiredLibrary('kitto-init');
   SetOptionalLibrary('application', True);
 
   LLibraries := Config.Config.GetStringArray('JavaScriptLibraries');
