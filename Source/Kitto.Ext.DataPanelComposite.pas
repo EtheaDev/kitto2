@@ -21,7 +21,7 @@ unit Kitto.Ext.DataPanelComposite;
 interface
 
 uses
-  Kitto.Ext.DataPanel;
+  Kitto.Ext.DataPanel, Kitto.Ext.Controller;
 
 type
   ///	<summary>A data panel whose purpose is to contain other (leaf)
@@ -30,6 +30,8 @@ type
   public
     procedure LoadData; override;
     procedure RefilterData(const AFilterExpression: string); override;
+  strict protected
+    procedure InitSubController(const AController: IKExtController); override;
   published
     procedure RefreshData; override;
   end;
@@ -51,6 +53,15 @@ begin
       if AObject is TKExtDataPanelController then
         TKExtDataPanelController(AObject).RefilterData(AFilterExpression);
     end);
+end;
+
+procedure TKExtDataPanelCompositeController.InitSubController(
+  const AController: IKExtController);
+begin
+  inherited;
+  Assert(Assigned(AController));
+
+  AController.Config.SetObject('Sys/RefreshHandler', Self);
 end;
 
 procedure TKExtDataPanelCompositeController.LoadData;

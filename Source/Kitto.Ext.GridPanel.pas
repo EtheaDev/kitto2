@@ -106,8 +106,6 @@ end;
 procedure TKExtGridPanel.AfterCreateTopToolbar;
 begin
   inherited;
-//  if TopToolbar <> nil then
-//    FGridEditorPanel.Tbar := TopToolbar;
   if FButtonsRequiringSelection.Count > 0 then
   begin
     FSelModel.On('selectionchange', JSFunction('s', GetRowButtonsDisableJS));

@@ -62,7 +62,6 @@ type
     procedure InitComponents; virtual;
     procedure InitDefaults; override;
     procedure InitSubController(const AController: IKExtController); override;
-    procedure AddTopToolbarButtons; override;
     property View: TKDataView read GetView;
     property ClientStore: TExtDataStore read FClientStore;
     property ClientReader: TExtDataJsonReader read FClientReader;
@@ -186,19 +185,6 @@ begin
     Result.On('click', GetSelectCall(TKExtDataActionButton(Result).ExecuteActionOnSelectedRow))
   else
     Result.On('click', Ajax(Result.ExecuteAction, []));
-end;
-
-procedure TKExtDataPanelController.AddTopToolbarButtons;
-var
-  LRefreshButton: TExtButton;
-begin
-  TExtToolbarSpacer.AddTo(TopToolbar.Items);
-  LRefreshButton := TExtButton.AddTo(TopToolbar.Items);
-  LRefreshButton.Tooltip := _('Refresh');
-  LRefreshButton.Icon := Session.Config.GetImageURL('refresh');
-  LRefreshButton.Handler := Ajax(RefreshData);
-  LRefreshButton.Tooltip := _('Refresh data');
-  inherited;
 end;
 
 procedure TKExtDataPanelController.CheckCanRead;
