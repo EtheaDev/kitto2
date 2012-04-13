@@ -32,6 +32,7 @@ type
     function AutoLoadData: Boolean; virtual;
     procedure DoDisplay; override;
     function GetFilterExpression: string; override;
+    procedure AddTopToolbarButtons; override;
   public
     procedure RefilterData(const AFilterExpression: string); override;
     procedure LoadData; override;
@@ -40,6 +41,11 @@ type
   end;
 
 implementation
+
+uses
+  Ext, ExtPascal,
+  EF.Localization,
+  Kitto.Ext.Session;
 
 { TKExtDataPanelLeafController }
 
@@ -75,6 +81,19 @@ begin
   Assert(Assigned(ClientStore));
 
   ClientStore.Load(JSObject('params:{start:0,limit:0,Obj:"' + JSName + '"}'));
+end;
+
+procedure TKExtDataPanelLeafController.AddTopToolbarButtons;
+var
+  LRefreshButton: TExtButton;
+begin
+  TExtToolbarSpacer.AddTo(TopToolbar.Items);
+  LRefreshButton := TExtButton.AddTo(TopToolbar.Items);
+  LRefreshButton.Tooltip := _('Refresh');
+  LRefreshButton.Icon := Session.Config.GetImageURL('refresh');
+  LRefreshButton.Handler := Ajax(TKExtDataPanelController(Config.GetObject('Sys/RefreshHandler', Self)).RefreshData);
+  LRefreshButton.Tooltip := _('Refresh data');
+  inherited;
 end;
 
 function TKExtDataPanelLeafController.AutoLoadData: Boolean;
