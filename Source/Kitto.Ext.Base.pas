@@ -833,7 +833,7 @@ begin
   if FTopToolbar.Items.Count = 0 then
     FreeAndNil(FTopToolbar)
   else
-    Tbar := TopToolbar;
+    Tbar := FTopToolbar;
   AfterCreateTopToolbar;
 end;
 
