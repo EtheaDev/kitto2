@@ -166,3 +166,11 @@ function getRowColorStyleRule(record, fieldName, patterns)
   else
     return '';
 };
+
+function getWindowWidth() {
+  return document.documentElement.clientWidth;
+};
+
+function getWindowHeight() {
+  return document.documentElement.clientHeight;
+};
