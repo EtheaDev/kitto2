@@ -129,6 +129,7 @@ begin
   if (LGroupingFieldName <> '') or LGroupingMenu then
   begin
     Result := TExtDataGroupingStore.Create;
+    Result.Url := MethodURI(GetRecordPage);
     //TExtDataGroupingStore(Result).GroupOnSort := True;
     if LGroupingFieldName <> '' then
     begin
