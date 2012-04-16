@@ -220,7 +220,6 @@ procedure TKExtGridPanel.InitColumns;
 var
   I: Integer;
   LLayout: TKLayout;
-  LViewField: TKViewField;
   LLayoutName: string;
 
   procedure AddGridColumn(const AViewField: TKViewField);
@@ -343,6 +342,8 @@ var
         Result := TExtGridColumn.AddTo(FGridEditorPanel.Columns);
         SetRenderer(Result);
       end;
+      if not ViewTable.IsFieldVisible(AViewField) and not (AViewField.AliasedName = GetGroupingFieldName) then
+        FGridEditorPanel.ColModel.SetHidden(FGridEditorPanel.Columns.Count - 1, True);
     end;
 
   begin
@@ -370,8 +371,7 @@ var
   procedure AddColumn(const AViewField: TKViewField);
   begin
     if SupportedAsGridColumn(AViewField) then
-      if ViewTable.IsFieldVisible(AViewField) or (AViewField.AliasedName = GetGroupingFieldName) then
-        AddGridColumn(AViewField);
+      AddGridColumn(AViewField);
   end;
 
 begin
@@ -387,15 +387,6 @@ begin
   begin
     for I := 0 to LLayout.ChildCount - 1 do
       AddColumn(ViewTable.FieldByAliasedName(LLayout.Children[I].AsString));
-    // Add key fields anyway if they are not part of the layout.
-    // If their IsVisible is False at the view or model level
-    // they won't be added as grid columns anyway.
-    for I := 0 to ViewTable.FieldCount - 1 do
-    begin
-      LViewField := ViewTable.Fields[I];
-      if (LLayout.FindChild(LViewField.AliasedName) = nil) and LViewField.IsKey then
-        AddColumn(LViewField);
-    end;
   end
   else
   begin

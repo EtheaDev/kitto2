@@ -389,6 +389,8 @@ type
     function FieldByName(const AName: string): TKViewField;
     function FieldByAliasedName(const AName: string): TKViewField;
     function FindFieldByAliasedName(const AAliasedName: string): TKViewField;
+    function FindFieldByDBColumnName(const ADBColumnName: string): TKViewField;
+    function FieldByDBColumnName(const ADBColumnName: string): TKViewField;
     function GetKeyFieldAliasedNames: TStringDynArray;
     function GetFieldArray(AFilter: TFunc<TKViewField, Boolean>): TArray<TKViewField>;
 
@@ -589,6 +591,24 @@ end;
 function TKViewTable.FieldByName(const AName: string): TKViewField;
 begin
   Result := GetFields.ChildByName(AName) as TKViewField;
+end;
+
+function TKViewTable.FieldByDBColumnName(
+  const ADBColumnName: string): TKViewField;
+begin
+  Result := FindFieldByDBColumnName(ADBColumnName);
+  if not Assigned(Result) then
+    raise EKError.CreateFmt('Couldn''t find a field with DB column name %s.',
+      [ADBColumnName]);
+end;
+
+function TKViewTable.FindFieldByDBColumnName(const ADBColumnName: string): TKViewField;
+begin
+  Result := GetFields.FindChildByPredicate(
+    function(const ANode: TEFNode): Boolean
+    begin
+      Result := SameText(TKViewField(ANode).ModelField.DBColumnName, ADBColumnName);
+    end) as TKViewField;
 end;
 
 function TKViewTable.FindField(const AName: string): TKViewField;
