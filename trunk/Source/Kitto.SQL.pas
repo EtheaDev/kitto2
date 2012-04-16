@@ -442,7 +442,7 @@ function TKSQLBuilder.BuildJoin(const AReferenceField: TKModelField): string;
 
 var
   I: Integer;
-  LLocalFieldNames: TStringDynArray;
+  LLocalFields: TKModelFieldArray;
   LForeignFieldNames: TStringDynArray;
   LCorrelationName: string;
 begin
@@ -451,16 +451,16 @@ begin
   LCorrelationName := AReferenceField.FieldName;
 
   Result := GetJoinKeyword + ' ' + AReferenceField.ReferencedModel.DBTableName + ' ' + LCorrelationName + ' on (';
-  LLocalFieldNames := AReferenceField.ReferenceFieldNames;
-  Assert(Length(LLocalFieldNames) > 0);
+  LLocalFields := AReferenceField.GetReferenceFields;
+  Assert(Length(LLocalFields) > 0);
   LForeignFieldNames := AReferenceField.ReferencedModel.GetKeyDBColumnNames;
-  Assert(Length(LForeignFieldNames) = Length(LLocalFieldNames));
+  Assert(Length(LForeignFieldNames) = Length(LLocalFields));
 
-  for I := Low(LLocalFieldNames) to High(LLocalFieldNames) do
+  for I := Low(LLocalFields) to High(LLocalFields) do
   begin
-    Result := Result + FViewTable.Model.DBTableName + '.' + LLocalFieldNames[I] + ' = '
+    Result := Result + FViewTable.Model.DBTableName + '.' + LLocalFields[I].DBColumnName + ' = '
       + LCorrelationName + '.' + LForeignFieldNames[I];
-    if I < High(LLocalFieldNames) then
+    if I < High(LLocalFields) then
       Result := Result + ' and ';
   end;
   Result := Result + ')';
@@ -468,7 +468,7 @@ end;
 
 procedure TKSQLBuilder.AddReferenceFieldTerms(const AViewField: TKViewField);
 var
-  LFieldNames: TStringDynArray;
+  LFields: TKModelFieldArray;
   I: Integer;
 begin
   Assert(Assigned(FViewTable));
@@ -478,9 +478,9 @@ begin
   if not FUsedReferenceFields.Contains(AViewField.ModelField) then
     FUsedReferenceFields.Add(AViewField.ModelField);
 
-  LFieldNames := AViewField.ModelField.ReferenceFieldNames;
-  for I := Low(LFieldNames) to High(LFieldNames) do
-    AddSelectTerm(FViewTable.Model.DBTableName + '.' + LFieldNames[I]);
+  LFields := AViewField.ModelField.GetReferenceFields;
+  for I := Low(LFields) to High(LFields) do
+    AddSelectTerm(FViewTable.Model.DBTableName + '.' + LFields[I].DBColumnName);
   // Add the caption field of the referenced model as well.
   // The reference field name is used as table alias.
   AddSelectTerm(AViewField.FieldName + '.' + AViewField.ModelField.ReferencedModel.CaptionField.DBColumnName

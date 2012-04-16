@@ -61,6 +61,8 @@ type
 
   TKModelFieldPredicate = reference to function(const AField: TKModelField): Boolean;
 
+  TKModelFieldArray = TArray<TKModelField>;
+
   TKModelField = class(TKMetadataItem)
   strict private
     function GetFieldName: string;
@@ -100,13 +102,12 @@ type
     function GetDBColumnName: string;
     function GetPhysicalName: string;
     function GetAliasedDBColumnName: string;
-  strict private
-    function GetFileNameField: string; protected
+    function GetFileNameField: string;
+  strict protected
     function GetChildClass(const AName: string): TEFNodeClass; override;
     ///	<summary>Returns all main field properties at once.</summary>
     procedure GetFieldSpec(out ADataType: string; out ASize, ADecimalPrecision: Integer;
       out AIsRequired: Boolean; out AIsKey: Boolean; out AReferencedModel: string);
-  strict protected
     function GetFields: TKModelFields;
   public
     procedure BeforeSave; override;
@@ -170,8 +171,13 @@ type
 
     ///	<summary>If the field is a reference, returns the reference field names
     ///	(that is the names of the fields, in the underlying table, that make up
-    ///	the foreign key to the referenced model.</summary>
+    ///	the foreign key to the referenced model).</summary>
     property ReferenceFieldNames: TStringDynArray read GetReferenceFieldNames;
+
+    ///	<summary>If the field is a reference, returns an array of its subfields
+    ///	(that is the fields, in the underlying table, that make up the foreign
+    ///	key to the referenced model).</summary>
+    function GetReferenceFields: TKModelFieldArray;
 
     ///	<summary>
     ///	  Default requiredness status of this field in views. Defaults to
@@ -999,6 +1005,14 @@ function TKModelField.GetReferenceFieldNames: TStringDynArray;
 begin
   if IsReference then
     Result := GetNode('Fields').GetChildNames
+  else
+    Result := nil;
+end;
+
+function TKModelField.GetReferenceFields: TKModelFieldArray;
+begin
+  if IsReference then
+    Result := TKModelFieldArray(GetNode('Fields').ToArray)
   else
     Result := nil;
 end;
