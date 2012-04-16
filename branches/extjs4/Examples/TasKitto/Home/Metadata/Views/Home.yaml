@@ -1,0 +1,38 @@
+DisplayLabel: %Config:AppTitle%
+# Valid top-level controllers are Window and Viewport
+Controller: Viewport
+
+  SubView:
+    Controller: BorderPanel
+
+      WestView:
+        DisplayLabel: Main Menu
+        Controller: TreePanel
+          TreeView: MainMenu
+          Width: 150
+          Collapsible: True
+          Border: True
+      
+      CenterView:
+        Controller: TabPanel
+          Border: True
+          # List of views to be auto-opened in tabs.
+          SubViews:
+            View: ActivityInput
+            View: ActivityReport
+            View: Projects
+
+      NorthView:
+        Controller: HtmlPanel
+          Split: False
+          Html: |
+            <center>
+              <p><img src="%IMAGE(taskitto_logo_150)%"></img></p>
+              <p style="font: 11px arial,tahoma,verdana,helvetica;">An example activity tracking application.</p>
+            </center>
+          Height: 66
+
+      SouthView:
+        Controller: StatusBar
+          Text: <p>Connected user: %Auth:UserName%</p>
+        ImageName: user

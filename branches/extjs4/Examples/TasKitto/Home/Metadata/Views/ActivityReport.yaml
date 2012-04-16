@@ -1,0 +1,25 @@
+﻿Type: Data
+
+Controller: List
+
+MainTable:
+  PluralDisplayLabel: Activities by Type
+  Model: ACTIVITY
+
+  Controller:
+    PopupWindow:
+      Width: 580
+      Height: 340
+
+    Form:
+      Layout: ActivityInput_Form
+
+    Grouping:
+      FieldName: TYPE
+      # SortFieldName defaults to FieldName.
+      EnableMenu: False
+      StartCollapsed: True
+      ShowName: False
+      ShowCount: True
+        ItemName: activity
+        PluralItemName: activities

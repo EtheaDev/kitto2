@@ -1,0 +1,39 @@
+ModelName: Party
+Fields:
+  Party_Id: String(32) not null primary key
+    IsVisible: False
+    DefaultValue: %COMPACT_GUID%
+  Party_Name: String(40) not null
+    Hint: Enter a catchy name
+    Rules:
+      ForceCamelCaps:
+  Party_Date: Date not null
+    DefaultValue: {date}
+  Party_Time: Time not null
+  Address: String(256) not null
+    DisplayWidth: 80
+  Party_Period: String(20)
+    DisplayLabel: Period
+    DisplayWidth: 10
+    Expression: |
+      case
+        when %DB.CURRENT_DATE% - PARTY.PARTY_DATE < 0 then cast('Future' as varchar(10))
+        when %DB.CURRENT_DATE% - PARTY.PARTY_DATE = 0 then cast('Today' as varchar(10))
+        when %DB.CURRENT_DATE% - PARTY.PARTY_DATE = 1 then cast('Yesterday' as varchar(10))
+        when %DB.CURRENT_DATE% - PARTY.PARTY_DATE between 2 and 7 then cast('Last Week' as varchar(10))
+        when %DB.CURRENT_DATE% - PARTY.PARTY_DATE between 8 and 30 then cast('Last Month' as varchar(10))
+        else cast('Older' as varchar(10))
+      end
+  Party_Period_Order: Integer
+    Expression: |
+      case
+        when %DB.CURRENT_DATE% - PARTY.PARTY_DATE < 0 then 0
+        when %DB.CURRENT_DATE% - PARTY.PARTY_DATE = 0 then 1
+        when %DB.CURRENT_DATE% - PARTY.PARTY_DATE = 1 then 2
+        when %DB.CURRENT_DATE% - PARTY.PARTY_DATE between 2 and 7 then 3
+        when %DB.CURRENT_DATE% - PARTY.PARTY_DATE between 8 and 30 then 4
+        else 5
+      end
+    IsVisible: False
+DetailReferences:
+  Invitation: Invitation

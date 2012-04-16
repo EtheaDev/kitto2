@@ -1,0 +1,40 @@
+﻿Type: Data
+
+Controller: List
+
+MainTable:
+  Model: PROJECT
+
+  Controller:
+    PopupWindow:
+      Width: 500
+      Height: 250
+
+    Filters:
+      DisplayLabel: Project Filter
+      Connector: and
+      Items:
+        FreeSearch: Name free search
+          # ExpressionTemplate should contain a {value} placeholder for the search term.
+          ExpressionTemplate: >
+            upper(PROJECT_NAME) like upper('%{value}%')
+        DynaList: Customer
+          # CommandText must select the value field and the display field as the first two fields.
+          CommandText: |
+            select distinct CUSTOMER_ID, CUSTOMER_NAME
+            from CUSTOMER order by 2
+          # ExpressionTemplate should contain a {value} placeholder for the value field selected by the CommandText.
+          ExpressionTemplate: CUSTOMER_NAME = '{value}'
+
+  DetailTables:
+    Controller:
+      # Tabs/Popup. Default = Tabs. 
+      Style: Tabs
+    Table:
+      Model: PHASE
+      Controller:
+        PopupWindow:
+          Width: 500
+          Height: 320
+        Form:
+          Layout: Phases_Form

@@ -1,0 +1,11 @@
+﻿Type: Data
+
+Controller: List
+
+MainTable:
+  Model: OPERATOR_ROLE
+
+  Controller:
+    PopupWindow:
+      Width: 660
+      Height: 430

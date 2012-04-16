@@ -1,0 +1,18 @@
+Type: Tree
+Folder: Options
+  #View: Girls
+  #View: Dolls
+  View: Parties
+Folder: Lookup tables
+  View: Build AutoList
+    Model: HAIR
+    MainTable:
+      Controller:
+        PopupWindow:
+          Width: 320
+          Height: 160
+Folder: User
+  View:
+    Controller: ChangePassword
+  View:
+    Controller: Logout

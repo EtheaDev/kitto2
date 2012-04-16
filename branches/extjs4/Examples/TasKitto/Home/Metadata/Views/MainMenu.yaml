@@ -1,0 +1,17 @@
+Type: Tree
+Folder: Tables
+  View: Employees
+  View: Roles
+  View: ActivityTypes
+Folder: Customers
+  View: Customers
+  View: Projects
+Folder: Activities
+  View: ActivityInput
+  View: ActivityReport
+Folder: Maintenance
+  View: Users
+    ImageName: user
+  View:
+    DisplayLabel: Logout
+    ImageName: login
