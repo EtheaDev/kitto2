@@ -193,7 +193,7 @@ begin
     for I := 0 to AValues.ChildCount - 1 do
     begin
       LViewField := AViewTable.FindField(AValues[I].Name);
-      if Assigned(LViewField) and LViewField.CanInsert then
+      if Assigned(LViewField) and not LViewField.IsReadOnly and LViewField.CanInsert then
       begin
         if LViewField.IsReference then
         begin
@@ -250,7 +250,7 @@ begin
     for I := 0 to AValues.ChildCount - 1 do
     begin
       LViewField := AViewTable.FindField(AValues[I].Name);
-      if Assigned(LViewField) and LViewField.CanUpdate and not LViewField.IsKey then
+      if Assigned(LViewField) and not LViewField.IsReadOnly and LViewField.CanUpdate and not LViewField.IsKey then
       begin
         if LViewField.IsReference then
         begin
@@ -267,7 +267,7 @@ begin
     LKeyFields := AViewTable.Model.GetKeyDBColumnNames;
     for I := 0 to Length(LKeyFields) - 1 do
     begin
-      LParamName := AViewTable.FieldByName(LKeyFields[I]).AliasedName;
+      LParamName := AViewTable.FieldByDBColumnName(LKeyFields[I]).AliasedName;
       if I > 0 then
         LCommandText := LCommandText + ' and ';
       LCommandText := LCommandText + LKeyFields[I] + ' = :' + LParamName;
@@ -302,7 +302,7 @@ begin
     LKeyFields := AViewTable.Model.GetKeyDBColumnNames;
     for I := 0 to Length(LKeyFields) - 1 do
     begin
-      LParamName := AViewTable.FieldByName(LKeyFields[I]).AliasedName;
+      LParamName := AViewTable.FieldByDBColumnName(LKeyFields[I]).AliasedName;
       if I > 0 then
         LCommandText := LCommandText + ' and ';
       LCommandText := LCommandText + LKeyFields[I] + ' = :' + LParamName;

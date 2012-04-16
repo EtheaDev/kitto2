@@ -647,7 +647,7 @@ type
     FAutoExpandMin : Integer;
     FBubbleEvents : TExtObjectList;
     FCm : TExtObject;
-    FColModel : TExtObject;
+    FColModel : TExtGridColumnModel;
     FColumnLines : Boolean;
     FColumns : TExtObjectList;
     FDdGroup : String;
@@ -717,7 +717,7 @@ type
     procedure SetFAutoExpandMin(Value : Integer);
     procedure SetFBubbleEvents(Value : TExtObjectList);
     procedure SetFCm(Value : TExtObject);
-    procedure SetFColModel(Value : TExtObject);
+    procedure SetFColModel(Value : TExtGridColumnModel);
     procedure SetFColumnLines(Value : Boolean);
     procedure SetFColumns(Value : TExtObjectList);
     procedure SetFDdGroup(Value : String);
@@ -802,7 +802,7 @@ type
     property AutoExpandMin : Integer read FAutoExpandMin write SetFAutoExpandMin;
     property BubbleEvents : TExtObjectList read FBubbleEvents write SetFBubbleEvents;
     property Cm : TExtObject read FCm write SetFCm;
-    property ColModel : TExtObject read FColModel write SetFColModel;
+    property ColModel : TExtGridColumnModel read FColModel write SetFColModel;
     property ColumnLines : Boolean read FColumnLines write SetFColumnLines;
     property Columns : TExtObjectList read FColumns write SetFColumns;
     property DdGroup : String read FDdGroup write SetFDdGroup;
@@ -2293,10 +2293,13 @@ procedure TExtGridGridPanel.SetFCm(Value : TExtObject); begin
   JSCode('cm:' + VarToJSON([Value, false]));
 end;
 
-procedure TExtGridGridPanel.SetFColModel(Value : TExtObject); begin
-  FColModel := Value;
-  Value.DeleteFromGarbage;
-  JSCode('colModel:' + VarToJSON([Value, false]));
+procedure TExtGridGridPanel.SetFColModel(Value : TExtGridColumnModel); begin
+  if FColModel <> Value then begin
+    FColModel.Free;
+    FColModel := Value;
+    Value.DeleteFromGarbage;
+    JSCode('colModel:' + VarToJSON([Value, false]));
+  end;
 end;
 
 procedure TExtGridGridPanel.SetFColumnLines(Value : Boolean); begin
@@ -2759,7 +2762,7 @@ procedure TExtGridGridPanel.InitDefaults; begin
   inherited;
   FBubbleEvents := TExtObjectList.Create(Self, 'bubbleEvents');
   FCm := TExtObject.CreateInternal(Self, 'cm');
-  FColModel := TExtObject.CreateInternal(Self, 'colModel');
+  FColModel := TExtGridColumnModel.CreateInternal(Self, 'colModel');
   FColumns := TExtObjectList.Create(Self, 'columns');
   FLoadMask := TExtObject.CreateInternal(Self, 'loadMask');
   FSelModel := TExtObject.CreateInternal(Self, 'selModel');
