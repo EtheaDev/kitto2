@@ -593,6 +593,9 @@ type
     procedure AssignAnnotations(const AStrings: TStrings);
   end;
 
+
+  TEFNodeArray = array of TEFNode;
+
   ///	<summary>
   ///	  A node in a tree. Has a name and a value, anc can have subnodes.
   ///	</summary>
@@ -897,6 +900,11 @@ type
     ///	  Returns an array of names of all direct children of the node.
     ///	</summary>
     function GetChildNames: TStringDynArray;
+
+    ///	<summary>
+    ///	  Returns an array of references to all direct children of the node.
+    ///	</summary>
+    function ToArray: TArray<TEFNode>;
 
     ///	<summary>
     ///	  Assigns a field's value to the node. May also change or set the
@@ -1336,6 +1344,15 @@ begin
       Result[I] := Children[I].AsExpandedPair
     else
       Result[I] := Children[I].AsPair;
+end;
+
+function TEFNode.ToArray: TArray<TEFNode>;
+var
+  I: Integer;
+begin
+  SetLength(Result, ChildCount);
+  for I := 0 to ChildCount - 1 do
+    Result[I] := Children[I];
 end;
 
 function TEFNode.GetEnumerator: TEnumerator<TEFNode>;
