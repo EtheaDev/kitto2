@@ -713,7 +713,7 @@ begin
       AutoWidth := True;
   end
   else if LWidthStr <> '' then
-    JSCode('width: ' + ReplaceText(LWidthStr, '{screenWidth}', 'document.documentElement.clientWidth'));
+    JSCode('width: ' + LWidthStr);
 
   LHeightStr := Config.GetString('Height');
   if TryStrToInt(LHeightStr, LHeight) then
@@ -724,7 +724,7 @@ begin
       AutoHeight := True;
   end
   else if LHeightStr <> '' then
-    JSCode('height: ' + ReplaceText(LHeightStr, '{screenHeight}', 'document.documentElement.clientHeight'));
+    JSCode('height: ' + LHeightStr);
 
   LSplit := Config.FindNode('Split');
   if Assigned(LSplit) then
