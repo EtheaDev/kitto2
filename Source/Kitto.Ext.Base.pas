@@ -701,7 +701,8 @@ var
   LWidthStr: string;
   LHeightStr: string;
 begin
-  Title := _(Config.GetExpandedString('Title', View.DisplayLabel));
+  if Title = '' then
+    Title := _(Config.GetExpandedString('Title', View.DisplayLabel));
 
   LWidthStr := Config.GetString('Width');
   if TryStrToInt(LWidthStr, LWidth) then
