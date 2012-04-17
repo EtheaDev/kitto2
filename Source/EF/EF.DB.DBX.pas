@@ -59,7 +59,7 @@ type
 
   TEFDBDBXConnection = class(TEFDBConnection)
   private
-    FConnection: TSQLConnection;
+    FConnection: TEFSQLConnection;
     FTransaction: TDBXTransaction;
     FConnectionString: TStrings;
     FFetchSequenceGeneratorValueQuery: TEFDBDBXQuery;

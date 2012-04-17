@@ -55,6 +55,7 @@ type
     ControlPanel: TPanel;
     AppTitleLabel: TLabel;
     OpenConfigDialog: TOpenDialog;
+    SpeedButton1: TSpeedButton;
     procedure StartActionUpdate(Sender: TObject);
     procedure StopActionUpdate(Sender: TObject);
     procedure StartActionExecute(Sender: TObject);
@@ -69,18 +70,18 @@ type
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
   private
-    FKAppThread: TKExtAppThread;
+    FAppThread: TKExtAppThread;
     FRestart: Boolean;
     FLogEndPoint: TKExtMainFormLogEndpoint;
     function IsStarted: Boolean;
-    function GetKAppThread: TKExtAppThread;
-    procedure KAppThreadTerminated(Sender: TObject);
+    function GetAppThread: TKExtAppThread;
+    procedure AppThreadTerminated(Sender: TObject);
     procedure UpdateSessionCountlabel;
     function GetSessionCount: Integer;
     procedure FillConfigFileNameCombo;
     procedure SetConfig(const AFileName: string);
     procedure SelectConfigFile;
-    property KAppThread: TKExtAppThread read GetKAppThread;
+    property AppThread: TKExtAppThread read GetAppThread;
     function HasConfigFileName: Boolean;
     procedure DoLog(const AString: string);
   end;
@@ -97,16 +98,11 @@ uses
   EF.SysUtils, EF.Localization,
   FCGIApp;
 
-procedure TKExtMainForm.KAppThreadTerminated(Sender: TObject);
+procedure TKExtMainForm.AppThreadTerminated(Sender: TObject);
 begin
-  FKAppThread := nil;
+  FAppThread := nil;
   DoLog(_('Listener stopped'));
   SessionCountLabel.Visible := False;
-  if FRestart then
-  begin
-    FRestart := False;
-    StartAction.Execute;
-  end;
 end;
 
 procedure TKExtMainForm.ConfigLinkLabelClick(Sender: TObject);
@@ -137,9 +133,14 @@ begin
   if IsStarted then
   begin
     DoLog(_('Stopping listener...'));
-    FKAppThread.Terminate;
-//    while IsStarted do
-//      Forms.Application.ProcessMessages;
+    FAppThread.Terminate;
+    while IsStarted do
+      Forms.Application.ProcessMessages;
+    if FRestart then
+    begin
+      FRestart := False;
+      StartAction.Execute;
+    end;
   end;
 end;
 
@@ -185,14 +186,12 @@ end;
 
 function TKExtMainForm.IsStarted: Boolean;
 begin
-  Result := Assigned(FKAppThread);
+  Result := Assigned(FAppThread);
 end;
 
 procedure TKExtMainForm.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
   StopAction.Execute;
-  { TODO : needed otherwise OnTerminate is not called. Should be done in a different way. }
-  Sleep(500);
 end;
 
 procedure TKExtMainForm.FormCreate(Sender: TObject);
@@ -238,9 +237,9 @@ begin
   finally
     FreeAndNil(LConfig);
   end;
-{ TODO : fix the restart issue }
-//  if LWasStarted then
-//    StartAction.Execute;
+  StartAction.Update;
+  if LWasStarted then
+    StartAction.Execute;
 end;
 
 procedure TKExtMainForm.FillConfigFileNameCombo;
@@ -253,21 +252,21 @@ begin
   end;
 end;
 
-function TKExtMainForm.GetKAppThread: TKExtAppThread;
+function TKExtMainForm.GetAppThread: TKExtAppThread;
 begin
-  if not Assigned(FKAppThread) then
+  if not Assigned(FAppThread) then
   begin
-    FKAppThread := TKExtAppThread.Create(True);
-    FKAppThread.FreeOnTerminate := True;
-    FKAppThread.OnTerminate := KAppThreadTerminated;
-    FKAppThread.Configure;
+    FAppThread := TKExtAppThread.Create(True);
+    FAppThread.FreeOnTerminate := True;
+    FAppThread.OnTerminate := AppThreadTerminated;
+    FAppThread.Configure;
   end;
-  Result := FKAppThread;
+  Result := FAppThread;
 end;
 
 procedure TKExtMainForm.StartActionExecute(Sender: TObject);
 begin
-  KAppThread.Start;
+  AppThread.Start;
   SessionCountLabel.Visible := True;
   DoLog(_('Listener started'));
 end;
