@@ -58,7 +58,7 @@ type
     FCancelButton: TExtButton;
     FDetailToolbar: TExtToolbar;
     FDetailButtons: TObjectList<TKExtDetailFormButton>;
-    FDetailPanels: TObjectList<TKExtGridPanel>;
+    FDetailControllers: TObjectList<TObject>;
     FOperation: string;
     FFocusField: TExtFormField;
     FStoreRecord: TKViewTableRecord;
@@ -68,7 +68,6 @@ type
     procedure FocusFirstField;
     procedure CreateDetailPanels;
     procedure CreateDetailToolbar;
-    procedure LoadDetailData;
     function GetDetailStyle: string;
     procedure OnFieldChange(AField: TExtFormField; ANewValue, AOldValue: string);
     function FindEditor(const AFieldName: string): IKExtEditor;
@@ -98,7 +97,7 @@ destructor TKExtFormPanelController.Destroy;
 begin
   FreeAndNil(FEditors);
   FreeAndNil(FDetailButtons);
-  FreeAndNil(FDetailPanels);
+  FreeAndNil(FDetailControllers);
   inherited;
 end;
 
@@ -136,9 +135,10 @@ end;
 procedure TKExtFormPanelController.CreateDetailPanels;
 var
   I: Integer;
+  LController: IKExtController;
 begin
   Assert(ViewTable <> nil);
-  Assert(FDetailPanels = nil);
+  Assert(FDetailControllers = nil);
   Assert(Assigned(FStoreRecord));
 
   if ViewTable.DetailTableCount > 0 then
@@ -147,13 +147,17 @@ begin
     FStoreRecord.EnsureDetailStores;
     Assert(FStoreRecord.DetailStoreCount = ViewTable.DetailTableCount);
     FDetailToolbar := TExtToolbar.Create;
-    FDetailPanels := TObjectList<TKExtGridPanel>.Create(False);
+    FDetailControllers := TObjectList<TObject>.Create(False);
     for I := 0 to ViewTable.DetailTableCount - 1 do
     begin
-      FDetailPanels.Add(TKExtGridPanel.AddTo(FTabPanel.Items));
-      FDetailPanels[I].ServerStore := FStoreRecord.DetailStores[I];
-      FDetailPanels[I].ViewTable := ViewTable.DetailTables[I];
-      FDetailPanels[I].Show;
+      LController := TKExtControllerFactory.Instance.CreateController(View,
+        FTabPanel, ViewTable.FindNode('Controller'), Self,
+          ViewTable.GetString('Controller', 'GridPanel'));
+      LController.Config.SetObject('Sys/ViewTable', ViewTable.DetailTables[I]);
+      LController.Config.SetObject('Sys/ServerStore', FStoreRecord.DetailStores[I]);
+      LController.Config.SetBoolean('AllowClose', False);
+      FDetailControllers.Add(LController.AsObject);
+      LController.Display;
     end;
   end;
 end;
@@ -230,7 +234,6 @@ begin
     Session.JSCode(
       FFormPanel.JSName + '.getForm().load({url:"' + MethodURI(GetRecord) + '",' +
         'failure: function(form, action) { Ext.Msg.alert("' + _('Load failed.') + '", action.result.errorMessage);}});');
-    LoadDetailData;
     FocusFirstField;
   except
     on E: EKValidationError do
@@ -238,17 +241,6 @@ begin
       ExtMessageBox.Alert(_(Session.Config.AppTitle), E.Message);
       CancelChanges;
     end;
-  end;
-end;
-
-procedure TKExtFormPanelController.LoadDetailData;
-var
-  I: Integer;
-begin
-  if Assigned(FDetailPanels) then
-  begin
-    for I := 0 to FDetailPanels.Count - 1 do
-      FDetailPanels[I].LoadData;
   end;
 end;
 
