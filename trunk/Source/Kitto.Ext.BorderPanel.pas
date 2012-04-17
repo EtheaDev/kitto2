@@ -29,7 +29,7 @@ uses
 type
   TKExtBorderPanelController = class(TKExtPanelControllerBase)
   private
-    FControllers: array[TExtBoxComponentRegion] of IKExtController;
+    FControllers: array[TExtBoxComponentRegion] of TObject;
     function GetRegionViewNodeName(const ARegion: TExtBoxComponentRegion): string;
     function GetRegionControllerNodeName(const ARegion: TExtBoxComponentRegion): string;
     procedure CreateController(const ARegion: TExtBoxComponentRegion);
@@ -37,8 +37,6 @@ type
     function GetRegionControllerName(const ARegion: TExtBoxComponentRegion): string; virtual;
     function GetRegionControllerConfig(const ARegion: TExtBoxComponentRegion): TEFNode; virtual;
     procedure DoDisplay; override;
-  public
-    destructor Destroy; override;
   end;
 
 implementation
@@ -76,6 +74,7 @@ var
   LSubView: TKView;
   LSubControllerName: string;
   LControllerConfig: TEFNode;
+  LIntf: IKExtController;
 begin
   Assert(Assigned(View));
 
@@ -92,22 +91,13 @@ begin
     LSubView := Session.Config.Views.FindViewByNode(Config.FindNode(GetRegionViewNodeName(ARegion)));
   if LSubView <> nil then
   begin
-    FControllers[ARegion] := TKExtControllerFactory.Instance.CreateController(LSubView, Self, LControllerConfig);
-    Assert(FControllers[ARegion].AsObject is TExtBoxComponent);
-    TExtBoxComponent(FControllers[ARegion].AsObject).Region := ARegion;
-    InitSubController(FControllers[ARegion]);
-    FControllers[ARegion].Display;
+    FControllers[ARegion] := TKExtControllerFactory.Instance.CreateController(LSubView, Self, LControllerConfig).AsObject;
+    Assert(FControllers[ARegion] is TExtBoxComponent);
+    TExtBoxComponent(FControllers[ARegion]).Region := ARegion;
+    if Supports(FControllers[ARegion], IKExtController, LIntf) then
+      InitSubController(LIntf);
+    LIntf.Display;
   end;
-end;
-
-destructor TKExtBorderPanelController.Destroy;
-var
-  I: TExtBoxComponentRegion;
-begin
-  // Prevent the compiler from calling _Release.
-  for I := Low(FControllers) to High(FControllers) do
-    Pointer(FControllers[I]) := nil;
-  inherited;
 end;
 
 procedure TKExtBorderPanelController.DoDisplay;

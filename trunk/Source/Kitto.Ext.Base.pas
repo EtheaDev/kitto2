@@ -50,7 +50,6 @@ type
     procedure SetContainer(const AValue: TExtContainer);
     procedure InitDefaults; override;
   public
-    procedure AfterConstruction; override;
     destructor Destroy; override;
 
     function QueryInterface(const IID: TGUID; out Obj): HRESULT; stdcall;
@@ -103,7 +102,6 @@ type
     procedure SetContainer(const AValue: TExtContainer);
     procedure InitDefaults; override;
   public
-    procedure AfterConstruction; override;
     destructor Destroy; override;
 
     function QueryInterface(const IID: TGUID; out Obj): HRESULT; stdcall;
@@ -133,7 +131,6 @@ type
     function GetHostWindow: TExtWindow;
     procedure InitDefaults; override;
   public
-    procedure AfterConstruction; override;
     destructor Destroy; override;
 
     function QueryInterface(const IID: TGUID; out Obj): HRESULT; stdcall;
@@ -248,8 +245,9 @@ type
   TKExtFormComboBox = class(TExtFormComboBox, IInterface, IEFInterface, IEFSubject)
   private
     FSubjObserverImpl: TEFSubjectAndObserver;
+  protected
+    procedure InitDefaults; override;
   public
-    procedure AfterConstruction; override;
     destructor Destroy; override;
     function AsObject: TObject; inline;
     function QueryInterface(const IID: TGUID; out Obj): HRESULT; stdcall;
@@ -263,8 +261,9 @@ type
   TKExtFormTextField = class(TExtFormTextField, IInterface, IEFInterface, IEFSubject)
   private
     FSubjObserverImpl: TEFSubjectAndObserver;
+  protected
+    procedure InitDefaults; override;
   public
-    procedure AfterConstruction; override;
     destructor Destroy; override;
     function AsObject: TObject; inline;
     function QueryInterface(const IID: TGUID; out Obj): HRESULT; stdcall;
@@ -290,12 +289,6 @@ uses
   Kitto.Ext.Utils, Kitto.Ext.Session;
 
 { TKExtWindowControllerBase }
-
-procedure TKExtWindowControllerBase.AfterConstruction;
-begin
-  inherited;
-  FSubjObserverImpl := TEFSubjectAndObserver.Create;
-end;
 
 function TKExtWindowControllerBase.AsObject: TObject;
 begin
@@ -351,6 +344,7 @@ end;
 procedure TKExtWindowControllerBase.InitDefaults;
 begin
   inherited;
+  FSubjObserverImpl := TEFSubjectAndObserver.Create;
   Layout := lyBorder;
   Border := False;
   Plain := True;
@@ -404,12 +398,6 @@ begin
 end;
 
 { TKExtPanelBase }
-
-procedure TKExtPanelBase.AfterConstruction;
-begin
-  inherited;
-  FSubjObserverImpl := TEFSubjectAndObserver.Create;
-end;
 
 function TKExtPanelBase.AsObject: TObject;
 begin
@@ -475,6 +463,7 @@ end;
 procedure TKExtPanelBase.InitDefaults;
 begin
   inherited;
+  FSubjObserverImpl := TEFSubjectAndObserver.Create;
   Region := rgCenter;
 end;
 
@@ -489,12 +478,6 @@ begin
 end;
 
 { TKExtViewportControllerBase }
-
-procedure TKExtViewportControllerBase.AfterConstruction;
-begin
-  inherited;
-  FSubjObserverImpl := TEFSubjectAndObserver.Create;
-end;
 
 function TKExtViewportControllerBase.AsObject: TObject;
 begin
@@ -550,6 +533,7 @@ end;
 procedure TKExtViewportControllerBase.InitDefaults;
 begin
   inherited;
+  FSubjObserverImpl := TEFSubjectAndObserver.Create;
   Layout := lyBorder;
 end;
 
@@ -620,12 +604,6 @@ end;
 
 { TKExtFormComboBox }
 
-procedure TKExtFormComboBox.AfterConstruction;
-begin
-  inherited;
-  FSubjObserverImpl := TEFSubjectAndObserver.Create;
-end;
-
 function TKExtFormComboBox.AsObject: TObject;
 begin
   Result := Self;
@@ -645,6 +623,12 @@ end;
 procedure TKExtFormComboBox.DetachObserver(const AObserver: IEFObserver);
 begin
   FSubjObserverImpl.DetachObserver(AObserver);
+end;
+
+procedure TKExtFormComboBox.InitDefaults;
+begin
+  inherited;
+  FSubjObserverImpl := TEFSubjectAndObserver.Create;
 end;
 
 procedure TKExtFormComboBox.NotifyObservers(const AContext: string);
@@ -753,7 +737,7 @@ begin
   else
     Header := False;
 
-  CreateTopToolbar;
+  //CreateTopToolbar;
 end;
 
 procedure TKExtPanelControllerBase.AddTopToolbarButtons;
@@ -884,12 +868,6 @@ end;
 
 { TKExtFormTextField }
 
-procedure TKExtFormTextField.AfterConstruction;
-begin
-  inherited;
-  FSubjObserverImpl := TEFSubjectAndObserver.Create;
-end;
-
 function TKExtFormTextField.AsObject: TObject;
 begin
   Result := Self;
@@ -909,6 +887,12 @@ end;
 procedure TKExtFormTextField.DetachObserver(const AObserver: IEFObserver);
 begin
   FSubjObserverImpl.DetachObserver(AObserver);
+end;
+
+procedure TKExtFormTextField.InitDefaults;
+begin
+  inherited;
+  FSubjObserverImpl := TEFSubjectAndObserver.Create;
 end;
 
 procedure TKExtFormTextField.NotifyObservers(const AContext: string);

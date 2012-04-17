@@ -40,7 +40,6 @@ type
   protected
     procedure InitDefaults; override;
   public
-    procedure AfterConstruction; override;
     procedure DisplaySubViewsAndControllers;
     destructor Destroy; override;
   published
@@ -95,19 +94,14 @@ end;
 procedure TKExtTabPanel.InitDefaults;
 begin
   inherited;
+  if Session.ViewHost = nil then
+    Session.ViewHost := Self;
   Border := False;
   { TODO : remove this once all controllers set it by themselves. }
   Defaults := JSObject('autoscroll:true');
   EnableTabScroll := True;
   // Layout problems in tabbed views if DeferredRender=False.
   DeferredRender := True;
-end;
-
-procedure TKExtTabPanel.AfterConstruction;
-begin
-  inherited;
-  if Session.ViewHost = nil then
-    Session.ViewHost := Self;
 end;
 
 destructor TKExtTabPanel.Destroy;

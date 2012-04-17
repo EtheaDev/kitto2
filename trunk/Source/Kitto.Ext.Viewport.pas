@@ -26,12 +26,9 @@ uses
 type
   TKExtViewportController = class(TKExtViewportControllerBase)
   private
-    FController: IKExtController;
     procedure CreateSubController;
   protected
     procedure DoDisplay; override;
-  public
-    destructor Destroy; override;
   end;
 
 implementation
@@ -42,13 +39,6 @@ uses
 
 { TKExtViewportController }
 
-destructor TKExtViewportController.Destroy;
-begin
-  // Prevent the compiler from calling _Release.
-  Pointer(FController) := nil;
-  inherited;
-end;
-
 procedure TKExtViewportController.DoDisplay;
 begin
   inherited;
@@ -58,12 +48,13 @@ end;
 procedure TKExtViewportController.CreateSubController;
 var
   LSubView: TKView;
+  LController: IKExtController;
 begin
   Assert(Assigned(View));
 
   LSubView := Session.Config.Views.ViewByNode(View.GetNode('Controller/SubView'));
-  FController := TKExtControllerFactory.Instance.CreateController(LSubView, Self);
-  FController.Display;
+  LController := TKExtControllerFactory.Instance.CreateController(LSubView, Self);
+  LController.Display;
 end;
 
 initialization
