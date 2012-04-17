@@ -1778,6 +1778,7 @@ constructor TExtGridDateColumn.Create; begin
 end;
 
 procedure TExtGridAbstractSelectionModel.SetFGrid(Value : TExtObject); begin
+  FGrid.Free;
   FGrid := Value;
   Value.DeleteFromGarbage;
   JSCode(JSName + '.grid=' + VarToJSON([Value, false]) + ';');

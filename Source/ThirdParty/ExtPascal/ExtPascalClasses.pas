@@ -54,7 +54,7 @@ type
     class function GetCurrentWebSession : TCustomWebSession; virtual; abstract;
     function GetDocumentRoot : string; virtual; abstract;
     procedure GarbageAdd(const Name : string; Obj : TObject);
-    procedure GarbageCollect(Deep : Boolean = False);
+    procedure GarbageCollect;
     procedure GarbageDelete(Obj : TObject); overload;
     procedure GarbageDelete(const Name : string); overload;
     procedure GarbageRemove(Obj : TObject);
@@ -380,7 +380,7 @@ destructor TCustomWebSession.Destroy; begin
   FQueries.Free;
   FCustomResponseHeaders.Free;
   FCookies.Free;
-  GarbageCollect(True);
+  GarbageCollect;
   FGarbageCollector.Free;
   inherited;
 end;
@@ -504,26 +504,29 @@ procedure TCustomWebSession.GarbageAdd(const Name : string; Obj : TObject);
 var
   Garbage : PGarbage;
 begin
+  Assert(Assigned(Obj));
+  Assert(Name <> '');
+
   New(Garbage);
   Garbage^.Garbage := Obj;
+  Garbage^.Persistent := False;
   FGarbageCollector.AddObject(GarbageFixName(Name), TObject(Garbage));
 end;
 
 // Frees all objects associated for this session
-procedure TCustomWebSession.GarbageCollect(Deep : Boolean = False);
+procedure TCustomWebSession.GarbageCollect;
 var
-  I : Integer;
-  FObject : TObject;
+  LGarbagePointer: PGarbage;
 begin
-  with FGarbageCollector do
-    for I := Count - 1 downto 0 do begin
-      FObject := Objects[I];
-      if (FObject <> nil) and (Deep or not PGarbage(FObject)^.Persistent) then begin
-        if PGarbage(FObject)^.Garbage <> nil then PGarbage(FObject)^.Garbage.Free;
-        Dispose(PGarbage(FObject));
-        Objects[I] := nil;
-      end;
-    end;
+  // As objects are freed the list may shrink, so don't use fixed loops here.
+  while FGarbageCollector.Count > 0 do begin
+    Assert(Assigned(FGarbageCollector.Objects[0]));
+    LGarbagePointer := PGarbage(FGarbageCollector.Objects[0]);
+    FGarbageCollector.Delete(0);
+    if not LGarbagePointer^.Persistent then
+      LGarbagePointer^.Garbage.Free;
+    Dispose(LGarbagePointer);
+  end;
 end;
 
 {
@@ -534,12 +537,15 @@ procedure TCustomWebSession.GarbageDelete(Obj : TObject);
 var
   I : Integer;
 begin
-  for I := 0 to FGarbageCollector.Count - 1 do
-    if Assigned(FGarbageCollector.Objects[I]) and (PGarbage(FGarbageCollector.Objects[I])^.Garbage = Obj) then begin
-      PGarbage(FGarbageCollector.Objects[I])^.Garbage := nil;
+  Assert(Assigned(Obj));
+
+  for I := 0 to FGarbageCollector.Count - 1 do begin
+    Assert(Assigned(FGarbageCollector.Objects[I]));
+    if PGarbage(FGarbageCollector.Objects[I])^.Garbage = Obj then begin
       PGarbage(FGarbageCollector.Objects[I])^.Persistent := True;
-      Exit;
+      Break;
     end;
+  end;
 end;
 
 {
@@ -550,22 +556,31 @@ procedure TCustomWebSession.GarbageDelete(const Name : string);
 var
   I : Integer;
 begin
+  Assert(Name <> '');
+
   I := FGarbageCollector.IndexOf(GarbageFixName(Name));
-  if I >= 0 then begin
-    PGarbage(FGarbageCollector.Objects[I])^.Garbage := nil;
+  if I >= 0 then
     PGarbage(FGarbageCollector.Objects[I])^.Persistent := True;
-  end;
 end;
 
 procedure TCustomWebSession.GarbageRemove(Obj : TObject);
 var
   I : Integer;
+  LGarbageItem: TObject;
+  LGarbagePointer: PGarbage;
 begin
-  for I := 0 to FGarbageCollector.Count - 1 do
-    if Assigned(FGarbageCollector.Objects[I]) and (PGarbage(FGarbageCollector.Objects[I])^.Garbage = Obj) then begin
-      PGarbage(FGarbageCollector.Objects[I])^.Garbage := nil;
-      Exit;
+  Assert(Assigned(Obj));
+
+  for I := FGarbageCollector.Count - 1 downto 0 do begin
+    LGarbageItem := FGarbageCollector.Objects[I];
+    Assert(Assigned(LGarbageItem));
+    LGarbagePointer := PGarbage(LGarbageItem);
+    if LGarbagePointer^.Garbage = Obj then begin
+      FGarbageCollector.Delete(I);
+      Dispose(LGarbagePointer);
+      Break;
     end;
+  end;
 end;
 
 {
@@ -574,6 +589,8 @@ Tests if a TObject is in the Session Garbage Collector
 @return True if found
 }
 function TCustomWebSession.GarbageExists(const Name : string) : Boolean; begin
+  Assert(Name <> '');
+
   Result := FGarbageCollector.IndexOf(GarbageFixName(Name)) >= 0;
 end;
 
@@ -586,9 +603,13 @@ function TCustomWebSession.GarbageFind(const Name : string) : TObject;
 var
   I: Integer;
 begin
+  Assert(Name <> '');
+
   I := FGarbageCollector.IndexOf(GarbageFixName(Name));
-  if (I >= 0) and Assigned(FGarbageCollector.Objects[I]) then
-    Result := PGarbage(FGarbageCollector.Objects[I])^.Garbage
+  if I >= 0 then begin
+    Assert(Assigned(FGarbageCollector.Objects[I]));
+    Result := PGarbage(FGarbageCollector.Objects[I])^.Garbage;
+  end
   else
     Result := nil;
 end;
