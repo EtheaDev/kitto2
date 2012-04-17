@@ -212,7 +212,8 @@ end;
 procedure TKExtListPanelController.InitComponents;
 begin
   inherited;
-  Title := _(Session.Config.MacroExpansionEngine.Expand(ViewTable.PluralDisplayLabel));
+  if Title = '' then
+    Title := _(Session.Config.MacroExpansionEngine.Expand(ViewTable.PluralDisplayLabel));
 end;
 
 procedure TKExtListPanelController.SetViewTable(const AValue: TKViewTable);
