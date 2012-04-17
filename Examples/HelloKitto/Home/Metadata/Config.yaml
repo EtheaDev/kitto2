@@ -4,7 +4,7 @@ BlobPath: %HOME_PATH%UploadedFiles\
 
 # Change this to switch databases.
 # Default is Main.
-DefaultDatabaseName: DBXMSSQL
+DefaultDatabaseName: DBXFb
 
 Databases:
 
