@@ -50,7 +50,7 @@ type
 
   TKExtSession = class(TExtThread)
   private
-    FHomeController: IKExtController;
+    FHomeController: TObject;
     FConfig: TKConfig;
     FLoginWindow: TKExtLoginWindow;
     FViewHost: TExtTabPanel;
@@ -223,7 +223,11 @@ destructor TKExtSession.Destroy;
 var
   LUploadDirectory: string;
 begin
-  inherited;
+  // Make sure objects find the session threadvar assigned when they are
+  // being garbage collected in case the session is being freed by a
+  // different thread. Otherwise objects don't mark themselves off the
+  // GC upon destruction and risk to be destroyed multiple times.
+  CurrentWebSession := Self;
   // Delete upload folder only for valid sessions.
   if FSessionId <> '' then
   begin
@@ -231,9 +235,12 @@ begin
     if DirectoryExists(LUploadDirectory) then
       DeleteTree(LUploadDirectory);
   end;
-  NilEFIntf(FHomeController);
   FreeAndNil(FConfig);
   FreeAndNil(FUploadedFiles);
+  FreeAndNil(FHomeController);
+  inherited;
+  // Keep it alive as the inherited call might trigger calls to
+  // RemoveController from objects being destroyed.
   FreeAndNil(FOpenControllers);
 end;
 
@@ -246,14 +253,16 @@ end;
 procedure TKExtSession.DisplayHomeView;
 var
   LHomeView: TKView;
+  LIntf: IKExtController;
 begin
-  NilEFIntf(FHomeController);
+  FreeAndNil(FHomeController);
 
   LHomeView := Config.Views.FindViewByNode(Config.Config.FindNode('HomeView'));
   if not Assigned(LHomeView) then
     LHomeView := Config.Views.ViewByName('Home');
-  FHomeController := TKExtControllerFactory.Instance.CreateController(LHomeView, nil);
-  FHomeController.Display;
+  FHomeController := TKExtControllerFactory.Instance.CreateController(LHomeView, nil).AsObject;
+  if Supports(FHomeController, IKExtController, LIntf) then
+    LIntf.Display;
 end;
 
 procedure TKExtSession.Home;

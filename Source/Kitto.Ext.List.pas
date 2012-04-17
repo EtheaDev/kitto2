@@ -57,8 +57,9 @@ type
     function GetRegionControllerConfig(const ARegion: TExtBoxComponentRegion): TEFNode; override;
     function GetFilterExpression: string; override;
     procedure SetViewTable(const AValue: TKViewTable); override;
+  protected
+    procedure InitDefaults; override;
   public
-    procedure AfterConstruction; override;
     destructor Destroy; override;
   end;
 
@@ -166,11 +167,6 @@ begin
   RefilterData((Sender as TKExtFilterPanel).GetFilterExpression);
 end;
 
-procedure TKExtListPanelController.AfterConstruction;
-begin
-  inherited;
-  FCenterControllerConfig := TEFNode.Create('CenterController', 'GridPanel');
-end;
 
 destructor TKExtListPanelController.Destroy;
 begin
@@ -214,6 +210,12 @@ begin
   inherited;
   if Title = '' then
     Title := _(Session.Config.MacroExpansionEngine.Expand(ViewTable.PluralDisplayLabel));
+end;
+
+procedure TKExtListPanelController.InitDefaults;
+begin
+  inherited;
+  FCenterControllerConfig := TEFNode.Create('CenterController', 'GridPanel');
 end;
 
 procedure TKExtListPanelController.SetViewTable(const AValue: TKViewTable);

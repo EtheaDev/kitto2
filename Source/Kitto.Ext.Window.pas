@@ -26,13 +26,10 @@ uses
 type
   TKExtWindowController = class(TKExtWindowControllerBase)
   private
-    FController: IKExtController;
     procedure CreateSubController;
   protected
     procedure DoDisplay; override;
     procedure InitDefaults; override;
-  public
-    destructor Destroy; override;
   end;
 
 implementation
@@ -43,13 +40,6 @@ uses
   Kitto.Ext.Session, Kitto.Metadata.Views;
 
 { TKExtWindowController }
-
-destructor TKExtWindowController.Destroy;
-begin
-  // Prevent the compiler from calling _Release.
-  Pointer(FController) := nil;
-  inherited;
-end;
 
 procedure TKExtWindowController.DoDisplay;
 begin
@@ -76,12 +66,13 @@ end;
 procedure TKExtWindowController.CreateSubController;
 var
   LSubView: TKView;
+  LController: IKExtController;
 begin
   Assert(Assigned(View));
 
   LSubView := Session.Config.Views.ViewByNode(View.GetNode('Controller/SubView'));
-  FController := TKExtControllerFactory.Instance.CreateController(LSubView, Self);
-  FController.Display;
+  LController := TKExtControllerFactory.Instance.CreateController(LSubView, Self);
+  LController.Display;
 end;
 
 initialization
