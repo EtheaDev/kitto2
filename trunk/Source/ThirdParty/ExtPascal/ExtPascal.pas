@@ -897,7 +897,12 @@ constructor TExtObjectList.CreateSingleton(pAttribute : string); begin
 end;
 
 // Frees this list and all objects linked in it
-destructor TExtObjectList.Destroy; begin
+destructor TExtObjectList.Destroy;
+var
+  I : integer;
+begin
+  for I := high(FObjects) downto 0 do
+    FObjects[I].Free;
   SetLength(FObjects, 0);
   inherited;
 end;
@@ -951,6 +956,7 @@ begin
     else
       ListAdd := Obj.JSName;
   Obj.Created := true;
+  Obj.DeleteFromGarbage;
   Obj.JSCode(ListAdd, JSName, OwnerName);
   if Obj.JSClassName = 'Ext.ux.CodePress' then
     Owner.JSCode(OwnerName + '.on("resize", function(){' + OwnerName + '.items.get(' + IntToStr(high(FObjects)) + ').resize();});');
