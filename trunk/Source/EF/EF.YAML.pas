@@ -32,7 +32,7 @@ type
   ///	  A parser for yaml data streams.
   ///	</summary>
   TEFYAMLParser = class
-  private
+  strict private
     FLastAnnotations: TStrings;
     FIndents: TList<Integer>;
     FPrevIndent: Integer;
@@ -40,6 +40,7 @@ type
     FLastIndentIncrement: Integer;
     FNextValueType: TEFYAMLValueType;
     FMultiLineFirstLineIndent: Integer;
+    FLastValueQuoted: Boolean;
   public
     procedure AfterConstruction; override;
     destructor Destroy; override;
@@ -69,6 +70,12 @@ type
     ///	<summary>Contains all the annotations read since last reset. The caller
     ///	is responsible for resetting this list at appropriate times.</summary>
     property LastAnnotations: TStrings read FLastAnnotations;
+
+    ///	<summary>Returns true if the last read value was quoted. Single-line
+    ///	values are unquoted when reading; querying this property allows to find
+    ///	out if a value was originally quoted (for example, to make sure it is
+    ///	quoted back when writing) or not.</summary>
+    property LastValueQuoted: Boolean read FLastValueQuoted;
   end;
 
   ///	<summary>
@@ -172,6 +179,8 @@ begin
   Result := False;
 
   FLastValueType := vtSingleLine;
+  FLastValueQuoted := False;
+
   // Handle multi-line values.
   if FNextValueType in [vtMultiLineWithNL, vtMultiLineWithSpace] then
   begin
@@ -234,7 +243,13 @@ begin
     FNextValueType := vtSingleLine;
 
   if FNextValueType = vtSingleLine then
-    AValue := StripPrefixAndSuffix(AValue, '"', '"')
+  begin
+    if (Length(AValue) >= 2) and AnsiStartsStr('"', AValue) and AnsiEndsStr('"', AValue) then
+    begin
+      FLastValueQuoted := True;
+      AValue := AnsiDequotedStr(AValue, '"');
+    end;
+  end
   else
     AValue := '';
   // Keep track of how many indents we have incremented or decremented.
@@ -249,6 +264,8 @@ begin
   FIndents.Clear;
   FPrevIndent := 0;
   FMultiLineFirstLineIndent := -1;
+  FLastAnnotations.Clear;
+  FLastValueQuoted := False;
 end;
 
 { TEFYAMLReader }
@@ -357,7 +374,10 @@ begin
             begin
               LNewNode := LTop.AddChild(LName).SetAsYamlValue(LRawValue, FFormatSettings);
               LNewNode.AssignAnnotations(Parser.LastAnnotations);
-              LNewNode.ValueAttributes := '';
+              if Parser.LastValueQuoted then
+                LNewNode.ValueAttributes := '"'
+              else
+                LNewNode.ValueAttributes := '';
               Parser.LastAnnotations.Clear;
               LStack.Push(LNewNode);
             end;
@@ -498,6 +518,8 @@ begin
         FreeAndNil(LStrings);
       end;
     end
+    else if ContainsStr(ANode.ValueAttributes, '"') then
+      AWriter.WriteLine(StringOfChar(' ', FSpacingChars) + AnsiQuotedStr(LValue, '"'))
     else
       AWriter.WriteLine(StringOfChar(' ', FSpacingChars) + LValue);
   end

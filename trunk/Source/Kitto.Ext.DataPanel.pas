@@ -56,7 +56,6 @@ type
 //    function GetRefreshJSCode: string; virtual;
     function GetOrderByClause: string; virtual;
     procedure SetViewTable(const AValue: TKViewTable); virtual;
-    procedure CheckCanRead;
     procedure CreateToolbar; virtual;
     procedure DoDisplay; override;
     procedure InitComponents; virtual;
@@ -139,7 +138,6 @@ begin
   inherited; // Creates subcontrollers.
 
   InitComponents;
-  CheckCanRead;
 end;
 
 function TKExtDataPanelController.GetSelectConfirmCall(const AMessage: string; const AMethod: TExtProcedure): string;
@@ -185,13 +183,6 @@ begin
     Result.On('click', GetSelectCall(TKExtDataActionButton(Result).ExecuteActionOnSelectedRow))
   else
     Result.On('click', Ajax(Result.ExecuteAction, []));
-end;
-
-procedure TKExtDataPanelController.CheckCanRead;
-begin
-  Assert(View <> nil);
-
-  Session.Config.CheckAccessGranted(View.GetResourceURI, ACM_READ);
 end;
 
 function TKExtDataPanelController.CreateClientReader: TExtDataJsonReader;

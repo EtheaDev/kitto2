@@ -26,9 +26,10 @@ uses
 type
   ///	<summary>Base class for concrete data panels that handle database records.</summary>
   TKExtDataPanelLeafController = class abstract(TKExtDataPanelController)
-  private
+  strict private
     FFilterExpression: string;
   strict protected
+    procedure CheckCanRead;
     function AutoLoadData: Boolean; virtual;
     procedure DoDisplay; override;
     function GetFilterExpression: string; override;
@@ -45,13 +46,14 @@ implementation
 uses
   Ext, ExtPascal,
   EF.Localization,
-  Kitto.Ext.Session;
+  Kitto.AccessControl, Kitto.Ext.Session;
 
 { TKExtDataPanelLeafController }
 
 procedure TKExtDataPanelLeafController.DoDisplay;
 begin
   inherited;
+  CheckCanRead;
   if AutoLoadData then
     LoadData;
 end;
@@ -101,6 +103,13 @@ begin
   Assert(ViewTable <> nil);
 
   Result := ViewTable.GetBoolean('Controller/AutoOpen', not ViewTable.Model.IsLarge);
+end;
+
+procedure TKExtDataPanelLeafController.CheckCanRead;
+begin
+  Assert(ViewTable <> nil);
+
+  Session.Config.CheckAccessGranted(ViewTable.GetResourceURI, ACM_READ);
 end;
 
 end.

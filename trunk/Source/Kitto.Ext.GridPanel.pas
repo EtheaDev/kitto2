@@ -46,7 +46,6 @@ type
     function CreatePagingToolbar: TExtPagingToolbar;
     procedure ShowEditWindow(const ARecord: TKRecord;
       const AEditMode: TKEditMode);
-    function IsReadOnly: Boolean;
     procedure InitColumns;
     function GetRowButtonsDisableJS: string;
     function GetRowColorPatterns(out AFieldName: string): TEFPairs;
@@ -372,7 +371,10 @@ var
   procedure AddColumn(const AViewField: TKViewField);
   begin
     if SupportedAsGridColumn(AViewField) then
-      AddGridColumn(AViewField);
+    begin
+      if AViewField.IsAccessGranted(ACM_READ) then
+        AddGridColumn(AViewField);
+    end;
   end;
 
 begin
@@ -451,14 +453,6 @@ begin
   end;
 end;
 
-function TKExtGridPanel.IsReadOnly: Boolean;
-begin
-  Result := ViewTable.View.GetBoolean('IsReadOnly')
-    or ViewTable.IsReadOnly
-    or Config.GetBoolean('PreventEditing')
-    or not ViewTable.IsAccessGranted(ACM_MODIFY);
-end;
-
 procedure TKExtGridPanel.ShowEditWindow(const ARecord: TKRecord;
   const AEditMode: TKEditMode);
 var
@@ -478,10 +472,10 @@ begin
 
   if AEditMode = emNewRecord then
     FEditHostWindow.Title := Format(_('Add %s'), [_(ViewTable.DisplayLabel)])
-  else if IsReadOnly then
-    FEditHostWindow.Title := _(ViewTable.DisplayLabel)
+  else if FIsEditAllowed then
+    FEditHostWindow.Title := Format(_('Edit %s'), [_(ViewTable.DisplayLabel)])
   else
-    FEditHostWindow.Title := Format(_('Edit %s'), [_(ViewTable.DisplayLabel)]);
+    FEditHostWindow.Title := _(ViewTable.DisplayLabel);
   //FEditHostWindow.On('close', Ajax(EditWindowClosed, ['Window', '%0.nm']));
 
   LFormControllerType := Config.GetString('FormController', 'Form');
@@ -509,11 +503,22 @@ begin
   if Title = '' then
     Title := _(ViewTable.PluralDisplayLabel);
 
-  FIsAddVisible := not ViewTable.GetBoolean('Controller/PreventAdding');
+  FIsAddVisible := not ViewTable.GetBoolean('Controller/PreventAdding')
+    and not View.GetBoolean('IsReadOnly')
+    and not ViewTable.IsReadOnly
+    and not Config.GetBoolean('PreventAdding');
   FIsAddAllowed := FIsAddVisible and ViewTable.IsAccessGranted(ACM_ADD);
+
   FIsEditAllowed := not ViewTable.GetBoolean('Controller/PreventEditing')
+    and not View.GetBoolean('IsReadOnly')
+    and not ViewTable.IsReadOnly
+    and not Config.GetBoolean('PreventEditing')
     and ViewTable.IsAccessGranted(ACM_MODIFY);
-  FIsDeleteVisible := not ViewTable.GetBoolean('Controller/PreventDeleting');
+
+  FIsDeleteVisible := not ViewTable.GetBoolean('Controller/PreventDeleting')
+    and not View.GetBoolean('IsReadOnly')
+    and not ViewTable.IsReadOnly
+    and not Config.GetBoolean('PreventDeleting');
   FIsDeleteAllowed := FIsDeleteVisible and ViewTable.IsAccessGranted(ACM_DELETE);
 
   CreateGridView;
@@ -628,7 +633,7 @@ begin
   Assert(ViewTable <> nil);
   Assert(TopToolbar <> nil);
 
-  if not IsReadOnly and FIsAddVisible then
+  if FIsAddVisible then
   begin
     LNewButton := TExtButton.AddTo(TopToolbar.Items);
     LNewButton.Tooltip := Format(_('Add %s'), [_(ViewTable.DisplayLabel)]);
@@ -641,26 +646,21 @@ begin
 
   TExtToolbarSpacer.AddTo(TopToolbar.Items);
   LEditButton := TExtButton.AddTo(TopToolbar.Items);
-  if IsReadOnly then
-  begin
-    LEditButton.Tooltip := Format(_('View %s'), [_(ViewTable.DisplayLabel)]);
-    LEditButton.Icon := Session.Config.GetImageURL('view_record');
-  end
-  else
+  if FIsEditAllowed then
   begin
     LEditButton.Tooltip := Format(_('Edit %s'), [_(ViewTable.DisplayLabel)]);
     LEditButton.Icon := Session.Config.GetImageURL('edit_record');
-  end;
-  if not FIsEditAllowed then
-    LEditButton.Disabled := True
+  end
   else
   begin
-    LKeyFieldNames := Join(ViewTable.GetKeyFieldAliasedNames, ',');
-    LEditButton.On('click', AjaxSelection(EditViewRecord, FSelModel, LKeyFieldNames, LKeyFieldNames, []));
-    FButtonsRequiringSelection.Add(LEditButton);
+    LEditButton.Tooltip := Format(_('View %s'), [_(ViewTable.DisplayLabel)]);
+    LEditButton.Icon := Session.Config.GetImageURL('view_record');
   end;
+  LKeyFieldNames := Join(ViewTable.GetKeyFieldAliasedNames, ',');
+  LEditButton.On('click', AjaxSelection(EditViewRecord, FSelModel, LKeyFieldNames, LKeyFieldNames, []));
+  FButtonsRequiringSelection.Add(LEditButton);
 
-  if not IsReadOnly and FIsDeleteVisible then
+  if FIsDeleteVisible then
   begin
     TExtToolbarSpacer.AddTo(TopToolbar.Items);
     LDeleteButton := TExtButton.AddTo(TopToolbar.Items);

@@ -26,6 +26,7 @@ unit Kitto.AccessControl;
 interface
 
 uses
+  Classes,
   EF.Types, EF.Classes,
   Kitto.Types;
 
@@ -40,7 +41,14 @@ type
   ///	  Config.yaml.</para>
   ///	</summary>
   TKAccessController = class(TEFComponent)
-  protected
+  strict private
+    FLogWriter: TStreamWriter;
+    FLogHeader: Boolean;
+    FLogSeparator: string;
+    FLogDelimiter: string;
+    procedure WriteLog(const AUserId, AResourceURI, AMode, ADefaultValue,
+      AResult: string);
+  strict protected
     class function InternalGetClassId: string; override;
 
     ///	<summary>Implements GetAccessGrantValue; descendants must return a
@@ -49,6 +57,9 @@ type
     ///	otherwise, but it can be a value of any type.</summary>
     function InternalGetAccessGrantValue(
       const AUserId, AResourceURI, AMode: string): Variant; virtual; abstract;
+
+    ///	<summary>Implements Init.</summary>
+    procedure InternalInit; virtual;
   public
     ///	<summary>
     ///	  <para>Returns the access grant value for the specified resource, mode
@@ -71,6 +82,10 @@ type
     ///	<summary>Returns True if the specified access mode is a standard mode,
     ///	that is one of the ACM_* constants (except ACM_ALL).</summary>
     class function IsStandardMode(const AMode: string): Boolean;
+
+    ///	<summary>Called by the system after setting all config
+    ///	values.</summary>
+    procedure Init;
   end;
   TKAccessControllerClass = class of TKAccessController;
 
@@ -153,8 +168,8 @@ type
 implementation
 
 uses
-  SysUtils, Variants,
-  EF.StrUtils, EF.Tree;
+  SysUtils, StrUtils, Variants,
+  EF.SysUtils, EF.StrUtils, EF.VariantUtils, EF.Tree;
 
 { TKAccessControllerRegistry }
 
@@ -207,23 +222,92 @@ function TKAccessController.GetAccessGrantValue(const AUserId, AResourceURI,
 var
   LAllResult: Variant;
 begin
-  Result := InternalGetAccessGrantValue(AUserId, AResourceURI, AMode);
-  // If no permission was found and a standard mode was specified,
-  // try the catch-all-standard-modes mode. If a TRUE permission was found,
-  // give a chance to revoke it (only for standard modes).
-  if IsStandardMode(AMode) and (VarIsNull(Result) or (Result = ACV_TRUE)) then
+  Assert(AUserId <> '');
+  Assert(AMode <> '');
+
+  // Empty URIs identify nameless objects, access to which is always granted
+  // and we don't even need to log it.
+  if AResourceURI = '' then
+    Result := ACV_TRUE
+  else
   begin
-    LAllResult := InternalGetAccessGrantValue(AUserId, AResourceURI, ACM_ALL);
-    if not VarIsNull(LAllResult) then
-      Result := LAllResult;
+    Result := InternalGetAccessGrantValue(AUserId, AResourceURI, AMode);
+    // If no permission was found and a standard mode was specified,
+    // try the catch-all-standard-modes mode. If a TRUE permission was found,
+    // give a chance to revoke it (only for standard modes).
+    if IsStandardMode(AMode) and (VarIsNull(Result) or (Result = ACV_TRUE)) then
+    begin
+      LAllResult := InternalGetAccessGrantValue(AUserId, AResourceURI, ACM_ALL);
+      if not VarIsNull(LAllResult) then
+        Result := LAllResult;
+    end;
+    if VarIsNull(Result) then
+      Result := ADefaultValue;
+    if Assigned(FLogWriter) then
+      WriteLog(AUserId, AResourceURI, AMode, EFVarToStr(ADefaultValue), EFVarToStr(Result));
   end;
-  if VarIsNull(Result) then
-    Result := ADefaultValue;
+end;
+
+procedure TKAccessController.WriteLog(const AUserId, AResourceURI,
+  AMode, ADefaultValue, AResult: string);
+
+  function Delimit(const AString: string): string;
+  begin
+    if FLogDelimiter <> '' then
+      Result := AnsiQuotedStr(AString, FlogDelimiter[1])
+    else
+      Result := AString;
+  end;
+
+begin
+  Assert(Assigned(FLogWriter));
+
+  if FLogHeader then
+  begin
+      FLogWriter.WriteLine(
+        Delimit('DateTime') + FLogSeparator +
+        Delimit('UserId') + FLogSeparator +
+        Delimit('ResourceURI') + FLogSeparator +
+        Delimit('Mode') + FLogSeparator +
+        Delimit('DefaultValue') + FLogSeparator +
+        Delimit('Result'));
+    FLogHeader := False;
+  end;
+  FLogWriter.WriteLine(
+    Delimit(DateTimeToStr(Now)) + FLogSeparator +
+    Delimit(AUserId) + FLogSeparator +
+    Delimit(AResourceURI) + FLogSeparator +
+    Delimit(AMode) + FLogSeparator +
+    Delimit(IfThen(ADefaultValue = '', '<null>', ADefaultValue)) + FLogSeparator +
+    Delimit(IfThen(AResult = '', '<null>', AResult)));
+end;
+
+procedure TKAccessController.Init;
+begin
+  InternalInit;
 end;
 
 class function TKAccessController.InternalGetClassId: string;
 begin
   Result := StripPrefixAndSuffix(inherited InternalGetClassId, 'K', 'AccessController');
+end;
+
+procedure TKAccessController.InternalInit;
+var
+  LLogFileName: string;
+begin
+  FreeAndNil(FLogWriter);
+  LLogFileName := Config.GetExpandedString('Log/FileName');
+  if LLogFileName <> '' then
+  begin
+    if not DirectoryExists(ExtractFilePath(LLogFileName)) then
+      raise EKError.CreateFmt('Cannot create Access Controller log file %s. Directory does not exist.', [LLogFileName]);
+
+    FLogWriter := TStreamWriter.Create(LLogFileName, FileExists(LLogFileName));
+    FLogSeparator := Config.GetExpandedString('Log/FieldSeparator', #9);
+    FLogDelimiter := Config.GetExpandedString('Log/FieldDelimiter', '');
+    FLogHeader := Config.GetBoolean('Log/IncludeHeader', True) and (GetFileSize(LLogFileName) <= 0);
+  end;
 end;
 
 function TKAccessController.IsAccessGranted(const AUserId, AResourceURI,

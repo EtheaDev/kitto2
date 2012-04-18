@@ -554,8 +554,11 @@ begin
     FAC := TKAccessControllerFactory.Instance.CreateObject(LType);
     LConfig := Config.FindNode('AccessControl');
     if Assigned(LConfig) then
+    begin
       for I := 0 to LConfig.ChildCount - 1 do
         FAC.Config.AddChild(TEFNode.Clone(LConfig.Children[I]));
+      FAC.Init;
+    end;
   end;
   Result := FAC;
 end;

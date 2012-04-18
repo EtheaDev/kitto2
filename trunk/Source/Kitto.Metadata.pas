@@ -30,10 +30,12 @@ type
   TKMetadata = class(TEFTree)
   private
     FCatalog: TKMetadataCatalog;
+  strict private
     FPersistentName: string;
     function GetIsPersistent: Boolean;
-    class function BeautifiedClassName: string;
     function GetPersistentFileName: string;
+  strict protected
+    class function GetClassNameForResourceURI: string; virtual;
   public
     procedure Assign(const ASource: TEFTree); override;
 
@@ -60,6 +62,8 @@ type
   TKMetadataClass = class of TKMetadata;
 
   TKMetadataItem = class(TEFNode)
+  strict protected
+    class function GetClassNameForResourceURI: string; virtual;
   public
     ///	<summary>Returns a string URI that uniquely identifies the object, to
     ///	be used for access control.</summary>
@@ -575,7 +579,10 @@ end;
 
 function TKMetadata.GetResourceURI: string;
 begin
-  Result := 'metadata://' + BeautifiedClassName + '/' + PersistentName;
+  if PersistentName = '' then
+    Result := ''
+  else
+    Result := 'metadata://' + GetClassNameForResourceURI + '/' + PersistentName;
 end;
 
 function TKMetadata.IsAccessGranted(const AMode: string): Boolean;
@@ -583,16 +590,24 @@ begin
   Result := TKConfig.Instance.IsAccessGranted(GetResourceURI, AMode);
 end;
 
-class function TKMetadata.BeautifiedClassName: string;
+class function TKMetadata.GetClassNameForResourceURI: string;
 begin
   Result := StripPrefix(ClassName, 'TK');
 end;
 
 { TKMetadataItem }
 
+class function TKMetadataItem.GetClassNameForResourceURI: string;
+begin
+  Result := StripPrefix(ClassName, 'TK');
+end;
+
 function TKMetadataItem.GetResourceURI: string;
 begin
-  Result := '';
+  if Parent is TKMetadata then
+    Result := TKMetadata(Parent).GetResourceURI + '/' + GetClassNameForResourceURI
+  else
+    Result := 'metadata://' + GetClassNameForResourceURI;
 end;
 
 function TKMetadataItem.IsAccessGranted(const AMode: string): Boolean;

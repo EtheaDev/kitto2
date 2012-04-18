@@ -322,6 +322,22 @@ type
     function InternalExpand(const AString: string): string; override;
   end;
 
+
+  {
+    A macro expander that expands symbols to characters.
+    Supported macros (case sensitive):
+    @table(
+      @row(
+        @cell(%TAB%)@cell(The Tab (#9) character))
+      @row(
+        @cell(%SPACE%)@cell(The space character))
+    )
+  }
+  TEFEntityMacroExpander = class(TEFMacroExpander)
+  protected
+    function InternalExpand(const AString: string): string; override;
+  end;
+
 ///	<summary>Creates and adds instances of all standard macro expanders to the
 ///	specified macro expansion engine, which acquires ownership of
 ///	them.</summary>
@@ -343,6 +359,7 @@ begin
   AMacroExpansionEngine.AddExpander(TEFCmdLineParamMacroExpander.Create);
   AMacroExpansionEngine.AddExpander(TEFDateTimeStrMacroExpander.Create);
   AMacroExpansionEngine.AddExpander(TEFGUIDMacroExpander.Create);
+  AMacroExpansionEngine.AddExpander(TEFEntityMacroExpander.Create);
 end;
 
 { TEFMacroExpander }
@@ -687,6 +704,16 @@ begin
   Result := inherited InternalExpand(AString);
   Result := ExpandMacros(Result, '%GUID%', CreateGuidStr);
   Result := ExpandMacros(Result, '%COMPACT_GUID%', CreateCompactGuidStr);
+end;
+
+{ TEFEntityMacroExpander }
+
+function TEFEntityMacroExpander.InternalExpand(const AString: string): string;
+begin
+  Result := inherited InternalExpand(AString);
+
+  Result := ExpandMacros(Result, '%TAB%', #9);
+  Result := ExpandMacros(Result, '%SPACE', ' ');
 end;
 
 end.
