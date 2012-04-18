@@ -737,7 +737,7 @@ begin
   else
     Header := False;
 
-  //CreateTopToolbar;
+  CreateTopToolbar;
 end;
 
 procedure TKExtPanelControllerBase.AddTopToolbarButtons;
