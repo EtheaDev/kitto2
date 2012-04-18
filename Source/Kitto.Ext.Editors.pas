@@ -441,7 +441,7 @@ implementation
 uses
   Types, Math, StrUtils, Windows,
   EF.SysUtils, EF.StrUtils, EF.Localization, EF.YAML, EF.Types, EF.SQL, EF.JSON,
-  Kitto.SQL, Kitto.Metadata.Models, Kitto.Types,
+  Kitto.SQL, Kitto.Metadata.Models, Kitto.Types, Kitto.AccessControl,
   Kitto.Rules, Kitto.Ext.Utils, Kitto.Ext.Session, Kitto.Ext.Rules;
 
 const
@@ -624,7 +624,7 @@ begin
     FFormPanel.LabelAlign := laLeft;
     for I := 0 to ViewTable.FieldCount - 1 do
     begin
-      if ViewTable.IsFieldVisible(ViewTable.Fields[I]) then
+      if ViewTable.IsFieldVisible(ViewTable.Fields[I]) and ViewTable.Fields[I].IsAccessGranted(ACM_READ) then
         FFormPanel.AddChild(CreateEditor(ViewTable.Fields[I].AliasedName, nil));
     end;
   end;
@@ -996,7 +996,8 @@ begin
   // Minimum cap - avoids too short combo boxes.
   LFieldWidth := Max(LFieldWidth, FDefaults.MinFieldWidth);
 
-  LIsReadOnly := LViewField.IsReadOnly or not LViewField.CanUpdate or ViewTable.IsReadOnly or FForceReadOnly or (LViewField.Model <> LViewField.Table.Model);
+  LIsReadOnly := LViewField.IsReadOnly or not LViewField.IsAccessGranted(ACM_MODIFY)
+    or not LViewField.CanUpdate or ViewTable.IsReadOnly or FForceReadOnly or (LViewField.Model <> LViewField.Table.Model);
   if not LIsReadOnly and LViewField.IsDetailReference then
     LIsReadOnly := True;
 

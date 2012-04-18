@@ -82,11 +82,12 @@ type
     function GetReferenceName: string;
     function GetDisplayTemplate: string;
     function GetFileNameField: string;
-  protected
+  strict protected
     function GetChildClass(const AName: string): TEFNodeClass; override;
   public
     function FindNode(const APath: string; const ACreateMissingNodes: Boolean = False): TEFNode; override;
     function IsAccessGranted(const AMode: string): Boolean; override;
+    function GetResourceURI: string; override;
 
     property Table: TKViewTable read GetTable;
     property Model: TKModel read GetModel;
@@ -419,6 +420,16 @@ type
     procedure AddDetailTable(const AViewTable: TKViewTable);
 
     property View: TKDataView read GetView;
+
+    ///	<summary>Returns an array with any view table's model name
+    /// (except the view's MainTable, which is assumed
+    ///	implicit) downto and including the current view table's
+    ///	name.</summary>
+    ///	<example>
+    ///	  <para>Called on the Parties view's MainTable yields an empty array</para>
+    ///	  <para>Called on its only detail table yields 'Invitation'</para>
+    ///	</example>
+    function GetNamePath: TStringDynArray;
 
     ///	<summary>
     ///	  Finds and returns a reference to a layout named after the view's
@@ -812,23 +823,10 @@ begin
 end;
 
 function TKViewTable.GetResourceURI: string;
-
-  function GetPath: string;
-  var
-    LParent: TEFTree;
-  begin
-    Result := '';
-    LParent := Parent;
-    while (LParent is TKViewTables) or (LParent is TKViewTable) do
-    begin
-      if LParent is TKViewTable then
-        Result := Result + '/' + TKViewTable(LParent).ModelName;
-      LParent := (LParent as TEFNode).Parent;
-    end;
-  end;
-
 begin
-  Result := View.GetResourceURI + GetPath;
+  Result := View.GetResourceURI;
+  if Result <> '' then
+    Result := Result + Join(GetNamePath, '/');
 end;
 
 function TKViewTable.GetRules: TKRules;
@@ -895,6 +893,18 @@ begin
   Result := GetNode('Model', True).AsString;
 end;
 
+function TKViewTable.GetNamePath: TStringDynArray;
+begin
+  if MasterTable <> nil then
+  begin
+    Result := MasterTable.GetNamePath;
+    SetLength(Result, Length(Result) + 1);
+    Result[High(Result)] := ModelName;
+  end
+  else
+    SetLength(Result, 0);
+end;
+
 function TKViewTable.GetView: TKDataView;
 begin
   if Parent is TKDataView then
@@ -910,7 +920,9 @@ end;
 function TKViewTable.IsAccessGranted(const AMode: string): Boolean;
 begin
   Result := TKConfig.Instance.IsAccessGranted(GetResourceURI, AMode)
-    and TKConfig.Instance.IsAccessGranted(View.GetResourceURI, AMode)
+    // A dataview and its main table currently share the same resource URI,
+    // so it's useless to test it twice.
+    //and TKConfig.Instance.IsAccessGranted(View.GetResourceURI, AMode)
     and TKConfig.Instance.IsAccessGranted(Model.GetResourceURI, AMode);
 end;
 
@@ -1343,7 +1355,7 @@ end;
 
 function TKViewField.GetIsVisible: Boolean;
 begin
-  Result := GetBoolean('IsVisible', True) and IsAccessGranted(ACM_VIEW);
+  Result := GetBoolean('IsVisible', True);
 end;
 
 function TKViewField.GetQualifiedDBName: string;
@@ -1378,7 +1390,7 @@ end;
 
 function TKViewField.GetIsReadOnly: Boolean;
 begin
-  Result := GetBoolean('IsReadOnly') or not IsAccessGranted(ACM_MODIFY);;
+  Result := GetBoolean('IsReadOnly');
 end;
 
 function TKViewField.GetIsReference: Boolean;
@@ -1421,6 +1433,13 @@ begin
     Result := LNameParts[0]
   else
     raise EKError.CreateFmt('Couldn''t determine referenced model name for field %s.', [Name]);
+end;
+
+function TKViewField.GetResourceURI: string;
+begin
+  Result := Table.GetResourceURI;
+  if Result <> '' then
+    Result := Result + '/' + AliasedName;
 end;
 
 function TKViewField.GetModelName: string;
@@ -1497,12 +1516,16 @@ var
   LViewField: TKViewField;
   LModelField: TKModelField;
 
-  procedure SetupField(const AName: string; const ADataType: TEFDataType; const AIsKey: Boolean);
+  procedure SetupField(const AName: string; const ADataType: TEFDataType;
+    const AIsKey, AIsAccessGranted: Boolean);
   begin
-    // Set field names and data types both in key and header.
-    if AIsKey then
-      Key.AddChild(AName).DataType := ADataType;
-    Header.AddChild(AName).DataType := ADataType;
+    if AIsAccessGranted or AIsKey then
+    begin
+      // Set field names and data types both in key and header.
+      if AIsKey then
+        Key.AddChild(AName).DataType := ADataType;
+      Header.AddChild(AName).DataType := ADataType;
+    end;
   end;
 
 begin
@@ -1515,10 +1538,10 @@ begin
       for LModelFieldIndex := 0 to LViewField.ModelField.FieldCount - 1 do
       begin
         LModelField := LViewField.ModelField.Fields[LModelFieldIndex];
-        SetupField(LModelField.FieldName, LModelField.DataType, LModelField.IsKey);
+        SetupField(LModelField.FieldName, LModelField.DataType, LModelField.IsKey, LModelField.IsAccessGranted(ACM_READ));
       end;
     end;
-    SetupField(LViewField.AliasedName, LViewField.DataType, LViewField.IsKey);
+    SetupField(LViewField.AliasedName, LViewField.DataType, LViewField.IsKey, LViewField.IsAccessGranted(ACM_READ));
   end;
 end;
 

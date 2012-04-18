@@ -11,7 +11,7 @@ OtherNode:
   Item: Europe
   Item: America
   Item: Asia
-  Item: Australia
+  Item: "Australia"
 # No way to preserve lines. > nodes are always written back word-wrapped
 # to 45 chars. In the future we might preserve lines for unchanged >
 # values only, but that's the best we can do. Use | nodes when you can.

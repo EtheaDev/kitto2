@@ -29,13 +29,14 @@ type
   TKViews = class;
 
   TKView = class(TKMetadata)
-  private
+  strict private
     function GetControllerType: string;
     function GetCatalog: TKViews;
-  protected
+  strict protected
     const DEFAULT_IMAGE_NAME = 'default_view';
     function GetDisplayLabel: string; virtual;
     function GetImageName: string; virtual;
+    class function GetClassNameForResourceURI: string; override;
   public
     property Catalog: TKViews read GetCatalog;
 
@@ -339,6 +340,12 @@ begin
 end;
 
 { TKView }
+
+class function TKView.GetClassNameForResourceURI: string;
+begin
+  // We want all derived classes to be identified as views.
+  Result := 'View';
+end;
 
 function TKView.GetCatalog: TKViews;
 begin

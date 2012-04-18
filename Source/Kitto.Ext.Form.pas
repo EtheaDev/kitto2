@@ -390,10 +390,16 @@ begin
   end;
 
   if SameText(FOperation, 'Add') then
-    FIsReadOnly := View.GetBoolean('IsReadOnly') or ViewTable.IsReadOnly or Config.GetBoolean('PreventAdding')
+    FIsReadOnly := ViewTable.GetBoolean('Controller/PreventAdding')
+      or View.GetBoolean('IsReadOnly')
+      or ViewTable.IsReadOnly
+      or Config.GetBoolean('PreventAdding')
       or not ViewTable.IsAccessGranted(ACM_ADD)
   else
-    FIsReadOnly := View.GetBoolean('IsReadOnly') or ViewTable.IsReadOnly or Config.GetBoolean('PreventEditing')
+    FIsReadOnly := ViewTable.GetBoolean('Controller/PreventEditing')
+      or View.GetBoolean('IsReadOnly')
+      or ViewTable.IsReadOnly
+      or Config.GetBoolean('PreventEditing')
       or not ViewTable.IsAccessGranted(ACM_MODIFY);
   if SameText(FOperation, 'Add') and FIsReadOnly then
     raise EEFError.Create(_('Operation Add not supported on read-only data.'));

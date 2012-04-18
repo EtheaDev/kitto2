@@ -112,6 +112,8 @@ type
   public
     procedure BeforeSave; override;
   public
+    function GetResourceURI: string; override;
+
     property Model: TKModel read GetModel;
     property FieldName: string read GetFieldName;
     property PhysicalName: string read GetPhysicalName;
@@ -1015,6 +1017,11 @@ begin
     Result := TKModelFieldArray(GetNode('Fields').ToArray)
   else
     Result := nil;
+end;
+
+function TKModelField.GetResourceURI: string;
+begin
+  Result := Model.GetResourceURI + '/' + FieldName;
 end;
 
 function TKModelField.GetRules: TKRules;
