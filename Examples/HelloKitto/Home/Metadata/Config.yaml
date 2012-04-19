@@ -7,7 +7,6 @@ BlobPath: %HOME_PATH%UploadedFiles\
 DefaultDatabaseName: DBXFb
 
 Databases:
-
   DBXFb: DBX
     Connection:
       DriverName: Firebird

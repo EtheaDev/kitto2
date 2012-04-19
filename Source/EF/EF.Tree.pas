@@ -593,9 +593,6 @@ type
     procedure AssignAnnotations(const AStrings: TStrings);
   end;
 
-
-  TEFNodeArray = array of TEFNode;
-
   ///	<summary>
   ///	  A node in a tree. Has a name and a value, anc can have subnodes.
   ///	</summary>
