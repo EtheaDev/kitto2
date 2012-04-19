@@ -1,6 +1,4 @@
 ModelName: Invitation
-DisplayLabel: _(Invitation)
-PluralDisplayLabel: _(Invitations)
 Fields:
   Invitation_Id: String(32) not null primary key
     IsVisible: False
