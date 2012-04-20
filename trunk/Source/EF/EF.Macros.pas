@@ -360,6 +360,7 @@ begin
   AMacroExpansionEngine.AddExpander(TEFDateTimeStrMacroExpander.Create);
   AMacroExpansionEngine.AddExpander(TEFGUIDMacroExpander.Create);
   AMacroExpansionEngine.AddExpander(TEFEntityMacroExpander.Create);
+  AMacroExpansionEngine.AddExpander(TEFFileMacroExpander.Create);
 end;
 
 { TEFMacroExpander }
@@ -660,10 +661,10 @@ begin
           LFileContents := ''
         else
         begin
-          LFileName := LParams[0];
+          LFileName := TEFMacroExpansionEngine.Instance.Expand(LParams[0]);
           if not IsAbsolutePath(LFileName) then
             if FDefaultPath <> '' then
-              LFileName := FDefaultPath + LFileName
+              LFileName := IncludeTrailingPathDelimiter(FDefaultPath) + LFileName
             else
               LFileName := IncludeTrailingPathDelimiter(GetCurrentDir) + LFileName;
 
@@ -674,7 +675,7 @@ begin
               LStringStream := TStringStream.Create('');
               try
                 LStringStream.CopyFrom(LFileStream, 0);
-                LFileContents := LStringStream.DataString;
+                LFileContents := TEFMacroExpansionEngine.Instance.Expand(LStringStream.DataString);
               finally
                 LStringStream.Free;
               end;
