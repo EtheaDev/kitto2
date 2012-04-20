@@ -1782,6 +1782,7 @@ var
   LDBCommand: TEFDBCommand;
   LRowsAffected: Integer;
   I: Integer;
+  LFileToDelete: string;
 begin
   if State = rsClean then
     Exit;
@@ -1808,6 +1809,16 @@ begin
       ApplyAfterRules;
       if AUseTransaction then
         TKConfig.Instance.DefaultDBConnection.CommitTransaction;
+      // Take care of any cleared external files.
+      for I := 0 to FieldCount - 1 do
+      begin
+        if (Fields[I].DataType is TKFileReferenceDataType) and (Fields[I].IsNull) then
+        begin
+          LFileToDelete := Fields[I].GetString('Sys/DeleteFile');
+          if FileExists(LFileToDelete) then
+            DeleteFile(LFileToDelete);
+        end;
+      end;
       MarkAsClean;
     finally
       FreeAndNil(LDBCommand);

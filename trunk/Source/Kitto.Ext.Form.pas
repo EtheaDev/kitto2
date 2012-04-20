@@ -375,7 +375,8 @@ var
   LHostWindow: TExtWindow;
 begin
   inherited;
-  Title := _(ViewTable.DisplayLabel);
+  if Title = '' then
+    Title := _(ViewTable.DisplayLabel);
 
   FOperation := Config.GetString('Sys/Operation');
   if FOperation = '' then

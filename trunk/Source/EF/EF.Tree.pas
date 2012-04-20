@@ -603,6 +603,7 @@ type
     FName: string;
     FDataType: TEFDataType;
     FValueAttributes: string;
+    FDataTypeLockCount: Integer;
     function GetAsString: string;
     function GetAsInteger: Integer;
     function FindNodeFrom(const APath: TStringDynArray; const AIndex: Integer;
@@ -646,6 +647,7 @@ type
     function GetName: string; virtual;
     procedure SetValue(const AValue: Variant); virtual;
     function GetRoot: TEFTree; override;
+    function IsDataTypeLocked: Boolean;
   public
     function GetEnumerator: TEnumerator<TEFNode>;
   public
@@ -727,6 +729,20 @@ type
     ///	  the data type factory.
     ///	</summary>
     property DataType: TEFDataType read FDataType write SetDataType;
+
+    ///	<summary>Increments and returns the DataType lock count. When the
+    ///	number is &gt; 0, assigning a value through the As... properties will
+    ///	<b>not</b> change the datatype (unless it's unknown). This also applies
+    ///	to any other operation that implicitly changes the DataType. Explicitly
+    ///	setting DataType is still allowed even when locked.</summary>
+    function LockDataType: Integer;
+
+    ///	<summary>Decrements and returns the DataType lock count.</summary>
+    ///	<remarks>This call does <b>not</b> guarantee that the DataType will be
+    ///	unlocked. It will only when the returned value is zero, which happens
+    ///	when calls to LockDataType and UnlockDataType are balanced.</remarks>
+    ///	<seealso cref="LockDataType"></seealso>
+    function UnlockDataType: Integer;
 
     ///	<summary>
     ///	  Plain value of the node.
@@ -1143,7 +1159,8 @@ begin
   if Assigned(ASource) then
   begin
     FValue := TEFNode(ASource).Value;
-    FDataType := TEFNode(ASource).DataType;
+    if not IsDataTypeLocked then
+      FDataType := TEFNode(ASource).DataType;
   end
   else
     SetToNull;
@@ -1352,6 +1369,12 @@ begin
     Result[I] := Children[I];
 end;
 
+function TEFNode.UnlockDataType: Integer;
+begin
+  Dec(FDataTypeLockCount);
+  Result := FDataTypeLockCount;
+end;
+
 function TEFNode.GetEnumerator: TEnumerator<TEFNode>;
 begin
   Result := FNodes.GetEnumerator;
@@ -1414,6 +1437,17 @@ begin
   Result := FValue;
 end;
 
+function TEFNode.IsDataTypeLocked: Boolean;
+begin
+  Result := (FDataTypeLockCount > 0) and (FDataType <> nil);
+end;
+
+function TEFNode.LockDataType: Integer;
+begin
+  Inc(FDataTypeLockCount);
+  Result := FDataTypeLockCount;
+end;
+
 procedure TEFNode.Rename(const ANewName: string);
 begin
   SetName(ANewName);
@@ -1421,55 +1455,64 @@ end;
 
 procedure TEFNode.SetAsBoolean(const AValue: Boolean);
 begin
-  FDataType := TEFDataTypeFactory.Instance.GetDataType('Boolean');
+  if not IsDataTypeLocked then
+    FDataType := TEFDataTypeFactory.Instance.GetDataType('Boolean');
   Value := DataType.BooleanToValue(AValue);
 end;
 
 procedure TEFNode.SetAsBytes(const AValue: TBytes);
 begin
-  FDataType := TEFDataTypeFactory.Instance.GetDataType('Blob');
+  if not IsDataTypeLocked then
+    FDataType := TEFDataTypeFactory.Instance.GetDataType('Blob');
   Value := DataType.BytesToValue(AValue);
 end;
 
 procedure TEFNode.SetAsCurrency(const AValue: Currency);
 begin
-  FDataType := TEFDataTypeFactory.Instance.GetDataType('Currency');
+  if not IsDataTypeLocked then
+    FDataType := TEFDataTypeFactory.Instance.GetDataType('Currency');
   Value := DataType.CurrencyToValue(AValue);
 end;
 
 procedure TEFNode.SetAsDate(const AValue: TDate);
 begin
-  FDataType := TEFDataTypeFactory.Instance.GetDataType('Date');
+  if not IsDataTypeLocked then
+    FDataType := TEFDataTypeFactory.Instance.GetDataType('Date');
   Value := DataType.DateToValue(AValue);
 end;
 
 procedure TEFNode.SetAsDateTime(const AValue: TDateTime);
 begin
-  FDataType := TEFDataTypeFactory.Instance.GetDataType('DateTime');
+  if not IsDataTypeLocked then
+    FDataType := TEFDataTypeFactory.Instance.GetDataType('DateTime');
   Value := DataType.DateTimeToValue(AValue);
 end;
 
 procedure TEFNode.SetAsDecimal(const AValue: TBcd);
 begin
-  FDataType := TEFDataTypeFactory.Instance.GetDataType('Decimal');
+  if not IsDataTypeLocked then
+    FDataType := TEFDataTypeFactory.Instance.GetDataType('Decimal');
   Value := DataType.DecimalToValue(AValue);
 end;
 
 procedure TEFNode.SetAsFloat(const AValue: Double);
 begin
-  FDataType := TEFDataTypeFactory.Instance.GetDataType('Float');
+  if not IsDataTypeLocked then
+    FDataType := TEFDataTypeFactory.Instance.GetDataType('Float');
   Value := DataType.FloatToValue(AValue);
 end;
 
 procedure TEFNode.SetAsInteger(const AValue: Integer);
 begin
-  FDataType := TEFDataTypeFactory.Instance.GetDataType('Integer');
+  if not IsDataTypeLocked then
+    FDataType := TEFDataTypeFactory.Instance.GetDataType('Integer');
   Value := DataType.IntegerToValue(AValue);
 end;
 
 procedure TEFNode.SetAsObject(const AValue: TObject);
 begin
-  FDataType := TEFDataTypeFactory.Instance.GetDataType('Object');
+  if not IsDataTypeLocked then
+    FDataType := TEFDataTypeFactory.Instance.GetDataType('Object');
   Value := DataType.ObjectToValue(AValue);
 end;
 
@@ -1481,25 +1524,29 @@ end;
 
 procedure TEFNode.SetAsPairs(const AValue: TEFPairs);
 begin
-  FDataType := TEFDataTypeFactory.Instance.GetDataType('String');
+  if not IsDataTypeLocked then
+    FDataType := TEFDataTypeFactory.Instance.GetDataType('String');
   Value := DataType.PairsToValue(AValue);
 end;
 
 procedure TEFNode.SetAsString(const AValue: string);
 begin
-  FDataType := TEFDataTypeFactory.Instance.GetDataType('String');
+  if not IsDataTypeLocked then
+    FDataType := TEFDataTypeFactory.Instance.GetDataType('String');
   Value := DataType.StringToValue(AValue);
 end;
 
 procedure TEFNode.SetAsStringArray(const AValue: TStringDynArray);
 begin
-  FDataType := TEFDataTypeFactory.Instance.GetDataType('String');
+  if not IsDataTypeLocked then
+    FDataType := TEFDataTypeFactory.Instance.GetDataType('String');
   Value := DataType.StringArrayToValue(AValue);
 end;
 
 procedure TEFNode.SetAsTime(const AValue: TTime);
 begin
-  FDataType := TEFDataTypeFactory.Instance.GetDataType('Time');
+  if not IsDataTypeLocked then
+    FDataType := TEFDataTypeFactory.Instance.GetDataType('Time');
   Value := DataType.TimeToValue(AValue);
 end;
 
@@ -1534,7 +1581,8 @@ end;
 procedure TEFNode.SetValue(const AValue: Variant);
 begin
   FValue := AValue;
-  FDataType := GetVariantDataType(AValue);
+  if not IsDataTypeLocked then
+    FDataType := GetVariantDataType(FValue);
 end;
 
 procedure TEFNode.SetToNull;
@@ -2199,10 +2247,15 @@ begin
   Assert(Assigned(AField));
   Assert(Assigned(ANode));
 
-  if AField.IsNull then
-    ANode.SetToNull
-  else
-    InternalFieldValueToNode(AField, ANode);
+  ANode.LockDataType;
+  try
+    if AField.IsNull then
+      ANode.SetToNull
+    else
+      InternalFieldValueToNode(AField, ANode);
+  finally
+    ANode.UnlockDataType;
+  end;
 end;
 
 procedure TEFDataType.InternalFieldValueToNode(const AField: TField; const ANode: TEFNode);
