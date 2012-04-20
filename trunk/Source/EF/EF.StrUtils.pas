@@ -553,20 +553,19 @@ end;
 
 function TextFileToString(const AFileName: string; const AEncoding: TEncoding): string;
 var
-  LStrings: TStrings;
+  LReader: TStreamReader;
 begin
   Result := '';
   if FileExists(AFileName) then
   begin
-    LStrings := TStringList.Create;
+    if Assigned(AEncoding) then
+      LReader := TStreamReader.Create(AFileName, AEncoding)
+    else
+      LReader := TStreamReader.Create(AFileName, TEncoding.Default);
     try
-      if AEncoding = nil then
-        LStrings.LoadFromFile(AFileName)
-      else
-        LStrings.LoadFromFile(AFileName, AEncoding);
-      Result := LStrings.Text;
+      Result := LReader.ReadToEnd;
     finally
-      FreeAndNil(LStrings);
+      FreeAndNil(LReader);
     end;
   end;
 end;

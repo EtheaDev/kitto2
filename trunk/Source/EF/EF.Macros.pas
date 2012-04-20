@@ -26,8 +26,7 @@ unit EF.Macros;
 interface
 
 uses
-  Generics.Collections,
-  Classes, Contnrs;
+  SysUtils, Generics.Collections, Classes, Contnrs;
   
 type
   ///	<summary>
@@ -36,7 +35,7 @@ type
   ///	  TEFMacroExpansionEngine but it can be used on its own as well.
   ///	</summary>
   TEFMacroExpander = class
-  protected
+  strict protected
     ///	<summary>
     ///	  Utility method: replaces all occurrences of AMacroName in AString with
     ///	  AMacroValue, and returns the resulting string. Should be used by all
@@ -75,14 +74,14 @@ type
   ///	  calls the previous engine in the chain, if available, when invoked.
   ///	</summary>
   TEFMacroExpansionEngine = class
-  private
+  strict private
     FExpanders: TObjectList<TEFMacroExpander>;
     FPrevious: TEFMacroExpansionEngine;
     class var FInstance: TEFMacroExpansionEngine;
     class var FOnGetInstance: TEFGetMacroExpansionEngine;
     function CallExpanders(const AString: string): string;
     class function GetInstance: TEFMacroExpansionEngine; static;
-  protected
+  strict protected
     class destructor Destroy;
   public
     constructor Create(const APrevious: TEFMacroExpansionEngine = nil);
@@ -176,7 +175,7 @@ type
   ///	  </list>
   ///	</summary>
   TEFPathMacroExpander = class(TEFMacroExpander)
-  protected
+  strict protected
     function InternalExpand(const AString: string): string; override;
   end;
 
@@ -217,7 +216,7 @@ type
   ///	  </list>
   ///	</summary>
   TEFSysMacroExpander = class(TEFMacroExpander)
-  protected
+  strict protected
     function InternalExpand(const AString: string): string; override;
   end;
 
@@ -227,7 +226,7 @@ type
   ///	<example>%COMPUTERNAME% expands to the current computer's name.</example>
   ///	<seealso cref="EF.SysUtils.ExpandEnvironmentVariables"></seealso>
   TEFEnvironmentVariableMacroExpander = class(TEFMacroExpander)
-  protected
+  strict protected
     function InternalExpand(const AString: string): string; override;
   end;
 
@@ -241,14 +240,14 @@ type
   ///	</example>
   ///	<seealso cref="EF.SysUtils.GetCmdLineParamValue"></seealso>
   TEFCmdLineParamMacroExpander = class(TEFMacroExpander)
-  private
+  strict private
     FParams: TStringList;
     procedure ReadCmdLineParams;
+  strict protected
+    function InternalExpand(const AString: string): string; override;
   public
     procedure AfterConstruction; override;
     destructor Destroy; override;
-  protected
-    function InternalExpand(const AString: string): string; override;
   end;
 
   ///	<summary>
@@ -343,7 +342,75 @@ type
   ///	  </list>
   ///	</summary>
   TEFDateTimeStrMacroExpander = class(TEFMacroExpander)
-  protected
+  strict protected
+    function InternalExpand(const AString: string): string; override;
+  end;
+
+  ///	<summary>
+  ///	  <para>A macro expander that generates GUIDs.</para>
+  ///	  <para>Supported macros (case sensitive):</para>
+  ///	  <list type="table">
+  ///	    <listheader>
+  ///	      <term>Name</term>
+  ///	      <description>Expands to</description>
+  ///	    </listheader>
+  ///	    <item>
+  ///	      <term>%GUID%</term>
+  ///	      <description>CreateGuidStr()</description>
+  ///	    </item>
+  ///	    <item>
+  ///	      <term>%COMPACT_GUID%</term>
+  ///	      <description>CreateCompactGuidStr()</description>
+  ///	    </item>
+  ///	  </list>
+  ///	</summary>
+  ///	<seealso cref="CreateGuidStr"></seealso>
+  ///	<seealso cref="CreateCompactGuidStr"></seealso>
+  TEFGUIDMacroExpander = class(TEFMacroExpander)
+  strict protected
+    function InternalExpand(const AString: string): string; override;
+  end;
+
+  ///	<summary>
+  ///	  <para>A macro expander that expands symbols to characters.</para>
+  ///	  <para>Supported macros (case sensitive):</para>
+  ///	  <list type="table">
+  ///	    <listheader>
+  ///	      <term>Name</term>
+  ///	      <description>Expands to</description>
+  ///	    </listheader>
+  ///	    <item>
+  ///	      <term>%TAB%</term>
+  ///	      <description>The Tab (#9) character</description>
+  ///	    </item>
+  ///	    <item>
+  ///	      <term>%SPACE%</term>
+  ///	      <description>The space character</description>
+  ///	    </item>
+  ///	  </list>
+  ///	</summary>
+  ///	<seealso cref="CreateGuidStr"></seealso>
+  ///	<seealso cref="CreateCompactGuidStr"></seealso>
+  TEFEntityMacroExpander = class(TEFMacroExpander)
+  strict protected
+    function InternalExpand(const AString: string): string; override;
+  end;
+
+  TStringArray = TArray<string>;
+
+  ///	<summary>A base class for macro expanders that support parameterized
+  ///	macros, in the form %NAME([param1[,param2[,...]])%.</summary>
+  TEFParameterizedMacroExpanderBase = class abstract(TEFMacroExpander)
+  strict protected
+    ///	<summary>Returns a list of names of macros to look for.</summary>
+    function GetMacroNames: TArray<string>; virtual; abstract;
+
+    ///	<summary>Expands the specified parameterized macro and returns the
+    ///	expanded value; the default implementation returns an empty string.
+    ///	Derived classes should expand supported macros (returned by
+    ///	GetMacroNames) and call inherited for any unsupported case.</summary>
+    function ExpandParameterizedMacro(const AMacroName: string; const AParams: TArray<string>): string; virtual;
+
     function InternalExpand(const AString: string): string; override;
   end;
 
@@ -380,13 +447,15 @@ type
   ///	  the macro expands to ''. If a parameter doesn't exist, it expands to
   ///	  ''.</para>
   ///	</remarks>
-  TEFFileMacroExpander = class(TEFMacroExpander)
-  private
+  TEFFileMacroExpander = class(TEFParameterizedMacroExpanderBase)
+  strict private
     FDefaultPath: string;
     function ExpandParams(const AString: string;
-      const AParams: TStrings): string;
-  protected
-    function InternalExpand(const AString: string): string; override;
+      const AParams: TArray<string>): string;
+  strict protected
+    function GetMacroNames: TArray<string>; override;
+    function ExpandParameterizedMacro(const AMacroName: string;
+      const AParams: TArray<string>): string; override;
   public
     {
       The value of this property is pre-pended to any relative file name
@@ -397,56 +466,6 @@ type
     property DefaultPath: string read FDefaultPath write FDefaultPath;
   end;
 
-  ///	<summary>
-  ///	  <para>A macro expander that generates GUIDs.</para>
-  ///	  <para>Supported macros (case sensitive):</para>
-  ///	  <list type="table">
-  ///	    <listheader>
-  ///	      <term>Name</term>
-  ///	      <description>Expands to</description>
-  ///	    </listheader>
-  ///	    <item>
-  ///	      <term>%GUID%</term>
-  ///	      <description>CreateGuidStr()</description>
-  ///	    </item>
-  ///	    <item>
-  ///	      <term>%COMPACT_GUID%</term>
-  ///	      <description>CreateCompactGuidStr()</description>
-  ///	    </item>
-  ///	  </list>
-  ///	</summary>
-  ///	<seealso cref="CreateGuidStr"></seealso>
-  ///	<seealso cref="CreateCompactGuidStr"></seealso>
-  TEFGUIDMacroExpander = class(TEFMacroExpander)
-  protected
-    function InternalExpand(const AString: string): string; override;
-  end;
-
-  ///	<summary>
-  ///	  <para>A macro expander that expands symbols to characters.</para>
-  ///	  <para>Supported macros (case sensitive):</para>
-  ///	  <list type="table">
-  ///	    <listheader>
-  ///	      <term>Name</term>
-  ///	      <description>Expands to</description>
-  ///	    </listheader>
-  ///	    <item>
-  ///	      <term>%TAB%</term>
-  ///	      <description>The Tab (#9) character</description>
-  ///	    </item>
-  ///	    <item>
-  ///	      <term>%SPACE%</term>
-  ///	      <description>The space character</description>
-  ///	    </item>
-  ///	  </list>
-  ///	</summary>
-  ///	<seealso cref="CreateGuidStr"></seealso>
-  ///	<seealso cref="CreateCompactGuidStr"></seealso>
-  TEFEntityMacroExpander = class(TEFMacroExpander)
-  protected
-    function InternalExpand(const AString: string): string; override;
-  end;
-
 ///	<summary>Creates and adds instances of all standard macro expanders to the
 ///	specified macro expansion engine, which acquires ownership of
 ///	them.</summary>
@@ -455,7 +474,7 @@ procedure AddStandardMacroExpanders(const AMacroExpansionEngine: TEFMacroExpansi
 implementation
 
 uses
-  Windows, SysUtils, DateUtils, StrUtils,
+  Windows, DateUtils, StrUtils, Types,
   EF.StrUtils, EF.SysUtils;
 
 procedure AddStandardMacroExpanders(const AMacroExpansionEngine: TEFMacroExpansionEngine);
@@ -707,7 +726,46 @@ end;
 
 { TEFFileMacroExpander }
 
-function TEFFileMacroExpander.ExpandParams(const AString: string; const AParams: TStrings): string;
+function TEFFileMacroExpander.ExpandParameterizedMacro(const AMacroName: string;
+  const AParams: TArray<string>): string;
+var
+  LFileName: string;
+  I: Integer;
+  LOtherParams: TArray<string>;
+begin
+  if SameText(AMacroName, 'FILE') then
+  begin
+    if Length(AParams) > 0 then
+    begin
+      LFileName := AParams[0];
+      if not IsAbsolutePath(LFileName) then
+        if FDefaultPath <> '' then
+          LFileName := IncludeTrailingPathDelimiter(FDefaultPath) + LFileName
+        else
+          LFileName := IncludeTrailingPathDelimiter(GetCurrentDir) + LFileName;
+
+      if FileExists(LFileName) then
+      begin
+        Result := TEFMacroExpansionEngine.Instance.Expand(TextFileToString(LFileName));
+        if Length(AParams) > 1 then
+        begin
+          SetLength(LOtherParams, Length(AParams) - 1);
+          for I := 1 to High(AParams) do
+            LOtherParams[I - 1] := AParams[I];
+          Result := ExpandParams(Result, LOtherParams);
+        end;
+      end
+      else
+        Result := '';
+    end
+    else
+      Result := '';
+  end
+  else
+    Result := inherited ExpandParameterizedMacro(AMAcroName, AParams);
+end;
+
+function TEFFileMacroExpander.ExpandParams(const AString: string; const AParams: TArray<string>): string;
 const
   PARAM_HEAD = '%%P';
   PARAM_TAIL = '%%';
@@ -729,7 +787,7 @@ begin
       LParamIndex := StrToIntDef(
         Copy(Result, LPosHead + Length(PARAM_HEAD),
           LPosTail - (LPosHead + Length(PARAM_HEAD))), -1);
-      if (LParamIndex >= 0) and (LParamIndex < AParams.Count) then
+      if (LParamIndex >= 0) and (LParamIndex < Length(AParams)) then
         LParamValue := AParams[LParamIndex]
       else
         LParamValue := '';
@@ -740,71 +798,10 @@ begin
   end;
 end;
 
-function TEFFileMacroExpander.InternalExpand(const AString: string): string;
-const
-  MACRO_HEAD = '%FILE(';
-  MACRO_TAIL = ')%';
-var
-  LPosHead: Integer;
-  LPosTail: Integer;
-  LFileName: string;
-  LFileStream: TFileStream;
-  LStringStream: TStringStream;
-  LFileContents: string;
-  LParams: TStrings;
+function TEFFileMacroExpander.GetMacroNames: System.TArray<System.string>;
 begin
-  Result := inherited InternalExpand(AString);
-
-  LPosHead := Pos(MACRO_HEAD, Result);
-  if LPosHead > 0 then
-  begin
-    LPosTail := PosEx(MACRO_TAIL, Result, LPosHead + 1);
-    if LPosTail > 0 then
-    begin
-      LParams := TStringList.Create;
-      try
-        LParams.CommaText := Copy(Result, LPosHead + Length(MACRO_HEAD),
-          LPosTail - (LPosHead + Length(MACRO_HEAD)));
-
-        if LParams.Count = 0 then
-          LFileContents := ''
-        else
-        begin
-          LFileName := TEFMacroExpansionEngine.Instance.Expand(LParams[0]);
-          if not IsAbsolutePath(LFileName) then
-            if FDefaultPath <> '' then
-              LFileName := IncludeTrailingPathDelimiter(FDefaultPath) + LFileName
-            else
-              LFileName := IncludeTrailingPathDelimiter(GetCurrentDir) + LFileName;
-
-          if FileExists(LFileName) then
-          begin
-            LFileStream := TFileStream.Create(LFileName, fmOpenRead or fmShareDenyWrite);
-            try
-              LStringStream := TStringStream.Create('');
-              try
-                LStringStream.CopyFrom(LFileStream, 0);
-                LFileContents := TEFMacroExpansionEngine.Instance.Expand(LStringStream.DataString);
-              finally
-                LStringStream.Free;
-              end;
-            finally
-              LFileStream.Free;
-            end;
-          end
-          else
-            LFileContents := '';
-        end;
-
-        LFileContents := ExpandParams(LFileContents, LParams);
-
-        Result := Copy(Result, 1, LPosHead - 1) + LFileContents
-          + InternalExpand(Copy(Result, LPosTail + Length(MACRO_TAIL), MaxInt));
-      finally
-        LParams.Free;
-      end;
-    end;
-  end;
+  SetLength(Result, 1);
+  Result[0] := 'FILE';
 end;
 
 { TEFGUIDMacroExpander }
@@ -824,6 +821,58 @@ begin
 
   Result := ExpandMacros(Result, '%TAB%', #9);
   Result := ExpandMacros(Result, '%SPACE', ' ');
+end;
+
+{ TEFParameterizedMacroExpanderBase }
+
+function TEFParameterizedMacroExpanderBase.InternalExpand(
+  const AString: string): string;
+const
+  MACRO_TAIL = ')%';
+var
+  LMacroNames: TArray<string>;
+  LMacroName: string;
+  LMacroHead: string;
+  LPosHead: Integer;
+  LPosTail: Integer;
+  LParams: TStrings;
+  LParamsArray: TArray<string>;
+  I: Integer;
+begin
+  Result := inherited InternalExpand(AString);
+
+  LMacroNames := GetMacroNames;
+  for LMacroName in LMacroNames do
+  begin
+    LMacroHead := '%' + LMacroName + '(';
+
+    LPosHead := Pos(LMacroHead, Result);
+    if LPosHead > 0 then
+    begin
+      LPosTail := PosEx(MACRO_TAIL, Result, LPosHead + 1);
+      if LPosTail > 0 then
+      begin
+        LParams := TStringList.Create;
+        try
+          LParams.CommaText := Copy(Result, LPosHead + Length(LMacroHead),
+            LPosTail - (LPosHead + Length(LMacroHead)));
+          LParamsArray := LParams.ToStringArray;
+          for I := 0 to High(LParamsArray) do
+            LParamsArray[I] := TEFMacroExpansionEngine.Instance.Expand(LParamsArray[I]);
+          Result := Copy(Result, 1, LPosHead - 1) + ExpandParameterizedMacro(LMacroName, LParamsArray)
+            + InternalExpand(Copy(Result, LPosTail + Length(MACRO_TAIL), MaxInt));
+        finally
+          LParams.Free;
+        end;
+      end;
+    end;
+  end;
+end;
+
+function TEFParameterizedMacroExpanderBase.ExpandParameterizedMacro(
+  const AMacroName: string; const AParams: TArray<string>): string;
+begin
+  Result := '';
 end;
 
 end.
