@@ -138,74 +138,108 @@ type
     procedure ClearExpanders;
   end;
 
-  {
-    A macro expander that can expand some path-related macros.
-    Supported macros (case sensitive):
-    @table(
-    @row(
-    @cell(%APP_PATH%)@cell(ExtractFilePath(ParamStr(0)))
-    )@row(
-    @cell(%APP_NAME%)@cell(ParamStr(0))
-    )@row(
-    @cell(%APP_BASENAME%)@cell(ExtractFileName(ParamStr(0)))
-    )@row(
-    @cell(%APP_BASENAME%)@cell(RemoveFileExt(ExtractFileName(ParamStr(0))))
-    )@row(
-    @cell(%WIN_DIR%)@cell(GetWindowsDirectory (including final \))
-    )@row(
-    @cell(%SYS_DIR%)@cell(GetSystemDirectory (including final \))
-    ))
-  }
+  ///	<summary>
+  ///	  <para>A macro expander that can expand some path-related macros.</para>
+  ///	  <para>Supported macros (case sensitive):</para>
+  ///	  <list type="table">
+  ///	    <listheader>
+  ///	      <term>Name</term>
+  ///	      <description>Expands to</description>
+  ///	    </listheader>
+  ///	    <item>
+  ///	      <term>%APP_PATH%</term>
+  ///	      <description>ExtractFilePath(ParamStr(0))</description>
+  ///	    </item>
+  ///	    <item>
+  ///	      <term>%APP_NAME%</term>
+  ///	      <description>ParamStr(0)</description>
+  ///	    </item>
+  ///	    <item>
+  ///	      <term>%APP_FILENAME%</term>
+  ///	      <description>ExtractFileName(ParamStr(0))</description>
+  ///	    </item>
+  ///	    <item>
+  ///	      <term>%APP_BASENAME%</term>
+  ///	      <description>
+  ///	      RemoveFileExt(ExtractFileName(ParamStr(0)))</description>
+  ///	    </item>
+  ///	    <item>
+  ///	      <term>%WIN_DIR%</term>
+  ///	      <description>GetWindowsDirectory (including final
+  ///	      backslash)</description>
+  ///	    </item>
+  ///	    <item>
+  ///	      <term>%SYS_DIR%</term>
+  ///	      <description>GetSystemDirectory (including final
+  ///	      backslash)</description>
+  ///	    </item>
+  ///	  </list>
+  ///	</summary>
   TEFPathMacroExpander = class(TEFMacroExpander)
   protected
     function InternalExpand(const AString: string): string; override;
   end;
 
-  {
-    A macro expander that can expand some system macros.
-    Supported macros (case sensitive):
-    @table(
-      @row(
-        @cell(%DATE%)@cell(DateToStr(Date)))
-      @row(
-        @cell(%YESTERDAY%)@cell(DateToStr(Date - 1)))
-      @row(
-        @cell(%TOMORROW%)@cell(DateToStr(Date + 1)))
-      @row(
-        @cell(%TIME%)@cell(TimeToStr(Now)))
-      @row(
-        @cell(%DATETIME%)@cell(DateTimeToStr(Now)))
-      @row(
-        @cell(%PROCESS_ID%)@cell(An integer value that is the current process' Id))
-      @row(
-        @cell(%THREAD_ID%)@cell(An integer value that is the current thread's Id))
-    )
-  }
+  ///	<summary>
+  ///	  <para>A macro expander that can expand some system macros.</para>
+  ///	  <para>Supported macros (case sensitive):</para>
+  ///	  <list type="table">
+  ///	    <listheader>
+  ///	      <term>Name</term>
+  ///	      <description>Expands to</description>
+  ///	    </listheader>
+  ///	    <item>
+  ///	      <term>%DATE%</term>
+  ///	      <description>DateToStr(Date)</description>
+  ///	    </item>
+  ///	    <item>
+  ///	      <term>%YESTERDAY%</term>
+  ///	      <description>DateToStr(Date - 1)</description>
+  ///	    </item>
+  ///	    <item>
+  ///	      <term>%TOMORROW%</term>
+  ///	      <description>DateToStr(Date + 1)</description>
+  ///	    </item>
+  ///	    <item>
+  ///	      <term>%TIME%</term>
+  ///	      <description>TimeToStr(Now)</description>
+  ///	    </item>
+  ///	    <item>
+  ///	      <term>%PROCESS_ID%</term>
+  ///	      <description>An integer value that is the current process'
+  ///	      Id</description>
+  ///	    </item>
+  ///	    <item>
+  ///	      <term>%THREAD_ID%</term>
+  ///	      <description>An integer value that is the current thread's
+  ///	      Id</description>
+  ///	    </item>
+  ///	  </list>
+  ///	</summary>
   TEFSysMacroExpander = class(TEFMacroExpander)
   protected
     function InternalExpand(const AString: string): string; override;
   end;
 
-  {
-    A macro expander that expands all environment variables.
-    See EF.SysUtils.ExpandEnvironmentVariables for details on
-    format and case sensitivity.
-  }
+  ///	<summary>A macro expander that expands all environment variables. See
+  ///	EF.SysUtils.ExpandEnvironmentVariables for details on format and case
+  ///	sensitivity.</summary>
+  ///	<example>%COMPUTERNAME% expands to the current computer's name.</example>
+  ///	<seealso cref="EF.SysUtils.ExpandEnvironmentVariables"></seealso>
   TEFEnvironmentVariableMacroExpander = class(TEFMacroExpander)
   protected
     function InternalExpand(const AString: string): string; override;
   end;
 
-  {
-    Expands parameters passed on the command line.
-    Command line parameters must be passed in the format@br
-      @bold(/<parameter name> <parameter value>)@br
-    or@br
-      @bold(-<parameter name> <parameter value>)@br
-    The macro format is@br
-      @bold(%cmd:<parameter name>%)
-    @seealso(EFSysUtils.GetCmdLineParamValue).
-  }
+  ///	<summary>Expands named parameters passed on the command line. A named
+  ///	command line parameter is prefixed with / or - characters, it has a name,
+  ///	a space and a value.</summary>
+  ///	<example>
+  ///	  <para>Given the following command line:</para>
+  ///	  <para><c>app.exe /p1 value -p2 value2</c></para>
+  ///	  <para>the sequence '%Cmd:p1%' expands to 'value'.</para>
+  ///	</example>
+  ///	<seealso cref="EF.SysUtils.GetCmdLineParamValue"></seealso>
   TEFCmdLineParamMacroExpander = class(TEFMacroExpander)
   private
     FParams: TStringList;
@@ -217,79 +251,135 @@ type
     function InternalExpand(const AString: string): string; override;
   end;
 
-  {
-    Expands the current date and/or time formatted in several ways.
-    Supported macros (case sensitive):
-    @table(
-      @row(
-        @cell(%YYYYMMDD_DATE%)@cell(The current date in YYYYMMDD format))
-      @row(
-        @cell(%YYYYMMDD_YESTERDAY%)@cell(The current date minus 1 day in YYYYMMDD format))
-      @row(
-        @cell(%YYYYMMDD_TOMORROW%)@cell(The current date plus 1 day in YYYYMMDD format))
-      @row(
-        @cell(%YYMMDD_DATE%)@cell(The current date in YYMMDD format))
-      @row(
-        @cell(%YYMMDD_YESTERDAY%)@cell(The current date minus 1 day in YYMMDD format))
-      @row(
-        @cell(%YYMMDD_TOMORROW%)@cell(The current date plus 1 day in YYMMDD format))
-      @row(
-        @cell(%MMDD_DATE%)@cell(The current date in MMDD format))
-      @row(
-        @cell(%DD_DATE%)@cell(The current day of the month))
-      @row(
-        @cell(%MM_DATE%)@cell(The current month of the year))
-      @row(
-        @cell(%YYYY_DATE%)@cell(The current year))
-      @row(
-        @cell(%WEEKDAYNAME_SHORT%)@cell(The short name of the current day of the week))
-      @row(
-        @cell(%WEEKDAYNAME_LONG%)@cell(The name of the current day of the week))
-      @row(
-        @cell(%WEEKDAYNR%)@cell(The number of the current day of the week (1 = sunday)))
-      @row(
-        @cell(%ISOWEEKDAYNR%)@cell(The number of the current day of the week (1 = monday)))
-      @row(
-        @cell(%HHMMSS_TIME%)@cell(The current time in HHMMSS format))
-      @row(
-        @cell(%HHMM_TIME%)@cell(The current time in HHMM format))
-      @row(
-        @cell(%HH_TIME%)@cell(The current hour))
-      @row(
-        @cell(%MM_TIME%)@cell(The current minute))
-      @row(
-        @cell(%SS_TIME%)@cell(The current second))
-    )
-  }
+  ///	<summary>
+  ///	  <para>Expands the current date and/or time formatted in several
+  ///	  ways.</para>
+  ///	  <para>Supported macros (case sensitive):</para>
+  ///	  <list type="table">
+  ///	    <listheader>
+  ///	      <term>Name</term>
+  ///	      <description>Expands to</description>
+  ///	    </listheader>
+  ///	    <item>
+  ///	      <term>%YYYYMMDD_DATE%</term>
+  ///	      <description>The current date (Date) in YYYYMMDD
+  ///	      format</description>
+  ///	    </item>
+  ///	    <item>
+  ///	      <term>%YYYYMMDD_YESTERDAY%</term>
+  ///	      <description>Date - 1 day in YYYYMMDD format</description>
+  ///	    </item>
+  ///	    <item>
+  ///	      <term>%YYYYMMDD_TOMORROW%</term>
+  ///	      <description>Date + 1 day in YYYYMMDD format</description>
+  ///	    </item>
+  ///	    <item>
+  ///	      <term>%YYMMDD_DATE%</term>
+  ///	      <description>Date in YYMMDD format</description>
+  ///	    </item>
+  ///	    <item>
+  ///	      <term>%YYMMDD_YESTERDAY%</term>
+  ///	      <description>Date - 1 day in YYMMDD format</description>
+  ///	    </item>
+  ///	    <item>
+  ///	      <term>%YYMMDD_TOMORROW%</term>
+  ///	      <description>Date + 1 day in YYMMDD format</description>
+  ///	    </item>
+  ///	    <item>
+  ///	      <term>%MMDD_DATE%</term>
+  ///	      <description>The current date in MMDD format</description>
+  ///	    </item>
+  ///	    <item>
+  ///	      <term>%DD_DATE%</term>
+  ///	      <description>The current day of the month</description>
+  ///	    </item>
+  ///	    <item>
+  ///	      <term>%MM_DATE%</term>
+  ///	      <description>The current month of the year</description>
+  ///	    </item>
+  ///	    <item>
+  ///	      <term>%YYYY_DATE%</term>
+  ///	      <description>The current year</description>
+  ///	    </item>
+  ///	    <item>
+  ///	      <term>%WEEKDAYNAME_SHORT%</term>
+  ///	      <description>The short name of the current day of the
+  ///	      week</description>
+  ///	    </item>
+  ///	    <item>
+  ///	      <term>%WEEKDAYNAME_LONG%</term>
+  ///	      <description>The name of the current day of the week</description>
+  ///	    </item>
+  ///	    <item>
+  ///	      <term>%WEEKDAYNR%</term>
+  ///	      <description>The number of the current day of the week (1 =
+  ///	      sunday)</description>
+  ///	    </item>
+  ///	    <item>
+  ///	      <term>%ISOWEEKDAYNR%</term>
+  ///	      <description>The number of the current day of the week (1 =
+  ///	      monday)</description>
+  ///	    </item>
+  ///	    <item>
+  ///	      <term>%HHMMSS_TIME%</term>
+  ///	      <description>The current time in HHMMSS format</description>
+  ///	    </item>
+  ///	    <item>
+  ///	      <term>%HHMM_TIME%</term>
+  ///	      <description>The current time in HHMM format</description>
+  ///	    </item>
+  ///	    <item>
+  ///	      <term>%HH_TIME%</term>
+  ///	      <description>The current hour</description>
+  ///	    </item>
+  ///	    <item>
+  ///	      <term>%MM_TIME%</term>
+  ///	      <description>The current minute</description>
+  ///	    </item>
+  ///	    <item>
+  ///	      <term>%SS_TIME%</term>
+  ///	      <description>The current second</description>
+  ///	    </item>
+  ///	  </list>
+  ///	</summary>
   TEFDateTimeStrMacroExpander = class(TEFMacroExpander)
   protected
     function InternalExpand(const AString: string): string; override;
   end;
 
-  {
-    This macro expander includes the content of a specified (text) file
-    into the string while it's being expanded.
-    The macro format is as follows:
-    @table(
-    @row(
-    @cell(%FILE(<filename>[,<param1>[...]]))@cell(
-      The contents of <filename>. If <filename> is not a fully qualified
-      filename, then the value of the DefaultPath property of the expander
-      is pre-prended to it before trying to load it. If parameters are passed
-      after the file name, then they are used to substitute parameter
-      placeholders in the file contents. Placeholders are in the form
-      %%P1%%, %%P2%% and so on.
-
-      If a parameter (or the file name) includes a space or a comma, the entire
-      parameter should be enclosed in ". Space and comma are both valid
-      parameter separators. If a parameter includes the " character, then the
-      character should be doubled (as well as the entire parameter be enclosed
-      between " characters).
-
-      If the file name is not specified or the file doesn't exist, then the
-      macro expands to ''. If a parameter doesn't exist, it expands to ''.)
-    ))
-  }
+  ///	<summary>
+  ///	  <para>The %FILE()% macro expands to the contents of a specified (text)
+  ///	  file.</para>
+  ///	  <para>The macro format is as follows:</para>
+  ///	  <list type="table">
+  ///	    <listheader>
+  ///	      <term>Format</term>
+  ///	      <description>Description</description>
+  ///	    </listheader>
+  ///	    <item>
+  ///	      <term>(%FILE(&lt;filename&gt;[,&lt;param1&gt;[...]]))%</term>
+  ///	      <description>The contents of &lt;filename&gt;. If &lt;filename&gt;
+  ///	      is not a fully qualified filename, then the value of the
+  ///	      DefaultPath property of the expander is pre-prended to it before
+  ///	      trying to load it. If parameters are passed after the file name,
+  ///	      then they are used to substitute parameter placeholders in the file
+  ///	      contents. Placeholders are in the form %%P1%%, %%P2%% and so
+  ///	      on.</description>
+  ///	    </item>
+  ///	  </list>
+  ///	</summary>
+  ///	<remarks>
+  ///	  <para>Any macros in the file name or contents are expanded as
+  ///	  well.</para>
+  ///	  <para>If a parameter (or the file name) includes a space or a comma,
+  ///	  the entire parameter should be enclosed in ". Space and comma are both
+  ///	  valid parameter separators. If a parameter includes the " character,
+  ///	  then the character should be doubled (as well as the entire parameter
+  ///	  be enclosed between " characters).</para>
+  ///	  <para>If the file name is not specified or the file doesn't exist, then
+  ///	  the macro expands to ''. If a parameter doesn't exist, it expands to
+  ///	  ''.</para>
+  ///	</remarks>
   TEFFileMacroExpander = class(TEFMacroExpander)
   private
     FDefaultPath: string;
@@ -307,32 +397,51 @@ type
     property DefaultPath: string read FDefaultPath write FDefaultPath;
   end;
 
-  {
-    A macro expander that generates GUIDs.
-    Supported macros (case sensitive):
-    @table(
-      @row(
-        @cell(%GUID%)@cell(CreateGuidStr()))
-      @row(
-        @cell(%COMPACT_GUID%)@cell(CreateCompactGuidStr()))
-    )
-  }
+  ///	<summary>
+  ///	  <para>A macro expander that generates GUIDs.</para>
+  ///	  <para>Supported macros (case sensitive):</para>
+  ///	  <list type="table">
+  ///	    <listheader>
+  ///	      <term>Name</term>
+  ///	      <description>Expands to</description>
+  ///	    </listheader>
+  ///	    <item>
+  ///	      <term>%GUID%</term>
+  ///	      <description>CreateGuidStr()</description>
+  ///	    </item>
+  ///	    <item>
+  ///	      <term>%COMPACT_GUID%</term>
+  ///	      <description>CreateCompactGuidStr()</description>
+  ///	    </item>
+  ///	  </list>
+  ///	</summary>
+  ///	<seealso cref="CreateGuidStr"></seealso>
+  ///	<seealso cref="CreateCompactGuidStr"></seealso>
   TEFGUIDMacroExpander = class(TEFMacroExpander)
   protected
     function InternalExpand(const AString: string): string; override;
   end;
 
-
-  {
-    A macro expander that expands symbols to characters.
-    Supported macros (case sensitive):
-    @table(
-      @row(
-        @cell(%TAB%)@cell(The Tab (#9) character))
-      @row(
-        @cell(%SPACE%)@cell(The space character))
-    )
-  }
+  ///	<summary>
+  ///	  <para>A macro expander that expands symbols to characters.</para>
+  ///	  <para>Supported macros (case sensitive):</para>
+  ///	  <list type="table">
+  ///	    <listheader>
+  ///	      <term>Name</term>
+  ///	      <description>Expands to</description>
+  ///	    </listheader>
+  ///	    <item>
+  ///	      <term>%TAB%</term>
+  ///	      <description>The Tab (#9) character</description>
+  ///	    </item>
+  ///	    <item>
+  ///	      <term>%SPACE%</term>
+  ///	      <description>The space character</description>
+  ///	    </item>
+  ///	  </list>
+  ///	</summary>
+  ///	<seealso cref="CreateGuidStr"></seealso>
+  ///	<seealso cref="CreateCompactGuidStr"></seealso>
   TEFEntityMacroExpander = class(TEFMacroExpander)
   protected
     function InternalExpand(const AString: string): string; override;
