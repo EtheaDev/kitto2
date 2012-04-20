@@ -26,16 +26,17 @@ uses
 
 type
   TKExtDefaultStatusBar = class(TKExtStatusBar)
-  protected
+  strict protected
     procedure InitDefaults; override;
   public
     procedure ClearStatus; override;
+    destructor Destroy; override;
   end;
 
   TKExtStatusBarController = class(TKExtPanelControllerBase)
-  private
+  strict private
     FStatusBar: TKExtDefaultStatusBar;
-  protected
+  strict protected
     function GetDefaultSplit: Boolean; override;
     procedure InitDefaults; override;
     procedure DoDisplay; override;
@@ -80,10 +81,18 @@ begin
   SetIcon(DefaultIconCls);
 end;
 
+destructor TKExtDefaultStatusBar.Destroy;
+begin
+  if Session.StatusHost = Self then
+    Session.StatusHost := nil;
+  inherited;
+end;
+
 procedure TKExtDefaultStatusBar.InitDefaults;
 begin
   inherited;
-  Session.StatusHost := Self;
+  if Session.StatusHost = nil then
+    Session.StatusHost := Self;
 end;
 
 initialization
