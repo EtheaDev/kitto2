@@ -46,7 +46,8 @@ var
   LHtml: string;
 begin
   inherited;
-  Title := _(View.DisplayLabel);
+  if Title = '' then
+    Title := _(View.DisplayLabel);
   AutoScroll := True;
 
   LFileName := Config.GetExpandedString('FileName');

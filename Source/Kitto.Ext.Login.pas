@@ -123,7 +123,7 @@ begin
 
   FFormPanel := TExtFormFormPanel.AddTo(Items);
   FFormPanel.Region := rgCenter;
-  FFormPanel.LabelWidth := 70;
+  FFormPanel.LabelWidth := 80;
   FFormPanel.Border := False;
   FFormPanel.BodyStyle := SetPaddings(5, 5);
   FFormPanel.Frame := False;
