@@ -13,6 +13,7 @@ Controller: Window
           Width: 155
           Collapsible: True
           Border: True
+          Split: True
           NorthView:
             Controller: HtmlPanel
               Split: False
