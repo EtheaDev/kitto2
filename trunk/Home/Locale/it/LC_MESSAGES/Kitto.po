@@ -2,8 +2,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: 1.0\n"
-"POT-Creation-Date: 2012-03-06 10:39\n"
-"PO-Revision-Date: 2012-03-06 11:04-0500\n"
+"POT-Creation-Date: 2012-04-20 11:54\n"
+"PO-Revision-Date: 2012-04-20 11:57+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -22,52 +22,52 @@ msgid "Home"
 msgstr "Home"
 
 #. KExtMainForm..PageControl..HomeTabSheet..ControlPanel..SessionCountLabel..Caption
-#: Kitto.Ext.MainFormUnit.dfm:468
+#: Kitto.Ext.MainFormUnit.dfm:464
 msgid "SessionCountLabel"
 msgstr "SessionCountLabel"
 
 #. KExtMainForm..PageControl..HomeTabSheet..ControlPanel..AppTitleLabel..Caption
-#: Kitto.Ext.MainFormUnit.dfm:493
+#: Kitto.Ext.MainFormUnit.dfm:489
 msgid "No config loaded. Please select one."
 msgstr "Selezionare una configurazione."
 
 #. KExtMainForm..PageControl..HomeTabSheet..ControlPanel..ConfigLinkLabel..Hint
-#: Kitto.Ext.MainFormUnit.dfm:507
+#: Kitto.Ext.MainFormUnit.dfm:504
 msgid "Click to change Application Home"
 msgstr "Click per cambiare il nome dell'applicazione"
 
 #. KExtMainForm..PageControl..HomeTabSheet..ControlPanel..ConfigLinkLabel..Caption
-#: Kitto.Ext.MainFormUnit.dfm:508
+#: Kitto.Ext.MainFormUnit.dfm:505
 msgid "Config File Name"
 msgstr "Nome file config"
 
 #. KExtMainForm..ActionList..StartAction..Hint
-#: Kitto.Ext.MainFormUnit.dfm:537
+#: Kitto.Ext.MainFormUnit.dfm:542
 msgid "Start FastCGI Listener"
 msgstr "Avvia server FastCGI"
 
 #. KExtMainForm..ActionList..StopAction..Hint
-#: Kitto.Ext.MainFormUnit.dfm:543
+#: Kitto.Ext.MainFormUnit.dfm:548
 msgid "Stop FastCGI Listener"
 msgstr "Arresta server FastCGI"
 
-#. KExtMainForm..ActionList..RestartAction..Caption
-#: Kitto.Ext.MainFormUnit.dfm:549
-msgid "Restart"
-msgstr "Riavvia"
+#. KExtMainForm..ActionList..RestartAction..Hint
+#: Kitto.Ext.MainFormUnit.dfm:554
+msgid "Stop and Start FCGI Listener again"
+msgstr "Arresta e riavvia server FastCGI"
 
 #. KExtMainForm..OpenConfigDialog..DefaultExt
-#: Kitto.Ext.MainFormUnit.dfm:698
+#: Kitto.Ext.MainFormUnit.dfm:704
 msgid ".yaml"
 msgstr ".yaml"
 
 #. KExtMainForm..OpenConfigDialog..Filter
-#: Kitto.Ext.MainFormUnit.dfm:699
+#: Kitto.Ext.MainFormUnit.dfm:705
 msgid "Yaml files (*.yaml)|*.yaml"
 msgstr "File Yaml (*.yaml)|*.yaml"
 
 #. KExtMainForm..OpenConfigDialog..Title
-#: Kitto.Ext.MainFormUnit.dfm:701
+#: Kitto.Ext.MainFormUnit.dfm:707
 msgid "Select Config file"
 msgstr "Selezione file config"
 
@@ -88,13 +88,17 @@ msgstr "Errore durante la modifica della password."
 msgid "File %s not found."
 msgstr "File %s non trovato."
 
-#: Kitto.Config.pas:486
+#: Kitto.Config.pas:494
 msgid "Access denied. The user is not allowed to perform this operation."
 msgstr "Accesso negato. L'utente non ha il permesso di effettuare questa operazione."
 
-#: Kitto.Config.pas:487
+#: Kitto.Config.pas:495
 msgid "Resource URI: %s; access mode: %s."
 msgstr "URI della risorsa: %s; modalità di accesso: %s."
+
+#: Kitto.Ext.AccordionPanel.pas:88
+msgid "AccordionPanel's SubViews node may only contain View or Controller subnodes."
+msgstr "Il nodo SubViews di un AccordionPanel può contenere solo sotto-nodi View o Controller."
 
 #: Kitto.Ext.ChangePassword.pas:75
 msgid "Old Password is wrong."
@@ -135,176 +139,197 @@ msgstr "Nuova password"
 msgid "Confirm New Password"
 msgstr "Conferma nuova password"
 
-#: Kitto.Ext.Editors.pas:435
+#: Kitto.Ext.ChartPanel.pas:287
+msgid "Unknown chart type %s."
+msgstr "Tipo di grafico %s sconosciuto."
+
+#: Kitto.Ext.DataPanel.pas:145
+msgid "Actions that require selection are not supported in this controller."
+msgstr "Questo controller non supporta azioni con RequireSelection=True."
+
+#: Kitto.Ext.DataPanelLeaf.pas:94
+msgid "Refresh"
+msgstr "Aggiorna"
+
+#: Kitto.Ext.DataPanelLeaf.pas:97
+msgid "Refresh data"
+msgstr "Aggiorna i dati"
+
+#: Kitto.Ext.Editors.pas:466
 msgid "Unknown or misplaced option %s: %s."
 msgstr "Opzione sconosciuta o errata %s: %s."
 
 #. Floats in Yaml always use the dot as decimal separator.
-#: Kitto.Ext.Editors.pas:442
+#: Kitto.Ext.Editors.pas:473
 msgid "Invalid value %s. Valid values: decimal numbers."
 msgstr "Valore %s non valido. Deve essere un numero decimale."
 
-#: Kitto.Ext.Editors.pas:453
+#: Kitto.Ext.Editors.pas:484
 msgid "Invalid value %s. Valid values: whole numbers or percentages."
 msgstr "Valore %s non valido. Deve essere un numero intero o una percentuale."
 
-#: Kitto.Ext.Editors.pas:455
+#: Kitto.Ext.Editors.pas:486
 msgid "Invalid percentage %s. Valid percentages are 0% to 100%."
 msgstr "Percentuale %s non valida. Deve essere compresa tra 0% e 100%."
 
-#: Kitto.Ext.Editors.pas:465
+#: Kitto.Ext.Editors.pas:496
 msgid "Invalid value %s. Valid values: whole numbers."
 msgstr "Valore %s non valido. Deve essere un numero intero."
 
-#: Kitto.Ext.Editors.pas:475
+#: Kitto.Ext.Editors.pas:506
 msgid "Invalid value %s. Valid values: \"True\", \"False\"."
 msgstr "Valore %s non valido. Deve essere \"True\" o \"False\"."
 
-#: Kitto.Ext.Editors.pas:487
+#: Kitto.Ext.Editors.pas:518
 msgid "Invalid value %s. Valid values: \"Left\", \"Top\", \"Right\"."
 msgstr "Valore %s non valido. Deve essere \"Left\", \"Top\" o \"Right\"."
 
-#: Kitto.Ext.Editors.pas:505
+#: Kitto.Ext.Editors.pas:536
 msgid "Invalid value %s. Valid values: %s"
 msgstr "Valore %s non valido. Valori ammessi: %s"
 
-#: Kitto.Ext.Editors.pas:526
+#: Kitto.Ext.Editors.pas:557
 msgid "Layout parsing error. %s."
 msgstr "Errore durante l'elaborazione del layout. %s."
 
 #. Unknown name - must be an option.
-#: Kitto.Ext.Editors.pas:575
+#: Kitto.Ext.Editors.pas:606
 msgid "Option %s must have a value."
 msgstr "L'opzione %s deve avere un valore."
 
-#: Kitto.Ext.Editors.pas:577
+#: Kitto.Ext.Editors.pas:608
 msgid "Option node %s cannot have child nodes."
 msgstr "Il nodo dell'opzione %s non può contenere sotto-nodi."
 
-#: Kitto.Ext.Editors.pas:626
+#: Kitto.Ext.Editors.pas:657
 msgid "Unknown edit item type %s."
 msgstr "Elemento %s sconosciuto."
 
-#: Kitto.Ext.Editors.pas:2073
-msgid "Empty"
-msgstr "Vuoto"
-
-#: Kitto.Ext.Editors.pas:2079
+#: Kitto.Ext.Editors.pas:2055
 msgid "Download file"
 msgstr "Scarica file"
 
-#: Kitto.Ext.Editors.pas:2085
+#. FDownloadButton.Margins := '0 5 0 0';
+#: Kitto.Ext.Editors.pas:2064
 msgid "Upload file"
 msgstr "Carica file"
 
-#: Kitto.Ext.Editors.pas:2107
+#: Kitto.Ext.Editors.pas:2071
+msgid "Clear field"
+msgstr "Cancella campo"
+
+#: Kitto.Ext.Editors.pas:2087
+msgid "Empty"
+msgstr "Vuoto"
+
+#: Kitto.Ext.Editors.pas:2113
 msgid "File upload"
 msgstr "Caricamento file"
 
-#: Kitto.Ext.Editors.pas:2115
+#: Kitto.Ext.Editors.pas:2121
 msgid "Select a file to upload"
 msgstr "Seleziona un file da caricare"
 
-#: Kitto.Ext.Editors.pas:2119
+#: Kitto.Ext.Editors.pas:2125
 msgid "Upload"
 msgstr "Carica"
 
-#: Kitto.Ext.Editors.pas:2123
+#: Kitto.Ext.Editors.pas:2129
 msgid "File upload in progress..."
 msgstr "Caricamento in corso..."
 
-#: Kitto.Ext.Editors.pas:2124
+#: Kitto.Ext.Editors.pas:2130
 msgid "Please wait..."
 msgstr "Attendere, prego..."
 
-#: Kitto.Ext.Editors.pas:2126
+#: Kitto.Ext.Editors.pas:2132
 msgid "File upload error"
 msgstr "Errore durante il caricamento"
 
-#: Kitto.Ext.Editors.pas:2159
+#: Kitto.Ext.Editors.pas:2160
 msgid "%s file (%s)"
 msgstr "File %s (%s)"
 
 #. Load data from FServerRecord.
-#: Kitto.Ext.Form.pas:226
+#: Kitto.Ext.Form.pas:236
 msgid "Load failed."
 msgstr "Caricamento fallito."
 
+#. Get uploaded files.
+#: Kitto.Ext.Form.pas:344
+msgid "Data type %s does not support file upload."
+msgstr "Il tipo di dato %s non supporta l'upload di file."
+
 #. Save record.
-#: Kitto.Ext.Form.pas:347
+#: Kitto.Ext.Form.pas:357
 msgid "Changes saved succesfully."
 msgstr "Modifica memorizzate correttamente."
 
-#: Kitto.Ext.Form.pas:389
+#: Kitto.Ext.Form.pas:406
 msgid "Operation Add not supported on read-only data."
 msgstr "Aggiunta non consentita su dati a sola lettura."
 
-#: Kitto.Ext.Form.pas:423
+#: Kitto.Ext.Form.pas:438
 msgid "Save"
 msgstr "Salva"
 
-#: Kitto.Ext.Form.pas:424
+#: Kitto.Ext.Form.pas:439
 msgid "Save changes and finish editing"
 msgstr "Salva le modifiche"
 
 #. FSaveButton.Handler := JSFunction(FFormPanel.JSName + '.getForm().doAction("submit", {success:"AjaxSuccess", failure:"AjaxFailure"});');
-#: Kitto.Ext.Form.pas:434
+#: Kitto.Ext.Form.pas:449
 msgid "Close"
 msgstr "Chiudi"
 
-#: Kitto.Ext.Form.pas:435
+#: Kitto.Ext.Form.pas:450
 msgid "Close this panel"
 msgstr "Chiudi il pannello"
 
 #. No need for an ajax call when we just close the client-side panel.
-#: Kitto.Ext.Form.pas:443
+#: Kitto.Ext.Form.pas:458
 msgid "Cancel"
 msgstr "Annulla"
 
-#: Kitto.Ext.Form.pas:444
+#: Kitto.Ext.Form.pas:459
 msgid "Cancel changes"
 msgstr "Annulla modifiche"
 
-#: Kitto.Ext.GridPanel.pas:247
+#: Kitto.Ext.GridPanel.pas:160
 msgid "No data to display in this group."
 msgstr "Questo gruppo è vuoto."
 
-#. TExtDataGroupingStore(FStore).GroupOnSort := True;
-#: Kitto.Ext.GridPanel.pas:282
+#: Kitto.Ext.GridPanel.pas:181
 msgid "No data to display."
 msgstr "Nessun dato da mostrare."
 
-#: Kitto.Ext.GridPanel.pas:566
+#: Kitto.Ext.GridPanel.pas:474
 msgid "Add %s"
 msgstr "Aggiungi %s"
 
-#: Kitto.Ext.GridPanel.pas:570
+#: Kitto.Ext.GridPanel.pas:476
 msgid "Edit %s"
 msgstr "Modifica %s"
 
-#: Kitto.Ext.GridPanel.pas:683
+#: Kitto.Ext.GridPanel.pas:587
 msgid "%s deleted."
 msgstr "%s cancellato."
 
-#: Kitto.Ext.GridPanel.pas:749
+#: Kitto.Ext.GridPanel.pas:656
 msgid "View %s"
 msgstr "Vista %s"
 
-#: Kitto.Ext.GridPanel.pas:770
+#: Kitto.Ext.GridPanel.pas:667
 msgid "Delete %s"
 msgstr "Elimina %s"
 
-#: Kitto.Ext.GridPanel.pas:777
+#: Kitto.Ext.GridPanel.pas:674
 msgid "Selected %s will be deleted. Are you sure?"
 msgstr "%s sarà eliminato. Continuo?"
 
-#: Kitto.Ext.GridPanel.pas:784
-msgid "Refresh"
-msgstr "Aggiorna"
-
-#: Kitto.Ext.GridPanel.pas:787
-msgid "Refresh data"
-msgstr "Aggiorna i dati"
+#: Kitto.Ext.List.pas:82
+msgid "Search"
+msgstr "Cerca"
 
 #: Kitto.Ext.Login.pas:68
 msgid "Invalid login."
@@ -326,27 +351,27 @@ msgstr "Nome utente"
 msgid "Password"
 msgstr "Password"
 
-#: Kitto.Ext.MainFormUnit.pas:103
+#: Kitto.Ext.MainFormUnit.pas:104
 msgid "Listener stopped"
 msgstr "Listener arrestato"
 
-#: Kitto.Ext.MainFormUnit.pas:139
+#: Kitto.Ext.MainFormUnit.pas:135
 msgid "Stopping listener..."
 msgstr "Arresto del listener in corso..."
 
-#: Kitto.Ext.MainFormUnit.pas:170
+#: Kitto.Ext.MainFormUnit.pas:171
 msgid "Active Sessions: %d"
 msgstr "Sessioni attive: %d"
 
-#: Kitto.Ext.MainFormUnit.pas:212
+#: Kitto.Ext.MainFormUnit.pas:211
 msgid "Build date: %s"
 msgstr "Data creazione: %s"
 
-#: Kitto.Ext.MainFormUnit.pas:237
+#: Kitto.Ext.MainFormUnit.pas:236
 msgid "Application: %s"
 msgstr "Applicazione: %s"
 
-#: Kitto.Ext.MainFormUnit.pas:272
+#: Kitto.Ext.MainFormUnit.pas:271
 msgid "Listener started"
 msgstr "Listener avviato"
 
@@ -370,13 +395,21 @@ msgstr "Valore troppo lungo. La lunghezza massima è di %s caratteri."
 msgid "Logout"
 msgstr "Chiudi sessione"
 
-#: Kitto.Metadata.pas:215
+#: Kitto.Ext.TabPanel.pas:146
+msgid "TabPanel's SubViews node may only contain View or Controller subnodes."
+msgstr "Il nodo SubViews di un TabPanel può contenere solo sotto-nodi View o Controller."
+
+#: Kitto.Metadata.pas:238
 msgid "Duplicate object %s."
 msgstr "Oggetto %s duplicato."
 
-#: Kitto.Metadata.pas:376
+#: Kitto.Metadata.pas:427
 msgid "Object %s not found."
 msgstr "Oggetto %s non trovato."
+
+#: Kitto.Metadata.ViewBuilders.pas:163
+msgid "Free Search"
+msgstr "Ricerca libera"
 
 #: Kitto.Rules.pas:328
 msgid "Rule %s failed."
@@ -386,19 +419,19 @@ msgstr "Regola %s violata."
 msgid "%s must be greater than or equal to %s."
 msgstr "%s deve essere maggiore o uguale a %s."
 
-#: Kitto.Store.pas:488
+#: Kitto.Store.pas:491
 msgid "Record not found for predicate {%s}."
 msgstr "Record non trovato per la condizione {%s}."
 
-#: Kitto.Store.pas:601
+#: Kitto.Store.pas:604
 msgid "Field %s not found."
 msgstr "Campo %s non trovato."
 
-#: EF/EF.DB.DBX.pas:265
+#: EF/EF.DB.DBX.pas:270
 msgid "Unspecified Statement text."
 msgstr "Testo del comando non specificato."
 
-#: EF/EF.DB.DBX.pas:309
+#: EF/EF.DB.DBX.pas:314
 msgid "Unspecified Sequence name."
 msgstr "Nome di sequenza non specificato."
 
@@ -427,40 +460,40 @@ msgstr "Le liste \"%s\" e \"%s\" devono avere la stessa lunghezza."
 msgid "Unmatched SQL skip marker pair in \"%s\"."
 msgstr "Marcatori errati nell'istruzione \"%s\"."
 
-#: EF/EF.SysUtils.pas:983
+#: EF/EF.SysUtils.pas:996
 msgid "SafeGetWindowsDirectory: buffer too small."
 msgstr "SafeGetWindowsDirectory: buffer troppo piccolo."
 
-#: EF/EF.SysUtils.pas:995
+#: EF/EF.SysUtils.pas:1008
 msgid "SafeGetSystemDirectory: buffer too small."
 msgstr "SafeGetSystemDirectory: buffer troppo piccolo."
 
-#: EF/EF.SysUtils.pas:1236
+#: EF/EF.SysUtils.pas:1267
 msgid "%s: SourcePath not set."
 msgstr "%s: Valore per SourcePath non specificato."
 
-#: EF/EF.SysUtils.pas:1483
+#: EF/EF.SysUtils.pas:1521
 msgid "Error while removing folder \"%s\". Perhaps the folder is not empty or is in use."
 msgstr "Errore durante l'eliminazione della cartella \"%s\". Potrebbe non essere vuota oppure in uso."
 
-#: EF/EF.SysUtils.pas:1500
+#: EF/EF.SysUtils.pas:1538
 msgid "Error \"%s\" while removing file \"%s\". The file might be in use."
 msgstr "Errore \"%s\" durante l'eliminazione del file \"%s\". Potrebbe essere in uso."
 
-#: EF/EF.SysUtils.pas:1522
+#: EF/EF.SysUtils.pas:1560
 msgid "The file \"%s\" might be in use."
 msgstr "Il file \"%s\" potrebbe essere in uso."
 
-#: EF/EF.SysUtils.pas:1573
+#: EF/EF.SysUtils.pas:1611
 msgid "%s: DestinationPath not specified."
 msgstr "%s: Valore per DestinationPath non specificato."
 
 #. Recupero del messaggio di errore corretto per sollevare l'eccezione.
-#: EF/EF.SysUtils.pas:1608
+#: EF/EF.SysUtils.pas:1646
 msgid "Error \"%s\" while copying from \"%s\" to \"%s\". The destination file might be in use."
 msgstr "Errore \"%s\" durante la copia da \"%s\" a \"%s\". Il file di destinazione potrebbe essere in uso."
 
-#: EF/EF.Tree.pas:1614
+#: EF/EF.Tree.pas:1817
 msgid "Node %s not found."
 msgstr "Nodo %s non trovato."
 
@@ -468,3 +501,9 @@ msgstr "Nodo %s non trovato."
 msgid "%s: Unknown class \"%s\"."
 msgstr "%s: Classe sconosciuta \"%s\"."
 
+#: EF/EF.YAML.pas:325
+msgid "Error %s while loading file %s."
+msgstr "Errore \"%s\" durante il caricamento del file \"%s\"."
+
+#~ msgid "Restart"
+#~ msgstr "Riavvia"
