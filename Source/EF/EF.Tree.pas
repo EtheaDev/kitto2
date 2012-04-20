@@ -599,6 +599,9 @@ type
   TEFNode = class(TEFTree)
   private
     FParent: TEFTree;
+    function FindNodeFrom(const APath: TStringDynArray; const AIndex: Integer;
+      const ACreateMissingNodes: Boolean = False): TEFNode;
+  strict private
     FValue: Variant;
     FName: string;
     FDataType: TEFDataType;
@@ -606,8 +609,6 @@ type
     FDataTypeLockCount: Integer;
     function GetAsString: string;
     function GetAsInteger: Integer;
-    function FindNodeFrom(const APath: TStringDynArray; const AIndex: Integer;
-      const ACreateMissingNodes: Boolean = False): TEFNode;
     function GetAsExpandedString: string;
     procedure SetAsString(const AValue: string);
     procedure SetAsInteger(const AValue: Integer);
@@ -642,7 +643,7 @@ type
     function GetAsExpandedPair: TEFPair;
     function GetIsMultiLineValue: Boolean;
     function GetIsMultiLineWithNLValue: Boolean;
-  protected
+  strict protected
     procedure SetName(const AValue: string);
     function GetName: string; virtual;
     procedure SetValue(const AValue: Variant); virtual;
