@@ -269,6 +269,14 @@ procedure TKExtSession.Home;
 begin
   ExtQuickTips.Init(True);
 
+  if not NewThread then
+  begin
+    Refresh;
+    FHomeController := nil;
+    FLoginWindow := nil;
+    FOpenControllers.Clear;
+  end;
+
   if not IsAjax then
   begin
     LoadLibraries;
