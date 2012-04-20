@@ -136,6 +136,7 @@ procedure TKExtFormPanelController.CreateDetailPanels;
 var
   I: Integer;
   LController: IKExtController;
+  LControllerType: string;
 begin
   Assert(ViewTable <> nil);
   Assert(FDetailControllers = nil);
@@ -146,13 +147,15 @@ begin
     Assert(FTabPanel <> nil);
     FStoreRecord.EnsureDetailStores;
     Assert(FStoreRecord.DetailStoreCount = ViewTable.DetailTableCount);
-    FDetailToolbar := TExtToolbar.Create;
     FDetailControllers := TObjectList<TObject>.Create(False);
     for I := 0 to ViewTable.DetailTableCount - 1 do
     begin
+      LControllerType := ViewTable.GetString('Controller', 'GridPanel');
+      // The node may exist and be '', which does not return the default value.
+      if LControllerType = '' then
+        LControllerType := 'GridPanel';
       LController := TKExtControllerFactory.Instance.CreateController(View,
-        FTabPanel, ViewTable.FindNode('Controller'), Self,
-          ViewTable.GetString('Controller', 'GridPanel'));
+        FTabPanel, ViewTable.FindNode('Controller'), Self, LControllerType);
       LController.Config.SetObject('Sys/ViewTable', ViewTable.DetailTables[I]);
       LController.Config.SetObject('Sys/ServerStore', FStoreRecord.DetailStores[I]);
       LController.Config.SetBoolean('AllowClose', False);
