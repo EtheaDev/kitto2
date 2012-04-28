@@ -31,8 +31,8 @@ MainTable:
     AutoOpen: False
 
     PopupWindow:
-      Width: 460
-      Height: 360
+      Width: 454
+      Height: 488
 
     Grouping:
       FieldName: Hair

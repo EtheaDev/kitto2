@@ -1733,7 +1733,7 @@ end;
 
 function GetDataType(const ABytes: TBytes; const ADefault: string): string;
 const
-  MIN_BYTES = 10;
+  MIN_BYTES = 8;
 begin
   Assert(Assigned(ABytes));
 
@@ -1746,11 +1746,10 @@ begin
     else if ((ABytes[0] = 73) and (ABytes[1] = 73) and (ABytes[2] = 42) and (ABytes[3] = 0))
         or ((ABytes[0] = 77) and (ABytes[1] = 77) and (ABytes[2] = 42) and (ABytes[3] = 0)) then
       Result := 'tif'
-    else if (ABytes[6] = 74) and (ABytes[7] = 70) and (ABytes[8] = 73) and (ABytes[9] = 70)
-       or (ABytes[6] = 69) and (ABytes[7] = 120) and (ABytes[8] = 105) and (ABytes[9] = 102) then
-      Result := 'jpeg'
-    else if (ABytes[0] = 137 ) and (ABytes[1] = 80) and (ABytes[2] = 78) and (ABytes[3] = 71)
-        and (ABytes[4] = 13) and (ABytes[5] = 10) and (ABytes[6] = 26) and (ABytes[7] = 10) then
+    else if (ABytes[0] = $FF) and (ABytes[1] = $D8) then
+      Result := 'jpg'
+    else if (ABytes[0] = $89) and (ABytes[1] = $50) and (ABytes[2] = $4E) and (ABytes[3] = $47)
+        and (ABytes[4] = $0D) and (ABytes[5] = $0A) and (ABytes[6] = $1A) and (ABytes[7] = $0A) then
       Result := 'png'
     else if (ABytes[0] = 177) and (ABytes[1] = 104) and (ABytes[2] = 222) and (ABytes[3] = 58) then
       Result := 'dcx'

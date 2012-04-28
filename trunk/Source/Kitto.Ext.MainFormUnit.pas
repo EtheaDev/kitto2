@@ -192,6 +192,7 @@ end;
 procedure TKExtMainForm.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
   StopAction.Execute;
+  Sleep(100); // Apparently avoids a finalization problem in DBXCommon.
 end;
 
 procedure TKExtMainForm.FormCreate(Sender: TObject);

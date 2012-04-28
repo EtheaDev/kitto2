@@ -33,3 +33,7 @@ Fields:
     Hint: Select a picture
     MaxUploadSize: 100KB
     .DefaultFileName: test.gif
+    IsPicture: True
+      Thumbnail:
+        Width: 150
+        Height: 150
