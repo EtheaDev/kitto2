@@ -97,9 +97,11 @@ type
     class property FormatSettings: TFormatSettings read FFormatSettings write FFormatSettings;
     procedure LoadTreeFromFile(const ATree: TEFTree; const AFileName: string);
     procedure LoadTreeFromStream(const ATree: TEFTree; const AStream: TStream);
+    procedure LoadTreeFromString(const ATree: TEFTree; const AString: string);
 
     class function LoadTree(const AFileName: string): TEFTree; overload;
     class procedure LoadTree(const ATree: TEFTree; const AFileName: string); overload;
+    class procedure ReadTree(const ATree: TEFTree; const AString: string);
   end;
 
   ///	<summary>
@@ -118,26 +120,24 @@ type
     procedure SaveTreeToStream(const ATree: TEFTree; const AStream: TStream);
 
     class procedure SaveTree(const ATree: TEFTree; const AFileName: string);
+    class function TreeAsString(const ATree: TEFTree): string;
   end;
 
   TEFTreeHelper = class helper for TEFTree
+  private
+    function GetAsYamlString: string;
+    procedure SetAsYamlString(const AValue: string);
   public
     function LoadFromYamlFile(const AFileName: string): TEFTree;
     function SaveToYamlFile(const AFileName: string): TEFTree;
+    property AsYamlString: string read GetAsYamlString write SetAsYamlString;
   end;
-
-function EncodeYAMLKey(const AKey: string): string;
 
 implementation
 
 uses
   StrUtils,
   EF.Types, EF.StrUtils, EF.Localization;
-
-function EncodeYAMLKey(const AKey: string): string;
-begin
-  Result := ReplaceStr(AKey, ':', '§');
-end;
 
 { TEFYAMLParser }
 
@@ -172,7 +172,21 @@ var
       FIndents.Add(AIndent)
     // top indent > AIndent - check.
     else if FIndents.IndexOf(AIndent) < 0 then
-      raise EEFError.CreateFmt('YAML syntax error. Indentation error in ine: %s', [ALine]);
+      raise EEFError.CreateFmt('YAML syntax error. Indentation error in line: %s', [ALine]);
+  end;
+
+  function FindQuotationEnd(const AString: string): Integer;
+  begin
+    Result := Pos('":', AString);
+    while Result <> 0 do
+    begin
+      if (Result > 1) and (AString[Result - 1] <> '"') then
+        Break
+      else
+        Result := PosEx('":', AString, Result + 1);
+    end;
+    if Result = 0 then
+      raise EEFError.CreateFmt('YAML syntax error. Bad quoting in line: %s', [ALine]);
   end;
 
 begin
@@ -223,11 +237,19 @@ begin
   if P = 0 then
     raise EEFError.CreateFmt('YAML syntax error. Missing ":" in line: %s', [ALine]);
 
-  AName := Copy(ALine, 1, Pred(P));
+  if Pos('"', LLine) = 1 then // quoted name
+  begin
+    P := FindQuotationEnd(ALine);
+    AName := Copy(ALine, 1, P);
+    Inc(P); // Point to the ':' like in the general case.
+  end
+  else
+    AName := Copy(ALine, 1, Pred(P));
+
   LIndent := CountLeading(AName, ' ');
   AddIndent(LIndent);
 
-  AName := Trim(AName);
+  AName := Trim(AnsiDequotedStr(AName, '"'));
   AValue := Trim(Copy(Aline, Succ(P), MaxInt));
 
   // Watch for special introducers.
@@ -307,6 +329,33 @@ begin
     LInstance.LoadTreeFromFile(ATree, AFileName);
   finally
     FreeAndNil(LInstance);
+  end;
+end;
+
+class procedure TEFYAMLReader.ReadTree(const ATree: TEFTree; const AString: string);
+var
+  LInstance: TEFYAMLReader;
+begin
+  Assert(Assigned(ATree));
+
+  LInstance := TEFYAMLReader.Create;
+  try
+    LInstance.LoadTreeFromString(ATree, AString);
+  finally
+    FreeAndNil(LInstance);
+  end;
+end;
+
+procedure TEFYAMLReader.LoadTreeFromString(const ATree: TEFTree;
+  const AString: string);
+var
+  LStream: TStringStream;
+begin
+  LStream := TStringStream.Create(AString);
+  try
+    LoadTreeFromStream(ATree, LStream);
+  finally
+    FreeAndNil(LStream);
   end;
 end;
 
@@ -440,6 +489,38 @@ begin
   end;
 end;
 
+class function TEFYAMLWriter.TreeAsString(const ATree: TEFTree): string;
+var
+  LWriter: TEFYAMLWriter;
+  LStream: TBytesStream;
+  LBytes: TBytes;
+  LPreambleLength: Integer;
+  LEncoding: TEncoding;
+begin
+  Assert(Assigned(ATree));
+
+  LWriter := TEFYAMLWriter.Create;
+  try
+    // SaveTreeToStream writes the encoding preamble, which is not a problem
+    // when writing to a file, but we want to avoid that when getting yaml
+    // code as a string.
+    LStream := TBytesStream.Create;
+    try
+      LEncoding := TEncoding.UTF8;
+      LWriter.SaveTreeToStream(ATree, LStream);
+      LPreambleLength := Length(LEncoding.GetPreamble);
+      SetLength(LBytes, LStream.Size - LPreambleLength);
+      LStream.Position := LPreambleLength;
+      LStream.Read(LBytes[0], Length(LBytes));
+      Result := LEncoding.GetString(LBytes);
+    finally
+      FreeAndNil(LStream);
+    end;
+  finally
+    FreeAndNil(LWriter);
+  end;
+end;
+
 procedure TEFYAMLWriter.SaveTreeToFile(const ATree: TEFTree; const AFileName: string);
 var
   LFileStream: TFileStream;
@@ -480,6 +561,7 @@ var
   I: Integer;
   LValue: string;
   LStrings: TStringList;
+  LName: string;
 begin
   Assert(Assigned(ANode));
 
@@ -492,7 +574,11 @@ begin
       AWriter.WriteLine(StringOfChar(' ', AIndent) + LValue);
   end;
 
-  AWriter.Write(StringOfChar(' ', AIndent) + ANode.Name + ':');
+  if Pos(':', ANode.Name) <> 0 then
+    LName := AnsiQuotedStr(ANode.Name, '"')
+  else
+    LName := ANode.Name;
+  AWriter.Write(StringOfChar(' ', AIndent) + LName + ':');
   { TODO : format value }
   LValue := ANode.AsString;
 
@@ -541,6 +627,16 @@ function TEFTreeHelper.SaveToYamlFile(const AFileName: string): TEFTree;
 begin
   TEFYAMLWriter.SaveTree(Self, AFileName);
   Result := Self;
+end;
+
+function TEFTreeHelper.GetAsYamlString: string;
+begin
+  Result := TEFYAMLWriter.TreeAsString(Self);
+end;
+
+procedure TEFTreeHelper.SetAsYamlString(const AValue: string);
+begin
+  TEFYAMLReader.ReadTree(Self, AValue);
 end;
 
 end.

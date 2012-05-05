@@ -81,9 +81,9 @@ begin
   LTree := TEFTree.Create;
   try
     FReader.LoadTreeFromFile(LTree, GetWorkDirectory + FILENAME);
-    CheckEquals(3, LTree.ChildCount);
+    CheckEquals(4, LTree.ChildCount);
     CheckEquals(4, LTree.Children[0].ChildCount);
-    CheckEqualsString('>', LTree.Children[2].ValueAttributes);
+    CheckEqualsString('>', LTree.Children[3].ValueAttributes);
   finally
     FreeAndNil(LTree);
   end;

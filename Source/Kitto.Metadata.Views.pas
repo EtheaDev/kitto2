@@ -21,7 +21,7 @@ unit Kitto.Metadata.Views;
 interface
 
 uses
-  Types,
+  Types, Classes, Generics.Collections,
   EF.Classes, EF.Types, EF.Tree,
   Kitto.Metadata, Kitto.Metadata.Models, Kitto.Store, Kitto.Rules;
 
@@ -44,6 +44,11 @@ type
     property ImageName: string read GetImageName;
 
     property ControllerType: string read GetControllerType;
+  end;
+
+  TKViewList = class(TList<TKView>)
+  public
+    procedure AddViewNamesToStrings(const AStrings: TStrings);
   end;
 
   TKLayouts = class;
@@ -469,6 +474,16 @@ begin
   FPersistentName := APersistentName;
   FNode := ANode;
   Result := nil;
+end;
+
+{ TKViewList }
+
+procedure TKViewList.AddViewNamesToStrings(const AStrings: TStrings);
+var
+  LView: TKView;
+begin
+  for LView in Self do
+    AStrings.Add(LView.PersistentName);
 end;
 
 initialization
