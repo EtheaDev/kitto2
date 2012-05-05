@@ -428,6 +428,12 @@ type
     function GetBoolean(const APath: string; const ADefaultValue: Boolean = False): Boolean;
 
     ///	<summary>
+    ///	  Finds a node by path and, if found, returns its value as a Double,
+    ///	  otherwise returns ADefaultValue.
+    ///	</summary>
+    function GetFloat(const APath: string; const ADefaultValue: Double = 0): Double;
+
+    ///	<summary>
     ///	  Finds a node by path and, if found, returns its value as an Integer,
     ///	  otherwise returns ADefaultValue.
     ///	</summary>
@@ -558,6 +564,18 @@ type
     ///	  Sets a node value by path. The node is created if it doesn't exist
     ///	  yet.
     ///	</summary>
+    function SetFloat(const APath: string; const AValue: Double): TEFNode;
+
+    ///	<summary>
+    ///	  Sets a node value by path. The node is created if it doesn't exist
+    ///	  yet.
+    ///	</summary>
+    function SetValue(const APath: string; const AValue: Variant): TEFNode;
+
+    ///	<summary>
+    ///	  Sets a node value by path. The node is created if it doesn't exist
+    ///	  yet.
+    ///	</summary>
     procedure SetObject(const APath: string; const AValue: TObject);
 
     ///	<summary>
@@ -592,6 +610,8 @@ type
     function AddAnnotation(const AAnnotation: string): Integer;
     procedure AssignAnnotations(const AStrings: TStrings);
   end;
+
+  TEFTreeClass = class of TEFTree;
 
   ///	<summary>
   ///	  A node in a tree. Has a name and a value, anc can have subnodes.
@@ -1999,6 +2019,18 @@ begin
   Result := TEFMacroExpansionEngine.Instance.Expand(GetString(APath, ADefaultValue));
 end;
 
+function TEFTree.GetFloat(const APath: string;
+  const ADefaultValue: Double): Double;
+var
+  LNode: TEFNode;
+begin
+  LNode := FindNode(APath);
+  if Assigned(LNode) then
+    Result := LNode.AsFloat
+  else
+    Result := ADefaultValue;
+end;
+
 function TEFTree.GetChildrenAsStrings(const APath, ASeparator, AConnector,
   ADefaultValue: string): string;
 var
@@ -2143,6 +2175,12 @@ begin
   end;
 end;
 
+function TEFTree.SetFloat(const APath: string; const AValue: Double): TEFNode;
+begin
+  Result := GetNode(APath, True);
+  Result.AsFloat := AValue;
+end;
+
 procedure TEFTree.SetInteger(const APath: string; const AValue: Integer);
 begin
   GetNode(APath, True).AsInteger := AValue;
@@ -2157,6 +2195,13 @@ function TEFTree.SetString(const APath, AValue: string): TEFNode;
 begin
   Result := GetNode(APath, True);
   Result.AsString := AValue;
+end;
+
+function TEFTree.SetValue(const APath: string;
+  const AValue: Variant): TEFNode;
+begin
+  Result := GetNode(APath, True);
+  Result.Value := AValue;
 end;
 
 procedure TEFTree.EnterCS;

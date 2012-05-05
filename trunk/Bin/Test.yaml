@@ -7,6 +7,7 @@
   MultiLineNode1: |
     First line, then a break
     Second line.
+"A:Node:With:Colons": A:Value:With:Colons
 OtherNode:
   Item: Europe
   Item: America
