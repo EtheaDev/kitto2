@@ -663,8 +663,8 @@ type
     function GetAsExpandedPair: TEFPair;
     function GetIsMultiLineValue: Boolean;
     function GetIsMultiLineWithNLValue: Boolean;
-  strict protected
     procedure SetName(const AValue: string);
+  strict protected
     function GetName: string; virtual;
     procedure SetValue(const AValue: Variant); virtual;
     function GetRoot: TEFTree; override;
@@ -740,7 +740,7 @@ type
     ///	  Identifies the node among its siblings. Should be unique inside the
     ///	  parent.
     ///	</summary>
-    property Name: string read GetName;
+    property Name: string read GetName write SetName;
 
     ///	<summary>Renames the node. Normally shouldn't be used.</summary>
     procedure Rename(const ANewName: string);

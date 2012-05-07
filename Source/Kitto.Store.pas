@@ -416,7 +416,7 @@ procedure TKRecords.Clear;
 begin
   inherited;
   // Must keep the name even when cleared.
-  SetName('Records');
+  Name := 'Records';
 end;
 
 procedure TKRecords.AfterConstruction;
