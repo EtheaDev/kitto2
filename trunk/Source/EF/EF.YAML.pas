@@ -415,7 +415,16 @@ begin
           if Parser.LastValueType = vtSingleLine  then
             TryPopFromStack(-Parser.LastIndentIncrement);
           if LStack.Count = 0 then
-            LTop := ATree
+          begin
+            LTop := ATree;
+            if ATree is TEFNode then
+            begin
+              TEFNode(ATree).Name := LName;
+              TEFNode(ATree).SetAsYamlValue(LRawValue, FFormatSettings);
+              LStack.Push(TEFNode(ATree));
+              Continue;
+            end;
+          end
           else
             LTop := LStack.Peek;
           case Parser.LastValueType of
@@ -547,8 +556,11 @@ begin
   LWriter := TStreamWriter.Create(AStream, TEncoding.UTF8);
   try
     ATree.BeforeSave;
-    for I := 0 to ATree.ChildCount - 1 do
-      WriteNode(ATree.Children[I], LWriter, LIndent);
+    if ATree is TEFNode then
+      WriteNode(TEFNode(ATree), LWriter, LIndent)
+    else
+      for I := 0 to ATree.ChildCount - 1 do
+        WriteNode(ATree.Children[I], LWriter, LIndent);
     LWriter.Flush;
   finally
     FreeAndNil(LWriter);
