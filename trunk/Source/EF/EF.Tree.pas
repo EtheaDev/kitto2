@@ -609,6 +609,11 @@ type
     property Annotations[const AIndex: Integer]: string read GetAnnotation write SetAnnotation;
     function AddAnnotation(const AAnnotation: string): Integer;
     procedure AssignAnnotations(const AStrings: TStrings);
+
+    ///	<summary>Returns a string-based path.</summary>
+    ///	<remarks>Returns '' in the tree, and a slash-separated path in the
+    ///	nodes.</remarks>
+    function GetPath: string; virtual;
   end;
 
   TEFTreeClass = class of TEFTree;
@@ -957,6 +962,10 @@ type
     ///	  set the param's data type.
     ///	</summary>
     procedure AssignToParam(const AParam: TParam);
+
+    ///	<summary>Returns the node's slash-separated path, up to the
+    ///	root.</summary>
+    function GetPath: string; override;
   end;
 
   ///	<summary>
@@ -1443,6 +1452,14 @@ end;
 function TEFNode.GetName: string;
 begin
   Result := FName;
+end;
+
+function TEFNode.GetPath: string;
+begin
+  if Parent <> nil then
+    Result := SmartConcat(Parent.GetPath, '/', Name)
+  else
+    Result := Name;
 end;
 
 function TEFNode.GetRoot: TEFTree;
@@ -1962,6 +1979,11 @@ begin
     Result := LNode.AsPairs
   else
     Result := ADefaultValue;
+end;
+
+function TEFTree.GetPath: string;
+begin
+  Result := '';
 end;
 
 function TEFTree.GetRoot: TEFTree;
