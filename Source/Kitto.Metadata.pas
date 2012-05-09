@@ -27,23 +27,17 @@ uses
 type
   TKMetadataCatalog = class;
 
-  TKMetadata = class(TEFTree)
+  ///	<summary>A metadata object is a tree object (often persistent) that is
+  ///	managed by a catalog. There are catalogs for models, views,
+  ///	layouts.</summary>
+  TKMetadata = class(TEFPersistentTree)
   private
     FCatalog: TKMetadataCatalog;
-  strict private
-    FPersistentName: string;
-    function GetIsPersistent: Boolean;
-    function GetPersistentFileName: string;
   strict protected
     class function GetClassNameForResourceURI: string; virtual;
+    function GetPersistentFileName: string; override;
   public
-    procedure Assign(const ASource: TEFTree); override;
-
     property Catalog: TKMetadataCatalog read FCatalog;
-
-    property PersistentName: string read FPersistentName write FPersistentName;
-
-    property IsPersistent: Boolean read GetIsPersistent;
 
     ///	<summary>Returns a string URI that uniquely identifies the object, to
     ///	be used for access control.</summary>
@@ -54,9 +48,6 @@ type
     ///	calling TKConfig.Instance.IsAccessGranted (possibly multiple times for
     ///	cascading, and "or"ing the results).</summary>
     function IsAccessGranted(const AMode: string): Boolean; virtual;
-
-    ///	<summary>Returns the full path name of the persistent file.</summary>
-    property PersistentFileName: string read GetPersistentFileName;
   end;
 
   TKMetadataClass = class of TKMetadata;
@@ -557,18 +548,6 @@ begin
 end;
 
 { TKMetadata }
-
-procedure TKMetadata.Assign(const ASource: TEFTree);
-begin
-  inherited;
-  if Assigned(ASource) and (ASource is TKMetadata) then
-    FPersistentName := TKMetadata(ASource).PersistentName;
-end;
-
-function TKMetadata.GetIsPersistent: Boolean;
-begin
-  Result := PersistentName <> '';
-end;
 
 function TKMetadata.GetPersistentFileName: string;
 begin

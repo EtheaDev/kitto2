@@ -29,7 +29,7 @@ type
   ///	<summary>
   ///	  Builds SQL select statements on request.
   ///	</summary>
-  TKSQLBuilder = class(TEFComponent)
+  TKSQLBuilder = class
   private
     FUsedReferenceFields: TList<TKModelField>;
     FSelectTerms: string;

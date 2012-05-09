@@ -49,6 +49,9 @@ type
     class function HasSize: Boolean; virtual;
     class function HasScale: Boolean; virtual;
 
+    class procedure SetNodeDataTypeAndValueFromYaml(const AYamlValue: string;
+      const ANode: TEFNode; const AFormatSettings: TFormatSettings);
+
     procedure FieldValueToNode(const AField: TField; const ANode: TEFNode);
     procedure NodeToParam(const ANode: TEFNode; const AParam: TParam);
     procedure YamlValueToNode(const AYamlValue: string; const ANode: TEFNode;
@@ -614,9 +617,34 @@ type
     ///	<remarks>Returns '' in the tree, and a slash-separated path in the
     ///	nodes.</remarks>
     function GetPath: string; virtual;
+
+    ///	<summary>
+    ///	  A reference to the root tree. In this class, returns Self.
+    ///	</summary>
+    property Root: TEFTree read GetRoot;
+
   end;
 
   TEFTreeClass = class of TEFTree;
+
+  ///	<summary>A tree that stores a file name (or other logical
+  ///	identifier).</summary>
+  TEFPersistentTree = class(TEFTree)
+  strict private
+    FPersistentName: string;
+    function GetIsPersistent: Boolean;
+  strict protected
+    function GetPersistentFileName: string; virtual;
+  public
+    procedure Assign(const ASource: TEFTree); override;
+
+    property PersistentName: string read FPersistentName write FPersistentName;
+
+    property IsPersistent: Boolean read GetIsPersistent;
+
+    ///	<summary>Returns the full path name of the persistent file.</summary>
+    property PersistentFileName: string read GetPersistentFileName;
+  end;
 
   ///	<summary>
   ///	  A node in a tree. Has a name and a value, anc can have subnodes.
@@ -626,6 +654,7 @@ type
     FParent: TEFTree;
     function FindNodeFrom(const APath: TStringDynArray; const AIndex: Integer;
       const ACreateMissingNodes: Boolean = False): TEFNode;
+    function GetDataType: TEFDataType;
   strict private
     FValue: Variant;
     FName: string;
@@ -698,11 +727,6 @@ type
     property Parent: TEFTree read FParent;
 
     ///	<summary>
-    ///	  A reference to the root tree, if any.
-    ///	</summary>
-    property Root: TEFTree read GetRoot;
-
-    ///	<summary>
     ///	  Index of the node in the parent's list of node.
     ///	</summary>
     ///	<value>
@@ -754,7 +778,7 @@ type
     ///	  A reference to the node's data type. Should be an object managed by
     ///	  the data type factory.
     ///	</summary>
-    property DataType: TEFDataType read FDataType write SetDataType;
+    property DataType: TEFDataType read GetDataType write SetDataType;
 
     ///	<summary>Increments and returns the DataType lock count. When the
     ///	number is &gt; 0, assigning a value through the As... properties will
@@ -1352,6 +1376,13 @@ begin
   for I := 0 to AStrings.Count - 1 do
     AStrings[I] := AStrings.ValueFromIndex[I];
   Result := AStrings.Count;
+end;
+
+function TEFNode.GetDataType: TEFDataType;
+begin
+  if FDataType = nil then
+    FDataType := GetVariantDataType(Value);
+  Result := FDataType;
 end;
 
 function TEFNode.GetChildStrings(const ASeparator, AConnector,
@@ -2359,6 +2390,12 @@ end;
 
 procedure TEFDataType.InternalYamlValueToNode(const AYamlValue: string;
   const ANode: TEFNode; const AFormatSettings: TFormatSettings);
+begin
+  SetNodeDataTypeAndValueFromYaml(AYamlValue, ANode, AFormatSettings);
+end;
+
+class procedure TEFDataType.SetNodeDataTypeAndValueFromYaml(const AYamlValue: string;
+  const ANode: TEFNode; const AFormatSettings: TFormatSettings);
 var
   LInteger: Integer;
   LDouble: Double;
@@ -3052,6 +3089,25 @@ end;
 function TEFBlobDataType.IsBlob(const ASize: Integer): Boolean;
 begin
   Result := True;
+end;
+
+{ TEFPersistentTree }
+
+function TEFPersistentTree.GetIsPersistent: Boolean;
+begin
+  Result := PersistentName <> '';
+end;
+
+function TEFPersistentTree.GetPersistentFileName: string;
+begin
+  Result := FPersistentName;
+end;
+
+procedure TEFPersistentTree.Assign(const ASource: TEFTree);
+begin
+  inherited;
+  if Assigned(ASource) and (ASource is TEFPersistentTree) then
+    FPersistentName := TEFPersistentTree(ASource).PersistentName;
 end;
 
 initialization
