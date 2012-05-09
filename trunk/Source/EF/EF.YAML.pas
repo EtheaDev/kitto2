@@ -87,6 +87,7 @@ type
     class var FFormatSettings: TFormatSettings;
     function GetParser: TEFYAMLParser;
   public
+    class constructor Create;
     destructor Destroy; override;
   public
     property Parser: TEFYAMLParser read GetParser;
@@ -137,7 +138,7 @@ implementation
 
 uses
   StrUtils,
-  EF.Types, EF.StrUtils, EF.Localization;
+  EF.Types, EF.StrUtils, EF.SysUtils, EF.Localization;
 
 { TEFYAMLParser }
 
@@ -292,6 +293,11 @@ end;
 
 { TEFYAMLReader }
 
+class constructor TEFYAMLReader.Create;
+begin
+  FFormatSettings := GetFormatSettings;
+end;
+
 destructor TEFYAMLReader.Destroy;
 begin
   FreeAndNil(FParser);
@@ -420,7 +426,7 @@ begin
             if ATree is TEFNode then
             begin
               TEFNode(ATree).Name := LName;
-              TEFNode(ATree).SetAsYamlValue(LRawValue, FFormatSettings);
+              TEFDataType.SetNodeDataTypeAndValueFromYaml(LRawValue, TEFNode(ATree), FFormatSettings);
               LStack.Push(TEFNode(ATree));
               Continue;
             end;
@@ -430,7 +436,8 @@ begin
           case Parser.LastValueType of
             vtSingleLine:
             begin
-              LNewNode := LTop.AddChild(LName).SetAsYamlValue(LRawValue, FFormatSettings);
+              LNewNode := LTop.AddChild(LName);
+              TEFDataType.SetNodeDataTypeAndValueFromYaml(LRawValue, LNewNode, FFormatSettings);
               LNewNode.AssignAnnotations(Parser.LastAnnotations);
               if Parser.LastValueQuoted then
                 LNewNode.ValueAttributes := '"'

@@ -44,8 +44,8 @@ type
   private
     FOnLog: TEFLogEvent;
     FLogLevel: Integer;
-    FConfig: TEFNode;
-    function GetConfig: TEFNode;
+    FConfig: TEFPersistentTree;
+    function GetConfig: TEFPersistentTree;
   public
     const DEFAULT_LOG_LEVEL = 1;
   protected
@@ -141,7 +141,7 @@ type
     ///	  An internal tree-like config object used to set values that affect
     ///	  the object's operations.
     ///	</summary>
-    property Config: TEFNode read GetConfig;
+    property Config: TEFPersistentTree read GetConfig;
 
     ///	<summary>Invalidates the internal config object so that it is
     ///	re-created at next access.</summary>
@@ -196,7 +196,7 @@ begin
   Result := InternalGetClassId;
 end;
 
-function TEFComponent.GetConfig: TEFNode;
+function TEFComponent.GetConfig: TEFPersistentTree;
 var
   LConfigFileName: string;
 begin
@@ -204,9 +204,12 @@ begin
   begin
     LConfigFileName := GetConfigFileName;
     if LConfigFileName <> '' then
-      FConfig := TEFTreeFactory.LoadFromFile<TEFNode>(LConfigFileName)
+    begin
+      FConfig := TEFTreeFactory.LoadFromFile<TEFPersistentTree>(LConfigFileName);
+      TEFPersistentTree(FConfig).PersistentName := LConfigFileName;
+    end
     else
-      FConfig := TEFNode.Create;
+      FConfig := TEFPersistentTree.Create;
   end;
   Result := FConfig;
 end;
