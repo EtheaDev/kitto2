@@ -56,6 +56,7 @@ type
     AppTitleLabel: TLabel;
     OpenConfigDialog: TOpenDialog;
     SpeedButton1: TSpeedButton;
+    HomeURLLabel: TLabel;
     procedure StartActionUpdate(Sender: TObject);
     procedure StopActionUpdate(Sender: TObject);
     procedure StartActionExecute(Sender: TObject);
@@ -69,6 +70,7 @@ type
     procedure ConfigLinkLabelClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
+    procedure HomeURLLabelClick(Sender: TObject);
   private
     FAppThread: TKExtAppThread;
     FRestart: Boolean;
@@ -81,6 +83,7 @@ type
     procedure FillConfigFileNameCombo;
     procedure SetConfig(const AFileName: string);
     procedure SelectConfigFile;
+    procedure DisplayHomeURL(const AHomeURL: string);
     property AppThread: TKExtAppThread read GetAppThread;
     function HasConfigFileName: Boolean;
     procedure DoLog(const AString: string);
@@ -95,7 +98,7 @@ implementation
 
 uses
   Math,
-  EF.SysUtils, EF.Localization,
+  EF.SysUtils, EF.Shell, EF.Localization,
   FCGIApp;
 
 procedure TKExtMainForm.AppThreadTerminated(Sender: TObject);
@@ -184,6 +187,11 @@ begin
   Result := ConfigFileNameComboBox.Text <> '';
 end;
 
+procedure TKExtMainForm.HomeURLLabelClick(Sender: TObject);
+begin
+  OpenDocument(HomeURLLabel.Caption);
+end;
+
 function TKExtMainForm.IsStarted: Boolean;
 begin
   Result := Assigned(FAppThread);
@@ -243,6 +251,13 @@ begin
     StartAction.Execute;
 end;
 
+procedure TKExtMainForm.DisplayHomeURL(const AHomeURL: string);
+begin
+  DoLog(Format(_('Home URL: %s'), [AHomeURL]));
+  HomeURLLabel.Caption := AHomeURL;
+  HomeURLLabel.Visible := True;
+end;
+
 procedure TKExtMainForm.FillConfigFileNameCombo;
 begin
   FindAllFiles('yaml', TKConfig.GetMetadataPath, ConfigFileNameComboBox.Items, False, False);
@@ -266,10 +281,18 @@ begin
 end;
 
 procedure TKExtMainForm.StartActionExecute(Sender: TObject);
+var
+  LConfig: TKConfig;
 begin
   AppThread.Start;
   SessionCountLabel.Visible := True;
   DoLog(_('Listener started'));
+  LConfig := TKConfig.Create;
+  try
+    DisplayHomeURL(Format('http://localhost/cgi-bin/fcgi%d', [LConfig.Config.GetInteger('FastCGI/TCPPort', 2014)]));
+  finally
+    FreeAndNil(LConfig);
+  end;
 end;
 
 procedure TKExtMainForm.StartActionUpdate(Sender: TObject);

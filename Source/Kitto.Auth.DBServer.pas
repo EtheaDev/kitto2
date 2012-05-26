@@ -44,6 +44,8 @@ type
   ///	  database.</para>
   ///	</summary>
   TKDBServerAuthenticator = class(TKClassicAuthenticator)
+  private
+    function GetDatabaseName: string;
   protected
     function InternalAuthenticate(const AAuthData: TEFNode): Boolean; override;
   end;
@@ -51,14 +53,26 @@ type
 implementation
 
 uses
-  Kitto.Config;
+  Kitto.Config, Kitto.DatabaseRouter;
 
 { TKDBServerAuthenticator }
+
+function TKDBServerAuthenticator.GetDatabaseName: string;
+var
+  LDatabaseRouterNode: TEFNode;
+begin
+  LDatabaseRouterNode := Config.FindNode('DatabaseRouter');
+  if Assigned(LDatabaseRouterNode) then
+    Result := TKDatabaseRouterFactory.Instance.GetDatabaseName(
+      LDatabaseRouterNode.AsString, Self, LDatabaseRouterNode)
+  else
+    Result := GetDatabaseName;
+end;
 
 function TKDBServerAuthenticator.InternalAuthenticate(const AAuthData: TEFNode): Boolean;
 begin
   try
-    TKConfig.Instance.DefaultDBConnection.Open;
+    TKConfig.Instance.DBConnections[getd].Open;
     Result := True;
   except
     Result := False;

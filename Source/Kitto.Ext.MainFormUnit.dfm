@@ -434,9 +434,9 @@ object KExtMainForm: TKExtMainForm
       ImageIndex = 1
       object LogMemo: TMemo
         Left = 0
-        Top = 63
+        Top = 81
         Width = 596
-        Height = 222
+        Height = 204
         Align = alClient
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
@@ -447,12 +447,14 @@ object KExtMainForm: TKExtMainForm
         ReadOnly = True
         ScrollBars = ssVertical
         TabOrder = 0
+        ExplicitTop = 63
+        ExplicitHeight = 222
       end
       object ControlPanel: TPanel
         Left = 0
         Top = 0
         Width = 596
-        Height = 63
+        Height = 81
         Align = alTop
         BevelOuter = bvNone
         TabOrder = 1
@@ -521,6 +523,25 @@ object KExtMainForm: TKExtMainForm
           Action = RestartAction
           Flat = True
         end
+        object HomeURLLabel: TLabel
+          Left = 4
+          Top = 62
+          Width = 71
+          Height = 13
+          Cursor = crHandPoint
+          Hint = 'Click to change Application Home'
+          Caption = 'HomeURLLabel'
+          Color = clBtnFace
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clHotLight
+          Font.Height = -11
+          Font.Name = 'Tahoma'
+          Font.Style = [fsUnderline]
+          ParentColor = False
+          ParentFont = False
+          Visible = False
+          OnClick = HomeURLLabelClick
+        end
         object ConfigFileNameComboBox: TComboBox
           Left = 4
           Top = 22
@@ -561,7 +582,7 @@ object KExtMainForm: TKExtMainForm
     Left = 320
     Top = 65528
     Bitmap = {
-      494C010103004C00980010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C010103004C009C0010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000001000000001002000000000000010
       0000000000000000000000000000000000000000000000000000000000000000
       00000000001E00000031000000330000003300000033000000310000001E0000

@@ -67,14 +67,14 @@ type
     function GetAC: TKAccessController;
     function GetDBConnection(const ADatabaseName: string): TEFDBConnection;
     function GetAuthenticator: TKAuthenticator;
-    function GetDefaultDBConnection: TEFDBConnection;
     function GetDBAdapter(const ADatabaseName: string): TEFDBAdapter;
     function GetMacroExpansionEngine: TEFMacroExpansionEngine;
     function GetAppTitle: string;
     function GetModels: TKModels;
     function GetViews: TKViews;
     procedure FinalizeDBConnections;
-    function GetDefaultDBName: string;
+    function GetDefaultDatabaseName: string;
+    function GetDatabaseName: string;
   strict protected
     function GetConfigFileName: string; override;
     class function FindSystemHomePath: string;
@@ -199,18 +199,6 @@ type
     ///	access.</summary>
     property Views: TKViews read GetViews;
 
-    ///	<summary>Returns the default DB name, which can be configured through
-    ///	the DefaultDatabaseName config property. Default is 'Main'.</summary>
-    property DefaultDBName: string read GetDefaultDBName;
-
-    ///	<summary>Gives access to the default database connection, created on
-    ///	demand.</summary>
-    property DefaultDBConnection: TEFDBConnection read GetDefaultDBConnection;
-
-    ///	<summary>Returns True if the Main database connection has been created.
-    /// </summary>
-    function HasDefaultDBConnection: Boolean;
-
     ///	<summary>Gives access to a database connection by name, created on
     ///	demand.</summary>
     property DBConnections[const AName: string]: TEFDBConnection read GetDBConnection;
@@ -218,6 +206,11 @@ type
     ///	<summary>Returns the names of all defined database
     ///	connections.</summary>
     property DBConnectionNames: TStringDynArray read GetDBConnectionNames;
+
+    ///	<summary>Default DatabaseName to use when not specified elsewhere. Can
+    ///	be set through the DatabaseRouter/DatabaseName node or through the
+    ///	DefaultDatabaseName node.</summary>
+    property DatabaseName: string read GetDatabaseName;
 
     ///	<summary>Returns the application title, to be used for captions, about
     ///	boxes, etc.</summary>
@@ -281,7 +274,7 @@ implementation
 uses
   StrUtils, Variants,
   EF.SysUtils, EF.YAML, EF.Localization,
-  Kitto.Types;
+  Kitto.Types, Kitto.DatabaseRouter;
 
 procedure TKConfig.AfterConstruction;
 var
@@ -340,11 +333,6 @@ begin
   Result := GetAccessGrantValue(AResourceURI, AMode, Null) = ACV_TRUE;
 end;
 
-function TKConfig.GetDefaultDBConnection: TEFDBConnection;
-begin
-  Result := GetDBConnection(GetDefaultDBName);
-end;
-
 function TKConfig.GetDBConnection(const ADatabaseName: string): TEFDBConnection;
 var
   LConfig: TEFNode;
@@ -373,7 +361,19 @@ begin
     Result := nil;
 end;
 
-function TKConfig.GetDefaultDBName: string;
+function TKConfig.GetDatabaseName: string;
+var
+  LDatabaseRouterNode: TEFNode;
+begin
+  LDatabaseRouterNode := Config.FindNode('DatabaseRouter');
+  if Assigned(LDatabaseRouterNode) then
+    Result := TKDatabaseRouterFactory.Instance.GetDatabaseName(
+      LDatabaseRouterNode.AsString, Self, LDatabaseRouterNode)
+  else
+    Result := GetDefaultDatabaseName;
+end;
+
+function TKConfig.GetDefaultDatabaseName: string;
 begin
   Result := Config.GetExpandedString('DefaultDatabaseName', 'Main');
 end;
@@ -481,11 +481,6 @@ begin
     FViews.Open;
   end;
   Result := FViews;
-end;
-
-function TKConfig.HasDefaultDBConnection: Boolean;
-begin
-  Result := FDBConnections.ContainsKey(DefaultDBName);
 end;
 
 procedure TKConfig.CheckAccessGranted(const AResourceURI, AMode: string);

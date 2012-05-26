@@ -160,10 +160,8 @@ type
     procedure SetPassword(const AValue: string); override;
   end;
 
-  {
-    The Null authenticator does not require authentication data and always
-    grants authentication. It is used by default.
-  }
+  ///	<summary>The Null authenticator does not require authentication data and
+  ///	always grants authentication. It is used by default.</summary>
   TKNullAuthenticator = class(TKAuthenticator)
   protected
     procedure InternalDefineAuthData(
@@ -173,9 +171,8 @@ type
     function GetIsAuthenticated: Boolean; override;
   end;
 
-  {
-    This class holds a list of registered authenticator classes.
-  }
+  ///	<summary>This class holds a list of registered authenticator
+  ///	classes.</summary>
   TKAuthenticatorRegistry = class(TEFRegistry)
   private
     class var FInstance: TKAuthenticatorRegistry;

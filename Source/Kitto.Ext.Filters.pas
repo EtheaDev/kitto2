@@ -29,7 +29,7 @@ uses
   Types, DB,
   Ext, ExtPascal, ExtForm, ExtData,
   EF.Types, EF.Tree, EF.ObserverIntf,
-  Kitto.Ext.Base;
+  Kitto.DatabaseRouter, Kitto.Ext.Base;
 
 type
   ///	<summary>
@@ -171,6 +171,8 @@ type
 //    procedure ComboBoxChange(This: TExtFormField; NewValue, OldValue: string);
 //    procedure ComboBoxSelect(Combo: TExtFormComboBox; RecordJS: TExtDataRecord;
 //      Index: Integer);
+  protected
+    function GetDatabaseName: string;
   public
     function GetExpression: string;
     procedure SetConfig(const AConfig: TEFNode); override;
@@ -220,7 +222,7 @@ implementation
 uses
   SysUtils, Math, StrUtils,
   EF.Localization,  EF.DB, EF.StrUtils, EF.JSON,
-  Kitto.Types, Kitto.Ext.Session;
+  Kitto.Types, Kitto.Config, Kitto.Ext.Session;
 
 function GetDefaultFilter(const AItems: TEFNode): TEFNode;
 var
@@ -426,6 +428,18 @@ begin
   end;
 end;
 
+function TKDynaListFilter.GetDatabaseName: string;
+var
+  LDatabaseRouterNode: TEFNode;
+begin
+  LDatabaseRouterNode := FConfig.FindNode('DatabaseRouter');
+  if Assigned(LDatabaseRouterNode) then
+    Result := TKDatabaseRouterFactory.Instance.GetDatabaseName(
+      LDatabaseRouterNode.AsString, Self, LDatabaseRouterNode)
+  else
+    Result := TKConfig.Instance.DatabaseName;
+end;
+
 function TKDynaListFilter.GetExpression: string;
 begin
   if FCurrentValue <> '' then
@@ -466,7 +480,7 @@ begin
   AutoSelect := False;
   ForceSelection := True;
   Mode := 'local';
-  LDBQuery := Session.Config.DefaultDBConnection.CreateDBQuery;
+  LDBQuery := Session.Config.DBConnections[GetDatabaseName].CreateDBQuery;
   try
     LDBQuery.CommandText := FConfig.GetExpandedString('CommandText');
     LDBQuery.Open;
