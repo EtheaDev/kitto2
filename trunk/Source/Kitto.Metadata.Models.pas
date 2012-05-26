@@ -355,6 +355,7 @@ type
     function GetCatalog: TKModels;
     function GetDBTableName: string;
     function GetPhysicalName: string;
+    function GetDatabaseName: string;
     const DEFAULT_IMAGE_NAME = 'default_model';
     class function BeautifyModelName(const AModelName: string): string;
   protected
@@ -457,6 +458,8 @@ type
     property CaptionField: TKModelField read GetCaptionField;
 
     property Rules: TKRules read GetRules;
+
+    property DatabaseName: string read GetDatabaseName;
   end;
 
   TKModelList = class(TList<TKModel>)
@@ -495,7 +498,7 @@ implementation
 uses
   StrUtils, Variants,
   EF.StrUtils, EF.VariantUtils, EF.Localization,
-  Kitto.Types, Kitto.Config;
+  Kitto.Types, Kitto.Config, Kitto.DatabaseRouter;
 
 function Pluralize(const AName: string): string;
 begin
@@ -829,6 +832,18 @@ end;
 function TKModel.GetDetailReferences: TKModelDetailReferences;
 begin
   Result := FindChild('DetailReferences', True) as TKModelDetailReferences;
+end;
+
+function TKModel.GetDatabaseName: string;
+var
+  LDatabaseRouterNode: TEFNode;
+begin
+  LDatabaseRouterNode := FindNode('DatabaseRouter');
+  if Assigned(LDatabaseRouterNode) then
+    Result := TKDatabaseRouterFactory.Instance.GetDatabaseName(
+      LDatabaseRouterNode.AsString, Self, LDatabaseRouterNode)
+  else
+    Result := TKConfig.Instance.DatabaseName;
 end;
 
 function TKModel.GetDBTableName: string;

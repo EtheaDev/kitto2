@@ -46,6 +46,7 @@ type
     procedure ReloadCurrentUserPermissions;
     procedure LoadGranteePermissions(const AGranteeId: string);
     procedure GetUserRoles(const AUserId: string; const ARoleList: TStrings);
+    function GetDatabaseName: string;
   public
     procedure AfterConstruction; override;
     destructor Destroy; override;
@@ -191,7 +192,7 @@ implementation
 uses
   SysUtils, Variants,
   EF.DB, EF.RegEx,
-  Kitto.Config;
+  Kitto.Config, Kitto.DatabaseRouter;
   
 { TKDBAccessController }
 
@@ -304,7 +305,7 @@ begin
   Assert(AGranteeId <> '');
   Assert(FReadPermissionsCommandText <> '');
 
-  LPermissionQuery := TKConfig.Instance.DefaultDBConnection.CreateDBQuery;
+  LPermissionQuery := TKConfig.Instance.DBConnections[GetDatabaseName].CreateDBQuery;
   try
     LPermissionQuery.CommandText := FReadPermissionsCommandText;
     LPermissionQuery.Params[0].AsString := AGranteeId;
@@ -317,6 +318,18 @@ begin
   finally
     FreeAndNil(LPermissionQuery);
   end;
+end;
+
+function TKUserPermissionStorage.GetDatabaseName: string;
+var
+  LDatabaseRouterNode: TEFNode;
+begin
+  LDatabaseRouterNode := Config.FindNode('DatabaseRouter');
+  if Assigned(LDatabaseRouterNode) then
+    Result := TKDatabaseRouterFactory.Instance.GetDatabaseName(
+      LDatabaseRouterNode.AsString, Self, LDatabaseRouterNode)
+  else
+    Result := GetDatabaseName;
 end;
 
 function TKUserPermissionStorage.GetAccessGrantValue(const AResourceURI, AMode: string): Variant;
@@ -364,7 +377,7 @@ begin
   Assert(Assigned(ARoleList));
   Assert(FReadRolesCommandText <> '');
 
-  LRoleQuery := TKConfig.Instance.DefaultDBConnection.CreateDBQuery;
+  LRoleQuery := TKConfig.Instance.DBConnections[GetDatabaseName].CreateDBQuery;
   try
     LRoleQuery.CommandText := FReadRolesCommandText;
     LRoleQuery.Params[0].AsString := AUserId;

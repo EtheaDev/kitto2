@@ -350,6 +350,7 @@ type
     function GetImageName: string;
     function GetModelDetailReferenceName: string;
     function GetModelDetailReference: TKModelDetailReference;
+    function GetDatabaseName: string;
   protected
     function GetChildClass(const AName: string): TEFNodeClass; override;
     function GetFields: TKViewFields;
@@ -464,17 +465,21 @@ type
     ///	returns its AliasedName, otherwise the specified field name is
     ///	returned.</summary>
     function ApplyFieldAliasedName(const AFieldName: string): string;
+
+    property DatabaseName: string read GetDatabaseName;
   end;
 
   TKDataView = class(TKView)
   private
     function GetMainTable: TKViewTable;
+    function GetDatabaseName: string;
   protected
     function GetChildClass(const AName: string): TEFNodeClass; override;
     function GetDisplayLabel: string; override;
     function GetImageName: string; override;
   public
     property MainTable: TKViewTable read GetMainTable;
+    property DatabaseName: string read GetDatabaseName;
   end;
 
   TKFileReferenceDataType = class(TEFStringDataType)
@@ -487,7 +492,8 @@ implementation
 uses
   StrUtils, Variants, TypInfo,
   EF.DB, EF.StrUtils, EF.VariantUtils, EF.Macros,
-  Kitto.SQL, Kitto.Types, Kitto.Config, Kitto.AccessControl;
+  Kitto.SQL, Kitto.Types, Kitto.Config, Kitto.AccessControl,
+  Kitto.DatabaseRouter;
 
 { TKDataView }
 
@@ -497,6 +503,18 @@ begin
     Result := TKViewTable
   else
     Result := inherited GetChildClass(AName);
+end;
+
+function TKDataView.GetDatabaseName: string;
+var
+  LDatabaseRouterNode: TEFNode;
+begin
+  LDatabaseRouterNode := FindNode('DatabaseRouter');
+  if Assigned(LDatabaseRouterNode) then
+    Result := TKDatabaseRouterFactory.Instance.GetDatabaseName(
+      LDatabaseRouterNode.AsString, Self, LDatabaseRouterNode)
+  else
+    Result := '';
 end;
 
 function TKDataView.GetDisplayLabel: string;
@@ -691,6 +709,22 @@ begin
   except
     FreeAndNil(Result);
     raise;
+  end;
+end;
+
+function TKViewTable.GetDatabaseName: string;
+var
+  LDatabaseRouterNode: TEFNode;
+begin
+  LDatabaseRouterNode := FindNode('DatabaseRouter');
+  if Assigned(LDatabaseRouterNode) then
+    Result := TKDatabaseRouterFactory.Instance.GetDatabaseName(
+      LDatabaseRouterNode.AsString, Self, LDatabaseRouterNode)
+  else
+  begin
+    Result := View.DatabaseName;
+    if Result = '' then
+      Result := Model.DatabaseName;
   end;
 end;
 
@@ -1064,7 +1098,7 @@ begin
       for LDerivedField in LDerivedFields do
         Result.Header.AddChild(LDerivedField.AliasedName).DataType := LDerivedField.DataType;
     // Get data.
-    LDBQuery := TKConfig.Instance.DefaultDBConnection.CreateDBQuery;
+    LDBQuery := TKConfig.Instance.DBConnections[Table.DatabaseName].CreateDBQuery;
     try
       TKSQLBuilder.BuildDerivedSelectQuery(Self, LDBQuery, AKeyValues);
       Result.Load(LDBQuery);
@@ -1494,17 +1528,19 @@ end;
 procedure TKViewTableStore.Save(const AUseTransaction: Boolean);
 var
   I: Integer;
+  LConnection: TEFDBConnection;
 begin
+  LConnection := TKConfig.Instance.DBConnections[ViewTable.DatabaseName];
   if AUseTransaction then
-    TKConfig.Instance.DefaultDBConnection.StartTransaction;
+    LConnection.StartTransaction;
   try
     for I := 0 to RecordCount - 1 do
       Records[I].Save(False);
     if AUseTransaction then
-      TKConfig.Instance.DefaultDBConnection.CommitTransaction;
+      LConnection.CommitTransaction;
   except
     if AUseTransaction then
-      TKConfig.Instance.DefaultDBConnection.RollbackTransaction;
+      LConnection.RollbackTransaction;
     raise;
   end;
 end;
@@ -1566,7 +1602,7 @@ var
 begin
   Assert(Assigned(FViewTable));
 
-  LDBQuery := TKConfig.Instance.DefaultDBConnection.CreateDBQuery;
+  LDBQuery := TKConfig.Instance.DBConnections[ViewTable.DatabaseName].CreateDBQuery;
   try
     TKSQLBuilder.BuildSelectQuery(FViewTable, AFilter, AOrderBy, LDBQuery, FMasterRecord);
     inherited Load(LDBQuery);
@@ -1587,7 +1623,7 @@ begin
   end
   else
   begin
-    LDBQuery := TKConfig.Instance.DefaultDBConnection.CreateDBQuery;
+    LDBQuery := TKConfig.Instance.DBConnections[ViewTable.DatabaseName].CreateDBQuery;
     try
       TKSQLBuilder.BuildCountQuery(FViewTable, AFilter, LDBQuery, FMasterRecord);
       LDBQuery.Open;
@@ -1783,15 +1819,17 @@ var
   LRowsAffected: Integer;
   I: Integer;
   LFileToDelete: string;
+  LDBConnection: TEFDBConnection;
 begin
   if State = rsClean then
     Exit;
 
   // BEFORE rules are applied before calling this method.
+  LDBConnection := TKConfig.Instance.DBConnections[ViewTable.DatabaseName];
   if AUseTransaction then
-    TKConfig.Instance.DefaultDBConnection.StartTransaction;
+    LDBConnection.StartTransaction;
   try
-    LDBCommand := TKConfig.Instance.DefaultDBConnection.CreateDBCommand;
+    LDBCommand := LDBConnection.CreateDBCommand;
     try
       case State of
         rsNew: TKSQLBuilder.BuildInsertCommand(Records.Store.ViewTable, LDBCommand, Self);
@@ -1808,7 +1846,7 @@ begin
         DetailStores[I].Save(False);
       ApplyAfterRules;
       if AUseTransaction then
-        TKConfig.Instance.DefaultDBConnection.CommitTransaction;
+        LDBConnection.CommitTransaction;
       // Take care of any cleared external files.
       for I := 0 to FieldCount - 1 do
       begin
@@ -1825,7 +1863,7 @@ begin
     end;
   except
     if AUseTransaction then
-      TKConfig.Instance.DefaultDBConnection.RollbackTransaction;
+      LDBConnection.RollbackTransaction;
     raise;
   end;
 end;

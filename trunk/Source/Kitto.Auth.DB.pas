@@ -148,6 +148,8 @@ type
     ///	supplied password matches the passpartout password.</summary>
     function InternalAuthenticate(const AAuthData: TEFNode): Boolean; override;
   protected
+    function GetDatabaseName: string;
+
     ///	<summary>Returns the SQL statement to be used to update the password
     ///	(or password hash) in a user's record in the database. Override this
     ///	method to change the name or the structure of the predefined table of
@@ -224,7 +226,7 @@ implementation
 uses
   SysUtils, Classes, Variants,
   EF.Localization,  EF.Types, EF.StrUtils,
-  Kitto.Types, Kitto.Config;
+  Kitto.Types, Kitto.Config, Kitto.DatabaseRouter;
 
 { TKDBAuthenticator }
 
@@ -234,7 +236,7 @@ var
   LQuery: TEFDBQuery;
 begin
   Result := nil;
-  LQuery := TKConfig.Instance.DefaultDBConnection.CreateDBQuery;
+  LQuery := TKConfig.Instance.DBConnections[GetDatabaseName].CreateDBQuery;
   try
     LQuery.CommandText := GetReadUserCommandText(AUserName);
     if LQuery.Params.Count <> 1 then
@@ -276,6 +278,18 @@ begin
   Result := Config.GetExpandedString('AfterAuthenticateCommandText');
 end;
 
+function TKDBAuthenticator.GetDatabaseName: string;
+var
+  LDatabaseRouterNode: TEFNode;
+begin
+  LDatabaseRouterNode := Config.FindNode('DatabaseRouter');
+  if Assigned(LDatabaseRouterNode) then
+    Result := TKDatabaseRouterFactory.Instance.GetDatabaseName(
+      LDatabaseRouterNode.AsString, Self, LDatabaseRouterNode)
+  else
+    Result := GetDatabaseName;
+end;
+
 function TKDBAuthenticator.GetIsClearPassword: Boolean;
 begin
   Result := Config.GetBoolean('IsClearPassword');
@@ -302,6 +316,19 @@ begin
 end;
 
 procedure TKDBAuthenticator.InternalAfterAuthenticate(const AAuthData: TEFNode);
+
+  function GetLocalDatabaseName: string;
+  var
+    LDatabaseRouterNode: TEFNode;
+  begin
+    LDatabaseRouterNode := Config.FindNode('AfterAuthenticateDatabaseRouter');
+    if Assigned(LDatabaseRouterNode) then
+      Result := TKDatabaseRouterFactory.Instance.GetDatabaseName(
+        LDatabaseRouterNode.AsString, Self, LDatabaseRouterNode)
+    else
+      Result := TKConfig.Instance.DatabaseName;
+  end;
+
 var
   LCommand: TEFDBCommand;
   LAfterAuthenticateCommandText: string;
@@ -311,7 +338,7 @@ begin
 
   if LAfterAuthenticateCommandText <> '' then
   begin
-    LCommand := TKConfig.Instance.DefaultDBConnection.CreateDBCommand;
+    LCommand := TKConfig.Instance.DBConnections[GetLocalDatabaseName].CreateDBCommand;
     try
       LCommand.CommandText := LAfterAuthenticateCommandText;
       LCommand.Execute;
@@ -364,7 +391,7 @@ var
 begin
   Result := False;
 
-  LQuery := TKConfig.Instance.DefaultDBConnection.CreateDBQuery;
+  LQuery := TKConfig.Instance.DBConnections[GetDatabaseName].CreateDBQuery;
   try
     LQuery.CommandText := GetReadUserCommandText(AUserName);
     if LQuery.Params.Count <> 1 then
@@ -416,7 +443,7 @@ begin
     LPasswordHash := GetStringHash(AValue);
 
   LCommandText := GetSetPasswordCommandText;
-  LCommand := TKConfig.Instance.DefaultDBConnection.CreateDBCommand;
+  LCommand := TKConfig.Instance.DBConnections[GetDatabaseName].CreateDBCommand;
   try
     LCommand.CommandText := LCommandText;
     LCommand.Params.ParamByName('USER_NAME').AsString := UserName;

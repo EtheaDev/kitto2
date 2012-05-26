@@ -136,7 +136,7 @@ begin
 
   FUserName := TExtFormTextField.AddTo(FFormPanel.Items);
   FUserName.Name := 'UserName';
-  FUserName.Value := Session.Config.Authenticator.AuthData.GetString('UserName');
+  FUserName.Value := Session.Config.Authenticator.AuthData.GetExpandedString('UserName');
   FUserName.FieldLabel := _('User Name');
   FUserName.AllowBlank := False;
   FUserName.Width := 136;
@@ -144,7 +144,7 @@ begin
 
   FPassword := TExtFormTextField.AddTo(FFormPanel.Items);
   FPassword.Name := 'Password';
-  FPassword.Value := Session.Config.Authenticator.AuthData.GetString('Password');
+  FPassword.Value := Session.Config.Authenticator.AuthData.GetExpandedString('Password');
   FPassword.FieldLabel := _('Password');
   FPassword.InputType := itPassword;
   FPassword.AllowBlank := False;
