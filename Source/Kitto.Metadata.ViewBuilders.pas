@@ -64,38 +64,13 @@ procedure TKAutoViewBuilderBase.AddFields(const AViewTable: TKViewTable;
 var
   LFields: TKViewFields;
   I: Integer;
-  LField: TKModelField;
-  LViewField: TKViewField;
 begin
   Assert(Assigned(AViewTable));
   Assert(Assigned(AModel));
 
   LFields := AViewTable.AddChild(TKViewFields.Create('Fields')) as TKViewFields;
   for I := 0 to AModel.FieldCount - 1 do
-  begin
-    LField := AModel.Fields[I];
-
-    LViewField := TKViewField.Create;
-    try
-      if LField.IsReference and not Assigned(LField.ReferencedModel.FindDetailReferenceByField(LField)) then
-      begin
-        // Add caption field of referenced model.
-        LViewField.Rename(LField.ReferencedModel.ModelName + '.' +
-          LField.ReferencedModel.CaptionField.FieldName);
-        // AsString is the alias name.
-        LViewField.AsString := LField.ReferencedModel.ModelName;
-      end
-      else
-      begin
-        // Add plain field.
-        LViewField.Rename(LField.FieldName);
-      end;
-      LFields.AddChild(LViewField);
-    except
-      FreeAndNil(LViewField);
-      raise;
-    end;
-  end;
+    LFields.AddChild(TKViewField.Create(AModel.Fields[I].FieldName));
 end;
 
 procedure TKAutoViewBuilderBase.AddDetailTables(const AViewTable: TKViewTable;
