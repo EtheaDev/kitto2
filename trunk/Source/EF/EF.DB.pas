@@ -505,13 +505,15 @@ type
   ///	</summary>
   TEFDBAdapterRegistry = class
   private
-    FAdapters: TDictionary<string, TEFDBAdapter>;
+    FDBAdapters: TDictionary<string, TEFDBAdapter>;
     FDefaultAdapter: TEFDBAdapter;
     class var FInstance: TEFDBAdapterRegistry;
     class function GetInstance: TEFDBAdapterRegistry; static;
     function GetDBAdapter(const AId: string): TEFDBAdapter;
     procedure AdaptersValueNotify(Sender: TObject; const Item: TEFDBAdapter;
       Action: TCollectionNotification);
+    function GetDBAdapterByIndex(const AIndex: Integer): TEFDBAdapter;
+    function GetDBAdapterCount: Integer;
   public
     class destructor Destroy;
     procedure AfterConstruction; override;
@@ -526,6 +528,9 @@ type
     ///	  otherwise an exception is raised.
     ///	</summary>
     property DBAdapters[const AId: string]: TEFDBAdapter read GetDBAdapter; default;
+
+    property DBAdapterCount: Integer read GetDBAdapterCount;
+    property DBAdaptersByIndex[const AIndex: Integer]: TEFDBAdapter read GetDBAdapterByIndex;
 
     class property Instance: TEFDBAdapterRegistry read GetInstance;
   end;
@@ -548,8 +553,8 @@ end;
 procedure TEFDBAdapterRegistry.AfterConstruction;
 begin
   inherited;
-  FAdapters := TDictionary<string, TEFDBAdapter>.Create;
-  FAdapters.OnValueNotify := AdaptersValueNotify;
+  FDBAdapters := TDictionary<string, TEFDBAdapter>.Create;
+  FDBAdapters.OnValueNotify := AdaptersValueNotify;
 end;
 
 procedure TEFDBAdapterRegistry.AdaptersValueNotify(Sender: TObject;
@@ -564,10 +569,10 @@ var
   LAdapter: TEFDBAdapter;
 begin
   inherited;
-  for LAdapter in FAdapters.Values do
+  for LAdapter in FDBAdapters.Values do
     LAdapter.Free;
-  FAdapters.Clear;
-  FreeAndNil(FAdapters);
+  FDBAdapters.Clear;
+  FreeAndNil(FDBAdapters);
 end;
 
 class destructor TEFDBAdapterRegistry.Destroy;
@@ -580,21 +585,32 @@ begin
   if (AId = '') and (FDefaultAdapter <> nil) then
     Result := FDefaultAdapter
   else
-    Result := FAdapters[AId];
+    Result := FDBAdapters[AId];
+end;
+
+function TEFDBAdapterRegistry.GetDBAdapterByIndex(
+  const AIndex: Integer): TEFDBAdapter;
+begin
+  Result := FDBAdapters.Values.ToArray[AIndex];
+end;
+
+function TEFDBAdapterRegistry.GetDBAdapterCount: Integer;
+begin
+  Result := FDBAdapters.Count;
 end;
 
 procedure TEFDBAdapterRegistry.RegisterDBAdapter(const AId: string;
   const ADBAdapter: TEFDBAdapter);
 begin
-  FAdapters.Add(AId, ADBAdapter);
+  FDBAdapters.Add(AId, ADBAdapter);
   if FDefaultAdapter = nil then
     FDefaultAdapter := ADBAdapter;
 end;
 
 procedure TEFDBAdapterRegistry.UnregisterDBAdapter(const AId: string);
 begin
-  FAdapters.Remove(AId);
-  if not FAdapters.ContainsValue(FDefaultAdapter) then
+  FDBAdapters.Remove(AId);
+  if not FDBAdapters.ContainsValue(FDefaultAdapter) then
     FDefaultAdapter := nil;
 end;
 

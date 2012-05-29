@@ -171,6 +171,7 @@ type
   TEFDBDBXAdapter = class(TEFDBAdapter)
   protected
     function InternalCreateDBConnection: TEFDBConnection; override;
+    class function InternalGetClassId: string; override;
   end;
 
 implementation
@@ -589,6 +590,11 @@ begin
   Result := TEFDBDBXConnection.Create;
 end;
 
+class function TEFDBDBXAdapter.InternalGetClassId: string;
+begin
+  Result := 'DBX';
+end;
+
 { TEFDBDBXInfo }
 
 procedure TEFDBDBXInfo.BeforeFetchInfo;
@@ -859,9 +865,9 @@ begin
 end;
 
 initialization
-  TEFDBAdapterRegistry.Instance.RegisterDBAdapter('DBX', TEFDBDBXAdapter.Create);
+  TEFDBAdapterRegistry.Instance.RegisterDBAdapter(TEFDBDBXAdapter.GetClassId, TEFDBDBXAdapter.Create);
 
 finalization
-  TEFDBAdapterRegistry.Instance.UnregisterDBAdapter('DBX');
+  TEFDBAdapterRegistry.Instance.UnregisterDBAdapter(TEFDBDBXAdapter.GetClassId);
 
 end.
