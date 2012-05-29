@@ -146,6 +146,7 @@ type
   TEFDBADOAdapter = class(TEFDBAdapter)
   protected
     function InternalCreateDBConnection: TEFDBConnection; override;
+    class function InternalGetClassId: string; override;
   end;
 
 implementation
@@ -671,10 +672,15 @@ begin
   end;
 end;
 
+class function TEFDBADOAdapter.InternalGetClassId: string;
+begin
+  Result := 'ADO';
+end;
+
 initialization
-  TEFDBAdapterRegistry.Instance.RegisterDBAdapter('ADO', TEFDBADOAdapter.Create);
+  TEFDBAdapterRegistry.Instance.RegisterDBAdapter(TEFDBADOAdapter.GetClassId, TEFDBADOAdapter.Create);
 
 finalization
-  TEFDBAdapterRegistry.Instance.UnregisterDBAdapter('ADO');
+  TEFDBAdapterRegistry.Instance.UnregisterDBAdapter(TEFDBADOAdapter.GetClassId);
 
 end.
