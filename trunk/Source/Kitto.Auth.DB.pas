@@ -287,7 +287,7 @@ begin
     Result := TKDatabaseRouterFactory.Instance.GetDatabaseName(
       LDatabaseRouterNode.AsString, Self, LDatabaseRouterNode)
   else
-    Result := GetDatabaseName;
+    Result := TKConfig.Instance.DatabaseName;
 end;
 
 function TKDBAuthenticator.GetIsClearPassword: Boolean;

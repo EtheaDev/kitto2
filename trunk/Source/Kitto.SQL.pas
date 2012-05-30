@@ -554,9 +554,9 @@ begin
   finally
     ADBQuery.Params.EndUpdate;
   end;
-  if Assigned(AMastervalues) then
-    for I := 0 to ADBQuery.Params.Count - 1 do
-      AMasterValues.GetNode(ADBQuery.Params[I].Name).AssignValueToParam(ADBQuery.Params[I]);
+  Assert((ADBQuery.Params.Count = 0) or Assigned(AMasterValues));
+  for I := 0 to ADBQuery.Params.Count - 1 do
+    AMasterValues.GetNode(ADBQuery.Params[I].Name).AssignValueToParam(ADBQuery.Params[I]);
 end;
 
 procedure TKSQLBuilder.InternalBuildCountQuery(const AViewTable: TKViewTable;
@@ -589,6 +589,7 @@ build only those that affect the count (outer joins). }
   finally
     ADBQuery.Params.EndUpdate;
   end;
+  Assert((ADBQuery.Params.Count = 0) or Assigned(AMasterValues));
   for I := 0 to ADBQuery.Params.Count - 1 do
     AMasterValues.GetNode(ADBQuery.Params[I].Name).AssignValueToParam(ADBQuery.Params[I]);
 end;
