@@ -66,13 +66,13 @@ begin
     Result := TKDatabaseRouterFactory.Instance.GetDatabaseName(
       LDatabaseRouterNode.AsString, Self, LDatabaseRouterNode)
   else
-    Result := GetDatabaseName;
+    Result := TKConfig.Instance.DatabaseName;
 end;
 
 function TKDBServerAuthenticator.InternalAuthenticate(const AAuthData: TEFNode): Boolean;
 begin
   try
-    TKConfig.Instance.DBConnections[getd].Open;
+    TKConfig.Instance.DBConnections[GetDatabaseName].Open;
     Result := True;
   except
     Result := False;
