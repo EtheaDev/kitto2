@@ -664,7 +664,7 @@ end;
 
 function TKViewTable.GetModel: TKModel;
 begin
-  Result := View.Catalog.Models.FindModel(ModelName);
+  Result := View.Catalog.Models.ModelByName(ModelName);
 end;
 
 function TKViewTable.GetModelDetailReference: TKModelDetailReference;

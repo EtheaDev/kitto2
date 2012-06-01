@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0\n"
 "POT-Creation-Date: 2012-04-20 11:54\n"
-"PO-Revision-Date: 2012-04-20 11:57+0100\n"
+"PO-Revision-Date: 2012-06-01 16:09+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -317,7 +317,7 @@ msgstr "%s cancellato."
 
 #: Kitto.Ext.GridPanel.pas:656
 msgid "View %s"
-msgstr "Vista %s"
+msgstr "Mostra %s"
 
 #: Kitto.Ext.GridPanel.pas:667
 msgid "Delete %s"
