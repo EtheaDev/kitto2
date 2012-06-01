@@ -731,11 +731,11 @@ begin
   else
     Collapsible := False;
 
-  LHeader := Config.FindNode('ShowHeader');
+  LHeader := Config.FindNode('Header');
   if Assigned(LHeader) then
     Header := LHeader.AsBoolean
   else
-    Header := False;
+    Header := Title <> '';
 
   CreateTopToolbar;
 end;
