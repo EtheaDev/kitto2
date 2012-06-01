@@ -1,11 +1,11 @@
-Type: Tree
+﻿Type: Tree
 Folder: Options
   #View: Girls
   #View: Dolls
   View: Parties
 Folder: Lookup tables
   View: Build AutoList
-    Model: HAIR
+    Model: Hair
     MainTable:
       Controller:
         PopupWindow:
