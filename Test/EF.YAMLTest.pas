@@ -81,9 +81,18 @@ begin
   LTree := TEFTree.Create;
   try
     FReader.LoadTreeFromFile(LTree, GetWorkDirectory + FILENAME);
-    CheckEquals(4, LTree.ChildCount);
+    CheckEquals(6, LTree.ChildCount);
+
+    CheckEquals('A:Node:With:Colons', LTree.Children[1].Name);
+    CheckEquals('A:Value:With:Colons', LTree.Children[1].AsString);
+
+    CheckEquals('ANodeWithoutColons', LTree.Children[2].Name);
+    CheckEquals('A value with "s', LTree.Children[2].AsString);
+
     CheckEquals(4, LTree.Children[0].ChildCount);
-    CheckEqualsString('>', LTree.Children[3].ValueAttributes);
+    CheckEquals('>', LTree.Children[4].ValueAttributes);
+
+    CheckEquals('<div><span style="float:left;margin:5px;text-align:center"><img width="65px" src="%IMAGE(kitto_logo_150)%"></img></span><span style="float:left;margin:1px;font-size:10pt"><p>TEST<br/>KDataCenter</p></span></div>', LTree.Children[5].AsString);
   finally
     FreeAndNil(LTree);
   end;
