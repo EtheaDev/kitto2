@@ -13,5 +13,6 @@ Folder: Maintenance
   View: Users
     ImageName: user
   View:
+    Controller: Logout
     DisplayLabel: Logout
     ImageName: login

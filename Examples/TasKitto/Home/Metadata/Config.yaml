@@ -14,11 +14,9 @@ Databases:
 
 Auth: DB
   IsClearPassword: True
-  IsPassepartoutEnabled: True
-  PassepartoutPassword: d8578edf8458ce06fbc5bb76a58c5ca4
   Defaults:
     UserName: admin
-    Password: admin
+    #Password: admin
 
 AccessControl: Null
     
@@ -35,3 +33,6 @@ LanguageId: en
 # Either utf-8 or a SBCS corresponding to the system code page
 # (such as iso-8859-1 for Western Europe). Defaults to utf-8.
 Charset: utf-8
+
+FastCGI:
+  TCPPort: 2015

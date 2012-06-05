@@ -41,7 +41,6 @@ type
     class procedure FreeSingletonInstance;
     procedure AfterConstruction; override;
     property FileName: string read FFileName write SetFileName;
-
   end;
 
 implementation

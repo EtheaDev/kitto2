@@ -275,6 +275,8 @@ begin
     FHomeController := nil;
     FLoginWindow := nil;
     FOpenControllers.Clear;
+    FViewHost := nil;
+    FStatusHost := nil;
   end;
 
   if not IsAjax then
@@ -371,7 +373,7 @@ end;
 procedure TKExtSession.Logout;
 begin
   Config.Authenticator.Logout;
-  Home;
+  Session.JSCode('window.location.reload();');
 end;
 
 procedure TKExtSession.Navigate(const AURL: string);
@@ -398,12 +400,19 @@ begin
 end;
 
 function TKExtSession.DisplayNewController(const AView: TKView): IKExtController;
+var
+  LIsSynchronous: Boolean;
 begin
   Assert(Assigned(AView));
 
   Result := TKExtControllerFactory.Instance.CreateController(AView, FViewHost);
-  FOpenControllers.Add(Result.AsObject);
+  LIsSynchronous := Result.IsSynchronous;
+  if not LIsSynchronous then
+    FOpenControllers.Add(Result.AsObject);
   Result.Display;
+  // Synchronous controllers end their life inside Display.
+  if LIsSynchronous then
+    NilEFIntf(Result);
 end;
 
 function TKExtSession.FindOpenController(const AView: TKView): IKExtController;
@@ -442,7 +451,7 @@ begin
       if not Assigned(LController) then
         LController := DisplayNewController(AView);
     end;
-    if LController.SupportsContainer and Assigned(FViewHost) then
+    if Assigned(LController) and LController.SupportsContainer and Assigned(FViewHost) then
       SetViewHostActiveTab(LController.AsObject);
     ClearStatus;
   end;
