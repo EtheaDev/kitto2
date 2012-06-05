@@ -25,7 +25,6 @@ type
     FServiceName: string;
     FServiceDisplayName: string;
   public
-    class constructor Create;
     class property ServiceName: string read FServiceName write FServiceName;
     class property ServiceDisplayName: string read FServiceDisplayName write FServiceDisplayName;
     class procedure Start;
@@ -41,37 +40,26 @@ uses
 
 { TKExtStart }
 
-class constructor TKExtStart.Create;
-var
-  LConfig: TKConfig;
-begin
-  FServiceName := TKConfig.AppName;
-  LConfig := TKConfig.Create;
-  try
-    FServiceDisplayName := _(LConfig.AppTitle);
-  finally
-    FreeAndNil(LConfig);
-  end;
-end;
-
 class procedure TKExtStart.Start;
 
-  procedure ConfigureLogging;
+  procedure Configure;
   var
     LConfig: TKConfig;
   begin
     LConfig := TKConfig.Create;
     try
       TEFLogger.Instance.Configure(LConfig.Config.FindNode('Log'), LConfig.MacroExpansionEngine);
+      FServiceName := TKConfig.AppName;
+      FServiceDisplayName := _(LConfig.AppTitle);
     finally
       FreeAndNil(LConfig);
     end;
   end;
 
 begin
-  ConfigureLogging;
+  Configure;
 
-  if IsUserAnAdmin then
+  if IsUserAnAdmin and not FindCmdLineSwitch('a') then
   begin
     TEFLogger.Instance.Log('Starting as service.');
     if not SvcMgr.Application.DelayInitialize or SvcMgr.Application.Installing then

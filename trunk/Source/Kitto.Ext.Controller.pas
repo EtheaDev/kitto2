@@ -51,6 +51,12 @@ type
     property Container: TExtContainer read GetContainer write SetContainer;
 
     function SupportsContainer: Boolean;
+
+    ///	<summary>Returns True if the controller should be freed right after
+    ///	calling Display because it does all its job inside that method, and
+    ///	False if the controller stays on screen and is interactive
+    ///	instead.</summary>
+    function IsSynchronous: Boolean;
   end;
 
   ///	<summary>

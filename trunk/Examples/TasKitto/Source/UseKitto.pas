@@ -3,7 +3,7 @@ unit UseKitto;
 interface
 
 uses
-  // EF.DB.ADO,
+  EF.DB.ADO,
   EF.DB.DBX,
   // Kitto.AccessControl.DB,
   Kitto.Auth.DB,

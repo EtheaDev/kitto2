@@ -1,5 +1,6 @@
 object KExtService: TKExtService
   OldCreateOrder = False
+  AllowPause = False
   DisplayName = 'KittoService'
   OnShutdown = ServiceShutdown
   OnStart = ServiceStart

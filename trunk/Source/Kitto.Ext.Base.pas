@@ -61,6 +61,7 @@ type
     procedure NotifyObservers(const AContext: string = ''); virtual;
     procedure UpdateObserver(const ASubject: IEFSubject; const AContext: string = ''); virtual;
     function SupportsContainer: Boolean;
+    function IsSynchronous: Boolean;
 
     property View: TKView read GetView write SetView;
     procedure Display;
@@ -113,6 +114,7 @@ type
     procedure NotifyObservers(const AContext: string = ''); virtual;
     procedure UpdateObserver(const ASubject: IEFSubject; const AContext: string = ''); virtual;
     function SupportsContainer: Boolean;
+    function IsSynchronous: Boolean;
 
     property View: TKView read GetView write SetView;
     procedure Display;
@@ -202,6 +204,7 @@ type
   public
     destructor Destroy; override;
     function SupportsContainer: Boolean; virtual;
+    function IsSynchronous: Boolean;
     property View: TKView read GetView write SetView;
     procedure Display;
   end;
@@ -209,8 +212,9 @@ type
   ///	<summary>Base class for controllers that don't have a specific visual
   ///	representation, yet can be used to render views, such as custom action
   ///	controllers.</summary>
-  TKExtControllerBase = class(TExtObject, IInterface, IEFInterface, IKExtController)
+  TKExtControllerBase = class(TExtObject, IInterface, IEFInterface, IKExtController, IEFSubject, IEFObserver)
   private
+    FSubjObserverImpl: TEFSubjectAndObserver;
     FView: TKView;
     FContainer: TExtContainer;
     FConfig: TEFNode;
@@ -220,6 +224,7 @@ type
     procedure DoDisplay; virtual;
     function GetContainer: TExtContainer;
     procedure SetContainer(const AValue: TExtContainer);
+    procedure InitDefaults; override;
     property Container: TExtContainer read GetContainer write SetContainer;
     function GetConfig: TEFNode;
   public
@@ -229,10 +234,16 @@ type
     function _AddRef: Integer; stdcall;
     function _Release: Integer; stdcall;
     function SupportsContainer: Boolean; virtual;
+    function IsSynchronous: Boolean; virtual;
     property View: TKView read GetView write SetView;
     procedure Display;
     property Config: TEFNode read GetConfig;
     procedure Apply(const AProc: TProc<IKExtController>); virtual;
+
+    procedure AttachObserver(const AObserver: IEFObserver); virtual;
+    procedure DetachObserver(const AObserver: IEFObserver); virtual;
+    procedure NotifyObservers(const AContext: string = ''); virtual;
+    procedure UpdateObserver(const ASubject: IEFSubject; const AContext: string = ''); virtual;
   end;
 
   ///	<summary>Base class for tool controllers.</summary>
@@ -240,6 +251,9 @@ type
   protected
     procedure ExecuteTool; virtual;
     procedure DoDisplay; override;
+  public
+    function SupportsContainer: Boolean; override;
+    function IsSynchronous: Boolean; override;
   end;
 
   TKExtFormComboBox = class(TExtFormComboBox, IInterface, IEFInterface, IEFSubject)
@@ -348,6 +362,11 @@ begin
   Layout := lyBorder;
   Border := False;
   Plain := True;
+end;
+
+function TKExtWindowControllerBase.IsSynchronous: Boolean;
+begin
+  Result := False;
 end;
 
 procedure TKExtWindowControllerBase.NotifyObservers(const AContext: string);
@@ -535,6 +554,11 @@ begin
   inherited;
   FSubjObserverImpl := TEFSubjectAndObserver.Create;
   Layout := lyBorder;
+end;
+
+function TKExtViewportControllerBase.IsSynchronous: Boolean;
+begin
+  Result := False;
 end;
 
 procedure TKExtViewportControllerBase.NotifyObservers(const AContext: string);
@@ -735,7 +759,7 @@ begin
   if Assigned(LHeader) then
     Header := LHeader.AsBoolean
   else
-    Header := Title <> '';
+    Header := False;
 
   CreateTopToolbar;
 end;
@@ -851,6 +875,11 @@ begin
     AController.Config.GetNode('Sys', True).Assign(LSysConfigNode);
 end;
 
+function TKExtPanelControllerBase.IsSynchronous: Boolean;
+begin
+  Result := False;
+end;
+
 procedure TKExtPanelControllerBase.SetContainer(const AValue: TExtContainer);
 begin
   FContainer := AValue;
@@ -941,11 +970,22 @@ begin
   Result := Self;
 end;
 
+procedure TKExtControllerBase.AttachObserver(const AObserver: IEFObserver);
+begin
+  FSubjObserverImpl.AttachObserver(AObserver);
+end;
+
 destructor TKExtControllerBase.Destroy;
 begin
+  FreeAndNil(FSubjObserverImpl);
   FreeAndNil(FConfig);
   Session.RemoveController(Self);
   inherited;
+end;
+
+procedure TKExtControllerBase.DetachObserver(const AObserver: IEFObserver);
+begin
+  FSubjObserverImpl.DetachObserver(AObserver);
 end;
 
 procedure TKExtControllerBase.Display;
@@ -974,6 +1014,22 @@ begin
   Result := FView;
 end;
 
+procedure TKExtControllerBase.InitDefaults;
+begin
+  inherited;
+  FSubjObserverImpl := TEFSubjectAndObserver.Create;
+end;
+
+function TKExtControllerBase.IsSynchronous: Boolean;
+begin
+  Result := False;
+end;
+
+procedure TKExtControllerBase.NotifyObservers(const AContext: string);
+begin
+  FSubjObserverImpl.NotifyObserversOnBehalfOf(Self, AContext);
+end;
+
 function TKExtControllerBase.QueryInterface(const IID: TGUID; out Obj): HRESULT;
 begin
   if GetInterface(IID, Obj) then Result := 0 else Result := E_NOINTERFACE;
@@ -994,6 +1050,11 @@ begin
   Result := True;
 end;
 
+procedure TKExtControllerBase.UpdateObserver(const ASubject: IEFSubject;
+  const AContext: string);
+begin
+end;
+
 function TKExtControllerBase._AddRef: Integer;
 begin
   Result := 0;
@@ -1010,10 +1071,21 @@ procedure TKExtToolController.ExecuteTool;
 begin
 end;
 
+function TKExtToolController.IsSynchronous: Boolean;
+begin
+  Result := True;
+end;
+
+function TKExtToolController.SupportsContainer: Boolean;
+begin
+  Result := False;
+end;
+
 procedure TKExtToolController.DoDisplay;
 begin
   inherited;
   ExecuteTool;
+  //NotifyObservers('Closed');
 end;
 
 { TKExtContainerHelper }

@@ -12,6 +12,7 @@ Controller: Viewport
           Width: 150
           Collapsible: True
           Border: True
+          Header: True
       
       CenterView:
         Controller: TabPanel
