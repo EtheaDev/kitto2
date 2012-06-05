@@ -326,7 +326,8 @@ type
     property DetailReferenceCount: Integer read GetDetailReferenceCount;
     function DetailReferenceByName(const AName: string): TKModelDetailReference;
     function FindDetailReference(const AName: string): TKModelDetailReference;
-    function FindDetailReferenceToModel(const AModel: TKModel): TKModelDetailReference;
+    function FindDetailReferenceToModel(const AModel: TKModel): TKModelDetailReference; overload;
+    function FindDetailReferenceToModel(const AModelName: string): TKModelDetailReference; overload;
     function FindDetailReferenceToField(const AField: TKModelField): TKModelDetailReference;
     function FindDetailReferenceByPhysicalName(const APhysicalName: string): TKModelDetailReference;
   end;
@@ -407,6 +408,10 @@ type
     ///	<summary>If there's exactly one detail reference to the specified
     ///	model, returns it, otherwise returns nil.</summary>
     function FindDetailReferenceByModel(const AModel: TKModel): TKModelDetailReference;
+
+    ///	<summary>If there's exactly one detail reference to the model with the
+    ///	specified name, returns it, otherwise returns nil.</summary>
+    function FindDetailReferenceByModelName(const AModelName: string): TKModelDetailReference;
 
     ///	<summary>Returns the first found detail reference to the specified
     ///	reference field. If not found, returns nil.</summary>
@@ -560,6 +565,12 @@ end;
 function TKModel.FindDetailReferenceByModel(const AModel: TKModel): TKModelDetailReference;
 begin
   Result := GetDetailReferences.FindDetailReferenceToModel(AModel);
+end;
+
+function TKModel.FindDetailReferenceByModelName(
+  const AModelName: string): TKModelDetailReference;
+begin
+  Result := GetDetailReferences.FindDetailReferenceToModel(AModelName);
 end;
 
 function TKModel.FindField(const AName: string): TKModelField;
@@ -1554,6 +1565,26 @@ begin
       Break;
     end;
   end;
+end;
+
+function TKModelDetailReferences.FindDetailReferenceToModel(
+  const AModelName: string): TKModelDetailReference;
+var
+  I: Integer;
+  LCount: Integer;
+begin
+  Result := nil;
+  LCount := 0;
+  for I := 0 to DetailReferenceCount - 1 do
+  begin
+    if SameText(DetailReferences[I].DetailModelName, AModelName) then
+    begin
+      Result := DetailReferences[I];
+      Inc(LCount);
+    end;
+  end;
+  if LCount <> 1 then
+    Result := nil;
 end;
 
 function TKModelDetailReferences.FindDetailReferenceToModel(
