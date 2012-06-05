@@ -287,7 +287,10 @@ begin
         for I := 0 to ANode.TreeViewNodeCount - 1 do
           AddNode(TKTreeViewNode(ANode.TreeViewNodes[I]), LNode);
         LNode.Expandable := True;
-        LNode.Expanded := True;
+        if ANode is TKTreeViewFolder then
+          LNode.Expanded := not TKTreeViewFolder(ANode).IsInitiallyCollapsed
+        else
+          LNode.Expanded := True;
         LNode.Leaf := False;
       end;
       AParent.AppendChild(LNode);

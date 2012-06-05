@@ -129,7 +129,12 @@ type
 
   ///	<summary>A node in a tree view that is a folder (i.e. contains other
   ///	nodes and doesn't represent a view).</summary>
-  TKTreeViewFolder = class(TKTreeViewNode);
+  TKTreeViewFolder = class(TKTreeViewNode)
+  private
+    function GetIsInitiallyCollapsed: Boolean;
+  public
+    property IsInitiallyCollapsed: Boolean read GetIsInitiallyCollapsed;
+  end;
 
   ///	<summary>
   ///	  A view that is a tree of views. Contains views and folders, which
@@ -484,6 +489,13 @@ var
 begin
   for LView in Self do
     AStrings.Add(LView.PersistentName);
+end;
+
+{ TKTreeViewFolder }
+
+function TKTreeViewFolder.GetIsInitiallyCollapsed: Boolean;
+begin
+  Result := GetBoolean('IsInitiallyCollapsed', False);
 end;
 
 initialization
