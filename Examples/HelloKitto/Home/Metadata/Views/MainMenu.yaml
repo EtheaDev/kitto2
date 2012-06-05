@@ -12,6 +12,7 @@ Folder: Lookup tables
           Width: 320
           Height: 160
 Folder: User
+  IsInitiallyCollapsed: True
   View:
     Controller: ChangePassword
   View:
