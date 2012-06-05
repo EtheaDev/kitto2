@@ -146,7 +146,7 @@ begin
       {LMainTableController := }LMainTable.AddChild('Controller');
   except
     if APersistentName <> '' then
-      AViews.DeleteObject(Result)
+      AViews.RemoveObject(Result)
     else if ANode <> nil then
       AViews.DeleteNonpersistentObject(ANode);
     FreeAndNil(Result);
