@@ -75,7 +75,7 @@ type
     FWriter: TEFYAMLWriter;
     FDisposedObjects: TList<TKMetadata>;
     FNonpersistentObjects: TDictionary<TEFNode, TKMetadata>;
-    procedure LoadIndex;
+    procedure RefreshIndex;
     function GetObjectCount: Integer;
     function GetReader: TEFYAMLReader;
     function LoadObject(const AName: string): TKMetadata;
@@ -85,6 +85,11 @@ type
     procedure DuplicateObjectError(const AName: string);
     procedure AfterAddObject(const AObject: TKMetadata);
     function FixObjectClassType(const AObject: TKMetadata): TKMetadata;
+    procedure CreateIndex;
+
+    ///	<summary>Frees and deletes all persistent objects that don't exist on
+    ///	disk anymore.</summary>
+    procedure Purge;
   protected
     procedure ObjectNotFound(const AName: string);
     // Delete file and free object.
@@ -107,7 +112,26 @@ type
     ///	name.</summary>
     function GetFullFileName(const AName: string): string;
 
+    ///	<summary>Closes and reopens the catalog, rebuilds the index and
+    ///	invalidates all objects.</summary>
+    ///	<remarks>Upon calling this method, any pointer to an object loaded by
+    ///	the catalog is no longer valid.</remarks>
     procedure Open; virtual;
+
+    ///	<summary>Returns true if the catalog is open.</summary>
+    ///	<remarks>Currently returns False if the catalog is open but
+    ///	empty.</remarks>
+    function IsOpen: Boolean;
+
+    ///	<summary>Rebuilds the index preserving any objects already created. An
+    ///	object that is no longer part of the rebuilt index, though (for example
+    ///	when a file is deleted from the outside), is destroyed
+    ///	anyway.</summary>
+    ///	<remarks>If the catalog is not open, calling this method raises an
+    ///	exception.</remarks>
+    procedure Refresh; virtual;
+
+    ///	<summary>Closes the catalog and frees all objects.</summary>
     procedure Close; virtual;
 
     property ObjectCount: Integer read GetObjectCount;
@@ -122,7 +146,8 @@ type
     function FindObjectByNode(const ANode: TEFNode): TKMetadata;
 
     procedure AddObject(const AObject: TKMetadata);
-    procedure DeleteObject(const AObject: TKMetadata);
+    procedure RemoveObject(const AObject: TKMetadata);
+    procedure DeleteObject(const AIndex: Integer);
 
     ///	<summary>
     ///	  Marks the object as disposed and removes it from the index (but
@@ -167,12 +192,16 @@ uses
 procedure TKMetadataCatalog.AfterConstruction;
 begin
   inherited;
+  FDisposedObjects := TList<TKMetadata>.Create;
+  FNonpersistentObjects := TDictionary<TEFNode, TKMetadata>.Create;
+end;
+
+procedure TKMetadataCatalog.CreateIndex;
+begin
   FIndex := TStringList.Create;
   FIndex.Sorted := True;
   Findex.Duplicates := dupError;
   Findex.CaseSensitive := False;
-  FDisposedObjects := TList<TKMetadata>.Create;
-  FNonpersistentObjects := TDictionary<TEFNode, TKMetadata>.Create;
 end;
 
 procedure TKMetadataCatalog.AfterCreateObject(const AObject: TKMetadata);
@@ -190,6 +219,8 @@ var
   I: Integer;
   LObject: TKMetadata;
 begin
+  Assert(IsOpen);
+
   for LObject in FNonpersistentObjects.Values do
     LObject.Free;
   FNonpersistentObjects.Clear;
@@ -207,6 +238,7 @@ begin
     FIndex.Delete(I);
   end;
   FIndex.Clear;
+  FreeAndNil(FIndex);
 end;
 
 procedure TKMetadataCatalog.DisposeObject(const AObject: TKMetadata);
@@ -234,16 +266,24 @@ begin
   FNonpersistentObjects.Remove(ANode);
 end;
 
-procedure TKMetadataCatalog.DeleteObject(const AObject: TKMetadata);
+procedure TKMetadataCatalog.DeleteObject(const AIndex: Integer);
 begin
+  FIndex.Objects[AIndex].Free;
+  FIndex.Delete(AIndex);
+end;
+
+procedure TKMetadataCatalog.RemoveObject(const AObject: TKMetadata);
+begin
+  Assert(IsOpen);
+
   if ObjectExists(AObject.PersistentName) then
     FIndex.Delete(FIndex.IndexOf(AObject.PersistentName));
 end;
 
 destructor TKMetadataCatalog.Destroy;
 begin
-  Close;
-  FreeAndNil(FIndex);
+  if IsOpen then
+    Close;
   FreeAndNil(FDisposedObjects);
   FreeAndNil(FNonpersistentObjects);
   FreeAndNil(FReader);
@@ -255,6 +295,8 @@ procedure TKMetadataCatalog.MarkObjectAsDisposed(const AObject: TKMetadata);
 var
   LIndex: Integer;
 begin
+  Assert(IsOpen);
+
   FDisposedObjects.Add(AObject);
   if FIndex.Find(AObject.PersistentName, LIndex) then
   begin
@@ -270,6 +312,8 @@ end;
 
 function TKMetadataCatalog.GetObject(I: Integer): TKMetadata;
 begin
+  Assert(IsOpen);
+
   Result := nil;
   if (I >= 0) and (I < FIndex.Count) then
   begin
@@ -286,6 +330,8 @@ end;
 
 function TKMetadataCatalog.GetObjectCount: Integer;
 begin
+  Assert(IsOpen);
+
   Result := FIndex.Count;
 end;
 
@@ -303,21 +349,57 @@ begin
   Result := FWriter;
 end;
 
+function TKMetadataCatalog.IsOpen: Boolean;
+begin
+  Result := Assigned(FIndex);
+end;
+
 {$WARN SYMBOL_PLATFORM OFF}
-procedure TKMetadataCatalog.LoadIndex;
+procedure TKMetadataCatalog.Refresh;
+begin
+  Assert(IsOpen);
+
+  RefreshIndex;
+end;
+
+procedure TKMetadataCatalog.RefreshIndex;
 var
   LResult: Integer;
   LSearchRec: TSearchRec;
+  LBaseName: string;
+  LIndex: Integer;
 begin
+  Assert(IsOpen);
+
+  // Add new files and update existing files.
   LResult := FindFirst(IncludeTrailingPathDelimiter(FPath) + '*.yaml', faNormal, LSearchRec);
   while LResult = 0 do
   begin
-    FIndex.AddObject(ChangeFileExt(LSearchRec.Name, ''), nil);
+    LBaseName := ChangeFileExt(LSearchRec.Name, '');
+    if FIndex.Find(LBaseName, LIndex) then
+      Objects[LIndex].LoadFromYamlFile(GetFullFileName(LBaseName))
+    else
+      FIndex.AddObject(LBaseName, nil);
     LResult := FindNext(LSearchRec);
   end;
   FindClose(LSearchRec);
+  // Delete no longer existing files.
+  Purge;
 end;
 {$WARN SYMBOL_PLATFORM ON}
+
+procedure TKMetadataCatalog.Purge;
+var
+  I: Integer;
+begin
+  Assert(IsOpen);
+
+  for I := ObjectCount - 1 downto 0 do
+  begin
+    if not FileExists(Objects[I].PersistentFileName) then
+      DeleteObject(I);
+  end;
+end;
 
 function TKMetadataCatalog.FindNonpersistentObject(
   const ANode: TEFNode): TKMetadata;
@@ -332,6 +414,8 @@ function TKMetadataCatalog.FindObject(const AName: string): TKMetadata;
 var
   LIndex: Integer;
 begin
+  Assert(IsOpen);
+
   if FIndex.Find(AName, LIndex) then
   begin
     Result := FIndex.Objects[LIndex] as TKMetadata;
@@ -350,6 +434,7 @@ function TKMetadataCatalog.FindObjectByPredicate(
 var
   I: Integer;
 begin
+  Assert(IsOpen);
   Assert(Assigned(APredicate));
 
   for I := 0 to FIndex.Count - 1 do
@@ -420,6 +505,8 @@ end;
 
 function TKMetadataCatalog.ObjectExists(const AName: string): Boolean;
 begin
+  Assert(IsOpen);
+
   Result := FIndex.IndexOf(AName) >= 0;
 end;
 
@@ -475,6 +562,7 @@ end;
 
 procedure TKMetadataCatalog.AddObject(const AObject: TKMetadata);
 begin
+  Assert(IsOpen);
   Assert(Assigned(AObject));
   Assert(AObject.PersistentName <> '');
 
@@ -491,14 +579,18 @@ end;
 
 procedure TKMetadataCatalog.Open;
 begin
-  Close;
-  LoadIndex;
+  Assert(not IsOpen);
+
+  CreateIndex;
+  RefreshIndex;
 end;
 
 procedure TKMetadataCatalog.SaveAll;
 var
   I: Integer;
 begin
+  Assert(IsOpen);
+
   for I := 0 to FIndex.Count - 1 do
   begin
     if Assigned(FIndex.Objects[I]) then
