@@ -662,6 +662,19 @@ begin
     Result := inherited GetChildClass(AName);
 end;
 
+function TKViewTable.GetModelName: string;
+var
+  LModelNameNode: TEFNode;
+begin
+  LModelNameNode := FindNode('Model');
+  if Assigned(LModelNameNode) and (LModelNameNode.AsString <> '') then
+    Result := LModelNameNode.AsExpandedString
+  else if Assigned(MasterTable) and (ModelDetailReferenceName <> '') then
+    Result := MasterTable.Model.DetailReferenceByName(ModelDetailReferenceName).DetailModelName
+  else
+    Result := '';
+end;
+
 function TKViewTable.GetModel: TKModel;
 begin
   Result := View.Catalog.Models.ModelByName(ModelName);
@@ -920,11 +933,6 @@ end;
 function TKViewTable.GetDetailTable(I: Integer): TKViewTable;
 begin
   Result := GetDetailTables.GetChild<TKViewTable>(I);
-end;
-
-function TKViewTable.GetModelName: string;
-begin
-  Result := GetNode('Model', True).AsString;
 end;
 
 function TKViewTable.GetNamePath: TStringDynArray;
