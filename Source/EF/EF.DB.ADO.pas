@@ -344,6 +344,7 @@ end;
 function TEFDBADOCommand.Execute: Integer;
 begin
   UpdateInternalCommandCommandText;
+  Connection.DBEngineType.BeforeExecute(FCommandText, FParams);
   UpdateInternalCommandParams;
   inherited;
   FCommand.Execute(Result, EmptyParam);
@@ -441,6 +442,7 @@ end;
 procedure TEFDBADOQuery.Open;
 begin
   UpdateInternalQueryCommandText;
+  Connection.DBEngineType.BeforeExecute(FCommandText, FParams);
   UpdateInternalQueryParams;
   InternalBeforeExecute;
   DataSet.Open;

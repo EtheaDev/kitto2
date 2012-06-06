@@ -248,6 +248,8 @@ function TEFDBDBXConnection.CreateDBEngineType: TEFDBEngineType;
 begin
   if ContainsText(FConnection.DriverName, 'MSSQL') or ContainsText(FConnection.DriverName, 'SQLServer') then
     Result := TEFSQLServerDBEngineType.Create
+  else if ContainsText(FConnection.DriverName, 'Firebird') or ContainsText(FConnection.DriverName, 'InterBase') then
+    Result := TEFFirebirdDBEngineType.Create
   else
     Result := inherited CreateDBEngineType;
 end;
@@ -458,6 +460,7 @@ end;
 function TEFDBDBXCommand.Execute: Integer;
 begin
   inherited;
+  Connection.DBEngineType.BeforeExecute(FQuery.SQL.Text, FQuery.Params);
   FQuery.ExecSQL;
   Result := FQuery.RowsAffected;
 end;
@@ -558,6 +561,7 @@ end;
 procedure TEFDBDBXQuery.Open;
 begin
   Connection.Open;
+  Connection.DBEngineType.BeforeExecute(FQuery.SQL.Text, FQuery.Params);
   DataSet.Open;
 end;
 
