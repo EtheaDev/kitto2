@@ -1,33 +1,54 @@
+# #-#-#-#-#  C:\Users\nandod\AppData\Local\Temp\511A91V3.po (PACKAGE VERSION)  #-#-#-#-#
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# 
+# #-#-#-#-#  C:\Users\nandod\Ethea\Kitto\Examples\HelloKitto\Home\Locale\it\LC_MESSAGES\default.po  #-#-#-#-#
 # #-#-#-#-#  C:\Users\nandod\AppData\Local\Temp\T7L5123R.po (PACKAGE VERSION)  #-#-#-#-#
 # SOME DESCRIPTIVE TITLE.
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-#
+# 
 # #-#-#-#-#  C:\Users\nandod\Ethea\Kitto\Examples\HelloKitto\Home\Locale\it\LC_MESSAGES\default.po  #-#-#-#-#
 # #-#-#-#-#  C:\Users\nandod\AppData\Local\Temp\1M64OWR0.po (PACKAGE VERSION)  #-#-#-#-#
 # SOME DESCRIPTIVE TITLE.
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-#
+# 
 # #-#-#-#-#  C:\Users\nandod\Ethea\Kitto\Examples\HelloKitto\Home\Locale\it\LC_MESSAGES\default.po  #-#-#-#-#
 # #-#-#-#-#  C:\Users\nandod\AppData\Local\Temp\D26JT07U.po (PACKAGE VERSION)  #-#-#-#-#
 # SOME DESCRIPTIVE TITLE.
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-#
+# 
 # #-#-#-#-#  C:\Users\nandod\Ethea\Kitto\Examples\HelloKitto\Home\Locale\it\LC_MESSAGES\default.po (PACKAGE VERSION)  #-#-#-#-#
 # #-#-#-#-#  C:\Users\nandod\Ethea\Kitto\Examples\HelloKitto\Home\Locale\it\LC_MESSAGES\test.po (PACKAGE VERSION)  #-#-#-#-#
 # SOME DESCRIPTIVE TITLE.
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-#
+# 
+#, fuzzy
 msgid ""
 msgstr ""
-"#-#-#-#-#  C: \\Users\\nandod\\AppData\\Local\\Temp\\T7L5123R.po (PACKAGE VERSION)  #-#-#-#-#\n"
+"#-#-#-#-#  C:\\Users\\nandod\\AppData\\Local\\Temp\\511A91V3.po (PACKAGE "
+"VERSION)  #-#-#-#-#\n"
+"Project-Id-Version: PACKAGE VERSION\n"
+"POT-Creation-Date: 2012-06-06 10:54\n"
+"PO-Revision-Date: 2012-06-06 10:54\n"
+"Last-Translator: Somebody <your.email@address.com>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: dxgettext 1.2.2\n"
+"#-#-#-#-#  C:\\Users\\nandod\\Ethea\\Kitto\\Examples\\HelloKitto\\Home"
+"\\Locale\\it\\LC_MESSAGES\\default.po  #-#-#-#-#\n"
+"#-#-#-#-#  C: \\Users\\nandod\\AppData\\Local\\Temp\\T7L5123R.po (PACKAGE "
+"VERSION)  #-#-#-#-#\n"
 "Project-Id-Version: \n"
 "POT-Creation-Date: 2012-04-17 09:49\n"
 "PO-Revision-Date: 2012-04-17 09:49+0100\n"
@@ -36,8 +57,10 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: dxgettext 1.2.2\n"
-"#-#-#-#-#  C: \\Users\\nandod\\Ethea\\Kitto\\Examples\\HelloKitto\\Home\\Locale\\it\\LC_MESSAGES\\default.po  #-#-#-#-#\n"
-"#-#-#-#-#  C: \\Users\\nandod\\AppData\\Local\\Temp\\1M64OWR0.po (PACKAGE VERSION)  #-#-#-#-#\n"
+"#-#-#-#-#  C: \\Users\\nandod\\Ethea\\Kitto\\Examples\\HelloKitto\\Home"
+"\\Locale\\it\\LC_MESSAGES\\default.po  #-#-#-#-#\n"
+"#-#-#-#-#  C: \\Users\\nandod\\AppData\\Local\\Temp\\1M64OWR0.po (PACKAGE "
+"VERSION)  #-#-#-#-#\n"
 "Project-Id-Version: \n"
 "POT-Creation-Date: 2012-03-06 11:53\n"
 "PO-Revision-Date: 2012-03-06 11:54-0500\n"
@@ -46,8 +69,10 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: dxgettext 1.2.2\n"
-"#-#-#-#-#  C: \\Users\\nandod\\Ethea\\Kitto\\Examples\\HelloKitto\\Home\\Locale\\it\\LC_MESSAGES\\default.po  #-#-#-#-#\n"
-"#-#-#-#-#  C: \\Users\\nandod\\AppData\\Local\\Temp\\D26JT07U.po (PACKAGE VERSION)  #-#-#-#-#\n"
+"#-#-#-#-#  C: \\Users\\nandod\\Ethea\\Kitto\\Examples\\HelloKitto\\Home"
+"\\Locale\\it\\LC_MESSAGES\\default.po  #-#-#-#-#\n"
+"#-#-#-#-#  C: \\Users\\nandod\\AppData\\Local\\Temp\\D26JT07U.po (PACKAGE "
+"VERSION)  #-#-#-#-#\n"
 "Project-Id-Version: \n"
 "POT-Creation-Date: 2012-02-03 14:52\n"
 "PO-Revision-Date: 2012-03-06 11:09-0500\n"
@@ -56,8 +81,10 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: dxgettext 1.2.2\n"
-"#-#-#-#-#  C: \\Users\\nandod\\Ethea\\Kitto\\Examples\\HelloKitto\\Home\\Locale\\it\\LC_MESSAGES\\default.po (PACKAGE VERSION)  #-#-#-#-#\n"
-"#-#-#-#-#  C: \\Users\\nandod\\Ethea\\Kitto\\Examples\\HelloKitto\\Home\\Locale\\it\\LC_MESSAGES\\test.po (PACKAGE VERSION)  #-#-#-#-#\n"
+"#-#-#-#-#  C: \\Users\\nandod\\Ethea\\Kitto\\Examples\\HelloKitto\\Home"
+"\\Locale\\it\\LC_MESSAGES\\default.po (PACKAGE VERSION)  #-#-#-#-#\n"
+"#-#-#-#-#  C: \\Users\\nandod\\Ethea\\Kitto\\Examples\\HelloKitto\\Home"
+"\\Locale\\it\\LC_MESSAGES\\test.po (PACKAGE VERSION)  #-#-#-#-#\n"
 "Project-Id-Version: PACKAGE VERSION\n"
 "POT-Creation-Date: 2012-02-03 13:58\n"
 "PO-Revision-Date: 2012-02-03 13:58\n"
@@ -66,7 +93,8 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: dxgettext 1.2.2\n"
-"#-#-#-#-#  C: \\Users\\nandod\\Ethea\\Kitto\\Examples\\HelloKitto\\Home\\Locale\\it\\LC_MESSAGES\\default.po  #-#-#-#-#\n"
+"#-#-#-#-#  C: \\Users\\nandod\\Ethea\\Kitto\\Examples\\HelloKitto\\Home"
+"\\Locale\\it\\LC_MESSAGES\\default.po  #-#-#-#-#\n"
 "Project-Id-Version: \n"
 "POT-Creation-Date: \n"
 "PO-Revision-Date: \n"
@@ -76,7 +104,7 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: Rules.pas:25
+#: Rules.pas:25 
 msgid "Cannot invite the same girl twice."
 msgstr "Non è possibile invitare la stessa ragazza due volte."
 
@@ -203,4 +231,3 @@ msgstr "Invito"
 #: Invitation.yaml
 msgid "Invitations"
 msgstr "Inviti"
-
