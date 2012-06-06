@@ -143,6 +143,7 @@ type
     function GetRecordByIndex(I: Integer): TKRecord;
     procedure SetKey(const AValue: TKKey);
     function GetStore: TKStore;
+    function GetRecordCountExceptDeleted: Integer;
   protected
     function GetChildClass(const AName: string): TEFNodeClass; override;
   public
@@ -157,6 +158,7 @@ type
     function GetRecord(const AValues: TEFNode): TKRecord;
     property Records[I: Integer]: TKRecord read GetRecordByIndex; default;
     property RecordCount: Integer read GetRecordCount;
+    property RecordCountExceptDeleted: Integer read GetRecordCountExceptDeleted;
 
     function Append: TKRecord;
     procedure Remove(const ARecord: TKRecord);
@@ -201,6 +203,7 @@ type
     procedure SetKey(const AValue: TKKey);
     function GetRecordCount: Integer;
     function GetHeader: TKHeader;
+    function GetRecordCountExceptDeleted: Integer;
   protected
     function GetChildClass(const AName: string): TEFNodeClass; override;
   public
@@ -210,6 +213,7 @@ type
     property Header: TKHeader read GetHeader;
     property Records: TKRecords read GetRecords;
     property RecordCount: Integer read GetRecordCount;
+    property RecordCountExceptDeleted: Integer read GetRecordCountExceptDeleted;
 
     procedure Load(const ADBConnection: TEFDBConnection;
       const ACommandText: string; const AAppend: Boolean = False); overload;
@@ -348,6 +352,11 @@ begin
   Result := Records.RecordCount;
 end;
 
+function TKStore.GetRecordCountExceptDeleted: Integer;
+begin
+  Result := Records.RecordCountExceptDeleted;
+end;
+
 function TKStore.GetRecords: TKRecords;
 begin
   Result := FindChild('Records', True) as TKRecords;
@@ -454,11 +463,14 @@ var
   I: Integer;
   LTo: Integer;
   LCount: Integer;
+  LRecordCount: Integer;
 begin
+  LRecordCount := RecordCountExceptDeleted;
+
   if AFor > 0 then
-    LTo := Min(RecordCount - 1, AFrom + AFor - 1)
+    LTo := Min(LRecordCount - 1, AFrom + AFor - 1)
   else
-    LTo := RecordCount - 1;
+    LTo := LRecordCount - 1;
 
   // Loop so that a full page is returned even when there are deleted records.
   Result := '';
@@ -494,6 +506,16 @@ end;
 function TKRecords.GetRecordCount: Integer;
 begin
   Result := ChildCount;
+end;
+
+function TKRecords.GetRecordCountExceptDeleted: Integer;
+var
+  I: Integer;
+begin
+  Result := ChildCount;
+  for I := 0 to RecordCount - 1 do
+    if Records[I].IsDeleted then
+      Dec(Result);
 end;
 
 function TKRecords.GetStore: TKStore;
