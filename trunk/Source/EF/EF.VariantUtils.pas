@@ -37,6 +37,11 @@ function EFVarToDateTime(const AVariant: Variant): TDateTime;
 function EFVarToInt(const AVariant: Variant): Integer;
 
 ///	<summary>
+///	  Converts AVariant to a Boolean, returning False for null/empty variants.
+///	</summary>
+function EFVarToBoolean(const AVariant: Variant): Boolean;
+
+///	<summary>
 ///	  Converts AVariant to a Double, returning 0 for null/empty variants.
 ///	</summary>
 function EFVarToFloat(const AVariant: Variant): Double;
@@ -77,6 +82,14 @@ function EFVarToInt(const AVariant: Variant): Integer;
 begin
   if VarIsNull(AVariant) or VarIsEmpty(AVariant) then
     Result := 0
+  else
+    Result := AVariant;
+end;
+
+function EFVarToBoolean(const AVariant: Variant): Boolean;
+begin
+  if VarIsNull(AVariant) or VarIsEmpty(AVariant) then
+    Result := False
   else
     Result := AVariant;
 end;

@@ -376,6 +376,11 @@ type
     ///	  </list>
     ///	</summary>
     function ExpandCommandText(const ACommandText: string): string; virtual;
+
+    ///	<summary>To be called before executing a (possibly parameterized)
+    ///	command. The object has a chance to patch param types and
+    ///	values.</summary>
+    procedure BeforeExecute(const ACommandText: string; const AParams: TParams); virtual;
   end;
 
   TEFSQLServerDBEngineType = class(TEFDBEngineType)
@@ -383,6 +388,11 @@ type
     function AddLimitClause(const ACommandText: string; const AFrom: Integer;
       const AFor: Integer): string; override;
     function ExpandCommandText(const ACommandText: string): string; override;
+  end;
+
+  TEFFirebirdDBEngineType = class(TEFDBEngineType)
+  public
+    procedure BeforeExecute(const ACommandText: string; const AParams: TParams); override;
   end;
 
   ///	<summary>
@@ -538,8 +548,9 @@ type
 implementation
 
 uses
-  Variants, Contnrs, FMTBcd, StrUtils,
-  EF.SysUtils, EF.Localization, EF.Types, EF.SQL, EF.StrUtils, EF.Logger;
+  Variants, Contnrs, FMTBcd, StrUtils, Math,
+  EF.SysUtils, EF.VariantUtils, EF.Localization, EF.Types, EF.SQL, EF.StrUtils,
+  EF.Logger;
 
 { TEFDBAdapterRegistry }
 
@@ -1140,6 +1151,11 @@ begin
     Result := ACommandText;
 end;
 
+procedure TEFDBEngineType.BeforeExecute(const ACommandText: string;
+  const AParams: TParams);
+begin
+end;
+
 function TEFDBEngineType.ExpandCommandText(const ACommandText: string): string;
 begin
   Result := ReplaceText(ACommandText, '%DB.CURRENT_DATE%', 'current_date');
@@ -1207,6 +1223,29 @@ begin
   Assert(Assigned(FTableInfo));
 
   Result := FTableInfo.PrimaryKey.ColumnNames.IndexOf(Name) >= 0;
+end;
+
+{ TEFFirebirdDBEngineType }
+
+procedure TEFFirebirdDBEngineType.BeforeExecute(const ACommandText: string;
+  const AParams: TParams);
+var
+  I: Integer;
+  LValue: Variant;
+begin
+  inherited;
+  for I := 0 to AParams.Count - 1 do
+  begin
+    if AParams[I].DataType = ftBoolean then
+    begin
+      LValue := AParams[I].Value;
+      AParams[I].DataType := ftInteger;
+      if not VarIsNull(LValue) and not VarIsEmpty(LValue) then
+        AParams[I].AsInteger := IfThen(EFVarToBoolean(LValue), 1, 0)
+      else
+        AParams[I].Clear;
+    end;
+  end;
 end;
 
 end.
