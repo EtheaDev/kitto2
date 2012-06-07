@@ -52,6 +52,7 @@ type
 
   TKField = class(TEFNode)
   private
+    FIsModified: Boolean;
     function GetFieldName: string;
     function GetParentRecord: TKRecord;
     function GetJSONName: string;
@@ -59,8 +60,11 @@ type
     function GetName: string; override;
     procedure SetValue(const AValue: Variant); override;
     function GetAsJSONValue(const AForDisplay: Boolean): string; virtual;
+    procedure MarkAsUnmodified;
   public
     procedure SetToNull; override;
+
+    property IsModified: Boolean read FIsModified;
 
     property ParentRecord: TKRecord read GetParentRecord;
 
@@ -751,7 +755,10 @@ begin
   Backup;
   try
     for I := 0 to FieldCount - 1 do
+    begin
       Fields[I].AssignFieldValue(AFields[I]);
+      Fields[I].MarkAsUnmodified;
+    end;
     FState := rsClean;
   except
     Restore;
@@ -828,6 +835,11 @@ begin
   Result := Parent as TKRecord;
 end;
 
+procedure TKField.MarkAsUnmodified;
+begin
+  FIsModified := False;
+end;
+
 procedure TKField.SetToNull;
 begin
   if not VarIsNull(Value) then
@@ -840,8 +852,11 @@ begin
   { TODO : Find an efficient way to compare byte arrays; the <> operator won't do. }
   // Don't use <> on arrays.
   if VarIsArray(AValue) or (AValue <> Value) then
+  begin
+    FIsModified := True;
     if ParentRecord <> nil then
       ParentRecord.MarkAsModified;
+  end;
   inherited;
 end;
 

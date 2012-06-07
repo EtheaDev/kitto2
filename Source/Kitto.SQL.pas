@@ -247,10 +247,11 @@ begin
     ADBCommand.Params.Clear;
     LCommandText := 'update ' + AViewTable.Model.DBTableName + ' set ';
     LFieldNames := '';
-    for I := 0 to AValues.ChildCount - 1 do
+    for I := 0 to AValues.FieldCount - 1 do
     begin
       LViewField := AViewTable.FindField(AValues[I].Name);
-      if Assigned(LViewField) and not LViewField.IsReadOnly and LViewField.CanUpdate and not LViewField.IsKey then
+      //if Assigned(LViewField) and not LViewField.IsReadOnly and LViewField.CanUpdate and not LViewField.IsKey then
+      if Assigned(LViewField) and AValues[I].IsModified and LViewField.CanUpdate and not LViewField.IsKey then
       begin
         if LViewField.IsReference then
         begin
@@ -263,17 +264,22 @@ begin
             AValues[I].Name);
       end;
     end;
-    LCommandText := LCommandText + LFieldNames + ' where ';
-    LKeyFields := AViewTable.Model.GetKeyDBColumnNames;
-    for I := 0 to Length(LKeyFields) - 1 do
+    if LFieldNames = '' then
+      LCommandText := ''
+    else
     begin
-      LParamName := AViewTable.FieldByDBColumnName(LKeyFields[I]).AliasedName;
-      if I > 0 then
-        LCommandText := LCommandText + ' and ';
-      LCommandText := LCommandText + LKeyFields[I] + ' = :' + LParamName;
-      ADBCommand.Params.CreateParam(ftUnknown, LParamName, ptInput);
+      LCommandText := LCommandText + LFieldNames + ' where ';
+      LKeyFields := AViewTable.Model.GetKeyDBColumnNames;
+      for I := 0 to Length(LKeyFields) - 1 do
+      begin
+        LParamName := AViewTable.FieldByDBColumnName(LKeyFields[I]).AliasedName;
+        if I > 0 then
+          LCommandText := LCommandText + ' and ';
+        LCommandText := LCommandText + LKeyFields[I] + ' = :' + LParamName;
+        ADBCommand.Params.CreateParam(ftUnknown, LParamName, ptInput);
+      end;
+      ADBCommand.CommandText := LCommandText;
     end;
-    ADBCommand.CommandText := LCommandText;
   finally
     ADBCommand.Params.EndUpdate;
   end;
