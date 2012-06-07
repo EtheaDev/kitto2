@@ -75,7 +75,7 @@ type
     procedure DoDisplay; override;
     procedure InitComponents; override;
   public
-    procedure LoadData; override;
+    procedure LoadData(const AFilterExpression: string); override;
     destructor Destroy; override;
   published
     procedure GetRecord;
@@ -104,7 +104,7 @@ end;
 procedure TKExtFormPanelController.DoDisplay;
 begin
   inherited;
-  LoadData;
+  LoadData('');
 end;
 
 procedure TKExtFormPanelController.CreateDetailToolbar;
@@ -202,7 +202,7 @@ begin
   Result := ViewTable.GetString('DetailTables/Controller/Style', 'Tabs');
 end;
 
-procedure TKExtFormPanelController.LoadData;
+procedure TKExtFormPanelController.LoadData(const AFilterExpression: string);
 var
   LDetailStyle: string;
 begin

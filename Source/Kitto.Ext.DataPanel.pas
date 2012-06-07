@@ -52,6 +52,7 @@ type
     function GetView: TKDataView;
     function GetMaxRecords: Integer;
   strict protected
+    procedure CheckCanRead;
     function GetFilterExpression: string; virtual;
 //    function GetRefreshJSCode: string; virtual;
     function GetOrderByClause: string; virtual;
@@ -71,9 +72,10 @@ type
     function GetSelectConfirmCall(const AMessage: string;
       const AMethod: TExtProcedure): string; virtual;
     function GetSelectCall(const AMethod: TExtProcedure): TExtFunction; virtual;
+    function AutoLoadData: Boolean; virtual;
   public
     destructor Destroy; override;
-    procedure LoadData; virtual; abstract;
+    procedure LoadData(const AFilterExpression: string); virtual; abstract;
     procedure RefilterData(const AFilterExpression: string); virtual; abstract;
     property ViewTable: TKViewTable read FViewTable write SetViewTable;
     property ServerStore: TKViewTableStore read FServerStore write FServerStore;
@@ -350,6 +352,20 @@ begin
 
   AController.Config.SetObject('Sys/ServerStore', FServerStore);
   AController.Config.SetObject('Sys/ViewTable', FViewTable);
+end;
+
+function TKExtDataPanelController.AutoLoadData: Boolean;
+begin
+  Assert(ViewTable <> nil);
+
+  Result := ViewTable.GetBoolean('Controller/AutoOpen', not ViewTable.Model.IsLarge);
+end;
+
+procedure TKExtDataPanelController.CheckCanRead;
+begin
+  Assert(ViewTable <> nil);
+
+  Session.Config.CheckAccessGranted(ViewTable.GetResourceURI, ACM_READ);
 end;
 
 end.

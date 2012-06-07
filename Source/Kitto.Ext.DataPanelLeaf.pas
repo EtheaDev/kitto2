@@ -29,14 +29,12 @@ type
   strict private
     FFilterExpression: string;
   strict protected
-    procedure CheckCanRead;
-    function AutoLoadData: Boolean; virtual;
     procedure DoDisplay; override;
     function GetFilterExpression: string; override;
     procedure AddTopToolbarButtons; override;
   public
     procedure RefilterData(const AFilterExpression: string); override;
-    procedure LoadData; override;
+    procedure LoadData(const AFilterExpression: string); override;
   published
     procedure RefreshData; override;
   end;
@@ -53,9 +51,10 @@ uses
 procedure TKExtDataPanelLeafController.DoDisplay;
 begin
   inherited;
-  CheckCanRead;
-  if AutoLoadData then
-    LoadData;
+  // See mantis # 944
+//  CheckCanRead;
+//  if AutoLoadData then
+//    LoadData('');
 end;
 
 function TKExtDataPanelLeafController.GetFilterExpression: string;
@@ -63,9 +62,10 @@ begin
   Result := FFilterExpression;
 end;
 
-procedure TKExtDataPanelLeafController.LoadData;
+procedure TKExtDataPanelLeafController.LoadData(const AFilterExpression: string);
 begin
   inherited;
+  FFilterExpression := AFilterExpression;
   RefreshData;
 end;
 
@@ -96,20 +96,6 @@ begin
   LRefreshButton.Handler := Ajax(TKExtDataPanelController(Config.GetObject('Sys/RefreshHandler', Self)).RefreshData);
   LRefreshButton.Tooltip := _('Refresh data');
   inherited;
-end;
-
-function TKExtDataPanelLeafController.AutoLoadData: Boolean;
-begin
-  Assert(ViewTable <> nil);
-
-  Result := ViewTable.GetBoolean('Controller/AutoOpen', not ViewTable.Model.IsLarge);
-end;
-
-procedure TKExtDataPanelLeafController.CheckCanRead;
-begin
-  Assert(ViewTable <> nil);
-
-  Session.Config.CheckAccessGranted(ViewTable.GetResourceURI, ACM_READ);
 end;
 
 end.
