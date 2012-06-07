@@ -94,7 +94,7 @@ function confirmCall(title, question, functionToCall, functionParams)
 // just what we need now. It should be rewritten to support true formatting.
 function formatTime(time, format)
 {
-  if (format.indexOf("s") > -1)
+  if ((!time) || (format.indexOf("s") > -1))
     return time;
   else
     return time.substring(0, 5);
