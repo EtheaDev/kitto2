@@ -283,8 +283,20 @@ begin
   inherited;
   { TODO : read default user format settings from config and allow to change them on a per-user basis. }
   FUserFormatSettings := GetFormatSettings;
+
   FUserFormatSettings.ShortTimeFormat := Config.GetString('UserFormats/Time', FUserFormatSettings.ShortTimeFormat);
+  if Pos('.', FUserFormatSettings.ShortTimeFormat) > 0 then
+    FUserFormatSettings.TimeSeparator := '.'
+  else
+    FUserFormatSettings.TimeSeparator := ':';
+
   FUserFormatSettings.ShortDateFormat := Config.GetString('UserFormats/Date', FUserFormatSettings.ShortDateFormat);
+  if Pos('.', FUserFormatSettings.ShortDateFormat) > 0 then
+    FUserFormatSettings.DateSeparator := '.'
+  else if Pos('-', FUserFormatSettings.ShortDateFormat) > 0 then
+    FUserFormatSettings.DateSeparator := '-'
+  else
+    FUserFormatSettings.DateSeparator := '/';
 
   FDBConnections := TDictionary<string, TEFDBConnection>.Create;
   LLanguageId := Config.GetString('LanguageId');
@@ -502,7 +514,7 @@ begin
   FJSFormatSettings.DecimalSeparator := '.';
   FJSFormatSettings.ThousandSeparator := ',';
   FJSFormatSettings.ShortDateFormat := 'yyyy/mm/dd';
-  FJSFormatSettings.ShortTimeFormat := 'hh:mm:ss';
+  FJSFormatSettings.ShortTimeFormat := 'hh:nn:ss';
   FJSFormatSettings.DateSeparator := '/';
   FJSFormatSettings.TimeSeparator := ':';
   TEFYAMLReader.FormatSettings := FJSFormatSettings;
