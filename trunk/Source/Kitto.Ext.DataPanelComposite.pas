@@ -28,10 +28,11 @@ type
   ///	data panels and delegate implementation to them.</summary>
   TKExtDataPanelCompositeController = class abstract(TKExtDataPanelController)
   public
-    procedure LoadData; override;
+    procedure LoadData(const AFilterExpression: string); override;
     procedure RefilterData(const AFilterExpression: string); override;
   strict protected
     procedure InitSubController(const AController: IKExtController); override;
+    procedure DoDisplay; override;
   published
     procedure RefreshData; override;
   end;
@@ -40,6 +41,7 @@ implementation
 
 uses
   ExtPascal,
+  EF.StrUtils,
   Kitto.Ext.Base;
 
 { TKExtDataPanelCompositeController }
@@ -55,6 +57,14 @@ begin
     end);
 end;
 
+procedure TKExtDataPanelCompositeController.DoDisplay;
+begin
+  inherited;
+  CheckCanRead;
+  if AutoLoadData then
+    LoadData('');
+end;
+
 procedure TKExtDataPanelCompositeController.InitSubController(
   const AController: IKExtController);
 begin
@@ -64,14 +74,15 @@ begin
   AController.Config.SetObject('Sys/RefreshHandler', Self);
 end;
 
-procedure TKExtDataPanelCompositeController.LoadData;
+procedure TKExtDataPanelCompositeController.LoadData(const AFilterExpression: string);
 begin
   inherited;
   Apply(
     procedure (AObject: TExtObject)
     begin
       if AObject is TKExtDataPanelController then
-        TKExtDataPanelController(AObject).LoadData;
+        TKExtDataPanelController(AObject).LoadData(
+          SmartConcat(AFilterExpression, ' and ', GetFilterExpression));
     end);
 end;
 

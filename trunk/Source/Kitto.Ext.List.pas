@@ -164,9 +164,8 @@ end;
 
 procedure TKExtListPanelController.FilterPanelChange(Sender: TObject);
 begin
-  RefilterData((Sender as TKExtFilterPanel).GetFilterExpression);
+  RefilterData(GetFilterExpression);
 end;
-
 
 destructor TKExtListPanelController.Destroy;
 begin
