@@ -1,4 +1,4 @@
-DisplayLabel: %Config:AppTitle%
+﻿DisplayLabel: %Config:AppTitle%
 # Valid top-level controllers are Window and Viewport
 Controller: Window
   Width: 1000
@@ -6,7 +6,7 @@ Controller: Window
 
   SubView:
     Controller: BorderPanel
-      
+
       WestView:
         DisplayLabel: Navigation
         Controller: BorderPanel
@@ -22,7 +22,7 @@ Controller: Window
           CenterView:
             Controller: TreePanel
               TreeView: MainMenu
-      
+
       CenterView:
         Controller: TabPanel
           Border: True
