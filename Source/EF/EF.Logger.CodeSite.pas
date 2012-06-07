@@ -27,6 +27,7 @@ type
     FInstance: TEFCodeSiteLogEndpoint;
   protected
     procedure DoLog(const AString: string); override;
+    function GetConfigPath: string; override;
   public
     class procedure CreateSingletonInstance;
     class procedure FreeSingletonInstance;
@@ -48,6 +49,11 @@ end;
 class procedure TEFCodeSiteLogEndpoint.FreeSingletonInstance;
 begin
   FreeAndNil(FInstance);
+end;
+
+function TEFCodeSiteLogEndpoint.GetConfigPath: string;
+begin
+  Result := 'CodeSite/';
 end;
 
 procedure TEFCodeSiteLogEndpoint.DoLog(const AString: string);
