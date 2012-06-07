@@ -1847,9 +1847,12 @@ begin
       else
         raise EKError.CreateFmt('Unexpected record state %s.', [GetEnumName(TypeInfo(TKRecordState), Ord(State))]);
       end;
-      LRowsAffected := LDBCommand.Execute;
-      if LRowsAffected <> 1 then
-        raise EKError.CreateFmt('Update error. Rows affected: %d.', [LRowsAffected]);
+      if LDBCommand.CommandText <> '' then
+      begin
+        LRowsAffected := LDBCommand.Execute;
+        if LRowsAffected <> 1 then
+          raise EKError.CreateFmt('Update error. Rows affected: %d.', [LRowsAffected]);
+      end;
       { TODO : implement cascade delete? }
       for I := 0 to DetailStoreCount - 1 do
         DetailStores[I].Save(False);
