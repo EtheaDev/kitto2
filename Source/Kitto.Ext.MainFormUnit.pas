@@ -289,7 +289,7 @@ begin
   DoLog(_('Listener started'));
   LConfig := TKConfig.Create;
   try
-    DisplayHomeURL(Format('http://localhost/cgi-bin/fcgi%d', [LConfig.Config.GetInteger('FastCGI/TCPPort', 2014)]));
+    DisplayHomeURL(Format('http://localhost/kitto/%d', [LConfig.Config.GetInteger('FastCGI/TCPPort', 2014)]));
   finally
     FreeAndNil(LConfig);
   end;
