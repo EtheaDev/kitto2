@@ -160,8 +160,11 @@ type
     function FindFieldByPhysicalName(const APhysicalName: string): TKModelField;
     function FindFieldByPredicate(const APredicate: TKModelFieldPredicate): TKModelField;
 
-    ///	<summary>Returna the names of the sub-fields, if any.</summary>
+    ///	<summary>Returns the names of the sub-fields, if any.</summary>
     function GetFieldNames: TStringDynArray;
+
+    ///	<summary>Returns the DB names of the sub-fields, if any.</summary>
+    function GetDBColumnNames: TStringDynArray;
 
     ///	<summary>If the field is a reference, returns the referenced model's
     ///	name, otherwise ''.</summary>
@@ -273,6 +276,7 @@ type
     property FieldCount: Integer read GetFieldCount;
     property Fields[I: Integer]: TKModelField read GetField; default;
     function GetFieldNames: TStringDynArray;
+    function GetDBColumnNames: TStringDynArray;
 
     ///	<summary>If the fields are contained inside a parent field, this
     ///	property returns the parent field, otherwise nil.</summary>
@@ -1156,6 +1160,11 @@ begin
     Result := FieldName;
 end;
 
+function TKModelField.GetDBColumnNames: TStringDynArray;
+begin
+  Result := GetFields.GetDBColumnNames;
+end;
+
 function TKModelField.GetDecimalPrecision: Integer;
 var
   LDataType: string;
@@ -1365,6 +1374,15 @@ end;
 function TKModelFields.GetChildClass(const AName: string): TEFNodeClass;
 begin
   Result := TKModelField;
+end;
+
+function TKModelFields.GetDBColumnNames: TStringDynArray;
+var
+  I: Integer;
+begin
+  SetLength(Result, FieldCount);
+  for I := Low(Result) to High(Result) do
+    Result[I] := Fields[I].DBColumnName;
 end;
 
 function TKModelFields.GetField(I: Integer): TKModelField;
