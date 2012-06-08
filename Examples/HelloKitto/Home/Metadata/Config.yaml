@@ -38,8 +38,8 @@ Databases:
 
 Auth: DB
   Defaults:
-    UserName: cwolter
-    Password: cwolter
+    UserName: administrator
+    Password: password
 
 AccessControl: Null
     
