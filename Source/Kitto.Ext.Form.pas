@@ -161,6 +161,8 @@ begin
       LController.Config.SetBoolean('AllowClose', False);
       FDetailControllers.Add(LController.AsObject);
       LController.Display;
+      if (LController.AsObject is TKExtDataPanelController) then
+        TKExtDataPanelController(LController.AsObject).LoadData('');
     end;
   end;
 end;
