@@ -3,7 +3,7 @@
 			<ProjectGuid>{1FBC6B9D-04F2-4238-A7C5-07DEC4D673EA}</ProjectGuid>
 			<MainSource>HelloKitto.dpr</MainSource>
 			<Base>True</Base>
-			<Config Condition="'$(Config)'==''">Debug</Config>
+			<Config Condition="'$(Config)'==''">Release</Config>
 			<AppType>Application</AppType>
 			<FrameworkType>VCL</FrameworkType>
 			<DCC_DCCCompiler>DCC32</DCC_DCCCompiler>
