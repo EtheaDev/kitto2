@@ -526,7 +526,9 @@ begin
   Result := AExpression;
   if SameText(EFVarToStr(Result), '{date}') then
     Result := Date
-  else if SameText(EFVarToStr(Result), '{now}') then
+  else if SameText(EFVarToStr(Result), '{time}') then
+    Result := Time
+  else if SameText(EFVarToStr(Result), '{datetime}') or SameText(EFVarToStr(Result), '{now}') then
     Result := Now;
 end;
 
