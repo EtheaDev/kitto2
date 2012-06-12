@@ -14,11 +14,9 @@ Databases:
 
 Auth: DB
   IsClearPassword: True
-  IsPassepartoutEnabled: True
-  PassepartoutPassword: d8578edf8458ce06fbc5bb76a58c5ca4
   Defaults:
     UserName: admin
-    Password: admin
+    #Password: password
 
 AccessControl: Null
     

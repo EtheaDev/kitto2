@@ -16,7 +16,7 @@ Auth: DB
   IsClearPassword: True
   Defaults:
     UserName: admin
-    #Password: admin
+    #Password: password
 
 AccessControl: Null
     
