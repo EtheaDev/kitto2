@@ -357,7 +357,7 @@ procedure TEFYAMLReader.LoadTreeFromString(const ATree: TEFTree;
 var
   LStream: TStringStream;
 begin
-  LStream := TStringStream.Create(AString);
+  LStream := TStringStream.Create(AString, TEncoding.UTF8);
   try
     LoadTreeFromStream(ATree, LStream);
   finally
