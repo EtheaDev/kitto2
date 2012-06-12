@@ -50,6 +50,7 @@ type
     function GetRowButtonsDisableJS: string;
     function GetRowColorPatterns(out AFieldName: string): TEFPairs;
     procedure CreateGridView;
+    procedure CheckGroupColumn;
   strict protected
     function GetOrderByClause: string; override;
 //    function GetRefreshJSCode: string; override;
@@ -127,6 +128,8 @@ begin
   LGroupingMenu := ViewTable.GetBoolean('Controller/Grouping/EnableMenu');
   if (LGroupingFieldName <> '') or LGroupingMenu then
   begin
+    if ViewTable.FindField(LGroupingFieldName) = nil then
+      raise Exception.CreateFmt('Field %s not found. Cannot group.', [LGroupingFieldName]);
     Result := TExtDataGroupingStore.Create;
     Result.Url := MethodURI(GetRecordPage);
     //TExtDataGroupingStore(Result).GroupOnSort := True;
@@ -534,6 +537,32 @@ begin
   end;
 
   InitColumns;
+
+  CheckGroupColumn;
+end;
+
+procedure TKExtGridPanel.CheckGroupColumn;
+var
+  I: Integer;
+  LGroupingFieldName: string;
+  LFound: Boolean;
+begin
+  LGroupingFieldName := GetGroupingFieldName;
+
+  if LGroupingFieldName <> '' then
+  begin
+    LFound := False;
+    for I := 0 to FGridEditorPanel.Columns.Count - 1 do
+    begin
+      if SameText(TExtGridColumn(FGridEditorPanel.Columns[I]).DataIndex, LGroupingFieldName) then
+      begin
+        LFound := True;
+        Break;
+      end;
+    end;
+    if not LFound then
+      raise Exception.CreateFmt('Grouping field %s not found in grid.', [LGroupingFieldName]);
+  end;
 end;
 
 //function TKExtGridPanel.GetRefreshJSCode: string;
