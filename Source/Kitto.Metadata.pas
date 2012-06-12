@@ -22,7 +22,7 @@ interface
 
 uses
   Classes, Generics.Collections,
-  EF.Types, EF.Tree, EF.YAML;
+  EF.Types, EF.Tree, EF.YAML, EF.ObserverIntf;
 
 type
   TKMetadataCatalog = class;
@@ -67,7 +67,7 @@ type
     function IsAccessGranted(const AMode: string): Boolean; virtual;
   end;
 
-  TKMetadataCatalog = class
+  TKMetadataCatalog = class(TEFSubjectAndObserver)
   private
     FPath: string;
     FIndex: TStringList;
@@ -90,6 +90,8 @@ type
     ///	<summary>Frees and deletes all persistent objects that don't exist on
     ///	disk anymore.</summary>
     procedure Purge;
+    procedure ObjectAdded(const AFileName: string);
+    procedure ObjectRemoved(const AFileName: string);
   protected
     procedure ObjectNotFound(const AName: string);
     // Delete file and free object.
@@ -212,6 +214,17 @@ end;
 procedure TKMetadataCatalog.AfterAddObject(const AObject: TKMetadata);
 begin
   AObject.FCatalog := Self;
+  ObjectAdded(AObject.PersistentFileName);
+end;
+
+procedure TKMetadataCatalog.ObjectAdded(const AFileName: string);
+begin
+  NotifyObservers('ObjectAdded' + #9 + AFileName);
+end;
+
+procedure TKMetadataCatalog.ObjectRemoved(const AFileName: string);
+begin
+  NotifyObservers('ObjectRemoved' + #9 + AFileName);
 end;
 
 procedure TKMetadataCatalog.Close;
@@ -267,17 +280,27 @@ begin
 end;
 
 procedure TKMetadataCatalog.DeleteObject(const AIndex: Integer);
+var
+  LFileName: string;
 begin
+  LFileName := Objects[AIndex].PersistentFileName;
   FIndex.Objects[AIndex].Free;
   FIndex.Delete(AIndex);
+  ObjectRemoved(LFileName);
 end;
 
 procedure TKMetadataCatalog.RemoveObject(const AObject: TKMetadata);
+var
+  LFileName: string;
 begin
   Assert(IsOpen);
 
   if ObjectExists(AObject.PersistentName) then
+  begin
+    LFileName := AObject.PersistentFileName;
     FIndex.Delete(FIndex.IndexOf(AObject.PersistentName));
+    ObjectRemoved(LFileName);
+  end;
 end;
 
 destructor TKMetadataCatalog.Destroy;
@@ -379,7 +402,10 @@ begin
     if FIndex.Find(LBaseName, LIndex) then
       Objects[LIndex].LoadFromYamlFile(GetFullFileName(LBaseName))
     else
+    begin
       FIndex.AddObject(LBaseName, nil);
+      ObjectAdded(LBaseName);
+    end;
     LResult := FindNext(LSearchRec);
   end;
   FindClose(LSearchRec);

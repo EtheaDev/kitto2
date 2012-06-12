@@ -22,7 +22,7 @@ interface
 
 uses
   SysUtils, Types, Generics.Collections,
-  EF.Tree, EF.Macros, EF.Classes, EF.DB,
+  EF.Tree, EF.Macros, EF.Classes, EF.DB, EF.ObserverIntf,
   Kitto.Metadata.Models, Kitto.Metadata.Views, Kitto.Auth, Kitto.AccessControl;
 
 type
@@ -83,6 +83,8 @@ type
     destructor Destroy; override;
     class constructor Create;
     class destructor Destroy;
+    procedure UpdateObserver(const ASubject: IEFSubject;
+      const AContext: string = ''); override;
   public
     class procedure SetConfigClass(const AValue: TKConfigClass);
 
@@ -330,6 +332,13 @@ begin
     FResourcePathsURLs.Add(IncludeTrailingPathDelimiter(LPath), '/' + GetAppName + '-Kitto/');
 end;
 
+procedure TKConfig.UpdateObserver(const ASubject: IEFSubject;
+  const AContext: string);
+begin
+  inherited;
+  NotifyObservers(AContext);
+end;
+
 procedure TKConfig.FinalizeDBConnections;
 var
   LDBConnection: TEFDBConnection;
@@ -416,6 +425,7 @@ begin
   if not Assigned(FModels) then
   begin
     FModels := TKModels.Create;
+    FModels.AttachObserver(Self);
     FModels.Path := GetMetadataPath + 'Models';
     FModels.Open;
   end;
@@ -489,6 +499,8 @@ begin
   if not Assigned(FViews) then
   begin
     FViews := TKViews.Create(Models);
+    FViews.AttachObserver(Self);
+    FViews.Layouts.AttachObserver(Self);
     FViews.Path := GetMetadataPath + 'Views';
     FViews.Open;
   end;
