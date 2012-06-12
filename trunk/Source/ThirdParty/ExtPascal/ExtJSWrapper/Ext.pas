@@ -2346,7 +2346,8 @@ type
     function SetPagePosition(X : Integer; Y : Integer) : TExtFunction;
     function SetPosition(Left : Integer; Top : Integer) : TExtFunction;
     function SetSize(Width : String; Height : String) : TExtFunction;
-    function SetWidth(Width : String) : TExtFunction;
+    function SetWidth(Width : String) : TExtFunction; overload;
+    function SetWidth(Width : Integer) : TExtFunction; overload;
     function SyncSize : TExtFunction;
     function UpdateBox(Box : TExtObject) : TExtFunction;
     destructor Destroy; override;
@@ -10007,6 +10008,11 @@ function TExtBoxComponent.SetSize(Width : String; Height : String) : TExtFunctio
 end;
 
 function TExtBoxComponent.SetWidth(Width : String) : TExtFunction; begin
+  JSCode(JSName + '.setWidth(' + VarToJSON([Width]) + ');', 'TExtBoxComponent');
+  Result := Self;
+end;
+
+function TExtBoxComponent.SetWidth(Width : Integer) : TExtFunction; begin
   JSCode(JSName + '.setWidth(' + VarToJSON([Width]) + ');', 'TExtBoxComponent');
   Result := Self;
 end;
