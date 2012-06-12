@@ -373,7 +373,10 @@ type
     procedure Init;
   end;
 
-  ///	<summary>
+  type
+    TKExtEditOperation = (eoUpdate, eoInsert);
+
+ ///	<summary>
   ///	  Creates editor based on layouts. Can synthesize a default layout if
   ///	  missing.
   ///	</summary>
@@ -388,6 +391,7 @@ type
     FEditContainers: TStack<IKExtEditContainer>;
     FOnFieldChange: TExtFormFieldOnChange;
     FOnNewEditor: TProc<IKExtEditor>;
+    FOperation: TKExtEditOperation;
     const TRIGGER_WIDTH = 4;
     function GetViewTable: TKViewTable;
     function DerivedFieldsExist(const AViewField: TKViewField): Boolean;
@@ -440,6 +444,7 @@ type
     property FormPanel: TKExtEditPanel read FFormPanel write FFormPanel;
     property OnFieldChange: TExtFormFieldOnChange read FOnFieldChange write FOnFieldChange;
     property OnNewEditor: TProc<IKExtEditor> read FOnNewEditor write FOnNewEditor;
+    property Operation: TKExtEditOperation read FOperation write FOperation;
 
     ///	<summary>
     ///	  Creates editors according to the specified layout or a default layout.
@@ -646,7 +651,7 @@ begin
     for I := 0 to ViewTable.FieldCount - 1 do
     begin
       if ViewTable.IsFieldVisible(ViewTable.Fields[I]) and ViewTable.Fields[I].IsAccessGranted(ACM_READ) then
-        FFormPanel.AddChild(CreateEditor(ViewTable.Fields[I].AliasedName, nil));
+        FFormPanel.AddChild(CreateEditor(ViewTable.Fields[I].AliasedName, nil))
     end;
   end;
   if Assigned(FFocusField) then
@@ -1004,6 +1009,15 @@ var
   LRowField: TKExtFormRowField;
   LFormField: TExtFormField;
   LRecordField: TKViewTableField;
+
+  function CanEditField: Boolean;
+  begin
+    if FOperation = eoUpdate then
+      Result := LViewField.CanUpdate
+    else
+      Result := LViewField.CanInsert
+  end;
+
 begin
   Assert(Assigned(FDataRecord));
 
@@ -1018,8 +1032,14 @@ begin
   // Minimum cap - avoids too short combo boxes.
   LFieldCharWidth := Max(LFieldCharWidth, FDefaults.MinFieldWidth);
 
-  LIsReadOnly := LViewField.IsReadOnly or not LViewField.IsAccessGranted(ACM_MODIFY)
-    or not LViewField.CanUpdate or ViewTable.IsReadOnly or FForceReadOnly or (LViewField.Model <> LViewField.Table.Model);
+  LIsReadOnly :=
+    LViewField.IsReadOnly
+    or not LViewField.IsAccessGranted(ACM_MODIFY)
+    or not CanEditField
+    or ViewTable.IsReadOnly
+    or FForceReadOnly
+    or (LViewField.Model <> LViewField.Table.Model);
+
   if not LIsReadOnly and LViewField.IsDetailReference then
     LIsReadOnly := True;
 

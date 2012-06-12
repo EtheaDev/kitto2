@@ -185,6 +185,10 @@ begin
         FEditors.Add(AEditor.AsObject);
       end;
     LLayoutProcessor.ForceReadOnly := AForceReadOnly;
+    if FOperation = 'Add' then
+      LLayoutProcessor.Operation := eoInsert
+    else
+      LLayoutProcessor.Operation := eoUpdate;
 
     LLayoutName := ViewTable.GetString('Controller/Form/Layout');
     if LLayoutName <> '' then
