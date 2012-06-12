@@ -271,18 +271,21 @@ begin
 
   if not NewThread then
   begin
+    Config.Authenticator.Logout;
     Refresh;
     FHomeController := nil;
     FLoginWindow := nil;
     FOpenControllers.Clear;
     FViewHost := nil;
     FStatusHost := nil;
-  end;
-
-  if not IsAjax then
+  end
+  else
   begin
-    LoadLibraries;
-    JSCode('kittoInit();');
+    if not IsAjax then
+    begin
+      LoadLibraries;
+      JSCode('kittoInit();');
+    end;
   end;
 
   // Try authentication with default credentials, if any, and skip login
