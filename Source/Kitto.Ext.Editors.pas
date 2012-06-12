@@ -47,8 +47,6 @@ type
   end;
 
   TKExtEditPanel = class(TExtFormFormPanel, IKExtEditItem, IKExtEditContainer)
-  protected
-    procedure InitDefaults; override;
   public
     function AsObject: TObject;
     function QueryInterface(const IID: TGUID; out Obj): HRESULT; stdcall;
@@ -112,13 +110,14 @@ type
     procedure SetCharWidth(const AValue: Integer);
   protected
     procedure InitDefaults; override;
+    function InternalSetOption(const AName: string;
+      const AValue: string): Boolean; override;
   public
     destructor Destroy; override;
   public
     function Encapsulate(const AValue: IKExtEditor): IKExtEditor;
     property CharWidth: Integer read FCharWidth write SetCharWidth;
     function AsExtFormField: TExtFormField;
-    procedure SetOption(const AName, AValue: string);
     function GetRecordField: TKViewTableField;
     procedure SetRecordField(const AValue: TKViewTableField);
   end;
@@ -555,7 +554,7 @@ begin
   if SameText(AName, 'Anchor') then
     AFormField.Anchor := AValue
   else if SameText(AName, 'CharWidth') then
-    AFormField.Width := AFormField.CharsToPixels(OptionAsInteger(AValue))
+    AFormField.SetWidth(AFormField.CharsToPixels(OptionAsInteger(AValue)))
   else if SameText(AName, 'Width') then
     AFormField.SetWidth(OptionAsIntegerOrPerc(AValue))
   else
@@ -1206,11 +1205,6 @@ begin
   Result := Self;
 end;
 
-procedure TKExtEditPanel.InitDefaults;
-begin
-  inherited;
-end;
-
 function TKExtEditPanel.QueryInterface(const IID: TGUID; out Obj): HRESULT;
 begin
   if GetInterface(IID, Obj) then Result := 0 else Result := E_NOINTERFACE;
@@ -1660,7 +1654,7 @@ begin
   else if SameText(AName, 'ColumnWidth') then
     ColumnWidth := OptionAsFloat(AValue)
   else if SameText(AName, 'CharWidth') then
-    Width := CharsToPixels(OptionAsInteger(AValue))
+    SetWidth(CharsToPixels(OptionAsInteger(AValue)))
   else if SameText(AName, 'Width') then
     SetWidth(OptionAsIntegerOrPerc(AValue))
   else if SameText(AName, 'Anchor') then
@@ -1711,6 +1705,29 @@ begin
   Layout := lyForm;
 end;
 
+function TKExtFormRowField.InternalSetOption(const AName, AValue: string): Boolean;
+begin
+  // Widths are set for both the container and the contained editor.
+  if SameText(AName, 'ColumnWidth') then
+  begin
+    ColumnWidth := OptionAsFloat(AValue);
+    FEditor.SetOption('ColumnWidth', AValue);
+  end
+  else if SameText(AName, 'CharWidth') then
+  begin
+    SetWidth(CharsToPixels(OptionAsInteger(AValue)));
+    FEditor.SetOption('CharWidth', IntToStr(OptionAsInteger(AValue) - 1));
+  end
+  else if SameText(AName, 'Width') then
+  begin
+    SetWidth(OptionAsIntegerOrPerc(AValue));
+    FEditor.SetOption('Width', AValue);
+  end
+  else
+    FEditor.SetOption(AName, AValue);
+  Result := True;
+end;
+
 destructor TKExtFormRowField.Destroy;
 begin
   NilEFIntf(FEditor);
@@ -1723,7 +1740,7 @@ begin
 
   FEditor := AValue;
   Items.Add(FEditor.AsExtObject);
-  FEditor.SetOption('CharWidth', IntToStr(FCharWidth - 2));
+  FEditor.SetOption('CharWidth', IntToStr(FCharWidth - 1));
   Result := Self;
 end;
 
@@ -1735,18 +1752,12 @@ end;
 procedure TKExtFormRowField.SetCharWidth(const AValue: Integer);
 begin
   FCharWidth := AValue;
-  Width := CharsToPixels(AValue);
+  SetWidth(CharsToPixels(AValue));
 end;
 
 procedure TKExtFormRowField.SetRecordField(const AValue: TKViewTableField);
 begin
   FRecordField := AValue;
-end;
-
-procedure TKExtFormRowField.SetOption(const AName, AValue: string);
-begin
-  if not InternalSetOption(AName, AValue) then
-    FEditor.SetOption(AName, AValue);
 end;
 
 { TKExtFormNumberField }
@@ -2185,12 +2196,10 @@ begin
   LButtonCount := 1;
   if not FIsReadOnly then
   begin
-    //FDownloadButton.Margins := '0 5 0 0';
     LUploadButton := TExtButton.AddTo(LToolbar.Items);
     LUploadButton.Tooltip := _('Upload file');
     LUploadButton.Icon := Session.Config.GetImageURL('upload');
     LUploadButton.Handler := Ajax(ShowUploadFileDialog);
-    //LUploadButton.Margins := '0 5 0 0';
     Inc(LButtonCount);
 
     FClearButton := TExtButton.AddTo(LToolbar.Items);
