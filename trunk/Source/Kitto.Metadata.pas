@@ -92,6 +92,7 @@ type
     procedure Purge;
     procedure ObjectAdded(const AFileName: string);
     procedure ObjectRemoved(const AFileName: string);
+    procedure ObjectDisposed(const AFileName: string);
   protected
     procedure ObjectNotFound(const AName: string);
     // Delete file and free object.
@@ -325,6 +326,7 @@ begin
   begin
     Assert(TKMetadata(FIndex.Objects[LIndex]) = AObject);
     FIndex.Delete(LIndex);
+    ObjectDisposed(AObject.PersistentFileName);
   end;
 end;
 
@@ -492,6 +494,11 @@ begin
       ObjectNotFound(ANode.Name + ':' + ANode.AsString)
     else
       ObjectNotFound('<nil>');
+end;
+
+procedure TKMetadataCatalog.ObjectDisposed(const AFileName: string);
+begin
+  NotifyObservers('ObjectDisposed' + #9 + AFileName);
 end;
 
 function TKMetadataCatalog.FindObjectByNode(const ANode: TEFNode): TKMetadata;
