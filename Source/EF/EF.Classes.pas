@@ -207,7 +207,10 @@ begin
     LConfigFileName := GetConfigFileName;
     if LConfigFileName <> '' then
     begin
-      FConfig := TEFTreeFactory.LoadFromFile<TEFComponentConfig>(LConfigFileName);
+      if FileExists(LConfigFileName) then
+        FConfig := TEFTreeFactory.LoadFromFile<TEFComponentConfig>(LConfigFileName)
+      else
+        FConfig := TEFComponentConfig.Create;
       FConfig.PersistentName := LConfigFileName;
     end
     else
