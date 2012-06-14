@@ -193,7 +193,7 @@ begin
     for I := 0 to AValues.ChildCount - 1 do
     begin
       LViewField := AViewTable.FindField(AValues[I].Name);
-      if Assigned(LViewField) and not LViewField.IsReadOnly and LViewField.CanInsert then
+      if Assigned(LViewField) and AValues[I].IsModified and LViewField.CanInsert then
       begin
         if LViewField.IsReference then
         begin
@@ -250,7 +250,6 @@ begin
     for I := 0 to AValues.FieldCount - 1 do
     begin
       LViewField := AViewTable.FindField(AValues[I].Name);
-      //if Assigned(LViewField) and not LViewField.IsReadOnly and LViewField.CanUpdate and not LViewField.IsKey then
       if Assigned(LViewField) and AValues[I].IsModified and LViewField.CanUpdate and not LViewField.IsKey then
       begin
         if LViewField.IsReference then
