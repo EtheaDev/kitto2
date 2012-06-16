@@ -682,11 +682,16 @@ begin
 end;
 
 function TKMetadata.GetResourceURI: string;
+var
+  LName: string;
 begin
-  if PersistentName = '' then
+  LName := PersistentName;
+  if LName = '' then
+    LName := GetString('ResourceName');
+  if LName = '' then
     Result := ''
   else
-    Result := 'metadata://' + GetClassNameForResourceURI + '/' + PersistentName;
+    Result := 'metadata://' + GetClassNameForResourceURI + '/' + LName;
 end;
 
 function TKMetadata.IsAccessGranted(const AMode: string): Boolean;

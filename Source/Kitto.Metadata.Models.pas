@@ -1053,7 +1053,9 @@ end;
 
 function TKModelField.GetResourceURI: string;
 begin
-  Result := Model.GetResourceURI + '/' + FieldName;
+  Result := Model.GetResourceURI;
+  if Result <> '' then
+    Result := Result + '/' + FieldName;
 end;
 
 function TKModelField.GetRules: TKRules;
