@@ -992,6 +992,8 @@ begin
         LTextField.MaxLength := AViewField.Size;
       LTextField.AllowBlank := not AViewField.IsRequired;
     end;
+    if AViewField.GetBoolean('IsPassword') then
+      LTextField.InputType := itPassword;
     Result := LTextField;
   except
     LTextField.Free;
