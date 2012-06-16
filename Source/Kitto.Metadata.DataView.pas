@@ -897,28 +897,9 @@ begin
 end;
 
 function TKViewTable.FindLayout(const AKind: string): TKLayout;
-
-  function GetViewTablePathName: string;
-  var
-    LMasterTable: TKViewTable;
-  begin
-    if MasterTable = nil then
-      Result := View.PersistentName
-    else
-    begin
-      Result := Model.ModelName;
-      LMasterTable := MasterTable;
-      while Assigned(LMasterTable) do
-      begin
-        Result := LMasterTable.Model.ModelName + '.' + Result;
-        LMasterTable := LMasterTable.MasterTable;
-      end;
-      Result := StripSuffix(View.PersistentName + '.' + Result, '.');
-    end;
-  end;
-
 begin
-  Result := View.Catalog.Layouts.FindLayout(GetViewTablePathName + '_' + AKind);
+  Result := View.Catalog.Layouts.FindLayout(
+    SmartConcat(View.PersistentName, '.', Join(GetNamePath, '.')) + '_' + AKind);
 end;
 
 function TKViewTable.FindNode(const APath: string;
@@ -941,7 +922,9 @@ begin
   begin
     Result := MasterTable.GetNamePath;
     SetLength(Result, Length(Result) + 1);
-    Result[High(Result)] := ModelName;
+    Result[High(Result)] := MasterTable.GetModelDetailReferenceName;
+    if Result[High(Result)] = '' then
+      Result[High(Result)] := ModelName;
   end
   else
     SetLength(Result, 0);
