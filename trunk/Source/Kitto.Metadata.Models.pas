@@ -211,8 +211,26 @@ type
     ///	property.</summary>
     property Expression: string read GetExpression;
 
+    ///	<summary>Returns True if the field can be modified when inserting a new
+    ///	record. By default all fields for which CanActuallyModify returns True
+    ///	are editable, but you can makle a field non editable during insert by
+    ///	adding 'CanInsert: False' to its definition.</summary>
+    ///	<remarks>You can't make editable a field that is naturally non
+    ///	editable, such as an expression field.</remarks>
     property CanInsert: Boolean read GetCanInsert;
+
+    ///	<summary>Returns True if the field can be modified when editing an
+    ///	existing record. By default all fields for which CanActuallyModify
+    ///	returns True are editable, but you can makle a field non editable
+    ///	during update by adding 'CanUpdate: False' to its definition.</summary>
+    ///	<remarks>You can't make editable a field that is naturally non
+    ///	editable, such as an expression field.</remarks>
     property CanUpdate: Boolean read GetCanUpdate;
+
+    ///	<summary>Returns True if a field is natually editable. All fields
+    ///	except expression fields are currently considered natually
+    ///	editable.</summary>
+    function CanActuallyModify: Boolean;
 
     ///	<summary>
     ///	  Indicates that an empty value input by the user should be converted
@@ -1118,14 +1136,31 @@ begin
   Result := GetChildrenAsPairs('AllowedValues');
 end;
 
-function TKModelField.GetCanUpdate: Boolean;
+function TKModelField.CanActuallyModify: Boolean;
 begin
   Result := Expression = '';
 end;
 
-function TKModelField.GetCanInsert: Boolean;
+function TKModelField.GetCanUpdate: Boolean;
+var
+  LNode: TEFNode;
 begin
-  Result := CanUpdate;
+  LNode := FindNode('CanUpdate');
+  if Assigned(LNode) then
+    Result := LNode.AsBoolean and CanActuallyModify
+  else
+    Result := CanActuallyModify;
+end;
+
+function TKModelField.GetCanInsert: Boolean;
+var
+  LNode: TEFNode;
+begin
+  LNode := FindNode('CanInsert');
+  if Assigned(LNode) then
+    Result := LNode.AsBoolean and CanActuallyModify
+  else
+    Result := CanActuallyModify;
 end;
 
 function TKModelField.GetChildClass(const AName: string): TEFNodeClass;
