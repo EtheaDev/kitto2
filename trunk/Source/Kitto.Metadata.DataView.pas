@@ -1188,7 +1188,7 @@ begin
   if LNode = nil then
     Result := ModelField.CanInsert
   else
-    Result := LNode.AsBoolean;
+    Result := LNode.AsBoolean and ModelField.CanActuallyModify;
 end;
 
 function TKViewField.GetCanUpdate: Boolean;
@@ -1199,7 +1199,7 @@ begin
   if LNode = nil then
     Result := ModelField.CanUpdate
   else
-    Result := LNode.AsBoolean;
+    Result := LNode.AsBoolean and ModelField.CanActuallyModify;
 end;
 
 function TKViewField.GetChildClass(const AName: string): TEFNodeClass;
