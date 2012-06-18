@@ -857,10 +857,15 @@ begin
     {$ENDIF}
   end
   else begin
-    ContentType := 'text/javascript; charset=' + Charset;
-    {$IFDEF DEBUGJS}
-    Response := BeautifyJS(Response);
-    {$ENDIF}
+    if (Response <> '') and (Response[1] = '<') then
+      ContentType := 'text/html; charset=' + Charset
+    else
+    begin
+      ContentType := 'text/javascript; charset=' + Charset;
+      {$IFDEF DEBUGJS}
+      Response := BeautifyJS(Response);
+      {$ENDIF}
+    end;
   end;
 end;
 
