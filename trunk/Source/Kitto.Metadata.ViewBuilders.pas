@@ -108,6 +108,7 @@ var
   LSourceControllerNode: TEFNode;
   LSourceMainTableControllerNode: TEFNode;
   LControllerNode: TEFNode;
+  LResourceName: TEFNode;
 begin
   inherited;
   LModel := GetModel;
@@ -121,6 +122,11 @@ begin
     end
     else if ANode <> nil then
       AViews.AddNonpersistentObject(Result, ANode);
+
+    LResourceName := FindNode('ResourceName');
+    if Assigned(LResourceName) then
+      Result.SetString('ResourceName', LResourceName.AsString);
+
     LSourceControllerNode := FindNode('Controller');
     if Assigned(LSourceControllerNode) then
       Result.AddChild(TEFNode.Clone(LSourceControllerNode));
