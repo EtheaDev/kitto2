@@ -444,8 +444,7 @@ begin
   FFormPanel.Border := False;
   FFormPanel.Header := False;
   FFormPanel.Frame := True;
-  FFormPanel.AutoScroll := True;
-  //FFormPanel.AutoWidth := True;
+  FFormPanel.AutoScroll := False;
   FFormPanel.LabelWidth := 120;
   FFormPanel.MonitorValid := True;
   //TExtFormBasicForm(FFormPanel.GetForm).Url := MethodURI(SaveChanges);

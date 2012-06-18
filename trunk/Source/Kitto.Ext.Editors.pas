@@ -58,6 +58,8 @@ type
   end;
 
   TKExtFormFieldSet = class(TExtFormFieldSet, IKExtEditItem, IKExtEditContainer)
+  protected
+    procedure InitDefaults; override;
   public
     function AsObject: TObject;
     function QueryInterface(const IID: TGUID; out Obj): HRESULT; stdcall;
@@ -1271,6 +1273,15 @@ end;
 function TKExtFormFieldSet.AsObject: TObject;
 begin
   Result := Self;
+end;
+
+procedure TKExtFormFieldSet.InitDefaults;
+begin
+  inherited;
+  On('beforecollapse', JSFunction('this.kPreviousHeight = this.getHeight();'), Self);
+  On('collapse', JSFunction('if ("kPreviousHeight" in this && this.getTopOwner() instanceof Ext.Window) this.getTopOwner().setHeight(this.getTopOwner().getHeight() - this.kPreviousHeight + this.getHeight());'), Self);
+  On('beforeexpand', JSFunction('this.kPreviousHeight = this.getHeight();'), Self);
+  On('expand', JSFunction('if ("kPreviousHeight" in this && this.getTopOwner() instanceof Ext.Window) this.getTopOwner().setHeight(this.getTopOwner().getHeight() - this.kPreviousHeight + this.getHeight());'), Self);
 end;
 
 function TKExtFormFieldSet.QueryInterface(const IID: TGUID; out Obj): HRESULT;
