@@ -71,6 +71,7 @@ type
     function GetDetailStyle: string;
     procedure OnFieldChange(AField: TExtFormField; ANewValue, AOldValue: string);
     function FindEditor(const AFieldName: string): IKExtEditor;
+    function GetExtraHeight: Integer;
   strict protected
     procedure DoDisplay; override;
     procedure InitComponents; override;
@@ -211,6 +212,7 @@ end;
 procedure TKExtFormPanelController.LoadData(const AFilterExpression: string);
 var
   LDetailStyle: string;
+  LHostWindow: TExtWindow;
 begin
   CreateEditors(FIsReadOnly);
   LDetailStyle := GetDetailStyle;
@@ -218,6 +220,15 @@ begin
     CreateDetailPanels
   else if SameText(LDetailStyle, 'Popup') then
     CreateDetailToolbar;
+  // Resize the window after setting up toolbars and tabs, so that we
+  // know the exact extra height needed.
+  if Config.GetBoolean('Sys/HostWindow/AutoSize') then
+  begin
+    LHostWindow := GetHostWindow;
+    if Assigned(LHostWindow) then
+      LHostWindow.On('afterrender', JSFunction(Format(
+        '%s.setOptimalSize(0, %d); %s.center();', [LHostWindow.JSName, GetExtraHeight, LHostWindow.JSName])));
+  end;
   StartOperation;
 end;
 
@@ -434,7 +445,7 @@ begin
   FFormPanel.Header := False;
   FFormPanel.Frame := True;
   FFormPanel.AutoScroll := True;
-  FFormPanel.AutoWidth := True;
+  //FFormPanel.AutoWidth := True;
   FFormPanel.LabelWidth := 120;
   FFormPanel.MonitorValid := True;
   //TExtFormBasicForm(FFormPanel.GetForm).Url := MethodURI(SaveChanges);
@@ -468,6 +479,17 @@ begin
     FCancelButton.Tooltip := _('Cancel changes');
     FCancelButton.Handler := Ajax(CancelChanges);
   end;
+end;
+
+function TKExtFormPanelController.GetExtraHeight: Integer;
+begin
+  Result := 0;
+  if Assigned(FDetailToolbar) then
+    Result := Result + 30;
+  if Assigned(FTabPanel) then
+    Result := Result + 30;
+  if Assigned(TopToolbar) then
+    Result := Result + 30;
 end;
 
 procedure TKExtFormPanelController.CancelChanges;

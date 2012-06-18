@@ -23,6 +23,68 @@ function kittoInit()
     }
   });
 
+  Ext.override(Ext.Component, {
+    getFormPanelOptimalSize: function() {
+      var s;
+      if (this.items)
+      {
+        for (var i = 0; i < this.items.getCount(); i++)
+        {
+          var item = this.items.get(i);
+          if (item instanceof Ext.form.FormPanel)
+            s = item.getOptimalSize();
+          else
+            s = item.getFormPanelOptimalSize();
+          if (s)
+            break;
+        }
+      }
+      return s;
+    }
+  });
+
+  Ext.override(Ext.form.FormPanel, {
+    getOptimalSize: function() {
+      var s = new Object;
+      s.x = 0;
+      s.y = 0;
+      for (var i = 0; i < this.items.getCount(); i++)
+      {
+        var item = this.items.get(i);
+        var w = 0;
+        var h = 0;
+        
+        if (item instanceof Ext.Container && item.items && item.initialConfig.layout == "column")
+        {
+          for (var j = 0; j < item.items.getCount(); j++)
+            w += item.items.get(j).getWidth();
+          w += 24;
+        }
+        else
+        {
+          w = item.getEl().getRight() - this.getEl().getLeft();
+        }
+        h = item.getEl().getBottom() - this.getEl().getTop();
+        if (w > s.x)
+          s.x = w;
+        if (h > s.y)
+          s.y = h;
+      }    
+      s.y += this.fbar.getEl().getHeight();
+      return s;
+    }
+  });
+
+  Ext.override(Ext.Window, {
+    setOptimalSize: function(extraWidth, extraHeight) {
+      s = this.getFormPanelOptimalSize();
+      if (s)
+        // Add space for borders and caption bar.
+        // TODO: Calculate them automatically.
+        this.setSize(s.x + 50 + extraWidth, s.y + 50 + extraHeight);
+    }
+  });
+
   // Used by TKExtForceCamelCaps.
   String.prototype.capitalize = function(){
     return this.replace( /(^|\s)([a-z])/g , function(m,p1,p2){ return p1+p2.toUpperCase(); } );

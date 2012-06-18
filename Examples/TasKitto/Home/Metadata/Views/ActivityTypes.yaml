@@ -4,8 +4,3 @@ Controller: List
 
 MainTable:
   Model: ACTIVITY_TYPE
-
-  Controller:
-    PopupWindow:
-      Width: 660
-      Height: 430

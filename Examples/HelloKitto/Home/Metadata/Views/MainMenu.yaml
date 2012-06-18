@@ -6,11 +6,6 @@ Folder: Options
 Folder: Lookup tables
   View: Build AutoList
     Model: Hair
-    MainTable:
-      Controller:
-        PopupWindow:
-          Width: 320
-          Height: 160
 Folder: User
   IsInitiallyCollapsed: True
   View:

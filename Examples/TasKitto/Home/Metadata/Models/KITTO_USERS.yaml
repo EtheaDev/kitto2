@@ -1,9 +1,10 @@
-ModelName: KITTO_USERS
+﻿ModelName: KITTO_USERS
 DisplayLabel: User
 Fields:
-  USER_NAME:                 String(20) not null primary key
+  USER_NAME: String(20) not null primary key
     Rules:
       SubType: alphanum
-  PASSWORD_HASH:             String(20) not null
+  PASSWORD_HASH: String(20) not null
     DisplayLabel: Password
-  IS_ACTIVE:                 Boolean
+    IsPassword: True
+  IS_ACTIVE: Boolean

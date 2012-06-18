@@ -461,6 +461,8 @@ procedure TKExtGridPanel.ShowEditWindow(const ARecord: TKRecord;
 var
   LFormControllerType: string;
   LFormController: IKExtController;
+  LWidth: Integer;
+  LHeight: Integer;
 begin
   Assert((AEditMode = emNewrecord) or Assigned(ARecord));
   Assert(ViewTable <> nil);
@@ -468,10 +470,9 @@ begin
   if Assigned(FEditHostWindow) then
     FEditHostWindow.Free(True);
   FEditHostWindow := TKExtModalWindow.Create;
-  FEditHostWindow.Width := ViewTable.GetInteger('Controller/PopupWindow/Width', FEditHostWindow.Width);
-  FEditHostWindow.Height := ViewTable.GetInteger('Controller/PopupWindow/Height', FEditHostWindow.Height);
+
   FEditHostWindow.ResizeHandles := 'n s';
-  FEditHostWindow.Closable := False;
+  FEditHostWindow.Layout := lyFit;
 
   if AEditMode = emNewRecord then
     FEditHostWindow.Title := Format(_('Add %s'), [_(ViewTable.DisplayLabel)])
@@ -488,11 +489,22 @@ begin
     LFormController.Config.SetObject('Sys/Record', ARecord);
   LFormController.Config.SetObject('Sys/ViewTable', ViewTable);
   LFormController.Config.SetObject('Sys/HostWindow', FEditHostWindow);
+
+  LWidth := ViewTable.GetInteger('Controller/PopupWindow/Width', -1);
+  LHeight := ViewTable.GetInteger('Controller/PopupWindow/Height', -1);
+  if (LWidth <> -1) and (LHeight <> -1) then
+  begin
+    FEditHostWindow.Width := LWidth;
+    FEditHostWindow.Height := LHeight;
+    LFormController.Config.SetBoolean('Sys/HostWindow/AutoSize', False);
+  end
+  else
+    LFormController.Config.SetBoolean('Sys/HostWindow/AutoSize', True);
   if AEditMode = emNewRecord then
     LFormController.Config.SetString('Sys/Operation', 'Add');
   LFormController.Display;
+
   FEditHostWindow.Show;
-  //JSCode('showWindow(' + FEditHostWindow.JSName + ', ' + TExtObject(LFormController.AsObject).JSName + ');');
 end;
 
 procedure TKExtGridPanel.SetViewTable(const AValue: TKViewTable);

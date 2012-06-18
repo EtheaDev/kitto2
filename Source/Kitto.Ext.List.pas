@@ -152,13 +152,16 @@ procedure TKExtListPanelController.CreateFilterPanel;
 var
   LItems: TEFNode;
 begin
-  LItems := Config.FindNode('Filters/Items');
-  if Assigned(LItems) and (LItems.ChildCount > 0) then
+  if not ViewTable.IsDetail then
   begin
-    FFilterPanel := TKExtFilterPanel.AddTo(Items);
-    FFilterPanel.Region := rgNorth;
-    FFilterPanel.OnChange := FilterPanelChange;
-    FFilterPanel.Configure(LItems.Parent as TEFNode);
+    LItems := Config.FindNode('Filters/Items');
+    if Assigned(LItems) and (LItems.ChildCount > 0) then
+    begin
+      FFilterPanel := TKExtFilterPanel.AddTo(Items);
+      FFilterPanel.Region := rgNorth;
+      FFilterPanel.OnChange := FilterPanelChange;
+      FFilterPanel.Configure(LItems.Parent as TEFNode);
+    end;
   end;
 end;
 

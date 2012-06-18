@@ -9,17 +9,13 @@ Controller: List
       FreeSearch: Name/Address
         ExpressionTemplate: >
           upper(PARTY.ADDRESS) like upper('%{value}%') 
-           or upper(PARTY.PARTY_NAME) like  
+                or upper(PARTY.PARTY_NAME) like       
           upper('%{value}%')
 
 MainTable:
   Model: Party
 
   Controller:
-    PopupWindow:
-      Width: 480
-      Height: 260
-
     Grouping:
       FieldName: Party_Period
       # SortFieldName defaults to FieldName.
@@ -40,7 +36,3 @@ MainTable:
           IsVisible: False
         Invitee:
         Accepted:
-      Controller:
-        PopupWindow:
-          Width: 360
-          Height: 200

@@ -1,4 +1,4 @@
-Type: Data
+﻿Type: Data
 
 Controller: List
   AllowClose: False
@@ -29,10 +29,6 @@ MainTable:
 
   Controller:
     AutoOpen: False
-
-    PopupWindow:
-      Width: 454
-      Height: 488
 
     Grouping:
       FieldName: Hair

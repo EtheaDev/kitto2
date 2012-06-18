@@ -4,8 +4,3 @@ Controller: List
 
 MainTable:
   Model: KITTO_USERS
-
-  Controller:
-    PopupWindow:
-      Width: 400
-      Height: 220

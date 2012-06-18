@@ -2248,6 +2248,7 @@ begin
       FPictureView.Width := FImageWidth;
       FPictureView.Height := FImageHeight;
     end;
+    Width := FPictureView.Width + (22 * LButtonCount);
   end;
 end;
 
