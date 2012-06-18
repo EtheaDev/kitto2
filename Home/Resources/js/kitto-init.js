@@ -24,6 +24,14 @@ function kittoInit()
   });
 
   Ext.override(Ext.Component, {
+    getTopOwner: function() {
+      var o = this.ownerCt;
+      if (!o)
+        return this;
+      else
+        return o.getTopOwner();
+    },
+    
     getFormPanelOptimalSize: function() {
       var s;
       if (this.items)
