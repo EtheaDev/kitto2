@@ -2267,9 +2267,8 @@ end;
 
 procedure TKExtFormFileEditor.GetImageContent;
 begin
-  Session.ContentType := 'text/html';
   if GetCurrentServerFileName = '' then
-    Session.Response := _('Empty')
+    Session.Response := '<p>' + _('Empty') + '</p>'
   else
     // Add dummy paraneter to the URL to force the browser to refresh the image
     // after an upload.
