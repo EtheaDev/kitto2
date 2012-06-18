@@ -66,7 +66,7 @@ begin
   else
   begin
     FStatusBar.SetErrorStatus(_('Invalid login.'));
-    FPassword.Focus(False, 500);
+    FPassword.Focus(False, 750);
   end;
 end;
 
@@ -162,9 +162,9 @@ begin
   FButton.Disabled := (FUserName.Value = '') or (FPassword.Value = '');
 
   if (FUserName.Value <> '') and (FPassword.Value = '') then
-    FPassword.Focus(False, 500)
+    FPassword.Focus(False, 750)
   else
-    FUserName.Focus(False, 500);
+    FUserName.Focus(False, 750);
 end;
 
 end.

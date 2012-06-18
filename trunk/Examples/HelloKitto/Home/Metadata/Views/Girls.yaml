@@ -24,9 +24,3 @@ Controller: List
 
 MainTable:
   Model: Girl
-
-  Controller:
-
-    PopupWindow:
-      Width: 460
-      Height: 230

@@ -6,10 +6,6 @@ MainTable:
   Model: PROJECT
 
   Controller:
-    PopupWindow:
-      Width: 500
-      Height: 250
-
     Filters:
       DisplayLabel: Project Filter
       Connector: and
@@ -27,14 +23,8 @@ MainTable:
           ExpressionTemplate: CUSTOMER_NAME = '{value}'
 
   DetailTables:
-    Controller:
-      # Tabs/Popup. Default = Tabs. 
-      Style: Tabs
     Table:
       Model: PHASE
       Controller:
-        PopupWindow:
-          Width: 500
-          Height: 320
         Form:
           Layout: Phases_Form
