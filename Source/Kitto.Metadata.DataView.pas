@@ -490,7 +490,7 @@ type
 implementation
 
 uses
-  StrUtils, Variants, TypInfo,
+  StrUtils, Variants, TypInfo, Math,
   EF.DB, EF.StrUtils, EF.VariantUtils, EF.Macros,
   Kitto.SQL, Kitto.Types, Kitto.Config, Kitto.AccessControl,
   Kitto.DatabaseRouter;
@@ -1889,6 +1889,8 @@ end;
 { TKViewTableField }
 
 function TKViewTableField.GetAsJSONValue(const AForDisplay: Boolean): string;
+const
+  PASSWORD_CHARS = 8;
 var
   LDisplayTemplate: string;
 
@@ -1922,12 +1924,17 @@ begin
   Result := inherited GetAsJSONValue(AForDisplay);
   if AForDisplay and Assigned(ViewField) then
   begin
-    LDisplayTemplate := ViewField.DisplayTemplate;
-    if LDisplayTemplate <> '' then
+    if ViewField.GetBoolean('IsPassword') then
+      Result := '"' + DupeString('*', Min(ViewField.DisplayWidth, PASSWORD_CHARS)) + '"'
+    else
     begin
-      // Replace other field values, this field's value and add back quotes.
-      Result := '"' + ReplaceFieldValues(
-        ReplaceText(LDisplayTemplate, '{value}', Unquote(Result))) + '"';
+      LDisplayTemplate := ViewField.DisplayTemplate;
+      if LDisplayTemplate <> '' then
+      begin
+        // Replace other field values, this field's value and add back quotes.
+        Result := '"' + ReplaceFieldValues(
+          ReplaceText(LDisplayTemplate, '{value}', Unquote(Result))) + '"';
+      end;
     end;
   end;
 end;
