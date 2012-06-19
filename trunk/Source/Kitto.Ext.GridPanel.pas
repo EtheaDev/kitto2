@@ -80,7 +80,7 @@ type
 implementation
 
 uses
-  SysUtils, StrUtils, Math,
+  SysUtils, StrUtils, Math, Types,
   EF.Tree, EF.StrUtils, EF.Localization, EF.JSON,
   Kitto.Metadata.Models, Kitto.Rules, Kitto.AccessControl,
   Kitto.Ext.Session, Kitto.Ext.Utils;
@@ -89,18 +89,30 @@ uses
 
 function TKExtGridPanel.GetOrderByClause: string;
 var
-  LSortFieldName: string;
+  LSortFieldNames: TStringDynArray;
+  LGroupingFieldName: string;
+  I: Integer;
 begin
-  LSortFieldName := ViewTable.GetString('Controller/Grouping/SortFieldName', GetGroupingFieldName);
-  if LSortFieldName <> '' then
-    Result := ViewTable.FieldByName(LSortFieldName).QualifiedDBNameOrExpression
+  LSortFieldNames := ViewTable.GetStringArray('Controller/Grouping/SortFieldNames');
+  if Length(LSortFieldNames) = 0 then
+  begin
+    LGroupingFieldName := GetGroupingFieldName;
+    if LGroupingFieldName <> '' then
+      Result := ViewTable.FieldByName(GetGroupingFieldName).QualifiedDBNameOrExpression
+    else
+      Result := inherited GetOrderByClause;
+  end
   else
-    Result := inherited GetOrderByClause;
+  begin
+    for I := Low(LSortFieldNames) to High(LSortFieldNames) do
+      LSortFieldNames[I] := ViewTable.FieldByName(LSortFieldNames[I]).QualifiedDBNameOrExpression;
+    Result := Join(LSortFieldNames, ', ');
+  end;
 end;
 
 function TKExtGridPanel.GetGroupingFieldName: string;
 begin
-  Result := ViewTable.GetString('Controller/Grouping/FieldName');
+  Result := ViewTable.GetExpandedString('Controller/Grouping/FieldName');
 end;
 
 procedure TKExtGridPanel.AfterCreateTopToolbar;
