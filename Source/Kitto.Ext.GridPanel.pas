@@ -639,7 +639,10 @@ end;
 procedure TKExtGridPanel.RefreshData;
 begin
   if Assigned(FPagingToolbar) then
-    FPagingToolbar.DoRefresh
+  begin
+    FPagingToolbar.DoRefresh;
+    FPagingToolbar.MoveFirst;
+  end
   else
     inherited;
 end;
