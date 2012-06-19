@@ -361,9 +361,9 @@ begin
   SetCSS(ExtPath + '/examples/ux/fileuploadfield/css/fileuploadfield');
 
   SetLibrary(ExtPath + '/examples/shared/examples'); // For Ext.msg.
-  //SetLibrary(ExtPath + '/src/locale/ext-lang-' + Language);
-  //SetRequiredLibrary('DateTimeField');
-  //SetRequiredLibrary('DefaultButton');
+  SetLibrary(ExtPath + '/src/locale/ext-lang-' + Language);
+  SetRequiredLibrary('DateTimeField');
+  SetRequiredLibrary('DefaultButton');
   SetRequiredLibrary('kitto-core', True);
   SetRequiredLibrary('kitto-init');
   SetOptionalLibrary('application', True);
