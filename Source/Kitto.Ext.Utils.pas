@@ -66,6 +66,14 @@ type
     function GetClickFunction(const AView: TKView): TExtFunction;
 
     function FindView(const ANode: TKTreeViewNode): TKView;
+
+    ///	<summary>Clones the specified tree view, filters all invisible items
+    ///	(including folders containing no visible items) and returns the
+    ///	clone.</summary>
+    ///	<remarks>The caller is responsible for freeing the returned
+    ///	object.</remarks>
+    function CloneAndFilter(const ATreeView: TKTreeView): TKTreeView;
+    procedure Filter(const ANode: TKTreeViewNode);
   public
     ///	<summary>
     ///	  Attaches to the container a set of buttons, one for each top-level
@@ -221,8 +229,9 @@ begin
 
   LView := FindView(ANode);
 
-  if not Assigned(LView) or LView.IsAccessGranted(ACM_VIEW) then
-  begin
+  // Check already done in CloneAndFilter.
+  //if not Assigned(LView) or LView.IsAccessGranted(ACM_VIEW) then
+  //begin
     LIsEnabled := not Assigned(LView) or LView.IsAccessGranted(ACM_RUN);
     LButton := TKExtButton.AddTo(AContainer.Items);
     try
@@ -251,7 +260,7 @@ begin
       FreeAndNil(LButton);
       raise;
     end;
-  end;
+  //end;
 end;
 
 procedure TKExtTreeViewRenderer.AddNode(const ANode: TKTreeViewNode; const AParent: TExtTreeTreeNode);
@@ -266,8 +275,9 @@ begin
 
   LView := FindView(ANode);
 
-  if not Assigned(LView) or LView.IsAccessGranted(ACM_VIEW) then
-  begin
+  // Check already done in CloneAndFilter.
+  //if not Assigned(LView) or LView.IsAccessGranted(ACM_VIEW) then
+  //begin
     LIsEnabled := not Assigned(LView) or LView.IsAccessGranted(ACM_RUN);
     LNode := TKExtTreeTreeNode.Create;
     try
@@ -298,6 +308,38 @@ begin
       FreeAndNil(LNode);
       raise;
     end;
+  //end;
+end;
+
+function TKExtTreeViewRenderer.CloneAndFilter(const ATreeView: TKTreeView): TKTreeView;
+var
+  I: Integer;
+begin
+  Assert(Assigned(ATreeView));
+
+  Result := TKTreeView.Clone(ATreeView);
+
+  for I := Result.TreeViewNodeCount - 1 downto 0 do
+    Filter(Result.TreeViewNodes[I]);
+end;
+
+procedure TKExtTreeViewRenderer.Filter(const ANode: TKTreeViewNode);
+var
+  LView: TKView;
+  I: Integer;
+begin
+  Assert(Assigned(ANode));
+
+  LView := FindView(ANode);
+  if Assigned(LView) and not LView.IsAccessGranted(ACM_VIEW) then
+    ANode.Delete
+  else
+  begin
+    for I := ANode.TreeViewNodeCount - 1 downto 0 do
+      Filter(ANode.TreeViewNodes[I]);
+    // Remove empty folders.
+    if (ANode is TKTreeViewFolder) and (ANode.TreeViewNodeCount = 0) then
+      ANode.Delete;
   end;
 end;
 
@@ -307,6 +349,7 @@ function TKExtTreeViewRenderer.RenderAsButtons(
   const AClickHandler: TExtProcedure): Integer;
 var
   I: Integer;
+  LTreeView: TKTreeView;
 begin
   Assert(Assigned(ATreeView));
   Assert(Assigned(AContainer));
@@ -316,8 +359,14 @@ begin
   FOwner := AOwner;
   FClickHandler := AClickHandler;
   FAddedItems := 0;
-  for I := 0 to ATreeView.TreeViewNodeCount - 1 do
-    AddButton(ATreeView.TreeViewNodes[I], AContainer);
+
+  LTreeView := CloneAndFilter(ATreeView);
+  try
+    for I := 0 to LTreeView.TreeViewNodeCount - 1 do
+      AddButton(LTreeView.TreeViewNodes[I], AContainer);
+  finally
+    FreeAndNil(LTreeView);
+  end;
   Result := FAddedItems;
 end;
 
@@ -326,6 +375,7 @@ function TKExtTreeViewRenderer.RenderAsTree(
   const AOwner: TExtObject;  const AClickHandler: TExtProcedure): Integer;
 var
   I: Integer;
+  LTreeView: TKTreeView;
 begin
   Assert(Assigned(ATreeView));
   Assert(Assigned(ARoot));
@@ -335,8 +385,14 @@ begin
   FOwner := AOwner;
   FClickHandler := AClickHandler;
   FAddedItems := 0;
-  for I := 0 to ATreeView.TreeViewNodeCount - 1 do
-    AddNode(ATreeView.TreeViewNodes[I], ARoot);
+
+  LTreeView := CloneAndFilter(ATreeView);
+  try
+    for I := 0 to LTreeView.TreeViewNodeCount - 1 do
+      AddNode(LTreeView.TreeViewNodes[I], ARoot);
+  finally
+    FreeAndNil(LTreeView);
+  end;
   Result := FAddedItems;
 end;
 
