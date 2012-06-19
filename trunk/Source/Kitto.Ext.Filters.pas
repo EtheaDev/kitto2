@@ -583,7 +583,10 @@ begin
     LConnector := FConfig.GetString('Connector', 'or');
     if FSelected[I] then
     begin
-      LExpression := '(' + FItems.Children[I].GetExpandedString('Expression') + ')';
+      LExpression := FItems.Children[I].GetExpandedString('Expression');
+      if LExpression <> '' then
+        LExpression := '(' + LExpression + ')';
+
       if Result = '' then
         Result := LExpression
       else
