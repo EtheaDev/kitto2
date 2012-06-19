@@ -1,0 +1,58 @@
+AppTitle: _(Peoria Girls and their Dolls)
+
+BlobPath: %HOME_PATH%UploadedFiles\
+
+# Change this to switch databases.
+# Default is Main.
+DefaultDatabaseName: DBXFb
+
+Databases:
+  DBXFb: DBX
+    Connection:
+      DriverName: Firebird
+      DataBase: localhost:HelloKitto
+      User_Name: SYSDBA
+      Password: masterkey
+      ServerCharSet: UTF8
+      WaitOnLocks: True
+      IsolationLevel: ReadCommitted
+      Trim Char: False
+
+  DBXMSSQL: DBX
+    Connection:
+      DriverName: MSSQL
+      HostName: localhost
+      DataBase: HelloKitto
+      OS Authentication: True
+
+  ADOMSSQL: ADO
+    Connection:
+      # This doesn't work because of a bug with date and time fields in ADO/OLEDB.
+      # See http://qc.embarcadero.com/wc/qcmain.aspx?d=78910
+      #Provider: SQLOLEDB.1
+      # Using the Native client fixes the date bug but still not the time bug.
+      Provider: SQLNCLI10
+      Trusted_Connection: Yes
+      Initial Catalog: HelloKitto
+      Data Source: %COMPUTERNAME%
+
+Auth: DB
+  Defaults:
+    UserName: administrator
+    Password: password
+
+AccessControl: Null
+    
+# Change this to use a custom view for the home page.
+# Alternatively, customize the Home view by replacing its controller.
+# Default: Home.
+#HomeView: Home
+
+Ext:
+  Theme: gray
+  URL: /ext4
+
+LanguageId: en
+# Either utf-8 or a SBCS corresponding to the system code page
+# (such as iso-8859-1 for Western Europe). Defaults to utf-8.
+Charset: utf-8

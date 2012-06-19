@@ -1,0 +1,26 @@
+﻿Type: Data
+
+Controller: List
+
+MainTable:
+  Model: CUSTOMER
+
+  Controller:
+    Filters:
+      DisplayLabel: Customer Filter
+      Items:
+        FreeSearch: Search Name
+          # ExpressionTemplate should contain a {value} placeholder for the search term.
+          ExpressionTemplate: >
+            upper(CUSTOMER_NAME) like upper('%{value}%')
+
+  DetailTables:
+    Table:
+      Model: PROJECT
+
+      DetailTables:
+        Table:
+          Model: PHASE
+          Controller:
+            Form:
+              Layout: Phases_Form

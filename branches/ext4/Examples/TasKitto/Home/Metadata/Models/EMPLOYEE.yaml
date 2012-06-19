@@ -1,0 +1,14 @@
+ModelName: EMPLOYEE
+Fields:
+  EMPLOYEE_ID:               String(32) not null primary key
+    IsVisible: False
+    DefaultValue: %COMPACT_GUID%
+  EMPLOYEE_NAME:             String(40) not null
+    DisplayWidth: 20
+  EMPLOYEE_TYPE:             String(20)
+    AllowedValues:
+      SYSTEM: System Operator
+      ACCT: Accountant
+      PROG: Programmer
+      PROJ_MGR: Project Manager
+      AN_PROG: Analyst Programmer

@@ -1,0 +1,546 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# 
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"POT-Creation-Date: 2012-04-20 11:54\n"
+"PO-Revision-Date: 2012-04-20 11:54\n"
+"Last-Translator: Somebody <your.email@address.com>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: dxgettext 1.2.2\n"
+
+#. KExtMainForm..Caption
+#: Kitto.Ext.MainFormUnit.dfm:4
+msgid "Kitto Application"
+msgstr ""
+
+#. KExtMainForm..PageControl..HomeTabSheet..Caption
+#: Kitto.Ext.MainFormUnit.dfm:433
+msgid "Home"
+msgstr ""
+
+#. KExtMainForm..PageControl..HomeTabSheet..ControlPanel..SessionCountLabel..Caption
+#: Kitto.Ext.MainFormUnit.dfm:464
+msgid "SessionCountLabel"
+msgstr ""
+
+#. KExtMainForm..PageControl..HomeTabSheet..ControlPanel..AppTitleLabel..Caption
+#: Kitto.Ext.MainFormUnit.dfm:489
+msgid "No config loaded. Please select one."
+msgstr ""
+
+#. KExtMainForm..PageControl..HomeTabSheet..ControlPanel..ConfigLinkLabel..Hint
+#: Kitto.Ext.MainFormUnit.dfm:504
+msgid "Click to change Application Home"
+msgstr ""
+
+#. KExtMainForm..PageControl..HomeTabSheet..ControlPanel..ConfigLinkLabel..Caption
+#: Kitto.Ext.MainFormUnit.dfm:505
+msgid "Config File Name"
+msgstr ""
+
+#. KExtMainForm..ActionList..StartAction..Hint
+#: Kitto.Ext.MainFormUnit.dfm:542
+msgid "Start FastCGI Listener"
+msgstr ""
+
+#. KExtMainForm..ActionList..StopAction..Hint
+#: Kitto.Ext.MainFormUnit.dfm:548
+msgid "Stop FastCGI Listener"
+msgstr ""
+
+#. KExtMainForm..ActionList..RestartAction..Hint
+#: Kitto.Ext.MainFormUnit.dfm:554
+msgid "Stop and Start FCGI Listener again"
+msgstr ""
+
+#. KExtMainForm..OpenConfigDialog..DefaultExt
+#: Kitto.Ext.MainFormUnit.dfm:704
+msgid ".yaml"
+msgstr ""
+
+#. KExtMainForm..OpenConfigDialog..Filter
+#: Kitto.Ext.MainFormUnit.dfm:705
+msgid "Yaml files (*.yaml)|*.yaml"
+msgstr ""
+
+#. KExtMainForm..OpenConfigDialog..Title
+#: Kitto.Ext.MainFormUnit.dfm:707
+msgid "Select Config file"
+msgstr ""
+
+#. KExtService..DisplayName
+#: Kitto.Ext.Service.dfm:3
+msgid "KittoService"
+msgstr ""
+
+#: Kitto.Auth.DB.pas:241
+#: Kitto.Auth.DB.pas:371
+msgid "Wrong authentication query text: %s"
+msgstr ""
+
+#: Kitto.Auth.DB.pas:427
+msgid "Error changing password."
+msgstr ""
+
+#: Kitto.Auth.TextFile.pas:148
+msgid "File %s not found."
+msgstr ""
+
+#: Kitto.Config.pas:494
+msgid "Access denied. The user is not allowed to perform this "
+"operation."
+msgstr ""
+
+#: Kitto.Config.pas:495
+msgid "Resource URI: %s; access mode: %s."
+msgstr ""
+
+#: Kitto.Ext.AccordionPanel.pas:88
+msgid "AccordionPanel's SubViews node may only contain View or Controller "
+"subnodes."
+msgstr ""
+
+#: Kitto.Ext.ChangePassword.pas:75
+msgid "Old Password is wrong."
+msgstr ""
+
+#: Kitto.Ext.ChangePassword.pas:80
+msgid "New Password must be different than old "
+"password."
+msgstr ""
+
+#: Kitto.Ext.ChangePassword.pas:85
+msgid "Confirm New Password is wrong."
+msgstr ""
+
+#: Kitto.Ext.ChangePassword.pas:105
+msgid "Change Password"
+msgstr ""
+
+#: Kitto.Ext.ChangePassword.pas:150
+msgid "Changing password..."
+msgstr ""
+
+#: Kitto.Ext.ChangePassword.pas:163
+msgid "Change password"
+msgstr ""
+
+#. FOldPassword.Value := ...
+#: Kitto.Ext.ChangePassword.pas:168
+msgid "Old Password"
+msgstr ""
+
+#. FNewPassword.Value := ...
+#: Kitto.Ext.ChangePassword.pas:177
+msgid "New Password"
+msgstr ""
+
+#. FConfirmNewPassword.Value := ...
+#: Kitto.Ext.ChangePassword.pas:186
+msgid "Confirm New Password"
+msgstr ""
+
+#: Kitto.Ext.ChartPanel.pas:287
+msgid "Unknown chart type %s."
+msgstr ""
+
+#: Kitto.Ext.DataPanel.pas:145
+#: Kitto.Ext.DataPanel.pas:150
+msgid "Actions that require selection are not supported in this "
+"controller."
+msgstr ""
+
+#: Kitto.Ext.DataPanelLeaf.pas:94
+msgid "Refresh"
+msgstr ""
+
+#: Kitto.Ext.DataPanelLeaf.pas:97
+msgid "Refresh data"
+msgstr ""
+
+#: Kitto.Ext.Editors.pas:466
+msgid "Unknown or misplaced option %s: %s."
+msgstr ""
+
+#. Floats in Yaml always use the dot as decimal separator.
+#: Kitto.Ext.Editors.pas:473
+msgid "Invalid value %s. Valid values: decimal "
+"numbers."
+msgstr ""
+
+#: Kitto.Ext.Editors.pas:484
+#: Kitto.Ext.Editors.pas:490
+msgid "Invalid value %s. Valid values: whole numbers or "
+"percentages."
+msgstr ""
+
+#: Kitto.Ext.Editors.pas:486
+msgid "Invalid percentage %s. Valid percentages are 0% to "
+"100%."
+msgstr ""
+
+#: Kitto.Ext.Editors.pas:496
+msgid "Invalid value %s. Valid values: whole "
+"numbers."
+msgstr ""
+
+#: Kitto.Ext.Editors.pas:506
+msgid "Invalid value %s. Valid values: \"True\", "
+"\"False\"."
+msgstr ""
+
+#: Kitto.Ext.Editors.pas:518
+msgid "Invalid value %s. Valid values: \"Left\", \"Top\", "
+"\"Right\"."
+msgstr ""
+
+#: Kitto.Ext.Editors.pas:536
+msgid "Invalid value %s. Valid values: %s"
+msgstr ""
+
+#: Kitto.Ext.Editors.pas:557
+msgid "Layout parsing error. %s."
+msgstr ""
+
+#. Unknown name - must be an option.
+#: Kitto.Ext.Editors.pas:606
+msgid "Option %s must have a value."
+msgstr ""
+
+#: Kitto.Ext.Editors.pas:608
+msgid "Option node %s cannot have child nodes."
+msgstr ""
+
+#: Kitto.Ext.Editors.pas:657
+msgid "Unknown edit item type %s."
+msgstr ""
+
+#: Kitto.Ext.Editors.pas:2055
+msgid "Download file"
+msgstr ""
+
+#. FDownloadButton.Margins := '0 5 0 0';
+#: Kitto.Ext.Editors.pas:2064
+msgid "Upload file"
+msgstr ""
+
+#: Kitto.Ext.Editors.pas:2071
+msgid "Clear field"
+msgstr ""
+
+#: Kitto.Ext.Editors.pas:2087
+msgid "Empty"
+msgstr ""
+
+#: Kitto.Ext.Editors.pas:2113
+msgid "File upload"
+msgstr ""
+
+#: Kitto.Ext.Editors.pas:2121
+msgid "Select a file to upload"
+msgstr ""
+
+#: Kitto.Ext.Editors.pas:2125
+msgid "Upload"
+msgstr ""
+
+#: Kitto.Ext.Editors.pas:2129
+msgid "File upload in progress..."
+msgstr ""
+
+#: Kitto.Ext.Editors.pas:2130
+msgid "Please wait..."
+msgstr ""
+
+#: Kitto.Ext.Editors.pas:2132
+msgid "File upload error"
+msgstr ""
+
+#: Kitto.Ext.Editors.pas:2160
+msgid "%s file (%s)"
+msgstr ""
+
+#. Load data from FServerRecord.
+#: Kitto.Ext.Form.pas:236
+msgid "Load failed."
+msgstr ""
+
+#. Get uploaded files.
+#: Kitto.Ext.Form.pas:344
+msgid "Data type %s does not support file upload."
+msgstr ""
+
+#. Save record.
+#: Kitto.Ext.Form.pas:357
+msgid "Changes saved succesfully."
+msgstr ""
+
+#: Kitto.Ext.Form.pas:406
+msgid "Operation Add not supported on read-only "
+"data."
+msgstr ""
+
+#: Kitto.Ext.Form.pas:438
+msgid "Save"
+msgstr ""
+
+#: Kitto.Ext.Form.pas:439
+msgid "Save changes and finish editing"
+msgstr ""
+
+#. FSaveButton.Handler := JSFunction(FFormPanel.JSName + '.getForm().doAction("submit", {success:"AjaxSuccess", failure:"AjaxFailure"});');
+#: Kitto.Ext.Form.pas:449
+msgid "Close"
+msgstr ""
+
+#: Kitto.Ext.Form.pas:450
+msgid "Close this panel"
+msgstr ""
+
+#. No need for an ajax call when we just close the client-side panel.
+#: Kitto.Ext.Form.pas:458
+msgid "Cancel"
+msgstr ""
+
+#: Kitto.Ext.Form.pas:459
+msgid "Cancel changes"
+msgstr ""
+
+#: Kitto.Ext.GridPanel.pas:160
+msgid "No data to display in this group."
+msgstr ""
+
+#: Kitto.Ext.GridPanel.pas:181
+msgid "No data to display."
+msgstr ""
+
+#: Kitto.Ext.GridPanel.pas:474
+#: Kitto.Ext.GridPanel.pas:639
+msgid "Add %s"
+msgstr ""
+
+#: Kitto.Ext.GridPanel.pas:476
+#: Kitto.Ext.GridPanel.pas:651
+msgid "Edit %s"
+msgstr ""
+
+#: Kitto.Ext.GridPanel.pas:587
+msgid "%s deleted."
+msgstr ""
+
+#: Kitto.Ext.GridPanel.pas:656
+msgid "View %s"
+msgstr ""
+
+#: Kitto.Ext.GridPanel.pas:667
+msgid "Delete %s"
+msgstr ""
+
+#: Kitto.Ext.GridPanel.pas:674
+msgid "Selected %s will be deleted. Are you "
+"sure?"
+msgstr ""
+
+#: Kitto.Ext.List.pas:82
+msgid "Search"
+msgstr ""
+
+#: Kitto.Ext.Login.pas:68
+msgid "Invalid login."
+msgstr ""
+
+#: Kitto.Ext.Login.pas:122
+msgid "Logging in..."
+msgstr ""
+
+#: Kitto.Ext.Login.pas:135
+msgid "Login"
+msgstr ""
+
+#: Kitto.Ext.Login.pas:140
+msgid "User Name"
+msgstr ""
+
+#: Kitto.Ext.Login.pas:148
+msgid "Password"
+msgstr ""
+
+#: Kitto.Ext.MainFormUnit.pas:104
+msgid "Listener stopped"
+msgstr ""
+
+#: Kitto.Ext.MainFormUnit.pas:135
+msgid "Stopping listener..."
+msgstr ""
+
+#: Kitto.Ext.MainFormUnit.pas:171
+msgid "Active Sessions: %d"
+msgstr ""
+
+#: Kitto.Ext.MainFormUnit.pas:211
+msgid "Build date: %s"
+msgstr ""
+
+#: Kitto.Ext.MainFormUnit.pas:236
+msgid "Application: %s"
+msgstr ""
+
+#: Kitto.Ext.MainFormUnit.pas:271
+msgid "Listener started"
+msgstr ""
+
+#: Kitto.Ext.Rules.pas:313
+msgid "Value too small. Minimum value is %s."
+msgstr ""
+
+#: Kitto.Ext.Rules.pas:339
+msgid "Value too large. Maximum value is %s."
+msgstr ""
+
+#: Kitto.Ext.Rules.pas:365
+msgid "Value too short. Minimum length is %s "
+"characters."
+msgstr ""
+
+#: Kitto.Ext.Rules.pas:391
+msgid "Value too long. Maximum length is %s "
+"characters."
+msgstr ""
+
+#: Kitto.Ext.StandardControllers.pas:275
+msgid "Logout"
+msgstr ""
+
+#: Kitto.Ext.TabPanel.pas:146
+msgid "TabPanel's SubViews node may only contain View or Controller "
+"subnodes."
+msgstr ""
+
+#: Kitto.Metadata.pas:238
+msgid "Duplicate object %s."
+msgstr ""
+
+#: Kitto.Metadata.pas:427
+msgid "Object %s not found."
+msgstr ""
+
+#: Kitto.Metadata.ViewBuilders.pas:163
+msgid "Free Search"
+msgstr ""
+
+#: Kitto.Rules.pas:328
+msgid "Rule %s failed."
+msgstr ""
+
+#: Kitto.Rules.pas:406
+msgid "%s must be greater than or equal to "
+"%s."
+msgstr ""
+
+#: Kitto.Store.pas:491
+msgid "Record not found for predicate {%s}."
+msgstr ""
+
+#: Kitto.Store.pas:604
+msgid "Field %s not found."
+msgstr ""
+
+#: EF/EF.DB.DBX.pas:270
+msgid "Unspecified Statement text."
+msgstr ""
+
+#: EF/EF.DB.DBX.pas:314
+msgid "Unspecified Sequence name."
+msgstr ""
+
+#: EF/EF.Emailer.pas:338
+msgid "Missing sender name or email address."
+msgstr ""
+
+#: EF/EF.SQL.pas:169
+#: EF/EF.SQL.pas:198
+#: EF/EF.SQL.pas:214
+#: EF/EF.SQL.pas:255
+#: EF/EF.SQL.pas:293
+msgid "Unspecified table name."
+msgstr ""
+
+#: EF/EF.SQL.pas:171
+#: EF/EF.SQL.pas:259
+#: EF/EF.SQL.pas:297
+msgid "Unspecified key field name list."
+msgstr ""
+
+#: EF/EF.SQL.pas:216
+#: EF/EF.SQL.pas:257
+#: EF/EF.SQL.pas:295
+msgid "Unspecified field name list."
+msgstr ""
+
+#: EF/EF.SQL.pas:366
+msgid "List length mismatch between \"%s\" and "
+"\"%s\"."
+msgstr ""
+
+#: EF/EF.SQL.pas:483
+msgid "Unmatched SQL skip marker pair in \"%s\"."
+msgstr ""
+
+#: EF/EF.SysUtils.pas:996
+msgid "SafeGetWindowsDirectory: buffer too "
+"small."
+msgstr ""
+
+#: EF/EF.SysUtils.pas:1008
+msgid "SafeGetSystemDirectory: buffer too small."
+msgstr ""
+
+#: EF/EF.SysUtils.pas:1267
+msgid "%s: SourcePath not set."
+msgstr ""
+
+#: EF/EF.SysUtils.pas:1521
+msgid "Error while removing folder \"%s\". Perhaps the folder is not empty or "
+"is in use."
+msgstr ""
+
+#: EF/EF.SysUtils.pas:1538
+#: EF/EF.SysUtils.pas:1581
+msgid "Error \"%s\" while removing file \"%s\". The file might be in "
+"use."
+msgstr ""
+
+#: EF/EF.SysUtils.pas:1560
+msgid "The file \"%s\" might be in use."
+msgstr ""
+
+#: EF/EF.SysUtils.pas:1611
+msgid "%s: DestinationPath not specified."
+msgstr ""
+
+#. Recupero del messaggio di errore corretto per sollevare l'eccezione.
+#: EF/EF.SysUtils.pas:1646
+msgid "Error \"%s\" while copying from \"%s\" to \"%s\". The destination file "
+"might be in use."
+msgstr ""
+
+#: EF/EF.Tree.pas:1817
+#: EF/EF.Tree.pas:1887
+msgid "Node %s not found."
+msgstr ""
+
+#: EF/EF.Types.pas:337
+msgid "%s: Unknown class \"%s\"."
+msgstr ""
+
+#: EF/EF.YAML.pas:325
+msgid "Error %s while loading file %s."
+msgstr ""
+

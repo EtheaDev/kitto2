@@ -1,0 +1,21 @@
+﻿Type: Data
+
+Controller: List
+
+MainTable:
+  PluralDisplayLabel: Activities by Type
+  Model: ACTIVITY
+
+  Controller:
+    Form:
+      Layout: ActivityInput_Form
+
+    Grouping:
+      FieldName: TYPE
+      # SortFieldName defaults to FieldName.
+      EnableMenu: False
+      StartCollapsed: True
+      ShowName: False
+      ShowCount: True
+        ItemName: activity
+        PluralItemName: activities
