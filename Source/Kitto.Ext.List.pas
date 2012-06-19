@@ -68,6 +68,7 @@ implementation
 uses
   SysUtils,
   EF.Localization,
+  Kitto.Types,
   Kitto.Ext.Session, Kitto.Ext.Controller, Kitto.Ext.Filters;
 
 { TKExtFilterPanel }
@@ -76,6 +77,8 @@ procedure TKExtFilterPanel.Configure(const AConfig: TEFNode);
 var
   LItems: TEFNode;
   I: Integer;
+  LNode: TEFNode;
+  LWidth: Integer;
 begin
   Assert(Assigned(AConfig));
 
@@ -88,6 +91,14 @@ begin
     // Currently unused.
 //    LItems.Children[I].SetString('Sys/ApplyJSCode', GetRefreshJSCode);
     TKExtFilterFactory.Instance.CreateFilter(LItems.Children[I], Self, Items);
+  end;
+
+  LNode := AConfig.FindNode('LabelWidth');
+  if Assigned(LNode) then
+  begin
+    if not TryStrToInt(LNode.AsExpandedString, LWidth) then
+      raise EKError.CreateFmt(_('Invalid value %s. Valid values: whole numbers.'), [LNode.AsString]);
+    JSCode('labelWidth:' + IntToStr(LWidth));
   end;
 end;
 
