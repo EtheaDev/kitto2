@@ -12,7 +12,6 @@ MainTable:
 
     Grouping:
       FieldName: TYPE
-      # SortFieldName defaults to FieldName.
       EnableMenu: False
       StartCollapsed: True
       ShowName: False

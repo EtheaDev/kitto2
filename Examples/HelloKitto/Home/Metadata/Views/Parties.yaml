@@ -18,8 +18,7 @@ MainTable:
   Controller:
     Grouping:
       FieldName: Party_Period
-      # SortFieldName defaults to FieldName.
-      SortFieldName: Party_Period_Order
+      SortFieldNames: Party_Period_Order
       StartCollapsed: False
       ShowName: False
       ShowCount: True
