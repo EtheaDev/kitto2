@@ -1,0 +1,11 @@
+ModelName: OPERATOR_ROLE
+DisplayLabel: Role
+Fields:
+  ROLE_ID:                   String(32) not null primary key
+    IsVisible: False
+    DefaultValue: %COMPACT_GUID%
+  ROLE_NAME:                 String(20) not null
+    DisplayWidth: 10
+  FEE:                       Float
+    Rules:
+      MinValue: 0
