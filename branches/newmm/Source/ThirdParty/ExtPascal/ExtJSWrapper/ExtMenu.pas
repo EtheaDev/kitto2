@@ -22,7 +22,6 @@ type
   TExtMenuMenuMgrSingleton = class(TExtFunction)
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
     function Get(Menu : String) : TExtFunction; overload;
     function Get(Menu : TExtObject) : TExtFunction; overload;
     function HideAll : TExtFunction;
@@ -60,10 +59,7 @@ type
     procedure HandleEvent(const AEvtName: string); override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     function SetHandler(Handler : TExtFunction; Scope : TExtObject) : TExtFunction;
-    destructor Destroy; override;
     property ActiveClass : String read FActiveClass write SetFActiveClass;
     property CanActivate : Boolean read FCanActivate write SetFCanActivate;
     property ClickHideDelay : Integer read FClickHideDelay write SetFClickHideDelay;
@@ -86,8 +82,6 @@ type
     procedure InitDefaults; override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     property HideOnClick : Boolean read FHideOnClick write SetFHideOnClick;
     property ItemCls : String read FItemCls write SetFItemCls;
   end;
@@ -104,8 +98,6 @@ type
     procedure InitDefaults; override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     property HideOnClick : Boolean read FHideOnClick write SetFHideOnClick;
     property ItemCls : String read FItemCls write SetFItemCls;
     property Text : String read FText write SetFText;
@@ -137,11 +129,8 @@ type
     procedure InitDefaults; override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     function SetIconClass(Cls : String) : TExtFunction;
     function SetText(Text : String) : TExtFunction;
-    destructor Destroy; override;
     property CanActivate : Boolean read FCanActivate write SetFCanActivate;
     property Href : String read FHref write SetFHref;
     property HrefTarget : String read FHrefTarget write SetFHrefTarget;
@@ -177,8 +166,6 @@ type
     procedure HandleEvent(const AEvtName: string); override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     function CheckHandler(This : TExtMenuCheckItem; Checked : Boolean) : TExtFunction;
     function SetChecked(Checked : Boolean; SuppressEvent : Boolean = false) : TExtFunction;
     property Checked : Boolean read FChecked write SetFChecked;
@@ -248,8 +235,6 @@ type
     procedure HandleEvent(const AEvtName: string); override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     function AddElement(El : String) : TExtFunction;
     function AddItem(Item : TExtMenuItem) : TExtFunction;
     function AddMenuItem(Config : TExtObject = nil) : TExtFunction;
@@ -258,7 +243,6 @@ type
     function Hide(Deep : Boolean = false) : TExtFunction;
     function Show(Element : String; Position : String = ''; ParentMenu : TExtMenuMenu = nil) : TExtFunction;
     function ShowAt(XyPosition : TExtObjectList; ParentMenu : TExtMenuMenu = nil) : TExtFunction;
-    destructor Destroy; override;
     property AllowOtherMenus : Boolean read FAllowOtherMenus write SetFAllowOtherMenus;
     property DefaultAlign : String read FDefaultAlign write SetFDefaultAlign;
     property DefaultOffsets : TExtObjectList read FDefaultOffsets write SetFDefaultOffsets;
@@ -306,9 +290,6 @@ type
     procedure HandleEvent(const AEvtName: string); override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
-    destructor Destroy; override;
     property Handler : TExtFunction read FHandler write SetFHandler;
     property HideOnClick : Boolean read FHideOnClick write SetFHideOnClick;
     property PaletteId : String read FPaletteId write SetFPaletteId;
@@ -339,9 +320,6 @@ type
     procedure HandleEvent(const AEvtName: string); override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
-    destructor Destroy; override;
     property Handler : TExtFunction read FHandler write SetFHandler;
     property HideOnClick : Boolean read FHideOnClick write SetFHideOnClick;
     property PickerId : String read FPickerId write SetFPickerId;
@@ -358,8 +336,6 @@ implementation
 function TExtMenuMenuMgrSingleton.JSClassName : string; begin
   Result := 'Ext.menu.MenuMgr';
 end;
-
-{$IFDEF FPC}constructor TExtMenuMenuMgrSingleton.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
 
 function TExtMenuMenuMgrSingleton.Get(Menu : String) : TExtFunction; begin
   JSCode(JSName + '.get(' + VarToJSON([Menu]) + ');', 'TExtMenuMenuMgrSingleton');
@@ -406,14 +382,12 @@ end;
 
 procedure TExtMenuBaseItem.SetFScope(Value : TExtObject); begin
   FScope := Value;
-  Value.DeleteFromGarbage;
-  JSCode('scope:' + VarToJSON([Value, false]));
+    JSCode('scope:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtMenuBaseItem.SetFParentMenu(Value : TExtMenuMenu); begin
   FParentMenu := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.parentMenu=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.parentMenu=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtMenuBaseItem.SetFOnActivate(Value : TExtMenuBaseItemOnActivate); begin
@@ -453,24 +427,9 @@ procedure TExtMenuBaseItem.InitDefaults; begin
   FParentMenu := TExtMenuMenu.CreateInternal(Self, 'parentMenu');
 end;
 
-{$IFDEF FPC}constructor TExtMenuBaseItem.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtMenuBaseItem.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
-end;
-
 function TExtMenuBaseItem.SetHandler(Handler : TExtFunction; Scope : TExtObject) : TExtFunction; begin
   JSCode(JSName + '.setHandler(' + VarToJSON([Handler, true, Scope, false]) + ');', 'TExtMenuBaseItem');
   Result := Self;
-end;
-
-destructor TExtMenuBaseItem.Destroy; begin
-  try
-    FScope.Free;
-    FParentMenu.Free;
-  except end;
-  inherited;
 end;
 
 procedure TExtMenuBaseItem.HandleEvent(const AEvtName : string); begin
@@ -502,13 +461,6 @@ procedure TExtMenuSeparator.InitDefaults; begin
   FItemCls := 'x-menu-sep';
 end;
 
-{$IFDEF FPC}constructor TExtMenuSeparator.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtMenuSeparator.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
-end;
-
 procedure TExtMenuTextItem.SetFHideOnClick(Value : Boolean); begin
   FHideOnClick := Value;
   JSCode('hideOnClick:' + VarToJSON([Value]));
@@ -531,13 +483,6 @@ end;
 procedure TExtMenuTextItem.InitDefaults; begin
   inherited;
   FItemCls := 'x-menu-text';
-end;
-
-{$IFDEF FPC}constructor TExtMenuTextItem.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtMenuTextItem.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
 end;
 
 procedure TExtMenuItem.SetFCanActivate(Value : Boolean); begin
@@ -572,8 +517,7 @@ end;
 
 procedure TExtMenuItem.SetFMenu(Value : TExtMenuMenu); begin
   FMenu := Value;
-  Value.DeleteFromGarbage;
-  JSCode('menu:' + VarToJSON([Value, false]));
+    JSCode('menu:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtMenuItem.SetFShowDelay(Value : Integer); begin
@@ -591,8 +535,7 @@ end;
 
 procedure TExtMenuItem.SetFMenu_(Value : TExtMenuMenu); begin
   FMenu_ := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.menu=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.menu=' + VarToJSON([Value, false]) + ';');
 end;
 
 function TExtMenuItem.JSClassName : string; begin
@@ -609,13 +552,6 @@ procedure TExtMenuItem.InitDefaults; begin
   FMenu_ := TExtMenuMenu.CreateInternal(Self, 'menu');
 end;
 
-{$IFDEF FPC}constructor TExtMenuItem.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtMenuItem.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
-end;
-
 function TExtMenuItem.SetIconClass(Cls : String) : TExtFunction; begin
   JSCode(JSName + '.setIconClass(' + VarToJSON([Cls]) + ');', 'TExtMenuItem');
   Result := Self;
@@ -624,14 +560,6 @@ end;
 function TExtMenuItem.SetText(Text : String) : TExtFunction; begin
   JSCode(JSName + '.setText(' + VarToJSON([Text]) + ');', 'TExtMenuItem');
   Result := Self;
-end;
-
-destructor TExtMenuItem.Destroy; begin
-  try
-    FMenu.Free;
-    FMenu_.Free;
-  except end;
-  inherited;
 end;
 
 procedure TExtMenuCheckItem.SetFChecked(Value : Boolean); begin
@@ -683,13 +611,6 @@ procedure TExtMenuCheckItem.InitDefaults; begin
   FItemCls := 'x-menu-item x-menu-check-item';
 end;
 
-{$IFDEF FPC}constructor TExtMenuCheckItem.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtMenuCheckItem.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
-end;
-
 function TExtMenuCheckItem.CheckHandler(This : TExtMenuCheckItem; Checked : Boolean) : TExtFunction; begin
   JSCode(JSName + '.checkHandler(' + VarToJSON([This, false, Checked]) + ');', 'TExtMenuCheckItem');
   Result := Self;
@@ -720,14 +641,12 @@ end;
 
 procedure TExtMenuMenu.SetFDefaultOffsets(Value : TExtObjectList); begin
   FDefaultOffsets := Value;
-  Value.DeleteFromGarbage;
-  JSCode('defaultOffsets:' + VarToJSON([Value, false]));
+    JSCode('defaultOffsets:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtMenuMenu.SetFDefaults(Value : TExtObject); begin
   FDefaults := Value;
-  Value.DeleteFromGarbage;
-  JSCode('defaults:' + VarToJSON([Value, false]));
+    JSCode('defaults:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtMenuMenu.SetFEnableScrolling(Value : Boolean); begin
@@ -747,8 +666,7 @@ end;
 
 procedure TExtMenuMenu.SetFItems(Value : TExtObjectList); begin
   FItems := Value;
-  Value.DeleteFromGarbage;
-  JSCode('items:' + VarToJSON([Value, false]));
+    JSCode('items:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtMenuMenu.SetFLayout(Value : String); begin
@@ -758,8 +676,7 @@ end;
 
 procedure TExtMenuMenu.SetFLayoutObject(Value : TExtObject); begin
   FLayoutObject := Value;
-  Value.DeleteFromGarbage;
-  JSCode('layout:' + VarToJSON([Value, false]));
+    JSCode('layout:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtMenuMenu.SetFMaxHeight(Value : Integer); begin
@@ -857,13 +774,6 @@ procedure TExtMenuMenu.InitDefaults; begin
   FSubMenuAlign := 'tl-tr?';
 end;
 
-{$IFDEF FPC}constructor TExtMenuMenu.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtMenuMenu.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
-end;
-
 function TExtMenuMenu.AddElement(El : String) : TExtFunction; begin
   JSCode(JSName + '.addElement(' + VarToJSON([El]) + ');', 'TExtMenuMenu');
   Result := Self;
@@ -904,16 +814,6 @@ function TExtMenuMenu.ShowAt(XyPosition : TExtObjectList; ParentMenu : TExtMenuM
   Result := Self;
 end;
 
-destructor TExtMenuMenu.Destroy; begin
-  try
-    FDefaultOffsets.Free;
-    FDefaults.Free;
-    FItems.Free;
-    FLayoutObject.Free;
-  except end;
-  inherited;
-end;
-
 procedure TExtMenuMenu.HandleEvent(const AEvtName : string); begin
   inherited;
   if (AEvtName = 'click') and Assigned(FOnClick) then
@@ -943,14 +843,12 @@ end;
 
 procedure TExtMenuColorMenu.SetFScope(Value : TExtObject); begin
   FScope := Value;
-  Value.DeleteFromGarbage;
-  JSCode('scope:' + VarToJSON([Value, false]));
+    JSCode('scope:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtMenuColorMenu.SetFPalette(Value : TExtColorPalette); begin
   FPalette := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.palette=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.palette=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtMenuColorMenu.SetFOnSelect(Value : TExtMenuColorMenuOnSelect); begin
@@ -969,21 +867,6 @@ procedure TExtMenuColorMenu.InitDefaults; begin
   inherited;
   FScope := TExtObject.CreateInternal(Self, 'scope');
   FPalette := TExtColorPalette.CreateInternal(Self, 'palette');
-end;
-
-{$IFDEF FPC}constructor TExtMenuColorMenu.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtMenuColorMenu.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
-end;
-
-destructor TExtMenuColorMenu.Destroy; begin
-  try
-    FScope.Free;
-    FPalette.Free;
-  except end;
-  inherited;
 end;
 
 procedure TExtMenuColorMenu.HandleEvent(const AEvtName : string); begin
@@ -1009,14 +892,12 @@ end;
 
 procedure TExtMenuDateMenu.SetFScope(Value : TExtObject); begin
   FScope := Value;
-  Value.DeleteFromGarbage;
-  JSCode('scope:' + VarToJSON([Value, false]));
+    JSCode('scope:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtMenuDateMenu.SetFPicker(Value : TExtDatePicker); begin
   FPicker := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.picker=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.picker=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtMenuDateMenu.SetFOnSelect(Value : TExtMenuDateMenuOnSelect); begin
@@ -1037,21 +918,6 @@ procedure TExtMenuDateMenu.InitDefaults; begin
   FPicker := TExtDatePicker.CreateInternal(Self, 'picker');
 end;
 
-{$IFDEF FPC}constructor TExtMenuDateMenu.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtMenuDateMenu.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
-end;
-
-destructor TExtMenuDateMenu.Destroy; begin
-  try
-    FScope.Free;
-    FPicker.Free;
-  except end;
-  inherited;
-end;
-
 procedure TExtMenuDateMenu.HandleEvent(const AEvtName : string); begin
   inherited;
   if (AEvtName = 'select') and Assigned(FOnSelect) then
@@ -1062,5 +928,6 @@ initialization
   ExtMenuMenuMgr := TExtMenuMenuMgrSingleton.CreateSingleton;
 
 finalization
-  ExtMenuMenuMgr.Destroy;
+  ExtMenuMenuMgr.Free;
+
 end.

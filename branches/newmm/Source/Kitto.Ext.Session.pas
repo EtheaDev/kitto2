@@ -260,7 +260,7 @@ begin
   LHomeView := Config.Views.FindViewByNode(Config.Config.FindNode('HomeView'));
   if not Assigned(LHomeView) then
     LHomeView := Config.Views.ViewByName('Home');
-  FHomeController := TKExtControllerFactory.Instance.CreateController(LHomeView, nil).AsObject;
+  FHomeController := TKExtControllerFactory.Instance.CreateController(ObjectCatalog, LHomeView, nil).AsObject;
   if Supports(FHomeController, IKExtController, LIntf) then
     LIntf.Display;
 end;
@@ -299,7 +299,7 @@ end;
 procedure TKExtSession.DisplayLoginWindow;
 begin
   FreeAndNil(FLoginWindow);
-  FLoginWindow := TKExtLoginWindow.Create;
+  FLoginWindow := TKExtLoginWindow.Create(Self.ObjectCatalog);
   FLoginWindow.OnLogin := DisplayHomeView;
   FLoginWindow.Show;
 end;
@@ -408,7 +408,7 @@ var
 begin
   Assert(Assigned(AView));
 
-  Result := TKExtControllerFactory.Instance.CreateController(AView, FViewHost);
+  Result := TKExtControllerFactory.Instance.CreateController(ObjectCatalog, AView, FViewHost);
   LIsSynchronous := Result.IsSynchronous;
   if not LIsSynchronous then
     FOpenControllers.Add(Result.AsObject);

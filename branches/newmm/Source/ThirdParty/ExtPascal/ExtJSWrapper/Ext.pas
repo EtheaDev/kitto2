@@ -6,7 +6,7 @@ unit Ext;
 interface
 
 uses
-  StrUtils, ExtPascal, ExtPascalUtils, ExtUtil;
+  Classes, StrUtils, ExtPascal, ExtPascalUtils, ExtUtil;
 
 const
   IsExtJS3 = true;
@@ -101,8 +101,9 @@ type
     procedure SetFStopEvent(Value : Boolean);
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create(El : String; Config : TExtObject = nil; EventName : String = '');
+
+    constructor Create(AOwner: TComponent; El : String; Config : TExtObject = nil;
+      EventName : String = ''); reintroduce;
     function AddBinding(Config : TExtObject = nil) : TExtFunction; overload;
     function AddBinding(Config : TExtObjectList) : TExtFunction; overload;
     function Disable : TExtFunction;
@@ -149,8 +150,6 @@ type
     procedure InitDefaults; override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     function FadeIn(Options : TExtObject = nil) : TExtFunction;
     function FadeOut(Options : TExtObject = nil) : TExtFunction;
     function Frame(Color : String = ''; Count : Integer = 0; Options : TExtObject = nil) : TExtFunction;
@@ -168,7 +167,6 @@ type
     function StopFx_ : TExtFunction;
     function SwitchOff(Options : TExtObject = nil) : TExtFunction;
     function SyncFx : TExtFunction;
-    destructor Destroy; override;
     property AfterCls : String read FAfterCls write SetFAfterCls;
     property AfterStyle : String read FAfterStyle write SetFAfterStyle;
     property AfterStyleObject : TExtObject read FAfterStyleObject write SetFAfterStyleObject;
@@ -195,9 +193,7 @@ type
     procedure InitDefaults; override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
     function Load(FileList : TExtObjectList; Callback : TExtFunction; Scope : TExtObject; PreserveOrder : Boolean) : TExtFunction;
-    destructor Destroy; override;
     property VarJS : TExtObject read FVarJS write SetFVarJS;
     property VarJS_ : TExtObject read FVarJS_ write SetFVarJS_;
   end;
@@ -214,8 +210,6 @@ type
     procedure InitDefaults; override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     function DestroyJS : TExtFunction; override;
     function Disable : TExtFunction;
     function Enable : TExtFunction;
@@ -228,7 +222,6 @@ type
   TExtFlashProxySingleton = class(TExtFunction)
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
   end;
 
   TExtEventManagerSingleton = class(TExtFunction)
@@ -330,7 +323,6 @@ type
     class function Y : Integer;
     class function Z : Integer;
     class function ZERO : Integer;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
     function AddListener(El : String; EventName : String; Handler : TExtFunction; Scope : TExtObject = nil; Options : TExtObject = nil) : TExtFunction; overload;
     function AddListener(El : THTMLElement; EventName : String; Handler : TExtFunction; Scope : TExtObject = nil; Options : TExtObject = nil) : TExtFunction; overload;
     function FunctionJS : TExtFunction;
@@ -349,7 +341,6 @@ type
     function RemoveResizeListener(Fn : TExtFunction; Scope : TExtObject) : TExtFunction;
     function Un(El : String; EventName : String; Fn : TExtFunction = nil; Scope : TExtObject = nil) : TExtFunction; overload;
     function Un(El : THTMLElement; EventName : String; Fn : TExtFunction = nil; Scope : TExtObject = nil) : TExtFunction; overload;
-    destructor Destroy; override;
     property FireDocReady : TExtObject read FFireDocReady write SetFFireDocReady;
     property IeDeferSrc : TExtObject read FIeDeferSrc write SetFIeDeferSrc;
     property TextResizeInterval : TExtObject read FTextResizeInterval write SetFTextResizeInterval;
@@ -358,7 +349,6 @@ type
   TExtError = class(TExtFunction)
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
     function GetMessage : TExtFunction;
     function GetName : TExtFunction;
     function ToJson : TExtFunction;
@@ -378,7 +368,6 @@ type
     procedure SetFScope(Value : TExtObject);
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
     property Duration : Integer read FDuration write SetFDuration;
     property Interval : Integer read FInterval write SetFInterval;
     property Increment : Integer read FIncrement write SetFIncrement;
@@ -389,7 +378,6 @@ type
   TExtEventObjectSingleton = class(TExtFunction)
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
     function GetCharCode : TExtFunction;
     function GetKey : TExtFunction;
     function GetPageX : TExtFunction;
@@ -421,13 +409,10 @@ type
     procedure InitDefaults; override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     function Disable : TExtFunction;
     function Enable : TExtFunction;
     function Hide : TExtFunction;
     function Show : TExtFunction;
-    destructor Destroy; override;
     property Msg : String read FMsg write SetFMsg;
     property MsgCls : String read FMsgCls write SetFMsgCls;
     property RemoveMask : Boolean read FRemoveMask write SetFRemoveMask;
@@ -453,8 +438,6 @@ type
     procedure InitDefaults; override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     property DisableCaching : Boolean read FDisableCaching write SetFDisableCaching;
     property IndicatorText : String read FIndicatorText write SetFIndicatorText;
     property LoadScripts : Boolean read FLoadScripts write SetFLoadScripts;
@@ -466,7 +449,6 @@ type
   TExtSplitBarBasicLayoutAdapter = class(TExtFunction)
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
     function GetElementSize(S : TExtSplitBar) : TExtFunction;
     function SetElementSize(S : TExtSplitBar; NewSize : Integer; OnComplete : TExtFunction) : TExtFunction;
   end;
@@ -485,8 +467,7 @@ type
     procedure SetFRe_(Value : TRegExp);
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create(Config : String = '');
+    constructor Create(AOwner: TComponent; Config : String = ''); reintroduce;
     function TemplateFrom(El : String; Config : TExtObject = nil) : TExtFunction; overload;
     function TemplateFrom(El : THTMLElement; Config : TExtObject = nil) : TExtFunction; overload;
     function Append(El : String; Values : TExtObject; ReturnElement : Boolean = false) : TExtFunction; overload;
@@ -512,7 +493,6 @@ type
   TExtUpdaterBasicRenderer = class(TExtFunction)
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
     function Render(El : TExtElement; Xhr : TExtObject; UpdateManager : TExtUpdater; Callback : TExtFunction) : TExtFunction;
   end;
 
@@ -524,8 +504,6 @@ type
     procedure SetFOffset(Value : String);
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create(Config : TExtObject = nil);
     function Hide : TExtFunction;
     function IsVisible : TExtFunction;
     function Realign(Left : Integer; Top : Integer; Width : Integer; Height : Integer) : TExtFunction;
@@ -585,7 +563,6 @@ type
     procedure SetFWidth(Value : Integer);
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
     property AnimEl : String read FAnimEl write SetFAnimEl;
     property Buttons : TExtObject read FButtons write SetFButtons;
     property Closable : Boolean read FClosable write SetFClosable;
@@ -640,7 +617,6 @@ type
     class function WARNING : String;
     class function YESNO : TExtObject;
     class function YESNOCANCEL : TExtObject;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
     function Alert(Title : String; Msg : String; Fn : TExtFunction = nil; Scope : TExtObject = nil) : TExtFunction;
     function Confirm(Title : String; Msg : String; Fn : TExtFunction = nil; Scope : TExtObject = nil) : TExtFunction;
     function GetDialog : TExtFunction;
@@ -654,7 +630,6 @@ type
     function UpdateProgress(Value : Integer; ProgressText : String; Msg : String) : TExtFunction;
     function UpdateText(Text : String = '') : TExtFunction;
     function Wait(Msg : String; Title : String = ''; Config : TExtObject = nil) : TExtFunction;
-    destructor Destroy; override;
     property Msg : TExtObject read FMsg write SetFMsg;
     property ButtonText : TExtObject read FButtonText write SetFButtonText;
     property DefaultTextHeight : Integer read FDefaultTextHeight write SetFDefaultTextHeight;
@@ -667,7 +642,6 @@ type
   TExtQuickTipsSingleton = class(TExtFunction)
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
     function Disable : TExtFunction;
     function Enable : TExtFunction;
     function GetQuickTip : TExtFunction;
@@ -688,8 +662,6 @@ type
     procedure InitDefaults; override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     function BringToFront(Win : String) : TExtFunction; overload;
     function BringToFront(Win : TExtObject) : TExtFunction; overload;
     function Each(Fn : TExtFunction; Scope : TExtObject = nil) : TExtFunction;
@@ -831,8 +803,6 @@ type
     function JSClassName : string; override;
     class function DISPLAY : Integer;
     class function VISIBILITY : Integer;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     function AddClass(ClassName : String) : TExtFunction; overload;
     function AddClass(ClassName : TExtObjectList) : TExtFunction; overload;
     function AddClassOnClick(ClassName : String) : TExtFunction;
@@ -1032,7 +1002,6 @@ type
     function Up(Selector : String; MaxDepth : String) : TExtFunction; overload;
     function Update(Html : String; LoadScripts : Boolean = false; Callback : TExtFunction = nil) : TExtFunction;
     function Wrap(Config : TExtObject = nil; ReturnDom : Boolean = false) : TExtFunction;
-    destructor Destroy; override;
     property AutoBoxAdjust : TExtObject read FAutoBoxAdjust write SetFAutoBoxAdjust;
     property DefaultUnit : TCSSUnit read FDefaultUnit write SetFDefaultUnit;
     property Dom : THTMLElement read FDom write SetFDom;
@@ -1083,7 +1052,6 @@ type
     procedure SetFAlpha(Value : Double);
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
     property Color : String read FColor write SetFColor;
     property Alpha : Double read FAlpha write SetFAlpha;
   end;
@@ -1096,7 +1064,6 @@ type
     procedure SetFSize(Value : Integer);
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
     property Color : String read FColor write SetFColor;
     property Size : Integer read FSize write SetFSize;
   end;
@@ -1113,7 +1080,6 @@ type
     procedure SetFBold(Value : Boolean);
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
     property Name : String read FName write SetFName;
     property Color : String read FColor write SetFColor;
     property Size : Integer read FSize write SetFSize;
@@ -1132,7 +1098,6 @@ type
     procedure SetFFont(Value : TExtFont);
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
     property Padding : Integer read FPadding write SetFPadding;
     property Border : TExtBorder read FBorder write SetFBorder;
     property Background : TExtBackground read FBackground write SetFBackground;
@@ -1151,7 +1116,6 @@ type
     procedure InitDefaults; override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
     function CreatePlugin(Config : TExtObject = nil; DefaultType : TConstructor = nil) : TExtFunction;
     function Get(Id : String) : TExtFunction;
     function IsPluginRegistered(Ptype : TExtComponent) : TExtFunction;
@@ -1161,7 +1125,6 @@ type
     function RegisterPlugin(Ptype : String; Cls : TConstructor) : TExtFunction;
     function RegisterType(Xtype : String; Cls : TConstructor) : TExtFunction;
     function Unregister(C : TExtComponent) : TExtFunction;
-    destructor Destroy; override;
     property All : TExtObjectList read FAll write SetFAll;
     property Ptypes : TExtObject read FPtypes write SetFPtypes;
     property Types : TExtObject read FTypes write SetFTypes;
@@ -1175,8 +1138,6 @@ type
     procedure InitDefaults; override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     function Add(Els : String) : TExtFunction;
     function Clear : TExtFunction;
     function Contains(El : String) : TExtFunction;
@@ -1191,15 +1152,14 @@ type
     function Last : TExtFunction;
     function RemoveElement(El : String; RemoveDom : Boolean = false) : TExtFunction;
     function ReplaceElement(El : String; Replacement : String; DomReplace : Boolean = false) : TExtFunction;
-    destructor Destroy; override;
     property Elements : TExtObjectList read FElements write SetFElements;
   end;
 
   TFusionCharts = class(TExtFunction)
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create(SwfURL : String; Id : String; Width : Integer; Height : Integer; DebugMode : Integer = 0; RegisterWithJS : Integer = 0);
+    constructor Create(AOwner: TComponent; SwfURL: string; Id: string;
+      Width: Integer; Height: Integer; DebugMode: Integer = 0; RegisterWithJS: Integer = 0); reintroduce;
     function SetDataURL(XML : String) : TExtFunction;
     function Render(Id : String) : TExtFunction;
   end;
@@ -1210,7 +1170,6 @@ type
     procedure SetFUseDom(Value : Boolean);
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
     function ApplyStyles(El : String; Styles : String) : TExtFunction; overload;
     function ApplyStyles(El : THTMLElement; Styles : String) : TExtFunction; overload;
     function ApplyStyles(El : THTMLElement; Styles : TExtObject) : TExtFunction; overload;
@@ -1237,7 +1196,6 @@ type
     procedure InitDefaults; override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
     function Compile(Selector : String; TypeJS : String = '') : TExtFunction;
     function Filter(El : TExtObjectList; Selector : String; NonMatches : Boolean) : TExtFunction;
     function IsJS(El : String; Selector : String) : TExtFunction; overload;
@@ -1249,7 +1207,6 @@ type
     function SelectNode(Selector : String; Root : TExtDataNode = nil) : TExtFunction;
     function SelectNumber(Selector : String; Root : TExtDataNode = nil; DefaultValue : Integer = 0) : TExtFunction;
     function SelectValue(Selector : String; Root : TExtDataNode = nil; DefaultValue : String = '') : TExtFunction;
-    destructor Destroy; override;
     property Matchers : TExtObject read FMatchers write SetFMatchers;
     property Pseudos : TExtObject read FPseudos write SetFPseudos;
   end;
@@ -1274,8 +1231,6 @@ type
     procedure InitDefaults; override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     function Disable : TExtFunction;
     function Each(Fn : TExtFunction; Scope : TExtObject) : TExtFunction;
     function Enable : TExtFunction;
@@ -1291,7 +1246,6 @@ type
     function SetIconClass(Cls : String) : TExtFunction;
     function SetText(Text : String) : TExtFunction;
     function Show : TExtFunction;
-    destructor Destroy; override;
     property Disabled : Boolean read FDisabled write SetFDisabled;
     property Handler : TExtFunction read FHandler write SetFHandler;
     property Hidden : Boolean read FHidden write SetFHidden;
@@ -1304,7 +1258,6 @@ type
   TExtDirectTransaction = class(TExtFunction)
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
   end;
 
   // Procedural types for events TExtSplitBar
@@ -1334,8 +1287,8 @@ type
     procedure HandleEvent(const AEvtName: string); override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create(DragElement : String; ResizingElement : String; Orientation : Integer = 0; Placement : Integer = 0);
+    constructor Create(AOwner: TComponent; DragElement: string; ResizingElement: string;
+      Orientation: Integer = 0; Placement: Integer = 0); reintroduce;
     function DestroyJS(RemoveEl : Boolean) : TExtFunction; reintroduce;
     function GetAdapter : TExtFunction;
     function GetMaximumSize : TExtFunction;
@@ -1435,14 +1388,11 @@ type
     procedure HandleEvent(const AEvtName: string); override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     function DestroyJS(RemoveEl : Boolean = false) : TExtFunction; reintroduce;
     function GetEl : TExtFunction;
     function GetResizeChild : TExtFunction;
     function ResizeElement : TExtFunction;
     function ResizeTo(Width : Integer; Height : Integer) : TExtFunction;
-    destructor Destroy; override;
     property Adjustments : TExtObjectList read FAdjustments write SetFAdjustments;
     property AdjustmentsString : String read FAdjustmentsString write SetFAdjustmentsString;
     property Animate : Boolean read FAnimate write SetFAnimate;
@@ -1483,7 +1433,6 @@ type
   TExtTaskMgrSingleton = class(TExtUtilTaskRunner)
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
   end;
 
   TExtSplitBarAbsoluteLayoutAdapter = class(TExtSplitBarBasicLayoutAdapter)
@@ -1496,7 +1445,6 @@ type
     class function RIGHT : Integer;
     class function TOP : Integer;
     class function VERTICAL : Integer;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
   end;
 
   // Procedural types for events TExtUpdater
@@ -1543,8 +1491,6 @@ type
     procedure HandleEvent(const AEvtName: string); override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     function UpdaterUpdateElement(El : String; Url : String; Params : String = ''; Options : TExtObject = nil) : TExtFunction; overload;
     function UpdaterUpdateElement(El : String; Url : String; Params : TExtObject; Options : TExtObject = nil) : TExtFunction; overload;
     function Abort : TExtFunction;
@@ -1568,7 +1514,6 @@ type
     function StartAutoRefresh(Interval : Integer; Url : String; Params : TExtObject; Callback : TExtFunction = nil; RefreshNow : Boolean = false) : TExtFunction; overload;
     function StopAutoRefresh : TExtFunction;
     function Update(Options : TExtObject) : TExtFunction;
-    destructor Destroy; override;
     property DefaultUrl : String read FDefaultUrl write SetFDefaultUrl;
     property DisableCaching : Boolean read FDisableCaching write SetFDisableCaching;
     property El : TExtElement read FEl write SetFEl;
@@ -1758,8 +1703,6 @@ type
     procedure HandleEvent(const AEvtName: string); override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     function AnElement(Cls : String) : TExtFunction;
     function ApplyToMarkup(El : String) : TExtFunction; overload;
     function ApplyToMarkup(El : THTMLElement) : TExtFunction; overload;
@@ -1802,7 +1745,6 @@ type
     function SetVisible(Visible : Boolean) : TExtFunction;
     function Show : TExtFunction;
     function Update(HtmlOrData : String; LoadScripts : Boolean = false; Callback : TExtFunction = nil) : TExtFunction;
-    destructor Destroy; override;
     property AllowDomMove : Boolean read FAllowDomMove write SetFAllowDomMove;
     property ApplyTo : String read FApplyTo write SetFApplyTo;
     property AutoEl : TExtObject read FAutoEl write SetFAutoEl;
@@ -1900,10 +1842,7 @@ type
     procedure InitDefaults; override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     function SetZIndex(Zindex : Integer) : TExtFunction;
-    destructor Destroy; override;
     property Cls : String read FCls write SetFCls;
     property Constrain : Boolean read FConstrain write SetFConstrain;
     property Dh : TExtObject read FDh write SetFDh;
@@ -1933,7 +1872,6 @@ type
     procedure HandleEvent(const AEvtName: string); override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
     function Add(Token : String; PreventDuplicates : Boolean) : TExtFunction;
     function Back : TExtFunction;
     function Forward : TExtFunction;
@@ -1964,11 +1902,9 @@ type
     procedure HandleEvent(const AEvtName: string); override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
     function AddProvider(Provider : TExtObject) : TExtFunction; overload;
     function AddProvider(Provider : TExtObjectList) : TExtFunction; overload;
     function GetProvider(Id : String) : TExtFunction;
-    destructor Destroy; override;
     property EventTypes : TExtObject read FEventTypes write SetFEventTypes;
     property Exceptions : TExtObject read FExceptions write SetFExceptions;
     property OnEvent : TExtDirectSingletonOnEvent read FOnEvent write SetFOnEvent;
@@ -1978,7 +1914,6 @@ type
   TExtCompositeElement = class(TExtCompositeElementLite)
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
   end;
 
   TExtWindowMgrSingleton = class(TExtWindowGroup)
@@ -1986,14 +1921,12 @@ type
     procedure InitDefaults; override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
   end;
 
   TExtXTemplate = class(TExtTemplate)
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create(Config : String = '');
+    constructor Create(AOwner: TComponent; Config : String = ''); reintroduce;
     function XTemplateFrom(El : String) : TExtFunction; overload;
     function XTemplateFrom(El : THTMLElement) : TExtFunction; overload;
     function Apply(Values : TExtObject) : TExtFunction; overload;
@@ -2022,10 +1955,8 @@ type
     procedure InitDefaults; override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
     function SerializeForm(Form : String) : TExtFunction; overload;
     function SerializeForm(Form : THTMLElement) : TExtFunction; overload;
-    destructor Destroy; override;
     property AutoAbort : Boolean read FAutoAbort write SetFAutoAbort;
     property DefaultHeaders : TExtObject read FDefaultHeaders write SetFDefaultHeaders;
     property DisableCaching : Boolean read FDisableCaching write SetFDisableCaching;
@@ -2096,8 +2027,6 @@ type
     procedure HandleEvent(const AEvtName: string); override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     function CancelEdit(RemainVisible : Boolean) : TExtFunction;
     function CompleteEdit(RemainVisible : Boolean) : TExtFunction;
     function GetValue : TExtFunction;
@@ -2105,7 +2034,6 @@ type
     function SetSize(Width : Integer; Height : Integer) : TExtFunction;
     function SetValue(Value : String) : TExtFunction;
     function StartEdit(El : String; Value : String = '') : TExtFunction;
-    destructor Destroy; override;
     property Alignment : String read FAlignment write SetFAlignment;
     property AllowBlur : Boolean read FAllowBlur write SetFAllowBlur;
     property AutoSize : Boolean read FAutoSize write SetFAutoSize;
@@ -2134,7 +2062,6 @@ type
   TExtStoreMgrSingleton = class(TExtUtilMixedCollection)
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
     function Lookup(Id : String) : TExtFunction; overload;
     function Lookup(Id : TExtObject) : TExtFunction; overload;
     function Register(Stores : TExtObjectList = nil) : TExtFunction;
@@ -2169,10 +2096,7 @@ type
     procedure HandleEvent(const AEvtName: string); override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     function Select(Color : String; SuppressEvent : Boolean = false) : TExtFunction;
-    destructor Destroy; override;
     property AllowReselect : Boolean read FAllowReselect write SetFAllowReselect;
     property ClickEvent : String read FClickEvent write SetFClickEvent;
     property Handler : TExtFunction read FHandler write SetFHandler;
@@ -2242,8 +2166,6 @@ type
     procedure HandleEvent(const AEvtName: string); override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     function GetValue : TExtFunction;
     function SetDisabledDates(DisabledDates : TExtObjectList) : TExtFunction; overload;
     function SetDisabledDates(DisabledDates : TRegExp) : TExtFunction; overload;
@@ -2251,7 +2173,6 @@ type
     function SetMaxDate(Value : TDateTime) : TExtFunction;
     function SetMinDate(Value : TDateTime) : TExtFunction;
     function SetValue(Value : TDateTime) : TExtFunction;
-    destructor Destroy; override;
     property CancelText : String read FCancelText write SetFCancelText;
     property DayNames : TExtObjectList read FDayNames write SetFDayNames;
     property DisabledDates : TExtObjectList read FDisabledDates write SetFDisabledDates;
@@ -2332,8 +2253,6 @@ type
     procedure HandleEvent(const AEvtName: string); override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     function GetBox(Local : Boolean = false) : TExtFunction;
     function GetHeight : TExtFunction;
     function GetOuterSize : TExtFunction;
@@ -2350,7 +2269,6 @@ type
     function SetWidth(Width : Integer) : TExtFunction; overload;
     function SyncSize : TExtFunction;
     function UpdateBox(Box : TExtObject) : TExtFunction;
-    destructor Destroy; override;
     property Anchor : String read FAnchor write SetFAnchor;
     property AutoHeight : Boolean read FAutoHeight write SetFAutoHeight;
     property AutoScroll : Boolean read FAutoScroll write SetFAutoScroll;
@@ -2381,8 +2299,6 @@ type
     procedure InitDefaults; override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     property OverflowText : String read FOverflowText write SetFOverflowText;
   end;
 
@@ -2413,9 +2329,6 @@ type
   public
     function JSClassName : string; override;
     class function EXPRESS_INSTALL_URL : String;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
-    destructor Destroy; override;
     property BackgroundColor : String read FBackgroundColor write SetFBackgroundColor;
     property ExpressInstall : Boolean read FExpressInstall write SetFExpressInstall;
     property FlashParams : TExtObject read FFlashParams write SetFFlashParams;
@@ -2450,8 +2363,6 @@ type
     procedure HandleEvent(const AEvtName: string); override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     function IsWaiting : TExtFunction;
     function Reset(Hide : Boolean = false) : TExtFunction;
     function SetSize(Width : Integer; Height : Integer) : TExtFunction;
@@ -2473,8 +2384,6 @@ type
     procedure InitDefaults; override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
   end;
 
   // Procedural types for events TExtContainer
@@ -2492,7 +2401,6 @@ type
     FActiveItem : String;
     FActiveItemNumber : Integer;
     FAutoDestroy : Boolean; // true
-    FBubbleEvents : TExtObjectList;
     FBufferResize : Boolean;
     FBufferResizeNumber : Integer;
     FDefaultType : TExtComponentXType;
@@ -2520,7 +2428,6 @@ type
     procedure SetFActiveItem(Value : String);
     procedure SetFActiveItemNumber(Value : Integer);
     procedure SetFAutoDestroy(Value : Boolean);
-    procedure SetFBubbleEvents(Value : TExtObjectList);
     procedure SetFBufferResize(Value : Boolean);
     procedure SetFBufferResizeNumber(Value : Integer);
     procedure SetFDefaultType(Value : TExtComponentXType);
@@ -2550,8 +2457,6 @@ type
     procedure HandleEvent(const AEvtName: string); override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     function Add(Component : TObject) : TExtFunction; overload;
     function Add(Component : TExtObjectList) : TExtFunction; overload;
     function Bubble(Fn : TExtFunction; Scope : TExtObject = nil; Args : TExtObjectList = nil) : TExtFunction;
@@ -2572,11 +2477,9 @@ type
     function Remove(Component : TExtComponent; AutoDestroy : Boolean = false) : TExtFunction; overload;
     function Remove(Component : String; AutoDestroy : Boolean = false) : TExtFunction; overload;
     function RemoveAll(AutoDestroy : Boolean = false) : TExtFunction;
-    destructor Destroy; override;
     property ActiveItem : String read FActiveItem write SetFActiveItem;
     property ActiveItemNumber : Integer read FActiveItemNumber write SetFActiveItemNumber;
     property AutoDestroy : Boolean read FAutoDestroy write SetFAutoDestroy;
-    property BubbleEvents : TExtObjectList read FBubbleEvents write SetFBubbleEvents;
     property BufferResize : Boolean read FBufferResize write SetFBufferResize;
     property BufferResizeNumber : Integer read FBufferResizeNumber write SetFBufferResizeNumber;
     property DefaultType : TExtComponentXType read FDefaultType write SetFDefaultType;
@@ -2712,8 +2615,6 @@ type
     procedure HandleEvent(const AEvtName: string); override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     function GetPressed(Group : String) : TExtFunction;
     function Pressed__ : TExtFunction;
     function GetTemplateArgs : TExtFunction;
@@ -2728,7 +2629,6 @@ type
     function SetTooltip(Tooltip : TExtObject) : TExtFunction; overload;
     function ShowMenu : TExtFunction;
     function Toggle(State : Boolean = false; SupressEvent : Boolean = false) : TExtFunction;
-    destructor Destroy; override;
     property AllowDepress : Boolean read FAllowDepress write SetFAllowDepress;
     property ArrowAlign : String read FArrowAlign write SetFArrowAlign;
     property AutoWidth : Boolean read FAutoWidth write SetFAutoWidth;
@@ -2844,8 +2744,6 @@ type
     procedure HandleEvent(const AEvtName: string); override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     function BindStore(Store : TExtDataStore) : TExtFunction;
     function ClearSelections(SuppressEvent : Boolean = false) : TExtFunction;
     function CollectData(Records : TExtObjectList; StartIndex : Integer) : TExtFunction;
@@ -2883,7 +2781,6 @@ type
     function Select(NodeInfo : TExtDataRecord; KeepExisting : Boolean = false; SuppressEvent : Boolean = false) : TExtFunction; overload;
     function SelectRange(Start : Integer; EndJS : Integer; KeepExisting : Boolean = false) : TExtFunction;
     function SetStore(Store : TExtDataStore) : TExtFunction;
-    destructor Destroy; override;
     property BlockRefresh : Boolean read FBlockRefresh write SetFBlockRefresh;
     property DeferEmptyText : Boolean read FDeferEmptyText write SetFDeferEmptyText;
     property EmptyText : String read FEmptyText write SetFEmptyText;
@@ -2915,8 +2812,6 @@ type
     procedure InitDefaults; override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
   end;
 
   // Procedural types for events TExtPanel
@@ -3108,8 +3003,6 @@ type
     procedure HandleEvent(const AEvtName: string); override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     function AddButton(Config : String = ''; Handler : TExtFunction = nil; Scope : TExtObject = nil) : TExtFunction; overload;
     function AddButton(Config : TExtObject; Handler : TExtFunction; Scope : TExtObject) : TExtFunction; overload;
     function Collapse(Animate : Boolean) : TExtFunction;
@@ -3129,7 +3022,6 @@ type
     function SetIconClass(Cls : String) : TExtFunction;
     function SetTitle(Title : String; IconCls : String = '') : TExtFunction;
     function ToggleCollapse(Animate : Boolean) : TExtFunction;
-    destructor Destroy; override;
     property AnimCollapse : Boolean read FAnimCollapse write SetFAnimCollapse;
     property ApplyTo : String read FApplyTo write SetFApplyTo;
     property AutoHeight : Boolean read FAutoHeight write SetFAutoHeight;
@@ -3231,8 +3123,6 @@ type
     procedure HandleEvent(const AEvtName: string); override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     function SetArrowHandler(Handler : TExtFunction; Scope : TExtObject = nil) : TExtFunction;
     property ArrowHandler : TExtFunction read FArrowHandler write SetFArrowHandler;
     property ArrowTooltip : String read FArrowTooltip write SetFArrowTooltip;
@@ -3247,8 +3137,6 @@ type
     procedure InitDefaults; override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     property Width : Integer read FWidth write SetFWidth;
   end;
 
@@ -3260,8 +3148,6 @@ type
     procedure InitDefaults; override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     function SetText(T : String) : TExtFunction;
     property Text : String read FText write SetFText;
   end;
@@ -3288,8 +3174,6 @@ type
     procedure HandleEvent(const AEvtName: string); override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     function Add(Args : TExtObjectList) : TExtFunction;
     function AddButton(Config : TExtObject = nil) : TExtFunction; overload;
     function AddButton(Config : TExtObjectList) : TExtFunction; overload;
@@ -3305,7 +3189,6 @@ type
     function InsertButton(Index : Integer; Item : TExtToolbarItem) : TExtFunction; overload;
     function InsertButton(Index : Integer; Item : TExtButton) : TExtFunction; overload;
     function InsertButton(Index : Integer; Item : TExtObjectList) : TExtFunction; overload;
-    destructor Destroy; override;
     property ButtonAlign : String read FButtonAlign write SetFButtonAlign;
     property EnableOverflow : Boolean read FEnableOverflow write SetFEnableOverflow;
     property Layout : String read FLayout write SetFLayout;
@@ -3319,8 +3202,6 @@ type
     procedure InitDefaults; override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
   end;
 
   TExtTip = class(TExtPanel)
@@ -3343,8 +3224,6 @@ type
     procedure InitDefaults; override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     function ShowAt(Xy : TExtObjectList) : TExtFunction;
     function ShowBy(El : String; Position : String = '') : TExtFunction;
     property Closable : Boolean read FClosable write SetFClosable;
@@ -3361,8 +3240,6 @@ type
     procedure InitDefaults; override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
   end;
 
   TExtButtonGroup = class(TExtPanel)
@@ -3379,8 +3256,6 @@ type
     procedure InitDefaults; override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     property BaseCls : String read FBaseCls write SetFBaseCls;
     property Columns : Integer read FColumns write SetFColumns;
     property Frame : Boolean read FFrame write SetFFrame;
@@ -3411,12 +3286,9 @@ type
     procedure HandleEvent(const AEvtName: string); override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     function GetActiveItem : TExtFunction;
     function SetActiveItem(Item : TExtMenuCheckItem; SuppressEvent : Boolean) : TExtFunction;
     function ToggleSelected : TExtFunction;
-    destructor Destroy; override;
     property ChangeHandler : TExtFunction read FChangeHandler write SetFChangeHandler;
     property ForceIcon : String read FForceIcon write SetFForceIcon;
     property Items : TExtObjectList read FItems write SetFItems;
@@ -3517,8 +3389,6 @@ type
     procedure HandleEvent(const AEvtName: string); override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     function AlignTo(Element : String; Position : String; Offsets : TExtObjectList = nil) : TExtFunction;
     function AnchorTo(Element : String; Position : String; Offsets : TExtObjectList = nil; MonitorScroll : Boolean = false) : TExtFunction; overload;
     function AnchorTo(Element : String; Position : String; Offsets : TExtObjectList; MonitorScroll : Integer) : TExtFunction; overload;
@@ -3539,7 +3409,6 @@ type
     function ToBack : TExtFunction;
     function ToFront(E : Boolean = false) : TExtFunction;
     function ToggleMaximize : TExtFunction;
-    destructor Destroy; override;
     property AnimateTarget : String read FAnimateTarget write SetFAnimateTarget;
     property AnimateTargetElement : TExtElement read FAnimateTargetElement write SetFAnimateTargetElement;
     property BaseCls : String read FBaseCls write SetFBaseCls;
@@ -3644,8 +3513,6 @@ type
     procedure HandleEvent(const AEvtName: string); override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     function Activate(Tab : String) : TExtFunction; overload;
     function Activate(Tab : TExtPanel) : TExtFunction; overload;
     function BeginUpdate : TExtFunction;
@@ -3666,7 +3533,6 @@ type
     function UnhideTabStripItem(Item : Integer) : TExtFunction; overload;
     function UnhideTabStripItem(Item : String) : TExtFunction; overload;
     function UnhideTabStripItem(Item : TExtPanel) : TExtFunction; overload;
-    destructor Destroy; override;
     property ActiveTab : String read FActiveTab write SetFActiveTab;
     property ActiveTabNumber : Integer read FActiveTabNumber write SetFActiveTabNumber;
     property AnimScroll : Boolean read FAnimScroll write SetFAnimScroll;
@@ -3742,8 +3608,6 @@ type
     procedure HandleEvent(const AEvtName: string); override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     function Bind(Store : TExtDataStore) : TExtFunction;
     function BindStore(Store : TExtDataStore; Initial : Boolean = false) : TExtFunction;
     function ChangePage(Page : Integer) : TExtFunction;
@@ -3753,7 +3617,6 @@ type
     function MoveNext : TExtFunction;
     function MovePrevious : TExtFunction;
     function Unbind(Store : TExtDataStore) : TExtFunction;
-    destructor Destroy; override;
     property AfterPageText : String read FAfterPageText write SetFAfterPageText;
     property BeforePageText : String read FBeforePageText write SetFBeforePageText;
     property DisplayInfo : Boolean read FDisplayInfo write SetFDisplayInfo;
@@ -3802,12 +3665,9 @@ type
     procedure InitDefaults; override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     function Hide : TExtFunction;
     function InitTarget(T : String) : TExtFunction;
     function Show : TExtFunction;
-    destructor Destroy; override;
     property AnchorOffset : Integer read FAnchorOffset write SetFAnchorOffset;
     property AnchorToTarget : Boolean read FAnchorToTarget write SetFAnchorToTarget;
     property AutoHide : Boolean read FAutoHide write SetFAutoHide;
@@ -3831,8 +3691,6 @@ type
     procedure InitDefaults; override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     function CancelShow(El : String) : TExtFunction; overload;
     function CancelShow(El : THTMLElement) : TExtFunction; overload;
     function CancelShow(El : TExtElement) : TExtFunction; overload;
@@ -3872,11 +3730,11 @@ function TExtKeyMap.JSClassName : string; begin
   Result := 'Ext.KeyMap';
 end;
 
-{$IFDEF FPC}constructor TExtKeyMap.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtKeyMap.Create(El : String; Config : TExtObject = nil; EventName : String = ''); begin
-  CreateVar(JSClassName + '(' + VarToJSON([El, Config, false, EventName]) + ');');
-  InitDefaults;
+constructor TExtKeyMap.Create(AOwner: TComponent; El : String;
+  Config : TExtObject = nil; EventName : String = '');
+begin
+  FCreateVarArgs := JSClassName + '(' + VarToJSON([El, Config, false, EventName]) + ');';
+  inherited Create(AOwner);
 end;
 
 function TExtKeyMap.AddBinding(Config : TExtObject = nil) : TExtFunction; begin
@@ -3936,7 +3794,6 @@ end;
 
 procedure TExtFx.SetFAfterStyleObject(Value : TExtObject); begin
   FAfterStyleObject := Value;
-  Value.DeleteFromGarbage;
   JSCode('afterStyle:' + VarToJSON([Value, false]));
 end;
 
@@ -3982,7 +3839,6 @@ end;
 
 procedure TExtFx.SetFScope(Value : TExtObject); begin
   FScope := Value;
-  Value.DeleteFromGarbage;
   JSCode('scope:' + VarToJSON([Value, false]));
 end;
 
@@ -4004,13 +3860,6 @@ procedure TExtFx.InitDefaults; begin
   inherited;
   FAfterStyleObject := TExtObject.CreateInternal(Self, 'afterStyle');
   FScope := TExtObject.CreateInternal(Self, 'scope');
-end;
-
-{$IFDEF FPC}constructor TExtFx.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtFx.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
 end;
 
 function TExtFx.FadeIn(Options : TExtObject = nil) : TExtFunction; begin
@@ -4098,23 +3947,13 @@ function TExtFx.SyncFx : TExtFunction; begin
   Result := Self;
 end;
 
-destructor TExtFx.Destroy; begin
-  try
-    FAfterStyleObject.Free;
-    FScope.Free;
-  except end;
-  inherited;
-end;
-
 procedure TExtLoaderSingleton.SetFVarJS(Value : TExtObject); begin
   FVarJS := Value;
-  Value.DeleteFromGarbage;
   JSCode(JSName + '.varJS=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtLoaderSingleton.SetFVarJS_(Value : TExtObject); begin
   FVarJS_ := Value;
-  Value.DeleteFromGarbage;
   JSCode(JSName + '.varJS=' + VarToJSON([Value, false]) + ';');
 end;
 
@@ -4128,19 +3967,9 @@ procedure TExtLoaderSingleton.InitDefaults; begin
   FVarJS_ := TExtObject.CreateInternal(Self, 'varJS');
 end;
 
-{$IFDEF FPC}constructor TExtLoaderSingleton.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
 function TExtLoaderSingleton.Load(FileList : TExtObjectList; Callback : TExtFunction; Scope : TExtObject; PreserveOrder : Boolean) : TExtFunction; begin
   JSCode(JSName + '.load(' + VarToJSON(FileList) + ',' + VarToJSON([Callback, true, Scope, false, PreserveOrder]) + ');', 'TExtLoaderSingleton');
   Result := Self;
-end;
-
-destructor TExtLoaderSingleton.Destroy; begin
-  try
-    FVarJS.Free;
-    FVarJS_.Free;
-  except end;
-  inherited;
 end;
 
 procedure TExtKeyNav.SetFDefaultEventAction(Value : String); begin
@@ -4170,13 +3999,6 @@ procedure TExtKeyNav.InitDefaults; begin
   FDefaultEventAction := 'stopEvent';
 end;
 
-{$IFDEF FPC}constructor TExtKeyNav.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtKeyNav.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
-end;
-
 function TExtKeyNav.DestroyJS : TExtFunction; begin
   JSCode(JSName + '.destroy();', 'TExtKeyNav');
   Result := Self;
@@ -4201,23 +4023,18 @@ function TExtFlashProxySingleton.JSClassName : string; begin
   Result := 'Ext.FlashProxy';
 end;
 
-{$IFDEF FPC}constructor TExtFlashProxySingleton.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
 procedure TExtEventManagerSingleton.SetFFireDocReady(Value : TExtObject); begin
   FFireDocReady := Value;
-  Value.DeleteFromGarbage;
   JSCode(JSName + '.fireDocReady=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtEventManagerSingleton.SetFIeDeferSrc(Value : TExtObject); begin
   FIeDeferSrc := Value;
-  Value.DeleteFromGarbage;
   JSCode(JSName + '.ieDeferSrc=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtEventManagerSingleton.SetFTextResizeInterval(Value : TExtObject); begin
   FTextResizeInterval := Value;
-  Value.DeleteFromGarbage;
   JSCode(JSName + '.textResizeInterval=' + VarToJSON([Value, false]) + ';');
 end;
 
@@ -4580,8 +4397,6 @@ procedure TExtEventManagerSingleton.InitDefaults; begin
   FTextResizeInterval := TExtObject.CreateInternal(Self, 'textResizeInterval');
 end;
 
-{$IFDEF FPC}constructor TExtEventManagerSingleton.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
 function TExtEventManagerSingleton.AddListener(El : String; EventName : String; Handler : TExtFunction; Scope : TExtObject = nil; Options : TExtObject = nil) : TExtFunction; begin
   JSCode(JSName + '.addListener(' + VarToJSON([El, EventName, Handler, true, Scope, false, Options, false]) + ');', 'TExtEventManagerSingleton');
   Result := Self;
@@ -4672,20 +4487,9 @@ function TExtEventManagerSingleton.Un(El : THTMLElement; EventName : String; Fn 
   Result := Self;
 end;
 
-destructor TExtEventManagerSingleton.Destroy; begin
-  try
-    FFireDocReady.Free;
-    FIeDeferSrc.Free;
-    FTextResizeInterval.Free;
-  except end;
-  inherited;
-end;
-
 function TExtError.JSClassName : string; begin
   Result := 'Ext.Error';
 end;
-
-{$IFDEF FPC}constructor TExtError.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
 
 function TExtError.GetMessage : TExtFunction; begin
   JSCode(JSName + '.getMessage();', 'TExtError');
@@ -4724,7 +4528,6 @@ end;
 
 procedure TExtProgressWaitConfig.SetFScope(Value : TExtObject); begin
   FScope := Value;
-  Value.DeleteFromGarbage;
   JSCode('scope:' + VarToJSON([Value, false]));
 end;
 
@@ -4732,13 +4535,9 @@ function TExtProgressWaitConfig.JSClassName : string; begin
   Result := 'Object';
 end;
 
-{$IFDEF FPC}constructor TExtProgressWaitConfig.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
 function TExtEventObjectSingleton.JSClassName : string; begin
   Result := 'Ext.EventObject';
 end;
-
-{$IFDEF FPC}constructor TExtEventObjectSingleton.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
 
 function TExtEventObjectSingleton.GetCharCode : TExtFunction; begin
   JSCode(JSName + '.getCharCode();', 'TExtEventObjectSingleton');
@@ -4822,7 +4621,6 @@ end;
 
 procedure TExtLoadMask.SetFStore(Value : TExtDataStore); begin
   FStore := Value;
-  Value.DeleteFromGarbage;
   JSCode('store:' + VarToJSON([Value, false]));
 end;
 
@@ -4840,13 +4638,6 @@ procedure TExtLoadMask.InitDefaults; begin
   FMsg := 'Loading...';
   FMsgCls := 'x-mask-loading';
   FStore := TExtDataStore.CreateInternal(Self, 'store');
-end;
-
-{$IFDEF FPC}constructor TExtLoadMask.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtLoadMask.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
 end;
 
 function TExtLoadMask.Disable : TExtFunction; begin
@@ -4867,13 +4658,6 @@ end;
 function TExtLoadMask.Show : TExtFunction; begin
   JSCode(JSName + '.show();', 'TExtLoadMask');
   Result := Self;
-end;
-
-destructor TExtLoadMask.Destroy; begin
-  try
-    FStore.Free;
-  except end;
-  inherited;
 end;
 
 procedure TExtUpdaterDefaults.SetFDisableCaching(Value : Boolean); begin
@@ -4917,18 +4701,9 @@ procedure TExtUpdaterDefaults.InitDefaults; begin
   FSslBlankUrl := 'output/Ext.html#Ext-SSL_SECURE_URL';
 end;
 
-{$IFDEF FPC}constructor TExtUpdaterDefaults.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtUpdaterDefaults.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
-end;
-
 function TExtSplitBarBasicLayoutAdapter.JSClassName : string; begin
   Result := 'Ext.SplitBar.BasicLayoutAdapter';
 end;
-
-{$IFDEF FPC}constructor TExtSplitBarBasicLayoutAdapter.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
 
 function TExtSplitBarBasicLayoutAdapter.GetElementSize(S : TExtSplitBar) : TExtFunction; begin
   JSCode(JSName + '.getElementSize(' + VarToJSON([S, false]) + ');', 'TExtSplitBarBasicLayoutAdapter');
@@ -4969,11 +4744,10 @@ function TExtTemplate.JSClassName : string; begin
   Result := 'Ext.Template';
 end;
 
-{$IFDEF FPC}constructor TExtTemplate.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtTemplate.Create(Config : String = ''); begin
-  CreateVar(JSClassName + '(' + VarToJSON([Config]) + ');');
-  InitDefaults;
+constructor TExtTemplate.Create(AOwner: TComponent; Config : String = '');
+begin
+  FCreateVarArgs := JSClassName + '(' + VarToJSON([Config]) + ');';
+  inherited Create(AOwner);
 end;
 
 function TExtTemplate.TemplateFrom(El : String; Config : TExtObject = nil) : TExtFunction; begin
@@ -5055,8 +4829,6 @@ function TExtUpdaterBasicRenderer.JSClassName : string; begin
   Result := 'Ext.Updater.BasicRenderer';
 end;
 
-{$IFDEF FPC}constructor TExtUpdaterBasicRenderer.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
 function TExtUpdaterBasicRenderer.Render(El : TExtElement; Xhr : TExtObject; UpdateManager : TExtUpdater; Callback : TExtFunction) : TExtFunction; begin
   JSCode(JSName + '.render(' + VarToJSON([El, false, Xhr, false, UpdateManager, false, Callback, true]) + ');', 'TExtUpdaterBasicRenderer');
   Result := Self;
@@ -5074,14 +4846,6 @@ end;
 
 function TExtShadow.JSClassName : string; begin
   Result := 'Ext.Shadow';
-end;
-
-{$IFDEF FPC}constructor TExtShadow.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtShadow.Create(Config : TExtObject = nil); begin
-  if Config = nil then CreateVar(JSClassName + '({});') else
-  CreateVar(JSClassName + '(' + VarToJSON([Config, false]) + ');');
-  InitDefaults;
 end;
 
 function TExtShadow.Hide : TExtFunction; begin
@@ -5116,7 +4880,6 @@ end;
 
 procedure TExtShowConfig.SetFButtons(Value : TExtObject); begin
   FButtons := Value;
-  Value.DeleteFromGarbage;
   JSCode('buttons:' + VarToJSON([Value, false]));
 end;
 
@@ -5142,7 +4905,6 @@ end;
 
 procedure TExtShowConfig.SetFScope(Value : TExtObject); begin
   FScope := Value;
-  Value.DeleteFromGarbage;
   JSCode('scope:' + VarToJSON([Value, false]));
 end;
 
@@ -5218,8 +4980,7 @@ end;
 
 procedure TExtShowConfig.SetFWaitConfig(Value : TExtProgressWaitConfig); begin
   FWaitConfig := Value;
-  Value.DeleteFromGarbage;
-  JSCode('waitConfig:' + VarToJSON([Value, false]));
+    JSCode('waitConfig:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtShowConfig.SetFWidth(Value : Integer); begin
@@ -5231,18 +4992,14 @@ function TExtShowConfig.JSClassName : string; begin
   Result := 'Object';
 end;
 
-{$IFDEF FPC}constructor TExtShowConfig.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
 procedure TExtMessageBoxSingleton.SetFMsg(Value : TExtObject); begin
   FMsg := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.msg=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.msg=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtMessageBoxSingleton.SetFButtonText(Value : TExtObject); begin
   FButtonText := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.buttonText=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.buttonText=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtMessageBoxSingleton.SetFDefaultTextHeight(Value : Integer); begin
@@ -5341,8 +5098,6 @@ procedure TExtMessageBoxSingleton.InitDefaults; begin
   FMinWidth := 100;
 end;
 
-{$IFDEF FPC}constructor TExtMessageBoxSingleton.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
 function TExtMessageBoxSingleton.Alert(Title : String; Msg : String; Fn : TExtFunction = nil; Scope : TExtObject = nil) : TExtFunction; begin
   JSCode(JSName + '.alert(' + VarToJSON([Title, Msg, Fn, true, Scope, false]) + ');', 'TExtMessageBoxSingleton');
   Result := Self;
@@ -5408,19 +5163,9 @@ function TExtMessageBoxSingleton.Wait(Msg : String; Title : String = ''; Config 
   Result := Self;
 end;
 
-destructor TExtMessageBoxSingleton.Destroy; begin
-  try
-    FMsg.Free;
-    FButtonText.Free;
-  except end;
-  inherited;
-end;
-
 function TExtQuickTipsSingleton.JSClassName : string; begin
   Result := 'Ext.QuickTips';
 end;
-
-{$IFDEF FPC}constructor TExtQuickTipsSingleton.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
 
 function TExtQuickTipsSingleton.Disable : TExtFunction; begin
   JSCode(JSName + '.disable();', 'TExtQuickTipsSingleton');
@@ -5486,13 +5231,6 @@ procedure TExtWindowGroup.InitDefaults; begin
   FZseed := 9000;
 end;
 
-{$IFDEF FPC}constructor TExtWindowGroup.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtWindowGroup.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
-end;
-
 function TExtWindowGroup.BringToFront(Win : String) : TExtFunction; begin
   JSCode(JSName + '.bringToFront(' + VarToJSON([Win]) + ');', 'TExtWindowGroup');
   Result := Self;
@@ -5555,8 +5293,7 @@ end;
 
 procedure TExtElement.SetFAutoBoxAdjust(Value : TExtObject); begin
   FAutoBoxAdjust := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.autoBoxAdjust=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.autoBoxAdjust=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtElement.SetFDefaultUnit(Value : TCSSUnit); begin
@@ -5566,8 +5303,7 @@ end;
 
 procedure TExtElement.SetFDom(Value : THTMLElement); begin
   FDom := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.dom=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.dom=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtElement.SetFId(Value : String); begin
@@ -5875,13 +5611,6 @@ end;
 procedure TExtElement.InitDefaults; begin
   inherited;
   FAutoBoxAdjust := TExtObject.CreateInternal(Self, 'autoBoxAdjust');
-end;
-
-{$IFDEF FPC}constructor TExtElement.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtElement.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
 end;
 
 function TExtElement.AddClass(ClassName : String) : TExtFunction; begin
@@ -6879,13 +6608,6 @@ function TExtElement.Wrap(Config : TExtObject = nil; ReturnDom : Boolean = false
   Result := Self;
 end;
 
-destructor TExtElement.Destroy; begin
-  try
-    FAutoBoxAdjust.Free;
-  except end;
-  inherited;
-end;
-
 procedure TExtElement.HandleEvent(const AEvtName : string); begin
   inherited;
   if (AEvtName = 'DOMActivate') and Assigned(FOnDOMActivate) then
@@ -6974,8 +6696,6 @@ function TExtBackground.JSClassName : string; begin
   Result := 'Object';
 end;
 
-{$IFDEF FPC}constructor TExtBackground.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
 procedure TExtBorder.SetFColor(Value : String); begin
   FColor := Value;
   JSCode('color:' + VarToJSON([Value]));
@@ -6989,8 +6709,6 @@ end;
 function TExtBorder.JSClassName : string; begin
   Result := 'Object';
 end;
-
-{$IFDEF FPC}constructor TExtBorder.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
 
 procedure TExtFont.SetFName(Value : String); begin
   FName := Value;
@@ -7016,8 +6734,6 @@ function TExtFont.JSClassName : string; begin
   Result := 'Object';
 end;
 
-{$IFDEF FPC}constructor TExtFont.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
 procedure TExtDataTip.SetFPadding(Value : Integer); begin
   FPadding := Value;
   JSCode('padding:' + VarToJSON([Value]));
@@ -7025,44 +6741,36 @@ end;
 
 procedure TExtDataTip.SetFBorder(Value : TExtBorder); begin
   FBorder := Value;
-  Value.DeleteFromGarbage;
-  JSCode('border:' + VarToJSON([Value, false]));
+    JSCode('border:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtDataTip.SetFBackground(Value : TExtBackground); begin
   FBackground := Value;
-  Value.DeleteFromGarbage;
-  JSCode('background:' + VarToJSON([Value, false]));
+    JSCode('background:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtDataTip.SetFFont(Value : TExtFont); begin
   FFont := Value;
-  Value.DeleteFromGarbage;
-  JSCode('font:' + VarToJSON([Value, false]));
+    JSCode('font:' + VarToJSON([Value, false]));
 end;
 
 function TExtDataTip.JSClassName : string; begin
   Result := 'Object';
 end;
 
-{$IFDEF FPC}constructor TExtDataTip.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
 procedure TExtComponentMgrSingleton.SetFAll(Value : TExtObjectList); begin
   FAll := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.all=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.all=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtComponentMgrSingleton.SetFPtypes(Value : TExtObject); begin
   FPtypes := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.ptypes=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.ptypes=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtComponentMgrSingleton.SetFTypes(Value : TExtObject); begin
   FTypes := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.types=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.types=' + VarToJSON([Value, false]) + ';');
 end;
 
 function TExtComponentMgrSingleton.JSClassName : string; begin
@@ -7075,8 +6783,6 @@ procedure TExtComponentMgrSingleton.InitDefaults; begin
   FPtypes := TExtObject.CreateInternal(Self, 'ptypes');
   FTypes := TExtObject.CreateInternal(Self, 'types');
 end;
-
-{$IFDEF FPC}constructor TExtComponentMgrSingleton.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
 
 function TExtComponentMgrSingleton.CreatePlugin(Config : TExtObject = nil; DefaultType : TConstructor = nil) : TExtFunction; begin
   JSCode(JSName + '.createPlugin(' + VarToJSON([Config, false, DefaultType, false]) + ');', 'TExtComponentMgrSingleton');
@@ -7123,19 +6829,9 @@ function TExtComponentMgrSingleton.Unregister(C : TExtComponent) : TExtFunction;
   Result := Self;
 end;
 
-destructor TExtComponentMgrSingleton.Destroy; begin
-  try
-    FAll.Free;
-    FPtypes.Free;
-    FTypes.Free;
-  except end;
-  inherited;
-end;
-
 procedure TExtCompositeElementLite.SetFElements(Value : TExtObjectList); begin
   FElements := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.elements=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.elements=' + VarToJSON([Value, false]) + ';');
 end;
 
 function TExtCompositeElementLite.JSClassName : string; begin
@@ -7145,13 +6841,6 @@ end;
 procedure TExtCompositeElementLite.InitDefaults; begin
   inherited;
   FElements := TExtObjectList.Create(Self, 'elements');
-end;
-
-{$IFDEF FPC}constructor TExtCompositeElementLite.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtCompositeElementLite.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
 end;
 
 function TExtCompositeElementLite.Add(Els : String) : TExtFunction; begin
@@ -7224,22 +6913,16 @@ function TExtCompositeElementLite.ReplaceElement(El : String; Replacement : Stri
   Result := Self;
 end;
 
-destructor TExtCompositeElementLite.Destroy; begin
-  try
-    FElements.Free;
-  except end;
-  inherited;
-end;
-
 function TFusionCharts.JSClassName : string; begin
   Result := 'FusionCharts';
 end;
 
-{$IFDEF FPC}constructor TFusionCharts.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TFusionCharts.Create(SwfURL : String; Id : String; Width : Integer; Height : Integer; DebugMode : Integer = 0; RegisterWithJS : Integer = 0); begin
-  CreateVar(JSClassName + '(' + VarToJSON([SwfURL, Id, Width, Height, DebugMode, RegisterWithJS]) + ');');
-  InitDefaults;
+constructor TFusionCharts.Create(AOwner: TComponent; SwfURL: string;
+  Id: string; Width: Integer; Height: Integer; DebugMode: Integer = 0;
+  RegisterWithJS: Integer = 0);
+begin
+  FCreateVarArgs := JSClassName + '(' + VarToJSON([SwfURL, Id, Width, Height, DebugMode, RegisterWithJS]) + ');';
+  inherited Create(AOwner);
 end;
 
 function TFusionCharts.SetDataURL(XML : String) : TExtFunction; begin
@@ -7260,8 +6943,6 @@ end;
 function TExtDomHelperSingleton.JSClassName : string; begin
   Result := 'Ext.DomHelper';
 end;
-
-{$IFDEF FPC}constructor TExtDomHelperSingleton.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
 
 function TExtDomHelperSingleton.ApplyStyles(El : String; Styles : String) : TExtFunction; begin
   JSCode(JSName + '.applyStyles(' + VarToJSON([El, Styles]) + ');', 'TExtDomHelperSingleton');
@@ -7330,14 +7011,12 @@ end;
 
 procedure TExtDomQuerySingleton.SetFMatchers(Value : TExtObject); begin
   FMatchers := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.matchers=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.matchers=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtDomQuerySingleton.SetFPseudos(Value : TExtObject); begin
   FPseudos := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.pseudos=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.pseudos=' + VarToJSON([Value, false]) + ';');
 end;
 
 function TExtDomQuerySingleton.JSClassName : string; begin
@@ -7349,8 +7028,6 @@ procedure TExtDomQuerySingleton.InitDefaults; begin
   FMatchers := TExtObject.CreateInternal(Self, 'matchers');
   FPseudos := TExtObject.CreateInternal(Self, 'pseudos');
 end;
-
-{$IFDEF FPC}constructor TExtDomQuerySingleton.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
 
 function TExtDomQuerySingleton.Compile(Selector : String; TypeJS : String = '') : TExtFunction; begin
   JSCode(JSName + '.compile(' + VarToJSON([Selector, TypeJS]) + ');', 'TExtDomQuerySingleton');
@@ -7407,14 +7084,6 @@ function TExtDomQuerySingleton.SelectValue(Selector : String; Root : TExtDataNod
   Result := Self;
 end;
 
-destructor TExtDomQuerySingleton.Destroy; begin
-  try
-    FMatchers.Free;
-    FPseudos.Free;
-  except end;
-  inherited;
-end;
-
 procedure TExtAction.SetFDisabled(Value : Boolean); begin
   FDisabled := Value;
   if not ConfigAvailable(JSName) then
@@ -7451,8 +7120,7 @@ end;
 
 procedure TExtAction.SetFScope(Value : TExtObject); begin
   FScope := Value;
-  Value.DeleteFromGarbage;
-  JSCode('scope:' + VarToJSON([Value, false]));
+    JSCode('scope:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtAction.SetFText(Value : String); begin
@@ -7470,13 +7138,6 @@ end;
 procedure TExtAction.InitDefaults; begin
   inherited;
   FScope := TExtObject.CreateInternal(Self, 'scope');
-end;
-
-{$IFDEF FPC}constructor TExtAction.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtAction.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
 end;
 
 function TExtAction.Disable : TExtFunction; begin
@@ -7554,18 +7215,9 @@ function TExtAction.Show : TExtFunction; begin
   Result := Self;
 end;
 
-destructor TExtAction.Destroy; begin
-  try
-    FScope.Free;
-  except end;
-  inherited;
-end;
-
 function TExtDirectTransaction.JSClassName : string; begin
   Result := 'Ext.Direct.Transaction';
 end;
-
-{$IFDEF FPC}constructor TExtDirectTransaction.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
 
 procedure TExtSplitBar.SetFAnimate(Value : Boolean); begin
   FAnimate := Value;
@@ -7620,11 +7272,11 @@ function TExtSplitBar.JSClassName : string; begin
   Result := 'Ext.SplitBar';
 end;
 
-{$IFDEF FPC}constructor TExtSplitBar.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtSplitBar.Create(DragElement : String; ResizingElement : String; Orientation : Integer = 0; Placement : Integer = 0); begin
-  CreateVar(JSClassName + '(' + VarToJSON([DragElement, ResizingElement, Orientation, Placement]) + ');');
-  InitDefaults;
+constructor TExtSplitBar.Create(AOwner: TComponent; DragElement: string;
+  ResizingElement: string; Orientation: Integer = 0; Placement: Integer = 0);
+begin
+  FCreateVarArgs := JSClassName + '(' + VarToJSON([DragElement, ResizingElement, Orientation, Placement]) + ');';
+  inherited Create(AOwner);
 end;
 
 function TExtSplitBar.DestroyJS(RemoveEl : Boolean) : TExtFunction; begin
@@ -7679,8 +7331,7 @@ end;
 
 procedure TExtResizable.SetFAdjustments(Value : TExtObjectList); begin
   FAdjustments := Value;
-  Value.DeleteFromGarbage;
-  JSCode('adjustments:' + VarToJSON([Value, false]));
+    JSCode('adjustments:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtResizable.SetFAdjustmentsString(Value : String); begin
@@ -7805,14 +7456,12 @@ end;
 
 procedure TExtResizable.SetFResizeChildElement(Value : TExtElement); begin
   FResizeChildElement := Value;
-  Value.DeleteFromGarbage;
-  JSCode('resizeChild:' + VarToJSON([Value, false]));
+    JSCode('resizeChild:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtResizable.SetFResizeRegion(Value : TExtLibRegion); begin
   FResizeRegion := Value;
-  Value.DeleteFromGarbage;
-  JSCode('resizeRegion:' + VarToJSON([Value, false]));
+    JSCode('resizeRegion:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtResizable.SetFTransparent(Value : Boolean); begin
@@ -7842,8 +7491,7 @@ end;
 
 procedure TExtResizable.SetFProxy(Value : TExtElement); begin
   FProxy := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.proxy=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.proxy=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtResizable.SetFOnBeforeresize(Value : TExtResizableOnBeforeresize); begin
@@ -7883,13 +7531,6 @@ procedure TExtResizable.InitDefaults; begin
   FProxy := TExtElement.CreateInternal(Self, 'proxy');
 end;
 
-{$IFDEF FPC}constructor TExtResizable.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtResizable.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
-end;
-
 function TExtResizable.DestroyJS(RemoveEl : Boolean = false) : TExtFunction; begin
   JSCode(JSName + '.destroy(' + VarToJSON([RemoveEl]) + ');', 'TExtResizable');
   Result := Self;
@@ -7915,16 +7556,6 @@ function TExtResizable.ResizeTo(Width : Integer; Height : Integer) : TExtFunctio
   Result := Self;
 end;
 
-destructor TExtResizable.Destroy; begin
-  try
-    FAdjustments.Free;
-    FResizeChildElement.Free;
-    FResizeRegion.Free;
-    FProxy.Free;
-  except end;
-  inherited;
-end;
-
 procedure TExtResizable.HandleEvent(const AEvtName : string); begin
   inherited;
   if (AEvtName = 'beforeresize') and Assigned(FOnBeforeresize) then
@@ -7936,8 +7567,6 @@ end;
 function TExtTaskMgrSingleton.JSClassName : string; begin
   Result := 'Ext.TaskMgr';
 end;
-
-{$IFDEF FPC}constructor TExtTaskMgrSingleton.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
 
 function TExtSplitBarAbsoluteLayoutAdapter.JSClassName : string; begin
   Result := 'Ext.SplitBar.AbsoluteLayoutAdapter';
@@ -7967,8 +7596,6 @@ class function TExtSplitBarAbsoluteLayoutAdapter.VERTICAL : Integer; begin
   Result := 0
 end;
 
-{$IFDEF FPC}constructor TExtSplitBarAbsoluteLayoutAdapter.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
 procedure TExtUpdater.SetFDefaultUrl(Value : String); begin
   FDefaultUrl := Value;
   JSCode(JSName + '.defaultUrl=' + VarToJSON([Value]) + ';');
@@ -7981,8 +7608,7 @@ end;
 
 procedure TExtUpdater.SetFEl(Value : TExtElement); begin
   FEl := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.el=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.el=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtUpdater.SetFFormUpdateDelegate(Value : TExtFunction); begin
@@ -8007,8 +7633,7 @@ end;
 
 procedure TExtUpdater.SetFRenderer(Value : TExtObject); begin
   FRenderer := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.renderer=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.renderer=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtUpdater.SetFShowLoadIndicator(Value : String); begin
@@ -8028,8 +7653,7 @@ end;
 
 procedure TExtUpdater.SetFTransaction(Value : TExtObject); begin
   FTransaction := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.transaction=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.transaction=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtUpdater.SetFUpdateDelegate(Value : TExtFunction); begin
@@ -8073,13 +7697,6 @@ procedure TExtUpdater.InitDefaults; begin
   FShowLoadIndicator := 'output/Ext.Updater.defaults.html#Ext.Updater.defaults-showLoadIndicator';
   FSslBlankUrl := 'output/Ext.Updater.defaults.html#Ext.Updater.defaults-sslBlankUrl';
   FTransaction := TExtObject.CreateInternal(Self, 'transaction');
-end;
-
-{$IFDEF FPC}constructor TExtUpdater.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtUpdater.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
 end;
 
 function TExtUpdater.UpdaterUpdateElement(El : String; Url : String; Params : String = ''; Options : TExtObject = nil) : TExtFunction; begin
@@ -8197,15 +7814,6 @@ function TExtUpdater.Update(Options : TExtObject) : TExtFunction; begin
   Result := Self;
 end;
 
-destructor TExtUpdater.Destroy; begin
-  try
-    FEl.Free;
-    FRenderer.Free;
-    FTransaction.Free;
-  except end;
-  inherited;
-end;
-
 procedure TExtUpdater.HandleEvent(const AEvtName : string); begin
   inherited;
   if (AEvtName = 'beforeupdate') and Assigned(FOnBeforeupdate) then
@@ -8228,8 +7836,7 @@ end;
 
 procedure TExtComponent.SetFAutoEl(Value : TExtObject); begin
   FAutoEl := Value;
-  Value.DeleteFromGarbage;
-  JSCode('autoEl:' + VarToJSON([Value, false]));
+    JSCode('autoEl:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtComponent.SetFAutoShow(Value : Boolean); begin
@@ -8239,8 +7846,7 @@ end;
 
 procedure TExtComponent.SetFBubbleEvents(Value : TExtObjectList); begin
   FBubbleEvents := Value;
-  Value.DeleteFromGarbage;
-  JSCode('bubbleEvents:' + VarToJSON([Value, false]));
+    JSCode('bubbleEvents:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtComponent.SetFClearCls(Value : String); begin
@@ -8313,8 +7919,7 @@ end;
 
 procedure TExtComponent.SetFHtmlObject(Value : TExtObject); begin
   FHtmlObject := Value;
-  Value.DeleteFromGarbage;
-  JSCode('html:' + VarToJSON([Value, false]));
+    JSCode('html:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtComponent.SetFId(Value : String); begin
@@ -8350,14 +7955,12 @@ end;
 procedure TExtComponent.SetFPlugins(Value : TExtObject); begin
   FPlugins.Free;
   FPlugins := Value;
-  Value.DeleteFromGarbage;
-  JSCode('plugins:' + VarToJSON([Value, false]));
+    JSCode('plugins:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtComponent.SetFPluginsArray(Value : TExtObjectList); begin
   FPluginsArray := Value;
-  Value.DeleteFromGarbage;
-  JSCode('plugins:' + VarToJSON([Value, false]));
+    JSCode('plugins:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtComponent.SetFPtype(Value : String); begin
@@ -8377,8 +7980,7 @@ end;
 
 procedure TExtComponent.SetFStateEvents(Value : TExtObjectList); begin
   FStateEvents := Value;
-  Value.DeleteFromGarbage;
-  JSCode('stateEvents:' + VarToJSON([Value, false]));
+    JSCode('stateEvents:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtComponent.SetFStateId(Value : String); begin
@@ -8428,20 +8030,17 @@ end;
 
 procedure TExtComponent.SetFInitialConfig(Value : TExtObject); begin
   FInitialConfig := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.initialConfig=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.initialConfig=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtComponent.SetFOwnerCt(Value : TExtContainer); begin
   FOwnerCt := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.ownerCt=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.ownerCt=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtComponent.SetFRefOwner(Value : TExtContainer); begin
   FRefOwner := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.refOwner=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.refOwner=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtComponent.SetFRendered(Value : Boolean); begin
@@ -8496,8 +8095,7 @@ end;
 
 procedure TExtComponent.SetFStyleExtObject(Value : TExtObject); begin
   FStyleExtObject := Value;
-  Value.DeleteFromGarbage;
-  JSCode('style:' + VarToJSON([Value, false]));
+    JSCode('style:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtComponent.SetFOnAdded(Value : TExtComponentOnAdded); begin
@@ -8655,13 +8253,6 @@ procedure TExtComponent.InitDefaults; begin
   FOwnerCt := TExtContainer.CreateInternal(Self, 'ownerCt');
   FRefOwner := TExtContainer.CreateInternal(Self, 'refOwner');
   FStyleExtObject := TExtObject.CreateInternal(Self, 'style');
-end;
-
-{$IFDEF FPC}constructor TExtComponent.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtComponent.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
 end;
 
 function TExtComponent.AnElement(Cls : String) : TExtFunction; begin
@@ -8874,21 +8465,6 @@ function TExtComponent.Update(HtmlOrData : String; LoadScripts : Boolean = false
   Result := Self;
 end;
 
-destructor TExtComponent.Destroy; begin
-  try
-    FBubbleEvents.Free;
-    FHtmlObject.Free;
-    FPlugins.Free;
-    FPluginsArray.Free;
-    FStateEvents.Free;
-    FInitialConfig.Free;
-    FOwnerCt.Free;
-    FRefOwner.Free;
-    FStyleExtObject.Free;
-  except end;
-  inherited;
-end;
-
 procedure TExtComponent.HandleEvent(const AEvtName : string); begin
   inherited;
   if (AEvtName = 'added') and Assigned(FOnAdded) then
@@ -8939,8 +8515,7 @@ end;
 
 procedure TExtLayer.SetFDh(Value : TExtObject); begin
   FDh := Value;
-  Value.DeleteFromGarbage;
-  JSCode('dh:' + VarToJSON([Value, false]));
+    JSCode('dh:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtLayer.SetFShadow(Value : String); begin
@@ -8989,23 +8564,9 @@ procedure TExtLayer.InitDefaults; begin
   FZindex := 11000;
 end;
 
-{$IFDEF FPC}constructor TExtLayer.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtLayer.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
-end;
-
 function TExtLayer.SetZIndex(Zindex : Integer) : TExtFunction; begin
   JSCode(JSName + '.setZIndex(' + VarToJSON([Zindex]) + ');', 'TExtLayer');
   Result := Self;
-end;
-
-destructor TExtLayer.Destroy; begin
-  try
-    FDh.Free;
-  except end;
-  inherited;
 end;
 
 procedure TExtHistorySingleton.SetFFieldId(Value : String); begin
@@ -9037,8 +8598,6 @@ end;
 function TExtHistorySingleton.JSClassName : string; begin
   Result := 'Ext.History';
 end;
-
-{$IFDEF FPC}constructor TExtHistorySingleton.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
 
 function TExtHistorySingleton.Add(Token : String; PreventDuplicates : Boolean) : TExtFunction; begin
   JSCode(JSName + '.add(' + VarToJSON([Token, PreventDuplicates]) + ');', 'TExtHistorySingleton');
@@ -9075,14 +8634,12 @@ end;
 
 procedure TExtDirectSingleton.SetFEventTypes(Value : TExtObject); begin
   FEventTypes := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.eventTypes=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.eventTypes=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtDirectSingleton.SetFExceptions(Value : TExtObject); begin
   FExceptions := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.exceptions=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.exceptions=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtDirectSingleton.SetFOnEvent(Value : TExtDirectSingletonOnEvent); begin
@@ -9111,8 +8668,6 @@ procedure TExtDirectSingleton.InitDefaults; begin
   FExceptions := TExtObject.CreateInternal(Self, 'exceptions');
 end;
 
-{$IFDEF FPC}constructor TExtDirectSingleton.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
 function TExtDirectSingleton.AddProvider(Provider : TExtObject) : TExtFunction; begin
   JSCode(JSName + '.addProvider(' + VarToJSON([Provider, false]) + ');', 'TExtDirectSingleton');
   Result := Self;
@@ -9128,14 +8683,6 @@ function TExtDirectSingleton.GetProvider(Id : String) : TExtFunction; begin
   Result := Self;
 end;
 
-destructor TExtDirectSingleton.Destroy; begin
-  try
-    FEventTypes.Free;
-    FExceptions.Free;
-  except end;
-  inherited;
-end;
-
 procedure TExtDirectSingleton.HandleEvent(const AEvtName : string); begin
   inherited;
   if (AEvtName = 'event') and Assigned(FOnEvent) then
@@ -9148,8 +8695,6 @@ function TExtCompositeElement.JSClassName : string; begin
   Result := 'Ext.CompositeElement';
 end;
 
-{$IFDEF FPC}constructor TExtCompositeElement.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
 function TExtWindowMgrSingleton.JSClassName : string; begin
   Result := 'Ext.WindowMgr';
 end;
@@ -9158,17 +8703,14 @@ procedure TExtWindowMgrSingleton.InitDefaults; begin
   inherited;
 end;
 
-{$IFDEF FPC}constructor TExtWindowMgrSingleton.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
 function TExtXTemplate.JSClassName : string; begin
   Result := 'Ext.XTemplate';
 end;
 
-{$IFDEF FPC}constructor TExtXTemplate.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtXTemplate.Create(Config : String = ''); begin
-  CreateVar(JSClassName + '(' + VarToJSON([Config]) + ');');
-  InitDefaults;
+constructor TExtXTemplate.Create(AOwner: TComponent; Config : String = '');
+begin
+  FCreateVarArgs := JSClassName + '(' + VarToJSON([Config]) + ');';
+  inherited Create(AOwner);
 end;
 
 function TExtXTemplate.XTemplateFrom(El : String) : TExtFunction; begin
@@ -9208,8 +8750,7 @@ end;
 
 procedure TExtAjaxSingleton.SetFDefaultHeaders(Value : TExtObject); begin
   FDefaultHeaders := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.defaultHeaders=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.defaultHeaders=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtAjaxSingleton.SetFDisableCaching(Value : Boolean); begin
@@ -9219,8 +8760,7 @@ end;
 
 procedure TExtAjaxSingleton.SetFExtraParams(Value : TExtObject); begin
   FExtraParams := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.extraParams=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.extraParams=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtAjaxSingleton.SetFMethod(Value : String); begin
@@ -9251,8 +8791,6 @@ procedure TExtAjaxSingleton.InitDefaults; begin
   FTimeout := 30000;
 end;
 
-{$IFDEF FPC}constructor TExtAjaxSingleton.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
 function TExtAjaxSingleton.SerializeForm(Form : String) : TExtFunction; begin
   JSCode(JSName + '.serializeForm(' + VarToJSON([Form]) + ');', 'TExtAjaxSingleton');
   Result := Self;
@@ -9261,14 +8799,6 @@ end;
 function TExtAjaxSingleton.SerializeForm(Form : THTMLElement) : TExtFunction; begin
   JSCode(JSName + '.serializeForm(' + VarToJSON([Form, false]) + ');', 'TExtAjaxSingleton');
   Result := Self;
-end;
-
-destructor TExtAjaxSingleton.Destroy; begin
-  try
-    FDefaultHeaders.Free;
-    FExtraParams.Free;
-  except end;
-  inherited;
 end;
 
 procedure TExtEditor.SetFAlignment(Value : String); begin
@@ -9308,8 +8838,7 @@ end;
 
 procedure TExtEditor.SetFField(Value : TExtFormField); begin
   FField := Value;
-  Value.DeleteFromGarbage;
-  JSCode('field:' + VarToJSON([Value, false]));
+    JSCode('field:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtEditor.SetFHideEl(Value : Boolean); begin
@@ -9324,8 +8853,7 @@ end;
 
 procedure TExtEditor.SetFOffsets(Value : TExtObjectList); begin
   FOffsets := Value;
-  Value.DeleteFromGarbage;
-  JSCode('offsets:' + VarToJSON([Value, false]));
+    JSCode('offsets:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtEditor.SetFRevertInvalid(Value : Boolean); begin
@@ -9422,13 +8950,6 @@ procedure TExtEditor.InitDefaults; begin
   FSwallowKeys := true;
 end;
 
-{$IFDEF FPC}constructor TExtEditor.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtEditor.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
-end;
-
 function TExtEditor.CancelEdit(RemainVisible : Boolean) : TExtFunction; begin
   JSCode(JSName + '.cancelEdit(' + VarToJSON([RemainVisible]) + ');', 'TExtEditor');
   Result := Self;
@@ -9464,14 +8985,6 @@ function TExtEditor.StartEdit(El : String; Value : String = '') : TExtFunction; 
   Result := Self;
 end;
 
-destructor TExtEditor.Destroy; begin
-  try
-    FField.Free;
-    FOffsets.Free;
-  except end;
-  inherited;
-end;
-
 procedure TExtEditor.HandleEvent(const AEvtName : string); begin
   inherited;
   if (AEvtName = 'beforecomplete') and Assigned(FOnBeforecomplete) then
@@ -9491,8 +9004,6 @@ end;
 function TExtStoreMgrSingleton.JSClassName : string; begin
   Result := 'Ext.StoreMgr';
 end;
-
-{$IFDEF FPC}constructor TExtStoreMgrSingleton.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
 
 function TExtStoreMgrSingleton.Lookup(Id : String) : TExtFunction; begin
   JSCode(JSName + '.lookup(' + VarToJSON([Id]) + ');', 'TExtStoreMgrSingleton');
@@ -9536,8 +9047,7 @@ end;
 
 procedure TExtColorPalette.SetFScope(Value : TExtObject); begin
   FScope := Value;
-  Value.DeleteFromGarbage;
-  JSCode('scope:' + VarToJSON([Value, false]));
+    JSCode('scope:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtColorPalette.SetFTpl(Value : String); begin
@@ -9552,8 +9062,7 @@ end;
 
 procedure TExtColorPalette.SetFColors(Value : TExtObjectList); begin
   FColors := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.colors=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.colors=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtColorPalette.SetFOnSelect(Value : TExtColorPaletteOnSelect); begin
@@ -9575,24 +9084,9 @@ procedure TExtColorPalette.InitDefaults; begin
   FColors := TExtObjectList.Create(Self, 'colors');
 end;
 
-{$IFDEF FPC}constructor TExtColorPalette.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtColorPalette.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
-end;
-
 function TExtColorPalette.Select(Color : String; SuppressEvent : Boolean = false) : TExtFunction; begin
   JSCode(JSName + '.select(' + VarToJSON([Color, SuppressEvent]) + ');', 'TExtColorPalette');
   Result := Self;
-end;
-
-destructor TExtColorPalette.Destroy; begin
-  try
-    FScope.Free;
-    FColors.Free;
-  except end;
-  inherited;
 end;
 
 procedure TExtColorPalette.HandleEvent(const AEvtName : string); begin
@@ -9608,14 +9102,12 @@ end;
 
 procedure TExtDatePicker.SetFDayNames(Value : TExtObjectList); begin
   FDayNames := Value;
-  Value.DeleteFromGarbage;
-  JSCode('dayNames:' + VarToJSON([Value, false]));
+    JSCode('dayNames:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtDatePicker.SetFDisabledDates(Value : TExtObjectList); begin
   FDisabledDates := Value;
-  Value.DeleteFromGarbage;
-  if not ConfigAvailable(JSName) then
+    if not ConfigAvailable(JSName) then
     SetDisabledDates(Value)
   else
     JSCode('disabledDates:' + VarToJSON([Value, false]));
@@ -9633,8 +9125,7 @@ end;
 
 procedure TExtDatePicker.SetFDisabledDays(Value : TExtObjectList); begin
   FDisabledDays := Value;
-  Value.DeleteFromGarbage;
-  if not ConfigAvailable(JSName) then
+    if not ConfigAvailable(JSName) then
     SetDisabledDays(Value)
   else
     JSCode('disabledDays:' + VarToJSON([Value, false]));
@@ -9683,8 +9174,7 @@ end;
 
 procedure TExtDatePicker.SetFMonthNames(Value : TExtObjectList); begin
   FMonthNames := Value;
-  Value.DeleteFromGarbage;
-  JSCode('monthNames:' + VarToJSON([Value, false]));
+    JSCode('monthNames:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtDatePicker.SetFMonthYearText(Value : String); begin
@@ -9709,8 +9199,7 @@ end;
 
 procedure TExtDatePicker.SetFScope(Value : TExtObject); begin
   FScope := Value;
-  Value.DeleteFromGarbage;
-  JSCode('scope:' + VarToJSON([Value, false]));
+    JSCode('scope:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtDatePicker.SetFShowToday(Value : Boolean); begin
@@ -9764,13 +9253,6 @@ procedure TExtDatePicker.InitDefaults; begin
   FTodayText := 'Today';
 end;
 
-{$IFDEF FPC}constructor TExtDatePicker.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtDatePicker.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
-end;
-
 function TExtDatePicker.GetValue : TExtFunction; begin
   JSCode(JSName + '.getValue();', 'TExtDatePicker');
   Result := Self;
@@ -9804,17 +9286,6 @@ end;
 function TExtDatePicker.SetValue(Value : TDateTime) : TExtFunction; begin
   JSCode(JSName + '.setValue(' + VarToJSON([Value]) + ');', 'TExtDatePicker');
   Result := Self;
-end;
-
-destructor TExtDatePicker.Destroy; begin
-  try
-    FDayNames.Free;
-    FDisabledDates.Free;
-    FDisabledDays.Free;
-    FMonthNames.Free;
-    FScope.Free;
-  except end;
-  inherited;
 end;
 
 procedure TExtDatePicker.HandleEvent(const AEvtName : string); begin
@@ -9940,13 +9411,6 @@ procedure TExtBoxComponent.InitDefaults; begin
   inherited;
 end;
 
-{$IFDEF FPC}constructor TExtBoxComponent.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtBoxComponent.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
-end;
-
 function TExtBoxComponent.GetBox(Local : Boolean = false) : TExtFunction; begin
   JSCode(JSName + '.getBox(' + VarToJSON([Local]) + ');', 'TExtBoxComponent');
   Result := Self;
@@ -10027,12 +9491,6 @@ function TExtBoxComponent.UpdateBox(Box : TExtObject) : TExtFunction; begin
   Result := Self;
 end;
 
-destructor TExtBoxComponent.Destroy; begin
-  try
-  except end;
-  inherited;
-end;
-
 procedure TExtBoxComponent.HandleEvent(const AEvtName : string); begin
   inherited;
   if (AEvtName = 'move') and Assigned(FOnMove) then
@@ -10054,13 +9512,6 @@ procedure TExtToolbarItem.InitDefaults; begin
   inherited;
 end;
 
-{$IFDEF FPC}constructor TExtToolbarItem.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtToolbarItem.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
-end;
-
 procedure TExtFlashComponent.SetFBackgroundColor(Value : String); begin
   FBackgroundColor := Value;
   JSCode('backgroundColor:' + VarToJSON([Value]));
@@ -10073,14 +9524,12 @@ end;
 
 procedure TExtFlashComponent.SetFFlashParams(Value : TExtObject); begin
   FFlashParams := Value;
-  Value.DeleteFromGarbage;
-  JSCode('flashParams:' + VarToJSON([Value, false]));
+    JSCode('flashParams:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtFlashComponent.SetFFlashVars(Value : TExtObject); begin
   FFlashVars := Value;
-  Value.DeleteFromGarbage;
-  JSCode('flashVars:' + VarToJSON([Value, false]));
+    JSCode('flashVars:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtFlashComponent.SetFFlashVersion(Value : String); begin
@@ -10118,21 +9567,6 @@ procedure TExtFlashComponent.InitDefaults; begin
   inherited;
   FFlashParams := TExtObject.CreateInternal(Self, 'flashParams');
   FFlashVars := TExtObject.CreateInternal(Self, 'flashVars');
-end;
-
-{$IFDEF FPC}constructor TExtFlashComponent.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtFlashComponent.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
-end;
-
-destructor TExtFlashComponent.Destroy; begin
-  try
-    FFlashParams.Free;
-    FFlashVars.Free;
-  except end;
-  inherited;
 end;
 
 procedure TExtFlashComponent.HandleEvent(const AEvtName : string); begin
@@ -10188,13 +9622,6 @@ procedure TExtProgressBar.InitDefaults; begin
   FBaseCls := 'x-progress';
 end;
 
-{$IFDEF FPC}constructor TExtProgressBar.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtProgressBar.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
-end;
-
 function TExtProgressBar.IsWaiting : TExtFunction; begin
   JSCode(JSName + '.isWaiting();', 'TExtProgressBar');
   Result := Self;
@@ -10244,13 +9671,6 @@ procedure TExtSpacer.InitDefaults; begin
   inherited;
 end;
 
-{$IFDEF FPC}constructor TExtSpacer.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtSpacer.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
-end;
-
 procedure TExtContainer.SetFActiveItem(Value : String); begin
   FActiveItem := Value;
   JSCode('activeItem:' + VarToJSON([Value]));
@@ -10264,12 +9684,6 @@ end;
 procedure TExtContainer.SetFAutoDestroy(Value : Boolean); begin
   FAutoDestroy := Value;
   JSCode('autoDestroy:' + VarToJSON([Value]));
-end;
-
-procedure TExtContainer.SetFBubbleEvents(Value : TExtObjectList); begin
-  FBubbleEvents := Value;
-  Value.DeleteFromGarbage;
-  JSCode('bubbleEvents:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtContainer.SetFBufferResize(Value : Boolean); begin
@@ -10290,8 +9704,7 @@ end;
 procedure TExtContainer.SetFDefaults(Value : TExtObject); begin
   FDefaults.Free;
   FDefaults := Value;
-  Value.DeleteFromGarbage;
-  JSCode('defaults:' + VarToJSON([Value, false]));
+    JSCode('defaults:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtContainer.SetFDefaultsFunction(Value : TExtFunction); begin
@@ -10311,14 +9724,12 @@ end;
 
 procedure TExtContainer.SetFItems(Value : TExtObjectList); begin
   FItems := Value;
-  Value.DeleteFromGarbage;
-  JSCode('items:' + VarToJSON([Value, false]));
+    JSCode('items:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtContainer.SetFItemsArray(Value : TExtObjectList); begin
   FItemsArray := Value;
-  Value.DeleteFromGarbage;
-  JSCode('items:' + VarToJSON([Value, false]));
+    JSCode('items:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtContainer.SetFLayout(Value : TExtContainerLayout); begin
@@ -10330,15 +9741,13 @@ end;
 
 procedure TExtContainer.SetFLayoutObject(Value : TExtObject); begin
   FLayoutObject := Value;
-  Value.DeleteFromGarbage;
-  JSCode('layout:' + VarToJSON([Value, false]));
+    JSCode('layout:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtContainer.SetFLayoutConfig(Value : TExtObject); begin
   FLayoutConfig.Free;
   FLayoutConfig := Value;
-  Value.DeleteFromGarbage;
-  JSCode('layoutConfig:' + VarToJSON([Value, false]));
+    JSCode('layoutConfig:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtContainer.SetFMonitorResize(Value : Boolean); begin
@@ -10353,8 +9762,7 @@ end;
 
 procedure TExtContainer.SetFItems_(Value : TExtObjectList); begin
   FItems_ := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.items=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.items=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtContainer.SetFColspan(Value : Integer); begin
@@ -10424,20 +9832,12 @@ end;
 procedure TExtContainer.InitDefaults; begin
   inherited;
   FAutoDestroy := true;
-  FBubbleEvents := TExtObjectList.Create(Self, 'bubbleEvents');
   FDefaults := TExtObject.CreateInternal(Self, 'defaults');
   FItems := TExtObjectList.Create(Self, 'items');
   FItemsArray := TExtObjectList.Create(Self, 'items');
   FLayoutObject := TExtObject.CreateInternal(Self, 'layout');
   FLayoutConfig := TExtObject.CreateInternal(Self, 'layoutConfig');
   FItems_ := TExtObjectList.Create(Self, 'items');
-end;
-
-{$IFDEF FPC}constructor TExtContainer.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtContainer.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
 end;
 
 function TExtContainer.Add(Component : TObject) : TExtFunction; begin
@@ -10540,19 +9940,6 @@ function TExtContainer.RemoveAll(AutoDestroy : Boolean = false) : TExtFunction; 
   Result := Self;
 end;
 
-destructor TExtContainer.Destroy; begin
-  try
-    FBubbleEvents.Free;
-    FDefaults.Free;
-    FItems.Free;
-    FItemsArray.Free;
-    FLayoutObject.Free;
-    FLayoutConfig.Free;
-    FItems_.Free;
-  except end;
-  inherited;
-end;
-
 procedure TExtContainer.HandleEvent(const AEvtName : string); begin
   inherited;
   if (AEvtName = 'add') and Assigned(FOnAdd) then
@@ -10651,8 +10038,7 @@ end;
 procedure TExtButton.SetFMenu(Value : TExtUtilObservable); begin
   FMenu.Free;
   FMenu := Value;
-  Value.DeleteFromGarbage;
-  JSCode('menu:' + VarToJSON([Value, false]));
+    JSCode('menu:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtButton.SetFMenuAlign(Value : String); begin
@@ -10682,8 +10068,7 @@ end;
 
 procedure TExtButton.SetFRepeatJSObject(Value : TExtObject); begin
   FRepeatJSObject := Value;
-  Value.DeleteFromGarbage;
-  JSCode('repeatJS:' + VarToJSON([Value, false]));
+    JSCode('repeatJS:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtButton.SetFScale(Value : String); begin
@@ -10693,8 +10078,7 @@ end;
 
 procedure TExtButton.SetFScope(Value : TExtObject); begin
   FScope := Value;
-  Value.DeleteFromGarbage;
-  JSCode('scope:' + VarToJSON([Value, false]));
+    JSCode('scope:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtButton.SetFTabIndex(Value : Integer); begin
@@ -10704,8 +10088,7 @@ end;
 
 procedure TExtButton.SetFTemplate(Value : TExtTemplate); begin
   FTemplate := Value;
-  Value.DeleteFromGarbage;
-  JSCode('template:' + VarToJSON([Value, false]));
+    JSCode('template:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtButton.SetFText(Value : String); begin
@@ -10736,8 +10119,7 @@ end;
 
 procedure TExtButton.SetFTooltipObject(Value : TExtObject); begin
   FTooltipObject := Value;
-  Value.DeleteFromGarbage;
-  JSCode('tooltip:' + VarToJSON([Value, false]));
+    JSCode('tooltip:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtButton.SetFTooltipType(Value : String); begin
@@ -10752,8 +10134,7 @@ end;
 
 procedure TExtButton.SetFBtnEl(Value : TExtElement); begin
   FBtnEl := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.btnEl=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.btnEl=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtButton.SetFDisabled_(Value : Boolean); begin
@@ -10768,8 +10149,7 @@ end;
 
 procedure TExtButton.SetFMenu_(Value : TExtMenuMenu); begin
   FMenu_ := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.menu=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.menu=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtButton.SetFPressed_(Value : Boolean); begin
@@ -10857,13 +10237,6 @@ procedure TExtButton.InitDefaults; begin
   FMenu_ := TExtMenuMenu.CreateInternal(Self, 'menu');
 end;
 
-{$IFDEF FPC}constructor TExtButton.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtButton.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
-end;
-
 function TExtButton.GetPressed(Group : String) : TExtFunction; begin
   JSCode(JSName + '.getPressed(' + VarToJSON([Group]) + ');', 'TExtButton');
   Result := Self;
@@ -10933,19 +10306,6 @@ end;
 function TExtButton.Toggle(State : Boolean = false; SupressEvent : Boolean = false) : TExtFunction; begin
   JSCode(JSName + '.toggle(' + VarToJSON([State, SupressEvent]) + ');', 'TExtButton');
   Result := Self;
-end;
-
-destructor TExtButton.Destroy; begin
-  try
-    FMenu.Free;
-    FRepeatJSObject.Free;
-    FScope.Free;
-    FTemplate.Free;
-    FTooltipObject.Free;
-    FBtnEl.Free;
-    FMenu_.Free;
-  except end;
-  inherited;
 end;
 
 procedure TExtButton.HandleEvent(const AEvtName : string); begin
@@ -11020,8 +10380,7 @@ end;
 
 procedure TExtDataView.SetFStore(Value : TExtDataStore); begin
   FStore := Value;
-  Value.DeleteFromGarbage;
-  if not ConfigAvailable(JSName) then
+    if not ConfigAvailable(JSName) then
     SetStore(Value)
   else
     JSCode('store:' + VarToJSON([Value, false]));
@@ -11034,8 +10393,7 @@ end;
 
 procedure TExtDataView.SetFTplArray(Value : TExtObjectList); begin
   FTplArray := Value;
-  Value.DeleteFromGarbage;
-  JSCode('tpl:' + VarToJSON([Value, false]));
+    JSCode('tpl:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtDataView.SetFTrackOver(Value : Boolean); begin
@@ -11132,13 +10490,6 @@ procedure TExtDataView.InitDefaults; begin
   FSelectedClass := 'x-view-selected';
   FStore := TExtDataStore.CreateInternal(Self, 'store');
   FTplArray := TExtObjectList.Create(Self, 'tpl');
-end;
-
-{$IFDEF FPC}constructor TExtDataView.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtDataView.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
 end;
 
 function TExtDataView.BindStore(Store : TExtDataStore) : TExtFunction; begin
@@ -11326,14 +10677,6 @@ function TExtDataView.SetStore(Store : TExtDataStore) : TExtFunction; begin
   Result := Self;
 end;
 
-destructor TExtDataView.Destroy; begin
-  try
-    FStore.Free;
-    FTplArray.Free;
-  except end;
-  inherited;
-end;
-
 procedure TExtDataView.HandleEvent(const AEvtName : string); begin
   inherited;
   if (AEvtName = 'beforeclick') and Assigned(FOnBeforeclick) then
@@ -11366,13 +10709,6 @@ procedure TExtViewport.InitDefaults; begin
   inherited;
 end;
 
-{$IFDEF FPC}constructor TExtViewport.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtViewport.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
-end;
-
 procedure TExtPanel.SetFAnimCollapse(Value : Boolean); begin
   FAnimCollapse := Value;
   JSCode('animCollapse:' + VarToJSON([Value]));
@@ -11390,8 +10726,7 @@ end;
 
 procedure TExtPanel.SetFAutoLoad(Value : TExtObject); begin
   FAutoLoad := Value;
-  Value.DeleteFromGarbage;
-  JSCode('autoLoad:' + VarToJSON([Value, false]));
+    JSCode('autoLoad:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtPanel.SetFAutoLoadString(Value : String); begin
@@ -11412,20 +10747,17 @@ end;
 procedure TExtPanel.SetFBbar(Value : TExtObject); begin
   FBBar.Free;
   FBbar := Value;
-  Value.DeleteFromGarbage;
-  JSCode('bbar:' + VarToJSON([Value, false]));
+    JSCode('bbar:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtPanel.SetFBbarArray(Value : TExtObjectList); begin
   FBbarArray := Value;
-  Value.DeleteFromGarbage;
-  JSCode('bbar:' + VarToJSON([Value, false]));
+    JSCode('bbar:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtPanel.SetFBbarCfg(Value : TExtObject); begin
   FBbarCfg := Value;
-  Value.DeleteFromGarbage;
-  JSCode('bbarCfg:' + VarToJSON([Value, false]));
+    JSCode('bbarCfg:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtPanel.SetFBodyBorder(Value : Boolean); begin
@@ -11435,8 +10767,7 @@ end;
 
 procedure TExtPanel.SetFBodyCfg(Value : TExtObject); begin
   FBodyCfg := Value;
-  Value.DeleteFromGarbage;
-  JSCode('bodyCfg:' + VarToJSON([Value, false]));
+    JSCode('bodyCfg:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtPanel.SetFBodyCssClass(Value : String); begin
@@ -11446,8 +10777,7 @@ end;
 
 procedure TExtPanel.SetFBodyCssClassObject(Value : TExtObject); begin
   FBodyCssClassObject := Value;
-  Value.DeleteFromGarbage;
-  JSCode('bodyCssClass:' + VarToJSON([Value, false]));
+    JSCode('bodyCssClass:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtPanel.SetFBodyCssClassFunction(Value : TExtFunction); begin
@@ -11462,8 +10792,7 @@ end;
 
 procedure TExtPanel.SetFBodyStyleObject(Value : TExtObject); begin
   FBodyStyleObject := Value;
-  Value.DeleteFromGarbage;
-  JSCode('bodyStyle:' + VarToJSON([Value, false]));
+    JSCode('bodyStyle:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtPanel.SetFBodyStyleFunction(Value : TExtFunction); begin
@@ -11485,14 +10814,12 @@ end;
 
 procedure TExtPanel.SetFButtons(Value : TExtObjectList); begin
   FButtons := Value;
-  Value.DeleteFromGarbage;
-  JSCode('buttons:' + VarToJSON([Value, false]));
+    JSCode('buttons:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtPanel.SetFBwrapCfg(Value : TExtObject); begin
   FBwrapCfg := Value;
-  Value.DeleteFromGarbage;
-  JSCode('bwrapCfg:' + VarToJSON([Value, false]));
+    JSCode('bwrapCfg:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtPanel.SetFClosable(Value : Boolean); begin
@@ -11532,8 +10859,7 @@ end;
 
 procedure TExtPanel.SetFDraggableObject(Value : TExtObject); begin
   FDraggableObject := Value;
-  Value.DeleteFromGarbage;
-  JSCode('draggable:' + VarToJSON([Value, false]));
+    JSCode('draggable:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtPanel.SetFElements(Value : String); begin
@@ -11543,14 +10869,12 @@ end;
 
 procedure TExtPanel.SetFFbar(Value : TExtObject); begin
   FFbar := Value;
-  Value.DeleteFromGarbage;
-  JSCode('fbar:' + VarToJSON([Value, false]));
+    JSCode('fbar:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtPanel.SetFFbarArray(Value : TExtObjectList); begin
   FFbarArray := Value;
-  Value.DeleteFromGarbage;
-  JSCode('fbar:' + VarToJSON([Value, false]));
+    JSCode('fbar:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtPanel.SetFFloating(Value : String); begin
@@ -11565,8 +10889,7 @@ end;
 
 procedure TExtPanel.SetFFooterCfg(Value : TExtObject); begin
   FFooterCfg := Value;
-  Value.DeleteFromGarbage;
-  JSCode('footerCfg:' + VarToJSON([Value, false]));
+    JSCode('footerCfg:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtPanel.SetFFrame(Value : Boolean); begin
@@ -11588,8 +10911,7 @@ end;
 
 procedure TExtPanel.SetFHeaderCfg(Value : TExtObject); begin
   FHeaderCfg := Value;
-  Value.DeleteFromGarbage;
-  JSCode('headerCfg:' + VarToJSON([Value, false]));
+    JSCode('headerCfg:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtPanel.SetFHideCollapseTool(Value : Boolean); begin
@@ -11604,14 +10926,12 @@ end;
 
 procedure TExtPanel.SetFKeys(Value : TExtObject); begin
   FKeys := Value;
-  Value.DeleteFromGarbage;
-  JSCode('keys:' + VarToJSON([Value, false]));
+    JSCode('keys:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtPanel.SetFKeysArray(Value : TExtObjectList); begin
   FKeysArray := Value;
-  Value.DeleteFromGarbage;
-  JSCode('keys:' + VarToJSON([Value, false]));
+    JSCode('keys:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtPanel.SetFMaskDisabled(Value : Boolean); begin
@@ -11667,20 +10987,17 @@ end;
 procedure TExtPanel.SetFTbar(Value : TExtObject); begin
   FTBar.Free;
   FTbar := Value;
-  Value.DeleteFromGarbage;
-  JSCode('tbar:' + VarToJSON([Value, false]));
+    JSCode('tbar:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtPanel.SetFTbarArray(Value : TExtObjectList); begin
   FTbarArray := Value;
-  Value.DeleteFromGarbage;
-  JSCode('tbar:' + VarToJSON([Value, false]));
+    JSCode('tbar:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtPanel.SetFTbarCfg(Value : TExtObject); begin
   FTbarCfg := Value;
-  Value.DeleteFromGarbage;
-  JSCode('tbarCfg:' + VarToJSON([Value, false]));
+    JSCode('tbarCfg:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtPanel.SetFTitle(Value : String); begin
@@ -11700,20 +11017,17 @@ end;
 
 procedure TExtPanel.SetFToolTemplate(Value : TExtTemplate); begin
   FToolTemplate := Value;
-  Value.DeleteFromGarbage;
-  JSCode('toolTemplate:' + VarToJSON([Value, false]));
+    JSCode('toolTemplate:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtPanel.SetFToolTemplateExtXTemplate(Value : TExtXTemplate); begin
   FToolTemplateExtXTemplate := Value;
-  Value.DeleteFromGarbage;
-  JSCode('toolTemplate:' + VarToJSON([Value, false]));
+    JSCode('toolTemplate:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtPanel.SetFTools(Value : TExtObjectList); begin
   FTools := Value;
-  Value.DeleteFromGarbage;
-  JSCode('tools:' + VarToJSON([Value, false]));
+    JSCode('tools:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtPanel.SetFUnstyled(Value : Boolean); begin
@@ -11723,20 +11037,17 @@ end;
 
 procedure TExtPanel.SetFBody(Value : TExtElement); begin
   FBody := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.body=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.body=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtPanel.SetFButtons_(Value : TExtObjectList); begin
   FButtons_ := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.buttons=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.buttons=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtPanel.SetFBwrap(Value : TExtElement); begin
   FBwrap := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.bwrap=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.bwrap=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtPanel.SetFCollapsed_(Value : Boolean); begin
@@ -11746,20 +11057,17 @@ end;
 
 procedure TExtPanel.SetFDd(Value : TExtDdDragSource); begin
   FDd := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.dd=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.dd=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtPanel.SetFFooter_(Value : TExtElement); begin
   FFooter_ := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.footer=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.footer=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtPanel.SetFHeader_(Value : TExtElement); begin
   FHeader_ := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.header=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.header=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtPanel.SetFRowWidth(Value : Double); begin
@@ -11908,13 +11216,6 @@ procedure TExtPanel.InitDefaults; begin
   FHeader := True;
 end;
 
-{$IFDEF FPC}constructor TExtPanel.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtPanel.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
-end;
-
 function TExtPanel.AddButton(Config : String = ''; Handler : TExtFunction = nil; Scope : TExtObject = nil) : TExtFunction; begin
   JSCode(JSName + '.addButton(' + VarToJSON([Config, Handler, true, Scope, false]) + ');', 'TExtPanel');
   Result := Self;
@@ -12010,40 +11311,6 @@ function TExtPanel.ToggleCollapse(Animate : Boolean) : TExtFunction; begin
   Result := Self;
 end;
 
-destructor TExtPanel.Destroy; begin
-  try
-    FAutoLoad.Free;
-    FBbar.Free;
-    FBbarArray.Free;
-    FBbarCfg.Free;
-    FBodyCfg.Free;
-    FBodyCssClassObject.Free;
-    FBodyStyleObject.Free;
-    FButtons.Free;
-    FBwrapCfg.Free;
-    FDraggableObject.Free;
-    FFbar.Free;
-    FFbarArray.Free;
-    FFooterCfg.Free;
-    FHeaderCfg.Free;
-    FKeys.Free;
-    FKeysArray.Free;
-    FTbar.Free;
-    FTbarArray.Free;
-    FTbarCfg.Free;
-    FToolTemplate.Free;
-    FToolTemplateExtXTemplate.Free;
-    FTools.Free;
-    FBody.Free;
-    FButtons_.Free;
-    FBwrap.Free;
-    FDd.Free;
-    FFooter_.Free;
-    FHeader_.Free;
-  except end;
-  inherited;
-end;
-
 procedure TExtPanel.HandleEvent(const AEvtName : string); begin
   inherited;
   if (AEvtName = 'activate') and Assigned(FOnActivate) then
@@ -12099,13 +11366,6 @@ procedure TExtSplitButton.InitDefaults; begin
   inherited;
 end;
 
-{$IFDEF FPC}constructor TExtSplitButton.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtSplitButton.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
-end;
-
 function TExtSplitButton.SetArrowHandler(Handler : TExtFunction; Scope : TExtObject = nil) : TExtFunction; begin
   JSCode(JSName + '.setArrowHandler(' + VarToJSON([Handler, true, Scope, false]) + ');', 'TExtSplitButton');
   Result := Self;
@@ -12131,13 +11391,6 @@ procedure TExtToolbarSpacer.InitDefaults; begin
   FWidth := 2;
 end;
 
-{$IFDEF FPC}constructor TExtToolbarSpacer.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtToolbarSpacer.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
-end;
-
 procedure TExtToolbarTextItem.SetFText(Value : String); begin
   FText := Value;
   if not ConfigAvailable(JSName) then
@@ -12152,13 +11405,6 @@ end;
 
 procedure TExtToolbarTextItem.InitDefaults; begin
   inherited;
-end;
-
-{$IFDEF FPC}constructor TExtToolbarTextItem.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtToolbarTextItem.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
 end;
 
 function TExtToolbarTextItem.SetText(T : String) : TExtFunction; begin
@@ -12183,14 +11429,12 @@ end;
 
 procedure TExtToolbar.SetFLayoutObject(Value : TExtObject); begin
   FLayoutObject := Value;
-  Value.DeleteFromGarbage;
-  JSCode('layout:' + VarToJSON([Value, false]));
+    JSCode('layout:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtToolbar.SetFItems(Value : TExtObjectList); begin
   FItems := Value;
-  Value.DeleteFromGarbage;
-  JSCode('items:' + VarToJSON([Value, false]));
+    JSCode('items:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtToolbar.SetFOnOverflowchange(Value : TExtToolbarOnOverflowchange); begin
@@ -12209,13 +11453,6 @@ procedure TExtToolbar.InitDefaults; begin
   inherited;
   FLayoutObject := TExtObject.CreateInternal(Self, 'layout');
   FItems := TExtObjectList.Create(Self, 'items');
-end;
-
-{$IFDEF FPC}constructor TExtToolbar.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtToolbar.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
 end;
 
 function TExtToolbar.Add(Args : TExtObjectList) : TExtFunction; begin
@@ -12293,14 +11530,6 @@ function TExtToolbar.InsertButton(Index : Integer; Item : TExtObjectList) : TExt
   Result := Self;
 end;
 
-destructor TExtToolbar.Destroy; begin
-  try
-    FLayoutObject.Free;
-    FItems.Free;
-  except end;
-  inherited;
-end;
-
 procedure TExtToolbar.HandleEvent(const AEvtName : string); begin
   inherited;
   if (AEvtName = 'overflowchange') and Assigned(FOnOverflowchange) then
@@ -12313,13 +11542,6 @@ end;
 
 procedure TExtToolbarSeparator.InitDefaults; begin
   inherited;
-end;
-
-{$IFDEF FPC}constructor TExtToolbarSeparator.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtToolbarSeparator.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
 end;
 
 procedure TExtTip.SetFClosable(Value : Boolean); begin
@@ -12368,13 +11590,6 @@ procedure TExtTip.InitDefaults; begin
   FMinWidth := 40;
 end;
 
-{$IFDEF FPC}constructor TExtTip.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtTip.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
-end;
-
 function TExtTip.ShowAt(Xy : TExtObjectList) : TExtFunction; begin
   JSCode(JSName + '.showAt(' + VarToJSON(Xy) + ');', 'TExtTip');
   Result := Self;
@@ -12391,13 +11606,6 @@ end;
 
 procedure TExtToolbarFill.InitDefaults; begin
   inherited;
-end;
-
-{$IFDEF FPC}constructor TExtToolbarFill.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtToolbarFill.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
 end;
 
 procedure TExtButtonGroup.SetFBaseCls(Value : String); begin
@@ -12428,13 +11636,6 @@ procedure TExtButtonGroup.InitDefaults; begin
   inherited;
 end;
 
-{$IFDEF FPC}constructor TExtButtonGroup.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtButtonGroup.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
-end;
-
 procedure TExtCycleButton.SetFChangeHandler(Value : TExtFunction); begin
   FChangeHandler := Value;
   JSCode('changeHandler:' + VarToJSON([Value, true]));
@@ -12447,8 +11648,7 @@ end;
 
 procedure TExtCycleButton.SetFItems(Value : TExtObjectList); begin
   FItems := Value;
-  Value.DeleteFromGarbage;
-  JSCode('items:' + VarToJSON([Value, false]));
+    JSCode('items:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtCycleButton.SetFPrependText(Value : String); begin
@@ -12463,8 +11663,7 @@ end;
 
 procedure TExtCycleButton.SetFMenu(Value : TExtMenuMenu); begin
   FMenu := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.menu=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.menu=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtCycleButton.SetFOnChange(Value : TExtCycleButtonOnChange); begin
@@ -12485,13 +11684,6 @@ procedure TExtCycleButton.InitDefaults; begin
   FMenu := TExtMenuMenu.CreateInternal(Self, 'menu');
 end;
 
-{$IFDEF FPC}constructor TExtCycleButton.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtCycleButton.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
-end;
-
 function TExtCycleButton.GetActiveItem : TExtFunction; begin
   JSCode(JSName + '.getActiveItem();', 'TExtCycleButton');
   Result := Self;
@@ -12505,14 +11697,6 @@ end;
 function TExtCycleButton.ToggleSelected : TExtFunction; begin
   JSCode(JSName + '.toggleSelected();', 'TExtCycleButton');
   Result := Self;
-end;
-
-destructor TExtCycleButton.Destroy; begin
-  try
-    FItems.Free;
-    FMenu.Free;
-  except end;
-  inherited;
 end;
 
 procedure TExtCycleButton.HandleEvent(const AEvtName : string); begin
@@ -12531,8 +11715,7 @@ end;
 
 procedure TExtWindow.SetFAnimateTargetElement(Value : TExtElement); begin
   FAnimateTargetElement := Value;
-  Value.DeleteFromGarbage;
-  JSCode('animateTarget:' + VarToJSON([Value, false]));
+    JSCode('animateTarget:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtWindow.SetFBaseCls(Value : String); begin
@@ -12577,8 +11760,7 @@ end;
 
 procedure TExtWindow.SetFDefaultButtonComponent(Value : TExtComponent); begin
   FDefaultButtonComponent := Value;
-  Value.DeleteFromGarbage;
-  JSCode('defaultButton:' + VarToJSON([Value, false]));
+    JSCode('defaultButton:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtWindow.SetFDraggable(Value : Boolean); begin
@@ -12603,8 +11785,7 @@ end;
 
 procedure TExtWindow.SetFManager(Value : TExtWindowGroup); begin
   FManager := Value;
-  Value.DeleteFromGarbage;
-  JSCode('manager:' + VarToJSON([Value, false]));
+    JSCode('manager:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtWindow.SetFMaximizable(Value : Boolean); begin
@@ -12669,26 +11850,22 @@ end;
 
 procedure TExtWindow.SetFDd(Value : TExtDdDD); begin
   FDd := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.dd=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.dd=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtWindow.SetFOnHide(Value : TExtObject); begin
   FOnHide := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.onHide=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.onHide=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtWindow.SetFOnShow(Value : TExtObject); begin
   FOnShow := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.onShow=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.onShow=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtWindow.SetFBbar(Value : TExtObjectList); begin
   FBbar := Value;
-  Value.DeleteFromGarbage;
-  JSCode('bbar:' + VarToJSON([Value, false]));
+    JSCode('bbar:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtWindow.SetFOnActivate(Value : TExtWindowOnActivate); begin
@@ -12761,13 +11938,6 @@ procedure TExtWindow.InitDefaults; begin
   FOnHide := TExtObject.CreateInternal(Self, 'onHide');
   FOnShow := TExtObject.CreateInternal(Self, 'onShow');
   FBbar := TExtObjectList.Create(Self, 'bbar');
-end;
-
-{$IFDEF FPC}constructor TExtWindow.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtWindow.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
 end;
 
 function TExtWindow.AlignTo(Element : String; Position : String; Offsets : TExtObjectList = nil) : TExtFunction; begin
@@ -12870,19 +12040,6 @@ function TExtWindow.ToggleMaximize : TExtFunction; begin
   Result := Self;
 end;
 
-destructor TExtWindow.Destroy; begin
-  try
-    FAnimateTargetElement.Free;
-    FDefaultButtonComponent.Free;
-    FManager.Free;
-    FDd.Free;
-    FOnHide.Free;
-    FOnShow.Free;
-    FBbar.Free;
-  except end;
-  inherited;
-end;
-
 procedure TExtWindow.HandleEvent(const AEvtName : string); begin
   inherited;
   if (AEvtName = 'activate') and Assigned(FOnActivate) then
@@ -12944,20 +12101,17 @@ end;
 
 procedure TExtTabPanel.SetFItemTpl(Value : TExtTemplate); begin
   FItemTpl := Value;
-  Value.DeleteFromGarbage;
-  JSCode('itemTpl:' + VarToJSON([Value, false]));
+    JSCode('itemTpl:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtTabPanel.SetFItemTplXTemplate(Value : TExtXTemplate); begin
   FItemTplXTemplate := Value;
-  Value.DeleteFromGarbage;
-  JSCode('itemTpl:' + VarToJSON([Value, false]));
+    JSCode('itemTpl:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtTabPanel.SetFLayoutConfig(Value : TExtObject); begin
   FLayoutConfig := Value;
-  Value.DeleteFromGarbage;
-  JSCode('layoutConfig:' + VarToJSON([Value, false]));
+    JSCode('layoutConfig:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtTabPanel.SetFLayoutOnTabChange(Value : Boolean); begin
@@ -13066,13 +12220,6 @@ procedure TExtTabPanel.InitDefaults; begin
   FWheelIncrement := 20;
 end;
 
-{$IFDEF FPC}constructor TExtTabPanel.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtTabPanel.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
-end;
-
 function TExtTabPanel.Activate(Tab : String) : TExtFunction; begin
   JSCode(JSName + '.activate(' + VarToJSON([Tab]) + ');', 'TExtTabPanel');
   Result := Self;
@@ -13173,15 +12320,6 @@ function TExtTabPanel.UnhideTabStripItem(Item : TExtPanel) : TExtFunction; begin
   Result := Self;
 end;
 
-destructor TExtTabPanel.Destroy; begin
-  try
-    FItemTpl.Free;
-    FItemTplXTemplate.Free;
-    FLayoutConfig.Free;
-  except end;
-  inherited;
-end;
-
 procedure TExtTabPanel.HandleEvent(const AEvtName : string); begin
   inherited;
   if (AEvtName = 'beforetabchange') and Assigned(FOnBeforetabchange) then
@@ -13252,14 +12390,12 @@ procedure TExtPagingToolbar.SetFRefreshText(Value : String); begin
   JSCode('refreshText:' + VarToJSON([Value]));
 end;
 
-procedure TExtPagingToolbar.SetFStore(Value : TExtDataStore); begin
-  if Value <> nil then
-    FStore.Free;
+procedure TExtPagingToolbar.SetFStore(Value : TExtDataStore);
+begin
+  FStore.Free;
   FStore := Value;
-  if FStore <> nil then begin
-    FStore.DeleteFromGarbage;
+  if FStore <> nil then
     JSCode('store:' + VarToJSON([FStore, false]));
-  end;
 end;
 
 procedure TExtPagingToolbar.SetFCursor(Value : Integer); begin
@@ -13274,8 +12410,7 @@ end;
 
 procedure TExtPagingToolbar.SetFParamNames(Value : TExtObject); begin
   FParamNames := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.paramNames=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.paramNames=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtPagingToolbar.SetFOnBeforechange(Value : TExtPagingToolbarOnBeforechange); begin
@@ -13312,13 +12447,6 @@ procedure TExtPagingToolbar.InitDefaults; begin
   FRefreshText := 'Refresh';
   FStore := TExtDataStore.CreateInternal(Self, 'store');
   FParamNames := TExtObject.CreateInternal(Self, 'paramNames');
-end;
-
-{$IFDEF FPC}constructor TExtPagingToolbar.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtPagingToolbar.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
 end;
 
 function TExtPagingToolbar.Bind(Store : TExtDataStore) : TExtFunction; begin
@@ -13366,14 +12494,6 @@ function TExtPagingToolbar.Unbind(Store : TExtDataStore) : TExtFunction; begin
   Result := Self;
 end;
 
-destructor TExtPagingToolbar.Destroy; begin
-  try
-    FStore.Free;
-    FParamNames.Free;
-  except end;
-  inherited;
-end;
-
 procedure TExtPagingToolbar.HandleEvent(const AEvtName : string); begin
   inherited;
   if (AEvtName = 'beforechange') and Assigned(FOnBeforechange) then
@@ -13414,8 +12534,7 @@ end;
 
 procedure TExtToolTip.SetFMouseOffset(Value : TExtObjectList); begin
   FMouseOffset := Value;
-  Value.DeleteFromGarbage;
-  JSCode('mouseOffset:' + VarToJSON([Value, false]));
+    JSCode('mouseOffset:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtToolTip.SetFShowDelay(Value : Integer); begin
@@ -13435,8 +12554,7 @@ end;
 
 procedure TExtToolTip.SetFTriggerElement(Value : TDOMElement); begin
   FTriggerElement := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.triggerElement=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.triggerElement=' + VarToJSON([Value, false]) + ';');
 end;
 
 function TExtToolTip.JSClassName : string; begin
@@ -13454,13 +12572,6 @@ procedure TExtToolTip.InitDefaults; begin
   FShowDelay := 500;
 end;
 
-{$IFDEF FPC}constructor TExtToolTip.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtToolTip.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
-end;
-
 function TExtToolTip.Hide : TExtFunction; begin
   JSCode(JSName + '.hide();', 'TExtToolTip');
   Result := Self;
@@ -13474,13 +12585,6 @@ end;
 function TExtToolTip.Show : TExtFunction; begin
   JSCode(JSName + '.show();', 'TExtToolTip');
   Result := Self;
-end;
-
-destructor TExtToolTip.Destroy; begin
-  try
-    FMouseOffset.Free;
-  except end;
-  inherited;
 end;
 
 procedure TExtQuickTip.SetFInterceptTitles(Value : Boolean); begin
@@ -13499,13 +12603,6 @@ end;
 
 procedure TExtQuickTip.InitDefaults; begin
   inherited;
-end;
-
-{$IFDEF FPC}constructor TExtQuickTip.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtQuickTip.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
 end;
 
 function TExtQuickTip.CancelShow(El : String) : TExtFunction; begin

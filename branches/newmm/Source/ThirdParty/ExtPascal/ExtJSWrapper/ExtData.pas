@@ -6,7 +6,7 @@ unit ExtData;
 interface
 
 uses
-  StrUtils, ExtPascal, ExtPascalUtils, Ext, ExtUtil;
+  Classes, StrUtils, ExtPascal, ExtPascalUtils, Ext, ExtUtil;
 
 type
   TExtDataResponse = class;
@@ -63,7 +63,6 @@ type
     procedure SetFSuccess(Value : Boolean);
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
     property Action : String read FAction write SetFAction;
     property Data : TExtObjectList read FData write SetFData;
     property DataObject : TExtObject read FDataObject write SetFDataObject;
@@ -88,8 +87,7 @@ type
     procedure SetFWriteAllFields(Value : Boolean);
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create(Meta : TExtObject; RecordType : TExtObject);
+    constructor Create(AOwner: TComponent; Meta: TExtObject; RecordType: TExtObject); reintroduce;
     function Apply(Params : TExtObject; BaseParams : TExtObject; Action : String; Rs : TExtDataRecord) : TExtFunction; overload;
     function Apply(Params : TExtObject; BaseParams : TExtObject; Action : String; Rs : TExtObjectList) : TExtFunction; overload;
     function Render(Action : String; Rs : TExtObjectList; Params : TExtObject; Data : TExtObject) : TExtFunction;
@@ -130,8 +128,6 @@ type
     procedure InitDefaults; override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     function IsData(Data : TExtObject) : TExtFunction;
     function Realize(RecordJS : TExtDataRecord; Data : TExtObject) : TExtFunction; overload;
     function Realize(RecordJS : TExtObjectList; Data : TExtObject) : TExtFunction; overload;
@@ -141,7 +137,6 @@ type
     function Update(Rs : TExtObjectList; Data : TExtObject) : TExtFunction; overload;
     function Update(Rs : TExtObjectList; Data : TExtObjectList) : TExtFunction; overload;
     function Update(Rs : TExtDataRecord; Data : TExtObjectList) : TExtFunction; overload;
-    destructor Destroy; override;
     property Fields : TExtObjectList read FFields write SetFFields;
     property FieldsObject : TExtObject read FFieldsObject write SetFFieldsObject;
     property MessageProperty : String read FMessageProperty write SetFMessageProperty;
@@ -173,7 +168,6 @@ type
     procedure SetFScope(Value : TExtObject);
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
     property Action : String read FAction write SetFAction;
     property Callback : TExtFunction read FCallback write SetFCallback;
     property Params : TExtObject read FParams write SetFParams;
@@ -186,7 +180,6 @@ type
   TExtDataJsonReaderError = class(TExtFunction)
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
   end;
 
   TExtDataRecord = class(TExtFunction)
@@ -213,10 +206,10 @@ type
     procedure SetFStore(Value : TExtDataStore);
   protected
     procedure InitDefaults; override;
+    procedure CreateVar(AJSCode: string); override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create(Data : TExtObjectList);
+    constructor Create(AOwner: TComponent; Data: TExtObjectList); reintroduce;
     function TheGeneratedConstructorHasTheSameSignatureAsThisConstructor : TExtFunction;
     function BeginEdit : TExtFunction;
     function CancelEdit : TExtFunction;
@@ -232,7 +225,6 @@ type
     function SetJS(Name : String; Value : String) : TExtFunction; overload;
     function SetJS(Name : String; Value : TExtObject) : TExtFunction; overload;
     function SetJS(Name : String; Value : TExtObjectList) : TExtFunction; overload;
-    destructor Destroy; override;
     property Data : TExtObject read FData write SetFData;
     property Dirty : Boolean read FDirty write SetFDirty;
     property Fields : TExtObjectList read FFields write SetFFields;
@@ -269,7 +261,6 @@ type
     procedure SetFType_(Value : String);
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
     property AllowBlank : Boolean read FAllowBlank write SetFAllowBlank;
     property Convert : TExtFunction read FConvert write SetFConvert;
     property DateFormat : String read FDateFormat write SetFDateFormat;
@@ -288,7 +279,6 @@ type
     procedure SetFStripTagsRE(Value : TRegExp);
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
     function AsDate(S : String) : TExtFunction;
     function AsFloat(S : String) : TExtFunction;
     function AsInt(S : String) : TExtFunction;
@@ -314,7 +304,6 @@ type
     class function INTEGER : TExtObject;
     class function NUMBER : TExtObject;
     class function STRINGJS : TExtObject;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
     property StripRe : TRegexp read FStripRe write SetFStripRe;
   end;
 
@@ -328,7 +317,6 @@ type
     procedure InitDefaults; override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
     function Response : TExtFunction;
     function GetVerb(Name : String) : TExtFunction;
     function HasUniqueUrl(Proxy : TExtDataDataProxy; Verb : String) : TExtFunction;
@@ -336,7 +324,6 @@ type
     function IsValid : TExtFunction;
     function Prepare(Proxy : TExtDataDataProxy) : TExtFunction;
     function Restify(Proxy : TExtDataDataProxy) : TExtFunction;
-    destructor Destroy; override;
     property Actions : TExtObject read FActions write SetFActions;
     property RestActions : TExtObject read FRestActions write SetFRestActions;
   end;
@@ -394,8 +381,6 @@ type
     procedure HandleEvent(const AEvtName: string); override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     function AppendChild(Node : TExtDataNode) : TExtFunction; overload;
     function AppendChild(Node : TExtObjectList) : TExtFunction; overload;
     function Bubble(Fn : TExtFunction; Scope : TExtObject = nil; Args : TExtObjectList = nil) : TExtFunction;
@@ -423,7 +408,6 @@ type
     function ReplaceChild(NewChild : TExtDataNode; OldChild : TExtDataNode) : TExtFunction;
     function SetId(Id : String) : TExtFunction;
     function Sort(Fn : TExtFunction; Scope : TExtObject = nil) : TExtFunction;
-    destructor Destroy; override;
     property Id : String read FId write SetFId;
     property Leaf : Boolean read FLeaf write SetFLeaf;
     property Attributes : TExtObject read FAttributes write SetFAttributes;
@@ -452,7 +436,6 @@ type
     procedure SetFEncodeDelete(Value : Boolean);
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
     function CreateRecord(Rec : TExtDataRecord) : TExtFunction;
     function DestroyRecord(Rec : TExtDataRecord) : TExtFunction;
     function Render(Http : TExtObject; BaseParams : TExtObject; Data : TExtObject) : TExtFunction; overload;
@@ -482,14 +465,11 @@ type
     procedure InitDefaults; override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     function CreateRecord(Rec : TExtDataRecord) : TExtFunction;
     function DestroyRecord(Rec : TExtDataRecord) : TExtFunction;
     function Render(Params : TExtObject; BaseParams : TExtObject; Data : TExtObject) : TExtFunction; overload;
     function Render(Params : TExtObject; BaseParams : TExtObject; Data : TExtObjectList) : TExtFunction; overload;
     function UpdateRecord(Rec : TExtDataRecord) : TExtFunction;
-    destructor Destroy; override;
     property DocumentRoot : String read FDocumentRoot write SetFDocumentRoot;
     property ForceDocumentRoot : Boolean read FForceDocumentRoot write SetFForceDocumentRoot;
     property Root : String read FRoot write SetFRoot;
@@ -600,8 +580,6 @@ type
     procedure HandleEvent(const AEvtName: string); override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     function Add(Records : TExtObjectList) : TExtFunction;
     function AddSorted(RecordJS : TExtDataRecord) : TExtFunction;
     function ClearFilter(SuppressEvent : Boolean) : TExtFunction;
@@ -648,7 +626,6 @@ type
     function Sort(FieldName : String; Dir : String = '') : TExtFunction; overload;
     function Sort(FieldName : TExtObjectList; Dir : String = '') : TExtFunction; overload;
     function Sum(PropertyJS : String; Start : Integer = 0; EndJS : Integer = 0) : TExtFunction;
-    destructor Destroy; override;
     property AutoDestroy : Boolean read FAutoDestroy write SetFAutoDestroy;
     property AutoLoad : Boolean read FAutoLoad write SetFAutoLoad;
     property AutoLoadObject : TExtObject read FAutoLoadObject write SetFAutoLoadObject;
@@ -693,7 +670,6 @@ type
   TExtDataStoreError = class(TExtError)
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
   end;
 
   TExtDataXmlReader = class(TExtDataDataReader)
@@ -712,8 +688,7 @@ type
     procedure SetFXmlData(Value : TXMLDocument);
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create(Meta : TExtObject; RecordType : TExtObject);
+    constructor Create(AOwner: TComponent; Meta: TExtObject; RecordType: TExtObject); reintroduce;
     function Read(Response : TExtObject) : TExtFunction;
     function ReadRecords(Doc : TExtObject) : TExtFunction;
     function ReadResponse(Action : String; Response : TExtObject) : TExtFunction;
@@ -762,8 +737,6 @@ type
     procedure HandleEvent(const AEvtName: string); override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     function GetNodeById(Id : String) : TExtFunction;
     function GetRootNode : TExtFunction;
     function SetRootNode(Node : TExtDataNode) : TExtFunction;
@@ -816,8 +789,6 @@ type
     procedure HandleEvent(const AEvtName: string); override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     function DestroyJS : TExtFunction; override;
     function IsApiAction(ExtDataApiCREATEREADUPDATEDESTROY : String) : TExtFunction;
     function Load(Params : TExtObject; Reader : TExtObject; Callback : TExtObject; Scope : TExtObject; Arg : TExtObject) : TExtFunction;
@@ -828,7 +799,6 @@ type
     function SetApi(Api : TExtObject; Url : String) : TExtFunction; overload;
     function SetApi(Api : TExtObject; Url : TExtFunction) : TExtFunction; overload;
     function SetApi(Api : String; Url : TExtFunction) : TExtFunction; overload;
-    destructor Destroy; override;
     property Api : TExtObject read FApi write SetFApi;
     property DoRequest : TExtFunction read FDoRequest write SetFDoRequest;
     property OnRead : TExtFunction read FOnRead write SetFOnRead;
@@ -845,7 +815,6 @@ type
   TExtDataDataProxyError = class(TExtError)
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
   end;
 
   // Procedural types for events TExtDataConnection
@@ -882,12 +851,9 @@ type
     procedure HandleEvent(const AEvtName: string); override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     function Abort(TransactionId : Integer = 0) : TExtFunction;
     function IsLoading(TransactionId : Integer = 0) : TExtFunction;
     function Request(Options : TExtObject) : TExtFunction;
-    destructor Destroy; override;
     property AutoAbort : Boolean read FAutoAbort write SetFAutoAbort;
     property DefaultHeaders : TExtObject read FDefaultHeaders write SetFDefaultHeaders;
     property DisableCaching : Boolean read FDisableCaching write SetFDisableCaching;
@@ -904,7 +870,6 @@ type
   TExtDataApiError = class(TExtError)
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
   end;
 
   TExtDataJsonReader = class(TExtDataDataReader)
@@ -925,12 +890,10 @@ type
     procedure InitDefaults; override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create(Meta : TExtObject = nil; RecordType : TExtDataRecord = nil);
+    constructor Create(AOwner: TComponent; Meta: TExtObject = nil; RecordType: TExtDataRecord = nil); reintroduce;
     function Read(Response : TExtObject) : TExtFunction;
     function ReadRecords(O : TExtObject) : TExtFunction;
     function ReadResponse(Action : String; Response : TExtObject) : TExtFunction;
-    destructor Destroy; override;
     property IdProperty : String read FIdProperty write SetFIdProperty;
     property Root : String read FRoot write SetFRoot;
     property SuccessProperty : String read FSuccessProperty write SetFSuccessProperty;
@@ -942,7 +905,6 @@ type
   TExtDataDataReaderError = class(TExtError)
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
   end;
 
   TExtDataXmlStore = class(TExtDataStore)
@@ -950,8 +912,6 @@ type
     procedure InitDefaults; override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
   end;
 
   TExtDataArrayReader = class(TExtDataJsonReader)
@@ -962,9 +922,8 @@ type
     procedure SetFIdIndex(Value : Integer);
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create(Meta : TExtObject; RecordType : TExtObjectList); overload;
-    constructor Create(Meta : TExtObject; RecordType : TExtObject); overload;
+    constructor Create(AOwner: TComponent; Meta: TExtObject; RecordType: TExtObjectList); reintroduce; overload;
+    constructor Create(AOwner: TComponent; Meta: TExtObject; RecordType: TExtObject); reintroduce; overload;
     function ReadRecords(O : TExtObject) : TExtFunction;
     property Id : Integer read FId write SetFId;
     property IdIndex : Integer read FIdIndex write SetFIdIndex;
@@ -975,8 +934,6 @@ type
     procedure InitDefaults; override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
   end;
 
   TExtDataHttpProxy = class(TExtDataDataProxy)
@@ -987,15 +944,13 @@ type
     procedure InitDefaults; override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create(Conn : TExtDataConnection);
+    constructor Create(AOwner: TComponent; Conn: TExtDataConnection); reintroduce;
     function DoRequest(Action : String; Rs : TExtDataRecord; Params : TExtObject; Reader : TExtDataDataReader; Callback : TExtFunction; Scope : TExtObject; Arg : TExtObject) : TExtFunction; overload;
     function DoRequest(Action : String; Rs : TExtObjectList; Params : TExtObject; Reader : TExtDataDataReader; Callback : TExtFunction; Scope : TExtObject; Arg : TExtObject) : TExtFunction; overload;
     function GetConnection : TExtFunction;
     function OnRead(Action : String; O : TExtObject; Res : TExtObject) : TExtFunction;
     function OnWrite(Action : String; Trans : TExtObject; Res : TExtObject) : TExtFunction;
     function SetUrl(Url : String; MakePermanent : Boolean = false) : TExtFunction;
-    destructor Destroy; override;
     property Conn : TExtDataConnection read FConn write SetFConn;
   end;
 
@@ -1010,8 +965,7 @@ type
     procedure HandleEvent(const AEvtName: string); override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create(Data : TExtObject);
+    constructor Create(AOwner: TComponent; Data: TExtObject); reintroduce;
     function DoRequest(Action : String; Rs : TExtDataRecord; Params : TExtObject; Reader : TExtDataDataReader; Callback : TExtFunction; Scope : TExtObject; Arg : TExtObject) : TExtFunction; overload;
     function DoRequest(Action : String; Rs : TExtObjectList; Params : TExtObject; Reader : TExtDataDataReader; Callback : TExtFunction; Scope : TExtObject; Arg : TExtObject) : TExtFunction; overload;
     property OnLoadexception : TExtDataMemoryProxyOnLoadexception read FOnLoadexception write SetFOnLoadexception;
@@ -1031,8 +985,6 @@ type
     procedure InitDefaults; override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     property Id : String read FId write SetFId;
     property Root : String read FRoot write SetFRoot;
     property SuccessProperty : String read FSuccessProperty write SetFSuccessProperty;
@@ -1057,8 +1009,6 @@ type
     procedure HandleEvent(const AEvtName: string); override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     function ClearGrouping : TExtFunction;
     function GroupBy(Field : String; ForceRegroup : Boolean = false) : TExtFunction;
     property GroupField : String read FGroupField write SetFGroupField;
@@ -1086,8 +1036,6 @@ type
     procedure HandleEvent(const AEvtName: string); override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create(Config : TExtObject = nil);
     function Abort : TExtFunction;
     function DoRequest(Action : String; Rs : TExtDataRecord; Params : TExtObject; Reader : TExtDataDataReader; Callback : TExtFunction; Scope : TExtObject; Arg : TExtObject) : TExtFunction; overload;
     function DoRequest(Action : String; Rs : TExtObjectList; Params : TExtObject; Reader : TExtDataDataReader; Callback : TExtFunction; Scope : TExtObject; Arg : TExtObject) : TExtFunction; overload;
@@ -1114,14 +1062,11 @@ type
     procedure InitDefaults; override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     function DoRequest(Action : String; Rs : TExtDataRecord; Params : TExtObject; Reader : TExtDataDataReader; Callback : TExtFunction; Scope : TExtObject; Arg : TExtObject) : TExtFunction; overload;
     function DoRequest(Action : String; Rs : TExtObjectList; Params : TExtObject; Reader : TExtDataDataReader; Callback : TExtFunction; Scope : TExtObject; Arg : TExtObject) : TExtFunction; overload;
     function OnRead(Action : String; Trans : TExtObject; ResultJS : TExtObject; Res : TExtObject) : TExtFunction;
     function OnWrite(Action : String; Trans : TExtObject; ResultJS : TExtObject; Res : TExtObject; Rs : TExtDataRecord) : TExtFunction; overload;
     function OnWrite(Action : String; Trans : TExtObject; ResultJS : TExtObject; Res : TExtObject; Rs : TExtObjectList) : TExtFunction; overload;
-    destructor Destroy; override;
     property DirectFn : TExtFunction read FDirectFn write SetFDirectFn;
     property ParamOrder : TExtObjectList read FParamOrder write SetFParamOrder;
     property ParamOrderString : String read FParamOrderString write SetFParamOrderString;
@@ -1133,8 +1078,6 @@ type
     procedure InitDefaults; override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
   end;
 
 var
@@ -1144,6 +1087,9 @@ var
 
 implementation
 
+uses
+  Math;
+
 procedure TExtDataResponse.SetFAction(Value : String); begin
   FAction := Value;
   JSCode('action:' + VarToJSON([Value]));
@@ -1151,14 +1097,12 @@ end;
 
 procedure TExtDataResponse.SetFData(Value : TExtObjectList); begin
   FData := Value;
-  Value.DeleteFromGarbage;
-  JSCode('data:' + VarToJSON([Value, false]));
+    JSCode('data:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtDataResponse.SetFDataObject(Value : TExtObject); begin
   FDataObject := Value;
-  Value.DeleteFromGarbage;
-  JSCode('data:' + VarToJSON([Value, false]));
+    JSCode('data:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtDataResponse.SetFMessage(Value : String); begin
@@ -1168,20 +1112,17 @@ end;
 
 procedure TExtDataResponse.SetFRaw(Value : TExtObject); begin
   FRaw := Value;
-  Value.DeleteFromGarbage;
-  JSCode('raw:' + VarToJSON([Value, false]));
+    JSCode('raw:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtDataResponse.SetFRecords(Value : TExtDataRecord); begin
   FRecords := Value;
-  Value.DeleteFromGarbage;
-  JSCode('records:' + VarToJSON([Value, false]));
+    JSCode('records:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtDataResponse.SetFRecordsExtDataRecord(Value : TExtObjectList); begin
   FRecordsExtDataRecord := Value;
-  Value.DeleteFromGarbage;
-  JSCode('records:' + VarToJSON([Value, false]));
+    JSCode('records:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtDataResponse.SetFSuccess(Value : Boolean); begin
@@ -1192,8 +1133,6 @@ end;
 function TExtDataResponse.JSClassName : string; begin
   Result := 'Ext.data.Response';
 end;
-
-{$IFDEF FPC}constructor TExtDataResponse.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
 
 procedure TExtDataDataWriter.SetFCreateRecord(Value : TExtFunction); begin
   FCreateRecord := Value;
@@ -1224,11 +1163,10 @@ function TExtDataDataWriter.JSClassName : string; begin
   Result := 'Ext.data.DataWriter';
 end;
 
-{$IFDEF FPC}constructor TExtDataDataWriter.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtDataDataWriter.Create(Meta : TExtObject; RecordType : TExtObject); begin
-  CreateVar(JSClassName + '(' + VarToJSON([Meta, false, RecordType, false]) + ');');
-  InitDefaults;
+constructor TExtDataDataWriter.Create(AOwner: TComponent; Meta: TExtObject; RecordType: TExtObject);
+begin
+  FCreateVarArgs := JSClassName + '(' + VarToJSON([Meta, false, RecordType, false]) + ');';
+  inherited Create(AOwner);
 end;
 
 function TExtDataDataWriter.Apply(Params : TExtObject; BaseParams : TExtObject; Action : String; Rs : TExtDataRecord) : TExtFunction; begin
@@ -1258,14 +1196,12 @@ end;
 
 procedure TExtDataDataReader.SetFFields(Value : TExtObjectList); begin
   FFields := Value;
-  Value.DeleteFromGarbage;
-  JSCode('fields:' + VarToJSON([Value, false]));
+    JSCode('fields:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtDataDataReader.SetFFieldsObject(Value : TExtObject); begin
   FFieldsObject := Value;
-  Value.DeleteFromGarbage;
-  JSCode('fields:' + VarToJSON([Value, false]));
+    JSCode('fields:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtDataDataReader.SetFMessageProperty(Value : String); begin
@@ -1275,44 +1211,37 @@ end;
 
 procedure TExtDataDataReader.SetFBuildExtractors(Value : TExtObject); begin
   FBuildExtractors := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.buildExtractors=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.buildExtractors=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtDataDataReader.SetFExtractValues(Value : TExtObject); begin
   FExtractValues := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.extractValues=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.extractValues=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtDataDataReader.SetFGetId(Value : TExtObject); begin
   FGetId := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.getId=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.getId=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtDataDataReader.SetFGetMessage(Value : TExtObject); begin
   FGetMessage := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.getMessage=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.getMessage=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtDataDataReader.SetFGetRoot(Value : TExtObject); begin
   FGetRoot := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.getRoot=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.getRoot=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtDataDataReader.SetFGetSuccess(Value : TExtObject); begin
   FGetSuccess := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.getSuccess=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.getSuccess=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtDataDataReader.SetFGetTotal(Value : TExtObject); begin
   FGetTotal := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.getTotal=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.getTotal=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtDataDataReader.SetFMeta(Value : String); begin
@@ -1335,13 +1264,6 @@ procedure TExtDataDataReader.InitDefaults; begin
   FGetRoot := TExtObject.CreateInternal(Self, 'getRoot');
   FGetSuccess := TExtObject.CreateInternal(Self, 'getSuccess');
   FGetTotal := TExtObject.CreateInternal(Self, 'getTotal');
-end;
-
-{$IFDEF FPC}constructor TExtDataDataReader.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtDataDataReader.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
 end;
 
 function TExtDataDataReader.IsData(Data : TExtObject) : TExtFunction; begin
@@ -1389,21 +1311,6 @@ function TExtDataDataReader.Update(Rs : TExtDataRecord; Data : TExtObjectList) :
   Result := Self;
 end;
 
-destructor TExtDataDataReader.Destroy; begin
-  try
-    FFields.Free;
-    FFieldsObject.Free;
-    FBuildExtractors.Free;
-    FExtractValues.Free;
-    FGetId.Free;
-    FGetMessage.Free;
-    FGetRoot.Free;
-    FGetSuccess.Free;
-    FGetTotal.Free;
-  except end;
-  inherited;
-end;
-
 procedure TExtDataRequest.SetFAction(Value : String); begin
   FAction := Value;
   JSCode('action:' + VarToJSON([Value]));
@@ -1416,50 +1323,40 @@ end;
 
 procedure TExtDataRequest.SetFParams(Value : TExtObject); begin
   FParams := Value;
-  Value.DeleteFromGarbage;
-  JSCode('params:' + VarToJSON([Value, false]));
+    JSCode('params:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtDataRequest.SetFReader(Value : TExtDataDataReader); begin
   FReader := Value;
-  Value.DeleteFromGarbage;
-  JSCode('reader:' + VarToJSON([Value, false]));
+    JSCode('reader:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtDataRequest.SetFRs(Value : TExtObjectList); begin
   FRs := Value;
-  Value.DeleteFromGarbage;
-  JSCode('rs:' + VarToJSON([Value, false]));
+    JSCode('rs:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtDataRequest.SetFRsExtDataRecord(Value : TExtDataRecord); begin
   FRsExtDataRecord := Value;
-  Value.DeleteFromGarbage;
-  JSCode('rs:' + VarToJSON([Value, false]));
+    JSCode('rs:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtDataRequest.SetFScope(Value : TExtObject); begin
   FScope := Value;
-  Value.DeleteFromGarbage;
-  JSCode('scope:' + VarToJSON([Value, false]));
+    JSCode('scope:' + VarToJSON([Value, false]));
 end;
 
 function TExtDataRequest.JSClassName : string; begin
   Result := 'Ext.data.Request';
 end;
 
-{$IFDEF FPC}constructor TExtDataRequest.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
 function TExtDataJsonReaderError.JSClassName : string; begin
   Result := 'Ext.data.JsonReader.Error';
 end;
 
-{$IFDEF FPC}constructor TExtDataJsonReaderError.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
 procedure TExtDataRecord.SetFData(Value : TExtObject); begin
   FData := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.data=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.data=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtDataRecord.SetFDirty(Value : Boolean); begin
@@ -1469,38 +1366,32 @@ end;
 
 procedure TExtDataRecord.SetFFields(Value : TExtObjectList); begin
   FFields := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.fields=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.fields=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtDataRecord.SetFId(Value : TExtObject); begin
   FId := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.id=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.id=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtDataRecord.SetFJson(Value : TExtObjectList); begin
   FJson := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.json=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.json=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtDataRecord.SetFJsonObject(Value : TExtObject); begin
   FJsonObject := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.json=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.json=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtDataRecord.SetFModified(Value : TExtObject); begin
   FModified := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.modified=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.modified=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtDataRecord.SetFNode(Value : TXMLElement); begin
   FNode := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.node=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.node=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtDataRecord.SetFPhantom(Value : Boolean); begin
@@ -1510,8 +1401,7 @@ end;
 
 procedure TExtDataRecord.SetFStore(Value : TExtDataStore); begin
   FStore := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.store=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.store=' + VarToJSON([Value, false]) + ';');
 end;
 
 function TExtDataRecord.JSClassName : string; begin
@@ -1529,11 +1419,23 @@ procedure TExtDataRecord.InitDefaults; begin
   FStore := TExtDataStore.CreateInternal(Self, 'store');
 end;
 
-{$IFDEF FPC}constructor TExtDataRecord.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
+constructor TExtDataRecord.Create(AOwner: TComponent; Data: TExtObjectList);
+begin
+  FCreateVarArgs := JSClassName + '.create(' + VarToJSON(Data) + ');';
+  inherited Create(AOwner);
+end;
 
-constructor TExtDataRecord.Create(Data : TExtObjectList); begin
-  CreateVarAlt(JSClassName + '.create(' + VarToJSON(Data) + ');');
-  InitDefaults;
+procedure TExtDataRecord.CreateVar(AJSCode: string);
+begin
+  CreateJSName;
+  if FCreateVarArgs <> '' then
+  begin
+    AJSCode := FCreateVarArgs;
+    FCreateVarArgs := '';
+  end;
+  Insert('/*' + JSName + '*/', AJSCode, Length(AJSCode) - IfThen(Pos('});', AJSCode) <> 0, 2, 1));
+  JSCode(CommandDelim + DeclareJS + JSName + '= ' + AJSCode);
+  JSCode(JSName + '.nm="' + JSName + '";');
 end;
 
 function TExtDataRecord.TheGeneratedConstructorHasTheSameSignatureAsThisConstructor : TExtFunction; begin
@@ -1611,19 +1513,6 @@ function TExtDataRecord.SetJS(Name : String; Value : TExtObjectList) : TExtFunct
   Result := Self;
 end;
 
-destructor TExtDataRecord.Destroy; begin
-  try
-    FData.Free;
-    FFields.Free;
-    FId.Free;
-    FJson.Free;
-    FJsonObject.Free;
-    FModified.Free;
-    FStore.Free;
-  except end;
-  inherited;
-end;
-
 procedure TExtDataField.SetFAllowBlank(Value : Boolean); begin
   FAllowBlank := Value;
   JSCode('allowBlank:' + VarToJSON([Value]));
@@ -1678,8 +1567,6 @@ function TExtDataField.JSClassName : string; begin
   Result := 'Ext.data.Field';
 end;
 
-{$IFDEF FPC}constructor TExtDataField.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
 procedure TExtDataSortTypesSingleton.SetFStripTagsRE(Value : TRegExp); begin
   FStripTagsRE := Value;
   JSCode(JSName + '.stripTagsRE=' + VarToJSON([#3 +Value]) + ';');
@@ -1688,8 +1575,6 @@ end;
 function TExtDataSortTypesSingleton.JSClassName : string; begin
   Result := 'Ext.data.SortTypes';
 end;
-
-{$IFDEF FPC}constructor TExtDataSortTypesSingleton.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
 
 function TExtDataSortTypesSingleton.AsDate(S : String) : TExtFunction; begin
   JSCode(JSName + '.asDate(' + VarToJSON([S]) + ');', 'TExtDataSortTypesSingleton');
@@ -1807,18 +1692,14 @@ begin
   Result := lSTRINGJS
 end;
 
-{$IFDEF FPC}constructor TExtDataTypesSingleton.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
 procedure TExtDataApiSingleton.SetFActions(Value : TExtObject); begin
   FActions := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.actions=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.actions=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtDataApiSingleton.SetFRestActions(Value : TExtObject); begin
   FRestActions := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.restActions=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.restActions=' + VarToJSON([Value, false]) + ';');
 end;
 
 function TExtDataApiSingleton.JSClassName : string; begin
@@ -1830,8 +1711,6 @@ procedure TExtDataApiSingleton.InitDefaults; begin
   FActions := TExtObject.CreateInternal(Self, 'actions');
   FRestActions := TExtObject.CreateInternal(Self, 'restActions');
 end;
-
-{$IFDEF FPC}constructor TExtDataApiSingleton.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
 
 function TExtDataApiSingleton.Response : TExtFunction; begin
   JSCode(JSName + '.Response();', 'TExtDataApiSingleton');
@@ -1868,14 +1747,6 @@ function TExtDataApiSingleton.Restify(Proxy : TExtDataDataProxy) : TExtFunction;
   Result := Self;
 end;
 
-destructor TExtDataApiSingleton.Destroy; begin
-  try
-    FActions.Free;
-    FRestActions.Free;
-  except end;
-  inherited;
-end;
-
 procedure TExtDataNode.SetFId(Value : String); begin
   FId := Value;
   if not ConfigAvailable(JSName) then
@@ -1891,20 +1762,17 @@ end;
 
 procedure TExtDataNode.SetFAttributes(Value : TExtObject); begin
   FAttributes := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.attributes=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.attributes=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtDataNode.SetFChildNodes(Value : TExtObjectList); begin
   FChildNodes := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.childNodes=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.childNodes=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtDataNode.SetFFirstChild(Value : TExtDataNode); begin
   FFirstChild := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.firstChild=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.firstChild=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtDataNode.SetFId_(Value : String); begin
@@ -1914,26 +1782,22 @@ end;
 
 procedure TExtDataNode.SetFLastChild(Value : TExtDataNode); begin
   FLastChild := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.lastChild=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.lastChild=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtDataNode.SetFNextSibling(Value : TExtDataNode); begin
   FNextSibling := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.nextSibling=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.nextSibling=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtDataNode.SetFParentNode(Value : TExtDataNode); begin
   FParentNode := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.parentNode=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.parentNode=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtDataNode.SetFPreviousSibling(Value : TExtDataNode); begin
   FPreviousSibling := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.previousSibling=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.previousSibling=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtDataNode.SetFOnAppend(Value : TExtDataNodeOnAppend); begin
@@ -2013,13 +1877,6 @@ procedure TExtDataNode.InitDefaults; begin
   FNextSibling := TExtDataNode.CreateInternal(Self, 'nextSibling');
   FParentNode := TExtDataNode.CreateInternal(Self, 'parentNode');
   FPreviousSibling := TExtDataNode.CreateInternal(Self, 'previousSibling');
-end;
-
-{$IFDEF FPC}constructor TExtDataNode.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtDataNode.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
 end;
 
 function TExtDataNode.AppendChild(Node : TExtDataNode) : TExtFunction; begin
@@ -2157,19 +2014,6 @@ function TExtDataNode.Sort(Fn : TExtFunction; Scope : TExtObject = nil) : TExtFu
   Result := Self;
 end;
 
-destructor TExtDataNode.Destroy; begin
-  try
-    FAttributes.Free;
-    FChildNodes.Free;
-    FFirstChild.Free;
-    FLastChild.Free;
-    FNextSibling.Free;
-    FParentNode.Free;
-    FPreviousSibling.Free;
-  except end;
-  inherited;
-end;
-
 procedure TExtDataNode.HandleEvent(const AEvtName : string); begin
   inherited;
   if (AEvtName = 'append') and Assigned(FOnAppend) then
@@ -2203,8 +2047,6 @@ end;
 function TExtDataJsonWriter.JSClassName : string; begin
   Result := 'Ext.data.JsonWriter';
 end;
-
-{$IFDEF FPC}constructor TExtDataJsonWriter.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
 
 function TExtDataJsonWriter.CreateRecord(Rec : TExtDataRecord) : TExtFunction; begin
   JSCode(JSName + '.createRecord(' + VarToJSON([Rec, false]) + ');', 'TExtDataJsonWriter');
@@ -2253,8 +2095,7 @@ end;
 
 procedure TExtDataXmlWriter.SetFTplExtXTemplate(Value : TExtXTemplate); begin
   FTplExtXTemplate := Value;
-  Value.DeleteFromGarbage;
-  JSCode('tpl:' + VarToJSON([Value, false]));
+    JSCode('tpl:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtDataXmlWriter.SetFXmlEncoding(Value : String); begin
@@ -2274,13 +2115,6 @@ end;
 procedure TExtDataXmlWriter.InitDefaults; begin
   inherited;
   FTplExtXTemplate := TExtXTemplate.CreateInternal(Self, 'tpl');
-end;
-
-{$IFDEF FPC}constructor TExtDataXmlWriter.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtDataXmlWriter.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
 end;
 
 function TExtDataXmlWriter.CreateRecord(Rec : TExtDataRecord) : TExtFunction; begin
@@ -2308,13 +2142,6 @@ function TExtDataXmlWriter.UpdateRecord(Rec : TExtDataRecord) : TExtFunction; be
   Result := Self;
 end;
 
-destructor TExtDataXmlWriter.Destroy; begin
-  try
-    FTplExtXTemplate.Free;
-  except end;
-  inherited;
-end;
-
 procedure TExtDataStore.SetFAutoDestroy(Value : Boolean); begin
   FAutoDestroy := Value;
   JSCode('autoDestroy:' + VarToJSON([Value]));
@@ -2327,8 +2154,7 @@ end;
 
 procedure TExtDataStore.SetFAutoLoadObject(Value : TExtObject); begin
   FAutoLoadObject := Value;
-  Value.DeleteFromGarbage;
-  JSCode('autoLoad:' + VarToJSON([Value, false]));
+    JSCode('autoLoad:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtDataStore.SetFAutoSave(Value : Boolean); begin
@@ -2338,8 +2164,7 @@ end;
 
 procedure TExtDataStore.SetFBaseParams(Value : TExtObject); begin
   FBaseParams := Value;
-  Value.DeleteFromGarbage;
-  JSCode('baseParams:' + VarToJSON([Value, false]));
+    JSCode('baseParams:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtDataStore.SetFBatch(Value : Boolean); begin
@@ -2349,26 +2174,22 @@ end;
 
 procedure TExtDataStore.SetFData(Value : TExtObjectList); begin
   FData := Value;
-  Value.DeleteFromGarbage;
-  JSCode('data:' + VarToJSON([Value, false]));
+    JSCode('data:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtDataStore.SetFDefaultParamNames(Value : TExtObject); begin
   FDefaultParamNames := Value;
-  Value.DeleteFromGarbage;
-  JSCode('defaultParamNames:' + VarToJSON([Value, false]));
+    JSCode('defaultParamNames:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtDataStore.SetFParamNames(Value : TExtObject); begin
   FParamNames := Value;
-  Value.DeleteFromGarbage;
-  JSCode('paramNames:' + VarToJSON([Value, false]));
+    JSCode('paramNames:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtDataStore.SetFProxy(Value : TExtDataDataProxy); begin
   FProxy := Value;
-  Value.DeleteFromGarbage;
-  JSCode('proxy:' + VarToJSON([Value, false]));
+    JSCode('proxy:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtDataStore.SetFPruneModifiedRecords(Value : Boolean); begin
@@ -2379,8 +2200,7 @@ end;
 procedure TExtDataStore.SetFReader(Value : TExtDataDataReader); begin
   FReader.Free;
   FReader := Value;
-  Value.DeleteFromGarbage;
-  JSCode('reader:' + VarToJSON([Value, false]));
+    JSCode('reader:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtDataStore.SetFRemoteSort(Value : Boolean); begin
@@ -2396,8 +2216,7 @@ end;
 procedure TExtDataStore.SetFSortInfo(Value : TExtObject); begin
   FSortInfo.Free;
   FSortInfo := Value;
-  Value.DeleteFromGarbage;
-  JSCode('sortInfo:' + VarToJSON([Value, false]));
+    JSCode('sortInfo:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtDataStore.SetFStoreId(Value : String); begin
@@ -2412,20 +2231,17 @@ end;
 
 procedure TExtDataStore.SetFWriter(Value : TExtDataDataWriter); begin
   FWriter := Value;
-  Value.DeleteFromGarbage;
-  JSCode('writer:' + VarToJSON([Value, false]));
+    JSCode('writer:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtDataStore.SetFBaseParams_(Value : TExtObject); begin
   FBaseParams_ := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.baseParams=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.baseParams=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtDataStore.SetFFields(Value : TExtObjectList); begin
   FFields := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.fields=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.fields=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtDataStore.SetFHasMultiSort(Value : Boolean); begin
@@ -2440,14 +2256,12 @@ end;
 
 procedure TExtDataStore.SetFLastOptions(Value : TExtObject); begin
   FLastOptions := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.lastOptions=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.lastOptions=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtDataStore.SetFMultiSortInfo(Value : TExtObject); begin
   FMultiSortInfo := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.multiSortInfo=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.multiSortInfo=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtDataStore.SetFRecordType(Value : TExtFunction); begin
@@ -2587,13 +2401,6 @@ procedure TExtDataStore.InitDefaults; begin
   FFields := TExtObjectList.Create(Self, 'fields');
   FLastOptions := TExtObject.CreateInternal(Self, 'lastOptions');
   FMultiSortInfo := TExtObject.CreateInternal(Self, 'multiSortInfo');
-end;
-
-{$IFDEF FPC}constructor TExtDataStore.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtDataStore.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
 end;
 
 function TExtDataStore.Add(Records : TExtObjectList) : TExtFunction; begin
@@ -2825,25 +2632,6 @@ function TExtDataStore.Sum(PropertyJS : String; Start : Integer = 0; EndJS : Int
   Result := Self;
 end;
 
-destructor TExtDataStore.Destroy; begin
-  try
-    FAutoLoadObject.Free;
-    FBaseParams.Free;
-    FData.Free;
-    FDefaultParamNames.Free;
-    FParamNames.Free;
-    FProxy.Free;
-    FReader.Free;
-    FSortInfo.Free;
-    FWriter.Free;
-    FBaseParams_.Free;
-    FFields.Free;
-    FLastOptions.Free;
-    FMultiSortInfo.Free;
-  except end;
-  inherited;
-end;
-
 procedure TExtDataStore.HandleEvent(const AEvtName : string); begin
   inherited;
   if (AEvtName = 'add') and Assigned(FOnAdd) then
@@ -2880,8 +2668,6 @@ function TExtDataStoreError.JSClassName : string; begin
   Result := 'Ext.data.Store.Error';
 end;
 
-{$IFDEF FPC}constructor TExtDataStoreError.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
 procedure TExtDataXmlReader.SetFIdPath(Value : String); begin
   FIdPath := Value;
   JSCode('idPath:' + VarToJSON([Value]));
@@ -2909,19 +2695,17 @@ end;
 
 procedure TExtDataXmlReader.SetFXmlData(Value : TXMLDocument); begin
   FXmlData := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.xmlData=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.xmlData=' + VarToJSON([Value, false]) + ';');
 end;
 
 function TExtDataXmlReader.JSClassName : string; begin
   Result := 'Ext.data.XmlReader';
 end;
 
-{$IFDEF FPC}constructor TExtDataXmlReader.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtDataXmlReader.Create(Meta : TExtObject; RecordType : TExtObject); begin
-  CreateVar(JSClassName + '(' + VarToJSON([Meta, false, RecordType, false]) + ');');
-  InitDefaults;
+constructor TExtDataXmlReader.Create(AOwner: TComponent; Meta: TExtObject; RecordType: TExtObject);
+begin
+  FCreateVarArgs := JSClassName + '(' + VarToJSON([Meta, false, RecordType, false]) + ');';
+  inherited Create(AOwner);
 end;
 
 function TExtDataXmlReader.Read(Response : TExtObject) : TExtFunction; begin
@@ -2946,8 +2730,7 @@ end;
 
 procedure TExtDataTree.SetFRoot(Value : TExtDataNode); begin
   FRoot := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.root=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.root=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtDataTree.SetFOnAppend(Value : TExtDataTreeOnAppend); begin
@@ -3024,13 +2807,6 @@ procedure TExtDataTree.InitDefaults; begin
   FRoot := TExtDataNode.CreateInternal(Self, 'root');
 end;
 
-{$IFDEF FPC}constructor TExtDataTree.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtDataTree.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
-end;
-
 function TExtDataTree.GetNodeById(Id : String) : TExtFunction; begin
   JSCode(JSName + '.getNodeById(' + VarToJSON([Id]) + ');', 'TExtDataTree');
   Result := Self;
@@ -3068,8 +2844,7 @@ end;
 
 procedure TExtDataDataProxy.SetFApi(Value : TExtObject); begin
   FApi := Value;
-  Value.DeleteFromGarbage;
-  JSCode('api:' + VarToJSON([Value, false]));
+    JSCode('api:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtDataDataProxy.SetFDoRequest(Value : TExtFunction); begin
@@ -3149,13 +2924,6 @@ procedure TExtDataDataProxy.InitDefaults; begin
   FApi := TExtObject.CreateInternal(Self, 'api');
 end;
 
-{$IFDEF FPC}constructor TExtDataDataProxy.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtDataDataProxy.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
-end;
-
 function TExtDataDataProxy.DestroyJS : TExtFunction; begin
   JSCode(JSName + '.destroy();', 'TExtDataDataProxy');
   Result := Self;
@@ -3206,13 +2974,6 @@ function TExtDataDataProxy.SetApi(Api : String; Url : TExtFunction) : TExtFuncti
   Result := Self;
 end;
 
-destructor TExtDataDataProxy.Destroy; begin
-  try
-    FApi.Free;
-  except end;
-  inherited;
-end;
-
 procedure TExtDataDataProxy.HandleEvent(const AEvtName : string); begin
   inherited;
   if (AEvtName = 'beforeload') and Assigned(FOnBeforeload) then
@@ -3233,8 +2994,6 @@ function TExtDataDataProxyError.JSClassName : string; begin
   Result := 'Ext.data.DataProxy.Error';
 end;
 
-{$IFDEF FPC}constructor TExtDataDataProxyError.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
 procedure TExtDataConnection.SetFAutoAbort(Value : Boolean); begin
   FAutoAbort := Value;
   JSCode('autoAbort:' + VarToJSON([Value]));
@@ -3242,8 +3001,7 @@ end;
 
 procedure TExtDataConnection.SetFDefaultHeaders(Value : TExtObject); begin
   FDefaultHeaders := Value;
-  Value.DeleteFromGarbage;
-  JSCode('defaultHeaders:' + VarToJSON([Value, false]));
+    JSCode('defaultHeaders:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtDataConnection.SetFDisableCaching(Value : Boolean); begin
@@ -3258,8 +3016,7 @@ end;
 
 procedure TExtDataConnection.SetFExtraParams(Value : TExtObject); begin
   FExtraParams := Value;
-  Value.DeleteFromGarbage;
-  JSCode('extraParams:' + VarToJSON([Value, false]));
+    JSCode('extraParams:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtDataConnection.SetFMethod(Value : String); begin
@@ -3314,13 +3071,6 @@ procedure TExtDataConnection.InitDefaults; begin
   FTimeout := 30000;
 end;
 
-{$IFDEF FPC}constructor TExtDataConnection.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtDataConnection.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
-end;
-
 function TExtDataConnection.Abort(TransactionId : Integer = 0) : TExtFunction; begin
   JSCode(JSName + '.abort(' + VarToJSON([TransactionId]) + ');', 'TExtDataConnection');
   Result := Self;
@@ -3336,14 +3086,6 @@ function TExtDataConnection.Request(Options : TExtObject) : TExtFunction; begin
   Result := Self;
 end;
 
-destructor TExtDataConnection.Destroy; begin
-  try
-    FDefaultHeaders.Free;
-    FExtraParams.Free;
-  except end;
-  inherited;
-end;
-
 procedure TExtDataConnection.HandleEvent(const AEvtName : string); begin
   inherited;
   if (AEvtName = 'beforerequest') and Assigned(FOnBeforerequest) then
@@ -3357,8 +3099,6 @@ end;
 function TExtDataApiError.JSClassName : string; begin
   Result := 'Ext.data.Api.Error';
 end;
-
-{$IFDEF FPC}constructor TExtDataApiError.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
 
 procedure TExtDataJsonReader.SetFIdProperty(Value : String); begin
   FIdProperty := Value;
@@ -3382,8 +3122,7 @@ end;
 
 procedure TExtDataJsonReader.SetFJsonData(Value : TExtObject); begin
   FJsonData := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.jsonData=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.jsonData=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtDataJsonReader.SetFMeta(Value : String); begin
@@ -3400,11 +3139,10 @@ procedure TExtDataJsonReader.InitDefaults; begin
   FJsonData := TExtObject.CreateInternal(Self, 'jsonData');
 end;
 
-{$IFDEF FPC}constructor TExtDataJsonReader.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtDataJsonReader.Create(Meta : TExtObject = nil; RecordType : TExtDataRecord = nil); begin
-  CreateVar(JSClassName + '(' + VarToJSON([Meta, false, RecordType, false]) + ');');
-  InitDefaults;
+constructor TExtDataJsonReader.Create(AOwner: TComponent; Meta: TExtObject = nil; RecordType: TExtDataRecord = nil);
+begin
+  FCreateVarArgs := JSClassName + '(' + VarToJSON([Meta, false, RecordType, false]) + ');';
+  inherited Create(AOwner);
 end;
 
 function TExtDataJsonReader.Read(Response : TExtObject) : TExtFunction; begin
@@ -3422,18 +3160,9 @@ function TExtDataJsonReader.ReadResponse(Action : String; Response : TExtObject)
   Result := Self;
 end;
 
-destructor TExtDataJsonReader.Destroy; begin
-  try
-    FJsonData.Free;
-  except end;
-  inherited;
-end;
-
 function TExtDataDataReaderError.JSClassName : string; begin
   Result := 'Ext.data.DataReader.Error';
 end;
-
-{$IFDEF FPC}constructor TExtDataDataReaderError.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
 
 function TExtDataXmlStore.JSClassName : string; begin
   Result := 'Ext.data.XmlStore';
@@ -3441,13 +3170,6 @@ end;
 
 procedure TExtDataXmlStore.InitDefaults; begin
   inherited;
-end;
-
-{$IFDEF FPC}constructor TExtDataXmlStore.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtDataXmlStore.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
 end;
 
 procedure TExtDataArrayReader.SetFId(Value : Integer); begin
@@ -3464,16 +3186,16 @@ function TExtDataArrayReader.JSClassName : string; begin
   Result := 'Ext.data.ArrayReader';
 end;
 
-{$IFDEF FPC}constructor TExtDataArrayReader.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtDataArrayReader.Create(Meta : TExtObject; RecordType : TExtObjectList); begin
-  CreateVar(JSClassName + '(' + VarToJSON([Meta, false]) + ',' + VarToJSON(RecordType) + ');');
-  InitDefaults;
+constructor TExtDataArrayReader.Create(AOwner: TComponent; Meta: TExtObject; RecordType: TExtObjectList);
+begin
+  FCreateVarArgs := JSClassName + '(' + VarToJSON([Meta, false]) + ',' + VarToJSON(RecordType) + ');';
+  inherited Create(AOwner);
 end;
 
-constructor TExtDataArrayReader.Create(Meta : TExtObject; RecordType : TExtObject); begin
-  CreateVar(JSClassName + '(' + VarToJSON([Meta, false, RecordType, false]) + ');');
-  InitDefaults;
+constructor TExtDataArrayReader.Create(AOwner: TComponent; Meta: TExtObject; RecordType: TExtObject);
+begin
+  FCreateVarArgs := JSClassName + '(' + VarToJSON([Meta, false, RecordType, false]) + ');';
+  inherited Create(AOwner);
 end;
 
 function TExtDataArrayReader.ReadRecords(O : TExtObject) : TExtFunction; begin
@@ -3489,17 +3211,9 @@ procedure TExtDataArrayStore.InitDefaults; begin
   inherited;
 end;
 
-{$IFDEF FPC}constructor TExtDataArrayStore.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtDataArrayStore.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
-end;
-
 procedure TExtDataHttpProxy.SetFConn(Value : TExtDataConnection); begin
   FConn := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.conn=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.conn=' + VarToJSON([Value, false]) + ';');
 end;
 
 function TExtDataHttpProxy.JSClassName : string; begin
@@ -3511,11 +3225,10 @@ procedure TExtDataHttpProxy.InitDefaults; begin
   FConn := TExtDataConnection.CreateInternal(Self, 'conn');
 end;
 
-{$IFDEF FPC}constructor TExtDataHttpProxy.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtDataHttpProxy.Create(Conn : TExtDataConnection); begin
-  CreateVar(JSClassName + '(' + VarToJSON([Conn, false]) + ');');
-  InitDefaults;
+constructor TExtDataHttpProxy.Create(AOwner: TComponent; Conn: TExtDataConnection);
+begin
+  FCreateVarArgs := JSClassName + '(' + VarToJSON([Conn, false]) + ');';
+  inherited Create(AOwner);
 end;
 
 function TExtDataHttpProxy.DoRequest(Action : String; Rs : TExtDataRecord; Params : TExtObject; Reader : TExtDataDataReader; Callback : TExtFunction; Scope : TExtObject; Arg : TExtObject) : TExtFunction; begin
@@ -3548,13 +3261,6 @@ function TExtDataHttpProxy.SetUrl(Url : String; MakePermanent : Boolean = false)
   Result := Self;
 end;
 
-destructor TExtDataHttpProxy.Destroy; begin
-  try
-    FConn.Free;
-  except end;
-  inherited;
-end;
-
 procedure TExtDataMemoryProxy.SetFOnLoadexception(Value : TExtDataMemoryProxyOnLoadexception); begin
   if Assigned(FOnLoadexception) then
     JSCode(JSName+'.events ["loadexception"].listeners=[];');
@@ -3567,11 +3273,10 @@ function TExtDataMemoryProxy.JSClassName : string; begin
   Result := 'Ext.data.MemoryProxy';
 end;
 
-{$IFDEF FPC}constructor TExtDataMemoryProxy.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtDataMemoryProxy.Create(Data : TExtObject); begin
-  CreateVar(JSClassName + '(' + VarToJSON([Data, false]) + ');');
-  InitDefaults;
+constructor TExtDataMemoryProxy.Create(AOwner: TComponent; Data: TExtObject);
+begin
+  FCreateVarArgs := JSClassName + '(' + VarToJSON([Data, false]) + ');';
+  inherited Create(AOwner);
 end;
 
 function TExtDataMemoryProxy.DoRequest(Action : String; Rs : TExtDataRecord; Params : TExtObject; Reader : TExtDataDataReader; Callback : TExtFunction; Scope : TExtObject; Arg : TExtObject) : TExtFunction; begin
@@ -3618,13 +3323,6 @@ procedure TExtDataJsonStore.InitDefaults; begin
   inherited;
 end;
 
-{$IFDEF FPC}constructor TExtDataJsonStore.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtDataJsonStore.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
-end;
-
 procedure TExtDataGroupingStore.SetFGroupField(Value : String); begin
   FGroupField := Value;
   JSCode('groupField:' + VarToJSON([Value]));
@@ -3654,13 +3352,6 @@ end;
 
 procedure TExtDataGroupingStore.InitDefaults; begin
   inherited;
-end;
-
-{$IFDEF FPC}constructor TExtDataGroupingStore.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtDataGroupingStore.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
 end;
 
 function TExtDataGroupingStore.ClearGrouping : TExtFunction; begin
@@ -3711,14 +3402,6 @@ function TExtDataScriptTagProxy.JSClassName : string; begin
   Result := 'Ext.data.ScriptTagProxy';
 end;
 
-{$IFDEF FPC}constructor TExtDataScriptTagProxy.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtDataScriptTagProxy.Create(Config : TExtObject = nil); begin
-  if Config = nil then CreateVar(JSClassName + '({});') else
-  CreateVar(JSClassName + '(' + VarToJSON([Config, false]) + ');');
-  InitDefaults;
-end;
-
 function TExtDataScriptTagProxy.Abort : TExtFunction; begin
   JSCode(JSName + '.abort();', 'TExtDataScriptTagProxy');
   Result := Self;
@@ -3757,8 +3440,7 @@ end;
 
 procedure TExtDataDirectProxy.SetFParamOrder(Value : TExtObjectList); begin
   FParamOrder := Value;
-  Value.DeleteFromGarbage;
-  JSCode('paramOrder:' + VarToJSON([Value, false]));
+    JSCode('paramOrder:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtDataDirectProxy.SetFParamOrderString(Value : String); begin
@@ -3779,13 +3461,6 @@ procedure TExtDataDirectProxy.InitDefaults; begin
   inherited;
   FParamOrder := TExtObjectList.Create(Self, 'paramOrder');
   FParamsAsHash := true;
-end;
-
-{$IFDEF FPC}constructor TExtDataDirectProxy.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtDataDirectProxy.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
 end;
 
 function TExtDataDirectProxy.DoRequest(Action : String; Rs : TExtDataRecord; Params : TExtObject; Reader : TExtDataDataReader; Callback : TExtFunction; Scope : TExtObject; Arg : TExtObject) : TExtFunction; begin
@@ -3813,26 +3488,12 @@ function TExtDataDirectProxy.OnWrite(Action : String; Trans : TExtObject; Result
   Result := Self;
 end;
 
-destructor TExtDataDirectProxy.Destroy; begin
-  try
-    FParamOrder.Free;
-  except end;
-  inherited;
-end;
-
 function TExtDataDirectStore.JSClassName : string; begin
   Result := 'Ext.data.DirectStore';
 end;
 
 procedure TExtDataDirectStore.InitDefaults; begin
   inherited;
-end;
-
-{$IFDEF FPC}constructor TExtDataDirectStore.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtDataDirectStore.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
 end;
 
 initialization

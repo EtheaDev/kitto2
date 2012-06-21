@@ -90,7 +90,7 @@ end;
 procedure TKExtTreePanel.InitDefaults;
 begin
   inherited;
-  Root := TExtTreeTreeNode.Create;
+  Root := TExtTreeTreeNode.Create(Self);
   RootVisible := False;
   AutoScroll := True;
   Border := False;

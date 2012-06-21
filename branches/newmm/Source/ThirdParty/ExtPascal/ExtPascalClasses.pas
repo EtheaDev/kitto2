@@ -6,9 +6,14 @@ uses
   SysUtils, Classes, IniFiles, ExtPascalUtils;
 
 type
-  TObjectCatalog = class(TComponent);
-
   TCustomWebApplication = class;
+
+  TObjectCatalog = class(TComponent)
+  public
+    function FindExtObject(const AJSName: string): TObject;
+
+    procedure FreeAllExtObjects;
+  end;
 
 {$M+}
   TCustomWebSession = class(TObject)
@@ -56,13 +61,6 @@ type
     function DownloadContentType(const FileName, Default : string) : string;
     class function GetCurrentWebSession : TCustomWebSession; virtual; abstract;
     function GetDocumentRoot : string; virtual; abstract;
-    procedure GarbageAdd(const Name : string; Obj : TObject);
-    procedure GarbageCollect;
-    procedure GarbageDelete(Obj : TObject); overload;
-    procedure GarbageDelete(const Name : string); overload;
-    procedure GarbageRemove(Obj : TObject);
-    function GarbageExists(const Name : string): Boolean;
-    function GarbageFind(const Name : string): TObject;
     function GarbageFixName(const Name : string) : string; virtual;
     function GetRequestHeader(const Name : string) : string; virtual; abstract;
     function GetUrlHandlerObject : TObject; virtual;
@@ -98,7 +96,7 @@ type
     procedure Alert(const Msg : string); virtual;
     procedure DownloadFile(const FileName : string; AContentType : string = '');
     procedure DownloadStream(const Stream : TStream; const FileName : string; AContentType : string = '');
-    procedure Refresh;
+    procedure Refresh; virtual;
     function MethodURI(MethodName : string): string; overload;
     function MethodURI(Method : TExtProcedure): string; overload;
     function EncodeResponse: AnsiString;
@@ -172,7 +170,7 @@ type
 implementation
 
 uses
-  StrUtils, HTTPApp;
+  StrUtils, HTTPApp, ExtPascal;
 
 const
   CBrowserNames: array[TBrowser] of string = ('Unknown', 'MSIE', 'Firefox', 'Chrome', 'Safari', 'Opera', 'Konqueror', 'Safari');
@@ -383,11 +381,11 @@ begin
   InitDefaultValues;
 end;
 
-destructor TCustomWebSession.Destroy; begin
+destructor TCustomWebSession.Destroy;
+begin
   FQueries.Free;
   FCustomResponseHeaders.Free;
   FCookies.Free;
-  GarbageCollect;
   FGarbageCollector.Free;
   FreeAndNil(FObjectCatalog);
   inherited;
@@ -503,125 +501,6 @@ begin
     Result := AnsiString(Response);
 end;
 
-{
-Adds a TObject to the Session Garbage Collector
-@param Name name or other object identification
-@param Obj TObject to add
-}
-procedure TCustomWebSession.GarbageAdd(const Name : string; Obj : TObject);
-var
-  Garbage : PGarbage;
-begin
-  Assert(Assigned(Obj));
-  Assert(Name <> '');
-
-  New(Garbage);
-  Garbage^.Garbage := Obj;
-  Garbage^.Persistent := False;
-  FGarbageCollector.AddObject(GarbageFixName(Name), TObject(Garbage));
-end;
-
-// Frees all objects associated for this session
-procedure TCustomWebSession.GarbageCollect;
-var
-  LGarbagePointer: PGarbage;
-begin
-  // As objects are freed the list may shrink, so don't use fixed loops here.
-  while FGarbageCollector.Count > 0 do begin
-    Assert(Assigned(FGarbageCollector.Objects[0]));
-    LGarbagePointer := PGarbage(FGarbageCollector.Objects[0]);
-    FGarbageCollector.Delete(0);
-    if not LGarbagePointer^.Persistent then
-      LGarbagePointer^.Garbage.Free;
-    Dispose(LGarbagePointer);
-  end;
-end;
-
-{
-Deletes a TObject from the Session Garbage Collector
-@param Obj TObject to delete
-}
-procedure TCustomWebSession.GarbageDelete(Obj : TObject);
-var
-  I : Integer;
-begin
-  Assert(Assigned(Obj));
-
-  for I := 0 to FGarbageCollector.Count - 1 do begin
-    Assert(Assigned(FGarbageCollector.Objects[I]));
-    if PGarbage(FGarbageCollector.Objects[I])^.Garbage = Obj then begin
-      PGarbage(FGarbageCollector.Objects[I])^.Persistent := True;
-      Break;
-    end;
-  end;
-end;
-
-{
-Deletes a TObject from the Session Garbage Collector
-@param Name Name of TObject to find and delete
-}
-procedure TCustomWebSession.GarbageDelete(const Name : string);
-var
-  I : Integer;
-begin
-  Assert(Name <> '');
-
-  I := FGarbageCollector.IndexOf(GarbageFixName(Name));
-  if I >= 0 then
-    PGarbage(FGarbageCollector.Objects[I])^.Persistent := True;
-end;
-
-procedure TCustomWebSession.GarbageRemove(Obj : TObject);
-var
-  I : Integer;
-  LGarbageItem: TObject;
-  LGarbagePointer: PGarbage;
-begin
-  Assert(Assigned(Obj));
-
-  for I := FGarbageCollector.Count - 1 downto 0 do begin
-    LGarbageItem := FGarbageCollector.Objects[I];
-    Assert(Assigned(LGarbageItem));
-    LGarbagePointer := PGarbage(LGarbageItem);
-    if LGarbagePointer^.Garbage = Obj then begin
-      FGarbageCollector.Delete(I);
-      Dispose(LGarbagePointer);
-      Break;
-    end;
-  end;
-end;
-
-{
-Tests if a TObject is in the Session Garbage Collector
-@param Name Object name
-@return True if found
-}
-function TCustomWebSession.GarbageExists(const Name : string) : Boolean; begin
-  Assert(Name <> '');
-
-  Result := FGarbageCollector.IndexOf(GarbageFixName(Name)) >= 0;
-end;
-
-{
-Finds a TObject in Session Garbage Collector using its name
-@param Name Object name
-@return The object reference if exists else returns nil
-}
-function TCustomWebSession.GarbageFind(const Name : string) : TObject;
-var
-  I: Integer;
-begin
-  Assert(Name <> '');
-
-  I := FGarbageCollector.IndexOf(GarbageFixName(Name));
-  if I >= 0 then begin
-    Assert(Assigned(FGarbageCollector.Objects[I]));
-    Result := PGarbage(FGarbageCollector.Objects[I])^.Garbage;
-  end
-  else
-    Result := nil;
-end;
-
 function TCustomWebSession.GarbageFixName(const Name : string) : string; begin
   Result := Name;
 end;
@@ -731,8 +610,9 @@ if not NewThread then begin
   DataStore := nil;
 end;</code>
 }
-procedure TCustomWebSession.Refresh; begin
-  GarbageCollect;
+procedure TCustomWebSession.Refresh;
+begin
+  ObjectCatalog.FreeAllExtObjects;
 end;
 
 {
@@ -934,6 +814,39 @@ end;
 
 procedure TCustomWebApplication.Terminate; begin
   FTerminated := True;
+end;
+
+{ TObjectCatalog }
+
+function TObjectCatalog.FindExtObject(const AJSName: string): TObject;
+var
+  I: Integer;
+begin
+  Assert(AJSName <> '');
+
+  Result := FindComponent(AJSName);
+  if not Assigned(Result) then
+  begin
+    for I := 0 to ComponentCount - 1 do
+    begin
+      if SameText(Components[I].Name, AJSName) then
+        Result := Components[I]
+      else if Components[I] is TExtObject then
+        Result := TExtObject(Components[I]).FindExtObject(AJSName)
+      else
+        Result := Components[I].FindComponent(AJSName);
+      if Assigned(Result) then
+        Break;
+    end;
+  end;
+end;
+
+procedure TObjectCatalog.FreeAllExtObjects;
+var
+  I: Integer;
+begin
+  for I := ComponentCount - 1 downto 0 do
+    Components[I].Free;
 end;
 
 end.

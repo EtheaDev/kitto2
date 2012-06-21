@@ -177,14 +177,14 @@ begin
   if LRequireSelection then
     LConfirmationJS := GetSelectConfirmCall(LConfirmationMessage, TKExtDataActionButton(Result).ExecuteActionOnSelectedRow)
   else
-    LConfirmationJS := GetConfirmCall(LConfirmationMessage, Result.ExecuteAction);
+    LConfirmationJS := GetConfirmCall(LConfirmationMessage, Result.ExecuteButtonAction);
 
   if LConfirmationMessage <> '' then
     Result.Handler := JSFunction(LConfirmationJS)
   else if LRequireSelection then
     Result.On('click', GetSelectCall(TKExtDataActionButton(Result).ExecuteActionOnSelectedRow))
   else
-    Result.On('click', Ajax(Result.ExecuteAction, []));
+    Result.On('click', Ajax(Result.ExecuteButtonAction, []));
 end;
 
 function TKExtDataPanelController.CreateClientReader: TExtDataJsonReader;
@@ -216,7 +216,7 @@ var
 begin
   Assert(Assigned(ViewTable));
 
-  Result := TExtDataJsonReader.Create(JSObject('')); // Must pass '' otherwise invalid code is generated.
+  Result := TExtDataJsonReader.Create(Self, JSObject('')); // Must pass '' otherwise invalid code is generated.
   Result.Root := 'Root';
   Result.TotalProperty := 'Total';
 
@@ -226,7 +226,7 @@ end;
 
 function TKExtDataPanelController.CreateClientStore: TExtDataStore;
 begin
-  Result := TExtDataStore.Create;
+  Result := TExtDataStore.Create(Self);
   Result.RemoteSort := False;
   Result.Url := MethodURI(GetRecordPage);
 end;
@@ -335,7 +335,8 @@ begin
   Assert(Assigned(FServerStore));
 
   LRecord := Session.LocateRecordFromQueries(FViewTable, FServerStore);
-  LController := TKExtControllerFactory.Instance.CreateController(View, nil);
+  LController := TKExtControllerFactory.Instance.CreateController(
+    Session.ObjectCatalog, View, nil);
   InitController(LController);
   LController.Config.SetObject('Sys/Record', LRecord);
   LController.Display;

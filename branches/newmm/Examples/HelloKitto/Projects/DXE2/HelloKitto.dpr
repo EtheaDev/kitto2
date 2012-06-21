@@ -1,6 +1,7 @@
 program HelloKitto;
 
 uses
+  FastMM4,
   DBXMSSQL,
   DBXFirebird,
   Kitto.Ext.Start,

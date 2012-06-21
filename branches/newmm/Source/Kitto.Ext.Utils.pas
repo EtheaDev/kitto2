@@ -199,7 +199,7 @@ begin
           LMenuItem.Text := HTMLEncode(_(ANode.TreeViewNodes[I].AsString));
         if ANode.TreeViewNodes[I].TreeViewNodeCount > 0 then
         begin
-          LSubMenu := TExtMenuMenu.Create;
+          LSubMenu := TExtMenuMenu.Create(AMenu);
           try
             LMenuItem.Menu := LSubMenu;
             AddMenuItem(ANode.TreeViewNodes[I], LSubMenu);
@@ -247,7 +247,7 @@ begin
         LButton.Text := HTMLEncode(_(ANode.AsString));
       if ANode.ChildCount > 0 then
       begin
-        LMenu := TExtMenuMenu.Create;
+        LMenu := TExtMenuMenu.Create(AContainer);
         try
           LButton.Menu := LMenu;
           AddMenuItem(ANode, LMenu);
@@ -279,7 +279,7 @@ begin
   //if not Assigned(LView) or LView.IsAccessGranted(ACM_VIEW) then
   //begin
     LIsEnabled := not Assigned(LView) or LView.IsAccessGranted(ACM_RUN);
-    LNode := TKExtTreeTreeNode.Create;
+    LNode := TKExtTreeTreeNode.Create(AParent);
     try
       Inc(FAddedItems);
       LNode.View := LView;

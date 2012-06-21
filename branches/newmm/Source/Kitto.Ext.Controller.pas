@@ -96,6 +96,8 @@ de-registration gracefully. }
     class property Instance: TKExtControllerFactory read GetInstance;
 
     ///	<summary>Creates a controller for the specified view.</summary>
+    ///	<param name="AOwner">Owner for the created object (only used if
+    ///	AContainer is nil, otherwise the container is the owner).</param>
     ///	<param name="AView">A reference to the view to control. The view
     ///	object's lifetime is managed externally.</param>
     ///	<param name="AContainer">Visual container to which to add the newly
@@ -106,9 +108,9 @@ de-registration gracefully. }
     ///	posted by the controller.</param>
     ///	<param name="ACustomType">Custom controller type, used to override the
     ///	one specified in the view.</param>
-    function CreateController(const AView: TKView; const AContainer: TExtContainer;
-      const AConfig: TEFNode = nil; const AObserver: IEFObserver = nil;
-      const ACustomType: string = ''): IKExtController;
+    function CreateController(const AOwner: TComponent; const AView: TKView;
+      const AContainer: TExtContainer; const AConfig: TEFNode = nil;
+      const AObserver: IEFObserver = nil; const ACustomType: string = ''): IKExtController;
   end;
 
 implementation
@@ -155,11 +157,8 @@ begin
   Result := FInstance;
 end;
 
-type
-  TBreakExtObject = class(TExtObject);
-
-function TKExtControllerFactory.CreateController(const AView: TKView;
-  const AContainer: TExtContainer; const AConfig: TEFNode;
+function TKExtControllerFactory.CreateController(const AOwner: TComponent;
+  const AView: TKView; const AContainer: TExtContainer; const AConfig: TEFNode;
   const AObserver: IEFObserver; const ACustomType: string): IKExtController;
 var
   LClass: TExtObjectClass;
@@ -168,6 +167,7 @@ var
   LType: string;
 begin
   Assert(AView <> nil);
+  Assert((AContainer <> nil) or (AOwner <> nil));
 
   LType := ACustomType;
   if LType = '' then
@@ -181,13 +181,14 @@ begin
 
   LClass := TExtObjectClass(TKExtControllerRegistry.Instance.GetClass(LType));
 
-  LObject := LClass.Create(AContainer);
+  if AContainer <> nil then
+    LObject := LClass.Create(AContainer)
+  else
+    LObject := LClass.Create(AOwner);
 
   if not Supports(LObject, IKExtController, Result) then
     raise EKError.Create('Object does not support IKController.');
 
-  { TODO : fix virtual construction in ExtPascal! }
-  TBreakExtObject(LObject).InitDefaults;
   if Assigned(AContainer) and Result.SupportsContainer then
     LObject.AddTo(AContainer.Items);
 

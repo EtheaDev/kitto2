@@ -24,9 +24,6 @@ type
     procedure InitDefaults; override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
-    destructor Destroy; override;
     property Multiselects : TExtObjectList read FMultiselects write SetFMultiselects;
   end;
 
@@ -84,13 +81,10 @@ type
     procedure InitDefaults; override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     function GetTargetFromEvent : TExtFunction;
     function GetValue : TExtFunction;
     function SetValue(Values : string) : TExtFunction; overload;
     function SetValue(Values : TExtObjectList) : TExtFunction; overload;
-    destructor Destroy; override;
     property AllowBlank : Boolean read FAllowBlank write SetFAllowBlank;
     property AppendOnly : string read FAppendOnly write SetFAppendOnly;
     property DdReorder : Boolean read FDdReorder write SetFDdReorder;
@@ -129,8 +123,6 @@ type
     procedure InitDefaults; override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     function IntrospectorExtend : TExtFunction;
     function SelectBox : TExtFunction;
     function AddEventListener : TExtFunction;
@@ -190,7 +182,6 @@ type
     function WriteConfigFile : TExtFunction;
     function WriteConsoleToClipboard : TExtFunction;
     function WriteConsoleToFile : TExtFunction;
-    destructor Destroy; override;
     property Console : TExtObject read FConsole write SetFConsole;
     property HighlightBgColors : TExtObject read FHighlightBgColors write SetFHighlightBgColors;
     property Runtime : TExtObject read FRuntime write SetFRuntime;
@@ -216,9 +207,6 @@ type
     procedure HandleEvent(const AEvtName: string); override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
-    destructor Destroy; override;
     property ButtonCfg : TExtObject read FButtonCfg write SetFButtonCfg;
     property ButtonOffset : Integer read FButtonOffset write SetFButtonOffset;
     property ButtonOnly : Boolean read FButtonOnly write SetFButtonOnly;
@@ -231,8 +219,6 @@ type
     procedure InitDefaults; override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
   end;
 
   TExtUxFormSelectBox = class(TExtFormComboBox)
@@ -240,16 +226,13 @@ type
     procedure InitDefaults; override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
   end;
 
 implementation
 
 procedure TExtUxFormItemSelector.SetFMultiselects(Value : TExtObjectList); begin
   FMultiselects := Value;
-  Value.DeleteFromGarbage;
-  JSCode('multiselects:' + VarToJSON([Value, false]));
+    JSCode('multiselects:' + VarToJSON([Value, false]));
 end;
 
 function TExtUxFormItemSelector.JSClassName : string; begin
@@ -259,20 +242,6 @@ end;
 procedure TExtUxFormItemSelector.InitDefaults; begin
   inherited;
   FMultiselects := TExtObjectList.Create(Self, 'multiselects');
-end;
-
-{$IFDEF FPC}constructor TExtUxFormItemSelector.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtUxFormItemSelector.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
-end;
-
-destructor TExtUxFormItemSelector.Destroy; begin
-  try
-    FMultiselects.Free;
-  except end;
-  inherited;
 end;
 
 procedure TExtUxFormMultiSelect.SetFAllowBlank(Value : Boolean); begin
@@ -312,8 +281,7 @@ end;
 
 procedure TExtUxFormMultiSelect.SetFDragGroupArray(Value : TExtObjectList); begin
   FDragGroupArray := Value;
-  Value.DeleteFromGarbage;
-  JSCode('dragGroup:' + VarToJSON([Value, false]));
+    JSCode('dragGroup:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtUxFormMultiSelect.SetFDropGroup(Value : string); begin
@@ -323,8 +291,7 @@ end;
 
 procedure TExtUxFormMultiSelect.SetFDropGroupArray(Value : TExtObjectList); begin
   FDropGroupArray := Value;
-  Value.DeleteFromGarbage;
-  JSCode('dropGroup:' + VarToJSON([Value, false]));
+    JSCode('dropGroup:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtUxFormMultiSelect.SetFHeight(Value : Integer); begin
@@ -359,26 +326,22 @@ end;
 
 procedure TExtUxFormMultiSelect.SetFStore(Value : TExtDataStore); begin
   FStore := Value;
-  Value.DeleteFromGarbage;
-  JSCode('store:' + VarToJSON([Value, false]));
+    JSCode('store:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtUxFormMultiSelect.SetFStoreArray(Value : TExtObjectList); begin
   FStoreArray := Value;
-  Value.DeleteFromGarbage;
-  JSCode('store:' + VarToJSON([Value, false]));
+    JSCode('store:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtUxFormMultiSelect.SetFTbar(Value : TExtObject); begin
   FTbar := Value;
-  Value.DeleteFromGarbage;
-  JSCode('tbar:' + VarToJSON([Value, false]));
+    JSCode('tbar:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtUxFormMultiSelect.SetFTbarArray(Value : TExtObjectList); begin
   FTbarArray := Value;
-  Value.DeleteFromGarbage;
-  JSCode('tbar:' + VarToJSON([Value, false]));
+    JSCode('tbar:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtUxFormMultiSelect.SetFValueField(Value : string); begin
@@ -393,8 +356,7 @@ end;
 
 procedure TExtUxFormMultiSelect.SetFView(Value : TExtListView); begin
   FView := Value;
-  Value.DeleteFromGarbage;
-  JSCode('view:' + VarToJSON([Value, false]));
+    JSCode('view:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtUxFormMultiSelect.SetFWidth(Value : Integer); begin
@@ -422,13 +384,6 @@ procedure TExtUxFormMultiSelect.InitDefaults; begin
   FWidth := 100;
 end;
 
-{$IFDEF FPC}constructor TExtUxFormMultiSelect.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtUxFormMultiSelect.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
-end;
-
 function TExtUxFormMultiSelect.GetTargetFromEvent : TExtFunction; begin
   JSCode(JSName + '.getTargetFromEvent();', 'TExtUxFormMultiSelect');
   Result := Self;
@@ -449,35 +404,19 @@ function TExtUxFormMultiSelect.SetValue(Values : TExtObjectList) : TExtFunction;
   Result := Self;
 end;
 
-destructor TExtUxFormMultiSelect.Destroy; begin
-  try
-    FDragGroupArray.Free;
-    FDropGroupArray.Free;
-    FStore.Free;
-    FStoreArray.Free;
-    FTbar.Free;
-    FTbarArray.Free;
-    FView.Free;
-  except end;
-  inherited;
-end;
-
 procedure TExtUxFormDateTime.SetFConsole(Value : TExtObject); begin
   FConsole := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.console=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.console=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtUxFormDateTime.SetFHighlightBgColors(Value : TExtObject); begin
   FHighlightBgColors := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.highlightBgColors=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.highlightBgColors=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtUxFormDateTime.SetFRuntime(Value : TExtObject); begin
   FRuntime := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.runtime=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.runtime=' + VarToJSON([Value, false]) + ';');
 end;
 
 function TExtUxFormDateTime.JSClassName : string; begin
@@ -489,13 +428,6 @@ procedure TExtUxFormDateTime.InitDefaults; begin
   FConsole := TExtObject.CreateInternal(Self, 'console');
   FHighlightBgColors := TExtObject.CreateInternal(Self, 'highlightBgColors');
   FRuntime := TExtObject.CreateInternal(Self, 'runtime');
-end;
-
-{$IFDEF FPC}constructor TExtUxFormDateTime.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtUxFormDateTime.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
 end;
 
 function TExtUxFormDateTime.IntrospectorExtend : TExtFunction; begin
@@ -793,20 +725,10 @@ function TExtUxFormDateTime.WriteConsoleToFile : TExtFunction; begin
   Result := Self;
 end;
 
-destructor TExtUxFormDateTime.Destroy; begin
-  try
-    FConsole.Free;
-    FHighlightBgColors.Free;
-    FRuntime.Free;
-  except end;
-  inherited;
-end;
-
 procedure TExtUxFormFileUploadField.SetFButtonCfg(Value : TExtObject); begin
   FButtonCfg.Free;
   FButtonCfg := Value;
-  Value.DeleteFromGarbage;
-  JSCode('buttonCfg:' + VarToJSON([Value, false]));
+    JSCode('buttonCfg:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtUxFormFileUploadField.SetFButtonOffset(Value : Integer); begin
@@ -843,20 +765,6 @@ procedure TExtUxFormFileUploadField.InitDefaults; begin
   FButtonText := 'Browse...';
 end;
 
-{$IFDEF FPC}constructor TExtUxFormFileUploadField.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtUxFormFileUploadField.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
-end;
-
-destructor TExtUxFormFileUploadField.Destroy; begin
-  try
-    FButtonCfg.Free;
-  except end;
-  inherited;
-end;
-
 procedure TExtUxFormFileUploadField.HandleEvent(const AEvtName : string); begin
   inherited;
   if (AEvtName = 'fileselected') and Assigned(FOnFileselected) then
@@ -871,26 +779,12 @@ procedure TExtUxFormSpinnerField.InitDefaults; begin
   inherited;
 end;
 
-{$IFDEF FPC}constructor TExtUxFormSpinnerField.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtUxFormSpinnerField.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
-end;
-
 function TExtUxFormSelectBox.JSClassName : string; begin
   Result := 'Ext.ux.form.SelectBox';
 end;
 
 procedure TExtUxFormSelectBox.InitDefaults; begin
   inherited;
-end;
-
-{$IFDEF FPC}constructor TExtUxFormSelectBox.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtUxFormSelectBox.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
 end;
 
 end.

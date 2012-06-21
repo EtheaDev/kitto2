@@ -117,7 +117,7 @@ begin
   Closable := False;
   Resizable := False;
 
-  FStatusBar := TKExtStatusBar.Create;
+  FStatusBar := TKExtStatusBar.Create(Self);
   FStatusBar.DefaultText := '';
   FStatusBar.BusyText := _('Logging in...');
 

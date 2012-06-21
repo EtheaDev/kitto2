@@ -59,6 +59,7 @@ unit ExtPascal;
 interface
 
 uses
+  Generics.Collections,
   {$IFNDEF WebServer}FCGIApp{$ELSE}IdExtHTTPServer{$ENDIF},
   Classes, ExtPascalUtils;
 
@@ -112,6 +113,7 @@ type
     procedure ErrorMessage(Msg : string; Action : string = ''); overload;
     procedure ErrorMessage(Msg : string; Action : TExtFunction); overload;
     procedure Alert(const Msg : string); override;
+    procedure Refresh; override;
   published
     procedure HandleEvent; virtual;
   end;
@@ -136,6 +138,9 @@ type
     function FindMethod(Method : TExtProcedure; var PascalName, ObjName : string) : TExtFunction;
     function GetDownloadJS(Method: TExtProcedure; Params: array of const): string;
   protected
+    // Set by some classes with custom constructors that need to call the
+    // inherited Create with a custom string to be passed to CreateVar.
+    FCreateVarArgs: string;
     FJSName    : string;  // Internal JavaScript name generated automatically by <link TExtObject.CreateJSName, CreateJSName>
     FJSCommand : string;
     function ConfigAvailable(JSName : string) : boolean;
@@ -151,29 +156,27 @@ type
     function ParamAsString(ParamName : string) : string;
     function ParamAsTDateTime(ParamName : string) : TDateTime;
     function ParamAsObject(ParamName : string) : TExtObject;
-    procedure CreateVar(JS : string);
-    procedure CreateVarAlt(JS : string);
-    procedure CreateJSName;
+    procedure CreateVar(AJSCode : string); virtual;
+    procedure CreateJSName; virtual;
     procedure InitDefaults; virtual;
     procedure HandleEvent(const AEvtName : string); virtual;
     property JSCommand : string read GetJSCommand write SetJSCommand; // Last commands written in Response
   public
     IsChild : boolean;
-    constructor CreateInternal(AOwner: TExtObject; AAttribute: string);
-    constructor Create(AOwner: TComponent); override;
+    constructor CreateInternal(AOwner: TExtObject; AAttribute: string); virtual;
+    constructor Create(AOwner: TComponent); overload; override;
+    constructor CreateWithConfig(AOwner: TComponent; AConfig: TExtObject = nil);
     constructor CreateSingleton(const AAttribute: string = '');
     constructor CreateAndAddTo(List: TExtObjectList);
 
-    constructor Init(Method : TExtFunction); overload;
-    constructor Init(Command : string); overload;
-    destructor Destroy; override;
+    constructor Init(AOwner: TComponent; AMethod: TExtFunction); overload;
+    constructor Init(AOwner: TComponent; ACommand: string); overload;
 
     procedure AddTo(List: TExtObjectList);
 
     function DestroyJS : TExtFunction; virtual;
     procedure Free(CallDestroyJS : boolean = false);
     procedure Delete;
-    procedure DeleteFromGarbage;
     function JSClassName : string; virtual;
     function JSArray(JSON : string; SquareBracket : boolean = true) : TExtObjectList;
     function JSObject(JSON : string; ObjectConstructor : string = ''; CurlyBracket : boolean = true) : TExtObject;
@@ -205,6 +208,7 @@ type
     function CharsToPixels(Chars : integer) : integer;
     function LinesToPixels(Lines : integer) : integer;
     property JSName : string read FJSName; // JS variable name to this object, it's created automatically when the object is created
+    function FindExtObject(const AJSName: string): TObject;
   end;
   {$M-}
   TExtObjectClass = class of TExtObject;
@@ -218,19 +222,26 @@ type
   // List of TExtObjects. The <link ExtPascal.pas, Wrapper> convey the JavaScript Array type to this class
   TExtObjectList = class(TExtFunction)
   private
-    FObjects : array of TExtObject;
-    Attribute, JSName : string;
-    function GetFObjects(I : integer) : TExtObject;
+    FObjects: TObjectList<TExtObject>;
+    FAttribute: string;
+    FJSName: string;
+    function GetObject(I: Integer): TExtObject;
     function GetOwnerExtObject: TExtObject;
+    function GetCount: Integer;
+    property OwnerExtObject: TExtObject read GetOwnerExtObject;
+  protected
+    procedure CreateVar(AJSCode: string); override;
+    procedure CreateJSName; override;
   public
-    property Objects[I : integer] : TExtObject read GetFObjects; default; // Returns the Ith object in the list, start with 0.
+    procedure AfterConstruction; override;
     constructor Create(const AOwner: TExtObject; const AAttribute: string); reintroduce;
     destructor Destroy; override;
-    property OwnerExtObject: TExtObject read GetOwnerExtObject;
-    procedure Add(Obj : TExtObject);
-    procedure Remove(Obj : TExtObject);
-    function IndexOf(Obj : TExtObject): Integer;
-    function Count : integer;
+
+    property Objects[I: Integer]: TExtObject read GetObject; default;
+    function Add(const AObject: TExtObject): Integer;
+    function Remove(const AObject: TExtObject): Integer;
+    function IndexOf(const AObject: TExtObject): Integer;
+    property Count: Integer read GetCount;
   end;
 
 //(*DOM-IGNORE-BEGIN
@@ -446,11 +457,15 @@ function TExtThread.GetStyle : string; begin
 end;
 
 // Returns a object which will be used to handle the page method. We will call it's published method based on PathInfo.
-function TExtThread.GetUrlHandlerObject: TObject; begin
-  if (Query['Obj'] = '') or (Query['IsEvent'] = '1') then
+function TExtThread.GetUrlHandlerObject: TObject;
+var
+  LObjectName: string;
+begin
+  LObjectName := Query['Obj'];
+  if (LObjectName = '') or (Query['IsEvent'] = '1') then
     Result := inherited GetUrlHandlerObject
   else
-    Result := GarbageFind(Query['Obj']);
+    Result := ObjectCatalog.FindExtObject(LObjectName);
 end;
 
 {
@@ -526,14 +541,20 @@ Basic work:
 procedure TExtThread.JSCode(JS : string; JSClassName : string = ''; JSName : string = ''; Owner : string = '');
 var
   I, J : integer;
+  LObjectName: string;
 begin
   if JS <> '' then begin
     if JS[length(JS)] = ';' then begin // Command
       I := pos('.', JS);
       J := pos(IdentDelim, JS);
-      if (pos('Singleton', JSClassName) = 0) and (J > 0) and (J < I) and (pos(DeclareJS, JS) = 0) and not GarbageExists(copy(JS, J-1, I-J+1)) then
-        raise Exception.Create('Public property or Method: ''' + JSClassName + '.' + copy(JS, I+1, FirstDelimiter('=(', JS, I)-I-1) + ''' requires explicit ''var'' declaration.');
-      I := length(Response) + 1
+      if (Pos('Singleton', JSClassName) = 0) and (J > 0) and (J < I) and (Pos(DeclareJS, JS) = 0) then
+      begin
+        LObjectName := GarbageFixName(Copy(JS, J - 1, I - J + 1));
+        if not Assigned(ObjectCatalog.FindExtObject(LObjectName)) then
+          raise Exception.CreateFmt('%s: Public property or Method: %s.%s requires explicit ''var'' declaration.',
+            [LObjectName, JSClassName, Copy(JS, I + 1, FirstDelimiter('=(', JS, I) - I - 1)]);
+      end;
+      I := Length(Response) + 1
     end
     else  // set attribute
       if JSName = '' then
@@ -560,6 +581,12 @@ relocating the declaration to a previous position in Response.
 @param JSName Current JS Object.
 @param I Position in Response string where the JS command ends.
 }
+procedure TExtThread.Refresh;
+begin
+  inherited;
+  Sequence := 0;
+end;
+
 procedure TExtThread.RelocateVar(JS, JSName : string; I : integer);
 var
   VarName, VarBody : string;
@@ -747,10 +774,11 @@ end;
 // Calls events using Delphi style
 procedure TExtThread.HandleEvent;
 var
-  Obj : TExtObject;
+  Obj: TExtObject;
 begin
-  if Query['IsEvent'] = '1' then begin
-    Obj := TExtObject(GarbageFind(Query['Obj']));
+  if Query['IsEvent'] = '1' then
+  begin
+    Obj := ObjectCatalog.FindExtObject(Query['Obj']) as TExtObject;
     if not Assigned(Obj) then
       OnError('Object not found in session list. It could be timed out, refresh page and try again', 'HandleEvent', '')
     else
@@ -869,7 +897,7 @@ This sequence will be used by Self-translating process imitating a Symbol table 
 }
 function TExtThread.GetSequence : string; begin
   Result := IntToHex(Sequence, 1);
-  inc(Sequence);
+  Inc(Sequence);
 end;
 
 { ExtObjectList }
@@ -884,67 +912,69 @@ begin
   Assert(Assigned(AOwner));
   Assert(AAttribute <> '');
 
+  FAttribute := AAttribute;
   inherited Create(AOwner);
-  Attribute := AAttribute;
-  if CurrentWebSession <> nil then
-    JSName := 'O' + IdentDelim + TExtThread(CurrentWebSession).GetSequence + IdentDelim;
+end;
+
+procedure TExtObjectList.CreateJSName;
+begin
+  FJSName := '';
+  Name := '';
+end;
+
+procedure TExtObjectList.CreateVar(AJSCode: string);
+begin
+  CreateJSName;
 end;
 
 // Frees this list and all objects linked in it
 destructor TExtObjectList.Destroy;
-var
-  I : integer;
 begin
-  for I := high(FObjects) downto 0 do
-    FObjects[I].Free;
-  SetLength(FObjects, 0);
+  FreeAndNil(FObjects);
   inherited;
 end;
 
-{
-Adds a <link TExtObject> in this list and generates the corresponding JS code in the Response.
-@param Obj <link TExtObject> to add in the list
-}
-procedure TExtObjectList.Add(Obj : TExtObject);
+function TExtObjectList.Add(const AObject: TExtObject): Integer;
 var
-  ListAdd, Response, OwnerName : string;
+  LListAdd, LResponse, LOwnerName : string;
 begin
-  if length(FObjects) = 0 then
-    if Owner <> nil then begin
-      if pos('/*' + OwnerExtObject.JSName + '*/', CurrentWebSession.Response) <> 0 then
-        OwnerExtObject.JSCode(Attribute + ':[/*' + JSName + '*/]', OwnerExtObject.JSName)
+  if FObjects.Count = 0 then
+  begin
+    if Owner <> nil then
+    begin
+      if Pos('/*' + OwnerExtObject.JSName + '*/', CurrentWebSession.Response) <> 0 then
+        OwnerExtObject.JSCode(FAttribute + ':[/*' + FJSName + '*/]', OwnerExtObject.JSName);
     end
     else
-      with TExtThread(CurrentWebSession) do begin
-        JSCode(DeclareJS + JSName + '=[/*' + JSName + '*/];');
-        GarbageAdd(JSName, nil);
-      end;
-  SetLength(FObjects, length(FObjects) + 1);
-  FObjects[high(FObjects)] := Obj;
-  Response := CurrentWebSession.Response;
+      TExtThread(CurrentWebSession).JSCode(DeclareJS + FJSName + '=[/*' + FJSName + '*/];');
+  end;
+  Result := FObjects.Add(AObject);
+
+  LResponse := CurrentWebSession.Response;
   if Owner <> nil then
-    OwnerName := OwnerExtObject.JSName
+    LOwnerName := OwnerExtObject.JSName
   else
-    OwnerName := '';
-  if (pos(JSName, Response) = 0) then begin
-    if TExtThread(CurrentWebSession).IsAjax and (OwnerName <> '') then
-      ListAdd := OwnerName + '.add(' + Obj.JSName + ');'
+    LOwnerName := '';
+  if (Pos(FJSName, LResponse) = 0) then
+  begin
+    if TExtThread(CurrentWebSession).IsAjax and (LOwnerName <> '') then
+      LListAdd := LOwnerName + '.add(' + AObject.JSName + ');'
     else
-      ListAdd := '%s';
-    if Attribute = 'items' then // Generalize it more if necessary
-      ListAdd := Format(ListAdd, ['new ' + Obj.JSClassName + '({/*' + Obj.JSName + '*/})'])
+      LListAdd := '%s';
+    if FAttribute = 'items' then // Generalize it more if necessary
+      LListAdd := Format(LListAdd, ['new ' + AObject.JSClassName + '({/*' + AObject.JSName + '*/})'])
     else
-      ListAdd := Format(ListAdd, ['{/*' + Obj.JSName + '*/}']);
+      LListAdd := Format(LListAdd, ['{/*' + AObject.JSName + '*/}']);
   end
   else
-    if pos(Obj.JSName + '.clone', Obj.JSCommand) = 1 then
-      ListAdd := Obj.ExtractJSCommand
+    if Pos(AObject.JSName + '.clone', AObject.JSCommand) = 1 then
+      LListAdd := AObject.ExtractJSCommand
     else
-      ListAdd := Obj.JSName;
-  Obj.DeleteFromGarbage;
-  Obj.JSCode(ListAdd, JSName, OwnerName);
-  if Obj.JSClassName = 'Ext.ux.CodePress' then
-    OwnerExtObject.JSCode(OwnerName + '.on("resize", function(){' + OwnerName + '.items.get(' + IntToStr(high(FObjects)) + ').resize();});');
+      LListAdd := AObject.JSName;
+  AObject.JSCode(LListAdd, FJSName, LOwnerName);
+  if AObject.JSClassName = 'Ext.ux.CodePress' then
+    OwnerExtObject.JSCode(LOwnerName + '.on("resize", function(){' + LOwnerName
+      + '.items.get(' + IntToStr(Result) + ').resize();});');
 end;
 
 {
@@ -952,11 +982,14 @@ Returns the Ith object in the list, starts with 0.
 @param I Position in list
 @return <link TExtObject>
 }
-function TExtObjectList.GetFObjects(I : integer) : TExtObject; begin
-  if (I >= 0) and (I <= high(FObjects)) then
-    Result := FObjects[I]
-  else
-    Result := nil
+function TExtObjectList.GetCount: Integer;
+begin
+  Result := FObjects.Count;
+end;
+
+function TExtObjectList.GetObject(I: Integer): TExtObject;
+begin
+  Result := FObjects[I];
 end;
 
 function TExtObjectList.GetOwnerExtObject: TExtObject;
@@ -964,47 +997,31 @@ begin
   Result := Owner as TExtObject;
 end;
 
-function TExtObjectList.IndexOf(Obj: TExtObject): Integer;
-var
-  I: Integer;
+function TExtObjectList.IndexOf(const AObject: TExtObject): Integer;
 begin
-  Result := -1;
-  for I := Low(FObjects) to High(FObjects) do
-  begin
-    if FObjects[I] = Obj then
-    begin
-      Result := I;
-      Break;
-    end;
-  end;
+  Result := FObjects.IndexOf(AObject);
 end;
 
-procedure TExtObjectList.Remove(Obj: TExtObject);
-var
-  LIndex: Integer;
-  LLength: Integer;
-  I: Integer;
+function TExtObjectList.Remove(const AObject: TExtObject): Integer;
 begin
-  LIndex := IndexOf(Obj);
-  if LIndex >= 0 then
-  begin
-    LLength := Length(FObjects);
-    for I := LIndex + 1 to LLength - 1 do
-      FObjects[I - 1] := FObjects[I];
-    SetLength(FObjects, LLength - 1);
-  end;
+  Result := FObjects.Remove(AObject);
 end;
 
 // Returns the number of Objects in the list
-function TExtObjectList.Count : integer; begin
-  Result := length(FObjects)
+procedure TExtObjectList.AfterConstruction;
+begin
+  inherited;
+  FObjects := TObjectList<TExtObject>.Create(False);
 end;
 
 { ExtObject }
 
 // Set an unique <link TExtObject.JSName, JSName> using <link TExtThread.GetSequence, GetSequence>
-procedure TExtObject.CreateJSName; begin
-  FJSName := 'O' + IdentDelim + TExtThread(CurrentWebSession).GetSequence + IdentDelim;
+procedure TExtObject.CreateJSName;
+begin
+  if FJSName = '' then
+    FJSName := 'O' + IdentDelim + TExtThread(CurrentWebSession).GetSequence + IdentDelim;
+  Name := TExtThread(CurrentWebSession).GarbageFixName(FJSName);
 end;
 
 {
@@ -1055,40 +1072,22 @@ function TExtObject.ConfigAvailable(JSName : string) : boolean; begin
   Result := pos('/*' + JSName + '*/', TExtThread(CurrentWebSession).Response) <> 0;
 end;
 
-{
-Used by <link TExtObject.Create, Create> to initialize the JSName, to <link TFCGIThread.AddToGarbage, add to Garbage Collector>
-and to generate <link TExtObject.JSCode, JS code>
-@param JS JS constructor for the JS <color red>new</color> command
-@see CreateVarAlt
-}
-procedure TExtObject.CreateVar(JS : string); begin
+procedure TExtObject.CreateVar(AJSCode: string);
+begin
   CreateJSName;
-  TExtThread(CurrentWebSession).GarbageAdd(JSName, Self);
-  insert('/*' + JSName + '*/', JS, length(JS)-IfThen(pos('});', JS) <> 0, 2, 1));
-  JSCode(CommandDelim + DeclareJS + JSName + IfThen(JS[1] = '(', '= ', '=new ') + JS);
-  JSCode(JSName + '.nm="' + JSName + '";');
-end;
-
-{
-Alternate create constructor, it is an ExtJS fault
-@see CreateVar
-}
-procedure TExtObject.CreateVarAlt(JS : string); begin
-  CreateJSName;
-  TExtThread(CurrentWebSession).GarbageAdd(JSName, Self);
-  insert('/*' + JSName + '*/', JS, length(JS)-IfThen(pos('});', JS) <> 0, 2, 1));
-  JSCode(CommandDelim + DeclareJS + JSName + '= ' + JS);
+  if FCreateVarArgs <> '' then
+  begin
+    AJSCode := FCreateVarArgs;
+    FCreateVarArgs := '';
+  end;
+  Insert('/*' + JSName + '*/', AJSCode, Length(AJSCode) - IfThen(Pos('});', AJSCode) <> 0, 2, 1));
+  JSCode(CommandDelim + DeclareJS + JSName + IfThen(AJSCode[1] = '(', '= ', '=new ') + AJSCode);
   JSCode(JSName + '.nm="' + JSName + '";');
 end;
 
 // Deletes JS object from Browser memory
 procedure TExtObject.Delete; begin
   JSCode('delete ' + JSName + ';')
-end;
-
-// <link TFCGIThread.DeleteFromGarbage, Removes object from Garbage Collector> if is not in a Garbage Collector call
-procedure TExtObject.DeleteFromGarbage; begin
-  if CurrentWebSession <> nil then TExtThread(CurrentWebSession).GarbageDelete(Self);
 end;
 
 // Calls Ext JS <b>destroy()</b> method if it exists else calls the JS <b>delete</b> command
@@ -1121,12 +1120,6 @@ begin
   Download(Method, []);
 end;
 
-// <link TExtObject.DeleteFromGarbage, Removes object from Garbage Collector> and frees it
-destructor TExtObject.Destroy; begin
-  if CurrentWebSession <> nil then TExtThread(CurrentWebSession).GarbageRemove(Self);
-  inherited;
-end;
-
 {
 Creates a TExtObject and generate corresponding JS code using <link TExtObject.JSCode, Self-translating>
 @param Owner Optional parameter used internally by <link TExtObject.JSObject, JSObject> and <link TExtObject.JSArray, JSArray> only
@@ -1137,6 +1130,7 @@ begin
     AOwner := CurrentWebSession.ObjectCatalog;
   inherited Create(AOwner);
   CreateVar(JSClassName + '({});');
+  InitDefaults;
 end;
 
 {
@@ -1147,10 +1141,10 @@ Used by Parser to build <link TExtObject.InitDefaults, InitDefaults> methods use
 constructor TExtObject.CreateInternal(AOwner : TExtObject; AAttribute : string);
 begin
   Assert(Assigned(AOwner));
-  Assert(AAttribute <> '');
 
   inherited Create(AOwner);
   FJSName := AOwner.JSName + '.' + AAttribute;
+  //InitDefaults;
 end;
 
 // Returns 'Object' that is the default class name for Ext JS objects
@@ -1271,6 +1265,13 @@ begin
   end;
 end;
 
+constructor TExtObject.CreateWithConfig(AOwner: TComponent; AConfig: TExtObject);
+begin
+  if Assigned(AConfig) then
+    FCreateVarArgs := JSClassName + '(' + VarToJSON([AConfig, false]) + ');';
+  Create(AOwner);
+end;
+
 {
 Adds this object in a list.
 If called as constructor creates the object before adds it to the list.
@@ -1278,26 +1279,39 @@ If called as constructor creates the object before adds it to the list.
 }
 constructor TExtObject.CreateAndAddTo(List : TExtObjectList);
 begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
+  Create(List);
   AddTo(List);
 end;
 
 // Inits a JS Object with a <link TExtFunction>
-constructor TExtObject.Init(Method : TExtFunction); begin
+constructor TExtObject.Init(AOwner: TComponent; AMethod: TExtFunction);
+begin
+  Assert(Assigned(AMethod));
+
+  if AOwner = nil then
+    AOwner := CurrentWebSession.ObjectCatalog;
+  inherited Create(AOwner);
   CreateJSName;
-  TExtThread(CurrentWebSession).GarbageAdd(JSName, nil);
-  JSCode(CommandDelim + DeclareJS + JSName + '=' + Method.ExtractJSCommand + ';');
+  JSCode(CommandDelim + DeclareJS + JSName + '=' + AMethod.ExtractJSCommand + ';');
+  InitDefaults;
 end;
 
 // Inits a JS Object with a JS command
-constructor TExtObject.Init(Command : string); begin
+constructor TExtObject.Init(AOwner: TComponent; ACommand: string);
+begin
+  Assert(ACommand <> '');
+
+  if AOwner = nil then
+    AOwner := CurrentWebSession.ObjectCatalog;
+  inherited Create(AOwner);
   CreateJSName;
-  TExtThread(CurrentWebSession).GarbageAdd(JSName, Self);
-  JSCode(CommandDelim + DeclareJS + JSName + '=' + Command + ';');
+  JSCode(CommandDelim + DeclareJS + JSName + '=' + ACommand + ';');
+  InitDefaults;
 end;
 
-procedure TExtObject.InitDefaults; begin end;
+procedure TExtObject.InitDefaults;
+begin
+end;
 
 {
 Generates JS code to declare an inline JS Array.
@@ -2025,10 +2039,31 @@ end;
 
 // Aux function used internaly by ExtToPascal to override HandleEvent method
 function TExtObject.ParamAsObject(ParamName : string) : TExtObject; begin
-  Result := TExtObject(TExtThread(CurrentWebSession).GarbageFind(CurrentWebSession.Query[ParamName]));
+  Result := TExtObject(TExtThread(CurrentWebSession).ObjectCatalog.FindExtObject(CurrentWebSession.Query[ParamName]));
 end;
 
+function TExtObject.FindExtObject(const AJSName: string): TObject;
+var
+  I: Integer;
 begin
+  Assert(AJSName <> '');
+
+  Result := nil;
+  for I := 0 to ComponentCount - 1 do
+  begin
+    if Components[I] is TExtObject then
+    begin
+      if TExtObject(Components[I]).JSName = AJSName then
+        Result := TExtObject(Components[I])
+      else
+        Result := TExtObject(Components[I]).FindExtObject(AJSName);
+      if Assigned(Result) then
+        Break;
+    end;
+  end;
+end;
+
+initialization
   ExtUtilTextMetrics.FJSName := 'TextMetrics';
   {$IF RTLVersion > 21}
   _JSFormatSettings := TFormatSettings.Create;

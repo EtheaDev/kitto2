@@ -145,7 +145,7 @@ begin
   Closable := True;
   Resizable := False;
 
-  FStatusBar := TKExtStatusBar.Create;
+  FStatusBar := TKExtStatusBar.Create(Self);
   FStatusBar.DefaultText := '';
   FStatusBar.BusyText := _('Changing password...');
 

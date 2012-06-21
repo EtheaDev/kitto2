@@ -26,13 +26,11 @@ type
   TExtTreeRootTreeNodeUI = class(TExtFunction)
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
   end;
 
   TExtTreeTreeNodeUI = class(TExtFunction)
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
     function AddClass(ClassName : String) : TExtFunction; overload;
     function AddClass(ClassName : TExtObjectList) : TExtFunction; overload;
     function GetAnchor : TExtFunction;
@@ -50,7 +48,6 @@ type
   TExtTreeTreeFilter = class(TExtFunction)
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
     function Clear : TExtFunction;
     function Filter(Value : String; Attr : String = ''; StartNode : TExtTreeTreeNode = nil) : TExtFunction; overload;
     function Filter(Value : TRegExp; Attr : String = ''; StartNode : TExtTreeTreeNode = nil) : TExtFunction; overload;
@@ -75,7 +72,6 @@ type
     procedure InitDefaults; override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
     property CaseSensitive : Boolean read FCaseSensitive write SetFCaseSensitive;
     property Dir : String read FDir write SetFDir;
     property FolderSort : Boolean read FFolderSort write SetFFolderSort;
@@ -128,10 +124,8 @@ type
     procedure HandleEvent(const AEvtName: string); override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
     function CreateNode(Attr : TExtObject) : TExtFunction;
     function Load(Node : TExtTreeTreeNode; Callback : TExtFunction; Scope : TExtObject) : TExtFunction;
-    destructor Destroy; override;
     property BaseAttrs : TExtObject read FBaseAttrs write SetFBaseAttrs;
     property BaseParams : TExtObject read FBaseParams write SetFBaseParams;
     property ClearOnLoad : Boolean read FClearOnLoad write SetFClearOnLoad;
@@ -161,7 +155,6 @@ type
     procedure HandleEvent(const AEvtName: string); override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
     function ClearSelections : TExtFunction;
     function GetSelectedNodes : TExtFunction;
     function IsSelected(Node : TExtTreeTreeNode) : TExtFunction;
@@ -184,7 +177,6 @@ type
     procedure HandleEvent(const AEvtName: string); override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
     function ClearSelections(Silent : Boolean) : TExtFunction;
     function GetSelectedNode : TExtFunction;
     function IsSelected(Node : TExtTreeTreeNode) : TExtFunction;
@@ -294,8 +286,6 @@ type
     procedure HandleEvent(const AEvtName: string); override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     function Collapse(Deep : Boolean = false; Anim : Boolean = false; Callback : TExtFunction = nil; Scope : TExtObject = nil) : TExtFunction;
     function CollapseChildNodes(Deep : Boolean = false) : TExtFunction;
     function Disable : TExtFunction;
@@ -310,7 +300,6 @@ type
     function SetText(Text : String) : TExtFunction;
     function Toggle : TExtFunction;
     function Unselect(Silent : Boolean = false) : TExtFunction;
-    destructor Destroy; override;
     property AllowChildren : Boolean read FAllowChildren write SetFAllowChildren;
     property AllowDrag : Boolean read FAllowDrag write SetFAllowDrag;
     property AllowDrop : Boolean read FAllowDrop write SetFAllowDrop;
@@ -370,8 +359,6 @@ type
     procedure HandleEvent(const AEvtName: string); override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     function IsLoaded : TExtFunction;
     function IsLoading : TExtFunction;
     function Reload(Callback : TExtFunction; Scope : TExtObject = nil) : TExtFunction;
@@ -401,10 +388,7 @@ type
     procedure InitDefaults; override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     function TriggerEdit(Node : TExtTreeTreeNode) : TExtFunction;
-    destructor Destroy; override;
     property Alignment : String read FAlignment write SetFAlignment;
     property Cls : String read FCls write SetFCls;
     property EditDelay : Integer read FEditDelay write SetFEditDelay;
@@ -434,9 +418,6 @@ type
     procedure InitDefaults; override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
-    destructor Destroy; override;
     property AllowContainerDrop : String read FAllowContainerDrop write SetFAllowContainerDrop;
     property AllowParentInsert : Boolean read FAllowParentInsert write SetFAllowParentInsert;
     property AppendOnly : String read FAppendOnly write SetFAppendOnly;
@@ -483,7 +464,6 @@ type
   TExtTreeTreePanel = class(TExtPanel)
   private
     FAnimate : Boolean;
-    FBubbleEvents : TExtObjectList;
     FContainerScroll : Boolean;
     FDdAppendOnly : Boolean;
     FDdGroup : String;
@@ -541,7 +521,6 @@ type
     FOnStartdrag : TExtTreeTreePanelOnStartdrag;
     FOnTextchange : TExtTreeTreePanelOnTextchange;
     procedure SetFAnimate(Value : Boolean);
-    procedure SetFBubbleEvents(Value : TExtObjectList);
     procedure SetFContainerScroll(Value : Boolean);
     procedure SetFDdAppendOnly(Value : Boolean);
     procedure SetFDdGroup(Value : String);
@@ -603,8 +582,6 @@ type
     procedure HandleEvent(const AEvtName: string); override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     function CollapseAll : TExtFunction;
     function ExpandAll : TExtFunction;
     function ExpandPath(Path : String; Attr : String = ''; Callback : TExtFunction = nil) : TExtFunction;
@@ -616,9 +593,7 @@ type
     function GetTreeEl : TExtFunction;
     function SelectPath(Path : String; Attr : String = ''; Callback : TExtFunction = nil) : TExtFunction;
     function SetRootNode(Node : TExtDataNode) : TExtFunction;
-    destructor Destroy; override;
     property Animate : Boolean read FAnimate write SetFAnimate;
-    property BubbleEvents : TExtObjectList read FBubbleEvents write SetFBubbleEvents;
     property ContainerScroll : Boolean read FContainerScroll write SetFContainerScroll;
     property DdAppendOnly : Boolean read FDdAppendOnly write SetFDdAppendOnly;
     property DdGroup : String read FDdGroup write SetFDdGroup;
@@ -687,9 +662,6 @@ type
     procedure InitDefaults; override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
-    destructor Destroy; override;
     property DdGroup : String read FDdGroup write SetFDdGroup;
     property Tree : TExtTreeTreePanel read FTree write SetFTree;
   end;
@@ -700,13 +672,9 @@ function TExtTreeRootTreeNodeUI.JSClassName : string; begin
   Result := 'Ext.tree.RootTreeNodeUI';
 end;
 
-{$IFDEF FPC}constructor TExtTreeRootTreeNodeUI.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
 function TExtTreeTreeNodeUI.JSClassName : string; begin
   Result := 'Ext.tree.TreeNodeUI';
 end;
-
-{$IFDEF FPC}constructor TExtTreeTreeNodeUI.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
 
 function TExtTreeTreeNodeUI.AddClass(ClassName : String) : TExtFunction; begin
   JSCode(JSName + '.addClass(' + VarToJSON([ClassName]) + ');', 'TExtTreeTreeNodeUI');
@@ -772,8 +740,6 @@ function TExtTreeTreeFilter.JSClassName : string; begin
   Result := 'Ext.tree.TreeFilter';
 end;
 
-{$IFDEF FPC}constructor TExtTreeTreeFilter.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
 function TExtTreeTreeFilter.Clear : TExtFunction; begin
   JSCode(JSName + '.clear();', 'TExtTreeTreeFilter');
   Result := Self;
@@ -834,18 +800,14 @@ procedure TExtTreeTreeSorter.InitDefaults; begin
   FPropertyJS := 'text';
 end;
 
-{$IFDEF FPC}constructor TExtTreeTreeSorter.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
 procedure TExtTreeTreeLoader.SetFBaseAttrs(Value : TExtObject); begin
   FBaseAttrs := Value;
-  Value.DeleteFromGarbage;
-  JSCode('baseAttrs:' + VarToJSON([Value, false]));
+    JSCode('baseAttrs:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtTreeTreeLoader.SetFBaseParams(Value : TExtObject); begin
   FBaseParams := Value;
-  Value.DeleteFromGarbage;
-  JSCode('baseParams:' + VarToJSON([Value, false]));
+    JSCode('baseParams:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtTreeTreeLoader.SetFClearOnLoad(Value : Boolean); begin
@@ -870,8 +832,7 @@ end;
 
 procedure TExtTreeTreeLoader.SetFParamOrder(Value : TExtObjectList); begin
   FParamOrder := Value;
-  Value.DeleteFromGarbage;
-  JSCode('paramOrder:' + VarToJSON([Value, false]));
+    JSCode('paramOrder:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtTreeTreeLoader.SetFParamOrderString(Value : String); begin
@@ -896,8 +857,7 @@ end;
 
 procedure TExtTreeTreeLoader.SetFUiProviders(Value : TExtObject); begin
   FUiProviders := Value;
-  Value.DeleteFromGarbage;
-  JSCode('uiProviders:' + VarToJSON([Value, false]));
+    JSCode('uiProviders:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtTreeTreeLoader.SetFUrl(Value : String); begin
@@ -942,8 +902,6 @@ procedure TExtTreeTreeLoader.InitDefaults; begin
   FUiProviders := TExtObject.CreateInternal(Self, 'uiProviders');
 end;
 
-{$IFDEF FPC}constructor TExtTreeTreeLoader.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
 function TExtTreeTreeLoader.CreateNode(Attr : TExtObject) : TExtFunction; begin
   JSCode(JSName + '.createNode(' + VarToJSON([Attr, false]) + ');', 'TExtTreeTreeLoader');
   Result := Self;
@@ -952,16 +910,6 @@ end;
 function TExtTreeTreeLoader.Load(Node : TExtTreeTreeNode; Callback : TExtFunction; Scope : TExtObject) : TExtFunction; begin
   JSCode(JSName + '.load(' + VarToJSON([Node, false, Callback, true, Scope, false]) + ');', 'TExtTreeTreeLoader');
   Result := Self;
-end;
-
-destructor TExtTreeTreeLoader.Destroy; begin
-  try
-    FBaseAttrs.Free;
-    FBaseParams.Free;
-    FParamOrder.Free;
-    FUiProviders.Free;
-  except end;
-  inherited;
 end;
 
 procedure TExtTreeTreeLoader.HandleEvent(const AEvtName : string); begin
@@ -985,8 +933,6 @@ end;
 function TExtTreeMultiSelectionModel.JSClassName : string; begin
   Result := 'Ext.tree.MultiSelectionModel';
 end;
-
-{$IFDEF FPC}constructor TExtTreeMultiSelectionModel.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
 
 function TExtTreeMultiSelectionModel.ClearSelections : TExtFunction; begin
   JSCode(JSName + '.clearSelections();', 'TExtTreeMultiSelectionModel');
@@ -1038,8 +984,6 @@ end;
 function TExtTreeDefaultSelectionModel.JSClassName : string; begin
   Result := 'Ext.tree.DefaultSelectionModel';
 end;
-
-{$IFDEF FPC}constructor TExtTreeDefaultSelectionModel.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
 
 function TExtTreeDefaultSelectionModel.ClearSelections(Silent : Boolean) : TExtFunction; begin
   JSCode(JSName + '.clearSelections(' + VarToJSON([Silent]) + ');', 'TExtTreeDefaultSelectionModel');
@@ -1210,8 +1154,7 @@ end;
 procedure TExtTreeTreeNode.SetFUi(Value : TExtTreeTreeNodeUI); begin
   FUi.Free;
   FUi := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.ui=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.ui=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtTreeTreeNode.SetFOnBeforechildrenrendered(Value : TExtTreeTreeNodeOnBeforechildrenrendered); begin
@@ -1332,13 +1275,6 @@ procedure TExtTreeTreeNode.InitDefaults; begin
   FUi := TExtTreeTreeNodeUI.CreateInternal(Self, 'ui');
 end;
 
-{$IFDEF FPC}constructor TExtTreeTreeNode.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtTreeTreeNode.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
-end;
-
 function TExtTreeTreeNode.Collapse(Deep : Boolean = false; Anim : Boolean = false; Callback : TExtFunction = nil; Scope : TExtObject = nil) : TExtFunction; begin
   JSCode(JSName + '.collapse(' + VarToJSON([Deep, Anim, Callback, true, Scope, false]) + ');', 'TExtTreeTreeNode');
   Result := Self;
@@ -1347,11 +1283,6 @@ end;
 function TExtTreeTreeNode.CollapseChildNodes(Deep : Boolean = false) : TExtFunction; begin
   JSCode(JSName + '.collapseChildNodes(' + VarToJSON([Deep]) + ');', 'TExtTreeTreeNode');
   Result := Self;
-end;
-
-destructor TExtTreeTreeNode.Destroy; begin
-  FUi.Free;
-  inherited;
 end;
 
 function TExtTreeTreeNode.Disable : TExtFunction; begin
@@ -1446,14 +1377,12 @@ end;
 
 procedure TExtTreeAsyncTreeNode.SetFLoader(Value : TExtTreeTreeLoader); begin
   FLoader := Value;
-  Value.DeleteFromGarbage;
-  JSCode('loader:' + VarToJSON([Value, false]));
+    JSCode('loader:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtTreeAsyncTreeNode.SetFLoader_(Value : TExtTreeTreeLoader); begin
   FLoader_ := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.loader=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.loader=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtTreeAsyncTreeNode.SetFOnBeforeload(Value : TExtTreeAsyncTreeNodeOnBeforeload); begin
@@ -1480,13 +1409,6 @@ procedure TExtTreeAsyncTreeNode.InitDefaults; begin
   inherited;
   FLoader := TExtTreeTreeLoader.CreateInternal(Self, 'loader');
   FLoader_ := TExtTreeTreeLoader.CreateInternal(Self, 'loader');
-end;
-
-{$IFDEF FPC}constructor TExtTreeAsyncTreeNode.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtTreeAsyncTreeNode.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
 end;
 
 function TExtTreeAsyncTreeNode.IsLoaded : TExtFunction; begin
@@ -1544,8 +1466,7 @@ end;
 
 procedure TExtTreeTreeEditor.SetFEditNode(Value : TExtTreeTreeNode); begin
   FEditNode := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.editNode=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.editNode=' + VarToJSON([Value, false]) + ';');
 end;
 
 function TExtTreeTreeEditor.JSClassName : string; begin
@@ -1560,23 +1481,9 @@ procedure TExtTreeTreeEditor.InitDefaults; begin
   FEditNode := TExtTreeTreeNode.CreateInternal(Self, 'editNode');
 end;
 
-{$IFDEF FPC}constructor TExtTreeTreeEditor.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtTreeTreeEditor.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
-end;
-
 function TExtTreeTreeEditor.TriggerEdit(Node : TExtTreeTreeNode) : TExtFunction; begin
   JSCode(JSName + '.triggerEdit(' + VarToJSON([Node, false]) + ');', 'TExtTreeTreeEditor');
   Result := Self;
-end;
-
-destructor TExtTreeTreeEditor.Destroy; begin
-  try
-    FEditNode.Free;
-  except end;
-  inherited;
 end;
 
 procedure TExtTreeTreeDropZone.SetFAllowContainerDrop(Value : String); begin
@@ -1606,14 +1513,12 @@ end;
 
 procedure TExtTreeTreeDropZone.SetFDragOverData(Value : TExtTreeTreePanel); begin
   FDragOverData := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.dragOverData=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.dragOverData=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtTreeTreeDropZone.SetFTree(Value : TExtTreeTreePanel); begin
   FTree := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.tree=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.tree=' + VarToJSON([Value, false]) + ';');
 end;
 
 function TExtTreeTreeDropZone.JSClassName : string; begin
@@ -1627,30 +1532,9 @@ procedure TExtTreeTreeDropZone.InitDefaults; begin
   FTree := TExtTreeTreePanel.CreateInternal(Self, 'tree');
 end;
 
-{$IFDEF FPC}constructor TExtTreeTreeDropZone.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtTreeTreeDropZone.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
-end;
-
-destructor TExtTreeTreeDropZone.Destroy; begin
-  try
-    FDragOverData.Free;
-    FTree.Free;
-  except end;
-  inherited;
-end;
-
 procedure TExtTreeTreePanel.SetFAnimate(Value : Boolean); begin
   FAnimate := Value;
   JSCode('animate:' + VarToJSON([Value]));
-end;
-
-procedure TExtTreeTreePanel.SetFBubbleEvents(Value : TExtObjectList); begin
-  FBubbleEvents := Value;
-  Value.DeleteFromGarbage;
-  JSCode('bubbleEvents:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtTreeTreePanel.SetFContainerScroll(Value : Boolean); begin
@@ -1675,14 +1559,12 @@ end;
 
 procedure TExtTreeTreePanel.SetFDragConfig(Value : TExtObject); begin
   FDragConfig := Value;
-  Value.DeleteFromGarbage;
-  JSCode('dragConfig:' + VarToJSON([Value, false]));
+    JSCode('dragConfig:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtTreeTreePanel.SetFDropConfig(Value : TExtObject); begin
   FDropConfig := Value;
-  Value.DeleteFromGarbage;
-  JSCode('dropConfig:' + VarToJSON([Value, false]));
+    JSCode('dropConfig:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtTreeTreePanel.SetFEnableDD(Value : Boolean); begin
@@ -1717,8 +1599,7 @@ end;
 
 procedure TExtTreeTreePanel.SetFLoader(Value : TExtTreeTreeLoader); begin
   FLoader := Value;
-  Value.DeleteFromGarbage;
-  JSCode('loader:' + VarToJSON([Value, false]));
+    JSCode('loader:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtTreeTreePanel.SetFPathSeparator(Value : String); begin
@@ -1734,8 +1615,7 @@ end;
 procedure TExtTreeTreePanel.SetFRoot(Value : TExtTreeTreeNode); begin
   FRoot.Free;
   FRoot := Value;
-  Value.DeleteFromGarbage;
-  JSCode('root:' + VarToJSON([Value, false]));
+    JSCode('root:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtTreeTreePanel.SetFRootVisible(Value : Boolean); begin
@@ -1745,8 +1625,7 @@ end;
 
 procedure TExtTreeTreePanel.SetFSelModel(Value : TExtObject); begin
   FSelModel := Value;
-  Value.DeleteFromGarbage;
-  JSCode('selModel:' + VarToJSON([Value, false]));
+    JSCode('selModel:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtTreeTreePanel.SetFSingleExpand(Value : Boolean); begin
@@ -1766,20 +1645,17 @@ end;
 
 procedure TExtTreeTreePanel.SetFDragZone(Value : TExtTreeTreeDragZone); begin
   FDragZone := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.dragZone=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.dragZone=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtTreeTreePanel.SetFDropZone(Value : TExtTreeTreeDropZone); begin
   FDropZone := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.dropZone=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.dropZone=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtTreeTreePanel.SetFRoot_(Value : TExtTreeTreeNode); begin
   FRoot_ := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.root=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.root=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtTreeTreePanel.SetFOnAppend(Value : TExtTreeTreePanelOnAppend); begin
@@ -2044,7 +1920,6 @@ end;
 
 procedure TExtTreeTreePanel.InitDefaults; begin
   inherited;
-  FBubbleEvents := TExtObjectList.Create(Self, 'bubbleEvents');
   FDragConfig := TExtObject.CreateInternal(Self, 'dragConfig');
   FDropConfig := TExtObject.CreateInternal(Self, 'dropConfig');
   FHlColor := 'C3DAF9';
@@ -2058,13 +1933,6 @@ procedure TExtTreeTreePanel.InitDefaults; begin
   FDragZone := TExtTreeTreeDragZone.CreateInternal(Self, 'dragZone');
   FDropZone := TExtTreeTreeDropZone.CreateInternal(Self, 'dropZone');
   FRoot_ := TExtTreeTreeNode.CreateInternal(Self, 'root');
-end;
-
-{$IFDEF FPC}constructor TExtTreeTreePanel.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtTreeTreePanel.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
 end;
 
 function TExtTreeTreePanel.CollapseAll : TExtFunction; begin
@@ -2120,21 +1988,6 @@ end;
 function TExtTreeTreePanel.SetRootNode(Node : TExtDataNode) : TExtFunction; begin
   JSCode(JSName + '.setRootNode(' + VarToJSON([Node, false]) + ');', 'TExtTreeTreePanel');
   Result := Self;
-end;
-
-destructor TExtTreeTreePanel.Destroy; begin
-  try
-    FBubbleEvents.Free;
-    FDragConfig.Free;
-    FDropConfig.Free;
-    FLoader.Free;
-    FRoot.Free;
-    FSelModel.Free;
-    FDragZone.Free;
-    FDropZone.Free;
-    FRoot_.Free;
-  except end;
-  inherited;
 end;
 
 procedure TExtTreeTreePanel.HandleEvent(const AEvtName : string); begin
@@ -2212,8 +2065,7 @@ end;
 
 procedure TExtTreeTreeDragZone.SetFTree(Value : TExtTreeTreePanel); begin
   FTree := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.tree=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.tree=' + VarToJSON([Value, false]) + ';');
 end;
 
 function TExtTreeTreeDragZone.JSClassName : string; begin
@@ -2224,20 +2076,6 @@ procedure TExtTreeTreeDragZone.InitDefaults; begin
   inherited;
   FDdGroup := 'TreeDD';
   FTree := TExtTreeTreePanel.CreateInternal(Self, 'tree');
-end;
-
-{$IFDEF FPC}constructor TExtTreeTreeDragZone.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtTreeTreeDragZone.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
-end;
-
-destructor TExtTreeTreeDragZone.Destroy; begin
-  try
-    FTree.Free;
-  except end;
-  inherited;
 end;
 
 end.

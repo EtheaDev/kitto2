@@ -91,7 +91,7 @@ begin
     LSubView := Session.Config.Views.FindViewByNode(Config.FindNode(GetRegionViewNodeName(ARegion)));
   if LSubView <> nil then
   begin
-    FControllers[ARegion] := TKExtControllerFactory.Instance.CreateController(LSubView, Self, LControllerConfig).AsObject;
+    FControllers[ARegion] := TKExtControllerFactory.Instance.CreateController(Self, LSubView, Self, LControllerConfig).AsObject;
     Assert(FControllers[ARegion] is TExtBoxComponent);
     TExtBoxComponent(FControllers[ARegion]).Region := ARegion;
     if Supports(FControllers[ARegion], IKExtController, LIntf) then

@@ -79,7 +79,6 @@ type
     class function CONNECT_FAILURE : String;
     class function LOAD_FAILURE : String;
     class function SERVER_INVALID : String;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
     property Failure : TExtFunction read FFailure write SetFFailure;
     property Method : String read FMethod write SetFMethod;
     property Params : String read FParams write SetFParams;
@@ -115,7 +114,6 @@ type
     procedure SetFUrlText(Value : String);
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
     function Alpha(Value : String) : TExtFunction;
     function Alphanum(Value : String) : TExtFunction;
     function Email(Value : String) : TExtFunction;
@@ -179,8 +177,6 @@ type
     procedure HandleEvent(const AEvtName: string); override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     function Add(Fields : TExtObjectList = nil) : TExtFunction;
     function ApplyIfToFields(Values : TExtObject) : TExtFunction;
     function ApplyToFields(Values : TExtObject) : TExtFunction;
@@ -205,7 +201,6 @@ type
     function SetValues(Values : TExtObject) : TExtFunction; overload;
     function Submit(Options : TExtObject) : TExtFunction;
     function UpdateRecord(RecordJS : TExtDataRecord) : TExtFunction;
-    destructor Destroy; override;
     property Api : TExtObject read FApi write SetFApi;
     property BaseParams : TExtObject read FBaseParams write SetFBaseParams;
     property ErrorReader : TExtDataDataReader read FErrorReader write SetFErrorReader;
@@ -259,7 +254,6 @@ type
     procedure SetFFormConfig(Value : TExtObject);
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
     function Show(DataRecord : TExtDataRecord; AnimEl : TExtElement = nil) : TExtFunction;
     property CancelIconCls : String read FCancelIconCls write SetFCancelIconCls;
     property CancelText : String read FCancelText write SetFCancelText;
@@ -285,7 +279,6 @@ type
     procedure SetFErrorReader(Value : TExtDataDataReader);
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
     property ClientValidation : Boolean read FClientValidation write SetFClientValidation;
     property ErrorReader : TExtDataDataReader read FErrorReader write SetFErrorReader;
   end;
@@ -293,19 +286,16 @@ type
   TExtFormActionLoad = class(TExtFormAction)
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
   end;
 
   TExtFormActionDirectLoad = class(TExtFormActionLoad)
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
   end;
 
   TExtFormActionDirectSubmit = class(TExtFormActionSubmit)
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
   end;
 
   // Procedural types for events TExtFormField
@@ -386,8 +376,6 @@ type
     procedure HandleEvent(const AEvtName: string); override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     function ClearInvalid : TExtFunction;
     function GetActiveError : TExtFunction;
     function GetErrors : TExtFunction;
@@ -406,7 +394,6 @@ type
     function UnsetActiveError(SuppressEvent : Boolean) : TExtFunction;
     function Validate : TExtFunction;
     function ValidateValue(The : String) : TExtFunction;
-    destructor Destroy; override;
     property AutoCreate : String read FAutoCreate write SetFAutoCreate;
     property AutoCreateObject : TExtObject read FAutoCreateObject write SetFAutoCreateObject;
     property Cls : String read FCls write SetFCls;
@@ -451,8 +438,6 @@ type
     procedure InitDefaults; override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     function SetText(Text : String; Encode : Boolean = false) : TExtFunction;
     property ForId : String read FForId write SetFForId;
     property Html : String read FHtml write SetFHtml;
@@ -464,8 +449,6 @@ type
     procedure InitDefaults; override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
   end;
 
   // Procedural types for events TExtFormHtmlEditor
@@ -524,8 +507,6 @@ type
     procedure HandleEvent(const AEvtName: string); override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     function CleanHtml(Html : String) : TExtFunction;
     function ExecCmd(Cmd : String; Value : String = '') : TExtFunction; overload;
     function ExecCmd(Cmd : String; Value : Boolean) : TExtFunction; overload;
@@ -538,7 +519,6 @@ type
     function SyncValue : TExtFunction;
     function ToggleSourceEdit(SourceEdit : Boolean = false) : TExtFunction;
     function UpdateToolbar : TExtFunction;
-    destructor Destroy; override;
     property CreateLinkText : String read FCreateLinkText write SetFCreateLinkText;
     property DefaultLinkValue : String read FDefaultLinkValue write SetFDefaultLinkValue;
     property DefaultValue : String read FDefaultValue write SetFDefaultValue;
@@ -589,7 +569,6 @@ type
     procedure SetFWidth(Value : Integer);
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
     function Edit(Obj : TExtObject; Language : String) : TExtFunction;
     function SetCode(Code : String) : TExtFunction;
     function GetCode : TExtFunction;
@@ -678,8 +657,6 @@ type
     procedure HandleEvent(const AEvtName: string); override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     function AutoSize : TExtFunction;
     function GetErrors(Value : String) : TExtFunction;
     function Reset : TExtFunction;
@@ -721,8 +698,6 @@ type
     procedure InitDefaults; override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     function GetValue : TExtFunction;
     function SetMaxValue(V : Integer) : TExtFunction;
     function SetMinValue(V : Integer) : TExtFunction;
@@ -741,8 +716,6 @@ type
     procedure InitDefaults; override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     property FieldClass : String read FFieldClass write SetFFieldClass;
     property HtmlEncode : Boolean read FHtmlEncode write SetFHtmlEncode;
   end;
@@ -767,8 +740,6 @@ type
     procedure InitDefaults; override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     function BuildCombinedErrorMessage(Errors : TExtObjectList) : TExtFunction;
     function BuildLabel(Segments : TExtObjectList) : TExtFunction;
     function ClearInvalidChildren : TExtFunction;
@@ -778,7 +749,6 @@ type
     function Reset : TExtFunction;
     function SortErrors : TExtFunction;
     function ValidateValue : TExtFunction;
-    destructor Destroy; override;
     property Y : Integer read FY write SetFY;
     property DefaultMargins : String read FDefaultMargins write SetFDefaultMargins;
     property FieldErrors : TExtObjectList read FFieldErrors write SetFFieldErrors;
@@ -820,12 +790,9 @@ type
     procedure HandleEvent(const AEvtName: string); override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     function GetValue : TExtFunction;
     function SetValue(Checked : Boolean) : TExtFunction; overload;
     function SetValue(Checked : String) : TExtFunction; overload;
-    destructor Destroy; override;
     property AutoCreate : String read FAutoCreate write SetFAutoCreate;
     property AutoCreateObject : TExtObject read FAutoCreateObject write SetFAutoCreateObject;
     property BoxLabel : String read FBoxLabel write SetFBoxLabel;
@@ -865,12 +832,9 @@ type
     procedure HandleEvent(const AEvtName: string); override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     function GetErrors : TExtFunction;
     function GetValue : TExtFunction;
     function SetValue(Id : String; Value : Boolean = false) : TExtFunction;
-    destructor Destroy; override;
     property AllowBlank : Boolean read FAllowBlank write SetFAllowBlank;
     property BlankText : String read FBlankText write SetFBlankText;
     property Columns : String read FColumns write SetFColumns;
@@ -897,10 +861,7 @@ type
     procedure InitDefaults; override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     function AutoSize : TExtFunction;
-    destructor Destroy; override;
     property AutoCreate : String read FAutoCreate write SetFAutoCreate;
     property AutoCreateObject : TExtObject read FAutoCreateObject write SetFAutoCreateObject;
     property GrowMax : Integer read FGrowMax write SetFGrowMax;
@@ -930,12 +891,9 @@ type
     procedure InitDefaults; override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     function OnTriggerClick(E : TEventObject) : TExtFunction;
     function SetEditable(Value : Boolean) : TExtFunction;
     function SetReadOnly(Value : Boolean) : TExtFunction;
-    destructor Destroy; override;
     property AutoCreate : String read FAutoCreate write SetFAutoCreate;
     property AutoCreateObject : TExtObject read FAutoCreateObject write SetFAutoCreateObject;
     property Editable : Boolean read FEditable write SetFEditable;
@@ -974,8 +932,6 @@ type
     procedure InitDefaults; override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     function GetErrors(Value : String) : TExtFunction;
     function SetMaxValue(Value : Integer) : TExtFunction;
     function SetMinValue(Value : Integer) : TExtFunction;
@@ -1014,8 +970,6 @@ type
     procedure InitDefaults; override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     function OnCheckClick : TExtFunction;
     property AnimCollapse : Boolean read FAnimCollapse write SetFAnimCollapse;
     property BaseCls : String read FBaseCls write SetFBaseCls;
@@ -1069,13 +1023,10 @@ type
     procedure HandleEvent(const AEvtName: string); override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     function GetForm : TExtFunction;
     function Load(Options : TExtObject) : TExtFunction;
     function StartMonitoring : TExtFunction;
     function StopMonitoring : TExtFunction;
-    destructor Destroy; override;
     property Buttons : TExtObjectList read FButtons write SetFButtons;
     property Form : TExtFormBasicForm read FForm;
     property FormId : String read FFormId write SetFFormId;
@@ -1111,12 +1062,9 @@ type
     procedure HandleEvent(const AEvtName: string); override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     function GetValue : TExtFunction;
     function OnSetValue(Id : String; Value : Boolean) : TExtFunction; overload;
     function OnSetValue(Id : TExtFormRadio; Value : Boolean) : TExtFunction; overload;
-    destructor Destroy; override;
     property AllowBlank : Boolean read FAllowBlank write SetFAllowBlank;
     property BlankText : String read FBlankText write SetFBlankText;
     property Items : TExtObjectList read FItems write SetFItems;
@@ -1128,8 +1076,6 @@ type
     procedure InitDefaults; override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     function GetGroupValue : TExtFunction;
     function SetValue(Value : String) : TExtFunction; overload;
     function SetValue(Value : Boolean) : TExtFunction; overload;
@@ -1181,8 +1127,6 @@ type
     procedure HandleEvent(const AEvtName: string); override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     function GetErrors(Value : String) : TExtFunction;
     function GetValue : TExtFunction;
     function SetDisabledDates(DisabledDates : TExtObjectList) : TExtFunction;
@@ -1191,7 +1135,6 @@ type
     function SetMinValue(Value : TDateTime) : TExtFunction;
     function SetValue(Date : String) : TExtFunction; overload;
     function SetValue(Date : TDateTime) : TExtFunction; overload;
-    destructor Destroy; override;
     property AltFormats : String read FAltFormats write SetFAltFormats;
     property AutoCreate : String read FAutoCreate write SetFAutoCreate;
     property AutoCreateObject : TExtObject read FAutoCreateObject write SetFAutoCreateObject;
@@ -1334,8 +1277,6 @@ type
     procedure HandleEvent(const AEvtName: string); override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create(const AForcedJSName: string = '');
     function ClearValue : TExtFunction;
     function Collapse : TExtFunction;
     function DoQuery(Query : String; ForceAll : Boolean) : TExtFunction;
@@ -1347,7 +1288,6 @@ type
     function Select(Index : Integer; ScrollIntoView : Boolean) : TExtFunction;
     function SelectByValue(Value : String; ScrollIntoView : Boolean) : TExtFunction;
     function SetValue(Value : String) : TExtFunction;
-    destructor Destroy; override;
     property AllQuery : String read FAllQuery write SetFAllQuery;
     property AutoCreate : String read FAutoCreate write SetFAutoCreate;
     property AutoCreateObject : TExtObject read FAutoCreateObject write SetFAutoCreateObject;
@@ -1416,8 +1356,6 @@ type
     procedure InitDefaults; override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     function OnTrigger1Click(E : TEventObject) : TExtFunction;
     function OnTrigger2Click(E : TEventObject) : TExtFunction;
     property Trigger1Class : String read FTrigger1Class write SetFTrigger1Class;
@@ -1451,8 +1389,6 @@ type
     procedure InitDefaults; override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     function SetMaxValue(Value : TDateTime) : TExtFunction; overload;
     function SetMaxValue(Value : String) : TExtFunction; overload;
     function SetMinValue(Value : TDateTime) : TExtFunction; overload;
@@ -1475,7 +1411,6 @@ type
     procedure SetFSeparator(Value : String);
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
     property Separator : String read FSeparator write SetFSeparator;
   end;
 
@@ -1506,8 +1441,7 @@ end;
 
 procedure TExtFormAction.SetFScope(Value : TExtObject); begin
   FScope := Value;
-  Value.DeleteFromGarbage;
-  JSCode('scope:' + VarToJSON([Value, false]));
+    JSCode('scope:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtFormAction.SetFSubmitEmptyText(Value : Boolean); begin
@@ -1547,14 +1481,12 @@ end;
 
 procedure TExtFormAction.SetFResponse(Value : TExtObject); begin
   FResponse := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.response=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.response=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtFormAction.SetFResultJS(Value : TExtObject); begin
   FResultJS := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.resultJS=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.resultJS=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtFormAction.SetFTypeJS(Value : String); begin
@@ -1581,8 +1513,6 @@ end;
 class function TExtFormAction.SERVER_INVALID : String; begin
   Result := ''
 end;
-
-{$IFDEF FPC}constructor TExtFormAction.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
 
 procedure TExtFormVTypesSingleton.SetFAlphaMask(Value : TRegExp); begin
   FAlphaMask := Value;
@@ -1623,8 +1553,6 @@ function TExtFormVTypesSingleton.JSClassName : string; begin
   Result := 'Ext.form.VTypes';
 end;
 
-{$IFDEF FPC}constructor TExtFormVTypesSingleton.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
 function TExtFormVTypesSingleton.Alpha(Value : String) : TExtFunction; begin
   JSCode(JSName + '.alpha(' + VarToJSON([Value]) + ');', 'TExtFormVTypesSingleton');
   Result := Self;
@@ -1647,20 +1575,17 @@ end;
 
 procedure TExtFormBasicForm.SetFApi(Value : TExtObject); begin
   FApi := Value;
-  Value.DeleteFromGarbage;
-  JSCode('api:' + VarToJSON([Value, false]));
+    JSCode('api:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtFormBasicForm.SetFBaseParams(Value : TExtObject); begin
   FBaseParams := Value;
-  Value.DeleteFromGarbage;
-  JSCode('baseParams:' + VarToJSON([Value, false]));
+    JSCode('baseParams:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtFormBasicForm.SetFErrorReader(Value : TExtDataDataReader); begin
   FErrorReader := Value;
-  Value.DeleteFromGarbage;
-  JSCode('errorReader:' + VarToJSON([Value, false]));
+    JSCode('errorReader:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtFormBasicForm.SetFFileUpload(Value : Boolean); begin
@@ -1675,8 +1600,7 @@ end;
 
 procedure TExtFormBasicForm.SetFParamOrder(Value : TExtObjectList); begin
   FParamOrder := Value;
-  Value.DeleteFromGarbage;
-  JSCode('paramOrder:' + VarToJSON([Value, false]));
+    JSCode('paramOrder:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtFormBasicForm.SetFParamOrderString(Value : String); begin
@@ -1691,8 +1615,7 @@ end;
 
 procedure TExtFormBasicForm.SetFReader(Value : TExtDataDataReader); begin
   FReader := Value;
-  Value.DeleteFromGarbage;
-  JSCode('reader:' + VarToJSON([Value, false]));
+    JSCode('reader:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtFormBasicForm.SetFStandardSubmit(Value : Boolean); begin
@@ -1722,8 +1645,7 @@ end;
 
 procedure TExtFormBasicForm.SetFItems(Value : TExtObjectList); begin
   FItems := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.items=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.items=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtFormBasicForm.SetFWaitMsgTarget(Value : String); begin
@@ -1768,13 +1690,6 @@ procedure TExtFormBasicForm.InitDefaults; begin
   FReader := TExtDataDataReader.CreateInternal(Self, 'reader');
   FWaitTitle := 'Please Wait...';
   FItems := TExtObjectList.Create(Self, 'items');
-end;
-
-{$IFDEF FPC}constructor TExtFormBasicForm.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtFormBasicForm.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
 end;
 
 function TExtFormBasicForm.Add(Fields : TExtObjectList = nil) : TExtFunction; begin
@@ -1897,18 +1812,6 @@ function TExtFormBasicForm.UpdateRecord(RecordJS : TExtDataRecord) : TExtFunctio
   Result := Self;
 end;
 
-destructor TExtFormBasicForm.Destroy; begin
-  try
-    FApi.Free;
-    FBaseParams.Free;
-    FErrorReader.Free;
-    FParamOrder.Free;
-    FReader.Free;
-    FItems.Free;
-  except end;
-  inherited;
-end;
-
 procedure TExtFormBasicForm.HandleEvent(const AEvtName : string); begin
   inherited;
   if (AEvtName = 'actioncomplete') and Assigned(FOnActioncomplete) then
@@ -1971,33 +1874,27 @@ end;
 
 procedure TExtUxGridRecordForm.SetFIgnoreFields(Value : TExtObject); begin
   FIgnoreFields := Value;
-  Value.DeleteFromGarbage;
-  JSCode('ignoreFields:' + VarToJSON([Value, false]));
+    JSCode('ignoreFields:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtUxGridRecordForm.SetFReadonlyFields(Value : TExtObject); begin
   FReadonlyFields := Value;
-  Value.DeleteFromGarbage;
-  JSCode('readonlyFields:' + VarToJSON([Value, false]));
+    JSCode('readonlyFields:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtUxGridRecordForm.SetFDisabledFields(Value : TExtObject); begin
   FDisabledFields := Value;
-  Value.DeleteFromGarbage;
-  JSCode('disabledFields:' + VarToJSON([Value, false]));
+    JSCode('disabledFields:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtUxGridRecordForm.SetFFormConfig(Value : TExtObject); begin
   FFormConfig := Value;
-  Value.DeleteFromGarbage;
-  JSCode('formConfig:' + VarToJSON([Value, false]));
+    JSCode('formConfig:' + VarToJSON([Value, false]));
 end;
 
 function TExtUxGridRecordForm.JSClassName : string; begin
   Result := 'Ext.ux.grid.RecordForm';
 end;
-
-{$IFDEF FPC}constructor TExtUxGridRecordForm.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
 
 function TExtUxGridRecordForm.Show(DataRecord : TExtDataRecord; AnimEl : TExtElement = nil) : TExtFunction; begin
   JSCode(JSName + '.show(' + VarToJSON([DataRecord, false, AnimEl, false]) + ');', 'TExtUxGridRecordForm');
@@ -2011,33 +1908,24 @@ end;
 
 procedure TExtFormActionSubmit.SetFErrorReader(Value : TExtDataDataReader); begin
   FErrorReader := Value;
-  Value.DeleteFromGarbage;
-  JSCode('errorReader:' + VarToJSON([Value, false]));
+    JSCode('errorReader:' + VarToJSON([Value, false]));
 end;
 
 function TExtFormActionSubmit.JSClassName : string; begin
   Result := '';
 end;
 
-{$IFDEF FPC}constructor TExtFormActionSubmit.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
 function TExtFormActionLoad.JSClassName : string; begin
   Result := '';
 end;
-
-{$IFDEF FPC}constructor TExtFormActionLoad.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
 
 function TExtFormActionDirectLoad.JSClassName : string; begin
   Result := '';
 end;
 
-{$IFDEF FPC}constructor TExtFormActionDirectLoad.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
 function TExtFormActionDirectSubmit.JSClassName : string; begin
   Result := '';
 end;
-
-{$IFDEF FPC}constructor TExtFormActionDirectSubmit.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
 
 procedure TExtFormField.SetFAutoCreate(Value : String); begin
   FAutoCreate := Value;
@@ -2046,8 +1934,7 @@ end;
 
 procedure TExtFormField.SetFAutoCreateObject(Value : TExtObject); begin
   FAutoCreateObject := Value;
-  Value.DeleteFromGarbage;
-  JSCode('autoCreate:' + VarToJSON([Value, false]));
+    JSCode('autoCreate:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtFormField.SetFCls(Value : String); begin
@@ -2153,8 +2040,7 @@ end;
 
 procedure TExtFormField.SetFLabelJS(Value : TExtElement); begin
   FLabelJS := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.labelJS=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.labelJS=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtFormField.SetFOriginalValue(Value : String); begin
@@ -2231,13 +2117,6 @@ procedure TExtFormField.InitDefaults; begin
   FValidationDelay := 250;
   FValidationEvent := 'keyup';
   FLabelJS := TExtElement.CreateInternal(Self, 'labelJS');
-end;
-
-{$IFDEF FPC}constructor TExtFormField.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtFormField.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
 end;
 
 function TExtFormField.ClearInvalid : TExtFunction; begin
@@ -2330,14 +2209,6 @@ function TExtFormField.ValidateValue(The : String) : TExtFunction; begin
   Result := Self;
 end;
 
-destructor TExtFormField.Destroy; begin
-  try
-    FAutoCreateObject.Free;
-    FLabelJS.Free;
-  except end;
-  inherited;
-end;
-
 procedure TExtFormField.HandleEvent(const AEvtName : string); begin
   inherited;
   if (AEvtName = 'blur') and Assigned(FOnBlur) then
@@ -2380,13 +2251,6 @@ procedure TExtFormLabel.InitDefaults; begin
   inherited;
 end;
 
-{$IFDEF FPC}constructor TExtFormLabel.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtFormLabel.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
-end;
-
 function TExtFormLabel.SetText(Text : String; Encode : Boolean = false) : TExtFunction; begin
   JSCode(JSName + '.setText(' + VarToJSON([Text, Encode]) + ');', 'TExtFormLabel');
   Result := Self;
@@ -2398,13 +2262,6 @@ end;
 
 procedure TExtFormHidden.InitDefaults; begin
   inherited;
-end;
-
-{$IFDEF FPC}constructor TExtFormHidden.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtFormHidden.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
 end;
 
 procedure TExtFormHtmlEditor.SetFCreateLinkText(Value : String); begin
@@ -2464,14 +2321,12 @@ end;
 
 procedure TExtFormHtmlEditor.SetFFontFamilies(Value : TExtObjectList); begin
   FFontFamilies := Value;
-  Value.DeleteFromGarbage;
-  JSCode('fontFamilies:' + VarToJSON([Value, false]));
+    JSCode('fontFamilies:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtFormHtmlEditor.SetFButtonTips(Value : TExtObject); begin
   FButtonTips := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.buttonTips=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.buttonTips=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtFormHtmlEditor.SetFOnActivate(Value : TExtFormHtmlEditorOnActivate); begin
@@ -2548,13 +2403,6 @@ procedure TExtFormHtmlEditor.InitDefaults; begin
   FButtonTips := TExtObject.CreateInternal(Self, 'buttonTips');
 end;
 
-{$IFDEF FPC}constructor TExtFormHtmlEditor.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtFormHtmlEditor.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
-end;
-
 function TExtFormHtmlEditor.CleanHtml(Html : String) : TExtFunction; begin
   JSCode(JSName + '.cleanHtml(' + VarToJSON([Html]) + ');', 'TExtFormHtmlEditor');
   Result := Self;
@@ -2613,14 +2461,6 @@ end;
 function TExtFormHtmlEditor.UpdateToolbar : TExtFunction; begin
   JSCode(JSName + '.updateToolbar();', 'TExtFormHtmlEditor');
   Result := Self;
-end;
-
-destructor TExtFormHtmlEditor.Destroy; begin
-  try
-    FFontFamilies.Free;
-    FButtonTips.Free;
-  except end;
-  inherited;
 end;
 
 procedure TExtFormHtmlEditor.HandleEvent(const AEvtName : string); begin
@@ -2707,8 +2547,6 @@ end;
 function TExtUxCodePress.JSClassName : string; begin
   Result := 'Ext.ux.CodePress';
 end;
-
-{$IFDEF FPC}constructor TExtUxCodePress.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
 
 function TExtUxCodePress.Edit(Obj : TExtObject; Language : String) : TExtFunction; begin
   JSCode(JSName + '.edit(' + VarToJSON([Obj, false, Language]) + ');', 'TExtUxCodePress');
@@ -2918,13 +2756,6 @@ procedure TExtFormTextField.InitDefaults; begin
   FMinLengthText := 'The minimum length for this field is {minLength}';
 end;
 
-{$IFDEF FPC}constructor TExtFormTextField.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtFormTextField.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
-end;
-
 function TExtFormTextField.AutoSize : TExtFunction; begin
   JSCode(JSName + '.autoSize();', 'TExtFormTextField');
   Result := Self;
@@ -2975,13 +2806,6 @@ procedure TExtFormSliderField.InitDefaults; begin
   inherited;
 end;
 
-{$IFDEF FPC}constructor TExtFormSliderField.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtFormSliderField.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
-end;
-
 function TExtFormSliderField.GetValue : TExtFunction; begin
   JSCode(JSName + '.getValue();', 'TExtFormSliderField');
   Result := Self;
@@ -3021,13 +2845,6 @@ procedure TExtFormDisplayField.InitDefaults; begin
   FFieldClass := 'x-form-display-field';
 end;
 
-{$IFDEF FPC}constructor TExtFormDisplayField.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtFormDisplayField.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
-end;
-
 procedure TExtFormCompositeField.SetFY(Value : Integer); begin
   FY := Value;
   JSCode('y:' + VarToJSON([Value]));
@@ -3040,14 +2857,12 @@ end;
 
 procedure TExtFormCompositeField.SetFFieldErrors(Value : TExtObjectList); begin
   FFieldErrors := Value;
-  Value.DeleteFromGarbage;
-  JSCode('fieldErrors:' + VarToJSON([Value, false]));
+    JSCode('fieldErrors:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtFormCompositeField.SetFInnerCt(Value : TExtContainer); begin
   FInnerCt := Value;
-  Value.DeleteFromGarbage;
-  JSCode('innerCt:' + VarToJSON([Value, false]));
+    JSCode('innerCt:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtFormCompositeField.SetFIsComposite(Value : Boolean); begin
@@ -3057,8 +2872,7 @@ end;
 
 procedure TExtFormCompositeField.SetFItems(Value : TExtObjectList); begin
   FItems := Value;
-  Value.DeleteFromGarbage;
-  JSCode('items:' + VarToJSON([Value, false]));
+    JSCode('items:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtFormCompositeField.SetFRendered(Value : Boolean); begin
@@ -3076,13 +2890,6 @@ procedure TExtFormCompositeField.InitDefaults; begin
   FInnerCt := TExtContainer.CreateInternal(Self, 'innerCt');
   FItems := TExtObjectList.Create(Self, 'items');
   FRendered := true;
-end;
-
-{$IFDEF FPC}constructor TExtFormCompositeField.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtFormCompositeField.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
 end;
 
 function TExtFormCompositeField.BuildCombinedErrorMessage(Errors : TExtObjectList) : TExtFunction; begin
@@ -3130,15 +2937,6 @@ function TExtFormCompositeField.ValidateValue : TExtFunction; begin
   Result := Self;
 end;
 
-destructor TExtFormCompositeField.Destroy; begin
-  try
-    FFieldErrors.Free;
-    FInnerCt.Free;
-    FItems.Free;
-  except end;
-  inherited;
-end;
-
 procedure TExtFormCheckbox.SetFAutoCreate(Value : String); begin
   FAutoCreate := Value;
   JSCode('autoCreate:' + VarToJSON([Value]));
@@ -3146,8 +2944,7 @@ end;
 
 procedure TExtFormCheckbox.SetFAutoCreateObject(Value : TExtObject); begin
   FAutoCreateObject := Value;
-  Value.DeleteFromGarbage;
-  JSCode('autoCreate:' + VarToJSON([Value, false]));
+    JSCode('autoCreate:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtFormCheckbox.SetFBoxLabel(Value : String); begin
@@ -3187,8 +2984,7 @@ end;
 
 procedure TExtFormCheckbox.SetFScope(Value : TExtObject); begin
   FScope := Value;
-  Value.DeleteFromGarbage;
-  JSCode('scope:' + VarToJSON([Value, false]));
+    JSCode('scope:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtFormCheckbox.SetFOnCheck(Value : TExtFormCheckboxOnCheck); begin
@@ -3211,13 +3007,6 @@ procedure TExtFormCheckbox.InitDefaults; begin
   FScope := TExtObject.CreateInternal(Self, 'scope');
 end;
 
-{$IFDEF FPC}constructor TExtFormCheckbox.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtFormCheckbox.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
-end;
-
 function TExtFormCheckbox.GetValue : TExtFunction; begin
   JSCode(JSName + '.getValue();', 'TExtFormCheckbox');
   Result := Self;
@@ -3231,14 +3020,6 @@ end;
 function TExtFormCheckbox.SetValue(Checked : String) : TExtFunction; begin
   JSCode(JSName + '.setValue(' + VarToJSON([Checked]) + ');', 'TExtFormCheckbox');
   Result := Self;
-end;
-
-destructor TExtFormCheckbox.Destroy; begin
-  try
-    FAutoCreateObject.Free;
-    FScope.Free;
-  except end;
-  inherited;
 end;
 
 procedure TExtFormCheckbox.HandleEvent(const AEvtName : string); begin
@@ -3269,14 +3050,12 @@ end;
 
 procedure TExtFormCheckboxGroup.SetFColumnsArray(Value : TExtObjectList); begin
   FColumnsArray := Value;
-  Value.DeleteFromGarbage;
-  JSCode('columns:' + VarToJSON([Value, false]));
+    JSCode('columns:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtFormCheckboxGroup.SetFItems(Value : TExtObjectList); begin
   FItems := Value;
-  Value.DeleteFromGarbage;
-  JSCode('items:' + VarToJSON([Value, false]));
+    JSCode('items:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtFormCheckboxGroup.SetFVertical(Value : Boolean); begin
@@ -3304,13 +3083,6 @@ procedure TExtFormCheckboxGroup.InitDefaults; begin
   FItems := TExtObjectList.Create(Self, 'items');
 end;
 
-{$IFDEF FPC}constructor TExtFormCheckboxGroup.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtFormCheckboxGroup.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
-end;
-
 function TExtFormCheckboxGroup.GetErrors : TExtFunction; begin
   JSCode(JSName + '.getErrors();', 'TExtFormCheckboxGroup');
   Result := Self;
@@ -3326,14 +3098,6 @@ function TExtFormCheckboxGroup.SetValue(Id : String; Value : Boolean = false) : 
   Result := Self;
 end;
 
-destructor TExtFormCheckboxGroup.Destroy; begin
-  try
-    FColumnsArray.Free;
-    FItems.Free;
-  except end;
-  inherited;
-end;
-
 procedure TExtFormCheckboxGroup.HandleEvent(const AEvtName : string); begin
   inherited;
   if (AEvtName = 'change') and Assigned(FOnChange) then
@@ -3347,8 +3111,7 @@ end;
 
 procedure TExtFormTextArea.SetFAutoCreateObject(Value : TExtObject); begin
   FAutoCreateObject := Value;
-  Value.DeleteFromGarbage;
-  JSCode('autoCreate:' + VarToJSON([Value, false]));
+    JSCode('autoCreate:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtFormTextArea.SetFGrowMax(Value : Integer); begin
@@ -3377,23 +3140,9 @@ procedure TExtFormTextArea.InitDefaults; begin
   FGrowMin := 60;
 end;
 
-{$IFDEF FPC}constructor TExtFormTextArea.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtFormTextArea.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
-end;
-
 function TExtFormTextArea.AutoSize : TExtFunction; begin
   JSCode(JSName + '.autoSize();', 'TExtFormTextArea');
   Result := Self;
-end;
-
-destructor TExtFormTextArea.Destroy; begin
-  try
-    FAutoCreateObject.Free;
-  except end;
-  inherited;
 end;
 
 procedure TExtFormTriggerField.SetFAutoCreate(Value : String); begin
@@ -3403,8 +3152,7 @@ end;
 
 procedure TExtFormTriggerField.SetFAutoCreateObject(Value : TExtObject); begin
   FAutoCreateObject := Value;
-  Value.DeleteFromGarbage;
-  JSCode('autoCreate:' + VarToJSON([Value, false]));
+    JSCode('autoCreate:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtFormTriggerField.SetFEditable(Value : Boolean); begin
@@ -3453,13 +3201,6 @@ procedure TExtFormTriggerField.InitDefaults; begin
   FEditable := true;
 end;
 
-{$IFDEF FPC}constructor TExtFormTriggerField.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtFormTriggerField.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
-end;
-
 function TExtFormTriggerField.OnTriggerClick(E : TEventObject) : TExtFunction; begin
   JSCode(JSName + '.onTriggerClick(' + VarToJSON([E, false]) + ');', 'TExtFormTriggerField');
   Result := Self;
@@ -3473,13 +3214,6 @@ end;
 function TExtFormTriggerField.SetReadOnly(Value : Boolean) : TExtFunction; begin
   JSCode(JSName + '.setReadOnly(' + VarToJSON([Value]) + ');', 'TExtFormTriggerField');
   Result := Self;
-end;
-
-destructor TExtFormTriggerField.Destroy; begin
-  try
-    FAutoCreateObject.Free;
-  except end;
-  inherited;
 end;
 
 procedure TExtFormNumberField.SetFAllowDecimals(Value : Boolean); begin
@@ -3560,13 +3294,6 @@ procedure TExtFormNumberField.InitDefaults; begin
   FNanText := '{value} is not a valid number';
 end;
 
-{$IFDEF FPC}constructor TExtFormNumberField.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtFormNumberField.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
-end;
-
 function TExtFormNumberField.GetErrors(Value : String) : TExtFunction; begin
   JSCode(JSName + '.getErrors(' + VarToJSON([Value]) + ');', 'TExtFormNumberField');
   Result := Self;
@@ -3633,13 +3360,6 @@ procedure TExtFormFieldSet.InitDefaults; begin
   FLayout := 'form';
 end;
 
-{$IFDEF FPC}constructor TExtFormFieldSet.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtFormFieldSet.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
-end;
-
 function TExtFormFieldSet.OnCheckClick : TExtFunction; begin
   JSCode(JSName + '.onCheckClick();', 'TExtFormFieldSet');
   Result := Self;
@@ -3647,8 +3367,7 @@ end;
 
 procedure TExtFormFormPanel.SetFButtons(Value : TExtObjectList); begin
   FButtons := Value;
-  Value.DeleteFromGarbage;
-  JSCode('buttons:' + VarToJSON([Value, false]));
+    JSCode('buttons:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtFormFormPanel.SetFFormId(Value : String); begin
@@ -3733,13 +3452,6 @@ procedure TExtFormFormPanel.InitDefaults; begin
   FForm := TExtFormBasicForm.CreateInternal(Self, '');
 end;
 
-{$IFDEF FPC}constructor TExtFormFormPanel.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtFormFormPanel.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
-end;
-
 function TExtFormFormPanel.GetForm : TExtFunction; begin
   JSCode(JSName + '.getForm();', 'TExtFormFormPanel');
   Result := Self;
@@ -3760,14 +3472,6 @@ function TExtFormFormPanel.StopMonitoring : TExtFunction; begin
   Result := Self;
 end;
 
-destructor TExtFormFormPanel.Destroy; begin
-  try
-    FButtons.Free;
-    FForm.Free;
-  except end;
-  inherited;
-end;
-
 procedure TExtFormFormPanel.HandleEvent(const AEvtName : string); begin
   inherited;
   if (AEvtName = 'clientvalidation') and Assigned(FOnClientvalidation) then
@@ -3786,8 +3490,7 @@ end;
 
 procedure TExtFormRadioGroup.SetFItems(Value : TExtObjectList); begin
   FItems := Value;
-  Value.DeleteFromGarbage;
-  JSCode('items:' + VarToJSON([Value, false]));
+    JSCode('items:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtFormRadioGroup.SetFOnChange(Value : TExtFormRadioGroupOnChange); begin
@@ -3809,13 +3512,6 @@ procedure TExtFormRadioGroup.InitDefaults; begin
   FItems := TExtObjectList.Create(Self, 'items');
 end;
 
-{$IFDEF FPC}constructor TExtFormRadioGroup.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtFormRadioGroup.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
-end;
-
 function TExtFormRadioGroup.GetValue : TExtFunction; begin
   JSCode(JSName + '.getValue();', 'TExtFormRadioGroup');
   Result := Self;
@@ -3831,13 +3527,6 @@ function TExtFormRadioGroup.OnSetValue(Id : TExtFormRadio; Value : Boolean) : TE
   Result := Self;
 end;
 
-destructor TExtFormRadioGroup.Destroy; begin
-  try
-    FItems.Free;
-  except end;
-  inherited;
-end;
-
 procedure TExtFormRadioGroup.HandleEvent(const AEvtName : string); begin
   inherited;
   if (AEvtName = 'change') and Assigned(FOnChange) then
@@ -3850,13 +3539,6 @@ end;
 
 procedure TExtFormRadio.InitDefaults; begin
   inherited;
-end;
-
-{$IFDEF FPC}constructor TExtFormRadio.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtFormRadio.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
 end;
 
 function TExtFormRadio.GetGroupValue : TExtFunction; begin
@@ -3886,14 +3568,12 @@ end;
 
 procedure TExtFormDateField.SetFAutoCreateObject(Value : TExtObject); begin
   FAutoCreateObject := Value;
-  Value.DeleteFromGarbage;
-  JSCode('autoCreate:' + VarToJSON([Value, false]));
+    JSCode('autoCreate:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtFormDateField.SetFDisabledDates(Value : TExtObjectList); begin
   FDisabledDates := Value;
-  Value.DeleteFromGarbage;
-  if not ConfigAvailable(JSName) then
+    if not ConfigAvailable(JSName) then
     SetDisabledDates(Value)
   else
     JSCode('disabledDates:' + VarToJSON([Value, false]));
@@ -3906,8 +3586,7 @@ end;
 
 procedure TExtFormDateField.SetFDisabledDays(Value : TExtObjectList); begin
   FDisabledDays := Value;
-  Value.DeleteFromGarbage;
-  if not ConfigAvailable(JSName) then
+    if not ConfigAvailable(JSName) then
     SetDisabledDays(Value)
   else
     JSCode('disabledDays:' + VarToJSON([Value, false]));
@@ -4002,13 +3681,6 @@ procedure TExtFormDateField.InitDefaults; begin
   FTriggerClass := 'x-form-date-trigger';
 end;
 
-{$IFDEF FPC}constructor TExtFormDateField.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtFormDateField.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
-end;
-
 function TExtFormDateField.GetErrors(Value : String) : TExtFunction; begin
   JSCode(JSName + '.getErrors(' + VarToJSON([Value]) + ');', 'TExtFormDateField');
   Result := Self;
@@ -4049,15 +3721,6 @@ function TExtFormDateField.SetValue(Date : TDateTime) : TExtFunction; begin
   Result := Self;
 end;
 
-destructor TExtFormDateField.Destroy; begin
-  try
-    FAutoCreateObject.Free;
-    FDisabledDates.Free;
-    FDisabledDays.Free;
-  except end;
-  inherited;
-end;
-
 procedure TExtFormDateField.HandleEvent(const AEvtName : string); begin
   inherited;
   if (AEvtName = 'select') and Assigned(FOnSelect) then
@@ -4076,8 +3739,7 @@ end;
 
 procedure TExtFormComboBox.SetFAutoCreateObject(Value : TExtObject); begin
   FAutoCreateObject := Value;
-  Value.DeleteFromGarbage;
-  JSCode('autoCreate:' + VarToJSON([Value, false]));
+    JSCode('autoCreate:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtFormComboBox.SetFAutoSelect(Value : Boolean); begin
@@ -4142,8 +3804,7 @@ end;
 
 procedure TExtFormComboBox.SetFListAlignArray(Value : TExtObjectList); begin
   FListAlignArray := Value;
-  Value.DeleteFromGarbage;
-  JSCode('listAlign:' + VarToJSON([Value, false]));
+    JSCode('listAlign:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtFormComboBox.SetFListClass(Value : String); begin
@@ -4234,15 +3895,13 @@ end;
 procedure TExtFormComboBox.SetFStore(Value : TExtDataStore); begin
   FStore.Free;
   FStore := Value;
-  Value.DeleteFromGarbage;
-  JSCode('store:' + VarToJSON([Value, false]));
+    JSCode('store:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtFormComboBox.SetFStoreArray(Value : TExtObjectList); begin
   FStoreArray.Free;
   FStoreArray := Value;
-  Value.DeleteFromGarbage;
-  JSCode('store:' + VarToJSON([Value, false]));
+    JSCode('store:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtFormComboBox.SetFSubmitValue(Value : Boolean); begin
@@ -4262,8 +3921,7 @@ end;
 
 procedure TExtFormComboBox.SetFTplExtXTemplate(Value : TExtXTemplate); begin
   FTplExtXTemplate := Value;
-  Value.DeleteFromGarbage;
-  JSCode('tpl:' + VarToJSON([Value, false]));
+    JSCode('tpl:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtFormComboBox.SetFTransform(Value : String); begin
@@ -4303,8 +3961,7 @@ end;
 
 procedure TExtFormComboBox.SetFKeyNav(Value : TExtKeyNav); begin
   FKeyNav := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.keyNav=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.keyNav=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtFormComboBox.SetFLastQuery(Value : String); begin
@@ -4314,8 +3971,7 @@ end;
 
 procedure TExtFormComboBox.SetFView(Value : TExtDataView); begin
   FView := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.view=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.view=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtFormComboBox.SetFOnBeforequery(Value : TExtFormComboBoxOnBeforequery); begin
@@ -4393,15 +4049,6 @@ procedure TExtFormComboBox.InitDefaults; begin
   FView := TExtDataView.CreateInternal(Self, 'view');
 end;
 
-{$IFDEF FPC}constructor TExtFormComboBox.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtFormComboBox.Create(const AForcedJSName: string = ''); begin
-  if AForcedJSName <> '' then
-    FJSName := 'O' + IdentDelim + AForcedJSName + IdentDelim;
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
-end;
-
 function TExtFormComboBox.ClearValue : TExtFunction; begin
   JSCode(JSName + '.clearValue();', 'TExtFormComboBox');
   Result := Self;
@@ -4457,19 +4104,6 @@ function TExtFormComboBox.SetValue(Value : String) : TExtFunction; begin
   Result := Self;
 end;
 
-destructor TExtFormComboBox.Destroy; begin
-  try
-    FAutoCreateObject.Free;
-    FListAlignArray.Free;
-    FStore.Free;
-    FStoreArray.Free;
-    FTplExtXTemplate.Free;
-    FKeyNav.Free;
-    FView.Free;
-  except end;
-  inherited;
-end;
-
 procedure TExtFormComboBox.HandleEvent(const AEvtName : string); begin
   inherited;
   if (AEvtName = 'beforequery') and Assigned(FOnBeforequery) then
@@ -4505,13 +4139,6 @@ end;
 
 procedure TExtFormTwinTriggerField.InitDefaults; begin
   inherited;
-end;
-
-{$IFDEF FPC}constructor TExtFormTwinTriggerField.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtFormTwinTriggerField.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
 end;
 
 function TExtFormTwinTriggerField.OnTrigger1Click(E : TEventObject) : TExtFunction; begin
@@ -4594,13 +4221,6 @@ procedure TExtFormTimeField.InitDefaults; begin
   FMinText := 'The time in this field must be equal to or after {0}';
 end;
 
-{$IFDEF FPC}constructor TExtFormTimeField.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtFormTimeField.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
-end;
-
 function TExtFormTimeField.SetMaxValue(Value : TDateTime) : TExtFunction; begin
   JSCode(JSName + '.setMaxValue(' + VarToJSON([Value]) + ');', 'TExtFormTimeField');
   Result := Self;
@@ -4629,8 +4249,6 @@ end;
 function TExtUxFormLovCombo.JSClassName : string; begin
   Result := 'Ext.ux.form.LovCombo';
 end;
-
-{$IFDEF FPC}constructor TExtUxFormLovCombo.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
 
 initialization
   ExtFormVTypes := TExtFormVTypesSingleton.CreateSingleton;

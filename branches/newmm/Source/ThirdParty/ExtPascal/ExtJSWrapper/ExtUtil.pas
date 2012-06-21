@@ -6,7 +6,7 @@ unit ExtUtil;
 interface
 
 uses
-  StrUtils, ExtPascal, ExtPascalUtils;
+  Classes, StrUtils, ExtPascal, ExtPascalUtils;
 
 type
   TExtUtilObservable = class;
@@ -28,8 +28,6 @@ type
     procedure InitDefaults; override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     function ObservableCapture(O : TExtUtilObservable; Fn : TExtFunction; Scope : TExtObject = nil) : TExtFunction;
     function ObservableObserveClass(C : TExtFunction; Listeners : TExtObject) : TExtFunction;
     function ObservableReleaseCapture(O : TExtUtilObservable) : TExtFunction;
@@ -47,14 +45,12 @@ type
     function ResumeEvents : TExtFunction;
     function SuspendEvents(QueueSuspended : Boolean) : TExtFunction;
     function Un(EventName : String; Handler : TExtFunction; Scope : TExtObject = nil) : TExtFunction;
-    destructor Destroy; override;
     property Listeners : TExtObject read FListeners write SetFListeners;
   end;
 
   TExtUtilJSONSingleton = class(TExtFunction)
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
     function Decode(Json : String) : TExtFunction;
     function Encode(O : String) : TExtFunction;
     function EncodeDate(D : TDateTime) : TExtFunction;
@@ -63,7 +59,6 @@ type
   TExtUtilTextMetricsSingleton = class(TExtFunction)
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
     function Bind(El : String) : TExtFunction; overload;
     function Bind(El : THTMLElement) : TExtFunction; overload;
     function CreateInstance(El : String; FixedWidth : Integer = 0) : TExtFunction; overload;
@@ -79,8 +74,7 @@ type
   TExtUtilTaskRunner = class(TExtFunction)
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create(Interval : Integer = 0);
+    constructor Create(AOwner: TExtObject; AInterval : Integer = 0); reintroduce;
     function Start(Task : TExtObject) : TExtFunction;
     function Stop(Task : TExtObject) : TExtFunction;
     function StopAll : TExtFunction;
@@ -89,7 +83,6 @@ type
   TExtUtilFormatSingleton = class(TExtFunction)
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
     function Capitalize(Value : String) : TExtFunction;
     function Date(Value : String; Format : String = '') : TExtFunction; overload;
     function Date(Value : TDateTime; Format : String = '') : TExtFunction; overload;
@@ -121,7 +114,6 @@ type
   TExtUtilCSSSingleton = class(TExtFunction)
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
     function CreateStyleSheet(CssText : String; Id : String) : TExtFunction;
     function GetRule(Selector : String; RefreshCache : Boolean) : TExtFunction; overload;
     function GetRule(Selector : TExtObjectList; RefreshCache : Boolean) : TExtFunction; overload;
@@ -136,7 +128,6 @@ type
   TExtUtilCookiesSingleton = class(TExtFunction)
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
     function Clear(Name : String) : TExtFunction;
     function Get(Name : String) : TExtFunction;
     function SetJS(Name : String; Value : String; Expires : TExtObject = nil; Path : String = ''; Domain : String = ''; Secure : Boolean = false) : TExtFunction;
@@ -145,8 +136,8 @@ type
   TExtUtilDelayedTask = class(TExtFunction)
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create(Fn : TExtFunction = nil; Scope : TExtObject = nil; Args : TExtObjectList = nil);
+    constructor Create(AOwner: TComponent; Fn : TExtFunction = nil; Scope : TExtObject = nil;
+      Args : TExtObjectList = nil); reintroduce;
     function Cancel : TExtFunction;
     function Delay(Delay : Integer; NewFn : TExtFunction = nil; NewScope : TExtObject = nil; NewArgs : TExtObjectList = nil) : TExtFunction;
   end;
@@ -182,8 +173,7 @@ type
     procedure HandleEvent(const AEvtName: string); override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create(El : String; Config : TExtObject = nil);
+    constructor Create(AOwner: TComponent; El : String; Config : TExtObject = nil); reintroduce;
     function Disable : TExtFunction;
     function Enable : TExtFunction;
     function SetDisabled(Disabled : Boolean) : TExtFunction;
@@ -221,8 +211,7 @@ type
     procedure HandleEvent(const AEvtName: string); override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create(AllowFunctions : Boolean; KeyFn : TExtFunction);
+    constructor Create(AOwner: TComponent; AllowFunctions : Boolean; KeyFn : TExtFunction); reintroduce;
     function Add(Key : String; O : TExtObject) : TExtFunction;
     function AddAll(Objs : TExtObject) : TExtFunction; overload;
     function AddAll(Objs : TExtObjectList) : TExtFunction; overload;
@@ -280,7 +269,6 @@ implementation
 procedure TExtUtilObservable.SetFListeners(Value : TExtObject); begin
   FListeners.Free;
   FListeners := Value;
-  Value.DeleteFromGarbage;
   JSCode('listeners:' + VarToJSON([Value, false]));
 end;
 
@@ -291,13 +279,6 @@ end;
 procedure TExtUtilObservable.InitDefaults; begin
   inherited;
   FListeners := TExtObject.CreateInternal(Self, 'listeners');
-end;
-
-{$IFDEF FPC}constructor TExtUtilObservable.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtUtilObservable.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
 end;
 
 function TExtUtilObservable.ObservableCapture(O : TExtUtilObservable; Fn : TExtFunction; Scope : TExtObject = nil) : TExtFunction; begin
@@ -385,18 +366,9 @@ function TExtUtilObservable.Un(EventName : String; Handler : TExtFunction; Scope
   Result := Self;
 end;
 
-destructor TExtUtilObservable.Destroy; begin
-  try
-    FListeners.Free;
-  except end;
-  inherited;
-end;
-
 function TExtUtilJSONSingleton.JSClassName : string; begin
   Result := 'Ext.util.JSON';
 end;
-
-{$IFDEF FPC}constructor TExtUtilJSONSingleton.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
 
 function TExtUtilJSONSingleton.Decode(Json : String) : TExtFunction; begin
   JSCode(JSName + '.decode(' + VarToJSON([Json]) + ');', 'TExtUtilJSONSingleton');
@@ -416,8 +388,6 @@ end;
 function TExtUtilTextMetricsSingleton.JSClassName : string; begin
   Result := 'Ext.util.TextMetrics';
 end;
-
-{$IFDEF FPC}constructor TExtUtilTextMetricsSingleton.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
 
 function TExtUtilTextMetricsSingleton.Bind(El : String) : TExtFunction; begin
   JSCode(JSName + '.bind(' + VarToJSON([El]) + ');', 'TExtUtilTextMetricsSingleton');
@@ -473,11 +443,10 @@ function TExtUtilTaskRunner.JSClassName : string; begin
   Result := 'Ext.util.TaskRunner';
 end;
 
-{$IFDEF FPC}constructor TExtUtilTaskRunner.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtUtilTaskRunner.Create(Interval : Integer = 0); begin
-  CreateVar(JSClassName + '(' + VarToJSON([Interval]) + ');');
-  InitDefaults;
+constructor TExtUtilTaskRunner.Create(AOwner: TExtObject; AInterval : Integer = 0);
+begin
+  FCreateVarArgs := JSClassName + '(' + VarToJSON([AInterval]) + ');';
+  inherited Create(AOwner);
 end;
 
 function TExtUtilTaskRunner.Start(Task : TExtObject) : TExtFunction; begin
@@ -498,8 +467,6 @@ end;
 function TExtUtilFormatSingleton.JSClassName : string; begin
   Result := 'Ext.util.Format';
 end;
-
-{$IFDEF FPC}constructor TExtUtilFormatSingleton.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
 
 function TExtUtilFormatSingleton.Capitalize(Value : String) : TExtFunction; begin
   JSCode(JSName + '.capitalize(' + VarToJSON([Value]) + ');', 'TExtUtilFormatSingleton');
@@ -635,8 +602,6 @@ function TExtUtilCSSSingleton.JSClassName : string; begin
   Result := 'Ext.util.CSS';
 end;
 
-{$IFDEF FPC}constructor TExtUtilCSSSingleton.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
 function TExtUtilCSSSingleton.CreateStyleSheet(CssText : String; Id : String) : TExtFunction; begin
   JSCode(JSName + '.createStyleSheet(' + VarToJSON([CssText, Id]) + ');', 'TExtUtilCSSSingleton');
   Result := Self;
@@ -686,8 +651,6 @@ function TExtUtilCookiesSingleton.JSClassName : string; begin
   Result := 'Ext.util.Cookies';
 end;
 
-{$IFDEF FPC}constructor TExtUtilCookiesSingleton.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
 function TExtUtilCookiesSingleton.Clear(Name : String) : TExtFunction; begin
   JSCode(JSName + '.clear(' + VarToJSON([Name]) + ');', 'TExtUtilCookiesSingleton');
   Result := Self;
@@ -707,11 +670,11 @@ function TExtUtilDelayedTask.JSClassName : string; begin
   Result := 'Ext.util.DelayedTask';
 end;
 
-{$IFDEF FPC}constructor TExtUtilDelayedTask.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtUtilDelayedTask.Create(Fn : TExtFunction = nil; Scope : TExtObject = nil; Args : TExtObjectList = nil); begin
-  CreateVar(JSClassName + '(' + VarToJSON([Fn, true, Scope, false]) + ',' + VarToJSON(Args) + ');');
-  InitDefaults;
+constructor TExtUtilDelayedTask.Create(AOwner: TComponent; Fn : TExtFunction = nil;
+  Scope : TExtObject = nil; Args : TExtObjectList = nil);
+begin
+  FCreateVarArgs := JSClassName + '(' + VarToJSON([Fn, true, Scope, false]) + ',' + VarToJSON(Args) + ');';
+  inherited Create(AOwner);
 end;
 
 function TExtUtilDelayedTask.Cancel : TExtFunction; begin
@@ -787,11 +750,10 @@ function TExtUtilClickRepeater.JSClassName : string; begin
   Result := 'Ext.util.ClickRepeater';
 end;
 
-{$IFDEF FPC}constructor TExtUtilClickRepeater.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtUtilClickRepeater.Create(El : String; Config : TExtObject = nil); begin
-  CreateVar(JSClassName + '(' + VarToJSON([El, Config, false]) + ');');
-  InitDefaults;
+constructor TExtUtilClickRepeater.Create(AOwner: TComponent; El : String; Config : TExtObject = nil);
+begin
+  FCreateVarArgs := JSClassName + '(' + VarToJSON([El, Config, false]) + ');';
+  inherited Create(AOwner);
 end;
 
 function TExtUtilClickRepeater.Disable : TExtFunction; begin
@@ -860,11 +822,11 @@ function TExtUtilMixedCollection.JSClassName : string; begin
   Result := 'Ext.util.MixedCollection';
 end;
 
-{$IFDEF FPC}constructor TExtUtilMixedCollection.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtUtilMixedCollection.Create(AllowFunctions : Boolean; KeyFn : TExtFunction); begin
-  CreateVar(JSClassName + '(' + VarToJSON([AllowFunctions, KeyFn, true]) + ');');
-  InitDefaults;
+constructor TExtUtilMixedCollection.Create(AOwner: TComponent;
+  AllowFunctions : Boolean; KeyFn : TExtFunction);
+begin
+  FCreateVarArgs := JSClassName + '(' + VarToJSON([AllowFunctions, KeyFn, true]) + ');';
+  inherited Create(AOwner);
 end;
 
 function TExtUtilMixedCollection.Add(Key : String; O : TExtObject) : TExtFunction; begin

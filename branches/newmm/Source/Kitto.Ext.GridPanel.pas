@@ -142,7 +142,7 @@ begin
   begin
     if ViewTable.FindField(LGroupingFieldName) = nil then
       raise Exception.CreateFmt('Field %s not found. Cannot group.', [LGroupingFieldName]);
-    Result := TExtDataGroupingStore.Create;
+    Result := TExtDataGroupingStore.Create(Self);
     Result.Url := MethodURI(GetRecordPage);
     //TExtDataGroupingStore(Result).GroupOnSort := True;
     if LGroupingFieldName <> '' then
@@ -171,7 +171,7 @@ begin
   LGroupingMenu := ViewTable.GetBoolean('Controller/Grouping/EnableMenu');
   if (LGroupingFieldName <> '') or LGroupingMenu then
   begin
-    FGridView := TExtGridGroupingView.Create;
+    FGridView := TExtGridGroupingView.Create(Self);
     TExtGridGroupingView(FGridView).EmptyGroupText := _('No data to display in this group.');
     { TODO : use singular and plural display labels of the form }
     //TExtGridGroupingView(FGridView).GroupTextTpl := '{text} ({[values.rs.length]} {[values.rs.length > 1 ? "Items" : "Item"]})';
@@ -192,7 +192,7 @@ begin
     end;
   end
   else
-    FGridView := TExtGridGridView.Create;
+    FGridView := TExtGridGridView.Create(Self);
   FGridView.EmptyText := _('No data to display.');
   FGridView.EnableRowBody := True;
   { TODO : make ForceFit configurable? }
@@ -219,7 +219,7 @@ begin
   FGridEditorPanel.Border := False;
   FGridEditorPanel.Header := False;
   FGridEditorPanel.Region := rgCenter;
-  FSelModel := TExtGridRowSelectionModel.Create;
+  FSelModel := TExtGridRowSelectionModel.Create(FGridEditorPanel);
   FSelModel.SingleSelect := True;
   FSelModel.Grid := FGridEditorPanel;
   FGridEditorPanel.SelModel := FSelModel;
@@ -481,7 +481,7 @@ begin
 
   if Assigned(FEditHostWindow) then
     FEditHostWindow.Free(True);
-  FEditHostWindow := TKExtModalWindow.Create;
+  FEditHostWindow := TKExtModalWindow.Create(Self);
 
   FEditHostWindow.ResizeHandles := 'n s';
   FEditHostWindow.Layout := lyFit;
@@ -495,7 +495,8 @@ begin
   //FEditHostWindow.On('close', Ajax(EditWindowClosed, ['Window', '%0.nm']));
 
   LFormControllerType := Config.GetString('FormController', 'Form');
-  LFormController := TKExtControllerFactory.Instance.CreateController(ViewTable.View, FEditHostWindow, nil, Self, LFormControllerType);
+  LFormController := TKExtControllerFactory.Instance.CreateController(
+    FEditHostWindow, ViewTable.View, FEditHostWindow, nil, Self, LFormControllerType);
   LFormController.Config.SetObject('Sys/ServerStore', ServerStore);
   if Assigned(ARecord) then
     LFormController.Config.SetObject('Sys/Record', ARecord);
@@ -663,7 +664,7 @@ function TKExtGridPanel.CreatePagingToolbar: TExtPagingToolbar;
 begin
   Assert(ViewTable <> nil);
 
-  FPagingToolbar := TExtPagingToolbar.Create;
+  FPagingToolbar := TExtPagingToolbar.Create(Self);
   FPagingToolbar.Store := FGridEditorPanel.Store;
   FPagingToolbar.DisplayInfo := False;
   FPagingToolbar.PageSize := FPageRecordCount;

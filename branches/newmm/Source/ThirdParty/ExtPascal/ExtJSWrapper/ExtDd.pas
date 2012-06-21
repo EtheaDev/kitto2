@@ -6,7 +6,7 @@ unit ExtDd;
 interface
 
 uses
-  StrUtils, ExtPascal, ExtPascalUtils, Ext, ExtUtil;
+  Classes, StrUtils, ExtPascal, ExtPascalUtils, Ext, ExtUtil;
 
 type
   TExtDdDragDrop = class;
@@ -62,8 +62,6 @@ type
     procedure InitDefaults; override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     function AddInvalidHandleClass(CssClass : String) : TExtFunction;
     function AddInvalidHandleId(Id : String) : TExtFunction;
     function AddInvalidHandleType(TagName : String) : TExtFunction;
@@ -110,7 +108,6 @@ type
     function ToString : TExtFunction; reintroduce;
     function Unlock : TExtFunction;
     function Unreg : TExtFunction;
-    destructor Destroy; override;
     property Available : Boolean read FAvailable write SetFAvailable;
     property DefaultPadding : TExtObject read FDefaultPadding write SetFDefaultPadding;
     property Groups : TExtObject read FGroups write SetFGroups;
@@ -147,7 +144,6 @@ type
     function JSClassName : string; override;
     class function INTERSECT : Integer;
     class function POINT : Integer;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
     function GetBestMatch(Dds : TExtObjectList) : TExtFunction;
     function GetCss(Id : String) : TExtFunction;
     function GetDDById(Id : String) : TExtFunction;
@@ -183,8 +179,6 @@ type
     procedure InitDefaults; override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     function GetEl : TExtFunction;
     function GetGhost : TExtFunction;
     function GetProxy : TExtFunction;
@@ -204,8 +198,6 @@ type
     procedure InitDefaults; override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     function GetEl : TExtFunction;
     function GetGhost : TExtFunction;
     function Hide(Clear : Boolean) : TExtFunction;
@@ -239,7 +231,6 @@ type
     procedure InitDefaults; override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
     function RefreshCache : TExtFunction;
     function Register(El : String) : TExtFunction; overload;
     function Register(El : TExtObjectList) : TExtFunction; overload;
@@ -256,7 +247,6 @@ type
   TExtDdRegistrySingleton = class(TExtFunction)
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
     function GetHandle(Id : String) : TExtFunction; overload;
     function GetHandle(Id : THTMLElement) : TExtFunction; overload;
     function GetHandleFromEvent(E : TEvent) : TExtFunction;
@@ -303,7 +293,6 @@ type
     procedure HandleEvent(const AEvtName: string); override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
     function GetDragTarget : TExtFunction;
     function OnBeforeStart(E : TExtEventObjectSingleton) : TExtFunction;
     function OnDrag(E : TExtEventObjectSingleton) : TExtFunction;
@@ -324,8 +313,7 @@ type
   TExtDdDDTarget = class(TExtDdDragDrop)
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create(Id : String; SGroup : String; Config : TExtObject = nil);
+    constructor Create(AOwner: TComponent; Id : String; SGroup : String; Config : TExtObject = nil); reintroduce;
   end;
 
   TExtDdDD = class(TExtDdDragDrop)
@@ -334,8 +322,7 @@ type
     procedure SetFScroll(Value : Boolean);
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create(Id : String; SGroup : String; Config : TExtObject = nil);
+    constructor Create(AOwner: TComponent; Id: string; SGroup: string; Config: TExtObject = nil); reintroduce;
     function AlignElWithMouse(El : THTMLElement; IPageX : Integer; IPageY : Integer) : TExtFunction;
     function ApplyConfig : TExtFunction;
     function AutoOffset(IPageX : Integer; IPageY : Integer) : TExtFunction;
@@ -356,8 +343,6 @@ type
   public
     function JSClassName : string; override;
     class function DragElId : String;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create(Id : String; SGroup : String; Config : TExtObject = nil);
     function CreateFrame : TExtFunction;
     function InitFrame : TExtFunction;
     property CenterFrame : Boolean read FCenterFrame write SetFCenterFrame;
@@ -378,8 +363,6 @@ type
     procedure InitDefaults; override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     function NotifyDrop(Source : TExtDdDragSource; E : TEvent; Data : TExtObject) : TExtFunction;
     function NotifyEnter(Source : TExtDdDragSource; E : TEvent; Data : TExtObject) : TExtFunction;
     function NotifyOut(Source : TExtDdDragSource; E : TEvent; Data : TExtObject) : TExtFunction;
@@ -395,8 +378,6 @@ type
     procedure InitDefaults; override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     function GetTargetFromEvent(E : TEvent) : TExtFunction;
     function NotifyDrop(Source : TExtDdDragSource; E : TEvent; Data : TExtObject) : TExtFunction;
     function NotifyEnter(Source : TExtDdDragSource; E : TEvent; Data : TExtObject) : TExtFunction;
@@ -422,8 +403,6 @@ type
     procedure InitDefaults; override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     function AfterDragDrop(Target : TExtDdDragDrop; E : TEvent; Id : String) : TExtFunction;
     function AfterDragEnter(Target : TExtDdDragDrop; E : TEvent; Id : String) : TExtFunction;
     function AfterDragOut(Target : TExtDdDragDrop; E : TEvent; Id : String) : TExtFunction;
@@ -456,13 +435,10 @@ type
     procedure InitDefaults; override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     function AfterRepair : TExtFunction;
     function GetDragData(E : TEventObject) : TExtFunction;
     function GetRepairXY(E : TEventObject) : TExtFunction;
     function OnInitDrag(X : Integer; Y : Integer) : TExtFunction;
-    destructor Destroy; override;
     property ContainerScroll : Boolean read FContainerScroll write SetFContainerScroll;
     property HlColor : String read FHlColor write SetFHlColor;
     property DragData : TExtObject read FDragData write SetFDragData;
@@ -482,14 +458,12 @@ end;
 
 procedure TExtDdDragDrop.SetFDefaultPadding(Value : TExtObject); begin
   FDefaultPadding := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.defaultPadding=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.defaultPadding=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtDdDragDrop.SetFGroups(Value : TExtObject); begin
   FGroups := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.groups=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.groups=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtDdDragDrop.SetFHasOuterHandles(Value : Boolean); begin
@@ -509,20 +483,17 @@ end;
 
 procedure TExtDdDragDrop.SetFInvalidHandleClasses(Value : TExtObjectList); begin
   FInvalidHandleClasses := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.invalidHandleClasses=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.invalidHandleClasses=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtDdDragDrop.SetFInvalidHandleIds(Value : TExtObject); begin
   FInvalidHandleIds := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.invalidHandleIds=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.invalidHandleIds=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtDdDragDrop.SetFInvalidHandleTypes(Value : TExtObject); begin
   FInvalidHandleTypes := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.invalidHandleTypes=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.invalidHandleTypes=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtDdDragDrop.SetFIsTarget(Value : Boolean); begin
@@ -571,13 +542,6 @@ procedure TExtDdDragDrop.InitDefaults; begin
   FInvalidHandleClasses := TExtObjectList.Create(Self, 'invalidHandleClasses');
   FInvalidHandleIds := TExtObject.CreateInternal(Self, 'invalidHandleIds');
   FInvalidHandleTypes := TExtObject.CreateInternal(Self, 'invalidHandleTypes');
-end;
-
-{$IFDEF FPC}constructor TExtDdDragDrop.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtDdDragDrop.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
 end;
 
 function TExtDdDragDrop.AddInvalidHandleClass(CssClass : String) : TExtFunction; begin
@@ -810,17 +774,6 @@ function TExtDdDragDrop.Unreg : TExtFunction; begin
   Result := Self;
 end;
 
-destructor TExtDdDragDrop.Destroy; begin
-  try
-    FDefaultPadding.Free;
-    FGroups.Free;
-    FInvalidHandleClasses.Free;
-    FInvalidHandleIds.Free;
-    FInvalidHandleTypes.Free;
-  except end;
-  inherited;
-end;
-
 procedure TExtDdDragDropMgrSingleton.SetFClickPixelThresh(Value : Integer); begin
   FClickPixelThresh := Value;
   JSCode(JSName + '.clickPixelThresh=' + VarToJSON([Value]) + ';');
@@ -862,8 +815,6 @@ end;
 class function TExtDdDragDropMgrSingleton.POINT : Integer; begin
   Result := 0
 end;
-
-{$IFDEF FPC}constructor TExtDdDragDropMgrSingleton.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
 
 function TExtDdDragDropMgrSingleton.GetBestMatch(Dds : TExtObjectList) : TExtFunction; begin
   JSCode(JSName + '.getBestMatch(' + VarToJSON(Dds) + ');', 'TExtDdDragDropMgrSingleton');
@@ -974,13 +925,6 @@ procedure TExtDdPanelProxy.InitDefaults; begin
   FInsertProxy := true;
 end;
 
-{$IFDEF FPC}constructor TExtDdPanelProxy.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtDdPanelProxy.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
-end;
-
 function TExtDdPanelProxy.GetEl : TExtFunction; begin
   JSCode(JSName + '.getEl();', 'TExtDdPanelProxy');
   Result := Self;
@@ -1029,13 +973,6 @@ procedure TExtDdStatusProxy.InitDefaults; begin
   inherited;
   FDropAllowed := 'x-dd-drop-ok';
   FDropNotAllowed := 'x-dd-drop-nodrop';
-end;
-
-{$IFDEF FPC}constructor TExtDdStatusProxy.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtDdStatusProxy.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
 end;
 
 function TExtDdStatusProxy.GetEl : TExtFunction; begin
@@ -1137,8 +1074,6 @@ procedure TExtDdScrollManagerSingleton.InitDefaults; begin
   FVthresh := 25;
 end;
 
-{$IFDEF FPC}constructor TExtDdScrollManagerSingleton.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
 function TExtDdScrollManagerSingleton.RefreshCache : TExtFunction; begin
   JSCode(JSName + '.refreshCache();', 'TExtDdScrollManagerSingleton');
   Result := Self;
@@ -1167,8 +1102,6 @@ end;
 function TExtDdRegistrySingleton.JSClassName : string; begin
   Result := 'Ext.dd.Registry';
 end;
-
-{$IFDEF FPC}constructor TExtDdRegistrySingleton.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
 
 function TExtDdRegistrySingleton.GetHandle(Id : String) : TExtFunction; begin
   JSCode(JSName + '.getHandle(' + VarToJSON([Id]) + ');', 'TExtDdRegistrySingleton');
@@ -1292,8 +1225,6 @@ function TExtDdDragTracker.JSClassName : string; begin
   Result := 'Ext.dd.DragTracker';
 end;
 
-{$IFDEF FPC}constructor TExtDdDragTracker.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
 function TExtDdDragTracker.GetDragTarget : TExtFunction; begin
   JSCode(JSName + '.getDragTarget();', 'TExtDdDragTracker');
   Result := Self;
@@ -1339,11 +1270,10 @@ function TExtDdDDTarget.JSClassName : string; begin
   Result := 'Ext.dd.DDTarget';
 end;
 
-{$IFDEF FPC}constructor TExtDdDDTarget.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtDdDDTarget.Create(Id : String; SGroup : String; Config : TExtObject = nil); begin
-  CreateVar(JSClassName + '(' + VarToJSON([Id, SGroup, Config, false]) + ');');
-  InitDefaults;
+constructor TExtDdDDTarget.Create(AOwner: TComponent; Id : String; SGroup : String; Config : TExtObject = nil);
+begin
+  FCreateVarArgs := JSClassName + '(' + VarToJSON([Id, SGroup, Config, false]) + ');';
+  inherited Create(AOwner);
 end;
 
 procedure TExtDdDD.SetFScroll(Value : Boolean); begin
@@ -1355,11 +1285,10 @@ function TExtDdDD.JSClassName : string; begin
   Result := 'Ext.dd.DD';
 end;
 
-{$IFDEF FPC}constructor TExtDdDD.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtDdDD.Create(Id : String; SGroup : String; Config : TExtObject = nil); begin
-  CreateVar(JSClassName + '(' + VarToJSON([Id, SGroup, Config, false]) + ');');
-  InitDefaults;
+constructor TExtDdDD.Create(AOwner: TComponent; Id: string; SGroup: string; Config: TExtObject = nil);
+begin
+  FCreateVarArgs := JSClassName + '(' + VarToJSON([Id, SGroup, Config, false]) + ');';
+  inherited Create(AOwner);
 end;
 
 function TExtDdDD.AlignElWithMouse(El : THTMLElement; IPageX : Integer; IPageY : Integer) : TExtFunction; begin
@@ -1420,13 +1349,6 @@ class function TExtDdDDProxy.DragElId : String; begin
   Result := ''
 end;
 
-{$IFDEF FPC}constructor TExtDdDDProxy.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtDdDDProxy.Create(Id : String; SGroup : String; Config : TExtObject = nil); begin
-  CreateVar(JSClassName + '(' + VarToJSON([Id, SGroup, Config, false]) + ');');
-  InitDefaults;
-end;
-
 function TExtDdDDProxy.CreateFrame : TExtFunction; begin
   JSCode(JSName + '.createFrame();', 'TExtDdDDProxy');
   Result := Self;
@@ -1467,13 +1389,6 @@ procedure TExtDdDropTarget.InitDefaults; begin
   FDropNotAllowed := 'x-dd-drop-nodrop';
 end;
 
-{$IFDEF FPC}constructor TExtDdDropTarget.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtDdDropTarget.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
-end;
-
 function TExtDdDropTarget.NotifyDrop(Source : TExtDdDragSource; E : TEvent; Data : TExtObject) : TExtFunction; begin
   JSCode(JSName + '.notifyDrop(' + VarToJSON([Source, false, E, false, Data, false]) + ');', 'TExtDdDropTarget');
   Result := Self;
@@ -1500,13 +1415,6 @@ end;
 
 procedure TExtDdDropZone.InitDefaults; begin
   inherited;
-end;
-
-{$IFDEF FPC}constructor TExtDdDropZone.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtDdDropZone.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
 end;
 
 function TExtDdDropZone.GetTargetFromEvent(E : TEvent) : TExtFunction; begin
@@ -1587,13 +1495,6 @@ procedure TExtDdDragSource.InitDefaults; begin
   inherited;
   FDropAllowed := 'x-dd-drop-ok';
   FDropNotAllowed := 'x-dd-drop-nodrop';
-end;
-
-{$IFDEF FPC}constructor TExtDdDragSource.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtDdDragSource.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
 end;
 
 function TExtDdDragSource.AfterDragDrop(Target : TExtDdDragDrop; E : TEvent; Id : String) : TExtFunction; begin
@@ -1683,8 +1584,7 @@ end;
 
 procedure TExtDdDragZone.SetFDragData(Value : TExtObject); begin
   FDragData := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.dragData=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.dragData=' + VarToJSON([Value, false]) + ';');
 end;
 
 function TExtDdDragZone.JSClassName : string; begin
@@ -1695,13 +1595,6 @@ procedure TExtDdDragZone.InitDefaults; begin
   inherited;
   FHlColor := 'c3daf9';
   FDragData := TExtObject.CreateInternal(Self, 'dragData');
-end;
-
-{$IFDEF FPC}constructor TExtDdDragZone.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtDdDragZone.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
 end;
 
 function TExtDdDragZone.AfterRepair : TExtFunction; begin
@@ -1722,13 +1615,6 @@ end;
 function TExtDdDragZone.OnInitDrag(X : Integer; Y : Integer) : TExtFunction; begin
   JSCode(JSName + '.onInitDrag(' + VarToJSON([X, Y]) + ');', 'TExtDdDragZone');
   Result := Self;
-end;
-
-destructor TExtDdDragZone.Destroy; begin
-  try
-    FDragData.Free;
-  except end;
-  inherited;
 end;
 
 initialization

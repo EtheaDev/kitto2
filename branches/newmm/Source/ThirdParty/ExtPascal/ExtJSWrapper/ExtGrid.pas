@@ -6,7 +6,7 @@ unit ExtGrid;
 interface
 
 uses
-  StrUtils, ExtPascal, ExtPascalUtils, ExtUtil, ExtDd, Ext, ExtData;
+  Classes, StrUtils, ExtPascal, ExtPascalUtils, ExtUtil, ExtDd, Ext, ExtData;
 
 type
   TExtGridRowNumberer = class;
@@ -38,7 +38,6 @@ type
     procedure SetFWidth(Value : Integer);
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
     property Header : String read FHeader write SetFHeader;
     property Width : Integer read FWidth write SetFWidth;
   end;
@@ -100,12 +99,9 @@ type
     procedure InitDefaults; override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     function GetCellEditor(RowIndex : Integer) : TExtFunction;
     function SetEditor(Editor : TExtEditor) : TExtFunction; overload;
     function SetEditor(Editor : TExtFormField) : TExtFunction; overload;
-    destructor Destroy; override;
     property Align : TExtGridColumnAlign read FAlign write SetFAlign;
     property Css : String read FCss write SetFCss;
     property DataIndex : String read FDataIndex write SetFDataIndex;
@@ -135,7 +131,6 @@ type
   TExtGridPropertyRecord = class(TExtFunction)
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
   end;
 
   TExtGridTemplateColumn = class(TExtGridColumn)
@@ -148,8 +143,6 @@ type
     procedure InitDefaults; override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     property Tpl : String read FTpl write SetFTpl;
     property TplXTemplate : TExtXTemplate read FTplXTemplate write SetFTplXTemplate;
   end;
@@ -157,8 +150,7 @@ type
   TExtGridPropertyStore = class(TExtUtilObservable)
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create(Grid : TExtGridGrid; Source : TExtObject);
+    constructor Create(AOwner: TComponent; Grid: TExtGridGrid; Source: TExtObject); reintroduce;
   end;
 
   TExtGridNumberColumn = class(TExtGridColumn)
@@ -169,8 +161,6 @@ type
     procedure InitDefaults; override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     property Format : String read FFormat write SetFFormat;
   end;
 
@@ -246,8 +236,6 @@ type
     procedure HandleEvent(const AEvtName: string); override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     function FindCellIndex(El : THTMLElement) : TExtFunction;
     function FindRow(El : THTMLElement) : TExtFunction;
     function FindRowBody(El : THTMLElement) : TExtFunction;
@@ -259,7 +247,6 @@ type
     function GetRow(Index : Integer) : TExtFunction;
     function Refresh(HeadersToo : Boolean = false) : TExtFunction;
     function ScrollToTop : TExtFunction;
-    destructor Destroy; override;
     property AutoFill : Boolean read FAutoFill write SetFAutoFill;
     property CellSelector : String read FCellSelector write SetFCellSelector;
     property CellSelectorDepth : Integer read FCellSelectorDepth write SetFCellSelectorDepth;
@@ -322,8 +309,6 @@ type
     procedure HandleEvent(const AEvtName: string); override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     function DestroyJS : TExtFunction; override;
     function FindColumnIndex(Col : String) : TExtFunction;
     function GetCellEditor(ColIndex : Integer; RowIndex : Integer) : TExtFunction;
@@ -354,7 +339,6 @@ type
     function SetEditor(Col : Integer; Editor : TExtObject) : TExtFunction;
     function SetHidden(ColIndex : Integer; Hidden : Boolean) : TExtFunction;
     function SetRenderer(Col : Integer; Fn : TExtFunction) : TExtFunction;
-    destructor Destroy; override;
     property Columns : TExtObjectList read FColumns write SetFColumns;
     property DefaultSortable : Boolean read FDefaultSortable write SetFDefaultSortable;
     property DefaultWidth : Integer read FDefaultWidth write SetFDefaultWidth;
@@ -378,8 +362,6 @@ type
     procedure InitDefaults; override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     property FalseText : String read FFalseText write SetFFalseText;
     property TrueText : String read FTrueText write SetFTrueText;
     property UndefinedText : String read FUndefinedText write SetFUndefinedText;
@@ -393,8 +375,6 @@ type
     procedure InitDefaults; override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     property Format : String read FFormat write SetFFormat;
   end;
 
@@ -406,12 +386,9 @@ type
     procedure InitDefaults; override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     function IsLocked : TExtFunction;
     function Lock : TExtFunction;
     function Unlock : TExtFunction;
-    destructor Destroy; override;
     property Grid : TExtObject read FGrid write SetFGrid;
   end;
 
@@ -420,8 +397,6 @@ type
     procedure InitDefaults; override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
   end;
 
   // Procedural types for events TExtGridCellSelectionModel
@@ -441,8 +416,6 @@ type
     procedure HandleEvent(const AEvtName: string); override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create(Config : TExtObject = nil);
     function ClearSelections(PreventNotify : Boolean) : TExtFunction;
     function GetSelectedCell : TExtFunction;
     function HasSelection : TExtFunction;
@@ -476,8 +449,6 @@ type
     procedure HandleEvent(const AEvtName: string); override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create(Config : TExtObject = nil);
     function ClearSelections(Fast : Boolean = false) : TExtFunction;
     function DeselectRange(StartRow : Integer; EndRow : Integer) : TExtFunction;
     function DeselectRow(Row : Integer; PreventViewNotify : Boolean = false) : TExtFunction;
@@ -540,8 +511,6 @@ type
     procedure InitDefaults; override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     function CollapseAllGroups : TExtFunction;
     function ExpandAllGroups : TExtFunction;
     function GetGroupId(Value : String) : TExtFunction;
@@ -577,8 +546,6 @@ type
     procedure InitDefaults; override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     property CheckOnly : Boolean read FCheckOnly write SetFCheckOnly;
     property Header : String read FHeader write SetFHeader;
     property Sortable : Boolean read FSortable write SetFSortable;
@@ -590,8 +557,6 @@ type
     procedure InitDefaults; override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     function AfterRepair : TExtFunction;
     function GetDragData : TExtFunction;
     function GetRepairXY(E : TEventObject) : TExtFunction;
@@ -645,7 +610,6 @@ type
     FAutoExpandColumn : String;
     FAutoExpandMax : Integer;
     FAutoExpandMin : Integer;
-    FBubbleEvents : TExtObjectList;
     FCm : TExtObject;
     FColModel : TExtGridColumnModel;
     FColumnLines : Boolean;
@@ -715,7 +679,6 @@ type
     procedure SetFAutoExpandColumn(Value : String);
     procedure SetFAutoExpandMax(Value : Integer);
     procedure SetFAutoExpandMin(Value : Integer);
-    procedure SetFBubbleEvents(Value : TExtObjectList);
     procedure SetFCm(Value : TExtObject);
     procedure SetFColModel(Value : TExtGridColumnModel);
     procedure SetFColumnLines(Value : Boolean);
@@ -787,8 +750,6 @@ type
     procedure HandleEvent(const AEvtName: string); override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     function GetColumnModel : TExtFunction;
     function GetDragDropText : TExtFunction;
     function GetGridEl : TExtFunction;
@@ -796,11 +757,9 @@ type
     function GetStore : TExtFunction;
     function GetView : TExtFunction;
     function Reconfigure(Store : TExtDataStore; ColModel : TExtGridColumnModel) : TExtFunction;
-    destructor Destroy; override;
     property AutoExpandColumn : String read FAutoExpandColumn write SetFAutoExpandColumn;
     property AutoExpandMax : Integer read FAutoExpandMax write SetFAutoExpandMax;
     property AutoExpandMin : Integer read FAutoExpandMin write SetFAutoExpandMin;
-    property BubbleEvents : TExtObjectList read FBubbleEvents write SetFBubbleEvents;
     property Cm : TExtObject read FCm write SetFCm;
     property ColModel : TExtGridColumnModel read FColModel write SetFColModel;
     property ColumnLines : Boolean read FColumnLines write SetFColumnLines;
@@ -895,11 +854,8 @@ type
     procedure HandleEvent(const AEvtName: string); override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     function StartEditing(RowIndex : Integer; ColIndex : Integer) : TExtFunction;
     function StopEditing(Cancel : Boolean = false) : TExtFunction;
-    destructor Destroy; override;
     property AutoEncode : Boolean read FAutoEncode write SetFAutoEncode;
     property ClicksToEdit : Integer read FClicksToEdit write SetFClicksToEdit;
     property ForceValidation : Boolean read FForceValidation write SetFForceValidation;
@@ -934,13 +890,10 @@ type
     procedure HandleEvent(const AEvtName: string); override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     function GetSource : TExtFunction;
     function RemoveProperty(Prop : String) : TExtFunction;
     function SetProperty(Prop : String; Value : String; Create : Boolean = false) : TExtFunction;
     function SetSource(Source : TExtObject) : TExtFunction;
-    destructor Destroy; override;
     property CustomEditors : TExtObject read FCustomEditors write SetFCustomEditors;
     property CustomRenderers : TExtObject read FCustomRenderers write SetFCustomRenderers;
     property PropertyNames : TExtObject read FPropertyNames write SetFPropertyNames;
@@ -966,8 +919,6 @@ function TExtGridRowNumberer.JSClassName : string; begin
   Result := 'Ext.grid.RowNumberer';
 end;
 
-{$IFDEF FPC}constructor TExtGridRowNumberer.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
 procedure TExtGridColumn.SetFAlign(Value : TExtGridColumnAlign); begin
   FAlign := Value;
   JSCode('align:"' + EnumToJSString(TypeInfo(TExtGridColumnAlign), ord(Value)) + '"');
@@ -990,8 +941,7 @@ end;
 
 procedure TExtGridColumn.SetFEditor(Value : TExtFormField); begin
   FEditor := Value;
-  Value.DeleteFromGarbage;
-  JSCode('editor:' + VarToJSON([Value, false]));
+    JSCode('editor:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtGridColumn.SetFEmptyGroupText(Value : String); begin
@@ -1056,8 +1006,7 @@ end;
 
 procedure TExtGridColumn.SetFScope(Value : TExtObject); begin
   FScope := Value;
-  Value.DeleteFromGarbage;
-  JSCode('scope:' + VarToJSON([Value, false]));
+    JSCode('scope:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtGridColumn.SetFSortable(Value : Boolean); begin
@@ -1101,13 +1050,6 @@ procedure TExtGridColumn.InitDefaults; begin
   FScope := TExtObject.CreateInternal(Self, 'scope');
 end;
 
-{$IFDEF FPC}constructor TExtGridColumn.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtGridColumn.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
-end;
-
 function TExtGridColumn.GetCellEditor(RowIndex : Integer) : TExtFunction; begin
   JSCode(JSName + '.getCellEditor(' + VarToJSON([RowIndex]) + ');', 'TExtGridColumn');
   Result := Self;
@@ -1123,19 +1065,9 @@ function TExtGridColumn.SetEditor(Editor : TExtFormField) : TExtFunction; begin
   Result := Self;
 end;
 
-destructor TExtGridColumn.Destroy; begin
-  try
-    FEditor.Free;
-    FScope.Free;
-  except end;
-  inherited;
-end;
-
 function TExtGridPropertyRecord.JSClassName : string; begin
   Result := 'Ext.grid.PropertyRecord';
 end;
-
-{$IFDEF FPC}constructor TExtGridPropertyRecord.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
 
 procedure TExtGridTemplateColumn.SetFTpl(Value : String); begin
   FTpl := Value;
@@ -1144,8 +1076,7 @@ end;
 
 procedure TExtGridTemplateColumn.SetFTplXTemplate(Value : TExtXTemplate); begin
   FTplXTemplate := Value;
-  Value.DeleteFromGarbage;
-  JSCode('tpl:' + VarToJSON([Value, false]));
+    JSCode('tpl:' + VarToJSON([Value, false]));
 end;
 
 function TExtGridTemplateColumn.JSClassName : string; begin
@@ -1157,22 +1088,15 @@ procedure TExtGridTemplateColumn.InitDefaults; begin
   FTplXTemplate := TExtXTemplate.CreateInternal(Self, 'tpl');
 end;
 
-{$IFDEF FPC}constructor TExtGridTemplateColumn.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtGridTemplateColumn.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
-end;
-
 function TExtGridPropertyStore.JSClassName : string; begin
   Result := 'Ext.grid.PropertyStore';
 end;
 
-{$IFDEF FPC}constructor TExtGridPropertyStore.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtGridPropertyStore.Create(Grid : TExtGridGrid; Source : TExtObject); begin
-  CreateVar(JSClassName + '(' + VarToJSON([Grid, false, Source, false]) + ');');
-  InitDefaults;
+constructor TExtGridPropertyStore.Create(AOwner: TComponent; Grid: TExtGridGrid;
+  Source: TExtObject);
+begin
+  FCreateVarArgs := JSClassName + '(' + VarToJSON([Grid, false, Source, false]) + ');';
+  inherited Create(AOwner);
 end;
 
 procedure TExtGridNumberColumn.SetFFormat(Value : String); begin
@@ -1187,13 +1111,6 @@ end;
 procedure TExtGridNumberColumn.InitDefaults; begin
   inherited;
   FFormat := '0,000.00';
-end;
-
-{$IFDEF FPC}constructor TExtGridNumberColumn.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtGridNumberColumn.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
 end;
 
 procedure TExtGridGridView.SetFAutoFill(Value : Boolean); begin
@@ -1284,8 +1201,7 @@ end;
 
 procedure TExtGridGridView.SetFSortClasses(Value : TExtObjectList); begin
   FSortClasses := Value;
-  Value.DeleteFromGarbage;
-  JSCode('sortClasses:' + VarToJSON([Value, false]));
+    JSCode('sortClasses:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtGridGridView.SetFSortDescText(Value : String); begin
@@ -1295,14 +1211,12 @@ end;
 
 procedure TExtGridGridView.SetFDragZone(Value : TExtGridGridDragZone); begin
   FDragZone := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.dragZone=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.dragZone=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtGridGridView.SetFMainBody(Value : TExtElement); begin
   FMainBody := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.mainBody=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.mainBody=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtGridGridView.SetFOnBeforerefresh(Value : TExtGridGridViewOnBeforerefresh); begin
@@ -1383,13 +1297,6 @@ procedure TExtGridGridView.InitDefaults; begin
   FMainBody := TExtElement.CreateInternal(Self, 'mainBody');
 end;
 
-{$IFDEF FPC}constructor TExtGridGridView.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtGridGridView.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
-end;
-
 function TExtGridGridView.FindCellIndex(El : THTMLElement) : TExtFunction; begin
   JSCode(JSName + '.findCellIndex(' + VarToJSON([El, false]) + ');', 'TExtGridGridView');
   Result := Self;
@@ -1445,15 +1352,6 @@ function TExtGridGridView.ScrollToTop : TExtFunction; begin
   Result := Self;
 end;
 
-destructor TExtGridGridView.Destroy; begin
-  try
-    FSortClasses.Free;
-    FDragZone.Free;
-    FMainBody.Free;
-  except end;
-  inherited;
-end;
-
 procedure TExtGridGridView.HandleEvent(const AEvtName : string); begin
   inherited;
   if (AEvtName = 'beforerefresh') and Assigned(FOnBeforerefresh) then
@@ -1474,8 +1372,7 @@ end;
 
 procedure TExtGridColumnModel.SetFColumns(Value : TExtObjectList); begin
   FColumns := Value;
-  Value.DeleteFromGarbage;
-  JSCode('columns:' + VarToJSON([Value, false]));
+    JSCode('columns:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtGridColumnModel.SetFDefaultSortable(Value : Boolean); begin
@@ -1490,8 +1387,7 @@ end;
 
 procedure TExtGridColumnModel.SetFDefaults(Value : TExtObject); begin
   FDefaults := Value;
-  Value.DeleteFromGarbage;
-  JSCode('defaults:' + VarToJSON([Value, false]));
+    JSCode('defaults:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtGridColumnModel.SetFOnColumnmoved(Value : TExtGridColumnModelOnColumnmoved); begin
@@ -1543,13 +1439,6 @@ procedure TExtGridColumnModel.InitDefaults; begin
   FColumns := TExtObjectList.Create(Self, 'columns');
   FDefaultWidth := 100;
   FDefaults := TExtObject.CreateInternal(Self, 'defaults');
-end;
-
-{$IFDEF FPC}constructor TExtGridColumnModel.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtGridColumnModel.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
 end;
 
 function TExtGridColumnModel.DestroyJS : TExtFunction; begin
@@ -1702,14 +1591,6 @@ function TExtGridColumnModel.SetRenderer(Col : Integer; Fn : TExtFunction) : TEx
   Result := Self;
 end;
 
-destructor TExtGridColumnModel.Destroy; begin
-  try
-    FColumns.Free;
-    FDefaults.Free;
-  except end;
-  inherited;
-end;
-
 procedure TExtGridColumnModel.HandleEvent(const AEvtName : string); begin
   inherited;
   if (AEvtName = 'columnmoved') and Assigned(FOnColumnmoved) then
@@ -1749,13 +1630,6 @@ procedure TExtGridBooleanColumn.InitDefaults; begin
   FTrueText := 'true';
 end;
 
-{$IFDEF FPC}constructor TExtGridBooleanColumn.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtGridBooleanColumn.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
-end;
-
 procedure TExtGridDateColumn.SetFFormat(Value : String); begin
   FFormat := Value;
   JSCode('format:' + VarToJSON([Value]));
@@ -1770,18 +1644,10 @@ procedure TExtGridDateColumn.InitDefaults; begin
   FFormat := 'm/d/Y';
 end;
 
-{$IFDEF FPC}constructor TExtGridDateColumn.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtGridDateColumn.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
-end;
-
 procedure TExtGridAbstractSelectionModel.SetFGrid(Value : TExtObject); begin
   FGrid.Free;
   FGrid := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.grid=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.grid=' + VarToJSON([Value, false]) + ';');
 end;
 
 function TExtGridAbstractSelectionModel.JSClassName : string; begin
@@ -1791,13 +1657,6 @@ end;
 procedure TExtGridAbstractSelectionModel.InitDefaults; begin
   inherited;
   FGrid := TExtObject.CreateInternal(Self, 'grid');
-end;
-
-{$IFDEF FPC}constructor TExtGridAbstractSelectionModel.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtGridAbstractSelectionModel.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
 end;
 
 function TExtGridAbstractSelectionModel.IsLocked : TExtFunction; begin
@@ -1815,26 +1674,12 @@ function TExtGridAbstractSelectionModel.Unlock : TExtFunction; begin
   Result := Self;
 end;
 
-destructor TExtGridAbstractSelectionModel.Destroy; begin
-  try
-    FGrid.Free;
-  except end;
-  inherited;
-end;
-
 function TExtGridPropertyColumnModel.JSClassName : string; begin
   Result := 'Ext.grid.PropertyColumnModel';
 end;
 
 procedure TExtGridPropertyColumnModel.InitDefaults; begin
   inherited;
-end;
-
-{$IFDEF FPC}constructor TExtGridPropertyColumnModel.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtGridPropertyColumnModel.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
 end;
 
 procedure TExtGridCellSelectionModel.SetFOnBeforecellselect(Value : TExtGridCellSelectionModelOnBeforecellselect); begin
@@ -1863,14 +1708,6 @@ end;
 
 function TExtGridCellSelectionModel.JSClassName : string; begin
   Result := 'Ext.grid.CellSelectionModel';
-end;
-
-{$IFDEF FPC}constructor TExtGridCellSelectionModel.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtGridCellSelectionModel.Create(Config : TExtObject = nil); begin
-  if Config = nil then CreateVar(JSClassName + '({});') else
-  CreateVar(JSClassName + '(' + VarToJSON([Config, false]) + ');');
-  InitDefaults;
 end;
 
 function TExtGridCellSelectionModel.ClearSelections(PreventNotify : Boolean) : TExtFunction; begin
@@ -1947,14 +1784,6 @@ end;
 
 function TExtGridRowSelectionModel.JSClassName : string; begin
   Result := 'Ext.grid.RowSelectionModel';
-end;
-
-{$IFDEF FPC}constructor TExtGridRowSelectionModel.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtGridRowSelectionModel.Create(Config : TExtObject = nil); begin
-  if Config = nil then CreateVar(JSClassName + '({});') else
-  CreateVar(JSClassName + '(' + VarToJSON([Config, false]) + ');');
-  InitDefaults;
 end;
 
 function TExtGridRowSelectionModel.ClearSelections(Fast : Boolean = false) : TExtFunction; begin
@@ -2159,13 +1988,6 @@ procedure TExtGridGroupingView.InitDefaults; begin
   FShowGroupsText := 'Show in Groups';
 end;
 
-{$IFDEF FPC}constructor TExtGridGroupingView.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtGridGroupingView.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
-end;
-
 function TExtGridGroupingView.CollapseAllGroups : TExtFunction; begin
   JSCode(JSName + '.collapseAllGroups();', 'TExtGridGroupingView');
   Result := Self;
@@ -2225,26 +2047,12 @@ procedure TExtGridCheckboxSelectionModel.InitDefaults; begin
   FWidth := 20;
 end;
 
-{$IFDEF FPC}constructor TExtGridCheckboxSelectionModel.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtGridCheckboxSelectionModel.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
-end;
-
 function TExtGridGridDragZone.JSClassName : string; begin
   Result := 'Ext.grid.GridDragZone';
 end;
 
 procedure TExtGridGridDragZone.InitDefaults; begin
   inherited;
-end;
-
-{$IFDEF FPC}constructor TExtGridGridDragZone.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtGridGridDragZone.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
 end;
 
 function TExtGridGridDragZone.AfterRepair : TExtFunction; begin
@@ -2282,24 +2090,16 @@ procedure TExtGridGridPanel.SetFAutoExpandMin(Value : Integer); begin
   JSCode('autoExpandMin:' + VarToJSON([Value]));
 end;
 
-procedure TExtGridGridPanel.SetFBubbleEvents(Value : TExtObjectList); begin
-  FBubbleEvents := Value;
-  Value.DeleteFromGarbage;
-  JSCode('bubbleEvents:' + VarToJSON([Value, false]));
-end;
-
 procedure TExtGridGridPanel.SetFCm(Value : TExtObject); begin
   FCm := Value;
-  Value.DeleteFromGarbage;
-  JSCode('cm:' + VarToJSON([Value, false]));
+    JSCode('cm:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtGridGridPanel.SetFColModel(Value : TExtGridColumnModel); begin
   if FColModel <> Value then begin
     FColModel.Free;
     FColModel := Value;
-    Value.DeleteFromGarbage;
-    JSCode('colModel:' + VarToJSON([Value, false]));
+        JSCode('colModel:' + VarToJSON([Value, false]));
   end;
 end;
 
@@ -2310,8 +2110,7 @@ end;
 
 procedure TExtGridGridPanel.SetFColumns(Value : TExtObjectList); begin
   FColumns := Value;
-  Value.DeleteFromGarbage;
-  JSCode('columns:' + VarToJSON([Value, false]));
+    JSCode('columns:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtGridGridPanel.SetFDdGroup(Value : String); begin
@@ -2366,8 +2165,7 @@ end;
 
 procedure TExtGridGridPanel.SetFLoadMask(Value : TExtObject); begin
   FLoadMask := Value;
-  Value.DeleteFromGarbage;
-  JSCode('loadMask:' + VarToJSON([Value, false]));
+    JSCode('loadMask:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtGridGridPanel.SetFMaxHeight(Value : Integer); begin
@@ -2382,28 +2180,24 @@ end;
 
 procedure TExtGridGridPanel.SetFSelModel(Value : TExtObject); begin
   FSelModel := Value;
-  Value.DeleteFromGarbage;
-  JSCode('selModel:' + VarToJSON([Value, false]));
+    JSCode('selModel:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtGridGridPanel.SetFSm(Value : TExtObject); begin
   FSm := Value;
-  Value.DeleteFromGarbage;
-  JSCode('sm:' + VarToJSON([Value, false]));
+    JSCode('sm:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtGridGridPanel.SetFStateEvents(Value : TExtObjectList); begin
   FStateEvents.Free;
   FStateEvents := Value;
-  Value.DeleteFromGarbage;
-  JSCode('stateEvents:' + VarToJSON([Value, false]));
+    JSCode('stateEvents:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtGridGridPanel.SetFStore(Value : TExtDataStore); begin
   FStore.Free;
   FStore := Value;
-  Value.DeleteFromGarbage;
-  JSCode('store:' + VarToJSON([Value, false]));
+    JSCode('store:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtGridGridPanel.SetFStripeRows(Value : Boolean); begin
@@ -2419,15 +2213,13 @@ end;
 procedure TExtGridGridPanel.SetFView(Value : TExtObject); begin
   FView.Free;
   FView := Value;
-  Value.DeleteFromGarbage;
-  JSCode('view:' + VarToJSON([Value, false]));
+    JSCode('view:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtGridGridPanel.SetFViewConfig(Value : TExtObject); begin
   FViewConfig.Free;
   FViewConfig := Value;
-  Value.DeleteFromGarbage;
-  JSCode('viewConfig:' + VarToJSON([Value, false]));
+    JSCode('viewConfig:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtGridGridPanel.SetFLoadMaskBoolean(Value : Boolean); begin
@@ -2761,7 +2553,6 @@ end;
 
 procedure TExtGridGridPanel.InitDefaults; begin
   inherited;
-  FBubbleEvents := TExtObjectList.Create(Self, 'bubbleEvents');
   FCm := TExtObject.CreateInternal(Self, 'cm');
   FColModel := TExtGridColumnModel.CreateInternal(Self, 'colModel');
   FColumns := TExtObjectList.Create(Self, 'columns');
@@ -2772,13 +2563,6 @@ procedure TExtGridGridPanel.InitDefaults; begin
   FStore := TExtDataStore.CreateInternal(Self, 'store');
   FView := TExtObject.CreateInternal(Self, 'view');
   FViewConfig := TExtObject.CreateInternal(Self, 'viewConfig');
-end;
-
-{$IFDEF FPC}constructor TExtGridGridPanel.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtGridGridPanel.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
 end;
 
 function TExtGridGridPanel.GetColumnModel : TExtFunction; begin
@@ -2814,23 +2598,6 @@ end;
 function TExtGridGridPanel.Reconfigure(Store : TExtDataStore; ColModel : TExtGridColumnModel) : TExtFunction; begin
   JSCode(JSName + '.reconfigure(' + VarToJSON([Store, false, ColModel, false]) + ');', 'TExtGridGridPanel');
   Result := Self;
-end;
-
-destructor TExtGridGridPanel.Destroy; begin
-  try
-    FBubbleEvents.Free;
-    FCm.Free;
-    FColModel.Free;
-    FColumns.Free;
-    FLoadMask.Free;
-    FSelModel.Free;
-    FSm.Free;
-    FStateEvents.Free;
-    FStore.Free;
-    FView.Free;
-    FViewConfig.Free;
-  except end;
-  inherited;
 end;
 
 procedure TExtGridGridPanel.HandleEvent(const AEvtName : string); begin
@@ -2935,8 +2702,7 @@ end;
 procedure TExtGridEditorGridPanel.SetFSelModel(Value : TExtObject); begin
   FSelModel.Free;
   FSelModel := Value;
-  Value.DeleteFromGarbage;
-  JSCode('selModel:' + VarToJSON([Value, false]));
+    JSCode('selModel:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtGridEditorGridPanel.SetFOnAfteredit(Value : TExtGridEditorGridPanelOnAfteredit); begin
@@ -2973,13 +2739,6 @@ procedure TExtGridEditorGridPanel.InitDefaults; begin
   FSelModel := TExtObject.CreateInternal(Self, 'selModel');
 end;
 
-{$IFDEF FPC}constructor TExtGridEditorGridPanel.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtGridEditorGridPanel.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
-end;
-
 function TExtGridEditorGridPanel.StartEditing(RowIndex : Integer; ColIndex : Integer) : TExtFunction; begin
   JSCode(JSName + '.startEditing(' + VarToJSON([RowIndex, ColIndex]) + ');', 'TExtGridEditorGridPanel');
   Result := Self;
@@ -2988,13 +2747,6 @@ end;
 function TExtGridEditorGridPanel.StopEditing(Cancel : Boolean = false) : TExtFunction; begin
   JSCode(JSName + '.stopEditing(' + VarToJSON([Cancel]) + ');', 'TExtGridEditorGridPanel');
   Result := Self;
-end;
-
-destructor TExtGridEditorGridPanel.Destroy; begin
-  try
-    FSelModel.Free;
-  except end;
-  inherited;
 end;
 
 procedure TExtGridEditorGridPanel.HandleEvent(const AEvtName : string); begin
@@ -3009,26 +2761,22 @@ end;
 
 procedure TExtGridPropertyGrid.SetFCustomEditors(Value : TExtObject); begin
   FCustomEditors := Value;
-  Value.DeleteFromGarbage;
-  JSCode('customEditors:' + VarToJSON([Value, false]));
+    JSCode('customEditors:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtGridPropertyGrid.SetFCustomRenderers(Value : TExtObject); begin
   FCustomRenderers := Value;
-  Value.DeleteFromGarbage;
-  JSCode('customRenderers:' + VarToJSON([Value, false]));
+    JSCode('customRenderers:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtGridPropertyGrid.SetFPropertyNames(Value : TExtObject); begin
   FPropertyNames := Value;
-  Value.DeleteFromGarbage;
-  JSCode('propertyNames:' + VarToJSON([Value, false]));
+    JSCode('propertyNames:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtGridPropertyGrid.SetFSource(Value : TExtObject); begin
   FSource := Value;
-  Value.DeleteFromGarbage;
-  if not ConfigAvailable(JSName) then
+    if not ConfigAvailable(JSName) then
     SetSource(Value)
   else
     JSCode('source:' + VarToJSON([Value, false]));
@@ -3036,8 +2784,7 @@ end;
 
 procedure TExtGridPropertyGrid.SetFSource_(Value : TExtObject); begin
   FSource_ := Value;
-  Value.DeleteFromGarbage;
-  JSCode('source:' + VarToJSON([Value, false]));
+    JSCode('source:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtGridPropertyGrid.SetFOnBeforepropertychange(Value : TExtGridPropertyGridOnBeforepropertychange); begin
@@ -3069,13 +2816,6 @@ procedure TExtGridPropertyGrid.InitDefaults; begin
   FSource_ := TExtObject.CreateInternal(Self, 'source');
 end;
 
-{$IFDEF FPC}constructor TExtGridPropertyGrid.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtGridPropertyGrid.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
-end;
-
 function TExtGridPropertyGrid.GetSource : TExtFunction; begin
   JSCode(JSName + '.getSource();', 'TExtGridPropertyGrid');
   Result := Self;
@@ -3094,17 +2834,6 @@ end;
 function TExtGridPropertyGrid.SetSource(Source : TExtObject) : TExtFunction; begin
   JSCode(JSName + '.setSource(' + VarToJSON([Source, false]) + ');', 'TExtGridPropertyGrid');
   Result := Self;
-end;
-
-destructor TExtGridPropertyGrid.Destroy; begin
-  try
-    FCustomEditors.Free;
-    FCustomRenderers.Free;
-    FPropertyNames.Free;
-    FSource.Free;
-    FSource_.Free;
-  except end;
-  inherited;
 end;
 
 procedure TExtGridPropertyGrid.HandleEvent(const AEvtName : string); begin

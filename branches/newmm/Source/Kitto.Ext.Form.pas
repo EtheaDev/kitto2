@@ -121,7 +121,7 @@ begin
   begin
     FStoreRecord.EnsureDetailStores;
     Assert(FStoreRecord.DetailStoreCount = ViewTable.DetailTableCount);
-    FDetailToolbar := TExtToolbar.Create;
+    FDetailToolbar := TExtToolbar.Create(Self);
     FDetailButtons := TObjectList<TKExtDetailFormButton>.Create(False);
     for I := 0 to ViewTable.DetailTableCount - 1 do
     begin
@@ -155,8 +155,8 @@ begin
       // The node may exist and be '', which does not return the default value.
       if LControllerType = '' then
         LControllerType := 'GridPanel';
-      LController := TKExtControllerFactory.Instance.CreateController(View,
-        FTabPanel, ViewTable.FindNode('Controller'), Self, LControllerType);
+      LController := TKExtControllerFactory.Instance.CreateController(FTabPanel,
+        View, FTabPanel, ViewTable.FindNode('Controller'), Self, LControllerType);
       LController.Config.SetObject('Sys/ViewTable', ViewTable.DetailTables[I]);
       LController.Config.SetObject('Sys/ServerStore', FStoreRecord.DetailStores[I]);
       LController.Config.SetBoolean('AllowClose', False);
@@ -530,12 +530,13 @@ begin
 
   if Assigned(FDetailHostWindow) then
     FDetailHostWindow.Free(True);
-  FDetailHostWindow := TKExtModalWindow.Create;
+  FDetailHostWindow := TKExtModalWindow.Create(Self);
 
   FDetailHostWindow.Title := _(ViewTable.PluralDisplayLabel);
   FDetailHostWindow.Closable := True;
 
-  LController := TKExtControllerFactory.Instance.CreateController(FViewTable.View, FDetailHostWindow);
+  LController := TKExtControllerFactory.Instance.CreateController(
+    FDetailHostWindow, FViewTable.View, FDetailHostWindow);
   LController.Config.SetObject('Sys/ServerStore', ServerStore);
   LController.Config.SetObject('Sys/ViewTable', ViewTable);
   LController.Config.SetObject('Sys/HostWindow', FDetailHostWindow);

@@ -25,7 +25,6 @@ type
   TExtUxTabCloseMenu = class(TExtFunction)
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
   end;
 
   TExtUxProgressBarPager = class(TExtFunction)
@@ -38,7 +37,6 @@ type
     procedure SetFProgBarWidth(Value : Integer);
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
     property DefaultAnimCfg : TExtObject read FDefaultAnimCfg write SetFDefaultAnimCfg;
     property DefaultText : string read FDefaultText write SetFDefaultText;
     property ProgBarWidth : Integer read FProgBarWidth write SetFProgBarWidth;
@@ -47,13 +45,11 @@ type
   TExtUxTaskBar = class(TExtUtilObservable)
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
   end;
 
   TExtUxSpinner = class(TExtUtilObservable)
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
   end;
 
   TExtUxValidationStatus = class(TExtComponent)
@@ -61,8 +57,6 @@ type
     procedure InitDefaults; override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
   end;
 
   TExtUxTaskButtonsPanel = class(TExtBoxComponent)
@@ -70,8 +64,6 @@ type
     procedure InitDefaults; override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
   end;
 
   TExtUxTaskBarContainer = class(TExtContainer)
@@ -79,8 +71,6 @@ type
     procedure InitDefaults; override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
   end;
 
   // Procedural types for events TExtUxTaskBarTaskButton
@@ -159,8 +149,6 @@ type
     procedure HandleEvent(const AEvtName: string); override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     function MultiComboCheckable : TExtFunction;
     function BuildBottomToolbar : TExtFunction;
     function BuildTopToolbar : TExtFunction;
@@ -178,7 +166,6 @@ type
     function SelectPrev(Sender : TExtObject) : TExtFunction;
     function SetChecked(V : TExtObject) : TExtFunction;
     function SetValue : TExtFunction;
-    destructor Destroy; override;
     property AllSelectedText : string read FAllSelectedText write SetFAllSelectedText;
     property AutoSelectKey : Integer read FAutoSelectKey write SetFAutoSelectKey;
     property CheckSelector : string read FCheckSelector write SetFCheckSelector;
@@ -219,8 +206,6 @@ type
     procedure InitDefaults; override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
   end;
 
   TExtUxStartMenu = class(TExtMenuMenu)
@@ -228,8 +213,6 @@ type
     procedure InitDefaults; override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     function AddToolSeparator : TExtFunction;
     function Show(Element : string; Position : string = ''; ParentMenu : TExtUxStartMenu = nil) : TExtFunction;
   end;
@@ -258,8 +241,6 @@ type
     procedure InitDefaults; override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     function ClearStatus(Config : TExtObject = nil) : TExtFunction;
     function GetText : TExtFunction;
     function SetIcon(IconCls : string = '') : TExtFunction;
@@ -284,8 +265,6 @@ type
     procedure InitDefaults; override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
   end;
 
 implementation
@@ -294,12 +273,9 @@ function TExtUxTabCloseMenu.JSClassName : string; begin
   Result := 'Ext.ux.TabCloseMenu';
 end;
 
-{$IFDEF FPC}constructor TExtUxTabCloseMenu.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
 procedure TExtUxProgressBarPager.SetFDefaultAnimCfg(Value : TExtObject); begin
   FDefaultAnimCfg := Value;
-  Value.DeleteFromGarbage;
-  JSCode('defaultAnimCfg:' + VarToJSON([Value, false]));
+    JSCode('defaultAnimCfg:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtUxProgressBarPager.SetFDefaultText(Value : string); begin
@@ -316,19 +292,13 @@ function TExtUxProgressBarPager.JSClassName : string; begin
   Result := 'Ext.ux.ProgressBarPager';
 end;
 
-{$IFDEF FPC}constructor TExtUxProgressBarPager.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
 function TExtUxTaskBar.JSClassName : string; begin
   Result := 'Ext.ux.TaskBar';
 end;
 
-{$IFDEF FPC}constructor TExtUxTaskBar.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
 function TExtUxSpinner.JSClassName : string; begin
   Result := 'Ext.ux.Spinner';
 end;
-
-{$IFDEF FPC}constructor TExtUxSpinner.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
 
 function TExtUxValidationStatus.JSClassName : string; begin
   Result := 'Ext.ux.ValidationStatus';
@@ -336,13 +306,6 @@ end;
 
 procedure TExtUxValidationStatus.InitDefaults; begin
   inherited;
-end;
-
-{$IFDEF FPC}constructor TExtUxValidationStatus.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtUxValidationStatus.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
 end;
 
 function TExtUxTaskButtonsPanel.JSClassName : string; begin
@@ -353,26 +316,12 @@ procedure TExtUxTaskButtonsPanel.InitDefaults; begin
   inherited;
 end;
 
-{$IFDEF FPC}constructor TExtUxTaskButtonsPanel.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtUxTaskButtonsPanel.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
-end;
-
 function TExtUxTaskBarContainer.JSClassName : string; begin
   Result := 'Ext.ux.TaskBarContainer';
 end;
 
 procedure TExtUxTaskBarContainer.InitDefaults; begin
   inherited;
-end;
-
-{$IFDEF FPC}constructor TExtUxTaskBarContainer.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtUxTaskBarContainer.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
 end;
 
 procedure TExtUxTaskBarTaskButton.SetFAllSelectedText(Value : string); begin
@@ -457,8 +406,7 @@ end;
 
 procedure TExtUxTaskBarTaskButton.SetFTplExtXTemplate(Value : TExtXTemplate); begin
   FTplExtXTemplate := Value;
-  Value.DeleteFromGarbage;
-  JSCode('tpl:' + VarToJSON([Value, false]));
+    JSCode('tpl:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtUxTaskBarTaskButton.SetFUrl(Value : string); begin
@@ -468,86 +416,72 @@ end;
 
 procedure TExtUxTaskBarTaskButton.SetFValue(Value : TExtObjectList); begin
   FValue := Value;
-  Value.DeleteFromGarbage;
-  JSCode('value:' + VarToJSON([Value, false]));
+    JSCode('value:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtUxTaskBarTaskButton.SetFBookDetail(Value : TExtObject); begin
   FBookDetail := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.bookDetail=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.bookDetail=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtUxTaskBarTaskButton.SetFBookGrid(Value : TExtObject); begin
   FBookGrid := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.bookGrid=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.bookGrid=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtUxTaskBarTaskButton.SetFBookMasterDetail(Value : TExtObject); begin
   FBookMasterDetail := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.bookMasterDetail=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.bookMasterDetail=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtUxTaskBarTaskButton.SetFConstructorJS(Value : TExtObject); begin
   FConstructorJS := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.constructorJS=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.constructorJS=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtUxTaskBarTaskButton.SetFGrid(Value : TExtObject); begin
   FGrid := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.grid=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.grid=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtUxTaskBarTaskButton.SetFMultiCombo(Value : TExtObject); begin
   FMultiCombo := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.multiCombo=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.multiCombo=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtUxTaskBarTaskButton.SetFThis(Value : TExtObject); begin
   FThis := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.this=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.this=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtUxTaskBarTaskButton.SetFThis_(Value : TExtObject); begin
   FThis_ := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.this=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.this=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtUxTaskBarTaskButton.SetFFunctionJS(Value : TExtObject); begin
   FFunctionJS := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.functionJS=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.functionJS=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtUxTaskBarTaskButton.SetFFunctionJS_(Value : TExtObject); begin
   FFunctionJS_ := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.functionJS=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.functionJS=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtUxTaskBarTaskButton.SetFVarJS(Value : TExtObject); begin
   FVarJS := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.varJS=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.varJS=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtUxTaskBarTaskButton.SetFVarJS_(Value : TExtObject); begin
   FVarJS_ := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.varJS=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.varJS=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtUxTaskBarTaskButton.SetFView(Value : TExtDataView); begin
   FView := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.view=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.view=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtUxTaskBarTaskButton.SetFOnInitview(Value : TExtUxTaskBarTaskButtonOnInitview); begin
@@ -579,13 +513,6 @@ procedure TExtUxTaskBarTaskButton.InitDefaults; begin
   FVarJS := TExtObject.CreateInternal(Self, 'varJS');
   FVarJS_ := TExtObject.CreateInternal(Self, 'varJS');
   FView := TExtDataView.CreateInternal(Self, 'view');
-end;
-
-{$IFDEF FPC}constructor TExtUxTaskBarTaskButton.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtUxTaskBarTaskButton.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
 end;
 
 function TExtUxTaskBarTaskButton.MultiComboCheckable : TExtFunction; begin
@@ -673,27 +600,6 @@ function TExtUxTaskBarTaskButton.SetValue : TExtFunction; begin
   Result := Self;
 end;
 
-destructor TExtUxTaskBarTaskButton.Destroy; begin
-  try
-    FTplExtXTemplate.Free;
-    FValue.Free;
-    FBookDetail.Free;
-    FBookGrid.Free;
-    FBookMasterDetail.Free;
-    FConstructorJS.Free;
-    FGrid.Free;
-    FMultiCombo.Free;
-    FThis.Free;
-    FThis_.Free;
-    FFunctionJS.Free;
-    FFunctionJS_.Free;
-    FVarJS.Free;
-    FVarJS_.Free;
-    FView.Free;
-  except end;
-  inherited;
-end;
-
 procedure TExtUxTaskBarTaskButton.HandleEvent(const AEvtName : string); begin
   inherited;
   if (AEvtName = 'initview') and Assigned(FOnInitview) then
@@ -708,26 +614,12 @@ procedure TExtUxGMapPanel.InitDefaults; begin
   inherited;
 end;
 
-{$IFDEF FPC}constructor TExtUxGMapPanel.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtUxGMapPanel.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
-end;
-
 function TExtUxStartMenu.JSClassName : string; begin
   Result := 'Ext.ux.StartMenu';
 end;
 
 procedure TExtUxStartMenu.InitDefaults; begin
   inherited;
-end;
-
-{$IFDEF FPC}constructor TExtUxStartMenu.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtUxStartMenu.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
 end;
 
 function TExtUxStartMenu.AddToolSeparator : TExtFunction; begin
@@ -800,13 +692,6 @@ procedure TExtUxStatusBar.InitDefaults; begin
   FCls := 'x-statusbar';
 end;
 
-{$IFDEF FPC}constructor TExtUxStatusBar.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtUxStatusBar.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
-end;
-
 function TExtUxStatusBar.ClearStatus(Config : TExtObject = nil) : TExtFunction; begin
   JSCode(JSName + '.clearStatus(' + VarToJSON([Config, false]) + ');', 'TExtUxStatusBar');
   Result := Self;
@@ -853,13 +738,6 @@ end;
 
 procedure TExtUxSliderTip.InitDefaults; begin
   inherited;
-end;
-
-{$IFDEF FPC}constructor TExtUxSliderTip.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtUxSliderTip.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
 end;
 
 end.
