@@ -22,756 +22,942 @@ type
 
   TExtUtilObservable = class(TExtFunction)
   private
-    FListeners : TExtObject;
-    procedure SetFListeners(Value : TExtObject);
+    FListeners: TExtObject;
+    procedure SetFListeners(Value: TExtObject);
   protected
     procedure InitDefaults; override;
   public
-    function JSClassName : string; override;
-    function ObservableCapture(O : TExtUtilObservable; Fn : TExtFunction; Scope : TExtObject = nil) : TExtFunction;
-    function ObservableObserveClass(C : TExtFunction; Listeners : TExtObject) : TExtFunction;
-    function ObservableReleaseCapture(O : TExtUtilObservable) : TExtFunction;
-    function AddEvents(O : TExtObject; Optional : String) : TExtFunction; overload;
-    function AddEvents(O : String; Optional : String) : TExtFunction; overload;
-    function AddListener(EventName : String; Handler : TExtFunction; Scope : TExtObject = nil; Options : TExtObject = nil) : TExtFunction;
-    function EnableBubble(Events : String) : TExtFunction; overload;
-    function EnableBubble(Events : TExtObjectList) : TExtFunction; overload;
-    function FireEvent(EventName : String; Args : TExtObjectList) : TExtFunction;
-    function HasListener(EventName : String) : TExtFunction;
-    function On(EventName : String; Handler : TExtFunction; Scope : TExtObject = nil; Options : TExtObject = nil) : TExtFunction;
-    function PurgeListeners : TExtFunction;
-    function RelayEvents(O : TExtObject; Events : TExtObjectList) : TExtFunction;
-    function RemoveListener(EventName : String; Handler : TExtFunction; Scope : TExtObject = nil) : TExtFunction;
-    function ResumeEvents : TExtFunction;
-    function SuspendEvents(QueueSuspended : Boolean) : TExtFunction;
-    function Un(EventName : String; Handler : TExtFunction; Scope : TExtObject = nil) : TExtFunction;
-    property Listeners : TExtObject read FListeners write SetFListeners;
+    function JSClassName: string; override;
+    function ObservableCapture(O: TExtUtilObservable; Fn: TExtFunction;
+      Scope: TExtObject = nil): TExtFunction;
+    function ObservableObserveClass(C: TExtFunction; Listeners: TExtObject): TExtFunction;
+    function ObservableReleaseCapture(O: TExtUtilObservable): TExtFunction;
+    function AddEvents(O: TExtObject; Optional: string): TExtFunction; overload;
+    function AddEvents(O: string; Optional: string): TExtFunction; overload;
+    function AddListener(EventName: string; Handler: TExtFunction;
+      Scope: TExtObject = nil; Options: TExtObject = nil): TExtFunction;
+    function EnableBubble(Events: string): TExtFunction; overload;
+    function EnableBubble(Events: TExtObjectList): TExtFunction; overload;
+    function FireEvent(EventName: string; Args: TExtObjectList): TExtFunction;
+    function HasListener(EventName: string): TExtFunction;
+    function &On(const AEventName: string; const AHandler: TExtFunction;
+      const AScope: TExtObject = nil; const AOptions: TExtObject = nil): TExtFunction;
+    function PurgeListeners: TExtFunction;
+    function RelayEvents(O: TExtObject; Events: TExtObjectList): TExtFunction;
+    function RemoveListener(EventName: string; Handler: TExtFunction;
+      Scope: TExtObject = nil): TExtFunction;
+    function ResumeEvents: TExtFunction;
+    function SuspendEvents(QueueSuspended: Boolean): TExtFunction;
+    function Un(EventName: string; Handler: TExtFunction; Scope: TExtObject = nil)
+      : TExtFunction;
+    property Listeners: TExtObject read FListeners write SetFListeners;
   end;
 
   TExtUtilJSONSingleton = class(TExtFunction)
   public
-    function JSClassName : string; override;
-    function Decode(Json : String) : TExtFunction;
-    function Encode(O : String) : TExtFunction;
-    function EncodeDate(D : TDateTime) : TExtFunction;
+    function JSClassName: string; override;
+    function Decode(Json: string): TExtFunction;
+    function Encode(O: string): TExtFunction;
+    function EncodeDate(D: TDateTime): TExtFunction;
   end;
 
   TExtUtilTextMetricsSingleton = class(TExtFunction)
   public
-    function JSClassName : string; override;
-    function Bind(El : String) : TExtFunction; overload;
-    function Bind(El : THTMLElement) : TExtFunction; overload;
-    function CreateInstance(El : String; FixedWidth : Integer = 0) : TExtFunction; overload;
-    function CreateInstance(El : THTMLElement; FixedWidth : Integer = 0) : TExtFunction; overload;
-    function GetHeight(Text : String) : TExtFunction;
-    function GetSize(Text : String) : TExtFunction;
-    function GetWidth(Text : String) : TExtFunction;
-    function Measure(El : String; Text : String; FixedWidth : Integer = 0) : TExtFunction; overload;
-    function Measure(El : THTMLElement; Text : String; FixedWidth : Integer = 0) : TExtFunction; overload;
-    function SetFixedWidth(Width : Integer) : TExtFunction;
+    function JSClassName: string; override;
+    function Bind(El: string): TExtFunction; overload;
+    function Bind(El: THTMLElement): TExtFunction; overload;
+    function CreateInstance(El: string; FixedWidth: Integer = 0): TExtFunction; overload;
+    function CreateInstance(El: THTMLElement; FixedWidth: Integer = 0)
+      : TExtFunction; overload;
+    function GetHeight(const AText: string): TExtFunction;
+    function GetSize(Text: string): TExtFunction;
+    function GetWidth(const AText: string): TExtFunction;
+    function Measure(El: string; Text: string; FixedWidth: Integer = 0)
+      : TExtFunction; overload;
+    function Measure(El: THTMLElement; Text: string; FixedWidth: Integer = 0)
+      : TExtFunction; overload;
+    function SetFixedWidth(Width: Integer): TExtFunction;
   end;
 
   TExtUtilTaskRunner = class(TExtFunction)
   public
-    function JSClassName : string; override;
-    constructor Create(AOwner: TExtObject; AInterval : Integer = 0); reintroduce;
-    function Start(Task : TExtObject) : TExtFunction;
-    function Stop(Task : TExtObject) : TExtFunction;
-    function StopAll : TExtFunction;
+    function JSClassName: string; override;
+    constructor Create(AOwner: TExtObject; AInterval: Integer = 0); reintroduce;
+    function Start(Task: TExtObject): TExtFunction;
+    function Stop(Task: TExtObject): TExtFunction;
+    function StopAll: TExtFunction;
   end;
 
   TExtUtilFormatSingleton = class(TExtFunction)
   public
-    function JSClassName : string; override;
-    function Capitalize(Value : String) : TExtFunction;
-    function Date(Value : String; Format : String = '') : TExtFunction; overload;
-    function Date(Value : TDateTime; Format : String = '') : TExtFunction; overload;
-    function DateRenderer(Format : String) : TExtFunction;
-    function DefaultValue(Value : String; DefaultValue : String) : TExtFunction;
-    function Ellipsis(Value : String; Length : Integer; Word : Boolean) : TExtFunction;
-    function FileSize(Size : Integer) : TExtFunction; overload;
-    function FileSize(Size : String) : TExtFunction; overload;
-    function HtmlDecode(Value : String) : TExtFunction;
-    function HtmlEncode(Value : String) : TExtFunction;
-    function Lowercase(Value : String) : TExtFunction;
-    function Math : TExtFunction;
-    function Nl2br(The : String) : TExtFunction;
-    function Number(V : Integer; Format : String) : TExtFunction;
-    function NumberRenderer(Format : String) : TExtFunction;
-    function Plural(Value : Integer; Singular : String; Plural : String = '') : TExtFunction;
-    function Round(Value : Integer; Precision : Integer) : TExtFunction; overload;
-    function Round(Value : String; Precision : Integer) : TExtFunction; overload;
-    function StripScripts(Value : String) : TExtFunction;
-    function StripTags(Value : String) : TExtFunction;
-    function Substr(Value : String; Start : Integer; Length : Integer) : TExtFunction;
-    function Trim(Value : String) : TExtFunction;
-    function Undef(Value : String) : TExtFunction;
-    function Uppercase(Value : String) : TExtFunction;
-    function UsMoney(Value : Integer) : TExtFunction; overload;
-    function UsMoney(Value : String) : TExtFunction; overload;
+    function JSClassName: string; override;
+    function Capitalize(Value: string): TExtFunction;
+    function Date(Value: string; Format: string = ''): TExtFunction; overload;
+    function Date(Value: TDateTime; Format: string = ''): TExtFunction; overload;
+    function DateRenderer(Format: string): TExtFunction;
+    function DefaultValue(Value: string; DefaultValue: string): TExtFunction;
+    function Ellipsis(Value: string; Length: Integer; Word: Boolean): TExtFunction;
+    function FileSize(Size: Integer): TExtFunction; overload;
+    function FileSize(Size: string): TExtFunction; overload;
+    function HtmlDecode(Value: string): TExtFunction;
+    function HtmlEncode(Value: string): TExtFunction;
+    function Lowercase(Value: string): TExtFunction;
+    function Math: TExtFunction;
+    function Nl2br(The: string): TExtFunction;
+    function Number(V: Integer; Format: string): TExtFunction;
+    function NumberRenderer(Format: string): TExtFunction;
+    function Plural(Value: Integer; Singular: string; Plural: string = ''): TExtFunction;
+    function Round(Value: Integer; Precision: Integer): TExtFunction; overload;
+    function Round(Value: string; Precision: Integer): TExtFunction; overload;
+    function StripScripts(Value: string): TExtFunction;
+    function StripTags(Value: string): TExtFunction;
+    function Substr(Value: string; Start: Integer; Length: Integer): TExtFunction;
+    function Trim(Value: string): TExtFunction;
+    function Undef(Value: string): TExtFunction;
+    function Uppercase(Value: string): TExtFunction;
+    function UsMoney(Value: Integer): TExtFunction; overload;
+    function UsMoney(Value: string): TExtFunction; overload;
   end;
 
   TExtUtilCSSSingleton = class(TExtFunction)
   public
-    function JSClassName : string; override;
-    function CreateStyleSheet(CssText : String; Id : String) : TExtFunction;
-    function GetRule(Selector : String; RefreshCache : Boolean) : TExtFunction; overload;
-    function GetRule(Selector : TExtObjectList; RefreshCache : Boolean) : TExtFunction; overload;
-    function GetRules(RefreshCache : Boolean) : TExtFunction;
-    function RefreshCache : TExtFunction;
-    function RemoveStyleSheet(Id : String) : TExtFunction;
-    function SwapStyleSheet(Id : String; Url : String) : TExtFunction;
-    function UpdateRule(Selector : String; PropertyJS : String; Value : String) : TExtFunction; overload;
-    function UpdateRule(Selector : TExtObjectList; PropertyJS : String; Value : String) : TExtFunction; overload;
+    function JSClassName: string; override;
+    function CreateStyleSheet(CssText: string; Id: string): TExtFunction;
+    function GetRule(Selector: string; RefreshCache: Boolean): TExtFunction; overload;
+    function GetRule(Selector: TExtObjectList; RefreshCache: Boolean)
+      : TExtFunction; overload;
+    function GetRules(RefreshCache: Boolean): TExtFunction;
+    function RefreshCache: TExtFunction;
+    function RemoveStyleSheet(Id: string): TExtFunction;
+    function SwapStyleSheet(Id: string; Url: string): TExtFunction;
+    function UpdateRule(Selector: string; PropertyJS: string; Value: string)
+      : TExtFunction; overload;
+    function UpdateRule(Selector: TExtObjectList; PropertyJS: string; Value: string)
+      : TExtFunction; overload;
   end;
 
   TExtUtilCookiesSingleton = class(TExtFunction)
   public
-    function JSClassName : string; override;
-    function Clear(Name : String) : TExtFunction;
-    function Get(Name : String) : TExtFunction;
-    function SetJS(Name : String; Value : String; Expires : TExtObject = nil; Path : String = ''; Domain : String = ''; Secure : Boolean = false) : TExtFunction;
+    function JSClassName: string; override;
+    function Clear(Name: string): TExtFunction;
+    function Get(Name: string): TExtFunction;
+    function SetJS(Name: string; Value: string; Expires: TExtObject = nil;
+      Path: string = ''; Domain: string = ''; Secure: Boolean = false): TExtFunction;
   end;
 
   TExtUtilDelayedTask = class(TExtFunction)
   public
-    function JSClassName : string; override;
-    constructor Create(AOwner: TComponent; Fn : TExtFunction = nil; Scope : TExtObject = nil;
-      Args : TExtObjectList = nil); reintroduce;
-    function Cancel : TExtFunction;
-    function Delay(Delay : Integer; NewFn : TExtFunction = nil; NewScope : TExtObject = nil; NewArgs : TExtObjectList = nil) : TExtFunction;
+    function JSClassName: string; override;
+    constructor Create(AOwner: TComponent; Fn: TExtFunction = nil;
+      Scope: TExtObject = nil; Args: TExtObjectList = nil); reintroduce;
+    function Cancel: TExtFunction;
+    function Delay(Delay: Integer; NewFn: TExtFunction = nil; NewScope: TExtObject = nil;
+      NewArgs: TExtObjectList = nil): TExtFunction;
   end;
 
   // Procedural types for events TExtUtilClickRepeater
-  TExtUtilClickRepeaterOnClick = procedure(This : TExtUtilClickRepeater) of object;
-  TExtUtilClickRepeaterOnMousedown = procedure(This : TExtUtilClickRepeater) of object;
-  TExtUtilClickRepeaterOnMouseup = procedure(This : TExtUtilClickRepeater) of object;
+  TExtUtilClickRepeaterOnClick = procedure(This: TExtUtilClickRepeater) of object;
+  TExtUtilClickRepeaterOnMousedown = procedure(This: TExtUtilClickRepeater) of object;
+  TExtUtilClickRepeaterOnMouseup = procedure(This: TExtUtilClickRepeater) of object;
 
   TExtUtilClickRepeater = class(TExtUtilObservable)
   private
-    FAccelerate : Boolean;
-    FDelay : Integer;
-    FEl : String;
-    FInterval : Integer;
-    FPressClass : String;
-    FPreventDefault : Boolean;
-    FStopDefault : Boolean;
-    FOnClick : TExtUtilClickRepeaterOnClick;
-    FOnMousedown : TExtUtilClickRepeaterOnMousedown;
-    FOnMouseup : TExtUtilClickRepeaterOnMouseup;
-    procedure SetFAccelerate(Value : Boolean);
-    procedure SetFDelay(Value : Integer);
-    procedure SetFEl(Value : String);
-    procedure SetFInterval(Value : Integer);
-    procedure SetFPressClass(Value : String);
-    procedure SetFPreventDefault(Value : Boolean);
-    procedure SetFStopDefault(Value : Boolean);
-    procedure SetFOnClick(Value : TExtUtilClickRepeaterOnClick);
-    procedure SetFOnMousedown(Value : TExtUtilClickRepeaterOnMousedown);
-    procedure SetFOnMouseup(Value : TExtUtilClickRepeaterOnMouseup);
+    FAccelerate: Boolean;
+    FDelay: Integer;
+    FEl: string;
+    FInterval: Integer;
+    FPressClass: string;
+    FPreventDefault: Boolean;
+    FStopDefault: Boolean;
+    FOnClick: TExtUtilClickRepeaterOnClick;
+    FOnMousedown: TExtUtilClickRepeaterOnMousedown;
+    FOnMouseup: TExtUtilClickRepeaterOnMouseup;
+    procedure SetFAccelerate(Value: Boolean);
+    procedure SetFDelay(Value: Integer);
+    procedure SetFEl(Value: string);
+    procedure SetFInterval(Value: Integer);
+    procedure SetFPressClass(Value: string);
+    procedure SetFPreventDefault(Value: Boolean);
+    procedure SetFStopDefault(Value: Boolean);
+    procedure SetFOnClick(Value: TExtUtilClickRepeaterOnClick);
+    procedure SetFOnMousedown(Value: TExtUtilClickRepeaterOnMousedown);
+    procedure SetFOnMouseup(Value: TExtUtilClickRepeaterOnMouseup);
   protected
     procedure HandleEvent(const AEvtName: string); override;
   public
-    function JSClassName : string; override;
-    constructor Create(AOwner: TComponent; El : String; Config : TExtObject = nil); reintroduce;
-    function Disable : TExtFunction;
-    function Enable : TExtFunction;
-    function SetDisabled(Disabled : Boolean) : TExtFunction;
-    property Accelerate : Boolean read FAccelerate write SetFAccelerate;
-    property Delay : Integer read FDelay write SetFDelay;
-    property El : String read FEl write SetFEl;
-    property Interval : Integer read FInterval write SetFInterval;
-    property PressClass : String read FPressClass write SetFPressClass;
-    property PreventDefault : Boolean read FPreventDefault write SetFPreventDefault;
-    property StopDefault : Boolean read FStopDefault write SetFStopDefault;
-    property OnClick : TExtUtilClickRepeaterOnClick read FOnClick write SetFOnClick;
-    property OnMousedown : TExtUtilClickRepeaterOnMousedown read FOnMousedown write SetFOnMousedown;
-    property OnMouseup : TExtUtilClickRepeaterOnMouseup read FOnMouseup write SetFOnMouseup;
+    function JSClassName: string; override;
+    constructor Create(AOwner: TComponent; El: string; Config: TExtObject = nil);
+      reintroduce;
+    function Disable: TExtFunction;
+    function Enable: TExtFunction;
+    function SetDisabled(Disabled: Boolean): TExtFunction;
+    property Accelerate: Boolean read FAccelerate write SetFAccelerate;
+    property Delay: Integer read FDelay write SetFDelay;
+    property El: string read FEl write SetFEl;
+    property Interval: Integer read FInterval write SetFInterval;
+    property PressClass: string read FPressClass write SetFPressClass;
+    property PreventDefault: Boolean read FPreventDefault write SetFPreventDefault;
+    property StopDefault: Boolean read FStopDefault write SetFStopDefault;
+    property OnClick: TExtUtilClickRepeaterOnClick read FOnClick write SetFOnClick;
+    property OnMousedown: TExtUtilClickRepeaterOnMousedown read FOnMousedown
+      write SetFOnMousedown;
+    property OnMouseup: TExtUtilClickRepeaterOnMouseup read FOnMouseup
+      write SetFOnMouseup;
   end;
 
   // Procedural types for events TExtUtilMixedCollection
-  TExtUtilMixedCollectionOnAdd = procedure(Index : Integer; O : TExtObject; Key : String) of object;
+  TExtUtilMixedCollectionOnAdd = procedure(Index: Integer; O: TExtObject; Key: string)
+    of object;
   TExtUtilMixedCollectionOnClear = procedure of object;
-  TExtUtilMixedCollectionOnRemove = procedure(O : TExtObject; Key : String = '') of object;
-  TExtUtilMixedCollectionOnReplace = procedure(Key : String; Old : TExtObject; New : TExtObject) of object;
+  TExtUtilMixedCollectionOnRemove = procedure(O: TExtObject; Key: string = '') of object;
+  TExtUtilMixedCollectionOnReplace = procedure(Key: string; Old: TExtObject;
+    New: TExtObject) of object;
 
   TExtUtilMixedCollection = class(TExtUtilObservable)
   private
-    FAllowFunctions : Boolean;
-    FOnAdd : TExtUtilMixedCollectionOnAdd;
-    FOnClear : TExtUtilMixedCollectionOnClear;
-    FOnRemove : TExtUtilMixedCollectionOnRemove;
-    FOnReplace : TExtUtilMixedCollectionOnReplace;
-    procedure SetFAllowFunctions(Value : Boolean);
-    procedure SetFOnAdd(Value : TExtUtilMixedCollectionOnAdd);
-    procedure SetFOnClear(Value : TExtUtilMixedCollectionOnClear);
-    procedure SetFOnRemove(Value : TExtUtilMixedCollectionOnRemove);
-    procedure SetFOnReplace(Value : TExtUtilMixedCollectionOnReplace);
+    FAllowFunctions: Boolean;
+    FOnAdd: TExtUtilMixedCollectionOnAdd;
+    FOnClear: TExtUtilMixedCollectionOnClear;
+    FOnRemove: TExtUtilMixedCollectionOnRemove;
+    FOnReplace: TExtUtilMixedCollectionOnReplace;
+    procedure SetFAllowFunctions(Value: Boolean);
+    procedure SetFOnAdd(Value: TExtUtilMixedCollectionOnAdd);
+    procedure SetFOnClear(Value: TExtUtilMixedCollectionOnClear);
+    procedure SetFOnRemove(Value: TExtUtilMixedCollectionOnRemove);
+    procedure SetFOnReplace(Value: TExtUtilMixedCollectionOnReplace);
   protected
     procedure HandleEvent(const AEvtName: string); override;
   public
-    function JSClassName : string; override;
-    constructor Create(AOwner: TComponent; AllowFunctions : Boolean; KeyFn : TExtFunction); reintroduce;
-    function Add(Key : String; O : TExtObject) : TExtFunction;
-    function AddAll(Objs : TExtObject) : TExtFunction; overload;
-    function AddAll(Objs : TExtObjectList) : TExtFunction; overload;
-    function Clear : TExtFunction;
-    function Clone : TExtFunction;
-    function Contains(O : TExtObject) : TExtFunction;
-    function ContainsKey(Key : String) : TExtFunction;
-    function Each(Fn : TExtFunction; Scope : TExtObject = nil) : TExtFunction;
-    function EachKey(Fn : TExtFunction; Scope : TExtObject = nil) : TExtFunction;
-    function Filter(PropertyJS : String; Value : String; AnyMatch : Boolean = false; CaseSensitive : Boolean = false) : TExtFunction; overload;
-    function Filter(PropertyJS : String; Value : TRegExp; AnyMatch : Boolean = false; CaseSensitive : Boolean = false) : TExtFunction; overload;
-    function FilterBy(Fn : TExtFunction; Scope : TExtObject = nil) : TExtFunction;
-    function Find(Fn : TExtFunction; Scope : TExtObject = nil) : TExtFunction;
-    function FindIndex(PropertyJS : String; Value : String; Start : Integer = 0; AnyMatch : Boolean = false; CaseSensitive : Boolean = false) : TExtFunction; overload;
-    function FindIndex(PropertyJS : String; Value : TRegExp; Start : Integer = 0; AnyMatch : Boolean = false; CaseSensitive : Boolean = false) : TExtFunction; overload;
-    function FindIndexBy(Fn : TExtFunction; Scope : TExtObject = nil; Start : Integer = 0) : TExtFunction;
-    function First : TExtFunction;
-    function Get(Key : String) : TExtFunction; overload;
-    function Get(Key : Integer) : TExtFunction; overload;
-    function GetCount : TExtFunction;
-    function GetKey(Item : TExtObject) : TExtFunction;
-    function GetRange(StartIndex : Integer = 0; EndIndex : Integer = 0) : TExtFunction;
-    function IndexOf(O : TExtObject) : TExtFunction;
-    function IndexOfKey(Key : String) : TExtFunction;
-    function Insert(Index : Integer; Key : String; O : TExtObject = nil) : TExtFunction;
-    function Item(Key : String) : TExtFunction; overload;
-    function Item(Key : Integer) : TExtFunction; overload;
-    function ItemAt(Index : Integer) : TExtFunction;
-    function Key(Key : String) : TExtFunction; overload;
-    function Key(Key : Integer) : TExtFunction; overload;
-    function KeySort(Direction : String = ''; Fn : TExtFunction = nil) : TExtFunction;
-    function Last : TExtFunction;
-    function Remove(O : TExtObject) : TExtFunction;
-    function RemoveAt(Index : Integer) : TExtFunction;
-    function RemoveKey(Key : String) : TExtFunction;
-    function Reorder(Mapping : TExtObject) : TExtFunction;
-    function Replace(Key : String; O : TExtObject) : TExtFunction;
-    function Sort(Direction : String = ''; Fn : TExtFunction = nil) : TExtFunction;
-    property AllowFunctions : Boolean read FAllowFunctions write SetFAllowFunctions;
-    property OnAdd : TExtUtilMixedCollectionOnAdd read FOnAdd write SetFOnAdd;
-    property OnClear : TExtUtilMixedCollectionOnClear read FOnClear write SetFOnClear;
-    property OnRemove : TExtUtilMixedCollectionOnRemove read FOnRemove write SetFOnRemove;
-    property OnReplace : TExtUtilMixedCollectionOnReplace read FOnReplace write SetFOnReplace;
+    function JSClassName: string; override;
+    constructor Create(AOwner: TComponent; AllowFunctions: Boolean; KeyFn: TExtFunction);
+      reintroduce;
+    function Add(Key: string; O: TExtObject): TExtFunction;
+    function AddAll(Objs: TExtObject): TExtFunction; overload;
+    function AddAll(Objs: TExtObjectList): TExtFunction; overload;
+    function Clear: TExtFunction;
+    function Clone: TExtFunction;
+    function Contains(O: TExtObject): TExtFunction;
+    function ContainsKey(Key: string): TExtFunction;
+    function Each(Fn: TExtFunction; Scope: TExtObject = nil): TExtFunction;
+    function EachKey(Fn: TExtFunction; Scope: TExtObject = nil): TExtFunction;
+    function Filter(PropertyJS: string; Value: string; AnyMatch: Boolean = false;
+      CaseSensitive: Boolean = false): TExtFunction; overload;
+    function Filter(PropertyJS: string; Value: TRegExp; AnyMatch: Boolean = false;
+      CaseSensitive: Boolean = false): TExtFunction; overload;
+    function FilterBy(Fn: TExtFunction; Scope: TExtObject = nil): TExtFunction;
+    function Find(Fn: TExtFunction; Scope: TExtObject = nil): TExtFunction;
+    function FindIndex(PropertyJS: string; Value: string; Start: Integer = 0;
+      AnyMatch: Boolean = false; CaseSensitive: Boolean = false): TExtFunction; overload;
+    function FindIndex(PropertyJS: string; Value: TRegExp; Start: Integer = 0;
+      AnyMatch: Boolean = false; CaseSensitive: Boolean = false): TExtFunction; overload;
+    function FindIndexBy(Fn: TExtFunction; Scope: TExtObject = nil; Start: Integer = 0)
+      : TExtFunction;
+    function First: TExtFunction;
+    function Get(Key: string): TExtFunction; overload;
+    function Get(Key: Integer): TExtFunction; overload;
+    function GetCount: TExtFunction;
+    function GetKey(Item: TExtObject): TExtFunction;
+    function GetRange(StartIndex: Integer = 0; EndIndex: Integer = 0): TExtFunction;
+    function IndexOf(O: TExtObject): TExtFunction;
+    function IndexOfKey(Key: string): TExtFunction;
+    function Insert(Index: Integer; Key: string; O: TExtObject = nil): TExtFunction;
+    function Item(Key: string): TExtFunction; overload;
+    function Item(Key: Integer): TExtFunction; overload;
+    function ItemAt(Index: Integer): TExtFunction;
+    function Key(Key: string): TExtFunction; overload;
+    function Key(Key: Integer): TExtFunction; overload;
+    function KeySort(Direction: string = ''; Fn: TExtFunction = nil): TExtFunction;
+    function Last: TExtFunction;
+    function Remove(O: TExtObject): TExtFunction;
+    function RemoveAt(Index: Integer): TExtFunction;
+    function RemoveKey(Key: string): TExtFunction;
+    function Reorder(Mapping: TExtObject): TExtFunction;
+    function Replace(Key: string; O: TExtObject): TExtFunction;
+    function Sort(Direction: string = ''; Fn: TExtFunction = nil): TExtFunction;
+    property AllowFunctions: Boolean read FAllowFunctions write SetFAllowFunctions;
+    property OnAdd: TExtUtilMixedCollectionOnAdd read FOnAdd write SetFOnAdd;
+    property OnClear: TExtUtilMixedCollectionOnClear read FOnClear write SetFOnClear;
+    property OnRemove: TExtUtilMixedCollectionOnRemove read FOnRemove write SetFOnRemove;
+    property OnReplace: TExtUtilMixedCollectionOnReplace read FOnReplace
+      write SetFOnReplace;
   end;
 
 var
-  ExtUtilJSON : TExtUtilJSONSingleton;
-  ExtUtilTextMetrics : TExtUtilTextMetricsSingleton;
-  ExtUtilFormat : TExtUtilFormatSingleton;
-  ExtUtilCSS : TExtUtilCSSSingleton;
-  ExtUtilCookies : TExtUtilCookiesSingleton;
+  ExtUtilJSON: TExtUtilJSONSingleton;
+  ExtUtilTextMetrics: TExtUtilTextMetricsSingleton;
+  ExtUtilFormat: TExtUtilFormatSingleton;
+  ExtUtilCSS: TExtUtilCSSSingleton;
+  ExtUtilCookies: TExtUtilCookiesSingleton;
 
 implementation
 
-procedure TExtUtilObservable.SetFListeners(Value : TExtObject); begin
+procedure TExtUtilObservable.SetFListeners(Value: TExtObject);
+begin
   FListeners.Free;
   FListeners := Value;
   JSCode('listeners:' + VarToJSON([Value, false]));
 end;
 
-function TExtUtilObservable.JSClassName : string; begin
+function TExtUtilObservable.JSClassName: string;
+begin
   Result := 'Ext.util.Observable';
 end;
 
-procedure TExtUtilObservable.InitDefaults; begin
+procedure TExtUtilObservable.InitDefaults;
+begin
   inherited;
   FListeners := TExtObject.CreateInternal(Self, 'listeners');
 end;
 
-function TExtUtilObservable.ObservableCapture(O : TExtUtilObservable; Fn : TExtFunction; Scope : TExtObject = nil) : TExtFunction; begin
-  JSCode(JSName + '.Observable.capture(' + VarToJSON([O, false, Fn, true, Scope, false]) + ');', 'TExtUtilObservable');
+function TExtUtilObservable.ObservableCapture(O: TExtUtilObservable; Fn: TExtFunction;
+  Scope: TExtObject = nil): TExtFunction;
+begin
+  JSCode(JSName + '.Observable.capture(' + VarToJSON([O, false, Fn, true, Scope, false]) +
+    ');', 'TExtUtilObservable');
   Result := Self;
 end;
 
-function TExtUtilObservable.ObservableObserveClass(C : TExtFunction; Listeners : TExtObject) : TExtFunction; begin
-  JSCode(JSName + '.Observable.observeClass(' + VarToJSON([C, true, Listeners, false]) + ');', 'TExtUtilObservable');
+function TExtUtilObservable.ObservableObserveClass(C: TExtFunction; Listeners: TExtObject)
+  : TExtFunction;
+begin
+  JSCode(JSName + '.Observable.observeClass(' + VarToJSON([C, true, Listeners, false]) +
+    ');', 'TExtUtilObservable');
   Result := Self;
 end;
 
-function TExtUtilObservable.ObservableReleaseCapture(O : TExtUtilObservable) : TExtFunction; begin
-  JSCode(JSName + '.Observable.releaseCapture(' + VarToJSON([O, false]) + ');', 'TExtUtilObservable');
+function TExtUtilObservable.ObservableReleaseCapture(O: TExtUtilObservable): TExtFunction;
+begin
+  JSCode(JSName + '.Observable.releaseCapture(' + VarToJSON([O, false]) + ');',
+    'TExtUtilObservable');
   Result := Self;
 end;
 
-function TExtUtilObservable.AddEvents(O : TExtObject; Optional : String) : TExtFunction; begin
-  JSCode(JSName + '.addEvents(' + VarToJSON([O, false, Optional]) + ');', 'TExtUtilObservable');
+function TExtUtilObservable.AddEvents(O: TExtObject; Optional: string): TExtFunction;
+begin
+  JSCode(JSName + '.addEvents(' + VarToJSON([O, false, Optional]) + ');',
+    'TExtUtilObservable');
   Result := Self;
 end;
 
-function TExtUtilObservable.AddEvents(O : String; Optional : String) : TExtFunction; begin
+function TExtUtilObservable.AddEvents(O: string; Optional: string): TExtFunction;
+begin
   JSCode(JSName + '.addEvents(' + VarToJSON([O, Optional]) + ');', 'TExtUtilObservable');
   Result := Self;
 end;
 
-function TExtUtilObservable.AddListener(EventName : String; Handler : TExtFunction; Scope : TExtObject = nil; Options : TExtObject = nil) : TExtFunction; begin
-  JSCode(JSName + '.addListener(' + VarToJSON([EventName, Handler, true, Scope, false, Options, false]) + ');', 'TExtUtilObservable');
+function TExtUtilObservable.AddListener(EventName: string; Handler: TExtFunction;
+  Scope: TExtObject = nil; Options: TExtObject = nil): TExtFunction;
+begin
+  JSCode(JSName + '.addListener(' + VarToJSON([EventName, Handler, true, Scope, false,
+    Options, false]) + ');', 'TExtUtilObservable');
   Result := Self;
 end;
 
-function TExtUtilObservable.EnableBubble(Events : String) : TExtFunction; begin
+function TExtUtilObservable.EnableBubble(Events: string): TExtFunction;
+begin
   JSCode(JSName + '.enableBubble(' + VarToJSON([Events]) + ');', 'TExtUtilObservable');
   Result := Self;
 end;
 
-function TExtUtilObservable.EnableBubble(Events : TExtObjectList) : TExtFunction; begin
+function TExtUtilObservable.EnableBubble(Events: TExtObjectList): TExtFunction;
+begin
   JSCode(JSName + '.enableBubble(' + VarToJSON(Events) + ');', 'TExtUtilObservable');
   Result := Self;
 end;
 
-function TExtUtilObservable.FireEvent(EventName : String; Args : TExtObjectList) : TExtFunction; begin
-  JSCode(JSName + '.fireEvent(' + VarToJSON([EventName]) + ',' + VarToJSON(Args) + ');', 'TExtUtilObservable');
+function TExtUtilObservable.FireEvent(EventName: string; Args: TExtObjectList)
+  : TExtFunction;
+begin
+  JSCode(JSName + '.fireEvent(' + VarToJSON([EventName]) + ',' + VarToJSON(Args) + ');',
+    'TExtUtilObservable');
   Result := Self;
 end;
 
-function TExtUtilObservable.HasListener(EventName : String) : TExtFunction; begin
+function TExtUtilObservable.HasListener(EventName: string): TExtFunction;
+begin
   JSCode(JSName + '.hasListener(' + VarToJSON([EventName]) + ');', 'TExtUtilObservable');
   Result := Self;
 end;
 
-function TExtUtilObservable.On(EventName : String; Handler : TExtFunction; Scope : TExtObject = nil; Options : TExtObject = nil) : TExtFunction; begin
-  JSCode(JSName + '.on(' + VarToJSON([EventName, Handler, true, Scope, false, Options, false]) + ');', 'TExtUtilObservable');
+function TExtUtilObservable.&On(const AEventName: string; const AHandler: TExtFunction;
+  const AScope: TExtObject; const AOptions: TExtObject): TExtFunction;
+begin
+  ExtSession.ResponseItems.CallMethod(Self, 'on', [AEventName, AHandler, True, AScope, False, AOptions, False]);
   Result := Self;
 end;
 
-function TExtUtilObservable.PurgeListeners : TExtFunction; begin
+function TExtUtilObservable.PurgeListeners: TExtFunction;
+begin
   JSCode(JSName + '.purgeListeners();', 'TExtUtilObservable');
   Result := Self;
 end;
 
-function TExtUtilObservable.RelayEvents(O : TExtObject; Events : TExtObjectList) : TExtFunction; begin
-  JSCode(JSName + '.relayEvents(' + VarToJSON([O, false]) + ',' + VarToJSON(Events) + ');', 'TExtUtilObservable');
+function TExtUtilObservable.RelayEvents(O: TExtObject; Events: TExtObjectList)
+  : TExtFunction;
+begin
+  JSCode(JSName + '.relayEvents(' + VarToJSON([O, false]) + ',' + VarToJSON(Events) +
+    ');', 'TExtUtilObservable');
   Result := Self;
 end;
 
-function TExtUtilObservable.RemoveListener(EventName : String; Handler : TExtFunction; Scope : TExtObject = nil) : TExtFunction; begin
-  JSCode(JSName + '.removeListener(' + VarToJSON([EventName, Handler, true, Scope, false]) + ');', 'TExtUtilObservable');
+function TExtUtilObservable.RemoveListener(EventName: string; Handler: TExtFunction;
+  Scope: TExtObject = nil): TExtFunction;
+begin
+  JSCode(JSName + '.removeListener(' + VarToJSON([EventName, Handler, true, Scope, false])
+    + ');', 'TExtUtilObservable');
   Result := Self;
 end;
 
-function TExtUtilObservable.ResumeEvents : TExtFunction; begin
+function TExtUtilObservable.ResumeEvents: TExtFunction;
+begin
   JSCode(JSName + '.resumeEvents();', 'TExtUtilObservable');
   Result := Self;
 end;
 
-function TExtUtilObservable.SuspendEvents(QueueSuspended : Boolean) : TExtFunction; begin
-  JSCode(JSName + '.suspendEvents(' + VarToJSON([QueueSuspended]) + ');', 'TExtUtilObservable');
+function TExtUtilObservable.SuspendEvents(QueueSuspended: Boolean): TExtFunction;
+begin
+  JSCode(JSName + '.suspendEvents(' + VarToJSON([QueueSuspended]) + ');',
+    'TExtUtilObservable');
   Result := Self;
 end;
 
-function TExtUtilObservable.Un(EventName : String; Handler : TExtFunction; Scope : TExtObject = nil) : TExtFunction; begin
-  JSCode(JSName + '.un(' + VarToJSON([EventName, Handler, true, Scope, false]) + ');', 'TExtUtilObservable');
+function TExtUtilObservable.Un(EventName: string; Handler: TExtFunction;
+  Scope: TExtObject = nil): TExtFunction;
+begin
+  JSCode(JSName + '.un(' + VarToJSON([EventName, Handler, true, Scope, false]) + ');',
+    'TExtUtilObservable');
   Result := Self;
 end;
 
-function TExtUtilJSONSingleton.JSClassName : string; begin
+function TExtUtilJSONSingleton.JSClassName: string;
+begin
   Result := 'Ext.util.JSON';
 end;
 
-function TExtUtilJSONSingleton.Decode(Json : String) : TExtFunction; begin
+function TExtUtilJSONSingleton.Decode(Json: string): TExtFunction;
+begin
   JSCode(JSName + '.decode(' + VarToJSON([Json]) + ');', 'TExtUtilJSONSingleton');
   Result := Self;
 end;
 
-function TExtUtilJSONSingleton.Encode(O : String) : TExtFunction; begin
+function TExtUtilJSONSingleton.Encode(O: string): TExtFunction;
+begin
   JSCode(JSName + '.encode(' + VarToJSON([O]) + ');', 'TExtUtilJSONSingleton');
   Result := Self;
 end;
 
-function TExtUtilJSONSingleton.EncodeDate(D : TDateTime) : TExtFunction; begin
+function TExtUtilJSONSingleton.EncodeDate(D: TDateTime): TExtFunction;
+begin
   JSCode(JSName + '.encodeDate(' + VarToJSON([D]) + ');', 'TExtUtilJSONSingleton');
   Result := Self;
 end;
 
-function TExtUtilTextMetricsSingleton.JSClassName : string; begin
+function TExtUtilTextMetricsSingleton.JSClassName: string;
+begin
   Result := 'Ext.util.TextMetrics';
 end;
 
-function TExtUtilTextMetricsSingleton.Bind(El : String) : TExtFunction; begin
+function TExtUtilTextMetricsSingleton.Bind(El: string): TExtFunction;
+begin
   JSCode(JSName + '.bind(' + VarToJSON([El]) + ');', 'TExtUtilTextMetricsSingleton');
   Result := Self;
 end;
 
-function TExtUtilTextMetricsSingleton.Bind(El : THTMLElement) : TExtFunction; begin
-  JSCode(JSName + '.bind(' + VarToJSON([El, false]) + ');', 'TExtUtilTextMetricsSingleton');
+function TExtUtilTextMetricsSingleton.Bind(El: THTMLElement): TExtFunction;
+begin
+  JSCode(JSName + '.bind(' + VarToJSON([El, false]) + ');',
+    'TExtUtilTextMetricsSingleton');
   Result := Self;
 end;
 
-function TExtUtilTextMetricsSingleton.CreateInstance(El : String; FixedWidth : Integer = 0) : TExtFunction; begin
-  JSCode(JSName + '.createInstance(' + VarToJSON([El, FixedWidth]) + ');', 'TExtUtilTextMetricsSingleton');
+function TExtUtilTextMetricsSingleton.CreateInstance(El: string; FixedWidth: Integer = 0)
+  : TExtFunction;
+begin
+  JSCode(JSName + '.createInstance(' + VarToJSON([El, FixedWidth]) + ');',
+    'TExtUtilTextMetricsSingleton');
   Result := Self;
 end;
 
-function TExtUtilTextMetricsSingleton.CreateInstance(El : THTMLElement; FixedWidth : Integer = 0) : TExtFunction; begin
-  JSCode(JSName + '.createInstance(' + VarToJSON([El, false, FixedWidth]) + ');', 'TExtUtilTextMetricsSingleton');
+function TExtUtilTextMetricsSingleton.CreateInstance(El: THTMLElement;
+  FixedWidth: Integer = 0): TExtFunction;
+begin
+  JSCode(JSName + '.createInstance(' + VarToJSON([El, false, FixedWidth]) + ');',
+    'TExtUtilTextMetricsSingleton');
   Result := Self;
 end;
 
-function TExtUtilTextMetricsSingleton.GetHeight(Text : String) : TExtFunction; begin
-  JSCode(JSName + '.getHeight(' + VarToJSON([Text]) + ');', 'TExtUtilTextMetricsSingleton');
+function TExtUtilTextMetricsSingleton.GetHeight(const AText: string): TExtFunction;
+begin
+  ExtSession.ResponseItems.CallMethod(Self, 'getHeight', [AText]);
   Result := Self;
 end;
 
-function TExtUtilTextMetricsSingleton.GetSize(Text : String) : TExtFunction; begin
+function TExtUtilTextMetricsSingleton.GetSize(Text: string): TExtFunction;
+begin
   JSCode(JSName + '.getSize(' + VarToJSON([Text]) + ');', 'TExtUtilTextMetricsSingleton');
   Result := Self;
 end;
 
-function TExtUtilTextMetricsSingleton.GetWidth(Text : String) : TExtFunction; begin
-  JSCode(JSName + '.getWidth(' + VarToJSON([Text]) + ');', 'TExtUtilTextMetricsSingleton');
+function TExtUtilTextMetricsSingleton.GetWidth(const AText: string): TExtFunction;
+begin
+  ExtSession.ResponseItems.CallMethod(Self, 'getWidth', [AText]);
   Result := Self;
 end;
 
-function TExtUtilTextMetricsSingleton.Measure(El : String; Text : String; FixedWidth : Integer = 0) : TExtFunction; begin
-  JSCode(JSName + '.measure(' + VarToJSON([El, Text, FixedWidth]) + ');', 'TExtUtilTextMetricsSingleton');
+function TExtUtilTextMetricsSingleton.Measure(El: string; Text: string;
+  FixedWidth: Integer = 0): TExtFunction;
+begin
+  JSCode(JSName + '.measure(' + VarToJSON([El, Text, FixedWidth]) + ');',
+    'TExtUtilTextMetricsSingleton');
   Result := Self;
 end;
 
-function TExtUtilTextMetricsSingleton.Measure(El : THTMLElement; Text : String; FixedWidth : Integer = 0) : TExtFunction; begin
-  JSCode(JSName + '.measure(' + VarToJSON([El, false, Text, FixedWidth]) + ');', 'TExtUtilTextMetricsSingleton');
+function TExtUtilTextMetricsSingleton.Measure(El: THTMLElement; Text: string;
+  FixedWidth: Integer = 0): TExtFunction;
+begin
+  JSCode(JSName + '.measure(' + VarToJSON([El, false, Text, FixedWidth]) + ');',
+    'TExtUtilTextMetricsSingleton');
   Result := Self;
 end;
 
-function TExtUtilTextMetricsSingleton.SetFixedWidth(Width : Integer) : TExtFunction; begin
-  JSCode(JSName + '.setFixedWidth(' + VarToJSON([Width]) + ');', 'TExtUtilTextMetricsSingleton');
+function TExtUtilTextMetricsSingleton.SetFixedWidth(Width: Integer): TExtFunction;
+begin
+  JSCode(JSName + '.setFixedWidth(' + VarToJSON([Width]) + ');',
+    'TExtUtilTextMetricsSingleton');
   Result := Self;
 end;
 
-function TExtUtilTaskRunner.JSClassName : string; begin
+function TExtUtilTaskRunner.JSClassName: string;
+begin
   Result := 'Ext.util.TaskRunner';
 end;
 
-constructor TExtUtilTaskRunner.Create(AOwner: TExtObject; AInterval : Integer = 0);
+constructor TExtUtilTaskRunner.Create(AOwner: TExtObject; AInterval: Integer = 0);
 begin
   FCreateVarArgs := JSClassName + '(' + VarToJSON([AInterval]) + ');';
   inherited Create(AOwner);
 end;
 
-function TExtUtilTaskRunner.Start(Task : TExtObject) : TExtFunction; begin
+function TExtUtilTaskRunner.Start(Task: TExtObject): TExtFunction;
+begin
   JSCode(JSName + '.start(' + VarToJSON([Task, false]) + ');', 'TExtUtilTaskRunner');
   Result := Self;
 end;
 
-function TExtUtilTaskRunner.Stop(Task : TExtObject) : TExtFunction; begin
+function TExtUtilTaskRunner.Stop(Task: TExtObject): TExtFunction;
+begin
   JSCode(JSName + '.stop(' + VarToJSON([Task, false]) + ');', 'TExtUtilTaskRunner');
   Result := Self;
 end;
 
-function TExtUtilTaskRunner.StopAll : TExtFunction; begin
+function TExtUtilTaskRunner.StopAll: TExtFunction;
+begin
   JSCode(JSName + '.stopAll();', 'TExtUtilTaskRunner');
   Result := Self;
 end;
 
-function TExtUtilFormatSingleton.JSClassName : string; begin
+function TExtUtilFormatSingleton.JSClassName: string;
+begin
   Result := 'Ext.util.Format';
 end;
 
-function TExtUtilFormatSingleton.Capitalize(Value : String) : TExtFunction; begin
+function TExtUtilFormatSingleton.Capitalize(Value: string): TExtFunction;
+begin
   JSCode(JSName + '.capitalize(' + VarToJSON([Value]) + ');', 'TExtUtilFormatSingleton');
   Result := Self;
 end;
 
-function TExtUtilFormatSingleton.Date(Value : String; Format : String = '') : TExtFunction; begin
-  JSCode(JSName + '.date(' + VarToJSON([Value, Format]) + ');', 'TExtUtilFormatSingleton');
+function TExtUtilFormatSingleton.Date(Value: string; Format: string = ''): TExtFunction;
+begin
+  JSCode(JSName + '.date(' + VarToJSON([Value, Format]) + ');',
+    'TExtUtilFormatSingleton');
   Result := Self;
 end;
 
-function TExtUtilFormatSingleton.Date(Value : TDateTime; Format : String = '') : TExtFunction; begin
-  JSCode(JSName + '.date(' + VarToJSON([Value, Format]) + ');', 'TExtUtilFormatSingleton');
+function TExtUtilFormatSingleton.Date(Value: TDateTime; Format: string = '')
+  : TExtFunction;
+begin
+  JSCode(JSName + '.date(' + VarToJSON([Value, Format]) + ');',
+    'TExtUtilFormatSingleton');
   Result := Self;
 end;
 
-function TExtUtilFormatSingleton.DateRenderer(Format : String) : TExtFunction; begin
-  JSCode(JSName + '.dateRenderer(' + VarToJSON([Format]) + ');', 'TExtUtilFormatSingleton');
+function TExtUtilFormatSingleton.DateRenderer(Format: string): TExtFunction;
+begin
+  JSCode(JSName + '.dateRenderer(' + VarToJSON([Format]) + ');',
+    'TExtUtilFormatSingleton');
   Result := Self;
 end;
 
-function TExtUtilFormatSingleton.DefaultValue(Value : String; DefaultValue : String) : TExtFunction; begin
-  JSCode(JSName + '.defaultValue(' + VarToJSON([Value, DefaultValue]) + ');', 'TExtUtilFormatSingleton');
+function TExtUtilFormatSingleton.DefaultValue(Value: string; DefaultValue: string)
+  : TExtFunction;
+begin
+  JSCode(JSName + '.defaultValue(' + VarToJSON([Value, DefaultValue]) + ');',
+    'TExtUtilFormatSingleton');
   Result := Self;
 end;
 
-function TExtUtilFormatSingleton.Ellipsis(Value : String; Length : Integer; Word : Boolean) : TExtFunction; begin
-  JSCode(JSName + '.ellipsis(' + VarToJSON([Value, Length, Word]) + ');', 'TExtUtilFormatSingleton');
+function TExtUtilFormatSingleton.Ellipsis(Value: string; Length: Integer; Word: Boolean)
+  : TExtFunction;
+begin
+  JSCode(JSName + '.ellipsis(' + VarToJSON([Value, Length, Word]) + ');',
+    'TExtUtilFormatSingleton');
   Result := Self;
 end;
 
-function TExtUtilFormatSingleton.FileSize(Size : Integer) : TExtFunction; begin
+function TExtUtilFormatSingleton.FileSize(Size: Integer): TExtFunction;
+begin
   JSCode(JSName + '.fileSize(' + VarToJSON([Size]) + ');', 'TExtUtilFormatSingleton');
   Result := Self;
 end;
 
-function TExtUtilFormatSingleton.FileSize(Size : String) : TExtFunction; begin
+function TExtUtilFormatSingleton.FileSize(Size: string): TExtFunction;
+begin
   JSCode(JSName + '.fileSize(' + VarToJSON([Size]) + ');', 'TExtUtilFormatSingleton');
   Result := Self;
 end;
 
-function TExtUtilFormatSingleton.HtmlDecode(Value : String) : TExtFunction; begin
+function TExtUtilFormatSingleton.HtmlDecode(Value: string): TExtFunction;
+begin
   JSCode(JSName + '.htmlDecode(' + VarToJSON([Value]) + ');', 'TExtUtilFormatSingleton');
   Result := Self;
 end;
 
-function TExtUtilFormatSingleton.HtmlEncode(Value : String) : TExtFunction; begin
+function TExtUtilFormatSingleton.HtmlEncode(Value: string): TExtFunction;
+begin
   JSCode(JSName + '.htmlEncode(' + VarToJSON([Value]) + ');', 'TExtUtilFormatSingleton');
   Result := Self;
 end;
 
-function TExtUtilFormatSingleton.Lowercase(Value : String) : TExtFunction; begin
+function TExtUtilFormatSingleton.Lowercase(Value: string): TExtFunction;
+begin
   JSCode(JSName + '.lowercase(' + VarToJSON([Value]) + ');', 'TExtUtilFormatSingleton');
   Result := Self;
 end;
 
-function TExtUtilFormatSingleton.Math : TExtFunction; begin
+function TExtUtilFormatSingleton.Math: TExtFunction;
+begin
   JSCode(JSName + '.math();', 'TExtUtilFormatSingleton');
   Result := Self;
 end;
 
-function TExtUtilFormatSingleton.Nl2br(The : String) : TExtFunction; begin
+function TExtUtilFormatSingleton.Nl2br(The: string): TExtFunction;
+begin
   JSCode(JSName + '.nl2br(' + VarToJSON([The]) + ');', 'TExtUtilFormatSingleton');
   Result := Self;
 end;
 
-function TExtUtilFormatSingleton.Number(V : Integer; Format : String) : TExtFunction; begin
+function TExtUtilFormatSingleton.Number(V: Integer; Format: string): TExtFunction;
+begin
   JSCode(JSName + '.number(' + VarToJSON([V, Format]) + ');', 'TExtUtilFormatSingleton');
   Result := Self;
 end;
 
-function TExtUtilFormatSingleton.NumberRenderer(Format : String) : TExtFunction; begin
-  JSCode(JSName + '.numberRenderer(' + VarToJSON([Format]) + ');', 'TExtUtilFormatSingleton');
+function TExtUtilFormatSingleton.NumberRenderer(Format: string): TExtFunction;
+begin
+  JSCode(JSName + '.numberRenderer(' + VarToJSON([Format]) + ');',
+    'TExtUtilFormatSingleton');
   Result := Self;
 end;
 
-function TExtUtilFormatSingleton.Plural(Value : Integer; Singular : String; Plural : String = '') : TExtFunction; begin
-  JSCode(JSName + '.plural(' + VarToJSON([Value, Singular, Plural]) + ');', 'TExtUtilFormatSingleton');
+function TExtUtilFormatSingleton.Plural(Value: Integer; Singular: string;
+  Plural: string = ''): TExtFunction;
+begin
+  JSCode(JSName + '.plural(' + VarToJSON([Value, Singular, Plural]) + ');',
+    'TExtUtilFormatSingleton');
   Result := Self;
 end;
 
-function TExtUtilFormatSingleton.Round(Value : Integer; Precision : Integer) : TExtFunction; begin
-  JSCode(JSName + '.round(' + VarToJSON([Value, Precision]) + ');', 'TExtUtilFormatSingleton');
+function TExtUtilFormatSingleton.Round(Value: Integer; Precision: Integer): TExtFunction;
+begin
+  JSCode(JSName + '.round(' + VarToJSON([Value, Precision]) + ');',
+    'TExtUtilFormatSingleton');
   Result := Self;
 end;
 
-function TExtUtilFormatSingleton.Round(Value : String; Precision : Integer) : TExtFunction; begin
-  JSCode(JSName + '.round(' + VarToJSON([Value, Precision]) + ');', 'TExtUtilFormatSingleton');
+function TExtUtilFormatSingleton.Round(Value: string; Precision: Integer): TExtFunction;
+begin
+  JSCode(JSName + '.round(' + VarToJSON([Value, Precision]) + ');',
+    'TExtUtilFormatSingleton');
   Result := Self;
 end;
 
-function TExtUtilFormatSingleton.StripScripts(Value : String) : TExtFunction; begin
-  JSCode(JSName + '.stripScripts(' + VarToJSON([Value]) + ');', 'TExtUtilFormatSingleton');
+function TExtUtilFormatSingleton.StripScripts(Value: string): TExtFunction;
+begin
+  JSCode(JSName + '.stripScripts(' + VarToJSON([Value]) + ');',
+    'TExtUtilFormatSingleton');
   Result := Self;
 end;
 
-function TExtUtilFormatSingleton.StripTags(Value : String) : TExtFunction; begin
+function TExtUtilFormatSingleton.StripTags(Value: string): TExtFunction;
+begin
   JSCode(JSName + '.stripTags(' + VarToJSON([Value]) + ');', 'TExtUtilFormatSingleton');
   Result := Self;
 end;
 
-function TExtUtilFormatSingleton.Substr(Value : String; Start : Integer; Length : Integer) : TExtFunction; begin
-  JSCode(JSName + '.substr(' + VarToJSON([Value, Start, Length]) + ');', 'TExtUtilFormatSingleton');
+function TExtUtilFormatSingleton.Substr(Value: string; Start: Integer; Length: Integer)
+  : TExtFunction;
+begin
+  JSCode(JSName + '.substr(' + VarToJSON([Value, Start, Length]) + ');',
+    'TExtUtilFormatSingleton');
   Result := Self;
 end;
 
-function TExtUtilFormatSingleton.Trim(Value : String) : TExtFunction; begin
+function TExtUtilFormatSingleton.Trim(Value: string): TExtFunction;
+begin
   JSCode(JSName + '.trim(' + VarToJSON([Value]) + ');', 'TExtUtilFormatSingleton');
   Result := Self;
 end;
 
-function TExtUtilFormatSingleton.Undef(Value : String) : TExtFunction; begin
+function TExtUtilFormatSingleton.Undef(Value: string): TExtFunction;
+begin
   JSCode(JSName + '.undef(' + VarToJSON([Value]) + ');', 'TExtUtilFormatSingleton');
   Result := Self;
 end;
 
-function TExtUtilFormatSingleton.Uppercase(Value : String) : TExtFunction; begin
+function TExtUtilFormatSingleton.Uppercase(Value: string): TExtFunction;
+begin
   JSCode(JSName + '.uppercase(' + VarToJSON([Value]) + ');', 'TExtUtilFormatSingleton');
   Result := Self;
 end;
 
-function TExtUtilFormatSingleton.UsMoney(Value : Integer) : TExtFunction; begin
+function TExtUtilFormatSingleton.UsMoney(Value: Integer): TExtFunction;
+begin
   JSCode(JSName + '.usMoney(' + VarToJSON([Value]) + ');', 'TExtUtilFormatSingleton');
   Result := Self;
 end;
 
-function TExtUtilFormatSingleton.UsMoney(Value : String) : TExtFunction; begin
+function TExtUtilFormatSingleton.UsMoney(Value: string): TExtFunction;
+begin
   JSCode(JSName + '.usMoney(' + VarToJSON([Value]) + ');', 'TExtUtilFormatSingleton');
   Result := Self;
 end;
 
-function TExtUtilCSSSingleton.JSClassName : string; begin
+function TExtUtilCSSSingleton.JSClassName: string;
+begin
   Result := 'Ext.util.CSS';
 end;
 
-function TExtUtilCSSSingleton.CreateStyleSheet(CssText : String; Id : String) : TExtFunction; begin
-  JSCode(JSName + '.createStyleSheet(' + VarToJSON([CssText, Id]) + ');', 'TExtUtilCSSSingleton');
+function TExtUtilCSSSingleton.CreateStyleSheet(CssText: string; Id: string): TExtFunction;
+begin
+  JSCode(JSName + '.createStyleSheet(' + VarToJSON([CssText, Id]) + ');',
+    'TExtUtilCSSSingleton');
   Result := Self;
 end;
 
-function TExtUtilCSSSingleton.GetRule(Selector : String; RefreshCache : Boolean) : TExtFunction; begin
-  JSCode(JSName + '.getRule(' + VarToJSON([Selector, RefreshCache]) + ');', 'TExtUtilCSSSingleton');
+function TExtUtilCSSSingleton.GetRule(Selector: string; RefreshCache: Boolean)
+  : TExtFunction;
+begin
+  JSCode(JSName + '.getRule(' + VarToJSON([Selector, RefreshCache]) + ');',
+    'TExtUtilCSSSingleton');
   Result := Self;
 end;
 
-function TExtUtilCSSSingleton.GetRule(Selector : TExtObjectList; RefreshCache : Boolean) : TExtFunction; begin
-  JSCode(JSName + '.getRule(' + VarToJSON(Selector) + ',' + VarToJSON([RefreshCache]) + ');', 'TExtUtilCSSSingleton');
+function TExtUtilCSSSingleton.GetRule(Selector: TExtObjectList; RefreshCache: Boolean)
+  : TExtFunction;
+begin
+  JSCode(JSName + '.getRule(' + VarToJSON(Selector) + ',' + VarToJSON([RefreshCache]) +
+    ');', 'TExtUtilCSSSingleton');
   Result := Self;
 end;
 
-function TExtUtilCSSSingleton.GetRules(RefreshCache : Boolean) : TExtFunction; begin
-  JSCode(JSName + '.getRules(' + VarToJSON([RefreshCache]) + ');', 'TExtUtilCSSSingleton');
+function TExtUtilCSSSingleton.GetRules(RefreshCache: Boolean): TExtFunction;
+begin
+  JSCode(JSName + '.getRules(' + VarToJSON([RefreshCache]) + ');',
+    'TExtUtilCSSSingleton');
   Result := Self;
 end;
 
-function TExtUtilCSSSingleton.RefreshCache : TExtFunction; begin
+function TExtUtilCSSSingleton.RefreshCache: TExtFunction;
+begin
   JSCode(JSName + '.refreshCache();', 'TExtUtilCSSSingleton');
   Result := Self;
 end;
 
-function TExtUtilCSSSingleton.RemoveStyleSheet(Id : String) : TExtFunction; begin
+function TExtUtilCSSSingleton.RemoveStyleSheet(Id: string): TExtFunction;
+begin
   JSCode(JSName + '.removeStyleSheet(' + VarToJSON([Id]) + ');', 'TExtUtilCSSSingleton');
   Result := Self;
 end;
 
-function TExtUtilCSSSingleton.SwapStyleSheet(Id : String; Url : String) : TExtFunction; begin
-  JSCode(JSName + '.swapStyleSheet(' + VarToJSON([Id, Url]) + ');', 'TExtUtilCSSSingleton');
+function TExtUtilCSSSingleton.SwapStyleSheet(Id: string; Url: string): TExtFunction;
+begin
+  JSCode(JSName + '.swapStyleSheet(' + VarToJSON([Id, Url]) + ');',
+    'TExtUtilCSSSingleton');
   Result := Self;
 end;
 
-function TExtUtilCSSSingleton.UpdateRule(Selector : String; PropertyJS : String; Value : String) : TExtFunction; begin
-  JSCode(JSName + '.updateRule(' + VarToJSON([Selector, PropertyJS, Value]) + ');', 'TExtUtilCSSSingleton');
+function TExtUtilCSSSingleton.UpdateRule(Selector: string; PropertyJS: string;
+  Value: string): TExtFunction;
+begin
+  JSCode(JSName + '.updateRule(' + VarToJSON([Selector, PropertyJS, Value]) + ');',
+    'TExtUtilCSSSingleton');
   Result := Self;
 end;
 
-function TExtUtilCSSSingleton.UpdateRule(Selector : TExtObjectList; PropertyJS : String; Value : String) : TExtFunction; begin
-  JSCode(JSName + '.updateRule(' + VarToJSON(Selector) + ',' + VarToJSON([PropertyJS, Value]) + ');', 'TExtUtilCSSSingleton');
+function TExtUtilCSSSingleton.UpdateRule(Selector: TExtObjectList; PropertyJS: string;
+  Value: string): TExtFunction;
+begin
+  JSCode(JSName + '.updateRule(' + VarToJSON(Selector) + ',' +
+    VarToJSON([PropertyJS, Value]) + ');', 'TExtUtilCSSSingleton');
   Result := Self;
 end;
 
-function TExtUtilCookiesSingleton.JSClassName : string; begin
+function TExtUtilCookiesSingleton.JSClassName: string;
+begin
   Result := 'Ext.util.Cookies';
 end;
 
-function TExtUtilCookiesSingleton.Clear(Name : String) : TExtFunction; begin
-  JSCode(JSName + '.clear(' + VarToJSON([Name]) + ');', 'TExtUtilCookiesSingleton');
+function TExtUtilCookiesSingleton.Clear(Name: string): TExtFunction;
+begin
+  JSCode(JSName + '.clear(' + VarToJSON([name]) + ');', 'TExtUtilCookiesSingleton');
   Result := Self;
 end;
 
-function TExtUtilCookiesSingleton.Get(Name : String) : TExtFunction; begin
-  JSCode(JSName + '.get(' + VarToJSON([Name]) + ');', 'TExtUtilCookiesSingleton');
+function TExtUtilCookiesSingleton.Get(Name: string): TExtFunction;
+begin
+  JSCode(JSName + '.get(' + VarToJSON([name]) + ');', 'TExtUtilCookiesSingleton');
   Result := Self;
 end;
 
-function TExtUtilCookiesSingleton.SetJS(Name : String; Value : String; Expires : TExtObject = nil; Path : String = ''; Domain : String = ''; Secure : Boolean = false) : TExtFunction; begin
-  JSCode(JSName + '.set(' + VarToJSON([Name, Value, Expires, false, Path, Domain, Secure]) + ');', 'TExtUtilCookiesSingleton');
+function TExtUtilCookiesSingleton.SetJS(Name: string; Value: string;
+  Expires: TExtObject = nil; Path: string = ''; Domain: string = '';
+  Secure: Boolean = false): TExtFunction;
+begin
+  JSCode(JSName + '.set(' + VarToJSON([name, Value, Expires, false, Path, Domain, Secure])
+    + ');', 'TExtUtilCookiesSingleton');
   Result := Self;
 end;
 
-function TExtUtilDelayedTask.JSClassName : string; begin
+function TExtUtilDelayedTask.JSClassName: string;
+begin
   Result := 'Ext.util.DelayedTask';
 end;
 
-constructor TExtUtilDelayedTask.Create(AOwner: TComponent; Fn : TExtFunction = nil;
-  Scope : TExtObject = nil; Args : TExtObjectList = nil);
+constructor TExtUtilDelayedTask.Create(AOwner: TComponent; Fn: TExtFunction = nil;
+  Scope: TExtObject = nil; Args: TExtObjectList = nil);
 begin
-  FCreateVarArgs := JSClassName + '(' + VarToJSON([Fn, true, Scope, false]) + ',' + VarToJSON(Args) + ');';
+  FCreateVarArgs := JSClassName + '(' + VarToJSON([Fn, true, Scope, false]) + ',' +
+    VarToJSON(Args) + ');';
   inherited Create(AOwner);
 end;
 
-function TExtUtilDelayedTask.Cancel : TExtFunction; begin
+function TExtUtilDelayedTask.Cancel: TExtFunction;
+begin
   JSCode(JSName + '.cancel();', 'TExtUtilDelayedTask');
   Result := Self;
 end;
 
-function TExtUtilDelayedTask.Delay(Delay : Integer; NewFn : TExtFunction = nil; NewScope : TExtObject = nil; NewArgs : TExtObjectList = nil) : TExtFunction; begin
-  JSCode(JSName + '.delay(' + VarToJSON([Delay, NewFn, true, NewScope, false]) + ',' + VarToJSON(NewArgs) + ');', 'TExtUtilDelayedTask');
+function TExtUtilDelayedTask.Delay(Delay: Integer; NewFn: TExtFunction = nil;
+  NewScope: TExtObject = nil; NewArgs: TExtObjectList = nil): TExtFunction;
+begin
+  JSCode(JSName + '.delay(' + VarToJSON([Delay, NewFn, true, NewScope, false]) + ',' +
+    VarToJSON(NewArgs) + ');', 'TExtUtilDelayedTask');
   Result := Self;
 end;
 
-procedure TExtUtilClickRepeater.SetFAccelerate(Value : Boolean); begin
+procedure TExtUtilClickRepeater.SetFAccelerate(Value: Boolean);
+begin
   FAccelerate := Value;
   JSCode('accelerate:' + VarToJSON([Value]));
 end;
 
-procedure TExtUtilClickRepeater.SetFDelay(Value : Integer); begin
+procedure TExtUtilClickRepeater.SetFDelay(Value: Integer);
+begin
   FDelay := Value;
   JSCode('delay:' + VarToJSON([Value]));
 end;
 
-procedure TExtUtilClickRepeater.SetFEl(Value : String); begin
+procedure TExtUtilClickRepeater.SetFEl(Value: string);
+begin
   FEl := Value;
   JSCode('el:' + VarToJSON([Value]));
 end;
 
-procedure TExtUtilClickRepeater.SetFInterval(Value : Integer); begin
+procedure TExtUtilClickRepeater.SetFInterval(Value: Integer);
+begin
   FInterval := Value;
   JSCode('interval:' + VarToJSON([Value]));
 end;
 
-procedure TExtUtilClickRepeater.SetFPressClass(Value : String); begin
+procedure TExtUtilClickRepeater.SetFPressClass(Value: string);
+begin
   FPressClass := Value;
   JSCode('pressClass:' + VarToJSON([Value]));
 end;
 
-procedure TExtUtilClickRepeater.SetFPreventDefault(Value : Boolean); begin
+procedure TExtUtilClickRepeater.SetFPreventDefault(Value: Boolean);
+begin
   FPreventDefault := Value;
   JSCode('preventDefault:' + VarToJSON([Value]));
 end;
 
-procedure TExtUtilClickRepeater.SetFStopDefault(Value : Boolean); begin
+procedure TExtUtilClickRepeater.SetFStopDefault(Value: Boolean);
+begin
   FStopDefault := Value;
   JSCode('stopDefault:' + VarToJSON([Value]));
 end;
 
-procedure TExtUtilClickRepeater.SetFOnClick(Value : TExtUtilClickRepeaterOnClick); begin
+procedure TExtUtilClickRepeater.SetFOnClick(Value: TExtUtilClickRepeaterOnClick);
+begin
   if Assigned(FOnClick) then
-    JSCode(JSName+'.events ["click"].listeners=[];');
+    JSCode(JSName + '.events ["click"].listeners=[];');
   if Assigned(Value) then
-    On('click', Ajax('click', ['This', '%0.nm'], true));
+    on('click', Ajax('click', ['This', '%0.nm'], true));
   FOnClick := Value;
 end;
 
-procedure TExtUtilClickRepeater.SetFOnMousedown(Value : TExtUtilClickRepeaterOnMousedown); begin
+procedure TExtUtilClickRepeater.SetFOnMousedown(Value: TExtUtilClickRepeaterOnMousedown);
+begin
   if Assigned(FOnMousedown) then
-    JSCode(JSName+'.events ["mousedown"].listeners=[];');
+    JSCode(JSName + '.events ["mousedown"].listeners=[];');
   if Assigned(Value) then
-    On('mousedown', Ajax('mousedown', ['This', '%0.nm'], true));
+    on('mousedown', Ajax('mousedown', ['This', '%0.nm'], true));
   FOnMousedown := Value;
 end;
 
-procedure TExtUtilClickRepeater.SetFOnMouseup(Value : TExtUtilClickRepeaterOnMouseup); begin
+procedure TExtUtilClickRepeater.SetFOnMouseup(Value: TExtUtilClickRepeaterOnMouseup);
+begin
   if Assigned(FOnMouseup) then
-    JSCode(JSName+'.events ["mouseup"].listeners=[];');
+    JSCode(JSName + '.events ["mouseup"].listeners=[];');
   if Assigned(Value) then
-    On('mouseup', Ajax('mouseup', ['This', '%0.nm'], true));
+    on('mouseup', Ajax('mouseup', ['This', '%0.nm'], true));
   FOnMouseup := Value;
 end;
 
-function TExtUtilClickRepeater.JSClassName : string; begin
+function TExtUtilClickRepeater.JSClassName: string;
+begin
   Result := 'Ext.util.ClickRepeater';
 end;
 
-constructor TExtUtilClickRepeater.Create(AOwner: TComponent; El : String; Config : TExtObject = nil);
+constructor TExtUtilClickRepeater.Create(AOwner: TComponent; El: string;
+  Config: TExtObject = nil);
 begin
   FCreateVarArgs := JSClassName + '(' + VarToJSON([El, Config, false]) + ');';
   inherited Create(AOwner);
 end;
 
-function TExtUtilClickRepeater.Disable : TExtFunction; begin
+function TExtUtilClickRepeater.Disable: TExtFunction;
+begin
   JSCode(JSName + '.disable();', 'TExtUtilClickRepeater');
   Result := Self;
 end;
 
-function TExtUtilClickRepeater.Enable : TExtFunction; begin
+function TExtUtilClickRepeater.Enable: TExtFunction;
+begin
   JSCode(JSName + '.enable();', 'TExtUtilClickRepeater');
   Result := Self;
 end;
 
-function TExtUtilClickRepeater.SetDisabled(Disabled : Boolean) : TExtFunction; begin
-  JSCode(JSName + '.setDisabled(' + VarToJSON([Disabled]) + ');', 'TExtUtilClickRepeater');
+function TExtUtilClickRepeater.SetDisabled(Disabled: Boolean): TExtFunction;
+begin
+  JSCode(JSName + '.setDisabled(' + VarToJSON([Disabled]) + ');',
+    'TExtUtilClickRepeater');
   Result := Self;
 end;
 
-procedure TExtUtilClickRepeater.HandleEvent(const AEvtName : string); begin
+procedure TExtUtilClickRepeater.HandleEvent(const AEvtName: string);
+begin
   inherited;
   if (AEvtName = 'click') and Assigned(FOnClick) then
     FOnClick(TExtUtilClickRepeater(ParamAsObject('This')))
@@ -781,245 +967,322 @@ procedure TExtUtilClickRepeater.HandleEvent(const AEvtName : string); begin
     FOnMouseup(TExtUtilClickRepeater(ParamAsObject('This')));
 end;
 
-procedure TExtUtilMixedCollection.SetFAllowFunctions(Value : Boolean); begin
+procedure TExtUtilMixedCollection.SetFAllowFunctions(Value: Boolean);
+begin
   FAllowFunctions := Value;
   JSCode('allowFunctions:' + VarToJSON([Value]));
 end;
 
-procedure TExtUtilMixedCollection.SetFOnAdd(Value : TExtUtilMixedCollectionOnAdd); begin
+procedure TExtUtilMixedCollection.SetFOnAdd(Value: TExtUtilMixedCollectionOnAdd);
+begin
   if Assigned(FOnAdd) then
-    JSCode(JSName+'.events ["add"].listeners=[];');
+    JSCode(JSName + '.events ["add"].listeners=[];');
   if Assigned(Value) then
-    On('add', Ajax('add', ['Index', '%0','O', '%1.nm','Key', '%2'], true));
+    on('add', Ajax('add', ['Index', '%0', 'O', '%1.nm', 'Key', '%2'], true));
   FOnAdd := Value;
 end;
 
-procedure TExtUtilMixedCollection.SetFOnClear(Value : TExtUtilMixedCollectionOnClear); begin
+procedure TExtUtilMixedCollection.SetFOnClear(Value: TExtUtilMixedCollectionOnClear);
+begin
   if Assigned(FOnClear) then
-    JSCode(JSName+'.events ["clear"].listeners=[];');
+    JSCode(JSName + '.events ["clear"].listeners=[];');
   if Assigned(Value) then
-    On('clear', Ajax('clear', [], true));
+    on('clear', Ajax('clear', [], true));
   FOnClear := Value;
 end;
 
-procedure TExtUtilMixedCollection.SetFOnRemove(Value : TExtUtilMixedCollectionOnRemove); begin
+procedure TExtUtilMixedCollection.SetFOnRemove(Value: TExtUtilMixedCollectionOnRemove);
+begin
   if Assigned(FOnRemove) then
-    JSCode(JSName+'.events ["remove"].listeners=[];');
+    JSCode(JSName + '.events ["remove"].listeners=[];');
   if Assigned(Value) then
-    On('remove', Ajax('remove', ['O', '%0.nm','Key', '%1'], true));
+    on('remove', Ajax('remove', ['O', '%0.nm', 'Key', '%1'], true));
   FOnRemove := Value;
 end;
 
-procedure TExtUtilMixedCollection.SetFOnReplace(Value : TExtUtilMixedCollectionOnReplace); begin
+procedure TExtUtilMixedCollection.SetFOnReplace(Value: TExtUtilMixedCollectionOnReplace);
+begin
   if Assigned(FOnReplace) then
-    JSCode(JSName+'.events ["replace"].listeners=[];');
+    JSCode(JSName + '.events ["replace"].listeners=[];');
   if Assigned(Value) then
-    On('replace', Ajax('replace', ['Key', '%0','Old', '%1.nm','New', '%2.nm'], true));
+    on('replace', Ajax('replace', ['Key', '%0', 'Old', '%1.nm', 'New', '%2.nm'], true));
   FOnReplace := Value;
 end;
 
-function TExtUtilMixedCollection.JSClassName : string; begin
+function TExtUtilMixedCollection.JSClassName: string;
+begin
   Result := 'Ext.util.MixedCollection';
 end;
 
-constructor TExtUtilMixedCollection.Create(AOwner: TComponent;
-  AllowFunctions : Boolean; KeyFn : TExtFunction);
+constructor TExtUtilMixedCollection.Create(AOwner: TComponent; AllowFunctions: Boolean;
+  KeyFn: TExtFunction);
 begin
   FCreateVarArgs := JSClassName + '(' + VarToJSON([AllowFunctions, KeyFn, true]) + ');';
   inherited Create(AOwner);
 end;
 
-function TExtUtilMixedCollection.Add(Key : String; O : TExtObject) : TExtFunction; begin
+function TExtUtilMixedCollection.Add(Key: string; O: TExtObject): TExtFunction;
+begin
   JSCode(JSName + '.add(' + VarToJSON([Key, O, false]) + ');', 'TExtUtilMixedCollection');
   Result := Self;
 end;
 
-function TExtUtilMixedCollection.AddAll(Objs : TExtObject) : TExtFunction; begin
-  JSCode(JSName + '.addAll(' + VarToJSON([Objs, false]) + ');', 'TExtUtilMixedCollection');
+function TExtUtilMixedCollection.AddAll(Objs: TExtObject): TExtFunction;
+begin
+  JSCode(JSName + '.addAll(' + VarToJSON([Objs, false]) + ');',
+    'TExtUtilMixedCollection');
   Result := Self;
 end;
 
-function TExtUtilMixedCollection.AddAll(Objs : TExtObjectList) : TExtFunction; begin
+function TExtUtilMixedCollection.AddAll(Objs: TExtObjectList): TExtFunction;
+begin
   JSCode(JSName + '.addAll(' + VarToJSON(Objs) + ');', 'TExtUtilMixedCollection');
   Result := Self;
 end;
 
-function TExtUtilMixedCollection.Clear : TExtFunction; begin
+function TExtUtilMixedCollection.Clear: TExtFunction;
+begin
   JSCode(JSName + '.clear();', 'TExtUtilMixedCollection');
   Result := Self;
 end;
 
-function TExtUtilMixedCollection.Clone : TExtFunction; begin
+function TExtUtilMixedCollection.Clone: TExtFunction;
+begin
   JSCode(JSName + '.clone();', 'TExtUtilMixedCollection');
   Result := Self;
 end;
 
-function TExtUtilMixedCollection.Contains(O : TExtObject) : TExtFunction; begin
+function TExtUtilMixedCollection.Contains(O: TExtObject): TExtFunction;
+begin
   JSCode(JSName + '.contains(' + VarToJSON([O, false]) + ');', 'TExtUtilMixedCollection');
   Result := Self;
 end;
 
-function TExtUtilMixedCollection.ContainsKey(Key : String) : TExtFunction; begin
+function TExtUtilMixedCollection.ContainsKey(Key: string): TExtFunction;
+begin
   JSCode(JSName + '.containsKey(' + VarToJSON([Key]) + ');', 'TExtUtilMixedCollection');
   Result := Self;
 end;
 
-function TExtUtilMixedCollection.Each(Fn : TExtFunction; Scope : TExtObject = nil) : TExtFunction; begin
-  JSCode(JSName + '.each(' + VarToJSON([Fn, true, Scope, false]) + ');', 'TExtUtilMixedCollection');
+function TExtUtilMixedCollection.Each(Fn: TExtFunction; Scope: TExtObject = nil)
+  : TExtFunction;
+begin
+  JSCode(JSName + '.each(' + VarToJSON([Fn, true, Scope, false]) + ');',
+    'TExtUtilMixedCollection');
   Result := Self;
 end;
 
-function TExtUtilMixedCollection.EachKey(Fn : TExtFunction; Scope : TExtObject = nil) : TExtFunction; begin
-  JSCode(JSName + '.eachKey(' + VarToJSON([Fn, true, Scope, false]) + ');', 'TExtUtilMixedCollection');
+function TExtUtilMixedCollection.EachKey(Fn: TExtFunction; Scope: TExtObject = nil)
+  : TExtFunction;
+begin
+  JSCode(JSName + '.eachKey(' + VarToJSON([Fn, true, Scope, false]) + ');',
+    'TExtUtilMixedCollection');
   Result := Self;
 end;
 
-function TExtUtilMixedCollection.Filter(PropertyJS : String; Value : String; AnyMatch : Boolean = false; CaseSensitive : Boolean = false) : TExtFunction; begin
-  JSCode(JSName + '.filter(' + VarToJSON([PropertyJS, Value, AnyMatch, CaseSensitive]) + ');', 'TExtUtilMixedCollection');
+function TExtUtilMixedCollection.Filter(PropertyJS: string; Value: string;
+  AnyMatch: Boolean = false; CaseSensitive: Boolean = false): TExtFunction;
+begin
+  JSCode(JSName + '.filter(' + VarToJSON([PropertyJS, Value, AnyMatch, CaseSensitive]) +
+    ');', 'TExtUtilMixedCollection');
   Result := Self;
 end;
 
-function TExtUtilMixedCollection.Filter(PropertyJS : String; Value : TRegExp; AnyMatch : Boolean = false; CaseSensitive : Boolean = false) : TExtFunction; begin
-  JSCode(JSName + '.filter(' + VarToJSON([PropertyJS, #3 + Value, AnyMatch, CaseSensitive]) + ');', 'TExtUtilMixedCollection');
+function TExtUtilMixedCollection.Filter(PropertyJS: string; Value: TRegExp;
+  AnyMatch: Boolean = false; CaseSensitive: Boolean = false): TExtFunction;
+begin
+  JSCode(JSName + '.filter(' + VarToJSON([PropertyJS, #3 + Value, AnyMatch, CaseSensitive]
+    ) + ');', 'TExtUtilMixedCollection');
   Result := Self;
 end;
 
-function TExtUtilMixedCollection.FilterBy(Fn : TExtFunction; Scope : TExtObject = nil) : TExtFunction; begin
-  JSCode(JSName + '.filterBy(' + VarToJSON([Fn, true, Scope, false]) + ');', 'TExtUtilMixedCollection');
+function TExtUtilMixedCollection.FilterBy(Fn: TExtFunction; Scope: TExtObject = nil)
+  : TExtFunction;
+begin
+  JSCode(JSName + '.filterBy(' + VarToJSON([Fn, true, Scope, false]) + ');',
+    'TExtUtilMixedCollection');
   Result := Self;
 end;
 
-function TExtUtilMixedCollection.Find(Fn : TExtFunction; Scope : TExtObject = nil) : TExtFunction; begin
-  JSCode(JSName + '.find(' + VarToJSON([Fn, true, Scope, false]) + ');', 'TExtUtilMixedCollection');
+function TExtUtilMixedCollection.Find(Fn: TExtFunction; Scope: TExtObject = nil)
+  : TExtFunction;
+begin
+  JSCode(JSName + '.find(' + VarToJSON([Fn, true, Scope, false]) + ');',
+    'TExtUtilMixedCollection');
   Result := Self;
 end;
 
-function TExtUtilMixedCollection.FindIndex(PropertyJS : String; Value : String; Start : Integer = 0; AnyMatch : Boolean = false; CaseSensitive : Boolean = false) : TExtFunction; begin
-  JSCode(JSName + '.findIndex(' + VarToJSON([PropertyJS, Value, Start, AnyMatch, CaseSensitive]) + ');', 'TExtUtilMixedCollection');
+function TExtUtilMixedCollection.FindIndex(PropertyJS: string; Value: string;
+  Start: Integer = 0; AnyMatch: Boolean = false; CaseSensitive: Boolean = false)
+  : TExtFunction;
+begin
+  JSCode(JSName + '.findIndex(' + VarToJSON([PropertyJS, Value, Start, AnyMatch,
+    CaseSensitive]) + ');', 'TExtUtilMixedCollection');
   Result := Self;
 end;
 
-function TExtUtilMixedCollection.FindIndex(PropertyJS : String; Value : TRegExp; Start : Integer = 0; AnyMatch : Boolean = false; CaseSensitive : Boolean = false) : TExtFunction; begin
-  JSCode(JSName + '.findIndex(' + VarToJSON([PropertyJS, #3 + Value, Start, AnyMatch, CaseSensitive]) + ');', 'TExtUtilMixedCollection');
+function TExtUtilMixedCollection.FindIndex(PropertyJS: string; Value: TRegExp;
+  Start: Integer = 0; AnyMatch: Boolean = false; CaseSensitive: Boolean = false)
+  : TExtFunction;
+begin
+  JSCode(JSName + '.findIndex(' + VarToJSON([PropertyJS, #3 + Value, Start, AnyMatch,
+    CaseSensitive]) + ');', 'TExtUtilMixedCollection');
   Result := Self;
 end;
 
-function TExtUtilMixedCollection.FindIndexBy(Fn : TExtFunction; Scope : TExtObject = nil; Start : Integer = 0) : TExtFunction; begin
-  JSCode(JSName + '.findIndexBy(' + VarToJSON([Fn, true, Scope, false, Start]) + ');', 'TExtUtilMixedCollection');
+function TExtUtilMixedCollection.FindIndexBy(Fn: TExtFunction; Scope: TExtObject = nil;
+  Start: Integer = 0): TExtFunction;
+begin
+  JSCode(JSName + '.findIndexBy(' + VarToJSON([Fn, true, Scope, false, Start]) + ');',
+    'TExtUtilMixedCollection');
   Result := Self;
 end;
 
-function TExtUtilMixedCollection.First : TExtFunction; begin
+function TExtUtilMixedCollection.First: TExtFunction;
+begin
   JSCode(JSName + '.first();', 'TExtUtilMixedCollection');
   Result := Self;
 end;
 
-function TExtUtilMixedCollection.Get(Key : String) : TExtFunction; begin
+function TExtUtilMixedCollection.Get(Key: string): TExtFunction;
+begin
   JSCode(JSName + '.get(' + VarToJSON([Key]) + ');', 'TExtUtilMixedCollection');
   Result := Self;
 end;
 
-function TExtUtilMixedCollection.Get(Key : Integer) : TExtFunction; begin
+function TExtUtilMixedCollection.Get(Key: Integer): TExtFunction;
+begin
   JSCode(JSName + '.get(' + VarToJSON([Key]) + ');', 'TExtUtilMixedCollection');
   Result := Self;
 end;
 
-function TExtUtilMixedCollection.GetCount : TExtFunction; begin
+function TExtUtilMixedCollection.GetCount: TExtFunction;
+begin
   JSCode(JSName + '.getCount();', 'TExtUtilMixedCollection');
   Result := Self;
 end;
 
-function TExtUtilMixedCollection.GetKey(Item : TExtObject) : TExtFunction; begin
-  JSCode(JSName + '.getKey(' + VarToJSON([Item, false]) + ');', 'TExtUtilMixedCollection');
+function TExtUtilMixedCollection.GetKey(Item: TExtObject): TExtFunction;
+begin
+  JSCode(JSName + '.getKey(' + VarToJSON([Item, false]) + ');',
+    'TExtUtilMixedCollection');
   Result := Self;
 end;
 
-function TExtUtilMixedCollection.GetRange(StartIndex : Integer = 0; EndIndex : Integer = 0) : TExtFunction; begin
-  JSCode(JSName + '.getRange(' + VarToJSON([StartIndex, EndIndex]) + ');', 'TExtUtilMixedCollection');
+function TExtUtilMixedCollection.GetRange(StartIndex: Integer = 0; EndIndex: Integer = 0)
+  : TExtFunction;
+begin
+  JSCode(JSName + '.getRange(' + VarToJSON([StartIndex, EndIndex]) + ');',
+    'TExtUtilMixedCollection');
   Result := Self;
 end;
 
-function TExtUtilMixedCollection.IndexOf(O : TExtObject) : TExtFunction; begin
+function TExtUtilMixedCollection.IndexOf(O: TExtObject): TExtFunction;
+begin
   JSCode(JSName + '.indexOf(' + VarToJSON([O, false]) + ');', 'TExtUtilMixedCollection');
   Result := Self;
 end;
 
-function TExtUtilMixedCollection.IndexOfKey(Key : String) : TExtFunction; begin
+function TExtUtilMixedCollection.IndexOfKey(Key: string): TExtFunction;
+begin
   JSCode(JSName + '.indexOfKey(' + VarToJSON([Key]) + ');', 'TExtUtilMixedCollection');
   Result := Self;
 end;
 
-function TExtUtilMixedCollection.Insert(Index : Integer; Key : String; O : TExtObject = nil) : TExtFunction; begin
-  JSCode(JSName + '.insert(' + VarToJSON([Index, Key, O, false]) + ');', 'TExtUtilMixedCollection');
+function TExtUtilMixedCollection.Insert(Index: Integer; Key: string; O: TExtObject = nil)
+  : TExtFunction;
+begin
+  JSCode(JSName + '.insert(' + VarToJSON([index, Key, O, false]) + ');',
+    'TExtUtilMixedCollection');
   Result := Self;
 end;
 
-function TExtUtilMixedCollection.Item(Key : String) : TExtFunction; begin
+function TExtUtilMixedCollection.Item(Key: string): TExtFunction;
+begin
   JSCode(JSName + '.item(' + VarToJSON([Key]) + ');', 'TExtUtilMixedCollection');
   Result := Self;
 end;
 
-function TExtUtilMixedCollection.Item(Key : Integer) : TExtFunction; begin
+function TExtUtilMixedCollection.Item(Key: Integer): TExtFunction;
+begin
   JSCode(JSName + '.item(' + VarToJSON([Key]) + ');', 'TExtUtilMixedCollection');
   Result := Self;
 end;
 
-function TExtUtilMixedCollection.ItemAt(Index : Integer) : TExtFunction; begin
-  JSCode(JSName + '.itemAt(' + VarToJSON([Index]) + ');', 'TExtUtilMixedCollection');
+function TExtUtilMixedCollection.ItemAt(Index: Integer): TExtFunction;
+begin
+  JSCode(JSName + '.itemAt(' + VarToJSON([index]) + ');', 'TExtUtilMixedCollection');
   Result := Self;
 end;
 
-function TExtUtilMixedCollection.Key(Key : String) : TExtFunction; begin
+function TExtUtilMixedCollection.Key(Key: string): TExtFunction;
+begin
   JSCode(JSName + '.key(' + VarToJSON([Key]) + ');', 'TExtUtilMixedCollection');
   Result := Self;
 end;
 
-function TExtUtilMixedCollection.Key(Key : Integer) : TExtFunction; begin
+function TExtUtilMixedCollection.Key(Key: Integer): TExtFunction;
+begin
   JSCode(JSName + '.key(' + VarToJSON([Key]) + ');', 'TExtUtilMixedCollection');
   Result := Self;
 end;
 
-function TExtUtilMixedCollection.KeySort(Direction : String = ''; Fn : TExtFunction = nil) : TExtFunction; begin
-  JSCode(JSName + '.keySort(' + VarToJSON([Direction, Fn, true]) + ');', 'TExtUtilMixedCollection');
+function TExtUtilMixedCollection.KeySort(Direction: string = ''; Fn: TExtFunction = nil)
+  : TExtFunction;
+begin
+  JSCode(JSName + '.keySort(' + VarToJSON([Direction, Fn, true]) + ');',
+    'TExtUtilMixedCollection');
   Result := Self;
 end;
 
-function TExtUtilMixedCollection.Last : TExtFunction; begin
+function TExtUtilMixedCollection.Last: TExtFunction;
+begin
   JSCode(JSName + '.last();', 'TExtUtilMixedCollection');
   Result := Self;
 end;
 
-function TExtUtilMixedCollection.Remove(O : TExtObject) : TExtFunction; begin
+function TExtUtilMixedCollection.Remove(O: TExtObject): TExtFunction;
+begin
   JSCode(JSName + '.remove(' + VarToJSON([O, false]) + ');', 'TExtUtilMixedCollection');
   Result := Self;
 end;
 
-function TExtUtilMixedCollection.RemoveAt(Index : Integer) : TExtFunction; begin
-  JSCode(JSName + '.removeAt(' + VarToJSON([Index]) + ');', 'TExtUtilMixedCollection');
+function TExtUtilMixedCollection.RemoveAt(Index: Integer): TExtFunction;
+begin
+  JSCode(JSName + '.removeAt(' + VarToJSON([index]) + ');', 'TExtUtilMixedCollection');
   Result := Self;
 end;
 
-function TExtUtilMixedCollection.RemoveKey(Key : String) : TExtFunction; begin
+function TExtUtilMixedCollection.RemoveKey(Key: string): TExtFunction;
+begin
   JSCode(JSName + '.removeKey(' + VarToJSON([Key]) + ');', 'TExtUtilMixedCollection');
   Result := Self;
 end;
 
-function TExtUtilMixedCollection.Reorder(Mapping : TExtObject) : TExtFunction; begin
-  JSCode(JSName + '.reorder(' + VarToJSON([Mapping, false]) + ');', 'TExtUtilMixedCollection');
+function TExtUtilMixedCollection.Reorder(Mapping: TExtObject): TExtFunction;
+begin
+  JSCode(JSName + '.reorder(' + VarToJSON([Mapping, false]) + ');',
+    'TExtUtilMixedCollection');
   Result := Self;
 end;
 
-function TExtUtilMixedCollection.Replace(Key : String; O : TExtObject) : TExtFunction; begin
-  JSCode(JSName + '.replace(' + VarToJSON([Key, O, false]) + ');', 'TExtUtilMixedCollection');
+function TExtUtilMixedCollection.Replace(Key: string; O: TExtObject): TExtFunction;
+begin
+  JSCode(JSName + '.replace(' + VarToJSON([Key, O, false]) + ');',
+    'TExtUtilMixedCollection');
   Result := Self;
 end;
 
-function TExtUtilMixedCollection.Sort(Direction : String = ''; Fn : TExtFunction = nil) : TExtFunction; begin
-  JSCode(JSName + '.sort(' + VarToJSON([Direction, Fn, true]) + ');', 'TExtUtilMixedCollection');
+function TExtUtilMixedCollection.Sort(Direction: string = ''; Fn: TExtFunction = nil)
+  : TExtFunction;
+begin
+  JSCode(JSName + '.sort(' + VarToJSON([Direction, Fn, true]) + ');',
+    'TExtUtilMixedCollection');
   Result := Self;
 end;
 
-procedure TExtUtilMixedCollection.HandleEvent(const AEvtName : string); begin
+procedure TExtUtilMixedCollection.HandleEvent(const AEvtName: string);
+begin
   inherited;
   if (AEvtName = 'add') and Assigned(FOnAdd) then
     FOnAdd(ParamAsInteger('Index'), TExtObject(ParamAsObject('O')), ParamAsString('Key'))
@@ -1028,20 +1291,24 @@ procedure TExtUtilMixedCollection.HandleEvent(const AEvtName : string); begin
   else if (AEvtName = 'remove') and Assigned(FOnRemove) then
     FOnRemove(TExtObject(ParamAsObject('O')), ParamAsString('Key'))
   else if (AEvtName = 'replace') and Assigned(FOnReplace) then
-    FOnReplace(ParamAsString('Key'), TExtObject(ParamAsObject('Old')), TExtObject(ParamAsObject('New')));
+    FOnReplace(ParamAsString('Key'), TExtObject(ParamAsObject('Old')),
+      TExtObject(ParamAsObject('New')));
 end;
 
 initialization
-  ExtUtilJSON := TExtUtilJSONSingleton.CreateSingleton;
-  ExtUtilTextMetrics := TExtUtilTextMetricsSingleton.CreateSingleton;
-  ExtUtilFormat := TExtUtilFormatSingleton.CreateSingleton;
-  ExtUtilCSS := TExtUtilCSSSingleton.CreateSingleton;
-  ExtUtilCookies := TExtUtilCookiesSingleton.CreateSingleton;
+
+ExtUtilJSON := TExtUtilJSONSingleton.CreateSingleton;
+ExtUtilTextMetrics := TExtUtilTextMetricsSingleton.CreateSingleton;
+ExtUtilFormat := TExtUtilFormatSingleton.CreateSingleton;
+ExtUtilCSS := TExtUtilCSSSingleton.CreateSingleton;
+ExtUtilCookies := TExtUtilCookiesSingleton.CreateSingleton;
 
 finalization
-  ExtUtilCookies.Destroy;
-  ExtUtilCSS.Destroy;
-  ExtUtilFormat.Destroy;
-  ExtUtilTextMetrics.Destroy;
-  ExtUtilJSON.Destroy;
+
+ExtUtilCookies.Destroy;
+ExtUtilCSS.Destroy;
+ExtUtilFormat.Destroy;
+ExtUtilTextMetrics.Destroy;
+ExtUtilJSON.Destroy;
+
 end.

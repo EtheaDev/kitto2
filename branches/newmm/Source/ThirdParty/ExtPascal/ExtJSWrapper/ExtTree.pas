@@ -248,21 +248,21 @@ type
     procedure SetFAllowDrop(Value : Boolean);
     procedure SetFChecked(Value : Boolean);
     procedure SetFCls(Value : String);
-    procedure SetFDisabled(Value : Boolean);
+    procedure SetDisabled(const AValue: Boolean);
     procedure SetFDraggable(Value : Boolean);
     procedure SetFEditable(Value : Boolean);
-    procedure SetFExpandable(Value : Boolean);
-    procedure SetFExpanded(Value : Boolean);
-    procedure SetFHidden(Value : Boolean);
+    procedure SetExpandable(const AValue: Boolean);
+    procedure SetExpanded(const AValue: Boolean);
+    procedure SetHidden(const AValue: Boolean);
     procedure SetFHref(Value : String);
     procedure SetFHrefTarget(Value : String);
     procedure SetFIcon(Value : String);
-    procedure SetFIconCls(Value : String);
+    procedure SetIconCls(const AValue: string);
     procedure SetFIsTarget(Value : Boolean);
     procedure SetFQtip(Value : String);
     procedure SetFQtipCfg(Value : String);
     procedure SetFSingleClickExpand(Value : Boolean);
-    procedure SetFText(Value : String);
+    procedure _SetText(const AValue: string);
     procedure SetFUiProvider(Value : TExtFunction);
     procedure SetFDisabled_(Value : Boolean);
     procedure SetFHidden_(Value : Boolean);
@@ -284,6 +284,7 @@ type
   protected
     procedure InitDefaults; override;
     procedure HandleEvent(const AEvtName: string); override;
+    function GetObjectNamePrefix: string; override;
   public
     function JSClassName : string; override;
     function Collapse(Deep : Boolean = false; Anim : Boolean = false; Callback : TExtFunction = nil; Scope : TExtObject = nil) : TExtFunction;
@@ -297,7 +298,7 @@ type
     function IsExpanded : TExtFunction;
     function IsSelected : TExtFunction;
     function Select : TExtFunction;
-    function SetText(Text : String) : TExtFunction;
+    function SetText(const AText: string): TExtFunction;
     function Toggle : TExtFunction;
     function Unselect(Silent : Boolean = false) : TExtFunction;
     property AllowChildren : Boolean read FAllowChildren write SetFAllowChildren;
@@ -305,21 +306,21 @@ type
     property AllowDrop : Boolean read FAllowDrop write SetFAllowDrop;
     property Checked : Boolean read FChecked write SetFChecked;
     property Cls : String read FCls write SetFCls;
-    property Disabled : Boolean read FDisabled write SetFDisabled;
+    property Disabled : Boolean read FDisabled write SetDisabled;
     property Draggable : Boolean read FDraggable write SetFDraggable;
     property Editable : Boolean read FEditable write SetFEditable;
-    property Expandable : Boolean read FExpandable write SetFExpandable;
-    property Expanded : Boolean read FExpanded write SetFExpanded;
-    property Hidden : Boolean read FHidden write SetFHidden;
+    property Expandable: Boolean read FExpandable write SetExpandable;
+    property Expanded: Boolean read FExpanded write SetExpanded;
+    property Hidden : Boolean read FHidden write SetHidden;
     property Href : String read FHref write SetFHref;
     property HrefTarget : String read FHrefTarget write SetFHrefTarget;
     property Icon : String read FIcon write SetFIcon;
-    property IconCls : String read FIconCls write SetFIconCls;
+    property IconCls : String read FIconCls write SetIconCls;
     property IsTarget : Boolean read FIsTarget write SetFIsTarget;
     property Qtip : String read FQtip write SetFQtip;
     property QtipCfg : String read FQtipCfg write SetFQtipCfg;
     property SingleClickExpand : Boolean read FSingleClickExpand write SetFSingleClickExpand;
-    property Text : String read FText write SetFText;
+    property Text: string read FText write _SetText;
     property UiProvider : TExtFunction read FUiProvider write SetFUiProvider;
     property Disabled_ : Boolean read FDisabled_ write SetFDisabled_;
     property Hidden_ : Boolean read FHidden_ write SetFHidden_;
@@ -536,8 +537,8 @@ type
     procedure SetFLoader(Value : TExtTreeTreeLoader);
     procedure SetFPathSeparator(Value : String);
     procedure SetFRequestMethod(Value : String);
-    procedure SetFRoot(Value : TExtTreeTreeNode);
-    procedure SetFRootVisible(Value : Boolean);
+    procedure SetRoot(const AValue: TExtTreeTreeNode);
+    procedure SetRootVisible(const AValue: Boolean);
     procedure SetFSelModel(Value : TExtObject);
     procedure SetFSingleExpand(Value : Boolean);
     procedure SetFTrackMouseOver(Value : Boolean);
@@ -609,8 +610,8 @@ type
     property Loader : TExtTreeTreeLoader read FLoader write SetFLoader;
     property PathSeparator : String read FPathSeparator write SetFPathSeparator;
     property RequestMethod : String read FRequestMethod write SetFRequestMethod;
-    property Root : TExtTreeTreeNode read FRoot write SetFRoot;
-    property RootVisible : Boolean read FRootVisible write SetFRootVisible;
+    property Root: TExtTreeTreeNode read FRoot write SetRoot;
+    property RootVisible : Boolean read FRootVisible write SetRootVisible;
     property SelModel : TExtObject read FSelModel write SetFSelModel;
     property SingleExpand : Boolean read FSingleExpand write SetFSingleExpand;
     property TrackMouseOver : Boolean read FTrackMouseOver write SetFTrackMouseOver;
@@ -1053,9 +1054,10 @@ procedure TExtTreeTreeNode.SetFCls(Value : String); begin
   JSCode('cls:' + VarToJSON([Value]));
 end;
 
-procedure TExtTreeTreeNode.SetFDisabled(Value : Boolean); begin
-  FDisabled := Value;
-  JSCode('disabled:' + VarToJSON([Value]));
+procedure TExtTreeTreeNode.SetDisabled(const AValue: Boolean);
+begin
+  FDisabled := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'disabled', [AValue]);
 end;
 
 procedure TExtTreeTreeNode.SetFDraggable(Value : Boolean); begin
@@ -1068,19 +1070,22 @@ procedure TExtTreeTreeNode.SetFEditable(Value : Boolean); begin
   JSCode('editable:' + VarToJSON([Value]));
 end;
 
-procedure TExtTreeTreeNode.SetFExpandable(Value : Boolean); begin
-  FExpandable := Value;
-  JSCode('expandable:' + VarToJSON([Value]));
+procedure TExtTreeTreeNode.SetExpandable(const AValue: Boolean);
+begin
+  FExpandable := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'expandable', [AValue]);
 end;
 
-procedure TExtTreeTreeNode.SetFExpanded(Value : Boolean); begin
-  FExpanded := Value;
-  JSCode('expanded:' + VarToJSON([Value]));
+procedure TExtTreeTreeNode.SetExpanded(const AValue: Boolean);
+begin
+  FExpanded := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'expanded', [AValue]);
 end;
 
-procedure TExtTreeTreeNode.SetFHidden(Value : Boolean); begin
-  FHidden := Value;
-  JSCode('hidden:' + VarToJSON([Value]));
+procedure TExtTreeTreeNode.SetHidden(const AValue: Boolean);
+begin
+  FHidden := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'hidden', [AValue]);
 end;
 
 procedure TExtTreeTreeNode.SetFHref(Value : String); begin
@@ -1098,9 +1103,10 @@ procedure TExtTreeTreeNode.SetFIcon(Value : String); begin
   JSCode('icon:' + VarToJSON([Value]));
 end;
 
-procedure TExtTreeTreeNode.SetFIconCls(Value : String); begin
-  FIconCls := Value;
-  JSCode('iconCls:' + VarToJSON([Value]));
+procedure TExtTreeTreeNode.SetIconCls(const AValue: string);
+begin
+  FIconCls := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'iconCls', [AValue]);
 end;
 
 procedure TExtTreeTreeNode.SetFIsTarget(Value : Boolean); begin
@@ -1123,12 +1129,9 @@ procedure TExtTreeTreeNode.SetFSingleClickExpand(Value : Boolean); begin
   JSCode('singleClickExpand:' + VarToJSON([Value]));
 end;
 
-procedure TExtTreeTreeNode.SetFText(Value : String); begin
-  FText := Value;
-  if not ConfigAvailable(JSName) then
-    SetText(Value)
-  else
-    JSCode('text:' + VarToJSON([Value]));
+procedure TExtTreeTreeNode._SetText(const AValue: string); begin
+  FText := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'text', 'setText', [AValue]);
 end;
 
 procedure TExtTreeTreeNode.SetFUiProvider(Value : TExtFunction); begin
@@ -1310,6 +1313,11 @@ function TExtTreeTreeNode.ExpandChildNodes(Deep : Boolean = false) : TExtFunctio
   Result := Self;
 end;
 
+function TExtTreeTreeNode.GetObjectNamePrefix: string;
+begin
+  Result := 'tn';
+end;
+
 function TExtTreeTreeNode.GetUI : TExtFunction; begin
   JSCode(JSName + '.getUI();', 'TExtTreeTreeNode');
   Result := Self;
@@ -1330,8 +1338,10 @@ function TExtTreeTreeNode.Select : TExtFunction; begin
   Result := Self;
 end;
 
-function TExtTreeTreeNode.SetText(Text : String) : TExtFunction; begin
-  JSCode(JSName + '.setText(' + VarToJSON([Text]) + ');', 'TExtTreeTreeNode');
+function TExtTreeTreeNode.SetText(const AText: string): TExtFunction;
+begin
+  FText := AText;
+  ExtSession.ResponseItems.CallMethod(Self, 'setText', [AText]);
   Result := Self;
 end;
 
@@ -1612,15 +1622,17 @@ procedure TExtTreeTreePanel.SetFRequestMethod(Value : String); begin
   JSCode('requestMethod:' + VarToJSON([Value]));
 end;
 
-procedure TExtTreeTreePanel.SetFRoot(Value : TExtTreeTreeNode); begin
+procedure TExtTreeTreePanel.SetRoot(const AValue: TExtTreeTreeNode);
+begin
   FRoot.Free;
-  FRoot := Value;
-    JSCode('root:' + VarToJSON([Value, false]));
+  FRoot := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'root', [AValue, False]);
 end;
 
-procedure TExtTreeTreePanel.SetFRootVisible(Value : Boolean); begin
-  FRootVisible := Value;
-  JSCode('rootVisible:' + VarToJSON([Value]));
+procedure TExtTreeTreePanel.SetRootVisible(const AValue: Boolean);
+begin
+  FRootVisible := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'rootVisible', [AValue]);
 end;
 
 procedure TExtTreeTreePanel.SetFSelModel(Value : TExtObject); begin

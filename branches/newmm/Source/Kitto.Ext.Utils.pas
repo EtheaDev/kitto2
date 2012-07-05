@@ -147,7 +147,6 @@ begin
 
   if Assigned(AView) then
   begin
-    Assert(Session.ViewHost <> nil);
     if Session.StatusHost <> nil then
       Result := FOwner.Ajax(FClickHandler, ['View', Integer(AView), 'AutoCollapseMenu', True,
         'Dummy', Session.StatusHost.ShowBusy])
@@ -279,7 +278,7 @@ begin
   //if not Assigned(LView) or LView.IsAccessGranted(ACM_VIEW) then
   //begin
     LIsEnabled := not Assigned(LView) or LView.IsAccessGranted(ACM_RUN);
-    LNode := TKExtTreeTreeNode.Create(AParent);
+    LNode := TKExtTreeTreeNode.Create(AParent.ChildNodes);
     try
       Inc(FAddedItems);
       LNode.View := LView;

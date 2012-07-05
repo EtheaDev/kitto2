@@ -379,7 +379,7 @@ type
     FOnFieldChange: TExtFormFieldOnChange;
     FOnNewEditor: TProc<IKExtEditor>;
     FOperation: TKExtEditOperation;
-    const TRIGGER_WIDTH = 4;
+    const TRIGGER_WIDTH = 2;
     function GetViewTable: TKViewTable;
     function DerivedFieldsExist(const AViewField: TKViewField): Boolean;
     function TryCreateCheckBox(const AViewField: TKViewField): IKExtEditor;
@@ -401,11 +401,12 @@ type
     function CreateTextField(const AViewField: TKViewField;
       const ARowField: TKExtFormRowField; const AFieldCharWidth: Integer;
       const AIsReadOnly: Boolean): IKExtEditor;
-    function CreateEditItem(const AName, AValue: string;
+    function CreateEditItem(const ANode: TEFNode;
       const AContainer: IKExtEditContainer): IKExtEditItem;
 
     function CreateEditor(const AFieldName: string;
-      const AContainer: IKExtEditContainer): IKExtEditor;
+      const AContainer: IKExtEditContainer;
+      const AOptions: TEFNode = nil): IKExtEditor;
     function CreateFieldSet(const ATitle: string): IKExtEditItem;
     function CreateCompositeField(const ALabel: string): IKExtEditItem;
     procedure SetGlobalOption(const AName, AValue: string);
@@ -546,9 +547,9 @@ begin
   if SameText(AName, 'Anchor') then
     AFormField.Anchor := AValue
   else if SameText(AName, 'CharWidth') then
-    AFormField.SetWidth(AFormField.CharsToPixels(OptionAsInteger(AValue)))
+    AFormField.Width := AFormField.CharsToPixels(OptionAsInteger(AValue))
   else if SameText(AName, 'Width') then
-    AFormField.SetWidth(OptionAsIntegerOrPerc(AValue))
+    AFormField.WidthString := OptionAsIntegerOrPerc(AValue)
   else
     Result := False;
 end;
@@ -593,18 +594,21 @@ begin
   if MatchText(ANode.Name, ['Field', 'FieldSet', 'CompositeField', 'Row']) then
   begin
     if FEditContainers.Count > 0 then
-      FCurrentEditItem := CreateEditItem(ANode.Name, ANode.AsString, FEditContainers.Peek)
+      FCurrentEditItem := CreateEditItem(ANode, FEditContainers.Peek)
     else
     begin
-      FCurrentEditItem := CreateEditItem(ANode.Name, ANode.AsString, nil);
+      FCurrentEditItem := CreateEditItem(ANode, nil);
       FFormPanel.Items.Add(FCurrentEditItem.AsExtObject);
     end;
     if Supports(FCurrentEditItem, IKExtEditContainer, LIntf) then
       FEditContainers.Push(LIntf);
   end
+  // Unknown name - must be an option.
+  else if SameText(ANode.Name, 'DisplayLabel') then
+    // DisplayLabel is handled earlier by CreateEditItem, so we just ignore it here.
+    Exit
   else
   begin
-    // Unknown name - must be an option.
     if ANode.AsString = '' then
       LayoutError(Format(_('Option %s must have a value.'), [ANode.Name]));
     if ANode.ChildCount > 0 then
@@ -645,19 +649,19 @@ begin
     FFormPanel.On('afterrender', FFormPanel.JSFunction(FFocusField.JSName + '.focus(false, 1000);'));
 end;
 
-function TKExtLayoutProcessor.CreateEditItem(const AName,
-  AValue: string; const AContainer: IKExtEditContainer): IKExtEditItem;
+function TKExtLayoutProcessor.CreateEditItem(const ANode: TEFNode;
+  const AContainer: IKExtEditContainer): IKExtEditItem;
 begin
-  if SameText(AName, 'Field') then
-    Result := CreateEditor(AValue, AContainer)
-  else if SameText(AName, 'FieldSet') then
-    Result := CreateFieldSet(_(AValue))
-  else if SameText(AName, 'CompositeField') then
-    Result := CreateCompositeField(_(AValue))
-  else if SameText(AName, 'Row') then
+  if SameText(ANode.Name, 'Field') then
+    Result := CreateEditor(ANode.Value, AContainer, ANode)
+  else if SameText(ANode.Name, 'FieldSet') then
+    Result := CreateFieldSet(_(ANode.Value))
+  else if SameText(ANode.Name, 'CompositeField') then
+    Result := CreateCompositeField(_(ANode.Value))
+  else if SameText(ANode.Name, 'Row') then
     Result := CreateRow
   else
-    raise EEFError.CreateFmt(_('Unknown edit item type %s.'), [AName]);
+    raise EEFError.CreateFmt(_('Unknown edit item type %s.'), [ANode.Name]);
   if Assigned(AContainer) then
     AContainer.AddChild(Result);
 end;
@@ -690,47 +694,49 @@ var
   LComboBox: TKExtFormComboBoxEditor;
   I: Integer;
 begin
-  LLookupCommandText := GetLookupCommandText(AField.ViewField);
-  LAllowedValues := AField.ViewField.GetChildrenAsPairs('AllowedValues', True);
-  // Translate allowed value descriptions if needed.
-  for I := Low(LAllowedValues) to High(LAllowedValues) do
-    LAllowedValues[I].Value := _(LAllowedValues[I].Value);
-  if (LLookupCommandText <> '') or (Length(LAllowedValues) > 0) then
+  Result := nil;
+  if not AField.ViewField.IsDetailReference then
   begin
-    LComboBox := TKExtFormComboBoxEditor.Create(FFormPanel);
-    try
-      if not Assigned(ARowField) then
-        LComboBox.Width := LComboBox.CharsToPixels(AFieldCharWidth + TRIGGER_WIDTH)
-      else
-        ARowField.CharWidth := AFieldCharWidth + TRIGGER_WIDTH;
-      // Enable the combo box to post its hidden value instead of the visible description.
-      LComboBox.HiddenName := AField.ViewField.FieldNamesForUpdate;
-
-      if Length(LAllowedValues) > 0 then
-        LComboBox.StoreArray := LComboBox.JSArray(PairsToJSON(LAllowedValues))
-      else // LLookupCommandText <> ''
-      begin
-        if AField.ViewField.IsReference and AField.ViewField.ModelField.ReferencedModel.IsLarge then
-          LComboBox.SetupServerStore(AField, LLookupCommandText)
+    LLookupCommandText := GetLookupCommandText(AField.ViewField);
+    LAllowedValues := AField.ViewField.GetChildrenAsPairs('AllowedValues', True);
+    // Translate allowed value descriptions if needed.
+    for I := Low(LAllowedValues) to High(LAllowedValues) do
+      LAllowedValues[I].Value := _(LAllowedValues[I].Value);
+    if (LLookupCommandText <> '') or (Length(LAllowedValues) > 0) then
+    begin
+      LComboBox := TKExtFormComboBoxEditor.Create(FFormPanel);
+      try
+        if not Assigned(ARowField) then
+          LComboBox.Width := LComboBox.CharsToPixels(AFieldCharWidth + TRIGGER_WIDTH)
         else
+          ARowField.CharWidth := AFieldCharWidth + TRIGGER_WIDTH;
+        // Enable the combo box to post its hidden value instead of the visible description.
+        LComboBox.HiddenName := AField.ViewField.FieldNamesForUpdate;
+
+        if Length(LAllowedValues) > 0 then
+          LComboBox.StoreArray := LComboBox.JSArray(PairsToJSON(LAllowedValues))
+        else // LLookupCommandText <> ''
         begin
-          LComboBox.Mode := 'local';
-          LComboBox.StoreArray := LComboBox.JSArray(DataSetToJSON(Session.Config.DBConnections[AField.ViewField.Table.DatabaseName], LLookupCommandText));
+          if AField.ViewField.IsReference and AField.ViewField.ModelField.ReferencedModel.IsLarge then
+            LComboBox.SetupServerStore(AField, LLookupCommandText)
+          else
+          begin
+            LComboBox.Mode := 'local';
+            LComboBox.StoreArray := LComboBox.JSArray(DataSetToJSON(Session.Config.DBConnections[AField.ViewField.Table.DatabaseName], LLookupCommandText));
+          end;
         end;
+        if not AIsReadOnly then
+          //LComboBox.ForceSelection := AViewField.IsRequired
+          LComboBox.ForceSelection := True
+        else
+          LComboBox.ReadOnly := True;
+        Result := LComboBox;
+      except
+        LComboBox.Free;
+        raise;
       end;
-      if not AIsReadOnly then
-        //LComboBox.ForceSelection := AViewField.IsRequired
-        LComboBox.ForceSelection := True
-      else
-        LComboBox.ReadOnly := True;
-      Result := LComboBox;
-    except
-      LComboBox.Free;
-      raise;
     end;
-  end
-  else
-    Result := nil;
+  end;
 end;
 
 function TKExtLayoutProcessor.TryCreateTextArea(const AViewField: TKViewField;
@@ -989,7 +995,7 @@ begin
 end;
 
 function TKExtLayoutProcessor.CreateEditor(const AFieldName: string;
-  const AContainer: IKExtEditContainer): IKExtEditor;
+  const AContainer: IKExtEditContainer; const AOptions: TEFNode): IKExtEditor;
 var
   LFieldCharWidth: Integer;
   LIsReadOnly: Boolean;
@@ -1032,7 +1038,11 @@ begin
   if not LIsReadOnly and LViewField.IsDetailReference then
     LIsReadOnly := True;
 
-  LLabel := _(LViewField.DisplayLabel);
+  LLabel := '';
+  if Assigned(AOptions) then
+    LLabel := _(AOptions.GetString('DisplayLabel'));
+  if LLabel = '' then
+    LLabel := _(LViewField.DisplayLabel);
   if not LIsReadOnly and LViewField.IsRequired then
     LLabel := ReplaceText(FDefaults.RequiredLabelTemplate, '{label}', LLabel);
 
@@ -1541,8 +1551,8 @@ begin
   LLimit := Session.QueryAsInteger['limit'];
   LPageRecordCount := Min(Max(LLimit, 100), FServerStore.RecordCount - LStart);
 
-  Session.Response := '{Total:' + IntToStr(FServerStore.RecordCount) + ',Root:'
-    + FServerStore.GetAsJSON(False, LStart, LPageRecordCount) + '}';
+  ExtSession.ResponseItems.AddJSON('{Total: ' + IntToStr(FServerStore.RecordCount)
+    + ', Root: ' + FServerStore.GetAsJSON(False, LStart, LPageRecordCount) + '}');
 end;
 
 procedure TKExtFormComboBoxEditor.InitDefaults;
@@ -1637,9 +1647,9 @@ begin
   else if SameText(AName, 'ColumnWidth') then
     ColumnWidth := OptionAsFloat(AValue)
   else if SameText(AName, 'CharWidth') then
-    SetWidth(CharsToPixels(OptionAsInteger(AValue)))
+    Width := CharsToPixels(OptionAsInteger(AValue))
   else if SameText(AName, 'Width') then
-    SetWidth(OptionAsIntegerOrPerc(AValue))
+    WidthString := OptionAsIntegerOrPerc(AValue)
   else if SameText(AName, 'Anchor') then
     Anchor := AValue
   else
@@ -1692,15 +1702,9 @@ begin
     FEditor.SetOption('ColumnWidth', AValue);
   end
   else if SameText(AName, 'CharWidth') then
-  begin
-    SetWidth(CharsToPixels(OptionAsInteger(AValue)));
-    FEditor.SetOption('CharWidth', IntToStr(OptionAsInteger(AValue) - 1));
-  end
+    CharWidth := OptionAsInteger(AValue)
   else if SameText(AName, 'Width') then
-  begin
-    SetWidth(OptionAsIntegerOrPerc(AValue));
-    FEditor.SetOption('Width', AValue);
-  end
+    WidthString := OptionAsIntegerOrPerc(AValue)
   else
     FEditor.SetOption(AName, AValue);
   Result := True;
@@ -1718,7 +1722,7 @@ begin
 
   FEditor := AValue;
   Items.Add(FEditor.AsExtObject);
-  FEditor.SetOption('CharWidth', IntToStr(FCharWidth - 1));
+  FEditor.SetOption('Anchor', '-5');
   Result := Self;
 end;
 
@@ -1730,7 +1734,7 @@ end;
 procedure TKExtFormRowField.SetCharWidth(const AValue: Integer);
 begin
   FCharWidth := AValue;
-  SetWidth(CharsToPixels(AValue));
+  Width := CharsToPixels(AValue, 5);
 end;
 
 procedure TKExtFormRowField.SetRecordField(const AValue: TKViewTableField);
@@ -1834,25 +1838,25 @@ end;
 procedure TKExtFormDateTimeField.SetAllowBlank(const AValue: Boolean);
 begin
   FAllowBlank := AValue;
-  JSCode('allowBlank:' + VarToJSON([AValue]));
+  ExtSession.ResponseItems.SetConfigItem(Self, 'allowBlank', [AValue]);
 end;
 
 procedure TKExtFormDateTimeField.SetAltDateFormats(const AValue: string);
 begin
   FAltDateFormats := AValue;
-  JSCode('altDateFormats:' + VarToJSON([AValue]));
+  ExtSession.ResponseItems.SetConfigItem(Self, 'altDateFormats', [AValue]);
 end;
 
 procedure TKExtFormDateTimeField.SetAltTimeFormats(const AValue: string);
 begin
   FAltTimeFormats := AValue;
-  JSCode('altTimeFormats:' + VarToJSON([AValue]));
+  ExtSession.ResponseItems.SetConfigItem(Self, 'altTimeFormats', [AValue]);
 end;
 
 procedure TKExtFormDateTimeField.SetDateFormat(const AValue: string);
 begin
   FTimeFormat := AValue;
-  JSCode('dateFormat:' + VarToJSON([AValue]));
+  ExtSession.ResponseItems.SetConfigItem(Self, 'dateFormat', [AValue]);
 end;
 
 procedure TKExtFormDateTimeField.SetRecordField(const AValue: TKViewTableField);
@@ -1863,7 +1867,7 @@ end;
 procedure TKExtFormDateTimeField.SetTimeFormat(const AValue: string);
 begin
   FTimeFormat := AValue;
-  JSCode('timeFormat:' + VarToJSON([AValue]));
+  ExtSession.ResponseItems.SetConfigItem(Self, 'timeFormat', [AValue]);
 end;
 
 { TKExtFormTimeField }
@@ -2186,12 +2190,12 @@ end;
 procedure TKExtFormFileEditor.GetImageContent;
 begin
   if GetCurrentServerFileName = '' then
-    Session.Response := '<p>' + _('Empty') + '</p>'
+    ExtSession.ResponseItems.AddHTML('<p>' + _('Empty') + '</p>')
   else
     // Add dummy paraneter to the URL to force the browser to refresh the image
     // after an upload.
-    Session.Response := Format('<img src="%s&time=%s">', [MethodURI(GetImage),
-      FormatDateTime('yyyymmddhhnnsszzz', Now())]);
+    ExtSession.ResponseItems.AddHTML(Format('<img src="%s&time=%s">', [MethodURI(GetImage),
+      FormatDateTime('yyyymmddhhnnsszzz', Now())]));
 end;
 
 procedure TKExtFormFileEditor.UpdateGUI(const AUpdatePicture: Boolean);

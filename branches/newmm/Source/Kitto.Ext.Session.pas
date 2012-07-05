@@ -76,6 +76,7 @@ type
     class constructor Create;
     class destructor Destroy;
   public
+    procedure Refresh; override;
     ///	<summary>
     ///	  A reference to the panel to be used as the main view container.
     ///	</summary>
@@ -141,7 +142,7 @@ type
     ///	list of open controllers, it is removed from the list. Otherwise
     ///	nothing happens. Used by view hosts to notify the session that a
     ///	controller was closed.</summary>
-    procedure RemoveController(const AObject: TObject);
+    procedure RemoveController(const AObject: TObject; const AFreeIt: Boolean = False);
 
     ///	<summary>Finds and returns a record from the specified store using the
     ///	key values currently stored in the session query strings.</summary>
@@ -267,12 +268,10 @@ end;
 
 procedure TKExtSession.Home;
 begin
-  ExtQuickTips.Init(True);
-
   if not NewThread then
   begin
-    Config.Authenticator.Logout;
     Refresh;
+    Config.Authenticator.Logout;
     FHomeController := nil;
     FLoginWindow := nil;
     FOpenControllers.Clear;
@@ -282,12 +281,11 @@ begin
   else
   begin
     if not IsAjax then
-    begin
       LoadLibraries;
-      JSCode('kittoInit();');
-    end;
   end;
 
+  ResponseItems.ExecuteJSCode('kittoInit();');
+  ExtQuickTips.Init(True);
   // Try authentication with default credentials, if any, and skip login
   // window if it succeeds.
   if TKExtLoginWindow.Authenticate(Query['UserName'], Query['Password']) then
@@ -322,7 +320,7 @@ end;
 
 procedure TKExtSession.Flash(const AMessage: string);
 begin
-  JSCode('Ext.example.msg("' + _(Config.AppTitle) + '", "' + AMessage + '");');
+  ResponseItems.ExecuteJSCode('Ext.example.msg("' + _(Config.AppTitle) + '", "' + AMessage + '");');
 end;
 
 procedure TKExtSession.LoadLibraries;
@@ -376,7 +374,7 @@ end;
 procedure TKExtSession.Logout;
 begin
   Config.Authenticator.Logout;
-  Session.JSCode('window.location.reload();');
+  ResponseItems.ExecuteJSCode('window.location.reload();');
 end;
 
 procedure TKExtSession.Navigate(const AURL: string);
@@ -384,7 +382,14 @@ begin
   Response := Format('window.open("%s", "_blank");', [AURL]);
 end;
 
-procedure TKExtSession.RemoveController(const AObject: TObject);
+procedure TKExtSession.Refresh;
+begin
+  inherited;
+  Config.Models.Refresh;
+  Config.Views.Refresh;
+end;
+
+procedure TKExtSession.RemoveController(const AObject: TObject; const AFreeIt: Boolean);
 begin
   FOpenControllers.Remove(AObject);
 end;
@@ -581,7 +586,7 @@ begin
   // (others, such as menu items and tree nodes, don't).
   LRule := '.' + Result + ' {background: url(' + LIconURL + ') no-repeat left !important;' + ACustomRules + '}';
   if IsAjax then
-    JSCode('addStyleRule("' + LRule + '");')
+    ResponseItems.ExecuteJSCode('addStyleRule("' + LRule + '");')
   else
     SetStyle(LRule);
 end;

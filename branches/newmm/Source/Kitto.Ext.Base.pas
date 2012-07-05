@@ -66,6 +66,7 @@ type
     procedure Display;
   published
     procedure PanelClosed;
+    procedure WindowClosed;
   end;
 
   {
@@ -356,6 +357,8 @@ begin
   Layout := lyBorder;
   Border := False;
   Plain := True;
+
+  On('close', Ajax(WindowClosed, ['Window', JSName]));
 end;
 
 function TKExtWindowControllerBase.IsSynchronous: Boolean;
@@ -391,6 +394,11 @@ end;
 procedure TKExtWindowControllerBase.UpdateObserver(const ASubject: IEFSubject;
   const AContext: string);
 begin
+end;
+
+procedure TKExtWindowControllerBase.WindowClosed;
+begin
+  Session.RemoveController(Self, True);
 end;
 
 function TKExtWindowControllerBase._AddRef: Integer;
@@ -582,7 +590,7 @@ procedure TKExtModalWindow.HookPanel(const APanel: TExtPanel);
 begin
   Assert(Assigned(APanel));
 
-  APanel.On('close', Ajax(PanelClosed, ['Panel', '%0.nm']));
+  APanel.On('close', Ajax(PanelClosed, ['Panel', APanel.JSName]));
 end;
 
 procedure TKExtModalWindow.InitDefaults;
@@ -658,7 +666,7 @@ begin
     if Config.GetBoolean('AllowClose', True) then
     begin
       Closable := True;
-      On('close', Container.Ajax('PanelClosed', ['Panel', '%0.nm']));
+      On('close', Container.Ajax('PanelClosed', ['Panel', JSName]));
     end
     else
       Closable := False;
@@ -692,7 +700,7 @@ begin
       AutoWidth := True;
   end
   else if LWidthStr <> '' then
-    JSCode('width: ' + LWidthStr);
+    WidthString := LWidthStr;
 
   LHeightStr := Config.GetString('Height');
   if TryStrToInt(LHeightStr, LHeight) then
@@ -703,7 +711,7 @@ begin
       AutoHeight := True;
   end
   else if LHeightStr <> '' then
-    JSCode('height: ' + LHeightStr);
+    HeightString := LHeightStr;
 
   LSplit := Config.FindNode('Split');
   if Assigned(LSplit) then

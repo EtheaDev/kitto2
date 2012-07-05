@@ -91,7 +91,6 @@ var
 begin
   TExtToolbarSpacer.CreateAndAddTo(TopToolbar.Items);
   LRefreshButton := TExtButton.CreateAndAddTo(TopToolbar.Items);
-  LRefreshButton.Tooltip := _('Refresh');
   LRefreshButton.Icon := Session.Config.GetImageURL('refresh');
   LRefreshButton.Handler := Ajax(TKExtDataPanelController(Config.GetObject('Sys/RefreshHandler', Self)).RefreshData);
   LRefreshButton.Tooltip := _('Refresh data');

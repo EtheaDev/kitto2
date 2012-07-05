@@ -98,7 +98,7 @@ begin
   begin
     if not TryStrToInt(LNode.AsExpandedString, LWidth) then
       raise EKError.CreateFmt(_('Invalid value %s. Valid values: whole numbers.'), [LNode.AsString]);
-    JSCode('labelWidth:' + IntToStr(LWidth));
+    LabelWidth := LWidth;
   end;
 end;
 

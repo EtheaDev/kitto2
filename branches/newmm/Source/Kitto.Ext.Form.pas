@@ -251,9 +251,10 @@ begin
     end;
 
     // Load data from FServerRecord.
-    Session.JSCode(
+    ExtSession.ResponseItems.ExecuteJSCode(FFormPanel,
       FFormPanel.JSName + '.getForm().load({url:"' + MethodURI(GetRecord) + '",' +
-        'failure: function(form, action) { Ext.Msg.alert("' + _('Load failed.') + '", action.result.errorMessage);}});');
+        'failure: function(form, action) { Ext.Msg.alert("' + _('Load failed.') +
+        '", action.result.errorMessage);}});');
     FocusFirstField;
   except
     on E: EKValidationError do
@@ -329,7 +330,7 @@ procedure TKExtFormPanelController.GetRecord;
 begin
   Assert(Assigned(FStoreRecord));
 
-  Session.Response := '{success:true,data:' + FStoreRecord.GetAsJSON(False) + '}';
+  ExtSession.ResponseItems.AddJSON('{success:true,data:' + FStoreRecord.GetAsJSON(False) + '}');
 end;
 
 procedure TKExtFormPanelController.SaveChanges;

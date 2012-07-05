@@ -173,8 +173,6 @@ begin
   begin
     FGridView := TExtGridGroupingView.Create(Self);
     TExtGridGroupingView(FGridView).EmptyGroupText := _('No data to display in this group.');
-    { TODO : use singular and plural display labels of the form }
-    //TExtGridGroupingView(FGridView).GroupTextTpl := '{text} ({[values.rs.length]} {[values.rs.length > 1 ? "Items" : "Item"]})';
     TExtGridGroupingView(FGridView).StartCollapsed := ViewTable.GetBoolean('Controller/Grouping/StartCollapsed');
     TExtGridGroupingView(FGridView).EnableGroupingMenu := LGroupingMenu;
     TExtGridGroupingView(FGridView).EnableNoGroups := LGroupingMenu;
@@ -199,14 +197,14 @@ begin
   FGridView.ForceFit := False;
   LRowClassProvider := ViewTable.GetExpandedString('Controller/RowClassProvider');
   if LRowClassProvider <> '' then
-    FGridView.JSCode('getRowClass:' + LRowClassProvider)
+    FGridView.SetCustomConfigItem('getRowClass', [LRowClassProvider])
   else
   begin
     LRowColorPatterns := GetRowColorPatterns(LRowColorFieldName);
     if Length(LRowColorPatterns) > 0 then
-      FGridView.JSCode('getRowClass:' +
-        Format('function (r) { return getRowColorStyleRule(r, ''%s'', [%s]);}',
-          [LRowColorFieldName, PairsToJSON(LRowColorPatterns)]));
+      FGridView.SetCustomConfigItem('getRowClass',
+        [Format('function (r) { return getRowColorStyleRule(r, ''%s'', [%s]);}',
+        [LRowColorFieldName, PairsToJSON(LRowColorPatterns)])]);
   end;
   FGridEditorPanel.View := FGridView;
 end;
@@ -492,7 +490,6 @@ begin
     FEditHostWindow.Title := Format(_('Edit %s'), [_(ViewTable.DisplayLabel)])
   else
     FEditHostWindow.Title := _(ViewTable.DisplayLabel);
-  //FEditHostWindow.On('close', Ajax(EditWindowClosed, ['Window', '%0.nm']));
 
   LFormControllerType := Config.GetString('FormController', 'Form');
   LFormController := TKExtControllerFactory.Instance.CreateController(

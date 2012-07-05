@@ -98,7 +98,7 @@ begin
     Session.ViewHost := Self;
   Border := False;
   { TODO : remove this once all controllers set it by themselves. }
-  Defaults := JSObject('autoscroll:true');
+  Defaults := JSObject('autoscroll: true');
   EnableTabScroll := True;
   // Layout problems in tabbed views if DeferredRender=False.
   DeferredRender := True;

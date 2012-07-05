@@ -195,7 +195,7 @@ function TKExtDataPanelController.CreateClientReader: TExtDataJsonReader;
   begin
     LField := TExtDataField.CreateAndAddTo(AReader.Fields);
     LField.Name := AName;
-    LField.Type_ := AType;
+    LField.&Type := AType;
   end;
 
   procedure AddReaderField(const AReader: TExtDataJsonReader; const AViewField: TKViewField);
@@ -261,7 +261,7 @@ begin
       LData := ServerStore.GetAsJSON(True, 0, Min(GetMaxRecords(), ServerStore.RecordCount));
     end;
   end;
-  Session.Response := Format('{Total:%d,Root:%s}', [LTotal, LData]);
+  Session.ResponseItems.AddJSON(Format('{Total: %d, Root: %s}', [LTotal, LData]));
 end;
 
 function TKExtDataPanelController.GetMaxRecords: Integer;

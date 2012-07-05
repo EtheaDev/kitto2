@@ -1,6 +1,7 @@
-Field: Party_Name
+﻿Field: Party_Name
 Row:
   Field: Party_Date
   Field: Party_Time
+    DisplayLabel: Time
 Field: Address
   CharWidth: 60

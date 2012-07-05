@@ -60,12 +60,16 @@ begin
 end;
 
 procedure TKExtToolBarController.DoDisplay;
+var
+  LTreeView: TKTreeView;
+  LNode: TEFNode;
 begin
   inherited;
   if not Assigned(FTreeViewRenderer) then
     FTreeViewRenderer := TKExtTreeViewRenderer.Create;
-  FTreeViewRenderer.RenderAsButtons(Session.Config.Views.ViewByNode(Config.GetNode('TreeView')) as TKTreeView,
-    FToolBar, Self, DisplayView);
+  LNode := Config.GetNode('TreeView');
+  LTreeView := Session.Config.Views.ViewByNode(LNode) as TKTreeView;
+  FTreeViewRenderer.RenderAsButtons(LTreeView, FToolBar, Self, DisplayView);
 end;
 
 procedure TKExtToolBarController.InitDefaults;
