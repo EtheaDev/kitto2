@@ -1,0 +1,15 @@
+Field: DESCRIPTION
+  CharWidth: 70
+FieldSet:
+  Row:
+    Field: PHASE
+    Field: EMPLOYEE
+    Field: ROLE
+    Field: TYPE
+FieldSet:    
+  Row:
+    Field: ACTIVITY_DATE
+    Field: START_TIME
+    Field: END_TIME
+    Field: DURATION
+    Field: STATUS

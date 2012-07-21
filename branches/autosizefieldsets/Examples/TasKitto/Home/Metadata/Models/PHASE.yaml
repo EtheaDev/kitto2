@@ -1,0 +1,27 @@
+ModelName: PHASE
+Fields:
+  PHASE_ID:                  String(32) not null primary key
+    IsVisible: False
+    DefaultValue: %COMPACT_GUID%
+  PHASE_NAME:                String(40) not null
+    DisplayWidth: 20
+  PROJECT:                   Reference(PROJECT) not null
+    Fields:
+      PROJECT_ID:
+  START_DATE:                Date
+  END_DATE:                  Date
+  STATUS:                    String(12)
+    AllowedValues:
+      Started: Started
+      Finished: Finished
+      Invoiced: Invoiced
+      Killed: Killed
+      Waiting: Waiting
+DefaultSorting: START_DATE
+Rules:
+  # Auto-calculates START_DATE for new records.
+  DefaultPhaseStartTime:
+  # Makes sure that dates, if specified, are consistent.
+  EnforceRange:
+    From: START_DATE
+    To: END_DATE

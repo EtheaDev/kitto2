@@ -1,0 +1,34 @@
+AppTitle: Peoria Girls and their Dolls
+
+Databases:
+  Main: DBX
+    Connection:
+      DriverName: Firebird
+      DataBase: localhost:HelloKitto
+      User_Name: SYSDBA
+      Password: masterkey
+      ServerCharSet: UTF8
+      WaitOnLocks: True
+      IsolationLevel: ReadCommitted
+      Trim Char: False
+
+Auth: DB
+  Defaults:
+    UserName: cwolter
+    Password: cwolter
+
+AccessControl: Null
+    
+# Change this to use a custom view for the home page.
+# Alternatively, customize the Home view by replacing its controller.
+# Default: Home.
+HomeView: HomeViewport
+
+Ext:
+  Theme: blue
+  URL: /ext
+
+LanguageId: it
+# Either utf-8 or a SBCS corresponding to the system code page
+# (such as iso-8859-1 for Western Europe). Defaults to utf-8.
+Charset: utf-8
