@@ -843,7 +843,10 @@ end;
 procedure TKField.SetToNull;
 begin
   if not VarIsNull(Value) then
+  begin
+    FIsModified := True;
     ParentRecord.MarkAsModified;
+  end;
   inherited;
 end;
 
