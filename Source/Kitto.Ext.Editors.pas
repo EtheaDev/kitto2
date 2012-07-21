@@ -2069,9 +2069,15 @@ begin
 end;
 
 procedure TKExtFormFileEditor.ClearContents;
+var
+  LFileNameField: string;
 begin
   FLastUploadedFullFileName := '';
   FLastUploadedOriginalFileName := '';
+
+  LFileNameField := FRecordField.ViewField.FileNameField;
+  if LFileNameField <> ''then
+    FRecordField.ParentRecord.FieldByName(LFileNameField).SetToNull;
 end;
 
 procedure TKExtFormFileEditor.DownloadFieldData;
@@ -2489,7 +2495,8 @@ begin
   CopyFile(AFileName, FLastUploadedFullFileName);
   DeleteFile(AFileName);
   Session.AddUploadedFile(TKExtUploadedFile.Create(
-    Session.FileUploaded, FLastUploadedFullFileName, FRecordField.ViewField));
+    Session.FileUploaded, FLastUploadedFullFileName, FRecordField.ViewField,
+    Session.FileUploaded));
 end;
 
 function TKExtFormFileBlobEditor.GetCurrentContentSize: Integer;
@@ -2553,8 +2560,9 @@ procedure TKExtFormFileReferenceEditor.FileUploaded(const AFileName: string);
 begin
   inherited;
   FLastUploadedFullFileName := GetUniqueFileName(GetFieldPath, ExtractFileExt(AFileName));
-  { TODO : copy instead of renaming if paths are on different disks }
-  RenameFile(AFileName, FLastUploadedFullFileName);
+  // Don't rename: move, since the files could be on different drives.
+  CopyFile(AFileName, FLastUploadedFullFileName);
+  DeleteFile(AFileName);
 
   Session.AddUploadedFile(TKExtUploadedFile.Create(ExtractFileName(FLastUploadedFullFileName),
     FLastUploadedFullFileName, FRecordField.ViewField, Session.FileUploaded));
