@@ -199,7 +199,7 @@ begin
         begin
           for LSubFieldIndex := 0 to LViewField.ModelField.FieldCount - 1 do
             AddDBColumnName(LViewField.ModelField.Fields[LSubFieldIndex].DBColumnName,
-              LViewField.ModelField.Fields[LSubFieldIndex].DBColumnName);
+              LViewField.ModelField.Fields[LSubFieldIndex].FieldName);
         end
         else
           AddDBColumnName(AViewTable.FieldByName(AValues[I].Name).ModelField.DBColumnName,
