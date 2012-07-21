@@ -397,7 +397,8 @@ type
     const TRIGGER_WIDTH = 4;
     function GetViewTable: TKViewTable;
     function DerivedFieldsExist(const AViewField: TKViewField): Boolean;
-    function TryCreateCheckBox(const AViewField: TKViewField): IKExtEditor;
+    function TryCreateCheckBox(const AViewField: TKViewField;
+      const AIsReadOnly: Boolean): IKExtEditor;
     function TryCreateDateField(const AViewField: TKViewField;
       const ARowField: TKExtFormRowField; const AFieldCharWidth: Integer;
       const AIsReadOnly: Boolean): IKExtEditor;
@@ -783,7 +784,8 @@ begin
     Result := nil;
 end;
 
-function TKExtLayoutProcessor.TryCreateCheckBox(const AViewField: TKViewField): IKExtEditor;
+function TKExtLayoutProcessor.TryCreateCheckBox(const AViewField: TKViewField;
+  const AIsReadOnly: Boolean): IKExtEditor;
 var
   LCheckbox: TKExtFormCheckbox;
 begin
@@ -792,6 +794,8 @@ begin
     LCheckbox := TKExtFormCheckbox.Create;
     try
       LCheckbox.BoxLabel := '';//LLabel;
+      if AIsReadOnly then
+        LCheckbox.Disabled := True;
       Result := LCheckbox;
     except
       LCheckbox.Free;
@@ -1065,7 +1069,7 @@ begin
   if Result = nil then
     Result := TryCreateTextArea(LViewField, LRowField, LFieldCharWidth, LIsReadOnly);
   if Result = nil then
-    Result := TryCreateCheckBox(LViewField);
+    Result := TryCreateCheckBox(LViewField, LIsReadOnly);
   if Result = nil then
     Result := TryCreateDateField(LViewField, LRowField, LFieldCharWidth, LIsReadOnly);
   if Result = nil then
