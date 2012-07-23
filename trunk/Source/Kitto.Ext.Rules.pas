@@ -123,7 +123,7 @@ type
   ///	  message can be localized.</para>
   ///	</remarks>
   ///	<example>
-  ///	  <code lang="Delphi">
+  ///	  <code>
   ///	Rules:
   ///	  # Only allows strings starting with "B".
   ///	  CharFilter: /^B*./
@@ -192,12 +192,12 @@ type
   ///	</summary>
   ///	<example>
   ///	  <para>Rule definition:</para>
-  ///	  <code lang="Delphi">
+  ///	  <code>
   ///	Rules:
   ///	  CharFilter: PECodeCharFilter
   ///	</code>
   ///	  <para>Mask definition:</para>
-  ///	  <code lang="Delphi">
+  ///	  <code>
   ///	# Allows only P, E, digits and the dot.
   ///	var PECodeCharFilter = /[PE0-9.]/
   ///	</code>
@@ -212,7 +212,7 @@ type
 
   ///	<summary>Applies a custom rexex as a char filter to a field.</summary>
   ///	<example>
-  ///	  <code lang="Delphi">
+  ///	  <code>
   ///	Rules:
   ///	  CharFilter: [PE0-9.]
   ///	</code>

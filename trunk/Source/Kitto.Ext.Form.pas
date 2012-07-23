@@ -276,26 +276,38 @@ begin
 
   if Supports(AField, IKExtEditor, LEditor) then
   begin
-    Assert(LEditor.GetRecordField.ViewField.IsReference);
-
-    // Get derived values.
-    LStore := LEditor.GetRecordField.ViewField.CreateDerivedFieldsStore(ANewValue);
-    try
-      // Copy values to editors.
-      for I := 0 to LStore.Header.FieldCount - 1 do
+    if LEditor.GetRecordField.ViewField.FileNameField <> '' then
+    begin
+      LDerivedEditor := FindEditor(LEditor.GetRecordField.ViewField.FileNameField);
+      if Assigned(LDerivedEditor) and (ANewValue = '') then
       begin
-        LDerivedEditor := FindEditor(LStore.Header.Fields[I].FieldName);
-        if Assigned(LDerivedEditor) then
-        begin
-          if LStore.RecordCount > 0 then
-            { TODO : need to format value? }
-            LDerivedEditor.AsExtFormField.SetValue(LStore.Records[0].Fields[I].AsString)
-          else
-            LDerivedEditor.AsExtFormField.SetValue('');
-        end;
+        LDerivedEditor.RecordField.SetToNull;
+        LDerivedEditor.RefreshValue;
       end;
-    finally
-      FreeAndNil(LStore);
+    end
+    else
+    begin
+      Assert(LEditor.GetRecordField.ViewField.IsReference);
+
+      // Get derived values.
+      LStore := LEditor.GetRecordField.ViewField.CreateDerivedFieldsStore(ANewValue);
+      try
+        // Copy values to editors.
+        for I := 0 to LStore.Header.FieldCount - 1 do
+        begin
+          LDerivedEditor := FindEditor(LStore.Header.Fields[I].FieldName);
+          if Assigned(LDerivedEditor) then
+          begin
+            if LStore.RecordCount > 0 then
+              LDerivedEditor.RecordField.AssignValue(LStore.Records[0].Fields[I])
+            else
+              LDerivedEditor.RecordField.SetToNull;
+            LDerivedEditor.RefreshValue;
+          end;
+        end;
+      finally
+        FreeAndNil(LStore);
+      end;
     end;
   end;
 end;
