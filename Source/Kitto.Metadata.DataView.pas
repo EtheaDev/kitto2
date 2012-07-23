@@ -1816,6 +1816,13 @@ begin
   if State = rsClean then
     Exit;
 
+  // Take care of any instructions to clear fields.
+  for I := 0 to FieldCount - 1 do
+  begin
+    if Fields[I].GetBoolean('Sys/SetToNull') then
+      Fields[I].SetToNull;
+  end;
+
   // BEFORE rules are applied before calling this method.
   LDBConnection := TKConfig.Instance.DBConnections[ViewTable.DatabaseName];
   if AUseTransaction then
