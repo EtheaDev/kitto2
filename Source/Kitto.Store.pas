@@ -648,15 +648,21 @@ end;
 function TKRecord.GetAsJSON(const AForDisplay: Boolean): string;
 var
   I: Integer;
+  LJSON: string;
 begin
-  Result := '{';
+  Result := '';
   for I := 0 to FieldCount - 1 do
   begin
-    Result := Result + Fields[I].GetAsJSON(AForDisplay);
-    if I < FieldCount - 1 then
-      Result := Result + ',';
+    LJSON := Fields[I].GetAsJSON(AForDisplay);
+    if LJSON <> '' then
+    begin
+      if Result <> '' then
+        Result := Result + ',' + LJSON
+      else
+        Result := LJSON;
+    end;
   end;
-  Result := Result + '}';
+  Result := '{' + Result + '}';
 end;
 
 function TKRecord.GetChildClass(const AName: string): TEFNodeClass;
@@ -805,13 +811,18 @@ end;
 
 function TKField.GetAsJSON(const AForDisplay: Boolean): string;
 begin
-  Result := '"' + GetJSONName + '":' + GetAsJSONValue(AForDisplay);
-  if AForDisplay then
+  if DataType.SupportsJSON then
   begin
-    Result := AnsiReplaceStr(Result, #13#10, '<br/>');
-    Result := AnsiReplaceStr(Result, #10, '<br/>');
-    Result := AnsiReplaceStr(Result, #13, '<br/>');
-  end;
+    Result := '"' + GetJSONName + '":' + GetAsJSONValue(AForDisplay);
+    if AForDisplay then
+    begin
+      Result := AnsiReplaceStr(Result, #13#10, '<br/>');
+      Result := AnsiReplaceStr(Result, #10, '<br/>');
+      Result := AnsiReplaceStr(Result, #13, '<br/>');
+    end;
+  end
+  else
+    Result := '';
 end;
 
 function TKField.GetAsJSONValue(const AForDisplay: Boolean): string;

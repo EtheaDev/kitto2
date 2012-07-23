@@ -58,6 +58,7 @@ type
       const AFormatSettings: TFormatSettings);
     function GetDefaultDisplayWidth(const ASize: Integer): Integer; virtual;
     function SupportsEmptyAsNull: Boolean; virtual;
+    function SupportsJSON: Boolean; virtual;
     function IsBlob(const ASize: Integer): Boolean; virtual;
     function IsText: Boolean; virtual;
     function NodeToJSONValue(const AForDisplay: Boolean; const ANode: TEFNode;
@@ -120,6 +121,7 @@ type
     procedure InternalNodeToParam(const ANode: TEFNode; const AParam: TParam); override;
   public
     function IsBlob(const ASize: Integer): Boolean; override;
+    function SupportsJSON: Boolean; override;
   end;
 
   TEFDateTimeDataTypeBase = class(TEFDataType);
@@ -2457,6 +2459,11 @@ begin
   Result := False;
 end;
 
+function TEFDataType.SupportsJSON: Boolean;
+begin
+  Result := True;
+end;
+
 function TEFDataType.GetDefaultDisplayWidth(const ASize: Integer): Integer;
 begin
   Result := 20;
@@ -3089,6 +3096,11 @@ end;
 function TEFBlobDataType.IsBlob(const ASize: Integer): Boolean;
 begin
   Result := True;
+end;
+
+function TEFBlobDataType.SupportsJSON: Boolean;
+begin
+  Result := False;
 end;
 
 { TEFPersistentTree }
