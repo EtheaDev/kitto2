@@ -2611,7 +2611,7 @@ end;
 function TKExtFormFileReferenceEditor.GetFieldPath: string;
 begin
   inherited;
-  Result := FRecordField.ViewField.GetExpandedString('Path');
+  Result := IncludeTrailingPathDelimiter(FRecordField.ViewField.GetExpandedString('Path'));
   if Result = '' then
     raise Exception.CreateFmt('Path not specified for file reference field %s.', [FRecordField.ViewField.FieldName]);
   if not DirectoryExists(Result) then
@@ -2707,20 +2707,11 @@ begin
 end;
 
 function TKExtFormFileReferenceEditor.GetCurrentServerFileName: string;
-var
-  LFileNameField: string;
 begin
   if FLastUploadedFullFileName <> '' then
     Result := FLastUploadedFullFileName
   else
-  begin
-    LFileNameField := FRecordField.ViewField.FileNameField;
-    if LFileNameField <> '' then
-      Result := FRecordField.ParentRecord.FieldByName(LFileNameField).AsString;
-    if Result = '' then
-      Result := FRecordField.AsString;
-    Result := IncludeTrailingPathDelimiter(GetFieldPath) + Result;
-  end;
+    Result := IncludeTrailingPathDelimiter(GetFieldPath) + FRecordField.AsString;
 end;
 
 end.
