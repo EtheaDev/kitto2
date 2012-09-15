@@ -251,7 +251,7 @@ type
   as: theme, charset, language, Ajax, error messages using Ext look, JS libraries and CSS.
   The <color red>"Self-translating"</color> is implemented in this class in <link TExtObject.JSCode, JSCode> method.
   }
-  TExtThread = class(TWebSession)
+  TExtSession = class(TWebSession)
   private
     FObjectSequences: TDictionary<string, Cardinal>;
     Style, Libraries, CustomJS, FLanguage : string;
@@ -264,14 +264,8 @@ type
     function GetSequence: string;
     function GetResponseItems: TExtResponseItems;
   protected
-    procedure RemoveJS(const JS : string);
     function BeforeHandleRequest : boolean; override;
     procedure AfterHandleRequest; override;
-    procedure AfterNewSession; override;
-    {$IFDEF HAS_CONFIG}
-    procedure DoReconfig; override;
-    procedure ReadConfig;
-    {$ENDIF}
     function GarbageFixName(const Name: string): string; override;
     procedure OnError(const AMessage, AMethodName, AParams : string); override;
     function GetNextJSName(const AObjectType: string): string;
@@ -281,7 +275,7 @@ type
     HTMLQuirksMode : boolean; // Defines the (X)HTML DocType. True to Transitional (Quirks mode) or false to Strict. Default is false.
     Theme     : string; // Sets or gets Ext JS installed theme, default '' that is Ext Blue theme
     ExtPath   : string; // Installation path of Ext JS framework, below the your Web server document root. Default value is '/ext'
-    ImagePath : string; // Image path below ExtPath, used by <link TExtThread.SetIconCls, SetIconCls> method. Default value is '/images'
+    ImagePath : string; // Image path below ExtPath, used by <link TExtSession.SetIconCls, SetIconCls> method. Default value is '/images'
     ExtBuild  : string;
     procedure AfterConstruction; override;
     destructor Destroy; override; // Custom <extlink http://www.extjs.com/products/extjs/build/>ExtJS build</extlink>. Default is ext-all.
@@ -313,11 +307,12 @@ type
   {
   Ancestor of all classes and components of Ext JS framework.
   Each TExtObject has the capability to self-translate to JavaScript during the program execution.
-  When a property is assigned or a method is called the <link TExtThread.JSCode, Self-translating> enter in action
+  When a property is assigned or a method is called the <link TExtSession.JSCode, Self-translating> enter in action
   translating these Object Pascal commands to JavaScript.
   }
   TExtObject = class(TComponent)
   private
+    FSession: TExtSession;
     function  WriteFunction(Command : string): string;
     //function  GetJSCommand : string;
     //procedure SetJSCommand(const Value : string);
@@ -328,14 +323,12 @@ type
     function AddJSReturn(Expression : string; MethodsValues : array of const): string;
     function FindMethod(Method : TExtProcedure; var PascalName, ObjName : string) : TExtFunction;
     function GetDownloadJS(Method: TExtProcedure; Params: array of const): string;
-    function GetExtSession: TExtThread;
   protected
     // Set by some classes with custom constructors that need to call the
     // inherited Create with a custom string to be passed to CreateVar.
     FCreateVarArgs: string;
     FJSName    : string;  // Internal JavaScript name generated automatically by <link TExtObject.CreateJSName, CreateJSName>
-    //FJSCommand : string;
-    function ConfigAvailable(JSName : string) : boolean;
+    function GetExtSession: TExtSession;
     function ExtractJSCommand : string;
     function IsParent(CName : string): boolean;
     function VarToJSON(const AVars: array of const): string; overload;
@@ -354,8 +347,7 @@ type
     function GetObjectNamePrefix: string; virtual;
     procedure InitDefaults; virtual;
     procedure HandleEvent(const AEvtName : string); virtual;
-    //property JSCommand : string read GetJSCommand write SetJSCommand; // Last commands written in Response
-    property ExtSession: TExtThread read GetExtSession;
+    property ExtSession: TExtSession read FSession;
   public
     IsChild : boolean;
     constructor CreateInternal(AOwner: TExtObject; AAttribute: string); virtual;
@@ -533,26 +525,12 @@ implementation
 
 uses
   {$IFDEF MSWINDOWS}{$IF RTLVersion <= 21}Windows,{$IFEND}{$ENDIF}
-  StrUtils, Math, Ext, ExtUtil, ExtGrid, ExtForm;
+  ExtPascalClasses, StrUtils, Math, Ext, ExtUtil, ExtGrid, ExtForm;
 
 var
   _JSFormatSettings: TFormatSettings;
 
-{ TExtThread }
-
-{
-Removes identificated JS commands from response.
-Used internally by Self-Translating mechanism to repositioning JS commands.
-@param JS JS command with sequence identifier.
-@see TExtObject.ExtractJSCommand
-}
-procedure TExtThread.RemoveJS(const JS : string);
-var
-  I : integer;
-begin
-  I := ExtPascalUtils.RPosEx(JS, Response, 1);
-  if I <> 0 then delete(Response, I, length(JS))
-end;
+{ TExtSession }
 
 {
 Adds/Removes an user JS library to be used in current response.
@@ -565,7 +543,7 @@ If pLibrary is '' then all user JS libraries to this session will be removed fro
 @example <code>SetLibrary('');</code>
 @example <code>SetLibrary(<link ExtPath> + '/examples/tabs/TabCloseMenu');</code>
 }
-procedure TExtThread.SetLibrary(pLibrary : string = ''; CSS : boolean = false; HasDebug : boolean = false;
+procedure TExtSession.SetLibrary(pLibrary : string = ''; CSS : boolean = false; HasDebug : boolean = false;
   DisableExistenceCheck : boolean = false);
 var
   Root : string;
@@ -599,7 +577,7 @@ Repeated CSS's are ignored.
 @param Check Checks if the CSS file exists, default is true.
 If pCSS is '' then all user CSS AND JS libraries to this session will be removed from response.
 }
-procedure TExtThread.SetCSS(pCSS : string; Check : boolean = true);
+procedure TExtSession.SetCSS(pCSS : string; Check : boolean = true);
 var
   Root : string;
 begin
@@ -619,7 +597,7 @@ Adds/Removes an user JS code to be used in current response.
 Repeated code is ignored.
 @param JS JS code to inject in response. If JS is '' then all user JS code to this session will be removed from response.
 }
-procedure TExtThread.SetCustomJS(JS : string = ''); begin
+procedure TExtSession.SetCustomJS(JS : string = ''); begin
   if pos(JS, CustomJS) = 0 then
     if JS = '' then
       CustomJS := ''
@@ -641,7 +619,7 @@ with TExtToolbarButton.AddTo(Items) do begin
   Menu    := TaskMenu;
 end;</code>
 }
-procedure TExtThread.SetIconCls(Cls : array of string);
+procedure TExtSession.SetIconCls(Cls : array of string);
 var
   I : integer;
   Root : string;
@@ -662,7 +640,7 @@ If pStyle is '' then all user styles to this session will be removed from respon
 @example <code>SetStyle('');</code>
 @example <code>SetStyle('img:hover{border:1px solid blue}');</code>
 *)
-procedure TExtThread.SetStyle(pStyle : string); begin
+procedure TExtSession.SetStyle(pStyle : string); begin
   if pos(pStyle, Style) = 0 then
     if pStyle = '' then
       Style := ''
@@ -670,7 +648,7 @@ procedure TExtThread.SetStyle(pStyle : string); begin
       Style := Style + pStyle
 end;
 
-procedure TExtThread.UnbranchResponseItems(
+procedure TExtSession.UnbranchResponseItems(
   const AResponseItems: TExtResponseItems; const AConsolidate: Boolean);
 var
   LSender: TExtObject;
@@ -691,7 +669,7 @@ begin
 end;
 
 // Returns all styles in use in current response
-function TExtThread.GetStyle : string; begin
+function TExtSession.GetStyle : string; begin
   if Style = '' then
     Result := ''
   else
@@ -699,7 +677,7 @@ function TExtThread.GetStyle : string; begin
 end;
 
 // Returns a object which will be used to handle the page method. We will call it's published method based on PathInfo.
-function TExtThread.GetUrlHandlerObject: TObject;
+function TExtSession.GetUrlHandlerObject: TObject;
 var
   LObjectName: string;
 begin
@@ -717,7 +695,7 @@ Shows an error message in browser session using Ext JS style.
 @example <code>ErrorMessage('User not found.');</code>
 @example <code>ErrorMessage('Context not found.<br/>This Window will be reloaded to fix this issue.', 'window.location.reload()');</code>
 }
-procedure TExtThread.ErrorMessage(const AMessage: string; const AAction: string);
+procedure TExtSession.ErrorMessage(const AMessage: string; const AAction: string);
 begin
   ResponseItems.ExecuteJSCode('Ext.Msg.show({title:"Error",msg:' + StrToJS(AMessage, True) +
     ',icon:Ext.Msg.ERROR,buttons:Ext.Msg.OK' + IfThen(AAction = '', '', ',fn:function(){' + AAction + '}') + '});');
@@ -729,23 +707,23 @@ Shows an error message in browser session using Ext JS style.
 @param Action Optional action that will be executed after user to click Ok button. Could be JavaScript or ExtPascal commands
 @example <code>ErrorMessage('Illegal operation.<br/>Click OK to Shutdown.', Ajax(Shutdown));</code>
 }
-procedure TExtThread.ErrorMessage(const AMessage: string; const AAction: TExtFunction);
+procedure TExtSession.ErrorMessage(const AMessage: string; const AAction: TExtFunction);
 begin
   ErrorMessage(AMessage, AAction.ExtractJSCommand);
 end;
 
-function TExtThread.GarbageFixName(const Name: string): string; begin
+function TExtSession.GarbageFixName(const Name: string): string; begin
   Result := AnsiReplaceStr(Name, IdentDelim, '');
 end;
 
-procedure TExtThread.OnError(const AMessage, AMethodName, AParams : string);
+procedure TExtSession.OnError(const AMessage, AMethodName, AParams : string);
 begin
   ResponseItems.Clear;
   ErrorMessage(AMessage + '<br/>Method: ' + IfThen(AMethodName = '', 'Home', AMethodName) +
     IfThen(AParams = '', '', '<br/>Params:<br/>' + AnsiReplaceStr(AParams, '&', '<br/>')));
 end;
 
-procedure TExtThread.Alert(const Msg : string); begin
+procedure TExtSession.Alert(const Msg : string); begin
   ErrorMessage(Msg)
 end;
 
@@ -770,7 +748,7 @@ Basic work:
 @param JSName Optional current JS object name
 @param Owner Optional JS object owner for TExtObjectList
 }
-procedure TExtThread.JSCode(JS : string; JSClassName : string = ''; JSName : string = ''; Owner : string = '');
+procedure TExtSession.JSCode(JS : string; JSClassName : string = ''; JSName : string = ''; Owner : string = '');
 var
   I, J : integer;
   LObjectName: string;
@@ -813,7 +791,7 @@ relocating the declaration to a previous position in Response.
 @param JSName Current JS Object.
 @param I Position in Response string where the JS command ends.
 }
-procedure TExtThread.Refresh;
+procedure TExtSession.Refresh;
 begin
   inherited;
   ResponseItems.Clear;
@@ -821,7 +799,7 @@ begin
   FObjectSequences.Clear;
 end;
 
-procedure TExtThread.RelocateVar(JS, JSName : string; I : integer);
+procedure TExtSession.RelocateVar(JS, JSName : string; I : integer);
 var
   VarName, VarBody : string;
   J, K : integer;
@@ -857,7 +835,7 @@ O1.selectFirstRow;
 // instead of:
 O1.getSelectionModel.selectFirstRow;</code>
 }
-function TExtThread.JSConcat(PrevCommand, NextCommand : string) : string;
+function TExtSession.JSConcat(PrevCommand, NextCommand : string) : string;
 var
   I , J : integer;
 begin
@@ -873,7 +851,7 @@ begin
     Result := PrevCommand;
 end;
 
-procedure TExtThread.JSSleep(MiliSeconds : integer); begin
+procedure TExtSession.JSSleep(MiliSeconds : integer); begin
   JSCode('sleep(' + IntToStr(MiliSeconds) + ');')
 end;
 
@@ -894,15 +872,15 @@ var
   MetName, ObjName : string;
 begin
   FindMethod(Method, MetName, ObjName);
-  Result := CurrentWebSession.MethodURI(MetName) + IfThen(ObjName = '', '', '?Obj=' + ObjName);
+  Result := ExtSession.MethodURI(MetName) + IfThen(ObjName = '', '', '?Obj=' + ObjName);
 end;
 
 function TExtObject.MethodURI(MethodName : string; Params : array of const) : string; begin
-  Result := CurrentWebSession.MethodURI(MethodName) + IfThen(length(Params) = 0, '', '?' + FormatParams(MethodName, Params))
+  Result := ExtSession.MethodURI(MethodName) + IfThen(length(Params) = 0, '', '?' + FormatParams(MethodName, Params))
 end;
 
 function TExtObject.MethodURI(MethodName : string): string; begin
-  Result := CurrentWebSession.MethodURI(MethodName)
+  Result := ExtSession.MethodURI(MethodName)
 end;
 
 function TExtObject.GetObjectNamePrefix: string;
@@ -920,7 +898,7 @@ Does tasks related to the Request that occur before the method call invoked by B
 6. Tests if cookies are enabled.
 @return False if Cookies are disable or if is Ajax executing the first thread request else returns true.
 }
-function TExtThread.BeforeHandleRequest : boolean;
+function TExtSession.BeforeHandleRequest : boolean;
 var
   I : integer;
 begin
@@ -952,7 +930,7 @@ begin
   JSReturns := TStringList.Create;
 end;
 
-function TExtThread.BranchResponseItems: TExtResponseItems;
+function TExtSession.BranchResponseItems: TExtResponseItems;
 begin
   Assert(FCurrentResponseItemsBranch = nil);
 
@@ -962,7 +940,7 @@ begin
   Assert(FCurrentResponseItemsBranch <> nil);
 end;
 
-destructor TExtThread.Destroy;
+destructor TExtSession.Destroy;
 begin
   Assert(FCurrentResponseItemsBranch = nil);
 
@@ -972,7 +950,7 @@ begin
 end;
 
 // Override this method to change ExtPath, ImagePath, ExtBuild and Charset default values
-procedure TExtThread.InitDefaultValues; begin
+procedure TExtSession.InitDefaultValues; begin
   inherited;
 {$IFDEF CacheFly}
   ExtPath       := 'http://extjs.cachefly.net/ext-3.2.1';
@@ -985,52 +963,8 @@ procedure TExtThread.InitDefaultValues; begin
   UpLoadPath    := '/uploads';
 end;
 
-// config will be read once, only on new client thread construction
-procedure TExtThread.AfterNewSession; begin
-  inherited;
-  {$IFDEF HAS_CONFIG}
-  ReadConfig;
-  {$ENDIF}
-end;
-
-{$IFDEF HAS_CONFIG}
-// Read ExtPath, ImagePath and Theme from configuration file
-procedure TExtThread.ReadConfig; begin
-  with Application do
-    if HasConfig then begin
-      ExtPath := Config.ReadString('FCGI', 'ExtPath', ExtPath);
-      if pos('/', ExtPath) <> 1 then ExtPath := '/' + ExtPath;
-      ImagePath := Config.ReadString('FCGI', 'ImagePath', ImagePath);
-      if pos('/', ImagePath) <> 1 then ImagePath := '/' + ImagePath;
-      Theme   := Config.ReadString('FCGI', 'ExtTheme', Theme);
-      Charset := Config.ReadString('FCGI', 'Charset', Charset);
-    end;
-end;
-
-// Re-read config file if password is right
-procedure TExtThread.DoReconfig;
-{$IFDEF DEBUGJS}
-var
-  I : integer;
-{$ENDIF}
-begin
-  ReadConfig;
-  {$IFDEF DEBUGJS}
-  // show applied configuration values (only during debugging)
-  with TStringList.Create do begin
-    LoadFromFile(Config.FileName);
-    Response := 'RECONFIG: Application is reconfigured with the following values:<p>';
-    for I := 0 to Count-1 do
-      Response := Response + Strings[I] + '<br>';
-    SendResponse(Response);
-    Free;
-  end;
-  {$ENDIF}
-end;
-{$ENDIF}
-
 // Calls events using Delphi style
-procedure TExtThread.HandleEvent;
+procedure TExtSession.HandleEvent;
 var
   Obj: TExtObject;
 begin
@@ -1065,14 +999,14 @@ Does tasks after Request processing.
   15.2. Generates JS code to enhance AJAX debugging, using Firefox, and
   15.3. Formats AJAX response code for easy debugging.
 }
-procedure TExtThread.AfterConstruction;
+procedure TExtSession.AfterConstruction;
 begin
   inherited;
   FResponseItems := TExtResponseItems.Create;
   FObjectSequences := TDictionary<string, Cardinal>.Create;
 end;
 
-procedure TExtThread.AfterHandleRequest;
+procedure TExtSession.AfterHandleRequest;
 
   procedure HandleJSReturns;
   var
@@ -1164,7 +1098,7 @@ end;
 Returns a unique numeric sequence to identify a JS object, list or attribute in this session.
 This sequence will be used by Self-translating process imitating a Symbol table entrance.
 }
-function TExtThread.GetNextJSName(const AObjectType: string): string;
+function TExtSession.GetNextJSName(const AObjectType: string): string;
 var
   LResult: Cardinal;
 begin
@@ -1175,7 +1109,7 @@ begin
   Result := AObjectType + IntToStr(LResult);
 end;
 
-function TExtThread.GetResponseItems: TExtResponseItems;
+function TExtSession.GetResponseItems: TExtResponseItems;
 begin
   if Assigned(FCurrentResponseItemsBranch) then
     Result := FCurrentResponseItemsBranch
@@ -1183,7 +1117,7 @@ begin
     Result := FResponseItems;
 end;
 
-function TExtThread.GetSequence : string; begin
+function TExtSession.GetSequence : string; begin
   Result := IntToHex(Sequence, 1);
   Inc(Sequence);
 end;
@@ -1334,6 +1268,7 @@ Creates a singleton TExtObject instance, used usually by Parser only.
 }
 constructor TExtObject.CreateSingleton(const AAttribute: string = '');
 begin
+  FSession := GetExtSession;
   if AAttribute = '' then
     FJSName := JSClassName
   else
@@ -1363,38 +1298,14 @@ begin
   Result := JSExpression('%s * %.2f', [ExtUtilTextMetrics.GetHeight('W'), ALines * 0.8]);
 end;
 
-{
-When assign value to a config property, check if it is in creating process.
-If not then config property code will redirect to a relationed method if it exists.
-@param JSName Objects name to be searched in generated script
-@return true if the JSName object has a configuration in this request, false if not
-@example <code>
-//doesn't matter if you are into Create block or assign to previous ajax created object
-//O1.title will be mapped to O1.setTitle('new title', ''); by ExtToPascal wrapper
-O1.title = 'new title';
-</code>
-}
-function TExtObject.ConfigAvailable(JSName : string) : boolean; begin
-  Result := pos('/*' + JSName + '*/', TExtThread(CurrentWebSession).Response) <> 0;
-end;
-
 procedure TExtObject.CreateVar(AJSCode: string);
 begin
-  Assert(Assigned(CurrentWebSession));
+  Assert(Assigned(ExtSession));
 
   { TODO : JSName could be assigned on demand. }
   CreateJSName;
 
-  TExtThread(CurrentWebSession).ResponseItems.CreateObject(Self);
-
-//  if FCreateVarArgs <> '' then
-//  begin
-//    AJSCode := FCreateVarArgs;
-//    FCreateVarArgs := '';
-//  end;
-//  Insert('/*' + JSName + '*/', AJSCode, Length(AJSCode) - IfThen(Pos('});', AJSCode) <> 0, 2, 1));
-//  JSCode(CommandDelim + DeclareJS + JSName + IfThen(AJSCode[1] = '(', '= ', '=new ') + AJSCode);
-//  JSCode(JSName + '.nm="' + JSName + '";');
+  ExtSession.ResponseItems.CreateObject(Self);
 end;
 
 // Deletes JS object from Browser memory
@@ -1431,7 +1342,7 @@ begin
     P := P + 'Obj=' + ObjName;
   end;
   if P <> '' then P := '?' + P;
-  Result := 'Download.src="' + CurrentWebSession.MethodURI(MetName) + P + '";';
+  Result := 'Download.src="' + ExtSession.MethodURI(MetName) + P + '";';
 end;
 
 procedure TExtObject.Download(Method: TExtProcedure; Params: array of const);
@@ -1450,8 +1361,9 @@ Creates a TExtObject and generate corresponding JS code using <link TExtObject.J
 }
 constructor TExtObject.Create(AOwner: TComponent);
 begin
+  FSession := GetExtSession;
   if AOwner = nil then
-    AOwner := CurrentWebSession.ObjectCatalog;
+    AOwner := FSession.ObjectCatalog;
   inherited Create(AOwner);
   CreateVar(JSClassName + '({});');
   InitDefaults;
@@ -1464,8 +1376,9 @@ Used by Parser to build <link TExtObject.InitDefaults, InitDefaults> methods use
 }
 constructor TExtObject.CreateInline(AOwner: TComponent);
 begin
+  FSession := GetExtSession;
   if AOwner = nil then
-    AOwner := CurrentWebSession.ObjectCatalog;
+    AOwner := FSession.ObjectCatalog;
   // Inline = don't create the declaration.
   inherited Create(AOwner);
   InitDefaults;
@@ -1506,9 +1419,21 @@ begin
   Result := false;
 end;
 
-function TExtObject.GetExtSession: TExtThread;
+function TExtObject.GetExtSession: TExtSession;
+var
+  LResult: TComponent;
 begin
-  Result := TExtThread(CurrentWebSession);
+  LResult := Owner;
+  while (LResult <> nil) and (LResult.Owner <> nil) do
+    LResult := LResult.Owner;
+  if LResult is TObjectCatalog then
+    Result := TObjectCatalog(LResult).Session as TExtSession
+  // Singletons are not linked to any particular session and have no owner, currently.
+  else if Assigned(_CurrentWebSession) then
+    Result := TExtSession(_CurrentWebSession)
+  else
+    raise Exception.CreateFmt('Session not found for object %s.', [JSName]);
+  //Result := TExtSession(_CurrentWebSession);
 end;
 
 procedure TExtObject.SetCustomConfigItem(const AName: string; const AValues: array of const);
@@ -1748,8 +1673,9 @@ constructor TExtObject.Init(AOwner: TComponent; AMethod: TExtFunction);
 begin
   Assert(Assigned(AMethod));
 
+  FSession := GetExtSession;
   if AOwner = nil then
-    AOwner := CurrentWebSession.ObjectCatalog;
+    AOwner := FSession.ObjectCatalog;
   inherited Create(AOwner);
   CreateJSName;
   JSCode(CommandDelim + DeclareJS + JSName + '=' + AMethod.ExtractJSCommand + ';');
@@ -1761,8 +1687,9 @@ constructor TExtObject.Init(AOwner: TComponent; ACommand: string);
 begin
   Assert(ACommand <> '');
 
+  FSession := GetExtSession;
   if AOwner = nil then
-    AOwner := CurrentWebSession.ObjectCatalog;
+    AOwner := FSession.ObjectCatalog;
   inherited Create(AOwner);
   CreateJSName;
   JSCode(CommandDelim + DeclareJS + JSName + '=' + ACommand + ';');
@@ -1826,7 +1753,8 @@ var
   Command : string;
   I : integer;
 begin
-  with TExtThread(CurrentWebSession) do begin
+  with ExtSession do
+  begin
     Result := '-$7' + GetSequence + '7';
     for I := 0 to high(MethodsValues) do
       with MethodsValues[I] do
@@ -2518,22 +2446,22 @@ end;
 
 // Aux function used internaly by ExtToPascal to override HandleEvent method
 function TExtObject.ParamAsInteger(ParamName : string) : integer; begin
-  Result := StrToIntDef(CurrentWebSession.Query[ParamName], 0);
+  Result := StrToIntDef(ExtSession.Query[ParamName], 0);
 end;
 
 // Aux function used internaly by ExtToPascal to override HandleEvent method
 function TExtObject.ParamAsDouble(ParamName : string) : double; begin
-  Result := StrToFloatDef(CurrentWebSession.Query[ParamName], 0);
+  Result := StrToFloatDef(ExtSession.Query[ParamName], 0);
 end;
 
 // Aux function used internaly by ExtToPascal to override HandleEvent method
 function TExtObject.ParamAsBoolean(ParamName : string) : boolean; begin
-  Result := CurrentWebSession.Query[ParamName] = 'true';
+  Result := ExtSession.Query[ParamName] = 'true';
 end;
 
 // Aux function used internaly by ExtToPascal to override HandleEvent method
 function TExtObject.ParamAsString(ParamName : string) : string; begin
-  Result := CurrentWebSession.Query[ParamName];
+  Result := ExtSession.Query[ParamName];
 end;
 
 // Aux function used internaly by ExtToPascal to override HandleEvent method
@@ -2543,7 +2471,7 @@ end;
 
 // Aux function used internaly by ExtToPascal to override HandleEvent method
 function TExtObject.ParamAsObject(ParamName : string) : TExtObject; begin
-  Result := TExtObject(TExtThread(CurrentWebSession).ObjectCatalog.FindExtObject(CurrentWebSession.Query[ParamName]));
+  Result := TExtObject(ExtSession.ObjectCatalog.FindExtObject(ExtSession.Query[ParamName]));
 end;
 
 function TExtObject.FindExtObject(const AJSName: string): TObject;

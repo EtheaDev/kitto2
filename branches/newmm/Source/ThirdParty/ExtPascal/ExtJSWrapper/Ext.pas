@@ -212,7 +212,7 @@ type
     FDisabled: Boolean;
     FForceKeyDown: Boolean;
     procedure SetFDefaultEventAction(Value: string);
-    procedure SetFDisabled(Value: Boolean);
+    procedure _SetDisabled(const AValue: Boolean);
     procedure SetFForceKeyDown(Value: Boolean);
   protected
     procedure InitDefaults; override;
@@ -221,10 +221,10 @@ type
     function DestroyJS: TExtFunction; override;
     function Disable: TExtFunction;
     function Enable: TExtFunction;
-    function SetDisabled(Disabled: Boolean): TExtFunction;
+    function SetDisabled(const ADisabled: Boolean): TExtFunction;
     property DefaultEventAction: string read FDefaultEventAction
       write SetFDefaultEventAction;
-    property Disabled: Boolean read FDisabled write SetFDisabled;
+    property Disabled: Boolean read FDisabled write _SetDisabled;
     property ForceKeyDown: Boolean read FForceKeyDown write SetFForceKeyDown;
   end;
 
@@ -1396,13 +1396,13 @@ type
     FItemId: string;
     FScope: TExtObject;
     FText: string;
-    procedure SetFDisabled(Value: Boolean);
-    procedure SetFHandler(Value: TExtFunction);
-    procedure SetFHidden(Value: Boolean);
+    procedure _SetDisabled(const AValue: Boolean);
+    procedure _SetHandler(const AValue: TExtFunction);
+    procedure _SetHidden(const AValue: Boolean);
     procedure SetFIconCls(Value: string);
     procedure SetFItemId(Value: string);
     procedure SetFScope(Value: TExtObject);
-    procedure SetFText(Value: string);
+    procedure _SetText(const AValue: string);
   protected
     procedure InitDefaults; override;
   public
@@ -1416,19 +1416,19 @@ type
     function Hide: TExtFunction;
     function IsDisabled: TExtFunction;
     function IsHidden: TExtFunction;
-    function SetDisabled(Disabled: Boolean): TExtFunction;
-    function SetHandler(Fn: TExtFunction; Scope: TExtObject): TExtFunction;
-    function SetHidden(Hidden: Boolean): TExtFunction;
+    function SetDisabled(const ADisabled: Boolean): TExtFunction;
+    function SetHandler(const AFn: TExtFunction; const AScope: TExtObject): TExtFunction;
+    function SetHidden(const AHidden: Boolean): TExtFunction;
     function SetIconClass(Cls: string): TExtFunction;
-    function SetText(Text: string): TExtFunction;
+    function SetText(const AText: string): TExtFunction;
     function Show: TExtFunction;
-    property Disabled: Boolean read FDisabled write SetFDisabled;
-    property Handler: TExtFunction read FHandler write SetFHandler;
-    property Hidden: Boolean read FHidden write SetFHidden;
+    property Disabled: Boolean read FDisabled write _SetDisabled;
+    property Handler: TExtFunction read FHandler write _SetHandler;
+    property Hidden: Boolean read FHidden write _SetHidden;
     property IconCls: string read FIconCls write SetFIconCls;
     property ItemId: string read FItemId write SetFItemId;
     property Scope: TExtObject read FScope write SetFScope;
-    property Text: string read FText write SetFText;
+    property Text: string read FText write _SetText;
   end;
 
   TExtDirectTransaction = class(TExtFunction)
@@ -2074,12 +2074,12 @@ type
     procedure SetFShadowOffset(Value: Integer);
     procedure SetFShim(Value: Boolean);
     procedure SetFUseDisplay(Value: Boolean);
-    procedure SetFZindex(Value: Integer);
+    procedure _SetZindex(const AValue: Integer);
   protected
     procedure InitDefaults; override;
   public
     function JSClassName: string; override;
-    function SetZIndex(Zindex: Integer): TExtFunction;
+    function SetZIndex(const AZindex: Integer): TExtFunction;
     property Cls: string read FCls write SetFCls;
     property Constrain: Boolean read FConstrain write SetFConstrain;
     property Dh: TExtObject read FDh write SetFDh;
@@ -2088,7 +2088,7 @@ type
     property ShadowOffset: Integer read FShadowOffset write SetFShadowOffset;
     property Shim: Boolean read FShim write SetFShim;
     property UseDisplay: Boolean read FUseDisplay write SetFUseDisplay;
-    property Zindex: Integer read FZindex write SetFZindex;
+    property Zindex: Integer read FZindex write _SetZindex;
   end;
 
   // Procedural types for events TExtHistorySingleton
@@ -2259,7 +2259,7 @@ type
     procedure SetFShadowString(Value: string);
     procedure SetFSwallowKeys(Value: Boolean);
     procedure SetFUpdateEl(Value: Boolean);
-    procedure SetFValue(Value: string);
+    procedure _SetValue(const AValue: string);
     procedure SetFOnBeforecomplete(Value: TExtEditorOnBeforecomplete);
     procedure SetFOnBeforestartedit(Value: TExtEditorOnBeforestartedit);
     procedure SetFOnCanceledit(Value: TExtEditorOnCanceledit);
@@ -2276,7 +2276,7 @@ type
     function GetValue: TExtFunction;
     function Realign(AutoSize: Boolean = false): TExtFunction;
     function SetSize(Width: Integer; Height: Integer): TExtFunction;
-    function SetValue(Value: string): TExtFunction;
+    function SetValue(const AValue: string): TExtFunction;
     function StartEdit(El: string; Value: string = ''): TExtFunction;
     property Alignment: string read FAlignment write SetFAlignment;
     property AllowBlur: Boolean read FAllowBlur write SetFAllowBlur;
@@ -2294,7 +2294,7 @@ type
     property ShadowString: string read FShadowString write SetFShadowString;
     property SwallowKeys: Boolean read FSwallowKeys write SetFSwallowKeys;
     property UpdateEl: Boolean read FUpdateEl write SetFUpdateEl;
-    property Value: string read FValue write SetFValue;
+    property Value: string read FValue write _SetValue;
     property OnBeforecomplete: TExtEditorOnBeforecomplete read FOnBeforecomplete
       write SetFOnBeforecomplete;
     property OnBeforestartedit: TExtEditorOnBeforestartedit read FOnBeforestartedit
@@ -2387,16 +2387,16 @@ type
     FOnSelect: TExtDatePickerOnSelect;
     procedure SetFCancelText(Value: string);
     procedure SetFDayNames(Value: TExtObjectList);
-    procedure SetFDisabledDates(Value: TExtObjectList);
+    procedure _SetDisabledDates(const AValue: TExtObjectList);
     procedure SetFDisabledDatesRE(Value: TRegExp);
     procedure SetFDisabledDatesText(Value: string);
-    procedure SetFDisabledDays(Value: TExtObjectList);
+    procedure _SetDisabledDays(const AValue: TExtObjectList);
     procedure SetFDisabledDaysText(Value: string);
     procedure SetFFormat(Value: string);
     procedure SetFHandler(Value: TExtFunction);
-    procedure SetFMaxDate(Value: TDateTime);
+    procedure _SetMaxDate(const AValue: TDateTime);
     procedure SetFMaxText(Value: string);
-    procedure SetFMinDate(Value: TDateTime);
+    procedure _SetMinDate(const AValue: TDateTime);
     procedure SetFMinText(Value: string);
     procedure SetFMonthNames(Value: TExtObjectList);
     procedure SetFMonthYearText(Value: string);
@@ -2415,25 +2415,25 @@ type
   public
     function JSClassName: string; override;
     function GetValue: TExtFunction;
-    function SetDisabledDates(DisabledDates: TExtObjectList): TExtFunction; overload;
-    function SetDisabledDates(DisabledDates: TRegExp): TExtFunction; overload;
-    function SetDisabledDays(DisabledDays: TExtObjectList): TExtFunction;
-    function SetMaxDate(Value: TDateTime): TExtFunction;
-    function SetMinDate(Value: TDateTime): TExtFunction;
+    function SetDisabledDates(const ADisabledDates: TExtObjectList): TExtFunction; overload;
+    function SetDisabledDates(const ADisabledDates: TRegExp): TExtFunction; overload;
+    function SetDisabledDays(const ADisabledDays: TExtObjectList): TExtFunction;
+    function SetMaxDate(const AValue: TDateTime): TExtFunction;
+    function SetMinDate(const AValue: TDateTime): TExtFunction;
     function SetValue(Value: TDateTime): TExtFunction;
     property CancelText: string read FCancelText write SetFCancelText;
     property DayNames: TExtObjectList read FDayNames write SetFDayNames;
-    property DisabledDates: TExtObjectList read FDisabledDates write SetFDisabledDates;
+    property DisabledDates: TExtObjectList read FDisabledDates write _SetDisabledDates;
     property DisabledDatesRE: TRegExp read FDisabledDatesRE write SetFDisabledDatesRE;
     property DisabledDatesText: string read FDisabledDatesText
       write SetFDisabledDatesText;
-    property DisabledDays: TExtObjectList read FDisabledDays write SetFDisabledDays;
+    property DisabledDays: TExtObjectList read FDisabledDays write _SetDisabledDays;
     property DisabledDaysText: string read FDisabledDaysText write SetFDisabledDaysText;
     property Format: string read FFormat write SetFFormat;
     property Handler: TExtFunction read FHandler write SetFHandler;
-    property MaxDate: TDateTime read FMaxDate write SetFMaxDate;
+    property MaxDate: TDateTime read FMaxDate write _SetMaxDate;
     property MaxText: string read FMaxText write SetFMaxText;
-    property MinDate: TDateTime read FMinDate write SetFMinDate;
+    property MinDate: TDateTime read FMinDate write _SetMinDate;
     property MinText: string read FMinText write SetFMinText;
     property MonthNames: TExtObjectList read FMonthNames write SetFMonthNames;
     property MonthYearText: string read FMonthYearText write SetFMonthYearText;
@@ -3011,7 +3011,7 @@ type
     procedure SetFSelectedClass(Value: string);
     procedure SetFSimpleSelect(Value: Boolean);
     procedure SetFSingleSelect(Value: Boolean);
-    procedure SetFStore(Value: TExtDataStore);
+    procedure _SetStore(const AValue: TExtDataStore);
     procedure SetFTpl(Value: string);
     procedure SetFTplArray(Value: TExtObjectList);
     procedure SetFTrackOver(Value: Boolean);
@@ -3074,7 +3074,7 @@ type
       SuppressEvent: Boolean = false): TExtFunction; overload;
     function SelectRange(Start: Integer; ENDJS: Integer; KeepExisting: Boolean = false)
       : TExtFunction;
-    function SetStore(Store: TExtDataStore): TExtFunction;
+    function SetStore(const AStore: TExtDataStore): TExtFunction;
     property BlockRefresh: Boolean read FBlockRefresh write SetFBlockRefresh;
     property DeferEmptyText: Boolean read FDeferEmptyText write SetFDeferEmptyText;
     property EmptyText: string read FEmptyText write SetFEmptyText;
@@ -3085,7 +3085,7 @@ type
     property SelectedClass: string read FSelectedClass write SetFSelectedClass;
     property SimpleSelect: Boolean read FSimpleSelect write SetFSimpleSelect;
     property SingleSelect: Boolean read FSingleSelect write SetFSingleSelect;
-    property Store: TExtDataStore read FStore write SetFStore;
+    property Store: TExtDataStore read FStore write _SetStore;
     property Tpl: string read FTpl write SetFTpl;
     property TplArray: TExtObjectList read FTplArray write SetFTplArray;
     property TrackOver: Boolean read FTrackOver write SetFTrackOver;
@@ -3435,7 +3435,7 @@ type
     FArrowHandler: TExtFunction;
     FArrowTooltip: string;
     FOnArrowclick: TExtSplitButtonOnArrowclick;
-    procedure SetFArrowHandler(Value: TExtFunction);
+    procedure _SetArrowHandler(const AValue: TExtFunction);
     procedure SetFArrowTooltip(Value: string);
     procedure SetFOnArrowclick(Value: TExtSplitButtonOnArrowclick);
   protected
@@ -3443,9 +3443,8 @@ type
     procedure HandleEvent(const AEvtName: string); override;
   public
     function JSClassName: string; override;
-    function SetArrowHandler(Handler: TExtFunction; Scope: TExtObject = nil)
-      : TExtFunction;
-    property ArrowHandler: TExtFunction read FArrowHandler write SetFArrowHandler;
+    function SetArrowHandler(const AHandler: TExtFunction; const AScope: TExtObject = nil): TExtFunction;
+    property ArrowHandler: TExtFunction read FArrowHandler write _SetArrowHandler;
     property ArrowTooltip: string read FArrowTooltip write SetFArrowTooltip;
     property OnArrowclick: TExtSplitButtonOnArrowclick read FOnArrowclick
       write SetFOnArrowclick;
@@ -3466,13 +3465,13 @@ type
   TExtToolbarTextItem = class(TExtToolbarItem)
   private
     FText: string;
-    procedure SetFText(Value: string);
+    procedure _SetText(const AValue: string);
   protected
     procedure InitDefaults; override;
   public
     function JSClassName: string; override;
-    function SetText(T: string): TExtFunction;
-    property Text: string read FText write SetFText;
+    function SetText(const AText: string): TExtFunction;
+    property Text: string read FText write _SetText;
   end;
 
   // Procedural types for events TExtToolbar
@@ -3673,7 +3672,7 @@ type
     FOnMinimize: TExtWindowOnMinimize;
     FOnResize: TExtWindowOnResize;
     FOnRestore: TExtWindowOnRestore;
-    procedure SetFAnimateTarget(Value: string);
+    procedure _SetAnimateTarget(const AValue: string);
     procedure SetFAnimateTargetElement(Value: TExtElement);
     procedure SetFBaseCls(Value: string);
     procedure SetClosable(const AValue: Boolean);
@@ -3735,7 +3734,7 @@ type
     function Minimize: TExtFunction;
     function Restore: TExtFunction;
     function SetActive(Active: Boolean): TExtFunction;
-    function SetAnimateTarget(El: string): TExtFunction; overload;
+    function SetAnimateTarget(const AElement: string): TExtFunction; overload;
     function SetAnimateTarget(El: TExtElement): TExtFunction; overload;
     function Show(const AAnimateTarget: string = ''; const ACallback: TExtFunction = nil;
       const AScope: TExtObject = nil): TExtFunction; overload;
@@ -3744,7 +3743,7 @@ type
     function ToBack: TExtFunction;
     function ToFront(E: Boolean = false): TExtFunction;
     function ToggleMaximize: TExtFunction;
-    property AnimateTarget: string read FAnimateTarget write SetFAnimateTarget;
+    property AnimateTarget: string read FAnimateTarget write _SetAnimateTarget;
     property AnimateTargetElement: TExtElement read FAnimateTargetElement
       write SetFAnimateTargetElement;
     property BaseCls: string read FBaseCls write SetFBaseCls;
@@ -4387,13 +4386,10 @@ begin
   JSCode('defaultEventAction:' + VarToJSON([Value]));
 end;
 
-procedure TExtKeyNav.SetFDisabled(Value: Boolean);
+procedure TExtKeyNav._SetDisabled(const AValue: Boolean);
 begin
-  FDisabled := Value;
-  if not ConfigAvailable(JSName) then
-    SetDisabled(Value)
-  else
-    JSCode('disabled:' + VarToJSON([Value]));
+  FDisabled := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'disabled', 'setDisabled', [AValue]);
 end;
 
 procedure TExtKeyNav.SetFForceKeyDown(Value: Boolean);
@@ -4431,9 +4427,10 @@ begin
   Result := Self;
 end;
 
-function TExtKeyNav.SetDisabled(Disabled: Boolean): TExtFunction;
+function TExtKeyNav.SetDisabled(const ADisabled: Boolean): TExtFunction;
 begin
-  JSCode(JSName + '.setDisabled(' + VarToJSON([Disabled]) + ');', 'TExtKeyNav');
+  FDisabled := ADisabled;
+  ExtSession.ResponseItems.CallMethod(Self, 'setDisabled', [ADisabled]);
   Result := Self;
 end;
 
@@ -8432,31 +8429,22 @@ begin
   Result := Self;
 end;
 
-procedure TExtAction.SetFDisabled(Value: Boolean);
+procedure TExtAction._SetDisabled(const AValue: Boolean);
 begin
-  FDisabled := Value;
-  if not ConfigAvailable(JSName) then
-    SetDisabled(Value)
-  else
-    JSCode('disabled:' + VarToJSON([Value]));
+  FDisabled := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'disabled', 'setDisabled', [AValue]);
 end;
 
-procedure TExtAction.SetFHandler(Value: TExtFunction);
+procedure TExtAction._SetHandler(const AValue: TExtFunction);
 begin
-  FHandler := Value;
-  if not ConfigAvailable(JSName) then
-    SetHandler(Value, nil)
-  else
-    JSCode('handler:' + VarToJSON([Value, true]));
+  FHandler := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'handler', 'setHandler', [AValue, True]);
 end;
 
-procedure TExtAction.SetFHidden(Value: Boolean);
+procedure TExtAction._SetHidden(const AValue: Boolean);
 begin
-  FHidden := Value;
-  if not ConfigAvailable(JSName) then
-    SetHidden(Value)
-  else
-    JSCode('hidden:' + VarToJSON([Value]));
+  FHidden := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'hidden', 'setHidden', [AValue]);
 end;
 
 procedure TExtAction.SetFIconCls(Value: string);
@@ -8477,13 +8465,10 @@ begin
   JSCode('scope:' + VarToJSON([Value, false]));
 end;
 
-procedure TExtAction.SetFText(Value: string);
+procedure TExtAction._SetText(const AValue: string);
 begin
-  FText := Value;
-  if not ConfigAvailable(JSName) then
-    SetText(Value)
-  else
-    JSCode('text:' + VarToJSON([Value]));
+  FText := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'text', 'setText', [AValue]);
 end;
 
 function TExtAction.JSClassName: string;
@@ -8551,22 +8536,24 @@ begin
   Result := Self;
 end;
 
-function TExtAction.SetDisabled(Disabled: Boolean): TExtFunction;
+function TExtAction.SetDisabled(const ADisabled: Boolean): TExtFunction;
 begin
-  JSCode(JSName + '.setDisabled(' + VarToJSON([Disabled]) + ');', 'TExtAction');
+  FDisabled := ADisabled;
+  ExtSession.ResponseItems.CallMethod(Self, 'setDisabled', [ADisabled]);
   Result := Self;
 end;
 
-function TExtAction.SetHandler(Fn: TExtFunction; Scope: TExtObject): TExtFunction;
+function TExtAction.SetHandler(const AFn: TExtFunction; const AScope: TExtObject): TExtFunction;
 begin
-  JSCode(JSName + '.setHandler(' + VarToJSON([Fn, true, Scope, false]) + ');',
-    'TExtAction');
+  FHandler := AFn;
+  ExtSession.ResponseItems.CallMethod(Self, 'setHandler', [AFn, True, AScope, False]);
   Result := Self;
 end;
 
-function TExtAction.SetHidden(Hidden: Boolean): TExtFunction;
+function TExtAction.SetHidden(const AHidden: Boolean): TExtFunction;
 begin
-  JSCode(JSName + '.setHidden(' + VarToJSON([Hidden]) + ');', 'TExtAction');
+  FHidden := AHidden;
+  ExtSession.ResponseItems.CallMethod(Self, 'setHidden', [AHidden]);
   Result := Self;
 end;
 
@@ -8576,9 +8563,10 @@ begin
   Result := Self;
 end;
 
-function TExtAction.SetText(Text: string): TExtFunction;
+function TExtAction.SetText(const AText: string): TExtFunction;
 begin
-  JSCode(JSName + '.setText(' + VarToJSON([Text]) + ');', 'TExtAction');
+  FText := AText;
+  ExtSession.ResponseItems.CallMethod(Self, 'setText', [AText]);
   Result := Self;
 end;
 
@@ -10219,13 +10207,10 @@ begin
   JSCode('useDisplay:' + VarToJSON([Value]));
 end;
 
-procedure TExtLayer.SetFZindex(Value: Integer);
+procedure TExtLayer._SetZindex(const AValue: Integer);
 begin
-  FZindex := Value;
-  if not ConfigAvailable(JSName) then
-    SetZIndex(Value)
-  else
-    JSCode('zindex:' + VarToJSON([Value]));
+  FZindex := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'zindex', 'setZindex', [AValue]);
 end;
 
 function TExtLayer.JSClassName: string;
@@ -10243,9 +10228,9 @@ begin
   FZindex := 11000;
 end;
 
-function TExtLayer.SetZIndex(Zindex: Integer): TExtFunction;
+function TExtLayer.SetZIndex(const AZindex: Integer): TExtFunction;
 begin
-  JSCode(JSName + '.setZIndex(' + VarToJSON([Zindex]) + ');', 'TExtLayer');
+  ExtSession.ResponseItems.CallMethod(Self, 'setZindex', [AZindex]);
   Result := Self;
 end;
 
@@ -10625,13 +10610,10 @@ begin
   JSCode('updateEl:' + VarToJSON([Value]));
 end;
 
-procedure TExtEditor.SetFValue(Value: string);
+procedure TExtEditor._SetValue(const AValue: string);
 begin
-  FValue := Value;
-  if not ConfigAvailable(JSName) then
-    SetValue(Value)
-  else
-    JSCode('value:' + VarToJSON([Value]));
+  FValue := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'value', 'setValue', [AValue]);
 end;
 
 procedure TExtEditor.SetFOnBeforecomplete(Value: TExtEditorOnBeforecomplete);
@@ -10737,9 +10719,10 @@ begin
   Result := Self;
 end;
 
-function TExtEditor.SetValue(Value: string): TExtFunction;
+function TExtEditor.SetValue(const AValue: string): TExtFunction;
 begin
-  JSCode(JSName + '.setValue(' + VarToJSON([Value]) + ');', 'TExtEditor');
+  FValue := AValue;
+  ExtSession.ResponseItems.CallMethod(Self, 'setValue', [AValue]);
   Result := Self;
 end;
 
@@ -10896,13 +10879,11 @@ begin
   JSCode('dayNames:' + VarToJSON([Value, false]));
 end;
 
-procedure TExtDatePicker.SetFDisabledDates(Value: TExtObjectList);
+procedure TExtDatePicker._SetDisabledDates(const AValue: TExtObjectList);
 begin
-  FDisabledDates := Value;
-  if not ConfigAvailable(JSName) then
-    SetDisabledDates(Value)
-  else
-    JSCode('disabledDates:' + VarToJSON([Value, false]));
+  FDisabledDates.Free;
+  FDisabledDates := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'disabledDates', 'setDisabledDates', [AValue]);
 end;
 
 procedure TExtDatePicker.SetFDisabledDatesRE(Value: TRegExp);
@@ -10917,13 +10898,11 @@ begin
   JSCode('disabledDatesText:' + VarToJSON([Value]));
 end;
 
-procedure TExtDatePicker.SetFDisabledDays(Value: TExtObjectList);
+procedure TExtDatePicker._SetDisabledDays(const AValue: TExtObjectList);
 begin
-  FDisabledDays := Value;
-  if not ConfigAvailable(JSName) then
-    SetDisabledDays(Value)
-  else
-    JSCode('disabledDays:' + VarToJSON([Value, false]));
+  FDisabledDays.Free;
+  FDisabledDays := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'disabledDays', 'setDisabledDays', [AValue]);
 end;
 
 procedure TExtDatePicker.SetFDisabledDaysText(Value: string);
@@ -10944,13 +10923,10 @@ begin
   JSCode('handler:' + VarToJSON([Value, true]));
 end;
 
-procedure TExtDatePicker.SetFMaxDate(Value: TDateTime);
+procedure TExtDatePicker._SetMaxDate(const AValue: TDateTime);
 begin
-  FMaxDate := Value;
-  if not ConfigAvailable(JSName) then
-    SetMaxDate(Value)
-  else
-    JSCode('maxDate:' + VarToJSON([Value]));
+  FMaxDate := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'maxDate', 'setMaxDate', [AValue]);
 end;
 
 procedure TExtDatePicker.SetFMaxText(Value: string);
@@ -10959,13 +10935,10 @@ begin
   JSCode('maxText:' + VarToJSON([Value]));
 end;
 
-procedure TExtDatePicker.SetFMinDate(Value: TDateTime);
+procedure TExtDatePicker._SetMinDate(const AValue: TDateTime);
 begin
-  FMinDate := Value;
-  if not ConfigAvailable(JSName) then
-    SetMinDate(Value)
-  else
-    JSCode('minDate:' + VarToJSON([Value]));
+  FMinDate := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'minDate', 'setMinDate', [AValue]);
 end;
 
 procedure TExtDatePicker.SetFMinText(Value: string);
@@ -11074,35 +11047,39 @@ begin
   Result := Self;
 end;
 
-function TExtDatePicker.SetDisabledDates(DisabledDates: TExtObjectList): TExtFunction;
+function TExtDatePicker.SetDisabledDates(const ADisabledDates: TExtObjectList): TExtFunction;
 begin
-  JSCode(JSName + '.setDisabledDates(' + VarToJSON(DisabledDates) + ');',
-    'TExtDatePicker');
+  FDisabledDates.Free;
+  FDisabledDates := ADisabledDates;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'setDisabledDates', [ADisabledDates]);
   Result := Self;
 end;
 
-function TExtDatePicker.SetDisabledDates(DisabledDates: TRegExp): TExtFunction;
+function TExtDatePicker.SetDisabledDates(const ADisabledDates: TRegExp): TExtFunction;
 begin
-  JSCode(JSName + '.setDisabledDates(' + VarToJSON([#3 + DisabledDates]) + ');',
-    'TExtDatePicker');
+  ExtSession.ResponseItems.SetConfigItem(Self, 'setDisabledDates', [#3 + ADisabledDates]);
   Result := Self;
 end;
 
-function TExtDatePicker.SetDisabledDays(DisabledDays: TExtObjectList): TExtFunction;
+function TExtDatePicker.SetDisabledDays(const ADisabledDays: TExtObjectList): TExtFunction;
 begin
-  JSCode(JSName + '.setDisabledDays(' + VarToJSON(DisabledDays) + ');', 'TExtDatePicker');
+  FDisabledDays.Free;
+  FDisabledDays := ADisabledDays;
+  ExtSession.ResponseItems.CallMethod(Self, 'setDisabledDays', [ADisabledDays]);
   Result := Self;
 end;
 
-function TExtDatePicker.SetMaxDate(Value: TDateTime): TExtFunction;
+function TExtDatePicker.SetMaxDate(const AValue: TDateTime): TExtFunction;
 begin
-  JSCode(JSName + '.setMaxDate(' + VarToJSON([Value]) + ');', 'TExtDatePicker');
+  FMaxDate := AValue;
+  ExtSession.ResponseItems.CallMethod(Self, 'setMaxDate', [AValue]);
   Result := Self;
 end;
 
-function TExtDatePicker.SetMinDate(Value: TDateTime): TExtFunction;
+function TExtDatePicker.SetMinDate(const AValue: TDateTime): TExtFunction;
 begin
-  JSCode(JSName + '.setMinDate(' + VarToJSON([Value]) + ');', 'TExtDatePicker');
+  FMinDate := AValue;
+  ExtSession.ResponseItems.CallMethod(Self, 'setMinDate', [AValue]);
   Result := Self;
 end;
 
@@ -12411,13 +12388,10 @@ begin
   JSCode('singleSelect:' + VarToJSON([Value]));
 end;
 
-procedure TExtDataView.SetFStore(Value: TExtDataStore);
+procedure TExtDataView._SetStore(const AValue: TExtDataStore);
 begin
-  FStore := Value;
-  if not ConfigAvailable(JSName) then
-    SetStore(Value)
-  else
-    JSCode('store:' + VarToJSON([Value, false]));
+  FStore := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'store', 'setStore', [AValue]);
 end;
 
 procedure TExtDataView.SetFTpl(Value: string);
@@ -12787,9 +12761,10 @@ begin
   Result := Self;
 end;
 
-function TExtDataView.SetStore(Store: TExtDataStore): TExtFunction;
+function TExtDataView.SetStore(const AStore: TExtDataStore): TExtFunction;
 begin
-  JSCode(JSName + '.setStore(' + VarToJSON([Store, false]) + ');', 'TExtDataView');
+  FStore := AStore;
+  ExtSession.ResponseItems.CallMethod(Self, 'setStore', [AStore]);
   Result := Self;
 end;
 
@@ -13581,13 +13556,10 @@ begin
     FOnTitlechange(TExtPanel(ParamAsObject('P')), ParamAsString('The'));
 end;
 
-procedure TExtSplitButton.SetFArrowHandler(Value: TExtFunction);
+procedure TExtSplitButton._SetArrowHandler(const AValue: TExtFunction);
 begin
-  FArrowHandler := Value;
-  if not ConfigAvailable(JSName) then
-    SetArrowHandler(Value)
-  else
-    JSCode('arrowHandler:' + VarToJSON([Value, true]));
+  FArrowHandler := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'arrowHandler', 'setArrowHandler', [AValue, True]);
 end;
 
 procedure TExtSplitButton.SetFArrowTooltip(Value: string);
@@ -13615,11 +13587,10 @@ begin
   inherited;
 end;
 
-function TExtSplitButton.SetArrowHandler(Handler: TExtFunction; Scope: TExtObject = nil)
-  : TExtFunction;
+function TExtSplitButton.SetArrowHandler(const AHandler: TExtFunction; const AScope: TExtObject): TExtFunction;
 begin
-  JSCode(JSName + '.setArrowHandler(' + VarToJSON([Handler, true, Scope, false]) + ');',
-    'TExtSplitButton');
+  FArrowHandler := AHandler;
+  ExtSession.ResponseItems.CallMethod(Self, 'setArrowHandler', [AHandler, True, AScope, False]);
   Result := Self;
 end;
 
@@ -13652,13 +13623,10 @@ begin
   FWidth := 2;
 end;
 
-procedure TExtToolbarTextItem.SetFText(Value: string);
+procedure TExtToolbarTextItem._SetText(const AValue: string);
 begin
-  FText := Value;
-  if not ConfigAvailable(JSName) then
-    SetText(Value)
-  else
-    JSCode('text:' + VarToJSON([Value]));
+  FText := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'text', 'setText', [AValue]);
 end;
 
 function TExtToolbarTextItem.JSClassName: string;
@@ -13671,9 +13639,10 @@ begin
   inherited;
 end;
 
-function TExtToolbarTextItem.SetText(T: string): TExtFunction;
+function TExtToolbarTextItem.SetText(const AText: string): TExtFunction;
 begin
-  JSCode(JSName + '.setText(' + VarToJSON([T]) + ');', 'TExtToolbarTextItem');
+  FText := AText;
+  ExtSession.ResponseItems.CallMethod(Self, 'setText', [AText]);
   Result := Self;
 end;
 
@@ -14041,13 +14010,10 @@ begin
       TExtMenuCheckItem(ParamAsObject('Item')));
 end;
 
-procedure TExtWindow.SetFAnimateTarget(Value: string);
+procedure TExtWindow._SetAnimateTarget(const AValue: string);
 begin
-  FAnimateTarget := Value;
-  if not ConfigAvailable(JSName) then
-    SetAnimateTarget(Value)
-  else
-    JSCode('animateTarget:' + VarToJSON([Value]));
+  FAnimateTarget := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'animateTarget', 'setAnimateTarget', [AValue]);
 end;
 
 procedure TExtWindow.SetFAnimateTargetElement(Value: TExtElement);
@@ -14404,9 +14370,10 @@ begin
   Result := Self;
 end;
 
-function TExtWindow.SetAnimateTarget(El: string): TExtFunction;
+function TExtWindow.SetAnimateTarget(const AElement: string): TExtFunction;
 begin
-  JSCode(JSName + '.setAnimateTarget(' + VarToJSON([El]) + ');', 'TExtWindow');
+  FAnimateTarget := AElement;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'animateTarget', 'setAnimateTarget', [AElement]);
   Result := Self;
 end;
 

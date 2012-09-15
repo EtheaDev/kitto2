@@ -8,11 +8,19 @@ uses
 type
   TCustomWebApplication = class;
 
+{$M+}
+  TCustomWebSession = class;
+{$M-}
+
   TObjectCatalog = class(TComponent)
+  private
+    FSession: TCustomWebSession;
   public
     function FindExtObject(const AJSName: string): TObject;
 
     procedure FreeAllExtObjects;
+
+    property Session: TCustomWebSession read FSession;
   end;
 
 {$M+}
@@ -55,7 +63,6 @@ type
     function CanHandleUrlPath : Boolean; virtual; abstract;
     procedure DetectBrowser(const UserAgent : string);
     procedure DoLogout; virtual;
-    procedure DoReconfig; virtual;
     procedure DoSetCookie(const Name, ValueRaw : string); virtual;
     procedure DownloadBuffer(const FileName: string; const Size: Longint; const Buffer : AnsiString; AContentType : string = '');
     function DownloadContentType(const FileName, Default : string) : string;
@@ -93,7 +100,7 @@ type
     Charset: string; // Charset for html contenttype default utf-8, another option iso-8859-1
     constructor Create(AOwner: TObject); reintroduce; virtual;
     destructor Destroy; override;
-    procedure Alert(const Msg : string); virtual;
+    procedure Alert(const AMessage: string); virtual;
     procedure DownloadFile(const FileName : string; AContentType : string = '');
     procedure DownloadStream(const Stream : TStream; const FileName : string; AContentType : string = '');
     procedure Refresh; virtual;
@@ -125,7 +132,6 @@ type
   published
     procedure Home; virtual; abstract; // Default method to be called by <link TCustomWebSession.HandleRequest, HandleRequest>
     procedure Logout;
-    procedure Reconfig;
     procedure Shutdown;
   end;
 {$M-}
@@ -133,8 +139,6 @@ type
   TCustomWebSessionClass = class of TCustomWebSession;
 
   TCustomWebApplication = class(TComponent)
-  private
-    function GetHasConfig : Boolean;
   protected
     FConfig : TCustomIniFile;
     FIcon : string;
@@ -156,7 +160,6 @@ type
     procedure Run(AOwnerThread : TThread = nil); // To enter the main loop
     procedure Terminate; // To terminate the application
     property Config : TCustomIniFile read FConfig;
-    property HasConfig : Boolean read GetHasConfig; // True if this application was compiled to have a configuration file
     property Icon : string read FIcon write FIcon; // Icon to show in Browser
     property MaxConns : Integer read FMaxConns;
     property MaxIdleMinutes : Word read FMaxIdleMinutes;
@@ -366,6 +369,7 @@ constructor TCustomWebSession.Create(AOwner: TObject);
 begin
   inherited Create;
   FObjectCatalog := TObjectCatalog.Create(nil);
+  FObjectCatalog.FSession := Self;
   FOwner := AOwner;
   FGarbageCollector := TStringList.Create;
   TStringList(FGarbageCollector).Sorted := True;
@@ -395,8 +399,9 @@ procedure TCustomWebSession.AfterHandleRequest; begin end;
 
 procedure TCustomWebSession.AfterNewSession; begin end;
 
-procedure TCustomWebSession.Alert(const Msg : string); begin
-  Response := Format('alert("%s");', [Msg]);
+procedure TCustomWebSession.Alert(const AMessage: string);
+begin
+  Response := Format('alert("%s");', [AMessage]);
 end;
 
 function TCustomWebSession.BeforeHandleRequest : Boolean; begin
@@ -424,8 +429,6 @@ begin
 end;
 
 procedure TCustomWebSession.DoLogout; begin end;
-
-procedure TCustomWebSession.DoReconfig; begin end;
 
 // send cookie to response
 procedure TCustomWebSession.DoSetCookie(const Name, ValueRaw : string); begin end;
@@ -590,15 +593,6 @@ end;
 
 procedure TCustomWebSession.OnNotFoundError; begin
   Response := Format('alert("Method: ''%s'' not found");', [PathInfo]);
-end;
-
-// Calls <link Application.Reconfig> if the password is right
-procedure TCustomWebSession.Reconfig; begin
-  with Application do
-    if CheckPassword(Password) and Reconfig then begin
-      DoReconfig;
-      SendResponse('RECONFIG: Application configurations are being re-read and reapplied.');
-    end;
 end;
 
 {
@@ -791,10 +785,6 @@ begin
   FPort := APort;
   FMaxIdleMinutes := AMaxIdleMinutes;
   FMaxConns := AMaxConns;
-end;
-
-function TCustomWebApplication.GetHasConfig : Boolean; begin
-  Result := Assigned(Config);
 end;
 
 type TThreadAccess = class(TThread);

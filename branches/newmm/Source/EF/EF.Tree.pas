@@ -887,8 +887,7 @@ type
     ///	<param name="AValue">Value to parse, usually read from a Yaml
     ///	stream.</param>
     ///	<param name="AFormatSettings">Format settings to use to parse the
-    ///	value. You can use Session.UserFormatSettings, or
-    ///	Session.JSFormatSettings, or custom settings.</param>
+    ///	value.</param>
     ///	<returns>Returns Self to allow for fluent calls.</returns>
     function SetAsYamlValue(const AValue: string; const AFormatSettings: TFormatSettings): TEFNode;
 

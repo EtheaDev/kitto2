@@ -377,7 +377,7 @@ type
     FOnInsert: TExtDataNodeOnInsert;
     FOnMove: TExtDataNodeOnMove;
     FOnRemove: TExtDataNodeOnRemove;
-    procedure SetFId(Value: string);
+    procedure _SetId(const AValue: string);
     procedure SetLeaf(const AValue: Boolean);
     procedure SetFAttributes(Value: TExtObject);
     procedure SetChildNodes(const AValue: TExtObjectList);
@@ -430,9 +430,9 @@ type
     function RemoveAll(DestroyJS: Boolean): TExtFunction;
     function RemoveChild(Node: TExtDataNode; DestroyJS: Boolean): TExtFunction;
     function ReplaceChild(NewChild: TExtDataNode; OldChild: TExtDataNode): TExtFunction;
-    function SetId(Id: string): TExtFunction;
+    function SetId(const AId: string): TExtFunction;
     function Sort(Fn: TExtFunction; Scope: TExtObject = nil): TExtFunction;
-    property Id: string read FId write SetFId;
+    property Id: string read FId write _SetId;
     property Leaf: Boolean read FLeaf write SetLeaf;
     property Attributes: TExtObject read FAttributes write SetFAttributes;
     property ChildNodes: TExtObjectList read FChildNodes write SetChildNodes;
@@ -2043,13 +2043,10 @@ begin
   Result := Self;
 end;
 
-procedure TExtDataNode.SetFId(Value: string);
+procedure TExtDataNode._SetId(const AValue: string);
 begin
-  FId := Value;
-  if not ConfigAvailable(JSName) then
-    SetId(Value)
-  else
-    JSCode('id:' + VarToJSON([Value]));
+  FId := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'id', 'setId', [AValue]);
 end;
 
 procedure TExtDataNode.SetLeaf(const AValue: Boolean);
@@ -2371,9 +2368,10 @@ begin
   Result := Self;
 end;
 
-function TExtDataNode.SetId(Id: string): TExtFunction;
+function TExtDataNode.SetId(const AId: string): TExtFunction;
 begin
-  JSCode(JSName + '.setId(' + VarToJSON([Id]) + ');', 'TExtDataNode');
+  FId := AId;
+  ExtSession.ResponseItems.CallMethod(Self, 'setId', [AId]);
   Result := Self;
 end;
 

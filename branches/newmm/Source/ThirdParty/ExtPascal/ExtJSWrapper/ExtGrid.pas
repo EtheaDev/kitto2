@@ -1000,14 +1000,12 @@ type
     FCustomRenderers: TExtObject;
     FPropertyNames: TExtObject;
     FSource: TExtObject;
-    FSource_: TExtObject;
     FOnBeforepropertychange: TExtGridPropertyGridOnBeforepropertychange;
     FOnPropertychange: TExtGridPropertyGridOnPropertychange;
     procedure SetFCustomEditors(Value: TExtObject);
     procedure SetFCustomRenderers(Value: TExtObject);
     procedure SetFPropertyNames(Value: TExtObject);
-    procedure SetFSource(Value: TExtObject);
-    procedure SetFSource_(Value: TExtObject);
+    procedure _SetSource(const AValue: TExtObject);
     procedure SetFOnBeforepropertychange
       (Value: TExtGridPropertyGridOnBeforepropertychange);
     procedure SetFOnPropertychange(Value: TExtGridPropertyGridOnPropertychange);
@@ -1020,12 +1018,11 @@ type
     function RemoveProperty(Prop: string): TExtFunction;
     function SetProperty(Prop: string; Value: string; Create: Boolean = false)
       : TExtFunction;
-    function SetSource(Source: TExtObject): TExtFunction;
+    function SetSource(const ASource: TExtObject): TExtFunction;
     property CustomEditors: TExtObject read FCustomEditors write SetFCustomEditors;
     property CustomRenderers: TExtObject read FCustomRenderers write SetFCustomRenderers;
     property PropertyNames: TExtObject read FPropertyNames write SetFPropertyNames;
-    property Source: TExtObject read FSource write SetFSource;
-    property Source_: TExtObject read FSource_ write SetFSource_;
+    property Source: TExtObject read FSource write _SetSource;
     property OnBeforepropertychange: TExtGridPropertyGridOnBeforepropertychange
       read FOnBeforepropertychange write SetFOnBeforepropertychange;
     property OnPropertychange: TExtGridPropertyGridOnPropertychange read FOnPropertychange
@@ -3383,19 +3380,10 @@ begin
   JSCode('propertyNames:' + VarToJSON([Value, false]));
 end;
 
-procedure TExtGridPropertyGrid.SetFSource(Value: TExtObject);
+procedure TExtGridPropertyGrid._SetSource(const AValue: TExtObject);
 begin
-  FSource := Value;
-  if not ConfigAvailable(JSName) then
-    SetSource(Value)
-  else
-    JSCode('source:' + VarToJSON([Value, false]));
-end;
-
-procedure TExtGridPropertyGrid.SetFSource_(Value: TExtObject);
-begin
-  FSource_ := Value;
-  JSCode('source:' + VarToJSON([Value, false]));
+  FSource := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'source', [AValue, False]);
 end;
 
 procedure TExtGridPropertyGrid.SetFOnBeforepropertychange
@@ -3432,7 +3420,6 @@ begin
   FCustomRenderers := TExtObject.CreateInternal(Self, 'customRenderers');
   FPropertyNames := TExtObject.CreateInternal(Self, 'propertyNames');
   FSource := TExtObject.CreateInternal(Self, 'source');
-  FSource_ := TExtObject.CreateInternal(Self, 'source');
 end;
 
 function TExtGridPropertyGrid.GetSource: TExtFunction;
@@ -3455,10 +3442,10 @@ begin
   Result := Self;
 end;
 
-function TExtGridPropertyGrid.SetSource(Source: TExtObject): TExtFunction;
+function TExtGridPropertyGrid.SetSource(const ASource: TExtObject): TExtFunction;
 begin
-  JSCode(JSName + '.setSource(' + VarToJSON([Source, false]) + ');',
-    'TExtGridPropertyGrid');
+  FSource := ASource;
+  ExtSession.ResponseItems.CallMethod(Self, 'setSource', [ASource, False]);
   Result := Self;
 end;
 

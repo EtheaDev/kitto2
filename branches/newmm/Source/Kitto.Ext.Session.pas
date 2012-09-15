@@ -48,7 +48,7 @@ type
     property Bytes: TBytes read GetBytes;
   end;
 
-  TKExtSession = class(TExtThread)
+  TKExtSession = class(TExtSession)
   private
     FHomeController: TObject;
     FConfig: TKConfig;
@@ -165,7 +165,7 @@ uses
 
 function Session: TKExtSession;
 begin
-  Result := TKExtSession(CurrentWebSession);
+  Result := TKExtSession(_CurrentWebSession);
 end;
 
 { TKExtSession }
@@ -228,7 +228,7 @@ begin
   // being garbage collected in case the session is being freed by a
   // different thread. Otherwise objects don't mark themselves off the
   // GC upon destruction and risk to be destroyed multiple times.
-  CurrentWebSession := Self;
+  //_CurrentWebSession := Self;
   // Delete upload folder only for valid sessions.
   if FSessionId <> '' then
   begin
@@ -379,7 +379,7 @@ end;
 
 procedure TKExtSession.Navigate(const AURL: string);
 begin
-  Response := Format('window.open("%s", "_blank");', [AURL]);
+  ResponseItems.ExecuteJSCode(Format('window.open("%s", "_blank");', [AURL]));
 end;
 
 procedure TKExtSession.Refresh;

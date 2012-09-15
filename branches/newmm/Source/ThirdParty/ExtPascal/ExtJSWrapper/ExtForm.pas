@@ -463,15 +463,15 @@ type
     FText: string;
     procedure SetFForId(Value: string);
     procedure SetFHtml(Value: string);
-    procedure SetFText(Value: string);
+    procedure _SetText(const AValue: string);
   protected
     procedure InitDefaults; override;
   public
     function JSClassName: string; override;
-    function SetText(Text: string; Encode: Boolean = false): TExtFunction;
+    function SetText(const AText: string; const AEncode: Boolean = False): TExtFunction;
     property ForId: string read FForId write SetFForId;
     property Html: string read FHtml write SetFHtml;
-    property Text: string read FText write SetFText;
+    property Text: string read FText write _SetText;
   end;
 
   TExtFormHidden = class(TExtFormField)
@@ -604,7 +604,7 @@ type
     FWidth: Integer;
     procedure SetFAutoComplete(Value: Boolean);
     procedure SetFAutoResize(Value: Boolean);
-    procedure SetFCode(Value: string);
+    procedure _SetCode(const AValue: string);
     procedure SetFHeight(Value: Integer);
     procedure SetFLanguage(Value: string);
     procedure SetFLineNumbers(Value: Boolean);
@@ -617,7 +617,7 @@ type
   public
     function JSClassName: string; override;
     function Edit(Obj: TExtObject; Language: string): TExtFunction;
-    function SetCode(Code: string): TExtFunction;
+    function SetCode(const ACode: string): TExtFunction;
     function GetCode: TExtFunction;
     function GetLanguage: TExtFunction;
     function SetValue(Code: string): TExtFunction;
@@ -629,7 +629,7 @@ type
     function ToggleEditor: TExtFunction;
     property AutoComplete: Boolean read FAutoComplete write SetFAutoComplete;
     property AutoResize: Boolean read FAutoResize write SetFAutoResize;
-    property Code: string read FCode write SetFCode;
+    property Code: string read FCode write _SetCode;
     property Height: Integer read FHeight write SetFHeight;
     property Language: string read FLanguage write SetFLanguage;
     property LineNumbers: Boolean read FLineNumbers write SetFLineNumbers;
@@ -1192,17 +1192,17 @@ type
     procedure SetAltFormats(const AValue: string);
     procedure SetFAutoCreate(Value: string);
     procedure SetFAutoCreateObject(Value: TExtObject);
-    procedure SetFDisabledDates(Value: TExtObjectList);
+    procedure _SetDisabledDates(const AValue: TExtObjectList);
     procedure SetFDisabledDatesText(Value: string);
-    procedure SetFDisabledDays(Value: TExtObjectList);
+    procedure _SetDisabledDays(Value: TExtObjectList);
     procedure SetFDisabledDaysText(Value: string);
     procedure SetFormat(const AValue: string);
     procedure SetFInvalidText(Value: string);
     procedure SetFMaxText(Value: string);
-    procedure SetFMaxValue(Value: TDateTime);
+    procedure _SetMaxValue(const AValue: TDateTime);
     procedure SetFMaxValueString(Value: string);
     procedure SetFMinText(Value: string);
-    procedure SetFMinValue(Value: TDateTime);
+    procedure _SetMinValue(const AValue: TDateTime);
     procedure SetFMinValueString(Value: string);
     procedure SetFShowToday(Value: Boolean);
     procedure SetFTriggerClass(Value: string);
@@ -1214,10 +1214,10 @@ type
     function JSClassName: string; override;
     function GetErrors(Value: string): TExtFunction;
     function GetValue: TExtFunction;
-    function SetDisabledDates(DisabledDates: TExtObjectList): TExtFunction;
-    function SetDisabledDays(DisabledDays: TExtObjectList): TExtFunction;
-    function SetMaxValue(Value: TDateTime): TExtFunction;
-    function SetMinValue(Value: TDateTime): TExtFunction;
+    function SetDisabledDates(const ADisabledDates: TExtObjectList): TExtFunction;
+    function SetDisabledDays(const ADisabledDays: TExtObjectList): TExtFunction;
+    function SetMaxValue(const AValue: TDateTime): TExtFunction;
+    function SetMinValue(const AValue: TDateTime): TExtFunction;
     function SetValue(Date: string): TExtFunction; overload;
     function SetValue(Date: TDateTime): TExtFunction; overload;
     property AltFormats: string read FAltFormats write SetAltFormats;
@@ -1225,21 +1225,21 @@ type
     property AutoCreateObject: TExtObject read FAutoCreateObject
       write SetFAutoCreateObject;
     property DisabledDates: TExtObjectList read FDisabledDates
-      write SetFDisabledDates;
+      write _SetDisabledDates;
     property DisabledDatesText: string read FDisabledDatesText
       write SetFDisabledDatesText;
     property DisabledDays: TExtObjectList read FDisabledDays
-      write SetFDisabledDays;
+      write _SetDisabledDays;
     property DisabledDaysText: string read FDisabledDaysText
       write SetFDisabledDaysText;
     property Format: string read FFormat write SetFormat;
     property InvalidText: string read FInvalidText write SetFInvalidText;
     property MaxText: string read FMaxText write SetFMaxText;
-    property MaxValue: TDateTime read FMaxValue write SetFMaxValue;
+    property MaxValue: TDateTime read FMaxValue write _SetMaxValue;
     property MaxValueString: string read FMaxValueString
       write SetFMaxValueString;
     property MinText: string read FMinText write SetFMinText;
-    property MinValue: TDateTime read FMinValue write SetFMinValue;
+    property MinValue: TDateTime read FMinValue write _SetMinValue;
     property MinValueString: string read FMinValueString
       write SetFMinValueString;
     property ShowToday: Boolean read FShowToday write SetFShowToday;
@@ -1492,29 +1492,29 @@ type
     procedure SetFIncrement(Value: Integer);
     procedure SetFInvalidText(Value: string);
     procedure SetFMaxText(Value: string);
-    procedure SetFMaxValue(Value: TDateTime);
+    procedure _SetMaxValue(const AValue: TDateTime);
     procedure SetFMaxValueString(Value: string);
     procedure SetFMinText(Value: string);
-    procedure SetFMinValue(Value: TDateTime);
+    procedure _SetMinValue(const AValue: TDateTime);
     procedure SetFMinValueString(Value: string);
   protected
     procedure InitDefaults; override;
   public
     function JSClassName: string; override;
-    function SetMaxValue(Value: TDateTime): TExtFunction; overload;
+    function SetMaxValue(const AValue: TDateTime): TExtFunction; overload;
     function SetMaxValue(Value: string): TExtFunction; overload;
-    function SetMinValue(Value: TDateTime): TExtFunction; overload;
+    function SetMinValue(const AValue: TDateTime): TExtFunction; overload;
     function SetMinValue(Value: string): TExtFunction; overload;
     property AltFormats: string read FAltFormats write SetAltFormats;
     property Format: string read FFormat write SetFormat;
     property Increment: Integer read FIncrement write SetFIncrement;
     property InvalidText: string read FInvalidText write SetFInvalidText;
     property MaxText: string read FMaxText write SetFMaxText;
-    property MaxValue: TDateTime read FMaxValue write SetFMaxValue;
+    property MaxValue: TDateTime read FMaxValue write _SetMaxValue;
     property MaxValueString: string read FMaxValueString
       write SetFMaxValueString;
     property MinText: string read FMinText write SetFMinText;
-    property MinValue: TDateTime read FMinValue write SetFMinValue;
+    property MinValue: TDateTime read FMinValue write _SetMinValue;
     property MinValueString: string read FMinValueString
       write SetFMinValueString;
   end;
@@ -2535,13 +2535,10 @@ begin
   JSCode('html:' + VarToJSON([Value]));
 end;
 
-procedure TExtFormLabel.SetFText(Value: string);
+procedure TExtFormLabel._SetText(const AValue: string);
 begin
-  FText := Value;
-  if not ConfigAvailable(JSName) then
-    SetText(Value)
-  else
-    JSCode('text:' + VarToJSON([Value]));
+  FText := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'text', 'setText', [AValue]);
 end;
 
 function TExtFormLabel.JSClassName: string;
@@ -2554,11 +2551,10 @@ begin
   inherited;
 end;
 
-function TExtFormLabel.SetText(Text: string; Encode: Boolean = false)
-  : TExtFunction;
+function TExtFormLabel.SetText(const AText: string; const AEncode: Boolean): TExtFunction;
 begin
-  JSCode(JSName + '.setText(' + VarToJSON([Text, Encode]) + ');',
-    'TExtFormLabel');
+  FText := AText;
+  ExtSession.ResponseItems.CallMethod(Self, 'setText', [AText, AEncode]);
   Result := Self;
 end;
 
@@ -2855,13 +2851,10 @@ begin
   JSCode('autoResize:' + VarToJSON([Value]));
 end;
 
-procedure TExtUxCodePress.SetFCode(Value: string);
+procedure TExtUxCodePress._SetCode(const AValue: string);
 begin
-  FCode := Value;
-  if not ConfigAvailable(JSName) then
-    SetCode(Value)
-  else
-    JSCode('code:' + VarToJSON([Value]));
+  FCode := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'code', 'setCode', [AValue]);
 end;
 
 procedure TExtUxCodePress.SetFHeight(Value: Integer);
@@ -2930,9 +2923,9 @@ begin
   Result := Self;
 end;
 
-function TExtUxCodePress.SetCode(Code: string): TExtFunction;
+function TExtUxCodePress.SetCode(const ACode: string): TExtFunction;
 begin
-  JSCode(JSName + '.setCode(' + VarToJSON([Code]) + ');', 'TExtUxCodePress');
+  ExtSession.ResponseItems.CallMethod(Self, 'setCode', [ACode]);
   Result := Self;
 end;
 
@@ -4162,13 +4155,10 @@ begin
   JSCode('autoCreate:' + VarToJSON([Value, false]));
 end;
 
-procedure TExtFormDateField.SetFDisabledDates(Value: TExtObjectList);
+procedure TExtFormDateField._SetDisabledDates(const AValue: TExtObjectList);
 begin
-  FDisabledDates := Value;
-  if not ConfigAvailable(JSName) then
-    SetDisabledDates(Value)
-  else
-    JSCode('disabledDates:' + VarToJSON([Value, false]));
+  FDisabledDates := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'disabledDates', 'setDisabledDates', [AValue]);
 end;
 
 procedure TExtFormDateField.SetFDisabledDatesText(Value: string);
@@ -4177,13 +4167,11 @@ begin
   JSCode('disabledDatesText:' + VarToJSON([Value]));
 end;
 
-procedure TExtFormDateField.SetFDisabledDays(Value: TExtObjectList);
+procedure TExtFormDateField._SetDisabledDays(Value: TExtObjectList);
 begin
+  FDisabledDays.Free;
   FDisabledDays := Value;
-  if not ConfigAvailable(JSName) then
-    SetDisabledDays(Value)
-  else
-    JSCode('disabledDays:' + VarToJSON([Value, false]));
+  ExtSession.ResponseItems.SetConfigItem(Self, 'disabledDays', 'setDisabledDays', [FDisabledDays, False]);
 end;
 
 procedure TExtFormDateField.SetFDisabledDaysText(Value: string);
@@ -4210,13 +4198,10 @@ begin
   JSCode('maxText:' + VarToJSON([Value]));
 end;
 
-procedure TExtFormDateField.SetFMaxValue(Value: TDateTime);
+procedure TExtFormDateField._SetMaxValue(const AValue: TDateTime);
 begin
-  FMaxValue := Value;
-  if not ConfigAvailable(JSName) then
-    SetMaxValue(Value)
-  else
-    JSCode('maxValue:' + VarToJSON([Value]));
+  FMaxValue := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'maxValue', 'setMaxValue', [AValue]);
 end;
 
 procedure TExtFormDateField.SetFMaxValueString(Value: string);
@@ -4231,13 +4216,10 @@ begin
   JSCode('minText:' + VarToJSON([Value]));
 end;
 
-procedure TExtFormDateField.SetFMinValue(Value: TDateTime);
+procedure TExtFormDateField._SetMinValue(const AValue: TDateTime);
 begin
-  FMinValue := Value;
-  if not ConfigAvailable(JSName) then
-    SetMinValue(Value)
-  else
-    JSCode('minValue:' + VarToJSON([Value]));
+  FMinValue := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'minValue', 'setMinValue', [AValue]);
 end;
 
 procedure TExtFormDateField.SetFMinValueString(Value: string);
@@ -4304,33 +4286,33 @@ begin
   Result := Self;
 end;
 
-function TExtFormDateField.SetDisabledDates(DisabledDates: TExtObjectList)
-  : TExtFunction;
+function TExtFormDateField.SetDisabledDates(const ADisabledDates: TExtObjectList): TExtFunction;
 begin
-  JSCode(JSName + '.setDisabledDates(' + VarToJSON(DisabledDates) + ');',
-    'TExtFormDateField');
+  FDisabledDates.Free;
+  FDisabledDates := ADisabledDates;
+  ExtSession.ResponseItems.CallMethod(Self, 'setDisabledDates', [ADisabledDates]);
   Result := Self;
 end;
 
-function TExtFormDateField.SetDisabledDays(DisabledDays: TExtObjectList)
-  : TExtFunction;
+function TExtFormDateField.SetDisabledDays(const ADisabledDays: TExtObjectList): TExtFunction;
 begin
-  JSCode(JSName + '.setDisabledDays(' + VarToJSON(DisabledDays) + ');',
-    'TExtFormDateField');
+  FDisabledDays.Free;
+  FDisabledDays := ADisabledDays;
+  ExtSession.ResponseItems.CallMethod(Self, 'setDisabledDays', [ADisabledDays, False]);
   Result := Self;
 end;
 
-function TExtFormDateField.SetMaxValue(Value: TDateTime): TExtFunction;
+function TExtFormDateField.SetMaxValue(const AValue: TDateTime): TExtFunction;
 begin
-  JSCode(JSName + '.setMaxValue(' + VarToJSON([Value]) + ');',
-    'TExtFormDateField');
+  FMaxValue := AValue;
+  ExtSession.ResponseItems.CallMethod(Self, 'setMaxValue', [AValue]);
   Result := Self;
 end;
 
-function TExtFormDateField.SetMinValue(Value: TDateTime): TExtFunction;
+function TExtFormDateField.SetMinValue(const AValue: TDateTime): TExtFunction;
 begin
-  JSCode(JSName + '.setMinValue(' + VarToJSON([Value]) + ');',
-    'TExtFormDateField');
+  FMinValue := AValue;
+  ExtSession.ResponseItems.CallMethod(Self, 'setMinValue', [AValue]);
   Result := Self;
 end;
 
@@ -4899,13 +4881,10 @@ begin
   JSCode('maxText:' + VarToJSON([Value]));
 end;
 
-procedure TExtFormTimeField.SetFMaxValue(Value: TDateTime);
+procedure TExtFormTimeField._SetMaxValue(const AValue: TDateTime);
 begin
-  FMaxValue := Value;
-  if not ConfigAvailable(JSName) then
-    SetMaxValue(Value)
-  else
-    JSCode('maxValue:' + VarToJSON([Value]));
+  FMaxValue := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'maxValue', 'setMaxValue', [AValue]);
 end;
 
 procedure TExtFormTimeField.SetFMaxValueString(Value: string);
@@ -4920,13 +4899,10 @@ begin
   JSCode('minText:' + VarToJSON([Value]));
 end;
 
-procedure TExtFormTimeField.SetFMinValue(Value: TDateTime);
+procedure TExtFormTimeField._SetMinValue(const AValue: TDateTime);
 begin
-  FMinValue := Value;
-  if not ConfigAvailable(JSName) then
-    SetMinValue(Value)
-  else
-    JSCode('minValue:' + VarToJSON([Value]));
+  FMinValue := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'minValue', 'setMinValue', [AValue]);
 end;
 
 procedure TExtFormTimeField.SetFMinValueString(Value: string);
@@ -4952,10 +4928,10 @@ begin
   FMinText := 'The time in this field must be equal to or after {0}';
 end;
 
-function TExtFormTimeField.SetMaxValue(Value: TDateTime): TExtFunction;
+function TExtFormTimeField.SetMaxValue(const AValue: TDateTime): TExtFunction;
 begin
-  JSCode(JSName + '.setMaxValue(' + VarToJSON([Value]) + ');',
-    'TExtFormTimeField');
+  FMaxValue := AValue;
+  ExtSession.ResponseItems.CallMethod(Self, 'setMaxValue', [AValue]);
   Result := Self;
 end;
 
@@ -4966,10 +4942,10 @@ begin
   Result := Self;
 end;
 
-function TExtFormTimeField.SetMinValue(Value: TDateTime): TExtFunction;
+function TExtFormTimeField.SetMinValue(const AValue: TDateTime): TExtFunction;
 begin
-  JSCode(JSName + '.setMinValue(' + VarToJSON([Value]) + ');',
-    'TExtFormTimeField');
+  FMinValue := AValue;
+  ExtSession.ResponseItems.CallMethod(Self, 'setMinValue', [AValue]);
   Result := Self;
 end;
 
