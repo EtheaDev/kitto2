@@ -1,5 +1,3 @@
-unit EF.JSON;
-
 {-------------------------------------------------------------------------------
    Copyright 2012 Ethea S.r.l.
 
@@ -15,6 +13,14 @@ unit EF.JSON;
    See the License for the specific language governing permissions and
    limitations under the License.
 -------------------------------------------------------------------------------}
+
+///	<summary>
+///	  Support for reading and writing data in JSON format.
+///	</summary>
+///	<seealso href="http://www.json.org/">
+///	  JSON web site
+///	</seealso>
+unit EF.JSON;
 
 {$I EF.Defines.inc}
 
@@ -69,10 +75,12 @@ function DataSetToJSON(const ADBConnection: TEFDBConnection; const ACommandText:
 ///	</example>
 function DataSetToJSON(const ADataSet: TDataSet): string; overload;
 
+function QuoteJSONStr(const AString: string): string;
+
 implementation
 
 uses
-  SysUtils,
+  SysUtils, StrUtils,
   EF.StrUtils;
 
 function PairsToJSON(const APairs: TEFPairs; const AReversed: Boolean): string;
@@ -158,6 +166,11 @@ begin
   finally
     ADataSet.EnableControls;
   end;
+end;
+
+function QuoteJSONStr(const AString: string): string;
+begin
+  Result := '"' + ReplaceStr(AString, '"', '\"') + '"';
 end;
 
 end.

@@ -1097,7 +1097,7 @@ implementation
 
 uses
   StrUtils, TypInfo, Math, DateUtils,
-  EF.Localization, EF.StrUtils, EF.YAML, EF.VariantUtils;
+  EF.JSON, EF.Localization, EF.StrUtils, EF.YAML, EF.VariantUtils;
 
 {$IF RTLVersion < 23.0}
 const
@@ -2440,7 +2440,7 @@ begin
   if ANode.IsNull then
     Result := 'null'
   else
-    Result := '"' + InternalNodeToJSONValue(AForDisplay, ANode, AJSFormatSettings) + '"';
+    Result := QuoteJSONStr(InternalNodeToJSONValue(AForDisplay, ANode, AJSFormatSettings));
 end;
 
 procedure TEFDataType.NodeToParam(const ANode: TEFNode; const AParam: TParam);
