@@ -91,9 +91,9 @@ begin
   for I := Low(APairs) to High(APairs) do
   begin
     if AReversed then
-      Result := Result + '["' + APairs[I].Value + '", "' + APairs[I].Key + '"]'
+      Result := Result + '[' + QuoteJSONStr(APairs[I].Value) + ',' + QuoteJSONStr(APairs[I].Key) + ']'
     else
-      Result := Result + '["' + APairs[I].Key + '", "' + APairs[I].Value + '"]';
+      Result := Result + '[' + QuoteJSONStr(APairs[I].Key) + ',' + QuoteJSONStr(APairs[I].Value) + ']';
     if I < High(APairs) then
       Result := Result + ',';
   end;
@@ -106,7 +106,10 @@ begin
   Result := '';
   for I := Low(ATriples) to High(ATriples) do
   begin
-    Result := Result + '["' + ATriples[I].Value1 + '", "' + ATriples[I].Value2 + '", "' + ATriples[I].Value3 +'"]';
+    Result := Result + '['
+      + QuoteJSONStr(ATriples[I].Value1) + ','
+      + QuoteJSONStr(ATriples[I].Value2) + ','
+      + QuoteJSONStr(ATriples[I].Value3) +']';
     if I < High(ATriples) then
       Result := Result + ',';
   end;
@@ -152,7 +155,7 @@ begin
         Result := Result + '[';
         for I := 0 to ADataSet.FieldCount - 1 do
         begin
-          Result := Result + '"' + ADataSet.Fields[I].AsString + '"';
+          Result := Result + QuoteJSONStr(ADataSet.Fields[I].AsString);
           if I < ADataSet.FieldCount - 1 then
             Result := Result + ',';
         end;
