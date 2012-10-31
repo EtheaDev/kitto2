@@ -484,6 +484,7 @@ implementation
 uses
   Types, Math, StrUtils, Windows, Graphics, jpeg, pngimage,
   EF.SysUtils, EF.StrUtils, EF.Localization, EF.YAML, EF.Types, EF.SQL, EF.JSON,
+  EF.DB,
   Kitto.SQL, Kitto.Metadata.Models, Kitto.Types, Kitto.AccessControl,
   Kitto.Rules, Kitto.Ext.Utils, Kitto.Ext.Session, Kitto.Ext.Rules;
 
@@ -1624,15 +1625,19 @@ var
   LStart: Integer;
   LLimit: Integer;
   LPageRecordCount: Integer;
+  LQuery: string;
+  LDBConnection: TEFDBConnection;
 begin
   Assert(Assigned(FServerStore));
 
-  FServerStore.Load(Session.Config.DBConnections[GetRecordField.ViewField.Table.DatabaseName],
-    ReplaceStr(FLookupCommandText, '{query}', ReplaceStr(Session.Query['query'], '''', '''''')));
+  LQuery := ReplaceStr(Session.Query['query'], '''', '''''');
+  LDBConnection := Session.Config.DBConnections[GetRecordField.ViewField.Table.DatabaseName];
+
+  FServerStore.Load(LDBConnection, ReplaceStr(FLookupCommandText, '{query}', LQuery));
 
   LStart := Session.QueryAsInteger['start'];
   LLimit := Session.QueryAsInteger['limit'];
-  LPageRecordCount := Min(Max(LLimit, 100), FServerStore.RecordCount - LStart);
+  LPageRecordCount := Min(LLimit, FServerStore.RecordCount - LStart);
 
   Session.Response := '{Total:' + IntToStr(FServerStore.RecordCount) + ',Root:'
     + FServerStore.GetAsJSON(False, LStart, LPageRecordCount) + '}';
@@ -1696,11 +1701,13 @@ begin
   // corresponding display value because the list is not loaded yet,
   // and it will render this value.
   ValueNotFoundText := AField.AsString;
+  { TODO : make these configurable. }
   MinChars := 4;
-  //PageSize := 20;
-  //Resizable := True;
-  //MinHeight := LinesToPixels(5);
+  PageSize := 100;
+  Resizable := True;
+  MinHeight := LinesToPixels(5);
   Mode := 'remote';
+  TypeAhead := True;
 end;
 
 { TKExtFormContainer }
