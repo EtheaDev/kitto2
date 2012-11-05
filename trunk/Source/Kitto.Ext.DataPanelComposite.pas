@@ -28,13 +28,13 @@ type
   ///	data panels and delegate implementation to them.</summary>
   TKExtDataPanelCompositeController = class abstract(TKExtDataPanelController)
   public
-    procedure LoadData(const AFilterExpression: string); override;
-    procedure RefilterData(const AFilterExpression: string); override;
+    function GetFilterExpression: string; override;
   strict protected
     procedure InitSubController(const AController: IKExtController); override;
     procedure DoDisplay; override;
+  public
   published
-    procedure RefreshData; override;
+    procedure LoadData; override;
   end;
 
 implementation
@@ -46,23 +46,26 @@ uses
 
 { TKExtDataPanelCompositeController }
 
-procedure TKExtDataPanelCompositeController.RefilterData(const AFilterExpression: string);
-begin
-  inherited;
-  Apply(
-    procedure (AObject: TExtObject)
-    begin
-      if AObject is TKExtDataPanelController then
-        TKExtDataPanelController(AObject).RefilterData(AFilterExpression);
-    end);
-end;
-
 procedure TKExtDataPanelCompositeController.DoDisplay;
 begin
   inherited;
   CheckCanRead;
   if AutoLoadData then
-    LoadData('');
+    LoadData;
+end;
+
+function TKExtDataPanelCompositeController.GetFilterExpression: string;
+var
+  LResult: string;
+begin
+  LResult := '';
+  Apply(
+    procedure (AObject: TExtObject)
+    begin
+      if AObject is TKExtDataPanelController then
+        LResult := SmartConcat(LResult, ' and ', TKExtDataPanelController(AObject).GetFilterExpression);
+    end);
+  Result := LResult;
 end;
 
 procedure TKExtDataPanelCompositeController.InitSubController(
@@ -71,29 +74,17 @@ begin
   inherited;
   Assert(Assigned(AController));
 
-  AController.Config.SetObject('Sys/RefreshHandler', Self);
+  AController.Config.SetObject('Sys/ParentDataPanel', Self);
 end;
 
-procedure TKExtDataPanelCompositeController.LoadData(const AFilterExpression: string);
+procedure TKExtDataPanelCompositeController.LoadData;
 begin
   inherited;
   Apply(
     procedure (AObject: TExtObject)
     begin
       if AObject is TKExtDataPanelController then
-        TKExtDataPanelController(AObject).LoadData(
-          SmartConcat(AFilterExpression, ' and ', GetFilterExpression));
-    end);
-end;
-
-procedure TKExtDataPanelCompositeController.RefreshData;
-begin
-  inherited;
-  Apply(
-    procedure (AObject: TExtObject)
-    begin
-      if AObject is TKExtDataPanelController then
-        TKExtDataPanelController(AObject).RefreshData;
+        TKExtDataPanelController(AObject).LoadData;
     end);
 end;
 
