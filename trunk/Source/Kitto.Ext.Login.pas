@@ -141,6 +141,7 @@ begin
   FUserName.AllowBlank := False;
   FUserName.Width := 136;
   FUserName.EnableKeyEvents := True;
+  FUserName.SelectOnFocus := True;
 
   FPassword := TExtFormTextField.AddTo(FFormPanel.Items);
   FPassword.Name := 'Password';
@@ -150,6 +151,7 @@ begin
   FPassword.AllowBlank := False;
   FPassword.Width := 136;
   FPassword.EnableKeyEvents := True;
+  FPassword.SelectOnFocus := True;
 
   FUserName.On('keyup', JSFunction(GetEnableButtonJS));
   FPassword.On('keyup', JSFunction(GetEnableButtonJS));
