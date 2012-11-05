@@ -55,11 +55,11 @@ type
     procedure InitComponents; override;
     function GetRegionControllerName(const ARegion: TExtBoxComponentRegion): string; override;
     function GetRegionControllerConfig(const ARegion: TExtBoxComponentRegion): TEFNode; override;
-    function GetFilterExpression: string; override;
     procedure SetViewTable(const AValue: TKViewTable); override;
   protected
     procedure InitDefaults; override;
   public
+    function GetFilterExpression: string; override;
     destructor Destroy; override;
   end;
 
@@ -67,7 +67,7 @@ implementation
 
 uses
   SysUtils,
-  EF.Localization,
+  EF.Localization, EF.StrUtils,
   Kitto.Types,
   Kitto.Ext.Session, Kitto.Ext.Controller, Kitto.Ext.Filters;
 
@@ -153,10 +153,9 @@ end;
 
 function TKExtListPanelController.GetFilterExpression: string;
 begin
+  Result := inherited GetFilterExpression;
   if Assigned(FFilterPanel) then
-    Result := FFilterPanel.GetFilterExpression
-  else
-    Result := inherited GetFilterExpression;
+    Result := SmartConcat(Result, ' and ', FFilterPanel.GetFilterExpression);
 end;
 
 procedure TKExtListPanelController.CreateFilterPanel;
@@ -178,7 +177,7 @@ end;
 
 procedure TKExtListPanelController.FilterPanelChange(Sender: TObject);
 begin
-  RefilterData(GetFilterExpression);
+  LoadData;
 end;
 
 destructor TKExtListPanelController.Destroy;

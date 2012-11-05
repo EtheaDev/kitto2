@@ -200,10 +200,6 @@ type
   ///	  <para>All filters with IsDefault set to True are renderd as initially
   ///	  pressed buttons.</para>
   ///	</summary>
-{ TODO :
-Add parameter (or separate filter class) to allow several buttons
-pressed at the same time to generate a combined expression
-through a connector. }
   TKButtonListFilter = class(TKExtPanelBase, IKExtFilter)
   private
     FConfig: TEFNode;
