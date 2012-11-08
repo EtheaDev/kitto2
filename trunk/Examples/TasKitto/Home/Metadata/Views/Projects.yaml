@@ -1,27 +1,24 @@
 ﻿Type: Data
 
 Controller: List
+  Filters:
+    DisplayLabel: Project Filter
+    Connector: and
+    Items:
+      FreeSearch: Name
+        # ExpressionTemplate should contain a {value} placeholder for the search term.
+        ExpressionTemplate: >
+          upper(PROJECT_NAME) like upper('%{value}%')
+      DynaList: Customer
+        # CommandText must select the value field and the display field as the first two fields.
+        CommandText: |
+          select distinct CUSTOMER_ID, CUSTOMER_NAME
+          from CUSTOMER order by 2
+        # ExpressionTemplate should contain a {value} placeholder for the value field selected by the CommandText.
+        ExpressionTemplate: CUSTOMER_NAME = '{value}'
 
 MainTable:
   Model: PROJECT
-
-  Controller:
-    Filters:
-      DisplayLabel: Project Filter
-      Connector: and
-      Items:
-        FreeSearch: Name free search
-          # ExpressionTemplate should contain a {value} placeholder for the search term.
-          ExpressionTemplate: >
-            upper(PROJECT_NAME) like upper('%{value}%')
-        DynaList: Customer
-          # CommandText must select the value field and the display field as the first two fields.
-          CommandText: |
-            select distinct CUSTOMER_ID, CUSTOMER_NAME
-            from CUSTOMER order by 2
-          # ExpressionTemplate should contain a {value} placeholder for the value field selected by the CommandText.
-          ExpressionTemplate: CUSTOMER_NAME = '{value}'
-
   DetailTables:
     Table:
       Model: PHASE
