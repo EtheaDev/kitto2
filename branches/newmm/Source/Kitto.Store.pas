@@ -199,6 +199,8 @@ type
     property Fields[I: Integer]: TKHeaderField read GetField;
   end;
 
+  TKRecordPredicate = TPredicate<TKRecord>;
+
   TKStore = class(TEFTree)
   private
     FHeader: TKHeader;
@@ -238,13 +240,39 @@ type
 
     function ChangesPending: Boolean;
 
-    ///	<summary>Iterates all non-deleted records in the store calling AProc
-    ///	for each record.</summary>
+    ///	<summary>Iterates all records in the store (regardless of state)
+    /// calling APredicate for each record and then calling AProc when
+    ///	the predicate returns True. Use the optional predicate to filter
+    /// records before passing them to AProc.</summary>
     ///	<param name="AProc">A procedure that receives a TKRecord.</param>
-    procedure Iterate(const AProc: TProc<TKRecord>);
+    ///	<param name="AProc">A function that receives a TKRecord and
+    /// returns a Boolean indicating whether to include the record in the
+    /// enumeration or not. You can pass predefined predicates such as All
+    /// and NotDeleted or code your own.</param>
+    procedure Iterate(const AProc: TProc<TKRecord>;
+      const APredicates: array of TPredicate<TKRecord>);
 
-    function Count(const AFieldName: string; const AValue: Variant): Integer;
+    ///	<summary>Pass this as a predicate to one of the predicate-accepting
+    /// methodse to specify that you want to include all records (including
+    /// those marked as deleted).</summary>
+    function All: TPredicate<TKRecord>;
+
+    ///	<summary>Pass this as a predicate to one of the predicate-accepting
+    /// methodse to specify that you want to include all records except
+    /// those marked as deleted.</summary>
+    function ExcludeDeleted: TPredicate<TKRecord>;
+
+    ///	<summary>Returns the number of records in which all the specified
+    /// predicates hold (that is, all return True for a given record).</summary>
+    function Count(const APredicates: array of TPredicate<TKRecord>): Integer; overload;
+
+    ///	<summary>Returns the number of non-deleted records in which the specified
+    /// field has the specified value. This is a special case of the more generic
+    /// predicate-based Count method.</summary>
+    function Count(const AFieldName: string; const AValue: Variant): Integer; overload;
+
     function Max(const AFieldName: string): Variant;
+    function Min(const AFieldName: string): Variant;
   end;
 
 implementation
@@ -279,30 +307,73 @@ begin
   end;
 end;
 
-procedure TKStore.Iterate(const AProc: TProc<TKRecord>);
+function TKStore.All: TPredicate<TKRecord>;
+begin
+  Result := function(ARecord: TKRecord): Boolean
+            begin
+              Result := True;
+            end;
+end;
+
+function TKStore.ExcludeDeleted: TPredicate<TKRecord>;
+begin
+  Result := function(ARecord: TKRecord): Boolean
+            begin
+              Result := not ARecord.IsDeleted;
+            end;
+end;
+
+procedure TKStore.Iterate(const AProc: TProc<TKRecord>;
+  const APredicates: array of TPredicate<TKRecord>);
 var
   I: Integer;
+  LPredicate: TPredicate<TKRecord>;
+  LAllowed: Boolean;
 begin
   if Assigned(AProc) then
+  begin
     for I := 0 to RecordCount - 1 do
-      if not Records[I].IsDeleted then
+    begin
+      LAllowed := True;
+      for LPredicate in APredicates do
+      begin
+        if LAllowed then
+          LAllowed := LPredicate(Records[I]);
+        if not LAllowed then
+          Break;
+      end;
+      if LAllowed then
         AProc(Records[I]);
+    end;
+  end;
+end;
+
+function TKStore.Count(const APredicates: array of TPredicate<TKRecord>): Integer;
+var
+  LCount: Integer;
+begin
+  LCount := 0;
+  Iterate(
+    procedure (ARecord: TKRecord)
+    begin
+      Inc(LCount);
+    end,
+    APredicates);
+  Result := LCount;
 end;
 
 function TKStore.Count(const AFieldName: string; const AValue: Variant): Integer;
 var
-  LCount: Integer;
   LValue: Variant;
+  LPredicate: TPredicate<TKRecord>;
 begin
-  LCount := 0;
   LValue := AValue;
-  Iterate(
-    procedure (ARecord: TKRecord)
+  LPredicate :=
+    function (ARecord: TKRecord): Boolean
     begin
-      if ARecord.FieldByName(AFieldName).Value = LValue then
-        Inc(LCount);
-    end);
-  Result := LCount;
+      ARecord.FieldByName(AFieldName).Value := LValue; // Cannot capture AValue.
+    end;
+  Result := Count([ExcludeDeleted(), LPredicate]);
 end;
 
 function TKStore.Max(const AFieldName: string): Variant;
@@ -315,8 +386,24 @@ begin
     begin
       if VarIsNull(LMaxValue) or (LMaxValue < ARecord.FieldByName(AFieldName).Value) then
         LMaxValue := ARecord.FieldByName(AFieldName).Value;
-    end);
+    end,
+    [ExcludeDeleted()]);
   Result := LMaxValue;
+end;
+
+function TKStore.Min(const AFieldName: string): Variant;
+var
+  LMinValue: Variant;
+begin
+  LMinValue := Null;
+  Iterate(
+    procedure (ARecord: TKRecord)
+    begin
+      if VarIsNull(LMinValue) or (LMinValue < ARecord.FieldByName(AFieldName).Value) then
+        LMinValue := ARecord.FieldByName(AFieldName).Value;
+    end,
+    [ExcludeDeleted()]);
+  Result := LMinValue;
 end;
 
 destructor TKStore.Destroy;
@@ -648,15 +735,21 @@ end;
 function TKRecord.GetAsJSON(const AForDisplay: Boolean): string;
 var
   I: Integer;
+  LJSON: string;
 begin
-  Result := '{';
+  Result := '';
   for I := 0 to FieldCount - 1 do
   begin
-    Result := Result + Fields[I].GetAsJSON(AForDisplay);
-    if I < FieldCount - 1 then
-      Result := Result + ',';
+    LJSON := Fields[I].GetAsJSON(AForDisplay);
+    if LJSON <> '' then
+    begin
+      if Result <> '' then
+        Result := Result + ',' + LJSON
+      else
+        Result := LJSON;
+    end;
   end;
-  Result := Result + '}';
+  Result := '{' + Result + '}';
 end;
 
 function TKRecord.GetChildClass(const AName: string): TEFNodeClass;
@@ -805,13 +898,18 @@ end;
 
 function TKField.GetAsJSON(const AForDisplay: Boolean): string;
 begin
-  Result := '"' + GetJSONName + '":' + GetAsJSONValue(AForDisplay);
-  if AForDisplay then
+  if DataType.SupportsJSON then
   begin
-    Result := AnsiReplaceStr(Result, #13#10, '<br/>');
-    Result := AnsiReplaceStr(Result, #10, '<br/>');
-    Result := AnsiReplaceStr(Result, #13, '<br/>');
-  end;
+    Result := '"' + GetJSONName + '":' + GetAsJSONValue(AForDisplay);
+    if AForDisplay then
+    begin
+      Result := AnsiReplaceStr(Result, #13#10, '<br/>');
+      Result := AnsiReplaceStr(Result, #10, '<br/>');
+      Result := AnsiReplaceStr(Result, #13, '<br/>');
+    end;
+  end
+  else
+    Result := '';
 end;
 
 function TKField.GetAsJSONValue(const AForDisplay: Boolean): string;
@@ -843,7 +941,10 @@ end;
 procedure TKField.SetToNull;
 begin
   if not VarIsNull(Value) then
+  begin
+    FIsModified := True;
     ParentRecord.MarkAsModified;
+  end;
   inherited;
 end;
 
