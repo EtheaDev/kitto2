@@ -742,10 +742,17 @@ begin
 end;
 
 function TKViewTable.GetDefaultFilter: string;
+var
+  LFilter: string;
+  LModelFilter: string;
 begin
-  Result := GetString('DefaultFilter');
-  if Result = '' then
-    Result := Model.DefaultFilter;
+  LFilter := GetString('DefaultFilter');
+  if LFilter <> '' then
+    LFilter := '(' + LFilter + ')';
+  LModelFilter := Model.DefaultFilter;
+  if LModelFilter <> '' then
+    LModelFilter := '(' + LModelFilter + ')';
+  Result := SmartConcat(LModelFilter, ' and ', LFilter);
 end;
 
 function TKViewTable.GetDetailTableCount: Integer;
