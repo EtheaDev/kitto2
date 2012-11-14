@@ -74,7 +74,7 @@ type
     procedure EditViewRecord;
     procedure NewRecord(This: TExtButton; E: TExtEventObjectSingleton);
     procedure DeleteCurrentRecord;
-    procedure RefreshData; override;
+    procedure LoadData; override;
   end;
 
 implementation
@@ -609,7 +609,7 @@ procedure TKExtGridPanel.UpdateObserver(const ASubject: IEFSubject;
 begin
   inherited;
   if (AContext = 'Confirmed') and Supports(ASubject.AsObject, IKExtController) then
-    RefreshData;
+    LoadData;
 end;
 
 procedure TKExtGridPanel.DeleteCurrentRecord;
@@ -637,7 +637,7 @@ begin
     LRecord.Save(True);
     Session.Flash(Format(_('%s deleted.'), [_(ViewTable.DisplayLabel)]));
   end;
-  RefreshData;
+  LoadData;
 end;
 
 destructor TKExtGridPanel.Destroy;
@@ -646,11 +646,15 @@ begin
   inherited;
 end;
 
-procedure TKExtGridPanel.RefreshData;
+procedure TKExtGridPanel.LoadData;
 begin
   if Assigned(FPagingToolbar) then
   begin
-    FPagingToolbar.DoRefresh;
+    // Calling both DoRefresh and MoveFirst causes a double call to GetRecordPage.
+    // Since we now query the database every time in GetRecordPage,
+    // calling MoveFirst is enough to trigger a refresh AND a move to the first
+    // page if not there already.
+    //FPagingToolbar.DoRefresh;
     FPagingToolbar.MoveFirst;
   end
   else

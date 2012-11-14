@@ -53,7 +53,6 @@ type
     function GetMaxRecords: Integer;
   strict protected
     procedure CheckCanRead;
-    function GetFilterExpression: string; virtual;
 //    function GetRefreshJSCode: string; virtual;
     function GetOrderByClause: string; virtual;
     procedure SetViewTable(const AValue: TKViewTable); virtual;
@@ -73,15 +72,16 @@ type
       const AMethod: TExtProcedure): string; virtual;
     function GetSelectCall(const AMethod: TExtProcedure): TExtFunction; virtual;
     function AutoLoadData: Boolean; virtual;
+    function GetParentDataPanel: TKExtDataPanelController;
+    function GetRootDataPanel: TKExtDataPanelController;
   public
     destructor Destroy; override;
-    procedure LoadData(const AFilterExpression: string); virtual; abstract;
-    procedure RefilterData(const AFilterExpression: string); virtual; abstract;
     property ViewTable: TKViewTable read FViewTable write SetViewTable;
     property ServerStore: TKViewTableStore read FServerStore write FServerStore;
+    function GetFilterExpression: string; virtual;
   published
     procedure GetRecordPage;
-    procedure RefreshData; virtual;
+    procedure LoadData; virtual; abstract;
   end;
 
 implementation
@@ -251,17 +251,29 @@ begin
 
     if (LStart <> 0) or (LLimit <> 0) then
     begin
-      LTotal := ServerStore.LoadPage(GetFilterExpression, GetOrderByClause, LStart, LLimit);
+      LTotal := ServerStore.LoadPage(GetRootDataPanel.GetFilterExpression, GetOrderByClause, LStart, LLimit);
       LData := ServerStore.GetAsJSON(True);
     end
     else
     begin
-      ServerStore.Load(GetFilterExpression, GetOrderByClause);
+      ServerStore.Load(GetRootDataPanel.GetFilterExpression, GetOrderByClause);
       LTotal := ServerStore.RecordCount;
       LData := ServerStore.GetAsJSON(True, 0, Min(GetMaxRecords(), ServerStore.RecordCount));
     end;
   end;
   Session.ResponseItems.AddJSON(Format('{Total: %d, Root: %s}', [LTotal, LData]));
+end;
+
+function TKExtDataPanelController.GetRootDataPanel: TKExtDataPanelController;
+begin
+  Result := GetParentDataPanel;
+  if Result = nil then
+    Result := Self
+  else
+  begin
+    while (Result.GetParentDataPanel <> nil) do
+      Result := Result.GetParentDataPanel;
+  end;
 end;
 
 function TKExtDataPanelController.GetMaxRecords: Integer;
@@ -283,6 +295,11 @@ function TKExtDataPanelController.GetOrderByClause: string;
 begin
   { TODO : provide default ordering when not grouping? }
   Result := '';
+end;
+
+function TKExtDataPanelController.GetParentDataPanel: TKExtDataPanelController;
+begin
+  Result := TKExtDataPanelController(Config.GetObject('Sys/ParentDataPanel'));
 end;
 
 procedure TKExtDataPanelController.CreateToolbar;
@@ -308,10 +325,6 @@ begin
 
   AController.Config.SetObject('Sys/ViewTable', FViewTable);
   AController.Config.SetObject('Sys/ServerStore', FServerStore);
-end;
-
-procedure TKExtDataPanelController.RefreshData;
-begin
 end;
 
 procedure TKExtDataPanelController.SetViewTable(const AValue: TKViewTable);

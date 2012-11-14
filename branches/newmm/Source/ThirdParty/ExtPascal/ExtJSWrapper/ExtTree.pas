@@ -25,12 +25,12 @@ type
 
   TExtTreeRootTreeNodeUI = class(TExtFunction)
   public
-    function JSClassName : string; override;
+    class function JSClassName : string; override;
   end;
 
   TExtTreeTreeNodeUI = class(TExtFunction)
   public
-    function JSClassName : string; override;
+    class function JSClassName : string; override;
     function AddClass(ClassName : String) : TExtFunction; overload;
     function AddClass(ClassName : TExtObjectList) : TExtFunction; overload;
     function GetAnchor : TExtFunction;
@@ -47,7 +47,7 @@ type
 
   TExtTreeTreeFilter = class(TExtFunction)
   public
-    function JSClassName : string; override;
+    class function JSClassName : string; override;
     function Clear : TExtFunction;
     function Filter(Value : String; Attr : String = ''; StartNode : TExtTreeTreeNode = nil) : TExtFunction; overload;
     function Filter(Value : TRegExp; Attr : String = ''; StartNode : TExtTreeTreeNode = nil) : TExtFunction; overload;
@@ -71,7 +71,7 @@ type
   protected
     procedure InitDefaults; override;
   public
-    function JSClassName : string; override;
+    class function JSClassName : string; override;
     property CaseSensitive : Boolean read FCaseSensitive write SetFCaseSensitive;
     property Dir : String read FDir write SetFDir;
     property FolderSort : Boolean read FFolderSort write SetFFolderSort;
@@ -123,7 +123,7 @@ type
     procedure InitDefaults; override;
     procedure HandleEvent(const AEvtName: string); override;
   public
-    function JSClassName : string; override;
+    class function JSClassName : string; override;
     function CreateNode(Attr : TExtObject) : TExtFunction;
     function Load(Node : TExtTreeTreeNode; Callback : TExtFunction; Scope : TExtObject) : TExtFunction;
     property BaseAttrs : TExtObject read FBaseAttrs write SetFBaseAttrs;
@@ -154,7 +154,7 @@ type
   protected
     procedure HandleEvent(const AEvtName: string); override;
   public
-    function JSClassName : string; override;
+    class function JSClassName : string; override;
     function ClearSelections : TExtFunction;
     function GetSelectedNodes : TExtFunction;
     function IsSelected(Node : TExtTreeTreeNode) : TExtFunction;
@@ -176,7 +176,7 @@ type
   protected
     procedure HandleEvent(const AEvtName: string); override;
   public
-    function JSClassName : string; override;
+    class function JSClassName : string; override;
     function ClearSelections(Silent : Boolean) : TExtFunction;
     function GetSelectedNode : TExtFunction;
     function IsSelected(Node : TExtTreeTreeNode) : TExtFunction;
@@ -286,7 +286,7 @@ type
     procedure HandleEvent(const AEvtName: string); override;
     function GetObjectNamePrefix: string; override;
   public
-    function JSClassName : string; override;
+    class function JSClassName : string; override;
     function Collapse(Deep : Boolean = false; Anim : Boolean = false; Callback : TExtFunction = nil; Scope : TExtObject = nil) : TExtFunction;
     function CollapseChildNodes(Deep : Boolean = false) : TExtFunction;
     function Disable : TExtFunction;
@@ -359,7 +359,7 @@ type
     procedure InitDefaults; override;
     procedure HandleEvent(const AEvtName: string); override;
   public
-    function JSClassName : string; override;
+    class function JSClassName : string; override;
     function IsLoaded : TExtFunction;
     function IsLoading : TExtFunction;
     function Reload(Callback : TExtFunction; Scope : TExtObject = nil) : TExtFunction;
@@ -388,7 +388,7 @@ type
   protected
     procedure InitDefaults; override;
   public
-    function JSClassName : string; override;
+    class function JSClassName : string; override;
     function TriggerEdit(Node : TExtTreeTreeNode) : TExtFunction;
     property Alignment : String read FAlignment write SetFAlignment;
     property Cls : String read FCls write SetFCls;
@@ -418,7 +418,7 @@ type
   protected
     procedure InitDefaults; override;
   public
-    function JSClassName : string; override;
+    class function JSClassName : string; override;
     property AllowContainerDrop : String read FAllowContainerDrop write SetFAllowContainerDrop;
     property AllowParentInsert : Boolean read FAllowParentInsert write SetFAllowParentInsert;
     property AppendOnly : String read FAppendOnly write SetFAppendOnly;
@@ -582,7 +582,7 @@ type
     procedure InitDefaults; override;
     procedure HandleEvent(const AEvtName: string); override;
   public
-    function JSClassName : string; override;
+    class function JSClassName : string; override;
     function CollapseAll : TExtFunction;
     function ExpandAll : TExtFunction;
     function ExpandPath(Path : String; Attr : String = ''; Callback : TExtFunction = nil) : TExtFunction;
@@ -662,18 +662,18 @@ type
   protected
     procedure InitDefaults; override;
   public
-    function JSClassName : string; override;
+    class function JSClassName : string; override;
     property DdGroup : String read FDdGroup write SetFDdGroup;
     property Tree : TExtTreeTreePanel read FTree write SetFTree;
   end;
 
 implementation
 
-function TExtTreeRootTreeNodeUI.JSClassName : string; begin
+class function TExtTreeRootTreeNodeUI.JSClassName : string; begin
   Result := 'Ext.tree.RootTreeNodeUI';
 end;
 
-function TExtTreeTreeNodeUI.JSClassName : string; begin
+class function TExtTreeTreeNodeUI.JSClassName : string; begin
   Result := 'Ext.tree.TreeNodeUI';
 end;
 
@@ -737,7 +737,7 @@ function TExtTreeTreeNodeUI.ToggleCheck(Value : Boolean = false) : TExtFunction;
   Result := Self;
 end;
 
-function TExtTreeTreeFilter.JSClassName : string; begin
+class function TExtTreeTreeFilter.JSClassName : string; begin
   Result := 'Ext.tree.TreeFilter';
 end;
 
@@ -791,7 +791,7 @@ procedure TExtTreeTreeSorter.SetFSortType(Value : TExtFunction); begin
   JSCode('sortType:' + VarToJSON([Value, true]));
 end;
 
-function TExtTreeTreeSorter.JSClassName : string; begin
+class function TExtTreeTreeSorter.JSClassName : string; begin
   Result := 'Ext.tree.TreeSorter';
 end;
 
@@ -890,7 +890,7 @@ procedure TExtTreeTreeLoader.SetFOnLoadexception(Value : TExtTreeTreeLoaderOnLoa
   FOnLoadexception := Value;
 end;
 
-function TExtTreeTreeLoader.JSClassName : string; begin
+class function TExtTreeTreeLoader.JSClassName : string; begin
   Result := 'Ext.tree.TreeLoader';
 end;
 
@@ -898,7 +898,7 @@ procedure TExtTreeTreeLoader.InitDefaults; begin
   inherited;
   FBaseAttrs := TExtObject.CreateInternal(Self, 'baseAttrs');
   FBaseParams := TExtObject.CreateInternal(Self, 'baseParams');
-  FParamOrder := TExtObjectList.Create(Self, 'paramOrder');
+  FParamOrder := TExtObjectList.CreateAsAttribute(Self, 'paramOrder');
   FRequestMethod := 'output/Ext.Ajax.html#Ext.Ajax-method';
   FUiProviders := TExtObject.CreateInternal(Self, 'uiProviders');
 end;
@@ -931,7 +931,7 @@ procedure TExtTreeMultiSelectionModel.SetFOnSelectionchange(Value : TExtTreeMult
   FOnSelectionchange := Value;
 end;
 
-function TExtTreeMultiSelectionModel.JSClassName : string; begin
+class function TExtTreeMultiSelectionModel.JSClassName : string; begin
   Result := 'Ext.tree.MultiSelectionModel';
 end;
 
@@ -982,7 +982,7 @@ procedure TExtTreeDefaultSelectionModel.SetFOnSelectionchange(Value : TExtTreeDe
   FOnSelectionchange := Value;
 end;
 
-function TExtTreeDefaultSelectionModel.JSClassName : string; begin
+class function TExtTreeDefaultSelectionModel.JSClassName : string; begin
   Result := 'Ext.tree.DefaultSelectionModel';
 end;
 
@@ -1264,7 +1264,7 @@ procedure TExtTreeTreeNode.SetFOnTextchange(Value : TExtTreeTreeNodeOnTextchange
   FOnTextchange := Value;
 end;
 
-function TExtTreeTreeNode.JSClassName : string; begin
+class function TExtTreeTreeNode.JSClassName : string; begin
   Result := 'Ext.tree.TreeNode';
 end;
 
@@ -1411,7 +1411,7 @@ procedure TExtTreeAsyncTreeNode.SetFOnLoad(Value : TExtTreeAsyncTreeNodeOnLoad);
   FOnLoad := Value;
 end;
 
-function TExtTreeAsyncTreeNode.JSClassName : string; begin
+class function TExtTreeAsyncTreeNode.JSClassName : string; begin
   Result := 'Ext.tree.AsyncTreeNode';
 end;
 
@@ -1479,7 +1479,7 @@ procedure TExtTreeTreeEditor.SetFEditNode(Value : TExtTreeTreeNode); begin
     JSCode(JSName + '.editNode=' + VarToJSON([Value, false]) + ';');
 end;
 
-function TExtTreeTreeEditor.JSClassName : string; begin
+class function TExtTreeTreeEditor.JSClassName : string; begin
   Result := 'Ext.tree.TreeEditor';
 end;
 
@@ -1531,7 +1531,7 @@ procedure TExtTreeTreeDropZone.SetFTree(Value : TExtTreeTreePanel); begin
     JSCode(JSName + '.tree=' + VarToJSON([Value, false]) + ';');
 end;
 
-function TExtTreeTreeDropZone.JSClassName : string; begin
+class function TExtTreeTreeDropZone.JSClassName : string; begin
   Result := 'Ext.tree.TreeDropZone';
 end;
 
@@ -1926,7 +1926,7 @@ procedure TExtTreeTreePanel.SetFOnTextchange(Value : TExtTreeTreePanelOnTextchan
   FOnTextchange := Value;
 end;
 
-function TExtTreeTreePanel.JSClassName : string; begin
+class function TExtTreeTreePanel.JSClassName : string; begin
   Result := 'Ext.tree.TreePanel';
 end;
 
@@ -2080,7 +2080,7 @@ procedure TExtTreeTreeDragZone.SetFTree(Value : TExtTreeTreePanel); begin
     JSCode(JSName + '.tree=' + VarToJSON([Value, false]) + ';');
 end;
 
-function TExtTreeTreeDragZone.JSClassName : string; begin
+class function TExtTreeTreeDragZone.JSClassName : string; begin
   Result := 'Ext.tree.TreeDragZone';
 end;
 

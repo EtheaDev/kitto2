@@ -317,8 +317,8 @@ end;
 
 procedure TExtSliderMultiSlider.InitDefaults; begin
   inherited;
-  FThumbs := TExtObjectList.Create(Self, 'thumbs');
-  FValues := TExtObjectList.Create(Self, 'values');
+  FThumbs := TExtObjectList.CreateAsAttribute(Self, 'thumbs');
+  FValues := TExtObjectList.CreateAsAttribute(Self, 'values');
 end;
 
 function TExtSliderMultiSlider.AddThumb(Value : Integer) : TExtFunction; begin

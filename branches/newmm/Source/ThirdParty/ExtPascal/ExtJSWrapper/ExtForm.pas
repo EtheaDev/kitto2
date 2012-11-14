@@ -74,7 +74,7 @@ type
     procedure SetFResultJS(Value: TExtObject);
     procedure SetFTypeJS(Value: string);
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     class function CLIENT_INVALID: string;
     class function CONNECT_FAILURE: string;
     class function LOAD_FAILURE: string;
@@ -114,7 +114,7 @@ type
     procedure SetFEmailText(Value: string);
     procedure SetFUrlText(Value: string);
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     function Alpha(Value: string): TExtFunction;
     function Alphanum(Value: string): TExtFunction;
     function Email(Value: string): TExtFunction;
@@ -180,7 +180,7 @@ type
     procedure InitDefaults; override;
     procedure HandleEvent(const AEvtName: string); override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     function Add(Fields: TExtObjectList = nil): TExtFunction;
     function ApplyIfToFields(Values: TExtObject): TExtFunction;
     function ApplyToFields(Values: TExtObject): TExtFunction;
@@ -266,7 +266,7 @@ type
     procedure SetFDisabledFields(Value: TExtObject);
     procedure SetFFormConfig(Value: TExtObject);
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     function Show(DataRecord: TExtDataRecord; AnimEl: TExtElement = nil)
       : TExtFunction;
     property CancelIconCls: string read FCancelIconCls write SetFCancelIconCls;
@@ -294,7 +294,7 @@ type
     procedure SetFClientValidation(Value: Boolean);
     procedure SetFErrorReader(Value: TExtDataDataReader);
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     property ClientValidation: Boolean read FClientValidation
       write SetFClientValidation;
     property ErrorReader: TExtDataDataReader read FErrorReader
@@ -303,17 +303,17 @@ type
 
   TExtFormActionLoad = class(TExtFormAction)
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
   end;
 
   TExtFormActionDirectLoad = class(TExtFormActionLoad)
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
   end;
 
   TExtFormActionDirectSubmit = class(TExtFormActionSubmit)
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
   end;
 
   // Procedural types for events TExtFormField
@@ -397,7 +397,7 @@ type
     procedure InitDefaults; override;
     procedure HandleEvent(const AEvtName: string); override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     function ClearInvalid: TExtFunction;
     function GetActiveError: TExtFunction;
     function GetErrors: TExtFunction;
@@ -467,7 +467,7 @@ type
   protected
     procedure InitDefaults; override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     function SetText(const AText: string; const AEncode: Boolean = False): TExtFunction;
     property ForId: string read FForId write SetFForId;
     property Html: string read FHtml write SetFHtml;
@@ -478,7 +478,7 @@ type
   protected
     procedure InitDefaults; override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
   end;
 
   // Procedural types for events TExtFormHtmlEditor
@@ -542,7 +542,7 @@ type
     procedure InitDefaults; override;
     procedure HandleEvent(const AEvtName: string); override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     function CleanHtml(Html: string): TExtFunction;
     function ExecCmd(Cmd: string; Value: string = ''): TExtFunction; overload;
     function ExecCmd(Cmd: string; Value: Boolean): TExtFunction; overload;
@@ -615,7 +615,7 @@ type
     procedure SetFUrl(Value: string);
     procedure SetFWidth(Value: Integer);
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     function Edit(Obj: TExtObject; Language: string): TExtFunction;
     function SetCode(const ACode: string): TExtFunction;
     function GetCode: TExtFunction;
@@ -709,7 +709,7 @@ type
     procedure InitDefaults; override;
     procedure HandleEvent(const AEvtName: string); override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     function AutoSize: TExtFunction;
     function GetErrors(Value: string): TExtFunction;
     function Reset: TExtFunction;
@@ -755,7 +755,7 @@ type
   protected
     procedure InitDefaults; override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     function GetValue: TExtFunction;
     function SetMaxValue(V: Integer): TExtFunction;
     function SetMinValue(V: Integer): TExtFunction;
@@ -773,7 +773,7 @@ type
   protected
     procedure InitDefaults; override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     property FieldClass: string read FFieldClass write SetFFieldClass;
     property HtmlEncode: Boolean read FHtmlEncode write SetFHtmlEncode;
   end;
@@ -797,7 +797,7 @@ type
   protected
     procedure InitDefaults; override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     function BuildCombinedErrorMessage(Errors: TExtObjectList): TExtFunction;
     function BuildLabel(Segments: TExtObjectList): TExtFunction;
     function ClearInvalidChildren: TExtFunction;
@@ -851,7 +851,7 @@ type
     procedure InitDefaults; override;
     procedure HandleEvent(const AEvtName: string); override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     function GetValue: TExtFunction;
     function SetValue(Checked: Boolean): TExtFunction; overload;
     function SetValue(Checked: string): TExtFunction; overload;
@@ -895,7 +895,7 @@ type
     procedure InitDefaults; override;
     procedure HandleEvent(const AEvtName: string); override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     function GetErrors: TExtFunction;
     function GetValue: TExtFunction;
     function SetValue(Id: string; Value: Boolean = false): TExtFunction;
@@ -926,7 +926,7 @@ type
   protected
     procedure InitDefaults; override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     function AutoSize: TExtFunction;
     property AutoCreate: string read FAutoCreate write SetFAutoCreate;
     property AutoCreateObject: TExtObject read FAutoCreateObject
@@ -958,7 +958,7 @@ type
   protected
     procedure InitDefaults; override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     function OnTriggerClick(E: TEventObject): TExtFunction;
     function SetEditable(const AValue: Boolean): TExtFunction;
     function SetReadOnly(const AValue: Boolean): TExtFunction;
@@ -1001,7 +1001,7 @@ type
   protected
     procedure InitDefaults; override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     function GetErrors(Value: string): TExtFunction;
     function SetMaxValue(const AValue: Integer): TExtFunction;
     function SetMinValue(const AValue: Integer): TExtFunction;
@@ -1041,7 +1041,7 @@ type
   protected
     procedure InitDefaults; override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     function OnCheckClick: TExtFunction;
     property AnimCollapse: Boolean read FAnimCollapse write SetFAnimCollapse;
     property BaseCls: string read FBaseCls write SetFBaseCls;
@@ -1097,7 +1097,7 @@ type
     procedure InitDefaults; override;
     procedure HandleEvent(const AEvtName: string); override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     function GetForm: TExtFormBasicForm;
     function Load(const AOptions: TExtObject): TExtFunction;
     function StartMonitoring: TExtFunction;
@@ -1141,7 +1141,7 @@ type
     procedure InitDefaults; override;
     procedure HandleEvent(const AEvtName: string); override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     function GetValue: TExtFunction;
     function OnSetValue(Id: string; Value: Boolean): TExtFunction; overload;
     function OnSetValue(Id: TExtFormRadio; Value: Boolean)
@@ -1157,7 +1157,7 @@ type
   protected
     procedure InitDefaults; override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     function GetGroupValue: TExtFunction;
     function SetValue(Value: string): TExtFunction; overload;
     function SetValue(Value: Boolean): TExtFunction; overload;
@@ -1211,7 +1211,7 @@ type
     procedure InitDefaults; override;
     procedure HandleEvent(const AEvtName: string); override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     function GetErrors(Value: string): TExtFunction;
     function GetValue: TExtFunction;
     function SetDisabledDates(const ADisabledDates: TExtObjectList): TExtFunction;
@@ -1374,7 +1374,7 @@ type
     procedure InitDefaults; override;
     procedure HandleEvent(const AEvtName: string); override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     function ClearValue: TExtFunction;
     function Collapse: TExtFunction;
     function DoQuery(Query: string; ForceAll: Boolean): TExtFunction;
@@ -1466,7 +1466,7 @@ type
   protected
     procedure InitDefaults; override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     function OnTrigger1Click(E: TEventObject): TExtFunction;
     function OnTrigger2Click(E: TEventObject): TExtFunction;
     property Trigger1Class: string read FTrigger1Class write SetFTrigger1Class;
@@ -1500,7 +1500,7 @@ type
   protected
     procedure InitDefaults; override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     function SetMaxValue(const AValue: TDateTime): TExtFunction; overload;
     function SetMaxValue(Value: string): TExtFunction; overload;
     function SetMinValue(const AValue: TDateTime): TExtFunction; overload;
@@ -1524,14 +1524,21 @@ type
     FSeparator: string;
     procedure SetFSeparator(Value: string);
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     property Separator: string read FSeparator write SetFSeparator;
   end;
 
-var
-  ExtFormVTypes: TExtFormVTypesSingleton;
+function ExtFormVTypes: TExtFormVTypesSingleton;
 
 implementation
+
+function ExtFormVTypes: TExtFormVTypesSingleton;
+begin
+  if (Session <> nil) then
+    Result := Session.GetSingleton<TExtFormVTypesSingleton>(TExtFormVTypesSingleton.JSClassName)
+  else
+    Result := nil;
+end;
 
 procedure TExtFormAction.SetFFailure(Value: TExtFunction);
 begin
@@ -1623,7 +1630,7 @@ begin
   JSCode(JSName + '.typeJS=' + VarToJSON([Value]) + ';');
 end;
 
-function TExtFormAction.JSClassName: string;
+class function TExtFormAction.JSClassName: string;
 begin
   Result := '';
 end;
@@ -1690,7 +1697,7 @@ begin
   JSCode(JSName + '.urlText=' + VarToJSON([Value]) + ';');
 end;
 
-function TExtFormVTypesSingleton.JSClassName: string;
+class function TExtFormVTypesSingleton.JSClassName: string;
 begin
   Result := 'Ext.form.VTypes';
 end;
@@ -1852,7 +1859,7 @@ begin
   FOnBeforeaction := Value;
 end;
 
-function TExtFormBasicForm.JSClassName: string;
+class function TExtFormBasicForm.JSClassName: string;
 begin
   Result := 'Ext.form.BasicForm';
 end;
@@ -1863,10 +1870,10 @@ begin
   FApi := TExtObject.CreateInternal(Self, 'api');
   FBaseParams := TExtObject.CreateInternal(Self, 'baseParams');
   FErrorReader := TExtDataDataReader.CreateInternal(Self, 'errorReader');
-  FParamOrder := TExtObjectList.Create(Self, 'paramOrder');
+  FParamOrder := TExtObjectList.CreateAsAttribute(Self, 'paramOrder');
   FReader := TExtDataDataReader.CreateInternal(Self, 'reader');
   FWaitTitle := 'Please Wait...';
-  FItems := TExtObjectList.Create(Self, 'items');
+  FItems := TExtObjectList.CreateAsAttribute(Self, 'items');
 end;
 
 function TExtFormBasicForm.Add(Fields: TExtObjectList = nil): TExtFunction;
@@ -2128,7 +2135,7 @@ begin
   JSCode('formConfig:' + VarToJSON([Value, false]));
 end;
 
-function TExtUxGridRecordForm.JSClassName: string;
+class function TExtUxGridRecordForm.JSClassName: string;
 begin
   Result := 'Ext.ux.grid.RecordForm';
 end;
@@ -2153,22 +2160,22 @@ begin
   JSCode('errorReader:' + VarToJSON([Value, false]));
 end;
 
-function TExtFormActionSubmit.JSClassName: string;
+class function TExtFormActionSubmit.JSClassName: string;
 begin
   Result := '';
 end;
 
-function TExtFormActionLoad.JSClassName: string;
+class function TExtFormActionLoad.JSClassName: string;
 begin
   Result := '';
 end;
 
-function TExtFormActionDirectLoad.JSClassName: string;
+class function TExtFormActionDirectLoad.JSClassName: string;
 begin
   Result := '';
 end;
 
-function TExtFormActionDirectSubmit.JSClassName: string;
+class function TExtFormActionDirectSubmit.JSClassName: string;
 begin
   Result := '';
 end;
@@ -2372,7 +2379,7 @@ begin
   FOnValid := Value;
 end;
 
-function TExtFormField.JSClassName: string;
+class function TExtFormField.JSClassName: string;
 begin
   Result := 'Ext.form.Field';
 end;
@@ -2541,7 +2548,7 @@ begin
   ExtSession.ResponseItems.SetConfigItem(Self, 'text', 'setText', [AValue]);
 end;
 
-function TExtFormLabel.JSClassName: string;
+class function TExtFormLabel.JSClassName: string;
 begin
   Result := 'Ext.form.Label';
 end;
@@ -2558,7 +2565,7 @@ begin
   Result := Self;
 end;
 
-function TExtFormHidden.JSClassName: string;
+class function TExtFormHidden.JSClassName: string;
 begin
   Result := 'Ext.form.Hidden';
 end;
@@ -2715,7 +2722,7 @@ begin
   FOnSync := Value;
 end;
 
-function TExtFormHtmlEditor.JSClassName: string;
+class function TExtFormHtmlEditor.JSClassName: string;
 begin
   Result := 'Ext.form.HtmlEditor';
 end;
@@ -2731,7 +2738,7 @@ begin
   FEnableLinks := true;
   FEnableLists := true;
   FEnableSourceEdit := true;
-  FFontFamilies := TExtObjectList.Create(Self, 'fontFamilies');
+  FFontFamilies := TExtObjectList.CreateAsAttribute(Self, 'fontFamilies');
   FButtonTips := TExtObject.CreateInternal(Self, 'buttonTips');
 end;
 
@@ -2911,7 +2918,7 @@ begin
   JSCode('width:' + VarToJSON([Value]));
 end;
 
-function TExtUxCodePress.JSClassName: string;
+class function TExtUxCodePress.JSClassName: string;
 begin
   Result := 'Ext.ux.CodePress';
 end;
@@ -3145,7 +3152,7 @@ begin
   FOnKeyup := Value;
 end;
 
-function TExtFormTextField.JSClassName: string;
+class function TExtFormTextField.JSClassName: string;
 begin
   Result := 'Ext.form.TextField';
 end;
@@ -3216,7 +3223,7 @@ begin
   JSCode('useTips:' + VarToJSON([Value]));
 end;
 
-function TExtFormSliderField.JSClassName: string;
+class function TExtFormSliderField.JSClassName: string;
 begin
   Result := 'Ext.form.SliderField';
 end;
@@ -3266,7 +3273,7 @@ begin
   JSCode('htmlEncode:' + VarToJSON([Value]));
 end;
 
-function TExtFormDisplayField.JSClassName: string;
+class function TExtFormDisplayField.JSClassName: string;
 begin
   Result := 'Ext.form.DisplayField';
 end;
@@ -3319,7 +3326,7 @@ begin
   JSCode('rendered:' + VarToJSON([Value]));
 end;
 
-function TExtFormCompositeField.JSClassName: string;
+class function TExtFormCompositeField.JSClassName: string;
 begin
   Result := 'Ext.form.CompositeField';
 end;
@@ -3327,9 +3334,9 @@ end;
 procedure TExtFormCompositeField.InitDefaults;
 begin
   inherited;
-  FFieldErrors := TExtObjectList.Create(Self, 'fieldErrors');
+  FFieldErrors := TExtObjectList.CreateAsAttribute(Self, 'fieldErrors');
   FInnerCt := TExtContainer.CreateInternal(Self, 'innerCt');
-  FItems := TExtObjectList.Create(Self, 'items');
+  FItems := TExtObjectList.CreateAsAttribute(Self, 'items');
   FRendered := true;
 end;
 
@@ -3464,7 +3471,7 @@ begin
   FOnCheck := Value;
 end;
 
-function TExtFormCheckbox.JSClassName: string;
+class function TExtFormCheckbox.JSClassName: string;
 begin
   Result := 'Ext.form.Checkbox';
 end;
@@ -3558,7 +3565,7 @@ begin
   FOnChange := Value;
 end;
 
-function TExtFormCheckboxGroup.JSClassName: string;
+class function TExtFormCheckboxGroup.JSClassName: string;
 begin
   Result := 'Ext.form.CheckboxGroup';
 end;
@@ -3568,8 +3575,8 @@ begin
   inherited;
   FAllowBlank := true;
   FBlankText := 'You must select at least one item in this group';
-  FColumnsArray := TExtObjectList.Create(Self, 'columns');
-  FItems := TExtObjectList.Create(Self, 'items');
+  FColumnsArray := TExtObjectList.CreateAsAttribute(Self, 'columns');
+  FItems := TExtObjectList.CreateAsAttribute(Self, 'items');
 end;
 
 function TExtFormCheckboxGroup.GetErrors: TExtFunction;
@@ -3630,7 +3637,7 @@ begin
   JSCode('preventScrollbars:' + VarToJSON([Value]));
 end;
 
-function TExtFormTextArea.JSClassName: string;
+class function TExtFormTextArea.JSClassName: string;
 begin
   Result := 'Ext.form.TextArea';
 end;
@@ -3697,7 +3704,7 @@ begin
   JSCode('wrapFocusClass:' + VarToJSON([Value]));
 end;
 
-function TExtFormTriggerField.JSClassName: string;
+class function TExtFormTriggerField.JSClassName: string;
 begin
   Result := 'Ext.form.TriggerField';
 end;
@@ -3794,7 +3801,7 @@ begin
   ExtSession.ResponseItems.SetConfigItem(Self, 'nanText', [AValue]);
 end;
 
-function TExtFormNumberField.JSClassName: string;
+class function TExtFormNumberField.JSClassName: string;
 begin
   Result := 'Ext.form.NumberField';
 end;
@@ -3882,7 +3889,7 @@ begin
   JSCode('layout:' + VarToJSON([Value]));
 end;
 
-function TExtFormFieldSet.JSClassName: string;
+class function TExtFormFieldSet.JSClassName: string;
 begin
   Result := 'Ext.form.FieldSet';
 end;
@@ -3990,7 +3997,7 @@ begin
   FOnClientvalidation := Value;
 end;
 
-function TExtFormFormPanel.JSClassName: string;
+class function TExtFormFormPanel.JSClassName: string;
 begin
   Result := 'Ext.form.FormPanel';
 end;
@@ -3998,7 +4005,7 @@ end;
 procedure TExtFormFormPanel.InitDefaults;
 begin
   inherited;
-  FButtons := TExtObjectList.Create(Self, 'buttons');
+  FButtons := TExtObjectList.CreateAsAttribute(Self, 'buttons');
   FLabelPad := 5;
   FLabelWidth := 100;
   FMinButtonWidth := 75;
@@ -4066,7 +4073,7 @@ begin
   FOnChange := Value;
 end;
 
-function TExtFormRadioGroup.JSClassName: string;
+class function TExtFormRadioGroup.JSClassName: string;
 begin
   Result := 'Ext.form.RadioGroup';
 end;
@@ -4076,7 +4083,7 @@ begin
   inherited;
   FAllowBlank := true;
   FBlankText := 'You must select one item in this group';
-  FItems := TExtObjectList.Create(Self, 'items');
+  FItems := TExtObjectList.CreateAsAttribute(Self, 'items');
 end;
 
 function TExtFormRadioGroup.GetValue: TExtFunction;
@@ -4109,7 +4116,7 @@ begin
       TExtFormRadio(ParamAsObject('Checked')));
 end;
 
-function TExtFormRadio.JSClassName: string;
+class function TExtFormRadio.JSClassName: string;
 begin
   Result := 'Ext.form.Radio';
 end;
@@ -4249,7 +4256,7 @@ begin
   FOnSelect := Value;
 end;
 
-function TExtFormDateField.JSClassName: string;
+class function TExtFormDateField.JSClassName: string;
 begin
   Result := 'Ext.form.DateField';
 end;
@@ -4260,9 +4267,9 @@ begin
   FAltFormats :=
     'm/d/Y|n/j/Y|n/j/y|m/j/y|n/d/y|m/j/Y|n/d/Y|m-d-y|m-d-Y|m/d|m-d|md|mdy|mdY|d|Y-m-d';
   FAutoCreateObject := TExtObject.CreateInternal(Self, 'autoCreate');
-  FDisabledDates := TExtObjectList.Create(Self, 'disabledDates');
+  FDisabledDates := TExtObjectList.CreateAsAttribute(Self, 'disabledDates');
   FDisabledDatesText := 'Disabled';
-  FDisabledDays := TExtObjectList.Create(Self, 'disabledDays');
+  FDisabledDays := TExtObjectList.CreateAsAttribute(Self, 'disabledDays');
   FDisabledDaysText := 'Disabled';
   FFormat := 'm/d/Y';
   FInvalidText :=
@@ -4681,7 +4688,7 @@ begin
   FOnSelect := Value;
 end;
 
-function TExtFormComboBox.JSClassName: string;
+class function TExtFormComboBox.JSClassName: string;
 begin
   Result := 'Ext.form.ComboBox';
 end;
@@ -4697,7 +4704,7 @@ begin
   FHiddenId := 'output/Ext.form.ComboBox.html#Ext.form.ComboBox-hiddenName';
   FLazyInit := true;
   FListAlign := 'tl-bl?';
-  FListAlignArray := TExtObjectList.Create(Self, 'listAlign');
+  FListAlignArray := TExtObjectList.CreateAsAttribute(Self, 'listAlign');
   FLoadingText := 'Loading...';
   FMaxHeight := 300;
   FMinChars := 4;
@@ -4709,7 +4716,7 @@ begin
   FSelectOnFocus := true;
   FSelectedClass := 'x-combo-selected';
   FStore := TExtDataStore.CreateInternal(Self, 'store');
-  FStoreArray := TExtObjectList.Create(Self, 'store');
+  FStoreArray := TExtObjectList.CreateAsAttribute(Self, 'store');
   FTplExtXTemplate := TExtXTemplate.CreateInternal(Self, 'tpl');
   FTriggerClass := 'x-form-arrow-trigger';
   FTypeAheadDelay := 250;
@@ -4825,7 +4832,7 @@ begin
   JSCode('triggerConfig:' + VarToJSON([Value]));
 end;
 
-function TExtFormTwinTriggerField.JSClassName: string;
+class function TExtFormTwinTriggerField.JSClassName: string;
 begin
   Result := 'Ext.form.TwinTriggerField';
 end;
@@ -4911,7 +4918,7 @@ begin
   JSCode('minValue:' + VarToJSON([Value]));
 end;
 
-function TExtFormTimeField.JSClassName: string;
+class function TExtFormTimeField.JSClassName: string;
 begin
   Result := 'Ext.form.TimeField';
 end;
@@ -4962,17 +4969,9 @@ begin
   JSCode('separator:' + VarToJSON([Value]));
 end;
 
-function TExtUxFormLovCombo.JSClassName: string;
+class function TExtUxFormLovCombo.JSClassName: string;
 begin
   Result := 'Ext.ux.form.LovCombo';
 end;
-
-initialization
-
-ExtFormVTypes := TExtFormVTypesSingleton.CreateSingleton;
-
-finalization
-
-ExtFormVTypes.Destroy;
 
 end.

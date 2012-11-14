@@ -215,10 +215,7 @@ begin
   FSocket := TBlockSocket.Create(NewSocket);
   FRequestHeader := TStringList.Create;
   FRequestHeader.StrictDelimiter := true;
-  FSession :=
-  TFCGISession(
-  Application.SessionClass.Create(
-  Self));
+  FSession := TFCGISession(Application.SessionClass.Create(Self));
   FSession.FApplication := Application;
   FSession.ContentType := 'text/html';
   AccessThread := TCriticalSection.Create;

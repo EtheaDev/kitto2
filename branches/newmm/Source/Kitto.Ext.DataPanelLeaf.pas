@@ -27,16 +27,10 @@ type
   ///	<summary>Base class for concrete data panels that handle database records.</summary>
   TKExtDataPanelLeafController = class abstract(TKExtDataPanelController)
   strict private
-    FFilterExpression: string;
   strict protected
-    procedure DoDisplay; override;
-    function GetFilterExpression: string; override;
     procedure AddTopToolbarButtons; override;
-  public
-    procedure RefilterData(const AFilterExpression: string); override;
-    procedure LoadData(const AFilterExpression: string); override;
   published
-    procedure RefreshData; override;
+    procedure LoadData; override;
   end;
 
 implementation
@@ -48,36 +42,7 @@ uses
 
 { TKExtDataPanelLeafController }
 
-procedure TKExtDataPanelLeafController.DoDisplay;
-begin
-  inherited;
-  // See mantis # 944
-//  CheckCanRead;
-//  if AutoLoadData then
-//    LoadData('');
-end;
-
-function TKExtDataPanelLeafController.GetFilterExpression: string;
-begin
-  Result := FFilterExpression;
-end;
-
-procedure TKExtDataPanelLeafController.LoadData(const AFilterExpression: string);
-begin
-  inherited;
-  FFilterExpression := AFilterExpression;
-  RefreshData;
-end;
-
-procedure TKExtDataPanelLeafController.RefilterData(
-  const AFilterExpression: string);
-begin
-  inherited;
-  FFilterExpression := AFilterExpression;
-  RefreshData;
-end;
-
-procedure TKExtDataPanelLeafController.RefreshData;
+procedure TKExtDataPanelLeafController.LoadData;
 begin
   inherited;
   Assert(Assigned(ClientStore));
@@ -92,7 +57,7 @@ begin
   TExtToolbarSpacer.CreateAndAddTo(TopToolbar.Items);
   LRefreshButton := TExtButton.CreateAndAddTo(TopToolbar.Items);
   LRefreshButton.Icon := Session.Config.GetImageURL('refresh');
-  LRefreshButton.Handler := Ajax(TKExtDataPanelController(Config.GetObject('Sys/RefreshHandler', Self)).RefreshData);
+  LRefreshButton.Handler := Ajax(TKExtDataPanelController(Config.GetObject('Sys/ParentDataPanel', Self)).LoadData);
   LRefreshButton.Tooltip := _('Refresh data');
   inherited;
 end;

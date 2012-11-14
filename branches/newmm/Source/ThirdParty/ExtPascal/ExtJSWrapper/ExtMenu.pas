@@ -21,7 +21,7 @@ type
 
   TExtMenuMenuMgrSingleton = class(TExtFunction)
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     function Get(Menu: string): TExtFunction; overload;
     function Get(Menu: TExtObject): TExtFunction; overload;
     function HideAll: TExtFunction;
@@ -59,7 +59,7 @@ type
     procedure InitDefaults; override;
     procedure HandleEvent(const AEvtName: string); override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     function SetHandler(const AHandler: TExtFunction; const AScope: TExtObject): TExtFunction;
     property ActiveClass: string read FActiveClass write SetFActiveClass;
     property CanActivate: Boolean read FCanActivate write SetFCanActivate;
@@ -83,7 +83,7 @@ type
   protected
     procedure InitDefaults; override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     property HideOnClick: Boolean read FHideOnClick write SetFHideOnClick;
     property ItemCls: string read FItemCls write SetFItemCls;
   end;
@@ -99,7 +99,7 @@ type
   protected
     procedure InitDefaults; override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     property HideOnClick: Boolean read FHideOnClick write SetFHideOnClick;
     property ItemCls: string read FItemCls write SetFItemCls;
     property Text: string read FText write SetFText;
@@ -130,7 +130,7 @@ type
   protected
     procedure InitDefaults; override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     function SetIconClass(Cls: string): TExtFunction;
     function SetText(const AText: string): TExtFunction;
     property CanActivate: Boolean read FCanActivate write SetFCanActivate;
@@ -169,7 +169,7 @@ type
     procedure InitDefaults; override;
     procedure HandleEvent(const AEvtName: string); override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     function CheckHandler(This: TExtMenuCheckItem; Checked: Boolean): TExtFunction;
     function SetChecked(const AChecked: Boolean; const ASuppressEvent: Boolean = False): TExtFunction;
     property Checked: Boolean read FChecked write _SetChecked;
@@ -244,7 +244,7 @@ type
     procedure InitDefaults; override;
     procedure HandleEvent(const AEvtName: string); override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     function AddElement(El: string): TExtFunction;
     function AddItem(Item: TExtMenuItem): TExtFunction;
     function AddMenuItem(Config: TExtObject = nil): TExtFunction;
@@ -303,7 +303,7 @@ type
     procedure InitDefaults; override;
     procedure HandleEvent(const AEvtName: string); override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     property Handler: TExtFunction read FHandler write SetFHandler;
     property HideOnClick: Boolean read FHideOnClick write SetFHideOnClick;
     property PaletteId: string read FPaletteId write SetFPaletteId;
@@ -333,7 +333,7 @@ type
     procedure InitDefaults; override;
     procedure HandleEvent(const AEvtName: string); override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     property Handler: TExtFunction read FHandler write SetFHandler;
     property HideOnClick: Boolean read FHideOnClick write SetFHideOnClick;
     property PickerId: string read FPickerId write SetFPickerId;
@@ -342,12 +342,19 @@ type
     property OnSelect: TExtMenuDateMenuOnSelect read FOnSelect write SetFOnSelect;
   end;
 
-var
-  ExtMenuMenuMgr: TExtMenuMenuMgrSingleton;
+function ExtMenuMenuMgr: TExtMenuMenuMgrSingleton;
 
 implementation
 
-function TExtMenuMenuMgrSingleton.JSClassName: string;
+function ExtMenuMenuMgr: TExtMenuMenuMgrSingleton;
+begin
+  if (Session <> nil) then
+    Result := Session.GetSingleton<TExtMenuMenuMgrSingleton>(TExtMenuMenuMgrSingleton.JSClassName)
+  else
+    Result := nil;
+end;
+
+class function TExtMenuMenuMgrSingleton.JSClassName: string;
 begin
   Result := 'Ext.menu.MenuMgr';
 end;
@@ -440,7 +447,7 @@ begin
   FOnDeactivate := Value;
 end;
 
-function TExtMenuBaseItem.JSClassName: string;
+class function TExtMenuBaseItem.JSClassName: string;
 begin
   Result := 'Ext.menu.BaseItem';
 end;
@@ -486,7 +493,7 @@ begin
   JSCode('itemCls:' + VarToJSON([Value]));
 end;
 
-function TExtMenuSeparator.JSClassName: string;
+class function TExtMenuSeparator.JSClassName: string;
 begin
   Result := 'Ext.menu.Separator';
 end;
@@ -515,7 +522,7 @@ begin
   JSCode('text:' + VarToJSON([Value]));
 end;
 
-function TExtMenuTextItem.JSClassName: string;
+class function TExtMenuTextItem.JSClassName: string;
 begin
   Result := 'Ext.menu.TextItem';
 end;
@@ -586,7 +593,7 @@ begin
   JSCode(JSName + '.menu=' + VarToJSON([Value, false]) + ';');
 end;
 
-function TExtMenuItem.JSClassName: string;
+class function TExtMenuItem.JSClassName: string;
 begin
   Result := 'Ext.menu.Item';
 end;
@@ -659,7 +666,7 @@ begin
   FOnCheckchange := Value;
 end;
 
-function TExtMenuCheckItem.JSClassName: string;
+class function TExtMenuCheckItem.JSClassName: string;
 begin
   Result := 'Ext.menu.CheckItem';
 end;
@@ -849,7 +856,7 @@ begin
   FOnMouseover := Value;
 end;
 
-function TExtMenuMenu.JSClassName: string;
+class function TExtMenuMenu.JSClassName: string;
 begin
   Result := 'Ext.menu.Menu';
 end;
@@ -858,10 +865,10 @@ procedure TExtMenuMenu.InitDefaults;
 begin
   inherited;
   FDefaultAlign := 'tl-bl?';
-  FDefaultOffsets := TExtObjectList.Create(Self, 'defaultOffsets');
+  FDefaultOffsets := TExtObjectList.CreateAsAttribute(Self, 'defaultOffsets');
   FDefaults := TExtObject.CreateInternal(Self, 'defaults');
   FEnableScrolling := true;
-  FItems := TExtObjectList.Create(Self, 'items');
+  FItems := TExtObjectList.CreateAsAttribute(Self, 'items');
   FLayoutObject := TExtObject.CreateInternal(Self, 'layout');
   FMinWidth := 120;
   FScrollIncrement := 24;
@@ -976,7 +983,7 @@ begin
   FOnSelect := Value;
 end;
 
-function TExtMenuColorMenu.JSClassName: string;
+class function TExtMenuColorMenu.JSClassName: string;
 begin
   Result := 'Ext.menu.ColorMenu';
 end;
@@ -1034,7 +1041,7 @@ begin
   FOnSelect := Value;
 end;
 
-function TExtMenuDateMenu.JSClassName: string;
+class function TExtMenuDateMenu.JSClassName: string;
 begin
   Result := 'Ext.menu.DateMenu';
 end;
@@ -1053,12 +1060,5 @@ begin
     FOnSelect(TExtDatePicker(ParamAsObject('Picker')), ParamAsTDateTime('Date'));
 end;
 
-initialization
-
-ExtMenuMenuMgr := TExtMenuMenuMgrSingleton.CreateSingleton;
-
-finalization
-
-ExtMenuMenuMgr.Free;
-
 end.
+

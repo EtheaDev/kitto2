@@ -46,13 +46,10 @@ type
   TExtDirectTransaction = class;
   TExtSplitBar = class;
   TExtResizable = class;
-  TExtTaskMgrSingleton = class;
   TExtSplitBarAbsoluteLayoutAdapter = class;
   TExtUpdater = class;
   TExtComponent = class;
   TExtLayer = class;
-  TExtHistorySingleton = class;
-  TExtDirectSingleton = class;
   TExtCompositeElement = class;
   TExtWindowMgrSingleton = class;
   TExtXTemplate = class;
@@ -100,7 +97,7 @@ type
     FStopEvent: Boolean;
     procedure SetFStopEvent(Value: Boolean);
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
 
     constructor Create(AOwner: TComponent; El: string; Config: TExtObject = nil;
       EventName: string = ''); reintroduce;
@@ -152,7 +149,7 @@ type
   protected
     procedure InitDefaults; override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     function FadeIn(Options: TExtObject = nil): TExtFunction;
     function FadeOut(Options: TExtObject = nil): TExtFunction;
     function Frame(Color: string = ''; Count: Integer = 0; Options: TExtObject = nil)
@@ -199,7 +196,7 @@ type
   protected
     procedure InitDefaults; override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     function Load(FileList: TExtObjectList; Callback: TExtFunction; Scope: TExtObject;
       PreserveOrder: Boolean): TExtFunction;
     property VarJS: TExtObject read FVarJS write SetFVarJS;
@@ -217,7 +214,7 @@ type
   protected
     procedure InitDefaults; override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     function DestroyJS: TExtFunction; override;
     function Disable: TExtFunction;
     function Enable: TExtFunction;
@@ -230,7 +227,7 @@ type
 
   TExtFlashProxySingleton = class(TExtFunction)
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
   end;
 
   TExtEventManagerSingleton = class(TExtFunction)
@@ -244,7 +241,7 @@ type
   protected
     procedure InitDefaults; override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     class function A: Integer;
     class function ALT: Integer;
     class function B: Integer;
@@ -369,7 +366,7 @@ type
 
   TExtError = class(TExtFunction)
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     function GetMessage: TExtFunction;
     function GetName: TExtFunction;
     function ToJson: TExtFunction;
@@ -388,7 +385,7 @@ type
     procedure SetFFn(Value: TExtFunction);
     procedure SetFScope(Value: TExtObject);
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     property Duration: Integer read FDuration write SetFDuration;
     property Interval: Integer read FInterval write SetFInterval;
     property Increment: Integer read FIncrement write SetFIncrement;
@@ -398,7 +395,7 @@ type
 
   TExtEventObjectSingleton = class(TExtFunction)
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     function GetCharCode: TExtFunction;
     function GetKey: TExtFunction;
     function GetPageX: TExtFunction;
@@ -432,7 +429,7 @@ type
   protected
     procedure InitDefaults; override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     function Disable: TExtFunction;
     function Enable: TExtFunction;
     function Hide: TExtFunction;
@@ -461,7 +458,7 @@ type
   protected
     procedure InitDefaults; override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     property DisableCaching: Boolean read FDisableCaching write SetFDisableCaching;
     property IndicatorText: string read FIndicatorText write SetFIndicatorText;
     property LoadScripts: Boolean read FLoadScripts write SetFLoadScripts;
@@ -473,7 +470,7 @@ type
 
   TExtSplitBarBasicLayoutAdapter = class(TExtFunction)
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     function GetElementSize(S: TExtSplitBar): TExtFunction;
     function SetElementSize(S: TExtSplitBar; NewSize: Integer; OnComplete: TExtFunction)
       : TExtFunction;
@@ -492,7 +489,7 @@ type
     procedure SetFDisableFormats_(Value: Boolean);
     procedure SetFRe_(Value: TRegExp);
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     constructor Create(AOwner: TComponent; Config: string = ''); reintroduce;
     function TemplateFrom(El: string; Config: TExtObject = nil): TExtFunction; overload;
     function TemplateFrom(El: THTMLElement; Config: TExtObject = nil)
@@ -529,7 +526,7 @@ type
 
   TExtUpdaterBasicRenderer = class(TExtFunction)
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     function Render(El: TExtElement; Xhr: TExtObject; UpdateManager: TExtUpdater;
       Callback: TExtFunction): TExtFunction;
   end;
@@ -541,7 +538,7 @@ type
     procedure SetFMode(Value: string);
     procedure SetFOffset(Value: string);
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     function Hide: TExtFunction;
     function IsVisible: TExtFunction;
     function Realign(LEFT: Integer; Top: Integer; Width: Integer; Height: Integer)
@@ -601,7 +598,7 @@ type
     procedure SetFWaitConfig(Value: TExtProgressWaitConfig);
     procedure SetFWidth(Value: Integer);
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     property AnimEl: string read FAnimEl write SetFAnimEl;
     property Buttons: TExtObject read FButtons write SetFButtons;
     property Closable: Boolean read FClosable write SetFClosable;
@@ -647,7 +644,7 @@ type
   protected
     procedure InitDefaults; override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     class function CANCEL: TExtObject;
     class function ERROR: string;
     class function INFO: string;
@@ -690,7 +687,7 @@ type
 
   TExtQuickTipsSingleton = class(TExtFunction)
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     function Disable: TExtFunction;
     function Enable: TExtFunction;
     function GetQuickTip: TExtFunction;
@@ -710,7 +707,7 @@ type
   protected
     procedure InitDefaults; override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     function BringToFront(Win: string): TExtFunction; overload;
     function BringToFront(Win: TExtObject): TExtFunction; overload;
     function Each(Fn: TExtFunction; Scope: TExtObject = nil): TExtFunction;
@@ -887,7 +884,7 @@ type
     procedure InitDefaults; override;
     procedure HandleEvent(const AEvtName: string); override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     class function DISPLAY: Integer;
     class function VISIBILITY: Integer;
     function AddClass(ClassName: string): TExtFunction; overload;
@@ -1220,7 +1217,7 @@ type
     procedure SetFColor(Value: string);
     procedure SetFAlpha(Value: Double);
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     property Color: string read FColor write SetFColor;
     property Alpha: Double read FAlpha write SetFAlpha;
   end;
@@ -1232,7 +1229,7 @@ type
     procedure SetFColor(Value: string);
     procedure SetFSize(Value: Integer);
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     property Color: string read FColor write SetFColor;
     property Size: Integer read FSize write SetFSize;
   end;
@@ -1248,7 +1245,7 @@ type
     procedure SetFSize(Value: Integer);
     procedure SetFBold(Value: Boolean);
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     property name: string read FName write SetFName;
     property Color: string read FColor write SetFColor;
     property Size: Integer read FSize write SetFSize;
@@ -1266,7 +1263,7 @@ type
     procedure SetFBackground(Value: TExtBackground);
     procedure SetFFont(Value: TExtFont);
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     property Padding: Integer read FPadding write SetFPadding;
     property Border: TExtBorder read FBorder write SetFBorder;
     property Background: TExtBackground read FBackground write SetFBackground;
@@ -1284,7 +1281,7 @@ type
   protected
     procedure InitDefaults; override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     function CreatePlugin(Config: TExtObject = nil; DefaultType: TConstructor = nil)
       : TExtFunction;
     function Get(Id: string): TExtFunction;
@@ -1307,7 +1304,7 @@ type
   protected
     procedure InitDefaults; override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     function Add(Els: string): TExtFunction;
     function Clear: TExtFunction;
     function Contains(El: string): TExtFunction;
@@ -1328,7 +1325,7 @@ type
 
   TFusionCharts = class(TExtFunction)
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     constructor Create(AOwner: TComponent; SwfURL: string; Id: string; Width: Integer;
       Height: Integer; DebugMode: Integer = 0; RegisterWithJS: Integer = 0); reintroduce;
     function SetDataURL(XML: string): TExtFunction;
@@ -1340,7 +1337,7 @@ type
     FUseDom: Boolean;
     procedure SetFUseDom(Value: Boolean);
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     function ApplyStyles(El: string; Styles: string): TExtFunction; overload;
     function ApplyStyles(El: THTMLElement; Styles: string): TExtFunction; overload;
     function ApplyStyles(El: THTMLElement; Styles: TExtObject): TExtFunction; overload;
@@ -1368,7 +1365,7 @@ type
   protected
     procedure InitDefaults; override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     function Compile(Selector: string; TypeJS: string = ''): TExtFunction;
     function Filter(El: TExtObjectList; Selector: string; NonMatches: Boolean)
       : TExtFunction;
@@ -1406,7 +1403,7 @@ type
   protected
     procedure InitDefaults; override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     function Disable: TExtFunction;
     function Each(Fn: TExtFunction; Scope: TExtObject): TExtFunction;
     function Enable: TExtFunction;
@@ -1433,7 +1430,7 @@ type
 
   TExtDirectTransaction = class(TExtFunction)
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
   end;
 
   // Procedural types for events TExtSplitBar
@@ -1462,7 +1459,7 @@ type
   protected
     procedure HandleEvent(const AEvtName: string); override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     constructor Create(AOwner: TComponent; DragElement: string; ResizingElement: string;
       Orientation: Integer = 0; Placement: Integer = 0); reintroduce;
     function DestroyJS(RemoveEl: Boolean): TExtFunction; reintroduce;
@@ -1566,7 +1563,7 @@ type
     procedure InitDefaults; override;
     procedure HandleEvent(const AEvtName: string); override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     function DestroyJS(RemoveEl: Boolean = false): TExtFunction; reintroduce;
     function GetEl: TExtFunction;
     function GetResizeChild: TExtFunction;
@@ -1613,15 +1610,10 @@ type
     property OnResize: TExtResizableOnResize read FOnResize write SetFOnResize;
   end;
 
-  TExtTaskMgrSingleton = class(TExtUtilTaskRunner)
-  public
-    function JSClassName: string; override;
-  end;
-
   TExtSplitBarAbsoluteLayoutAdapter = class(TExtSplitBarBasicLayoutAdapter)
   private
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     class function Bottom: Integer;
     class function HORIZONTAL: Integer;
     class function LEFT: Integer;
@@ -1678,7 +1670,7 @@ type
     procedure InitDefaults; override;
     procedure HandleEvent(const AEvtName: string); override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     function UpdaterUpdateElement(El: string; Url: string; Params: string = '';
       Options: TExtObject = nil): TExtFunction; overload;
     function UpdaterUpdateElement(El: string; Url: string; Params: TExtObject;
@@ -1918,7 +1910,7 @@ type
     procedure InitDefaults; override;
     procedure HandleEvent(const AEvtName: string); override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     function AnElement(Cls: string): TExtFunction;
     function ApplyToMarkup(El: string): TExtFunction; overload;
     function ApplyToMarkup(El: THTMLElement): TExtFunction; overload;
@@ -2078,7 +2070,7 @@ type
   protected
     procedure InitDefaults; override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     function SetZIndex(const AZindex: Integer): TExtFunction;
     property Cls: string read FCls write SetFCls;
     property Constrain: Boolean read FConstrain write SetFConstrain;
@@ -2091,80 +2083,21 @@ type
     property Zindex: Integer read FZindex write _SetZindex;
   end;
 
-  // Procedural types for events TExtHistorySingleton
-  TExtHistorySingletonOnChange = procedure(Token: string) of object;
-  TExtHistorySingletonOnReady = procedure(The: TExtHistorySingleton) of object;
-
-  TExtHistorySingleton = class(TExtUtilObservable)
-  private
-    FFieldId: string;
-    FIframeId: string;
-    FOnChange: TExtHistorySingletonOnChange;
-    FOnReady: TExtHistorySingletonOnReady;
-    procedure SetFFieldId(Value: string);
-    procedure SetFIframeId(Value: string);
-    procedure SetFOnChange(Value: TExtHistorySingletonOnChange);
-    procedure SetFOnReady(Value: TExtHistorySingletonOnReady);
-  protected
-    procedure HandleEvent(const AEvtName: string); override;
-  public
-    function JSClassName: string; override;
-    function Add(Token: string; PreventDuplicates: Boolean): TExtFunction;
-    function Back: TExtFunction;
-    function Forward: TExtFunction;
-    function GetToken: TExtFunction;
-    function Init(OnReady: Boolean = false; Scope: TExtObject = nil): TExtFunction;
-    property FieldId: string read FFieldId write SetFFieldId;
-    property IframeId: string read FIframeId write SetFIframeId;
-    property OnChange: TExtHistorySingletonOnChange read FOnChange write SetFOnChange;
-    property OnReady: TExtHistorySingletonOnReady read FOnReady write SetFOnReady;
-  end;
-
-  // Procedural types for events TExtDirectSingleton
-  TExtDirectSingletonOnEvent = procedure(E: TEvent; Provider: TExtDirectProvider)
-    of object;
-  TExtDirectSingletonOnException = procedure(E: TEvent) of object;
-
-  TExtDirectSingleton = class(TExtUtilObservable)
-  private
-    FEventTypes: TExtObject;
-    FExceptions: TExtObject;
-    FOnEvent: TExtDirectSingletonOnEvent;
-    FOnException: TExtDirectSingletonOnException;
-    procedure SetFEventTypes(Value: TExtObject);
-    procedure SetFExceptions(Value: TExtObject);
-    procedure SetFOnEvent(Value: TExtDirectSingletonOnEvent);
-    procedure SetFOnException(Value: TExtDirectSingletonOnException);
-  protected
-    procedure InitDefaults; override;
-    procedure HandleEvent(const AEvtName: string); override;
-  public
-    function JSClassName: string; override;
-    function AddProvider(Provider: TExtObject): TExtFunction; overload;
-    function AddProvider(Provider: TExtObjectList): TExtFunction; overload;
-    function GetProvider(Id: string): TExtFunction;
-    property EventTypes: TExtObject read FEventTypes write SetFEventTypes;
-    property Exceptions: TExtObject read FExceptions write SetFExceptions;
-    property OnEvent: TExtDirectSingletonOnEvent read FOnEvent write SetFOnEvent;
-    property OnException: TExtDirectSingletonOnException read FOnException
-      write SetFOnException;
-  end;
-
   TExtCompositeElement = class(TExtCompositeElementLite)
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
   end;
 
   TExtWindowMgrSingleton = class(TExtWindowGroup)
   protected
     procedure InitDefaults; override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
   end;
 
   TExtXTemplate = class(TExtTemplate)
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     constructor Create(AOwner: TComponent; Config: string = ''); reintroduce;
     function XTemplateFrom(El: string): TExtFunction; overload;
     function XTemplateFrom(El: THTMLElement): TExtFunction; overload;
@@ -2193,7 +2126,7 @@ type
   protected
     procedure InitDefaults; override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     function SerializeForm(Form: string): TExtFunction; overload;
     function SerializeForm(Form: THTMLElement): TExtFunction; overload;
     property AutoAbort: Boolean read FAutoAbort write SetFAutoAbort;
@@ -2270,7 +2203,7 @@ type
     procedure InitDefaults; override;
     procedure HandleEvent(const AEvtName: string); override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     function CancelEdit(RemainVisible: Boolean): TExtFunction;
     function CompleteEdit(RemainVisible: Boolean): TExtFunction;
     function GetValue: TExtFunction;
@@ -2309,7 +2242,7 @@ type
 
   TExtStoreMgrSingleton = class(TExtUtilMixedCollection)
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     function Lookup(Id: string): TExtFunction; overload;
     function Lookup(Id: TExtObject): TExtFunction; overload;
     function Register(Stores: TExtObjectList = nil): TExtFunction;
@@ -2343,7 +2276,7 @@ type
     procedure InitDefaults; override;
     procedure HandleEvent(const AEvtName: string); override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     function Select(Color: string; SuppressEvent: Boolean = false): TExtFunction;
     property AllowReselect: Boolean read FAllowReselect write SetFAllowReselect;
     property ClickEvent: string read FClickEvent write SetFClickEvent;
@@ -2413,7 +2346,7 @@ type
     procedure InitDefaults; override;
     procedure HandleEvent(const AEvtName: string); override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     function GetValue: TExtFunction;
     function SetDisabledDates(const ADisabledDates: TExtObjectList): TExtFunction; overload;
     function SetDisabledDates(const ADisabledDates: TRegExp): TExtFunction; overload;
@@ -2507,7 +2440,7 @@ type
     procedure InitDefaults; override;
     procedure HandleEvent(const AEvtName: string); override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     function GetBox(Local: Boolean = false): TExtFunction;
     function GetHeight: TExtFunction;
     function GetOuterSize: TExtFunction;
@@ -2552,7 +2485,7 @@ type
   protected
     procedure InitDefaults; override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     property OverflowText: string read FOverflowText write SetFOverflowText;
   end;
 
@@ -2581,7 +2514,7 @@ type
     procedure InitDefaults; override;
     procedure HandleEvent(const AEvtName: string); override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     class function EXPRESS_INSTALL_URL: string;
     property BackgroundColor: string read FBackgroundColor write SetFBackgroundColor;
     property ExpressInstall: Boolean read FExpressInstall write SetFExpressInstall;
@@ -2618,7 +2551,7 @@ type
     procedure InitDefaults; override;
     procedure HandleEvent(const AEvtName: string); override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     function IsWaiting: TExtFunction;
     function Reset(Hide: Boolean = false): TExtFunction;
     function SetSize(Width: Integer; Height: Integer): TExtFunction;
@@ -2640,7 +2573,7 @@ type
   protected
     procedure InitDefaults; override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
   end;
 
   // Procedural types for events TExtContainer
@@ -2719,7 +2652,7 @@ type
     procedure InitDefaults; override;
     procedure HandleEvent(const AEvtName: string); override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     function Add(Component: TObject): TExtFunction; overload;
     function Add(Component: TExtObjectList): TExtFunction; overload;
     function Bubble(Fn: TExtFunction; Scope: TExtObject = nil; Args: TExtObjectList = nil)
@@ -2887,7 +2820,7 @@ type
     procedure HandleEvent(const AEvtName: string); override;
     function GetObjectNamePrefix: string; override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     function GetPressed(const AGroup: string): TExtFunction;
     function Pressed_: TExtFunction;
     function GetTemplateArgs: TExtFunction;
@@ -3029,7 +2962,7 @@ type
     procedure InitDefaults; override;
     procedure HandleEvent(const AEvtName: string); override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     function BindStore(Store: TExtDataStore): TExtFunction;
     function ClearSelections(SuppressEvent: Boolean = false): TExtFunction;
     function CollectData(Records: TExtObjectList; StartIndex: Integer): TExtFunction;
@@ -3114,7 +3047,7 @@ type
     procedure InitDefaults; override;
     function GetObjectNamePrefix: string; override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
   end;
 
   // Procedural types for events TExtPanel
@@ -3307,7 +3240,7 @@ type
     procedure HandleEvent(const AEvtName: string); override;
     function GetObjectNamePrefix: string; override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     function AddButton(Config: string = ''; Handler: TExtFunction = nil;
       Scope: TExtObject = nil): TExtFunction; overload;
     function AddButton(Config: TExtObject; Handler: TExtFunction; Scope: TExtObject)
@@ -3442,7 +3375,7 @@ type
     procedure InitDefaults; override;
     procedure HandleEvent(const AEvtName: string); override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     function SetArrowHandler(const AHandler: TExtFunction; const AScope: TExtObject = nil): TExtFunction;
     property ArrowHandler: TExtFunction read FArrowHandler write _SetArrowHandler;
     property ArrowTooltip: string read FArrowTooltip write SetFArrowTooltip;
@@ -3458,7 +3391,7 @@ type
     procedure InitDefaults; override;
     function GetObjectNamePrefix: string; override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     property Width: Integer read FWidth write SetFWidth;
   end;
 
@@ -3469,7 +3402,7 @@ type
   protected
     procedure InitDefaults; override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     function SetText(const AText: string): TExtFunction;
     property Text: string read FText write _SetText;
   end;
@@ -3496,7 +3429,7 @@ type
     procedure HandleEvent(const AEvtName: string); override;
     function GetObjectNamePrefix: string; override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     function Add(Args: TExtObjectList): TExtFunction;
     function AddButton(Config: TExtObject = nil): TExtFunction; overload;
     function AddButton(Config: TExtObjectList): TExtFunction; overload;
@@ -3525,7 +3458,7 @@ type
   protected
     procedure InitDefaults; override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
   end;
 
   TExtTip = class(TExtPanel)
@@ -3547,7 +3480,7 @@ type
   protected
     procedure InitDefaults; override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     function ShowAt(Xy: TExtObjectList): TExtFunction;
     function ShowBy(El: string; Position: string = ''): TExtFunction;
     property Closable: Boolean read FClosable write SetFClosable;
@@ -3563,7 +3496,7 @@ type
   protected
     procedure InitDefaults; override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
   end;
 
   TExtButtonGroup = class(TExtPanel)
@@ -3579,7 +3512,7 @@ type
   protected
     procedure InitDefaults; override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     property BaseCls: string read FBaseCls write SetFBaseCls;
     property Columns: Integer read FColumns write SetFColumns;
     property Frame: Boolean read FFrame write SetFFrame;
@@ -3610,7 +3543,7 @@ type
     procedure InitDefaults; override;
     procedure HandleEvent(const AEvtName: string); override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     function GetActiveItem: TExtFunction;
     function SetActiveItem(Item: TExtMenuCheckItem; SuppressEvent: Boolean): TExtFunction;
     function ToggleSelected: TExtFunction;
@@ -3715,7 +3648,7 @@ type
     procedure HandleEvent(const AEvtName: string); override;
     function GetObjectNamePrefix: string; override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     function AlignTo(Element: string; Position: string; Offsets: TExtObjectList = nil)
       : TExtFunction;
     function AnchorTo(Element: string; Position: string; Offsets: TExtObjectList = nil;
@@ -3853,7 +3786,7 @@ type
     procedure HandleEvent(const AEvtName: string); override;
     function GetObjectNamePrefix: string; override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     function Activate(TAB: string): TExtFunction; overload;
     function Activate(TAB: TExtPanel): TExtFunction; overload;
     function BeginUpdate: TExtFunction;
@@ -3955,7 +3888,7 @@ type
     procedure InitDefaults; override;
     procedure HandleEvent(const AEvtName: string); override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     function Bind(Store: TExtDataStore): TExtFunction;
     function BindStore(Store: TExtDataStore; Initial: Boolean = false): TExtFunction;
     function ChangePage(Page: Integer): TExtFunction;
@@ -4013,7 +3946,7 @@ type
   protected
     procedure InitDefaults; override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     function Hide: TExtFunction;
     function InitTarget(T: string): TExtFunction;
     function Show: TExtFunction;
@@ -4039,7 +3972,7 @@ type
   protected
     procedure InitDefaults; override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     function CancelShow(El: string): TExtFunction; overload;
     function CancelShow(El: THTMLElement): TExtFunction; overload;
     function CancelShow(El: TExtElement): TExtFunction; overload;
@@ -4051,24 +3984,116 @@ type
     property Target: string read FTarget write SetFTarget;
   end;
 
-var
-  ExtLoader: TExtLoaderSingleton;
-  ExtFlashProxy: TExtFlashProxySingleton;
-  ExtEventManager: TExtEventManagerSingleton;
-  ExtEventObject: TExtEventObjectSingleton;
-  ExtMessageBox: TExtMessageBoxSingleton;
-  ExtQuickTips: TExtQuickTipsSingleton;
-  ExtComponentMgr: TExtComponentMgrSingleton;
-  ExtDomHelper: TExtDomHelperSingleton;
-  ExtDomQuery: TExtDomQuerySingleton;
-  ExtTaskMgr: TExtTaskMgrSingleton;
-  ExtHistory: TExtHistorySingleton;
-  ExtDirect: TExtDirectSingleton;
-  ExtWindowMgr: TExtWindowMgrSingleton;
-  ExtAjax: TExtAjaxSingleton;
-  ExtStoreMgr: TExtStoreMgrSingleton;
+function ExtLoader: TExtLoaderSingleton;
+function ExtFlashProxy: TExtFlashProxySingleton;
+function ExtEventManager: TExtEventManagerSingleton;
+function ExtEventObject: TExtEventObjectSingleton;
+function ExtMessageBox: TExtMessageBoxSingleton;
+function ExtQuickTips: TExtQuickTipsSingleton;
+function ExtComponentMgr: TExtComponentMgrSingleton;
+function ExtDomHelper: TExtDomHelperSingleton;
+function ExtDomQuery: TExtDomQuerySingleton;
+function ExtWindowMgr: TExtWindowMgrSingleton;
+function ExtAjax: TExtAjaxSingleton;
+function ExtStoreMgr: TExtStoreMgrSingleton;
 
 implementation
+
+function ExtLoader: TExtLoaderSingleton;
+begin
+  if (Session <> nil) then
+    Result := Session.GetSingleton<TExtLoaderSingleton>(TExtLoaderSingleton.JSClassName)
+  else
+    Result := nil;
+end;
+
+function ExtFlashProxy: TExtFlashProxySingleton;
+begin
+  if (Session <> nil) then
+    Result := Session.GetSingleton<TExtFlashProxySingleton>(TExtFlashProxySingleton.JSClassName)
+  else
+    Result := nil;
+end;
+
+function ExtEventManager: TExtEventManagerSingleton;
+begin
+  if (Session <> nil) then
+    Result := Session.GetSingleton<TExtEventManagerSingleton>(TExtEventManagerSingleton.JSClassName)
+  else
+    Result := nil;
+end;
+
+function ExtEventObject: TExtEventObjectSingleton;
+begin
+  if (Session <> nil) then
+    Result := Session.GetSingleton<TExtEventObjectSingleton>(TExtEventObjectSingleton.JSClassName)
+  else
+    Result := nil;
+end;
+
+function ExtMessageBox: TExtMessageBoxSingleton;
+begin
+  if (Session <> nil) then
+    Result := Session.GetSingleton<TExtMessageBoxSingleton>(TExtMessageBoxSingleton.JSClassName)
+  else
+    Result := nil;
+end;
+
+function ExtQuickTips: TExtQuickTipsSingleton;
+begin
+  if (Session <> nil) then
+    Result := Session.GetSingleton<TExtQuickTipsSingleton>(TExtQuickTipsSingleton.JSClassName)
+  else
+    Result := nil;
+end;
+
+function ExtComponentMgr: TExtComponentMgrSingleton;
+begin
+  if (Session <> nil) then
+    Result := Session.GetSingleton<TExtComponentMgrSingleton>(TExtComponentMgrSingleton.JSClassName)
+  else
+    Result := nil;
+end;
+
+function ExtDomHelper: TExtDomHelperSingleton;
+begin
+  if (Session <> nil) then
+    Result := Session.GetSingleton<TExtDomHelperSingleton>(TExtDomHelperSingleton.JSClassName)
+  else
+    Result := nil;
+end;
+
+function ExtDomQuery: TExtDomQuerySingleton;
+begin
+  if (Session <> nil) then
+    Result := Session.GetSingleton<TExtDomQuerySingleton>(TExtDomQuerySingleton.JSClassName)
+  else
+    Result := nil;
+end;
+
+function ExtWindowMgr: TExtWindowMgrSingleton;
+begin
+  if (Session <> nil) then
+    Result := Session.GetSingleton<TExtWindowMgrSingleton>(TExtWindowMgrSingleton.JSClassName)
+  else
+    Result := nil;
+end;
+
+function ExtAjax: TExtAjaxSingleton;
+begin
+  if (Session <> nil) then
+    Result := Session.GetSingleton<TExtAjaxSingleton>(TExtAjaxSingleton.JSClassName)
+  else
+    Result := nil;
+end;
+
+function ExtStoreMgr: TExtStoreMgrSingleton;
+begin
+  if (Session <> nil) then
+    Result := Session.GetSingleton<TExtStoreMgrSingleton>(TExtStoreMgrSingleton.JSClassName)
+  else
+    Result := nil;
+end;
 
 procedure TExtKeyMap.SetFStopEvent(Value: Boolean);
 begin
@@ -4076,7 +4101,7 @@ begin
   JSCode(JSName + '.stopEvent=' + VarToJSON([Value]) + ';');
 end;
 
-function TExtKeyMap.JSClassName: string;
+class function TExtKeyMap.JSClassName: string;
 begin
   Result := 'Ext.KeyMap';
 end;
@@ -4084,7 +4109,7 @@ end;
 constructor TExtKeyMap.Create(AOwner: TComponent; El: string; Config: TExtObject = nil;
   EventName: string = '');
 begin
-  FCreateVarArgs := JSClassName + '(' + VarToJSON([El, Config, false, EventName]) + ');';
+  FCreateVarArgs := JSClassName + '(' + VarToJSON([El, Config, False, EventName], GetExtSession(AOwner)) + ');';
   inherited Create(AOwner);
 end;
 
@@ -4231,7 +4256,7 @@ begin
   JSCode('useDisplay:' + VarToJSON([Value]));
 end;
 
-function TExtFx.JSClassName: string;
+class function TExtFx.JSClassName: string;
 begin
   Result := 'Ext.Fx';
 end;
@@ -4360,7 +4385,7 @@ begin
   JSCode(JSName + '.varJS=' + VarToJSON([Value, false]) + ';');
 end;
 
-function TExtLoaderSingleton.JSClassName: string;
+class function TExtLoaderSingleton.JSClassName: string;
 begin
   Result := 'Ext.Loader';
 end;
@@ -4398,7 +4423,7 @@ begin
   JSCode('forceKeyDown:' + VarToJSON([Value]));
 end;
 
-function TExtKeyNav.JSClassName: string;
+class function TExtKeyNav.JSClassName: string;
 begin
   Result := 'Ext.KeyNav';
 end;
@@ -4434,7 +4459,7 @@ begin
   Result := Self;
 end;
 
-function TExtFlashProxySingleton.JSClassName: string;
+class function TExtFlashProxySingleton.JSClassName: string;
 begin
   Result := 'Ext.FlashProxy';
 end;
@@ -4457,7 +4482,7 @@ begin
   JSCode(JSName + '.textResizeInterval=' + VarToJSON([Value, false]) + ';');
 end;
 
-function TExtEventManagerSingleton.JSClassName: string;
+class function TExtEventManagerSingleton.JSClassName: string;
 begin
   Result := 'Ext.EventManager';
 end;
@@ -5044,7 +5069,7 @@ begin
   Result := Self;
 end;
 
-function TExtError.JSClassName: string;
+class function TExtError.JSClassName: string;
 begin
   Result := 'Ext.Error';
 end;
@@ -5097,12 +5122,12 @@ begin
   JSCode('scope:' + VarToJSON([Value, false]));
 end;
 
-function TExtProgressWaitConfig.JSClassName: string;
+class function TExtProgressWaitConfig.JSClassName: string;
 begin
   Result := 'Object';
 end;
 
-function TExtEventObjectSingleton.JSClassName: string;
+class function TExtEventObjectSingleton.JSClassName: string;
 begin
   Result := 'Ext.EventObject';
 end;
@@ -5221,7 +5246,7 @@ begin
   JSCode(JSName + '.disabled=' + VarToJSON([Value]) + ';');
 end;
 
-function TExtLoadMask.JSClassName: string;
+class function TExtLoadMask.JSClassName: string;
 begin
   Result := 'Ext.LoadMask';
 end;
@@ -5294,7 +5319,7 @@ begin
   JSCode(JSName + '.timeout=' + VarToJSON([Value]) + ';');
 end;
 
-function TExtUpdaterDefaults.JSClassName: string;
+class function TExtUpdaterDefaults.JSClassName: string;
 begin
   Result := 'Ext.Updater.defaults';
 end;
@@ -5307,7 +5332,7 @@ begin
   FSslBlankUrl := 'output/Ext.html#Ext-SSL_SECURE_URL';
 end;
 
-function TExtSplitBarBasicLayoutAdapter.JSClassName: string;
+class function TExtSplitBarBasicLayoutAdapter.JSClassName: string;
 begin
   Result := 'Ext.SplitBar.BasicLayoutAdapter';
 end;
@@ -5357,14 +5382,14 @@ begin
   JSCode(JSName + '.re=' + VarToJSON([#3 + Value]) + ';');
 end;
 
-function TExtTemplate.JSClassName: string;
+class function TExtTemplate.JSClassName: string;
 begin
   Result := 'Ext.Template';
 end;
 
 constructor TExtTemplate.Create(AOwner: TComponent; Config: string = '');
 begin
-  FCreateVarArgs := JSClassName + '(' + VarToJSON([Config]) + ');';
+  FCreateVarArgs := JSClassName + '(' + VarToJSON([Config], GetExtSession(AOwner)) + ');';
   inherited Create(AOwner);
 end;
 
@@ -5481,7 +5506,7 @@ begin
   Result := Self;
 end;
 
-function TExtUpdaterBasicRenderer.JSClassName: string;
+class function TExtUpdaterBasicRenderer.JSClassName: string;
 begin
   Result := 'Ext.Updater.BasicRenderer';
 end;
@@ -5506,7 +5531,7 @@ begin
   JSCode('offset:' + VarToJSON([Value]));
 end;
 
-function TExtShadow.JSClassName: string;
+class function TExtShadow.JSClassName: string;
 begin
   Result := 'Ext.Shadow';
 end;
@@ -5681,7 +5706,7 @@ begin
   JSCode('width:' + VarToJSON([Value]));
 end;
 
-function TExtShowConfig.JSClassName: string;
+class function TExtShowConfig.JSClassName: string;
 begin
   Result := 'Object';
 end;
@@ -5728,18 +5753,17 @@ begin
   JSCode(JSName + '.minWidth=' + VarToJSON([Value]) + ';');
 end;
 
-function TExtMessageBoxSingleton.JSClassName: string;
+class function TExtMessageBoxSingleton.JSClassName: string;
 begin
   Result := 'Ext.MessageBox';
 end;
 
 class function TExtMessageBoxSingleton.CANCEL: TExtObject;
-const
-  lCANCEL: TExtObject = nil;
 begin
-  if lCANCEL = nil then
-    lCANCEL := TExtObject.CreateSingleton('Ext.MessageBox.CANCEL');
-  Result := lCANCEL
+  if (Session <> nil) then
+    Result := Session.GetSingleton<TExtObject>('Ext.MessageBox.CANCEL')
+  else
+    Result := nil;
 end;
 
 class function TExtMessageBoxSingleton.ERROR: string;
@@ -5753,21 +5777,19 @@ begin
 end;
 
 class function TExtMessageBoxSingleton.OK: TExtObject;
-const
-  lOK: TExtObject = nil;
 begin
-  if lOK = nil then
-    lOK := TExtObject.CreateSingleton('Ext.MessageBox.OK');
-  Result := lOK
+  if (Session <> nil) then
+    Result := Session.GetSingleton<TExtObject>('Ext.MessageBox.OK')
+  else
+    Result := nil;
 end;
 
 class function TExtMessageBoxSingleton.OKCANCEL: TExtObject;
-const
-  lOKCANCEL: TExtObject = nil;
 begin
-  if lOKCANCEL = nil then
-    lOKCANCEL := TExtObject.CreateSingleton('Ext.MessageBox.OKCANCEL');
-  Result := lOKCANCEL
+  if (Session <> nil) then
+    Result := Session.GetSingleton<TExtObject>('Ext.MessageBox.OKCANCEL')
+  else
+    Result := nil;
 end;
 
 class function TExtMessageBoxSingleton.QUESTION: string;
@@ -5781,21 +5803,19 @@ begin
 end;
 
 class function TExtMessageBoxSingleton.YESNO: TExtObject;
-const
-  lYESNO: TExtObject = nil;
 begin
-  if lYESNO = nil then
-    lYESNO := TExtObject.CreateSingleton('Ext.MessageBox.YESNO');
-  Result := lYESNO
+  if (Session <> nil) then
+    Result := Session.GetSingleton<TExtObject>('Ext.MessageBox.YESNO')
+  else
+    Result := nil;
 end;
 
 class function TExtMessageBoxSingleton.YESNOCANCEL: TExtObject;
-const
-  lYESNOCANCEL: TExtObject = nil;
 begin
-  if lYESNOCANCEL = nil then
-    lYESNOCANCEL := TExtObject.CreateSingleton('Ext.MessageBox.YESNOCANCEL');
-  Result := lYESNOCANCEL
+  if (Session <> nil) then
+    Result := Session.GetSingleton<TExtObject>('Ext.MessageBox.YESNOCANCEL')
+  else
+    Result := nil;
 end;
 
 procedure TExtMessageBoxSingleton.InitDefaults;
@@ -5904,7 +5924,7 @@ begin
   Result := Self;
 end;
 
-function TExtQuickTipsSingleton.JSClassName: string;
+class function TExtQuickTipsSingleton.JSClassName: string;
 begin
   Result := 'Ext.QuickTips';
 end;
@@ -5978,7 +5998,7 @@ begin
   JSCode(JSName + '.zseed=' + VarToJSON([Value]) + ';');
 end;
 
-function TExtWindowGroup.JSClassName: string;
+class function TExtWindowGroup.JSClassName: string;
 begin
   Result := 'Ext.WindowGroup';
 end;
@@ -6425,7 +6445,7 @@ begin
   FOnUnload := Value;
 end;
 
-function TExtElement.JSClassName: string;
+class function TExtElement.JSClassName: string;
 begin
   Result := 'Ext.Element';
 end;
@@ -7908,7 +7928,7 @@ begin
   JSCode('alpha:' + VarToJSON([Value]));
 end;
 
-function TExtBackground.JSClassName: string;
+class function TExtBackground.JSClassName: string;
 begin
   Result := 'Object';
 end;
@@ -7925,7 +7945,7 @@ begin
   JSCode('size:' + VarToJSON([Value]));
 end;
 
-function TExtBorder.JSClassName: string;
+class function TExtBorder.JSClassName: string;
 begin
   Result := 'Object';
 end;
@@ -7954,7 +7974,7 @@ begin
   JSCode('bold:' + VarToJSON([Value]));
 end;
 
-function TExtFont.JSClassName: string;
+class function TExtFont.JSClassName: string;
 begin
   Result := 'Object';
 end;
@@ -7983,7 +8003,7 @@ begin
   JSCode('font:' + VarToJSON([Value, false]));
 end;
 
-function TExtDataTip.JSClassName: string;
+class function TExtDataTip.JSClassName: string;
 begin
   Result := 'Object';
 end;
@@ -8006,7 +8026,7 @@ begin
   JSCode(JSName + '.types=' + VarToJSON([Value, false]) + ';');
 end;
 
-function TExtComponentMgrSingleton.JSClassName: string;
+class function TExtComponentMgrSingleton.JSClassName: string;
 begin
   Result := 'Ext.ComponentMgr';
 end;
@@ -8014,7 +8034,7 @@ end;
 procedure TExtComponentMgrSingleton.InitDefaults;
 begin
   inherited;
-  FAll := TExtObjectList.Create(Self, 'all');
+  FAll := TExtObjectList.CreateAsAttribute(Self, 'all');
   FPtypes := TExtObject.CreateInternal(Self, 'ptypes');
   FTypes := TExtObject.CreateInternal(Self, 'types');
 end;
@@ -8091,7 +8111,7 @@ begin
   JSCode(JSName + '.elements=' + VarToJSON([Value, false]) + ';');
 end;
 
-function TExtCompositeElementLite.JSClassName: string;
+class function TExtCompositeElementLite.JSClassName: string;
 begin
   Result := 'Ext.CompositeElementLite';
 end;
@@ -8099,7 +8119,7 @@ end;
 procedure TExtCompositeElementLite.InitDefaults;
 begin
   inherited;
-  FElements := TExtObjectList.Create(Self, 'elements');
+  FElements := TExtObjectList.CreateAsAttribute(Self, 'elements');
 end;
 
 function TExtCompositeElementLite.Add(Els: string): TExtFunction;
@@ -8193,7 +8213,7 @@ begin
   Result := Self;
 end;
 
-function TFusionCharts.JSClassName: string;
+class function TFusionCharts.JSClassName: string;
 begin
   Result := 'FusionCharts';
 end;
@@ -8202,7 +8222,7 @@ constructor TFusionCharts.Create(AOwner: TComponent; SwfURL: string; Id: string;
   Width: Integer; Height: Integer; DebugMode: Integer = 0; RegisterWithJS: Integer = 0);
 begin
   FCreateVarArgs := JSClassName + '(' + VarToJSON([SwfURL, Id, Width, Height, DebugMode,
-    RegisterWithJS]) + ');';
+    RegisterWithJS], GetExtSession(AOwner)) + ');';
   inherited Create(AOwner);
 end;
 
@@ -8224,7 +8244,7 @@ begin
   JSCode(JSName + '.useDom=' + VarToJSON([Value]) + ';');
 end;
 
-function TExtDomHelperSingleton.JSClassName: string;
+class function TExtDomHelperSingleton.JSClassName: string;
 begin
   Result := 'Ext.DomHelper';
 end;
@@ -8336,7 +8356,7 @@ begin
   JSCode(JSName + '.pseudos=' + VarToJSON([Value, false]) + ';');
 end;
 
-function TExtDomQuerySingleton.JSClassName: string;
+class function TExtDomQuerySingleton.JSClassName: string;
 begin
   Result := 'Ext.DomQuery';
 end;
@@ -8471,7 +8491,7 @@ begin
   ExtSession.ResponseItems.SetConfigItem(Self, 'text', 'setText', [AValue]);
 end;
 
-function TExtAction.JSClassName: string;
+class function TExtAction.JSClassName: string;
 begin
   Result := 'Ext.Action';
 end;
@@ -8576,7 +8596,7 @@ begin
   Result := Self;
 end;
 
-function TExtDirectTransaction.JSClassName: string;
+class function TExtDirectTransaction.JSClassName: string;
 begin
   Result := 'Ext.Direct.Transaction';
 end;
@@ -8638,7 +8658,7 @@ begin
   FOnResize := Value;
 end;
 
-function TExtSplitBar.JSClassName: string;
+class function TExtSplitBar.JSClassName: string;
 begin
   Result := 'Ext.SplitBar';
 end;
@@ -8647,7 +8667,7 @@ constructor TExtSplitBar.Create(AOwner: TComponent; DragElement: string;
   ResizingElement: string; Orientation: Integer = 0; Placement: Integer = 0);
 begin
   FCreateVarArgs := JSClassName + '(' +
-    VarToJSON([DragElement, ResizingElement, Orientation, Placement]) + ');';
+    VarToJSON([DragElement, ResizingElement, Orientation, Placement], GetExtSession(AOwner)) + ');';
   inherited Create(AOwner);
 end;
 
@@ -8927,7 +8947,7 @@ begin
   FOnResize := Value;
 end;
 
-function TExtResizable.JSClassName: string;
+class function TExtResizable.JSClassName: string;
 begin
   Result := 'Ext.Resizable';
 end;
@@ -8935,7 +8955,7 @@ end;
 procedure TExtResizable.InitDefaults;
 begin
   inherited;
-  FAdjustments := TExtObjectList.Create(Self, 'adjustments');
+  FAdjustments := TExtObjectList.CreateAsAttribute(Self, 'adjustments');
   FDuration := 0;
   FEasing := 'easingOutStrong';
   FEnabled := true;
@@ -8990,12 +9010,7 @@ begin
       ParamAsInteger('Height'), ExtEventObject);
 end;
 
-function TExtTaskMgrSingleton.JSClassName: string;
-begin
-  Result := 'Ext.TaskMgr';
-end;
-
-function TExtSplitBarAbsoluteLayoutAdapter.JSClassName: string;
+class function TExtSplitBarAbsoluteLayoutAdapter.JSClassName: string;
 begin
   Result := 'Ext.SplitBar.AbsoluteLayoutAdapter';
 end;
@@ -9136,7 +9151,7 @@ begin
   FOnUpdate := Value;
 end;
 
-function TExtUpdater.JSClassName: string;
+class function TExtUpdater.JSClassName: string;
 begin
   Result := 'Ext.Updater';
 end;
@@ -9813,7 +9828,7 @@ begin
   FOnStatesave := Value;
 end;
 
-function TExtComponent.JSClassName: string;
+class function TExtComponent.JSClassName: string;
 begin
   Result := 'Ext.Component';
 end;
@@ -9821,15 +9836,15 @@ end;
 procedure TExtComponent.InitDefaults;
 begin
   inherited;
-  FAllowDomMove := true;
-  FBubbleEvents := TExtObjectList.Create(Self, 'bubbleEvents');
+  FAllowDomMove := True;
+  FBubbleEvents := TExtObjectList.CreateAsAttribute(Self, 'bubbleEvents');
   FClearCls := 'x-form-clear-left';
   FDisabledClass := 'x-item-disabled';
   FHtmlObject := TExtObject.CreateInternal(Self, 'html');
   FLabelSeparator := ':';
   FPlugins := TExtObject.CreateInternal(Self, 'plugins');
-  FPluginsArray := TExtObjectList.Create(Self, 'plugins');
-  FStateEvents := TExtObjectList.Create(Self, 'stateEvents');
+  FPluginsArray := TExtObjectList.CreateAsAttribute(Self, 'plugins');
+  FStateEvents := TExtObjectList.CreateAsAttribute(Self, 'stateEvents');
   FInitialConfig := TExtObject.CreateInternal(Self, 'initialConfig');
   FOwnerCt := TExtContainer.CreateInternal(Self, 'ownerCt');
   FRefOwner := TExtContainer.CreateInternal(Self, 'refOwner');
@@ -10213,7 +10228,7 @@ begin
   ExtSession.ResponseItems.SetConfigItem(Self, 'zindex', 'setZindex', [AValue]);
 end;
 
-function TExtLayer.JSClassName: string;
+class function TExtLayer.JSClassName: string;
 begin
   Result := 'Ext.Layer';
 end;
@@ -10234,160 +10249,12 @@ begin
   Result := Self;
 end;
 
-procedure TExtHistorySingleton.SetFFieldId(Value: string);
-begin
-  FFieldId := Value;
-  JSCode(JSName + '.fieldId=' + VarToJSON([Value]) + ';');
-end;
-
-procedure TExtHistorySingleton.SetFIframeId(Value: string);
-begin
-  FIframeId := Value;
-  JSCode(JSName + '.iframeId=' + VarToJSON([Value]) + ';');
-end;
-
-procedure TExtHistorySingleton.SetFOnChange(Value: TExtHistorySingletonOnChange);
-begin
-  if Assigned(FOnChange) then
-    JSCode(JSName + '.events ["change"].listeners=[];');
-  if Assigned(Value) then
-    on('change', Ajax('change', ['Token', '%0'], true));
-  FOnChange := Value;
-end;
-
-procedure TExtHistorySingleton.SetFOnReady(Value: TExtHistorySingletonOnReady);
-begin
-  if Assigned(FOnReady) then
-    JSCode(JSName + '.events ["ready"].listeners=[];');
-  if Assigned(Value) then
-    on('ready', Ajax('ready', ['The', '%0.nm'], true));
-  FOnReady := Value;
-end;
-
-function TExtHistorySingleton.JSClassName: string;
-begin
-  Result := 'Ext.History';
-end;
-
-function TExtHistorySingleton.Add(Token: string; PreventDuplicates: Boolean)
-  : TExtFunction;
-begin
-  JSCode(JSName + '.add(' + VarToJSON([Token, PreventDuplicates]) + ');',
-    'TExtHistorySingleton');
-  Result := Self;
-end;
-
-function TExtHistorySingleton.Back: TExtFunction;
-begin
-  JSCode(JSName + '.back();', 'TExtHistorySingleton');
-  Result := Self;
-end;
-
-function TExtHistorySingleton.Forward: TExtFunction;
-begin
-  JSCode(JSName + '.forward();', 'TExtHistorySingleton');
-  Result := Self;
-end;
-
-function TExtHistorySingleton.GetToken: TExtFunction;
-begin
-  JSCode(JSName + '.getToken();', 'TExtHistorySingleton');
-  Result := Self;
-end;
-
-function TExtHistorySingleton.Init(OnReady: Boolean = false; Scope: TExtObject = nil)
-  : TExtFunction;
-begin
-  JSCode(JSName + '.init(' + VarToJSON([OnReady, Scope, false]) + ');',
-    'TExtHistorySingleton');
-  Result := Self;
-end;
-
-procedure TExtHistorySingleton.HandleEvent(const AEvtName: string);
-begin
-  inherited;
-  if (AEvtName = 'change') and Assigned(FOnChange) then
-    FOnChange(ParamAsString('Token'))
-  else if (AEvtName = 'ready') and Assigned(FOnReady) then
-    FOnReady(ExtHistory);
-end;
-
-procedure TExtDirectSingleton.SetFEventTypes(Value: TExtObject);
-begin
-  FEventTypes := Value;
-  JSCode(JSName + '.eventTypes=' + VarToJSON([Value, false]) + ';');
-end;
-
-procedure TExtDirectSingleton.SetFExceptions(Value: TExtObject);
-begin
-  FExceptions := Value;
-  JSCode(JSName + '.exceptions=' + VarToJSON([Value, false]) + ';');
-end;
-
-procedure TExtDirectSingleton.SetFOnEvent(Value: TExtDirectSingletonOnEvent);
-begin
-  if Assigned(FOnEvent) then
-    JSCode(JSName + '.events ["event"].listeners=[];');
-  if Assigned(Value) then
-    on('event', Ajax('event', ['E', '%0.nm', 'Provider', '%1.nm'], true));
-  FOnEvent := Value;
-end;
-
-procedure TExtDirectSingleton.SetFOnException(Value: TExtDirectSingletonOnException);
-begin
-  if Assigned(FOnException) then
-    JSCode(JSName + '.events ["exception"].listeners=[];');
-  if Assigned(Value) then
-    on('exception', Ajax('exception', ['E', '%0.nm'], true));
-  FOnException := Value;
-end;
-
-function TExtDirectSingleton.JSClassName: string;
-begin
-  Result := 'Ext.Direct';
-end;
-
-procedure TExtDirectSingleton.InitDefaults;
-begin
-  inherited;
-  FEventTypes := TExtObject.CreateInternal(Self, 'eventTypes');
-  FExceptions := TExtObject.CreateInternal(Self, 'exceptions');
-end;
-
-function TExtDirectSingleton.AddProvider(Provider: TExtObject): TExtFunction;
-begin
-  JSCode(JSName + '.addProvider(' + VarToJSON([Provider, false]) + ');',
-    'TExtDirectSingleton');
-  Result := Self;
-end;
-
-function TExtDirectSingleton.AddProvider(Provider: TExtObjectList): TExtFunction;
-begin
-  JSCode(JSName + '.addProvider(' + VarToJSON(Provider) + ');', 'TExtDirectSingleton');
-  Result := Self;
-end;
-
-function TExtDirectSingleton.GetProvider(Id: string): TExtFunction;
-begin
-  JSCode(JSName + '.getProvider(' + VarToJSON([Id]) + ');', 'TExtDirectSingleton');
-  Result := Self;
-end;
-
-procedure TExtDirectSingleton.HandleEvent(const AEvtName: string);
-begin
-  inherited;
-  if (AEvtName = 'event') and Assigned(FOnEvent) then
-    FOnEvent(TEvent(ParamAsObject('E')), TExtDirectProvider(ParamAsObject('Provider')))
-  else if (AEvtName = 'exception') and Assigned(FOnException) then
-    FOnException(TEvent(ParamAsObject('E')));
-end;
-
-function TExtCompositeElement.JSClassName: string;
+class function TExtCompositeElement.JSClassName: string;
 begin
   Result := 'Ext.CompositeElement';
 end;
 
-function TExtWindowMgrSingleton.JSClassName: string;
+class function TExtWindowMgrSingleton.JSClassName: string;
 begin
   Result := 'Ext.WindowMgr';
 end;
@@ -10397,14 +10264,14 @@ begin
   inherited;
 end;
 
-function TExtXTemplate.JSClassName: string;
+class function TExtXTemplate.JSClassName: string;
 begin
   Result := 'Ext.XTemplate';
 end;
 
 constructor TExtXTemplate.Create(AOwner: TComponent; Config: string = '');
 begin
-  FCreateVarArgs := JSClassName + '(' + VarToJSON([Config]) + ');';
+  FCreateVarArgs := JSClassName + '(' + VarToJSON([Config], GetExtSession(AOwner)) + ');';
   inherited Create(AOwner);
 end;
 
@@ -10486,7 +10353,7 @@ begin
   JSCode(JSName + '.url=' + VarToJSON([Value]) + ';');
 end;
 
-function TExtAjaxSingleton.JSClassName: string;
+class function TExtAjaxSingleton.JSClassName: string;
 begin
   Result := 'Ext.Ajax';
 end;
@@ -10674,7 +10541,7 @@ begin
   FOnStartedit := Value;
 end;
 
-function TExtEditor.JSClassName: string;
+class function TExtEditor.JSClassName: string;
 begin
   Result := 'Ext.Editor';
 end;
@@ -10684,7 +10551,7 @@ begin
   inherited;
   FField := TExtFormField.CreateInternal(Self, 'field');
   FHideEl := true;
-  FOffsets := TExtObjectList.Create(Self, 'offsets');
+  FOffsets := TExtObjectList.CreateAsAttribute(Self, 'offsets');
   FRevertInvalid := true;
   FSwallowKeys := true;
 end;
@@ -10753,7 +10620,7 @@ begin
     FOnStartedit(TExtElement(ParamAsObject('BoundEl')), ParamAsString('Value'));
 end;
 
-function TExtStoreMgrSingleton.JSClassName: string;
+class function TExtStoreMgrSingleton.JSClassName: string;
 begin
   Result := 'Ext.StoreMgr';
 end;
@@ -10839,7 +10706,7 @@ begin
   FOnSelect := Value;
 end;
 
-function TExtColorPalette.JSClassName: string;
+class function TExtColorPalette.JSClassName: string;
 begin
   Result := 'Ext.ColorPalette';
 end;
@@ -10849,7 +10716,7 @@ begin
   inherited;
   FItemCls := 'x-color-palette';
   FScope := TExtObject.CreateInternal(Self, 'scope');
-  FColors := TExtObjectList.Create(Self, 'colors');
+  FColors := TExtObjectList.CreateAsAttribute(Self, 'colors');
 end;
 
 function TExtColorPalette.Select(Color: string; SuppressEvent: Boolean = false)
@@ -11016,7 +10883,7 @@ begin
   FOnSelect := Value;
 end;
 
-function TExtDatePicker.JSClassName: string;
+class function TExtDatePicker.JSClassName: string;
 begin
   Result := 'Ext.DatePicker';
 end;
@@ -11025,15 +10892,15 @@ procedure TExtDatePicker.InitDefaults;
 begin
   inherited;
   FCancelText := 'Cancel';
-  FDayNames := TExtObjectList.Create(Self, 'dayNames');
-  FDisabledDates := TExtObjectList.Create(Self, 'disabledDates');
+  FDayNames := TExtObjectList.CreateAsAttribute(Self, 'dayNames');
+  FDisabledDates := TExtObjectList.CreateAsAttribute(Self, 'disabledDates');
   FDisabledDatesText := 'Disabled';
-  FDisabledDays := TExtObjectList.Create(Self, 'disabledDays');
+  FDisabledDays := TExtObjectList.CreateAsAttribute(Self, 'disabledDays');
   FDisabledDaysText := 'Disabled';
   FFormat := 'm/d/y';
   FMaxText := 'This date is after the maximum date';
   FMinText := 'This date is before the minimum date';
-  FMonthNames := TExtObjectList.Create(Self, 'monthNames');
+  FMonthNames := TExtObjectList.CreateAsAttribute(Self, 'monthNames');
   FOkText := 'OK';
   FScope := TExtObject.CreateInternal(Self, 'scope');
   FShowToday := true;
@@ -11236,7 +11103,7 @@ begin
   FOnResize := Value;
 end;
 
-function TExtBoxComponent.JSClassName: string;
+class function TExtBoxComponent.JSClassName: string;
 begin
   Result := 'Ext.BoxComponent';
 end;
@@ -11342,7 +11209,7 @@ begin
   JSCode('overflowText:' + VarToJSON([Value]));
 end;
 
-function TExtToolbarItem.JSClassName: string;
+class function TExtToolbarItem.JSClassName: string;
 begin
   Result := 'Ext.Toolbar.Item';
 end;
@@ -11403,7 +11270,7 @@ begin
   FOnInitialize := Value;
 end;
 
-function TExtFlashComponent.JSClassName: string;
+class function TExtFlashComponent.JSClassName: string;
 begin
   Result := 'Ext.FlashComponent';
 end;
@@ -11472,7 +11339,7 @@ begin
   FOnUpdate := Value;
 end;
 
-function TExtProgressBar.JSClassName: string;
+class function TExtProgressBar.JSClassName: string;
 begin
   Result := 'Ext.ProgressBar';
 end;
@@ -11535,7 +11402,7 @@ begin
       ParamAsString('The_'));
 end;
 
-function TExtSpacer.JSClassName: string;
+class function TExtSpacer.JSClassName: string;
 begin
   Result := 'Ext.Spacer';
 end;
@@ -11728,7 +11595,7 @@ begin
   FOnRemove := Value;
 end;
 
-function TExtContainer.JSClassName: string;
+class function TExtContainer.JSClassName: string;
 begin
   Result := 'Ext.Container';
 end;
@@ -11736,13 +11603,13 @@ end;
 procedure TExtContainer.InitDefaults;
 begin
   inherited;
-  FAutoDestroy := true;
+  FAutoDestroy := True;
   FDefaults := TExtObject.CreateInternal(Self, 'defaults');
-  FItems := TExtObjectList.Create(Self, 'items');
-  FItemsArray := TExtObjectList.Create(Self, 'items');
+  FItems := TExtObjectList.CreateAsAttribute(Self, 'items');
+  FItemsArray := TExtObjectList.CreateAsAttribute(Self, 'items');
   FLayoutObject := TExtObject.CreateInternal(Self, 'layout');
   FLayoutConfig := TExtObject.CreateInternal(Self, 'layoutConfig');
-  FItems_ := TExtObjectList.Create(Self, 'items');
+  FItems_ := TExtObjectList.CreateAsAttribute(Self, 'items');
 end;
 
 function TExtContainer.Add(Component: TObject): TExtFunction;
@@ -12193,7 +12060,7 @@ begin
   FOnToggle := Value;
 end;
 
-function TExtButton.JSClassName: string;
+class function TExtButton.JSClassName: string;
 begin
   Result := 'Ext.Button';
 end;
@@ -12512,7 +12379,7 @@ begin
   FOnSelectionchange := Value;
 end;
 
-function TExtDataView.JSClassName: string;
+class function TExtDataView.JSClassName: string;
 begin
   Result := 'Ext.DataView';
 end;
@@ -12522,7 +12389,7 @@ begin
   inherited;
   FSelectedClass := 'x-view-selected';
   FStore := TExtDataStore.CreateInternal(Self, 'store');
-  FTplArray := TExtObjectList.Create(Self, 'tpl');
+  FTplArray := TExtObjectList.CreateAsAttribute(Self, 'tpl');
 end;
 
 function TExtDataView.BindStore(Store: TExtDataStore): TExtFunction;
@@ -12801,7 +12668,7 @@ begin
       TExtObjectList(ParamAsObject('Selections')));
 end;
 
-function TExtViewport.JSClassName: string;
+class function TExtViewport.JSClassName: string;
 begin
   Result := 'Ext.Viewport';
 end;
@@ -13352,7 +13219,7 @@ begin
   FOnTitlechange := Value;
 end;
 
-function TExtPanel.JSClassName: string;
+class function TExtPanel.JSClassName: string;
 begin
   Result := 'Ext.Panel';
 end;
@@ -13364,37 +13231,37 @@ begin
   FAutoLoad := TExtObject.CreateInternal(Self, 'autoLoad');
   FBaseCls := 'x-panel';
   FBbar := TExtObject.CreateInternal(Self, 'bbar');
-  FBbarArray := TExtObjectList.Create(Self, 'bbar');
+  FBbarArray := TExtObjectList.CreateAsAttribute(Self, 'bbar');
   FBbarCfg := TExtObject.CreateInternal(Self, 'bbarCfg');
   FBodyBorder := true;
   FBodyCfg := TExtObject.CreateInternal(Self, 'bodyCfg');
   FBodyCssClassObject := TExtObject.CreateInternal(Self, 'bodyCssClass');
   FBodyStyleObject := TExtObject.CreateInternal(Self, 'bodyStyle');
   FBorder := true;
-  FButtons := TExtObjectList.Create(Self, 'buttons');
+  FButtons := TExtObjectList.CreateAsAttribute(Self, 'buttons');
   FBwrapCfg := TExtObject.CreateInternal(Self, 'bwrapCfg');
   FCollapseFirst := true;
   FCollapsedCls := 'x-panel-collapsed';
   FDraggableObject := TExtObject.CreateInternal(Self, 'draggable');
   FFbar := TExtObject.CreateInternal(Self, 'fbar');
-  FFbarArray := TExtObjectList.Create(Self, 'fbar');
+  FFbarArray := TExtObjectList.CreateAsAttribute(Self, 'fbar');
   FFooterCfg := TExtObject.CreateInternal(Self, 'footerCfg');
   FHeaderAsText := true;
   FHeaderCfg := TExtObject.CreateInternal(Self, 'headerCfg');
   FKeys := TExtObject.CreateInternal(Self, 'keys');
-  FKeysArray := TExtObjectList.Create(Self, 'keys');
+  FKeysArray := TExtObjectList.CreateAsAttribute(Self, 'keys');
   FMaskDisabled := true;
   FMinButtonWidth := 75;
   FShadowOffset := 4;
   FShim := true;
   FTbar := TExtObject.CreateInternal(Self, 'tbar');
-  FTbarArray := TExtObjectList.Create(Self, 'tbar');
+  FTbarArray := TExtObjectList.CreateAsAttribute(Self, 'tbar');
   FTbarCfg := TExtObject.CreateInternal(Self, 'tbarCfg');
   FToolTemplate := TExtTemplate.CreateInternal(Self, 'toolTemplate');
   FToolTemplateExtXTemplate := TExtXTemplate.CreateInternal(Self, 'toolTemplate');
-  FTools := TExtObjectList.Create(Self, 'tools');
+  FTools := TExtObjectList.CreateAsAttribute(Self, 'tools');
   FBody := TExtElement.CreateInternal(Self, 'body');
-  FButtons_ := TExtObjectList.Create(Self, 'buttons');
+  FButtons_ := TExtObjectList.CreateAsAttribute(Self, 'buttons');
   FBwrap := TExtElement.CreateInternal(Self, 'bwrap');
   FDd := TExtDdDragSource.CreateInternal(Self, 'dd');
   FFooter_ := TExtElement.CreateInternal(Self, 'footer');
@@ -13577,7 +13444,7 @@ begin
   FOnArrowclick := Value;
 end;
 
-function TExtSplitButton.JSClassName: string;
+class function TExtSplitButton.JSClassName: string;
 begin
   Result := 'Ext.SplitButton';
 end;
@@ -13607,7 +13474,7 @@ begin
   JSCode('width:' + VarToJSON([Value]));
 end;
 
-function TExtToolbarSpacer.JSClassName: string;
+class function TExtToolbarSpacer.JSClassName: string;
 begin
   Result := 'Ext.Toolbar.Spacer';
 end;
@@ -13629,7 +13496,7 @@ begin
   ExtSession.ResponseItems.SetConfigItem(Self, 'text', 'setText', [AValue]);
 end;
 
-function TExtToolbarTextItem.JSClassName: string;
+class function TExtToolbarTextItem.JSClassName: string;
 begin
   Result := 'Ext.Toolbar.TextItem';
 end;
@@ -13686,7 +13553,7 @@ begin
   FOnOverflowchange := Value;
 end;
 
-function TExtToolbar.JSClassName: string;
+class function TExtToolbar.JSClassName: string;
 begin
   Result := 'Ext.Toolbar';
 end;
@@ -13695,7 +13562,7 @@ procedure TExtToolbar.InitDefaults;
 begin
   inherited;
   FLayoutObject := TExtObject.CreateInternal(Self, 'layout');
-  FItems := TExtObjectList.Create(Self, 'items');
+  FItems := TExtObjectList.CreateAsAttribute(Self, 'items');
 end;
 
 function TExtToolbar.Add(Args: TExtObjectList): TExtFunction;
@@ -13804,7 +13671,7 @@ begin
     FOnOverflowchange(TExtObject(ParamAsObject('C')), ParamAsBoolean('LastOverflow'));
 end;
 
-function TExtToolbarSeparator.JSClassName: string;
+class function TExtToolbarSeparator.JSClassName: string;
 begin
   Result := 'Ext.Toolbar.Separator';
 end;
@@ -13856,7 +13723,7 @@ begin
   JSCode('width:' + VarToJSON([Value]));
 end;
 
-function TExtTip.JSClassName: string;
+class function TExtTip.JSClassName: string;
 begin
   Result := 'Ext.Tip';
 end;
@@ -13881,7 +13748,7 @@ begin
   Result := Self;
 end;
 
-function TExtToolbarFill.JSClassName: string;
+class function TExtToolbarFill.JSClassName: string;
 begin
   Result := 'Ext.Toolbar.Fill';
 end;
@@ -13915,7 +13782,7 @@ begin
   JSCode('layout:' + VarToJSON([Value]));
 end;
 
-function TExtButtonGroup.JSClassName: string;
+class function TExtButtonGroup.JSClassName: string;
 begin
   Result := 'Ext.ButtonGroup';
 end;
@@ -13970,7 +13837,7 @@ begin
   FOnChange := Value;
 end;
 
-function TExtCycleButton.JSClassName: string;
+class function TExtCycleButton.JSClassName: string;
 begin
   Result := 'Ext.CycleButton';
 end;
@@ -13978,7 +13845,7 @@ end;
 procedure TExtCycleButton.InitDefaults;
 begin
   inherited;
-  FItems := TExtObjectList.Create(Self, 'items');
+  FItems := TExtObjectList.CreateAsAttribute(Self, 'items');
   FMenu := TExtMenuMenu.CreateInternal(Self, 'menu');
 end;
 
@@ -14256,7 +14123,7 @@ begin
   FOnRestore := Value;
 end;
 
-function TExtWindow.JSClassName: string;
+class function TExtWindow.JSClassName: string;
 begin
   Result := 'Ext.Window';
 end;
@@ -14279,7 +14146,7 @@ begin
   FDd := TExtDdDD.CreateInternal(Self, 'dd');
   FOnHide := TExtObject.CreateInternal(Self, 'onHide');
   FOnShow := TExtObject.CreateInternal(Self, 'onShow');
-  FBbar := TExtObjectList.Create(Self, 'bbar');
+  FBbar := TExtObjectList.CreateAsAttribute(Self, 'bbar');
 end;
 
 function TExtWindow.AlignTo(Element: string; Position: string;
@@ -14607,7 +14474,7 @@ begin
   FOnTabchange := Value;
 end;
 
-function TExtTabPanel.JSClassName: string;
+class function TExtTabPanel.JSClassName: string;
 begin
   Result := 'Ext.TabPanel';
 end;
@@ -14887,7 +14754,7 @@ begin
   FOnChange := Value;
 end;
 
-function TExtPagingToolbar.JSClassName: string;
+class function TExtPagingToolbar.JSClassName: string;
 begin
   Result := 'Ext.PagingToolbar';
 end;
@@ -15042,7 +14909,7 @@ begin
   JSCode(JSName + '.triggerElement=' + VarToJSON([Value, false]) + ';');
 end;
 
-function TExtToolTip.JSClassName: string;
+class function TExtToolTip.JSClassName: string;
 begin
   Result := 'Ext.ToolTip';
 end;
@@ -15055,7 +14922,7 @@ begin
   FAutoHide := true;
   FDismissDelay := 5000;
   FHideDelay := 200;
-  FMouseOffset := TExtObjectList.Create(Self, 'mouseOffset');
+  FMouseOffset := TExtObjectList.CreateAsAttribute(Self, 'mouseOffset');
   FShowDelay := 500;
 end;
 
@@ -15089,7 +14956,7 @@ begin
   JSCode('target:' + VarToJSON([Value]));
 end;
 
-function TExtQuickTip.JSClassName: string;
+class function TExtQuickTip.JSClassName: string;
 begin
   Result := 'Ext.QuickTip';
 end;
@@ -15141,40 +15008,5 @@ begin
   Result := Self;
 end;
 
-initialization
-
-ExtLoader := TExtLoaderSingleton.CreateSingleton;
-ExtFlashProxy := TExtFlashProxySingleton.CreateSingleton;
-ExtEventManager := TExtEventManagerSingleton.CreateSingleton;
-ExtEventObject := TExtEventObjectSingleton.CreateSingleton;
-ExtMessageBox := TExtMessageBoxSingleton.CreateSingleton;
-ExtQuickTips := TExtQuickTipsSingleton.CreateSingleton;
-ExtComponentMgr := TExtComponentMgrSingleton.CreateSingleton;
-ExtDomHelper := TExtDomHelperSingleton.CreateSingleton;
-ExtDomQuery := TExtDomQuerySingleton.CreateSingleton;
-ExtTaskMgr := TExtTaskMgrSingleton.CreateSingleton;
-ExtHistory := TExtHistorySingleton.CreateSingleton;
-ExtDirect := TExtDirectSingleton.CreateSingleton;
-ExtWindowMgr := TExtWindowMgrSingleton.CreateSingleton;
-ExtAjax := TExtAjaxSingleton.CreateSingleton;
-ExtStoreMgr := TExtStoreMgrSingleton.CreateSingleton;
-
-finalization
-
-ExtStoreMgr.Destroy;
-ExtAjax.Destroy;
-ExtWindowMgr.Destroy;
-ExtDirect.Destroy;
-ExtHistory.Destroy;
-ExtTaskMgr.Destroy;
-ExtDomQuery.Destroy;
-ExtDomHelper.Destroy;
-ExtComponentMgr.Destroy;
-ExtQuickTips.Destroy;
-ExtMessageBox.Destroy;
-ExtEventObject.Destroy;
-ExtEventManager.Destroy;
-ExtFlashProxy.Destroy;
-ExtLoader.Destroy;
-
 end.
+

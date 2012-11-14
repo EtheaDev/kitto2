@@ -37,7 +37,7 @@ type
     procedure SetFHeader(Value: string);
     procedure SetFWidth(Value: Integer);
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     property Header: string read FHeader write SetFHeader;
     property Width: Integer read FWidth write SetFWidth;
   end;
@@ -97,8 +97,9 @@ type
     procedure SetRendererExtFunction(const AValue: TExtFunction);
   protected
     procedure InitDefaults; override;
+    function GetObjectNamePrefix: string; override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     function GetCellEditor(RowIndex: Integer): TExtFunction;
     function SetEditor(Editor: TExtEditor): TExtFunction; overload;
     function SetEditor(Editor: TExtFormField): TExtFunction; overload;
@@ -131,7 +132,7 @@ type
 
   TExtGridPropertyRecord = class(TExtFunction)
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
   end;
 
   TExtGridTemplateColumn = class(TExtGridColumn)
@@ -143,14 +144,14 @@ type
   protected
     procedure InitDefaults; override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     property Tpl: string read FTpl write SetFTpl;
     property TplXTemplate: TExtXTemplate read FTplXTemplate write SetFTplXTemplate;
   end;
 
   TExtGridPropertyStore = class(TExtUtilObservable)
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     constructor Create(AOwner: TComponent; Grid: TExtGridGrid; Source: TExtObject);
       reintroduce;
   end;
@@ -162,7 +163,7 @@ type
   protected
     procedure InitDefaults; override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     property Format: string read FFormat write SetFormat;
   end;
 
@@ -241,8 +242,9 @@ type
   protected
     procedure InitDefaults; override;
     procedure HandleEvent(const AEvtName: string); override;
+    function GetObjectNamePrefix: string; override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     function FindCellIndex(El: THTMLElement): TExtFunction;
     function FindRow(El: THTMLElement): TExtFunction;
     function FindRowBody(El: THTMLElement): TExtFunction;
@@ -327,7 +329,7 @@ type
     procedure InitDefaults; override;
     procedure HandleEvent(const AEvtName: string); override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     function DestroyJS: TExtFunction; override;
     function FindColumnIndex(Col: string): TExtFunction;
     function GetCellEditor(ColIndex: Integer; RowIndex: Integer): TExtFunction;
@@ -387,7 +389,7 @@ type
   protected
     procedure InitDefaults; override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     property FalseText: string read FFalseText write SetFFalseText;
     property TrueText: string read FTrueText write SetFTrueText;
     property UndefinedText: string read FUndefinedText write SetFUndefinedText;
@@ -400,7 +402,7 @@ type
   protected
     procedure InitDefaults; override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     property Format: string read FFormat write SetFormat;
   end;
 
@@ -412,7 +414,7 @@ type
     procedure InitDefaults; override;
     function GetObjectNamePrefix: string; override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     function IsLocked: TExtFunction;
     function Lock: TExtFunction;
     function Unlock: TExtFunction;
@@ -423,7 +425,7 @@ type
   protected
     procedure InitDefaults; override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
   end;
 
   // Procedural types for events TExtGridCellSelectionModel
@@ -445,7 +447,7 @@ type
   protected
     procedure HandleEvent(const AEvtName: string); override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     function ClearSelections(PreventNotify: Boolean): TExtFunction;
     function GetSelectedCell: TExtFunction;
     function HasSelection: TExtFunction;
@@ -487,7 +489,7 @@ type
   protected
     procedure HandleEvent(const AEvtName: string); override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     function ClearSelections(Fast: Boolean = false): TExtFunction;
     function DeselectRange(StartRow: Integer; EndRow: Integer): TExtFunction;
     function DeselectRow(Row: Integer; PreventViewNotify: Boolean = false): TExtFunction;
@@ -558,7 +560,7 @@ type
   protected
     procedure InitDefaults; override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     function CollapseAllGroups: TExtFunction;
     function ExpandAllGroups: TExtFunction;
     function GetGroupId(Value: string): TExtFunction;
@@ -595,7 +597,7 @@ type
   protected
     procedure InitDefaults; override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     property CheckOnly: Boolean read FCheckOnly write SetFCheckOnly;
     property Header: string read FHeader write SetFHeader;
     property Sortable: Boolean read FSortable write SetFSortable;
@@ -606,7 +608,7 @@ type
   protected
     procedure InitDefaults; override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     function AfterRepair: TExtFunction;
     function GetDragData: TExtFunction;
     function GetRepairXY(E: TEventObject): TExtFunction;
@@ -830,7 +832,7 @@ type
     procedure HandleEvent(const AEvtName: string); override;
     function GetObjectNamePrefix: string; override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     function GetColumnModel: TExtFunction;
     function GetDragDropText: TExtFunction;
     function GetGridEl: TExtFunction;
@@ -973,7 +975,7 @@ type
     procedure InitDefaults; override;
     procedure HandleEvent(const AEvtName: string); override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     function StartEditing(RowIndex: Integer; ColIndex: Integer): TExtFunction;
     function StopEditing(Cancel: Boolean = false): TExtFunction;
     property AutoEncode: Boolean read FAutoEncode write SetFAutoEncode;
@@ -1013,7 +1015,7 @@ type
     procedure InitDefaults; override;
     procedure HandleEvent(const AEvtName: string); override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     function GetSource: TExtFunction;
     function RemoveProperty(Prop: string): TExtFunction;
     function SetProperty(Prop: string; Value: string; Create: Boolean = false)
@@ -1043,7 +1045,7 @@ begin
   JSCode('width:' + VarToJSON([Value]));
 end;
 
-function TExtGridRowNumberer.JSClassName: string;
+class function TExtGridRowNumberer.JSClassName: string;
 begin
   Result := 'Ext.grid.RowNumberer';
 end;
@@ -1193,9 +1195,14 @@ begin
   ExtSession.ResponseItems.SetConfigItem(Self, 'renderer', [AValue, True]);
 end;
 
-function TExtGridColumn.JSClassName: string;
+class function TExtGridColumn.JSClassName: string;
 begin
   Result := 'Ext.grid.Column';
+end;
+
+function TExtGridColumn.GetObjectNamePrefix: string;
+begin
+  Result := 'c';
 end;
 
 procedure TExtGridColumn.InitDefaults;
@@ -1224,7 +1231,7 @@ begin
   Result := Self;
 end;
 
-function TExtGridPropertyRecord.JSClassName: string;
+class function TExtGridPropertyRecord.JSClassName: string;
 begin
   Result := 'Ext.grid.PropertyRecord';
 end;
@@ -1241,7 +1248,7 @@ begin
   JSCode('tpl:' + VarToJSON([Value, false]));
 end;
 
-function TExtGridTemplateColumn.JSClassName: string;
+class function TExtGridTemplateColumn.JSClassName: string;
 begin
   Result := 'Ext.grid.TemplateColumn';
 end;
@@ -1252,7 +1259,7 @@ begin
   FTplXTemplate := TExtXTemplate.CreateInternal(Self, 'tpl');
 end;
 
-function TExtGridPropertyStore.JSClassName: string;
+class function TExtGridPropertyStore.JSClassName: string;
 begin
   Result := 'Ext.grid.PropertyStore';
 end;
@@ -1260,7 +1267,7 @@ end;
 constructor TExtGridPropertyStore.Create(AOwner: TComponent; Grid: TExtGridGrid;
   Source: TExtObject);
 begin
-  FCreateVarArgs := JSClassName + '(' + VarToJSON([Grid, false, Source, false]) + ');';
+  FCreateVarArgs := JSClassName + '(' + VarToJSON([Grid, False, Source, False], GetExtSession(AOwner)) + ');';
   inherited Create(AOwner);
 end;
 
@@ -1270,7 +1277,7 @@ begin
   ExtSession.ResponseItems.SetConfigItem(Self, 'format', [AValue]);
 end;
 
-function TExtGridNumberColumn.JSClassName: string;
+class function TExtGridNumberColumn.JSClassName: string;
 begin
   Result := 'Ext.grid.NumberColumn';
 end;
@@ -1477,7 +1484,7 @@ begin
   FOnRowupdated := Value;
 end;
 
-function TExtGridGridView.JSClassName: string;
+class function TExtGridGridView.JSClassName: string;
 begin
   Result := 'Ext.grid.GridView';
 end;
@@ -1495,7 +1502,7 @@ begin
   FRowSelectorDepth := 10;
   FSelectedRowClass := 'x-grid3-row-selected';
   FSortAscText := 'Sort Ascending';
-  FSortClasses := TExtObjectList.Create(Self, 'sortClasses');
+  FSortClasses := TExtObjectList.CreateAsAttribute(Self, 'sortClasses');
   FSortDescText := 'Sort Descending';
   FDragZone := TExtGridGridDragZone.CreateInternal(Self, 'dragZone');
   FMainBody := TExtElement.CreateInternal(Self, 'mainBody');
@@ -1547,6 +1554,11 @@ function TExtGridGridView.GetHeaderCell(Index: Integer): TExtFunction;
 begin
   JSCode(JSName + '.getHeaderCell(' + VarToJSON([index]) + ');', 'TExtGridGridView');
   Result := Self;
+end;
+
+function TExtGridGridView.GetObjectNamePrefix: string;
+begin
+  Result := 'gv';
 end;
 
 function TExtGridGridView.GetRow(Index: Integer): TExtFunction;
@@ -1667,7 +1679,7 @@ begin
   FOnWidthchange := Value;
 end;
 
-function TExtGridColumnModel.JSClassName: string;
+class function TExtGridColumnModel.JSClassName: string;
 begin
   Result := 'Ext.grid.ColumnModel';
 end;
@@ -1675,7 +1687,7 @@ end;
 procedure TExtGridColumnModel.InitDefaults;
 begin
   inherited;
-  FColumns := TExtObjectList.Create(Self, 'columns');
+  FColumns := TExtObjectList.CreateAsAttribute(Self, 'columns');
   FDefaultWidth := 100;
   FDefaults := TExtObject.CreateInternal(Self, 'defaults');
 end;
@@ -1916,7 +1928,7 @@ begin
   JSCode('undefinedText:' + VarToJSON([Value]));
 end;
 
-function TExtGridBooleanColumn.JSClassName: string;
+class function TExtGridBooleanColumn.JSClassName: string;
 begin
   Result := 'Ext.grid.BooleanColumn';
 end;
@@ -1934,7 +1946,7 @@ begin
   ExtSession.ResponseItems.SetConfigItem(Self, 'format', [AValue]);
 end;
 
-function TExtGridDateColumn.JSClassName: string;
+class function TExtGridDateColumn.JSClassName: string;
 begin
   Result := 'Ext.grid.DateColumn';
 end;
@@ -1952,7 +1964,7 @@ begin
   ExtSession.ResponseItems.SetProperty(Self, 'grid', [AValue, False]);
 end;
 
-function TExtGridAbstractSelectionModel.JSClassName: string;
+class function TExtGridAbstractSelectionModel.JSClassName: string;
 begin
   Result := 'Ext.grid.AbstractSelectionModel';
 end;
@@ -1986,7 +1998,7 @@ begin
   Result := Self;
 end;
 
-function TExtGridPropertyColumnModel.JSClassName: string;
+class function TExtGridPropertyColumnModel.JSClassName: string;
 begin
   Result := 'Ext.grid.PropertyColumnModel';
 end;
@@ -2029,7 +2041,7 @@ begin
   FOnSelectionchange := Value;
 end;
 
-function TExtGridCellSelectionModel.JSClassName: string;
+class function TExtGridCellSelectionModel.JSClassName: string;
 begin
   Result := 'Ext.grid.CellSelectionModel';
 end;
@@ -2131,7 +2143,7 @@ begin
   FOnSelectionchange := Value;
 end;
 
-function TExtGridRowSelectionModel.JSClassName: string;
+class function TExtGridRowSelectionModel.JSClassName: string;
 begin
   Result := 'Ext.grid.RowSelectionModel';
 end;
@@ -2384,7 +2396,7 @@ begin
   ExtSession.ResponseItems.SetConfigItem(Self, 'startCollapsed', [AValue]);
 end;
 
-function TExtGridGroupingView.JSClassName: string;
+class function TExtGridGroupingView.JSClassName: string;
 begin
   Result := 'Ext.grid.GroupingView';
 end;
@@ -2466,7 +2478,7 @@ begin
   JSCode('width:' + VarToJSON([Value]));
 end;
 
-function TExtGridCheckboxSelectionModel.JSClassName: string;
+class function TExtGridCheckboxSelectionModel.JSClassName: string;
 begin
   Result := 'Ext.grid.CheckboxSelectionModel';
 end;
@@ -2477,7 +2489,7 @@ begin
   FWidth := 20;
 end;
 
-function TExtGridGridDragZone.JSClassName: string;
+class function TExtGridGridDragZone.JSClassName: string;
 begin
   Result := 'Ext.grid.GridDragZone';
 end;
@@ -3092,7 +3104,7 @@ begin
   FOnViewready := Value;
 end;
 
-function TExtGridGridPanel.JSClassName: string;
+class function TExtGridGridPanel.JSClassName: string;
 begin
   Result := 'Ext.grid.GridPanel';
 end;
@@ -3102,11 +3114,11 @@ begin
   inherited;
   FCm := TExtObject.CreateInternal(Self, 'cm');
   FColModel := TExtGridColumnModel.CreateInternal(Self, 'colModel');
-  FColumns := TExtObjectList.Create(Self, 'columns');
+  FColumns := TExtObjectList.CreateAsAttribute(Self, 'columns');
   FLoadMask := TExtObject.CreateInternal(Self, 'loadMask');
   FSelModel := TExtObject.CreateInternal(Self, 'selModel');
   FSm := TExtObject.CreateInternal(Self, 'sm');
-  FStateEvents := TExtObjectList.Create(Self, 'stateEvents');
+  FStateEvents := TExtObjectList.CreateAsAttribute(Self, 'stateEvents');
   FStore := TExtDataStore.CreateInternal(Self, 'store');
   FView := TExtObject.CreateInternal(Self, 'view');
   FViewConfig := TExtObject.CreateInternal(Self, 'viewConfig');
@@ -3324,7 +3336,7 @@ begin
   FOnValidateedit := Value;
 end;
 
-function TExtGridEditorGridPanel.JSClassName: string;
+class function TExtGridEditorGridPanel.JSClassName: string;
 begin
   Result := 'Ext.grid.EditorGridPanel';
 end;
@@ -3408,7 +3420,7 @@ begin
   FOnPropertychange := Value;
 end;
 
-function TExtGridPropertyGrid.JSClassName: string;
+class function TExtGridPropertyGrid.JSClassName: string;
 begin
   Result := 'Ext.grid.PropertyGrid';
 end;

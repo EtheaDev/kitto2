@@ -246,64 +246,10 @@ type
     property HTML: string read FText write FText;
   end;
 
-  {
-  Defines an user session opened in a browser. Each session is a FastCGI thread that owns additional JavaScript and Ext JS resources
-  as: theme, charset, language, Ajax, error messages using Ext look, JS libraries and CSS.
-  The <color red>"Self-translating"</color> is implemented in this class in <link TExtObject.JSCode, JSCode> method.
-  }
-  TExtSession = class(TWebSession)
-  private
-    FObjectSequences: TDictionary<string, Cardinal>;
-    Style, Libraries, CustomJS, FLanguage : string;
-    JSReturns : TStringList;
-    FResponseItems: TExtResponseItems;
-    FCurrentResponseItemsBranch: TExtResponseItems;
-    Sequence: Cardinal;
-    procedure RelocateVar(JS, JSName : string; I : integer);
-    function GetStyle: string;
-    function GetSequence: string;
-    function GetResponseItems: TExtResponseItems;
-  protected
-    function BeforeHandleRequest : boolean; override;
-    procedure AfterHandleRequest; override;
-    function GarbageFixName(const Name: string): string; override;
-    procedure OnError(const AMessage, AMethodName, AParams : string); override;
-    function GetNextJSName(const AObjectType: string): string;
-    function GetUrlHandlerObject: TObject; override;
-    function JSConcat(PrevCommand, NextCommand : string) : string;
-  public
-    HTMLQuirksMode : boolean; // Defines the (X)HTML DocType. True to Transitional (Quirks mode) or false to Strict. Default is false.
-    Theme     : string; // Sets or gets Ext JS installed theme, default '' that is Ext Blue theme
-    ExtPath   : string; // Installation path of Ext JS framework, below the your Web server document root. Default value is '/ext'
-    ImagePath : string; // Image path below ExtPath, used by <link TExtSession.SetIconCls, SetIconCls> method. Default value is '/images'
-    ExtBuild  : string;
-    procedure AfterConstruction; override;
-    destructor Destroy; override; // Custom <extlink http://www.extjs.com/products/extjs/build/>ExtJS build</extlink>. Default is ext-all.
-    property Language : string read FLanguage write FLanguage; // Actual language for this session, reads HTTP_ACCEPT_LANGUAGE header
-    procedure InitDefaultValues; override;
-    procedure JSCode(JS : string; JSClassName : string = ''; JSName : string = ''; Owner : string = '');
-    procedure JSSleep(MiliSeconds : integer);
-    procedure SetStyle(pStyle : string = '');
-    procedure SetLibrary(pLibrary : string = ''; CSS : boolean = false; HasDebug : boolean = false; DisableExistenceCheck : boolean = false);
-    procedure SetCSS(pCSS : string; Check : boolean = true);
-    procedure SetIconCls(Cls : array of string);
-    procedure SetCustomJS(JS : string = '');
-    procedure ErrorMessage(const AMessage: string; const AAction: string = ''); overload;
-    procedure ErrorMessage(const AMessage: string; const AAction: TExtFunction); overload;
-    procedure Alert(const Msg : string); override;
-    procedure Refresh; override;
-
-    property ResponseItems: TExtResponseItems read GetResponseItems;
-    function BranchResponseItems: TExtResponseItems;
-    procedure UnbranchResponseItems(const AResponseItems: TExtResponseItems;
-      const AConsolidate: Boolean = True);
-  published
-    procedure HandleEvent; virtual;
-  end;
-
   TVarToJSONProc = TProc<string, TObject, Boolean>;
 
-  {$M+}
+  TExtSession = class;
+
   {
   Ancestor of all classes and components of Ext JS framework.
   Each TExtObject has the capability to self-translate to JavaScript during the program execution.
@@ -328,12 +274,13 @@ type
     // inherited Create with a custom string to be passed to CreateVar.
     FCreateVarArgs: string;
     FJSName    : string;  // Internal JavaScript name generated automatically by <link TExtObject.CreateJSName, CreateJSName>
-    function GetExtSession: TExtSession;
+    function GetExtSession: TExtSession; overload;
+    function GetExtSession(const AOwner: TComponent): TExtSession; overload;
     function ExtractJSCommand : string;
     function IsParent(CName : string): boolean;
-    function VarToJSON(const AVars: array of const): string; overload;
+    function VarToJSON(const AVars: array of const; const ASession: TExtSession = nil): string; overload;
     function VarToJSON(const AVars: array of const; const AProc: TVarToJSONProc): string; overload;
-    function VarToJSON(Exts : TExtObjectList)  : string; overload;
+    function VarToJSON(const AList: TExtObjectList): string; overload;
     function ArrayToJSON(Strs : {$IF Defined(FPC) or (RTLVersion < 20)}TArrayOfString{$ELSE}array of string{$IFEND}) : string; overload;
     function ArrayToJSON(Ints : {$IF Defined(FPC) or (RTLVersion < 20)}TArrayOfInteger{$ELSE}array of integer{$IFEND}) : string; overload;
     function ParamAsInteger(ParamName : string) : integer;
@@ -347,20 +294,21 @@ type
     function GetObjectNamePrefix: string; virtual;
     procedure InitDefaults; virtual;
     procedure HandleEvent(const AEvtName : string); virtual;
-    property ExtSession: TExtSession read FSession;
+    property ExtSession: TExtSession read GetExtSession;
+    procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   public
     IsChild : boolean;
-    constructor CreateInternal(AOwner: TExtObject; AAttribute: string); virtual;
+    constructor CreateInternal(const AOwner: TExtObject; const AAttribute: string); virtual;
 
-    constructor Create(AOwner: TComponent); overload; override;
+    constructor Create(AOwner: TComponent); override;
     constructor CreateInline(AOwner: TComponent); virtual;
 
     constructor CreateWithConfig(AOwner: TComponent; AConfig: TExtObject = nil);
-    constructor CreateSingleton(const AAttribute: string = '');
+    constructor CreateSingleton(const AOwner: TComponent; const AAttribute: string = '');
     constructor CreateAndAddTo(List: TExtObjectList);
 
     constructor Init(AOwner: TComponent; AMethod: TExtFunction); overload;
-    constructor Init(AOwner: TComponent; ACommand: string); overload;
+    constructor Init(const AOwner: TComponent; const ACommand: string); overload;
 
     function GetConstructionJS: string; virtual;
 
@@ -369,7 +317,7 @@ type
     function DestroyJS : TExtFunction; virtual;
     procedure Free(CallDestroyJS : boolean = false);
     procedure Delete;
-    function JSClassName : string; virtual;
+    class function JSClassName : string; virtual;
     function JSArray(const AJSON: string; const ASquareBrackets: Boolean = True): TExtObjectList;
     function JSObject(const AJSON: string; const AObjectConstructor: string = '';
       const ACurlyBrackets: Boolean = True): TExtObject;
@@ -427,7 +375,7 @@ type
 
     procedure SetCustomConfigItem(const AName: string; const AValues: array of const);
   end;
-  {$M-}
+
   TExtObjectClass = class of TExtObject;
 
   {
@@ -435,6 +383,65 @@ type
   where its return is this class. With this all converted functions by <link ExtPascal.pas, Wrapper> could be assigned to event handlers.
   }
   TExtFunction = class(TExtObject);
+
+  {
+  Defines an user session opened in a browser. Each session is a FastCGI thread that owns additional JavaScript and Ext JS resources
+  as: theme, charset, language, Ajax, error messages using Ext look, JS libraries and CSS.
+  The <color red>"Self-translating"</color> is implemented in this class in <link TExtObject.JSCode, JSCode> method.
+  }
+  TExtSession = class(TWebSession)
+  private
+    FObjectSequences: TDictionary<string, Cardinal>;
+    FStyles, FLibraries, FCustomJS, FLanguage : string;
+    JSReturns : TStringList;
+    FResponseItems: TExtResponseItems;
+    FCurrentResponseItemsBranch: TExtResponseItems;
+    Sequence: Cardinal;
+    FSingletons: TDictionary<string, TExtObject>;
+    procedure RelocateVar(JS, JSName : string; I : integer);
+    function GetStyleTag: string;
+    function GetSequence: string;
+    function GetResponseItems: TExtResponseItems;
+  protected
+    function BeforeHandleRequest : boolean; override;
+    procedure AfterHandleRequest; override;
+    function GarbageFixName(const Name: string): string; override;
+    procedure OnError(const AMessage, AMethodName, AParams : string); override;
+    function GetNextJSName(const AObjectType: string): string;
+    function GetUrlHandlerObject: TObject; override;
+    function JSConcat(PrevCommand, NextCommand : string) : string;
+    function GetMainPageTemplate: string; virtual;
+  public
+    HTMLQuirksMode : boolean; // Defines the (X)HTML DocType. True to Transitional (Quirks mode) or false to Strict. Default is false.
+    Theme     : string; // Sets or gets Ext JS installed theme, default '' that is Ext Blue theme
+    ExtPath   : string; // Installation path of Ext JS framework, below the your Web server document root. Default value is '/ext'
+    ImagePath : string; // Image path below ExtPath, used by <link TExtSession.SetIconCls, SetIconCls> method. Default value is '/images'
+    ExtBuild  : string;
+    procedure AfterConstruction; override;
+    destructor Destroy; override; // Custom <extlink http://www.extjs.com/products/extjs/build/>ExtJS build</extlink>. Default is ext-all.
+    property Language : string read FLanguage write FLanguage; // Actual language for this session, reads HTTP_ACCEPT_LANGUAGE header
+    procedure InitDefaultValues; override;
+    procedure JSCode(JS : string; JSClassName : string = ''; JSName : string = ''; Owner : string = '');
+    procedure JSSleep(MiliSeconds : integer);
+    procedure SetStyle(pStyle : string = '');
+    procedure SetLibrary(pLibrary : string = ''; CSS : boolean = false; HasDebug : boolean = false; DisableExistenceCheck : boolean = false);
+    procedure SetCSS(pCSS : string; Check : boolean = true);
+    procedure SetIconCls(Cls : array of string);
+    procedure SetCustomJS(JS : string = '');
+    procedure ErrorMessage(const AMessage: string; const AAction: string = ''); overload;
+    procedure ErrorMessage(const AMessage: string; const AAction: TExtFunction); overload;
+    procedure Alert(const Msg : string); override;
+    procedure Refresh; override;
+
+    property ResponseItems: TExtResponseItems read GetResponseItems;
+    function BranchResponseItems: TExtResponseItems;
+    procedure UnbranchResponseItems(const AResponseItems: TExtResponseItems;
+      const AConsolidate: Boolean = True);
+
+    function GetSingleton<T: TExtObject>(const AName: string): T;
+  published
+    procedure HandleEvent; virtual;
+  end;
 
   // List of TExtObjects. The <link ExtPascal.pas, Wrapper> convey the JavaScript Array type to this class
   TExtObjectList = class(TExtFunction)
@@ -450,7 +457,7 @@ type
     procedure CreateJSName; override;
   public
     procedure AfterConstruction; override;
-    constructor Create(const AOwner: TExtObject; const AAttribute: string); reintroduce;
+    constructor CreateAsAttribute(const AOwner: TExtObject; const AAttribute: string);
     destructor Destroy; override;
 
     property Objects[I: Integer]: TExtObject read GetObject; default;
@@ -515,6 +522,8 @@ type
   TExtSlider = TExtObject; // doc fault Ext 3.2
 //DOM-IGNORE-END*)
 
+function Session: TExtSession;
+
 const
   DeclareJS    = '/*var*/ '; // Declare JS objects as global
   CommandDelim = #3;         // Internal JS command delimiter
@@ -529,6 +538,11 @@ uses
 
 var
   _JSFormatSettings: TFormatSettings;
+
+function Session: TExtSession;
+begin
+  Result := TExtSession(_CurrentWebSession);
+end;
 
 { TExtSession }
 
@@ -548,20 +562,20 @@ procedure TExtSession.SetLibrary(pLibrary : string = ''; CSS : boolean = false; 
 var
   Root : string;
 begin
-  if pos(pLibrary + '.js', Libraries) = 0 then
+  if pos(pLibrary + '.js', FLibraries) = 0 then
     if pLibrary = '' then
-      Libraries := '' // Clear Libraries
+      FLibraries := '' // Clear FLibraries
     else begin
       if DisableExistenceCheck then
         Root := ''
       else
         Root := RequestHeader['DOCUMENT_ROOT'];
       if (Root = '') or ((Root <> '') and FileExists(Root + pLibrary + '.js')) then begin
-        Libraries := Libraries + '<script src="' + pLibrary{$IFDEF DEBUGJS}+ IfThen(HasDebug, '-debug', ''){$ENDIF} + '.js"></script>'^M^J;
+        FLibraries := FLibraries + '<script src="' + pLibrary{$IFDEF DEBUGJS}+ IfThen(HasDebug, '-debug', ''){$ENDIF} + '.js"></script>'^M^J;
         if CSS then begin
           if not DisableExistenceCheck and not FileExists(Root + pLibrary + '.css') then // Assume in /css like ux
             pLibrary := ExtractFilePath(pLibrary) + 'css/' + ExtractFileName(pLibrary);
-          Libraries := Libraries + '<link rel=stylesheet href="' + pLibrary + '.css" />';
+          FLibraries := FLibraries + '<link rel=stylesheet href="' + pLibrary + '.css" />';
         end;
       end
       else
@@ -581,15 +595,15 @@ procedure TExtSession.SetCSS(pCSS : string; Check : boolean = true);
 var
   Root : string;
 begin
-  if pos(pCSS + '.css', Libraries) = 0 then
+  if pos(pCSS + '.css', FLibraries) = 0 then
     if pCSS = '' then
-      Libraries := '' // Clear Libraries
+      FLibraries := '' // Clear FLibraries
     else begin
       Root := RequestHeader['DOCUMENT_ROOT'];
       if Check and (Root <> '') and not FileExists(Root + pCSS + '.css') then
         raise Exception.Create('Stylesheet: ' + Root + pCSS + '.css not found')
       else
-        Libraries := Libraries + '<link rel=stylesheet href="' + pCSS + '.css" />';
+        FLibraries := FLibraries + '<link rel=stylesheet href="' + pCSS + '.css" />';
     end;
 end;
 {
@@ -598,11 +612,11 @@ Repeated code is ignored.
 @param JS JS code to inject in response. If JS is '' then all user JS code to this session will be removed from response.
 }
 procedure TExtSession.SetCustomJS(JS : string = ''); begin
-  if pos(JS, CustomJS) = 0 then
+  if pos(JS, FCustomJS) = 0 then
     if JS = '' then
-      CustomJS := ''
+      FCustomJS := ''
     else
-      CustomJS := CustomJS + JS;
+      FCustomJS := FCustomJS + JS;
 end;
 
 {
@@ -640,12 +654,13 @@ If pStyle is '' then all user styles to this session will be removed from respon
 @example <code>SetStyle('');</code>
 @example <code>SetStyle('img:hover{border:1px solid blue}');</code>
 *)
-procedure TExtSession.SetStyle(pStyle : string); begin
-  if pos(pStyle, Style) = 0 then
+procedure TExtSession.SetStyle(pStyle : string);
+begin
+  if Pos(pStyle, FStyles) = 0 then
     if pStyle = '' then
-      Style := ''
+      FStyles := ''
     else
-      Style := Style + pStyle
+      FStyles := FStyles + pStyle
 end;
 
 procedure TExtSession.UnbranchResponseItems(
@@ -669,11 +684,12 @@ begin
 end;
 
 // Returns all styles in use in current response
-function TExtSession.GetStyle : string; begin
-  if Style = '' then
+function TExtSession.GetStyleTag: string;
+begin
+  if FStyles = '' then
     Result := ''
   else
-    Result := '<style>' + {$IFDEF DEBUGJS}BeautifyCSS(Style){$ELSE}Style{$ENDIF} + '</style>'^M^J;
+    Result := '<style>' + {$IFDEF DEBUGJS}BeautifyCSS(FStyles){$ELSE}FStyles{$ENDIF} + '</style>';
 end;
 
 // Returns a object which will be used to handle the page method. We will call it's published method based on PathInfo.
@@ -946,6 +962,7 @@ begin
 
   FreeAndNil(FResponseItems);
   FreeAndNil(FObjectSequences);
+  FreeAndNil(FSingletons);
   inherited;
 end;
 
@@ -1004,6 +1021,56 @@ begin
   inherited;
   FResponseItems := TExtResponseItems.Create;
   FObjectSequences := TDictionary<string, Cardinal>.Create;
+  FSingletons := TDictionary<string, TExtObject>.Create;
+end;
+
+function TExtSession.GetMainPageTemplate: string;
+begin
+  Result := '<%HTMLDeclaration%>' + sLineBreak +
+    '<head>' + sLineBreak +
+    '  <title><%ApplicationTitle%></title>' + sLineBreak +
+    '  <%ApplicationIconLink%>' + sLineBreak +
+    '  <meta http-equiv="content-type" content="charset=<%CharSet%>" />' + sLineBreak +
+    '  <link rel=stylesheet href="<%ExtPath%>/resources/css/<%ExtBuild%>.css" />' + sLineBreak +
+    '  <script src="<%ExtPath%>/adapter/ext/ext-base.js"></script>' + sLineBreak +
+    '  <script src="<%ExtPath%>/<%ExtBuild%><%DebugSuffix%>.js"></script>' + sLineBreak +
+    {$IFDEF DEBUGJS}
+    '  <script src="/codepress/Ext.ux.CodePress.js"></script>' + sLineBreak +
+    {$ENDIF}
+    '  <%ThemeLink%>' + sLineBreak +
+    '  <%LanguageLink%>' + sLineBreak +
+    '  <%StyleTag%>' + sLineBreak +
+    '  <%LibraryTags%>' + sLineBreak +
+    '</head>' + sLineBreak +
+    '<body>' + sLineBreak +
+    '<div id="body">' + sLineBreak +
+    '  <div id="loading" style="position:absolute;font-family:verdana;top:40%;left:40%">' + sLineBreak +
+    '    <img src="<%ExtPath%>/resources/images/default/shared/loading-balls.gif"/>Loading <%ApplicationTitle%>...' + sLineBreak +
+    '  </div>' + sLineBreak +
+    '</div>' + sLineBreak +
+    '<noscript>This web application requires JavaScript enabled</noscript>' + sLineBreak +
+    '</body>' + sLineBreak +
+    '  <script>' + sLineBreak +
+    {$IFDEF DEBUGJS}BeautifyJS{$ENDIF}
+    ('<%CustomJS%>' + sLineBreak +
+    'function AjaxError(m){Ext.Msg.show({title:"Ajax Error",msg:m,icon:Ext.Msg.ERROR,buttons:Ext.Msg.OK});};' +
+    {$IFDEF DEBUGJS}
+    'function AjaxSource(t,l,s){var w=new Ext.Window({title:"Ajax error: "+t+", Line: "+' + IfThen(Browser=brFirefox, '(l-%%)', '"Use Firefox to debug"') +
+    ',width:600,height:400,modal:true,items:[new Ext.ux.CodePress({language:"javascript",readOnly:true,code:s})]});w.show();' +
+    'w.on("resize",function(){w.items.get(0).resize();});};' +
+    'function AjaxSuccess(response){try{eval(response.responseText);}catch(err){AjaxSource(err.message,err.lineNumber,response.responseText);}};' +
+    {$ELSE}
+    'function AjaxSuccess(response){try{eval(response.responseText);}catch(err){AjaxError(err.message+"<br/>Use DebugJS define to enhance debugging<br/>"+response.responseText);}};' +
+    {$ENDIF}
+    'function sleep(ms){var start=new Date().getTime();for(var i=0;i<1e7;i++)if((new Date().getTime()-start)>ms)break;};'+ sLineBreak +
+    'function AjaxFailure(){AjaxError("Server unavailable, try later.");};' + sLineBreak +
+    'Ext.onReady(function(){' + sLineBreak +
+    'Ext.get("loading").remove();' + sLineBreak +
+    'Ext.BLANK_IMAGE_URL="<%ExtPath%>/resources/images/default/s.gif";' + sLineBreak +
+    'TextMetrics=Ext.util.TextMetrics.createInstance("body");' + sLineBreak +
+    'Download=Ext.DomHelper.append(document.body,{tag:"iframe",cls:"x-hidden"});') + '<%Response%>});' + sLineBreak +
+    '  </script>' + sLineBreak +
+    '</html>';
 end;
 
 procedure TExtSession.AfterHandleRequest;
@@ -1022,6 +1089,7 @@ procedure TExtSession.AfterHandleRequest;
 
 var
   I, J : integer;
+  LMainPageCode: string;
 begin
   if IsDownLoad or IsUpLoad then
     Exit;
@@ -1036,47 +1104,33 @@ begin
   end;
   HandleJSReturns;
   Response := AnsiReplaceStr(AnsiReplaceStr(Response, CommandDelim, ''), IdentDelim, ''); // Extracts aux delimiters
-  if not IsAjax then begin
+  if not IsAjax then
+  begin
     ContentType := 'text/html; charset=' + Charset;
-    Response := IfThen(HTMLQuirksMode, '<!docttype html public><html>',
-      '<?xml version=1.0?><!doctype html public "-//W3C//DTD XHTML 1.0 Strict//EN">'^M^J'<html xmlns=http://www.w3org/1999/xthml>') + ^M^J +
-      '<head>'^M^J +
-      '<title>' + Application.Title + '</title>'^M^J +
-      IfThen(Application.Icon = '', '', '<link rel="shortcut icon" href="' + ImagePath + '/' + Application.Icon + '"/>'^M^J) +
-      '<meta http-equiv="content-type" content="charset=' + Charset + '" />'^M^J +
-      '<link rel=stylesheet href="' + ExtPath + '/resources/css/' + ExtBuild + '.css" />'^M^J +
-      '<script src="' + ExtPath + '/adapter/ext/ext-base.js"></script>'^M^J +
-      '<script src="' + ExtPath + '/' + ExtBuild + {$IFDEF DebugExtJS}'-debug'+{$ENDIF} '.js"></script>'^M^J +
-      {$IFDEF DEBUGJS}'<script src="/codepress/Ext.ux.CodePress.js"></script>'^M^J +{$ENDIF}
-      IfThen(Theme = '', '', '<link rel=stylesheet href="' + ExtPath + '/resources/css/xtheme-' + Theme + '.css" />'^M^J) +
-      IfThen(FLanguage = 'en', '', '<script src="' + ExtPath + SourcePath + '/locale/ext-lang-' + FLanguage + '.js"></script>'^M^J) +
-      GetStyle + Libraries +
-      '</head>'^M^J +
-      '<body><div id=body>'^M^J +
-      '<div id=loading style="position:absolute;font-family:verdana;top:40%;left:40%">'^M^J +
-      '<img src="' + ExtPath + '/resources/images/default/shared/loading-balls.gif"/>' +
-      ' Loading ' + Application.Title + '...</div>'^M^J +
-      '</div><noscript>This web application requires JavaScript enabled</noscript></body>'^M^J +
-      '<script>'^M^J +
-      {$IFDEF DEBUGJS}BeautifyJS{$ENDIF}
-      (IfThen(CustomJS = '', '', CustomJS + ^M^J) +
-      'function AjaxError(m){Ext.Msg.show({title:"Ajax Error",msg:m,icon:Ext.Msg.ERROR,buttons:Ext.Msg.OK});};' +
-      {$IFDEF DEBUGJS}
-      'function AjaxSource(t,l,s){var w=new Ext.Window({title:"Ajax error: "+t+", Line: "+' + IfThen(Browser=brFirefox, '(l-%%)', '"Use Firefox to debug"') +
-      ',width:600,height:400,modal:true,items:[new Ext.ux.CodePress({language:"javascript",readOnly:true,code:s})]});w.show();' +
-      'w.on("resize",function(){w.items.get(0).resize();});};' +
-      'function AjaxSuccess(response){try{eval(response.responseText);}catch(err){AjaxSource(err.message,err.lineNumber,response.responseText);}};' +
-      {$ELSE}
-      'function AjaxSuccess(response){try{eval(response.responseText);}catch(err){AjaxError(err.message+"<br/>Use DebugJS define to enhance debugging<br/>"+response.responseText);}};' +
-      {$ENDIF}
-      'function sleep(ms){var start=new Date().getTime();for(var i=0;i<1e7;i++)if((new Date().getTime()-start)>ms)break;};'+
-      'function AjaxFailure(){AjaxError("Server unavailable, try later.");};' +
-      'Ext.onReady(function(){' +
-      'Ext.get("loading").remove();' +
-      'Ext.BLANK_IMAGE_URL="' + ExtPath + '/resources/images/default/s.gif";TextMetrics=Ext.util.TextMetrics.createInstance("body");'+
-      'Download=Ext.DomHelper.append(document.body,{tag:"iframe",cls:"x-hidden"});' +
-      Response) + '});'^M^J +
-      '</script>'^M^J^M^J'</html>';
+    LMainPageCode := GetMainPageTemplate;
+
+    // Replace template macros in main page code.
+    LMainPageCode := ReplaceText(LMainPageCode, '<%HTMLDeclaration%>',
+      IfThen(HTMLQuirksMode, '<!docttype html public><html>',
+      '<?xml version=1.0?>' + sLineBreak +
+      '<!doctype html public "-//W3C//DTD XHTML 1.0 Strict//EN">' + sLineBreak +
+      '<html xmlns=http://www.w3org/1999/xthml>'));
+    LMainPageCode := ReplaceText(LMainPageCode, '<%ApplicationTitle%>', Application.Title);
+    LMainPageCode := ReplaceText(LMainPageCode, '<%ApplicationIconLink%>',
+      IfThen(Application.Icon = '', '', '<link rel="shortcut icon" href="' + ImagePath + '/' + Application.Icon + '"/>'));
+    LMainPageCode := ReplaceText(LMainPageCode, '<%CharSet%>', CharSet);
+    LMainPageCode := ReplaceText(LMainPageCode, '<%ExtPath%>', ExtPath);
+    LMainPageCode := ReplaceText(LMainPageCode, '<%ExtBuild%>', ExtBuild);
+    LMainPageCode := ReplaceText(LMainPageCode, '<%DebugSuffix%>', {$IFDEF DebugExtJS}'-debug'{$ELSE}''{$ENDIF});
+    LMainPageCode := ReplaceText(LMainPageCode, '<%ThemeLink%>',
+      IfThen(Theme = '', '', '<link rel=stylesheet href="' + ExtPath + '/resources/css/xtheme-' + Theme + '.css" />'));
+    LMainPageCode := ReplaceText(LMainPageCode, '<%LanguageLink%>',
+      IfThen(FLanguage = 'en', '', '<script src="' + ExtPath + SourcePath + '/locale/ext-lang-' + FLanguage + '.js"></script>'));
+    LMainPageCode := ReplaceText(LMainPageCode, '<%StyleTag%>', GetStyleTag);
+    LMainPageCode := ReplaceText(LMainPageCode, '<%LibraryTags%>', FLibraries);
+    LMainPageCode := ReplaceText(LMainPageCode, '<%CustomJS%>', FCustomJS);
+    LMainPageCode := ReplaceText(LMainPageCode, '<%Response%>', Response);
+    Response := LMainPageCode;
     {$IFDEF DEBUGJS}
     Response := AnsiReplaceStr(Response, '%%', IntToStr(CountStr(^M^J, Response, 'eval('))); // eval() line number
     {$ENDIF}
@@ -1122,6 +1176,17 @@ function TExtSession.GetSequence : string; begin
   Inc(Sequence);
 end;
 
+function TExtSession.GetSingleton<T>(const AName: string): T;
+begin
+  if FSingletons.ContainsKey(AName) then
+    Result := T(FSingletons[AName])
+  else
+  begin
+    Result := TExtObjectClass(T).CreateSingleton(Self.ObjectCatalog, AName) as T;
+    FSingletons.Add(AName, Result);
+  end;
+end;
+
 { ExtObjectList }
 
 {
@@ -1129,7 +1194,7 @@ Creates a TExtObjectList instance.
 @param pOwner TExtObject that owns this list
 @param pAttribute JS attribute name in TExtObject to this list
 }
-constructor TExtObjectList.Create(const AOwner: TExtObject; const AAttribute: string);
+constructor TExtObjectList.CreateAsAttribute(const AOwner: TExtObject; const AAttribute: string);
 begin
   Assert(Assigned(AOwner));
   Assert(AAttribute <> '');
@@ -1157,8 +1222,6 @@ begin
 end;
 
 function TExtObjectList.Add(const AObject: TExtObject): Integer;
-//var
-//  LListAdd, LResponse, LOwnerName : string;
 begin
   Assert(Assigned(AObject));
   Assert(Assigned(OwnerExtObject));
@@ -1166,44 +1229,6 @@ begin
 
   ExtSession.ResponseItems.AddToList(OwnerExtObject, Self, FAttribute, 'add', [AObject, False]);
   Result := AddInternal(AObject);
-
-//  if FObjects.Count = 0 then
-//  begin
-//    if Owner <> nil then
-//    begin
-//      if Pos('/*' + OwnerExtObject.JSName + '*/', CurrentWebSession.Response) <> 0 then
-//        OwnerExtObject.JSCode(FAttribute + ':[/*' + FJSName + '*/]', OwnerExtObject.JSName);
-//    end
-//    else
-//      TExtThread(CurrentWebSession).JSCode(DeclareJS + FJSName + '=[/*' + FJSName + '*/];');
-//  end;
-//  Result := FObjects.Add(AObject);
-//
-//  LResponse := CurrentWebSession.Response;
-//  if Owner <> nil then
-//    LOwnerName := OwnerExtObject.JSName
-//  else
-//    LOwnerName := '';
-//  if (Pos(FJSName, LResponse) = 0) then
-//  begin
-//    if TExtThread(CurrentWebSession).IsAjax and (LOwnerName <> '') then
-//      LListAdd := LOwnerName + '.add(' + AObject.JSName + ');'
-//    else
-//      LListAdd := '%s';
-//    if FAttribute = 'items' then // Generalize it more if necessary
-//      LListAdd := Format(LListAdd, ['new ' + AObject.JSClassName + '({/*' + AObject.JSName + '*/})'])
-//    else
-//      LListAdd := Format(LListAdd, ['{/*' + AObject.JSName + '*/}']);
-//  end
-//  else
-//    if Pos(AObject.JSName + '.clone', AObject.JSCommand) = 1 then
-//      LListAdd := AObject.ExtractJSCommand
-//    else
-//      LListAdd := AObject.JSName;
-//  AObject.JSCode(LListAdd, FJSName, LOwnerName);
-//  if AObject.JSClassName = 'Ext.ux.CodePress' then
-//    OwnerExtObject.JSCode(LOwnerName + '.on("resize", function(){' + LOwnerName
-//      + '.items.get(' + IntToStr(Result) + ').resize();});');
 end;
 
 {
@@ -1236,7 +1261,6 @@ begin
   Result := FObjects.Remove(AObject);
 end;
 
-// Returns the number of Objects in the list
 function TExtObjectList.AddInternal(const AObject: TExtObject): Integer;
 begin
   Assert(Assigned(AObject));
@@ -1266,13 +1290,15 @@ end;
 Creates a singleton TExtObject instance, used usually by Parser only.
 @param Attribute JS attribute name in TExtObject to this list in the form 'Owner.attribute'
 }
-constructor TExtObject.CreateSingleton(const AAttribute: string = '');
+constructor TExtObject.CreateSingleton(const AOwner: TComponent; const AAttribute: string = '');
 begin
-  FSession := GetExtSession;
+  Assert(Assigned(AOwner));
+  inherited Create(AOwner);
   if AAttribute = '' then
     FJSName := JSClassName
   else
     FJSName := AAttribute;
+  InitDefaults;
 end;
 
 {
@@ -1313,14 +1339,29 @@ procedure TExtObject.Delete; begin
   JSCode('delete ' + JSName + ';')
 end;
 
+procedure TExtObject.Notification(AComponent: TComponent; Operation: TOperation);
+begin
+  if (AComponent = Self) and (Operation = opRemove) and Assigned(Owner) then
+  begin
+    // The owner is destroying this object, so we clear anything related from
+    // the response. We do this in the destructor for those cases in which a component
+    // in destroyed while still being owned, but we must do it here as well
+    // for cases in which the owner is freeing its own components (which it
+    // does AFTER calling RemoveComponent, thus at a time when it's not the owner
+    // anymore.
+    ExtSession.ResponseItems.RemoveAll(Self);
+  end;
+end;
+
+// Calls Ext JS <b>destroy()</b> method if it exists else calls the JS <b>delete</b> command
 destructor TExtObject.Destroy;
 begin
-  if Assigned(ExtSession) then
+  // See Notification for details.
+  if Assigned(Owner) then
     ExtSession.ResponseItems.RemoveAll(Self);
   inherited;
 end;
 
-// Calls Ext JS <b>destroy()</b> method if it exists else calls the JS <b>delete</b> command
 function TExtObject.DestroyJS : TExtFunction; begin
   Delete;
   Result := TExtFunction(Self)
@@ -1345,6 +1386,23 @@ begin
   Result := 'Download.src="' + ExtSession.MethodURI(MetName) + P + '";';
 end;
 
+function TExtObject.GetExtSession(const AOwner: TComponent): TExtSession;
+var
+  LOwner: TComponent;
+begin
+  if FSession = nil then
+  begin
+    LOwner := AOwner;
+    while (LOwner <> nil) and (LOwner.Owner <> nil) do
+      LOwner := LOwner.Owner;
+    if LOwner is TObjectCatalog then
+      FSession := TObjectCatalog(LOwner).Session as TExtSession;
+    if FSession = nil then
+      raise Exception.CreateFmt('Session not found for object %s of type %s (%s).', [JSName, JSClassName, ClassName]);
+  end;
+  Result := FSession;
+end;
+
 procedure TExtObject.Download(Method: TExtProcedure; Params: array of const);
 begin
   JSCode(GetDownloadJS(Method, Params));
@@ -1361,9 +1419,7 @@ Creates a TExtObject and generate corresponding JS code using <link TExtObject.J
 }
 constructor TExtObject.Create(AOwner: TComponent);
 begin
-  FSession := GetExtSession;
-  if AOwner = nil then
-    AOwner := FSession.ObjectCatalog;
+  Assert(Assigned(AOwner));
   inherited Create(AOwner);
   CreateVar(JSClassName + '({});');
   InitDefaults;
@@ -1376,15 +1432,13 @@ Used by Parser to build <link TExtObject.InitDefaults, InitDefaults> methods use
 }
 constructor TExtObject.CreateInline(AOwner: TComponent);
 begin
-  FSession := GetExtSession;
-  if AOwner = nil then
-    AOwner := FSession.ObjectCatalog;
+  Assert(Assigned(AOwner));
   // Inline = don't create the declaration.
   inherited Create(AOwner);
   InitDefaults;
 end;
 
-constructor TExtObject.CreateInternal(AOwner : TExtObject; AAttribute : string);
+constructor TExtObject.CreateInternal(const AOwner: TExtObject; const AAttribute: string);
 begin
   Assert(Assigned(AOwner));
 
@@ -1394,7 +1448,7 @@ begin
 end;
 
 // Returns 'Object' that is the default class name for Ext JS objects
-function TExtObject.JSClassName : string;
+class function TExtObject.JSClassName : string;
 begin
   Result := 'Object';
 end;
@@ -1420,20 +1474,8 @@ begin
 end;
 
 function TExtObject.GetExtSession: TExtSession;
-var
-  LResult: TComponent;
 begin
-  LResult := Owner;
-  while (LResult <> nil) and (LResult.Owner <> nil) do
-    LResult := LResult.Owner;
-  if LResult is TObjectCatalog then
-    Result := TObjectCatalog(LResult).Session as TExtSession
-  // Singletons are not linked to any particular session and have no owner, currently.
-  else if Assigned(_CurrentWebSession) then
-    Result := TExtSession(_CurrentWebSession)
-  else
-    raise Exception.CreateFmt('Session not found for object %s.', [JSName]);
-  //Result := TExtSession(_CurrentWebSession);
+  Result := GetExtSession(Owner);
 end;
 
 procedure TExtObject.SetCustomConfigItem(const AName: string; const AValues: array of const);
@@ -1446,26 +1488,32 @@ Converts an array of const to JSON (JavaScript Object Notation) to be used in co
 @param A Array of anytype variables
 @return JSON representation of array
 }
-function TExtObject.VarToJSON(const AVars: array of const): string;
+function TExtObject.VarToJSON(const AVars: array of const; const ASession: TExtSession): string;
 var
   I: Integer;
   LCommand: string;
   LObjectJSName: string;
   LCodeItem: TExtResponseItem;
+  LSession: TExtSession;
 begin
   Result := '';
   I := 0;
+
+  LSession := ASession;
+  if LSession = nil then
+    LSession := ExtSession;
+
   while I <= High(AVars) do
   begin
     case AVars[I].VType of
       vtObject: begin
         if AVars[I].VObject <> nil then
         begin
-          LCodeItem := ExtSession.ResponseItems.FindLastCodeItem(TExtObject(AVars[I].VObject));
+          LCodeItem := LSession.ResponseItems.FindLastCodeItem(TExtObject(AVars[I].VObject));
           if Assigned(LCodeItem) and AVars[I + 1].VBoolean then
           begin
             Result := Result + WriteFunction(LCodeItem.ToString);
-            ExtSession.ResponseItems.Remove(LCodeItem);
+            LSession.ResponseItems.Remove(LCodeItem);
           end
           else
           begin
@@ -1653,7 +1701,7 @@ end;
 constructor TExtObject.CreateWithConfig(AOwner: TComponent; AConfig: TExtObject);
 begin
   if Assigned(AConfig) then
-    FCreateVarArgs := JSClassName + '(' + VarToJSON([AConfig, false]) + ');';
+    FCreateVarArgs := JSClassName + '(' + VarToJSON([AConfig, False], GetExtSession(AOwner)) + ');';
   Create(AOwner);
 end;
 
@@ -1671,11 +1719,8 @@ end;
 // Inits a JS Object with a <link TExtFunction>
 constructor TExtObject.Init(AOwner: TComponent; AMethod: TExtFunction);
 begin
+  Assert(Assigned(AOwner));
   Assert(Assigned(AMethod));
-
-  FSession := GetExtSession;
-  if AOwner = nil then
-    AOwner := FSession.ObjectCatalog;
   inherited Create(AOwner);
   CreateJSName;
   JSCode(CommandDelim + DeclareJS + JSName + '=' + AMethod.ExtractJSCommand + ';');
@@ -1683,13 +1728,10 @@ begin
 end;
 
 // Inits a JS Object with a JS command
-constructor TExtObject.Init(AOwner: TComponent; ACommand: string);
+constructor TExtObject.Init(const AOwner: TComponent; const ACommand: string);
 begin
+  Assert(Assigned(AOwner));
   Assert(ACommand <> '');
-
-  FSession := GetExtSession;
-  if AOwner = nil then
-    AOwner := FSession.ObjectCatalog;
   inherited Create(AOwner);
   CreateJSName;
   JSCode(CommandDelim + DeclareJS + JSName + '=' + ACommand + ';');
@@ -1708,7 +1750,7 @@ Generates JS code to declare an inline JS Array.
 }
 function TExtObject.JSArray(const AJSON: string; const ASquareBrackets: Boolean): TExtObjectList;
 begin
-  Result := TExtObjectList.Create(Self, 'dummy');
+  Result := TExtObjectList.CreateAsAttribute(Self, 'dummy');
   If ASquareBrackets then
     Result.FJSName := '[' + AJSON + ']'
   else
@@ -2398,16 +2440,9 @@ procedure TExtObject.Free(CallDestroyJS : boolean = false); begin
   end;
 end;
 
-{
-Converts a <link TExtObjectList> to JSON (JavaScript Object Notation) to be used in constructors, JS Arrays or JS Objects
-@param Exts An TExtObjectList to convert
-@return JSON representation of Exts
-}
-function TExtObject.VarToJSON(Exts : TExtObjectList) : string; begin
-  if Exts.ClassName = 'TExtObjectList' then
-    Result := Exts.JSName
-  else
-    Result := TExtObject(Exts).JSName
+function TExtObject.VarToJSON(const AList: TExtObjectList): string;
+begin
+  Result := AList.JSName;
 end;
 
 {
@@ -3233,7 +3268,7 @@ begin
 end;
 
 initialization
-  ExtUtilTextMetrics.FJSName := 'TextMetrics';
+  //ExtUtilTextMetrics.FJSName := 'TextMetrics';
   {$IF RTLVersion > 21}
   _JSFormatSettings := TFormatSettings.Create;
   {$ELSE}
@@ -3242,3 +3277,5 @@ initialization
   _JSFormatSettings.DecimalSeparator := '.';
 
 end.
+
+

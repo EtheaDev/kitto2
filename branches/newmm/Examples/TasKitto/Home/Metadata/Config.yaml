@@ -1,4 +1,4 @@
-﻿AppTitle: Tasks & Activities
+AppTitle: Tasks & Activities
 
 Databases:
   Main: DBX
@@ -19,7 +19,7 @@ Auth: DB
     Password: password
 
 AccessControl: Null
-
+    
 # Change this to use a custom view for the home page.
 # Alternatively, customize the Home view by replacing its controller.
 # Default: Home.
@@ -36,4 +36,3 @@ Charset: utf-8
 
 FastCGI:
   TCPPort: 2015
-  SessionTimeout: 1

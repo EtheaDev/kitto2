@@ -24,7 +24,8 @@ uses
   SysUtils, Classes, Generics.Collections,
   Ext, ExtPascal, ExtForm, ExtData, ExtUxForm,
   EF.Intf, EF.Classes, EF.Tree,
-  Kitto.Ext.Base, Kitto.Metadata.Views, Kitto.Metadata.DataView, Kitto.Store;
+  Kitto.Ext.Base, Kitto.Metadata.Views, Kitto.Metadata.DataView, Kitto.Store,
+  Kitto.Ext.Session;
 
 type
   IKExtEditItem = interface(IEFInterface)
@@ -44,6 +45,8 @@ type
 
     function GetRecordField: TKViewTableField;
     procedure SetRecordField(const AValue: TKViewTableField);
+    property RecordField: TKViewTableField read GetRecordField write SetRecordField;
+    procedure RefreshValue;
   end;
 
   TKExtEditPanel = class(TExtFormFormPanel, IKExtEditItem, IKExtEditContainer)
@@ -118,6 +121,7 @@ type
     function AsExtFormField: TExtFormField;
     function GetRecordField: TKViewTableField;
     procedure SetRecordField(const AValue: TKViewTableField);
+    procedure RefreshValue;
   end;
 
 { TODO : support the CheckboxGroup and Radiogroup containers? }
@@ -134,6 +138,7 @@ type
     function AsExtFormField: TExtFormField; inline;
     function GetRecordField: TKViewTableField;
     procedure SetRecordField(const AValue: TKViewTableField);
+    procedure RefreshValue;
   end;
 
   TKExtFormTextField = class(TExtFormTextField, IKExtEditItem, IKExtEditor)
@@ -148,6 +153,7 @@ type
     function AsExtFormField: TExtFormField; inline;
     function GetRecordField: TKViewTableField;
     procedure SetRecordField(const AValue: TKViewTableField);
+    procedure RefreshValue;
   end;
 
   TKExtFormTextArea = class(TExtFormTextArea, IKExtEditItem, IKExtEditor)
@@ -162,6 +168,7 @@ type
     function AsExtFormField: TExtFormField; inline;
     function GetRecordField: TKViewTableField;
     procedure SetRecordField(const AValue: TKViewTableField);
+    procedure RefreshValue;
   end;
 
   TKExtFormCheckbox = class(TExtFormCheckbox, IKExtEditItem, IKExtEditor)
@@ -176,6 +183,7 @@ type
     function AsExtFormField: TExtFormField; inline;
     function GetRecordField: TKViewTableField;
     procedure SetRecordField(const AValue: TKViewTableField);
+    procedure RefreshValue;
   end;
 
   TKExtFormDateField = class(TExtFormDateField, IKExtEditItem, IKExtEditor)
@@ -190,6 +198,7 @@ type
     function AsExtFormField: TExtFormField; inline;
     function GetRecordField: TKViewTableField;
     procedure SetRecordField(const AValue: TKViewTableField);
+    procedure RefreshValue;
   end;
 
   TKExtFormTimeField = class(TExtFormTimeField, IKExtEditItem, IKExtEditor)
@@ -204,6 +213,7 @@ type
     function AsExtFormField: TExtFormField; inline;
     function GetRecordField: TKViewTableField;
     procedure SetRecordField(const AValue: TKViewTableField);
+    procedure RefreshValue;
   end;
 
   TKExtFormDateTimeField = class(TExtFormField, IKExtEditItem, IKExtEditor)
@@ -223,7 +233,7 @@ type
     procedure SetAltTimeFormats(const AValue: string);
   public
     destructor Destroy; override;
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
   public
     function AsObject: TObject; inline;
     function _AddRef: Integer; stdcall;
@@ -233,6 +243,7 @@ type
     function AsExtFormField: TExtFormField; inline;
     function GetRecordField: TKViewTableField;
     procedure SetRecordField(const AValue: TKViewTableField);
+    procedure RefreshValue;
 
     property DateFormat: string read FDateFormat write SetDateFormat;
     //property DateConfig: TExtObject read FDateConfig write SetDateConfig;
@@ -259,6 +270,7 @@ type
     destructor Destroy; override;
     function GetRecordField: TKViewTableField;
     procedure SetRecordField(const AValue: TKViewTableField);
+    procedure RefreshValue;
   published
     procedure GetRecordPage;
   end;
@@ -275,6 +287,7 @@ type
     function AsExtFormField: TExtFormField; inline;
     function GetRecordField: TKViewTableField;
     procedure SetRecordField(const AValue: TKViewTableField);
+    procedure RefreshValue;
   end;
 
   TKExtFormFileEditor = class(TExtPanel, IKExtEditItem, IKExtEditor)
@@ -314,6 +327,7 @@ type
     function AsExtFormField: TExtFormField; inline;
     function GetRecordField: TKViewTableField;
     procedure SetRecordField(const AValue: TKViewTableField);
+    procedure RefreshValue;
     property IsReadOnly: Boolean read FIsReadOnly write FIsReadOnly;
     property TotalCharWidth: Integer read FTotalCharWidth write SetTotalCharWidth;
   published
@@ -379,10 +393,13 @@ type
     FOnFieldChange: TExtFormFieldOnChange;
     FOnNewEditor: TProc<IKExtEditor>;
     FOperation: TKExtEditOperation;
+    function IsChangeHandlerNeeded(const AViewField: TKViewField): Boolean;
+    function GetSession: TKExtSession;
     const TRIGGER_WIDTH = 2;
     function GetViewTable: TKViewTable;
     function DerivedFieldsExist(const AViewField: TKViewField): Boolean;
-    function TryCreateCheckBox(const AViewField: TKViewField): IKExtEditor;
+    function TryCreateCheckBox(const AViewField: TKViewField;
+      const AIsReadOnly: Boolean): IKExtEditor;
     function TryCreateDateField(const AViewField: TKViewField;
       const ARowField: TKExtFormRowField; const AFieldCharWidth: Integer;
       const AIsReadOnly: Boolean): IKExtEditor;
@@ -421,6 +438,7 @@ type
     function TryCreateTextArea(const AViewField: TKViewField;
       const ARowField: TKExtFormRowField; const AFieldCharWidth: Integer;
       const AIsReadOnly: Boolean): IKExtEditor;
+    property Session: TKExtSession read GetSession;
   public
     procedure AfterConstruction; override;
     destructor Destroy; override;
@@ -455,8 +473,9 @@ implementation
 uses
   Types, Math, StrUtils, Windows, Graphics, jpeg, pngimage,
   EF.SysUtils, EF.StrUtils, EF.Localization, EF.YAML, EF.Types, EF.SQL, EF.JSON,
+  EF.DB,
   Kitto.SQL, Kitto.Metadata.Models, Kitto.Types, Kitto.AccessControl,
-  Kitto.Rules, Kitto.Ext.Utils, Kitto.Ext.Session, Kitto.Ext.Rules;
+  Kitto.Rules, Kitto.Ext.Utils, Kitto.Ext.Rules;
 
 const
   {
@@ -470,10 +489,10 @@ begin
   raise EEFError.CreateFmt(_('Unknown or misplaced option %s: %s.'), [AName, AValue]);
 end;
 
-function OptionAsFloat(const AOptionValue: string): Double;
+function OptionAsFloat(const AOptionValue: string; const AFormatSettings: TFormatSettings): Double;
 begin
   // Floats in Yaml always use the dot as decimal separator.
-  if not TryStrToFloat(AOptionValue, Result, Session.Config.JSFormatSettings) then
+  if not TryStrToFloat(AOptionValue, Result, AFormatSettings) then
     raise EEFError.CreateFmt(_('Invalid value %s. Valid values: decimal numbers.'), [AOptionValue]);
 end;
 
@@ -678,6 +697,13 @@ begin
     Result := '';
 end;
 
+function TKExtLayoutProcessor.GetSession: TKExtSession;
+begin
+  Assert(Assigned(FFormPanel));
+
+  Result := FFormPanel.Session;
+end;
+
 function TKExtLayoutProcessor.GetViewTable: TKViewTable;
 begin
   Assert(Assigned(FDataRecord));
@@ -774,7 +800,8 @@ begin
     Result := nil;
 end;
 
-function TKExtLayoutProcessor.TryCreateCheckBox(const AViewField: TKViewField): IKExtEditor;
+function TKExtLayoutProcessor.TryCreateCheckBox(const AViewField: TKViewField;
+  const AIsReadOnly: Boolean): IKExtEditor;
 var
   LCheckbox: TKExtFormCheckbox;
 begin
@@ -783,6 +810,8 @@ begin
     LCheckbox := TKExtFormCheckbox.Create(FFormPanel);
     try
       LCheckbox.BoxLabel := '';//LLabel;
+      if AIsReadOnly then
+        LCheckbox.Disabled := True;
       Result := LCheckbox;
     except
       LCheckbox.Free;
@@ -1060,7 +1089,7 @@ begin
   if Result = nil then
     Result := TryCreateTextArea(LViewField, LRowField, LFieldCharWidth, LIsReadOnly);
   if Result = nil then
-    Result := TryCreateCheckBox(LViewField);
+    Result := TryCreateCheckBox(LViewField, LIsReadOnly);
   if Result = nil then
     Result := TryCreateDateField(LViewField, LRowField, LFieldCharWidth, LIsReadOnly);
   if Result = nil then
@@ -1103,7 +1132,7 @@ begin
     LFormField.FieldLabel := LLabel;
     LFormField.MsgTarget := LowerCase(FDefaults.MsgTarget);
 
-    if DerivedFieldsExist(LViewField) then
+    if IsChangeHandlerNeeded(LViewField) then
       LFormField.OnChange := FOnFieldChange;
 
     if (FFocusField = nil) and not LFormField.ReadOnly and not LFormField.Disabled then
@@ -1115,6 +1144,11 @@ begin
 
   if Assigned(LRowField) then
     Result := LRowField;
+end;
+
+function TKExtLayoutProcessor.IsChangeHandlerNeeded(const AViewField: TKViewField): Boolean;
+begin
+  Result := (AViewField.FileNameField <> '') or DerivedFieldsExist(AViewField);
 end;
 
 function TKExtLayoutProcessor.DerivedFieldsExist(const AViewField: TKViewField): Boolean;
@@ -1358,6 +1392,11 @@ begin
   Result := FRecordField;
 end;
 
+procedure TKExtFormTextField.RefreshValue;
+begin
+  SetValue(FRecordField.GetAsJSON(False));
+end;
+
 procedure TKExtFormTextField.SetRecordField(const AValue: TKViewTableField);
 begin
   FRecordField := AValue;
@@ -1399,6 +1438,11 @@ end;
 function TKExtFormTextArea.GetRecordField: TKViewTableField;
 begin
   Result := FRecordField;
+end;
+
+procedure TKExtFormTextArea.RefreshValue;
+begin
+  SetValue(FRecordField.GetAsJSON(False));
 end;
 
 procedure TKExtFormTextArea.SetRecordField(const AValue: TKViewTableField);
@@ -1449,6 +1493,11 @@ begin
   Result := FRecordField;
 end;
 
+procedure TKExtFormCheckbox.RefreshValue;
+begin
+  SetValue(FRecordField.GetAsJSON(False));
+end;
+
 procedure TKExtFormCheckbox.SetRecordField(const AValue: TKViewTableField);
 begin
   FRecordField := AValue;
@@ -1490,6 +1539,11 @@ end;
 function TKExtFormDateField.GetRecordField: TKViewTableField;
 begin
   Result := FRecordField;
+end;
+
+procedure TKExtFormDateField.RefreshValue;
+begin
+  SetValue(FRecordField.GetAsJSON(False));
 end;
 
 procedure TKExtFormDateField.SetRecordField(const AValue: TKViewTableField);
@@ -1541,15 +1595,19 @@ var
   LStart: Integer;
   LLimit: Integer;
   LPageRecordCount: Integer;
+  LQuery: string;
+  LDBConnection: TEFDBConnection;
 begin
   Assert(Assigned(FServerStore));
 
-  FServerStore.Load(Session.Config.DBConnections[GetRecordField.ViewField.Table.DatabaseName],
-    ReplaceStr(FLookupCommandText, '{query}', ReplaceStr(Session.Query['query'], '''', '''''')));
+  LQuery := ReplaceStr(Session.Query['query'], '''', '''''');
+  LDBConnection := Session.Config.DBConnections[GetRecordField.ViewField.Table.DatabaseName];
+
+  FServerStore.Load(LDBConnection, ReplaceStr(FLookupCommandText, '{query}', LQuery));
 
   LStart := Session.QueryAsInteger['start'];
   LLimit := Session.QueryAsInteger['limit'];
-  LPageRecordCount := Min(Max(LLimit, 100), FServerStore.RecordCount - LStart);
+  LPageRecordCount := Min(LLimit, FServerStore.RecordCount - LStart);
 
   ExtSession.ResponseItems.AddJSON('{Total: ' + IntToStr(FServerStore.RecordCount)
     + ', Root: ' + FServerStore.GetAsJSON(False, LStart, LPageRecordCount) + '}');
@@ -1562,6 +1620,11 @@ begin
   TypeAhead := True;
   LazyRender := True;
   SelectOnFocus := False;
+end;
+
+procedure TKExtFormComboBoxEditor.RefreshValue;
+begin
+  SetValue(FRecordField.GetAsJSON(False));
 end;
 
 procedure TKExtFormComboBoxEditor.SetRecordField(const AValue: TKViewTableField);
@@ -1608,11 +1671,13 @@ begin
   // corresponding display value because the list is not loaded yet,
   // and it will render this value.
   ValueNotFoundText := AField.AsString;
+  { TODO : make these configurable. }
   MinChars := 4;
-  //PageSize := 20;
-  //Resizable := True;
-  //MinHeight := LinesToPixels(5);
+  PageSize := 100;
+  Resizable := True;
+  MinHeight := LinesToPixels(5);
   Mode := 'remote';
+  TypeAhead := True;
 end;
 
 { TKExtFormContainer }
@@ -1645,7 +1710,7 @@ begin
   if SameText(AName, 'Layout') then
     LayoutString := AValue
   else if SameText(AName, 'ColumnWidth') then
-    ColumnWidth := OptionAsFloat(AValue)
+    ColumnWidth := OptionAsFloat(AValue, Session.Config.JSFormatSettings)
   else if SameText(AName, 'CharWidth') then
     Width := CharsToPixels(OptionAsInteger(AValue))
   else if SameText(AName, 'Width') then
@@ -1698,7 +1763,7 @@ begin
   // Widths are set for both the container and the contained editor.
   if SameText(AName, 'ColumnWidth') then
   begin
-    ColumnWidth := OptionAsFloat(AValue);
+    ColumnWidth := OptionAsFloat(AValue, Session.Config.JSFormatSettings);
     FEditor.SetOption('ColumnWidth', AValue);
   end
   else if SameText(AName, 'CharWidth') then
@@ -1708,6 +1773,13 @@ begin
   else
     FEditor.SetOption(AName, AValue);
   Result := True;
+end;
+
+procedure TKExtFormRowField.RefreshValue;
+begin
+  Assert(Assigned(FEditor));
+
+  FEditor.RefreshValue;
 end;
 
 destructor TKExtFormRowField.Destroy;
@@ -1764,6 +1836,11 @@ begin
   Result := FRecordField;
 end;
 
+procedure TKExtFormNumberField.RefreshValue;
+begin
+  SetValue(FRecordField.GetAsJSON(False));
+end;
+
 procedure TKExtFormNumberField.SetRecordField(const AValue: TKViewTableField);
 begin
   FRecordField := AValue;
@@ -1814,9 +1891,14 @@ begin
   Result := FRecordField;
 end;
 
-function TKExtFormDateTimeField.JSClassName: string;
+class function TKExtFormDateTimeField.JSClassName: string;
 begin
   Result := 'Ext.ux.form.DateTimeField';
+end;
+
+procedure TKExtFormDateTimeField.RefreshValue;
+begin
+  SetValue(FRecordField.GetAsJSON(False));
 end;
 
 procedure TKExtFormDateTimeField.SetOption(const AName, AValue: string);
@@ -1892,6 +1974,11 @@ begin
   Result := FRecordField;
 end;
 
+procedure TKExtFormTimeField.RefreshValue;
+begin
+  SetValue(FRecordField.GetAsJSON(False));
+end;
+
 procedure TKExtFormTimeField.SetRecordField(const AValue: TKViewTableField);
 begin
   FRecordField := AValue;
@@ -1933,6 +2020,11 @@ end;
 function TKExtFormFileUploadField.GetRecordField: TKViewTableField;
 begin
   Result := FRecordField;
+end;
+
+procedure TKExtFormFileUploadField.RefreshValue;
+begin
+  SetValue(FRecordField.GetAsJSON(False));
 end;
 
 procedure TKExtFormFileUploadField.SetRecordField(const AValue: TKViewTableField);
@@ -1980,9 +2072,20 @@ begin
 end;
 
 procedure TKExtFormFileEditor.ClearContents;
+var
+  LFileNameField: string;
+  LFileNameFieldReference: TKViewTableField;
 begin
   FLastUploadedFullFileName := '';
   FLastUploadedOriginalFileName := '';
+
+  LFileNameField := FRecordField.ViewField.FileNameField;
+  if LFileNameField <> ''then
+  begin
+    LFileNameFieldReference := FRecordField.ParentRecord.FieldByName(LFileNameField);
+    LFileNameFieldReference.SetBoolean('Sys/SetToNull', True);
+    LFileNameFieldReference.SetToNull;
+  end;
 end;
 
 procedure TKExtFormFileEditor.DownloadFieldData;
@@ -2076,12 +2179,22 @@ begin
 end;
 
 procedure TKExtFormFileEditor.FileUploaded(const AFileName: string);
+var
+  LFileNameField: string;
 begin
+  LFileNameField := FRecordField.ViewField.FileNameField;
+  if LFileNameField <> ''then
+    FRecordField.ParentRecord.FieldByName(LFileNameField).DeleteNode('Sys/SetToNull');
 end;
 
 function TKExtFormFileEditor.GetRecordField: TKViewTableField;
 begin
   Result := FRecordField;
+end;
+
+procedure TKExtFormFileEditor.RefreshValue;
+begin
+  raise Exception.Create('TKExtFormFileEditor.RefreshValue not implemented.');
 end;
 
 procedure TKExtFormFileEditor.PictureViewAfterRender(This: TExtComponent);
@@ -2319,6 +2432,7 @@ end;
 function TKExtFormFileBlobEditor.GetCurrentServerFileName: string;
 var
   LCaptionField: TKViewTableField;
+  LFileNameField: string;
 begin
   if FLastUploadedFullFileName <> '' then
     Result := FLastUploadedFullFileName
@@ -2326,7 +2440,11 @@ begin
     Result := ''
   else
   begin
-    Result := FRecordField.ViewField.GetExpandedString('DefaultFileName');
+    LFileNameField := FRecordField.ViewField.FileNameField;
+    if LFileNameField <> '' then
+      Result := FRecordField.ParentRecord.FieldByName(LFileNameField).AsString;
+    if Result = '' then
+      Result := FRecordField.ViewField.GetExpandedString('DefaultFileName');
     if Result = '' then
     begin
       LCaptionField := FRecordField.ParentRecord.FindField(FRecordField.ViewField.ModelField.Model.CaptionField.FieldName);
@@ -2347,9 +2465,17 @@ begin
 end;
 
 procedure TKExtFormFileBlobEditor.ClearContents;
+var
+  LUploadedFile: TKExtUploadedFile;
 begin
   inherited;
   FRecordField.SetToNull;
+  LUploadedFile := Session.FindUploadedFile(FRecordField.ViewField);
+  while Assigned(LUploadedFile) do
+  begin
+    Session.RemoveUploadedFile(LUploadedFile);
+    LUploadedFile := Session.FindUploadedFile(FRecordField.ViewField);
+  end;
 end;
 
 procedure TKExtFormFileBlobEditor.DownloadFile(const AServerFileName, AClientFileName: string);
@@ -2395,7 +2521,8 @@ begin
   CopyFile(AFileName, FLastUploadedFullFileName);
   DeleteFile(AFileName);
   Session.AddUploadedFile(TKExtUploadedFile.Create(
-    Session.FileUploaded, FLastUploadedFullFileName, FRecordField.ViewField));
+    Session.FileUploaded, FLastUploadedFullFileName, FRecordField.ViewField,
+    Session.FileUploaded));
 end;
 
 function TKExtFormFileBlobEditor.GetCurrentContentSize: Integer;
@@ -2411,7 +2538,7 @@ end;
 function TKExtFormFileReferenceEditor.GetFieldPath: string;
 begin
   inherited;
-  Result := FRecordField.ViewField.GetExpandedString('Path');
+  Result := IncludeTrailingPathDelimiter(FRecordField.ViewField.GetExpandedString('Path'));
   if Result = '' then
     raise Exception.CreateFmt('Path not specified for file reference field %s.', [FRecordField.ViewField.FieldName]);
   if not DirectoryExists(Result) then
@@ -2459,8 +2586,9 @@ procedure TKExtFormFileReferenceEditor.FileUploaded(const AFileName: string);
 begin
   inherited;
   FLastUploadedFullFileName := GetUniqueFileName(GetFieldPath, ExtractFileExt(AFileName));
-  { TODO : copy instead of renaming if paths are on different disks }
-  RenameFile(AFileName, FLastUploadedFullFileName);
+  // Don't rename: move, since the files could be on different drives.
+  CopyFile(AFileName, FLastUploadedFullFileName);
+  DeleteFile(AFileName);
 
   Session.AddUploadedFile(TKExtUploadedFile.Create(ExtractFileName(FLastUploadedFullFileName),
     FLastUploadedFullFileName, FRecordField.ViewField, Session.FileUploaded));
@@ -2506,20 +2634,11 @@ begin
 end;
 
 function TKExtFormFileReferenceEditor.GetCurrentServerFileName: string;
-var
-  LFileNameField: string;
 begin
   if FLastUploadedFullFileName <> '' then
     Result := FLastUploadedFullFileName
   else
-  begin
-    LFileNameField := FRecordField.ViewField.FileNameField;
-    if LFileNameField <> '' then
-      Result := FRecordField.ParentRecord.FieldByName(LFileNameField).AsString;
-    if Result = '' then
-      Result := FRecordField.AsString;
-    Result := IncludeTrailingPathDelimiter(GetFieldPath) + Result;
-  end;
+    Result := IncludeTrailingPathDelimiter(GetFieldPath) + FRecordField.AsString;
 end;
 
 end.

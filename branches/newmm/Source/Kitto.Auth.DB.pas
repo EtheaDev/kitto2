@@ -224,7 +224,7 @@ type
 implementation
 
 uses
-  SysUtils, Classes, Variants,
+  SysUtils, Classes, Variants, DB,
   EF.Localization,  EF.Types, EF.StrUtils,
   Kitto.Types, Kitto.Config, Kitto.DatabaseRouter;
 

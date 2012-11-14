@@ -81,10 +81,17 @@ type
     property Secure : Boolean read FSecure write SetFSecure;
   end;
 
-var
-  ExtStateManager : TExtStateManagerSingleton;
+function ExtStateManager: TExtStateManagerSingleton;
 
 implementation
+
+function ExtStateManager: TExtStateManagerSingleton;
+begin
+  if (Session <> nil) then
+    Result := Session.GetSingleton<TExtStateManagerSingleton>(TExtStateManagerSingleton.JSClassName)
+  else
+    Result := nil;
+end;
 
 procedure TExtStateProvider.SetFSlovak(Value : TExtObject); begin
   FSlovak := Value;
@@ -253,9 +260,4 @@ procedure TExtStateCookieProvider.InitDefaults; begin
   FPath := '/';
 end;
 
-initialization
-  ExtStateManager := TExtStateManagerSingleton.CreateSingleton;
-
-finalization
-  ExtStateManager.Destroy;
 end.

@@ -30,7 +30,7 @@ Controller: Window
             View: Girls
             View: Dolls
 
-      NorthView:
+      .NorthView:
         Controller: ToolBar
           TreeView: MainMenu
 

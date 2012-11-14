@@ -24,7 +24,7 @@ uses
   SysUtils,
   Ext, ExtPascal, ExtPascalUtils, ExtMenu, ExtTree,
   EF.ObserverIntf, EF.Tree,
-  Kitto.Ext.Controller, Kitto.Metadata.Views;
+  Kitto.Ext.Controller, Kitto.Metadata.Views, Kitto.Ext.Session;
 
 type
   TKExtTreeTreeNode = class(TExtTreeTreeNode)
@@ -60,6 +60,7 @@ type
     FOwner: TExtObject;
     FClickHandler: TExtProcedure;
     FAddedItems: Integer;
+    FSession: TKExtSession;
     procedure AddButton(const ANode: TKTreeViewNode; const AContainer: TExtContainer);
     procedure AddMenuItem(const ANode: TKTreeViewNode; const AMenu: TExtMenuMenu);
     procedure AddNode(const ANode: TKTreeViewNode; const AParent: TExtTreeTreeNode);
@@ -75,6 +76,8 @@ type
     function CloneAndFilter(const ATreeView: TKTreeView): TKTreeView;
     procedure Filter(const ANode: TKTreeViewNode);
   public
+    property Session: TKExtSession read FSession write FSession;
+
     ///	<summary>
     ///	  Attaches to the container a set of buttons, one for each top-level
     ///	  element of the specified tree view. Each button has a submenu tree
@@ -107,7 +110,7 @@ implementation
 uses
   Types, StrUtils, HTTPApp, RTTI,
   EF.SysUtils, EF.StrUtils, EF.Classes, EF.Localization,
-  Kitto.Ext.Session, Kitto.AccessControl, Kitto.Ext.Base;
+  Kitto.AccessControl, Kitto.Ext.Base;
 
 function CallViewControllerStringMethod(const AView: TKView;
   const AMethodName: string; const ADefaultValue: string): string;

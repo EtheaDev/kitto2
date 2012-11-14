@@ -208,7 +208,7 @@ end;
 
 procedure TExtListSorter.InitDefaults; begin
   inherited;
-  FSortClasses := TExtObjectList.Create(Self, 'sortClasses');
+  FSortClasses := TExtObjectList.CreateAsAttribute(Self, 'sortClasses');
 end;
 
 function TExtListDateColumn.JSClassName : string; begin
@@ -334,8 +334,8 @@ procedure TExtListListView.InitDefaults; begin
   FColumnResizeObject := TExtObject.CreateInternal(Self, 'columnResize');
   FColumnSort := true;
   FColumnSortObject := TExtObject.CreateInternal(Self, 'columnSort');
-  FColumns := TExtObjectList.Create(Self, 'columns');
-  FInternalTplArray := TExtObjectList.Create(Self, 'internalTpl');
+  FColumns := TExtObjectList.CreateAsAttribute(Self, 'columns');
+  FInternalTplArray := TExtObjectList.CreateAsAttribute(Self, 'internalTpl');
   FOverClass := 'x-list-over';
   FSelectedClass := 'x-list-selected';
 end;

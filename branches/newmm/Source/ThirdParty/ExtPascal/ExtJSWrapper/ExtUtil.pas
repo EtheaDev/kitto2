@@ -12,12 +12,10 @@ type
   TExtUtilObservable = class;
   TExtUtilJSONSingleton = class;
   TExtUtilTextMetricsSingleton = class;
-  TExtUtilTaskRunner = class;
   TExtUtilFormatSingleton = class;
   TExtUtilCSSSingleton = class;
   TExtUtilCookiesSingleton = class;
   TExtUtilDelayedTask = class;
-  TExtUtilClickRepeater = class;
   TExtUtilMixedCollection = class;
 
   TExtUtilObservable = class(TExtFunction)
@@ -27,7 +25,7 @@ type
   protected
     procedure InitDefaults; override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     function ObservableCapture(O: TExtUtilObservable; Fn: TExtFunction;
       Scope: TExtObject = nil): TExtFunction;
     function ObservableObserveClass(C: TExtFunction; Listeners: TExtObject): TExtFunction;
@@ -55,7 +53,7 @@ type
 
   TExtUtilJSONSingleton = class(TExtFunction)
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     function Decode(Json: string): TExtFunction;
     function Encode(O: string): TExtFunction;
     function EncodeDate(D: TDateTime): TExtFunction;
@@ -63,7 +61,7 @@ type
 
   TExtUtilTextMetricsSingleton = class(TExtFunction)
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     function Bind(El: string): TExtFunction; overload;
     function Bind(El: THTMLElement): TExtFunction; overload;
     function CreateInstance(El: string; FixedWidth: Integer = 0): TExtFunction; overload;
@@ -79,18 +77,9 @@ type
     function SetFixedWidth(Width: Integer): TExtFunction;
   end;
 
-  TExtUtilTaskRunner = class(TExtFunction)
-  public
-    function JSClassName: string; override;
-    constructor Create(AOwner: TExtObject; AInterval: Integer = 0); reintroduce;
-    function Start(Task: TExtObject): TExtFunction;
-    function Stop(Task: TExtObject): TExtFunction;
-    function StopAll: TExtFunction;
-  end;
-
   TExtUtilFormatSingleton = class(TExtFunction)
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     function Capitalize(Value: string): TExtFunction;
     function Date(Value: string; Format: string = ''): TExtFunction; overload;
     function Date(Value: TDateTime; Format: string = ''): TExtFunction; overload;
@@ -121,7 +110,7 @@ type
 
   TExtUtilCSSSingleton = class(TExtFunction)
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     function CreateStyleSheet(CssText: string; Id: string): TExtFunction;
     function GetRule(Selector: string; RefreshCache: Boolean): TExtFunction; overload;
     function GetRule(Selector: TExtObjectList; RefreshCache: Boolean)
@@ -138,7 +127,7 @@ type
 
   TExtUtilCookiesSingleton = class(TExtFunction)
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     function Clear(Name: string): TExtFunction;
     function Get(Name: string): TExtFunction;
     function SetJS(Name: string; Value: string; Expires: TExtObject = nil;
@@ -147,62 +136,12 @@ type
 
   TExtUtilDelayedTask = class(TExtFunction)
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     constructor Create(AOwner: TComponent; Fn: TExtFunction = nil;
       Scope: TExtObject = nil; Args: TExtObjectList = nil); reintroduce;
     function Cancel: TExtFunction;
     function Delay(Delay: Integer; NewFn: TExtFunction = nil; NewScope: TExtObject = nil;
       NewArgs: TExtObjectList = nil): TExtFunction;
-  end;
-
-  // Procedural types for events TExtUtilClickRepeater
-  TExtUtilClickRepeaterOnClick = procedure(This: TExtUtilClickRepeater) of object;
-  TExtUtilClickRepeaterOnMousedown = procedure(This: TExtUtilClickRepeater) of object;
-  TExtUtilClickRepeaterOnMouseup = procedure(This: TExtUtilClickRepeater) of object;
-
-  TExtUtilClickRepeater = class(TExtUtilObservable)
-  private
-    FAccelerate: Boolean;
-    FDelay: Integer;
-    FEl: string;
-    FInterval: Integer;
-    FPressClass: string;
-    FPreventDefault: Boolean;
-    FStopDefault: Boolean;
-    FOnClick: TExtUtilClickRepeaterOnClick;
-    FOnMousedown: TExtUtilClickRepeaterOnMousedown;
-    FOnMouseup: TExtUtilClickRepeaterOnMouseup;
-    procedure SetFAccelerate(Value: Boolean);
-    procedure SetFDelay(Value: Integer);
-    procedure SetFEl(Value: string);
-    procedure SetFInterval(Value: Integer);
-    procedure SetFPressClass(Value: string);
-    procedure SetFPreventDefault(Value: Boolean);
-    procedure SetFStopDefault(Value: Boolean);
-    procedure SetFOnClick(Value: TExtUtilClickRepeaterOnClick);
-    procedure SetFOnMousedown(Value: TExtUtilClickRepeaterOnMousedown);
-    procedure SetFOnMouseup(Value: TExtUtilClickRepeaterOnMouseup);
-  protected
-    procedure HandleEvent(const AEvtName: string); override;
-  public
-    function JSClassName: string; override;
-    constructor Create(AOwner: TComponent; El: string; Config: TExtObject = nil);
-      reintroduce;
-    function Disable: TExtFunction;
-    function Enable: TExtFunction;
-    function SetDisabled(Disabled: Boolean): TExtFunction;
-    property Accelerate: Boolean read FAccelerate write SetFAccelerate;
-    property Delay: Integer read FDelay write SetFDelay;
-    property El: string read FEl write SetFEl;
-    property Interval: Integer read FInterval write SetFInterval;
-    property PressClass: string read FPressClass write SetFPressClass;
-    property PreventDefault: Boolean read FPreventDefault write SetFPreventDefault;
-    property StopDefault: Boolean read FStopDefault write SetFStopDefault;
-    property OnClick: TExtUtilClickRepeaterOnClick read FOnClick write SetFOnClick;
-    property OnMousedown: TExtUtilClickRepeaterOnMousedown read FOnMousedown
-      write SetFOnMousedown;
-    property OnMouseup: TExtUtilClickRepeaterOnMouseup read FOnMouseup
-      write SetFOnMouseup;
   end;
 
   // Procedural types for events TExtUtilMixedCollection
@@ -228,7 +167,7 @@ type
   protected
     procedure HandleEvent(const AEvtName: string); override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     constructor Create(AOwner: TComponent; AllowFunctions: Boolean; KeyFn: TExtFunction);
       reintroduce;
     function Add(Key: string; O: TExtObject): TExtFunction;
@@ -282,14 +221,55 @@ type
       write SetFOnReplace;
   end;
 
-var
-  ExtUtilJSON: TExtUtilJSONSingleton;
-  ExtUtilTextMetrics: TExtUtilTextMetricsSingleton;
-  ExtUtilFormat: TExtUtilFormatSingleton;
-  ExtUtilCSS: TExtUtilCSSSingleton;
-  ExtUtilCookies: TExtUtilCookiesSingleton;
+function ExtUtilJSON: TExtUtilJSONSingleton;
+function ExtUtilTextMetrics: TExtUtilTextMetricsSingleton;
+function ExtUtilFormat: TExtUtilFormatSingleton;
+function ExtUtilCSS: TExtUtilCSSSingleton;
+function ExtUtilCookies: TExtUtilCookiesSingleton;
 
 implementation
+
+function ExtUtilJSON: TExtUtilJSONSingleton;
+begin
+  if (Session <> nil) then
+    Result := Session.GetSingleton<TExtUtilJSONSingleton>(TExtUtilJSONSingleton.JSClassName)
+  else
+    Result := nil;
+end;
+
+function ExtUtilTextMetrics: TExtUtilTextMetricsSingleton;
+begin
+  if (Session <> nil) then
+    // 'TextMetrics' is the name of the custom instance we create and bind
+    // to the <body> element.
+    Result := Session.GetSingleton<TExtUtilTextMetricsSingleton>('TextMetrics')
+  else
+    Result := nil;
+end;
+
+function ExtUtilFormat: TExtUtilFormatSingleton;
+begin
+  if (Session <> nil) then
+    Result := Session.GetSingleton<TExtUtilFormatSingleton>(TExtUtilFormatSingleton.JSClassName)
+  else
+    Result := nil;
+end;
+
+function ExtUtilCSS: TExtUtilCSSSingleton;
+begin
+  if (Session <> nil) then
+    Result := Session.GetSingleton<TExtUtilCSSSingleton>(TExtUtilCSSSingleton.JSClassName)
+  else
+    Result := nil;
+end;
+
+function ExtUtilCookies: TExtUtilCookiesSingleton;
+begin
+  if (Session <> nil) then
+    Result := Session.GetSingleton<TExtUtilCookiesSingleton>(TExtUtilCookiesSingleton.JSClassName)
+  else
+    Result := nil;
+end;
 
 procedure TExtUtilObservable.SetFListeners(Value: TExtObject);
 begin
@@ -298,7 +278,7 @@ begin
   JSCode('listeners:' + VarToJSON([Value, false]));
 end;
 
-function TExtUtilObservable.JSClassName: string;
+class function TExtUtilObservable.JSClassName: string;
 begin
   Result := 'Ext.util.Observable';
 end;
@@ -429,7 +409,7 @@ begin
   Result := Self;
 end;
 
-function TExtUtilJSONSingleton.JSClassName: string;
+class function TExtUtilJSONSingleton.JSClassName: string;
 begin
   Result := 'Ext.util.JSON';
 end;
@@ -452,7 +432,7 @@ begin
   Result := Self;
 end;
 
-function TExtUtilTextMetricsSingleton.JSClassName: string;
+class function TExtUtilTextMetricsSingleton.JSClassName: string;
 begin
   Result := 'Ext.util.TextMetrics';
 end;
@@ -527,36 +507,7 @@ begin
   Result := Self;
 end;
 
-function TExtUtilTaskRunner.JSClassName: string;
-begin
-  Result := 'Ext.util.TaskRunner';
-end;
-
-constructor TExtUtilTaskRunner.Create(AOwner: TExtObject; AInterval: Integer = 0);
-begin
-  FCreateVarArgs := JSClassName + '(' + VarToJSON([AInterval]) + ');';
-  inherited Create(AOwner);
-end;
-
-function TExtUtilTaskRunner.Start(Task: TExtObject): TExtFunction;
-begin
-  JSCode(JSName + '.start(' + VarToJSON([Task, false]) + ');', 'TExtUtilTaskRunner');
-  Result := Self;
-end;
-
-function TExtUtilTaskRunner.Stop(Task: TExtObject): TExtFunction;
-begin
-  JSCode(JSName + '.stop(' + VarToJSON([Task, false]) + ');', 'TExtUtilTaskRunner');
-  Result := Self;
-end;
-
-function TExtUtilTaskRunner.StopAll: TExtFunction;
-begin
-  JSCode(JSName + '.stopAll();', 'TExtUtilTaskRunner');
-  Result := Self;
-end;
-
-function TExtUtilFormatSingleton.JSClassName: string;
+class function TExtUtilFormatSingleton.JSClassName: string;
 begin
   Result := 'Ext.util.Format';
 end;
@@ -733,7 +684,7 @@ begin
   Result := Self;
 end;
 
-function TExtUtilCSSSingleton.JSClassName: string;
+class function TExtUtilCSSSingleton.JSClassName: string;
 begin
   Result := 'Ext.util.CSS';
 end;
@@ -803,7 +754,7 @@ begin
   Result := Self;
 end;
 
-function TExtUtilCookiesSingleton.JSClassName: string;
+class function TExtUtilCookiesSingleton.JSClassName: string;
 begin
   Result := 'Ext.util.Cookies';
 end;
@@ -829,7 +780,7 @@ begin
   Result := Self;
 end;
 
-function TExtUtilDelayedTask.JSClassName: string;
+class function TExtUtilDelayedTask.JSClassName: string;
 begin
   Result := 'Ext.util.DelayedTask';
 end;
@@ -837,7 +788,7 @@ end;
 constructor TExtUtilDelayedTask.Create(AOwner: TComponent; Fn: TExtFunction = nil;
   Scope: TExtObject = nil; Args: TExtObjectList = nil);
 begin
-  FCreateVarArgs := JSClassName + '(' + VarToJSON([Fn, true, Scope, false]) + ',' +
+  FCreateVarArgs := JSClassName + '(' + VarToJSON([Fn, True, Scope, False], GetExtSession(AOwner)) + ',' +
     VarToJSON(Args) + ');';
   inherited Create(AOwner);
 end;
@@ -854,117 +805,6 @@ begin
   JSCode(JSName + '.delay(' + VarToJSON([Delay, NewFn, true, NewScope, false]) + ',' +
     VarToJSON(NewArgs) + ');', 'TExtUtilDelayedTask');
   Result := Self;
-end;
-
-procedure TExtUtilClickRepeater.SetFAccelerate(Value: Boolean);
-begin
-  FAccelerate := Value;
-  JSCode('accelerate:' + VarToJSON([Value]));
-end;
-
-procedure TExtUtilClickRepeater.SetFDelay(Value: Integer);
-begin
-  FDelay := Value;
-  JSCode('delay:' + VarToJSON([Value]));
-end;
-
-procedure TExtUtilClickRepeater.SetFEl(Value: string);
-begin
-  FEl := Value;
-  JSCode('el:' + VarToJSON([Value]));
-end;
-
-procedure TExtUtilClickRepeater.SetFInterval(Value: Integer);
-begin
-  FInterval := Value;
-  JSCode('interval:' + VarToJSON([Value]));
-end;
-
-procedure TExtUtilClickRepeater.SetFPressClass(Value: string);
-begin
-  FPressClass := Value;
-  JSCode('pressClass:' + VarToJSON([Value]));
-end;
-
-procedure TExtUtilClickRepeater.SetFPreventDefault(Value: Boolean);
-begin
-  FPreventDefault := Value;
-  JSCode('preventDefault:' + VarToJSON([Value]));
-end;
-
-procedure TExtUtilClickRepeater.SetFStopDefault(Value: Boolean);
-begin
-  FStopDefault := Value;
-  JSCode('stopDefault:' + VarToJSON([Value]));
-end;
-
-procedure TExtUtilClickRepeater.SetFOnClick(Value: TExtUtilClickRepeaterOnClick);
-begin
-  if Assigned(FOnClick) then
-    JSCode(JSName + '.events ["click"].listeners=[];');
-  if Assigned(Value) then
-    on('click', Ajax('click', ['This', '%0.nm'], true));
-  FOnClick := Value;
-end;
-
-procedure TExtUtilClickRepeater.SetFOnMousedown(Value: TExtUtilClickRepeaterOnMousedown);
-begin
-  if Assigned(FOnMousedown) then
-    JSCode(JSName + '.events ["mousedown"].listeners=[];');
-  if Assigned(Value) then
-    on('mousedown', Ajax('mousedown', ['This', '%0.nm'], true));
-  FOnMousedown := Value;
-end;
-
-procedure TExtUtilClickRepeater.SetFOnMouseup(Value: TExtUtilClickRepeaterOnMouseup);
-begin
-  if Assigned(FOnMouseup) then
-    JSCode(JSName + '.events ["mouseup"].listeners=[];');
-  if Assigned(Value) then
-    on('mouseup', Ajax('mouseup', ['This', '%0.nm'], true));
-  FOnMouseup := Value;
-end;
-
-function TExtUtilClickRepeater.JSClassName: string;
-begin
-  Result := 'Ext.util.ClickRepeater';
-end;
-
-constructor TExtUtilClickRepeater.Create(AOwner: TComponent; El: string;
-  Config: TExtObject = nil);
-begin
-  FCreateVarArgs := JSClassName + '(' + VarToJSON([El, Config, false]) + ');';
-  inherited Create(AOwner);
-end;
-
-function TExtUtilClickRepeater.Disable: TExtFunction;
-begin
-  JSCode(JSName + '.disable();', 'TExtUtilClickRepeater');
-  Result := Self;
-end;
-
-function TExtUtilClickRepeater.Enable: TExtFunction;
-begin
-  JSCode(JSName + '.enable();', 'TExtUtilClickRepeater');
-  Result := Self;
-end;
-
-function TExtUtilClickRepeater.SetDisabled(Disabled: Boolean): TExtFunction;
-begin
-  JSCode(JSName + '.setDisabled(' + VarToJSON([Disabled]) + ');',
-    'TExtUtilClickRepeater');
-  Result := Self;
-end;
-
-procedure TExtUtilClickRepeater.HandleEvent(const AEvtName: string);
-begin
-  inherited;
-  if (AEvtName = 'click') and Assigned(FOnClick) then
-    FOnClick(TExtUtilClickRepeater(ParamAsObject('This')))
-  else if (AEvtName = 'mousedown') and Assigned(FOnMousedown) then
-    FOnMousedown(TExtUtilClickRepeater(ParamAsObject('This')))
-  else if (AEvtName = 'mouseup') and Assigned(FOnMouseup) then
-    FOnMouseup(TExtUtilClickRepeater(ParamAsObject('This')));
 end;
 
 procedure TExtUtilMixedCollection.SetFAllowFunctions(Value: Boolean);
@@ -1009,7 +849,7 @@ begin
   FOnReplace := Value;
 end;
 
-function TExtUtilMixedCollection.JSClassName: string;
+class function TExtUtilMixedCollection.JSClassName: string;
 begin
   Result := 'Ext.util.MixedCollection';
 end;
@@ -1017,7 +857,7 @@ end;
 constructor TExtUtilMixedCollection.Create(AOwner: TComponent; AllowFunctions: Boolean;
   KeyFn: TExtFunction);
 begin
-  FCreateVarArgs := JSClassName + '(' + VarToJSON([AllowFunctions, KeyFn, true]) + ');';
+  FCreateVarArgs := JSClassName + '(' + VarToJSON([AllowFunctions, KeyFn, True], GetExtSession(AOwner)) + ');';
   inherited Create(AOwner);
 end;
 
@@ -1294,21 +1134,5 @@ begin
     FOnReplace(ParamAsString('Key'), TExtObject(ParamAsObject('Old')),
       TExtObject(ParamAsObject('New')));
 end;
-
-initialization
-
-ExtUtilJSON := TExtUtilJSONSingleton.CreateSingleton;
-ExtUtilTextMetrics := TExtUtilTextMetricsSingleton.CreateSingleton;
-ExtUtilFormat := TExtUtilFormatSingleton.CreateSingleton;
-ExtUtilCSS := TExtUtilCSSSingleton.CreateSingleton;
-ExtUtilCookies := TExtUtilCookiesSingleton.CreateSingleton;
-
-finalization
-
-ExtUtilCookies.Destroy;
-ExtUtilCSS.Destroy;
-ExtUtilFormat.Destroy;
-ExtUtilTextMetrics.Destroy;
-ExtUtilJSON.Destroy;
 
 end.

@@ -1,7 +1,7 @@
-﻿Row:
+Row:
   Field: PROJECT
-    CharWidth: 30
-  Field: PHASE_NAME
+    CharWidth: 40
+Field: PHASE_NAME
 Row:
   Field: START_DATE
   Field: END_DATE

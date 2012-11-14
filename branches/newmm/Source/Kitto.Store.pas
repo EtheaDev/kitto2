@@ -371,7 +371,7 @@ begin
   LPredicate :=
     function (ARecord: TKRecord): Boolean
     begin
-      ARecord.FieldByName(AFieldName).Value := LValue; // Cannot capture AValue.
+      Result := ARecord.FieldByName(AFieldName).Value = LValue; // Cannot capture AValue.
     end;
   Result := Count([ExcludeDeleted(), LPredicate]);
 end;

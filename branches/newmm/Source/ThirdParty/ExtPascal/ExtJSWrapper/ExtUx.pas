@@ -24,7 +24,7 @@ type
 
   TExtUxTabCloseMenu = class(TExtFunction)
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
   end;
 
   TExtUxProgressBarPager = class(TExtFunction)
@@ -36,7 +36,7 @@ type
     procedure SetFDefaultText(Value: string);
     procedure SetFProgBarWidth(Value: Integer);
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     property DefaultAnimCfg: TExtObject read FDefaultAnimCfg write SetFDefaultAnimCfg;
     property DefaultText: string read FDefaultText write SetFDefaultText;
     property ProgBarWidth: Integer read FProgBarWidth write SetFProgBarWidth;
@@ -44,33 +44,33 @@ type
 
   TExtUxTaskBar = class(TExtUtilObservable)
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
   end;
 
   TExtUxSpinner = class(TExtUtilObservable)
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
   end;
 
   TExtUxValidationStatus = class(TExtComponent)
   protected
     procedure InitDefaults; override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
   end;
 
   TExtUxTaskButtonsPanel = class(TExtBoxComponent)
   protected
     procedure InitDefaults; override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
   end;
 
   TExtUxTaskBarContainer = class(TExtContainer)
   protected
     procedure InitDefaults; override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
   end;
 
   // Procedural types for events TExtUxTaskBarTaskButton
@@ -149,7 +149,7 @@ type
     procedure InitDefaults; override;
     procedure HandleEvent(const AEvtName: string); override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     function MultiComboCheckable: TExtFunction;
     function BuildBottomToolbar: TExtFunction;
     function BuildTopToolbar: TExtFunction;
@@ -209,14 +209,14 @@ type
   protected
     procedure InitDefaults; override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
   end;
 
   TExtUxStartMenu = class(TExtMenuMenu)
   protected
     procedure InitDefaults; override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     function AddToolSeparator: TExtFunction;
     function Show(Element: string; Position: string = '';
       ParentMenu: TExtUxStartMenu = nil): TExtFunction;
@@ -246,7 +246,7 @@ type
     procedure InitDefaults; override;
     function GetObjectNamePrefix: string; override;
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
     function ClearStatus(const AConfig: TExtObject = nil): TExtFunction;
     function GetText: TExtFunction;
     function SetIcon(const AIconCls: string = ''): TExtFunction;
@@ -268,12 +268,12 @@ type
 
   TExtUxSliderTip = class(TExtTip)
   public
-    function JSClassName: string; override;
+    class function JSClassName: string; override;
   end;
 
 implementation
 
-function TExtUxTabCloseMenu.JSClassName: string;
+class function TExtUxTabCloseMenu.JSClassName: string;
 begin
   Result := 'Ext.ux.TabCloseMenu';
 end;
@@ -296,22 +296,22 @@ begin
   JSCode('progBarWidth:' + VarToJSON([Value]));
 end;
 
-function TExtUxProgressBarPager.JSClassName: string;
+class function TExtUxProgressBarPager.JSClassName: string;
 begin
   Result := 'Ext.ux.ProgressBarPager';
 end;
 
-function TExtUxTaskBar.JSClassName: string;
+class function TExtUxTaskBar.JSClassName: string;
 begin
   Result := 'Ext.ux.TaskBar';
 end;
 
-function TExtUxSpinner.JSClassName: string;
+class function TExtUxSpinner.JSClassName: string;
 begin
   Result := 'Ext.ux.Spinner';
 end;
 
-function TExtUxValidationStatus.JSClassName: string;
+class function TExtUxValidationStatus.JSClassName: string;
 begin
   Result := 'Ext.ux.ValidationStatus';
 end;
@@ -321,7 +321,7 @@ begin
   inherited;
 end;
 
-function TExtUxTaskButtonsPanel.JSClassName: string;
+class function TExtUxTaskButtonsPanel.JSClassName: string;
 begin
   Result := 'Ext.ux.TaskButtonsPanel';
 end;
@@ -331,7 +331,7 @@ begin
   inherited;
 end;
 
-function TExtUxTaskBarContainer.JSClassName: string;
+class function TExtUxTaskBarContainer.JSClassName: string;
 begin
   Result := 'Ext.ux.TaskBarContainer';
 end;
@@ -543,7 +543,7 @@ begin
   FOnInitview := Value;
 end;
 
-function TExtUxTaskBarTaskButton.JSClassName: string;
+class function TExtUxTaskBarTaskButton.JSClassName: string;
 begin
   Result := 'Ext.ux.TaskBar.TaskButton';
 end;
@@ -552,7 +552,7 @@ procedure TExtUxTaskBarTaskButton.InitDefaults;
 begin
   inherited;
   FTplExtXTemplate := TExtXTemplate.CreateInternal(Self, 'tpl');
-  FValue := TExtObjectList.Create(Self, 'value');
+  FValue := TExtObjectList.CreateAsAttribute(Self, 'value');
   FBookDetail := TExtObject.CreateInternal(Self, 'bookDetail');
   FBookGrid := TExtObject.CreateInternal(Self, 'bookGrid');
   FBookMasterDetail := TExtObject.CreateInternal(Self, 'bookMasterDetail');
@@ -690,7 +690,7 @@ begin
       TExtDataView(ParamAsObject('Dv')));
 end;
 
-function TExtUxGMapPanel.JSClassName: string;
+class function TExtUxGMapPanel.JSClassName: string;
 begin
   Result := 'Ext.ux.GMapPanel';
 end;
@@ -700,7 +700,7 @@ begin
   inherited;
 end;
 
-function TExtUxStartMenu.JSClassName: string;
+class function TExtUxStartMenu.JSClassName: string;
 begin
   Result := 'Ext.ux.StartMenu';
 end;
@@ -778,7 +778,7 @@ begin
   ExtSession.ResponseItems.SetConfigItem(Self, 'text', 'setText', [AValue]);
 end;
 
-function TExtUxStatusBar.JSClassName: string;
+class function TExtUxStatusBar.JSClassName: string;
 begin
   Result := 'Ext.ux.StatusBar';
 end;
@@ -845,7 +845,7 @@ begin
   Result := Self;
 end;
 
-function TExtUxSliderTip.JSClassName: string;
+class function TExtUxSliderTip.JSClassName: string;
 begin
   Result := 'Ext.ux.SliderTip';
 end;

@@ -66,7 +66,10 @@ var
 begin
   inherited;
   if not Assigned(FTreeViewRenderer) then
+  begin
     FTreeViewRenderer := TKExtTreeViewRenderer.Create;
+    FTreeViewrenderer.Session := Session;
+  end;
   LNode := Config.GetNode('TreeView');
   LTreeView := Session.Config.Views.ViewByNode(LNode) as TKTreeView;
   FTreeViewRenderer.RenderAsButtons(LTreeView, FToolBar, Self, DisplayView);

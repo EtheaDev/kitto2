@@ -313,7 +313,7 @@ destructor TKExtWindowControllerBase.Destroy;
 begin
   FreeAndNil(FSubjObserverImpl);
   FreeAndNil(FConfig);
-  (ExtSession as TKExtSession).RemoveController(Self);
+  Session.RemoveController(Self);
   inherited;
 end;
 
@@ -398,7 +398,7 @@ end;
 
 procedure TKExtWindowControllerBase.WindowClosed;
 begin
-  (ExtSession as TKExtSession).RemoveController(Self, True);
+  Session.RemoveController(Self, True);
 end;
 
 function TKExtWindowControllerBase._AddRef: Integer;
@@ -500,7 +500,7 @@ destructor TKExtViewportControllerBase.Destroy;
 begin
   FreeAndNil(FSubjObserverImpl);
   FreeAndNil(FConfig);
-  (ExtSession as TKExtSession).RemoveController(Self);
+  Session.RemoveController(Self);
   inherited;
 end;
 
@@ -655,7 +655,7 @@ end;
 
 destructor TKExtPanelControllerBase.Destroy;
 begin
-  (ExtSession as TKExtSession).RemoveController(Self);
+  Session.RemoveController(Self);
   inherited;
 end;
 
@@ -950,7 +950,7 @@ destructor TKExtControllerBase.Destroy;
 begin
   FreeAndNil(FSubjObserverImpl);
   FreeAndNil(FConfig);
-  (ExtSession as TKExtSession).RemoveController(Self);
+  Session.RemoveController(Self);
   inherited;
 end;
 

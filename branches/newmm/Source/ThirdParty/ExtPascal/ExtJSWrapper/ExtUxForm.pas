@@ -23,7 +23,7 @@ type
   protected
     procedure InitDefaults; override;
   public
-    function JSClassName : string; override;
+    class function JSClassName : string; override;
     property Multiselects : TExtObjectList read FMultiselects write SetFMultiselects;
   end;
 
@@ -80,7 +80,7 @@ type
   protected
     procedure InitDefaults; override;
   public
-    function JSClassName : string; override;
+    class function JSClassName : string; override;
     function GetTargetFromEvent : TExtFunction;
     function GetValue : TExtFunction;
     function SetValue(Values : string) : TExtFunction; overload;
@@ -122,7 +122,7 @@ type
   protected
     procedure InitDefaults; override;
   public
-    function JSClassName : string; override;
+    class function JSClassName : string; override;
     function IntrospectorExtend : TExtFunction;
     function SelectBox : TExtFunction;
     function AddEventListener : TExtFunction;
@@ -206,7 +206,7 @@ type
     procedure InitDefaults; override;
     procedure HandleEvent(const AEvtName: string); override;
   public
-    function JSClassName : string; override;
+    class function JSClassName : string; override;
     property ButtonCfg : TExtObject read FButtonCfg write SetFButtonCfg;
     property ButtonOffset : Integer read FButtonOffset write SetFButtonOffset;
     property ButtonOnly : Boolean read FButtonOnly write SetFButtonOnly;
@@ -218,14 +218,14 @@ type
   protected
     procedure InitDefaults; override;
   public
-    function JSClassName : string; override;
+    class function JSClassName : string; override;
   end;
 
   TExtUxFormSelectBox = class(TExtFormComboBox)
   protected
     procedure InitDefaults; override;
   public
-    function JSClassName : string; override;
+    class function JSClassName : string; override;
   end;
 
 implementation
@@ -235,13 +235,13 @@ procedure TExtUxFormItemSelector.SetFMultiselects(Value : TExtObjectList); begin
     JSCode('multiselects:' + VarToJSON([Value, false]));
 end;
 
-function TExtUxFormItemSelector.JSClassName : string; begin
+class function TExtUxFormItemSelector.JSClassName : string; begin
   Result := 'Ext.ux.form.ItemSelector';
 end;
 
 procedure TExtUxFormItemSelector.InitDefaults; begin
   inherited;
-  FMultiselects := TExtObjectList.Create(Self, 'multiselects');
+  FMultiselects := TExtObjectList.CreateAsAttribute(Self, 'multiselects');
 end;
 
 procedure TExtUxFormMultiSelect.SetFAllowBlank(Value : Boolean); begin
@@ -364,7 +364,7 @@ procedure TExtUxFormMultiSelect.SetFWidth(Value : Integer); begin
   JSCode('width:' + VarToJSON([Value]));
 end;
 
-function TExtUxFormMultiSelect.JSClassName : string; begin
+class function TExtUxFormMultiSelect.JSClassName : string; begin
   Result := 'Ext.ux.form.MultiSelect';
 end;
 
@@ -372,14 +372,14 @@ procedure TExtUxFormMultiSelect.InitDefaults; begin
   inherited;
   FAllowBlank := true;
   FDelimiter := ',';
-  FDragGroupArray := TExtObjectList.Create(Self, 'dragGroup');
-  FDropGroupArray := TExtObjectList.Create(Self, 'dropGroup');
+  FDragGroupArray := TExtObjectList.CreateAsAttribute(Self, 'dragGroup');
+  FDropGroupArray := TExtObjectList.CreateAsAttribute(Self, 'dropGroup');
   FHeight := 100;
   FMinSelections := 0;
   FStore := TExtDataStore.CreateInternal(Self, 'store');
-  FStoreArray := TExtObjectList.Create(Self, 'store');
+  FStoreArray := TExtObjectList.CreateAsAttribute(Self, 'store');
   FTbar := TExtObject.CreateInternal(Self, 'tbar');
-  FTbarArray := TExtObjectList.Create(Self, 'tbar');
+  FTbarArray := TExtObjectList.CreateAsAttribute(Self, 'tbar');
   FView := TExtListView.CreateInternal(Self, 'view');
   FWidth := 100;
 end;
@@ -419,7 +419,7 @@ procedure TExtUxFormDateTime.SetFRuntime(Value : TExtObject); begin
     JSCode(JSName + '.runtime=' + VarToJSON([Value, false]) + ';');
 end;
 
-function TExtUxFormDateTime.JSClassName : string; begin
+class function TExtUxFormDateTime.JSClassName : string; begin
   Result := 'Ext.ux.form.DateTime';
 end;
 
@@ -754,7 +754,7 @@ procedure TExtUxFormFileUploadField.SetFOnFileselected(Value : TExtUxFormFileUpl
   FOnFileselected := Value;
 end;
 
-function TExtUxFormFileUploadField.JSClassName : string; begin
+class function TExtUxFormFileUploadField.JSClassName : string; begin
   Result := 'Ext.ux.form.FileUploadField';
 end;
 
@@ -771,7 +771,7 @@ procedure TExtUxFormFileUploadField.HandleEvent(const AEvtName : string); begin
     FOnFileselected(TExtUxFormFileUploadField(ParamAsObject('This')), ParamAsstring('Value'));
 end;
 
-function TExtUxFormSpinnerField.JSClassName : string; begin
+class function TExtUxFormSpinnerField.JSClassName : string; begin
   Result := 'Ext.ux.form.SpinnerField';
 end;
 
@@ -779,7 +779,7 @@ procedure TExtUxFormSpinnerField.InitDefaults; begin
   inherited;
 end;
 
-function TExtUxFormSelectBox.JSClassName : string; begin
+class function TExtUxFormSelectBox.JSClassName : string; begin
   Result := 'Ext.ux.form.SelectBox';
 end;
 

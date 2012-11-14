@@ -41,7 +41,7 @@ type
     procedure SetFFont(Value : TExtFont);
     procedure SetFDataTip(Value : TExtDataTip);
   public
-    function JSClassName : string; override;
+    class function JSClassName : string; override;
     property Padding : Integer read FPadding write SetFPadding;
     property AnimationEnabled : Boolean read FAnimationEnabled write SetFAnimationEnabled;
     property Font : TExtFont read FFont write SetFFont;
@@ -57,7 +57,7 @@ type
     procedure SetFTypeJS(Value : String);
     procedure SetFStyle(Value : TExtChartSeriesStyle);
   public
-    function JSClassName : string; override;
+    class function JSClassName : string; override;
     property DisplayName : String read FDisplayName write SetFDisplayName;
     property TypeJS : String read FTypeJS write SetFTypeJS;
     property Style : TExtChartSeriesStyle read FStyle write SetFStyle;
@@ -72,7 +72,7 @@ type
     procedure SetFMode(Value : String);
     procedure SetFColor(Value : String);
   public
-    function JSClassName : string; override;
+    class function JSClassName : string; override;
     property Image : String read FImage write SetFImage;
     property Mode : String read FMode write SetFMode;
     property Color : String read FColor write SetFColor;
@@ -99,7 +99,7 @@ type
     procedure SetFLabelRenderer(Value : TExtFunction);
     procedure SetFTitle(Value : String);
   public
-    function JSClassName : string; override;
+    class function JSClassName : string; override;
     property HideOverlappingLabels : Boolean read FHideOverlappingLabels write SetFHideOverlappingLabels;
     property LabelFunction : String read FLabelFunction write SetFLabelFunction;
     property LabelSpacing : Integer read FLabelSpacing write SetFLabelSpacing;
@@ -141,7 +141,7 @@ type
     procedure SetFSnapToUnits(Value : Boolean);
     procedure SetFStackingEnabled(Value : Boolean);
   public
-    function JSClassName : string; override;
+    class function JSClassName : string; override;
     property AdjustMaximumByMajorUnit : Boolean read FAdjustMaximumByMajorUnit write SetFAdjustMaximumByMajorUnit;
     property AdjustMinimumByMajorUnit : Boolean read FAdjustMinimumByMajorUnit write SetFAdjustMinimumByMajorUnit;
     property AlwaysShowZero : Boolean read FAlwaysShowZero write SetFAlwaysShowZero;
@@ -178,7 +178,7 @@ type
     procedure SetFSnapToUnits(Value : Boolean);
     procedure SetFStackingEnabled(Value : Boolean);
   public
-    function JSClassName : string; override;
+    class function JSClassName : string; override;
     property CalculateByLabelSize : Boolean read FCalculateByLabelSize write SetFCalculateByLabelSize;
     property MajorTimeUnit : String read FMajorTimeUnit write SetFMajorTimeUnit;
     property MajorTimeUnit_ : String read FMajorTimeUnit_ write SetFMajorTimeUnit_;
@@ -192,7 +192,7 @@ type
 
   TExtChartPieSeries = class(TExtChartSeries)
   public
-    function JSClassName : string; override;
+    class function JSClassName : string; override;
   end;
 
   TExtChartCartesianSeries = class(TExtChartSeries)
@@ -206,7 +206,7 @@ type
     procedure SetFXField(Value : String);
     procedure SetFYField(Value : String);
   public
-    function JSClassName : string; override;
+    class function JSClassName : string; override;
     property Axis : String read FAxis write SetFAxis;
     property ShowInLegend : Boolean read FShowInLegend write SetFShowInLegend;
     property XField : String read FXField write SetFXField;
@@ -220,24 +220,24 @@ type
     procedure SetFCalculateCategoryCount(Value : Boolean);
     procedure SetFCategoryNames(Value : TExtObjectList);
   public
-    function JSClassName : string; override;
+    class function JSClassName : string; override;
     property CalculateCategoryCount : Boolean read FCalculateCategoryCount write SetFCalculateCategoryCount;
     property CategoryNames : TExtObjectList read FCategoryNames write SetFCategoryNames;
   end;
 
   TExtChartLineSeries = class(TExtChartCartesianSeries)
   public
-    function JSClassName : string; override;
+    class function JSClassName : string; override;
   end;
 
   TExtChartBarSeries = class(TExtChartCartesianSeries)
   public
-    function JSClassName : string; override;
+    class function JSClassName : string; override;
   end;
 
   TExtChartColumnSeries = class(TExtChartCartesianSeries)
   public
-    function JSClassName : string; override;
+    class function JSClassName : string; override;
   end;
 
   // Procedural types for events TExtChartChart
@@ -278,7 +278,7 @@ type
     procedure InitDefaults; override;
     procedure HandleEvent(const AEvtName: string); override;
   public
-    function JSClassName : string; override;
+    class function JSClassName : string; override;
     class function CHART_URL : String;
     function BindStore(Store : TExtDataStore) : TExtFunction;
     function SetSeriesStyles(Styles : TExtObjectList) : TExtFunction;
@@ -304,7 +304,7 @@ type
   protected
     procedure InitDefaults; override;
   public
-    function JSClassName : string; override;
+    class function JSClassName : string; override;
   end;
 
   TExtChartPieChart = class(TExtChartChart)
@@ -316,7 +316,7 @@ type
   protected
     procedure InitDefaults; override;
   public
-    function JSClassName : string; override;
+    class function JSClassName : string; override;
     property DataField : String read FDataField write SetFDataField;
     property CategoryField : String read FCategoryField write SetFCategoryField;
   end;
@@ -325,35 +325,35 @@ type
   protected
     procedure InitDefaults; override;
   public
-    function JSClassName : string; override;
+    class function JSClassName : string; override;
   end;
 
   TExtChartColumnChart = class(TExtChartCartesianChart)
   protected
     procedure InitDefaults; override;
   public
-    function JSClassName : string; override;
+    class function JSClassName : string; override;
   end;
 
   TExtChartBarChart = class(TExtChartCartesianChart)
   protected
     procedure InitDefaults; override;
   public
-    function JSClassName : string; override;
+    class function JSClassName : string; override;
   end;
 
   TExtChartStackedBarChart = class(TExtChartCartesianChart)
   protected
     procedure InitDefaults; override;
   public
-    function JSClassName : string; override;
+    class function JSClassName : string; override;
   end;
 
   TExtChartLineChart = class(TExtChartCartesianChart)
   protected
     procedure InitDefaults; override;
   public
-    function JSClassName : string; override;
+    class function JSClassName : string; override;
   end;
 
 implementation
@@ -378,7 +378,7 @@ procedure TExtChartStyle.SetFDataTip(Value : TExtDataTip); begin
     JSCode('dataTip:' + VarToJSON([Value, false]));
 end;
 
-function TExtChartStyle.JSClassName : string; begin
+class function TExtChartStyle.JSClassName : string; begin
   Result := 'Object';
 end;
 
@@ -398,7 +398,7 @@ procedure TExtChartSeries.SetFStyle(Value : TExtChartSeriesStyle); begin
     JSCode('style:' + VarToJSON([Value, false]));
 end;
 
-function TExtChartSeries.JSClassName : string; begin
+class function TExtChartSeries.JSClassName : string; begin
   Result := 'Ext.chart.Series';
 end;
 
@@ -417,7 +417,7 @@ procedure TExtChartSeriesStyle.SetFColor(Value : String); begin
   JSCode('color:' + VarToJSON([Value]));
 end;
 
-function TExtChartSeriesStyle.JSClassName : string; begin
+class function TExtChartSeriesStyle.JSClassName : string; begin
   Result := 'Object';
 end;
 
@@ -471,7 +471,7 @@ procedure TExtChartAxis.SetFTitle(Value : String); begin
   JSCode('title:' + VarToJSON([Value]));
 end;
 
-function TExtChartAxis.JSClassName : string; begin
+class function TExtChartAxis.JSClassName : string; begin
   Result := 'Ext.chart.Axis';
 end;
 
@@ -541,7 +541,7 @@ begin
   JSCode('stackingEnabled:' + VarToJSON([Value]));
 end;
 
-function TExtChartNumericAxis.JSClassName : string; begin
+class function TExtChartNumericAxis.JSClassName : string; begin
   Result := 'Ext.chart.NumericAxis';
 end;
 
@@ -590,11 +590,11 @@ procedure TExtChartTimeAxis.SetFStackingEnabled(Value : Boolean); begin
   JSCode('stackingEnabled:' + VarToJSON([Value]));
 end;
 
-function TExtChartTimeAxis.JSClassName : string; begin
+class function TExtChartTimeAxis.JSClassName : string; begin
   Result := 'Ext.chart.TimeAxis';
 end;
 
-function TExtChartPieSeries.JSClassName : string; begin
+class function TExtChartPieSeries.JSClassName : string; begin
   Result := 'Ext.chart.PieSeries';
 end;
 
@@ -618,7 +618,7 @@ procedure TExtChartCartesianSeries.SetFYField(Value : String); begin
   JSCode('yField:' + VarToJSON([Value]));
 end;
 
-function TExtChartCartesianSeries.JSClassName : string; begin
+class function TExtChartCartesianSeries.JSClassName : string; begin
   Result := 'Ext.chart.CartesianSeries';
 end;
 
@@ -632,19 +632,19 @@ procedure TExtChartCategoryAxis.SetFCategoryNames(Value : TExtObjectList); begin
     JSCode(JSName + '.categoryNames=' + VarToJSON([Value, false]) + ';');
 end;
 
-function TExtChartCategoryAxis.JSClassName : string; begin
+class function TExtChartCategoryAxis.JSClassName : string; begin
   Result := 'Ext.chart.CategoryAxis';
 end;
 
-function TExtChartLineSeries.JSClassName : string; begin
+class function TExtChartLineSeries.JSClassName : string; begin
   Result := 'Ext.chart.LineSeries';
 end;
 
-function TExtChartBarSeries.JSClassName : string; begin
+class function TExtChartBarSeries.JSClassName : string; begin
   Result := 'Ext.chart.BarSeries';
 end;
 
-function TExtChartColumnSeries.JSClassName : string; begin
+class function TExtChartColumnSeries.JSClassName : string; begin
   Result := 'Ext.chart.ColumnSeries';
 end;
 
@@ -729,7 +729,7 @@ procedure TExtChartChart.SetFOnRefresh(Value : TExtChartChartOnRefresh); begin
   FOnRefresh := Value;
 end;
 
-function TExtChartChart.JSClassName : string; begin
+class function TExtChartChart.JSClassName : string; begin
   Result := 'Ext.chart.Chart';
 end;
 
@@ -745,7 +745,7 @@ procedure TExtChartChart.InitDefaults; begin
   FStore := TExtDataStore.CreateInternal(Self, 'store');
   FXAxis := TExtChartAxis.CreateInternal(Self, 'xAxis');
   FYAxis := TExtChartAxis.CreateInternal(Self, 'yAxis');
-  FSeries := TExtObjectList.Create(Self, 'series');
+  FSeries := TExtObjectList.CreateAsAttribute(Self, 'series');
 end;
 
 function TExtChartChart.BindStore(Store : TExtDataStore) : TExtFunction; begin
@@ -776,7 +776,7 @@ procedure TExtChartChart.HandleEvent(const AEvtName : string); begin
     FOnRefresh(TExtChartChart(ParamAsObject('This')));
 end;
 
-function TExtChartCartesianChart.JSClassName : string; begin
+class function TExtChartCartesianChart.JSClassName : string; begin
   Result := 'Ext.chart.CartesianChart';
 end;
 
@@ -794,7 +794,7 @@ procedure TExtChartPieChart.SetFCategoryField(Value : String); begin
   JSCode('categoryField:' + VarToJSON([Value]));
 end;
 
-function TExtChartPieChart.JSClassName : string; begin
+class function TExtChartPieChart.JSClassName : string; begin
   Result := 'Ext.chart.PieChart';
 end;
 
@@ -802,7 +802,7 @@ procedure TExtChartPieChart.InitDefaults; begin
   inherited;
 end;
 
-function TExtChartStackedColumnChart.JSClassName : string; begin
+class function TExtChartStackedColumnChart.JSClassName : string; begin
   Result := 'Ext.chart.StackedColumnChart';
 end;
 
@@ -810,7 +810,7 @@ procedure TExtChartStackedColumnChart.InitDefaults; begin
   inherited;
 end;
 
-function TExtChartColumnChart.JSClassName : string; begin
+class function TExtChartColumnChart.JSClassName : string; begin
   Result := 'Ext.chart.ColumnChart';
 end;
 
@@ -818,7 +818,7 @@ procedure TExtChartColumnChart.InitDefaults; begin
   inherited;
 end;
 
-function TExtChartBarChart.JSClassName : string; begin
+class function TExtChartBarChart.JSClassName : string; begin
   Result := 'Ext.chart.BarChart';
 end;
 
@@ -826,7 +826,7 @@ procedure TExtChartBarChart.InitDefaults; begin
   inherited;
 end;
 
-function TExtChartStackedBarChart.JSClassName : string; begin
+class function TExtChartStackedBarChart.JSClassName : string; begin
   Result := 'Ext.chart.StackedBarChart';
 end;
 
@@ -834,7 +834,7 @@ procedure TExtChartStackedBarChart.InitDefaults; begin
   inherited;
 end;
 
-function TExtChartLineChart.JSClassName : string; begin
+class function TExtChartLineChart.JSClassName : string; begin
   Result := 'Ext.chart.LineChart';
 end;
 

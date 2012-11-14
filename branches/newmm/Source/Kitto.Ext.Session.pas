@@ -24,8 +24,8 @@ uses
   SysUtils, Classes, Generics.Collections,
   ExtPascal, Ext,
   EF.Tree,
-  Kitto.Ext.Base, Kitto.Ext.Controller, Kitto.Config, Kitto.Metadata.Views,
-  Kitto.Metadata.DataView, Kitto.Ext.Login;
+  Kitto.Ext.Base, Kitto.Config, Kitto.Metadata.Views,
+  Kitto.Metadata.DataView, Kitto.Ext.Login, Kitto.Ext.Controller;
 
 type
   TKExtUploadedFile = class
@@ -70,6 +70,7 @@ type
     function BeforeHandleRequest: Boolean; override;
     procedure AfterHandleRequest; override;
     procedure AfterNewSession; override;
+    function GetMainPageTemplate: string; override;
   public
     constructor Create(AOwner: TObject); override;
     destructor Destroy; override;
@@ -152,20 +153,27 @@ type
     procedure Logout;
   end;
 
-function Session: TKExtSession;
+  TKExtObjectHelper = class helper for TExtObject
+  private
+    function GetSession: TKExtSession;
+  public
+    property Session: TKExtSession read GetSession;
+  end;
+
+//function Session: TKExtSession;
 
 implementation
 
 uses
   StrUtils, ActiveX, ComObj, Types, FmtBcd,
-  ExtPascalUtils, ExtForm, FCGIApp,
+  ExtPascalUtils, ExtForm,
   EF.Intf, EF.SysUtils, EF.StrUtils, EF.Localization, EF.Macros, EF.Logger,
   Kitto.Auth, Kitto.Types, Kitto.AccessControl,
   Kitto.Ext.Utils;
 
 function Session: TKExtSession;
 begin
-  Result := TKExtSession(_CurrentWebSession);
+  Result := TKExtSession(ExtPascal.Session);
 end;
 
 { TKExtSession }
@@ -218,6 +226,29 @@ begin
     if (LObject <> nil) and (PGarbage(LObject)^.Garbage <> nil) then
       Inc(Result);
   end;
+end;
+
+function TKExtSession.GetMainPageTemplate: string;
+var
+  LFileName: string;
+
+  function GetEncoding: TEncoding;
+  begin
+    if Charset = 'utf-8' then
+      Result := TEncoding.UTF8
+    else
+      Result := TEncoding.ANSI;
+  end;
+
+begin
+  LFileName := Config.FindResourcePathName('index.html');
+  if LFileName <> '' then
+  begin
+    Result := TextFileToString(LFileName, GetEncoding);
+    Result := TEFMacroExpansionEngine.Instance.Expand(Result);
+  end
+  else
+    Result := inherited GetMainPageTemplate;
 end;
 
 destructor TKExtSession.Destroy;
@@ -288,7 +319,7 @@ begin
   ExtQuickTips.Init(True);
   // Try authentication with default credentials, if any, and skip login
   // window if it succeeds.
-  if TKExtLoginWindow.Authenticate(Query['UserName'], Query['Password']) then
+  if TKExtLoginWindow.Authenticate(Self) then
     DisplayHomeView
   else
     DisplayLoginWindow;
@@ -620,6 +651,13 @@ begin
   // Reset length, as FStream.Bytes for some reason is rounded up.
   SetLength(Result, FStream.Size);
   Assert(FStream.Size = Length(Result));
+end;
+
+{ TKExtObjectHelper }
+
+function TKExtObjectHelper.GetSession: TKExtSession;
+begin
+  Result := ExtSession as TKExtSession;
 end;
 
 end.

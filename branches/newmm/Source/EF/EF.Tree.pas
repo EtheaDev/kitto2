@@ -58,6 +58,7 @@ type
       const AFormatSettings: TFormatSettings);
     function GetDefaultDisplayWidth(const ASize: Integer): Integer; virtual;
     function SupportsEmptyAsNull: Boolean; virtual;
+    function SupportsJSON: Boolean; virtual;
     function IsBlob(const ASize: Integer): Boolean; virtual;
     function IsText: Boolean; virtual;
     function NodeToJSONValue(const AForDisplay: Boolean; const ANode: TEFNode;
@@ -120,6 +121,7 @@ type
     procedure InternalNodeToParam(const ANode: TEFNode; const AParam: TParam); override;
   public
     function IsBlob(const ASize: Integer): Boolean; override;
+    function SupportsJSON: Boolean; override;
   end;
 
   TEFDateTimeDataTypeBase = class(TEFDataType);
@@ -887,7 +889,8 @@ type
     ///	<param name="AValue">Value to parse, usually read from a Yaml
     ///	stream.</param>
     ///	<param name="AFormatSettings">Format settings to use to parse the
-    ///	value.</param>
+    ///	value. You can use Session.UserFormatSettings, or
+    ///	Session.JSFormatSettings, or custom settings.</param>
     ///	<returns>Returns Self to allow for fluent calls.</returns>
     function SetAsYamlValue(const AValue: string; const AFormatSettings: TFormatSettings): TEFNode;
 
@@ -1094,7 +1097,7 @@ implementation
 
 uses
   StrUtils, TypInfo, Math, DateUtils,
-  EF.Localization, EF.StrUtils, EF.YAML, EF.VariantUtils;
+  EF.JSON, EF.Localization, EF.StrUtils, EF.YAML, EF.VariantUtils;
 
 {$IF RTLVersion < 23.0}
 const
@@ -2437,7 +2440,7 @@ begin
   if ANode.IsNull then
     Result := 'null'
   else
-    Result := '"' + InternalNodeToJSONValue(AForDisplay, ANode, AJSFormatSettings) + '"';
+    Result := QuoteJSONStr(InternalNodeToJSONValue(AForDisplay, ANode, AJSFormatSettings));
 end;
 
 procedure TEFDataType.NodeToParam(const ANode: TEFNode; const AParam: TParam);
@@ -2454,6 +2457,11 @@ end;
 function TEFDataType.SupportsEmptyAsNull: Boolean;
 begin
   Result := False;
+end;
+
+function TEFDataType.SupportsJSON: Boolean;
+begin
+  Result := True;
 end;
 
 function TEFDataType.GetDefaultDisplayWidth(const ASize: Integer): Integer;
@@ -2668,7 +2676,7 @@ end;
 
 function TEFDateDataType.GetDefaultDisplayWidth(const ASize: Integer): Integer;
 begin
-  Result := 10;
+  Result := 8;
 end;
 
 function TEFDateDataType.GetJSTypeName: string;
@@ -3088,6 +3096,11 @@ end;
 function TEFBlobDataType.IsBlob(const ASize: Integer): Boolean;
 begin
   Result := True;
+end;
+
+function TEFBlobDataType.SupportsJSON: Boolean;
+begin
+  Result := False;
 end;
 
 { TEFPersistentTree }

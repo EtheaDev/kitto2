@@ -102,7 +102,10 @@ begin
 
   FView := AValue;
   if not Assigned(FTreeViewRenderer) then
+  begin
     FTreeViewRenderer := TKExtTreeViewRenderer.Create;
+    FTreeViewrenderer.Session := Session;
+  end;
   FTreeViewRenderer.RenderAsTree(Session.Config.Views.ViewByNode(FConfig.GetNode('TreeView')) as TKTreeView,
     Root, Self, DisplayView);
 end;
