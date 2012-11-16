@@ -696,7 +696,7 @@ type
     procedure SetFMinLengthText(Value: string);
     procedure SetFRegex(Value: TRegExp);
     procedure SetFRegexText(Value: string);
-    procedure SetFSelectOnFocus(Value: Boolean);
+    procedure SetSelectOnFocus(const AValue: Boolean);
     procedure SetFStripCharsRe(Value: TRegExp);
     procedure SetFValidator(Value: TExtFunction);
     procedure SetVtype(const AValue: string);
@@ -732,7 +732,7 @@ type
     property MinLengthText: string read FMinLengthText write SetFMinLengthText;
     property Regex: TRegExp read FRegex write SetFRegex;
     property RegexText: string read FRegexText write SetFRegexText;
-    property SelectOnFocus: Boolean read FSelectOnFocus write SetFSelectOnFocus;
+    property SelectOnFocus: Boolean read FSelectOnFocus write SetSelectOnFocus;
     property StripCharsRe: TRegExp read FStripCharsRe write SetFStripCharsRe;
     property Validator: TExtFunction read FValidator write SetFValidator;
     property Vtype: string read FVtype write SetVtype;
@@ -3086,10 +3086,10 @@ begin
   JSCode('regexText:' + VarToJSON([Value]));
 end;
 
-procedure TExtFormTextField.SetFSelectOnFocus(Value: Boolean);
+procedure TExtFormTextField.SetSelectOnFocus(const AValue: Boolean);
 begin
-  FSelectOnFocus := Value;
-  JSCode('selectOnFocus:' + VarToJSON([Value]));
+  FSelectOnFocus := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'selectOnFocus', [AValue]);
 end;
 
 procedure TExtFormTextField.SetFStripCharsRe(Value: TRegExp);

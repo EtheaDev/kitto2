@@ -813,6 +813,7 @@ begin
   ResponseItems.Clear;
   Sequence := 0;
   FObjectSequences.Clear;
+  FSingletons.Clear;
 end;
 
 procedure TExtSession.RelocateVar(JS, JSName : string; I : integer);
@@ -966,7 +967,6 @@ begin
   inherited;
 end;
 
-// Override this method to change ExtPath, ImagePath, ExtBuild and Charset default values
 procedure TExtSession.InitDefaultValues; begin
   inherited;
 {$IFDEF CacheFly}
