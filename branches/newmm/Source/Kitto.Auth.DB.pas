@@ -413,8 +413,6 @@ end;
 
 procedure TKDBAuthenticator.ReadUserFromRecord(const AUser: TKAuthUser;
   const ADBQuery: TEFDBQuery; const AAuthData: TEFNode);
-var
-  I: Integer;
 begin
   Assert(Assigned(AUser));
   Assert(Assigned(ADBQuery));
@@ -422,12 +420,11 @@ begin
   AUser.Name := ADBQuery.DataSet.FieldByName('USER_NAME').AsString;
   AUser.PasswordHash := ADBQuery.DataSet.FieldByName('PASSWORD_HASH').AsString;
 
-  // First N fields in the dataset go to the defined auth data nodes.
-  Assert(ADBQuery.DataSet.FieldCount >= AAuthData.ChildCount);
-  for I := 0 to AAuthData.ChildCount - 1 do
-    AAuthData.Children[I].AssignFieldValue(ADBQuery.DataSet.Fields[I]);
   // All fields go to auth data under their names.
   AAuthData.AddFieldsAsChildren(ADBQuery.DataSet.Fields);
+  // Plus, known fields go under known names (see InternalDefineAuthData).
+  AAuthData.SetString('UserName', AUser.Name);
+  AAuthData.SetString('Password', AUser.PasswordHash);
 end;
 
 procedure TKDBAuthenticator.SetPassword(const AValue: string);
