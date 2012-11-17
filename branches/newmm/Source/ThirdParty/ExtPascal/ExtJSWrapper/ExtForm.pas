@@ -58,17 +58,17 @@ type
     FResponse: TExtObject;
     FResultJS: TExtObject;
     FTypeJS: string;
-    procedure SetFFailure(Value: TExtFunction);
+    procedure SetFailure(const AValue: TExtFunction);
     procedure SetFMethod(Value: string);
     procedure SetFParams(Value: string);
     procedure SetFReset(Value: Boolean);
     procedure SetFScope(Value: TExtObject);
     procedure SetFSubmitEmptyText(Value: Boolean);
-    procedure SetFSuccess(Value: TExtFunction);
-    procedure SetFTimeout(Value: Integer);
-    procedure SetFUrl(Value: string);
-    procedure SetFWaitMsg(Value: string);
-    procedure SetFWaitTitle(Value: string);
+    procedure SetSuccess(const AValue: TExtFunction);
+    procedure SetTimeout(const AValue: Integer);
+    procedure SetUrl(const AValue: string);
+    procedure SetWaitMsg(const AValue: string);
+    procedure SetWaitTitle(const AValue: string);
     procedure SetFFailureType(Value: string);
     procedure SetFResponse(Value: TExtObject);
     procedure SetFResultJS(Value: TExtObject);
@@ -79,18 +79,18 @@ type
     class function CONNECT_FAILURE: string;
     class function LOAD_FAILURE: string;
     class function SERVER_INVALID: string;
-    property Failure: TExtFunction read FFailure write SetFFailure;
+    property Failure: TExtFunction read FFailure write SetFailure;
     property Method: string read FMethod write SetFMethod;
     property Params: string read FParams write SetFParams;
     property Reset: Boolean read FReset write SetFReset;
     property Scope: TExtObject read FScope write SetFScope;
     property SubmitEmptyText: Boolean read FSubmitEmptyText
       write SetFSubmitEmptyText;
-    property Success: TExtFunction read FSuccess write SetFSuccess;
-    property Timeout: Integer read FTimeout write SetFTimeout;
-    property Url: string read FUrl write SetFUrl;
-    property WaitMsg: string read FWaitMsg write SetFWaitMsg;
-    property WaitTitle: string read FWaitTitle write SetFWaitTitle;
+    property Success: TExtFunction read FSuccess write SetSuccess;
+    property Timeout: Integer read FTimeout write SetTimeout;
+    property Url: string read FUrl write SetUrl;
+    property WaitMsg: string read FWaitMsg write SetWaitMsg;
+    property WaitTitle: string read FWaitTitle write SetWaitTitle;
     property FailureType: string read FFailureType write SetFFailureType;
     property Response: TExtObject read FResponse write SetFResponse;
     property ResultJS: TExtObject read FResultJS write SetFResultJS;
@@ -205,7 +205,7 @@ type
     function Reset: TExtFunction;
     function SetValues(Values: TExtObjectList): TExtFunction; overload;
     function SetValues(Values: TExtObject): TExtFunction; overload;
-    function Submit(Options: TExtObject): TExtFunction;
+    function Submit(const AOptions: TExtObject): TExtFunction;
     function UpdateRecord(RecordJS: TExtDataRecord): TExtFunction;
     property Api: TExtObject read FApi write SetFApi;
     property BaseParams: TExtObject read FBaseParams write SetFBaseParams;
@@ -686,7 +686,7 @@ type
     procedure SetFEmptyClass(Value: string);
     procedure SetEmptyText(const AValue: string);
     procedure SetEnableKeyEvents(const AValue: Boolean);
-    procedure SetFGrow(Value: Boolean);
+    procedure SetGrow(const AValue: Boolean);
     procedure SetFGrowMax(Value: Integer);
     procedure SetFGrowMin(Value: Integer);
     procedure SetFMaskRe(Value: TRegExp);
@@ -722,7 +722,7 @@ type
     property EmptyText: string read FEmptyText write SetEmptyText;
     property EnableKeyEvents: Boolean read FEnableKeyEvents
       write SetEnableKeyEvents;
-    property Grow: Boolean read FGrow write SetFGrow;
+    property Grow: Boolean read FGrow write SetGrow;
     property GrowMax: Integer read FGrowMax write SetFGrowMax;
     property GrowMin: Integer read FGrowMin write SetFGrowMin;
     property MaskRe: TRegExp read FMaskRe write SetFMaskRe;
@@ -1090,7 +1090,7 @@ type
     procedure SetFMinButtonWidth(Value: Integer);
     procedure SetFMonitorPoll(Value: Integer);
     procedure SetMonitorValid(const AValue: Boolean);
-    procedure SetFFileUpload(Value: Boolean);
+    procedure SetFileUpload(const AValue: Boolean);
     procedure SetFOnClientvalidation
       (Value: TExtFormFormPanelOnClientvalidation);
   protected
@@ -1118,7 +1118,7 @@ type
       write SetFMinButtonWidth;
     property MonitorPoll: Integer read FMonitorPoll write SetFMonitorPoll;
     property MonitorValid: Boolean read FMonitorValid write SetMonitorValid;
-    property FileUpload: Boolean read FFileUpload write SetFFileUpload;
+    property FileUpload: Boolean read FFileUpload write SetFileUpload;
     property OnClientvalidation: TExtFormFormPanelOnClientvalidation
       read FOnClientvalidation write SetFOnClientvalidation;
   end;
@@ -1321,7 +1321,7 @@ type
     procedure SetFAutoCreateObject(Value: TExtObject);
     procedure SetAutoSelect(const AValue: Boolean);
     procedure SetFClearFilterOnReset(Value: Boolean);
-    procedure SetFDisplayField(Value: string);
+    procedure SetDisplayField(const AValue: string);
     procedure SetForceSelection(const AValue: Boolean);
     procedure SetFHandleHeight(Value: Integer);
     procedure SetFHiddenId(Value: string);
@@ -1337,16 +1337,16 @@ type
     procedure SetFListWidth(Value: Integer);
     procedure SetFLoadingText(Value: string);
     procedure SetFMaxHeight(Value: Integer);
-    procedure SetFMinChars(Value: Integer);
-    procedure SetFMinHeight(Value: Integer);
-    procedure SetFMinListWidth(Value: Integer);
+    procedure SetMinChars(const AValue: Integer);
+    procedure SetMinHeight(const AValue: Integer);
+    procedure SetMinListWidth(const AValue: Integer);
     procedure SetMode(const AValue: string);
-    procedure SetFPageSize(Value: Integer);
-    procedure SetFQueryDelay(Value: Integer);
-    procedure SetFQueryParam(Value: string);
-    procedure SetFResizable(Value: Boolean);
+    procedure SetPageSize(const AValue: Integer);
+    procedure SetQueryDelay(const AValue: Integer);
+    procedure SetQueryParam(const AValue: string);
+    procedure SetResizable(const AValue: Boolean);
     procedure SetSelectOnFocus(const AValue: Boolean);
-    procedure SetFSelectedClass(Value: string);
+    procedure SetSelectedClass(const AValue: string);
     procedure SetFShadow(Value: Boolean);
     procedure SetFShadowString(Value: string);
     procedure SetStore(const AValue: TExtDataStore);
@@ -1359,7 +1359,7 @@ type
     procedure SetTriggerAction(const AValue: string);
     procedure SetFTriggerClass(Value: string);
     procedure SetTypeAhead(const AValue: Boolean);
-    procedure SetFTypeAheadDelay(Value: Integer);
+    procedure SetTypeAheadDelay(const AValue: Integer);
     procedure SetValueField(const AValue: string);
     procedure SetValueNotFoundText(const AValue: string);
     procedure SetFKeyNav(Value: TExtKeyNav);
@@ -1394,7 +1394,7 @@ type
     property AutoSelect: Boolean read FAutoSelect write SetAutoSelect;
     property ClearFilterOnReset: Boolean read FClearFilterOnReset
       write SetFClearFilterOnReset;
-    property DisplayField: string read FDisplayField write SetFDisplayField;
+    property DisplayField: string read FDisplayField write SetDisplayField;
     property ForceSelection: Boolean read FForceSelection
       write SetForceSelection;
     property HandleHeight: Integer read FHandleHeight write SetFHandleHeight;
@@ -1412,16 +1412,16 @@ type
     property ListWidth: Integer read FListWidth write SetFListWidth;
     property LoadingText: string read FLoadingText write SetFLoadingText;
     property MaxHeight: Integer read FMaxHeight write SetFMaxHeight;
-    property MinChars: Integer read FMinChars write SetFMinChars;
-    property MinHeight: Integer read FMinHeight write SetFMinHeight;
-    property MinListWidth: Integer read FMinListWidth write SetFMinListWidth;
+    property MinChars: Integer read FMinChars write SetMinChars;
+    property MinHeight: Integer read FMinHeight write SetMinHeight;
+    property MinListWidth: Integer read FMinListWidth write SetMinListWidth;
     property Mode: string read FMode write SetMode;
-    property PageSize: Integer read FPageSize write SetFPageSize;
-    property QueryDelay: Integer read FQueryDelay write SetFQueryDelay;
-    property QueryParam: string read FQueryParam write SetFQueryParam;
-    property Resizable: Boolean read FResizable write SetFResizable;
+    property PageSize: Integer read FPageSize write SetPageSize;
+    property QueryDelay: Integer read FQueryDelay write SetQueryDelay;
+    property QueryParam: string read FQueryParam write SetQueryParam;
+    property Resizable: Boolean read FResizable write SetResizable;
     property SelectOnFocus: Boolean read FSelectOnFocus write SetSelectOnFocus;
-    property SelectedClass: string read FSelectedClass write SetFSelectedClass;
+    property SelectedClass: string read FSelectedClass write SetSelectedClass;
     property Shadow: Boolean read FShadow write SetFShadow;
     property ShadowString: string read FShadowString write SetFShadowString;
     property Store: TExtDataStore read FStore write SetStore;
@@ -1436,7 +1436,7 @@ type
     property TriggerClass: string read FTriggerClass write SetFTriggerClass;
     property TypeAhead: Boolean read FTypeAhead write SetTypeAhead;
     property TypeAheadDelay: Integer read FTypeAheadDelay
-      write SetFTypeAheadDelay;
+      write SetTypeAheadDelay;
     property ValueField: string read FValueField write SetValueField;
     property ValueNotFoundText: string read FValueNotFoundText
       write SetValueNotFoundText;
@@ -1540,10 +1540,10 @@ begin
     Result := nil;
 end;
 
-procedure TExtFormAction.SetFFailure(Value: TExtFunction);
+procedure TExtFormAction.SetFailure(const AValue: TExtFunction);
 begin
-  FFailure := Value;
-  JSCode('failure:' + VarToJSON([Value, true]));
+  FFailure := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'failure', [AValue, True]);
 end;
 
 procedure TExtFormAction.SetFMethod(Value: string);
@@ -1576,34 +1576,34 @@ begin
   JSCode('submitEmptyText:' + VarToJSON([Value]));
 end;
 
-procedure TExtFormAction.SetFSuccess(Value: TExtFunction);
+procedure TExtFormAction.SetSuccess(const AValue: TExtFunction);
 begin
-  FSuccess := Value;
-  JSCode('success:' + VarToJSON([Value, true]));
+  FSuccess := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'success', [AValue, True]);
 end;
 
-procedure TExtFormAction.SetFTimeout(Value: Integer);
+procedure TExtFormAction.SetTimeout(const AValue: Integer);
 begin
-  FTimeout := Value;
-  JSCode('timeout:' + VarToJSON([Value]));
+  FTimeout := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'timeout', [AValue]);
 end;
 
-procedure TExtFormAction.SetFUrl(Value: string);
+procedure TExtFormAction.SetUrl(const AValue: string);
 begin
-  FUrl := Value;
-  JSCode('url:' + VarToJSON([Value]));
+  FUrl := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'url', [AValue]);
 end;
 
-procedure TExtFormAction.SetFWaitMsg(Value: string);
+procedure TExtFormAction.SetWaitMsg(const AValue: string);
 begin
-  FWaitMsg := Value;
-  JSCode('waitMsg:' + VarToJSON([Value]));
+  FWaitMsg := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'waitMsg', [AValue]);
 end;
 
-procedure TExtFormAction.SetFWaitTitle(Value: string);
+procedure TExtFormAction.SetWaitTitle(const AValue: string);
 begin
-  FWaitTitle := Value;
-  JSCode('waitTitle:' + VarToJSON([Value]));
+  FWaitTitle := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'waitTitle', [AValue]);
 end;
 
 procedure TExtFormAction.SetFFailureType(Value: string);
@@ -2023,10 +2023,9 @@ begin
   Result := Self;
 end;
 
-function TExtFormBasicForm.Submit(Options: TExtObject): TExtFunction;
+function TExtFormBasicForm.Submit(const AOptions: TExtObject): TExtFunction;
 begin
-  JSCode(JSName + '.submit(' + VarToJSON([Options, false]) + ');',
-    'TExtFormBasicForm');
+  ExtSession.ResponseItems.CallMethod(Self, 'submit', [AOptions, False]);
   Result := Self;
 end;
 
@@ -2162,22 +2161,26 @@ end;
 
 class function TExtFormActionSubmit.JSClassName: string;
 begin
-  Result := '';
+  // Don't use real class name. This object is never created
+  // on the server: using object allows to create it as a JS generator helper.
+  Result := 'Object';
 end;
 
 class function TExtFormActionLoad.JSClassName: string;
 begin
-  Result := '';
+  // Don't use real class name. This object is never created
+  // on the server: using object allows to create it as a JS generator helper.
+  Result := 'Object';
 end;
 
 class function TExtFormActionDirectLoad.JSClassName: string;
 begin
-  Result := '';
+  Result := 'Ext.form.Action.DirectLoad';
 end;
 
 class function TExtFormActionDirectSubmit.JSClassName: string;
 begin
-  Result := '';
+  Result := 'Ext.form.Action.DirectSubmit';
 end;
 
 procedure TExtFormField.SetFAutoCreate(Value: string);
@@ -3026,10 +3029,10 @@ begin
   ExtSession.ResponseItems.SetConfigItem(Self, 'enableKeyEvents', [AValue]);
 end;
 
-procedure TExtFormTextField.SetFGrow(Value: Boolean);
+procedure TExtFormTextField.SetGrow(const AValue: Boolean);
 begin
-  FGrow := Value;
-  JSCode('grow:' + VarToJSON([Value]));
+  FGrow := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'grow', [AValue]);
 end;
 
 procedure TExtFormTextField.SetFGrowMax(Value: Integer);
@@ -3980,10 +3983,10 @@ begin
   ExtSession.ResponseItems.SetConfigItem(Self, 'monitorValid', [AValue]);
 end;
 
-procedure TExtFormFormPanel.SetFFileUpload(Value: Boolean);
+procedure TExtFormFormPanel.SetFileUpload(const AValue: Boolean);
 begin
-  FFileUpload := Value;
-  JSCode('fileUpload:' + VarToJSON([Value]));
+  FFileUpload := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'fileUpload', [AValue]);
 end;
 
 procedure TExtFormFormPanel.SetFOnClientvalidation
@@ -4373,10 +4376,10 @@ begin
   JSCode('clearFilterOnReset:' + VarToJSON([Value]));
 end;
 
-procedure TExtFormComboBox.SetFDisplayField(Value: string);
+procedure TExtFormComboBox.SetDisplayField(const AValue: string);
 begin
-  FDisplayField := Value;
-  JSCode('displayField:' + VarToJSON([Value]));
+  FDisplayField := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'displayField', [AValue]);
 end;
 
 procedure TExtFormComboBox.SetForceSelection(const AValue: Boolean);
@@ -4469,22 +4472,22 @@ begin
   JSCode('maxHeight:' + VarToJSON([Value]));
 end;
 
-procedure TExtFormComboBox.SetFMinChars(Value: Integer);
+procedure TExtFormComboBox.SetMinChars(const AValue: Integer);
 begin
-  FMinChars := Value;
-  JSCode('minChars:' + VarToJSON([Value]));
+  FMinChars := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'minChars', [AValue]);
 end;
 
-procedure TExtFormComboBox.SetFMinHeight(Value: Integer);
+procedure TExtFormComboBox.SetMinHeight(const AValue: Integer);
 begin
-  FMinHeight := Value;
-  JSCode('minHeight:' + VarToJSON([Value]));
+  FMinHeight := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'minHeight', [AValue]);
 end;
 
-procedure TExtFormComboBox.SetFMinListWidth(Value: Integer);
+procedure TExtFormComboBox.SetMinListWidth(const AValue: Integer);
 begin
-  FMinListWidth := Value;
-  JSCode('minListWidth:' + VarToJSON([Value]));
+  FMinListWidth := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'minListWidth', [AValue]);
 end;
 
 procedure TExtFormComboBox.SetMode(const AValue: string);
@@ -4493,28 +4496,28 @@ begin
   ExtSession.ResponseItems.SetConfigItem(Self, 'mode', [AValue]);
 end;
 
-procedure TExtFormComboBox.SetFPageSize(Value: Integer);
+procedure TExtFormComboBox.SetPageSize(const AValue: Integer);
 begin
-  FPageSize := Value;
-  JSCode('pageSize:' + VarToJSON([Value]));
+  FPageSize := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'pageSize', [AValue]);
 end;
 
-procedure TExtFormComboBox.SetFQueryDelay(Value: Integer);
+procedure TExtFormComboBox.SetQueryDelay(const AValue: Integer);
 begin
-  FQueryDelay := Value;
-  JSCode('queryDelay:' + VarToJSON([Value]));
+  FQueryDelay := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'queryDelay', [AValue]);
 end;
 
-procedure TExtFormComboBox.SetFQueryParam(Value: string);
+procedure TExtFormComboBox.SetQueryParam(const AValue: string);
 begin
-  FQueryParam := Value;
-  JSCode('queryParam:' + VarToJSON([Value]));
+  FQueryParam := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'queryParam', [AValue]);
 end;
 
-procedure TExtFormComboBox.SetFResizable(Value: Boolean);
+procedure TExtFormComboBox.SetResizable(const AValue: Boolean);
 begin
-  FResizable := Value;
-  JSCode('resizable:' + VarToJSON([Value]));
+  FResizable := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'resizable', [AValue]);
 end;
 
 procedure TExtFormComboBox.SetSelectOnFocus(const AValue: Boolean);
@@ -4523,10 +4526,10 @@ begin
   ExtSession.ResponseItems.SetConfigItem(Self, 'selectOnFocus', [AValue]);
 end;
 
-procedure TExtFormComboBox.SetFSelectedClass(Value: string);
+procedure TExtFormComboBox.SetSelectedClass(const AValue: string);
 begin
-  FSelectedClass := Value;
-  JSCode('selectedClass:' + VarToJSON([Value]));
+  FSelectedClass := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'selectedClass', [AValue]);
 end;
 
 procedure TExtFormComboBox.SetFShadow(Value: Boolean);
@@ -4545,7 +4548,7 @@ procedure TExtFormComboBox.SetStore(const AValue: TExtDataStore);
 begin
   FStore.Free;
   FStore := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'store', [AValue]);
+  ExtSession.ResponseItems.SetConfigItem(Self, 'store', [AValue, False]);
 end;
 
 procedure TExtFormComboBox.SetStoreArray(const AValue: TExtObjectList);
@@ -4603,10 +4606,10 @@ begin
   ExtSession.ResponseItems.SetConfigItem(Self, 'typeAhead', [AValue]);
 end;
 
-procedure TExtFormComboBox.SetFTypeAheadDelay(Value: Integer);
+procedure TExtFormComboBox.SetTypeAheadDelay(const AValue: Integer);
 begin
-  FTypeAheadDelay := Value;
-  JSCode('typeAheadDelay:' + VarToJSON([Value]));
+  FTypeAheadDelay := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'typeAheadDelay', [AValue]);
 end;
 
 procedure TExtFormComboBox.SetValueField(const AValue: string);

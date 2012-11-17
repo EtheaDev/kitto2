@@ -950,9 +950,8 @@ begin
     try
       LFileEditor.IsReadOnly := AIsReadOnly;
       LFileEditor.FieldLabel := ALabel;
-      if not Assigned(ARowField) then
-        LFileEditor.TotalCharWidth := AFieldCharWidth
-      else
+      LFileEditor.TotalCharWidth := AFieldCharWidth - 1;
+      if Assigned(ARowField) then
         ARowField.CharWidth := AFieldCharWidth;
       Result := LFileEditor;
     except
@@ -1674,6 +1673,7 @@ begin
   { TODO : make these configurable. }
   MinChars := 4;
   PageSize := 100;
+  MinListWidth := 250; // Enough to accomodate all buttons.
   Resizable := True;
   MinHeight := LinesToPixels(5);
   Mode := 'remote';
@@ -2329,7 +2329,9 @@ procedure TKExtFormFileEditor.SetOption(const AName, AValue: string);
 begin
   if SameText(AName, 'CharWidth') then
     TotalCharWidth := OptionAsInteger(AValue)
-  else if not SetExtFormFieldOption(AsExtFormField, AName, AValue) then
+  else if SameText(AName, 'Anchor') then
+    Anchor := AValue
+  else
     InvalidOption(AName, AValue);
 end;
 
@@ -2381,7 +2383,7 @@ var
   LFileName: string;
 begin
   LFileName := Session.FileUploadedFullName;
-  { TODO : Check the file against limitations such as type and size }
+  { TODO : Check the file against limitations such as type and size}
   if (LFileName <> '') and FileExists(LFileName) then
     FileUploaded(LFileName);
   { success:true or success:false + errors }
@@ -2391,7 +2393,7 @@ function TKExtFormFileEditor.GetContentDescription: string;
 var
   LFileName: string;
 begin
-  LFileName := GetCurrentServerFileName;
+  LFileName := ExtractFileName(GetCurrentServerFileName);
   if LFileName <> '' then
     Result := Format(_('%s file (%s)'),
       [StripPrefix(ExtractFileExt(LFileName), '.'),
@@ -2542,7 +2544,7 @@ begin
   if Result = '' then
     raise Exception.CreateFmt('Path not specified for file reference field %s.', [FRecordField.ViewField.FieldName]);
   if not DirectoryExists(Result) then
-    raise Exception.CreateFmt('Directory %s not found field for file reference field %s.', [FRecordField.ViewField.FieldName]);
+    raise Exception.CreateFmt('Directory %s not found for file reference field %s.', [Result, FRecordField.ViewField.FieldName]);
 end;
 
 procedure TKExtFormFileReferenceEditor.ClearContents;

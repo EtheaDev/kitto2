@@ -654,8 +654,8 @@ type
     class function WARNING: string;
     class function YESNO: TExtObject;
     class function YESNOCANCEL: TExtObject;
-    function Alert(Title: string; Msg: string; Fn: TExtFunction = nil;
-      Scope: TExtObject = nil): TExtFunction;
+    function Alert(const ATitle: string; const AMsg: string;
+      const AFn: TExtFunction = nil; const AScope: TExtObject = nil): TExtFunction;
     function Confirm(Title: string; Msg: string; Fn: TExtFunction = nil;
       Scope: TExtObject = nil): TExtFunction;
     function GetDialog: TExtFunction;
@@ -1868,7 +1868,7 @@ type
     procedure SetFStateEvents(Value: TExtObjectList);
     procedure SetFStateId(Value: string);
     procedure SetFStateful(Value: Boolean);
-    procedure SetFStyle(Value: string);
+    procedure SetStyle(const AValue: string);
     procedure SetTpl(const AValue: string);
     procedure SetFTplWriteMode(Value: string);
     procedure SetFXtype(Value: TExtComponentXtype);
@@ -1959,8 +1959,8 @@ type
     function Render(Container: string; Position: string = ''): TExtFunction; overload;
     function Render(Container: string; Position: Integer): TExtFunction; overload;
     function Render(Container: TExtElement; Position: Integer): TExtFunction; overload;
-    function SetDisabled(Disabled: Boolean): TExtFunction;
-    function SetVisible(Visible: Boolean): TExtFunction;
+    function SetDisabled(const AValue: Boolean): TExtFunction;
+    function SetVisible(const AValue: Boolean): TExtFunction;
     function Show: TExtFunction;
     function Update(HtmlOrData: string; LoadScripts: Boolean = false;
       Callback: TExtFunction = nil): TExtFunction;
@@ -1997,7 +1997,7 @@ type
     property StateEvents: TExtObjectList read FStateEvents write SetFStateEvents;
     property StateId: string read FStateId write SetFStateId;
     property Stateful: Boolean read FStateful write SetFStateful;
-    property Style: string read FStyle write SetFStyle;
+    property Style: string read FStyle write SetStyle;
     property Tpl: string read FTpl write SetTpl;
     property TplWriteMode: string read FTplWriteMode write SetFTplWriteMode;
     property Xtype: TExtComponentXtype read FXtype write SetFXtype;
@@ -3868,17 +3868,17 @@ type
     FOnChange: TExtPagingToolbarOnChange;
     procedure SetFAfterPageText(Value: string);
     procedure SetFBeforePageText(Value: string);
-    procedure SetFDisplayInfo(Value: Boolean);
+    procedure SetDisplayInfo(const AValue: Boolean);
     procedure SetFDisplayMsg(Value: string);
     procedure SetFEmptyMsg(Value: string);
     procedure SetFFirstText(Value: string);
     procedure SetFLastText(Value: string);
     procedure SetFNextText(Value: string);
-    procedure SetFPageSize(Value: Integer);
+    procedure SetPageSize(const AValue: Integer);
     procedure SetFPrependButtons(Value: Boolean);
     procedure SetFPrevText(Value: string);
     procedure SetFRefreshText(Value: string);
-    procedure SetFStore(Value: TExtDataStore);
+    procedure SetStore(const AValue: TExtDataStore);
     procedure SetFCursor(Value: Integer);
     procedure SetFPageSize_(Value: Integer);
     procedure SetFParamNames(Value: TExtObject);
@@ -3900,17 +3900,17 @@ type
     function Unbind(Store: TExtDataStore): TExtFunction;
     property AfterPageText: string read FAfterPageText write SetFAfterPageText;
     property BeforePageText: string read FBeforePageText write SetFBeforePageText;
-    property DisplayInfo: Boolean read FDisplayInfo write SetFDisplayInfo;
+    property DisplayInfo: Boolean read FDisplayInfo write SetDisplayInfo;
     property DisplayMsg: string read FDisplayMsg write SetFDisplayMsg;
     property EmptyMsg: string read FEmptyMsg write SetFEmptyMsg;
     property FirstText: string read FFirstText write SetFFirstText;
     property LastText: string read FLastText write SetFLastText;
     property NextText: string read FNextText write SetFNextText;
-    property PageSize: Integer read FPageSize write SetFPageSize;
+    property PageSize: Integer read FPageSize write SetPageSize;
     property PrependButtons: Boolean read FPrependButtons write SetFPrependButtons;
     property PrevText: string read FPrevText write SetFPrevText;
     property RefreshText: string read FRefreshText write SetFRefreshText;
-    property Store: TExtDataStore read FStore write SetFStore;
+    property Store: TExtDataStore read FStore write SetStore;
     property Cursor: Integer read FCursor write SetFCursor;
     property PageSize_: Integer read FPageSize_ write SetFPageSize_;
     property ParamNames: TExtObject read FParamNames write SetFParamNames;
@@ -5830,11 +5830,10 @@ begin
   FMinWidth := 100;
 end;
 
-function TExtMessageBoxSingleton.Alert(Title: string; Msg: string; Fn: TExtFunction = nil;
-  Scope: TExtObject = nil): TExtFunction;
+function TExtMessageBoxSingleton.Alert(const ATitle: string; const AMsg: string;
+  const AFn: TExtFunction = nil; const AScope: TExtObject = nil): TExtFunction;
 begin
-  JSCode(JSName + '.alert(' + VarToJSON([Title, Msg, Fn, true, Scope, false]) + ');',
-    'TExtMessageBoxSingleton');
+  ExtSession.ResponseItems.CallMethod(Self, 'alert', [ATitle, AMsg, AFn, True, AScope, False]);
   Result := Self;
 end;
 
@@ -9545,10 +9544,10 @@ begin
   JSCode('stateful:' + VarToJSON([Value]));
 end;
 
-procedure TExtComponent.SetFStyle(Value: string);
+procedure TExtComponent.SetStyle(const AValue: string);
 begin
-  FStyle := Value;
-  JSCode('style:' + VarToJSON([Value]));
+  FStyle := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'style', [AValue]);
 end;
 
 procedure TExtComponent.SetTpl(const AValue: string);
@@ -10103,15 +10102,15 @@ begin
   Result := Self;
 end;
 
-function TExtComponent.SetDisabled(Disabled: Boolean): TExtFunction;
+function TExtComponent.SetDisabled(const AValue: Boolean): TExtFunction;
 begin
-  JSCode(JSName + '.setDisabled(' + VarToJSON([Disabled]) + ');', 'TExtComponent');
+  ExtSession.ResponseItems.CallMethod(Self, 'setDisabled', []);
   Result := Self;
 end;
 
-function TExtComponent.SetVisible(Visible: Boolean): TExtFunction;
+function TExtComponent.SetVisible(const AValue: Boolean): TExtFunction;
 begin
-  JSCode(JSName + '.setVisible(' + VarToJSON([Visible]) + ');', 'TExtComponent');
+  ExtSession.ResponseItems.CallMethod(Self, 'setVisible', []);
   Result := Self;
 end;
 
@@ -14650,10 +14649,10 @@ begin
   JSCode('beforePageText:' + VarToJSON([Value]));
 end;
 
-procedure TExtPagingToolbar.SetFDisplayInfo(Value: Boolean);
+procedure TExtPagingToolbar.SetDisplayInfo(const AValue: Boolean);
 begin
-  FDisplayInfo := Value;
-  JSCode('displayInfo:' + VarToJSON([Value]));
+  FDisplayInfo := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'displayInfo', [AValue]);
 end;
 
 procedure TExtPagingToolbar.SetFDisplayMsg(Value: string);
@@ -14686,10 +14685,10 @@ begin
   JSCode('nextText:' + VarToJSON([Value]));
 end;
 
-procedure TExtPagingToolbar.SetFPageSize(Value: Integer);
+procedure TExtPagingToolbar.SetPageSize(const AValue: Integer);
 begin
-  FPageSize := Value;
-  JSCode('pageSize:' + VarToJSON([Value]));
+  FPageSize := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'pageSize', [AValue]);
 end;
 
 procedure TExtPagingToolbar.SetFPrependButtons(Value: Boolean);
@@ -14710,12 +14709,12 @@ begin
   JSCode('refreshText:' + VarToJSON([Value]));
 end;
 
-procedure TExtPagingToolbar.SetFStore(Value: TExtDataStore);
+procedure TExtPagingToolbar.SetStore(const AValue: TExtDataStore);
 begin
   FStore.Free;
-  FStore := Value;
+  FStore := AValue;
   if FStore <> nil then
-    JSCode('store:' + VarToJSON([FStore, false]));
+    ExtSession.ResponseItems.SetConfigItem(Self, 'store', [AValue, False]);
 end;
 
 procedure TExtPagingToolbar.SetFCursor(Value: Integer);
@@ -14804,25 +14803,25 @@ end;
 
 function TExtPagingToolbar.MoveFirst: TExtFunction;
 begin
-  JSCode(JSName + '.moveFirst();', 'TExtPagingToolbar');
+  ExtSession.ResponseItems.CallMethod(Self, 'moveFirst', []);
   Result := Self;
 end;
 
 function TExtPagingToolbar.MoveLast: TExtFunction;
 begin
-  JSCode(JSName + '.moveLast();', 'TExtPagingToolbar');
+  ExtSession.ResponseItems.CallMethod(Self, 'moveLast', []);
   Result := Self;
 end;
 
 function TExtPagingToolbar.MoveNext: TExtFunction;
 begin
-  JSCode(JSName + '.moveNext();', 'TExtPagingToolbar');
+  ExtSession.ResponseItems.CallMethod(Self, 'moveNext', []);
   Result := Self;
 end;
 
 function TExtPagingToolbar.MovePrevious: TExtFunction;
 begin
-  JSCode(JSName + '.movePrevious();', 'TExtPagingToolbar');
+  ExtSession.ResponseItems.CallMethod(Self, 'movePrevious', []);
   Result := Self;
 end;
 

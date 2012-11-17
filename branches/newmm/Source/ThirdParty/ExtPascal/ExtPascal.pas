@@ -1405,7 +1405,7 @@ end;
 
 procedure TExtObject.Download(Method: TExtProcedure; Params: array of const);
 begin
-  JSCode(GetDownloadJS(Method, Params));
+  ExtSession.ResponseItems.ExecuteJSCode(Self, GetDownloadJS(Method, Params));
 end;
 
 procedure TExtObject.Download(Method: TExtProcedure);

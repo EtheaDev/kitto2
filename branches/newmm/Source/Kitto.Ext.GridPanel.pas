@@ -203,8 +203,8 @@ begin
     LRowColorPatterns := GetRowColorPatterns(LRowColorFieldName);
     if Length(LRowColorPatterns) > 0 then
       FGridView.SetCustomConfigItem('getRowClass',
-        [Format('function (r) { return getRowColorStyleRule(r, ''%s'', [%s]);}',
-        [LRowColorFieldName, PairsToJSON(LRowColorPatterns)])]);
+        [JSFunction('r', Format('return getRowColorStyleRule(r, ''%s'', [%s]);',
+          [LRowColorFieldName, PairsToJSON(LRowColorPatterns)])), True]);
   end;
   FGridEditorPanel.View := FGridView;
 end;
@@ -670,7 +670,7 @@ begin
   FPagingToolbar.DisplayInfo := False;
   FPagingToolbar.PageSize := FPageRecordCount;
   Result := FPagingToolbar;
-  FPagingToolbar.Store := nil; // Avoid double destruction of the store.
+  //FPagingToolbar.Store := nil; // Avoid double destruction of the store.
 end;
 
 function TKExtGridPanel.AddActionButton(const AView: TKView;
