@@ -2676,7 +2676,7 @@ end;
 
 function TEFDateDataType.GetDefaultDisplayWidth(const ASize: Integer): Integer;
 begin
-  Result := 8;
+  Result := 10;
 end;
 
 function TEFDateDataType.GetJSTypeName: string;

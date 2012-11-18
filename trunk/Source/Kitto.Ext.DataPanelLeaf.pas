@@ -54,8 +54,8 @@ procedure TKExtDataPanelLeafController.AddTopToolbarButtons;
 var
   LRefreshButton: TExtButton;
 begin
-  TExtToolbarSpacer.AddTo(TopToolbar.Items);
-  LRefreshButton := TExtButton.AddTo(TopToolbar.Items);
+  TExtToolbarSpacer.CreateAndAddTo(TopToolbar.Items);
+  LRefreshButton := TExtButton.CreateAndAddTo(TopToolbar.Items);
   LRefreshButton.Icon := Session.Config.GetImageURL('refresh');
   LRefreshButton.Handler := Ajax(TKExtDataPanelController(Config.GetObject('Sys/ParentDataPanel', Self)).LoadData);
   LRefreshButton.Tooltip := _('Refresh data');

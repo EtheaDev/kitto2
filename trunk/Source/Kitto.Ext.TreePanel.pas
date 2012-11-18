@@ -76,7 +76,7 @@ begin
   inherited;
   Layout := lyFit;
 
-  FTreePanel := TKExtTreePanel.AddTo(Items);
+  FTreePanel := TKExtTreePanel.CreateAndAddTo(Items);
 end;
 
 { TKExtTreePanel }
@@ -90,7 +90,7 @@ end;
 procedure TKExtTreePanel.InitDefaults;
 begin
   inherited;
-  Root := TExtTreeTreeNode.Create;
+  Root := TExtTreeTreeNode.Create(Self);
   RootVisible := False;
   AutoScroll := True;
   Border := False;
@@ -102,7 +102,10 @@ begin
 
   FView := AValue;
   if not Assigned(FTreeViewRenderer) then
+  begin
     FTreeViewRenderer := TKExtTreeViewRenderer.Create;
+    FTreeViewrenderer.Session := Session;
+  end;
   FTreeViewRenderer.RenderAsTree(Session.Config.Views.ViewByNode(FConfig.GetNode('TreeView')) as TKTreeView,
     Root, Self, DisplayView);
 end;

@@ -20,7 +20,6 @@ type
   TExtUxGridCheckColumn = class(TExtGridColumn)
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
   end;
 
   TExtUxGridGroupSummary = class(TExtUtilObservable)
@@ -35,11 +34,8 @@ type
     procedure InitDefaults; override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     function ShowSummaryMsg(GroupValue : string; Msg : string) : TExtFunction;
     function ToggleSummaries(Visible : Boolean) : TExtFunction;
-    destructor Destroy; override;
     property SummaryRenderer : TExtFunction read FSummaryRenderer write SetFSummaryRenderer;
     property SummaryType : string read FSummaryType write SetFSummaryType;
     property Calculations : TExtObject read FCalculations write SetFCalculations;
@@ -70,8 +66,6 @@ type
     procedure HandleEvent(const AEvtName: string); override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     property ExpandOnDblClick : Boolean read FExpandOnDblClick write SetFExpandOnDblClick;
     property ExpandOnEnter : Boolean read FExpandOnEnter write SetFExpandOnEnter;
     property OnBeforecollapse : TExtUxGridRowExpanderOnBeforecollapse read FOnBeforecollapse write SetFOnBeforecollapse;
@@ -83,7 +77,6 @@ type
   TExtUxGridHybridSummary = class(TExtUxGridGroupSummary)
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
     function GetSummaryData(GroupValue : string) : TExtFunction;
     function UpdateSummaryData(GroupValue : string; Data : TExtObject; SkipRefresh : Boolean = false) : TExtFunction;
   end;
@@ -106,8 +99,6 @@ type
     procedure InitDefaults; override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     property BorderHeight : Integer read FBorderHeight write SetFBorderHeight;
     property CacheSize : Integer read FCacheSize write SetFCacheSize;
     property CleanDelay : Integer read FCleanDelay write SetFCleanDelay;
@@ -134,8 +125,6 @@ type
     procedure HandleEvent(const AEvtName: string); override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     property OnAfteredit : TExtUxGridRowEditorOnAfteredit read FOnAfteredit write SetFOnAfteredit;
     property OnBeforeedit : TExtUxGridRowEditorOnBeforeedit read FOnBeforeedit write SetFOnBeforeedit;
     property OnValidateedit : TExtUxGridRowEditorOnValidateedit read FOnValidateedit write SetFOnValidateedit;
@@ -146,8 +135,6 @@ type
     procedure InitDefaults; override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
   end;
 
 implementation
@@ -155,8 +142,6 @@ implementation
 function TExtUxGridCheckColumn.JSClassName : string; begin
   Result := 'Ext.ux.grid.CheckColumn';
 end;
-
-{$IFDEF FPC}constructor TExtUxGridCheckColumn.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
 
 procedure TExtUxGridGroupSummary.SetFSummaryRenderer(Value : TExtFunction); begin
   FSummaryRenderer := Value;
@@ -170,8 +155,7 @@ end;
 
 procedure TExtUxGridGroupSummary.SetFCalculations(Value : TExtObject); begin
   FCalculations := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.calculations=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.calculations=' + VarToJSON([Value, false]) + ';');
 end;
 
 function TExtUxGridGroupSummary.JSClassName : string; begin
@@ -183,13 +167,6 @@ procedure TExtUxGridGroupSummary.InitDefaults; begin
   FCalculations := TExtObject.CreateInternal(Self, 'calculations');
 end;
 
-{$IFDEF FPC}constructor TExtUxGridGroupSummary.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtUxGridGroupSummary.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
-end;
-
 function TExtUxGridGroupSummary.ShowSummaryMsg(GroupValue : string; Msg : string) : TExtFunction; begin
   JSCode(JSName + '.showSummaryMsg(' + VarToJSON([GroupValue, Msg]) + ');', 'TExtUxGridGroupSummary');
   Result := Self;
@@ -198,13 +175,6 @@ end;
 function TExtUxGridGroupSummary.ToggleSummaries(Visible : Boolean) : TExtFunction; begin
   JSCode(JSName + '.toggleSummaries(' + VarToJSON([Visible]) + ');', 'TExtUxGridGroupSummary');
   Result := Self;
-end;
-
-destructor TExtUxGridGroupSummary.Destroy; begin
-  try
-    FCalculations.Free;
-  except end;
-  inherited;
 end;
 
 procedure TExtUxGridRowExpander.SetFExpandOnDblClick(Value : Boolean); begin
@@ -259,13 +229,6 @@ procedure TExtUxGridRowExpander.InitDefaults; begin
   FExpandOnEnter := true;
 end;
 
-{$IFDEF FPC}constructor TExtUxGridRowExpander.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtUxGridRowExpander.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
-end;
-
 procedure TExtUxGridRowExpander.HandleEvent(const AEvtName : string); begin
   inherited;
   if (AEvtName = 'beforecollapse') and Assigned(FOnBeforecollapse) then
@@ -281,8 +244,6 @@ end;
 function TExtUxGridHybridSummary.JSClassName : string; begin
   Result := 'Ext.ux.grid.HybridSummary';
 end;
-
-{$IFDEF FPC}constructor TExtUxGridHybridSummary.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
 
 function TExtUxGridHybridSummary.GetSummaryData(GroupValue : string) : TExtFunction; begin
   JSCode(JSName + '.getSummaryData(' + VarToJSON([GroupValue]) + ');', 'TExtUxGridHybridSummary');
@@ -332,13 +293,6 @@ procedure TExtUxGridBufferView.InitDefaults; begin
   inherited;
 end;
 
-{$IFDEF FPC}constructor TExtUxGridBufferView.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtUxGridBufferView.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
-end;
-
 procedure TExtUxGridRowEditor.SetFOnAfteredit(Value : TExtUxGridRowEditorOnAfteredit); begin
   if Assigned(FOnAfteredit) then
     JSCode(JSName+'.events ["afteredit"].listeners=[];');
@@ -371,13 +325,6 @@ procedure TExtUxGridRowEditor.InitDefaults; begin
   inherited;
 end;
 
-{$IFDEF FPC}constructor TExtUxGridRowEditor.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtUxGridRowEditor.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
-end;
-
 procedure TExtUxGridRowEditor.HandleEvent(const AEvtName : string); begin
   inherited;
   if (AEvtName = 'afteredit') and Assigned(FOnAfteredit) then
@@ -394,13 +341,6 @@ end;
 
 procedure TExtUxGridTableGrid.InitDefaults; begin
   inherited;
-end;
-
-{$IFDEF FPC}constructor TExtUxGridTableGrid.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtUxGridTableGrid.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
 end;
 
 end.

@@ -894,13 +894,13 @@ const
   GB = 1024 * MB;
 begin
   if AByteSize > GB then
-    Result := FormatFloat('#.## GBs', AByteSize / GB, AFormatSettings)
+    Result := FormatFloat('0.## GBs', AByteSize / GB, AFormatSettings)
   else if AByteSize > MB then
-    Result := FormatFloat('#.## MBs', AByteSize / MB, AFormatSettings)
+    Result := FormatFloat('0.## MBs', AByteSize / MB, AFormatSettings)
   else if AByteSize > KB then
-    Result := FormatFloat('#.## KBs', AByteSize / KB, AFormatSettings)
+    Result := FormatFloat('0.## KBs', AByteSize / KB, AFormatSettings)
   else
-    Result := FormatFloat('#.## bytes', AByteSize, AFormatSettings);
+    Result := FormatFloat('0 bytes', AByteSize, AFormatSettings);
 end;
 
 initialization

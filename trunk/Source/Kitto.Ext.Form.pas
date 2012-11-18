@@ -121,11 +121,11 @@ begin
   begin
     FStoreRecord.EnsureDetailStores;
     Assert(FStoreRecord.DetailStoreCount = ViewTable.DetailTableCount);
-    FDetailToolbar := TExtToolbar.Create;
+    FDetailToolbar := TExtToolbar.Create(Self);
     FDetailButtons := TObjectList<TKExtDetailFormButton>.Create(False);
     for I := 0 to ViewTable.DetailTableCount - 1 do
     begin
-      FDetailButtons.Add(TKExtDetailFormButton.AddTo(FDetailToolbar.Items));
+      FDetailButtons.Add(TKExtDetailFormButton.CreateAndAddTo(FDetailToolbar.Items));
       FDetailButtons[I].ServerStore := FStoreRecord.DetailStores[I];
       FDetailButtons[I].ViewTable := ViewTable.DetailTables[I];
     end;
@@ -155,8 +155,8 @@ begin
       // The node may exist and be '', which does not return the default value.
       if LControllerType = '' then
         LControllerType := 'GridPanel';
-      LController := TKExtControllerFactory.Instance.CreateController(View,
-        FTabPanel, ViewTable.FindNode('Controller'), Self, LControllerType);
+      LController := TKExtControllerFactory.Instance.CreateController(FTabPanel,
+        View, FTabPanel, ViewTable.FindNode('Controller'), Self, LControllerType);
       LController.Config.SetObject('Sys/ViewTable', ViewTable.DetailTables[I]);
       LController.Config.SetObject('Sys/ServerStore', FStoreRecord.DetailStores[I]);
       LController.Config.SetBoolean('AllowClose', False);
@@ -251,9 +251,10 @@ begin
     end;
 
     // Load data from FServerRecord.
-    Session.JSCode(
+    ExtSession.ResponseItems.ExecuteJSCode(FFormPanel,
       FFormPanel.JSName + '.getForm().load({url:"' + MethodURI(GetRecord) + '",' +
-        'failure: function(form, action) { Ext.Msg.alert("' + _('Load failed.') + '", action.result.errorMessage);}});');
+        'failure: function(form, action) { Ext.Msg.alert("' + _('Load failed.') +
+        '", action.result.errorMessage);}});');
     FocusFirstField;
   except
     on E: EKValidationError do
@@ -341,7 +342,7 @@ procedure TKExtFormPanelController.GetRecord;
 begin
   Assert(Assigned(FStoreRecord));
 
-  Session.Response := '{success:true,data:' + FStoreRecord.GetAsJSON(False) + '}';
+  ExtSession.ResponseItems.AddJSON('{success:true,data:' + FStoreRecord.GetAsJSON(False) + '}');
 end;
 
 procedure TKExtFormPanelController.SaveChanges;
@@ -377,6 +378,7 @@ begin
           LFileNameField := TKViewField(AFile.Context).FileNameField;
           if LFileNameField <> ''then
             FStoreRecord.FieldByName(LFileNameField).AsString := AFile.OriginalFileName;
+          Session.RemoveUploadedFile(AFile);
         end;
       end);
 
@@ -439,18 +441,18 @@ begin
 
   if (ViewTable.DetailTableCount > 0) and SameText(GetDetailStyle, 'Tabs') then
   begin
-    FTabPanel := TExtTabPanel.AddTo(Items);
+    FTabPanel := TExtTabPanel.CreateAndAddTo(Items);
     FTabPanel.Border := False;
     FTabPanel.Region := rgCenter;
     FTabPanel.AutoScroll := False;
     FTabPanel.SetActiveTab(0);
-    FFormPanel := TKExtEditPanel.AddTo(FTabPanel.Items);
+    FFormPanel := TKExtEditPanel.CreateAndAddTo(FTabPanel.Items);
     FFormPanel.Title := _(ViewTable.DisplayLabel);
   end
   else
   begin
     FTabPanel := nil;
-    FFormPanel := TKExtEditPanel.AddTo(Items);
+    FFormPanel := TKExtEditPanel.CreateAndAddTo(Items);
     FFormPanel.Region := rgCenter;
   end;
   FFormPanel.Border := False;
@@ -463,7 +465,7 @@ begin
 
   if not FIsReadOnly then
   begin
-    FSaveButton := TExtButton.AddTo(FFormPanel.Buttons);
+    FSaveButton := TExtButton.CreateAndAddTo(FFormPanel.Buttons);
     FSaveButton.Scale := Config.GetString('ButtonScale', 'medium');
     FSaveButton.FormBind := True;
     FSaveButton.Text := _('Save');
@@ -472,7 +474,7 @@ begin
     FSaveButton.Handler := AjaxForms(SaveChanges, [FFormPanel]);
     //FSaveButton.Handler := JSFunction(FFormPanel.JSName + '.getForm().doAction("submit", {success:"AjaxSuccess", failure:"AjaxFailure"});');
   end;
-  FCancelButton := TExtButton.AddTo(FFormPanel.Buttons);
+  FCancelButton := TExtButton.CreateAndAddTo(FFormPanel.Buttons);
   FCancelButton.Scale := Config.GetString('ButtonScale', 'medium');
   FCancelButton.Icon := Session.Config.GetImageURL('cancel');
   if FIsReadOnly then
@@ -542,12 +544,13 @@ begin
 
   if Assigned(FDetailHostWindow) then
     FDetailHostWindow.Free(True);
-  FDetailHostWindow := TKExtModalWindow.Create;
+  FDetailHostWindow := TKExtModalWindow.Create(Self);
 
   FDetailHostWindow.Title := _(ViewTable.PluralDisplayLabel);
   FDetailHostWindow.Closable := True;
 
-  LController := TKExtControllerFactory.Instance.CreateController(FViewTable.View, FDetailHostWindow);
+  LController := TKExtControllerFactory.Instance.CreateController(
+    FDetailHostWindow, FViewTable.View, FDetailHostWindow);
   LController.Config.SetObject('Sys/ServerStore', ServerStore);
   LController.Config.SetObject('Sys/ViewTable', ViewTable);
   LController.Config.SetObject('Sys/HostWindow', FDetailHostWindow);

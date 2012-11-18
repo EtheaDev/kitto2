@@ -1,4 +1,4 @@
-{
+﻿{
 Classes to JavaScript and Ext JS translating from Object Pascal.
 Associates semantic concepts of JavaScript and Ext JS for Object Pascal, such as: Function, Object, List of Objects and Ajax Method.
 It's the heart of the automatic translation method from Object Pascal to JavaScript, that I call "Self-translating".
@@ -59,6 +59,7 @@ unit ExtPascal;
 interface
 
 uses
+  Generics.Collections, SysUtils,
   {$IFNDEF WebServer}FCGIApp{$ELSE}IdExtHTTPServer{$ENDIF},
   Classes, ExtPascalUtils;
 
@@ -67,84 +68,219 @@ type
   TArrayOfInteger = array of Integer;
   TExtObjectList  = class;
   TExtFunction    = class;
+  TExtObject = class;
 
-  {
-  Defines an user session opened in a browser. Each session is a FastCGI thread that owns additional JavaScript and Ext JS resources
-  as: theme, charset, language, Ajax, error messages using Ext look, JS libraries and CSS.
-  The <color red>"Self-translating"</color> is implemented in this class in <link TExtObject.JSCode, JSCode> method.
-  }
-  TExtThread = class(TWebSession)
+  TExtResponseItem = class;
+  TExtResponseItemClass = class of TExtResponseItem;
+
+  TExtCreateObject = class;
+
+  TExtResponseItems = class
   private
-    Style, Libraries, CustomJS, FLanguage : string;
-    JSReturns : TStringList;
-    Sequence  : cardinal;
-    procedure RelocateVar(JS, JSName : string; I : integer);
-    function GetStyle: string;
-  protected
-    procedure RemoveJS(const JS : string);
-    function BeforeHandleRequest : boolean; override;
-    procedure AfterHandleRequest; override;
-    procedure AfterNewSession; override;
-    {$IFDEF HAS_CONFIG}
-    procedure DoReconfig; override;
-    procedure ReadConfig;
-    {$ENDIF}
-    function GarbageFixName(const Name: string): string; override;
-    procedure OnError(const Msg, Method, Params : string); override;
-    function GetSequence : string;
-    function GetUrlHandlerObject: TObject; override;
-    function JSConcat(PrevCommand, NextCommand : string) : string;
+    FList: TList<TExtResponseItem>;
+    FEmittedItems: TList<TExtResponseItem>;
+    function FindObjectCreateItem(const AObject: TExtObject): TExtCreateObject;
+    function GetObjectCreateItem(const AObject: TExtObject): TExtCreateObject;
+    //procedure SortByDependency;
+    procedure Clear;
+    function GetCount: Integer;
+    function GetItem(I: Integer): TExtResponseItem;
   public
-    HTMLQuirksMode : boolean; // Defines the (X)HTML DocType. True to Transitional (Quirks mode) or false to Strict. Default is false.
-    Theme     : string; // Sets or gets Ext JS installed theme, default '' that is Ext Blue theme
-    ExtPath   : string; // Installation path of Ext JS framework, below the your Web server document root. Default value is '/ext'
-    ImagePath : string; // Image path below ExtPath, used by <link TExtThread.SetIconCls, SetIconCls> method. Default value is '/images'
-    ExtBuild  : string; // Custom <extlink http://www.extjs.com/products/extjs/build/>ExtJS build</extlink>. Default is ext-all.
-    property Language : string read FLanguage write FLanguage; // Actual language for this session, reads HTTP_ACCEPT_LANGUAGE header
-    constructor Create(AOwner: TObject); override;
-    procedure InitDefaultValues; override;
-    procedure JSCode(JS : string; JSClassName : string = ''; JSName : string = ''; Owner : string = '');
-    procedure JSSleep(MiliSeconds : integer);
-    procedure SetStyle(pStyle : string = '');
-    procedure SetLibrary(pLibrary : string = ''; CSS : boolean = false; HasDebug : boolean = false; DisableExistenceCheck : boolean = false);
-    procedure SetCSS(pCSS : string; Check : boolean = true);
-    procedure SetIconCls(Cls : array of string);
-    procedure SetCustomJS(JS : string = '');
-    procedure ErrorMessage(Msg : string; Action : string = ''); overload;
-    procedure ErrorMessage(Msg : string; Action : TExtFunction); overload;
-    procedure Alert(const Msg : string); override;
-  published
-    procedure HandleEvent; virtual;
+    procedure AfterConstruction; override;
+    destructor Destroy; override;
+  public
+    // Create an object.
+    procedure CreateObject(const AObject: TExtObject);
+
+    // Set a config item, set a same-named property if not possible.
+    // AValues must be either a single value of any type or an object value followed by the IsFunction boolean flag.
+    procedure SetConfigItemOrProperty(const AObject: TExtObject; const AItemName: string; const AValues: array of const);
+
+    // Set a config item, raise an exception if not possible.
+    // AValues must be either a single value of any type or an object value followed by the IsFunction boolean flag.
+    procedure SetConfigItem(const AObject: TExtObject; const AItemName: string; const AValues: array of const); overload;
+    // Set a config item, call a method if not possible.
+    // AValues must be either a single value of any type or an object value followed by the IsFunction boolean flag.
+    procedure SetConfigItem(const AObject: TExtObject; const AItemName, AMethodName: string; const AValues: array of const); overload;
+
+    // Add an object to a list (declare the list if not existing).
+    // AValues must be an object value followed by the IsFunction boolean flag.
+    procedure AddToList(const AContainer: TExtObject; const AItemName: string; const AValues: array of const); overload;
+    // Add an object to a list (declare the list if not existing), call a method if not possible.
+    // AValues must be an object value followed by the IsFunction boolean flag.
+    procedure AddToList(const AContainer: TExtObject; const AList: TExtObjectList;
+      const AItemName, AMethodName: string; const AValues: array of const); overload;
+
+    procedure CallMethod(const AObject: TExtObject; const AMethodName: string;
+      const AParams: array of const); overload;
+
+    procedure GetProperty(const AObject: TExtObject; const APropertyName: string);
+    // AValues must be either a single value of any type or an object value followed by the IsFunction boolean flag.
+    procedure SetProperty(const AObject: TExtObject; const APropertyName: string; const AValues: array of const);
+
+    procedure ExecuteJSCode(const AJSCode: string); overload;
+    procedure ExecuteJSCode(const AObject: TExtObject; const AJSCode: string); overload;
+    procedure ExecuteJSCode(const AObject: TExtObject; const AJSCode: string;
+      const AAdditionalDependencies: array of TExtObject); overload;
+
+    procedure AddJSON(const AJSON: string);
+
+    procedure AddHTML(const AHTML: string);
+
+    function ToString: string; override;
+    function Consume: string;
+
+    // Remove any items sent by the specified object.
+    procedure RemoveAll(const AObject: TExtObject);
+
+    procedure Remove(const AItem: TExtResponseItem);
+
+    // Returns the first item with IsCode=True for the specified object, or nil.
+    function FindLastCodeItem(const AObject: TExtObject): TExtResponseItem;
+    // Returns the first item with IsCode=True for the specified object, or
+    // raises an exception.
+    function GetLastCodeItem(const AObject: TExtObject): TExtResponseItem;
+
+    property Items[I: Integer]: TExtResponseItem read GetItem; default;
+    property Count: Integer read GetCount;
   end;
 
-  {$M+}
+  TExtResponseItem = class
+  private
+    FParent: TExtResponseItems;
+    FSender: TExtObject;
+    FDependencies: TList<TExtResponseItem>;
+    FEmitted: Boolean;
+    FCreationDateTime: TDateTime;
+    function GetDependencyCount: Integer;
+    function GetDependency(I: Integer): TExtResponseItem;
+    function AllDependenciesEmitted(
+      const AEmittedItems: TList<TExtResponseItem>): Boolean;
+  public
+    constructor Create(const AParent: TExtResponseItems; const ASender: TExtObject); virtual;
+    procedure AfterConstruction; override;
+    destructor Destroy; override;
+    property Sender: TExtObject read FSender;
+    procedure AddDependency(const AItem: TExtResponseItem);
+    procedure RemoveDependency(const AItem: TExtResponseItem);
+    function GetDependencies: TArray<TExtResponseItem>;
+    property DependencyCount: Integer read GetDependencyCount;
+    property Dependencies[I: Integer]: TExtResponseItem read GetDependency;
+    function DependsOn(const AItem: TExtResponseItem): Boolean;
+    function IsCode: Boolean; virtual;
+
+    procedure Emit(const AEmittedItems: TList<TExtResponseItem>);
+  end;
+
+  TExtCreateObject = class(TExtResponseItem)
+  private
+    FConfigItems: TStrings;
+  public
+    procedure AfterConstruction; override;
+    destructor Destroy; override;
+
+    function ToString: string; override;
+
+    procedure SetConfigItem(const AName: string; const AValues: array of const);
+
+    procedure AddToConfigItem(const AName: string; const AValues: array of const);
+    function IsCode: Boolean; override;
+  end;
+
+  TExtCallMethod = class(TExtResponseItem)
+  private
+    FCallName: string;
+    FCallParams: TStrings;
+    procedure SetCallParams(const AValue: TStrings);
+  public
+    function ToString: string; override;
+    procedure AfterConstruction; override;
+    destructor Destroy; override;
+    property CallName: string read FCallName write FCallName;
+    property CallParams: TStrings read FCallParams write SetCallParams;
+  end;
+
+  TExtPropertyBase = class abstract(TExtResponseItem)
+  private
+    FPropertyName: string;
+  public
+    property PropertyName: string read FPropertyName write FPropertyName;
+  end;
+
+  TExtGetProperty = class(TExtPropertyBase)
+  public
+    function ToString: string; override;
+  end;
+
+  TExtSetProperty = class(TExtPropertyBase)
+  private
+    FPropertyValue: string;
+  public
+    function ToString: string; override;
+    property PropertyValue: string read FPropertyValue write FPropertyValue;
+  end;
+
+  TExtTextBase = class(TExtResponseItem)
+  protected
+    FText: string;
+  public
+    property Text: string read FText write FText;
+    function ToString: string; override;
+  end;
+
+  TExtJSCode = class(TExtTextBase)
+  public
+    procedure AfterConstruction; override;
+    destructor Destroy; override;
+    property JSCode: string read FText write FText;
+    function ToString: string; override;
+  end;
+
+  TExtJSON = class(TExtTextBase)
+  public
+    property JSON: string read FText write FText;
+  end;
+
+  TExtHTML = class(TExtTextBase)
+  public
+    property HTML: string read FText write FText;
+  end;
+
+  TVarToJSONProc = TProc<string, TObject, Boolean>;
+
+  TExtSession = class;
+
   {
   Ancestor of all classes and components of Ext JS framework.
   Each TExtObject has the capability to self-translate to JavaScript during the program execution.
-  When a property is assigned or a method is called the <link TExtThread.JSCode, Self-translating> enter in action
+  When a property is assigned or a method is called the <link TExtSession.JSCode, Self-translating> enter in action
   translating these Object Pascal commands to JavaScript.
   }
-  TExtObject = class
+  TExtObject = class(TComponent)
   private
+    FSession: TExtSession;
     function  WriteFunction(Command : string): string;
-    function  GetJSCommand : string;
-    procedure SetJSCommand(const Value : string);
-    function  PopJSCommand : string;
+    //function  GetJSCommand : string;
+    //procedure SetJSCommand(const Value : string);
+    //function  PopJSCommand : string;
     function FormatParams(MethodName : string; Params : array of const): string;
-    procedure AjaxCode(MethodName, RawParams : string; Params : array of const);
-    function Ajax(Method : TExtProcedure; Params : string) : TExtFunction; overload;
+    procedure AjaxCode(const AMethodName, ARawParams: string; const AParams: array of const;
+      const AAdditionalDependencies: array of TExtObject);
     function AddJSReturn(Expression : string; MethodsValues : array of const): string;
     function FindMethod(Method : TExtProcedure; var PascalName, ObjName : string) : TExtFunction;
     function GetDownloadJS(Method: TExtProcedure; Params: array of const): string;
   protected
+    // Set by some classes with custom constructors that need to call the
+    // inherited Create with a custom string to be passed to CreateVar.
+    FCreateVarArgs: string;
     FJSName    : string;  // Internal JavaScript name generated automatically by <link TExtObject.CreateJSName, CreateJSName>
-    Created    : boolean; // Tests if object already created
-    FJSCommand : string;
-    function ConfigAvailable(JSName : string) : boolean;
+    function GetExtSession: TExtSession; overload;
+    function GetExtSession(const AOwner: TComponent): TExtSession; overload;
     function ExtractJSCommand : string;
     function IsParent(CName : string): boolean;
-    function VarToJSON(A : array of const)     : string; overload;
-    function VarToJSON(Exts : TExtObjectList)  : string; overload;
+    function VarToJSON(const AVars: array of const; const ASession: TExtSession = nil): string; overload;
+    function VarToJSON(const AVars: array of const; const AProc: TVarToJSONProc): string; overload;
+    function VarToJSON(const AList: TExtObjectList): string; overload;
     function ArrayToJSON(Strs : {$IF Defined(FPC) or (RTLVersion < 20)}TArrayOfString{$ELSE}array of string{$IFEND}) : string; overload;
     function ArrayToJSON(Ints : {$IF Defined(FPC) or (RTLVersion < 20)}TArrayOfInteger{$ELSE}array of integer{$IFEND}) : string; overload;
     function ParamAsInteger(ParamName : string) : integer;
@@ -153,31 +289,41 @@ type
     function ParamAsString(ParamName : string) : string;
     function ParamAsTDateTime(ParamName : string) : TDateTime;
     function ParamAsObject(ParamName : string) : TExtObject;
-    procedure CreateVar(JS : string);
-    procedure CreateVarAlt(JS : string);
-    procedure CreateJSName;
+    procedure CreateVar(AJSCode : string); virtual;
+    procedure CreateJSName; virtual;
+    function GetObjectNamePrefix: string; virtual;
     procedure InitDefaults; virtual;
     procedure HandleEvent(const AEvtName : string); virtual;
-    property JSCommand : string read GetJSCommand write SetJSCommand; // Last commands written in Response
+    property ExtSession: TExtSession read GetExtSession;
+    procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   public
     IsChild : boolean;
-    constructor CreateInternal(Owner : TExtObject; Attribute : string);
-    constructor Create(Owner : TExtObject = nil);
-    constructor CreateSingleton(Attribute : string = '');
-    constructor AddTo(List : TExtObjectList);
-    constructor Init(Method : TExtFunction); overload;
-    constructor Init(Command : string); overload;
-    destructor Destroy; override;
+    constructor CreateInternal(const AOwner: TExtObject; const AAttribute: string); virtual;
+
+    constructor Create(AOwner: TComponent); override;
+    constructor CreateInline(AOwner: TComponent); virtual;
+
+    constructor CreateWithConfig(AOwner: TComponent; AConfig: TExtObject = nil);
+    constructor CreateSingleton(const AOwner: TComponent; const AAttribute: string = '');
+    constructor CreateAndAddTo(List: TExtObjectList);
+
+    constructor Init(AOwner: TComponent; AMethod: TExtFunction); overload;
+    constructor Init(const AOwner: TComponent; const ACommand: string); overload;
+
+    function GetConstructionJS: string; virtual;
+
+    procedure AddTo(List: TExtObjectList);
+
     function DestroyJS : TExtFunction; virtual;
     procedure Free(CallDestroyJS : boolean = false);
     procedure Delete;
-    procedure DeleteFromGarbage;
-    function JSClassName : string; virtual;
-    function JSArray(JSON : string; SquareBracket : boolean = true) : TExtObjectList;
-    function JSObject(JSON : string; ObjectConstructor : string = ''; CurlyBracket : boolean = true) : TExtObject;
-    function JSFunction(Params, Body : string) : TExtFunction; overload;
-    procedure JSFunction(Name, Params, Body : string); overload;
-    function JSFunction(Body : string) : TExtFunction; overload;
+    class function JSClassName : string; virtual;
+    function JSArray(const AJSON: string; const ASquareBrackets: Boolean = True): TExtObjectList;
+    function JSObject(const AJSON: string; const AObjectConstructor: string = '';
+      const ACurlyBrackets: Boolean = True): TExtObject;
+    function JSFunction(const AParams, ABody: string): TExtFunction; overload;
+    procedure JSFunction(const AName, AParams, ABody: string); overload;
+    function JSFunction(const ABody: string): TExtFunction; overload;
     function JSFunction(Method : TExtProcedure; Silent : boolean = false) : TExtFunction; overload;
     function JSExpression(Expression : string; MethodsValues : array of const) : integer; overload;
     function JSExpression(Method : TExtFunction) : integer; overload;
@@ -186,12 +332,33 @@ type
     function JSMethod(Method : TExtFunction) : string;
     procedure JSCode(JS : string; pJSName : string = ''; pOwner : string = '');
     procedure JSSleep(MiliSeconds: integer);
-    function Ajax(MethodName : string; Params : array of const; IsEvent : boolean = false) : TExtFunction; overload;
-    function Ajax(Method : TExtProcedure) : TExtFunction; overload;
-    function Ajax(Method : TExtProcedure; Params : array of const) : TExtFunction; overload;
+
+    function Ajax(const AMethod: TExtProcedure; const AParams: string): TExtFunction; overload;
+
+    function Ajax(const AMethod: TExtProcedure; const AParams: string;
+      const AAdditionalDependencies: array of TExtObject;
+      const AIsEvent: Boolean = False): TExtFunction; overload;
+
+    function Ajax(const AMethod: TExtProcedure; const AParams: array of const;
+      const AAdditionalDependencies: array of TExtObject;
+      const AIsEvent: Boolean = False): TExtFunction; overload;
+
+    function Ajax(const AMethodName: string; const AParams: array of const;
+      const AAdditionalDependencies: array of TExtObject;
+      const AIsEvent: Boolean = False): TExtFunction; overload;
+
+    function Ajax(const AMethodName: string; const AParams: array of const;
+      const AIsEvent: Boolean = False): TExtFunction; overload;
+
+    function Ajax(const AMethod: TExtProcedure): TExtFunction; overload;
+
+    function Ajax(const AMethod: TExtProcedure; const AParams: array of const): TExtFunction; overload;
+
     function AjaxExtFunction(Method : TExtProcedure; Params : array of TExtFunction) : TExtFunction; overload;
-    function AjaxSelection(Method : TExtProcedure; SelectionModel : TExtObject; Attributes, TargetQueries : string; Params : array of const) : TExtFunction;
-    function AjaxForms(Method : TExtProcedure; Forms : array of TExtObject) : TExtFunction;
+    function AjaxSelection(const AMethod: TExtProcedure; const ASelectionModel: TExtObject;
+      const AAttributes, ATargetQueries: string; const AParams: array of const): TExtFunction;
+    function AjaxForms(const AMethod: TExtProcedure; const AForms: array of TExtObject): TExtFunction;
+
     function RequestDownload(Method : TExtProcedure) : TExtFunction; overload;
     function RequestDownload(Method : TExtProcedure; Params : array of const) : TExtFunction; overload;
     procedure Download(Method : TExtProcedure); overload;
@@ -200,11 +367,15 @@ type
     function MethodURI(Method : TExtProcedure) : string; overload;
     function MethodURI(MethodName : string; Params : array of const) : string; overload;
     function MethodURI(MethodName : string) : string; overload;
-    function CharsToPixels(Chars : integer) : integer;
-    function LinesToPixels(Lines : integer) : integer;
-    property JSName : string read FJSName; // JS variable name to this object, it's created automatically when the object is created
+    function CharsToPixels(const AChars: Integer; const AOffset: Integer = 0): Integer;
+    function LinesToPixels(const ALines: Integer): Integer;
+    destructor Destroy; override;
+    property JSName: string read FJSName; // JS variable name to this object, it's created automatically when the object is created
+    function FindExtObject(const AJSName: string): TObject;
+
+    procedure SetCustomConfigItem(const AName: string; const AValues: array of const);
   end;
-  {$M-}
+
   TExtObjectClass = class of TExtObject;
 
   {
@@ -213,22 +384,88 @@ type
   }
   TExtFunction = class(TExtObject);
 
+  {
+  Defines an user session opened in a browser. Each session is a FastCGI thread that owns additional JavaScript and Ext JS resources
+  as: theme, charset, language, Ajax, error messages using Ext look, JS libraries and CSS.
+  The <color red>"Self-translating"</color> is implemented in this class in <link TExtObject.JSCode, JSCode> method.
+  }
+  TExtSession = class(TWebSession)
+  private
+    FObjectSequences: TDictionary<string, Cardinal>;
+    FStyles, FLibraries, FCustomJS, FLanguage : string;
+    JSReturns : TStringList;
+    FResponseItems: TExtResponseItems;
+    FCurrentResponseItemsBranch: TExtResponseItems;
+    Sequence: Cardinal;
+    FSingletons: TDictionary<string, TExtObject>;
+    procedure RelocateVar(JS, JSName : string; I : integer);
+    function GetStyleTag: string;
+    function GetSequence: string;
+    function GetResponseItems: TExtResponseItems;
+  protected
+    function BeforeHandleRequest : boolean; override;
+    procedure AfterHandleRequest; override;
+    function GarbageFixName(const Name: string): string; override;
+    procedure OnError(const AMessage, AMethodName, AParams : string); override;
+    function GetNextJSName(const AObjectType: string): string;
+    function GetUrlHandlerObject: TObject; override;
+    function JSConcat(PrevCommand, NextCommand : string) : string;
+    function GetMainPageTemplate: string; virtual;
+  public
+    HTMLQuirksMode : boolean; // Defines the (X)HTML DocType. True to Transitional (Quirks mode) or false to Strict. Default is false.
+    Theme     : string; // Sets or gets Ext JS installed theme, default '' that is Ext Blue theme
+    ExtPath   : string; // Installation path of Ext JS framework, below the your Web server document root. Default value is '/ext'
+    ImagePath : string; // Image path below ExtPath, used by <link TExtSession.SetIconCls, SetIconCls> method. Default value is '/images'
+    ExtBuild  : string;
+    procedure AfterConstruction; override;
+    destructor Destroy; override; // Custom <extlink http://www.extjs.com/products/extjs/build/>ExtJS build</extlink>. Default is ext-all.
+    property Language : string read FLanguage write FLanguage; // Actual language for this session, reads HTTP_ACCEPT_LANGUAGE header
+    procedure InitDefaultValues; override;
+    procedure JSCode(JS : string; JSClassName : string = ''; JSName : string = ''; Owner : string = '');
+    procedure JSSleep(MiliSeconds : integer);
+    procedure SetStyle(pStyle : string = '');
+    procedure SetLibrary(pLibrary : string = ''; CSS : boolean = false; HasDebug : boolean = false; DisableExistenceCheck : boolean = false);
+    procedure SetCSS(pCSS : string; Check : boolean = true);
+    procedure SetIconCls(Cls : array of string);
+    procedure SetCustomJS(JS : string = '');
+    procedure ErrorMessage(const AMessage: string; const AAction: string = ''); overload;
+    procedure ErrorMessage(const AMessage: string; const AAction: TExtFunction); overload;
+    procedure Alert(const Msg : string); override;
+    procedure Refresh; override;
+
+    property ResponseItems: TExtResponseItems read GetResponseItems;
+    function BranchResponseItems: TExtResponseItems;
+    procedure UnbranchResponseItems(const AResponseItems: TExtResponseItems;
+      const AConsolidate: Boolean = True);
+
+    function GetSingleton<T: TExtObject>(const AName: string): T;
+  published
+    procedure HandleEvent; virtual;
+  end;
+
   // List of TExtObjects. The <link ExtPascal.pas, Wrapper> convey the JavaScript Array type to this class
   TExtObjectList = class(TExtFunction)
   private
-    FObjects : array of TExtObject;
-    Attribute, JSName : string;
-    Owner : TExtObject;
-    function GetFObjects(I : integer) : TExtObject;
+    FObjects: TObjectList<TExtObject>;
+    FAttribute: string;
+    function GetObject(I: Integer): TExtObject;
+    function GetOwnerExtObject: TExtObject;
+    function GetCount: Integer;
+    property OwnerExtObject: TExtObject read GetOwnerExtObject;
+  protected
+    procedure CreateVar(AJSCode: string); override;
+    procedure CreateJSName; override;
   public
-    property Objects[I : integer] : TExtObject read GetFObjects; default; // Returns the Ith object in the list, start with 0.
-    constructor CreateSingleton(pAttribute : string);
-    constructor Create(pOwner : TExtObject = nil; pAttribute : string = '');
+    procedure AfterConstruction; override;
+    constructor CreateAsAttribute(const AOwner: TExtObject; const AAttribute: string);
     destructor Destroy; override;
-    procedure Add(Obj : TExtObject);
-    procedure Remove(Obj : TExtObject);
-    function IndexOf(Obj : TExtObject): Integer;
-    function Count : integer;
+
+    property Objects[I: Integer]: TExtObject read GetObject; default;
+    function Add(const AObject: TExtObject): Integer;
+    function AddInternal(const AObject: TExtObject): Integer;
+    function Remove(const AObject: TExtObject): Integer;
+    function IndexOf(const AObject: TExtObject): Integer;
+    property Count: Integer read GetCount;
   end;
 
 //(*DOM-IGNORE-BEGIN
@@ -285,6 +522,8 @@ type
   TExtSlider = TExtObject; // doc fault Ext 3.2
 //DOM-IGNORE-END*)
 
+function Session: TExtSession;
+
 const
   DeclareJS    = '/*var*/ '; // Declare JS objects as global
   CommandDelim = #3;         // Internal JS command delimiter
@@ -295,29 +534,17 @@ implementation
 
 uses
   {$IFDEF MSWINDOWS}{$IF RTLVersion <= 21}Windows,{$IFEND}{$ENDIF}
-  SysUtils, StrUtils, Math, Ext, ExtUtil, ExtGrid, ExtForm;
+  ExtPascalClasses, StrUtils, Math, Ext, ExtUtil, ExtGrid, ExtForm;
 
 var
   _JSFormatSettings: TFormatSettings;
 
-threadvar
-  InJSFunction : boolean;
-
-{ TExtThread }
-
-{
-Removes identificated JS commands from response.
-Used internally by Self-Translating mechanism to repositioning JS commands.
-@param JS JS command with sequence identifier.
-@see TExtObject.ExtractJSCommand
-}
-procedure TExtThread.RemoveJS(const JS : string);
-var
-  I : integer;
+function Session: TExtSession;
 begin
-  I := ExtPascalUtils.RPosEx(JS, Response, 1);
-  if I <> 0 then delete(Response, I, length(JS))
+  Result := TExtSession(_CurrentWebSession);
 end;
+
+{ TExtSession }
 
 {
 Adds/Removes an user JS library to be used in current response.
@@ -330,25 +557,25 @@ If pLibrary is '' then all user JS libraries to this session will be removed fro
 @example <code>SetLibrary('');</code>
 @example <code>SetLibrary(<link ExtPath> + '/examples/tabs/TabCloseMenu');</code>
 }
-procedure TExtThread.SetLibrary(pLibrary : string = ''; CSS : boolean = false; HasDebug : boolean = false;
+procedure TExtSession.SetLibrary(pLibrary : string = ''; CSS : boolean = false; HasDebug : boolean = false;
   DisableExistenceCheck : boolean = false);
 var
   Root : string;
 begin
-  if pos(pLibrary + '.js', Libraries) = 0 then
+  if pos(pLibrary + '.js', FLibraries) = 0 then
     if pLibrary = '' then
-      Libraries := '' // Clear Libraries
+      FLibraries := '' // Clear FLibraries
     else begin
       if DisableExistenceCheck then
         Root := ''
       else
         Root := RequestHeader['DOCUMENT_ROOT'];
       if (Root = '') or ((Root <> '') and FileExists(Root + pLibrary + '.js')) then begin
-        Libraries := Libraries + '<script src="' + pLibrary{$IFDEF DEBUGJS}+ IfThen(HasDebug, '-debug', ''){$ENDIF} + '.js"></script>'^M^J;
+        FLibraries := FLibraries + '<script src="' + pLibrary{$IFDEF DEBUGJS}+ IfThen(HasDebug, '-debug', ''){$ENDIF} + '.js"></script>'^M^J;
         if CSS then begin
           if not DisableExistenceCheck and not FileExists(Root + pLibrary + '.css') then // Assume in /css like ux
             pLibrary := ExtractFilePath(pLibrary) + 'css/' + ExtractFileName(pLibrary);
-          Libraries := Libraries + '<link rel=stylesheet href="' + pLibrary + '.css" />';
+          FLibraries := FLibraries + '<link rel=stylesheet href="' + pLibrary + '.css" />';
         end;
       end
       else
@@ -364,19 +591,19 @@ Repeated CSS's are ignored.
 @param Check Checks if the CSS file exists, default is true.
 If pCSS is '' then all user CSS AND JS libraries to this session will be removed from response.
 }
-procedure TExtThread.SetCSS(pCSS : string; Check : boolean = true);
+procedure TExtSession.SetCSS(pCSS : string; Check : boolean = true);
 var
   Root : string;
 begin
-  if pos(pCSS + '.css', Libraries) = 0 then
+  if pos(pCSS + '.css', FLibraries) = 0 then
     if pCSS = '' then
-      Libraries := '' // Clear Libraries
+      FLibraries := '' // Clear FLibraries
     else begin
       Root := RequestHeader['DOCUMENT_ROOT'];
       if Check and (Root <> '') and not FileExists(Root + pCSS + '.css') then
         raise Exception.Create('Stylesheet: ' + Root + pCSS + '.css not found')
       else
-        Libraries := Libraries + '<link rel=stylesheet href="' + pCSS + '.css" />';
+        FLibraries := FLibraries + '<link rel=stylesheet href="' + pCSS + '.css" />';
     end;
 end;
 {
@@ -384,12 +611,12 @@ Adds/Removes an user JS code to be used in current response.
 Repeated code is ignored.
 @param JS JS code to inject in response. If JS is '' then all user JS code to this session will be removed from response.
 }
-procedure TExtThread.SetCustomJS(JS : string = ''); begin
-  if pos(JS, CustomJS) = 0 then
+procedure TExtSession.SetCustomJS(JS : string = ''); begin
+  if pos(JS, FCustomJS) = 0 then
     if JS = '' then
-      CustomJS := ''
+      FCustomJS := ''
     else
-      CustomJS := CustomJS + JS;
+      FCustomJS := FCustomJS + JS;
 end;
 
 {
@@ -406,7 +633,7 @@ with TExtToolbarButton.AddTo(Items) do begin
   Menu    := TaskMenu;
 end;</code>
 }
-procedure TExtThread.SetIconCls(Cls : array of string);
+procedure TExtSession.SetIconCls(Cls : array of string);
 var
   I : integer;
   Root : string;
@@ -427,28 +654,54 @@ If pStyle is '' then all user styles to this session will be removed from respon
 @example <code>SetStyle('');</code>
 @example <code>SetStyle('img:hover{border:1px solid blue}');</code>
 *)
-procedure TExtThread.SetStyle(pStyle : string); begin
-  if pos(pStyle, Style) = 0 then
+procedure TExtSession.SetStyle(pStyle : string);
+begin
+  if Pos(pStyle, FStyles) = 0 then
     if pStyle = '' then
-      Style := ''
+      FStyles := ''
     else
-      Style := Style + pStyle
+      FStyles := FStyles + pStyle
+end;
+
+procedure TExtSession.UnbranchResponseItems(
+  const AResponseItems: TExtResponseItems; const AConsolidate: Boolean);
+var
+  LSender: TExtObject;
+begin
+  Assert(Assigned(AResponseItems));
+  Assert(AResponseItems = FCurrentResponseItemsBranch);
+  Assert(AResponseItems <> FResponseItems);
+
+  if AConsolidate then
+  begin
+    Assert(FCurrentResponseItemsBranch.Count > 0);
+    LSender := FCurrentResponseItemsBranch.Items[0].Sender;
+    FResponseItems.ExecuteJSCode(LSender, FCurrentResponseItemsBranch.Consume);
+  end;
+  FreeAndNil(FCurrentResponseItemsBranch);
+
+  Assert(FCurrentResponseItemsBranch = nil);
 end;
 
 // Returns all styles in use in current response
-function TExtThread.GetStyle : string; begin
-  if Style = '' then
+function TExtSession.GetStyleTag: string;
+begin
+  if FStyles = '' then
     Result := ''
   else
-    Result := '<style>' + {$IFDEF DEBUGJS}BeautifyCSS(Style){$ELSE}Style{$ENDIF} + '</style>'^M^J;
+    Result := '<style>' + {$IFDEF DEBUGJS}BeautifyCSS(FStyles){$ELSE}FStyles{$ENDIF} + '</style>';
 end;
 
 // Returns a object which will be used to handle the page method. We will call it's published method based on PathInfo.
-function TExtThread.GetUrlHandlerObject: TObject; begin
-  if (Query['Obj'] = '') or (Query['IsEvent'] = '1') then
+function TExtSession.GetUrlHandlerObject: TObject;
+var
+  LObjectName: string;
+begin
+  LObjectName := Query['Obj'];
+  if (LObjectName = '') or (Query['IsEvent'] = '1') then
     Result := inherited GetUrlHandlerObject
   else
-    Result := GarbageFind(Query['Obj']);
+    Result := ObjectCatalog.FindExtObject(LObjectName);
 end;
 
 {
@@ -458,9 +711,10 @@ Shows an error message in browser session using Ext JS style.
 @example <code>ErrorMessage('User not found.');</code>
 @example <code>ErrorMessage('Context not found.<br/>This Window will be reloaded to fix this issue.', 'window.location.reload()');</code>
 }
-procedure TExtThread.ErrorMessage(Msg : string; Action : string = ''); begin
-  JSCode('Ext.Msg.show({title:"Error",msg:' + StrToJS(Msg, true) + ',icon:Ext.Msg.ERROR,buttons:Ext.Msg.OK' +
-    IfThen(Action = '', '', ',fn:function(){' + Action + '}') + '});');
+procedure TExtSession.ErrorMessage(const AMessage: string; const AAction: string);
+begin
+  ResponseItems.ExecuteJSCode('Ext.Msg.show({title:"Error",msg:' + StrToJS(AMessage, True) +
+    ',icon:Ext.Msg.ERROR,buttons:Ext.Msg.OK' + IfThen(AAction = '', '', ',fn:function(){' + AAction + '}') + '});');
 end;
 
 {
@@ -469,34 +723,23 @@ Shows an error message in browser session using Ext JS style.
 @param Action Optional action that will be executed after user to click Ok button. Could be JavaScript or ExtPascal commands
 @example <code>ErrorMessage('Illegal operation.<br/>Click OK to Shutdown.', Ajax(Shutdown));</code>
 }
-procedure TExtThread.ErrorMessage(Msg : string; Action : TExtFunction); begin
-  ErrorMessage(Msg, Action.ExtractJSCommand);
+procedure TExtSession.ErrorMessage(const AMessage: string; const AAction: TExtFunction);
+begin
+  ErrorMessage(AMessage, AAction.ExtractJSCommand);
 end;
 
-function TExtThread.GarbageFixName(const Name: string): string; begin
+function TExtSession.GarbageFixName(const Name: string): string; begin
   Result := AnsiReplaceStr(Name, IdentDelim, '');
 end;
 
-{
-Occurs when an exception is raised during the execution of method that handles the request (PATH_INFO).
-Display error message with exception message, method name and method params.
-@param Msg Exception message
-@param Method Method name invoked by Browser (PATH_INFO) or thru AJAX request
-@param Params Method params list
-@exception TAccessViolation If current request is AJAX the session can be fixed reloading the page.
-}
-procedure TExtThread.OnError(const Msg, Method, Params : string);
-var
-  FMsg: string;
+procedure TExtSession.OnError(const AMessage, AMethodName, AParams : string);
 begin
-  Response := '';
-  FMsg := Msg;
-  if IsAjax and (pos('Access violation', FMsg) <> 0) then
-    FMsg := FMsg + '<br/><b>Reloading this page (F5) perhaps fix this error.</b>';
-  ErrorMessage(FMsg + '<br/>Method: ' + IfThen(Method = '', 'Home', Method) + IfThen(Params = '', '', '<br/>Params:<br/>' + AnsiReplaceStr(Params, '&', '<br/>')));
+  ResponseItems.Clear;
+  ErrorMessage(AMessage + '<br/>Method: ' + IfThen(AMethodName = '', 'Home', AMethodName) +
+    IfThen(AParams = '', '', '<br/>Params:<br/>' + AnsiReplaceStr(AParams, '&', '<br/>')));
 end;
 
-procedure TExtThread.Alert(const Msg : string); begin
+procedure TExtSession.Alert(const Msg : string); begin
   ErrorMessage(Msg)
 end;
 
@@ -521,17 +764,23 @@ Basic work:
 @param JSName Optional current JS object name
 @param Owner Optional JS object owner for TExtObjectList
 }
-procedure TExtThread.JSCode(JS : string; JSClassName : string = ''; JSName : string = ''; Owner : string = '');
+procedure TExtSession.JSCode(JS : string; JSClassName : string = ''; JSName : string = ''; Owner : string = '');
 var
   I, J : integer;
+  LObjectName: string;
 begin
   if JS <> '' then begin
     if JS[length(JS)] = ';' then begin // Command
       I := pos('.', JS);
       J := pos(IdentDelim, JS);
-      if (pos('Singleton', JSClassName) = 0) and (J > 0) and (J < I) and (pos(DeclareJS, JS) = 0) and not GarbageExists(copy(JS, J-1, I-J+1)) then
-        raise Exception.Create('Public property or Method: ''' + JSClassName + '.' + copy(JS, I+1, FirstDelimiter('=(', JS, I)-I-1) + ''' requires explicit ''var'' declaration.');
-      I := length(Response) + 1
+      if (Pos('Singleton', JSClassName) = 0) and (J > 0) and (J < I) and (Pos(DeclareJS, JS) = 0) then
+      begin
+        LObjectName := GarbageFixName(Copy(JS, J - 1, I - J + 1));
+//        if not Assigned(ObjectCatalog.FindExtObject(LObjectName)) then
+//          raise Exception.CreateFmt('%s: Public property or Method: %s.%s requires explicit ''var'' declaration.',
+//            [LObjectName, JSClassName, Copy(JS, I + 1, FirstDelimiter('=(', JS, I) - I - 1)]);
+      end;
+      I := Length(Response) + 1
     end
     else  // set attribute
       if JSName = '' then
@@ -558,7 +807,16 @@ relocating the declaration to a previous position in Response.
 @param JSName Current JS Object.
 @param I Position in Response string where the JS command ends.
 }
-procedure TExtThread.RelocateVar(JS, JSName : string; I : integer);
+procedure TExtSession.Refresh;
+begin
+  inherited;
+  ResponseItems.Clear;
+  Sequence := 0;
+  FObjectSequences.Clear;
+  FSingletons.Clear;
+end;
+
+procedure TExtSession.RelocateVar(JS, JSName : string; I : integer);
 var
   VarName, VarBody : string;
   J, K : integer;
@@ -594,7 +852,7 @@ O1.selectFirstRow;
 // instead of:
 O1.getSelectionModel.selectFirstRow;</code>
 }
-function TExtThread.JSConcat(PrevCommand, NextCommand : string) : string;
+function TExtSession.JSConcat(PrevCommand, NextCommand : string) : string;
 var
   I , J : integer;
 begin
@@ -610,7 +868,7 @@ begin
     Result := PrevCommand;
 end;
 
-procedure TExtThread.JSSleep(MiliSeconds : integer); begin
+procedure TExtSession.JSSleep(MiliSeconds : integer); begin
   JSCode('sleep(' + IntToStr(MiliSeconds) + ');')
 end;
 
@@ -631,15 +889,20 @@ var
   MetName, ObjName : string;
 begin
   FindMethod(Method, MetName, ObjName);
-  Result := CurrentWebSession.MethodURI(MetName) + IfThen(ObjName = '', '', '?Obj=' + ObjName);
+  Result := ExtSession.MethodURI(MetName) + IfThen(ObjName = '', '', '?Obj=' + ObjName);
 end;
 
 function TExtObject.MethodURI(MethodName : string; Params : array of const) : string; begin
-  Result := CurrentWebSession.MethodURI(MethodName) + IfThen(length(Params) = 0, '', '?' + FormatParams(MethodName, Params))
+  Result := ExtSession.MethodURI(MethodName) + IfThen(length(Params) = 0, '', '?' + FormatParams(MethodName, Params))
 end;
 
 function TExtObject.MethodURI(MethodName : string): string; begin
-  Result := CurrentWebSession.MethodURI(MethodName)
+  Result := ExtSession.MethodURI(MethodName)
+end;
+
+function TExtObject.GetObjectNamePrefix: string;
+begin
+  Result := 'o';
 end;
 
 {
@@ -652,7 +915,7 @@ Does tasks related to the Request that occur before the method call invoked by B
 6. Tests if cookies are enabled.
 @return False if Cookies are disable or if is Ajax executing the first thread request else returns true.
 }
-function TExtThread.BeforeHandleRequest : boolean;
+function TExtSession.BeforeHandleRequest : boolean;
 var
   I : integer;
 begin
@@ -684,8 +947,27 @@ begin
   JSReturns := TStringList.Create;
 end;
 
-// Override this method to change ExtPath, ImagePath, ExtBuild and Charset default values
-procedure TExtThread.InitDefaultValues; begin
+function TExtSession.BranchResponseItems: TExtResponseItems;
+begin
+  Assert(FCurrentResponseItemsBranch = nil);
+
+  FCurrentResponseItemsBranch := TExtResponseItems.Create;
+  Result := FCurrentResponseItemsBranch;
+
+  Assert(FCurrentResponseItemsBranch <> nil);
+end;
+
+destructor TExtSession.Destroy;
+begin
+  Assert(FCurrentResponseItemsBranch = nil);
+
+  FreeAndNil(FResponseItems);
+  FreeAndNil(FObjectSequences);
+  FreeAndNil(FSingletons);
+  inherited;
+end;
+
+procedure TExtSession.InitDefaultValues; begin
   inherited;
 {$IFDEF CacheFly}
   ExtPath       := 'http://extjs.cachefly.net/ext-3.2.1';
@@ -698,65 +980,14 @@ procedure TExtThread.InitDefaultValues; begin
   UpLoadPath    := '/uploads';
 end;
 
-{
-Creates a session to handle a new requests
-@param AOwner You do not need to know this :)
-}
-constructor TExtThread.Create(AOwner: TObject); begin
-  inherited;
-end;
-
-// config will be read once, only on new client thread construction
-procedure TExtThread.AfterNewSession; begin
-  inherited;
-  {$IFDEF HAS_CONFIG}
-  ReadConfig;
-  {$ENDIF}
-end;
-
-{$IFDEF HAS_CONFIG}
-// Read ExtPath, ImagePath and Theme from configuration file
-procedure TExtThread.ReadConfig; begin
-  with Application do
-    if HasConfig then begin
-      ExtPath := Config.ReadString('FCGI', 'ExtPath', ExtPath);
-      if pos('/', ExtPath) <> 1 then ExtPath := '/' + ExtPath;
-      ImagePath := Config.ReadString('FCGI', 'ImagePath', ImagePath);
-      if pos('/', ImagePath) <> 1 then ImagePath := '/' + ImagePath;
-      Theme   := Config.ReadString('FCGI', 'ExtTheme', Theme);
-      Charset := Config.ReadString('FCGI', 'Charset', Charset);
-    end;
-end;
-
-// Re-read config file if password is right
-procedure TExtThread.DoReconfig;
-{$IFDEF DEBUGJS}
-var
-  I : integer;
-{$ENDIF}
-begin
-  ReadConfig;
-  {$IFDEF DEBUGJS}
-  // show applied configuration values (only during debugging)
-  with TStringList.Create do begin
-    LoadFromFile(Config.FileName);
-    Response := 'RECONFIG: Application is reconfigured with the following values:<p>';
-    for I := 0 to Count-1 do
-      Response := Response + Strings[I] + '<br>';
-    SendResponse(Response);
-    Free;
-  end;
-  {$ENDIF}
-end;
-{$ENDIF}
-
 // Calls events using Delphi style
-procedure TExtThread.HandleEvent;
+procedure TExtSession.HandleEvent;
 var
-  Obj : TExtObject;
+  Obj: TExtObject;
 begin
-  if Query['IsEvent'] = '1' then begin
-    Obj := TExtObject(GarbageFind(Query['Obj']));
+  if Query['IsEvent'] = '1' then
+  begin
+    Obj := ObjectCatalog.FindExtObject(Query['Obj']) as TExtObject;
     if not Assigned(Obj) then
       OnError('Object not found in session list. It could be timed out, refresh page and try again', 'HandleEvent', '')
     else
@@ -785,7 +1016,64 @@ Does tasks after Request processing.
   15.2. Generates JS code to enhance AJAX debugging, using Firefox, and
   15.3. Formats AJAX response code for easy debugging.
 }
-procedure TExtThread.AfterHandleRequest;
+procedure TExtSession.AfterConstruction;
+begin
+  inherited;
+  FResponseItems := TExtResponseItems.Create;
+  FObjectSequences := TDictionary<string, Cardinal>.Create;
+  FSingletons := TDictionary<string, TExtObject>.Create;
+end;
+
+function TExtSession.GetMainPageTemplate: string;
+begin
+  Result := '<%HTMLDeclaration%>' + sLineBreak +
+    '<head>' + sLineBreak +
+    '  <title><%ApplicationTitle%></title>' + sLineBreak +
+    '  <%ApplicationIconLink%>' + sLineBreak +
+    '  <meta http-equiv="content-type" content="charset=<%CharSet%>" />' + sLineBreak +
+    '  <link rel=stylesheet href="<%ExtPath%>/resources/css/<%ExtBuild%>.css" />' + sLineBreak +
+    '  <script src="<%ExtPath%>/adapter/ext/ext-base.js"></script>' + sLineBreak +
+    '  <script src="<%ExtPath%>/<%ExtBuild%><%DebugSuffix%>.js"></script>' + sLineBreak +
+    {$IFDEF DEBUGJS}
+    '  <script src="/codepress/Ext.ux.CodePress.js"></script>' + sLineBreak +
+    {$ENDIF}
+    '  <%ThemeLink%>' + sLineBreak +
+    '  <%LanguageLink%>' + sLineBreak +
+    '  <%StyleTag%>' + sLineBreak +
+    '  <%LibraryTags%>' + sLineBreak +
+    '</head>' + sLineBreak +
+    '<body>' + sLineBreak +
+    '<div id="body">' + sLineBreak +
+    '  <div id="loading" style="position:absolute;font-family:verdana;top:40%;left:40%">' + sLineBreak +
+    '    <img src="<%ExtPath%>/resources/images/default/shared/loading-balls.gif"/>Loading <%ApplicationTitle%>...' + sLineBreak +
+    '  </div>' + sLineBreak +
+    '</div>' + sLineBreak +
+    '<noscript>This web application requires JavaScript enabled</noscript>' + sLineBreak +
+    '</body>' + sLineBreak +
+    '  <script>' + sLineBreak +
+    {$IFDEF DEBUGJS}BeautifyJS{$ENDIF}
+    ('<%CustomJS%>' + sLineBreak +
+    'function AjaxError(m){Ext.Msg.show({title:"Ajax Error",msg:m,icon:Ext.Msg.ERROR,buttons:Ext.Msg.OK});};' +
+    {$IFDEF DEBUGJS}
+    'function AjaxSource(t,l,s){var w=new Ext.Window({title:"Ajax error: "+t+", Line: "+' + IfThen(Browser=brFirefox, '(l-%%)', '"Use Firefox to debug"') +
+    ',width:600,height:400,modal:true,items:[new Ext.ux.CodePress({language:"javascript",readOnly:true,code:s})]});w.show();' +
+    'w.on("resize",function(){w.items.get(0).resize();});};' +
+    'function AjaxSuccess(response){try{eval(response.responseText);}catch(err){AjaxSource(err.message,err.lineNumber,response.responseText);}};' +
+    {$ELSE}
+    'function AjaxSuccess(response){try{eval(response.responseText);}catch(err){AjaxError(err.message+"<br/>Use DebugJS define to enhance debugging<br/>"+response.responseText);}};' +
+    {$ENDIF}
+    'function sleep(ms){var start=new Date().getTime();for(var i=0;i<1e7;i++)if((new Date().getTime()-start)>ms)break;};'+ sLineBreak +
+    'function AjaxFailure(){AjaxError("Server unavailable, try later.");};' + sLineBreak +
+    'Ext.onReady(function(){' + sLineBreak +
+    'Ext.get("loading").remove();' + sLineBreak +
+    'Ext.BLANK_IMAGE_URL="<%ExtPath%>/resources/images/default/s.gif";' + sLineBreak +
+    'TextMetrics=Ext.util.TextMetrics.createInstance("body");' + sLineBreak +
+    'Download=Ext.DomHelper.append(document.body,{tag:"iframe",cls:"x-hidden"});') + '<%Response%>});' + sLineBreak +
+    '  </script>' + sLineBreak +
+    '</html>';
+end;
+
+procedure TExtSession.AfterHandleRequest;
 
   procedure HandleJSReturns;
   var
@@ -801,8 +1089,13 @@ procedure TExtThread.AfterHandleRequest;
 
 var
   I, J : integer;
+  LMainPageCode: string;
 begin
-  if IsDownLoad or IsUpLoad then exit;
+  if IsDownLoad or IsUpLoad then
+    Exit;
+
+  Response := ResponseItems.Consume;
+
   I := pos('/*', Response);
   while I <> 0 do begin // Extracts comments
     J := PosEx('*/', Response, I);
@@ -811,47 +1104,33 @@ begin
   end;
   HandleJSReturns;
   Response := AnsiReplaceStr(AnsiReplaceStr(Response, CommandDelim, ''), IdentDelim, ''); // Extracts aux delimiters
-  if not IsAjax then begin
+  if not IsAjax then
+  begin
     ContentType := 'text/html; charset=' + Charset;
-    Response := IfThen(HTMLQuirksMode, '<!docttype html public><html>',
-      '<?xml version=1.0?><!doctype html public "-//W3C//DTD XHTML 1.0 Strict//EN">'^M^J'<html xmlns=http://www.w3org/1999/xthml>') + ^M^J +
-      '<head>'^M^J +
-      '<title>' + Application.Title + '</title>'^M^J +
-      IfThen(Application.Icon = '', '', '<link rel="shortcut icon" href="' + ImagePath + '/' + Application.Icon + '"/>'^M^J) +
-      '<meta http-equiv="content-type" content="charset=' + Charset + '" />'^M^J +
-      '<link rel=stylesheet href="' + ExtPath + '/resources/css/' + ExtBuild + '.css" />'^M^J +
-      '<script src="' + ExtPath + '/adapter/ext/ext-base.js"></script>'^M^J +
-      '<script src="' + ExtPath + '/' + ExtBuild + {$IFDEF DebugExtJS}'-debug'+{$ENDIF} '.js"></script>'^M^J +
-      {$IFDEF DEBUGJS}'<script src="/codepress/Ext.ux.CodePress.js"></script>'^M^J +{$ENDIF}
-      IfThen(Theme = '', '', '<link rel=stylesheet href="' + ExtPath + '/resources/css/xtheme-' + Theme + '.css" />'^M^J) +
-      IfThen(FLanguage = 'en', '', '<script src="' + ExtPath + SourcePath + '/locale/ext-lang-' + FLanguage + '.js"></script>'^M^J) +
-      GetStyle + Libraries +
-      '</head>'^M^J +
-      '<body><div id=body>'^M^J +
-      '<div id=loading style="position:absolute;font-family:verdana;top:40%;left:40%">'^M^J +
-      '<img src="' + ExtPath + '/resources/images/default/shared/loading-balls.gif"/>' +
-      ' Loading ' + Application.Title + '...</div>'^M^J +
-      '</div><noscript>This web application requires JavaScript enabled</noscript></body>'^M^J +
-      '<script>'^M^J +
-      {$IFDEF DEBUGJS}BeautifyJS{$ENDIF}
-      (IfThen(CustomJS = '', '', CustomJS + ^M^J) +
-      'function AjaxError(m){Ext.Msg.show({title:"Ajax Error",msg:m,icon:Ext.Msg.ERROR,buttons:Ext.Msg.OK});};' +
-      {$IFDEF DEBUGJS}
-      'function AjaxSource(t,l,s){var w=new Ext.Window({title:"Ajax error: "+t+", Line: "+' + IfThen(Browser=brFirefox, '(l-%%)', '"Use Firefox to debug"') +
-      ',width:600,height:400,modal:true,items:[new Ext.ux.CodePress({language:"javascript",readOnly:true,code:s})]});w.show();' +
-      'w.on("resize",function(){w.items.get(0).resize();});};' +
-      'function AjaxSuccess(response){try{eval(response.responseText);}catch(err){AjaxSource(err.message,err.lineNumber,response.responseText);}};' +
-      {$ELSE}
-      'function AjaxSuccess(response){try{eval(response.responseText);}catch(err){AjaxError(err.message+"<br/>Use DebugJS define to enhance debugging<br/>"+response.responseText);}};' +
-      {$ENDIF}
-      'function sleep(ms){var start=new Date().getTime();for(var i=0;i<1e7;i++)if((new Date().getTime()-start)>ms)break;};'+
-      'function AjaxFailure(){AjaxError("Server unavailable, try later.");};' +
-      'Ext.onReady(function(){' +
-      'Ext.get("loading").remove();' +
-      'Ext.BLANK_IMAGE_URL="' + ExtPath + '/resources/images/default/s.gif";TextMetrics=Ext.util.TextMetrics.createInstance("body");'+
-      'Download=Ext.DomHelper.append(document.body,{tag:"iframe",cls:"x-hidden"});' +
-      Response) + '});'^M^J +
-      '</script>'^M^J^M^J'</html>';
+    LMainPageCode := GetMainPageTemplate;
+
+    // Replace template macros in main page code.
+    LMainPageCode := ReplaceText(LMainPageCode, '<%HTMLDeclaration%>',
+      IfThen(HTMLQuirksMode, '<!docttype html public><html>',
+      '<?xml version=1.0?>' + sLineBreak +
+      '<!doctype html public "-//W3C//DTD XHTML 1.0 Strict//EN">' + sLineBreak +
+      '<html xmlns=http://www.w3org/1999/xthml>'));
+    LMainPageCode := ReplaceText(LMainPageCode, '<%ApplicationTitle%>', Application.Title);
+    LMainPageCode := ReplaceText(LMainPageCode, '<%ApplicationIconLink%>',
+      IfThen(Application.Icon = '', '', '<link rel="shortcut icon" href="' + ImagePath + '/' + Application.Icon + '"/>'));
+    LMainPageCode := ReplaceText(LMainPageCode, '<%CharSet%>', CharSet);
+    LMainPageCode := ReplaceText(LMainPageCode, '<%ExtPath%>', ExtPath);
+    LMainPageCode := ReplaceText(LMainPageCode, '<%ExtBuild%>', ExtBuild);
+    LMainPageCode := ReplaceText(LMainPageCode, '<%DebugSuffix%>', {$IFDEF DebugExtJS}'-debug'{$ELSE}''{$ENDIF});
+    LMainPageCode := ReplaceText(LMainPageCode, '<%ThemeLink%>',
+      IfThen(Theme = '', '', '<link rel=stylesheet href="' + ExtPath + '/resources/css/xtheme-' + Theme + '.css" />'));
+    LMainPageCode := ReplaceText(LMainPageCode, '<%LanguageLink%>',
+      IfThen(FLanguage = 'en', '', '<script src="' + ExtPath + SourcePath + '/locale/ext-lang-' + FLanguage + '.js"></script>'));
+    LMainPageCode := ReplaceText(LMainPageCode, '<%StyleTag%>', GetStyleTag);
+    LMainPageCode := ReplaceText(LMainPageCode, '<%LibraryTags%>', FLibraries);
+    LMainPageCode := ReplaceText(LMainPageCode, '<%CustomJS%>', FCustomJS);
+    LMainPageCode := ReplaceText(LMainPageCode, '<%Response%>', Response);
+    Response := LMainPageCode;
     {$IFDEF DEBUGJS}
     Response := AnsiReplaceStr(Response, '%%', IntToStr(CountStr(^M^J, Response, 'eval('))); // eval() line number
     {$ENDIF}
@@ -873,9 +1152,39 @@ end;
 Returns a unique numeric sequence to identify a JS object, list or attribute in this session.
 This sequence will be used by Self-translating process imitating a Symbol table entrance.
 }
-function TExtThread.GetSequence : string; begin
+function TExtSession.GetNextJSName(const AObjectType: string): string;
+var
+  LResult: Cardinal;
+begin
+  if not FObjectSequences.ContainsKey(AObjectType) then
+    FObjectSequences.Add(AObjectType, 0);
+  LResult := FObjectSequences[AObjectType] + 1;
+  FObjectSequences[AObjectType] := LResult;
+  Result := AObjectType + IntToStr(LResult);
+end;
+
+function TExtSession.GetResponseItems: TExtResponseItems;
+begin
+  if Assigned(FCurrentResponseItemsBranch) then
+    Result := FCurrentResponseItemsBranch
+  else
+    Result := FResponseItems;
+end;
+
+function TExtSession.GetSequence : string; begin
   Result := IntToHex(Sequence, 1);
-  inc(Sequence);
+  Inc(Sequence);
+end;
+
+function TExtSession.GetSingleton<T>(const AName: string): T;
+begin
+  if FSingletons.ContainsKey(AName) then
+    Result := T(FSingletons[AName])
+  else
+  begin
+    Result := TExtObjectClass(T).CreateSingleton(Self.ObjectCatalog, AName) as T;
+    FSingletons.Add(AName, Result);
+  end;
 end;
 
 { ExtObjectList }
@@ -885,86 +1194,41 @@ Creates a TExtObjectList instance.
 @param pOwner TExtObject that owns this list
 @param pAttribute JS attribute name in TExtObject to this list
 }
-constructor TExtObjectList.Create(pOwner : TExtObject = nil; pAttribute : string = ''); begin
-  Attribute := pAttribute;
-  Owner     := pOwner;
-  Created   := true;
-  if CurrentWebSession <> nil then
-    JSName := 'O' + IdentDelim + TExtThread(CurrentWebSession).GetSequence + IdentDelim;
+constructor TExtObjectList.CreateAsAttribute(const AOwner: TExtObject; const AAttribute: string);
+begin
+  Assert(Assigned(AOwner));
+  Assert(AAttribute <> '');
+
+  FAttribute := AAttribute;
+  inherited Create(AOwner);
 end;
 
-{
-Creates a singleton TExtObjectList instance, used usually by Parser only.
-@param pAttribute JS attribute name in TExtObject to this list in the form 'Owner.attribute'
-}
-constructor TExtObjectList.CreateSingleton(pAttribute : string); begin
-  Attribute := pAttribute;
+procedure TExtObjectList.CreateJSName;
+begin
+  FJSName := '';
+  Name := '';
+end;
+
+procedure TExtObjectList.CreateVar(AJSCode: string);
+begin
+  CreateJSName;
 end;
 
 // Frees this list and all objects linked in it
 destructor TExtObjectList.Destroy;
-var
-  I : integer;
 begin
-  for I := high(FObjects) downto 0 do
-    FObjects[I].Free;
-  SetLength(FObjects, 0);
+  FreeAndNil(FObjects);
   inherited;
 end;
 
-{
-Adds a <link TExtObject> in this list and generates the corresponding JS code in the Response.
-@param Obj <link TExtObject> to add in the list
-}
-procedure TExtObjectList.Add(Obj : TExtObject);
-var
-  ListAdd, Response, OwnerName : string;
+function TExtObjectList.Add(const AObject: TExtObject): Integer;
 begin
-  if length(FObjects) = 0 then
-    if Owner <> nil then begin
-      if pos('/*' + Owner.JSName + '*/', CurrentWebSession.Response) <> 0 then
-        Owner.JSCode(Attribute + ':[/*' + JSName + '*/]', Owner.JSName)
-    end
-    else
-      with TExtThread(CurrentWebSession) do begin
-        JSCode(DeclareJS + JSName + '=[/*' + JSName + '*/];');
-        GarbageAdd(JSName, nil);
-      end;
-  SetLength(FObjects, length(FObjects) + 1);
-  FObjects[high(FObjects)] := Obj;
-  Response := CurrentWebSession.Response;
-  if Owner <> nil then
-    OwnerName := Owner.JSName
-  else
-    OwnerName := '';
-  if not Obj.Created or (pos(JSName, Response) = 0) then begin
-    if TExtThread(CurrentWebSession).IsAjax and (OwnerName <> '') then
-      if not Obj.Created then
-        if pos(JSName, Response) = 0 then begin
-          ListAdd := DeclareJS + Obj.JSName + '=' + OwnerName + '.add(%s);';
-          TExtThread(CurrentWebSession).GarbageAdd(Obj.JSName, nil);
-        end
-        else
-          ListAdd := '%s'
-      else
-        ListAdd := OwnerName + '.add(' + Obj.JSName + ');'
-    else
-      ListAdd := '%s';
-    if Attribute = 'items' then // Generalize it more if necessary
-      ListAdd := Format(ListAdd, ['new ' + Obj.JSClassName + '({/*' + Obj.JSName + '*/})'])
-    else
-      ListAdd := Format(ListAdd, ['{/*' + Obj.JSName + '*/}']);
-  end
-  else
-    if pos(Obj.JSName + '.clone', Obj.JSCommand) = 1 then
-      ListAdd := Obj.ExtractJSCommand
-    else
-      ListAdd := Obj.JSName;
-  Obj.Created := true;
-  Obj.DeleteFromGarbage;
-  Obj.JSCode(ListAdd, JSName, OwnerName);
-  if Obj.JSClassName = 'Ext.ux.CodePress' then
-    Owner.JSCode(OwnerName + '.on("resize", function(){' + OwnerName + '.items.get(' + IntToStr(high(FObjects)) + ').resize();});');
+  Assert(Assigned(AObject));
+  Assert(Assigned(OwnerExtObject));
+  Assert(FAttribute <> '');
+
+  ExtSession.ResponseItems.AddToList(OwnerExtObject, Self, FAttribute, 'add', [AObject, False]);
+  Result := AddInternal(AObject);
 end;
 
 {
@@ -972,65 +1236,68 @@ Returns the Ith object in the list, starts with 0.
 @param I Position in list
 @return <link TExtObject>
 }
-function TExtObjectList.GetFObjects(I : integer) : TExtObject; begin
-  if (I >= 0) and (I <= high(FObjects)) then
-    Result := FObjects[I]
-  else
-    Result := nil
-end;
-
-function TExtObjectList.IndexOf(Obj: TExtObject): Integer;
-var
-  I: Integer;
+function TExtObjectList.GetCount: Integer;
 begin
-  Result := -1;
-  for I := Low(FObjects) to High(FObjects) do
-  begin
-    if FObjects[I] = Obj then
-    begin
-      Result := I;
-      Break;
-    end;
-  end;
+  Result := FObjects.Count;
 end;
 
-procedure TExtObjectList.Remove(Obj: TExtObject);
-var
-  LIndex: Integer;
-  LLength: Integer;
-  I: Integer;
+function TExtObjectList.GetObject(I: Integer): TExtObject;
 begin
-  LIndex := IndexOf(Obj);
-  if LIndex >= 0 then
-  begin
-    LLength := Length(FObjects);
-    for I := LIndex + 1 to LLength - 1 do
-      FObjects[I - 1] := FObjects[I];
-    SetLength(FObjects, LLength - 1);
-  end;
+  Result := FObjects[I];
 end;
 
-// Returns the number of Objects in the list
-function TExtObjectList.Count : integer; begin
-  Result := length(FObjects)
+function TExtObjectList.GetOwnerExtObject: TExtObject;
+begin
+  Result := Owner as TExtObject;
+end;
+
+function TExtObjectList.IndexOf(const AObject: TExtObject): Integer;
+begin
+  Result := FObjects.IndexOf(AObject);
+end;
+
+function TExtObjectList.Remove(const AObject: TExtObject): Integer;
+begin
+  Result := FObjects.Remove(AObject);
+end;
+
+function TExtObjectList.AddInternal(const AObject: TExtObject): Integer;
+begin
+  Assert(Assigned(AObject));
+
+  Result := FObjects.Add(AObject);
+end;
+
+procedure TExtObjectList.AfterConstruction;
+begin
+  inherited;
+  FObjects := TObjectList<TExtObject>.Create(False);
 end;
 
 { ExtObject }
 
 // Set an unique <link TExtObject.JSName, JSName> using <link TExtThread.GetSequence, GetSequence>
-procedure TExtObject.CreateJSName; begin
-  FJSName := 'O' + IdentDelim + TExtThread(CurrentWebSession).GetSequence + IdentDelim;
+procedure TExtObject.CreateJSName;
+begin
+  if FJSName = '' then
+    //FJSName := 'O' + IdentDelim + TExtThread(CurrentWebSession).GetSequence + IdentDelim;
+    FJSName := ExtSession.GetNextJSName(GetObjectNamePrefix);
+  //Name := TExtThread(CurrentWebSession).GarbageFixName(FJSName);
+  Name := FJSName;
 end;
 
 {
 Creates a singleton TExtObject instance, used usually by Parser only.
 @param Attribute JS attribute name in TExtObject to this list in the form 'Owner.attribute'
 }
-constructor TExtObject.CreateSingleton(Attribute : string = ''); begin
-  if Attribute = '' then
+constructor TExtObject.CreateSingleton(const AOwner: TComponent; const AAttribute: string = '');
+begin
+  Assert(Assigned(AOwner));
+  inherited Create(AOwner);
+  if AAttribute = '' then
     FJSName := JSClassName
   else
-    FJSName := Attribute;
+    FJSName := AAttribute;
   InitDefaults;
 end;
 
@@ -1040,9 +1307,10 @@ Uses dynamic JS in browser.
 @param Chars Field length in characters
 @return Pixels used by browser to render these Chars
 }
-function TExtObject.CharsToPixels(Chars : integer) : integer; begin
+function TExtObject.CharsToPixels(const AChars: Integer; const AOffset: Integer = 0): Integer;
+begin
   // + 16 sort of compensates for text-to-border left and right margins.
-  Result := JSExpression('(%s * %d) + 16', [ExtUtilTextMetrics.GetWidth('g'), Chars]);
+  Result := JSExpression('(%s * %d) + %d', [ExtUtilTextMetrics.GetWidth('g'), AChars, 16 + AOffset]);
 end;
 
 {
@@ -1051,51 +1319,19 @@ Uses dynamic JS in browser.
 @param Lines TextArea height in characters.
 @return Pixels used by browser to render these Lines
 }
-function TExtObject.LinesToPixels(Lines : integer) : integer; begin
-  Result := JSExpression('%s * %.2f', [ExtUtilTextMetrics.GetHeight('W'), Lines * 0.8]);
+function TExtObject.LinesToPixels(const ALines: Integer): Integer;
+begin
+  Result := JSExpression('%s * %.2f', [ExtUtilTextMetrics.GetHeight('W'), ALines * 0.8]);
 end;
 
-{
-When assign value to a config property, check if it is in creating process.
-If not then config property code will redirect to a relationed method if it exists.
-@param JSName Objects name to be searched in generated script
-@return true if the JSName object has a configuration in this request, false if not
-@example <code>
-//doesn't matter if you are into Create block or assign to previous ajax created object
-//O1.title will be mapped to O1.setTitle('new title', ''); by ExtToPascal wrapper
-O1.title = 'new title';
-</code>
-}
-function TExtObject.ConfigAvailable(JSName : string) : boolean; begin
-  Result := pos('/*' + JSName + '*/', TExtThread(CurrentWebSession).Response) <> 0;
-end;
+procedure TExtObject.CreateVar(AJSCode: string);
+begin
+  Assert(Assigned(ExtSession));
 
-{
-Used by <link TExtObject.Create, Create> to initialize the JSName, to <link TFCGIThread.AddToGarbage, add to Garbage Collector>
-and to generate <link TExtObject.JSCode, JS code>
-@param JS JS constructor for the JS <color red>new</color> command
-@see CreateVarAlt
-}
-procedure TExtObject.CreateVar(JS : string); begin
+  { TODO : JSName could be assigned on demand. }
   CreateJSName;
-  TExtThread(CurrentWebSession).GarbageAdd(JSName, Self);
-  insert('/*' + JSName + '*/', JS, length(JS)-IfThen(pos('});', JS) <> 0, 2, 1));
-  Created := true;
-  JSCode(CommandDelim + DeclareJS + JSName + IfThen(JS[1] = '(', '= ', '=new ') + JS);
-  JSCode(JSName + '.nm="' + JSName + '";');
-end;
 
-{
-Alternate create constructor, it is an ExtJS fault
-@see CreateVar
-}
-procedure TExtObject.CreateVarAlt(JS : string); begin
-  CreateJSName;
-  TExtThread(CurrentWebSession).GarbageAdd(JSName, Self);
-  insert('/*' + JSName + '*/', JS, length(JS)-IfThen(pos('});', JS) <> 0, 2, 1));
-  Created := true;
-  JSCode(CommandDelim + DeclareJS + JSName + '= ' + JS);
-  JSCode(JSName + '.nm="' + JSName + '";');
+  ExtSession.ResponseItems.CreateObject(Self);
 end;
 
 // Deletes JS object from Browser memory
@@ -1103,15 +1339,37 @@ procedure TExtObject.Delete; begin
   JSCode('delete ' + JSName + ';')
 end;
 
-// <link TFCGIThread.DeleteFromGarbage, Removes object from Garbage Collector> if is not in a Garbage Collector call
-procedure TExtObject.DeleteFromGarbage; begin
-  if CurrentWebSession <> nil then TExtThread(CurrentWebSession).GarbageDelete(Self);
+procedure TExtObject.Notification(AComponent: TComponent; Operation: TOperation);
+begin
+  if (AComponent = Self) and (Operation = opRemove) and Assigned(Owner) then
+  begin
+    // The owner is destroying this object, so we clear anything related from
+    // the response. We do this in the destructor for those cases in which a component
+    // in destroyed while still being owned, but we must do it here as well
+    // for cases in which the owner is freeing its own components (which it
+    // does AFTER calling RemoveComponent, thus at a time when it's not the owner
+    // anymore.
+    ExtSession.ResponseItems.RemoveAll(Self);
+  end;
 end;
 
 // Calls Ext JS <b>destroy()</b> method if it exists else calls the JS <b>delete</b> command
+destructor TExtObject.Destroy;
+begin
+  // See Notification for details.
+  if Assigned(Owner) then
+    ExtSession.ResponseItems.RemoveAll(Self);
+  inherited;
+end;
+
 function TExtObject.DestroyJS : TExtFunction; begin
   Delete;
   Result := TExtFunction(Self)
+end;
+
+function TExtObject.GetConstructionJS: string;
+begin
+  Result := 'new ' + JSClassName;
 end;
 
 function TExtObject.GetDownloadJS(Method: TExtProcedure; Params: array of const): string;
@@ -1125,12 +1383,29 @@ begin
     P := P + 'Obj=' + ObjName;
   end;
   if P <> '' then P := '?' + P;
-  Result := 'Download.src="' + CurrentWebSession.MethodURI(MetName) + P + '";';
+  Result := 'Download.src="' + ExtSession.MethodURI(MetName) + P + '";';
+end;
+
+function TExtObject.GetExtSession(const AOwner: TComponent): TExtSession;
+var
+  LOwner: TComponent;
+begin
+  if FSession = nil then
+  begin
+    LOwner := AOwner;
+    while (LOwner <> nil) and (LOwner.Owner <> nil) do
+      LOwner := LOwner.Owner;
+    if LOwner is TObjectCatalog then
+      FSession := TObjectCatalog(LOwner).Session as TExtSession;
+    if FSession = nil then
+      raise Exception.CreateFmt('Session not found for object %s of type %s (%s).', [JSName, JSClassName, ClassName]);
+  end;
+  Result := FSession;
 end;
 
 procedure TExtObject.Download(Method: TExtProcedure; Params: array of const);
 begin
-  JSCode(GetDownloadJS(Method, Params));
+  ExtSession.ResponseItems.ExecuteJSCode(Self, GetDownloadJS(Method, Params));
 end;
 
 procedure TExtObject.Download(Method: TExtProcedure);
@@ -1138,19 +1413,16 @@ begin
   Download(Method, []);
 end;
 
-// <link TExtObject.DeleteFromGarbage, Removes object from Garbage Collector> and frees it
-destructor TExtObject.Destroy; begin
-  if CurrentWebSession <> nil then TExtThread(CurrentWebSession).GarbageRemove(Self);
-  inherited;
-end;
-
 {
 Creates a TExtObject and generate corresponding JS code using <link TExtObject.JSCode, Self-translating>
 @param Owner Optional parameter used internally by <link TExtObject.JSObject, JSObject> and <link TExtObject.JSArray, JSArray> only
 }
-constructor TExtObject.Create(Owner : TExtObject = nil); begin
-  //if Owner = nil then
-  CreateVar(JSClassName + '({});');// else Created := True;
+constructor TExtObject.Create(AOwner: TComponent);
+begin
+  Assert(Assigned(AOwner));
+  inherited Create(AOwner);
+  CreateVar(JSClassName + '({});');
+  InitDefaults;
 end;
 
 {
@@ -1158,14 +1430,27 @@ Used by Parser to build <link TExtObject.InitDefaults, InitDefaults> methods use
 @param Owner TExtObject where this property is declared
 @param Attribute Public JS property name
 }
-constructor TExtObject.CreateInternal(Owner : TExtObject; Attribute : string); begin
-  FJSName := Owner.JSName + '.' + Attribute;
-  Created := true;
+constructor TExtObject.CreateInline(AOwner: TComponent);
+begin
+  Assert(Assigned(AOwner));
+  // Inline = don't create the declaration.
+  inherited Create(AOwner);
+  InitDefaults;
+end;
+
+constructor TExtObject.CreateInternal(const AOwner: TExtObject; const AAttribute: string);
+begin
+  Assert(Assigned(AOwner));
+
+  inherited Create(AOwner);
+  FJSName := AOwner.JSName + '.' + AAttribute;
+  //InitDefaults;
 end;
 
 // Returns 'Object' that is the default class name for Ext JS objects
-function TExtObject.JSClassName : string; begin
-  Result := 'Object'
+class function TExtObject.JSClassName : string;
+begin
+  Result := 'Object';
 end;
 
 {
@@ -1188,57 +1473,208 @@ begin
   Result := false;
 end;
 
-// Get last JSCommand emited by this object
-function TExtObject.GetJSCommand : string;
-var
-  I : integer;
+function TExtObject.GetExtSession: TExtSession;
 begin
-  I := LastDelimiter(JSDelim, FJSCommand);
-  if I = 0 then
-    Result := FJSCommand
-  else
-    Result := copy(FJSCommand, I+1, length(FJSCommand));
+  Result := GetExtSession(Owner);
+end;
+
+procedure TExtObject.SetCustomConfigItem(const AName: string; const AValues: array of const);
+begin
+  ExtSession.ResponseItems.SetConfigItem(Self, AName, AValues);
 end;
 
 {
-Pushes a JSCommand to this object
-@param Value JSCommand
+Converts an array of const to JSON (JavaScript Object Notation) to be used in constructors, JS Arrays or JS Objects
+@param A Array of anytype variables
+@return JSON representation of array
 }
-procedure TExtObject.SetJSCommand(const Value : string);
+function TExtObject.VarToJSON(const AVars: array of const; const ASession: TExtSession): string;
 var
-  I, J : integer;
+  I: Integer;
+  LCommand: string;
+  LObjectJSName: string;
+  LCodeItem: TExtResponseItem;
+  LSession: TExtSession;
 begin
-  if Value = '' then begin
-    if FJSCommand <> '' then begin
-      I := LastDelimiter(JSDelim, FJSCommand);
-      J := pos(IdentDelim + '.get', FJSCommand);
-      if (I = 0) or (J = 0) or (J > I) then
-        FJSCommand := ''
-      else
-        System.Delete(FJSCommand, I, length(FJSCommand));
-    end
-  end
-  else
-    if pos(IdentDelim + '.', Value) = 0 then
-      FJSCommand := Value
-    else
-      FJSCommand := FJSCommand + IfThen(FJSCommand = '', '', JSDelim) + Value
+  Result := '';
+  I := 0;
+
+  LSession := ASession;
+  if LSession = nil then
+    LSession := ExtSession;
+
+  while I <= High(AVars) do
+  begin
+    case AVars[I].VType of
+      vtObject: begin
+        if AVars[I].VObject <> nil then
+        begin
+          LCodeItem := LSession.ResponseItems.FindLastCodeItem(TExtObject(AVars[I].VObject));
+          if Assigned(LCodeItem) and AVars[I + 1].VBoolean then
+          begin
+            Result := Result + WriteFunction(LCodeItem.ToString);
+            LSession.ResponseItems.Remove(LCodeItem);
+          end
+          else
+          begin
+            LObjectJSName := TExtObject(AVars[I].VObject).JSName;
+            if Assigned(LCodeItem) then
+              LCommand := RemoveLastJSTerminator(LCodeItem.ToString)
+            else
+              LCommand := '';
+            Result := Result + LObjectJSName;
+          end;
+          (*
+          LCommand := TExtObject(VObject).PopJSCommand;
+          if (LCommand <> '') and A[I+1].VBoolean then begin
+            Result := Result + WriteFunction(LCommand);
+            TExtThread(CurrentWebSession).RemoveJS(LCommand);
+          end
+          else begin
+            JSName := TExtObject(VObject).JSName;
+            if InJSFunction and (pos(JSName, LCommand) = 1) then begin
+              Result := Result + copy(LCommand, 1, length(LCommand)-1);
+              TExtThread(CurrentWebSession).RemoveJS(LCommand);
+            end
+            else
+              Result := Result + JSName;
+          end;
+          *)
+        end
+        else
+        begin
+          if Result = '' then
+            Result := 'null'
+          else
+          begin
+            Inc(I, 2);
+            Continue;
+          end;
+        end;
+        Inc(I);
+      end;
+      vtAnsiString: Result := Result + StrToJS(string(AVars[I].VAnsiString));
+      vtString:     Result := Result + StrToJS(string(AVars[I].VString^));
+      vtWideString: Result := Result + StrToJS(string(AVars[I].VWideString));
+      {$IFDEF UNICODE}
+      vtUnicodeString: Result := Result + StrToJS(string(AVars[I].VUnicodeString));
+      {$ENDIF}
+      vtInteger:    Result := Result + IntToStr(AVars[I].VInteger);
+      vtBoolean:    Result := Result + IfThen(AVars[I].VBoolean, 'true', 'false');
+      vtExtended:   Result := Result + AnsiReplaceStr(FloatToStr(AVars[I].VExtended^), ',', '.');
+      vtCurrency:   Result := Result + CurrToStr(AVars[I].VCurrency^);
+      vtInt64:      Result := Result + IntToStr(AVars[I].VInt64^);
+      vtVariant:    Result := Result + string(AVars[I].VVariant^);
+      vtChar:       Result := Result + string(AVars[I].VChar);
+      vtWideChar:   Result := Result + AVars[I].VWideChar;
+    end;
+    if I < High(AVars) then
+      Result := Result + ',';
+    Inc(I);
+  end;
+  if (Result <> '') and (Result[Length(Result)] = ',') then
+    System.Delete(Result, Length(Result), 1);
 end;
 
-// Pops first JSCommand emited by this object
-function TExtObject.PopJSCommand : string;
+function TExtObject.VarToJSON(const AVars: array of const;
+  const AProc: TVarToJSONProc): string;
 var
-  I : integer;
+  I: Integer;
+  LCommand: string;
+  LCodeItem: TExtResponseItem;
+  LCurrentParam: string;
+  LProcCalled: Boolean;
 begin
-  I := FirstDelimiter(JSDelim, FJSCommand);
-  if I = 0 then begin
-    Result := FJSCommand;
-    FJSCommand := '';
-  end
-  else begin
-    Result := copy(FJSCommand, 1, I-1);
-    System.Delete(FJSCommand, 1, I);
+  Result := '';
+  I := 0;
+  while I <= High(AVars) do
+  begin
+    LProcCalled := False;
+    case AVars[I].VType of
+      vtObject: begin
+        if AVars[I].VObject <> nil then
+        begin
+          LCodeItem := ExtSession.ResponseItems.FindLastCodeItem(TExtObject(AVars[I].VObject));
+          if Assigned(LCodeItem) and AVars[I + 1].VBoolean then
+          begin
+            LCurrentParam := WriteFunction(LCodeItem.ToString);
+            Result := Result + LCurrentParam;
+            ExtSession.ResponseItems.Remove(LCodeItem);
+          end
+          else
+          begin
+            LCurrentParam := TExtObject(AVars[I].VObject).JSName;
+            if Assigned(LCodeItem) then
+              LCommand := RemoveLastJSTerminator(LCodeItem.ToString)
+            else
+              LCommand := '';
+            { TODO : Mind the spacing - maybe characterize this type of command with a special class.}
+//            if InJSFunction and (Pos(LCurrentParam, Trim(LCommand)) = 1) then
+//              ExtSession.ResponseItems.Remove(LCodeItem)
+//            else
+              Result := Result + LCurrentParam;
+          end;
+          if Assigned(AProc) then
+            AProc(LCurrentParam, AVars[I].VObject, AVars[I + 1].VBoolean);
+          LProcCalled := True;
+          (*
+          LCommand := TExtObject(VObject).PopJSCommand;
+          if (LCommand <> '') and A[I+1].VBoolean then begin
+            Result := Result + WriteFunction(LCommand);
+            TExtThread(CurrentWebSession).RemoveJS(LCommand);
+          end
+          else begin
+            JSName := TExtObject(VObject).JSName;
+            if InJSFunction and (pos(JSName, LCommand) = 1) then begin
+              Result := Result + copy(LCommand, 1, length(LCommand)-1);
+              TExtThread(CurrentWebSession).RemoveJS(LCommand);
+            end
+            else
+              Result := Result + JSName;
+          end;
+          *)
+        end
+        else
+        begin
+//          if Assigned(AProc) then
+//            AProc('null', nil, False);
+          LProcCalled := True;
+          if Result = '' then
+            Result := 'null'
+          else
+          begin
+            Inc(I, 2);
+            Continue;
+          end;
+        end;
+        Inc(I);
+      end;
+      vtAnsiString: LCurrentParam := StrToJS(string(AVars[I].VAnsiString));
+      vtString:     LCurrentParam := StrToJS(string(AVars[I].VString^));
+      vtWideString: LCurrentParam := StrToJS(string(AVars[I].VWideString));
+      {$IFDEF UNICODE}
+      vtUnicodeString: LCurrentParam := StrToJS(string(AVars[I].VUnicodeString));
+      {$ENDIF}
+      vtInteger:    LCurrentParam := IntToStr(AVars[I].VInteger);
+      vtBoolean:    LCurrentParam := IfThen(AVars[I].VBoolean, 'true', 'false');
+      vtExtended:   LCurrentParam := AnsiReplaceStr(FloatToStr(AVars[I].VExtended^), ',', '.');
+      vtCurrency:   LCurrentParam := CurrToStr(AVars[I].VCurrency^);
+      vtInt64:      LCurrentParam := IntToStr(AVars[I].VInt64^);
+      vtVariant:    LCurrentParam := string(AVars[I].VVariant^);
+      vtChar:       LCurrentParam := string(AVars[I].VChar);
+      vtWideChar:   LCurrentParam := AVars[I].VWideChar;
+    end;
+    if Assigned(AProc) and not LProcCalled then
+    begin
+      Result := Result + LCurrentParam;
+      AProc(LCurrentParam, nil, False);
+    end;
+    if I < High(AVars) then
+      Result := Result + ',';
+    Inc(I);
   end;
+  if (Result <> '') and (Result[Length(Result)] = ',') then
+    System.Delete(Result, Length(Result), 1);
 end;
 
 function TExtObject.RequestDownload(Method : TExtProcedure; Params : array of const): TExtFunction;
@@ -1258,27 +1694,15 @@ Invokes <link TExtThread.JSConcat, JSConcat> if identify a nested typecast
 @param pOwner Optional, used by <link TExtObjectList.Add> only to pass the TExtObject owner list
 }
 procedure TExtObject.JSCode(JS : string; pJSName : string = ''; pOwner : string = '');
-var
-  lJSName, JSC : string;
 begin
-  if JS <> '' then begin
-    if (pos('.nm="', JS) = 0) and (JS[length(JS)] = ';') and not(pos(DeclareJS, JS) in [1, 2]) then begin
-      if (JSCommand <> '') and (pJSName <> '') and not IsParent(pJSName) then begin
-        JSC := JSCommand;
-        JSCommand := '';
-        JSCommand := TExtThread(CurrentWebSession).JSConcat(JSC, JS);
-        exit;
-      end;
-      if not(pos(IdentDelim + '.get', FJSCommand) in [4..9]) then FJSCommand := '';
-      JSCommand := JS;
-    end;
-    // else JSCommand := '';
-    if (pJSName = '') or (pos('T', pJSName) = 1) then
-      lJSName := JSName
-    else
-      lJSName := pJSName;
-    TExtThread(CurrentWebSession).JSCode(JS, pJSName, lJSName, pOwner);
-  end;
+  Assert(False, 'Not implemented - ' + JS);
+end;
+
+constructor TExtObject.CreateWithConfig(AOwner: TComponent; AConfig: TExtObject);
+begin
+  if Assigned(AConfig) then
+    FCreateVarArgs := JSClassName + '(' + VarToJSON([AConfig, False], GetExtSession(AOwner)) + ');';
+  Create(AOwner);
 end;
 
 {
@@ -1286,31 +1710,37 @@ Adds this object in a list.
 If called as constructor creates the object before adds it to the list.
 @param List An instanciated <link TExtObjectList>
 }
-constructor TExtObject.AddTo(List : TExtObjectList); begin
-  if JSName = '' then begin
-    CreateVar(JSClassName + '({});');
-    InitDefaults;
-  end;
-  List.Add(Self);
+constructor TExtObject.CreateAndAddTo(List : TExtObjectList);
+begin
+  Create(List);
+  AddTo(List);
 end;
 
 // Inits a JS Object with a <link TExtFunction>
-constructor TExtObject.Init(Method : TExtFunction); begin
+constructor TExtObject.Init(AOwner: TComponent; AMethod: TExtFunction);
+begin
+  Assert(Assigned(AOwner));
+  Assert(Assigned(AMethod));
+  inherited Create(AOwner);
   CreateJSName;
-  TExtThread(CurrentWebSession).GarbageAdd(JSName, nil);
-  Created := true;
-  JSCode(CommandDelim + DeclareJS + JSName + '=' + Method.ExtractJSCommand + ';');
+  JSCode(CommandDelim + DeclareJS + JSName + '=' + AMethod.ExtractJSCommand + ';');
+  InitDefaults;
 end;
 
 // Inits a JS Object with a JS command
-constructor TExtObject.Init(Command : string); begin
+constructor TExtObject.Init(const AOwner: TComponent; const ACommand: string);
+begin
+  Assert(Assigned(AOwner));
+  Assert(ACommand <> '');
+  inherited Create(AOwner);
   CreateJSName;
-  TExtThread(CurrentWebSession).GarbageAdd(JSName, Self);
-  Created := true;
-  JSCode(CommandDelim + DeclareJS + JSName + '=' + Command + ';');
+  JSCode(CommandDelim + DeclareJS + JSName + '=' + ACommand + ';');
+  InitDefaults;
 end;
 
-procedure TExtObject.InitDefaults; begin end;
+procedure TExtObject.InitDefaults;
+begin
+end;
 
 {
 Generates JS code to declare an inline JS Array.
@@ -1318,12 +1748,13 @@ Generates JS code to declare an inline JS Array.
 @param SquareBracket If true surrounds the array with []. Default is true.
 @return <link TExtObjectList> to be used in assigns
 }
-function TExtObject.JSArray(JSON : string; SquareBracket : boolean = true) : TExtObjectList; begin
-  Result := TExtObjectList(TExtObject.Create(Self));
-  If SquareBracket then // FPC dont support IfThen with ansistrings by default
-    TExtObject(Result).FJSName := '[' + JSON + ']'
+function TExtObject.JSArray(const AJSON: string; const ASquareBrackets: Boolean): TExtObjectList;
+begin
+  Result := TExtObjectList.CreateAsAttribute(Self, 'dummy');
+  If ASquareBrackets then
+    Result.FJSName := '[' + AJSON + ']'
   else
-    TExtObject(Result).FJSName := JSON;
+    Result.FJSName := AJSON;
 end;
 
 (*
@@ -1342,14 +1773,21 @@ It is necessary in 3 cases:
 @param CurlyBracket If true surrounds the JSON with {}. Default is true.
 @return <link TExtObject> to be used in assigns
 *)
-function TExtObject.JSObject(JSON : string; ObjectConstructor : string = ''; CurlyBracket : boolean = true) : TExtObject; begin
-  Result := TExtObject.Create(Self);
-  if CurlyBracket then // FPC dont support IfThen with ansistrings by default
-    Result.FJSName := '{' + JSON + '}'
-  else
-    Result.FJSName := JSON;
-  if ObjectConstructor <> '' then
-    Result.FJSName := 'new ' + ObjectConstructor + '(' + Result.FJSName + ')'
+function TExtObject.JSObject(const AJSON: string; const AObjectConstructor: string;
+  const ACurlyBrackets: Boolean): TExtObject;
+begin
+  Result := TExtObject.CreateInline(Self);
+  try
+    if ACurlyBrackets then
+      Result.FJSName := '{' + AJSON + '}'
+    else
+      Result.FJSName := AJSON;
+    if AObjectConstructor <> '' then
+      Result.FJSName := 'new ' + AObjectConstructor + '(' + Result.FJSName + ')';
+  except
+    FreeAndNil(Result);
+    raise;
+  end;
 end;
 
 function TExtObject.AddJSReturn(Expression : string; MethodsValues : array of const) : string;
@@ -1357,7 +1795,8 @@ var
   Command : string;
   I : integer;
 begin
-  with TExtThread(CurrentWebSession) do begin
+  with ExtSession do
+  begin
     Result := '-$7' + GetSequence + '7';
     for I := 0 to high(MethodsValues) do
       with MethodsValues[I] do
@@ -1424,9 +1863,10 @@ Generates JS code to declare an anonymous JS function with parameters
 @param Body JS commands for JS function
 @return <link TExtFunction> to use in event handlers
 }
-function TExtObject.JSFunction(Params, Body : string) : TExtFunction; begin
-  Result := TExtFunction.Create(Self);
-  Result.FJSName := 'function(' + Params + '){' + Body + '}';
+function TExtObject.JSFunction(const AParams, ABody: string): TExtFunction;
+begin
+  Result := TExtFunction.CreateInline(Self);
+  Result.FJSName := 'function(' + AParams + ') { ' + ABody + ' }';
 end;
 
 {
@@ -1434,8 +1874,9 @@ Generates JS code to declare an anonymous JS function without parameters
 @param Body JS commands for JS function
 @return <link TExtFunction> to use in event handlers
 }
-function TExtObject.JSFunction(Body : string) : TExtFunction; begin
-  Result := JSFunction('', Body);
+function TExtObject.JSFunction(const ABody: string): TExtFunction;
+begin
+  Result := JSFunction('', ABody);
 end;
 
 {
@@ -1444,8 +1885,10 @@ Declares a named JS function with parameters.
 @param Params JS Parameters separated by commas
 @param Body JS commands for JS function
 }
-procedure TExtObject.JSFunction(Name, Params, Body : string); begin
-  JSCode('function ' + Name + '(' + Params + '){' + Body + '};');
+procedure TExtObject.JSFunction(const AName, AParams, ABody: string);
+begin
+  ExtSession.ResponseItems.ExecuteJSCode(Self,
+    'function ' + AName + '(' + AParams + ') { ' + ABody + ' };');
 end;
 
 {
@@ -1498,23 +1941,21 @@ begin
 }
 function TExtObject.JSFunction(Method : TExtProcedure; Silent : boolean = false) : TExtFunction;
 var
-  CurrentResponse : string;
+  LResponseItemBranch: TExtResponseItems;
+  LCommand: string;
 begin
-  InJSFunction := true;
   Result := TExtFunction(Self);
-  with TExtThread(CurrentWebSession) do begin
-    CurrentResponse := Response;
-    Response := '';
+
+  LResponseItemBranch := ExtSession.BranchResponseItems;
+  try
     Method;
-    JSCommand := '';
+    LCommand := LResponseItemBranch.Consume;
     if Silent then
-      JSCommand := 'try{' + Response + '}catch(e){};'
-    else
-      JSCommand := Response;
-    Response  := CurrentResponse;
-    JSCode(JSCommand);
+      LCommand := 'try { ' + LCommand + ' } catch(e) {};'
+  finally
+    ExtSession.UnbranchResponseItems(LResponseItemBranch, False);
   end;
-  InJSFunction := false;
+  ExtSession.ResponseItems.ExecuteJSCode(Self, LCommand);
 end;
 
 {
@@ -1562,8 +2003,9 @@ begin
   end;
 end;</code>
 }
-function TExtObject.Ajax(Method : TExtProcedure) : TExtFunction; begin
-  Result := Ajax(Method, []);
+function TExtObject.Ajax(const AMethod: TExtProcedure): TExtFunction;
+begin
+  Result := Ajax(AMethod, []);
 end;
 
 {
@@ -1636,12 +2078,36 @@ begin
 end;
 </code>
 }
-function TExtObject.Ajax(Method : TExtProcedure; Params : array of const) : TExtFunction;
-var
-  MetName, ObjName : string;
+procedure TExtObject.AddTo(List: TExtObjectList);
 begin
-  Result := FindMethod(Method, MetName, ObjName);
-  AjaxCode(MetName, IfThen(ObjName = '', '', 'Obj=' + ObjName), Params);
+  List.Add(Self);
+end;
+
+function TExtObject.Ajax(const AMethod: TExtProcedure; const AParams: array of const): TExtFunction;
+var
+  LMethodName: string;
+  LObjectName: string;
+begin
+  Result := FindMethod(AMethod, LMethodName, LObjectName);
+  AjaxCode(LMethodName, IfThen(LObjectName = '', '', 'Obj=' + LObjectName), AParams,  []);
+end;
+
+function TExtObject.Ajax(const AMethod: TExtProcedure; const AParams: string;
+  const AAdditionalDependencies: array of TExtObject;
+  const AIsEvent: Boolean): TExtFunction;
+var
+  LMethodName: string;
+  LObjectName: string;
+  LParams: string;
+begin
+  Result := FindMethod(AMethod, LMethodName, LObjectName);
+  LParams := AParams;
+  if AIsEvent then
+  begin
+    LParams := LParams + '&IsEvent=1&Evt=' + LMethodName;
+    LMethodName := 'HandleEvent';
+  end;
+  AjaxCode(LMethodName, AParams + IfThen(LObjectName = '', '', '&Obj=' + LObjectName), [], AAdditionalDependencies);
 end;
 
 {
@@ -1653,7 +2119,6 @@ function TExtObject.FindMethod(Method : TExtProcedure; var PascalName, ObjName :
 var
   Obj : TObject;
 begin
-  InJSFunction := false;
   Obj := TMethod(Method).Data;
   PascalName := Obj.MethodName(@Method);
   if PascalName = '' then
@@ -1668,15 +2133,12 @@ begin
 end;
 
 // Ajax with raw string as params
-function TExtObject.Ajax(Method : TExtProcedure; Params : string) : TExtFunction;
+function TExtObject.Ajax(const AMethod: TExtProcedure; const AParams: string) : TExtFunction;
 var
-  MetName, ObjName : string;
+  AMethodName, AObjectName: string;
 begin
-  Result := FindMethod(Method, MetName, ObjName);
-  JSCode('Ext.Ajax.request({url:"' + MethodURI(MetName) + '",params:"Ajax=1&"+' +
-    Params + IfThen(ObjName = '', '', '+"&Obj=' + ObjName + '"') + ',success:AjaxSuccess,failure:AjaxFailure});');
-(*  JSCode('Ext.Ajax.request({url:"' + MethodURI(MetName) + '",params:{Ajax:1,' + Params +
-    IfThen(ObjName = '', '', ',Obj:' + ObjName) + '},success:AjaxSuccess,failure:AjaxFailure});');*)
+  Result := FindMethod(AMethod, AMethodName, AObjectName);
+  AjaxCode(AMethodName, '"+' + AParams + IfThen(AObjectName = '', '', '+"&Obj=' + AObjectName), [], []);
 end;
 
 // Ajax with JSFunction as params
@@ -1693,69 +2155,87 @@ begin
   Result := Ajax(Method, S);
 end;
 
-function TExtObject.AjaxForms(Method : TExtProcedure; Forms : array of TExtObject) : TExtFunction;
+function TExtObject.AjaxForms(const AMethod: TExtProcedure; const AForms: array of TExtObject): TExtFunction;
 var
-  I : integer;
-  S : string;
+  I: Integer;
+  LParams: string;
+  LResponseItemsBranch: TExtResponseItems;
+  LCodeObject: TExtObject;
 begin
-  S := '';
-  for I := 0 to high(Forms) do begin
-    if Forms[I] is TExtFormField then begin
-      S := S + '"' + TExtFormField(Forms[I]).ID + '="+';
-      TExtFormField(Forms[I]).GetValue;
-    end
-    else
-      TExtFormBasicForm(TExtFormFormPanel(Forms[I]).GetForm).GetValues(true);
-    S := S + TExtObject(Forms[I]).ExtractJSCommand;
-    if I <> high(Forms) then S := S + '+"&"+';
+  LParams := '';
+  for I := 0 to High(AForms) do
+  begin
+    LResponseItemsBranch := ExtSession.BranchResponseItems;
+    try
+      LCodeObject := AForms[I];
+      if AForms[I] is TExtFormField then
+      begin
+        LParams := LParams + '"' + TExtFormField(AForms[I]).Id + '="+';
+        TExtFormField(AForms[I]).GetValue;
+      end
+      else if AForms[I] is TExtFormFormPanel then
+      begin
+        LCodeObject := TExtFormFormPanel(AForms[I]).GetForm;
+        TExtFormFormPanel(AForms[I]).GetForm.GetValues(True);
+      end
+      else
+        raise Exception.Create('AjaxForms only supports TExtFormField and TExtFormFormPanel.');
+      LParams := LParams + '"+' + RemoveLastJSTerminator(LResponseItemsBranch.FindLastCodeItem(LCodeObject).ToString) + '+"';
+    finally
+      ExtSession.UnbranchResponseItems(LResponseItemsBranch, False);
+    end;
+    if I <> High(AForms) then
+      LParams := LParams + '+"&"+';
   end;
-  Result := Ajax(Method, S);
+  Result := Ajax(AMethod, LParams, AForms);
 end;
 
-function TExtObject.AjaxSelection(Method : TExtProcedure; SelectionModel : TExtObject; Attributes, TargetQueries : string; Params : array of const) : TExtFunction;
+function TExtObject.AjaxSelection(const AMethod: TExtProcedure; const ASelectionModel: TExtObject;
+  const AAttributes, ATargetQueries: string; const AParams: array of const): TExtFunction;
 var
-  CurrentResponse : string;
-  MetName, ObjName : string;
-  I : Integer;
-  LParams : string;
-  LAttributes : TStringList;
-  LTargetQueries : TStringList;
-  LBody : string;
+  LMethodName, LObjectName: string;
+  I: Integer;
+  LParams: string;
+  LAttributes: TStringList;
+  LTargetQueries: TStringList;
+  LBody: string;
+  LResponseItemsBranch: TExtResponseItems;
 begin
+  Assert(Assigned(AMethod));
+  Assert(Assigned(ASelectionModel));
+  Assert(ASelectionModel is TExtGridRowSelectionModel);
+
   LAttributes := TStringList.Create;
   try
     LAttributes.StrictDelimiter := True;
     LAttributes.Delimiter := ',';
-    LAttributes.DelimitedText := Attributes;
+    LAttributes.DelimitedText := AAttributes;
     LTargetQueries := TStringList.Create;
     try
       LTargetQueries.StrictDelimiter := True;
       LTargetQueries.Delimiter := ',';
-      LTargetQueries.DelimitedText := TargetQueries;
+      LTargetQueries.DelimitedText := ATargetQueries;
 
       Assert(LAttributes.Count > 0);
       Assert(LAttributes.Count = LTargetQueries.Count);
 
-      InJSFunction := true;
       Result := TExtFunction(Self);
-      FindMethod(Method, MetName, ObjName);
-      with TExtThread(CurrentWebSession) do begin
-        CurrentResponse := Response;
-        Response := '';
-        LParams := 'Obj=' + ObjName;
-        for I := 0 to LAttributes.Count - 1 do begin
-          JSCode(Format('var Sel%d=[];', [I]));
+      FindMethod(AMethod, LMethodName, LObjectName);
+
+      LResponseItemsBranch := ExtSession.BranchResponseItems;
+      try
+        LParams := 'Obj=' + LObjectName;
+        for I := 0 to LAttributes.Count - 1 do
+        begin
+          LResponseItemsBranch.ExecuteJSCode(Self, Format('var Sel%d=[];', [I]));
           LBody := LBody + Format('Sel%d.push(Rec.get("' + Trim(LAttributes[I]) + '"));', [I]);
-          LParams := LParams + '&' + FormatParams(MetName, [Trim(LTargetQueries[I]), '%' + Format('Sel%d.toString()', [I])]);
+          LParams := LParams + '&' + FormatParams(LMethodName, [Trim(LTargetQueries[I]), '%' + Format('Sel%d.toString()', [I])]);
         end;
-        TExtGridRowSelectionModel(SelectionModel).Each(JSFunction('Rec', LBody));
-        AjaxCode(MetName, LParams, Params);
-        JSCommand := '';
-        JSCommand := Response;
-        Response  := CurrentResponse;
-        JSCode(JSCommand);
+        TExtGridRowSelectionModel(ASelectionModel).Each(JSFunction('Rec', LBody));
+        AjaxCode(LMethodName, LParams, AParams, [ASelectionModel]);
+      finally
+        ExtSession.UnbranchResponseItems(LResponseItemsBranch);
       end;
-      InJSFunction := false;
     finally
       FreeAndNil(LAttributes);
     end;
@@ -1822,25 +2302,72 @@ begin
       end;
 end;
 
-procedure TExtObject.AjaxCode(MethodName : string; RawParams : string; Params : array of const); begin
-  JSCode('Ext.Ajax.request({url:"' + CurrentWebSession.MethodURI(MethodName) + '",params:"Ajax=1&' +
-    IfThen(RawParams='', '', RawParams + '&') + FormatParams(MethodName, Params) +
-    '",success:AjaxSuccess,failure:AjaxFailure});');
+procedure TExtObject.AjaxCode(const AMethodName, ARawParams: string; const AParams: array of const;
+  const AAdditionalDependencies: array of TExtObject);
+begin
+  ExtSession.ResponseItems.ExecuteJSCode(Self,
+    'Ext.Ajax.request({' + sLineBreak +
+    '  url: "' + ExtSession.MethodURI(AMethodName) + '",' + sLinebreak +
+    '  params: "Ajax=1&' + IfThen(ARawParams = '', '', ARawParams + '&') + FormatParams(AMethodName, AParams) + '",' + sLineBreak +
+    '  success: AjaxSuccess,' + sLineBreak +
+    '  failure: AjaxFailure' + sLineBreak +
+    '});', AAdditionalDependencies);
 end;
 
 // Internal Ajax generation handler treating IsEvent, when is true HandleEvent will be invoked instead published methods
-function TExtObject.Ajax(MethodName : string; Params : array of const; IsEvent : boolean = false) : TExtFunction;
+function TExtObject.Ajax(const AMethodName: string; const AParams: array of const;
+  const AIsEvent: Boolean): TExtFunction;
 var
-  lParams : string;
+  LParams: string;
+  LMethodName: string;
 begin
-  InJSFunction := false;
   Result  := TExtFunction(Self);
-  lParams := IfThen(JSName = '', '', 'Obj=' + JSName);
-  if IsEvent then begin
-    lParams := lParams + '&IsEvent=1&Evt=' + MethodName;
-    MethodName := 'HandleEvent';
+  LMethodName := AMethodName;
+  LParams := IfThen(JSName = '', '', 'Obj=' + JSName);
+  if AIsEvent then
+  begin
+    LParams := LParams + '&IsEvent=1&Evt=' + AMethodName;
+    LMethodName := 'HandleEvent';
   end;
-  AjaxCode(MethodName, lParams, Params);
+  AjaxCode(LMethodName, LParams, AParams, []);
+end;
+
+function TExtObject.Ajax(const AMethod: TExtProcedure;
+  const AParams: array of const;
+  const AAdditionalDependencies: array of TExtObject;
+  const AIsEvent: Boolean): TExtFunction;
+var
+  LParams: string;
+  LMethodName: string;
+  LObjectName: string;
+begin
+  Result := FindMethod(AMethod, LMethodName, LObjectName);
+  LParams := IfThen(LObjectName = '', '', 'Obj=' + LObjectName);
+  if AIsEvent then
+  begin
+    LParams := LParams + '&IsEvent=1&Evt=' + LMethodName;
+    LMethodName := 'HandleEvent';
+  end;
+  AjaxCode(LMethodName, LParams, AParams, AAdditionalDependencies);
+end;
+
+function TExtObject.Ajax(const AMethodName: string;
+  const AParams: array of const;
+  const AAdditionalDependencies: array of TExtObject;
+  const AIsEvent: Boolean): TExtFunction;
+var
+  LParams: string;
+  LMethodName: string;
+begin
+  Result  := TExtFunction(Self);
+  LMethodName := AMethodName;
+  LParams := IfThen(JSName = '', '', 'Obj=' + JSName);
+  if AIsEvent then
+  begin
+    LParams := LParams + '&IsEvent=1&Evt=' + AMethodName;
+    LMethodName := 'HandleEvent';
+  end;
+  AjaxCode(LMethodName, LParams, AParams, AAdditionalDependencies);
 end;
 
 {
@@ -1850,10 +2377,11 @@ Encapsulates JS commands in an anonymous JS function, find %0..%9 place holders 
 }
 function TExtObject.WriteFunction(Command : string) : string;
 var
-  I, J   : integer;
-  Params : string;
+  I, J: Integer;
+  LParams: string;
+  LCommandWithoutTerminator: string;
 begin
-  Params := '';
+  LParams := '';
   J := -1;
   I := pos('%', Command);
   while I <> 0 do begin
@@ -1864,15 +2392,21 @@ begin
     I := posex('%', Command, I);
   end;
   for I := 0 to J do begin
-    Params := Params + 'P' + IntToStr(I);
-    if I <> J then Params := Params + ','
+    LParams := LParams + 'P' + IntToStr(I);
+    if I <> J then LParams := LParams + ','
   end;
-  I := LastDelimiter(';', copy(Command, 1, length(Command)-1));
-  if (I = 0) or (I = length(Command)) and (pos('return ', Command) <> 1) then
+  LCommandWithoutTerminator := RemoveLastJSTerminator(Command);
+  I := LastDelimiter(';', LCommandWithoutTerminator);
+  if (I = 0) and (Pos('return ', Command) <> 1) then
     Command := 'return ' + Command
   else
-    insert('return ', Command, I+1);
-  Result := 'function(' + Params + '){' + Command + '}';
+  begin
+    Inc(I);
+    while (Length(Command) > I) and CharInSet(Command[I], [#13, #10]) do
+      Inc(I);
+    Insert('return ', Command, I);
+  end;
+  Result := 'function(' + LParams + '){' + Command + '}';
 end;
 
 {
@@ -1880,10 +2414,18 @@ Extracts <link TExtObject.JSCommand, JSCommand> from Response and resets JSComma
 @return JSCommand without the last char ';'
 @see TExtThread.RemoveJS
 }
-function TExtObject.ExtractJSCommand : string; begin
-  Result := PopJSCommand;
-  TExtThread(CurrentWebSession).RemoveJS(Result);
-  SetLength(Result, length(Result)-1);
+function TExtObject.ExtractJSCommand: string;
+var
+  LCodeItem: TExtResponseItem;
+begin
+  LCodeItem := ExtSession.ResponseItems.FindLastCodeItem(Self);
+  if Assigned(LCodeItem) then
+  begin
+    Result := RemoveLastJSTerminator(LCodeItem.ToString);
+    ExtSession.ResponseItems.Remove(LCodeItem);
+  end
+  else
+    Result := '';
 end;
 
 {
@@ -1892,85 +2434,15 @@ Free is successful even if called repeatedly to the same object.
 @param CallDestroyJS Calls <link TExtObject.DestroyJS, DestroyJS> if true to destroy or delete the JS object too
 }
 procedure TExtObject.Free(CallDestroyJS : boolean = false); begin
-  if (Self <> nil) and Created then begin
+  if (Self <> nil) then begin
     if CallDestroyJS then DestroyJS;
-    Created := false;
     inherited Free;
   end;
 end;
 
-{
-Converts an array of const to JSON (JavaScript Object Notation) to be used in constructors, JS Arrays or JS Objects
-@param A Array of anytype variables
-@return JSON representation of array
-}
-function TExtObject.VarToJSON(A : array of const) : string;
-var
-  I : integer;
-  Command, JSName : string;
+function TExtObject.VarToJSON(const AList: TExtObjectList): string;
 begin
-  Result := '';
-  I := 0;
-  while I <= high(A) do begin
-    with A[I] do
-      case VType of
-        vtObject: begin
-          if VObject <> nil then begin
-            Command := TExtObject(VObject).PopJSCommand;
-            if (Command <> '') and A[I+1].VBoolean then begin
-              Result := Result + WriteFunction(Command);
-              TExtThread(CurrentWebSession).RemoveJS(Command);
-            end
-            else begin
-              JSName := TExtObject(VObject).JSName;
-              if InJSFunction and (pos(JSName, Command) = 1) then begin
-                Result := Result + copy(Command, 1, length(Command)-1);
-                TExtThread(CurrentWebSession).RemoveJS(Command);
-              end
-              else
-                Result := Result + JSName;
-            end;
-          end
-          else
-            if Result = '' then
-              Result := 'null'
-            else begin
-              inc(I, 2);
-              continue;
-            end;
-          inc(I);
-        end;
-        vtAnsiString: Result := Result + StrToJS(string(VAnsiString));
-        vtString:     Result := Result + StrToJS(string(VString^));
-        vtWideString: Result := Result + StrToJS(string(VWideString));
-        {$IFDEF UNICODE}
-        vtUnicodeString: Result := Result + StrToJS(string(VUnicodeString));
-        {$ENDIF}
-        vtInteger:    Result := Result + IntToStr(VInteger);
-        vtBoolean:    Result := Result + IfThen(VBoolean, 'true', 'false');
-        vtExtended:   Result := Result + AnsiReplaceStr(FloatToStr(VExtended^), ',', '.');
-        vtCurrency:   Result := Result + CurrToStr(VCurrency^);
-        vtInt64:      Result := Result + IntToStr(VInt64^);
-        vtVariant:    Result := Result + string(VVariant^);
-        vtChar:       Result := Result + string(VChar);
-        vtWideChar:   Result := Result + VWideChar;
-      end;
-    if I < high(A) then Result := Result + ',';
-    inc(I);
-  end;
-  if (Result <> '') and (Result[length(Result)] = ',') then System.Delete(Result, length(Result), 1);
-end;
-
-{
-Converts a <link TExtObjectList> to JSON (JavaScript Object Notation) to be used in constructors, JS Arrays or JS Objects
-@param Exts An TExtObjectList to convert
-@return JSON representation of Exts
-}
-function TExtObject.VarToJSON(Exts : TExtObjectList) : string; begin
-  if Exts.ClassName = 'TExtObjectList' then
-    Result := Exts.JSName
-  else
-    Result := TExtObject(Exts).JSName
+  Result := AList.JSName;
 end;
 
 {
@@ -2009,22 +2481,22 @@ end;
 
 // Aux function used internaly by ExtToPascal to override HandleEvent method
 function TExtObject.ParamAsInteger(ParamName : string) : integer; begin
-  Result := StrToIntDef(CurrentWebSession.Query[ParamName], 0);
+  Result := StrToIntDef(ExtSession.Query[ParamName], 0);
 end;
 
 // Aux function used internaly by ExtToPascal to override HandleEvent method
 function TExtObject.ParamAsDouble(ParamName : string) : double; begin
-  Result := StrToFloatDef(CurrentWebSession.Query[ParamName], 0);
+  Result := StrToFloatDef(ExtSession.Query[ParamName], 0);
 end;
 
 // Aux function used internaly by ExtToPascal to override HandleEvent method
 function TExtObject.ParamAsBoolean(ParamName : string) : boolean; begin
-  Result := CurrentWebSession.Query[ParamName] = 'true';
+  Result := ExtSession.Query[ParamName] = 'true';
 end;
 
 // Aux function used internaly by ExtToPascal to override HandleEvent method
 function TExtObject.ParamAsString(ParamName : string) : string; begin
-  Result := CurrentWebSession.Query[ParamName];
+  Result := ExtSession.Query[ParamName];
 end;
 
 // Aux function used internaly by ExtToPascal to override HandleEvent method
@@ -2034,11 +2506,769 @@ end;
 
 // Aux function used internaly by ExtToPascal to override HandleEvent method
 function TExtObject.ParamAsObject(ParamName : string) : TExtObject; begin
-  Result := TExtObject(TExtThread(CurrentWebSession).GarbageFind(CurrentWebSession.Query[ParamName]));
+  Result := TExtObject(ExtSession.ObjectCatalog.FindExtObject(ExtSession.Query[ParamName]));
 end;
 
+function TExtObject.FindExtObject(const AJSName: string): TObject;
+var
+  I: Integer;
 begin
-  ExtUtilTextMetrics.FJSName := 'TextMetrics';
+  Assert(AJSName <> '');
+
+  Result := nil;
+  for I := 0 to ComponentCount - 1 do
+  begin
+    if Components[I] is TExtObject then
+    begin
+      if TExtObject(Components[I]).JSName = AJSName then
+        Result := TExtObject(Components[I])
+      else
+        Result := TExtObject(Components[I]).FindExtObject(AJSName);
+      if Assigned(Result) then
+        Break;
+    end;
+  end;
+end;
+
+{ TExtResponseItem }
+
+procedure TExtResponseItem.AddDependency(const AItem: TExtResponseItem);
+begin
+  if Assigned(AItem) and (AItem <> Self) and not FDependencies.Contains(AItem) then
+    FDependencies.Add(AItem);
+end;
+
+procedure TExtResponseItem.AfterConstruction;
+begin
+  inherited;
+  FDependencies := TList<TExtResponseItem>.Create;
+  FEmitted := False;
+  FCreationDateTime := Now;
+end;
+
+constructor TExtResponseItem.Create(const AParent: TExtResponseItems; const ASender: TExtObject);
+begin
+  Assert(Assigned(AParent));
+
+  inherited Create;
+  FParent := AParent;
+  FSender := ASender;
+end;
+
+function TExtResponseItem.DependsOn(const AItem: TExtResponseItem): Boolean;
+var
+  LItem: TExtResponseItem;
+begin
+  for LItem in FDependencies do
+    if LItem = AItem then
+      Exit(True);
+  Result := False;
+end;
+
+destructor TExtResponseItem.Destroy;
+begin
+  FreeAndNil(FDependencies);
+  inherited;
+end;
+
+procedure TExtResponseItem.Emit(const AEmittedItems: TList<TExtResponseItem>);
+var
+  LItem: TExtResponseItem;
+begin
+  if FEmitted then
+    Exit;
+
+  for LItem in FDependencies do
+    LItem.Emit(AEmittedItems);
+  if AllDependenciesEmitted(AEmittedItems) then
+  begin
+    AEmittedItems.Add(Self);
+    FEmitted := True;
+  end
+end;
+
+function TExtResponseItem.AllDependenciesEmitted(const AEmittedItems: TList<TExtResponseItem>): Boolean;
+var
+  LItem: TExtResponseItem;
+begin
+  for LItem in FDependencies do
+    if not LItem.FEmitted then
+      Exit(False);
+  Result := True;
+end;
+
+function TExtResponseItem.GetDependencies: TArray<TExtResponseItem>;
+begin
+  Result := FDependencies.ToArray;
+end;
+
+function TExtResponseItem.GetDependency(I: Integer): TExtResponseItem;
+begin
+  Result := FDependencies[I];
+end;
+
+function TExtResponseItem.GetDependencyCount: Integer;
+begin
+  Result := FDependencies.Count;
+end;
+
+function TExtResponseItem.IsCode: Boolean;
+begin
+  Result := True;
+end;
+
+procedure TExtResponseItem.RemoveDependency(const AItem: TExtResponseItem);
+begin
+  Assert(FDependencies.Remove(AItem) >= 0);
+end;
+
+{ TExtCreateObject }
+
+procedure TExtCreateObject.AddToConfigItem(const AName: string; const AValues: array of const);
+var
+  I: Integer;
+  LPreviousValue: string;
+  LAdditionalValue: string;
+begin
+  Assert(Assigned(FParent));
+
+  I := FConfigItems.IndexOfName(AName);
+
+  LAdditionalValue := Sender.VarToJSON(AValues,
+    procedure (AParam: string; AObjectParam: TObject; AIsFunction: Boolean)
+    begin
+      if Assigned(AObjectParam) and (AObjectParam is TExtObject) and not AIsFunction then
+        AddDependency(FParent.FindObjectCreateItem(TExtObject(AObjectParam)));
+    end);
+
+  if I >= 0 then
+  begin
+    LPreviousValue := FConfigItems.ValueFromIndex[I];
+    Assert((LPreviousValue <> '') and (LPreviousValue[Length(LPreviousValue)] = ']'));
+    Insert(', ' + LAdditionalValue, LPreviousValue, Length(LPreviousValue));
+    FConfigItems.ValueFromIndex[I] := LPreviousValue;
+  end
+  else
+    FConfigItems.Add(AName + '=' + '[' + LAdditionalValue + ']');
+end;
+
+procedure TExtCreateObject.AfterConstruction;
+begin
+  inherited;
+  FConfigItems := TStringList.Create;
+  // No duplicates allowed, but we'll be checking them manually because
+  // the list cannot be sorted.
+  //SetConfigItem('id', [Sender.JSName]);
+end;
+
+destructor TExtCreateObject.Destroy;
+begin
+  FreeAndNil(FConfigItems);
+  inherited;
+end;
+
+function TExtCreateObject.IsCode: Boolean;
+begin
+  Result := False;
+end;
+
+procedure TExtCreateObject.SetConfigItem(const AName: string; const AValues: array of const);
+var
+  I: Integer;
+  LAdditionalValue: string;
+begin
+  Assert(Assigned(FParent));
+
+  I := FConfigItems.IndexOfName(AName);
+
+  LAdditionalValue := Sender.VarToJSON(AValues,
+    procedure (AParam: string; AObjectParam: TObject; AIsFunction: Boolean)
+    begin
+      if Assigned(AObjectParam) and (AObjectParam is TExtObject) and not AIsFunction then
+        AddDependency(FParent.FindObjectCreateItem(TExtObject(AObjectParam)));
+    end);
+
+  if I >= 0 then
+    FConfigItems.ValueFromIndex[I] := LAdditionalValue
+  else
+    FConfigItems.Add(AName + '=' + LAdditionalValue);
+end;
+
+function TExtCreateObject.ToString: string;
+var
+  I: Integer;
+begin
+  Assert(Assigned(Sender));
+
+  Result := Sender.JSName + ' = ' + Sender.GetConstructionJS + '({' + sLineBreak;
+  for I := 0 to FConfigItems.Count - 1 do
+  begin
+    Result := Result + '  ' + FConfigItems.Names[I] + ': ' + FConfigItems.ValueFromIndex[I];
+    if I < FConfigItems.Count - 1 then
+      Result := Result + ',';
+    Result := Result + sLineBreak;
+  end;
+  Result := Result + '});' + sLineBreak;
+  Result := Result + Sender.JSName + '.nm = "' + Sender.JSName + '";' + sLineBreak;
+end;
+
+{ TExtJSCode }
+
+procedure TExtJSCode.AfterConstruction;
+begin
+  inherited;
+end;
+
+destructor TExtJSCode.Destroy;
+begin
+  inherited;
+end;
+
+function TExtJSCode.ToString: string;
+begin
+  Result := inherited ToString + sLineBreak;
+end;
+
+{ TExtResponseItems }
+
+procedure TExtResponseItems.AddHTML(const AHTML: string);
+var
+  LItem: TExtHTML;
+begin
+  LItem := TExtHTML.Create(Self, nil);
+  try
+    LItem.HTML := AHTML;
+    FList.Add(LItem);
+  except
+    FreeAndNil(LItem);
+    raise;
+  end;
+end;
+
+procedure TExtResponseItems.AddJSON(const AJSON: string);
+var
+  LItem: TExtJSON;
+begin
+  LItem := TExtJSON.Create(Self, nil);
+  try
+    LItem.JSON := AJSON;
+    FList.Add(LItem);
+  except
+    FreeAndNil(LItem);
+    raise;
+  end;
+end;
+
+procedure TExtResponseItems.AddToList(const AContainer: TExtObject;
+  const AList: TExtObjectList; const AItemName, AMethodName: string;
+  const AValues: array of const);
+var
+  LContainerCreateItem: TExtCreateObject;
+begin
+  Assert(Assigned(AContainer));
+  Assert(AItemName <> '');
+  Assert(AMethodName <> '');
+  Assert((Length(AValues) = 1) or (Length(AValues) = 2));
+
+  LContainerCreateItem := FindObjectCreateItem(AContainer);
+  if Assigned(LContainerCreateItem) then
+    LContainerCreateItem.AddToConfigItem(AItemName, AValues)
+  else
+    CallMethod(AContainer, AMethodName, AValues);
+end;
+
+procedure TExtResponseItems.AddToList(const AContainer: TExtObject;
+  const AItemName: string; const AValues: array of const);
+var
+  LContainerCreateItem: TExtCreateObject;
+begin
+  Assert(Assigned(AContainer));
+  Assert(AItemName <> '');
+  Assert((Length(AValues) = 1) or (Length(AValues) = 2));
+
+  try
+    LContainerCreateItem := GetObjectCreateItem(AContainer);
+    LContainerCreateItem.AddToConfigItem(AItemName, AValues);
+  except
+    on E: Exception do
+      raise Exception.CreateFmt('Cannot add object %s to config item %s.%s. %s', [TExtObject(AValues[0].VObject).JSName, AContainer.JSName, AItemName, E.Message]);
+  end;
+end;
+
+procedure TExtResponseItems.AfterConstruction;
+begin
+  inherited;
+  FList := TList<TExtResponseItem>.Create;
+  FEmittedItems := TList<TExtResponseItem>.Create;
+end;
+
+procedure TExtResponseItems.CallMethod(const AObject: TExtObject;
+  const AMethodName: string; const AParams: array of const);
+var
+  LItem: TExtCallMethod;
+begin
+  LItem := TExtCallMethod.Create(Self, AObject);
+  try
+    LItem.AddDependency(FindObjectCreateItem(TExtObject(AObject)));
+    LItem.CallName := AMethodName;
+    AObject.VarToJSON(AParams,
+      procedure (AParam: string; AObjectParam: TObject; AIsFunction: Boolean)
+      begin
+        LItem.CallParams.Add(AParam);
+        if Assigned(AObjectParam) and (AObjectParam is TExtObject) and not AIsFunction then
+          LItem.AddDependency(FindObjectCreateItem(TExtObject(AObjectParam)));
+      end
+    );
+    FList.Add(LItem);
+  except
+    FreeAndNil(LItem);
+    raise;
+  end;
+end;
+
+procedure TExtResponseItems.CreateObject(const AObject: TExtObject);
+begin
+  Assert(Assigned(AObject));
+
+  FList.Add(TExtCreateObject.Create(Self, AObject));
+end;
+
+destructor TExtResponseItems.Destroy;
+begin
+  FreeAndNil(FEmittedItems);
+  Clear;
+  FreeAndNil(FList);
+  inherited;
+end;
+
+procedure TExtResponseItems.ExecuteJSCode(const AJSCode: string);
+begin
+  ExecuteJSCode(nil, AJSCode);
+end;
+
+procedure TExtResponseItems.ExecuteJSCode(const AObject: TExtObject;
+  const AJSCode: string);
+begin
+  ExecuteJSCode(AObject, AJSCode, []);
+end;
+
+procedure TExtResponseItems.ExecuteJSCode(const AObject: TExtObject; const AJSCode: string;
+  const AAdditionalDependencies: array of TExtObject);
+var
+  LItem: TExtJSCode;
+  I: Integer;
+begin
+  LItem := TExtJSCode.Create(Self, AObject);
+  try
+    LItem.AddDependency(FindObjectCreateItem(AObject));
+    LItem.JSCode := AJSCode;
+    for I := Low(AAdditionalDependencies) to High(AAdditionalDependencies) do
+      LItem.AddDependency(FindObjectCreateItem(AAdditionalDependencies[I]));
+    FList.Add(LItem);
+  except
+    FreeAndNil(LItem);
+    raise;
+  end;
+end;
+
+function TExtResponseItems.ToString: string;
+var
+  LItem: TExtResponseItem;
+  //LEmittedString: string;
+
+//  procedure AppendStringToStream(const AString: string; const AStream: TStream;
+//    const AEncoding: TEncoding);
+//  var
+//    LBuffer: TBytes;
+//  begin
+//    Assert(Assigned(AStream));
+//
+//    if AEncoding <> nil then
+//      LBuffer := AEncoding.GetBytes(AString)
+//    else
+//      LBuffer := TEncoding.Default.GetBytes(AString);
+//    AStream.WriteBuffer(LBuffer[0], Length(LBuffer));
+//  end;
+//
+//  procedure StringToTextFile(const AString, AFileName: string;
+//    const AEncoding: TEncoding);
+//  var
+//    LFilePath: string;
+//    LStream: TStream;
+//  begin
+//    LFilePath := ExtractFilePath(AFileName);
+//    if LFilePath <> '' then
+//      ForceDirectories(LFilePath);
+//
+//    LStream := TFileStream.Create(AFileName, fmCreate);
+//    try
+//      AppendStringToStream(AString, LStream, AEncoding);
+//    finally
+//      LStream.Free;
+//    end;
+//  end;
+
+begin
+  //SortByDependency;
+  FEmittedItems.Clear;
+  //LEmittedString := '';
+
+  for LItem in FList do
+    LItem.Emit(FEmittedItems);
+
+  //FEmittedItems.AddRange(FList.ToArray);
+
+  //Assert(FEmittedItems.Count = FList.Count);
+
+  Result := '';
+  for LItem in FEmittedItems do
+  begin
+    //Result := Result + '// ' + FormatDateTime('hh:nn:ss.zzz', LItem.FCreationDateTime) + sLineBreak;
+
+    Result := Result + LItem.ToString;
+    //LEmittedString := LEmittedString + LItem.Sender.JSName + '-' + LItem.ClassName + sLineBreak;
+  end;
+  FEmittedItems.Clear;
+  //StringToTextFile(LEmittedString, 'c:\users\nandod\ethea\kitto\graph.txt', TEncoding.Unicode);
+end;
+
+function TExtResponseItems.Consume: string;
+begin
+  Result := ToString;
+  Clear;
+end;
+
+procedure TExtResponseItems.Clear;
+begin
+  while FList.Count > 0 do
+  begin
+    FList[0].Free;
+    FList.Delete(0);
+  end;
+end;
+
+function TExtResponseItems.FindObjectCreateItem(const AObject: TExtObject): TExtCreateObject;
+var
+  LResponseItem: TExtResponseItem;
+begin
+  for LResponseItem in FList do
+    if (LResponseItem is TExtCreateObject) and (TExtCreateObject(LResponseItem).Sender = AObject) then
+      Exit(TExtCreateObject(LResponseItem));
+  Result := nil;
+end;
+
+function TExtResponseItems.FindLastCodeItem(const AObject: TExtObject): TExtResponseItem;
+var
+  I: Integer;
+begin
+  for I := FList.Count - 1 downto 0 do
+    if (FList[I].Sender = AObject) and FList[I].IsCode then
+      Exit(FList[I]);
+  Result := nil;
+end;
+
+function TExtResponseItems.GetCount: Integer;
+begin
+  Result := FList.Count;
+end;
+
+function TExtResponseItems.GetItem(I: Integer): TExtResponseItem;
+begin
+  Result := FList[I];
+end;
+
+function TExtResponseItems.GetLastCodeItem(
+  const AObject: TExtObject): TExtResponseItem;
+begin
+  Result := FindLastCodeItem(AObject);
+  if Result = nil then
+    raise Exception.CreateFmt('No code item found for object %s.', [AObject.JSName]);
+end;
+
+function TExtResponseItems.GetObjectCreateItem(const AObject: TExtObject): TExtCreateObject;
+begin
+  Assert(Assigned(AObject));
+
+  Result := FindObjectCreateItem(AObject);
+  if not Assigned(Result) then
+    raise Exception.CreateFmt('Object %s was not created in this request.', [AObject.JSName]);
+end;
+
+procedure TExtResponseItems.GetProperty(const AObject: TExtObject;
+  const APropertyName: string);
+var
+  LItem: TExtGetProperty;
+begin
+  LItem := TExtGetProperty.Create(Self, AObject);
+  try
+    LItem.PropertyName := APropertyName;
+    LItem.AddDependency(FindObjectCreateItem(AObject));
+    FList.Add(LItem);
+  except
+    FreeAndNil(LItem);
+  end;
+end;
+
+procedure TExtResponseItems.Remove(const AItem: TExtResponseItem);
+begin
+  Assert(Assigned(AItem));
+
+  if FList.Remove(AItem) < 0 then
+    raise Exception.Create('No item found to remove.');
+  AItem.Free;
+end;
+
+procedure TExtResponseItems.RemoveAll(const AObject: TExtObject);
+var
+  I: Integer;
+begin
+  for I := FList.Count - 1 downto 0 do
+    if FList[I].Sender = AObject then
+    begin
+      FList[I].Free;
+      FList.Delete(I);
+    end;
+end;
+
+procedure TExtResponseItems.SetConfigItem(const AObject: TExtObject;
+  const AItemName: string; const AValues: array of const);
+begin
+  Assert(Assigned(AObject));
+  Assert(AItemName <> '');
+  Assert((Length(Avalues) = 1) or (Length(AValues) = 2));
+
+  try
+    GetObjectCreateItem(AObject).SetConfigItem(AItemName, AValues);
+  except
+    on E: Exception do
+      raise Exception.CreateFmt('Cannot set config item %s.%s. %s', [AObject.JSName, AItemName, E.Message]);
+  end;
+end;
+
+procedure TExtResponseItems.SetConfigItem(const AObject: TExtObject;
+  const AItemName, AMethodName: string; const AValues: array of const);
+var
+  LObjectCreateItem: TExtCreateObject;
+begin
+  Assert(Assigned(AObject));
+  Assert(AItemName <> '');
+  Assert(AMethodName <> '');
+
+  LObjectCreateItem := FindObjectCreateItem(AObject);
+  if Assigned(LObjectCreateItem) then
+    LObjectCreateItem.SetConfigItem(AItemName, AValues)
+  else
+    CallMethod(AObject, AMethodName, AValues);
+end;
+
+procedure TExtResponseItems.SetConfigItemOrProperty(const AObject: TExtObject;
+  const AItemName: string; const AValues: array of const);
+var
+  LObjectCreateItem: TExtCreateObject;
+begin
+  Assert(Assigned(AObject));
+  Assert(AItemName <> '');
+
+  LObjectCreateItem := FindObjectCreateItem(AObject);
+  if Assigned(LObjectCreateItem) then
+    LObjectCreateItem.SetConfigItem(AItemName, AValues)
+  else
+    SetProperty(AObject, AItemName, AValues);
+end;
+
+procedure TExtResponseItems.SetProperty(const AObject: TExtObject;
+  const APropertyName: string; const AValues: array of const);
+var
+  LItem: TExtSetProperty;
+begin
+  LItem := TExtSetProperty.Create(Self, AObject);
+  try
+    LItem.AddDependency(FindObjectCreateItem(AObject));
+    LItem.PropertyName := APropertyName;
+    LItem.PropertyValue := AObject.VarToJSON(AValues);
+    AObject.VarToJSON(AValues,
+      procedure (AParam: string; AObjectParam: TObject; AIsFunction: Boolean)
+      begin
+        if Assigned(AObjectParam) and (AObjectParam is TExtObject) and not AIsFunction then
+          LItem.AddDependency(FindObjectCreateItem(TExtObject(AObjectParam)));
+      end
+    );
+    FList.Add(LItem);
+  except
+    FreeAndNil(LItem);
+  end;
+end;
+
+//procedure TExtResponseItems.SortByDependency;
+//var
+//  LList: TList<TExtResponseItem>;
+//  LTopLevelNodes: TQueue<TExtResponseItem>;
+//  LItem: TExtResponseItem;
+//  LDependents: TArray<TExtResponseItem>;
+//  LDependent: TExtResponseItem;
+//
+//  procedure GetTopLevelNodes;
+//  var
+//    LItem: TExtResponseItem;
+//  begin
+//    LTopLevelNodes.Clear;
+//    for LItem in FList do
+//      if LItem.DependencyCount = 0 then
+//        LTopLevelNodes.Enqueue(LItem);
+//  end;
+//
+//  function GetDependentNodes(const AItem: TExtResponseItem): TArray<TExtResponseItem>;
+//  var
+//    LItem: TExtResponseItem;
+//  begin
+//    SetLength(Result, 0);
+//    for LItem in FList do
+//      if LItem.DependsOn(AItem) then
+//      begin
+//        SetLength(Result, Length(Result) + 1);
+//        Result[High(Result)] := LItem;
+//      end;
+//  end;
+//
+//  function DependenciesExist: Boolean;
+//  var
+//    LItem: TExtResponseItem;
+//  begin
+//    for LItem in FList do
+//      if LItem.DependencyCount > 0 then
+//        Exit(True);
+//    Result := False;
+//  end;
+//
+//  function GetDebugString(const AList: TList<TExtResponseItem>): string;
+//  var
+//    LItem: TExtResponseItem;
+//    I: Integer;
+//
+//    function GetItemDescription(const AItem: TExtResponseItem): string;
+//    begin
+//      Result := AItem.Sender.JSName + '-' + AItem.ClassName;
+//    end;
+//
+//  begin
+//    Result := '';
+//    for LItem in AList do
+//    begin
+//      if LItem.DependencyCount > 0 then
+//      begin
+//        Result := Result + GetItemDescription(LItem) + '  DEPENDS ON  ';
+//        for I := 0 to LItem.DependencyCount - 1 do
+//          Result := Result + ' ' + GetItemDescription(LItem.Dependencies[I]);
+//        Result := Result + sLinebreak;
+//      end;
+//    end;
+//  end;
+//
+//begin
+//  (* Topological sort
+//     Courtesy Wikipedia: http://en.wikipedia.org/wiki/Topological_sorting
+//
+//  L ← Empty list that will contain the sorted elements
+//  S ← Set of all nodes with no incoming edges
+//  while S is non-empty do
+//      remove a node n from S
+//      insert n into L
+//      for each node m with an edge e from n to m do
+//          remove edge e from the graph
+//          if m has no other incoming edges then
+//              insert m into S
+//  if graph has edges then
+//      return error (graph has at least one cycle)
+//  else
+//      return L (a topologically sorted order)
+//  end;
+//  *)
+//  LList := TList<TExtResponseItem>.Create;
+//  try
+//    LTopLevelNodes := TQueue<TExtResponseItem>.Create;
+//    try
+//      GetTopLevelNodes;
+//      while LTopLevelNodes.Count > 0 do
+//      begin
+//        LItem := LTopLevelNodes.Dequeue;
+//        LList.Add(LItem);
+//        LDependents := GetDependentNodes(LItem);
+//        for LDependent in LDependents do
+//        begin
+//          LDependent.RemoveDependency(LItem);
+//          if LDependent.DependencyCount = 0 then
+//            LTopLevelNodes.Enqueue(LDependent);
+//        end;
+//      end;
+//      if DependenciesExist then
+//        raise Exception.CreateFmt('Cannot sort response items by dependency - Graph cycle detected.#13#10%s', [GetDebugString(FList)]);
+//      FList.Clear;
+//      FList.AddRange(LList.ToArray);
+//    finally
+//      FreeAndNil(LTopLevelNodes);
+//    end;
+//  finally
+//    FreeAndNil(LList);
+//  end;
+//end;
+
+{ TExtCallMethod }
+
+procedure TExtCallMethod.AfterConstruction;
+begin
+  inherited;
+  FCallParams := TStringList.Create;
+end;
+
+destructor TExtCallMethod.Destroy;
+begin
+  FreeAndNil(FCallParams);
+  inherited;
+end;
+
+procedure TExtCallMethod.SetCallParams(const AValue: TStrings);
+begin
+  FCallParams.Assign(AValue);
+end;
+
+function TExtCallMethod.ToString: string;
+begin
+  Assert(Assigned(Sender));
+  Assert(FCallName <> '');
+
+  Result := Sender.JSName + '.' +  FCallName + '(' + Join(FCallParams.ToStringArray, ', ') + ');' + sLineBreak;
+end;
+
+{ TExtSetProperty }
+
+function TExtSetProperty.ToString: string;
+begin
+  Assert(Assigned(Sender));
+  Assert(FPropertyName <> '');
+  Assert(FPropertyValue <> '');
+
+  Result := Sender.JSName + '.' +  FPropertyName + ' = ' + FPropertyValue + ';' + sLineBreak;
+end;
+
+{ TExtGetProperty }
+
+function TExtGetProperty.ToString: string;
+begin
+  Assert(Assigned(Sender));
+  Assert(FPropertyName <> '');
+
+  Result := Sender.JSName + '.' + FPropertyName + ';' + sLineBreak;
+end;
+
+{ TExtTextBase }
+
+function TExtTextBase.ToString: string;
+begin
+  Result := FText;
+end;
+
+initialization
+  //ExtUtilTextMetrics.FJSName := 'TextMetrics';
   {$IF RTLVersion > 21}
   _JSFormatSettings := TFormatSettings.Create;
   {$ELSE}
@@ -2047,3 +3277,5 @@ begin
   _JSFormatSettings.DecimalSeparator := '.';
 
 end.
+
+

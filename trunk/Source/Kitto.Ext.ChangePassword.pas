@@ -145,11 +145,11 @@ begin
   Closable := True;
   Resizable := False;
 
-  FStatusBar := TKExtStatusBar.Create;
+  FStatusBar := TKExtStatusBar.Create(Self);
   FStatusBar.DefaultText := '';
   FStatusBar.BusyText := _('Changing password...');
 
-  FFormPanel := TExtFormFormPanel.AddTo(Items);
+  FFormPanel := TExtFormFormPanel.CreateAndAddTo(Items);
   FFormPanel.Region := rgCenter;
   FFormPanel.LabelWidth := 140;
   FFormPanel.Border := False;
@@ -158,11 +158,11 @@ begin
   FFormPanel.MonitorValid := True;
   FFormPanel.Bbar := FStatusBar;
 
-  FButton := TExtButton.AddTo(FStatusBar.Items);
+  FButton := TExtButton.CreateAndAddTo(FStatusBar.Items);
   FButton.Icon := Session.Config.GetImageURL('password');
   FButton.Text := _('Change password');
 
-  FOldPassword := TExtFormTextField.AddTo(FFormPanel.Items);
+  FOldPassword := TExtFormTextField.CreateAndAddTo(FFormPanel.Items);
   FOldPassword.Name := 'OldPassword';
   //FOldPassword.Value := ...
   FOldPassword.FieldLabel := _('Old Password');
@@ -171,7 +171,7 @@ begin
   FOldPassword.Width := 136;
   FOldPassword.EnableKeyEvents := True;
 
-  FNewPassword := TExtFormTextField.AddTo(FFormPanel.Items);
+  FNewPassword := TExtFormTextField.CreateAndAddTo(FFormPanel.Items);
   FNewPassword.Name := 'NewPassword';
   //FNewPassword.Value := ...
   FNewPassword.FieldLabel := _('New Password');
@@ -180,7 +180,7 @@ begin
   FNewPassword.Width := 136;
   FNewPassword.EnableKeyEvents := True;
 
-  FConfirmNewPassword := TExtFormTextField.AddTo(FFormPanel.Items);
+  FConfirmNewPassword := TExtFormTextField.CreateAndAddTo(FFormPanel.Items);
   FConfirmNewPassword.Name := 'ConfirmNewPassword';
   //FConfirmNewPassword.Value := ...
   FConfirmNewPassword.FieldLabel := _('Confirm New Password');

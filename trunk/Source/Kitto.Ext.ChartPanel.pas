@@ -117,12 +117,12 @@ begin
 
   if LDataType is TEFDateTimeDataTypeBase then
   begin
-    Result := TExtChartTimeAxis.Create;
+    Result := TExtChartTimeAxis.Create(Self);
     TExtChartTimeAxis(Result).StackingEnabled := True;
   end
   else if LDataType is TEFNumericDataTypeBase then
   begin
-    Result := TExtChartNumericAxis.Create;
+    Result := TExtChartNumericAxis.Create(Self);
     TExtChartNumericAxis(Result).StackingEnabled := True;
     if Assigned(AConfigNode) then
     begin
@@ -133,7 +133,7 @@ begin
     end;
   end
   else
-    Result := TExtChartCategoryAxis.Create;
+    Result := TExtChartCategoryAxis.Create(Self);
 end;
 
 procedure TKExtChartPanel.CreateAndInitSeries(const AConfigNode: TEFNode);
@@ -156,11 +156,11 @@ var
 
     if FChart is TExtChartPieChart then
     begin
-      LSeries := TExtChartPieSeries.AddTo(FChart.Series);
+      LSeries := TExtChartPieSeries.CreateAndAddTo(FChart.Series);
     end
     else
     begin
-      LSeries := TExtChartCartesianSeries.AddTo(FChart.Series);
+      LSeries := TExtChartCartesianSeries.CreateAndAddTo(FChart.Series);
       LOption := AConfigNode.GetString('XField');
       if LOption <> '' then
         TExtChartCartesianSeries(LSeries).XField := LOption;
@@ -177,7 +177,7 @@ var
     LStyle := AConfigNode.FindNode('Style');
     if Assigned(LStyle) then
     begin
-      LSeries.Style := TExtChartSeriesStyle.Create;
+      LSeries.Style := TExtChartSeriesStyle.Create(Self);
       LOption := LStyle.GetString('Color');
       if LOption <> '' then
         LSeries.Style.Color := LOption;
@@ -254,32 +254,32 @@ begin
 
   if SameText(AChartType, 'Line') then
   begin
-    FChart := TExtChartLineChart.AddTo(Items);
+    FChart := TExtChartLineChart.CreateAndAddTo(Items);
     CreateDefaultXYAxes;
   end
   else if SameText(AChartType, 'Bar') then
   begin
-    FChart := TExtChartBarChart.AddTo(Items);
+    FChart := TExtChartBarChart.CreateAndAddTo(Items);
     CreateDefaultXYAxes;
   end
   else if SameText(AChartType, 'Column') then
   begin
-    FChart := TExtChartColumnChart.AddTo(Items);
+    FChart := TExtChartColumnChart.CreateAndAddTo(Items);
     CreateDefaultXYAxes;
   end
   else if SameText(AChartType, 'StackedBar') then
   begin
-    FChart := TExtChartStackedBarChart.AddTo(Items);
+    FChart := TExtChartStackedBarChart.CreateAndAddTo(Items);
     CreateDefaultXYAxes;
   end
   else if SameText(AChartType, 'StackedColumn') then
   begin
-    FChart := TExtChartStackedColumnChart.AddTo(Items);
+    FChart := TExtChartStackedColumnChart.CreateAndAddTo(Items);
     CreateDefaultXYAxes;
   end
   else if SameText(AChartType, 'Pie') then
   begin
-    FChart := TExtChartPieChart.AddTo(Items);
+    FChart := TExtChartPieChart.CreateAndAddTo(Items);
     TExtChartPieChart(FChart).DataField := Config.GetString('Chart/DataField');
     TExtChartPieChart(FChart).CategoryField := Config.GetString('Chart/CategoryField');
   end

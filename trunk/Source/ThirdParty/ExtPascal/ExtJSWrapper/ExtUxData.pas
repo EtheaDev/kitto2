@@ -14,7 +14,6 @@ type
   TExtUxDataPagingMemoryProxy = class(TExtDataMemoryProxy)
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
   end;
 
 implementation
@@ -22,7 +21,5 @@ implementation
 function TExtUxDataPagingMemoryProxy.JSClassName : string; begin
   Result := 'Ext.ux.data.PagingMemoryProxy';
 end;
-
-{$IFDEF FPC}constructor TExtUxDataPagingMemoryProxy.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
 
 end.

@@ -33,7 +33,6 @@ type
     procedure SetFWidth(Value : Integer);
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
     property Align : String read FAlign write SetFAlign;
     property Cls : String read FCls write SetFCls;
     property DataIndex : String read FDataIndex write SetFDataIndex;
@@ -50,8 +49,6 @@ type
     procedure InitDefaults; override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     property Format : String read FFormat write SetFFormat;
   end;
 
@@ -63,16 +60,12 @@ type
     procedure InitDefaults; override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
-    destructor Destroy; override;
     property SortClasses : TExtObjectList read FSortClasses write SetFSortClasses;
   end;
 
   TExtListDateColumn = class(TExtListColumn)
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
   end;
 
   TExtListBooleanColumn = class(TExtListColumn)
@@ -87,8 +80,6 @@ type
     procedure InitDefaults; override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     property FalseText : String read FFalseText write SetFFalseText;
     property TrueText : String read FTrueText write SetFTrueText;
     property UndefinedText : String read FUndefinedText write SetFUndefinedText;
@@ -102,8 +93,6 @@ type
     procedure InitDefaults; override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     property MinPct : Integer read FMinPct write SetFMinPct;
   end;
 
@@ -141,10 +130,7 @@ type
     procedure InitDefaults; override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     function CollectData(Records : TExtObjectList; StartIndex : Integer) : TExtFunction;
-    destructor Destroy; override;
     property ColumnResize : Boolean read FColumnResize write SetFColumnResize;
     property ColumnResizeObject : TExtObject read FColumnResizeObject write SetFColumnResizeObject;
     property ColumnSort : Boolean read FColumnSort write SetFColumnSort;
@@ -197,8 +183,6 @@ function TExtListColumn.JSClassName : string; begin
   Result := 'Ext.list.Column';
 end;
 
-{$IFDEF FPC}constructor TExtListColumn.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
 procedure TExtListNumberColumn.SetFFormat(Value : String); begin
   FFormat := Value;
   JSCode('format:' + VarToJSON([Value]));
@@ -213,17 +197,9 @@ procedure TExtListNumberColumn.InitDefaults; begin
   FFormat := '0,000.00';
 end;
 
-{$IFDEF FPC}constructor TExtListNumberColumn.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtListNumberColumn.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
-end;
-
 procedure TExtListSorter.SetFSortClasses(Value : TExtObjectList); begin
   FSortClasses := Value;
-  Value.DeleteFromGarbage;
-  JSCode('sortClasses:' + VarToJSON([Value, false]));
+    JSCode('sortClasses:' + VarToJSON([Value, false]));
 end;
 
 function TExtListSorter.JSClassName : string; begin
@@ -232,28 +208,12 @@ end;
 
 procedure TExtListSorter.InitDefaults; begin
   inherited;
-  FSortClasses := TExtObjectList.Create(Self, 'sortClasses');
-end;
-
-{$IFDEF FPC}constructor TExtListSorter.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtListSorter.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
-end;
-
-destructor TExtListSorter.Destroy; begin
-  try
-    FSortClasses.Free;
-  except end;
-  inherited;
+  FSortClasses := TExtObjectList.CreateAsAttribute(Self, 'sortClasses');
 end;
 
 function TExtListDateColumn.JSClassName : string; begin
   Result := 'Ext.list.DateColumn';
 end;
-
-{$IFDEF FPC}constructor TExtListDateColumn.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
 
 procedure TExtListBooleanColumn.SetFFalseText(Value : String); begin
   FFalseText := Value;
@@ -280,13 +240,6 @@ procedure TExtListBooleanColumn.InitDefaults; begin
   FTrueText := 'true';
 end;
 
-{$IFDEF FPC}constructor TExtListBooleanColumn.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtListBooleanColumn.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
-end;
-
 procedure TExtListColumnResizer.SetFMinPct(Value : Integer); begin
   FMinPct := Value;
   JSCode('minPct:' + VarToJSON([Value]));
@@ -301,13 +254,6 @@ procedure TExtListColumnResizer.InitDefaults; begin
   FMinPct := 05;
 end;
 
-{$IFDEF FPC}constructor TExtListColumnResizer.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtListColumnResizer.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
-end;
-
 procedure TExtListListView.SetFColumnResize(Value : Boolean); begin
   FColumnResize := Value;
   JSCode('columnResize:' + VarToJSON([Value]));
@@ -315,8 +261,7 @@ end;
 
 procedure TExtListListView.SetFColumnResizeObject(Value : TExtObject); begin
   FColumnResizeObject := Value;
-  Value.DeleteFromGarbage;
-  JSCode('columnResize:' + VarToJSON([Value, false]));
+    JSCode('columnResize:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtListListView.SetFColumnSort(Value : Boolean); begin
@@ -326,14 +271,12 @@ end;
 
 procedure TExtListListView.SetFColumnSortObject(Value : TExtObject); begin
   FColumnSortObject := Value;
-  Value.DeleteFromGarbage;
-  JSCode('columnSort:' + VarToJSON([Value, false]));
+    JSCode('columnSort:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtListListView.SetFColumns(Value : TExtObjectList); begin
   FColumns := Value;
-  Value.DeleteFromGarbage;
-  JSCode('columns:' + VarToJSON([Value, false]));
+    JSCode('columns:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtListListView.SetFHideHeaders(Value : Boolean); begin
@@ -348,8 +291,7 @@ end;
 
 procedure TExtListListView.SetFInternalTplArray(Value : TExtObjectList); begin
   FInternalTplArray := Value;
-  Value.DeleteFromGarbage;
-  JSCode('internalTpl:' + VarToJSON([Value, false]));
+    JSCode('internalTpl:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtListListView.SetFItemSelector(Value : String); begin
@@ -392,32 +334,15 @@ procedure TExtListListView.InitDefaults; begin
   FColumnResizeObject := TExtObject.CreateInternal(Self, 'columnResize');
   FColumnSort := true;
   FColumnSortObject := TExtObject.CreateInternal(Self, 'columnSort');
-  FColumns := TExtObjectList.Create(Self, 'columns');
-  FInternalTplArray := TExtObjectList.Create(Self, 'internalTpl');
+  FColumns := TExtObjectList.CreateAsAttribute(Self, 'columns');
+  FInternalTplArray := TExtObjectList.CreateAsAttribute(Self, 'internalTpl');
   FOverClass := 'x-list-over';
   FSelectedClass := 'x-list-selected';
-end;
-
-{$IFDEF FPC}constructor TExtListListView.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtListListView.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
 end;
 
 function TExtListListView.CollectData(Records : TExtObjectList; StartIndex : Integer) : TExtFunction; begin
   JSCode(JSName + '.collectData(' + VarToJSON(Records) + ',' + VarToJSON([StartIndex]) + ');', 'TExtListListView');
   Result := Self;
-end;
-
-destructor TExtListListView.Destroy; begin
-  try
-    FColumnResizeObject.Free;
-    FColumnSortObject.Free;
-    FColumns.Free;
-    FInternalTplArray.Free;
-  except end;
-  inherited;
 end;
 
 end.

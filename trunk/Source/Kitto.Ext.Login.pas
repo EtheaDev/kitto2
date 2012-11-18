@@ -21,7 +21,7 @@ unit Kitto.Ext.Login;
 interface
 
 uses
-  Ext, ExtForm,
+  ExtPascal, Ext, ExtForm,
   Kitto.Ext.Base;
 
 type
@@ -40,7 +40,7 @@ type
   public
     property OnLogin: TKExtOnLogin read FOnLogin write FOnLogin;
 
-    class function Authenticate(const AUserName: string = ''; const APassword: string = ''): Boolean;
+    class function Authenticate(const ASession: TExtSession): Boolean;
   published
     procedure DoLogin;
   end;
@@ -57,7 +57,7 @@ uses
 
 procedure TKExtLoginWindow.DoLogin;
 begin
-  if Authenticate(Session.Query['UserName'], Session.Query['Password']) then
+  if Authenticate(Session) then
   begin
     Close;
     if Assigned(FOnLogin) then
@@ -70,22 +70,30 @@ begin
   end;
 end;
 
-class function TKExtLoginWindow.Authenticate(const AUserName, APassword: string): Boolean;
+class function TKExtLoginWindow.Authenticate(const ASession: TExtSession): Boolean;
 var
   LAuthData: TEFNode;
+  LSession: TKExtSession;
+  LUserName: string;
+  LPassword: string;
 begin
-  if Session.Config.Authenticator.IsAuthenticated then
+  Assert(ASession is TKExtSession);
+
+  LSession := TKExtSession(ASession);
+  if LSession.Config.Authenticator.IsAuthenticated then
     Result := True
   else
   begin
     LAuthData := TEFNode.Create;
     try
-      Session.Config.Authenticator.DefineAuthData(LAuthData);
-      if AUserName <> '' then
-        LAuthData.SetString('UserName', AUserName);
-      if APassword <> '' then
-        LAuthData.SetString('Password', APassword);
-      Result := Session.Config.Authenticator.Authenticate(LAuthData);
+      LSession.Config.Authenticator.DefineAuthData(LAuthData);
+      LUserName := LSession.Query['UserName'];
+      if LUserName <> '' then
+        LAuthData.SetString('UserName', LUserName);
+      LPassword := LSession.Query['Password'];
+      if LSession.Query['Password'] <> '' then
+        LAuthData.SetString('Password', LPassword);
+      Result := LSession.Config.Authenticator.Authenticate(LAuthData);
     finally
       LAuthData.Free;
     end;
@@ -117,11 +125,11 @@ begin
   Closable := False;
   Resizable := False;
 
-  FStatusBar := TKExtStatusBar.Create;
+  FStatusBar := TKExtStatusBar.Create(Self);
   FStatusBar.DefaultText := '';
   FStatusBar.BusyText := _('Logging in...');
 
-  FFormPanel := TExtFormFormPanel.AddTo(Items);
+  FFormPanel := TExtFormFormPanel.CreateAndAddTo(Items);
   FFormPanel.Region := rgCenter;
   FFormPanel.LabelWidth := 80;
   FFormPanel.Border := False;
@@ -130,11 +138,11 @@ begin
   FFormPanel.MonitorValid := True;
   FFormPanel.Bbar := FStatusBar;
 
-  FButton := TExtButton.AddTo(FStatusBar.Items);
+  FButton := TExtButton.CreateAndAddTo(FStatusBar.Items);
   FButton.Icon := Session.Config.GetImageURL('login');
   FButton.Text := _('Login');
 
-  FUserName := TExtFormTextField.AddTo(FFormPanel.Items);
+  FUserName := TExtFormTextField.CreateAndAddTo(FFormPanel.Items);
   FUserName.Name := 'UserName';
   FUserName.Value := Session.Config.Authenticator.AuthData.GetExpandedString('UserName');
   FUserName.FieldLabel := _('User Name');
@@ -143,7 +151,7 @@ begin
   FUserName.EnableKeyEvents := True;
   FUserName.SelectOnFocus := True;
 
-  FPassword := TExtFormTextField.AddTo(FFormPanel.Items);
+  FPassword := TExtFormTextField.CreateAndAddTo(FFormPanel.Items);
   FPassword.Name := 'Password';
   FPassword.Value := Session.Config.Authenticator.AuthData.GetExpandedString('Password');
   FPassword.FieldLabel := _('Password');

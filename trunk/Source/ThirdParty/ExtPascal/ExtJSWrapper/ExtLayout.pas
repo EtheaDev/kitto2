@@ -30,8 +30,7 @@ type
 
   TExtLayoutAutoLayout = class(TExtFunction)
   public
-    function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
+    class function JSClassName : string; override;
   end;
 
   TExtLayoutBorderLayoutRegion = class(TExtFunction)
@@ -67,9 +66,7 @@ type
   protected
     procedure InitDefaults; override;
   public
-    function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
+    class function JSClassName : string; override;
     function MustHaveACenterRegion : TExtFunction;
     function GetMinHeight : TExtFunction;
     function GetMinWidth : TExtFunction;
@@ -78,7 +75,6 @@ type
     function SetPanel(Panel : TExtPanel) : TExtFunction;
     function SlideIn : TExtFunction;
     function SlideOut : TExtFunction;
-    destructor Destroy; override;
     property AnimFloat : Boolean read FAnimFloat write SetFAnimFloat;
     property AutoHide : Boolean read FAutoHide write SetFAutoHide;
     property Cmargins : TExtObject read FCmargins write SetFCmargins;
@@ -110,12 +106,9 @@ type
   protected
     procedure InitDefaults; override;
   public
-    function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
+    class function JSClassName : string; override;
     function ParseMargins(V : Integer) : TExtFunction; overload;
     function ParseMargins(V : String) : TExtFunction; overload;
-    destructor Destroy; override;
     property ExtraCls : String read FExtraCls write SetFExtraCls;
     property RenderHidden : Boolean read FRenderHidden write SetFRenderHidden;
     property ActiveItem : TExtComponent read FActiveItem write SetFActiveItem;
@@ -125,8 +118,7 @@ type
 
   TExtLayoutMenuLayout = class(TExtLayoutContainerLayout)
   public
-    function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
+    class function JSClassName : string; override;
   end;
 
   TExtLayoutTableLayout = class(TExtLayoutContainerLayout)
@@ -138,24 +130,19 @@ type
   protected
     procedure InitDefaults; override;
   public
-    function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
-    destructor Destroy; override;
+    class function JSClassName : string; override;
     property Columns : Integer read FColumns write SetFColumns;
     property TableAttrs : TExtObject read FTableAttrs write SetFTableAttrs;
   end;
 
   TExtLayoutFitLayout = class(TExtLayoutContainerLayout)
   public
-    function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
+    class function JSClassName : string; override;
   end;
 
   TExtLayoutColumnLayout = class(TExtLayoutContainerLayout)
   public
-    function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
+    class function JSClassName : string; override;
   end;
 
   TExtLayoutBoxLayout = class(TExtLayoutContainerLayout)
@@ -167,11 +154,8 @@ type
   protected
     procedure InitDefaults; override;
   public
-    function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
+    class function JSClassName : string; override;
     function UpdateChildBoxes(Boxes : TExtObjectList) : TExtFunction;
-    destructor Destroy; override;
     property DefaultMargins : TExtObject read FDefaultMargins write SetFDefaultMargins;
     property Padding : String read FPadding write SetFPadding;
   end;
@@ -183,8 +167,7 @@ type
     procedure SetFAnchor(Value : String);
     procedure SetFDefaultAnchor(Value : String);
   public
-    function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
+    class function JSClassName : string; override;
     property Anchor : String read FAnchor write SetFAnchor;
     property DefaultAnchor : String read FDefaultAnchor write SetFDefaultAnchor;
   end;
@@ -200,10 +183,7 @@ type
   protected
     procedure InitDefaults; override;
   public
-    function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
-    destructor Destroy; override;
+    class function JSClassName : string; override;
     property HiddenItems : TExtObjectList read FHiddenItems write SetFHiddenItems;
     property NoItemsMenuText : String read FNoItemsMenuText write SetFNoItemsMenuText;
     property TriggerWidth : Integer read FTriggerWidth write SetFTriggerWidth;
@@ -222,9 +202,7 @@ type
   protected
     procedure InitDefaults; override;
   public
-    function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
+    class function JSClassName : string; override;
     function GetSplitBar : TExtFunction;
     property CollapsibleSplitTip : String read FCollapsibleSplitTip write SetFCollapsibleSplitTip;
     property SplitTip : String read FSplitTip write SetFSplitTip;
@@ -234,8 +212,7 @@ type
 
   TExtLayoutBorderLayout = class(TExtLayoutContainerLayout)
   public
-    function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
+    class function JSClassName : string; override;
   end;
 
   TExtLayoutVBoxLayout = class(TExtLayoutBoxLayout)
@@ -247,8 +224,7 @@ type
     procedure SetFFlex(Value : Integer);
     procedure SetFPack(Value : String);
   public
-    function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
+    class function JSClassName : string; override;
     property Align : String read FAlign write SetFAlign;
     property Flex : Integer read FFlex write SetFFlex;
     property Pack : String read FPack write SetFPack;
@@ -263,8 +239,7 @@ type
     procedure SetFFlex(Value : Integer);
     procedure SetFPack(Value : String);
   public
-    function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
+    class function JSClassName : string; override;
     property Align : String read FAlign write SetFAlign;
     property Flex : Integer read FFlex write SetFFlex;
     property Pack : String read FPack write SetFPack;
@@ -291,9 +266,7 @@ type
   protected
     procedure InitDefaults; override;
   public
-    function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
+    class function JSClassName : string; override;
     function SetActiveItem(Item : String) : TExtFunction; overload;
     function SetActiveItem(Item : Integer) : TExtFunction; overload;
     property ActiveOnTop : Boolean read FActiveOnTop write SetFActiveOnTop;
@@ -308,8 +281,7 @@ type
 
   TExtLayoutAbsoluteLayout = class(TExtLayoutAnchorLayout)
   public
-    function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
+    class function JSClassName : string; override;
   end;
 
   TExtLayoutFormLayout = class(TExtLayoutAnchorLayout)
@@ -325,11 +297,8 @@ type
   protected
     procedure InitDefaults; override;
   public
-    function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
+    class function JSClassName : string; override;
     function GetTemplateArgs(Field : TExtFormField) : TExtFunction;
-    destructor Destroy; override;
     property FieldTpl : TExtTemplate read FFieldTpl write SetFFieldTpl;
     property LabelSeparator : String read FLabelSeparator write SetFLabelSeparator;
     property TrackLabels : Boolean read FTrackLabels write SetFTrackLabels;
@@ -343,8 +312,7 @@ type
     procedure SetFDeferredRender(Value : Boolean);
     procedure SetFLayoutOnCardChange(Value : Boolean);
   public
-    function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
+    class function JSClassName : string; override;
     function SetActiveItem(Item : String) : TExtFunction; overload;
     function SetActiveItem(Item : Integer) : TExtFunction; overload;
     property DeferredRender : Boolean read FDeferredRender write SetFDeferredRender;
@@ -353,11 +321,9 @@ type
 
 implementation
 
-function TExtLayoutAutoLayout.JSClassName : string; begin
+class function TExtLayoutAutoLayout.JSClassName : string; begin
   Result := 'Ext.layout.AutoLayout';
 end;
-
-{$IFDEF FPC}constructor TExtLayoutAutoLayout.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
 
 procedure TExtLayoutBorderLayoutRegion.SetFAnimFloat(Value : Boolean); begin
   FAnimFloat := Value;
@@ -371,8 +337,7 @@ end;
 
 procedure TExtLayoutBorderLayoutRegion.SetFCmargins(Value : TExtObject); begin
   FCmargins := Value;
-  Value.DeleteFromGarbage;
-  JSCode('cmargins:' + VarToJSON([Value, false]));
+    JSCode('cmargins:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtLayoutBorderLayoutRegion.SetFCollapseMode(Value : String); begin
@@ -392,8 +357,7 @@ end;
 
 procedure TExtLayoutBorderLayoutRegion.SetFMargins(Value : TExtObject); begin
   FMargins := Value;
-  Value.DeleteFromGarbage;
-  JSCode('margins:' + VarToJSON([Value, false]));
+    JSCode('margins:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtLayoutBorderLayoutRegion.SetFMinHeight(Value : Integer); begin
@@ -418,14 +382,12 @@ end;
 
 procedure TExtLayoutBorderLayoutRegion.SetFLayout(Value : TLayout); begin
   FLayout := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.layout=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.layout=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtLayoutBorderLayoutRegion.SetFPanel(Value : TExtPanel); begin
   FPanel := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.panel=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.panel=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtLayoutBorderLayoutRegion.SetFPosition(Value : String); begin
@@ -433,7 +395,7 @@ procedure TExtLayoutBorderLayoutRegion.SetFPosition(Value : String); begin
   JSCode(JSName + '.position=' + VarToJSON([Value]) + ';');
 end;
 
-function TExtLayoutBorderLayoutRegion.JSClassName : string; begin
+class function TExtLayoutBorderLayoutRegion.JSClassName : string; begin
   Result := 'Ext.layout.BorderLayout.Region';
 end;
 
@@ -447,13 +409,6 @@ procedure TExtLayoutBorderLayoutRegion.InitDefaults; begin
   FMinHeight := 50;
   FMinWidth := 50;
   FPanel := TExtPanel.CreateInternal(Self, 'panel');
-end;
-
-{$IFDEF FPC}constructor TExtLayoutBorderLayoutRegion.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtLayoutBorderLayoutRegion.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
 end;
 
 function TExtLayoutBorderLayoutRegion.MustHaveACenterRegion : TExtFunction; begin
@@ -496,15 +451,6 @@ function TExtLayoutBorderLayoutRegion.SlideOut : TExtFunction; begin
   Result := Self;
 end;
 
-destructor TExtLayoutBorderLayoutRegion.Destroy; begin
-  try
-    FCmargins.Free;
-    FMargins.Free;
-    FPanel.Free;
-  except end;
-  inherited;
-end;
-
 procedure TExtLayoutContainerLayout.SetFExtraCls(Value : String); begin
   FExtraCls := Value;
   JSCode('extraCls:' + VarToJSON([Value]));
@@ -517,23 +463,20 @@ end;
 
 procedure TExtLayoutContainerLayout.SetFActiveItem(Value : TExtComponent); begin
   FActiveItem := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.activeItem=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.activeItem=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtLayoutContainerLayout.SetFFieldTpl(Value : TExtTemplate); begin
   FFieldTpl := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.fieldTpl=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.fieldTpl=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtLayoutContainerLayout.SetFIfJS(Value : TExtObject); begin
   FIfJS := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.ifJS=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.ifJS=' + VarToJSON([Value, false]) + ';');
 end;
 
-function TExtLayoutContainerLayout.JSClassName : string; begin
+class function TExtLayoutContainerLayout.JSClassName : string; begin
   Result := 'Ext.layout.ContainerLayout';
 end;
 
@@ -542,13 +485,6 @@ procedure TExtLayoutContainerLayout.InitDefaults; begin
   FActiveItem := TExtComponent.CreateInternal(Self, 'activeItem');
   FFieldTpl := TExtTemplate.CreateInternal(Self, 'fieldTpl');
   FIfJS := TExtObject.CreateInternal(Self, 'ifJS');
-end;
-
-{$IFDEF FPC}constructor TExtLayoutContainerLayout.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtLayoutContainerLayout.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
 end;
 
 function TExtLayoutContainerLayout.ParseMargins(V : Integer) : TExtFunction; begin
@@ -561,20 +497,9 @@ function TExtLayoutContainerLayout.ParseMargins(V : String) : TExtFunction; begi
   Result := Self;
 end;
 
-destructor TExtLayoutContainerLayout.Destroy; begin
-  try
-    FActiveItem.Free;
-    FFieldTpl.Free;
-    FIfJS.Free;
-  except end;
-  inherited;
-end;
-
-function TExtLayoutMenuLayout.JSClassName : string; begin
+class function TExtLayoutMenuLayout.JSClassName : string; begin
   Result := 'Ext.layout.MenuLayout';
 end;
-
-{$IFDEF FPC}constructor TExtLayoutMenuLayout.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
 
 procedure TExtLayoutTableLayout.SetFColumns(Value : Integer); begin
   FColumns := Value;
@@ -583,11 +508,10 @@ end;
 
 procedure TExtLayoutTableLayout.SetFTableAttrs(Value : TExtObject); begin
   FTableAttrs := Value;
-  Value.DeleteFromGarbage;
-  JSCode('tableAttrs:' + VarToJSON([Value, false]));
+    JSCode('tableAttrs:' + VarToJSON([Value, false]));
 end;
 
-function TExtLayoutTableLayout.JSClassName : string; begin
+class function TExtLayoutTableLayout.JSClassName : string; begin
   Result := 'Ext.layout.TableLayout';
 end;
 
@@ -596,36 +520,17 @@ procedure TExtLayoutTableLayout.InitDefaults; begin
   FTableAttrs := TExtObject.CreateInternal(Self, 'tableAttrs');
 end;
 
-{$IFDEF FPC}constructor TExtLayoutTableLayout.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtLayoutTableLayout.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
-end;
-
-destructor TExtLayoutTableLayout.Destroy; begin
-  try
-    FTableAttrs.Free;
-  except end;
-  inherited;
-end;
-
-function TExtLayoutFitLayout.JSClassName : string; begin
+class function TExtLayoutFitLayout.JSClassName : string; begin
   Result := 'Ext.layout.FitLayout';
 end;
 
-{$IFDEF FPC}constructor TExtLayoutFitLayout.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-function TExtLayoutColumnLayout.JSClassName : string; begin
+class function TExtLayoutColumnLayout.JSClassName : string; begin
   Result := 'Ext.layout.ColumnLayout';
 end;
 
-{$IFDEF FPC}constructor TExtLayoutColumnLayout.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
 procedure TExtLayoutBoxLayout.SetFDefaultMargins(Value : TExtObject); begin
   FDefaultMargins := Value;
-  Value.DeleteFromGarbage;
-  JSCode('defaultMargins:' + VarToJSON([Value, false]));
+    JSCode('defaultMargins:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtLayoutBoxLayout.SetFPadding(Value : String); begin
@@ -633,7 +538,7 @@ procedure TExtLayoutBoxLayout.SetFPadding(Value : String); begin
   JSCode('padding:' + VarToJSON([Value]));
 end;
 
-function TExtLayoutBoxLayout.JSClassName : string; begin
+class function TExtLayoutBoxLayout.JSClassName : string; begin
   Result := 'Ext.layout.BoxLayout';
 end;
 
@@ -642,23 +547,9 @@ procedure TExtLayoutBoxLayout.InitDefaults; begin
   FDefaultMargins := TExtObject.CreateInternal(Self, 'defaultMargins');
 end;
 
-{$IFDEF FPC}constructor TExtLayoutBoxLayout.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtLayoutBoxLayout.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
-end;
-
 function TExtLayoutBoxLayout.UpdateChildBoxes(Boxes : TExtObjectList) : TExtFunction; begin
   JSCode(JSName + '.updateChildBoxes(' + VarToJSON(Boxes) + ');', 'TExtLayoutBoxLayout');
   Result := Self;
-end;
-
-destructor TExtLayoutBoxLayout.Destroy; begin
-  try
-    FDefaultMargins.Free;
-  except end;
-  inherited;
 end;
 
 procedure TExtLayoutAnchorLayout.SetFAnchor(Value : String); begin
@@ -671,16 +562,13 @@ procedure TExtLayoutAnchorLayout.SetFDefaultAnchor(Value : String); begin
   JSCode('defaultAnchor:' + VarToJSON([Value]));
 end;
 
-function TExtLayoutAnchorLayout.JSClassName : string; begin
+class function TExtLayoutAnchorLayout.JSClassName : string; begin
   Result := 'Ext.layout.AnchorLayout';
 end;
 
-{$IFDEF FPC}constructor TExtLayoutAnchorLayout.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
 procedure TExtLayoutToolbarLayout.SetFHiddenItems(Value : TExtObjectList); begin
   FHiddenItems := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.hiddenItems=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.hiddenItems=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtLayoutToolbarLayout.SetFNoItemsMenuText(Value : String); begin
@@ -693,27 +581,13 @@ procedure TExtLayoutToolbarLayout.SetFTriggerWidth(Value : Integer); begin
   JSCode(JSName + '.triggerWidth=' + VarToJSON([Value]) + ';');
 end;
 
-function TExtLayoutToolbarLayout.JSClassName : string; begin
+class function TExtLayoutToolbarLayout.JSClassName : string; begin
   Result := 'Ext.layout.ToolbarLayout';
 end;
 
 procedure TExtLayoutToolbarLayout.InitDefaults; begin
   inherited;
-  FHiddenItems := TExtObjectList.Create(Self, 'hiddenItems');
-end;
-
-{$IFDEF FPC}constructor TExtLayoutToolbarLayout.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtLayoutToolbarLayout.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
-end;
-
-destructor TExtLayoutToolbarLayout.Destroy; begin
-  try
-    FHiddenItems.Free;
-  except end;
-  inherited;
+  FHiddenItems := TExtObjectList.CreateAsAttribute(Self, 'hiddenItems');
 end;
 
 procedure TExtLayoutBorderLayoutSplitRegion.SetFCollapsibleSplitTip(Value : String); begin
@@ -736,7 +610,7 @@ procedure TExtLayoutBorderLayoutSplitRegion.SetFUseSplitTips(Value : Boolean); b
   JSCode('useSplitTips:' + VarToJSON([Value]));
 end;
 
-function TExtLayoutBorderLayoutSplitRegion.JSClassName : string; begin
+class function TExtLayoutBorderLayoutSplitRegion.JSClassName : string; begin
   Result := 'Ext.layout.BorderLayout.SplitRegion';
 end;
 
@@ -746,23 +620,14 @@ procedure TExtLayoutBorderLayoutSplitRegion.InitDefaults; begin
   FSplitTip := 'Drag to resize.';
 end;
 
-{$IFDEF FPC}constructor TExtLayoutBorderLayoutSplitRegion.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtLayoutBorderLayoutSplitRegion.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
-end;
-
 function TExtLayoutBorderLayoutSplitRegion.GetSplitBar : TExtFunction; begin
   JSCode(JSName + '.getSplitBar();', 'TExtLayoutBorderLayoutSplitRegion');
   Result := Self;
 end;
 
-function TExtLayoutBorderLayout.JSClassName : string; begin
+class function TExtLayoutBorderLayout.JSClassName : string; begin
   Result := 'Ext.layout.BorderLayout';
 end;
-
-{$IFDEF FPC}constructor TExtLayoutBorderLayout.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
 
 procedure TExtLayoutVBoxLayout.SetFAlign(Value : String); begin
   FAlign := Value;
@@ -779,11 +644,9 @@ procedure TExtLayoutVBoxLayout.SetFPack(Value : String); begin
   JSCode('pack:' + VarToJSON([Value]));
 end;
 
-function TExtLayoutVBoxLayout.JSClassName : string; begin
+class function TExtLayoutVBoxLayout.JSClassName : string; begin
   Result := 'Ext.layout.VBoxLayout';
 end;
-
-{$IFDEF FPC}constructor TExtLayoutVBoxLayout.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
 
 procedure TExtLayoutHBoxLayout.SetFAlign(Value : String); begin
   FAlign := Value;
@@ -800,11 +663,9 @@ procedure TExtLayoutHBoxLayout.SetFPack(Value : String); begin
   JSCode('pack:' + VarToJSON([Value]));
 end;
 
-function TExtLayoutHBoxLayout.JSClassName : string; begin
+class function TExtLayoutHBoxLayout.JSClassName : string; begin
   Result := 'Ext.layout.HBoxLayout';
 end;
-
-{$IFDEF FPC}constructor TExtLayoutHBoxLayout.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
 
 procedure TExtLayoutAccordionLayout.SetFActiveOnTop(Value : Boolean); begin
   FActiveOnTop := Value;
@@ -846,7 +707,7 @@ procedure TExtLayoutAccordionLayout.SetFTitleCollapse(Value : Boolean); begin
   JSCode('titleCollapse:' + VarToJSON([Value]));
 end;
 
-function TExtLayoutAccordionLayout.JSClassName : string; begin
+class function TExtLayoutAccordionLayout.JSClassName : string; begin
   Result := 'Ext.layout.AccordionLayout';
 end;
 
@@ -855,13 +716,6 @@ procedure TExtLayoutAccordionLayout.InitDefaults; begin
   FAutoWidth := true;
   FFill := true;
   FTitleCollapse := true;
-end;
-
-{$IFDEF FPC}constructor TExtLayoutAccordionLayout.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtLayoutAccordionLayout.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
 end;
 
 function TExtLayoutAccordionLayout.SetActiveItem(Item : String) : TExtFunction; begin
@@ -874,16 +728,13 @@ function TExtLayoutAccordionLayout.SetActiveItem(Item : Integer) : TExtFunction;
   Result := Self;
 end;
 
-function TExtLayoutAbsoluteLayout.JSClassName : string; begin
+class function TExtLayoutAbsoluteLayout.JSClassName : string; begin
   Result := 'Ext.layout.AbsoluteLayout';
 end;
 
-{$IFDEF FPC}constructor TExtLayoutAbsoluteLayout.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
 procedure TExtLayoutFormLayout.SetFFieldTpl(Value : TExtTemplate); begin
   FFieldTpl := Value;
-  Value.DeleteFromGarbage;
-  JSCode('fieldTpl:' + VarToJSON([Value, false]));
+    JSCode('fieldTpl:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtLayoutFormLayout.SetFLabelSeparator(Value : String); begin
@@ -901,7 +752,7 @@ procedure TExtLayoutFormLayout.SetFLabelStyle(Value : String); begin
   JSCode(JSName + '.labelStyle=' + VarToJSON([Value]) + ';');
 end;
 
-function TExtLayoutFormLayout.JSClassName : string; begin
+class function TExtLayoutFormLayout.JSClassName : string; begin
   Result := 'Ext.layout.FormLayout';
 end;
 
@@ -910,23 +761,9 @@ procedure TExtLayoutFormLayout.InitDefaults; begin
   FFieldTpl := TExtTemplate.CreateInternal(Self, 'fieldTpl');
 end;
 
-{$IFDEF FPC}constructor TExtLayoutFormLayout.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtLayoutFormLayout.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
-end;
-
 function TExtLayoutFormLayout.GetTemplateArgs(Field : TExtFormField) : TExtFunction; begin
   JSCode(JSName + '.getTemplateArgs(' + VarToJSON([Field, false]) + ');', 'TExtLayoutFormLayout');
   Result := Self;
-end;
-
-destructor TExtLayoutFormLayout.Destroy; begin
-  try
-    FFieldTpl.Free;
-  except end;
-  inherited;
 end;
 
 procedure TExtLayoutCardLayout.SetFDeferredRender(Value : Boolean); begin
@@ -939,11 +776,9 @@ procedure TExtLayoutCardLayout.SetFLayoutOnCardChange(Value : Boolean); begin
   JSCode('layoutOnCardChange:' + VarToJSON([Value]));
 end;
 
-function TExtLayoutCardLayout.JSClassName : string; begin
+class function TExtLayoutCardLayout.JSClassName : string; begin
   Result := 'Ext.layout.CardLayout';
 end;
-
-{$IFDEF FPC}constructor TExtLayoutCardLayout.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
 
 function TExtLayoutCardLayout.SetActiveItem(Item : String) : TExtFunction; begin
   JSCode(JSName + '.setActiveItem(' + VarToJSON([Item]) + ');', 'TExtLayoutCardLayout');

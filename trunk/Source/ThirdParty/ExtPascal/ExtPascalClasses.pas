@@ -9,9 +9,25 @@ type
   TCustomWebApplication = class;
 
 {$M+}
+  TCustomWebSession = class;
+{$M-}
+
+  TObjectCatalog = class(TComponent)
+  private
+    FSession: TCustomWebSession;
+  public
+    function FindExtObject(const AJSName: string): TObject;
+
+    procedure FreeAllExtObjects;
+
+    property Session: TCustomWebSession read FSession;
+  end;
+
+{$M+}
   TCustomWebSession = class(TObject)
   private
     FUploadedFileTooBig: Boolean;
+    FObjectCatalog: TObjectCatalog;
     function CheckPassword(const RealPassword : string) : Boolean;
     function GetCookie(const Name : string): string;
     function GetQuery(const ParamName : string) : string;
@@ -47,19 +63,11 @@ type
     function CanHandleUrlPath : Boolean; virtual; abstract;
     procedure DetectBrowser(const UserAgent : string);
     procedure DoLogout; virtual;
-    procedure DoReconfig; virtual;
     procedure DoSetCookie(const Name, ValueRaw : string); virtual;
     procedure DownloadBuffer(const FileName: string; const Size: Longint; const Buffer : AnsiString; AContentType : string = '');
     function DownloadContentType(const FileName, Default : string) : string;
     class function GetCurrentWebSession : TCustomWebSession; virtual; abstract;
     function GetDocumentRoot : string; virtual; abstract;
-    procedure GarbageAdd(const Name : string; Obj : TObject);
-    procedure GarbageCollect;
-    procedure GarbageDelete(Obj : TObject); overload;
-    procedure GarbageDelete(const Name : string); overload;
-    procedure GarbageRemove(Obj : TObject);
-    function GarbageExists(const Name : string): Boolean;
-    function GarbageFind(const Name : string): TObject;
     function GarbageFixName(const Name : string) : string; virtual;
     function GetRequestHeader(const Name : string) : string; virtual; abstract;
     function GetUrlHandlerObject : TObject; virtual;
@@ -90,12 +98,12 @@ type
     RequiresReload : boolean;
     Response: string;
     Charset: string; // Charset for html contenttype default utf-8, another option iso-8859-1
-    constructor Create(AOwner: TObject); virtual;
+    constructor Create(AOwner: TObject); reintroduce; virtual;
     destructor Destroy; override;
-    procedure Alert(const Msg : string); virtual;
+    procedure Alert(const AMessage: string); virtual;
     procedure DownloadFile(const FileName : string; AContentType : string = '');
     procedure DownloadStream(const Stream : TStream; const FileName : string; AContentType : string = '');
-    procedure Refresh;
+    procedure Refresh; virtual;
     function MethodURI(MethodName : string): string; overload;
     function MethodURI(Method : TExtProcedure): string; overload;
     function EncodeResponse: AnsiString;
@@ -119,19 +127,18 @@ type
     property ScriptName : string read FScriptName;
     property UploadPath : string read FUploadPath write FUploadPath; // Upload path below document root. e.g. '/uploads'
     property WebServer : string read GetWebServer; // WebServer in use in this session
+
+    property ObjectCatalog: TObjectCatalog read FObjectCatalog;
   published
     procedure Home; virtual; abstract; // Default method to be called by <link TCustomWebSession.HandleRequest, HandleRequest>
     procedure Logout;
-    procedure Reconfig;
     procedure Shutdown;
   end;
 {$M-}
 
   TCustomWebSessionClass = class of TCustomWebSession;
 
-  TCustomWebApplication = class(TObject)
-  private
-    function GetHasConfig : Boolean;
+  TCustomWebApplication = class(TComponent)
   protected
     FConfig : TCustomIniFile;
     FIcon : string;
@@ -147,13 +154,12 @@ type
     function GetTerminated : Boolean; virtual;
     property Terminated : Boolean read GetTerminated;
   public
-    constructor Create(const ATitle : string; ASessionClass : TCustomWebSessionClass; APort : Word;
-                       AMaxIdleMinutes : Word = 30; AMaxConns : Integer = 1000); virtual;
+    constructor Create(const AOwner: TComponent; const ATitle : string; ASessionClass : TCustomWebSessionClass; APort : Word;
+                       AMaxIdleMinutes : Word = 30; AMaxConns : Integer = 1000); reintroduce; virtual;
     function Reconfig(AReload : Boolean = True) : Boolean; virtual;
     procedure Run(AOwnerThread : TThread = nil); // To enter the main loop
     procedure Terminate; // To terminate the application
     property Config : TCustomIniFile read FConfig;
-    property HasConfig : Boolean read GetHasConfig; // True if this application was compiled to have a configuration file
     property Icon : string read FIcon write FIcon; // Icon to show in Browser
     property MaxConns : Integer read FMaxConns;
     property MaxIdleMinutes : Word read FMaxIdleMinutes;
@@ -167,7 +173,7 @@ type
 implementation
 
 uses
-  StrUtils, HTTPApp;
+  StrUtils, HTTPApp, ExtPascal;
 
 const
   CBrowserNames: array[TBrowser] of string = ('Unknown', 'MSIE', 'Firefox', 'Chrome', 'Safari', 'Opera', 'Konqueror', 'Safari');
@@ -359,8 +365,11 @@ type
 
 { TCustomWebSession }
 
-constructor TCustomWebSession.Create(AOwner : TObject); begin
+constructor TCustomWebSession.Create(AOwner: TObject);
+begin
   inherited Create;
+  FObjectCatalog := TObjectCatalog.Create(nil);
+  FObjectCatalog.FSession := Self;
   FOwner := AOwner;
   FGarbageCollector := TStringList.Create;
   TStringList(FGarbageCollector).Sorted := True;
@@ -376,12 +385,13 @@ constructor TCustomWebSession.Create(AOwner : TObject); begin
   InitDefaultValues;
 end;
 
-destructor TCustomWebSession.Destroy; begin
+destructor TCustomWebSession.Destroy;
+begin
   FQueries.Free;
   FCustomResponseHeaders.Free;
   FCookies.Free;
-  GarbageCollect;
   FGarbageCollector.Free;
+  FreeAndNil(FObjectCatalog);
   inherited;
 end;
 
@@ -389,8 +399,9 @@ procedure TCustomWebSession.AfterHandleRequest; begin end;
 
 procedure TCustomWebSession.AfterNewSession; begin end;
 
-procedure TCustomWebSession.Alert(const Msg : string); begin
-  Response := Format('alert("%s");', [Msg]);
+procedure TCustomWebSession.Alert(const AMessage: string);
+begin
+  Response := Format('alert("%s");', [AMessage]);
 end;
 
 function TCustomWebSession.BeforeHandleRequest : Boolean; begin
@@ -418,8 +429,6 @@ begin
 end;
 
 procedure TCustomWebSession.DoLogout; begin end;
-
-procedure TCustomWebSession.DoReconfig; begin end;
 
 // send cookie to response
 procedure TCustomWebSession.DoSetCookie(const Name, ValueRaw : string); begin end;
@@ -457,7 +466,7 @@ var
   Size: Longint;
 begin
   if FileExists(FileName) then begin
-    Assign(F, FileName);
+    System.Assign(F, FileName);
     Reset(F, 1);
     Size := FileSize(F);
     SetLength(Buffer, Size);
@@ -493,125 +502,6 @@ begin
     Result := {$IFDEF MSWINDOWS}AnsiToUTF8{$ENDIF}(Response)
   else
     Result := AnsiString(Response);
-end;
-
-{
-Adds a TObject to the Session Garbage Collector
-@param Name name or other object identification
-@param Obj TObject to add
-}
-procedure TCustomWebSession.GarbageAdd(const Name : string; Obj : TObject);
-var
-  Garbage : PGarbage;
-begin
-  Assert(Assigned(Obj));
-  Assert(Name <> '');
-
-  New(Garbage);
-  Garbage^.Garbage := Obj;
-  Garbage^.Persistent := False;
-  FGarbageCollector.AddObject(GarbageFixName(Name), TObject(Garbage));
-end;
-
-// Frees all objects associated for this session
-procedure TCustomWebSession.GarbageCollect;
-var
-  LGarbagePointer: PGarbage;
-begin
-  // As objects are freed the list may shrink, so don't use fixed loops here.
-  while FGarbageCollector.Count > 0 do begin
-    Assert(Assigned(FGarbageCollector.Objects[0]));
-    LGarbagePointer := PGarbage(FGarbageCollector.Objects[0]);
-    FGarbageCollector.Delete(0);
-    if not LGarbagePointer^.Persistent then
-      LGarbagePointer^.Garbage.Free;
-    Dispose(LGarbagePointer);
-  end;
-end;
-
-{
-Deletes a TObject from the Session Garbage Collector
-@param Obj TObject to delete
-}
-procedure TCustomWebSession.GarbageDelete(Obj : TObject);
-var
-  I : Integer;
-begin
-  Assert(Assigned(Obj));
-
-  for I := 0 to FGarbageCollector.Count - 1 do begin
-    Assert(Assigned(FGarbageCollector.Objects[I]));
-    if PGarbage(FGarbageCollector.Objects[I])^.Garbage = Obj then begin
-      PGarbage(FGarbageCollector.Objects[I])^.Persistent := True;
-      Break;
-    end;
-  end;
-end;
-
-{
-Deletes a TObject from the Session Garbage Collector
-@param Name Name of TObject to find and delete
-}
-procedure TCustomWebSession.GarbageDelete(const Name : string);
-var
-  I : Integer;
-begin
-  Assert(Name <> '');
-
-  I := FGarbageCollector.IndexOf(GarbageFixName(Name));
-  if I >= 0 then
-    PGarbage(FGarbageCollector.Objects[I])^.Persistent := True;
-end;
-
-procedure TCustomWebSession.GarbageRemove(Obj : TObject);
-var
-  I : Integer;
-  LGarbageItem: TObject;
-  LGarbagePointer: PGarbage;
-begin
-  Assert(Assigned(Obj));
-
-  for I := FGarbageCollector.Count - 1 downto 0 do begin
-    LGarbageItem := FGarbageCollector.Objects[I];
-    Assert(Assigned(LGarbageItem));
-    LGarbagePointer := PGarbage(LGarbageItem);
-    if LGarbagePointer^.Garbage = Obj then begin
-      FGarbageCollector.Delete(I);
-      Dispose(LGarbagePointer);
-      Break;
-    end;
-  end;
-end;
-
-{
-Tests if a TObject is in the Session Garbage Collector
-@param Name Object name
-@return True if found
-}
-function TCustomWebSession.GarbageExists(const Name : string) : Boolean; begin
-  Assert(Name <> '');
-
-  Result := FGarbageCollector.IndexOf(GarbageFixName(Name)) >= 0;
-end;
-
-{
-Finds a TObject in Session Garbage Collector using its name
-@param Name Object name
-@return The object reference if exists else returns nil
-}
-function TCustomWebSession.GarbageFind(const Name : string) : TObject;
-var
-  I: Integer;
-begin
-  Assert(Name <> '');
-
-  I := FGarbageCollector.IndexOf(GarbageFixName(Name));
-  if I >= 0 then begin
-    Assert(Assigned(FGarbageCollector.Objects[I]));
-    Result := PGarbage(FGarbageCollector.Objects[I])^.Garbage;
-  end
-  else
-    Result := nil;
 end;
 
 function TCustomWebSession.GarbageFixName(const Name : string) : string; begin
@@ -705,15 +595,6 @@ procedure TCustomWebSession.OnNotFoundError; begin
   Response := Format('alert("Method: ''%s'' not found");', [PathInfo]);
 end;
 
-// Calls <link Application.Reconfig> if the password is right
-procedure TCustomWebSession.Reconfig; begin
-  with Application do
-    if CheckPassword(Password) and Reconfig then begin
-      DoReconfig;
-      SendResponse('RECONFIG: Application configurations are being re-read and reapplied.');
-    end;
-end;
-
 {
 Calls Garbage collector. Optionally used to Refresh the Home page, when user press F5 on browser
 @example <code>
@@ -723,8 +604,9 @@ if not NewThread then begin
   DataStore := nil;
 end;</code>
 }
-procedure TCustomWebSession.Refresh; begin
-  GarbageCollect;
+procedure TCustomWebSession.Refresh;
+begin
+  ObjectCatalog.FreeAllExtObjects;
 end;
 
 {
@@ -893,18 +775,16 @@ end;
 
 { TCustomWebApplication }
 
-constructor TCustomWebApplication.Create(const ATitle : string; ASessionClass : TCustomWebSessionClass; APort,
-                                         AMaxIdleMinutes : Word; AMaxConns : Integer); begin
-  inherited Create;
+constructor TCustomWebApplication.Create(
+  const AOwner: TComponent; const ATitle : string; ASessionClass : TCustomWebSessionClass;
+  APort, AMaxIdleMinutes : Word; AMaxConns : Integer);
+begin
+  inherited Create(AOwner);
   FTitle := ATitle;
   FSessionClass := ASessionClass;
   FPort := APort;
   FMaxIdleMinutes := AMaxIdleMinutes;
   FMaxConns := AMaxConns;
-end;
-
-function TCustomWebApplication.GetHasConfig : Boolean; begin
-  Result := Assigned(Config);
 end;
 
 type TThreadAccess = class(TThread);
@@ -924,6 +804,39 @@ end;
 
 procedure TCustomWebApplication.Terminate; begin
   FTerminated := True;
+end;
+
+{ TObjectCatalog }
+
+function TObjectCatalog.FindExtObject(const AJSName: string): TObject;
+var
+  I: Integer;
+begin
+  Assert(AJSName <> '');
+
+  Result := FindComponent(AJSName);
+  if not Assigned(Result) then
+  begin
+    for I := 0 to ComponentCount - 1 do
+    begin
+      if SameText(Components[I].Name, AJSName) then
+        Result := Components[I]
+      else if Components[I] is TExtObject then
+        Result := TExtObject(Components[I]).FindExtObject(AJSName)
+      else
+        Result := Components[I].FindComponent(AJSName);
+      if Assigned(Result) then
+        Break;
+    end;
+  end;
+end;
+
+procedure TObjectCatalog.FreeAllExtObjects;
+var
+  I: Integer;
+begin
+  for I := ComponentCount - 1 downto 0 do
+    Components[I].Free;
 end;
 
 end.

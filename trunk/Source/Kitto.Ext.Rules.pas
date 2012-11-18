@@ -275,8 +275,7 @@ implementation
 uses
   SysUtils, StrUtils,
   ExtPascalUtils,
-  EF.Tree, EF.Localization, EF.StrUtils,
-  Kitto.Ext.Session;
+  EF.Tree, EF.Localization, EF.StrUtils, EF.Macros;
 
 { TKExtRuleImpl }
 
@@ -409,7 +408,7 @@ begin
   begin
     TExtFormTextField(AField).Validator :=
       TExtFormTextField(AField).JSFunction('value',
-      ReplaceStr(Session.Config.MacroExpansionEngine.Expand(Rule.AsExpandedString), '{errorMessage}', StrToJS(GetErrorMessage)));
+      ReplaceStr(TEFMacroExpansionEngine.Instance.Expand(Rule.AsExpandedString), '{errorMessage}', StrToJS(GetErrorMessage)));
   end;
 end;
 

@@ -30,7 +30,6 @@ type
     procedure HandleEvent(const AEvtName: string); override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
     function IndicatorText__ : TExtFunction;
     function IndicatorText___ : TExtFunction;
     function IndicatorText____ : TExtFunction;
@@ -55,7 +54,6 @@ type
   TExtStateManagerSingleton = class(TExtFunction)
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
     function Clear(Name : String) : TExtFunction;
     function Get(Name : String; DefaultValue : String) : TExtFunction;
     function GetProvider : TExtFunction;
@@ -77,35 +75,37 @@ type
     procedure InitDefaults; override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     property Domain : String read FDomain write SetFDomain;
     property Expires : TDateTime read FExpires write SetFExpires;
     property Path : String read FPath write SetFPath;
     property Secure : Boolean read FSecure write SetFSecure;
   end;
 
-var
-  ExtStateManager : TExtStateManagerSingleton;
+function ExtStateManager: TExtStateManagerSingleton;
 
 implementation
 
+function ExtStateManager: TExtStateManagerSingleton;
+begin
+  if (Session <> nil) then
+    Result := Session.GetSingleton<TExtStateManagerSingleton>(TExtStateManagerSingleton.JSClassName)
+  else
+    Result := nil;
+end;
+
 procedure TExtStateProvider.SetFSlovak(Value : TExtObject); begin
   FSlovak := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.slovak=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.slovak=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtStateProvider.SetFIndicatorText(Value : TExtObject); begin
   FIndicatorText := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.indicatorText=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.indicatorText=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtStateProvider.SetFIndicatorText_(Value : TExtObject); begin
   FIndicatorText_ := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.indicatorText=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.indicatorText=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtStateProvider.SetFOnStatechange(Value : TExtStateProviderOnStatechange); begin
@@ -119,8 +119,6 @@ end;
 function TExtStateProvider.JSClassName : string; begin
   Result := 'Ext.state.Provider';
 end;
-
-{$IFDEF FPC}constructor TExtStateProvider.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
 
 function TExtStateProvider.IndicatorText__ : TExtFunction; begin
   JSCode(JSName + '.indicatorText();', 'TExtStateProvider');
@@ -207,8 +205,6 @@ function TExtStateManagerSingleton.JSClassName : string; begin
   Result := 'Ext.state.Manager';
 end;
 
-{$IFDEF FPC}constructor TExtStateManagerSingleton.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
 function TExtStateManagerSingleton.Clear(Name : String) : TExtFunction; begin
   JSCode(JSName + '.clear(' + VarToJSON([Name]) + ');', 'TExtStateManagerSingleton');
   Result := Self;
@@ -264,16 +260,4 @@ procedure TExtStateCookieProvider.InitDefaults; begin
   FPath := '/';
 end;
 
-{$IFDEF FPC}constructor TExtStateCookieProvider.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtStateCookieProvider.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
-end;
-
-initialization
-  ExtStateManager := TExtStateManagerSingleton.CreateSingleton;
-
-finalization
-  ExtStateManager.Destroy;
 end.

@@ -11,7 +11,7 @@ unit ExtPascalUtils;
 interface
 
 uses
-  SysUtils, Classes, TypInfo;
+  SysUtils, Types, Classes, TypInfo;
 
 const
   ExtPascalVersion = '0.9.9';
@@ -121,7 +121,7 @@ Converts a Pascal enumerated type constant into a JS string, used internally by 
 @param Value The enumerated value, represented as an integer
 @return JS string
 }
-function EnumToJSString(TypeInfo : PTypeInfo; Value : integer) : string;
+function EnumToJSString(const ATypeInfo: PTypeInfo; const AValue: Integer) : string;
 
 {
 Helper function to make code more pascalish, use
@@ -176,6 +176,11 @@ function Decrypt(Value : string) : string;
 Formats a size in bytes.
 }
 function FormatByteSize(const AByteSize: Longint): string;
+
+function RemoveLastJSTerminator(const AJSCode: string): string;
+
+function Join(const AStrings: TStringDynArray; const ASeparator: string): string; overload;
+function Join(const AStrings: TArray<string>; const ASeparator: string): string;  overload;
 
 implementation
 
@@ -392,19 +397,23 @@ function RCaseOf(const S : string; const Cases : array of string) : integer; beg
   Result := -1;
 end;
 
-function EnumToJSString(TypeInfo : PTypeInfo; Value : integer) : string;
+function EnumToJSString(const ATypeInfo: PTypeInfo; const AValue: Integer) : string;
 var
   I : integer;
   JS: string;
 begin
   Result := '';
-  JS := GetEnumName(TypeInfo, Value);
+  JS := GetEnumName(ATypeInfo, AValue);
   for I := 1 to length(JS) do
-    if CharInSet(JS[I], ['A'..'Z']) then begin
+  begin
+    if CharInSet(JS[I], ['A'..'Z']) then
+    begin
       Result := LowerCase(copy(JS, I, 100));
-      if Result = 'perc' then Result := '%';
-      exit
+      if Result = 'perc' then
+        Result := '%';
+      Exit;
     end;
+  end;
 end;
 
 function SetPaddings(Top : integer; Right : integer = 0; Bottom : integer = -1; Left : integer = 0; CSSUnit : TCSSUnit = cssPX;
@@ -951,6 +960,43 @@ begin
     Result := FormatFloat(',#.## KBs', AByteSize / KB)
   else
     Result := FormatFloat(',# bytes', AByteSize);
+end;
+
+function RemoveLastJSTerminator(const AJSCode: string): string;
+begin
+  Result := AJSCode;
+  while EndsStr(sLineBreak, Result) do
+    Result := Copy(Result, 1, Length(Result) - Length(sLineBreak));
+  if (Result <> '') and (Result[Length(Result)] = ';') then
+    Delete(Result, Length(Result), 1);
+end;
+
+function Join(const AStrings: TStringDynArray; const ASeparator: string): string;
+var
+  LString: string;
+begin
+  Result := '';
+  for LString in AStrings do
+  begin
+    if Result = '' then
+      Result := LString
+    else
+      Result := Result + ASeparator + LString;
+  end;
+end;
+
+function Join(const AStrings: TArray<string>; const ASeparator: string): string;
+var
+  LString: string;
+begin
+  Result := '';
+  for LString in AStrings do
+  begin
+    if Result = '' then
+      Result := LString
+    else
+      Result := Result + ASeparator + LString;
+  end;
 end;
 
 end.

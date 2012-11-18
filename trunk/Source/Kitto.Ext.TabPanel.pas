@@ -80,7 +80,7 @@ procedure TKExtTabPanelController.InitDefaults;
 begin
   inherited;
   Layout := lyFit;
-  FTabPanel := TKExtTabPanel.AddTo(Items);
+  FTabPanel := TKExtTabPanel.CreateAndAddTo(Items);
 end;
 
 procedure TKExtTabPanelController.InitSubController(
@@ -98,7 +98,7 @@ begin
     Session.ViewHost := Self;
   Border := False;
   { TODO : remove this once all controllers set it by themselves. }
-  Defaults := JSObject('autoscroll:true');
+  Defaults := JSObject('autoscroll: true');
   EnableTabScroll := True;
   // Layout problems in tabbed views if DeferredRender=False.
   DeferredRender := True;
@@ -132,13 +132,13 @@ begin
         LView := Session.Config.Views.ViewByNode(LViews.Children[I]);
         if LView.IsAccessGranted(ACM_VIEW) then
         begin
-          LController := TKExtControllerFactory.Instance.CreateController(LView, Self);
+          LController := TKExtControllerFactory.Instance.CreateController(Self, LView, Self);
           LController.Display;
         end;
       end
       else if SameText(LViews.Children[I].Name, 'Controller') then
       begin
-        LController := TKExtControllerFactory.Instance.CreateController(FView, Self, LViews.Children[I]);
+        LController := TKExtControllerFactory.Instance.CreateController(Self, FView, Self, LViews.Children[I]);
         FOwner.InitSubController(LController);
         LController.Display;
       end

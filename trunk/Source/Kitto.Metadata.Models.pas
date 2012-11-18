@@ -467,11 +467,11 @@ type
     property IsReadOnly: Boolean read GetIsReadOnly;
     property DefaultFilter: string read GetDefaultFilter;
 
-    ///	<summary>True if the model's underlying data store is a large une. Used
+    ///	<summary>True if the model's underlying data store is a large one. Used
     ///	to decide the kind of lookup combo box to create. Se this to True if
     ///	the cardinality of the underlying database table exceeds what you are
-    ///	comfortable to put in an Ajax response (which typically contains
-    ///	several lookup sets).</summary>
+    ///	comfortable to put in an Ajax response (typically a few hundred records,
+    /// depending on the number and size of columns).</summary>
     property IsLarge: Boolean read GetIsLarge;
 
     ///	<summary>
