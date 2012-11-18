@@ -378,6 +378,7 @@ begin
           LFileNameField := TKViewField(AFile.Context).FileNameField;
           if LFileNameField <> ''then
             FStoreRecord.FieldByName(LFileNameField).AsString := AFile.OriginalFileName;
+          Session.RemoveUploadedFile(AFile);
         end;
       end);
 

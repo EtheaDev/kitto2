@@ -526,7 +526,7 @@ var
 begin
   if Assigned(AProc) then
   begin
-    for I := 0 to FUploadedFiles.Count - 1 do
+    for I := FUploadedFiles.Count - 1 downto 0 do
       AProc(FUploadedFiles[I]);
   end;
 end;
