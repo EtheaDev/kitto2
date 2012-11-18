@@ -74,13 +74,14 @@ begin
         LView := Session.Config.Views.ViewByNode(LViews.Children[I]);
         if LView.IsAccessGranted(ACM_VIEW) then
         begin
-          LController := TKExtControllerFactory.Instance.CreateController(LView, Self);
+          LController := TKExtControllerFactory.Instance.CreateController(Self, LView, Self);
           LController.Display;
         end;
       end
       else if SameText(LViews.Children[I].Name, 'Controller') then
       begin
-        LController := TKExtControllerFactory.Instance.CreateController(View, Self, LViews.Children[I]);
+        LController := TKExtControllerFactory.Instance.CreateController(
+          Self, View, Self, LViews.Children[I]);
         InitSubController(LController);
         LController.Display;
       end

@@ -53,7 +53,7 @@ begin
   Assert(Assigned(View));
 
   LSubView := Session.Config.Views.ViewByNode(View.GetNode('Controller/SubView'));
-  LController := TKExtControllerFactory.Instance.CreateController(LSubView, Self);
+  LController := TKExtControllerFactory.Instance.CreateController(Self, LSubView, Self);
   LController.Display;
 end;
 

@@ -26,13 +26,10 @@ type
     procedure InitDefaults; override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     function Disable : TExtFunction;
     function Enable : TExtFunction;
     function InitEvents : TExtFunction;
     function Render : TExtFunction;
-    destructor Destroy; override;
     property Constrain : Boolean read FConstrain write SetFConstrain;
     property Slider : TExtSliderMultiSlider read FSlider write SetFSlider;
     property Slider_ : TExtSliderMultiSlider read FSlider_ write SetFSlider_;
@@ -93,8 +90,6 @@ type
     procedure HandleEvent(const AEvtName: string); override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     function AddThumb(Value : Integer) : TExtFunction;
     function GetValue(Index : Integer) : TExtFunction;
     function GetValues : TExtFunction;
@@ -102,7 +97,6 @@ type
     function SetMinValue(Val : Integer) : TExtFunction;
     function SetValue(Index : Integer; Value : Integer; Animate : Boolean) : TExtFunction;
     function SyncThumb : TExtFunction;
-    destructor Destroy; override;
     property Animate : Boolean read FAnimate write SetFAnimate;
     property ClickToChange : Boolean read FClickToChange write SetFClickToChange;
     property ConstrainThumbs : Boolean read FConstrainThumbs write SetFConstrainThumbs;
@@ -130,8 +124,6 @@ type
     procedure InitDefaults; override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     function GetValue : TExtFunction;
     function SetValue(Value : Integer; Animate : Boolean) : TExtFunction;
     function SyncThumb : TExtFunction;
@@ -142,8 +134,6 @@ type
     procedure InitDefaults; override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     function GetText(Thumb : TExtSliderThumb) : TExtFunction;
   end;
 
@@ -156,14 +146,12 @@ end;
 
 procedure TExtSliderThumb.SetFSlider(Value : TExtSliderMultiSlider); begin
   FSlider := Value;
-  Value.DeleteFromGarbage;
-  JSCode('slider:' + VarToJSON([Value, false]));
+    JSCode('slider:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtSliderThumb.SetFSlider_(Value : TExtSliderMultiSlider); begin
   FSlider_ := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.slider=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.slider=' + VarToJSON([Value, false]) + ';');
 end;
 
 function TExtSliderThumb.JSClassName : string; begin
@@ -174,13 +162,6 @@ procedure TExtSliderThumb.InitDefaults; begin
   inherited;
   FSlider := TExtSliderMultiSlider.CreateInternal(Self, 'slider');
   FSlider_ := TExtSliderMultiSlider.CreateInternal(Self, 'slider');
-end;
-
-{$IFDEF FPC}constructor TExtSliderThumb.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtSliderThumb.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
 end;
 
 function TExtSliderThumb.Disable : TExtFunction; begin
@@ -201,14 +182,6 @@ end;
 function TExtSliderThumb.Render : TExtFunction; begin
   JSCode(JSName + '.render();', 'TExtSliderThumb');
   Result := Self;
-end;
-
-destructor TExtSliderThumb.Destroy; begin
-  try
-    FSlider.Free;
-    FSlider_.Free;
-  except end;
-  inherited;
 end;
 
 procedure TExtSliderMultiSlider.SetFAnimate(Value : Boolean); begin
@@ -282,14 +255,12 @@ end;
 
 procedure TExtSliderMultiSlider.SetFThumbs(Value : TExtObjectList); begin
   FThumbs := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.thumbs=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.thumbs=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtSliderMultiSlider.SetFValues(Value : TExtObjectList); begin
   FValues := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.values=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.values=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtSliderMultiSlider.SetFOnBeforechange(Value : TExtSliderMultiSliderOnBeforechange); begin
@@ -346,15 +317,8 @@ end;
 
 procedure TExtSliderMultiSlider.InitDefaults; begin
   inherited;
-  FThumbs := TExtObjectList.Create(Self, 'thumbs');
-  FValues := TExtObjectList.Create(Self, 'values');
-end;
-
-{$IFDEF FPC}constructor TExtSliderMultiSlider.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtSliderMultiSlider.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
+  FThumbs := TExtObjectList.CreateAsAttribute(Self, 'thumbs');
+  FValues := TExtObjectList.CreateAsAttribute(Self, 'values');
 end;
 
 function TExtSliderMultiSlider.AddThumb(Value : Integer) : TExtFunction; begin
@@ -392,14 +356,6 @@ function TExtSliderMultiSlider.SyncThumb : TExtFunction; begin
   Result := Self;
 end;
 
-destructor TExtSliderMultiSlider.Destroy; begin
-  try
-    FThumbs.Free;
-    FValues.Free;
-  except end;
-  inherited;
-end;
-
 procedure TExtSliderMultiSlider.HandleEvent(const AEvtName : string); begin
   inherited;
   if (AEvtName = 'beforechange') and Assigned(FOnBeforechange) then
@@ -424,13 +380,6 @@ procedure TExtSliderSingleSlider.InitDefaults; begin
   inherited;
 end;
 
-{$IFDEF FPC}constructor TExtSliderSingleSlider.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtSliderSingleSlider.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
-end;
-
 function TExtSliderSingleSlider.GetValue : TExtFunction; begin
   JSCode(JSName + '.getValue();', 'TExtSliderSingleSlider');
   Result := Self;
@@ -452,13 +401,6 @@ end;
 
 procedure TExtSliderTip.InitDefaults; begin
   inherited;
-end;
-
-{$IFDEF FPC}constructor TExtSliderTip.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtSliderTip.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
 end;
 
 function TExtSliderTip.GetText(Thumb : TExtSliderThumb) : TExtFunction; begin

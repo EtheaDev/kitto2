@@ -18,7 +18,6 @@ type
     procedure SetFEnableTabbing(Value : Boolean);
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
     function SetActiveTab(Tab : string) : TExtFunction; overload;
     function SetActiveTab(Tab : TExtPanel) : TExtFunction; overload;
     property EnableTabbing : Boolean read FEnableTabbing write SetFEnableTabbing;
@@ -27,7 +26,6 @@ type
   TExtUxLayoutCenterLayout = class(TExtLayoutFitLayout)
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
   end;
 
 implementation
@@ -40,8 +38,6 @@ end;
 function TExtUxLayoutRowLayout.JSClassName : string; begin
   Result := 'Ext.ux.layout.RowLayout';
 end;
-
-{$IFDEF FPC}constructor TExtUxLayoutRowLayout.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
 
 function TExtUxLayoutRowLayout.SetActiveTab(Tab : string) : TExtFunction; begin
   JSCode(JSName + '.setActiveTab(' + VarToJSON([Tab]) + ');', 'TExtUxLayoutRowLayout');
@@ -56,7 +52,5 @@ end;
 function TExtUxLayoutCenterLayout.JSClassName : string; begin
   Result := 'Ext.ux.layout.CenterLayout';
 end;
-
-{$IFDEF FPC}constructor TExtUxLayoutCenterLayout.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
 
 end.

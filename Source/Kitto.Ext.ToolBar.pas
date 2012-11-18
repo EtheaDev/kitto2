@@ -60,12 +60,19 @@ begin
 end;
 
 procedure TKExtToolBarController.DoDisplay;
+var
+  LTreeView: TKTreeView;
+  LNode: TEFNode;
 begin
   inherited;
   if not Assigned(FTreeViewRenderer) then
+  begin
     FTreeViewRenderer := TKExtTreeViewRenderer.Create;
-  FTreeViewRenderer.RenderAsButtons(Session.Config.Views.ViewByNode(Config.GetNode('TreeView')) as TKTreeView,
-    FToolBar, Self, DisplayView);
+    FTreeViewrenderer.Session := Session;
+  end;
+  LNode := Config.GetNode('TreeView');
+  LTreeView := Session.Config.Views.ViewByNode(LNode) as TKTreeView;
+  FTreeViewRenderer.RenderAsButtons(LTreeView, FToolBar, Self, DisplayView);
 end;
 
 procedure TKExtToolBarController.InitDefaults;
@@ -74,7 +81,7 @@ begin
   Layout := lyFit;
   Height := 28;
 
-  FToolBar := TExtToolbar.AddTo(Items);
+  FToolBar := TExtToolbar.CreateAndAddTo(Items);
 end;
 
 initialization

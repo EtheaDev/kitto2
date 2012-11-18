@@ -98,7 +98,7 @@ begin
   begin
     if not TryStrToInt(LNode.AsExpandedString, LWidth) then
       raise EKError.CreateFmt(_('Invalid value %s. Valid values: whole numbers.'), [LNode.AsString]);
-    JSCode('labelWidth:' + IntToStr(LWidth));
+    LabelWidth := LWidth;
   end;
 end;
 
@@ -167,7 +167,7 @@ begin
     LItems := Config.FindNode('Filters/Items');
     if Assigned(LItems) and (LItems.ChildCount > 0) then
     begin
-      FFilterPanel := TKExtFilterPanel.AddTo(Items);
+      FFilterPanel := TKExtFilterPanel.CreateAndAddTo(Items);
       FFilterPanel.Region := rgNorth;
       FFilterPanel.OnChange := FilterPanelChange;
       FFilterPanel.Configure(LItems.Parent as TEFNode);

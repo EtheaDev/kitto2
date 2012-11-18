@@ -24,8 +24,8 @@ uses
   SysUtils, Classes, Generics.Collections,
   ExtPascal, Ext,
   EF.Tree,
-  Kitto.Ext.Base, Kitto.Ext.Controller, Kitto.Config, Kitto.Metadata.Views,
-  Kitto.Metadata.DataView, Kitto.Ext.Login;
+  Kitto.Ext.Base, Kitto.Config, Kitto.Metadata.Views,
+  Kitto.Metadata.DataView, Kitto.Ext.Login, Kitto.Ext.Controller;
 
 type
   TKExtUploadedFile = class
@@ -48,7 +48,7 @@ type
     property Bytes: TBytes read GetBytes;
   end;
 
-  TKExtSession = class(TExtThread)
+  TKExtSession = class(TExtSession)
   private
     FHomeController: TObject;
     FConfig: TKConfig;
@@ -70,12 +70,14 @@ type
     function BeforeHandleRequest: Boolean; override;
     procedure AfterHandleRequest; override;
     procedure AfterNewSession; override;
+    function GetMainPageTemplate: string; override;
   public
     constructor Create(AOwner: TObject); override;
     destructor Destroy; override;
     class constructor Create;
     class destructor Destroy;
   public
+    procedure Refresh; override;
     ///	<summary>
     ///	  A reference to the panel to be used as the main view container.
     ///	</summary>
@@ -141,7 +143,7 @@ type
     ///	list of open controllers, it is removed from the list. Otherwise
     ///	nothing happens. Used by view hosts to notify the session that a
     ///	controller was closed.</summary>
-    procedure RemoveController(const AObject: TObject);
+    procedure RemoveController(const AObject: TObject; const AFreeIt: Boolean = False);
 
     ///	<summary>Finds and returns a record from the specified store using the
     ///	key values currently stored in the session query strings.</summary>
@@ -151,20 +153,27 @@ type
     procedure Logout;
   end;
 
-function Session: TKExtSession;
+  TKExtObjectHelper = class helper for TExtObject
+  private
+    function GetSession: TKExtSession;
+  public
+    property Session: TKExtSession read GetSession;
+  end;
+
+//function Session: TKExtSession;
 
 implementation
 
 uses
   StrUtils, ActiveX, ComObj, Types, FmtBcd,
-  ExtPascalUtils, ExtForm, FCGIApp,
+  ExtPascalUtils, ExtForm,
   EF.Intf, EF.SysUtils, EF.StrUtils, EF.Localization, EF.Macros, EF.Logger,
   Kitto.Auth, Kitto.Types, Kitto.AccessControl,
   Kitto.Ext.Utils;
 
 function Session: TKExtSession;
 begin
-  Result := TKExtSession(CurrentWebSession);
+  Result := TKExtSession(ExtPascal.Session);
 end;
 
 { TKExtSession }
@@ -219,6 +228,29 @@ begin
   end;
 end;
 
+function TKExtSession.GetMainPageTemplate: string;
+var
+  LFileName: string;
+
+  function GetEncoding: TEncoding;
+  begin
+    if Charset = 'utf-8' then
+      Result := TEncoding.UTF8
+    else
+      Result := TEncoding.ANSI;
+  end;
+
+begin
+  LFileName := Config.FindResourcePathName('index.html');
+  if LFileName <> '' then
+  begin
+    Result := TextFileToString(LFileName, GetEncoding);
+    Result := TEFMacroExpansionEngine.Instance.Expand(Result);
+  end
+  else
+    Result := inherited GetMainPageTemplate;
+end;
+
 destructor TKExtSession.Destroy;
 var
   LUploadDirectory: string;
@@ -227,7 +259,7 @@ begin
   // being garbage collected in case the session is being freed by a
   // different thread. Otherwise objects don't mark themselves off the
   // GC upon destruction and risk to be destroyed multiple times.
-  CurrentWebSession := Self;
+  //_CurrentWebSession := Self;
   // Delete upload folder only for valid sessions.
   if FSessionId <> '' then
   begin
@@ -260,19 +292,17 @@ begin
   LHomeView := Config.Views.FindViewByNode(Config.Config.FindNode('HomeView'));
   if not Assigned(LHomeView) then
     LHomeView := Config.Views.ViewByName('Home');
-  FHomeController := TKExtControllerFactory.Instance.CreateController(LHomeView, nil).AsObject;
+  FHomeController := TKExtControllerFactory.Instance.CreateController(ObjectCatalog, LHomeView, nil).AsObject;
   if Supports(FHomeController, IKExtController, LIntf) then
     LIntf.Display;
 end;
 
 procedure TKExtSession.Home;
 begin
-  ExtQuickTips.Init(True);
-
   if not NewThread then
   begin
-    Config.Authenticator.Logout;
     Refresh;
+    Config.Authenticator.Logout;
     FHomeController := nil;
     FLoginWindow := nil;
     FOpenControllers.Clear;
@@ -282,15 +312,14 @@ begin
   else
   begin
     if not IsAjax then
-    begin
       LoadLibraries;
-      JSCode('kittoInit();');
-    end;
   end;
 
+  ResponseItems.ExecuteJSCode('kittoInit();');
+  ExtQuickTips.Init(True);
   // Try authentication with default credentials, if any, and skip login
   // window if it succeeds.
-  if TKExtLoginWindow.Authenticate(Query['UserName'], Query['Password']) then
+  if TKExtLoginWindow.Authenticate(Self) then
     DisplayHomeView
   else
     DisplayLoginWindow;
@@ -299,7 +328,7 @@ end;
 procedure TKExtSession.DisplayLoginWindow;
 begin
   FreeAndNil(FLoginWindow);
-  FLoginWindow := TKExtLoginWindow.Create;
+  FLoginWindow := TKExtLoginWindow.Create(Self.ObjectCatalog);
   FLoginWindow.OnLogin := DisplayHomeView;
   FLoginWindow.Show;
 end;
@@ -322,7 +351,7 @@ end;
 
 procedure TKExtSession.Flash(const AMessage: string);
 begin
-  JSCode('Ext.example.msg("' + _(Config.AppTitle) + '", "' + AMessage + '");');
+  ResponseItems.ExecuteJSCode('Ext.example.msg("' + _(Config.AppTitle) + '", "' + AMessage + '");');
 end;
 
 procedure TKExtSession.LoadLibraries;
@@ -376,15 +405,22 @@ end;
 procedure TKExtSession.Logout;
 begin
   Config.Authenticator.Logout;
-  Session.JSCode('window.location.reload();');
+  ResponseItems.ExecuteJSCode('window.location.reload();');
 end;
 
 procedure TKExtSession.Navigate(const AURL: string);
 begin
-  Response := Format('window.open("%s", "_blank");', [AURL]);
+  ResponseItems.ExecuteJSCode(Format('window.open("%s", "_blank");', [AURL]));
 end;
 
-procedure TKExtSession.RemoveController(const AObject: TObject);
+procedure TKExtSession.Refresh;
+begin
+  inherited;
+  Config.Models.Refresh;
+  Config.Views.Refresh;
+end;
+
+procedure TKExtSession.RemoveController(const AObject: TObject; const AFreeIt: Boolean);
 begin
   FOpenControllers.Remove(AObject);
 end;
@@ -408,7 +444,7 @@ var
 begin
   Assert(Assigned(AView));
 
-  Result := TKExtControllerFactory.Instance.CreateController(AView, FViewHost);
+  Result := TKExtControllerFactory.Instance.CreateController(ObjectCatalog, AView, FViewHost);
   LIsSynchronous := Result.IsSynchronous;
   if not LIsSynchronous then
     FOpenControllers.Add(Result.AsObject);
@@ -490,7 +526,7 @@ var
 begin
   if Assigned(AProc) then
   begin
-    for I := 0 to FUploadedFiles.Count - 1 do
+    for I := FUploadedFiles.Count - 1 downto 0 do
       AProc(FUploadedFiles[I]);
   end;
 end;
@@ -581,7 +617,7 @@ begin
   // (others, such as menu items and tree nodes, don't).
   LRule := '.' + Result + ' {background: url(' + LIconURL + ') no-repeat left !important;' + ACustomRules + '}';
   if IsAjax then
-    JSCode('addStyleRule("' + LRule + '");')
+    ResponseItems.ExecuteJSCode('addStyleRule("' + LRule + '");')
   else
     SetStyle(LRule);
 end;
@@ -615,6 +651,13 @@ begin
   // Reset length, as FStream.Bytes for some reason is rounded up.
   SetLength(Result, FStream.Size);
   Assert(FStream.Size = Length(Result));
+end;
+
+{ TKExtObjectHelper }
+
+function TKExtObjectHelper.GetSession: TKExtSession;
+begin
+  Result := ExtSession as TKExtSession;
 end;
 
 end.

@@ -300,7 +300,7 @@ end;
 
 function TKExtFilterFactory.DoCreateObject(const AClass: TClass): TObject;
 begin
-  Result := TExtObjectClass(AClass).AddTo(FContainer);
+  Result := TExtObjectClass(AClass).CreateAndAddTo(FContainer);
   // If this AddTo call is ever changed to Create, don't forget to add a call
   // to InitDefaults because TExtObject.Create doesn't do that.
 end;
@@ -613,14 +613,15 @@ begin
   SetLength(FSelected, FItems.ChildCount);
   for I := 0 to FItems.ChildCount - 1 do
   begin
-    LButton := TExtButton.AddTo(Items);
+    LButton := TExtButton.CreateAndAddTo(Items);
     LButton.Text := _(FItems.Children[I].AsString);
     LButton.AllowDepress := True;
     LButton.EnableToggle := True;
     //LButton.ToggleGroup := LGroupName;
     if FItems.Children[I].GetBoolean('IsDefault') then
     begin
-      LButton.Pressed_ := True;
+      { TODO : Check if the config item is enough, if not use the property }
+      LButton.Pressed := True;
       FSelected[I] := True;
     end;
 { TODO :
@@ -628,7 +629,7 @@ In order to save a trip by calling the refresh code directly,
 we should include status information from all filters. Doable,
 by generating more JS code, but not now. }
   //LButton.On('click', JSFunction(AConfig.GetString('Sys/ApplyJSCode')));
-    LButton.On('click', Ajax(ButtonClick, ['Index', I, 'Pressed', LButton.Pressed__]));
+    LButton.On('click', Ajax(ButtonClick, ['Index', I, 'Pressed', LButton.Pressed_]));
   end;
 end;
 

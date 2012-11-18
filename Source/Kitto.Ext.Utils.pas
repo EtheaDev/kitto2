@@ -24,7 +24,7 @@ uses
   SysUtils,
   Ext, ExtPascal, ExtPascalUtils, ExtMenu, ExtTree,
   EF.ObserverIntf, EF.Tree,
-  Kitto.Ext.Controller, Kitto.Metadata.Views;
+  Kitto.Ext.Controller, Kitto.Metadata.Views, Kitto.Ext.Session;
 
 type
   TKExtTreeTreeNode = class(TExtTreeTreeNode)
@@ -60,6 +60,7 @@ type
     FOwner: TExtObject;
     FClickHandler: TExtProcedure;
     FAddedItems: Integer;
+    FSession: TKExtSession;
     procedure AddButton(const ANode: TKTreeViewNode; const AContainer: TExtContainer);
     procedure AddMenuItem(const ANode: TKTreeViewNode; const AMenu: TExtMenuMenu);
     procedure AddNode(const ANode: TKTreeViewNode; const AParent: TExtTreeTreeNode);
@@ -75,6 +76,8 @@ type
     function CloneAndFilter(const ATreeView: TKTreeView): TKTreeView;
     procedure Filter(const ANode: TKTreeViewNode);
   public
+    property Session: TKExtSession read FSession write FSession;
+
     ///	<summary>
     ///	  Attaches to the container a set of buttons, one for each top-level
     ///	  element of the specified tree view. Each button has a submenu tree
@@ -107,7 +110,7 @@ implementation
 uses
   Types, StrUtils, HTTPApp, RTTI,
   EF.SysUtils, EF.StrUtils, EF.Classes, EF.Localization,
-  Kitto.Ext.Session, Kitto.AccessControl, Kitto.Ext.Base;
+  Kitto.AccessControl, Kitto.Ext.Base;
 
 function CallViewControllerStringMethod(const AView: TKView;
   const AMethodName: string; const ADefaultValue: string): string;
@@ -147,7 +150,6 @@ begin
 
   if Assigned(AView) then
   begin
-    Assert(Session.ViewHost <> nil);
     if Session.StatusHost <> nil then
       Result := FOwner.Ajax(FClickHandler, ['View', Integer(AView), 'AutoCollapseMenu', True,
         'Dummy', Session.StatusHost.ShowBusy])
@@ -185,7 +187,7 @@ begin
     if not Assigned(LView) or LView.IsAccessGranted(ACM_VIEW) then
     begin
       LIsEnabled := not Assigned(LView) or LView.IsAccessGranted(ACM_RUN);
-      LMenuItem := TKExtMenuItem.AddTo(AMenu.Items);
+      LMenuItem := TKExtMenuItem.CreateAndAddTo(AMenu.Items);
       try
         Inc(FAddedItems);
         LMenuItem.View := LView;
@@ -199,7 +201,7 @@ begin
           LMenuItem.Text := HTMLEncode(_(ANode.TreeViewNodes[I].AsString));
         if ANode.TreeViewNodes[I].TreeViewNodeCount > 0 then
         begin
-          LSubMenu := TExtMenuMenu.Create;
+          LSubMenu := TExtMenuMenu.Create(AMenu);
           try
             LMenuItem.Menu := LSubMenu;
             AddMenuItem(ANode.TreeViewNodes[I], LSubMenu);
@@ -233,7 +235,7 @@ begin
   //if not Assigned(LView) or LView.IsAccessGranted(ACM_VIEW) then
   //begin
     LIsEnabled := not Assigned(LView) or LView.IsAccessGranted(ACM_RUN);
-    LButton := TKExtButton.AddTo(AContainer.Items);
+    LButton := TKExtButton.CreateAndAddTo(AContainer.Items);
     try
       Inc(FAddedItems);
       LButton.View := LView;
@@ -247,7 +249,7 @@ begin
         LButton.Text := HTMLEncode(_(ANode.AsString));
       if ANode.ChildCount > 0 then
       begin
-        LMenu := TExtMenuMenu.Create;
+        LMenu := TExtMenuMenu.Create(AContainer);
         try
           LButton.Menu := LMenu;
           AddMenuItem(ANode, LMenu);
@@ -279,7 +281,7 @@ begin
   //if not Assigned(LView) or LView.IsAccessGranted(ACM_VIEW) then
   //begin
     LIsEnabled := not Assigned(LView) or LView.IsAccessGranted(ACM_RUN);
-    LNode := TKExtTreeTreeNode.Create;
+    LNode := TKExtTreeTreeNode.Create(AParent.ChildNodes);
     try
       Inc(FAddedItems);
       LNode.View := LView;

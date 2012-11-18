@@ -45,10 +45,7 @@ type
     procedure HandleEvent(const AEvtName: string); override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     function IsConnected : TExtFunction;
-    destructor Destroy; override;
     property Id : String read FId write SetFId;
     property Priority : Integer read FPriority write SetFPriority;
     property TypeJS : String read FTypeJS write SetFTypeJS;
@@ -63,7 +60,6 @@ type
   TExtDirectJsonProvider = class(TExtDirectProvider)
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
   end;
 
   // Procedural types for events TExtDirectRemotingProvider
@@ -99,9 +95,6 @@ type
     procedure HandleEvent(const AEvtName: string); override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
-    destructor Destroy; override;
     property Actions : TExtObject read FActions write SetFActions;
     property EnableBuffer : Integer read FEnableBuffer write SetFEnableBuffer;
     property EnableBufferBoolean : Boolean read FEnableBufferBoolean write SetFEnableBufferBoolean;
@@ -140,11 +133,8 @@ type
     procedure HandleEvent(const AEvtName: string); override;
   public
     function JSClassName : string; override;
-    {$IFDEF FPC}constructor AddTo(List : TExtObjectList);{$ENDIF}
-    constructor Create;
     function Connect : TExtFunction;
     function Disconnect : TExtFunction;
-    destructor Destroy; override;
     property BaseParams : TExtObject read FBaseParams write SetFBaseParams;
     property Interval : Integer read FInterval write SetFInterval;
     property Priority : Integer read FPriority write SetFPriority;
@@ -173,14 +163,12 @@ end;
 
 procedure TExtDirectProvider.SetFConnect(Value : TExtObject); begin
   FConnect := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.connect=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.connect=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtDirectProvider.SetFDisconnect(Value : TExtObject); begin
   FDisconnect := Value;
-  Value.DeleteFromGarbage;
-  JSCode(JSName + '.disconnect=' + VarToJSON([Value, false]) + ';');
+    JSCode(JSName + '.disconnect=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtDirectProvider.SetFOnConnect(Value : TExtDirectProviderOnConnect); begin
@@ -225,24 +213,9 @@ procedure TExtDirectProvider.InitDefaults; begin
   FDisconnect := TExtObject.CreateInternal(Self, 'disconnect');
 end;
 
-{$IFDEF FPC}constructor TExtDirectProvider.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtDirectProvider.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
-end;
-
 function TExtDirectProvider.IsConnected : TExtFunction; begin
   JSCode(JSName + '.isConnected();', 'TExtDirectProvider');
   Result := Self;
-end;
-
-destructor TExtDirectProvider.Destroy; begin
-  try
-    FConnect.Free;
-    FDisconnect.Free;
-  except end;
-  inherited;
 end;
 
 procedure TExtDirectProvider.HandleEvent(const AEvtName : string); begin
@@ -261,12 +234,9 @@ function TExtDirectJsonProvider.JSClassName : string; begin
   Result := 'Ext.direct.JsonProvider';
 end;
 
-{$IFDEF FPC}constructor TExtDirectJsonProvider.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
 procedure TExtDirectRemotingProvider.SetFActions(Value : TExtObject); begin
   FActions := Value;
-  Value.DeleteFromGarbage;
-  JSCode('actions:' + VarToJSON([Value, false]));
+    JSCode('actions:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtDirectRemotingProvider.SetFEnableBuffer(Value : Integer); begin
@@ -296,8 +266,7 @@ end;
 
 procedure TExtDirectRemotingProvider.SetFNamespaceObject(Value : TExtObject); begin
   FNamespaceObject := Value;
-  Value.DeleteFromGarbage;
-  JSCode('namespace:' + VarToJSON([Value, false]));
+    JSCode('namespace:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtDirectRemotingProvider.SetFTimeout(Value : Integer); begin
@@ -337,21 +306,6 @@ procedure TExtDirectRemotingProvider.InitDefaults; begin
   FNamespaceObject := TExtObject.CreateInternal(Self, 'namespace');
 end;
 
-{$IFDEF FPC}constructor TExtDirectRemotingProvider.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtDirectRemotingProvider.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
-end;
-
-destructor TExtDirectRemotingProvider.Destroy; begin
-  try
-    FActions.Free;
-    FNamespaceObject.Free;
-  except end;
-  inherited;
-end;
-
 procedure TExtDirectRemotingProvider.HandleEvent(const AEvtName : string); begin
   inherited;
   if (AEvtName = 'beforecall') and Assigned(FOnBeforecall) then
@@ -362,8 +316,7 @@ end;
 
 procedure TExtDirectPollingProvider.SetFBaseParams(Value : TExtObject); begin
   FBaseParams := Value;
-  Value.DeleteFromGarbage;
-  JSCode('baseParams:' + VarToJSON([Value, false]));
+    JSCode('baseParams:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtDirectPollingProvider.SetFInterval(Value : Integer); begin
@@ -413,13 +366,6 @@ procedure TExtDirectPollingProvider.InitDefaults; begin
   FPriority := 3;
 end;
 
-{$IFDEF FPC}constructor TExtDirectPollingProvider.AddTo(List : TExtObjectList);begin inherited end;{$ENDIF}
-
-constructor TExtDirectPollingProvider.Create; begin
-  CreateVar(JSClassName + '({});');
-  InitDefaults;
-end;
-
 function TExtDirectPollingProvider.Connect : TExtFunction; begin
   JSCode(JSName + '.connect();', 'TExtDirectPollingProvider');
   Result := Self;
@@ -428,13 +374,6 @@ end;
 function TExtDirectPollingProvider.Disconnect : TExtFunction; begin
   JSCode(JSName + '.disconnect();', 'TExtDirectPollingProvider');
   Result := Self;
-end;
-
-destructor TExtDirectPollingProvider.Destroy; begin
-  try
-    FBaseParams.Free;
-  except end;
-  inherited;
 end;
 
 procedure TExtDirectPollingProvider.HandleEvent(const AEvtName : string); begin

@@ -69,7 +69,7 @@ begin
   Layout := lyFit;
   AutoHeight := True;
 
-  FStatusBar := TKExtDefaultStatusBar.AddTo(Items);
+  FStatusBar := TKExtDefaultStatusBar.CreateAndAddTo(Items);
 end;
 
 { TKExtDefaultStatusBar }

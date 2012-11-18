@@ -142,7 +142,7 @@ begin
   begin
     if ViewTable.FindField(LGroupingFieldName) = nil then
       raise Exception.CreateFmt('Field %s not found. Cannot group.', [LGroupingFieldName]);
-    Result := TExtDataGroupingStore.Create;
+    Result := TExtDataGroupingStore.Create(Self);
     Result.Url := MethodURI(GetRecordPage);
     //TExtDataGroupingStore(Result).GroupOnSort := True;
     if LGroupingFieldName <> '' then
@@ -171,10 +171,8 @@ begin
   LGroupingMenu := ViewTable.GetBoolean('Controller/Grouping/EnableMenu');
   if (LGroupingFieldName <> '') or LGroupingMenu then
   begin
-    FGridView := TExtGridGroupingView.Create;
+    FGridView := TExtGridGroupingView.Create(Self);
     TExtGridGroupingView(FGridView).EmptyGroupText := _('No data to display in this group.');
-    { TODO : use singular and plural display labels of the form }
-    //TExtGridGroupingView(FGridView).GroupTextTpl := '{text} ({[values.rs.length]} {[values.rs.length > 1 ? "Items" : "Item"]})';
     TExtGridGroupingView(FGridView).StartCollapsed := ViewTable.GetBoolean('Controller/Grouping/StartCollapsed');
     TExtGridGroupingView(FGridView).EnableGroupingMenu := LGroupingMenu;
     TExtGridGroupingView(FGridView).EnableNoGroups := LGroupingMenu;
@@ -192,21 +190,21 @@ begin
     end;
   end
   else
-    FGridView := TExtGridGridView.Create;
+    FGridView := TExtGridGridView.Create(Self);
   FGridView.EmptyText := _('No data to display.');
   FGridView.EnableRowBody := True;
   { TODO : make ForceFit configurable? }
   FGridView.ForceFit := False;
   LRowClassProvider := ViewTable.GetExpandedString('Controller/RowClassProvider');
   if LRowClassProvider <> '' then
-    FGridView.JSCode('getRowClass:' + LRowClassProvider)
+    FGridView.SetCustomConfigItem('getRowClass', [LRowClassProvider])
   else
   begin
     LRowColorPatterns := GetRowColorPatterns(LRowColorFieldName);
     if Length(LRowColorPatterns) > 0 then
-      FGridView.JSCode('getRowClass:' +
-        Format('function (r) { return getRowColorStyleRule(r, ''%s'', [%s]);}',
-          [LRowColorFieldName, PairsToJSON(LRowColorPatterns)]));
+      FGridView.SetCustomConfigItem('getRowClass',
+        [JSFunction('r', Format('return getRowColorStyleRule(r, ''%s'', [%s]);',
+          [LRowColorFieldName, PairsToJSON(LRowColorPatterns)])), True]);
   end;
   FGridEditorPanel.View := FGridView;
 end;
@@ -215,11 +213,11 @@ procedure TKExtGridPanel.InitDefaults;
 begin
   inherited;
   FButtonsRequiringSelection := TList<TExtObject>.Create;
-  FGridEditorPanel := TExtGridEditorGridPanel.AddTo(Items);
+  FGridEditorPanel := TExtGridEditorGridPanel.CreateAndAddTo(Items);
   FGridEditorPanel.Border := False;
   FGridEditorPanel.Header := False;
   FGridEditorPanel.Region := rgCenter;
-  FSelModel := TExtGridRowSelectionModel.Create;
+  FSelModel := TExtGridRowSelectionModel.Create(FGridEditorPanel);
   FSelModel.SingleSelect := True;
   FSelModel.Grid := FGridEditorPanel;
   FGridEditorPanel.SelModel := FSelModel;
@@ -282,13 +280,13 @@ var
       if LDataType is TEFBooleanDataType then
       begin
         // Don't use TExtGridBooleanColumn here, otherwise the renderer will be inneffective.
-        Result := TExtGridColumn.AddTo(FGridEditorPanel.Columns);
+        Result := TExtGridColumn.CreateAndAddTo(FGridEditorPanel.Columns);
         if not SetRenderer(Result) then
           Result.Renderer := 'checkboxRenderer';
       end
       else if LDataType is TEFDateDataType then
       begin
-        Result := TExtGridDateColumn.AddTo(FGridEditorPanel.Columns);
+        Result := TExtGridDateColumn.CreateAndAddTo(FGridEditorPanel.Columns);
         LFormat := AViewField.DisplayFormat;
         if LFormat = '' then
           LFormat := Session.Config.UserFormatSettings.ShortDateFormat;
@@ -296,7 +294,7 @@ var
       end
       else if LDataType is TEFTimeDataType then
       begin
-        Result := TExtGridColumn.AddTo(FGridEditorPanel.Columns);
+        Result := TExtGridColumn.CreateAndAddTo(FGridEditorPanel.Columns);
         if not SetRenderer(Result) then
         begin
           LFormat := AViewField.DisplayFormat;
@@ -308,7 +306,7 @@ var
       end
       else if LDataType is TEFDateTimeDataType then
       begin
-        Result := TExtGridDateColumn.AddTo(FGridEditorPanel.Columns);
+        Result := TExtGridDateColumn.CreateAndAddTo(FGridEditorPanel.Columns);
         LFormat := AViewField.DisplayFormat;
         if LFormat = '' then
           LFormat := Session.Config.UserFormatSettings.ShortDateFormat + ' ' +
@@ -317,7 +315,7 @@ var
       end
       else if LDataType is TEFIntegerDataType then
       begin
-        Result := TExtGridNumberColumn.AddTo(FGridEditorPanel.Columns);
+        Result := TExtGridNumberColumn.CreateAndAddTo(FGridEditorPanel.Columns);
         if not SetRenderer(Result) then
         begin
           LFormat := AViewField.DisplayFormat;
@@ -329,7 +327,7 @@ var
       end
       else if (LDataType is TEFFloatDataType) or (LDataType is TEFDecimalDataType) then
       begin
-        Result := TExtGridNumberColumn.AddTo(FGridEditorPanel.Columns);
+        Result := TExtGridNumberColumn.CreateAndAddTo(FGridEditorPanel.Columns);
         if not SetRenderer(Result) then
         begin
           LFormat := AViewField.DisplayFormat;
@@ -341,7 +339,7 @@ var
       end
       else if LDataType is TEFCurrencyDataType then
       begin
-        Result := TExtGridNumberColumn.AddTo(FGridEditorPanel.Columns);
+        Result := TExtGridNumberColumn.CreateAndAddTo(FGridEditorPanel.Columns);
         if not SetRenderer(Result) then
         begin
           { TODO : format as money? }
@@ -354,7 +352,7 @@ var
       end
       else
       begin
-        Result := TExtGridColumn.AddTo(FGridEditorPanel.Columns);
+        Result := TExtGridColumn.CreateAndAddTo(FGridEditorPanel.Columns);
         SetRenderer(Result);
       end;
       if not ViewTable.IsFieldVisible(AViewField) and not (AViewField.AliasedName = GetGroupingFieldName) then
@@ -481,7 +479,7 @@ begin
 
   if Assigned(FEditHostWindow) then
     FEditHostWindow.Free(True);
-  FEditHostWindow := TKExtModalWindow.Create;
+  FEditHostWindow := TKExtModalWindow.Create(Self);
 
   FEditHostWindow.ResizeHandles := 'n s';
   FEditHostWindow.Layout := lyFit;
@@ -492,10 +490,10 @@ begin
     FEditHostWindow.Title := Format(_('Edit %s'), [_(ViewTable.DisplayLabel)])
   else
     FEditHostWindow.Title := _(ViewTable.DisplayLabel);
-  //FEditHostWindow.On('close', Ajax(EditWindowClosed, ['Window', '%0.nm']));
 
   LFormControllerType := Config.GetString('FormController', 'Form');
-  LFormController := TKExtControllerFactory.Instance.CreateController(ViewTable.View, FEditHostWindow, nil, Self, LFormControllerType);
+  LFormController := TKExtControllerFactory.Instance.CreateController(
+    FEditHostWindow, ViewTable.View, FEditHostWindow, nil, Self, LFormControllerType);
   LFormController.Config.SetObject('Sys/ServerStore', ServerStore);
   if Assigned(ARecord) then
     LFormController.Config.SetObject('Sys/Record', ARecord);
@@ -667,12 +665,12 @@ function TKExtGridPanel.CreatePagingToolbar: TExtPagingToolbar;
 begin
   Assert(ViewTable <> nil);
 
-  FPagingToolbar := TExtPagingToolbar.Create;
+  FPagingToolbar := TExtPagingToolbar.Create(Self);
   FPagingToolbar.Store := FGridEditorPanel.Store;
   FPagingToolbar.DisplayInfo := False;
   FPagingToolbar.PageSize := FPageRecordCount;
   Result := FPagingToolbar;
-  FPagingToolbar.Store := nil; // Avoid double destruction of the store.
+  //FPagingToolbar.Store := nil; // Avoid double destruction of the store.
 end;
 
 function TKExtGridPanel.AddActionButton(const AView: TKView;
@@ -695,7 +693,7 @@ begin
 
   if FIsAddVisible then
   begin
-    LNewButton := TExtButton.AddTo(TopToolbar.Items);
+    LNewButton := TExtButton.CreateAndAddTo(TopToolbar.Items);
     LNewButton.Tooltip := Format(_('Add %s'), [_(ViewTable.DisplayLabel)]);
     LNewButton.Icon := Session.Config.GetImageURL('new_record');
     if not FIsAddAllowed then
@@ -704,8 +702,8 @@ begin
       LNewButton.OnClick := NewRecord;
   end;
 
-  TExtToolbarSpacer.AddTo(TopToolbar.Items);
-  LEditButton := TExtButton.AddTo(TopToolbar.Items);
+  TExtToolbarSpacer.CreateAndAddTo(TopToolbar.Items);
+  LEditButton := TExtButton.CreateAndAddTo(TopToolbar.Items);
   if FIsEditAllowed then
   begin
     LEditButton.Tooltip := Format(_('Edit %s'), [_(ViewTable.DisplayLabel)]);
@@ -722,8 +720,8 @@ begin
 
   if FIsDeleteVisible then
   begin
-    TExtToolbarSpacer.AddTo(TopToolbar.Items);
-    LDeleteButton := TExtButton.AddTo(TopToolbar.Items);
+    TExtToolbarSpacer.CreateAndAddTo(TopToolbar.Items);
+    LDeleteButton := TExtButton.CreateAndAddTo(TopToolbar.Items);
     LDeleteButton.Tooltip := Format(_('Delete %s'), [_(ViewTable.DisplayLabel)]);
     LDeleteButton.Icon := Session.Config.GetImageURL('delete_record');
     if not FIsDeleteAllowed then

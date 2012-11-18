@@ -164,7 +164,7 @@ begin
   Assert(Assigned(ViewTable));
   Assert(Assigned(ServerStore));
 
-  Result := TKExtDataActionButton.AddTo(AToolbar.Items);
+  Result := TKExtDataActionButton.CreateAndAddTo(AToolbar.Items);
   Result.View := AView;
   TKExtDataActionButton(Result).ViewTable := ViewTable;
   TKExtDataActionButton(Result).ServerStore := ServerStore;
@@ -177,14 +177,14 @@ begin
   if LRequireSelection then
     LConfirmationJS := GetSelectConfirmCall(LConfirmationMessage, TKExtDataActionButton(Result).ExecuteActionOnSelectedRow)
   else
-    LConfirmationJS := GetConfirmCall(LConfirmationMessage, Result.ExecuteAction);
+    LConfirmationJS := GetConfirmCall(LConfirmationMessage, Result.ExecuteButtonAction);
 
   if LConfirmationMessage <> '' then
     Result.Handler := JSFunction(LConfirmationJS)
   else if LRequireSelection then
     Result.On('click', GetSelectCall(TKExtDataActionButton(Result).ExecuteActionOnSelectedRow))
   else
-    Result.On('click', Ajax(Result.ExecuteAction, []));
+    Result.On('click', Ajax(Result.ExecuteButtonAction, []));
 end;
 
 function TKExtDataPanelController.CreateClientReader: TExtDataJsonReader;
@@ -193,9 +193,9 @@ function TKExtDataPanelController.CreateClientReader: TExtDataJsonReader;
   var
     LField: TExtDataField;
   begin
-    LField := TExtDataField.AddTo(AReader.Fields);
+    LField := TExtDataField.CreateAndAddTo(AReader.Fields);
     LField.Name := AName;
-    LField.Type_ := AType;
+    LField.&Type := AType;
   end;
 
   procedure AddReaderField(const AReader: TExtDataJsonReader; const AViewField: TKViewField);
@@ -216,7 +216,7 @@ var
 begin
   Assert(Assigned(ViewTable));
 
-  Result := TExtDataJsonReader.Create(JSObject('')); // Must pass '' otherwise invalid code is generated.
+  Result := TExtDataJsonReader.Create(Self, JSObject('')); // Must pass '' otherwise invalid code is generated.
   Result.Root := 'Root';
   Result.TotalProperty := 'Total';
 
@@ -226,7 +226,7 @@ end;
 
 function TKExtDataPanelController.CreateClientStore: TExtDataStore;
 begin
-  Result := TExtDataStore.Create;
+  Result := TExtDataStore.Create(Self);
   Result.RemoteSort := False;
   Result.Url := MethodURI(GetRecordPage);
 end;
@@ -261,7 +261,7 @@ begin
       LData := ServerStore.GetAsJSON(True, 0, Min(GetMaxRecords(), ServerStore.RecordCount));
     end;
   end;
-  Session.Response := Format('{Total:%d,Root:%s}', [LTotal, LData]);
+  Session.ResponseItems.AddJSON(Format('{Total: %d, Root: %s}', [LTotal, LData]));
 end;
 
 function TKExtDataPanelController.GetRootDataPanel: TKExtDataPanelController;
@@ -348,7 +348,8 @@ begin
   Assert(Assigned(FServerStore));
 
   LRecord := Session.LocateRecordFromQueries(FViewTable, FServerStore);
-  LController := TKExtControllerFactory.Instance.CreateController(View, nil);
+  LController := TKExtControllerFactory.Instance.CreateController(
+    Session.ObjectCatalog, View, nil);
   InitController(LController);
   LController.Config.SetObject('Sys/Record', LRecord);
   LController.Display;
