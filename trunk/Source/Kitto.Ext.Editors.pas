@@ -1396,11 +1396,6 @@ begin
   SetValue(FRecordField.GetAsJSON(False));
 end;
 
-procedure TKExtFormTextField.RefreshValue;
-begin
-  SetValue(FRecordField.GetAsJSON(False));
-end;
-
 procedure TKExtFormTextField.SetRecordField(const AValue: TKViewTableField);
 begin
   FRecordField := AValue;
@@ -1442,11 +1437,6 @@ end;
 function TKExtFormTextArea.GetRecordField: TKViewTableField;
 begin
   Result := FRecordField;
-end;
-
-procedure TKExtFormTextArea.RefreshValue;
-begin
-  SetValue(FRecordField.GetAsJSON(False));
 end;
 
 procedure TKExtFormTextArea.RefreshValue;
@@ -1507,11 +1497,6 @@ begin
   SetValue(FRecordField.GetAsJSON(False));
 end;
 
-procedure TKExtFormCheckbox.RefreshValue;
-begin
-  SetValue(FRecordField.GetAsJSON(False));
-end;
-
 procedure TKExtFormCheckbox.SetRecordField(const AValue: TKViewTableField);
 begin
   FRecordField := AValue;
@@ -1553,11 +1538,6 @@ end;
 function TKExtFormDateField.GetRecordField: TKViewTableField;
 begin
   Result := FRecordField;
-end;
-
-procedure TKExtFormDateField.RefreshValue;
-begin
-  SetValue(FRecordField.GetAsJSON(False));
 end;
 
 procedure TKExtFormDateField.RefreshValue;
@@ -1861,11 +1841,6 @@ begin
   SetValue(FRecordField.GetAsJSON(False));
 end;
 
-procedure TKExtFormNumberField.RefreshValue;
-begin
-  SetValue(FRecordField.GetAsJSON(False));
-end;
-
 procedure TKExtFormNumberField.SetRecordField(const AValue: TKViewTableField);
 begin
   FRecordField := AValue;
@@ -1919,11 +1894,6 @@ end;
 class function TKExtFormDateTimeField.JSClassName: string;
 begin
   Result := 'Ext.ux.form.DateTimeField';
-end;
-
-procedure TKExtFormDateTimeField.RefreshValue;
-begin
-  SetValue(FRecordField.GetAsJSON(False));
 end;
 
 procedure TKExtFormDateTimeField.RefreshValue;
@@ -2009,11 +1979,6 @@ begin
   SetValue(FRecordField.GetAsJSON(False));
 end;
 
-procedure TKExtFormTimeField.RefreshValue;
-begin
-  SetValue(FRecordField.GetAsJSON(False));
-end;
-
 procedure TKExtFormTimeField.SetRecordField(const AValue: TKViewTableField);
 begin
   FRecordField := AValue;
@@ -2055,11 +2020,6 @@ end;
 function TKExtFormFileUploadField.GetRecordField: TKViewTableField;
 begin
   Result := FRecordField;
-end;
-
-procedure TKExtFormFileUploadField.RefreshValue;
-begin
-  SetValue(FRecordField.GetAsJSON(False));
 end;
 
 procedure TKExtFormFileUploadField.RefreshValue;
@@ -2230,11 +2190,6 @@ end;
 function TKExtFormFileEditor.GetRecordField: TKViewTableField;
 begin
   Result := FRecordField;
-end;
-
-procedure TKExtFormFileEditor.RefreshValue;
-begin
-  raise Exception.Create('TKExtFormFileEditor.RefreshValue not implemented.');
 end;
 
 procedure TKExtFormFileEditor.RefreshValue;
