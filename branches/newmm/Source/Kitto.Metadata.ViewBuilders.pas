@@ -139,7 +139,7 @@ begin
     AddDetailTables(LMainTable, LModel);
 
     LFilters := LControllerNode.AddChild('Filters');
-    LFilters.SetString('DisplayLabel', _(Format('Search %s', [LModel.PluralDisplayLabel])));
+    LFilters.SetString('DisplayLabel', _(Format(_('Search %s'), [LModel.PluralDisplayLabel])));
     LFilterItems := LFilters.AddChild('Items');
     LSearchItem := LFilterItems.AddChild('FreeSearch', _('Free Search'));
     LSearchItem.SetString('ExpressionTemplate', BuildSearchString(
