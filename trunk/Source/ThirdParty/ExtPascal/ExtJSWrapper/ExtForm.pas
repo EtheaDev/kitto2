@@ -366,7 +366,7 @@ type
     procedure SetFAutoCreate(Value: string);
     procedure SetFAutoCreateObject(Value: TExtObject);
     procedure SetCls(const AValue: string);
-    procedure SetFDisabled(Value: Boolean);
+    procedure SetDisabled(const AValue: Boolean);
     procedure SetFFieldClass(Value: string);
     procedure SetFFocusClass(Value: string);
     procedure SetInputType(const AValue: TExtFormFieldInputType);
@@ -420,7 +420,7 @@ type
     property AutoCreateObject: TExtObject read FAutoCreateObject
       write SetFAutoCreateObject;
     property Cls: string read FCls write SetCls;
-    property Disabled: Boolean read FDisabled write SetFDisabled;
+    property Disabled: Boolean read FDisabled write SetDisabled;
     property FieldClass: string read FFieldClass write SetFFieldClass;
     property FocusClass: string read FFocusClass write SetFFocusClass;
     property InputType: TExtFormFieldInputType read FInputType
@@ -2201,10 +2201,10 @@ begin
   ExtSession.ResponseItems.SetConfigItem(Self, 'cls', [AValue]);
 end;
 
-procedure TExtFormField.SetFDisabled(Value: Boolean);
+procedure TExtFormField.SetDisabled(const AValue: Boolean);
 begin
-  FDisabled := Value;
-  JSCode('disabled:' + VarToJSON([Value]));
+  FDisabled := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'disabled', [AValue]);
 end;
 
 procedure TExtFormField.SetFFieldClass(Value: string);
