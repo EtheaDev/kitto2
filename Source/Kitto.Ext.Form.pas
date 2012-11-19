@@ -69,15 +69,20 @@ type
     procedure CreateDetailPanels;
     procedure CreateDetailToolbar;
     function GetDetailStyle: string;
-    procedure OnFieldChange(AField: TExtFormField; ANewValue, AOldValue: string);
     function FindEditor(const AFieldName: string): IKExtEditor;
     function GetExtraHeight: Integer;
+    procedure EditorChanged(const AEditor: IKExtEditor);
+    procedure AssignFieldChangeEvents(const AAssign: Boolean);
+    procedure FieldChange(const AField: TKField;
+      const AOldValue, ANewValue: Variant);
   strict protected
     procedure DoDisplay; override;
     procedure InitComponents; override;
   public
     procedure LoadData; override;
     destructor Destroy; override;
+    procedure UpdateObserver(const ASubject: IEFSubject;
+      const AContext: string = ''); override;
   published
     procedure GetRecord;
     procedure SaveChanges;
@@ -87,8 +92,8 @@ type
 implementation
 
 uses
-  SysUtils, StrUtils, Classes,
-  EF.Localization, EF.Types, EF.Intf, EF.Tree, EF.DB, EF.JSON,
+  SysUtils, StrUtils, Classes, Variants,
+  EF.Localization, EF.Types, EF.Intf, EF.Tree, EF.DB, EF.JSON, EF.VariantUtils,
   Kitto.AccessControl, Kitto.Rules, Kitto.SQL,
   Kitto.Ext.Session, Kitto.Ext.Utils;
 
@@ -179,11 +184,14 @@ begin
   try
     LLayoutProcessor.DataRecord := FStoreRecord;
     LLayoutProcessor.FormPanel := FFormPanel;
-    LLayoutProcessor.OnFieldChange := OnFieldChange;
     LLayoutProcessor.OnNewEditor :=
       procedure (AEditor: IKExtEditor)
+      var
+        LEditorSubject: IEFSubject;
       begin
         FEditors.Add(AEditor.AsObject);
+        if Supports(AEditor.AsObject, IEFSubject, LEditorSubject) then
+          LEditorSubject.AttachObserver(Self);
       end;
     LLayoutProcessor.ForceReadOnly := AForceReadOnly;
     if FOperation = 'Add' then
@@ -265,52 +273,23 @@ begin
   end;
 end;
 
-procedure TKExtFormPanelController.OnFieldChange(AField: TExtFormField;
-  ANewValue, AOldValue: string);
+procedure TKExtFormPanelController.UpdateObserver(const ASubject: IEFSubject;
+  const AContext: string);
 var
   LEditor: IKExtEditor;
-  LStore: TKStore;
-  I: Integer;
-  LDerivedEditor: IKExtEditor;
 begin
-  Assert(Assigned(AField));
-
-  if Supports(AField, IKExtEditor, LEditor) then
+  inherited;
+  if AContext = 'EditorChanged' then
   begin
-    if LEditor.GetRecordField.ViewField.FileNameField <> '' then
-    begin
-      LDerivedEditor := FindEditor(LEditor.GetRecordField.ViewField.FileNameField);
-      if Assigned(LDerivedEditor) and (ANewValue = '') then
-      begin
-        LDerivedEditor.RecordField.SetToNull;
-        LDerivedEditor.RefreshValue;
-      end;
-    end
-    else
-    begin
-      Assert(LEditor.GetRecordField.ViewField.IsReference);
-
-      // Get derived values.
-      LStore := LEditor.GetRecordField.ViewField.CreateDerivedFieldsStore(ANewValue);
-      try
-        // Copy values to editors.
-        for I := 0 to LStore.Header.FieldCount - 1 do
-        begin
-          LDerivedEditor := FindEditor(LStore.Header.Fields[I].FieldName);
-          if Assigned(LDerivedEditor) then
-          begin
-            if LStore.RecordCount > 0 then
-              LDerivedEditor.RecordField.AssignValue(LStore.Records[0].Fields[I])
-            else
-              LDerivedEditor.RecordField.SetToNull;
-            LDerivedEditor.RefreshValue;
-          end;
-        end;
-      finally
-        FreeAndNil(LStore);
-      end;
-    end;
+    if Supports(ASubject.AsObject, IKExtEditor, LEditor) then
+      EditorChanged(LEditor);
   end;
+end;
+
+procedure TKExtFormPanelController.EditorChanged(const AEditor: IKExtEditor);
+begin
+  if Assigned(AEditor) then
+    AEditor.RefreshValue;
 end;
 
 function TKExtFormPanelController.FindEditor(const AFieldName: string): IKExtEditor;
@@ -364,8 +343,6 @@ begin
     // Get uploaded files.
     Session.EnumUploadedFiles(
       procedure (AFile: TKExtUploadedFile)
-      var
-        LFileNameField: string;
       begin
         if (AFile.Context is TKViewField) and (TKViewField(AFile.Context).Table = ViewTable) then
         begin
@@ -375,9 +352,6 @@ begin
             FStoreRecord.FieldByName(TKViewField(AFile.Context).AliasedName).AsString := AFile.FileName
           else
             raise Exception.CreateFmt(_('Data type %s does not support file upload.'), [TKViewField(AFile.Context).DataType.GetTypeName]);
-          LFileNameField := TKViewField(AFile.Context).FileNameField;
-          if LFileNameField <> ''then
-            FStoreRecord.FieldByName(LFileNameField).AsString := AFile.OriginalFileName;
           Session.RemoveUploadedFile(AFile);
         end;
       end);
@@ -401,7 +375,9 @@ begin
 
   NotifyObservers('Confirmed');
   if not CloseHostWindow then
-    StartOperation;
+    StartOperation
+  else
+    AssignFieldChangeEvents(False);
 end;
 
 procedure TKExtFormPanelController.InitComponents;
@@ -423,6 +399,7 @@ begin
     Assert(not Assigned(FStoreRecord));
     FStoreRecord := ServerStore.AppendRecord(nil);
   end;
+  AssignFieldChangeEvents(True);
 
   if SameText(FOperation, 'Add') then
     FIsReadOnly := ViewTable.GetBoolean('Controller/PreventAdding')
@@ -514,16 +491,35 @@ begin
   end;
   NotifyObservers('Canceled');
   if not CloseHostWindow then
-    StartOperation;
+    StartOperation
+  else
+    AssignFieldChangeEvents(False);
+end;
+
+procedure TKExtFormPanelController.AssignFieldChangeEvents(const AAssign: Boolean);
+var
+  I: Integer;
+begin
+  Assert(Assigned(FStoreRecord));
+
+  for I := 0 to FStoreRecord.FieldCount - 1 do
+    if AAssign then
+      FStoreRecord.Fields[I].OnChange := FieldChange
+    else
+      FStoreRecord.Fields[I].OnChange := nil;
+end;
+
+procedure TKExtFormPanelController.FieldChange(const AField: TKField;
+  const AOldValue, ANewValue: Variant);
+begin
+  Assert(Assigned(AField));
+  Assert(AField is TKViewTableField);
+
+  { TODO : Refresh ALL editors if there's more than one. }
+  EditorChanged(FindEditor(TKViewTableField(AField).FieldName));
 end;
 
 { TKExtDetailFormButton }
-
-destructor TKExtDetailFormButton.Destroy;
-begin
-  //FreeAndNil(FDetailHostWindow);
-  inherited;
-end;
 
 procedure TKExtDetailFormButton.SetViewTable(const AValue: TKViewTable);
 begin

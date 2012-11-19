@@ -21,7 +21,7 @@ unit Kitto.Store;
 interface
 
 uses
-  SysUtils, Types, DB, Generics.Collections,
+  SysUtils, Types, Classes, DB, Generics.Collections,
   EF.Tree, EF.DB,
   Kitto.Metadata.Models;
 
@@ -50,27 +50,31 @@ type
 
   TKRecord = class;
 
+  TKField = class;
+
+  TKFieldChangeEvent = procedure(const AField: TKField; const AOldValue, ANewValue: Variant) of object;
+
   TKField = class(TEFNode)
-  private
+  strict private
     FIsModified: Boolean;
+    FOnChange: TKFieldChangeEvent;
     function GetFieldName: string;
     function GetParentRecord: TKRecord;
     function GetJSONName: string;
-  protected
+  strict protected
     function GetName: string; override;
     procedure SetValue(const AValue: Variant); override;
-    function GetAsJSONValue(const AForDisplay: Boolean): string; virtual;
-    procedure MarkAsUnmodified;
+    procedure ValueChanged(const AOldValue: Variant; const ANewValue: Variant);
+      override;
   public
+    procedure MarkAsUnmodified;
     procedure SetToNull; override;
-
     property IsModified: Boolean read FIsModified;
-
     property ParentRecord: TKRecord read GetParentRecord;
-
     function GetAsJSON(const AForDisplay: Boolean): string;
-
+    function GetAsJSONValue(const AForDisplay: Boolean; const AQuote: Boolean = True): string; virtual;
     property FieldName: string read GetFieldName;
+    property OnChange: TKFieldChangeEvent read FOnChange write FOnChange;
   end;
 
   TKStore = class;
@@ -79,7 +83,7 @@ type
   TKRecordState = (rsNew, rsClean, rsDirty, rsDeleted);
 
   TKRecord = class(TEFNode)
-  private
+  strict private
     FBackup: TEFNode;
     { TODO : move state management in view table record }
     FState: TKRecordState;
@@ -93,7 +97,7 @@ type
     procedure EnsureDetailStores;
     function GetStore: TKStore;
     function GetIsDeleted: Boolean;
-  protected
+  strict protected
     property State: TKRecordState read FState;
     function GetChildClass(const AName: string): TEFNodeClass; override;
 
@@ -103,6 +107,7 @@ type
   public
     procedure AfterConstruction; override;
     destructor Destroy; override;
+    procedure FieldChanged(const AField: TKField; const AOldValue, ANewValue: Variant); virtual;
   public
     property Records: TKRecords read GetRecords;
     property Store: TKStore read GetStore;
@@ -279,7 +284,7 @@ implementation
 
 uses
   Math, FmtBcd, Variants, StrUtils,
-  EF.StrUtils, EF.Localization,
+  EF.StrUtils, EF.Localization, EF.JSON,
   Kitto.Types, Kitto.SQL, Kitto.Config;
 
 { TKStore }
@@ -717,6 +722,11 @@ begin
     raise EKError.CreateFmt(_('Field %s not found.'), [AFieldName]);
 end;
 
+procedure TKRecord.FieldChanged(const AField: TKField; const AOldValue,
+  ANewValue: Variant);
+begin
+end;
+
 function TKRecord.FindField(const AFieldName: string): TKField;
 var
   I: Integer;
@@ -900,7 +910,7 @@ function TKField.GetAsJSON(const AForDisplay: Boolean): string;
 begin
   if DataType.SupportsJSON then
   begin
-    Result := '"' + GetJSONName + '":' + GetAsJSONValue(AForDisplay);
+    Result := QuoteJSONStr(GetJSONName) + ':' + GetAsJSONValue(AForDisplay);
     if AForDisplay then
     begin
       Result := AnsiReplaceStr(Result, #13#10, '<br/>');
@@ -912,9 +922,9 @@ begin
     Result := '';
 end;
 
-function TKField.GetAsJSONValue(const AForDisplay: Boolean): string;
+function TKField.GetAsJSONValue(const AForDisplay: Boolean; const AQuote: Boolean): string;
 begin
-  Result := DataType.NodeToJSONValue(AForDisplay, Self, TKConfig.JSFormatSettings);
+  Result := DataType.NodeToJSONValue(AForDisplay, Self, TKConfig.JSFormatSettings, AQuote);
 end;
 
 function TKField.GetFieldName: string;
@@ -959,6 +969,14 @@ begin
       ParentRecord.MarkAsModified;
   end;
   inherited;
+end;
+
+procedure TKField.ValueChanged(const AOldValue, ANewValue: Variant);
+begin
+  inherited;
+  if Assigned(FOnChange) then
+    FOnChange(Self, AOldValue, ANewValue);
+  ParentRecord.FieldChanged(Self, AOldValue, ANewValue);
 end;
 
 { TKHeader }
