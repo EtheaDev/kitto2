@@ -21,7 +21,7 @@ unit Kitto.Ext.Form;
 interface
 
 uses
-  Generics.Collections,
+  Generics.Collections, SysUtils,
   Ext, ExtData, ExtForm,
   EF.ObserverIntf,
   Kitto.Metadata.Views, Kitto.Metadata.DataView, Kitto.Store,
@@ -68,9 +68,8 @@ type
     procedure CreateDetailPanels;
     procedure CreateDetailToolbar;
     function GetDetailStyle: string;
-    function FindEditor(const AFieldName: string): IKExtEditor;
+    procedure EditorsByFieldName(const AFieldName: string; const AHandler: TProc<IKExtEditor>);
     function GetExtraHeight: Integer;
-    procedure EditorChanged(const AEditor: IKExtEditor);
     procedure AssignFieldChangeEvents(const AAssign: Boolean);
     procedure FieldChange(const AField: TKField;
       const AOldValue, ANewValue: Variant);
@@ -80,8 +79,6 @@ type
   public
     procedure LoadData; override;
     destructor Destroy; override;
-    procedure UpdateObserver(const ASubject: IEFSubject;
-      const AContext: string = ''); override;
   published
     procedure GetRecord;
     procedure SaveChanges;
@@ -91,7 +88,7 @@ type
 implementation
 
 uses
-  SysUtils, StrUtils, Classes, Variants,
+  StrUtils, Classes, Variants,
   EF.Localization, EF.Types, EF.Intf, EF.Tree, EF.DB, EF.JSON, EF.VariantUtils,
   Kitto.AccessControl, Kitto.Rules, Kitto.SQL,
   Kitto.Ext.Session, Kitto.Ext.Utils;
@@ -272,40 +269,18 @@ begin
   end;
 end;
 
-procedure TKExtFormPanelController.UpdateObserver(const ASubject: IEFSubject;
-  const AContext: string);
-var
-  LEditor: IKExtEditor;
-begin
-  inherited;
-  if AContext = 'EditorChanged' then
-  begin
-    if Supports(ASubject.AsObject, IKExtEditor, LEditor) then
-      EditorChanged(LEditor);
-  end;
-end;
-
-procedure TKExtFormPanelController.EditorChanged(const AEditor: IKExtEditor);
-begin
-  if Assigned(AEditor) then
-    AEditor.RefreshValue;
-end;
-
-function TKExtFormPanelController.FindEditor(const AFieldName: string): IKExtEditor;
+procedure TKExtFormPanelController.EditorsByFieldName(const AFieldName: string;
+  const AHandler: TProc<IKExtEditor>);
 var
   I: Integer;
   LEditorIntf: IKExtEditor;
 begin
-  Result := nil;
   for I := 0 to FEditors.Count - 1 do
   begin
     if Supports(FEditors[I], IKExtEditor, LEditorIntf) then
     begin
       if SameText(LEditorIntf.GetRecordField.ViewField.AliasedName, AFieldName) then
-      begin
-        Result := LEditorIntf;
-        Break;
-      end;
+        AHandler(LEditorIntf);
     end;
   end;
 end;
@@ -499,13 +474,12 @@ procedure TKExtFormPanelController.AssignFieldChangeEvents(const AAssign: Boolea
 var
   I: Integer;
 begin
-  Assert(Assigned(FStoreRecord));
-
-  for I := 0 to FStoreRecord.FieldCount - 1 do
-    if AAssign then
-      FStoreRecord.Fields[I].OnChange := FieldChange
-    else
-      FStoreRecord.Fields[I].OnChange := nil;
+  if Assigned(FStoreRecord) then
+    for I := 0 to FStoreRecord.FieldCount - 1 do
+      if AAssign then
+        FStoreRecord.Fields[I].OnChange := FieldChange
+      else
+        FStoreRecord.Fields[I].OnChange := nil;
 end;
 
 procedure TKExtFormPanelController.FieldChange(const AField: TKField;
@@ -514,8 +488,11 @@ begin
   Assert(Assigned(AField));
   Assert(AField is TKViewTableField);
 
-  { TODO : Refresh ALL editors if there's more than one. }
-  EditorChanged(FindEditor(TKViewTableField(AField).FieldName));
+  EditorsByFieldName(TKViewTableField(AField).FieldName,
+    procedure (AEditor: IKExtEditor)
+    begin
+      AEditor.RefreshValue;
+    end);
 end;
 
 { TKExtDetailFormButton }

@@ -129,22 +129,6 @@ type
   TKExtFormNumberField = class(TExtFormNumberField, IKExtEditItem, IKExtEditor)
   private
     FRecordField: TKViewTableField;
-  public
-    function AsObject: TObject; inline;
-    function _AddRef: Integer; stdcall;
-    function _Release: Integer; stdcall;
-    procedure SetOption(const AName, AValue: string);
-    function AsExtObject: TExtObject; inline;
-    function AsExtFormField: TExtFormField; inline;
-    function GetRecordField: TKViewTableField;
-    procedure SetRecordField(const AValue: TKViewTableField);
-    procedure RefreshValue;
-  end;
-
-  TKExtFormTextField = class(TExtFormTextField, IKExtEditItem, IKExtEditor, IEFSubject)
-  private
-    FRecordField: TKViewTableField;
-    FObserverImpl: TEFSubjectAndObserver;
     procedure FieldChange(This: TExtFormField; NewValue, OldValue: string);
   public
     function AsObject: TObject; inline;
@@ -156,16 +140,28 @@ type
     function GetRecordField: TKViewTableField;
     procedure SetRecordField(const AValue: TKViewTableField);
     procedure RefreshValue;
-    procedure AttachObserver(const AObserver: IEFObserver);
-    procedure DetachObserver(const AObserver: IEFObserver);
-    procedure NotifyObservers(const AContext: string = '');
-    procedure AfterConstruction; override;
-    destructor Destroy; override;
+  end;
+
+  TKExtFormTextField = class(TExtFormTextField, IKExtEditItem, IKExtEditor)
+  private
+    FRecordField: TKViewTableField;
+    procedure FieldChange(This: TExtFormField; NewValue, OldValue: string);
+  public
+    function AsObject: TObject; inline;
+    function _AddRef: Integer; stdcall;
+    function _Release: Integer; stdcall;
+    procedure SetOption(const AName, AValue: string);
+    function AsExtObject: TExtObject; inline;
+    function AsExtFormField: TExtFormField; inline;
+    function GetRecordField: TKViewTableField;
+    procedure SetRecordField(const AValue: TKViewTableField);
+    procedure RefreshValue;
   end;
 
   TKExtFormTextArea = class(TExtFormTextArea, IKExtEditItem, IKExtEditor)
   private
     FRecordField: TKViewTableField;
+    procedure FieldChange(This: TExtFormField; NewValue, OldValue: string);
   public
     function AsObject: TObject; inline;
     function _AddRef: Integer; stdcall;
@@ -181,6 +177,7 @@ type
   TKExtFormCheckbox = class(TExtFormCheckbox, IKExtEditItem, IKExtEditor)
   private
     FRecordField: TKViewTableField;
+    procedure FieldChange(This: TExtFormField; NewValue, OldValue: string);
   public
     function AsObject: TObject; inline;
     function _AddRef: Integer; stdcall;
@@ -196,6 +193,7 @@ type
   TKExtFormDateField = class(TExtFormDateField, IKExtEditItem, IKExtEditor)
   private
     FRecordField: TKViewTableField;
+    procedure FieldChange(This: TExtFormField; NewValue, OldValue: string);
   public
     function AsObject: TObject; inline;
     function _AddRef: Integer; stdcall;
@@ -211,6 +209,7 @@ type
   TKExtFormTimeField = class(TExtFormTimeField, IKExtEditItem, IKExtEditor)
   private
     FRecordField: TKViewTableField;
+    procedure FieldChange(This: TExtFormField; NewValue, OldValue: string);
   public
     function AsObject: TObject; inline;
     function _AddRef: Integer; stdcall;
@@ -238,6 +237,7 @@ type
     procedure SetAltDateFormats(const AValue: string);
     procedure SetAllowBlank(const AValue: Boolean);
     procedure SetAltTimeFormats(const AValue: string);
+    procedure FieldChange(This: TExtFormField; NewValue, OldValue: string);
   public
     destructor Destroy; override;
     class function JSClassName: string; override;
@@ -327,7 +327,6 @@ type
     procedure DownloadThumbnailedFile(const AServerFileName, AClientFileName: string); virtual; abstract;
     procedure ClearContents; virtual;
     procedure DownloadThumbnailedStream(const AStream: TStream; const AFileName: string);
-    procedure Changed;
   public
     function AsObject: TObject; inline;
     function _AddRef: Integer; stdcall;
@@ -1356,12 +1355,6 @@ end;
 
 { TKExtFormTextField }
 
-procedure TKExtFormTextField.AfterConstruction;
-begin
-  inherited;
-  FObserverImpl := TEFSubjectAndObserver.Create;
-end;
-
 function TKExtFormTextField.AsExtFormField: TExtFormField;
 begin
   Result := Self;
@@ -1377,30 +1370,9 @@ begin
   Result := Self;
 end;
 
-procedure TKExtFormTextField.AttachObserver(const AObserver: IEFObserver);
-begin
-  FObserverImpl.AttachObserver(AObserver);
-end;
-
-destructor TKExtFormTextField.Destroy;
-begin
-  FreeAndNil(FObserverImpl);
-  inherited;
-end;
-
-procedure TKExtFormTextField.DetachObserver(const AObserver: IEFObserver);
-begin
-  FObserverImpl.DetachObserver(AObserver);
-end;
-
 function TKExtFormTextField.GetRecordField: TKViewTableField;
 begin
   Result := FRecordField;
-end;
-
-procedure TKExtFormTextField.NotifyObservers(const AContext: string);
-begin
-  FObserverImpl.NotifyObserversOnBehalfOf(Self, AContext);
 end;
 
 procedure TKExtFormTextField.RefreshValue;
@@ -1418,7 +1390,7 @@ end;
 procedure TKExtFormTextField.FieldChange(This: TExtFormField; NewValue: string;
   OldValue: string);
 begin
-  NotifyObservers('EditorChanged');
+  FRecordField.SetAsJSONValue(NewValue, False, Session.Config.UserFormatSettings);
 end;
 
 procedure TKExtFormTextField.SetOption(const AName, AValue: string);
@@ -1454,6 +1426,12 @@ begin
   Result := Self;
 end;
 
+procedure TKExtFormTextArea.FieldChange(This: TExtFormField; NewValue,
+  OldValue: string);
+begin
+  FRecordField.SetAsJSONValue(NewValue, False, Session.Config.UserFormatSettings);
+end;
+
 function TKExtFormTextArea.GetRecordField: TKViewTableField;
 begin
   Result := FRecordField;
@@ -1467,6 +1445,8 @@ end;
 procedure TKExtFormTextArea.SetRecordField(const AValue: TKViewTableField);
 begin
   FRecordField := AValue;
+  if IsChangeHandlerNeeded(FRecordField.ViewField) then
+    OnChange := FieldChange;
 end;
 
 procedure TKExtFormTextArea.SetOption(const AName, AValue: string);
@@ -1507,6 +1487,12 @@ begin
   Result := Self;
 end;
 
+procedure TKExtFormCheckbox.FieldChange(This: TExtFormField; NewValue,
+  OldValue: string);
+begin
+  FRecordField.SetAsJSONValue(NewValue, False, Session.Config.UserFormatSettings);
+end;
+
 function TKExtFormCheckbox.GetRecordField: TKViewTableField;
 begin
   Result := FRecordField;
@@ -1520,6 +1506,8 @@ end;
 procedure TKExtFormCheckbox.SetRecordField(const AValue: TKViewTableField);
 begin
   FRecordField := AValue;
+  if IsChangeHandlerNeeded(FRecordField.ViewField) then
+    OnChange := FieldChange;
 end;
 
 procedure TKExtFormCheckbox.SetOption(const AName, AValue: string);
@@ -1555,6 +1543,12 @@ begin
   Result := Self;
 end;
 
+procedure TKExtFormDateField.FieldChange(This: TExtFormField; NewValue,
+  OldValue: string);
+begin
+  FRecordField.SetAsJSONValue(NewValue, False, Session.Config.UserFormatSettings);
+end;
+
 function TKExtFormDateField.GetRecordField: TKViewTableField;
 begin
   Result := FRecordField;
@@ -1568,6 +1562,8 @@ end;
 procedure TKExtFormDateField.SetRecordField(const AValue: TKViewTableField);
 begin
   FRecordField := AValue;
+  if IsChangeHandlerNeeded(FRecordField.ViewField) then
+    OnChange := FieldChange;
 end;
 
 procedure TKExtFormDateField.SetOption(const AName, AValue: string);
@@ -1656,7 +1652,7 @@ end;
 procedure TKExtFormComboBoxEditor.FieldChange(This: TExtFormField; NewValue: string;
   OldValue: string);
 begin
-  FRecordField.AsString := NewValue;
+  FRecordField.SetAsJSONValue(NewValue, False, Session.Config.UserFormatSettings);
 end;
 
 procedure TKExtFormComboBoxEditor.SetOption(const AName, AValue: string);
@@ -1859,6 +1855,12 @@ begin
   Result := Self;
 end;
 
+procedure TKExtFormNumberField.FieldChange(This: TExtFormField; NewValue,
+  OldValue: string);
+begin
+  FRecordField.SetAsJSONValue(NewValue, False, Session.Config.UserFormatSettings);
+end;
+
 function TKExtFormNumberField.GetRecordField: TKViewTableField;
 begin
   Result := FRecordField;
@@ -1872,6 +1874,8 @@ end;
 procedure TKExtFormNumberField.SetRecordField(const AValue: TKViewTableField);
 begin
   FRecordField := AValue;
+  if IsChangeHandlerNeeded(FRecordField.ViewField) then
+    OnChange := FieldChange;
 end;
 
 procedure TKExtFormNumberField.SetOption(const AName, AValue: string);
@@ -1912,6 +1916,12 @@ begin
   FreeAndNil(FDateConfig);
   FreeAndNil(FTimeConfig);
   inherited;
+end;
+
+procedure TKExtFormDateTimeField.FieldChange(This: TExtFormField; NewValue,
+  OldValue: string);
+begin
+  FRecordField.SetAsJSONValue(NewValue, False, Session.Config.UserFormatSettings);
 end;
 
 function TKExtFormDateTimeField.GetRecordField: TKViewTableField;
@@ -1972,6 +1982,8 @@ end;
 procedure TKExtFormDateTimeField.SetRecordField(const AValue: TKViewTableField);
 begin
   FRecordField := AValue;
+  if IsChangeHandlerNeeded(FRecordField.ViewField) then
+    OnChange := FieldChange;
 end;
 
 procedure TKExtFormDateTimeField.SetTimeFormat(const AValue: string);
@@ -1997,6 +2009,12 @@ begin
   Result := Self;
 end;
 
+procedure TKExtFormTimeField.FieldChange(This: TExtFormField; NewValue,
+  OldValue: string);
+begin
+  FRecordField.SetAsJSONValue(NewValue, False, Session.Config.UserFormatSettings);
+end;
+
 function TKExtFormTimeField.GetRecordField: TKViewTableField;
 begin
   Result := FRecordField;
@@ -2010,6 +2028,8 @@ end;
 procedure TKExtFormTimeField.SetRecordField(const AValue: TKViewTableField);
 begin
   FRecordField := AValue;
+  if IsChangeHandlerNeeded(FRecordField.ViewField) then
+    OnChange := FieldChange;
 end;
 
 procedure TKExtFormTimeField.SetOption(const AName, AValue: string);
@@ -2093,11 +2113,6 @@ begin
   Result := Self;
 end;
 
-procedure TKExtFormFileEditor.Changed;
-begin
-  NotifyObservers('EditorChanged');
-end;
-
 procedure TKExtFormFileEditor.Clear;
 begin
   ClearContents;
@@ -2121,7 +2136,6 @@ begin
     LFileNameFieldReference.SetBoolean('Sys/SetToNull', True);
     LFileNameFieldReference.SetToNull;
   end;
-  Changed;
 end;
 
 procedure TKExtFormFileEditor.DownloadFieldData;
@@ -2219,7 +2233,6 @@ var
   LFileNameField: string;
   LFileNameFieldReference: TKViewTableField;
 begin
-  Changed;
   LFileNameField := FRecordField.ViewField.FileNameField;
   if LFileNameField <> ''then
   begin
@@ -2555,6 +2568,8 @@ begin
 end;
 
 procedure TKExtFormFileBlobEditor.FileUploaded(const AFileName: string);
+var
+  LUploadedFile: TKExtUploadedFile;
 begin
   inherited;
   FLastUploadedOriginalFileName := ExtractFileName(AFileName);
@@ -2563,9 +2578,11 @@ begin
   // Don't rename: move, since the files could be on different drives.
   CopyFile(AFileName, FLastUploadedFullFileName);
   DeleteFile(AFileName);
-  Session.AddUploadedFile(TKExtUploadedFile.Create(
+  LUploadedFile := TKExtUploadedFile.Create(
     Session.FileUploaded, FLastUploadedFullFileName, FRecordField.ViewField,
-    Session.FileUploaded));
+    Session.FileUploaded);
+  Session.AddUploadedFile(LUploadedFile);
+  FRecordField.AsBytes := LUploadedFile.Bytes;
 end;
 
 function TKExtFormFileBlobEditor.GetCurrentContentSize: Integer;
@@ -2626,6 +2643,8 @@ begin
 end;
 
 procedure TKExtFormFileReferenceEditor.FileUploaded(const AFileName: string);
+var
+  LFileName: string;
 begin
   inherited;
   FLastUploadedFullFileName := GetUniqueFileName(GetFieldPath, ExtractFileExt(AFileName));
@@ -2633,8 +2652,10 @@ begin
   CopyFile(AFileName, FLastUploadedFullFileName);
   DeleteFile(AFileName);
 
-  Session.AddUploadedFile(TKExtUploadedFile.Create(ExtractFileName(FLastUploadedFullFileName),
+  LFileName := ExtractFileName(FLastUploadedFullFileName);
+  Session.AddUploadedFile(TKExtUploadedFile.Create(LFileName,
     FLastUploadedFullFileName, FRecordField.ViewField, Session.FileUploaded));
+  FRecordField.AsString := LFileName;
   FRecordField.DeleteNode('Sys/DeleteFile');
 end;
 
