@@ -853,8 +853,8 @@ type
   public
     class function JSClassName: string; override;
     function GetValue: TExtFunction;
-    function SetValue(Checked: Boolean): TExtFunction; overload;
-    function SetValue(Checked: string): TExtFunction; overload;
+    function SetValue(const AChecked: Boolean): TExtFunction; overload;
+    function SetValue(const AChecked: string): TExtFunction; overload;
     property AutoCreate: string read FAutoCreate write SetFAutoCreate;
     property AutoCreateObject: TExtObject read FAutoCreateObject
       write SetFAutoCreateObject;
@@ -3490,21 +3490,19 @@ end;
 
 function TExtFormCheckbox.GetValue: TExtFunction;
 begin
-  JSCode(JSName + '.getValue();', 'TExtFormCheckbox');
+  ExtSession.ResponseItems.CallMethod(Self, 'getValue', []);
   Result := Self;
 end;
 
-function TExtFormCheckbox.SetValue(Checked: Boolean): TExtFunction;
+function TExtFormCheckbox.SetValue(const AChecked: Boolean): TExtFunction;
 begin
-  JSCode(JSName + '.setValue(' + VarToJSON([Checked]) + ');',
-    'TExtFormCheckbox');
+  ExtSession.ResponseItems.CallMethod(Self, 'setValue', [AChecked]);
   Result := Self;
 end;
 
-function TExtFormCheckbox.SetValue(Checked: string): TExtFunction;
+function TExtFormCheckbox.SetValue(const AChecked: string): TExtFunction;
 begin
-  JSCode(JSName + '.setValue(' + VarToJSON([Checked]) + ');',
-    'TExtFormCheckbox');
+  ExtSession.ResponseItems.CallMethod(Self, 'setValue', [AChecked]);
   Result := Self;
 end;
 

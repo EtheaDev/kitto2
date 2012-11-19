@@ -62,7 +62,7 @@ type
     function IsBlob(const ASize: Integer): Boolean; virtual;
     function IsText: Boolean; virtual;
     function NodeToJSONValue(const AForDisplay: Boolean; const ANode: TEFNode;
-      const AJSFormatSettings: TFormatSettings): string; virtual;
+      const AJSFormatSettings: TFormatSettings; const AQuote: Boolean = True): string; virtual;
     function GetJSTypeName: string; virtual;
 
     function ValueToString(const AValue: Variant): string; virtual;
@@ -705,6 +705,7 @@ type
     procedure SetValue(const AValue: Variant); virtual;
     function GetRoot: TEFTree; override;
     function IsDataTypeLocked: Boolean;
+    procedure ValueChanged(const AOldValue, ANewValue: Variant); virtual;
   public
     function GetEnumerator: TEnumerator<TEFNode>;
   public
@@ -1213,11 +1214,7 @@ end;
 procedure TEFNode.AssignValue(const ASource: TEFNode);
 begin
   if Assigned(ASource) then
-  begin
-    FValue := TEFNode(ASource).Value;
-    if not IsDataTypeLocked then
-      FDataType := TEFNode(ASource).DataType;
-  end
+    Value := TEFNode(ASource).Value
   else
     SetToNull;
 end;
@@ -1650,15 +1647,27 @@ begin
 end;
 
 procedure TEFNode.SetValue(const AValue: Variant);
+var
+  LOldValue: Variant;
 begin
+  LOldValue := FValue;
   FValue := AValue;
   if not IsDataTypeLocked then
     FDataType := GetVariantDataType(FValue);
+  ValueChanged(LOldValue, FValue);
 end;
 
 procedure TEFNode.SetToNull;
+var
+  LOldValue: Variant;
 begin
+  LOldValue := FValue;
   FValue := Null;
+  ValueChanged(LOldValue, FValue);
+end;
+
+procedure TEFNode.ValueChanged(const AOldValue, ANewValue: Variant);
+begin
 end;
 
 function TEFNode.FindNode(const APath: string;
@@ -2433,14 +2442,16 @@ begin
 end;
 
 function TEFDataType.NodeToJSONValue(const AForDisplay: Boolean;
-  const ANode: TEFNode; const AJSFormatSettings: TFormatSettings): string;
+  const ANode: TEFNode; const AJSFormatSettings: TFormatSettings; const AQuote: Boolean): string;
 begin
   Assert(Assigned(ANode));
 
   if ANode.IsNull then
     Result := 'null'
+  else if AQuote then
+    Result := QuoteJSONStr(InternalNodeToJSONValue(AForDisplay, ANode, AJSFormatSettings))
   else
-    Result := QuoteJSONStr(InternalNodeToJSONValue(AForDisplay, ANode, AJSFormatSettings));
+    Result := InternalNodeToJSONValue(AForDisplay, ANode, AJSFormatSettings);
 end;
 
 procedure TEFDataType.NodeToParam(const ANode: TEFNode; const AParam: TParam);
