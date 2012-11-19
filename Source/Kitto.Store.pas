@@ -208,6 +208,7 @@ type
 
   TKStore = class(TEFTree)
   private
+    FChangeNotificationsDisabledCount: Integer;
     FHeader: TKHeader;
     function GetRecords: TKRecords;
     function GetKey: TKKey;
@@ -220,6 +221,10 @@ type
   public
     destructor Destroy; override;
   public
+    procedure DisableChangeNotifications;
+    procedure EnableChangeNotifications;
+    function ChangeNotificationsEnabled: Boolean;
+
     property Key: TKKey read GetKey write SetKey;
     property Header: TKHeader read GetHeader;
     property Records: TKRecords read GetRecords;
@@ -297,6 +302,11 @@ begin
     Result.ReadFromNode(AValues);
 end;
 
+function TKStore.ChangeNotificationsEnabled: Boolean;
+begin
+  Result := FChangeNotificationsDisabledCount <= 0;
+end;
+
 function TKStore.ChangesPending: Boolean;
 var
   I: Integer;
@@ -318,6 +328,11 @@ begin
             begin
               Result := True;
             end;
+end;
+
+procedure TKStore.EnableChangeNotifications;
+begin
+  Dec(FChangeNotificationsDisabledCount);
 end;
 
 function TKStore.ExcludeDeleted: TPredicate<TKRecord>;
@@ -417,6 +432,11 @@ begin
   inherited;
 end;
 
+procedure TKStore.DisableChangeNotifications;
+begin
+  Inc(FChangeNotificationsDisabledCount);
+end;
+
 function TKStore.GetAsJSON(const AForDisplay: Boolean; const AFrom: Integer;
   const AFor: Integer): string;
 begin
@@ -464,17 +484,22 @@ var
 begin
   Assert(Assigned(ADBQuery));
 
-  if not AAppend then
-    Records.Clear;
-  if not ADBQuery.IsOpen then
-    ADBQuery.Open;
-  while not ADBQuery.DataSet.Eof do
-  begin
-    LRecord := Records.Append;
-    Header.Apply(LRecord);
-    Assert(LRecord.FieldCount = Header.ChildCount);
-    LRecord.ReadFromFields(ADBQuery.DataSet.Fields);
-    ADBQuery.DataSet.Next;
+  DisableChangeNotifications;
+  try
+    if not AAppend then
+      Records.Clear;
+    if not ADBQuery.IsOpen then
+      ADBQuery.Open;
+    while not ADBQuery.DataSet.Eof do
+    begin
+      LRecord := Records.Append;
+      Header.Apply(LRecord);
+      Assert(LRecord.FieldCount = Header.ChildCount);
+      LRecord.ReadFromFields(ADBQuery.DataSet.Fields);
+      ADBQuery.DataSet.Next;
+    end;
+  finally
+    EnableChangeNotifications;
   end;
 end;
 
@@ -974,9 +999,12 @@ end;
 procedure TKField.ValueChanged(const AOldValue, ANewValue: Variant);
 begin
   inherited;
-  if Assigned(FOnChange) then
-    FOnChange(Self, AOldValue, ANewValue);
-  ParentRecord.FieldChanged(Self, AOldValue, ANewValue);
+  if Assigned(ParentRecord) and Assigned(ParentRecord.Store) and ParentRecord.Store.ChangeNotificationsEnabled then
+  begin
+    if Assigned(FOnChange) then
+      FOnChange(Self, AOldValue, ANewValue);
+    ParentRecord.FieldChanged(Self, AOldValue, ANewValue);
+  end;
 end;
 
 { TKHeader }

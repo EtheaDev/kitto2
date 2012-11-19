@@ -3256,9 +3256,9 @@ type
     function GetTool(Id: string): TExtFunction;
     function GetTopToolbar: TExtFunction;
     function GetUpdater: TExtFunction;
-    function Load(Config: TExtObject = nil): TExtFunction; overload;
-    function Load(Config: string): TExtFunction; overload;
-    function Load(Config: TExtFunction): TExtFunction; overload;
+    function Load(const AConfig: TExtObject = nil): TExtFunction; overload;
+    function Load(const AConfig: string): TExtFunction; overload;
+    function Load(const AConfig: TExtFunction): TExtFunction; overload;
     function SetIconClass(Cls: string): TExtFunction;
     function SetTitle(const ATitle: string; const AIconCls: string = ''): TExtFunction;
     function ToggleCollapse(Animate: Boolean): TExtFunction;
@@ -13355,21 +13355,21 @@ begin
   Result := Self;
 end;
 
-function TExtPanel.Load(Config: TExtObject = nil): TExtFunction;
+function TExtPanel.Load(const AConfig: TExtObject = nil): TExtFunction;
 begin
-  JSCode(JSName + '.load(' + VarToJSON([Config, false]) + ');', 'TExtPanel');
+  ExtSession.ResponseItems.CallMethod(Self, 'load', [AConfig, False]);
   Result := Self;
 end;
 
-function TExtPanel.Load(Config: string): TExtFunction;
+function TExtPanel.Load(const AConfig: string): TExtFunction;
 begin
-  JSCode(JSName + '.load(' + VarToJSON([Config]) + ');', 'TExtPanel');
+  ExtSession.ResponseItems.CallMethod(Self, 'load', [AConfig]);
   Result := Self;
 end;
 
-function TExtPanel.Load(Config: TExtFunction): TExtFunction;
+function TExtPanel.Load(const AConfig: TExtFunction): TExtFunction;
 begin
-  JSCode(JSName + '.load(' + VarToJSON([Config, true]) + ');', 'TExtPanel');
+  ExtSession.ResponseItems.CallMethod(Self, 'load', [AConfig, True]);
   Result := Self;
 end;
 

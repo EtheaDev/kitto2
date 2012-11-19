@@ -1656,7 +1656,7 @@ end;
 procedure TKExtFormComboBoxEditor.FieldChange(This: TExtFormField; NewValue: string;
   OldValue: string);
 begin
-  NotifyObservers('EditorChanged');
+  FRecordField.AsString := NewValue;
 end;
 
 procedure TKExtFormComboBoxEditor.SetOption(const AName, AValue: string);
