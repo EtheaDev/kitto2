@@ -255,10 +255,10 @@ begin
     end;
 
     // Load data from FServerRecord.
-    ExtSession.ResponseItems.ExecuteJSCode(FFormPanel,
-      FFormPanel.JSName + '.getForm().load({url:"' + MethodURI(GetRecord) + '",' +
-        'failure: function(form, action) { Ext.Msg.alert("' + _('Load failed.') +
-        '", action.result.errorMessage);}});');
+    FFormPanel.GetForm.Load(JSObject(Format(
+      'url: "%s", ' +
+      'failure: function(form, action) { Ext.Msg.alert("%s", action.result.errorMessage); }',
+      [MethodURI(GetRecord), _('Load failed.')])));
     FocusFirstField;
   except
     on E: EKValidationError do
