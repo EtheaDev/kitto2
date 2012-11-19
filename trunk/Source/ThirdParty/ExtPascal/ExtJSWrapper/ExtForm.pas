@@ -196,7 +196,7 @@ type
     function GetValues(const AAsString: Boolean = False): TExtFunction;
     function IsDirty: TExtFunction;
     function IsValid: TExtFunction;
-    function Load(Options: TExtObject): TExtFunction;
+    function Load(const AOptions: TExtObject): TExtFunction;
     function LoadRecord(RecordJS: TExtDataRecord): TExtFunction;
     function MarkInvalid(Errors: TExtObjectList): TExtFunction; overload;
     function MarkInvalid(Errors: TExtObject): TExtFunction; overload;
@@ -1962,10 +1962,9 @@ begin
   Result := Self;
 end;
 
-function TExtFormBasicForm.Load(Options: TExtObject): TExtFunction;
+function TExtFormBasicForm.Load(const AOptions: TExtObject): TExtFunction;
 begin
-  JSCode(JSName + '.load(' + VarToJSON([Options, false]) + ');',
-    'TExtFormBasicForm');
+  ExtSession.ResponseItems.CallMethod(Self, 'load', [AOptions, False]);
   Result := Self;
 end;
 
