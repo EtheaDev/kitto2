@@ -70,7 +70,7 @@ type
     function GetDetailStyle: string;
     procedure EditorsByFieldName(const AFieldName: string; const AHandler: TProc<IKExtEditor>);
     function GetExtraHeight: Integer;
-    procedure AssignFieldChangeEvents(const AAssign: Boolean);
+    procedure AssignFieldChangeEvent(const AAssign: Boolean);
     procedure FieldChange(const AField: TKField;
       const AOldValue, ANewValue: Variant);
   strict protected
@@ -351,7 +351,7 @@ begin
   if not CloseHostWindow then
     StartOperation
   else
-    AssignFieldChangeEvents(False);
+    AssignFieldChangeEvent(False);
 end;
 
 procedure TKExtFormPanelController.InitComponents;
@@ -373,7 +373,7 @@ begin
     Assert(not Assigned(FStoreRecord));
     FStoreRecord := ServerStore.AppendRecord(nil);
   end;
-  AssignFieldChangeEvents(True);
+  AssignFieldChangeEvent(True);
 
   if SameText(FOperation, 'Add') then
     FIsReadOnly := ViewTable.GetBoolean('Controller/PreventAdding')
@@ -467,19 +467,16 @@ begin
   if not CloseHostWindow then
     StartOperation
   else
-    AssignFieldChangeEvents(False);
+    AssignFieldChangeEvent(False);
 end;
 
-procedure TKExtFormPanelController.AssignFieldChangeEvents(const AAssign: Boolean);
-var
-  I: Integer;
+procedure TKExtFormPanelController.AssignFieldChangeEvent(const AAssign: Boolean);
 begin
   if Assigned(FStoreRecord) then
-    for I := 0 to FStoreRecord.FieldCount - 1 do
-      if AAssign then
-        FStoreRecord.Fields[I].OnChange := FieldChange
-      else
-        FStoreRecord.Fields[I].OnChange := nil;
+    if AAssign then
+      FStoreRecord.OnFieldChange := FieldChange
+    else
+      FStoreRecord.OnFieldChange := nil;
 end;
 
 procedure TKExtFormPanelController.FieldChange(const AField: TKField;

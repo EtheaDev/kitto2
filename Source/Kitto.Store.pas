@@ -57,7 +57,6 @@ type
   TKField = class(TEFNode)
   strict private
     FIsModified: Boolean;
-    FOnChange: TKFieldChangeEvent;
     function GetFieldName: string;
     function GetParentRecord: TKRecord;
     function GetJSONName: string;
@@ -74,7 +73,6 @@ type
     function GetAsJSON(const AForDisplay: Boolean): string;
     function GetAsJSONValue(const AForDisplay: Boolean; const AQuote: Boolean = True): string; virtual;
     property FieldName: string read GetFieldName;
-    property OnChange: TKFieldChangeEvent read FOnChange write FOnChange;
   end;
 
   TKStore = class;
@@ -88,6 +86,7 @@ type
     { TODO : move state management in view table record }
     FState: TKRecordState;
     FDetailStores: TObjectList<TKStore>;
+    FOnFieldChange: TKFieldChangeEvent;
     function GetRecords: TKRecords;
     function GetKey: TKKey;
     function GetField(I: Integer): TKField;
@@ -143,6 +142,8 @@ type
     procedure Restore;
 
     function ChangesPending: Boolean;
+
+    property OnFieldChange: TKFieldChangeEvent read FOnFieldChange write FOnFieldChange;
   end;
 
   TKRecords = class(TEFNode)
@@ -755,6 +756,8 @@ end;
 procedure TKRecord.FieldChanged(const AField: TKField; const AOldValue,
   ANewValue: Variant);
 begin
+  if Assigned(FOnFieldChange) then
+    FOnFieldChange(AField, AOldValue, ANewValue);
 end;
 
 function TKRecord.FindField(const AFieldName: string): TKField;
@@ -1010,11 +1013,7 @@ procedure TKField.ValueChanged(const AOldValue, ANewValue: Variant);
 begin
   inherited;
   if Assigned(ParentRecord) and Assigned(ParentRecord.Store) and ParentRecord.Store.ChangeNotificationsEnabled then
-  begin
-    if Assigned(FOnChange) then
-      FOnChange(Self, AOldValue, ANewValue);
     ParentRecord.FieldChanged(Self, AOldValue, ANewValue);
-  end;
 end;
 
 { TKHeader }
