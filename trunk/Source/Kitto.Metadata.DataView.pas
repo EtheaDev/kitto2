@@ -1946,18 +1946,24 @@ var
   I: Integer;
 begin
   Assert(Records.Store.ViewTable.IsDetail);
-  // Get master and detail field names...
-  LMasterFieldNames := Records.Store.ViewTable.MasterTable.Model.GetKeyFieldNames;
-  Assert(Length(LMasterFieldNames) > 0);
-  LDetailFieldNames := Records.Store.ViewTable.ModelDetailReference.ReferenceField.GetFieldNames;
-  Assert(Length(LDetailFieldNames) = Length(LMasterFieldNames));
-  for I := 0 to High(LDetailFieldNames) do
-  begin
-    // ...alias them...
-    LMasterFieldNames[I] := Records.Store.ViewTable.MasterTable.ApplyFieldAliasedName(LMasterFieldNames[I]);
-    LDetailFieldNames[I] := Records.Store.ViewTable.ApplyFieldAliasedName(LDetailFieldNames[I]);
-    // ... and copy values.
-    GetNode(LDetailFieldNames[I]).AssignValue(AMasterRecord.GetNode(LMasterFieldNames[I]));
+
+  Store.DisableChangeNotifications;
+  try
+    // Get master and detail field names...
+    LMasterFieldNames := Records.Store.ViewTable.MasterTable.Model.GetKeyFieldNames;
+    Assert(Length(LMasterFieldNames) > 0);
+    LDetailFieldNames := Records.Store.ViewTable.ModelDetailReference.ReferenceField.GetFieldNames;
+    Assert(Length(LDetailFieldNames) = Length(LMasterFieldNames));
+    for I := 0 to High(LDetailFieldNames) do
+    begin
+      // ...alias them...
+      LMasterFieldNames[I] := Records.Store.ViewTable.MasterTable.ApplyFieldAliasedName(LMasterFieldNames[I]);
+      LDetailFieldNames[I] := Records.Store.ViewTable.ApplyFieldAliasedName(LDetailFieldNames[I]);
+      // ... and copy values.
+      GetNode(LDetailFieldNames[I]).AssignValue(AMasterRecord.GetNode(LMasterFieldNames[I]));
+    end;
+  finally
+    Store.EnableChangeNotifications;
   end;
 end;
 
@@ -2013,8 +2019,29 @@ begin
 end;
 
 function TKViewTableField.GetViewField: TKViewField;
+var
+  LContainerFields: TArray<TKViewField>;
+  I: Integer;
 begin
+  // If the field is part of a reference field then using the FieldName is
+  // going to yield nil. Gotta return the containing ViewField in such cases. }
   Result := ParentRecord.ViewTable.FindFieldByAliasedName(FieldName);
+  if Result = nil then
+  begin
+    LContainerFields := ParentRecord.ViewTable.GetFieldArray(
+      function (AField: TKViewField): Boolean
+      begin
+        Result := AField.ModelField.FieldCount > 0;
+      end);
+    for I := Low(LContainerFields) to High(LContainerFields) do
+    begin
+      if Assigned(LContainerFields[I].ModelField.FindField(FieldName)) then
+      begin
+        Result := LContainerFields[I];
+        Break;
+      end;
+    end;
+  end;
 end;
 
 { TKFileReferenceDataType }

@@ -296,10 +296,15 @@ uses
 
 function TKStore.AppendRecord(const AValues: TEFNode): TKRecord;
 begin
-  Result := Records.Append;
-  Header.Apply(Result);
-  if Assigned(AValues) then
-    Result.ReadFromNode(AValues);
+  DisableChangeNotifications;
+  try
+    Result := Records.Append;
+    Header.Apply(Result);
+    if Assigned(AValues) then
+      Result.ReadFromNode(AValues);
+  finally
+    EnableChangeNotifications;
+  end;
 end;
 
 function TKStore.ChangeNotificationsEnabled: Boolean;
@@ -900,16 +905,21 @@ var
 begin
   Assert(Assigned(ANode));
 
-  Backup;
+  Store.DisableChangeNotifications;
   try
-    for I := 0 to FieldCount - 1 do
-      Fields[I].AssignValue(ANode.FindNode(Fields[I].FieldName));
-    InternalAfterReadFromNode;
-    if FState = rsClean then
-      FState := rsDirty;
-  except
-    Restore;
-    raise;
+    Backup;
+    try
+      for I := 0 to FieldCount - 1 do
+        Fields[I].AssignValue(ANode.FindNode(Fields[I].FieldName));
+      InternalAfterReadFromNode;
+      if FState = rsClean then
+        FState := rsDirty;
+    except
+      Restore;
+      raise;
+    end;
+  finally
+    Store.EnableChangeNotifications;
   end;
 end;
 
