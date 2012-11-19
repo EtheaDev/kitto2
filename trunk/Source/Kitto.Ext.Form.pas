@@ -39,7 +39,6 @@ type
     FServerStore: TKViewTableStore;
     procedure SetViewTable(const AValue: TKViewTable);
   public
-    destructor Destroy; override;
     property ViewTable: TKViewTable read FViewTable write SetViewTable;
     property ServerStore: TKViewTableStore read FServerStore write FServerStore;
   published

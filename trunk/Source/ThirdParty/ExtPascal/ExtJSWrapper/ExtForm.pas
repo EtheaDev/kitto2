@@ -691,9 +691,9 @@ type
     procedure SetFGrowMin(Value: Integer);
     procedure SetFMaskRe(Value: TRegExp);
     procedure SetMaxLength(const AValue: Integer);
-    procedure SetFMaxLengthText(Value: string);
-    procedure SetFMinLength(Value: Integer);
-    procedure SetFMinLengthText(Value: string);
+    procedure SetMaxLengthText(const AValue: string);
+    procedure SetMinLength(const AValue: Integer);
+    procedure SetMinLengthText(const AValue: string);
     procedure SetFRegex(Value: TRegExp);
     procedure SetFRegexText(Value: string);
     procedure SetSelectOnFocus(const AValue: Boolean);
@@ -727,9 +727,9 @@ type
     property GrowMin: Integer read FGrowMin write SetFGrowMin;
     property MaskRe: TRegExp read FMaskRe write SetFMaskRe;
     property MaxLength: Integer read FMaxLength write SetMaxLength;
-    property MaxLengthText: string read FMaxLengthText write SetFMaxLengthText;
-    property MinLength: Integer read FMinLength write SetFMinLength;
-    property MinLengthText: string read FMinLengthText write SetFMinLengthText;
+    property MaxLengthText: string read FMaxLengthText write SetMaxLengthText;
+    property MinLength: Integer read FMinLength write SetMinLength;
+    property MinLengthText: string read FMinLengthText write SetMinLengthText;
     property Regex: TRegExp read FRegex write SetFRegex;
     property RegexText: string read FRegexText write SetFRegexText;
     property SelectOnFocus: Boolean read FSelectOnFocus write SetSelectOnFocus;
@@ -3059,22 +3059,22 @@ begin
   ExtSession.ResponseItems.SetConfigItem(Self, 'maxLength', [AValue]);
 end;
 
-procedure TExtFormTextField.SetFMaxLengthText(Value: string);
+procedure TExtFormTextField.SetMaxLengthText(const AValue: string);
 begin
-  FMaxLengthText := Value;
-  JSCode('maxLengthText:' + VarToJSON([Value]));
+  FMaxLengthText := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'maxLengthText', [AValue]);
 end;
 
-procedure TExtFormTextField.SetFMinLength(Value: Integer);
+procedure TExtFormTextField.SetMinLength(const AValue: Integer);
 begin
-  FMinLength := Value;
-  JSCode('minLength:' + VarToJSON([Value]));
+  FMinLength := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'minLength', [AValue]);
 end;
 
-procedure TExtFormTextField.SetFMinLengthText(Value: string);
+procedure TExtFormTextField.SetMinLengthText(const AValue: string);
 begin
-  FMinLengthText := Value;
-  JSCode('minLengthText:' + VarToJSON([Value]));
+  FMinLengthText := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'minLengthText', [AValue]);
 end;
 
 procedure TExtFormTextField.SetFRegex(Value: TRegExp);

@@ -27,7 +27,7 @@ unit EF.JSON;
 interface
 
 uses
-  DB,
+  SysUtils, StrUtils, DB,
   EF.Types, EF.DB;
 
 ///	<summary>
@@ -82,7 +82,6 @@ function JSONNullToEmptyStr(const AJSONValue: string): string; inline;
 implementation
 
 uses
-  SysUtils, StrUtils,
   EF.StrUtils;
 
 function PairsToJSON(const APairs: TEFPairs; const AReversed: Boolean): string;
