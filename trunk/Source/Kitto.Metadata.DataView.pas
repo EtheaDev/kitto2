@@ -56,7 +56,6 @@ type
     function GetQualifiedDBName: string;
     function GetModelName: string;
     function GetFieldName: string;
-    function GetEmptyAsNull: Boolean;
     function GetDefaultValue: Variant;
     function GetModel: TKModel;
     function GetExpression: string;
@@ -85,6 +84,7 @@ type
   strict protected
     function GetChildClass(const AName: string): TEFNodeClass; override;
   public
+    function GetEmptyAsNull: Boolean; override;
     function FindNode(const APath: string; const ACreateMissingNodes: Boolean = False): TEFNode; override;
     function IsAccessGranted(const AMode: string): Boolean; override;
     function GetResourceURI: string; override;
