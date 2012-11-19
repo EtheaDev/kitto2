@@ -1518,8 +1518,11 @@ end;
 procedure TEFFileDeleter.DoDeleteDirectory(const ADirectoryName: string);
 begin
   if not RemoveDir(ADirectoryName) then
-    raise Exception.CreateFmt(_('Error while removing folder "%s". Perhaps the folder is not empty or is in use.'),
-      [ADirectoryName]);
+  begin
+    raise Exception.CreateFmt(_('Error while removing folder "%s". Perhaps the folder is not empty or is in use.')
+      + sLineBreak + sLineBreak + '%s',
+      [ADirectoryName, SysErrorMessage(GetLastError)]);
+  end;
 end;
 
 procedure TEFFileDeleter.DoProcessFile(const ASourceFileName, ADestinationFileName: string);

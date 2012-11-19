@@ -44,6 +44,9 @@ type
       const AFormatSettings: TFormatSettings); virtual;
     function InternalNodeToJSONValue(const AForDisplay: Boolean;
       const ANode: TEFNode; const AJSFormatSettings: TFormatSettings): string; virtual;
+    procedure InternalJSONValueToNode(const ANode: TEFNode;
+      const AValue: string; const AUseJSDateFormat: Boolean;
+      const AJSFormatSettings: TFormatSettings); virtual;
   public
     class function GetTypeName: string; virtual;
     class function HasSize: Boolean; virtual;
@@ -62,7 +65,10 @@ type
     function IsBlob(const ASize: Integer): Boolean; virtual;
     function IsText: Boolean; virtual;
     function NodeToJSONValue(const AForDisplay: Boolean; const ANode: TEFNode;
-      const AJSFormatSettings: TFormatSettings): string; virtual;
+      const AJSFormatSettings: TFormatSettings; const AQuote: Boolean = True): string; virtual;
+    procedure JSONValueToNode(const ANode: TEFNode; const AValue: string;
+      const AUseJSDateFormat: Boolean;
+      const AJSFormatSettings: TFormatSettings); virtual;
     function GetJSTypeName: string; virtual;
 
     function ValueToString(const AValue: Variant): string; virtual;
@@ -132,6 +138,9 @@ type
     procedure InternalFieldValueToNode(const AField: TField; const ANode: TEFNode); override;
     procedure InternalYamlValueToNode(const AYamlValue: string; const ANode: TEFNode;
       const AFormatSettings: TFormatSettings); override;
+    procedure InternalJSONValueToNode(const ANode: TEFNode;
+      const AValue: string; const AUseJSDateFormat: Boolean;
+      const AJSFormatSettings: TFormatSettings); override;
   public
     function GetDefaultDisplayWidth(const ASize: Integer): Integer; override;
     function SupportsEmptyAsNull: Boolean; override;
@@ -146,6 +155,9 @@ type
     procedure InternalFieldValueToNode(const AField: TField; const ANode: TEFNode); override;
     procedure InternalYamlValueToNode(const AYamlValue: string; const ANode: TEFNode;
       const AFormatSettings: TFormatSettings); override;
+    procedure InternalJSONValueToNode(const ANode: TEFNode;
+      const AValue: string; const AUseJSDateFormat: Boolean;
+      const AJSFormatSettings: TFormatSettings); override;
   public
     function GetDefaultDisplayWidth(const ASize: Integer): Integer; override;
     function SupportsEmptyAsNull: Boolean; override;
@@ -159,6 +171,9 @@ type
     procedure InternalFieldValueToNode(const AField: TField; const ANode: TEFNode); override;
     procedure InternalYamlValueToNode(const AYamlValue: string; const ANode: TEFNode;
       const AFormatSettings: TFormatSettings); override;
+    procedure InternalJSONValueToNode(const ANode: TEFNode;
+      const AValue: string; const AUseJSDateFormat: Boolean;
+      const AJSFormatSettings: TFormatSettings); override;
   public
     function GetDefaultDisplayWidth(const ASize: Integer): Integer; override;
     function SupportsEmptyAsNull: Boolean; override;
@@ -173,6 +188,9 @@ type
     procedure InternalFieldValueToNode(const AField: TField; const ANode: TEFNode); override;
     procedure InternalYamlValueToNode(const AYamlValue: string; const ANode: TEFNode;
       const AFormatSettings: TFormatSettings); override;
+    procedure InternalJSONValueToNode(const ANode: TEFNode;
+      const AValue: string; const AUseJSDateFormat: Boolean;
+      const AJSFormatSettings: TFormatSettings); override;
   public
     function GetDefaultDisplayWidth(const ASize: Integer): Integer; override;
     function InternalNodeToJSONValue(const AForDisplay: Boolean;
@@ -188,6 +206,9 @@ type
     procedure InternalFieldValueToNode(const AField: TField; const ANode: TEFNode); override;
     procedure InternalYamlValueToNode(const AYamlValue: string; const ANode: TEFNode;
       const AFormatSettings: TFormatSettings); override;
+    procedure InternalJSONValueToNode(const ANode: TEFNode;
+      const AValue: string; const AUseJSDateFormat: Boolean;
+      const AJSFormatSettings: TFormatSettings); override;
   public
     function GetDefaultDisplayWidth(const ASize: Integer): Integer; override;
     function GetJSTypeName: string; override;
@@ -201,6 +222,9 @@ type
     procedure InternalFieldValueToNode(const AField: TField; const ANode: TEFNode); override;
     procedure InternalYamlValueToNode(const AYamlValue: string; const ANode: TEFNode;
       const AFormatSettings: TFormatSettings); override;
+    procedure InternalJSONValueToNode(const ANode: TEFNode;
+      const AValue: string; const AUseJSDateFormat: Boolean;
+      const AJSFormatSettings: TFormatSettings); override;
   public
     function GetDefaultDisplayWidth(const ASize: Integer): Integer; override;
     function SupportsEmptyAsNull: Boolean; override;
@@ -217,6 +241,9 @@ type
     procedure InternalFieldValueToNode(const AField: TField; const ANode: TEFNode); override;
     procedure InternalYamlValueToNode(const AYamlValue: string; const ANode: TEFNode;
       const AFormatSettings: TFormatSettings); override;
+    procedure InternalJSONValueToNode(const ANode: TEFNode;
+      const AValue: string; const AUseJSDateFormat: Boolean;
+      const AJSFormatSettings: TFormatSettings); override;
   public
     function GetDefaultDisplayWidth(const ASize: Integer): Integer; override;
     function SupportsEmptyAsNull: Boolean; override;
@@ -231,6 +258,9 @@ type
     procedure InternalFieldValueToNode(const AField: TField; const ANode: TEFNode); override;
     procedure InternalYamlValueToNode(const AYamlValue: string; const ANode: TEFNode;
       const AFormatSettings: TFormatSettings); override;
+    procedure InternalJSONValueToNode(const ANode: TEFNode;
+      const AValue: string; const AUseJSDateFormat: Boolean;
+      const AJSFormatSettings: TFormatSettings); override;
   public
     function GetDefaultDisplayWidth(const ASize: Integer): Integer; override;
     function SupportsEmptyAsNull: Boolean; override;
@@ -705,8 +735,10 @@ type
     procedure SetValue(const AValue: Variant); virtual;
     function GetRoot: TEFTree; override;
     function IsDataTypeLocked: Boolean;
+    procedure ValueChanged(const AOldValue, ANewValue: Variant); virtual;
   public
     function GetEnumerator: TEnumerator<TEFNode>;
+    function GetEmptyAsNull: Boolean; virtual;
   public
     function FindNode(const APath: string;
       const ACreateMissingNodes: Boolean = False): TEFNode; override;
@@ -893,6 +925,17 @@ type
     ///	Session.JSFormatSettings, or custom settings.</param>
     ///	<returns>Returns Self to allow for fluent calls.</returns>
     function SetAsYamlValue(const AValue: string; const AFormatSettings: TFormatSettings): TEFNode;
+
+    ///	<summary>Parses AValue according to DataType and sets its own value
+    ///	to the parsed value.</summary>
+    ///	<param name="AValue">Value to parse, usually got from a web request.</param>
+    ///	<param name="AUseJSDateFormat">Set to True if date/times are specified in JS long format.</param>
+    ///	<param name="AFormatSettings">Format settings to use to parse the
+    ///	value. You can use Session.UserFormatSettings, or
+    ///	Session.JSFormatSettings, or custom settings.</param>
+    ///	<returns>Returns Self to allow for fluent calls.</returns>
+    function SetAsJSONValue(const AValue: string; const AUseJSDateFormat: Boolean;
+      const AFormatSettings: TFormatSettings): TEFNode;
 
     ///	<summary>
     ///	  True if the node is null. Null is meant as absence of a value. Nodes
@@ -1104,6 +1147,14 @@ const
   varObject = $0049;
 {$IFEND}
 
+function JSDateToDateTime(const AJSDate: string): TDateTime;
+begin
+  Result := EncodeDateTime(StrToInt(Copy(AJSDate, 12, 4)),
+    AnsiIndexStr(Copy(AJSDate, 5, 3), ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']) + 1,
+    StrToInt(Copy(AJSDate, 9, 2)), StrToInt(Copy(AJSDate, 17, 2)), StrToInt(Copy(AJSDate, 20, 2)),
+    StrToInt(Copy(AJSDate, 23, 2)), 0);
+end;
+
 { TEFDataTypeRegistry }
 
 class destructor TEFDataTypeRegistry.Destroy;
@@ -1213,11 +1264,7 @@ end;
 procedure TEFNode.AssignValue(const ASource: TEFNode);
 begin
   if Assigned(ASource) then
-  begin
-    FValue := TEFNode(ASource).Value;
-    if not IsDataTypeLocked then
-      FDataType := TEFNode(ASource).DataType;
-  end
+    Value := TEFNode(ASource).Value
   else
     SetToNull;
 end;
@@ -1438,6 +1485,11 @@ begin
   Result := FDataTypeLockCount;
 end;
 
+function TEFNode.GetEmptyAsNull: Boolean;
+begin
+  Result := False;
+end;
+
 function TEFNode.GetEnumerator: TEnumerator<TEFNode>;
 begin
   Result := FNodes.GetEnumerator;
@@ -1580,6 +1632,13 @@ begin
   Value := DataType.IntegerToValue(AValue);
 end;
 
+function TEFNode.SetAsJSONValue(const AValue: string;
+  const AUseJSDateFormat: Boolean; const AFormatSettings: TFormatSettings): TEFNode;
+begin
+  DataType.JSONValueToNode(Self, AValue, AUseJSDateFormat, AFormatSettings);
+  Result := Self;
+end;
+
 procedure TEFNode.SetAsObject(const AValue: TObject);
 begin
   if not IsDataTypeLocked then
@@ -1650,15 +1709,27 @@ begin
 end;
 
 procedure TEFNode.SetValue(const AValue: Variant);
+var
+  LOldValue: Variant;
 begin
+  LOldValue := FValue;
   FValue := AValue;
   if not IsDataTypeLocked then
     FDataType := GetVariantDataType(FValue);
+  ValueChanged(LOldValue, FValue);
 end;
 
 procedure TEFNode.SetToNull;
+var
+  LOldValue: Variant;
 begin
+  LOldValue := FValue;
   FValue := Null;
+  ValueChanged(LOldValue, FValue);
+end;
+
+procedure TEFNode.ValueChanged(const AOldValue, ANewValue: Variant);
+begin
 end;
 
 function TEFNode.FindNode(const APath: string;
@@ -2168,24 +2239,6 @@ var
   LChild: TEFNode;
   LName: string;
 
-  function JSDateToDateTime(JSDate : string) : TDateTime; begin
-    Result := EncodeDateTime(StrToInt(copy(JSDate, 12, 4)), AnsiIndexStr(copy(JSDate, 5, 3), ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']) +1,
-      StrToInt(copy(JSDate, 9, 2)), StrToInt(copy(JSDate, 17, 2)), StrToInt(copy(JSDate, 20, 2)), StrToInt(copy(JSDate, 23, 2)), 0);
-  end;
-
-  function GetDateTime: TDateTime;
-  begin
-    if AUseJSDateFormat then
-      Result := JSDateToDateTime(AStrings.Values[LName])
-    else
-      Result := StrToDateTime(AStrings.Values[LName], AFormatSettings);
-  end;
-
-  function GetFloat: Double;
-  begin
-    Result := StrToFloat(AStrings.Values[LName], AFormatSettings)
-  end;
-
   function Translate(const AName: string): string;
   begin
     if Assigned(ATranslator) then
@@ -2200,30 +2253,8 @@ begin
     LChild := Children[I];
     LName := Translate(LChild.Name);
     Assert(LName <> '');
-    { TODO : handle null and EmptyAsNull }
     if AStrings.IndexOfName(LName) >= 0 then
-    begin
-      if AStrings.Values[LName] = '' then
-        LChild.SetToNull
-      else if LChild.DataType is TEFIntegerDataType then
-        LChild.AsInteger := StrToInt(AStrings.Values[LName])
-      else if LChild.DataType is TEFBooleanDataType then
-        LChild.AsBoolean := MatchText(AStrings.Values[LName], ['on', 'true'])
-      else if LChild.DataType is TEFDateDataType then
-        LChild.AsDate := GetDateTime
-      else if LChild.DataType is TEFTimeDataType then
-        LChild.AsTime := GetDateTime
-      else if LChild.DataType is TEFDateTimeDataType then
-        LChild.AsDateTime := GetDateTime
-      else if LChild.DataType is TEFCurrencyDataType then
-        LChild.AsCurrency := GetFloat
-      else if LChild.DataType is TEFFloatDataType then
-        LChild.AsFloat := GetFloat
-      else if LChild.DataType is TEFDecimalDataType then
-        LChild.AsDecimal := DoubleToBcd(GetFloat)
-      else
-        LChild.AsString := AStrings.Values[LName];
-    end
+      LChild.SetAsJSONValue(AStrings.Values[LName], AUseJSDateFormat, AFormatSettings)
     // Checkboxes are not submitted when unchecked, which for us means False.
     else if LChild.DataType is TEFBooleanDataType then
       LChild.AsBoolean := False;
@@ -2378,6 +2409,13 @@ begin
   end;
 end;
 
+procedure TEFDataType.InternalJSONValueToNode(const ANode: TEFNode;
+  const AValue: string; const AUseJSDateFormat: Boolean;
+  const AJSFormatSettings: TFormatSettings);
+begin
+  ANode.AsString := AValue;
+end;
+
 function TEFDataType.InternalNodeToJSONValue(const AForDisplay: Boolean;
   const ANode: TEFNode; const AJSFormatSettings: TFormatSettings): string;
 begin
@@ -2432,15 +2470,29 @@ begin
   Result := False;
 end;
 
+procedure TEFDataType.JSONValueToNode(const ANode: TEFNode;
+  const AValue: string; const AUseJSDateFormat: Boolean;
+  const AJSFormatSettings: TFormatSettings);
+begin
+  Assert(Assigned(ANode));
+
+  if SameText(AValue, 'null') or (AValue = '') and (ANode.GetEmptyAsNull) then
+    ANode.SetToNull
+  else
+    InternalJSONValueToNode(ANode, AValue, AUseJSDateFormat, AJSFormatSettings);
+end;
+
 function TEFDataType.NodeToJSONValue(const AForDisplay: Boolean;
-  const ANode: TEFNode; const AJSFormatSettings: TFormatSettings): string;
+  const ANode: TEFNode; const AJSFormatSettings: TFormatSettings; const AQuote: Boolean): string;
 begin
   Assert(Assigned(ANode));
 
   if ANode.IsNull then
     Result := 'null'
+  else if AQuote then
+    Result := QuoteJSONStr(InternalNodeToJSONValue(AForDisplay, ANode, AJSFormatSettings))
   else
-    Result := QuoteJSONStr(InternalNodeToJSONValue(AForDisplay, ANode, AJSFormatSettings));
+    Result := InternalNodeToJSONValue(AForDisplay, ANode, AJSFormatSettings);
 end;
 
 procedure TEFDataType.NodeToParam(const ANode: TEFNode; const AParam: TParam);
@@ -2660,6 +2712,13 @@ begin
   ANode.AsInteger := AField.AsInteger;
 end;
 
+procedure TEFIntegerDataType.InternalJSONValueToNode(const ANode: TEFNode;
+  const AValue: string; const AUseJSDateFormat: Boolean;
+  const AJSFormatSettings: TFormatSettings);
+begin
+  ANode.AsInteger := StrToInt(AValue);
+end;
+
 procedure TEFIntegerDataType.InternalNodeToParam(const ANode: TEFNode;
   const AParam: TParam);
 begin
@@ -2688,6 +2747,16 @@ procedure TEFDateDataType.InternalFieldValueToNode(const AField: TField;
   const ANode: TEFNode);
 begin
   ANode.AsDate := AField.AsDateTime;
+end;
+
+procedure TEFDateDataType.InternalJSONValueToNode(const ANode: TEFNode;
+  const AValue: string; const AUseJSDateFormat: Boolean;
+  const AJSFormatSettings: TFormatSettings);
+begin
+  if AUseJSDateFormat then
+    ANode.AsDate := JSDateToDateTime(AValue)
+  else
+    ANode.AsDate := StrToDateTime(AValue, AJSFormatSettings);
 end;
 
 function TEFDateDataType.InternalNodeToJSONValue(const AForDisplay: Boolean;
@@ -2724,6 +2793,16 @@ procedure TEFTimeDataType.InternalFieldValueToNode(const AField: TField;
   const ANode: TEFNode);
 begin
   ANode.AsTime := AField.AsDateTime;
+end;
+
+procedure TEFTimeDataType.InternalJSONValueToNode(const ANode: TEFNode;
+  const AValue: string; const AUseJSDateFormat: Boolean;
+  const AJSFormatSettings: TFormatSettings);
+begin
+  if AUseJSDateFormat then
+    ANode.AsTime := JSDateToDateTime(AValue)
+  else
+    ANode.AsTime := StrToDateTime(AValue, AJSFormatSettings);
 end;
 
 function TEFTimeDataType.InternalNodeToJSONValue(const AForDisplay: Boolean;
@@ -2766,6 +2845,16 @@ procedure TEFDateTimeDataType.InternalFieldValueToNode(const AField: TField;
   const ANode: TEFNode);
 begin
   ANode.AsDateTime := AField.AsDateTime;
+end;
+
+procedure TEFDateTimeDataType.InternalJSONValueToNode(const ANode: TEFNode;
+  const AValue: string; const AUseJSDateFormat: Boolean;
+  const AJSFormatSettings: TFormatSettings);
+begin
+  if AUseJSDateFormat then
+    ANode.AsDateTime := JSDateToDateTime(AValue)
+  else
+    ANode.AsDateTime := StrToDateTime(AValue, AJSFormatSettings);
 end;
 
 function TEFDateTimeDataType.InternalNodeToJSONValue(const AForDisplay: Boolean;
@@ -2818,6 +2907,13 @@ begin
   end;
 end;
 
+procedure TEFBooleanDataType.InternalJSONValueToNode(const ANode: TEFNode;
+  const AValue: string; const AUseJSDateFormat: Boolean;
+  const AJSFormatSettings: TFormatSettings);
+begin
+  ANode.AsBoolean := MatchText(AValue, ['on', 'true']);
+end;
+
 function TEFBooleanDataType.InternalNodeToJSONValue(const AForDisplay: Boolean;
   const ANode: TEFNode; const AJSFormatSettings: TFormatSettings): string;
 begin
@@ -2865,6 +2961,13 @@ begin
   ANode.AsCurrency := AField.AsCurrency;
 end;
 
+procedure TEFCurrencyDataType.InternalJSONValueToNode(const ANode: TEFNode;
+  const AValue: string; const AUseJSDateFormat: Boolean;
+  const AJSFormatSettings: TFormatSettings);
+begin
+  ANode.AsCurrency := StrToFloat(AValue, AJSFormatSettings);
+end;
+
 function TEFCurrencyDataType.InternalNodeToJSONValue(const AForDisplay: Boolean;
   const ANode: TEFNode; const AJSFormatSettings: TFormatSettings): string;
 begin
@@ -2907,6 +3010,13 @@ procedure TEFFloatDataType.InternalFieldValueToNode(const AField: TField;
   const ANode: TEFNode);
 begin
   ANode.AsFloat := AField.AsFloat;
+end;
+
+procedure TEFFloatDataType.InternalJSONValueToNode(const ANode: TEFNode;
+  const AValue: string; const AUseJSDateFormat: Boolean;
+  const AJSFormatSettings: TFormatSettings);
+begin
+  ANode.AsFloat := StrToFloat(AValue, AJSFormatSettings);
 end;
 
 function TEFFloatDataType.InternalNodeToJSONValue(const AForDisplay: Boolean;
@@ -2982,6 +3092,13 @@ procedure TEFDecimalDataType.InternalFieldValueToNode(const AField: TField;
   const ANode: TEFNode);
 begin
   ANode.AsDecimal := AField.AsBCD;
+end;
+
+procedure TEFDecimalDataType.InternalJSONValueToNode(const ANode: TEFNode;
+  const AValue: string; const AUseJSDateFormat: Boolean;
+  const AJSFormatSettings: TFormatSettings);
+begin
+  ANode.AsDecimal := DoubleToBcd(StrToFloat(AValue, AJSFormatSettings));
 end;
 
 function TEFDecimalDataType.InternalNodeToJSONValue(const AForDisplay: Boolean;

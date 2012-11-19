@@ -23,7 +23,7 @@ interface
 uses
   SysUtils, Classes, Generics.Collections,
   Ext, ExtPascal, ExtForm, ExtData, ExtUxForm,
-  EF.Intf, EF.Classes, EF.Tree,
+  EF.Intf, EF.Classes, EF.Tree, EF.ObserverIntf,
   Kitto.Ext.Base, Kitto.Metadata.Views, Kitto.Metadata.DataView, Kitto.Store,
   Kitto.Ext.Session;
 
@@ -129,6 +129,7 @@ type
   TKExtFormNumberField = class(TExtFormNumberField, IKExtEditItem, IKExtEditor)
   private
     FRecordField: TKViewTableField;
+    procedure FieldChange(This: TExtFormField; NewValue, OldValue: string);
   public
     function AsObject: TObject; inline;
     function _AddRef: Integer; stdcall;
@@ -144,6 +145,7 @@ type
   TKExtFormTextField = class(TExtFormTextField, IKExtEditItem, IKExtEditor)
   private
     FRecordField: TKViewTableField;
+    procedure FieldChange(This: TExtFormField; NewValue, OldValue: string);
   public
     function AsObject: TObject; inline;
     function _AddRef: Integer; stdcall;
@@ -159,6 +161,7 @@ type
   TKExtFormTextArea = class(TExtFormTextArea, IKExtEditItem, IKExtEditor)
   private
     FRecordField: TKViewTableField;
+    procedure FieldChange(This: TExtFormField; NewValue, OldValue: string);
   public
     function AsObject: TObject; inline;
     function _AddRef: Integer; stdcall;
@@ -174,6 +177,7 @@ type
   TKExtFormCheckbox = class(TExtFormCheckbox, IKExtEditItem, IKExtEditor)
   private
     FRecordField: TKViewTableField;
+    procedure FieldChange(This: TExtFormField; NewValue, OldValue: string);
   public
     function AsObject: TObject; inline;
     function _AddRef: Integer; stdcall;
@@ -189,6 +193,7 @@ type
   TKExtFormDateField = class(TExtFormDateField, IKExtEditItem, IKExtEditor)
   private
     FRecordField: TKViewTableField;
+    procedure FieldChange(This: TExtFormField; NewValue, OldValue: string);
   public
     function AsObject: TObject; inline;
     function _AddRef: Integer; stdcall;
@@ -204,6 +209,7 @@ type
   TKExtFormTimeField = class(TExtFormTimeField, IKExtEditItem, IKExtEditor)
   private
     FRecordField: TKViewTableField;
+    procedure FieldChange(This: TExtFormField; NewValue, OldValue: string);
   public
     function AsObject: TObject; inline;
     function _AddRef: Integer; stdcall;
@@ -231,6 +237,7 @@ type
     procedure SetAltDateFormats(const AValue: string);
     procedure SetAllowBlank(const AValue: Boolean);
     procedure SetAltTimeFormats(const AValue: string);
+    procedure FieldChange(This: TExtFormField; NewValue, OldValue: string);
   public
     destructor Destroy; override;
     class function JSClassName: string; override;
@@ -261,13 +268,15 @@ type
     FRecordField: TKViewTableField;
     procedure SetupServerStore(const AField: TKViewTableField;
       const ALookupCommandText: string);
+    procedure FieldChange(This: TExtFormField; NewValue, OldValue: string);
   protected
     procedure InitDefaults; override;
+  public
+    destructor Destroy; override;
   public
     procedure SetOption(const AName, AValue: string);
     function AsExtObject: TExtObject; inline;
     function AsExtFormField: TExtFormField; inline;
-    destructor Destroy; override;
     function GetRecordField: TKViewTableField;
     procedure SetRecordField(const AValue: TKViewTableField);
     procedure RefreshValue;
@@ -290,7 +299,7 @@ type
     procedure RefreshValue;
   end;
 
-  TKExtFormFileEditor = class(TExtPanel, IKExtEditItem, IKExtEditor)
+  TKExtFormFileEditor = class(TKExtPanelBase, IKExtEditItem, IKExtEditor)
   strict private
     FDescriptionField: TExtFormTextField;
     FWindow: TKExtModalWindow;
@@ -377,7 +386,7 @@ type
   type
     TKExtEditOperation = (eoUpdate, eoInsert);
 
- ///	<summary>
+  ///	<summary>
   ///	  Creates editor based on layouts. Can synthesize a default layout if
   ///	  missing.
   ///	</summary>
@@ -390,14 +399,11 @@ type
     FDefaults: TKExtLayoutDefaults;
     FCurrentEditItem: IKExtEditItem;
     FEditContainers: TStack<IKExtEditContainer>;
-    FOnFieldChange: TExtFormFieldOnChange;
     FOnNewEditor: TProc<IKExtEditor>;
     FOperation: TKExtEditOperation;
-    function IsChangeHandlerNeeded(const AViewField: TKViewField): Boolean;
     function GetSession: TKExtSession;
     const TRIGGER_WIDTH = 2;
     function GetViewTable: TKViewTable;
-    function DerivedFieldsExist(const AViewField: TKViewField): Boolean;
     function TryCreateCheckBox(const AViewField: TKViewField;
       const AIsReadOnly: Boolean): IKExtEditor;
     function TryCreateDateField(const AViewField: TKViewField;
@@ -448,7 +454,6 @@ type
     property ViewTable: TKViewTable read GetViewTable;
     property ForceReadOnly: Boolean read FForceReadOnly write FForceReadOnly;
     property FormPanel: TKExtEditPanel read FFormPanel write FFormPanel;
-    property OnFieldChange: TExtFormFieldOnChange read FOnFieldChange write FOnFieldChange;
     property OnNewEditor: TProc<IKExtEditor> read FOnNewEditor write FOnNewEditor;
     property Operation: TKExtEditOperation read FOperation write FOperation;
 
@@ -571,6 +576,12 @@ begin
     AFormField.WidthString := OptionAsIntegerOrPerc(AValue)
   else
     Result := False;
+end;
+
+function IsChangeHandlerNeeded(const AViewField: TKViewField): Boolean;
+begin
+  { TODO : Consider server-side field-level rules as well. }
+  Result := (AViewField.FileNameField <> '') or AViewField.DerivedFieldsExist;
 end;
 
 { TKExtLayoutProcessor }
@@ -1131,9 +1142,6 @@ begin
     LFormField.FieldLabel := LLabel;
     LFormField.MsgTarget := LowerCase(FDefaults.MsgTarget);
 
-    if IsChangeHandlerNeeded(LViewField) then
-      LFormField.OnChange := FOnFieldChange;
-
     if (FFocusField = nil) and not LFormField.ReadOnly and not LFormField.Disabled then
       FFocusField := LFormField;
   end;
@@ -1143,30 +1151,6 @@ begin
 
   if Assigned(LRowField) then
     Result := LRowField;
-end;
-
-function TKExtLayoutProcessor.IsChangeHandlerNeeded(const AViewField: TKViewField): Boolean;
-begin
-  Result := (AViewField.FileNameField <> '') or DerivedFieldsExist(AViewField);
-end;
-
-function TKExtLayoutProcessor.DerivedFieldsExist(const AViewField: TKViewField): Boolean;
-var
-  LViewTable: TKViewTable;
-  LModelField: TKModelField;
-  I: Integer;
-begin
-  Result := False;
-  LViewTable := AViewField.Table;
-  LModelField := AViewField.ModelField;
-  for I := 0 to LViewTable.FieldCount - 1 do
-  begin
-    if LViewTable.Fields[I].ReferenceField = LModelField then
-    begin
-      Result := True;
-      Exit;
-    end;
-  end;
 end;
 
 function TKExtLayoutProcessor.CreateFieldSet(const ATitle: string): IKExtEditItem;
@@ -1393,12 +1377,20 @@ end;
 
 procedure TKExtFormTextField.RefreshValue;
 begin
-  SetValue(FRecordField.GetAsJSON(False));
+  SetValue(JSONNullToEmptyStr(FRecordField.GetAsJSONValue(False, False)));
 end;
 
 procedure TKExtFormTextField.SetRecordField(const AValue: TKViewTableField);
 begin
   FRecordField := AValue;
+  if IsChangeHandlerNeeded(FRecordField.ViewField) then
+    OnChange := FieldChange;
+end;
+
+procedure TKExtFormTextField.FieldChange(This: TExtFormField; NewValue: string;
+  OldValue: string);
+begin
+  FRecordField.SetAsJSONValue(NewValue, False, Session.Config.UserFormatSettings);
 end;
 
 procedure TKExtFormTextField.SetOption(const AName, AValue: string);
@@ -1434,6 +1426,12 @@ begin
   Result := Self;
 end;
 
+procedure TKExtFormTextArea.FieldChange(This: TExtFormField; NewValue,
+  OldValue: string);
+begin
+  FRecordField.SetAsJSONValue(NewValue, False, Session.Config.UserFormatSettings);
+end;
+
 function TKExtFormTextArea.GetRecordField: TKViewTableField;
 begin
   Result := FRecordField;
@@ -1441,12 +1439,14 @@ end;
 
 procedure TKExtFormTextArea.RefreshValue;
 begin
-  SetValue(FRecordField.GetAsJSON(False));
+  SetValue(JSONNullToEmptyStr(FRecordField.GetAsJSONValue(False, False)));
 end;
 
 procedure TKExtFormTextArea.SetRecordField(const AValue: TKViewTableField);
 begin
   FRecordField := AValue;
+  if IsChangeHandlerNeeded(FRecordField.ViewField) then
+    OnChange := FieldChange;
 end;
 
 procedure TKExtFormTextArea.SetOption(const AName, AValue: string);
@@ -1487,6 +1487,12 @@ begin
   Result := Self;
 end;
 
+procedure TKExtFormCheckbox.FieldChange(This: TExtFormField; NewValue,
+  OldValue: string);
+begin
+  FRecordField.SetAsJSONValue(NewValue, False, Session.Config.UserFormatSettings);
+end;
+
 function TKExtFormCheckbox.GetRecordField: TKViewTableField;
 begin
   Result := FRecordField;
@@ -1494,12 +1500,14 @@ end;
 
 procedure TKExtFormCheckbox.RefreshValue;
 begin
-  SetValue(FRecordField.GetAsJSON(False));
+  SetValue(JSONNullToEmptyStr(FRecordField.GetAsJSONValue(False, False)));
 end;
 
 procedure TKExtFormCheckbox.SetRecordField(const AValue: TKViewTableField);
 begin
   FRecordField := AValue;
+  if IsChangeHandlerNeeded(FRecordField.ViewField) then
+    OnChange := FieldChange;
 end;
 
 procedure TKExtFormCheckbox.SetOption(const AName, AValue: string);
@@ -1535,6 +1543,12 @@ begin
   Result := Self;
 end;
 
+procedure TKExtFormDateField.FieldChange(This: TExtFormField; NewValue,
+  OldValue: string);
+begin
+  FRecordField.SetAsJSONValue(NewValue, False, Session.Config.UserFormatSettings);
+end;
+
 function TKExtFormDateField.GetRecordField: TKViewTableField;
 begin
   Result := FRecordField;
@@ -1542,12 +1556,14 @@ end;
 
 procedure TKExtFormDateField.RefreshValue;
 begin
-  SetValue(FRecordField.GetAsJSON(False));
+  SetValue(JSONNullToEmptyStr(FRecordField.GetAsJSONValue(False, False)));
 end;
 
 procedure TKExtFormDateField.SetRecordField(const AValue: TKViewTableField);
 begin
   FRecordField := AValue;
+  if IsChangeHandlerNeeded(FRecordField.ViewField) then
+    OnChange := FieldChange;
 end;
 
 procedure TKExtFormDateField.SetOption(const AName, AValue: string);
@@ -1623,12 +1639,20 @@ end;
 
 procedure TKExtFormComboBoxEditor.RefreshValue;
 begin
-  SetValue(FRecordField.GetAsJSON(False));
+  SetValue(JSONNullToEmptyStr(FRecordField.GetAsJSONValue(False, False)));
 end;
 
 procedure TKExtFormComboBoxEditor.SetRecordField(const AValue: TKViewTableField);
 begin
   FRecordField := AValue;
+  if IsChangeHandlerNeeded(FRecordField.ViewField) then
+    OnChange := FieldChange;
+end;
+
+procedure TKExtFormComboBoxEditor.FieldChange(This: TExtFormField; NewValue: string;
+  OldValue: string);
+begin
+  FRecordField.SetAsJSONValue(NewValue, False, Session.Config.UserFormatSettings);
 end;
 
 procedure TKExtFormComboBoxEditor.SetOption(const AName, AValue: string);
@@ -1831,6 +1855,12 @@ begin
   Result := Self;
 end;
 
+procedure TKExtFormNumberField.FieldChange(This: TExtFormField; NewValue,
+  OldValue: string);
+begin
+  FRecordField.SetAsJSONValue(NewValue, False, Session.Config.UserFormatSettings);
+end;
+
 function TKExtFormNumberField.GetRecordField: TKViewTableField;
 begin
   Result := FRecordField;
@@ -1838,12 +1868,14 @@ end;
 
 procedure TKExtFormNumberField.RefreshValue;
 begin
-  SetValue(FRecordField.GetAsJSON(False));
+  SetValue(JSONNullToEmptyStr(FRecordField.GetAsJSONValue(False, False)));
 end;
 
 procedure TKExtFormNumberField.SetRecordField(const AValue: TKViewTableField);
 begin
   FRecordField := AValue;
+  if IsChangeHandlerNeeded(FRecordField.ViewField) then
+    OnChange := FieldChange;
 end;
 
 procedure TKExtFormNumberField.SetOption(const AName, AValue: string);
@@ -1886,6 +1918,12 @@ begin
   inherited;
 end;
 
+procedure TKExtFormDateTimeField.FieldChange(This: TExtFormField; NewValue,
+  OldValue: string);
+begin
+  FRecordField.SetAsJSONValue(NewValue, False, Session.Config.UserFormatSettings);
+end;
+
 function TKExtFormDateTimeField.GetRecordField: TKViewTableField;
 begin
   Result := FRecordField;
@@ -1898,7 +1936,7 @@ end;
 
 procedure TKExtFormDateTimeField.RefreshValue;
 begin
-  SetValue(FRecordField.GetAsJSON(False));
+  SetValue(JSONNullToEmptyStr(FRecordField.GetAsJSONValue(False, False)));
 end;
 
 procedure TKExtFormDateTimeField.SetOption(const AName, AValue: string);
@@ -1944,6 +1982,8 @@ end;
 procedure TKExtFormDateTimeField.SetRecordField(const AValue: TKViewTableField);
 begin
   FRecordField := AValue;
+  if IsChangeHandlerNeeded(FRecordField.ViewField) then
+    OnChange := FieldChange;
 end;
 
 procedure TKExtFormDateTimeField.SetTimeFormat(const AValue: string);
@@ -1969,6 +2009,12 @@ begin
   Result := Self;
 end;
 
+procedure TKExtFormTimeField.FieldChange(This: TExtFormField; NewValue,
+  OldValue: string);
+begin
+  FRecordField.SetAsJSONValue(NewValue, False, Session.Config.UserFormatSettings);
+end;
+
 function TKExtFormTimeField.GetRecordField: TKViewTableField;
 begin
   Result := FRecordField;
@@ -1976,12 +2022,14 @@ end;
 
 procedure TKExtFormTimeField.RefreshValue;
 begin
-  SetValue(FRecordField.GetAsJSON(False));
+  SetValue(JSONNullToEmptyStr(FRecordField.GetAsJSONValue(False, False)));
 end;
 
 procedure TKExtFormTimeField.SetRecordField(const AValue: TKViewTableField);
 begin
   FRecordField := AValue;
+  if IsChangeHandlerNeeded(FRecordField.ViewField) then
+    OnChange := FieldChange;
 end;
 
 procedure TKExtFormTimeField.SetOption(const AName, AValue: string);
@@ -2024,7 +2072,7 @@ end;
 
 procedure TKExtFormFileUploadField.RefreshValue;
 begin
-  SetValue(FRecordField.GetAsJSON(False));
+  SetValue(JSONNullToEmptyStr(FRecordField.GetAsJSONValue(False, False)));
 end;
 
 procedure TKExtFormFileUploadField.SetRecordField(const AValue: TKViewTableField);
@@ -2083,6 +2131,8 @@ begin
   if LFileNameField <> ''then
   begin
     LFileNameFieldReference := FRecordField.ParentRecord.FieldByName(LFileNameField);
+    // Must clear the field both now, to have an exact picture in real time, and later
+    // (through the SetToNull directive), when the form is submitted.
     LFileNameFieldReference.SetBoolean('Sys/SetToNull', True);
     LFileNameFieldReference.SetToNull;
   end;
@@ -2181,10 +2231,15 @@ end;
 procedure TKExtFormFileEditor.FileUploaded(const AFileName: string);
 var
   LFileNameField: string;
+  LFileNameFieldReference: TKViewTableField;
 begin
   LFileNameField := FRecordField.ViewField.FileNameField;
   if LFileNameField <> ''then
-    FRecordField.ParentRecord.FieldByName(LFileNameField).DeleteNode('Sys/SetToNull');
+  begin
+    LFileNameFieldReference := FRecordField.ParentRecord.FieldByName(LFileNameField);
+    LFileNameFieldReference.DeleteNode('Sys/SetToNull');
+    LFileNameFieldReference.AsString := Session.FileUploaded;
+  end;
 end;
 
 function TKExtFormFileEditor.GetRecordField: TKViewTableField;
@@ -2194,7 +2249,6 @@ end;
 
 procedure TKExtFormFileEditor.RefreshValue;
 begin
-  raise Exception.Create('TKExtFormFileEditor.RefreshValue not implemented.');
 end;
 
 procedure TKExtFormFileEditor.PictureViewAfterRender(This: TExtComponent);
@@ -2514,6 +2568,8 @@ begin
 end;
 
 procedure TKExtFormFileBlobEditor.FileUploaded(const AFileName: string);
+var
+  LUploadedFile: TKExtUploadedFile;
 begin
   inherited;
   FLastUploadedOriginalFileName := ExtractFileName(AFileName);
@@ -2522,9 +2578,11 @@ begin
   // Don't rename: move, since the files could be on different drives.
   CopyFile(AFileName, FLastUploadedFullFileName);
   DeleteFile(AFileName);
-  Session.AddUploadedFile(TKExtUploadedFile.Create(
+  LUploadedFile := TKExtUploadedFile.Create(
     Session.FileUploaded, FLastUploadedFullFileName, FRecordField.ViewField,
-    Session.FileUploaded));
+    Session.FileUploaded);
+  Session.AddUploadedFile(LUploadedFile);
+  FRecordField.AsBytes := LUploadedFile.Bytes;
 end;
 
 function TKExtFormFileBlobEditor.GetCurrentContentSize: Integer;
@@ -2585,6 +2643,8 @@ begin
 end;
 
 procedure TKExtFormFileReferenceEditor.FileUploaded(const AFileName: string);
+var
+  LFileName: string;
 begin
   inherited;
   FLastUploadedFullFileName := GetUniqueFileName(GetFieldPath, ExtractFileExt(AFileName));
@@ -2592,8 +2652,10 @@ begin
   CopyFile(AFileName, FLastUploadedFullFileName);
   DeleteFile(AFileName);
 
-  Session.AddUploadedFile(TKExtUploadedFile.Create(ExtractFileName(FLastUploadedFullFileName),
+  LFileName := ExtractFileName(FLastUploadedFullFileName);
+  Session.AddUploadedFile(TKExtUploadedFile.Create(LFileName,
     FLastUploadedFullFileName, FRecordField.ViewField, Session.FileUploaded));
+  FRecordField.AsString := LFileName;
   FRecordField.DeleteNode('Sys/DeleteFile');
 end;
 

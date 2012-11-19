@@ -196,7 +196,7 @@ type
     function GetValues(const AAsString: Boolean = False): TExtFunction;
     function IsDirty: TExtFunction;
     function IsValid: TExtFunction;
-    function Load(Options: TExtObject): TExtFunction;
+    function Load(const AOptions: TExtObject): TExtFunction;
     function LoadRecord(RecordJS: TExtDataRecord): TExtFunction;
     function MarkInvalid(Errors: TExtObjectList): TExtFunction; overload;
     function MarkInvalid(Errors: TExtObject): TExtFunction; overload;
@@ -366,7 +366,7 @@ type
     procedure SetFAutoCreate(Value: string);
     procedure SetFAutoCreateObject(Value: TExtObject);
     procedure SetCls(const AValue: string);
-    procedure SetFDisabled(Value: Boolean);
+    procedure SetDisabled(const AValue: Boolean);
     procedure SetFFieldClass(Value: string);
     procedure SetFFocusClass(Value: string);
     procedure SetInputType(const AValue: TExtFormFieldInputType);
@@ -420,7 +420,7 @@ type
     property AutoCreateObject: TExtObject read FAutoCreateObject
       write SetFAutoCreateObject;
     property Cls: string read FCls write SetCls;
-    property Disabled: Boolean read FDisabled write SetFDisabled;
+    property Disabled: Boolean read FDisabled write SetDisabled;
     property FieldClass: string read FFieldClass write SetFFieldClass;
     property FocusClass: string read FFocusClass write SetFFocusClass;
     property InputType: TExtFormFieldInputType read FInputType
@@ -691,9 +691,9 @@ type
     procedure SetFGrowMin(Value: Integer);
     procedure SetFMaskRe(Value: TRegExp);
     procedure SetMaxLength(const AValue: Integer);
-    procedure SetFMaxLengthText(Value: string);
-    procedure SetFMinLength(Value: Integer);
-    procedure SetFMinLengthText(Value: string);
+    procedure SetMaxLengthText(const AValue: string);
+    procedure SetMinLength(const AValue: Integer);
+    procedure SetMinLengthText(const AValue: string);
     procedure SetFRegex(Value: TRegExp);
     procedure SetFRegexText(Value: string);
     procedure SetSelectOnFocus(const AValue: Boolean);
@@ -727,9 +727,9 @@ type
     property GrowMin: Integer read FGrowMin write SetFGrowMin;
     property MaskRe: TRegExp read FMaskRe write SetFMaskRe;
     property MaxLength: Integer read FMaxLength write SetMaxLength;
-    property MaxLengthText: string read FMaxLengthText write SetFMaxLengthText;
-    property MinLength: Integer read FMinLength write SetFMinLength;
-    property MinLengthText: string read FMinLengthText write SetFMinLengthText;
+    property MaxLengthText: string read FMaxLengthText write SetMaxLengthText;
+    property MinLength: Integer read FMinLength write SetMinLength;
+    property MinLengthText: string read FMinLengthText write SetMinLengthText;
     property Regex: TRegExp read FRegex write SetFRegex;
     property RegexText: string read FRegexText write SetFRegexText;
     property SelectOnFocus: Boolean read FSelectOnFocus write SetSelectOnFocus;
@@ -853,8 +853,8 @@ type
   public
     class function JSClassName: string; override;
     function GetValue: TExtFunction;
-    function SetValue(Checked: Boolean): TExtFunction; overload;
-    function SetValue(Checked: string): TExtFunction; overload;
+    function SetValue(const AChecked: Boolean): TExtFunction; overload;
+    function SetValue(const AChecked: string): TExtFunction; overload;
     property AutoCreate: string read FAutoCreate write SetFAutoCreate;
     property AutoCreateObject: TExtObject read FAutoCreateObject
       write SetFAutoCreateObject;
@@ -1962,10 +1962,9 @@ begin
   Result := Self;
 end;
 
-function TExtFormBasicForm.Load(Options: TExtObject): TExtFunction;
+function TExtFormBasicForm.Load(const AOptions: TExtObject): TExtFunction;
 begin
-  JSCode(JSName + '.load(' + VarToJSON([Options, false]) + ');',
-    'TExtFormBasicForm');
+  ExtSession.ResponseItems.CallMethod(Self, 'load', [AOptions, False]);
   Result := Self;
 end;
 
@@ -2201,10 +2200,10 @@ begin
   ExtSession.ResponseItems.SetConfigItem(Self, 'cls', [AValue]);
 end;
 
-procedure TExtFormField.SetFDisabled(Value: Boolean);
+procedure TExtFormField.SetDisabled(const AValue: Boolean);
 begin
-  FDisabled := Value;
-  JSCode('disabled:' + VarToJSON([Value]));
+  FDisabled := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'disabled', [AValue]);
 end;
 
 procedure TExtFormField.SetFFieldClass(Value: string);
@@ -3059,22 +3058,22 @@ begin
   ExtSession.ResponseItems.SetConfigItem(Self, 'maxLength', [AValue]);
 end;
 
-procedure TExtFormTextField.SetFMaxLengthText(Value: string);
+procedure TExtFormTextField.SetMaxLengthText(const AValue: string);
 begin
-  FMaxLengthText := Value;
-  JSCode('maxLengthText:' + VarToJSON([Value]));
+  FMaxLengthText := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'maxLengthText', [AValue]);
 end;
 
-procedure TExtFormTextField.SetFMinLength(Value: Integer);
+procedure TExtFormTextField.SetMinLength(const AValue: Integer);
 begin
-  FMinLength := Value;
-  JSCode('minLength:' + VarToJSON([Value]));
+  FMinLength := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'minLength', [AValue]);
 end;
 
-procedure TExtFormTextField.SetFMinLengthText(Value: string);
+procedure TExtFormTextField.SetMinLengthText(const AValue: string);
 begin
-  FMinLengthText := Value;
-  JSCode('minLengthText:' + VarToJSON([Value]));
+  FMinLengthText := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'minLengthText', [AValue]);
 end;
 
 procedure TExtFormTextField.SetFRegex(Value: TRegExp);
@@ -3490,21 +3489,19 @@ end;
 
 function TExtFormCheckbox.GetValue: TExtFunction;
 begin
-  JSCode(JSName + '.getValue();', 'TExtFormCheckbox');
+  ExtSession.ResponseItems.CallMethod(Self, 'getValue', []);
   Result := Self;
 end;
 
-function TExtFormCheckbox.SetValue(Checked: Boolean): TExtFunction;
+function TExtFormCheckbox.SetValue(const AChecked: Boolean): TExtFunction;
 begin
-  JSCode(JSName + '.setValue(' + VarToJSON([Checked]) + ');',
-    'TExtFormCheckbox');
+  ExtSession.ResponseItems.CallMethod(Self, 'setValue', [AChecked]);
   Result := Self;
 end;
 
-function TExtFormCheckbox.SetValue(Checked: string): TExtFunction;
+function TExtFormCheckbox.SetValue(const AChecked: string): TExtFunction;
 begin
-  JSCode(JSName + '.setValue(' + VarToJSON([Checked]) + ');',
-    'TExtFormCheckbox');
+  ExtSession.ResponseItems.CallMethod(Self, 'setValue', [AChecked]);
   Result := Self;
 end;
 

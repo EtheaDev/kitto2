@@ -56,7 +56,6 @@ type
     function GetQualifiedDBName: string;
     function GetModelName: string;
     function GetFieldName: string;
-    function GetEmptyAsNull: Boolean;
     function GetDefaultValue: Variant;
     function GetModel: TKModel;
     function GetExpression: string;
@@ -85,6 +84,7 @@ type
   strict protected
     function GetChildClass(const AName: string): TEFNodeClass; override;
   public
+    function GetEmptyAsNull: Boolean; override;
     function FindNode(const APath: string; const ACreateMissingNodes: Boolean = False): TEFNode; override;
     function IsAccessGranted(const AMode: string): Boolean; override;
     function GetResourceURI: string; override;
@@ -210,6 +210,12 @@ type
     ///	name of another field in the same view table that will store the
     ///	original file name upon upload.</summary>
     property FileNameField: string read GetFileNameField;
+
+    ///	<summary>Returns True if any view fields exist in the view table that
+    ///	have this field's model field as reference field. Used to discover
+    ///  if there are any fields that need to be refreshed when the current
+    ///  field's value changes.</summary>
+    function DerivedFieldsExist: Boolean;
   end;
 
   TKViewFields = class(TKMetadataItem)
@@ -279,24 +285,25 @@ type
   private
     function GetParentRecord: TKViewTableRecord;
     function GetViewField: TKViewField;
-  strict protected
-    function GetAsJSONValue(const AForDisplay: Boolean): string; override;
   public
+    function GetAsJSONValue(const AForDisplay: Boolean; const AQuote: Boolean = True): string; override;
     property ParentRecord: TKViewTableRecord read GetParentRecord;
     property ViewField: TKViewField read GetViewField;
   end;
 
   TKViewTableRecord = class(TKRecord)
-  private
+  strict private
     function GetRecords: TKViewTableRecords;
     function GetDetailsStore(I: Integer): TKViewTableStore;
     function GetStore: TKViewTableStore;
     function GetViewTable: TKViewTable;
     function GetField(I: Integer): TKViewTableField;
-  protected
+  strict protected
     procedure InternalAfterReadFromNode; override;
     function GetChildClass(const AName: string): TEFNodeClass; override;
   public
+    procedure FieldChanged(const AField: TKField; const AOldValue: Variant;
+      const ANewValue: Variant); override;
     property Records: TKViewTableRecords read GetRecords;
     property Store: TKViewTableStore read GetStore;
     property ViewTable: TKViewTable read GetViewTable;
@@ -491,7 +498,7 @@ implementation
 
 uses
   StrUtils, Variants, TypInfo, Math,
-  EF.DB, EF.StrUtils, EF.VariantUtils, EF.Macros,
+  EF.DB, EF.StrUtils, EF.VariantUtils, EF.Macros, EF.JSON,
   Kitto.SQL, Kitto.Types, Kitto.Config, Kitto.AccessControl,
   Kitto.DatabaseRouter;
 
@@ -742,10 +749,17 @@ begin
 end;
 
 function TKViewTable.GetDefaultFilter: string;
+var
+  LFilter: string;
+  LModelFilter: string;
 begin
-  Result := GetString('DefaultFilter');
-  if Result = '' then
-    Result := Model.DefaultFilter;
+  LFilter := GetString('DefaultFilter');
+  if LFilter <> '' then
+    LFilter := '(' + LFilter + ')';
+  LModelFilter := Model.DefaultFilter;
+  if LModelFilter <> '' then
+    LModelFilter := '(' + LModelFilter + ')';
+  Result := SmartConcat(LModelFilter, ' and ', LFilter);
 end;
 
 function TKViewTable.GetDetailTableCount: Integer;
@@ -1124,6 +1138,25 @@ begin
   except
     FreeAndNil(Result);
     raise;
+  end;
+end;
+
+function TKViewField.DerivedFieldsExist: Boolean;
+var
+  LViewTable: TKViewTable;
+  LModelField: TKModelField;
+  I: Integer;
+begin
+  Result := False;
+  LViewTable := Table;
+  LModelField := ModelField;
+  for I := 0 to LViewTable.FieldCount - 1 do
+  begin
+    if LViewTable.Fields[I].ReferenceField = LModelField then
+    begin
+      Result := True;
+      Exit;
+    end;
   end;
 end;
 
@@ -1763,6 +1796,41 @@ begin
   Result := inherited FieldByName(AFieldName) as TKViewTableField;
 end;
 
+procedure TKViewTableRecord.FieldChanged(const AField: TKField; const AOldValue,
+  ANewValue: Variant);
+var
+  LField: TKViewTableField;
+  LStore: TKStore;
+  I: Integer;
+  LDerivedField: TKViewTableField;
+begin
+  inherited;
+  Assert(AField is TKViewTableField);
+
+  LField := TKViewTableField(AField);
+  if LField.ViewField.IsReference then
+  begin
+    // Get derived values.
+    LStore := LField.ViewField.CreateDerivedFieldsStore(EFVarToStr(ANewValue));
+    try
+      // Copy values to editors.
+      for I := 0 to LStore.Header.FieldCount - 1 do
+      begin
+        LDerivedField := FindField(LStore.Header.Fields[I].FieldName);
+        if Assigned(LDerivedField) then
+        begin
+          if LStore.RecordCount > 0 then
+            LDerivedField.AssignValue(LStore.Records[0].Fields[I])
+          else
+            LDerivedField.SetToNull;
+        end;
+      end;
+    finally
+      FreeAndNil(LStore);
+    end;
+  end;
+end;
+
 function TKViewTableRecord.FindField(const AFieldName: string): TKViewTableField;
 begin
   Result := inherited FindField(AFieldName) as TKViewTableField;
@@ -1878,36 +1946,34 @@ var
   I: Integer;
 begin
   Assert(Records.Store.ViewTable.IsDetail);
-  // Get master and detail field names...
-  LMasterFieldNames := Records.Store.ViewTable.MasterTable.Model.GetKeyFieldNames;
-  Assert(Length(LMasterFieldNames) > 0);
-  LDetailFieldNames := Records.Store.ViewTable.ModelDetailReference.ReferenceField.GetFieldNames;
-  Assert(Length(LDetailFieldNames) = Length(LMasterFieldNames));
-  for I := 0 to High(LDetailFieldNames) do
-  begin
-    // ...alias them...
-    LMasterFieldNames[I] := Records.Store.ViewTable.MasterTable.ApplyFieldAliasedName(LMasterFieldNames[I]);
-    LDetailFieldNames[I] := Records.Store.ViewTable.ApplyFieldAliasedName(LDetailFieldNames[I]);
-    // ... and copy values.
-    GetNode(LDetailFieldNames[I]).AssignValue(AMasterRecord.GetNode(LMasterFieldNames[I]));
+
+  Store.DisableChangeNotifications;
+  try
+    // Get master and detail field names...
+    LMasterFieldNames := Records.Store.ViewTable.MasterTable.Model.GetKeyFieldNames;
+    Assert(Length(LMasterFieldNames) > 0);
+    LDetailFieldNames := Records.Store.ViewTable.ModelDetailReference.ReferenceField.GetFieldNames;
+    Assert(Length(LDetailFieldNames) = Length(LMasterFieldNames));
+    for I := 0 to High(LDetailFieldNames) do
+    begin
+      // ...alias them...
+      LMasterFieldNames[I] := Records.Store.ViewTable.MasterTable.ApplyFieldAliasedName(LMasterFieldNames[I]);
+      LDetailFieldNames[I] := Records.Store.ViewTable.ApplyFieldAliasedName(LDetailFieldNames[I]);
+      // ... and copy values.
+      GetNode(LDetailFieldNames[I]).AssignValue(AMasterRecord.GetNode(LMasterFieldNames[I]));
+    end;
+  finally
+    Store.EnableChangeNotifications;
   end;
 end;
 
 { TKViewTableField }
 
-function TKViewTableField.GetAsJSONValue(const AForDisplay: Boolean): string;
+function TKViewTableField.GetAsJSONValue(const AForDisplay: Boolean; const AQuote: Boolean): string;
 const
   PASSWORD_CHARS = 8;
 var
   LDisplayTemplate: string;
-
-  function Unquote(const AString: string): string;
-  begin
-    if (Length(AString) >= 2) and (AString[1] = '"') and (AString[Length(AString)] = '"') then
-      Result := Copy(AString, 2, Length(AString) - 2)
-    else
-      Result := AString;
-  end;
 
   function ReplaceFieldValues(const AString: string): string;
   var
@@ -1922,28 +1988,29 @@ var
         LField := ParentRecord.FindField(ViewField.Table.Fields[I].FieldName);
         if Assigned(LField) then
           Result := ReplaceText(Result, '{' + ViewField.Table.Fields[I].FieldName + '}',
-            Unquote(LField.GetAsJSONValue(True)));
+            LField.GetAsJSONValue(True, False));
       end;
     end;
   end;
 
 begin
-  Result := inherited GetAsJSONValue(AForDisplay);
+  Result := inherited GetAsJSONValue(AForDisplay, False);
   if AForDisplay and Assigned(ViewField) then
   begin
     if ViewField.GetBoolean('IsPassword') then
-      Result := '"' + DupeString('*', Min(ViewField.DisplayWidth, PASSWORD_CHARS)) + '"'
+      Result := DupeString('*', Min(ViewField.DisplayWidth, PASSWORD_CHARS))
     else
     begin
       LDisplayTemplate := ViewField.DisplayTemplate;
       if LDisplayTemplate <> '' then
       begin
         // Replace other field values, this field's value and add back quotes.
-        Result := '"' + ReplaceFieldValues(
-          ReplaceText(LDisplayTemplate, '{value}', Unquote(Result))) + '"';
+        Result := ReplaceFieldValues(ReplaceText(LDisplayTemplate, '{value}', Result));
       end;
     end;
   end;
+  if AQuote and not SameText(Result, 'null') then
+    Result := QuoteJSONStr(Result);
 end;
 
 function TKViewTableField.GetParentRecord: TKViewTableRecord;
@@ -1952,8 +2019,29 @@ begin
 end;
 
 function TKViewTableField.GetViewField: TKViewField;
+var
+  LContainerFields: TArray<TKViewField>;
+  I: Integer;
 begin
+  // If the field is part of a reference field then using the FieldName is
+  // going to yield nil. Gotta return the containing ViewField in such cases. }
   Result := ParentRecord.ViewTable.FindFieldByAliasedName(FieldName);
+  if Result = nil then
+  begin
+    LContainerFields := ParentRecord.ViewTable.GetFieldArray(
+      function (AField: TKViewField): Boolean
+      begin
+        Result := AField.ModelField.FieldCount > 0;
+      end);
+    for I := Low(LContainerFields) to High(LContainerFields) do
+    begin
+      if Assigned(LContainerFields[I].ModelField.FindField(FieldName)) then
+      begin
+        Result := LContainerFields[I];
+        Break;
+      end;
+    end;
+  end;
 end;
 
 { TKFileReferenceDataType }

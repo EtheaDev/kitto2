@@ -21,7 +21,7 @@ unit Kitto.Ext.Form;
 interface
 
 uses
-  Generics.Collections,
+  Generics.Collections, SysUtils,
   Ext, ExtData, ExtForm,
   EF.ObserverIntf,
   Kitto.Metadata.Views, Kitto.Metadata.DataView, Kitto.Store,
@@ -39,7 +39,6 @@ type
     FServerStore: TKViewTableStore;
     procedure SetViewTable(const AValue: TKViewTable);
   public
-    destructor Destroy; override;
     property ViewTable: TKViewTable read FViewTable write SetViewTable;
     property ServerStore: TKViewTableStore read FServerStore write FServerStore;
   published
@@ -69,9 +68,11 @@ type
     procedure CreateDetailPanels;
     procedure CreateDetailToolbar;
     function GetDetailStyle: string;
-    procedure OnFieldChange(AField: TExtFormField; ANewValue, AOldValue: string);
-    function FindEditor(const AFieldName: string): IKExtEditor;
+    procedure EditorsByFieldName(const AFieldName: string; const AHandler: TProc<IKExtEditor>);
     function GetExtraHeight: Integer;
+    procedure AssignFieldChangeEvent(const AAssign: Boolean);
+    procedure FieldChange(const AField: TKField;
+      const AOldValue, ANewValue: Variant);
   strict protected
     procedure DoDisplay; override;
     procedure InitComponents; override;
@@ -87,8 +88,8 @@ type
 implementation
 
 uses
-  SysUtils, StrUtils, Classes,
-  EF.Localization, EF.Types, EF.Intf, EF.Tree, EF.DB, EF.JSON,
+  StrUtils, Classes, Variants,
+  EF.Localization, EF.Types, EF.Intf, EF.Tree, EF.DB, EF.JSON, EF.VariantUtils,
   Kitto.AccessControl, Kitto.Rules, Kitto.SQL,
   Kitto.Ext.Session, Kitto.Ext.Utils;
 
@@ -179,11 +180,14 @@ begin
   try
     LLayoutProcessor.DataRecord := FStoreRecord;
     LLayoutProcessor.FormPanel := FFormPanel;
-    LLayoutProcessor.OnFieldChange := OnFieldChange;
     LLayoutProcessor.OnNewEditor :=
       procedure (AEditor: IKExtEditor)
+      var
+        LEditorSubject: IEFSubject;
       begin
         FEditors.Add(AEditor.AsObject);
+        if Supports(AEditor.AsObject, IEFSubject, LEditorSubject) then
+          LEditorSubject.AttachObserver(Self);
       end;
     LLayoutProcessor.ForceReadOnly := AForceReadOnly;
     if FOperation = 'Add' then
@@ -251,10 +255,10 @@ begin
     end;
 
     // Load data from FServerRecord.
-    ExtSession.ResponseItems.ExecuteJSCode(FFormPanel,
-      FFormPanel.JSName + '.getForm().load({url:"' + MethodURI(GetRecord) + '",' +
-        'failure: function(form, action) { Ext.Msg.alert("' + _('Load failed.') +
-        '", action.result.errorMessage);}});');
+    FFormPanel.GetForm.Load(JSObject(Format(
+      'url: "%s", ' +
+      'failure: function(form, action) { Ext.Msg.alert("%s", action.result.errorMessage); }',
+      [MethodURI(GetRecord), _('Load failed.')])));
     FocusFirstField;
   except
     on E: EKValidationError do
@@ -265,69 +269,18 @@ begin
   end;
 end;
 
-procedure TKExtFormPanelController.OnFieldChange(AField: TExtFormField;
-  ANewValue, AOldValue: string);
-var
-  LEditor: IKExtEditor;
-  LStore: TKStore;
-  I: Integer;
-  LDerivedEditor: IKExtEditor;
-begin
-  Assert(Assigned(AField));
-
-  if Supports(AField, IKExtEditor, LEditor) then
-  begin
-    if LEditor.GetRecordField.ViewField.FileNameField <> '' then
-    begin
-      LDerivedEditor := FindEditor(LEditor.GetRecordField.ViewField.FileNameField);
-      if Assigned(LDerivedEditor) and (ANewValue = '') then
-      begin
-        LDerivedEditor.RecordField.SetToNull;
-        LDerivedEditor.RefreshValue;
-      end;
-    end
-    else
-    begin
-      Assert(LEditor.GetRecordField.ViewField.IsReference);
-
-      // Get derived values.
-      LStore := LEditor.GetRecordField.ViewField.CreateDerivedFieldsStore(ANewValue);
-      try
-        // Copy values to editors.
-        for I := 0 to LStore.Header.FieldCount - 1 do
-        begin
-          LDerivedEditor := FindEditor(LStore.Header.Fields[I].FieldName);
-          if Assigned(LDerivedEditor) then
-          begin
-            if LStore.RecordCount > 0 then
-              LDerivedEditor.RecordField.AssignValue(LStore.Records[0].Fields[I])
-            else
-              LDerivedEditor.RecordField.SetToNull;
-            LDerivedEditor.RefreshValue;
-          end;
-        end;
-      finally
-        FreeAndNil(LStore);
-      end;
-    end;
-  end;
-end;
-
-function TKExtFormPanelController.FindEditor(const AFieldName: string): IKExtEditor;
+procedure TKExtFormPanelController.EditorsByFieldName(const AFieldName: string;
+  const AHandler: TProc<IKExtEditor>);
 var
   I: Integer;
   LEditorIntf: IKExtEditor;
 begin
-  Result := nil;
   for I := 0 to FEditors.Count - 1 do
   begin
     if Supports(FEditors[I], IKExtEditor, LEditorIntf) then
     begin
       if SameText(LEditorIntf.GetRecordField.ViewField.AliasedName, AFieldName) then
-      begin
-        Result := LEditorIntf;
-        Break;
-      end;
+        AHandler(LEditorIntf);
     end;
   end;
 end;
@@ -364,8 +317,6 @@ begin
     // Get uploaded files.
     Session.EnumUploadedFiles(
       procedure (AFile: TKExtUploadedFile)
-      var
-        LFileNameField: string;
       begin
         if (AFile.Context is TKViewField) and (TKViewField(AFile.Context).Table = ViewTable) then
         begin
@@ -375,9 +326,6 @@ begin
             FStoreRecord.FieldByName(TKViewField(AFile.Context).AliasedName).AsString := AFile.FileName
           else
             raise Exception.CreateFmt(_('Data type %s does not support file upload.'), [TKViewField(AFile.Context).DataType.GetTypeName]);
-          LFileNameField := TKViewField(AFile.Context).FileNameField;
-          if LFileNameField <> ''then
-            FStoreRecord.FieldByName(LFileNameField).AsString := AFile.OriginalFileName;
           Session.RemoveUploadedFile(AFile);
         end;
       end);
@@ -401,7 +349,9 @@ begin
 
   NotifyObservers('Confirmed');
   if not CloseHostWindow then
-    StartOperation;
+    StartOperation
+  else
+    AssignFieldChangeEvent(False);
 end;
 
 procedure TKExtFormPanelController.InitComponents;
@@ -423,6 +373,7 @@ begin
     Assert(not Assigned(FStoreRecord));
     FStoreRecord := ServerStore.AppendRecord(nil);
   end;
+  AssignFieldChangeEvent(True);
 
   if SameText(FOperation, 'Add') then
     FIsReadOnly := ViewTable.GetBoolean('Controller/PreventAdding')
@@ -514,16 +465,34 @@ begin
   end;
   NotifyObservers('Canceled');
   if not CloseHostWindow then
-    StartOperation;
+    StartOperation
+  else
+    AssignFieldChangeEvent(False);
+end;
+
+procedure TKExtFormPanelController.AssignFieldChangeEvent(const AAssign: Boolean);
+begin
+  if Assigned(FStoreRecord) then
+    if AAssign then
+      FStoreRecord.OnFieldChange := FieldChange
+    else
+      FStoreRecord.OnFieldChange := nil;
+end;
+
+procedure TKExtFormPanelController.FieldChange(const AField: TKField;
+  const AOldValue, ANewValue: Variant);
+begin
+  Assert(Assigned(AField));
+  Assert(AField is TKViewTableField);
+
+  EditorsByFieldName(TKViewTableField(AField).FieldName,
+    procedure (AEditor: IKExtEditor)
+    begin
+      AEditor.RefreshValue;
+    end);
 end;
 
 { TKExtDetailFormButton }
-
-destructor TKExtDetailFormButton.Destroy;
-begin
-  //FreeAndNil(FDetailHostWindow);
-  inherited;
-end;
 
 procedure TKExtDetailFormButton.SetViewTable(const AValue: TKViewTable);
 begin

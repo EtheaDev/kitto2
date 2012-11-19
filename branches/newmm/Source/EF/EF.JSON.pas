@@ -27,7 +27,7 @@ unit EF.JSON;
 interface
 
 uses
-  DB,
+  SysUtils, StrUtils, DB,
   EF.Types, EF.DB;
 
 ///	<summary>
@@ -75,12 +75,13 @@ function DataSetToJSON(const ADBConnection: TEFDBConnection; const ACommandText:
 ///	</example>
 function DataSetToJSON(const ADataSet: TDataSet): string; overload;
 
-function QuoteJSONStr(const AString: string): string;
+function QuoteJSONStr(const AString: string): string; inline;
+
+function JSONNullToEmptyStr(const AJSONValue: string): string; inline;
 
 implementation
 
 uses
-  SysUtils, StrUtils,
   EF.StrUtils;
 
 function PairsToJSON(const APairs: TEFPairs; const AReversed: Boolean): string;
@@ -174,6 +175,14 @@ end;
 function QuoteJSONStr(const AString: string): string;
 begin
   Result := '"' + ReplaceStr(AString, '"', '\"') + '"';
+end;
+
+function JSONNullToEmptyStr(const AJSONValue: string): string;
+begin
+  if SameText(AJSONValue, 'null') then
+    Result := ''
+  else
+    Result := AJSONValue;
 end;
 
 end.

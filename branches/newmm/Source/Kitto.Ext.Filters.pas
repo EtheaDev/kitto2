@@ -200,10 +200,6 @@ type
   ///	  <para>All filters with IsDefault set to True are renderd as initially
   ///	  pressed buttons.</para>
   ///	</summary>
-{ TODO :
-Add parameter (or separate filter class) to allow several buttons
-pressed at the same time to generate a combined expression
-through a connector. }
   TKButtonListFilter = class(TKExtPanelBase, IKExtFilter)
   private
     FConfig: TEFNode;
@@ -370,12 +366,6 @@ begin
   //Resizable := True;
   //MinListWidth := LFieldWidth;
   //MinHeight := LinesToPixels(5);
-{ TODO :
-In order to save a trip by calling the refresh code directly,
-we should include status information from all filters. Doable,
-by generating more JS code, but not now. }
-  //On('select', JSFunction(AConfig.GetString('Sys/ApplyJSCode')));
-  OnSelect := ComboBoxSelect;
   LDefaultFilter := GetDefaultFilter(FItems);
   if Assigned(LDefaultFilter) then
   begin
@@ -386,6 +376,15 @@ by generating more JS code, but not now. }
     FActiveIndex := 0
   else
     FActiveIndex := -1;
+{ TODO :
+In order to save a trip by calling the refresh code directly,
+we should include status information from all filters. Doable,
+by generating more JS code, but not now. }
+  //On('select', JSFunction(AConfig.GetString('Sys/ApplyJSCode')));
+  if FConfig.GetBoolean('Sys/IsReadOnly') then
+    Disabled := True
+  else
+    OnSelect := ComboBoxSelect;
 end;
 
 procedure TKListFilter.ComboBoxSelect(Combo: TExtFormComboBox; RecordJS: TExtDataRecord; Index: Integer);
@@ -508,7 +507,10 @@ by generating more JS code, but not now. }
   //OnChange := ComboBoxChange;
   // OnSelect only passes the relative index in the filtered list.
   //OnSelect := ComboBoxSelect;
-  On('select', Ajax(Select, ['Value', GetValue()]));
+  if FConfig.GetBoolean('Sys/IsReadOnly') then
+    Disabled := True
+  else
+    On('select', Ajax(Select, ['Value', GetValue()]));
   FCurrentValue := '';
 end;
 
@@ -539,10 +541,13 @@ begin
     EnableKeyEvents := True;
     On('keyup', JSFunction(Format('fireChangeAfterNChars(%s, %d);', [JSName, LAutoSearchAfterChars])));
   end;
-  OnChange := FieldChange;
   FieldLabel := _(AConfig.AsString);
   Width := CharsToPixels(AConfig.GetInteger('Width', 20));
   FCurrentValue := '';
+  if FConfig.GetBoolean('Sys/IsReadOnly') then
+    Disabled := True
+  else
+    OnChange := FieldChange;
 end;
 
 procedure TKFreeSearchFilter.FieldChange(This: TExtFormField; NewValue: string; OldValue: string);
@@ -633,7 +638,10 @@ In order to save a trip by calling the refresh code directly,
 we should include status information from all filters. Doable,
 by generating more JS code, but not now. }
   //LButton.On('click', JSFunction(AConfig.GetString('Sys/ApplyJSCode')));
-    LButton.On('click', Ajax(ButtonClick, ['Index', I, 'Pressed', LButton.Pressed_]));
+    if FConfig.GetBoolean('Sys/IsReadOnly') then
+      LButton.Disabled := True
+    else
+      LButton.On('click', Ajax(ButtonClick, ['Index', I, 'Pressed', LButton.Pressed_]));
   end;
 end;
 

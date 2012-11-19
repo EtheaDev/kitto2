@@ -78,7 +78,6 @@ type
     function GetIsReadOnly: Boolean;
     function GetIsKey: Boolean;
     function GetIsGenerated: Boolean;
-    function GetEmptyAsNull: Boolean;
     function GetDefaultValue: Variant;
     function GetExpression: string;
     function GetAllowedValues: TEFPairs;
@@ -110,6 +109,7 @@ type
       out AIsRequired: Boolean; out AIsKey: Boolean; out AReferencedModel: string);
     function GetFields: TKModelFields;
   public
+    function GetEmptyAsNull: Boolean; override;
     procedure BeforeSave; override;
   public
     function GetResourceURI: string; override;

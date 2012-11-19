@@ -21,7 +21,7 @@ unit Kitto.Store;
 interface
 
 uses
-  SysUtils, Types, DB, Generics.Collections,
+  SysUtils, Types, Classes, DB, Generics.Collections,
   EF.Tree, EF.DB,
   Kitto.Metadata.Models;
 
@@ -50,26 +50,28 @@ type
 
   TKRecord = class;
 
+  TKField = class;
+
+  TKFieldChangeEvent = procedure(const AField: TKField; const AOldValue, ANewValue: Variant) of object;
+
   TKField = class(TEFNode)
-  private
+  strict private
     FIsModified: Boolean;
     function GetFieldName: string;
     function GetParentRecord: TKRecord;
     function GetJSONName: string;
-  protected
+  strict protected
     function GetName: string; override;
     procedure SetValue(const AValue: Variant); override;
-    function GetAsJSONValue(const AForDisplay: Boolean): string; virtual;
-    procedure MarkAsUnmodified;
+    procedure ValueChanged(const AOldValue: Variant; const ANewValue: Variant);
+      override;
   public
+    procedure MarkAsUnmodified;
     procedure SetToNull; override;
-
     property IsModified: Boolean read FIsModified;
-
     property ParentRecord: TKRecord read GetParentRecord;
-
     function GetAsJSON(const AForDisplay: Boolean): string;
-
+    function GetAsJSONValue(const AForDisplay: Boolean; const AQuote: Boolean = True): string; virtual;
     property FieldName: string read GetFieldName;
   end;
 
@@ -79,11 +81,12 @@ type
   TKRecordState = (rsNew, rsClean, rsDirty, rsDeleted);
 
   TKRecord = class(TEFNode)
-  private
+  strict private
     FBackup: TEFNode;
     { TODO : move state management in view table record }
     FState: TKRecordState;
     FDetailStores: TObjectList<TKStore>;
+    FOnFieldChange: TKFieldChangeEvent;
     function GetRecords: TKRecords;
     function GetKey: TKKey;
     function GetField(I: Integer): TKField;
@@ -93,7 +96,7 @@ type
     procedure EnsureDetailStores;
     function GetStore: TKStore;
     function GetIsDeleted: Boolean;
-  protected
+  strict protected
     property State: TKRecordState read FState;
     function GetChildClass(const AName: string): TEFNodeClass; override;
 
@@ -103,6 +106,7 @@ type
   public
     procedure AfterConstruction; override;
     destructor Destroy; override;
+    procedure FieldChanged(const AField: TKField; const AOldValue, ANewValue: Variant); virtual;
   public
     property Records: TKRecords read GetRecords;
     property Store: TKStore read GetStore;
@@ -138,6 +142,8 @@ type
     procedure Restore;
 
     function ChangesPending: Boolean;
+
+    property OnFieldChange: TKFieldChangeEvent read FOnFieldChange write FOnFieldChange;
   end;
 
   TKRecords = class(TEFNode)
@@ -203,6 +209,7 @@ type
 
   TKStore = class(TEFTree)
   private
+    FChangeNotificationsDisabledCount: Integer;
     FHeader: TKHeader;
     function GetRecords: TKRecords;
     function GetKey: TKKey;
@@ -215,6 +222,10 @@ type
   public
     destructor Destroy; override;
   public
+    procedure DisableChangeNotifications;
+    procedure EnableChangeNotifications;
+    function ChangeNotificationsEnabled: Boolean;
+
     property Key: TKKey read GetKey write SetKey;
     property Header: TKHeader read GetHeader;
     property Records: TKRecords read GetRecords;
@@ -279,17 +290,27 @@ implementation
 
 uses
   Math, FmtBcd, Variants, StrUtils,
-  EF.StrUtils, EF.Localization,
+  EF.StrUtils, EF.Localization, EF.JSON,
   Kitto.Types, Kitto.SQL, Kitto.Config;
 
 { TKStore }
 
 function TKStore.AppendRecord(const AValues: TEFNode): TKRecord;
 begin
-  Result := Records.Append;
-  Header.Apply(Result);
-  if Assigned(AValues) then
-    Result.ReadFromNode(AValues);
+  DisableChangeNotifications;
+  try
+    Result := Records.Append;
+    Header.Apply(Result);
+    if Assigned(AValues) then
+      Result.ReadFromNode(AValues);
+  finally
+    EnableChangeNotifications;
+  end;
+end;
+
+function TKStore.ChangeNotificationsEnabled: Boolean;
+begin
+  Result := FChangeNotificationsDisabledCount <= 0;
 end;
 
 function TKStore.ChangesPending: Boolean;
@@ -313,6 +334,11 @@ begin
             begin
               Result := True;
             end;
+end;
+
+procedure TKStore.EnableChangeNotifications;
+begin
+  Dec(FChangeNotificationsDisabledCount);
 end;
 
 function TKStore.ExcludeDeleted: TPredicate<TKRecord>;
@@ -412,6 +438,11 @@ begin
   inherited;
 end;
 
+procedure TKStore.DisableChangeNotifications;
+begin
+  Inc(FChangeNotificationsDisabledCount);
+end;
+
 function TKStore.GetAsJSON(const AForDisplay: Boolean; const AFrom: Integer;
   const AFor: Integer): string;
 begin
@@ -459,17 +490,22 @@ var
 begin
   Assert(Assigned(ADBQuery));
 
-  if not AAppend then
-    Records.Clear;
-  if not ADBQuery.IsOpen then
-    ADBQuery.Open;
-  while not ADBQuery.DataSet.Eof do
-  begin
-    LRecord := Records.Append;
-    Header.Apply(LRecord);
-    Assert(LRecord.FieldCount = Header.ChildCount);
-    LRecord.ReadFromFields(ADBQuery.DataSet.Fields);
-    ADBQuery.DataSet.Next;
+  DisableChangeNotifications;
+  try
+    if not AAppend then
+      Records.Clear;
+    if not ADBQuery.IsOpen then
+      ADBQuery.Open;
+    while not ADBQuery.DataSet.Eof do
+    begin
+      LRecord := Records.Append;
+      Header.Apply(LRecord);
+      Assert(LRecord.FieldCount = Header.ChildCount);
+      LRecord.ReadFromFields(ADBQuery.DataSet.Fields);
+      ADBQuery.DataSet.Next;
+    end;
+  finally
+    EnableChangeNotifications;
   end;
 end;
 
@@ -717,6 +753,13 @@ begin
     raise EKError.CreateFmt(_('Field %s not found.'), [AFieldName]);
 end;
 
+procedure TKRecord.FieldChanged(const AField: TKField; const AOldValue,
+  ANewValue: Variant);
+begin
+  if Assigned(FOnFieldChange) then
+    FOnFieldChange(AField, AOldValue, ANewValue);
+end;
+
 function TKRecord.FindField(const AFieldName: string): TKField;
 var
   I: Integer;
@@ -865,16 +908,21 @@ var
 begin
   Assert(Assigned(ANode));
 
-  Backup;
+  Store.DisableChangeNotifications;
   try
-    for I := 0 to FieldCount - 1 do
-      Fields[I].AssignValue(ANode.FindNode(Fields[I].FieldName));
-    InternalAfterReadFromNode;
-    if FState = rsClean then
-      FState := rsDirty;
-  except
-    Restore;
-    raise;
+    Backup;
+    try
+      for I := 0 to FieldCount - 1 do
+        Fields[I].AssignValue(ANode.FindNode(Fields[I].FieldName));
+      InternalAfterReadFromNode;
+      if FState = rsClean then
+        FState := rsDirty;
+    except
+      Restore;
+      raise;
+    end;
+  finally
+    Store.EnableChangeNotifications;
   end;
 end;
 
@@ -900,7 +948,7 @@ function TKField.GetAsJSON(const AForDisplay: Boolean): string;
 begin
   if DataType.SupportsJSON then
   begin
-    Result := '"' + GetJSONName + '":' + GetAsJSONValue(AForDisplay);
+    Result := QuoteJSONStr(GetJSONName) + ':' + GetAsJSONValue(AForDisplay);
     if AForDisplay then
     begin
       Result := AnsiReplaceStr(Result, #13#10, '<br/>');
@@ -912,9 +960,9 @@ begin
     Result := '';
 end;
 
-function TKField.GetAsJSONValue(const AForDisplay: Boolean): string;
+function TKField.GetAsJSONValue(const AForDisplay: Boolean; const AQuote: Boolean): string;
 begin
-  Result := DataType.NodeToJSONValue(AForDisplay, Self, TKConfig.JSFormatSettings);
+  Result := DataType.NodeToJSONValue(AForDisplay, Self, TKConfig.JSFormatSettings, AQuote);
 end;
 
 function TKField.GetFieldName: string;
@@ -959,6 +1007,13 @@ begin
       ParentRecord.MarkAsModified;
   end;
   inherited;
+end;
+
+procedure TKField.ValueChanged(const AOldValue, ANewValue: Variant);
+begin
+  inherited;
+  if Assigned(ParentRecord) and Assigned(ParentRecord.Store) and ParentRecord.Store.ChangeNotificationsEnabled then
+    ParentRecord.FieldChanged(Self, AOldValue, ANewValue);
 end;
 
 { TKHeader }

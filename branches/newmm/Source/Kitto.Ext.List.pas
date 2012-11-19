@@ -31,11 +31,15 @@ type
   private
     FConnector: string;
     FOnChange: TNotifyEvent;
+    FView: TKDataView;
     procedure DoChange;
+    function IsFilterVisible(const AResourceName: string): Boolean;
+    function GetFilterResourceURI(const AResourceName: string): string;
+    function IsFilterReadOnly(const AResourceName: string): Boolean;
   protected
     procedure InitDefaults; override;
   public
-    procedure Configure(const AConfig: TEFNode);
+    procedure Configure(const AView: TKDataView; const AConfig: TEFNode);
     function GetFilterExpression: string;
     procedure UpdateObserver(const ASubject: IEFSubject;
       const AContext: string = ''); override;
@@ -68,29 +72,58 @@ implementation
 uses
   SysUtils,
   EF.Localization, EF.StrUtils,
-  Kitto.Types,
+  Kitto.Types, Kitto.Config, Kitto.AccessControl,
   Kitto.Ext.Session, Kitto.Ext.Controller, Kitto.Ext.Filters;
 
 { TKExtFilterPanel }
 
-procedure TKExtFilterPanel.Configure(const AConfig: TEFNode);
+function TKExtFilterPanel.GetFilterResourceURI(const AResourceName: string): string;
+begin
+  Assert(Assigned(FView));
+
+  Result := FView.GetResourceURI + '/Filters/' + AResourceName;
+end;
+
+function TKExtFilterPanel.IsFilterVisible(const AResourceName: string): Boolean;
+begin
+  if AResourceName = '' then
+    Result := True
+  else
+    Result := TKConfig.Instance.IsAccessGranted(GetFilterResourceURI(AResourceName), ACM_VIEW);
+end;
+
+function TKExtFilterPanel.IsFilterReadOnly(const AResourceName: string): Boolean;
+begin
+  if AResourceName = '' then
+    Result := False
+  else
+    Result := not TKConfig.Instance.IsAccessGranted(GetFilterResourceURI(AResourceName), ACM_MODIFY);
+end;
+
+procedure TKExtFilterPanel.Configure(const AView: TKDataView; const AConfig: TEFNode);
 var
   LItems: TEFNode;
   I: Integer;
   LNode: TEFNode;
   LWidth: Integer;
+  LFilterResourceName: string;
 begin
+  Assert(Assigned(AView));
   Assert(Assigned(AConfig));
 
   Title := _(AConfig.GetString('DisplayLabel', _('Search')));
   FConnector := AConfig.GetString('Connector', 'and');
+  FView := AView;
 
   LItems := AConfig.GetNode('Items');
   for I := 0 to LItems.ChildCount - 1 do
   begin
-    // Currently unused.
-//    LItems.Children[I].SetString('Sys/ApplyJSCode', GetRefreshJSCode);
-    TKExtFilterFactory.Instance.CreateFilter(LItems.Children[I], Self, Items);
+    LFilterResourceName := LItems.Children[I].GetExpandedString('ResourceName');
+    if IsFilterVisible(LFilterResourceName) then
+    begin
+      LItems.Children[I].SetBoolean('Sys/IsReadOnly', IsFilterReadOnly(LFilterResourceName));
+      TKExtFilterFactory.Instance.CreateFilter(LItems.Children[I], Self, Items);
+    end;
   end;
 
   LNode := AConfig.FindNode('LabelWidth');
@@ -170,7 +203,7 @@ begin
       FFilterPanel := TKExtFilterPanel.CreateAndAddTo(Items);
       FFilterPanel.Region := rgNorth;
       FFilterPanel.OnChange := FilterPanelChange;
-      FFilterPanel.Configure(LItems.Parent as TEFNode);
+      FFilterPanel.Configure(View, LItems.Parent as TEFNode);
     end;
   end;
 end;
