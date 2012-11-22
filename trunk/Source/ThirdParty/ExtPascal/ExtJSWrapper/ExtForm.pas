@@ -1218,8 +1218,8 @@ type
     function SetDisabledDays(const ADisabledDays: TExtObjectList): TExtFunction;
     function SetMaxValue(const AValue: TDateTime): TExtFunction;
     function SetMinValue(const AValue: TDateTime): TExtFunction;
-    function SetValue(Date: string): TExtFunction; overload;
-    function SetValue(Date: TDateTime): TExtFunction; overload;
+    function SetValue(const ADate: string): TExtFunction; overload;
+    function SetValue(const ADate: TDateTime): TExtFunction; overload;
     property AltFormats: string read FAltFormats write SetAltFormats;
     property AutoCreate: string read FAutoCreate write SetFAutoCreate;
     property AutoCreateObject: TExtObject read FAutoCreateObject
@@ -4323,15 +4323,15 @@ begin
   Result := Self;
 end;
 
-function TExtFormDateField.SetValue(Date: string): TExtFunction;
+function TExtFormDateField.SetValue(const ADate: string): TExtFunction;
 begin
-  JSCode(JSName + '.setValue(' + VarToJSON([Date]) + ');', 'TExtFormDateField');
+  ExtSession.ResponseItems.CallMethod(Self, 'setValue', [ADate]);
   Result := Self;
 end;
 
-function TExtFormDateField.SetValue(Date: TDateTime): TExtFunction;
+function TExtFormDateField.SetValue(const ADate: TDateTime): TExtFunction;
 begin
-  JSCode(JSName + '.setValue(' + VarToJSON([Date]) + ');', 'TExtFormDateField');
+  ExtSession.ResponseItems.CallMethod(Self, 'setValue', [ADate]);
   Result := Self;
 end;
 
