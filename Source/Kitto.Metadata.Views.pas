@@ -321,7 +321,8 @@ end;
 procedure TKLayouts.AfterCreateObject(const AObject: TKMetadata);
 begin
   inherited;
-  (AObject as TKLayout).FLayouts := Self;
+  if AObject is TKLayout then
+    TKLayout(AObject).FLayouts := Self;
 end;
 
 function TKLayouts.FindLayout(const AName: string): TKLayout;

@@ -410,7 +410,7 @@ type
     function ProcessValue(Value: string): TExtFunction;
     function Reset: TExtFunction;
     function SetActiveError(Msg: string; SuppressEvent: Boolean): TExtFunction;
-    function SetRawValue(Value: string): TExtFunction;
+    function SetRawValue(const AValue: string): TExtFunction;
     function SetReadOnly(const AReadOnly: Boolean): TExtFunction;
     function SetValue(const AValue: string): TExtFunction;
     function UnsetActiveError(SuppressEvent: Boolean): TExtFunction;
@@ -2477,9 +2477,9 @@ begin
   Result := Self;
 end;
 
-function TExtFormField.SetRawValue(Value: string): TExtFunction;
+function TExtFormField.SetRawValue(const AValue: string): TExtFunction;
 begin
-  JSCode(JSName + '.setRawValue(' + VarToJSON([Value]) + ');', 'TExtFormField');
+  ExtSession.ResponseItems.CallMethod(Self, 'setRawValue', [AValue]);
   Result := Self;
 end;
 

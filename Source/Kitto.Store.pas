@@ -908,21 +908,21 @@ var
 begin
   Assert(Assigned(ANode));
 
-  Store.DisableChangeNotifications;
+  Backup;
   try
-    Backup;
+    for I := 0 to FieldCount - 1 do
+      Fields[I].AssignValue(ANode.FindNode(Fields[I].FieldName));
+    InternalAfterReadFromNode;
+    if FState = rsClean then
+      FState := rsDirty;
+  except
+    Store.DisableChangeNotifications;
     try
-      for I := 0 to FieldCount - 1 do
-        Fields[I].AssignValue(ANode.FindNode(Fields[I].FieldName));
-      InternalAfterReadFromNode;
-      if FState = rsClean then
-        FState := rsDirty;
-    except
       Restore;
-      raise;
+    finally
+      Store.EnableChangeNotifications;
     end;
-  finally
-    Store.EnableChangeNotifications;
+    raise;
   end;
 end;
 
@@ -998,9 +998,7 @@ end;
 
 procedure TKField.SetValue(const AValue: Variant);
 begin
-  { TODO : Find an efficient way to compare byte arrays; the <> operator won't do. }
-  // Don't use <> on arrays.
-  if VarIsArray(AValue) or (AValue <> Value) then
+  if not CompareValues(AValue, Value) then
   begin
     FIsModified := True;
     if ParentRecord <> nil then

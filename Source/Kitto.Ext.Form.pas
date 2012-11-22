@@ -68,11 +68,14 @@ type
     procedure CreateDetailPanels;
     procedure CreateDetailToolbar;
     function GetDetailStyle: string;
+    procedure EnumEditors(const APredicate: TFunc<IKExtEditor, Boolean>; const AHandler: TProc<IKExtEditor>);
     procedure EditorsByFieldName(const AFieldName: string; const AHandler: TProc<IKExtEditor>);
+    procedure AllEditors(const AHandler: TProc<IKExtEditor>);
     function GetExtraHeight: Integer;
     procedure AssignFieldChangeEvent(const AAssign: Boolean);
     procedure FieldChange(const AField: TKField;
       const AOldValue, ANewValue: Variant);
+    function GetAfterLoadJSCode: string;
   strict protected
     procedure DoDisplay; override;
     procedure InitComponents; override;
@@ -89,6 +92,7 @@ implementation
 
 uses
   StrUtils, Classes, Variants,
+  ExtPascal,
   EF.Localization, EF.Types, EF.Intf, EF.Tree, EF.DB, EF.JSON, EF.VariantUtils,
   Kitto.AccessControl, Kitto.Rules, Kitto.SQL,
   Kitto.Ext.Session, Kitto.Ext.Utils;
@@ -257,8 +261,10 @@ begin
     // Load data from FServerRecord.
     FFormPanel.GetForm.Load(JSObject(Format(
       'url: "%s", ' +
-      'failure: function(form, action) { Ext.Msg.alert("%s", action.result.errorMessage); }',
-      [MethodURI(GetRecord), _('Load failed.')])));
+      'failure: function(form, action) { Ext.Msg.alert("%s", action.result.errorMessage); }, ' +
+      'success: function(form, action) { %s }',
+      [MethodURI(GetRecord), _('Load failed.'), GetAfterLoadJSCode])));
+
     FocusFirstField;
   except
     on E: EKValidationError do
@@ -271,6 +277,18 @@ end;
 
 procedure TKExtFormPanelController.EditorsByFieldName(const AFieldName: string;
   const AHandler: TProc<IKExtEditor>);
+begin
+  EnumEditors(
+    function (AEditor: IKExteditor): Boolean
+    begin
+      Result := SameText(AEditor.GetRecordField.ViewField.AliasedName, AFieldName);
+    end,
+    AHandler);
+end;
+
+procedure TKExtFormPanelController.EnumEditors(
+  const APredicate: TFunc<IKExtEditor, Boolean>;
+  const AHandler: TProc<IKExtEditor>);
 var
   I: Integer;
   LEditorIntf: IKExtEditor;
@@ -279,7 +297,7 @@ begin
   begin
     if Supports(FEditors[I], IKExtEditor, LEditorIntf) then
     begin
-      if SameText(LEditorIntf.GetRecordField.ViewField.AliasedName, AFieldName) then
+      if APredicate(LEditorIntf) then
         AHandler(LEditorIntf);
     end;
   end;
@@ -468,6 +486,37 @@ begin
     StartOperation
   else
     AssignFieldChangeEvent(False);
+end;
+
+function TKExtFormPanelController.GetAfterLoadJSCode: string;
+var
+  LResponseItems: TExtResponseItems;
+begin
+  LResponseItems := ExtSession.BranchResponseItems;
+  try
+    AllEditors(
+      procedure (AEditor: IKExtEditor)
+      var
+        LIntf: IKExtEditorAfterLoad;
+      begin
+        if Supports(AEditor, IKExtEditorAfterLoad, LIntf) then
+          LIntf.AfterLoad;
+        end);
+    Result := LResponseItems.Consume;
+  finally
+    ExtSession.UnbranchResponseItems(LResponseItems, False);
+  end;
+end;
+
+procedure TKExtFormPanelController.AllEditors(
+  const AHandler: TProc<IKExtEditor>);
+begin
+  EnumEditors(
+    function (AEditor: IKExteditor): Boolean
+    begin
+      Result := True;
+    end,
+    AHandler);
 end;
 
 procedure TKExtFormPanelController.AssignFieldChangeEvent(const AAssign: Boolean);
