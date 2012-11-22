@@ -115,6 +115,7 @@ type
     function GetJSTypeName: string; override;
     class function HasSize: Boolean; override;
     function IsText: Boolean; override;
+    function GetDefaultEmptyAsNull: Boolean; override;
   end;
 
   TEFMemoDataType = class(TEFStringDataType)
@@ -131,7 +132,10 @@ type
     function SupportsJSON: Boolean; override;
   end;
 
-  TEFDateTimeDataTypeBase = class(TEFDataType);
+  TEFDateTimeDataTypeBase = class(TEFDataType)
+  public
+    function GetDefaultEmptyAsNull: Boolean; override;
+  end;
 
   TEFDateDataType = class(TEFDateTimeDataTypeBase)
   protected
@@ -3157,6 +3161,11 @@ begin
   Result := Min(80, ASize);
 end;
 
+function TEFStringDataType.GetDefaultEmptyAsNull: Boolean;
+begin
+  Result := True;
+end;
+
 function TEFStringDataType.GetJSTypeName: string;
 begin
   Result := 'string';
@@ -3255,6 +3264,13 @@ begin
   inherited;
   if Assigned(ASource) and (ASource is TEFPersistentTree) then
     FPersistentName := TEFPersistentTree(ASource).PersistentName;
+end;
+
+{ TEFDateTimeDataTypeBase }
+
+function TEFDateTimeDataTypeBase.GetDefaultEmptyAsNull: Boolean;
+begin
+  Result := True;
 end;
 
 initialization
