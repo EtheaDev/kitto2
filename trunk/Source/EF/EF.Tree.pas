@@ -61,6 +61,7 @@ type
       const AFormatSettings: TFormatSettings);
     function GetDefaultDisplayWidth(const ASize: Integer): Integer; virtual;
     function SupportsEmptyAsNull: Boolean; virtual;
+    function GetDefaultEmptyAsNull: Boolean; virtual;
     function SupportsJSON: Boolean; virtual;
     function IsBlob(const ASize: Integer): Boolean; virtual;
     function IsText: Boolean; virtual;
@@ -686,7 +687,6 @@ type
     FParent: TEFTree;
     function FindNodeFrom(const APath: TStringDynArray; const AIndex: Integer;
       const ACreateMissingNodes: Boolean = False): TEFNode;
-    function GetDataType: TEFDataType;
   strict private
     FValue: Variant;
     FName: string;
@@ -736,6 +736,8 @@ type
     function GetRoot: TEFTree; override;
     function IsDataTypeLocked: Boolean;
     procedure ValueChanged(const AOldValue, ANewValue: Variant); virtual;
+    function CompareValues(const AValue1, AValue2: Variant): Boolean;
+    function GetDataType: TEFDataType; virtual;
   public
     function GetEnumerator: TEnumerator<TEFNode>;
     function GetEmptyAsNull: Boolean; virtual;
@@ -1293,7 +1295,7 @@ procedure TEFNode.Clear;
 begin
   inherited;
   FName := '';
-  FValue := '';
+  FValue := Unassigned;
 end;
 
 constructor TEFNode.Clone(const ASource: TEFTree);
@@ -1487,7 +1489,7 @@ end;
 
 function TEFNode.GetEmptyAsNull: Boolean;
 begin
-  Result := False;
+  Result := DataType.GetDefaultEmptyAsNull;
 end;
 
 function TEFNode.GetEnumerator: TEnumerator<TEFNode>;
@@ -1716,7 +1718,18 @@ begin
   FValue := AValue;
   if not IsDataTypeLocked then
     FDataType := GetVariantDataType(FValue);
-  ValueChanged(LOldValue, FValue);
+  if not CompareValues(LOldValue, FValue) then
+    ValueChanged(LOldValue, FValue);
+end;
+
+function TEFNode.CompareValues(const AValue1, AValue2: Variant): Boolean;
+begin
+  { TODO : Find an efficient way to compare byte arrays; the <> operator won't do.
+    For now, we consider all arrays different. }
+  if VarIsArray(AValue1) or VarIsArray(AValue2) then
+    Result := False
+  else
+    Result := VarSameValue(AValue1, AValue2);
 end;
 
 procedure TEFNode.SetToNull;
@@ -1919,7 +1932,7 @@ begin
       Result := SameText(ANode.Name, AName);
     end);
   if (Result = nil) and ACreateMissingNodes then
-    Result := AddChild(AName, '');
+    Result := AddChild(AName);
 end;
 
 function TEFTree.FindChildByNameAndValue(const AName: string;
@@ -2519,6 +2532,11 @@ end;
 function TEFDataType.GetDefaultDisplayWidth(const ASize: Integer): Integer;
 begin
   Result := 20;
+end;
+
+function TEFDataType.GetDefaultEmptyAsNull: Boolean;
+begin
+  Result := False;
 end;
 
 function TEFDataType.GetJSTypeName: string;

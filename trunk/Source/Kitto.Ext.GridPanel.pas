@@ -419,9 +419,6 @@ end;
 
 procedure TKExtGridPanel.EditViewRecord;
 begin
-  { TODO : Make sure the view/edit button is disabled on the client when there are no records. }
-  if ServerStore.RecordCount = 0 then
-    Exit;
   ShowEditWindow(Session.LocateRecordFromQueries(ViewTable, ServerStore), emEditCurrentRecord);
 end;
 

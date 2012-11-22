@@ -76,27 +76,27 @@ type
     class function GetLookupSelectStatement(const AViewField: TKViewField): string;
 
     ///	<summary>Builds in the specified command an insert statement against
-    ///	the specified model's table with a parameter for each value in AValues.
+    ///	the specified record's table with a parameter for each value in AValues.
     ///	Also sets the parameter values, so that the command is ready for
     ///	execution.</summary>
-    class procedure BuildInsertCommand(const AViewTable: TKViewTable;
-      const ADBCommand: TEFDBCommand; const AValues: TKRecord);
+    class procedure BuildInsertCommand(const ADBCommand: TEFDBCommand;
+      const ARecord: TKViewTableRecord);
 
     ///	<summary>Builds in the specified command an update statement against
-    ///	the specified model's table with a parameter for each value in AValues
+    ///	the specified record's table with a parameter for each value in ARecord
     /// plus a where clause with a parameter for each key field.
     ///	Also sets the parameter values, so that the command is ready for
-    ///	execution. AValues must contain at least the key fields.</summary>
-    class procedure BuildUpdateCommand(const AViewTable: TKViewTable;
-      const ADBCommand: TEFDBCommand; const AValues: TKRecord);
+    ///	execution. ARecord must contain at least the key fields.</summary>
+    class procedure BuildUpdateCommand(const ADBCommand: TEFDBCommand;
+      const ARecord: TKViewTableRecord);
 
     ///	<summary>Builds in the specified command a delete statement against
-    ///	the specified model's table with a where clause with a parameter for
+    ///	the specified record's table with a where clause with a parameter for
     /// each key field.
     ///	Also sets the parameter values, so that the command is ready for
     ///	execution. AValues must contain at least the key fields.</summary>
-    class procedure BuildDeleteCommand(const AViewTable: TKViewTable;
-      const ADBCommand: TEFDBCommand; const AValues: TKRecord);
+    class procedure BuildDeleteCommand(const ADBCommand: TEFDBCommand;
+      const ARecord: TKViewTableRecord);
 
     ///	<summary>Builds in the specified query a select statement that selects
     ///	all derived fields from the referenced model, locating the record by
@@ -152,15 +152,16 @@ begin
   end;
 end;
 
-class procedure TKSQLBuilder.BuildInsertCommand(const AViewTable: TKViewTable;
-  const ADBCommand: TEFDBCommand; const AValues: TKRecord);
+class procedure TKSQLBuilder.BuildInsertCommand(const ADBCommand: TEFDBCommand;
+  const ARecord: TKViewTableRecord);
 var
   LCommandText: string;
   I: Integer;
   LViewField: TKViewField;
   LDBColumnNames: string;
   LValueNames: string;
-  LSubFieldIndex: Integer;
+  J: Integer;
+  LProcessedRefFields: TList<TKViewField>;
 
   procedure AddDBColumnName(const ADBColumnName, AParamName: string);
   begin
@@ -177,34 +178,58 @@ var
     ADBCommand.Params.CreateParam(ftUnknown, AParamName, ptInput);
   end;
 
+  function IsRefFieldProcessed(const AViewField: TKViewField): Boolean;
+  begin
+    Assert(Assigned(AViewField));
+    Assert(AViewField.IsReference);
+
+    Result := LProcessedRefFields.Contains(AViewField);
+  end;
+
+  procedure MarkRefFieldAsProcessed(const AViewField: TKViewField);
+  begin
+    Assert(Assigned(AViewField));
+    Assert(AViewField.IsReference);
+
+    LProcessedRefFields.Add(AViewField);
+  end;
+
 begin
-  Assert(Assigned(AViewTable));
   Assert(Assigned(ADBCommand));
-  Assert(Assigned(AValues));
+  Assert(Assigned(ARecord));
 
   if ADBCommand.Prepared then
     ADBCommand.Prepared := False;
   ADBCommand.Params.BeginUpdate;
   try
     ADBCommand.Params.Clear;
-    LCommandText := 'insert into ' + AViewTable.Model.DBTableName + ' (';
+    LCommandText := 'insert into ' + ARecord.ViewTable.Model.DBTableName + ' (';
     LDBColumnNames := '';
     LValueNames := '';
-    for I := 0 to AValues.ChildCount - 1 do
-    begin
-      LViewField := AViewTable.FindField(AValues[I].Name);
-      if Assigned(LViewField) and AValues[I].IsModified and LViewField.CanInsert then
+
+    LProcessedRefFields := TList<TKViewField>.Create;
+    try
+      for I := 0 to ARecord.ChildCount - 1 do
       begin
-        if LViewField.IsReference then
+        LViewField := ARecord[I].ViewField;
+        if Assigned(LViewField) and ARecord[I].IsModified and LViewField.CanInsert then
         begin
-          for LSubFieldIndex := 0 to LViewField.ModelField.FieldCount - 1 do
-            AddDBColumnName(LViewField.ModelField.Fields[LSubFieldIndex].DBColumnName,
-              LViewField.ModelField.Fields[LSubFieldIndex].FieldName);
-        end
-        else
-          AddDBColumnName(AViewTable.FieldByName(AValues[I].Name).ModelField.DBColumnName,
-            AValues[I].Name);
+          if LViewField.IsReference then
+          begin
+            if not IsRefFieldProcessed(LViewField) then
+            begin
+              for J := 0 to LViewField.ModelField.FieldCount - 1 do
+                AddDBColumnName(LViewField.ModelField.Fields[J].DBColumnName,
+                  LViewField.ModelField.Fields[J].FieldName);
+              MarkRefFieldAsProcessed(LViewField);
+            end
+          end
+          else
+            AddDBColumnName(LViewField.ModelField.DBColumnName, ARecord[I].FieldName);
+        end;
       end;
+    finally
+      FreeAndNil(LProcessedRefFields);
     end;
     LCommandText := LCommandText + LDBColumnNames + ') values (' + LValueNames + ')';
     ADBCommand.CommandText := LCommandText;
@@ -212,11 +237,11 @@ begin
     ADBCommand.Params.EndUpdate;
   end;
   for I := 0 to ADBCommand.Params.Count - 1 do
-    AValues.GetNode(ADBCommand.Params[I].Name).AssignValueToParam(ADBCommand.Params[I]);
+    ARecord.GetNode(ADBCommand.Params[I].Name).AssignValueToParam(ADBCommand.Params[I]);
 end;
 
-class procedure TKSQLBuilder.BuildUpdateCommand(const AViewTable: TKViewTable;
-  const ADBCommand: TEFDBCommand; const AValues: TKRecord);
+class procedure TKSQLBuilder.BuildUpdateCommand(const ADBCommand: TEFDBCommand;
+  const ARecord: TKViewTableRecord);
 var
   LCommandText: string;
   I: Integer;
@@ -224,7 +249,8 @@ var
   LViewField: TKViewField;
   LDBColumnNames: string;
   LParamName: string;
-  LSubFieldIndex: Integer;
+  J: Integer;
+  LProcessedRefFields: TList<TKViewField>;
 
   procedure AddDBColumnName(const ADBColumnName, AParamName: string);
   begin
@@ -235,43 +261,67 @@ var
     ADBCommand.Params.CreateParam(ftUnknown, AParamName, ptInput);
   end;
 
+  function IsRefFieldProcessed(const AViewField: TKViewField): Boolean;
+  begin
+    Assert(Assigned(AViewField));
+    Assert(AViewField.IsReference);
+
+    Result := LProcessedRefFields.Contains(AViewField);
+  end;
+
+  procedure MarkRefFieldAsProcessed(const AViewField: TKViewField);
+  begin
+    Assert(Assigned(AViewField));
+    Assert(AViewField.IsReference);
+
+    LProcessedRefFields.Add(AViewField);
+  end;
+
 begin
-  Assert(Assigned(AViewTable));
   Assert(Assigned(ADBCommand));
-  Assert(Assigned(AValues));
+  Assert(Assigned(ARecord));
 
   if ADBCommand.Prepared then
     ADBCommand.Prepared := False;
   ADBCommand.Params.BeginUpdate;
   try
     ADBCommand.Params.Clear;
-    LCommandText := 'update ' + AViewTable.Model.DBTableName + ' set ';
+    LCommandText := 'update ' + ARecord.ViewTable.Model.DBTableName + ' set ';
     LDBColumnNames := '';
-    for I := 0 to AValues.FieldCount - 1 do
-    begin
-      LViewField := AViewTable.FindField(AValues[I].Name);
-      if Assigned(LViewField) and AValues[I].IsModified and LViewField.CanUpdate and not LViewField.IsKey then
+
+    LProcessedRefFields := TList<TKViewField>.Create;
+    try
+      for I := 0 to ARecord.FieldCount - 1 do
       begin
-        if LViewField.IsReference then
+        LViewField := ARecord[I].ViewField;
+        if Assigned(LViewField) and ARecord[I].IsModified and LViewField.CanUpdate and not LViewField.IsKey then
         begin
-          for LSubFieldIndex := 0 to LViewField.ModelField.FieldCount - 1 do
-            AddDBColumnName(LViewField.ModelField.Fields[LSubFieldIndex].DBColumnName,
-              LViewField.ModelField.Fields[LSubFieldIndex].DBColumnName);
-        end
-        else
-          AddDBColumnName(AViewTable.FieldByName(AValues[I].Name).ModelField.DBColumnName,
-            AValues[I].Name);
+          if LViewField.IsReference then
+          begin
+            if not IsRefFieldProcessed(LViewField) then
+            begin
+              for J := 0 to LViewField.ModelField.FieldCount - 1 do
+                AddDBColumnName(LViewField.ModelField.Fields[J].DBColumnName,
+                  LViewField.ModelField.Fields[J].FieldName);
+              MarkRefFieldAsProcessed(LViewField);
+            end
+          end
+          else
+            AddDBColumnName(LViewField.ModelField.DBColumnName, ARecord[I].FieldName);
+        end;
       end;
+    finally
+      FreeAndNil(LProcessedRefFields);
     end;
     if LDBColumnNames = '' then
       LCommandText := ''
     else
     begin
       LCommandText := LCommandText + LDBColumnNames + ' where ';
-      LKeyFields := AViewTable.Model.GetKeyDBColumnNames;
+      LKeyFields := ARecord.ViewTable.Model.GetKeyDBColumnNames;
       for I := 0 to Length(LKeyFields) - 1 do
       begin
-        LParamName := AViewTable.FieldByDBColumnName(LKeyFields[I]).AliasedName;
+        LParamName := ARecord.ViewTable.FieldByDBColumnName(LKeyFields[I]).AliasedName;
         if I > 0 then
           LCommandText := LCommandText + ' and ';
         LCommandText := LCommandText + LKeyFields[I] + ' = :' + LParamName;
@@ -283,31 +333,30 @@ begin
     ADBCommand.Params.EndUpdate;
   end;
   for I := 0 to ADBCommand.Params.Count - 1 do
-    AValues.GetNode(ADBCommand.Params[I].Name).AssignValueToParam(ADBCommand.Params[I]);
+    ARecord.GetNode(ADBCommand.Params[I].Name).AssignValueToParam(ADBCommand.Params[I]);
 end;
 
-class procedure TKSQLBuilder.BuildDeleteCommand(const AViewTable: TKViewTable;
-  const ADBCommand: TEFDBCommand; const AValues: TKRecord);
+class procedure TKSQLBuilder.BuildDeleteCommand(const ADBCommand: TEFDBCommand;
+  const ARecord: TKViewTableRecord);
 var
   LCommandText: string;
   I: Integer;
   LKeyFields: TStringDynArray;
   LParamName: string;
 begin
-  Assert(Assigned(AViewTable));
   Assert(Assigned(ADBCommand));
-  Assert(Assigned(AValues));
+  Assert(Assigned(ARecord));
 
   if ADBCommand.Prepared then
     ADBCommand.Prepared := False;
   ADBCommand.Params.BeginUpdate;
   try
     ADBCommand.Params.Clear;
-    LCommandText := 'delete from ' + AViewTable.Model.DBTableName + ' where ';
-    LKeyFields := AViewTable.Model.GetKeyDBColumnNames;
+    LCommandText := 'delete from ' + ARecord.ViewTable.Model.DBTableName + ' where ';
+    LKeyFields := ARecord.ViewTable.Model.GetKeyDBColumnNames;
     for I := 0 to Length(LKeyFields) - 1 do
     begin
-      LParamName := AViewTable.FieldByDBColumnName(LKeyFields[I]).AliasedName;
+      LParamName := ARecord.ViewTable.FieldByDBColumnName(LKeyFields[I]).AliasedName;
       if I > 0 then
         LCommandText := LCommandText + ' and ';
       LCommandText := LCommandText + LKeyFields[I] + ' = :' + LParamName;
@@ -318,7 +367,7 @@ begin
     ADBCommand.Params.EndUpdate;
   end;
   for I := 0 to ADBCommand.Params.Count - 1 do
-    AValues.GetNode(ADBCommand.Params[I].Name).AssignValueToParam(ADBCommand.Params[I]);
+    ARecord.GetNode(ADBCommand.Params[I].Name).AssignValueToParam(ADBCommand.Params[I]);
 end;
 
 class procedure TKSQLBuilder.BuildDerivedSelectQuery(const AViewField: TKViewField;
@@ -331,6 +380,7 @@ var
   LKeyDBColumnNames: TStringDynArray;
   LModel: TKModel;
   LClause: string;
+  LDBColumnName: string;
 begin
   Assert(Assigned(AViewField));
   Assert(AViewField.IsReference);
@@ -344,10 +394,15 @@ begin
   LCommandText := '';
   for LDerivedField in LDerivedFields do
   begin
-    if LCommandText = '' then
-      LCommandText := LDerivedField.ModelField.DBColumnName
+    if SameText(LDerivedField.FieldName, AViewField.FieldName) then
+      LDBColumnName := AViewField.Table.Model.CaptionField.DBColumnName
     else
-      LCommandText := LCommandText + ', ' + LDerivedField.ModelField.DBColumnName;
+      LDBColumnName := LDerivedField.ModelField.DBColumnName;
+
+    if LCommandText = '' then
+      LCommandText := LDBColumnName
+    else
+      LCommandText := LCommandText + ', ' + LDBColumnName;
   end;
   LCommandText := 'select ' + LCommandText + ' from ' + LModel.DBTableName;
 
@@ -483,15 +538,15 @@ begin
   if not FUsedReferenceFields.Contains(AViewField.ModelField) then
     FUsedReferenceFields.Add(AViewField.ModelField);
 
-  LFields := AViewField.ModelField.GetReferenceFields;
-  for I := Low(LFields) to High(LFields) do
-    AddSelectTerm(FViewTable.Model.DBTableName + '.' + LFields[I].DBColumnName);
   // Add the caption field of the referenced model as well.
   // The reference field name is used as table alias.
   AddSelectTerm(
     AViewField.FieldName + '.' +
     AViewField.ModelField.ReferencedModel.CaptionField.DBColumnName + ' ' +
     AViewField.ModelField.FieldName);
+  LFields := AViewField.ModelField.GetReferenceFields;
+  for I := Low(LFields) to High(LFields) do
+    AddSelectTerm(FViewTable.Model.DBTableName + '.' + LFields[I].DBColumnName);
 end;
 
 function TKSQLBuilder.GetSelectWhereClause(const AFilter: string;

@@ -49,6 +49,16 @@ type
     procedure RefreshValue;
   end;
 
+  /// <summary>
+  ///   Interface implemented by editors that need to be notified after
+  ///   data is loaded. The combo box uses it to fix its predefined value,
+  ///   for example.
+  /// </summary>
+  IKExtEditorAfterLoad = interface(IKExtEditor)
+    ['{83C3D76B-A968-479A-AD67-3A7ADCFDB1F0}']
+    procedure AfterLoad;
+  end;
+
   TKExtEditPanel = class(TExtFormFormPanel, IKExtEditItem, IKExtEditContainer)
   public
     function AsObject: TObject;
@@ -261,13 +271,14 @@ type
     property AllowBlank: Boolean read FAllowBlank write SetAllowBlank;
   end;
 
-  TKExtFormComboBoxEditor = class(TKExtFormComboBox, IKExtEditItem, IKExtEditor)
+  TKExtFormComboBoxEditor = class(TKExtFormComboBox, IKExtEditItem, IKExtEditor,
+    IKExtEditorAfterLoad)
   private
     FServerStore: TKStore;
     FLookupCommandText: string;
     FRecordField: TKViewTableField;
-    procedure SetupServerStore(const AField: TKViewTableField;
-      const ALookupCommandText: string);
+    procedure SetupServerStore(const AViewField: TKViewField;
+      const ALookupCommandText: string; const ARecordField: TKViewTableField);
     procedure FieldChange(This: TExtFormField; NewValue, OldValue: string);
   protected
     procedure InitDefaults; override;
@@ -280,6 +291,7 @@ type
     function GetRecordField: TKViewTableField;
     procedure SetRecordField(const AValue: TKViewTableField);
     procedure RefreshValue;
+    procedure AfterLoad;
   published
     procedure GetRecordPage;
   end;
@@ -438,9 +450,9 @@ type
     procedure CreateEditorsFromLayout(const ALayout: TKLayout);
     procedure ProcessLayoutNode(const ANode: TEFNode);
     function GetLookupCommandText(const AViewField: TKViewField): string;
-    function TryCreateComboBox(const AField: TKViewTableField;
+    function TryCreateComboBox(const AViewField: TKViewField;
       const ARowField: TKExtFormRowField; const AFieldCharWidth: Integer;
-      const AIsReadOnly: Boolean): IKExtEditor;
+      const AIsReadOnly: Boolean; const ARecordField: TKViewTableField): IKExtEditor;
     function TryCreateTextArea(const AViewField: TKViewField;
       const ARowField: TKExtFormRowField; const AFieldCharWidth: Integer;
       const AIsReadOnly: Boolean): IKExtEditor;
@@ -722,9 +734,9 @@ begin
   Result := FDataRecord.ViewTable;
 end;
 
-function TKExtLayoutProcessor.TryCreateComboBox(const AField: TKViewTableField;
+function TKExtLayoutProcessor.TryCreateComboBox(const AViewField: TKViewField;
   const ARowField: TKExtFormRowField; const AFieldCharWidth: Integer;
-  const AIsReadOnly: Boolean): IKExtEditor;
+  const AIsReadOnly: Boolean; const ARecordField: TKViewTableField): IKExtEditor;
 var
   LLookupCommandText: string;
   LAllowedValues: TEFPairs;
@@ -732,10 +744,10 @@ var
   I: Integer;
 begin
   Result := nil;
-  if not AField.ViewField.IsDetailReference then
+  if not AViewField.IsDetailReference then
   begin
-    LLookupCommandText := GetLookupCommandText(AField.ViewField);
-    LAllowedValues := AField.ViewField.GetChildrenAsPairs('AllowedValues', True);
+    LLookupCommandText := GetLookupCommandText(AViewField);
+    LAllowedValues := AViewField.GetChildrenAsPairs('AllowedValues', True);
     // Translate allowed value descriptions if needed.
     for I := Low(LAllowedValues) to High(LAllowedValues) do
       LAllowedValues[I].Value := _(LAllowedValues[I].Value);
@@ -748,18 +760,18 @@ begin
         else
           ARowField.CharWidth := AFieldCharWidth + TRIGGER_WIDTH;
         // Enable the combo box to post its hidden value instead of the visible description.
-        LComboBox.HiddenName := AField.ViewField.FieldNamesForUpdate;
+        LComboBox.HiddenName := AViewField.FieldNamesForUpdate;
 
         if Length(LAllowedValues) > 0 then
           LComboBox.StoreArray := LComboBox.JSArray(PairsToJSON(LAllowedValues))
         else // LLookupCommandText <> ''
         begin
-          if AField.ViewField.IsReference and AField.ViewField.ModelField.ReferencedModel.IsLarge then
-            LComboBox.SetupServerStore(AField, LLookupCommandText)
+          if AViewField.IsReference and AViewField.ModelField.ReferencedModel.IsLarge then
+            LComboBox.SetupServerStore(AViewField, LLookupCommandText, ARecordField)
           else
           begin
             LComboBox.Mode := 'local';
-            LComboBox.StoreArray := LComboBox.JSArray(DataSetToJSON(Session.Config.DBConnections[AField.ViewField.Table.DatabaseName], LLookupCommandText));
+            LComboBox.StoreArray := LComboBox.JSArray(DataSetToJSON(Session.Config.DBConnections[AViewField.Table.DatabaseName], LLookupCommandText));
           end;
         end;
         if not AIsReadOnly then
@@ -1056,7 +1068,7 @@ begin
   Assert(Assigned(FDataRecord));
 
   LViewField := ViewTable.FieldByAliasedName(AFieldName);
-  LRecordField := FDataRecord.FieldByName(AFieldName);
+  LRecordField := FDataRecord.FieldByName(LViewField.FieldName);
 
   // Store common properties.
   LFieldCharWidth := LViewField.DisplayWidth;
@@ -1095,7 +1107,7 @@ begin
 
   Result := TryCreateFileEditor(LViewField, LRowField, LFieldCharWidth, LIsReadOnly, LLabel);
   if Result = nil then
-    Result := TryCreateComboBox(LRecordField, LRowField, LFieldCharWidth, LIsReadOnly);
+    Result := TryCreateComboBox(LViewField, LRowField, LFieldCharWidth, LIsReadOnly, LRecordField);
   if Result = nil then
     Result := TryCreateTextArea(LViewField, LRowField, LFieldCharWidth, LIsReadOnly);
   if Result = nil then
@@ -1584,6 +1596,11 @@ end;
 
 { TKExtFormComboBoxEditor }
 
+procedure TKExtFormComboBoxEditor.AfterLoad;
+begin
+  SetRawValue(JSONNullToEmptyStr(FRecordField.GetAsJSONValue(False, False)));
+end;
+
 function TKExtFormComboBoxEditor.AsExtFormField: TExtFormField;
 begin
   Result := Self;
@@ -1666,18 +1683,18 @@ begin
   end;
 end;
 
-procedure TKExtFormComboBoxEditor.SetupServerStore(const AField: TKViewTableField;
-  const ALookupCommandText: string);
+procedure TKExtFormComboBoxEditor.SetupServerStore(const AViewField: TKViewField;
+  const ALookupCommandText: string; const ARecordField: TKViewTableField);
 var
   I: Integer;
 begin
-  Assert(Assigned(AField));
-  Assert(AField.ViewField.IsReference);
+  Assert(Assigned(AViewField));
+  Assert(AViewField.IsReference);
   Assert(ALookupCommandText <> '');
 
   FLookupCommandText := ALookupCommandText;
   FreeAndNil(FServerStore);
-  FServerStore := AField.ViewField.CreateReferenceStore;
+  FServerStore := AViewField.CreateReferenceStore;
   Store := TExtDataStore.Create(Self);
   Store.Url := MethodURI(GetRecordPage);
   Store.Reader := TExtDataJsonReader.Create(Self, JSObject('')); // Must pass '' otherwise invalid code is generated.
@@ -1688,12 +1705,6 @@ begin
       Name := FServerStore.Header.Fields[I].FieldName;
   ValueField := FServerStore.Header.Fields[0].FieldName;
   DisplayField := FServerStore.Header.Fields[1].FieldName;
-  // This is a hack to show the current display value in the combo box
-  // before dropping down the list and loading the data, which is good.
-  // The BasicForm will set the value, the combo box will not find the
-  // corresponding display value because the list is not loaded yet,
-  // and it will render this value.
-  ValueNotFoundText := AField.AsString;
   { TODO : make these configurable. }
   MinChars := 4;
   PageSize := 100;

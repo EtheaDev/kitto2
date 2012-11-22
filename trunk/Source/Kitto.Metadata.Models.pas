@@ -33,6 +33,8 @@ type
       const AFormatSettings: TFormatSettings); override;
   public
     class function GetTypeName: string; override;
+    function GetDefaultEmptyAsNull: Boolean; override;
+    function SupportsEmptyAsNull: Boolean; override;
   end;
 
   TKModel = class;
@@ -66,7 +68,6 @@ type
   TKModelField = class(TKMetadataItem)
   strict private
     function GetFieldName: string;
-    function GetDataType: TEFDataType;
     function GetSize: Integer;
     function GetIsRequired: Boolean;
     function GetQualifiedDBColumnName: string;
@@ -108,6 +109,7 @@ type
     procedure GetFieldSpec(out ADataType: string; out ASize, ADecimalPrecision: Integer;
       out AIsRequired: Boolean; out AIsKey: Boolean; out AReferencedModel: string);
     function GetFields: TKModelFields;
+    function GetDataType: TEFDataType; override;
   public
     function GetEmptyAsNull: Boolean; override;
     procedure BeforeSave; override;
@@ -235,13 +237,18 @@ type
     ///	<summary>
     ///	  Indicates that an empty value input by the user should be converted
     ///	  to null when writing to the database. For string/date/time/datetime
-    ///	  fields defaults to True (False if the field is required); for other
-    ///	  data types defaults to False.
+    ///	  fields defaults to True; for other data types defaults to False.
     ///	</summary>
     ///	<remarks>
     ///	  Only relevant for string/date/time/datetime fields. In other cases,
     ///	  empty values are always converted to null. If the field is not of one
     ///	  of these types, this property always returns True.
+    ///	</remarks>
+    ///	<remarks>
+    ///	  If the field has a parent field, then the parent field's EmptyAsNull
+    ///	  is returned (IOW setting EmptyAsNull on fields that are part of
+    ///   other fields, such as in multi-column reference fields, is
+    ///   ineffective. You set it once for all in the parent field).
     ///	</remarks>
     property EmptyAsNull: Boolean read GetEmptyAsNull;
 
@@ -916,10 +923,13 @@ procedure TKModelField.GetFieldSpec(out ADataType: string; out ASize, ADecimalPr
 var
   LStrings: TStringDynArray;
   LDataType: TEFDataType;
+  LStringValue: string;
 begin
-  AIsRequired := ContainsText(AsString, ' not null');
-  AIsKey := ContainsText(AsString, ' primary key');
-  LStrings := Split(StripSuffix(StripSuffix(AsString, ' primary key'), ' not null'), '(,)');
+  // Calling AsString here would cause an infinite loop.
+  LStringValue := EFVarToStr(Value);
+  AIsRequired := ContainsText(LStringValue, ' not null');
+  AIsKey := ContainsText(LStringValue, ' primary key');
+  LStrings := Split(StripSuffix(StripSuffix(LStringValue, ' primary key'), ' not null'), '(,)');
   while (Length(LStrings) > 0) and (Trim(LStrings[High(LStrings)]) = '') do
     SetLength(LStrings, Length(LStrings) - 1);
 
@@ -1127,7 +1137,7 @@ end;
 function TKModelField.GetAliasedDBColumnName: string;
 begin
   Result := DBColumnName;
-  if Result <> FieldName then
+  if not SameText(Result, FieldName) then
     Result := Result + ' ' + FieldName;
 end;
 
@@ -1182,14 +1192,19 @@ var
   LParentField: TKModelField;
   LDataType: string;
 begin
-  LParentField := ParentField;
-  if Assigned(LParentField) and ParentField.IsReference then
-    Result := ParentField.ReferencedModel.KeyFields[Index].DataType
-  else
+  if Assigned(Model) and Assigned(Model.Catalog) then
   begin
-    GetFieldSpec(LDataType, LSize, LDecimalPrecision, LIsRequired, LIsKey, LReferencedModel);
-    Result := TEFDataTypeFactory.Instance.GetDataType(LDataType)
-  end;
+    LParentField := ParentField;
+    if Assigned(LParentField) and ParentField.IsReference then
+      Result := ParentField.ReferencedModel.KeyFields[Index].DataType
+    else
+    begin
+      GetFieldSpec(LDataType, LSize, LDecimalPrecision, LIsRequired, LIsKey, LReferencedModel);
+      Result := TEFDataTypeFactory.Instance.GetDataType(LDataType)
+    end;
+  end
+  else
+    Result := inherited GetDataType;
 end;
 
 function TKModelField.GetDBColumnName: string;
@@ -1259,14 +1274,19 @@ var
 begin
   if DataType.SupportsEmptyAsNull then
   begin
-    LNode := FindChild('EmptyAsNull', False);
-    if Assigned(LNode) then
-      Result := LNode.AsBoolean
+    if ParentField <> nil then
+      Result := ParentField.EmptyAsNull
     else
-      Result := not IsRequired;
+    begin
+      LNode := FindChild('EmptyAsNull', False);
+      if Assigned(LNode) then
+        Result := LNode.AsBoolean
+      else
+        Result := inherited GetEmptyAsNull;
+    end;
   end
   else
-    Result := True;
+    Result := inherited GetEmptyAsNull;
 end;
 
 function TKModelField.GetExpression: string;
@@ -1681,6 +1701,11 @@ end;
 
 { TKReferenceDataType }
 
+function TKReferenceDataType.GetDefaultEmptyAsNull: Boolean;
+begin
+  Result := True;
+end;
+
 class function TKReferenceDataType.GetTypeName: string;
 begin
   Result := 'Reference';
@@ -1696,6 +1721,11 @@ procedure TKReferenceDataType.InternalYamlValueToNode(const AYamlValue: string;
   const ANode: TEFNode; const AFormatSettings: TFormatSettings);
 begin
   raise EEFError.CreateFmt('%s.InternalYamlValueToNode: Unsupported call.', [ClassName]);
+end;
+
+function TKReferenceDataType.SupportsEmptyAsNull: Boolean;
+begin
+  Result := True;
 end;
 
 { TKModelList }

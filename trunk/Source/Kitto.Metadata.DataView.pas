@@ -50,7 +50,6 @@ type
     function GetModelField: TKModelField;
     function GetDisplayLabel: string;
     function GetDisplayWidth: Integer;
-    function GetDataType: TEFDataType;
     function GetIsRequired: Boolean;
     function GetIsReadOnly: Boolean;
     function GetQualifiedDBName: string;
@@ -83,6 +82,7 @@ type
     function GetFileNameField: string;
   strict protected
     function GetChildClass(const AName: string): TEFNodeClass; override;
+    function GetDataType: TEFDataType; override;
   public
     function GetEmptyAsNull: Boolean; override;
     function FindNode(const APath: string; const ACreateMissingNodes: Boolean = False): TEFNode; override;
@@ -114,8 +114,6 @@ type
     ///	  TKConfig.Instance.MultiFieldSeparator.</para>
     ///	  <para>Otherwise, returns the FieldName.</para>
     ///	</summary>
-    ///	<exception cref="EKError">The field is referenced and the reference has
-    ///	more than one key field.</exception>
     property FieldNamesForUpdate: string read GetFieldNamesForUpdate;
 
     ///	<summary>Returns True if the field is a reference field, that is if the
@@ -172,6 +170,15 @@ type
     property IsReadOnly: Boolean read GetIsReadOnly;
     property EmptyAsNull: Boolean read GetEmptyAsNull;
     property DefaultValue: Variant read GetDefaultValue;
+
+    /// <summary>
+    ///   Appends to ANode one child node for each default value. Regular fields
+    ///   have at most one default value (returned by the DefaultValue property),
+    ///   while reference fields can have more (one for each physical constituent
+    ///   field). Model fields are queries for default values automatically.
+    /// </summary>
+    procedure AppendDefaultValues(const ANode: TEFNode);
+
     property Expression: string read GetExpression;
 
     property DisplayLabel: string read GetDisplayLabel;
@@ -190,12 +197,12 @@ type
 
     procedure ApplyRules(const AApplyProc: TProc<TKRuleImpl>);
 
-    ///	<summary>If the field is a reference field, creates and returns a list
+    ///	<summary>If the field is a reference field, creates and returns an array
     ///	of view fields in the current view table from the same referenced
-    ///	model.</summary>
+    ///	model (including itself).</summary>
     ///	<exception cref="Assert">Violation if IsReference is False.</exception>
     ///	<example>If the field is a reference field called City, then all fields
-    ///	called City.* are added to the returned list.</example>
+    ///	called City.* are added to the returned array, plus itself (City).</example>
     function GetDerivedFields: TArray<TKViewField>;
 
     ///	<summary>Creates and loads a store with a record containing all derived
@@ -286,6 +293,7 @@ type
     function GetParentRecord: TKViewTableRecord;
     function GetViewField: TKViewField;
   public
+    function GetEmptyAsNull: Boolean; override;
     function GetAsJSONValue(const AForDisplay: Boolean; const AQuote: Boolean = True): string; override;
     property ParentRecord: TKViewTableRecord read GetParentRecord;
     property ViewField: TKViewField read GetViewField;
@@ -298,6 +306,8 @@ type
     function GetStore: TKViewTableStore;
     function GetViewTable: TKViewTable;
     function GetField(I: Integer): TKViewTableField;
+  private
+    FReferenceViewFieldBeingChanged: TKViewField;
   strict protected
     procedure InternalAfterReadFromNode; override;
     function GetChildClass(const AName: string): TEFNodeClass; override;
@@ -716,16 +726,11 @@ end;
 function TKViewTable.GetDefaultValues: TEFNode;
 var
   I: Integer;
-  LValue: Variant;
 begin
   Result := TEFNode.Create;
   try
     for I := 0 to FieldCount - 1 do
-    begin
-      LValue := Fields[I].DefaultValue;
-      if not VarIsNull(LValue) and (EFVarToStr(LValue) <> '') then
-        Result.AddChild(Fields[I].FieldName, LValue);
-    end;
+      Fields[I].AppendDefaultValues(Result);
   except
     FreeAndNil(Result);
     raise;
@@ -1046,6 +1051,37 @@ end;
 
 { TKViewField }
 
+procedure TKViewField.AppendDefaultValues(const ANode: TEFNode);
+var
+  LValue: Variant;
+  LDefaultValueNode: TEFNode;
+  I: Integer;
+begin
+  Assert(Assigned(ANode));
+
+  // Get regular default value.
+  LValue := DefaultValue;
+  if not VarIsNull(LValue) and (EFVarToStr(LValue) <> '') then
+    ANode.AddChild(FieldName, LValue)
+  else if IsReference then
+  begin
+    // Get model-level multi-column default values.
+    for I := 0 to ModelField.FieldCount - 1 do
+    begin
+      LValue := ModelField.Fields[I].DefaultValue;
+      if not VarIsNull(LValue) and (EFVarToStr(LValue) <> '') then
+        ANode.AddChild(ModelField.Fields[I].FieldName, LValue);
+    end;
+    // Get view-level multi-column default values (override).
+    LDefaultValueNode := FindNode('DefaultValue');
+    if Assigned(LDefaultValueNode) then
+    begin
+      for I := 0 to LDefaultValueNode.ChildCount - 1 do
+        ANode.SetValue(LDefaultValueNode.Children[I].Name, LDefaultValueNode.Children[I].Value);
+    end;
+  end;
+end;
+
 procedure TKViewField.ApplyRules(const AApplyProc: TProc<TKRuleImpl>);
 var
   I: Integer;
@@ -1099,16 +1135,22 @@ begin
   try
     // Set header.
     LDerivedFields := GetDerivedFields;
-    if Length(LDerivedFields) > 0 then
+    Assert(Length(LDerivedFields) > 0);
+
+    Result.DisableChangeNotifications;
+    try
       for LDerivedField in LDerivedFields do
         Result.Header.AddChild(LDerivedField.AliasedName).DataType := LDerivedField.DataType;
-    // Get data.
-    LDBQuery := TKConfig.Instance.DBConnections[Table.DatabaseName].CreateDBQuery;
-    try
-      TKSQLBuilder.BuildDerivedSelectQuery(Self, LDBQuery, AKeyValues);
-      Result.Load(LDBQuery);
+      // Get data.
+      LDBQuery := TKConfig.Instance.DBConnections[Table.DatabaseName].CreateDBQuery;
+      try
+        TKSQLBuilder.BuildDerivedSelectQuery(Self, LDBQuery, AKeyValues);
+        Result.Load(LDBQuery);
+      finally
+        FreeAndNil(LDBQuery);
+      end;
     finally
-      FreeAndNil(LDBQuery);
+      Result.EnableChangeNotifications;
     end;
   except
     FreeAndNil(Result);
@@ -1314,7 +1356,7 @@ begin
   Result := Table.GetFieldArray(
     function (AField: TKViewField): Boolean
     begin
-      Result := AField.ReferenceName = FieldName;
+      Result := (AField = Self) or (AField.ReferenceName = FieldName);
     end
   );
 end;
@@ -1593,7 +1635,9 @@ begin
   for LViewFieldIndex := 0 to FViewTable.FieldCount - 1 do
   begin
     LViewField := FViewTable.Fields[LViewFieldIndex];
-    // Expand reference fields.
+    SetupField(LViewField.AliasedName, LViewField.DataType, LViewField.IsKey, LViewField.IsAccessGranted(ACM_READ));
+    // Expand reference fields. Also keep the reference field itself (above)
+    // as it will hold the user-readable reference description.
     if LViewField.IsReference then
     begin
       for LModelFieldIndex := 0 to LViewField.ModelField.FieldCount - 1 do
@@ -1602,7 +1646,6 @@ begin
         SetupField(LModelField.FieldName, LModelField.DataType, LModelField.IsKey, LModelField.IsAccessGranted(ACM_READ));
       end;
     end;
-    SetupField(LViewField.AliasedName, LViewField.DataType, LViewField.IsKey, LViewField.IsAccessGranted(ACM_READ));
   end;
 end;
 
@@ -1803,30 +1846,44 @@ var
   LStore: TKStore;
   I: Integer;
   LDerivedField: TKViewTableField;
+  LViewField: TKViewField;
 begin
   inherited;
   Assert(AField is TKViewTableField);
 
   LField := TKViewTableField(AField);
-  if LField.ViewField.IsReference then
+  LViewField := LField.ViewField;
+  // See if LField is part of a reference. LField.ViewField gets a reference
+  // to the reference ViewField, if any, or the corresponding ViewField otherwise.
+  if LViewField.IsReference then
   begin
-    // Get derived values.
-    LStore := LField.ViewField.CreateDerivedFieldsStore(EFVarToStr(ANewValue));
+    // Avoid re-entry.
+    if FReferenceViewFieldBeingChanged = LViewField then
+      Exit;
+
+    FReferenceViewFieldBeingChanged := LViewField;
     try
-      // Copy values to editors.
-      for I := 0 to LStore.Header.FieldCount - 1 do
-      begin
-        LDerivedField := FindField(LStore.Header.Fields[I].FieldName);
-        if Assigned(LDerivedField) then
+      // Get derived values.
+      { TODO : Optimization: If ANewValue is null or unassigned, you don't even need to create the store and query the database. }
+      LStore := LField.ViewField.CreateDerivedFieldsStore(EFVarToStr(ANewValue));
+      try
+        // Copy values to fields.
+        for I := 0 to LStore.Header.FieldCount - 1 do
         begin
-          if LStore.RecordCount > 0 then
-            LDerivedField.AssignValue(LStore.Records[0].Fields[I])
-          else
-            LDerivedField.SetToNull;
+          LDerivedField := FindField(LStore.Header.Fields[I].FieldName);
+          if Assigned(LDerivedField) then
+          begin
+            if LStore.RecordCount > 0 then
+              LDerivedField.AssignValue(LStore.Records[0].Fields[I])
+            else
+              LDerivedField.SetToNull;
+          end;
         end;
+      finally
+        FreeAndNil(LStore);
       end;
     finally
-      FreeAndNil(LStore);
+      FReferenceViewFieldBeingChanged := nil;
     end;
   end;
 end;
@@ -1899,9 +1956,9 @@ begin
     LDBCommand := LDBConnection.CreateDBCommand;
     try
       case State of
-        rsNew: TKSQLBuilder.BuildInsertCommand(Records.Store.ViewTable, LDBCommand, Self);
-        rsDirty: TKSQLBuilder.BuildUpdateCommand(Records.Store.ViewTable, LDBCommand, Self);
-        rsDeleted: TKSQLBuilder.BuildDeleteCommand(Records.Store.ViewTable, LDBCommand, Self);
+        rsNew: TKSQLBuilder.BuildInsertCommand(LDBCommand, Self);
+        rsDirty: TKSQLBuilder.BuildUpdateCommand(LDBCommand, Self);
+        rsDeleted: TKSQLBuilder.BuildDeleteCommand(LDBCommand, Self);
       else
         raise EKError.CreateFmt('Unexpected record state %s.', [GetEnumName(TypeInfo(TKRecordState), Ord(State))]);
       end;
@@ -2011,6 +2068,11 @@ begin
   end;
   if AQuote and not SameText(Result, 'null') then
     Result := QuoteJSONStr(Result);
+end;
+
+function TKViewTableField.GetEmptyAsNull: Boolean;
+begin
+  Result := ViewField.EmptyAsNull;
 end;
 
 function TKViewTableField.GetParentRecord: TKViewTableRecord;
