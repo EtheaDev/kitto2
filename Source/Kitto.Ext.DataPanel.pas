@@ -258,7 +258,7 @@ begin
     begin
       ServerStore.Load(GetRootDataPanel.GetFilterExpression, GetOrderByClause);
       LTotal := ServerStore.RecordCount;
-      LData := ServerStore.GetAsJSON(True, 0, Min(GetMaxRecords(), ServerStore.RecordCount));
+      LData := ServerStore.GetAsJSON(True, 0, Min(GetMaxRecords(), LTotal));
     end;
   end;
   Session.ResponseItems.AddJSON(Format('{Total: %d, Root: %s}', [LTotal, LData]));
