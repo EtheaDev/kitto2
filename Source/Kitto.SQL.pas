@@ -475,6 +475,8 @@ class function TKSQLBuilder.GetLookupSelectStatement(
   const AViewField: TKViewField): string;
 var
   LLookupModel: TKModel;
+  LDefaultFilter: string;
+  LLookupModelDefaultFilter: string;
 begin
   Assert(Assigned(AViewField));
   Assert(AViewField.IsReference);
@@ -485,9 +487,14 @@ begin
     if not LLookupModel.CaptionField.IsKey then
       Result := Result + ', ' + LLookupModel.CaptionField.AliasedDBColumnName;
     Result := Result + ' from ' + LLookupModel.DBTableName
-    + ' order by ' + LLookupModel.CaptionField.DBColumnName;
-  if LLookupModel.DefaultFilter <> '' then
-    Result := AddToSQLWhereClause(Result, LLookupModel.DefaultFilter);
+      + ' order by ' + LLookupModel.CaptionField.DBColumnName;
+  LLookupModelDefaultFilter := LLookupModel.DefaultFilter;
+  if LLookupModelDefaultFilter <> '' then
+    Result := AddToSQLWhereClause(Result, '(' + LLookupModelDefaultFilter + ')');
+  LDefaultFilter := AViewField.DefaultFilter;
+  if LDefaultFilter <> '' then
+    Result := AddToSQLWhereClause(Result, '(' + LDefaultFilter  + ')',
+      AViewField.DefaultFilterConnector);
 end;
 
 function TKSQLBuilder.BuildJoin(const AReferenceField: TKModelField): string;
