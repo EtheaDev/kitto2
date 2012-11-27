@@ -490,7 +490,7 @@ implementation
 uses
   Types, Math, StrUtils, Windows, Graphics, jpeg, pngimage,
   EF.SysUtils, EF.StrUtils, EF.Localization, EF.YAML, EF.Types, EF.SQL, EF.JSON,
-  EF.DB,
+  EF.DB, EF.Macros,
   Kitto.SQL, Kitto.Metadata.Models, Kitto.Types, Kitto.AccessControl,
   Kitto.Rules, Kitto.Ext.Utils, Kitto.Ext.Rules;
 
@@ -714,7 +714,7 @@ begin
   begin
     Result := TKSQLBuilder.GetLookupSelectStatement(AViewField);
     if AViewField.ModelField.ReferencedModel.IsLarge then
-      Result := AddToSQLWhereClause(Result, AViewField.ModelField.ReferencedModel.CaptionField.DBColumnName + ' like ''{query}%''');
+      Result := AddToSQLWhereClause(Result, '(' + AViewField.ModelField.ReferencedModel.CaptionField.DBColumnName + ' like ''{query}%'')');
   end
   else
     Result := '';
@@ -1692,7 +1692,7 @@ begin
   Assert(AViewField.IsReference);
   Assert(ALookupCommandText <> '');
 
-  FLookupCommandText := ALookupCommandText;
+  FLookupCommandText := TEFMacroExpansionEngine.Instance.Expand(ALookupCommandText);
   FreeAndNil(FServerStore);
   FServerStore := AViewField.CreateReferenceStore;
   Store := TExtDataStore.Create(Self);

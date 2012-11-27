@@ -103,7 +103,10 @@ type
     function GetPhysicalName: string;
     function GetAliasedDBColumnName: string;
     function GetFileNameField: string;
-  strict protected
+  strict
+  private
+    function GetDefaultFilter: string;
+    function GetDefaultFilterConnector: string; protected
     function GetChildClass(const AName: string): TEFNodeClass; override;
     ///	<summary>Returns all main field properties at once.</summary>
     procedure GetFieldSpec(out ADataType: string; out ASize, ADecimalPrecision: Integer;
@@ -148,6 +151,20 @@ type
 
     ///	<summary>True if the field is a reference.</summary>
     property IsReference: Boolean read GetIsReference;
+
+    ///	<summary>
+    ///	  Optional filter to use when creating select lists. Only applies to
+    ///	  reference fields.
+    ///	</summary>
+    property DefaultFilter: string read GetDefaultFilter;
+
+    ///	<summary>
+    ///	  Specifies the logical connector to use when appending the
+    ///	  DefaultFilter to an existing WHERE clause (for example, a referenced
+    ///	  model's own DefaultFilter). Defaults to 'and'; another common value
+    ///	  is 'or'.
+    ///	</summary>
+    property DefaultFilterConnector: string read GetDefaultFilterConnector;
 
     ///	<summary>If the field is part of a reference field, returns the number
     ///	of physical fields that make up the reference.</summary>
@@ -1235,6 +1252,16 @@ begin
     GetFieldSpec(LDataType, LSize, Result, LIsRequired, LIsKey, LReferencedModel);
   if Result = 0 then
     Result := 2;
+end;
+
+function TKModelField.GetDefaultFilter: string;
+begin
+  Result := GetString('DefaultFilter');
+end;
+
+function TKModelField.GetDefaultFilterConnector: string;
+begin
+  Result := GetString('DefaultFilterConnector', 'and');
 end;
 
 function TKModelField.GetDefaultValue: Variant;

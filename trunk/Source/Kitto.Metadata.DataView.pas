@@ -80,6 +80,8 @@ type
     function GetReferenceName: string;
     function GetDisplayTemplate: string;
     function GetFileNameField: string;
+    function GetDefaultFilter: string;
+    function GetDefaultFilterConnector: string;
   strict protected
     function GetChildClass(const AName: string): TEFNodeClass; override;
     function GetDataType: TEFDataType; override;
@@ -120,6 +122,20 @@ type
     ///	field is part of the containing view table's model and the underlying
     ///	model field is a reference field.</summary>
     property IsReference: Boolean read GetIsReference;
+
+    ///	<summary>
+    ///	  Optional filter to use when creating select lists. Only applies to
+    ///	  reference fields.
+    ///	</summary>
+    property DefaultFilter: string read GetDefaultFilter;
+
+    ///	<summary>
+    ///	  Specifies the logical connector to use when appending the
+    ///	  DefaultFilter to an existing WHERE clause (for example, a referenced
+    ///	  model's own DefaultFilter). Defaults to 'and'; another common value
+    ///	  is 'or'.
+    ///	</summary>
+    property DefaultFilterConnector: string read GetDefaultFilterConnector;
 
     ///	<summary>Returns the field's DataType, unless it's a reference field,
     ///	in which case returns the data type of the referenced model's
@@ -1338,6 +1354,20 @@ begin
   Result := GetInteger('DecimalPrecision');
   if Result = 0 then
     Result := ModelField.DecimalPrecision;
+end;
+
+function TKViewField.GetDefaultFilter: string;
+begin
+  Result := GetString('DefaultFilter');
+  if Result = '' then
+    Result := ModelField.DefaultFilter;
+end;
+
+function TKViewField.GetDefaultFilterConnector: string;
+begin
+  Result := GetString('DefaultFilterConnector');
+  if Result = '' then
+    Result := ModelField.DefaultFilterConnector;
 end;
 
 function TKViewField.GetDefaultValue: Variant;
