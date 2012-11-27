@@ -1400,7 +1400,11 @@ end;
 
 function TEFNode.GetAsString: string;
 begin
-  Result := DataType.ValueToString(FValue);
+  // Since when getDataType became virtual, this is slowing down load
+  // performance by a great deal. Let's try cutting this indirection
+  // (limited to string values) for a while.
+  //Result := DataType.ValueToString(FValue);
+  Result := EFVarToStr(FValue);
 end;
 
 function TEFNode.GetAsStringArray: TStringDynArray;
@@ -2506,10 +2510,12 @@ begin
 
   if ANode.IsNull then
     Result := 'null'
-  else if AQuote then
-    Result := QuoteJSONStr(InternalNodeToJSONValue(AForDisplay, ANode, AJSFormatSettings))
   else
+  begin
     Result := InternalNodeToJSONValue(AForDisplay, ANode, AJSFormatSettings);
+    if AQuote then
+      Result := QuoteJSONStr(Result);
+  end;
 end;
 
 procedure TEFDataType.NodeToParam(const ANode: TEFNode; const AParam: TParam);
