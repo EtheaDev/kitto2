@@ -951,9 +951,9 @@ begin
     Result := QuoteJSONStr(GetJSONName) + ':' + GetAsJSONValue(AForDisplay);
     if AForDisplay then
     begin
-      Result := AnsiReplaceStr(Result, #13#10, '<br/>');
-      Result := AnsiReplaceStr(Result, #10, '<br/>');
-      Result := AnsiReplaceStr(Result, #13, '<br/>');
+      Result := ReplaceStr(Result, #13#10, '<br/>');
+      Result := ReplaceStr(Result, #10, '<br/>');
+      Result := ReplaceStr(Result, #13, '<br/>');
     end;
   end
   else
