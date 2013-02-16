@@ -742,7 +742,8 @@ end;
 
 procedure TEFDBConnection.Open;
 begin
-  TEFLogger.Instance.Log('Opening DB connection.', TEFLogger.LOG_MEDIUM);
+  if not IsOpen then
+    TEFLogger.Instance.Log('Opening DB connection.', TEFLogger.LOG_MEDIUM);
   InternalOpen;
 end;
 
