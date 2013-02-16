@@ -97,6 +97,9 @@ begin
 end;
 
 procedure TKExtTreePanel.SetView(const AValue: TKView);
+var
+  LViewNode: TEFNode;
+  LView: TKTreeView;
 begin
   Assert(Assigned(AValue));
 
@@ -106,8 +109,9 @@ begin
     FTreeViewRenderer := TKExtTreeViewRenderer.Create;
     FTreeViewrenderer.Session := Session;
   end;
-  FTreeViewRenderer.RenderAsTree(Session.Config.Views.ViewByNode(FConfig.GetNode('TreeView')) as TKTreeView,
-    Root, Self, DisplayView);
+  LViewNode := FConfig.GetNode('TreeView');
+  LView := Session.Config.Views.ViewByNode(LViewNode) as TKTreeView;
+  FTreeViewRenderer.RenderAsTree(LView, Root, Self, DisplayView);
 end;
 
 procedure TKExtTreePanel.DisplayView;

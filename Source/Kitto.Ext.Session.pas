@@ -23,7 +23,7 @@ interface
 uses
   SysUtils, Classes, Generics.Collections,
   ExtPascal, Ext,
-  EF.Tree,
+  EF.Tree, EF.Macros,
   Kitto.Ext.Base, Kitto.Config, Kitto.Metadata.Views,
   Kitto.Metadata.DataView, Kitto.Ext.Login, Kitto.Ext.Controller;
 
@@ -48,6 +48,17 @@ type
     property Bytes: TBytes read GetBytes;
   end;
 
+  TKExtSession = class;
+
+  TKExtSessionMacroExpander = class(TEFMacroExpander)
+  strict private
+    FSession: TKExtSession;
+  strict protected
+    function InternalExpand(const AString: string): string; override;
+  public
+    constructor Create(const ASession: TKExtSession); reintroduce;
+  end;
+
   TKExtSession = class(TExtSession)
   private
     FHomeController: TObject;
@@ -58,6 +69,7 @@ type
     FSessionId: string;
     FUploadedFiles: TObjectList<TKExtUploadedFile>;
     FOpenControllers: TObjectList<TObject>;
+    FMacroExpander: TKExtSessionMacroExpander;
     procedure LoadLibraries;
     procedure DisplayHomeView;
     procedure DisplayLoginWindow;
@@ -149,6 +161,8 @@ type
     ///	key values currently stored in the session query strings.</summary>
     function LocateRecordFromQueries(const AViewTable: TKViewTable;
       const AServerStore: TKViewTableStore): TKViewTableRecord;
+
+    property SessionId: string read FSessionId;
   published
     procedure Logout;
   end;
@@ -167,7 +181,7 @@ implementation
 uses
   StrUtils, ActiveX, ComObj, Types, FmtBcd,
   ExtPascalUtils, ExtForm,
-  EF.Intf, EF.SysUtils, EF.StrUtils, EF.Localization, EF.Macros, EF.Logger,
+  EF.Intf, EF.SysUtils, EF.StrUtils, EF.Localization, EF.Logger,
   Kitto.Auth, Kitto.Types, Kitto.AccessControl,
   Kitto.Ext.Utils;
 
@@ -267,6 +281,8 @@ begin
     if DirectoryExists(LUploadDirectory) then
       DeleteTree(LUploadDirectory);
   end;
+  FConfig.MacroExpansionEngine.RemoveExpander(FMacroExpander);
+  FreeAndNil(FMacroExpander);
   FreeAndNil(FConfig);
   FreeAndNil(FUploadedFiles);
   FreeAndNil(FHomeController);
@@ -416,8 +432,9 @@ end;
 procedure TKExtSession.Refresh;
 begin
   inherited;
-  Config.Models.Refresh;
-  Config.Views.Refresh;
+  Config.InvalidateCatalogs;
+//  Config.Models.Refresh;
+//  Config.Views.Refresh;
 end;
 
 procedure TKExtSession.RemoveController(const AObject: TObject; const AFreeIt: Boolean);
@@ -578,6 +595,8 @@ begin
   inherited;
   FUploadedFiles := TObjectList<TKExtUploadedFile>.Create;
   FOpenControllers := TObjectList<TObject>.Create(False);
+  FMacroExpander := TKExtSessionMacroExpander.Create(Self);
+  Config.MacroExpansionEngine.AddExpander(FMacroExpander);
 end;
 
 class constructor TKExtSession.Create;
@@ -658,6 +677,22 @@ end;
 function TKExtObjectHelper.GetSession: TKExtSession;
 begin
   Result := ExtSession as TKExtSession;
+end;
+
+{ TKExtSessionMacroExpander }
+
+constructor TKExtSessionMacroExpander.Create(const ASession: TKExtSession);
+begin
+  inherited Create;
+  FSession := ASession;
+end;
+
+function TKExtSessionMacroExpander.InternalExpand(
+  const AString: string): string;
+begin
+  Result := inherited InternalExpand(AString);
+  if Assigned(FSession) then
+    Result := ExpandMacros(Result, '%SESSION_ID%', FSession.SessionId);
 end;
 
 end.

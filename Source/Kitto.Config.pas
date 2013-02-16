@@ -201,6 +201,9 @@ type
     ///	access.</summary>
     property Views: TKViews read GetViews;
 
+    ///	<summary>Makes sure catalogs are recreated upon next access.</summary>
+    procedure InvalidateCatalogs;
+
     ///	<summary>Gives access to a database connection by name, created on
     ///	demand.</summary>
     property DBConnections[const AName: string]: TEFDBConnection read GetDBConnection;
@@ -346,6 +349,12 @@ begin
   for LDBConnection in FDBConnections.Values do
     LDBConnection.Free;
   FreeAndNil(FDBConnections);
+end;
+
+procedure TKConfig.InvalidateCatalogs;
+begin
+  FreeAndNil(FViews);
+  FreeAndNil(FModels);
 end;
 
 function TKConfig.IsAccessGranted(const AResourceURI,
