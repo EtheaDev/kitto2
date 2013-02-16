@@ -837,6 +837,7 @@ var
 begin
   for I := ComponentCount - 1 downto 0 do
     Components[I].Free;
+  Assert(ComponentCount = 0);
 end;
 
 end.
