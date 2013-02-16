@@ -21,6 +21,7 @@
 </body>
   <script>
     <%CustomJS%>
+
     function AjaxError(m) {
       Ext.Msg.show({
         title: "Ajax Error",
@@ -51,6 +52,11 @@
         Ext.BLANK_IMAGE_URL="<%ExtPath%>/resources/images/default/s.gif";
         TextMetrics = Ext.util.TextMetrics.createInstance("body");
         Download = Ext.DomHelper.append(document.body, {tag: "iframe", cls: "x-hidden"});
+
+        kittoLoadMask = new Ext.LoadMask(Ext.getBody());
+        Ext.Ajax.on("beforerequest", function() { kittoLoadMask.show(); });
+        Ext.Ajax.on("requestcomplete", function() { kittoLoadMask.hide(); });
+
         <%Response%>
       }
     );
