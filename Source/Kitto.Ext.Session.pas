@@ -96,16 +96,18 @@ type
     FOpenControllers: TObjectList<TObject>;
     FMacroExpander: TKExtSessionMacroExpander;
     FGettextInstance: TGnuGettextInstance;
+    FRefreshingLanguage: Boolean;
     procedure LoadLibraries;
     procedure DisplayHomeView;
     procedure DisplayLoginWindow;
+    procedure ReloadOrDisplayHomeView;
     function GetConfig: TKConfig;
     procedure ClearStatus;
     function DisplayNewController(const AView: TKView): IKExtController;
     function FindOpenController(const AView: TKView): IKExtController;
     procedure SetViewHostActiveTab(const AObject: TObject);
-    procedure SetLanguageFromQueries;
-    procedure SetLanguageFromConfig;
+    procedure SetLanguageFromQueriesOrConfig;
+    procedure Reload;
   protected
     function BeforeHandleRequest: Boolean; override;
     procedure AfterHandleRequest; override;
@@ -334,6 +336,21 @@ begin
   TKConfig.OnGetInstance := nil;
 end;
 
+procedure TKExtSession.ReloadOrDisplayHomeView;
+var
+  LNewLanguageId: string;
+begin
+  LNewLanguageId := Queries.Values['Language'];
+  if (LNewLanguageId <> '') and (LNewLanguageId <> Language) then
+  begin
+    FRefreshingLanguage := True;
+    Language := LNewLanguageId;
+    Reload;
+  end
+  else
+    DisplayHomeView;
+end;
+
 procedure TKExtSession.DisplayHomeView;
 var
   LHomeView: TKView;
@@ -355,7 +372,8 @@ begin
   if not NewThread then
   begin
     Refresh;
-    Config.Authenticator.Logout;
+    if not FRefreshingLanguage then
+      Config.Authenticator.Logout;
     FHomeController := nil;
     FLoginWindow := nil;
     FOpenControllers.Clear;
@@ -372,17 +390,20 @@ begin
   ExtQuickTips.Init(True);
   // Try authentication with default credentials, if any, and skip login
   // window if it succeeds.
+  if not FRefreshingLanguage then
+    SetLanguageFromQueriesOrConfig;
   if TKExtLoginWindow.Authenticate(Self) then
     DisplayHomeView
   else
     DisplayLoginWindow;
+  FRefreshingLanguage := False;
 end;
 
 procedure TKExtSession.DisplayLoginWindow;
 begin
   FreeAndNil(FLoginWindow);
   FLoginWindow := TKExtLoginWindow.Create(Self.ObjectCatalog);
-  FLoginWindow.OnLogin := DisplayHomeView;
+  FLoginWindow.OnLogin := ReloadOrDisplayHomeView;
   FLoginWindow.Show;
 end;
 
@@ -443,7 +464,6 @@ begin
   SetCSS(ExtPath + '/examples/ux/fileuploadfield/css/fileuploadfield');
 
   SetLibrary(ExtPath + '/examples/shared/examples'); // For Ext.msg.
-  SetLibrary(ExtPath + '/src/locale/ext-lang-' + Language);
   SetRequiredLibrary('DateTimeField');
   SetRequiredLibrary('DefaultButton');
   SetRequiredLibrary('kitto-core', True);
@@ -458,6 +478,14 @@ end;
 procedure TKExtSession.Logout;
 begin
   Config.Authenticator.Logout;
+  Reload;
+end;
+
+procedure TKExtSession.Reload;
+begin
+  // Ajax calls are useless since we're reloading, so let's make sure
+  // the response doesn't contain any.
+  ResponseItems.Clear;
   ResponseItems.ExecuteJSCode('window.location.reload();');
 end;
 
@@ -610,7 +638,6 @@ begin
   UploadPath := '/uploads/' + Config.AppName + '/' + FSessionId;
   ExtPath := Config.Config.GetString('Ext/URL', '/ext');
   Charset := Config.Config.GetString('Charset', 'utf-8');
-  SetLanguageFromConfig;
   Theme := Config.Config.GetString('Ext/Theme');
 end;
 
@@ -621,11 +648,11 @@ begin
   { TODO : only do this when ADO is used }
   OleCheck(CoInitialize(nil));
   if NewThread and not IsAjax then
-    SetLanguageFromQueries;
+    SetLanguageFromQueriesOrConfig;
   Result := inherited BeforeHandleRequest;
 end;
 
-procedure TKExtSession.SetLanguageFromQueries;
+procedure TKExtSession.SetLanguageFromQueriesOrConfig;
 var
   LLanguageId: string;
 begin
@@ -633,28 +660,14 @@ begin
   if LLanguageId = '' then
     LLanguageId := Config.Config.GetString('LanguageId');
   if LLanguageId <> '' then
-  begin
-    TEFLocalizationToolRegistry.CurrentTool.ForceLanguage(LLanguageId);
     Language := LLanguageId;
-  end;
 end;
 
 procedure TKExtSession.SetLanguage(const AValue: string);
 begin
   inherited;
+  TEFLocalizationToolRegistry.CurrentTool.ForceLanguage(AValue);
   TEFLogger.Instance.LogFmt('Language %s set.', [AValue], TEFLogger.LOG_MEDIUM);
-end;
-
-procedure TKExtSession.SetLanguageFromConfig;
-var
-  LLanguageId: string;
-begin
-  LLanguageId := Config.Config.GetString('LanguageId');
-  if LLanguageId <> '' then
-  begin
-    TEFLocalizationToolRegistry.CurrentTool.ForceLanguage(LLanguageId);
-    Language := LLanguageId;
-  end;
 end;
 
 constructor TKExtSession.Create(AOwner: TObject);
@@ -762,8 +775,7 @@ begin
   if Assigned(FSession) then
   begin
     Result := ExpandMacros(Result, '%SESSION_ID%', FSession.SessionId);
-    Result := ExpandMacros(Result, '%LANGUAGE_ID%',
-      FSession.FGettextInstance.GetCurrentLanguage);
+    Result := ExpandMacros(Result, '%LANGUAGE_ID%', FSession.Language);
   end;
 end;
 

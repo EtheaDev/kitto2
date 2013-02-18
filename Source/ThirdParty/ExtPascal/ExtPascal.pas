@@ -82,7 +82,6 @@ type
     function FindObjectCreateItem(const AObject: TExtObject): TExtCreateObject;
     function GetObjectCreateItem(const AObject: TExtObject): TExtCreateObject;
     //procedure SortByDependency;
-    procedure Clear;
     function GetCount: Integer;
     function GetItem(I: Integer): TExtResponseItem;
   public
@@ -143,6 +142,7 @@ type
 
     property Items[I: Integer]: TExtResponseItem read GetItem; default;
     property Count: Integer read GetCount;
+    procedure Clear;
   end;
 
   TExtResponseItem = class
