@@ -22,8 +22,9 @@ interface
 
 uses
   SysUtils, Classes, Generics.Collections,
+  gnugettext,
   ExtPascal, Ext,
-  EF.Tree, EF.Macros,
+  EF.Tree, EF.Macros, EF.Intf, EF.Localization,
   Kitto.Ext.Base, Kitto.Config, Kitto.Metadata.Views,
   Kitto.Metadata.DataView, Kitto.Ext.Login, Kitto.Ext.Controller;
 
@@ -59,6 +60,30 @@ type
     constructor Create(const ASession: TKExtSession); reintroduce;
   end;
 
+  ///	<summary>
+  ///	  This class serves two purposes: redirects localization calls to a
+  ///	  per-session instance of dxgettext so we can have per-session language
+  ///	  selection, and configures Kitto's localization scheme based on two text
+  ///	  domains (the application's default.mo and Kitto's own Kitto.mo). The
+  ///	  former is located under the application home directory, the latter
+  ///	  under the system home directory.
+  ///	</summary>
+  TKExtSessionLocalizationTool = class(TEFNoRefCountObject, IInterface,
+    IEFInterface, IEFLocalizationTool)
+  private const
+    KITTO_TEXT_DOMAIN = 'Kitto';
+  private
+    function GetGnuGettextInstance: TGnuGettextInstance;
+  public
+    function AsObject: TObject;
+    function TranslateString(const AString: string;
+      const AIdString: string = ''): string;
+    procedure TranslateComponent(const AComponent: TComponent);
+    procedure ForceLanguage(const ALanguageId: string);
+    function GetCurrentLanguageId: string;
+    procedure AfterConstruction; override;
+  end;
+
   TKExtSession = class(TExtSession)
   private
     FHomeController: TObject;
@@ -70,6 +95,7 @@ type
     FUploadedFiles: TObjectList<TKExtUploadedFile>;
     FOpenControllers: TObjectList<TObject>;
     FMacroExpander: TKExtSessionMacroExpander;
+    FGettextInstance: TGnuGettextInstance;
     procedure LoadLibraries;
     procedure DisplayHomeView;
     procedure DisplayLoginWindow;
@@ -78,11 +104,14 @@ type
     function DisplayNewController(const AView: TKView): IKExtController;
     function FindOpenController(const AView: TKView): IKExtController;
     procedure SetViewHostActiveTab(const AObject: TObject);
+    procedure SetLanguageFromQueries;
+    procedure SetLanguageFromConfig;
   protected
     function BeforeHandleRequest: Boolean; override;
     procedure AfterHandleRequest; override;
     procedure AfterNewSession; override;
     function GetMainPageTemplate: string; override;
+    procedure SetLanguage(const AValue: string); override;
   public
     constructor Create(AOwner: TObject); override;
     destructor Destroy; override;
@@ -162,11 +191,18 @@ type
     function LocateRecordFromQueries(const AViewTable: TKViewTable;
       const AServerStore: TKViewTableStore): TKViewTableRecord;
 
+    ///	<summary>
+    ///	  The current session's UUID.
+    ///	</summary>
     property SessionId: string read FSessionId;
   published
     procedure Logout;
   end;
 
+  ///	<summary>
+  ///	  This helper guarantees that each Ext object has access to the current
+  ///	  thread's session, cast to the correct type.
+  ///	</summary>
   TKExtObjectHelper = class helper for TExtObject
   private
     function GetSession: TKExtSession;
@@ -174,14 +210,12 @@ type
     property Session: TKExtSession read GetSession;
   end;
 
-//function Session: TKExtSession;
-
 implementation
 
 uses
   StrUtils, ActiveX, ComObj, Types, FmtBcd,
   ExtPascalUtils, ExtForm,
-  EF.Intf, EF.SysUtils, EF.StrUtils, EF.Localization, EF.Logger,
+  EF.SysUtils, EF.StrUtils, EF.Logger,
   Kitto.Auth, Kitto.Types, Kitto.AccessControl,
   Kitto.Ext.Utils;
 
@@ -223,9 +257,10 @@ end;
 
 type
   PGarbage = ^TGarbage;
+
   TGarbage = record
-    Garbage    : TObject;
-    Persistent : Boolean;
+    Garbage: TObject;
+    Persistent: Boolean;
   end;
 
 function TKExtSession.GetGCObjectCount: Integer;
@@ -273,7 +308,7 @@ begin
   // being garbage collected in case the session is being freed by a
   // different thread. Otherwise objects don't mark themselves off the
   // GC upon destruction and risk to be destroyed multiple times.
-  //_CurrentWebSession := Self;
+  // _CurrentWebSession := Self;
   // Delete upload folder only for valid sessions.
   if FSessionId <> '' then
   begin
@@ -286,6 +321,7 @@ begin
   FreeAndNil(FConfig);
   FreeAndNil(FUploadedFiles);
   FreeAndNil(FHomeController);
+  FreeAndNil(FGettextInstance);
   inherited;
   // Keep it alive as the inherited call might trigger calls to
   // RemoveController from objects being destroyed.
@@ -308,7 +344,8 @@ begin
   LHomeView := Config.Views.FindViewByNode(Config.Config.FindNode('HomeView'));
   if not Assigned(LHomeView) then
     LHomeView := Config.Views.ViewByName('Home');
-  FHomeController := TKExtControllerFactory.Instance.CreateController(ObjectCatalog, LHomeView, nil).AsObject;
+  FHomeController := TKExtControllerFactory.Instance.CreateController
+    (ObjectCatalog, LHomeView, nil).AsObject;
   if Supports(FHomeController, IKExtController, LIntf) then
     LIntf.Display;
 end;
@@ -433,8 +470,6 @@ procedure TKExtSession.Refresh;
 begin
   inherited;
   Config.InvalidateCatalogs;
-//  Config.Models.Refresh;
-//  Config.Views.Refresh;
 end;
 
 procedure TKExtSession.RemoveController(const AObject: TObject; const AFreeIt: Boolean);
@@ -461,7 +496,8 @@ var
 begin
   Assert(Assigned(AView));
 
-  Result := TKExtControllerFactory.Instance.CreateController(ObjectCatalog, AView, FViewHost);
+  Result := TKExtControllerFactory.Instance.CreateController(ObjectCatalog,
+    AView, FViewHost);
   LIsSynchronous := Result.IsSynchronous;
   if not LIsSynchronous then
     FOpenControllers.Add(Result.AsObject);
@@ -536,8 +572,7 @@ begin
     FStatusHost.ClearStatus;
 end;
 
-procedure TKExtSession.EnumUploadedFiles(
-  const AProc: TProc<TKExtUploadedFile>);
+procedure TKExtSession.EnumUploadedFiles(const AProc: TProc<TKExtUploadedFile>);
 var
   I: Integer;
 begin
@@ -549,16 +584,8 @@ begin
 end;
 
 procedure TKExtSession.InitDefaultValues;
-var
-  LLanguageId: string;
 begin
   inherited;
-  ExtPath := Config.Config.GetString('Ext/URL', '/ext');
-  Charset := Config.Config.GetString('Charset', 'utf-8');
-  LLanguageId := Config.Config.GetString('LanguageId');
-  if LLanguageId <> '' then
-    Language := LLanguageId;
-  Theme := Config.Config.GetString('Ext/Theme');
 end;
 
 procedure TKExtSession.AddUploadedFile(
@@ -578,16 +605,56 @@ procedure TKExtSession.AfterNewSession;
 begin
   inherited;
   FSessionId := Cookie['FCGIThread'];
-  TEFLogger.Instance.LogFmt('New session %s.', [FSessionId], TEFLogger.LOG_MEDIUM);
-  UpLoadPath := '/uploads/' + Config.AppName + '/' + FSessionId;
+  TEFLogger.Instance.LogFmt('New session %s.', [FSessionId],
+    TEFLogger.LOG_MEDIUM);
+  UploadPath := '/uploads/' + Config.AppName + '/' + FSessionId;
+  ExtPath := Config.Config.GetString('Ext/URL', '/ext');
+  Charset := Config.Config.GetString('Charset', 'utf-8');
+  SetLanguageFromConfig;
+  Theme := Config.Config.GetString('Ext/Theme');
 end;
 
 function TKExtSession.BeforeHandleRequest: Boolean;
 begin
-  TEFLogger.Instance.LogStrings('BeforeHandleRequest', Queries, TEFLogger.LOG_DETAILED);
+  TEFLogger.Instance.LogStrings('BeforeHandleRequest', Queries,
+    TEFLogger.LOG_DETAILED);
   { TODO : only do this when ADO is used }
   OleCheck(CoInitialize(nil));
+  if NewThread and not IsAjax then
+    SetLanguageFromQueries;
   Result := inherited BeforeHandleRequest;
+end;
+
+procedure TKExtSession.SetLanguageFromQueries;
+var
+  LLanguageId: string;
+begin
+  LLanguageId := Queries.Values['lang'];
+  if LLanguageId = '' then
+    LLanguageId := Config.Config.GetString('LanguageId');
+  if LLanguageId <> '' then
+  begin
+    TEFLocalizationToolRegistry.CurrentTool.ForceLanguage(LLanguageId);
+    Language := LLanguageId;
+  end;
+end;
+
+procedure TKExtSession.SetLanguage(const AValue: string);
+begin
+  inherited;
+  TEFLogger.Instance.LogFmt('Language %s set.', [AValue], TEFLogger.LOG_MEDIUM);
+end;
+
+procedure TKExtSession.SetLanguageFromConfig;
+var
+  LLanguageId: string;
+begin
+  LLanguageId := Config.Config.GetString('LanguageId');
+  if LLanguageId <> '' then
+  begin
+    TEFLocalizationToolRegistry.CurrentTool.ForceLanguage(LLanguageId);
+    Language := LLanguageId;
+  end;
 end;
 
 constructor TKExtSession.Create(AOwner: TObject);
@@ -597,6 +664,7 @@ begin
   FOpenControllers := TObjectList<TObject>.Create(False);
   FMacroExpander := TKExtSessionMacroExpander.Create(Self);
   Config.MacroExpansionEngine.AddExpander(FMacroExpander);
+  FGettextInstance := TGnuGettextInstance.Create;
 end;
 
 class constructor TKExtSession.Create;
@@ -692,8 +760,77 @@ function TKExtSessionMacroExpander.InternalExpand(
 begin
   Result := inherited InternalExpand(AString);
   if Assigned(FSession) then
+  begin
     Result := ExpandMacros(Result, '%SESSION_ID%', FSession.SessionId);
+    Result := ExpandMacros(Result, '%LANGUAGE_ID%',
+      FSession.FGettextInstance.GetCurrentLanguage);
+  end;
 end;
 
-end.
+{ TKExtSessionLocalizationTool }
 
+procedure TKExtSessionLocalizationTool.AfterConstruction;
+begin
+  inherited;
+  // Configure the global dxgettext instance.
+  GetGnuGettextInstance.bindtextdomain(KITTO_TEXT_DOMAIN,
+    TKConfig.SystemHomePath + 'locale');
+end;
+
+function TKExtSessionLocalizationTool.AsObject: TObject;
+begin
+  Result := Self;
+end;
+
+procedure TKExtSessionLocalizationTool.ForceLanguage(const ALanguageId: string);
+var
+  LInstance: TGnuGettextInstance;
+begin
+  LInstance := GetGnuGettextInstance;
+  // Configure the per-session dxgettext instance.
+  LInstance.bindtextdomain(KITTO_TEXT_DOMAIN,
+    TKConfig.SystemHomePath + 'locale');
+  LInstance.UseLanguage(ALanguageId);
+end;
+
+function TKExtSessionLocalizationTool.GetCurrentLanguageId: string;
+begin
+  Result := GetGnuGettextInstance.GetCurrentLanguage;
+end;
+
+function TKExtSessionLocalizationTool.GetGnuGettextInstance: TGnuGettextInstance;
+begin
+  if Session <> nil then
+    Result := Session.FGettextInstance
+  else
+    Result := gnugettext.DefaultInstance;
+end;
+
+procedure TKExtSessionLocalizationTool.TranslateComponent(const AComponent: TComponent);
+var
+  LInstance: TGnuGettextInstance;
+begin
+  LInstance := GetGnuGettextInstance;
+  LInstance.TranslateComponent(AComponent, KITTO_TEXT_DOMAIN);
+  LInstance.TranslateComponent(AComponent, 'default');
+end;
+
+function TKExtSessionLocalizationTool.TranslateString(const AString,
+  AIdString: string): string;
+var
+  LInstance: TGnuGettextInstance;
+begin
+  // Look in the Kitto text domain first, then in the application domain.
+  LInstance := GetGnuGettextInstance;
+  Result := LInstance.dgettext(KITTO_TEXT_DOMAIN, AString);
+  if Result = AString then
+    Result := LInstance.dgettext('default', AString);
+end;
+
+initialization
+  TEFLocalizationToolRegistry.RegisterTool(TKExtSessionLocalizationTool.Create);
+
+finalization
+  TEFLocalizationToolRegistry.UnregisterTool;
+
+end.

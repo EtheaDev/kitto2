@@ -411,6 +411,7 @@ type
     function GetUrlHandlerObject: TObject; override;
     function JSConcat(PrevCommand, NextCommand : string) : string;
     function GetMainPageTemplate: string; virtual;
+    procedure SetLanguage(const AValue: string); virtual;
   public
     HTMLQuirksMode : boolean; // Defines the (X)HTML DocType. True to Transitional (Quirks mode) or false to Strict. Default is false.
     Theme     : string; // Sets or gets Ext JS installed theme, default '' that is Ext Blue theme
@@ -419,7 +420,7 @@ type
     ExtBuild  : string;
     procedure AfterConstruction; override;
     destructor Destroy; override; // Custom <extlink http://www.extjs.com/products/extjs/build/>ExtJS build</extlink>. Default is ext-all.
-    property Language : string read FLanguage write FLanguage; // Actual language for this session, reads HTTP_ACCEPT_LANGUAGE header
+    property Language : string read FLanguage write SetLanguage; // Actual language for this session, reads HTTP_ACCEPT_LANGUAGE header
     procedure InitDefaultValues; override;
     procedure JSCode(JS : string; JSClassName : string = ''; JSName : string = ''; Owner : string = '');
     procedure JSSleep(MiliSeconds : integer);
@@ -545,6 +546,11 @@ begin
 end;
 
 { TExtSession }
+
+procedure TExtSession.SetLanguage(const AValue: string);
+begin
+  FLanguage := AValue;
+end;
 
 {
 Adds/Removes an user JS library to be used in current response.
