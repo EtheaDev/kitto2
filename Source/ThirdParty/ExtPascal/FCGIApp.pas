@@ -719,9 +719,12 @@ begin
     Thread := TFCGIThread(Threads.Objects[I]);
     if (Now - Thread.LastAccess) > MaxIdleTime then begin
       AccessThreads.Enter;
-      Thread.Free;
-      Threads.Delete(I);
-      AccessThreads.Leave;
+      try
+        Thread.Free;
+        Threads.Delete(I);
+      finally
+        AccessThreads.Leave;
+      end;
     end;
   end;
 end;

@@ -282,8 +282,6 @@ uses
   Kitto.Types, Kitto.DatabaseRouter;
 
 procedure TKConfig.AfterConstruction;
-var
-  LLanguageId: string;
 begin
   inherited;
   { TODO : read default user format settings from config and allow to change them on a per-user basis. }
@@ -304,9 +302,6 @@ begin
     FUserFormatSettings.DateSeparator := '/';
 
   FDBConnections := TDictionary<string, TEFDBConnection>.Create;
-  LLanguageId := Config.GetString('LanguageId');
-  if LLanguageId <> '' then
-    TEFLocalizationToolRegistry.CurrentTool.ForceLanguage(LLanguageId);
 end;
 
 destructor TKConfig.Destroy;
