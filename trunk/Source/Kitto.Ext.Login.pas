@@ -29,8 +29,10 @@ type
 
   TKExtLoginWindow = class(TKExtWindowControllerBase)
   private
+    FUseLanguageSelector: Boolean;
     FUserName: TExtFormTextField;
     FPassword: TExtFormTextField;
+    FLanguage: TExtFormComboBox;
     FButton: TExtButton;
     FOnLogin: TKExtOnLogin;
     FStatusBar: TKExtStatusBar;
@@ -119,9 +121,14 @@ procedure TKExtLoginWindow.InitDefaults;
 
 begin
   inherited;
+  FUseLanguageSelector := Session.Config.LanguagePerSession;
+
   Title := _(Session.Config.AppTitle);
   Width := 246;
-  Height := 120;
+  if FUseLanguageSelector then
+    Height := 144
+  else
+    Height := 120;
   Closable := False;
   Resizable := False;
 
@@ -166,10 +173,33 @@ begin
   FUserName.On('specialkey', JSFunction('field, e', GetSubmitJS));
   FPassword.On('specialkey', JSFunction('field, e', GetSubmitJS));
 
-  FButton.Handler := Ajax(DoLogin, ['Dummy', FStatusBar.ShowBusy,
-    'UserName', FUserName.GetValue, 'Password', FPassword.GetValue]);
+  if FUseLanguageSelector then
+  begin
+    FLanguage := TExtFormComboBox.CreateAndAddTo(FFormPanel.Items);
+    FLanguage.StoreArray := JSArray('["it", "Italiano"], ["en", "English"]');
+    FLanguage.HiddenName := 'Language';
+    FLanguage.Value := Session.Config.Authenticator.AuthData.GetExpandedString('Language');
+    FLanguage.FieldLabel := _('Language');
+    FLanguage.Width := 136;
+    //FLanguage.EnableKeyEvents := True;
+    //FLanguage.SelectOnFocus := True;
+    FLanguage.ForceSelection := True;
+    FLanguage.TriggerAction := 'all'; // Disable filtering list items based on current value.
+  end
+  else
+    FLanguage := nil;
 
-  FButton.Disabled := (FUserName.Value = '') or (FPassword.Value = '');
+  if Assigned(FLanguage) then
+    FButton.Handler := Ajax(DoLogin, ['Dummy', FStatusBar.ShowBusy,
+      'UserName', FUserName.GetValue, 'Password', FPassword.GetValue, 'Language', FLanguage.GetValue])
+  else
+    FButton.Handler := Ajax(DoLogin, ['Dummy', FStatusBar.ShowBusy,
+      'UserName', FUserName.GetValue, 'Password', FPassword.GetValue]);
+
+  if Assigned(FLanguage) then
+    FButton.Disabled := (FUserName.Value = '') or (FPassword.Value = '') or (FLanguage.Value = '')
+  else
+    FButton.Disabled := (FUserName.Value = '') or (FPassword.Value = '');
 
   if (FUserName.Value <> '') and (FPassword.Value = '') then
     FPassword.Focus(False, 750)
@@ -178,5 +208,3 @@ begin
 end;
 
 end.
-
-

@@ -7,8 +7,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2012-11-18 11:37\n"
-"PO-Revision-Date: 2012-11-18 11:37\n"
+"POT-Creation-Date: 2013-02-18 15:29\n"
+"PO-Revision-Date: 2013-02-18 15:29\n"
 "Last-Translator: Somebody <your.email@address.com>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -116,12 +116,12 @@ msgstr ""
 msgid "File %s not found."
 msgstr ""
 
-#: Kitto.Config.pas:513
+#: Kitto.Config.pas:521
 msgid "Access denied. The user is not allowed to perform this "
 "operation."
 msgstr ""
 
-#: Kitto.Config.pas:514
+#: Kitto.Config.pas:522
 msgid "Resource URI: %s; access mode: %s."
 msgstr ""
 
@@ -184,152 +184,152 @@ msgstr ""
 msgid "Refresh data"
 msgstr ""
 
-#: Kitto.Ext.Editors.pas:489
+#: Kitto.Ext.Editors.pas:506
 msgid "Unknown or misplaced option %s: %s."
 msgstr ""
 
 #. Floats in Yaml always use the dot as decimal separator.
-#: Kitto.Ext.Editors.pas:496
+#: Kitto.Ext.Editors.pas:513
 msgid "Invalid value %s. Valid values: decimal "
 "numbers."
 msgstr ""
 
-#: Kitto.Ext.Editors.pas:507
-#: Kitto.Ext.Editors.pas:513
+#: Kitto.Ext.Editors.pas:524
+#: Kitto.Ext.Editors.pas:530
 msgid "Invalid value %s. Valid values: whole numbers or "
 "percentages."
 msgstr ""
 
-#: Kitto.Ext.Editors.pas:509
+#: Kitto.Ext.Editors.pas:526
 msgid "Invalid percentage %s. Valid percentages are 0% to "
 "100%."
 msgstr ""
 
-#: Kitto.Ext.Editors.pas:519
-#: Kitto.Ext.List.pas:100
+#: Kitto.Ext.Editors.pas:536
+#: Kitto.Ext.List.pas:133
 msgid "Invalid value %s. Valid values: whole "
 "numbers."
 msgstr ""
 
-#: Kitto.Ext.Editors.pas:529
+#: Kitto.Ext.Editors.pas:546
 msgid "Invalid value %s. Valid values: \"True\", "
 "\"False\"."
 msgstr ""
 
-#: Kitto.Ext.Editors.pas:541
+#: Kitto.Ext.Editors.pas:558
 msgid "Invalid value %s. Valid values: \"Left\", \"Top\", "
 "\"Right\"."
 msgstr ""
 
-#: Kitto.Ext.Editors.pas:559
+#: Kitto.Ext.Editors.pas:576
 msgid "Invalid value %s. Valid values: %s"
 msgstr ""
 
-#: Kitto.Ext.Editors.pas:580
+#: Kitto.Ext.Editors.pas:603
 msgid "Layout parsing error. %s."
 msgstr ""
 
 #. DisplayLabel is handled earlier by CreateEditItem, so we just ignore it here.
-#: Kitto.Ext.Editors.pas:632
+#: Kitto.Ext.Editors.pas:655
 msgid "Option %s must have a value."
 msgstr ""
 
-#: Kitto.Ext.Editors.pas:634
+#: Kitto.Ext.Editors.pas:657
 msgid "Option node %s cannot have child nodes."
 msgstr ""
 
-#: Kitto.Ext.Editors.pas:683
+#: Kitto.Ext.Editors.pas:706
 msgid "Unknown edit item type %s."
 msgstr ""
 
-#: Kitto.Ext.Editors.pas:2248
+#: Kitto.Ext.Editors.pas:2313
 msgid "Download file"
 msgstr ""
 
-#: Kitto.Ext.Editors.pas:2256
+#: Kitto.Ext.Editors.pas:2321
 msgid "Upload file"
 msgstr ""
 
-#: Kitto.Ext.Editors.pas:2262
+#: Kitto.Ext.Editors.pas:2327
 msgid "Clear field"
 msgstr ""
 
-#: Kitto.Ext.Editors.pas:2306
-#: Kitto.Ext.Editors.pas:2402
+#: Kitto.Ext.Editors.pas:2371
+#: Kitto.Ext.Editors.pas:2467
 msgid "Empty"
 msgstr ""
 
-#: Kitto.Ext.Editors.pas:2350
+#: Kitto.Ext.Editors.pas:2415
 msgid "File upload"
 msgstr ""
 
-#: Kitto.Ext.Editors.pas:2358
+#: Kitto.Ext.Editors.pas:2423
 msgid "Select a file to upload"
 msgstr ""
 
-#: Kitto.Ext.Editors.pas:2362
+#: Kitto.Ext.Editors.pas:2427
 msgid "Upload"
 msgstr ""
 
-#: Kitto.Ext.Editors.pas:2366
+#: Kitto.Ext.Editors.pas:2431
 msgid "File upload in progress..."
 msgstr ""
 
-#: Kitto.Ext.Editors.pas:2367
+#: Kitto.Ext.Editors.pas:2432
 msgid "Please wait..."
 msgstr ""
 
-#: Kitto.Ext.Editors.pas:2369
+#: Kitto.Ext.Editors.pas:2434
 msgid "File upload error"
 msgstr ""
 
-#: Kitto.Ext.Editors.pas:2398
+#: Kitto.Ext.Editors.pas:2463
 msgid "%s file (%s)"
 msgstr ""
 
 #. Load data from FServerRecord.
-#: Kitto.Ext.Form.pas:256
+#: Kitto.Ext.Form.pas:266
 msgid "Load failed."
 msgstr ""
 
 #. Get uploaded files.
-#: Kitto.Ext.Form.pas:377
+#: Kitto.Ext.Form.pas:346
 msgid "Data type %s does not support file upload."
 msgstr ""
 
 #. Save record.
-#: Kitto.Ext.Form.pas:391
+#: Kitto.Ext.Form.pas:357
 msgid "Changes saved succesfully."
 msgstr ""
 
-#: Kitto.Ext.Form.pas:440
+#: Kitto.Ext.Form.pas:409
 msgid "Operation Add not supported on read-only "
 "data."
 msgstr ""
 
-#: Kitto.Ext.Form.pas:471
+#: Kitto.Ext.Form.pas:440
 msgid "Save"
 msgstr ""
 
-#: Kitto.Ext.Form.pas:472
+#: Kitto.Ext.Form.pas:441
 msgid "Save changes and finish editing"
 msgstr ""
 
 #. FSaveButton.Handler := JSFunction(FFormPanel.JSName + '.getForm().doAction("submit", {success:"AjaxSuccess", failure:"AjaxFailure"});');
-#: Kitto.Ext.Form.pas:482
+#: Kitto.Ext.Form.pas:451
 msgid "Close"
 msgstr ""
 
-#: Kitto.Ext.Form.pas:483
+#: Kitto.Ext.Form.pas:452
 msgid "Close this panel"
 msgstr ""
 
 #. No need for an ajax call when we just close the client-side panel.
-#: Kitto.Ext.Form.pas:491
+#: Kitto.Ext.Form.pas:460
 msgid "Cancel"
 msgstr ""
 
-#: Kitto.Ext.Form.pas:492
+#: Kitto.Ext.Form.pas:461
 msgid "Cancel changes"
 msgstr ""
 
@@ -341,55 +341,60 @@ msgstr ""
 msgid "No data to display."
 msgstr ""
 
-#: Kitto.Ext.GridPanel.pas:488
-#: Kitto.Ext.GridPanel.pas:697
+#: Kitto.Ext.GridPanel.pas:485
+#: Kitto.Ext.GridPanel.pas:694
 msgid "Add %s"
 msgstr ""
 
-#: Kitto.Ext.GridPanel.pas:490
-#: Kitto.Ext.GridPanel.pas:709
+#: Kitto.Ext.GridPanel.pas:487
+#: Kitto.Ext.GridPanel.pas:706
 msgid "Edit %s"
 msgstr ""
 
-#: Kitto.Ext.GridPanel.pas:638
+#: Kitto.Ext.GridPanel.pas:635
 msgid "%s deleted."
 msgstr ""
 
-#: Kitto.Ext.GridPanel.pas:714
+#: Kitto.Ext.GridPanel.pas:711
 msgid "View %s"
 msgstr ""
 
-#: Kitto.Ext.GridPanel.pas:725
+#: Kitto.Ext.GridPanel.pas:722
 msgid "Delete %s"
 msgstr ""
 
-#: Kitto.Ext.GridPanel.pas:732
+#: Kitto.Ext.GridPanel.pas:729
 msgid "Selected %s will be deleted. Are you "
 "sure?"
 msgstr ""
 
-#: Kitto.Ext.List.pas:85
+#: Kitto.Ext.List.pas:114
 msgid "Search"
 msgstr ""
 
-#: Kitto.Ext.Login.pas:68
+#: Kitto.Ext.Login.pas:70
 msgid "Invalid login."
 msgstr ""
 
-#: Kitto.Ext.Login.pas:130
+#: Kitto.Ext.Login.pas:137
 msgid "Logging in..."
 msgstr ""
 
-#: Kitto.Ext.Login.pas:143
+#: Kitto.Ext.Login.pas:150
 msgid "Login"
 msgstr ""
 
-#: Kitto.Ext.Login.pas:148
+#: Kitto.Ext.Login.pas:155
 msgid "User Name"
 msgstr ""
 
-#: Kitto.Ext.Login.pas:157
+#: Kitto.Ext.Login.pas:164
 msgid "Password"
+msgstr ""
+
+#. FLanguage.SubmitValue := True;
+#: Kitto.Ext.Login.pas:184
+msgid "Language"
 msgstr ""
 
 #: Kitto.Ext.MainFormUnit.pas:107
@@ -472,11 +477,11 @@ msgid "%s must be greater than or equal to "
 "%s."
 msgstr ""
 
-#: Kitto.Store.pas:594
+#: Kitto.Store.pas:630
 msgid "Record not found for predicate {%s}."
 msgstr ""
 
-#: Kitto.Store.pas:717
+#: Kitto.Store.pas:753
 msgid "Field %s not found."
 msgstr ""
 
@@ -538,33 +543,33 @@ msgstr ""
 msgid "%s: SourcePath not set."
 msgstr ""
 
-#: EF/EF.SysUtils.pas:1521
+#: EF/EF.SysUtils.pas:1522
 msgid "Error while removing folder \"%s\". Perhaps the folder is not empty or "
 "is in use."
 msgstr ""
 
-#: EF/EF.SysUtils.pas:1538
-#: EF/EF.SysUtils.pas:1581
+#: EF/EF.SysUtils.pas:1541
+#: EF/EF.SysUtils.pas:1584
 msgid "Error \"%s\" while removing file \"%s\". The file might be in "
 "use."
 msgstr ""
 
-#: EF/EF.SysUtils.pas:1560
+#: EF/EF.SysUtils.pas:1563
 msgid "The file \"%s\" might be in use."
 msgstr ""
 
-#: EF/EF.SysUtils.pas:1611
+#: EF/EF.SysUtils.pas:1614
 msgid "%s: DestinationPath not specified."
 msgstr ""
 
 #. Recupero del messaggio di errore corretto per sollevare l'eccezione.
-#: EF/EF.SysUtils.pas:1646
+#: EF/EF.SysUtils.pas:1649
 msgid "Error \"%s\" while copying from \"%s\" to \"%s\". The destination file "
 "might be in use."
 msgstr ""
 
-#: EF/EF.Tree.pas:1888
-#: EF/EF.Tree.pas:1958
+#: EF/EF.Tree.pas:1980
+#: EF/EF.Tree.pas:2050
 msgid "Node %s not found."
 msgstr ""
 

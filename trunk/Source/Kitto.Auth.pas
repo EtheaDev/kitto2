@@ -378,6 +378,7 @@ procedure TKClassicAuthenticator.InternalDefineAuthData(
 begin
   AAuthData.SetString('UserName', '');
   AAuthData.SetString('Password', '');
+  AAuthData.SetString('Language', '');
 end;
 
 procedure TKClassicAuthenticator.SetPassword(const AValue: string);

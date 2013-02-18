@@ -75,6 +75,7 @@ type
     procedure FinalizeDBConnections;
     function GetDefaultDatabaseName: string;
     function GetDatabaseName: string;
+    function GetLanguagePerSession: Boolean;
   strict protected
     function GetConfigFileName: string; override;
     class function FindSystemHomePath: string;
@@ -251,6 +252,8 @@ type
     property UserFormatSettings: TFormatSettings read FUserFormatSettings;
 
     property MultiFieldSeparator: string read GetMultiFieldSeparator;
+
+    property LanguagePerSession: Boolean read GetLanguagePerSession;
   end;
 
   ///	<summary>
@@ -636,6 +639,11 @@ begin
       FInstance := FConfigClass.Create;
     Result := FInstance;
   end;
+end;
+
+function TKConfig.GetLanguagePerSession: Boolean;
+begin
+  Result := Config.GetBoolean('LanguagePerSession', False);
 end;
 
 class procedure TKConfig.SetAppHomePath(const AValue: string);
