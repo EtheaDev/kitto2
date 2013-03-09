@@ -54,8 +54,11 @@ type
 
   TKFieldChangeEvent = procedure(const AField: TKField; const AOldValue, ANewValue: Variant) of object;
 
+  TKHeaderField = class;
+
   TKField = class(TEFNode)
   strict private
+    FHeaderField: TKHeaderField;
     FIsModified: Boolean;
     function GetFieldName: string;
     function GetParentRecord: TKRecord;
@@ -63,9 +66,10 @@ type
   strict protected
     function GetName: string; override;
     procedure SetValue(const AValue: Variant); override;
-    procedure ValueChanged(const AOldValue: Variant; const ANewValue: Variant);
-      override;
+    procedure ValueChanged(const AOldValue: Variant; const ANewValue: Variant); override;
+    function GetDataType: TEFDataType; override;
   public
+    property HeaderField: TKHeaderField read FHeaderField write FHeaderField;
     procedure MarkAsUnmodified;
     procedure SetToNull; override;
     property IsModified: Boolean read FIsModified;
@@ -144,6 +148,8 @@ type
     function ChangesPending: Boolean;
 
     property OnFieldChange: TKFieldChangeEvent read FOnFieldChange write FOnFieldChange;
+
+    function AddField(const AHeaderField: TKHeaderField): TKField;
   end;
 
   TKRecords = class(TEFNode)
@@ -203,6 +209,8 @@ type
 
     property FieldCount: Integer read GetFieldCount;
     property Fields[I: Integer]: TKHeaderField read GetField;
+
+    function AddField(const AFieldName: string): TKHeaderField;
   end;
 
   TKRecordPredicate = TPredicate<TKRecord>;
@@ -708,6 +716,12 @@ begin
   Result := AStore;
 end;
 
+function TKRecord.AddField(const AHeaderField: TKHeaderField): TKField;
+begin
+  Result := AddChild(AHeaderField.Name) as TKField;
+  Result.HeaderField := AHeaderField;
+end;
+
 procedure TKRecord.AfterConstruction;
 begin
   inherited;
@@ -965,9 +979,18 @@ begin
   Result := DataType.NodeToJSONValue(AForDisplay, Self, TKConfig.JSFormatSettings, AQuote);
 end;
 
+function TKField.GetDataType: TEFDataType;
+begin
+  Assert(Assigned(FHeaderField));
+
+  Result := FHeaderField.DataType;
+end;
+
 function TKField.GetFieldName: string;
 begin
-  Result := ParentRecord.Records.Store.Header.Children[Index].Name;
+  Assert(Assigned(FHeaderField));
+
+  Result := FHeaderField.FieldName;
 end;
 
 function TKField.GetName: string;
@@ -1016,6 +1039,11 @@ end;
 
 { TKHeader }
 
+function TKHeader.AddField(const AFieldName: string): TKHeaderField;
+begin
+  Result := AddChild(AFieldName) as TKHeaderField;
+end;
+
 procedure TKHeader.Apply(const ARecord: TKRecord);
 var
   I: Integer;
@@ -1023,8 +1051,8 @@ begin
   Assert(Assigned(ARecord));
 
   ARecord.ClearChildren;
-  for I := 0 to ChildCount - 1 do
-    ARecord.AddChild(Children[I].Name).DataType := Children[I].DataType;
+  for I := 0 to FieldCount - 1 do
+    ARecord.AddField(Fields[I]);
 end;
 
 function TKHeader.GetChildClass(const AName: string): TEFNodeClass;
