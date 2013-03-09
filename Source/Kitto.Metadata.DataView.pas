@@ -82,6 +82,7 @@ type
     function GetFileNameField: string;
     function GetDefaultFilter: string;
     function GetDefaultFilterConnector: string;
+    function GetIsPassword: Boolean;
   strict protected
     function GetChildClass(const AName: string): TEFNodeClass; override;
     function GetDataType: TEFDataType; override;
@@ -184,6 +185,7 @@ type
     property IsVisible: Boolean read GetIsVisible;
     property IsRequired: Boolean read GetIsRequired;
     property IsReadOnly: Boolean read GetIsReadOnly;
+    property IsPassword: Boolean read GetIsPassword;
     property EmptyAsNull: Boolean read GetEmptyAsNull;
     property DefaultValue: Variant read GetDefaultValue;
 
@@ -259,18 +261,22 @@ type
   TKViewTableRecord = class;
   TKViewTableRecords = class;
 
+  TKViewTableHeader = class;
+
   TKViewTableStore = class(TKStore)
   private
     FMasterRecord: TKViewTableRecord;
     FViewTable: TKViewTable;
     procedure SetupFields;
     function GetRecords: TKViewTableRecords;
+    function GetHeader: TKViewTableHeader;
   protected
     function GetChildClass(const AName: string): TEFNodeClass; override;
   public
     constructor Create(const AViewTable: TKViewTable); reintroduce;
     property MasterRecord: TKViewTableRecord read FMasterRecord write FMasterRecord;
     property ViewTable: TKViewTable read FViewTable;
+    property Header: TKViewTableHeader read GetHeader;
     property Records: TKViewTableRecords read GetRecords;
 
     procedure Load(const AFilter: string; const AOrderBy: string);
@@ -296,22 +302,39 @@ type
     procedure Save(const AUseTransaction: Boolean);
   end;
 
+  TKViewTableHeaderField = class;
+
   TKViewTableHeader = class(TKHeader)
   protected
     function GetChildClass(const AName: string): TEFNodeClass; override;
+  public
+    function AddField(const AFieldName: string): TKViewTableHeaderField;
   end;
 
   TKViewTableHeaderField = class(TKHeaderField)
+  private
+    FViewField: TKViewField;
+    // Cached value from FViewField.
+    FViewFieldIsPassword: Boolean;
+    // Cached value from FViewField.
+    FViewFieldDisplayTemplate: string;
+    procedure SetViewField(const AValue: TKViewField);
+  public
+    property ViewField: TKViewField read FViewField write SetViewField;
+    property ViewFieldIsPassword: Boolean read FViewFieldIsPassword;
+    property ViewFieldDisplayTemplate: string read FViewFieldDisplayTemplate;
   end;
 
   TKViewTableField = class(TKField)
-  private
+  strict private
     function GetParentRecord: TKViewTableRecord;
+    function GetHeaderField: TKViewTableHeaderField;
     function GetViewField: TKViewField;
   public
     function GetEmptyAsNull: Boolean; override;
     function GetAsJSONValue(const AForDisplay: Boolean; const AQuote: Boolean = True): string; override;
     property ParentRecord: TKViewTableRecord read GetParentRecord;
+    property HeaderField: TKViewTableHeaderField read GetHeaderField;
     property ViewField: TKViewField read GetViewField;
   end;
 
@@ -1156,7 +1179,7 @@ begin
     Result.DisableChangeNotifications;
     try
       for LDerivedField in LDerivedFields do
-        Result.Header.AddChild(LDerivedField.AliasedName).DataType := LDerivedField.DataType;
+        Result.Header.AddField(LDerivedField.AliasedName).DataType := LDerivedField.DataType;
       // Get data.
       LDBQuery := TKConfig.Instance.DBConnections[Table.DatabaseName].CreateDBQuery;
       try
@@ -1188,11 +1211,11 @@ begin
     begin
       LField := ModelField.ReferencedModel.KeyFields[I];
       Result.Key.AddChild(LField.FieldName).DataType := LField.DataType;
-      Result.Header.AddChild(LField.FieldName).DataType := LField.DataType;
+      Result.Header.AddField(LField.FieldName).DataType := LField.DataType;
     end;
     LCaptionField := ModelField.ReferencedModel.CaptionField;
     if Result.Header.FindChild(LCaptionField.FieldName) = nil then
-      Result.Header.AddChild(LCaptionField.FieldName).DataType := LCaptionField.DataType;
+      Result.Header.AddField(LCaptionField.FieldName).DataType := LCaptionField.DataType;
   except
     FreeAndNil(Result);
     raise;
@@ -1518,6 +1541,11 @@ begin
   Result := (ModelName = Table.ModelName) and ModelField.IsKey;
 end;
 
+function TKViewField.GetIsPassword: Boolean;
+begin
+  Result := GetBoolean('IsPassword');
+end;
+
 function TKViewField.GetIsReadOnly: Boolean;
 begin
   Result := GetBoolean('IsReadOnly');
@@ -1649,15 +1677,17 @@ var
   LViewField: TKViewField;
   LModelField: TKModelField;
 
-  procedure SetupField(const AName: string; const ADataType: TEFDataType;
-    const AIsKey, AIsAccessGranted: Boolean);
+  procedure SetupField(const AViewField: TKViewField; const AName: string;
+    const ADataType: TEFDataType; const AIsKey, AIsAccessGranted: Boolean);
   begin
+    Assert(Assigned(AViewField));
+
     if AIsAccessGranted or AIsKey then
     begin
       // Set field names and data types both in key and header.
       if AIsKey then
         Key.AddChild(AName).DataType := ADataType;
-      Header.AddChild(AName).DataType := ADataType;
+      Header.AddField(AName).ViewField := AViewField;
     end;
   end;
 
@@ -1665,7 +1695,7 @@ begin
   for LViewFieldIndex := 0 to FViewTable.FieldCount - 1 do
   begin
     LViewField := FViewTable.Fields[LViewFieldIndex];
-    SetupField(LViewField.AliasedName, LViewField.DataType, LViewField.IsKey, LViewField.IsAccessGranted(ACM_READ));
+    SetupField(LViewField, LViewField.AliasedName, LViewField.DataType, LViewField.IsKey, LViewField.IsAccessGranted(ACM_READ));
     // Expand reference fields. Also keep the reference field itself (above)
     // as it will hold the user-readable reference description.
     if LViewField.IsReference then
@@ -1673,7 +1703,7 @@ begin
       for LModelFieldIndex := 0 to LViewField.ModelField.FieldCount - 1 do
       begin
         LModelField := LViewField.ModelField.Fields[LModelFieldIndex];
-        SetupField(LModelField.FieldName, LModelField.DataType, LModelField.IsKey, LModelField.IsAccessGranted(ACM_READ));
+        SetupField(LViewField, LModelField.FieldName, LModelField.DataType, LModelField.IsKey, LModelField.IsAccessGranted(ACM_READ));
       end;
     end;
   end;
@@ -1687,6 +1717,11 @@ begin
     Result := TKViewTableRecords
   else
     Result := inherited GetChildClass(AName);
+end;
+
+function TKViewTableStore.GetHeader: TKViewTableHeader;
+begin
+  Result := inherited Header as TKViewTableHeader;
 end;
 
 function TKViewTableStore.GetRecords: TKViewTableRecords;
@@ -1739,6 +1774,11 @@ begin
 end;
 
 { TKViewTableHeader }
+
+function TKViewTableHeader.AddField(const AFieldName: string): TKViewTableHeaderField;
+begin
+  Result := inherited AddField(AFieldName) as TKViewTableHeaderField;
+end;
 
 function TKViewTableHeader.GetChildClass(const AName: string): TEFNodeClass;
 begin
@@ -1895,7 +1935,7 @@ begin
     try
       // Get derived values.
       { TODO : Optimization: If ANewValue is null or unassigned, you don't even need to create the store and query the database. }
-      LStore := LField.ViewField.CreateDerivedFieldsStore(EFVarToStr(ANewValue));
+      LStore := LViewField.CreateDerivedFieldsStore(EFVarToStr(ANewValue));
       try
         // Copy values to fields.
         for I := 0 to LStore.Header.FieldCount - 1 do
@@ -2061,38 +2101,40 @@ const
   PASSWORD_CHARS = 8;
 var
   LDisplayTemplate: string;
+  LViewField: TKViewField;
 
-  function ReplaceFieldValues(const AString: string): string;
+  function ReplaceFieldValues(const AViewTable: TKViewTable; const AString: string): string;
   var
     I: Integer;
     LField: TKViewTableField;
   begin
     Result := AString;
-    for I := 0 to ViewField.Table.FieldCount - 1 do
+    for I := 0 to ParentRecord.FieldCount - 1 do
     begin
-      if ViewField.Table.Fields[I] <> ViewField then
+      LField := ParentRecord.Fields[I];
+      if LField.ViewField <> LViewField then
       begin
-        LField := ParentRecord.FindField(ViewField.Table.Fields[I].FieldName);
-        if Assigned(LField) then
-          Result := ReplaceText(Result, '{' + ViewField.Table.Fields[I].FieldName + '}',
-            LField.GetAsJSONValue(True, False));
+        Result := ReplaceText(Result, '{' + LField.FieldName + '}', LField.GetAsJSONValue(True, False));
       end;
     end;
   end;
 
 begin
   Result := inherited GetAsJSONValue(AForDisplay, False);
-  if AForDisplay and Assigned(ViewField) then
+  LViewField := ViewField;
+  if AForDisplay and Assigned(LViewField) then
   begin
-    if ViewField.GetBoolean('IsPassword') then
-      Result := DupeString('*', Min(ViewField.DisplayWidth, PASSWORD_CHARS))
+    // Use value of IsPassword cached in the header for best speed.
+    if HeaderField.ViewFieldIsPassword then
+      Result := DupeString('*', Min(LViewField.DisplayWidth, PASSWORD_CHARS))
     else
     begin
-      LDisplayTemplate := ViewField.DisplayTemplate;
+      // Use value of DisplayTemplate cached in the header for best speed.
+      LDisplayTemplate := HeaderField.ViewFieldDisplayTemplate;
       if LDisplayTemplate <> '' then
       begin
         // Replace other field values, this field's value and add back quotes.
-        Result := ReplaceFieldValues(ReplaceText(LDisplayTemplate, '{value}', Result));
+        Result := ReplaceFieldValues(LViewField.Table, ReplaceText(LDisplayTemplate, '{value}', Result));
       end;
     end;
   end;
@@ -2105,35 +2147,19 @@ begin
   Result := ViewField.EmptyAsNull;
 end;
 
+function TKViewTableField.GetHeaderField: TKViewTableHeaderField;
+begin
+  Result := inherited HeaderField as TKViewTableHeaderField;
+end;
+
 function TKViewTableField.GetParentRecord: TKViewTableRecord;
 begin
   Result := inherited ParentRecord as TKViewTableRecord;
 end;
 
 function TKViewTableField.GetViewField: TKViewField;
-var
-  LContainerFields: TArray<TKViewField>;
-  I: Integer;
 begin
-  // If the field is part of a reference field then using the FieldName is
-  // going to yield nil. Gotta return the containing ViewField in such cases. }
-  Result := ParentRecord.ViewTable.FindFieldByAliasedName(FieldName);
-  if Result = nil then
-  begin
-    LContainerFields := ParentRecord.ViewTable.GetFieldArray(
-      function (AField: TKViewField): Boolean
-      begin
-        Result := AField.ModelField.FieldCount > 0;
-      end);
-    for I := Low(LContainerFields) to High(LContainerFields) do
-    begin
-      if Assigned(LContainerFields[I].ModelField.FindField(FieldName)) then
-      begin
-        Result := LContainerFields[I];
-        Break;
-      end;
-    end;
-  end;
+  Result := HeaderField.ViewField;
 end;
 
 { TKFileReferenceDataType }
@@ -2141,6 +2167,23 @@ end;
 class function TKFileReferenceDataType.GetTypeName: string;
 begin
   Result := 'FileReference';
+end;
+
+{ TKViewTableHeaderField }
+
+procedure TKViewTableHeaderField.SetViewField(const AValue: TKViewField);
+begin
+  FViewField := AValue;
+  if Assigned(FViewField) then
+  begin
+    FViewFieldIsPassword := FViewField.IsPassword;
+    FViewFieldDisplayTemplate := FViewField.DisplayTemplate;
+  end
+  else
+  begin
+    FViewFieldIsPassword := False;
+    FViewFieldDisplayTemplate := '';
+  end;
 end;
 
 initialization
