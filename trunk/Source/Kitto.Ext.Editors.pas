@@ -59,7 +59,15 @@ type
     procedure AfterLoad;
   end;
 
-  TKExtEditPanel = class(TExtFormFormPanel, IKExtEditItem, IKExtEditContainer)
+  TKExtEditPage = class;
+
+  TKExtEditPanel = class(TExtFormFormPanel);
+
+  TKExtEditPage = class(TExtPanel, IKExtEditItem, IKExtEditContainer)
+  private
+    FEditPanel: TKExtEditPanel;
+  protected
+    procedure InitDefaults; override;
   public
     function AsObject: TObject;
     function _AddRef: Integer; stdcall;
@@ -67,6 +75,8 @@ type
     procedure AddChild(const AEditItem: IKExtEditItem);
     procedure SetOption(const AName, AValue: string);
     function AsExtObject: TExtObject;
+
+    property EditPanel: TKExtEditPanel read FEditPanel write FEditPanel;
   end;
 
   TKExtFormFieldSet = class(TExtFormFieldSet, IKExtEditItem, IKExtEditContainer)
@@ -407,6 +417,7 @@ type
     FDataRecord: TKViewTableRecord;
     FForceReadOnly: Boolean;
     FFormPanel: TKExtEditPanel;
+    FMainEditPage: TKExtEditPage;
     FFocusField: TExtFormField;
     FDefaults: TKExtLayoutDefaults;
     FCurrentEditItem: IKExtEditItem;
@@ -466,6 +477,7 @@ type
     property ViewTable: TKViewTable read GetViewTable;
     property ForceReadOnly: Boolean read FForceReadOnly write FForceReadOnly;
     property FormPanel: TKExtEditPanel read FFormPanel write FFormPanel;
+    property MainEditPage: TKExtEditPage read FMainEditPage write FMainEditPage;
     property OnNewEditor: TProc<IKExtEditor> read FOnNewEditor write FOnNewEditor;
     property Operation: TKExtEditOperation read FOperation write FOperation;
 
@@ -607,7 +619,7 @@ procedure TKExtLayoutProcessor.CreateEditorsFromLayout(const ALayout: TKLayout);
 var
   I: Integer;
 begin
-  Assert(Assigned(FFormPanel));
+  Assert(Assigned(FMainEditPage));
   Assert(Assigned(ALayout));
 
   FCurrentEditItem := nil;
@@ -640,7 +652,7 @@ begin
     else
     begin
       FCurrentEditItem := CreateEditItem(ANode, nil);
-      FFormPanel.Items.Add(FCurrentEditItem.AsExtObject);
+      FMainEditPage.Items.Add(FCurrentEditItem.AsExtObject);
     end;
     if Supports(FCurrentEditItem, IKExtEditContainer, LIntf) then
       FEditContainers.Push(LIntf);
@@ -672,7 +684,7 @@ procedure TKExtLayoutProcessor.CreateEditors(const ALayout: TKLayout);
 var
   I: Integer;
 begin
-  Assert(Assigned(FFormPanel));
+  Assert(Assigned(FMainEditPage));
 
   FFocusField := nil;
 
@@ -684,11 +696,11 @@ begin
     for I := 0 to ViewTable.FieldCount - 1 do
     begin
       if ViewTable.IsFieldVisible(ViewTable.Fields[I]) and ViewTable.Fields[I].IsAccessGranted(ACM_READ) then
-        FFormPanel.AddChild(CreateEditor(ViewTable.Fields[I].AliasedName, nil))
+        FMainEditPage.AddChild(CreateEditor(ViewTable.Fields[I].AliasedName, nil))
     end;
   end;
   if Assigned(FFocusField) then
-    FFormPanel.On('afterrender', FFormPanel.JSFunction(FFocusField.JSName + '.focus(false, 1000);'));
+    FMainEditPage.On('afterrender', FMainEditPage.JSFunction(FFocusField.JSName + '.focus(false, 1000);'));
 end;
 
 function TKExtLayoutProcessor.CreateEditItem(const ANode: TEFNode;
@@ -722,9 +734,9 @@ end;
 
 function TKExtLayoutProcessor.GetSession: TKExtSession;
 begin
-  Assert(Assigned(FFormPanel));
+  Assert(Assigned(FMainEditPage));
 
-  Result := FFormPanel.Session;
+  Result := FMainEditPage.Session;
 end;
 
 function TKExtLayoutProcessor.GetViewTable: TKViewTable;
@@ -753,7 +765,7 @@ begin
       LAllowedValues[I].Value := _(LAllowedValues[I].Value);
     if (LLookupCommandText <> '') or (Length(LAllowedValues) > 0) then
     begin
-      LComboBox := TKExtFormComboBoxEditor.Create(FFormPanel);
+      LComboBox := TKExtFormComboBoxEditor.Create(FMainEditPage);
       try
         if not Assigned(ARowField) then
           LComboBox.Width := LComboBox.CharsToPixels(AFieldCharWidth + TRIGGER_WIDTH)
@@ -796,7 +808,7 @@ var
 begin
   if AViewField.IsBlob or (AViewField.Size div SizeOf(Char) >= MULTILINE_EDIT_THRESHOLD) then
   begin
-    LTextArea := TKExtFormTextArea.Create(FFormPanel);
+    LTextArea := TKExtFormTextArea.Create(FMainEditPage);
     try
       if not Assigned(ARowField) then
         LTextArea.Width := LTextArea.CharsToPixels(AFieldCharWidth)
@@ -830,7 +842,7 @@ var
 begin
   if AViewField.DataType is TEFBooleanDataType then
   begin
-    LCheckbox := TKExtFormCheckbox.Create(FFormPanel);
+    LCheckbox := TKExtFormCheckbox.Create(FMainEditPage);
     try
       LCheckbox.BoxLabel := '';//LLabel;
       if AIsReadOnly then
@@ -854,7 +866,7 @@ var
 begin
   if AViewField.DataType is TEFDateDataType then
   begin
-    LDateField := TKExtFormDateField.Create(FFormPanel);
+    LDateField := TKExtFormDateField.Create(FMainEditPage);
     try
       if not Assigned(ARowField) then
         LDateField.Width := LDateField.CharsToPixels(AFieldCharWidth + TRIGGER_WIDTH)
@@ -886,7 +898,7 @@ var
 begin
   if AViewField.DataType is TEFTimeDataType then
   begin
-    LTimeField := TKExtFormTimeField.Create(FFormPanel);
+    LTimeField := TKExtFormTimeField.Create(FMainEditPage);
     try
       if not Assigned(ARowField) then
         LTimeField.Width := LTimeField.CharsToPixels(AFieldCharWidth + TRIGGER_WIDTH)
@@ -923,7 +935,7 @@ var
 begin
   if AViewField.DataType is TEFDateTimeDataType then
   begin
-    LDateTimeField := TKExtFormDateTimeField.Create(FFormPanel);
+    LDateTimeField := TKExtFormDateTimeField.Create(FMainEditPage);
     try
       if not Assigned(ARowField) then
         LDateTimeField.Width := LDateTimeField.CharsToPixels(AFieldCharWidth + (2 * TRIGGER_WIDTH) + SPACER_WIDTH)
@@ -967,9 +979,9 @@ begin
   if (AViewField.DataType is TEFBlobDataType) or (AViewField.DataType is TKFileReferenceDataType) then
   begin
     if AViewField.DataType is TEFBlobDataType then
-      LFileEditor := TKExtFormFileBlobEditor.Create(FFormPanel)
+      LFileEditor := TKExtFormFileBlobEditor.Create(FMainEditPage)
     else
-      LFileEditor := TKExtFormFileReferenceEditor.Create(FFormPanel);
+      LFileEditor := TKExtFormFileReferenceEditor.Create(FMainEditPage);
     try
       LFileEditor.IsReadOnly := AIsReadOnly;
       LFileEditor.FieldLabel := ALabel;
@@ -994,7 +1006,7 @@ var
 begin
   if AViewField.DataType is TEFNumericDataTypeBase then
   begin
-    LNumberField := TKExtFormNumberField.Create(FFormPanel);
+    LNumberField := TKExtFormNumberField.Create(FMainEditPage);
     try
       if not Assigned(ARowField) then
         LNumberField.Width := LNumberField.CharsToPixels(AFieldCharWidth)
@@ -1024,7 +1036,7 @@ function TKExtLayoutProcessor.CreateTextField(const AViewField: TKViewField;
 var
   LTextField: TKExtFormTextField;
 begin
-  LTextField := TKExtFormTextField.Create(FFormPanel);
+  LTextField := TKExtFormTextField.Create(FMainEditPage);
   try
     if not Assigned(ARowField) then
       LTextField.Width := LTextField.CharsToPixels(AFieldCharWidth)
@@ -1099,7 +1111,7 @@ begin
 
   if AContainer is TKExtFormRow then
   begin
-    LRowField := TKExtFormRowField.Create(FFormPanel);
+    LRowField := TKExtFormRowField.Create(FMainEditPage);
     LRowField.SetRecordField(LRecordField);
   end
   else
@@ -1169,10 +1181,9 @@ function TKExtLayoutProcessor.CreateFieldSet(const ATitle: string): IKExtEditIte
 var
   LFieldSet: TKExtFormFieldSet;
 begin
-  LFieldSet := TKExtFormFieldSet.Create(FFormPanel);
+  LFieldSet := TKExtFormFieldSet.Create(FMainEditPage);
   LFieldSet.Title := ATitle;
   LFieldSet.Collapsible := False;
-  LFieldSet.Anchor := '-10';
   Result := LFieldSet;
 end;
 
@@ -1187,7 +1198,7 @@ function TKExtLayoutProcessor.CreateCompositeField(const ALabel: string): IKExtE
 var
   LCompositeField: TKExtFormCompositeField;
 begin
-  LCompositeField := TKExtFormCompositeField.Create(FFormPanel);
+  LCompositeField := TKExtFormCompositeField.Create(FMainEditPage);
   if ALabel <> '' then
     LCompositeField.FieldLabel := ALabel;
   LCompositeField.Anchor := '-32';
@@ -1198,7 +1209,7 @@ function TKExtLayoutProcessor.CreateRow: IKExtEditItem;
 var
   LRow: TKExtFormRow;
 begin
-  LRow := TKExtFormRow.Create(FFormPanel);
+  LRow := TKExtFormRow.Create(FMainEditPage);
   LRow.Anchor := '-32';
   Result := LRow;
 end;
@@ -1222,7 +1233,7 @@ begin
   else if SameText(AName, 'MsgTarget') then
     FDefaults.MsgTarget := OptionAsString(AValue, ['Qtip', 'Title', 'Under', 'Side'])
   else
-    FFormPanel.SetOption(AName, AValue);
+    FMainEditPage.SetOption(AName, AValue);
 end;
 
 { TKExtLayoutDefaults }
@@ -1236,43 +1247,56 @@ begin
   MsgTarget := 'Qtip'; // qtip title under side
 end;
 
-{ TKExtEditPanel }
+{ TKExtEditPage }
 
-procedure TKExtEditPanel.AddChild(const AEditItem: IKExtEditItem);
+procedure TKExtEditPage.AddChild(const AEditItem: IKExtEditItem);
 begin
   Items.Add(AEditItem.AsExtObject);
 end;
 
-function TKExtEditPanel.AsExtObject: TExtObject;
+function TKExtEditPage.AsExtObject: TExtObject;
 begin
   Result := Self;
 end;
 
-function TKExtEditPanel.AsObject: TObject;
+function TKExtEditPage.AsObject: TObject;
 begin
   Result := Self;
 end;
 
-procedure TKExtEditPanel.SetOption(const AName, AValue: string);
+procedure TKExtEditPage.InitDefaults;
+begin
+  inherited;
+  BodyStyle := 'background:none';
+  Layout := lyForm;
+end;
+
+procedure TKExtEditPage.SetOption(const AName, AValue: string);
 begin
   if SameText(AName, 'LabelWidth') then
     LabelWidth := OptionAsInteger(AValue)
   else if SameText(AName, 'LabelAlign') then
-    LabelAlign := OptionAsLabelAlign(AValue)
+  begin
+    Assert(Assigned(FEditPanel));
+    FEditPanel.LabelAlign := OptionAsLabelAlign(AValue);
+  end
   else if SameText(AName, 'LabelSeparator') then
     LabelSeparator := AValue
   else if SameText(AName, 'LabelPad') then
-    LabelPad := OptionAsInteger(AValue)
+  begin
+    Assert(Assigned(FEditPanel));
+    FEditPanel.LabelPad := OptionAsInteger(AValue);
+  end
   else
     InvalidOption(AName, AValue);
 end;
 
-function TKExtEditPanel._AddRef: Integer;
+function TKExtEditPage._AddRef: Integer;
 begin
   Result := -1;
 end;
 
-function TKExtEditPanel._Release: Integer;
+function TKExtEditPage._Release: Integer;
 begin
   Result := -1;
 end;
@@ -1829,7 +1853,7 @@ begin
 
   FEditor := AValue;
   Items.Add(FEditor.AsExtObject);
-  FEditor.SetOption('Anchor', '-5');
+  FEditor.SetOption('Anchor', '-5px');
   Result := Self;
 end;
 

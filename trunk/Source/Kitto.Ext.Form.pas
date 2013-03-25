@@ -52,6 +52,7 @@ type
   strict private
     FTabPanel: TExtTabPanel;
     FFormPanel: TKExtEditPanel;
+    FMainPagePanel: TKExtEditPage;
     FIsReadOnly: Boolean;
     FSaveButton: TExtButton;
     FCancelButton: TExtButton;
@@ -184,6 +185,7 @@ begin
   try
     LLayoutProcessor.DataRecord := FStoreRecord;
     LLayoutProcessor.FormPanel := FFormPanel;
+    LLayoutProcessor.MainEditPage := FMainPagePanel;
     LLayoutProcessor.OnNewEditor :=
       procedure (AEditor: IKExtEditor)
       var
@@ -209,7 +211,7 @@ begin
     FreeAndNil(LLayoutProcessor);
   end;
   // Scroll back to top - can't do that until afterrender because body.dom is needed.
-  FFormPanel.On('afterrender', JSFunction(FFormPanel.JSName + '.body.dom.scrollTop = 0;'));
+  FMainPagePanel.On('afterrender', JSFunction(FMainPagePanel.JSName + '.body.dom.scrollTop = 0;'));
 end;
 
 function TKExtFormPanelController.GetDetailStyle: string;
@@ -235,7 +237,8 @@ begin
     LHostWindow := GetHostWindow;
     if Assigned(LHostWindow) then
       LHostWindow.On('afterrender', JSFunction(Format(
-        '%s.setOptimalSize(0, %d); %s.center();', [LHostWindow.JSName, GetExtraHeight, LHostWindow.JSName])));
+        '%s.setOptimalSize(0, %d); %s.center();',
+          [LHostWindow.JSName, GetExtraHeight, LHostWindow.JSName])));
   end;
   StartOperation;
 end;
@@ -408,29 +411,37 @@ begin
   if SameText(FOperation, 'Add') and FIsReadOnly then
     raise EEFError.Create(_('Operation Add not supported on read-only data.'));
 
+  FFormPanel := TKExtEditPanel.CreateAndAddTo(Items);
+  FFormPanel.Region := rgCenter;
+  FFormPanel.Border := False;
+  FFormPanel.Header := False;
+  FFormPanel.Layout := lyFit; // Vital to avoid detail grids with zero height!
+  FFormPanel.AutoScroll := False;
+  FFormPanel.LabelWidth := 120;
+  FFormPanel.MonitorValid := True;
+  FFormPanel.Cls := 'x-panel-mc'; // Sets correct theme background color.
+  { TODO : check pages in layout as well }
   if (ViewTable.DetailTableCount > 0) and SameText(GetDetailStyle, 'Tabs') then
   begin
-    FTabPanel := TExtTabPanel.CreateAndAddTo(Items);
+    FTabPanel := TExtTabPanel.CreateAndAddTo(FFormPanel.Items);
     FTabPanel.Border := False;
-    FTabPanel.Region := rgCenter;
     FTabPanel.AutoScroll := False;
+    FTabPanel.BodyStyle := 'background:none'; // Respects parent's background color.
+    FTabPanel.DeferredRender := False;
+    FMainPagePanel := TKExtEditPage.CreateAndAddTo(FTabPanel.Items);
+    FMainPagePanel.Title := _(ViewTable.DisplayLabel);
+    FMainPagePanel.EditPanel := FFormPanel;
     FTabPanel.SetActiveTab(0);
-    FFormPanel := TKExtEditPanel.CreateAndAddTo(FTabPanel.Items);
-    FFormPanel.Title := _(ViewTable.DisplayLabel);
   end
   else
   begin
     FTabPanel := nil;
-    FFormPanel := TKExtEditPanel.CreateAndAddTo(Items);
-    FFormPanel.Region := rgCenter;
+    FMainPagePanel := TKExtEditPage.CreateAndAddTo(FFormPanel.Items);
+    FMainPagePanel.Region := rgCenter;
+    FMainPagePanel.EditPanel := FFormPanel;
   end;
-  FFormPanel.Border := False;
-  FFormPanel.Header := False;
-  FFormPanel.Frame := True;
-  FFormPanel.AutoScroll := False;
-  FFormPanel.LabelWidth := 120;
-  FFormPanel.MonitorValid := True;
-  //TExtFormBasicForm(FFormPanel.GetForm).Url := MethodURI(SaveChanges);
+  FMainPagePanel.PaddingString := '5px';
+  //Session.ResponseItems.ExecuteJSCode(Format('%s.getForm().url = "%s";', [FFormPanel.JSName, MethodURI(SaveChanges)]));
 
   if not FIsReadOnly then
   begin
@@ -440,7 +451,11 @@ begin
     FSaveButton.Text := _('Save');
     FSaveButton.Tooltip := _('Save changes and finish editing');
     FSaveButton.Icon := Session.Config.GetImageURL('accept');
+    // AjaxForms allows us to put JS code in the response, something the commented
+    // versions don't allow.
     FSaveButton.Handler := AjaxForms(SaveChanges, [FFormPanel]);
+    // Don't just call submit() - we want AjaxSuccess/AjaxFailure to be called so that our response is actually executed.
+    //FSaveButton.Handler := JSFunction(FFormPanel.JSName + '.getForm().submit();');
     //FSaveButton.Handler := JSFunction(FFormPanel.JSName + '.getForm().doAction("submit", {success:"AjaxSuccess", failure:"AjaxFailure"});');
   end;
   FCancelButton := TExtButton.CreateAndAddTo(FFormPanel.Buttons);
@@ -465,10 +480,8 @@ end;
 
 function TKExtFormPanelController.GetExtraHeight: Integer;
 begin
-  Result := 0;
+  Result := 10; // 5px padding * 2.
   if Assigned(FDetailToolbar) then
-    Result := Result + 30;
-  if Assigned(FTabPanel) then
     Result := Result + 30;
   if Assigned(TopToolbar) then
     Result := Result + 30;

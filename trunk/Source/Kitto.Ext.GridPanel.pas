@@ -234,6 +234,7 @@ var
   I: Integer;
   LLayout: TKLayout;
   LLayoutName: string;
+  LAutoExpandColumn: string;
 
   procedure AddGridColumn(const AViewField: TKViewField);
   var
@@ -409,7 +410,9 @@ begin
     for I := 0 to ViewTable.FieldCount - 1 do
       AddColumn(ViewTable.Fields[I]);
   end;
-  FGridEditorPanel.AutoExpandColumn := ViewTable.GetString('Controller/AutoExpandFieldName');
+  LAutoExpandColumn := ViewTable.GetString('Controller/AutoExpandFieldName');
+  if LAutoExpandColumn <> '' then
+    FGridEditorPanel.AutoExpandColumn := LAutoExpandColumn;
 end;
 
 procedure TKExtGridPanel.NewRecord(This: TExtButton; E: TExtEventObjectSingleton);
@@ -478,7 +481,7 @@ begin
     FEditHostWindow.Free(True);
   FEditHostWindow := TKExtModalWindow.Create(Self);
 
-  FEditHostWindow.ResizeHandles := 'n s';
+  //FEditHostWindow.ResizeHandles := 'n s';
   FEditHostWindow.Layout := lyFit;
 
   if AEditMode = emNewRecord then

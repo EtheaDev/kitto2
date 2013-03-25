@@ -3198,7 +3198,7 @@ type
     procedure SetFMaskDisabled(Value: Boolean);
     procedure SetFMinButtonWidth(Value: Integer);
     procedure SetFPadding(Value: Integer);
-    procedure SetFPaddingString(Value: string);
+    procedure SetPaddingString(const AValue: string);
     procedure SetFPreventBodyReset(Value: Boolean);
     procedure SetFResizeEvent(Value: string);
     procedure SetFShadow(Value: Boolean);
@@ -3314,7 +3314,7 @@ type
     property MaskDisabled: Boolean read FMaskDisabled write SetFMaskDisabled;
     property MinButtonWidth: Integer read FMinButtonWidth write SetFMinButtonWidth;
     property Padding: Integer read FPadding write SetFPadding;
-    property PaddingString: string read FPaddingString write SetFPaddingString;
+    property PaddingString: string read FPaddingString write SetPaddingString;
     property PreventBodyReset: Boolean read FPreventBodyReset write SetFPreventBodyReset;
     property ResizeEvent: string read FResizeEvent write SetFResizeEvent;
     property Shadow: Boolean read FShadow write SetFShadow;
@@ -12967,10 +12967,10 @@ begin
   JSCode('padding:' + VarToJSON([Value]));
 end;
 
-procedure TExtPanel.SetFPaddingString(Value: string);
+procedure TExtPanel.SetPaddingString(const AValue: string);
 begin
-  FPaddingString := Value;
-  JSCode('padding:' + VarToJSON([Value]));
+  FPaddingString := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'padding', [AValue]);
 end;
 
 procedure TExtPanel.SetFPreventBodyReset(Value: Boolean);
