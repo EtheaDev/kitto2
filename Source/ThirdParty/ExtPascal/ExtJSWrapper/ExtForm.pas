@@ -169,7 +169,7 @@ type
     procedure SetFStandardSubmit(Value: Boolean);
     procedure SetFTimeout(Value: Integer);
     procedure SetFTrackResetOnLoad(Value: Boolean);
-    procedure SetFUrl(Value: string);
+    procedure SetUrl(const AValue: string);
     procedure SetFWaitTitle(Value: string);
     procedure SetFItems(Value: TExtObjectList);
     procedure SetFWaitMsgTarget(Value: string);
@@ -192,7 +192,7 @@ type
       : TExtFunction; overload;
     function FindField(Id: string): TExtFunction;
     function GetEl: TExtFunction;
-    function GetFieldValues(DirtyOnly: Boolean = false): TExtFunction;
+    function GetFieldValues(const ADirtyOnly: Boolean = False): TExtFunction;
     function GetValues(const AAsString: Boolean = False): TExtFunction;
     function IsDirty: TExtFunction;
     function IsValid: TExtFunction;
@@ -223,7 +223,7 @@ type
     property Timeout: Integer read FTimeout write SetFTimeout;
     property TrackResetOnLoad: Boolean read FTrackResetOnLoad
       write SetFTrackResetOnLoad;
-    property Url: string read FUrl write SetFUrl;
+    property Url: string read FUrl write SetUrl;
     property WaitTitle: string read FWaitTitle write SetFWaitTitle;
     property Items: TExtObjectList read FItems write SetFItems;
     property WaitMsgTarget: string read FWaitMsgTarget write SetFWaitMsgTarget;
@@ -1113,7 +1113,7 @@ type
     property LabelSeparator: string read FLabelSeparator
       write SetLabelSeparator;
     property LabelWidth: Integer read FLabelWidth write SetLabelWidth;
-    property Layout: string read FLayout write SetFLayout;
+    property LayoutString: string read FLayout write SetFLayout;
     property MinButtonWidth: Integer read FMinButtonWidth
       write SetFMinButtonWidth;
     property MonitorPoll: Integer read FMonitorPoll write SetFMonitorPoll;
@@ -1802,10 +1802,10 @@ begin
   JSCode('trackResetOnLoad:' + VarToJSON([Value]));
 end;
 
-procedure TExtFormBasicForm.SetFUrl(Value: string);
+procedure TExtFormBasicForm.SetUrl(const AValue: string);
 begin
-  FUrl := Value;
-  JSCode('url:' + VarToJSON([Value]));
+  FUrl := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'url', [AValue]);
 end;
 
 procedure TExtFormBasicForm.SetFWaitTitle(Value: string);
@@ -1936,11 +1936,9 @@ begin
   Result := Self;
 end;
 
-function TExtFormBasicForm.GetFieldValues(DirtyOnly: Boolean = false)
-  : TExtFunction;
+function TExtFormBasicForm.GetFieldValues(const ADirtyOnly: Boolean = False): TExtFunction;
 begin
-  JSCode(JSName + '.getFieldValues(' + VarToJSON([DirtyOnly]) + ');',
-    'TExtFormBasicForm');
+  ExtSession.ResponseItems.CallMethod(Self, 'getFieldValues', [ADirtyOnly]);
   Result := Self;
 end;
 
