@@ -312,13 +312,17 @@ type
   end;
 
   TKViewTableHeaderField = class(TKHeaderField)
-  private
+  strict private
     FViewField: TKViewField;
     // Cached value from FViewField.
     FViewFieldIsPassword: Boolean;
     // Cached value from FViewField.
     FViewFieldDisplayTemplate: string;
+    // Cached value from FViewField.
+    FViewFieldDataType: TEFDataType;
     procedure SetViewField(const AValue: TKViewField);
+  strict protected
+    function GetDataType: TEFDataType; override;
   public
     property ViewField: TKViewField read FViewField write SetViewField;
     property ViewFieldIsPassword: Boolean read FViewFieldIsPassword;
@@ -2171,6 +2175,13 @@ end;
 
 { TKViewTableHeaderField }
 
+function TKViewTableHeaderField.GetDataType: TEFDataType;
+begin
+  Result := FViewFieldDataType;
+  if Result = nil then
+    Result := inherited GetDataType;
+end;
+
 procedure TKViewTableHeaderField.SetViewField(const AValue: TKViewField);
 begin
   FViewField := AValue;
@@ -2178,11 +2189,13 @@ begin
   begin
     FViewFieldIsPassword := FViewField.IsPassword;
     FViewFieldDisplayTemplate := FViewField.DisplayTemplate;
+    FViewFieldDataType := FViewField.DataType;
   end
   else
   begin
     FViewFieldIsPassword := False;
     FViewFieldDisplayTemplate := '';
+    FViewFieldDataType := nil;
   end;
 end;
 
