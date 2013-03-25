@@ -89,7 +89,7 @@ function kittoInit()
       if (s)
         // Add space for borders and caption bar.
         // TODO: Calculate them automatically.
-        this.setSize(s.x + 50 + extraWidth, s.y + 50 + extraHeight);
+        this.setSize(s.x + 50 + extraWidth, s.y + extraHeight);
     }
   });
 
