@@ -1841,7 +1841,7 @@ type
     procedure SetFAutoShow(Value: Boolean);
     procedure SetFBubbleEvents(Value: TExtObjectList);
     procedure SetFClearCls(Value: string);
-    procedure SetFCls(Value: string);
+    procedure SetCls(const AValue: string);
     procedure SetFContentEl(Value: string);
     procedure SetFCtCls(Value: string);
     procedure SetFData(Value: string);
@@ -1970,7 +1970,7 @@ type
     property AutoShow: Boolean read FAutoShow write SetFAutoShow;
     property BubbleEvents: TExtObjectList read FBubbleEvents write SetFBubbleEvents;
     property ClearCls: string read FClearCls write SetFClearCls;
-    property Cls: string read FCls write SetFCls;
+    property Cls: string read FCls write SetCls;
     property ContentEl: string read FContentEl write SetFContentEl;
     property CtCls: string read FCtCls write SetFCtCls;
     property Data: string read FData write SetFData;
@@ -3766,7 +3766,7 @@ type
     procedure SetFItemTpl(Value: TExtTemplate);
     procedure SetFItemTplXTemplate(Value: TExtXTemplate);
     procedure SetFLayoutConfig(Value: TExtObject);
-    procedure SetFLayoutOnTabChange(Value: Boolean);
+    procedure SetLayoutOnTabChange(const AValue: Boolean);
     procedure SetFMinTabWidth(Value: Integer);
     procedure SetFPlain(Value: Boolean);
     procedure SetFResizeTabs(Value: Boolean);
@@ -3820,7 +3820,7 @@ type
       write SetFItemTplXTemplate;
     property LayoutConfig: TExtObject read FLayoutConfig write SetFLayoutConfig;
     property LayoutOnTabChange: Boolean read FLayoutOnTabChange
-      write SetFLayoutOnTabChange;
+      write SetLayoutOnTabChange;
     property MinTabWidth: Integer read FMinTabWidth write SetFMinTabWidth;
     property Plain: Boolean read FPlain write SetFPlain;
     property ResizeTabs: Boolean read FResizeTabs write SetFResizeTabs;
@@ -9381,10 +9381,10 @@ begin
   JSCode('clearCls:' + VarToJSON([Value]));
 end;
 
-procedure TExtComponent.SetFCls(Value: string);
+procedure TExtComponent.SetCls(const AValue: string);
 begin
-  FCls := Value;
-  JSCode('cls:' + VarToJSON([Value]));
+  FCls := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'cls', [AValue]);
 end;
 
 procedure TExtComponent.SetFContentEl(Value: string);
@@ -14372,10 +14372,10 @@ begin
   JSCode('layoutConfig:' + VarToJSON([Value, false]));
 end;
 
-procedure TExtTabPanel.SetFLayoutOnTabChange(Value: Boolean);
+procedure TExtTabPanel.SetLayoutOnTabChange(const AValue: Boolean);
 begin
-  FLayoutOnTabChange := Value;
-  JSCode('layoutOnTabChange:' + VarToJSON([Value]));
+  FLayoutOnTabChange := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'layoutOnTabChange', [AValue]);
 end;
 
 procedure TExtTabPanel.SetFMinTabWidth(Value: Integer);
