@@ -34,7 +34,10 @@
       try {
         eval(response.responseText);
       } catch (err) {
-        AjaxError(err.message);
+        if (err.message)
+          AjaxError(err.message);
+        else
+          AjaxError(err);
       }
     };
     function sleep(ms) {
