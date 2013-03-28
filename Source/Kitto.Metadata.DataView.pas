@@ -318,13 +318,10 @@ type
     FViewFieldIsPassword: Boolean;
     // Cached value from FViewField.
     FViewFieldDisplayTemplate: string;
-    // Cached value from FViewField.
-    FViewFieldDataType: TEFDataType;
-    procedure SetViewField(const AValue: TKViewField);
-  strict protected
-    function GetDataType: TEFDataType; override;
   public
-    property ViewField: TKViewField read FViewField write SetViewField;
+    procedure SetViewField(const AValue: TKViewField; const AOverrideDataType: TEFDataType = nil);
+
+    property ViewField: TKViewField read FViewField;
     property ViewFieldIsPassword: Boolean read FViewFieldIsPassword;
     property ViewFieldDisplayTemplate: string read FViewFieldDisplayTemplate;
   end;
@@ -1691,7 +1688,7 @@ var
       // Set field names and data types both in key and header.
       if AIsKey then
         Key.AddChild(AName).DataType := ADataType;
-      Header.AddField(AName).ViewField := AViewField;
+      Header.AddField(AName).SetViewField(AViewField, ADataType);
     end;
   end;
 
@@ -2175,27 +2172,23 @@ end;
 
 { TKViewTableHeaderField }
 
-function TKViewTableHeaderField.GetDataType: TEFDataType;
-begin
-  Result := FViewFieldDataType;
-  if Result = nil then
-    Result := inherited GetDataType;
-end;
-
-procedure TKViewTableHeaderField.SetViewField(const AValue: TKViewField);
+procedure TKViewTableHeaderField.SetViewField(const AValue: TKViewField; const AOverrideDataType: TEFDataType = nil);
 begin
   FViewField := AValue;
   if Assigned(FViewField) then
   begin
     FViewFieldIsPassword := FViewField.IsPassword;
     FViewFieldDisplayTemplate := FViewField.DisplayTemplate;
-    FViewFieldDataType := FViewField.DataType;
+    if AOverrideDataType = nil then
+      DataType := FViewField.DataType
+    else
+      DataType := AOverrideDataType
   end
   else
   begin
     FViewFieldIsPassword := False;
     FViewFieldDisplayTemplate := '';
-    FViewFieldDataType := nil;
+    DataType := nil;
   end;
 end;
 
