@@ -237,7 +237,7 @@ begin
     ADBCommand.Params.EndUpdate;
   end;
   for I := 0 to ADBCommand.Params.Count - 1 do
-    ARecord.GetNode(ADBCommand.Params[I].Name).AssignValueToParam(ADBCommand.Params[I]);
+    ARecord.FieldByName(ADBCommand.Params[I].Name).AssignValueToParam(ADBCommand.Params[I]);
 end;
 
 class procedure TKSQLBuilder.BuildUpdateCommand(const ADBCommand: TEFDBCommand;
@@ -367,7 +367,7 @@ begin
     ADBCommand.Params.EndUpdate;
   end;
   for I := 0 to ADBCommand.Params.Count - 1 do
-    ARecord.GetNode(ADBCommand.Params[I].Name).AssignValueToParam(ADBCommand.Params[I]);
+    ARecord.FieldByName(ADBCommand.Params[I].Name).AssignValueToParam(ADBCommand.Params[I]);
 end;
 
 class procedure TKSQLBuilder.BuildDerivedSelectQuery(const AViewField: TKViewField;
