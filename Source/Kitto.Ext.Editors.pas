@@ -30,7 +30,7 @@ uses
 type
   IKExtEditItem = interface(IEFInterface)
     ['{4F5A1E4E-D5A1-44FE-93DC-E1ABF1209CE1}']
-    procedure SetOption(const AName, AValue: string);
+    procedure SetOption(const ANode: TEFNode);
     function AsExtObject: TExtObject;
   end;
 
@@ -73,7 +73,7 @@ type
     function _AddRef: Integer; stdcall;
     function _Release: Integer; stdcall;
     procedure AddChild(const AEditItem: IKExtEditItem);
-    procedure SetOption(const AName, AValue: string);
+    procedure SetOption(const ANode: TEFNode);
     function AsExtObject: TExtObject;
 
     property EditPanel: TKExtEditPanel read FEditPanel write FEditPanel;
@@ -87,7 +87,7 @@ type
     function _AddRef: Integer; stdcall;
     function _Release: Integer; stdcall;
     procedure AddChild(const AEditItem: IKExtEditItem);
-    procedure SetOption(const AName, AValue: string);
+    procedure SetOption(const ANode: TEFNode);
     function AsExtObject: TExtObject;
   end;
 
@@ -97,20 +97,20 @@ type
     function _AddRef: Integer; stdcall;
     function _Release: Integer; stdcall;
     procedure AddChild(const AEditItem: IKExtEditItem);
-    procedure SetOption(const AName, AValue: string);
+    procedure SetOption(const ANode: TEFNode);
     function AsExtObject: TExtObject; inline;
   end;
 
   TKExtFormContainer = class(TExtContainer, IKExtEditItem)
   protected
     procedure InitDefaults; override;
-    function InternalSetOption(const AName, AValue: string): Boolean; virtual;
+    function InternalSetOption(const ANode: TEFNode): Boolean; virtual;
   public
     function AsObject: TObject; inline;
     function _AddRef: Integer; stdcall;
     function _Release: Integer; stdcall;
     procedure AddChild(const AEditItem: IKExtEditItem);
-    procedure SetOption(const AName, AValue: string);
+    procedure SetOption(const ANode: TEFNode);
     function AsExtObject: TExtObject; inline;
   end;
 
@@ -131,8 +131,7 @@ type
     procedure SetCharWidth(const AValue: Integer);
   protected
     procedure InitDefaults; override;
-    function InternalSetOption(const AName: string;
-      const AValue: string): Boolean; override;
+    function InternalSetOption(const ANode: TEFNode): Boolean; override;
   public
     destructor Destroy; override;
   public
@@ -154,7 +153,7 @@ type
     function AsObject: TObject; inline;
     function _AddRef: Integer; stdcall;
     function _Release: Integer; stdcall;
-    procedure SetOption(const AName, AValue: string);
+    procedure SetOption(const ANode: TEFNode);
     function AsExtObject: TExtObject; inline;
     function AsExtFormField: TExtFormField; inline;
     function GetRecordField: TKViewTableField;
@@ -170,7 +169,7 @@ type
     function AsObject: TObject; inline;
     function _AddRef: Integer; stdcall;
     function _Release: Integer; stdcall;
-    procedure SetOption(const AName, AValue: string);
+    procedure SetOption(const ANode: TEFNode);
     function AsExtObject: TExtObject; inline;
     function AsExtFormField: TExtFormField; inline;
     function GetRecordField: TKViewTableField;
@@ -186,7 +185,7 @@ type
     function AsObject: TObject; inline;
     function _AddRef: Integer; stdcall;
     function _Release: Integer; stdcall;
-    procedure SetOption(const AName, AValue: string);
+    procedure SetOption(const ANode: TEFNode);
     function AsExtObject: TExtObject; inline;
     function AsExtFormField: TExtFormField; inline;
     function GetRecordField: TKViewTableField;
@@ -202,7 +201,7 @@ type
     function AsObject: TObject; inline;
     function _AddRef: Integer; stdcall;
     function _Release: Integer; stdcall;
-    procedure SetOption(const AName, AValue: string);
+    procedure SetOption(const ANode: TEFNode);
     function AsExtObject: TExtObject; inline;
     function AsExtFormField: TExtFormField; inline;
     function GetRecordField: TKViewTableField;
@@ -218,7 +217,7 @@ type
     function AsObject: TObject; inline;
     function _AddRef: Integer; stdcall;
     function _Release: Integer; stdcall;
-    procedure SetOption(const AName, AValue: string);
+    procedure SetOption(const ANode: TEFNode);
     function AsExtObject: TExtObject; inline;
     function AsExtFormField: TExtFormField; inline;
     function GetRecordField: TKViewTableField;
@@ -234,7 +233,7 @@ type
     function AsObject: TObject; inline;
     function _AddRef: Integer; stdcall;
     function _Release: Integer; stdcall;
-    procedure SetOption(const AName, AValue: string);
+    procedure SetOption(const ANode: TEFNode);
     function AsExtObject: TExtObject; inline;
     function AsExtFormField: TExtFormField; inline;
     function GetRecordField: TKViewTableField;
@@ -265,7 +264,7 @@ type
     function AsObject: TObject; inline;
     function _AddRef: Integer; stdcall;
     function _Release: Integer; stdcall;
-    procedure SetOption(const AName, AValue: string);
+    procedure SetOption(const ANode: TEFNode);
     function AsExtObject: TExtObject; inline;
     function AsExtFormField: TExtFormField; inline;
     function GetRecordField: TKViewTableField;
@@ -295,7 +294,7 @@ type
   public
     destructor Destroy; override;
   public
-    procedure SetOption(const AName, AValue: string);
+    procedure SetOption(const ANode: TEFNode);
     function AsExtObject: TExtObject; inline;
     function AsExtFormField: TExtFormField; inline;
     function GetRecordField: TKViewTableField;
@@ -313,7 +312,7 @@ type
     function AsObject: TObject; inline;
     function _AddRef: Integer; stdcall;
     function _Release: Integer; stdcall;
-    procedure SetOption(const AName, AValue: string);
+    procedure SetOption(const ANode: TEFNode);
     function AsExtObject: TExtObject; inline;
     function AsExtFormField: TExtFormField; inline;
     function GetRecordField: TKViewTableField;
@@ -353,7 +352,7 @@ type
     function AsObject: TObject; inline;
     function _AddRef: Integer; stdcall;
     function _Release: Integer; stdcall;
-    procedure SetOption(const AName, AValue: string);
+    procedure SetOption(const ANode: TEFNode);
     function AsExtObject: TExtObject; inline;
     function AsExtFormField: TExtFormField; inline;
     function GetRecordField: TKViewTableField;
@@ -418,13 +417,18 @@ type
     FForceReadOnly: Boolean;
     FFormPanel: TKExtEditPanel;
     FMainEditPage: TKExtEditPage;
+    FCurrentEditPage: TKExtEditPage;
     FFocusField: TExtFormField;
     FDefaults: TKExtLayoutDefaults;
     FCurrentEditItem: IKExtEditItem;
     FEditContainers: TStack<IKExtEditContainer>;
     FOnNewEditor: TProc<IKExtEditor>;
     FOperation: TKExtEditOperation;
+    FTabPanel: TExtTabPanel;
     function GetSession: TKExtSession;
+    procedure SetMainEditPage(const AValue: TKExtEditPage);
+    procedure FinalizeCurrentEditPage;
+    function CreatePageBreak(const ATitle: string): IKExtEditItem;
     const TRIGGER_WIDTH = 2;
     function GetViewTable: TKViewTable;
     function TryCreateCheckBox(const AViewField: TKViewField;
@@ -455,7 +459,7 @@ type
       const AOptions: TEFNode = nil): IKExtEditor;
     function CreateFieldSet(const ATitle: string): IKExtEditItem;
     function CreateCompositeField(const ALabel: string): IKExtEditItem;
-    procedure SetGlobalOption(const AName, AValue: string);
+    procedure SetGlobalOption(const ANode: TEFNode);
     procedure LayoutError(const AErrorMessage: string);
     function CreateRow: IKExtEditItem;
     procedure CreateEditorsFromLayout(const ALayout: TKLayout);
@@ -477,7 +481,8 @@ type
     property ViewTable: TKViewTable read GetViewTable;
     property ForceReadOnly: Boolean read FForceReadOnly write FForceReadOnly;
     property FormPanel: TKExtEditPanel read FFormPanel write FFormPanel;
-    property MainEditPage: TKExtEditPage read FMainEditPage write FMainEditPage;
+    property TabPanel: TExtTabPanel read FTabPanel write FTabPanel;
+    property MainEditPage: TKExtEditPage read FMainEditPage write SetMainEditPage;
     property OnNewEditor: TProc<IKExtEditor> read FOnNewEditor write FOnNewEditor;
     property Operation: TKExtEditOperation read FOperation write FOperation;
 
@@ -513,64 +518,40 @@ const
   }
   MULTILINE_EDIT_THRESHOLD = 200;
 
-procedure InvalidOption(const AName, AValue: string);
+procedure InvalidOption(const ANode: TEFNode);
 begin
-  raise EEFError.CreateFmt(_('Unknown or misplaced option %s: %s.'), [AName, AValue]);
+  raise EEFError.CreateFmt(_('Unknown or misplaced option %s: %s.'), [ANode.Name, ANode.AsString]);
 end;
 
-function OptionAsFloat(const AOptionValue: string; const AFormatSettings: TFormatSettings): Double;
-begin
-  // Floats in Yaml always use the dot as decimal separator.
-  if not TryStrToFloat(AOptionValue, Result, AFormatSettings) then
-    raise EEFError.CreateFmt(_('Invalid value %s. Valid values: decimal numbers.'), [AOptionValue]);
-end;
-
-function OptionAsIntegerOrPerc(const AOptionValue: string): string;
+function OptionAsIntegerOrPerc(const ANode: TEFNode): string;
 var
   LNumber: Integer;
 begin
-  Result := AOptionValue;
+  Result := ANode.AsString;
   if EndsStr('%', Result) then
   begin
     if not TryStrToInt(Copy(Result, 1, Length(Result) - 1), LNumber) then
       raise EEFError.CreateFmt(_('Invalid value %s. Valid values: whole numbers or percentages.'), [Result]);
     if (LNumber < 0) or (LNumber > 100) then
       raise EEFError.CreateFmt(_('Invalid percentage %s. Valid percentages are 0% to 100%.'), [Result]);
-
   end
   else if not TryStrToInt(Result, LNumber) then
     raise EEFError.CreateFmt(_('Invalid value %s. Valid values: whole numbers or percentages.'), [Result]);
 end;
 
-function OptionAsInteger(const AOptionValue: string): Integer;
+function OptionAsLabelAlign(const ANode: TEFNode): TExtFormFormPanelLabelAlign;
 begin
-  if not TryStrToInt(AOptionValue, Result) then
-    raise EEFError.CreateFmt(_('Invalid value %s. Valid values: whole numbers.'), [AOptionValue]);
-end;
-
-function OptionAsBoolean(const AOptionValue: string): Boolean;
-begin
-  if SameText(AOptionValue, 'True') then
-    Result := True
-  else if SameText(AOptionValue, 'False') then
-    Result := False
-  else
-    raise EEFError.CreateFmt(_('Invalid value %s. Valid values: "True", "False".'), [AOptionValue]);
-end;
-
-function OptionAsLabelAlign(const AOptionValue: string): TExtFormFormPanelLabelAlign;
-begin
-  if SameText(AOptionValue, 'Left') then
+  if SameText(ANode.AsString, 'Left') then
     Result := laLeft
-  else if SameText(AOptionValue, 'Top') then
+  else if SameText(ANode.AsString, 'Top') then
     Result := laTop
-  else if SameText(AOptionValue, 'Right') then
+  else if SameText(ANode.AsString, 'Right') then
     Result := laRight
   else
-    raise EEFError.CreateFmt(_('Invalid value %s. Valid values: "Left", "Top", "Right".'), [AOptionValue]);
+    raise EEFError.CreateFmt(_('Invalid value %s. Valid values: "Left", "Top", "Right".'), [ANode.AsString]);
 end;
 
-function OptionAsString(const AOptionValue: string; const AAllowedValues: array of string): string;
+function OptionAsString(const ANode: TEFNode; const AAllowedValues: array of string): string;
 
   function FormatAllowedValues: string;
   var
@@ -584,20 +565,20 @@ function OptionAsString(const AOptionValue: string; const AAllowedValues: array 
   end;
 
 begin
-  if not MatchText(AOptionValue, AAllowedValues) then
-    raise EEFError.CreateFmt(_('Invalid value %s. Valid values: %s'), [AOptionValue, FormatAllowedValues]);
-  Result := AOptionValue;
+  if not MatchText(ANode.AsString, AAllowedValues) then
+    raise EEFError.CreateFmt(_('Invalid value %s. Valid values: %s'), [ANode.AsString, FormatAllowedValues]);
+  Result := ANode.AsString;
 end;
 
-function SetExtFormFieldOption(const AFormField: TExtFormField; const AName, AValue: string): Boolean;
+function SetExtFormFieldOption(const AFormField: TExtFormField; const ANode: TEFNode): Boolean;
 begin
   Result := True;
-  if SameText(AName, 'Anchor') then
-    AFormField.Anchor := AValue
-  else if SameText(AName, 'CharWidth') then
-    AFormField.Width := AFormField.CharsToPixels(OptionAsInteger(AValue))
-  else if SameText(AName, 'Width') then
-    AFormField.WidthString := OptionAsIntegerOrPerc(AValue)
+  if SameText(ANode.Name, 'Anchor') then
+    AFormField.Anchor := ANode.AsString
+  else if SameText(ANode.Name, 'CharWidth') then
+    AFormField.Width := AFormField.CharsToPixels(ANode.AsInteger)
+  else if SameText(ANode.Name, 'Width') then
+    AFormField.WidthString := OptionAsIntegerOrPerc(ANode)
   else
     Result := False;
 end;
@@ -619,7 +600,7 @@ procedure TKExtLayoutProcessor.CreateEditorsFromLayout(const ALayout: TKLayout);
 var
   I: Integer;
 begin
-  Assert(Assigned(FMainEditPage));
+  Assert(Assigned(FCurrentEditPage));
   Assert(Assigned(ALayout));
 
   FCurrentEditItem := nil;
@@ -632,8 +613,16 @@ end;
 procedure TKExtLayoutProcessor.ProcessLayoutNode(const ANode: TEFNode);
 var
   LViewField: TKViewField;
-  I: Integer;
   LIntf: IKExtEditContainer;
+
+  procedure ProcessChildNodes;
+  var
+    I: Integer;
+  begin
+    for I := 0 to ANode.ChildCount - 1 do
+      ProcessLayoutNode(ANode.Children[I]);
+  end;
+
 begin
   Assert(Assigned(ANode));
 
@@ -652,10 +641,19 @@ begin
     else
     begin
       FCurrentEditItem := CreateEditItem(ANode, nil);
-      FMainEditPage.Items.Add(FCurrentEditItem.AsExtObject);
+      FCurrentEditPage.Items.Add(FCurrentEditItem.AsExtObject);
     end;
     if Supports(FCurrentEditItem, IKExtEditContainer, LIntf) then
       FEditContainers.Push(LIntf);
+  end
+  // Page breaks are not editors nor containers.
+  else if SameText(ANode.Name, 'PageBreak') then
+  begin
+    if FEditContainers.Count > 0 then
+      raise Exception.Create('PageBreak must be a top-level node in a layout.');
+    CreatePageBreak(_(ANode.Value));
+    ProcessChildNodes;
+    Exit;
   end
   // Unknown name - must be an option.
   else if SameText(ANode.Name, 'DisplayLabel') then
@@ -669,12 +667,12 @@ begin
       LayoutError(Format(_('Option node %s cannot have child nodes.'), [ANode.Name]));
 
     if Assigned(FCurrentEditItem) then
-      FCurrentEditItem.SetOption(ANode.Name, ANode.AsString)
+      FCurrentEditItem.SetOption(ANode)
     else
-      SetGlobalOption(ANode.Name, ANode.AsString)
+      SetGlobalOption(ANode)
   end;
-  for I := 0 to ANode.ChildCount - 1 do
-    ProcessLayoutNode(ANode.Children[I]);
+
+  ProcessChildNodes;
 
   if Assigned(LIntf) then // Pushed, so pop it.
     FEditContainers.Pop;
@@ -684,7 +682,7 @@ procedure TKExtLayoutProcessor.CreateEditors(const ALayout: TKLayout);
 var
   I: Integer;
 begin
-  Assert(Assigned(FMainEditPage));
+  Assert(Assigned(FCurrentEditPage));
 
   FFocusField := nil;
 
@@ -696,11 +694,19 @@ begin
     for I := 0 to ViewTable.FieldCount - 1 do
     begin
       if ViewTable.IsFieldVisible(ViewTable.Fields[I]) and ViewTable.Fields[I].IsAccessGranted(ACM_READ) then
-        FMainEditPage.AddChild(CreateEditor(ViewTable.Fields[I].AliasedName, nil))
+        FCurrentEditPage.AddChild(CreateEditor(ViewTable.Fields[I].AliasedName, nil))
     end;
   end;
+  FinalizeCurrentEditPage;
+end;
+
+procedure TKExtLayoutProcessor.FinalizeCurrentEditPage;
+begin
+  Assert(Assigned(FCurrentEditPage));
+
   if Assigned(FFocusField) then
-    FMainEditPage.On('afterrender', FMainEditPage.JSFunction(FFocusField.JSName + '.focus(false, 1000);'));
+    FCurrentEditPage.On('afterrender', FCurrentEditPage.JSFunction(FFocusField.JSName + '.focus(false, 1000);'));
+  FFocusField := nil;
 end;
 
 function TKExtLayoutProcessor.CreateEditItem(const ANode: TEFNode;
@@ -734,9 +740,9 @@ end;
 
 function TKExtLayoutProcessor.GetSession: TKExtSession;
 begin
-  Assert(Assigned(FMainEditPage));
+  Assert(Assigned(FCurrentEditPage));
 
-  Result := FMainEditPage.Session;
+  Result := FCurrentEditPage.Session;
 end;
 
 function TKExtLayoutProcessor.GetViewTable: TKViewTable;
@@ -755,6 +761,8 @@ var
   LComboBox: TKExtFormComboBoxEditor;
   I: Integer;
 begin
+  Assert(Assigned(FCurrentEditPage));
+
   Result := nil;
   if not AViewField.IsDetailReference then
   begin
@@ -765,7 +773,7 @@ begin
       LAllowedValues[I].Value := _(LAllowedValues[I].Value);
     if (LLookupCommandText <> '') or (Length(LAllowedValues) > 0) then
     begin
-      LComboBox := TKExtFormComboBoxEditor.Create(FMainEditPage);
+      LComboBox := TKExtFormComboBoxEditor.Create(FCurrentEditPage);
       try
         if not Assigned(ARowField) then
           LComboBox.Width := LComboBox.CharsToPixels(AFieldCharWidth + TRIGGER_WIDTH)
@@ -806,9 +814,11 @@ function TKExtLayoutProcessor.TryCreateTextArea(const AViewField: TKViewField;
 var
   LTextArea: TKExtFormTextArea;
 begin
+  Assert(Assigned(FCurrentEditPage));
+
   if AViewField.IsBlob or (AViewField.Size div SizeOf(Char) >= MULTILINE_EDIT_THRESHOLD) then
   begin
-    LTextArea := TKExtFormTextArea.Create(FMainEditPage);
+    LTextArea := TKExtFormTextArea.Create(FCurrentEditPage);
     try
       if not Assigned(ARowField) then
         LTextArea.Width := LTextArea.CharsToPixels(AFieldCharWidth)
@@ -840,9 +850,11 @@ function TKExtLayoutProcessor.TryCreateCheckBox(const AViewField: TKViewField;
 var
   LCheckbox: TKExtFormCheckbox;
 begin
+  Assert(Assigned(FCurrentEditPage));
+
   if AViewField.DataType is TEFBooleanDataType then
   begin
-    LCheckbox := TKExtFormCheckbox.Create(FMainEditPage);
+    LCheckbox := TKExtFormCheckbox.Create(FCurrentEditPage);
     try
       LCheckbox.BoxLabel := '';//LLabel;
       if AIsReadOnly then
@@ -864,9 +876,11 @@ var
   LDateField: TKExtFormDateField;
   LFormat: string;
 begin
+  Assert(Assigned(FCurrentEditPage));
+
   if AViewField.DataType is TEFDateDataType then
   begin
-    LDateField := TKExtFormDateField.Create(FMainEditPage);
+    LDateField := TKExtFormDateField.Create(FCurrentEditPage);
     try
       if not Assigned(ARowField) then
         LDateField.Width := LDateField.CharsToPixels(AFieldCharWidth + TRIGGER_WIDTH)
@@ -896,9 +910,11 @@ var
   LTimeField: TKExtFormTimeField;
   LFormat: string;
 begin
+  Assert(Assigned(FCurrentEditPage));
+
   if AViewField.DataType is TEFTimeDataType then
   begin
-    LTimeField := TKExtFormTimeField.Create(FMainEditPage);
+    LTimeField := TKExtFormTimeField.Create(FCurrentEditPage);
     try
       if not Assigned(ARowField) then
         LTimeField.Width := LTimeField.CharsToPixels(AFieldCharWidth + TRIGGER_WIDTH)
@@ -933,9 +949,11 @@ var
   LDateFormat: string;
   LTimeFormat: string;
 begin
+  Assert(Assigned(FCurrentEditPage));
+
   if AViewField.DataType is TEFDateTimeDataType then
   begin
-    LDateTimeField := TKExtFormDateTimeField.Create(FMainEditPage);
+    LDateTimeField := TKExtFormDateTimeField.Create(FCurrentEditPage);
     try
       if not Assigned(ARowField) then
         LDateTimeField.Width := LDateTimeField.CharsToPixels(AFieldCharWidth + (2 * TRIGGER_WIDTH) + SPACER_WIDTH)
@@ -976,12 +994,14 @@ function TKExtLayoutProcessor.TryCreateFileEditor(const AViewField: TKViewField;
 var
   LFileEditor: TKExtFormFileEditor;
 begin
+  Assert(Assigned(FCurrentEditPage));
+
   if (AViewField.DataType is TEFBlobDataType) or (AViewField.DataType is TKFileReferenceDataType) then
   begin
     if AViewField.DataType is TEFBlobDataType then
-      LFileEditor := TKExtFormFileBlobEditor.Create(FMainEditPage)
+      LFileEditor := TKExtFormFileBlobEditor.Create(FCurrentEditPage)
     else
-      LFileEditor := TKExtFormFileReferenceEditor.Create(FMainEditPage);
+      LFileEditor := TKExtFormFileReferenceEditor.Create(FCurrentEditPage);
     try
       LFileEditor.IsReadOnly := AIsReadOnly;
       LFileEditor.FieldLabel := ALabel;
@@ -1004,9 +1024,11 @@ function TKExtLayoutProcessor.TryCreateNumberField(const AViewField: TKViewField
 var
   LNumberField: TKExtFormNumberField;
 begin
+  Assert(Assigned(FCurrentEditPage));
+
   if AViewField.DataType is TEFNumericDataTypeBase then
   begin
-    LNumberField := TKExtFormNumberField.Create(FMainEditPage);
+    LNumberField := TKExtFormNumberField.Create(FCurrentEditPage);
     try
       if not Assigned(ARowField) then
         LNumberField.Width := LNumberField.CharsToPixels(AFieldCharWidth)
@@ -1036,7 +1058,9 @@ function TKExtLayoutProcessor.CreateTextField(const AViewField: TKViewField;
 var
   LTextField: TKExtFormTextField;
 begin
-  LTextField := TKExtFormTextField.Create(FMainEditPage);
+  Assert(Assigned(FCurrentEditPage));
+
+  LTextField := TKExtFormTextField.Create(FCurrentEditPage);
   try
     if not Assigned(ARowField) then
       LTextField.Width := LTextField.CharsToPixels(AFieldCharWidth)
@@ -1078,6 +1102,7 @@ var
 
 begin
   Assert(Assigned(FDataRecord));
+  Assert(Assigned(FCurrentEditPage));
 
   LViewField := ViewTable.FieldByAliasedName(AFieldName);
   LRecordField := FDataRecord.FieldByName(LViewField.FieldName);
@@ -1111,7 +1136,7 @@ begin
 
   if AContainer is TKExtFormRow then
   begin
-    LRowField := TKExtFormRowField.Create(FMainEditPage);
+    LRowField := TKExtFormRowField.Create(FCurrentEditPage);
     LRowField.SetRecordField(LRecordField);
   end
   else
@@ -1181,10 +1206,29 @@ function TKExtLayoutProcessor.CreateFieldSet(const ATitle: string): IKExtEditIte
 var
   LFieldSet: TKExtFormFieldSet;
 begin
-  LFieldSet := TKExtFormFieldSet.Create(FMainEditPage);
+  Assert(Assigned(FCurrentEditPage));
+
+  LFieldSet := TKExtFormFieldSet.Create(FCurrentEditPage);
   LFieldSet.Title := ATitle;
   LFieldSet.Collapsible := False;
   Result := LFieldSet;
+end;
+
+function TKExtLayoutProcessor.CreatePageBreak(const ATitle: string): IKExtEditItem;
+var
+  LPageBreak: TKExtEditPage;
+begin
+  Assert(Assigned(FFormPanel));
+  Assert(Assigned(FTabPanel));
+
+  FinalizeCurrentEditPage;
+
+  LPageBreak := TKExtEditPage.CreateAndAddTo(FTabPanel.Items);
+  LPageBreak.Title := ATitle;
+  LPageBreak.EditPanel := FFormPanel;
+  FCurrentEditPage := LPageBreak;
+
+  Result := LPageBreak;
 end;
 
 procedure TKExtLayoutProcessor.AfterConstruction;
@@ -1198,7 +1242,9 @@ function TKExtLayoutProcessor.CreateCompositeField(const ALabel: string): IKExtE
 var
   LCompositeField: TKExtFormCompositeField;
 begin
-  LCompositeField := TKExtFormCompositeField.Create(FMainEditPage);
+  Assert(Assigned(FCurrentEditPage));
+
+  LCompositeField := TKExtFormCompositeField.Create(FCurrentEditPage);
   if ALabel <> '' then
     LCompositeField.FieldLabel := ALabel;
   LCompositeField.Anchor := '-32';
@@ -1209,8 +1255,9 @@ function TKExtLayoutProcessor.CreateRow: IKExtEditItem;
 var
   LRow: TKExtFormRow;
 begin
-  LRow := TKExtFormRow.Create(FMainEditPage);
-  LRow.Anchor := '-32';
+  Assert(Assigned(FCurrentEditPage));
+
+  LRow := TKExtFormRow.Create(FCurrentEditPage);
   Result := LRow;
 end;
 
@@ -1220,20 +1267,27 @@ begin
   inherited;
 end;
 
-procedure TKExtLayoutProcessor.SetGlobalOption(const AName, AValue: string);
+procedure TKExtLayoutProcessor.SetGlobalOption(const ANode: TEFNode);
 begin
-  if SameText(AName, 'MemoWidth') then
-    FDefaults.MemoWidth := OptionAsInteger(AValue)
-  else if SameText(AName, 'MaxFieldWidth') then
-    FDefaults.MaxFieldWidth := OptionAsInteger(AValue)
-  else if SameText(AName, 'MinFieldWidth') then
-    FDefaults.MinFieldWidth := OptionAsInteger(AValue)
-  else if SameText(AName, 'RequiredLabelTemplate') then
-    FDefaults.RequiredLabelTemplate := AValue
-  else if SameText(AName, 'MsgTarget') then
-    FDefaults.MsgTarget := OptionAsString(AValue, ['Qtip', 'Title', 'Under', 'Side'])
+  if SameText(ANode.Name, 'MemoWidth') then
+    FDefaults.MemoWidth := ANode.AsInteger
+  else if SameText(ANode.Name, 'MaxFieldWidth') then
+    FDefaults.MaxFieldWidth := ANode.AsInteger
+  else if SameText(ANode.Name, 'MinFieldWidth') then
+    FDefaults.MinFieldWidth := ANode.AsInteger
+  else if SameText(ANode.Name, 'RequiredLabelTemplate') then
+    FDefaults.RequiredLabelTemplate := ANode.AsString
+  else if SameText(ANode.Name, 'MsgTarget') then
+    FDefaults.MsgTarget := OptionAsString(ANode, ['Qtip', 'Title', 'Under', 'Side'])
   else
-    FMainEditPage.SetOption(AName, AValue);
+    FCurrentEditPage.SetOption(ANode);
+end;
+
+procedure TKExtLayoutProcessor.SetMainEditPage(const AValue: TKExtEditPage);
+begin
+  FMainEditPage := AValue;
+  if Assigned(FMainEditPage) and not Assigned(FCurrentEditPage) then
+    FCurrentEditPage := FMainEditPage;
 end;
 
 { TKExtLayoutDefaults }
@@ -1269,26 +1323,27 @@ begin
   inherited;
   BodyStyle := 'background:none';
   Layout := lyForm;
+  PaddingString := '5px';
 end;
 
-procedure TKExtEditPage.SetOption(const AName, AValue: string);
+procedure TKExtEditPage.SetOption(const ANode: TEFNode);
 begin
-  if SameText(AName, 'LabelWidth') then
-    LabelWidth := OptionAsInteger(AValue)
-  else if SameText(AName, 'LabelAlign') then
+  if SameText(ANode.Name, 'LabelWidth') then
+    LabelWidth := ANode.AsInteger
+  else if SameText(ANode.Name, 'LabelAlign') then
   begin
     Assert(Assigned(FEditPanel));
-    FEditPanel.LabelAlign := OptionAsLabelAlign(AValue);
+    FEditPanel.LabelAlign := OptionAsLabelAlign(ANode);
   end
-  else if SameText(AName, 'LabelSeparator') then
-    LabelSeparator := AValue
-  else if SameText(AName, 'LabelPad') then
+  else if SameText(ANode.Name, 'LabelSeparator') then
+    LabelSeparator := ANode.AsString
+  else if SameText(ANode.Name, 'LabelPad') then
   begin
     Assert(Assigned(FEditPanel));
-    FEditPanel.LabelPad := OptionAsInteger(AValue);
+    FEditPanel.LabelPad := Anode.AsInteger;
   end
   else
-    InvalidOption(AName, AValue);
+    InvalidOption(ANode);
 end;
 
 function TKExtEditPage._AddRef: Integer;
@@ -1327,24 +1382,24 @@ begin
   On('expand', JSFunction('if ("kPreviousHeight" in this && this.getTopOwner() instanceof Ext.Window) this.getTopOwner().setHeight(this.getTopOwner().getHeight() - this.kPreviousHeight + this.getHeight());'), Self);
 end;
 
-procedure TKExtFormFieldSet.SetOption(const AName, AValue: string);
+procedure TKExtFormFieldSet.SetOption(const ANode: TEFNode);
 begin
-  if SameText(AName, 'LabelWidth') then
-    LabelWidth := OptionAsInteger(AValue)
-  else if SameText(AName, 'Collapsible') then
-    Collapsible := OptionAsBoolean(AValue)
-  else if SameText(AName, 'Collapsed') then
+  if SameText(ANode.Name, 'LabelWidth') then
+    LabelWidth := ANode.AsInteger
+  else if SameText(ANode.Name, 'Collapsible') then
+    Collapsible := ANode.AsBoolean
+  else if SameText(ANode.Name, 'Collapsed') then
   begin
     // We need to defer expanding/collapsing the field set to give
     // compound contained editors (such as the file editors) a chance to
     // layout correctly.
-    if OptionAsBoolean(AValue) then
+    if ANode.AsBoolean then
       On('afterrender', JSFunction(JSName + '.collapse(true);'))
     else
       On('afterrender', JSFunction(JSName + '.expand(true);'))
   end
   else
-    InvalidOption(AName, AValue);
+    InvalidOption(ANode);
 end;
 
 function TKExtFormFieldSet._AddRef: Integer;
@@ -1374,9 +1429,9 @@ begin
   Result := Self;
 end;
 
-procedure TKExtFormCompositeField.SetOption(const AName, AValue: string);
+procedure TKExtFormCompositeField.SetOption(const ANode: TEFNode);
 begin
-  InvalidOption(AName, AValue);
+  InvalidOption(ANode);
 end;
 
 function TKExtFormCompositeField._AddRef: Integer;
@@ -1429,10 +1484,10 @@ begin
   FRecordField.SetAsJSONValue(NewValue, False, Session.Config.UserFormatSettings);
 end;
 
-procedure TKExtFormTextField.SetOption(const AName, AValue: string);
+procedure TKExtFormTextField.SetOption(const ANode: TEFNode);
 begin
-  if not SetExtFormFieldOption(AsExtFormField, AName, AValue) then
-    InvalidOption(AName, AValue);
+  if not SetExtFormFieldOption(AsExtFormField, ANode) then
+    InvalidOption(ANode);
 end;
 
 function TKExtFormTextField._AddRef: Integer;
@@ -1485,14 +1540,14 @@ begin
     OnChange := FieldChange;
 end;
 
-procedure TKExtFormTextArea.SetOption(const AName, AValue: string);
+procedure TKExtFormTextArea.SetOption(const ANode: TEFNode);
 begin
-  if not SetExtFormFieldOption(AsExtFormField, AName, AValue) then
+  if not SetExtFormFieldOption(AsExtFormField, ANode) then
   begin
-    if SameText(AName, 'Lines') then
-      Height := LinesToPixels(OptionAsInteger(AValue))
+    if SameText(ANode.Name, 'Lines') then
+      Height := LinesToPixels(ANode.AsInteger)
     else
-      InvalidOption(AName, AValue);
+      InvalidOption(ANode);
   end;
 end;
 
@@ -1546,10 +1601,10 @@ begin
     OnChange := FieldChange;
 end;
 
-procedure TKExtFormCheckbox.SetOption(const AName, AValue: string);
+procedure TKExtFormCheckbox.SetOption(const ANode: TEFNode);
 begin
-  if not SetExtFormFieldOption(AsExtFormField, AName, AValue) then
-    InvalidOption(AName, AValue);
+  if not SetExtFormFieldOption(AsExtFormField, ANode) then
+    InvalidOption(ANode);
 end;
 
 function TKExtFormCheckbox._AddRef: Integer;
@@ -1602,10 +1657,10 @@ begin
     OnChange := FieldChange;
 end;
 
-procedure TKExtFormDateField.SetOption(const AName, AValue: string);
+procedure TKExtFormDateField.SetOption(const ANode: TEFNode);
 begin
-  if not SetExtFormFieldOption(AsExtFormField, AName, AValue) then
-    InvalidOption(AName, AValue);
+  if not SetExtFormFieldOption(AsExtFormField, ANode) then
+    InvalidOption(ANode);
 end;
 
 function TKExtFormDateField._AddRef: Integer;
@@ -1696,14 +1751,14 @@ begin
   FRecordField.SetAsJSONValue(NewValue, False, Session.Config.UserFormatSettings);
 end;
 
-procedure TKExtFormComboBoxEditor.SetOption(const AName, AValue: string);
+procedure TKExtFormComboBoxEditor.SetOption(const ANode: TEFNode);
 begin
-  if not SetExtFormFieldOption(AsExtFormField, AName, AValue) then
+  if not SetExtFormFieldOption(AsExtFormField, ANode) then
   begin
-    if SameText(AName, 'Resizable') then
-      Resizable := OptionAsBoolean(AValue)
+    if SameText(ANode.Name, 'Resizable') then
+      Resizable := ANode.AsBoolean
     else
-      InvalidOption(AName, AValue);
+      InvalidOption(ANode);
   end;
 end;
 
@@ -1762,28 +1817,27 @@ begin
   //AutoScroll := False;
 end;
 
-function TKExtFormContainer.InternalSetOption(const AName,
-  AValue: string): Boolean;
+function TKExtFormContainer.InternalSetOption(const ANode: TEFNode): Boolean;
 begin
   Result := True;
-  if SameText(AName, 'Layout') then
-    LayoutString := AValue
-  else if SameText(AName, 'ColumnWidth') then
-    ColumnWidth := OptionAsFloat(AValue, Session.Config.JSFormatSettings)
-  else if SameText(AName, 'CharWidth') then
-    Width := CharsToPixels(OptionAsInteger(AValue))
-  else if SameText(AName, 'Width') then
-    WidthString := OptionAsIntegerOrPerc(AValue)
-  else if SameText(AName, 'Anchor') then
-    Anchor := AValue
+  if SameText(ANode.Name, 'Layout') then
+    LayoutString := ANode.AsString
+  else if SameText(ANode.Name, 'ColumnWidth') then
+    ColumnWidth := ANode.AsFloat
+  else if SameText(ANode.Name, 'CharWidth') then
+    Width := CharsToPixels(ANode.AsInteger)
+  else if SameText(ANode.Name, 'Width') then
+    WidthString := OptionAsIntegerOrPerc(ANode)
+  else if SameText(ANode.Name, 'Anchor') then
+    Anchor := ANode.AsString
   else
     Result := False;
 end;
 
-procedure TKExtFormContainer.SetOption(const AName, AValue: string);
+procedure TKExtFormContainer.SetOption(const ANode: TEFNode);
 begin
-  if not InternalSetOption(AName, AValue) then
-    InvalidOption(AName, AValue);
+  if not InternalSetOption(ANode) then
+    InvalidOption(ANode);
 end;
 
 function TKExtFormContainer._AddRef: Integer;
@@ -1817,20 +1871,20 @@ begin
   Layout := lyForm;
 end;
 
-function TKExtFormRowField.InternalSetOption(const AName, AValue: string): Boolean;
+function TKExtFormRowField.InternalSetOption(const ANode: TEFNode): Boolean;
 begin
   // Widths are set for both the container and the contained editor.
-  if SameText(AName, 'ColumnWidth') then
+  if SameText(ANode.Name, 'ColumnWidth') then
   begin
-    ColumnWidth := OptionAsFloat(AValue, Session.Config.JSFormatSettings);
-    FEditor.SetOption('ColumnWidth', AValue);
+    ColumnWidth := ANode.AsFloat;
+    FEditor.SetOption(ANode);
   end
-  else if SameText(AName, 'CharWidth') then
-    CharWidth := OptionAsInteger(AValue)
-  else if SameText(AName, 'Width') then
-    WidthString := OptionAsIntegerOrPerc(AValue)
+  else if SameText(ANode.Name, 'CharWidth') then
+    CharWidth := ANode.AsInteger
+  else if SameText(ANode.Name, 'Width') then
+    WidthString := OptionAsIntegerOrPerc(ANode)
   else
-    FEditor.SetOption(AName, AValue);
+    FEditor.SetOption(ANode);
   Result := True;
 end;
 
@@ -1848,12 +1902,22 @@ begin
 end;
 
 function TKExtFormRowField.Encapsulate(const AValue: IKExtEditor): IKExtEditor;
+var
+  LNode: TEFNode;
 begin
   Assert(Assigned(AValue));
 
   FEditor := AValue;
   Items.Add(FEditor.AsExtObject);
-  FEditor.SetOption('Anchor', '-5px');
+  LNode := TEFNode.Create('Anchor');
+  try
+    LNode.AsInteger := -5;
+    FEditor.SetOption(LNode);
+  finally
+    FreeAndNil(LNode);
+  end;
+
+  FEditor.AsExtFormField.Flex := 1;
   Result := Self;
 end;
 
@@ -1913,10 +1977,10 @@ begin
     OnChange := FieldChange;
 end;
 
-procedure TKExtFormNumberField.SetOption(const AName, AValue: string);
+procedure TKExtFormNumberField.SetOption(const ANode: TEFNode);
 begin
-  if not SetExtFormFieldOption(AsExtFormField, AName, AValue) then
-    InvalidOption(AName, AValue);
+  if not SetExtFormFieldOption(AsExtFormField, ANode) then
+    InvalidOption(ANode);
 end;
 
 function TKExtFormNumberField._AddRef: Integer;
@@ -1974,10 +2038,10 @@ begin
   SetValue(JSONNullToEmptyStr(FRecordField.GetAsJSONValue(False, False)));
 end;
 
-procedure TKExtFormDateTimeField.SetOption(const AName, AValue: string);
+procedure TKExtFormDateTimeField.SetOption(const ANode: TEFNode);
 begin
-  if not SetExtFormFieldOption(AsExtFormField, AName, AValue) then
-    InvalidOption(AName, AValue);
+  if not SetExtFormFieldOption(AsExtFormField, ANode) then
+    InvalidOption(ANode);
 end;
 
 function TKExtFormDateTimeField._AddRef: Integer;
@@ -2067,10 +2131,10 @@ begin
     OnChange := FieldChange;
 end;
 
-procedure TKExtFormTimeField.SetOption(const AName, AValue: string);
+procedure TKExtFormTimeField.SetOption(const ANode: TEFNode);
 begin
-  if not SetExtFormFieldOption(AsExtFormField, AName, AValue) then
-    InvalidOption(AName, AValue);
+  if not SetExtFormFieldOption(AsExtFormField, ANode) then
+    InvalidOption(ANode);
 end;
 
 function TKExtFormTimeField._AddRef: Integer;
@@ -2115,10 +2179,10 @@ begin
   FRecordField := AValue;
 end;
 
-procedure TKExtFormFileUploadField.SetOption(const AName, AValue: string);
+procedure TKExtFormFileUploadField.SetOption(const ANode: TEFNode);
 begin
-  if not SetExtFormFieldOption(AsExtFormField, AName, AValue) then
-    InvalidOption(AName, AValue);
+  if not SetExtFormFieldOption(AsExtFormField, ANode) then
+    InvalidOption(ANode);
 end;
 
 function TKExtFormFileUploadField._AddRef: Integer;
@@ -2414,14 +2478,14 @@ begin
     FClearButton.SetDisabled(LIsEmpty);
 end;
 
-procedure TKExtFormFileEditor.SetOption(const AName, AValue: string);
+procedure TKExtFormFileEditor.SetOption(const ANode: TEFNode);
 begin
-  if SameText(AName, 'CharWidth') then
-    TotalCharWidth := OptionAsInteger(AValue)
-  else if SameText(AName, 'Anchor') then
-    Anchor := AValue
+  if SameText(ANode.Name, 'CharWidth') then
+    TotalCharWidth := Anode.AsInteger
+  else if SameText(ANode.Name, 'Anchor') then
+    Anchor := ANode.AsString
   else
-    InvalidOption(AName, AValue);
+    InvalidOption(ANode);
 end;
 
 procedure TKExtFormFileEditor.ShowUploadFileDialog;

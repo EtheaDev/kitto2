@@ -186,6 +186,7 @@ begin
     LLayoutProcessor.DataRecord := FStoreRecord;
     LLayoutProcessor.FormPanel := FFormPanel;
     LLayoutProcessor.MainEditPage := FMainPagePanel;
+    LLayoutProcessor.TabPanel := FTabPanel;
     LLayoutProcessor.OnNewEditor :=
       procedure (AEditor: IKExtEditor)
       var

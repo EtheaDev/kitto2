@@ -2422,7 +2422,7 @@ type
     procedure SetFBoxMaxWidth(Value: Integer);
     procedure SetFBoxMinHeight(Value: Integer);
     procedure SetFBoxMinWidth(Value: Integer);
-    procedure SetFFlex(Value: Integer);
+    procedure SetFlex(const AValue: Integer);
     procedure SetHeight(const AValue: Integer);
     procedure SetFMargins(Value: string);
     procedure SetFPageX(Value: Integer);
@@ -2462,7 +2462,7 @@ type
     property BoxMaxWidth: Integer read FBoxMaxWidth write SetFBoxMaxWidth;
     property BoxMinHeight: Integer read FBoxMinHeight write SetFBoxMinHeight;
     property BoxMinWidth: Integer read FBoxMinWidth write SetFBoxMinWidth;
-    property Flex: Integer read FFlex write SetFFlex;
+    property Flex: Integer read FFlex write SetFlex;
     property Height: Integer read FHeight write SetHeight;
     property HeightString: string read FHeightString write SetHeightString;
     property Margins: string read FMargins write SetFMargins;
@@ -2642,7 +2642,7 @@ type
     procedure SetFColspan(Value: Integer);
     procedure SetFRowspan(Value: Integer);
     procedure SetFLayoutString(Value: string);
-    procedure SetFColumnWidth(Value: Double);
+    procedure SetColumnWidth(const AValue: Double);
     procedure SetFOnAdd(Value: TExtContainerOnAdd);
     procedure SetFOnAfterlayout(Value: TExtContainerOnAfterlayout);
     procedure SetFOnBeforeadd(Value: TExtContainerOnBeforeadd);
@@ -2700,7 +2700,7 @@ type
     property Colspan: Integer read FColspan write SetFColspan;
     property Rowspan: Integer read FRowspan write SetFRowspan;
     property LayoutString: string read FLayoutString write SetFLayoutString;
-    property ColumnWidth: Double read FColumnWidth write SetFColumnWidth;
+    property ColumnWidth: Double read FColumnWidth write SetColumnWidth;
     property OnAdd: TExtContainerOnAdd read FOnAdd write SetFOnAdd;
     property OnAfterlayout: TExtContainerOnAfterlayout read FOnAfterlayout
       write SetFOnAfterlayout;
@@ -11010,10 +11010,10 @@ begin
   JSCode('boxMinWidth:' + VarToJSON([Value]));
 end;
 
-procedure TExtBoxComponent.SetFFlex(Value: Integer);
+procedure TExtBoxComponent.SetFlex(const AValue: Integer);
 begin
-  FFlex := Value;
-  JSCode('flex:' + VarToJSON([Value]));
+  FFlex := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'flex', [AValue]);
 end;
 
 procedure TExtBoxComponent.SetHeight(const AValue: Integer);
@@ -11541,10 +11541,10 @@ begin
   JSCode('layout:' + VarToJSON([Value]));
 end;
 
-procedure TExtContainer.SetFColumnWidth(Value: Double);
+procedure TExtContainer.SetColumnWidth(const AValue: Double);
 begin
-  FColumnWidth := Value;
-  JSCode('columnWidth:' + VarToJSON([Value]));
+  FColumnWidth := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'columnWidth', [AValue]);
 end;
 
 procedure TExtContainer.SetFOnAdd(Value: TExtContainerOnAdd);
