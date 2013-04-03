@@ -77,6 +77,7 @@ type
     procedure FieldChange(const AField: TKField;
       const AOldValue, ANewValue: Variant);
     function GetAfterLoadJSCode: string;
+    function FindViewLayout: TKLayout;
   strict protected
     procedure DoDisplay; override;
     procedure InitComponents; override;
@@ -177,7 +178,6 @@ end;
 procedure TKExtFormPanelController.CreateEditors(const AForceReadOnly: Boolean);
 var
   LLayoutProcessor: TKExtLayoutProcessor;
-  LLayoutName: string;
 begin
   FreeAndNil(FEditors);
   FEditors := TList<TObject>.Create;
@@ -201,18 +201,24 @@ begin
       LLayoutProcessor.Operation := eoInsert
     else
       LLayoutProcessor.Operation := eoUpdate;
-
-    LLayoutName := ViewTable.GetString('Controller/Form/Layout');
-    if LLayoutName <> '' then
-      LLayoutProcessor.CreateEditors(View.Catalog.Layouts.FindLayout(LLayoutName))
-    else
-      LLayoutProcessor.CreateEditors(ViewTable.FindLayout('Form'));
+    LLayoutProcessor.CreateEditors(FindViewLayout);
     FFocusField := LLayoutProcessor.FocusField;
   finally
     FreeAndNil(LLayoutProcessor);
   end;
   // Scroll back to top - can't do that until afterrender because body.dom is needed.
   FMainPagePanel.On('afterrender', JSFunction(FMainPagePanel.JSName + '.body.dom.scrollTop = 0;'));
+end;
+
+function TKExtFormPanelController.FindViewLayout: TKLayout;
+var
+  LLayoutName: string;
+begin
+  LLayoutName := ViewTable.GetString('Controller/Form/Layout');
+  if LLayoutName <> '' then
+    Result := View.Catalog.Layouts.FindLayout(LLayoutName)
+  else
+    Result := ViewTable.FindLayout('Form');
 end;
 
 function TKExtFormPanelController.GetDetailStyle: string;
@@ -379,6 +385,23 @@ end;
 procedure TKExtFormPanelController.InitComponents;
 var
   LHostWindow: TExtWindow;
+
+  function LayoutContainsPageBreaks: Boolean;
+  var
+    LLayout: TKLayout;
+  begin
+    Result := False;
+    LLayout := FindViewLayout;
+    if Assigned(LLayout) then
+    begin
+      Result := Assigned(LLayout.FindChildByPredicate(
+        function (const ANode: TEFNode): Boolean
+        begin
+          Result := SameText(ANode.Name, 'PageBreak');
+        end));
+    end
+  end;
+
 begin
   inherited;
   if Title = '' then
@@ -422,7 +445,7 @@ begin
   FFormPanel.MonitorValid := True;
   FFormPanel.Cls := 'x-panel-mc'; // Sets correct theme background color.
   { TODO : check pages in layout as well }
-  if (ViewTable.DetailTableCount > 0) and SameText(GetDetailStyle, 'Tabs') then
+  if ((ViewTable.DetailTableCount > 0) and SameText(GetDetailStyle, 'Tabs')) or LayoutContainsPageBreaks then
   begin
     FTabPanel := TExtTabPanel.CreateAndAddTo(FFormPanel.Items);
     FTabPanel.Border := False;
