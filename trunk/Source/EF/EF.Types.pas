@@ -70,9 +70,9 @@ type
   ///	  string Ids.
   ///	</summary>
   TEFRegistry = class abstract
-  private
+  strict private
     FClasses: TDictionary<string, TClass>;
-  protected
+  strict protected
     ///	<summary>
     ///	  Called at the beginning of RegisterClass.
     ///	</summary>
@@ -99,6 +99,11 @@ type
     ///   functionality.
     ///	</summary>
     property Classes: TDictionary<string, TClass> read FClasses;
+
+    ///	<summary>
+    ///	  Raises the "class not found" exception.
+    ///	</summary>
+    procedure ClassNotFound(const AClassId: string);
   public
     constructor Create;
     destructor Destroy; override;
@@ -258,10 +263,16 @@ end;
 
 function TEFRegistry.GetClass(const AId: string): TClass;
 begin
+  Result := nil; // Avoids warning.
   if HasClass(AId) then
     Result := FClasses[AId]
   else
-    raise EEFError.CreateFmt('Class %s not found.', [AId]);
+    ClassNotFound(AId);
+end;
+
+procedure TEFRegistry.ClassNotFound(const AClassId: string);
+begin
+  raise EEFError.CreateFmt('Class %s not found.', [AClassId]);
 end;
 
 function TEFRegistry.GetClassIds: TArray<string>;

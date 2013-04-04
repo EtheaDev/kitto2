@@ -37,6 +37,8 @@ type
     class function GetClassNameForResourceURI: string; virtual;
     function GetPersistentFileName: string; override;
   public
+    const SYS_PREFIX = 'Sys$';
+
     property Catalog: TKMetadataCatalog read FCatalog;
 
     ///	<summary>Returns a string URI that uniquely identifies the object, to
@@ -67,8 +69,10 @@ type
     function IsAccessGranted(const AMode: string): Boolean; virtual;
   end;
 
+  TKMetadataRegistry = class;
+
   TKMetadataCatalog = class(TEFSubjectAndObserver)
-  private
+  strict private
     FPath: string;
     FIndex: TStringList;
     FReader: TEFYAMLReader;
@@ -93,7 +97,7 @@ type
     procedure ObjectAdded(const AFileName: string);
     procedure ObjectRemoved(const AFileName: string);
     procedure ObjectDisposed(const AFileName: string);
-  protected
+  strict protected
     procedure ObjectNotFound(const AName: string);
     // Delete file and free object.
     procedure DisposeObject(const AObject: TKMetadata);
@@ -102,6 +106,8 @@ type
     procedure AfterCreateObject(const AObject: TKMetadata); virtual;
     procedure SetPath(const AValue: string); virtual;
     function GetObjectClassType: TKMetadataClass; virtual; abstract;
+    function GetDefaultObjectTypeName: string; virtual;
+    function GetMetadataRegistry: TKMetadataRegistry; virtual; abstract;
   public
     procedure AfterConstruction; override;
     destructor Destroy; override;
@@ -171,15 +177,7 @@ type
   end;
 
   TKMetadataRegistry = class(TEFRegistry)
-  private
-    class var FInstance: TKMetadataRegistry;
-    class function GetInstance: TKMetadataRegistry; static;
-  protected
-    procedure BeforeRegisterClass(const AId: string; const AClass: TClass);
-      override;
   public
-    class property Instance: TKMetadataRegistry read GetInstance;
-    class destructor Destroy;
     function GetClass(const AId: string): TKMetadataClass;
   end;
 
@@ -328,6 +326,11 @@ begin
     FIndex.Delete(LIndex);
     ObjectDisposed(AObject.PersistentFileName);
   end;
+end;
+
+function TKMetadataCatalog.GetDefaultObjectTypeName: string;
+begin
+  Result := '';
 end;
 
 function TKMetadataCatalog.GetFullFileName(const AName: string): string;
@@ -570,10 +573,10 @@ begin
   Assert(Assigned(AObject));
 
   // Change object type according to the declaration, if present.
-  LDeclaredClassName := AObject.GetString('Type');
+  LDeclaredClassName := AObject.GetString('Type', GetDefaultObjectTypeName);
   if LDeclaredClassName <> '' then
   begin
-    LDeclaredClassType := TKMetadataRegistry.Instance.GetClass(LDeclaredClassName);
+    LDeclaredClassType := GetMetadataRegistry.GetClass(LDeclaredClassName);
     if LDeclaredClassType <> AObject.ClassType then
     begin
       Result := LDeclaredClassType.Clone(AObject);
@@ -647,29 +650,17 @@ end;
 
 { TKMetadataRegistry }
 
-procedure TKMetadataRegistry.BeforeRegisterClass(const AId: string;
-  const AClass: TClass);
-begin
-  if not AClass.InheritsFrom(TKMetadata) then
-    raise EKError.CreateFmt('Cannot regisater class %s (Id %s). Class is not a TKMetadata subclass.', [AClass.ClassName, AId]);
-  inherited;
-end;
-
-class destructor TKMetadataRegistry.Destroy;
-begin
-  FreeAndNil(FInstance);
-end;
-
 function TKMetadataRegistry.GetClass(const AId: string): TKMetadataClass;
 begin
-  Result := TKMetadataClass(inherited GetClass(AId));
-end;
-
-class function TKMetadataRegistry.GetInstance: TKMetadataRegistry;
-begin
-  if FInstance = nil then
-    FInstance := TKMetadataRegistry.Create;
-  Result := TKMetadataRegistry(FInstance);
+  Result := TKMetadataClass(inherited FindClass(AId));
+  if not Assigned(Result) then
+  begin
+    // Use FindClass instead of GetClass here, so we can show the original
+    // class Id in the error message instead of the system class Id.
+    Result := TKMetadataClass(inherited FindClass(TKMetadata.SYS_PREFIX + AId));
+    if not Assigned(Result) then
+      ClassNotFound(AId);
+  end;
 end;
 
 { TKMetadata }

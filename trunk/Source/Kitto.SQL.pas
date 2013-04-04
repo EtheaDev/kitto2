@@ -549,7 +549,7 @@ begin
   // The reference field name is used as table alias.
   AddSelectTerm(
     AViewField.FieldName + '.' +
-    AViewField.ModelField.ReferencedModel.CaptionField.DBColumnName + ' ' +
+    AViewField.ModelField.ReferencedModel.CaptionField.DBColumnNameOrExpression + ' ' +
     AViewField.ModelField.FieldName);
   LFields := AViewField.ModelField.GetReferenceFields;
   for I := Low(LFields) to High(LFields) do
