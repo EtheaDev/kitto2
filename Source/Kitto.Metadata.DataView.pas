@@ -381,6 +381,7 @@ type
   public
     property Store: TKViewTableStore read GetStore;
     function Append: TKViewTableRecord;
+    function AppendAndInitialize: TKViewTableRecord;
     property Records[I: Integer]: TKViewTableRecord read GetRecord; default;
 
     function FindRecord(const AValues: TEFNode): TKViewTableRecord;
@@ -1791,6 +1792,11 @@ end;
 function TKViewTableRecords.Append: TKViewTableRecord;
 begin
   Result := inherited Append as TKViewTableRecord;
+end;
+
+function TKViewTableRecords.AppendAndInitialize: TKViewTableRecord;
+begin
+  Result := inherited AppendAndInitialize as TKViewTableRecord;
 end;
 
 function TKViewTableRecords.FindRecord(const AValues: TEFNode): TKViewTableRecord;

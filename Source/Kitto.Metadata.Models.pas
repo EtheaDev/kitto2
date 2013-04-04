@@ -382,7 +382,7 @@ type
   TKModels = class;
 
   TKModel = class(TKMetadata)
-  private
+  strict private
     function GetFieldCount: Integer;
     function GetField(I: Integer): TKModelField;
     function GetModelName: string;
@@ -406,7 +406,7 @@ type
     function GetDatabaseName: string;
     const DEFAULT_IMAGE_NAME = 'default_model';
     class function BeautifyModelName(const AModelName: string): string;
-  protected
+  strict protected
     function GetFields: TKModelFields;
     function GetChildClass(const AName: string): TEFNodeClass; override;
     function GetDetailReferences: TKModelDetailReferences;
@@ -419,9 +419,11 @@ type
 
     property PhysicalName: string read GetPhysicalName;
 
-    ///	<summary>Returns the physical database table name (PhysicalName
-    ///	property) or, if not specified, the ModelName. It is the name to be
-    ///	used to update the physical table.</summary>
+    ///	<summary>
+    ///   Returns the physical database table name (PhysicalName
+    ///	  property) or, if not specified, the ModelName. It is the name to be
+    ///	  used to update the physical table.
+    /// </summary>
     property DBTableName: string read GetDBTableName;
     property DisplayLabel: string read GetDisplayLabel;
     property PluralDisplayLabel: string read GetPluralDisplayLabel;
@@ -513,6 +515,36 @@ type
 
     property DatabaseName: string read GetDatabaseName;
 
+    ///	<summary>
+    ///	  Loads a set or a page of records into the specified store.
+    ///	</summary>
+    ///	<param name="AStore">
+    ///	  Instance of the store to populate. May be (will probably be) an
+    ///	  instance of an inherited class.
+    ///	</param>
+    ///	<param name="AFilterExpression">
+    ///	  Optional filter expression. It is commonly a SQL predicate, but it
+    ///	  suffices that it is meaningful to the particular model class.
+    ///	</param>
+    ///	<param name="ASortExpression">
+    ///	  Optional sort expression. It is commonly a SQL ORDER BY clause, but
+    ///	  it suffices that it is meaningful to the particular model class.
+    ///	</param>
+    ///	<param name="AStart">
+    ///	  Optional: First record to load. If both this argument and ALimit are
+    ///	  0, all records matching the filter are loaded, otherwise only a page
+    ///	  starting from this record and ALimit records long tops.
+    ///	</param>
+    ///	<param name="ALimit">
+    ///	  Maximum number of records to load. It is the page size. Pass 0 in
+    ///	  both this argument and AStart to load all records matching the filter.
+    ///	</param>
+    ///	<returns>
+    ///	  Count of actually loaded records.
+    ///	</returns>
+    function LoadRecords(const AStore: TEFTree; const AFilterExpression: string;
+      const ASortExpression: string; const AStart: Integer = 0;
+      const ALimit: Integer = 0): Integer; virtual; abstract;
 
     ///	<summary>
     ///	  Saves the specified record.

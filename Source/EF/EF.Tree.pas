@@ -672,7 +672,10 @@ type
     function GetIsPersistent: Boolean;
   strict protected
     function GetPersistentFileName: string; virtual;
+    procedure InternalAfterLoad; virtual;
   public
+    procedure AfterLoad;
+
     procedure Assign(const ASource: TEFTree); override;
 
     property PersistentName: string read FPersistentName write FPersistentName;
@@ -3265,6 +3268,15 @@ end;
 function TEFPersistentTree.GetPersistentFileName: string;
 begin
   Result := FPersistentName;
+end;
+
+procedure TEFPersistentTree.InternalAfterLoad;
+begin
+end;
+
+procedure TEFPersistentTree.AfterLoad;
+begin
+  InternalAfterLoad;
 end;
 
 procedure TEFPersistentTree.Assign(const ASource: TEFTree);
