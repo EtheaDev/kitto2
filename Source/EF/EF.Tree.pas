@@ -2497,7 +2497,9 @@ procedure TEFDataType.JSONValueToNode(const ANode: TEFNode;
 begin
   Assert(Assigned(ANode));
 
-  if SameText(AValue, 'null') or (AValue = '') and (ANode.GetEmptyAsNull) then
+  if SupportsEmptyAsNull and ANode.GetEmptyAsNull and (AValue = '') then
+    ANode.SetToNull
+  else if SameText(AValue, 'null') or (AValue = '') then
     ANode.SetToNull
   else
     InternalJSONValueToNode(ANode, AValue, AUseJSDateFormat, AJSFormatSettings);
