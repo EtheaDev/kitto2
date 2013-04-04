@@ -249,17 +249,14 @@ begin
     LStart := Session.QueryAsInteger['start'];
     LLimit := Session.QueryAsInteger['limit'];
 
+    LTotal := ViewTable.Model.LoadRecords(ServerStore, GetRootDataPanel.GetFilterExpression, GetOrderByClause, LStart, LLimit);
     if (LStart <> 0) or (LLimit <> 0) then
-    begin
-      LTotal := ServerStore.LoadPage(GetRootDataPanel.GetFilterExpression, GetOrderByClause, LStart, LLimit);
-      LData := ServerStore.GetAsJSON(True);
-    end
+      LData := ServerStore.GetAsJSON(True)
     else
-    begin
-      ServerStore.Load(GetRootDataPanel.GetFilterExpression, GetOrderByClause);
-      LTotal := ServerStore.RecordCount;
+      // When loading all records, apply a limit on the display.
+      { TODO : If there's a limit on the display of records, try to pass it over and only load
+        needed records into the store. }
       LData := ServerStore.GetAsJSON(True, 0, Min(GetMaxRecords(), LTotal));
-    end;
   end;
   Session.ResponseItems.AddJSON(Format('{Total: %d, Root: %s}', [LTotal, LData]));
 end;

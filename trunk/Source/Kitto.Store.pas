@@ -177,6 +177,7 @@ type
     property RecordCountExceptDeleted: Integer read GetRecordCountExceptDeleted;
 
     function Append: TKRecord;
+    function AppendAndInitialize: TKRecord;
     procedure Remove(const ARecord: TKRecord);
 
     function GetAsJSON(const AForDisplay: Boolean;
@@ -307,8 +308,7 @@ function TKStore.AppendRecord(const AValues: TEFNode): TKRecord;
 begin
   DisableChangeNotifications;
   try
-    Result := Records.Append;
-    Header.Apply(Result);
+    Result := Records.AppendAndInitialize;
     if Assigned(AValues) then
       Result.ReadFromNode(AValues);
   finally
@@ -506,9 +506,7 @@ begin
       ADBQuery.Open;
     while not ADBQuery.DataSet.Eof do
     begin
-      LRecord := Records.Append;
-      Header.Apply(LRecord);
-      Assert(LRecord.FieldCount = Header.ChildCount);
+      LRecord := Records.AppendAndInitialize;
       LRecord.ReadFromFields(ADBQuery.DataSet.Fields);
       ADBQuery.DataSet.Next;
     end;
@@ -554,6 +552,13 @@ end;
 function TKRecords.Append: TKRecord;
 begin
   Result := AddChild('Record') as TKrecord;
+end;
+
+function TKRecords.AppendAndInitialize: TKRecord;
+begin
+  Result := Append;
+  Store.Header.Apply(Result);
+  Assert(Result.FieldCount = Store.Header.ChildCount);
 end;
 
 procedure TKRecords.Clear;

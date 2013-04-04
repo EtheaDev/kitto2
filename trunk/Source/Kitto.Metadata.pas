@@ -560,6 +560,7 @@ begin
     // Change object type according to the declaration, if present.
     Result := FixObjectClassType(Result);
     AfterCreateObject(Result);
+    Result.AfterLoad;
   end;
   if Result = nil then
     ObjectNotFound(AName);
