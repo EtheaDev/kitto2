@@ -22,7 +22,7 @@ interface
 
 uses
   Types, SysUtils, Classes, DB, Generics.Collections,
-  EF.Classes, EF.Tree, EF.Types,
+  EF.Classes, EF.Tree, EF.Types, EF.Intf,
   Kitto.Metadata;
 
 type
@@ -103,10 +103,10 @@ type
     function GetPhysicalName: string;
     function GetAliasedDBColumnName: string;
     function GetFileNameField: string;
-  strict
-  private
     function GetDefaultFilter: string;
-    function GetDefaultFilterConnector: string; protected
+    function GetDefaultFilterConnector: string;
+    function GetDBColumnNameOrExpression: string;
+  strict protected
     function GetChildClass(const AName: string): TEFNodeClass; override;
     ///	<summary>Returns all main field properties at once.</summary>
     procedure GetFieldSpec(out ADataType: string; out ASize, ADecimalPrecision: Integer;
@@ -126,6 +126,7 @@ type
     ///	<summary>Returns the PhysicalName or, if not specified, the
     ///	FieldName.</summary>
     property DBColumnName: string read GetDBColumnName;
+    property DBColumnNameOrExpression: string read GetDBColumnNameOrExpression;
 
     ///	<summary>Returns the physical column name (DBColumnName) plus, if the
     ///	field has a different llogical name, a space and the logical name
@@ -511,7 +512,33 @@ type
     property Rules: TKRules read GetRules;
 
     property DatabaseName: string read GetDatabaseName;
+
+
+    ///	<summary>
+    ///	  Saves the specified record.
+    ///	</summary>
+    ///	<param name="ARecord">
+    ///	  Instance of the record to save. May be (will probably be) an instance
+    ///	  of an inherited class.
+    ///	</param>
+    ///	<param name="APersist">
+    ///	  If True, the record is to be persisted to the underlying data store,
+    ///	  otherwise it should only be prepared now and persisted later (for
+    ///	  example, when saving a detail record this argument is False).
+    ///	</param>
+    ///	<param name="AAfterPersist">
+    ///	  A procedure to be called after successfully persisting the record. It
+    ///	  will only be called if APersist is True and the save goes well.
+    ///	</param>
+    ///	<remarks>
+    ///	  In case of errors, this method raises exceptions and does not call
+    ///	  AAfterPersist.
+    ///	</remarks>
+    procedure SaveRecord(const ARecord: TEFNode; const APersist: Boolean;
+      const AAfterPersist: TProc); virtual; abstract;
   end;
+
+  TKModelClass = class of TKModel;
 
   TKModelList = class(TList<TKModel>)
   public
@@ -519,12 +546,19 @@ type
   end;
 
   TKModels = class(TKMetadataCatalog)
-  private
+  strict private
+    class var FDefaultModelClassType: TKModelClass;
     function GetModelCount: Integer;
     function GetModel(I: Integer): TKModel;
-  protected
+  strict protected
     function GetObjectClassType: TKMetadataClass; override;
+    function GetMetadataRegistry: TKMetadataRegistry; override;
   public
+    class constructor Create;
+  public
+    class property DefaultModelClassType: TKModelClass read FDefaultModelClassType write FDefaultModelClassType;
+    class procedure ResetDefaultModelClassType;
+
     property ModelCount: Integer read GetModelCount;
     property Models[I: Integer]: TKModel read GetModel; default;
     function ModelByName(const AName: string): TKModel;
@@ -535,6 +569,18 @@ type
     ///	specified, the (case insensitive) match is done on its name
     ///	instead.</summary>
     function FindModelByPhysicalName(const APhysicalName: string): TKModel;
+  end;
+
+  TKModelRegistry = class(TKMetadataRegistry)
+  strict private
+    class var FInstance: TKModelRegistry;
+    class function GetInstance: TKModelRegistry; static;
+  strict protected
+    procedure BeforeRegisterClass(const AId: string; const AClass: TClass); override;
+    class destructor Destroy;
+  public
+    class property Instance: TKModelRegistry read GetInstance;
+    function GetClass(const AId: string): TKModelClass;
   end;
 
 ///	<summary>Returns the input value unless it's a supported literal, in which
@@ -1231,6 +1277,14 @@ begin
     Result := FieldName;
 end;
 
+function TKModelField.GetDBColumnNameOrExpression: string;
+begin
+  if Expression <> '' then
+    Result := Expression
+  else
+    Result := DBColumnName;
+end;
+
 function TKModelField.GetDBColumnNames: TStringDynArray;
 begin
   Result := GetFields.GetDBColumnNames;
@@ -1511,6 +1565,11 @@ end;
 
 { TKModels }
 
+class constructor TKModels.Create;
+begin
+  ResetDefaultModelClassType;
+end;
+
 function TKModels.FindModel(const AName: string): TKModel;
 begin
   Result := FindObject(AName) as TKModel;
@@ -1530,7 +1589,12 @@ end;
 
 function TKModels.GetObjectClassType: TKMetadataClass;
 begin
-  Result := TKModel;
+  Result := FDefaultModelClassType;
+end;
+
+function TKModels.GetMetadataRegistry: TKMetadataRegistry;
+begin
+  Result := TKModelRegistry.Instance;
 end;
 
 function TKModels.GetModel(I: Integer): TKModel;
@@ -1546,6 +1610,11 @@ end;
 function TKModels.ModelByName(const AName: string): TKModel;
 begin
   Result := ObjectByName(AName) as TKModel;
+end;
+
+class procedure TKModels.ResetDefaultModelClassType;
+begin
+  FDefaultModelClassType := TKModel;
 end;
 
 { TKRules }
@@ -1763,6 +1832,35 @@ var
 begin
   for LModel in Self do
     AStrings.Add(LModel.ModelName);
+end;
+
+{ TKModelRegistry }
+
+procedure TKModelRegistry.BeforeRegisterClass(const AId: string;
+  const AClass: TClass);
+begin
+  inherited;
+  if not AClass.InheritsFrom(TKModel) then
+    raise EKError.CreateFmt('Cannot register class %s (Id %s). Class is not a %s subclass.', [AClass.ClassName, AId, TKModel.ClassName]);
+//  if not Supports(AClass, IKModel) then
+//    raise EKError.CreateFmt('Cannot register class %s (Id %s). Class does not support %s interface.', [AClass.ClassName, AId, GetTypeName(TypeInfo(IKModel))]);
+end;
+
+class destructor TKModelRegistry.Destroy;
+begin
+  FreeAndNil(FInstance);
+end;
+
+function TKModelRegistry.GetClass(const AId: string): TKModelClass;
+begin
+  Result := TKModelClass(inherited GetClass(AId));
+end;
+
+class function TKModelRegistry.GetInstance: TKModelRegistry;
+begin
+  if FInstance = nil then
+    FInstance := TKModelRegistry.Create;
+  Result := FInstance;
 end;
 
 initialization

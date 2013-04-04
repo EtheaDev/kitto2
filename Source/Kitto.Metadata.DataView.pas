@@ -2193,11 +2193,11 @@ begin
 end;
 
 initialization
-  TKMetadataRegistry.Instance.RegisterClass('Data', TKDataView);
+  TKViewRegistry.Instance.RegisterClass(TKMetadata.SYS_PREFIX + 'Data', TKDataView);
   TEFDataTypeRegistry.Instance.RegisterClass(TKFileReferenceDataType.GetTypeName, TKFileReferenceDataType);
 
 finalization
-  TKMetadataRegistry.Instance.UnregisterClass('Data');
+  TKViewRegistry.Instance.UnregisterClass(TKMetadata.SYS_PREFIX + 'Data');
   TEFDataTypeRegistry.Instance.UnregisterClass(TKFileReferenceDataType.GetTypeName);
 
 end.

@@ -359,14 +359,11 @@ begin
       end);
 
     // Save record.
-    FStoreRecord.MarkAsModified;
-    FStoreRecord.ApplyBeforeRules;
-    if not ViewTable.IsDetail then
-    begin
-      FStoreRecord.Save(True);
-      Session.Flash(_('Changes saved succesfully.'));
-    end;
-
+    ViewTable.Model.SaveRecord(FStoreRecord, not ViewTable.IsDetail,
+      procedure
+      begin
+        Session.Flash(_('Changes saved succesfully.'));
+      end);
   except
     on E: EKValidationError do
     begin
