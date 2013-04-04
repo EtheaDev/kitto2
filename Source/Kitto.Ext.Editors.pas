@@ -1917,7 +1917,6 @@ begin
     FreeAndNil(LNode);
   end;
 
-  FEditor.AsExtFormField.Flex := 1;
   Result := Self;
 end;
 
