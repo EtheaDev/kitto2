@@ -166,7 +166,7 @@ type
     class destructor Destroy;
   public
     class property Instance: TKViewRegistry read GetInstance;
-    function GetClass(const AId: string): TKViewClass;
+    function GetClass(const AId1, AId2: string): TKViewClass;
   end;
 
   TKViewBuilder = class(TKMetadata)
@@ -220,7 +220,7 @@ type
     class destructor Destroy;
   public
     class property Instance: TKLayoutRegistry read GetInstance;
-    function GetClass(const AId: string): TKLayoutClass;
+    function GetClass(const AId1, AId2: string): TKLayoutClass;
   end;
 
 implementation
@@ -554,9 +554,9 @@ begin
   FreeAndNil(FInstance);
 end;
 
-function TKViewRegistry.GetClass(const AId: string): TKViewClass;
+function TKViewRegistry.GetClass(const AId1, AId2: string): TKViewClass;
 begin
-  Result := TKViewClass(inherited GetClass(AId));
+  Result := TKViewClass(inherited GetClass(AId1, AId2));
 end;
 
 class function TKViewRegistry.GetInstance: TKViewRegistry;
@@ -581,9 +581,9 @@ begin
   FreeAndNil(FInstance);
 end;
 
-function TKLayoutRegistry.GetClass(const AId: string): TKLayoutClass;
+function TKLayoutRegistry.GetClass(const AId1, AId2: string): TKLayoutClass;
 begin
-  Result := TKLayoutClass(inherited GetClass(AId));
+  Result := TKLayoutClass(inherited GetClass(AId1, AId2));
 end;
 
 class function TKLayoutRegistry.GetInstance: TKLayoutRegistry;
