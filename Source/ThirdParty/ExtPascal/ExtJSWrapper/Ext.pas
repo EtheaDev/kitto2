@@ -2672,8 +2672,7 @@ type
     function GetLayout: TExtFunction;
     function GetLayoutTarget: TExtFunction;
     function INSERT(Index: Integer; Component: TExtComponent): TExtFunction;
-    function Remove(Component: TExtComponent; AutoDestroy: Boolean = false)
-      : TExtFunction; overload;
+    function Remove(const AComponent: TExtComponent; const AAutoDestroy: Boolean = False): TExtFunction; overload;
     function Remove(Component: string; AutoDestroy: Boolean = false)
       : TExtFunction; overload;
     function RemoveAll(AutoDestroy: Boolean = false): TExtFunction;
@@ -11720,11 +11719,10 @@ begin
   Result := Self;
 end;
 
-function TExtContainer.Remove(Component: TExtComponent; AutoDestroy: Boolean = false)
-  : TExtFunction;
+function TExtContainer.Remove(const AComponent: TExtComponent;
+  const AAutoDestroy: Boolean = False): TExtFunction;
 begin
-  JSCode(JSName + '.remove(' + VarToJSON([Component, false, AutoDestroy]) + ');',
-    'TExtContainer');
+  ExtSession.ResponseItems.CallMethod(Self, 'remove', [AComponent, False, AAutoDestroy]);
   Result := Self;
 end;
 

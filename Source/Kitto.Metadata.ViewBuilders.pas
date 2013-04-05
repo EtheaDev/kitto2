@@ -26,14 +26,15 @@ uses
 
 type
   TKAutoViewBuilderBase = class(TKViewBuilder)
-  private
+  strict private
     function BuildSearchString(const AFields: TKViewFields): string;
     procedure AddFields(const AViewTable: TKViewTable; const AModel: TKModel);
     procedure AddDetailTables(const AViewTable: TKViewTable;
       const AModel: TKModel);
-  protected
+  strict protected
     function GetControllerType: string; virtual; abstract;
     function GetModel: TKModel;
+    procedure CustomizeView(const AView: TKView); virtual;
   public
     function BuildView(const AViews: TKViews;
       const APersistentName: string = '';
@@ -41,13 +42,14 @@ type
   end;
 
   TKAutoListViewBuilder = class(TKAutoViewBuilderBase)
-  protected
+  strict protected
     function GetControllerType: string; override;
   end;
 
   TKAutoFormViewBuilder = class(TKAutoViewBuilderBase)
-  protected
+  strict protected
     function GetControllerType: string; override;
+    procedure CustomizeView(const AView: TKView); override;
   end;
 
 implementation
@@ -150,6 +152,7 @@ begin
       {LMainTableController := }LMainTable.AddChild(TEFNode.Clone(LSourceMainTableControllerNode))
     else
       {LMainTableController := }LMainTable.AddChild('Controller');
+    CustomizeView(Result);
   except
     if APersistentName <> '' then
       AViews.RemoveObject(Result)
@@ -158,6 +161,10 @@ begin
     FreeAndNil(Result);
     raise;
   end;
+end;
+
+procedure TKAutoViewBuilderBase.CustomizeView(const AView: TKView);
+begin
 end;
 
 function TKAutoViewBuilderBase.BuildSearchString(const AFields: TKViewFields): string;
@@ -195,6 +202,12 @@ begin
 end;
 
 { TKAutoFormViewBuilder }
+
+procedure TKAutoFormViewBuilder.CustomizeView(const AView: TKView);
+begin
+  inherited;
+  AView.SetString('Controller/Operation', 'Add');
+end;
 
 function TKAutoFormViewBuilder.GetControllerType: string;
 begin

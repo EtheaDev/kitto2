@@ -120,6 +120,15 @@ type
   end;
 
   ///	<summary>
+  ///	  Implemented by controllers that host panels and are able to close them
+  ///	  on request, such as the TabPanel controller.
+  ///	</summary>
+  IKExtPanelHost = interface(IEFInterface)
+    ['{F1DCE0C8-1CD9-4F97-9315-7FB2AC9CAADC}']
+    procedure ClosePanel(const APanel: TExtComponent);
+  end;
+
+  ///	<summary>
   ///	  Base Ext panel with subject and observer capabilities.
   ///	</summary>
   TKExtPanelBase = class(TExtPanel, IInterface, IEFInterface, IEFSubject, IEFObserver)
@@ -128,7 +137,8 @@ type
     FConfig: TEFNode;
   protected
     function GetConfig: TEFNode;
-    function CloseHostWindow: Boolean;
+    // Closes the hosting window or tab.
+    procedure CloseHostContainer;
     function GetHostWindow: TExtWindow;
     procedure InitDefaults; override;
   public
@@ -474,14 +484,17 @@ begin
   Region := rgCenter;
 end;
 
-function TKExtPanelBase.CloseHostWindow: Boolean;
+procedure TKExtPanelBase.CloseHostContainer;
 var
   LHostWindow: TExtWindow;
+  LIntf: IKExtPanelHost;
 begin
+  { TODO : Perhaps we could unify the behaviour here by implementing IKExtPanelHost in a custom window class. }
   LHostWindow := GetHostWindow;
-  Result := Assigned(LHostWindow);
-  if Result then
-    LHostWindow.Close;
+  if Assigned(LHostWindow) then
+    LHostWindow.Close
+  else if Supports(Owner, IKExtPanelHost, LIntf) then
+    LIntf.ClosePanel(Self);
 end;
 
 { TKExtViewportControllerBase }
