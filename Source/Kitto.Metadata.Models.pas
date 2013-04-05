@@ -612,7 +612,7 @@ type
     class destructor Destroy;
   public
     class property Instance: TKModelRegistry read GetInstance;
-    function GetClass(const AId: string): TKModelClass;
+    function GetClass(const AId1, AId2: string): TKModelClass;
   end;
 
 ///	<summary>Returns the input value unless it's a supported literal, in which
@@ -1883,9 +1883,9 @@ begin
   FreeAndNil(FInstance);
 end;
 
-function TKModelRegistry.GetClass(const AId: string): TKModelClass;
+function TKModelRegistry.GetClass(const AId1, AId2: string): TKModelClass;
 begin
-  Result := TKModelClass(inherited GetClass(AId));
+  Result := TKModelClass(inherited GetClass(AId1, AId2));
 end;
 
 class function TKModelRegistry.GetInstance: TKModelRegistry;

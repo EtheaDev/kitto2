@@ -178,7 +178,27 @@ type
 
   TKMetadataRegistry = class(TEFRegistry)
   public
-    function GetClass(const AId: string): TKMetadataClass;
+    ///	<summary>
+    ///	  Returns a reference to the class identified by Id1; falls back to Id2
+    ///	  if the first one is not found. Looks for system classes as well.
+    ///	</summary>
+    ///	<param name="AId1">
+    ///	  Id of the primary class requested.
+    ///	</param>
+    ///	<param name="AId2">
+    ///	  Id of the fallback class.
+    ///	</param>
+    ///	<remarks>
+    ///	  The search sequence is:<br />Id1 user class<br />Id2 user class
+    ///	  <br />Id1 system class<br />Id2 system class<br />Error
+    ///	</remarks>
+    function GetClass(const AId1, AId2: string): TKMetadataClass;
+
+    ///	<summary>
+    ///	  Like GetClass, but returns nil instead of raiseing errors if no class
+    ///	  found.
+    ///	</summary>
+    function FindClass(const AId1, AId2: string): TKMetadataClass;
   end;
 
 implementation
@@ -575,16 +595,11 @@ begin
 
   // Change object type according to the declaration, if present.
   LDeclaredClassName := AObject.GetString('Type', GetDefaultObjectTypeName);
-  if LDeclaredClassName <> '' then
+  LDeclaredClassType := GetMetadataRegistry.FindClass(LDeclaredClassName, AObject.PersistentName);
+  if Assigned(LDeclaredClassType) and (LDeclaredClassType <> AObject.ClassType) then
   begin
-    LDeclaredClassType := GetMetadataRegistry.GetClass(LDeclaredClassName);
-    if LDeclaredClassType <> AObject.ClassType then
-    begin
-      Result := LDeclaredClassType.Clone(AObject);
-      AObject.Free;
-    end
-    else
-      Result := AObject;
+    Result := LDeclaredClassType.Clone(AObject);
+    AObject.Free;
   end
   else
     Result := AObject;
@@ -651,16 +666,48 @@ end;
 
 { TKMetadataRegistry }
 
-function TKMetadataRegistry.GetClass(const AId: string): TKMetadataClass;
+function TKMetadataRegistry.FindClass(const AId1, AId2: string): TKMetadataClass;
+
+  function FindClassIfNotEmpty(const AId: string): TKMetadataClass;
+  begin
+    if AId <> '' then
+      Result := TKMetadataClass(inherited FindClass(AId))
+    else
+      Result := nil;
+  end;
+
 begin
-  Result := TKMetadataClass(inherited FindClass(AId));
+  Result := FindClassIfNotEmpty(AId1);
   if not Assigned(Result) then
   begin
-    // Use FindClass instead of GetClass here, so we can show the original
-    // class Id in the error message instead of the system class Id.
-    Result := TKMetadataClass(inherited FindClass(TKMetadata.SYS_PREFIX + AId));
+    Result := FindClassIfNotEmpty(AId2);
     if not Assigned(Result) then
-      ClassNotFound(AId);
+    begin
+      Result := FindClassIfNotEmpty(TKMetadata.SYS_PREFIX + AId1);
+      if not Assigned(Result) then
+        Result := FindClassIfNotEmpty(TKMetadata.SYS_PREFIX + AId2);
+    end;
+  end;
+end;
+
+function TKMetadataRegistry.GetClass(const AId1, AId2: string): TKMetadataClass;
+
+  function FindClassIfNotEmpty(const AId: string): TKMetadataClass;
+  begin
+    if AId <> '' then
+      Result := TKMetadataClass(inherited FindClass(AId))
+    else
+      Result := nil;
+  end;
+
+begin
+  Result := FindClass(AId1, AId2);
+  if not Assigned(Result) then
+  begin
+    if AId1 <> '' then
+      ClassNotFound(AId1)
+    else
+      ClassNotFound(AId2);
   end;
 end;
 
