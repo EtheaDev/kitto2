@@ -54,7 +54,7 @@ type
     FFormPanel: TKExtEditPanel;
     FMainPagePanel: TKExtEditPage;
     FIsReadOnly: Boolean;
-    FSaveButton: TExtButton;
+    FConfirmButton: TExtButton;
     FCancelButton: TExtButton;
     FDetailToolbar: TExtToolbar;
     FDetailButtons: TObjectList<TKExtDetailFormButton>;
@@ -86,7 +86,7 @@ type
     destructor Destroy; override;
   published
     procedure GetRecord;
-    procedure SaveChanges;
+    procedure ConfirmChanges;
     procedure CancelChanges;
   end;
 
@@ -326,7 +326,7 @@ begin
   ExtSession.ResponseItems.AddJSON('{success:true,data:' + FStoreRecord.GetAsJSON(False) + '}');
 end;
 
-procedure TKExtFormPanelController.SaveChanges;
+procedure TKExtFormPanelController.ConfirmChanges;
 begin
   try
     // Get POST values.
@@ -373,10 +373,13 @@ begin
   end;
 
   NotifyObservers('Confirmed');
-  if not CloseHostWindow then
+  if Config.GetBoolean('KeepOpenAfterOperation') then
     StartOperation
   else
+  begin
     AssignFieldChangeEvent(False);
+    CloseHostContainer;
+  end;
 end;
 
 procedure TKExtFormPanelController.InitComponents;
@@ -462,19 +465,19 @@ begin
     FMainPagePanel.EditPanel := FFormPanel;
   end;
   FMainPagePanel.PaddingString := '5px';
-  //Session.ResponseItems.ExecuteJSCode(Format('%s.getForm().url = "%s";', [FFormPanel.JSName, MethodURI(SaveChanges)]));
+  //Session.ResponseItems.ExecuteJSCode(Format('%s.getForm().url = "%s";', [FFormPanel.JSName, MethodURI(ConfirmChanges)]));
 
   if not FIsReadOnly then
   begin
-    FSaveButton := TExtButton.CreateAndAddTo(FFormPanel.Buttons);
-    FSaveButton.Scale := Config.GetString('ButtonScale', 'medium');
-    FSaveButton.FormBind := True;
-    FSaveButton.Text := _('Save');
-    FSaveButton.Tooltip := _('Save changes and finish editing');
-    FSaveButton.Icon := Session.Config.GetImageURL('accept');
+    FConfirmButton := TExtButton.CreateAndAddTo(FFormPanel.Buttons);
+    FConfirmButton.Scale := Config.GetString('ButtonScale', 'medium');
+    FConfirmButton.FormBind := True;
+    FConfirmButton.Text := Config.GetString('ConfirmButton/Caption', _('Save'));
+    FConfirmButton.Tooltip := Config.GetString('ConfirmButton/Tooltip', _('Save changes and finish editing'));
+    FConfirmButton.Icon := Session.Config.GetImageURL('accept');
     // AjaxForms allows us to put JS code in the response, something the commented
     // versions don't allow.
-    FSaveButton.Handler := AjaxForms(SaveChanges, [FFormPanel]);
+    FConfirmButton.Handler := AjaxForms(ConfirmChanges, [FFormPanel]);
     // Don't just call submit() - we want AjaxSuccess/AjaxFailure to be called so that our response is actually executed.
     //FSaveButton.Handler := JSFunction(FFormPanel.JSName + '.getForm().submit();');
     //FSaveButton.Handler := JSFunction(FFormPanel.JSName + '.getForm().doAction("submit", {success:"AjaxSuccess", failure:"AjaxFailure"});');
@@ -516,10 +519,17 @@ begin
     FStoreRecord := nil;
   end;
   NotifyObservers('Canceled');
-  if not CloseHostWindow then
-    StartOperation
+  if Config.GetBoolean('KeepOpenAfterOperation') then
+  begin
+    if FOperation = 'Add' then
+      FStoreRecord := ServerStore.AppendRecord(nil);
+    StartOperation;
+  end
   else
+  begin
     AssignFieldChangeEvent(False);
+    CloseHostContainer;
+  end;
 end;
 
 function TKExtFormPanelController.GetAfterLoadJSCode: string;

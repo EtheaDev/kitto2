@@ -30,7 +30,7 @@ uses
 
 type
   TKExtUploadedFile = class
-  private
+  strict private
     FContext: TObject;
     FFullFileName: string;
     FFileName: string;

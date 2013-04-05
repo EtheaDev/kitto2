@@ -32,7 +32,7 @@ type
   ///	  A tab panel that knows when its hosted panels are closed. Used
   ///   by the TabPanel controller.
   ///	</summary>
-  TKExtTabPanel = class(TExtTabPanel)
+  TKExtTabPanel = class(TExtTabPanel, IKExtPanelHost)
   private
     FConfig: TEFTree;
     FView: TKView;
@@ -42,6 +42,8 @@ type
   public
     procedure DisplaySubViewsAndControllers;
     destructor Destroy; override;
+    procedure ClosePanel(const APanel: TExtComponent);
+    function AsObject: TObject;
   published
     procedure PanelClosed;
   end;
@@ -60,7 +62,6 @@ implementation
 
 uses
   SysUtils,
-  ExtPascal,
   EF.Localization,
   Kitto.AccessControl, Kitto.Types,
   Kitto.Ext.Session;
@@ -102,6 +103,18 @@ begin
   EnableTabScroll := True;
   // Layout problems in tabbed views if DeferredRender=False.
   DeferredRender := True;
+end;
+
+function TKExtTabPanel.AsObject: TObject;
+begin
+  Result := Self;
+end;
+
+procedure TKExtTabPanel.ClosePanel(const APanel: TExtComponent);
+begin
+  Remove(APanel, True);
+  Items.Remove(APanel);
+  APanel.Free;
 end;
 
 destructor TKExtTabPanel.Destroy;
@@ -152,9 +165,9 @@ end;
 
 procedure TKExtTabPanel.PanelClosed;
 var
-  LPanel: TExtObject;
+  LPanel: TExtComponent;
 begin
-  LPanel := ParamAsObject('Panel') as TExtObject;
+  LPanel := ParamAsObject('Panel') as TExtComponent;
   Items.Remove(LPanel);
   LPanel.Free;
 end;
