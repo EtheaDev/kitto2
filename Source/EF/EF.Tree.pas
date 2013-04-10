@@ -1265,7 +1265,13 @@ begin
   if Assigned(ASource) and (ASource is TEFNode) then
   begin
     FName := TEFNode(ASource).Name;
-    AssignValue(TEFNode(ASource));
+    DataType := TEFNode(ASource).DataType;
+    LockDataType;
+    try
+      AssignValue(TEFNode(ASource));
+    finally
+      UnlockDataType;
+    end;
     FValueAttributes := TEFNode(ASource).ValueAttributes;
   end;
 end;
@@ -2893,7 +2899,9 @@ end;
 function TEFDateTimeDataType.InternalNodeToJSONValue(const AForDisplay: Boolean;
   const ANode: TEFNode; const AJSFormatSettings: TFormatSettings): string;
 begin
-  Result := DateTimeToStr(ANode.AsDateTime, AJSFormatSettings);
+  // DateTimeToStr will omit the time portion if it's empty, but the GUI needs
+  // it in all cases.
+  Result := DateToStr(ANode.AsDate, AJSFormatSettings) + ' ' + TimeToStr(ANode.AsTime);
 end;
 
 procedure TEFDateTimeDataType.InternalNodeToParam(const ANode: TEFNode;
