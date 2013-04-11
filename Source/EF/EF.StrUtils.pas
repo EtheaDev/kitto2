@@ -167,6 +167,17 @@ procedure AppendStringToTextFile(const AString, AFileName: string;
   const AEncoding: TEncoding = nil);
 
 ///	<summary>
+///	  Turns the first character of each word in AString to upper case, and each
+///   other character to lower case. Words are separated by spaces.
+///	</summary>
+function Camelize(const AString: string): string;
+
+///	<summary>
+///	  Converts 'THIS_IS_A_STRING' to 'THIS IS A STRING'.
+///	</summary>
+function UpperUnderscoreToSpaced(const AString: string): string;
+
+///	<summary>
 ///	  Converts 'THIS_IS_A_STRING' to 'ThisIsAString'.
 ///	</summary>
 function UpperUnderscoreToCamel(const AString: string): string;
@@ -275,7 +286,7 @@ function FormatByteSize(const AByteSize: Longint; const AFormatSettings: TFormat
 implementation
 
 uses
-  StrUtils,
+  StrUtils, Character,
   IdHashMessageDigest, IdHash;
 
 function RightPos(const ASubString, AString: string): Integer;
@@ -646,6 +657,29 @@ begin
       if I > 1 then
         Result := Result + ' ';
     Result := Result + AString[I];
+  end;
+end;
+
+function UpperUnderscoreToSpaced(const AString: string): string;
+begin
+  Result := ReplaceStr(AString, '_', ' ');
+end;
+
+function Camelize(const AString: string): string;
+var
+  LAtBeginning: Boolean;
+  LChar: Char;
+begin
+  Result := '';
+
+  LAtBeginning := True;
+  for LChar in AString do
+  begin
+    if LAtBeginning then
+      Result := Result + UpperCase(LChar)
+    else
+      Result := Result + LowerCase(LChar);
+    LAtBeginning := LChar = ' ';
   end;
 end;
 

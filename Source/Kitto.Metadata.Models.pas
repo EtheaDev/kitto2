@@ -74,7 +74,6 @@ type
     function GetModel: TKModel;
     function GetDisplayLabel: string;
     function GetIsVisible: Boolean;
-    function BeautifyFieldName(const AFieldName: string): string;
     function GetDisplayWidth: Integer;
     function GetIsReadOnly: Boolean;
     function GetIsKey: Boolean;
@@ -107,6 +106,7 @@ type
     function GetDefaultFilterConnector: string;
     function GetDBColumnNameOrExpression: string;
   strict protected
+    class function BeautifyFieldName(const AFieldName: string): string; virtual;
     function GetChildClass(const AName: string): TEFNodeClass; override;
     ///	<summary>Returns all main field properties at once.</summary>
     procedure GetFieldSpec(out ADataType: string; out ASize, ADecimalPrecision: Integer;
@@ -334,16 +334,17 @@ type
   end;
 
   TKModelDetailReference = class(TKModelSubobject)
-  private
+  strict private
     function GetDetailReferenceName: string;
     function GetReferenceField: TKModelField;
     function GetDetailModel: TKModel;
     function GetDetailModelName: string;
     function GetReferenceFieldName: string;
     function GetDisplayLabel: string;
-    function BeautifyDetailName(const ADetailName: string): string;
     function GetDBForeignKeyName: string;
     function GetPhysicalName: string;
+  strict protected
+    class function BeautifyDetailName(const ADetailName: string): string; virtual;
   public
     property PhysicalName: string read GetPhysicalName;
     ///	<summary>Returns PhysicalName.</summary>
@@ -405,11 +406,11 @@ type
     function GetPhysicalName: string;
     function GetDatabaseName: string;
     const DEFAULT_IMAGE_NAME = 'default_model';
-    class function BeautifyModelName(const AModelName: string): string;
   strict protected
     function GetFields: TKModelFields;
     function GetChildClass(const AName: string): TEFNodeClass; override;
     function GetDetailReferences: TKModelDetailReferences;
+    class function BeautifyModelName(const AModelName: string): string; virtual;
   public
     procedure BeforeSave; override;
   public
@@ -625,9 +626,20 @@ function Pluralize(const AName: string): string;
 implementation
 
 uses
-  StrUtils, Variants,
+  StrUtils, Variants, Character,
   EF.StrUtils, EF.VariantUtils, EF.Localization,
   Kitto.Types, Kitto.Config, Kitto.DatabaseRouter;
+
+function DefaultBeautifyName(const AName: string): string;
+begin
+  Result := AName;
+  if ContainsStr(Result, '_') or (Result = UpperCase(Result)) then
+    // Assume it's upper case with underscores.
+    Result := Camelize(UpperUnderscoreToSpaced(Result))
+  else
+    // Assume it's camel.
+    Result := CamelToSpaced(Result);
+end;
 
 function Pluralize(const AName: string): string;
 begin
@@ -1004,11 +1016,7 @@ end;
 
 class function TKModel.BeautifyModelName(const AModelName: string): string;
 begin
-  { TODO : allow to customize the beautifying function }
-  Result := AModelName;
-  if (Result = UpperCase(Result)) or (Pos('_', Result) > 0) then
-    Result := UpperUnderscoreToCamel(Result);
-  Result := CamelToSpaced(Result);
+  Result := DefaultBeautifyName(AModelName);
 end;
 
 { TKModelField }
@@ -1186,13 +1194,9 @@ begin
   Result := GetNode('Rules', True) as TKRules;
 end;
 
-function TKModelField.BeautifyFieldName(const AFieldName: string): string;
+class function TKModelField.BeautifyFieldName(const AFieldName: string): string;
 begin
-  { TODO : allow to customize the beautifying function }
-  Result := AFieldName;
-  if (Result = UpperCase(Result)) or (Pos('_', Result) > 0) then
-    Result := UpperUnderscoreToCamel(Result);
-  Result := CamelToSpaced(Result);
+  Result := DefaultBeautifyName(AFieldName);
 end;
 
 procedure TKModelField.BeforeSave;
@@ -1673,13 +1677,9 @@ end;
 
 { TKModelDetailReference }
 
-function TKModelDetailReference.BeautifyDetailName(const ADetailName: string): string;
+class function TKModelDetailReference.BeautifyDetailName(const ADetailName: string): string;
 begin
-  { TODO : allow to customize the beautifying function }
-  Result := ADetailName;
-  if (Result = UpperCase(Result)) or (Pos('_', Result) > 0) then
-    Result := UpperUnderscoreToCamel(Result);
-  Result := CamelToSpaced(Result);
+  Result := DefaultBeautifyName(ADetailName);
 end;
 
 function TKModelDetailReference.GetDBForeignKeyName: string;
