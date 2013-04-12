@@ -233,7 +233,6 @@ procedure TKExtGridPanel.InitColumns;
 var
   I: Integer;
   LLayout: TKLayout;
-  LLayoutName: string;
   LAutoExpandColumn: string;
 
   procedure AddGridColumn(const AViewField: TKViewField);
@@ -394,12 +393,7 @@ var
 begin
   Assert(ViewTable <> nil);
 
-  LLayoutName := ViewTable.GetString('Controller/Grid/Layout');
-  if LLayoutName <> '' then
-    LLayout := ViewTable.View.Catalog.Layouts.FindLayout(LLayoutName)
-  else
-    LLayout := ViewTable.FindLayout('Grid');
-
+  LLayout := FindViewLayout('Grid');
   if LLayout <> nil then
   begin
     for I := 0 to LLayout.ChildCount - 1 do

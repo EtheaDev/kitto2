@@ -112,6 +112,9 @@ type
     property Layouts[I: Integer]: TKLayout read GetLayout; default;
     function LayoutByName(const AName: string): TKLayout;
     function FindLayout(const AName: string): TKLayout;
+
+    function LayoutByNode(const ANode: TEFNode): TKLayout;
+    function FindLayoutByNode(const ANode: TEFNode): TKLayout;
   end;
 
   ///	<summary>
@@ -365,6 +368,11 @@ begin
   Result := FindObject(AName) as TKLayout;
 end;
 
+function TKLayouts.FindLayoutByNode(const ANode: TEFNode): TKLayout;
+begin
+  Result := FindObjectByNode(ANode) as TKLayout;
+end;
+
 function TKLayouts.GetLayout(I: Integer): TKLayout;
 begin
   Result := Objects[I] as TKLayout;
@@ -388,6 +396,11 @@ end;
 function TKLayouts.LayoutByName(const AName: string): TKLayout;
 begin
   Result := ObjectByName(AName) as TKLayout;
+end;
+
+function TKLayouts.LayoutByNode(const ANode: TEFNode): TKLayout;
+begin
+  Result := ObjectByNode(ANode) as TKLayout;
 end;
 
 { TKView }

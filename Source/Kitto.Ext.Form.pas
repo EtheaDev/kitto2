@@ -77,7 +77,6 @@ type
     procedure FieldChange(const AField: TKField;
       const AOldValue, ANewValue: Variant);
     function GetAfterLoadJSCode: string;
-    function FindViewLayout: TKLayout;
   strict protected
     procedure DoDisplay; override;
     procedure InitComponents; override;
@@ -201,24 +200,13 @@ begin
       LLayoutProcessor.Operation := eoInsert
     else
       LLayoutProcessor.Operation := eoUpdate;
-    LLayoutProcessor.CreateEditors(FindViewLayout);
+    LLayoutProcessor.CreateEditors(FindViewLayout('Form'));
     FFocusField := LLayoutProcessor.FocusField;
   finally
     FreeAndNil(LLayoutProcessor);
   end;
   // Scroll back to top - can't do that until afterrender because body.dom is needed.
   FMainPagePanel.On('afterrender', JSFunction(FMainPagePanel.JSName + '.body.dom.scrollTop = 0;'));
-end;
-
-function TKExtFormPanelController.FindViewLayout: TKLayout;
-var
-  LLayoutName: string;
-begin
-  LLayoutName := ViewTable.GetString('Controller/Form/Layout');
-  if LLayoutName <> '' then
-    Result := View.Catalog.Layouts.FindLayout(LLayoutName)
-  else
-    Result := ViewTable.FindLayout('Form');
 end;
 
 function TKExtFormPanelController.GetDetailStyle: string;
@@ -391,7 +379,7 @@ var
     LLayout: TKLayout;
   begin
     Result := False;
-    LLayout := FindViewLayout;
+    LLayout := FindViewLayout('Form');
     if Assigned(LLayout) then
     begin
       Result := Assigned(LLayout.FindChildByPredicate(

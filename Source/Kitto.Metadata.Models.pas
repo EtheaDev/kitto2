@@ -597,6 +597,9 @@ type
     function ModelByName(const AName: string): TKModel;
     function FindModel(const AName: string): TKModel;
 
+    function ModelByNode(const ANode: TEFNode): TKModel;
+    function FindModelByNode(const ANode: TEFNode): TKModel;
+
     ///	<summary>Returns a reference to the first found model with the
     ///	specified physical name. If a model has no custom physical name
     ///	specified, the (case insensitive) match is done on its name
@@ -1611,6 +1614,11 @@ begin
   Result := FindObject(AName) as TKModel;
 end;
 
+function TKModels.FindModelByNode(const ANode: TEFNode): TKModel;
+begin
+  Result := FindObjectByNode(ANode) as TKModel;
+end;
+
 function TKModels.FindModelByPhysicalName(const APhysicalName: string): TKModel;
 begin
   Result := FindObjectByPredicate(
@@ -1646,6 +1654,11 @@ end;
 function TKModels.ModelByName(const AName: string): TKModel;
 begin
   Result := ObjectByName(AName) as TKModel;
+end;
+
+function TKModels.ModelByNode(const ANode: TEFNode): TKModel;
+begin
+  Result := ObjectByNode(ANode) as TKModel;
 end;
 
 class procedure TKModels.ResetDefaultModelClassType;
