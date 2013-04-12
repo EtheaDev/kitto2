@@ -74,6 +74,7 @@ type
     function AutoLoadData: Boolean; virtual;
     function GetParentDataPanel: TKExtDataPanelController;
     function GetRootDataPanel: TKExtDataPanelController;
+    function FindViewLayout(const ALayoutName: string): TKLayout;
   public
     destructor Destroy; override;
     property ViewTable: TKViewTable read FViewTable write SetViewTable;
@@ -140,6 +141,25 @@ begin
   inherited; // Creates subcontrollers.
 
   InitComponents;
+end;
+
+function TKExtDataPanelController.FindViewLayout(
+  const ALayoutName: string): TKLayout;
+var
+  LLayoutName: string;
+  LLayoutNode: TEFNode;
+begin
+  LLayoutNode := ViewTable.FindNode('Controller/' + ALayoutName + '/Layout');
+  if Assigned(LLayoutNode) then
+  begin
+    LLayoutName := LLayoutNode.AsString;
+    if LLayoutName <> '' then
+      Result := View.Catalog.Layouts.FindLayout(LLayoutName)
+    else
+      Result := View.Catalog.Layouts.FindLayoutByNode(LLayoutNode);
+  end
+  else
+    Result := ViewTable.FindLayout(ALayoutName);
 end;
 
 function TKExtDataPanelController.GetSelectConfirmCall(const AMessage: string; const AMethod: TExtProcedure): string;
