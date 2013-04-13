@@ -314,7 +314,7 @@ type
 
     procedure AddTo(List: TExtObjectList);
 
-    function DestroyJS : TExtFunction; virtual;
+    function DestroyJS: TExtFunction; virtual;
     procedure Free(CallDestroyJS : boolean = false);
     procedure Delete;
     class function JSClassName : string; virtual;
@@ -1341,8 +1341,9 @@ begin
 end;
 
 // Deletes JS object from Browser memory
-procedure TExtObject.Delete; begin
-  JSCode('delete ' + JSName + ';')
+procedure TExtObject.Delete;
+begin
+  Session.ResponseItems.ExecuteJSCode('delete ' + JSName + ';');
 end;
 
 procedure TExtObject.Notification(AComponent: TComponent; Operation: TOperation);
@@ -1368,9 +1369,10 @@ begin
   inherited;
 end;
 
-function TExtObject.DestroyJS : TExtFunction; begin
+function TExtObject.DestroyJS: TExtFunction;
+begin
   Delete;
-  Result := TExtFunction(Self)
+  Result := TExtFunction(Self);
 end;
 
 function TExtObject.GetConstructionJS: string;

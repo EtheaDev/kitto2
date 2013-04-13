@@ -215,7 +215,6 @@ type
     procedure InitDefaults; override;
   public
     class function JSClassName: string; override;
-    function DestroyJS: TExtFunction; override;
     function Disable: TExtFunction;
     function Enable: TExtFunction;
     function SetDisabled(const ADisabled: Boolean): TExtFunction;
@@ -1462,7 +1461,6 @@ type
     class function JSClassName: string; override;
     constructor Create(AOwner: TComponent; DragElement: string; ResizingElement: string;
       Orientation: Integer = 0; Placement: Integer = 0); reintroduce;
-    function DestroyJS(RemoveEl: Boolean): TExtFunction; reintroduce;
     function GetAdapter: TExtFunction;
     function GetMaximumSize: TExtFunction;
     function GetMinimumSize: TExtFunction;
@@ -1564,7 +1562,6 @@ type
     procedure HandleEvent(const AEvtName: string); override;
   public
     class function JSClassName: string; override;
-    function DestroyJS(RemoveEl: Boolean = false): TExtFunction; reintroduce;
     function GetEl: TExtFunction;
     function GetResizeChild: TExtFunction;
     function ResizeElement: TExtFunction;
@@ -1915,7 +1912,6 @@ type
     function ApplyToMarkup(El: string): TExtFunction; overload;
     function ApplyToMarkup(El: THTMLElement): TExtFunction; overload;
     function CloneConfig(Overrides: TExtObject): TExtFunction;
-    function DestroyJS: TExtFunction; override;
     function Disable: TExtFunction;
     function Enable: TExtFunction;
     function FindParentBy(Fn: TExtFunction): TExtFunction;
@@ -4431,12 +4427,6 @@ procedure TExtKeyNav.InitDefaults;
 begin
   inherited;
   FDefaultEventAction := 'stopEvent';
-end;
-
-function TExtKeyNav.DestroyJS: TExtFunction;
-begin
-  JSCode(JSName + '.destroy();', 'TExtKeyNav');
-  Result := Self;
 end;
 
 function TExtKeyNav.Disable: TExtFunction;
@@ -8669,12 +8659,6 @@ begin
   inherited Create(AOwner);
 end;
 
-function TExtSplitBar.DestroyJS(RemoveEl: Boolean): TExtFunction;
-begin
-  JSCode(JSName + '.destroy(' + VarToJSON([RemoveEl]) + ');', 'TExtSplitBar');
-  Result := Self;
-end;
-
 function TExtSplitBar.GetAdapter: TExtFunction;
 begin
   JSCode(JSName + '.getAdapter();', 'TExtSplitBar');
@@ -8966,12 +8950,6 @@ begin
   FResizeChildElement := TExtElement.CreateInternal(Self, 'resizeChild');
   FResizeRegion := TExtLibRegion.CreateInternal(Self, 'resizeRegion');
   FProxy := TExtElement.CreateInternal(Self, 'proxy');
-end;
-
-function TExtResizable.DestroyJS(RemoveEl: Boolean = false): TExtFunction;
-begin
-  JSCode(JSName + '.destroy(' + VarToJSON([RemoveEl]) + ');', 'TExtResizable');
-  Result := Self;
 end;
 
 function TExtResizable.GetEl: TExtFunction;
@@ -9871,12 +9849,6 @@ function TExtComponent.CloneConfig(Overrides: TExtObject): TExtFunction;
 begin
   JSCode(JSName + '.cloneConfig(' + VarToJSON([Overrides, false]) + ');',
     'TExtComponent');
-  Result := Self;
-end;
-
-function TExtComponent.DestroyJS: TExtFunction;
-begin
-  ExtSession.ResponseItems.CallMethod(Self, 'destroy', []);
   Result := Self;
 end;
 
