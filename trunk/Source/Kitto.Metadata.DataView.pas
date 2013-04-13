@@ -370,13 +370,24 @@ type
     property Fields[I: Integer]: TKViewTableField read GetField; default;
     function FindField(const AFieldName: string): TKViewTableField;
     function FieldByName(const AFieldName: string): TKViewTableField;
+
+    ///	<summary>
+    ///   Replaces all field name markers in AText with the current field values
+    ///	  in JSON format and returns the resulting expanded string.
+    ///   A field name marker is in the form {FieldName}.
+    ///	  If ASender is specified, then the value of the corresponding field
+    //    is not expanded (useful to avoid infinite recursion when this method
+    //    is called by TKViewTableField.GetAsJSONValue).
+    /// </summary>
+    function ExpandFieldJSONValues(const AText: string;
+      const ASender: TKViewField = nil): string;
   end;
 
   TKViewTableRecords = class(TKRecords)
-  private
+  strict private
     function GetStore: TKViewTableStore;
     function GetRecord(I: Integer): TKViewTableRecord; overload;
-  protected
+  strict protected
     function GetChildClass(const AName: string): TEFNodeClass; override;
   public
     property Store: TKViewTableStore read GetStore;
@@ -389,7 +400,7 @@ type
   end;
 
   TKViewTable = class(TKMetadataItem)
-  private
+  strict private
     function GetIsDetail: Boolean;
     function GetField(I: Integer): TKViewField;
     function GetFieldCount: Integer;
@@ -409,7 +420,7 @@ type
     function GetModelDetailReferenceName: string;
     function GetModelDetailReference: TKModelDetailReference;
     function GetDatabaseName: string;
-  protected
+  strict protected
     function GetChildClass(const AName: string): TEFNodeClass; override;
     function GetFields: TKViewFields;
     function GetDetailTables: TKViewTables;
@@ -425,9 +436,11 @@ type
     property IsDetail: Boolean read GetIsDetail;
     property MasterTable: TKViewTable read GetMasterTable;
 
-    ///	<summary>If the view table is a detail, this property contains the name
-    ///	of the detail reference in the master view table's model. Otherwise
-    ///	it's empty.</summary>
+    ///	<summary>
+    ///   If the view table is a detail, this property contains the name
+    ///	  of the detail reference in the master view table's model. Otherwise
+    ///	  it's empty.
+    /// </summary>
     property ModelDetailReferenceName: string read GetModelDetailReferenceName;
 
     ///	<summary>If the view table is a detail, this property returns the model
@@ -2007,6 +2020,23 @@ begin
     SetDetailFieldValues(Records.Store.MasterRecord);
 end;
 
+function TKViewTableRecord.ExpandFieldJSONValues(const AText: string;
+  const ASender: TKViewField): string;
+var
+  I: Integer;
+  LField: TKViewTableField;
+begin
+  Result := AText;
+  for I := 0 to FieldCount - 1 do
+  begin
+    LField := Fields[I];
+    if LField.ViewField <> ASender then
+    begin
+      Result := ReplaceText(Result, '{' + LField.FieldName + '}', LField.GetAsJSONValue(True, False));
+    end;
+  end;
+end;
+
 procedure TKViewTableRecord.Save(const AUseTransaction: Boolean);
 var
   LDBCommand: TEFDBCommand;
@@ -2109,23 +2139,6 @@ const
 var
   LDisplayTemplate: string;
   LViewField: TKViewField;
-
-  function ReplaceFieldValues(const AViewTable: TKViewTable; const AString: string): string;
-  var
-    I: Integer;
-    LField: TKViewTableField;
-  begin
-    Result := AString;
-    for I := 0 to ParentRecord.FieldCount - 1 do
-    begin
-      LField := ParentRecord.Fields[I];
-      if LField.ViewField <> LViewField then
-      begin
-        Result := ReplaceText(Result, '{' + LField.FieldName + '}', LField.GetAsJSONValue(True, False));
-      end;
-    end;
-  end;
-
 begin
   Result := inherited GetAsJSONValue(AForDisplay, False);
   LViewField := ViewField;
@@ -2141,7 +2154,7 @@ begin
       if LDisplayTemplate <> '' then
       begin
         // Replace other field values, this field's value and add back quotes.
-        Result := ReplaceFieldValues(LViewField.Table, ReplaceText(LDisplayTemplate, '{value}', Result));
+        Result := ParentRecord.ExpandFieldJSONValues(ReplaceText(LDisplayTemplate, '{value}', Result), LViewField);
       end;
     end;
   end;

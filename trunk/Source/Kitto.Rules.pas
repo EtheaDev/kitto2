@@ -104,14 +104,20 @@ type
   public
     property Rule: TKRule read FRule write SetRule;
 
-    ///	<summary>Called when creating a new record before showing it in the
-    ///	user interface. Descendants may set computed default values
-    ///	(declarative default values are already applied when this method is
-    ///	called). Calling RaiseError in this method displays an error message to
-    ///	the user and aborts the insert operation.</summary>
-    ///	<param name="ARecord">The record being created. It is usually an
-    ///	instance of TKViewTableRecord.</param>
-    ///	<remarks>If an exception is raised, the insert is aborted.</remarks>
+    ///	<summary>
+    ///   Called when creating a new record before showing it in the
+    ///	  user interface. Descendants may set computed default values
+    ///	  (declarative default values are already applied when this method is
+    ///	  called). Calling RaiseError in this method displays an error message to
+    ///	  the user and aborts the insert operation.
+    /// </summary>
+    ///	<param name="ARecord">
+    ///   The record being created. It is usually an
+    ///	  instance of TKViewTableRecord.
+    /// </param>
+    ///	<remarks>
+    ///   If an exception is raised, the insert is aborted.
+    /// </remarks>
     procedure NewRecord(const ARecord: TKRecord); virtual;
 
     ///	<summary>

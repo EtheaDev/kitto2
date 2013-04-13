@@ -62,8 +62,9 @@ type
     FOperation: string;
     FFocusField: TExtFormField;
     FStoreRecord: TKViewTableRecord;
-    FEditors: TList<TObject>;
-    procedure CreateEditors(const AForceReadOnly: Boolean);
+    FEditItems: TList<TObject>;
+    procedure CreateEditors;
+    procedure RecreateEditors;
     procedure StartOperation;
     procedure FocusFirstField;
     procedure CreateDetailPanels;
@@ -72,11 +73,16 @@ type
     procedure EnumEditors(const APredicate: TFunc<IKExtEditor, Boolean>; const AHandler: TProc<IKExtEditor>);
     procedure EditorsByFieldName(const AFieldName: string; const AHandler: TProc<IKExtEditor>);
     procedure AllEditors(const AHandler: TProc<IKExtEditor>);
+    procedure EnumEditItems(const APredicate: TFunc<IKExtEditItem, Boolean>;
+      const AHandler: TProc<IKExtEditItem>);
+    procedure AllNonEditors(const AHandler: TProc<IKExtEditItem>);
     function GetExtraHeight: Integer;
     procedure AssignFieldChangeEvent(const AAssign: Boolean);
     procedure FieldChange(const AField: TKField;
       const AOldValue, ANewValue: Variant);
     function GetAfterLoadJSCode: string;
+    procedure CreateFormPanel;
+    function LayoutContainsPageBreaks: Boolean;
   strict protected
     procedure DoDisplay; override;
     procedure InitComponents; override;
@@ -102,7 +108,7 @@ uses
 
 destructor TKExtFormPanelController.Destroy;
 begin
-  FreeAndNil(FEditors);
+  FreeAndNil(FEditItems);
   FreeAndNil(FDetailButtons);
   FreeAndNil(FDetailControllers);
   inherited;
@@ -174,28 +180,37 @@ begin
   end;
 end;
 
-procedure TKExtFormPanelController.CreateEditors(const AForceReadOnly: Boolean);
+procedure TKExtFormPanelController.RecreateEditors;
+begin
+  FFormPanel.Free(True);
+  CreateFormPanel;
+  CreateEditors;
+end;
+
+procedure TKExtFormPanelController.CreateEditors;
 var
   LLayoutProcessor: TKExtLayoutProcessor;
 begin
-  FreeAndNil(FEditors);
-  FEditors := TList<TObject>.Create;
+  Assert(Assigned(FStoreRecord));
+
+  FreeAndNil(FEditItems);
+  FEditItems := TList<TObject>.Create;
   LLayoutProcessor := TKExtLayoutProcessor.Create;
   try
     LLayoutProcessor.DataRecord := FStoreRecord;
     LLayoutProcessor.FormPanel := FFormPanel;
     LLayoutProcessor.MainEditPage := FMainPagePanel;
     LLayoutProcessor.TabPanel := FTabPanel;
-    LLayoutProcessor.OnNewEditor :=
-      procedure (AEditor: IKExtEditor)
+    LLayoutProcessor.OnNewEditItem :=
+      procedure (AEditItem: IKExtEditItem)
       var
-        LEditorSubject: IEFSubject;
+        LSubject: IEFSubject;
       begin
-        FEditors.Add(AEditor.AsObject);
-        if Supports(AEditor.AsObject, IEFSubject, LEditorSubject) then
-          LEditorSubject.AttachObserver(Self);
+        FEditItems.Add(AEditItem.AsObject);
+        if Supports(AEditItem.AsObject, IEFSubject, LSubject) then
+          LSubject.AttachObserver(Self);
       end;
-    LLayoutProcessor.ForceReadOnly := AForceReadOnly;
+    LLayoutProcessor.ForceReadOnly := FIsReadOnly;
     if FOperation = 'Add' then
       LLayoutProcessor.Operation := eoInsert
     else
@@ -219,7 +234,7 @@ var
   LDetailStyle: string;
   LHostWindow: TExtWindow;
 begin
-  CreateEditors(FIsReadOnly);
+  CreateEditors;
   LDetailStyle := GetDetailStyle;
   if SameText(LDetailStyle, 'Tabs') then
     CreateDetailPanels
@@ -291,12 +306,29 @@ var
   I: Integer;
   LEditorIntf: IKExtEditor;
 begin
-  for I := 0 to FEditors.Count - 1 do
+  for I := 0 to FEditItems.Count - 1 do
   begin
-    if Supports(FEditors[I], IKExtEditor, LEditorIntf) then
+    if Supports(FEditItems[I], IKExtEditor, LEditorIntf) then
     begin
       if APredicate(LEditorIntf) then
         AHandler(LEditorIntf);
+    end;
+  end;
+end;
+
+procedure TKExtFormPanelController.EnumEditItems(
+  const APredicate: TFunc<IKExtEditItem, Boolean>;
+  const AHandler: TProc<IKExtEditItem>);
+var
+  I: Integer;
+  LEditItemIntf: IKExtEditItem;
+begin
+  for I := 0 to FEditItems.Count - 1 do
+  begin
+    if Supports(FEditItems[I], IKExtEditItem, LEditItemIntf) then
+    begin
+      if APredicate(LEditItemIntf) then
+        AHandler(LEditItemIntf);
     end;
   end;
 end;
@@ -370,26 +402,25 @@ begin
   end;
 end;
 
+function TKExtFormPanelController.LayoutContainsPageBreaks: Boolean;
+var
+  LLayout: TKLayout;
+begin
+  Result := False;
+  LLayout := FindViewLayout('Form');
+  if Assigned(LLayout) then
+  begin
+    Result := Assigned(LLayout.FindChildByPredicate(
+      function (const ANode: TEFNode): Boolean
+      begin
+        Result := SameText(ANode.Name, 'PageBreak');
+      end));
+  end
+end;
+
 procedure TKExtFormPanelController.InitComponents;
 var
   LHostWindow: TExtWindow;
-
-  function LayoutContainsPageBreaks: Boolean;
-  var
-    LLayout: TKLayout;
-  begin
-    Result := False;
-    LLayout := FindViewLayout('Form');
-    if Assigned(LLayout) then
-    begin
-      Result := Assigned(LLayout.FindChildByPredicate(
-        function (const ANode: TEFNode): Boolean
-        begin
-          Result := SameText(ANode.Name, 'PageBreak');
-        end));
-    end
-  end;
-
 begin
   inherited;
   if Title = '' then
@@ -423,37 +454,7 @@ begin
   if SameText(FOperation, 'Add') and FIsReadOnly then
     raise EEFError.Create(_('Operation Add not supported on read-only data.'));
 
-  FFormPanel := TKExtEditPanel.CreateAndAddTo(Items);
-  FFormPanel.Region := rgCenter;
-  FFormPanel.Border := False;
-  FFormPanel.Header := False;
-  FFormPanel.Layout := lyFit; // Vital to avoid detail grids with zero height!
-  FFormPanel.AutoScroll := False;
-  FFormPanel.LabelWidth := 120;
-  FFormPanel.MonitorValid := True;
-  FFormPanel.Cls := 'x-panel-mc'; // Sets correct theme background color.
-  { TODO : check pages in layout as well }
-  if ((ViewTable.DetailTableCount > 0) and SameText(GetDetailStyle, 'Tabs')) or LayoutContainsPageBreaks then
-  begin
-    FTabPanel := TExtTabPanel.CreateAndAddTo(FFormPanel.Items);
-    FTabPanel.Border := False;
-    FTabPanel.AutoScroll := False;
-    FTabPanel.BodyStyle := 'background:none'; // Respects parent's background color.
-    FTabPanel.DeferredRender := False;
-    FMainPagePanel := TKExtEditPage.CreateAndAddTo(FTabPanel.Items);
-    FMainPagePanel.Title := _(ViewTable.DisplayLabel);
-    FMainPagePanel.EditPanel := FFormPanel;
-    FTabPanel.SetActiveTab(0);
-  end
-  else
-  begin
-    FTabPanel := nil;
-    FMainPagePanel := TKExtEditPage.CreateAndAddTo(FFormPanel.Items);
-    FMainPagePanel.Region := rgCenter;
-    FMainPagePanel.EditPanel := FFormPanel;
-  end;
-  FMainPagePanel.PaddingString := '5px';
-  //Session.ResponseItems.ExecuteJSCode(Format('%s.getForm().url = "%s";', [FFormPanel.JSName, MethodURI(ConfirmChanges)]));
+  CreateFormPanel;
 
   if not FIsReadOnly then
   begin
@@ -490,6 +491,41 @@ begin
   end;
 end;
 
+procedure TKExtFormPanelController.CreateFormPanel;
+begin
+  FFormPanel := TKExtEditPanel.CreateAndAddTo(Items);
+  FFormPanel.Region := rgCenter;
+  FFormPanel.Border := False;
+  FFormPanel.Header := False;
+  FFormPanel.Layout := lyFit; // Vital to avoid detail grids with zero height!
+  FFormPanel.AutoScroll := False;
+  FFormPanel.LabelWidth := 120;
+  FFormPanel.MonitorValid := True;
+  FFormPanel.Cls := 'x-panel-mc'; // Sets correct theme background color.
+  { TODO : check pages in layout as well }
+  if ((ViewTable.DetailTableCount > 0) and SameText(GetDetailStyle, 'Tabs')) or LayoutContainsPageBreaks then
+  begin
+    FTabPanel := TExtTabPanel.CreateAndAddTo(FFormPanel.Items);
+    FTabPanel.Border := False;
+    FTabPanel.AutoScroll := False;
+    FTabPanel.BodyStyle := 'background:none'; // Respects parent's background color.
+    FTabPanel.DeferredRender := False;
+    FMainPagePanel := TKExtEditPage.CreateAndAddTo(FTabPanel.Items);
+    FMainPagePanel.Title := _(ViewTable.DisplayLabel);
+    FMainPagePanel.EditPanel := FFormPanel;
+    FTabPanel.SetActiveTab(0);
+  end
+  else
+  begin
+    FTabPanel := nil;
+    FMainPagePanel := TKExtEditPage.CreateAndAddTo(FFormPanel.Items);
+    FMainPagePanel.Region := rgCenter;
+    FMainPagePanel.EditPanel := FFormPanel;
+  end;
+  FMainPagePanel.PaddingString := '5px';
+  //Session.ResponseItems.ExecuteJSCode(Format('%s.getForm().url = "%s";', [FFormPanel.JSName, MethodURI(ConfirmChanges)]));
+end;
+
 function TKExtFormPanelController.GetExtraHeight: Integer;
 begin
   Result := 10; // 5px padding * 2.
@@ -500,17 +536,24 @@ begin
 end;
 
 procedure TKExtFormPanelController.CancelChanges;
+var
+  LKeepOpen: Boolean;
 begin
+  LKeepOpen := Config.GetBoolean('KeepOpenAfterOperation');
+
   if FOperation = 'Add' then
   begin
     ServerStore.RemoveRecord(FStoreRecord);
     FStoreRecord := nil;
   end;
   NotifyObservers('Canceled');
-  if Config.GetBoolean('KeepOpenAfterOperation') then
+  if LKeepOpen then
   begin
     if FOperation = 'Add' then
+    begin
       FStoreRecord := ServerStore.AppendRecord(nil);
+      RecreateEditors;
+    end;
     StartOperation;
   end
   else
@@ -551,6 +594,17 @@ begin
     AHandler);
 end;
 
+procedure TKExtFormPanelController.AllNonEditors(
+  const AHandler: TProc<IKExtEditItem>);
+begin
+  EnumEditItems(
+    function (AEditItem: IKExteditItem): Boolean
+    begin
+      Result := not Supports(AEditItem, IKExtEditor);
+    end,
+    AHandler);
+end;
+
 procedure TKExtFormPanelController.AssignFieldChangeEvent(const AAssign: Boolean);
 begin
   if Assigned(FStoreRecord) then
@@ -566,10 +620,19 @@ begin
   Assert(Assigned(AField));
   Assert(AField is TKViewTableField);
 
+  // Refresh editors linked to changed field.
   EditorsByFieldName(TKViewTableField(AField).FieldName,
     procedure (AEditor: IKExtEditor)
     begin
       AEditor.RefreshValue;
+    end);
+
+  // Give all non-editors a chance to refresh (such as a FieldSet which might
+  // need to refresh its title). This might be a performance bottleneck.
+  AllNonEditors(
+    procedure (AEditItem: IKExtEditItem)
+    begin
+      AEditItem.RefreshValue;
     end);
 end;
 

@@ -32,6 +32,7 @@ type
     ['{4F5A1E4E-D5A1-44FE-93DC-E1ABF1209CE1}']
     procedure SetOption(const ANode: TEFNode);
     function AsExtObject: TExtObject;
+    procedure RefreshValue;
   end;
 
   IKExtEditContainer = interface(IKExtEditItem)
@@ -46,7 +47,6 @@ type
     function GetRecordField: TKViewTableField;
     procedure SetRecordField(const AValue: TKViewTableField);
     property RecordField: TKViewTableField read GetRecordField write SetRecordField;
-    procedure RefreshValue;
   end;
 
   /// <summary>
@@ -64,8 +64,11 @@ type
   TKExtEditPanel = class(TExtFormFormPanel);
 
   TKExtEditPage = class(TExtPanel, IKExtEditItem, IKExtEditContainer)
-  private
+  strict private
     FEditPanel: TKExtEditPanel;
+    FDataRecord: TKViewTableRecord;
+    FUnexpandedTitle: string;
+    procedure SetUnexpandedTitle(const AValue: string);
   protected
     procedure InitDefaults; override;
   public
@@ -75,11 +78,19 @@ type
     procedure AddChild(const AEditItem: IKExtEditItem);
     procedure SetOption(const ANode: TEFNode);
     function AsExtObject: TExtObject;
+    procedure RefreshValue;
 
     property EditPanel: TKExtEditPanel read FEditPanel write FEditPanel;
+    property DataRecord: TKViewTableRecord read FDataRecord write FDataRecord;
+    property UnexpandedTitle: string read FUnexpandedTitle write SetUnexpandedTitle;
   end;
 
   TKExtFormFieldSet = class(TExtFormFieldSet, IKExtEditItem, IKExtEditContainer)
+  strict private
+    FDataRecord: TKViewTableRecord;
+    FUnexpandedTitle: string;
+  private
+    procedure SetUnexpandedTitle(const AValue: string);
   protected
     procedure InitDefaults; override;
   public
@@ -89,6 +100,9 @@ type
     procedure AddChild(const AEditItem: IKExtEditItem);
     procedure SetOption(const ANode: TEFNode);
     function AsExtObject: TExtObject;
+    procedure RefreshValue;
+    property DataRecord: TKViewTableRecord read FDataRecord write FDataRecord;
+    property UnexpandedTitle: string read FUnexpandedTitle write SetUnexpandedTitle;
   end;
 
   TKExtFormCompositeField = class(TExtFormCompositeField, IKExtEditItem, IKExtEditContainer)
@@ -99,6 +113,7 @@ type
     procedure AddChild(const AEditItem: IKExtEditItem);
     procedure SetOption(const ANode: TEFNode);
     function AsExtObject: TExtObject; inline;
+    procedure RefreshValue;
   end;
 
   TKExtFormContainer = class(TExtContainer, IKExtEditItem)
@@ -112,6 +127,7 @@ type
     procedure AddChild(const AEditItem: IKExtEditItem);
     procedure SetOption(const ANode: TEFNode);
     function AsExtObject: TExtObject; inline;
+    procedure RefreshValue;
   end;
 
   TKExtFormRow = class(TKExtFormContainer, IKExtEditContainer)
@@ -422,7 +438,7 @@ type
     FDefaults: TKExtLayoutDefaults;
     FCurrentEditItem: IKExtEditItem;
     FEditContainers: TStack<IKExtEditContainer>;
-    FOnNewEditor: TProc<IKExtEditor>;
+    FOnNewEditItem: TProc<IKExtEditItem>;
     FOperation: TKExtEditOperation;
     FTabPanel: TExtTabPanel;
     function GetSession: TKExtSession;
@@ -483,7 +499,7 @@ type
     property FormPanel: TKExtEditPanel read FFormPanel write FFormPanel;
     property TabPanel: TExtTabPanel read FTabPanel write FTabPanel;
     property MainEditPage: TKExtEditPage read FMainEditPage write SetMainEditPage;
-    property OnNewEditor: TProc<IKExtEditor> read FOnNewEditor write FOnNewEditor;
+    property OnNewEditItem: TProc<IKExtEditItem> read FOnNewEditItem write FOnNewEditItem;
     property Operation: TKExtEditOperation read FOperation write FOperation;
 
     ///	<summary>
@@ -586,7 +602,17 @@ end;
 function IsChangeHandlerNeeded(const AViewField: TKViewField): Boolean;
 begin
   { TODO : Consider server-side field-level rules as well. }
-  Result := (AViewField.FileNameField <> '') or AViewField.DerivedFieldsExist;
+  { TODO : Consider dependencies such as field names used in layout elements
+    (such as field set titles). In order to do that, build a dependency list.
+    Also, this function should be moved inside the layout processor. }
+  if AViewField.FileNameField <> '' then
+    Result := True
+  else if AViewField.DerivedFieldsExist then
+    Result := True
+  else if AViewField.GetBoolean('NotifyChange') then // temporary
+    Result := True
+  else
+    Result := False;
 end;
 
 { TKExtLayoutProcessor }
@@ -724,6 +750,8 @@ begin
     raise EEFError.CreateFmt(_('Unknown edit item type %s.'), [ANode.Name]);
   if Assigned(AContainer) then
     AContainer.AddChild(Result);
+  if Assigned(FOnNewEditItem) then
+    FOnNewEditItem(Result);
 end;
 
 function TKExtLayoutProcessor.GetLookupCommandText(const AViewField: TKViewField): string;
@@ -1195,9 +1223,6 @@ begin
       FFocusField := LFormField;
   end;
 
-  if Assigned(FOnNewEditor) then
-    FOnNewEditor(Result);
-
   if Assigned(LRowField) then
     Result := LRowField;
 end;
@@ -1207,10 +1232,13 @@ var
   LFieldSet: TKExtFormFieldSet;
 begin
   Assert(Assigned(FCurrentEditPage));
+  Assert(Assigned(FDataRecord));
 
   LFieldSet := TKExtFormFieldSet.Create(FCurrentEditPage);
-  LFieldSet.Title := ATitle;
   LFieldSet.Collapsible := False;
+  LFieldSet.DataRecord := FDataRecord;
+  LFieldSet.UnexpandedTitle := ATitle;
+
   Result := LFieldSet;
 end;
 
@@ -1220,12 +1248,14 @@ var
 begin
   Assert(Assigned(FFormPanel));
   Assert(Assigned(FTabPanel));
+  Assert(Assigned(FDataRecord));
 
   FinalizeCurrentEditPage;
 
   LPageBreak := TKExtEditPage.CreateAndAddTo(FTabPanel.Items);
-  LPageBreak.Title := ATitle;
   LPageBreak.EditPanel := FFormPanel;
+  LPageBreak.DataRecord := FDataRecord;
+  LPageBreak.UnexpandedTitle := ATitle;
   FCurrentEditPage := LPageBreak;
 
   Result := LPageBreak;
@@ -1326,6 +1356,17 @@ begin
   PaddingString := '5px';
 end;
 
+procedure TKExtEditPage.RefreshValue;
+var
+  LTitle: string;
+begin
+  Assert(Assigned(FDataRecord));
+
+  LTitle := FDataRecord.ExpandFieldJSONValues(FUnexpandedTitle);
+  if Title <> LTitle then
+    Title := LTitle;
+end;
+
 procedure TKExtEditPage.SetOption(const ANode: TEFNode);
 begin
   if SameText(ANode.Name, 'LabelWidth') then
@@ -1344,6 +1385,12 @@ begin
   end
   else
     InvalidOption(ANode);
+end;
+
+procedure TKExtEditPage.SetUnexpandedTitle(const AValue: string);
+begin
+  FUnexpandedTitle := AValue;
+  RefreshValue;
 end;
 
 function TKExtEditPage._AddRef: Integer;
@@ -1382,6 +1429,17 @@ begin
   On('expand', JSFunction('if ("kPreviousHeight" in this && this.getTopOwner() instanceof Ext.Window) this.getTopOwner().setHeight(this.getTopOwner().getHeight() - this.kPreviousHeight + this.getHeight());'), Self);
 end;
 
+procedure TKExtFormFieldSet.RefreshValue;
+var
+  LTitle: string;
+begin
+  Assert(Assigned(FDataRecord));
+
+  LTitle := FDataRecord.ExpandFieldJSONValues(FUnexpandedTitle);
+  if Title <> LTitle then
+    Title := LTitle;
+end;
+
 procedure TKExtFormFieldSet.SetOption(const ANode: TEFNode);
 begin
   if SameText(ANode.Name, 'LabelWidth') then
@@ -1400,6 +1458,12 @@ begin
   end
   else
     InvalidOption(ANode);
+end;
+
+procedure TKExtFormFieldSet.SetUnexpandedTitle(const AValue: string);
+begin
+  FUnexpandedTitle := AValue;
+  RefreshValue;
 end;
 
 function TKExtFormFieldSet._AddRef: Integer;
@@ -1427,6 +1491,10 @@ end;
 function TKExtFormCompositeField.AsObject: TObject;
 begin
   Result := Self;
+end;
+
+procedure TKExtFormCompositeField.RefreshValue;
+begin
 end;
 
 procedure TKExtFormCompositeField.SetOption(const ANode: TEFNode);
@@ -1832,6 +1900,10 @@ begin
     Anchor := ANode.AsString
   else
     Result := False;
+end;
+
+procedure TKExtFormContainer.RefreshValue;
+begin
 end;
 
 procedure TKExtFormContainer.SetOption(const ANode: TEFNode);
