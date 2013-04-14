@@ -158,11 +158,13 @@ type
   TKExtActionButton = class(TExtButton)
   strict private
     FView: TKView;
+    FActionObserver: IEFObserver;
   strict protected
     procedure InitController(const AController: IKExtController); virtual;
     procedure SetView(const AValue: TKView); virtual;
   public
     property View: TKView read FView write SetView;
+    property ActionObserver: IEFObserver read FActionObserver write FActionObserver;
   published
     procedure ExecuteButtonAction;
   end;
@@ -255,8 +257,9 @@ type
 
   ///	<summary>Base class for tool controllers.</summary>
   TKExtToolController = class(TKExtControllerBase)
-  protected
+  strict protected
     procedure ExecuteTool; virtual;
+    procedure AfterExecuteTool; virtual;
     procedure DoDisplay; override;
   public
     function SupportsContainer: Boolean; override;
@@ -768,6 +771,7 @@ begin
 
   Result := TKExtActionButton.CreateAndAddTo(AToolbar.Items);
   Result.View := AView;
+  Result.ActionObserver := Self;
 
   // A Tool may or may not have a confirmation message.
   LConfirmationMessage := AView.GetExpandedString('Controller/ConfirmationMessage');
@@ -1060,10 +1064,15 @@ begin
   Result := False;
 end;
 
+procedure TKExtToolController.AfterExecuteTool;
+begin
+end;
+
 procedure TKExtToolController.DoDisplay;
 begin
   inherited;
   ExecuteTool;
+  AfterExecuteTool;
   //NotifyObservers('Closed');
 end;
 
@@ -1090,9 +1099,10 @@ var
   LController: IKExtController;
 begin
   Assert(Assigned(FView));
+  Assert(Assigned(FActionObserver));
 
   LController := TKExtControllerFactory.Instance.CreateController(
-    Session.ObjectCatalog, FView, nil);
+    Session.ObjectCatalog, FView, nil, nil, FActionObserver);
   InitController(LController);
   LController.Display;
 end;
