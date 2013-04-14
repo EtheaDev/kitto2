@@ -186,6 +186,7 @@ begin
 
   Result := TKExtDataActionButton.CreateAndAddTo(AToolbar.Items);
   Result.View := AView;
+  Result.ActionObserver := Self;
   TKExtDataActionButton(Result).ViewTable := ViewTable;
   TKExtDataActionButton(Result).ServerStore := ServerStore;
 
@@ -363,10 +364,11 @@ begin
   Assert(Assigned(View));
   Assert(Assigned(FViewTable));
   Assert(Assigned(FServerStore));
+  Assert(Assigned(ActionObserver));
 
   LRecord := Session.LocateRecordFromQueries(FViewTable, FServerStore);
   LController := TKExtControllerFactory.Instance.CreateController(
-    Session.ObjectCatalog, View, nil);
+    Session.ObjectCatalog, View, nil, nil, ActionObserver);
   InitController(LController);
   LController.Config.SetObject('Sys/Record', LRecord);
   LController.Display;
