@@ -11,6 +11,7 @@ uses
   // Kitto.Auth.OSDB,
   // Kitto.Auth.TextFile,
   Kitto.Localization.dxgettext,
+  Kitto.Metadata.ModelImplementation,
   Kitto.Metadata.ViewBuilders,
   Kitto.Ext.All
   ;
