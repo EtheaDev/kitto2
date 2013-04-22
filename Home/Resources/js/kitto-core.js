@@ -167,10 +167,20 @@ function getRowColorStyleRule(record, fieldName, patterns)
     return '';
 };
 
-function getWindowWidth() {
+function getWindowWidth()
+{
   return document.documentElement.clientWidth;
 };
 
-function getWindowHeight() {
+function getWindowHeight()
+{
   return document.documentElement.clientHeight;
+};
+
+function loadError(type, action, response)
+{
+  if (type == "remote")
+    AjaxError("Load error: " + response.message);
+  else
+    AjaxError("Load error - see response for details.");
 };

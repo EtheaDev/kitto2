@@ -993,6 +993,7 @@ type
     FIdProperty: string;
     FRoot: string;
     FSuccessProperty: string;
+    FMessageProperty: string;
     FTotalProperty: string;
     FJsonData: TExtObject;
     FMeta: string;
@@ -1002,6 +1003,7 @@ type
     procedure SetTotalProperty(const AValue: string);
     procedure SetFJsonData(Value: TExtObject);
     procedure SetFMeta(Value: string);
+    procedure SetMessageProperty(const AValue: string);
   protected
     procedure InitDefaults; override;
   public
@@ -1014,6 +1016,7 @@ type
     property IdProperty: string read FIdProperty write SetFIdProperty;
     property Root: string read FRoot write SetRoot;
     property SuccessProperty: string read FSuccessProperty write SetSuccessProperty;
+    property MessageProperty: string read FMessageProperty write SetMessageProperty;
     property TotalProperty: string read FTotalProperty write SetTotalProperty;
     property JsonData: TExtObject read FJsonData write SetFJsonData;
     property Meta: string read FMeta write SetFMeta;
@@ -3825,6 +3828,12 @@ procedure TExtDataJsonReader.SetFMeta(Value: string);
 begin
   FMeta := Value;
   JSCode(JSName + '.meta=' + VarToJSON([Value]) + ';');
+end;
+
+procedure TExtDataJsonReader.SetMessageProperty(const AValue: string);
+begin
+  FMessageProperty := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'messageProperty', [AValue]);
 end;
 
 class function TExtDataJsonReader.JSClassName: string;
