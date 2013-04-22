@@ -66,7 +66,8 @@ type
     function IsBlob(const ASize: Integer): Boolean; virtual;
     function IsText: Boolean; virtual;
     function NodeToJSONValue(const AForDisplay: Boolean; const ANode: TEFNode;
-      const AJSFormatSettings: TFormatSettings; const AQuote: Boolean = True): string; virtual;
+      const AJSFormatSettings: TFormatSettings; const AQuote: Boolean = True;
+      const AEmptyNulls: Boolean = False): string;
     procedure JSONValueToNode(const ANode: TEFNode; const AValue: string;
       const AUseJSDateFormat: Boolean;
       const AJSFormatSettings: TFormatSettings); virtual;
@@ -2515,12 +2516,13 @@ begin
 end;
 
 function TEFDataType.NodeToJSONValue(const AForDisplay: Boolean;
-  const ANode: TEFNode; const AJSFormatSettings: TFormatSettings; const AQuote: Boolean): string;
+  const ANode: TEFNode; const AJSFormatSettings: TFormatSettings;
+  const AQuote: Boolean; const AEmptyNulls: Boolean): string;
 begin
   Assert(Assigned(ANode));
 
   if ANode.IsNull then
-    Result := 'null'
+    Result := IfThen(AEmptyNulls, '', 'null')
   else
   begin
     Result := InternalNodeToJSONValue(AForDisplay, ANode, AJSFormatSettings);

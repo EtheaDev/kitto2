@@ -1362,7 +1362,7 @@ var
 begin
   Assert(Assigned(FDataRecord));
 
-  LTitle := FDataRecord.ExpandFieldJSONValues(FUnexpandedTitle);
+  LTitle := FDataRecord.ExpandFieldJSONValues(FUnexpandedTitle, True);
   if Title <> LTitle then
     Title := LTitle;
 end;
@@ -1435,7 +1435,7 @@ var
 begin
   Assert(Assigned(FDataRecord));
 
-  LTitle := FDataRecord.ExpandFieldJSONValues(FUnexpandedTitle);
+  LTitle := FDataRecord.ExpandFieldJSONValues(FUnexpandedTitle, True);
   if Title <> LTitle then
     Title := LTitle;
 end;
