@@ -240,6 +240,8 @@ begin
   Result := TExtDataJsonReader.Create(Self, JSObject('')); // Must pass '' otherwise invalid code is generated.
   Result.Root := 'Root';
   Result.TotalProperty := 'Total';
+  Result.MessageProperty := 'Msg';
+  Result.SuccessProperty := 'Success';
 
   for I := 0 to ViewTable.FieldCount - 1 do
     AddReaderField(Result, ViewTable.Fields[I]);
@@ -250,6 +252,7 @@ begin
   Result := TExtDataStore.Create(Self);
   Result.RemoteSort := False;
   Result.Url := MethodURI(GetRecordPage);
+  Result.On('exception', JSFunction('proxy, type, action, options, response, arg', 'loadError(type, action, response);'));
 end;
 
 procedure TKExtDataPanelController.GetRecordPage;
@@ -259,27 +262,35 @@ var
   LTotal: Integer;
   LData: string;
 begin
-  // Don't refresh if there are pending changes.
-  if ServerStore.ChangesPending then
-  begin
-    LTotal := ServerStore.RecordCountExceptDeleted;
-    LData := ServerStore.GetAsJSON(True);
-  end
-  else
-  begin
-    LStart := Session.QueryAsInteger['start'];
-    LLimit := Session.QueryAsInteger['limit'];
-
-    LTotal := ViewTable.Model.LoadRecords(ServerStore, GetRootDataPanel.GetFilterExpression, GetOrderByClause, LStart, LLimit);
-    if (LStart <> 0) or (LLimit <> 0) then
-      LData := ServerStore.GetAsJSON(True)
+  try
+    // Don't refresh if there are pending changes.
+    if ServerStore.ChangesPending then
+    begin
+      LTotal := ServerStore.RecordCountExceptDeleted;
+      LData := ServerStore.GetAsJSON(True);
+    end
     else
-      // When loading all records, apply a limit on the display.
-      { TODO : If there's a limit on the display of records, try to pass it over and only load
-        needed records into the store. }
-      LData := ServerStore.GetAsJSON(True, 0, Min(GetMaxRecords(), LTotal));
+    begin
+      LStart := Session.QueryAsInteger['start'];
+      LLimit := Session.QueryAsInteger['limit'];
+
+      LTotal := ViewTable.Model.LoadRecords(ServerStore, GetRootDataPanel.GetFilterExpression, GetOrderByClause, LStart, LLimit);
+      if (LStart <> 0) or (LLimit <> 0) then
+        LData := ServerStore.GetAsJSON(True)
+      else
+        // When loading all records, apply a limit on the display.
+        { TODO : If there's a limit on the display of records, try to pass it over and only load
+          needed records into the store. }
+        LData := ServerStore.GetAsJSON(True, 0, Min(GetMaxRecords(), LTotal));
+    end;
+    Session.ResponseItems.AddJSON(Format('{Success: true, Total: %d, Root: %s}', [LTotal, LData]));
+  except
+    on E: Exception do
+    begin
+      Session.ResponseItems.Clear;
+      Session.ResponseItems.AddJSON(Format('{Success: false, Msg: "%s", Root: []}', [E.Message]));
+    end;
   end;
-  Session.ResponseItems.AddJSON(Format('{Total: %d, Root: %s}', [LTotal, LData]));
 end;
 
 function TKExtDataPanelController.GetRootDataPanel: TKExtDataPanelController;

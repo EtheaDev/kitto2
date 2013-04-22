@@ -529,7 +529,13 @@ begin
   LIsSynchronous := Result.IsSynchronous;
   if not LIsSynchronous then
     FOpenControllers.Add(Result.AsObject);
-  Result.Display;
+  try
+    Result.Display;
+  except
+    FOpenControllers.Remove(Result.AsObject);
+    FreeAndNilEFIntf(Result);
+    raise;
+  end;
   // Synchronous controllers end their life inside Display.
   if LIsSynchronous then
     NilEFIntf(Result);
@@ -563,17 +569,20 @@ begin
 
   if AView.IsAccessGranted(ACM_VIEW) then
   begin
-    if AView.GetBoolean('Controller/AllowMultipleInstances') then
-      LController := DisplayNewController(AView)
-    else
-    begin
-      LController := FindOpenController(AView);
-      if not Assigned(LController) then
-        LController := DisplayNewController(AView);
+    try
+      if AView.GetBoolean('Controller/AllowMultipleInstances') then
+        LController := DisplayNewController(AView)
+      else
+      begin
+        LController := FindOpenController(AView);
+        if not Assigned(LController) then
+          LController := DisplayNewController(AView);
+      end;
+      if Assigned(LController) and LController.SupportsContainer and Assigned(FViewHost) then
+        SetViewHostActiveTab(LController.AsObject);
+    finally
+      ClearStatus;
     end;
-    if Assigned(LController) and LController.SupportsContainer and Assigned(FViewHost) then
-      SetViewHostActiveTab(LController.AsObject);
-    ClearStatus;
   end;
 end;
 
