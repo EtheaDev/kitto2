@@ -454,7 +454,6 @@ begin
   Assert(Assigned(AField));
 
   Result := 10;
-  AField.DataSet.First;
   while not AField.DataSet.Eof do
   begin
     LWidth := Length(AField.AsString);
