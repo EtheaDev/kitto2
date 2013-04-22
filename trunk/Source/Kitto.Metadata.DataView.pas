@@ -333,7 +333,8 @@ type
     function GetViewField: TKViewField;
   public
     function GetEmptyAsNull: Boolean; override;
-    function GetAsJSONValue(const AForDisplay: Boolean; const AQuote: Boolean = True): string; override;
+    function GetAsJSONValue(const AForDisplay: Boolean; const AQuote: Boolean = True;
+      const AEmptyNulls: Boolean = False): string; override;
     property ParentRecord: TKViewTableRecord read GetParentRecord;
     property HeaderField: TKViewTableHeaderField read GetHeaderField;
     property ViewField: TKViewField read GetViewField;
@@ -375,12 +376,14 @@ type
     ///   Replaces all field name markers in AText with the current field values
     ///	  in JSON format and returns the resulting expanded string.
     ///   A field name marker is in the form {FieldName}.
+    ///   Pass True in AEmptyNulls to expand null fields to empty strings,
+    ///   otherwise they are expanded as 'null'.
     ///	  If ASender is specified, then the value of the corresponding field
     //    is not expanded (useful to avoid infinite recursion when this method
     //    is called by TKViewTableField.GetAsJSONValue).
     /// </summary>
     function ExpandFieldJSONValues(const AText: string;
-      const ASender: TKViewField = nil): string;
+      const AEmptyNulls: Boolean; const ASender: TKViewField = nil): string;
   end;
 
   TKViewTableRecords = class(TKRecords)
@@ -2021,7 +2024,7 @@ begin
 end;
 
 function TKViewTableRecord.ExpandFieldJSONValues(const AText: string;
-  const ASender: TKViewField): string;
+  const AEmptyNulls: Boolean; const ASender: TKViewField): string;
 var
   I: Integer;
   LField: TKViewTableField;
@@ -2032,7 +2035,7 @@ begin
     LField := Fields[I];
     if LField.ViewField <> ASender then
     begin
-      Result := ReplaceText(Result, '{' + LField.FieldName + '}', LField.GetAsJSONValue(True, False));
+      Result := ReplaceText(Result, '{' + LField.FieldName + '}', LField.GetAsJSONValue(True, False, True));
     end;
   end;
 end;
@@ -2133,14 +2136,15 @@ end;
 
 { TKViewTableField }
 
-function TKViewTableField.GetAsJSONValue(const AForDisplay: Boolean; const AQuote: Boolean): string;
+function TKViewTableField.GetAsJSONValue(const AForDisplay: Boolean; const AQuote: Boolean;
+  const AEmptyNulls: Boolean): string;
 const
   PASSWORD_CHARS = 8;
 var
   LDisplayTemplate: string;
   LViewField: TKViewField;
 begin
-  Result := inherited GetAsJSONValue(AForDisplay, False);
+  Result := inherited GetAsJSONValue(AForDisplay, False, AEmptyNulls);
   LViewField := ViewField;
   if AForDisplay and Assigned(LViewField) then
   begin
@@ -2154,7 +2158,7 @@ begin
       if LDisplayTemplate <> '' then
       begin
         // Replace other field values, this field's value and add back quotes.
-        Result := ParentRecord.ExpandFieldJSONValues(ReplaceText(LDisplayTemplate, '{value}', Result), LViewField);
+        Result := ParentRecord.ExpandFieldJSONValues(ReplaceText(LDisplayTemplate, '{value}', Result), AEmptyNulls, LViewField);
       end;
     end;
   end;

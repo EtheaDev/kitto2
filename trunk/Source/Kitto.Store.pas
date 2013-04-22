@@ -75,7 +75,8 @@ type
     property IsModified: Boolean read FIsModified;
     property ParentRecord: TKRecord read GetParentRecord;
     function GetAsJSON(const AForDisplay: Boolean): string;
-    function GetAsJSONValue(const AForDisplay: Boolean; const AQuote: Boolean = True): string; virtual;
+    function GetAsJSONValue(const AForDisplay: Boolean; const AQuote: Boolean = True;
+      const AEmptyNulls: Boolean = False): string; virtual;
     property FieldName: string read GetFieldName;
   end;
 
@@ -979,9 +980,10 @@ begin
     Result := '';
 end;
 
-function TKField.GetAsJSONValue(const AForDisplay: Boolean; const AQuote: Boolean): string;
+function TKField.GetAsJSONValue(const AForDisplay: Boolean; const AQuote: Boolean;
+  const AEmptyNulls: Boolean): string;
 begin
-  Result := DataType.NodeToJSONValue(AForDisplay, Self, TKConfig.JSFormatSettings, AQuote);
+  Result := DataType.NodeToJSONValue(AForDisplay, Self, TKConfig.JSFormatSettings, AQuote, AEmptyNulls);
 end;
 
 function TKField.GetDataType: TEFDataType;
