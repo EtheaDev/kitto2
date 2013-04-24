@@ -265,6 +265,7 @@ var
         AColumn.RendererExtFunction := AColumn.JSFunction('v',
           Format('return formatWithImage(v, [%s], %s);',
             [TriplesToJSON(LTriples), IfThen(AViewField.BlankValue, 'false', 'true')]));
+        Result := True;
       end;
     end;
 
