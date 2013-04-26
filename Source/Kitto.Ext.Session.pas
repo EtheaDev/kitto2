@@ -84,6 +84,17 @@ type
     procedure AfterConstruction; override;
   end;
 
+  ///	<summary>
+  ///	  A modal window that hosts a controller and removes the controller
+  ///	  (instead fo itself) from the session when it's closed.
+  ///	</summary>
+  TKExtControllerHostWindow = class(TKExtModalWindow)
+  private
+    FHostedController: TObject;
+  strict protected
+    function GetControllerToRemove: TObject; override;
+  end;
+
   TKExtSession = class(TExtSession)
   private
     FHomeController: TObject;
@@ -97,6 +108,7 @@ type
     FMacroExpander: TKExtSessionMacroExpander;
     FGettextInstance: TGnuGettextInstance;
     FRefreshingLanguage: Boolean;
+    FControllerHostWindow: TKExtControllerHostWindow;
     procedure LoadLibraries;
     procedure DisplayHomeView;
     procedure DisplayLoginWindow;
@@ -521,17 +533,55 @@ end;
 function TKExtSession.DisplayNewController(const AView: TKView): IKExtController;
 var
   LIsSynchronous: Boolean;
+  LWidth: Integer;
+  LHeight: Integer;
+  LIsModal: Boolean;
 begin
   Assert(Assigned(AView));
 
-  Result := TKExtControllerFactory.Instance.CreateController(ObjectCatalog,
-    AView, FViewHost);
+  LIsModal := AView.GetBoolean('Controller/IsModal');
+  if Assigned(FControllerHostWindow) then
+  begin
+    FControllerHostWindow.Free(True);
+    FControllerHostWindow := nil;
+  end;
+  if LIsModal then
+  begin
+    FControllerHostWindow := TKExtControllerHostWindow.Create(ObjectCatalog);
+    FControllerHostWindow.Layout := lyFit;
+    FControllerHostWindow.Title := _(AView.DisplayLabel);
+    FControllerHostWindow.Closable := AView.GetBoolean('Controller/AllowClose', True);
+    Result := TKExtControllerFactory.Instance.CreateController(ObjectCatalog,
+      AView, FControllerHostWindow, nil);
+    FControllerHostWindow.FHostedController := Result.AsObject;
+
+    LWidth := AView.GetInteger('Controller/PopupWindow/Width', -1);
+    LHeight := AView.GetInteger('Controller/PopupWindow/Height', -1);
+    if (LWidth <> -1) and (LHeight <> -1) then
+    begin
+      FControllerHostWindow.Width := LWidth;
+      FControllerHostWindow.Height := LHeight;
+      Result.Config.SetBoolean('Sys/HostWindow/AutoSize', False);
+    end
+    else
+      Result.Config.SetBoolean('Sys/HostWindow/AutoSize', True);
+    Result.Config.SetObject('Sys/HostWindow', FControllerHostWindow);
+  end
+  else
+  begin
+    Result := TKExtControllerFactory.Instance.CreateController(ObjectCatalog,
+      AView, FViewHost, nil);
+  end;
   LIsSynchronous := Result.IsSynchronous;
   if not LIsSynchronous then
     FOpenControllers.Add(Result.AsObject);
   try
     Result.Display;
+    if Assigned(FControllerHostWindow) and not LIsSynchronous then
+      FControllerHostWindow.Show;
   except
+    if Assigned(FControllerHostWindow) and not LIsSynchronous then
+      FControllerHostWindow.Hide;
     FOpenControllers.Remove(Result.AsObject);
     FreeAndNilEFIntf(Result);
     raise;
@@ -846,6 +896,15 @@ begin
   Result := LInstance.dgettext(KITTO_TEXT_DOMAIN, AString);
   if Result = AString then
     Result := LInstance.dgettext('default', AString);
+end;
+
+{ TKExtControllerHostWindow }
+
+function TKExtControllerHostWindow.GetControllerToRemove: TObject;
+begin
+  Assert(Assigned(FHostedController));
+
+  Result := FHostedController;
 end;
 
 initialization
