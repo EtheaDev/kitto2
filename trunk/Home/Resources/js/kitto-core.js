@@ -126,8 +126,11 @@ function formatWithImage(v, patterns, includeValue)
   if (customValue != "")
     v = customValue.replace('{value}', v);
   if (image != null)
+  {
+    var style = (includeValue ? '': 'display:block;margin-left:auto;margin-right:auto');
     // TODO: center image vertically?
-    return '<img src="' + image + '" alt="' + v + '" ext:qtip="' + v + '">' + (includeValue ? '&nbsp;' + v : '');
+    return '<img style="' + style + '" src="' + image + '" alt="' + v + '" ext:qtip="' + v + '">' + (includeValue ? '&nbsp;' + v : '');
+  }
   else
     return v;
 };
