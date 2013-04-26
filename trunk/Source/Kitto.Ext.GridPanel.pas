@@ -66,6 +66,7 @@ type
     function AddActionButton(const AView: TKView;
       const AToolbar: TExtToolbar): TKExtActionButton; override;
     function GetSelectCall(const AMethod: TExtProcedure): TExtFunction; override;
+    function IsMultiSelect: Boolean;
   public
     procedure UpdateObserver(const ASubject: IEFSubject;
       const AContext: string = ''); override;
@@ -218,7 +219,6 @@ begin
   FGridEditorPanel.Header := False;
   FGridEditorPanel.Region := rgCenter;
   FSelModel := TExtGridRowSelectionModel.Create(FGridEditorPanel);
-  FSelModel.SingleSelect := True;
   FSelModel.Grid := FGridEditorPanel;
   FGridEditorPanel.SelModel := FSelModel;
   FGridEditorPanel.StripeRows := True;
@@ -227,6 +227,13 @@ begin
   FGridEditorPanel.AutoWidth := True;
   FGridEditorPanel.ColumnLines := True;
   FGridEditorPanel.TrackMouseOver := True;
+end;
+
+function TKExtGridPanel.IsMultiSelect: Boolean;
+begin
+  Assert(Assigned(FSelModel));
+
+  Result := not FSelModel.SingleSelect;
 end;
 
 procedure TKExtGridPanel.InitColumns;
@@ -417,7 +424,8 @@ end;
 
 procedure TKExtGridPanel.EditViewRecord;
 begin
-  ShowEditWindow(Session.LocateRecordFromQueries(ViewTable, ServerStore), emEditCurrentRecord);
+  ShowEditWindow(Session.LocateRecordFromQueries(ViewTable, ServerStore,
+    IfThen(IsMultiSelect, 0, -1)), emEditCurrentRecord);
 end;
 
 function TKExtGridPanel.GetRowColorPatterns(out AFieldName: string): TEFPairs;
@@ -543,6 +551,9 @@ begin
 
   CreateGridView;
 
+  if not ViewTable.GetBoolean('Controller/IsMultiSelect', False) then
+    FSelModel.SingleSelect := True;
+
   LKeyFieldNames := Join(ViewTable.GetKeyFieldAliasedNames, ',');
   FGridEditorPanel.On('rowdblclick', AjaxSelection(EditViewRecord, FSelModel, LKeyFieldNames, LKeyFieldNames, []));
 
@@ -614,7 +625,8 @@ begin
   Assert(ViewTable <> nil);
 
   // Apply BEFORE rules now even though actual save migh be deferred.
-  LRecord := Session.LocateRecordFromQueries(ViewTable, ServerStore);
+  LRecord := Session.LocateRecordFromQueries(ViewTable, ServerStore,
+    IfThen(IsMultiSelect, 0, -1));
   LRecord.MarkAsDeleted;
   try
     LRecord.ApplyBeforeRules;
@@ -724,7 +736,7 @@ begin
     else
     begin
       LDeleteButton.Handler := JSFunction(GetSelectConfirmCall(
-        Format(_('Selected %s will be deleted. Are you sure?'), [_(ViewTable.DisplayLabel)]), DeleteCurrentRecord));
+        Format(_('Selected %s {caption} will be deleted. Are you sure?'), [_(ViewTable.DisplayLabel)]), DeleteCurrentRecord));
       FButtonsRequiringSelection.Add(LDeleteButton);
     end;
   end;
@@ -740,10 +752,16 @@ end;
 
 function TKExtGridPanel.GetSelectConfirmCall(const AMessage: string; const AMethod: TExtProcedure): string;
 begin
-  Result := Format('confirmCall("%s", "%s", ajaxSingleSelection, {methodURL: "%s", selModel: %s, fieldNames: "%s"});',
-    [_(Session.Config.AppTitle), AMessage, MethodURI(AMethod), FSelModel.JSName,
-    Join(ViewTable.GetKeyFieldAliasedNames, ',')]);
+  if IsMultiSelect then
+    Result := Format('confirmCall("%s", "%s", ajaxMultiSelection, {methodURL: "%s", selModel: %s, fieldNames: "%s"});',
+      [_(Session.Config.AppTitle), AMessage, MethodURI(AMethod),
+      FSelModel.JSName, Join(ViewTable.GetKeyFieldAliasedNames, ',')])
+  else
+    Result := Format('selectConfirmCall("%s", "%s", %s, "%s", {methodURL: "%s", selModel: %s, fieldNames: "%s"});',
+      [_(Session.Config.AppTitle), AMessage, FSelModel.JSName, ViewTable.Model.CaptionFieldName,
+      MethodURI(AMethod), FSelModel.JSName, Join(ViewTable.GetKeyFieldAliasedNames, ',')]);
 end;
+
 
 function TKExtGridPanel.GetSelectCall(const AMethod: TExtProcedure): TExtFunction;
 var

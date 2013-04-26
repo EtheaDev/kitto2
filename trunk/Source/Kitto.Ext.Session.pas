@@ -203,7 +203,7 @@ type
     ///	<summary>Finds and returns a record from the specified store using the
     ///	key values currently stored in the session query strings.</summary>
     function LocateRecordFromQueries(const AViewTable: TKViewTable;
-      const AServerStore: TKViewTableStore): TKViewTableRecord;
+      const AServerStore: TKViewTableStore; const AValueIndex: Integer = -1): TKViewTableRecord;
 
     ///	<summary>
     ///	  The current session's UUID.
@@ -241,7 +241,7 @@ end;
 { TKExtSession }
 
 function TKExtSession.LocateRecordFromQueries(const AViewTable: TKViewTable;
-  const AServerStore: TKViewTableStore): TKViewTableRecord;
+  const AServerStore: TKViewTableStore; const AValueIndex: Integer): TKViewTableRecord;
 var
   LKey: TEFNode;
 begin
@@ -255,7 +255,8 @@ begin
       function(const AName: string): string
       begin
         Result := AViewTable.FieldByName(AName).AliasedName;
-      end);
+      end,
+      AValueIndex);
     Result := AServerStore.Records.GetRecord(LKey);
   finally
     FreeAndNil(LKey);
