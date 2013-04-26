@@ -3,6 +3,7 @@ unit Kitto.Ext.DataTool;
 interface
 
 uses
+  SysUtils,
   Kitto.Metadata.DataView,
   Kitto.Ext.Base;
 
@@ -19,12 +20,18 @@ type
     property ViewTable: TKViewTable read GetViewTable;
 
     procedure RefreshData(const AAllRecords: Boolean = False);
+
+    procedure ExecuteInTransaction(const AProc: TProc);
+
+    procedure EnumerateSelectedRecords(const AProc: TProc<TKViewTableRecord>);
   end;
 
 implementation
 
 uses
-  SysUtils, StrUtils;
+  StrUtils,
+  EF.Tree, EF.DB, EF.StrUtils,
+  Kitto.Config, Kitto.Ext.Session;
 
 { TKExtDataToolController }
 
@@ -36,6 +43,44 @@ begin
   LAutoRefresh := Config.GetString('AutoRefresh');
   if MatchText(LAutoRefresh, ['Current', 'All']) then
     RefreshData(SameText(LAutoRefresh, 'All'));
+end;
+
+procedure TKExtDataToolController.EnumerateSelectedRecords(
+  const AProc: TProc<TKViewTableRecord>);
+var
+  LKey: TEFNode;
+  LRecordCount: Integer;
+  I: Integer;
+begin
+  Assert(Assigned(AProc));
+
+  LKey := TEFNode.Create;
+  try
+    LKey.Assign(ServerStore.Key);
+    Assert(LKey.ChildCount > 0);
+    LRecordCount := Length(Split(Session.Queries.Values[LKey[0].Name], ','));
+    for I := 0 to LRecordCount - 1 do
+      AProc(Session.LocateRecordFromQueries(ViewTable, ServerStore, I));
+  finally
+    FreeAndNil(LKey);
+  end;
+end;
+
+procedure TKExtDataToolController.ExecuteInTransaction(const AProc: TProc);
+var
+  LDBConnection: TEFDBConnection;
+begin
+  Assert(Assigned(AProc));
+
+  LDBConnection := TKConfig.Instance.DBConnections[ViewTable.DatabaseName];
+  LDBConnection.StartTransaction;
+  try
+    AProc;
+    LDBConnection.CommitTransaction;
+  except
+    LDBConnection.RollbackTransaction;
+    raise;
+  end;
 end;
 
 function TKExtDataToolController.GetServerRecord: TKViewTableRecord;

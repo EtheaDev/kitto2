@@ -37,7 +37,7 @@ type
     property ViewTable: TKViewTable read FViewTable write FViewTable;
     property ServerStore: TKViewTableStore read FServerStore write FServerStore;
   published
-    procedure ExecuteActionOnSelectedRow;
+    procedure ExecuteActionOnSelectedRows;
   end;
 
   ///	<summary>Base class for controllers that handle database records (either
@@ -196,14 +196,14 @@ begin
   LRequireSelection := AView.GetBoolean('Controller/RequireSelection', True);
 
   if LRequireSelection then
-    LConfirmationJS := GetSelectConfirmCall(LConfirmationMessage, TKExtDataActionButton(Result).ExecuteActionOnSelectedRow)
+    LConfirmationJS := GetSelectConfirmCall(LConfirmationMessage, TKExtDataActionButton(Result).ExecuteActionOnSelectedRows)
   else
     LConfirmationJS := GetConfirmCall(LConfirmationMessage, Result.ExecuteButtonAction);
 
   if LConfirmationMessage <> '' then
     Result.Handler := JSFunction(LConfirmationJS)
   else if LRequireSelection then
-    Result.On('click', GetSelectCall(TKExtDataActionButton(Result).ExecuteActionOnSelectedRow))
+    Result.On('click', GetSelectCall(TKExtDataActionButton(Result).ExecuteActionOnSelectedRows))
   else
     Result.On('click', Ajax(Result.ExecuteButtonAction, []));
 end;
@@ -367,7 +367,7 @@ end;
 
 { TKExtDataActionButton }
 
-procedure TKExtDataActionButton.ExecuteActionOnSelectedRow;
+procedure TKExtDataActionButton.ExecuteActionOnSelectedRows;
 var
   LRecord: TKViewTableRecord;
   LController: IKExtController;
@@ -377,7 +377,7 @@ begin
   Assert(Assigned(FServerStore));
   Assert(Assigned(ActionObserver));
 
-  LRecord := Session.LocateRecordFromQueries(FViewTable, FServerStore);
+  LRecord := Session.LocateRecordFromQueries(FViewTable, FServerStore, 0);
   LController := TKExtControllerFactory.Instance.CreateController(
     Session.ObjectCatalog, View, nil, nil, ActionObserver);
   InitController(LController);

@@ -633,18 +633,32 @@ type
     procedure AddFieldsAsChildren(const AFields: TFields);
 
     type TNameTranslator = reference to function (const AName: string): string;
+
     ///	<summary>
-    ///	  <para>Tries to read from AStrings a value for each child node
-    ///	  interpret it according to the child's DataType. Read values
-    ///	  are stored in the child nodes.</para>
-    ///	  <para>Pass a translation function if key names in AStrings do not match
-    ///	  wanted child node names and you need to translate them. The function
-    ///	  receives the child name and should return the corresponding
-    ///	  key name.</para>
+    ///	  Tries to read from AStrings a value for each child node interpreting
+    ///	  it according to the child node's DataType. Read values are stored in
+    ///	  the child nodes.
     ///	</summary>
+    ///	<param name="AStrings">
+    ///	  Source strings. Each string may contain one value. If AMultipleValues
+    ///	  is True, each string may contain one or more comma-separated values,
+    ///	  only the LAST one of which is read.
+    ///	</param>
+    ///	<param name="AUseJSDateFormat">
+    ///	  True if any dates in source strings are in JS format; False for
+    ///	  system format.
+    ///	</param>
+    ///	<param name="AFormatSettings">
+    ///	  Custom format settings to decode values.
+    ///	</param>
+    ///	<param name="ATranslator">
+    ///	  Pass a translation function if key names in AStrings do not match
+    ///	  wanted child node names and you need to translate them. The function
+    ///	  receives the child name and should return the corresponding key name.
+    ///	</param>
     procedure SetChildValuesfromStrings(const AStrings: TStrings;
       const AUseJSDateFormat: Boolean; const AFormatSettings: TFormatSettings;
-      const ATranslator: TNameTranslator);
+      const ATranslator: TNameTranslator; const AValueIndex: Integer = -1);
 
     property AnnotationCount: Integer read GetAnnotationCount;
     property Annotations[const AIndex: Integer]: string read GetAnnotation write SetAnnotation;
@@ -2264,11 +2278,13 @@ end;
 
 procedure TEFTree.SetChildValuesfromStrings(const AStrings: TStrings;
   const AUseJSDateFormat: Boolean; const AFormatSettings: TFormatSettings;
-  const ATranslator: TNameTranslator);
+  const ATranslator: TNameTranslator; const AValueIndex: Integer);
 var
   I: Integer;
   LChild: TEFNode;
   LName: string;
+  LStringValue: string;
+  LStringValues: TStringDynArray;
 
   function Translate(const AName: string): string;
   begin
@@ -2285,7 +2301,19 @@ begin
     LName := Translate(LChild.Name);
     Assert(LName <> '');
     if AStrings.IndexOfName(LName) >= 0 then
-      LChild.SetAsJSONValue(AStrings.Values[LName], AUseJSDateFormat, AFormatSettings)
+    begin
+      if AValueIndex >= 0 then
+      begin
+        LStringValues := Split(AStrings.Values[LName], ',');
+        if Length(LStringValues) > AValueIndex then
+          LStringValue := LStringvalues[AValueIndex]
+        else
+          LStringValue := '';
+      end
+      else
+        LStringValue := AStrings.Values[LName];
+      LChild.SetAsJSONValue(LStringValue, AUseJSDateFormat, AFormatSettings);
+    end
     // Checkboxes are not submitted when unchecked, which for us means False.
     else if LChild.DataType is TEFBooleanDataType then
       LChild.AsBoolean := False;
