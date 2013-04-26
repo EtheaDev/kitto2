@@ -36,19 +36,20 @@ type
   ///	  Base Ext window with subject, observer and controller capabilities.
   ///	</summary>
   TKExtWindowControllerBase = class(TExtWindow, IInterface, IEFInterface, IEFSubject, IEFObserver, IKExtController)
-  private
+  strict private
     FSubjObserverImpl: TEFSubjectAndObserver;
     FView: TKView;
     FConfig: TEFNode;
     FContainer: TExtContainer;
     function GetView: TKView;
     function GetConfig: TEFNode;
-  protected
+  strict protected
     procedure SetView(const AValue: TKView);
     procedure DoDisplay; virtual;
     function GetContainer: TExtContainer;
     procedure SetContainer(const AValue: TExtContainer);
     procedure InitDefaults; override;
+    function GetControllerToRemove: TObject; virtual;
   public
     destructor Destroy; override;
 
@@ -76,10 +77,10 @@ type
   protected
     procedure InitDefaults; override;
   public
-    {
-      Call this after adding the panel so that the window can hook its
-      beforeclose event and close itself.
-    }
+    ///	<summary>
+    ///   Call this after adding the panel so that the window can hook its
+    ///   beforeclose event and close itself.
+    ///	<summary>
     procedure HookPanel(const APanel: TExtPanel);
   published
     procedure PanelClosed;
@@ -411,7 +412,12 @@ end;
 
 procedure TKExtWindowControllerBase.WindowClosed;
 begin
-  Session.RemoveController(Self, True);
+  Session.RemoveController(GetControllerToRemove, True);
+end;
+
+function TKExtWindowControllerBase.GetControllerToRemove: TObject;
+begin
+  Result := Self;
 end;
 
 function TKExtWindowControllerBase._AddRef: Integer;
