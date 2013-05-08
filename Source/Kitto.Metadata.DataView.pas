@@ -254,8 +254,6 @@ type
     property Table: TKViewTable read GetTable;
     property FieldCount: Integer read GetFieldCount;
     property Fields[I: Integer]: TKViewField read GetField; default;
-    function FieldByAliasedName(const AAliasedName: string): TKViewField;
-    function FindFieldByAliasedName(const AAliasedName: string): TKViewField;
   end;
 
   TKViewTableRecord = class;
@@ -463,10 +461,11 @@ type
     function GetFieldNames: TStringDynArray;
     function FindField(const AName: string): TKViewField;
     function FieldByName(const AName: string): TKViewField;
-    function FieldByAliasedName(const AName: string): TKViewField;
+    function FieldByAliasedName(const AAliasedName: string): TKViewField;
     function FindFieldByAliasedName(const AAliasedName: string): TKViewField;
     function FindFieldByDBColumnName(const ADBColumnName: string): TKViewField;
     function FieldByDBColumnName(const ADBColumnName: string): TKViewField;
+    function FindFieldByModelField(const AModelField: TKModelField): TKViewField;
     function GetKeyFieldAliasedNames: TStringDynArray;
     function GetFieldArray(AFilter: TFunc<TKViewField, Boolean>): TArray<TKViewField>;
 
@@ -686,9 +685,11 @@ begin
 end;
 
 function TKViewTable.FieldByAliasedName(
-  const AName: string): TKViewField;
+  const AAliasedName: string): TKViewField;
 begin
-  Result := GetFields.FieldByAliasedName(AName) as TKViewField;
+  Result := FindFieldByAliasedName(AAliasedName);
+  if not Assigned(Result) then
+    raise EKError.CreateFmt('ViewField %s not found.', [AAliasedName]);
 end;
 
 function TKViewTable.FieldByName(const AName: string): TKViewField;
@@ -714,6 +715,16 @@ begin
     end) as TKViewField;
 end;
 
+function TKViewTable.FindFieldByModelField(
+  const AModelField: TKModelField): TKViewField;
+begin
+  Result := GetFields.FindChildByPredicate(
+    function(const ANode: TEFNode): Boolean
+    begin
+      Result := TKViewField(ANode).ModelField = AModelField;
+    end) as TKViewField;
+end;
+
 function TKViewTable.FindField(const AName: string): TKViewField;
 begin
   Result := GetFields.FindChild(AName) as TKViewField;
@@ -721,7 +732,11 @@ end;
 
 function TKViewTable.FindFieldByAliasedName(const AAliasedName: string): TKViewField;
 begin
-  Result := GetFields.FindFieldByAliasedName(AAliasedName);
+  Result := GetFields.FindChildByPredicate(
+    function(const ANode: TEFNode): Boolean
+    begin
+      Result := SameText(TKViewField(ANode).AliasedName, AAliasedName);
+    end) as TKViewField;
 end;
 
 function TKViewTable.GetChildClass(const AName: string): TEFNodeClass;
@@ -1061,30 +1076,6 @@ begin
 end;
 
 { TKViewFields }
-
-function TKViewFields.FieldByAliasedName(
-  const AAliasedName: string): TKViewField;
-begin
-  Result := FindFieldByAliasedName(AAliasedName);
-  if not Assigned(Result) then
-    raise EKError.CreateFmt('ViewField %s not found.', [AAliasedName]);
-end;
-
-function TKViewFields.FindFieldByAliasedName(
-  const AAliasedName: string): TKViewField;
-var
-  I: Integer;
-begin
-  Result := nil;
-  for I := 0 to FieldCount - 1 do
-  begin
-    if SameText(Fields[I].AliasedName, AAliasedName) then
-    begin
-      Result := Fields[I];
-      Break;
-    end;
-  end;
-end;
 
 function TKViewFields.GetChildClass(const AName: string): TEFNodeClass;
 begin
