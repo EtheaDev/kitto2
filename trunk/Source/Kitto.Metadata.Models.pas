@@ -435,6 +435,7 @@ type
     function FieldByName(const AName: string): TKModelField;
     function FindField(const AName: string): TKModelField;
     function FindFieldByPhysicalName(const APhysicalName: string): TKModelField;
+    procedure EnumFields(const AProc: TProc<TKModelField>);
 
     ///	<summary>Returns an array of key physical field names.</summary>
     ///	<param name="AQualify">If True, each field name is prefixed with the
@@ -680,6 +681,15 @@ end;
 function TKModel.DetailReferenceByName(const AName: string): TKModelDetailReference;
 begin
   Result := GetDetailReferences.DetailReferenceByName(AName);
+end;
+
+procedure TKModel.EnumFields(const AProc: TProc<TKModelField>);
+var
+  I: Integer;
+begin
+  if Assigned(AProc) then
+    for I := 0 to FieldCount - 1 do
+      AProc(Fields[I]);
 end;
 
 function TKModel.FieldByName(const AName: string): TKModelField;

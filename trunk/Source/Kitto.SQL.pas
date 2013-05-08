@@ -21,7 +21,7 @@ unit Kitto.SQL;
 interface
 
 uses
-  Classes, Generics.Collections,
+  Classes, Generics.Collections, DB,
   EF.Classes,  EF.Tree, EF.DB,
   Kitto.Store, Kitto.Metadata.Models, Kitto.Metadata.DataView;
 
@@ -48,6 +48,10 @@ type
       const AMasterValues: TEFNode);
     function GetSelectWhereClause(const AFilter: string;
       const ADBQuery: TEFDBQuery): string;
+    // Helper function.
+    class function AddDBColumnName(var ADBColumnNames, AValueNames: string;
+      const ADBCommand: TEFDBCommand; const ADBColumnName,
+      AParamName: string): TParam; static;
   public
     procedure AfterConstruction; override;
     destructor Destroy; override;
@@ -115,7 +119,7 @@ type
 implementation
 
 uses
-  SysUtils, StrUtils, DB, Types,
+  SysUtils, StrUtils, Types, Variants,
   EF.Intf, EF.Localization, EF.Types, EF.StrUtils, EF.SQL, EF.Macros,
   Kitto.Types;
 
@@ -152,6 +156,22 @@ begin
   end;
 end;
 
+class function TKSQLBuilder.AddDBColumnName(var ADBColumnNames, AValueNames: string;
+  const ADBCommand: TEFDBCommand; const ADBColumnName, AParamName: string): TParam;
+begin
+  if ADBColumnNames = '' then
+  begin
+    ADBColumnNames := ADBColumnName;
+    AValueNames := ':' + AParamName;
+  end
+  else
+  begin
+    ADBColumnNames := ADBColumnNames + ', ' + ADBColumnName;
+    AValueNames := AValueNames + ', :' + AParamName;
+  end;
+  Result := ADBCommand.Params.CreateParam(ftUnknown, AParamName, ptInput);
+end;
+
 class procedure TKSQLBuilder.BuildInsertCommand(const ADBCommand: TEFDBCommand;
   const ARecord: TKViewTableRecord);
 var
@@ -162,21 +182,6 @@ var
   LValueNames: string;
   J: Integer;
   LProcessedRefFields: TList<TKViewField>;
-
-  procedure AddDBColumnName(const ADBColumnName, AParamName: string);
-  begin
-    if LDBColumnNames = '' then
-    begin
-      LDBColumnNames := ADBColumnName;
-      LValueNames := ':' + AParamName;
-    end
-    else
-    begin
-      LDBColumnNames := LDBColumnNames + ', ' + ADBColumnName;
-      LValueNames := LValueNames + ', :' + AParamName;
-    end;
-    ADBCommand.Params.CreateParam(ftUnknown, AParamName, ptInput);
-  end;
 
   function IsRefFieldProcessed(const AViewField: TKViewField): Boolean;
   begin
@@ -219,25 +224,45 @@ begin
             if not IsRefFieldProcessed(LViewField) then
             begin
               for J := 0 to LViewField.ModelField.FieldCount - 1 do
-                AddDBColumnName(LViewField.ModelField.Fields[J].DBColumnName,
+                AddDBColumnName(LDBColumnNames, LValueNames, ADBCommand,
+                  LViewField.ModelField.Fields[J].DBColumnName,
                   LViewField.ModelField.Fields[J].FieldName);
               MarkRefFieldAsProcessed(LViewField);
             end
           end
           else
-            AddDBColumnName(LViewField.ModelField.DBColumnName, ARecord[I].FieldName);
+            AddDBColumnName(LDBColumnNames, LValueNames, ADBCommand,
+              LViewField.ModelField.DBColumnName, ARecord[I].FieldName);
         end;
       end;
     finally
       FreeAndNil(LProcessedRefFields);
     end;
+
+    // Add model fiels with default values that are not in the view.
+    ARecord.ViewTable.Model.EnumFields(
+      procedure (AField: TKModelField)
+      var
+        LDefaultValue: Variant;
+      begin
+        Assert(Assigned(AField));
+
+        LDefaultValue := AField.DefaultValue;
+        if not VarIsNull(LDefaultValue) and (ARecord.ViewTable.FindFieldByModelField(AField) = nil) then
+          AddDBColumnName(LDBColumnNames, LValueNames, ADBCommand,
+            AField.DBColumnName, AField.DBColumnName).Value := LDefaultValue;
+      end
+    );
+
+    // Assemble and execute.
     LCommandText := LCommandText + LDBColumnNames + ') values (' + LValueNames + ')';
     ADBCommand.CommandText := LCommandText;
   finally
     ADBCommand.Params.EndUpdate;
   end;
   for I := 0 to ADBCommand.Params.Count - 1 do
-    ARecord.FieldByName(ADBCommand.Params[I].Name).AssignValueToParam(ADBCommand.Params[I]);
+    if ADBCommand.Params[I].IsNull then
+      ARecord.FieldByName(ADBCommand.Params[I].Name).AssignValueToParam(ADBCommand.Params[I]);
 end;
 
 class procedure TKSQLBuilder.BuildUpdateCommand(const ADBCommand: TEFDBCommand;
