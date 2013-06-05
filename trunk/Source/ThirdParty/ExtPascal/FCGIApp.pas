@@ -56,7 +56,7 @@ type
   TFCGIApplication = class(TCustomWebApplication)
   private
     FExeName      : string;
-    Threads       : TStringList;
+    FThreads: TStringList;
     FThreadsCount : integer;
     // Configurable options
     MaxIdleTime : TDateTime;
@@ -67,7 +67,7 @@ type
   public
     GarbageNow : boolean; // Set to true to trigger the garbage colletor
     Shutdown   : boolean; // Set to true to shutdown the application after the last thread to end, default is false
-    AccessThreads : TCriticalSection;
+    AccessThreads: TCriticalSection;
     property ExeName : string read FExeName;
     procedure DoRun; override;
     function CanConnect(Address : string) : boolean;
@@ -131,6 +131,7 @@ type
     FSession : TFCGISession;
     FLastAccess : TDateTime;
     function CompleteRequestHeaderInfo(Buffer : AnsiString; I : integer) : boolean;
+    procedure CopyContextFrom(const AThread: TFCGIThread);
   protected
     procedure AddParam(var S : string; Param : array of string);
     procedure ReadRequestHeader(var RequestHeader : TStringList; Stream : AnsiString; ParseCookies : Boolean = False);
@@ -457,22 +458,43 @@ In this way a statefull and multi-thread behavior is provided.
 }
 function TFCGIThread.SetCurrentFCGIThread : boolean;
 var
-  LSessionId : string;
-  GUID : TGUID;
+  LPathInfo: string;
+  LPos: Integer;
+  LSessionId: string;
   I : integer;
 begin
   Result := true;
   Application.AccessThreads.Enter;
   try
-    LSessionId := FSession.Cookie['FCGIThread'];
-    if LSessionId = '' then begin
-      CreateGUID(GUID);
-      LSessionId := GUIDToString(GUID);
-      FSession.SetCookie('FCGIThread', LSessionId);
-      I := -1
+    // Extract optional namespace from URL. URLs come in the forms:
+    // /$<namespace> (root, with namespace)
+    // /$<namespace>/<methodname>
+    // / (root, no namespace)
+    // <methodname>
+    LPathInfo := FRequestHeader.Values['PATH_INFO'];
+    if Pos('/$', LPathInfo) = 1 then
+    begin
+      Delete(LPathInfo, 1, 1); // remove first /.
+      LPos := Pos('/', LPathInfo);
+      if LPos > 0 then
+        FSession.NameSpace := Copy(LPathInfo, 1, LPos - 1)
+      else
+        FSession.NameSpace := LPathInfo;
     end
     else
-      I := Application.Threads.IndexOf(LSessionId);
+      FSession.NameSpace := '';
+    FSession.ScriptName := FRequestHeader.Values['SCRIPT_NAME'];
+
+    LSessionId := FSession.SessionCookie;
+    if LSessionId = '' then begin
+      // No session - make a new one and send the cookie to the client.
+      LSessionId := FSession.CreateNewSessionId;
+      FSession.SessionCookie := LSessionId;
+      I := -1;
+    end
+    else
+      I := Application.FThreads.IndexOf(LSessionId);
+
     if I = -1 then begin
       FSession.NewThread := true;
       AccessThread.Enter;
@@ -481,20 +503,15 @@ begin
         Result := false;
       end
       else begin
-        Application.Threads.AddObject(LSessionId, Self);
+        Application.FThreads.AddObject(LSessionId, Self);
         FSession.AfterNewSession;
-      end;
-      with FSession do begin
-        FScriptName := Self.FRequestHeader.Values['SCRIPT_NAME'];
-        if (FScriptName = '') or (FScriptName[length(FScriptName)] <> '/') then FScriptName := FScriptName + '/';
       end;
     end
     else begin
-      _CurrentFCGIThread := TFCGIThread(Application.Threads.Objects[I]);
+      _CurrentFCGIThread := TFCGIThread(Application.FThreads.Objects[I]);
       _CurrentFCGIThread.AccessThread.Enter;
       _CurrentWebSession := _CurrentFCGIThread.FSession;
-      StrToTStrings(FRequestHeader.DelimitedText, _CurrentFCGIThread.FRequestHeader);
-      StrToTStrings(FSession.FCookies.DelimitedText, _CurrentFCGIThread.FSession.FCookies);
+      _CurrentFCGIThread.CopyContextFrom(Self);
       _CurrentFCGIThread.FSession.NewThread := false;
       _CurrentFCGIThread.FSession.FCustomResponseHeaders.Clear;
       _CurrentFCGIThread.FSession.ContentType := 'text/html';
@@ -503,6 +520,12 @@ begin
   finally
     Application.AccessThreads.Leave;
   end;
+end;
+
+procedure TFCGIThread.CopyContextFrom(const AThread: TFCGIThread);
+begin
+  StrToTStrings(AThread.FRequestHeader.DelimitedText, FRequestHeader);
+  FSession.CopyContextFrom(AThread.FSession);
 end;
 
 {
@@ -656,7 +679,7 @@ end;
 
 // Frees a TFCGIApplication
 destructor TFCGIApplication.Destroy; begin
-  Threads.Free;
+  FThreads.Free;
   AccessThreads.Free;
   WebServers.Free;
   inherited;
@@ -680,7 +703,7 @@ var
 begin
   inherited Create(AOwner, pTitle, ASessionClass, pPort, pMaxIdleMinutes, pMaxConns);
   Assert(Assigned(ASessionClass) and ASessionClass.InheritsFrom(TFCGISession));
-  Threads := TStringList.Create;
+  FThreads := TStringList.Create;
   AccessThreads := TCriticalSection.Create;
   MaxIdleTime := EncodeTime(0, pMaxIdleMinutes, 0, 0);
   Shutdown := pShutdownAfterLastThreadDown;
@@ -706,7 +729,7 @@ Tests if MaxConns (max connections), default is 1000, was reached
 @return True if was reached
 }
 function TFCGIApplication.ReachedMaxConns : boolean; begin
-  Result := Threads.Count >= MaxConns
+  Result := FThreads.Count >= MaxConns
 end;
 
 // Thread Garbage Collector. Frees all expired threads
@@ -715,13 +738,13 @@ var
   I : integer;
   Thread : TFCGIThread;
 begin
-  for I := Threads.Count-1 downto 0 do begin
-    Thread := TFCGIThread(Threads.Objects[I]);
+  for I := FThreads.Count-1 downto 0 do begin
+    Thread := TFCGIThread(FThreads.Objects[I]);
     if (Now - Thread.LastAccess) > MaxIdleTime then begin
       AccessThreads.Enter;
       try
         Thread.Free;
-        Threads.Delete(I);
+        FThreads.Delete(I);
       finally
         AccessThreads.Leave;
       end;
@@ -737,10 +760,10 @@ var
 begin
   AccessThreads.Enter;
   try
-    for I := Threads.Count - 1 downto 0 do begin
-      Thread := TFCGIThread(Threads.Objects[I]);
+    for I := FThreads.Count - 1 downto 0 do begin
+      Thread := TFCGIThread(FThreads.Objects[I]);
       Thread.Free;
-      Threads.Delete(I);
+      FThreads.Delete(I);
     end;
   finally
     AccessThreads.Leave;
@@ -756,7 +779,7 @@ Returns the Ith thread
 @param I Index of the thread to return
 }
 function TFCGIApplication.GetThread(I : integer) : TThread; begin
-  Result := TThread(Threads.Objects[I])
+  Result := TThread(FThreads.Objects[I])
 end;
 
 {

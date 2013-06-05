@@ -895,7 +895,14 @@ var
   MetName, ObjName : string;
 begin
   FindMethod(Method, MetName, ObjName);
-  Result := ExtSession.MethodURI(MetName) + IfThen(ObjName = '', '', '?Obj=' + ObjName);
+  Result := ExtSession.MethodURI(MetName);
+  if ObjName <> '' then
+  begin
+    if Pos('?', Result) <> 0 then
+      Result := Result + '&Obj=' + ObjName
+    else
+      Result := Result + '?Obj=' + ObjName;
+  end;
 end;
 
 function TExtObject.MethodURI(MethodName : string; Params : array of const) : string; begin
@@ -937,7 +944,7 @@ begin
   end;
   IsAjax := (RequestHeader['HTTP_X_REQUESTED_WITH'] = 'XMLHttpRequest') or IsUpload;
   if IsAjax then begin
-    if Cookie['FCGIThread'] = '' then begin
+    if SessionCookie = '' then begin
       ErrorMessage('This web application requires Cookies enabled to AJAX works.');
       Result := false;
     end

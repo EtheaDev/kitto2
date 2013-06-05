@@ -23,7 +23,7 @@ interface
 uses
   SysUtils, Classes, Generics.Collections,
   gnugettext,
-  ExtPascal, Ext,
+  ExtPascal, Ext, ExtPascalClasses,
   EF.Tree, EF.Macros, EF.Intf, EF.Localization,
   Kitto.Ext.Base, Kitto.Config, Kitto.Metadata.Views,
   Kitto.Metadata.DataView, Kitto.Ext.Login, Kitto.Ext.Controller;
@@ -126,6 +126,7 @@ type
     procedure AfterNewSession; override;
     function GetMainPageTemplate: string; override;
     procedure SetLanguage(const AValue: string); override;
+    function GetSessionCookieName: string; override;
   public
     constructor Create(AOwner: TObject); override;
     destructor Destroy; override;
@@ -315,6 +316,11 @@ begin
     Result := inherited GetMainPageTemplate;
 end;
 
+function TKExtSession.GetSessionCookieName: string;
+begin
+  Result := 'kitto';
+end;
+
 destructor TKExtSession.Destroy;
 var
   LUploadDirectory: string;
@@ -368,10 +374,13 @@ procedure TKExtSession.DisplayHomeView;
 var
   LHomeView: TKView;
   LIntf: IKExtController;
+  LHomeViewNodeName: string;
 begin
   FreeAndNil(FHomeController);
-
-  LHomeView := Config.Views.FindViewByNode(Config.Config.FindNode('HomeView'));
+  LHomeViewNodeName := Queries.Values['home'];
+  if LHomeViewNodeName = '' then
+    LHomeViewNodeName := 'HomeView';
+  LHomeView := Config.Views.FindViewByNode(Config.Config.FindNode(LHomeViewNodeName));
   if not Assigned(LHomeView) then
     LHomeView := Config.Views.ViewByName('Home');
   FHomeController := TKExtControllerFactory.Instance.CreateController
@@ -692,7 +701,7 @@ end;
 procedure TKExtSession.AfterNewSession;
 begin
   inherited;
-  FSessionId := Cookie['FCGIThread'];
+  FSessionId := SessionCookie;
   TEFLogger.Instance.LogFmt('New session %s.', [FSessionId],
     TEFLogger.LOG_MEDIUM);
   UploadPath := '/uploads/' + Config.AppName + '/' + FSessionId;
