@@ -28,6 +28,8 @@ type
   private
     FUploadedFileTooBig: Boolean;
     FObjectCatalog: TObjectCatalog;
+    FNameSpace: string;
+    FScriptName : string;
     function CheckPassword(const RealPassword : string) : Boolean;
     function GetCookie(const Name : string): string;
     function GetQuery(const ParamName : string) : string;
@@ -36,6 +38,10 @@ type
     function GetQueryAsInteger(const ParamName : string) : Integer;
     function GetQueryAsTDateTime(const ParamName : string) : TDateTime;
     procedure SetCustomResponseHeaders(const Name, Value : string);
+    function GetSessionCookie: string;
+    procedure SetSessionCookie(const AValue: string);
+    procedure SetScriptName(const Value: string);
+    procedure SetNameSpace(const Value: string);
   protected
     FApplication : TCustomWebApplication;
     FBrowser : TBrowser;
@@ -53,7 +59,6 @@ type
     FOwner : TObject;
     FPathInfo : string;
     FQueries : TStrings;
-    FScriptName : string;
     FUploadMark : AnsiString;
     FUploadPath : string;
     procedure AfterHandleRequest; virtual;
@@ -94,6 +99,7 @@ type
     property Owner : TObject read FOwner;
     property UploadMark : AnsiString read FUploadMark write FUploadMark;
     function GetUploadedFileFullName(const UploadedFileName: string): string; virtual;
+    function GetSessionCookieName: string; virtual;
   public
     RequiresReload : boolean;
     Response: string;
@@ -124,11 +130,24 @@ type
     property QueryAsTDateTime[const ParamName : string] : TDateTime read GetQueryAsTDateTime;
     property Queries : TStrings read FQueries; // Returns all HTTP queries as list to ease searching
     property RequestHeader[const Name : string]: string read GetRequestHeader; // Returns HTTP headers read in the current request
-    property ScriptName : string read FScriptName;
+    property ScriptName : string read FScriptName write SetScriptName;
     property UploadPath : string read FUploadPath write FUploadPath; // Upload path below document root. e.g. '/uploads'
     property WebServer : string read GetWebServer; // WebServer in use in this session
 
     property ObjectCatalog: TObjectCatalog read FObjectCatalog;
+
+    procedure CopyContextFrom(const ASession: TCustomWebSession); virtual;
+
+    // Optional namespace to allow more sessions of the same application
+    // in the same web page. It is set as an additional $<namespace> path in the initial URL
+    // and then it is a) added as part of the URL to all requests from the session and
+    // b) used with the session GUID to locate a request's session.
+    // A valid namespace must begin with $.
+    property NameSpace: string read FNameSpace write SetNameSpace;
+
+    property SessionCookie: string read GetSessionCookie write SetSessionCookie;
+
+    function CreateNewSessionId: string;
   published
     procedure Home; virtual; abstract; // Default method to be called by <link TCustomWebSession.HandleRequest, HandleRequest>
     procedure Logout;
@@ -385,6 +404,16 @@ begin
   InitDefaultValues;
 end;
 
+function TCustomWebSession.CreateNewSessionId: string;
+var
+  LGUID: TGUID;
+begin
+  CreateGUID(LGUID);
+  Result := GUIDToString(LGUID);
+  if NameSpace <> '' then
+    Result := NameSpace + '/' + Result;
+end;
+
 destructor TCustomWebSession.Destroy;
 begin
   FQueries.Free;
@@ -410,6 +439,12 @@ end;
 
 function TCustomWebSession.CheckPassword(const RealPassword : string) : Boolean; begin
   Result := (RealPassword <> '') and (Query['password'] = RealPassword);
+end;
+
+procedure TCustomWebSession.CopyContextFrom(const ASession: TCustomWebSession);
+begin
+  FCookies.DelimitedText := ASession.FCookies.DelimitedText;
+  NameSpace := ASession.NameSpace;
 end;
 
 procedure TCustomWebSession.DetectBrowser(const UserAgent : string);
@@ -532,6 +567,16 @@ function TCustomWebSession.GetQueryAsTDateTime(const ParamName : string) : TDate
   Result := StrToFloatDef(Query[ParamName], 0);
 end;
 
+function TCustomWebSession.GetSessionCookie: string;
+begin
+  Result := Cookie[GetSessionCookieName];
+end;
+
+function TCustomWebSession.GetSessionCookieName: string;
+begin
+  Result := 'FCGIThread';
+end;
+
 function TCustomWebSession.GetUrlHandlerObject : TObject; begin
   Result := Self;
 end;
@@ -540,7 +585,7 @@ procedure TCustomWebSession.HandleRequest(const ARequest : AnsiString); begin
   if Browser = brUnknown then DetectBrowser(RequestHeader['HTTP_USER_AGENT']);
   if BeforeHandleRequest then
     try
-      if PathInfo = '' then
+      if PathInfo = NameSpace then
         Home
       else
         if CanHandleUrlPath and not HandleUrlPath and not TryToServeFile then
@@ -557,10 +602,18 @@ type
 var
   PageMethod : TMethod;
   HandlerObj : TObject;
+  LPathInfo: string;
+  LPos: Integer;
 begin
   HandlerObj := GetUrlHandlerObject;
-  Assert(Assigned(HandlerObj));
-  PageMethod.Code := HandlerObj.MethodAddress(PathInfo);
+  if not Assigned(HandlerObj) then
+    raise Exception.CreateFmt('Handler object for method %s not found in session.', [PathInfo]);
+
+  LPathInfo := PathInfo;
+  LPos := Pos('/', LPathInfo);
+  if LPos > 0 then
+    Delete(LPathInfo, 1, LPos);
+  PageMethod.Code := HandlerObj.MethodAddress(LPathInfo);
   Result := PageMethod.Code <> nil;
   if Result then begin
     PageMethod.Data := HandlerObj;
@@ -575,8 +628,12 @@ procedure TCustomWebSession.Logout; begin
   DoLogout;
 end;
 
-function TCustomWebSession.MethodURI(MethodName : string): string; begin
-  Result := ScriptName + MethodName;
+function TCustomWebSession.MethodURI(MethodName : string): string;
+begin
+  Result := ScriptName;
+  if NameSpace <> '' then
+    Result := ScriptName + NameSpace + '/';
+  Result := Result + MethodName;
 end;
 
 function TCustomWebSession.MethodURI(Method : TExtProcedure) : string; begin
@@ -642,6 +699,13 @@ procedure TCustomWebSession.SetCustomResponseHeaders(const Name, Value : string)
   FCustomResponseHeaders.Values[Name] := Value;
 end;
 
+procedure TCustomWebSession.SetNameSpace(const Value: string);
+begin
+  FNameSpace := Value;
+  if (FNameSpace <> '') and (FNameSpace[1] = '/') then
+    Delete(FNameSpace, 1, 1);
+end;
+
 procedure TCustomWebSession.SetQueryText(const AQueryStr : string; NeedDecode, Append : Boolean);
 var
   I : Integer;
@@ -658,6 +722,22 @@ begin
     else
       for I := 0 to FQueries.Count - 1 do
         FQueries[I] := URLDecode(FQueries[I]);
+end;
+
+procedure TCustomWebSession.SetScriptName(const Value: string);
+begin
+  FScriptName := Value;
+  if (FScriptName = '') or (FScriptName[length(FScriptName)] <> '/') then FScriptName := FScriptName + '/';
+end;
+
+procedure TCustomWebSession.SetSessionCookie(const AValue: string);
+var
+  LPath: string;
+begin
+  LPath := ScriptName;
+  if NameSpace <> '' then
+    LPath := LPath + NameSpace + '/';
+  SetCookie(GetSessionCookieName, AValue, 0, '', LPath);
 end;
 
 procedure TCustomWebSession.Shutdown; begin
