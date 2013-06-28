@@ -1133,7 +1133,7 @@ begin
   Assert(Assigned(FCurrentEditPage));
 
   LViewField := ViewTable.FieldByAliasedName(AFieldName);
-  LRecordField := FDataRecord.FieldByName(LViewField.FieldName);
+  LRecordField := FDataRecord.FieldByName(LViewField.AliasedName);
 
   // Store common properties.
   LFieldCharWidth := LViewField.DisplayWidth;
