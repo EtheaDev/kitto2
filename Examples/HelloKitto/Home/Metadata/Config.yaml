@@ -48,6 +48,20 @@ AccessControl: Null
 # Default: Home.
 #HomeView: Home
 
+HomeViewEmbedded1:
+  Controller: Viewport
+    SubView: Girls
+
+HomeViewEmbedded2:
+  Controller: Viewport
+    SubView: Dolls
+
+HelloWorld:
+  Controller: Viewport
+    SubView:
+      Controller: HtmlPanel
+        Html: <h1>Hello World!</h1>
+
 Ext:
   Theme: blue
   URL: /ext
