@@ -1,5 +1,0 @@
-HomeView:
-  Controller: Viewport
-    SubView:
-      Controller: HtmlPanel
-        Html: <h1>Hello World!</h1>
