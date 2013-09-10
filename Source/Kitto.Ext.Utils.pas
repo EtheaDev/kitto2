@@ -456,6 +456,7 @@ begin
     if LLabel = '' then
       LLabel := CallViewControllerStringMethod(FView, 'GetDefaultDisplayLabel', LLabel);
     Text := HTMLEncode(_(LLabel));
+    SetTooltip(Text);
     Expandable := False;
     Expanded := False;
     Leaf := True;
@@ -475,6 +476,7 @@ begin
     if LLabel = '' then
       LLabel := CallViewControllerStringMethod(FView, 'GetDefaultDisplayLabel', LLabel);
     Text := HTMLEncode(_(LLabel));
+    SetTooltip(Text);
   end;
 end;
 
