@@ -299,8 +299,9 @@ type
     function IsSelected : TExtFunction;
     function Select : TExtFunction;
     function SetText(const AText: string): TExtFunction;
+    function SetTooltip(const ATip: string; const ATitle: string = ''): TExtFunction;
     function Toggle : TExtFunction;
-    function Unselect(Silent : Boolean = false) : TExtFunction;
+    function Unselect(const ASilent: Boolean = False): TExtFunction;
     property AllowChildren : Boolean read FAllowChildren write SetFAllowChildren;
     property AllowDrag : Boolean read FAllowDrag write SetFAllowDrag;
     property AllowDrop : Boolean read FAllowDrop write SetFAllowDrop;
@@ -1345,13 +1346,21 @@ begin
   Result := Self;
 end;
 
-function TExtTreeTreeNode.Toggle : TExtFunction; begin
-  JSCode(JSName + '.toggle();', 'TExtTreeTreeNode');
+function TExtTreeTreeNode.SetTooltip(const ATip, ATitle: string): TExtFunction;
+begin
+  ExtSession.ResponseItems.CallMethod(Self, 'setTooltip', [ATip, ATitle]);
   Result := Self;
 end;
 
-function TExtTreeTreeNode.Unselect(Silent : Boolean = false) : TExtFunction; begin
-  JSCode(JSName + '.unselect(' + VarToJSON([Silent]) + ');', 'TExtTreeTreeNode');
+function TExtTreeTreeNode.Toggle : TExtFunction;
+begin
+  ExtSession.ResponseItems.CallMethod(Self, 'toggle', []);
+  Result := Self;
+end;
+
+function TExtTreeTreeNode.Unselect(const ASilent: Boolean): TExtFunction;
+begin
+  ExtSession.ResponseItems.CallMethod(Self, 'unselect', [ASilent]);
   Result := Self;
 end;
 
