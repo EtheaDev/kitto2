@@ -53,6 +53,7 @@ type
     FFilterPanel: TKExtFilterPanel;
     FCenterControllerConfig: TEFNode;
     function GetCenterRegionControllerConfig: TEFNode;
+    function GetCenterRegionDefaultControllerType: string;
     procedure CreateFilterPanel;
     procedure FilterPanelChange(Sender: TObject);
   strict protected
@@ -221,8 +222,13 @@ end;
 
 function TKExtListPanelController.GetCenterRegionControllerConfig: TEFNode;
 begin
-  Result := Config.FindNode('CenterController');
-  if Result = nil then
+  Result := Config.FindNode(GetRegionControllerName(rgCenter) + 'Controller');
+  if Result <> nil then
+  begin
+    if Result.AsString = '' then
+      Result.AsString := GetCenterRegionDefaultControllerType;
+  end
+  else
     Result := FCenterControllerConfig;
 end;
 
@@ -260,7 +266,12 @@ end;
 procedure TKExtListPanelController.InitDefaults;
 begin
   inherited;
-  FCenterControllerConfig := TEFNode.Create('CenterController', 'GridPanel');
+  FCenterControllerConfig := TEFNode.Create(GetRegionControllerName(rgCenter) + 'Controller', GetCenterRegionDefaultControllerType);
+end;
+
+function TKExtListPanelController.GetCenterRegionDefaultControllerType: string;
+begin
+  Result := 'GridPanel';
 end;
 
 procedure TKExtListPanelController.SetViewTable(const AValue: TKViewTable);

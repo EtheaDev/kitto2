@@ -283,7 +283,7 @@ begin
   begin
     LFileName := GetFullFileName(AObject.PersistentName);
     if FileExists(LFileName) then
-      DeleteFile(LFileName);
+      SysUtils.DeleteFile(LFileName);
   end;
   AObject.Free;
 end;
@@ -420,7 +420,7 @@ begin
   Assert(IsOpen);
 
   // Add new files and update existing files.
-  LResult := FindFirst(IncludeTrailingPathDelimiter(FPath) + '*.yaml', faNormal, LSearchRec);
+  LResult := SysUtils.FindFirst(IncludeTrailingPathDelimiter(FPath) + '*.yaml', faNormal, LSearchRec);
   while LResult = 0 do
   begin
     LBaseName := ChangeFileExt(LSearchRec.Name, '');
@@ -431,9 +431,9 @@ begin
       FIndex.AddObject(LBaseName, nil);
       ObjectAdded(LBaseName);
     end;
-    LResult := FindNext(LSearchRec);
+    LResult := SysUtils.FindNext(LSearchRec);
   end;
-  FindClose(LSearchRec);
+  SysUtils.FindClose(LSearchRec);
   // Delete no longer existing files.
   Purge;
 end;
