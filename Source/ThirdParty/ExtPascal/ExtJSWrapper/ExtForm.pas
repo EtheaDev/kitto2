@@ -1334,7 +1334,7 @@ type
     procedure SetFListAlignArray(Value: TExtObjectList);
     procedure SetFListClass(Value: string);
     procedure SetFListEmptyText(Value: string);
-    procedure SetFListWidth(Value: Integer);
+    procedure SetListWidth(const AValue: Integer);
     procedure SetFLoadingText(Value: string);
     procedure SetFMaxHeight(Value: Integer);
     procedure SetMinChars(const AValue: Integer);
@@ -1409,7 +1409,7 @@ type
       write SetFListAlignArray;
     property ListClass: string read FListClass write SetFListClass;
     property ListEmptyText: string read FListEmptyText write SetFListEmptyText;
-    property ListWidth: Integer read FListWidth write SetFListWidth;
+    property ListWidth: Integer read FListWidth write SetListWidth;
     property LoadingText: string read FLoadingText write SetFLoadingText;
     property MaxHeight: Integer read FMaxHeight write SetFMaxHeight;
     property MinChars: Integer read FMinChars write SetMinChars;
@@ -4449,10 +4449,10 @@ begin
   JSCode('listEmptyText:' + VarToJSON([Value]));
 end;
 
-procedure TExtFormComboBox.SetFListWidth(Value: Integer);
+procedure TExtFormComboBox.SetListWidth(const AValue: Integer);
 begin
-  FListWidth := Value;
-  JSCode('listWidth:' + VarToJSON([Value]));
+  FListWidth := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'listWidth', [AValue]);
 end;
 
 procedure TExtFormComboBox.SetFLoadingText(Value: string);
