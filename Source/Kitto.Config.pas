@@ -515,10 +515,18 @@ begin
 end;
 
 procedure TKConfig.CheckAccessGranted(const AResourceURI, AMode: string);
+var
+  LErrorMsg: string;
 begin
   if not IsAccessGranted(AResourceURI, AMode) then
-    raise EKAccessDeniedError.CreateWithAdditionalInfo(_('Access denied. The user is not allowed to perform this operation.'),
-      Format(_('Resource URI: %s; access mode: %s.'), [AResourceURI, AMode]));
+  begin
+    LErrorMsg := _('Access denied. The user is not allowed to perform this operation.');
+    {$IFDEF DEBUG}
+    LErrorMsg := LErrorMsg + sLineBreak +
+      Format(_('Resource URI: %s; access mode: %s.'), [AResourceURI, AMode]);
+    {$ENDIF}
+    raise EKAccessDeniedError.Create(LErrorMsg);
+  end;
 end;
 
 class constructor TKConfig.Create;
