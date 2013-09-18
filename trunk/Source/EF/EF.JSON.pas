@@ -79,6 +79,11 @@ function QuoteJSONStr(const AString: string): string; inline;
 
 function JSONNullToEmptyStr(const AJSONValue: string): string; inline;
 
+/// <summary>
+///   Escapes control characters in the JSON string.
+/// </summary>
+function JSONEscape(const AString: string): string;
+
 implementation
 
 uses
@@ -183,6 +188,13 @@ begin
     Result := ''
   else
     Result := AJSONValue;
+end;
+
+function JSONEscape(const AString: string): string;
+begin
+  Result := ReplaceStr(AString, sLineBreak, '\n');
+  Result := ReplaceStr(Result, #10, '\n');
+  Result := ReplaceStr(Result, #13, '\n');
 end;
 
 end.
