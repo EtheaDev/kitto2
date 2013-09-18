@@ -52,6 +52,7 @@ type
     procedure CreateGridView;
     procedure CheckGroupColumn;
   strict protected
+    function GetEditWindowDefaultControllerType: string; virtual;
     function GetOrderByClause: string; override;
 //    function GetRefreshJSCode: string; override;
     procedure InitDefaults; override;
@@ -109,6 +110,11 @@ begin
       LSortFieldNames[I] := ViewTable.FieldByName(LSortFieldNames[I]).QualifiedDBNameOrExpression;
     Result := Join(LSortFieldNames, ', ');
   end;
+end;
+
+function TKExtGridPanel.GetEditWindowDefaultControllerType: string;
+begin
+  Result := 'Form';
 end;
 
 function TKExtGridPanel.GetGroupingFieldName: string;
@@ -494,9 +500,11 @@ begin
   else
     FEditHostWindow.Title := _(ViewTable.DisplayLabel);
 
-  LFormControllerType := Config.GetString('FormController', 'Form');
+  LFormControllerType := Config.GetString('FormController', GetEditWindowDefaultControllerType);
+  if LFormControllerType = '' then
+    LFormControllerType := GetEditWindowDefaultControllerType;
   LFormController := TKExtControllerFactory.Instance.CreateController(
-    FEditHostWindow, ViewTable.View, FEditHostWindow, nil, Self, LFormControllerType);
+    FEditHostWindow, ViewTable.View, FEditHostWindow, Config.FindNode('FormController'), Self, LFormControllerType);
   LFormController.Config.SetObject('Sys/ServerStore', ServerStore);
   if Assigned(ARecord) then
     LFormController.Config.SetObject('Sys/Record', ARecord);

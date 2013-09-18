@@ -101,6 +101,7 @@ type
     procedure EnsureDetailStores;
     function GetStore: TKStore;
     function GetIsDeleted: Boolean;
+    function GetIsNew: Boolean;
   strict protected
     property State: TKRecordState read FState;
     function GetChildClass(const AName: string): TEFNodeClass; override;
@@ -138,6 +139,7 @@ type
     procedure MarkAsDeleted;
     procedure MarkAsClean;
 
+    property IsNew: Boolean read GetIsNew;
     property IsDeleted: Boolean read GetIsDeleted;
     property DetailStoreCount: Integer read GetDetailStoreCount;
     property DetailStores[I: Integer]: TKStore read GetDetailsStore;
@@ -160,7 +162,7 @@ type
     function GetRecordByIndex(I: Integer): TKRecord;
     procedure SetKey(const AValue: TKKey);
     function GetStore: TKStore;
-    function GetRecordCountExceptDeleted: Integer;
+    function GetRecordCountExceptNewAndDeleted: Integer;
   protected
     function GetChildClass(const AName: string): TEFNodeClass; override;
   public
@@ -175,7 +177,7 @@ type
     function GetRecord(const AValues: TEFNode): TKRecord;
     property Records[I: Integer]: TKRecord read GetRecordByIndex; default;
     property RecordCount: Integer read GetRecordCount;
-    property RecordCountExceptDeleted: Integer read GetRecordCountExceptDeleted;
+    property RecordCountExceptNewAndDeleted: Integer read GetRecordCountExceptNewAndDeleted;
 
     function Append: TKRecord;
     function AppendAndInitialize: TKRecord;
@@ -226,7 +228,7 @@ type
     procedure SetKey(const AValue: TKKey);
     function GetRecordCount: Integer;
     function GetHeader: TKHeader;
-    function GetRecordCountExceptDeleted: Integer;
+    function GetRecordCountExceptNewAndDeleted: Integer;
   protected
     function GetChildClass(const AName: string): TEFNodeClass; override;
   public
@@ -240,7 +242,7 @@ type
     property Header: TKHeader read GetHeader;
     property Records: TKRecords read GetRecords;
     property RecordCount: Integer read GetRecordCount;
-    property RecordCountExceptDeleted: Integer read GetRecordCountExceptDeleted;
+    property RecordCountExceptNewAndDeleted: Integer read GetRecordCountExceptNewAndDeleted;
 
     procedure Load(const ADBConnection: TEFDBConnection;
       const ACommandText: string; const AAppend: Boolean = False); overload;
@@ -483,9 +485,9 @@ begin
   Result := Records.RecordCount;
 end;
 
-function TKStore.GetRecordCountExceptDeleted: Integer;
+function TKStore.GetRecordCountExceptNewAndDeleted: Integer;
 begin
-  Result := Records.RecordCountExceptDeleted;
+  Result := Records.RecordCountExceptNewAndDeleted;
 end;
 
 function TKStore.GetRecords: TKRecords;
@@ -552,7 +554,7 @@ end;
 
 function TKRecords.Append: TKRecord;
 begin
-  Result := AddChild('Record') as TKrecord;
+  Result := AddChild('Record') as TKRecord;
 end;
 
 function TKRecords.AppendAndInitialize: TKRecord;
@@ -606,7 +608,7 @@ var
   LCount: Integer;
   LRecordCount: Integer;
 begin
-  LRecordCount := RecordCountExceptDeleted;
+  LRecordCount := RecordCountExceptNewAndDeleted;
 
   if AFor > 0 then
     LTo := Min(LRecordCount - 1, AFrom + AFor - 1)
@@ -619,7 +621,7 @@ begin
   I := AFrom;
   while LCount > 0 do
   begin
-    if not Records[I].IsDeleted then
+    if not Records[I].IsDeleted and not Records[I].IsNew then
     begin
       if Result = '' then
         Result := Records[I].GetAsJSON(AForDisplay)
@@ -649,13 +651,13 @@ begin
   Result := ChildCount;
 end;
 
-function TKRecords.GetRecordCountExceptDeleted: Integer;
+function TKRecords.GetRecordCountExceptNewAndDeleted: Integer;
 var
   I: Integer;
 begin
   Result := ChildCount;
   for I := 0 to RecordCount - 1 do
-    if Records[I].IsDeleted then
+    if Records[I].IsDeleted or Records[I].IsNew then
       Dec(Result);
 end;
 
@@ -848,6 +850,11 @@ end;
 function TKRecord.GetIsDeleted: Boolean;
 begin
   Result := FState = rsDeleted;
+end;
+
+function TKRecord.GetIsNew: Boolean;
+begin
+  Result := FState = rsNew;
 end;
 
 function TKRecord.GetKey: TKKey;

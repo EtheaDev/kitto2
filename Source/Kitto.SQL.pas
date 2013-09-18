@@ -230,7 +230,7 @@ begin
               MarkRefFieldAsProcessed(LViewField);
             end
           end
-          else
+          else if LViewField.Model = ARecord.ViewTable.Model then
             AddDBColumnName(LDBColumnNames, LValueNames, ADBCommand,
               LViewField.ModelField.DBColumnName, ARecord[I].FieldName);
         end;

@@ -23,7 +23,7 @@ interface
 uses
   Generics.Collections, SysUtils,
   Ext, ExtData, ExtForm,
-  EF.ObserverIntf,
+  EF.ObserverIntf, EF.Tree,
   Kitto.Metadata.Views, Kitto.Metadata.DataView, Kitto.Store,
   Kitto.Ext.Controller, Kitto.Ext.Base, Kitto.Ext.DataPanel, Kitto.Ext.Editors,
   Kitto.Ext.GridPanel;
@@ -62,6 +62,7 @@ type
     FOperation: string;
     FFocusField: TExtFormField;
     FStoreRecord: TKViewTableRecord;
+    FCloneValues: TEFNode;
     FEditItems: TList<TObject>;
     procedure CreateEditors;
     procedure RecreateEditors;
@@ -83,6 +84,9 @@ type
     function GetAfterLoadJSCode: string;
     procedure CreateFormPanel;
     function LayoutContainsPageBreaks: Boolean;
+    procedure DoConfirmChanges;
+  private
+    FCloneButton: TExtButton;
   strict protected
     procedure DoDisplay; override;
     procedure InitComponents; override;
@@ -92,6 +96,7 @@ type
   published
     procedure GetRecord;
     procedure ConfirmChanges;
+    procedure ConfirmChangesAndClone;
     procedure CancelChanges;
   end;
 
@@ -100,7 +105,7 @@ implementation
 uses
   StrUtils, Classes, Variants,
   ExtPascal,
-  EF.Localization, EF.Types, EF.Intf, EF.Tree, EF.DB, EF.JSON, EF.VariantUtils,
+  EF.Localization, EF.Types, EF.Intf, EF.DB, EF.JSON, EF.VariantUtils,
   Kitto.AccessControl, Kitto.Rules, Kitto.SQL,
   Kitto.Ext.Session, Kitto.Ext.Utils;
 
@@ -108,6 +113,7 @@ uses
 
 destructor TKExtFormPanelController.Destroy;
 begin
+  FreeAndNil(FCloneValues);
   FreeAndNil(FEditItems);
   FreeAndNil(FDetailButtons);
   FreeAndNil(FDetailControllers);
@@ -256,16 +262,38 @@ end;
 procedure TKExtFormPanelController.StartOperation;
 var
   LDefaultValues: TEFNode;
+
+  procedure MergeKeyDefaultValues;
+  var
+    LKeyDefaultValues: TEFNode;
+  begin
+    LKeyDefaultValues := ViewTable.GetDefaultValues(True);
+    try
+      LDefaultValues.Merge(LKeyDefaultValues);
+    finally
+      FreeAndNil(LKeyDefaultValues);
+    end;
+  end;
+
 begin
   Assert(Assigned(FStoreRecord));
 
   try
     if FOperation = 'Add' then
     begin
-      LDefaultValues := ViewTable.GetDefaultValues;
+      LDefaultValues := nil;
       try
+        if Assigned(FCloneValues) then
+        begin
+          LDefaultValues := TEFNode.Clone(FCloneValues);
+          MergeKeyDefaultValues;
+        end
+        else
+          LDefaultValues := ViewTable.GetDefaultValues;
         FStoreRecord.ReadFromNode(LDefaultValues);
+        ViewTable.Model.BeforeNewRecord(FStoreRecord, Assigned(FCloneValues));
         FStoreRecord.ApplyNewRecordRules;
+        ViewTable.Model.AfterNewRecord(FStoreRecord);
       finally
         FreeAndNil(LDefaultValues);
       end;
@@ -346,7 +374,7 @@ begin
   ExtSession.ResponseItems.AddJSON('{success:true,data:' + FStoreRecord.GetAsJSON(False) + '}');
 end;
 
-procedure TKExtFormPanelController.ConfirmChanges;
+procedure TKExtFormPanelController.DoConfirmChanges;
 begin
   try
     // Get POST values.
@@ -391,8 +419,13 @@ begin
       Exit;
     end;
   end;
-
   NotifyObservers('Confirmed');
+end;
+
+procedure TKExtFormPanelController.ConfirmChanges;
+begin
+  DoConfirmChanges;
+  FreeAndNil(FCloneValues);
   if Config.GetBoolean('KeepOpenAfterOperation') then
     StartOperation
   else
@@ -400,6 +433,16 @@ begin
     AssignFieldChangeEvent(False);
     CloseHostContainer;
   end;
+end;
+
+procedure TKExtFormPanelController.ConfirmChangesAndClone;
+begin
+  DoConfirmChanges;
+  FCloneValues := TEFNode.Clone(FStoreRecord);
+  FStoreRecord := ServerStore.AppendRecord(nil);
+  FOperation := 'Add';
+  // recupera dati record
+  StartOperation;
 end;
 
 function TKExtFormPanelController.LayoutContainsPageBreaks: Boolean;
@@ -421,10 +464,14 @@ end;
 procedure TKExtFormPanelController.InitComponents;
 var
   LHostWindow: TExtWindow;
+  LCloneButtonNode: TEFNode;
 begin
   inherited;
   if Title = '' then
     Title := _(ViewTable.DisplayLabel);
+
+  FreeAndNil(FCloneValues);
+  FCloneValues := TEFNode.Create;
 
   FOperation := Config.GetString('Sys/Operation');
   if FOperation = '' then
@@ -458,18 +505,36 @@ begin
 
   if not FIsReadOnly then
   begin
+    LCloneButtonNode := Config.FindNode('CloneButton');
+    if Assigned(LCloneButtonNode) then
+    begin
+      FCloneButton := TExtButton.CreateAndAddTo(FFormPanel.Buttons);
+      FCloneButton.Scale := Config.GetString('ButtonScale', 'medium');
+      FCloneButton.FormBind := True;
+      FCloneButton.Text := LCloneButtonNode.GetString('Caption', _('Save & Clone'));
+      FCloneButton.Tooltip := LCloneButtonNode.GetString('Tooltip', _('Save changes and create a new clone record'));
+      // AjaxForms allows us to put JS code in the response, something the commented
+      // versions don't allow.
+      FCloneButton.Handler := AjaxForms(ConfirmChangesAndClone, [FFormPanel]);
+      // Don't just call submit() - we want AjaxSuccess/AjaxFailure to be called so that our response is actually executed.
+      //FSaveButton.Handler := JSFunction(FFormPanel.JSName + '.getForm().submit();');
+      //FSaveButton.Handler := JSFunction(FFormPanel.JSName + '.getForm().doAction("submit", {success:"AjaxSuccess", failure:"AjaxFailure"});');
+      FCloneButton.Icon := Session.Config.GetImageURL('accept_clone');
+    end
+    else
+      FCloneButton := nil;
     FConfirmButton := TExtButton.CreateAndAddTo(FFormPanel.Buttons);
     FConfirmButton.Scale := Config.GetString('ButtonScale', 'medium');
     FConfirmButton.FormBind := True;
     FConfirmButton.Text := Config.GetString('ConfirmButton/Caption', _('Save'));
     FConfirmButton.Tooltip := Config.GetString('ConfirmButton/Tooltip', _('Save changes and finish editing'));
-    FConfirmButton.Icon := Session.Config.GetImageURL('accept');
     // AjaxForms allows us to put JS code in the response, something the commented
     // versions don't allow.
     FConfirmButton.Handler := AjaxForms(ConfirmChanges, [FFormPanel]);
     // Don't just call submit() - we want AjaxSuccess/AjaxFailure to be called so that our response is actually executed.
     //FSaveButton.Handler := JSFunction(FFormPanel.JSName + '.getForm().submit();');
     //FSaveButton.Handler := JSFunction(FFormPanel.JSName + '.getForm().doAction("submit", {success:"AjaxSuccess", failure:"AjaxFailure"});');
+    FConfirmButton.Icon := Session.Config.GetImageURL('accept');
   end;
   FCancelButton := TExtButton.CreateAndAddTo(FFormPanel.Buttons);
   FCancelButton.Scale := Config.GetString('ButtonScale', 'medium');

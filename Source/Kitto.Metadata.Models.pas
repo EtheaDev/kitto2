@@ -570,6 +570,29 @@ type
     ///	</remarks>
     procedure SaveRecord(const ARecord: TEFNode; const APersist: Boolean;
       const AAfterPersist: TProc); virtual; abstract;
+    ///	<summary>
+    ///	  Called when a new record is being created in the GUI, after applying
+    ///   any default or cloned values but before applying new record rules.
+    ///	</summary>
+    ///	<param name="ARecord">
+    ///	  Instance of the record just created. May be (will probably be) an instance
+    ///	  of an inherited class.
+    ///	</param>
+    ///	<param name="AIsCloned">
+    ///	  If True, the record was created as a result of a clone operation, which
+    ///   means it should contain values; otherwise it is empty except for the
+    ///   default values.
+    ///	</param>
+    procedure BeforeNewRecord(const ARecord: TEFNode; const AIsCloned: Boolean); virtual;
+    ///	<summary>
+    ///	  Called when a new record has been created in the GUI, after applying
+    ///   any default or cloned values and new record rules.
+    ///	</summary>
+    ///	<param name="ARecord">
+    ///	  Instance of the record just created. May be (will probably be) an instance
+    ///	  of an inherited class.
+    ///	</param>
+    procedure AfterNewRecord(const ARecord: TEFNode); virtual;
   end;
 
   TKModelClass = class of TKModel;
@@ -669,6 +692,10 @@ begin
 end;
 
 { TKModel }
+
+procedure TKModel.BeforeNewRecord(const ARecord: TEFNode; const AIsCloned: Boolean);
+begin
+end;
 
 procedure TKModel.BeforeSave;
 begin
@@ -1025,6 +1052,10 @@ begin
   Result := GetString('DisplayLabel');
   if Result = '' then
     Result := BeautifyModelName(ModelName);
+end;
+
+procedure TKModel.AfterNewRecord(const ARecord: TEFNode);
+begin
 end;
 
 class function TKModel.BeautifyModelName(const AModelName: string): string;

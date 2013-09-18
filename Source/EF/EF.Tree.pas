@@ -338,6 +338,12 @@ type
     procedure Assign(const ASource: TEFTree); virtual;
 
     ///	<summary>
+    ///	  Adds all nodes in ASource, overwriting any existing nodes with the same
+    ///   name. Note: does not copy annotations.
+    ///	</summary>
+    procedure Merge(const ASource: TEFTree); virtual;
+
+    ///	<summary>
     ///	  Adds a child node. Returns a reference to the added object.
     ///	</summary>
     function AddChild(const ANode: TEFNode): TEFNode; overload;
@@ -1869,6 +1875,24 @@ begin
       GetAnnotations.Assign(ASource.FAnnotations);
     for LNode in ASource.FNodes do
       AddChild(GetChildClass(LNode.Name).Clone(LNode));
+  end;
+end;
+
+procedure TEFTree.Merge(const ASource: TEFTree);
+var
+  LYourNode: TEFNode;
+  LMyNode: TEFNode;
+begin
+  if Assigned(ASource) then
+  begin
+    for LYourNode in ASource.FNodes do
+    begin
+      LMyNode := FindNode(LYourNode.Name);
+      if Assigned(LMyNode) then
+        LMyNode.Assign(LYourNode)
+      else
+        AddChild(GetChildClass(LYourNode.Name).Clone(LYourNode));
+    end;
   end;
 end;
 

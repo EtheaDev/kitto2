@@ -525,7 +525,7 @@ type
     ///	is evaluated at this time.</summary>
     ///	<remarks>The caller is responsible for freeing the returned node
     ///	object.</remarks>
-    function GetDefaultValues: TEFNode;
+    function GetDefaultValues(const AKeyOnly: Boolean = False): TEFNode;
 
     function GetResourceURI: string; override;
 
@@ -795,14 +795,15 @@ begin
     Result := Model.DefaultSorting;
 end;
 
-function TKViewTable.GetDefaultValues: TEFNode;
+function TKViewTable.GetDefaultValues(const AKeyOnly: Boolean): TEFNode;
 var
   I: Integer;
 begin
   Result := TEFNode.Create;
   try
     for I := 0 to FieldCount - 1 do
-      Fields[I].AppendDefaultValues(Result);
+      if not AKeyOnly or Fields[I].IsKey then
+        Fields[I].AppendDefaultValues(Result);
   except
     FreeAndNil(Result);
     raise;
