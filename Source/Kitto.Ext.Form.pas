@@ -470,9 +470,6 @@ begin
   if Title = '' then
     Title := _(ViewTable.DisplayLabel);
 
-  FreeAndNil(FCloneValues);
-  FCloneValues := TEFNode.Create;
-
   FOperation := Config.GetString('Sys/Operation');
   if FOperation = '' then
     FOperation := Config.GetString('Operation');
