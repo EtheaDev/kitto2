@@ -820,6 +820,8 @@ begin
           begin
             LComboBox.Mode := 'local';
             LComboBox.StoreArray := LComboBox.JSArray(DataSetToJSON(Session.Config.DBConnections[AViewField.Table.DatabaseName], LLookupCommandText));
+            // Make the drop-down list larger.
+            LComboBox.ListWidth := Trunc(((AFieldCharWidth + TRIGGER_WIDTH) * 12) * 1.1);
           end;
         end;
         if not AIsReadOnly then
