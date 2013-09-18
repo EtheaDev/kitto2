@@ -411,6 +411,7 @@ type
     function GetChildClass(const AName: string): TEFNodeClass; override;
     function GetDetailReferences: TKModelDetailReferences;
     class function BeautifyModelName(const AModelName: string): string; virtual;
+    class function GetClassNameForResourceURI: string; override;
   public
     procedure BeforeSave; override;
   public
@@ -999,6 +1000,12 @@ begin
     Result := TKRules
   else
     Result := inherited GetChildClass(AName);
+end;
+
+class function TKModel.GetClassNameForResourceURI: string;
+begin
+  // Avoid using any model implementation class name here.
+  Result := 'Model';
 end;
 
 function TKModel.GetDefaultSorting: string;
