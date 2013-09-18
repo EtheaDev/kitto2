@@ -217,7 +217,7 @@ begin
           LSubject.AttachObserver(Self);
       end;
     LLayoutProcessor.ForceReadOnly := FIsReadOnly;
-    if FOperation = 'Add' then
+    if MatchStr(FOperation, ['Add', 'Dup']) then
       LLayoutProcessor.Operation := eoInsert
     else
       LLayoutProcessor.Operation := eoUpdate;
@@ -279,7 +279,7 @@ begin
   Assert(Assigned(FStoreRecord));
 
   try
-    if FOperation = 'Add' then
+    if MatchStr(FOperation, ['Add', 'Dup']) then
     begin
       LDefaultValues := nil;
       try
@@ -291,7 +291,7 @@ begin
         else
           LDefaultValues := ViewTable.GetDefaultValues;
         FStoreRecord.ReadFromNode(LDefaultValues);
-        ViewTable.Model.BeforeNewRecord(FStoreRecord, Assigned(FCloneValues));
+        ViewTable.Model.BeforeNewRecord(FStoreRecord, Assigned(FCloneValues) and SameText(FOperation, 'Add'));
         FStoreRecord.ApplyNewRecordRules;
         ViewTable.Model.AfterNewRecord(FStoreRecord);
       finally
@@ -480,10 +480,16 @@ begin
   begin
     Assert(not Assigned(FStoreRecord));
     FStoreRecord := ServerStore.AppendRecord(nil);
+  end
+  else if FOperation = 'Dup' then
+  begin
+    FreeAndNil(FCloneValues);
+    FCloneValues := TEFNode.Clone(FStoreRecord);
+    FStoreRecord := ServerStore.AppendRecord(nil);
   end;
   AssignFieldChangeEvent(True);
 
-  if SameText(FOperation, 'Add') then
+  if MatchStr(FOperation, ['Add', 'Dup']) then
     FIsReadOnly := ViewTable.GetBoolean('Controller/PreventAdding')
       or View.GetBoolean('IsReadOnly')
       or ViewTable.IsReadOnly
@@ -497,6 +503,8 @@ begin
       or not ViewTable.IsAccessGranted(ACM_MODIFY);
   if SameText(FOperation, 'Add') and FIsReadOnly then
     raise EEFError.Create(_('Operation Add not supported on read-only data.'));
+  if SameText(FOperation, 'Dup') and FIsReadOnly then
+    raise EEFError.Create(_('Operation Duplicate not supported on read-only data.'));
 
   CreateFormPanel;
 
@@ -603,7 +611,7 @@ var
 begin
   LKeepOpen := Config.GetBoolean('KeepOpenAfterOperation');
 
-  if FOperation = 'Add' then
+  if MatchStr(FOperation, ['Add', 'Dup']) then
   begin
     ServerStore.RemoveRecord(FStoreRecord);
     FStoreRecord := nil;
@@ -615,6 +623,11 @@ begin
     begin
       FStoreRecord := ServerStore.AppendRecord(nil);
       RecreateEditors;
+    end
+    else
+    begin
+      { TODO: implement Dup + KeepOpenAfterOperation }
+      Assert(False, 'Dup + KeepOpenAfterOperation not implemented.');
     end;
     StartOperation;
   end
