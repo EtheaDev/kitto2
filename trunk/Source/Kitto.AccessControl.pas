@@ -169,6 +169,7 @@ implementation
 
 uses
   SysUtils, StrUtils, Variants,
+  {$IFDEF KITTO_ENABLE_CODESITE}CodeSiteLogging,{$ENDIF}
   EF.SysUtils, EF.StrUtils, EF.VariantUtils, EF.Tree;
 
 { TKAccessControllerRegistry }
@@ -243,8 +244,7 @@ begin
     end;
     if VarIsNull(Result) then
       Result := ADefaultValue;
-    if Assigned(FLogWriter) then
-      WriteLog(AUserId, AResourceURI, AMode, EFVarToStr(ADefaultValue), EFVarToStr(Result));
+    WriteLog(AUserId, AResourceURI, AMode, EFVarToStr(ADefaultValue), EFVarToStr(Result));
   end;
 end;
 
@@ -258,12 +258,22 @@ procedure TKAccessController.WriteLog(const AUserId, AResourceURI,
     else
       Result := AString;
   end;
+var
+  LLine: string;
 
 begin
-  Assert(Assigned(FLogWriter));
+  LLine :=
+    Delimit(DateTimeToStr(Now)) + FLogSeparator +
+    Delimit(AUserId) + FLogSeparator +
+    Delimit(AResourceURI) + FLogSeparator +
+    Delimit(AMode) + FLogSeparator +
+    Delimit(IfThen(ADefaultValue = '', '<null>', ADefaultValue)) + FLogSeparator +
+    Delimit(IfThen(AResult = '', '<null>', AResult));
 
-  if FLogHeader then
+  if Assigned(FLogWriter) then
   begin
+    if FLogHeader then
+    begin
       FLogWriter.WriteLine(
         Delimit('DateTime') + FLogSeparator +
         Delimit('UserId') + FLogSeparator +
@@ -271,15 +281,14 @@ begin
         Delimit('Mode') + FLogSeparator +
         Delimit('DefaultValue') + FLogSeparator +
         Delimit('Result'));
-    FLogHeader := False;
+      FLogHeader := False;
+    end;
+    FLogWriter.WriteLine(LLine);
   end;
-  FLogWriter.WriteLine(
-    Delimit(DateTimeToStr(Now)) + FLogSeparator +
-    Delimit(AUserId) + FLogSeparator +
-    Delimit(AResourceURI) + FLogSeparator +
-    Delimit(AMode) + FLogSeparator +
-    Delimit(IfThen(ADefaultValue = '', '<null>', ADefaultValue)) + FLogSeparator +
-    Delimit(IfThen(AResult = '', '<null>', AResult)));
+
+  {$IFDEF KITTO_ENABLE_CODESITE}
+  CodeSite.Send(LLine);
+  {$ENDIF}
 end;
 
 procedure TKAccessController.Init;
@@ -295,6 +304,16 @@ end;
 procedure TKAccessController.InternalInit;
 var
   LLogFileName: string;
+  LFileStream: TFileStream;
+
+  function GetMode: Word;
+  begin
+    if FileExists(LLogFileName) then
+      Result := fmOpenWrite
+    else
+      Result := fmCreate;
+  end;
+
 begin
   FreeAndNil(FLogWriter);
   LLogFileName := Config.GetExpandedString('Log/FileName');
@@ -303,7 +322,16 @@ begin
     if not DirectoryExists(ExtractFilePath(LLogFileName)) then
       raise EKError.CreateFmt('Cannot create Access Controller log file %s. Directory does not exist.', [LLogFileName]);
 
-    FLogWriter := TStreamWriter.Create(LLogFileName, FileExists(LLogFileName));
+    if FileExists(LLogFileName) then
+    begin
+      LFileStream := TFileStream.Create(LLogFileName, fmOpenWrite or fmShareDenyWrite);
+      LFileStream.Seek(0, soEnd);
+    end
+    else
+      LFileStream := TFileStream.Create(LLogFileName, fmCreate or fmShareDenyWrite);
+    FLogWriter := TStreamWriter.Create(LFileStream);
+    FLogWriter.OwnStream;
+
     FLogSeparator := Config.GetExpandedString('Log/FieldSeparator', #9);
     FLogDelimiter := Config.GetExpandedString('Log/FieldDelimiter', '');
     FLogHeader := Config.GetBoolean('Log/IncludeHeader', True) and (GetFileSize(LLogFileName) <= 0);
