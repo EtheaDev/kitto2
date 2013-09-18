@@ -2955,7 +2955,7 @@ function TEFDateTimeDataType.InternalNodeToJSONValue(const AForDisplay: Boolean;
 begin
   // DateTimeToStr will omit the time portion if it's empty, but the GUI needs
   // it in all cases.
-  Result := DateToStr(ANode.AsDate, AJSFormatSettings) + ' ' + TimeToStr(ANode.AsTime);
+  Result := DateToStr(ANode.AsDate, AJSFormatSettings) + ' ' + TimeToStr(ANode.AsTime, AJSFormatSettings);
 end;
 
 procedure TEFDateTimeDataType.InternalNodeToParam(const ANode: TEFNode;
