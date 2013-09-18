@@ -2502,7 +2502,7 @@ end;
 function TEFDataType.InternalNodeToJSONValue(const AForDisplay: Boolean;
   const ANode: TEFNode; const AJSFormatSettings: TFormatSettings): string;
 begin
-  Result := ANode.AsString;
+  Result := JSONEscape(ANode.AsString);
 end;
 
 procedure TEFDataType.InternalNodeToParam(const ANode: TEFNode;
