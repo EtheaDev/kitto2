@@ -761,6 +761,7 @@ begin
     Result := TKSQLBuilder.GetLookupSelectStatement(AViewField);
     if AViewField.ModelField.ReferencedModel.IsLarge then
       Result := AddToSQLWhereClause(Result, '(' + AViewField.ModelField.ReferencedModel.CaptionField.DBColumnName + ' like ''{query}%'')');
+    Result := TEFMacroExpansionEngine.Instance.Expand(Result);
   end
   else
     Result := '';
@@ -1841,7 +1842,7 @@ begin
   Assert(AViewField.IsReference);
   Assert(ALookupCommandText <> '');
 
-  FLookupCommandText := TEFMacroExpansionEngine.Instance.Expand(ALookupCommandText);
+  FLookupCommandText := ALookupCommandText;
   FreeAndNil(FServerStore);
   FServerStore := AViewField.CreateReferenceStore;
   Store := TExtDataStore.Create(Self);
