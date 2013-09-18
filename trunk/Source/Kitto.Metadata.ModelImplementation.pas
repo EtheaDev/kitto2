@@ -120,7 +120,9 @@ type
     ///	</summary>
     function LoadRecords(const AStore: TEFTree; const AFilterExpression: string;
       const ASortExpression: string; const AStart: Integer = 0; const ALimit: Integer = 0): Integer; override;
-
+    ///	<summary>
+    ///	  Persists the specified record. Calls various protected virtual methods.
+    ///	</summary>
     procedure SaveRecord(const ARecord: TEFNode; const APersist: Boolean;
       const AAfterPersist: TProc); override;
   end;
