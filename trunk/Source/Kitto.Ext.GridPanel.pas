@@ -42,6 +42,8 @@ type
     FIsAddVisible: Boolean;
     FIsDeleteVisible: Boolean;
     FButtonsRequiringSelection: TList<TExtObject>;
+    FIsDupVisible: Boolean;
+    FIsDupAllowed: Boolean;
     function GetGroupingFieldName: string;
     function CreatePagingToolbar: TExtPagingToolbar;
     procedure ShowEditWindow(const ARecord: TKRecord;
@@ -74,6 +76,7 @@ type
     destructor Destroy; override;
   published
     procedure EditViewRecord;
+    procedure DuplicateRecord;
     procedure NewRecord(This: TExtButton; E: TExtEventObjectSingleton);
     procedure DeleteCurrentRecord;
     procedure LoadData; override;
@@ -493,7 +496,7 @@ begin
   //FEditHostWindow.ResizeHandles := 'n s';
   FEditHostWindow.Layout := lyFit;
 
-  if AEditMode = emNewRecord then
+  if AEditMode in [emNewRecord, emDupCurrentRecord] then
     FEditHostWindow.Title := Format(_('Add %s'), [_(ViewTable.DisplayLabel)])
   else if FIsEditAllowed then
     FEditHostWindow.Title := Format(_('Edit %s'), [_(ViewTable.DisplayLabel)])
@@ -522,7 +525,12 @@ begin
   else
     LFormController.Config.SetBoolean('Sys/HostWindow/AutoSize', True);
   if AEditMode = emNewRecord then
-    LFormController.Config.SetString('Sys/Operation', 'Add');
+    LFormController.Config.SetString('Sys/Operation', 'Add')
+  else if AEditMode = emDupCurrentRecord then
+    LFormController.Config.SetString('Sys/Operation', 'Dup')
+  else
+    LFormController.Config.SetString('Sys/Operation', 'Edit');
+
   LFormController.Display;
 
   FEditHostWindow.Show;
@@ -544,6 +552,14 @@ begin
     and not ViewTable.IsReadOnly
     and not Config.GetBoolean('PreventAdding');
   FIsAddAllowed := FIsAddVisible and ViewTable.IsAccessGranted(ACM_ADD);
+
+  FIsDupVisible := (ViewTable.GetBoolean('Controller/AllowDuplicating')
+    or Config.GetBoolean('AllowDuplicating'))
+    and not ViewTable.GetBoolean('Controller/PreventAdding')
+    and not View.GetBoolean('IsReadOnly')
+    and not ViewTable.IsReadOnly
+    and not Config.GetBoolean('PreventAdding');
+  FIsDupAllowed := FIsDupVisible and ViewTable.IsAccessGranted(ACM_ADD);
 
   FIsEditAllowed := not ViewTable.GetBoolean('Controller/PreventEditing')
     and not View.GetBoolean('IsReadOnly')
@@ -661,6 +677,12 @@ begin
   inherited;
 end;
 
+procedure TKExtGridPanel.DuplicateRecord;
+begin
+  ShowEditWindow(Session.LocateRecordFromQueries(ViewTable, ServerStore,
+    IfThen(IsMultiSelect, 0, -1)), emDupCurrentRecord);
+end;
+
 procedure TKExtGridPanel.LoadData;
 begin
   if Assigned(FPagingToolbar) then
@@ -702,6 +724,7 @@ var
   LEditButton: TExtButton;
   LDeleteButton: TExtButton;
   LKeyFieldNames: string;
+  LDupButton: TExtButton;
 begin
   Assert(ViewTable <> nil);
   Assert(TopToolbar <> nil);
@@ -715,6 +738,22 @@ begin
       LNewButton.Disabled := True
     else
       LNewButton.OnClick := NewRecord;
+  end;
+
+  if FIsDupVisible then
+  begin
+    TExtToolbarSpacer.CreateAndAddTo(TopToolbar.Items);
+    LDupButton := TExtButton.CreateAndAddTo(TopToolbar.Items);
+    LDupButton.Tooltip := Format(_('Duplicate %s'), [_(ViewTable.DisplayLabel)]);
+    LDupButton.Icon := Session.Config.GetImageURL('dup_record');
+    if not FIsDupAllowed then
+      LDupButton.Disabled := True
+    else
+    begin
+      LKeyFieldNames := Join(ViewTable.GetKeyFieldAliasedNames, ',');
+      LDupButton.On('click', AjaxSelection(DuplicateRecord, FSelModel, LKeyFieldNames, LKeyFieldNames, []));
+      FButtonsRequiringSelection.Add(LDupButton);
+    end;
   end;
 
   TExtToolbarSpacer.CreateAndAddTo(TopToolbar.Items);
