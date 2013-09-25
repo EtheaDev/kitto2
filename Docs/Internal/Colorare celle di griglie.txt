@@ -5,26 +5,24 @@ Colore di sfondo:
 - se non c'è RowColorField, la riga ha sfondo bianco.
 - per ogni field, se c'è un Colors questo determina i colori delle celle della colonna (con precedenza rispetto al RowColorField).
 
-NB oggi Colors è una lista di pattern (regex). Sarebbe utile anche poter indicare scaglioni. Si può usare il valore del nodo Colors: se non c'è significa "patterns", altrimenti "ranges".
-
 Problema: come faccio a determinare il colore sulla base di un criterio che includa più campi, o a cambiare anche il colore del testo o altri attributi?
 Uso il JSRenderer e scrivo js e css a mano. Esempio:
 
 Nella view:
     JSRenderer: |
-      if (record.get('Status_Id') === 'ACTIVE') {
-        if (record.get('Address'))
-          metaData.css += 'active_customer';
-        else
-          metaData.css += 'active_customer2';
+      if (value < 100) {
+        metaData.css += 'low_amount';
+      else
+        metaData.css += 'high_amount';
       }
       return value;
 In application.css:
-.active_customer {
+.high_amount {
     background-color: #B0FFC5;
     color:green;
 }
-.active_customer2 {
+.low_amount {
     background-color: #FFB0C4;
     color:red;
 }
+Gli stili css possono anche essere aggiunti direttamente nella funzione javascript, evitando di doverli includere in application.css, chiamando addStyleRule(). Questo è utile nei casi in cui siano dinamici.
