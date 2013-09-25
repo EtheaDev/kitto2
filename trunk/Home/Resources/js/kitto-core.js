@@ -135,17 +135,25 @@ function selectConfirmCall(title, questionTpl, selModel, captionFieldName, funct
   });
 };
 
-// Formats a time specified as a "hh:mm:ss" string
-// according to the specified format.
+// Formats a time specified as a "hh:mm:ss" string according to the specified format.
 // Note: currently this function only decides whether to cut off the seconds
-// part or not depending on the presence of "s" in the format string, which is
-// just what we need now. It should be rewritten to support true formatting.
+// part or not depending on the presence of "s" in the format string, and whether
+// to use ":" or "." as a time separator. Nothing else is implemented for now.
 function formatTime(time, format)
 {
-  if ((!time) || (format.indexOf("s") > -1))
-    return time;
+  var resultTime = time;
+  // Set the right time separator.
+  if (resultTime) {
+    if (format.indexOf(":") > -1)
+      resultTime = resultTime.replace(/\./g, ':');
+    else if (format.indexOf(".") > -1)
+      resultTime = resultTime.replace(/:/g, '.');
+  }
+  // Format with or without seconds.
+  if ((!resultTime) || (format.indexOf("s") > -1))
+    return resultTime;
   else
-    return time.substring(0, 5);
+    return resultTime.substring(0, 5);
 };
 
 // Renders an image with a value.
