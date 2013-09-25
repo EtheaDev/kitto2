@@ -1,15 +1,42 @@
+// Returns an array of all defined style selectors in the document.
+// Used by selectorExists.
+function getAllSelectors() { 
+  var result = [];
+  for (var i = 0; i < document.styleSheets.length; i++) {
+    var rules = document.styleSheets[i].rules || document.styleSheets[i].cssRules;
+    for (var x in rules) {
+      if (typeof rules[x].selectorText == 'string')
+        result.push(rules[x].selectorText);
+    }
+  }
+  return result;
+}
+
+// Returns true if the specified style selector exists in the document.
+// Used by addStyleRule.
+function selectorExists(selector) { 
+  var selectors = getAllSelectors();
+  for (var i = 0; i < selectors.length; i++) {
+    if (selectors[i] == selector)
+      return true;
+  }
+  return false;
+}
+
 // Dynamically adds a style rule. Used to dynamically
 // add icons and other CSS classes in async responses.
-function addStyleRule(rule) {
-  var head = document.getElementsByTagName('head')[0],
-      style = document.createElement('style'),
-      rules = document.createTextNode(rule);
-  style.type = 'text/css';
-  if (style.styleSheet)
-    style.styleSheet.cssText = rules.nodeValue;
-  else
-    style.appendChild(rules);
-  head.appendChild(style);
+function addStyleRule(selector, rule) {
+  if (!selectorExists(selector)) {
+    var head = document.getElementsByTagName('head')[0],
+        style = document.createElement('style'),
+        rules = document.createTextNode(selector + ' ' + rule);
+    style.type = 'text/css';
+    if (style.styleSheet)
+      style.styleSheet.cssText = rules.nodeValue;
+    else
+      style.appendChild(rules);
+    head.appendChild(style);
+  }
 };
 
 // Fires change event if the object value is at least
@@ -156,6 +183,17 @@ function formatTime(time, format)
     return resultTime.substring(0, 5);
 };
 
+// Returns a string equal to displayTemplate with all occurrences of
+// "{value}" replaced by the specificed v. If no displayTemplate is
+// specified, then returns v.
+function formatWithDisplayTemplate(v, displayTemplate)
+{
+  if (displayTemplate != "")
+    return displayTemplate.replace('{value}', v);
+  else
+    return v;
+}
+
 // Renders an image with a value.
 // Patterns is an array of arrays of two/three elements: image URL and regexp
 // are mandatory, and the third element, if present, is a custom value template
@@ -210,16 +248,33 @@ function matchValue(value, patterns)
 };
 
 // Creates a style rule (see addStyleRule()) named after the
-// color obtained by matching the record's specified field
-// against the patterns (see matchValue()). The rule sets
-// the background color to that color. Used to color grid rows
-// according to field values.
-function getRowColorStyleRule(record, fieldName, patterns)
+// 'kitto-color-' prefix and the color obtained by matching the
+// record's specified field against the patterns (see matchValue()).
+// The rule sets the background color to that color.
+// Used to color grid cells and rows according to field values.
+function getColorStyleRuleForRecordField(record, fieldName, patterns)
 {
   var color = matchValue(record.get(fieldName), patterns);
   if (color != '') {
-    var ruleName = 'row-color-' + color;
-    addStyleRule('.' + ruleName + ' { background-color: #' + color + '; }');
+    var ruleName = 'kitto-color-' + color;
+    addStyleRule('.' + ruleName, '{ background-color: #' + color + '; }');
+    return ruleName;
+  }
+  else
+    return '';
+};
+
+// Creates a style rule (see addStyleRule()) named after the
+// 'kitto-color-' prefix and the color obtained by matching the
+// specified value against the patterns (see matchValue()).
+// The rule sets the background color to that color.
+// Used to color grid cells and rows according to field values.
+function getColorStyleRuleForValue(value, patterns)
+{
+  var color = matchValue(value, patterns);
+  if (color != '') {
+    var ruleName = 'kitto-color-' + color;
+    addStyleRule('.' + ruleName, '{ background-color: #' + color + '; }');
     return ruleName;
   }
   else

@@ -241,6 +241,8 @@ type
     ///  if there are any fields that need to be refreshed when the current
     ///  field's value changes.</summary>
     function DerivedFieldsExist: Boolean;
+
+    function GetColorsAsPairs: TEFPairs;
   end;
 
   TKViewFields = class(TKMetadataItem)
@@ -1332,6 +1334,11 @@ begin
     Result := TKRules
   else
     Result := inherited GetChildClass(AName);
+end;
+
+function TKViewField.GetColorsAsPairs: TEFPairs;
+begin
+  Result := GetChildrenAsPairs('Colors', True);
 end;
 
 function TKViewField.GetQualifiedAliasedDBNameOrExpression: string;
