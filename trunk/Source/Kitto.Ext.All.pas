@@ -35,6 +35,7 @@ uses
   , Kitto.Ext.StatusBar
   , Kitto.Ext.TabPanel
   , Kitto.Ext.ToolBar
+  , Kitto.Ext.Tools
   , Kitto.Ext.TreePanel
   , Kitto.Ext.Viewport
   , Kitto.Ext.Window
