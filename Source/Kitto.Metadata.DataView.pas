@@ -305,10 +305,13 @@ type
   TKViewTableHeaderField = class;
 
   TKViewTableHeader = class(TKHeader)
+  private
+    function GetField(I: Integer): TKViewTableHeaderField;
   protected
     function GetChildClass(const AName: string): TEFNodeClass; override;
   public
     function AddField(const AFieldName: string): TKViewTableHeaderField;
+    property Fields[I: Integer]: TKViewTableHeaderField read GetField;
   end;
 
   TKViewTableHeaderField = class(TKHeaderField)
@@ -1800,6 +1803,11 @@ end;
 function TKViewTableHeader.GetChildClass(const AName: string): TEFNodeClass;
 begin
   Result := TKViewTableHeaderField;
+end;
+
+function TKViewTableHeader.GetField(I: Integer): TKViewTableHeaderField;
+begin
+  Result := inherited Fields[I] as TKViewTableHeaderField;
 end;
 
 { TKViewTableRecords }
