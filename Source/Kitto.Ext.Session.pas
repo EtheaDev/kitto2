@@ -774,6 +774,7 @@ function TKExtSession.SetViewIconStyle(const AView: TKView; const AImageName: st
 var
   LIconURL: string;
   LRule: string;
+  LSelector: string;
 begin
   Assert(Assigned(AView));
 
@@ -784,11 +785,12 @@ begin
   // can be shared by different components.
   // no-repeat is added because some components (such as buttons) repeat by default
   // (others, such as menu items and tree nodes, don't).
-  LRule := '.' + Result + ' {background: url(' + LIconURL + ') no-repeat left !important;' + ACustomRules + '}';
+  LSelector := '.' + Result;
+  LRule := '{background: url(' + LIconURL + ') no-repeat left !important;' + ACustomRules + '}';
   if IsAjax then
-    ResponseItems.ExecuteJSCode('addStyleRule("' + LRule + '");')
+    ResponseItems.ExecuteJSCode(Format('addStyleRule("%s", "%s");', [LSelector, LRule]))
   else
-    SetStyle(LRule);
+    SetStyle(LSelector + ' ' + LRule);
 end;
 
 { TKExtUploadedFile }

@@ -86,7 +86,7 @@ implementation
 
 uses
   SysUtils, StrUtils, Math, Types,
-  EF.Tree, EF.StrUtils, EF.Localization, EF.JSON,
+  EF.Tree, EF.StrUtils, EF.Localization, EF.JSON, EF.Macros,
   Kitto.Metadata.Models, Kitto.Rules, Kitto.AccessControl,
   Kitto.Ext.Session, Kitto.Ext.Utils;
 
@@ -213,7 +213,7 @@ begin
     LRowColorPatterns := GetRowColorPatterns(LRowColorFieldName);
     if Length(LRowColorPatterns) > 0 then
       FGridView.SetCustomConfigItem('getRowClass',
-        [JSFunction('r', Format('return getRowColorStyleRule(r, ''%s'', [%s]);',
+        [JSFunction('r', Format('return getColorStyleRuleForRecordField(r, ''%s'', [%s]);',
           [LRowColorFieldName, PairsToJSON(LRowColorPatterns)])), True]);
   end;
   FGridEditorPanel.View := FGridView;
@@ -261,8 +261,20 @@ var
       LImages: TEFNode;
       LTriples: TEFTriples;
       I: Integer;
+      LCustomRenderer: TEFNode;
+      LColorPairs: TEFPairs;
+      LColors: TEFNode;
     begin
       Result := False;
+
+      LCustomRenderer := AViewField.FindNode('JSRenderer');
+      if Assigned(LCustomRenderer) and (LCustomRenderer.AsString <> '') then
+      begin
+        AColumn.RendererExtFunction := AColumn.JSFunction('value, metaData, record, rowIndex, colIndex, store',
+          LCustomRenderer.AsExpandedString);
+        Result := True;
+        Exit;
+      end;
 
       LImages := AViewField.FindNode('Images');
       if Assigned(LImages) and (LImages.ChildCount > 0) then
@@ -278,10 +290,33 @@ var
             LTriples[I].Value3 := AViewField.DisplayTemplate;
         end;
         // Pass array to the client-side renderer.
-        AColumn.RendererExtFunction := AColumn.JSFunction('v',
-          Format('return formatWithImage(v, [%s], %s);',
+        AColumn.RendererExtFunction := AColumn.JSFunction('value',
+          Format('return formatWithImage(value, [%s], %s);',
             [TriplesToJSON(LTriples), IfThen(AViewField.BlankValue, 'false', 'true')]));
         Result := True;
+        Exit;
+      end;
+
+      LColors := AViewField.FindNode('Colors');
+      if Assigned(LColors) and (LColors.ChildCount > 0) then
+      begin
+        LColorPairs := AViewField.GetColorsAsPairs;
+        // Get color list into array of triples (color/regexp/template).
+        SetLength(LTriples, Length(LColorPairs));
+        for I := 0 to High(LColorPairs) do
+        begin
+          LTriples[I].Value1 := LColorPairs[I].Key;
+          LTriples[I].Value2 := TEFMacroExpansionEngine.Instance.Expand(LColorPairs[I].Value);
+          LTriples[I].Value3 := AViewField.DisplayTemplate;
+        end;
+        // Pass array to the client-side renderer.
+        AColumn.RendererExtFunction := AColumn.JSFunction('value, metaData',
+          Format(
+            'metaData.css += getColorStyleRuleForValue(value, [%s]);' +
+            'return %s ? null : formatWithDisplayTemplate(value, ''%s'');',
+            [PairsToJSON(LColorPairs), IfThen(AViewField.BlankValue, 'true', 'false'), AViewField.DisplayTemplate]));
+        Result := True;
+        Exit;
       end;
     end;
 
@@ -438,17 +473,6 @@ begin
 end;
 
 function TKExtGridPanel.GetRowColorPatterns(out AFieldName: string): TEFPairs;
-
-  function GetFieldColors(const AField: TKViewField): TEFPairs;
-  begin
-    Result := AField.GetChildrenAsPairs('Colors', True);
-  end;
-
-  function HasFieldColors(const AField: TKViewField): Boolean;
-  begin
-    Result := Assigned(AField.FindNode('Colors'));
-  end;
-
 var
   LFieldNode: TEFNode;
   I: Integer;
@@ -462,19 +486,7 @@ begin
     if LFieldNode.ChildCount > 0 then
       Result := LFieldNode.GetChildPairs(True)
     else
-      Result := GetFieldColors(ViewTable.FieldByName(LFieldNode.AsExpandedString));
-  end
-  else
-  begin
-    for I := 0 to ViewTable.FieldCount - 1 do
-    begin
-      if HasFieldColors(ViewTable.Fields[I]) then
-      begin
-        AFieldName := ViewTable.Fields[I].FieldName;
-        Result := GetFieldColors(ViewTable.Fields[I]);
-        Break;
-      end;
-    end;
+      Result := ViewTable.FieldByName(LFieldNode.AsExpandedString).GetColorsAsPairs;
   end;
 end;
 
