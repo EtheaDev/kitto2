@@ -2,8 +2,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: 1.0\n"
-"POT-Creation-Date: 2013-04-26 16:13\n"
-"PO-Revision-Date: 2013-04-26 16:19+0100\n"
+"POT-Creation-Date: 2013-09-30 11:17\n"
+"PO-Revision-Date: 2013-09-30 11:20+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -108,12 +108,12 @@ msgstr "Errore durante la modifica della password."
 msgid "File %s not found."
 msgstr "File %s non trovato."
 
-#: Kitto.Config.pas:520
+#: Kitto.Config.pas:523
 msgid "Access denied. The user is not allowed to perform this operation."
 msgstr ""
 "Accesso negato. L'utente non ha il permesso di effettuare questa operazione."
 
-#: Kitto.Config.pas:521
+#: Kitto.Config.pas:526
 msgid "Resource URI: %s; access mode: %s."
 msgstr "URI della risorsa: %s; modalità di accesso: %s."
 
@@ -212,132 +212,151 @@ msgstr "Il nodo dell'opzione %s non può contenere sotto-nodi."
 msgid "Unknown edit item type %s."
 msgstr "Elemento %s sconosciuto."
 
-#: Kitto.Ext.Editors.pas:2472
+#: Kitto.Ext.Editors.pas:2475
 msgid "Download file"
 msgstr "Scarica file"
 
-#: Kitto.Ext.Editors.pas:2480
+#: Kitto.Ext.Editors.pas:2483
 msgid "Upload file"
 msgstr "Carica file"
 
-#: Kitto.Ext.Editors.pas:2486
+#: Kitto.Ext.Editors.pas:2489
 msgid "Clear field"
 msgstr "Cancella campo"
 
-#: Kitto.Ext.Editors.pas:2530
+#: Kitto.Ext.Editors.pas:2533
 msgid "Empty"
 msgstr "Vuoto"
 
-#: Kitto.Ext.Editors.pas:2574
+#: Kitto.Ext.Editors.pas:2577
 msgid "File upload"
 msgstr "Caricamento file"
 
-#: Kitto.Ext.Editors.pas:2582
+#: Kitto.Ext.Editors.pas:2585
 msgid "Select a file to upload"
 msgstr "Seleziona un file da caricare"
 
-#: Kitto.Ext.Editors.pas:2586
+#: Kitto.Ext.Editors.pas:2589
 msgid "Upload"
 msgstr "Carica"
 
-#: Kitto.Ext.Editors.pas:2590
+#: Kitto.Ext.Editors.pas:2593
 msgid "File upload in progress..."
 msgstr "Caricamento in corso..."
 
-#: Kitto.Ext.Editors.pas:2591
+#: Kitto.Ext.Editors.pas:2594
 msgid "Please wait..."
 msgstr "Attendere, prego..."
 
-#: Kitto.Ext.Editors.pas:2593
+#: Kitto.Ext.Editors.pas:2596
 msgid "File upload error"
 msgstr "Errore durante il caricamento"
 
-#: Kitto.Ext.Editors.pas:2622
+#: Kitto.Ext.Editors.pas:2625
 msgid "%s file (%s)"
 msgstr "File %s (%s)"
 
 #. Load data from FServerRecord.
-#: Kitto.Ext.Form.pas:279
+#: Kitto.Ext.Form.pas:307
 msgid "Load failed."
 msgstr "Caricamento fallito."
 
 #. Get uploaded files.
-#: Kitto.Ext.Form.pas:376
+#: Kitto.Ext.Form.pas:404
 msgid "Data type %s does not support file upload."
 msgstr "Il tipo di dato %s non supporta l'upload di file."
 
 #. Save record.
-#: Kitto.Ext.Form.pas:385
+#: Kitto.Ext.Form.pas:413
 msgid "Changes saved succesfully."
 msgstr "Modifica memorizzate correttamente."
 
-#: Kitto.Ext.Form.pas:455
+#: Kitto.Ext.Form.pas:505
 msgid "Operation Add not supported on read-only data."
 msgstr "Aggiunta non consentita su dati a sola lettura."
 
-#: Kitto.Ext.Form.pas:464
+#: Kitto.Ext.Form.pas:507
+#, fuzzy
+msgid "Operation Duplicate not supported on read-only data."
+msgstr "Aggiunta non consentita su dati a sola lettura."
+
+#: Kitto.Ext.Form.pas:519
+msgid "Save & Clone"
+msgstr "Salva e duplica"
+
+#: Kitto.Ext.Form.pas:520
+msgid "Save changes and create a new clone record"
+msgstr "Salva e crea un nuovo record duplicato"
+
+#. FSaveButton.Handler := JSFunction(FFormPanel.JSName + '.getForm().doAction("submit", {success:"AjaxSuccess", failure:"AjaxFailure"});');
+#: Kitto.Ext.Form.pas:534
 msgid "Save"
 msgstr "Salva"
 
-#: Kitto.Ext.Form.pas:465
+#: Kitto.Ext.Form.pas:535
 msgid "Save changes and finish editing"
 msgstr "Salva le modifiche"
 
 #. FSaveButton.Handler := JSFunction(FFormPanel.JSName + '.getForm().doAction("submit", {success:"AjaxSuccess", failure:"AjaxFailure"});');
-#: Kitto.Ext.Form.pas:479
+#: Kitto.Ext.Form.pas:549
 msgid "Close"
 msgstr "Chiudi"
 
-#: Kitto.Ext.Form.pas:480
+#: Kitto.Ext.Form.pas:550
 msgid "Close this panel"
 msgstr "Chiudi il pannello"
 
 #. No need for an ajax call when we just close the client-side panel.
-#: Kitto.Ext.Form.pas:488
+#: Kitto.Ext.Form.pas:558
 msgid "Cancel"
 msgstr "Annulla"
 
-#: Kitto.Ext.Form.pas:489
+#: Kitto.Ext.Form.pas:559
 msgid "Cancel changes"
 msgstr "Annulla modifiche"
 
-#: Kitto.Ext.GridPanel.pas:176
+#: Kitto.Ext.GridPanel.pas:185
 msgid "No data to display in this group."
 msgstr "Questo gruppo è vuoto."
 
-#: Kitto.Ext.GridPanel.pas:195
+#: Kitto.Ext.GridPanel.pas:204
 msgid "No data to display."
 msgstr "Nessun dato da mostrare."
 
-#: Kitto.Ext.GridPanel.pas:491
+#: Kitto.Ext.GridPanel.pas:511
 msgid "Add %s"
 msgstr "Aggiungi %s"
 
-#: Kitto.Ext.GridPanel.pas:493
+#: Kitto.Ext.GridPanel.pas:513
 msgid "Edit %s"
 msgstr "Modifica %s"
 
-#: Kitto.Ext.GridPanel.pas:645
+#: Kitto.Ext.GridPanel.pas:680
 msgid "%s deleted."
 msgstr "%s cancellato."
 
-#: Kitto.Ext.GridPanel.pas:721
+#: Kitto.Ext.GridPanel.pas:758
+#, fuzzy
+msgid "Duplicate %s"
+msgstr "Oggetto %s duplicato."
+
+#: Kitto.Ext.GridPanel.pas:779
 msgid "View %s"
 msgstr "Mostra %s"
 
-#: Kitto.Ext.GridPanel.pas:732
+#: Kitto.Ext.GridPanel.pas:790
 msgid "Delete %s"
 msgstr "Elimina %s"
 
-#: Kitto.Ext.GridPanel.pas:739
+#: Kitto.Ext.GridPanel.pas:797
 msgid "Selected %s {caption} will be deleted. Are you sure?"
 msgstr "Il record {caption} di tipo %s sarà eliminato. Continuo?"
 
-#: Kitto.Ext.List.pas:114
+#: Kitto.Ext.List.pas:115
 msgid "Search"
 msgstr "Cerca"
 
-#: Kitto.Ext.List.pas:133
+#: Kitto.Ext.List.pas:134
 msgid "Invalid value %s. Valid values: whole numbers."
 msgstr "Valore %s non valido. Deve essere un numero intero."
 
@@ -443,11 +462,11 @@ msgstr "Regola %s violata."
 msgid "%s must be greater than or equal to %s."
 msgstr "%s deve essere maggiore o uguale a %s."
 
-#: Kitto.Store.pas:644
+#: Kitto.Store.pas:646
 msgid "Record not found for predicate {%s}."
 msgstr "Record non trovato per la condizione {%s}."
 
-#: Kitto.Store.pas:773
+#: Kitto.Store.pas:775
 msgid "Field %s not found."
 msgstr "Campo %s non trovato."
 
@@ -529,7 +548,7 @@ msgstr ""
 "Errore \"%s\" durante la copia da \"%s\" a \"%s\". Il file di destinazione "
 "potrebbe essere in uso."
 
-#: EF/EF.Tree.pas:2004
+#: EF/EF.Tree.pas:2028
 msgid "Node %s not found."
 msgstr "Nodo %s non trovato."
 
