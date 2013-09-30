@@ -475,7 +475,6 @@ end;
 function TKExtGridPanel.GetRowColorPatterns(out AFieldName: string): TEFPairs;
 var
   LFieldNode: TEFNode;
-  I: Integer;
 begin
   AFieldName := '';
   Result := nil;
