@@ -84,12 +84,25 @@ function kittoInit()
   });
 
   Ext.override(Ext.Window, {
+    setClippedHeight: function(y) {
+      ws = getWindowClientSize();
+      if (y > ws.y)
+        y = ws.y;
+      this.setHeight(y);
+      p = this.getPosition();
+      this.setPosition(p[0], (ws.y / 2) - (y / 2));
+    },
+    
     setOptimalSize: function(extraWidth, extraHeight) {
       s = this.getFormPanelOptimalSize();
-      if (s)
+      if (s) {
         // Add space for borders and caption bar.
         // TODO: Calculate them automatically.
-        this.setSize(s.x + 50 + extraWidth, s.y + extraHeight);
+        s.x += 50 + extraWidth;
+        s.y += extraHeight;
+        s = clipToClientArea(s);
+        this.setSize(s.x, s.y);
+      }
     }
   });
 

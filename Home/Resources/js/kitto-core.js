@@ -1,3 +1,26 @@
+function clipToClientArea(size) {
+  s = size;
+  ws = getWindowClientSize();
+  if (s.x > ws.x)
+    s.x = ws.x;
+  if (s.y > ws.y)
+    s.y = ws.y;
+  return s;
+}
+
+function getWindowClientSize() {
+  var
+    w = window,
+    d = document,
+    e = d.documentElement,
+    g = d.getElementsByTagName('body')[0];
+  var
+    result = {};
+  result.x = w.innerWidth || e.clientWidth || g.clientWidth,
+  result.y = w.innerHeight|| e.clientHeight|| g.clientHeight;
+  return result;
+}
+
 // Returns an array of all defined style selectors in the document.
 // Used by selectorExists.
 function getAllSelectors() { 
