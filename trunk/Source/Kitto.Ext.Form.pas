@@ -572,7 +572,6 @@ begin
   FFormPanel.LabelWidth := 120;
   FFormPanel.MonitorValid := True;
   FFormPanel.Cls := 'x-panel-mc'; // Sets correct theme background color.
-  { TODO : check pages in layout as well }
   if ((ViewTable.DetailTableCount > 0) and SameText(GetDetailStyle, 'Tabs')) or LayoutContainsPageBreaks then
   begin
     FTabPanel := TExtTabPanel.CreateAndAddTo(FFormPanel.Items);
@@ -592,7 +591,6 @@ begin
     FMainPagePanel.Region := rgCenter;
     FMainPagePanel.EditPanel := FFormPanel;
   end;
-  FMainPagePanel.PaddingString := '5px';
   //Session.ResponseItems.ExecuteJSCode(Format('%s.getForm().url = "%s";', [FFormPanel.JSName, MethodURI(ConfirmChanges)]));
 end;
 

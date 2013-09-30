@@ -1356,7 +1356,9 @@ begin
   inherited;
   BodyStyle := 'background:none';
   Layout := lyForm;
-  PaddingString := '5px';
+  // Leave room for the scroll bar on the right.
+  PaddingString := '5px 20px 5px 5px';
+  AutoScroll := True;
 end;
 
 procedure TKExtEditPage.RefreshValue;
@@ -1426,10 +1428,23 @@ end;
 procedure TKExtFormFieldSet.InitDefaults;
 begin
   inherited;
-  On('beforecollapse', JSFunction('this.kPreviousHeight = this.getHeight();'), Self);
-  On('collapse', JSFunction('if ("kPreviousHeight" in this && this.getTopOwner() instanceof Ext.Window) this.getTopOwner().setHeight(this.getTopOwner().getHeight() - this.kPreviousHeight + this.getHeight());'), Self);
-  On('beforeexpand', JSFunction('this.kPreviousHeight = this.getHeight();'), Self);
-  On('expand', JSFunction('if ("kPreviousHeight" in this && this.getTopOwner() instanceof Ext.Window) this.getTopOwner().setHeight(this.getTopOwner().getHeight() - this.kPreviousHeight + this.getHeight());'), Self);
+//  On('beforecollapse', JSFunction(
+//    'this.kPreviousHeight = this.getHeight();'
+//  ), Self);
+//
+//  On('collapse', JSFunction(
+//    'if ("kPreviousHeight" in this && this.getTopOwner() instanceof Ext.Window) ' +
+//    '  this.getTopOwner().setClippedHeight(this.getTopOwner().getHeight() - this.kPreviousHeight + this.getHeight());'
+//  ), Self);
+//
+//  On('beforeexpand', JSFunction(
+//    'this.kPreviousHeight = this.getHeight();'
+//  ), Self);
+//
+//  On('expand', JSFunction(
+//    'if ("kPreviousHeight" in this && this.getTopOwner() instanceof Ext.Window) ' +
+//    '  this.getTopOwner().setClippedHeight(this.getTopOwner().getHeight() - this.kPreviousHeight + this.getHeight());'
+//  ), Self);
 end;
 
 procedure TKExtFormFieldSet.RefreshValue;
