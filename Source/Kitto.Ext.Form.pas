@@ -583,6 +583,7 @@ begin
     FMainPagePanel.Title := _(ViewTable.DisplayLabel);
     FMainPagePanel.EditPanel := FFormPanel;
     FTabPanel.SetActiveTab(0);
+    FTabPanel.On('tabchange', FTabPanel.JSFunction(FTabPanel.JSName + '.doLayout();'));
   end
   else
   begin

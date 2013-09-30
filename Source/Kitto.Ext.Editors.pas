@@ -447,6 +447,12 @@ type
     function CreatePageBreak(const ATitle: string): IKExtEditItem;
     const TRIGGER_WIDTH = 2;
     function GetViewTable: TKViewTable;
+    function TryCreateComboBox(const AViewField: TKViewField;
+      const ARowField: TKExtFormRowField; const AFieldCharWidth: Integer;
+      const AIsReadOnly: Boolean; const ARecordField: TKViewTableField): IKExtEditor;
+    function TryCreateTextArea(const AViewField: TKViewField;
+      const ARowField: TKExtFormRowField; const AFieldCharWidth: Integer;
+      const AIsReadOnly: Boolean): IKExtEditor;
     function TryCreateCheckBox(const AViewField: TKViewField;
       const AIsReadOnly: Boolean): IKExtEditor;
     function TryCreateDateField(const AViewField: TKViewField;
@@ -481,12 +487,6 @@ type
     procedure CreateEditorsFromLayout(const ALayout: TKLayout);
     procedure ProcessLayoutNode(const ANode: TEFNode);
     function GetLookupCommandText(const AViewField: TKViewField): string;
-    function TryCreateComboBox(const AViewField: TKViewField;
-      const ARowField: TKExtFormRowField; const AFieldCharWidth: Integer;
-      const AIsReadOnly: Boolean; const ARecordField: TKViewTableField): IKExtEditor;
-    function TryCreateTextArea(const AViewField: TKViewField;
-      const ARowField: TKExtFormRowField; const AFieldCharWidth: Integer;
-      const AIsReadOnly: Boolean): IKExtEditor;
     property Session: TKExtSession read GetSession;
   public
     procedure AfterConstruction; override;
@@ -1445,6 +1445,7 @@ begin
 //    'if ("kPreviousHeight" in this && this.getTopOwner() instanceof Ext.Window) ' +
 //    '  this.getTopOwner().setClippedHeight(this.getTopOwner().getHeight() - this.kPreviousHeight + this.getHeight());'
 //  ), Self);
+  On('expand', JSFunction('this.getTopOwner().doLayout();'), Self);
 end;
 
 procedure TKExtFormFieldSet.RefreshValue;
