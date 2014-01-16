@@ -705,7 +705,7 @@ begin
   Assert(Assigned(ASessionClass) and ASessionClass.InheritsFrom(TFCGISession));
   FThreads := TStringList.Create;
   AccessThreads := TCriticalSection.Create;
-  MaxIdleTime := EncodeTime(0, pMaxIdleMinutes, 0, 0);
+  MaxIdleTime := EncodeTime(pMaxIdleMinutes div 60, pMaxIdleMinutes mod 60, 0, 0);
   Shutdown := pShutdownAfterLastThreadDown;
   WServers := GetEnvironmentVariable('FCGI_WEB_SERVER_ADDRS');
   if WServers <> '' then begin
