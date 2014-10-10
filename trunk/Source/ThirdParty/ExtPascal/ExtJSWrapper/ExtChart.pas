@@ -804,14 +804,12 @@ end;
 procedure TExtChartPieChart.SetDataField(AValue : String);
 begin
   FDataField := AValue;
-//  ExtSession.ResponseItems.SetConfigItem(Self, 'dataField', 'setDataField', [AValue]);
-  ExtSession.ResponseItems.SetConfigItem(Self, 'DataField', [AValue]);
+  ExtSession.ResponseItems.SetConfigItem(Self, 'dataField', [AValue]);
 end;
 
 procedure TExtChartPieChart.SetCategoryField(AValue : String);
 begin
   FCategoryField := AValue;
-//  ExtSession.ResponseItems.SetConfigItem(Self, 'categoryField', 'setCategoryField', [AValue]);
   ExtSession.ResponseItems.SetConfigItem(Self, 'categoryField', [AValue]);
 end;
 
