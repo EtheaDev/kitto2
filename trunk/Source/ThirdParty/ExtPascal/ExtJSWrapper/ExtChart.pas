@@ -42,10 +42,12 @@ type
     procedure SetFDataTip(Value : TExtDataTip);
   public
     class function JSClassName : string; override;
+(*
     property Padding : Integer read FPadding write SetFPadding;
     property AnimationEnabled : Boolean read FAnimationEnabled write SetFAnimationEnabled;
     property Font : TExtFont read FFont write SetFFont;
     property DataTip : TExtDataTip read FDataTip write SetFDataTip;
+*)
   end;
 
   TExtChartSeries = class(TExtFunction)
@@ -53,14 +55,14 @@ type
     FDisplayName : String;
     FTypeJS : String;
     FStyle : TExtChartSeriesStyle;
-    procedure SetFDisplayName(Value : String);
-    procedure SetFTypeJS(Value : String);
-    procedure SetFStyle(Value : TExtChartSeriesStyle);
+    procedure SetDisplayName(AValue : String);
+    procedure SetTypeJS(AValue : String);
+    procedure SetStyle(AValue : TExtChartSeriesStyle);
   public
     class function JSClassName : string; override;
-    property DisplayName : String read FDisplayName write SetFDisplayName;
-    property TypeJS : String read FTypeJS write SetFTypeJS;
-    property Style : TExtChartSeriesStyle read FStyle write SetFStyle;
+    property DisplayName : String read FDisplayName write SetDisplayName;
+    property TypeJS : String read FTypeJS write SetTypeJS;
+    property Style : TExtChartSeriesStyle read FStyle write SetStyle;
   end;
 
   TExtChartSeriesStyle = class(TExtFunction)
@@ -68,14 +70,14 @@ type
     FImage : String;
     FMode : String;
     FColor : String;
-    procedure SetFImage(Value : String);
-    procedure SetFMode(Value : String);
-    procedure SetFColor(Value : String);
+    procedure SetImage(AValue : String);
+    procedure SetMode(AValue : String);
+    procedure SetColor(AValue : String);
   public
     class function JSClassName : string; override;
-    property Image : String read FImage write SetFImage;
-    property Mode : String read FMode write SetFMode;
-    property Color : String read FColor write SetFColor;
+    property Image : String read FImage write SetImage;
+    property Mode : String read FMode write SetMode;
+    property Color : String read FColor write SetColor;
   end;
 
   TExtChartAxis = class(TExtFunction)
@@ -87,29 +89,27 @@ type
     FReverse : Boolean;
     FTypeJS : String;
     FDisplayName : String;
-    FLabelRenderer : TExtFunction;
     FTitle : String;
     procedure SetFHideOverlappingLabels(Value : Boolean);
-    procedure SetFLabelFunction(Value : String);
+    procedure SetLabelFunction(AValue : String);
     procedure SetFLabelSpacing(Value : Integer);
     procedure SetFOrientation(Value : String);
     procedure SetFReverse(Value : Boolean);
     procedure SetFTypeJS(Value : String);
     procedure SetFDisplayName(Value : String);
-    procedure SetFLabelRenderer(Value : TExtFunction);
-    procedure SetFTitle(Value : String);
+    procedure SetTitle(AValue : String);
   public
     class function JSClassName : string; override;
-    property HideOverlappingLabels : Boolean read FHideOverlappingLabels write SetFHideOverlappingLabels;
-    property LabelFunction : String read FLabelFunction write SetFLabelFunction;
+//    property HideOverlappingLabels : Boolean read FHideOverlappingLabels write SetFHideOverlappingLabels;
+    property LabelFunction : String read FLabelFunction write SetLabelFunction;
+(*
     property LabelSpacing : Integer read FLabelSpacing write SetFLabelSpacing;
     property Orientation : String read FOrientation write SetFOrientation;
     property Reverse : Boolean read FReverse write SetFReverse;
     property TypeJS : String read FTypeJS write SetFTypeJS;
     property DisplayName : String read FDisplayName write SetFDisplayName;
-    property LabelRenderer : TExtFunction read FLabelRenderer write SetFLabelRenderer;
-    procedure SetLabelRenderer(Value : String);
-    property Title : String read FTitle write SetFTitle;
+*)
+    property Title : String read FTitle write SetTitle;
   end;
 
   TExtChartNumericAxis = class(TExtChartAxis)
@@ -119,9 +119,9 @@ type
     FAlwaysShowZero : Boolean;
     FCalculateByLabelSize : Boolean;
     FMajorUnit : Integer;
+    FMinorUnit : Integer;
     FMaximum : Integer;
     FMinimum : Integer;
-    FMinorUnit : Integer;
     FPosition : String;
     FRoundMajorUnit : Boolean;
     FScale : String;
@@ -131,63 +131,64 @@ type
     procedure SetFAdjustMinimumByMajorUnit(Value : Boolean);
     procedure SetFAlwaysShowZero(Value : Boolean);
     procedure SetFCalculateByLabelSize(Value : Boolean);
-    procedure SetFMajorUnit(Value : Integer);
-    procedure SetFMaximum(Value : Integer);
-    procedure SetFMinimum(Value : Integer);
-    procedure SetFMinorUnit(Value : Integer);
+    procedure SetMajorUnit(AValue : Integer);
+    procedure SetMinorUnit(AValue : Integer);
+    procedure SetMaximum(AValue : Integer);
+    procedure SetMinimum(AValue : Integer);
     procedure SetFPosition(Value : String);
     procedure SetFRoundMajorUnit(Value : Boolean);
     procedure SetFScale(Value : String);
     procedure SetFSnapToUnits(Value : Boolean);
-    procedure SetFStackingEnabled(Value : Boolean);
+    procedure SetStackingEnabled(AValue : Boolean);
   public
     class function JSClassName : string; override;
+(*
     property AdjustMaximumByMajorUnit : Boolean read FAdjustMaximumByMajorUnit write SetFAdjustMaximumByMajorUnit;
     property AdjustMinimumByMajorUnit : Boolean read FAdjustMinimumByMajorUnit write SetFAdjustMinimumByMajorUnit;
     property AlwaysShowZero : Boolean read FAlwaysShowZero write SetFAlwaysShowZero;
     property CalculateByLabelSize : Boolean read FCalculateByLabelSize write SetFCalculateByLabelSize;
-    property MajorUnit : Integer read FMajorUnit write SetFMajorUnit;
-    property Maximum : Integer read FMaximum write SetFMaximum;
-    property Minimum : Integer read FMinimum write SetFMinimum;
-    property MinorUnit : Integer read FMinorUnit write SetFMinorUnit;
+*)
+    property MajorUnit : Integer read FMajorUnit write SetMajorUnit;
+    property MinorUnit : Integer read FMinorUnit write SetMinorUnit;
+    property Maximum : Integer read FMaximum write SetMaximum;
+    property Minimum : Integer read FMinimum write SetMinimum;
+(*
     property Position : String read FPosition write SetFPosition;
     property RoundMajorUnit : Boolean read FRoundMajorUnit write SetFRoundMajorUnit;
     property Scale : String read FScale write SetFScale;
     property SnapToUnits : Boolean read FSnapToUnits write SetFSnapToUnits;
-    property StackingEnabled : Boolean read FStackingEnabled write SetFStackingEnabled;
+*)
+    property StackingEnabled : Boolean read FStackingEnabled write SetStackingEnabled;
   end;
 
   TExtChartTimeAxis = class(TExtChartAxis)
   private
     FCalculateByLabelSize : Boolean;
     FMajorTimeUnit : String;
-    FMajorTimeUnit_ : String;
     FMajorUnit : Integer;
-    FMajorUnit_ : Integer;
+    FMinorUnit : Integer;
     FMaximum : Integer;
     FMinimum : TDateTime;
     FSnapToUnits : Boolean;
     FStackingEnabled : Boolean;
     procedure SetFCalculateByLabelSize(Value : Boolean);
-    procedure SetFMajorTimeUnit(Value : String);
-    procedure SetFMajorTimeUnit_(Value : String);
-    procedure SetFMajorUnit(Value : Integer);
-    procedure SetFMajorUnit_(Value : Integer);
-    procedure SetFMaximum(Value : Integer);
-    procedure SetFMinimum(Value : TDateTime);
+    procedure SetMajorTimeUnit(AValue : String);
+    procedure SetMajorUnit(AValue : Integer);
+    procedure SetMinorUnit(AValue : Integer);
+    procedure SetMaximum(AValue : Integer);
+    procedure SetMinimum(AValue : TDateTime);
     procedure SetFSnapToUnits(Value : Boolean);
-    procedure SetFStackingEnabled(Value : Boolean);
+    procedure SetStackingEnabled(AValue : Boolean);
   public
     class function JSClassName : string; override;
-    property CalculateByLabelSize : Boolean read FCalculateByLabelSize write SetFCalculateByLabelSize;
-    property MajorTimeUnit : String read FMajorTimeUnit write SetFMajorTimeUnit;
-    property MajorTimeUnit_ : String read FMajorTimeUnit_ write SetFMajorTimeUnit_;
-    property MajorUnit : Integer read FMajorUnit write SetFMajorUnit;
-    property MajorUnit_ : Integer read FMajorUnit_ write SetFMajorUnit_;
-    property Maximum : Integer read FMaximum write SetFMaximum;
-    property Minimum : TDateTime read FMinimum write SetFMinimum;
-    property SnapToUnits : Boolean read FSnapToUnits write SetFSnapToUnits;
-    property StackingEnabled : Boolean read FStackingEnabled write SetFStackingEnabled;
+//    property CalculateByLabelSize : Boolean read FCalculateByLabelSize write SetFCalculateByLabelSize;
+    property MajorTimeUnit : String read FMajorTimeUnit write SetMajorTimeUnit;
+    property MajorUnit : Integer read FMajorUnit write SetMajorUnit;
+    property MinorUnit : Integer read FMinorUnit write SetMinorUnit;
+    property Maximum : Integer read FMaximum write SetMaximum;
+    property Minimum : TDateTime read FMinimum write SetMinimum;
+//    property SnapToUnits : Boolean read FSnapToUnits write SetFSnapToUnits;
+    property StackingEnabled : Boolean read FStackingEnabled write SetStackingEnabled;
   end;
 
   TExtChartPieSeries = class(TExtChartSeries)
@@ -203,14 +204,14 @@ type
     FYField : String;
     procedure SetFAxis(Value : String);
     procedure SetFShowInLegend(Value : Boolean);
-    procedure SetFXField(Value : String);
-    procedure SetFYField(Value : String);
+    procedure SetXField(AValue : String);
+    procedure SetYField(AValue : String);
   public
     class function JSClassName : string; override;
     property Axis : String read FAxis write SetFAxis;
     property ShowInLegend : Boolean read FShowInLegend write SetFShowInLegend;
-    property XField : String read FXField write SetFXField;
-    property YField : String read FYField write SetFYField;
+    property XField : String read FXField write SetXField;
+    property YField : String read FYField write SetYField;
   end;
 
   TExtChartCategoryAxis = class(TExtChartAxis)
@@ -221,8 +222,8 @@ type
     procedure SetFCategoryNames(Value : TExtObjectList);
   public
     class function JSClassName : string; override;
-    property CalculateCategoryCount : Boolean read FCalculateCategoryCount write SetFCalculateCategoryCount;
-    property CategoryNames : TExtObjectList read FCategoryNames write SetFCategoryNames;
+//    property CalculateCategoryCount : Boolean read FCalculateCategoryCount write SetFCalculateCategoryCount;
+//    property CategoryNames : TExtObjectList read FCategoryNames write SetFCategoryNames;
   end;
 
   TExtChartLineSeries = class(TExtChartCartesianSeries)
@@ -260,17 +261,17 @@ type
     FSeries : TExtObjectList;
     FOnBeforerefresh : TExtChartChartOnBeforerefresh;
     FOnRefresh : TExtChartChartOnRefresh;
-    procedure SetFChartStyle(Value : TExtObject);
+    procedure SetChartStyle(AValue : TExtObject);
     procedure SetFDisableCaching(Value : Boolean);
     procedure SetFExtraStyle(Value : TExtObject);
     procedure SetFSeriesStyles(Value : TExtObject);
-    procedure SetFUrl(Value : String);
-    procedure SetFStore(Value : TExtDataStore);
-    procedure SetFYField(Value : String);
-    procedure SetFXField(Value : String);
-    procedure SetFXAxis(Value : TExtChartAxis);
-    procedure SetFYAxis(Value : TExtChartAxis);
-    procedure SetFTipRenderer(Value : TExtFunction);
+    procedure SetUrl(AValue : String);
+    procedure SetStore(AValue : TExtDataStore);
+    procedure SetYField(AValue : String);
+    procedure SetXField(AValue : String);
+    procedure SetXAxis(AValue : TExtChartAxis);
+    procedure SetYAxis(AValue : TExtChartAxis);
+    procedure SetTipRenderer(AValue : TExtFunction);
     procedure SetFSeries(Value : TExtObjectList);
     procedure SetFOnBeforerefresh(Value : TExtChartChartOnBeforerefresh);
     procedure SetFOnRefresh(Value : TExtChartChartOnRefresh);
@@ -284,18 +285,20 @@ type
     function SetSeriesStyles(Styles : TExtObjectList) : TExtFunction;
     function SetStyle(Name : String; Value : TExtObject) : TExtFunction;
     function SetStyles(Styles : TExtObject) : TExtFunction;
-    property ChartStyle : TExtObject read FChartStyle write SetFChartStyle;
+    property ChartStyle : TExtObject read FChartStyle write SetChartStyle;
+(*
     property DisableCaching : Boolean read FDisableCaching write SetFDisableCaching;
     property ExtraStyle : TExtObject read FExtraStyle write SetFExtraStyle;
     property SeriesStyles : TExtObject read FSeriesStyles write SetFSeriesStyles;
-    property Url : String read FUrl write SetFUrl;
-    property Store : TExtDataStore read FStore write SetFStore;
-    property YField : String read FYField write SetFYField;
-    property XField : String read FXField write SetFXField;
-    property XAxis : TExtChartAxis read FXAxis write SetFXAxis;
-    property YAxis : TExtChartAxis read FYAxis write SetFYAxis;
-    property TipRenderer : TExtFunction read FTipRenderer write SetFTipRenderer;
-    property Series : TExtObjectList read FSeries write SetFSeries;
+*)
+    property Url : String read FUrl write SetUrl;
+    property Store : TExtDataStore read FStore write SetStore;
+    property YField : String read FYField write SetYField;
+    property XField : String read FXField write SetXField;
+    property XAxis : TExtChartAxis read FXAxis write SetXAxis;
+    property YAxis : TExtChartAxis read FYAxis write SetYAxis;
+    property TipRenderer : TExtFunction read FTipRenderer write SetTipRenderer;
+    property Series : TExtObjectList read FSeries; // write SetFSeries;
     property OnBeforerefresh : TExtChartChartOnBeforerefresh read FOnBeforerefresh write SetFOnBeforerefresh;
     property OnRefresh : TExtChartChartOnRefresh read FOnRefresh write SetFOnRefresh;
   end;
@@ -311,14 +314,14 @@ type
   private
     FDataField : String;
     FCategoryField : String;
-    procedure SetFDataField(Value : String);
-    procedure SetFCategoryField(Value : String);
+    procedure SetDataField(AValue : String);
+    procedure SetCategoryField(AValue : String);
   protected
     procedure InitDefaults; override;
   public
     class function JSClassName : string; override;
-    property DataField : String read FDataField write SetFDataField;
-    property CategoryField : String read FCategoryField write SetFCategoryField;
+    property DataField : String read FDataField write SetDataField;
+    property CategoryField : String read FCategoryField write SetCategoryField;
   end;
 
   TExtChartStackedColumnChart = class(TExtChartCartesianChart)
@@ -382,39 +385,45 @@ class function TExtChartStyle.JSClassName : string; begin
   Result := 'Object';
 end;
 
-procedure TExtChartSeries.SetFDisplayName(Value : String); begin
-  FDisplayName := Value;
-  JSCode('displayName:' + VarToJSON([Value]));
+procedure TExtChartSeries.SetDisplayName(AValue : String);
+begin
+  FDisplayName := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'displayName', [AValue]);
 end;
 
-procedure TExtChartSeries.SetFTypeJS(Value : String); begin
-  FTypeJS := Value;
-  JSCode('type:' + VarToJSON([Value]));
+procedure TExtChartSeries.SetTypeJS(AValue : String);
+begin
+  FTypeJS := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'type', [AValue]);
 end;
 
-procedure TExtChartSeries.SetFStyle(Value : TExtChartSeriesStyle); begin
+procedure TExtChartSeries.SetStyle(AValue : TExtChartSeriesStyle);
+begin
   FStyle.Free;
-  FStyle := Value;
-    JSCode('style:' + VarToJSON([Value, false]));
+  FStyle := AValue;
+  ExtSession.ResponseItems.SetProperty(Self, 'style', [AValue, False]);
 end;
 
 class function TExtChartSeries.JSClassName : string; begin
   Result := 'Ext.chart.Series';
 end;
 
-procedure TExtChartSeriesStyle.SetFImage(Value : String); begin
-  FImage := Value;
-  JSCode('image:' + VarToJSON([Value]));
+procedure TExtChartSeriesStyle.SetImage(AValue : String);
+begin
+  FImage := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'image', 'setImage', [AValue]);
 end;
 
-procedure TExtChartSeriesStyle.SetFMode(Value : String); begin
-  FMode := Value;
-  JSCode('mode:' + VarToJSON([Value]));
+procedure TExtChartSeriesStyle.SetMode(AValue : String);
+begin
+  FMode := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'mode', [AValue]);
 end;
 
-procedure TExtChartSeriesStyle.SetFColor(Value : String); begin
-  FColor := Value;
-  JSCode('color:' + VarToJSON([Value]));
+procedure TExtChartSeriesStyle.SetColor(AValue : String);
+begin
+  FColor := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'color', [AValue]);
 end;
 
 class function TExtChartSeriesStyle.JSClassName : string; begin
@@ -426,9 +435,10 @@ procedure TExtChartAxis.SetFHideOverlappingLabels(Value : Boolean); begin
   JSCode(JSName + '.hideOverlappingLabels=' + VarToJSON([Value]) + ';');
 end;
 
-procedure TExtChartAxis.SetFLabelFunction(Value : String); begin
-  FLabelFunction := Value;
-  JSCode(JSName + '.labelFunction=' + VarToJSON([Value]) + ';');
+procedure TExtChartAxis.SetLabelFunction(AValue : String);
+begin
+  FLabelFunction := AValue;
+  ExtSession.ResponseItems.SetProperty(Self, 'labelFunction', [AValue]);
 end;
 
 procedure TExtChartAxis.SetFLabelSpacing(Value : Integer); begin
@@ -451,24 +461,15 @@ procedure TExtChartAxis.SetFTypeJS(Value : String); begin
   JSCode(JSName + '.typeJS=' + VarToJSON([Value]) + ';');
 end;
 
-procedure TExtChartAxis.SetLabelRenderer(Value: String);
-begin
-  JSCode('labelRenderer:' + Value);
-end;
-
 procedure TExtChartAxis.SetFDisplayName(Value : String); begin
   FDisplayName := Value;
   JSCode('displayName:' + VarToJSON([Value]));
 end;
 
-procedure TExtChartAxis.SetFLabelRenderer(Value : TExtFunction); begin
-  FLabelRenderer := Value;
-  JSCode('labelRenderer:' + VarToJSON([Value, true]));
-end;
-
-procedure TExtChartAxis.SetFTitle(Value : String); begin
-  FTitle := Value;
-  JSCode('title:' + VarToJSON([Value]));
+procedure TExtChartAxis.SetTitle(AValue : String);
+begin
+  FTitle := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'title', [AValue]);
 end;
 
 class function TExtChartAxis.JSClassName : string; begin
@@ -495,24 +496,28 @@ procedure TExtChartNumericAxis.SetFCalculateByLabelSize(Value : Boolean); begin
   JSCode(JSName + '.calculateByLabelSize=' + VarToJSON([Value]) + ';');
 end;
 
-procedure TExtChartNumericAxis.SetFMajorUnit(Value : Integer); begin
-  FMajorUnit := Value;
-  JSCode(JSName + '.majorUnit=' + VarToJSON([Value]) + ';');
+procedure TExtChartNumericAxis.SetMajorUnit(AValue : Integer);
+begin
+  FMajorUnit := AValue;
+  ExtSession.ResponseItems.SetProperty(Self, 'majorUnit', [AValue]);
 end;
 
-procedure TExtChartNumericAxis.SetFMaximum(Value : Integer); begin
-  FMaximum := Value;
-  JSCode(JSName + '.maximum=' + VarToJSON([Value]) + ';');
+procedure TExtChartNumericAxis.SetMaximum(AValue : Integer);
+begin
+  FMaximum := AValue;
+  ExtSession.ResponseItems.SetProperty(Self, 'maximum', [AValue]);
 end;
 
-procedure TExtChartNumericAxis.SetFMinimum(Value : Integer); begin
-  FMinimum := Value;
-  JSCode(JSName + '.minimum=' + VarToJSON([Value]) + ';');
+procedure TExtChartNumericAxis.SetMinimum(AValue : Integer);
+begin
+  FMinimum := AValue;
+  ExtSession.ResponseItems.SetProperty(Self, 'minimum', [AValue]);
 end;
 
-procedure TExtChartNumericAxis.SetFMinorUnit(Value : Integer); begin
-  FMinorUnit := Value;
-  JSCode(JSName + '.minorUnit=' + VarToJSON([Value]) + ';');
+procedure TExtChartNumericAxis.SetMinorUnit(AValue : Integer);
+begin
+  FMinorUnit := AValue;
+  ExtSession.ResponseItems.SetProperty(Self, 'minorUnit', [AValue]);
 end;
 
 procedure TExtChartNumericAxis.SetFPosition(Value : String); begin
@@ -535,10 +540,10 @@ procedure TExtChartNumericAxis.SetFSnapToUnits(Value : Boolean); begin
   JSCode(JSName + '.snapToUnits=' + VarToJSON([Value]) + ';');
 end;
 
-procedure TExtChartNumericAxis.SetFStackingEnabled(Value: Boolean);
+procedure TExtChartNumericAxis.SetStackingEnabled(AValue: Boolean);
 begin
-  FStackingEnabled := Value;
-  JSCode('stackingEnabled:' + VarToJSON([Value]));
+  FStackingEnabled := AValue;
+  ExtSession.ResponseItems.SetProperty(Self, 'stackingEnabled', [AValue]);
 end;
 
 class function TExtChartNumericAxis.JSClassName : string; begin
@@ -550,34 +555,34 @@ procedure TExtChartTimeAxis.SetFCalculateByLabelSize(Value : Boolean); begin
   JSCode(JSName + '.calculateByLabelSize=' + VarToJSON([Value]) + ';');
 end;
 
-procedure TExtChartTimeAxis.SetFMajorTimeUnit(Value : String); begin
-  FMajorTimeUnit := Value;
-  JSCode(JSName + '.majorTimeUnit=' + VarToJSON([Value]) + ';');
+procedure TExtChartTimeAxis.SetMajorTimeUnit(AValue : String);
+begin
+  FMajorTimeUnit := AValue;
+  ExtSession.ResponseItems.SetProperty(Self, 'majorTimeUnit', [AValue]);
 end;
 
-procedure TExtChartTimeAxis.SetFMajorTimeUnit_(Value : String); begin
-  FMajorTimeUnit_ := Value;
-  JSCode(JSName + '.majorTimeUnit=' + VarToJSON([Value]) + ';');
+procedure TExtChartTimeAxis.SetMajorUnit(AValue : Integer);
+begin
+  FMajorUnit := AValue;
+  ExtSession.ResponseItems.SetProperty(Self, 'majorUnit', [AValue]);
 end;
 
-procedure TExtChartTimeAxis.SetFMajorUnit(Value : Integer); begin
-  FMajorUnit := Value;
-  JSCode(JSName + '.majorUnit=' + VarToJSON([Value]) + ';');
+procedure TExtChartTimeAxis.SetMinorUnit(AValue: Integer);
+begin
+  FMinorUnit := AValue;
+  ExtSession.ResponseItems.SetProperty(Self, 'minorUnit', [AValue]);
 end;
 
-procedure TExtChartTimeAxis.SetFMajorUnit_(Value : Integer); begin
-  FMajorUnit_ := Value;
-  JSCode(JSName + '.majorUnit=' + VarToJSON([Value]) + ';');
+procedure TExtChartTimeAxis.SetMaximum(AValue : Integer);
+begin
+  FMaximum := AValue;
+  ExtSession.ResponseItems.SetProperty(Self, 'maximum', [AValue]);
 end;
 
-procedure TExtChartTimeAxis.SetFMaximum(Value : Integer); begin
-  FMaximum := Value;
-  JSCode(JSName + '.maximum=' + VarToJSON([Value]) + ';');
-end;
-
-procedure TExtChartTimeAxis.SetFMinimum(Value : TDateTime); begin
-  FMinimum := Value;
-  JSCode(JSName + '.minimum=' + VarToJSON([Value]) + ';');
+procedure TExtChartTimeAxis.SetMinimum(AValue : TDateTime);
+begin
+  FMinimum := AValue;
+  ExtSession.ResponseItems.SetProperty(Self, 'minimum', [AValue]);
 end;
 
 procedure TExtChartTimeAxis.SetFSnapToUnits(Value : Boolean); begin
@@ -585,9 +590,10 @@ procedure TExtChartTimeAxis.SetFSnapToUnits(Value : Boolean); begin
   JSCode(JSName + '.snapToUnits=' + VarToJSON([Value]) + ';');
 end;
 
-procedure TExtChartTimeAxis.SetFStackingEnabled(Value : Boolean); begin
-  FStackingEnabled := Value;
-  JSCode('stackingEnabled:' + VarToJSON([Value]));
+procedure TExtChartTimeAxis.SetStackingEnabled(AValue : Boolean);
+begin
+  FStackingEnabled := AValue;
+  ExtSession.ResponseItems.SetProperty(Self, 'stackingEnabled', [AValue]);
 end;
 
 class function TExtChartTimeAxis.JSClassName : string; begin
@@ -608,14 +614,16 @@ procedure TExtChartCartesianSeries.SetFShowInLegend(Value : Boolean); begin
   JSCode(JSName + '.showInLegend=' + VarToJSON([Value]) + ';');
 end;
 
-procedure TExtChartCartesianSeries.SetFXField(Value : String); begin
-  FXField := Value;
-  JSCode('xField:' + VarToJSON([Value]));
+procedure TExtChartCartesianSeries.SetXField(AValue : String);
+begin
+  FXField := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'xField', [AValue]);
 end;
 
-procedure TExtChartCartesianSeries.SetFYField(Value : String); begin
-  FYField := Value;
-  JSCode('yField:' + VarToJSON([Value]));
+procedure TExtChartCartesianSeries.SetYField(AValue : String);
+begin
+  FYField := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'yField', [AValue]);
 end;
 
 class function TExtChartCartesianSeries.JSClassName : string; begin
@@ -648,10 +656,11 @@ class function TExtChartColumnSeries.JSClassName : string; begin
   Result := 'Ext.chart.ColumnSeries';
 end;
 
-procedure TExtChartChart.SetFChartStyle(Value : TExtObject); begin
+procedure TExtChartChart.SetChartStyle(AValue : TExtObject);
+begin
   FChartStyle.Free;
-  FChartStyle := Value;
-    JSCode('chartStyle:' + VarToJSON([Value, false]));
+  FChartStyle := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'chartStyle', [AValue, False]);
 end;
 
 procedure TExtChartChart.SetFDisableCaching(Value : Boolean); begin
@@ -670,42 +679,49 @@ procedure TExtChartChart.SetFSeriesStyles(Value : TExtObject); begin
     JSCode('seriesStyles:' + VarToJSON([Value, false]));
 end;
 
-procedure TExtChartChart.SetFUrl(Value : String); begin
-  FUrl := Value;
-  JSCode('url:' + VarToJSON([Value]));
+procedure TExtChartChart.SetUrl(AValue : String);
+begin
+  FUrl := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'url', [AValue]);
 end;
 
-procedure TExtChartChart.SetFStore(Value : TExtDataStore); begin
+procedure TExtChartChart.SetStore(AValue : TExtDataStore);
+begin
   FStore.Free;
-  FStore := Value;
-    JSCode('store:' + VarToJSON([Value, false]));
+  FStore := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'store', [AValue, False]);
 end;
 
-procedure TExtChartChart.SetFYField(Value : String); begin
-  FYField := Value;
-  JSCode('yField:' + VarToJSON([Value]));
+procedure TExtChartChart.SetYField(AValue : String);
+begin
+  FYField := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'yField', [AValue]);
 end;
 
-procedure TExtChartChart.SetFXField(Value : String); begin
-  FXField := Value;
-  JSCode('xField:' + VarToJSON([Value]));
+procedure TExtChartChart.SetXField(AValue : String);
+begin
+  FXField := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'xField', [AValue]);
 end;
 
-procedure TExtChartChart.SetFXAxis(Value : TExtChartAxis); begin
+procedure TExtChartChart.SetXAxis(AValue : TExtChartAxis);
+begin
   FXAxis.Free;
-  FXAxis := Value;
-    JSCode('xAxis:' + VarToJSON([Value, false]));
+  FXAxis := AValue;
+  ExtSession.ResponseItems.SetProperty(Self, 'xAxis', [AValue, False]);
 end;
 
-procedure TExtChartChart.SetFYAxis(Value : TExtChartAxis); begin
+procedure TExtChartChart.SetYAxis(AValue : TExtChartAxis);
+begin
   FYAxis.Free;
-  FYAxis := Value;
-    JSCode('yAxis:' + VarToJSON([Value, false]));
+  FYAxis := AValue;
+  ExtSession.ResponseItems.SetProperty(Self, 'yAxis', [AValue, False]);
 end;
 
-procedure TExtChartChart.SetFTipRenderer(Value : TExtFunction); begin
-  FTipRenderer := Value;
-  JSCode('tipRenderer:' + VarToJSON([Value, true]));
+procedure TExtChartChart.SetTipRenderer(AValue : TExtFunction);
+begin
+  FTipRenderer := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'tipRenderer', 'setTipRenderer', [AValue]);
 end;
 
 procedure TExtChartChart.SetFSeries(Value : TExtObjectList); begin
@@ -758,7 +774,8 @@ function TExtChartChart.SetSeriesStyles(Styles : TExtObjectList) : TExtFunction;
   Result := Self;
 end;
 
-function TExtChartChart.SetStyle(Name : String; Value : TExtObject) : TExtFunction; begin
+function TExtChartChart.SetStyle(Name : String; Value : TExtObject) : TExtFunction;
+begin
   JSCode(JSName + '.setStyle(' + VarToJSON([Name, Value, false]) + ');', 'TExtChartChart');
   Result := Self;
 end;
@@ -784,14 +801,18 @@ procedure TExtChartCartesianChart.InitDefaults; begin
   inherited;
 end;
 
-procedure TExtChartPieChart.SetFDataField(Value : String); begin
-  FDataField := Value;
-  JSCode('dataField:' + VarToJSON([Value]));
+procedure TExtChartPieChart.SetDataField(AValue : String);
+begin
+  FDataField := AValue;
+//  ExtSession.ResponseItems.SetConfigItem(Self, 'dataField', 'setDataField', [AValue]);
+  ExtSession.ResponseItems.SetConfigItem(Self, 'DataField', [AValue]);
 end;
 
-procedure TExtChartPieChart.SetFCategoryField(Value : String); begin
-  FCategoryField := Value;
-  JSCode('categoryField:' + VarToJSON([Value]));
+procedure TExtChartPieChart.SetCategoryField(AValue : String);
+begin
+  FCategoryField := AValue;
+//  ExtSession.ResponseItems.SetConfigItem(Self, 'categoryField', 'setCategoryField', [AValue]);
+  ExtSession.ResponseItems.SetConfigItem(Self, 'categoryField', [AValue]);
 end;
 
 class function TExtChartPieChart.JSClassName : string; begin

@@ -46,7 +46,7 @@ var
   LHtml: string;
 begin
   inherited;
-  if Title = '' then
+  if (Title = '') and Assigned(View) then
     Title := _(View.DisplayLabel);
   AutoScroll := True;
 

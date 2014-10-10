@@ -707,7 +707,7 @@ var
   LWidthStr: string;
   LHeightStr: string;
 begin
-  if Title = '' then
+  if (Title = '') and Assigned(View) then
     Title := _(Config.GetExpandedString('Title', View.DisplayLabel));
 
   LWidthStr := Config.GetString('Width');
