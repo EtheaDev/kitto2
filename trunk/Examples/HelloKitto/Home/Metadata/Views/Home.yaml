@@ -1,13 +1,13 @@
 ﻿DisplayLabel: %Config:AppTitle%
 # Valid top-level controllers are Window and Viewport
-Controller: Window
-  Width: 1000
-  Height: 500
+Controller: Viewport
+  .Width: 800
+  .Height: 500
 
   SubView:
     Controller: BorderPanel
 
-      WestView:
+      .WestView:
         DisplayLabel: Navigation
         Controller: BorderPanel
           Width: 155
@@ -24,8 +24,9 @@ Controller: Window
               TreeView: MainMenu
 
       CenterView:
-        Controller: TabPanel
+        Controller: TilePanel
           Border: True
+          TreeView: MainMenu
           SubViews:
             View: Girls
             View: Dolls

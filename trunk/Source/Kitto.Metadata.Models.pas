@@ -966,11 +966,14 @@ begin
   begin
     for I := 0 to FieldCount - 1 do
     begin
-     if not Fields[I].IsKey then
-     begin
-       Result := Fields[I];
-       Break;
-     end;
+      if Fields[I].IsVisible then
+      begin
+        if not Fields[I].IsKey then
+        begin
+          Result := Fields[I];
+          Break;
+        end;
+      end;
     end;
     if (Result = nil) and (FieldCount > 0) then
       Result := Fields[0];

@@ -134,15 +134,20 @@ type
   public
     property TreeViewNodeCount: Integer read GetTreeViewNodeCount;
     property TreeViewNodes[I: Integer]: TKTreeViewNode read GetTreeViewNode;
+
+    function FindView(const AViews: TKViews): TKView; virtual;
   end;
 
-  ///	<summary>A node in a tree view that is a folder (i.e. contains other
-  ///	nodes and doesn't represent a view).</summary>
+  ///	<summary>
+  ///   A node in a tree view that is a folder (i.e. contains other
+  ///	  nodes and doesn't represent a view).
+  /// </summary>
   TKTreeViewFolder = class(TKTreeViewNode)
   private
     function GetIsInitiallyCollapsed: Boolean;
   public
     property IsInitiallyCollapsed: Boolean read GetIsInitiallyCollapsed;
+    function FindView(const AViews: TKViews): TKView; override;
   end;
 
   ///	<summary>
@@ -230,7 +235,7 @@ implementation
 
 uses
   SysUtils, StrUtils, Variants, TypInfo,
-  EF.DB, EF.StrUtils,
+  EF.DB, EF.StrUtils, EF.Localization,
   Kitto.Types, Kitto.Config, Kitto.SQL;
 
 { TKViews }
@@ -435,6 +440,13 @@ end;
 
 { TKTreeViewNode }
 
+function TKTreeViewNode.FindView(const AViews: TKViews): TKView;
+begin
+  Assert(Assigned(AViews));
+
+  Result := AViews.ViewByNode(Self);
+end;
+
 function TKTreeViewNode.GetChildClass(const AName: string): TEFNodeClass;
 begin
   if SameText(AName, 'Folder') then
@@ -546,6 +558,11 @@ begin
 end;
 
 { TKTreeViewFolder }
+
+function TKTreeViewFolder.FindView(const AViews: TKViews): TKView;
+begin
+  Result := nil; // No view available for folders.
+end;
 
 function TKTreeViewFolder.GetIsInitiallyCollapsed: Boolean;
 begin

@@ -95,12 +95,17 @@ type
     function GetControllerToRemove: TObject; override;
   end;
 
+  IKExtViewHost = interface(IEFInterface)
+    ['{F073B258-1D46-4553-9FF4-3697DFE5197D}']
+    procedure SetActiveView(const AIndex: Integer);
+  end;
+
   TKExtSession = class(TExtSession)
   private
     FHomeController: TObject;
     FConfig: TKConfig;
     FLoginWindow: TKExtLoginWindow;
-    FViewHost: TExtTabPanel;
+    FViewHost: TExtContainer;
     FStatusHost: TKExtStatusBar;
     FSessionId: string;
     FUploadedFiles: TObjectList<TKExtUploadedFile>;
@@ -117,9 +122,10 @@ type
     procedure ClearStatus;
     function DisplayNewController(const AView: TKView): IKExtController;
     function FindOpenController(const AView: TKView): IKExtController;
-    procedure SetViewHostActiveTab(const AObject: TObject);
+    procedure SetActiveViewInViewHost(const AObject: TObject);
     procedure SetLanguageFromQueriesOrConfig;
     procedure Reload;
+    procedure SetViewHost(const AValue: TExtContainer);
   protected
     function BeforeHandleRequest: Boolean; override;
     procedure AfterHandleRequest; override;
@@ -133,11 +139,13 @@ type
     class constructor Create;
     class destructor Destroy;
   public
+    function GetPageTemplate(const APageName: string): string;
+
     procedure Refresh; override;
     ///	<summary>
     ///	  A reference to the panel to be used as the main view container.
     ///	</summary>
-    property ViewHost: TExtTabPanel read FViewHost write FViewHost;
+    property ViewHost: TExtContainer read FViewHost write SetViewHost;
 
     ///	<summary>
     ///	  A reference to the status bar to be used for wait messages.
@@ -294,6 +302,11 @@ begin
 end;
 
 function TKExtSession.GetMainPageTemplate: string;
+begin
+  Result := GetPageTemplate('index');
+end;
+
+function TKExtSession.GetPageTemplate(const APageName: string): string;
 var
   LFileName: string;
 
@@ -306,14 +319,9 @@ var
   end;
 
 begin
-  LFileName := Config.FindResourcePathName('index.html');
-  if LFileName <> '' then
-  begin
-    Result := TextFileToString(LFileName, GetEncoding);
-    Result := TEFMacroExpansionEngine.Instance.Expand(Result);
-  end
-  else
-    Result := inherited GetMainPageTemplate;
+  LFileName := Config.GetResourcePathName(APageName + '.html');
+  Result := TextFileToString(LFileName, GetEncoding);
+  Result := TEFMacroExpansionEngine.Instance.Expand(Result);
 end;
 
 function TKExtSession.GetSessionCookieName: string;
@@ -390,6 +398,16 @@ begin
 end;
 
 procedure TKExtSession.Home;
+
+  procedure SetAjaxTimeout;
+  var
+    LTimeout: TEFNode;
+  begin
+    LTimeout := Config.Config.FindNode('Ext/AjaxTimeout');
+    if Assigned(LTimeout) then
+      ExtAjax.Timeout := LTimeout.AsInteger;
+  end;
+
 begin
   if not NewThread then
   begin
@@ -409,6 +427,7 @@ begin
   end;
 
   ResponseItems.ExecuteJSCode('kittoInit();');
+  SetAjaxTimeout;
   ExtQuickTips.Init(True);
   // Try authentication with default credentials, if any, and skip login
   // window if it succeeds.
@@ -639,26 +658,30 @@ begin
           LController := DisplayNewController(AView);
       end;
       if Assigned(LController) and LController.SupportsContainer and Assigned(FViewHost) then
-        SetViewHostActiveTab(LController.AsObject);
+        SetActiveViewInViewHost(LController.AsObject);
     finally
       ClearStatus;
     end;
   end;
 end;
 
-procedure TKExtSession.SetViewHostActiveTab(const AObject: TObject);
+procedure TKExtSession.SetActiveViewInViewHost(const AObject: TObject);
 var
   I: Integer;
+  LViewHost: IKExtViewHost;
 begin
   Assert(Assigned(FViewHost));
   Assert(Assigned(AObject));
 
-  for I := 0 to FViewHost.Items.Count - 1 do
+  if Supports(FViewHost, IKExtViewHost, LViewHost) then
   begin
-    if FViewHost.Items[I] = AObject then
+    for I := 0 to FViewHost.Items.Count - 1 do
     begin
-      FViewHost.SetActiveTab(I);
-      Break;
+      if FViewHost.Items[I] = AObject then
+      begin
+        LViewHost.SetActiveView(I);
+        Break;
+      end;
     end;
   end;
 end;
@@ -767,6 +790,15 @@ begin
       else
         Result := nil;
     end;
+end;
+
+procedure TKExtSession.SetViewHost(const AValue: TExtContainer);
+var
+  LIntf: IKExtViewHost;
+begin
+  if Assigned(AValue) and not Supports(AValue, IKExtViewHost, LIntf) then
+    raise Exception.Create('View Host does not support IKViewHost interface.');
+  FViewHost := AValue;
 end;
 
 function TKExtSession.SetViewIconStyle(const AView: TKView; const AImageName: string;
