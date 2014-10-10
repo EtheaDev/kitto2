@@ -44,7 +44,7 @@ implementation
 
 uses
   SysUtils, StrUtils,
-  EF.Localization,
+  EF.Localization, EF.Macros,
   Kitto.Types, Kitto.Ext.Utils, Kitto.Metadata.Models, Kitto.Ext.Session,
   Kitto.Ext.Controller;
 
@@ -61,7 +61,6 @@ begin
   LViewField := ViewTable.FieldByName(AFieldName);
   LDataType := LViewField.GetActualDataType;
   LFormat := LViewField.DisplayFormat;
-
   if LDataType is TEFIntegerDataType then
   begin
     if LFormat = '' then
@@ -100,7 +99,8 @@ begin
     if LFormat = '' then
       LFormat := Session.Config.UserFormatSettings.ShortDateFormat + ' ' +
         Session.Config.UserFormatSettings.ShortTimeFormat;
-    Result := Format('Ext.util.Format.dateRenderer("%s")', [DelphiDateTimeFormatToJSDateTimeFormat(LFormat)]);
+    Result := Format('Ext.util.Format.dateRenderer("%s")', [DelphiDateTimeFormatToJSDateTimeFormat(LFormat)])+
+      Format('function (v) { return formatTime(v, "%s"); }', [DelphiTimeFormatToJSTimeFormat(LFormat)]);
   end
   else
     Result := '';
@@ -119,6 +119,19 @@ begin
   begin
     Result := TExtChartTimeAxis.Create(Self);
     TExtChartTimeAxis(Result).StackingEnabled := True;
+    if Assigned(AConfigNode) then
+    begin
+      if AConfigNode.HasChild('MajorTimeUnit') then
+        TExtChartTimeAxis(Result).MajorTimeUnit := AConfigNode.GetString('MajorTimeUnit');
+      if AConfigNode.HasChild('MajorUnit') then
+        TExtChartTimeAxis(Result).MajorUnit := AConfigNode.GetInteger('MajorUnit');
+      if AConfigNode.HasChild('MinorUnit') then
+        TExtChartTimeAxis(Result).MinorUnit := AConfigNode.GetInteger('MinorUnit');
+      if AConfigNode.HasChild('Max') then
+        TExtChartTimeAxis(Result).Maximum := AConfigNode.GetInteger('Max');
+      if AConfigNode.HasChild('Min') then
+        TExtChartTimeAxis(Result).Minimum := AConfigNode.GetInteger('Min');
+    end;
   end
   else if LDataType is TEFNumericDataTypeBase then
   begin
@@ -130,6 +143,10 @@ begin
         TExtChartNumericAxis(Result).Maximum := AConfigNode.GetInteger('Max');
       if AConfigNode.HasChild('Min') then
         TExtChartNumericAxis(Result).Minimum := AConfigNode.GetInteger('Min');
+      if AConfigNode.HasChild('MajorUnit') then
+        TExtChartNumericAxis(Result).MajorUnit := AConfigNode.GetInteger('MajorUnit');
+      if AConfigNode.HasChild('MinorUnit') then
+        TExtChartNumericAxis(Result).MinorUnit := AConfigNode.GetInteger('MinorUnit');
     end;
   end
   else
@@ -183,7 +200,7 @@ var
         LSeries.Style.Color := LOption;
       LOption := LStyle.GetString('Image');
       if LOption <> '' then
-        LSeries.Style.Image := LOption;
+        LSeries.Style.Image := TEFMacroExpansionEngine.Instance.Expand(LOption);
       LOption := LStyle.GetString('Mode');
       if LOption <> '' then
         LSeries.Style.Mode := LOption;
@@ -206,7 +223,7 @@ begin
   Result := CreateAndInitChartAxis(AFieldName, AConfigNode);
   LOption := GetLabelRenderer(AFieldName);
   if LOption <> '' then
-    Result.SetLabelRenderer(LOption);
+    Result.LabelFunction := LOption;
   if Assigned(AConfigNode) then
   begin
     LOption := _(AConfigNode.GetString('Title'));
@@ -248,7 +265,7 @@ procedure TKExtChartPanel.CreateAndInitChart(const AChartType: string);
   end;
 
 var
-  LOption: string;
+  LOption, LFieldName: string;
 begin
   Assert(ClientStore <> nil);
 
@@ -280,8 +297,10 @@ begin
   else if SameText(AChartType, 'Pie') then
   begin
     FChart := TExtChartPieChart.CreateAndAddTo(Items);
-    TExtChartPieChart(FChart).DataField := Config.GetString('Chart/DataField');
-    TExtChartPieChart(FChart).CategoryField := Config.GetString('Chart/CategoryField');
+    LFieldName := Config.GetString('Chart/DataField');
+    TExtChartPieChart(FChart).DataField := LFieldName;
+    LFieldName := Config.GetString('Chart/CategoryField');
+    TExtChartPieChart(FChart).CategoryField := LFieldName;
   end
   else
     raise EKError.CreateFmt(_('Unknown chart type %s.'), [AChartType]);
