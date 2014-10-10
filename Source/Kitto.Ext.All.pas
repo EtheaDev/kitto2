@@ -36,6 +36,7 @@ uses
   , Kitto.Ext.TabPanel
   , Kitto.Ext.ToolBar
   , Kitto.Ext.Tools
+  , Kitto.Ext.TilePanel
   , Kitto.Ext.TreePanel
   , Kitto.Ext.Viewport
   , Kitto.Ext.Window

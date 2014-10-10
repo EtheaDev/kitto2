@@ -1253,7 +1253,7 @@ end;
 function GetFormatSettings: TFormatSettings;
 begin
   {$IFDEF D15+}
-  Result := TFormatSettings.Create;
+  Result := TFormatSettings.Create('');
   {$ELSE}
   GetLocaleFormatSettings(GetThreadLocale, Result);
   {$ENDIF}

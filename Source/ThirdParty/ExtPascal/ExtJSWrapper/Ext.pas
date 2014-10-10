@@ -453,7 +453,7 @@ type
     procedure SetFLoadScripts(Value: Boolean);
     procedure SetFShowLoadIndicator(Value: Boolean);
     procedure SetFSslBlankUrl(Value: string);
-    procedure SetFTimeout(Value: Integer);
+    procedure SetFTimeout(const AValue: Integer);
   protected
     procedure InitDefaults; override;
   public
@@ -2782,7 +2782,7 @@ type
     procedure SetIconCls(const AValue: string);
     procedure SetMenu(AValue: TExtUtilObservable);
     procedure SetFMenuAlign(Value: string);
-    procedure SetFMinWidth(Value: Integer);
+    procedure SetFMinWidth(const AValue: Integer);
     procedure SetFOverflowText(Value: string);
     procedure SetPressed(const AValue: Boolean);
     procedure SetFRepeatJS(Value: Boolean);
@@ -3191,7 +3191,7 @@ type
     procedure SetKeys(const AValue: TExtObject);
     procedure SetFKeysArray(Value: TExtObjectList);
     procedure SetFMaskDisabled(Value: Boolean);
-    procedure SetFMinButtonWidth(Value: Integer);
+    procedure SetFMinButtonWidth(const AValue: Integer);
     procedure SetFPadding(Value: Integer);
     procedure SetPaddingString(const AValue: string);
     procedure SetFPreventBodyReset(Value: Boolean);
@@ -5302,10 +5302,10 @@ begin
   JSCode(JSName + '.sslBlankUrl=' + VarToJSON([Value]) + ';');
 end;
 
-procedure TExtUpdaterDefaults.SetFTimeout(Value: Integer);
+procedure TExtUpdaterDefaults.SetFTimeout(const AValue: Integer);
 begin
-  FTimeout := Value;
-  JSCode(JSName + '.timeout=' + VarToJSON([Value]) + ';');
+  FTimeout := AValue;
+  ExtSession.ResponseItems.SetProperty(Self, 'timeout', [AValue]);
 end;
 
 class function TExtUpdaterDefaults.JSClassName: string;
@@ -11835,10 +11835,10 @@ begin
   JSCode('menuAlign:' + VarToJSON([Value]));
 end;
 
-procedure TExtButton.SetFMinWidth(Value: Integer);
+procedure TExtButton.SetFMinWidth(const AValue: Integer);
 begin
-  FMinWidth := Value;
-  JSCode('minWidth:' + VarToJSON([Value]));
+  FMinWidth := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'minWidth', [AValue, False]);
 end;
 
 procedure TExtButton.SetFOverflowText(Value: string);
@@ -12925,10 +12925,10 @@ begin
   JSCode('maskDisabled:' + VarToJSON([Value]));
 end;
 
-procedure TExtPanel.SetFMinButtonWidth(Value: Integer);
+procedure TExtPanel.SetFMinButtonWidth(const AValue: Integer);
 begin
-  FMinButtonWidth := Value;
-  JSCode('minButtonWidth:' + VarToJSON([Value]));
+  FMinButtonWidth := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'minButtonWidth', [AValue]);
 end;
 
 procedure TExtPanel.SetFPadding(Value: Integer);

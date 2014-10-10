@@ -46,7 +46,9 @@ AccessControl: Null
 # Change this to use a custom view for the home page.
 # Alternatively, customize the Home view by replacing its controller.
 # Default: Home.
-#HomeView: Home
+.HomeView:
+  Controller: Viewport
+    SubView: Dolls
 
 HomeViewEmbedded1:
   Controller: Viewport

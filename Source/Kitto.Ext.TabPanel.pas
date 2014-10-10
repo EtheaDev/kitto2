@@ -23,7 +23,7 @@ interface
 uses
   Ext,
   EF.Tree,
-  Kitto.Ext.Base, Kitto.Ext.Controller, Kitto.Metadata.Views;
+  Kitto.Metadata.Views, Kitto.Ext.Base, Kitto.Ext.Controller, Kitto.Ext.Session;
 
 type
   TKExtTabPanelController = class;
@@ -32,21 +32,25 @@ type
   ///	  A tab panel that knows when its hosted panels are closed. Used
   ///   by the TabPanel controller.
   ///	</summary>
-  TKExtTabPanel = class(TExtTabPanel, IKExtPanelHost)
+  TKExtTabPanel = class(TExtTabPanel, IKExtPanelHost, IKExtViewHost)
   private
     FConfig: TEFTree;
     FView: TKView;
     FOwner: TKExtTabPanelController;
   protected
+    property Config: TEFTree read FConfig;
+    property View: TKView read FView;
     procedure InitDefaults; override;
   public
-    procedure DisplaySubViewsAndControllers;
+    procedure SetActiveView(const AIndex: Integer);
+    procedure DisplaySubViewsAndControllers; virtual;
     destructor Destroy; override;
     procedure ClosePanel(const APanel: TExtComponent);
     function AsObject: TObject;
   published
     procedure PanelClosed;
   end;
+  TKExtTabPanelClass = class of TKExtTabPanel;
 
   TKExtTabPanelController = class(TKExtPanelControllerBase)
   strict private
@@ -54,6 +58,7 @@ type
   strict protected
     procedure InitDefaults; override;
     procedure DoDisplay; override;
+    function GetTabPanelClass: TKExtTabPanelClass; virtual;
   public
     procedure InitSubController(const AController: IKExtController); override;
   end;
@@ -63,8 +68,7 @@ implementation
 uses
   SysUtils,
   EF.Localization,
-  Kitto.AccessControl, Kitto.Types,
-  Kitto.Ext.Session;
+  Kitto.AccessControl, Kitto.Types;
 
 { TKExtTabPanelController }
 
@@ -77,11 +81,16 @@ begin
   FTabPanel.DisplaySubViewsAndControllers;
 end;
 
+function TKExtTabPanelController.GetTabPanelClass: TKExtTabPanelClass;
+begin
+  Result := TKExtTabPanel;
+end;
+
 procedure TKExtTabPanelController.InitDefaults;
 begin
   inherited;
   Layout := lyFit;
-  FTabPanel := TKExtTabPanel.CreateAndAddTo(Items);
+  FTabPanel := GetTabPanelClass.CreateAndAddTo(Items);
 end;
 
 procedure TKExtTabPanelController.InitSubController(
@@ -170,6 +179,11 @@ begin
   LPanel := ParamAsObject('Panel') as TExtComponent;
   Items.Remove(LPanel);
   LPanel.Free;
+end;
+
+procedure TKExtTabPanel.SetActiveView(const AIndex: Integer);
+begin
+  SetActiveTab(AIndex);
 end;
 
 initialization
