@@ -462,7 +462,7 @@ type
     FHtml: string;
     FText: string;
     procedure SetFForId(Value: string);
-    procedure SetFHtml(Value: string);
+    procedure SetHtml(AValue: string);
     procedure _SetText(const AValue: string);
   protected
     procedure InitDefaults; override;
@@ -470,7 +470,7 @@ type
     class function JSClassName: string; override;
     function SetText(const AText: string; const AEncode: Boolean = False): TExtFunction;
     property ForId: string read FForId write SetFForId;
-    property Html: string read FHtml write SetFHtml;
+    property Html: string read FHtml write SetHtml;
     property Text: string read FText write _SetText;
   end;
 
@@ -2536,10 +2536,10 @@ begin
   JSCode('forId:' + VarToJSON([Value]));
 end;
 
-procedure TExtFormLabel.SetFHtml(Value: string);
+procedure TExtFormLabel.SetHtml(AValue: string);
 begin
-  FHtml := Value;
-  JSCode('html:' + VarToJSON([Value]));
+  FHtml := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'html', [AValue]);
 end;
 
 procedure TExtFormLabel._SetText(const AValue: string);
