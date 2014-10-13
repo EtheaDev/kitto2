@@ -1,0 +1,47 @@
+﻿DisplayLabel: %Config:AppTitle%
+# Valid top-level controllers are Window and Viewport
+Controller: Viewport
+
+  SubView:
+    Controller: BorderPanel
+
+      WestView:
+        DisplayLabel: Main Menu
+        Controller: TreePanel
+          TreeView: MainMenu
+          Width: 210
+          Collapsible: True
+          Border: True
+          Header: True
+      
+      CenterView:
+        Controller: TabPanel
+          Border: True
+          # List of views to be auto-opened in tabs.
+          SubViews:
+            View: Customers
+
+      NorthView:
+        Controller: BorderPanel
+          Height: 64
+
+          WestView:
+            Controller: HtmlPanel
+              Width: 210
+              Split: False
+              Html: <p><img src="%IMAGE(Firebird_Employee)%" width="200" height="56"></img></p>
+
+          CenterView:
+            Controller: BorderPanel
+              NorthView:
+                Controller: HtmlPanel
+                  Split: False
+                  Html: <div style="background-color:navy; text-align:center; color:white; font-family: Arial, Helvetica, sans-serif; font-weight: bold;">An example of Employee - Customers - Sales application</div>
+              CenterView:
+                Controller: ToolBar
+                  TreeView: MainMenu
+
+      SouthView:
+        Controller: StatusBar
+          Text: <p>User: %Auth:UserName%</p>
+        ImageName: user

@@ -1,0 +1,16 @@
+﻿Type: Data
+Controller: List
+  Filters:
+    DisplayLabel: Search Proj Dept Budgets
+    Items:
+      FreeSearch: Free Search
+        ExpressionTemplate:
+MainTable:
+  Model: ProjDeptBudget
+  Fields:
+    FiscalYear:
+    QuartHeadCnt:
+    ProjectedBudget:
+    DeptNoRef:
+    Proj:
+  Controller:

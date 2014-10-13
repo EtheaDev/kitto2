@@ -1,0 +1,13 @@
+﻿ModelName: EmployeeProject
+PhysicalName: EMPLOYEE_PROJECT
+Fields:
+  EmpNoRef: Reference(Employee) not null
+    PhysicalName: INTEG_40
+    Fields:
+      EmpNo:
+        PhysicalName: EMP_NO
+  Proj: Reference(Project) not null
+    PhysicalName: INTEG_41
+    Fields:
+      ProjId:
+        PhysicalName: PROJ_ID

@@ -1,0 +1,19 @@
+﻿ModelName: Department
+Fields:
+  DeptNo: String(3) not null primary key
+    PhysicalName: DEPT_NO
+  Department: String(25) not null
+  Budget: Decimal(12, 2)
+  Location: String(15)
+  PhoneNo: String(20)
+    PhysicalName: PHONE_NO
+  HeadDeptRef: Reference(Department)
+    PhysicalName: INTEG_17
+    Fields:
+      HeadDept:
+        PhysicalName: HEAD_DEPT
+  MngrNoRef: Reference(Employee)
+    PhysicalName: INTEG_31
+    Fields:
+      MngrNo:
+        PhysicalName: MNGR_NO
