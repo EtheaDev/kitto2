@@ -1,0 +1,19 @@
+﻿ModelName: ProjDeptBudget
+PhysicalName: PROJ_DEPT_BUDGET
+Fields:
+  FiscalYear: Integer not null primary key
+    PhysicalName: FISCAL_YEAR
+  QuartHeadCnt: Integer
+    PhysicalName: QUART_HEAD_CNT
+  ProjectedBudget: Decimal(12, 2)
+    PhysicalName: PROJECTED_BUDGET
+  DeptNoRef: Reference(Department) not null
+    PhysicalName: INTEG_47
+    Fields:
+      DeptNo:
+        PhysicalName: DEPT_NO
+  Proj: Reference(Project) not null
+    PhysicalName: INTEG_48
+    Fields:
+      ProjId:
+        PhysicalName: PROJ_ID

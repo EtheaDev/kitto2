@@ -1,0 +1,23 @@
+﻿Type: Data
+Controller: List
+  Filters:
+    DisplayLabel: Search Customers
+    Items:
+      FreeSearch: Free Search
+        ExpressionTemplate: (Customer.Customer like '%{value}%') or (Customer.CONTACT_FIRST like '%{value}%') or (Customer.CONTACT_LAST like '%{value}%') or (Customer.PHONE_NO like '%{value}%') or (Customer.ADDRESS_LINE1 like '%{value}%') or (Customer.ADDRESS_LINE2 like '%{value}%') or (Customer.City like '%{value}%') or (Customer.STATE_PROVINCE like '%{value}%') or (Customer.POSTAL_CODE like '%{value}%') or (Customer.ON_HOLD like '%{value}%')
+MainTable:
+  Model: Customer
+  Fields:
+    CustNo:
+    Customer:
+    ContactFirst:
+    ContactLast:
+    PhoneNo:
+    AddressLine1:
+    AddressLine2:
+    City:
+    StateProvince:
+    PostalCode:
+    OnHold:
+    CountryRef:
+  Controller:
