@@ -75,7 +75,7 @@ type
     procedure SetFCss(Value: string);
     procedure SetDataIndex(const AValue: string);
     procedure SetEditable(const AValue: Boolean);
-    procedure SetFEditor(Value: TExtFormField);
+    procedure SetEditor(AValue: TExtFormField);
     procedure SetEmptyGroupText(const AValue: string);
     procedure SetFixed(const AValue: Boolean);
     procedure SetGroupName(const AValue: string);
@@ -101,13 +101,11 @@ type
   public
     class function JSClassName: string; override;
     function GetCellEditor(RowIndex: Integer): TExtFunction;
-    function SetEditor(Editor: TExtEditor): TExtFunction; overload;
-    function SetEditor(Editor: TExtFormField): TExtFunction; overload;
     property Align: TExtGridColumnAlign read FAlign write SetAlign;
     property Css: string read FCss write SetFCss;
     property DataIndex: string read FDataIndex write SetDataIndex;
     property Editable: Boolean read FEditable write SetEditable;
-    property Editor: TExtFormField read FEditor write SetFEditor;
+    property Editor: TExtFormField read FEditor write SetEditor;
     property EmptyGroupText: string read FEmptyGroupText write SetEmptyGroupText;
     property Fixed: Boolean read FFixed write SetFixed;
     property GroupName: string read FGroupName write SetGroupName;
@@ -965,7 +963,7 @@ type
     FOnBeforeedit: TExtGridEditorGridPanelOnBeforeedit;
     FOnValidateedit: TExtGridEditorGridPanelOnValidateedit;
     procedure SetFAutoEncode(Value: Boolean);
-    procedure SetFClicksToEdit(Value: Integer);
+    procedure SetClicksToEdit(AValue: Integer);
     procedure SetFForceValidation(Value: Boolean);
     procedure SetSelModel(const AValue: TExtObject);
     procedure SetFOnAfteredit(Value: TExtGridEditorGridPanelOnAfteredit);
@@ -979,7 +977,7 @@ type
     function StartEditing(RowIndex: Integer; ColIndex: Integer): TExtFunction;
     function StopEditing(Cancel: Boolean = false): TExtFunction;
     property AutoEncode: Boolean read FAutoEncode write SetFAutoEncode;
-    property ClicksToEdit: Integer read FClicksToEdit write SetFClicksToEdit;
+    property ClicksToEdit: Integer read FClicksToEdit write SetClicksToEdit;
     property ForceValidation: Boolean read FForceValidation write SetFForceValidation;
     property SelModel: TExtObject read FSelModel write SetSelModel;
     property OnAfteredit: TExtGridEditorGridPanelOnAfteredit read FOnAfteredit
@@ -1054,7 +1052,7 @@ procedure TExtGridColumn.SetAlign(const AValue: TExtGridColumnAlign);
 begin
   FAlign := AValue;
   ExtSession.ResponseItems.SetConfigItem(Self, 'align',
-    ['"' + EnumToJSString(TypeInfo(TExtGridColumnAlign), ord(AValue)) + '"']);
+    [EnumToJSString(TypeInfo(TExtGridColumnAlign), ord(AValue))]);
 end;
 
 procedure TExtGridColumn.SetFCss(Value: string);
@@ -1075,10 +1073,10 @@ begin
   ExtSession.ResponseItems.SetConfigItem(Self, 'editable', [AValue]);
 end;
 
-procedure TExtGridColumn.SetFEditor(Value: TExtFormField);
+procedure TExtGridColumn.SetEditor(AValue: TExtFormField);
 begin
-  FEditor := Value;
-  JSCode('editor:' + VarToJSON([Value, false]));
+  FEditor := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'editor', 'setEditor', [Editor, False]);
 end;
 
 procedure TExtGridColumn.SetEmptyGroupText(const AValue: string);
@@ -1219,17 +1217,6 @@ begin
   Result := Self;
 end;
 
-function TExtGridColumn.SetEditor(Editor: TExtEditor): TExtFunction;
-begin
-  JSCode(JSName + '.setEditor(' + VarToJSON([Editor, false]) + ');', 'TExtGridColumn');
-  Result := Self;
-end;
-
-function TExtGridColumn.SetEditor(Editor: TExtFormField): TExtFunction;
-begin
-  JSCode(JSName + '.setEditor(' + VarToJSON([Editor, false]) + ');', 'TExtGridColumn');
-  Result := Self;
-end;
 
 class function TExtGridPropertyRecord.JSClassName: string;
 begin
@@ -3287,10 +3274,10 @@ begin
   JSCode('autoEncode:' + VarToJSON([Value]));
 end;
 
-procedure TExtGridEditorGridPanel.SetFClicksToEdit(Value: Integer);
+procedure TExtGridEditorGridPanel.SetClicksToEdit(AValue: Integer);
 begin
-  FClicksToEdit := Value;
-  JSCode('clicksToEdit:' + VarToJSON([Value]));
+  FClicksToEdit := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'clicksToEdit', [AValue]);
 end;
 
 procedure TExtGridEditorGridPanel.SetFForceValidation(Value: Boolean);
