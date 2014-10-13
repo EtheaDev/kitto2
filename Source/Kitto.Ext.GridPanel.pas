@@ -236,6 +236,7 @@ begin
   FGridEditorPanel.AutoWidth := True;
   FGridEditorPanel.ColumnLines := True;
   FGridEditorPanel.TrackMouseOver := True;
+  FGridEditorPanel.ClicksToEdit := 1;
 end;
 
 function TKExtGridPanel.IsMultiSelect: Boolean;
@@ -255,6 +256,20 @@ var
   var
     LColumn: TExtGridColumn;
     LColumnWidth: Integer;
+
+    function SetEditor(const AColumn: TExtGridColumn;
+      ADataType: TEFDataType): Boolean;
+    var
+      LEditable: boolean;
+    begin
+      { TODO : complete in-place editing as an option. }
+      LEditable := False;
+      AColumn.Editable := LEditable;
+      if LEditable then
+      begin
+        AColumn.Editor := TExtFormTextField.Create(FGridEditorPanel);
+      end;
+    end;
 
     function SetRenderer(const AColumn: TExtGridColumn): Boolean;
     var
@@ -409,6 +424,9 @@ var
       end;
       if not ViewTable.IsFieldVisible(AViewField) and not (AViewField.AliasedName = GetGroupingFieldName) then
         FGridEditorPanel.ColModel.SetHidden(FGridEditorPanel.Columns.Count - 1, True);
+
+      //In-place editing
+      SetEditor(Result, LDataType);
     end;
 
   begin
@@ -422,9 +440,6 @@ var
       LColumnWidth := Min(IfThen(AViewField.Size = 0, 40, AViewField.Size), 40);
     LColumn.Width := CharsToPixels(LColumnWidth);
 
-    { TODO : add in-place editing as an option. }
-    LColumn.Editable := False;
-    //LColumn.Editor := ...
     LColumn.Hidden := not ViewTable.IsFieldVisible(AViewField);
   end;
 
