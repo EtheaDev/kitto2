@@ -22,7 +22,8 @@ interface
 
 uses
   ExtPascal, Ext, ExtForm,
-  Kitto.Ext.Base;
+  Kitto.Ext.Base, Kitto.Ext.HtmlPanel;
+
 
 type
   TKExtOnLogin = procedure of object;
@@ -30,6 +31,7 @@ type
   TKExtLoginWindow = class(TKExtWindowControllerBase)
   private
     FUseLanguageSelector: Boolean;
+    FHtmlPanel: TKExtHtmlPanelController;
     FUserName: TExtFormTextField;
     FPassword: TExtFormTextField;
     FLanguage: TExtFormComboBox;
@@ -37,10 +39,18 @@ type
     FOnLogin: TKExtOnLogin;
     FStatusBar: TKExtStatusBar;
     FFormPanel: TExtFormFormPanel;
+    function GetHtmlPanel: string;
+    function GetHtmlPanelWidth: integer;
+    function GetHtmlPanelHeight: integer;
+    function GetLabelWidth: integer;
   protected
     procedure InitDefaults; override;
   public
     property OnLogin: TKExtOnLogin read FOnLogin write FOnLogin;
+    property HtmlPanel: string read GetHtmlPanel;
+    property HtmlPanelWidth: integer read GetHtmlPanelWidth;
+    property HtmlPanelHeight: integer read GetHtmlPanelHeight;
+    property LabelWidth: integer read GetLabelWidth;
 
     class function Authenticate(const ASession: TExtSession): Boolean;
   published
@@ -50,9 +60,9 @@ type
 implementation
 
 uses
-  SysUtils,
+  SysUtils, Math,
   ExtPascalUtils,
-  EF.Classes, EF.Localization, EF.Tree,
+  EF.Classes, EF.Localization, EF.Tree, EF.Macros,
   Kitto.Types, Kitto.Ext.Session;
 
 { TKExtLoginWindow }
@@ -70,6 +80,26 @@ begin
     FStatusBar.SetErrorStatus(_('Invalid login.'));
     FPassword.Focus(False, 750);
   end;
+end;
+
+function TKExtLoginWindow.GetLabelWidth: integer;
+begin
+  Result := Session.Config.Config.GetInteger('LoginWindowAppearance/LabelWidth');
+end;
+
+function TKExtLoginWindow.GetHtmlPanelHeight: integer;
+begin
+  Result := Session.Config.Config.GetInteger('LoginWindowAppearance/HtmlPanelHeight');
+end;
+
+function TKExtLoginWindow.GetHtmlPanel: string;
+begin
+  Result := Session.Config.Config.GetString('LoginWindowAppearance/HtmlPanel');
+end;
+
+function TKExtLoginWindow.GetHtmlPanelWidth: integer;
+begin
+  Result := Session.Config.Config.GetInteger('LoginWindowAppearance/HtmlPanelWidth');
 end;
 
 class function TKExtLoginWindow.Authenticate(const ASession: TExtSession): Boolean;
@@ -103,6 +133,8 @@ begin
 end;
 
 procedure TKExtLoginWindow.InitDefaults;
+var
+  LWidth, LHeight, LLabelWidth, LEditWidth: integer;
 
   function GetEnableButtonJS: string;
   begin
@@ -122,13 +154,17 @@ procedure TKExtLoginWindow.InitDefaults;
 begin
   inherited;
   FUseLanguageSelector := Session.Config.LanguagePerSession;
+  LWidth := Max(HtmlPanelWidth, 228);
+  LHeight := Max(HtmlPanelHeight, 0);
+  LLabelWidth := Max(LabelWidth, 80);
+  LEditWidth := Max(LWidth - LLabelWidth - 10, 136);
 
   Title := _(Session.Config.AppTitle);
-  Width := 246;
+  Width := LWidth + 20;
   if FUseLanguageSelector then
-    Height := 144
+    Height := LHeight + (27 * 3) + 66
   else
-    Height := 120;
+    Height := LHeight + (27 * 2) + 66;
   Closable := False;
   Resizable := False;
 
@@ -138,7 +174,7 @@ begin
 
   FFormPanel := TExtFormFormPanel.CreateAndAddTo(Items);
   FFormPanel.Region := rgCenter;
-  FFormPanel.LabelWidth := 80;
+  FFormPanel.LabelWidth := LLabelWidth;
   FFormPanel.Border := False;
   FFormPanel.BodyStyle := SetPaddings(5, 5);
   FFormPanel.Frame := False;
@@ -149,12 +185,26 @@ begin
   FButton.Icon := Session.Config.GetImageURL('login');
   FButton.Text := _('Login');
 
+  if HtmlPanel <> '' then
+  begin
+    FHtmlPanel := TKExtHtmlPanelController.CreateAndAddTo(FFormPanel.Items);
+    FHtmlPanel.Html := TEFMacroExpansionEngine.Instance.Expand(HtmlPanel);
+    FHtmlPanel.Border := False;
+    FHtmlPanel.Width := HtmlPanelWidth;
+    FHtmlPanel.Height := HtmlPanelHeight;
+    //Create a separator of 4 pixels
+    with TExtBoxComponent.CreateAndAddTo(FFormPanel.Items) do
+    begin
+      Height := 4;
+    end;
+  end;
+
   FUserName := TExtFormTextField.CreateAndAddTo(FFormPanel.Items);
   FUserName.Name := 'UserName';
   FUserName.Value := Session.Config.Authenticator.AuthData.GetExpandedString('UserName');
   FUserName.FieldLabel := _('User Name');
   FUserName.AllowBlank := False;
-  FUserName.Width := 136;
+  FUserName.Width := LEditWidth;
   FUserName.EnableKeyEvents := True;
   FUserName.SelectOnFocus := True;
 
@@ -164,7 +214,7 @@ begin
   FPassword.FieldLabel := _('Password');
   FPassword.InputType := itPassword;
   FPassword.AllowBlank := False;
-  FPassword.Width := 136;
+  FPassword.Width := LEditWidth;
   FPassword.EnableKeyEvents := True;
   FPassword.SelectOnFocus := True;
 
@@ -180,7 +230,7 @@ begin
     FLanguage.HiddenName := 'Language';
     FLanguage.Value := Session.Config.Authenticator.AuthData.GetExpandedString('Language');
     FLanguage.FieldLabel := _('Language');
-    FLanguage.Width := 136;
+    FLanguage.Width := LEditWidth;
     //FLanguage.EnableKeyEvents := True;
     //FLanguage.SelectOnFocus := True;
     FLanguage.ForceSelection := True;
