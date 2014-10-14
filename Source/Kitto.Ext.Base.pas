@@ -706,9 +706,14 @@ var
   LHeader: TEFNode;
   LWidthStr: string;
   LHeightStr: string;
+  LView: TKView;
 begin
-  if (Title = '') and Assigned(View) then
-    Title := _(Config.GetExpandedString('Title', View.DisplayLabel));
+  if (Title = '') then
+  begin
+    LView := View;
+    if Assigned(LView) then
+      Title := _(Config.GetExpandedString('Title', LView.DisplayLabel));
+  end;
 
   LWidthStr := Config.GetString('Width');
   if TryStrToInt(LWidthStr, LWidth) then

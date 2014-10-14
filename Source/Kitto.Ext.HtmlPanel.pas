@@ -35,7 +35,7 @@ uses
   SysUtils,
   Ext,
   EF.StrUtils, EF.Macros, EF.Localization,
-  Kitto.Ext.Session;
+  Kitto.Ext.Session, Kitto.Metadata.Views;
 
 { TKExtHtmlPanelController }
 
@@ -44,10 +44,15 @@ var
   LFileName: string;
   LFullFileName: string;
   LHtml: string;
+  LView: TKView;
 begin
   inherited;
-  if (Title = '') and Assigned(View) then
-    Title := _(View.DisplayLabel);
+  if (Title = '') then
+  begin
+    LView := View;
+    if Assigned(LView) then
+      Title := _(LView.DisplayLabel);
+  end;
   AutoScroll := True;
 
   LFileName := Config.GetExpandedString('FileName');
