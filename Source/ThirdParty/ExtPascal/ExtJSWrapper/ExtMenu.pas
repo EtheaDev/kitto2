@@ -125,14 +125,13 @@ type
     procedure SetFItemCls(Value: string);
     procedure SetFMenu(Value: TExtMenuMenu);
     procedure SetFShowDelay(Value: Integer);
-    procedure _SetText(const AValue: string);
+    procedure SetText(const AValue: string);
     procedure SetFMenu_(Value: TExtMenuMenu);
   protected
     procedure InitDefaults; override;
   public
     class function JSClassName: string; override;
     function SetIconClass(Cls: string): TExtFunction;
-    function SetText(const AText: string): TExtFunction;
     property CanActivate: Boolean read FCanActivate write SetFCanActivate;
     property Href: string read FHref write SetFHref;
     property HrefTarget: string read FHrefTarget write SetFHrefTarget;
@@ -141,7 +140,7 @@ type
     property ItemCls: string read FItemCls write SetFItemCls;
     property Menu: TExtMenuMenu read FMenu write SetFMenu;
     property ShowDelay: Integer read FShowDelay write SetFShowDelay;
-    property Text: string read FText write _SetText;
+    property Text: string read FText write SetText;
     property Menu_: TExtMenuMenu read FMenu_ write SetFMenu_;
   end;
 
@@ -581,7 +580,7 @@ begin
   JSCode('showDelay:' + VarToJSON([Value]));
 end;
 
-procedure TExtMenuItem._SetText(const AValue: string);
+procedure TExtMenuItem.SetText(const AValue: string);
 begin
   FText := AValue;
   ExtSession.ResponseItems.SetConfigItem(Self, 'text', 'setText', [AValue]);
@@ -614,14 +613,6 @@ begin
   JSCode(JSName + '.setIconClass(' + VarToJSON([Cls]) + ');', 'TExtMenuItem');
   Result := Self;
 end;
-
-function TExtMenuItem.SetText(const AText: string): TExtFunction;
-begin
-  FText := AText;
-  ExtSession.ResponseItems.CallMethod(Self, 'setText', [AText]);
-  Result := Self;
-end;
-
 procedure TExtMenuCheckItem._SetChecked(const AValue: Boolean);
 begin
   FChecked := AValue;
