@@ -62,7 +62,7 @@ type
     FAddedItems: Integer;
     FSession: TKExtSession;
     procedure AddButton(const ANode: TKTreeViewNode; const ADisplayLabel: string; const AContainer: TExtContainer);
-    procedure AddMenuItem(const ANode: TKTreeViewNode; const ADisplayLabel: string; const AMenu: TExtMenuMenu);
+    procedure AddMenuItem(const ANode: TKTreeViewNode; const AMenu: TExtMenuMenu);
     procedure AddNode(const ANode: TKTreeViewNode; const ADisplayLabel: string; const AParent: TExtTreeTreeNode);
     function GetClickFunction(const AView: TKView): TExtFunction;
 
@@ -192,7 +192,7 @@ begin
 end;
 
 procedure TKExtTreeViewRenderer.AddMenuItem(const ANode: TKTreeViewNode;
-  const ADisplayLabel: string; const AMenu: TExtMenuMenu);
+  const AMenu: TExtMenuMenu);
 var
   I: Integer;
   LMenuItem: TKExtMenuItem;
@@ -219,15 +219,14 @@ begin
           LMenuItem.IconCls := Session.SetViewIconStyle(LMenuItem.View, GetImageName(ANode.TreeViewNodes[I], LMenuItem.View));
           LMenuItem.On('click', GetClickFunction(LMenuItem.View));
           LMenuItem.Disabled := not LIsEnabled;
+          LMenuItem.Text := HTMLEncode(LMenuItem.View.DisplayLabel);
         end;
-        LMenuItem.Text := HTMLEncode(ADisplayLabel);
         if ANode.TreeViewNodes[I].TreeViewNodeCount > 0 then
         begin
           LSubMenu := TExtMenuMenu.Create(AMenu);
           try
             LMenuItem.Menu := LSubMenu;
-            AddMenuItem(ANode.TreeViewNodes[I], GetDisplayLabelFromNode(ANode.TreeViewNodes[I], Session.Config.Views),
-              LSubMenu);
+            AddMenuItem(ANode.TreeViewNodes[I], LSubMenu);
           except
             FreeAndNil(LSubMenu);
             raise;
@@ -273,7 +272,7 @@ begin
       LMenu := TExtMenuMenu.Create(AContainer);
       try
         LButton.Menu := LMenu;
-        AddMenuItem(ANode, GetDisplayLabelFromNode(ANode, Session.Config.Views), LMenu);
+        AddMenuItem(ANode, LMenu);
       except
         FreeAndNil(LMenu);
         raise;
