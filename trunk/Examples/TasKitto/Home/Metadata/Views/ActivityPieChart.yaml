@@ -1,0 +1,20 @@
+Type: Data
+DisplayLabel: Pie Chart
+Controller: List
+
+  WestController: ChartPanel
+    Width: 600
+    Chart:
+      Type: Pie
+      DataField: DURATION
+      CategoryField: ACTIVITY_DATE
+      ChartStyle: |
+        {
+          legend: {
+            display: 'bottom'
+          }
+        }
+
+MainTable:
+  IsReadOnly: True
+  Model: ACTIVITY_BY_DATE
