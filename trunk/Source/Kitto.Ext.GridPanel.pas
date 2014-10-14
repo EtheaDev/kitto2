@@ -257,16 +257,16 @@ var
     LColumn: TExtGridColumn;
     LColumnWidth: Integer;
 
-    function SetEditor(const AColumn: TExtGridColumn;
-      ADataType: TEFDataType): Boolean;
+    procedure SetEditor(const AColumn: TExtGridColumn;
+      ADataType: TEFDataType);
     var
       LEditable: boolean;
     begin
-      { TODO : complete in-place editing as an option. }
       LEditable := False;
       AColumn.Editable := LEditable;
       if LEditable then
       begin
+        { TODO : complete in-place editing as an option. }
         AColumn.Editor := TExtFormTextField.Create(FGridEditorPanel);
       end;
     end;
