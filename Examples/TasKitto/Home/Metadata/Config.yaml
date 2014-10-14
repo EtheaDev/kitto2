@@ -1,5 +1,14 @@
 AppTitle: Tasks & Activities
 
+LoginWindowAppearance:
+  HtmlPanel: |
+    <center>
+      <p><img src="%IMAGE(taskitto_logo_150)%"></img></p>
+      <p style="font: 20px arial,tahoma,verdana,helvetica;">An example activity tracking application.</p>
+    </center>
+  HtmlPanelWidth: 300
+  HtmlPanelHeight: 80
+
 Databases:
   Main: DBX
     Connection:
@@ -16,7 +25,7 @@ Auth: DB
   IsClearPassword: True
   Defaults:
     UserName: admin
-    Password: password
+    Password:
 
 AccessControl: Null
     

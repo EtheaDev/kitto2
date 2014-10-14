@@ -9,6 +9,9 @@ Folder: Customers
 Folder: Activities
   View: ActivityInput
   View: ActivityReport
+Folder: Statistics
+  View: ActivityPieChart
+  View: ActivityBarChart
 Folder: Maintenance
   View: Users
     ImageName: user
