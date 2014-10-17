@@ -9,6 +9,7 @@ uses
   Classes, StrUtils, ExtPascal, ExtPascalUtils;
 
 type
+(*
   TExtUtilObservable = class;
   TExtUtilJSONSingleton = class;
   TExtUtilTextMetricsSingleton = class;
@@ -17,7 +18,7 @@ type
   TExtUtilCookiesSingleton = class;
   TExtUtilDelayedTask = class;
   TExtUtilMixedCollection = class;
-
+*)
   TExtUtilObservable = class(TExtFunction)
   private
     FListeners: TExtObject;
@@ -1136,3 +1137,4 @@ begin
 end;
 
 end.
+

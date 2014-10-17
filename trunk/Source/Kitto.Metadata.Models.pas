@@ -570,7 +570,26 @@ type
     ///	  AAfterPersist.
     ///	</remarks>
     procedure SaveRecord(const ARecord: TEFNode; const APersist: Boolean;
-      const AAfterPersist: TProc); virtual; abstract;
+      const AAfterPersist: TProc; AUseTransactions: boolean = True); virtual; abstract;
+
+    ///	<summary>
+    ///	  Saves all records of Store
+    ///	</summary>
+    ///	<param name="AStore">
+    ///	  Instance of the store to save. May be (will probably be) an
+    ///	  instance of an inherited class.
+    ///	</param>
+    ///	<param name="AAfterPersist">
+    ///	  A procedure to be called after successfully persisting the records. It
+    ///	  will only be called if save goes well.
+    ///	</param>
+    ///	<remarks>
+    ///	  In case of errors, this method raises exceptions and does not call
+    ///	  AAfterPersist.
+    ///	</remarks>
+    procedure SaveAllRecords(const DatabaseName: string;
+      const AStore: TEFTree; const AAfterPersist: TProc); virtual; abstract;
+
     ///	<summary>
     ///	  Called when a new record is being created in the GUI, after applying
     ///   any default or cloned values but before applying new record rules.
