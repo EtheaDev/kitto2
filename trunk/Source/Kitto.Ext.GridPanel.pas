@@ -25,7 +25,7 @@ uses
   ExtPascal, Ext, ExtData, ExtForm, ExtGrid, ExtPascalUtils,
   EF.ObserverIntf, EF.Types,
   Kitto.Metadata.Views, Kitto.Metadata.DataView, Kitto.Store, Kitto.Types,
-  Kitto.Ext.Base, Kitto.Ext.Controller, Kitto.Ext.DataPanelLeaf;
+  Kitto.Ext.Base, Kitto.Ext.Controller, Kitto.Ext.DataPanelLeaf, Kitto.Ext.Editors;
 
 type
   TKExtGridPanel = class(TKExtDataPanelLeafController)
@@ -38,7 +38,7 @@ type
     FEditHostWindow: TKExtModalWindow;
     FPagingToolbar: TExtPagingToolbar;
     FPageRecordCount: Integer;
-    FSelModel: TExtGridRowSelectionModel;
+    FSelectionModel: TExtGridRowSelectionModel;
     FIsAddVisible: Boolean;
     FIsDeleteVisible: Boolean;
     FButtonsRequiringSelection: TList<TExtObject>;
@@ -58,10 +58,12 @@ type
     procedure CheckGroupColumn;
     procedure DoConfirmChanges;
     function GetCurrentViewRecord: TKViewTableRecord;
+    procedure RefreshRowEditors;
+    procedure SetGridColumnEditor(const AEditorManager: TKExtEditorManager;
+      const AViewField: TKViewField; const AColumn: TExtGridColumn);
   strict protected
     function GetEditWindowDefaultControllerType: string; virtual;
     function GetOrderByClause: string; override;
-//    function GetRefreshJSCode: string; override;
     procedure InitDefaults; override;
     procedure SetViewTable(const AValue: TKViewTable); override;
     function CreateClientStore: TExtDataStore; override;
@@ -87,6 +89,7 @@ type
     procedure LoadData; override;
     procedure ConfirmChanges;
     procedure CancelChanges;
+    procedure SelectionChanged;
   end;
 
 implementation
@@ -95,7 +98,7 @@ uses
   SysUtils, StrUtils, Math, Types,
   EF.Tree, EF.StrUtils, EF.Localization, EF.JSON, EF.Macros,
   Kitto.Metadata.Models, Kitto.Rules, Kitto.AccessControl,
-  Kitto.Ext.Session, Kitto.Ext.Utils, Kitto.Ext.Editors;
+  Kitto.Ext.Session, Kitto.Ext.Utils;
 
 { TKExtGridPanel }
 
@@ -138,12 +141,28 @@ begin
 end;
 
 procedure TKExtGridPanel.AfterCreateTopToolbar;
+var
+  LAnyButtonsRequiringSelection: Boolean;
+  LServerSideSelectionChangeNeeded: Boolean;
 begin
   inherited;
-  if FButtonsRequiringSelection.Count > 0 then
+  LAnyButtonsRequiringSelection := FButtonsRequiringSelection.Count > 0;
+  // Server-side selectionchange notifcation is expensive - enable only if
+  // strictly necessary.
+  LServerSideSelectionChangeNeeded := False;//FInplaceEditing;
+
+  // Note: the selectionchange handler must be called in afterrender as well
+  // to account for the first row, which is selected by default.
+  if LAnyButtonsRequiringSelection then
   begin
-    FSelModel.On('selectionchange', JSFunction('s', GetRowButtonsDisableJS));
-    On('afterrender', JSFunction(Format('var s = %s;', [FSelModel.JSName]) + GetRowButtonsDisableJS));
+    FSelectionModel.On('selectionchange', JSFunction('s', GetRowButtonsDisableJS));
+    On('afterrender', JSFunction(Format('var s = %s;', [FSelectionModel.JSName]) + GetRowButtonsDisableJS));
+  end;
+
+  if LServerSideSelectionChangeNeeded then
+  begin
+    FSelectionModel.On('selectionchange', GetSelectCall(SelectionChanged));
+    On('afterrender', GetSelectCall(SelectionChanged));
   end;
 end;
 
@@ -175,7 +194,7 @@ begin
   end
   else
     Result := inherited CreateClientStore;
-  Result.On('load', FSelModel.SelectFirstRow);
+  Result.On('load', FSelectionModel.SelectFirstRow);
   FGridEditorPanel.Store := Result;
 end;
 
@@ -239,9 +258,9 @@ begin
   FGridEditorPanel.Border := False;
   FGridEditorPanel.Header := False;
   FGridEditorPanel.Region := rgCenter;
-  FSelModel := TExtGridRowSelectionModel.Create(FGridEditorPanel);
-  FSelModel.Grid := FGridEditorPanel;
-  FGridEditorPanel.SelModel := FSelModel;
+  FSelectionModel := TExtGridRowSelectionModel.Create(FGridEditorPanel);
+  FSelectionModel.Grid := FGridEditorPanel;
+  FGridEditorPanel.SelModel := FSelectionModel;
   FGridEditorPanel.StripeRows := True;
   FGridEditorPanel.Frame := False;
   FGridEditorPanel.AutoScroll := True;
@@ -253,9 +272,26 @@ end;
 
 function TKExtGridPanel.IsMultiSelect: Boolean;
 begin
-  Assert(Assigned(FSelModel));
+  Assert(Assigned(FSelectionModel));
 
-  Result := not FSelModel.SingleSelect;
+  Result := not FSelectionModel.SingleSelect;
+end;
+
+procedure TKExtGridPanel.SetGridColumnEditor(const AEditorManager: TKExtEditorManager;
+  const AViewField: TKViewField; const AColumn: TExtGridColumn);
+var
+  LEditable: boolean;
+begin
+  LEditable := FInplaceEditing and not AViewField.IsReadOnly
+    and AViewField.IsAccessGranted(ACM_MODIFY);
+  AColumn.Editable := LEditable;
+  if LEditable then
+  begin
+    if Assigned(AEditorManager) then
+      AColumn.Editor := AEditorManager.CreateGridCellEditor(FGridEditorPanel, AViewField)
+    else
+      AColumn.Editor := TExtFormTextField.Create(FGridEditorPanel);
+  end;
 end;
 
 procedure TKExtGridPanel.InitColumns;
@@ -263,35 +299,13 @@ var
   I: Integer;
   LLayout: TKLayout;
   LAutoExpandColumn: string;
-  LLayoutProcessor: TKExtLayoutProcessor;
+  LEditorManager: TKExtEditorManager;
   LFieldName: string;
 
   procedure AddGridColumn(const AViewField: TKViewField);
   var
     LColumn: TExtGridColumn;
     LColumnWidth: Integer;
-
-    procedure SetEditor(const AColumn: TExtGridColumn);
-    var
-      LEditable: boolean;
-      LRecordField: TKViewTableField;
-    begin
-      LEditable := FInplaceEditing and not AViewField.IsReadOnly and
-        AViewField.IsAccessGranted(ACM_MODIFY);
-      AColumn.Editable := LEditable;
-      if LEditable then
-      begin
-        AColumn.Editor := TExtFormTextField.Create(FGridEditorPanel);
-        if Assigned(LLayoutProcessor) then
-        begin
-          LRecordField := nil;
-          //LRecordField := GetCurrentViewRecord.FieldByName(AViewField.AliasedName);
-          AColumn.Editor := LLayoutProcessor.CreateGridCellEditor(FGridEditorPanel, AViewField, LRecordField);
-        end
-        else
-          AColumn.Editor := TExtFormTextField.Create(FGridEditorPanel);
-      end;
-    end;
 
     function SetRenderer(const AColumn: TExtGridColumn): Boolean;
     var
@@ -448,7 +462,7 @@ var
         FGridEditorPanel.ColModel.SetHidden(FGridEditorPanel.Columns.Count - 1, True);
 
       //In-place editing
-      SetEditor(Result);
+      SetGridColumnEditor(LEditorManager, AViewField, Result);
     end;
 
   begin
@@ -482,10 +496,8 @@ var
 begin
   Assert(ViewTable <> nil);
 
-  LLayoutProcessor := nil;
   if FInplaceEditing then
   begin
-    LLayoutProcessor := TKExtLayoutProcessor.Create;
     //Confirm button to store all records
     FConfirmButton := TExtButton.CreateAndAddTo(FGridEditorPanel.Buttons);
     FConfirmButton.Scale := Config.GetString('ButtonScale', 'medium');
@@ -508,12 +520,15 @@ begin
     FCancelButton.Handler := Ajax(CancelChanges);
   end;
 
+  LEditorManager := TKExtEditorManager.Create;
   try
-    if Assigned(LLayoutProcessor) then
-    begin
-      LLayoutProcessor.GridPanel := FGridEditorPanel;
-      LLayoutProcessor.Operation := eoUpdate;
-    end;
+    // Only in-place editing supported ATM, not inserting.
+    LEditorManager.Operation := eoUpdate;
+    LEditorManager.OnGetSession :=
+      procedure (out ASession: TKExtSession)
+      begin
+        ASession := Session;
+      end;
     LLayout := FindViewLayout('Grid');
     if LLayout <> nil then
     begin
@@ -531,8 +546,8 @@ begin
     LAutoExpandColumn := ViewTable.GetString('Controller/AutoExpandFieldName');
     if LAutoExpandColumn <> '' then
       FGridEditorPanel.AutoExpandColumn := LAutoExpandColumn;
-  Finally
-    FreeAndNil(LLayoutProcessor);
+  finally
+    FreeAndNil(LEditorManager);
   end;
 end;
 
@@ -621,6 +636,17 @@ begin
   FEditHostWindow.Show;
 end;
 
+procedure TKExtGridPanel.SelectionChanged;
+begin
+  if FInplaceEditing then
+    RefreshRowEditors;
+end;
+
+procedure TKExtGridPanel.RefreshRowEditors;
+begin
+  { TODO : ??? }
+end;
+
 procedure TKExtGridPanel.SetViewTable(const AValue: TKViewTable);
 var
   LKeyFieldNames: string;
@@ -670,12 +696,12 @@ begin
   CreateGridView;
 
   if not LViewTable.GetBoolean('Controller/IsMultiSelect', False) then
-    FSelModel.SingleSelect := True;
+    FSelectionModel.SingleSelect := True;
 
   if not FInplaceEditing then
   begin
     LKeyFieldNames := Join(LViewTable.GetKeyFieldAliasedNames, ',');
-    FGridEditorPanel.On('rowdblclick', AjaxSelection(EditViewRecord, FSelModel, LKeyFieldNames, LKeyFieldNames, []));
+    FGridEditorPanel.On('rowdblclick', AjaxSelection(EditViewRecord, FSelectionModel, LKeyFieldNames, LKeyFieldNames, []));
   end;
 
   // By default show paging toolbar for large models.
@@ -724,14 +750,6 @@ begin
   DoConfirmChanges;
   LoadData;
 end;
-
-//function TKExtGridPanel.GetRefreshJSCode: string;
-//begin
-//  if Assigned(FPagingToolbar) then
-//    Result := FPagingToolbar.JSName + '.dorefresh();'
-//  else
-//    Result := inherited GetRefreshJSCode;
-//end;
 
 function TKExtGridPanel.GetRowButtonsDisableJS: string;
 var
@@ -785,8 +803,8 @@ begin
 end;
 
 procedure TKExtGridPanel.DoConfirmChanges;
-var
-  FStoreRecord: TKViewTableRecord;
+//var
+//  FStoreRecord: TKViewTableRecord;
 begin
 (*
   try
@@ -880,7 +898,7 @@ begin
     else
     begin
       LKeyFieldNames := Join(ViewTable.GetKeyFieldAliasedNames, ',');
-      LDupButton.On('click', AjaxSelection(DuplicateRecord, FSelModel, LKeyFieldNames, LKeyFieldNames, []));
+      LDupButton.On('click', AjaxSelection(DuplicateRecord, FSelectionModel, LKeyFieldNames, LKeyFieldNames, []));
       FButtonsRequiringSelection.Add(LDupButton);
     end;
   end;
@@ -900,7 +918,7 @@ begin
       LEditButton.Icon := Session.Config.GetImageURL('view_record');
     end;
     LKeyFieldNames := Join(ViewTable.GetKeyFieldAliasedNames, ',');
-    LEditButton.On('click', AjaxSelection(EditViewRecord, FSelModel, LKeyFieldNames, LKeyFieldNames, []));
+    LEditButton.On('click', AjaxSelection(EditViewRecord, FSelectionModel, LKeyFieldNames, LKeyFieldNames, []));
     FButtonsRequiringSelection.Add(LEditButton);
   end;
 
@@ -934,11 +952,11 @@ begin
   if IsMultiSelect then
     Result := Format('confirmCall("%s", "%s", ajaxMultiSelection, {methodURL: "%s", selModel: %s, fieldNames: "%s"});',
       [_(Session.Config.AppTitle), AMessage, MethodURI(AMethod),
-      FSelModel.JSName, Join(ViewTable.GetKeyFieldAliasedNames, ',')])
+      FSelectionModel.JSName, Join(ViewTable.GetKeyFieldAliasedNames, ',')])
   else
     Result := Format('selectConfirmCall("%s", "%s", %s, "%s", {methodURL: "%s", selModel: %s, fieldNames: "%s"});',
-      [_(Session.Config.AppTitle), AMessage, FSelModel.JSName, ViewTable.Model.CaptionFieldName,
-      MethodURI(AMethod), FSelModel.JSName, Join(ViewTable.GetKeyFieldAliasedNames, ',')]);
+      [_(Session.Config.AppTitle), AMessage, FSelectionModel.JSName, ViewTable.Model.CaptionFieldName,
+      MethodURI(AMethod), FSelectionModel.JSName, Join(ViewTable.GetKeyFieldAliasedNames, ',')]);
 end;
 
 
@@ -947,7 +965,7 @@ var
   LKeyFieldNames: string;
 begin
   LKeyFieldNames := Join(ViewTable.GetKeyFieldAliasedNames, ',');
-  Result := AjaxSelection(AMethod, FSelModel, LKeyFieldNames, LKeyFieldNames, []);
+  Result := AjaxSelection(AMethod, FSelectionModel, LKeyFieldNames, LKeyFieldNames, []);
 end;
 
 initialization

@@ -221,6 +221,7 @@ type
   published
     procedure Logout;
   end;
+  TKExtSessionGetEvent = reference to procedure(out ASession: TKExtSession);
 
   ///	<summary>
   ///	  This helper guarantees that each Ext object has access to the current
