@@ -44,6 +44,9 @@ type
     FButtonsRequiringSelection: TList<TExtObject>;
     FIsDupVisible: Boolean;
     FIsDupAllowed: Boolean;
+    FInplaceEditing: Boolean;
+    FConfirmButton: TExtButton;
+    FCancelButton: TExtButton;
     function GetGroupingFieldName: string;
     function CreatePagingToolbar: TExtPagingToolbar;
     procedure ShowEditWindow(const ARecord: TKRecord;
@@ -53,6 +56,8 @@ type
     function GetRowColorPatterns(out AFieldName: string): TEFPairs;
     procedure CreateGridView;
     procedure CheckGroupColumn;
+    procedure DoConfirmChanges;
+    function GetCurrentViewRecord: TKViewTableRecord;
   strict protected
     function GetEditWindowDefaultControllerType: string; virtual;
     function GetOrderByClause: string; override;
@@ -80,6 +85,8 @@ type
     procedure NewRecord(This: TExtButton; E: TExtEventObjectSingleton);
     procedure DeleteCurrentRecord;
     procedure LoadData; override;
+    procedure ConfirmChanges;
+    procedure CancelChanges;
   end;
 
 implementation
@@ -88,7 +95,7 @@ uses
   SysUtils, StrUtils, Math, Types,
   EF.Tree, EF.StrUtils, EF.Localization, EF.JSON, EF.Macros,
   Kitto.Metadata.Models, Kitto.Rules, Kitto.AccessControl,
-  Kitto.Ext.Session, Kitto.Ext.Utils;
+  Kitto.Ext.Session, Kitto.Ext.Utils, Kitto.Ext.Editors;
 
 { TKExtGridPanel }
 
@@ -113,6 +120,11 @@ begin
       LSortFieldNames[I] := ViewTable.FieldByName(LSortFieldNames[I]).QualifiedDBNameOrExpression;
     Result := Join(LSortFieldNames, ', ');
   end;
+end;
+
+function TKExtGridPanel.GetCurrentViewRecord: TKViewTableRecord;
+begin
+  Result := Session.LocateRecordFromQueries(ViewTable, ServerStore, IfThen(IsMultiSelect, 0, -1));
 end;
 
 function TKExtGridPanel.GetEditWindowDefaultControllerType: string;
@@ -251,23 +263,33 @@ var
   I: Integer;
   LLayout: TKLayout;
   LAutoExpandColumn: string;
+  LLayoutProcessor: TKExtLayoutProcessor;
+  LFieldName: string;
 
   procedure AddGridColumn(const AViewField: TKViewField);
   var
     LColumn: TExtGridColumn;
     LColumnWidth: Integer;
 
-    procedure SetEditor(const AColumn: TExtGridColumn;
-      ADataType: TEFDataType);
+    procedure SetEditor(const AColumn: TExtGridColumn);
     var
       LEditable: boolean;
+      LRecordField: TKViewTableField;
     begin
-      LEditable := False;
+      LEditable := FInplaceEditing and not AViewField.IsReadOnly and
+        AViewField.IsAccessGranted(ACM_MODIFY);
       AColumn.Editable := LEditable;
       if LEditable then
       begin
-        { TODO : complete in-place editing as an option. }
         AColumn.Editor := TExtFormTextField.Create(FGridEditorPanel);
+        if Assigned(LLayoutProcessor) then
+        begin
+          LRecordField := nil;
+          //LRecordField := GetCurrentViewRecord.FieldByName(AViewField.AliasedName);
+          AColumn.Editor := LLayoutProcessor.CreateGridCellEditor(FGridEditorPanel, AViewField, LRecordField);
+        end
+        else
+          AColumn.Editor := TExtFormTextField.Create(FGridEditorPanel);
       end;
     end;
 
@@ -426,7 +448,7 @@ var
         FGridEditorPanel.ColModel.SetHidden(FGridEditorPanel.Columns.Count - 1, True);
 
       //In-place editing
-      SetEditor(Result, LDataType);
+      SetEditor(Result);
     end;
 
   begin
@@ -460,20 +482,58 @@ var
 begin
   Assert(ViewTable <> nil);
 
-  LLayout := FindViewLayout('Grid');
-  if LLayout <> nil then
+  LLayoutProcessor := nil;
+  if FInplaceEditing then
   begin
-    for I := 0 to LLayout.ChildCount - 1 do
-      AddColumn(ViewTable.FieldByAliasedName(LLayout.Children[I].AsString));
-  end
-  else
-  begin
-    for I := 0 to ViewTable.FieldCount - 1 do
-      AddColumn(ViewTable.Fields[I]);
+    LLayoutProcessor := TKExtLayoutProcessor.Create;
+    //Confirm button to store all records
+    FConfirmButton := TExtButton.CreateAndAddTo(FGridEditorPanel.Buttons);
+    FConfirmButton.Scale := Config.GetString('ButtonScale', 'medium');
+    FConfirmButton.FormBind := True;
+    FConfirmButton.Text := Config.GetString('ConfirmButton/Caption', _('Save'));
+    FConfirmButton.Tooltip := Config.GetString('ConfirmButton/Tooltip', _('Save changes and finish editing'));
+    // AjaxForms allows us to put JS code in the response, something the commented
+    // versions don't allow.
+    //FConfirmButton.Handler := AjaxSelection(ConfirmChanges, [FGridEditorPanel]);
+    // Don't just call submit() - we want AjaxSuccess/AjaxFailure to be called so that our response is actually executed.
+    //FSaveButton.Handler := JSFunction(FFormPanel.JSName + '.getForm().submit();');
+    //FSaveButton.Handler := JSFunction(FFormPanel.JSName + '.getForm().doAction("submit", {success:"AjaxSuccess", failure:"AjaxFailure"});');
+    FConfirmButton.Icon := Session.Config.GetImageURL('accept');
+    //Cancel button to abandon changes
+    FCancelButton := TExtButton.CreateAndAddTo(FGridEditorPanel.Buttons);
+    FCancelButton.Scale := Config.GetString('ButtonScale', 'medium');
+    FCancelButton.Icon := Session.Config.GetImageURL('cancel');
+    FCancelButton.Text := _('Cancel');
+    FCancelButton.Tooltip := _('Cancel changes');
+    FCancelButton.Handler := Ajax(CancelChanges);
   end;
-  LAutoExpandColumn := ViewTable.GetString('Controller/AutoExpandFieldName');
-  if LAutoExpandColumn <> '' then
-    FGridEditorPanel.AutoExpandColumn := LAutoExpandColumn;
+
+  try
+    if Assigned(LLayoutProcessor) then
+    begin
+      LLayoutProcessor.GridPanel := FGridEditorPanel;
+      LLayoutProcessor.Operation := eoUpdate;
+    end;
+    LLayout := FindViewLayout('Grid');
+    if LLayout <> nil then
+    begin
+      for I := 0 to LLayout.ChildCount - 1 do
+      begin
+        LFieldName := LLayout.Children[I].AsString;
+        AddColumn(ViewTable.FieldByAliasedName(LFieldName));
+      end;
+    end
+    else
+    begin
+      for I := 0 to ViewTable.FieldCount - 1 do
+        AddColumn(ViewTable.Fields[I]);
+    end;
+    LAutoExpandColumn := ViewTable.GetString('Controller/AutoExpandFieldName');
+    if LAutoExpandColumn <> '' then
+      FGridEditorPanel.AutoExpandColumn := LAutoExpandColumn;
+  Finally
+    FreeAndNil(LLayoutProcessor);
+  end;
 end;
 
 procedure TKExtGridPanel.NewRecord(This: TExtButton; E: TExtEventObjectSingleton);
@@ -483,8 +543,7 @@ end;
 
 procedure TKExtGridPanel.EditViewRecord;
 begin
-  ShowEditWindow(Session.LocateRecordFromQueries(ViewTable, ServerStore,
-    IfThen(IsMultiSelect, 0, -1)), emEditCurrentRecord);
+  ShowEditWindow(GetCurrentViewRecord, emEditCurrentRecord);
 end;
 
 function TKExtGridPanel.GetRowColorPatterns(out AFieldName: string): TEFPairs;
@@ -565,58 +624,75 @@ end;
 procedure TKExtGridPanel.SetViewTable(const AValue: TKViewTable);
 var
   LKeyFieldNames: string;
+  LView: TKDataView;
+  LViewTable: TKViewTable;
 begin
   inherited;
+  LView := View;
+  LViewTable := ViewTable;
 
   Assert(Assigned(AValue));
+  Assert(Assigned(LViewTable));
+  Assert(Assigned(LView));
+  Assert(Assigned(FGridEditorPanel));
 
   if Title = '' then
-    Title := _(ViewTable.PluralDisplayLabel);
+    Title := _(LViewTable.PluralDisplayLabel);
 
-  FIsAddVisible := not ViewTable.GetBoolean('Controller/PreventAdding')
+  FIsAddVisible := not LViewTable.GetBoolean('Controller/PreventAdding')
     and not View.GetBoolean('IsReadOnly')
-    and not ViewTable.IsReadOnly
+    and not LViewTable.IsReadOnly
     and not Config.GetBoolean('PreventAdding');
-  FIsAddAllowed := FIsAddVisible and ViewTable.IsAccessGranted(ACM_ADD);
+  FIsAddAllowed := FIsAddVisible and LViewTable.IsAccessGranted(ACM_ADD);
 
-  FIsDupVisible := (ViewTable.GetBoolean('Controller/AllowDuplicating')
+  FIsDupVisible := (LViewTable.GetBoolean('Controller/AllowDuplicating')
     or Config.GetBoolean('AllowDuplicating'))
-    and not ViewTable.GetBoolean('Controller/PreventAdding')
+    and not LViewTable.GetBoolean('Controller/PreventAdding')
     and not View.GetBoolean('IsReadOnly')
-    and not ViewTable.IsReadOnly
+    and not LViewTable.IsReadOnly
     and not Config.GetBoolean('PreventAdding');
-  FIsDupAllowed := FIsDupVisible and ViewTable.IsAccessGranted(ACM_ADD);
+  FIsDupAllowed := FIsDupVisible and LViewTable.IsAccessGranted(ACM_ADD);
 
-  FIsEditAllowed := not ViewTable.GetBoolean('Controller/PreventEditing')
+  FIsEditAllowed := not LViewTable.GetBoolean('Controller/PreventEditing')
     and not View.GetBoolean('IsReadOnly')
-    and not ViewTable.IsReadOnly
+    and not LViewTable.IsReadOnly
     and not Config.GetBoolean('PreventEditing')
-    and ViewTable.IsAccessGranted(ACM_MODIFY);
+    and LViewTable.IsAccessGranted(ACM_MODIFY);
 
-  FIsDeleteVisible := not ViewTable.GetBoolean('Controller/PreventDeleting')
-    and not View.GetBoolean('IsReadOnly')
-    and not ViewTable.IsReadOnly
+  FIsDeleteVisible := not LViewTable.GetBoolean('Controller/PreventDeleting')
+    and not LView.GetBoolean('IsReadOnly')
+    and not LViewTable.IsReadOnly
     and not Config.GetBoolean('PreventDeleting');
-  FIsDeleteAllowed := FIsDeleteVisible and ViewTable.IsAccessGranted(ACM_DELETE);
+  FIsDeleteAllowed := FIsDeleteVisible and LViewTable.IsAccessGranted(ACM_DELETE);
+
+  FInplaceEditing := LView.GetBoolean('Controller/InplaceEditing');
 
   CreateGridView;
 
-  if not ViewTable.GetBoolean('Controller/IsMultiSelect', False) then
+  if not LViewTable.GetBoolean('Controller/IsMultiSelect', False) then
     FSelModel.SingleSelect := True;
 
-  LKeyFieldNames := Join(ViewTable.GetKeyFieldAliasedNames, ',');
-  FGridEditorPanel.On('rowdblclick', AjaxSelection(EditViewRecord, FSelModel, LKeyFieldNames, LKeyFieldNames, []));
+  if not FInplaceEditing then
+  begin
+    LKeyFieldNames := Join(LViewTable.GetKeyFieldAliasedNames, ',');
+    FGridEditorPanel.On('rowdblclick', AjaxSelection(EditViewRecord, FSelModel, LKeyFieldNames, LKeyFieldNames, []));
+  end;
 
   // By default show paging toolbar for large models.
-  if ViewTable.GetBoolean('Controller/PagingTools', ViewTable.Model.IsLarge) then
+  if LViewTable.GetBoolean('Controller/PagingTools', LViewTable.Model.IsLarge) then
   begin
-    FPageRecordCount := ViewTable.GetInteger('Controller/PageRecordCount', 100);
+    FPageRecordCount := LViewTable.GetInteger('Controller/PageRecordCount', 100);
     FGridEditorPanel.Bbar := CreatePagingToolbar;
   end;
 
   InitColumns;
 
   CheckGroupColumn;
+end;
+
+procedure TKExtGridPanel.CancelChanges;
+begin
+  LoadData;
 end;
 
 procedure TKExtGridPanel.CheckGroupColumn;
@@ -641,6 +717,12 @@ begin
     if not LFound then
       raise Exception.CreateFmt('Grouping field %s not found in grid.', [LGroupingFieldName]);
   end;
+end;
+
+procedure TKExtGridPanel.ConfirmChanges;
+begin
+  DoConfirmChanges;
+  LoadData;
 end;
 
 //function TKExtGridPanel.GetRefreshJSCode: string;
@@ -675,8 +757,7 @@ begin
   Assert(ViewTable <> nil);
 
   // Apply BEFORE rules now even though actual save migh be deferred.
-  LRecord := Session.LocateRecordFromQueries(ViewTable, ServerStore,
-    IfThen(IsMultiSelect, 0, -1));
+  LRecord := GetCurrentViewRecord;
   LRecord.MarkAsDeleted;
   try
     LRecord.ApplyBeforeRules;
@@ -703,10 +784,32 @@ begin
   inherited;
 end;
 
+procedure TKExtGridPanel.DoConfirmChanges;
+var
+  FStoreRecord: TKViewTableRecord;
+begin
+(*
+  try
+    // Save all records.
+    ViewTable.Model.SaveAllRecords(ViewTable.DatabaseName, ServerStore,
+      procedure
+      begin
+        Session.Flash(_('Changes saved succesfully.'));
+      end);
+  except
+    on E: EKValidationError do
+    begin
+      ExtMessageBox.Alert(_(Session.Config.AppTitle), E.Message);
+      Exit;
+    end;
+  end;
+  NotifyObservers('Confirmed');
+*)
+end;
+
 procedure TKExtGridPanel.DuplicateRecord;
 begin
-  ShowEditWindow(Session.LocateRecordFromQueries(ViewTable, ServerStore,
-    IfThen(IsMultiSelect, 0, -1)), emDupCurrentRecord);
+  ShowEditWindow(GetCurrentViewRecord, emDupCurrentRecord);
 end;
 
 procedure TKExtGridPanel.LoadData;
@@ -782,21 +885,24 @@ begin
     end;
   end;
 
-  TExtToolbarSpacer.CreateAndAddTo(TopToolbar.Items);
-  LEditButton := TExtButton.CreateAndAddTo(TopToolbar.Items);
-  if FIsEditAllowed then
+  if not FInplaceEditing then
   begin
-    LEditButton.Tooltip := Format(_('Edit %s'), [_(ViewTable.DisplayLabel)]);
-    LEditButton.Icon := Session.Config.GetImageURL('edit_record');
-  end
-  else
-  begin
-    LEditButton.Tooltip := Format(_('View %s'), [_(ViewTable.DisplayLabel)]);
-    LEditButton.Icon := Session.Config.GetImageURL('view_record');
+    TExtToolbarSpacer.CreateAndAddTo(TopToolbar.Items);
+    LEditButton := TExtButton.CreateAndAddTo(TopToolbar.Items);
+    if FIsEditAllowed then
+    begin
+      LEditButton.Tooltip := Format(_('Edit %s'), [_(ViewTable.DisplayLabel)]);
+      LEditButton.Icon := Session.Config.GetImageURL('edit_record');
+    end
+    else
+    begin
+      LEditButton.Tooltip := Format(_('View %s'), [_(ViewTable.DisplayLabel)]);
+      LEditButton.Icon := Session.Config.GetImageURL('view_record');
+    end;
+    LKeyFieldNames := Join(ViewTable.GetKeyFieldAliasedNames, ',');
+    LEditButton.On('click', AjaxSelection(EditViewRecord, FSelModel, LKeyFieldNames, LKeyFieldNames, []));
+    FButtonsRequiringSelection.Add(LEditButton);
   end;
-  LKeyFieldNames := Join(ViewTable.GetKeyFieldAliasedNames, ',');
-  LEditButton.On('click', AjaxSelection(EditViewRecord, FSelModel, LKeyFieldNames, LKeyFieldNames, []));
-  FButtonsRequiringSelection.Add(LEditButton);
 
   if FIsDeleteVisible then
   begin

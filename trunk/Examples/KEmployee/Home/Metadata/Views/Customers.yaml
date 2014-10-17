@@ -1,5 +1,6 @@
-﻿Type: Data
+Type: Data
 Controller: List
+  InplaceEditing: True
   Filters:
     DisplayLabel: Search Customers
     Items:
@@ -9,6 +10,7 @@ MainTable:
   Model: Customer
   Fields:
     CustNo:
+      IsReadOnly: True
     Customer:
     ContactFirst:
     ContactLast:
