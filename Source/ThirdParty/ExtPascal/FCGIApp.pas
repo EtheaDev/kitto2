@@ -220,7 +220,11 @@ begin
   FSession.FApplication := Application;
   FSession.ContentType := 'text/html';
   AccessThread := TCriticalSection.Create;
+{$IFDEF VER210} //D2010
+  inherited Create(False);
+{$ELSE}
   inherited Create;
+{$ENDIF}
 end;
 
 // Destroys the TFCGIThread invoking the Thread Garbage Collector to free the associated objects
