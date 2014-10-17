@@ -43,7 +43,7 @@ implementation
 
 uses
   SysUtils, SyncObjs,
-  {$IFDEF D15+}RegularExpressionsCore{$ELSE}PerlRegEx{$ENDIF},
+  RegularExpressionsCore,
   EF.StrUtils;
 
 // Creating an instance of this component is costly, so we cache it.
