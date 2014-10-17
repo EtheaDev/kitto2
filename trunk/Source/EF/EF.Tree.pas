@@ -708,7 +708,7 @@ type
   end;
 
   ///	<summary>
-  ///	  A node in a tree. Has a name and a value, anc can have subnodes.
+  ///	  A node in a tree. Has a name and a value, and can have subnodes.
   ///	</summary>
   TEFNode = class(TEFTree)
   private
