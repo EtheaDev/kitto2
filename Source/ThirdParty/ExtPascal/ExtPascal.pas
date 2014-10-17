@@ -359,6 +359,14 @@ type
       const AAttributes, ATargetQueries: string; const AParams: array of const): TExtFunction;
     function AjaxForms(const AMethod: TExtProcedure; const AForms: array of TExtObject): TExtFunction;
 
+    // Use these to generate and return js code that performs an ajax call, useful
+    // when building js handlers. This method DOES NOT add any code to the
+    // current response.
+    function GetAjaxCode(const AMethodName, ARawParams: string;
+      const AParams: array of const): string; overload;
+    function GetAjaxCode(const AMethod: TExtProcedure;
+      const AParams: array of const; const AIsEvent: Boolean = False): string; overload;
+
     function RequestDownload(Method : TExtProcedure) : TExtFunction; overload;
     function RequestDownload(Method : TExtProcedure; Params : array of const) : TExtFunction; overload;
     procedure Download(Method : TExtProcedure); overload;
@@ -2321,12 +2329,19 @@ procedure TExtObject.AjaxCode(const AMethodName, ARawParams: string; const APara
   const AAdditionalDependencies: array of TExtObject);
 begin
   ExtSession.ResponseItems.ExecuteJSCode(Self,
+    GetAjaxCode(AMethodName, ARawParams, AParams),
+    AAdditionalDependencies);
+end;
+
+function TExtObject.GetAjaxCode(const AMethodName, ARawParams: string; const AParams: array of const): string;
+begin
+  Result :=
     'Ext.Ajax.request({' + sLineBreak +
     '  url: "' + ExtSession.MethodURI(AMethodName) + '",' + sLinebreak +
     '  params: "Ajax=1&' + IfThen(ARawParams = '', '', ARawParams + '&') + FormatParams(AMethodName, AParams) + '",' + sLineBreak +
     '  success: AjaxSuccess,' + sLineBreak +
     '  failure: AjaxFailure' + sLineBreak +
-    '});', AAdditionalDependencies);
+    '});';
 end;
 
 // Internal Ajax generation handler treating IsEvent, when is true HandleEvent will be invoked instead published methods
@@ -2351,19 +2366,28 @@ function TExtObject.Ajax(const AMethod: TExtProcedure;
   const AParams: array of const;
   const AAdditionalDependencies: array of TExtObject;
   const AIsEvent: Boolean): TExtFunction;
+begin
+  ExtSession.ResponseItems.ExecuteJSCode(Self,
+    GetAjaxCode(AMethod, AParams, AIsEvent),
+    AAdditionalDependencies);
+  Result := TExtFunction(Self);
+end;
+
+function TExtObject.GetAjaxCode(const AMethod: TExtProcedure;
+  const AParams: array of const; const AIsEvent: Boolean): string;
 var
   LParams: string;
   LMethodName: string;
   LObjectName: string;
 begin
-  Result := FindMethod(AMethod, LMethodName, LObjectName);
+  FindMethod(AMethod, LMethodName, LObjectName);
   LParams := IfThen(LObjectName = '', '', 'Obj=' + LObjectName);
   if AIsEvent then
   begin
     LParams := LParams + '&IsEvent=1&Evt=' + LMethodName;
     LMethodName := 'HandleEvent';
   end;
-  AjaxCode(LMethodName, LParams, AParams, AAdditionalDependencies);
+  Result :=  GetAjaxCode(LMethodName, LParams, AParams);
 end;
 
 function TExtObject.Ajax(const AMethodName: string;
