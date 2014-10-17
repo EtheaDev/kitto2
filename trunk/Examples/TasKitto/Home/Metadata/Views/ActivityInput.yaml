@@ -1,6 +1,7 @@
-﻿Type: Data
+Type: Data
 
 Controller: List
+  InplaceEditing: True
 
 MainTable:
   Model: ACTIVITY
