@@ -9,41 +9,37 @@ uses
   StrUtils, ExtPascal, ExtPascalUtils, ExtUtil, Ext, ExtData;
 
 type
-  TExtFormBasicForm = class;
-  TExtFormHtmlEditor = class;
-  TExtFormTextField = class;
-  TExtFormCheckbox = class;
-  TExtFormCheckboxGroup = class;
-  TExtFormFormPanel = class;
-  TExtFormRadioGroup = class;
-  TExtFormRadio = class;
-  TExtFormDateField = class;
-  TExtFormComboBox = class;
-  TExtFormField = class;
-(*
   TExtFormAction = class;
   TExtFormVTypesSingleton = class;
+  TExtFormBasicForm = class;
   TExtUxGridRecordForm = class;
   TExtFormActionSubmit = class;
   TExtFormActionLoad = class;
   TExtFormActionDirectLoad = class;
   TExtFormActionDirectSubmit = class;
+  TExtFormField = class;
   TExtFormLabel = class;
   TExtFormHidden = class;
+  TExtFormHtmlEditor = class;
   TExtUxCodePress = class;
+  TExtFormTextField = class;
   TExtFormSliderField = class;
   TExtFormDisplayField = class;
   TExtFormCompositeField = class;
+  TExtFormCheckbox = class;
+  TExtFormCheckboxGroup = class;
   TExtFormTextArea = class;
   TExtFormTriggerField = class;
   TExtFormNumberField = class;
   TExtFormFieldSet = class;
+  TExtFormFormPanel = class;
+  TExtFormRadioGroup = class;
+  TExtFormRadio = class;
   TExtFormDateField = class;
   TExtFormComboBox = class;
   TExtFormTwinTriggerField = class;
   TExtFormTimeField = class;
   TExtUxFormLovCombo = class;
-*)
 
   TExtFormAction = class(TExtFunction)
   private
@@ -4977,4 +4973,3 @@ begin
 end;
 
 end.
-

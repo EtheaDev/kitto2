@@ -48,9 +48,6 @@ type
   ///	</summary>
   { TODO : Refactor: SQL management should be moved out of the store and into this class. }
   TKDefaultModel = class(TKModel)
-  strict private
-    procedure InternalSaveRecord(const ARecord: TKViewTableRecord;
-      const APersist: Boolean; var AUseTransactions: boolean);
   strict protected
     procedure AddDetailReference(const ADetailReference: TKModelDetailReference);
     procedure DeleteDetailReference(const ADetailReference: TKModelDetailReference);
@@ -127,18 +124,10 @@ type
     ///	  Persists the specified record. Calls various protected virtual methods.
     ///	</summary>
     procedure SaveRecord(const ARecord: TEFNode; const APersist: Boolean;
-      const AAfterPersist: TProc; AUseTransactions: boolean = True); override;
-    ///	<summary>
-    ///	  Persists all records. Calls various protected virtual methods.
-    ///	</summary>
-    procedure SaveAllRecords(const DatabaseName: string;
-      const AStore: TEFTree; const AAfterPersist: TProc); override;
+      const AAfterPersist: TProc); override;
   end;
 
 implementation
-
-uses
-  EF.DB, Kitto.Config;
 
 { TKModelFieldHelper }
 
@@ -314,39 +303,14 @@ begin
   ARecord.Save(AUseTransactions);
 end;
 
-procedure TKDefaultModel.SaveAllRecords(const DatabaseName: string;
-  const AStore: TEFTree; const AAfterPersist: TProc);
-var
-  LDBConnection: TEFDBConnection;
-  LEFNode: TEFNode;
-  LARecord: TKViewTableRecord;
-  I: Integer;
-  LUseTransactions: Boolean;
-begin
-  inherited;
-  LDBConnection := TKConfig.Instance.DBConnections[DatabaseName];
-  LDBConnection.StartTransaction;
-  Try
-    LUseTransactions := True;
-    for I := 0 to AStore.ChildCount -1 do
-    begin
-      LEFNode := AStore.Children[I];
-      LARecord := TKViewTableRecord(LEFNode);
-      InternalSaveRecord(LARecord, True, LUseTransactions);
-    end;
-    LDBConnection.CommitTransaction;
-  Except
-    LDBConnection.RollbackTransaction;
-    raise;
-  End;
-end;
-
-procedure TKDefaultModel.InternalSaveRecord(const ARecord: TKViewTableRecord;
-  const APersist: Boolean; var AUseTransactions: boolean);
+procedure TKDefaultModel.SaveRecord(const ARecord: TEFNode;
+  const APersist: Boolean; const AAfterPersist: TProc);
 var
   LRecord: TKViewTableRecord;
-  LDoIt: boolean;
+  LUseTransactions: Boolean;
+  LDoIt: Boolean;
 begin
+  inherited;
   Assert(Assigned(ARecord));
   Assert(ARecord is TKViewTableRecord);
 
@@ -370,32 +334,18 @@ begin
 
   if APersist then
   begin
+    LUseTransactions := True;
     LDoIt := True;
-    BeforePersistRecord(LRecord, LDoIt, AUseTransactions);
+    BeforePersistRecord(LRecord, LDoIt, LUseTransactions);
     if LDoIt then
     begin
       { TODO : Add support for calling virtual methods before and after applying After rules. }
-      PersistRecord(LRecord, AUseTransactions);
-      AfterPersistRecord(LRecord, AUseTransactions);
+      PersistRecord(LRecord, LUseTransactions);
+      AfterPersistRecord(LRecord, LUseTransactions);
+      if Assigned(AAfterPersist) then
+        AAfterPersist;
     end;
   end;
-end;
-
-procedure TKDefaultModel.SaveRecord(const ARecord: TEFNode;
-  const APersist: Boolean; const AAfterPersist: TProc;
-  AUseTransactions: boolean = True);
-var
-  LRecord: TKViewTableRecord;
-  LUseTransactions: Boolean;
-  LSaved: Boolean;
-begin
-  inherited;
-  Assert(Assigned(ARecord));
-  Assert(ARecord is TKViewTableRecord);
-  LUseTransactions := APersist and AUseTransactions;
-  InternalSaveRecord(TKViewTableRecord(ARecord), APersist, LUseTransactions);
-  if APersist and Assigned(AAfterPersist) then
-    AAfterPersist;
 end;
 
 initialization
