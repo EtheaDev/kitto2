@@ -728,7 +728,7 @@ begin
   FSessionId := SessionCookie;
   TEFLogger.Instance.LogFmt('New session %s.', [FSessionId],
     TEFLogger.LOG_MEDIUM);
-  UploadPath := '/uploads/' + Config.AppName + '/' + FSessionId;
+  UploadPath := '/uploads/' + Config.AppName + '/' + SessionGUID;
   ExtPath := Config.Config.GetString('Ext/URL', '/ext');
   Charset := Config.Config.GetString('Charset', 'utf-8');
   Theme := Config.Config.GetString('Ext/Theme');
