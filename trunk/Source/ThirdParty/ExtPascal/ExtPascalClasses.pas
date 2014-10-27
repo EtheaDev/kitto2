@@ -30,6 +30,7 @@ type
     FObjectCatalog: TObjectCatalog;
     FNameSpace: string;
     FScriptName : string;
+    FSessionGUID: string;
     function CheckPassword(const RealPassword : string) : Boolean;
     function GetCookie(const Name : string): string;
     function GetQuery(const ParamName : string) : string;
@@ -146,6 +147,7 @@ type
     property NameSpace: string read FNameSpace write SetNameSpace;
 
     property SessionCookie: string read GetSessionCookie write SetSessionCookie;
+    property SessionGUID: string read FSessionGUID write FSessionGUID;
 
     function CreateNewSessionId: string;
   published

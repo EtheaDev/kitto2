@@ -490,6 +490,7 @@ begin
       // No session - make a new one and send the cookie to the client.
       LSessionId := FSession.CreateNewSessionId;
       FSession.SessionCookie := LSessionId;
+      FSession.SessionGUID := LSessionId;
       I := -1;
     end
     else
