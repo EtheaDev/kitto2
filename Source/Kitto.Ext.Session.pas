@@ -114,6 +114,8 @@ type
     FGettextInstance: TGnuGettextInstance;
     FRefreshingLanguage: Boolean;
     FControllerHostWindow: TKExtControllerHostWindow;
+    FDynamicScripts: TStringList;
+    FDynamicStyles: TStringList;
     procedure LoadLibraries;
     procedure DisplayHomeView;
     procedure DisplayLoginWindow;
@@ -126,6 +128,18 @@ type
     procedure SetLanguageFromQueriesOrConfig;
     procedure Reload;
     procedure SetViewHost(const AValue: TExtContainer);
+    ///	<summary>
+    ///	  If the specifield css file name exists, generates code that
+    ///   adds it to the page and adds that code to the current response.
+    ///   If called multiple times, only the first time the file is added.
+    ///	</summary>
+    procedure EnsureDynamicStyle(const AStyleBaseName: string);
+    ///	<summary>
+    ///	  If the specifield script file name exists, generates code that
+    ///   adds it to the page and adds that code to the current response.
+    ///   If called multiple times, only the first time the file is added.
+    ///	</summary>
+    procedure EnsureDynamicScript(const AScriptBaseName: string);
   protected
     function BeforeHandleRequest: Boolean; override;
     procedure AfterHandleRequest; override;
@@ -218,6 +232,23 @@ type
     ///	  The current session's UUID.
     ///	</summary>
     property SessionId: string read FSessionId;
+
+    ///	<summary>
+    ///	  Ensures that existing js and css files with the specified base name
+    ///   are dynamically added to the page. If the specified files don't exist
+    ///   or were already added, nothing is done.
+    ///	</summary>
+    procedure EnsureSupportFiles(const ABaseName: string);
+
+    ///	<summary>
+    ///	  Ensures that existing js and css files with a base name that depends
+    ///   on the specified view are dynamically added to the page.
+    ///   If the view has a 'SupportBaseName' attribute, then it is used as the
+    //    base name for the support files, otherwise the view's name (if any)
+    ///   is used.
+    ///   If the specified files don't exist or were already added, nothing is done.
+    ///	</summary>
+    procedure EnsureViewSupportFiles(const AView: TKView);
   published
     procedure Logout;
   end;
@@ -352,6 +383,8 @@ begin
   FreeAndNil(FUploadedFiles);
   FreeAndNil(FHomeController);
   FreeAndNil(FGettextInstance);
+  FreeAndNil(FDynamicScripts);
+  FreeAndNil(FDynamicStyles);
   inherited;
   // Keep it alive as the inherited call might trigger calls to
   // RemoveController from objects being destroyed.
@@ -424,7 +457,11 @@ begin
   else
   begin
     if not IsAjax then
+    begin
       LoadLibraries;
+      FDynamicScripts.Clear;
+      FDynamicStyles.Clear;
+    end;
   end;
 
   ResponseItems.ExecuteJSCode('kittoInit();');
@@ -499,11 +536,19 @@ var
   LLibraries: TStringDynArray;
   LLibName: string;
 begin
+{ TODO :
+Find a way to reference optional libraries only if the controllers that need
+them are linked in; maybe a global repository fed by initialization sections.
+Duplicates must be handled/ignored. }
   SetLibrary(ExtPath + '/examples/ux/statusbar/StatusBar');
   SetCSS(ExtPath + '/examples/ux/statusbar/css/statusbar');
 
   SetLibrary(ExtPath + '/examples/ux/fileuploadfield/FileUploadField');
   SetCSS(ExtPath + '/examples/ux/fileuploadfield/css/fileuploadfield');
+
+  SetLibrary(ExtPath + '/examples/ux/RowEditor');
+  SetCSS(ExtPath + '/examples/shared/examples');
+  SetCSS(ExtPath + '/examples/ux/css/RowEditor');
 
   SetLibrary(ExtPath + '/examples/shared/examples'); // For Ext.msg.
   SetRequiredLibrary('DateTimeField');
@@ -693,6 +738,62 @@ begin
     FStatusHost.ClearStatus;
 end;
 
+procedure TKExtSession.EnsureDynamicScript(const AScriptBaseName: string);
+var
+  LIndex: Integer;
+  LURL: string;
+begin
+  if not FDynamicScripts.Find(AScriptBaseName, LIndex) then
+  begin
+    LURL := Config.FindResourceURL(IncludeTrailingPathDelimiter('js') + AScriptBaseName + '.js');
+    if LURL <> '' then
+    begin
+      ResponseItems.ExecuteJSCode(Format('addScriptRef("%s");', [LURL]));
+      FDynamicScripts.Add(AScriptBaseName);
+    end;
+  end;
+end;
+
+procedure TKExtSession.EnsureDynamicStyle(const AStyleBaseName: string);
+var
+  LIndex: Integer;
+  LURL: string;
+begin
+  if not FDynamicStyles.Find(AStyleBaseName, LIndex) then
+  begin
+    LURL := Config.FindResourceURL(IncludeTrailingPathDelimiter('js') + AStyleBaseName + '.css');
+    if LURL <> '' then
+    begin
+      ResponseItems.ExecuteJSCode(Format('addLinkRef("%s");', [LURL]));
+      FDynamicStyles.Add(AStyleBaseName);
+    end;
+  end;
+end;
+
+procedure TKExtSession.EnsureSupportFiles(const ABaseName: string);
+begin
+  EnsureDynamicStyle(ABaseName);
+  EnsureDynamicScript(ABaseName);
+end;
+
+procedure TKExtSession.EnsureViewSupportFiles(const AView: TKView);
+var
+  LBaseName: string;
+  LBaseNameNode: TEFNode;
+begin
+  LBaseName := '';
+  if Assigned(AView) then
+  begin
+    LBaseNameNode := AView.FindNode('SupportBaseName');
+    if Assigned(LBaseNameNode) then
+      LBaseName := LBaseNameNode.AsString
+    else
+      LBaseName := AView.PersistentName;
+  end;
+  if LBaseName <> '' then
+    EnsureSupportFiles(LBaseName);
+end;
+
 procedure TKExtSession.EnumUploadedFiles(const AProc: TProc<TKExtUploadedFile>);
 var
   I: Integer;
@@ -771,6 +872,12 @@ begin
   FMacroExpander := TKExtSessionMacroExpander.Create(Self);
   Config.MacroExpansionEngine.AddExpander(FMacroExpander);
   FGettextInstance := TGnuGettextInstance.Create;
+  FDynamicScripts := TStringList.Create;
+  FDynamicScripts.Sorted := True;
+  FDynamicScripts.Duplicates := dupError;
+  FDynamicStyles := TStringList.Create;
+  FDynamicStyles.Sorted := True;
+  FDynamicStyles.Duplicates := dupError;
 end;
 
 class constructor TKExtSession.Create;

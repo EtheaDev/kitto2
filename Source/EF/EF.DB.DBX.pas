@@ -30,8 +30,8 @@ uses
 
 type
   ///	<summary>
-  ///	  Retrieves metadata from a database through DBX. Currently, only
-  ///	  Firebird is supported.
+  ///	  Retrieves metadata from a database through DBX. Should support all
+  ///   databases supported by DBX, depending on the driver used.
   ///	</summary>
   TEFDBDBXInfo = class(TEFDBInfo)
   private

@@ -6,7 +6,7 @@ unit ExtUxGrid;
 interface
 
 uses
-  StrUtils, ExtPascal, ExtPascalUtils, ExtGrid, ExtUtil, Ext;
+  StrUtils, ExtPascal, ExtPascalUtils, ExtGrid, ExtUtil, Ext, ExtData;
 
 type
   TExtUxGridCheckColumn = class;
@@ -19,7 +19,7 @@ type
 
   TExtUxGridCheckColumn = class(TExtGridColumn)
   public
-    function JSClassName : string; override;
+    class function JSClassName: string; override;
   end;
 
   TExtUxGridGroupSummary = class(TExtUtilObservable)
@@ -33,7 +33,7 @@ type
   protected
     procedure InitDefaults; override;
   public
-    function JSClassName : string; override;
+    class function JSClassName: string; override;
     function ShowSummaryMsg(GroupValue : string; Msg : string) : TExtFunction;
     function ToggleSummaries(Visible : Boolean) : TExtFunction;
     property SummaryRenderer : TExtFunction read FSummaryRenderer write SetFSummaryRenderer;
@@ -65,7 +65,7 @@ type
     procedure InitDefaults; override;
     procedure HandleEvent(const AEvtName: string); override;
   public
-    function JSClassName : string; override;
+    class function JSClassName: string; override;
     property ExpandOnDblClick : Boolean read FExpandOnDblClick write SetFExpandOnDblClick;
     property ExpandOnEnter : Boolean read FExpandOnEnter write SetFExpandOnEnter;
     property OnBeforecollapse : TExtUxGridRowExpanderOnBeforecollapse read FOnBeforecollapse write SetFOnBeforecollapse;
@@ -76,7 +76,7 @@ type
 
   TExtUxGridHybridSummary = class(TExtUxGridGroupSummary)
   public
-    function JSClassName : string; override;
+    class function JSClassName: string; override;
     function GetSummaryData(GroupValue : string) : TExtFunction;
     function UpdateSummaryData(GroupValue : string; Data : TExtObject; SkipRefresh : Boolean = false) : TExtFunction;
   end;
@@ -98,7 +98,7 @@ type
   protected
     procedure InitDefaults; override;
   public
-    function JSClassName : string; override;
+    class function JSClassName: string; override;
     property BorderHeight : Integer read FBorderHeight write SetFBorderHeight;
     property CacheSize : Integer read FCacheSize write SetFCacheSize;
     property CleanDelay : Integer read FCleanDelay write SetFCleanDelay;
@@ -108,38 +108,52 @@ type
   end;
 
   // Procedural types for events TExtUxGridRowEditor
-  TExtUxGridRowEditorOnAfteredit = procedure(Roweditor : TExtUxGridRowEditor; Changes : TExtObject; R : TExtDataRecord; RowIndex : Integer) of object;
-  TExtUxGridRowEditorOnBeforeedit = procedure(Roweditor : TExtUxGridRowEditor; RowIndex : Integer) of object;
-  TExtUxGridRowEditorOnValidateedit = procedure(Roweditor : TExtUxGridRowEditor; Changes : TExtObject; R : TExtDataRecord; RowIndex : Integer) of object;
+  TExtUxGridRowEditorOnAfterEdit = procedure(ARowEditor: TExtUxGridRowEditor; AChanges: TExtObject; ARecord: TExtDataRecord; ARowIndex: Integer) of object;
+  TExtUxGridRowEditorOnBeforeEdit = procedure(ARowEditor: TExtUxGridRowEditor; ARowIndex: Integer) of object;
+  TExtUxGridRowEditorOnValidateEdit = procedure(ARowEditor: TExtUxGridRowEditor; AChanges: TExtObject; ARecord: TExtDataRecord; ARowIndex: Integer) of object;
 
   TExtUxGridRowEditor = class(TExtPanel)
   private
-    FOnAfteredit : TExtUxGridRowEditorOnAfteredit;
-    FOnBeforeedit : TExtUxGridRowEditorOnBeforeedit;
-    FOnValidateedit : TExtUxGridRowEditorOnValidateedit;
-    procedure SetFOnAfteredit(Value : TExtUxGridRowEditorOnAfteredit);
-    procedure SetFOnBeforeedit(Value : TExtUxGridRowEditorOnBeforeedit);
-    procedure SetFOnValidateedit(Value : TExtUxGridRowEditorOnValidateedit);
+    FSaveText: string;
+    FCancelText: string;
+    FCommitChangesText: string;
+    FErrorText: string;
+    FOnAfterEdit: TExtUxGridRowEditorOnAfterEdit;
+    FOnBeforeEdit: TExtUxGridRowEditorOnBeforeEdit;
+    FOnValidateEdit: TExtUxGridRowEditorOnValidateEdit;
+    procedure SetOnAfterEdit(const AValue: TExtUxGridRowEditorOnAfterEdit);
+    procedure SetOnBeforeEdit(const AValue: TExtUxGridRowEditorOnBeforeEdit);
+    procedure SetOnValidateEdit(const AValue: TExtUxGridRowEditorOnValidateEdit);
+    procedure SetCancelText(const AValue: string);
+    procedure SetCommitChangesText(const AValue: string);
+    procedure SetErrorText(const AValue: string);
+    procedure SetSaveText(const AValue: string);
   protected
     procedure InitDefaults; override;
     procedure HandleEvent(const AEvtName: string); override;
   public
-    function JSClassName : string; override;
-    property OnAfteredit : TExtUxGridRowEditorOnAfteredit read FOnAfteredit write SetFOnAfteredit;
-    property OnBeforeedit : TExtUxGridRowEditorOnBeforeedit read FOnBeforeedit write SetFOnBeforeedit;
-    property OnValidateedit : TExtUxGridRowEditorOnValidateedit read FOnValidateedit write SetFOnValidateedit;
+    class function JSClassName: string; override;
+    property OnAfteredit : TExtUxGridRowEditorOnAfterEdit read FOnAfterEdit write SetOnAfterEdit;
+    property OnBeforeedit : TExtUxGridRowEditorOnBeforeEdit read FOnBeforeEdit write SetOnBeforeEdit;
+    property OnValidateedit : TExtUxGridRowEditorOnValidateEdit read FOnValidateEdit write SetOnValidateEdit;
+
+    property SaveText: string read FSaveText write SetSaveText;
+    property CancelText: string read FCancelText write SetCancelText;
+    property CommitChangesText: string read FCommitChangesText write SetCommitChangesText;
+    property ErrorText: string read FErrorText write SetErrorText;
   end;
 
   TExtUxGridTableGrid = class(TExtGridGridPanel)
   protected
     procedure InitDefaults; override;
   public
-    function JSClassName : string; override;
+    class function JSClassName: string; override;
   end;
 
 implementation
 
-function TExtUxGridCheckColumn.JSClassName : string; begin
+class function TExtUxGridCheckColumn.JSClassName: string;
+begin
   Result := 'Ext.ux.grid.CheckColumn';
 end;
 
@@ -158,7 +172,8 @@ procedure TExtUxGridGroupSummary.SetFCalculations(Value : TExtObject); begin
     JSCode(JSName + '.calculations=' + VarToJSON([Value, false]) + ';');
 end;
 
-function TExtUxGridGroupSummary.JSClassName : string; begin
+class function TExtUxGridGroupSummary.JSClassName: string;
+begin
   Result := 'Ext.ux.grid.GroupSummary';
 end;
 
@@ -219,7 +234,8 @@ procedure TExtUxGridRowExpander.SetFOnExpand(Value : TExtUxGridRowExpanderOnExpa
   FOnExpand := Value;
 end;
 
-function TExtUxGridRowExpander.JSClassName : string; begin
+class function TExtUxGridRowExpander.JSClassName: string;
+begin
   Result := 'Ext.ux.grid.RowExpander';
 end;
 
@@ -241,7 +257,8 @@ procedure TExtUxGridRowExpander.HandleEvent(const AEvtName : string); begin
     FOnExpand(TExtUxGridRowExpander(ParamAsObject('This')), TExtObject(ParamAsObject('ExtDataRecord')), TExtObject(ParamAsObject('Body')), ParamAsInteger('RowIndex'));
 end;
 
-function TExtUxGridHybridSummary.JSClassName : string; begin
+class function TExtUxGridHybridSummary.JSClassName: string;
+begin
   Result := 'Ext.ux.grid.HybridSummary';
 end;
 
@@ -285,7 +302,8 @@ procedure TExtUxGridBufferView.SetFScrollDelayNumber(Value : Integer); begin
   JSCode('scrollDelay:' + VarToJSON([Value]));
 end;
 
-function TExtUxGridBufferView.JSClassName : string; begin
+class function TExtUxGridBufferView.JSClassName: string;
+begin
   Result := 'Ext.ux.grid.BufferView';
 end;
 
@@ -293,31 +311,59 @@ procedure TExtUxGridBufferView.InitDefaults; begin
   inherited;
 end;
 
-procedure TExtUxGridRowEditor.SetFOnAfteredit(Value : TExtUxGridRowEditorOnAfteredit); begin
-  if Assigned(FOnAfteredit) then
-    JSCode(JSName+'.events ["afteredit"].listeners=[];');
-  if Assigned(Value) then
-    On('afteredit', Ajax('afteredit', ['Roweditor', '%0.nm','Changes', '%1.nm','R', '%2.nm','RowIndex', '%3'], true));
-  FOnAfteredit := Value;
+procedure TExtUxGridRowEditor.SetCancelText(const AValue: string);
+begin
+  FCancelText := AValue;
+  Session.ResponseItems.SetConfigItemOrProperty(Self, 'cancelText', [AValue]);
 end;
 
-procedure TExtUxGridRowEditor.SetFOnBeforeedit(Value : TExtUxGridRowEditorOnBeforeedit); begin
-  if Assigned(FOnBeforeedit) then
-    JSCode(JSName+'.events ["beforeedit"].listeners=[];');
-  if Assigned(Value) then
-    On('beforeedit', Ajax('beforeedit', ['Roweditor', '%0.nm','RowIndex', '%1'], true));
-  FOnBeforeedit := Value;
+procedure TExtUxGridRowEditor.SetCommitChangesText(const AValue: string);
+begin
+  FCommitChangesText := AValue;
+  Session.ResponseItems.SetConfigItemOrProperty(Self, 'commitChangesText', [AValue]);
 end;
 
-procedure TExtUxGridRowEditor.SetFOnValidateedit(Value : TExtUxGridRowEditorOnValidateedit); begin
-  if Assigned(FOnValidateedit) then
-    JSCode(JSName+'.events ["validateedit"].listeners=[];');
-  if Assigned(Value) then
-    On('validateedit', Ajax('validateedit', ['Roweditor', '%0.nm','Changes', '%1.nm','R', '%2.nm','RowIndex', '%3'], true));
-  FOnValidateedit := Value;
+procedure TExtUxGridRowEditor.SetErrorText(const AValue: string);
+begin
+  FErrorText := AValue;
+  Session.ResponseItems.SetConfigItemOrProperty(Self, 'errorText', [AValue]);
 end;
 
-function TExtUxGridRowEditor.JSClassName : string; begin
+procedure TExtUxGridRowEditor.SetOnAfterEdit(const AValue: TExtUxGridRowEditorOnAfterEdit);
+begin
+  if Assigned(FOnAfterEdit) then
+    Session.ResponseItems.ExecuteJSCode(JSName + '.events["afteredit"].listeners=[];');
+  if Assigned(AValue) then
+    On('afteredit', Ajax('afteredit', ['Roweditor', '%0.nm','Changes', '%1.nm','R', '%2.nm','RowIndex', '%3'], True));
+  FOnAfterEdit := AValue;
+end;
+
+procedure TExtUxGridRowEditor.SetOnBeforeEdit(const AValue: TExtUxGridRowEditorOnBeforeEdit);
+begin
+  if Assigned(FOnBeforeEdit) then
+    Session.ResponseItems.ExecuteJSCode(JSName + '.events["beforeedit"].listeners=[];');
+  if Assigned(AValue) then
+    On('beforeedit', Ajax('beforeedit', ['Roweditor', '%0.nm','RowIndex', '%1'], True));
+  FOnBeforeEdit := AValue;
+end;
+
+procedure TExtUxGridRowEditor.SetOnValidateEdit(const AValue: TExtUxGridRowEditorOnValidateEdit);
+begin
+  if Assigned(FOnValidateEdit) then
+    Session.ResponseItems.ExecuteJSCode(JSName + '.events["validateedit"].listeners=[];');
+  if Assigned(AValue) then
+    On('validateedit', Ajax('validateedit', ['Roweditor', '%0.nm','Changes', '%1.nm','R', '%2.nm','RowIndex', '%3'], True));
+  FOnValidateEdit := AValue;
+end;
+
+procedure TExtUxGridRowEditor.SetSaveText(const AValue: string);
+begin
+  FSaveText := AValue;
+  Session.ResponseItems.SetConfigItemOrProperty(Self, 'saveText', [AValue]);
+end;
+
+class function TExtUxGridRowEditor.JSClassName: string;
+begin
   Result := 'Ext.ux.grid.RowEditor';
 end;
 
@@ -327,15 +373,16 @@ end;
 
 procedure TExtUxGridRowEditor.HandleEvent(const AEvtName : string); begin
   inherited;
-  if (AEvtName = 'afteredit') and Assigned(FOnAfteredit) then
-    FOnAfteredit(TExtUxGridRowEditor(ParamAsObject('Roweditor')), TExtObject(ParamAsObject('Changes')), TExtDataRecord(ParamAsObject('R')), ParamAsInteger('RowIndex'))
-  else if (AEvtName = 'beforeedit') and Assigned(FOnBeforeedit) then
-    FOnBeforeedit(TExtUxGridRowEditor(ParamAsObject('Roweditor')), ParamAsInteger('RowIndex'))
-  else if (AEvtName = 'validateedit') and Assigned(FOnValidateedit) then
-    FOnValidateedit(TExtUxGridRowEditor(ParamAsObject('Roweditor')), TExtObject(ParamAsObject('Changes')), TExtDataRecord(ParamAsObject('R')), ParamAsInteger('RowIndex'));
+  if (AEvtName = 'afteredit') and Assigned(FOnAfterEdit) then
+    FOnAfterEdit(TExtUxGridRowEditor(ParamAsObject('Roweditor')), TExtObject(ParamAsObject('Changes')), TExtDataRecord(ParamAsObject('R')), ParamAsInteger('RowIndex'))
+  else if (AEvtName = 'beforeedit') and Assigned(FOnBeforeEdit) then
+    FOnBeforeEdit(TExtUxGridRowEditor(ParamAsObject('Roweditor')), ParamAsInteger('RowIndex'))
+  else if (AEvtName = 'validateedit') and Assigned(FOnValidateEdit) then
+    FOnValidateEdit(TExtUxGridRowEditor(ParamAsObject('Roweditor')), TExtObject(ParamAsObject('Changes')), TExtDataRecord(ParamAsObject('R')), ParamAsInteger('RowIndex'));
 end;
 
-function TExtUxGridTableGrid.JSClassName : string; begin
+class function TExtUxGridTableGrid.JSClassName: string;
+begin
   Result := 'Ext.ux.grid.TableGrid';
 end;
 
