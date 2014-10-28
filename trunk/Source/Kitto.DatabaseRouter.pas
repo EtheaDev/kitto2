@@ -40,15 +40,17 @@ type
   ///	  specified in its params.</para>
   ///	</summary>
   TKDatabaseRouter = class(TEFComponent)
-  protected
+  strict protected
     function InternalGetDatabaseName(const ACallerContext: TObject;
       const AParams: TEFTree): string; virtual; abstract;
   public
     procedure AfterConstruction; override;
     destructor Destroy; override;
   public
-    ///	<summary>Returns a database name suitable for the specified context and
-    ///	params.</summary>
+    ///	<summary>
+    ///   Returns a database name suitable for the specified context and
+    ///	  params.
+    /// </summary>
     function GetDatabaseName(const ACallerContext: TObject;
       const AParams: TEFTree): string;
   end;

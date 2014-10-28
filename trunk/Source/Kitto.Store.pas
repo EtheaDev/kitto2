@@ -88,7 +88,7 @@ type
   TKRecord = class(TEFNode)
   strict private
     FBackup: TEFNode;
-    { TODO : move state management in view table record }
+    { TODO : move state management in view table record? }
     FState: TKRecordState;
     FDetailStores: TObjectList<TKStore>;
     FOnFieldChange: TKFieldChangeEvent;
@@ -303,7 +303,7 @@ implementation
 uses
   Math, FmtBcd, Variants, StrUtils,
   EF.StrUtils, EF.Localization, EF.JSON,
-  Kitto.Types, Kitto.SQL, Kitto.Config;
+  Kitto.Types, Kitto.Config;
 
 { TKStore }
 

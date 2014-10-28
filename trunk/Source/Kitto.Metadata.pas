@@ -158,13 +158,13 @@ type
     procedure RemoveObject(const AObject: TKMetadata);
     procedure DeleteObject(const AIndex: Integer);
 
-    ///	<summary>
-    ///	  Marks the object as disposed and removes it from the index (but
-    ///	  doesn't free it). The file is then deleted when SaveAll is called.
-    ///	</summary>
-    ///	<param name="AObject">
-    ///	  Object to be disposed.
-    ///	</param>
+    /// <summary>
+    ///   Marks the object as disposed and removes it from the index (but
+    ///   doesn't free it). The file is then deleted when SaveAll is called.
+    /// </summary>
+    /// <param name="AObject">
+    ///   Object to be disposed.
+    /// </param>
     procedure MarkObjectAsDisposed(const AObject: TKMetadata);
 
     ///	<summary>

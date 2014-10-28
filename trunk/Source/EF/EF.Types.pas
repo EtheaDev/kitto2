@@ -130,13 +130,19 @@ type
     function GetClass(const AId: string): TClass;
 
     ///	<summary>
+    ///	  Returns the Id under which a class was registered, or ''.
+    ///	</summary>
+    function FindClassId(const AClass: TClass): string;
+
+    ///	<summary>
     ///	  Returns a class reference to the class identified by AClassId, if
     ///	  registered. Otherwise returns nil.
     ///	</summary>
     function FindClass(const AId: string): TClass;
 
-    ///	<summary>Returns a sorted array with all registered class
-    ///	Ids.</summary>
+    ///	<summary>
+    ///   Returns a sorted array with all registered class Ids.
+    ///	</summary>
     function GetClassIds: TArray<string>;
   end;
 
@@ -259,6 +265,21 @@ begin
     Result := GetClass(AId)
   else
     Result := Default(TClass);
+end;
+
+function TEFRegistry.FindClassId(const AClass: TClass): string;
+var
+  LClass: TPair<string, TClass>;
+begin
+  Result := '';
+  for LClass in FClasses do
+  begin
+    if LClass.Value = AClass then
+    begin
+      Result := LClass.Key;
+      Break;
+    end;
+  end;
 end;
 
 function TEFRegistry.GetClass(const AId: string): TClass;

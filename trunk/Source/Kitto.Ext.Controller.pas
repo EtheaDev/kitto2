@@ -79,6 +79,7 @@ de-registration gracefully. }
       override;
   public
     class destructor Destroy;
+  public
     class property Instance: TKExtControllerRegistry read GetInstance;
     procedure RegisterClass(const AId: string; const AClass: TExtObjectClass);
   end;

@@ -470,19 +470,17 @@ type
   private
     FEncode: Boolean;
     FEncodeDelete: Boolean;
-    procedure SetFEncode(Value: Boolean);
-    procedure SetFEncodeDelete(Value: Boolean);
+    procedure SetEncode(const AValue: Boolean);
+    procedure SetEncodeDelete(const AValue: Boolean);
   public
     class function JSClassName: string; override;
     function CreateRecord(Rec: TExtDataRecord): TExtFunction;
     function DestroyRecord(Rec: TExtDataRecord): TExtFunction;
-    function Render(Http: TExtObject; BaseParams: TExtObject; Data: TExtObject)
-      : TExtFunction; overload;
-    function Render(Http: TExtObject; BaseParams: TExtObject; Data: TExtObjectList)
-      : TExtFunction; overload;
+    function Render(Http: TExtObject; BaseParams: TExtObject; Data: TExtObject): TExtFunction; overload;
+    function Render(Http: TExtObject; BaseParams: TExtObject; Data: TExtObjectList): TExtFunction; overload;
     function UpdateRecord(Rec: TExtDataRecord): TExtFunction;
-    property Encode: Boolean read FEncode write SetFEncode;
-    property EncodeDelete: Boolean read FEncodeDelete write SetFEncodeDelete;
+    property Encode: Boolean read FEncode write SetEncode;
+    property EncodeDelete: Boolean read FEncodeDelete write SetEncodeDelete;
   end;
 
   TExtDataXmlWriter = class(TExtDataDataWriter)
@@ -605,7 +603,7 @@ type
     procedure SetFSortInfo(Value: TExtObject);
     procedure SetFStoreId(Value: string);
     procedure SetUrl(const AValue: string);
-    procedure SetFWriter(Value: TExtDataDataWriter);
+    procedure SetWriter(const AValue: TExtDataDataWriter);
     procedure SetFBaseParams_(Value: TExtObject);
     procedure SetFFields(Value: TExtObjectList);
     procedure SetFHasMultiSort(Value: Boolean);
@@ -714,7 +712,7 @@ type
     property SortInfo: TExtObject read FSortInfo write SetFSortInfo;
     property StoreId: string read FStoreId write SetFStoreId;
     property Url: string read FUrl write SetUrl;
-    property Writer: TExtDataDataWriter read FWriter write SetFWriter;
+    property Writer: TExtDataDataWriter read FWriter write SetWriter;
     property BaseParams_: TExtObject read FBaseParams_ write SetFBaseParams_;
     property Fields: TExtObjectList read FFields write SetFFields;
     property HasMultiSort: Boolean read FHasMultiSort write SetFHasMultiSort;
@@ -2421,16 +2419,16 @@ begin
       TExtDataNode(ParamAsObject('Node')));
 end;
 
-procedure TExtDataJsonWriter.SetFEncode(Value: Boolean);
+procedure TExtDataJsonWriter.SetEncode(const AValue: Boolean);
 begin
-  FEncode := Value;
-  JSCode('encode:' + VarToJSON([Value]));
+  FEncode := AValue;
+  Session.ResponseItems.SetConfigItem(Self, 'encode', [AValue]);
 end;
 
-procedure TExtDataJsonWriter.SetFEncodeDelete(Value: Boolean);
+procedure TExtDataJsonWriter.SetEncodeDelete(const AValue: Boolean);
 begin
-  FEncodeDelete := Value;
-  JSCode('encodeDelete:' + VarToJSON([Value]));
+  FEncodeDelete := AValue;
+  Session.ResponseItems.SetConfigItem(Self, 'encodeDelete', [AValue]);
 end;
 
 class function TExtDataJsonWriter.JSClassName: string;
@@ -2667,10 +2665,10 @@ begin
   ExtSession.ResponseItems.SetConfigItem(Self, 'url', [AValue]);
 end;
 
-procedure TExtDataStore.SetFWriter(Value: TExtDataDataWriter);
+procedure TExtDataStore.SetWriter(const AValue: TExtDataDataWriter);
 begin
-  FWriter := Value;
-  JSCode('writer:' + VarToJSON([Value, false]));
+  FWriter := AValue;
+  Session.ResponseItems.SetConfigItem(Self, 'writer', [AValue, False]);
 end;
 
 procedure TExtDataStore.SetFBaseParams_(Value: TExtObject);

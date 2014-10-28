@@ -344,6 +344,8 @@ end;
 
 procedure TKExtWindowControllerBase.DoDisplay;
 begin
+  Session.EnsureSupportFiles(TKExtControllerRegistry.Instance.FindClassId(Self.ClassType));
+  Session.EnsureViewSupportFiles(View);
   Show;
 end;
 
@@ -539,6 +541,8 @@ end;
 
 procedure TKExtViewportControllerBase.DoDisplay;
 begin
+  Session.EnsureSupportFiles(TKExtControllerRegistry.Instance.FindClassId(Self.ClassType));
+  Session.EnsureViewSupportFiles(View);
   Show;
 end;
 
@@ -708,6 +712,9 @@ var
   LHeightStr: string;
   LView: TKView;
 begin
+  Session.EnsureSupportFiles(TKExtControllerRegistry.Instance.FindClassId(Self.ClassType));
+  Session.EnsureViewSupportFiles(View);
+
   if (Title = '') then
   begin
     LView := View;
@@ -994,6 +1001,8 @@ end;
 
 procedure TKExtControllerBase.DoDisplay;
 begin
+  Session.EnsureSupportFiles(TKExtControllerRegistry.Instance.FindClassId(Self.ClassType));
+  Session.EnsureViewSupportFiles(View);
 end;
 
 function TKExtControllerBase.GetConfig: TEFNode;

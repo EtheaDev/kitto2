@@ -62,6 +62,29 @@ function addStyleRule(selector, rule) {
   }
 };
 
+// Dynamically adds a css <link> that references a URL. Used to
+// dynamically add a style sheet specific to a view or controller.
+function addLinkRef(href) {
+  var
+    head = document.getElementsByTagName('head')[0],
+    link = document.createElement('link');
+  link.rel = 'stylesheet';
+  link.type = 'text/css';
+  link.href = href;
+  head.appendChild(link);
+};
+
+// Dynamically adds a <script> that references a URL. Used to
+// dynamically add javascript code specific to a view or controller.
+function addScriptRef(src) {
+  var
+    head = document.getElementsByTagName('head')[0],
+    script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src = src;
+  head.appendChild(script);
+};
+
 // Fires change event if the object value is at least
 // minChars characters long. Also fires the event when the
 // value is empty. Used in filters.
