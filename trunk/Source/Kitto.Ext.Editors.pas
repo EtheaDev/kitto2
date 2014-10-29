@@ -2579,7 +2579,7 @@ end;
 function TKExtEditorManager.CreateGridCellEditor(const AOwner: TComponent;
   const AViewField: TKViewField): TExtFormField;
 begin
-  Result := CreateEditor(AOwner, AViewField, nil, -1, False).AsExtFormField;
+  Result := CreateEditor(AOwner, AViewField, nil, AViewField.DisplayWidth, False).AsExtFormField;
 end;
 
 function TKExtEditorManager.CreateEditor(const AOwner: TComponent;

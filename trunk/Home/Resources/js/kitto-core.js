@@ -344,3 +344,12 @@ function loadError(type, action, response)
   else
     AjaxError("Load error - see response for details.");
 };
+
+function objectToParams(object)
+{
+  return Object.keys(object).map(
+    function(k) {
+      return encodeURIComponent(k) + '=' + encodeURIComponent(object[k]);
+    }
+  ).join('&');
+}

@@ -22,7 +22,7 @@ interface
 
 uses
   Generics.Collections,
-  ExtPascal, Ext, ExtData, ExtForm, ExtGrid, ExtPascalUtils,
+  ExtPascal, Ext, ExtData, ExtForm, ExtGrid, ExtPascalUtils, ExtUxGrid,
   EF.ObserverIntf, EF.Types,
   Kitto.Metadata.Views, Kitto.Metadata.DataView, Kitto.Store, Kitto.Types,
   Kitto.Ext.Base, Kitto.Ext.Controller, Kitto.Ext.DataPanelLeaf, Kitto.Ext.Editors;
@@ -45,13 +45,11 @@ type
     FIsDupVisible: Boolean;
     FIsDupAllowed: Boolean;
     FInplaceEditing: Boolean;
-    FConfirmButton: TExtButton;
-    FCancelButton: TExtButton;
     function GetGroupingFieldName: string;
     function CreatePagingToolbar: TExtPagingToolbar;
     procedure ShowEditWindow(const ARecord: TKRecord;
       const AEditMode: TKEditMode);
-    procedure InitColumns;
+    procedure InitGridColumns;
     function GetRowButtonsDisableJS: string;
     function GetRowColorPatterns(out AFieldName: string): TEFPairs;
     procedure CreateGridView;
@@ -90,6 +88,9 @@ type
     procedure ConfirmChanges;
     procedure CancelChanges;
     procedure SelectionChanged;
+    procedure RowEditorAfterEdit(ARowEditor: TExtUxGridRowEditor;
+      AChanges: TExtObject; ARecord: TExtDataRecord; ARowIndex: Integer);
+    procedure UpdateRecord;
   end;
 
 implementation
@@ -176,6 +177,8 @@ function TKExtGridPanel.CreateClientStore: TExtDataStore;
 var
   LGroupingFieldName: string;
   LGroupingMenu: Boolean;
+  LWriter: TExtDataJsonWriter;
+  LProxy: TExtDataHttpProxy;
 begin
   LGroupingFieldName := GetGroupingFieldName;
   LGroupingMenu := ViewTable.GetBoolean('Controller/Grouping/EnableMenu');
@@ -196,6 +199,15 @@ begin
     Result := inherited CreateClientStore;
   Result.On('load', FSelectionModel.SelectFirstRow);
   FGridEditorPanel.Store := Result;
+
+  if FInplaceEditing then begin
+    //LProxy := TExtDataHttpProxy.Create(Result, nil);
+    //LProxy.SetApi('update', GetAjaxCode(UpdateRecord, []));
+    //Result.Proxy := LProxy;
+
+    //LWriter := TExtDataJsonWriter.Create(Result, nil, nil);
+    //Result.Writer := LWriter;
+  end;
 end;
 
 procedure TKExtGridPanel.CreateGridView;
@@ -267,7 +279,6 @@ begin
   FGridEditorPanel.AutoWidth := True;
   FGridEditorPanel.ColumnLines := True;
   FGridEditorPanel.TrackMouseOver := True;
-  FGridEditorPanel.ClicksToEdit := 1;
 end;
 
 function TKExtGridPanel.IsMultiSelect: Boolean;
@@ -294,7 +305,7 @@ begin
   end;
 end;
 
-procedure TKExtGridPanel.InitColumns;
+procedure TKExtGridPanel.InitGridColumns;
 var
   I: Integer;
   LLayout: TKLayout;
@@ -496,30 +507,6 @@ var
 begin
   Assert(ViewTable <> nil);
 
-  if FInplaceEditing then
-  begin
-    //Confirm button to store all records
-    FConfirmButton := TExtButton.CreateAndAddTo(FGridEditorPanel.Buttons);
-    FConfirmButton.Scale := Config.GetString('ButtonScale', 'medium');
-    FConfirmButton.FormBind := True;
-    FConfirmButton.Text := Config.GetString('ConfirmButton/Caption', _('Save'));
-    FConfirmButton.Tooltip := Config.GetString('ConfirmButton/Tooltip', _('Save changes and finish editing'));
-    // AjaxForms allows us to put JS code in the response, something the commented
-    // versions don't allow.
-    //FConfirmButton.Handler := AjaxSelection(ConfirmChanges, [FGridEditorPanel]);
-    // Don't just call submit() - we want AjaxSuccess/AjaxFailure to be called so that our response is actually executed.
-    //FSaveButton.Handler := JSFunction(FFormPanel.JSName + '.getForm().submit();');
-    //FSaveButton.Handler := JSFunction(FFormPanel.JSName + '.getForm().doAction("submit", {success:"AjaxSuccess", failure:"AjaxFailure"});');
-    FConfirmButton.Icon := Session.Config.GetImageURL('accept');
-    //Cancel button to abandon changes
-    FCancelButton := TExtButton.CreateAndAddTo(FGridEditorPanel.Buttons);
-    FCancelButton.Scale := Config.GetString('ButtonScale', 'medium');
-    FCancelButton.Icon := Session.Config.GetImageURL('cancel');
-    FCancelButton.Text := _('Cancel');
-    FCancelButton.Tooltip := _('Cancel changes');
-    FCancelButton.Handler := Ajax(CancelChanges);
-  end;
-
   LEditorManager := TKExtEditorManager.Create;
   try
     // Only in-place editing supported ATM, not inserting.
@@ -652,21 +639,17 @@ var
   LKeyFieldNames: string;
   LView: TKDataView;
   LViewTable: TKViewTable;
+  LRowEditor: TExtUxGridRowEditor;
 begin
-  inherited;
   LView := View;
-  LViewTable := ViewTable;
+  LViewTable := AValue;
 
   Assert(Assigned(AValue));
-  Assert(Assigned(LViewTable));
   Assert(Assigned(LView));
   Assert(Assigned(FGridEditorPanel));
 
-  if Title = '' then
-    Title := _(LViewTable.PluralDisplayLabel);
-
   FIsAddVisible := not LViewTable.GetBoolean('Controller/PreventAdding')
-    and not View.GetBoolean('IsReadOnly')
+    and not LView.GetBoolean('IsReadOnly')
     and not LViewTable.IsReadOnly
     and not Config.GetBoolean('PreventAdding');
   FIsAddAllowed := FIsAddVisible and LViewTable.IsAccessGranted(ACM_ADD);
@@ -674,13 +657,13 @@ begin
   FIsDupVisible := (LViewTable.GetBoolean('Controller/AllowDuplicating')
     or Config.GetBoolean('AllowDuplicating'))
     and not LViewTable.GetBoolean('Controller/PreventAdding')
-    and not View.GetBoolean('IsReadOnly')
+    and not LView.GetBoolean('IsReadOnly')
     and not LViewTable.IsReadOnly
     and not Config.GetBoolean('PreventAdding');
   FIsDupAllowed := FIsDupVisible and LViewTable.IsAccessGranted(ACM_ADD);
 
   FIsEditAllowed := not LViewTable.GetBoolean('Controller/PreventEditing')
-    and not View.GetBoolean('IsReadOnly')
+    and not LView.GetBoolean('IsReadOnly')
     and not LViewTable.IsReadOnly
     and not Config.GetBoolean('PreventEditing')
     and LViewTable.IsAccessGranted(ACM_MODIFY);
@@ -692,6 +675,26 @@ begin
   FIsDeleteAllowed := FIsDeleteVisible and LViewTable.IsAccessGranted(ACM_DELETE);
 
   FInplaceEditing := LView.GetBoolean('Controller/InplaceEditing');
+
+  inherited;
+
+  if Title = '' then
+    Title := _(LViewTable.PluralDisplayLabel);
+
+  if FInplaceEditing then
+  begin
+    //FGridEditorPanel.ClicksToEdit := 1;
+    LRowEditor := TExtUxGridRowEditor.Create(FGridEditorPanel);
+    LRowEditor.SaveText := Config.GetString('ConfirmButton/Caption', _('Save'));
+    LRowEditor.CancelText := _('Cancel');
+    LRowEditor.CommitChangesText := _('You need to save or cancel your changes');
+    LRowEditor.ErrorText := _('Errors');
+    //LRowEditor.OnAfterEdit := RowEditorAfterEdit;
+    LRowEditor.On('validateedit', JSFunction('rowEditor, changes, record, rowIndex',
+      'console.dir(objectToParams(record.data));' + sLineBreak +
+      'console.dir(objectToParams(changes)); return false;'));
+    FGridEditorPanel.PluginsArray.Add(LRowEditor);
+  end;
 
   CreateGridView;
 
@@ -711,7 +714,7 @@ begin
     FGridEditorPanel.Bbar := CreatePagingToolbar;
   end;
 
-  InitColumns;
+  InitGridColumns;
 
   CheckGroupColumn;
 end;
@@ -719,6 +722,10 @@ end;
 procedure TKExtGridPanel.CancelChanges;
 begin
   LoadData;
+end;
+
+procedure TKExtGridPanel.RowEditorAfterEdit(ARowEditor: TExtUxGridRowEditor; AChanges: TExtObject; ARecord: TExtDataRecord; ARowIndex: Integer);
+begin
 end;
 
 procedure TKExtGridPanel.CheckGroupColumn;
@@ -766,6 +773,10 @@ begin
   inherited;
   if (AContext = 'Confirmed') and Supports(ASubject.AsObject, IKExtController) then
     LoadData;
+end;
+
+procedure TKExtGridPanel.UpdateRecord;
+begin
 end;
 
 procedure TKExtGridPanel.DeleteCurrentRecord;
@@ -872,6 +883,8 @@ var
   LDeleteButton: TExtButton;
   LKeyFieldNames: string;
   LDupButton: TExtButton;
+//  LConfirmButton: TExtButton;
+//  LCancelButton: TExtButton;
 begin
   Assert(ViewTable <> nil);
   Assert(TopToolbar <> nil);
@@ -937,6 +950,33 @@ begin
       FButtonsRequiringSelection.Add(LDeleteButton);
     end;
   end;
+
+  (*
+  if FInplaceEditing then
+  begin
+    TExtToolbarSpacer.CreateAndAddTo(TopToolbar.Items);
+    LConfirmButton := TExtButton.CreateAndAddTo(TopToolbar.Buttons);
+    LDupButton.Tooltip := Format(_('Duplicate %s'), [_(ViewTable.DisplayLabel)]);
+    LDupButton.Icon := Session.Config.GetImageURL('dup_record');
+
+    LConfirmButton.Text := Config.GetString('ConfirmButton/Caption', _('Save'));
+    LConfirmButton.Tooltip := Config.GetString('ConfirmButton/Tooltip', _('Save changes and finish editing'));
+    // AjaxForms allows us to put JS code in the response, something the commented
+    // versions don't allow.
+    //LConfirmButton.Handler := AjaxSelection(ConfirmChanges, [FGridEditorPanel]);
+    // Don't just call submit() - we want AjaxSuccess/AjaxFailure to be called so that our response is actually executed.
+    //FSaveButton.Handler := JSFunction(FFormPanel.JSName + '.getForm().submit();');
+    //FSaveButton.Handler := JSFunction(FFormPanel.JSName + '.getForm().doAction("submit", {success:"AjaxSuccess", failure:"AjaxFailure"});');
+    LConfirmButton.Icon := Session.Config.GetImageURL('accept');
+    //Cancel button to abandon changes
+    LCancelButton := TExtButton.CreateAndAddTo(FGridEditorPanel.Buttons);
+    LCancelButton.Scale := Config.GetString('ButtonScale', 'medium');
+    LCancelButton.Icon := Session.Config.GetImageURL('cancel');
+    LCancelButton.Text := _('Cancel');
+    LCancelButton.Tooltip := _('Cancel changes');
+    LCancelButton.Handler := Ajax(CancelChanges);
+  end;
+  *)
   inherited;
 end;
 

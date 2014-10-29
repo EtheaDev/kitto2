@@ -595,7 +595,7 @@ type
     procedure SetFData(Value: TExtObjectList);
     procedure SetFDefaultParamNames(Value: TExtObject);
     procedure SetFParamNames(Value: TExtObject);
-    procedure SetFProxy(Value: TExtDataDataProxy);
+    procedure SetProxy(const AValue: TExtDataDataProxy);
     procedure SetFPruneModifiedRecords(Value: Boolean);
     procedure SetReader(const AValue: TExtDataDataReader);
     procedure SetRemoteSort(const AValue: Boolean);
@@ -703,7 +703,7 @@ type
     property DefaultParamNames: TExtObject read FDefaultParamNames
       write SetFDefaultParamNames;
     property ParamNames: TExtObject read FParamNames write SetFParamNames;
-    property Proxy: TExtDataDataProxy read FProxy write SetFProxy;
+    property Proxy: TExtDataDataProxy read FProxy write SetProxy;
     property PruneModifiedRecords: Boolean read FPruneModifiedRecords
       write SetFPruneModifiedRecords;
     property Reader: TExtDataDataReader read FReader write SetReader;
@@ -897,7 +897,7 @@ type
     function Request(Action: string; Rs: TNull; Params: TExtObject;
       Reader: TExtDataDataReader; Callback: TExtFunction; Scope: TExtObject;
       Options: TExtObject): TExtFunction; overload;
-    function SetApi(Api: string; Url: string): TExtFunction; overload;
+    function SetApi(const AApi: string; const AUrl: string): TExtFunction; overload;
     function SetApi(Api: TExtObject; Url: string): TExtFunction; overload;
     function SetApi(Api: TExtObject; Url: TExtFunction): TExtFunction; overload;
     function SetApi(Api: string; Url: TExtFunction): TExtFunction; overload;
@@ -2615,10 +2615,10 @@ begin
   JSCode('paramNames:' + VarToJSON([Value, false]));
 end;
 
-procedure TExtDataStore.SetFProxy(Value: TExtDataDataProxy);
+procedure TExtDataStore.SetProxy(const AValue: TExtDataDataProxy);
 begin
-  FProxy := Value;
-  JSCode('proxy:' + VarToJSON([Value, false]));
+  FProxy := AValue;
+  Session.ResponseItems.SetConfigItem(Self, 'proxy', [AValue, False]);
 end;
 
 procedure TExtDataStore.SetFPruneModifiedRecords(Value: Boolean);
@@ -3604,9 +3604,9 @@ begin
   Result := Self;
 end;
 
-function TExtDataDataProxy.SetApi(Api: string; Url: string): TExtFunction;
+function TExtDataDataProxy.SetApi(const AApi: string; const AUrl: string): TExtFunction;
 begin
-  JSCode(JSName + '.setApi(' + VarToJSON([Api, Url]) + ');', 'TExtDataDataProxy');
+  Session.ResponseItems.CallMethod(Self, 'setApi', [AApi, AUrl]);
   Result := Self;
 end;
 
