@@ -1,10 +1,12 @@
 ﻿ModelName: Customer
+CaptionField: Customer
 Fields:
   CustNo: Integer not null primary key
     PhysicalName: CUST_NO
     DisplayLabel: Customer Id
     IsReadOnly: True
   Customer: String(25) not null
+    PhysicalName: CUSTOMER
     DisplayLabel: Customer Name
   ContactFirst: String(15)
     PhysicalName: CONTACT_FIRST
@@ -19,6 +21,7 @@ Fields:
   AddressLine2: String(30)
     PhysicalName: ADDRESS_LINE2
   City: String(25)
+    PhysicalName: CITY
   StateProvince: String(15)
     PhysicalName: STATE_PROVINCE
   PostalCode: String(12)

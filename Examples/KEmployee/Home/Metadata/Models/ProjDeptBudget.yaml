@@ -1,4 +1,4 @@
-﻿ModelName: ProjDeptBudget
+ModelName: ProjDeptBudget
 PhysicalName: PROJ_DEPT_BUDGET
 Fields:
   FiscalYear: Integer not null primary key
@@ -8,12 +8,12 @@ Fields:
   ProjectedBudget: Decimal(12, 2)
     PhysicalName: PROJECTED_BUDGET
   DeptNoRef: Reference(Department) not null
-    PhysicalName: INTEG_47
+    PhysicalName: DEPT_NO
     Fields:
       DeptNo:
         PhysicalName: DEPT_NO
-  Proj: Reference(Project) not null
-    PhysicalName: INTEG_48
+  ProjIdRef: Reference(Project) not null
+    PhysicalName: PROJ_ID
     Fields:
       ProjId:
         PhysicalName: PROJ_ID

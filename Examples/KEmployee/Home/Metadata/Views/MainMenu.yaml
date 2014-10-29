@@ -1,4 +1,4 @@
-﻿Type: Tree
+Type: Tree
 Folder: Tables
   View: Countries
   View: Jobs
@@ -6,7 +6,6 @@ Folder: Tables
 Folder: Business
   View: Customers
   View: Employees
-  View: EmployeeProjects
   View: SalaryHistories
 Folder: Maintenance
   View: Users

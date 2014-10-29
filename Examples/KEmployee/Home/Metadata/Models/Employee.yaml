@@ -1,4 +1,5 @@
-﻿ModelName: Employee
+ModelName: Employee
+PhysicalName: EMPLOYEE
 Fields:
   EmpNo: Integer not null primary key
     PhysicalName: EMP_NO
@@ -14,12 +15,11 @@ Fields:
   FullName: String
     PhysicalName: FULL_NAME
   DeptNoRef: Reference(Department) not null
-    PhysicalName: INTEG_28
+    PhysicalName: DEPT_NO
     Fields:
       DeptNo:
         PhysicalName: DEPT_NO
-  Job: Reference(Job) not null
-    PhysicalName: INTEG_29
+  JobRef: Reference(Job) not null
     Fields:
       JobCode:
         PhysicalName: JOB_CODE

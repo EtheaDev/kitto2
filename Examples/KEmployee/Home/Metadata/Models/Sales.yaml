@@ -1,4 +1,4 @@
-﻿ModelName: Sales
+ModelName: Sales
 Fields:
   PoNumber: String(8) not null primary key
     PhysicalName: PO_NUMBER
@@ -20,12 +20,12 @@ Fields:
     PhysicalName: ITEM_TYPE
   Aged: Decimal
   CustNoRef: Reference(Customer) not null
-    PhysicalName: INTEG_77
+    PhysicalName: CUST_NO
     Fields:
       CustNo:
         PhysicalName: CUST_NO
   SalesRepRef: Reference(Employee)
-    PhysicalName: INTEG_78
+    PhysicalName: CUST_NO
     Fields:
       SalesRep:
         PhysicalName: SALES_REP
