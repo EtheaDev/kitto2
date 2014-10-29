@@ -1,6 +1,7 @@
 ﻿Type: Data
 
 Controller: List
+  InplaceEditing: True
   AllowClose: False
   Filters:
     DisplayLabel: Girls Filter

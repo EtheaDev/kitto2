@@ -133,9 +133,9 @@ type
     procedure HandleEvent(const AEvtName: string); override;
   public
     class function JSClassName: string; override;
-    property OnAfteredit : TExtUxGridRowEditorOnAfterEdit read FOnAfterEdit write SetOnAfterEdit;
-    property OnBeforeedit : TExtUxGridRowEditorOnBeforeEdit read FOnBeforeEdit write SetOnBeforeEdit;
-    property OnValidateedit : TExtUxGridRowEditorOnValidateEdit read FOnValidateEdit write SetOnValidateEdit;
+    property OnAfterEdit : TExtUxGridRowEditorOnAfterEdit read FOnAfterEdit write SetOnAfterEdit;
+    property OnBeforeEdit : TExtUxGridRowEditorOnBeforeEdit read FOnBeforeEdit write SetOnBeforeEdit;
+    property OnValidateEdit : TExtUxGridRowEditorOnValidateEdit read FOnValidateEdit write SetOnValidateEdit;
 
     property SaveText: string read FSaveText write SetSaveText;
     property CancelText: string read FCancelText write SetCancelText;
