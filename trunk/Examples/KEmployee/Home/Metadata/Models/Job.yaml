@@ -1,4 +1,4 @@
-﻿ModelName: Job
+ModelName: Job
 Fields:
   JobCode: String(5) not null primary key
     PhysicalName: JOB_CODE
@@ -14,8 +14,8 @@ Fields:
     PhysicalName: JOB_REQUIREMENT
   LanguageReq: String(15)
     PhysicalName: LANGUAGE_REQ
-  JobCountryRef: Reference(Country) not null
-    PhysicalName: INTEG_11
+  JobCountryRef: Reference(Country) not null primary key
+    PhysicalName: JOB_COUNTRY
     Fields:
       JobCountry:
         PhysicalName: JOB_COUNTRY

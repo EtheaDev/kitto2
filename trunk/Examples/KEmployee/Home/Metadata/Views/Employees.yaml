@@ -1,4 +1,4 @@
-﻿Type: Data
+Type: Data
 Controller: List
   Filters:
     DisplayLabel: Search Employees
@@ -16,5 +16,5 @@ MainTable:
     Salary:
     FullName:
     DeptNoRef:
-    Job:
+    JobRef:
   Controller:

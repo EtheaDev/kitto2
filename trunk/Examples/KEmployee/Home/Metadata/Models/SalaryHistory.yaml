@@ -1,4 +1,4 @@
-﻿ModelName: SalaryHistory
+ModelName: SalaryHistory
 PhysicalName: SALARY_HISTORY
 Fields:
   ChangeDate: DateTime not null primary key
@@ -12,7 +12,7 @@ Fields:
   NewSalary: Float
     PhysicalName: NEW_SALARY
   EmpNoRef: Reference(Employee) not null
-    PhysicalName: INTEG_56
+    PhysicalName: EMP_NO
     Fields:
       EmpNo:
         PhysicalName: EMP_NO

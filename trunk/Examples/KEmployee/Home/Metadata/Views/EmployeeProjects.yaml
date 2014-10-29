@@ -1,4 +1,4 @@
-﻿Type: Data
+Type: Data
 Controller: List
   Filters:
     DisplayLabel: Search Employee Projects
@@ -9,5 +9,5 @@ MainTable:
   Model: EmployeeProject
   Fields:
     EmpNoRef:
-    Proj:
+    ProjRef:
   Controller:

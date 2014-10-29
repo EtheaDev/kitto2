@@ -1,6 +1,6 @@
 Type: Data
 Controller: List
-  InplaceEditing: True
+  .InplaceEditing: True
   Filters:
     DisplayLabel: Search Customers
     Items:

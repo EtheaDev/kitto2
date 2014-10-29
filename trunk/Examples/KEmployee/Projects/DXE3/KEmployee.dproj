@@ -53,7 +53,7 @@
         <VerInfo_Locale>1040</VerInfo_Locale>
         <VerInfo_Keys>CompanyName=;FileDescription=;FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=;ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
         <DCC_Namespace>System;Xml;Data;Datasnap;Web;Soap;Winapi;System.Win;Vcl;Vcl.Imaging;Vcl.Touch;Vcl.Samples;Vcl.Shell;$(DCC_Namespace)</DCC_Namespace>
-        <Icon_MainIcon>$(BDS)\bin\delphi_PROJECTICON.ico</Icon_MainIcon>
+        <Icon_MainIcon>..\KEmployee_Icon.ico</Icon_MainIcon>
         <DCC_ExeOutput>..\..\Home</DCC_ExeOutput>
         <DCC_DcuOutput>..\..\Lib\DXE3\$(Config)\$(Platform)</DCC_DcuOutput>
         <DCC_UnitSearchPath>..\..\..\..\Source;..\..\..\..\Source\EF;..\..\..\..\Source\ThirdParty;..\..\..\..\Source\ThirdParty\ExtPascal;..\..\..\..\Source\ThirdParty\ExtPascal\ExtJSWrapper;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
@@ -75,7 +75,6 @@
         <DCC_Namespace>Data.Win;Datasnap.Win;Web.Win;Soap.Win;Xml.Win;$(DCC_Namespace)</DCC_Namespace>
         <VerInfo_Locale>1033</VerInfo_Locale>
         <Manifest_File>$(BDS)\bin\default_app.manifest</Manifest_File>
-        <Icon_MainIcon>TasKitto_Icon.ico</Icon_MainIcon>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_1)'!=''">
         <DCC_LocalDebugSymbols>false</DCC_LocalDebugSymbols>
