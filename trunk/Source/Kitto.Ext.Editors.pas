@@ -552,7 +552,7 @@ uses
   EF.SysUtils, EF.StrUtils, EF.Localization, EF.YAML, EF.Types, EF.SQL, EF.JSON,
   EF.DB, EF.Macros,
   Kitto.SQL, Kitto.Metadata.Models, Kitto.Types, Kitto.AccessControl,
-  Kitto.Rules, Kitto.Ext.Utils, Kitto.Ext.Rules;
+  Kitto.Rules, Kitto.Ext.Utils, Kitto.Ext.Rules, Kitto.Config;
 
 const
   {
@@ -1550,7 +1550,7 @@ begin
     with TExtDataField.CreateAndAddTo(Store.Reader.Fields) do
       Name := FServerStore.Header.Fields[I].FieldName;
   ValueField := FServerStore.Header.Fields[0].FieldName;
-  DisplayField := FServerStore.Header.Fields[1].FieldName;
+  DisplayField := AViewField.ModelField.ReferencedModel.CaptionField.FieldName;
   { TODO : make these configurable. }
   MinChars := 4;
   PageSize := 100;
@@ -2615,6 +2615,7 @@ var
   LAllowedValues: TEFPairs;
   LComboBox: TKExtFormComboBoxEditor;
   I: Integer;
+  LKeyFieldsCount: Integer;
 begin
   Assert(Assigned(AOwner));
 
@@ -2646,7 +2647,13 @@ begin
           else
           begin
             LComboBox.Mode := 'local';
-            LComboBox.StoreArray := LComboBox.JSArray(DataSetToJSON(Session.Config.DBConnections[AViewField.Table.DatabaseName], LLookupCommandText));
+            if AViewField.IsReference then
+              LKeyFieldsCount := AViewField.ModelField.ReferencedModel.KeyFieldCount
+            else
+              LKeyFieldsCount := 0;
+            LComboBox.StoreArray := LComboBox.JSArray(DataSetToJSON(
+              Session.Config.DBConnections[AViewField.Table.DatabaseName],
+              LLookupCommandText, LKeyFieldsCount, TKConfig.Instance.MultiFieldSeparator));
             // Make the drop-down list larger.
             LComboBox.ListWidth := Trunc(((AFieldCharWidth + TRIGGER_WIDTH) * 12) * 1.1);
           end;
@@ -2822,8 +2829,14 @@ begin
       else
         ARowField.CharWidth := AFieldCharWidth + (2 * TRIGGER_WIDTH) + SPACER_WIDTH;
       LFormats := Split(AViewField.EditFormat, ' ');
-      LDateFormat := IfThen(Length(LFormats) > 0, LFormats[0], Session.Config.UserFormatSettings.ShortDateFormat);
-      LTimeFormat := IfThen(Length(LFormats) > 1, LFormats[1], Session.Config.UserFormatSettings.ShortTimeFormat);
+      if Length(LFormats) > 0 then
+        LDateFormat := LFormats[0]
+      else
+        LDateFormat := Session.Config.UserFormatSettings.ShortDateFormat;
+      if Length(LFormats) > 1 then
+        LTimeFormat := LFormats[1]
+      else
+        LTimeFormat := Session.Config.UserFormatSettings.ShortTimeFormat;
       LDateTimeField.DateFormat := DelphiDateFormatToJSDateFormat(LDateFormat);
       LDateTimeField.AltDateFormats := DelphiDateFormatToJSDateFormat(Session.Config.JSFormatSettings.ShortDateFormat);
       LDateTimeField.TimeFormat := DelphiTimeFormatToJSTimeFormat(Session.Config.UserFormatSettings.ShortTimeFormat);
