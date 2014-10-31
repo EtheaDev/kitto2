@@ -510,7 +510,9 @@ begin
   Result := 'select '
     + Join(LLookupModel.GetKeyDBColumnNames(False, True), ', ');
     if not LLookupModel.CaptionField.IsKey then
-      Result := Result + ', ' + LLookupModel.CaptionField.AliasedDBColumnName;
+      Result := Result + ', ' + LLookupModel.CaptionField.AliasedDBColumnName
+    else
+      Result := Result + ', ' + LLookupModel.CaptionField.AliasedDBColumnName + ' Description';
     Result := Result + ' from ' + LLookupModel.DBTableName
       + ' order by ' + LLookupModel.CaptionField.DBColumnName;
   LLookupModelDefaultFilter := LLookupModel.DefaultFilter;
