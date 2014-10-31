@@ -66,14 +66,16 @@ function TriplesToJSON(const ATriples: TEFTriples): string;
 ///	<example>
 ///	  <para><c>'["IT", "ITALY"], ["UK", "UNITED KINGDOM"]'</c></para>
 ///	</example>
-function DataSetToJSON(const ADBConnection: TEFDBConnection; const ACommandText: string): string; overload;
+function DataSetToJSON(const ADBConnection: TEFDBConnection; const ACommandText: string;
+  const AKeyFieldsToAggregate: integer = 0; const MultiFieldSeparator: string = '~~~'): string; overload;
 
 ///	<summary>Builds a JSON representation of a dataset's fields values. Each
 /// record is enclosed in []s and each value is double-quoted.</summary>
 ///	<example>
 ///	  <para><c>'["IT", "ITALY"], ["UK", "UNITED KINGDOM"]'</c></para>
 ///	</example>
-function DataSetToJSON(const ADataSet: TDataSet): string; overload;
+function DataSetToJSON(const ADataSet: TDataSet; const AKeyFieldsToAggregate: integer = 0;
+  const MultiFieldSeparator: string = '~~~'): string; overload;
 
 function QuoteJSONStr(const AString: string): string; inline;
 
@@ -121,7 +123,8 @@ begin
   end;
 end;
 
-function DataSetToJSON(const ADBConnection: TEFDBConnection; const ACommandText: string): string;
+function DataSetToJSON(const ADBConnection: TEFDBConnection; const ACommandText: string;
+  const AKeyFieldsToAggregate: integer = 0; const MultiFieldSeparator: string = '~~~'): string;
 var
   LDBQuery: TEFDBQuery;
 begin
@@ -133,7 +136,7 @@ begin
     LDBQuery.CommandText := ACommandText;
     LDBQuery.Open;
     try
-      Result := DataSetToJSON(LDBQuery.DataSet);
+      Result := DataSetToJSON(LDBQuery.DataSet, AKeyFieldsToAggregate, MultiFieldSeparator);
     finally
       LDBQuery.Close;
     end;
@@ -142,10 +145,12 @@ begin
   end;
 end;
 
-function DataSetToJSON(const ADataSet: TDataSet): string;
+function DataSetToJSON(const ADataSet: TDataSet; const AKeyFieldsToAggregate: integer = 0;
+  const MultiFieldSeparator: string = '~~~'): string;
 var
   LBookmark: TBookmark;
   I: Integer;
+  LKeyValue: string;
 begin
   Assert(Assigned(ADataSet));
   Assert(ADataSet.Active);
@@ -159,7 +164,23 @@ begin
       while not ADataSet.Eof do
       begin
         Result := Result + '[';
-        for I := 0 to ADataSet.FieldCount - 1 do
+        if AKeyFieldsToAggregate > 1 then
+        begin
+          LKeyValue := '';
+          for I := 0 to AKeyFieldsToAggregate -1 do
+          begin
+            LKeyValue := LKeyValue + ADataSet.Fields[I].AsString;
+            if I < AKeyFieldsToAggregate -1 then
+              LKeyValue := LKeyValue + MultiFieldSeparator;
+          end;
+          Result := Result + QuoteJSONStr(LKeyValue);
+          if AKeyFieldsToAggregate < ADataSet.FieldCount then
+            Result := Result + ',';
+          I := AKeyFieldsToAggregate;
+        end
+        else
+          I := 0;
+        for I := I to ADataSet.FieldCount - 1 do
         begin
           Result := Result + QuoteJSONStr(ADataSet.Fields[I].AsString);
           if I < ADataSet.FieldCount - 1 then
