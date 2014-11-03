@@ -994,8 +994,11 @@ begin
       [_(Session.Config.AppTitle), AMessage, MethodURI(AMethod),
       FSelectionModel.JSName, Join(ViewTable.GetKeyFieldAliasedNames, ',')])
   else
+    { TODO :
+      Add CaptionField to ViewTable for cases when the model's CaptionField
+      is not part of the ViewTable or is aliased. }
     Result := Format('selectConfirmCall("%s", "%s", %s, "%s", {methodURL: "%s", selModel: %s, fieldNames: "%s"});',
-      [_(Session.Config.AppTitle), AMessage, FSelectionModel.JSName, ViewTable.Model.CaptionFieldName,
+      [_(Session.Config.AppTitle), AMessage, FSelectionModel.JSName, ViewTable.Model.CaptionField.FieldName,
       MethodURI(AMethod), FSelectionModel.JSName, Join(ViewTable.GetKeyFieldAliasedNames, ',')]);
 end;
 
