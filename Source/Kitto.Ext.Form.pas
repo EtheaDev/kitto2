@@ -306,6 +306,13 @@ begin
       'success: function(form, action) { %s }',
       [MethodURI(GetRecord), _('Load failed.'), GetAfterLoadJSCode])));
 
+// New approach - WIP.
+//    AllEditors(
+//      procedure (AEditor: IKExtEditor)
+//      begin
+//        AEditor.RefreshValue;
+//      end);
+
     FocusFirstField;
   except
     on E: EKValidationError do
@@ -378,7 +385,7 @@ procedure TKExtFormPanelController.DoConfirmChanges;
 begin
   try
     // Get POST values.
-    FStoreRecord.SetChildValuesfromStrings(Session.Queries,
+    FStoreRecord.SetChildValuesfromSuperObject(Session.GetQueries,
       False, Session.Config.UserFormatSettings,
       function(const AName: string): string
       var

@@ -76,6 +76,7 @@ type
     function GetDocumentRoot : string; virtual; abstract;
     function GarbageFixName(const Name : string) : string; virtual;
     function GetRequestHeader(const Name : string) : string; virtual; abstract;
+    function GetRequestBody: string; virtual; abstract;
     function GetUrlHandlerObject : TObject; virtual;
     function GetWebServer : string; virtual; abstract;
     procedure HandleRequest(const ARequest : AnsiString);
@@ -131,6 +132,7 @@ type
     property QueryAsTDateTime[const ParamName : string] : TDateTime read GetQueryAsTDateTime;
     property Queries : TStrings read FQueries; // Returns all HTTP queries as list to ease searching
     property RequestHeader[const Name : string]: string read GetRequestHeader; // Returns HTTP headers read in the current request
+    property RequestBody: string read GetRequestBody; // returns request payload for POST requests.
     property ScriptName : string read FScriptName write SetScriptName;
     property UploadPath : string read FUploadPath write FUploadPath; // Upload path below document root. e.g. '/uploads'
     property WebServer : string read GetWebServer; // WebServer in use in this session

@@ -377,7 +377,7 @@ begin
   Assert(Assigned(FServerStore));
   Assert(Assigned(ActionObserver));
 
-  LRecord := Session.LocateRecordFromQueries(FViewTable, FServerStore, 0);
+  LRecord := FServerStore.GetRecord(Session.GetQueries, Session.Config.JSFormatSettings, 0);
   LController := TKExtControllerFactory.Instance.CreateController(
     Session.ObjectCatalog, View, nil, nil, ActionObserver);
   InitController(LController);

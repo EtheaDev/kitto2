@@ -269,6 +269,8 @@ type
     function AddJSReturn(Expression : string; MethodsValues : array of const): string;
     function FindMethod(Method : TExtProcedure; var PascalName, ObjName : string) : TExtFunction;
     function GetDownloadJS(Method: TExtProcedure; Params: array of const): string;
+    function DoGetAjaxCode(const AMethodName, ARawParams: string;
+      const AParams: array of const; const AExtraCode: string = ''): string;
   protected
     // Set by some classes with custom constructors that need to call the
     // inherited Create with a custom string to be passed to CreateVar.
@@ -354,18 +356,24 @@ type
 
     function Ajax(const AMethod: TExtProcedure; const AParams: array of const): TExtFunction; overload;
 
-    function AjaxExtFunction(Method : TExtProcedure; Params : array of TExtFunction) : TExtFunction; overload;
+    function AjaxExtFunction(const AMethod: TExtProcedure; const AParams: array of TExtFunction): TExtFunction; overload;
     function AjaxSelection(const AMethod: TExtProcedure; const ASelectionModel: TExtObject;
       const AAttributes, ATargetQueries: string; const AParams: array of const): TExtFunction;
     function AjaxForms(const AMethod: TExtProcedure; const AForms: array of TExtObject): TExtFunction;
 
     // Use these to generate and return js code that performs an ajax call, useful
-    // when building js handlers. This method DOES NOT add any code to the
+    // when building js handlers. These methods DO NOT add any code to the
     // current response.
     function GetAjaxCode(const AMethodName, ARawParams: string;
       const AParams: array of const): string; overload;
     function GetAjaxCode(const AMethod: TExtProcedure;
       const AParams: array of const; const AIsEvent: Boolean = False): string; overload;
+    // Ajax calls with the POST method that passes JSON data in the jsonData option of
+    // Ext.Ajax.request. AJsonData can be js code, such as a function call, or a streamed json object.
+    function GetPOSTAjaxCode(const AMethodName, ARawParams: string;
+      const AParams: array of const; const AJsonData: string): string; overload;
+    function GetPOSTAjaxCode(const AMethod: TExtProcedure;
+      const AParams: array of const; const AJsonData: string): string; overload;
 
     function RequestDownload(Method : TExtProcedure) : TExtFunction; overload;
     function RequestDownload(Method : TExtProcedure; Params : array of const) : TExtFunction; overload;
@@ -926,6 +934,18 @@ begin
   Result := 'o';
 end;
 
+function TExtObject.GetPOSTAjaxCode(const AMethod: TExtProcedure;
+  const AParams: array of const; const AJsonData: string): string;
+var
+  LParams: string;
+  LMethodName: string;
+  LObjectName: string;
+begin
+  FindMethod(AMethod, LMethodName, LObjectName);
+  LParams := IfThen(LObjectName = '', '', 'Obj=' + LObjectName);
+  Result :=  GetPOSTAjaxCode(LMethodName, LParams, AParams, AJsonData);
+end;
+
 {
 Does tasks related to the Request that occur before the method call invoked by Browser (PATH-INFO)
 1. Detects the browser language.
@@ -1159,6 +1179,8 @@ begin
   else begin
     if (Response <> '') and (Response[1] = '<') then
       ContentType := 'text/html; charset=' + Charset
+    else if (Response <> '') and CharInSet(Response[1], ['{', '[']) then
+      ContentType := 'application/json; charset=' + Charset
     else
     begin
       ContentType := 'text/javascript; charset=' + Charset;
@@ -2165,17 +2187,19 @@ begin
 end;
 
 // Ajax with JSFunction as params
-function TExtObject.AjaxExtFunction(Method : TExtProcedure; Params : array of TExtFunction) : TExtFunction;
+function TExtObject.AjaxExtFunction(const AMethod: TExtProcedure; const AParams: array of TExtFunction): TExtFunction;
 var
-  I : integer;
-  S : string;
+  I: Integer;
+  S: string;
 begin
   S := '';
-  for I := 0 to high(Params) do begin
-    S := S + TExtObject(Params[I]).ExtractJSCommand;
-    if I <> high(Params) then S := S + '+"&"+';
+  for I := Low(AParams) to High(AParams) do
+  begin
+    S := S + AParams[I].ExtractJSCommand;
+    if I <> High(AParams) then
+      S := S + '+"&"+';
   end;
-  Result := Ajax(Method, S);
+  Result := Ajax(AMethod, S);
 end;
 
 function TExtObject.AjaxForms(const AMethod: TExtProcedure; const AForms: array of TExtObject): TExtFunction;
@@ -2333,15 +2357,29 @@ begin
     AAdditionalDependencies);
 end;
 
-function TExtObject.GetAjaxCode(const AMethodName, ARawParams: string; const AParams: array of const): string;
+function TExtObject.DoGetAjaxCode(const AMethodName, ARawParams: string; const AParams: array of const; const AExtraCode: string): string;
 begin
   Result :=
     'Ext.Ajax.request({' + sLineBreak +
+    AExtraCode +
     '  url: "' + ExtSession.MethodURI(AMethodName) + '",' + sLinebreak +
-    '  params: "Ajax=1&' + IfThen(ARawParams = '', '', ARawParams + '&') + FormatParams(AMethodName, AParams) + '",' + sLineBreak +
+    '  params: "Ajax=1&' + IfThen(ARawParams = '', '', ARawParams) +  IfThen(Length(AParams) > 0,  '&' + FormatParams(AMethodName, AParams), '') + '",' + sLineBreak +
     '  success: AjaxSuccess,' + sLineBreak +
     '  failure: AjaxFailure' + sLineBreak +
     '});';
+end;
+
+function TExtObject.GetAjaxCode(const AMethodName, ARawParams: string; const AParams: array of const): string;
+begin
+  Result := DoGetAjaxCode(AMethodName, ARawParams, AParams);
+end;
+
+function TExtObject.GetPOSTAjaxCode(const AMethodName, ARawParams: string; const AParams: array of const; const AJsonData: string): string;
+begin
+  Result := DoGetAjaxCode(AMethodName, ARawParams, AParams,
+    '  method: "POST",' + sLineBreak +
+    '  jsonData: ' + AJsonData + ',' + sLineBreak
+  );
 end;
 
 // Internal Ajax generation handler treating IsEvent, when is true HandleEvent will be invoked instead published methods

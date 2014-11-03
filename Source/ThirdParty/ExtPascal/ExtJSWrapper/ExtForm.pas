@@ -1326,7 +1326,7 @@ type
     procedure SetFHandleHeight(Value: Integer);
     procedure SetFHiddenId(Value: string);
     procedure SetHiddenName(const AValue: string);
-    procedure SetFHiddenValue(Value: string);
+    procedure SetHiddenValue(const AValue: string);
     procedure SetFItemSelector(Value: string);
     procedure SetFLazyInit(Value: Boolean);
     procedure SetLazyRender(const AValue: Boolean);
@@ -1399,7 +1399,7 @@ type
     property HandleHeight: Integer read FHandleHeight write SetFHandleHeight;
     property HiddenId: string read FHiddenId write SetFHiddenId;
     property HiddenName: string read FHiddenName write SetHiddenName;
-    property HiddenValue: string read FHiddenValue write SetFHiddenValue;
+    property HiddenValue: string read FHiddenValue write SetHiddenValue;
     property ItemSelector: string read FItemSelector write SetFItemSelector;
     property LazyInit: Boolean read FLazyInit write SetFLazyInit;
     property LazyRender: Boolean read FLazyRender write SetLazyRender;
@@ -4399,10 +4399,10 @@ begin
   ExtSession.ResponseItems.SetConfigItem(Self, 'hiddenName', [AValue]);
 end;
 
-procedure TExtFormComboBox.SetFHiddenValue(Value: string);
+procedure TExtFormComboBox.SetHiddenValue(const AValue: string);
 begin
-  FHiddenValue := Value;
-  JSCode('hiddenValue:' + VarToJSON([Value]));
+  FHiddenValue := AValue;
+  Session.ResponseItems.SetConfigItem(Self, 'hiddenValue', [AValue]);
 end;
 
 procedure TExtFormComboBox.SetFItemSelector(Value: string);
