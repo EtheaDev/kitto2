@@ -23,7 +23,7 @@ function getWindowClientSize() {
 
 // Returns an array of all defined style selectors in the document.
 // Used by selectorExists.
-function getAllSelectors() { 
+function getAllSelectors() {
   var result = [];
   for (var i = 0; i < document.styleSheets.length; i++) {
     var rules = document.styleSheets[i].rules || document.styleSheets[i].cssRules;
@@ -113,14 +113,14 @@ function ajaxSingleSelection(buttonId, text, obj)
   if (buttonId == "yes")
   {
     var
-      selValues = [],
+      selValues = {},
       selRecord = obj.params.selModel.getSelected(),
       fieldNames = obj.params.fieldNames.split(',');
     for (var i = 0; i < fieldNames.length; i++)
-      selValues.push(fieldNames[i] + "=" + selRecord.get(fieldNames[i]));
+      selValues[fieldNames[i]] = selRecord.get(fieldNames[i]);
     return Ext.Ajax.request({
       url: obj.params.methodURL,
-      params: "Ajax=1&" + selValues.toString(),
+      params: "Ajax=1&" + objectToParams(selValues),
       success: AjaxSuccess,
       failure: AjaxFailure
     });
