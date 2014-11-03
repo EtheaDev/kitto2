@@ -1351,7 +1351,6 @@ type
     procedure SetFShadowString(Value: string);
     procedure SetStore(const AValue: TExtDataStore);
     procedure SetStoreArray(const AValue: TExtObjectList);
-    procedure SetFSubmitValue(Value: Boolean);
     procedure SetFTitle(Value: string);
     procedure SetFTpl(Value: string);
     procedure SetFTplExtXTemplate(Value: TExtXTemplate);
@@ -1426,7 +1425,6 @@ type
     property ShadowString: string read FShadowString write SetFShadowString;
     property Store: TExtDataStore read FStore write SetStore;
     property StoreArray: TExtObjectList read FStoreArray write SetStoreArray;
-    property SubmitValue: Boolean read FSubmitValue write SetFSubmitValue;
     property Title: string read FTitle write SetFTitle;
     property Tpl: string read FTpl write SetFTpl;
     property TplExtXTemplate: TExtXTemplate read FTplExtXTemplate
@@ -4551,12 +4549,6 @@ begin
   FStoreArray.Free;
   FStoreArray := AValue;
   ExtSession.ResponseItems.SetConfigItem(Self, 'store', [AValue, False]);
-end;
-
-procedure TExtFormComboBox.SetFSubmitValue(Value: Boolean);
-begin
-  FSubmitValue := Value;
-  JSCode('submitValue:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormComboBox.SetFTitle(Value: string);
