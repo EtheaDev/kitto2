@@ -26,8 +26,9 @@ uses
   Kitto.Metadata.Models, Kitto.Rules;
 
 type
-  ///	<summary>Base class for all ext-specific rule implementation
-  ///	classes.</summary>
+  ///	<summary>
+  ///   Base class for all ext-specific rule implementation classes.
+  ///	</summary>
   TKExtRuleImpl = class(TKRuleImpl)
   protected
     class function GetClassId: string; override;
@@ -60,7 +61,7 @@ type
   ///	<summary>Enforces a maximum allowed value for numeric fields. Can be used
   ///	as a field-level rule.</summary>
   ///	<example>
-  ///	  <code lang="Delphi">
+  ///	  <code>
   ///	Rules:
   ///	  # Only allows scores 1-10.
   ///	  MinValue: 1

@@ -496,8 +496,7 @@ begin
     Result := Result + sLineBreak + BuildJoin(FUsedReferenceFields[I]);
 end;
 
-class function TKSQLBuilder.GetLookupSelectStatement(
-  const AViewField: TKViewField): string;
+class function TKSQLBuilder.GetLookupSelectStatement(const AViewField: TKViewField): string;
 var
   LLookupModel: TKModel;
   LDefaultFilter: string;
@@ -507,21 +506,22 @@ begin
   Assert(AViewField.IsReference);
 
   LLookupModel := AViewField.ModelField.ReferencedModel;
-  Result := 'select '
-    + Join(LLookupModel.GetKeyDBColumnNames(False, True), ', ');
-    if not LLookupModel.CaptionField.IsKey then
-      Result := Result + ', ' + LLookupModel.CaptionField.AliasedDBColumnName
-    else
-      Result := Result + ', ' + LLookupModel.CaptionField.AliasedDBColumnName + ' Description';
-    Result := Result + ' from ' + LLookupModel.DBTableName
-      + ' order by ' + LLookupModel.CaptionField.DBColumnName;
+  Result := 'select ' + Join(LLookupModel.GetKeyDBColumnNames(False, True), ', ');
+  // Ensure caption field is contained in select list.
+  if not LLookupModel.CaptionField.IsKey then
+    Result := Result + ', ' + LLookupModel.CaptionField.AliasedDBColumnName
+  else
+    Result := Result + ', ' + LLookupModel.CaptionField.AliasedDBColumnName + ' Description';
+  Result := Result + ' from ' + LLookupModel.DBTableName;
+
   LLookupModelDefaultFilter := LLookupModel.DefaultFilter;
   if LLookupModelDefaultFilter <> '' then
     Result := AddToSQLWhereClause(Result, '(' + LLookupModelDefaultFilter + ')');
+
   LDefaultFilter := AViewField.DefaultFilter;
   if LDefaultFilter <> '' then
-    Result := AddToSQLWhereClause(Result, '(' + LDefaultFilter  + ')',
-      AViewField.DefaultFilterConnector);
+    Result := AddToSQLWhereClause(Result, '(' + LDefaultFilter  + ')', AViewField.DefaultFilterConnector);
+  Result := Result + ' order by ' + LLookupModel.CaptionField.DBColumnName;
 end;
 
 function TKSQLBuilder.BuildJoin(const AReferenceField: TKModelField): string;
