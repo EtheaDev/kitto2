@@ -31,7 +31,7 @@ function kittoInit()
       else
         return o.getTopOwner();
     },
-    
+
     getFormPanelOptimalSize: function() {
       var s;
       if (this.items)
@@ -61,7 +61,7 @@ function kittoInit()
         var item = this.items.get(i);
         var w = 0;
         var h = 0;
-        
+
         if (item instanceof Ext.Container && item.items && item.initialConfig.layout == "column")
         {
           for (var j = 0; j < item.items.getCount(); j++)
@@ -77,7 +77,7 @@ function kittoInit()
           s.x = w;
         if (h > s.y)
           s.y = h;
-      }    
+      }
       s.y += this.fbar.getEl().getHeight();
       return s;
     }
@@ -92,7 +92,7 @@ function kittoInit()
       p = this.getPosition();
       this.setPosition(p[0], (ws.y / 2) - (y / 2));
     },
-    
+
     setOptimalSize: function(extraWidth, extraHeight) {
       s = this.getFormPanelOptimalSize();
       if (s) {
@@ -123,7 +123,7 @@ function kittoInit()
     },
     codice_fiscaleText: 'Codice Fiscale non formalmente corretto.',
     codice_fiscaleMask: /[a-zA-Z0-9]/i,
-    
+
     alpha_space: function(val, field) {
       return alpha_space_re.test(val);
     },
