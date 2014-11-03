@@ -957,17 +957,22 @@ function TKModel.GetCaptionField: TKModelField;
 var
   LFieldName: string;
   I: Integer;
+  LFirstVisibleField: TKModelField;
 begin
   Result := nil;
   LFieldName := CaptionFieldName;
   if LFieldName <> '' then
-    Result := FieldByName(LFieldName)
-  else
+    Result := FindField(LFieldName);
+  // Find first visible non-key field.
+  if Result = nil then
   begin
+    LFirstVisibleField := nil;
     for I := 0 to FieldCount - 1 do
     begin
       if Fields[I].IsVisible then
       begin
+        if not Assigned(LFirstVisibleField) then
+          LFirstVisibleField := Fields[I];
         if not Fields[I].IsKey then
         begin
           Result := Fields[I];
@@ -975,12 +980,13 @@ begin
         end;
       end;
     end;
-    if (Result = nil) and (FieldCount > 0) then
-      Result := Fields[0];
     if Result = nil then
-      raise EKError.CreateFmt('Cannot determine CaptionField for model %s.',
-        [ModelName]);
+      Result := LFirstVisibleField;
   end;
+  if (Result = nil) and (FieldCount > 0) then
+    Result := Fields[0];
+
+  Assert(Result <> nil);
 end;
 
 function TKModel.GetCaptionFieldName: string;
