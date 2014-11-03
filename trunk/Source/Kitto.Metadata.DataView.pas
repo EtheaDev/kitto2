@@ -22,6 +22,7 @@ interface
 
 uses
   Types, SysUtils, Generics.Collections,
+  superobject,
   EF.Types, EF.Tree,
   Kitto.Metadata, Kitto.Metadata.Models, Kitto.Metadata.Views, Kitto.Store,
   Kitto.Rules;
@@ -143,9 +144,11 @@ type
     ///	CaptionField.</summary>
     function GetActualDataType: TEFDataType;
 
-    ///	<summary>If the field is from a different model than the table's model,
-    ///	returns the model field that references its model, otherwise returns
-    ///	nil.</summary>
+    ///	<summary>
+    ///   If the field is from a different model than the table's model,
+    ///	  returns the model field that references its model, otherwise returns
+    ///	  nil.
+    /// </summary>
     property ReferenceField: TKModelField read GetReferenceField;
 
     ///	<summary>
@@ -236,10 +239,12 @@ type
     ///	original file name upon upload.</summary>
     property FileNameField: string read GetFileNameField;
 
-    ///	<summary>Returns True if any view fields exist in the view table that
-    ///	have this field's model field as reference field. Used to discover
-    ///  if there are any fields that need to be refreshed when the current
-    ///  field's value changes.</summary>
+    ///	<summary>
+    ///   Returns True if any view fields exist in the view table that
+    ///	  have this field's model field as reference field. Used to discover
+    ///   if there are any fields that need to be refreshed when the current
+    ///   field's value changes.
+    /// </summary>
     function DerivedFieldsExist: Boolean;
 
     function GetColorsAsPairs: TEFPairs;
@@ -295,11 +300,31 @@ type
     ///	</remarks>
     function LoadPage(const AFilter: string; const AOrderBy: string; const AFrom, AFor: Integer): Integer;
 
-    ///	<summary>Appends a record and fills it with the specified
-    ///	values.</summary>
+    ///	<summary>
+    ///   Appends a record and fills it with the specified values.
+    ///	</summary>
     function AppendRecord(const AValues: TEFNode): TKViewTableRecord;
 
     procedure Save(const AUseTransaction: Boolean);
+
+    ///	<summary>
+    ///   Locates and returns a record from the key values stored in AKey.
+    ///   Raises an exception if the record is not found.
+    ///	<param name="AKey">
+    ///   Object containing at least on top-level pair for each key value.
+    /// </param>
+    ///	<param name="AFormatSettings">
+    ///   Used to interpret string values (all pair values are read as string and
+    ///   then converted according to this settings object).
+    /// </param>
+    ///	<param name="AValueIndex">
+    ///   If each pair in AKey contains more than one value, set this param to
+    ///   an index >=0 to consider that value. Normally each pair contains a
+    ///   single value, so you just don't pass this param.
+    /// </param>
+    ///	</summary>
+    function GetRecord(const AKey: ISuperObject; const AFormatSettings: TFormatSettings;
+      const AValueIndex: Integer = -1): TKViewTableRecord;
   end;
 
   TKViewTableHeaderField = class;
@@ -1742,6 +1767,17 @@ end;
 function TKViewTableStore.GetHeader: TKViewTableHeader;
 begin
   Result := inherited Header as TKViewTableHeader;
+end;
+
+function TKViewTableStore.GetRecord(const AKey: ISuperObject; const AFormatSettings: TFormatSettings;
+  const AValueIndex: Integer): TKViewTableRecord;
+begin
+  Result := inherited GetRecord(AKey, AFormatSettings,
+    function(const AName: string): string
+    begin
+      Result := ViewTable.FieldByName(AName).AliasedName;
+    end,
+    AValueIndex) as TKViewTableRecord;
 end;
 
 function TKViewTableStore.GetRecords: TKViewTableRecords;

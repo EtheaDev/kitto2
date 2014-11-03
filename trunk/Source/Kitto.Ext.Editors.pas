@@ -296,8 +296,7 @@ type
     property AllowBlank: Boolean read FAllowBlank write SetAllowBlank;
   end;
 
-  TKExtFormComboBoxEditor = class(TKExtFormComboBox, IKExtEditItem, IKExtEditor,
-    IKExtEditorAfterLoad)
+  TKExtFormComboBoxEditor = class(TKExtFormComboBox, IKExtEditItem, IKExtEditor, IKExtEditorAfterLoad)
   private
     FServerStore: TKStore;
     FLookupCommandText: string;
@@ -734,6 +733,7 @@ end;
 procedure TKExtLayoutProcessor.CreateEditors(const ALayout: TKLayout);
 var
   I: Integer;
+  LEditor: IKExtEditor;
 begin
   Assert(Assigned(FCurrentEditPage));
 
@@ -747,7 +747,12 @@ begin
     for I := 0 to ViewTable.FieldCount - 1 do
     begin
       if ViewTable.IsFieldVisible(ViewTable.Fields[I]) and ViewTable.Fields[I].IsAccessGranted(ACM_READ) then
-        FCurrentEditPage.AddChild(CreateEditor(ViewTable.Fields[I].AliasedName, nil))
+      begin
+        LEditor := CreateEditor(ViewTable.Fields[I].AliasedName, nil);
+        FCurrentEditPage.AddChild(LEditor);
+        if Assigned(FOnNewEditItem) then
+          FOnNewEditItem(LEditor);
+      end;
     end;
   end;
   FinalizeCurrentEditPage;
@@ -867,27 +872,8 @@ begin
   LFormField := Result.AsExtFormField;
   if Assigned(LFormField) then
   begin
-    if LFormField is TExtFormTextField then
-    begin
-      if LViewField.Hint <> '' then
-        TExtFormTextField(LFormField).EmptyText := _(LViewField.Hint);
-    end;
-
-    if not LIsReadOnly then
-      LViewField.ApplyRules(
-        procedure (ARuleImpl: TKRuleImpl)
-        begin
-          if ARuleImpl is TKExtRuleImpl then
-            TKExtRuleImpl(ARuleImpl).ApplyToFormField(LFormField);
-        end);
-
-    LFormField.SubmitValue := not LIsReadOnly;
-
-    if LIsReadOnly then
-      LFormField.Cls := 'x-form-readonly';
-    LFormField.Name := LViewField.AliasedName;
-    LFormField.ReadOnly := LIsReadOnly;
     LFormField.FieldLabel := LLabel;
+    //LFormField.SubmitValue := not LIsReadOnly;
     LFormField.MsgTarget := LowerCase(FDefaults.MsgTarget);
 
     if (FFocusField = nil) and not LFormField.ReadOnly and not LFormField.Disabled then
@@ -1504,6 +1490,8 @@ end;
 procedure TKExtFormComboBoxEditor.RefreshValue;
 begin
   SetValue(JSONNullToEmptyStr(FRecordField.GetAsJSONValue(False, False)));
+//  if Mode = 'remote' then
+//    AfterLoad;
 end;
 
 procedure TKExtFormComboBoxEditor.SetRecordField(const AValue: TKViewTableField);
@@ -2586,6 +2574,8 @@ function TKExtEditorManager.CreateEditor(const AOwner: TComponent;
   const AViewField: TKViewField; const ARowField: TKExtFormRowField;
   const AFieldCharWidth: Integer; const AIsReadOnly: Boolean;
   const ALabel: string): IKExtEditor;
+var
+  LFormField: TExtFormField;
 begin
   Result := TryCreateFileEditor(AOwner, AViewField, ARowField, AFieldCharWidth, AIsReadOnly, ALabel);
   if Result = nil then
@@ -2604,6 +2594,29 @@ begin
     Result := TryCreateNumberField(AOwner, AViewField, ARowField, AFieldCharWidth, AIsReadOnly);
   if Result = nil then
     Result := CreateTextField(AOwner, AViewField, ARowField, AFieldCharWidth, AIsReadOnly);
+
+  LFormField := Result.AsExtFormField;
+  if Assigned(LFormField) then
+  begin
+    if LFormField is TExtFormTextField then
+    begin
+      if AViewField.Hint <> '' then
+        TExtFormTextField(LFormField).EmptyText := _(AViewField.Hint);
+    end;
+
+    if not AIsReadOnly then
+      AViewField.ApplyRules(
+        procedure (ARuleImpl: TKRuleImpl)
+        begin
+          if ARuleImpl is TKExtRuleImpl then
+            TKExtRuleImpl(ARuleImpl).ApplyToFormField(LFormField);
+        end);
+
+    if AIsReadOnly then
+      LFormField.Cls := 'x-form-readonly';
+    LFormField.Name := AViewField.AliasedName;
+    LFormField.ReadOnly := AIsReadOnly;
+  end;
 end;
 
 function TKExtEditorManager.TryCreateComboBox(
@@ -2635,13 +2648,19 @@ begin
           LComboBox.Width := LComboBox.CharsToPixels(AFieldCharWidth + TRIGGER_WIDTH)
         else
           ARowField.CharWidth := AFieldCharWidth + TRIGGER_WIDTH;
+
         // Enable the combo box to post its hidden value instead of the visible description.
         LComboBox.HiddenName := AViewField.FieldNamesForUpdate;
-
+        LComboBox.SubmitValue := True;
         if Length(LAllowedValues) > 0 then
-          LComboBox.StoreArray := LComboBox.JSArray(PairsToJSON(LAllowedValues))
+        begin
+          LComboBox.StoreArray := LComboBox.JSArray(PairsToJSON(LAllowedValues));
+          LComboBox.ValueField := AViewField.FieldNamesForUpdate;
+          LComboBox.SubmitValue := False;
+        end
         else // LLookupCommandText <> ''
         begin
+          { TODO : move inside the combobox class }
           if AViewField.IsReference and AViewField.ModelField.ReferencedModel.IsLarge then
             LComboBox.SetupServerStore(AViewField, LLookupCommandText)
           else

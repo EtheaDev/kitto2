@@ -28,6 +28,11 @@ uses
 
 type
   ///	<summary>
+  ///	  Generic prototype used for functions that translate names, such as field or alias names.
+  ///	</summary>
+  TNameTranslator = reference to function (const AName: string): string;
+
+  ///	<summary>
   ///	  Many components in EF have OnLog events of this type.
   ///	</summary>
   TEFLogEvent = procedure (const ASender: TObject; const AString: string;

@@ -76,7 +76,7 @@ begin
     Assert(LKey.ChildCount > 0);
     LRecordCount := Length(Split(Session.Queries.Values[LKey[0].Name], ','));
     for I := 0 to LRecordCount - 1 do
-      AProc(Session.LocateRecordFromQueries(ViewTable, ServerStore, I));
+      AProc(ServerStore.GetRecord(Session.GetQueries, Session.Config.JSFormatSettings, I));
   finally
     FreeAndNil(LKey);
   end;

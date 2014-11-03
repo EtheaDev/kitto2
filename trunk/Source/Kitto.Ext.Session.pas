@@ -22,11 +22,11 @@ interface
 
 uses
   SysUtils, Classes, Generics.Collections,
-  gnugettext,
+  gnugettext, superobject,
   ExtPascal, Ext, ExtPascalClasses,
   EF.Tree, EF.Macros, EF.Intf, EF.Localization,
   Kitto.Ext.Base, Kitto.Config, Kitto.Metadata.Views,
-  Kitto.Metadata.DataView, Kitto.Ext.Login, Kitto.Ext.Controller;
+  Kitto.Ext.Login, Kitto.Ext.Controller;
 
 type
   TKExtUploadedFile = class
@@ -223,10 +223,11 @@ type
     ///	controller was closed.</summary>
     procedure RemoveController(const AObject: TObject; const AFreeIt: Boolean = False);
 
-    ///	<summary>Finds and returns a record from the specified store using the
-    ///	key values currently stored in the session query strings.</summary>
-    function LocateRecordFromQueries(const AViewTable: TKViewTable;
-      const AServerStore: TKViewTableStore; const AValueIndex: Integer = -1): TKViewTableRecord;
+    /// <summary>
+    ///   Returns all request query param name and values as an ISuperObject.
+    ///   Note: All values are treated as strings.
+    /// </summary>
+    function GetQueries: ISuperObject;
 
     ///	<summary>
     ///	  The current session's UUID.
@@ -281,29 +282,6 @@ end;
 
 { TKExtSession }
 
-function TKExtSession.LocateRecordFromQueries(const AViewTable: TKViewTable;
-  const AServerStore: TKViewTableStore; const AValueIndex: Integer): TKViewTableRecord;
-var
-  LKey: TEFNode;
-begin
-  Assert(Assigned(AViewTable));
-  Assert(Assigned(AServerStore));
-
-  LKey := TEFNode.Create;
-  try
-    LKey.Assign(AServerStore.Key);
-    LKey.SetChildValuesfromStrings(Queries, True, Config.JSFormatSettings,
-      function(const AName: string): string
-      begin
-        Result := AViewTable.FieldByName(AName).AliasedName;
-      end,
-      AValueIndex);
-    Result := AServerStore.Records.GetRecord(LKey);
-  finally
-    FreeAndNil(LKey);
-  end;
-end;
-
 function TKExtSession.GetConfig: TKConfig;
 begin
   if not Assigned(FConfig) then
@@ -354,6 +332,15 @@ begin
   LFileName := Config.GetResourcePathName(APageName + '.html');
   Result := TextFileToString(LFileName, GetEncoding);
   Result := TEFMacroExpansionEngine.Instance.Expand(Result);
+end;
+
+function TKExtSession.GetQueries: ISuperObject;
+var
+  I: Integer;
+begin
+  Result := SO();
+  for I := 0 to Queries.Count - 1 do
+    Result.S[Queries.Names[I]] := Queries.ValueFromIndex[I];
 end;
 
 function TKExtSession.GetSessionCookieName: string;

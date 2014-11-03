@@ -1,4 +1,5 @@
 ﻿ModelName: Hair
+IsLarge: True
 DisplayLabel: Hair Type
 PluralDisplayLabel: Hair Types
 Fields:

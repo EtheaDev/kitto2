@@ -36,6 +36,7 @@ type
     class function GetCurrentWebSession : TCustomWebSession; override;
     function GetDocumentRoot : string; override;
     function GetRequestHeader(const Name : string) : string; override;
+    function GetRequestBody: string; override;
     function GetWebServer : string; override;
     procedure SendResponse(const Msg : AnsiString); override;
     function UploadBlockType(const Buffer : AnsiString; var MarkPos : Integer) : TUploadBlockType; override;
@@ -878,6 +879,11 @@ function TFCGISession.GetDocumentRoot : string; begin
   Result := RequestHeader['DOCUMENT_ROOT'];
   if (Result <> '') and CharInSet(Result[Length(Result)], ['/', '\']) then
     Delete(Result, Length(Result), 1);
+end;
+
+function TFCGISession.GetRequestBody: string;
+begin
+  Result := TFCGIThread(Owner).Request;
 end;
 
 function TFCGISession.GetRequestHeader(const Name : string) : string; begin

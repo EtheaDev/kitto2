@@ -23,6 +23,7 @@ interface
 uses
   Generics.Collections,
   ExtPascal, Ext, ExtData, ExtForm, ExtGrid, ExtPascalUtils, ExtUxGrid,
+  superobject,
   EF.ObserverIntf, EF.Types,
   Kitto.Metadata.Views, Kitto.Metadata.DataView, Kitto.Store, Kitto.Types,
   Kitto.Ext.Base, Kitto.Ext.Controller, Kitto.Ext.DataPanelLeaf, Kitto.Ext.Editors;
@@ -54,11 +55,11 @@ type
     function GetRowColorPatterns(out AFieldName: string): TEFPairs;
     procedure CreateGridView;
     procedure CheckGroupColumn;
-    procedure DoConfirmChanges;
     function GetCurrentViewRecord: TKViewTableRecord;
     procedure RefreshRowEditors;
     procedure SetGridColumnEditor(const AEditorManager: TKExtEditorManager;
       const AViewField: TKViewField; const AColumn: TExtGridColumn);
+    function DoUpdateRecord(const AOldValues, ANewValues: ISuperObject): string;
   strict protected
     function GetEditWindowDefaultControllerType: string; virtual;
     function GetOrderByClause: string; override;
@@ -85,11 +86,8 @@ type
     procedure NewRecord(This: TExtButton; E: TExtEventObjectSingleton);
     procedure DeleteCurrentRecord;
     procedure LoadData; override;
-    procedure ConfirmChanges;
     procedure CancelChanges;
     procedure SelectionChanged;
-    procedure RowEditorAfterEdit(ARowEditor: TExtUxGridRowEditor;
-      AChanges: TExtObject; ARecord: TExtDataRecord; ARowIndex: Integer);
     procedure UpdateRecord;
   end;
 
@@ -128,7 +126,7 @@ end;
 
 function TKExtGridPanel.GetCurrentViewRecord: TKViewTableRecord;
 begin
-  Result := Session.LocateRecordFromQueries(ViewTable, ServerStore, IfThen(IsMultiSelect, 0, -1));
+  Result := ServerStore.GetRecord(Session.GetQueries, Session.Config.JSFormatSettings, IfThen(IsMultiSelect, 0, -1));
 end;
 
 function TKExtGridPanel.GetEditWindowDefaultControllerType: string;
@@ -177,8 +175,6 @@ function TKExtGridPanel.CreateClientStore: TExtDataStore;
 var
   LGroupingFieldName: string;
   LGroupingMenu: Boolean;
-  LWriter: TExtDataJsonWriter;
-  LProxy: TExtDataHttpProxy;
 begin
   LGroupingFieldName := GetGroupingFieldName;
   LGroupingMenu := ViewTable.GetBoolean('Controller/Grouping/EnableMenu');
@@ -199,15 +195,6 @@ begin
     Result := inherited CreateClientStore;
   Result.On('load', FSelectionModel.SelectFirstRow);
   FGridEditorPanel.Store := Result;
-
-  if FInplaceEditing then begin
-    //LProxy := TExtDataHttpProxy.Create(Result, nil);
-    //LProxy.SetApi('update', GetAjaxCode(UpdateRecord, []));
-    //Result.Proxy := LProxy;
-
-    //LWriter := TExtDataJsonWriter.Create(Result, nil, nil);
-    //Result.Writer := LWriter;
-  end;
 end;
 
 procedure TKExtGridPanel.CreateGridView;
@@ -689,10 +676,15 @@ begin
     LRowEditor.CancelText := _('Cancel');
     LRowEditor.CommitChangesText := _('You need to save or cancel your changes');
     LRowEditor.ErrorText := _('Errors');
-    //LRowEditor.OnAfterEdit := RowEditorAfterEdit;
-    LRowEditor.On('validateedit', JSFunction('rowEditor, changes, record, rowIndex',
-      'console.dir(objectToParams(record.data));' + sLineBreak +
-      'console.dir(objectToParams(changes)); return false;'));
+    LRowEditor.On('validateedit',
+    JSFunction('rowEditor, changes, record, rowIndex',
+      'var json = new Object;' + sLineBreak +
+      'json.new = changes;' + sLineBreak +
+      'json.old = record.data;' + sLineBreak +
+      'json.rowIndex = rowIndex;' + sLineBreak +
+      'json.rowEditor = rowEditor.nm;' + sLineBreak +
+      GetPOSTAjaxCode(UpdateRecord, [], 'json') + sLineBreak +
+      'return true;'));
     FGridEditorPanel.PluginsArray.Add(LRowEditor);
   end;
 
@@ -724,10 +716,6 @@ begin
   LoadData;
 end;
 
-procedure TKExtGridPanel.RowEditorAfterEdit(ARowEditor: TExtUxGridRowEditor; AChanges: TExtObject; ARecord: TExtDataRecord; ARowIndex: Integer);
-begin
-end;
-
 procedure TKExtGridPanel.CheckGroupColumn;
 var
   I: Integer;
@@ -752,12 +740,6 @@ begin
   end;
 end;
 
-procedure TKExtGridPanel.ConfirmChanges;
-begin
-  DoConfirmChanges;
-  LoadData;
-end;
-
 function TKExtGridPanel.GetRowButtonsDisableJS: string;
 var
   I: Integer;
@@ -776,7 +758,80 @@ begin
 end;
 
 procedure TKExtGridPanel.UpdateRecord;
+var
+  LReqBody: ISuperObject;
+  LError: string;
 begin
+  LReqBody := SO(Session.RequestBody);
+  LError := DoUpdateRecord(LReqBody.O['old'], LReqBody.O['new']);
+  if LError = '' then
+    // ok - nothing
+  else
+  begin
+    // go back in edit mode.
+    Session.ResponseItems.ExecuteJSCode(
+      LReqBody.S['rowEditor'] + '.startEditing(' + LReqBody.I['rowIndex'].ToString + ', true);'
+    );
+  end;
+end;
+
+function TKExtGridPanel.DoUpdateRecord(const AOldValues, ANewValues: ISuperObject): string;
+var
+  LRecord: TKViewTableRecord;
+  LItem: TSuperAvlEntry;
+  LOldRecord: TKViewTableRecord;
+  LValues: ISuperObject;
+begin
+  // Locate record to update. Look in ANewValues as well in case the key has changed
+  // (should never happen).
+  LValues := AOldValues.Clone;
+  LValues.Merge(ANewValues);
+  LRecord := ServerStore.GetRecord(LValues, Session.Config.UserFormatSettings);
+
+  LOldRecord := TKViewTableRecord.Clone(LRecord);
+  try
+    try
+      // Modify record values.
+      for LItem in ANewValues.AsObject do
+        LRecord.FieldByName(LItem.Name).SetAsJSONValue(LItem.Value.AsString, True, Session.Config.UserFormatSettings);
+
+      // Get uploaded files.
+      Session.EnumUploadedFiles(
+        procedure (AFile: TKExtUploadedFile)
+        begin
+          if (AFile.Context is TKViewField) and (TKViewField(AFile.Context).Table = ViewTable) then
+          begin
+            if TKViewField(AFile.Context).DataType is TEFBlobDataType then
+              LRecord.FieldByName(TKViewField(AFile.Context).AliasedName).AsBytes := AFile.Bytes
+            else if TKViewField(AFile.Context).DataType is TKFileReferenceDataType then
+              LRecord.FieldByName(TKViewField(AFile.Context).AliasedName).AsString := AFile.FileName
+            else
+              raise Exception.CreateFmt(_('Data type %s does not support file upload.'), [TKViewField(AFile.Context).DataType.GetTypeName]);
+            Session.RemoveUploadedFile(AFile);
+          end;
+        end);
+
+      // Save record.
+      ViewTable.Model.SaveRecord(LRecord, not ViewTable.IsDetail,
+        procedure
+        begin
+          Session.Flash(_('Changes saved succesfully.'));
+        end);
+      Result := '';
+    except
+      on E: EKValidationError do
+      begin
+        ExtMessageBox.Alert(_(Session.Config.AppTitle), E.Message);
+        Result := E.Message;
+        LRecord.Assign(LOldRecord);
+        LRecord.MarkAsClean;
+        Exit;
+      end;
+    end;
+    NotifyObservers('Confirmed');
+  finally
+    FreeAndNil(LOldRecord);
+  end;
 end;
 
 procedure TKExtGridPanel.DeleteCurrentRecord;
@@ -813,28 +868,6 @@ begin
   inherited;
 end;
 
-procedure TKExtGridPanel.DoConfirmChanges;
-//var
-//  FStoreRecord: TKViewTableRecord;
-begin
-(*
-  try
-    // Save all records.
-    ViewTable.Model.SaveAllRecords(ViewTable.DatabaseName, ServerStore,
-      procedure
-      begin
-        Session.Flash(_('Changes saved succesfully.'));
-      end);
-  except
-    on E: EKValidationError do
-    begin
-      ExtMessageBox.Alert(_(Session.Config.AppTitle), E.Message);
-      Exit;
-    end;
-  end;
-  NotifyObservers('Confirmed');
-*)
-end;
 
 procedure TKExtGridPanel.DuplicateRecord;
 begin
@@ -950,33 +983,6 @@ begin
       FButtonsRequiringSelection.Add(LDeleteButton);
     end;
   end;
-
-  (*
-  if FInplaceEditing then
-  begin
-    TExtToolbarSpacer.CreateAndAddTo(TopToolbar.Items);
-    LConfirmButton := TExtButton.CreateAndAddTo(TopToolbar.Buttons);
-    LDupButton.Tooltip := Format(_('Duplicate %s'), [_(ViewTable.DisplayLabel)]);
-    LDupButton.Icon := Session.Config.GetImageURL('dup_record');
-
-    LConfirmButton.Text := Config.GetString('ConfirmButton/Caption', _('Save'));
-    LConfirmButton.Tooltip := Config.GetString('ConfirmButton/Tooltip', _('Save changes and finish editing'));
-    // AjaxForms allows us to put JS code in the response, something the commented
-    // versions don't allow.
-    //LConfirmButton.Handler := AjaxSelection(ConfirmChanges, [FGridEditorPanel]);
-    // Don't just call submit() - we want AjaxSuccess/AjaxFailure to be called so that our response is actually executed.
-    //FSaveButton.Handler := JSFunction(FFormPanel.JSName + '.getForm().submit();');
-    //FSaveButton.Handler := JSFunction(FFormPanel.JSName + '.getForm().doAction("submit", {success:"AjaxSuccess", failure:"AjaxFailure"});');
-    LConfirmButton.Icon := Session.Config.GetImageURL('accept');
-    //Cancel button to abandon changes
-    LCancelButton := TExtButton.CreateAndAddTo(FGridEditorPanel.Buttons);
-    LCancelButton.Scale := Config.GetString('ButtonScale', 'medium');
-    LCancelButton.Icon := Session.Config.GetImageURL('cancel');
-    LCancelButton.Text := _('Cancel');
-    LCancelButton.Tooltip := _('Cancel changes');
-    LCancelButton.Handler := Ajax(CancelChanges);
-  end;
-  *)
   inherited;
 end;
 
