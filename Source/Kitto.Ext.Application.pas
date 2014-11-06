@@ -65,6 +65,8 @@ begin
     TEFLogger.Instance.Log('AppTitle: ' + _(FAppTitle));
     TEFLogger.Instance.LogFmt('TCPPort: %d', [FTCPPort]);
     TEFLogger.Instance.LogFmt('SessionTimeout: %d', [FSessionTimeout]);
+    TEFLogger.Instance.LogFmt('Config.SystemHomePath: %s', [LConfig.SystemHomePath]);
+    TEFLogger.Instance.LogFmt('Config.AppHomePath: %s', [LConfig.AppHomePath]);
   finally
     FreeAndNil(LConfig);
   end;
