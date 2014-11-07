@@ -406,11 +406,12 @@ var
   LModel: TKModel;
   LClause: string;
   LDBColumnName: string;
+  LKeyValues: string;
 begin
   Assert(Assigned(AViewField));
   Assert(AViewField.IsReference);
   Assert(Assigned(ADBQuery));
-
+  LKeyValues := AKeyValues;
   LDerivedFields := AViewField.GetDerivedFields;
   Assert(Length(LDerivedFields) > 0);
 
@@ -442,11 +443,16 @@ begin
     LClause := '';
     for I := 0 to High(LKeyDBColumnNames) do
     begin
+      LDBColumnName := LKeyDBColumnNames[I];
       if LClause = '' then
-        LClause := LKeyDBColumnNames[I] + ' = :' + LKeyDBColumnNames[I]
+        LClause := LDBColumnName + ' = :' + LDBColumnName
       else
-        LClause := LClause + ' and ' + LKeyDBColumnNames[I] + ' = :' + LKeyDBColumnNames[I];
-      ADBQuery.Params.CreateParam(ftUnknown, LKeyDBColumnNames[I], ptInput);
+        LClause := LClause + ' and ' + LDBColumnName + ' = :' + LDBColumnName;
+      ADBQuery.Params.CreateParam(ftUnknown, LDBColumnName, ptInput);
+
+      //Workaround when Combobox changes his value and KeyValues is not the value of the key
+      if (I=0) and (LModel.KeyFields[I].size < length(LKeyValues)) then
+        LKeyValues := '';
     end;
     LCommandText := SetSQLWhereClause(LCommandText, LClause);
     ADBQuery.CommandText := TEFMacroExpansionEngine.Instance.Expand(LCommandText);
@@ -455,7 +461,7 @@ begin
   end;
   { TODO : only single-field keys supported for now }
   Assert(ADBQuery.Params.Count = 1);
-  ADBQuery.Params[0].Value := AKeyValues;
+  ADBQuery.Params[0].Value := LKeyValues;
 end;
 
 procedure TKSQLBuilder.AfterConstruction;
