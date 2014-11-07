@@ -770,7 +770,7 @@ begin
   begin
     // go back in edit mode.
     Session.ResponseItems.ExecuteJSCode(
-      LReqBody.S['rowEditor'] + '.startEditing(' + LReqBody.I['rowIndex'].ToString + ', true);'
+      LReqBody.S['rowEditor'] + '.startEditing(' + IntToStr(LReqBody.I['rowIndex']) + ', true);'
     );
   end;
 end;
