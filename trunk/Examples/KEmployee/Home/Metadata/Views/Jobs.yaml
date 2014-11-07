@@ -15,5 +15,5 @@ MainTable:
     MaxSalary:
     JobRequirement:
     LanguageReq:
-    JobCountryRef:
+    JobCountry:
   Controller:
