@@ -67,15 +67,15 @@ function TriplesToJSON(const ATriples: TEFTriples): string;
 ///	  <para><c>'["IT", "ITALY"], ["UK", "UNITED KINGDOM"]'</c></para>
 ///	</example>
 function DataSetToJSON(const ADBConnection: TEFDBConnection; const ACommandText: string;
-  const AKeyFieldsToAggregate: integer = 0; const MultiFieldSeparator: string = '~~~'): string; overload;
+  const AKeyFieldsToAggregate: integer = 0): string; overload;
 
 ///	<summary>Builds a JSON representation of a dataset's fields values. Each
 /// record is enclosed in []s and each value is double-quoted.</summary>
 ///	<example>
 ///	  <para><c>'["IT", "ITALY"], ["UK", "UNITED KINGDOM"]'</c></para>
 ///	</example>
-function DataSetToJSON(const ADataSet: TDataSet; const AKeyFieldsToAggregate: integer = 0;
-  const MultiFieldSeparator: string = '~~~'): string; overload;
+function DataSetToJSON(const ADataSet: TDataSet;
+  const AKeyFieldsToAggregate: integer = 0): string; overload;
 
 function QuoteJSONStr(const AString: string): string; inline;
 
@@ -124,7 +124,7 @@ begin
 end;
 
 function DataSetToJSON(const ADBConnection: TEFDBConnection; const ACommandText: string;
-  const AKeyFieldsToAggregate: integer = 0; const MultiFieldSeparator: string = '~~~'): string;
+  const AKeyFieldsToAggregate: integer = 0): string;
 var
   LDBQuery: TEFDBQuery;
 begin
@@ -136,7 +136,7 @@ begin
     LDBQuery.CommandText := ACommandText;
     LDBQuery.Open;
     try
-      Result := DataSetToJSON(LDBQuery.DataSet, AKeyFieldsToAggregate, MultiFieldSeparator);
+      Result := DataSetToJSON(LDBQuery.DataSet, AKeyFieldsToAggregate);
     finally
       LDBQuery.Close;
     end;
@@ -145,8 +145,7 @@ begin
   end;
 end;
 
-function DataSetToJSON(const ADataSet: TDataSet; const AKeyFieldsToAggregate: integer = 0;
-  const MultiFieldSeparator: string = '~~~'): string;
+function DataSetToJSON(const ADataSet: TDataSet; const AKeyFieldsToAggregate: integer = 0): string;
 var
   LBookmark: TBookmark;
   I: Integer;
@@ -171,7 +170,7 @@ begin
           begin
             LKeyValue := LKeyValue + ADataSet.Fields[I].AsString;
             if I < AKeyFieldsToAggregate -1 then
-              LKeyValue := LKeyValue + MultiFieldSeparator;
+              LKeyValue := LKeyValue + ',';
           end;
           Result := Result + QuoteJSONStr(LKeyValue);
           if AKeyFieldsToAggregate < ADataSet.FieldCount then
