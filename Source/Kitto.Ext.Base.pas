@@ -297,6 +297,36 @@ type
     procedure NotifyObservers(const AContext: string = ''); virtual;
   end;
 
+  TKExtFormDateField = class(TExtFormDateField, IInterface, IEFInterface, IEFSubject)
+  private
+    FSubjObserverImpl: TEFSubjectAndObserver;
+  protected
+    procedure InitDefaults; override;
+  public
+    destructor Destroy; override;
+    function AsObject: TObject; inline;
+    function _AddRef: Integer; stdcall;
+    function _Release: Integer; stdcall;
+    procedure AttachObserver(const AObserver: IEFObserver); virtual;
+    procedure DetachObserver(const AObserver: IEFObserver); virtual;
+    procedure NotifyObservers(const AContext: string = ''); virtual;
+  end;
+
+  TKExtFormCheckBoxField = class(TExtFormCheckBox, IInterface, IEFInterface, IEFSubject)
+  private
+    FSubjObserverImpl: TEFSubjectAndObserver;
+  protected
+    procedure InitDefaults; override;
+  public
+    destructor Destroy; override;
+    function AsObject: TObject; inline;
+    function _AddRef: Integer; stdcall;
+    function _Release: Integer; stdcall;
+    procedure AttachObserver(const AObserver: IEFObserver); virtual;
+    procedure DetachObserver(const AObserver: IEFObserver); virtual;
+    procedure NotifyObservers(const AContext: string = ''); virtual;
+  end;
+
   TKExtStatusBar = class(TExtUxStatusBar)
   public
     procedure SetErrorStatus(const AText: string);
@@ -946,6 +976,94 @@ begin
 end;
 
 function TKExtFormTextField._Release: Integer;
+begin
+  Result := -1;
+end;
+
+{ TKExtFormDateField }
+
+function TKExtFormDateField.AsObject: TObject;
+begin
+  Result := Self;
+end;
+
+procedure TKExtFormDateField.AttachObserver(const AObserver: IEFObserver);
+begin
+  FSubjObserverImpl.AttachObserver(AObserver);
+end;
+
+destructor TKExtFormDateField.Destroy;
+begin
+  FreeAndNil(FSubjObserverImpl);
+  inherited;
+end;
+
+procedure TKExtFormDateField.DetachObserver(const AObserver: IEFObserver);
+begin
+  FSubjObserverImpl.DetachObserver(AObserver);
+end;
+
+procedure TKExtFormDateField.InitDefaults;
+begin
+  inherited;
+  FSubjObserverImpl := TEFSubjectAndObserver.Create;
+end;
+
+procedure TKExtFormDateField.NotifyObservers(const AContext: string);
+begin
+  FSubjObserverImpl.NotifyObserversOnBehalfOf(Self, AContext);
+end;
+
+function TKExtFormDateField._AddRef: Integer;
+begin
+  Result := -1;
+end;
+
+function TKExtFormDateField._Release: Integer;
+begin
+  Result := -1;
+end;
+
+{ TKExtFormCheckBoxField }
+
+function TKExtFormCheckBoxField.AsObject: TObject;
+begin
+  Result := Self;
+end;
+
+procedure TKExtFormCheckBoxField.AttachObserver(const AObserver: IEFObserver);
+begin
+  FSubjObserverImpl.AttachObserver(AObserver);
+end;
+
+destructor TKExtFormCheckBoxField.Destroy;
+begin
+  FreeAndNil(FSubjObserverImpl);
+  inherited;
+end;
+
+procedure TKExtFormCheckBoxField.DetachObserver(const AObserver: IEFObserver);
+begin
+  FSubjObserverImpl.DetachObserver(AObserver);
+end;
+
+procedure TKExtFormCheckBoxField.InitDefaults;
+begin
+  inherited;
+  FSubjObserverImpl := TEFSubjectAndObserver.Create;
+end;
+
+procedure TKExtFormCheckBoxField.NotifyObservers(const AContext: string);
+begin
+  FSubjObserverImpl.NotifyObserversOnBehalfOf(Self, AContext);
+end;
+
+function TKExtFormCheckBoxField._AddRef: Integer;
+begin
+  Result := -1;
+end;
+
+function TKExtFormCheckBoxField._Release: Integer;
 begin
   Result := -1;
 end;

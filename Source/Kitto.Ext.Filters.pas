@@ -180,11 +180,49 @@ type
     procedure Select;
   end;
 
+  ///	<summary>
+  ///	  <para>Free search. Displays an edit for a free search criteria input.</para>
+  ///   <para>AutoSearchAfterChars determines the number of characters that can
+  ///     be entered before the search fires. Default is 4 characters.</para>
+  ///	</summary>
   TKFreeSearchFilter = class(TKExtFormTextField, IKExtFilter)
   private
     FCurrentValue: string;
     FConfig: TEFNode;
     procedure FieldChange(This: TExtFormField; NewValue, OldValue: string);
+  public
+    procedure SetConfig(const AConfig: TEFNode);
+    function AsExtObject: TExtObject;
+    function GetExpression: string;
+  end;
+
+  ///	<summary>
+  ///	  <para>Date search. Displays a calendar edit for a search of a date value.</para>
+  ///	</summary>
+  TKDateSearchFilter = class(TKExtFormDateField, IKExtFilter)
+  private
+    FCurrentValue: TDateTime;
+    FConfig: TEFNode;
+    procedure FieldChange(This: TExtFormField; NewValue, OldValue: string);
+  protected
+    function GetDatabaseName: string;
+  public
+    procedure SetConfig(const AConfig: TEFNode);
+    function AsExtObject: TExtObject;
+    function GetExpression: string;
+  end;
+
+  ///	<summary>
+  ///	  <para>Boolean search. Displays a checkbox for activate a particular filter
+  ///   defined in Expression Template.</para>
+  ///	</summary>
+  TKBooleanSearchFilter = class(TKExtFormCheckBoxField, IKExtFilter)
+  private
+    FCurrentValue: Boolean;
+    FConfig: TEFNode;
+    procedure FieldChecked(This: TExtFormCheckBox; Checked: boolean);
+  protected
+    function GetDatabaseName: string;
   public
     procedure SetConfig(const AConfig: TEFNode);
     function AsExtObject: TExtObject;
@@ -217,8 +255,9 @@ implementation
 
 uses
   SysUtils, Math, StrUtils,
+  ExtPascalUtils,
   EF.Localization,  EF.DB, EF.StrUtils, EF.JSON,
-  Kitto.Types, Kitto.Config, Kitto.Ext.Session;
+  Kitto.Types, Kitto.Config, Kitto.Ext.Session, Kitto.Ext.Utils;
 
 function GetDefaultFilter(const AItems: TEFNode): TEFNode;
 var
@@ -566,6 +605,133 @@ begin
     Result := '';
 end;
 
+{ TKDateSearchFilter }
+
+function TKDateSearchFilter.AsExtObject: TExtObject;
+begin
+  Result := Self;
+end;
+
+procedure TKDateSearchFilter.SetConfig(const AConfig: TEFNode);
+var
+//  LAutoSearchAfterChars: Integer;
+  LFormat: string;
+begin
+  Assert(Assigned(AConfig));
+  FConfig := AConfig;
+(* it seems to work not correctly
+  LAutoSearchAfterChars := AConfig.GetInteger('AutoSearchAfterChars', 10);
+  if LAutoSearchAfterChars <> 0 then
+  begin
+    // Auto-fire change event when at least MinChars characters are typed.
+    EnableKeyEvents := True;
+    On('keyup', JSFunction(SysUtils.Format('fireChangeAfterNChars(%s, %d);', [JSName, LAutoSearchAfterChars])));
+  end;
+*)
+  FieldLabel := _(AConfig.AsString);
+  Width := CharsToPixels(AConfig.GetInteger('Width', 12));
+  FCurrentValue := 0;
+  LFormat := Session.Config.UserFormatSettings.ShortDateFormat;
+  Format := DelphiDateFormatToJSDateFormat(LFormat);
+  AltFormats := DelphiDateFormatToJSDateFormat(Session.Config.JSFormatSettings.ShortDateFormat);
+
+  if FConfig.GetBoolean('Sys/IsReadOnly') then
+    Disabled := True
+  else
+    OnChange := FieldChange;
+end;
+
+procedure TKDateSearchFilter.FieldChange(This: TExtFormField; NewValue, OldValue: string);
+var
+  LNewValue: TDateTime;
+begin
+  if NewValue <> '' then
+    LNewValue := JSDateToDateTime(NewValue)
+  else
+    LNewValue := 0;
+  if FCurrentValue <> LNewValue then
+  begin
+    FCurrentValue := LNewValue;
+    NotifyObservers('FilterChanged');
+  end;
+end;
+
+function TKDateSearchFilter.GetDatabaseName: string;
+var
+  LDatabaseRouterNode: TEFNode;
+begin
+  LDatabaseRouterNode := FConfig.FindNode('DatabaseRouter');
+  if Assigned(LDatabaseRouterNode) then
+    Result := TKDatabaseRouterFactory.Instance.GetDatabaseName(
+      LDatabaseRouterNode.AsString, Self, LDatabaseRouterNode)
+  else
+    Result := TKConfig.Instance.DatabaseName;
+end;
+
+function TKDateSearchFilter.GetExpression: string;
+var
+  LDateTimeValue: string;
+begin
+  //A zero date is considered blank
+  if FCurrentValue <> 0 then
+  begin
+    LDateTimeValue := Session.Config.DBConnections[GetDatabaseName].DBEngineType.FormatDateTime(FCurrentValue);
+    Result := ReplaceText(FConfig.GetExpandedString('ExpressionTemplate'), '{value}', LDateTimeValue);
+  end
+  else
+    Result := '';
+end;
+
+{ TKBooleanSearchFilter }
+
+function TKBooleanSearchFilter.AsExtObject: TExtObject;
+begin
+  Result := Self;
+end;
+
+procedure TKBooleanSearchFilter.SetConfig(const AConfig: TEFNode);
+begin
+  Assert(Assigned(AConfig));
+  FConfig := AConfig;
+  FieldLabel := _(AConfig.AsString);
+  FCurrentValue := False;
+
+  if FConfig.GetBoolean('Sys/IsReadOnly') then
+    Disabled := True
+  else
+    OnCheck := FieldChecked;
+end;
+
+procedure TKBooleanSearchFilter.FieldChecked(This: TExtFormCheckBox; Checked: boolean);
+begin
+  if FCurrentValue <> Checked then
+  begin
+    FCurrentValue := Checked;
+    NotifyObservers('FilterChanged');
+  end;
+end;
+
+function TKBooleanSearchFilter.GetDatabaseName: string;
+var
+  LDatabaseRouterNode: TEFNode;
+begin
+  LDatabaseRouterNode := FConfig.FindNode('DatabaseRouter');
+  if Assigned(LDatabaseRouterNode) then
+    Result := TKDatabaseRouterFactory.Instance.GetDatabaseName(
+      LDatabaseRouterNode.AsString, Self, LDatabaseRouterNode)
+  else
+    Result := TKConfig.Instance.DatabaseName;
+end;
+
+function TKBooleanSearchFilter.GetExpression: string;
+begin
+  //A zero date is considered blank
+  if FCurrentValue then
+    Result := FConfig.GetExpandedString('ExpressionTemplate')
+  else
+    Result := '';
+end;
+
 { TKButtonListFilter }
 
 function TKButtonListFilter.AsExtObject: TExtObject;
@@ -663,6 +829,8 @@ initialization
   TKExtFilterRegistry.Instance.RegisterClass('DynaList', TKDynaListFilter);
   TKExtFilterRegistry.Instance.RegisterClass('FreeSearch', TKFreeSearchFilter);
   TKExtFilterRegistry.Instance.RegisterClass('ButtonList', TKButtonListFilter);
+  TKExtFilterRegistry.Instance.RegisterClass('DateSearch', TKDateSearchFilter);
+  TKExtFilterRegistry.Instance.RegisterClass('BooleanSearch', TKBooleanSearchFilter);
 
 finalization
   TKExtFilterRegistry.Instance.UnregisterClass('List');
