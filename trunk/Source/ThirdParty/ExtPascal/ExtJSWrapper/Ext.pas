@@ -3147,6 +3147,7 @@ type
     FOnIconchange: TExtPanelOnIconchange;
     FOnTitlechange: TExtPanelOnTitlechange;
     FLabelWidth: Integer;
+    FLabelAlign: string;
     procedure SetFAnimCollapse(Value: Boolean);
     procedure SetFApplyTo(Value: string);
     procedure SetAutoHeight(const AValue: Boolean);
@@ -3230,6 +3231,7 @@ type
     procedure SetFOnIconchange(Value: TExtPanelOnIconchange);
     procedure SetFOnTitlechange(Value: TExtPanelOnTitlechange);
     procedure SetLabelWidth(const AValue: Integer);
+    procedure SetLabelAlign(const AValue: string);
   protected
     procedure InitDefaults; override;
     procedure HandleEvent(const AEvtName: string); override;
@@ -3306,6 +3308,7 @@ type
     property Keys: TExtObject read FKeys write SetKeys;
     property KeysArray: TExtObjectList read FKeysArray write SetFKeysArray;
     property LabelWidth: Integer read FLabelWidth write SetLabelWidth;
+    property LabelAlign: string read FLabelAlign write SetLabelAlign;
     property MaskDisabled: Boolean read FMaskDisabled write SetFMaskDisabled;
     property MinButtonWidth: Integer read FMinButtonWidth write SetFMinButtonWidth;
     property Padding: Integer read FPadding write SetFPadding;
@@ -12911,6 +12914,12 @@ procedure TExtPanel.SetLabelWidth(const AValue: Integer);
 begin
   FLabelWidth := AValue;
   ExtSession.ResponseItems.SetConfigItem(Self, 'labelWidth', [AValue]);
+end;
+
+procedure TExtPanel.SetLabelAlign(const AValue: string);
+begin
+  FLabelAlign := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'labelAlign', [AValue]);
 end;
 
 procedure TExtPanel.SetFKeysArray(Value: TExtObjectList);

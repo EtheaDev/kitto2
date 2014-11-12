@@ -134,6 +134,9 @@ begin
       raise EKError.CreateFmt(_('Invalid value %s. Valid values: whole numbers.'), [LNode.AsString]);
     LabelWidth := LWidth;
   end;
+  LNode := AConfig.FindNode('LabelAlign');
+  if Assigned(LNode) then
+    LabelAlign := LNode.AsString;
 end;
 
 procedure TKExtFilterPanel.DoChange;
