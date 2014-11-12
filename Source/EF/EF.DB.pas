@@ -381,6 +381,16 @@ type
     ///	command. The object has a chance to patch param types and
     ///	values.</summary>
     procedure BeforeExecute(const ACommandText: string; const AParams: TParams); virtual;
+
+    ///	<summary><para>To be called to transform a Delphi TDateTimeValue as
+    ///	an SQL string value, compatible with the Database Engine.</para>
+    /// <para>By default this function uses SQL-92 standard</para>
+    /// <para>If the passed value is olny a Date it returns the date in format yyyy-mm-dd.
+    /// (eg.1997-12-17)</para>
+    /// <para>Otherwise it returns the date and time in format yyyy-mm-dd hh:mm:ss.zzz.
+    /// (eg.1997-12-17 07:37:16.123)</para>
+    ///</summary>
+    function FormatDateTime(const ADateTimeValue: TDateTime): string; virtual;
   end;
 
   TEFSQLServerDBEngineType = class(TEFDBEngineType)
@@ -388,6 +398,7 @@ type
     function AddLimitClause(const ACommandText: string; const AFrom: Integer;
       const AFor: Integer): string; override;
     function ExpandCommandText(const ACommandText: string): string; override;
+    function FormatDateTime(const ADateTimeValue: TDateTime): string; override;
   end;
 
   TEFFirebirdDBEngineType = class(TEFDBEngineType)
@@ -1162,6 +1173,15 @@ begin
   Result := ReplaceText(ACommandText, '%DB.CURRENT_DATE%', 'current_date');
 end;
 
+function TEFDBEngineType.FormatDateTime(const ADateTimeValue: TDateTime): string;
+begin
+  //Check if the value is only a date
+  if Trunc(ADateTimeValue) = ADateTimeValue then
+    Result := SysUtils.FormatDateTime('yyyy''-''mm''-''dd', ADateTimeValue)
+  else
+    Result := SysUtils.FormatDateTime('yyyy''-''mm''-''dd hh'':''mm'':''ss''.''zzz', ADateTimeValue);
+end;
+
 { TEFSQLServerDBEngineType }
 
 function TEFSQLServerDBEngineType.AddLimitClause(const ACommandText: string;
@@ -1198,6 +1218,15 @@ end;
 function TEFSQLServerDBEngineType.ExpandCommandText(const ACommandText: string): string;
 begin
   Result := ReplaceText(inherited ExpandCommandText(ACommandText), '%DB.CURRENT_DATE%', 'getdate()');
+end;
+
+function TEFSQLServerDBEngineType.FormatDateTime(const ADateTimeValue: TDateTime): string;
+begin
+  //Check if the value is only a date
+  if Trunc(ADateTimeValue) = ADateTimeValue then
+    Result := SysUtils.FormatDateTime('yyyymmdd', ADateTimeValue)
+  else
+    Result := SysUtils.FormatDateTime('yyyy''-''mm''-''ddThh'':''mm'':''ss''.''zzz', ADateTimeValue);
 end;
 
 { TEFDBColumnInfo }
