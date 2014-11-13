@@ -50,6 +50,7 @@ type
       const AJSFormatSettings: TFormatSettings); virtual;
   public
     class function GetTypeName: string; virtual;
+    class function AsFieldType: TFieldType; virtual;
     class function HasSize: Boolean; virtual;
     class function HasScale: Boolean; virtual;
 
@@ -83,6 +84,7 @@ type
     function ValueToDate(const AValue: Variant): TDate; virtual;
     function ValueToTime(const AValue: Variant): TTime; virtual;
     function ValueToDateTime(const AValue: Variant): TDateTime; virtual;
+    function ValueToChar(const AValue: Variant): Char; virtual;
     function ValueToCurrency(const AValue: Variant): Currency; virtual;
     function ValueToFloat(const AValue: Variant): Double; virtual;
     function ValueToDecimal(const AValue: Variant): TBcd; virtual;
@@ -101,6 +103,7 @@ type
     function FloatToValue(const AFloat: Double): Variant; virtual;
     function DecimalToValue(const ADecimal: TBcd): Variant; virtual;
     function BytesToValue(const ABytes: TBytes): Variant; virtual;
+    function CharToValue(const AChar: Char): Variant; virtual;
   end;
   TEFDataTypeClass = class of TEFDataType;
 
@@ -742,6 +745,8 @@ type
     FParent: TEFTree;
     function FindNodeFrom(const APath: TStringDynArray; const AIndex: Integer;
       const ACreateMissingNodes: Boolean = False): TEFNode;
+    function GetAsChar: Char;
+    procedure SetAsChar(const AValue: Char);
   strict private
     FValue: Variant;
     FName: string;
@@ -900,6 +905,11 @@ type
     ///	  Node value as a string.
     ///	</summary>
     property AsString: string read GetAsString write SetAsString;
+
+    ///	<summary>
+    ///	  Node value as a string.
+    ///	</summary>
+    property AsChar: Char read GetAsChar write SetAsChar;
 
     ///	<summary>
     ///	  Node value as a string array.
@@ -1400,6 +1410,11 @@ begin
   Result := DataType.ValueToBytes(FValue);
 end;
 
+function TEFNode.GetAsChar: Char;
+begin
+  Result := DataType.ValueToChar(FValue);
+end;
+
 function TEFNode.GetAsCurrency: Currency;
 begin
   Result := DataType.ValueToCurrency(FValue);
@@ -1657,6 +1672,11 @@ begin
   Value := DataType.BytesToValue(AValue);
 end;
 
+procedure TEFNode.SetAsChar(const AValue: Char);
+begin
+  Value := DataType.CharToValue(AValue);
+end;
+
 procedure TEFNode.SetAsCurrency(const AValue: Currency);
 begin
   if not IsDataTypeLocked then
@@ -1783,7 +1803,7 @@ begin
   FValue := AValue;
   if not IsDataTypeLocked then
     FDataType := GetVariantDataType(FValue);
-  if not CompareValues(LOldValue, FValue) then
+  if (FDataType <> GetVariantDataType(LOldValue)) or not CompareValues(LOldValue, FValue) then
     ValueChanged(LOldValue, FValue);
 end;
 
@@ -2721,6 +2741,17 @@ begin
   Result := AValue;
 end;
 
+function TEFDataType.ValueToChar(const AValue: Variant): Char;
+var
+  LValue: string;
+begin
+  LValue := VarToStr(AValue);
+  if Length(LValue) > 0 then
+    Result := LValue[1]
+  else
+    Result := #0;
+end;
+
 function TEFDataType.ValueToCurrency(const AValue: Variant): Currency;
 begin
   Result := AValue;
@@ -2802,6 +2833,21 @@ begin
   Result := LTime;
 end;
 
+class function TEFDataType.AsFieldType: TFieldType;
+var
+  LDataTypeStr: string;
+  LEnumIndex: integer;
+begin
+  LDataTypeStr := ClassName;
+  //Remove 'TEF' prefix and 'DataType' suffix
+  LDataTypeStr := 'ft'+Copy(LDataTypeStr,4,Length(LDataTypeStr)-11);
+  LEnumIndex := GetEnumValue(TypeInfo(TFieldType),LDataTypeStr);
+  if LEnumIndex <> -1 then
+    Result := TFieldType(LEnumIndex)
+  else
+    Result := ftUnknown;
+end;
+
 function TEFDataType.BooleanToValue(const ABoolean: Boolean): Variant;
 begin
   Result := ABoolean;
@@ -2828,6 +2874,14 @@ end;
 function TEFDataType.BytesToValue(const ABytes: TBytes): Variant;
 begin
   Result := ABytes;
+end;
+
+function TEFDataType.CharToValue(const AChar: Char): Variant;
+begin
+  if AChar = #0 then
+    Result := NULL
+  else
+    Result := AChar;
 end;
 
 function TEFDataType.CurrencyToValue(const ACurrency: Currency): Variant;
