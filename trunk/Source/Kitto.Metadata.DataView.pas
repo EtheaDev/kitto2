@@ -21,7 +21,7 @@ unit Kitto.Metadata.DataView;
 interface
 
 uses
-  Types, SysUtils, Generics.Collections,
+  Types, SysUtils, DB, Generics.Collections,
   superobject,
   EF.Types, EF.Tree,
   Kitto.Metadata, Kitto.Metadata.Models, Kitto.Metadata.Views, Kitto.Store,
@@ -207,6 +207,7 @@ type
     property DisplayWidth: Integer read GetDisplayWidth;
     property DecimalPrecision: Integer read GetDecimalPrecision;
     property DataType: TEFDataType read GetDataType;
+    property DataType: TEFDataType read GetActualDataType;
     property Size: Integer read GetSize;
     property IsBlob: Boolean read GetIsBlob;
     property EditFormat: string read GetEditFormat;
@@ -366,6 +367,10 @@ type
     property ParentRecord: TKViewTableRecord read GetParentRecord;
     property HeaderField: TKViewTableHeaderField read GetHeaderField;
     property ViewField: TKViewField read GetViewField;
+    ///	<summary>
+    ///	  Assigns the node's value to the field accordling to AsFieldType
+    ///	</summary>
+    procedure AssignValueToField(const AField: TField);
   end;
 
   TKViewTableRecord = class(TKRecord)
@@ -2178,6 +2183,22 @@ begin
 end;
 
 { TKViewTableField }
+
+procedure TKViewTableField.AssignValueToField(const AField: TField);
+begin
+  case ViewField.ActualDataType.AsFieldType of
+    ftString, ftMemo, ftFixedChar: AField.AsString := AsString;
+    ftWideString: AField.AsWideString := AsString;
+    ftSmallint, ftWord, ftInteger, ftAutoInc: AField.AsInteger := AsInteger;
+    ftBoolean: AField.AsBoolean := AsBoolean;
+    ftDate, ftTime, ftDateTime, ftTimeStamp: AField.AsDateTime := AsDateTime;
+    ftCurrency, ftBCD, ftFMTBcd: AField.AsCurrency := AsCurrency;
+    ftFloat: AField.AsFloat := AsFloat;
+    ftBlob: AField.AsBytes := AsBytes;
+  else
+    AField.Value := Value;
+  end;
+end;
 
 function TKViewTableField.GetAsJSONValue(const AForDisplay: Boolean; const AQuote: Boolean;
   const AEmptyNulls: Boolean): string;
