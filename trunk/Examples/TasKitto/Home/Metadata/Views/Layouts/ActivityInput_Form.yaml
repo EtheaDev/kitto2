@@ -1,12 +1,13 @@
-Field: DESCRIPTION
+﻿Field: DESCRIPTION
   CharWidth: 70
 FieldSet:
+  Collapsible: True
   Row:
     Field: PHASE
     Field: EMPLOYEE
     Field: ROLE
     Field: TYPE
-FieldSet:    
+FieldSet:
   Row:
     Field: ACTIVITY_DATE
     Field: START_TIME

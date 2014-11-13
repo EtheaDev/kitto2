@@ -1,5 +1,6 @@
-AppTitle: Tasks & Activities
+﻿AppTitle: Tasks & Activities
 
+LanguagePerSession: True
 LoginWindowAppearance:
   HtmlPanel: |
     <center>
@@ -25,10 +26,10 @@ Auth: DB
   IsClearPassword: True
   Defaults:
     UserName: admin
-    Password:
+    Password: admin
 
 AccessControl: Null
-    
+
 # Change this to use a custom view for the home page.
 # Alternatively, customize the Home view by replacing its controller.
 # Default: Home.
