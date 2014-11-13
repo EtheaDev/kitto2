@@ -207,7 +207,7 @@ type
     property DisplayWidth: Integer read GetDisplayWidth;
     property DecimalPrecision: Integer read GetDecimalPrecision;
     property DataType: TEFDataType read GetDataType;
-    property DataType: TEFDataType read GetActualDataType;
+    property ActualDataType: TEFDataType read GetActualDataType;
     property Size: Integer read GetSize;
     property IsBlob: Boolean read GetIsBlob;
     property EditFormat: string read GetEditFormat;
