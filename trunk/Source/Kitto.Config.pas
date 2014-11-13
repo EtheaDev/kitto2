@@ -134,6 +134,11 @@ type
     class function GetMetadataPath: string;
 
     ///	<summary>
+    ///	  Returns the full path of the Resources\Templates directory inside the home path.
+    ///	</summary>
+    class function GetResourceTemplatesPath: string;
+
+    ///	<summary>
     ///	  Format settings for Javascript/JSON data encoded in text format. use
     ///	  it, don't change it.
     ///	</summary>
@@ -429,6 +434,12 @@ end;
 class function TKConfig.GetMetadataPath: string;
 begin
   Result := GetAppHomePath + IncludeTrailingPathDelimiter('Metadata');
+end;
+
+class function TKConfig.GetResourceTemplatesPath: string;
+begin
+  Result := GetAppHomePath + IncludeTrailingPathDelimiter('Resources') +
+    IncludeTrailingPathDelimiter('Templates');
 end;
 
 function TKConfig.GetModels: TKModels;
