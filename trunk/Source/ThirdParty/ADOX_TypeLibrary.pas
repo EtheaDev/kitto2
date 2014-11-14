@@ -1,4 +1,4 @@
-unit EF.ADOX_TypeLibrary;
+unit ADOX_TypeLibrary;
 
 // ************************************************************************ //
 // WARNING                                                                    
