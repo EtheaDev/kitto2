@@ -11,6 +11,7 @@ uses
   // Kitto.Auth.OSDB,
   // Kitto.Auth.TextFile,
   Kitto.Ext.ADO.Tools, //For Excel export
+  Kitto.Ext.DebenuQuickPDF.Tools, //For PDF Merge
   Kitto.Localization.dxgettext,
   Kitto.Metadata.ModelImplementation,
   Kitto.Metadata.ViewBuilders,

@@ -69,3 +69,10 @@ MainTable:
           OutputFileName: ActivityList.xls
           UseTemplate: ActivityList.xlt
           RequireSelection: False  
+      PDFReport:
+        DisplayLabel: Activity report PDF
+        ImageName: pdf_document
+        Controller: MergePDFTool
+          OutputFileName: ActivityReport.pdf
+          UseTemplate: ActivityPDFMerge
+          RequireSelection: True
