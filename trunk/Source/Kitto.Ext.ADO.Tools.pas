@@ -19,7 +19,7 @@ unit Kitto.Ext.ADO.Tools;
 interface
 
 uses
-  DB, ADODB, EF.ADOX_TypeLibrary,
+  DB, ADODB, ADOX_TypeLibrary,
   SysUtils, Classes,
   Kitto.Ext.Controller, Kitto.Ext.DataTool, Kitto.Ext.Base, Kitto.Ext.Tools,
   Kitto.Metadata.DataView, Kitto.Ext.StandardControllers;
@@ -31,7 +31,6 @@ type
   private
     FTempFileName: string;
     procedure StoreToExcelViaAdo(const AStore: TKViewTableStore);
-    function GetTemplateFileName: string;
     function GetExcelRangeName: string;
     procedure CreateExcelSheet(AConnectionString, AExcelRangeName: string);
     function GetConnectionString(ExcelFileName: string): string;
@@ -45,7 +44,6 @@ type
   public
   published
     procedure DownloadFile;
-    property TemplateFileName: string read GetTemplateFileName;
     property ExcelRangeName: string read GetExcelRangeName;
   end;
 
@@ -90,18 +88,8 @@ begin
 end;
 
 procedure TExportExcelToolController.DownloadFile;
-var
-  LExcelDataStream: TFileStream;
-  LOutputFileName: string;
 begin
-  LOutputFileName := GetOutputFileName;
-  LExcelDataStream := TFileStream.Create(FTempFileName, fmOpenRead);
-  try
-    LExcelDataStream.Seek(0, soFromBeginning);
-    Session.DownloadStream(LExcelDataStream, LOutputFileName);
-  finally
-    FreeAndNil(LExcelDataStream);
-  end;
+  DownloadBinaryFile(FTempFileName);
 end;
 
 procedure TExportExcelToolController.ExecuteTool;
@@ -151,17 +139,6 @@ begin
     Result := LNode.AsString
   else
     Result := 'DataRange';
-end;
-
-function TExportExcelToolController.GetTemplateFileName: string;
-var
-  LNode: TEFNode;
-begin
-  LNode := Config.FindNode('UseTemplate');
-  if Assigned(LNode) then
-    Result := TKConfig.GetResourceTemplatesPath+LNode.AsString
-  else
-    Result := '';
 end;
 
 procedure TExportExcelToolController.GetAdoXFieldType(const AFieldType: TFieldType;
@@ -233,7 +210,7 @@ begin
     LFieldType := LViewField.ActualDataType.AsFieldType;
     if ValidField(LViewField) then
     begin
-      LColumnName := ValidColumnName(LViewField.DisplayLabel);
+      LColumnName := NormalizeColumName(LViewField.DisplayLabel);
       if LFieldType <> ftUnknown then
       begin
         LFieldSize := LViewField.Size;
@@ -285,7 +262,7 @@ var
     begin
       LViewTableField := LRecord.Fields[LFieldIndex];
       if Assigned(LViewTableField) and
-        SameText(ValidColumnName(LViewTableField.ViewField.AliasedName), ValidColumnName(FieldName)) then
+        SameText(NormalizeColumName(LViewTableField.ViewField.AliasedName), NormalizeColumName(FieldName)) then
       begin
         Result := LViewTableField;
         break;
@@ -295,7 +272,7 @@ var
 begin
   FTempFileName := EF.SysUtils.GetTempFileName(GetFileExtension);
   DeleteTempFile;
-  Try
+  try
     LConnectionString := GetConnectionString(FTempFileName);
     LExcelRangeName := ExcelRangeName;
 
@@ -309,7 +286,7 @@ begin
 
     //A questo punto ho il file Excel creato: mi collego con una FAdoTable e ci infilo i dati
     FAdoTable := TAdoTable.Create(nil);
-    Try
+    try
       //Apro il file Excel copiato
       FAdoTable.CursorType := ctStatic;
       FAdoTable.ConnectionString := LConnectionString;
@@ -330,7 +307,7 @@ begin
           else
             FAdoTable.Append;
           FirstAccepted := True;
-          Try
+          try
             //Aggiorno i campi: comanda sempre il template
             for LFieldIndex := 0 to FAdoTable.FieldCount - 1 do
             begin
@@ -351,17 +328,17 @@ begin
           Except
             FAdoTable.Cancel;
             raise;
-          End;
+          end;
         end;
       end;
-    Finally
+    finally
       FAdoTable.Close;
       FAdoTable.Free; //libero il file Excel
-    End;
+    end;
   Except
     DeleteTempFile;
     raise;
-  End;
+  end;
 end;
 
 initialization
