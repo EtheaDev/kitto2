@@ -25,13 +25,19 @@ uses
 
 type
   TExportFileToolController = class(TKExtDataToolController)
-  private
-  protected
-    function ValidColumnName(const FieldName: string): string; virtual;
+  strict private
+//    FTempFileNames: TStrings;
+    function GetTemplateFileName: string;
+  strict protected
+    function NormalizeColumName(const FieldName: string): string; virtual;
     function GetOutputFileName: string; virtual;
     function GetFileExtension: string;
     function GetDefaultFileExtension: string; virtual;
+    procedure DownloadBinaryFile(const AFileName: string);
+//    procedure AddTempFilename(const AFileName: string);
+//    procedure Cleanup;
   published
+    property TemplateFileName: string read GetTemplateFileName;
     property OutputFileName: string read GetOutputFileName;
   end;
 
@@ -95,6 +101,21 @@ end;
 
 { TExportFileToolController }
 
+procedure TExportFileToolController.DownloadBinaryFile(const AFileName: string);
+var
+  LBinaryStream: TFileStream;
+  LOutputFileName: string;
+begin
+  LOutputFileName := GetOutputFileName;
+  LBinaryStream := TFileStream.Create(AFileName, fmOpenRead);
+  try
+    LBinaryStream.Seek(0, soFromBeginning);
+    Session.DownloadStream(LBinaryStream, LOutputFileName);
+  finally
+    FreeAndNil(LBinaryStream);
+  end;
+end;
+
 function TExportFileToolController.GetDefaultFileExtension: string;
 begin
   Result := '.txt';
@@ -117,7 +138,18 @@ begin
     Result := ViewTable.PluralDisplayLabel + GetDefaultFileExtension;
 end;
 
-function TExportFileToolController.ValidColumnName(const FieldName: string): string;
+function TExportFileToolController.GetTemplateFileName: string;
+var
+  LNode: TEFNode;
+begin
+  LNode := Config.FindNode('UseTemplate');
+  if Assigned(LNode) then
+    Result := TKConfig.GetReportTemplatesPath+LNode.AsString
+  else
+    Result := '';
+end;
+
+function TExportFileToolController.NormalizeColumName(const FieldName: string): string;
 begin
   Result := StringReplace(FieldName, ' ','_',[rfReplaceAll]);
   Result := StringReplace(Result, '.','_',[rfReplaceAll]);
@@ -132,7 +164,11 @@ begin
   LTextDataStream := TStringStream.Create(FTextContent);
   try
     LTextDataStream.Seek(0, soFromBeginning);
-    Session.DownloadStream(LTextDataStream, GetOutputFileName);
+    try
+      Session.DownloadStream(LTextDataStream, GetOutputFileName);
+    finally
+      //Cleanup;
+    end;
   finally
     FreeAndNil(LTextDataStream);
   end;
@@ -167,7 +203,7 @@ end;
 
 function TExportTextToolController.GetDelimiter: char;
 var
-  LNode: TEfNode;
+  LNode: TEFNode;
 begin
   LNode := Config.FindNode('Delimiter');
   if Assigned(LNode) then
@@ -178,7 +214,7 @@ end;
 
 function TExportTextToolController.GetFixedLength: boolean;
 var
-  LNode: TEfNode;
+  LNode: TEFNode;
 begin
   LNode := Config.FindNode('FixedLength');
   if Assigned(LNode) then
@@ -189,7 +225,7 @@ end;
 
 function TExportTextToolController.GetIncludeHeader: boolean;
 var
-  LNode: TEfNode;
+  LNode: TEFNode;
 begin
   LNode := Config.FindNode('IncludeHeader');
   if Assigned(LNode) then
@@ -200,7 +236,7 @@ end;
 
 function TExportTextToolController.GetQuoteChar: char;
 var
-  LNode: TEfNode;
+  LNode: TEFNode;
 begin
   LNode := Config.FindNode('QuoteChar');
   if Assigned(LNode) then
@@ -258,7 +294,7 @@ begin
         LViewField := AStore.Header.Fields[LFieldIndex].ViewField;
         if Assigned(LViewField) then
         begin
-          LValue := ValidColumnName(LViewField.DisplayLabel);
+          LValue := NormalizeColumName(LViewField.DisplayLabel);
           if AFixedLength then
             LLine := LLine + FormatLine(LValue, LViewField.DisplayWidth)
           else
