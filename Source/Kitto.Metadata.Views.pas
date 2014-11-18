@@ -36,6 +36,7 @@ type
     const DEFAULT_IMAGE_NAME = 'default_view';
     function GetDisplayLabel: string; virtual;
     function GetImageName: string; virtual;
+    function GetDefaultImageName: string; virtual;
     class function GetClassNameForResourceURI: string; override;
   public
     property Catalog: TKViews read GetCatalog;
@@ -426,6 +427,11 @@ begin
   Result := GetExpandedString('Controller');
 end;
 
+function TKView.GetDefaultImageName: string;
+begin
+  Result := DEFAULT_IMAGE_NAME;
+end;
+
 function TKView.GetDisplayLabel: string;
 begin
   Result := GetString('DisplayLabel');
@@ -435,7 +441,7 @@ function TKView.GetImageName: string;
 begin
   Result := GetString('ImageName');
   if Result = '' then
-    Result := DEFAULT_IMAGE_NAME;
+    Result := GetDefaultImageName;
 end;
 
 { TKTreeViewNode }
