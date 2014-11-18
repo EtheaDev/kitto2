@@ -52,11 +52,10 @@ MainTable:
     ToolViews:
       DownloadText:
         DisplayLabel: Download in TXT
-        ImageName: text_document
         Controller: ExportTextTool
           RequireSelection: False
           IncludeHeader: False
-          OutputFileName: ActivityList.txt
+          ClientFileName: ActivityList.txt
       DownloadCSV:
         DisplayLabel: Download in CSV
         ImageName: download
@@ -64,15 +63,15 @@ MainTable:
           RequireSelection: False  
       DownloadExcel:
         DisplayLabel: Download in Excel
-        ImageName: excel_document
         Controller: ExportExcelTool
-          OutputFileName: ActivityList.xls
-          UseTemplate: ActivityList.xlt
+          ClientFileName: ActivityList.xls
+          Template:
+            TemplateFileName: %APP_PATH%ReportTemplates\ActivityList.xlt
           RequireSelection: False  
       PDFReport:
         DisplayLabel: Activity report PDF
-        ImageName: pdf_document
         Controller: MergePDFTool
-          OutputFileName: ActivityReport.pdf
-          UseTemplate: ActivityPDFMerge
+          ClientFileName: ActivityReport.pdf
+          Template:
+            TemplateFileName: %APP_PATH%ReportTemplates\ActivityPDFMerge.yaml
           RequireSelection: True
