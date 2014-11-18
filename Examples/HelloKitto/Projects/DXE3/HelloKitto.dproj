@@ -56,7 +56,7 @@
         <Icon_MainIcon>$(BDS)\bin\delphi_PROJECTICON.ico</Icon_MainIcon>
         <DCC_ExeOutput>..\..\Home</DCC_ExeOutput>
         <DCC_DcuOutput>..\..\Lib\$(ProductVersion)\$(Config)\$(Platform)</DCC_DcuOutput>
-        <DCC_UnitSearchPath>..\..\..\..\Source;..\..\..\..\Source\EF;..\..\..\..\Source\ThirdParty;..\..\..\..\Source\ThirdParty\ExtPascal;..\..\..\..\Source\ThirdParty\ExtPascal\ExtJSWrapper;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
+        <DCC_UnitSearchPath>..\..\..\..\Source;..\..\..\..\Source\EF;..\..\..\..\Source\ThirdParty;..\..\..\..\Source\ThirdParty\ExtPascal;..\..\..\..\Source\ThirdParty\ExtPascal\ExtJSWrapper;..\..\..\..\Source\ThirdParty\SuperObject;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
         <DCC_WriteableConstants>true</DCC_WriteableConstants>
         <DCC_E>false</DCC_E>
         <DCC_ImageBase>00400000</DCC_ImageBase>
@@ -92,6 +92,7 @@
         <DCC_GenerateStackFrames>true</DCC_GenerateStackFrames>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2_Win32)'!=''">
+        <Icon_MainIcon>..\HelloKitto_Icon.ico</Icon_MainIcon>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
         <VerInfo_Locale>1033</VerInfo_Locale>
     </PropertyGroup>
@@ -102,10 +103,11 @@
         <DelphiCompile Include="$(MainSource)">
             <MainSource>MainSource</MainSource>
         </DelphiCompile>
-        <DCCReference Include="..\..\Source\UseKitto.pas"/>
-        <DCCReference Include="..\..\Source\Rules.pas"/>
         <DCCReference Include="..\..\Source\Controllers.pas"/>
-        <DCCReference Include="..\..\..\..\Source\Kitto.Ext.TilePanel.pas"/>
+        <DCCReference Include="..\..\Source\Rules.pas"/>
+        <DCCReference Include="..\..\Source\UseKitto.pas">
+            <Form>$R *.res</Form>
+        </DCCReference>
         <BuildConfiguration Include="Debug">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>
@@ -156,7 +158,6 @@
                     <VersionInfoKeys Name="Comments"/>
                 </VersionInfoKeys>
                 <Excluded_Packages>
-                    <Excluded_Packages Name="C:\ETHEA\TMS Component Pack\DelphiXE3\TMSDeDXE3.bpl">TMS Component Pack design time support</Excluded_Packages>
                     <Excluded_Packages Name="C:\Program Files (x86)\FastReports\LibD17\dclfs17.bpl">File C:\Program Files (x86)\FastReports\LibD17\dclfs17.bpl not found</Excluded_Packages>
                     <Excluded_Packages Name="C:\Program Files (x86)\FastReports\LibD17\dclfrx17.bpl">File C:\Program Files (x86)\FastReports\LibD17\dclfrx17.bpl not found</Excluded_Packages>
                     <Excluded_Packages Name="C:\Program Files (x86)\FastReports\LibD17\dclfsDB17.bpl">File C:\Program Files (x86)\FastReports\LibD17\dclfsDB17.bpl not found</Excluded_Packages>
@@ -165,6 +166,7 @@
                     <Excluded_Packages Name="C:\Users\Public\Documents\RAD Studio\10.0\Bpl\UniSynEdit_DXE3.bpl">File C:\Users\Public\Documents\RAD Studio\10.0\Bpl\UniSynEdit_DXE3.bpl not found</Excluded_Packages>
                     <Excluded_Packages Name="$(BDSBIN)\dcloffice2k170.bpl">Microsoft Office 2000 Sample Automation Server Wrapper Components</Excluded_Packages>
                     <Excluded_Packages Name="$(BDSBIN)\dclofficexp170.bpl">Microsoft Office XP Sample Automation Server Wrapper Components</Excluded_Packages>
+                    <Excluded_Packages Name="C:\ETHEA\TMS Component Pack\DelphiXE3\TMSDeDXE3.bpl">TMS Component Pack design time support</Excluded_Packages>
                 </Excluded_Packages>
             </Delphi.Personality>
             <Platforms>

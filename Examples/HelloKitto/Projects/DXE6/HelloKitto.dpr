@@ -4,9 +4,9 @@ uses
   DBXMSSQL,
   DBXFirebird,
   Kitto.Ext.Start,
-  UseKitto in '..\..\Source\UseKitto.pas',
+  Controllers in '..\..\Source\Controllers.pas',
   Rules in '..\..\Source\Rules.pas',
-  Controllers in '..\..\Source\Controllers.pas';
+  UseKitto in '..\..\Source\UseKitto.pas';
 
 {$R *.res}
 

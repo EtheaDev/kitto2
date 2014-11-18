@@ -4,12 +4,12 @@ Fields:
     IsVisible: False
     DefaultValue: %COMPACT_GUID%
   Doll_Name: String(40) not null
-    DisplayLabel: Name
+    DisplayLabel: _(Name)
     Rules:
       ForceUpperCase:
       SubType: alpha_space
   Date_Bought: Date
-    DisplayLabel: Birth Date
+    DisplayLabel: _(Birth Date)
     DefaultValue: {date}
   Hair: Reference(Hair)
     Fields:
@@ -30,7 +30,8 @@ Fields:
     Rules:
       MaxLength: 1024
   Picture: Blob
-    Hint: Select a picture
+    DisplayLabel: _(Photo)
+    Hint: _(Select a picture)
     MaxUploadSize: 100KB
     .DefaultFileName: test.gif
     IsPicture: True

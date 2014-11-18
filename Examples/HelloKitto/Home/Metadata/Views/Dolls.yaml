@@ -23,12 +23,15 @@ MainTable:
     Dress_Size:
     Mom:
     Mom.Phone: Mom_Phone
-      DisplayLabel: Mom's Phone
+      DisplayLabel: _(Mom's Phone)
     Aspect:
     Picture:
 
   Controller:
     AutoOpen: False
+    PopupWindow:
+      Height: 500
+      Width: 460
 
     Grouping:
       FieldName: Hair

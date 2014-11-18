@@ -1,15 +1,16 @@
 ﻿DisplayLabel: %Config:AppTitle%
 # Valid top-level controllers are Window and Viewport
-Controller: Viewport
-  .Width: 800
-  .Height: 500
+Controller: Window
+  Width: 1000
+  Height: 600
 
   SubView:
     Controller: BorderPanel
 
-      .WestView:
-        DisplayLabel: Navigation
-        Controller: BorderPanel
+      WestView:
+        DisplayLabel: _(Main menu)
+        Controller: TreePanel
+          TreeView: MainMenu
           Width: 155
           Collapsible: True
           Border: True
@@ -24,18 +25,17 @@ Controller: Viewport
               TreeView: MainMenu
 
       CenterView:
-        Controller: TilePanel
+        Controller: TabPanel
           Border: True
-          TreeView: MainMenu
           SubViews:
             View: Girls
             View: Dolls
 
-      .NorthView:
+      NorthView:
         Controller: ToolBar
           TreeView: MainMenu
 
       SouthView:
         Controller: StatusBar
-          Text: <p>User: %Auth:UserName%</p>
+          Text: <p>_(User: %Auth:UserName%)</p>
         ImageName: user
