@@ -1,4 +1,4 @@
-PDFFileName: ActivityReport.pdf
+TemplateFileName: %APP_PATH%ReportTemplates\ActivityReport.pdf
 DefaultFont: Courier
   Color: Red
   Size: 15.5
