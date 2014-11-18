@@ -65,24 +65,21 @@ type
   TPDFAcceptFileEvent = procedure (const FileName: string; var Accept: boolean) of Object;
 
 type
-  TMergePDFToolController = class(TExportFileToolController)
-  private
+  TMergePDFToolController = class(TKExtDownloadFileController)
+  strict private
     FPDFDoc: TPDFLibrary;
     FTemplateTree: TEFPersistentTree;
-    FTempFileName: string;
-    procedure StoreAndMergePDF(const ARecord: TKViewTableRecord);
-    procedure DeleteTempFile;
     function GetPDFDoc: TPDFLibrary;
     procedure CheckDebenuPDFError(DebenuReturnCode: Integer;
       const FullFileName: string = '');
-    function LoadTemplate(const ATemplateId: string): string;
-  protected
-    procedure ExecuteTool; override;
+    function LoadTemplate(const AYamlFileName: string): string;
+    property PDFDoc: TPDFLibrary read GetPDFDoc;
+  strict protected
+    function GetDefaultFileName: string; override;
+    procedure PrepareFile(const AFileName: string); override;
     function GetDefaultFileExtension: string; override;
   public
-  published
-    procedure DownloadFile;
-    property PDFDoc: TPDFLibrary read GetPDFDoc;
+    class function GetDefaultImageName: string;
   end;
 
 implementation
@@ -137,27 +134,25 @@ begin
   raise ELsPDFError.Create(ErrorMsg);
 end;
 
-procedure TMergePDFToolController.DeleteTempFile;
-begin
-  if FileExists(FTempFileName) then
-    DeleteFile(FTempFileName);
-end;
-
-procedure TMergePDFToolController.DownloadFile;
-begin
-  DownloadBinaryFile(FTempFileName);
-end;
-
-procedure TMergePDFToolController.ExecuteTool;
-begin
-  inherited;
-  StoreAndMergePDF(ServerRecord);
-  Download(DownloadFile);
-end;
-
 function TMergePDFToolController.GetDefaultFileExtension: string;
 begin
   Result := '.pdf';
+end;
+
+function TMergePDFToolController.GetDefaultFileName: string;
+var
+  LFileExtension: string;
+begin
+  LFileExtension := ExtractFileExt(ClientFileName);
+  if LFileExtension = '' then
+    LFileExtension := GetDefaultFileExtension;
+  Result := EF.SysUtils.GetTempFileName(LFileExtension);
+  AddTempFilename(Result);
+end;
+
+class function TMergePDFToolController.GetDefaultImageName: string;
+begin
+  Result := 'pdf_document';
 end;
 
 function TMergePDFToolController.GetPDFDoc: TPDFLibrary;
@@ -175,25 +170,24 @@ begin
   Result := FPDFDoc;
 end;
 
-function TMergePDFToolController.LoadTemplate(const ATemplateId: string): string;
+function TMergePDFToolController.LoadTemplate(const AYamlFileName: string): string;
 var
-  LTemplateFileName: string;
   LNode: TEFNode;
 begin
-  LTemplateFileName := ATemplateId+'.yaml';
-  if FileExists(LTemplateFileName) then
-    FTemplateTree := TEFTreeFactory.LoadFromFile<TEFComponentConfig>(LTemplateFileName)
+  if FileExists(AYamlFileName) then
+    FTemplateTree := TEFTreeFactory.LoadFromFile<TEFComponentConfig>(AYamlFileName)
   else
     FTemplateTree := TEFComponentConfig.Create;
-  LNode := FTemplateTree.FindNode('PDFFileName');
+  LNode := FTemplateTree.FindNode('TemplateFileName');
   if Assigned(LNode) then
-    Result := TKConfig.GetReportTemplatesPath+LNode.AsString
+    Result := FTemplateTree.GetExpandedString('TemplateFileName')
   else
     Result := '';
 end;
 
-procedure TMergePDFToolController.StoreAndMergePDF(const ARecord: TKViewTableRecord);
+procedure TMergePDFToolController.PrepareFile(const AFileName: string);
 var
+  LRecord: TKViewTableRecord;
   LTemplateId, LPDFFile: string;
   LExpression, LImageFileName, LText: string;
   LNode, LItems: TEFNode;
@@ -285,7 +279,7 @@ var
     LFieldName: string;
   begin
     LFieldName :=  StripPrefixAndSuffix(LExpression,'%','%');
-    LField := ARecord.FindField(LFieldName);
+    LField := LRecord.FindField(LFieldName);
     if Assigned(LField) then
       Result := LField.AsString
     else
@@ -293,74 +287,66 @@ var
   end;
 
 begin
-  Assert(Assigned(ARecord));
-  FTempFileName := EF.SysUtils.GetTempFileName(GetFileExtension);
-  DeleteTempFile;
-  LTemplateId := TemplateFileName;
-  LPDFFile := LoadTemplate(LTemplateId);
-  try
-    CheckDebenuPDFError(PDFDoc.LoadFromFile(LPDFFile,''),LPDFFile);
+  LRecord := ServerRecord;
+  LPDFFile := LoadTemplate(TemplateFileName);
+  CheckDebenuPDFError(PDFDoc.LoadFromFile(LPDFFile,''),LPDFFile);
 
-    //Initialize default font informations
-    LDefaultFontNumber := 0;
-    LDefaultFontSize := 10;
-    LDefaultFontColor := claBlack;
-    GetFontAttributes(FTemplateTree.Root, 'DefaultFont', LDefaultFontNumber, LDefaultFontSize, LDefaultFontColor);
+  //Initialize default font informations
+  LDefaultFontNumber := 0;
+  LDefaultFontSize := 10;
+  LDefaultFontColor := claBlack;
+  GetFontAttributes(FTemplateTree.Root, 'DefaultFont', LDefaultFontNumber, LDefaultFontSize, LDefaultFontColor);
 
-    //Images node
-    LItems := FTemplateTree.FindNode('Items');
-    if Assigned(LItems) then
+  //Images node
+  LItems := FTemplateTree.FindNode('Items');
+  if Assigned(LItems) then
+  begin
+    for I := 0 to LItems.ChildCount - 1 do
     begin
-      for I := 0 to LItems.ChildCount - 1 do
+      LNode := LItems.Children[I];
+      if SameText(LNode.Name,'Image') then
       begin
-        LNode := LItems.Children[I];
-        if SameText(LNode.Name,'Image') then
-        begin
-          //image properties
-          LImageFileName := LNode.GetString('FileName');
-          LLeft := LNode.GetInteger('Left');
-          LTop := LNode.GetInteger('Top');
-          LWidth := LNode.GetInteger('Width');
-          LHeight := LNode.GetInteger('Height');
-          //Add an image
-          LImageFileName := TKConfig.FindResourcePathName(LImageFileName);
-          AddImage(LImageFileName,LLeft,LTop,LWidth,LHeight);
-        end
-        else if SameText(LNode.Name,'Text') then
-        begin
-          LExpression := LNode.GetString('Expression');
-          LText := ExpandExpression(LExpression);
-          LXPos := LNode.GetInteger('XPos');
-          LYPos := LNode.GetInteger('YPos');
-          GetFontAttributes(LNode, 'Font', LFontNumber, LFontSize, LFontColor);
-          //Add a Text
-          AddText(LText, LFontSize, LFontColor, LFontNumber, LXPos, LYPos);
-        end
-        else if SameText(LNode.Name,'TextBox') then
-        begin
-          //TextBox properties
-          LExpression := LNode.GetString('Expression');
-          LText := ExpandExpression(LExpression);
-          LLeft := LNode.GetInteger('Left');
-          LTop := LNode.GetInteger('Top');
-          LWidth := LNode.GetInteger('Width');
-          LHeight := LNode.GetInteger('Height');
+        //image properties
+        LImageFileName := LNode.GetString('FileName');
+        LLeft := LNode.GetInteger('Left');
+        LTop := LNode.GetInteger('Top');
+        LWidth := LNode.GetInteger('Width');
+        LHeight := LNode.GetInteger('Height');
+        //Add an image
+        LImageFileName := TKConfig.FindResourcePathName(LImageFileName);
+        AddImage(LImageFileName,LLeft,LTop,LWidth,LHeight);
+      end
+      else if SameText(LNode.Name,'Text') then
+      begin
+        LExpression := LNode.GetString('Expression');
+        LText := ExpandExpression(LExpression);
+        LXPos := LNode.GetInteger('XPos');
+        LYPos := LNode.GetInteger('YPos');
+        GetFontAttributes(LNode, 'Font', LFontNumber, LFontSize, LFontColor);
+        //Add a Text
+        AddText(LText, LFontSize, LFontColor, LFontNumber, LXPos, LYPos);
+      end
+      else if SameText(LNode.Name,'TextBox') then
+      begin
+        //TextBox properties
+        LExpression := LNode.GetString('Expression');
+        LText := ExpandExpression(LExpression);
+        LLeft := LNode.GetInteger('Left');
+        LTop := LNode.GetInteger('Top');
+        LWidth := LNode.GetInteger('Width');
+        LHeight := LNode.GetInteger('Height');
 
-          GetFontAttributes(LNode, 'Font', LFontNumber, LFontSize, LFontColor);
-          LVertAlign := GetEnumValue(TypeInfo(TPDFVertAlign),'va'+LNode.GetString('VertAlign'));
-          LAlign := GetEnumValue(TypeInfo(TPDFTextAlign),'ta'+LNode.GetString('Align'));
-          //Add a TextBox
-          AddTextBox(LText, LFontSize, LFontColor, LFontNumber, LLeft, LTop, LWidth, LHeight, LAlign, LVertAlign);
-        end;
+        GetFontAttributes(LNode, 'Font', LFontNumber, LFontSize, LFontColor);
+        LVertAlign := GetEnumValue(TypeInfo(TPDFVertAlign),'va'+LNode.GetString('VertAlign'));
+        LAlign := GetEnumValue(TypeInfo(TPDFTextAlign),'ta'+LNode.GetString('Align'));
+        //Add a TextBox
+        AddTextBox(LText, LFontSize, LFontColor, LFontNumber, LLeft, LTop, LWidth, LHeight, LAlign, LVertAlign);
       end;
     end;
-
-    //Salva il file
-    CheckDebenuPDFError(FPDFDoc.SaveToFile(FTempFileName),FTempFileName);
-  except
-    DeleteTempFile;
-    raise;
   end;
+
+  //Salva il file
+  CheckDebenuPDFError(FPDFDoc.SaveToFile(AFileName),AFileName);
 end;
 
 initialization

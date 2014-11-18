@@ -128,8 +128,20 @@ type
   ///	  </list>
   ///	</remarks>
   TKExtDownloadFileController = class(TKExtDataToolController)
-  protected
+  strict private
+    FTempFileNames: TStrings;
+    function GetTemplateFileName: string;
+  strict private
+    function GetClientFileName: string;
+    function GetContentType: string;
+    function GetFileName: string;
+  strict protected
     procedure ExecuteTool; override;
+    function NormalizeColumName(const FieldName: string): string; virtual;
+    function GetFileExtension: string;
+    function GetDefaultFileExtension: string; virtual;
+    procedure AddTempFilename(const AFileName: string);
+    procedure Cleanup;
   protected
     ///	<summary>Override this method to provide a default file name if it's
     ///	not specified in the config. If you are using streams, don't override
@@ -149,15 +161,21 @@ type
     ///	<remarks>The caller will be responsible for freeing the stream when no
     ///	longer needed.</remarks>
     function CreateStream: TStream; virtual;
+    procedure InitDefaults; override;
+    destructor Destroy; override;
   published
     procedure DownloadFile;
+    property FileName: string read GetFileName;
+    property ClientFileName: string read GetClientFileName;
+    property ContentType: string read GetContentType;
+    property TemplateFileName: string read GetTemplateFileName;
   end;
 
 implementation
 
 uses
   SysUtils,
-  EF.Tree, EF.RegEx, EF.Localization,
+  EF.SysUtils, EF.Tree, EF.RegEx, EF.Localization,
   Kitto.Ext.Session, Kitto.Ext.Controller;
 
 { TKExtURLControllerBase }
@@ -211,6 +229,20 @@ end;
 
 { TKExtDownloadFileController }
 
+procedure TKExtDownloadFileController.AddTempFilename(const AFileName: string);
+begin
+  FTempFileNames.Add(AFileName);
+end;
+
+procedure TKExtDownloadFileController.Cleanup;
+var
+  I: Integer;
+begin
+  for I := 0 to FTempFileNames.Count-1 do
+    DeleteFile(FTempFileNames.Strings[I]);
+  FTempFileNames.Clear;
+end;
+
 function TKExtDownloadFileController.CreateStream: TStream;
 begin
   Result := nil;
@@ -218,8 +250,19 @@ end;
 
 procedure TKExtDownloadFileController.ExecuteTool;
 begin
+  Try
+    inherited;
+    Download(DownloadFile);
+  Finally
+    Cleanup;
+  End;
+end;
+
+destructor TKExtDownloadFileController.Destroy;
+begin
   inherited;
-  Download(DownloadFile);
+  Cleanup;
+  FTempFileNames.Free;
 end;
 
 procedure TKExtDownloadFileController.DownloadFile;
@@ -228,14 +271,13 @@ var
   LStream: TStream;
 begin
   inherited;
-  LFileName := Config.GetExpandedString('FileName', GetDefaultFileName);
+  LFileName := FileName;
   if LFileName <> '' then
   begin
     PrepareFile(LFileName);
     LStream := TFileStream.Create(LFileName, fmOpenRead);
     try
-      Session.DownloadStream(LStream, Config.GetExpandedString('ClientFileName',
-        ExtractFileName(LFileName)), Config.GetExpandedString('ContentType'));
+      Session.DownloadStream(LStream, ClientFileName, ContentType);
     finally
       FreeAndNil(LStream);
     end;
@@ -245,17 +287,75 @@ begin
     LStream := CreateStream;
     try
       if Assigned(LStream) then
-        Session.DownloadStream(LStream, Config.GetExpandedString('ClientFileName',
-          ExtractFileName(LFileName)), Config.GetExpandedString('ContentType'));
+        Session.DownloadStream(LStream, ClientFileName, ContentType);
     finally
       FreeAndNil(LStream);
     end;
   end;
 end;
 
+function TKExtDownloadFileController.GetClientFileName: string;
+begin
+  Result := Config.GetExpandedString('ClientFileName');
+  if (Result = '') then
+  begin
+    if Assigned(ViewTable) then
+      Result := ViewTable.PluralDisplayLabel + GetDefaultFileExtension
+    else
+      Result := ExtractFileName(FileName);
+  end;
+end;
+
+function TKExtDownloadFileController.GetContentType: string;
+begin
+  Result := Config.GetExpandedString('ContentType');
+end;
+
+function TKExtDownloadFileController.GetDefaultFileExtension: string;
+begin
+  Result := '';
+end;
+
 function TKExtDownloadFileController.GetDefaultFileName: string;
 begin
   Result := '';
+end;
+
+function TKExtDownloadFileController.GetFileExtension: string;
+begin
+  if ClientFileName <> '' then
+    Result := ExtractFileExt(ClientFileName)
+  else
+    Result := GetDefaultFileExtension;
+end;
+
+function TKExtDownloadFileController.GetFileName: string;
+begin
+  Result := Config.GetExpandedString('FileName', GetDefaultFileName);
+end;
+
+function TKExtDownloadFileController.GetTemplateFileName: string;
+var
+  LNode: TEFNode;
+begin
+  LNode := Config.FindNode('Template');
+  if Assigned(LNode) then
+    Result := LNode.GetExpandedString('TemplateFileName')
+  else
+    Result := '';
+end;
+
+procedure TKExtDownloadFileController.InitDefaults;
+begin
+  inherited;
+  FTempFileNames := TStringList.Create;
+end;
+
+function TKExtDownloadFileController.NormalizeColumName(
+  const FieldName: string): string;
+begin
+  Result := StringReplace(FieldName, ' ','_',[rfReplaceAll]);
+  Result := StringReplace(Result, '.','_',[rfReplaceAll]);
 end;
 
 procedure TKExtDownloadFileController.PrepareFile(const AFileName: string);
