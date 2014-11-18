@@ -22,6 +22,8 @@ Controller: List
             Expression: HAIR.HAIR_COLOR = 'Silver'
           Red: Red
             Expression: HAIR.HAIR_COLOR = 'Red'
+          Platinum: Platinum
+            Expression: HAIR.HAIR_COLOR = 'Platinum'
 
 MainTable:
   Model: Girl

@@ -1,32 +1,13 @@
-﻿Type: Tree
-Folder: Options
+Type: Tree
+Folder: _(Options)
   View: Girls
     BackgroundColor: black
   View: Dolls
   View: Parties
-  View: Girls
-  View: Dolls
-  View: Parties
-  View: Girls
-  View: Dolls
-  View: Parties
-Folder: Lookup tables
+Folder: _(Lookup tables)
   View: Build AutoList
     Model: Hair
-Folder: User
-  IsInitiallyCollapsed: True
-  View:
-    Controller: ChangePassword
-  View:
-    Controller: Logout
-Folder: Options
-  View: Girls
-  View: Dolls
-  View: Parties
-Folder: Lookup tables
-  View: Build AutoList
-    Model: Hair
-Folder: User
+Folder: _(User)
   IsInitiallyCollapsed: True
   View:
     Controller: ChangePassword
