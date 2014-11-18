@@ -16,6 +16,18 @@ MainTable:
   Model: Party
 
   Controller:
+    ToolViews:
+      DownloadCSV:
+        DisplayLabel: _(Download in CSV)
+        ImageName: download
+        Controller: ExportCSVTool
+          RequireSelection: False  
+      DownloadExcel:
+        DisplayLabel: _(Download in Excel)
+        Controller: ExportExcelTool
+          OutputFileName: PartyList.xls
+          UseTemplate: PartyList.xlt
+          RequireSelection: False  
     Grouping:
       FieldName: Party_Period
       SortFieldNames: Party_Period_Order
