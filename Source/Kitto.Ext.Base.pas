@@ -1251,14 +1251,20 @@ end;
 
 procedure TKExtActionButton.SetView(const AValue: TKView);
 var
-  LTooltip: string;
+  LTooltip, LIcon: string;
 begin
   Assert(Assigned(AValue));
 
   FView := AValue;
-
   Text := _(FView.DisplayLabel);
-  Icon := Session.Config.GetImageURL(FView.ImageName);
+
+  LIcon := FView.GetString('ImageName');
+  if LIcon = '' then
+    LIcon := CallViewControllerStringMethod(FView, 'GetDefaultImageName', '');
+  if LIcon = '' then
+    LIcon := FView.ImageName;
+  Icon := Session.Config.GetImageURL(LIcon);
+
   LTooltip := FView.GetExpandedString('Hint');
   if LTooltip <> '' then
     Tooltip := LTooltip;

@@ -497,6 +497,12 @@ type
     function GetString(const APath: string; const ADefaultValue: string = ''): string;
 
     ///	<summary>
+    ///	  Finds a node by path and, if found, returns its value as a char,
+    ///	  otherwise returns ADefaultValue.
+    ///	</summary>
+    function GetChar(const APath: string; const ADefaultValue: Char = #0): Char;
+
+    ///	<summary>
     ///	  Finds a node by path and, if found, returns its value as a Date,
     ///	  otherwise returns ADefaultValue.
     ///	</summary>
@@ -2218,6 +2224,18 @@ begin
   LNode := FindNode(APath);
   if Assigned(LNode) then
     Result := LNode.AsString
+  else
+    Result := ADefaultValue;
+end;
+
+function TEFTree.GetChar(const APath: string;
+  const ADefaultValue: Char = #0): Char;
+var
+  LNode: TEFNode;
+begin
+  LNode := FindNode(APath);
+  if Assigned(LNode) then
+    Result := LNode.AsChar
   else
     Result := ADefaultValue;
 end;

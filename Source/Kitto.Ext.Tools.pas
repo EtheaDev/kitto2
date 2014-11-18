@@ -24,43 +24,22 @@ uses
   Kitto.Metadata.DataView, Kitto.Ext.StandardControllers;
 
 type
-  TExportFileToolController = class(TKExtDataToolController)
+  TExportTextToolController = class(TKExtDownloadFileController)
   strict private
-//    FTempFileNames: TStrings;
-    function GetTemplateFileName: string;
-  strict protected
-    function NormalizeColumName(const FieldName: string): string; virtual;
-    function GetOutputFileName: string; virtual;
-    function GetFileExtension: string;
-    function GetDefaultFileExtension: string; virtual;
-    procedure DownloadBinaryFile(const AFileName: string);
-//    procedure AddTempFilename(const AFileName: string);
-//    procedure Cleanup;
-  published
-    property TemplateFileName: string read GetTemplateFileName;
-    property OutputFileName: string read GetOutputFileName;
-  end;
-
-  TExportTextToolController = class(TExportFileToolController)
-  private
-    function StoreToTextFile(const AStore: TKViewTableStore;
-      const AFixedLength: boolean;
-      const ADelimiter: Char; const AQuoteChar: Char;
-      const AIncludeHeader: boolean): string;
     function GetDelimiter: char;
     function GetFixedLength: boolean;
     function GetIncludeHeader: boolean;
     function GetQuoteChar: char;
-  protected
-    FTextContent: string;
-    procedure ExecuteTool; override;
+  strict protected
     function GetDefaultFileExtension: string; override;
+    function CreateStream: TStream; override;
     function GetDefaultIncludeHeader: boolean; virtual;
     function GetDefaultFixedLength: boolean; virtual;
     function GetDefaultDelimiter: char; virtual;
     function GetDefaultQuoteChar: char; virtual;
+  public
+    class function GetDefaultImageName: string;
   published
-    procedure DownloadTextFile;
     property IncludeHeader: boolean read GetIncludeHeader;
     property FixedLength: boolean read GetFixedLength;
     property Delimiter: char read GetDelimiter;
@@ -68,8 +47,7 @@ type
   end;
 
   TExportCSVToolController = class(TExportTextToolController)
-  private
-  protected
+  strict protected
     function GetDefaultFileExtension: string; override;
     function GetDefaultIncludeHeader: boolean; override;
     function GetDefaultFixedLength: boolean; override;
@@ -99,87 +77,7 @@ begin
   Result := '.csv';
 end;
 
-{ TExportFileToolController }
-
-procedure TExportFileToolController.DownloadBinaryFile(const AFileName: string);
-var
-  LBinaryStream: TFileStream;
-  LOutputFileName: string;
-begin
-  LOutputFileName := GetOutputFileName;
-  LBinaryStream := TFileStream.Create(AFileName, fmOpenRead);
-  try
-    LBinaryStream.Seek(0, soFromBeginning);
-    Session.DownloadStream(LBinaryStream, LOutputFileName);
-  finally
-    FreeAndNil(LBinaryStream);
-  end;
-end;
-
-function TExportFileToolController.GetDefaultFileExtension: string;
-begin
-  Result := '.txt';
-end;
-
-function TExportFileToolController.GetFileExtension: string;
-begin
-  Result := ExtractFileExt(OutputFileName);
-end;
-
-function TExportFileToolController.GetOutputFileName: string;
-var
-  LNode: TEFNode;
-begin
-  //Check specific OutputFileName node
-  LNode := Config.FindNode('OutputFileName');
-  if Assigned(LNode) then
-    Result := LNode.AsString
-  else
-    Result := ViewTable.PluralDisplayLabel + GetDefaultFileExtension;
-end;
-
-function TExportFileToolController.GetTemplateFileName: string;
-var
-  LNode: TEFNode;
-begin
-  LNode := Config.FindNode('UseTemplate');
-  if Assigned(LNode) then
-    Result := TKConfig.GetReportTemplatesPath+LNode.AsString
-  else
-    Result := '';
-end;
-
-function TExportFileToolController.NormalizeColumName(const FieldName: string): string;
-begin
-  Result := StringReplace(FieldName, ' ','_',[rfReplaceAll]);
-  Result := StringReplace(Result, '.','_',[rfReplaceAll]);
-end;
-
 { TExportTextToolController }
-
-procedure TExportTextToolController.DownloadTextFile;
-var
-  LTextDataStream: TStringStream;
-begin
-  LTextDataStream := TStringStream.Create(FTextContent);
-  try
-    LTextDataStream.Seek(0, soFromBeginning);
-    try
-      Session.DownloadStream(LTextDataStream, GetOutputFileName);
-    finally
-      //Cleanup;
-    end;
-  finally
-    FreeAndNil(LTextDataStream);
-  end;
-end;
-
-procedure TExportTextToolController.ExecuteTool;
-begin
-  inherited;
-  FTextContent := StoreToTextFile(ServerStore, FixedLength, Delimiter, QuoteChar, IncludeHeader);
-  Download(DownloadTextFile);
-end;
 
 function TExportTextToolController.GetDefaultDelimiter: char;
 begin
@@ -189,6 +87,11 @@ end;
 function TExportTextToolController.GetDefaultFixedLength: boolean;
 begin
   Result := True;
+end;
+
+class function TExportTextToolController.GetDefaultImageName: string;
+begin
+  Result := 'text_document';
 end;
 
 function TExportTextToolController.GetDefaultIncludeHeader: boolean;
@@ -202,47 +105,23 @@ begin
 end;
 
 function TExportTextToolController.GetDelimiter: char;
-var
-  LNode: TEFNode;
 begin
-  LNode := Config.FindNode('Delimiter');
-  if Assigned(LNode) then
-    Result := LNode.AsChar
-  else
-    Result := GetDefaultDelimiter;
+  Result := Config.GetChar('Delimiter', GetDefaultDelimiter);
 end;
 
 function TExportTextToolController.GetFixedLength: boolean;
-var
-  LNode: TEFNode;
 begin
-  LNode := Config.FindNode('FixedLength');
-  if Assigned(LNode) then
-    Result := LNode.AsBoolean
-  else
-    Result := GetDefaultFixedLength;
+  Result := Config.GetBoolean('FixedLength', GetDefaultFixedLength);
 end;
 
 function TExportTextToolController.GetIncludeHeader: boolean;
-var
-  LNode: TEFNode;
 begin
-  LNode := Config.FindNode('IncludeHeader');
-  if Assigned(LNode) then
-    Result := LNode.AsBoolean
-  else
-    Result := GetDefaultIncludeHeader;
+  Result := Config.GetBoolean('IncludeHeader', GetDefaultIncludeHeader);
 end;
 
 function TExportTextToolController.GetQuoteChar: char;
-var
-  LNode: TEFNode;
 begin
-  LNode := Config.FindNode('QuoteChar');
-  if Assigned(LNode) then
-    Result := LNode.AsChar
-  else
-    Result := GetDefaultQuoteChar;
+  Result := Config.GetChar('QuoteChar',GetDefaultQuoteChar);
 end;
 
 function TExportTextToolController.GetDefaultFileExtension: string;
@@ -250,92 +129,89 @@ begin
   Result := '.txt';
 end;
 
-function TExportTextToolController.StoreToTextFile(
-  const AStore: TKViewTableStore; const AFixedLength: boolean; const ADelimiter,
-  AQuoteChar: Char; const AIncludeHeader: boolean): string;
+function TExportTextToolController.CreateStream: TStream;
 var
+  LStore: TKViewTableStore;
+  LFixedLength: boolean;
+  LDelimiter, LQuoteChar: Char;
+  LIncludeHeader: boolean;
   LRecordIndex: Integer;
   LValue, LLine: string;
   LRecord: TKViewTableRecord;
   LFieldIndex: Integer;
   LField: TKViewTableField;
-  LStringList: TStringList;
   LViewField: TKViewField;
+  LContent: string;
 
   procedure AddRow(const ARowData: string);
   begin
-    if Result <> '' then
-      Result := Result + sLineBreak;
-    Result := Result + ARowData;
+    if LContent <> '' then
+      LContent := LContent + sLineBreak;
+    LContent := LContent + ARowData;
   end;
 
-  function FormatLine(const ALine: string; const ASize: integer): string;
+  function FormatValue(const ALine: string; const ASize: integer): string;
   begin
     Result := Copy(ALine,1,ASize)+StringOfChar(' ', ASize - Length(ALine));
   end;
 
 begin
-  Result := '';
-  LStringList := TStringList.Create;
-  try
-    if not AFixedLength then
+  LStore := ServerStore;
+  LFixedLength := FixedLength;
+  LDelimiter := Delimiter;
+  LQuoteChar := QuoteChar;
+  LIncludeHeader := IncludeHeader;
+  LContent := '';
+  if LIncludeHeader then
+  begin
+    // Header.
+    LLine := '';
+    for LFieldIndex := 0 to LStore.Header.FieldCount - 1 do
     begin
-      LStringList.Delimiter := ADelimiter;
-      LStringList.QuoteChar := AQuoteChar;
-      LStringList.StrictDelimiter := True;
-    end;
-
-    if AIncludeHeader then
-    begin
-      // Header.
-      LLine := '';
-      for LFieldIndex := 0 to AStore.Header.FieldCount - 1 do
+      LViewField := LStore.Header.Fields[LFieldIndex].ViewField;
+      if Assigned(LViewField) then
       begin
-        LViewField := AStore.Header.Fields[LFieldIndex].ViewField;
-        if Assigned(LViewField) then
+        LValue := NormalizeColumName(LViewField.DisplayLabel);
+        if LFixedLength then
+          LLine := LLine + FormatValue(LValue, LViewField.DisplayWidth)
+        else
         begin
-          LValue := NormalizeColumName(LViewField.DisplayLabel);
-          if AFixedLength then
-            LLine := LLine + FormatLine(LValue, LViewField.DisplayWidth)
-          else
-            LStringList.Add(LValue);
+          if LFieldIndex <> 0 then
+            LLine := LLine + LDelimiter;
+          LLine := LLine + LQuoteChar + LValue + LQuoteChar;
         end;
       end;
-      if AFixedLength then
-        AddRow(LLine)
-      else
-        AddRow(LStringList.DelimitedText);
     end;
+    AddRow(LLine);
+  end;
 
-    // Rows.
-    for LRecordIndex := 0 to AStore.RecordCount -1 do
+  // Rows.
+  for LRecordIndex := 0 to LStore.RecordCount -1 do
+  begin
+    LRecord := LStore.Records[LRecordIndex];
+    if not LRecord.IsDeleted then
     begin
-      LStringList.Clear;
-      LRecord := AStore.Records[LRecordIndex];
-      if not LRecord.IsDeleted then
+      LLine := '';
+      for LFieldIndex := 0 to LRecord.FieldCount - 1 do
       begin
-        LLine := '';
-        for LFieldIndex := 0 to LRecord.FieldCount - 1 do
+        LField := LRecord.Fields[LFieldIndex];
+        if Assigned(LField.ViewField) then
         begin
-          LField := LRecord.Fields[LFieldIndex];
-          if Assigned(LField.ViewField) then
+          LValue := LField.GetAsJSONValue(True, False, True);
+          if LFixedLength then
+            LLine := LLine + FormatValue(LValue, LField.ViewField.DisplayWidth)
+          else
           begin
-            LValue := LField.GetAsJSONValue(True, False, True);
-            if AFixedLength then
-              LLine := LLine + FormatLine(LValue, LField.ViewField.DisplayWidth)
-            else
-              LStringList.Add(LValue);
+            if LFieldIndex <> 0 then
+              LLine := LLine + LDelimiter;
+            LLine := LLine + LQuoteChar + LValue + LQuoteChar;
           end;
         end;
-      if AFixedLength then
-        AddRow(LLine)
-      else
-        AddRow(LStringList.DelimitedText);
       end;
+      AddRow(LLine);
     end;
-  finally
-    FreeAndNil(LStringList);
   end;
+  Result := TStringStream.Create(LContent);
 end;
 
 initialization

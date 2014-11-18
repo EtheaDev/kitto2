@@ -134,11 +134,6 @@ type
     class function GetMetadataPath: string;
 
     ///	<summary>
-    ///	  Returns the full path of the ReportTemplates directory inside the home path.
-    ///	</summary>
-    class function GetReportTemplatesPath: string;
-
-    ///	<summary>
     ///	  Format settings for Javascript/JSON data encoded in text format. use
     ///	  it, don't change it.
     ///	</summary>
@@ -434,11 +429,6 @@ end;
 class function TKConfig.GetMetadataPath: string;
 begin
   Result := GetAppHomePath + IncludeTrailingPathDelimiter('Metadata');
-end;
-
-class function TKConfig.GetReportTemplatesPath: string;
-begin
-  Result := GetAppHomePath + IncludeTrailingPathDelimiter('ReportTemplates');
 end;
 
 function TKConfig.GetModels: TKModels;

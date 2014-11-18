@@ -27,23 +27,21 @@ uses
 type
   TExcelVersion = (ex2000, ex2007);
 
-  TExportExcelToolController = class(TExportFileToolController)
-  private
-    FTempFileName: string;
-    procedure StoreToExcelViaAdo(const AStore: TKViewTableStore);
+  TExportExcelToolController = class(TKExtDownloadFileController)
+  strict private
     function GetExcelRangeName: string;
     procedure CreateExcelSheet(AConnectionString, AExcelRangeName: string);
     function GetConnectionString(ExcelFileName: string): string;
     procedure GetAdoXFieldType(const AFieldType: TFieldType;
       const AFieldSize: integer; out AdoXDataType: DataTypeEnum);
     function ValidField(AViewField: TKViewField): boolean;
-    procedure DeleteTempFile;
-  protected
-    procedure ExecuteTool; override;
+  strict protected
+    function GetDefaultFileName: string; override;
     function GetDefaultFileExtension: string; override;
+    procedure PrepareFile(const AFileName: string); override;
   public
+    class function GetDefaultImageName: string;
   published
-    procedure DownloadFile;
     property ExcelRangeName: string read GetExcelRangeName;
   end;
 
@@ -81,24 +79,6 @@ const
 
 { TExportExcelToolController }
 
-procedure TExportExcelToolController.DeleteTempFile;
-begin
-  if FileExists(FTempFileName) then
-    DeleteFile(FTempFileName);
-end;
-
-procedure TExportExcelToolController.DownloadFile;
-begin
-  DownloadBinaryFile(FTempFileName);
-end;
-
-procedure TExportExcelToolController.ExecuteTool;
-begin
-  inherited;
-  StoreToExcelViaAdo(ServerStore);
-  Download(DownloadFile);
-end;
-
 function TExportExcelToolController.GetConnectionString(ExcelFileName: string): string;
 var
   FileExt: string;
@@ -130,15 +110,25 @@ begin
   Result := EXCEL_NEW_FILE_EXT;
 end;
 
-function TExportExcelToolController.GetExcelRangeName: string;
-var
-  LNode: TEFNode;
+class function TExportExcelToolController.GetDefaultImageName: string;
 begin
-  LNode := Config.FindNode('ExcelRangeName');
-  if Assigned(LNode) then
-    Result := LNode.AsString
-  else
-    Result := 'DataRange';
+  Result := 'excel_document';
+end;
+
+function TExportExcelToolController.GetExcelRangeName: string;
+begin
+  Result := Config.GetString('ExcelRangeName', 'DataRange');
+end;
+
+function TExportExcelToolController.GetDefaultFileName: string;
+var
+  LFileExtension: string;
+begin
+  LFileExtension := ExtractFileExt(ClientFileName);
+  if LFileExtension = '' then
+    LFileExtension := GetDefaultFileExtension;
+  Result := EF.SysUtils.GetTempFileName(LFileExtension);
+  AddTempFilename(Result);
 end;
 
 procedure TExportExcelToolController.GetAdoXFieldType(const AFieldType: TFieldType;
@@ -176,7 +166,6 @@ var
   ADOXFieldType : DataTypeEnum;
   LViewTable: TKViewTable;
   LFieldSize : integer;
-  Accept : boolean;
 
   procedure AddExcelColumn(const ColName : string;
     FieldType : DataTypeEnum; Size : Integer);
@@ -240,13 +229,13 @@ begin
   end;
 end;
 
-procedure TExportExcelToolController.StoreToExcelViaAdo(const AStore: TKViewTableStore);
+procedure TExportExcelToolController.PrepareFile(const AFileName: string);
 var
+  LStore: TKViewTableStore;
   AcceptRecord, AcceptField: boolean;
   FirstAccepted: boolean;
   LRecordIndex, LFieldIndex: integer;
   LRecord: TKViewTableRecord;
-  LValue: Variant;
   LDestField : TField;
   LSourceField: TKViewTableField;
   LConnectionString, LExcelRangeName: string;
@@ -261,7 +250,7 @@ var
     for LFieldIndex := 0 to LRecord.FieldCount - 1 do
     begin
       LViewTableField := LRecord.Fields[LFieldIndex];
-      if Assigned(LViewTableField) and
+      if Assigned(LViewTableField) and Assigned(LViewTableField.ViewField) and
         SameText(NormalizeColumName(LViewTableField.ViewField.AliasedName), NormalizeColumName(FieldName)) then
       begin
         Result := LViewTableField;
@@ -270,74 +259,67 @@ var
     end;
   end;
 begin
-  FTempFileName := EF.SysUtils.GetTempFileName(GetFileExtension);
-  DeleteTempFile;
+  LStore := ServerStore;
+  LConnectionString := GetConnectionString(AFileName);
+  LExcelRangeName := ExcelRangeName;
+
+  //Se non ho un template scrivo il file Excel creando la struttura attraverso ADOX
+  if (TemplateFileName = '') then
+    CreateExcelSheet(LConnectionString, LExcelRangeName)
+  else
+    //Salvo il Template file come file di output
+    CopyFile(TemplateFileName, AFileName);
+
+  //A questo punto ho il file Excel creato: mi collego con una FAdoTable e ci infilo i dati
+  FAdoTable := TAdoTable.Create(nil);
   try
-    LConnectionString := GetConnectionString(FTempFileName);
-    LExcelRangeName := ExcelRangeName;
+    //Apro il file Excel copiato
+    FAdoTable.CursorType := ctStatic;
+    FAdoTable.ConnectionString := LConnectionString;
+    FAdoTable.TableName := LExcelRangeName;
+    FAdoTable.Open;
 
-    FAdoTable := nil;
-    //Se non ho un template scrivo il file Excel creando la struttura attraverso ADOX
-    if (TemplateFileName = '') then
-      CreateExcelSheet(LConnectionString, LExcelRangeName)
-    else
-      //Salvo il Template file come file di output
-      CopyFile(TemplateFileName, FTempFileName);
-
-    //A questo punto ho il file Excel creato: mi collego con una FAdoTable e ci infilo i dati
-    FAdoTable := TAdoTable.Create(nil);
-    try
-      //Apro il file Excel copiato
-      FAdoTable.CursorType := ctStatic;
-      FAdoTable.ConnectionString := LConnectionString;
-      FAdoTable.TableName := LExcelRangeName;
-      FAdoTable.Open;
-
-      FirstAccepted := False;
-      //Ciclo sui record dello store per riempire il dataset
-      for LRecordIndex := 0 to AStore.RecordCount -1 do
+    FirstAccepted := False;
+    //Ciclo sui record dello store per riempire il dataset
+    for LRecordIndex := 0 to LStore.RecordCount -1 do
+    begin
+      //Ciclo sui records: il primo record lo modifico, dal secondo in poi append
+      LRecord := LStore.Records[LRecordIndex];
+      AcceptRecord := not LRecord.IsDeleted;
+      if AcceptRecord then
       begin
-        //Ciclo sui records: il primo record lo modifico, dal secondo in poi append
-        LRecord := AStore.Records[LRecordIndex];
-        AcceptRecord := not LRecord.IsDeleted;
-        if AcceptRecord then
-        begin
-          if not FirstAccepted then
-            FAdoTable.Edit
-          else
-            FAdoTable.Append;
-          FirstAccepted := True;
-          try
-            //Aggiorno i campi: comanda sempre il template
-            for LFieldIndex := 0 to FAdoTable.FieldCount - 1 do
+        if not FirstAccepted then
+          FAdoTable.Edit
+        else
+          FAdoTable.Append;
+        FirstAccepted := True;
+        try
+          //Aggiorno i campi: comanda sempre il template
+          for LFieldIndex := 0 to FAdoTable.FieldCount - 1 do
+          begin
+            LDestField := FAdoTable.Fields[LFieldIndex];
+            LSourceField := FindValidField(LDestField.FieldName);
+            AcceptField := Assigned(LSourceField) and ValidField(LSourceField.ViewField);
+            if AcceptField then
             begin
-              LDestField := FAdoTable.Fields[LFieldIndex];
-              LSourceField := FindValidField(LDestField.FieldName);
-              AcceptField := ValidField(LSourceField.ViewField);
-              if AcceptField then
-              begin
-                if LSourceField.ViewField.ActualDataType.AsFieldType = ftMemo then
-                  LDestField.AsString := StringReplace(LSourceField.AsString, sLineBreak, chr(10), [rfReplaceAll])
-                else
-                  LSourceField.AssignValueToField(LDestField);
-              end
+              if LSourceField.ViewField.ActualDataType.AsFieldType = ftMemo then
+                LDestField.AsString := StringReplace(LSourceField.AsString, sLineBreak, chr(10), [rfReplaceAll])
               else
-                LDestField.Clear;
-            end;
-            FAdoTable.Post;
-          Except
-            FAdoTable.Cancel;
-            raise;
+                LSourceField.AssignValueToField(LDestField);
+            end
+            else
+              LDestField.Clear;
           end;
+          FAdoTable.Post;
+        Except
+          FAdoTable.Cancel;
+          raise;
         end;
       end;
-    finally
-      FAdoTable.Close;
-      FAdoTable.Free; //libero il file Excel
     end;
-  Except
-    DeleteTempFile;
-    raise;
+  finally
+    FAdoTable.Close;
+    FAdoTable.Free; //libero il file Excel
   end;
 end;
 
