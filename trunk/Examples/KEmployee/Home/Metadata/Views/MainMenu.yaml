@@ -12,5 +12,4 @@ Folder: Maintenance
     ImageName: user
   View:
     Controller: Logout
-    DisplayLabel: Logout
-    ImageName: login
+    DisplayLabel: Close session
