@@ -119,6 +119,12 @@ function AdaptExtNumberFormat(const AFormat: string; const AFormatSettings: TFor
 /// </summary>
 function GetDisplayLabelFromNode(const ANode: TKTreeViewNode; const AViews: TKViews): string;
 
+/// <summary>
+///   Invoke a method of a View that return a string using RTTI
+/// </summary>
+function CallViewControllerStringMethod(const AView: TKView;
+  const AMethodName: string; const ADefaultValue: string): string;
+
 implementation
 
 uses
@@ -199,6 +205,7 @@ var
   LSubMenu: TExtMenuMenu;
   LIsEnabled: Boolean;
   LView: TKView;
+  LDisplayLabel: string;
 begin
   Assert(Assigned(ANode));
   Assert(Assigned(AMenu));
@@ -219,7 +226,10 @@ begin
           LMenuItem.IconCls := Session.SetViewIconStyle(LMenuItem.View, GetImageName(ANode.TreeViewNodes[I], LMenuItem.View));
           LMenuItem.On('click', GetClickFunction(LMenuItem.View));
           LMenuItem.Disabled := not LIsEnabled;
-          LMenuItem.Text := HTMLEncode(LMenuItem.View.DisplayLabel);
+          LDisplayLabel := _(LMenuItem.View.DisplayLabel);
+          if LDisplayLabel = '' then
+            LDisplayLabel := CallViewControllerStringMethod(LView, 'GetDefaultDisplayLabel', '');
+          LMenuItem.Text := HTMLEncode(LDisplayLabel);
         end;
         if ANode.TreeViewNodes[I].TreeViewNodeCount > 0 then
         begin
@@ -292,6 +302,7 @@ var
   LIsEnabled: Boolean;
   LView: TKView;
   LSubNode: TKTreeViewNode;
+  LDisplayLabel: string;
 begin
   Assert(Assigned(ANode));
   Assert(Assigned(AParent));
@@ -316,7 +327,8 @@ begin
       for I := 0 to ANode.TreeViewNodeCount - 1 do
       begin
         LSubNode := ANode.TreeViewNodes[I];
-        AddNode(LSubNode, GetDisplayLabelFromNode(LSubNode, Session.Config.Views), LNode);
+        LDisplayLabel := GetDisplayLabelFromNode(LSubNode, Session.Config.Views);
+        AddNode(LSubNode, LDisplayLabel, LNode);
       end;
       LNode.Expandable := True;
       if ANode is TKTreeViewFolder then
