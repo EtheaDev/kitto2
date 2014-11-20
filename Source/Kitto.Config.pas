@@ -445,7 +445,7 @@ end;
 
 function TKConfig.GetMultiFieldSeparator: string;
 begin
-  Result := Config.GetString('MultiFieldSeparator', '~~~');
+  Result := Config.GetString('MultiFieldSeparator', '~');
 end;
 
 class function TKConfig.FindResourcePathName(const AResourceFileName: string): string;
