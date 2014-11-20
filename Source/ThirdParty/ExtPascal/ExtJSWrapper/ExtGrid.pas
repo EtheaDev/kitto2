@@ -974,8 +974,8 @@ type
     procedure HandleEvent(const AEvtName: string); override;
   public
     class function JSClassName: string; override;
-    function StartEditing(RowIndex: Integer; ColIndex: Integer): TExtFunction;
-    function StopEditing(Cancel: Boolean = false): TExtFunction;
+    function StartEditing(const ARowIndex: Integer; const AColIndex: Integer): TExtFunction;
+    function StopEditing(const ACancel: Boolean = False): TExtFunction;
     property AutoEncode: Boolean read FAutoEncode write SetFAutoEncode;
     property ClicksToEdit: Integer read FClicksToEdit write SetClicksToEdit;
     property ForceValidation: Boolean read FForceValidation write SetFForceValidation;
@@ -3335,18 +3335,15 @@ begin
   FSelModel := TExtObject.CreateInternal(Self, 'selModel');
 end;
 
-function TExtGridEditorGridPanel.StartEditing(RowIndex: Integer; ColIndex: Integer)
-  : TExtFunction;
+function TExtGridEditorGridPanel.StartEditing(const ARowIndex: Integer; const AColIndex: Integer): TExtFunction;
 begin
-  JSCode(JSName + '.startEditing(' + VarToJSON([RowIndex, ColIndex]) + ');',
-    'TExtGridEditorGridPanel');
+  Session.ResponseItems.CallMethod(Self, 'startEditing', [ARowIndex, AColIndex]);
   Result := Self;
 end;
 
-function TExtGridEditorGridPanel.StopEditing(Cancel: Boolean = false): TExtFunction;
+function TExtGridEditorGridPanel.StopEditing(const ACancel: Boolean): TExtFunction;
 begin
-  JSCode(JSName + '.stopEditing(' + VarToJSON([Cancel]) + ');',
-    'TExtGridEditorGridPanel');
+  Session.ResponseItems.CallMethod(Self, 'stopEditing', [ACancel]);
   Result := Self;
 end;
 

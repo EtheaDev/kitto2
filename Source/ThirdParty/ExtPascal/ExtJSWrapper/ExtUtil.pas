@@ -40,6 +40,7 @@ type
     function HasListener(EventName: string): TExtFunction;
     function &On(const AEventName: string; const AHandler: TExtFunction;
       const AScope: TExtObject = nil; const AOptions: TExtObject = nil): TExtFunction;
+    function RemoveAllListeners(const AEventName: string): TExtFunction;
     function PurgeListeners: TExtFunction;
     function RelayEvents(O: TExtObject; Events: TExtObjectList): TExtFunction;
     function RemoveListener(EventName: string; Handler: TExtFunction;
@@ -377,6 +378,12 @@ function TExtUtilObservable.RelayEvents(O: TExtObject; Events: TExtObjectList)
 begin
   JSCode(JSName + '.relayEvents(' + VarToJSON([O, false]) + ',' + VarToJSON(Events) +
     ');', 'TExtUtilObservable');
+  Result := Self;
+end;
+
+function TExtUtilObservable.RemoveAllListeners(const AEventName: string): TExtFunction;
+begin
+  Session.ResponseItems.ExecuteJSCode(Self, JSName + '.events["' + AEventName + '"].listeners = [];');
   Result := Self;
 end;
 

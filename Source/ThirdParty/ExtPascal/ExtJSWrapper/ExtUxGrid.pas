@@ -141,6 +141,8 @@ type
     property CancelText: string read FCancelText write SetCancelText;
     property CommitChangesText: string read FCommitChangesText write SetCommitChangesText;
     property ErrorText: string read FErrorText write SetErrorText;
+
+    function StartEditing(const ARowIndex: Integer; const ADoFocus: Boolean): TExtFunction;
   end;
 
   TExtUxGridTableGrid = class(TExtGridGridPanel)
@@ -360,6 +362,12 @@ procedure TExtUxGridRowEditor.SetSaveText(const AValue: string);
 begin
   FSaveText := AValue;
   Session.ResponseItems.SetConfigItemOrProperty(Self, 'saveText', [AValue]);
+end;
+
+function TExtUxGridRowEditor.StartEditing(const ARowIndex: Integer; const ADoFocus: Boolean): TExtFunction;
+begin
+  Session.ResponseItems.CallMethod(Self, 'startEditing', [ARowIndex, ADoFocus]);
+  Result := Self;
 end;
 
 class function TExtUxGridRowEditor.JSClassName: string;

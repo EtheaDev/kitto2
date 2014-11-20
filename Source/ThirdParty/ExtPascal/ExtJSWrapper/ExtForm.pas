@@ -429,7 +429,7 @@ type
     property InvalidText: string read FInvalidText write SetFInvalidText;
     property MsgFx: string read FMsgFx write SetFMsgFx;
     property MsgTarget: string read FMsgTarget write SetMsgTarget;
-    property name: string read FName write _SetName;
+    property Name: string read FName write _SetName;
     property PreventMark: Boolean read FPreventMark write SetFPreventMark;
     property &ReadOnly: Boolean read FReadOnly write _SetReadOnly;
     property SubmitValue: Boolean read FSubmitValue write SetSubmitValue;
@@ -1296,7 +1296,6 @@ type
     FShadowString: string;
     FStore: TExtDataStore;
     FStoreArray: TExtObjectList;
-    FSubmitValue: Boolean;
     FTitle: string;
     FTpl: string;
     FTplExtXTemplate: TExtXTemplate;
@@ -2336,8 +2335,7 @@ begin
   if Assigned(FOnChange) then
     JSCode(JSName + '.events ["change"].listeners=[];');
   if Assigned(Value) then
-    on('change', Ajax('change', ['This', '%0.nm', 'NewValue', '%1', 'OldValue',
-      '%2'], true));
+    on('change', Ajax('change', ['This', '%0.nm', 'NewValue', '%1', 'OldValue', '%2'], true));
   FOnChange := Value;
 end;
 
@@ -2423,7 +2421,7 @@ end;
 
 function TExtFormField.GetRawValue: TExtFunction;
 begin
-  JSCode(JSName + '.getRawValue();', 'TExtFormField');
+  ExtSession.ResponseItems.CallMethod(Self, 'getRawValue', []);
   Result := Self;
 end;
 
@@ -4285,7 +4283,7 @@ end;
 
 function TExtFormDateField.GetValue: TExtFunction;
 begin
-  JSCode(JSName + '.getValue();', 'TExtFormDateField');
+  ExtSession.ResponseItems.CallMethod(Self, 'getValue', []);
   Result := Self;
 end;
 

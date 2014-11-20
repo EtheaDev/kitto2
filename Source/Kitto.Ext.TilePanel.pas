@@ -74,10 +74,10 @@ type
 implementation
 
 uses
-  SysUtils, StrUtils, HTTPApp,
+  SysUtils, StrUtils,
   Ext,
   EF.StrUtils, EF.Macros, EF.Localization,
-  Kitto.Config, Kitto.Ext.Utils;
+  Kitto.Config, Kitto.Utils, Kitto.Ext.Utils;
 
 { TKExtTilePanelController }
 
