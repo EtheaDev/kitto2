@@ -385,7 +385,6 @@ begin
   LController.Display;
 end;
 
-
 procedure TKExtDataActionButton.InitController(
   const AController: IKExtController);
 begin

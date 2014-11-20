@@ -2776,7 +2776,7 @@ type
     procedure SetFormBind(const AValue: Boolean);
     procedure SetFHandleMouseEvents(Value: Boolean);
     procedure _SetHandler(const AValue: TExtFunction);
-    procedure SetFHidden(Value: Boolean);
+    procedure SetHidden(const AValue: Boolean);
     procedure _SetIcon(const AValue: string);
     procedure SetFIconAlign(Value: string);
     procedure SetIconCls(const AValue: string);
@@ -2843,7 +2843,7 @@ type
     property HandleMouseEvents: Boolean read FHandleMouseEvents
       write SetFHandleMouseEvents;
     property Handler: TExtFunction read FHandler write _SetHandler;
-    property Hidden: Boolean read FHidden write SetFHidden;
+    property Hidden: Boolean read FHidden write SetHidden;
     property Icon: string read FIcon write _SetIcon;
     property IconAlign: string read FIconAlign write SetFIconAlign;
     property IconCls: string read FIconCls write SetIconCls;
@@ -11801,10 +11801,10 @@ begin
   ExtSession.ResponseItems.SetConfigItem(Self, 'handler', 'setHandler', [AValue, True]);
 end;
 
-procedure TExtButton.SetFHidden(Value: Boolean);
+procedure TExtButton.SetHidden(const AValue: Boolean);
 begin
-  FHidden := Value;
-  JSCode('hidden:' + VarToJSON([Value]));
+  FHidden := AValue;
+  Session.ResponseItems.SetConfigItem(Self, 'hidden', [AValue]);
 end;
 
 procedure TExtButton._SetIcon(const AValue: string);

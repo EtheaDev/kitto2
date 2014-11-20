@@ -24,7 +24,8 @@ uses
   {$IF RTLVersion >= 23.0}Themes, Styles,{$IFEND}
   Windows, Messages, SysUtils, Variants, Classes, Graphics,
   Controls, Forms, Dialogs, ComCtrls, ToolWin, Kitto.Ext.Application,
-  ActnList, Kitto.Config, StdCtrls, Buttons, ExtCtrls, ImgList, EF.Logger;
+  ActnList, Kitto.Config, StdCtrls, Buttons, ExtCtrls, ImgList, EF.Logger,
+  System.Actions;
 
 type
   TKExtLogEvent = procedure (const AString: string) of object;

@@ -128,9 +128,9 @@ function CallViewControllerStringMethod(const AView: TKView;
 implementation
 
 uses
-  Types, StrUtils, HTTPApp, RTTI,
+  Types, StrUtils, RTTI,
   EF.SysUtils, EF.StrUtils, EF.Classes, EF.Localization,
-  Kitto.AccessControl, Kitto.Ext.Base;
+  Kitto.AccessControl, Kitto.Utils, Kitto.Ext.Base;
 
 function CallViewControllerStringMethod(const AView: TKView;
   const AMethodName: string; const ADefaultValue: string): string;

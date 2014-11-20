@@ -170,6 +170,7 @@ type
     function IsCode: Boolean; virtual;
 
     procedure Emit(const AEmittedItems: TList<TExtResponseItem>);
+    procedure UnEmit;
   end;
 
   TExtCreateObject = class(TExtResponseItem)
@@ -270,7 +271,7 @@ type
     function FindMethod(Method : TExtProcedure; var PascalName, ObjName : string) : TExtFunction;
     function GetDownloadJS(Method: TExtProcedure; Params: array of const): string;
     function DoGetAjaxCode(const AMethodName, ARawParams: string;
-      const AParams: array of const; const AExtraCode: string = ''): string;
+      const AParams: array of const; const AExtraCode: string): string;
   protected
     // Set by some classes with custom constructors that need to call the
     // inherited Create with a custom string to be passed to CreateVar.
@@ -327,6 +328,8 @@ type
     procedure JSFunction(const AName, AParams, ABody: string); overload;
     function JSFunction(const ABody: string): TExtFunction; overload;
     function JSFunction(Method : TExtProcedure; Silent : boolean = false) : TExtFunction; overload;
+    function JSFunction(const AMethod: TProc; const ASilent: Boolean = False): TExtFunction; overload;
+    function GetJSFunctionCode(const AMethod: TProc; const ASilent: Boolean = False): string;
     function JSExpression(Expression : string; MethodsValues : array of const) : integer; overload;
     function JSExpression(Method : TExtFunction) : integer; overload;
     function JSString(Expression : string; MethodsValues : array of const) : string; overload;
@@ -368,6 +371,8 @@ type
       const AParams: array of const): string; overload;
     function GetAjaxCode(const AMethod: TExtProcedure;
       const AParams: array of const; const AIsEvent: Boolean = False): string; overload;
+    function GetAjaxCode(const AMethod: TExtProcedure; const ARawParams: string;
+      const AParams: array of const): string; overload;
     // Ajax calls with the POST method that passes JSON data in the jsonData option of
     // Ext.Ajax.request. AJsonData can be js code, such as a function call, or a streamed json object.
     function GetPOSTAjaxCode(const AMethodName, ARawParams: string;
@@ -410,8 +415,7 @@ type
     FObjectSequences: TDictionary<string, Cardinal>;
     FStyles, FLibraries, FCustomJS, FLanguage : string;
     JSReturns : TStringList;
-    FResponseItems: TExtResponseItems;
-    FCurrentResponseItemsBranch: TExtResponseItems;
+    FResponseItemsStack: TStack<TExtResponseItems>;
     Sequence: Cardinal;
     FSingletons: TDictionary<string, TExtObject>;
     procedure RelocateVar(JS, JSName : string; I : integer);
@@ -689,20 +693,25 @@ procedure TExtSession.UnbranchResponseItems(
   const AResponseItems: TExtResponseItems; const AConsolidate: Boolean);
 var
   LSender: TExtObject;
+  LBranch: TExtResponseItems;
+  LInitialCount: Integer;
 begin
   Assert(Assigned(AResponseItems));
-  Assert(AResponseItems = FCurrentResponseItemsBranch);
-  Assert(AResponseItems <> FResponseItems);
+  Assert(FResponseItemsStack.Count > 1);
+  Assert(AResponseItems = FResponseItemsStack.Peek);
 
+  LInitialCount := FResponseItemsStack.Count;
+  LBranch := FResponseItemsStack.Pop;
   if AConsolidate then
   begin
-    Assert(FCurrentResponseItemsBranch.Count > 0);
-    LSender := FCurrentResponseItemsBranch.Items[0].Sender;
-    FResponseItems.ExecuteJSCode(LSender, FCurrentResponseItemsBranch.Consume);
+    if LBranch.Count > 0 then
+    begin
+      LSender := LBranch.Items[0].Sender;
+      FResponseItemsStack.Peek.ExecuteJSCode(LSender, LBranch.Consume);
+    end;
   end;
-  FreeAndNil(FCurrentResponseItemsBranch);
 
-  Assert(FCurrentResponseItemsBranch = nil);
+  Assert(FResponseItemsStack.Count = LInitialCount - 1);
 end;
 
 // Returns all styles in use in current response
@@ -990,19 +999,17 @@ end;
 
 function TExtSession.BranchResponseItems: TExtResponseItems;
 begin
-  Assert(FCurrentResponseItemsBranch = nil);
+  Result := TExtResponseItems.Create;
+  FResponseItemsStack.Push(Result);
 
-  FCurrentResponseItemsBranch := TExtResponseItems.Create;
-  Result := FCurrentResponseItemsBranch;
-
-  Assert(FCurrentResponseItemsBranch <> nil);
+  Assert(FResponseItemsStack.Count > 0);
 end;
 
 destructor TExtSession.Destroy;
 begin
-  Assert(FCurrentResponseItemsBranch = nil);
-
-  FreeAndNil(FResponseItems);
+  Assert(FResponseItemsStack.Count = 1);
+  FResponseItemsStack.Pop.Free;
+  FreeAndNil(FResponseItemsStack);
   FreeAndNil(FObjectSequences);
   FreeAndNil(FSingletons);
   inherited;
@@ -1024,15 +1031,15 @@ end;
 // Calls events using Delphi style
 procedure TExtSession.HandleEvent;
 var
-  Obj: TExtObject;
+  LObject: TExtObject;
 begin
   if Query['IsEvent'] = '1' then
   begin
-    Obj := ObjectCatalog.FindExtObject(Query['Obj']) as TExtObject;
-    if not Assigned(Obj) then
+    LObject := ObjectCatalog.FindExtObject(Query['Obj']) as TExtObject;
+    if not Assigned(LObject) then
       OnError('Object not found in session list. It could be timed out, refresh page and try again', 'HandleEvent', '')
     else
-      Obj.HandleEvent(Query['Evt']);
+      LObject.HandleEvent(Query['Evt']);
   end;
 end;
 
@@ -1060,7 +1067,9 @@ Does tasks after Request processing.
 procedure TExtSession.AfterConstruction;
 begin
   inherited;
-  FResponseItems := TExtResponseItems.Create;
+  FResponseItemsStack := TStack<TExtResponseItems>.Create;
+  FResponseItemsStack.Push(TExtResponseItems.Create);
+
   FObjectSequences := TDictionary<string, Cardinal>.Create;
   FSingletons := TDictionary<string, TExtObject>.Create;
 end;
@@ -1208,10 +1217,9 @@ end;
 
 function TExtSession.GetResponseItems: TExtResponseItems;
 begin
-  if Assigned(FCurrentResponseItemsBranch) then
-    Result := FCurrentResponseItemsBranch
-  else
-    Result := FResponseItems;
+  Assert(FResponseItemsStack.Count > 0);
+
+  Result := FResponseItemsStack.Peek;
 end;
 
 function TExtSession.GetSequence : string; begin
@@ -1410,6 +1418,19 @@ function TExtObject.DestroyJS: TExtFunction;
 begin
   Delete;
   Result := TExtFunction(Self);
+end;
+
+function TExtObject.GetAjaxCode(const AMethod: TExtProcedure;
+  const ARawParams: string; const AParams: array of const): string;
+var
+  LParams: string;
+  LMethodName: string;
+  LObjectName: string;
+begin
+  FindMethod(AMethod, LMethodName, LObjectName);
+  LParams := IfThen(LObjectName = '', '', 'Obj=' + LObjectName);
+  LParams := LParams + ARawParams;
+  Result :=  GetAjaxCode(LMethodName, LParams, AParams);
 end;
 
 function TExtObject.GetConstructionJS: string;
@@ -1985,22 +2006,36 @@ begin
 : : : : : : :</code>
 }
 function TExtObject.JSFunction(Method : TExtProcedure; Silent : boolean = false) : TExtFunction;
+begin
+  Result := JSFunction(
+    procedure
+    begin
+      Method;
+    end,
+    Silent);
+end;
+
+// Same as above but with anonymous method.
+function TExtObject.JSFunction(const AMethod: TProc; const ASilent: Boolean): TExtFunction;
+begin
+  Result := TExtFunction.CreateInline(Self);
+  Result.FJSName := 'function() { ' + GetJSFunctionCode(AMethod, ASilent) + ' }';
+end;
+
+// Same as above but returns the code as a string instead of executing it.
+function TExtObject.GetJSFunctionCode(const AMethod: TProc; const ASilent: Boolean): string;
 var
   LResponseItemBranch: TExtResponseItems;
-  LCommand: string;
 begin
-  Result := TExtFunction(Self);
-
   LResponseItemBranch := ExtSession.BranchResponseItems;
   try
-    Method;
-    LCommand := LResponseItemBranch.Consume;
-    if Silent then
-      LCommand := 'try { ' + LCommand + ' } catch(e) {};'
+    AMethod;
+    Result := LResponseItemBranch.Consume;
+    if ASilent then
+      Result := 'try { ' + Result + ' } catch(e) {};'
   finally
     ExtSession.UnbranchResponseItems(LResponseItemBranch, False);
   end;
-  ExtSession.ResponseItems.ExecuteJSCode(Self, LCommand);
 end;
 
 {
@@ -2342,7 +2377,7 @@ begin
           vtChar       : Result := Result + string(VChar) + '=';
           vtWideChar   : Result := Result + VWideChar + '=';
         else
-          JSCode('Ext.Msg.show({title:"Error",msg:"Ajax method: ' + MethodName +
+          Session.ResponseItems.ExecuteJSCode('Ext.Msg.show({title:"Error",msg:"Ajax method: ' + MethodName +
             ' has an invalid parameter name in place #' + IntToStr(I+1) + '",icon:Ext.Msg.ERROR,buttons:Ext.Msg.OK});');
           exit;
         end;
@@ -2371,7 +2406,9 @@ end;
 
 function TExtObject.GetAjaxCode(const AMethodName, ARawParams: string; const AParams: array of const): string;
 begin
-  Result := DoGetAjaxCode(AMethodName, ARawParams, AParams);
+  Result := DoGetAjaxCode(AMethodName, ARawParams, AParams,
+    '  method: "GET",' + sLineBreak
+  );
 end;
 
 function TExtObject.GetPOSTAjaxCode(const AMethodName, ARawParams: string; const AParams: array of const; const AJsonData: string): string;
@@ -2699,6 +2736,11 @@ begin
   Assert(FDependencies.Remove(AItem) >= 0);
 end;
 
+procedure TExtResponseItem.UnEmit;
+begin
+  FEmitted := False;
+end;
+
 { TExtCreateObject }
 
 procedure TExtCreateObject.AddToConfigItem(const AName: string; const AValues: array of const);
@@ -3006,6 +3048,8 @@ begin
     //LEmittedString := LEmittedString + LItem.Sender.JSName + '-' + LItem.ClassName + sLineBreak;
   end;
   FEmittedItems.Clear;
+  for LItem in FList do
+    LItem.UnEmit;
   //StringToTextFile(LEmittedString, 'c:\users\nandod\ethea\kitto\graph.txt', TEncoding.Unicode);
 end;
 
@@ -3354,5 +3398,3 @@ initialization
   _JSFormatSettings.DecimalSeparator := '.';
 
 end.
-
-
