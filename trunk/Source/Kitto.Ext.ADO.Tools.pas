@@ -199,7 +199,7 @@ begin
     LFieldType := LViewField.ActualDataType.AsFieldType;
     if ValidField(LViewField) then
     begin
-      LColumnName := NormalizeColumName(LViewField.DisplayLabel);
+      LColumnName := NormalizeColumName(LViewField.FieldName);
       if LFieldType <> ftUnknown then
       begin
         LFieldSize := LViewField.Size;
@@ -251,7 +251,7 @@ var
     begin
       LViewTableField := LRecord.Fields[LFieldIndex];
       if Assigned(LViewTableField) and Assigned(LViewTableField.ViewField) and
-        SameText(NormalizeColumName(LViewTableField.ViewField.AliasedName), NormalizeColumName(FieldName)) then
+        SameText(NormalizeColumName(LViewTableField.ViewField.FieldName), NormalizeColumName(FieldName)) then
       begin
         Result := LViewTableField;
         break;
