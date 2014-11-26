@@ -162,6 +162,7 @@ type
     ///	longer needed.</remarks>
     function CreateStream: TStream; virtual;
     procedure InitDefaults; override;
+  public
     destructor Destroy; override;
   published
     procedure DownloadFile;
@@ -335,14 +336,8 @@ begin
 end;
 
 function TKExtDownloadFileController.GetTemplateFileName: string;
-var
-  LNode: TEFNode;
 begin
-  LNode := Config.FindNode('Template');
-  if Assigned(LNode) then
-    Result := LNode.GetExpandedString('TemplateFileName')
-  else
-    Result := '';
+  Result := Config.GetExpandedString('TemplateFileName');
 end;
 
 procedure TKExtDownloadFileController.InitDefaults;
