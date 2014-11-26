@@ -68,18 +68,24 @@ type
   TMergePDFToolController = class(TKExtDownloadFileController)
   strict private
     FPDFDoc: TPDFLibrary;
-    FTemplateTree: TEFPersistentTree;
     function GetPDFDoc: TPDFLibrary;
     procedure CheckDebenuPDFError(DebenuReturnCode: Integer;
       const FullFileName: string = '');
-    function LoadTemplate(const AYamlFileName: string): string;
+    function LoadLayout(const ALayoutFileName: string): TEFPersistentTree;
     property PDFDoc: TPDFLibrary read GetPDFDoc;
-  strict protected
+  strict
+  private
+    function GetLayoutFileName: string;
+  private
+    function GetBaseFileName: string; protected
     function GetDefaultFileName: string; override;
     procedure PrepareFile(const AFileName: string); override;
     function GetDefaultFileExtension: string; override;
   public
     class function GetDefaultImageName: string;
+  published
+    property LayoutFileName: string read GetLayoutFileName;
+    property BaseFileName: string read GetBaseFileName;
   end;
 
 implementation
@@ -134,6 +140,11 @@ begin
   raise ELsPDFError.Create(ErrorMsg);
 end;
 
+function TMergePDFToolController.GetBaseFileName: string;
+begin
+  Result := Config.GetExpandedString('BaseFileName');
+end;
+
 function TMergePDFToolController.GetDefaultFileExtension: string;
 begin
   Result := '.pdf';
@@ -155,6 +166,11 @@ begin
   Result := 'pdf_document';
 end;
 
+function TMergePDFToolController.GetLayoutFileName: string;
+begin
+  Result := Config.GetExpandedString('Layout');
+end;
+
 function TMergePDFToolController.GetPDFDoc: TPDFLibrary;
 begin
   if not Assigned(FPDFDoc) then
@@ -170,25 +186,16 @@ begin
   Result := FPDFDoc;
 end;
 
-function TMergePDFToolController.LoadTemplate(const AYamlFileName: string): string;
-var
-  LNode: TEFNode;
+function TMergePDFToolController.LoadLayout(const ALayoutFileName: string): TEFPersistentTree;
 begin
-  if FileExists(AYamlFileName) then
-    FTemplateTree := TEFTreeFactory.LoadFromFile<TEFComponentConfig>(AYamlFileName)
-  else
-    FTemplateTree := TEFComponentConfig.Create;
-  LNode := FTemplateTree.FindNode('TemplateFileName');
-  if Assigned(LNode) then
-    Result := FTemplateTree.GetExpandedString('TemplateFileName')
-  else
-    Result := '';
+  Assert(FileExists(ALayoutFileName), 'Layout file at node Layout not found');
+  Result := TEFTreeFactory.LoadFromFile<TEFComponentConfig>(ALayoutFileName);
 end;
 
 procedure TMergePDFToolController.PrepareFile(const AFileName: string);
 var
   LRecord: TKViewTableRecord;
-  LTemplateId, LPDFFile: string;
+  LBaseFileName: string;
   LExpression, LImageFileName, LText: string;
   LNode, LItems: TEFNode;
   I, LLeft, LTop, LWidth, LHeight, LXPos, LYPos, LFontNumber: Integer;
@@ -198,6 +205,7 @@ var
   LDefaultFontNumber: Integer;
   LField: TKViewTableField;
   LVertAlign, LAlign: Integer;
+  LLayoutFileName: TEFPersistentTree;
 
   procedure AddImage(const AImageFileName: string; ALeft, ATop, AWidth, AHeight: Integer);
   begin
@@ -288,17 +296,18 @@ var
 
 begin
   LRecord := ServerRecord;
-  LPDFFile := LoadTemplate(TemplateFileName);
-  CheckDebenuPDFError(PDFDoc.LoadFromFile(LPDFFile,''),LPDFFile);
+  LLayoutFileName := LoadLayout(LayoutFileName);
+  LBaseFileName := BaseFileName;
+  CheckDebenuPDFError(PDFDoc.LoadFromFile(LBaseFileName,''),LBaseFileName);
 
   //Initialize default font informations
   LDefaultFontNumber := 0;
   LDefaultFontSize := 10;
   LDefaultFontColor := claBlack;
-  GetFontAttributes(FTemplateTree.Root, 'DefaultFont', LDefaultFontNumber, LDefaultFontSize, LDefaultFontColor);
+  GetFontAttributes(LLayoutFileName.Root, 'DefaultFont', LDefaultFontNumber, LDefaultFontSize, LDefaultFontColor);
 
   //Images node
-  LItems := FTemplateTree.FindNode('Items');
+  LItems := LLayoutFileName.FindNode('Items');
   if Assigned(LItems) then
   begin
     for I := 0 to LItems.ChildCount - 1 do
