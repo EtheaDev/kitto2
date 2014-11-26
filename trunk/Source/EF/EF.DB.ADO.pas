@@ -84,6 +84,7 @@ type
     function GetLastAutoincValue(const ATableName: string = ''): Int64; override;
     function CreateDBCommand: TEFDBCommand; override;
     function CreateDBQuery: TEFDBQuery; override;
+    function GetConnection: TObject; override;
   end;
 
   TEFDBADOCommand = class(TEFDBCommand)
@@ -308,6 +309,11 @@ end;
 function TEFDBADOConnection.GetQueryClass: TEFDBADOQueryClass;
 begin
   Result := TEFDBADOQuery;
+end;
+
+function TEFDBADOConnection.GetConnection: TObject;
+begin
+  Result := FConnection;
 end;
 
 function TEFDBADOConnection.GetLastAutoincValue(

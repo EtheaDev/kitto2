@@ -502,6 +502,10 @@ type
     ///	  parameters, in which case you are required to pass ADBParams.
     ///	</summary>
     function SQLLookup(const ASQLStatement: string; const ADBParams: TParams = nil): Variant;
+
+    ///	<summary>Returns an instance of the concrete connection object,
+    /// used by this connection.</summary>
+    function GetConnection: TObject; virtual; abstract;
   end;
 
   ///	<summary>
