@@ -103,6 +103,7 @@ type
     function FetchSequenceGeneratorValue(const ASequenceName: string): Int64; override;
     function CreateDBCommand: TEFDBCommand; override;
     function CreateDBQuery: TEFDBQuery; override;
+    function GetConnection: TObject; override;
   end;
 
   ///	<summary>Customized TSQLQuery used inside TEFDBXCommand and
@@ -273,6 +274,11 @@ begin
     raise EEFError.Create(_('Unspecified Statement text.'));
 
   Result := FConnection.ExecuteDirect(AStatement);
+end;
+
+function TEFDBDBXConnection.GetConnection: TObject;
+begin
+  Result := FConnection;
 end;
 
 function TEFDBDBXConnection.GetFetchSequenceGeneratorValueQuery(
