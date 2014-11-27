@@ -29,6 +29,12 @@ uses
   Kitto.Ext.Login, Kitto.Ext.Controller;
 
 type
+  IKExtViewHost = interface(IEFInterface)
+    ['{F073B258-1D46-4553-9FF4-3697DFE5197D}']
+    procedure SetActiveView(const AIndex: Integer);
+    function AsExtContainer: TExtContainer;
+  end;
+
   TKExtUploadedFile = class
   strict private
     FContext: TObject;
@@ -84,10 +90,10 @@ type
     procedure AfterConstruction; override;
   end;
 
-  ///	<summary>
-  ///	  A modal window that hosts a controller and removes the controller
-  ///	  (instead fo itself) from the session when it's closed.
-  ///	</summary>
+  /// <summary>
+  ///  A modal window that hosts a controller and removes the controller
+  ///  (instead fo itself) from the session when it's closed.
+  /// </summary>
   TKExtControllerHostWindow = class(TKExtModalWindow)
   private
     FHostedController: TObject;
@@ -95,17 +101,12 @@ type
     function GetControllerToRemove: TObject; override;
   end;
 
-  IKExtViewHost = interface(IEFInterface)
-    ['{F073B258-1D46-4553-9FF4-3697DFE5197D}']
-    procedure SetActiveView(const AIndex: Integer);
-  end;
-
   TKExtSession = class(TExtSession)
   private
     FHomeController: TObject;
     FConfig: TKConfig;
     FLoginWindow: TKExtLoginWindow;
-    FViewHost: TExtContainer;
+    FViewHost: IKExtViewHost;
     FStatusHost: TKExtStatusBar;
     FSessionId: string;
     FUploadedFiles: TObjectList<TKExtUploadedFile>;
@@ -127,17 +128,17 @@ type
     procedure SetActiveViewInViewHost(const AObject: TObject);
     procedure SetLanguageFromQueriesOrConfig;
     procedure Reload;
-    procedure SetViewHost(const AValue: TExtContainer);
+    procedure SetViewHost(const AValue: IKExtViewHost);
     ///	<summary>
-    ///	  If the specifield css file name exists, generates code that
-    ///   adds it to the page and adds that code to the current response.
-    ///   If called multiple times, only the first time the file is added.
+    ///	 If the specifield css file name exists, generates code that
+    ///  adds it to the page and adds that code to the current response.
+    ///  If called multiple times, only the first time the file is added.
     ///	</summary>
     procedure EnsureDynamicStyle(const AStyleBaseName: string);
     ///	<summary>
-    ///	  If the specifield script file name exists, generates code that
-    ///   adds it to the page and adds that code to the current response.
-    ///   If called multiple times, only the first time the file is added.
+    ///	 If the specifield script file name exists, generates code that
+    ///  adds it to the page and adds that code to the current response.
+    ///  If called multiple times, only the first time the file is added.
     ///	</summary>
     procedure EnsureDynamicScript(const AScriptBaseName: string);
   protected
@@ -157,9 +158,9 @@ type
 
     procedure Refresh; override;
     ///	<summary>
-    ///	  A reference to the panel to be used as the main view container.
+    ///	 A reference to the main view container.
     ///	</summary>
-    property ViewHost: TExtContainer read FViewHost write SetViewHost;
+    property ViewHost: IKExtViewHost read FViewHost write SetViewHost;
 
     ///	<summary>
     ///	  A reference to the status bar to be used for wait messages.
@@ -632,7 +633,7 @@ begin
   else
   begin
     Result := TKExtControllerFactory.Instance.CreateController(ObjectCatalog,
-      AView, FViewHost, nil);
+      AView, FViewHost.AsExtContainer, nil);
   end;
   LIsSynchronous := Result.IsSynchronous;
   if not LIsSynchronous then
@@ -708,9 +709,9 @@ begin
 
   if Supports(FViewHost, IKExtViewHost, LViewHost) then
   begin
-    for I := 0 to FViewHost.Items.Count - 1 do
+    for I := 0 to FViewHost.AsExtContainer.Items.Count - 1 do
     begin
-      if FViewHost.Items[I] = AObject then
+      if FViewHost.AsExtContainer.Items[I] = AObject then
       begin
         LViewHost.SetActiveView(I);
         Break;
@@ -887,12 +888,8 @@ begin
     end;
 end;
 
-procedure TKExtSession.SetViewHost(const AValue: TExtContainer);
-var
-  LIntf: IKExtViewHost;
+procedure TKExtSession.SetViewHost(const AValue: IKExtViewHost);
 begin
-  if Assigned(AValue) and not Supports(AValue, IKExtViewHost, LIntf) then
-    raise Exception.Create('View Host does not support IKViewHost interface.');
   FViewHost := AValue;
 end;
 

@@ -1,10 +1,7 @@
 .k-tile-box
 {
-  width: 100%;
-  height: 100%;
-  position: absolute;
-  left: 10px;
-  top: 10px;
+  margin-top: 10px;
+  margin-left: 10px;
 }
 
 .k-tile-row
@@ -23,17 +20,17 @@
 {
   font-size: 150%;
   color: white;
-  width: 10%;
-  height: 20%;
   float: left;
+  text-align: center;
   margin-right: 10px;
   margin-bottom: 10px;
   padding: 20px 10px 10px 10px;
-  text-align: center;
+  width: 100px;
+  height: 50px;
 }
 
 .k-tile-inner
 {
   display: inline-block;
-  height: 60px;    
+  height: 60px;
 }

@@ -9,7 +9,7 @@ Controller: Viewport
         DisplayLabel: Main Menu
         Controller: TreePanel
           TreeView: MainMenu
-          Width: 210
+          Width: 205
           Collapsible: True
           Border: True
           Header: True
@@ -19,24 +19,25 @@ Controller: Viewport
           Border: True
           # List of views to be auto-opened in tabs.
           SubViews:
-            View: Customers
+            #View: Customers
 
       NorthView:
         Controller: BorderPanel
-          Height: 64
+          Height: 60
 
           WestView:
             Controller: HtmlPanel
-              Width: 210
+              Width: 205
               Split: False
-              Html: <p><img src="%IMAGE(Firebird_Employee)%" width="200" height="56"></img></p>
+              Html: <img src="%IMAGE(Firebird_Employee)%"></img>
 
           CenterView:
             Controller: BorderPanel
               NorthView:
                 Controller: HtmlPanel
+                  Height: 34
                   Split: False
-                  Html: <div style="background-color:navy; text-align:center; color:white; font-family: Arial, Helvetica, sans-serif; font-weight: bold;">An example of Employee - Customers - Sales application</div>
+                  Html: <div style="text-align: center; font-size: 125%; line-height: 34px; font-weight: bold;">An example of Employee - Customers - Sales application</div>
               CenterView:
                 Controller: ToolBar
                   TreeView: MainMenu

@@ -9,14 +9,14 @@ Controller: Viewport
         Controller: TilePanel
           Border: True
           TreeView: MainMenu
-          SubViews:
+          .SubViews:
             View: Girls
             View: Dolls
 
       NorthView:
         Controller: HtmlPanel
           Split: False
-          Html: | 
+          Html: |
             <center>
               <p><img src="%IMAGE(kitto_logo_150)%"></img></p>
             </center>

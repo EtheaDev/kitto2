@@ -29,20 +29,25 @@ type
   TKExtTabPanelController = class;
 
   ///	<summary>
-  ///	  A tab panel that knows when its hosted panels are closed. Used
-  ///   by the TabPanel controller.
+  ///	 A tab panel that knows when its hosted panels are closed. Used
+  ///  by the TabPanel controller.
   ///	</summary>
-  TKExtTabPanel = class(TExtTabPanel, IKExtPanelHost, IKExtViewHost)
+  TKExtTabPanel = class(TExtTabPanel, IKExtPanelHost, IKExtViewHost, IKExtControllerHost)
   private
     FConfig: TEFTree;
     FView: TKView;
     FOwner: TKExtTabPanelController;
-  protected
+  strict protected
     property Config: TEFTree read FConfig;
     property View: TKView read FView;
     procedure InitDefaults; override;
+    function TabsVisible: Boolean; virtual;
+    procedure ApplyTabSize;
+    function GetDefaultTabSize: string; virtual;
   public
     procedure SetActiveView(const AIndex: Integer);
+    function AsExtContainer: TExtContainer;
+    procedure InitController(const AController: IKExtController);
     procedure DisplaySubViewsAndControllers; virtual;
     destructor Destroy; override;
     procedure ClosePanel(const APanel: TExtComponent);
@@ -53,13 +58,15 @@ type
   TKExtTabPanelClass = class of TKExtTabPanel;
 
   TKExtTabPanelController = class(TKExtPanelControllerBase)
-  strict private
+  private
     FTabPanel: TKExtTabPanel;
   strict protected
     procedure InitDefaults; override;
     procedure DoDisplay; override;
     function GetTabPanelClass: TKExtTabPanelClass; virtual;
-  public
+    function GetDefaultTabIconsVisible: Boolean; virtual;
+  protected
+    function TabIconsVisible: Boolean;
     procedure InitSubController(const AController: IKExtController); override;
   end;
 
@@ -81,6 +88,11 @@ begin
   FTabPanel.DisplaySubViewsAndControllers;
 end;
 
+function TKExtTabPanelController.GetDefaultTabIconsVisible: Boolean;
+begin
+  Result := True;
+end;
+
 function TKExtTabPanelController.GetTabPanelClass: TKExtTabPanelClass;
 begin
   Result := TKExtTabPanel;
@@ -93,13 +105,25 @@ begin
   FTabPanel := GetTabPanelClass.CreateAndAddTo(Items);
 end;
 
-procedure TKExtTabPanelController.InitSubController(
-  const AController: IKExtController);
+procedure TKExtTabPanelController.InitSubController(const AController: IKExtController);
 begin
   inherited;
+  AController.Config.SetBoolean('Sys/ShowIcon', TabIconsVisible);
+end;
+
+function TKExtTabPanelController.TabIconsVisible: Boolean;
+begin
+  Result := Config.GetBoolean('TabIconsVisible', GetDefaultTabIconsVisible);
 end;
 
 { TKExtTabPanel }
+
+procedure TKExtTabPanel.InitController(const AController: IKExtController);
+begin
+  Assert(Assigned(FOwner));
+
+  FOwner.InitSubController(AController);
+end;
 
 procedure TKExtTabPanel.InitDefaults;
 begin
@@ -109,9 +133,13 @@ begin
   Border := False;
   { TODO : remove this once all controllers set it by themselves. }
   Defaults := JSObject('autoscroll: true');
-  EnableTabScroll := True;
   // Layout problems in tabbed views if DeferredRender=False.
   DeferredRender := True;
+end;
+
+function TKExtTabPanel.AsExtContainer: TExtContainer;
+begin
+  Result := Self;
 end;
 
 function TKExtTabPanel.AsObject: TObject;
@@ -128,7 +156,7 @@ end;
 
 destructor TKExtTabPanel.Destroy;
 begin
-  if Session.ViewHost = Self then
+  if Session.ViewHost.AsObject = Self then
     Session.ViewHost := nil;
   inherited;
 end;
@@ -144,6 +172,14 @@ begin
   Assert(Assigned(FConfig));
   Assert(Assigned(FView));
 
+  if TabsVisible then
+  begin
+    ApplyTabSize;
+    EnableTabScroll := True;
+  end
+  else
+    AddClass('tab-strip-hidden');
+
   LViews := FConfig.FindNode('SubViews');
   if Assigned(LViews) then
   begin
@@ -155,6 +191,7 @@ begin
         if LView.IsAccessGranted(ACM_VIEW) then
         begin
           LController := TKExtControllerFactory.Instance.CreateController(Self, LView, Self);
+          FOwner.InitSubController(LController);
           LController.Display;
         end;
       end
@@ -184,6 +221,21 @@ end;
 procedure TKExtTabPanel.SetActiveView(const AIndex: Integer);
 begin
   SetActiveTab(AIndex);
+end;
+
+procedure TKExtTabPanel.ApplyTabSize;
+begin
+  AddClass('tab-strip-' + Config.GetString('TabSize', GetDefaultTabSize));
+end;
+
+function TKExtTabPanel.GetDefaultTabSize: string;
+begin
+  Result := 'normal';
+end;
+
+function TKExtTabPanel.TabsVisible: Boolean;
+begin
+  Result := Config.GetBoolean('TabsVisible', True);
 end;
 
 initialization

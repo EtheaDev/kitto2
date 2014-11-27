@@ -886,7 +886,7 @@ type
     class function JSClassName: string; override;
     class function DISPLAY: Integer;
     class function VISIBILITY: Integer;
-    function AddClass(ClassName: string): TExtFunction; overload;
+    function AddClass(const AClassName: string): TExtFunction; overload;
     function AddClass(ClassName: TExtObjectList): TExtFunction; overload;
     function AddClassOnClick(ClassName: string): TExtFunction;
     function AddClassOnFocus(ClassName: string): TExtFunction;
@@ -1908,6 +1908,7 @@ type
     procedure HandleEvent(const AEvtName: string); override;
   public
     class function JSClassName: string; override;
+    function AddClass(const AClassName: string): TExtFunction;
     function AnElement(Cls: string): TExtFunction;
     function ApplyToMarkup(El: string): TExtFunction; overload;
     function ApplyToMarkup(El: THTMLElement): TExtFunction; overload;
@@ -6457,9 +6458,9 @@ begin
   FAutoBoxAdjust := TExtObject.CreateInternal(Self, 'autoBoxAdjust');
 end;
 
-function TExtElement.AddClass(ClassName: string): TExtFunction;
+function TExtElement.AddClass(const AClassName: string): TExtFunction;
 begin
-  JSCode(JSName + '.addClass(' + VarToJSON([ClassName]) + ');', 'TExtElement');
+  Session.ResponseItems.CallMethod(Self, 'addClass', [AClassName]);
   Result := Self;
 end;
 
@@ -9828,6 +9829,12 @@ begin
   FOwnerCt := TExtContainer.CreateInternal(Self, 'ownerCt');
   FRefOwner := TExtContainer.CreateInternal(Self, 'refOwner');
   FStyleExtObject := TExtObject.CreateInternal(Self, 'style');
+end;
+
+function TExtComponent.AddClass(const AClassName: string): TExtFunction;
+begin
+  Session.ResponseItems.CallMethod(Self, 'addClass', [AClassName]);
+  Result := Self;
 end;
 
 function TExtComponent.AnElement(Cls: string): TExtFunction;

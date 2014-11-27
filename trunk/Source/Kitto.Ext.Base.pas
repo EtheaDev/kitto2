@@ -178,9 +178,9 @@ type
     FContainer: TExtContainer;
     FTopToolbar: TExtToolbar;
     procedure CreateTopToolbar;
+    procedure EnsureAllSupportFiles;
   strict protected
-    function GetConfirmCall(const AMessage: string;
-      const AMethod: TExtProcedure): string;
+    function GetConfirmCall(const AMessage: string; const AMethod: TExtProcedure): string;
     function GetDefaultSplit: Boolean; virtual;
     function GetView: TKView;
     procedure SetView(const AValue: TKView);
@@ -730,6 +730,20 @@ begin
   DoDisplay;
 end;
 
+procedure TKExtPanelControllerBase.EnsureAllSupportFiles;
+var
+  LClassType: TClass;
+begin
+  LClassType := ClassType;
+  Session.EnsureSupportFiles(TKExtControllerRegistry.Instance.FindClassId(LClassType));
+  while LClassType.ClassParent <> nil do
+  begin
+    LClassType := LClassType.ClassParent;
+    Session.EnsureSupportFiles(TKExtControllerRegistry.Instance.FindClassId(LClassType));
+  end;
+  Session.EnsureViewSupportFiles(View);
+end;
+
 procedure TKExtPanelControllerBase.DoDisplay;
 var
   LWidth: Integer;
@@ -742,10 +756,9 @@ var
   LHeightStr: string;
   LView: TKView;
 begin
-  Session.EnsureSupportFiles(TKExtControllerRegistry.Instance.FindClassId(Self.ClassType));
-  Session.EnsureViewSupportFiles(View);
+  EnsureAllSupportFiles;
 
-  if (Title = '') then
+  if Title = '' then
   begin
     LView := View;
     if Assigned(LView) then
@@ -904,8 +917,7 @@ begin
   Result := FView;
 end;
 
-procedure TKExtPanelControllerBase.InitSubController(
-  const AController: IKExtController);
+procedure TKExtPanelControllerBase.InitSubController(const AController: IKExtController);
 var
   LSysConfigNode: TEFNode;
 begin
