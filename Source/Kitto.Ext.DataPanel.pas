@@ -117,7 +117,8 @@ procedure TKExtDataPanelController.DoDisplay;
 var
   LViewTable: TKViewTable;
 begin
-  IconCls := Session.SetViewIconStyle(View);
+  if Config.GetBoolean('Sys/ShowIcon', True) then
+    IconCls := Session.SetViewIconStyle(View);
 
   Assert(View is TKDataView);
 

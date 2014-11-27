@@ -28,8 +28,8 @@ uses
 
 type
   ///	<summary>
-  ///	  Base interface for controllers. Controllers manages views to build
-  ///   the user interface.
+  ///	 Base interface for controllers. Controllers manages views to build
+  ///  the user interface.
   ///	</summary>
   IKExtController = interface(IEFInterface)
     ['{FCDFC7CC-E202-4C20-961C-11255CABE497}']
@@ -57,6 +57,11 @@ type
     ///	False if the controller stays on screen and is interactive
     ///	instead.</summary>
     function IsSynchronous: Boolean;
+  end;
+
+  IKExtControllerHost = interface(IEFInterface)
+    ['{67DA8FF9-23ED-41ED-A773-5D09AEEE2D80}']
+    procedure InitController(const AController: IKExtController);
   end;
 
   ///	<summary>
@@ -163,9 +168,10 @@ function TKExtControllerFactory.CreateController(const AOwner: TComponent;
   const AObserver: IEFObserver; const ACustomType: string): IKExtController;
 var
   LClass: TExtObjectClass;
-  LIntf: IEFSubject;
+  LSubject: IEFSubject;
   LObject: TExtObject;
   LType: string;
+  LControllerHost: IKExtControllerHost;
 begin
   Assert(AView <> nil);
   Assert((AContainer <> nil) or (AOwner <> nil));
@@ -198,10 +204,12 @@ begin
   else
     Result.Config.Assign(AView.FindNode('Controller'));
   Result.View := AView;
+  if Assigned(AContainer) and Supports(AContainer, IKExtControllerHost, LControllerHost) then
+    LControllerHost.InitController(Result);
   if Result.SupportsContainer then
     Result.Container := AContainer;
-  if Assigned(AObserver) and Supports(Result.AsObject, IEFSubject, LIntf) then
-    LIntf.AttachObserver(AObserver);
+  if Assigned(AObserver) and Supports(Result.AsObject, IEFSubject, LSubject) then
+    LSubject.AttachObserver(AObserver);
 end;
 
 end.

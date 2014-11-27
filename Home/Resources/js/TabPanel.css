@@ -1,0 +1,20 @@
+.tab-strip-hidden .x-tab-strip-wrap
+{
+  display: none;
+}
+
+.tab-strip-visible .x-tab-strip-wrap {
+  display: block;
+}
+
+.tab-strip-normal .x-tab-strip-wrap {
+  zoom: 1;
+}
+
+.tab-strip-large .x-tab-strip-wrap {
+  zoom: 1.5;
+}
+
+.tab-strip-huge .x-tab-strip-wrap {
+  zoom: 2;
+}
