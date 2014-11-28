@@ -630,6 +630,8 @@ procedure TKSQLBuilder.InternalBuildSelectQuery(const AViewTable: TKViewTable;
 var
   I: Integer;
   LCommandText: string;
+  LField: TKModelField;
+  LFieldName: string;
 begin
   Clear;
   FViewTable := AViewTable;
@@ -658,7 +660,14 @@ begin
   end;
   Assert((ADBQuery.Params.Count = 0) or Assigned(AMasterValues));
   for I := 0 to ADBQuery.Params.Count - 1 do
-    AMasterValues.GetNode(ADBQuery.Params[I].Name).AssignValueToParam(ADBQuery.Params[I]);
+  begin
+    LField := AViewTable.Model.FindFieldByPhysicalName(ADBQuery.Params[I].Name);
+    if LField.IsReference then
+      LFieldName := LField.ReferencedModel.Fields[I].FieldName
+    else
+      LFieldName := LField.FieldName;
+    AMasterValues.GetNode(LFieldName).AssignValueToParam(ADBQuery.Params[I]);
+  end;
 end;
 
 procedure TKSQLBuilder.InternalBuildCountQuery(const AViewTable: TKViewTable;
