@@ -21,7 +21,7 @@ unit Kitto.Ext.StandardControllers;
 interface
 
 uses
-  Classes,
+  Classes, SysUtils,
   Kitto.Ext.Base, Kitto.Ext.DataTool;
 
 type
@@ -130,6 +130,8 @@ type
   TKExtDownloadFileController = class(TKExtDataToolController)
   strict private
     FTempFileNames: TStrings;
+    FFileName: string;
+    FStream: TStream;
     function GetTemplateFileName: string;
   strict private
     function GetClientFileName: string;
@@ -166,6 +168,7 @@ type
     destructor Destroy; override;
   published
     procedure DownloadFile;
+    procedure DownloadStream;
     property FileName: string read GetFileName;
     property ClientFileName: string read GetClientFileName;
     property ContentType: string read GetContentType;
@@ -175,7 +178,6 @@ type
 implementation
 
 uses
-  SysUtils,
   EF.SysUtils, EF.Tree, EF.RegEx, EF.Localization,
   Kitto.Ext.Session, Kitto.Ext.Controller;
 
@@ -251,12 +253,23 @@ end;
 
 procedure TKExtDownloadFileController.ExecuteTool;
 begin
-  Try
-    inherited;
-    Download(DownloadFile);
-  Finally
+  inherited;
+  try
+    FFileName := FileName;
+    if FFileName <> '' then
+    begin
+      PrepareFile(FFileName);
+      Download(DownloadFile);
+    end
+    else
+    begin
+      FStream := CreateStream;
+      Download(DownloadStream);
+    end;
+  except
     Cleanup;
-  End;
+    raise;
+  end;
 end;
 
 destructor TKExtDownloadFileController.Destroy;
@@ -268,30 +281,27 @@ end;
 
 procedure TKExtDownloadFileController.DownloadFile;
 var
-  LFileName: string;
   LStream: TStream;
 begin
   inherited;
-  LFileName := FileName;
-  if LFileName <> '' then
-  begin
-    PrepareFile(LFileName);
-    LStream := TFileStream.Create(LFileName, fmOpenRead);
+  try
+    LStream := TFileStream.Create(FFileName, fmOpenRead);
     try
       Session.DownloadStream(LStream, ClientFileName, ContentType);
     finally
       FreeAndNil(LStream);
     end;
-  end
-  else
-  begin
-    LStream := CreateStream;
-    try
-      if Assigned(LStream) then
-        Session.DownloadStream(LStream, ClientFileName, ContentType);
-    finally
-      FreeAndNil(LStream);
-    end;
+  finally
+    Cleanup;
+  end;
+end;
+
+procedure TKExtDownloadFileController.DownloadStream;
+begin
+  try
+    Session.DownloadStream(FStream, ClientFileName, ContentType);
+  finally
+    FreeAndNil(FStream);
   end;
 end;
 
