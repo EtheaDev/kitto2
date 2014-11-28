@@ -216,6 +216,9 @@ type
     property Fields[I: Integer]: TKHeaderField read GetField;
 
     function AddField(const AFieldName: string): TKHeaderField;
+    procedure GetFieldNames(List: TStrings);
+    function FindField(const AFieldName: string): TKHeaderField;
+    function FieldByName(const AFieldName: string): TKHeaderField;
   end;
 
   TKRecordPredicate = TPredicate<TKRecord>;
@@ -1112,6 +1115,28 @@ begin
     ARecord.AddField(Fields[I]);
 end;
 
+function TKHeader.FieldByName(const AFieldName: string): TKHeaderField;
+begin
+  Result := FindField(AFieldName);
+  if not Assigned(Result) then
+    raise EKError.CreateFmt(_('Field %s not found.'), [AFieldName]);
+end;
+
+function TKHeader.FindField(const AFieldName: string): TKHeaderField;
+var
+  I: Integer;
+begin
+  Result := nil;
+  for I := 0 to FieldCount - 1 do
+  begin
+    if SameText(Fields[I].FieldName, AFieldName) then
+    begin
+      Result := Fields[I];
+      break;
+    end;
+  end;
+end;
+
 function TKHeader.GetChildClass(const AName: string): TEFNodeClass;
 begin
   Result := TKHeaderField;
@@ -1125,6 +1150,15 @@ end;
 function TKHeader.GetFieldCount: Integer;
 begin
   Result := ChildCount;
+end;
+
+procedure TKHeader.GetFieldNames(List: TStrings);
+var
+  I: integer;
+begin
+  List.Clear;
+  for I := 0 to FieldCount - 1 do
+    List.Add(Fields[I].FieldName);
 end;
 
 { TKHeaderField }
