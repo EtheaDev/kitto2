@@ -65,6 +65,7 @@ type
     function GetParentRecord: TKRecord;
     function GetJSONName: string;
   strict protected
+    function GetXMLTagName: string; virtual;
     function GetName: string; override;
     procedure SetValue(const AValue: Variant); override;
     procedure ValueChanged(const AOldValue: Variant; const ANewValue: Variant); override;
@@ -77,6 +78,9 @@ type
     property ParentRecord: TKRecord read GetParentRecord;
     function GetAsJSON(const AForDisplay: Boolean): string;
     function GetAsJSONValue(const AForDisplay: Boolean; const AQuote: Boolean = True;
+      const AEmptyNulls: Boolean = False): string; virtual;
+    function GetAsXML: string;
+    function GetAsXMLValue(const ATagName: string;
       const AEmptyNulls: Boolean = False): string; virtual;
     property FieldName: string read GetFieldName;
   end;
@@ -110,6 +114,7 @@ type
     ///	<summary>Called by ReadFromNode after setting all values. Descendants
     ///	may overwrite some fields.</summary>
     procedure InternalAfterReadFromNode; virtual;
+    function GetXMLTagName: string; virtual;
   public
     procedure AfterConstruction; override;
     destructor Destroy; override;
@@ -135,6 +140,7 @@ type
     procedure ReadFromNode(const ANode: TEFNode);
 
     function GetAsJSON(const AForDisplay: Boolean): string;
+    function GetAsXML: string;
 
     procedure MarkAsModified;
     procedure MarkAsDeleted;
@@ -165,6 +171,7 @@ type
     function GetStore: TKStore;
     function GetRecordCountExceptNewAndDeleted: Integer;
   protected
+    function GetXMLTagName: string; virtual;
     function GetChildClass(const AName: string): TEFNodeClass; override;
   public
     procedure AfterConstruction; override;
@@ -186,6 +193,9 @@ type
 
     function GetAsJSON(const AForDisplay: Boolean;
       const AFrom: Integer = 0; const AFor: Integer = 0): string;
+
+    function GetAsXML(const AFrom: Integer = 0;
+      const AFor: Integer = 0): string;
   end;
 
   TKHeaderField = class(TEFNode)
@@ -265,6 +275,9 @@ type
     function GetAsJSON(const AForDisplay: Boolean; const AFrom: Integer = 0;
       const AFor: Integer = 0): string;
 
+    function GetAsXML(const AFrom: Integer = 0;
+      const AFor: Integer = 0): string;
+
     function ChangesPending: Boolean;
 
     ///	<summary>Iterates all records in the store (regardless of state)
@@ -330,7 +343,7 @@ implementation
 
 uses
   Math, FmtBcd, Variants, StrUtils,
-  EF.StrUtils, EF.Localization, EF.JSON,
+  EF.StrUtils, EF.Localization, EF.JSON, EF.XML,
   Kitto.Types, Kitto.Config;
 
 { TKStore }
@@ -486,6 +499,11 @@ function TKStore.GetAsJSON(const AForDisplay: Boolean; const AFrom: Integer;
   const AFor: Integer): string;
 begin
   Result := Records.GetAsJSON(AForDisplay, AFrom, AFor);
+end;
+
+function TKStore.GetAsXML(const AFrom, AFor: Integer): string;
+begin
+  Result := Records.GetAsXML(AFrom, AFor);
 end;
 
 function TKStore.GetChildClass(const AName: string): TEFNodeClass;
@@ -679,6 +697,40 @@ begin
   Result := '[' + Result + ']';
 end;
 
+function TKRecords.GetAsXML(const AFrom, AFor: Integer): string;
+var
+  I: Integer;
+  LTo: Integer;
+  LCount: Integer;
+  LRecordCount: Integer;
+  LTagName: string;
+begin
+  LRecordCount := RecordCountExceptNewAndDeleted;
+  if AFor > 0 then
+    LTo := Min(LRecordCount - 1, AFrom + AFor - 1)
+  else
+    LTo := LRecordCount - 1;
+
+  // Loop so that a full page is returned even when there are deleted records.
+  Result := '';
+  LCount := LTo - AFrom + 1;
+  I := AFrom;
+  while LCount > 0 do
+  begin
+    if not Records[I].IsDeleted and not Records[I].IsNew then
+    begin
+      if Result = '' then
+        Result := Records[I].GetAsXML
+      else
+        Result := Result + Records[I].GetAsXML;
+      Dec(LCount);
+    end;
+    Inc(I);
+  end;
+  LTagName := GetXMLTagName;
+  Result := Format(XMLTagFormat,[LTagName, Result, LTagName]);
+end;
+
 function TKRecords.GetChildClass(const AName: string): TEFNodeClass;
 begin
   Result := TKRecord;
@@ -709,6 +761,11 @@ end;
 function TKRecords.GetStore: TKStore;
 begin
   Result := Parent as TKStore;
+end;
+
+function TKRecords.GetXMLTagName: string;
+begin
+  Result := Name;
 end;
 
 procedure TKRecords.Remove(const ARecord: TKRecord);
@@ -862,6 +919,24 @@ begin
   Result := '{' + Result + '}';
 end;
 
+function TKRecord.GetAsXML: string;
+var
+  I: Integer;
+  LXML, LTagName: string;
+begin
+  Result := '';
+  for I := 0 to FieldCount - 1 do
+  begin
+    LXML := Fields[I].GetAsXML;
+    if LXML <> '' then
+      Result := Result + sLineBreak + LXML
+    else
+      Result := LXML;
+  end;
+  LTagName := GetXMLTagName;
+  Result := Format(XMLTagFormat,[LTagName, Result, LTagName]);
+end;
+
 function TKRecord.GetChildClass(const AName: string): TEFNodeClass;
 begin
   Result := TKField;
@@ -915,6 +990,11 @@ end;
 function TKRecord.GetStore: TKStore;
 begin
   Result := Records.Store;
+end;
+
+function TKRecord.GetXMLTagName: string;
+begin
+  Result := Name;
 end;
 
 procedure TKRecord.MarkAsClean;
@@ -1038,6 +1118,25 @@ begin
   Result := DataType.NodeToJSONValue(AForDisplay, Self, TKConfig.JSFormatSettings, AQuote, AEmptyNulls);
 end;
 
+function TKField.GetAsXML: string;
+var
+  LTagName: string;
+begin
+  if DataType.SupportsXML then
+  begin
+    LTagName := GetXMLTagName;
+    Result := GetAsXMLValue(LTagName);
+  end
+  else
+    Result := '';
+end;
+
+function TKField.GetAsXMLValue(const ATagName: string;
+  const AEmptyNulls: Boolean = False): string;
+begin
+  Result := DataType.NodeToXMLValue(Self, ATagName, AEmptyNulls);
+end;
+
 function TKField.GetDataType: TEFDataType;
 begin
   Assert(Assigned(FHeaderField));
@@ -1061,6 +1160,11 @@ end;
 function TKField.GetParentRecord: TKRecord;
 begin
   Result := Parent as TKRecord;
+end;
+
+function TKField.GetXMLTagName: string;
+begin
+  Result := FieldName;
 end;
 
 procedure TKField.MarkAsUnmodified;

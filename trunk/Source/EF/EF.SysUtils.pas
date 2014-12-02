@@ -134,7 +134,8 @@ function ExecuteApplication(const AFileName: string; const AOutput: TStrings): I
 ///	  Executes an application synchronously (AWait = True) or Asynchronously
 ///	  (AWait = False), with a specified working directory.
 ///	</summary>
-function ExecuteApplication(const AFileName, AWorkingDirectory: string; const AWait: Boolean = False): Integer; overload;
+function ExecuteApplication(const AFileName, AWorkingDirectory: string;
+  const AWait: Boolean = False; const AVisibility: Integer = SW_NORMAL): Integer; overload;
 
 ///	<summary>
 ///	  Executes an application asynchronously, but the process handle is not
@@ -840,11 +841,11 @@ begin
 end;
 
 function ExecuteApplication(const AFileName, AWorkingDirectory: string;
-  const AWait: Boolean = False): Integer; overload;
+  const AWait: Boolean = False; const AVisibility: Integer = SW_NORMAL): Integer; overload;
 var
   LDummy: Cardinal;
 begin
-  Result := InternalExecuteApplication(AFileName, SW_NORMAL, AWait, False, LDummy, AWorkingDirectory);
+  Result := InternalExecuteApplication(AFileName, AVisibility, AWait, False, LDummy, AWorkingDirectory);
 end;
 
 function ExecuteApplication(const AFileName: string; out AProcessHandle: Cardinal): Integer;

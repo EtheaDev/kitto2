@@ -76,6 +76,7 @@ type
     function GetDefaultDatabaseName: string;
     function GetDatabaseName: string;
     function GetLanguagePerSession: Boolean;
+    function GetFOPEnginePath: string;
   strict protected
     function GetConfigFileName: string; override;
     class function FindSystemHomePath: string;
@@ -258,6 +259,11 @@ type
     property MultiFieldSeparator: string read GetMultiFieldSeparator;
 
     property LanguagePerSession: Boolean read GetLanguagePerSession;
+
+    ///	<summary>
+    ///	  <para>Returns or changes the home path for FOP engine.</para>
+    ///	</summary>
+    property FOPEnginePath: string read GetFOPEnginePath;
   end;
 
   ///	<summary>
@@ -408,6 +414,11 @@ end;
 function TKConfig.GetDefaultDatabaseName: string;
 begin
   Result := Config.GetExpandedString('DefaultDatabaseName', 'Main');
+end;
+
+function TKConfig.GetFOPEnginePath: string;
+begin
+  Result := Config.GetExpandedString('FOPEnginePath');
 end;
 
 function TKConfig.GetDBAdapter(const ADatabaseName: string): TEFDBAdapter;
