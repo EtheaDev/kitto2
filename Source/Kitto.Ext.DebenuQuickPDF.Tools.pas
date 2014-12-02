@@ -198,7 +198,7 @@ var
   LBaseFileName: string;
   LExpression, LImageFileName, LText: string;
   LNode, LItems: TEFNode;
-  I, LLeft, LTop, LWidth, LHeight, LXPos, LYPos, LFontNumber: Integer;
+  I, LLeft, LTop, LWidth, LHeight, LXPos, LYPos, LFontNumber, LRotation: Integer;
   LFontSize, LDefaultFontSize: Double;
   LFontColor: TAlphaColor;
   LDefaultFontColor: TAlphaColor;
@@ -239,6 +239,23 @@ var
     SetupFont(AFontSize, AFontColor, AFontNumber);
     //Draw Text into PDF
     CheckDebenuPDFError(FPDFDoc.DrawText(AXPos, AYPos, AText));
+  end;
+
+  procedure DrawQRCode(const AText: string;
+    AXPos, AYPos: Integer; ASize: Double; ARotation: Integer);
+  var
+    LDrawOptions: integer;
+  begin
+    if (ARotation >= 0) and (LRotation < 90) then
+      LDrawOptions := 0
+    else if (LRotation >= 90) and (LRotation < 180) then
+      LDrawOptions := 1
+    else if (LRotation >= 180) and (LRotation < 270) then
+      LDrawOptions := 2
+    else
+      LDrawOptions := 3;
+    //Draw QRCode into PDF
+    CheckDebenuPDFError(FPDFDoc.DrawQRCode(AXPos, AYPos, ASize, AText, 0, LDrawOptions));
   end;
 
   procedure AddTextBox(const AText: string;
@@ -334,6 +351,17 @@ begin
         GetFontAttributes(LNode, 'Font', LFontNumber, LFontSize, LFontColor);
         //Add a Text
         AddText(LText, LFontSize, LFontColor, LFontNumber, LXPos, LYPos);
+      end
+      else if SameText(LNode.Name,'QRCode') then
+      begin
+        LExpression := LNode.GetString('Expression');
+        LText := ExpandExpression(LExpression);
+        LXPos := LNode.GetInteger('XPos');
+        LYPos := LNode.GetInteger('YPos');
+        LWidth := LNode.GetInteger('Size', 10);
+        LRotation := LNode.GetInteger('Rotation');
+        //Add a QRCode
+        DrawQRCode(LText, LXPos, LYPos, LWidth, LRotation);
       end
       else if SameText(LNode.Name,'TextBox') then
       begin
