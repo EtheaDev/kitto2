@@ -1,4 +1,3 @@
-TemplateFileName: %APP_PATH%ReportTemplates\ActivityReport.pdf
 DefaultFont: Courier
   Color: Red
   Size: 15.5
@@ -29,6 +28,12 @@ Items:
     Font: HelveticaBold
       Size: 18.5
       Color: Blue
+  QRCode: 
+    Expression: %ActivityId%
+    XPos: 10
+    YPos: 700
+    Size: 20.5
+    Rotation: 90
   TextBox: 
     Expression: |
       Lorem ipsum dolor sit amet, consectetuer adipiscing elit. 
