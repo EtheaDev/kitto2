@@ -150,6 +150,10 @@ type
   ///	      <description>ExtractFilePath(ParamStr(0))</description>
   ///	    </item>
   ///	    <item>
+  ///	      <term>%URL_APP_PATH%</term>
+  ///	      <description>'file:///'+ReplaceStr(ExtractFilePath(ParamStr(0)), '\', '/')</description>
+  ///	    </item>
+  ///	    <item>
   ///	      <term>%APP_NAME%</term>
   ///	      <description>ParamStr(0)</description>
   ///	    </item>
@@ -475,7 +479,7 @@ implementation
 
 uses
   Windows, DateUtils, StrUtils, Types,
-  EF.StrUtils, EF.SysUtils;
+  EF.Localization, EF.StrUtils, EF.SysUtils;
 
 procedure AddStandardMacroExpanders(const AMacroExpansionEngine: TEFMacroExpansionEngine);
 begin
@@ -506,8 +510,29 @@ begin
 end;
 
 function TEFMacroExpander.InternalExpand(const AString: string): string;
+var
+  LTranStartPos, LTranStopPos: integer;
+  LTempString: string;
 begin
   Result := AString;
+
+  //Translation of internal string translation directives
+  //e.g. <p>_(User: %Auth:UserName%)</p>
+  //returns: <p>_(Utente: %Auth:UserName%)</p>
+  LTranStartPos := Pos('_(', Result);
+  if (LTranStartPos > 1) then
+  begin
+    //Searching _(xxxx)
+    LTempString := Copy(Result,LTranStartPos+2,MaxInt);
+    LTranStopPos := pos(')',LTempString);
+    if LTranStopPos > 1 then
+    begin
+      LTempString := Copy(LTempString,1,LTranStopPos-1);
+      Result := Copy(Result,1,LTranStartPos-1)+
+        _(LTempString)+
+        Copy(Result,LTranStartPos+LTranStopPos+2,MaxInt);
+    end;
+  end;
 end;
 
 constructor TEFMacroExpander.Create;
@@ -627,6 +652,7 @@ function TEFPathMacroExpander.InternalExpand(const AString: string): string;
 begin
   Result := inherited InternalExpand(AString);
   Result := ExpandMacros(Result, '%APP_PATH%', ExtractFilePath(ParamStr(0)));
+  Result := ExpandMacros(Result, '%URL_APP_PATH%', 'file:///'+ReplaceStr(ExtractFilePath(ParamStr(0)), '\', '/'));
   Result := ExpandMacros(Result, '%APP_NAME%', ParamStr(0));
   Result := ExpandMacros(Result, '%APP_FILENAME%', ExtractFileName(ParamStr(0)));
   Result := ExpandMacros(Result, '%APP_BASENAME%', ChangeFileExt(ExtractFileName(ParamStr(0)), ''));

@@ -425,6 +425,8 @@ type
     function GetRecord(I: Integer): TKViewTableRecord; overload;
   strict protected
     function GetChildClass(const AName: string): TEFNodeClass; override;
+  protected
+    function GetXMLTagName: string; override;
   public
     property Store: TKViewTableStore read GetStore;
     function Append: TKViewTableRecord;
@@ -1887,6 +1889,11 @@ end;
 function TKViewTableRecords.GetStore: TKViewTableStore;
 begin
   Result := inherited Store as TKViewTableStore;
+end;
+
+function TKViewTableRecords.GetXMLTagName: string;
+begin
+  Result := Store.ViewTable.ModelName;
 end;
 
 { TKViewTableRecord }
