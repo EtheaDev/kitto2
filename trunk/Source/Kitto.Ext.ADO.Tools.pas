@@ -311,7 +311,7 @@ begin
               LDestField.Clear;
           end;
           FAdoTable.Post;
-        Except
+        except
           FAdoTable.Cancel;
           raise;
         end;
