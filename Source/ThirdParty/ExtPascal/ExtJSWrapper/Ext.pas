@@ -2118,7 +2118,7 @@ type
     procedure SetFDisableCaching(Value: Boolean);
     procedure SetFExtraParams(Value: TExtObject);
     procedure SetFMethod(Value: string);
-    procedure SetFTimeout(Value: Integer);
+    procedure SetTimeout(AValue: Integer);
     procedure SetFUrl(Value: string);
   protected
     procedure InitDefaults; override;
@@ -2131,7 +2131,7 @@ type
     property DisableCaching: Boolean read FDisableCaching write SetFDisableCaching;
     property ExtraParams: TExtObject read FExtraParams write SetFExtraParams;
     property Method: string read FMethod write SetFMethod;
-    property Timeout: Integer read FTimeout write SetFTimeout;
+    property Timeout: Integer read FTimeout write SetTimeout;
     property Url: string read FUrl write SetFUrl;
   end;
 
@@ -10321,10 +10321,10 @@ begin
   JSCode(JSName + '.method=' + VarToJSON([Value]) + ';');
 end;
 
-procedure TExtAjaxSingleton.SetFTimeout(Value: Integer);
+procedure TExtAjaxSingleton.SetTimeout(AValue: Integer);
 begin
-  FTimeout := Value;
-  JSCode(JSName + '.timeout=' + VarToJSON([Value]) + ';');
+  FTimeout := AValue;
+  ExtSession.ResponseItems.SetProperty(Self, 'timeout', [AValue]);
 end;
 
 procedure TExtAjaxSingleton.SetFUrl(Value: string);
