@@ -95,7 +95,7 @@ begin
     LXMLContent := XMLHeader + LStore.GetAsXML;
 
   LFileStream := TStringStream.Create(LXMLContent, TEncoding.UTF8);
-  Try
+  try
     //Save XML file
     LFileStream.SaveToFile(LXMLFileName);
     //Add to temporary files so it will cleaned up
@@ -116,9 +116,9 @@ begin
     LFileStream.SaveToFile(LXSLFileName);
     //Add to temporary files so it will cleaned up
     AddTempFilename(LXSLFileName);
-  Finally
+  finally
     LFileStream.Free;
-  End;
+  end;
 
   //Transform XSL + XML via FOP
   LFOPReport := TEFFopReport.Create(nil);
