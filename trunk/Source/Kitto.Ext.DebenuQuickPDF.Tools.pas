@@ -20,13 +20,32 @@ interface
 
 uses
   DB, DebenuPDFLibraryLite1112_TypeLibrary,
-  SysUtils, Classes,
+  SysUtils, Classes, System.UITypes,
   EF.Tree,
   Kitto.Ext.Controller, Kitto.Ext.DataTool, Kitto.Ext.Base, Kitto.Ext.Tools,
   Kitto.Metadata.DataView, Kitto.Ext.StandardControllers;
 
 type
   ELsPDFError = class(Exception) end;
+
+  //Layout structure
+  TMergePDFLayout = class helper for TEFPersistentTree
+  strict private
+    function GetAuthor: string;
+    function GetCreationDate: TDateTime;
+    function GetCreator: string;
+    function GetSubject: string;
+    function GetTitle: string;
+    function GetItems: TEFNode;
+    function GetNodeValue(const ANodeName: string): string;
+  public
+    property Items: TEFNode read GetItems;
+    property Author: string read GetAuthor;
+    property Title: string read GetTitle;
+    property Subject: string read GetSubject;
+    property Creator: string read GetCreator;
+    property CreationDate: TDateTime read GetCreationDate;
+  end;
 
   //Debenu Quick PDF Font definition
   TPDFStandardFont = (
@@ -91,7 +110,8 @@ type
 implementation
 
 uses
-  System.Math , System.TypInfo, System.UIConsts, System.UITypes,
+  Windows,
+  System.Math , System.TypInfo, System.UIConsts,
   Ext, EF.Classes, EF.StrUtils, EF.Localization, EF.DB, EF.SysUtils, EF.Macros,
   Kitto.Metadata.Models, Kitto.Ext.Session, Kitto.Config;
 
@@ -258,6 +278,31 @@ var
     CheckDebenuPDFError(FPDFDoc.DrawQRCode(AXPos, AYPos, ASize, AText, 0, LDrawOptions));
   end;
 
+  procedure SetInformation(const ATitle, AAuthor, ASubject, ACreator: string;
+    ACreationDate: TDateTime);
+  var
+    LDate: string;
+    LSysTime: SystemTime;
+
+    procedure AddInformation(AKey: Integer; const AText: string);
+    begin
+      if AText <> '' then
+        CheckDebenuPDFError(FPDFDoc.SetInformation(AKey, AText));
+    end;
+  begin
+    //Add Informations
+    AddInformation(1, AAuthor);
+    AddInformation(2, ATitle);
+    AddInformation(3, ASubject);
+    AddInformation(5, ACreator);
+    if ACreationDate <> 0 then
+    begin
+      GetSystemTime(LSysTime);
+      LDate := 'D:'+FormatDateTime('yyyymmddhhmmss', ACreationDate)+'Z00''00''';
+      AddInformation(7, LDate);
+    end;
+  end;
+
   procedure AddTextBox(const AText: string;
     const AFontSize: Double; const AFontColor: TAlphaColor;
     const AFontNumber, ALeft, ATop, AWidth, AHeight: Integer;
@@ -299,20 +344,16 @@ var
     end;
   end;
 
-  function ExpandExpression(const Expression: string): string;
-  var
-    LFieldName: string;
+  function ExpandExpression(const AExpression: string): string;
   begin
-    LFieldName :=  StripPrefixAndSuffix(LExpression,'%','%');
-    LField := LRecord.FindField(LFieldName);
-    if Assigned(LField) then
-      Result := LField.AsString
-    else
-      Result := LFieldName;
+    Result := LRecord.ExpandExpression(AExpression);
+    Result := TEFMacroExpansionEngine.Instance.Expand(Result);
   end;
 
 begin
   LRecord := ServerRecord;
+  Assert(Assigned(LRecord), '"RequireSelection: True" is mandatory for MergePDFTool controller');
+
   LLayoutFileName := LoadLayout(LayoutFileName);
   LBaseFileName := BaseFileName;
   CheckDebenuPDFError(PDFDoc.LoadFromFile(LBaseFileName,''),LBaseFileName);
@@ -323,8 +364,12 @@ begin
   LDefaultFontColor := claBlack;
   GetFontAttributes(LLayoutFileName.Root, 'DefaultFont', LDefaultFontNumber, LDefaultFontSize, LDefaultFontColor);
 
+  //Add document informations to PDF
+  SetInformation(LLayoutFileName.Title, LLayoutFileName.Author, LLayoutFileName.Subject,
+    LLayoutFileName.Creator, LLayoutFileName.CreationDate);
+
   //Images node
-  LItems := LLayoutFileName.FindNode('Items');
+  LItems := LLayoutFileName.Items;
   if Assigned(LItems) then
   begin
     for I := 0 to LItems.ChildCount - 1 do
@@ -384,6 +429,56 @@ begin
 
   //Salva il file
   CheckDebenuPDFError(FPDFDoc.SaveToFile(AFileName),AFileName);
+end;
+
+{ TMergePDFLayout }
+
+function TMergePDFLayout.GetAuthor: string;
+begin
+  Result := GetNodeValue('Author');
+end;
+
+function TMergePDFLayout.GetCreationDate: TDateTime;
+var
+  LDateStr: string;
+begin
+  LDateStr := GetNodeValue('CreationDate');
+  try
+    Result := StrToDate(LDateStr);
+  except
+    Result := 0;
+  end;
+end;
+
+function TMergePDFLayout.GetCreator: string;
+begin
+  Result := GetNodeValue('Creator');
+end;
+
+function TMergePDFLayout.GetItems: TEFNode;
+begin
+  Result := FindNode('Items');
+end;
+
+function TMergePDFLayout.GetNodeValue(const ANodeName: string): string;
+var
+  LNode: TEFNode;
+begin
+  LNode := FindNode('Information');
+  if Assigned(LNode) then
+    Result := LNode.GetExpandedString(ANodeName)
+  else
+    Result := '';
+end;
+
+function TMergePDFLayout.GetSubject: string;
+begin
+  Result := GetNodeValue('Subject');
+end;
+
+function TMergePDFLayout.GetTitle: string;
+begin
+  Result := GetNodeValue('Title');
 end;
 
 initialization
