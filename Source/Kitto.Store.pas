@@ -141,6 +141,9 @@ type
 
     function GetAsJSON(const AForDisplay: Boolean): string;
     function GetAsXML: string;
+    ///	<summary>Expand an expression that contains reference to field of record.
+    ///	For example: 'Activity: %Description%'.</summary>
+    function ExpandExpression(const AExpression: string): string;
 
     procedure MarkAsModified;
     procedure MarkAsDeleted;
@@ -817,6 +820,19 @@ procedure TKRecord.EnsureDetailStores;
 begin
   if not Assigned(FDetailStores) then
     FDetailStores := TObjectList<TKStore>.Create;
+end;
+
+function TKRecord.ExpandExpression(const AExpression: string): string;
+var
+  I: Integer;
+  Field: TKField;
+begin
+  Result := AExpression;
+  for I := 0 to FieldCount - 1 do
+  begin
+    Field := Fields[I];
+    Result := ReplaceText(Result, Format('{%s}',[Field.FieldName]), Field.AsString);
+  end;
 end;
 
 function TKRecord.AddDetailStore(const AStore: TKStore): TKStore;
