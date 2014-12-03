@@ -631,6 +631,7 @@ var
   I: Integer;
   LCommandText: string;
   LField: TKModelField;
+  LParam: TParam;
   LFieldName: string;
 begin
   Clear;
@@ -661,12 +662,18 @@ begin
   Assert((ADBQuery.Params.Count = 0) or Assigned(AMasterValues));
   for I := 0 to ADBQuery.Params.Count - 1 do
   begin
-    LField := AViewTable.Model.FindFieldByPhysicalName(ADBQuery.Params[I].Name);
-    if LField.IsReference then
-      LFieldName := LField.ReferencedModel.Fields[I].FieldName
+    LParam := ADBQuery.Params[I];
+    LField := AViewTable.Model.FindFieldByPhysicalName(LParam.Name);
+    if Assigned(LField) then
+    begin
+      if LField.IsReference then
+        LFieldName := LField.ReferencedModel.Fields[I].FieldName
+      else
+        LFieldName := LField.FieldName;
+    end
     else
-      LFieldName := LField.FieldName;
-    AMasterValues.GetNode(LFieldName).AssignValueToParam(ADBQuery.Params[I]);
+      LFieldName := LParam.Name;
+    AMasterValues.GetNode(LFieldName).AssignValueToParam(LParam);
   end;
 end;
 
