@@ -1221,7 +1221,7 @@ end;
 
 function TEFSQLServerDBEngineType.ExpandCommandText(const ACommandText: string): string;
 begin
-  Result := ReplaceText(inherited ExpandCommandText(ACommandText), '%DB.CURRENT_DATE%', 'getdate()');
+  Result := inherited ExpandCommandText(ReplaceText(ACommandText, '%DB.CURRENT_DATE%', 'getdate()'));
 end;
 
 function TEFSQLServerDBEngineType.FormatDateTime(const ADateTimeValue: TDateTime): string;
