@@ -334,12 +334,26 @@ type
     procedure ClearStatus; virtual;
   end;
 
+function OptionAsLabelAlign(const ANode: TEFNode): TExtFormFormPanelLabelAlign;
+
 implementation
 
 uses
   StrUtils,
   EF.StrUtils, EF.Types, EF.Localization,
   Kitto.Ext.Utils, Kitto.Ext.Session;
+
+function OptionAsLabelAlign(const ANode: TEFNode): TExtFormFormPanelLabelAlign;
+begin
+  if SameText(ANode.AsString, 'Left') then
+    Result := laLeft
+  else if SameText(ANode.AsString, 'Top') then
+    Result := laTop
+  else if SameText(ANode.AsString, 'Right') then
+    Result := laRight
+  else
+    raise EEFError.CreateFmt(_('Invalid value %s. Valid values: "Left", "Top", "Right".'), [ANode.AsString]);
+end;
 
 { TKExtWindowControllerBase }
 

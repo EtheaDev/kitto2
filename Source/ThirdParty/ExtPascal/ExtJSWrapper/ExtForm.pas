@@ -1058,9 +1058,6 @@ type
   TExtFormFormPanelOnClientvalidation = procedure(This: TExtFormFormPanel;
     Valid: Boolean) of object;
 
-  // Enumerated types for properties
-  TExtFormFormPanelLabelAlign = (laLeft, laTop, laRight);
-
   TExtFormFormPanel = class(TExtPanel)
   private
     FButtons: TExtObjectList;
@@ -1068,7 +1065,7 @@ type
     FFormId: string;
     FHideLabels: Boolean;
     FItemCls: string;
-    FLabelAlign: TExtFormFormPanelLabelAlign; // 'left'
+    FLabelAlign: TExtFormFormPanelLabelAlign; // 'right'
     FLabelPad: Integer; // 5
     FLabelSeparator: string;
     FLabelWidth: Integer; // 100
@@ -4004,6 +4001,7 @@ begin
   FLabelWidth := 100;
   FMinButtonWidth := 75;
   FMonitorPoll := 200;
+  FLabelAlign := laRight;
   FForm := TExtFormBasicForm.CreateInternal(Self, 'getForm()');
 end;
 

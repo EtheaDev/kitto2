@@ -32,6 +32,7 @@ type
   TKExtGridPanel = class(TKExtDataPanelLeafController)
   strict private
     FGridEditorPanel: TExtGridEditorGridPanel;
+    FIsViewAllowed: Boolean;
     FIsAddAllowed: Boolean;
     FIsEditAllowed: Boolean;
     FIsDeleteAllowed: Boolean;
@@ -40,7 +41,9 @@ type
     FPagingToolbar: TExtPagingToolbar;
     FPageRecordCount: Integer;
     FSelectionModel: TExtGridRowSelectionModel;
+    FIsViewVisible: Boolean;
     FIsAddVisible: Boolean;
+    FIsEditVisible: Boolean;
     FIsDeleteVisible: Boolean;
     FButtonsRequiringSelection: TList<TExtObject>;
     FIsDupVisible: Boolean;
@@ -81,7 +84,8 @@ type
       const AContext: string = ''); override;
     destructor Destroy; override;
   published
-    procedure EditViewRecord;
+    procedure EditRecord;
+    procedure ViewRecord;
     procedure DuplicateRecord;
     procedure NewRecord(This: TExtButton; E: TExtEventObjectSingleton);
     procedure DeleteCurrentRecord;
@@ -530,7 +534,7 @@ begin
   ShowEditWindow(nil, emNewRecord);
 end;
 
-procedure TKExtGridPanel.EditViewRecord;
+procedure TKExtGridPanel.EditRecord;
 begin
   ShowEditWindow(GetCurrentViewRecord, emEditCurrentRecord);
 end;
@@ -572,8 +576,10 @@ begin
 
   if AEditMode in [emNewRecord, emDupCurrentRecord] then
     FEditHostWindow.Title := Format(_('Add %s'), [_(ViewTable.DisplayLabel)])
-  else if FIsEditAllowed then
+  else if (AEditMode = emEditCurrentRecord) and FIsEditAllowed then
     FEditHostWindow.Title := Format(_('Edit %s'), [_(ViewTable.DisplayLabel)])
+  else if (AEditMode = emViewCurrentRecord) and FIsViewAllowed then
+    FEditHostWindow.Title := Format(_('View %s'), [_(ViewTable.DisplayLabel)])
   else
     FEditHostWindow.Title := _(ViewTable.DisplayLabel);
 
@@ -598,12 +604,13 @@ begin
   end
   else
     LFormController.Config.SetBoolean('Sys/HostWindow/AutoSize', True);
-  if AEditMode = emNewRecord then
-    LFormController.Config.SetString('Sys/Operation', 'Add')
-  else if AEditMode = emDupCurrentRecord then
-    LFormController.Config.SetString('Sys/Operation', 'Dup')
-  else
-    LFormController.Config.SetString('Sys/Operation', 'Edit');
+
+  case AEditMode of
+    emNewRecord : LFormController.Config.SetString('Sys/Operation', 'Add');
+    emDupCurrentRecord : LFormController.Config.SetString('Sys/Operation', 'Dup');
+    emEditCurrentRecord : LFormController.Config.SetString('Sys/Operation', 'Edit');
+    emViewCurrentRecord : LFormController.Config.SetString('Sys/Operation', 'View');
+  end;
 
   LFormController.Display;
 
@@ -635,6 +642,10 @@ begin
   Assert(Assigned(LView));
   Assert(Assigned(FGridEditorPanel));
 
+  FIsViewVisible := not LViewTable.GetBoolean('Controller/PreventShowing')
+    and not Config.GetBoolean('PreventShowing');
+  FIsViewAllowed := FIsViewVisible and LViewTable.IsAccessGranted(ACM_VIEW);
+
   FIsAddVisible := not LViewTable.GetBoolean('Controller/PreventAdding')
     and not LView.GetBoolean('IsReadOnly')
     and not LViewTable.IsReadOnly
@@ -649,11 +660,11 @@ begin
     and not Config.GetBoolean('PreventAdding');
   FIsDupAllowed := FIsDupVisible and LViewTable.IsAccessGranted(ACM_ADD);
 
-  FIsEditAllowed := not LViewTable.GetBoolean('Controller/PreventEditing')
+  FIsEditVisible := not LViewTable.GetBoolean('Controller/PreventEditing')
     and not LView.GetBoolean('IsReadOnly')
     and not LViewTable.IsReadOnly
-    and not Config.GetBoolean('PreventEditing')
-    and LViewTable.IsAccessGranted(ACM_MODIFY);
+    and not Config.GetBoolean('PreventEditing');
+  FIsEditAllowed := FIsEditVisible and LViewTable.IsAccessGranted(ACM_MODIFY);
 
   FIsDeleteVisible := not LViewTable.GetBoolean('Controller/PreventDeleting')
     and not LView.GetBoolean('IsReadOnly')
@@ -696,7 +707,10 @@ begin
   if not FInplaceEditing then
   begin
     LKeyFieldNames := Join(LViewTable.GetKeyFieldAliasedNames, ',');
-    FGridEditorPanel.On('rowdblclick', AjaxSelection(EditViewRecord, FSelectionModel, LKeyFieldNames, LKeyFieldNames, []));
+    if FIsEditAllowed then
+      FGridEditorPanel.On('rowdblclick', AjaxSelection(EditRecord, FSelectionModel, LKeyFieldNames, LKeyFieldNames, []))
+    else
+      FGridEditorPanel.On('rowdblclick', AjaxSelection(ViewRecord, FSelectionModel, LKeyFieldNames, LKeyFieldNames, []));
   end;
 
   // By default show paging toolbar for large models.
@@ -773,6 +787,11 @@ begin
       LReqBody.S['rowEditor'] + '.startEditing(' + IntToStr(LReqBody.I['rowIndex']) + ', true);'
     );
   end;
+end;
+
+procedure TKExtGridPanel.ViewRecord;
+begin
+  ShowEditWindow(GetCurrentViewRecord, emViewCurrentRecord);
 end;
 
 function TKExtGridPanel.DoUpdateRecord(const AOldValues, ANewValues: ISuperObject): string;
@@ -913,6 +932,7 @@ procedure TKExtGridPanel.AddTopToolbarButtons;
 var
   LNewButton: TExtButton;
   LEditButton: TExtButton;
+  LViewButton: TExtButton;
   LDeleteButton: TExtButton;
   LKeyFieldNames: string;
   LDupButton: TExtButton;
@@ -921,6 +941,21 @@ var
 begin
   Assert(ViewTable <> nil);
   Assert(TopToolbar <> nil);
+
+  if FIsViewVisible then
+  begin
+    LViewButton := TExtButton.CreateAndAddTo(TopToolbar.Items);
+    LViewButton.Tooltip := Format(_('View %s'), [_(ViewTable.DisplayLabel)]);
+    LViewButton.Icon := Session.Config.GetImageURL('view_record');
+    if not FIsViewAllowed then
+      LViewButton.Disabled := True
+    else
+    begin
+      LKeyFieldNames := Join(ViewTable.GetKeyFieldAliasedNames, ',');
+      LViewButton.On('click', AjaxSelection(ViewRecord, FSelectionModel, LKeyFieldNames, LKeyFieldNames, []));
+      FButtonsRequiringSelection.Add(LViewButton);
+    end;
+  end;
 
   if FIsAddVisible then
   begin
@@ -951,21 +986,21 @@ begin
 
   if not FInplaceEditing then
   begin
-    TExtToolbarSpacer.CreateAndAddTo(TopToolbar.Items);
-    LEditButton := TExtButton.CreateAndAddTo(TopToolbar.Items);
-    if FIsEditAllowed then
+    if FIsEditVisible then
     begin
+      TExtToolbarSpacer.CreateAndAddTo(TopToolbar.Items);
+      LEditButton := TExtButton.CreateAndAddTo(TopToolbar.Items);
       LEditButton.Tooltip := Format(_('Edit %s'), [_(ViewTable.DisplayLabel)]);
       LEditButton.Icon := Session.Config.GetImageURL('edit_record');
-    end
-    else
-    begin
-      LEditButton.Tooltip := Format(_('View %s'), [_(ViewTable.DisplayLabel)]);
-      LEditButton.Icon := Session.Config.GetImageURL('view_record');
+      if not FIsEditAllowed then
+        LEditButton.Disabled := True
+      else
+      begin
+        LKeyFieldNames := Join(ViewTable.GetKeyFieldAliasedNames, ',');
+        LEditButton.On('click', AjaxSelection(EditRecord, FSelectionModel, LKeyFieldNames, LKeyFieldNames, []));
+        FButtonsRequiringSelection.Add(LEditButton);
+      end;
     end;
-    LKeyFieldNames := Join(ViewTable.GetKeyFieldAliasedNames, ',');
-    LEditButton.On('click', AjaxSelection(EditViewRecord, FSelectionModel, LKeyFieldNames, LKeyFieldNames, []));
-    FButtonsRequiringSelection.Add(LEditButton);
   end;
 
   if FIsDeleteVisible then

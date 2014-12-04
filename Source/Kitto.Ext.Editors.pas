@@ -483,7 +483,8 @@ type
     ///	  Layout used to create the editors. Pass nil to manufacture a default
     ///	  layout.
     ///	</param>
-    procedure CreateEditors(const ALayout: TKLayout);
+    procedure CreateEditors(const ALayout: TKLayout;
+      const ALabelAlign: TExtFormFormPanelLabelAlign);
 
     ///	<summary>
     ///	  A reference to the first field to focus. Only valid after calling
@@ -579,18 +580,6 @@ begin
   end
   else if not TryStrToInt(Result, LNumber) then
     raise EEFError.CreateFmt(_('Invalid value %s. Valid values: whole numbers or percentages.'), [Result]);
-end;
-
-function OptionAsLabelAlign(const ANode: TEFNode): TExtFormFormPanelLabelAlign;
-begin
-  if SameText(ANode.AsString, 'Left') then
-    Result := laLeft
-  else if SameText(ANode.AsString, 'Top') then
-    Result := laTop
-  else if SameText(ANode.AsString, 'Right') then
-    Result := laRight
-  else
-    raise EEFError.CreateFmt(_('Invalid value %s. Valid values: "Left", "Top", "Right".'), [ANode.AsString]);
 end;
 
 function OptionAsString(const ANode: TEFNode; const AAllowedValues: array of string): string;
@@ -730,7 +719,8 @@ begin
     FEditContainers.Pop;
 end;
 
-procedure TKExtLayoutProcessor.CreateEditors(const ALayout: TKLayout);
+procedure TKExtLayoutProcessor.CreateEditors(const ALayout: TKLayout;
+  const ALabelAlign: TExtFormFormPanelLabelAlign);
 var
   I: Integer;
   LEditor: IKExtEditor;
@@ -743,7 +733,7 @@ begin
     CreateEditorsFromLayout(ALayout)
   else
   begin
-    FFormPanel.LabelAlign := laLeft;
+    FFormPanel.LabelAlign := ALabelAlign;
     for I := 0 to ViewTable.FieldCount - 1 do
     begin
       if ViewTable.IsFieldVisible(ViewTable.Fields[I]) and ViewTable.Fields[I].IsAccessGranted(ACM_READ) then

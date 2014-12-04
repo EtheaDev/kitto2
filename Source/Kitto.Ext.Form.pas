@@ -64,6 +64,7 @@ type
     FStoreRecord: TKViewTableRecord;
     FCloneValues: TEFNode;
     FEditItems: TList<TObject>;
+    FLabelAlign: TExtFormFormPanelLabelAlign;
     procedure CreateEditors;
     procedure RecreateEditors;
     procedure StartOperation;
@@ -178,6 +179,9 @@ begin
       LController.Config.SetObject('Sys/ViewTable', ViewTable.DetailTables[I]);
       LController.Config.SetObject('Sys/ServerStore', FStoreRecord.DetailStores[I]);
       LController.Config.SetBoolean('AllowClose', False);
+      //Cascading View mode
+      if SameText(FOperation, 'View') then
+        LController.View.SetBoolean('IsReadOnly', True);
       FDetailControllers.Add(LController.AsObject);
       LController.Display;
       if (LController.AsObject is TKExtDataPanelController) then
@@ -221,7 +225,7 @@ begin
       LLayoutProcessor.Operation := eoInsert
     else
       LLayoutProcessor.Operation := eoUpdate;
-    LLayoutProcessor.CreateEditors(FindViewLayout('Form'));
+    LLayoutProcessor.CreateEditors(FindViewLayout('Form'), FLabelAlign);
     FFocusField := LLayoutProcessor.FocusField;
   finally
     FreeAndNil(LLayoutProcessor);
@@ -472,6 +476,7 @@ procedure TKExtFormPanelController.InitComponents;
 var
   LHostWindow: TExtWindow;
   LCloneButtonNode: TEFNode;
+  LLabelAlignNode: TEFNode;
 begin
   inherited;
   if Title = '' then
@@ -502,16 +507,28 @@ begin
       or ViewTable.IsReadOnly
       or Config.GetBoolean('PreventAdding')
       or not ViewTable.IsAccessGranted(ACM_ADD)
-  else
+  else if SameText(FOperation, 'View') then
+  begin
+    FIsReadOnly := True;
+  end
+  else //Edit
     FIsReadOnly := ViewTable.GetBoolean('Controller/PreventEditing')
       or View.GetBoolean('IsReadOnly')
       or ViewTable.IsReadOnly
       or Config.GetBoolean('PreventEditing')
       or not ViewTable.IsAccessGranted(ACM_MODIFY);
   if SameText(FOperation, 'Add') and FIsReadOnly then
-    raise EEFError.Create(_('Operation Add not supported on read-only data.'));
-  if SameText(FOperation, 'Dup') and FIsReadOnly then
+    raise EEFError.Create(_('Operation Add not supported on read-only data.'))
+  else if SameText(FOperation, 'Edit') and FIsReadOnly then
+    raise EEFError.Create(_('Operation Edit not supported on read-only data.'))
+  else if SameText(FOperation, 'Dup') and FIsReadOnly then
     raise EEFError.Create(_('Operation Duplicate not supported on read-only data.'));
+
+  LLabelAlignNode := ViewTable.FindNode('Controller/PopupWindow/LabelAlign');
+  if Assigned(LLabelAlignNode) then
+    FLabelAlign := OptionAsLabelAlign(LLabelAlignNode)
+  else
+    FLabelAlign := laRight; //Default to right
 
   CreateFormPanel;
 

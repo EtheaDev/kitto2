@@ -3063,6 +3063,9 @@ type
   // Enumerated types for properties
   TExtPanelButtonAlign = (baRight, baLeft, baCenter);
 
+  // Enumerated types for properties
+  TExtFormFormPanelLabelAlign = (laLeft, laTop, laRight);
+
   TExtPanel = class(TExtContainer)
   private
     FAnimCollapse: Boolean; // true
@@ -3148,7 +3151,7 @@ type
     FOnIconchange: TExtPanelOnIconchange;
     FOnTitlechange: TExtPanelOnTitlechange;
     FLabelWidth: Integer;
-    FLabelAlign: string;
+    FLabelAlign: TExtFormFormPanelLabelAlign;
     procedure SetFAnimCollapse(Value: Boolean);
     procedure SetFApplyTo(Value: string);
     procedure SetAutoHeight(const AValue: Boolean);
@@ -3232,7 +3235,7 @@ type
     procedure SetFOnIconchange(Value: TExtPanelOnIconchange);
     procedure SetFOnTitlechange(Value: TExtPanelOnTitlechange);
     procedure SetLabelWidth(const AValue: Integer);
-    procedure SetLabelAlign(const AValue: string);
+    procedure SetLabelAlign(const AValue: TExtFormFormPanelLabelAlign);
   protected
     procedure InitDefaults; override;
     procedure HandleEvent(const AEvtName: string); override;
@@ -3309,7 +3312,7 @@ type
     property Keys: TExtObject read FKeys write SetKeys;
     property KeysArray: TExtObjectList read FKeysArray write SetFKeysArray;
     property LabelWidth: Integer read FLabelWidth write SetLabelWidth;
-    property LabelAlign: string read FLabelAlign write SetLabelAlign;
+    property LabelAlign: TExtFormFormPanelLabelAlign read FLabelAlign write SetLabelAlign;
     property MaskDisabled: Boolean read FMaskDisabled write SetFMaskDisabled;
     property MinButtonWidth: Integer read FMinButtonWidth write SetFMinButtonWidth;
     property Padding: Integer read FPadding write SetFPadding;
@@ -3995,6 +3998,7 @@ function ExtDomQuery: TExtDomQuerySingleton;
 function ExtWindowMgr: TExtWindowMgrSingleton;
 function ExtAjax: TExtAjaxSingleton;
 function ExtStoreMgr: TExtStoreMgrSingleton;
+function LabelAlignAsOption(const AValue: TExtFormFormPanelLabelAlign): string;
 
 implementation
 
@@ -4092,6 +4096,15 @@ begin
     Result := Session.GetSingleton<TExtStoreMgrSingleton>(TExtStoreMgrSingleton.JSClassName)
   else
     Result := nil;
+end;
+
+function LabelAlignAsOption(const AValue: TExtFormFormPanelLabelAlign): string;
+begin
+  case AValue of
+    laLeft : Result := 'left';
+    laTop : Result := 'top';
+    laRight : Result := 'right';
+  end;
 end;
 
 procedure TExtKeyMap.SetFStopEvent(Value: Boolean);
@@ -12923,10 +12936,11 @@ begin
   ExtSession.ResponseItems.SetConfigItem(Self, 'labelWidth', [AValue]);
 end;
 
-procedure TExtPanel.SetLabelAlign(const AValue: string);
+procedure TExtPanel.SetLabelAlign(const AValue: TExtFormFormPanelLabelAlign);
 begin
   FLabelAlign := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'labelAlign', [AValue]);
+  ExtSession.ResponseItems.SetConfigItem(Self, 'labelAlign',
+    [LabelAlignAsOption(AValue)]);
 end;
 
 procedure TExtPanel.SetFKeysArray(Value: TExtObjectList);
@@ -13252,6 +13266,7 @@ begin
   FFooter_ := TExtElement.CreateInternal(Self, 'footer');
   FHeader_ := TExtElement.CreateInternal(Self, 'header');
   FHeader := true;
+  FLabelAlign := laLeft;
 end;
 
 function TExtPanel.AddButton(Config: string = ''; Handler: TExtFunction = nil;
