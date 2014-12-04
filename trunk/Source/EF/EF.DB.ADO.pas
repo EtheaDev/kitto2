@@ -154,7 +154,7 @@ implementation
 
 uses
   SysUtils, StrUtils, Variants, ADOInt,
-  EF.VariantUtils, EF.Types, EF.Tree, EF.SQL;
+  EF.Localization, EF.VariantUtils, EF.Types, EF.Tree, EF.SQL;
 
 function ADODataTypeToEFDataType(const AADODataType: Integer): string;
 begin
@@ -295,6 +295,10 @@ end;
 
 function TEFDBADOConnection.ExecuteImmediate(const AStatement: string): Integer;
 begin
+  Assert(Assigned(FConnection));
+
+  if AStatement = '' then
+    raise EEFError.Create(_('Unspecified Statement text.'));
   Open;
   FConnection.Execute(AStatement, Result);
 end;
@@ -533,13 +537,6 @@ begin
   FParams.AssignValuesTo(FQuery.Parameters);
 end;
 
-{ TEFDBADOFactory }
-
-function TEFDBADOAdapter.InternalCreateDBConnection: TEFDBConnection;
-begin
-  Result := TEFDBADOConnection.Create;
-end;
-
 { TEFDBADOInfo }
 
 procedure TEFDBADOInfo.BeforeFetchInfo;
@@ -678,6 +675,13 @@ begin
   finally
     LForeignKeyDataSet.Free;
   end;
+end;
+
+{ TEFDBADOAdapter }
+
+function TEFDBADOAdapter.InternalCreateDBConnection: TEFDBConnection;
+begin
+  Result := TEFDBADOConnection.Create;
 end;
 
 class function TEFDBADOAdapter.InternalGetClassId: string;
