@@ -24,7 +24,7 @@ uses
   EF.Types;
 
 type
-  TKEditMode = (emNewRecord, emEditCurrentRecord, emDupCurrentRecord);
+  TKEditMode = (emViewCurrentRecord, emNewRecord, emEditCurrentRecord, emDupCurrentRecord);
 
   EKError = class(EEFError);
 

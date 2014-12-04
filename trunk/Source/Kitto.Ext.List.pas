@@ -136,7 +136,9 @@ begin
   end;
   LNode := AConfig.FindNode('LabelAlign');
   if Assigned(LNode) then
-    LabelAlign := LNode.AsString;
+    LabelAlign := OptionAsLabelAlign(LNode)
+  else
+    LabelAlign := laRight;
 end;
 
 procedure TKExtFilterPanel.DoChange;
