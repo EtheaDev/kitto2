@@ -32,8 +32,10 @@ type
   TKKeyField = class(TEFNode)
   private
     function GetKey: TKKey;
+    function GetFieldName: string;
   public
     property Key: TKKey read GetKey;
+    property FieldName: string read GetFieldName;
   end;
 
   TKKey = class(TEFNode)
@@ -47,6 +49,7 @@ type
     property FieldCount: Integer read GetFieldCount;
 
     procedure SetFieldNames(const AFieldNames: TStringDynArray);
+    function GetFieldNames: TStringDynArray;
   end;
 
   TKRecord = class;
@@ -111,9 +114,20 @@ type
     property State: TKRecordState read FState;
     function GetChildClass(const AName: string): TEFNodeClass; override;
 
-    ///	<summary>Called by ReadFromNode after setting all values. Descendants
-    ///	may overwrite some fields.</summary>
+    ///	<summary>
+    ///   Called by ReadFromNode after setting all values. Descendants
+    ///	  may overwrite some fields.
+    /// </summary>
     procedure InternalAfterReadFromNode; virtual;
+
+    ///	<summary>
+    ///	  A function that receives in input a store field name and returns the
+    ///   corresponding database field name (see ReadFromFields).
+    ///   The default implementation assumes that the store and database field
+    ///   names have matching names.
+    /// </summary>
+    function TranslateFieldName(const AFieldName: string): string; virtual;
+
     function GetXMLTagName: string; virtual;
   public
     procedure AfterConstruction; override;
@@ -130,8 +144,8 @@ type
     function MatchesValues(const AValues: TEFNode): Boolean;
 
     ///	<summary>
-    ///	  Clears its fields and reads fields and values from the current
-    ///	  dataset record.
+    ///	  Reads field values from the current dataset record, applying
+    ///   field name translation by calling the provided anonymous method.
     ///	</summary>
     procedure ReadFromFields(const AFields: TFields);
 
@@ -237,7 +251,7 @@ type
   TKRecordPredicate = TPredicate<TKRecord>;
 
   TKStore = class(TEFTree)
-  private
+  strict private
     FChangeNotificationsDisabledCount: Integer;
     FHeader: TKHeader;
     function GetRecords: TKRecords;
@@ -246,7 +260,7 @@ type
     function GetRecordCount: Integer;
     function GetHeader: TKHeader;
     function GetRecordCountExceptNewAndDeleted: Integer;
-  protected
+  strict protected
     function GetChildClass(const AName: string): TEFNodeClass; override;
   public
     destructor Destroy; override;
@@ -265,8 +279,9 @@ type
       const ACommandText: string; const AAppend: Boolean = False); overload;
     procedure Load(const ADBQuery: TEFDBQuery; const AAppend: Boolean = False); overload;
 
-    ///	<summary>Appends a record and fills it with the specified
-    ///	values.</summary>
+    ///	<summary>
+    ///   Appends a record and fills it with the specified values.
+    ///	</summary>
     function AppendRecord(const AValues: TEFNode): TKRecord;
 
     ///	<summary>Removes the record from the store, if present.</summary>
@@ -803,6 +818,15 @@ begin
   Result := ChildCount;
 end;
 
+function TKKey.GetFieldNames: TStringDynArray;
+var
+  I: Integer;
+begin
+  SetLength(Result, FieldCount);
+  for I := 0 to FieldCount - 1 do
+    Result[I] := Fields[I].Name;
+end;
+
 procedure TKKey.SetFieldNames(const AFieldNames: TStringDynArray);
 var
   I: Integer;
@@ -1052,16 +1076,37 @@ end;
 procedure TKRecord.ReadFromFields(const AFields: TFields);
 var
   I: Integer;
+  LDBField: TField;
+  LFieldName: string;
+  LValue: string;
 begin
   Assert(Assigned(AFields));
-  Assert(AFields.Count >= FieldCount);
 
   Backup;
   try
     for I := 0 to FieldCount - 1 do
     begin
-      Fields[I].AssignFieldValue(AFields[I]);
-      Fields[I].MarkAsUnmodified;
+      LDBField := AFields.FindField(TranslateFieldName(Fields[I].FieldName));
+      if Assigned(LDBField) then
+      begin
+        Fields[I].AssignFieldValue(LDBField);
+        Fields[I].MarkAsUnmodified;
+      end
+      // Field not found - might be a concatenation.
+      else if Fields[I].FieldName.Contains(TKConfig.Instance.MultiFieldSeparator) then
+      begin
+        LValue := '';
+        for LFieldName in Split(Fields[I].FieldName, TKConfig.Instance.MultiFieldSeparator) do
+        begin
+          if LValue = '' then
+            LValue := AFields.FieldByName(TranslateFieldName(LFieldName)).AsString
+          else
+            LValue := LValue + TKConfig.Instance.MultiFieldSeparator + AFields.FieldByName(TranslateFieldName(LFieldName)).AsString;
+        end;
+        Fields[I].AsString := LValue;
+        Fields[I].MarkAsUnmodified;
+      end;
+      // Still not found - must be a reference.
     end;
     FState := rsClean;
   except
@@ -1103,6 +1148,11 @@ begin
   Assert(Assigned(FBackup));
 
   Assign(FBackup);
+end;
+
+function TKRecord.TranslateFieldName(const AFieldName: string): string;
+begin
+  Result := AFieldName;
 end;
 
 { TKField }
@@ -1289,6 +1339,11 @@ begin
 end;
 
 { TKKeyField }
+
+function TKKeyField.GetFieldName: string;
+begin
+  Result := Name;
+end;
 
 function TKKeyField.GetKey: TKKey;
 begin

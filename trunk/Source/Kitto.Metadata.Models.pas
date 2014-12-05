@@ -105,6 +105,7 @@ type
     function GetDefaultFilter: string;
     function GetDefaultFilterConnector: string;
     function GetDBColumnNameOrExpression: string;
+    function GetAliasedDBColumnNameOrExpression: string;
   strict protected
     class function BeautifyFieldName(const AFieldName: string): string; virtual;
     function GetChildClass(const AName: string): TEFNodeClass; override;
@@ -123,28 +124,40 @@ type
     property FieldName: string read GetFieldName;
     property PhysicalName: string read GetPhysicalName;
 
-    ///	<summary>Returns the PhysicalName or, if not specified, the
-    ///	FieldName.</summary>
+    ///	<summary>
+    ///   Returns the PhysicalName or, if not specified, the
+    ///	  FieldName.
+    /// </summary>
     property DBColumnName: string read GetDBColumnName;
     property DBColumnNameOrExpression: string read GetDBColumnNameOrExpression;
 
-    ///	<summary>Returns the physical column name (DBColumnName) plus, if the
-    ///	field has a different llogical name, a space and the logical name
-    ///	(FieldName).</summary>
+    ///	<summary>
+    ///   Returns the physical column name (DBColumnName) plus, if the
+    ///	  field has a different logical name, a space and the logical name
+    ///	  (FieldName).
+    /// </summary>
     property AliasedDBColumnName: string read GetAliasedDBColumnName;
+    property AliasedDBColumnNameOrExpression: string read GetAliasedDBColumnNameOrExpression;
 
     property FieldNameOrExpression: string read GetFieldNameOrExpression;
     property QualifiedDBColumnName: string read GetQualifiedDBColumnName;
     property QualifiedDBColumnNameOrExpression: string read GetQualifiedDBColumnNameOrExpression;
 
     property DataType: TEFDataType read GetDataType;
+    /// <summary>
+    ///  Returns the DataType. For reference fields, returns the referenced
+    ///  field's actual data type (recursively).
+    /// </summary>
+    function GetActualDataType: TEFDataType;
     property Size: Integer read GetSize;
     property DecimalPrecision: Integer read GetDecimalPrecision;
     property EditFormat: string read GetEditFormat;
     property DisplayFormat: string read GetDisplayFormat;
 
-    ///	<summary>If the field is contained (as with local children of a
-    ///	reference fields), returns the parent field, otherwise nil.</summary>
+    ///	<summary>
+    ///   If the field is contained (as with local children of a
+    ///	  reference fields), returns the parent field, otherwise nil.
+    /// </summary>
     property ParentField: TKModelField read GetParentField;
 
     ///	<summary>Returns True if the field has a ParentField.</summary>
@@ -171,8 +184,10 @@ type
     ///	of physical fields that make up the reference.</summary>
     property FieldCount: Integer read GetFieldCount;
 
-    ///	<summary>If the field is part of a reference field, returns the
-    ///	physical fields that make up the reference.</summary>
+    ///	<summary>
+    ///  If the field is part of a reference field, returns the
+    ///	 physical fields that make up the reference.
+    /// </summary>
     property Fields[I: Integer]: TKModelField read GetField;
 
     function FieldByName(const AName: string): TKModelField;
@@ -1293,9 +1308,27 @@ begin
     end) as TKModelField;
 end;
 
+function TKModelField.GetActualDataType: TEFDataType;
+begin
+  Result := DataType;
+  if (Result is TKReferenceDataType) then
+  begin
+    Assert(Assigned(ReferencedModel));
+    Assert(ReferencedModel.KeyFieldCount > 0);
+    Result := ReferencedModel.KeyFields[0].GetActualDataType;
+  end;
+end;
+
 function TKModelField.GetAliasedDBColumnName: string;
 begin
   Result := DBColumnName;
+  if not SameText(Result, FieldName) then
+    Result := Result + ' ' + FieldName;
+end;
+
+function TKModelField.GetAliasedDBColumnNameOrExpression: string;
+begin
+  Result := DBColumnNameOrExpression;
   if not SameText(Result, FieldName) then
     Result := Result + ' ' + FieldName;
 end;
@@ -1354,13 +1387,15 @@ begin
   if Assigned(Model) and Assigned(Model.Catalog) then
   begin
     LParentField := ParentField;
-    if Assigned(LParentField) and ParentField.IsReference then
-      Result := ParentField.ReferencedModel.KeyFields[Index].DataType
+    if Assigned(LParentField) and LParentField.IsReference then
+      Result := LParentField.ReferencedModel.KeyFields[Index].GetActualDataType
     else
     begin
       GetFieldSpec(LDataType, LSize, LDecimalPrecision, LIsRequired, LIsKey, LReferencedModel);
-      Result := TEFDataTypeFactory.Instance.GetDataType(LDataType)
+      Result := TEFDataTypeFactory.Instance.GetDataType(LDataType);
     end;
+//    if Result is TKReferenceDataType then
+//      Result := ParentField.ReferencedModel.KeyFields[Index].ReferencedModel.KeyFields[0].DataType;
   end
   else
     Result := inherited GetDataType;

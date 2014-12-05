@@ -22,7 +22,8 @@ interface
 
 uses
   Generics.Collections, SysUtils,
-  Ext, ExtData, ExtForm,
+  Ext, ExtData, ExtForm, ExtPascalUtils,
+  superobject,
   EF.ObserverIntf, EF.Tree,
   Kitto.Metadata.Views, Kitto.Metadata.DataView, Kitto.Store,
   Kitto.Ext.Controller, Kitto.Ext.Base, Kitto.Ext.DataPanel, Kitto.Ext.Editors,
@@ -63,7 +64,8 @@ type
     FFocusField: TExtFormField;
     FStoreRecord: TKViewTableRecord;
     FCloneValues: TEFNode;
-    FEditItems: TList<TObject>;
+    FEditItems: TKEditItemList;
+    FCloneButton: TExtButton;
     FLabelAlign: TExtFormFormPanelLabelAlign;
     procedure CreateEditors;
     procedure RecreateEditors;
@@ -72,22 +74,12 @@ type
     procedure CreateDetailPanels;
     procedure CreateDetailToolbar;
     function GetDetailStyle: string;
-    procedure EnumEditors(const APredicate: TFunc<IKExtEditor, Boolean>; const AHandler: TProc<IKExtEditor>);
-    procedure EditorsByFieldName(const AFieldName: string; const AHandler: TProc<IKExtEditor>);
-    procedure AllEditors(const AHandler: TProc<IKExtEditor>);
-    procedure EnumEditItems(const APredicate: TFunc<IKExtEditItem, Boolean>;
-      const AHandler: TProc<IKExtEditItem>);
-    procedure AllNonEditors(const AHandler: TProc<IKExtEditItem>);
     function GetExtraHeight: Integer;
     procedure AssignFieldChangeEvent(const AAssign: Boolean);
-    procedure FieldChange(const AField: TKField;
-      const AOldValue, ANewValue: Variant);
-    function GetAfterLoadJSCode: string;
+    procedure FieldChange(const AField: TKField; const AOldValue, ANewValue: Variant);
     procedure CreateFormPanel;
     function LayoutContainsPageBreaks: Boolean;
-    procedure DoConfirmChanges;
-  private
-    FCloneButton: TExtButton;
+    function GetConfirmJSCode(const AMethod: TExtProcedure): string;
   strict protected
     procedure DoDisplay; override;
     procedure InitComponents; override;
@@ -104,10 +96,10 @@ type
 implementation
 
 uses
-  StrUtils, Classes, Variants,
+  StrUtils, Classes, Variants, Types,
   ExtPascal,
-  EF.Localization, EF.Types, EF.Intf, EF.DB, EF.JSON, EF.VariantUtils,
-  Kitto.AccessControl, Kitto.Rules, Kitto.SQL,
+  EF.Localization, EF.Types, EF.Intf, EF.DB, EF.JSON, EF.VariantUtils, EF.StrUtils,
+  Kitto.AccessControl, Kitto.Rules, Kitto.SQL, Kitto.Config,
   Kitto.Ext.Session, Kitto.Ext.Utils;
 
 { TKExtFormPanelController }
@@ -204,7 +196,7 @@ begin
   Assert(Assigned(FStoreRecord));
 
   FreeAndNil(FEditItems);
-  FEditItems := TList<TObject>.Create;
+  FEditItems := TKEditItemList.Create;
   LLayoutProcessor := TKExtLayoutProcessor.Create;
   try
     LLayoutProcessor.DataRecord := FStoreRecord;
@@ -232,6 +224,52 @@ begin
   end;
   // Scroll back to top - can't do that until afterrender because body.dom is needed.
   FMainPagePanel.On('afterrender', JSFunction(FMainPagePanel.JSName + '.body.dom.scrollTop = 0;'));
+  // Load data. Combo boxes can only have their raw value set after they're rendered.
+  FEditItems.AllEditors(
+    procedure (AEditor: IKExtEditor)
+    var
+      LFormField: TExtFormField;
+    begin
+      LFormField := AEditor.AsExtFormField;
+      if Assigned(LFormField) then
+      begin
+        LFormField.RemoveAllListeners('afterrender');
+        LFormField.On('afterrender', LFormField.JSFunction(
+          procedure
+          begin
+            AEditor.RefreshValue;
+          end));
+      end
+      else
+        AEditor.RefreshValue;
+    end);
+  // Set button handlers (editors are needed by GetConfirmJSCode).
+  FConfirmButton.Handler := JSFunction(GetConfirmJSCode(ConfirmChanges));
+  if Assigned(FCloneButton) then
+    FCloneButton.Handler := JSFunction(GetConfirmJSCode(ConfirmChangesAndClone));
+end;
+
+function TKExtFormPanelController.GetConfirmJSCode(const AMethod: TExtProcedure): string;
+var
+  LCode: string;
+begin
+  LCode :=
+    'var json = new Object;' + sLineBreak +
+    'json.new = new Object;' + sLineBreak;
+
+  LCode := LCode + GetJSFunctionCode(
+    procedure
+    begin
+      FEditItems.AllEditors(
+        procedure (AEditor: IKExtEditor)
+        begin
+          AEditor.StoreValue('json.new');
+        end);
+    end,
+    False) + sLineBreak;
+
+  LCode := LCode + GetPOSTAjaxCode(AMethod, [], 'json') + sLineBreak;
+  Result := LCode;
 end;
 
 function TKExtFormPanelController.GetDetailStyle: string;
@@ -282,6 +320,7 @@ var
 begin
   Assert(Assigned(FStoreRecord));
 
+  AssignFieldChangeEvent(True);
   try
     if MatchStr(FOperation, ['Add', 'Dup']) then
     begin
@@ -303,71 +342,12 @@ begin
       end;
     end;
 
-    // Load data from FServerRecord.
-    FFormPanel.GetForm.Load(JSObject(Format(
-      'url: "%s", ' +
-      'failure: function(form, action) { Ext.Msg.alert("%s", action.result.errorMessage); }, ' +
-      'success: function(form, action) { %s }',
-      [MethodURI(GetRecord), _('Load failed.'), GetAfterLoadJSCode])));
-
-// New approach - WIP.
-//    AllEditors(
-//      procedure (AEditor: IKExtEditor)
-//      begin
-//        AEditor.RefreshValue;
-//      end);
-
     FocusFirstField;
   except
     on E: EKValidationError do
     begin
       ExtMessageBox.Alert(_(Session.Config.AppTitle), E.Message);
       CancelChanges;
-    end;
-  end;
-end;
-
-procedure TKExtFormPanelController.EditorsByFieldName(const AFieldName: string;
-  const AHandler: TProc<IKExtEditor>);
-begin
-  EnumEditors(
-    function (AEditor: IKExteditor): Boolean
-    begin
-      Result := SameText(AEditor.GetRecordField.ViewField.AliasedName, AFieldName);
-    end,
-    AHandler);
-end;
-
-procedure TKExtFormPanelController.EnumEditors(
-  const APredicate: TFunc<IKExtEditor, Boolean>;
-  const AHandler: TProc<IKExtEditor>);
-var
-  I: Integer;
-  LEditorIntf: IKExtEditor;
-begin
-  for I := 0 to FEditItems.Count - 1 do
-  begin
-    if Supports(FEditItems[I], IKExtEditor, LEditorIntf) then
-    begin
-      if APredicate(LEditorIntf) then
-        AHandler(LEditorIntf);
-    end;
-  end;
-end;
-
-procedure TKExtFormPanelController.EnumEditItems(
-  const APredicate: TFunc<IKExtEditItem, Boolean>;
-  const AHandler: TProc<IKExtEditItem>);
-var
-  I: Integer;
-  LEditItemIntf: IKExtEditItem;
-begin
-  for I := 0 to FEditItems.Count - 1 do
-  begin
-    if Supports(FEditItems[I], IKExtEditItem, LEditItemIntf) then
-    begin
-      if APredicate(LEditItemIntf) then
-        AHandler(LEditItemIntf);
     end;
   end;
 end;
@@ -385,70 +365,20 @@ begin
   ExtSession.ResponseItems.AddJSON('{success:true,data:' + FStoreRecord.GetAsJSON(False) + '}');
 end;
 
-procedure TKExtFormPanelController.DoConfirmChanges;
-begin
-  try
-    // Get POST values.
-    FStoreRecord.SetChildValuesfromSuperObject(Session.GetQueries,
-      False, Session.Config.UserFormatSettings,
-      function(const AName: string): string
-      var
-        LViewField: TKViewField;
-      begin
-        LViewField := ViewTable.FindFieldByAliasedName(AName);
-        if Assigned(LViewField) then
-          Result := LViewField.AliasedName
-        else
-          Result := AName;
-      end);
-    // Get uploaded files.
-    Session.EnumUploadedFiles(
-      procedure (AFile: TKExtUploadedFile)
-      begin
-        if (AFile.Context is TKViewField) and (TKViewField(AFile.Context).Table = ViewTable) then
-        begin
-          if TKViewField(AFile.Context).DataType is TEFBlobDataType then
-            FStoreRecord.FieldByName(TKViewField(AFile.Context).AliasedName).AsBytes := AFile.Bytes
-          else if TKViewField(AFile.Context).DataType is TKFileReferenceDataType then
-            FStoreRecord.FieldByName(TKViewField(AFile.Context).AliasedName).AsString := AFile.FileName
-          else
-            raise Exception.CreateFmt(_('Data type %s does not support file upload.'), [TKViewField(AFile.Context).DataType.GetTypeName]);
-          Session.RemoveUploadedFile(AFile);
-        end;
-      end);
-
-    // Save record.
-    ViewTable.Model.SaveRecord(FStoreRecord, not ViewTable.IsDetail,
-      procedure
-      begin
-        Session.Flash(_('Changes saved succesfully.'));
-      end);
-  except
-    on E: EKValidationError do
-    begin
-      ExtMessageBox.Alert(_(Session.Config.AppTitle), E.Message);
-      Exit;
-    end;
-  end;
-  NotifyObservers('Confirmed');
-end;
-
 procedure TKExtFormPanelController.ConfirmChanges;
 begin
-  DoConfirmChanges;
+  AssignFieldChangeEvent(False);
+  UpdateRecord(FStoreRecord, SO(Session.RequestBody).O['new']);
   FreeAndNil(FCloneValues);
   if Config.GetBoolean('KeepOpenAfterOperation') then
     StartOperation
   else
-  begin
-    AssignFieldChangeEvent(False);
     CloseHostContainer;
-  end;
 end;
 
 procedure TKExtFormPanelController.ConfirmChangesAndClone;
 begin
-  DoConfirmChanges;
+  UpdateRecord(FStoreRecord, SO(Session.RequestBody).O['new']);
   FCloneValues := TEFNode.Clone(FStoreRecord);
   FStoreRecord := ServerStore.AppendRecord(nil);
   FOperation := 'Add';
@@ -542,12 +472,6 @@ begin
       FCloneButton.FormBind := True;
       FCloneButton.Text := LCloneButtonNode.GetString('Caption', _('Save & Clone'));
       FCloneButton.Tooltip := LCloneButtonNode.GetString('Tooltip', _('Save changes and create a new clone record'));
-      // AjaxForms allows us to put JS code in the response, something the commented
-      // versions don't allow.
-      FCloneButton.Handler := AjaxForms(ConfirmChangesAndClone, [FFormPanel]);
-      // Don't just call submit() - we want AjaxSuccess/AjaxFailure to be called so that our response is actually executed.
-      //FSaveButton.Handler := JSFunction(FFormPanel.JSName + '.getForm().submit();');
-      //FSaveButton.Handler := JSFunction(FFormPanel.JSName + '.getForm().doAction("submit", {success:"AjaxSuccess", failure:"AjaxFailure"});');
       FCloneButton.Icon := Session.Config.GetImageURL('accept_clone');
     end
     else
@@ -557,12 +481,6 @@ begin
     FConfirmButton.FormBind := True;
     FConfirmButton.Text := Config.GetString('ConfirmButton/Caption', _('Save'));
     FConfirmButton.Tooltip := Config.GetString('ConfirmButton/Tooltip', _('Save changes and finish editing'));
-    // AjaxForms allows us to put JS code in the response, something the commented
-    // versions don't allow.
-    FConfirmButton.Handler := AjaxForms(ConfirmChanges, [FFormPanel]);
-    // Don't just call submit() - we want AjaxSuccess/AjaxFailure to be called so that our response is actually executed.
-    //FSaveButton.Handler := JSFunction(FFormPanel.JSName + '.getForm().submit();');
-    //FSaveButton.Handler := JSFunction(FFormPanel.JSName + '.getForm().doAction("submit", {success:"AjaxSuccess", failure:"AjaxFailure"});');
     FConfirmButton.Icon := Session.Config.GetImageURL('accept');
   end;
   FCancelButton := TExtButton.CreateAndAddTo(FFormPanel.Buttons);
@@ -661,48 +579,6 @@ begin
   end;
 end;
 
-function TKExtFormPanelController.GetAfterLoadJSCode: string;
-var
-  LResponseItems: TExtResponseItems;
-begin
-  LResponseItems := ExtSession.BranchResponseItems;
-  try
-    AllEditors(
-      procedure (AEditor: IKExtEditor)
-      var
-        LIntf: IKExtEditorAfterLoad;
-      begin
-        if Supports(AEditor, IKExtEditorAfterLoad, LIntf) then
-          LIntf.AfterLoad;
-        end);
-    Result := LResponseItems.Consume;
-  finally
-    ExtSession.UnbranchResponseItems(LResponseItems, False);
-  end;
-end;
-
-procedure TKExtFormPanelController.AllEditors(
-  const AHandler: TProc<IKExtEditor>);
-begin
-  EnumEditors(
-    function (AEditor: IKExteditor): Boolean
-    begin
-      Result := True;
-    end,
-    AHandler);
-end;
-
-procedure TKExtFormPanelController.AllNonEditors(
-  const AHandler: TProc<IKExtEditItem>);
-begin
-  EnumEditItems(
-    function (AEditItem: IKExteditItem): Boolean
-    begin
-      Result := not Supports(AEditItem, IKExtEditor);
-    end,
-    AHandler);
-end;
-
 procedure TKExtFormPanelController.AssignFieldChangeEvent(const AAssign: Boolean);
 begin
   if Assigned(FStoreRecord) then
@@ -712,14 +588,27 @@ begin
       FStoreRecord.OnFieldChange := nil;
 end;
 
-procedure TKExtFormPanelController.FieldChange(const AField: TKField;
-  const AOldValue, ANewValue: Variant);
+procedure TKExtFormPanelController.FieldChange(const AField: TKField; const AOldValue, ANewValue: Variant);
+var
+  LField: TKViewTableField;
 begin
   Assert(Assigned(AField));
   Assert(AField is TKViewTableField);
 
+  LField := TKViewTableField(AField);
+  { TODO :
+  Refactor the way derived fields are determined.
+  Reference fields should not have derived fields.
+  Underlying key fields should.
+  Meanwhile, we just ignore changes to reference fields
+  that would not work due to having only the caption
+  and not the key values here.
+  After the refactoring, this test can be removed. }
+  if LField.ViewField.IsReference then
+    Exit;
+
   // Refresh editors linked to changed field.
-  EditorsByFieldName(TKViewTableField(AField).FieldName,
+  FEditItems.EditorsByFieldName(LField.FieldName,
     procedure (AEditor: IKExtEditor)
     begin
       AEditor.RefreshValue;
@@ -727,7 +616,7 @@ begin
 
   // Give all non-editors a chance to refresh (such as a FieldSet which might
   // need to refresh its title). This might be a performance bottleneck.
-  AllNonEditors(
+  FEditItems.AllNonEditors(
     procedure (AEditItem: IKExtEditItem)
     begin
       AEditItem.RefreshValue;
