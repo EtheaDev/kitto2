@@ -59,6 +59,7 @@
         kittoLoadMask = new Ext.LoadMask(Ext.getBody());
         Ext.Ajax.on("beforerequest", function() { kittoLoadMask.show(); });
         Ext.Ajax.on("requestcomplete", function() { kittoLoadMask.hide(); });
+        Ext.Ajax.on("requestexception", function() { kittoLoadMask.hide(); });
 
         <%Response%>
       }
