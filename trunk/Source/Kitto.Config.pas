@@ -431,6 +431,11 @@ begin
   if not Assigned(FMacroExpansionEngine) then
   begin
     FMacroExpansionEngine := TEFMacroExpansionEngine.Create;
+    FMacroExpansionEngine.OnGetFormatSettings :=
+      function: TFormatSettings
+      begin
+        Result := UserFormatSettings;
+      end;
     AddStandardMacroExpanders(FMacroExpansionEngine);
     FMacroExpansionEngine.AddExpander(TKConfigMacroExpander.Create(Config, 'Config'));
   end;

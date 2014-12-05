@@ -84,8 +84,7 @@ type
     function GetSelectCall(const AMethod: TExtProcedure): TExtFunction; override;
     function IsMultiSelect: Boolean;
   public
-    procedure UpdateObserver(const ASubject: IEFSubject;
-      const AContext: string = ''); override;
+    procedure UpdateObserver(const ASubject: IEFSubject; const AContext: string = ''); override;
     destructor Destroy; override;
   published
     procedure EditRecord;

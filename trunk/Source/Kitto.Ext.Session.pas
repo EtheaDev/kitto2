@@ -257,8 +257,8 @@ type
   TKExtSessionGetEvent = reference to procedure(out ASession: TKExtSession);
 
   ///	<summary>
-  ///	  This helper guarantees that each Ext object has access to the current
-  ///	  thread's session, cast to the correct type.
+  ///	 This helper guarantees that each Ext object has access to the current
+  ///	 thread's session, cast to the correct type.
   ///	</summary>
   TKExtObjectHelper = class helper for TExtObject
   private
