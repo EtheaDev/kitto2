@@ -27,14 +27,18 @@ interface
 
 uses
   SysUtils, Generics.Collections, Classes, Contnrs;
-  
+
 type
+  TEFMacroExpansionEngine = class;
+
   ///	<summary>
-  ///	  Abstract macro expander class. Descendants are able to expand a certain
-  ///	  set of macros in a given string. This class is used with
-  ///	  TEFMacroExpansionEngine but it can be used on its own as well.
+  ///	 Abstract macro expander class. Descendants are able to expand a certain
+  ///	 set of macros in a given string. This class is used with
+  ///	 TEFMacroExpansionEngine but it can be used on its own as well.
   ///	</summary>
   TEFMacroExpander = class
+  private
+    FOwner: TEFMacroExpansionEngine;
   strict protected
     ///	<summary>
     ///	  Utility method: replaces all occurrences of AMacroName in AString with
@@ -49,6 +53,8 @@ type
     ///   argument unchanged.
     ///	</summary>
     function InternalExpand(const AString: string): string; virtual;
+
+    function GetFormatSettings: TFormatSettings;
   public
     constructor Create; virtual;
 
@@ -60,8 +66,6 @@ type
     function Expand(const AString: string): string;
   end;
   TEFMacroExpanderClass = class of TEFMacroExpander;
-
-  TEFMacroExpansionEngine = class;
 
   TEFGetMacroExpansionEngine = reference to function: TEFMacroExpansionEngine;
 
@@ -77,10 +81,13 @@ type
   strict private
     FExpanders: TObjectList<TEFMacroExpander>;
     FPrevious: TEFMacroExpansionEngine;
+    FOnGetFormatSettings: TFunc<TFormatSettings>;
     class var FInstance: TEFMacroExpansionEngine;
     class var FOnGetInstance: TEFGetMacroExpansionEngine;
     function CallExpanders(const AString: string): string;
     class function GetInstance: TEFMacroExpansionEngine; static;
+  private
+    function GetFormatSettings: TFormatSettings;
   strict protected
     class destructor Destroy;
   public
@@ -132,9 +139,15 @@ type
     procedure RemoveExpanders(const AExpanderClass: TEFMacroExpanderClass);
 
     ///	<summary>
-    ///	  Removes all expanders from the list and destroys them.
+    ///	 Removes all expanders from the list and destroys them.
     ///	</summary>
     procedure ClearExpanders;
+
+    ///	<summary>
+    ///	 Function that returns settings for format-sensitive macros such as %DATE%.
+    ///  If not specified, global FormatSettings variable is used.
+    ///	</summary>
+    property OnGetFormatSettings: TFunc<TFormatSettings> read FOnGetFormatSettings write FOnGetFormatSettings;
   end;
 
   ///	<summary>
@@ -481,6 +494,22 @@ uses
   Windows, DateUtils, StrUtils, Types,
   EF.Localization, EF.StrUtils, EF.SysUtils;
 
+var
+  _FormatSettingsFunc: TFunc<TFormatSettings>;
+
+procedure SetFormatSettingsFunc(const AFunc: TFunc<TFormatSettings>);
+begin
+  _FormatSettingsFunc := AFunc;
+end;
+
+function GetFormatSettings: TFormatSettings;
+begin
+  if Assigned(_FormatSettingsFunc) then
+    Result := _FormatSettingsFunc
+  else
+    Result := FormatSettings;
+end;
+
 procedure AddStandardMacroExpanders(const AMacroExpansionEngine: TEFMacroExpansionEngine);
 begin
   Assert(Assigned(AMacroExpansionEngine));
@@ -507,6 +536,14 @@ begin
   // Standard.
   Result := StringReplace(Result, AMacroName, AMacroValue,
     [rfReplaceAll, rfIgnoreCase]);
+end;
+
+function TEFMacroExpander.GetFormatSettings: TFormatSettings;
+begin
+  if Assigned(FOwner) then
+    Result := FOwner.GetFormatSettings
+  else
+    Result :=  FormatSettings;
 end;
 
 function TEFMacroExpander.InternalExpand(const AString: string): string;
@@ -568,8 +605,10 @@ end;
 procedure TEFMacroExpansionEngine.AddExpander(const AExpander: TEFMacroExpander);
 begin
   Assert(Assigned(AExpander));
+  Assert(AExpander.FOwner = nil);
   
   FExpanders.Add(AExpander);
+  AExpander.FOwner := Self;
 end;
 
 function TEFMacroExpansionEngine.RemoveExpander(const AExpander: TEFMacroExpander): Boolean;
@@ -616,6 +655,14 @@ begin
     LText := Result;
     Result := CallExpanders(LText);
   end;
+end;
+
+function TEFMacroExpansionEngine.GetFormatSettings: TFormatSettings;
+begin
+  if Assigned(FOnGetFormatSettings) then
+    Result := FOnGetFormatSettings
+  else
+    Result := FormatSettings;
 end;
 
 class function TEFMacroExpansionEngine.GetInstance: TEFMacroExpansionEngine;
@@ -665,7 +712,7 @@ end;
 function TEFSysMacroExpander.InternalExpand(const AString: string): string;
 begin
   Result := inherited InternalExpand(AString);
-  Result := ExpandMacros(Result, '%DATE%', DateToStr(Date));
+  Result := ExpandMacros(Result, '%DATE%', DateToStr(Date, GetFormatSettings));
   Result := ExpandMacros(Result, '%YESTERDAY%', DateToStr(Date - 1));
   Result := ExpandMacros(Result, '%TOMORROW%', DateToStr(Date + 1));
   Result := ExpandMacros(Result, '%TIME%', TimeToStr(Now));
