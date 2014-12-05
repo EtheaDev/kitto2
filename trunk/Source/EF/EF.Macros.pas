@@ -710,13 +710,16 @@ end;
 { TEFSysMacroExpander }
 
 function TEFSysMacroExpander.InternalExpand(const AString: string): string;
+var
+  LFormatSettings: TFormatSettings;
 begin
   Result := inherited InternalExpand(AString);
-  Result := ExpandMacros(Result, '%DATE%', DateToStr(Date, GetFormatSettings));
-  Result := ExpandMacros(Result, '%YESTERDAY%', DateToStr(Date - 1));
-  Result := ExpandMacros(Result, '%TOMORROW%', DateToStr(Date + 1));
-  Result := ExpandMacros(Result, '%TIME%', TimeToStr(Now));
-  Result := ExpandMacros(Result, '%DATETIME%', DateTimeToStr(Now));
+  LFormatSettings := GetFormatSettings;
+  Result := ExpandMacros(Result, '%DATE%', FormatDateTime(LFormatSettings.ShortDateFormat, Date));
+  Result := ExpandMacros(Result, '%YESTERDAY%', FormatDateTime(LFormatSettings.ShortDateFormat, Date - 1));
+  Result := ExpandMacros(Result, '%TOMORROW%', FormatDateTime(LFormatSettings.ShortDateFormat, Date + 1));
+  Result := ExpandMacros(Result, '%TIME%', FormatDateTime(LFormatSettings.ShortTimeFormat, Now));
+  Result := ExpandMacros(Result, '%DATETIME%', FormatDateTime(LFormatSettings.ShortDateFormat, Now)+' '+ FormatDateTime(LFormatSettings.ShortTimeFormat, Now));
   Result := ExpandMacros(Result, '%PROCESS_ID%', IntToStr(GetCurrentProcessId));
   Result := ExpandMacros(Result, '%THREAD_ID%', IntToStr(GetCurrentThreadId));
 end;
