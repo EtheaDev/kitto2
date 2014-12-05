@@ -23,7 +23,7 @@ interface
 uses
   Classes, Generics.Collections, DB,
   EF.Classes,  EF.Tree, EF.DB,
-  Kitto.Store, Kitto.Metadata.Models, Kitto.Metadata.DataView;
+  Kitto.Config, Kitto.Store, Kitto.Metadata.Models, Kitto.Metadata.DataView;
 
 type
   ///	<summary>
@@ -73,47 +73,74 @@ type
       const AFilter: string; const ADBQuery: TEFDBQuery;
       const AMasterValues: TEFNode);
 
-    ///	<summary>Builds and returns a SQL statement that selects the specified
-    ///	field plus all key fields from the specified field's table. AViewField
-    ///	must have an assigned Reference, otherwise an exception is
-    ///	raised.</summary>
+    ///	<summary>
+    ///   Builds and returns a SQL statement that selects the specified
+    ///	  field plus all key fields from the specified field's table. AViewField
+    ///	  must have an assigned Reference, otherwise an exception is raised.
+    ///	</summary>
     class function GetLookupSelectStatement(const AViewField: TKViewField): string;
 
-    ///	<summary>Builds in the specified command an insert statement against
-    ///	the specified record's table with a parameter for each value in AValues.
-    ///	Also sets the parameter values, so that the command is ready for
-    ///	execution.</summary>
+    ///	<summary>
+    ///   Builds in the specified command an insert statement against
+    ///	  the specified record's table with a parameter for each value in AValues.
+    ///	  Also sets the parameter values, so that the command is ready for
+    ///	  execution.
+    /// </summary>
     class procedure BuildInsertCommand(const ADBCommand: TEFDBCommand;
       const ARecord: TKViewTableRecord);
 
-    ///	<summary>Builds in the specified command an update statement against
-    ///	the specified record's table with a parameter for each value in ARecord
-    /// plus a where clause with a parameter for each key field.
-    ///	Also sets the parameter values, so that the command is ready for
-    ///	execution. ARecord must contain at least the key fields.</summary>
+    ///	<summary>
+    ///   Builds in the specified command an update statement against
+    ///	  the specified record's table with a parameter for each value in ARecord
+    ///   plus a where clause with a parameter for each key field.
+    ///	  Also sets the parameter values, so that the command is ready for
+    ///	  execution.
+    ///   ARecord must contain at least the key fields.
+    /// </summary>
     class procedure BuildUpdateCommand(const ADBCommand: TEFDBCommand;
       const ARecord: TKViewTableRecord);
 
-    ///	<summary>Builds in the specified command a delete statement against
-    ///	the specified record's table with a where clause with a parameter for
-    /// each key field.
-    ///	Also sets the parameter values, so that the command is ready for
-    ///	execution. AValues must contain at least the key fields.</summary>
+    ///	<summary>
+    ///   Builds in the specified command a delete statement against
+    ///	  the specified record's table with a where clause with a parameter for
+    ///   each key field.
+    ///	  Also sets the parameter values, so that the command is ready for
+    ///	  execution. AValues must contain at least the key fields.
+    /// </summary>
     class procedure BuildDeleteCommand(const ADBCommand: TEFDBCommand;
       const ARecord: TKViewTableRecord);
 
-    ///	<summary>Builds in the specified query a select statement that selects
-    ///	all derived fields from the referenced model, locating the record by
-    ///	means of the specified key.</summary>
-    ///	<param name="AViewField">Originating reference field.</param>
-    ///	<param name="ADBQuery">Query object into which to build the statement
-    ///	and the params.</param>
-    ///	<param name="AKeyValues">Key values for the referenced model
-    ///	row.</param>
-    ///	<exception cref="Assert">The field must be a reference field and at
-    ///	least one derived field must exist in the view table.</exception>
+    ///	<summary>
+    ///   Builds in the specified query a select statement that selects
+    ///	  all derived fields from the referenced model, locating the record by
+    ///	  means of the specified key.</summary>
+    ///	<param name="AViewField">
+    ///   Originating reference field.
+    /// </param>
+    ///	<param name="ADBQuery">
+    ///   Query object into which to build the statement
+    ///	  and the params.
+    /// </param>
+    ///	<param name="AKeyValues">
+    ///   Key values for the referenced model row.
+    /// </param>
+    ///	<exception cref="Assert">
+    ///   The field must be a reference field and at
+    ///	  least one derived field must exist in the view table.
+    /// </exception>
     class procedure BuildDerivedSelectQuery(const AViewField: TKViewField;
       const ADBQuery: TEFDBQuery; const AKeyValues: string);
+
+    /// <summary>
+    ///  Replaces '{Q}' tags in AString with AQualification plus a dot.
+    ///  If AQualification is '', tags are simply removed from the string.
+    ///  Returns the modified string.
+    /// </summary>
+    /// <remarks>
+    ///  If AString does not contain any '{Q}' tags, it is assumed to have
+    ///  an implicit one at the beginning.
+    /// </remarks>
+    class function ExpandQualification(const AString, AQualification: string): string;
   end;
 
 implementation
@@ -406,12 +433,11 @@ var
   LModel: TKModel;
   LClause: string;
   LDBColumnName: string;
-  LKeyValues: string;
+  LKeyValues: TArray<string>;
 begin
   Assert(Assigned(AViewField));
   Assert(AViewField.IsReference);
   Assert(Assigned(ADBQuery));
-  LKeyValues := AKeyValues;
   LDerivedFields := AViewField.GetDerivedFields;
   Assert(Length(LDerivedFields) > 0);
 
@@ -440,6 +466,15 @@ begin
 
     LKeyDBColumnNames := LModel.GetKeyDBColumnNames;
     Assert(Length(LKeyDBColumnNames) > 0);
+    if Length(LKeyDBColumnNames) <> 1 then
+      LKeyValues := AKeyValues.Split([TKConfig.Instance.MultiFieldSeparator], None)
+    else
+    begin
+      SetLength(LKeyValues, 1);
+      LKeyValues[0] := AKeyValues;
+    end;
+    Assert(Length(LKeyValues) = Length(LKeyDBColumnNames));
+
     LClause := '';
     for I := 0 to High(LKeyDBColumnNames) do
     begin
@@ -449,19 +484,14 @@ begin
       else
         LClause := LClause + ' and ' + LDBColumnName + ' = :' + LDBColumnName;
       ADBQuery.Params.CreateParam(ftUnknown, LDBColumnName, ptInput);
-
-      //Workaround when Combobox changes his value and KeyValues is not the value of the key
-      if (I=0) and (LModel.KeyFields[I].size < length(LKeyValues)) then
-        LKeyValues := '';
     end;
     LCommandText := SetSQLWhereClause(LCommandText, LClause);
     ADBQuery.CommandText := TEFMacroExpansionEngine.Instance.Expand(LCommandText);
   finally
     ADBQuery.Params.EndUpdate;
   end;
-  { TODO : only single-field keys supported for now }
-  Assert(ADBQuery.Params.Count = 1);
-  ADBQuery.Params[0].Value := LKeyValues;
+  for I := 0 to ADBQuery.Params.Count - 1 do
+    ADBQuery.Params[I].Value := LKeyValues[I];
 end;
 
 procedure TKSQLBuilder.AfterConstruction;
@@ -474,6 +504,19 @@ destructor TKSQLBuilder.Destroy;
 begin
   inherited;
   FreeAndNil(FUsedReferenceFields);
+end;
+
+class function TKSQLBuilder.ExpandQualification(const AString, AQualification: string): string;
+begin
+  if AQualification = '' then
+    Result := ReplaceStr(AString, '{Q}', '')
+  else
+  begin
+    if AString.Contains('{Q}') then
+      Result := ReplaceStr(AString, '{Q}', AQualification + '.')
+    else
+      Result := AQualification + '.' + AString;
+  end;
 end;
 
 procedure TKSQLBuilder.Clear;
@@ -507,17 +550,17 @@ var
   LLookupModel: TKModel;
   LDefaultFilter: string;
   LLookupModelDefaultFilter: string;
+  LColumnNames: TStringDynArray;
 begin
   Assert(Assigned(AViewField));
   Assert(AViewField.IsReference);
 
   LLookupModel := AViewField.ModelField.ReferencedModel;
-  Result := 'select ' + Join(LLookupModel.GetKeyDBColumnNames(False, True), ', ');
+  LColumnNames := LLookupModel.GetKeyDBColumnNames(False, True);
+  Result := 'select ' + Join(LColumnNames, ', ');
   // Ensure caption field is contained in select list.
   if not LLookupModel.CaptionField.IsKey then
-    Result := Result + ', ' + LLookupModel.CaptionField.AliasedDBColumnName
-  else
-    Result := Result + ', ' + LLookupModel.CaptionField.AliasedDBColumnName + ' Description';
+    Result := Result + ', ' + ExpandQualification(LLookupModel.CaptionField.AliasedDBColumnNameOrExpression, '');
   Result := Result + ' from ' + LLookupModel.DBTableName;
 
   LLookupModelDefaultFilter := LLookupModel.DefaultFilter;
@@ -527,7 +570,7 @@ begin
   LDefaultFilter := AViewField.DefaultFilter;
   if LDefaultFilter <> '' then
     Result := AddToSQLWhereClause(Result, '(' + LDefaultFilter  + ')', AViewField.DefaultFilterConnector);
-  Result := Result + ' order by ' + LLookupModel.CaptionField.DBColumnName;
+  Result := Result + ' order by ' + ExpandQualification(LLookupModel.CaptionField.DBColumnNameOrExpression, '');
 end;
 
 function TKSQLBuilder.BuildJoin(const AReferenceField: TKModelField): string;
@@ -581,8 +624,7 @@ begin
   // Add the caption field of the referenced model as well.
   // The reference field name is used as table alias.
   AddSelectTerm(
-    AViewField.FieldName + '.' +
-    AViewField.ModelField.ReferencedModel.CaptionField.DBColumnNameOrExpression + ' ' +
+    ExpandQualification(AViewField.ModelField.ReferencedModel.CaptionField.DBColumnNameOrExpression, AViewField.FieldName) + ' ' +
     AViewField.ModelField.FieldName);
   LFields := AViewField.ModelField.GetReferenceFields;
   for I := Low(LFields) to High(LFields) do

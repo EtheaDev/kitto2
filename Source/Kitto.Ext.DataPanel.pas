@@ -22,6 +22,7 @@ interface
 
 uses
   Ext, ExtPascal, ExtPascalUtils, ExtData,
+  superobject,
   EF.Classes,
   Kitto.Metadata.Views, Kitto.Metadata.DataView, Kitto.Store,
   Kitto.Ext.Base, Kitto.Ext.Controller, Kitto.Ext.BorderPanel;
@@ -75,6 +76,7 @@ type
     function GetParentDataPanel: TKExtDataPanelController;
     function GetRootDataPanel: TKExtDataPanelController;
     function FindViewLayout(const ALayoutName: string): TKLayout;
+    function UpdateRecord(const ARecord: TKVIewTableRecord; const ANewValues: ISuperObject): string;
   public
     destructor Destroy; override;
     property ViewTable: TKViewTable read FViewTable write SetViewTable;
@@ -88,9 +90,10 @@ type
 implementation
 
 uses
-  SysUtils, StrUtils, Math,
+  SysUtils, StrUtils, Math, Types,
   EF.StrUtils, EF.Tree, EF.Localization,
-  Kitto.Types, Kitto.AccessControl, Kitto.Ext.Session;
+  Kitto.Types, Kitto.AccessControl, Kitto.Config, Kitto.Rules,
+  Kitto.Ext.Session;
 
 { TKExtDataPanelController }
 
@@ -410,6 +413,110 @@ begin
   Assert(ViewTable <> nil);
 
   Session.Config.CheckAccessGranted(ViewTable.GetResourceURI, ACM_READ);
+end;
+
+function TKExtDataPanelController.UpdateRecord(const ARecord: TKVIewTableRecord; const ANewValues: ISuperObject): string;
+var
+  LItem: TSuperAvlEntry;
+  LOldRecord: TKViewTableRecord;
+  LField: TKViewTableField;
+  LParentField: TKViewField;
+  LParentValue: string;
+
+  procedure SetFieldValue;
+  var
+    LNames: TStringDynArray;
+    LValues: TStringDynArray;
+    LSep: string;
+    I: Integer;
+  begin
+    LField.SetAsJSONValue(LItem.Value.AsString, False, Session.Config.UserFormatSettings);
+
+    LSep := TKConfig.Instance.MultiFieldSeparator;
+    if LItem.Name.Contains(LSep) then
+    begin
+      LNames := EF.StrUtils.Split(LItem.Name, LSep);
+      LValues := EF.StrUtils.Split(LItem.Value.AsString, LSep);
+      Assert(Length(LNames) = Length(LValues));
+      for I := Low(LNames) to High(LNames) do
+        LField.ParentRecord.FieldByName(LNames[I]).SetAsJSONValue(LValues[I], False, Session.Config.UserFormatSettings);
+    end;
+  end;
+
+begin
+  LOldRecord := TKViewTableRecord.Clone(ARecord);
+  try
+    try
+      ARecord.Store.DisableChangeNotifications;
+      try
+        // Modify record values.
+        for LItem in ANewValues.AsObject do
+        begin
+          LField := ARecord.FieldByName(LItem.Name);
+          LParentField := LField.ViewField.Table.FindParentField(LField.FieldName);
+          if Assigned(LParentField) then
+            LParentValue := ANewValues.AsObject.S[LParentField.FieldName]
+          else
+            LParentValue := '';
+          if Assigned(LParentField) then
+          begin
+            // FK fields that are equal to their description mean
+            // unchanged values (and that the user has clicked on the combo box
+            // without changing it and then clicked away).
+            if LItem.Value.AsString = LParentValue then
+              Continue;
+            // FK fields that are blank mean unchanged values if the description
+            // is nonblank, and blanked out values if the description is also blank.
+            if LItem.Value.AsString = '' then begin
+              if LParentValue = '' then
+                LField.SetToNull;
+            // else unchanged.
+            end
+            else
+              SetFieldValue;
+          end;
+          SetFieldValue;
+        end;
+      finally
+        ARecord.Store.EnableChangeNotifications;
+      end;
+      // Get uploaded files.
+      Session.EnumUploadedFiles(
+        procedure (AFile: TKExtUploadedFile)
+        begin
+          if (AFile.Context is TKViewField) and (TKViewField(AFile.Context).Table = ViewTable) then
+          begin
+            if TKViewField(AFile.Context).DataType is TEFBlobDataType then
+              ARecord.FieldByName(TKViewField(AFile.Context).AliasedName).AsBytes := AFile.Bytes
+            else if TKViewField(AFile.Context).DataType is TKFileReferenceDataType then
+              ARecord.FieldByName(TKViewField(AFile.Context).AliasedName).AsString := AFile.FileName
+            else
+              raise Exception.CreateFmt(_('Data type %s does not support file upload.'), [TKViewField(AFile.Context).DataType.GetTypeName]);
+            Session.RemoveUploadedFile(AFile);
+          end;
+        end);
+
+      // Save record.
+      ViewTable.Model.SaveRecord(ARecord, not ViewTable.IsDetail,
+        procedure
+        begin
+          Session.Flash(_('Changes saved succesfully.'));
+        end);
+      Result := '';
+    except
+      on E: EKValidationError do
+      begin
+        ExtMessageBox.Alert(_(Session.Config.AppTitle), E.Message);
+        Result := E.Message;
+        ARecord.Assign(LOldRecord);
+        ARecord.MarkAsClean;
+        Exit;
+      end;
+    end;
+    NotifyObservers('Confirmed');
+  finally
+    FreeAndNil(LOldRecord);
+  end;
 end;
 
 end.
