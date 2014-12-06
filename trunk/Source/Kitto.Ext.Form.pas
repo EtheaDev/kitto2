@@ -454,7 +454,7 @@ begin
   else if SameText(FOperation, 'Dup') and FIsReadOnly then
     raise EEFError.Create(_('Operation Duplicate not supported on read-only data.'));
 
-  LLabelAlignNode := ViewTable.FindNode('Controller/PopupWindow/LabelAlign');
+  LLabelAlignNode := ViewTable.FindNode('Controller/FormController/LabelAlign');
   if Assigned(LLabelAlignNode) then
     FLabelAlign := OptionAsLabelAlign(LLabelAlignNode)
   else
