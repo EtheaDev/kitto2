@@ -231,12 +231,22 @@ begin
   if SameText(LDriverID, 'MSSQL') then
   begin
     // Use Specific parameters for MS-SQL
-    FConnection.Params.Values['SERVER'] := Config.GetExpandedString('Connection/Server');
+    FConnection.Params.Values['Server'] := Config.GetExpandedString('Connection/Server');
     FConnection.Params.Values['User_Name'] := Config.GetExpandedString('Connection/User_Name');
     FConnection.Params.Values['Password'] := Config.GetExpandedString('Connection/Password');
     FConnection.Params.Values['ApplicationName'] := Config.GetExpandedString('Connection/ApplicationName');
-    FConnection.Params.Values['DATABASE'] := Config.GetExpandedString('Connection/Database');
+    FConnection.Params.Values['Database'] := Config.GetExpandedString('Connection/Database');
     FConnection.Params.Values['MARS'] := 'Yes';
+  end
+  else if SameText(LDriverID, 'FB') then
+  begin
+    // Use Specific parameters for Firebird
+    FConnection.Params.Values['Server'] := Config.GetExpandedString('Connection/Server');
+    FConnection.Params.Values['User_Name'] := Config.GetExpandedString('Connection/User_Name');
+    FConnection.Params.Values['Password'] := Config.GetExpandedString('Connection/Password');
+    FConnection.Params.Values['CharacterSet'] := Config.GetExpandedString('Connection/CharacterSet');
+    FConnection.Params.Values['Database'] := Config.GetExpandedString('Connection/Database');
+    FConnection.Params.Values['Protocol'] := Config.GetExpandedString('Connection/Protocol');
   end;
 
   FConnection.Open;
@@ -292,7 +302,7 @@ begin
   LDriverId := DriverId;
   if SameText(LDriverId, 'MSSQL') then
     Result := TEFSQLServerDBEngineType.Create
-  else if SameText(LDriverId, 'Firebird') or SameText(LDriverId, 'Interbase') then
+  else if SameText(LDriverId, 'FB') or SameText(LDriverId, 'IB') then
     Result := TEFFirebirdDBEngineType.Create
   else
     Result := inherited CreateDBEngineType;
