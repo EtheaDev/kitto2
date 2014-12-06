@@ -255,7 +255,7 @@ procedure TKExtDownloadFileController.ExecuteTool;
 begin
   inherited;
   try
-    FFileName := FileName;
+    FFileName := GetFileName;
     if FFileName <> '' then
     begin
       PrepareFile(FFileName);
@@ -283,7 +283,6 @@ procedure TKExtDownloadFileController.DownloadFile;
 var
   LStream: TStream;
 begin
-  inherited;
   try
     LStream := TFileStream.Create(FFileName, fmOpenRead);
     try
@@ -299,9 +298,13 @@ end;
 procedure TKExtDownloadFileController.DownloadStream;
 begin
   try
-    Session.DownloadStream(FStream, ClientFileName, ContentType);
+    try
+      Session.DownloadStream(FStream, ClientFileName, ContentType);
+    finally
+      FreeAndNil(FStream);
+    end;
   finally
-    FreeAndNil(FStream);
+    Cleanup;
   end;
 end;
 

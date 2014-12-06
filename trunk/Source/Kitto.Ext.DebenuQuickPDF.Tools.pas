@@ -223,7 +223,6 @@ var
   LFontColor: TAlphaColor;
   LDefaultFontColor: TAlphaColor;
   LDefaultFontNumber: Integer;
-  LField: TKViewTableField;
   LVertAlign, LAlign: Integer;
   LLayoutFileName: TEFPersistentTree;
 
@@ -346,7 +345,7 @@ var
 
   function ExpandExpression(const AExpression: string): string;
   begin
-    Result := LRecord.ExpandExpression(AExpression);
+    Result := LRecord.ExpandFieldJSONValues(AExpression, True);
     Result := TEFMacroExpansionEngine.Instance.Expand(Result);
   end;
 
@@ -444,7 +443,7 @@ var
 begin
   LDateStr := GetNodeValue('CreationDate');
   try
-    Result := StrToDate(LDateStr);
+    Result := StrToDateTime(LDateStr);
   except
     Result := 0;
   end;

@@ -82,8 +82,8 @@ type
     function GetAsJSON(const AForDisplay: Boolean): string;
     function GetAsJSONValue(const AForDisplay: Boolean; const AQuote: Boolean = True;
       const AEmptyNulls: Boolean = False): string; virtual;
-    function GetAsXML: string;
-    function GetAsXMLValue(const ATagName: string;
+    function GetAsXML(const AForDisplay: Boolean): string;
+    function GetAsXMLValue(const AForDisplay: Boolean;
       const AEmptyNulls: Boolean = False): string; virtual;
     property FieldName: string read GetFieldName;
   end;
@@ -154,7 +154,7 @@ type
     procedure ReadFromNode(const ANode: TEFNode);
 
     function GetAsJSON(const AForDisplay: Boolean): string;
-    function GetAsXML: string;
+    function GetAsXML(const AForDisplay: Boolean): string;
     ///	<summary>Expand an expression that contains reference to field of record.
     ///	For example: 'Activity: %Description%'.</summary>
     function ExpandExpression(const AExpression: string): string;
@@ -187,7 +187,7 @@ type
     procedure SetKey(const AValue: TKKey);
     function GetStore: TKStore;
     function GetRecordCountExceptNewAndDeleted: Integer;
-  protected
+  strict protected
     function GetXMLTagName: string; virtual;
     function GetChildClass(const AName: string): TEFNodeClass; override;
   public
@@ -211,8 +211,8 @@ type
     function GetAsJSON(const AForDisplay: Boolean;
       const AFrom: Integer = 0; const AFor: Integer = 0): string;
 
-    function GetAsXML(const AFrom: Integer = 0;
-      const AFor: Integer = 0): string;
+    function GetAsXML(const AForDisplay: Boolean;
+      const AFrom: Integer = 0; const AFor: Integer = 0): string;
   end;
 
   TKHeaderField = class(TEFNode)
@@ -293,7 +293,7 @@ type
     function GetAsJSON(const AForDisplay: Boolean; const AFrom: Integer = 0;
       const AFor: Integer = 0): string;
 
-    function GetAsXML(const AFrom: Integer = 0;
+    function GetAsXML(const AForDisplay: Boolean; const AFrom: Integer = 0;
       const AFor: Integer = 0): string;
 
     function ChangesPending: Boolean;
@@ -519,9 +519,10 @@ begin
   Result := Records.GetAsJSON(AForDisplay, AFrom, AFor);
 end;
 
-function TKStore.GetAsXML(const AFrom, AFor: Integer): string;
+function TKStore.GetAsXML(const AForDisplay: Boolean; const AFrom: Integer;
+  const AFor: Integer): string;
 begin
-  Result := Records.GetAsXML(AFrom, AFor);
+  Result := Records.GetAsXML(AForDisplay, AFrom, AFor);
 end;
 
 function TKStore.GetChildClass(const AName: string): TEFNodeClass;
@@ -715,7 +716,8 @@ begin
   Result := '[' + Result + ']';
 end;
 
-function TKRecords.GetAsXML(const AFrom, AFor: Integer): string;
+function TKRecords.GetAsXML(const AForDisplay: Boolean;
+  const AFrom, AFor: Integer): string;
 var
   I: Integer;
   LTo: Integer;
@@ -738,9 +740,9 @@ begin
     if not Records[I].IsDeleted and not Records[I].IsNew then
     begin
       if Result = '' then
-        Result := Records[I].GetAsXML
+        Result := Records[I].GetAsXML(AForDisplay)
       else
-        Result := Result + Records[I].GetAsXML;
+        Result := Result + Records[I].GetAsXML(AForDisplay);
       Dec(LCount);
     end;
     Inc(I);
@@ -959,19 +961,25 @@ begin
   Result := '{' + Result + '}';
 end;
 
-function TKRecord.GetAsXML: string;
+function TKRecord.GetAsXML(const AForDisplay: Boolean): string;
 var
   I: Integer;
   LXML, LTagName: string;
+  LDetailStore: TKStore;
 begin
   Result := '';
   for I := 0 to FieldCount - 1 do
   begin
-    LXML := Fields[I].GetAsXML;
+    LXML := Fields[I].GetAsXML(AForDisplay);
     if LXML <> '' then
       Result := Result + sLineBreak + LXML
     else
       Result := LXML;
+  end;
+  for I := 0 to DetailStoreCount -1 do
+  begin
+    LDetailStore := DetailStores[I];
+    Result := Result + LDetailStore.GetAsXML(AForDisplay);
   end;
   LTagName := GetXMLTagName;
   Result := Format(XMLTagFormat,[LTagName, Result, LTagName]);
@@ -1184,23 +1192,18 @@ begin
   Result := DataType.NodeToJSONValue(AForDisplay, Self, TKConfig.JSFormatSettings, AQuote, AEmptyNulls);
 end;
 
-function TKField.GetAsXML: string;
-var
-  LTagName: string;
+function TKField.GetAsXML(const AForDisplay: Boolean): string;
 begin
   if DataType.SupportsXML then
-  begin
-    LTagName := GetXMLTagName;
-    Result := GetAsXMLValue(LTagName);
-  end
+    Result := GetAsXMLValue(AForDisplay)
   else
     Result := '';
 end;
 
-function TKField.GetAsXMLValue(const ATagName: string;
+function TKField.GetAsXMLValue(const AForDisplay: Boolean;
   const AEmptyNulls: Boolean = False): string;
 begin
-  Result := DataType.NodeToXMLValue(Self, ATagName, AEmptyNulls);
+  Result := DataType.NodeToXMLValue(AForDisplay, Self, TKConfig.Instance.UserFormatSettings, AEmptyNulls);
 end;
 
 function TKField.GetDataType: TEFDataType;

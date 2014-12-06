@@ -45,8 +45,6 @@ type
       const AFormatSettings: TFormatSettings); virtual;
     function InternalNodeToJSONValue(const AForDisplay: Boolean;
       const ANode: TEFNode; const AJSFormatSettings: TFormatSettings): string; virtual;
-    function InternalNodeToXMLValue(const ATagName: string;
-      const ANode: TEFNode): string; virtual;
     procedure InternalJSONValueToNode(const ANode: TEFNode;
       const AValue: string; const AUseJSDateFormat: Boolean;
       const AJSFormatSettings: TFormatSettings); virtual;
@@ -73,8 +71,8 @@ type
     function NodeToJSONValue(const AForDisplay: Boolean; const ANode: TEFNode;
       const AJSFormatSettings: TFormatSettings; const AQuote: Boolean = True;
       const AEmptyNulls: Boolean = False): string;
-    function NodeToXMLValue(const ANode: TEFNode; const ATagName: string;
-      const AEmptyNulls: Boolean = False): string;
+    function NodeToXMLValue(const AForDisplay: Boolean; const ANode: TEFNode;
+      const AFormatSettings: TFormatSettings; const AEmptyNulls: Boolean = False): string;
     procedure JSONValueToNode(const ANode: TEFNode; const AValue: string;
       const AUseJSDateFormat: Boolean;
       const AJSFormatSettings: TFormatSettings); virtual;
@@ -2623,12 +2621,6 @@ begin
   raise EEFError.CreateFmt('%s.InternalNodeToParam: Unsupported call.', [ClassName]);
 end;
 
-function TEFDataType.InternalNodeToXMLValue(const ATagName: string;
-  const ANode: TEFNode): string;
-begin
-  Result := XMLEscape(ANode.AsString);
-end;
-
 procedure TEFDataType.InternalYamlValueToNode(const AYamlValue: string;
   const ANode: TEFNode; const AFormatSettings: TFormatSettings);
 begin
@@ -2695,7 +2687,7 @@ begin
     Result := IfThen(AEmptyNulls, '', 'null')
   else
   begin
-    Result := InternalNodeToJSONValue(AForDisplay, ANode, AJSFormatSettings);
+    Result := JSONEscape(InternalNodeToJSONValue(AForDisplay, ANode, AJSFormatSettings));
     if AQuote then
       Result := QuoteJSONStr(Result);
   end;
@@ -2712,15 +2704,17 @@ begin
     InternalNodeToParam(ANode, AParam);
 end;
 
-function TEFDataType.NodeToXMLValue(const ANode: TEFNode;
-  const ATagName: string; const AEmptyNulls: Boolean): string;
+function TEFDataType.NodeToXMLValue(const AForDisplay: Boolean;
+  const ANode: TEFNode; const AFormatSettings: TFormatSettings;
+  const AEmptyNulls: Boolean = False): string;
+var
+  LTagName: string;
 begin
   Assert(Assigned(ANode));
-  Assert(ATagName <> '');
-
-  Result := InternalNodeToXMLValue(ANode.Name, ANode);
+  LTagName := ANode.Name;
+  Result := XMLEscape(InternalNodeToJSONValue(AForDisplay, ANode, AFormatSettings));
   if not ((Result = '') and AEmptyNulls) then
-    Result := Format(XMLTagFormat, [ATagName,Result,ATagName]);
+    Result := Format(XMLTagFormat, [LTagName, Result, LTagName]);
 end;
 
 function TEFDataType.SupportsEmptyAsNull: Boolean;

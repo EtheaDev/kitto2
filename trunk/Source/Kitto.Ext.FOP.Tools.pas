@@ -90,9 +90,9 @@ begin
   LXMLFileName := ChangeFileExt(AFileName, '.xml');
   //Build XML data file
   if Assigned(LRecord) then
-    LXMLContent := XMLHeader + LRecord.GetAsXML
+    LXMLContent := XMLHeader + LRecord.GetAsXML(True)
   else
-    LXMLContent := XMLHeader + LStore.GetAsXML;
+    LXMLContent := XMLHeader + LStore.GetAsXML(True);
 
   LFileStream := TStringStream.Create(LXMLContent, TEncoding.UTF8);
   try
