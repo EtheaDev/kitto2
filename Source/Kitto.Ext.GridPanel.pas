@@ -577,6 +577,7 @@ procedure TKExtGridPanel.ShowEditWindow(const ARecord: TKRecord;
   const AEditMode: TKEditMode);
 var
   LFormControllerType: string;
+  LFormControllerNode: TEFNode;
   LFormController: IKExtController;
   LWidth: Integer;
   LHeight: Integer;
@@ -600,11 +601,15 @@ begin
   else
     FEditHostWindow.Title := _(ViewTable.DisplayLabel);
 
-  LFormControllerType := Config.GetString('FormController', GetEditWindowDefaultControllerType);
+  LFormControllerNode := ViewTable.FindNode('Controller/FormController');
+  if Assigned(LFormControllerNode) then
+    LFormControllerType := LFormControllerNode.AsString;
+  if LFormControllerType = '' then
+    LFormControllerType := GetEditWindowDefaultControllerType;
   if LFormControllerType = '' then
     LFormControllerType := GetEditWindowDefaultControllerType;
   LFormController := TKExtControllerFactory.Instance.CreateController(
-    FEditHostWindow, ViewTable.View, FEditHostWindow, Config.FindNode('FormController'), Self, LFormControllerType);
+    FEditHostWindow, ViewTable.View, FEditHostWindow, LFormControllerNode, Self, LFormControllerType);
   LFormController.Config.SetObject('Sys/ServerStore', ServerStore);
   if Assigned(ARecord) then
     LFormController.Config.SetObject('Sys/Record', ARecord);
