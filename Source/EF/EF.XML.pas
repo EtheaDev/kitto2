@@ -54,7 +54,7 @@ begin
   for I := 1 to Length(AString) do
   begin
     C := AString[I];
-    if C in [#34, #38, #39, #60, #62] then
+    if CharInSet(C, [#34, #38, #39, #60, #62]) then
     begin
       case C of
         #34:

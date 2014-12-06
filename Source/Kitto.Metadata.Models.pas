@@ -421,6 +421,7 @@ type
     function GetPhysicalName: string;
     function GetDatabaseName: string;
     const DEFAULT_IMAGE_NAME = 'default_model';
+    function GetPluralModelName: string; protected
   strict protected
     function GetFields: TKModelFields;
     function GetChildClass(const AName: string): TEFNodeClass; override;
@@ -433,6 +434,7 @@ type
     property Catalog: TKModels read GetCatalog;
 
     property ModelName: string read GetModelName;
+    property PluralModelName: string read GetPluralModelName;
 
     property PhysicalName: string read GetPhysicalName;
 
@@ -694,6 +696,8 @@ begin
     else if not EndsText('s', Result) then
       Result := Result + 's';
   end;
+  if UpperCase(AName) = AName then
+    Result := UpperCase(Result);
 end;
 
 function EvalExpression(const AExpression: Variant): Variant;
@@ -905,6 +909,13 @@ begin
   Result := GetString('PluralDisplayLabel');
   if Result = '' then
     Result := Pluralize(DisplayLabel);
+end;
+
+function TKModel.GetPluralModelName: string;
+begin
+  Result := GetString('PluralModelName');
+  if Result = '' then
+    Result := Pluralize(ModelName);
 end;
 
 function TKModel.GetKeyField(I: Integer): TKModelField;

@@ -53,6 +53,15 @@ type
     function GetDefaultFixedLength: boolean; override;
   end;
 
+  TExportXMLToolController = class(TKExtDownloadFileController)
+  strict private
+  strict protected
+    function GetDefaultFileExtension: string; override;
+    function CreateStream: TStream; override;
+  public
+    class function GetDefaultImageName: string;
+  end;
+
 implementation
 
 uses
@@ -214,12 +223,36 @@ begin
   Result := TStringStream.Create(LContent);
 end;
 
+{ TExportXMLToolController }
+
+function TExportXMLToolController.CreateStream: TStream;
+var
+  LStore: TKViewTableStore;
+  LXMLContent: string;
+begin
+  LStore := ServerStore;
+  LXMLContent := LStore.GetAsXML(True);
+  Result := TStringStream.Create(LXMLContent);
+end;
+
+function TExportXMLToolController.GetDefaultFileExtension: string;
+begin
+  Result := '.xml';
+end;
+
+class function TExportXMLToolController.GetDefaultImageName: string;
+begin
+  Result := 'xml_document';
+end;
+
 initialization
   TKExtControllerRegistry.Instance.RegisterClass('ExportCSVTool', TExportCSVToolController);
   TKExtControllerRegistry.Instance.RegisterClass('ExportTextTool', TExportTextToolController);
+  TKExtControllerRegistry.Instance.RegisterClass('ExportXMLTool', TExportXMLToolController);
 
 finalization
   TKExtControllerRegistry.Instance.UnregisterClass('ExportCSVTool');
   TKExtControllerRegistry.Instance.UnregisterClass('ExportTextTool');
+  TKExtControllerRegistry.Instance.UnregisterClass('ExportXMLTool');
 
 end.

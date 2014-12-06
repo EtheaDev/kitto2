@@ -418,6 +418,7 @@ type
   strict protected
     procedure InternalAfterReadFromNode; override;
     function GetChildClass(const AName: string): TEFNodeClass; override;
+    function GetXMLTagName: string; override;
     function TranslateFieldName(const AFieldName: string): string; override;
   public
     procedure FieldChanged(const AField: TKField; const AOldValue, ANewValue: Variant); override;
@@ -458,7 +459,6 @@ type
     function GetRecord(I: Integer): TKViewTableRecord; overload;
   strict protected
     function GetChildClass(const AName: string): TEFNodeClass; override;
-  protected
     function GetXMLTagName: string; override;
   public
     property Store: TKViewTableStore read GetStore;
@@ -1991,7 +1991,7 @@ end;
 
 function TKViewTableRecords.GetXMLTagName: string;
 begin
-  Result := Store.ViewTable.ModelName;
+  Result := Store.ViewTable.Model.PluralModelName;
 end;
 
 { TKViewTableRecord }
@@ -2194,6 +2194,11 @@ end;
 function TKViewTableRecord.GetViewTable: TKViewTable;
 begin
   Result := Store.ViewTable;
+end;
+
+function TKViewTableRecord.GetXMLTagName: string;
+begin
+  Result := ViewTable.ModelName;
 end;
 
 procedure TKViewTableRecord.InternalAfterReadFromNode;
