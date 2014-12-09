@@ -106,7 +106,9 @@ begin
     LFileStream.LoadFromFile(LXSLFileName);
     LXSLContent := LFileStream.DataString;
 
-    //Expand macros contained into xsl file like %URL_APP_PATH% or %DATE% or %TIME%
+    //Expand macros contained into xsl file like:
+    // %FILENAME_TO_URL(%APP_PATH%ReportTemplates/logo.jpg)%
+    // or %DATE% or %TIME%
     LXSLContent := TEFMacroExpansionEngine.Instance.Expand(LXSLContent);
 
     //Save XSL to a temporary file
