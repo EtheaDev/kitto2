@@ -163,10 +163,6 @@ type
   ///	      <description>ExtractFilePath(ParamStr(0))</description>
   ///	    </item>
   ///	    <item>
-  ///	      <term>%URL_APP_PATH%</term>
-  ///	      <description>'file:///'+ReplaceStr(ExtractFilePath(ParamStr(0)), '\', '/')</description>
-  ///	    </item>
-  ///	    <item>
   ///	      <term>%APP_NAME%</term>
   ///	      <description>ParamStr(0)</description>
   ///	    </item>
@@ -483,6 +479,19 @@ type
     property DefaultPath: string read FDefaultPath write FDefaultPath;
   end;
 
+  ///	<summary>
+  ///	  <para>The %FILENAME_TO_URL()% macro converts the server filename
+  ///	  as an url file name.</para>
+  ///	</summary>
+  TEFFileNameToUrlMacroExpander = class(TEFParameterizedMacroExpanderBase)
+  strict private
+    function ExpandParam(const AFileName: string): string;
+  strict protected
+    function GetMacroNames: TArray<string>; override;
+    function ExpandParameterizedMacro(const AMacroName: string;
+      const AParams: TArray<string>): string; override;
+  end;
+
 ///	<summary>Creates and adds instances of all standard macro expanders to the
 ///	specified macro expansion engine, which acquires ownership of
 ///	them.</summary>
@@ -493,22 +502,6 @@ implementation
 uses
   Windows, DateUtils, StrUtils, Types,
   EF.Localization, EF.StrUtils, EF.SysUtils;
-
-var
-  _FormatSettingsFunc: TFunc<TFormatSettings>;
-
-procedure SetFormatSettingsFunc(const AFunc: TFunc<TFormatSettings>);
-begin
-  _FormatSettingsFunc := AFunc;
-end;
-
-function GetFormatSettings: TFormatSettings;
-begin
-  if Assigned(_FormatSettingsFunc) then
-    Result := _FormatSettingsFunc
-  else
-    Result := FormatSettings;
-end;
 
 procedure AddStandardMacroExpanders(const AMacroExpansionEngine: TEFMacroExpansionEngine);
 begin
@@ -522,6 +515,7 @@ begin
   AMacroExpansionEngine.AddExpander(TEFGUIDMacroExpander.Create);
   AMacroExpansionEngine.AddExpander(TEFEntityMacroExpander.Create);
   AMacroExpansionEngine.AddExpander(TEFFileMacroExpander.Create);
+  AMacroExpansionEngine.AddExpander(TEFFileNameToUrlMacroExpander.Create);
 end;
 
 { TEFMacroExpander }
@@ -699,7 +693,6 @@ function TEFPathMacroExpander.InternalExpand(const AString: string): string;
 begin
   Result := inherited InternalExpand(AString);
   Result := ExpandMacros(Result, '%APP_PATH%', ExtractFilePath(ParamStr(0)));
-  Result := ExpandMacros(Result, '%URL_APP_PATH%', 'file:///'+ReplaceStr(ExtractFilePath(ParamStr(0)), '\', '/'));
   Result := ExpandMacros(Result, '%APP_NAME%', ParamStr(0));
   Result := ExpandMacros(Result, '%APP_FILENAME%', ExtractFileName(ParamStr(0)));
   Result := ExpandMacros(Result, '%APP_BASENAME%', ChangeFileExt(ExtractFileName(ParamStr(0)), ''));
@@ -949,6 +942,41 @@ function TEFParameterizedMacroExpanderBase.ExpandParameterizedMacro(
   const AMacroName: string; const AParams: TArray<string>): string;
 begin
   Result := '';
+end;
+
+{ TEFFileNameToUrlMacroExpander }
+
+function TEFFileNameToUrlMacroExpander.ExpandParam(const AFileName: string): string;
+begin
+  Assert(AFileName <> '');
+  Result := 'file:///'+ReplaceStr(AFileName, '\', '/');
+end;
+
+function TEFFileNameToUrlMacroExpander.ExpandParameterizedMacro(
+  const AMacroName: string; const AParams: TArray<string>): string;
+var
+  LFileName: string;
+  I: Integer;
+  LOtherParams: TArray<string>;
+begin
+  if SameText(AMacroName, 'FILENAME_TO_URL') then
+  begin
+    if Length(AParams) > 0 then
+    begin
+      LFileName := AParams[0];
+      Result := ExpandParam(LFileName);
+    end
+    else
+      Result := '';
+  end
+  else
+    Result := inherited ExpandParameterizedMacro(AMAcroName, AParams);
+end;
+
+function TEFFileNameToUrlMacroExpander.GetMacroNames: TArray<string>;
+begin
+  SetLength(Result, 1);
+  Result[0] := 'FILENAME_TO_URL';
 end;
 
 end.
