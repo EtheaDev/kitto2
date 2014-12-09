@@ -282,6 +282,8 @@ var
   var
     LDate: string;
     LSysTime: SystemTime;
+    LTimeZone: TTimeZoneInformation;
+    LTimeZoneGap: string;
 
     procedure AddInformation(AKey: Integer; const AText: string);
     begin
@@ -297,7 +299,9 @@ var
     if ACreationDate <> 0 then
     begin
       GetSystemTime(LSysTime);
-      LDate := 'D:'+FormatDateTime('yyyymmddhhmmss', ACreationDate)+'Z00''00''';
+      GetTimeZoneInformation(LTimeZone);
+      LTimeZoneGap := PadLeft(IntToStr(LTimeZone.Bias div -60),2);
+      LDate := 'D:'+FormatDateTime('yyyymmddhhmmss', ACreationDate)+'Z'+LTimeZoneGap+'''00''';
       AddInformation(7, LDate);
     end;
   end;
@@ -443,7 +447,7 @@ var
 begin
   LDateStr := GetNodeValue('CreationDate');
   try
-    Result := StrToDateTime(LDateStr);
+    Result := StrToDateTime(LDateStr, TKConfig.Instance.UserFormatSettings);
   except
     Result := 0;
   end;
