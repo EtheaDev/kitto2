@@ -669,8 +669,8 @@ begin
   Assert(Assigned(LView));
   Assert(Assigned(FEditorGridPanel));
 
-  FIsViewVisible := not LViewTable.GetBoolean('Controller/PreventShowing')
-    and not Config.GetBoolean('PreventShowing');
+  FIsViewVisible := (LViewTable.GetBoolean('Controller/AllowViewing')
+    or Config.GetBoolean('AllowViewing'));
   FIsViewAllowed := FIsViewVisible and LViewTable.IsAccessGranted(ACM_VIEW);
 
   FIsAddVisible := not LViewTable.GetBoolean('Controller/PreventAdding')
@@ -933,21 +933,6 @@ begin
   Assert(ViewTable <> nil);
   Assert(TopToolbar <> nil);
 
-  if FIsViewVisible then
-  begin
-    LViewButton := TExtButton.CreateAndAddTo(TopToolbar.Items);
-    LViewButton.Tooltip := Format(_('View %s'), [_(ViewTable.DisplayLabel)]);
-    LViewButton.Icon := Session.Config.GetImageURL('view_record');
-    if not FIsViewAllowed then
-      LViewButton.Disabled := True
-    else
-    begin
-      LKeyFieldNames := Join(ViewTable.GetKeyFieldAliasedNames, ',');
-      LViewButton.On('click', AjaxSelection(ViewRecord, FSelectionModel, LKeyFieldNames, LKeyFieldNames, []));
-      FButtonsRequiringSelection.Add(LViewButton);
-    end;
-  end;
-
   if FIsAddVisible then
   begin
     LNewButton := TExtButton.CreateAndAddTo(TopToolbar.Items);
@@ -972,6 +957,21 @@ begin
       LKeyFieldNames := Join(ViewTable.GetKeyFieldAliasedNames, ',');
       LDupButton.On('click', AjaxSelection(DuplicateRecord, FSelectionModel, LKeyFieldNames, LKeyFieldNames, []));
       FButtonsRequiringSelection.Add(LDupButton);
+    end;
+  end;
+
+  if FIsViewVisible then
+  begin
+    LViewButton := TExtButton.CreateAndAddTo(TopToolbar.Items);
+    LViewButton.Tooltip := Format(_('View %s'), [_(ViewTable.DisplayLabel)]);
+    LViewButton.Icon := Session.Config.GetImageURL('view_record');
+    if not FIsViewAllowed then
+      LViewButton.Disabled := True
+    else
+    begin
+      LKeyFieldNames := Join(ViewTable.GetKeyFieldAliasedNames, ',');
+      LViewButton.On('click', AjaxSelection(ViewRecord, FSelectionModel, LKeyFieldNames, LKeyFieldNames, []));
+      FButtonsRequiringSelection.Add(LViewButton);
     end;
   end;
 

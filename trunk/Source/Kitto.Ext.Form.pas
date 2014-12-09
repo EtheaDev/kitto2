@@ -173,7 +173,10 @@ begin
       LController.Config.SetBoolean('AllowClose', False);
       //Cascading View mode
       if SameText(FOperation, 'View') then
+      begin
         LController.View.SetBoolean('IsReadOnly', True);
+        LController.Config.SetBoolean('AllowViewing', True);
+      end;
       FDetailControllers.Add(LController.AsObject);
       LController.Display;
       if (LController.AsObject is TKExtDataPanelController) then
@@ -244,7 +247,8 @@ begin
         AEditor.RefreshValue;
     end);
   // Set button handlers (editors are needed by GetConfirmJSCode).
-  FConfirmButton.Handler := JSFunction(GetConfirmJSCode(ConfirmChanges));
+  if Assigned(FConfirmButton) then
+    FConfirmButton.Handler := JSFunction(GetConfirmJSCode(ConfirmChanges));
   if Assigned(FCloneButton) then
     FCloneButton.Handler := JSFunction(GetConfirmJSCode(ConfirmChangesAndClone));
 end;
