@@ -1,4 +1,4 @@
-// From Firebird, reviewed
+-- From Firebird, reviewed
 
 CREATE TABLE DOLL 
 (
@@ -88,7 +88,7 @@ ALTER TABLE INVITATION ADD CONSTRAINT FK_INVITATION_GIRL
   ON UPDATE NO ACTION
 ;
 
-// From SQL Server, extracted
+-- From SQL Server, extracted
 
 CREATE TABLE dbo.DOLL (
     DOLL_ID NVarChar(32) NOT NULL,
