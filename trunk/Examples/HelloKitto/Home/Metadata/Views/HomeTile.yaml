@@ -18,10 +18,10 @@ Controller: Viewport
           Split: False
           Html: |
             <center>
-              <p><img src="%IMAGE(kitto_logo_150)%"></img></p>
+              <p><img src="%IMAGE(hello_kitto_150)%"></img></p>
             </center>
           Height: 70
       SouthView:
         Controller: StatusBar
-          Text: <p>User: %Auth:UserName%</p>
+          Text: <p>_(User: %Auth:UserName%)</p>
         ImageName: user
