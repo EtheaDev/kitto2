@@ -4,7 +4,7 @@
 LoginWindowAppearance:
   HtmlPanel: |
     <center>
-      <p><img src="%IMAGE(kitto_logo_150)%"></img></p>
+      <p><img src="%IMAGE(hello_kitto_150)%"></img></p>
       <p style="font: 14px arial,tahoma,verdana,helvetica;">_(Login)</p>
     </center>
   HtmlPanelWidth: 300
@@ -15,6 +15,9 @@ BlobPath: %HOME_PATH%UploadedFiles\
 # Change this to switch databases.
 # Default is Main.
 DefaultDatabaseName: DBXFb
+# DefaultDatabaseName: ADOMSSQL
+# DefaultDatabaseName: FDMSSQL
+# DefaultDatabaseName: FDFb
 
 Databases:
   DBXFb: DBX
@@ -27,6 +30,27 @@ Databases:
       WaitOnLocks: True
       IsolationLevel: ReadCommitted
       Trim Char: False
+
+  FDMSSQL: FD
+    Connection:
+      DriverID: MSSQL
+      Server: %COMPUTERNAME%\MSSQL2K8R2
+      ApplicationName: %APPTITLE%
+      Database: HelloKitto
+      OSAuthent: Yes
+      User_Name: SA
+      Password: 12345
+    
+  FDFb: FD
+    Connection:
+      DriverID: FB
+      # Alias of database defined in Aliases.conf
+      Database: HELLOKITTO
+      User_Name: SYSDBA
+      Password: masterkey
+      Server: localhost
+      CharacterSet: UTF8
+      Protocol:TCPIP
 
   DBXMSSQL: DBX
     Connection:
