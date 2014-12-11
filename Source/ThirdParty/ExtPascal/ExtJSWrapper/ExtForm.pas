@@ -2195,7 +2195,7 @@ end;
 procedure TExtFormField.SetDisabled(const AValue: Boolean);
 begin
   FDisabled := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'disabled', [AValue]);
+  ExtSession.ResponseItems.SetConfigItem(Self, 'disabled', 'setDisabled', [AValue]);
 end;
 
 procedure TExtFormField.SetFFieldClass(Value: string);
