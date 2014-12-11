@@ -956,8 +956,6 @@ function TEFFileNameToUrlMacroExpander.ExpandParameterizedMacro(
   const AMacroName: string; const AParams: TArray<string>): string;
 var
   LFileName: string;
-  I: Integer;
-  LOtherParams: TArray<string>;
 begin
   if SameText(AMacroName, 'FILENAME_TO_URL') then
   begin
