@@ -3330,7 +3330,7 @@ procedure TKEditItemList.AllEditors(
   const AHandler: TProc<IKExtEditor>);
 begin
   EnumEditors(
-    function (AEditor: IKExteditor): Boolean
+    function (AEditor: IKExtEditor): Boolean
     begin
       Result := True;
     end,

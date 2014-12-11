@@ -487,6 +487,8 @@ type
     function Remove(const AObject: TExtObject): Integer;
     function IndexOf(const AObject: TExtObject): Integer;
     property Count: Integer read GetCount;
+
+    function GetAddMethodName: string;
   end;
 
 //(*DOM-IGNORE-BEGIN
@@ -1278,7 +1280,7 @@ begin
   Assert(Assigned(OwnerExtObject));
   Assert(FAttribute <> '');
 
-  ExtSession.ResponseItems.AddToList(OwnerExtObject, Self, FAttribute, 'add', [AObject, False]);
+  ExtSession.ResponseItems.AddToList(OwnerExtObject, Self, FAttribute, GetAddMethodName(), [AObject, False]);
   Result := AddInternal(AObject);
 end;
 
@@ -1287,6 +1289,22 @@ Returns the Ith object in the list, starts with 0.
 @param I Position in list
 @return <link TExtObject>
 }
+function TExtObjectList.GetAddMethodName: string;
+begin
+  // items -> add()
+  // buttons -> addButton()
+  if (FAttribute = '') or (FAttribute = 'items') then
+    Result := 'add'
+  else
+  begin
+    Result := FAttribute;
+    if EndsText('s', Result) then
+      System.Delete(Result, Length(Result), 1);
+    Result[1] := UpperCase(Result[1])[1];
+    Result := 'add' + Result;
+  end;
+end;
+
 function TExtObjectList.GetCount: Integer;
 begin
   Result := FObjects.Count;
@@ -1388,7 +1406,7 @@ end;
 // Deletes JS object from Browser memory
 procedure TExtObject.Delete;
 begin
-  Session.ResponseItems.ExecuteJSCode('delete ' + JSName + ';');
+  Session.ResponseItems.ExecuteJSCode(JSName + '.destroy(); delete ' + JSName + ';');
 end;
 
 procedure TExtObject.Notification(AComponent: TComponent; Operation: TOperation);
