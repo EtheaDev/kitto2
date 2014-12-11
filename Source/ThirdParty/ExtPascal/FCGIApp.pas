@@ -127,7 +127,7 @@ type
     FSocket : TBlockSocket; // Current socket for current FastCGI request
     FGarbage,
     FKeepConn : boolean; // Not used
-    FRequest : string;
+    FRequest: RawByteString;
     FRequestHeader : TStringList;
     FSession : TFCGISession;
     FLastAccess : TDateTime;
@@ -144,7 +144,7 @@ type
     BrowserCache : boolean; // If false generates 'cache-control:no-cache' and 'pragma:no-cache' in HTTP header, default is false
     AccessThread : TCriticalSection;
     property Role : TRole read FRole; // FastCGI role for the current request
-    property Request : string read FRequest; // Request body string
+    property Request: RawByteString read FRequest; // Request body string
     property LastAccess : TDateTime read FLastAccess; // Last TDateTime access of this thread
     property RequestMethod : TRequestMethod read FRequestMethod; // HTTP request method for the current request
     constructor Create(NewSocket : integer); reintroduce; virtual;
@@ -547,8 +547,8 @@ On receive a request, each request, on its execution cycle, does:
 procedure TFCGIThread.Execute;
 var
   FCGIHeader : TFCGIHeader;
-  Buffer, Content : AnsiString;
-  I : integer;
+  Buffer, Content : RawByteString;
+  I: Integer;
 begin
   _CurrentFCGIThread := Self;
   _CurrentWebSession := FSession;
@@ -569,7 +569,7 @@ begin
                 SendEndRequest(psCantMPXConn)
               else begin
                 inc(I, sizeof(FCGIHeader));
-                Content := copy(Buffer, I, FCGIHeader.Len);
+                Content := Copy(Buffer, I, FCGIHeader.Len);
                 case FCGIHeader.RecType of
                   rtBeginRequest : ReadBeginRequest(FCGIHeader, Content);
                   rtAbortRequest : FSession.Logout;
@@ -619,7 +619,9 @@ begin
                       if FSession.IsUpLoad then
                         FSession.UploadWriteFile(Content)
                       else
-                        FRequest := FRequest + string(Content);
+                      begin
+                        FRequest := FRequest + Content;
+                      end
                 else
                   SendResponse(AnsiChar(FCGIHeader.RecType), rtUnknown);
                   Buffer := '';
@@ -669,7 +671,7 @@ function TFCGIThread.HandleRequest(pRequest : AnsiString) : AnsiString; begin
   if (FRequestMethod = rmPost) and (Pos(AnsiString('='), pRequest) <> 0) then
     FSession.SetQueryText(string(pRequest), True, True)
   else
-    FRequest := string(pRequest);
+    FRequest := pRequest;
   if not FSession.IsUpload then FSession.Response := '';
   FSession.IsDownload := false;
   FSession.HandleRequest(pRequest);
@@ -882,8 +884,16 @@ function TFCGISession.GetDocumentRoot : string; begin
 end;
 
 function TFCGISession.GetRequestBody: string;
+var
+  LContent: RawByteString;
+  I: Integer;
+  LBytes: TBytes;
 begin
-  Result := TFCGIThread(Owner).Request;
+  LContent := TFCGIThread(Owner).Request;
+  SetLength(LBytes, Length(LContent));
+  for I := 1 to Length(LContent) do
+    LBytes[I - 1] := Byte(LContent[I]);
+  Result := TEncoding.UTF8.GetString(LBytes);
 end;
 
 function TFCGISession.GetRequestHeader(const Name : string) : string; begin
