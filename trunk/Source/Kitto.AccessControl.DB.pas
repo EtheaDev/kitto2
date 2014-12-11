@@ -191,7 +191,7 @@ implementation
 
 uses
   SysUtils, Variants,
-  EF.DB, EF.RegEx,
+  EF.DB,
   Kitto.Config, Kitto.DatabaseRouter;
   
 { TKDBAccessController }
