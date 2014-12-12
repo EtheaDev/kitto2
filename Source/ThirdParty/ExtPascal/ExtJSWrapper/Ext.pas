@@ -10098,13 +10098,13 @@ end;
 
 function TExtComponent.SetDisabled(const AValue: Boolean): TExtFunction;
 begin
-  ExtSession.ResponseItems.CallMethod(Self, 'setDisabled', []);
+  ExtSession.ResponseItems.CallMethod(Self, 'setDisabled', [AValue]);
   Result := Self;
 end;
 
 function TExtComponent.SetVisible(const AValue: Boolean): TExtFunction;
 begin
-  ExtSession.ResponseItems.CallMethod(Self, 'setVisible', []);
+  ExtSession.ResponseItems.CallMethod(Self, 'setVisible', [AValue]);
   Result := Self;
 end;
 
@@ -11824,7 +11824,7 @@ end;
 procedure TExtButton.SetHidden(const AValue: Boolean);
 begin
   FHidden := AValue;
-  Session.ResponseItems.SetConfigItem(Self, 'hidden', [AValue]);
+  Session.ResponseItems.SetConfigItemOrProperty(Self, 'hidden', [AValue]);
 end;
 
 procedure TExtButton._SetIcon(const AValue: string);

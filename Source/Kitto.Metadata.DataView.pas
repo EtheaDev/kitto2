@@ -94,7 +94,7 @@ type
     function FindNode(const APath: string; const ACreateMissingNodes: Boolean = False): TEFNode; override;
     function IsAccessGranted(const AMode: string): Boolean; override;
     function GetResourceURI: string; override;
-
+    function CanEditField(const AInsertOperation: Boolean): Boolean;
     property Table: TKViewTable read GetTable;
     property Model: TKModel read GetModel;
 
@@ -1261,6 +1261,28 @@ begin
       end;
     end;
   end;
+end;
+
+function TKViewField.CanEditField(const AInsertOperation: Boolean): Boolean;
+var
+  LReadOnly: Boolean;
+
+  function CanEdit: Boolean;
+  begin
+    if AInsertOperation then
+      Result := CanInsert
+    else
+      Result := CanUpdate
+  end;
+
+begin
+  LReadOnly :=
+    IsReadOnly
+    or not IsAccessGranted(ACM_MODIFY)
+    or not CanEdit
+    or Table.IsReadOnly
+    or (Model <> Table.Model);
+  Result := not LReadOnly;
 end;
 
 function TKViewField.CreateDerivedFieldsStore(const AKeyValues: string): TKStore;

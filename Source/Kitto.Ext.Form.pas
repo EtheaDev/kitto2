@@ -56,7 +56,9 @@ type
     FMainPagePanel: TKExtEditPage;
     FIsReadOnly: Boolean;
     FConfirmButton: TExtButton;
+    FEditButton: TExtButton;
     FCancelButton: TExtButton;
+    FCloseButton: TExtButton;
     FDetailToolbar: TExtToolbar;
     FDetailButtons: TObjectList<TKExtDetailFormButton>;
     FDetailControllers: TObjectList<TObject>;
@@ -69,6 +71,8 @@ type
     FLabelAlign: TExtFormFormPanelLabelAlign;
     procedure CreateEditors;
     procedure RecreateEditors;
+    procedure CreateButtons;
+    procedure ChangeEditorsState;
     procedure StartOperation;
     procedure FocusFirstField;
     procedure CreateDetailPanels;
@@ -80,6 +84,9 @@ type
     procedure CreateFormPanel;
     function LayoutContainsPageBreaks: Boolean;
     function GetConfirmJSCode(const AMethod: TExtProcedure): string;
+    procedure InitFlags;
+    function FindLayout: TKLayout;
+    function IsViewMode: Boolean;
   strict protected
     procedure DoDisplay; override;
     procedure InitComponents; override;
@@ -88,6 +95,7 @@ type
     destructor Destroy; override;
   published
     procedure GetRecord;
+    procedure SwitchToEditMode;
     procedure ConfirmChanges;
     procedure ConfirmChangesAndClone;
     procedure CancelChanges;
@@ -99,10 +107,31 @@ uses
   StrUtils, Classes, Variants, Types,
   ExtPascal,
   EF.Localization, EF.Types, EF.Intf, EF.DB, EF.JSON, EF.VariantUtils, EF.StrUtils,
-  Kitto.AccessControl, Kitto.Rules, Kitto.SQL, Kitto.Config,
+  Kitto.Types, Kitto.AccessControl, Kitto.Rules, Kitto.SQL, Kitto.Config,
   Kitto.Ext.Session, Kitto.Ext.Utils;
 
 { TKExtFormPanelController }
+
+procedure TKExtFormPanelController.ChangeEditorsState;
+var
+  LViewMode: Boolean;
+  LInsertOperation: Boolean;
+begin
+  LViewMode := IsViewMode;
+  LInsertOperation := FOperation = ADD_OPERATION;
+  FEditItems.AllEditors(
+    procedure (AEditor: IKExtEditor)
+    var
+      LFormField: TExtFormField;
+      LViewField: TKViewField;
+    begin
+      LFormField := AEditor.AsExtFormField;
+      LViewField := ViewTable.FieldByAliasedName(AEditor.FieldName);
+      LFormField.ReadOnly := LViewMode or not LViewField.CanEditField(LInsertOperation);
+      if not LFormField.ReadOnly and (FFocusField = nil) then
+        FFocusField := LFormField;
+    end);
+end;
 
 destructor TKExtFormPanelController.Destroy;
 begin
@@ -116,7 +145,9 @@ end;
 procedure TKExtFormPanelController.DoDisplay;
 begin
   inherited;
+  CreateEditors;
   LoadData;
+  ChangeEditorsState;
 end;
 
 procedure TKExtFormPanelController.CreateDetailToolbar;
@@ -171,11 +202,14 @@ begin
       LController.Config.SetObject('Sys/ViewTable', ViewTable.DetailTables[I]);
       LController.Config.SetObject('Sys/ServerStore', FStoreRecord.DetailStores[I]);
       LController.Config.SetBoolean('AllowClose', False);
-      //Cascading View mode
-      if SameText(FOperation, 'View') then
+      if SameText(FOperation, VIEW_OPERATION) then
       begin
-        LController.View.SetBoolean('IsReadOnly', True);
+        //Cascading View mode
         LController.Config.SetBoolean('AllowViewing', True);
+        LController.Config.SetBoolean('PreventEditing', True);
+        LController.Config.SetBoolean('PreventAdding', True);
+        LController.Config.SetBoolean('PreventDeleting', True);
+        LController.Config.SetBoolean('AllowDuplicating', False);
       end;
       FDetailControllers.Add(LController.AsObject);
       LController.Display;
@@ -216,11 +250,11 @@ begin
           LSubject.AttachObserver(Self);
       end;
     LLayoutProcessor.ForceReadOnly := FIsReadOnly;
-    if MatchStr(FOperation, ['Add', 'Dup']) then
+    if MatchStr(FOperation, [ADD_OPERATION, DUPLICATE_OPERATION]) then
       LLayoutProcessor.Operation := eoInsert
     else
       LLayoutProcessor.Operation := eoUpdate;
-    LLayoutProcessor.CreateEditors(FindViewLayout('Form'), FLabelAlign);
+    LLayoutProcessor.CreateEditors(FindLayout);
     FFocusField := LLayoutProcessor.FocusField;
   finally
     FreeAndNil(LLayoutProcessor);
@@ -238,7 +272,7 @@ begin
       begin
         LFormField.RemoveAllListeners('afterrender');
         LFormField.On('afterrender', LFormField.JSFunction(
-          procedure
+          procedure()
           begin
             AEditor.RefreshValue;
           end));
@@ -249,6 +283,8 @@ begin
   // Set button handlers (editors are needed by GetConfirmJSCode).
   if Assigned(FConfirmButton) then
     FConfirmButton.Handler := JSFunction(GetConfirmJSCode(ConfirmChanges));
+  if Assigned(FEditButton) then
+    FEditButton.Handler := JSFunction(GetConfirmJSCode(SwitchToEditMode));
   if Assigned(FCloneButton) then
     FCloneButton.Handler := JSFunction(GetConfirmJSCode(ConfirmChangesAndClone));
 end;
@@ -286,7 +322,6 @@ var
   LDetailStyle: string;
   LHostWindow: TExtWindow;
 begin
-  CreateEditors;
   LDetailStyle := GetDetailStyle;
   if SameText(LDetailStyle, 'Tabs') then
     CreateDetailPanels
@@ -326,7 +361,7 @@ begin
 
   AssignFieldChangeEvent(True);
   try
-    if MatchStr(FOperation, ['Add', 'Dup']) then
+    if MatchStr(FOperation, [ADD_OPERATION, DUPLICATE_OPERATION]) then
     begin
       LDefaultValues := nil;
       try
@@ -338,7 +373,7 @@ begin
         else
           LDefaultValues := ViewTable.GetDefaultValues;
         FStoreRecord.ReadFromNode(LDefaultValues);
-        ViewTable.Model.BeforeNewRecord(FStoreRecord, Assigned(FCloneValues) and SameText(FOperation, 'Add'));
+        ViewTable.Model.BeforeNewRecord(FStoreRecord, Assigned(FCloneValues) and SameText(FOperation, ADD_OPERATION));
         FStoreRecord.ApplyNewRecordRules;
         ViewTable.Model.AfterNewRecord(FStoreRecord);
       finally
@@ -354,6 +389,23 @@ begin
       CancelChanges;
     end;
   end;
+end;
+
+procedure TKExtFormPanelController.SwitchToEditMode;
+var
+  LHostWindow: TExtWindow;
+begin
+  FEditButton.SetVisible(False);
+  FConfirmButton.SetVisible(True);
+  FCloseButton.SetVisible(False);
+  FCancelButton.SetVisible(True);
+  FOperation := EDIT_OPERATION;
+  InitFlags;
+  ChangeEditorsState;
+  LHostWindow := GetHostWindow;
+  if Assigned(LHostWindow) then
+    LHostWindow.Title := Format(_('Edit %s'), [_(ViewTable.DisplayLabel)]);
+  StartOperation;
 end;
 
 procedure TKExtFormPanelController.FocusFirstField;
@@ -385,7 +437,7 @@ begin
   UpdateRecord(FStoreRecord, SO(Session.RequestBody).O['new']);
   FCloneValues := TEFNode.Clone(FStoreRecord);
   FStoreRecord := ServerStore.AppendRecord(nil);
-  FOperation := 'Add';
+  FOperation := ADD_OPERATION;
   // recupera dati record
   StartOperation;
 end;
@@ -395,7 +447,7 @@ var
   LLayout: TKLayout;
 begin
   Result := False;
-  LLayout := FindViewLayout('Form');
+  LLayout := FindLayout;
   if Assigned(LLayout) then
   begin
     Result := Assigned(LLayout.FindChildByPredicate(
@@ -406,66 +458,11 @@ begin
   end
 end;
 
-procedure TKExtFormPanelController.InitComponents;
+procedure TKExtFormPanelController.CreateButtons;
 var
-  LHostWindow: TExtWindow;
   LCloneButtonNode: TEFNode;
-  LLabelAlignNode: TEFNode;
+  LHostWindow: TExtWindow;
 begin
-  inherited;
-  if Title = '' then
-    Title := _(ViewTable.DisplayLabel);
-
-  FOperation := Config.GetString('Sys/Operation');
-  if FOperation = '' then
-    FOperation := Config.GetString('Operation');
-
-  FStoreRecord := Config.GetObject('Sys/Record') as TKViewTableRecord;
-  Assert((FOperation = 'Add') or Assigned(FStoreRecord));
-  if FOperation = 'Add' then
-  begin
-    Assert(not Assigned(FStoreRecord));
-    FStoreRecord := ServerStore.AppendRecord(nil);
-  end
-  else if FOperation = 'Dup' then
-  begin
-    FreeAndNil(FCloneValues);
-    FCloneValues := TEFNode.Clone(FStoreRecord);
-    FStoreRecord := ServerStore.AppendRecord(nil);
-  end;
-  AssignFieldChangeEvent(True);
-
-  if MatchStr(FOperation, ['Add', 'Dup']) then
-    FIsReadOnly := ViewTable.GetBoolean('Controller/PreventAdding')
-      or View.GetBoolean('IsReadOnly')
-      or ViewTable.IsReadOnly
-      or Config.GetBoolean('PreventAdding')
-      or not ViewTable.IsAccessGranted(ACM_ADD)
-  else if SameText(FOperation, 'View') then
-  begin
-    FIsReadOnly := True;
-  end
-  else //Edit
-    FIsReadOnly := ViewTable.GetBoolean('Controller/PreventEditing')
-      or View.GetBoolean('IsReadOnly')
-      or ViewTable.IsReadOnly
-      or Config.GetBoolean('PreventEditing')
-      or not ViewTable.IsAccessGranted(ACM_MODIFY);
-  if SameText(FOperation, 'Add') and FIsReadOnly then
-    raise EEFError.Create(_('Operation Add not supported on read-only data.'))
-  else if SameText(FOperation, 'Edit') and FIsReadOnly then
-    raise EEFError.Create(_('Operation Edit not supported on read-only data.'))
-  else if SameText(FOperation, 'Dup') and FIsReadOnly then
-    raise EEFError.Create(_('Operation Duplicate not supported on read-only data.'));
-
-  LLabelAlignNode := ViewTable.FindNode('Controller/FormController/LabelAlign');
-  if Assigned(LLabelAlignNode) then
-    FLabelAlign := OptionAsLabelAlign(LLabelAlignNode)
-  else
-    FLabelAlign := laRight; //Default to right
-
-  CreateFormPanel;
-
   if not FIsReadOnly then
   begin
     LCloneButtonNode := Config.FindNode('CloneButton');
@@ -480,31 +477,106 @@ begin
     end
     else
       FCloneButton := nil;
-    FConfirmButton := TExtButton.CreateAndAddTo(FFormPanel.Buttons);
-    FConfirmButton.Scale := Config.GetString('ButtonScale', 'medium');
-    FConfirmButton.FormBind := True;
-    FConfirmButton.Text := Config.GetString('ConfirmButton/Caption', _('Save'));
-    FConfirmButton.Tooltip := Config.GetString('ConfirmButton/Tooltip', _('Save changes and finish editing'));
-    FConfirmButton.Icon := Session.Config.GetImageURL('accept');
   end;
+  FConfirmButton := TExtButton.CreateAndAddTo(FFormPanel.Buttons);
+  FConfirmButton.Scale := Config.GetString('ButtonScale', 'medium');
+  FConfirmButton.FormBind := True;
+  FConfirmButton.Icon := Session.Config.GetImageURL('accept');
+  FConfirmButton.Text := Config.GetString('ConfirmButton/Caption', _('Save'));
+  FConfirmButton.Tooltip := Config.GetString('ConfirmButton/Tooltip', _('Save changes and finish editing'));
+  FConfirmButton.Hidden := FIsReadOnly or IsViewMode;
+
+  if IsViewMode then
+  begin
+    FEditButton := TExtButton.CreateAndAddTo(FFormPanel.Buttons);
+    FEditButton.Scale := Config.GetString('ButtonScale', 'medium');
+    FEditButton.FormBind := True;
+    FEditButton.Icon := Session.Config.GetImageURL('edit_record');
+    FEditButton.Text := Config.GetString('ConfirmButton/Caption', _(EDIT_OPERATION));
+    FEditButton.Tooltip := Config.GetString('ConfirmButton/Tooltip', _('Switch to edit mode'));
+    FEditButton.Hidden := FIsReadOnly;
+  end;
+
   FCancelButton := TExtButton.CreateAndAddTo(FFormPanel.Buttons);
   FCancelButton.Scale := Config.GetString('ButtonScale', 'medium');
   FCancelButton.Icon := Session.Config.GetImageURL('cancel');
-  if FIsReadOnly then
+  FCancelButton.Text := _('Cancel');
+  FCancelButton.Tooltip := _('Cancel changes');
+  FCancelButton.Handler := Ajax(CancelChanges);
+  FCancelButton.Hidden := FIsReadOnly;
+
+  FCloseButton := TExtButton.CreateAndAddTo(FFormPanel.Buttons);
+  FCloseButton.Scale := Config.GetString('ButtonScale', 'medium');
+  FCloseButton.Icon := Session.Config.GetImageURL('close');
+  FCloseButton.Text := _('Close');
+  FCloseButton.Tooltip := _('Close this panel');
+  // No need for an ajax call when we just close the client-side panel.
+  LHostWindow := GetHostWindow;
+  if Assigned(LHostWindow) then
+    FCloseButton.Handler := JSFunction(LHostWindow.JSName + '.close();');
+  FCloseButton.Hidden := not FIsReadOnly;
+end;
+
+procedure TKExtFormPanelController.InitComponents;
+begin
+  inherited;
+  FOperation := Config.GetString('Sys/Operation');
+  if FOperation = '' then
+    FOperation := Config.GetString('Operation');
+  InitFlags;
+  CreateFormPanel;
+  CreateButtons;
+end;
+
+procedure TKExtFormPanelController.InitFlags;
+var
+  LLabelAlignNode: TEFNode;
+begin
+  if Title = '' then
+    Title := _(ViewTable.DisplayLabel);
+
+  FStoreRecord := Config.GetObject('Sys/Record') as TKViewTableRecord;
+  Assert((FOperation = ADD_OPERATION) or Assigned(FStoreRecord));
+  if FOperation = ADD_OPERATION then
   begin
-    FCancelButton.Text := _('Close');
-    FCancelButton.Tooltip := _('Close this panel');
-    // No need for an ajax call when we just close the client-side panel.
-    LHostWindow := GetHostWindow;
-    if Assigned(LHostWindow) then
-      FCancelButton.Handler := JSFunction(LHostWindow.JSName + '.close();');
+    Assert(not Assigned(FStoreRecord));
+    FStoreRecord := ServerStore.AppendRecord(nil);
   end
-  else
+  else if FOperation = DUPLICATE_OPERATION then
   begin
-    FCancelButton.Text := _('Cancel');
-    FCancelButton.Tooltip := _('Cancel changes');
-    FCancelButton.Handler := Ajax(CancelChanges);
+    FreeAndNil(FCloneValues);
+    FCloneValues := TEFNode.Clone(FStoreRecord);
+    FStoreRecord := ServerStore.AppendRecord(nil);
   end;
+  AssignFieldChangeEvent(True);
+
+  if MatchStr(FOperation, [ADD_OPERATION, DUPLICATE_OPERATION]) then
+    FIsReadOnly := ViewTable.GetBoolean('Controller/PreventAdding')
+      or View.GetBoolean('IsReadOnly')
+      or ViewTable.IsReadOnly
+      or Config.GetBoolean('PreventAdding')
+      or not ViewTable.IsAccessGranted(ACM_ADD)
+  else //Edit or View Mode
+    FIsReadOnly := ViewTable.GetBoolean('Controller/PreventEditing')
+      or View.GetBoolean('IsReadOnly')
+      or ViewTable.IsReadOnly
+      or Config.GetBoolean('PreventEditing')
+      or not ViewTable.IsAccessGranted(ACM_MODIFY);
+
+  if SameText(FOperation, ADD_OPERATION) and FIsReadOnly then
+    raise EEFError.Create(_('Operation Add not supported on read-only data.'))
+  else if SameText(FOperation, EDIT_OPERATION) and FIsReadOnly then
+    raise EEFError.Create(_('Operation Edit not supported on read-only data.'))
+  else if SameText(FOperation, DUPLICATE_OPERATION) and FIsReadOnly then
+    raise EEFError.Create(_('Operation Duplicate not supported on read-only data.'));
+
+  LLabelAlignNode := ViewTable.FindNode('Controller/FormController/LabelAlign');
+  if FindLayout <> nil then
+    FLabelAlign := laTop
+  else if Assigned(LLabelAlignNode) then
+    FLabelAlign := OptionAsLabelAlign(LLabelAlignNode)
+  else
+    FLabelAlign := laRight; //Default to right
 end;
 
 procedure TKExtFormPanelController.CreateFormPanel;
@@ -518,6 +590,7 @@ begin
   FFormPanel.LabelWidth := 120;
   FFormPanel.MonitorValid := True;
   FFormPanel.Cls := 'x-panel-mc'; // Sets correct theme background color.
+  FFormPanel.LabelAlign := FLabelAlign;
   if ((ViewTable.DetailTableCount > 0) and SameText(GetDetailStyle, 'Tabs')) or LayoutContainsPageBreaks then
   begin
     FTabPanel := TExtTabPanel.CreateAndAddTo(FFormPanel.Items);
@@ -550,13 +623,18 @@ begin
     Result := Result + 30;
 end;
 
+function TKExtFormPanelController.IsViewMode: Boolean;
+begin
+  Result := FOperation = VIEW_OPERATION;
+end;
+
 procedure TKExtFormPanelController.CancelChanges;
 var
   LKeepOpen: Boolean;
 begin
   LKeepOpen := Config.GetBoolean('KeepOpenAfterOperation');
 
-  if MatchStr(FOperation, ['Add', 'Dup']) then
+  if MatchStr(FOperation, [ADD_OPERATION, DUPLICATE_OPERATION]) then
   begin
     ServerStore.RemoveRecord(FStoreRecord);
     FStoreRecord := nil;
@@ -564,7 +642,7 @@ begin
   NotifyObservers('Canceled');
   if LKeepOpen then
   begin
-    if FOperation = 'Add' then
+    if FOperation = ADD_OPERATION then
     begin
       FStoreRecord := ServerStore.AppendRecord(nil);
       RecreateEditors;
@@ -625,6 +703,11 @@ begin
     begin
       AEditItem.RefreshValue;
     end);
+end;
+
+function TKExtFormPanelController.FindLayout: TKLayout;
+begin
+  Result := FindViewLayout('Form');
 end;
 
 { TKExtDetailFormButton }
