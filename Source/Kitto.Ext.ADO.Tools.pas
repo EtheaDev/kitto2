@@ -267,8 +267,12 @@ begin
   if (TemplateFileName = '') then
     CreateExcelSheet(LConnectionString, LExcelRangeName)
   else
+  begin
+    Assert(FileExists(TemplateFileName),
+      Format('Excel template file "%s" not found!',[TemplateFileName]));
     //Salvo il Template file come file di output
     CopyFile(TemplateFileName, AFileName);
+  end;
 
   //A questo punto ho il file Excel creato: mi collego con una FAdoTable e ci infilo i dati
   FAdoTable := TAdoTable.Create(nil);
