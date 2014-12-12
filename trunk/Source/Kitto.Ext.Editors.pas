@@ -530,8 +530,7 @@ type
     ///	  Layout used to create the editors. Pass nil to manufacture a default
     ///	  layout.
     ///	</param>
-    procedure CreateEditors(const ALayout: TKLayout;
-      const ALabelAlign: TExtFormFormPanelLabelAlign);
+    procedure CreateEditors(const ALayout: TKLayout);
 
     ///	<summary>
     ///	  A reference to the first field to focus. Only valid after calling
@@ -603,6 +602,7 @@ type
     procedure EnumEditItems(const APredicate: TFunc<IKExtEditItem, Boolean>;
       const AHandler: TProc<IKExtEditItem>);
     procedure AllNonEditors(const AHandler: TProc<IKExtEditItem>);
+    procedure AllEditItems(const AHandler: TProc<IKExtEditItem>);
   end;
 
 implementation
@@ -720,7 +720,6 @@ begin
 
   FCurrentEditItem := nil;
   FEditContainers.Clear;
-  FFormPanel.LabelAlign := laTop;
   for I := 0 to ALayout.ChildCount - 1 do
     ProcessLayoutNode(ALayout.Children[I]);
 end;
@@ -793,8 +792,7 @@ begin
     FEditContainers.Pop;
 end;
 
-procedure TKExtLayoutProcessor.CreateEditors(const ALayout: TKLayout;
-  const ALabelAlign: TExtFormFormPanelLabelAlign);
+procedure TKExtLayoutProcessor.CreateEditors(const ALayout: TKLayout);
 var
   I: Integer;
   LEditor: IKExtEditor;
@@ -807,7 +805,6 @@ begin
     CreateEditorsFromLayout(ALayout)
   else
   begin
-    FFormPanel.LabelAlign := ALabelAlign;
     for I := 0 to ViewTable.FieldCount - 1 do
     begin
       if ViewTable.IsFieldVisible(ViewTable.Fields[I]) and ViewTable.Fields[I].IsAccessGranted(ACM_READ) then
@@ -898,13 +895,7 @@ begin
   // Minimum cap - avoids too short combo boxes.
   LFieldCharWidth := Max(LFieldCharWidth, FDefaults.MinFieldWidth);
 
-  LIsReadOnly :=
-    LViewField.IsReadOnly
-    or not LViewField.IsAccessGranted(ACM_MODIFY)
-    or not CanEditField
-    or ViewTable.IsReadOnly
-    or FForceReadOnly
-    or (LViewField.Model <> LViewField.Table.Model);
+  LIsReadOnly := FForceReadOnly or not LViewField.CanEditField(FOperation = eoInsert);
 
   if not LIsReadOnly and LViewField.IsDetailReference then
     LIsReadOnly := True;
@@ -3324,6 +3315,16 @@ begin
         AHandler(LEditItemIntf);
     end;
   end;
+end;
+
+procedure TKEditItemList.AllEditItems(const AHandler: TProc<IKExtEditItem>);
+begin
+  EnumEditItems(
+    function (AEditItem: IKExteditItem): Boolean
+    begin
+      Result := True;
+    end,
+    AHandler);
 end;
 
 procedure TKEditItemList.AllEditors(
