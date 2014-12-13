@@ -13,6 +13,5 @@ Fields:
       Open: Open
       Stopped: Stopped
       Terminated: Terminated
-
 DetailReferences:
   PHASE: PHASE

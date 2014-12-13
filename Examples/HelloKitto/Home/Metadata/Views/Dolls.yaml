@@ -3,7 +3,7 @@
 Controller: List
   AllowClose: False
   Filters:
-    DisplayLabel: Choose Mom
+    DisplayLabel: _(Choose Mom)
     Items:
       DynaList: Mom
         # CommandText must select the value field and the display field as the first two fields.
@@ -38,7 +38,7 @@ MainTable:
       StartCollapsed: False
       ShowName: False
       ShowCount: True
-        Template: {[values.rs.length]} Dolls have {text} hair
+        Template: _({[values.rs.length]} Dolls have {text} hair)
 
     ToolViews:
       DownloadText:

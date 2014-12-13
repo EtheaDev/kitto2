@@ -1,12 +1,32 @@
+# #-#-#-#-#  C:\Users\Carlo\AppData\Local\Temp\75DLDHY8.po (PACKAGE VERSION)  #-#-#-#-#
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# 
+# #-#-#-#-#  C:\ETHEA\Kitto\Examples\HelloKitto\Home\Locale\it\LC_MESSAGES\default.po (PACKAGE VERSION)  #-#-#-#-#
 # HelloKitto Translation
-#
-#
-#
-#
-#
-#
+# 
+# 
+# 
+# 
+# 
+# 
+#, fuzzy
 msgid ""
 msgstr ""
+"#-#-#-#-#  C:\\Users\\Carlo\\AppData\\Local\\Temp\\75DLDHY8.po (PACKAGE "
+"VERSION)  #-#-#-#-#\n"
+"Project-Id-Version: PACKAGE VERSION\n"
+"POT-Creation-Date: 2014-12-12 18.19\n"
+"PO-Revision-Date: 2014-12-12 18.19\n"
+"Last-Translator: Somebody <your.email@address.com>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: dxgettext 1.2.2\n"
+"#-#-#-#-#  C:\\ETHEA\\Kitto\\Examples\\HelloKitto\\Home\\Locale\\it"
+"\\LC_MESSAGES\\default.po (PACKAGE VERSION)  #-#-#-#-#\n"
 "#-#-#-#-#  C:\\Users\\Carlo\\AppData\\Local\\Temp\\I597438Y.po (PACKAGE "
 "VERSION)  #-#-#-#-#\n"
 "Project-Id-Version: PACKAGE VERSION\n"
@@ -269,3 +289,7 @@ msgstr ""
 #: Dolls.yaml
 msgid "Doll Card by RB"
 msgstr ""
+
+#: Dolls.yaml
+msgid "{[values.rs.length]} Dolls have {text} hair"
+msgstr "{[values.rs.length]} Bambole hanno la testa {text}"

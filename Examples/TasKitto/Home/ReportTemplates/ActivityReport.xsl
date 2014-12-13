@@ -8,7 +8,7 @@
     <xsl:text>&#13;&#10;</xsl:text>
   </xsl:variable>
   <xsl:variable name="papertype">A4_landscape</xsl:variable>
-  <xsl:template match="/ACTIVITY">
+  <xsl:template match="/ACTIVITIES">
     <fo:root xmlns:fo="http://www.w3.org/1999/XSL/Format">
       <fo:layout-master-set>
         <!-- layout information -->
@@ -71,7 +71,7 @@
                 <!-- logo image -->
                 <fo:table-cell >
                   <fo:block text-align="end">
-                    <fo:external-graphic src="%URL_APP_PATH%Resources/taskitto_logo_150.jpg" content-height="8mm" height="8mm"/>
+                    <fo:external-graphic src="%FILENAME_TO_URL(%APP_PATH%ReportTemplates/taskitto%20logo%20150.jpg)%" content-height="8mm" height="8mm"/>
                   </fo:block>
                 </fo:table-cell>
               </fo:table-row>
@@ -95,7 +95,7 @@
             color="black"
             background-color="white"
             line-height="14pt" >
-            Report generated on %DATE% at %TIME%
+            Report generated on %DATETIME%
           </fo:block>
                 </fo:table-cell>
                 <fo:table-cell >
@@ -117,8 +117,8 @@
         <fo:flow flow-name="xsl-region-body">
           
 <fo:table table-layout="fixed" width="190mm" font-size="8pt" font-family="sans-serif">
-<fo:table-column column-width="60mm" /> <!--colonna ACTIVITY.DESCRIPTION-->
-<fo:table-column column-width="20mm" /> <!--colonna ACTIVITY.PHASE-->
+<fo:table-column column-width="40mm" /> <!--colonna ACTIVITY.DESCRIPTION-->
+<fo:table-column column-width="40mm" /> <!--colonna ACTIVITY.PHASE-->
 <fo:table-column column-width="60mm" /> <!--colonna ACTIVITY.EMPLOYEE-->
 <fo:table-column column-width="40mm" /> <!--colonna ACTIVITY.ROLE-->
 <fo:table-column column-width="40mm" /> <!--colonna ACTIVITY.TYPE-->
@@ -155,7 +155,7 @@
 
 </fo:table-row>  </fo:table-header>
   <fo:table-body>
-    <xsl:for-each select="Record">
+    <xsl:for-each select="ACTIVITY">
                 <fo:table-row>
                   <fo:table-cell text-align="left" border-style="solid" border-color="white">
 <fo:block>
