@@ -23,3 +23,44 @@ MainTable:
     OnHold:
     CountryRef:
   Controller:
+    PopupWindow:
+      Width: 800
+      Height: 500
+
+    ToolViews:
+      DownloadCSV:
+        DisplayLabel: Download in CSV
+        ImageName: download
+        Controller: ExportCSVTool
+          RequireSelection: False  
+      DownloadExcel:
+        DisplayLabel: Download in Excel
+        Controller: ExportExcelTool
+          OutputFileName: PartyList.xls
+          UseTemplate: PartyList.xlt
+          RequireSelection: False  
+  DetailTables:
+    Controller:
+      # Tabs/Popup. Default = Tabs.
+      Style: Tabs
+    Table:
+      Model: Sales
+      Fields:
+        CustNoRef:
+          Fields:
+            CustNo:
+          IsVisible: False
+        PoNumber:
+          IsVisible: False
+        OrderStatus:
+        OrderDate:
+        ShipDate:
+        DateNeeded:
+        Paid:
+        QtyOrdered:
+        TotalValue:
+        Discount:
+        ItemType:
+        Aged:
+        SalesRepRef:
+        

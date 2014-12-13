@@ -17,8 +17,26 @@ Controller: List
         # ExpressionTemplate should contain a {value} placeholder for the value field selected by the CommandText.
         ExpressionTemplate: CUSTOMER_NAME = '{value}'
 
+  GridPanelController:
+    AllowViewing: True
+
 MainTable:
   Model: PROJECT
+  Controller:
+    PopupWindow:
+      Width: 800
+      Height: 500
+
+    FormController:
+      LabelAlign: left
+      ToolViews:
+        DownloadText:
+          DisplayLabel: Donwload content in XML
+          Controller: ExportXMLTool
+            RequireSelection: False
+            IncludeHeader: False
+            ClientFileName: ProjectList.xml
+
   DetailTables:
     Table:
       Model: PHASE

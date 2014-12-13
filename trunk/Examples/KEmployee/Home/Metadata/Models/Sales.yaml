@@ -20,12 +20,12 @@ Fields:
     PhysicalName: ITEM_TYPE
   Aged: Decimal
   CustNoRef: Reference(Customer) not null
-    PhysicalName: CUST_NO
+    PhysicalName: INTEG_77
     Fields:
       CustNo:
         PhysicalName: CUST_NO
   SalesRepRef: Reference(Employee)
-    PhysicalName: CUST_NO
+    PhysicalName: integ_78
     Fields:
       SalesRep:
         PhysicalName: SALES_REP

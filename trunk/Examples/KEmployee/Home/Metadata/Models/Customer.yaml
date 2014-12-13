@@ -32,3 +32,5 @@ Fields:
     PhysicalName: INTEG_61
     Fields:
       Country:
+DetailReferences:
+  Orders: Sales

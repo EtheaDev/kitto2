@@ -1,6 +1,14 @@
 DefaultFont: Courier
   Color: Red
   Size: 15.5
+
+Information:
+  Author: %Auth:UserName%
+  Title: Activity Form
+  Subject: {Description}
+  Creator: Taskitto
+  CreationDate: %DATETIME%
+  
 Items:
   Image: 
     FileName: taskitto_logo_150.png
@@ -15,14 +23,14 @@ Items:
     Width: 100
     Height: 31
   Text: 
-    Expression: Activity: %Description%
+    Expression: Activity: {Description} on %DATETIME%
     XPos: 10
     YPos: 600
     Font: Helvetica
       Size: 12
       Color: Green
   Text: 
-    Expression: %Employee%
+    Expression: {Employee}
     XPos: 10
     YPos: 550
     Font: HelveticaBold
@@ -32,7 +40,7 @@ Items:
     Expression: %ActivityId%
     XPos: 10
     YPos: 700
-    Size: 20.5
+    Size: 45.5
     Rotation: 90
   TextBox: 
     Expression: |

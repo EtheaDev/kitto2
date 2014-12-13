@@ -1,5 +1,7 @@
 unit UseKitto;
 
+{$I Kitto.Defines.inc}
+
 interface
 
 uses
@@ -12,6 +14,7 @@ uses
   // Kitto.Auth.TextFile,
   Kitto.Ext.ADO.Tools, //For Excel export
   Kitto.Ext.DebenuQuickPDF.Tools, //For PDF Merge
+  Kitto.Ext.FOP.Tools, //For FOP Engine
   Kitto.Localization.dxgettext,
   Kitto.Metadata.ModelImplementation,
   Kitto.Metadata.ViewBuilders,

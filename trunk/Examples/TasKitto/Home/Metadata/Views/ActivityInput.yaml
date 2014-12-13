@@ -4,7 +4,6 @@ Controller: List
   Filters:
     DisplayLabel: Types
     LabelWidth: 90
-    LabelAlign: right
     Connector: and
     Items:
       FreeSearch: Description
@@ -39,9 +38,7 @@ Controller: List
             IsDefault: True
   GridPanelController:
     AllowDuplicating: True
-    FormController:
-      CloneButton:
-  .InplaceEditing: True
+    AllowViewing: True
 
 MainTable:
   Model: ACTIVITY
@@ -65,13 +62,18 @@ MainTable:
         DisplayLabel: Download in Excel
         Controller: ExportExcelTool
           ClientFileName: ActivityList.xls
-          Template:
-            TemplateFileName: %APP_PATH%ReportTemplates\ActivityList.xlt
+          TemplateFileName: %APP_PATH%ReportTemplates\ActivityList.xlt
           RequireSelection: False  
       PDFReport:
         DisplayLabel: Activity report PDF
         Controller: MergePDFTool
-          ClientFileName: ActivityReport.pdf
-          Template:
-            TemplateFileName: %APP_PATH%ReportTemplates\ActivityPDFMerge.yaml
+          ClientFileName: ActivityByQuickPDF.pdf
+          BaseFileName: %APP_PATH%ReportTemplates\ActivityReport.pdf
+          Layout: %APP_PATH%ReportTemplates\ActivityPDFMerge.yaml
           RequireSelection: True
+      FOPReport:
+        DisplayLabel: Activity by FOP
+        Controller: FOPTool
+          ClientFileName: ActivityByFOP.pdf
+          TransformFileName: %APP_PATH%ReportTemplates\ActivityReport.xsl
+          RequireSelection: False

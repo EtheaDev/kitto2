@@ -25,7 +25,7 @@ AccessControl: Null
 #HomeView: Home
 
 Ext:
-  Theme: gray
+  Theme: custom
   URL: /ext
 
 LanguageId: en
