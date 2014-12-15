@@ -48,8 +48,6 @@ type
     FIsDupVisible: Boolean;
     FIsDupAllowed: Boolean;
     FInplaceEditing: Boolean;
-    //FRowEditor: TExtUxGridRowEditor;
-    FEditors: TKEditItemList;
     function GetGroupingFieldName: string;
     function CreatePagingToolbar: TExtPagingToolbar;
     procedure ShowEditWindow(const ARecord: TKRecord;
@@ -67,6 +65,8 @@ type
   private
     FConfirmButton: TExtButton;
     FCancelButton: TExtButton;
+    function GetConfirmJSCode(const AMethod: TExtProcedure): string;
+    function GetBeforeEditJSCode(const AMethod: TExtProcedure): string;
   strict protected
     function GetEditWindowDefaultControllerType: string; virtual;
     function GetOrderByClause: string; override;
@@ -95,8 +95,9 @@ type
     procedure LoadData; override;
     procedure CancelChanges;
     procedure SelectionChanged;
-    procedure ConfirmChanges;
     procedure BeforeInplaceEditRecord;
+    procedure UpdateField;
+    procedure BeforeEdit;
   end;
 
 implementation
@@ -178,6 +179,17 @@ procedure TKExtGridPanel.BeforeCreateTopToolbar;
 begin
   inherited;
   FButtonsRequiringSelection.Clear;
+end;
+
+procedure TKExtGridPanel.BeforeEdit;
+var
+  LReqBody: ISuperObject;
+begin
+  LReqBody := SO(Session.RequestBody);
+  InitColumnEditors(ServerStore.GetRecord(LReqBody.O['data'], Session.Config.UserFormatSettings));
+
+  FConfirmButton.Show;
+  FCancelButton.Show;
 end;
 
 procedure TKExtGridPanel.BeforeInplaceEditRecord;
@@ -307,7 +319,7 @@ begin
     LEditor := AEditorManager.CreateGridCellEditor(FEditorGridPanel, AViewField);
     if Supports(LEditor, IEFSubject, LSubject) then
       LSubject.AttachObserver(Self);
-    FEditors.Add(LEditor);
+    FEditItems.Add(LEditor);
     AColumn.Editor := LEditor;
   end;
 end;
@@ -516,8 +528,8 @@ begin
 
   LEditorManager := TKExtEditorManager.Create;
   try
-    FreeAndNil(FEditors);
-    FEditors := TKEditItemList.Create;
+    FreeAndNil(FEditItems);
+    FEditItems := TKEditItemList.Create;
     // Only in-place editing supported ATM, not inserting.
     LEditorManager.Operation := eoUpdate;
     LEditorManager.OnGetSession :=
@@ -649,7 +661,7 @@ begin
   Assert(Assigned(ARecord));
 
   // Set record fields and load data.
-  FEditors.AllEditors(
+  FEditItems.AllEditors(
     procedure (AEditor: IKExtEditor)
     begin
       AEditor.RecordField := ARecord.FieldByName(AEditor.FieldName);
@@ -708,19 +720,7 @@ begin
     Title := _(LViewTable.PluralDisplayLabel);
 
   if FInplaceEditing then
-  begin
-    FEditorGridPanel.ClicksToEdit := 2;
-//    FRowEditor := TExtUxGridRowEditor.Create(FEditorGridPanel);
-//    FRowEditor.SaveText := Config.GetString('ConfirmButton/Caption', _('Save'));
-//    FRowEditor.CancelText := _('Cancel');
-//    FRowEditor.CommitChangesText := _('You need to save or cancel your changes');
-//    FRowEditor.ErrorText := _('Errors');
-//    FRowEditor.On('beforeedit', JSFunction('rowEditor, rowIndex',
-//      { TODO : This method of passing rowIndex is rather ugly. Need a better GetAjaxCode variant. }
-//      GetAjaxCode(BeforeInplaceEditRecord, '&rowIndex=" + rowIndex + "', []) + sLineBreak +
-//        'return true;'));
-//    FEditorGridPanel.PluginsArray.Add(FRowEditor);
-  end;
+    FEditorGridPanel.ClicksToEdit := 1;
 
   CreateGridView;
 
@@ -745,36 +745,8 @@ begin
 
   InitGridColumns;
 
-  // Set confirm handler (editors are needed by GetConfirmJSCode).
-//  if Assigned(FRowEditor) then
-//    FRowEditor.On('validateedit', JSFunction('rowEditor, changes, record, rowIndex',
-//      GetConfirmJSCode(ConfirmChanges)));
-
   CheckGroupColumn;
 end;
-
-//function TKExtGridPanel.GetConfirmJSCode(const AMethod: TExtProcedure): string;
-//var
-//  LCode: string;
-//begin
-//  LCode :=
-//    'var json = new Object;' + sLineBreak +
-//    'json.new = new Object;' + sLineBreak;
-//
-//  LCode := LCode + GetJSFunctionCode(
-//    procedure
-//    begin
-//      FEditors.AllEditors(
-//        procedure (AEditor: IKExtEditor)
-//        begin
-//          AEditor.StoreValue('json.new');
-//        end);
-//    end,
-//    False) + sLineBreak;
-//
-//  LCode := LCode + GetPOSTAjaxCode(AMethod, [], 'json') + sLineBreak;
-//  Result := LCode;
-//end;
 
 procedure TKExtGridPanel.CancelChanges;
 begin
@@ -814,31 +786,28 @@ begin
     Result := Result + Format('%s.setDisabled(disabled);', [FButtonsRequiringSelection[I].JSName]);
 end;
 
+procedure TKExtGridPanel.UpdateField;
+var
+  LReqBody: ISuperObject;
+  LError: string;
+begin
+  LReqBody := SO(Session.RequestBody);
+  LError := UpdateRecord(ServerStore.GetRecord(LReqBody.O['new'], Session.Config.UserFormatSettings), LReqBody.O['new'], False);
+  if LError = '' then
+    // ok - nothing
+  else
+  begin
+    // go back in edit mode.
+    //FEditorGridPanel.StartEditing(LReqBody.I['rowIndex'], 0);
+  end;
+end;
+
 procedure TKExtGridPanel.UpdateObserver(const ASubject: IEFSubject;
   const AContext: string);
 begin
   inherited;
   if (AContext = 'Confirmed') and Supports(ASubject.AsObject, IKExtController) then
     LoadData;
-end;
-
-procedure TKExtGridPanel.ConfirmChanges;
-var
-  LReqBody: ISuperObject;
-  LError: string;
-begin
-//  Assert(Assigned(FRowEditor));
-
-  LReqBody := SO(Session.RequestBody);
-  LError := UpdateRecord(ServerStore.GetRecord(LReqBody.O['new'], Session.Config.UserFormatSettings), LReqBody.O['new']);
-  if LError = '' then
-    // ok - nothing
-  else
-  begin
-    // go back in edit mode.
-    FEditorGridPanel.StartEditing(LReqBody.I['rowIndex'], 0);
-    //FRowEditor.StartEditing(LReqBody.I['rowIndex'], True);
-  end;
 end;
 
 procedure TKExtGridPanel.ViewRecord;
@@ -877,7 +846,7 @@ end;
 destructor TKExtGridPanel.Destroy;
 begin
   FreeAndNil(FButtonsRequiringSelection);
-  FreeAndNil(FEditors);
+  FreeAndNil(FEditItems);
   inherited;
 end;
 
@@ -1011,11 +980,12 @@ begin
     end;
   end;
 
+  inherited;
+
   if FInplaceEditing then
   begin
     TExtToolbarSpacer.CreateAndAddTo(TopToolbar.Items);
     FConfirmButton := TExtButton.CreateAndAddTo(TopToolbar.Items);
-    FConfirmButton.Text := Config.GetString('ConfirmButton/Caption', _('Save'));
     FConfirmButton.Tooltip := Config.GetString('ConfirmButton/Tooltip', _('Save changes and finish editing'));
     FConfirmButton.Icon := Session.Config.GetImageURL('accept');
     FConfirmButton.Hidden := True;
@@ -1023,9 +993,44 @@ begin
     FCancelButton := TExtButton.CreateAndAddTo(TopToolbar.Items);
     FCancelButton.Icon := Session.Config.GetImageURL('cancel');
     FCancelButton.Hidden := True;
-  end;
 
-  inherited;
+    FEditorGridPanel.On('beforeedit', JSFunction('e', GetBeforeEditJSCode(BeforeEdit)));
+    FEditorGridPanel.On('afteredit', JSFunction('e', GetConfirmJSCode(UpdateField)));
+  end;
+end;
+
+function TKExtGridPanel.GetBeforeEditJSCode(const AMethod: TExtProcedure): string;
+var
+  LCode: string;
+begin
+  LCode :=
+    'var json = new Object;' + sLineBreak +
+    'json.data = e.record.data;' + sLineBreak;
+  LCode := LCode + GetPOSTAjaxCode(AMethod, [], 'json') + sLineBreak;
+  Result := LCode;
+end;
+
+function TKExtGridPanel.GetConfirmJSCode(const AMethod: TExtProcedure): string;
+var
+  LCode: string;
+begin
+  LCode :=
+    'var json = new Object;' + sLineBreak +
+    'json.new = e.record.data;' + sLineBreak;
+
+  LCode := LCode + GetJSFunctionCode(
+    procedure
+    begin
+      FEditItems.AllEditors(
+        procedure (AEditor: IKExtEditor)
+        begin
+          AEditor.StoreValue('json.new');
+        end);
+    end,
+    False) + sLineBreak;
+
+  LCode := LCode + GetPOSTAjaxCode(AMethod, [], 'json') + sLineBreak;
+  Result := LCode;
 end;
 
 procedure TKExtGridPanel.AddTopToolbarToolViewButtons;

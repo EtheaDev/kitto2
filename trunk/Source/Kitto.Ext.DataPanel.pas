@@ -25,7 +25,7 @@ uses
   superobject,
   EF.Classes,
   Kitto.Metadata.Views, Kitto.Metadata.DataView, Kitto.Store,
-  Kitto.Ext.Base, Kitto.Ext.Controller, Kitto.Ext.BorderPanel;
+  Kitto.Ext.Base, Kitto.Ext.Controller, Kitto.Ext.BorderPanel, Kitto.Ext.Editors;
 
 type
   TKExtDataActionButton = class(TKExtActionButton)
@@ -41,8 +41,10 @@ type
     procedure ExecuteActionOnSelectedRows;
   end;
 
-  ///	<summary>Base class for controllers that handle database records (either
-  ///	single records or record sets).</summary>
+  /// <summary>
+  ///  Base class for controllers that handle database records (either
+  ///  single records or record sets).
+  /// </summary>
   TKExtDataPanelController = class abstract(TKExtBorderPanelController)
   strict private
     FServerStore: TKViewTableStore;
@@ -53,6 +55,7 @@ type
     function GetView: TKDataView;
     function GetMaxRecords: Integer;
   strict protected
+    FEditItems: TKEditItemList;
     procedure CheckCanRead;
 //    function GetRefreshJSCode: string; virtual;
     function GetOrderByClause: string; virtual;
@@ -76,7 +79,8 @@ type
     function GetParentDataPanel: TKExtDataPanelController;
     function GetRootDataPanel: TKExtDataPanelController;
     function FindViewLayout(const ALayoutName: string): TKLayout;
-    function UpdateRecord(const ARecord: TKVIewTableRecord; const ANewValues: ISuperObject): string;
+    function UpdateRecord(const ARecord: TKVIewTableRecord; const ANewValues: ISuperObject;
+      const APersist: Boolean): string;
   public
     destructor Destroy; override;
     property ViewTable: TKViewTable read FViewTable write SetViewTable;
@@ -415,7 +419,8 @@ begin
   Session.Config.CheckAccessGranted(ViewTable.GetResourceURI, ACM_READ);
 end;
 
-function TKExtDataPanelController.UpdateRecord(const ARecord: TKVIewTableRecord; const ANewValues: ISuperObject): string;
+function TKExtDataPanelController.UpdateRecord(const ARecord: TKVIewTableRecord; const ANewValues: ISuperObject;
+  const APersist: Boolean): string;
 var
   LItem: TSuperAvlEntry;
   LOldRecord: TKViewTableRecord;
@@ -497,7 +502,7 @@ begin
         end);
 
       // Save record.
-      ViewTable.Model.SaveRecord(ARecord, not ViewTable.IsDetail,
+      ViewTable.Model.SaveRecord(ARecord, APersist and not ViewTable.IsDetail,
         procedure
         begin
           Session.Flash(_('Changes saved succesfully.'));

@@ -66,7 +66,6 @@ type
     FFocusField: TExtFormField;
     FStoreRecord: TKViewTableRecord;
     FCloneValues: TEFNode;
-    FEditItems: TKEditItemList;
     FCloneButton: TExtButton;
     FLabelAlign: TExtFormFormPanelLabelAlign;
     procedure CreateEditors;
@@ -296,29 +295,6 @@ begin
     FCloneButton.Handler := JSFunction(GetConfirmJSCode(ConfirmChangesAndClone));
 end;
 
-function TKExtFormPanelController.GetConfirmJSCode(const AMethod: TExtProcedure): string;
-var
-  LCode: string;
-begin
-  LCode :=
-    'var json = new Object;' + sLineBreak +
-    'json.new = new Object;' + sLineBreak;
-
-  LCode := LCode + GetJSFunctionCode(
-    procedure
-    begin
-      FEditItems.AllEditors(
-        procedure (AEditor: IKExtEditor)
-        begin
-          AEditor.StoreValue('json.new');
-        end);
-    end,
-    False) + sLineBreak;
-
-  LCode := LCode + GetPOSTAjaxCode(AMethod, [], 'json') + sLineBreak;
-  Result := LCode;
-end;
-
 function TKExtFormPanelController.GetDetailStyle: string;
 begin
   Result := ViewTable.GetString('DetailTables/Controller/Style', 'Tabs');
@@ -431,7 +407,7 @@ end;
 procedure TKExtFormPanelController.ConfirmChanges;
 begin
   AssignFieldChangeEvent(False);
-  UpdateRecord(FStoreRecord, SO(Session.RequestBody).O['new']);
+  UpdateRecord(FStoreRecord, SO(Session.RequestBody).O['new'], True);
   FreeAndNil(FCloneValues);
   if Config.GetBoolean('KeepOpenAfterOperation') then
     StartOperation
@@ -441,7 +417,7 @@ end;
 
 procedure TKExtFormPanelController.ConfirmChangesAndClone;
 begin
-  UpdateRecord(FStoreRecord, SO(Session.RequestBody).O['new']);
+  UpdateRecord(FStoreRecord, SO(Session.RequestBody).O['new'], True);
   FCloneValues := TEFNode.Clone(FStoreRecord);
   FStoreRecord := ServerStore.AppendRecord(nil);
   FOperation := ADD_OPERATION;
@@ -715,6 +691,29 @@ end;
 function TKExtFormPanelController.FindLayout: TKLayout;
 begin
   Result := FindViewLayout('Form');
+end;
+
+function TKExtFormPanelController.GetConfirmJSCode(const AMethod: TExtProcedure): string;
+var
+  LCode: string;
+begin
+  LCode :=
+    'var json = new Object;' + sLineBreak +
+    'json.new = new Object;' + sLineBreak;
+
+  LCode := LCode + GetJSFunctionCode(
+    procedure
+    begin
+      FEditItems.AllEditors(
+        procedure (AEditor: IKExtEditor)
+        begin
+          AEditor.StoreValue('json.new');
+        end);
+    end,
+    False) + sLineBreak;
+
+  LCode := LCode + GetPOSTAjaxCode(AMethod, [], 'json') + sLineBreak;
+  Result := LCode;
 end;
 
 { TKExtDetailFormButton }
