@@ -3204,11 +3204,11 @@ begin
       if not AIsReadOnly then
       begin
         LNumberField.AllowDecimals := AViewField.DataType is TEFDecimalNumericDataTypeBase;
-        LNumberField.DecimalSeparator := Session.Config.UserFormatSettings.DecimalSeparator;
         LNumberField.AllowNegative := True;
         if LNumberField.AllowDecimals then
           LNumberField.DecimalPrecision := AViewField.DecimalPrecision;
       end;
+      LNumberField.DecimalSeparator := Session.Config.UserFormatSettings.DecimalSeparator;
       Result := LNumberField;
     except
       LNumberField.Free;
