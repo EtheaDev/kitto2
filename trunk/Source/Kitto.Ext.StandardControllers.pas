@@ -179,7 +179,7 @@ implementation
 
 uses
   EF.SysUtils, EF.Tree, EF.RegEx, EF.Localization,
-  Kitto.Ext.Session, Kitto.Ext.Controller;
+  Kitto.Ext.Session, Kitto.Ext.Controller, Kitto.Metadata.DataView;
 
 { TKExtURLControllerBase }
 
@@ -309,8 +309,13 @@ begin
 end;
 
 function TKExtDownloadFileController.GetClientFileName: string;
+var
+  LRecord: TKViewTableRecord;
 begin
   Result := Config.GetExpandedString('ClientFileName');
+  LRecord := ServerRecord;
+  if (LRecord <> nil) then
+    Result := LRecord.ExpandExpression(Result);
   if (Result = '') then
   begin
     if Assigned(ViewTable) then
