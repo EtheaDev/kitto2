@@ -141,7 +141,7 @@ begin
   Modal := True;
   Title := _(Session.Config.AppTitle);
   Width := 316;
-  Height := 142;
+  Height := 162;
   Closable := True;
   Resizable := False;
 
