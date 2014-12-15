@@ -527,7 +527,7 @@ object KExtMainForm: TKExtMainForm
           Width = 71
           Height = 13
           Cursor = crHandPoint
-          Hint = 'Click to change Application Home'
+          Hint = 'Click to launch application in default browser'
           Caption = 'HomeURLLabel'
           Color = clBtnFace
           Font.Charset = DEFAULT_CHARSET
@@ -580,7 +580,7 @@ object KExtMainForm: TKExtMainForm
     Left = 320
     Top = 65528
     Bitmap = {
-      494C010103004C00A40010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C010103004C00A80010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000001000000001002000000000000010
       0000000000000000000000000000000000000000000000000000000000000000
       00000000001E00000031000000330000003300000033000000310000001E0000
