@@ -236,6 +236,7 @@ begin
     begin
       LCountTemplate := ViewTable.GetString('Controller/Grouping/ShowCount/Template',
         '{text} ({[values.rs.length]} {[values.rs.length > 1 ? "%ITEMS%" : "%ITEM%"]})');
+      LCountTemplate := _(LCountTemplate);
       LCountTemplate := ReplaceText(LCountTemplate, '%ITEMS%',
         _(ViewTable.GetString('Controller/Grouping/ShowCount/PluralItemName', ViewTable.PluralDisplayLabel)));
       LCountTemplate := ReplaceText(LCountTemplate, '%ITEM%',
