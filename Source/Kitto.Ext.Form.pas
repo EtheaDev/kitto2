@@ -126,10 +126,17 @@ begin
       LViewField: TKViewField;
     begin
       LFormField := AEditor.AsExtFormField;
-      LViewField := ViewTable.FieldByAliasedName(AEditor.FieldName);
-      LFormField.ReadOnly := LViewMode or not LViewField.CanEditField(LInsertOperation);
-      if not LFormField.ReadOnly and (FFocusField = nil) then
-        FFocusField := LFormField;
+      if Assigned(LFormField) then
+      begin
+        LViewField := ViewTable.FieldByAliasedName(AEditor.FieldName);
+        if Assigned(LViewField) then
+          LFormField.ReadOnly := LViewMode or not LViewField.CanEditField(LInsertOperation)
+        else
+          LFormField.ReadOnly := LViewMode;
+
+          if not LFormField.ReadOnly and (FFocusField = nil) then
+            FFocusField := LFormField;
+      end;
     end);
 end;
 
