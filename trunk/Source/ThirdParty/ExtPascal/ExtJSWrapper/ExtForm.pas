@@ -967,7 +967,7 @@ type
       write SetFAutoCreateObject;
     property Editable: Boolean read FEditable write _SetEditable;
     property HideTrigger: Boolean read FHideTrigger write SetFHideTrigger;
-    property readonly: Boolean read FReadOnly write _SetReadOnly;
+    property ReadOnly: Boolean read FReadOnly write _SetReadOnly;
     property TriggerClass: string read FTriggerClass write SetFTriggerClass;
     property TriggerConfig: string read FTriggerConfig write SetFTriggerConfig;
     property WrapFocusClass: string read FWrapFocusClass
