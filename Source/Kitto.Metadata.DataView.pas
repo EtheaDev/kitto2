@@ -1321,7 +1321,7 @@ var
   I: Integer;
   LField: TKModelField;
   LCaptionField: TKModelField;
-  LFieldNames: string;
+  LKeyFieldNames: string;
 begin
   Assert(IsReference);
 
@@ -1337,11 +1337,11 @@ begin
     if Result.Header.FindChild(LCaptionField.FieldName) = nil then
       Result.Header.AddField(LCaptionField.FieldName).DataType := LCaptionField.DataType;
 
-    if ModelField.FieldCount > 1 then
+    if ModelField.ReferencedModel.KeyFieldCount > 1 then
     begin
       // Let's assume a concatenation is a string.
-      LFieldNames := Join(ModelField.GetFieldNames, TKConfig.Instance.MultiFieldSeparator);
-      Result.Header.AddField(LFieldNames).DataType := TEFDataTypeFactory.Instance.GetDataType('String');
+      LKeyFieldNames := Join(ModelField.ReferencedModel.GetKeyFieldNames, TKConfig.Instance.MultiFieldSeparator);
+      Result.Header.AddField(LKeyFieldNames).DataType := TEFDataTypeFactory.Instance.GetDataType('String');
     end;
   except
     FreeAndNil(Result);
