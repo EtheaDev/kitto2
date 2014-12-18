@@ -21,6 +21,7 @@ interface
 uses
   DB, ADODB, ADOX_TypeLibrary,
   SysUtils, Classes,
+  EF.Tree,
   Kitto.Ext.Controller, Kitto.Ext.DataTool, Kitto.Ext.Base, Kitto.Ext.Tools,
   Kitto.Metadata.DataView, Kitto.Ext.StandardControllers;
 
@@ -32,10 +33,11 @@ type
     function GetExcelRangeName: string;
     procedure CreateExcelSheet(AConnectionString, AExcelRangeName: string);
     function GetConnectionString(ExcelFileName: string): string;
-    procedure GetAdoXFieldType(const AFieldType: TFieldType;
-      const AFieldSize: integer; out AdoXDataType: DataTypeEnum);
-    function ValidField(AViewField: TKViewField): boolean;
-  strict protected
+    function IsValidField(const AViewField: TKViewField): Boolean;
+  strict
+  private
+    function GetADOXDataType(const ADataType: TEFDataType;
+      const AFieldSize: Integer; out AADOXDataType: DataTypeEnum): Boolean; protected
     function GetDefaultFileName: string; override;
     function GetDefaultFileExtension: string; override;
     procedure PrepareFile(const AFileName: string); override;
@@ -49,7 +51,7 @@ implementation
 
 uses
   Math,
-  Ext, EF.DB, EF.SysUtils, EF.Tree,
+  Ext, EF.DB, EF.SysUtils,
   Kitto.Metadata.Models, Kitto.Ext.Session, Kitto.Config;
 
 const
@@ -131,119 +133,112 @@ begin
   AddTempFilename(Result);
 end;
 
-procedure TExportExcelToolController.GetAdoXFieldType(const AFieldType: TFieldType;
-      const AFieldSize: integer; out AdoXDataType: DataTypeEnum);
+function TExportExcelToolController.GetADOXDataType(const ADataType: TEFDataType;
+  const AFieldSize: Integer; out AADOXDataType: DataTypeEnum): Boolean;
 begin
-  case AFieldType of
-    ftFixedChar, ftString, ftGuid : AdoXDataType := adVarWChar;
-    ftWideString : AdoXDataType := adVarWChar;
-    ftMemo : AdoXDataType := adLongVarWChar;
-    ftLargeint : AdoXDataType := adBigInt;
-    ftAutoInc, ftInteger : AdoXDataType := adInteger;
-    ftSmallint, ftWord : AdoXDataType := adSmallInt;
-    ftFloat, ftBCD : AdoXDataType := adDouble;
-    ftCurrency : AdoXDataType := adCurrency;
-    ftFMTBcd : AdoXDataType := adDouble;
-    ftBoolean : AdoXDataType := adBoolean;
-    ftDate, ftTime, ftDateTime, ftTimeStamp : AdoXDataType := adDate;
+  Result := True;
+  if ADataType is TEFStringDataType then
+    AADOXDataType := adVarWChar
+  else if ADataType is TEFMemoDataType then
+    AADOXDataType := adLongVarWChar
+  else if ADataType is TEFIntegerDataType then
+    AADOXDataType := adInteger
+  else if (ADataType is TEFDateDataType) or (ADataType is TEFTimeDataType) or (ADataType is TEFDateTimeDataType) then
+    AADOXDataType := adDate
+  else if ADataType is TEFBooleanDataType then
+    AADOXDataType := adBoolean
+  else if (ADataType is TEFFloatDataType) or (ADataType is TEFDecimalDataType) then
+    AADOXDataType := adDouble
+  else if ADataType is TEFCurrencyDataType then
+    AADOXDataType := adCurrency
+  else if AFieldSize <= MAX_EXCEL_STRING_COLUMN_SIZE then
+    AADOXDataType := adVarWChar
   else
-    AdoXDataType := adVarWChar;
-  end;
-  if AFieldSize > MAX_EXCEL_STRING_COLUMN_SIZE then
-    AdoXDataType := adLongVarWChar;
+    AADOXDataType := adLongVarWChar;
 end;
 
 procedure TExportExcelToolController.CreateExcelSheet(
   AConnectionString, AExcelRangeName: string);
 var
-  cat: _Catalog;
-  tbl: _Table;
-  col: _Column;
-  LFieldIndex: integer;
+  LCatalog: _Catalog;
+  LTable: _Table;
+  LColumn: _Column;
+  LFieldIndex: Integer;
   LViewField: TKViewField;
   LColumnName: string;
-  LFieldType: TFieldType;
-  ADOXFieldType : DataTypeEnum;
+  LADOXDataType: DataTypeEnum;
   LViewTable: TKViewTable;
-  LFieldSize : integer;
+  LFieldSize: Integer;
 
-  procedure AddExcelColumn(const ColName : string;
-    FieldType : DataTypeEnum; Size : Integer);
+  procedure AddExcelColumn(const AColumnName: string; const ADataType: DataTypeEnum; const ASize: Integer);
   begin
-    col := nil;
-    col := CoColumn.Create;
-    with col do
-      begin
-        Set_Name(ColName);
-        Set_Type_(FieldType);
-        if Size <> 0 then
-          Set_DefinedSize(Min(Size,MAX_EXCEL_STRING_COLUMN_SIZE));
-      end;
+    LColumn := nil;
+    LColumn := CoColumn.Create;
+    with LColumn do
+    begin
+      Set_Name(AColumnName);
+      Set_Type_(ADataType);
+      if ASize <> 0 then
+        Set_DefinedSize(Min(ASize,MAX_EXCEL_STRING_COLUMN_SIZE));
+    end;
     //add column to table
-    tbl.Columns.Append(col, FieldType, Size);
+    LTable.Columns.Append(LColumn, ADataType, ASize);
   end;
 
 begin
   LViewTable := ViewTable;
   //WorkBook creation (database)
-  cat := CoCatalog.Create;
-  cat.Set_ActiveConnection(AConnectionString);
+  LCatalog := CoCatalog.Create;
+  LCatalog.Set_ActiveConnection(AConnectionString);
   //WorkSheet creation (table)
-  tbl := CoTable.Create;
-  tbl.Set_Name(AExcelRangeName);
+  LTable := CoTable.Create;
+  LTable.Set_Name(AExcelRangeName);
 
   //Columns creation (fields)
   for LFieldIndex := 0 to LViewTable.FieldCount - 1 do
   begin
     LViewField := LViewTable.Fields[LFieldIndex];
-    LFieldType := LViewField.ActualDataType.AsFieldType;
-    if ValidField(LViewField) then
+    if IsValidField(LViewField) then
     begin
       LColumnName := NormalizeColumName(LViewField.FieldName);
-      if LFieldType <> ftUnknown then
-      begin
-        LFieldSize := LViewField.Size;
-        GetAdoXFieldType(LFieldType, LFieldSize, ADOXFieldType);
-        AddExcelColumn(LColumnName, ADOXFieldType, LFieldSize);
-      end;
+      LFieldSize := LViewField.Size;
+      GetADOXDataType(LViewField.ActualDataType, LFieldSize, LADOXDataType);
+      AddExcelColumn(LColumnName, LADOXDataType, LFieldSize);
     end;
   end;
 
   //add table to database
-  cat.Tables.Append(tbl);
+  LCatalog.Tables.Append(LTable);
 
-  col := nil;
-  tbl := nil;
-  cat := nil;
+  LColumn := nil;
+  LTable := nil;
+  LCatalog := nil;
 end;
 
-function TExportExcelToolController.ValidField(AViewField: TKViewField): boolean;
+function TExportExcelToolController.IsValidField(const AViewField: TKViewField): Boolean;
 var
-  LFieldType: TFieldType;
+  LDummy: DataTypeEnum;
 begin
   Result := False;
   if Assigned(AViewField) and (AViewField.IsVisible) then
-  begin
-    LFieldType := AViewField.ActualDataType.AsFieldType;
-    Result := LFieldType <> ftUnknown;
-  end;
+    Result := GetADOXDataType(AViewField.ActualDataType, AViewField.Size, LDummy);
 end;
 
 procedure TExportExcelToolController.PrepareFile(const AFileName: string);
 var
   LStore: TKViewTableStore;
-  AcceptRecord, AcceptField: boolean;
-  FirstAccepted: boolean;
-  LRecordIndex, LFieldIndex: integer;
+  LAcceptRecord, LAcceptField: Boolean;
+  LFirstAccepted: Boolean;
+  LRecordIndex, LFieldIndex: Integer;
   LRecord: TKViewTableRecord;
-  LDestField : TField;
+  LDestField: TField;
   LSourceField: TKViewTableField;
   LConnectionString, LExcelRangeName: string;
-  FAdoTable : TAdoTable;
+  LAdoTable: TAdoTable;
 
-  function FindValidField(const FieldName : string) : TKViewTableField;
+  function FindValidField(const AFieldName: string): TKViewTableField;
   var
-    LFieldIndex: integer;
+    LFieldIndex: Integer;
     LViewTableField: TKViewTableField;
   begin
     Result := nil;
@@ -251,10 +246,10 @@ var
     begin
       LViewTableField := LRecord.Fields[LFieldIndex];
       if Assigned(LViewTableField) and Assigned(LViewTableField.ViewField) and
-        SameText(NormalizeColumName(LViewTableField.ViewField.FieldName), NormalizeColumName(FieldName)) then
+        SameText(NormalizeColumName(LViewTableField.ViewField.FieldName), NormalizeColumName(AFieldName)) then
       begin
         Result := LViewTableField;
-        break;
+        Break;
       end;
     end;
   end;
@@ -275,38 +270,38 @@ begin
   end;
 
   //A questo punto ho il file Excel creato: mi collego con una FAdoTable e ci infilo i dati
-  FAdoTable := TAdoTable.Create(nil);
+  LAdoTable := TAdoTable.Create(nil);
   try
     //Apro il file Excel copiato
-    FAdoTable.CursorType := ctStatic;
-    FAdoTable.ConnectionString := LConnectionString;
-    FAdoTable.TableName := LExcelRangeName;
-    FAdoTable.Open;
+    LAdoTable.CursorType := ctStatic;
+    LAdoTable.ConnectionString := LConnectionString;
+    LAdoTable.TableName := LExcelRangeName;
+    LAdoTable.Open;
 
-    FirstAccepted := False;
+    LFirstAccepted := False;
     //Ciclo sui record dello store per riempire il dataset
     for LRecordIndex := 0 to LStore.RecordCount -1 do
     begin
       //Ciclo sui records: il primo record lo modifico, dal secondo in poi append
       LRecord := LStore.Records[LRecordIndex];
-      AcceptRecord := not LRecord.IsDeleted;
-      if AcceptRecord then
+      LAcceptRecord := not LRecord.IsDeleted;
+      if LAcceptRecord then
       begin
-        if not FirstAccepted then
-          FAdoTable.Edit
+        if not LFirstAccepted then
+          LAdoTable.Edit
         else
-          FAdoTable.Append;
-        FirstAccepted := True;
+          LAdoTable.Append;
+        LFirstAccepted := True;
         try
           //Aggiorno i campi: comanda sempre il template
-          for LFieldIndex := 0 to FAdoTable.FieldCount - 1 do
+          for LFieldIndex := 0 to LAdoTable.FieldCount - 1 do
           begin
-            LDestField := FAdoTable.Fields[LFieldIndex];
+            LDestField := LAdoTable.Fields[LFieldIndex];
             LSourceField := FindValidField(LDestField.FieldName);
-            AcceptField := Assigned(LSourceField) and ValidField(LSourceField.ViewField);
-            if AcceptField then
+            LAcceptField := Assigned(LSourceField) and IsValidField(LSourceField.ViewField);
+            if LAcceptField then
             begin
-              if LSourceField.ViewField.ActualDataType.AsFieldType = ftMemo then
+              if LSourceField.ViewField.ActualDataType is TEFMemoDataType then
                 LDestField.AsString := StringReplace(LSourceField.AsString, sLineBreak, chr(10), [rfReplaceAll])
               else
                 LSourceField.AssignValueToField(LDestField);
@@ -314,16 +309,16 @@ begin
             else
               LDestField.Clear;
           end;
-          FAdoTable.Post;
+          LAdoTable.Post;
         except
-          FAdoTable.Cancel;
+          LAdoTable.Cancel;
           raise;
         end;
       end;
     end;
   finally
-    FAdoTable.Close;
-    FAdoTable.Free; //libero il file Excel
+    LAdoTable.Close;
+    LAdoTable.Free; //libero il file Excel
   end;
 end;
 
