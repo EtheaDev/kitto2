@@ -1843,9 +1843,12 @@ procedure TEFNode.SetToNull;
 var
   LOldValue: Variant;
 begin
-  LOldValue := FValue;
-  FValue := Null;
-  ValueChanged(LOldValue, FValue);
+  if not VarIsNull(FValue) then
+  begin
+    LOldValue := FValue;
+    FValue := Null;
+    ValueChanged(LOldValue, FValue);
+  end;
 end;
 
 procedure TEFNode.ValueChanged(const AOldValue, ANewValue: Variant);
