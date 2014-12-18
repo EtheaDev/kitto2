@@ -465,11 +465,6 @@ begin
             LParentValue := '';
           if Assigned(LParentField) then
           begin
-            // FK fields that are equal to their description mean
-            // unchanged values (and that the user has clicked on the combo box
-            // without changing it and then clicked away).
-            if LItem.Value.AsString = LParentValue then
-              Continue;
             // FK fields that are blank mean unchanged values if the description
             // is nonblank, and blanked out values if the description is also blank.
             if LItem.Value.AsString = '' then begin
@@ -479,8 +474,9 @@ begin
             end
             else
               SetFieldValue;
-          end;
-          SetFieldValue;
+          end
+          else
+            SetFieldValue;
         end;
       finally
         ARecord.Store.EnableChangeNotifications;

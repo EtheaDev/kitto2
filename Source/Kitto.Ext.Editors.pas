@@ -1605,14 +1605,16 @@ end;
 procedure TKExtFormComboBoxEditor.RefreshValue;
 var
   LKeyFieldNames: string;
+  LValue: string;
 begin
   if Mode = 'local' then
     SetValue(JSONNullToEmptyStr(FRecordField.GetAsJSONValue(False, False)))
   else
   begin
     LKeyFieldNames := Join(FRecordField.ViewField.ModelField.GetFieldNames, TKConfig.Instance.MultiFieldSeparator);
-    SetValue(JSONNullToEmptyStr(FRecordField.ParentRecord.FieldByName(LKeyFieldNames).GetAsJSONValue(False, False)));
-    SetRawValue(JSONNullToEmptyStr(FRecordField.GetAsJSONValue(False, False)))
+    LValue := JSONNullToEmptyStr(FRecordField.ParentRecord.FieldByName(LKeyFieldNames).GetAsJSONValue(False, False));
+    SetValue(LValue);
+    SetRawValue(JSONNullToEmptyStr(FRecordField.GetAsJSONValue(False, False)));
   end;
 end;
 
