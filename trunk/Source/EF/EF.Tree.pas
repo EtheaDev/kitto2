@@ -41,6 +41,7 @@ type
   protected
     procedure InternalNodeToParam(const ANode: TEFNode; const AParam: TParam); virtual;
     procedure InternalFieldValueToNode(const AField: TField; const ANode: TEFNode); virtual;
+    procedure InternalNodeToField(const ANode: TEFNode; const AField: TField); virtual;
     procedure InternalYamlValueToNode(const AYamlValue: string; const ANode: TEFNode;
       const AFormatSettings: TFormatSettings); virtual;
     function InternalNodeToJSONValue(const AForDisplay: Boolean;
@@ -50,7 +51,6 @@ type
       const AJSFormatSettings: TFormatSettings); virtual;
   public
     class function GetTypeName: string; virtual;
-    class function AsFieldType: TFieldType; virtual;
     class function HasSize: Boolean; virtual;
     class function HasScale: Boolean; virtual;
 
@@ -58,6 +58,7 @@ type
       const ANode: TEFNode; const AFormatSettings: TFormatSettings);
 
     procedure FieldValueToNode(const AField: TField; const ANode: TEFNode);
+    procedure NodeToField(const ANode: TEFNode; const AField: TField);
     procedure NodeToParam(const ANode: TEFNode; const AParam: TParam);
     procedure YamlValueToNode(const AYamlValue: string; const ANode: TEFNode;
       const AFormatSettings: TFormatSettings);
@@ -900,7 +901,7 @@ type
     function UnlockDataType: Integer;
 
     ///	<summary>
-    ///	  Plain value of the node.
+    ///	 Plain value of the node.
     ///	</summary>
     property Value: Variant read GetValue write SetValue;
 
@@ -1091,20 +1092,25 @@ type
     function ToArray: TArray<TEFNode>;
 
     ///	<summary>
-    ///	  Assigns a field's value to the node. May also change or set the
-    ///	  node's datatype.
+    ///	 Assigns a field's value to the node. May also change or set the
+    ///	 node's datatype.
     ///	</summary>
     procedure AssignFieldValue(const AField: TField);
 
     ///	<summary>
-    ///	  Assigns the node's value to the specified param. May also set the
-    ///	  param's data type.
+    ///	 Assigns the node's value to the specified field.
+    ///	</summary>
+    procedure AssignValueToField(const AField: TField);
+
+    ///	<summary>
+    ///	 Assigns the node's value to the specified param. May also set the
+    ///	 param's data type.
     ///	</summary>
     procedure AssignValueToParam(const AParam: TParam);
 
     ///	<summary>
-    ///	  Assigns the node's name and value to the specified param. May also
-    ///	  set the param's data type.
+    ///	 Assigns the node's name and value to the specified param. May also
+    ///	 set the param's data type.
     ///	</summary>
     procedure AssignToParam(const AParam: TParam);
 
@@ -1349,6 +1355,13 @@ begin
     Value := TEFNode(ASource).Value
   else
     SetToNull;
+end;
+
+procedure TEFNode.AssignValueToField(const AField: TField);
+begin
+  Assert(Assigned(AField));
+
+  DataType.NodeToField(Self, AField);
 end;
 
 procedure TEFNode.AssignValueToParam(const AParam: TParam);
@@ -2615,10 +2628,28 @@ begin
   Result := JSONEscape(ANode.AsString);
 end;
 
-procedure TEFDataType.InternalNodeToParam(const ANode: TEFNode;
-  const AParam: TParam);
+procedure TEFDataType.InternalNodeToParam(const ANode: TEFNode; const AParam: TParam);
 begin
   raise EEFError.CreateFmt('%s.InternalNodeToParam: Unsupported call.', [ClassName]);
+end;
+
+procedure TEFDataType.InternalNodeToField(const ANode: TEFNode; const AField: TField);
+begin
+  case AField.DataType of
+    ftString, ftMemo, ftFixedChar, ftWideString, ftWideMemo: AField.AsString := ANode.AsString;
+    ftSmallint, ftWord, ftInteger, ftAutoInc: AField.AsInteger := ANode.AsInteger;
+    ftBoolean: AField.AsBoolean := ANode.AsBoolean;
+    ftDate: AField.AsDateTime := ANode.AsDate;
+    ftTime: AField.AsDateTime := ANode.AsTime;
+    ftDateTime, ftTimeStamp: AField.AsDateTime := ANode.AsDateTime;
+    ftCurrency: AField.AsCurrency := ANode.AsCurrency;
+    ftFloat: AField.AsFloat := ANode.AsFloat;
+    ftBCD, ftFMTBcd: AField.AsBCD := ANode.AsDecimal;
+    ftBlob: AField.AsBytes := ANode.AsBytes;
+  else
+    raise EEFError.CreateFmt('TEFDataType.InternalFieldValueToNode: Field data type %s not supported.',
+      [GetEnumName(TypeInfo(TFieldType), Ord(AField.DataType))]);
+  end;
 end;
 
 procedure TEFDataType.InternalYamlValueToNode(const AYamlValue: string;
@@ -2715,6 +2746,17 @@ begin
   Result := XMLEscape(InternalNodeToJSONValue(AForDisplay, ANode, AFormatSettings));
   if not ((Result = '') and AEmptyNulls) then
     Result := Format(XMLTagFormat, [LTagName, Result, LTagName]);
+end;
+
+procedure TEFDataType.NodeToField(const ANode: TEFNode; const AField: TField);
+begin
+  Assert(Assigned(ANode));
+  Assert(Assigned(AField));
+
+  if ANode.IsNull then
+    AField.Clear
+  else
+    InternalNodeToField(ANode, AField);
 end;
 
 function TEFDataType.SupportsEmptyAsNull: Boolean;
@@ -2870,21 +2912,6 @@ var
 begin
   LTime := Frac(ATime);
   Result := LTime;
-end;
-
-class function TEFDataType.AsFieldType: TFieldType;
-var
-  LDataTypeStr: string;
-  LEnumIndex: integer;
-begin
-  LDataTypeStr := ClassName;
-  //Remove 'TEF' prefix and 'DataType' suffix
-  LDataTypeStr := 'ft'+Copy(LDataTypeStr,4,Length(LDataTypeStr)-11);
-  LEnumIndex := GetEnumValue(TypeInfo(TFieldType),LDataTypeStr);
-  if LEnumIndex <> -1 then
-    Result := TFieldType(LEnumIndex)
-  else
-    Result := ftUnknown;
 end;
 
 function TEFDataType.BooleanToValue(const ABoolean: Boolean): Variant;
