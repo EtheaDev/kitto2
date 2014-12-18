@@ -1288,7 +1288,7 @@ end;
 procedure TKExtFormTextField.SetRecordField(const AValue: TKViewTableField);
 begin
   FRecordField := AValue;
-  if IsChangeHandlerNeeded(FRecordField) then
+  if not ReadOnly and IsChangeHandlerNeeded(FRecordField) then
     OnChange := FieldChange;
 end;
 
@@ -1365,7 +1365,7 @@ end;
 procedure TKExtFormTextArea.SetRecordField(const AValue: TKViewTableField);
 begin
   FRecordField := AValue;
-  if IsChangeHandlerNeeded(FRecordField) then
+  if not ReadOnly and IsChangeHandlerNeeded(FRecordField) then
     OnChange := FieldChange;
 end;
 
@@ -1441,7 +1441,7 @@ end;
 procedure TKExtFormCheckbox.SetRecordField(const AValue: TKViewTableField);
 begin
   FRecordField := AValue;
-  if IsChangeHandlerNeeded(FRecordField) then
+  if not ReadOnly and IsChangeHandlerNeeded(FRecordField) then
     OnChange := FieldChange;
 end;
 
@@ -1512,7 +1512,7 @@ end;
 procedure TKExtFormDateField.SetRecordField(const AValue: TKViewTableField);
 begin
   FRecordField := AValue;
-  if IsChangeHandlerNeeded(FRecordField) then
+  if not ReadOnly and IsChangeHandlerNeeded(FRecordField) then
     OnChange := FieldChange;
 end;
 
@@ -1638,7 +1638,7 @@ end;
 procedure TKExtFormComboBoxEditor.SetRecordField(const AValue: TKViewTableField);
 begin
   FRecordField := AValue;
-  if IsChangeHandlerNeeded(FRecordField) then
+  if not ReadOnly and IsChangeHandlerNeeded(FRecordField) then
     On('change', JSFunction(GetChangeJSCode(ValueChanged)));
     //OnChange := FieldChange;
 end;
@@ -1731,9 +1731,7 @@ begin
     ValueField := AViewField.FieldNamesForUpdate;
   end;
 
-  if not AIsReadOnly then
-    //ForceSelection := True
-  else
+  if AIsReadOnly then
     ReadOnly := True;
 end;
 
@@ -1741,22 +1739,25 @@ procedure TKExtFormComboBoxEditor.StoreValue(const AObjectName: string);
 var
   LCode: string;
 begin
-  LCode :=
-    AObjectName + '["' + HiddenName + '"]=' + GetJSFunctionCode(
-      procedure
-      begin
-        GetValue;
-      end) + ';';
-
-  if FListMode = Lookup then
-    LCode := LCode + sLineBreak +
-      AObjectName + '["' + Name + '"]=' + GetJSFunctionCode(
+  if not ReadOnly then
+  begin
+    LCode :=
+      AObjectName + '["' + HiddenName + '"]=' + GetJSFunctionCode(
         procedure
         begin
-          GetRawValue;
+          GetValue;
         end) + ';';
 
-  Session.ResponseItems.ExecuteJSCode(LCode);
+    if FListMode = Lookup then
+      LCode := LCode + sLineBreak +
+        AObjectName + '["' + Name + '"]=' + GetJSFunctionCode(
+          procedure
+          begin
+            GetRawValue;
+          end) + ';';
+
+    Session.ResponseItems.ExecuteJSCode(LCode);
+  end;
 end;
 
 class function TKExtFormComboBoxEditor.SupportsViewField(const AViewField: TKViewField): Boolean;
@@ -1976,7 +1977,7 @@ end;
 procedure TKExtFormNumberField.SetRecordField(const AValue: TKViewTableField);
 begin
   FRecordField := AValue;
-  if IsChangeHandlerNeeded(FRecordField) then
+  if not ReadOnly and IsChangeHandlerNeeded(FRecordField) then
     OnChange := FieldChange;
 end;
 
@@ -2104,7 +2105,7 @@ end;
 procedure TKExtFormDateTimeField.SetRecordField(const AValue: TKViewTableField);
 begin
   FRecordField := AValue;
-  if IsChangeHandlerNeeded(FRecordField) then
+  if not ReadOnly and IsChangeHandlerNeeded(FRecordField) then
     OnChange := FieldChange;
 end;
 
@@ -2160,7 +2161,7 @@ end;
 procedure TKExtFormTimeField.SetRecordField(const AValue: TKViewTableField);
 begin
   FRecordField := AValue;
-  if IsChangeHandlerNeeded(FRecordField) then
+  if not ReadOnly and IsChangeHandlerNeeded(FRecordField) then
     OnChange := FieldChange;
 end;
 
@@ -3262,12 +3263,13 @@ end;
 
 procedure TExtFormFieldHelper.StoreValue(const AObjectName: string);
 begin
-  Session.ResponseItems.ExecuteJSCode(
-    AObjectName + '["' + Name + '"]=' + GetJSFunctionCode(
-      procedure
-      begin
-        GetRawValue;
-      end));
+  if not ReadOnly then
+    Session.ResponseItems.ExecuteJSCode(
+      AObjectName + '["' + Name + '"]=' + GetJSFunctionCode(
+        procedure
+        begin
+          GetRawValue;
+        end));
 end;
 
 { TKEditItemList }
