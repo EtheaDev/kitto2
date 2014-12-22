@@ -50,6 +50,11 @@ type
     ///	calling TKConfig.Instance.IsAccessGranted (possibly multiple times for
     ///	cascading, and "or"ing the results).</summary>
     function IsAccessGranted(const AMode: string): Boolean; virtual;
+
+    ///	<summary>
+    ///	 Makes the current object a copy of the specified tree.
+    ///	</summary>
+    procedure Assign(const ASource: TEFTree); override;
   end;
 
   TKMetadataClass = class of TKMetadata;
@@ -736,6 +741,13 @@ end;
 function TKMetadata.IsAccessGranted(const AMode: string): Boolean;
 begin
   Result := TKConfig.Instance.IsAccessGranted(GetResourceURI, AMode);
+end;
+
+procedure TKMetadata.Assign(const ASource: TEFTree);
+begin
+  inherited;
+  if Assigned(ASource) and (ASource is TKMetadata) then
+    FCatalog := TKMetadata(ASource).Catalog;
 end;
 
 class function TKMetadata.GetClassNameForResourceURI: string;
