@@ -90,6 +90,7 @@ type
     function GetChildClass(const AName: string): TEFNodeClass; override;
     function GetDataType: TEFDataType; override;
   public
+    function HasModelField: boolean;
     function GetEmptyAsNull: Boolean; override;
     function FindNode(const APath: string; const ACreateMissingNodes: Boolean = False): TEFNode; override;
     function IsAccessGranted(const AMode: string): Boolean; override;
@@ -1373,11 +1374,19 @@ begin
   Result := Model.FindField(FieldName);
 end;
 
+function TKViewField.HasModelField: boolean;
+var
+  LModelField: TKModelField;
+begin
+  LModelField := Model.FindField(FieldName);
+  Result := Assigned(LModelField);
+end;
+
 function TKViewField.FindNode(const APath: string;
   const ACreateMissingNodes: Boolean): TEFNode;
 begin
   Result := inherited FindNode(APath, ACreateMissingNodes);
-  if not Assigned(Result) then
+  if not Assigned(Result) and HasModelField then
     // ACreateMissingNodes is False here.
     Result := ModelField.FindNode(APath, False);
 end;
@@ -1425,7 +1434,7 @@ var
 begin
   LNode := FindNode('BlankValue');
   if LNode = nil then
-    Result := ModelField.GetBoolean('BlankValue')
+    Result := ModelField.BlankValue
   else
     Result := LNode.AsBoolean;
 end;
@@ -1590,7 +1599,7 @@ var
 begin
   LNode := FindNode('DisplayTemplate');
   if LNode = nil then
-    Result := ModelField.GetString('DisplayTemplate')
+    Result := ModelField.DisplayTemplate
   else
     Result := LNode.AsString;
 end;
