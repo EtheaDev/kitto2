@@ -106,6 +106,8 @@ type
     function GetDefaultFilterConnector: string;
     function GetDBColumnNameOrExpression: string;
     function GetAliasedDBColumnNameOrExpression: string;
+    function GetDisplayTemplate: string;
+    function GetBlankValue: Boolean;
   strict protected
     class function BeautifyFieldName(const AFieldName: string): string; virtual;
     function GetChildClass(const AName: string): TEFNodeClass; override;
@@ -303,6 +305,21 @@ type
     ///	  string fields, and reasonable sizes for other field types.
     ///	</summary>
     property DisplayWidth: Integer read GetDisplayWidth;
+
+    ///	<summary>
+    ///	  A string format that will be used to render the field's value.
+    ///  may include the {value} placeholder that will be replaced with the field's value
+    ///  in read-only GUIs, and any {FieldName} placeholders for other fields' values.
+    ///  A template of '{value}' acts the same as no template.
+    ///	</summary>
+    property DisplayTemplate: string read GetDisplayTemplate;
+
+    ///	<summary>
+    ///	  Indicates to hide the field value when an image is displayed
+    ///   (otherwise both image and value are shown).
+    ///   If no image is displayed, this property is ignored.
+    ///	</summary>
+    property BlankValue: Boolean read GetBlankValue;
 
     ///	<summary>
     ///	  Optional value to set for the field when a new record is created.
@@ -1132,21 +1149,24 @@ begin
     if LDataType is TKReferenceDataType then
     begin
       ASize := 0;
-      ADecimalPrecision := 0;
+      ADecimalPrecision := -1;
       AReferencedModel := LStrings[1];
     end
     else
     begin
       ASize := StrToInt(Trim(LStrings[1]));
       if Length(LStrings) > 2 then
-        ADecimalPrecision := StrToInt(Trim(LStrings[2]));
+        ADecimalPrecision := StrToInt(Trim(LStrings[2]))
+      else
+        ADecimalPrecision := -1;
+
       AReferencedModel := '';
     end;
   end
   else
   begin
     ASize := 0;
-    ADecimalPrecision := 0;
+    ADecimalPrecision := -1;
     AReferencedModel := '';
   end;
 end;
@@ -1349,6 +1369,11 @@ begin
   Result := GetChildrenAsPairs('AllowedValues');
 end;
 
+function TKModelField.GetBlankValue: Boolean;
+begin
+  Result := GetBoolean('BlankValue');
+end;
+
 function TKModelField.CanActuallyModify: Boolean;
 begin
   Result := Expression = '';
@@ -1477,6 +1502,11 @@ begin
   Result := GetString('DisplayLabel');
   if Result = '' then
     Result := BeautifyFieldName(FieldName);
+end;
+
+function TKModelField.GetDisplayTemplate: string;
+begin
+  Result := GetString('DisplayTemplate');
 end;
 
 function TKModelField.GetDisplayWidth: Integer;
