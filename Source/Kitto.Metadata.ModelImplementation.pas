@@ -170,7 +170,7 @@ begin
   else if ASize <> 0 then
   begin
     LSpec := LSpec + '(' + IntToStr(ASize);
-    if AScale <> 0 then
+    if AScale > 0 then
       LSpec := LSpec + ', ' + IntToStr(AScale);
     LSpec := LSpec + ')';
   end;
