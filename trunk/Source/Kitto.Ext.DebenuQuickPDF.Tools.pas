@@ -38,12 +38,15 @@ type
     function GetTitle: string;
     function GetItems: TEFNode;
     function GetNodeValue(const ANodeName: string): string;
+  private
+    function GetKeywords: string;
   public
     property Items: TEFNode read GetItems;
     property Author: string read GetAuthor;
     property Title: string read GetTitle;
     property Subject: string read GetSubject;
     property Creator: string read GetCreator;
+    property Keywords: string read GetKeywords;
     property CreationDate: TDateTime read GetCreationDate;
   end;
 
@@ -188,7 +191,7 @@ end;
 
 function TMergePDFToolController.GetLayoutFileName: string;
 begin
-  Result := Config.GetExpandedString('Layout');
+  Result := Config.GetExpandedString('LayoutFileName');
 end;
 
 function TMergePDFToolController.GetPDFDoc: TPDFLibrary;
@@ -277,7 +280,7 @@ var
     CheckDebenuPDFError(FPDFDoc.DrawQRCode(AXPos, AYPos, ASize, AText, 0, LDrawOptions));
   end;
 
-  procedure SetInformation(const ATitle, AAuthor, ASubject, ACreator: string;
+  procedure SetInformation(const ATitle, AAuthor, ASubject, ACreator, AKeyWords: string;
     ACreationDate: TDateTime);
   var
     LDate: string;
@@ -295,6 +298,7 @@ var
     AddInformation(1, AAuthor);
     AddInformation(2, ATitle);
     AddInformation(3, ASubject);
+    AddInformation(4, AKeywords);
     AddInformation(5, ACreator);
     if ACreationDate <> 0 then
     begin
@@ -368,8 +372,13 @@ begin
   GetFontAttributes(LLayoutFileName.Root, 'DefaultFont', LDefaultFontNumber, LDefaultFontSize, LDefaultFontColor);
 
   //Add document informations to PDF
-  SetInformation(LLayoutFileName.Title, LLayoutFileName.Author, LLayoutFileName.Subject,
-    LLayoutFileName.Creator, LLayoutFileName.CreationDate);
+  SetInformation(
+    ExpandExpression(LLayoutFileName.Title),
+    ExpandExpression(LLayoutFileName.Author),
+    ExpandExpression(LLayoutFileName.Subject),
+    ExpandExpression(LLayoutFileName.Creator),
+    ExpandExpression(LLayoutFileName.Keywords),
+    LLayoutFileName.CreationDate);
 
   //Images node
   LItems := LLayoutFileName.Items;
@@ -461,6 +470,11 @@ end;
 function TMergePDFLayout.GetItems: TEFNode;
 begin
   Result := FindNode('Items');
+end;
+
+function TMergePDFLayout.GetKeywords: string;
+begin
+  Result := GetNodeValue('Keywords');
 end;
 
 function TMergePDFLayout.GetNodeValue(const ANodeName: string): string;
