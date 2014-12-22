@@ -341,7 +341,7 @@ type
     procedure Clear; virtual;
 
     ///	<summary>
-    ///	  Makes the current object a copy of the specified tree.
+    ///	 Makes the current object a copy of the specified tree.
     ///	</summary>
     procedure Assign(const ASource: TEFTree); virtual;
 
@@ -2817,7 +2817,10 @@ end;
 
 function TEFDataType.ValueToBoolean(const AValue: Variant): Boolean;
 begin
-  Result := AValue;
+  if AValue <> NULL then
+    Result := AValue
+  else
+    Result := False;
 end;
 
 function TEFDataType.ValueToBytes(const AValue: Variant): TBytes;
