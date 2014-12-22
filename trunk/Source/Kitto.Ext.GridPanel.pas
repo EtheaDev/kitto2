@@ -629,8 +629,8 @@ begin
   LFormController.Config.SetObject('Sys/ViewTable', ViewTable);
   LFormController.Config.SetObject('Sys/HostWindow', FEditHostWindow);
 
-  LWidth := ViewTable.GetInteger('Controller/PopupWindow/Width', -1);
-  LHeight := ViewTable.GetInteger('Controller/PopupWindow/Height', -1);
+  LWidth := ViewTable.GetInteger('Controller/PopupWindow/Width', 0);
+  LHeight := ViewTable.GetInteger('Controller/PopupWindow/Height', 0);
   if (LWidth <> -1) and (LHeight <> -1) then
   begin
     FEditHostWindow.Width := LWidth;
