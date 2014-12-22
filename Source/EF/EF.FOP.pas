@@ -93,7 +93,7 @@ Type
     function GetOutputFileExt: string;
     ///	<summary>Generate file by FOP engine and call OnPrintDocument event.</summary>
     procedure Print;
-    ///	<summary>Generate file by FOP engine and call ShellExecute to open it.</summary>
+    ///	<summary>Generate file by FOP engine and call OnShowDocument event to open it.</summary>
     procedure Preview;
     ///	<summary>Generate file by FOP engine.</summary>
     procedure Build;
