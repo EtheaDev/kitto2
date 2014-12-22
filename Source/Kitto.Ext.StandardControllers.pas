@@ -132,7 +132,6 @@ type
     FTempFileNames: TStrings;
     FFileName: string;
     FStream: TStream;
-    function GetTemplateFileName: string;
   strict private
     function GetClientFileName: string;
     function GetContentType: string;
@@ -172,7 +171,6 @@ type
     property FileName: string read GetFileName;
     property ClientFileName: string read GetClientFileName;
     property ContentType: string read GetContentType;
-    property TemplateFileName: string read GetTemplateFileName;
   end;
 
 implementation
@@ -351,11 +349,6 @@ end;
 function TKExtDownloadFileController.GetFileName: string;
 begin
   Result := Config.GetExpandedString('FileName', GetDefaultFileName);
-end;
-
-function TKExtDownloadFileController.GetTemplateFileName: string;
-begin
-  Result := Config.GetExpandedString('TemplateFileName');
 end;
 
 procedure TKExtDownloadFileController.InitDefaults;

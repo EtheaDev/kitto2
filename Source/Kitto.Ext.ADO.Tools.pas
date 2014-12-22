@@ -34,8 +34,8 @@ type
     procedure CreateExcelSheet(AConnectionString, AExcelRangeName: string);
     function GetConnectionString(ExcelFileName: string): string;
     function IsValidField(const AViewField: TKViewField): Boolean;
-  strict
-  private
+    function GetTemplateFileName: string;
+  strict protected
     function GetADOXDataType(const ADataType: TEFDataType;
       const AFieldSize: Integer; out AADOXDataType: DataTypeEnum): Boolean; protected
     function GetDefaultFileName: string; override;
@@ -45,6 +45,7 @@ type
     class function GetDefaultImageName: string;
   published
     property ExcelRangeName: string read GetExcelRangeName;
+    property TemplateFileName: string read GetTemplateFileName;
   end;
 
 implementation
@@ -120,6 +121,11 @@ end;
 function TExportExcelToolController.GetExcelRangeName: string;
 begin
   Result := Config.GetString('ExcelRangeName', 'DataRange');
+end;
+
+function TExportExcelToolController.GetTemplateFileName: string;
+begin
+  Result := Config.GetExpandedString('TemplateFileName');
 end;
 
 function TExportExcelToolController.GetDefaultFileName: string;
