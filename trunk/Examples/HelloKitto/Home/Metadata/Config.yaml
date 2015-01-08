@@ -38,8 +38,7 @@ Databases:
       ApplicationName: %APPTITLE%
       Database: HelloKitto
       OSAuthent: Yes
-      User_Name: SA
-      Password: 12345
+      Isolation: RepeatableRead
     
   FDFb: FD
     Connection:
@@ -50,7 +49,7 @@ Databases:
       Password: masterkey
       Server: localhost
       CharacterSet: UTF8
-      Protocol:TCPIP
+      Protocol: TCPIP
 
   DBXMSSQL: DBX
     Connection:
@@ -81,8 +80,6 @@ AccessControl: Null
 # Alternatively, customize the Home view by replacing its controller.
 # Default: Home.
 HomeView: HomeTile
-
-HomeWindow: Home
 
 HomeViewEmbedded1:
   Controller: Viewport
