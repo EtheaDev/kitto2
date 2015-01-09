@@ -142,6 +142,8 @@ type
     procedure CloseHostContainer;
     function GetHostWindow: TExtWindow;
     procedure InitDefaults; override;
+  strict protected
+    procedure ExecuteNamedAction(const AActionName: string); virtual;
   public
     destructor Destroy; override;
 
@@ -498,6 +500,10 @@ end;
 procedure TKExtPanelBase.DetachObserver(const AObserver: IEFObserver);
 begin
   FSubjObserverImpl.DetachObserver(AObserver);
+end;
+
+procedure TKExtPanelBase.ExecuteNamedAction(const AActionName: string);
+begin
 end;
 
 function TKExtPanelBase.GetConfig: TEFNode;

@@ -2880,6 +2880,7 @@ type
     property OnMouseout: TExtButtonOnMouseout read FOnMouseout write SetFOnMouseout;
     property OnMouseover: TExtButtonOnMouseover read FOnMouseover write SetFOnMouseover;
     property OnToggle: TExtButtonOnToggle read FOnToggle write SetFOnToggle;
+    procedure PerformClick;
   end;
 
   // Procedural types for events TExtDataView
@@ -12079,6 +12080,11 @@ function TExtButton.GetPressed(const AGroup: string): TExtFunction;
 begin
   ExtSession.ResponseItems.CallMethod(Self, 'getPressed', [AGroup]);
   Result := Self;
+end;
+
+procedure TExtButton.PerformClick;
+begin
+  ExtSession.ResponseItems.ExecuteJSCode(JSName + '.el.dom.click();');
 end;
 
 function TExtButton.Pressed_: TExtFunction;

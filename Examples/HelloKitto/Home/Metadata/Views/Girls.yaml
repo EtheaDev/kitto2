@@ -2,7 +2,6 @@
 
 Controller: List
   InplaceEditing: True
-  AllowClose: False
   Filters:
     DisplayLabel: Girls Filter
     Connector: and

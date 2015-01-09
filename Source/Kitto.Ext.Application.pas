@@ -62,6 +62,7 @@ begin
     FAppTitle := LConfig.AppTitle;
     FTCPPort := LConfig.Config.GetInteger('FastCGI/TCPPort', 2014);
     FSessionTimeout := LConfig.Config.GetInteger('FastCGI/SessionTimeout', 30);
+    TEFLogger.Instance.Log('AppName: ' + LConfig.AppName);
     TEFLogger.Instance.Log('AppTitle: ' + _(FAppTitle));
     TEFLogger.Instance.LogFmt('TCPPort: %d', [FTCPPort]);
     TEFLogger.Instance.LogFmt('SessionTimeout: %d', [FSessionTimeout]);

@@ -63,11 +63,17 @@ type
       const AViewField: TKViewField; const AColumn: TExtGridColumn);
 //    function GetConfirmJSCode(const AMethod: TExtProcedure): string;
   private
+    FNewButton: TExtButton;
+    FEditButton: TExtButton;
+    FViewButton: TExtButton;
+    FDeleteButton: TExtButton;
+    FDupButton: TExtButton;
     FConfirmButton: TExtButton;
     FCancelButton: TExtButton;
     function GetConfirmJSCode(const AMethod: TExtProcedure): string;
     function GetBeforeEditJSCode(const AMethod: TExtProcedure): string;
   strict protected
+    procedure ExecuteNamedAction(const AActionName: string); override;
     function GetEditWindowDefaultControllerType: string; virtual;
     function GetOrderByClause: string; override;
     procedure InitDefaults; override;
@@ -869,6 +875,31 @@ begin
   end
   else
     inherited;
+  ExecuteNamedAction(Session.Queries.Values['action']);
+end;
+
+procedure TKExtGridPanel.ExecuteNamedAction(const AActionName: string);
+
+  procedure PerformDelayedClick(const AButton: TExtButton);
+  begin
+    if Assigned(AButton) then
+      AButton.On('render', JSFunction(AButton.PerformClick));
+  end;
+
+begin
+  if (AActionName = 'New') then
+    PerformDelayedClick(FNewButton)
+  else if (AActionName = 'Edit') then
+    FEditButton.PerformClick
+  else if (AActionName = 'View') then
+    FViewButton.PerformClick
+  else if (AActionName = 'Delete') then
+    FDeleteButton.PerformClick
+  else if (AActionName = 'Dup') then
+    FDupButton.PerformClick
+  { TODO : Support custom actions as well? }
+  else
+    inherited;
 end;
 
 function TKExtGridPanel.CreatePagingToolbar: TExtPagingToolbar;
@@ -893,55 +924,50 @@ end;
 
 procedure TKExtGridPanel.AddTopToolbarButtons;
 var
-  LNewButton: TExtButton;
-  LEditButton: TExtButton;
-  LViewButton: TExtButton;
-  LDeleteButton: TExtButton;
   LKeyFieldNames: string;
-  LDupButton: TExtButton;
 begin
   Assert(ViewTable <> nil);
   Assert(TopToolbar <> nil);
 
   if FIsAddVisible then
   begin
-    LNewButton := TExtButton.CreateAndAddTo(TopToolbar.Items);
-    LNewButton.Tooltip := Format(_('Add %s'), [_(ViewTable.DisplayLabel)]);
-    LNewButton.Icon := Session.Config.GetImageURL('new_record');
+    FNewButton := TExtButton.CreateAndAddTo(TopToolbar.Items);
+    FNewButton.Tooltip := Format(_('Add %s'), [_(ViewTable.DisplayLabel)]);
+    FNewButton.Icon := Session.Config.GetImageURL('new_record');
     if not FIsAddAllowed then
-      LNewButton.Disabled := True
+      FNewButton.Disabled := True
     else
-      LNewButton.OnClick := NewRecord;
+      FNewButton.OnClick := NewRecord;
   end;
 
   if FIsDupVisible then
   begin
     TExtToolbarSpacer.CreateAndAddTo(TopToolbar.Items);
-    LDupButton := TExtButton.CreateAndAddTo(TopToolbar.Items);
-    LDupButton.Tooltip := Format(_('Duplicate %s'), [_(ViewTable.DisplayLabel)]);
-    LDupButton.Icon := Session.Config.GetImageURL('dup_record');
+    FDupButton := TExtButton.CreateAndAddTo(TopToolbar.Items);
+    FDupButton.Tooltip := Format(_('Duplicate %s'), [_(ViewTable.DisplayLabel)]);
+    FDupButton.Icon := Session.Config.GetImageURL('dup_record');
     if not FIsDupAllowed then
-      LDupButton.Disabled := True
+      FDupButton.Disabled := True
     else
     begin
       LKeyFieldNames := Join(ViewTable.GetKeyFieldAliasedNames, ',');
-      LDupButton.On('click', AjaxSelection(DuplicateRecord, FSelectionModel, LKeyFieldNames, LKeyFieldNames, []));
-      FButtonsRequiringSelection.Add(LDupButton);
+      FDupButton.On('click', AjaxSelection(DuplicateRecord, FSelectionModel, LKeyFieldNames, LKeyFieldNames, []));
+      FButtonsRequiringSelection.Add(FDupButton);
     end;
   end;
 
   if FIsViewVisible then
   begin
-    LViewButton := TExtButton.CreateAndAddTo(TopToolbar.Items);
-    LViewButton.Tooltip := Format(_('View %s'), [_(ViewTable.DisplayLabel)]);
-    LViewButton.Icon := Session.Config.GetImageURL('view_record');
+    FViewButton := TExtButton.CreateAndAddTo(TopToolbar.Items);
+    FViewButton.Tooltip := Format(_('View %s'), [_(ViewTable.DisplayLabel)]);
+    FViewButton.Icon := Session.Config.GetImageURL('view_record');
     if not FIsViewAllowed then
-      LViewButton.Disabled := True
+      FViewButton.Disabled := True
     else
     begin
       LKeyFieldNames := Join(ViewTable.GetKeyFieldAliasedNames, ',');
-      LViewButton.On('click', AjaxSelection(ViewRecord, FSelectionModel, LKeyFieldNames, LKeyFieldNames, []));
-      FButtonsRequiringSelection.Add(LViewButton);
+      FViewButton.On('click', AjaxSelection(ViewRecord, FSelectionModel, LKeyFieldNames, LKeyFieldNames, []));
+      FButtonsRequiringSelection.Add(FViewButton);
     end;
   end;
 
@@ -950,16 +976,16 @@ begin
     if FIsEditVisible then
     begin
       TExtToolbarSpacer.CreateAndAddTo(TopToolbar.Items);
-      LEditButton := TExtButton.CreateAndAddTo(TopToolbar.Items);
-      LEditButton.Tooltip := Format(_('Edit %s'), [_(ViewTable.DisplayLabel)]);
-      LEditButton.Icon := Session.Config.GetImageURL('edit_record');
+      FEditButton := TExtButton.CreateAndAddTo(TopToolbar.Items);
+      FEditButton.Tooltip := Format(_('Edit %s'), [_(ViewTable.DisplayLabel)]);
+      FEditButton.Icon := Session.Config.GetImageURL('edit_record');
       if not FIsEditAllowed then
-        LEditButton.Disabled := True
+        FEditButton.Disabled := True
       else
       begin
         LKeyFieldNames := Join(ViewTable.GetKeyFieldAliasedNames, ',');
-        LEditButton.On('click', AjaxSelection(EditRecord, FSelectionModel, LKeyFieldNames, LKeyFieldNames, []));
-        FButtonsRequiringSelection.Add(LEditButton);
+        FEditButton.On('click', AjaxSelection(EditRecord, FSelectionModel, LKeyFieldNames, LKeyFieldNames, []));
+        FButtonsRequiringSelection.Add(FEditButton);
       end;
     end;
   end;
@@ -967,16 +993,16 @@ begin
   if FIsDeleteVisible then
   begin
     TExtToolbarSpacer.CreateAndAddTo(TopToolbar.Items);
-    LDeleteButton := TExtButton.CreateAndAddTo(TopToolbar.Items);
-    LDeleteButton.Tooltip := Format(_('Delete %s'), [_(ViewTable.DisplayLabel)]);
-    LDeleteButton.Icon := Session.Config.GetImageURL('delete_record');
+    FDeleteButton := TExtButton.CreateAndAddTo(TopToolbar.Items);
+    FDeleteButton.Tooltip := Format(_('Delete %s'), [_(ViewTable.DisplayLabel)]);
+    FDeleteButton.Icon := Session.Config.GetImageURL('delete_record');
     if not FIsDeleteAllowed then
-      LDeleteButton.Disabled := True
+      FDeleteButton.Disabled := True
     else
     begin
-      LDeleteButton.Handler := JSFunction(GetSelectConfirmCall(
+      FDeleteButton.Handler := JSFunction(GetSelectConfirmCall(
         Format(_('Selected %s {caption} will be deleted. Are you sure?'), [_(ViewTable.DisplayLabel)]), DeleteCurrentRecord));
-      FButtonsRequiringSelection.Add(LDeleteButton);
+      FButtonsRequiringSelection.Add(FDeleteButton);
     end;
   end;
 
