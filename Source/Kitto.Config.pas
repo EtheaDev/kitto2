@@ -422,8 +422,16 @@ begin
 end;
 
 function TKConfig.GetDBAdapter(const ADatabaseName: string): TEFDBAdapter;
+var
+  LDbAdapterKey: string;
 begin
-  Result := TEFDBAdapterRegistry.Instance[Config.GetExpandedString('Databases/' + ADatabaseName)];
+  Try
+    LDbAdapterKey := Config.GetExpandedString('Databases/' + ADatabaseName);
+    Result := TEFDBAdapterRegistry.Instance[LDbAdapterKey];
+  except
+    raise EKError.CreateFmt(_('DB connection type "%s" for database "%s" not available'),
+      [LDbAdapterKey, ADatabaseName]);
+  end;
 end;
 
 function TKConfig.GetMacroExpansionEngine: TEFMacroExpansionEngine;
@@ -485,7 +493,7 @@ class function TKConfig.GetResourcePathName(const AResourceFileName: string): st
 begin
   Result := FindResourcePathName(AResourceFileName);
   if Result = '' then
-    raise EKError.CreateFmt('Resource %s not found.', [AResourceFileName]);
+    raise EKError.CreateFmt(_('Resource %s not found.'), [AResourceFileName]);
 end;
 
 class function TKConfig.FindResourceURL(const AResourceFileName: string): string;
@@ -509,7 +517,7 @@ class function TKConfig.GetResourceURL(const AResourceFileName: string): string;
 begin
   Result := FindResourceURL(AResourceFileName);
   if Result = '' then
-    raise EKError.CreateFmt('Resource %s not found.', [AResourceFileName]);
+    raise EKError.CreateFmt(_('Resource %s not found.'), [AResourceFileName]);
 end;
 
 class function TKConfig.GetSystemHomePath: string;
@@ -585,7 +593,7 @@ var
 begin
   if not Assigned(FAuthenticator) then
   begin
-    LType := Config.GetExpandedString('Auth', 'Null');
+    LType := Config.GetExpandedString('Auth', NODE_NULL_VALUE);
     FAuthenticator := TKAuthenticatorFactory.Instance.CreateObject(LType);
     MacroExpansionEngine.AddExpander(FAuthenticator.MacroExpander);
     LConfig := Config.FindNode('Auth');
@@ -604,7 +612,7 @@ var
 begin
   if not Assigned(FAC) then
   begin
-    LType := Config.GetExpandedString('AccessControl', 'Null');
+    LType := Config.GetExpandedString('AccessControl', NODE_NULL_VALUE);
     FAC := TKAccessControllerFactory.Instance.CreateObject(LType);
     LConfig := Config.FindNode('AccessControl');
     if Assigned(LConfig) then

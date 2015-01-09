@@ -26,6 +26,12 @@ uses
   EF.DB, EF.Tree,
   Kitto.Auth;
 
+const
+  DEFAULT_READUSERCOMMANDTEXT =
+    'select USER_NAME, PASSWORD_HASH from KITTO_USERS where IS_ACTIVE = 1 and USER_NAME = :USER_NAME';
+  DEFAULT_SETPASSWORDCOMMANDTEXT =
+    'update KITTO_USERS set PASSWORD_HASH = :PASSWORD_HASH where IS_ACTIVE = 1 and USER_NAME = :USER_NAME';
+
 type
   ///	<summary>User data read from the database. Used internally as a helper
   ///	class.</summary>
@@ -298,8 +304,7 @@ end;
 function TKDBAuthenticator.GetReadUserCommandText(const AUserName: string): string;
 begin
   Result := Config.GetString('ReadUserCommandText',
-    'select USER_NAME, PASSWORD_HASH from KITTO_USERS ' +
-    'where IS_ACTIVE = 1 and USER_NAME = :USER_NAME');
+    DEFAULT_READUSERCOMMANDTEXT);
 end;
 
 function TKDBAuthenticator.GetSuppliedPasswordHash(
@@ -466,8 +471,7 @@ end;
 function TKDBAuthenticator.GetSetPasswordCommandText: string;
 begin
   Result := Config.GetString('SetPasswordCommandText',
-    'update KITTO_USERS set PASSWORD_HASH = :PASSWORD_HASH ' +
-    'where IS_ACTIVE = 1 and USER_NAME = :USER_NAME');
+    DEFAULT_SETPASSWORDCOMMANDTEXT);
 end;
 
 initialization
