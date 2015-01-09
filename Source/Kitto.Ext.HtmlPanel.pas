@@ -53,7 +53,7 @@ begin
     if Assigned(LView) then
       Title := _(LView.DisplayLabel);
   end;
-  AutoScroll := True;
+  AutoScroll := False;
 
   LFileName := Config.GetExpandedString('FileName');
   if LFileName <> '' then
