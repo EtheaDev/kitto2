@@ -117,6 +117,7 @@ type
     FControllerHostWindow: TKExtControllerHostWindow;
     FDynamicScripts: TStringList;
     FDynamicStyles: TStringList;
+    FAutoOpenViewName: string;
     procedure LoadLibraries;
     procedure DisplayHomeView;
     procedure DisplayLoginWindow;
@@ -417,6 +418,11 @@ begin
     (ObjectCatalog, LHomeView, nil).AsObject;
   if Supports(FHomeController, IKExtController, LIntf) then
     LIntf.Display;
+  if FAutoOpenViewName <> '' then
+  begin
+    DisplayView(FAutoOpenViewName);
+    FAutoOpenViewName := '';
+  end;
 end;
 
 procedure TKExtSession.Home;
@@ -459,6 +465,7 @@ begin
   // window if it succeeds.
   if not FRefreshingLanguage then
     SetLanguageFromQueriesOrConfig;
+  FAutoOpenViewName := Queries.Values['view'];
   if TKExtLoginWindow.Authenticate(Self) then
     DisplayHomeView
   else

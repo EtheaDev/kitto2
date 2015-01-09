@@ -24,6 +24,7 @@ type
   class var
     FServiceName: string;
     FServiceDisplayName: string;
+    class procedure Configure;
   public
     class property ServiceName: string read FServiceName write FServiceName;
     class property ServiceDisplayName: string read FServiceDisplayName write FServiceDisplayName;
@@ -40,22 +41,21 @@ uses
 
 { TKExtStart }
 
-class procedure TKExtStart.Start;
-
-  procedure Configure;
-  var
-    LConfig: TKConfig;
-  begin
-    LConfig := TKConfig.Create;
-    try
-      TEFLogger.Instance.Configure(LConfig.Config.FindNode('Log'), LConfig.MacroExpansionEngine);
-      FServiceName := TKConfig.AppName;
-      FServiceDisplayName := _(LConfig.AppTitle);
-    finally
-      FreeAndNil(LConfig);
-    end;
+class procedure TKExtStart.Configure;
+var
+  LConfig: TKConfig;
+begin
+  LConfig := TKConfig.Create;
+  try
+    TEFLogger.Instance.Configure(LConfig.Config.FindNode('Log'), LConfig.MacroExpansionEngine);
+    FServiceName := TKConfig.AppName;
+    FServiceDisplayName := _(LConfig.AppTitle);
+  finally
+    FreeAndNil(LConfig);
   end;
+end;
 
+class procedure TKExtStart.Start;
 begin
   Configure;
 

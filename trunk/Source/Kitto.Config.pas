@@ -34,6 +34,8 @@ type
 
   TKGetConfig = reference to function: TKConfig;
 
+  TKConfigGetAppNameEvent = procedure (out AAppName: string) of object;
+
   TKConfig = class(TEFComponent)
   strict private
   class var
@@ -45,6 +47,7 @@ type
     FResourcePathsURLs: TDictionary<string, string>;
     FSystemHomePath: string;
     FConfigClass: TKConfigClass;
+    FOnGetAppName: TKConfigGetAppNameEvent;
   var
     FDBConnections: TDictionary<string, TEFDBConnection>;
     FMacroExpansionEngine: TEFMacroExpansionEngine;
@@ -91,6 +94,7 @@ type
     class procedure SetConfigClass(const AValue: TKConfigClass);
 
     class property AppName: string read GetAppName;
+    class property OnGetAppName: TKConfigGetAppNameEvent read FOnGetAppName write FOnGetAppName;
 
     ///	<summary>
     ///	  <para>Returns or changes the Application Home path.</para>
@@ -707,7 +711,10 @@ end;
 
 class function TKConfig.GetAppName: string;
 begin
-  Result := ChangeFileExt(ExtractFileName(ParamStr(0)), '');
+  if Assigned(FOnGetAppName) then
+    FOnGetAppName(Result)
+  else
+    Result := ChangeFileExt(ExtractFileName(ParamStr(0)), '');
 end;
 
 class function TKConfig.GetAppHomePath: string;

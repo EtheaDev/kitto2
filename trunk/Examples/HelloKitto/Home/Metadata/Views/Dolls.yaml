@@ -1,7 +1,6 @@
 ﻿Type: Data
 
 Controller: List
-  AllowClose: False
   Filters:
     DisplayLabel: _(Choose Mom)
     Items:
@@ -51,4 +50,4 @@ MainTable:
         DisplayLabel: _(Download in CSV)
         ImageName: download
         Controller: ExportCSVTool
-          RequireSelection: False  
+          RequireSelection: False
