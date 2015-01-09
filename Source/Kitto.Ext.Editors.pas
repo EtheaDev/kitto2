@@ -27,6 +27,20 @@ uses
   Kitto.Ext.Base, Kitto.Metadata.Views, Kitto.Metadata.DataView, Kitto.Store,
   Kitto.Ext.Session;
 
+const
+  // String fields of this size or longer are represented by multiline edit
+  // controls.
+  MULTILINE_EDIT_THRESHOLD = 200;
+  // Expected width of the combobox or calendar trigger button in characters.
+  // Used to enlarge these kinds of editors.
+  TRIGGER_WIDTH = 2;
+
+  LAYOUT_MEMOWIDTH = 60;
+  LAYOUT_MAXFIELDWIDTH = 60;
+  LAYOUT_MINFIELDWIDTH = 5;
+  LAYOUT_REQUIREDLABELTEMPLATE = '<b>{label}*</b>';
+  LAYOUT_MSGTARGET = 'Qtip';
+
 type
   IKExtEditItem = interface(IEFInterface)
     ['{4F5A1E4E-D5A1-44FE-93DC-E1ABF1209CE1}']
@@ -614,14 +628,6 @@ uses
   Kitto.SQL, Kitto.Metadata.Models, Kitto.Types, Kitto.AccessControl,
   Kitto.Rules, Kitto.Ext.Utils, Kitto.Ext.Rules, Kitto.Config;
 
-const
-  // String fields of this size or longer are represented by multiline edit
-  // controls.
-  MULTILINE_EDIT_THRESHOLD = 200;
-  // Expected width of the combobox or calendar trigger button in characters.
-  // Used to enlarge these kinds of editors.
-  TRIGGER_WIDTH = 2;
-
 procedure InvalidOption(const ANode: TEFNode);
 begin
   raise EEFError.CreateFmt(_('Unknown or misplaced option %s: %s.'), [ANode.Name, ANode.AsString]);
@@ -689,19 +695,6 @@ begin
     Result := True
   else
     Result := False;
-end;
-
-function GetLookupCommandText(const AViewField: TKViewField): string;
-begin
-  if AViewField.IsReference then
-  begin
-    Result := TKSQLBuilder.GetLookupSelectStatement(AViewField);
-    if AViewField.ModelField.ReferencedModel.IsLarge then
-      Result := AddToSQLWhereClause(Result, '(' + AViewField.ModelField.ReferencedModel.CaptionField.DBColumnName + ' like ''{query}%'')');
-    Result := TEFMacroExpansionEngine.Instance.Expand(Result);
-  end
-  else
-    Result := '';
 end;
 
 { TKExtLayoutProcessor }
@@ -1049,11 +1042,11 @@ end;
 
 procedure TKExtLayoutDefaults.Init;
 begin
-  MemoWidth := 60;
-  MaxFieldWidth := 60;
-  MinFieldWidth := 5;
-  RequiredLabelTemplate := '<b>{label}*</b>';
-  MsgTarget := 'Qtip'; // qtip title under side
+  MemoWidth := LAYOUT_MEMOWIDTH;
+  MaxFieldWidth := LAYOUT_MAXFIELDWIDTH;
+  MinFieldWidth := LAYOUT_MINFIELDWIDTH;
+  MsgTarget := LAYOUT_MSGTARGET; // qtip title under side
+  RequiredLabelTemplate := LAYOUT_REQUIREDLABELTEMPLATE;
 end;
 
 { TKExtEditPage }
