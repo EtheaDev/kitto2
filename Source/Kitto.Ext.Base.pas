@@ -274,6 +274,7 @@ type
     FSubjObserverImpl: TEFSubjectAndObserver;
   protected
     procedure InitDefaults; override;
+    function GetEncodedValue: TExtFunction;
   public
     destructor Destroy; override;
     function AsObject: TObject; inline;
@@ -704,6 +705,12 @@ end;
 procedure TKExtFormComboBox.DetachObserver(const AObserver: IEFObserver);
 begin
   FSubjObserverImpl.DetachObserver(AObserver);
+end;
+
+function TKExtFormComboBox.GetEncodedValue: TExtFunction;
+begin
+  ExtSession.ResponseItems.ExecuteJSCode(Self, Format('encodeURI(%s.getValue())', [JSName]));
+  Result := Self;
 end;
 
 procedure TKExtFormComboBox.InitDefaults;
