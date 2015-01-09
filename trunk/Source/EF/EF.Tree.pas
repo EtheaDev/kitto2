@@ -29,6 +29,9 @@ uses
   superobject,
   EF.Types, EF.Macros;
 
+const
+  NODE_NULL_VALUE = 'Null';
+
 type
   TEFNode = class;
 

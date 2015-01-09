@@ -387,10 +387,10 @@ begin
 end;
 
 initialization
-  TKAuthenticatorRegistry.Instance.RegisterClass('Null', TKNullAuthenticator);
+  TKAuthenticatorRegistry.Instance.RegisterClass(NODE_NULL_VALUE, TKNullAuthenticator);
 
 finalization
-  TKAuthenticatorRegistry.Instance.UnregisterClass('Null');
+  TKAuthenticatorRegistry.Instance.UnregisterClass(NODE_NULL_VALUE);
 
 end.
 

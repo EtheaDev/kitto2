@@ -27,6 +27,17 @@ uses
   EF.Classes, EF.Tree,
   Kitto.AccessControl, Kitto.Store;
 
+const
+  DEFAULT_READPERMISSIONCOMMANDTEXT =
+    'select RESOURCE_URI_PATTERN, ACCESS_MODES, GRANT_VALUE '
+    + 'from KITTO_PERMISSIONS '
+    + 'where GRANTEE_NAME = :GRANTEE_NAME or GRANTEE_NAME = ''*'' '
+    + 'order by RESOURCE_URI_PATTERN, ACCESS_MODES';
+  DEFAULT_READROLESCOMMANDTEXT =
+    'select ROLE_NAME from KITTO_USER_ROLES '
+    + 'where USER_NAME = :USER_NAME or USER_NAME = ''*'' '
+    + 'order by ROLE_NAME';
+
 type
   ///	<summary>Utility class used by <see cref="TKDBAccessController" />.
   ///	Encapsulates the permission storage for a user and all the roles granted
@@ -225,14 +236,9 @@ begin
     Result := TKUserPermissionStorage.Create;
     try
       Result.ReadPermissionsCommandText := Config.GetString('ReadPermissionsCommandText',
-        'select RESOURCE_URI_PATTERN, ACCESS_MODES, GRANT_VALUE '
-        + 'from KITTO_PERMISSIONS '
-        + 'where GRANTEE_NAME = :GRANTEE_NAME or GRANTEE_NAME = ''*'' '
-        + 'order by RESOURCE_URI_PATTERN, ACCESS_MODES');
+        DEFAULT_READPERMISSIONCOMMANDTEXT);
       Result.ReadRolesCommandText := Config.GetString('ReadRolesCommandText',
-        'select ROLE_NAME from KITTO_USER_ROLES '
-        + 'where USER_NAME = :USER_NAME or USER_NAME = ''*'' '
-        + 'order by ROLE_NAME');
+        DEFAULT_READROLESCOMMANDTEXT);
       Result.UserId := AUserId;
       FUserPermissions.AddObject(AUserId, Result);
     except
