@@ -76,6 +76,7 @@ type
     FConnection: TFDConnection;
     FConnectionString: TStrings;
     function GetDriverId: string;
+    function GetIsolation: string;
   protected
     function GetQueryClass: TEFDBFDQueryClass; virtual;
     function CreateDBEngineType: TEFDBEngineType; override;
@@ -83,6 +84,7 @@ type
     procedure InternalClose; override;
     function InternalCreateDBInfo: TEFDBInfo; override;
     property DriverId: string read GetDriverId;
+    property Isolation: string read GetIsolation;
   public
     procedure AfterConstruction; override;
     destructor Destroy; override;
@@ -166,7 +168,8 @@ type
 implementation
 
 uses
-  SysUtils, StrUtils, DBXMetaDataNames,
+  SysUtils, StrUtils, TypInfo,
+  //DBXMetaDataNames,
   EF.StrUtils, EF.Localization, EF.Types;
 
 function TEFDBFDInfo.FDDataTypeToEFDataType(const AFDDataType: TFDDataType): TEFDataType;
@@ -221,12 +224,16 @@ end;
 procedure TEFDBFDConnection.InternalOpen;
 var
   LDriverId: string;
+  LIsolation: Integer;
 begin
   inherited;
   FConnection.Params.Clear;
   LDriverId := DriverId;
   //Common FireDAC parameters
   FConnection.Params.Values['DriverID'] := LDriverId;
+  //Isolation Level
+  LIsolation := GetEnumValue(TypeInfo(TFDTxIsolation),'xi'+Isolation);
+  FConnection.TxOptions.Isolation := TFDTxIsolation(LIsolation);
 
   if SameText(LDriverID, 'MSSQL') then
   begin
@@ -236,6 +243,7 @@ begin
     FConnection.Params.Values['Password'] := Config.GetExpandedString('Connection/Password');
     FConnection.Params.Values['ApplicationName'] := Config.GetExpandedString('Connection/ApplicationName');
     FConnection.Params.Values['Database'] := Config.GetExpandedString('Connection/Database');
+    FConnection.Params.Values['OSAuthent'] := Config.GetString('Connection/OSAuthent', 'No');
     FConnection.Params.Values['MARS'] := 'Yes';
   end
   else if SameText(LDriverID, 'FB') then
@@ -362,6 +370,11 @@ end;
 function TEFDBFDConnection.GetDriverId: string;
 begin
   Result := Config.GetExpandedString('Connection/DriverID');
+end;
+
+function TEFDBFDConnection.GetIsolation: string;
+begin
+  Result := Config.GetExpandedString('Connection/Isolation','ReadCommitted');
 end;
 
 function TEFDBFDConnection.GetLastAutoincValue(
