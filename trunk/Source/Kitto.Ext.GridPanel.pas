@@ -631,7 +631,7 @@ begin
 
   LWidth := ViewTable.GetInteger('Controller/PopupWindow/Width', 0);
   LHeight := ViewTable.GetInteger('Controller/PopupWindow/Height', 0);
-  if (LWidth <> -1) and (LHeight <> -1) then
+  if (LWidth > 0) and (LHeight > 0) then
   begin
     FEditHostWindow.Width := LWidth;
     FEditHostWindow.Height := LHeight;

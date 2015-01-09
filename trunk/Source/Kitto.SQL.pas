@@ -143,12 +143,27 @@ type
     class function ExpandQualification(const AString, AQualification: string): string;
   end;
 
+function GetLookupCommandText(const AViewField: TKViewField): string;
+
 implementation
 
 uses
   SysUtils, StrUtils, Types, Variants,
   EF.Intf, EF.Localization, EF.Types, EF.StrUtils, EF.SQL, EF.Macros,
   Kitto.Types;
+
+function GetLookupCommandText(const AViewField: TKViewField): string;
+begin
+  if AViewField.IsReference then
+  begin
+    Result := TKSQLBuilder.GetLookupSelectStatement(AViewField);
+    if AViewField.ModelField.ReferencedModel.IsLarge then
+      Result := AddToSQLWhereClause(Result, '(' + AViewField.ModelField.ReferencedModel.CaptionField.DBColumnName + ' like ''{query}%'')');
+    Result := TEFMacroExpansionEngine.Instance.Expand(Result);
+  end
+  else
+    Result := '';
+end;
 
 { TKSQLQueryBuilder }
 
