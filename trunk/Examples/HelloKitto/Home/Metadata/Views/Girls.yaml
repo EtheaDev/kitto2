@@ -1,4 +1,4 @@
-﻿Type: Data
+Type: Data
 
 Controller: List
   InplaceEditing: True
@@ -6,6 +6,9 @@ Controller: List
     DisplayLabel: Girls Filter
     Connector: and
     Items:
+      DynaList: Hair Color
+        CommandText: select cast('%' as varchar(10)) ID, '(Tutti)' VALORE from RDB$DATABASE
+        ExpressionTemplate: HAIR.HAIR_COLOR like '{value}'
       ButtonList: Hair Color
         Items:
           All: All
