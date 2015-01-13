@@ -29,3 +29,9 @@ Controller: List
 
 MainTable:
   Model: Girl
+  Fields:
+    Girl_Id:
+      IsVisible: False
+    Girl_Name:
+    Age:
+    Phone:

@@ -72,6 +72,7 @@ type
     FCancelButton: TExtButton;
     function GetConfirmJSCode(const AMethod: TExtProcedure): string;
     function GetBeforeEditJSCode(const AMethod: TExtProcedure): string;
+    procedure ShowConfirmButtons(const AShow: Boolean);
   strict protected
     procedure ExecuteNamedAction(const AActionName: string); override;
     function GetEditWindowDefaultControllerType: string; virtual;
@@ -194,8 +195,7 @@ begin
   LReqBody := SO(Session.RequestBody);
   InitColumnEditors(ServerStore.GetRecord(LReqBody.O['data'], Session.Config.UserFormatSettings));
 
-  FConfirmButton.Show;
-  FCancelButton.Show;
+  ShowConfirmButtons(True);
 end;
 
 function TKExtGridPanel.CreateClientStore: TExtDataStore;
@@ -747,6 +747,28 @@ begin
   InitGridColumns;
 
   CheckGroupColumn;
+
+  if FInplaceEditing then
+  begin
+    FConfirmButton := TExtButton.CreateAndAddTo(Buttons);
+    FConfirmButton.Scale := Config.GetString('ButtonScale', 'medium');
+    FConfirmButton.Text := Config.GetString('ConfirmButton/Caption', _('Save'));
+    FConfirmButton.Tooltip := Config.GetString('ConfirmButton/Tooltip', _('Save changes and finish editing'));
+    FConfirmButton.Icon := Session.Config.GetImageURL('accept');
+    FConfirmButton.Hidden := True;
+    FConfirmButton.Handler := Ajax(ConfirmInplaceChanges);
+
+    FCancelButton := TExtButton.CreateAndAddTo(Buttons);
+    FCancelButton.Scale := Config.GetString('ButtonScale', 'medium');
+    FCancelButton.Text := _('Cancel');
+    FCancelButton.Tooltip := _('Cancel changes');
+    FCancelButton.Icon := Session.Config.GetImageURL('cancel');
+    FCancelButton.Hidden := True;
+    FCancelButton.Handler := Ajax(CancelInplaceChanges);
+
+    FEditorGridPanel.On('beforeedit', JSFunction('e', GetBeforeEditJSCode(BeforeEdit)));
+    FEditorGridPanel.On('afteredit', JSFunction('e', GetConfirmJSCode(UpdateField)));
+  end;
 end;
 
 procedure TKExtGridPanel.CheckGroupColumn;
@@ -775,8 +797,7 @@ end;
 
 procedure TKExtGridPanel.ConfirmInplaceChanges;
 begin
-  FConfirmButton.Hide;
-  FCancelButton.Hide;
+  ShowConfirmButtons(False);
   ServerStore.Save(True);
   Session.Flash(_('Changes saved succesfully.'));
   LoadData;
@@ -784,10 +805,24 @@ end;
 
 procedure TKExtGridPanel.CancelInplaceChanges;
 begin
-  FConfirmButton.Hide;
-  FCancelButton.Hide;
+  ShowConfirmButtons(False);
   ServerStore.Records.MarkAsClean;
   LoadData;
+end;
+
+procedure TKExtGridPanel.ShowConfirmButtons(const AShow: Boolean);
+begin
+  if AShow then
+  begin
+    FConfirmButton.Show;
+    FCancelButton.Show;
+  end
+  else
+  begin
+    FConfirmButton.Hide;
+    FCancelButton.Hide;
+  end;
+  DoLayout();
 end;
 
 function TKExtGridPanel.GetRowButtonsDisableJS: string;
@@ -1014,24 +1049,6 @@ begin
   end;
 
   inherited;
-
-  if FInplaceEditing then
-  begin
-    TExtToolbarSpacer.CreateAndAddTo(TopToolbar.Items);
-    FConfirmButton := TExtButton.CreateAndAddTo(TopToolbar.Items);
-    FConfirmButton.Tooltip := Config.GetString('ConfirmButton/Tooltip', _('Save changes and finish editing'));
-    FConfirmButton.Icon := Session.Config.GetImageURL('accept');
-    FConfirmButton.Hidden := True;
-    FConfirmButton.Handler := Ajax(ConfirmInplaceChanges);
-
-    FCancelButton := TExtButton.CreateAndAddTo(TopToolbar.Items);
-    FCancelButton.Icon := Session.Config.GetImageURL('cancel');
-    FCancelButton.Hidden := True;
-    FCancelButton.Handler := Ajax(CancelInplaceChanges);
-
-    FEditorGridPanel.On('beforeedit', JSFunction('e', GetBeforeEditJSCode(BeforeEdit)));
-    FEditorGridPanel.On('afteredit', JSFunction('e', GetConfirmJSCode(UpdateField)));
-  end;
 end;
 
 function TKExtGridPanel.GetBeforeEditJSCode(const AMethod: TExtProcedure): string;
