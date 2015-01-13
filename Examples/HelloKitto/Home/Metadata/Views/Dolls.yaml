@@ -1,4 +1,4 @@
-﻿Type: Data
+Type: Data
 
 Controller: List
   Filters:
@@ -7,7 +7,7 @@ Controller: List
       DynaList: Mom
         # CommandText must select the value field and the display field as the first two fields.
         CommandText: |
-          select GIRL_ID, GIRL_NAME 
+          select GIRL_ID, GIRL_NAME
           from GIRL order by GIRL_NAME
         # ExpressionTemplate should contain a {value} placeholder for the value field selected by the CommandText.
         ExpressionTemplate: Doll.Mom_Id = '{value}'
