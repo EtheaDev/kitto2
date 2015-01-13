@@ -11,11 +11,6 @@ msgstr ""
 "Language: it\n"
 "X-Generator: Poedit 1.7.3\n"
 
-# SOME DESCRIPTIVE TITLE.
-# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
-# This file is distributed under the same license as the PACKAGE package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-#
 #: Rules.pas:25
 msgid "Cannot invite the same girl twice."
 msgstr "Impossibile invitare la stessa bambina due volte."
