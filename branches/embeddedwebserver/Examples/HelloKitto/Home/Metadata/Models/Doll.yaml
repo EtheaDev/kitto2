@@ -1,0 +1,40 @@
+﻿ModelName: Doll
+Fields:
+  Doll_Id: String(32) not null primary key
+    IsVisible: False
+    DefaultValue: %COMPACT_GUID%
+  Doll_Name: String(40) not null
+    DisplayLabel: _(Name)
+    Rules:
+      ForceUpperCase:
+      SubType: alpha_space
+  Date_Bought: Date
+    DisplayLabel: _(Birth Date)
+    DefaultValue: {date}
+  Hair: Reference(Hair)
+    Fields:
+      Hair_Id:
+  Dress_Size: String(4)
+    DisplayWidth: 8
+    AllowedValues:
+      XS: _(Extra Small)
+      S: _(Small)
+      M: _(Medium)
+      L: _(Large)
+      XL: _(Extra Large)
+  Mom: Reference(Girl) not null
+    Fields:
+      Mom_Id:
+  Aspect: Memo
+    DisplayWidth: 40
+    Rules:
+      MaxLength: 1024
+  Picture: Blob
+    DisplayLabel: _(Photo)
+    Hint: _(Select a picture)
+    MaxUploadSize: 100KB
+    .DefaultFileName: test.gif
+    IsPicture: True
+      Thumbnail:
+        Width: 150
+        Height: 150

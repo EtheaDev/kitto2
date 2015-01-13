@@ -1,0 +1,192 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"POT-Creation-Date: \n"
+"PO-Revision-Date: \n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: it\n"
+"X-Generator: Poedit 1.7.3\n"
+
+#: Rules.pas:25
+msgid "Cannot invite the same girl twice."
+msgstr "Impossibile invitare la stessa bambina due volte."
+
+msgid "Choose Mom"
+msgstr "Scegli la mamma"
+
+msgid "Address"
+msgstr "Indirizzo"
+
+msgid "Age"
+msgstr "Età"
+
+msgid "Aspect"
+msgstr "Aspetto"
+
+msgid "Birth Date"
+msgstr "Data di nascita"
+
+msgid "Black"
+msgstr "Nero"
+
+msgid "Blond"
+msgstr "Biondo"
+
+msgid "Doll"
+msgstr "Bambola"
+
+msgid "Dolls"
+msgstr "Bambole"
+
+msgid "Girl"
+msgstr "Bambina"
+
+msgid "Girls"
+msgstr "Bambine"
+
+msgid "Dress Size"
+msgstr "Taglia"
+
+msgid "Enter a catchy name"
+msgstr "Inserisci un nome accattivante"
+
+msgid "Girls Filter"
+msgstr "Filtra bambine"
+
+msgid "Hair"
+msgstr "Capelli"
+
+msgid "Hair Color"
+msgstr "Colore capelli"
+
+msgid "Hair Types"
+msgstr "Tipo capelli"
+
+msgid "Mom"
+msgstr "Mamma"
+
+msgid "Name"
+msgstr "Nome"
+
+msgid "Name/Address"
+msgstr "Nome/Indirizzo"
+
+msgid "Other options (samples)"
+msgstr "Altre opzioni (esempi)"
+
+msgid "Parties"
+msgstr "Feste"
+
+msgid "Party"
+msgstr "Festa"
+
+msgid "Party Date"
+msgstr "Data festa"
+
+msgid "Party Name"
+msgstr "Nome festa"
+
+msgid "Party Time"
+msgstr "Ora festa"
+
+msgid "Peoria Girls and their Dolls"
+msgstr "Le bambine di Peoria e le loro bambole"
+
+msgid "Phone"
+msgstr "Telefono"
+
+msgid "Red"
+msgstr "Rosso"
+
+msgid "Search Parties"
+msgstr "Ricerca feste"
+
+msgid "Silver"
+msgstr "Argento"
+
+msgid "Walnut"
+msgstr "Noce"
+
+#: Doll.yaml
+msgid "Extra Small"
+msgstr "Molto piccola"
+
+#: Doll.yaml
+msgid "Small"
+msgstr "Piccola"
+
+#: Doll.yaml
+msgid "Medium"
+msgstr "Media"
+
+#: Doll.yaml
+msgid "Large"
+msgstr "Grande"
+
+#: Doll.yaml
+msgid "Extra Large"
+msgstr "Molto grande"
+
+#: Invitation.yaml
+msgid "Invitation"
+msgstr "Invito"
+
+#: Invitation.yaml
+msgid "Invitations"
+msgstr "Inviti"
+
+#: Doll.yaml
+msgid "Photo"
+msgstr "Foto"
+
+#: Doll.yaml
+msgid "Select a picture"
+msgstr "Seleziona un'immagine"
+
+#: Dolls.yaml
+msgid "Mom's Phone"
+msgstr "Tel. di mamma"
+
+#: Home.yaml
+msgid "Main menu"
+msgstr "Menù principale"
+
+#: MainMenu.yaml
+msgid "Options"
+msgstr "Opzioni"
+
+#: MainMenu.yaml
+msgid "Lookup tables"
+msgstr "Tabelle"
+
+#: MainMenu.yaml
+msgid "User"
+msgstr "Utente"
+
+#: Parties.yaml
+msgid "Download in CSV"
+msgstr "Scarica in CSV"
+
+#: Parties.yaml
+msgid "Download in Excel"
+msgstr "Scarica in Excel"
+
+#: Home.yaml
+msgid "User: %Auth:UserName%"
+msgstr "Utente: %Auth:UserName%"
+
+#: Dolls.yaml
+msgid "Download in TXT"
+msgstr "Scarica in TXT"
+
+#: Dolls.yaml
+msgid "{[values.rs.length]} Dolls have {text} hair"
+msgstr "{[values.rs.length]} Bambole hanno la testa {text}"
+
+#: Girls.yaml
+msgid "Platinum"
+msgstr "Platino"

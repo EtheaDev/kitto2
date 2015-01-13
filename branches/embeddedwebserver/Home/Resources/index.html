@@ -1,0 +1,68 @@
+﻿<%HTMLDeclaration%>
+<head>
+  <title><%ApplicationTitle%></title>
+  <%ApplicationIconLink%>
+  <meta http-equiv="content-type" content="charset=<%CharSet%>" />
+  <link rel=stylesheet href="<%ExtPath%>/resources/css/<%ExtBuild%>.css" />
+  <script src="<%ExtPath%>/adapter/ext/ext-base.js"></script>
+  <script src="<%ExtPath%>/<%ExtBuild%><%DebugSuffix%>.js"></script>
+  <%ThemeLink%>
+  <%LanguageLink%>
+  <%StyleTag%>
+  <%LibraryTags%>
+</head>
+<body>
+<div id="body">
+  <div id="loading" style="position:absolute;font-family:verdana;top:40%;left:40%">
+    <img src="<%ExtPath%>/resources/images/default/shared/loading-balls.gif"/>Loading <%ApplicationTitle%>...
+  </div>
+</div>
+<noscript>This web application requires JavaScript enabled</noscript>
+</body>
+  <script>
+    <%CustomJS%>
+
+    function AjaxError(m) {
+      Ext.Msg.show({
+        title: "Ajax Error",
+        msg: m,
+        icon: Ext.Msg.ERROR,
+        buttons: Ext.Msg.OK}
+      );
+     };
+    function AjaxSuccess(response) {
+      try {
+        eval(response.responseText);
+      } catch (err) {
+        if (err.message)
+          AjaxError(err.message);
+        else
+          AjaxError(err);
+      }
+    };
+    function sleep(ms) {
+      var start = new Date().getTime();
+      for (var i = 0; i < 1e7; i++)
+        if ((new Date().getTime() - start) > ms)
+          break;
+    };
+    function AjaxFailure() {
+      AjaxError("Server unavailable, try later.");
+    };
+    Ext.onReady(
+      function() {
+        Ext.get("loading").remove();
+        Ext.BLANK_IMAGE_URL="<%ExtPath%>/resources/images/default/s.gif";
+        TextMetrics = Ext.util.TextMetrics.createInstance("body");
+        Download = Ext.DomHelper.append(document.body, {tag: "iframe", cls: "x-hidden"});
+
+        kittoLoadMask = new Ext.LoadMask(Ext.getBody());
+        Ext.Ajax.on("beforerequest", function() { kittoLoadMask.show(); });
+        Ext.Ajax.on("requestcomplete", function() { kittoLoadMask.hide(); });
+        Ext.Ajax.on("requestexception", function() { kittoLoadMask.hide(); });
+
+        <%Response%>
+      }
+    );
+  </script>
+</html>

@@ -1,0 +1,15 @@
+Type: Tree
+Folder: Tables
+  View: Countries
+  View: Jobs
+  View: Departments
+Folder: Business
+  View: Customers
+  View: Employees
+  View: SalaryHistories
+Folder: Maintenance
+  View: Users
+    ImageName: user
+  View:
+    Controller: Logout
+    DisplayLabel: Close session

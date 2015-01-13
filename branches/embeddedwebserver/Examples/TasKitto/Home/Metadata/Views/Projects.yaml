@@ -1,0 +1,45 @@
+﻿Type: Data
+
+Controller: List
+  Filters:
+    DisplayLabel: Project Filter
+    Connector: and
+    Items:
+      FreeSearch: Name
+        # ExpressionTemplate should contain a {value} placeholder for the search term.
+        ExpressionTemplate: >
+          upper(PROJECT_NAME) like upper('%{value}%')
+      DynaList: Customer
+        # CommandText must select the value field and the display field as the first two fields.
+        CommandText: |
+          select distinct CUSTOMER_ID, CUSTOMER_NAME
+          from CUSTOMER order by 2
+        # ExpressionTemplate should contain a {value} placeholder for the value field selected by the CommandText.
+        ExpressionTemplate: CUSTOMER_NAME = '{value}'
+
+  GridPanelController:
+    AllowViewing: True
+
+MainTable:
+  Model: PROJECT
+  Controller:
+    PopupWindow:
+      Width: 800
+      Height: 500
+
+    FormController:
+      LabelAlign: left
+      ToolViews:
+        DownloadText:
+          DisplayLabel: Donwload content in XML
+          Controller: ExportXMLTool
+            RequireSelection: False
+            IncludeHeader: False
+            ClientFileName: ProjectList.xml
+
+  DetailTables:
+    Table:
+      Model: PHASE
+      Controller:
+        Form:
+          Layout: Phases_Form

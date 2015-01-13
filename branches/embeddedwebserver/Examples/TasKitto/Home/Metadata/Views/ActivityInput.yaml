@@ -1,0 +1,79 @@
+Type: Data
+
+Controller: List
+  Filters:
+    DisplayLabel: Types
+    LabelWidth: 90
+    Connector: and
+    Items:
+      FreeSearch: Description
+        ExpressionTemplate: (UPPER(Activity.Description) like UPPER('%{value}%'))
+      DynaList: Activity Type
+        CommandText: |
+          select first 1 '%' TYPE_ID, '(All)' TYPE_NAME from kitto_users
+            union all
+          select TYPE_ID, TYPE_NAME from ACTIVITY_TYPE 
+            order by 2
+        ExpressionTemplate: Activity.TYPE_ID like '{value}'
+      FreeSearch: Last N Days
+        ExpressionTemplate: ACTIVITY_DATE >= (getDate() - {value})
+      DateSearch: From
+        ExpressionTemplate: ACTIVITY_DATE >= '{value}'
+      DateSearch: To
+        ExpressionTemplate: ACTIVITY_DATE <= '{value}'
+      List: Period
+        Items:
+          Today: Today
+            Expression: (ACTIVITY_DATE > %DB.CURRENT_DATE%-1)
+          LastWeek: Last Week
+            Expression: (ACTIVITY_DATE <= %DB.CURRENT_DATE%) and (ACTIVITY_DATE >= %DB.CURRENT_DATE% - 7)
+          CurrMonth: Current Month
+            Expression: |
+              EXTRACT(month FROM ACTIVITY_DATE) = EXTRACT(month FROM %DB.CURRENT_DATE%) 
+              and EXTRACT(year FROM ACTIVITY_DATE) = EXTRACT(year FROM %DB.CURRENT_DATE%)                
+          CurrYear: Current Year
+            Expression: EXTRACT(year FROM ACTIVITY_DATE) = EXTRACT(year FROM %DB.CURRENT_DATE%)                
+          All: Whole Archive
+            Expression: 1=1
+            IsDefault: True
+  GridPanelController:
+    AllowDuplicating: True
+    AllowViewing: True
+
+MainTable:
+  Model: ACTIVITY
+  Controller:
+    PopupWindow:
+      Width: 700
+      Height: 400
+    ToolViews:
+      DownloadText:
+        DisplayLabel: Download in TXT
+        Controller: ExportTextTool
+          RequireSelection: False
+          IncludeHeader: False
+          ClientFileName: ActivityList.txt
+      DownloadCSV:
+        DisplayLabel: Download in CSV
+        ImageName: download
+        Controller: ExportCSVTool
+          RequireSelection: False  
+      DownloadExcel:
+        DisplayLabel: Download in Excel
+        Controller: ExportExcelTool
+          ClientFileName: ActivityList.xls
+          TemplateFileName: %APP_PATH%ReportTemplates\ActivityList.xlt
+          RequireSelection: False  
+      PDFReport:
+        DisplayLabel: Activity report PDF
+        Controller: MergePDFTool
+          ClientFileName: ActivityByQuickPDF.pdf
+          BaseFileName: %APP_PATH%ReportTemplates\ActivityReport.pdf
+          Layout: %APP_PATH%ReportTemplates\ActivityPDFMerge.yaml
+          RequireSelection: True
+      FOPReport:
+        DisplayLabel: Activity by FOP
+        Controller: FOPTool
+          ClientFileName: ActivityByFOP.pdf
+          TransformFileName: %APP_PATH%ReportTemplates\ActivityReport.xsl
+          RequireSelection: False

@@ -1,0 +1,20 @@
+Type: Data
+Controller: List
+  Filters:
+    DisplayLabel: Search Employees
+    Items:
+      FreeSearch: Free Search
+        ExpressionTemplate: (Employee.FIRST_NAME like '%{value}%') or (Employee.LAST_NAME like '%{value}%') or (Employee.PHONE_EXT like '%{value}%') or (Employee.FULL_NAME like '%{value}%')
+MainTable:
+  Model: Employee
+  Fields:
+    EmpNo:
+    FirstName:
+    LastName:
+    PhoneExt:
+    HireDate:
+    Salary:
+    FullName:
+    DeptNoRef:
+    JobRef:
+  Controller:

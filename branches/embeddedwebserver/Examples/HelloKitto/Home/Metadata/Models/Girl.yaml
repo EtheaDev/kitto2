@@ -1,0 +1,21 @@
+ModelName: Girl
+Fields:
+  Girl_Id: String(32) not null primary key
+    DefaultValue: %COMPACT_GUID%
+    IsVisible: False
+  Girl_Name: String(40) not null
+    DisplayLabel: Name
+    Rules:
+      ForceUpperCase:
+      SubType: alpha_space
+  Age: Integer not null
+    DefaultValue: 10
+    Rules:
+      MinValue: 8
+      MaxValue: 18
+  Hair: Reference(Hair) not null
+    Fields:
+      Hair_Id:
+  Phone: String(16)
+    Rules:
+      SubType: phone_number
