@@ -213,6 +213,10 @@ type
 
     function GetAsXML(const AForDisplay: Boolean;
       const AFrom: Integer = 0; const AFor: Integer = 0): string;
+
+    procedure ForEach(const AProc: TProc<TKRecord>);
+
+    procedure MarkAsClean;
   end;
 
   TKHeaderField = class(TEFNode)
@@ -682,6 +686,15 @@ begin
   end;
 end;
 
+procedure TKRecords.ForEach(const AProc: TProc<TKRecord>);
+var
+  I: Integer;
+begin
+  if Assigned(AProc) then
+    for I := 0 to RecordCount - 1 do
+      AProc(Records[I]);
+end;
+
 function TKRecords.GetAsJSON(const AForDisplay: Boolean;
   const AFrom: Integer; const AFor: Integer): string;
 var
@@ -786,6 +799,15 @@ end;
 function TKRecords.GetXMLTagName: string;
 begin
   Result := Name;
+end;
+
+procedure TKRecords.MarkAsClean;
+begin
+  ForEach(
+    procedure (ARecord: TKRecord)
+    begin
+      ARecord.MarkAsClean;
+    end);
 end;
 
 procedure TKRecords.Remove(const ARecord: TKRecord);

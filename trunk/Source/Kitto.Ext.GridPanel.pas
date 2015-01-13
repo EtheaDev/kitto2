@@ -99,11 +99,11 @@ type
     procedure NewRecord(This: TExtButton; E: TExtEventObjectSingleton);
     procedure DeleteCurrentRecord;
     procedure LoadData; override;
-    procedure CancelChanges;
     procedure SelectionChanged;
-    procedure BeforeInplaceEditRecord;
     procedure UpdateField;
     procedure BeforeEdit;
+    procedure ConfirmInplaceChanges;
+    procedure CancelInplaceChanges;
   end;
 
 implementation
@@ -196,11 +196,6 @@ begin
 
   FConfirmButton.Show;
   FCancelButton.Show;
-end;
-
-procedure TKExtGridPanel.BeforeInplaceEditRecord;
-begin
-  InitColumnEditors(ServerStore.Records[Session.QueryAsInteger['rowIndex']]);
 end;
 
 function TKExtGridPanel.CreateClientStore: TExtDataStore;
@@ -754,11 +749,6 @@ begin
   CheckGroupColumn;
 end;
 
-procedure TKExtGridPanel.CancelChanges;
-begin
-  LoadData;
-end;
-
 procedure TKExtGridPanel.CheckGroupColumn;
 var
   I: Integer;
@@ -781,6 +771,23 @@ begin
     if not LFound then
       raise Exception.CreateFmt('Grouping field %s not found in grid.', [LGroupingFieldName]);
   end;
+end;
+
+procedure TKExtGridPanel.ConfirmInplaceChanges;
+begin
+  FConfirmButton.Hide;
+  FCancelButton.Hide;
+  ServerStore.Save(True);
+  Session.Flash(_('Changes saved succesfully.'));
+  LoadData;
+end;
+
+procedure TKExtGridPanel.CancelInplaceChanges;
+begin
+  FConfirmButton.Hide;
+  FCancelButton.Hide;
+  ServerStore.Records.MarkAsClean;
+  LoadData;
 end;
 
 function TKExtGridPanel.GetRowButtonsDisableJS: string;
@@ -1015,10 +1022,12 @@ begin
     FConfirmButton.Tooltip := Config.GetString('ConfirmButton/Tooltip', _('Save changes and finish editing'));
     FConfirmButton.Icon := Session.Config.GetImageURL('accept');
     FConfirmButton.Hidden := True;
+    FConfirmButton.Handler := Ajax(ConfirmInplaceChanges);
 
     FCancelButton := TExtButton.CreateAndAddTo(TopToolbar.Items);
     FCancelButton.Icon := Session.Config.GetImageURL('cancel');
     FCancelButton.Hidden := True;
+    FCancelButton.Handler := Ajax(CancelInplaceChanges);
 
     FEditorGridPanel.On('beforeedit', JSFunction('e', GetBeforeEditJSCode(BeforeEdit)));
     FEditorGridPanel.On('afteredit', JSFunction('e', GetConfirmJSCode(UpdateField)));

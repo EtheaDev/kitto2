@@ -9957,7 +9957,7 @@ end;
 
 function TExtComponent.Hide: TExtFunction;
 begin
-  JSCode(JSName + '.hide();', 'TExtComponent');
+  ExtSession.ResponseItems.CallMethod(Self, 'hide', []);
   Result := Self;
 end;
 
