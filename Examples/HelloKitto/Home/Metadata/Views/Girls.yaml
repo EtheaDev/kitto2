@@ -1,4 +1,4 @@
-Type: Data
+﻿Type: Data
 
 Controller: List
   InplaceEditing: True
@@ -11,20 +11,17 @@ Controller: List
         ExpressionTemplate: HAIR.HAIR_COLOR like '{value}'
       ButtonList: Hair Color
         Items:
-          All: All
-            Expression: 1 = 1
-            IsDefault: True
-          Blond: Blond
+          Blond: _(Blond)
             Expression: HAIR.HAIR_COLOR = 'Blond'
-          Walnut: Walnut
+          Walnut: _(Walnut)
             Expression: HAIR.HAIR_COLOR = 'Walnut'
-          Black: Black
+          Black: _(Black)
             Expression: HAIR.HAIR_COLOR = 'Black'
-          Silver: Silver
+          Silver: _(Silver)
             Expression: HAIR.HAIR_COLOR = 'Silver'
-          Red: Red
+          Red: _(Red)
             Expression: HAIR.HAIR_COLOR = 'Red'
-          Platinum: Platinum
+          Platinum: _(Platinum)
             Expression: HAIR.HAIR_COLOR = 'Platinum'
 
 MainTable:
