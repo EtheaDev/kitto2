@@ -79,6 +79,9 @@ type
     function GetIsKey: Boolean;
     function GetIsGenerated: Boolean;
     function GetDefaultValue: Variant;
+    function GetDefaultDisplayWidth: Integer;
+    function GetDefaultDisplayLabel: string;
+    function GetDefaultEmptyAsNull: Boolean;
     function GetExpression: string;
     function GetAllowedValues: TEFPairs;
     function GetRules: TKRules;
@@ -325,6 +328,22 @@ type
     ///	  Optional value to set for the field when a new record is created.
     ///	</summary>
     property DefaultValue: Variant read GetDefaultValue;
+
+    ///	<summary>
+    ///	  Returns the default Display Width based on the DataType
+    ///	</summary>
+    property DefaultDisplayWidth: Integer read GetDefaultDisplayWidth;
+
+    ///	<summary>
+    ///	  Returns the default Display label of the field as a
+    ///   beautified value of FieldName
+    ///	</summary>
+    property DefaultDisplayLabel: string read GetDefaultDisplayLabel;
+
+    ///	<summary>
+    ///	  Returns the default value form EmptyAsNull based on the DataType
+    ///	</summary>
+    property DefaultEmptyAsNull: Boolean read GetDefaultEmptyAsNull;
 
     property IsKey: Boolean read GetIsKey;
 
@@ -1492,36 +1511,17 @@ begin
     Result := TKConfig.Instance.MacroExpansionEngine.Expand(EFVarToStr(Result));
 end;
 
-function TKModelField.GetDisplayFormat: string;
+function TKModelField.GetDefaultDisplayWidth: Integer;
 begin
-  Result := GetString('DisplayFormat');
+  Result := DataType.GetDefaultDisplayWidth(Size);
 end;
 
-function TKModelField.GetDisplayLabel: string;
+function TKModelField.GetDefaultDisplayLabel: string;
 begin
-  Result := GetString('DisplayLabel');
-  if Result = '' then
-    Result := BeautifyFieldName(FieldName);
+  Result := BeautifyFieldName(FieldName);
 end;
 
-function TKModelField.GetDisplayTemplate: string;
-begin
-  Result := GetString('DisplayTemplate');
-end;
-
-function TKModelField.GetDisplayWidth: Integer;
-begin
-  Result := GetInteger('DisplayWidth');
-  if Result = 0 then
-    Result := DataType.GetDefaultDisplayWidth(Size);
-end;
-
-function TKModelField.GetEditFormat: string;
-begin
-  Result := GetString('EditFormat');
-end;
-
-function TKModelField.GetEmptyAsNull: Boolean;
+function TKModelField.GetDefaultEmptyAsNull: Boolean;
 var
   LNode: TEFNode;
 begin
@@ -1538,6 +1538,43 @@ begin
         Result := inherited GetEmptyAsNull;
     end;
   end
+  else
+    Result := False;
+end;
+
+function TKModelField.GetDisplayFormat: string;
+begin
+  Result := GetString('DisplayFormat');
+end;
+
+function TKModelField.GetDisplayLabel: string;
+begin
+  Result := GetString('DisplayLabel');
+  if Result = '' then
+    Result := GetDefaultDisplayLabel;
+end;
+
+function TKModelField.GetDisplayTemplate: string;
+begin
+  Result := GetString('DisplayTemplate');
+end;
+
+function TKModelField.GetDisplayWidth: Integer;
+begin
+  Result := GetInteger('DisplayWidth');
+  if Result = 0 then
+    Result := DefaultDisplayWidth;
+end;
+
+function TKModelField.GetEditFormat: string;
+begin
+  Result := GetString('EditFormat');
+end;
+
+function TKModelField.GetEmptyAsNull: Boolean;
+begin
+  if DataType.SupportsEmptyAsNull then
+    Result := GetDefaultEmptyAsNull
   else
     Result := inherited GetEmptyAsNull;
 end;
