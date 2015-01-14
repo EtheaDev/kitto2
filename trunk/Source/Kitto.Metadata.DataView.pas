@@ -633,6 +633,10 @@ type
     class function GetTypeName: string; override;
   end;
 
+///	<summary>Returns the Data View of a specific form layout.
+/// AWindowControllerType can be 'Form' or 'Grid'</summary>
+function GetViewOfLayout(const ALayoutPersistentName, AWindowControllerType: string): TKDataView;
+
 implementation
 
 uses
@@ -640,6 +644,26 @@ uses
   EF.DB, EF.StrUtils, EF.VariantUtils, EF.Macros, EF.JSON,
   Kitto.SQL, Kitto.Types, Kitto.Config, Kitto.AccessControl,
   Kitto.DatabaseRouter;
+
+function GetViewOfLayout(const ALayoutPersistentName, AWindowControllerType: string): TKDataView;
+var
+  I: Integer;
+  LView: TKView;
+  LLayoutName: string;
+  LConfig: TKConfig;
+begin
+  LConfig := TKConfig.Instance;
+  for I := 0 to LConfig.Views.ViewCount -1 do
+  begin
+    LView := LConfig.Views[I];
+    LLayoutName := LView.PersistentName+'_'+AWindowControllerType;
+    if SameText(LLayoutName, ALayoutPersistentName) and (LView is TKDataView) then
+    begin
+      Result := TKDataView(LView);
+      break;
+    end;
+  end;
+end;
 
 { TKDataView }
 
