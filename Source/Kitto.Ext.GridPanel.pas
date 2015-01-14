@@ -917,28 +917,20 @@ begin
   end
   else
     inherited;
-  ExecuteNamedAction(Session.Queries.Values['action']);
 end;
 
 procedure TKExtGridPanel.ExecuteNamedAction(const AActionName: string);
-
-  procedure PerformDelayedClick(const AButton: TExtButton);
-  begin
-    if Assigned(AButton) then
-      AButton.On('render', JSFunction(AButton.PerformClick));
-  end;
-
 begin
   if (AActionName = 'New') then
     PerformDelayedClick(FNewButton)
   else if (AActionName = 'Edit') then
-    FEditButton.PerformClick
+    PerformDelayedClick(FEditButton)
   else if (AActionName = 'View') then
-    FViewButton.PerformClick
+    PerformDelayedClick(FViewButton)
   else if (AActionName = 'Delete') then
-    FDeleteButton.PerformClick
+    PerformDelayedClick(FDeleteButton)
   else if (AActionName = 'Dup') then
-    FDupButton.PerformClick
+    PerformDelayedClick(FDupButton)
   { TODO : Support custom actions as well? }
   else
     inherited;
