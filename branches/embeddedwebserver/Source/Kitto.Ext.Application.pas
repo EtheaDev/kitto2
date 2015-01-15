@@ -22,7 +22,8 @@ interface
 
 uses
   Classes,
-  FCGIApp;
+  //FCGIApp,
+  IdExtHTTPServer;
 
 type
   TKExtAppThread = class(TThread)

@@ -65,6 +65,7 @@ type
     procedure GarbageThreads;
   protected
     function GetTerminated: Boolean; override;
+    function GetSessionCount: Integer; override;
   public
     GarbageNow : boolean; // Set to true to trigger the garbage colletor
     Shutdown   : boolean; // Set to true to shutdown the application after the last thread to end, default is false
@@ -498,7 +499,7 @@ begin
       I := Application.FThreads.IndexOf(LSessionId);
 
     if I = -1 then begin
-      FSession.NewThread := true;
+      FSession.AfterNewSession;
       AccessThread.Enter;
       if Application.ReachedMaxConns then begin
         SendEndRequest(psOverloaded);
@@ -772,6 +773,11 @@ begin
   finally
     AccessThreads.Leave;
   end;
+end;
+
+function TFCGIApplication.GetSessionCount: Integer;
+begin
+  Result := ThreadsCount;
 end;
 
 function TFCGIApplication.GetTerminated : Boolean; begin

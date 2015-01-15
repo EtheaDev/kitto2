@@ -176,6 +176,7 @@ type
     procedure DoRun; virtual; abstract;
     function GetTerminated : Boolean; virtual;
     property Terminated : Boolean read GetTerminated;
+    function GetSessionCount: Integer; virtual;
   public
     constructor Create(const AOwner: TComponent; const ATitle : string; ASessionClass : TCustomWebSessionClass; APort : Word;
                        AMaxIdleMinutes : Word = 30; AMaxConns : Integer = 1000); reintroduce; virtual;
@@ -191,6 +192,7 @@ type
     property Port : Word read FPort;
     property SessionClass : TCustomWebSessionClass read FSessionClass;
     property Title : string read FTitle; // Application title
+    property SessionCount: Integer read GetSessionCount;
   end;
 
 implementation
@@ -430,7 +432,10 @@ end;
 
 procedure TCustomWebSession.AfterHandleRequest; begin end;
 
-procedure TCustomWebSession.AfterNewSession; begin end;
+procedure TCustomWebSession.AfterNewSession;
+begin
+  NewThread := True;
+end;
 
 procedure TCustomWebSession.Alert(const AMessage: string);
 begin
@@ -872,6 +877,11 @@ begin
 end;
 
 type TThreadAccess = class(TThread);
+
+function TCustomWebApplication.GetSessionCount: Integer;
+begin
+  Result := 0;
+end;
 
 function TCustomWebApplication.GetTerminated : Boolean; begin
   Result := FTerminated or (Assigned(OwnerThread) and TThreadAccess(OwnerThread).Terminated);

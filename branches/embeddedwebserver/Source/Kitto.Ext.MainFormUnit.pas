@@ -99,8 +99,8 @@ implementation
 
 uses
   Math,
-  EF.SysUtils, EF.Shell, EF.Localization,
-  FCGIApp;
+  IdExtHTTPServer,
+  EF.SysUtils, EF.Shell, EF.Localization;
 
 procedure TKExtMainForm.AppThreadTerminated(Sender: TObject);
 begin
@@ -177,8 +177,8 @@ end;
 
 function TKExtMainForm.GetSessionCount: Integer;
 begin
-  if Assigned(FCGIApp.Application) then
-    Result := Max(0, FCGIApp.Application.ThreadsCount)
+  if Assigned(Application) then
+    Result := Max(0, Application.SessionCount)
   else
     Result := 0;
 end;
