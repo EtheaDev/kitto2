@@ -462,7 +462,7 @@ begin
   for LDerivedField in LDerivedFields do
   begin
     if SameText(LDerivedField.FieldName, AViewField.FieldName) then
-      LDBColumnName := AViewField.ModelField.ReferencedModel.CaptionField.DBColumnName
+      LDBColumnName := AViewField.ModelField.ReferencedModel.CaptionField.DBColumnName + ' ' + LDerivedField.ModelField.DBColumnName
     else
       LDBColumnName := LDerivedField.ModelField.DBColumnName;
 

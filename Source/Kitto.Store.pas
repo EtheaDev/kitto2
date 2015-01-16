@@ -1148,13 +1148,18 @@ end;
 procedure TKRecord.ReadFromNode(const ANode: TEFNode);
 var
   I: Integer;
+  LSourceNode: TEFNode;
 begin
   Assert(Assigned(ANode));
 
   Backup;
   try
     for I := 0 to FieldCount - 1 do
-      Fields[I].AssignValue(ANode.FindNode(Fields[I].FieldName));
+    begin
+      LSourceNode := ANode.FindNode(Fields[I].FieldName);
+      if Assigned(LSourceNode) then
+        Fields[I].AssignValue(LSourceNode);
+    end;
     InternalAfterReadFromNode;
     if FState = rsClean then
       FState := rsDirty;
