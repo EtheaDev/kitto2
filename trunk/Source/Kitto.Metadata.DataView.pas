@@ -2350,13 +2350,13 @@ var
 begin
   Assert(Records.Store.ViewTable.IsDetail);
 
-  Store.DisableChangeNotifications;
+  // Get master and detail field names...
+  LMasterFieldNames := Records.Store.ViewTable.MasterTable.Model.GetKeyFieldNames;
+  Assert(Length(LMasterFieldNames) > 0);
+  LDetailFieldNames := Records.Store.ViewTable.ModelDetailReference.ReferenceField.GetFieldNames;
+  Assert(Length(LDetailFieldNames) = Length(LMasterFieldNames));
+  //Store.DisableChangeNotifications;
   try
-    // Get master and detail field names...
-    LMasterFieldNames := Records.Store.ViewTable.MasterTable.Model.GetKeyFieldNames;
-    Assert(Length(LMasterFieldNames) > 0);
-    LDetailFieldNames := Records.Store.ViewTable.ModelDetailReference.ReferenceField.GetFieldNames;
-    Assert(Length(LDetailFieldNames) = Length(LMasterFieldNames));
     for I := 0 to High(LDetailFieldNames) do
     begin
       // ...alias them...
@@ -2366,7 +2366,7 @@ begin
       GetNode(LDetailFieldNames[I]).AssignValue(AMasterRecord.GetNode(LMasterFieldNames[I]));
     end;
   finally
-    Store.EnableChangeNotifications;
+    //Store.EnableChangeNotifications;
   end;
 end;
 

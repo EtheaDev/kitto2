@@ -267,25 +267,6 @@ begin
   end;
   // Scroll back to top - can't do that until afterrender because body.dom is needed.
   FMainPagePanel.On('afterrender', JSFunction(FMainPagePanel.JSName + '.body.dom.scrollTop = 0;'));
-  // Load data. Combo boxes can only have their raw value set after they're rendered.
-  FEditItems.AllEditors(
-    procedure (AEditor: IKExtEditor)
-    var
-      LFormField: TExtFormField;
-    begin
-      LFormField := AEditor.AsExtFormField;
-      if Assigned(LFormField) then
-      begin
-        LFormField.RemoveAllListeners('afterrender');
-        LFormField.On('afterrender', LFormField.JSFunction(
-          procedure()
-          begin
-            AEditor.RefreshValue;
-          end));
-      end
-      else
-        AEditor.RefreshValue;
-    end);
   // Set button handlers (editors are needed by GetConfirmJSCode).
   if Assigned(FConfirmButton) then
     FConfirmButton.Handler := JSFunction(GetConfirmJSCode(ConfirmChanges));
@@ -364,6 +345,8 @@ begin
       end;
     end;
 
+    RefreshEditorValues;
+
     FocusFirstField;
   except
     on E: EKValidationError do
@@ -372,6 +355,29 @@ begin
       CancelChanges;
     end;
   end;
+end;
+
+procedure TKExtFormPanelController.RefreshEditorValues;
+begin
+  // Load data. Combo boxes can only have their raw value set after they're rendered.
+  FEditItems.AllEditors(
+    procedure (AEditor: IKExtEditor)
+    var
+      LFormField: TExtFormField;
+    begin
+      LFormField := AEditor.AsExtFormField;
+      if Assigned(LFormField) then
+      begin
+        LFormField.RemoveAllListeners('afterrender');
+        LFormField.On('afterrender', LFormField.JSFunction(
+          procedure()
+          begin
+            AEditor.RefreshValue;
+          end));
+      end
+      else
+        AEditor.RefreshValue;
+    end);
 end;
 
 procedure TKExtFormPanelController.SwitchToEditMode;
