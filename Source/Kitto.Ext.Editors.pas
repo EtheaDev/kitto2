@@ -2925,6 +2925,7 @@ begin
       LFormField.Cls := 'x-form-readonly';
     LFormField.Name := AViewField.AliasedName;
     LFormField.ReadOnly := AIsReadOnly;
+    LFormField.Disabled := AIsReadOnly;
   end;
 end;
 
