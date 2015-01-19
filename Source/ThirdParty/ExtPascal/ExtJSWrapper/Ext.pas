@@ -2656,7 +2656,8 @@ type
       : TExtFunction;
     function Cascade(Fn: TExtFunction; Scope: TExtObject = nil;
       Args: TExtObjectList = nil): TExtFunction;
-    function DoLayout(const AShallow: Boolean = False; const AForce: Boolean = False): TExtFunction;
+    function DoLayout(const AShallow: Boolean; const AForce: Boolean): TExtFunction; overload;
+    function DoLayout: TExtFunction; overload;
     function Find(Prop: string; Value: string): TExtFunction;
     function FindBy(Fn: TExtFunction; Scope: TExtObject = nil): TExtFunction;
     function FindById(Id: string): TExtFunction;
@@ -11632,6 +11633,11 @@ begin
   JSCode(JSName + '.cascade(' + VarToJSON([Fn, true, Scope, false]) + ',' +
     VarToJSON(Args) + ');', 'TExtContainer');
   Result := Self;
+end;
+
+function TExtContainer.DoLayout: TExtFunction;
+begin
+  Result := DoLayout(False, False);
 end;
 
 function TExtContainer.DoLayout(const AShallow: Boolean; const AForce: Boolean): TExtFunction;

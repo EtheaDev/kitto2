@@ -423,6 +423,8 @@ begin
     DisplayView(FAutoOpenViewName);
     FAutoOpenViewName := '';
   end;
+  if FHomeController is TExtContainer then
+    TExtContainer(FHomeController).DoLayout;
 end;
 
 procedure TKExtSession.Home;

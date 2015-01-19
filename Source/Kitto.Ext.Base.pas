@@ -33,7 +33,7 @@ type
   end;
 
   ///	<summary>
-  ///	  Base Ext window with subject, observer and controller capabilities.
+  ///	 Base Ext window with subject, observer and controller capabilities.
   ///	</summary>
   TKExtWindowControllerBase = class(TExtWindow, IInterface, IEFInterface, IEFSubject, IEFObserver, IKExtController)
   strict private
@@ -62,6 +62,7 @@ type
     procedure UpdateObserver(const ASubject: IEFSubject; const AContext: string = ''); virtual;
     function SupportsContainer: Boolean;
     function IsSynchronous: Boolean;
+    property Config: TEFNode read GetConfig;
 
     property View: TKView read GetView write SetView;
     procedure Display;
@@ -70,16 +71,16 @@ type
     procedure WindowClosed;
   end;
 
-  {
-    A modal window used to host panels.
-  }
+  /// <summary>
+  ///  A modal window used to host panels.
+  /// </summary>
   TKExtModalWindow = class(TKExtWindowControllerBase)
   protected
     procedure InitDefaults; override;
   public
     ///	<summary>
-    ///   Call this after adding the panel so that the window can hook its
-    ///   beforeclose event and close itself.
+    ///  Call this after adding the panel so that the window can hook its
+    ///  beforeclose event and close itself.
     ///	<summary>
     procedure HookPanel(const APanel: TExtPanel);
   published
@@ -87,7 +88,7 @@ type
   end;
 
   ///	<summary>
-  ///	  Base ext viewport with subject, observer and controller capabilities.
+  ///	 Base ext viewport with subject, observer and controller capabilities.
   ///	</summary>
   TKExtViewportControllerBase = class(TExtViewport, IInterface, IEFInterface, IEFSubject, IEFObserver, IKExtController)
   private
@@ -229,9 +230,11 @@ type
     procedure Display;
   end;
 
-  ///	<summary>Base class for controllers that don't have a specific visual
-  ///	representation, yet can be used to render views, such as custom action
-  ///	controllers.</summary>
+  ///	<summary>
+  ///  Base class for controllers that don't have a specific visual
+  ///	 representation, yet can be used to render views, such as custom action
+  ///	 controllers.
+  /// </summary>
   TKExtControllerBase = class(TExtObject, IInterface, IEFInterface, IKExtController, IEFSubject, IEFObserver)
   private
     FSubjObserverImpl: TEFSubjectAndObserver;
@@ -265,7 +268,9 @@ type
     procedure UpdateObserver(const ASubject: IEFSubject; const AContext: string = ''); virtual;
   end;
 
-  ///	<summary>Base class for tool controllers.</summary>
+  ///	<summary>
+  ///  Base class for tool controllers.
+  /// </summary>
   TKExtToolController = class(TKExtControllerBase)
   strict protected
     procedure ExecuteTool; virtual;
@@ -274,6 +279,26 @@ type
   public
     function SupportsContainer: Boolean; override;
     function IsSynchronous: Boolean; override;
+  end;
+
+  ///	<summary>
+  ///  Base class for tool controllers that display a (modal) window with
+  ///  a set of ok/cancel buttons.
+  /// </summary>
+  TKExtWindowToolController = class(TKExtWindowControllerBase)
+  strict private
+    FConfirmButton: TExtButton;
+    FCancelButton: TExtButton;
+    procedure CreateButtons;
+  strict protected
+    procedure SetWindowSize; virtual;
+    procedure InitDefaults; override;
+    procedure DoDisplay; override;
+    function GetConfirmJSCode: string; virtual;
+    procedure AfterExecuteTool; virtual;
+  published
+    procedure Confirm; virtual;
+    procedure Cancel;  virtual;
   end;
 
   TKExtFormComboBox = class(TExtFormComboBox, IInterface, IEFInterface, IEFSubject)
@@ -393,7 +418,7 @@ end;
 procedure TKExtWindowControllerBase.Display;
 begin
   DoDisplay;
-  DoLayout;
+  On('render', DoLayout);
 end;
 
 procedure TKExtWindowControllerBase.DoDisplay;
@@ -590,7 +615,7 @@ end;
 procedure TKExtViewportControllerBase.Display;
 begin
   DoDisplay;
-  DoLayout;
+  On('render', DoLayout);
 end;
 
 procedure TKExtViewportControllerBase.DoDisplay;
@@ -1334,6 +1359,71 @@ begin
   LTooltip := FView.GetExpandedString('Hint');
   if LTooltip <> '' then
     Tooltip := LTooltip;
+end;
+
+{ TKExtWindowToolController }
+
+procedure TKExtWindowToolController.AfterExecuteTool;
+begin
+  NotifyObservers('Confirmed');
+  Close;
+end;
+
+procedure TKExtWindowToolController.Cancel;
+begin
+  NotifyObservers('Canceled');
+  Close;
+end;
+
+procedure TKExtWindowToolController.Confirm;
+begin
+  AfterExecuteTool;
+end;
+
+procedure TKExtWindowToolController.CreateButtons;
+begin
+  FConfirmButton := TExtButton.CreateAndAddTo(Buttons);
+  FConfirmButton.Scale := Config.GetString('ButtonScale', 'medium');
+  FConfirmButton.FormBind := True;
+  FConfirmButton.Icon := Session.Config.GetImageURL('accept');
+  FConfirmButton.Text := Config.GetString('ConfirmButton/Caption', _('Confirm'));
+  FConfirmButton.Tooltip := Config.GetString('ConfirmButton/Tooltip', _('Confirm action and close window'));
+  FConfirmButton.Handler := JSFunction(GetConfirmJSCode());
+
+  FCancelButton := TExtButton.CreateAndAddTo(Buttons);
+  FCancelButton.Scale := Config.GetString('ButtonScale', 'medium');
+  FCancelButton.Icon := Session.Config.GetImageURL('cancel');
+  FCancelButton.Text := _('Cancel');
+  FCancelButton.Tooltip := _('Cancel changes');
+  FCancelButton.Handler := Ajax(Cancel);
+end;
+
+procedure TKExtWindowToolController.DoDisplay;
+begin
+  inherited;
+  Title := View.DisplayLabel;
+  CreateButtons;
+end;
+
+function TKExtWindowToolController.GetConfirmJSCode: string;
+begin
+  Result := GetPOSTAjaxCode(Confirm, [], '');
+end;
+
+procedure TKExtWindowToolController.InitDefaults;
+begin
+  inherited;
+  Modal := True;
+  Closable := False;
+  SetWindowSize;
+  Layout := lyFit;
+end;
+
+procedure TKExtWindowToolController.SetWindowSize;
+begin
+  Width := 400;
+  Height := 200;
+  Resizable := False;
 end;
 
 end.
