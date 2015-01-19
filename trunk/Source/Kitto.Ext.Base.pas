@@ -21,7 +21,7 @@ unit Kitto.Ext.Base;
 interface
 
 uses
-  SysUtils,
+  SysUtils, Classes, Generics.Collections,
   ExtPascal, ExtPascalUtils, Ext, ExtForm, ExtUx,
   EF.Intf, EF.Tree, EF.ObserverIntf, EF.Classes,
   Kitto.Ext.Controller, Kitto.Metadata.Views;
@@ -142,8 +142,6 @@ type
     procedure CloseHostContainer;
     function GetHostWindow: TExtWindow;
     procedure InitDefaults; override;
-  strict protected
-    procedure ExecuteNamedAction(const AActionName: string); virtual;
   public
     destructor Destroy; override;
 
@@ -179,9 +177,12 @@ type
     FView: TKView;
     FContainer: TExtContainer;
     FTopToolbar: TExtToolbar;
+    FActionButtons: TDictionary<string, TKExtActionButton>;
     procedure CreateTopToolbar;
     procedure EnsureAllSupportFiles;
   strict protected
+    procedure PerformDelayedClick(const AButton: TExtButton);
+    procedure ExecuteNamedAction(const AActionName: string); virtual;
     function GetConfirmCall(const AMessage: string; const AMethod: TExtProcedure): string;
     function GetDefaultSplit: Boolean; virtual;
     function GetView: TKView;
@@ -214,7 +215,13 @@ type
     ///	classes inherited from the base TKExtActionButton.</summary>
     function AddActionButton(const AView: TKView;
       const AToolbar: TExtToolbar): TKExtActionButton; virtual;
+
+    ///	<summary>
+    ///	  Holds the list of named Buttons added to the Panel
+    ///	</summary>
+    property ActionButtons: TDictionary<string, TKExtActionButton> read FActionButtons;
   public
+    procedure AfterConstruction; override;
     destructor Destroy; override;
     function SupportsContainer: Boolean; virtual;
     function IsSynchronous: Boolean;
@@ -503,10 +510,6 @@ begin
   FSubjObserverImpl.DetachObserver(AObserver);
 end;
 
-procedure TKExtPanelBase.ExecuteNamedAction(const AActionName: string);
-begin
-end;
-
 function TKExtPanelBase.GetConfig: TEFNode;
 begin
   if not Assigned(FConfig) then
@@ -739,6 +742,7 @@ end;
 destructor TKExtPanelControllerBase.Destroy;
 begin
   Session.RemoveController(Self);
+  FActionButtons.Free;
   inherited;
 end;
 
@@ -844,6 +848,14 @@ begin
   CreateTopToolbar;
 end;
 
+procedure TKExtPanelControllerBase.ExecuteNamedAction(const AActionName: string);
+var
+  LToolButton: TKExtActionButton;
+begin
+  if ActionButtons.TryGetValue(AActionName, LToolButton) then
+    PerformDelayedClick(LToolButton);
+end;
+
 procedure TKExtPanelControllerBase.AddTopToolbarButtons;
 begin
 end;
@@ -875,6 +887,7 @@ procedure TKExtPanelControllerBase.AddToolViewButtons(
 var
   I: Integer;
   LView: TKView;
+  LNode: TEFNode;
   //LToolButton: TKExtActionButton;
 begin
   Assert(Assigned(AToolbar));
@@ -884,8 +897,9 @@ begin
     TExtToolbarSeparator.CreateAndAddTo(AToolbar.Items);
     for I := 0 to AConfigNode.ChildCount - 1 do
     begin
-      LView := Session.Config.Views.ViewByNode(AConfigNode.Children[I]);
-      {LToolButton := }AddActionButton(LView, AToolbar);
+      LNode := AConfigNode.Children[I];
+      LView := Session.Config.Views.ViewByNode(LNode);
+      FActionButtons.Add(LNode.Name, AddActionButton(LView, AToolbar));
       TExtToolbarSpacer.CreateAndAddTo(AToolbar.Items);
     end;
   end;
@@ -895,6 +909,12 @@ function TKExtPanelControllerBase.GetConfirmCall(const AMessage: string; const A
 begin
   Result := Format('confirmCall("%s", "%s", ajaxSimple, {methodURL: "%s"});',
     [_(Session.Config.AppTitle), AMessage, MethodURI(AMethod)]);
+end;
+
+procedure TKExtPanelControllerBase.AfterConstruction;
+begin
+  inherited;
+  FActionButtons := TDictionary<string, TKExtActionButton>.Create;
 end;
 
 procedure TKExtPanelControllerBase.AfterCreateTopToolbar;
@@ -958,6 +978,13 @@ end;
 function TKExtPanelControllerBase.IsSynchronous: Boolean;
 begin
   Result := False;
+end;
+
+procedure TKExtPanelControllerBase.PerformDelayedClick(
+  const AButton: TExtButton);
+begin
+  if Assigned(AButton) then
+    AButton.On('render', JSFunction(AButton.PerformClick));
 end;
 
 procedure TKExtPanelControllerBase.SetContainer(const AValue: TExtContainer);

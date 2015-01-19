@@ -21,6 +21,7 @@ unit Kitto.Ext.DataPanelLeaf;
 interface
 
 uses
+  SysUtils,
   Ext,
   EF.ObserverIntf,
   Kitto.Ext.DataPanel;
@@ -31,7 +32,6 @@ type
   strict private
     FRefreshButton: TExtButton;
   strict protected
-    procedure PerformDelayedClick(const AButton: TExtButton);
     procedure AddTopToolbarButtons; override;
     procedure ExecuteNamedAction(const AActionName: string); override;
   public
@@ -47,26 +47,22 @@ implementation
 uses
   ExtPascal,
   EF.Localization,
+  Kitto.Ext.Base, Kitto.Metadata.Views,
   Kitto.AccessControl, Kitto.Ext.Session;
 
 { TKExtDataPanelLeafController }
 
-procedure TKExtDataPanelLeafController.PerformDelayedClick(const AButton: TExtButton);
-begin
-  if Assigned(AButton) then
-    AButton.On('render', JSFunction(AButton.PerformClick));
-end;
-
 procedure TKExtDataPanelLeafController.DoDisplay;
 var
   p: Integer;
-  LActionCommand, LSingleAction: string;
+  LActionCommand: string;
 begin
   inherited;
   LActionCommand := Session.Queries.Values['action'];
+(* TODO multiple actions separated by comma: actually don't work
   while LActionCommand <> '' do
   begin
-    p := pos(' ', LActionCommand);
+    p := pos(',', LActionCommand);
     if p > 0 then
     begin
       LSingleAction := Copy(LActionCommand,1,p-1);
@@ -79,15 +75,19 @@ begin
     end;
     ExecuteNamedAction(LSingleAction);
   end;
+*)
+  if LActionCommand <> '' then
+  begin
+    Session.Queries.Values['action'] := '';
+    ExecuteNamedAction(LActionCommand);
+  end;
 end;
 
 procedure TKExtDataPanelLeafController.ExecuteNamedAction(
   const AActionName: string);
 begin
-  inherited;
   if (AActionName = 'Refresh') then
     PerformDelayedClick(FRefreshButton)
-  { TODO : Support custom actions as well? }
   else
     inherited;
 end;

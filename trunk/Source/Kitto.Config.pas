@@ -80,6 +80,7 @@ type
     function GetDatabaseName: string;
     function GetLanguagePerSession: Boolean;
     function GetFOPEnginePath: string;
+    class function AdaptImageName(const AResourceName: string; const ASuffix: string = ''): string;
   strict protected
     function GetConfigFileName: string; override;
     class function FindSystemHomePath: string;
@@ -201,6 +202,7 @@ type
     ///	</param>
     class function GetResourcePathName(const AResourceFileName: string): string;
 
+    class function FindImagePath(const AResourceName: string; const ASuffix: string = ''): string;
     class function GetImageURL(const AResourceName: string; const ASuffix: string = ''): string;
 
     ///	<summary>A reference to the model catalog, opened on first
@@ -649,31 +651,35 @@ begin
     AResourceURI, AMode, ADefaultValue);
 end;
 
-class function TKConfig.GetImageURL(const AResourceName, ASuffix: string): string;
+// Adds a .png extension to the resource name.
+// ASuffix, if specified, is added before the file extension.
+// If the image name ends with _ and a two-digit number among 16, 24, 32, and 48,
+// then the suffix is added before the _.
+class function TKConfig.AdaptImageName(const AResourceName: string; const ASuffix: string = ''): string;
 
-  // Adds a .png extension to the resource name.
-  // ASuffix, if specified, is added before the file extension.
-  // If the image name ends with _ and a two-digit number among 16, 24, 32, and 48,
-  // then the suffix is added before the _.
-  function AdaptImageName(const AResourceName: string; const ASuffix: string = ''): string;
-
-    function HasSize(const AName: string): Boolean;
-    begin
-      Result := EndsStr('_16', AName) or EndsStr('_24', AName)
-        or EndsStr('_32', AName) or EndsStr('_48', AName);
-    end;
-
+  function HasSize(const AName: string): Boolean;
   begin
-    Result := AResourceName;
-    if HasSize(Result) then
-      Insert(ASuffix, Result, Length(Result) - 2)
-    else
-      Result := Result + ASuffix;
-    Result := Result + '.png';
+    Result := EndsStr('_16', AName) or EndsStr('_24', AName)
+      or EndsStr('_32', AName) or EndsStr('_48', AName);
   end;
 
 begin
+  Result := AResourceName;
+  if HasSize(Result) then
+    Insert(ASuffix, Result, Length(Result) - 2)
+  else
+    Result := Result + ASuffix;
+  Result := Result + '.png';
+end;
+
+class function TKConfig.GetImageURL(const AResourceName: string; const ASuffix: string = ''): string;
+begin
   Result := GetResourceURL(AdaptImageName(AResourceName, ASuffix));
+end;
+
+class function TKConfig.FindImagePath(const AResourceName: string; const ASuffix: string = ''): string;
+begin
+  Result := FindResourcePathName(AdaptImageName(AResourceName, ASuffix));
 end;
 
 class function TKConfig.GetInstance: TKConfig;
