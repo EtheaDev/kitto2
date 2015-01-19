@@ -23,8 +23,27 @@ uses
   Kitto.Metadata.DataView,
   Kitto.Ext.Base;
 
+{ TODO : refactor these two classes to keep duplicated code to a minimum }
 type
   TKExtDataToolController = class(TKExtToolController)
+  strict private
+    function GetServerRecord: TKViewTableRecord;
+    function GetServerStore: TKViewTableStore;
+    function GetViewTable: TKViewTable;
+  strict protected
+    procedure AfterExecuteTool; override;
+    property ServerStore: TKViewTableStore read GetServerStore;
+    property ServerRecord: TKViewTableRecord read GetServerRecord;
+    property ViewTable: TKViewTable read GetViewTable;
+
+    procedure RefreshData(const AAllRecords: Boolean = False);
+
+    procedure ExecuteInTransaction(const AProc: TProc);
+
+    procedure EnumerateSelectedRecords(const AProc: TProc<TKViewTableRecord>);
+  end;
+
+  TKExtDataWindowToolController = class(TKExtWindowToolController)
   strict private
     function GetServerRecord: TKViewTableRecord;
     function GetServerStore: TKViewTableStore;
@@ -115,6 +134,79 @@ begin
 end;
 
 procedure TKExtDataToolController.RefreshData(const AAllRecords: Boolean);
+begin
+  if AAllRecords then
+    NotifyObservers('RefreshAllRecords')
+  else
+    NotifyObservers('RefreshCurrentRecord');
+end;
+
+{ TKExtDataWindowToolController }
+
+procedure TKExtDataWindowToolController.AfterExecuteTool;
+var
+  LAutoRefresh: string;
+begin
+  inherited;
+  LAutoRefresh := Config.GetString('AutoRefresh');
+  if MatchText(LAutoRefresh, ['Current', 'All']) then
+    RefreshData(SameText(LAutoRefresh, 'All'));
+end;
+
+procedure TKExtDataWindowToolController.EnumerateSelectedRecords(
+  const AProc: TProc<TKViewTableRecord>);
+var
+  LKey: TEFNode;
+  LRecordCount: Integer;
+  I: Integer;
+begin
+  Assert(Assigned(AProc));
+
+  LKey := TEFNode.Create;
+  try
+    LKey.Assign(ServerStore.Key);
+    Assert(LKey.ChildCount > 0);
+    LRecordCount := Length(EF.StrUtils.Split(Session.Queries.Values[LKey[0].Name], ','));
+    for I := 0 to LRecordCount - 1 do
+      AProc(ServerStore.GetRecord(Session.GetQueries, Session.Config.JSFormatSettings, I));
+  finally
+    FreeAndNil(LKey);
+  end;
+end;
+
+procedure TKExtDataWindowToolController.ExecuteInTransaction(const AProc: TProc);
+var
+  LDBConnection: TEFDBConnection;
+begin
+  Assert(Assigned(AProc));
+
+  LDBConnection := TKConfig.Instance.DBConnections[ViewTable.DatabaseName];
+  LDBConnection.StartTransaction;
+  try
+    AProc;
+    LDBConnection.CommitTransaction;
+  except
+    LDBConnection.RollbackTransaction;
+    raise;
+  end;
+end;
+
+function TKExtDataWindowToolController.GetServerRecord: TKViewTableRecord;
+begin
+  Result := Config.GetObject('Sys/Record') as TKViewTableRecord;
+end;
+
+function TKExtDataWindowToolController.GetServerStore: TKViewTableStore;
+begin
+  Result := Config.GetObject('Sys/ServerStore') as TKViewTableStore;
+end;
+
+function TKExtDataWindowToolController.GetViewTable: TKViewTable;
+begin
+  Result := Config.GetObject('Sys/ViewTable') as TKViewTable;
+end;
+
+procedure TKExtDataWindowToolController.RefreshData(const AAllRecords: Boolean);
 begin
   if AAllRecords then
     NotifyObservers('RefreshAllRecords')
