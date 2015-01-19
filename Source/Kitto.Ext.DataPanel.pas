@@ -274,7 +274,7 @@ begin
     // Don't refresh if there are pending changes.
     if ServerStore.ChangesPending then
     begin
-      LTotal := ServerStore.RecordCountExceptNewAndDeleted;
+      LTotal := ServerStore.Records.GetRecordCount(ServerStore.Records.EnumNonDeletedRecords);
       LData := ServerStore.GetAsJSON(True);
     end
     else

@@ -86,6 +86,7 @@ type
     procedure InitFlags;
     function FindLayout: TKLayout;
     function IsViewMode: Boolean;
+    procedure RefreshEditorValues;
   strict protected
     procedure DoDisplay; override;
     procedure InitComponents; override;

@@ -182,11 +182,10 @@ type
   TKRecords = class(TEFNode)
   private
     FKey: TKKey;
-    function GetRecordCount: Integer;
+    function GetRecordCount: Integer; overload;
     function GetRecordByIndex(I: Integer): TKRecord;
     procedure SetKey(const AValue: TKKey);
     function GetStore: TKStore;
-    function GetRecordCountExceptNewAndDeleted: Integer;
   strict protected
     function GetXMLTagName: string; virtual;
     function GetChildClass(const AName: string): TEFNodeClass; override;
@@ -202,7 +201,17 @@ type
     function GetRecord(const AValues: TEFNode): TKRecord;
     property Records[I: Integer]: TKRecord read GetRecordByIndex; default;
     property RecordCount: Integer read GetRecordCount;
-    property RecordCountExceptNewAndDeleted: Integer read GetRecordCountExceptNewAndDeleted;
+    function GetRecordCount(const APredicate: TFunc<TKRecord, Boolean>): Integer; overload;
+    procedure EnumRecords(const AFrom, AFor: Integer;
+      const APredicate: TFunc<TKRecord, Boolean>; const AProc: TProc<TKRecord>);
+    /// <summary>
+    ///  Predicate for EnumRecord. Allows all records, including deleted ones.
+    /// </summary>
+    function EnumAllRecords(ARecord: TKRecord): Boolean;
+    /// <summary>
+    ///  Predicate for EnumRecord. Allows all records, except deleted ones.
+    /// </summary>
+    function EnumNonDeletedRecords(ARecord: TKRecord): Boolean;
 
     function Append: TKRecord;
     function AppendAndInitialize: TKRecord;
@@ -263,7 +272,6 @@ type
     procedure SetKey(const AValue: TKKey);
     function GetRecordCount: Integer;
     function GetHeader: TKHeader;
-    function GetRecordCountExceptNewAndDeleted: Integer;
   strict protected
     function GetChildClass(const AName: string): TEFNodeClass; override;
   public
@@ -277,7 +285,6 @@ type
     property Header: TKHeader read GetHeader;
     property Records: TKRecords read GetRecords;
     property RecordCount: Integer read GetRecordCount;
-    property RecordCountExceptNewAndDeleted: Integer read GetRecordCountExceptNewAndDeleted;
 
     procedure Load(const ADBConnection: TEFDBConnection;
       const ACommandText: string; const AAppend: Boolean = False); overload;
@@ -571,11 +578,6 @@ begin
   Result := Records.RecordCount;
 end;
 
-function TKStore.GetRecordCountExceptNewAndDeleted: Integer;
-begin
-  Result := Records.RecordCountExceptNewAndDeleted;
-end;
-
 function TKStore.GetRecords: TKRecords;
 begin
   Result := FindChild('Records', True) as TKRecords;
@@ -695,73 +697,78 @@ begin
       AProc(Records[I]);
 end;
 
-function TKRecords.GetAsJSON(const AForDisplay: Boolean;
-  const AFrom: Integer; const AFor: Integer): string;
+function TKRecords.EnumAllRecords(ARecord: TKRecord): Boolean;
+begin
+  Result := True;
+end;
+
+function TKRecords.EnumNonDeletedRecords(ARecord: TKRecord): Boolean;
+begin
+  Result := not ARecord.IsDeleted;
+end;
+
+procedure TKRecords.EnumRecords(const AFrom, AFor: Integer;
+  const APredicate: TFunc<TKRecord, Boolean>; const AProc: TProc<TKRecord>);
 var
   I: Integer;
   LTo: Integer;
   LCount: Integer;
   LRecordCount: Integer;
 begin
-  LRecordCount := RecordCountExceptNewAndDeleted;
+  LRecordCount := GetRecordCount(APredicate);
 
   if AFor > 0 then
     LTo := Min(LRecordCount - 1, AFrom + AFor - 1)
   else
     LTo := LRecordCount - 1;
 
-  // Loop so that a full page is returned even when there are deleted records.
-  Result := '';
   LCount := LTo - AFrom + 1;
   I := AFrom;
   while LCount > 0 do
   begin
-    if not Records[I].IsDeleted and not Records[I].IsNew then
+    if APredicate(Records[I]) then
     begin
-      if Result = '' then
-        Result := Records[I].GetAsJSON(AForDisplay)
-      else
-        Result := Result + ',' + Records[I].GetAsJSON(AForDisplay);
+      AProc(Records[I]);
       Dec(LCount);
     end;
     Inc(I);
   end;
-  Result := '[' + Result + ']';
+end;
+
+function TKRecords.GetAsJSON(const AForDisplay: Boolean;
+  const AFrom: Integer; const AFor: Integer): string;
+var
+  LResult: string;
+begin
+  LResult := '';
+  EnumRecords(AFrom, AFor, EnumNonDeletedRecords,
+    procedure(ARecord: TKRecord)
+    begin
+      if LResult = '' then
+        LResult := ARecord.GetAsJSON(AForDisplay)
+      else
+        LResult := LResult + ',' + ARecord.GetAsJSON(AForDisplay);
+    end);
+  Result := '[' + LResult + ']';
 end;
 
 function TKRecords.GetAsXML(const AForDisplay: Boolean;
   const AFrom, AFor: Integer): string;
 var
-  I: Integer;
-  LTo: Integer;
-  LCount: Integer;
-  LRecordCount: Integer;
   LTagName: string;
+  LResult: string;
 begin
-  LRecordCount := RecordCountExceptNewAndDeleted;
-  if AFor > 0 then
-    LTo := Min(LRecordCount - 1, AFrom + AFor - 1)
-  else
-    LTo := LRecordCount - 1;
-
-  // Loop so that a full page is returned even when there are deleted records.
-  Result := '';
-  LCount := LTo - AFrom + 1;
-  I := AFrom;
-  while LCount > 0 do
-  begin
-    if not Records[I].IsDeleted and not Records[I].IsNew then
+  LResult := '';
+  EnumRecords(AFrom, AFor, EnumNonDeletedRecords,
+    procedure(ARecord: TKRecord)
     begin
-      if Result = '' then
-        Result := Records[I].GetAsXML(AForDisplay)
+      if LResult = '' then
+        LResult := ARecord.GetAsXML(AForDisplay)
       else
-        Result := Result + Records[I].GetAsXML(AForDisplay);
-      Dec(LCount);
-    end;
-    Inc(I);
-  end;
+        LResult := LResult + ARecord.GetAsXML(AForDisplay);
+    end);
   LTagName := GetXMLTagName;
-  Result := Format(XMLTagFormat,[LTagName, Result, LTagName]);
+  Result := Format(XMLTagFormat,[LTagName, LResult, LTagName]);
 end;
 
 function TKRecords.GetChildClass(const AName: string): TEFNodeClass;
@@ -781,13 +788,13 @@ begin
   Result := ChildCount;
 end;
 
-function TKRecords.GetRecordCountExceptNewAndDeleted: Integer;
+function TKRecords.GetRecordCount(const APredicate: TFunc<TKRecord, Boolean>): Integer;
 var
   I: Integer;
 begin
   Result := ChildCount;
   for I := 0 to RecordCount - 1 do
-    if Records[I].IsDeleted or Records[I].IsNew then
+    if not APredicate(Records[I]) then
       Dec(Result);
 end;
 
