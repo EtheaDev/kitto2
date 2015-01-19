@@ -466,6 +466,8 @@ begin
   if not FRefreshingLanguage then
     SetLanguageFromQueriesOrConfig;
   FAutoOpenViewName := Queries.Values['view'];
+  if FAutoOpenViewName <> '' then
+    Queries.Values['view'] := '';
   if TKExtLoginWindow.Authenticate(Self) then
     DisplayHomeView
   else

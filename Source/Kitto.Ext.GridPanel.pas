@@ -931,7 +931,6 @@ begin
     PerformDelayedClick(FDeleteButton)
   else if (AActionName = 'Dup') then
     PerformDelayedClick(FDupButton)
-  { TODO : Support custom actions as well? }
   else
     inherited;
 end;
