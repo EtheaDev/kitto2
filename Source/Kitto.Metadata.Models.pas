@@ -121,7 +121,6 @@ type
     function GetDataType: TEFDataType; override;
   public
     function GetEmptyAsNull: Boolean; override;
-    procedure BeforeSave; override;
   public
     function GetResourceURI: string; override;
 
@@ -438,26 +437,33 @@ type
     function GetFieldCount: Integer;
     function GetField(I: Integer): TKModelField;
     function GetModelName: string;
+    function GetDefaultDisplayLabel: string;
     function GetDisplayLabel: string;
+    function GetDefaultPluralDisplayLabel: string;
     function GetPluralDisplayLabel: string;
     function GetIsReadOnly: Boolean;
+    function GetDefaultDefaultSorting: string;
     function GetDefaultSorting: string;
     function GetIsLarge: Boolean;
     function GetDefaultFilter: string;
     function GetRules: TKRules;
     function GetDetailReference(I: Integer): TKModelDetailReference;
     function GetDetailReferenceCount: Integer;
+    const DEFAULT_IMAGE_NAME = 'default_model';
+    function GetDefaultImageName: string;
     function GetImageName: string;
+    function GetDefaultCaptionField: TKModelField;
     function GetCaptionField: TKModelField;
     function GetCaptionFieldName: string;
     function GetKeyField(I: Integer): TKModelField;
     function GetKeyFieldCount: Integer;
     function GetCatalog: TKModels;
     function GetDBTableName: string;
+    function GetDefaultPhysicalName: string;
     function GetPhysicalName: string;
     function GetDatabaseName: string;
-    const DEFAULT_IMAGE_NAME = 'default_model';
-    function GetPluralModelName: string; protected
+    function GetDefaultPluralModelName: string;
+    function GetPluralModelName: string;
   strict protected
     function GetFields: TKModelFields;
     function GetChildClass(const AName: string): TEFNodeClass; override;
@@ -465,13 +471,14 @@ type
     class function BeautifyModelName(const AModelName: string): string; virtual;
     class function GetClassNameForResourceURI: string; override;
   public
-    procedure BeforeSave; override;
   public
     property Catalog: TKModels read GetCatalog;
 
     property ModelName: string read GetModelName;
+    property DefaultPluralModelName: string read GetDefaultPluralModelName;
     property PluralModelName: string read GetPluralModelName;
 
+    property DefaultPhysicalName: string read GetDefaultPhysicalName;
     property PhysicalName: string read GetPhysicalName;
 
     ///	<summary>
@@ -481,7 +488,10 @@ type
     /// </summary>
     property DBTableName: string read GetDBTableName;
     property DisplayLabel: string read GetDisplayLabel;
+    property DefaultDisplayLabel: string read GetDefaultDisplayLabel;
     property PluralDisplayLabel: string read GetPluralDisplayLabel;
+    property DefaultPluralDisplayLabel: string read GetDefaultPluralDisplayLabel;
+    property DefaultImageName: string read GetDefaultImageName;
     property ImageName: string read GetImageName;
 
     property FieldCount: Integer read GetFieldCount;
@@ -563,8 +573,10 @@ type
     ///	  qualified names. Defaults to the list of fields in the key, if any.
     ///	</summary>
     property DefaultSorting: string read GetDefaultSorting;
+    property DefaultDefaultSorting: string read GetDefaultDefaultSorting;
 
     property CaptionFieldName: string read GetCaptionFieldName;
+    property DefaultCaptionField: TKModelField read GetDefaultCaptionField;
     property CaptionField: TKModelField read GetCaptionField;
 
     property Rules: TKRules read GetRules;
@@ -753,14 +765,6 @@ procedure TKModel.BeforeNewRecord(const ARecord: TEFNode; const AIsCloned: Boole
 begin
 end;
 
-procedure TKModel.BeforeSave;
-begin
-  inherited;
-  // Avoid storing the DetailReferences node if it's empty.
-  if GetDetailReferences.DetailReferenceCount = 0 then
-    DeleteNode('DetailReferences');
-end;
-
 function TKModel.DetailReferenceByName(const AName: string): TKModelDetailReference;
 begin
   Result := GetDetailReferences.DetailReferenceByName(AName);
@@ -918,11 +922,16 @@ begin
   Result := GetNode('Rules', True) as TKRules;
 end;
 
+function TKModel.GetDefaultImageName: string;
+begin
+  Result := DEFAULT_IMAGE_NAME;
+end;
+
 function TKModel.GetImageName: string;
 begin
   Result := GetString('ImageName');
   if Result = '' then
-    Result := DEFAULT_IMAGE_NAME;
+    Result := GetDefaultImageName;
 end;
 
 function TKModel.GetIsLarge: Boolean;
@@ -940,18 +949,28 @@ begin
   Result := GetString('PhysicalName');
 end;
 
+function TKModel.GetDefaultPluralDisplayLabel: string;
+begin
+  Result := Pluralize(DisplayLabel);
+end;
+
 function TKModel.GetPluralDisplayLabel: string;
 begin
   Result := GetString('PluralDisplayLabel');
   if Result = '' then
-    Result := Pluralize(DisplayLabel);
+    Result := GetDefaultPluralDisplayLabel;
+end;
+
+function TKModel.GetDefaultPluralModelName: string;
+begin
+  Result := Pluralize(ModelName);
 end;
 
 function TKModel.GetPluralModelName: string;
 begin
   Result := GetString('PluralModelName');
   if Result = '' then
-    Result := Pluralize(ModelName);
+    Result := GetDefaultPluralModelName;
 end;
 
 function TKModel.GetKeyField(I: Integer): TKModelField;
@@ -1015,11 +1034,36 @@ begin
   Result := PersistentName;
 end;
 
+function TKModel.GetDefaultCaptionField: TKModelField;
+var
+  I: Integer;
+  LFirstVisibleField: TKModelField;
+begin
+  Result := nil;
+  // Find first visible non-key field.
+  LFirstVisibleField := nil;
+  for I := 0 to FieldCount - 1 do
+  begin
+    if Fields[I].IsVisible then
+    begin
+      if not Assigned(LFirstVisibleField) then
+        LFirstVisibleField := Fields[I];
+      if not Fields[I].IsKey then
+      begin
+        Result := Fields[I];
+        Break;
+      end;
+    end;
+  end;
+    if Result = nil then
+      Result := LFirstVisibleField;
+  if (Result = nil) and (FieldCount > 0) then
+    Result := Fields[0];
+end;
+
 function TKModel.GetCaptionField: TKModelField;
 var
   LFieldName: string;
-  I: Integer;
-  LFirstVisibleField: TKModelField;
 begin
   Result := nil;
   LFieldName := CaptionFieldName;
@@ -1027,26 +1071,7 @@ begin
     Result := FindField(LFieldName);
   // Find first visible non-key field.
   if Result = nil then
-  begin
-    LFirstVisibleField := nil;
-    for I := 0 to FieldCount - 1 do
-    begin
-      if Fields[I].IsVisible then
-      begin
-        if not Assigned(LFirstVisibleField) then
-          LFirstVisibleField := Fields[I];
-        if not Fields[I].IsKey then
-        begin
-          Result := Fields[I];
-          Break;
-        end;
-      end;
-    end;
-    if Result = nil then
-      Result := LFirstVisibleField;
-  end;
-  if (Result = nil) and (FieldCount > 0) then
-    Result := Fields[0];
+    Result := GetDefaultCaptionField;
 
   Assert(Result <> nil);
 end;
@@ -1077,6 +1102,11 @@ class function TKModel.GetClassNameForResourceURI: string;
 begin
   // Avoid using any model implementation class name here.
   Result := 'Model';
+end;
+
+function TKModel.GetDefaultDefaultSorting: string;
+begin
+  Result := Join(GetKeyDBColumnNames(True), ', ');
 end;
 
 function TKModel.GetDefaultSorting: string;
@@ -1113,11 +1143,16 @@ begin
     Result := TKConfig.Instance.DatabaseName;
 end;
 
+function TKModel.GetDefaultPhysicalName: string;
+begin
+  Result := ModelName;
+end;
+
 function TKModel.GetDBTableName: string;
 begin
   Result := PhysicalName;
   if Result = '' then
-    Result := ModelName;
+    Result := GetDefaultPhysicalName;
 end;
 
 function TKModel.GetDefaultFilter: string;
@@ -1125,11 +1160,16 @@ begin
   Result := GetString('DefaultFilter');
 end;
 
+function TKModel.GetDefaultDisplayLabel: string;
+begin
+  Result := BeautifyModelName(ModelName);
+end;
+
 function TKModel.GetDisplayLabel: string;
 begin
   Result := GetString('DisplayLabel');
   if Result = '' then
-    Result := BeautifyModelName(ModelName);
+    Result := GetDefaultDisplayLabel;
 end;
 
 procedure TKModel.AfterNewRecord(const ARecord: TEFNode);
@@ -1322,14 +1362,6 @@ end;
 class function TKModelField.BeautifyFieldName(const AFieldName: string): string;
 begin
   Result := DefaultBeautifyName(AFieldName);
-end;
-
-procedure TKModelField.BeforeSave;
-begin
-  inherited;
-  // Avoid storing the Fields node if it's empty.
-  if GetFields.FieldCount = 0 then
-    DeleteNode('Fields');
 end;
 
 function TKModelField.FieldByName(const AName: string): TKModelField;

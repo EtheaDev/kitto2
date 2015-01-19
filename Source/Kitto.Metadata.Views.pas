@@ -42,6 +42,7 @@ type
     property Catalog: TKViews read GetCatalog;
 
     property DisplayLabel: string read GetDisplayLabel;
+    property DefaultImageName: string read GetDefaultImageName;
     property ImageName: string read GetImageName;
 
     property ControllerType: string read GetControllerType;

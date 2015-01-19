@@ -493,7 +493,6 @@ type
     function GetFields: TKViewFields;
     function GetDetailTables: TKViewTables;
   public
-    procedure BeforeSave; override;
     function FindNode(const APath: string;
       const ACreateMissingNodes: Boolean = False): TEFNode; override;
 
@@ -652,6 +651,7 @@ var
   LLayoutName: string;
   LConfig: TKConfig;
 begin
+  Result := nil;
   LConfig := TKConfig.Instance;
   for I := 0 to LConfig.Views.ViewCount -1 do
   begin
@@ -762,13 +762,6 @@ begin
       end;
     end;
   end;
-end;
-
-procedure TKViewTable.BeforeSave;
-begin
-  inherited;
-  if DetailTableCount = 0 then
-    DeleteNode('DetailTables');
 end;
 
 function TKViewTable.CreateStore: TKViewTableStore;
