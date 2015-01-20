@@ -1,4 +1,12 @@
 ﻿AppTitle: Employee demo
+LoginWindowAppearance:
+  HtmlPanel: |
+    <center>
+      <p><img src="%IMAGE(Firebird_Employee)%"></img></p>
+      <p>An example activity tracking application.</p>
+    </center>
+  HtmlPanelWidth: 300
+  HtmlPanelHeight: 56
 
 Databases:
   Main: DBX
@@ -12,10 +20,11 @@ Databases:
       IsolationLevel: ReadCommitted
       Trim Char: False
 
-#Auth: DBServer
-#  Defaults:
-#    UserName: sysdba
-#    Password: 
+Auth: TextFile
+  IsClearPassword: True
+  .Defaults:
+    UserName: user
+    Password: password
 
 AccessControl: Null
 
@@ -26,12 +35,10 @@ AccessControl: Null
 
 Ext:
   Theme: custom
-  URL: /ext
-
-LanguageId: en
 # Either utf-8 or a SBCS corresponding to the system code page
 # (such as iso-8859-1 for Western Europe). Defaults to utf-8.
 Charset: utf-8
 
 FastCGI:
   TCPPort: 2016
+

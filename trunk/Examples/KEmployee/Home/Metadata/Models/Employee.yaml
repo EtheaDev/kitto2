@@ -1,4 +1,4 @@
-ModelName: Employee
+﻿ModelName: Employee
 PhysicalName: EMPLOYEE
 Fields:
   EmpNo: Integer not null primary key
@@ -27,3 +27,4 @@ Fields:
         PhysicalName: JOB_GRADE
       JobCountry:
         PhysicalName: JOB_COUNTRY
+ImageName: user_green

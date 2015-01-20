@@ -1,4 +1,4 @@
-ModelName: EmployeeProject
+﻿ModelName: EmployeeProject
 PhysicalName: EMPLOYEE_PROJECT
 Fields:
   EmpNoRef: Reference(Employee) not null primary key
@@ -11,3 +11,4 @@ Fields:
     Fields:
       ProjId:
         PhysicalName: PROJ_ID
+ImageName: reseller_programm
