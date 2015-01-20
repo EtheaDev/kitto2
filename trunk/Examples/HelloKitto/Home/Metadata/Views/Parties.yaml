@@ -21,13 +21,13 @@ MainTable:
         DisplayLabel: _(Download in CSV)
         ImageName: download
         Controller: ExportCSVTool
-          RequireSelection: False  
+          RequireSelection: False
       DownloadExcel:
         DisplayLabel: _(Download in Excel)
         Controller: ExportExcelTool
           ClientFileName: PartyList.xls
           TemplateFileName: %APP_PATH%ReportTemplates\PartyList.xlt
-          RequireSelection: False  
+          RequireSelection: False
     Grouping:
       FieldName: Party_Period
       SortFieldNames: Party_Period_Order
@@ -47,3 +47,10 @@ MainTable:
           IsVisible: False
         Invitee:
         Accepted:
+      Controller:
+        ToolViews:
+          DownloadCSV:
+            DisplayLabel: _(Download in CSV)
+            ImageName: download
+            Controller: ExportCSVTool
+              RequireSelection: False
