@@ -1,7 +1,7 @@
 ﻿ModelName: Hair
+ImageName: Hair
 IsLarge: True
 DisplayLabel: Hair Type
-PluralDisplayLabel: Hair Types
 Fields:
   Hair_Id: String(32) not null primary key
     IsVisible: False
