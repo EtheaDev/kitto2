@@ -590,6 +590,8 @@ begin
     FTabPanel.DeferredRender := False;
     FMainPagePanel := TKExtEditPage.CreateAndAddTo(FTabPanel.Items);
     FMainPagePanel.Title := _(ViewTable.DisplayLabel);
+    if Config.GetBoolean('Sys/ShowIcon', True) then
+      FMainPagePanel.IconCls := Session.SetViewIconStyle(ViewTable.View);
     FMainPagePanel.EditPanel := FFormPanel;
     FTabPanel.SetActiveTab(0);
     FTabPanel.On('tabchange', FTabPanel.JSFunction(FTabPanel.JSName + '.doLayout();'));
