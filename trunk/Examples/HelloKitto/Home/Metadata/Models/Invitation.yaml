@@ -1,4 +1,5 @@
-ModelName: Invitation
+﻿ModelName: Invitation
+ImageName: Invitation
 Fields:
   Invitation_Id: String(32) not null primary key
     IsVisible: False

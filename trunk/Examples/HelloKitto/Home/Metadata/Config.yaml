@@ -66,12 +66,12 @@ Databases:
       Provider: SQLNCLI10
       Trusted_Connection: Yes
       Initial Catalog: HelloKitto
-      Data Source: %COMPUTERNAME%
+      Data Source: %COMPUTERNAME%\MSSQL2K8R2
 
 Auth: DB
   Defaults:
-    UserName: administrator
-    Password: password
+    UserName: cwolter
+    Password: cwolter
 
 AccessControl: Null
 
