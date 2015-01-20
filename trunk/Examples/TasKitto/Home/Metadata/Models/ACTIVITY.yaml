@@ -1,27 +1,27 @@
-ModelName: ACTIVITY
+﻿ModelName: ACTIVITY
 Fields:
-  ACTIVITY_ID:               String(32) not null primary key
+  ACTIVITY_ID: String(32) not null primary key
     IsVisible: False
     DefaultValue: %COMPACT_GUID%
-  DESCRIPTION:               String(80) not null
+  DESCRIPTION: String(80) not null
     DisplayWidth: 50
-  PHASE:                     Reference(PHASE) not null
+  PHASE: Reference(PHASE) not null
     Fields:
       PHASE_ID:
-  EMPLOYEE:                  Reference(EMPLOYEE) not null
+  EMPLOYEE: Reference(EMPLOYEE) not null
     Fields:
       EMPLOYEE_ID:
-  ROLE:                      Reference(OPERATOR_ROLE) not null
+  ROLE: Reference(OPERATOR_ROLE) not null
     Fields:
       ROLE_ID:
-  TYPE:                      Reference(ACTIVITY_TYPE) not null
+  TYPE: Reference(ACTIVITY_TYPE) not null
     Fields:
       TYPE_ID:
-  ACTIVITY_DATE:             Date not null
-  START_TIME:                Time
-  END_TIME:                  Time
-  STATUS:                    String(12)
-    DisplayWidth:  6
+  ACTIVITY_DATE: Date not null
+  START_TIME: Time
+  END_TIME: Time
+  STATUS: String(12)
+    DisplayWidth: 6
     AllowedValues:
       Inserted: Inserted
       Approved: Approved
@@ -29,7 +29,7 @@ Fields:
       NotBillable: Not Billable
       Internal: Internal
       Done: Done
-  DURATION:                  Float
+  DURATION: Float
     DisplayWidth: 8
     Expression: |
       case

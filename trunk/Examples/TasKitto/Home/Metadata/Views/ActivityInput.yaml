@@ -1,4 +1,4 @@
-Type: Data
+﻿Type: Data
 
 Controller: List
   Filters:
@@ -32,7 +32,7 @@ Controller: List
               EXTRACT(month FROM ACTIVITY_DATE) = EXTRACT(month FROM %DB.CURRENT_DATE%) 
               and EXTRACT(year FROM ACTIVITY_DATE) = EXTRACT(year FROM %DB.CURRENT_DATE%)                
           CurrYear: Current Year
-            Expression: EXTRACT(year FROM ACTIVITY_DATE) = EXTRACT(year FROM %DB.CURRENT_DATE%)                
+            Expression: EXTRACT(year FROM ACTIVITY_DATE) = EXTRACT(year FROM %DB.CURRENT_DATE%)
           All: Whole Archive
             Expression: 1=1
             IsDefault: True
@@ -67,9 +67,9 @@ MainTable:
       PDFReport:
         DisplayLabel: Activity report PDF
         Controller: MergePDFTool
-          ClientFileName: ActivityByQuickPDF.pdf
+          ClientFileName: Activity_{Description}.pdf
           BaseFileName: %APP_PATH%ReportTemplates\ActivityReport.pdf
-          Layout: %APP_PATH%ReportTemplates\ActivityPDFMerge.yaml
+          LayoutFileName: %APP_PATH%ReportTemplates\ActivityPDFMerge.yaml
           RequireSelection: True
       FOPReport:
         DisplayLabel: Activity by FOP
@@ -77,3 +77,12 @@ MainTable:
           ClientFileName: ActivityByFOP.pdf
           TransformFileName: %APP_PATH%ReportTemplates\ActivityReport.xsl
           RequireSelection: False
+      TestDownload:
+        DisplayLabel: Download a file
+        ImageName: download
+        Controller: DownloadFile
+          ConfirmationMessage: Are you sure you want to download the file?
+          RequireSelection: False
+          FileName: %APP_PATH%\Resources\taskitto_logo_150.png
+          ClientFileName: takitto_logo.png
+          ContentType: image/png
