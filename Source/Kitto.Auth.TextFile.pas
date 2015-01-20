@@ -32,7 +32,7 @@ uses
   Kitto.Auth;
 
 const
-  DEFAULT_USERLIST_FILENAME = '%HOME_PATH%\FileAuthenticator.txt';
+  DEFAULT_USERLIST_FILENAME = '%HOME_PATH%FileAuthenticator.txt';
 
 type
   ///	<summary>
@@ -133,11 +133,16 @@ begin
   LUserName := TKConfig.Instance.MacroExpansionEngine.Expand(
     AAuthData.GetString('UserName'));
 
-  RefreshUserList(FUserList);
+  if LUserName <> '' then
+  begin
+    RefreshUserList(FUserList);
 
-  LStoredPasswordHash := FUserList.Values[LUserName];
+    LStoredPasswordHash := FUserList.Values[LUserName];
 
-  Result := LSuppliedPasswordHash = LStoredPasswordHash;
+    Result := LSuppliedPasswordHash = LStoredPasswordHash;
+  end
+  else
+    Result := False;
 end;
 
 procedure TKTextFileAuthenticator.RefreshUserList(const AUserList: TStrings);
