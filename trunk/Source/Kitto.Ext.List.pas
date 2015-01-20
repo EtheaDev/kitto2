@@ -106,8 +106,43 @@ var
   LItems: TEFNode;
   I: Integer;
   LNode: TEFNode;
-  LWidth: Integer;
   LFilterResourceName: string;
+  LCurrentPanel: TKExtFilterPanel;
+
+  function CreateColumnBreak: TKExtFilterPanel;
+  var
+    LColumnBreak: TKExtFilterPanel;
+  begin
+    LColumnBreak := TKExtFilterPanel.CreateAndAddTo(Items);
+    LColumnBreak.Border := False;
+    LColumnBreak.Layout := lyForm;
+    LColumnBreak.Collapsible := False;
+    LColumnBreak.Frame := False;
+    LColumnBreak.FConnector := FConnector;
+    LColumnBreak.LabelWidth := LabelWidth;
+    Result := LColumnBreak;
+  end;
+
+  procedure SetLabelWidthAndAlign(ANode: TEFNode;
+    ADefaultLabelAlign: TExtFormFormPanelLabelAlign);
+  var
+    LLabelNode: TEFNode;
+    LWidth: Integer;
+  begin
+    LLabelNode := ANode.FindNode('LabelWidth');
+    if Assigned(LLabelNode) then
+    begin
+      if not TryStrToInt(LLabelNode.AsExpandedString, LWidth) then
+        raise EKError.CreateFmt(_('Invalid value %s. Valid values: whole numbers.'), [LLabelNode.AsString]);
+      LCurrentPanel.LabelWidth := LWidth;
+    end;
+    LLabelNode := ANode.FindNode('LabelAlign');
+    if Assigned(LLabelNode) then
+      LCurrentPanel.LabelAlign := OptionAsLabelAlign(LLabelNode)
+    else
+      LCurrentPanel.LabelAlign := ADefaultLabelAlign;
+  end;
+
 begin
   Assert(Assigned(AView));
   Assert(Assigned(AConfig));
@@ -117,28 +152,34 @@ begin
   FView := AView;
 
   LItems := AConfig.GetNode('Items');
+  if LItems.FindNode('ColumnBreak') <> nil then
+  begin
+    Layout := lyColumn;
+    LCurrentPanel := CreateColumnBreak;
+  end
+  else
+    LCurrentPanel := Self;
+
+  SetLabelWidthAndAlign(AConfig, laRight);
+  Self.LabelAlign := LCurrentPanel.LabelAlign;
+  Self.LabelWidth := LCurrentPanel.LabelWidth;
+
   for I := 0 to LItems.ChildCount - 1 do
   begin
-    LFilterResourceName := LItems.Children[I].GetExpandedString('ResourceName');
+    LNode := LItems.Children[I];
+    LFilterResourceName := LNode.GetExpandedString('ResourceName');
     if IsFilterVisible(LFilterResourceName) then
     begin
-      LItems.Children[I].SetBoolean('Sys/IsReadOnly', IsFilterReadOnly(LFilterResourceName));
-      TKExtFilterFactory.Instance.CreateFilter(LItems.Children[I], Self, Items);
+      LNode.SetBoolean('Sys/IsReadOnly', IsFilterReadOnly(LFilterResourceName));
+      if SameText(LNode.Name, 'ColumnBreak') then
+      begin
+        LCurrentPanel := CreateColumnBreak;
+        SetLabelWidthAndAlign(LNode, Self.LabelAlign);
+      end
+      else
+        TKExtFilterFactory.Instance.CreateFilter(LNode, Self, LCurrentPanel.Items);
     end;
   end;
-
-  LNode := AConfig.FindNode('LabelWidth');
-  if Assigned(LNode) then
-  begin
-    if not TryStrToInt(LNode.AsExpandedString, LWidth) then
-      raise EKError.CreateFmt(_('Invalid value %s. Valid values: whole numbers.'), [LNode.AsString]);
-    LabelWidth := LWidth;
-  end;
-  LNode := AConfig.FindNode('LabelAlign');
-  if Assigned(LNode) then
-    LabelAlign := OptionAsLabelAlign(LNode)
-  else
-    LabelAlign := laRight;
 end;
 
 procedure TKExtFilterPanel.DoChange;
@@ -152,20 +193,22 @@ var
   LIntf: IKExtFilter;
   I: Integer;
   LExpression: string;
+  LItem: TExtObject;
 begin
   Result := '';
   for I := 0 to Items.Count - 1 do
   begin
-    if Supports(Items[I], IKExtFilter, LIntf) then
+    LItem := Items[I];
+    if Supports(LItem, IKExtFilter, LIntf) then
+      LExpression := LIntf.GetExpression
+    else if LItem is TKExtFilterPanel then
+      LExpression := TKExtFilterPanel(LItem).GetFilterExpression;
+    if LExpression <> '' then
     begin
-      LExpression := LIntf.GetExpression;
-      if LExpression <> '' then
-      begin
-        if Result = '' then
-          Result := '(' + LExpression + ')'
-        else
-          Result := Result + ' ' + FConnector + ' ' + '(' + LExpression + ')';
-      end;
+      if Result = '' then
+        Result := '(' + LExpression + ')'
+      else
+        Result := Result + ' ' + FConnector + ' ' + '(' + LExpression + ')';
     end;
   end;
 end;

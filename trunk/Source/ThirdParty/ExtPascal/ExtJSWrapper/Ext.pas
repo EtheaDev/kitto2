@@ -2421,7 +2421,7 @@ type
     procedure SetFBoxMinWidth(Value: Integer);
     procedure SetFlex(const AValue: Integer);
     procedure SetHeight(const AValue: Integer);
-    procedure SetFMargins(Value: string);
+    procedure SetMargins(AValue: string);
     procedure SetFPageX(Value: Integer);
     procedure SetFPageY(Value: Integer);
     procedure SetRegion(const AValue: TExtBoxComponentRegion);
@@ -2462,7 +2462,7 @@ type
     property Flex: Integer read FFlex write SetFlex;
     property Height: Integer read FHeight write SetHeight;
     property HeightString: string read FHeightString write SetHeightString;
-    property Margins: string read FMargins write SetFMargins;
+    property Margins: string read FMargins write SetMargins;
     property PageX: Integer read FPageX write SetFPageX;
     property PageY: Integer read FPageY write SetFPageY;
     property Region: TExtBoxComponentRegion read FRegion write SetRegion;
@@ -11024,10 +11024,10 @@ begin
   ExtSession.ResponseItems.SetConfigItem(Self, 'height', 'setHeight', [AValue]);
 end;
 
-procedure TExtBoxComponent.SetFMargins(Value: string);
+procedure TExtBoxComponent.SetMargins(AValue: string);
 begin
-  FMargins := Value;
-  JSCode('margins:' + VarToJSON([Value]));
+  FMargins := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'margins', [AValue]);
 end;
 
 procedure TExtBoxComponent.SetFPageX(Value: Integer);

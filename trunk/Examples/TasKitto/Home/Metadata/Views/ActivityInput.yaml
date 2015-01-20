@@ -15,12 +15,14 @@ Controller: List
           select TYPE_ID, TYPE_NAME from ACTIVITY_TYPE 
             order by 2
         ExpressionTemplate: Activity.TYPE_ID like '{value}'
-      FreeSearch: Last N Days
-        ExpressionTemplate: ACTIVITY_DATE >= (getDate() - {value})
+      ColumnBreak:
+        LabelWidth: 50
       DateSearch: From
         ExpressionTemplate: ACTIVITY_DATE >= '{value}'
       DateSearch: To
         ExpressionTemplate: ACTIVITY_DATE <= '{value}'
+      ColumnBreak:
+        LabelWidth: 80
       List: Period
         Items:
           Today: Today
@@ -36,6 +38,8 @@ Controller: List
           All: Whole Archive
             Expression: 1=1
             IsDefault: True
+      FreeSearch: Last N Days
+        ExpressionTemplate: ACTIVITY_DATE >= (getDate() - {value})
   GridPanelController:
     AllowDuplicating: True
     AllowViewing: True
@@ -57,13 +61,13 @@ MainTable:
         DisplayLabel: Download in CSV
         ImageName: download
         Controller: ExportCSVTool
-          RequireSelection: False  
+          RequireSelection: False
       DownloadExcel:
         DisplayLabel: Download in Excel
         Controller: ExportExcelTool
           ClientFileName: ActivityList.xls
           TemplateFileName: %APP_PATH%ReportTemplates\ActivityList.xlt
-          RequireSelection: False  
+          RequireSelection: False
       PDFReport:
         DisplayLabel: Activity report PDF
         Controller: MergePDFTool
