@@ -621,6 +621,7 @@ type
   protected
     function GetChildClass(const AName: string): TEFNodeClass; override;
     function GetDisplayLabel: string; override;
+    function GetDefaultImageName: string; override;
     function GetImageName: string; override;
   public
     property MainTable: TKViewTable read GetMainTable;
@@ -694,11 +695,16 @@ begin
     Result := MainTable.PluralDisplayLabel;
 end;
 
+function TKDataView.GetDefaultImageName: string;
+begin
+  Result := MainTable.ImageName;
+end;
+
 function TKDataView.GetImageName: string;
 begin
   Result := inherited GetImageName;
   if Result = DEFAULT_IMAGE_NAME then
-    Result := MainTable.ImageName;
+    Result := DefaultImageName;
 end;
 
 function TKDataView.GetMainTable: TKViewTable;
