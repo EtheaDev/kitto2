@@ -1,4 +1,4 @@
-DisplayLabel: %Config:AppTitle%
+﻿DisplayLabel: %Config:AppTitle%
 # Valid top-level controllers are Window and Viewport
 Controller: Viewport
 
@@ -13,7 +13,7 @@ Controller: Viewport
           Collapsible: True
           Border: True
           Header: True
-      
+
       CenterView:
         Controller: TabPanel
           Border: True
