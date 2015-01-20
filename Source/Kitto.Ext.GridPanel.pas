@@ -1078,9 +1078,8 @@ end;
 
 procedure TKExtGridPanel.AddTopToolbarToolViewButtons;
 begin
-  inherited;
   { TODO : Allow to specify the relative order of Controller-level and ViewTable-level tool buttons? }
-  AddToolViewButtons(ViewTable.FindNode('Controller/ToolViews'), TopToolbar);
+  inherited AddToolViewButtons(ViewTable.FindNode('Controller/ToolViews'), TopToolbar);
 end;
 
 function TKExtGridPanel.GetSelectConfirmCall(const AMessage: string; const AMethod: TExtProcedure): string;
