@@ -1,5 +1,4 @@
 ﻿ModelName: Customer
-CaptionField: Customer
 Fields:
   CustNo: Integer not null primary key
     PhysicalName: CUST_NO
@@ -34,3 +33,4 @@ Fields:
       Country:
 DetailReferences:
   Orders: Sales
+ImageName: report_user

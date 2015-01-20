@@ -10,7 +10,7 @@ uses
   Kitto.Auth.DB,
   // Kitto.Auth.DBServer,
   // Kitto.Auth.OSDB,
-  // Kitto.Auth.TextFile,
+  Kitto.Auth.TextFile,
   Kitto.Ext.ADO.Tools, //For Excel export
   Kitto.Localization.dxgettext,
   Kitto.Metadata.ModelImplementation,

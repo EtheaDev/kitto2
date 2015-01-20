@@ -16,6 +16,7 @@ Controller: Viewport
       
       CenterView:
         Controller: TabPanel
+          TabIconsVisible: False
           Border: True
           # List of views to be auto-opened in tabs.
           SubViews:

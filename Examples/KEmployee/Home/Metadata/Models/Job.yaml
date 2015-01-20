@@ -1,4 +1,4 @@
-ModelName: Job
+﻿ModelName: Job
 Fields:
   JobCode: String(5) not null primary key
     PhysicalName: JOB_CODE
@@ -22,3 +22,4 @@ Fields:
   JobDescription: String(50)
     Expression: JOB_TITLE || ' (Level ' || {Q}JOB_GRADE || ') ' || {Q}JOB_COUNTRY
 CaptionField: JobDescription
+ImageName: setting_tools

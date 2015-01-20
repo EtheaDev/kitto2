@@ -1,4 +1,4 @@
-ModelName: Sales
+﻿ModelName: Sales
 Fields:
   PoNumber: String(8) not null primary key
     PhysicalName: PO_NUMBER
@@ -29,3 +29,4 @@ Fields:
     Fields:
       SalesRep:
         PhysicalName: SALES_REP
+ImageName: money_add
