@@ -124,15 +124,15 @@ procedure TKExtDataPanelController.DoDisplay;
 var
   LViewTable: TKViewTable;
 begin
-  if Config.GetBoolean('Sys/ShowIcon', True) then
-    IconCls := Session.SetViewIconStyle(View);
-
   Assert(View is TKDataView);
 
   LViewTable := Config.GetObject('Sys/ViewTable') as TKViewTable;
   if LViewTable = nil then
     LViewTable := View.MainTable;
   Assert(Assigned(LViewTable));
+
+  if Config.GetBoolean('Sys/ShowIcon', True) then
+    IconCls := Session.SetViewIconStyle(View, LViewTable.Model.ImageName);
 
   FServerStore := Config.GetObject('Sys/ServerStore') as TKViewTableStore;
   if FServerStore = nil then
