@@ -54,6 +54,7 @@ type
     FOwnsServerStore: Boolean;
     function GetView: TKDataView;
     function GetMaxRecords: Integer;
+    function GetDefaultAutoOpen: Boolean;
   strict protected
     FEditItems: TKEditItemList;
     procedure CheckCanRead;
@@ -85,6 +86,7 @@ type
     destructor Destroy; override;
     property ViewTable: TKViewTable read FViewTable write SetViewTable;
     property ServerStore: TKViewTableStore read FServerStore write FServerStore;
+    property DefaultAutoOpen: Boolean read GetDefaultAutoOpen;
     function GetFilterExpression: string; virtual;
   published
     procedure GetRecordPage;
@@ -323,6 +325,13 @@ begin
     Result := 1000;
 end;
 
+function TKExtDataPanelController.GetDefaultAutoOpen: Boolean;
+begin
+  Assert(Assigned(ViewTable));
+  Assert(Assigned(ViewTable.Model));
+  Result := not ViewTable.Model.IsLarge;
+end;
+
 function TKExtDataPanelController.GetFilterExpression: string;
 begin
   Result := '';
@@ -409,7 +418,7 @@ function TKExtDataPanelController.AutoLoadData: Boolean;
 begin
   Assert(ViewTable <> nil);
 
-  Result := ViewTable.GetBoolean('Controller/AutoOpen', not ViewTable.Model.IsLarge);
+  Result := ViewTable.GetBoolean('Controller/AutoOpen', GetDefaultAutoOpen);
 end;
 
 procedure TKExtDataPanelController.CheckCanRead;
@@ -432,10 +441,11 @@ var
   var
     LNames: TStringDynArray;
     LValues: TStringDynArray;
-    LSep: string;
+    LSep, LValue: string;
     I: Integer;
   begin
-    LField.SetAsJSONValue(LItem.Value.AsString, False, Session.Config.UserFormatSettings);
+    LValue := LItem.Value.AsString;
+    LField.SetAsJSONValue(LValue, False, Session.Config.UserFormatSettings);
 
     LSep := TKConfig.Instance.MultiFieldSeparator;
     if LItem.Name.Contains(LSep) then
