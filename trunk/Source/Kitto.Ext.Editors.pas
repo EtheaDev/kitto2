@@ -622,7 +622,7 @@ type
 implementation
 
 uses
-  Math, StrUtils, Windows, Graphics, jpeg, pngimage,
+  Math, StrUtils, Windows, Graphics, jpeg, pngimage, superobject,
   EF.SysUtils, EF.StrUtils, EF.Localization, EF.YAML, EF.Types, EF.SQL, EF.JSON,
   EF.DB, EF.Macros,
   Kitto.SQL, Kitto.Metadata.Models, Kitto.Types, Kitto.AccessControl,
@@ -1645,12 +1645,15 @@ end;
 
 procedure TKExtFormComboBoxEditor.ValueChanged;
 var
+  LNewValues: ISuperObject;
+  LNewValue: string;
   LValues: TArray<string>;
+  LItem: TSuperAvlEntry;
 begin
-  LValues := Session.Queries.Values[HiddenName].Split([TKConfig.Instance.MultiFieldSeparator], None);
-
-  Assert(Length(LValues) > 0);
-  FRecordField.SetAsJSONValue(LValues[0], False, Session.Config.UserFormatSettings);
+  LNewValues := SO(Session.RequestBody).O['new'];
+  Assert(LNewValues.AsObject.count > 0);
+  LNewValue := LNewValues.S[HiddenName];
+  FRecordField.SetAsJSONValue(LNewValue, False, Session.Config.UserFormatSettings);
 end;
 
 procedure TKExtFormComboBoxEditor.SetFieldName(const AValue: string);
@@ -1743,7 +1746,7 @@ begin
           GetValue;
         end) + ';';
 
-    if FListMode = Lookup then
+    if (FListMode = Lookup) and (HiddenName <> Name) then
       LCode := LCode + sLineBreak +
         AObjectName + '["' + Name + '"]=' + GetJSFunctionCode(
           procedure
@@ -1928,7 +1931,7 @@ end;
 
 procedure TKExtFormRowField.StoreValue(const AObjectName: string);
 begin
-  AsExtFormField.StoreValue(AObjectName);
+  FEditor.StoreValue(AObjectName);
 end;
 
 { TKExtFormNumberField }
