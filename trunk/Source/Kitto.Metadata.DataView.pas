@@ -1724,7 +1724,7 @@ end;
 
 function TKViewField.GetIsKey: Boolean;
 begin
-  Result := (ModelName = Table.ModelName) and ModelField.IsKey;
+  Result := (ModelName = Table.ModelName) and HasModelField and ModelField.IsKey;
 end;
 
 function TKViewField.GetIsPassword: Boolean;
@@ -1789,15 +1789,22 @@ end;
 function TKViewField.GetModelName: string;
 var
   LNameParts: TStringDynArray;
+  LReferencedModel: TKModel;
 begin
   LNameParts := Split(Name, '.');
   if Length(LNameParts) = 1 then
     // <field name>
     Result := Table.ModelName
   else if Length(LNameParts) = 2 then
+  begin
     // <reference name>.<field name>
-    Result := Table.Model.FieldByName(LNameParts[0]).ReferencedModel.ModelName
-  else
+    LReferencedModel := Table.Model.FieldByName(LNameParts[0]).ReferencedModel;
+    if Assigned(LReferencedModel) then
+      Result := LReferencedModel.ModelName
+    else
+      Result := '';
+  end;
+  if Result = '' then
     raise EKError.CreateFmt('Couldn''t determine model name for field %s.', [Name]);
 end;
 
