@@ -580,11 +580,11 @@ begin
 
   LLookupModelDefaultFilter := LLookupModel.DefaultFilter;
   if LLookupModelDefaultFilter <> '' then
-    Result := AddToSQLWhereClause(Result, '(' + LLookupModelDefaultFilter + ')');
+    Result := AddToSQLWhereClause(Result, '(' + ExpandQualification(LLookupModelDefaultFilter, '') + ')');
 
   LDefaultFilter := AViewField.DefaultFilter;
   if LDefaultFilter <> '' then
-    Result := AddToSQLWhereClause(Result, '(' + LDefaultFilter  + ')', AViewField.DefaultFilterConnector);
+    Result := AddToSQLWhereClause(Result, '(' + ExpandQualification(LDefaultFilter, '')  + ')', AViewField.DefaultFilterConnector);
   Result := Result + ' order by ' + ExpandQualification(LLookupModel.CaptionField.DBColumnNameOrExpression, '');
 end;
 
@@ -603,6 +603,8 @@ var
   LLocalFields: TKModelFieldArray;
   LForeignDBColumnNames: TStringDynArray;
   LCorrelationName: string;
+  LReferencedModelDefaultFilter: string;
+  LFieldDefaultFilter: string;
 begin
   Assert(Assigned(AReferenceField));
 
@@ -621,6 +623,15 @@ begin
     if I < High(LLocalFields) then
       Result := Result + ' and ';
   end;
+
+  LReferencedModelDefaultFilter := AReferenceField.ReferencedModel.DefaultFilter;
+  if LReferencedModelDefaultFilter <> '' then
+    Result := Result + ' and (' + ExpandQualification(LReferencedModelDefaultFilter, LCorrelationName) + ')';
+
+  LFieldDefaultFilter := AReferenceField.DefaultFilter;
+  if LFieldDefaultFilter <> '' then
+    Result := Result + ' and (' + ExpandQualification(LFieldDefaultFilter, LCorrelationName) + ')';
+
   Result := Result + ')';
 end;
 
