@@ -552,7 +552,7 @@ type
     property DefaultFilter: string read GetDefaultFilter;
 
     ///	<summary>
-    ///	 Optional fixed order by expression to apply when building the select
+    ///	 Optional fixed ORDER BY expression to apply when building the select
     ///	 SQL statement to display data. Should refer to fields through
     ///	 qualified names (or ordinal numbers for expression-based fields).
     ///  Defaults to Model.DefaultSorting.
@@ -1879,9 +1879,10 @@ var
     if AIsAccessGranted or AIsKey then
     begin
       // Set field names and data types both in key and header.
-      if AIsKey then
+      if AIsKey and not Assigned(Key.FindChild(AName)) then
         Key.AddChild(AName).DataType := ADataType;
-      Header.AddField(AName).SetViewField(AViewField, ADataType);
+      if not Assigned(Header.FindChild(AName)) then
+        Header.AddField(AName).SetViewField(AViewField, ADataType);
     end;
   end;
 
@@ -1889,7 +1890,8 @@ begin
   for LViewFieldIndex := 0 to FViewTable.FieldCount - 1 do
   begin
     LViewField := FViewTable.Fields[LViewFieldIndex];
-    SetupField(LViewField, LViewField.AliasedName, LViewField.DataType, LViewField.IsKey, LViewField.IsAccessGranted(ACM_READ));
+    SetupField(LViewField, LViewField.AliasedName, LViewField.DataType,
+      LViewField.IsKey and not LViewField.IsReference, LViewField.IsAccessGranted(ACM_READ));
     // Expand reference fields. Also keep the reference field itself (above)
     // as it will hold the user-readable reference description.
     // For each reference field we create:
@@ -1903,15 +1905,15 @@ begin
       for LModelFieldIndex := 0 to LViewField.ModelField.FieldCount - 1 do
       begin
         LModelField := LViewField.ModelField.Fields[LModelFieldIndex];
-        SetupField(LViewField, LModelField.FieldName, LModelField.DataType, LModelField.IsKey, LModelField.IsAccessGranted(ACM_READ));
+        SetupField(LViewField, LModelField.FieldName, LModelField.DataType,
+          LModelField.IsKey and not LModelField.IsReference, LModelField.IsAccessGranted(ACM_READ));
       end;
 
-      // Let's assume a concatenation is a string. We also assume that either
-      // all fields are key or none of them is, and only use the first field
-      // for AC.
+      // Let's assume a concatenation is a string.
+      // By convention, we only use the first field for AC.
       LFieldNames := Join(LViewField.ModelField.GetFieldNames, TKConfig.Instance.MultiFieldSeparator);
       SetupField(LViewField, LFieldNames, TEFDataTypeFactory.Instance.GetDataType('String'),
-        LViewField.ModelField.Fields[0].IsKey, LViewField.ModelField.Fields[0].IsAccessGranted(ACM_READ));
+        False, LViewField.ModelField.Fields[0].IsAccessGranted(ACM_READ));
     end;
   end;
 end;
@@ -1936,8 +1938,14 @@ function TKViewTableStore.GetRecord(const AKey: ISuperObject; const AFormatSetti
 begin
   Result := inherited GetRecord(AKey, AFormatSettings,
     function(const AName: string): string
+    var
+      LField: TKViewField;
     begin
-      Result := ViewTable.FieldByName(AName).AliasedName;
+      LField := ViewTable.FindField(AName);
+      if Assigned(LField) then
+        Result := LField.AliasedName
+      else
+        Result := AName;
     end,
     AValueIndex) as TKViewTableRecord;
 end;

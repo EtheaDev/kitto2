@@ -54,7 +54,6 @@ uses
 
 procedure TKExtDataPanelLeafController.DoDisplay;
 var
-  p: Integer;
   LActionCommand: string;
 begin
   inherited;

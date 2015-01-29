@@ -501,6 +501,8 @@ type
     function FindFieldByPhysicalName(const APhysicalName: string): TKModelField;
     procedure EnumFields(const AProc: TProc<TKModelField>);
 
+    ///	<summary>Returns an array of key field names.</summary>
+    function GetKeyFieldNames: TStringDynArray;
     ///	<summary>Returns an array of key physical field names.</summary>
     ///	<param name="AQualify">If True, each field name is prefixed with the
     ///	table name and a dot.</param>
@@ -512,8 +514,6 @@ type
     property KeyFieldCount: Integer read GetKeyFieldCount;
     property KeyFields[I: Integer]: TKModelField read GetKeyField;
 
-    ///	<summary>Returns an array of key field names.</summary>
-    function GetKeyFieldNames: TStringDynArray;
     property DetailReferenceCount: Integer read GetDetailReferenceCount;
     property DetailReferences[I: Integer]: TKModelDetailReference read GetDetailReference;
     function DetailReferenceByName(const AName: string): TKModelDetailReference;
@@ -568,9 +568,9 @@ type
     property IsLarge: Boolean read GetIsLarge;
 
     ///	<summary>
-    ///	  Optional fixed order by expression to apply when building the select
-    ///	  SQL statement to display data. Should refer to fields through
-    ///	  qualified names. Defaults to the list of fields in the key, if any.
+    ///	 Optional fixed ORDER BY expression to apply when building the select
+    ///	 SQL statement to display data. Should refer to fields through
+    ///	 qualified names. Defaults to the list of fields in the key, if any.
     ///	</summary>
     property DefaultSorting: string read GetDefaultSorting;
     property DefaultDefaultSorting: string read GetDefaultDefaultSorting;
@@ -987,46 +987,73 @@ begin
   Result := Length(GetKeyFieldNames);
 end;
 
-function TKModel.GetKeyDBColumnNames(const AQualify: Boolean;
-  const AAlias: Boolean): TStringDynArray;
-var
-  I: Integer;
-  J: Integer;
-begin
-  SetLength(Result, FieldCount);
-  J := 0;
-  for I := 0 to FieldCount - 1 do
-  begin
-    if Fields[I].IsKey then
-    begin
-      if AQualify then
-        Result[J] := Fields[I].QualifiedDBColumnName
-      else
-        Result[J] := Fields[I].DBColumnName;
-      if AAlias and not SameText(Fields[I].DBColumnName, Fields[I].FieldName) then
-        Result[J] := Result[J] + ' ' + Fields[I].FieldName;
-      Inc(J);
-    end;
-  end;
-  SetLength(Result, J);
-end;
-
 function TKModel.GetKeyFieldNames: TStringDynArray;
 var
-  I: Integer;
-  J: Integer;
-begin
-  SetLength(Result, FieldCount);
-  J := 0;
-  for I := 0 to FieldCount - 1 do
+  I, J: Integer;
+
+  procedure AppendToResult(const AField: TKModelField);
+  var
+    LLength: Integer;
   begin
-    if Fields[I].IsKey then
+    Assert(Assigned(AField));
+
+    if AField.IsKey then
     begin
-      Result[J] := Fields[I].FieldName;
-      Inc(J);
+      LLength := Length(Result) + 1;
+      SetLength(Result, LLength);
+      Result[LLength - 1] := AField.FieldName;
     end;
   end;
-  SetLength(Result, J);
+
+begin
+  SetLength(Result, 0);
+  for I := 0 to FieldCount - 1 do
+  begin
+    if Fields[I].IsReference then
+    begin
+      for J := 0 to Fields[I].FieldCount - 1 do
+        AppendToResult(Fields[I].Fields[J]);
+    end
+    else
+      AppendToResult(Fields[I]);
+  end;
+end;
+
+function TKModel.GetKeyDBColumnNames(const AQualify: Boolean; const AAlias: Boolean): TStringDynArray;
+var
+  I, J: Integer;
+
+  procedure AppendToResult(const AField: TKModelField);
+  var
+    LLength: Integer;
+  begin
+    Assert(Assigned(AField));
+
+    if AField.IsKey then
+    begin
+      LLength := Length(Result) + 1;
+      SetLength(Result, LLength);
+      if AQualify then
+        Result[LLength - 1] := AField.QualifiedDBColumnName
+      else
+        Result[LLength - 1] := AField.DBColumnName;
+      if AAlias and not SameText(AField.DBColumnName, AField.FieldName) then
+        Result[LLength - 1] := Result[LLength - 1] + ' ' + AField.FieldName;
+    end;
+  end;
+
+begin
+  SetLength(Result, 0);
+  for I := 0 to FieldCount - 1 do
+  begin
+    if Fields[I].IsReference then
+    begin
+      for J := 0 to Fields[I].FieldCount - 1 do
+        AppendToResult(Fields[I].Fields[J]);
+    end
+    else
+      AppendToResult(Fields[I]);
+  end;
 end;
 
 function TKModel.GetModelName: string;
