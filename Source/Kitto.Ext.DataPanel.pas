@@ -473,20 +473,7 @@ begin
             LParentValue := ANewValues.AsObject.S[LParentField.FieldName]
           else
             LParentValue := '';
-          if Assigned(LParentField) then
-          begin
-            // FK fields that are blank mean unchanged values if the description
-            // is nonblank, and blanked out values if the description is also blank.
-            if LItem.Value.AsString = '' then begin
-              if LParentValue = '' then
-                LField.SetToNull;
-            // else unchanged.
-            end
-            else
-              SetFieldValue;
-          end
-          else
-            SetFieldValue;
+          SetFieldValue;
         end;
       finally
         ARecord.Store.EnableChangeNotifications;

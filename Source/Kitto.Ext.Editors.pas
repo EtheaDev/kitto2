@@ -1609,6 +1609,7 @@ begin
     SetValue(LValue);
     SetRawValue(JSONNullToEmptyStr(FRecordField.GetAsJSONValue(False, False)));
   end;
+  Session.ResponseItems.ExecuteJSCode(JSName + '.kitto$isChanged = false;');
 end;
 
 function TKExtFormComboBoxEditor.GetChangeJSCode(const AMethod: TExtProcedure): string;
@@ -1633,9 +1634,13 @@ end;
 procedure TKExtFormComboBoxEditor.SetRecordField(const AValue: TKViewTableField);
 begin
   FRecordField := AValue;
-  if not ReadOnly and IsChangeHandlerNeeded(FRecordField) then
-    On('change', JSFunction(GetChangeJSCode(ValueChanged)));
+  if not ReadOnly then
+  begin
+    if IsChangeHandlerNeeded(FRecordField) then
+      On('change', JSFunction(GetChangeJSCode(ValueChanged)));
+    On('select', JSFunction(JSName + '.kitto$isChanged = true;'));
     //OnChange := FieldChange;
+  end;
 end;
 
 //procedure TKExtFormComboBoxEditor.FieldChange(This: TExtFormField; NewValue: string; OldValue: string);
@@ -1647,8 +1652,6 @@ procedure TKExtFormComboBoxEditor.ValueChanged;
 var
   LNewValues: ISuperObject;
   LNewValue: string;
-  LValues: TArray<string>;
-  LItem: TSuperAvlEntry;
 begin
   LNewValues := SO(Session.RequestBody).O['new'];
   Assert(LNewValues.AsObject.count > 0);
@@ -1754,7 +1757,10 @@ begin
             GetRawValue;
           end) + ';';
 
-    Session.ResponseItems.ExecuteJSCode(LCode);
+    Session.ResponseItems.ExecuteJSCode(
+      'if (' + JSName + '.kitto$isChanged == true) {' + sLineBreak +
+      LCode + sLineBreak +
+      '}');
   end;
 end;
 
