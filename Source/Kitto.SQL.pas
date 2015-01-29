@@ -526,12 +526,7 @@ begin
   if AQualification = '' then
     Result := ReplaceStr(AString, '{Q}', '')
   else
-  begin
-    if AString.Contains('{Q}') then
-      Result := ReplaceStr(AString, '{Q}', AQualification + '.')
-    else
-      Result := AQualification + '.' + AString;
-  end;
+    Result := ReplaceStr(AString, '{Q}', AQualification + '.');
 end;
 
 procedure TKSQLBuilder.Clear;
