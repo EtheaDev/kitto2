@@ -1327,7 +1327,7 @@ begin
       LDBQuery := TKConfig.Instance.DBConnections[Table.DatabaseName].CreateDBQuery;
       try
         TKSQLBuilder.BuildDerivedSelectQuery(Self, LDBQuery, AKeyValues);
-        Result.Load(LDBQuery);
+        Result.Load(LDBQuery, False, True);
       finally
         FreeAndNil(LDBQuery);
       end;
@@ -2207,7 +2207,7 @@ begin
           // Copy values to fields.
           for I := 0 to LStore.Header.FieldCount - 1 do
           begin
-            LDerivedField := FindField(LStore.Header.Fields[I].FieldName);
+            LDerivedField := FindField(TranslateFieldName(LStore.Header.Fields[I].FieldName));
             if Assigned(LDerivedField) then
             begin
               if LStore.RecordCount > 0 then
