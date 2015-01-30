@@ -3068,6 +3068,9 @@ type
   // Enumerated types for properties
   TExtFormFormPanelLabelAlign = (laLeft, laTop, laRight);
 
+  // Enumerated types for properties
+  TExtGridColumnAlign = (caLeft, caRight, caCenter);
+
   TExtPanel = class(TExtContainer)
   private
     FAnimCollapse: Boolean; // true

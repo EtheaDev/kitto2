@@ -138,7 +138,7 @@ var
     end;
     LLabelNode := ANode.FindNode('LabelAlign');
     if Assigned(LLabelNode) then
-      LCurrentPanel.LabelAlign := OptionAsLabelAlign(LLabelNode)
+      LCurrentPanel.LabelAlign := OptionAsLabelAlign(LLabelNode.AsString)
     else
       LCurrentPanel.LabelAlign := ADefaultLabelAlign;
   end;

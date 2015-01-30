@@ -369,7 +369,8 @@ type
     procedure ClearStatus; virtual;
   end;
 
-function OptionAsLabelAlign(const ANode: TEFNode): TExtFormFormPanelLabelAlign;
+function OptionAsLabelAlign(const AAlign: string): TExtFormFormPanelLabelAlign;
+function OptionAsGridColumnAlign(const AAlign: string): TExtGridColumnAlign;
 
 implementation
 
@@ -378,16 +379,29 @@ uses
   EF.StrUtils, EF.Types, EF.Localization,
   Kitto.Ext.Utils, Kitto.Ext.Session;
 
-function OptionAsLabelAlign(const ANode: TEFNode): TExtFormFormPanelLabelAlign;
+function OptionAsGridColumnAlign(const AAlign: string): TExtGridColumnAlign;
 begin
-  if SameText(ANode.AsString, 'Left') then
+  //alLeft, alRight, alCenter
+  if SameText(AAlign, 'Left') then
+    Result := caLeft
+  else if SameText(AAlign, 'Right') then
+    Result := caRight
+  else if SameText(AAlign, 'Center') then
+    Result := caCenter
+  else
+    raise EEFError.CreateFmt(_('Invalid value %s. Valid values: "Left", "Right", "Center".'), [AAlign]);
+end;
+
+function OptionAsLabelAlign(const AAlign: string): TExtFormFormPanelLabelAlign;
+begin
+  if SameText(AAlign, 'Left') then
     Result := laLeft
-  else if SameText(ANode.AsString, 'Top') then
+  else if SameText(AAlign, 'Top') then
     Result := laTop
-  else if SameText(ANode.AsString, 'Right') then
+  else if SameText(AAlign, 'Right') then
     Result := laRight
   else
-    raise EEFError.CreateFmt(_('Invalid value %s. Valid values: "Left", "Top", "Right".'), [ANode.AsString]);
+    raise EEFError.CreateFmt(_('Invalid value %s. Valid values: "Left", "Top", "Right".'), [AAlign]);
 end;
 
 { TKExtWindowControllerBase }

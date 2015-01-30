@@ -1094,7 +1094,7 @@ begin
   else if SameText(ANode.Name, 'LabelAlign') then
   begin
     Assert(Assigned(FEditPanel));
-    FEditPanel.LabelAlign := OptionAsLabelAlign(ANode);
+    FEditPanel.LabelAlign := OptionAsLabelAlign(ANode.AsString);
   end
   else if SameText(ANode.Name, 'LabelSeparator') then
     LabelSeparator := ANode.AsString
@@ -1274,8 +1274,11 @@ begin
 end;
 
 procedure TKExtFormTextField.RefreshValue;
+var
+  LJSONValue: string;
 begin
-  SetValue(JSONNullToEmptyStr(FRecordField.GetAsJSONValue(False, False)));
+  LJSONValue := JSONNullToEmptyStr(FRecordField.GetAsJSONValue(False, False));
+  SetValue(LJSONValue);
 end;
 
 procedure TKExtFormTextField.SetRecordField(const AValue: TKViewTableField);

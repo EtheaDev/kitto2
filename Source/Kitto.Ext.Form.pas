@@ -564,7 +564,7 @@ begin
   if FindLayout <> nil then
     FLabelAlign := laTop
   else if Assigned(LLabelAlignNode) then
-    FLabelAlign := OptionAsLabelAlign(LLabelAlignNode)
+    FLabelAlign := OptionAsLabelAlign(LLabelAlignNode.AsString)
   else
     FLabelAlign := laRight; //Default to right
 end;

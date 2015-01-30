@@ -329,11 +329,13 @@ procedure TKExtGridPanel.InitGridColumns;
 var
   I: Integer;
   LLayout: TKLayout;
+  LLayoutNode: TEFNode;
   LAutoExpandColumn: string;
   LEditorManager: TKExtEditorManager;
   LFieldName: string;
 
-  procedure AddGridColumn(const AViewField: TKViewField);
+  procedure AddGridColumn(const AViewField: TKViewField;
+    const ALayoutNode: TEFNode);
   var
     LColumn: TExtGridColumn;
     LColumnWidth: Integer;
@@ -358,7 +360,12 @@ var
         Exit;
       end;
 
-      LImages := AViewField.FindNode('Images');
+      if Assigned(ALayoutNode) then
+        LImages := ALayoutNode.FindNode('Images')
+      else
+        LImages := nil;
+      if not Assigned(LImages) then
+        LImages := AViewField.FindNode('Images');
       if Assigned(LImages) and (LImages.ChildCount > 0) then
       begin
         // Get image list into array of triples (URL/regexp/template).
@@ -379,7 +386,12 @@ var
         Exit;
       end;
 
-      LColors := AViewField.FindNode('Colors');
+      if Assigned(ALayoutNode) then
+        LColors := ALayoutNode.FindNode('Colors')
+      else
+        LColors := nil;
+      if not Assigned(LColors) then
+        LColors := AViewField.FindNode('Colors');
       if Assigned(LColors) and (LColors.ChildCount > 0) then
       begin
         LColorPairs := AViewField.GetColorsAsPairs;
@@ -406,6 +418,22 @@ var
     var
       LDataType: TEFDataType;
       LFormat: string;
+      LAlignNode: TEFNode;
+
+      function GetDisplayFormat: string;
+      var
+        LDisplayFormatNode: TEFNode;
+      begin
+        if Assigned(ALayoutNode) then
+          LDisplayFormatNode := ALayoutNode.FindNode('DisplayFormat')
+        else
+          LDisplayFormatNode := nil;
+        if Assigned(LDisplayFormatNode) then
+          Result := LDisplayFormatNode.AsString
+        else
+          LFormat := AViewField.DisplayFormat;
+      end;
+
     begin
       LDataType := AViewField.DataType;
       if LDataType is TKReferenceDataType then
@@ -421,7 +449,7 @@ var
       else if LDataType is TEFDateDataType then
       begin
         Result := TExtGridDateColumn.CreateAndAddTo(FEditorGridPanel.Columns);
-        LFormat := AViewField.DisplayFormat;
+        LFormat := GetDisplayFormat;
         if LFormat = '' then
           LFormat := Session.Config.UserFormatSettings.ShortDateFormat;
         TExtGridDateColumn(Result).Format := DelphiDateFormatToJSDateFormat(LFormat);
@@ -431,7 +459,7 @@ var
         Result := TExtGridColumn.CreateAndAddTo(FEditorGridPanel.Columns);
         if not SetRenderer(Result) then
         begin
-          LFormat := AViewField.DisplayFormat;
+          LFormat := GetDisplayFormat;
           if LFormat = '' then
             LFormat := Session.Config.UserFormatSettings.ShortTimeFormat;
           Result.RendererExtFunction := Result.JSFunction('v',
@@ -441,7 +469,7 @@ var
       else if LDataType is TEFDateTimeDataType then
       begin
         Result := TExtGridDateColumn.CreateAndAddTo(FEditorGridPanel.Columns);
-        LFormat := AViewField.DisplayFormat;
+        LFormat := GetDisplayFormat;
         if LFormat = '' then
           LFormat := Session.Config.UserFormatSettings.ShortDateFormat + ' ' +
             Session.Config.UserFormatSettings.ShortTimeFormat;
@@ -452,11 +480,10 @@ var
         Result := TExtGridNumberColumn.CreateAndAddTo(FEditorGridPanel.Columns);
         if not SetRenderer(Result) then
         begin
-          LFormat := AViewField.DisplayFormat;
+          LFormat := GetDisplayFormat;
           if LFormat = '' then
             LFormat := '0,000'; // '0';
           TExtGridNumberColumn(Result).Format := AdaptExtNumberFormat(LFormat, Session.Config.UserFormatSettings);
-          Result.Align := alRight;
         end;
       end
       else if (LDataType is TEFFloatDataType) or (LDataType is TEFDecimalDataType) then
@@ -464,11 +491,10 @@ var
         Result := TExtGridNumberColumn.CreateAndAddTo(FEditorGridPanel.Columns);
         if not SetRenderer(Result) then
         begin
-          LFormat := AViewField.DisplayFormat;
+          LFormat := GetDisplayFormat;
           if LFormat = '' then
             LFormat := '0,000.' + DupeString('0', AViewField.DecimalPrecision);
           TExtGridNumberColumn(Result).Format := AdaptExtNumberFormat(LFormat, Session.Config.UserFormatSettings);
-          Result.Align := alRight;
         end;
       end
       else if LDataType is TEFCurrencyDataType then
@@ -477,11 +503,10 @@ var
         if not SetRenderer(Result) then
         begin
           { TODO : format as money? }
-          LFormat := AViewField.DisplayFormat;
+          LFormat := GetDisplayFormat;
           if LFormat = '' then
             LFormat := '0,000.00';
           TExtGridNumberColumn(Result).Format := AdaptExtNumberFormat(LFormat, Session.Config.UserFormatSettings);
-          Result.Align := alRight;
         end;
       end
       else
@@ -489,6 +514,16 @@ var
         Result := TExtGridColumn.CreateAndAddTo(FEditorGridPanel.Columns);
         SetRenderer(Result);
       end;
+
+      //Column alignment
+      Result.Align := OptionAsGridColumnAlign(LDataType.GetDefaultColumnAlignment);
+      if Assigned(ALayoutNode) then
+      begin
+        LAlignNode := ALayoutNode.FindNode('Align');
+        if Assigned(LAlignNode) then
+          Result.Align := OptionAsGridColumnAlign(LAlignNode.AsString);
+      end;
+
       if not ViewTable.IsFieldVisible(AViewField) and not (AViewField.AliasedName = GetGroupingFieldName) then
         FEditorGridPanel.ColModel.SetHidden(FEditorGridPanel.Columns.Count - 1, True);
 
@@ -499,10 +534,16 @@ var
   begin
     LColumn := CreateColumn;
     LColumn.Sortable := not AViewField.IsBlob;
-    LColumn.Header := _(AViewField.DisplayLabel);
+    if Assigned(ALayoutNode) then
+      LColumn.Header := _(ALayoutNode.GetString('DisplayLabel', AViewField.DisplayLabel))
+    else
+      LColumn.Header := _(AViewField.DisplayLabel);
     LColumn.DataIndex := AViewField.AliasedName;
 
-    LColumnWidth := AViewField.DisplayWidth;
+    if Assigned(ALayoutNode) then
+      LColumnWidth := ALayoutNode.GetInteger('DisplayWidth', AViewField.DisplayWidth)
+    else
+      LColumnWidth := AViewField.DisplayWidth;
     if LColumnWidth = 0 then
       LColumnWidth := Min(IfThen(AViewField.Size = 0, 40, AViewField.Size), 40);
     LColumn.Width := CharsToPixels(LColumnWidth);
@@ -515,12 +556,13 @@ var
     Result := not (AViewField.DataType is TEFBlobDataType);
   end;
 
-  procedure AddColumn(const AViewField: TKViewField);
+  procedure AddColumn(const AViewField: TKViewField;
+    const ALayoutNode: TEFNode);
   begin
     if SupportedAsGridColumn(AViewField) then
     begin
       if AViewField.IsAccessGranted(ACM_READ) then
-        AddGridColumn(AViewField);
+        AddGridColumn(AViewField, ALayoutNode);
     end;
   end;
 
@@ -543,14 +585,15 @@ begin
     begin
       for I := 0 to LLayout.ChildCount - 1 do
       begin
-        LFieldName := LLayout.Children[I].AsString;
-        AddColumn(ViewTable.FieldByAliasedName(LFieldName));
+        LLayoutNode := LLayout.Children[I];
+        LFieldName := LLayoutNode.AsString;
+        AddColumn(ViewTable.FieldByAliasedName(LFieldName), LLayoutNode);
       end;
     end
     else
     begin
       for I := 0 to ViewTable.FieldCount - 1 do
-        AddColumn(ViewTable.Fields[I]);
+        AddColumn(ViewTable.Fields[I], nil);
     end;
     LAutoExpandColumn := ViewTable.GetString('Controller/AutoExpandFieldName');
     if LAutoExpandColumn <> '' then

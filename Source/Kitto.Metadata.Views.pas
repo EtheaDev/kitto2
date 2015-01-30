@@ -60,6 +60,9 @@ type
   TKLayout = class(TKMetadata)
   private
     FLayouts: TKLayouts;
+  public
+    function IsGridLayout: Boolean;
+    function IsFormLayout: Boolean;
   end;
 
   TKLayoutClass = class of TKLayout;
@@ -628,6 +631,18 @@ begin
   if FInstance = nil then
     FInstance := TKLayoutRegistry.Create;
   Result := FInstance;
+end;
+
+{ TKLayout }
+
+function TKLayout.IsFormLayout: Boolean;
+begin
+  Result := SameText(Copy(PersistentName, Length(PersistentName)-4,5), '_Form');
+end;
+
+function TKLayout.IsGridLayout: Boolean;
+begin
+  Result := SameText(Copy(PersistentName, Length(PersistentName)-4,5), '_Grid');
 end;
 
 initialization
