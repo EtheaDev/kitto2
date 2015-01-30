@@ -144,10 +144,12 @@ type
     function MatchesValues(const AValues: TEFNode): Boolean;
 
     ///	<summary>
-    ///	  Reads field values from the current dataset record, applying
-    ///   field name translation by calling the provided anonymous method.
+    ///	 Reads field values from the current dataset record, applying
+    ///  field name translation by calling TranslateFieldName.
+    ///  If AByIndex is True, field values are copied by index instead of by
+    ///  name.
     ///	</summary>
-    procedure ReadFromFields(const AFields: TFields);
+    procedure ReadFromFields(const AFields: TFields; const AByIndex: Boolean = False);
 
     ///	<summary>Reads any values from the specified node by name. Fields whose
     ///	names are not in the passed node are set to Null.</summary>
@@ -288,7 +290,8 @@ type
 
     procedure Load(const ADBConnection: TEFDBConnection;
       const ACommandText: string; const AAppend: Boolean = False); overload;
-    procedure Load(const ADBQuery: TEFDBQuery; const AAppend: Boolean = False); overload;
+    procedure Load(const ADBQuery: TEFDBQuery; const AAppend: Boolean = False;
+      const AFieldsByIndex: Boolean = False); overload;
 
     ///	<summary>
     ///   Appends a record and fills it with the specified values.
@@ -583,7 +586,8 @@ begin
   Result := FindChild('Records', True) as TKRecords;
 end;
 
-procedure TKStore.Load(const ADBQuery: TEFDBQuery; const AAppend: Boolean);
+procedure TKStore.Load(const ADBQuery: TEFDBQuery; const AAppend: Boolean;
+  const AFieldsByIndex: Boolean);
 var
   LRecord: TKRecord;
 begin
@@ -598,7 +602,7 @@ begin
     while not ADBQuery.DataSet.Eof do
     begin
       LRecord := Records.AppendAndInitialize;
-      LRecord.ReadFromFields(ADBQuery.DataSet.Fields);
+      LRecord.ReadFromFields(ADBQuery.DataSet.Fields, AFieldsByIndex);
       ADBQuery.DataSet.Next;
     end;
   finally
@@ -1110,7 +1114,7 @@ begin
   end;
 end;
 
-procedure TKRecord.ReadFromFields(const AFields: TFields);
+procedure TKRecord.ReadFromFields(const AFields: TFields; const AByIndex: Boolean);
 var
   I: Integer;
   LDBField: TField;
@@ -1118,12 +1122,17 @@ var
   LValue: string;
 begin
   Assert(Assigned(AFields));
+  if AByIndex then
+    Assert(FieldCount = AFields.Count);
 
   Backup;
   try
     for I := 0 to FieldCount - 1 do
     begin
-      LDBField := AFields.FindField(TranslateFieldName(Fields[I].FieldName));
+      if AByIndex then
+        LDBField := AFields[I]
+      else
+        LDBField := AFields.FindField(TranslateFieldName(Fields[I].FieldName));
       if Assigned(LDBField) then
       begin
         Fields[I].AssignFieldValue(LDBField);
