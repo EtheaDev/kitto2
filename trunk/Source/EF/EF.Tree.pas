@@ -66,6 +66,7 @@ type
     procedure YamlValueToNode(const AYamlValue: string; const ANode: TEFNode;
       const AFormatSettings: TFormatSettings);
     function GetDefaultDisplayWidth(const ASize: Integer): Integer; virtual;
+    function GetDefaultColumnAlignment: string; virtual;
     function SupportsEmptyAsNull: Boolean; virtual;
     function GetDefaultEmptyAsNull: Boolean; virtual;
     function SupportsJSON: Boolean; virtual;
@@ -227,6 +228,7 @@ type
       const AValue: string; const AUseJSDateFormat: Boolean;
       const AJSFormatSettings: TFormatSettings); override;
   public
+    function GetDefaultColumnAlignment: string; override;
     function GetDefaultDisplayWidth(const ASize: Integer): Integer; override;
     function GetJSTypeName: string; override;
   end;
@@ -243,6 +245,7 @@ type
       const AValue: string; const AUseJSDateFormat: Boolean;
       const AJSFormatSettings: TFormatSettings); override;
   public
+    function GetDefaultColumnAlignment: string; override;
     function GetDefaultDisplayWidth(const ASize: Integer): Integer; override;
     function SupportsEmptyAsNull: Boolean; override;
     function InternalNodeToJSONValue(const AForDisplay: Boolean;
@@ -262,6 +265,7 @@ type
       const AValue: string; const AUseJSDateFormat: Boolean;
       const AJSFormatSettings: TFormatSettings); override;
   public
+    function GetDefaultColumnAlignment: string; override;
     function GetDefaultDisplayWidth(const ASize: Integer): Integer; override;
     function SupportsEmptyAsNull: Boolean; override;
     function InternalNodeToJSONValue(const AForDisplay: Boolean;
@@ -279,6 +283,7 @@ type
       const AValue: string; const AUseJSDateFormat: Boolean;
       const AJSFormatSettings: TFormatSettings); override;
   public
+    function GetDefaultColumnAlignment: string; override;
     function GetDefaultDisplayWidth(const ASize: Integer): Integer; override;
     function SupportsEmptyAsNull: Boolean; override;
     function InternalNodeToJSONValue(const AForDisplay: Boolean;
@@ -2780,6 +2785,11 @@ begin
   Result := True;
 end;
 
+function TEFDataType.GetDefaultColumnAlignment: string;
+begin
+  Result := 'left';
+end;
+
 function TEFDataType.GetDefaultDisplayWidth(const ASize: Integer): Integer;
 begin
   Result := 20;
@@ -2848,8 +2858,16 @@ begin
 end;
 
 function TEFDataType.ValueToDate(const AValue: Variant): TDate;
+var
+  LFormatSetting: TFormatSettings;
 begin
-  Result := AValue;
+  if VarIsStr(AValue) then
+  begin
+    LFormatSetting.ShortDateFormat := 'yyyy-mm-dd';
+    Result := StrToDateTime(AValue, LFormatSetting);
+  end
+  else
+    Result := AValue;
 end;
 
 function TEFDataType.ValueToDateTime(const AValue: Variant): TDateTime;
@@ -2985,6 +3003,11 @@ begin
 end;
 
 { TEFIntegerDataType }
+
+function TEFIntegerDataType.GetDefaultColumnAlignment: string;
+begin
+  Result := 'right';
+end;
 
 function TEFIntegerDataType.GetDefaultDisplayWidth(
   const ASize: Integer): Integer;
@@ -3227,6 +3250,11 @@ end;
 
 { TEFCurrencyDataType }
 
+function TEFCurrencyDataType.GetDefaultColumnAlignment: string;
+begin
+  Result := 'right';
+end;
+
 function TEFCurrencyDataType.GetDefaultDisplayWidth(
   const ASize: Integer): Integer;
 begin
@@ -3288,6 +3316,11 @@ begin
 end;
 
 { TEFFloatDataType }
+
+function TEFFloatDataType.GetDefaultColumnAlignment: string;
+begin
+  Result := 'right';
+end;
 
 function TEFFloatDataType.GetDefaultDisplayWidth(const ASize: Integer): Integer;
 begin
@@ -3359,6 +3392,11 @@ begin
 end;
 
 { TEFDecimalDataType }
+
+function TEFDecimalDataType.GetDefaultColumnAlignment: string;
+begin
+  Result := 'right';
+end;
 
 function TEFDecimalDataType.GetDefaultDisplayWidth(
   const ASize: Integer): Integer;
