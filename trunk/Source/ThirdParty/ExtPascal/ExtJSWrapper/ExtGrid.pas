@@ -42,9 +42,6 @@ type
     property Width: Integer read FWidth write SetFWidth;
   end;
 
-  // Enumerated types for properties
-  TExtGridColumnAlign = (alInherit, alLeft, alRight, alCenter, alJustify);
-
   TExtGridColumn = class(TExtFunction)
   private
     FAlign: TExtGridColumnAlign;
