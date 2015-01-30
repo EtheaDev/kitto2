@@ -1678,24 +1678,24 @@ end;
 procedure TKExtFormComboBoxEditor.Setup(const AViewField: TKVIewField; const AIsReadOnly: Boolean;
   const AFieldCharWidth: Integer);
 var
-  LLookupCommandText: string;
   LAllowedValues: TEFPairs;
   I: Integer;
 begin
+  Assert(Assigned(AViewField));
+
   // Enable the combo box to post its hidden value instead of the visible description.
   // We don't use post, but we do need the name in order to get both key and
   // visible description on the server.
   HiddenName := AViewField.FieldNamesForUpdate;
 
-  LLookupCommandText := GetLookupCommandText(AViewField);
-  if LLookupCommandText <> '' then
+  if AViewField.IsReference then
   begin
     FListMode := Lookup;
     // Now both small and large referenced models use a remote combobox.
     if AViewField.IsReference {and AViewField.ModelField.ReferencedModel.IsLarge} then
     begin
       Mode := 'remote';
-      FLookupCommandText := LLookupCommandText;
+      FLookupCommandText := TKSQLBuilder.BuildLookupSelectStatement(AViewField, True);
       FreeAndNil(FServerStore);
       FServerStore := AViewField.CreateReferenceStore;
       Store := TExtDataStore.Create(Self);
@@ -1766,11 +1766,11 @@ end;
 
 class function TKExtFormComboBoxEditor.SupportsViewField(const AViewField: TKViewField): Boolean;
 var
-  LLookupCommandText: string;
   LAllowedValues: TEFPairs;
 begin
-  LLookupCommandText := GetLookupCommandText(AViewField);
-  if LLookupCommandText <> '' then
+  Assert(Assigned(AViewField));
+
+  if AViewField.IsReference then
     Result := True
   else
   begin

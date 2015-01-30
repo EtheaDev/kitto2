@@ -76,9 +76,12 @@ type
     ///	<summary>
     ///   Builds and returns a SQL statement that selects the specified
     ///	  field plus all key fields from the specified field's table. AViewField
-    ///	  must have an assigned Reference, otherwise an exception is raised.
+    ///	  must be a reference field, otherwise an exception is raised.
+    ///   If AIncludeQueryPlaceholder is True, then a WHERE clause with a {query}
+    ///   placeholder is included in the generated statement so that it can be filtered.
     ///	</summary>
-    class function GetLookupSelectStatement(const AViewField: TKViewField): string;
+    class function BuildLookupSelectStatement(const AViewField: TKViewField;
+      const AIncludeQueryPlaceholder: Boolean): string;
 
     ///	<summary>
     ///   Builds in the specified command an insert statement against
@@ -143,7 +146,6 @@ type
     class function ExpandQualification(const AString, AQualification: string): string;
   end;
 
-function GetLookupCommandText(const AViewField: TKViewField): string;
 
 implementation
 
@@ -151,19 +153,6 @@ uses
   SysUtils, StrUtils, Types, Variants,
   EF.Intf, EF.Localization, EF.Types, EF.StrUtils, EF.SQL, EF.Macros,
   Kitto.Types;
-
-function GetLookupCommandText(const AViewField: TKViewField): string;
-begin
-  if AViewField.IsReference then
-  begin
-    Result := TKSQLBuilder.GetLookupSelectStatement(AViewField);
-    if AViewField.ModelField.ReferencedModel.IsLarge then
-      Result := AddToSQLWhereClause(Result, '(' + AViewField.ModelField.ReferencedModel.CaptionField.DBColumnName + ' like ''{query}%'')');
-    Result := TEFMacroExpansionEngine.Instance.Expand(Result);
-  end
-  else
-    Result := '';
-end;
 
 { TKSQLQueryBuilder }
 
@@ -555,7 +544,8 @@ begin
     Result := Result + sLineBreak + BuildJoin(FUsedReferenceFields[I]);
 end;
 
-class function TKSQLBuilder.GetLookupSelectStatement(const AViewField: TKViewField): string;
+class function TKSQLBuilder.BuildLookupSelectStatement(const AViewField: TKViewField;
+  const AIncludeQueryPlaceholder: Boolean): string;
 var
   LLookupModel: TKModel;
   LDefaultFilter: string;
@@ -580,6 +570,10 @@ begin
   LDefaultFilter := AViewField.DefaultFilter;
   if LDefaultFilter <> '' then
     Result := AddToSQLWhereClause(Result, '(' + ExpandQualification(LDefaultFilter, '')  + ')', AViewField.DefaultFilterConnector);
+
+  if AIncludeQueryPlaceholder then
+    Result := AddToSQLWhereClause(Result, '(' + AViewField.ModelField.ReferencedModel.CaptionField.DBColumnName + ' like ''{query}%'')');
+
   Result := Result + ' order by ' + ExpandQualification(LLookupModel.CaptionField.DBColumnNameOrExpression, '');
 end;
 
