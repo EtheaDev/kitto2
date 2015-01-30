@@ -656,7 +656,7 @@ var
 begin
   Result := '';
   if FViewTable.DefaultFilter <> '' then
-    Result := Result + ' where (' + FViewTable.DefaultFilter + ')';
+    Result := Result + ' where (' + ExpandQualification(FViewTable.DefaultFilter, '') + ')';
   if AFilter <> '' then
     Result := AddToSQLWhereClause(Result, AFilter);
 
