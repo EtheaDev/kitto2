@@ -643,8 +643,9 @@ begin
   // Add the caption field of the referenced model as well.
   // The reference field name is used as table alias.
   AddSelectTerm(
-    ExpandQualification(AViewField.ModelField.ReferencedModel.CaptionField.DBColumnNameOrExpression, AViewField.FieldName) + ' ' +
-    AViewField.ModelField.FieldName);
+    ExpandQualification(AViewField.FieldName+'.'+
+      AViewField.ModelField.ReferencedModel.CaptionField.DBColumnNameOrExpression,
+      AViewField.FieldName) + ' ' + AViewField.ModelField.FieldName);
   LFields := AViewField.ModelField.GetReferenceFields;
   for I := Low(LFields) to High(LFields) do
     AddSelectTerm(FViewTable.Model.DBTableName + '.' + LFields[I].DBColumnName);
@@ -660,9 +661,9 @@ var
 begin
   Result := '';
   if FViewTable.DefaultFilter <> '' then
-    Result := Result + ' where (' + ExpandQualification(FViewTable.DefaultFilter, '') + ')';
+    Result := Result + ' where (' + ExpandQualification(FViewTable.DefaultFilter, FViewTable.Model.DBTableName) + ')';
   if AFilter <> '' then
-    Result := AddToSQLWhereClause(Result, AFilter);
+    Result := AddToSQLWhereClause(Result, ExpandQualification(AFilter, FViewTable.Model.DBTableName));
 
   if FViewTable.IsDetail then
   begin
