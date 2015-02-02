@@ -346,7 +346,6 @@ type
   private
     FListMode: TListMode;
     FServerStore: TKStore;
-    FLookupCommandText: string;
     FFieldName: string;
     FRecordField: TKViewTableField;
     //procedure FieldChange(This: TExtFormField; NewValue, OldValue: string);
@@ -1571,15 +1570,18 @@ var
   LStart: Integer;
   LLimit: Integer;
   LPageRecordCount: Integer;
-  LQuery: string;
-  LDBConnection: TEFDBConnection;
+  LDBQuery: TEFDBQuery;
 begin
   Assert(Assigned(FServerStore));
 
-  LQuery := ReplaceStr(Session.Query['query'], '''', '''''');
-  LDBConnection := Session.Config.DBConnections[GetRecordField.ViewField.Table.DatabaseName];
-
-  FServerStore.Load(LDBConnection, ReplaceStr(FLookupCommandText, '{query}', LQuery));
+  LDBQuery := Session.Config.DBConnections[FRecordField.ViewField.Table.DatabaseName].CreateDBQuery;
+  try
+    TKSQLBuilder.BuildLookupSelectStatement(FRecordField.ViewField, LDBQuery,
+      ReplaceStr(Session.Query['query'], '''', ''''''));
+    FServerStore.Load(LDBQuery);
+  finally
+    FreeAndNil(LDBQuery);
+  end;
 
   LStart := Session.QueryAsInteger['start'];
   LLimit := Session.QueryAsInteger['limit'];
@@ -1698,7 +1700,6 @@ begin
     if AViewField.IsReference {and AViewField.ModelField.ReferencedModel.IsLarge} then
     begin
       Mode := 'remote';
-      FLookupCommandText := TKSQLBuilder.BuildLookupSelectStatement(AViewField, True);
       FreeAndNil(FServerStore);
       FServerStore := AViewField.CreateReferenceStore;
       Store := TExtDataStore.Create(Self);
