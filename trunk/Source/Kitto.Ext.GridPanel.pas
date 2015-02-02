@@ -23,7 +23,7 @@ interface
 uses
   Generics.Collections,
   ExtPascal, Ext, ExtData, ExtForm, ExtGrid, ExtPascalUtils, ExtUxGrid,
-  EF.ObserverIntf, EF.Types,
+  EF.ObserverIntf, EF.Types, EF.Tree,
   Kitto.Metadata.Views, Kitto.Metadata.DataView, Kitto.Store, Kitto.Types,
   Kitto.Ext.Base, Kitto.Ext.Controller, Kitto.Ext.DataPanelLeaf, Kitto.Ext.Editors;
 
@@ -60,7 +60,7 @@ type
     function GetCurrentViewRecord: TKViewTableRecord;
     procedure InitColumnEditors(const ARecord: TKViewTableRecord);
     procedure SetGridColumnEditor(const AEditorManager: TKExtEditorManager;
-      const AViewField: TKViewField; const AColumn: TExtGridColumn);
+      const AViewField: TKViewField; const ALayoutNode: TEFNode; const AColumn: TExtGridColumn);
 //    function GetConfirmJSCode(const AMethod: TExtProcedure): string;
   private
     FNewButton: TExtButton;
@@ -112,7 +112,7 @@ implementation
 uses
   SysUtils, StrUtils, Math, Types,
   superobject,
-  EF.Tree, EF.StrUtils, EF.Localization, EF.JSON, EF.Macros,
+  EF.StrUtils, EF.Localization, EF.JSON, EF.Macros,
   Kitto.Metadata.Models, Kitto.Rules, Kitto.AccessControl, Kitto.Config,
   Kitto.Ext.Session, Kitto.Ext.Utils;
 
@@ -304,16 +304,28 @@ begin
 end;
 
 procedure TKExtGridPanel.SetGridColumnEditor(const AEditorManager: TKExtEditorManager;
-  const AViewField: TKViewField; const AColumn: TExtGridColumn);
+  const AViewField: TKViewField; const ALayoutNode: TEFNode; const AColumn: TExtGridColumn);
 var
   LEditable: boolean;
+  LEditableNode: TEFNode;
   LEditor: TExtFormField;
   LSubject: IEFSubject;
 begin
   Assert(Assigned(AEditorManager));
 
-  LEditable := FInplaceEditing and not AViewField.IsReadOnly
-    and AViewField.IsAccessGranted(ACM_MODIFY);
+  if Assigned(ALayoutNode) then
+  begin
+    LEditableNode := ALayoutNode.FindNode('Editable');
+    if Assigned(LEditableNode) then
+      LEditable := LEditableNode.AsBoolean
+    else
+      LEditable := FInplaceEditing and not AViewField.IsReadOnly;
+  end
+  else
+    LEditable := FInplaceEditing and not AViewField.IsReadOnly;
+
+  LEditable := LEditable and AViewField.IsAccessGranted(ACM_MODIFY);
+
   AColumn.Editable := LEditable;
   if LEditable then
   begin
@@ -528,7 +540,7 @@ var
         FEditorGridPanel.ColModel.SetHidden(FEditorGridPanel.Columns.Count - 1, True);
 
       //In-place editing
-      SetGridColumnEditor(LEditorManager, AViewField, Result);
+      SetGridColumnEditor(LEditorManager, AViewField, ALayoutNode, Result);
     end;
 
   begin
@@ -544,11 +556,15 @@ var
       LColumnWidth := ALayoutNode.GetInteger('DisplayWidth', AViewField.DisplayWidth)
     else
       LColumnWidth := AViewField.DisplayWidth;
+
     if LColumnWidth = 0 then
       LColumnWidth := Min(IfThen(AViewField.Size = 0, 40, AViewField.Size), 40);
     LColumn.Width := CharsToPixels(LColumnWidth);
 
-    LColumn.Hidden := not ViewTable.IsFieldVisible(AViewField);
+    if Assigned(ALayoutNode) then
+      LColumn.Hidden := ALayoutNode.GetBoolean('Hidden', not ViewTable.IsFieldVisible(AViewField))
+    else
+      LColumn.Hidden := not ViewTable.IsFieldVisible(AViewField);
   end;
 
   function SupportedAsGridColumn(const AViewField: TKViewField): Boolean;
