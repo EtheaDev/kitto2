@@ -601,7 +601,7 @@ var
 begin
   Assert(Assigned(AReferenceField));
 
-  LCorrelationName := AReferenceField.FieldName;
+  LCorrelationName := AReferenceField.DBColumnName;
 
   Result := GetJoinKeyword + ' ' + AReferenceField.ReferencedModel.DBTableName + ' ' + LCorrelationName + ' on (';
   LLocalFields := AReferenceField.GetReferenceFields;
@@ -643,9 +643,9 @@ begin
   // Add the caption field of the referenced model as well.
   // The reference field name is used as table alias.
   AddSelectTerm(
-    ExpandQualification(AViewField.FieldName+'.'+
-      AViewField.ModelField.ReferencedModel.CaptionField.DBColumnNameOrExpression,
-      AViewField.FieldName) + ' ' + AViewField.ModelField.FieldName);
+    AViewField.ModelField.DBColumnName + '.' +
+      AViewField.ModelField.ReferencedModel.CaptionField.DBColumnNameOrExpression
+      + ' ' + AViewField.ModelField.FieldName);
   LFields := AViewField.ModelField.GetReferenceFields;
   for I := Low(LFields) to High(LFields) do
     AddSelectTerm(FViewTable.Model.DBTableName + '.' + LFields[I].DBColumnName);
@@ -715,7 +715,8 @@ begin
       'select ' +  FSelectTerms +
       ' from ' + GetFromClause + GetSelectWhereClause(AFilter, ADBQuery);
     if (AOrderBy <> '') or (FViewTable.DefaultSorting <> '') then
-      LCommandText := LCommandText + ' order by ' + IfThen(AOrderBy <> '', AOrderBy, FViewTable.DefaultSorting);
+      LCommandText := LCommandText + ' order by ' + IfThen(AOrderBy <> '', AOrderBy,
+        ExpandQualification(FViewTable.DefaultSorting, AViewTable.Model.DBTableName));
     LCommandText := ADBQuery.Connection.DBEngineType.AddLimitClause(LCommandText, AFrom, AFor);
     ADBQuery.CommandText := TEFMacroExpansionEngine.Instance.Expand(LCommandText);
   finally
