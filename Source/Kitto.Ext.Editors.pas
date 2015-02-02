@@ -1656,12 +1656,18 @@ end;
 procedure TKExtFormComboBoxEditor.ValueChanged;
 var
   LNewValues: ISuperObject;
-  LNewValue: string;
+  LKeyFieldNames: string;
 begin
   LNewValues := SO(Session.RequestBody).O['new'];
-  Assert(LNewValues.AsObject.count > 0);
-  LNewValue := LNewValues.S[HiddenName];
-  FRecordField.SetAsJSONValue(LNewValue, False, Session.Config.UserFormatSettings);
+  Assert(LNewValues.AsObject.Count > 0);
+
+  if Mode = 'local' then
+    FRecordField.SetAsJSONValue(LNewValues.S[HiddenName], False, Session.Config.UserFormatSettings)
+  else
+  begin
+    LKeyFieldNames := Join(FRecordField.ViewField.ModelField.GetFieldNames, TKConfig.Instance.MultiFieldSeparator);
+    FRecordField.ParentRecord.FieldByName(LKeyFieldNames).SetAsJSONValue(LNewValues.S[HiddenName], False, Session.Config.UserFormatSettings);
+  end;
 end;
 
 procedure TKExtFormComboBoxEditor.SetFieldName(const AValue: string);
