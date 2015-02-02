@@ -560,11 +560,6 @@ var
     if LColumnWidth = 0 then
       LColumnWidth := Min(IfThen(AViewField.Size = 0, 40, AViewField.Size), 40);
     LColumn.Width := CharsToPixels(LColumnWidth);
-
-    if Assigned(ALayoutNode) then
-      LColumn.Hidden := ALayoutNode.GetBoolean('Hidden', not ViewTable.IsFieldVisible(AViewField))
-    else
-      LColumn.Hidden := not ViewTable.IsFieldVisible(AViewField);
   end;
 
   function SupportedAsGridColumn(const AViewField: TKViewField): Boolean;
