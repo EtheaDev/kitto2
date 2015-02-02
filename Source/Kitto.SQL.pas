@@ -77,11 +77,11 @@ type
     ///   Builds and returns a SQL statement that selects the specified
     ///	  field plus all key fields from the specified field's table. AViewField
     ///	  must be a reference field, otherwise an exception is raised.
-    ///   If AIncludeQueryPlaceholder is True, then a WHERE clause with a {query}
-    ///   placeholder is included in the generated statement so that it can be filtered.
+    ///   If ASearchString is specified, the statement includes a WHERE clause
+    ///   that filters on the specified value.
     ///	</summary>
-    class function BuildLookupSelectStatement(const AViewField: TKViewField;
-      const AIncludeQueryPlaceholder: Boolean): string;
+    class procedure BuildLookupSelectStatement(const AViewField: TKViewField;
+      const ADBQuery: TEFDBQuery; const ASearchString: string);
 
     ///	<summary>
     ///   Builds in the specified command an insert statement against
@@ -544,37 +544,41 @@ begin
     Result := Result + sLineBreak + BuildJoin(FUsedReferenceFields[I]);
 end;
 
-class function TKSQLBuilder.BuildLookupSelectStatement(const AViewField: TKViewField;
-  const AIncludeQueryPlaceholder: Boolean): string;
+class procedure TKSQLBuilder.BuildLookupSelectStatement(const AViewField: TKViewField;
+  const ADBQuery: TEFDBQuery; const ASearchString: string);
 var
   LLookupModel: TKModel;
   LDefaultFilter: string;
   LLookupModelDefaultFilter: string;
   LColumnNames: TStringDynArray;
+  LQueryText: string;
 begin
   Assert(Assigned(AViewField));
+  Assert(Assigned(ADBQuery));
   Assert(AViewField.IsReference);
 
   LLookupModel := AViewField.ModelField.ReferencedModel;
   LColumnNames := LLookupModel.GetKeyDBColumnNames(False, True);
-  Result := 'select ' + Join(LColumnNames, ', ');
+  LQueryText := 'select ' + Join(LColumnNames, ', ');
   // Ensure caption field is contained in select list.
   if not LLookupModel.CaptionField.IsKey then
-    Result := Result + ', ' + ExpandQualification(LLookupModel.CaptionField.AliasedDBColumnNameOrExpression, '');
-  Result := Result + ' from ' + LLookupModel.DBTableName;
+    LQueryText := LQueryText + ', ' + ExpandQualification(LLookupModel.CaptionField.AliasedDBColumnNameOrExpression, '');
+  LQueryText := LQueryText + ' from ' + LLookupModel.DBTableName;
 
   LLookupModelDefaultFilter := LLookupModel.DefaultFilter;
   if LLookupModelDefaultFilter <> '' then
-    Result := AddToSQLWhereClause(Result, '(' + ExpandQualification(LLookupModelDefaultFilter, '') + ')');
+    LQueryText := AddToSQLWhereClause(LQueryText, '(' + ExpandQualification(LLookupModelDefaultFilter, '') + ')');
 
   LDefaultFilter := AViewField.DefaultFilter;
   if LDefaultFilter <> '' then
-    Result := AddToSQLWhereClause(Result, '(' + ExpandQualification(LDefaultFilter, '')  + ')', AViewField.DefaultFilterConnector);
+    LQueryText := AddToSQLWhereClause(LQueryText, '(' + ExpandQualification(LDefaultFilter, '')  + ')', AViewField.DefaultFilterConnector);
 
-  if AIncludeQueryPlaceholder then
-    Result := AddToSQLWhereClause(Result, '(' + AViewField.ModelField.ReferencedModel.CaptionField.DBColumnName + ' like ''%{query}%'')');
+  if ASearchString <> '' then
+    LQueryText := AddToSQLWhereClause(LQueryText, '(' + AViewField.ModelField.ReferencedModel.CaptionField.DBColumnName + ' like ''%' + ASearchString + '%'')');
 
-  Result := Result + ' order by ' + ExpandQualification(LLookupModel.CaptionField.DBColumnNameOrExpression, '');
+  LQueryText := LQueryText + ' order by ' + ExpandQualification(LLookupModel.CaptionField.DBColumnNameOrExpression, '');
+
+  ADBQuery.CommandText := TEFMacroExpansionEngine.Instance.Expand(LQueryText);
 end;
 
 function TKSQLBuilder.BuildJoin(const AReferenceField: TKModelField): string;
