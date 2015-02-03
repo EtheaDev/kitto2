@@ -2864,6 +2864,7 @@ begin
   if VarIsStr(AValue) then
   begin
     LFormatSetting.ShortDateFormat := 'yyyy-mm-dd';
+    LFormatSetting.DateSeparator := '-';
     Result := StrToDateTime(AValue, LFormatSetting);
   end
   else
@@ -2871,8 +2872,18 @@ begin
 end;
 
 function TEFDataType.ValueToDateTime(const AValue: Variant): TDateTime;
+var
+  LFormatSetting: TFormatSettings;
 begin
-  Result := AValue;
+  if VarIsStr(AValue) then
+  begin
+    LFormatSetting.ShortDateFormat := 'yyyy-mm-dd hh:mm:ss';
+    LFormatSetting.DateSeparator := '-';
+    LFormatSetting.TimeSeparator := ':';
+    Result := StrToDateTime(AValue, LFormatSetting);
+  end
+  else
+    Result := AValue;
 end;
 
 function TEFDataType.ValueToDecimal(const AValue: Variant): TBcd;
@@ -2919,8 +2930,20 @@ begin
 end;
 
 function TEFDataType.ValueToTime(const AValue: Variant): TTime;
+var
+  LFormatSetting: TFormatSettings;
+  LDateTime: TDateTime;
 begin
-  Result := AValue;
+  if VarIsStr(AValue) then
+  begin
+    LFormatSetting.ShortDateFormat := 'yyyy-mm-dd hh:mm:ss';
+    LFormatSetting.DateSeparator := '-';
+    LFormatSetting.TimeSeparator := ':';
+    LDateTime := StrToDateTime(AValue, LFormatSetting);
+    Result := LDateTime;
+  end
+  else
+    Result := AValue;
 end;
 
 function TEFDataType.StringArrayToValue(const AStringArray: TStringDynArray): Variant;
