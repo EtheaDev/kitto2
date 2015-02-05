@@ -227,11 +227,20 @@ end;
 
 function TExportXMLToolController.CreateStream: TStream;
 var
+  LRecord: TKViewTableRecord;
   LStore: TKViewTableStore;
   LXMLContent: string;
 begin
-  LStore := ServerStore;
-  LXMLContent := LStore.GetAsXML(True);
+  if Config.GetBoolean('RequireSelection', False) then
+  begin
+    LRecord := ServerRecord;
+    LXMLContent := LRecord.GetAsXML(True);
+  end
+  else
+  begin
+    LStore := ServerStore;
+    LXMLContent := LStore.GetAsXML(True);
+  end;
   Result := TStringStream.Create(LXMLContent);
 end;
 
