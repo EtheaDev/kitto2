@@ -1673,9 +1673,21 @@ begin
 end;
 
 function TKViewField.GetQualifiedDBName: string;
+var
+  P: Integer;
+  LReferenceModelName: string;
+  LReferenceField: TKViewField;
 begin
-  if Pos('.', Name) > 0 then
-    Result := Name
+  P := Pos('.', Name);
+  if P > 0 then
+  begin
+    LReferenceModelName := Copy(Name, 1, P-1);
+    LReferenceField := GetTable.FindField(LReferenceModelName);
+    if LReferenceField.IsReference then
+      Result := LReferenceField.ModelField.DbColumnName+'.'+ModelField.DBColumnName
+    else
+      Result := Name;
+  end
   else
     Result := Model.DBTableName + '.' + ModelField.DBColumnName;
 end;
