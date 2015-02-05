@@ -443,7 +443,7 @@ var
         if Assigned(LDisplayFormatNode) then
           Result := LDisplayFormatNode.AsString
         else
-          LFormat := AViewField.DisplayFormat;
+          Result := AViewField.DisplayFormat;
       end;
 
     begin
