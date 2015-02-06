@@ -88,7 +88,15 @@ begin
   LStore := ServerStore;
 
   LXMLFileName := ChangeFileExt(AFileName, '.xml');
+  LRecord := ServerRecord;
+  LStore := ServerStore;
+
   //Build XML data file
+  if Config.GetBoolean('RequireSelection', False) or not Assigned(LStore) then
+    LXMLContent := XMLHeader + LRecord.GetAsXML(True)
+  else
+    LXMLContent := XMLHeader + LStore.GetAsXML(True);
+
   if Assigned(LRecord) then
     LXMLContent := XMLHeader + LRecord.GetAsXML(True)
   else
