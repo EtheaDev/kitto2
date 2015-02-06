@@ -669,9 +669,8 @@ The published method will use the Request as input and the Response as output.
 }
 function TFCGIThread.HandleRequest(pRequest : AnsiString) : AnsiString; begin
   if (FRequestMethod = rmPost) and (Pos(AnsiString('='), pRequest) <> 0) then
-    FSession.SetQueryText(string(pRequest), True, True)
-  else
-    FRequest := pRequest;
+    FSession.SetQueryText(string(pRequest), True, True);
+  FRequest := pRequest;
   if not FSession.IsUpload then FSession.Response := '';
   FSession.IsDownload := false;
   FSession.HandleRequest(pRequest);
