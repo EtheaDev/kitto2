@@ -659,7 +659,11 @@ function TKExtFormPanelController.AddActionButton(const AView: TKView;
   const AToolbar: TExtToolbar): TKExtActionButton;
 begin
   Result := inherited AddActionButton(AView, AToolbar);
-  TKExtDataActionButton(Result).ServerRecord := StoreRecord;
+  TKExtDataActionButton(Result).OnGetServerRecord :=
+    function: TKViewTableRecord
+    begin
+      Result := StoreRecord;
+    end;
 end;
 
 procedure TKExtFormPanelController.AssignFieldChangeEvent(const AAssign: Boolean);

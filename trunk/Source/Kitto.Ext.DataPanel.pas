@@ -28,17 +28,22 @@ uses
   Kitto.Ext.Base, Kitto.Ext.Controller, Kitto.Ext.BorderPanel, Kitto.Ext.Editors;
 
 type
+  TKExtGetServerRecordEvent = reference to function: TKViewTableRecord;
+
   TKExtDataActionButton = class(TKExtActionButton)
   strict private
     FServerStore: TKViewTableStore;
     FViewTable: TKViewTable;
+    FOnGetServerRecord: TKExtGetServerRecordEvent;
     FServerRecord: TKViewTableRecord;
+    function GetServerRecord: TKViewTableRecord;
   strict protected
     procedure InitController(const AController: IKExtController); override;
   public
     property ViewTable: TKViewTable read FViewTable write FViewTable;
     property ServerStore: TKViewTableStore read FServerStore write FServerStore;
-    property ServerRecord: TKViewTableRecord read FServerRecord write FServerRecord;
+    property ServerRecord: TKViewTableRecord read GetServerRecord;
+    property OnGetServerRecord: TKExtGetServerRecordEvent read FOnGetServerRecord write FOnGetServerRecord;
   published
     procedure ExecuteActionOnSelectedRows;
   end;
@@ -402,6 +407,13 @@ begin
   LController.Display;
 end;
 
+function TKExtDataActionButton.GetServerRecord: TKViewTableRecord;
+begin
+  if Assigned(FOnGetServerRecord) then
+    FServerRecord := FOnGetServerRecord;
+  Result := FServerRecord;
+end;
+
 procedure TKExtDataActionButton.InitController(
   const AController: IKExtController);
 begin
@@ -412,7 +424,7 @@ begin
 
   AController.Config.SetObject('Sys/ServerStore', FServerStore);
   AController.Config.SetObject('Sys/ViewTable', FViewTable);
-  AController.Config.SetObject('Sys/Record', FServerRecord);
+  AController.Config.SetObject('Sys/Record', ServerRecord);
 end;
 
 function TKExtDataPanelController.AutoLoadData: Boolean;
