@@ -90,6 +90,8 @@ type
   strict protected
     procedure DoDisplay; override;
     procedure InitComponents; override;
+    property StoreRecord: TKViewTableRecord read FStoreRecord;
+    function AddActionButton(const AView: TKView; const AToolbar: TExtToolbar): TKExtActionButton; override;
   public
     procedure LoadData; override;
     destructor Destroy; override;
@@ -651,6 +653,13 @@ begin
     AssignFieldChangeEvent(False);
     CloseHostContainer;
   end;
+end;
+
+function TKExtFormPanelController.AddActionButton(const AView: TKView;
+  const AToolbar: TExtToolbar): TKExtActionButton;
+begin
+  Result := inherited AddActionButton(AView, AToolbar);
+  TKExtDataActionButton(Result).ServerRecord := StoreRecord;
 end;
 
 procedure TKExtFormPanelController.AssignFieldChangeEvent(const AAssign: Boolean);
