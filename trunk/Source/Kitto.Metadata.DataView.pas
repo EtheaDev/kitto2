@@ -1512,12 +1512,12 @@ end;
 
 function TKViewField.GetDBName: string;
 var
-  LComponents: TStringDynArray;
+  LNameParts: TArray<string>;
 begin
-  if Pos('.', Name) > 0 then
+  if Name.Contains('.') then
   begin
-    LComponents := Split(Name, '.');
-    Result := LComponents[High(LComponents)];
+    LNameParts := Name.Split(['.']);
+    Result := LNameParts[High(LNameParts)];
   end
   else
     Result := ModelField.DBColumnName;
@@ -1634,9 +1634,9 @@ end;
 
 function TKViewField.GetFieldName: string;
 var
-  LNameParts: TStringDynArray;
+  LNameParts: TArray<string>;
 begin
-  LNameParts := Split(Name, '.');
+  LNameParts := Name.Split(['.']);
   if Length(LNameParts) = 1 then
     Result := Name
   else if Length(LNameParts) = 2 then
@@ -1674,17 +1674,17 @@ end;
 
 function TKViewField.GetQualifiedDBName: string;
 var
-  P: Integer;
-  LReferenceModelName: string;
+  LReferencedModelName: string;
   LReferenceField: TKViewField;
+  LNameParts: TArray<string>;
 begin
-  P := Pos('.', Name);
-  if P > 0 then
+  LNameParts := Name.Split(['.']);
+  if Length(LNameParts) > 1 then
   begin
-    LReferenceModelName := Copy(Name, 1, P-1);
-    LReferenceField := GetTable.FindField(LReferenceModelName);
+    LReferencedModelName := LNameParts[0];
+    LReferenceField := Table.FieldByName(LReferencedModelName);
     if LReferenceField.IsReference then
-      Result := LReferenceField.ModelField.DbColumnName+'.'+ModelField.DBColumnName
+      Result := LReferenceField.ModelField.DBColumnName + '.' + ModelField.DBColumnName
     else
       Result := Name;
   end
@@ -1753,9 +1753,9 @@ end;
 
 function TKViewField.GetReferenceName: string;
 var
-  LNameParts: TStringDynArray;
+  LNameParts: TArray<string>;
 begin
-  LNameParts := Split(Name, '.');
+  LNameParts := Name.Split(['.']);
   if Length(LNameParts) = 1 then
     // <field name>
     Result := ''
@@ -1775,10 +1775,10 @@ end;
 
 function TKViewField.GetModelName: string;
 var
-  LNameParts: TStringDynArray;
+  LNameParts: TArray<string>;
   LReferencedModel: TKModel;
 begin
-  LNameParts := Split(Name, '.');
+  LNameParts := Name.Split(['.']);
   if Length(LNameParts) = 1 then
     // <field name>
     Result := Table.ModelName
