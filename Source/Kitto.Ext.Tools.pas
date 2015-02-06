@@ -66,7 +66,7 @@ implementation
 
 uses
   StrUtils,
-  Ext, EF.DB, EF.Tree,
+  Ext, EF.XML, EF.Tree,
   Kitto.Ext.Session, Kitto.Config;
 
 { TExportCSVToolController }
@@ -231,17 +231,13 @@ var
   LStore: TKViewTableStore;
   LXMLContent: string;
 begin
-  if Config.GetBoolean('RequireSelection', False) then
-  begin
-    LRecord := ServerRecord;
-    LXMLContent := LRecord.GetAsXML(True);
-  end
+  LRecord := ServerRecord;
+  LStore := ServerStore;
+  if Config.GetBoolean('RequireSelection', False) or not Assigned(LStore) then
+    LXMLContent := XMLHeader + LRecord.GetAsXML(True)
   else
-  begin
-    LStore := ServerStore;
-    LXMLContent := LStore.GetAsXML(True);
-  end;
-  Result := TStringStream.Create(LXMLContent);
+    LXMLContent := XMLHeader + LStore.GetAsXML(True);
+  Result := TStringStream.Create(LXMLContent, TEncoding.UTF8);
 end;
 
 function TExportXMLToolController.GetDefaultFileExtension: string;
