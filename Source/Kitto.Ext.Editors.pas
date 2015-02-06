@@ -1744,6 +1744,9 @@ begin
 
   if AIsReadOnly then
     ReadOnly := True;
+
+  if AViewField.IsRequired then
+    AllowBlank := False;
 end;
 
 procedure TKExtFormComboBoxEditor.StoreValue(const AObjectName: string);
