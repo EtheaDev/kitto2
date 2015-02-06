@@ -233,7 +233,7 @@ var
 begin
   LRecord := ServerRecord;
   LStore := ServerStore;
-  if Config.GetBoolean('RequireSelection', False) or not Assigned(LStore) then
+  if Assigned(LRecord) then
     LXMLContent := XMLHeader + LRecord.GetAsXML(True)
   else
     LXMLContent := XMLHeader + LStore.GetAsXML(True);

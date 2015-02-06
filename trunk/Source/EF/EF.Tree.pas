@@ -2896,7 +2896,10 @@ end;
 
 function TEFDataType.ValueToFloat(const AValue: Variant): Double;
 begin
-  Result := AValue;
+  if not VarIsNull(AValue) then
+    Result := AValue
+  else
+    Result := 0;
 end;
 
 function TEFDataType.ValueToInteger(const AValue: Variant): Integer;

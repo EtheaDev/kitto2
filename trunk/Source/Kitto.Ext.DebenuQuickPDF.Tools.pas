@@ -359,7 +359,7 @@ var
 
 begin
   LRecord := ServerRecord;
-  Assert(Assigned(LRecord), '"RequireSelection: True" is mandatory for MergePDFTool controller');
+  Assert(Assigned(LRecord), '"MergePDFTool controller works only on single record');
 
   LLayoutFileName := LoadLayout(LayoutFileName);
   LBaseFileName := BaseFileName;
