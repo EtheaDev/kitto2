@@ -32,11 +32,13 @@ type
   strict private
     FServerStore: TKViewTableStore;
     FViewTable: TKViewTable;
+    FServerRecord: TKViewTableRecord;
   strict protected
     procedure InitController(const AController: IKExtController); override;
   public
     property ViewTable: TKViewTable read FViewTable write FViewTable;
     property ServerStore: TKViewTableStore read FServerStore write FServerStore;
+    property ServerRecord: TKViewTableRecord read FServerRecord write FServerRecord;
   published
     procedure ExecuteActionOnSelectedRows;
   end;
@@ -386,7 +388,6 @@ end;
 
 procedure TKExtDataActionButton.ExecuteActionOnSelectedRows;
 var
-  LRecord: TKViewTableRecord;
   LController: IKExtController;
 begin
   Assert(Assigned(View));
@@ -394,11 +395,10 @@ begin
   Assert(Assigned(FServerStore));
   Assert(Assigned(ActionObserver));
 
-  LRecord := FServerStore.GetRecord(Session.GetQueries, Session.Config.JSFormatSettings, 0);
+  FServerRecord := FServerStore.GetRecord(Session.GetQueries, Session.Config.JSFormatSettings, 0);
   LController := TKExtControllerFactory.Instance.CreateController(
     Session.ObjectCatalog, View, nil, nil, ActionObserver);
   InitController(LController);
-  LController.Config.SetObject('Sys/Record', LRecord);
   LController.Display;
 end;
 
@@ -412,6 +412,7 @@ begin
 
   AController.Config.SetObject('Sys/ServerStore', FServerStore);
   AController.Config.SetObject('Sys/ViewTable', FViewTable);
+  AController.Config.SetObject('Sys/Record', FServerRecord);
 end;
 
 function TKExtDataPanelController.AutoLoadData: Boolean;
