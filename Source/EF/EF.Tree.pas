@@ -2888,7 +2888,10 @@ end;
 
 function TEFDataType.ValueToDecimal(const AValue: Variant): TBcd;
 begin
-  Result := VarToBcd(AValue);
+  if not VarIsNull(AValue) then
+    Result := VarToBcd(AValue)
+  else
+    Result := 0;
 end;
 
 function TEFDataType.ValueToFloat(const AValue: Variant): Double;
