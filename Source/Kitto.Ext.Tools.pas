@@ -55,11 +55,15 @@ type
 
   TExportXMLToolController = class(TKExtDownloadFileController)
   strict private
+    function GetIncludeHeader: boolean;
   strict protected
     function GetDefaultFileExtension: string; override;
+    function GetDefaultIncludeHeader: boolean; virtual;
     function CreateStream: TStream; override;
   public
     class function GetDefaultImageName: string;
+  published
+    property IncludeHeader: boolean read GetIncludeHeader;
   end;
 
 implementation
@@ -230,9 +234,15 @@ var
   LRecord: TKViewTableRecord;
   LStore: TKViewTableStore;
   LXMLContent: string;
+  LXMLHeader: string;
 begin
   LRecord := ServerRecord;
   LStore := ServerStore;
+  if IncludeHeader then
+    LXMLHeader := XMLHeader
+  else
+    LXMLHeader := '';
+
   if Assigned(LRecord) then
     LXMLContent := XMLHeader + LRecord.GetAsXML(True)
   else
@@ -248,6 +258,16 @@ end;
 class function TExportXMLToolController.GetDefaultImageName: string;
 begin
   Result := 'xml_document';
+end;
+
+function TExportXMLToolController.GetDefaultIncludeHeader: boolean;
+begin
+  Result := True;
+end;
+
+function TExportXMLToolController.GetIncludeHeader: boolean;
+begin
+  Result := Config.GetBoolean('IncludeHeader', GetDefaultIncludeHeader);
 end;
 
 initialization
