@@ -97,17 +97,12 @@ begin
   else
     LXMLContent := XMLHeader + LStore.GetAsXML(True);
 
-  if Assigned(LRecord) then
-    LXMLContent := XMLHeader + LRecord.GetAsXML(True)
-  else
-    LXMLContent := XMLHeader + LStore.GetAsXML(True);
-
   LFileStream := TStringStream.Create(LXMLContent, TEncoding.UTF8);
   try
     //Save XML file
     LFileStream.SaveToFile(LXMLFileName);
     //Add to temporary files so it will cleaned up
-    AddTempFilename(LXMLFileName);
+    //AddTempFilename(LXMLFileName);
 
     //Load XSL file and macro-substitute some elements
     LXSLFileName := TransformFileName;
