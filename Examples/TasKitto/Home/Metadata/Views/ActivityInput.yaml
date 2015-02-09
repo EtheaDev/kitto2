@@ -47,6 +47,8 @@ Controller: List
 MainTable:
   Model: ACTIVITY
   Controller:
+    FormController:
+      CloneButton:
     PopupWindow:
       Width: 700
       Height: 400

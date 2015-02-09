@@ -1,5 +1,5 @@
-Type: Data
-DisplayLabel: Line Chart 
+﻿Type: Data
+DisplayLabel: Line Chart
 Controller: List
 
   EastController: ChartPanel
@@ -23,7 +23,7 @@ Controller: List
           YField: DURATION
           DisplayName: _(Date)
           Style:
-            Color: 0x666000
+            Color: 6709248
         Series:
           Type: Column
           YField: DURATION
@@ -50,13 +50,13 @@ Controller: List
           YField: ACTIVITY_DATE
           DisplayName: _(Duration)
           Style:
-            Color: 0x000666
+            Color: 1638
         Series:
           XField: ACTIVITIES
           YField: ACTIVITY_DATE
           DisplayName: _(Activities)
           Style:
-            Color: 0x666000
+            Color: 6709248
       ChartStyle: |
         {
           legend: {
