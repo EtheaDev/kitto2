@@ -1,11 +1,11 @@
-Type: Data
+﻿Type: Data
 Controller: List
   .InplaceEditing: True
   Filters:
     DisplayLabel: Search Customers
     Items:
       FreeSearch: Free Search
-        ExpressionTemplate: (Customer.Customer like '%{value}%') or (Customer.CONTACT_FIRST like '%{value}%') or (Customer.CONTACT_LAST like '%{value}%') or (Customer.PHONE_NO like '%{value}%') or (Customer.ADDRESS_LINE1 like '%{value}%') or (Customer.ADDRESS_LINE2 like '%{value}%') or (Customer.City like '%{value}%') or (Customer.STATE_PROVINCE like '%{value}%') or (Customer.POSTAL_CODE like '%{value}%') or (Customer.ON_HOLD like '%{value}%')
+        ExpressionTemplate: ({Q}.Customer like '%{value}%') or ({Q}.CONTACT_FIRST like '%{value}%') or ({Q}.CONTACT_LAST like '%{value}%') or ({Q}.PHONE_NO like '%{value}%') or ({Q}.ADDRESS_LINE1 like '%{value}%') or ({Q}.ADDRESS_LINE2 like '%{value}%') or ({Q}.City like '%{value}%') or ({Q}.STATE_PROVINCE like '%{value}%') or ({Q}.POSTAL_CODE like '%{value}%') or ({Q}.ON_HOLD like '%{value}%')
 MainTable:
   Model: Customer
   Fields:
@@ -32,13 +32,13 @@ MainTable:
         DisplayLabel: Download in CSV
         ImageName: download
         Controller: ExportCSVTool
-          RequireSelection: False  
+          RequireSelection: False
       DownloadExcel:
         DisplayLabel: Download in Excel
         Controller: ExportExcelTool
           OutputFileName: PartyList.xls
           UseTemplate: PartyList.xlt
-          RequireSelection: False  
+          RequireSelection: False
   DetailTables:
     Controller:
       # Tabs/Popup. Default = Tabs.
@@ -63,4 +63,3 @@ MainTable:
         ItemType:
         Aged:
         SalesRepRef:
-        

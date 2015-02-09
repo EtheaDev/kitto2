@@ -1,4 +1,5 @@
 ﻿ModelName: Employee
+IsLarge: True
 PhysicalName: EMPLOYEE
 Fields:
   EmpNo: Integer not null primary key

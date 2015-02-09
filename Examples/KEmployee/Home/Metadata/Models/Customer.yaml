@@ -1,4 +1,5 @@
 ﻿ModelName: Customer
+PhysicalName: CUSTOMER
 Fields:
   CustNo: Integer not null primary key
     PhysicalName: CUST_NO
@@ -34,3 +35,4 @@ Fields:
 DetailReferences:
   Orders: Sales
 ImageName: report_user
+DefaultSorting: Customer.CUST_NO
