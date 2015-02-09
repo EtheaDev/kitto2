@@ -1,2 +1,2 @@
 user=password
-admin=password
+admin=admin

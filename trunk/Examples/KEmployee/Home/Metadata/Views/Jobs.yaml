@@ -1,4 +1,4 @@
-Type: Data
+﻿Type: Data
 Controller: List
   Filters:
     DisplayLabel: Search Jobs
@@ -15,5 +15,5 @@ MainTable:
     MaxSalary:
     JobRequirement:
     LanguageReq:
-    JobCountry:
-  Controller:
+    JobCountryRef:
+    JobCountryRef.Currency: Job_Currency

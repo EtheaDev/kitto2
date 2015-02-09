@@ -14,7 +14,7 @@ Fields:
     PhysicalName: JOB_REQUIREMENT
   LanguageReq: String(15)
     PhysicalName: LANGUAGE_REQ
-  JobCountry: Reference(Country) not null primary key
+  JobCountryRef: Reference(Country) not null primary key
     PhysicalName: JOB_COUNTRY
     Fields:
       JobCountry:
