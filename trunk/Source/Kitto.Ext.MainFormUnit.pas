@@ -172,7 +172,7 @@ end;
 
 procedure TKExtMainForm.UpdateSessionCountlabel;
 begin
-  SessionCountLabel.Caption := Format(_('Active Sessions: %d'), [GetSessionCount]);
+  SessionCountLabel.Caption := Format('Active Sessions: %d', [GetSessionCount]);
 end;
 
 function TKExtMainForm.GetSessionCount: Integer;
