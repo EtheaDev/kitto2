@@ -22,7 +22,7 @@ Databases:
   DBXFb: DBX
     Connection:
       DriverName: Firebird
-      DataBase: localhost:HelloKitto
+      DataBase: C:\Dev\Kitto\Examples\HelloKitto\DB\HelloKitto.fdb
       User_Name: SYSDBA
       Password: masterkey
       ServerCharSet: UTF8
