@@ -213,7 +213,17 @@ CREATE TABLE PROJECT
   CONSTRAINT PK_PROJECT PRIMARY KEY (PROJECT_ID)
 );
 /********************* VIEWS **********************/
-
+CREATE VIEW ACTIVITY_BY_DATE(
+    ACTIVITY_DATE,
+    DURATION,
+    ACTIVITIES)
+AS
+SELECT
+  ACTIVITY_DATE, AVG((end_time - start_time)/3600) DURATION, COUNT(*) ACTIVITIES
+FROM ACTIVITY
+GROUP BY
+  ACTIVITY_DATE;
+  
 /******************* EXCEPTIONS *******************/
 
 /******************** TRIGGERS ********************/
