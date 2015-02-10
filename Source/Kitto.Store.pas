@@ -74,6 +74,7 @@ type
     procedure ValueChanged(const AOldValue: Variant; const ANewValue: Variant); override;
     function GetDataType: TEFDataType; override;
   public
+    procedure Assign(const ASource: TEFTree); override;
     property HeaderField: TKHeaderField read FHeaderField write FHeaderField;
     procedure MarkAsUnmodified;
     procedure SetToNull(const AForceChangeNotification: Boolean = False); override;
@@ -1211,6 +1212,13 @@ end;
 function TKField.GetJSONName: string;
 begin
   Result := FieldName;
+end;
+
+procedure TKField.Assign(const ASource: TEFTree);
+begin
+  if ASource is TKField then
+    FHeaderField := TKField(ASource).HeaderField;
+  inherited;
 end;
 
 function TKField.GetAsJSON(const AForDisplay: Boolean): string;
