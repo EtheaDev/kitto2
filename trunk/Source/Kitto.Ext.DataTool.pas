@@ -32,6 +32,7 @@ type
     function GetViewTable: TKViewTable;
   strict protected
     procedure AfterExecuteTool; override;
+    procedure ExecuteTool; override;
     property ServerStore: TKViewTableStore read GetServerStore;
     property ServerRecord: TKViewTableRecord read GetServerRecord;
     property ViewTable: TKViewTable read GetViewTable;
@@ -40,7 +41,9 @@ type
 
     procedure ExecuteInTransaction(const AProc: TProc);
 
-    procedure EnumerateSelectedRecords(const AProc: TProc<TKViewTableRecord>);
+    procedure EnumSelectedRecords(const AProc: TProc<TKViewTableRecord>);
+
+    function ExpandServerRecordValues(const AString: string): string;
   end;
 
   TKExtDataWindowToolController = class(TKExtWindowToolController)
@@ -49,6 +52,7 @@ type
     function GetServerStore: TKViewTableStore;
     function GetViewTable: TKViewTable;
   strict protected
+    procedure DoDisplay; override;
     procedure AfterExecuteTool; override;
     property ServerStore: TKViewTableStore read GetServerStore;
     property ServerRecord: TKViewTableRecord read GetServerRecord;
@@ -58,7 +62,7 @@ type
 
     procedure ExecuteInTransaction(const AProc: TProc);
 
-    procedure EnumerateSelectedRecords(const AProc: TProc<TKViewTableRecord>);
+    procedure EnumSelectedRecords(const AProc: TProc<TKViewTableRecord>);
   end;
 
 implementation
@@ -67,6 +71,12 @@ uses
   StrUtils,
   EF.Tree, EF.DB, EF.StrUtils,
   Kitto.Config, Kitto.Ext.Session;
+
+procedure LoadRecordDetails(const ARecord: TKViewTableRecord);
+begin
+  if Assigned(ARecord) then
+    ARecord.LoadDetailStores;
+end;
 
 { TKExtDataToolController }
 
@@ -80,7 +90,7 @@ begin
     RefreshData(SameText(LAutoRefresh, 'All'));
 end;
 
-procedure TKExtDataToolController.EnumerateSelectedRecords(
+procedure TKExtDataToolController.EnumSelectedRecords(
   const AProc: TProc<TKViewTableRecord>);
 var
   LKey: TEFNode;
@@ -118,6 +128,23 @@ begin
   end;
 end;
 
+function TKExtDataToolController.ExpandServerRecordValues(const AString: string): string;
+var
+  LRecord: TKViewTableRecord;
+begin
+  Result := AString;
+  LRecord := ServerRecord;
+  if LRecord <> nil then
+    Result := LRecord.ExpandExpression(Result);
+end;
+
+procedure TKExtDataToolController.ExecuteTool;
+begin
+  inherited;
+  if Config.GetBoolean('RequireDetails') then
+    LoadRecordDetails(ServerRecord);
+end;
+
 function TKExtDataToolController.GetServerRecord: TKViewTableRecord;
 begin
   Result := Config.GetObject('Sys/Record') as TKViewTableRecord;
@@ -153,7 +180,7 @@ begin
     RefreshData(SameText(LAutoRefresh, 'All'));
 end;
 
-procedure TKExtDataWindowToolController.EnumerateSelectedRecords(
+procedure TKExtDataWindowToolController.EnumSelectedRecords(
   const AProc: TProc<TKViewTableRecord>);
 var
   LKey: TEFNode;
@@ -189,6 +216,13 @@ begin
     LDBConnection.RollbackTransaction;
     raise;
   end;
+end;
+
+procedure TKExtDataWindowToolController.DoDisplay;
+begin
+  inherited;
+  if Config.GetBoolean('RequireDetails') then
+    LoadRecordDetails(ServerRecord);
 end;
 
 function TKExtDataWindowToolController.GetServerRecord: TKViewTableRecord;

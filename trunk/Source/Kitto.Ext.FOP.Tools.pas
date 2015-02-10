@@ -84,8 +84,6 @@ var
   LFOPReport: TEFFopReport;
 begin
   Assert(TransformFileName <> '','FOP TransformFileName is mandatory');
-  LRecord := ServerRecord;
-  LStore := ServerStore;
 
   LXMLFileName := ChangeFileExt(AFileName, '.xml');
   LRecord := ServerRecord;
