@@ -414,14 +414,19 @@ begin
 end;
 
 procedure TKExtFormPanelController.ConfirmChanges;
+var
+  LError: string;
 begin
   AssignFieldChangeEvent(False);
-  UpdateRecord(FStoreRecord, SO(Session.RequestBody).O['new'], True);
+  LError := UpdateRecord(FStoreRecord, SO(Session.RequestBody).O['new'], True);
   FreeAndNil(FCloneValues);
-  if Config.GetBoolean('KeepOpenAfterOperation') then
-    StartOperation
-  else
-    CloseHostContainer;
+  if LError = '' then
+  begin
+    if Config.GetBoolean('KeepOpenAfterOperation') then
+      StartOperation
+    else
+      CloseHostContainer;
+  end;
 end;
 
 procedure TKExtFormPanelController.ConfirmChangesAndClone;

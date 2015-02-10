@@ -90,12 +90,16 @@ type
     ///	<c>ErrorMessage</c> parameter is specified.</remarks>
     function InternalGetErrorMessage: string; virtual;
 
-    ///	<summary>Raises a validation error. If no message is passed, then the
-    ///	result of GetErrorMessage is used.</summary>
+    ///	<summary>
+    ///  Raises a validation error. If no message is passed, then the
+    ///	 result of GetErrorMessage is used.
+    /// </summary>
     procedure RaiseError(const AMessage: string = ''); overload;
 
-    ///	<summary>Raises a validation error formatted with params. If no message
-    /// is passed, then the result of GetErrorMessage is used.</summary>
+    ///	<summary>
+    ///  Raises a validation error formatted with params. If no message
+    ///  is passed, then the result of GetErrorMessage is used.
+    /// </summary>
     procedure RaiseError(const AParams: array of const; const AMessage: string = ''); overload;
 
     ///	<summary>Called by both BeforeAdd and BeforeUpdate. The default
