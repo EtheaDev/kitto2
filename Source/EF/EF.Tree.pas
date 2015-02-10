@@ -46,7 +46,7 @@ type
     procedure InternalFieldValueToNode(const AField: TField; const ANode: TEFNode); virtual;
     procedure InternalNodeToField(const ANode: TEFNode; const AField: TField); virtual;
     procedure InternalYamlValueToNode(const AYamlValue: string; const ANode: TEFNode;
-      const AFormatSettings: TFormatSettings); virtual;
+      const AFormatSettings: TFormatSettings); virtual; abstract;
     function InternalNodeToJSONValue(const AForDisplay: Boolean;
       const ANode: TEFNode; const AJSFormatSettings: TFormatSettings): string; virtual;
     procedure InternalJSONValueToNode(const ANode: TEFNode;
@@ -58,7 +58,8 @@ type
     class function HasScale: Boolean; virtual;
 
     class procedure SetNodeDataTypeAndValueFromYaml(const AYamlValue: string;
-      const ANode: TEFNode; const AFormatSettings: TFormatSettings);
+      const ANode: TEFNode; const AFormatSettings: TFormatSettings;
+      const APreferStrings: Boolean);
 
     procedure FieldValueToNode(const AField: TField; const ANode: TEFNode);
     procedure NodeToField(const ANode: TEFNode; const AField: TField);
@@ -1017,14 +1018,15 @@ type
 
     property AsBytes: TBytes read GetAsBytes write SetAsBytes;
 
-    ///	<summary>Parses AValue trying to guess its data type and sets Value and
-    ///	DataType accordingly.</summary>
-    ///	<param name="AValue">Value to parse, usually read from a Yaml
-    ///	stream.</param>
+    ///	<summary>
+    ///  Parses AValue trying to guess its data type and sets Value and
+    ///	 DataType accordingly.
+    /// </summary>
+    ///	<param name="AValue">Value to parse, usually read from a Yaml	stream.</param>
     ///	<param name="AFormatSettings">Format settings to use to parse the
     ///	value. You can use Session.UserFormatSettings, or
     ///	Session.JSFormatSettings, or custom settings.</param>
-    ///	<returns>Returns Self to allow for fluent calls.</returns>
+    /// <returns>Returns Self to allow for fluent calls.</returns>
     function SetAsYamlValue(const AValue: string; const AFormatSettings: TFormatSettings): TEFNode;
 
     ///	<summary>Parses AValue according to DataType and sets its own value
@@ -2692,14 +2694,9 @@ begin
   end;
 end;
 
-procedure TEFDataType.InternalYamlValueToNode(const AYamlValue: string;
-  const ANode: TEFNode; const AFormatSettings: TFormatSettings);
-begin
-  SetNodeDataTypeAndValueFromYaml(AYamlValue, ANode, AFormatSettings);
-end;
-
 class procedure TEFDataType.SetNodeDataTypeAndValueFromYaml(const AYamlValue: string;
-  const ANode: TEFNode; const AFormatSettings: TFormatSettings);
+  const ANode: TEFNode; const AFormatSettings: TFormatSettings;
+  const APreferStrings: Boolean);
 var
   LInteger: Integer;
   LDouble: Double;
@@ -2708,20 +2705,35 @@ var
 begin
   Assert(Assigned(ANode));
 
-  if TryStrToInt(AYamlValue, LInteger) then
-    ANode.AsInteger := LInteger
-  else if TryStrToFloat(AYamlValue, LDouble, AFormatSettings) then
-    ANode.AsFloat := LDouble
-  else if TryStrToDateTime(AYamlValue, LDateTime, AFormatSettings) then
-    ANode.AsDateTime := LDateTime
-  else if TryStrToDate(AYamlValue, LDateTime, AFormatSettings) then
-    ANode.AsDate := LDateTime
-  else if TryStrToTime(AYamlValue, LDateTime, AFormatSettings) then
-    ANode.AsTime := LDateTime
-  else if TryStrToBool(AYamlValue, LBoolean) then
-    ANode.AsBoolean := LBoolean
+  // Numbers are treated as strings.
+  if APreferStrings then
+  begin
+    if TryStrToDateTime(AYamlValue, LDateTime, AFormatSettings) then
+      ANode.AsDateTime := LDateTime
+    else if TryStrToDate(AYamlValue, LDateTime, AFormatSettings) then
+      ANode.AsDate := LDateTime
+    else if TryStrToTime(AYamlValue, LDateTime, AFormatSettings) then
+      ANode.AsTime := LDateTime
+    else
+      ANode.AsString := AYamlValue;
+  end
   else
-    ANode.AsString := AYamlValue;
+  begin
+    if TryStrToInt(AYamlValue, LInteger) then
+      ANode.AsInteger := LInteger
+    else if TryStrToFloat(AYamlValue, LDouble, AFormatSettings) then
+      ANode.AsFloat := LDouble
+    else if TryStrToDateTime(AYamlValue, LDateTime, AFormatSettings) then
+      ANode.AsDateTime := LDateTime
+    else if TryStrToDate(AYamlValue, LDateTime, AFormatSettings) then
+      ANode.AsDate := LDateTime
+    else if TryStrToTime(AYamlValue, LDateTime, AFormatSettings) then
+      ANode.AsTime := LDateTime
+    else if TryStrToBool(AYamlValue, LBoolean) then
+      ANode.AsBoolean := LBoolean
+    else
+      ANode.AsString := AYamlValue;
+  end;
 end;
 
 function TEFDataType.IsBlob(const ASize: Integer): Boolean;

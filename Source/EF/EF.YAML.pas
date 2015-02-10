@@ -15,7 +15,7 @@
 -------------------------------------------------------------------------------}
 
 ///	<summary>
-///	  Simple YAML reader and writer providing persistence for EF trees.
+///	 Simple YAML reader and writer providing persistence for EF trees.
 ///	</summary>
 unit EF.YAML;
 
@@ -29,7 +29,7 @@ type
   TEFYAMLValueType = (vtSingleLine, vtMultiLineWithNL, vtMultiLineWithSpace);
 
   ///	<summary>
-  ///	  A parser for yaml data streams.
+  ///	 A parser for yaml data streams.
   ///	</summary>
   TEFYAMLParser = class
   strict private
@@ -46,35 +46,39 @@ type
     destructor Destroy; override;
   public
     ///	<summary>
-    ///	  Resets the parser, maeking it ready for parsing a new data stream.
+    ///	 Resets the parser, maeking it ready for parsing a new data stream.
     ///	</summary>
     procedure Reset;
 
     ///	<summary>
-    ///	  Parses a yaml line and returns name and value. Also sets the
-    ///	  LastValueType and LastIndentIncrement properties.
+    ///	 Parses a yaml line and returns name and value. Also sets the
+    ///	 LastValueType and LastIndentIncrement properties.
     ///	</summary>
     function ParseLine(const ALine: string; out AName, AValue: string): Boolean;
 
     ///	<summary>
-    ///	  Reports the type (not the data type) of the last parsed value, which
-    ///	  may be a single-line or multi-line (two kinds) value.
+    ///	 Reports the type (not the data type) of the last parsed value, which
+    ///	 may be a single-line or multi-line (two kinds) value.
     ///	</summary>
     property LastValueType: TEFYAMLValueType read FLastValueType;
 
     ///	<summary>
-    ///	  Reports the indent increment of the last parsed line.
+    ///	 Reports the indent increment of the last parsed line.
     ///	</summary>
     property LastIndentIncrement: Integer read FLastIndentIncrement;
 
-    ///	<summary>Contains all the annotations read since last reset. The caller
-    ///	is responsible for resetting this list at appropriate times.</summary>
+    ///	<summary>
+    ///  Contains all the annotations read since last reset. The caller
+    ///	 is responsible for resetting this list at appropriate times.
+    /// </summary>
     property LastAnnotations: TStrings read FLastAnnotations;
 
-    ///	<summary>Returns true if the last read value was quoted. Single-line
-    ///	values are unquoted when reading; querying this property allows to find
-    ///	out if a value was originally quoted (for example, to make sure it is
-    ///	quoted back when writing) or not.</summary>
+    ///	<summary>
+    ///  Returns true if the last read value was quoted. Single-line
+    ///	 values are unquoted when reading; querying this property allows to find
+    ///	 out if a value was originally quoted (for example, to make sure it is
+    ///	 quoted back when writing) or not.
+    /// </summary>
     property LastValueQuoted: Boolean read FLastValueQuoted;
   end;
 
@@ -426,7 +430,7 @@ begin
             if ATree is TEFNode then
             begin
               TEFNode(ATree).Name := LName;
-              TEFDataType.SetNodeDataTypeAndValueFromYaml(LRawValue, TEFNode(ATree), FFormatSettings);
+              TEFDataType.SetNodeDataTypeAndValueFromYaml(LRawValue, TEFNode(ATree), FFormatSettings, Parser.LastValueQuoted);
               LStack.Push(TEFNode(ATree));
               Continue;
             end;
@@ -437,7 +441,7 @@ begin
             vtSingleLine:
             begin
               LNewNode := LTop.AddChild(LName);
-              TEFDataType.SetNodeDataTypeAndValueFromYaml(LRawValue, LNewNode, FFormatSettings);
+              TEFDataType.SetNodeDataTypeAndValueFromYaml(LRawValue, LNewNode, FFormatSettings, Parser.LastValueQuoted);
               LNewNode.AssignAnnotations(Parser.LastAnnotations);
               if Parser.LastValueQuoted then
                 LNewNode.ValueAttributes := '"'
