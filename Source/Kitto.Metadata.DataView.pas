@@ -456,6 +456,7 @@ type
     property Store: TKViewTableStore read GetStore;
     property ViewTable: TKViewTable read GetViewTable;
     procedure EnsureDetailStores;
+    procedure LoadDetailStores;
     property DetailStores[I: Integer]: TKViewTableStore read GetDetailsStore;
     function AddDetailStore(const AStore: TKViewTableStore): TKViewTableStore;
     procedure Save(const AUseTransaction: Boolean);
@@ -1503,8 +1504,8 @@ function TKViewField.GetAliasedDBName: string;
 begin
   Result := Alias;
   if Result = '' then
-    Result := DBName;
-  if (Result = '') or (Pos('.', Result) > 0) then
+    Result := ReplaceStr(DBName, '.', '_');
+  if Result = '' then
     raise EKError.CreateFmt('ViewField %s must have an alias.', [Name]);
 end;
 
@@ -1512,8 +1513,8 @@ function TKViewField.GetAliasedName: string;
 begin
   Result := Alias;
   if Result = '' then
-    Result := Name;
-  if (Result = '') or (Pos('.', Result) > 0) then
+    Result := ReplaceStr(Name, '.', '_');
+  if Result = '' then
     raise EKError.CreateFmt('ViewField %s must have an alias.', [Name]);
 end;
 
@@ -2253,6 +2254,20 @@ begin
     begin
       ARuleImpl.NewRecord(Self);
     end);
+end;
+
+procedure TKViewTableRecord.LoadDetailStores;
+var
+  I: Integer;
+  LRecordIndex: Integer;
+begin
+  EnsureDetailStores;
+  for I := 0 to DetailStoreCount - 1 do
+  begin
+    DetailStores[I].Load('', '');
+    for LRecordIndex := 0 to DetailStores[I].RecordCount - 1 do
+      DetailStores[I].Records[LRecordIndex].LoadDetailStores;
+  end;
 end;
 
 procedure TKViewTableRecord.EnsureDetailStores;

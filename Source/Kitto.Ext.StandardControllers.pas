@@ -132,11 +132,14 @@ type
     FTempFileNames: TStrings;
     FFileName: string;
     FStream: TStream;
-  strict private
     function GetClientFileName: string;
     function GetContentType: string;
     function GetFileName: string;
-  strict protected
+    procedure DoDownloadStream(const AStream: TStream;
+      const AFileName: string; const AContentType: string);
+  strict
+  private
+    procedure PersistFile(const AStream: TStream); protected
     procedure ExecuteTool; override;
     function NormalizeColumName(const FieldName: string): string; virtual;
     function GetFileExtension: string;
@@ -277,6 +280,36 @@ begin
   FTempFileNames.Free;
 end;
 
+procedure TKExtDownloadFileController.DoDownloadStream(const AStream: TStream;
+  const AFileName, AContentType: string);
+begin
+  PersistFile(AStream);
+  Session.DownloadStream(AStream, AFileName, AContentType);
+end;
+
+procedure TKExtDownloadFileController.PersistFile(const AStream: TStream);
+var
+  LPersistentFileName: string;
+  LFileStream: TFileStream;
+begin
+  Assert(Assigned(AStream));
+
+  LPersistentFileName := ExpandServerRecordValues(Config.GetExpandedString('PersistentFileName'));
+  if LPersistentFileName <> '' then
+  begin
+    if FileExists(LPersistentFileName) then
+      DeleteFile(LPersistentFileName);
+    LFileStream := TFileStream.Create(LPersistentFileName, fmCreate or fmShareExclusive);
+    try
+      AStream.Position := 0;
+      LFileStream.CopyFrom(AStream, AStream.Size);
+    finally
+      FreeAndNil(LFileStream);
+      AStream.Position := 0;
+    end;
+  end;
+end;
+
 procedure TKExtDownloadFileController.DownloadFile;
 var
   LStream: TStream;
@@ -284,7 +317,7 @@ begin
   try
     LStream := TFileStream.Create(FFileName, fmOpenRead);
     try
-      Session.DownloadStream(LStream, ClientFileName, ContentType);
+      DoDownloadStream(LStream, ClientFileName, ContentType);
     finally
       FreeAndNil(LStream);
     end;
@@ -297,7 +330,7 @@ procedure TKExtDownloadFileController.DownloadStream;
 begin
   try
     try
-      Session.DownloadStream(FStream, ClientFileName, ContentType);
+      DoDownloadStream(FStream, ClientFileName, ContentType);
     finally
       FreeAndNil(FStream);
     end;
@@ -307,13 +340,8 @@ begin
 end;
 
 function TKExtDownloadFileController.GetClientFileName: string;
-var
-  LRecord: TKViewTableRecord;
 begin
-  Result := Config.GetExpandedString('ClientFileName');
-  LRecord := ServerRecord;
-  if (LRecord <> nil) then
-    Result := LRecord.ExpandExpression(Result);
+  Result := ExpandServerRecordValues(Config.GetExpandedString('ClientFileName'));
   if (Result = '') then
   begin
     if Assigned(ViewTable) then
