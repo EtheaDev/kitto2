@@ -186,6 +186,8 @@ procedure TKExtTilePanel.AddTiles(const ANode: TKTreeViewNode; const ADisplayLab
 var
   I: Integer;
   LSubNode: TKTreeViewNode;
+  LDisplayLabelNode: TEFNode;
+  LDisplayLabel: string;
 begin
   FTileBoxHtml := FTileBoxHtml + '<div class="k-tile-row">';
   if ANode is TKTreeViewFolder then
@@ -194,7 +196,12 @@ begin
     for I := 0 to ANode.TreeViewNodeCount - 1 do
     begin
       LSubNode := ANode.TreeViewNodes[I];
-      AddTile(LSubNode, GetDisplayLabelFromNode(LSubNode, Session.Config.Views));
+      LDisplayLabelNode := LSubNode.FindNode('DisplayLabel');
+      if Assigned(LDisplayLabelNode) then
+        LDisplayLabel := _(LDisplayLabelNode.AsString)
+      else
+        LDisplayLabel := GetDisplayLabelFromNode(LSubNode, Session.Config.Views);
+      AddTile(LSubNode, LDisplayLabel);
     end;
     if FMaxTilesPerFolder < ANode.TreeViewNodeCount then
       FMaxTilesPerFolder := ANode.TreeViewNodeCount;
