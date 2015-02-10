@@ -65,6 +65,8 @@ type
 
   TKModelFieldArray = TArray<TKModelField>;
 
+  TKFilterByField = TPair<TKModelField, string>;
+
   TKModelField = class(TKMetadataItem)
   strict private
     function GetFieldName: string;
@@ -352,6 +354,8 @@ type
     ///	name of another field in the same model that will store the
     ///	original file name upon upload.</summary>
     property FileNameField: string read GetFileNameField;
+
+    function GetFilterByFields: TArray<TKFilterByField>;
   end;
 
   TKModelFields = class(TKMetadataItem)
@@ -1260,6 +1264,24 @@ end;
 function TKModelField.GetFileNameField: string;
 begin
   Result := GetString('FileNameField');
+end;
+
+function TKModelField.GetFilterByFields: TArray<TKFilterByField>;
+var
+  LNode: TEFNode;
+  I: Integer;
+begin
+  SetLength(Result, 0);
+  LNode := FindNode('FilterBy');
+  if Assigned(LNode) then
+  begin
+    SetLength(Result, LNode.ChildCount);
+    for I := Low(Result) to High(Result) do
+    begin
+      Result[I].Key := FieldByName(LNode.Children[I].Name);
+      Result[I].Value := LNode.Children[I].AsString;
+    end;
+  end;
 end;
 
 function TKModelField.GetHint: string;

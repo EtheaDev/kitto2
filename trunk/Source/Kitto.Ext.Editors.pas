@@ -608,9 +608,12 @@ type
   end;
 
   TKEditItemList = class(TList<TObject>)
+  private
   public
     procedure EnumEditors(const APredicate: TFunc<IKExtEditor, Boolean>; const AHandler: TProc<IKExtEditor>);
+    procedure EditorsByViewField(const AViewField: TKVIewField; const AHandler: TProc<IKExtEditor>);
     procedure EditorsByFieldName(const AFieldName: string; const AHandler: TProc<IKExtEditor>);
+    procedure EditorsByField(const AField: TKField; const AHandler: TProc<IKExtEditor>);
     procedure AllEditors(const AHandler: TProc<IKExtEditor>);
     procedure EnumEditItems(const APredicate: TFunc<IKExtEditItem, Boolean>;
       const AHandler: TProc<IKExtEditItem>);
@@ -689,8 +692,17 @@ begin
     // Uploads always need the change handler.
     Result := True
   else if AViewTableField.ViewField.DerivedFieldsExist then
+    // Derived fields must be updated when source field changes.
     Result := True
-  else if AViewTableField.GetBoolean('NotifyChange') then // temporary
+  else if AViewTableField.GetBoolean('NotifyChange') then
+    // Temporary, for cases not handled by this detector and setup manually.
+    Result := True
+  else if Length(AViewTableField.ViewField.Table.GetFilterByFields(
+      function (AFilterByViewField: TKFilterByViewField): Boolean
+      begin
+        Result := AFilterByViewField.SourceField = AViewTableField.ViewField;
+      end)) > 0 then
+    // If any fields are filtered by this field, then the change must be notified.
     Result := True
   else
     Result := False;
@@ -1577,7 +1589,7 @@ begin
   LDBQuery := Session.Config.DBConnections[FRecordField.ViewField.Table.DatabaseName].CreateDBQuery;
   try
     TKSQLBuilder.BuildLookupSelectStatement(FRecordField.ViewField, LDBQuery,
-      ReplaceStr(Session.Query['query'], '''', ''''''));
+      ReplaceStr(Session.Query['query'], '''', ''''''), FRecordField.ParentRecord);
     FServerStore.Load(LDBQuery);
   finally
     FreeAndNil(LDBQuery);
@@ -1613,6 +1625,11 @@ begin
     LValue := JSONNullToEmptyStr(FRecordField.ParentRecord.FieldByName(LKeyFieldNames).GetAsJSONValue(False, False));
     SetValue(LValue);
     SetRawValue(JSONNullToEmptyStr(FRecordField.GetAsJSONValue(False, False)));
+
+    // Force the combo to refresh its list at next drop down.
+    Store.RemoveAll();
+    Store.TotalLength := 0;
+    Session.ResponseItems.ExecuteJSCode(Format('%s.lastQuery = null;', [JSName]));
   end;
   Session.ResponseItems.ExecuteJSCode(JSName + '.kitto$isChanged = false;');
 end;
@@ -1644,14 +1661,8 @@ begin
     if IsChangeHandlerNeeded(FRecordField) then
       On('change', JSFunction(GetChangeJSCode(ValueChanged)));
     On('select', JSFunction(JSName + '.kitto$isChanged = true;'));
-    //OnChange := FieldChange;
   end;
 end;
-
-//procedure TKExtFormComboBoxEditor.FieldChange(This: TExtFormField; NewValue: string; OldValue: string);
-//begin
-//  FRecordField.SetAsJSONValue(NewValue, False, Session.Config.UserFormatSettings);
-//end;
 
 procedure TKExtFormComboBoxEditor.ValueChanged;
 var
@@ -1659,14 +1670,15 @@ var
   LKeyFieldNames: string;
 begin
   LNewValues := SO(Session.RequestBody).O['new'];
-  Assert(LNewValues.AsObject.Count > 0);
-
-  if Mode = 'local' then
-    FRecordField.SetAsJSONValue(LNewValues.S[HiddenName], False, Session.Config.UserFormatSettings)
-  else
+  if LNewValues.AsObject.Count > 0 then
   begin
-    LKeyFieldNames := Join(FRecordField.ViewField.ModelField.GetFieldNames, TKConfig.Instance.MultiFieldSeparator);
-    FRecordField.ParentRecord.FieldByName(LKeyFieldNames).SetAsJSONValue(LNewValues.S[HiddenName], False, Session.Config.UserFormatSettings);
+    if Mode = 'local' then
+      FRecordField.SetAsJSONValue(LNewValues.S[HiddenName], False, Session.Config.UserFormatSettings)
+    else
+    begin
+      LKeyFieldNames := Join(FRecordField.ViewField.ModelField.GetFieldNames, TKConfig.Instance.MultiFieldSeparator);
+      FRecordField.ParentRecord.FieldByName(LKeyFieldNames).SetAsJSONValue(LNewValues.S[HiddenName], False, Session.Config.UserFormatSettings);
+    end;
   end;
 end;
 
@@ -3300,6 +3312,28 @@ begin
     function (AEditor: IKExteditor): Boolean
     begin
       Result := SameText(AEditor.GetRecordField.ViewField.AliasedName, AFieldName);
+    end,
+    AHandler);
+end;
+
+procedure TKEditItemList.EditorsByViewField(const AViewField: TKVIewField;
+  const AHandler: TProc<IKExtEditor>);
+begin
+  EnumEditors(
+    function (AEditor: IKExteditor): Boolean
+    begin
+      Result := AEditor.GetRecordField.ViewField = AViewField;
+    end,
+    AHandler);
+end;
+
+procedure TKEditItemList.EditorsByField(const AField: TKField;
+  const AHandler: TProc<IKExtEditor>);
+begin
+  EnumEditors(
+    function (AEditor: IKExteditor): Boolean
+    begin
+      Result := AEditor.GetRecordField = AField;
     end,
     AHandler);
 end;
