@@ -403,15 +403,31 @@ type
     function HasChild(const AName: string): Boolean;
 
     type
-      ///	<summary>Type used by FindChildByPredicate.</summary>
+      ///	<summary>
+      ///  Type used by FindChildByPredicate and EnumChildren.
+      /// </summary>
       TPredicate = reference to function (const ANode: TEFNode): Boolean;
 
     ///	<summary>
-    ///	  Finds a child node by predicate. The predicate function is called
-    ///   for each child and should return True if a child qualifies.
-    ///   If no qualifying child is found, the method return nil.
+    ///	 Finds a child node by predicate. The predicate function is called
+    ///  for each child and should return True if a child qualifies.
+    ///  The method returns the first qualifying child (and stops as soon
+    ///  as it is found).
+    ///  If no qualifying child is found, the method return nil.
     ///	</summary>
     function FindChildByPredicate(const APredicate: TPredicate): TEFNode;
+
+    type
+      ///	<summary>
+      ///  Type used by EnumChildren.
+      /// </summary>
+      TNodeProc = reference to procedure (const ANode: TEFNode);
+
+    /// <summary>
+    ///  Calls APredicate for each direct child node. If APredicate returns True,
+    ///  calls AProc passing the qualifying child node.
+    /// </summary>
+    procedure EnumChildren(const APredicate: TPredicate; const AProc: TNodeProc);
 
     ///	<summary>
     ///	  Finds a child node by name. Raises an exception if not found.
@@ -429,108 +445,108 @@ type
     procedure ClearChildren;
 
     ///	<summary>
-    ///	  Returns the count of direct children of a specified type.
+    ///	 Returns the count of direct children of a specified type.
     ///	</summary>
     function GetChildCount<T: class>: Integer; overload;
 
     ///	<summary>
-    ///	  Indexed access to a list of children limited to the set of children
-    ///	  that are of the specified type.
+    ///	 Indexed access to a list of children limited to the set of children
+    ///	 that are of the specified type.
     ///	</summary>
     function GetChild<T: class>(const AIndex: Integer): T; overload;
 
     ///	<summary>
-    ///	  Searches a node by a path. Separate hierarchy elements with a /.
+    ///	 Searches a node by a path. Separate hierarchy elements with a /.
     ///	</summary>
     ///	<param name="APath">
-    ///	  A string path. Example: Node/SubNode.
+    ///	 A string path. Example: Node/SubNode.
     ///	</param>
     ///	<param name="ACreateMissingNodes">
-    ///	  If True, creates any missing nodes throughout the path and the final
-    ///	  node as well. This guarantees that the result is not nil.
+    ///	 If True, creates any missing nodes throughout the path and the final
+    ///	 node as well. This guarantees that the result is not nil.
     ///	</param>
     ///	<returns>
-    ///	  The found node, or nil.
+    ///	 The found node, or nil.
     ///	</returns>
     function FindNode(const APath: string; const ACreateMissingNodes: Boolean = False): TEFNode; virtual;
 
     ///	<summary>
-    ///	  Works like FindNode, but raises an exception if ACreateMissingNodes
-    ///	  is False and the wanted node does not exist.
+    ///	 Works like FindNode, but raises an exception if ACreateMissingNodes
+    ///	 is False and the wanted node does not exist.
     ///	</summary>
     ///	<param name="ACreateMissingNodes">
-    ///	  If True, creates any missing nodes throughout the path and the final
-    ///	  node as well. This guarantees that the result is not nil.
+    ///	 If True, creates any missing nodes throughout the path and the final
+    ///	 node as well. This guarantees that the result is not nil.
     ///	</param>
     ///	<returns>
-    ///	  The found node.
+    ///	 The found node.
     ///	</returns>
     function GetNode(const APath: string; const ACreateMissingNodes: Boolean = False): TEFNode;
 
     ///	<summary>
-    ///	  Finds a node by path and, if found, deletes it.
+    ///	 Finds a node by path and, if found, deletes it.
     ///	</summary>
     procedure DeleteNode(const APath: string);
 
     ///	<summary>
-    ///	  Finds a node by path and, if found, returns its value, otherwise
-    ///	  returns ADefaultValue.
+    ///	 Finds a node by path and, if found, returns its value, otherwise
+    ///	 returns ADefaultValue.
     ///	</summary>
     function GetValue(const APath: string; const ADefaultValue: Variant): Variant; overload;
 
     ///	<summary>
-    ///	  Finds a node by path and, if found, returns its value, otherwise
-    ///	  returns Null.
+    ///	 Finds a node by path and, if found, returns its value, otherwise
+    ///	 returns Null.
     ///	</summary>
     function GetValue(const APath: string): Variant; overload;
 
     ///	<summary>
-    ///	  Finds a node by path and, if found, returns its value as a Boolean,
-    ///	  otherwise returns ADefaultValue.
+    ///	 Finds a node by path and, if found, returns its value as a Boolean,
+    ///	 otherwise returns ADefaultValue.
     ///	</summary>
     function GetBoolean(const APath: string; const ADefaultValue: Boolean = False): Boolean;
 
     ///	<summary>
-    ///	  Finds a node by path and, if found, returns its value as a Double,
-    ///	  otherwise returns ADefaultValue.
+    ///	 Finds a node by path and, if found, returns its value as a Double,
+    ///	 otherwise returns ADefaultValue.
     ///	</summary>
     function GetFloat(const APath: string; const ADefaultValue: Double = 0): Double;
 
     ///	<summary>
-    ///	  Finds a node by path and, if found, returns its value as an Integer,
-    ///	  otherwise returns ADefaultValue.
+    ///	 Finds a node by path and, if found, returns its value as an Integer,
+    ///	 otherwise returns ADefaultValue.
     ///	</summary>
     function GetInteger(const APath: string; const ADefaultValue: Integer = 0): Integer;
 
     ///	<summary>
-    ///	  Finds a node by path and, if found, returns its value as a string,
-    ///	  otherwise returns ADefaultValue.
+    ///	 Finds a node by path and, if found, returns its value as a string,
+    ///	 otherwise returns ADefaultValue.
     ///	</summary>
     function GetString(const APath: string; const ADefaultValue: string = ''): string;
 
     ///	<summary>
-    ///	  Finds a node by path and, if found, returns its value as a char,
-    ///	  otherwise returns ADefaultValue.
+    ///	 Finds a node by path and, if found, returns its value as a char,
+    ///	 otherwise returns ADefaultValue.
     ///	</summary>
     function GetChar(const APath: string; const ADefaultValue: Char = #0): Char;
 
     ///	<summary>
-    ///	  Finds a node by path and, if found, returns its value as a Date,
-    ///	  otherwise returns ADefaultValue.
+    ///	 Finds a node by path and, if found, returns its value as a Date,
+    ///	 otherwise returns ADefaultValue.
     ///	</summary>
     function GetDate(const APath: string; const ADefaultValue: TDate = 0): TDate;
 
     ///	<summary>
-    ///	  Finds a node by path and, if found, returns its value as an expanded
-    ///	  string, otherwise returns ADefaultValue.
+    ///	 Finds a node by path and, if found, returns its value as an expanded
+    ///	 string, otherwise returns ADefaultValue.
     ///	</summary>
     ///	<returns>
-    ///	  The found node's string with any macros expanded.
-    ///	</returns>
+    ///	 The found node's string with any macros expanded.
+    ///	<returns>
     ///	<remarks>
-    ///	  If the node is not found, macros in ADefaultValues are expanded as
-    ///	  well before returning it. This method guarantees that the return
-    ///	  value has all known macros expanded anyway.
+    ///	 If the node is not found, macros in ADefaultValues are expanded as
+    ///	 well before returning it. This method guarantees that the return
+    ///	 value has all known macros expanded anyway.
     ///	</remarks>
     function GetExpandedString(const APath: string; const ADefaultValue: string = ''): string;
 
@@ -1034,7 +1050,7 @@ type
     ///	<remarks>
     ///	  Children are unaffected.
     ///	</remarks>
-    procedure SetToNull; virtual;
+    procedure SetToNull(const AForceChangeNotification: Boolean = False); virtual;
 
     ///	<summary>
     ///	  Returns true if the current node has the same name and value as the
@@ -1847,11 +1863,11 @@ begin
     Result := VarSameValue(AValue1, AValue2);
 end;
 
-procedure TEFNode.SetToNull;
+procedure TEFNode.SetToNull(const AForceChangeNotification: Boolean);
 var
   LOldValue: Variant;
 begin
-  if not VarIsNull(FValue) then
+  if AForceChangeNotification or not VarIsNull(FValue) then
   begin
     LOldValue := FValue;
     FValue := Null;
@@ -2512,6 +2528,19 @@ begin
   if not Assigned(FCriticalSection) then
     FCriticalSection := TCriticalSection.Create;
   FCriticalSection.Enter;
+end;
+
+procedure TEFTree.EnumChildren(const APredicate: TPredicate; const AProc: TNodeProc);
+var
+  I: Integer;
+begin
+  Assert(Assigned(APredicate));
+
+  for I := 0 to ChildCount - 1 do
+  begin
+    if APredicate(Children[I]) then
+      AProc(Children[I]);
+  end;
 end;
 
 procedure TEFTree.LeaveCS;

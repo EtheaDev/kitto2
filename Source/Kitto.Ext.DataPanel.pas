@@ -414,8 +414,7 @@ begin
   Result := FServerRecord;
 end;
 
-procedure TKExtDataActionButton.InitController(
-  const AController: IKExtController);
+procedure TKExtDataActionButton.InitController(const AController: IKExtController);
 begin
   inherited;
   Assert(Assigned(FViewTable));

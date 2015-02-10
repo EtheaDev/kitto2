@@ -586,6 +586,7 @@ type
     FOnSave: TExtDataStoreOnSave;
     FOnUpdate: TExtDataStoreOnUpdate;
     FOnWrite: TExtDataStoreOnWrite;
+    FTotalLength: Integer;
     procedure SetFAutoDestroy(Value: Boolean);
     procedure SetFAutoLoad(Value: Boolean);
     procedure SetFAutoLoadObject(Value: TExtObject);
@@ -625,6 +626,7 @@ type
     procedure SetFOnSave(Value: TExtDataStoreOnSave);
     procedure SetFOnUpdate(Value: TExtDataStoreOnUpdate);
     procedure SetFOnWrite(Value: TExtDataStoreOnWrite);
+    procedure SetTotalLength(const AValue: Integer);
   protected
     procedure InitDefaults; override;
     procedure HandleEvent(const AEvtName: string); override;
@@ -683,7 +685,7 @@ type
     function Reload(Options: TExtObject): TExtFunction;
     function Remove(RecordJS: TExtDataRecord): TExtFunction; overload;
     function Remove(RecordJS: TExtObjectList): TExtFunction; overload;
-    procedure RemoveAll(Silent: Boolean = false);
+    procedure RemoveAll(const ASilent: Boolean = False);
     function RemoveAt(Index: Integer): TExtFunction;
     function Save: TExtFunction;
     function SetBaseParam(Name: string; Value: string): TExtFunction;
@@ -711,6 +713,7 @@ type
     property Restful: Boolean read FRestful write SetFRestful;
     property SortInfo: TExtObject read FSortInfo write SetFSortInfo;
     property StoreId: string read FStoreId write SetFStoreId;
+    property TotalLength: Integer  read FTotalLength write SetTotalLength;
     property Url: string read FUrl write SetUrl;
     property Writer: TExtDataDataWriter read FWriter write SetWriter;
     property BaseParams_: TExtObject read FBaseParams_ write SetFBaseParams_;
@@ -2640,6 +2643,12 @@ begin
   ExtSession.ResponseItems.SetConfigItem(Self, 'remoteSort', [AValue]);
 end;
 
+procedure TExtDataStore.SetTotalLength(const AValue: Integer);
+begin
+  FTotalLength := AValue;
+  ExtSession.ResponseItems.SetProperty(Self, 'totalLength', [AValue]);
+end;
+
 procedure TExtDataStore.SetFRestful(Value: Boolean);
 begin
   FRestful := Value;
@@ -3127,9 +3136,9 @@ begin
   Result := Self;
 end;
 
-procedure TExtDataStore.RemoveAll(Silent: Boolean = false);
+procedure TExtDataStore.RemoveAll(const ASilent: Boolean);
 begin
-  JSCode(JSName + '.removeAll(' + VarToJSON([Silent]) + ');', 'TExtDataStore');
+  Session.ResponseItems.CallMethod(Self, 'removeAll', [ASilent]);
 end;
 
 function TExtDataStore.RemoveAt(Index: Integer): TExtFunction;

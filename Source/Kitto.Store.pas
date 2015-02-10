@@ -76,7 +76,7 @@ type
   public
     property HeaderField: TKHeaderField read FHeaderField write FHeaderField;
     procedure MarkAsUnmodified;
-    procedure SetToNull; override;
+    procedure SetToNull(const AForceChangeNotification: Boolean = False); override;
     property IsModified: Boolean read FIsModified;
     property ParentRecord: TKRecord read GetParentRecord;
     function GetAsJSON(const AForDisplay: Boolean): string;
@@ -1284,9 +1284,9 @@ begin
   FIsModified := False;
 end;
 
-procedure TKField.SetToNull;
+procedure TKField.SetToNull(const AForceChangeNotification: Boolean);
 begin
-  if not VarIsNull(Value) then
+  if AForceChangeNotification or not VarIsNull(Value) then
   begin
     FIsModified := True;
     if Assigned(ParentRecord) then

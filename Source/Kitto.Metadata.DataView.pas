@@ -43,6 +43,16 @@ type
     property View: TKView read GetView;
   end;
 
+  TKViewField = class;
+
+  TKViewFieldArray = TArray<TKViewField>;
+
+  TKFilterByViewField = record
+    DestinationField: TKViewField;
+    SourceField: TKViewField;
+    ForeignFieldName: string;
+  end;
+
   TKViewField = class(TKMetadataItem)
   private
     function GetAliasedName: string;
@@ -282,6 +292,8 @@ type
     function DerivedFieldsExist: Boolean;
 
     function GetColorsAsPairs: TEFPairs;
+
+    function GetFilterByFields: TArray<TKFilterByViewField>;
   end;
 
   TKViewFields = class(TKMetadataItem)
@@ -380,13 +392,24 @@ type
     FViewFieldIsPassword: Boolean;
     // Cached value from FViewField.
     FViewFieldDisplayTemplate: string;
+    FModelField: TKModelField;
   public
     // Returns Self.
     function SetViewField(const AValue: TKViewField; const AOverrideDataType: TEFDataType = nil): TKViewTableHeaderField;
+    // Returns Self.
+    function SetModelField(const AValue: TKModelField): TKViewTableHeaderField;
 
     property ViewField: TKViewField read FViewField;
     property ViewFieldIsPassword: Boolean read FViewFieldIsPassword;
     property ViewFieldDisplayTemplate: string read FViewFieldDisplayTemplate;
+    /// <summary>
+    /// If the ViewField is a reference field, this property stores either:
+    /// - ViewField.ModelField (if it's the reference field itself, e.g. Customer), or
+    /// - The actual model field (if it's a physical field that was expanded
+    /// as part of the reference, e.g. Customer_Id).
+    /// If ViewField is not a reference field, this property always stores ViewField.ModelField.
+    /// </summary>
+    property ModelField: TKModelField read FModelField;
   end;
 
   TKViewTableField = class(TKField)
@@ -394,6 +417,8 @@ type
     function GetParentRecord: TKViewTableRecord;
     function GetHeaderField: TKViewTableHeaderField;
     function GetViewField: TKViewField;
+  private
+    function GetModelField: TKModelField;
   public
     function GetEmptyAsNull: Boolean; override;
     function GetAsJSONValue(const AForDisplay: Boolean; const AQuote: Boolean = True;
@@ -401,6 +426,14 @@ type
     property ParentRecord: TKViewTableRecord read GetParentRecord;
     property HeaderField: TKViewTableHeaderField read GetHeaderField;
     property ViewField: TKViewField read GetViewField;
+    /// <summary>
+    /// <seealso>TKViewTableHeaderField.ModelField</seealso>
+    /// </summary>
+    property ModelField: TKModelField read GetModelField;
+    /// <summary>
+    ///  True if ViewField.IsReference and (ModelField <> ViewField.ModelField).
+    /// </summary>
+    function IsPhysicalPartOfReference: Boolean;
   end;
 
   TKViewTableRecord = class(TKRecord)
@@ -531,7 +564,19 @@ type
     function FindFieldByAliasedName(const AAliasedName: string): TKViewField;
     function FindFieldByDBColumnName(const ADBColumnName: string): TKViewField;
     function FieldByDBColumnName(const ADBColumnName: string): TKViewField;
+    /// <summary>
+    ///  Returns the view field matching the specified model field, or nil.
+    /// </summary>
     function FindFieldByModelField(const AModelField: TKModelField): TKViewField;
+    /// <summary>
+    ///  Returns the view field matching the specified model field, or raises
+    ///  an exception.
+    /// </summary>
+    function FieldByModelField(const AModelField: TKModelField): TKViewField;
+
+
+    function FieldsByModelFields(const AModelFields: TKModelFieldArray): TKViewFieldArray;
+
     /// <summary>
     ///  If a field with the specified name is contained in a parent field (at the model level),
     ///  returns a reference to the parent field, otherwise nil.
@@ -606,12 +651,18 @@ type
     property Rules: TKRules read GetRules;
     procedure ApplyRules(const AApplyProc: TProc<TKRuleImpl>);
 
-    ///	<summary>If the specified field exists in the view table, the method
-    ///	returns its AliasedName, otherwise the specified field name is
-    ///	returned.</summary>
+    ///	<summary>
+    ///  If the specified field exists in the view table, the method
+    ///	 returns its AliasedName, otherwise the specified field name is
+    ///	 returned.
+    /// </summary>
     function ApplyFieldAliasedName(const AFieldName: string): string;
 
     property DatabaseName: string read GetDatabaseName;
+
+    function GetFilterByFields(APredicate: TFunc<TKFilterByViewField, Boolean>): TArray<TKFilterByViewField>;
+
+    function GetFilteredByFields(const AViewField: TKViewField): TKViewFieldArray;
   end;
 
   TKDataView = class(TKView)
@@ -755,8 +806,7 @@ begin
   Result := GetDetailTables.ChildByName(AName) as TKViewTable;
 end;
 
-function TKViewTable.FieldByAliasedName(
-  const AAliasedName: string): TKViewField;
+function TKViewTable.FieldByAliasedName(const AAliasedName: string): TKViewField;
 begin
   Result := FindFieldByAliasedName(AAliasedName);
   if not Assigned(Result) then
@@ -766,6 +816,15 @@ end;
 function TKViewTable.FieldByName(const AName: string): TKViewField;
 begin
   Result := GetFields.ChildByName(AName) as TKViewField;
+end;
+
+function TKViewTable.FieldsByModelFields(const AModelFields: TKModelFieldArray): TKViewFieldArray;
+var
+  I: Integer;
+begin
+  SetLength(Result, Length(AModelFields));
+  for I := Low(Result) to High(Result) do
+    Result[I] := FieldByModelField(AModelFields[I]);
 end;
 
 function TKViewTable.FieldByDBColumnName(
@@ -786,14 +845,20 @@ begin
     end) as TKViewField;
 end;
 
-function TKViewTable.FindFieldByModelField(
-  const AModelField: TKModelField): TKViewField;
+function TKViewTable.FindFieldByModelField(const AModelField: TKModelField): TKViewField;
 begin
   Result := GetFields.FindChildByPredicate(
     function(const ANode: TEFNode): Boolean
     begin
       Result := TKViewField(ANode).ModelField = AModelField;
     end) as TKViewField;
+end;
+
+function TKViewTable.FieldByModelField(const AModelField: TKModelField): TKViewField;
+begin
+  Result := FindFieldByModelField(AModelField);
+  if not Assigned(Result) then
+    raise EKError.CreateFmt('ViewField not found for model field %s.', [AModelField.Name]);
 end;
 
 function TKViewTable.FindField(const AName: string): TKViewField;
@@ -991,6 +1056,39 @@ begin
   Result := GetNode('Fields', True) as TKViewFields;
   if Result.FieldCount = 0 then
     CreateDefaultFields;
+end;
+
+function TKViewTable.GetFilterByFields(APredicate: TFunc<TKFilterByViewField, Boolean>): TArray<TKFilterByViewField>;
+var
+  I: Integer;
+  LFilterByFields: TArray<TKFilterByViewField>;
+  LFieldIdx: Integer;
+begin
+  if not Assigned(APredicate) then
+    APredicate :=
+      function (AFilterByViewField: TKFilterByViewField): Boolean
+      begin
+        Result := True;
+      end;
+
+  SetLength(Result, 0);
+  for I := 0 to FieldCount - 1 do
+  begin
+    LFilterByFields := Fields[I].GetFilterByFields;
+    for LFieldIdx := Low(LFilterByFields) to High(LFilterByFields) do
+    begin
+      if APredicate(LFilterByFields[LFieldIdx]) then
+      begin
+        SetLength(Result, Length(Result) + 1);
+        Result[High(Result)] := LFilterByFields[LFieldIdx];
+      end;
+    end;
+  end;
+end;
+
+function TKViewTable.GetFilteredByFields(const AViewField: TKViewField): TKViewFieldArray;
+begin
+
 end;
 
 function TKViewTable.GetImageName: string;
@@ -1660,6 +1758,44 @@ begin
     Result := ModelField.FileNameField;
 end;
 
+function TKViewField.GetFilterByFields: TArray<TKFilterByViewField>;
+var
+  I: Integer;
+  LNode: TEFNode;
+  LModelFieldPairs: TArray<TKFilterByField>;
+  LModelFields: TKModelFieldArray;
+  LViewFields: TKViewFieldArray;
+begin
+  SetLength(Result, 0);
+  LNode := FindNode('FilterBy');
+  if Assigned(LNode) then
+  begin
+    SetLength(Result, LNode.ChildCount);
+    for I := Low(Result) to High(Result) do
+    begin
+      Result[I].DestinationField := Self;
+      Result[I].SourceField := Table.FieldByName(LNode[I].Name);
+      Result[I].ForeignFieldName := LNode[I].AsString;
+    end;
+  end
+  else
+  begin
+    // Convert modelfield-level definition to viewfield-level.
+    LModelFieldPairs := ModelField.GetFilterByFields;
+    SetLength(LModelFields, Length(LModelFieldPairs));
+    for I := Low(LModelFields) to High(LModelFields) do
+      LModelFields[I] := LModelFieldPairs[I].Key;
+    LViewFields := Table.FieldsByModelFields(LModelFields);
+    SetLength(Result, Length(LViewFields));
+    for I := Low(Result) to High(Result) do
+    begin
+      Result[I].DestinationField := Self;
+      Result[I].SourceField := LViewFields[I];
+      Result[I].ForeignFieldName := LModelFieldPairs[I].Value;
+    end;
+  end;
+end;
+
 function TKViewField.GetHint: string;
 begin
   Result := GetString('Hint');
@@ -1859,7 +1995,8 @@ var
   LModelField: TKModelField;
 
   procedure SetupField(const AViewField: TKViewField; const AName: string;
-    const ADataType: TEFDataType; const AIsKey, AIsAccessGranted: Boolean);
+    const ADataType: TEFDataType; const AIsKey, AIsAccessGranted: Boolean;
+    const AModelField: TKModelField);
   begin
     Assert(Assigned(AViewField));
 
@@ -1869,7 +2006,7 @@ var
       if AIsKey and not Assigned(Key.FindChild(AName)) then
         Key.AddChild(AName).DataType := ADataType;
       if not Assigned(Header.FindChild(AName)) then
-        Header.AddField(AName).SetViewField(AViewField, ADataType);
+        Header.AddField(AName).SetViewField(AViewField, ADataType).SetModelField(AModelField);
     end;
   end;
 
@@ -1878,7 +2015,8 @@ begin
   begin
     LViewField := FViewTable.Fields[LViewFieldIndex];
     SetupField(LViewField, LViewField.AliasedName, LViewField.DataType,
-      LViewField.IsKey and not LViewField.IsReference, LViewField.IsAccessGranted(ACM_READ));
+      LViewField.IsKey and not LViewField.IsReference, LViewField.IsAccessGranted(ACM_READ),
+      LViewField.ModelField);
     // Expand reference fields. Also keep the reference field itself (above)
     // as it will hold the user-readable reference description.
     // For each reference field we create:
@@ -1893,14 +2031,15 @@ begin
       begin
         LModelField := LViewField.ModelField.Fields[LModelFieldIndex];
         SetupField(LViewField, LModelField.FieldName, LModelField.DataType,
-          LModelField.IsKey and not LModelField.IsReference, LModelField.IsAccessGranted(ACM_READ));
+          LModelField.IsKey and not LModelField.IsReference, LModelField.IsAccessGranted(ACM_READ),
+          LModelField);
       end;
 
       // Let's assume a concatenation is a string.
       // By convention, we only use the first field for AC.
       LFieldNames := Join(LViewField.ModelField.GetFieldNames, TKConfig.Instance.MultiFieldSeparator);
       SetupField(LViewField, LFieldNames, TEFDataTypeFactory.Instance.GetDataType('String'),
-        False, LViewField.ModelField.Fields[0].IsAccessGranted(ACM_READ));
+        False, LViewField.ModelField.Fields[0].IsAccessGranted(ACM_READ), LViewField.ModelField);
     end;
   end;
 end;
@@ -2146,6 +2285,7 @@ var
   LViewField: TKViewField;
   LFieldNames: TArray<string>;
   LFieldValues: TArray<string>;
+  LFilteredByFields: TArray<TKFilterByViewField>;
 
   function IsCompositeField(const AFieldName: string): Boolean;
   begin
@@ -2153,7 +2293,6 @@ var
   end;
 
 begin
-  inherited;
   Assert(AField is TKViewTableField);
 
   LField := TKViewTableField(AField);
@@ -2179,38 +2318,63 @@ begin
   begin
     // See if LField is part of a reference. LField.ViewField gets a reference
     // to the reference ViewField, if any, or the corresponding ViewField otherwise.
-    if LViewField.IsReference and (LField.FieldName <> LViewField.AliasedName) then
+    if LViewField.IsReference then
     begin
-      // Avoid re-entry.
-      if FReferenceViewFieldBeingChanged = LViewField then
-        Exit;
+      if LField.FieldName <> LViewField.AliasedName then
+      begin
+        // Avoid re-entry.
+        if FReferenceViewFieldBeingChanged = LViewField then
+          Exit;
 
-      FReferenceViewFieldBeingChanged := LViewField;
-      try
-        // Get derived values.
-        { TODO : Optimization: If ANewValue is null or unassigned, you don't even need to create the store and query the database. }
-        LStore := LViewField.CreateDerivedFieldsStore(EFVarToStr(ANewValue));
+        FReferenceViewFieldBeingChanged := LViewField;
         try
-          // Copy values to fields.
-          for I := 0 to LStore.Header.FieldCount - 1 do
-          begin
-            LDerivedField := FindField(TranslateFieldName(LStore.Header.Fields[I].FieldName));
-            if Assigned(LDerivedField) then
+          // Get derived values.
+          { TODO : Optimization: If ANewValue is null or unassigned, you don't even need to create the store and query the database. }
+          LStore := LViewField.CreateDerivedFieldsStore(EFVarToStr(ANewValue));
+          try
+            // Copy values to fields.
+            for I := 0 to LStore.Header.FieldCount - 1 do
             begin
-              if LStore.RecordCount > 0 then
-                LDerivedField.AssignValue(LStore.Records[0].Fields[I])
-              else
-                LDerivedField.SetToNull;
+              LDerivedField := FindField(TranslateFieldName(LStore.Header.Fields[I].FieldName));
+              if Assigned(LDerivedField) then
+              begin
+                if LStore.RecordCount > 0 then
+                  LDerivedField.AssignValue(LStore.Records[0].Fields[I])
+                else
+                  LDerivedField.SetToNull;
+              end;
             end;
+          finally
+            FreeAndNil(LStore);
           end;
         finally
-          FreeAndNil(LStore);
+          FReferenceViewFieldBeingChanged := nil;
         end;
-      finally
-        FReferenceViewFieldBeingChanged := nil;
       end;
+      // Clear filtered-by fields.
+      LFilteredByFields := LViewField.Table.GetFilterByFields(
+        function (AFilterByViewField: TKFilterByViewField): Boolean
+        begin
+          Result := AFilterByViewField.SourceField = LViewField;
+          if Result then
+          begin
+            EnumChildren(
+              // Select all destination fields...
+              function (const ANode: TEFNode): Boolean
+              begin
+                Result := TKVIewTableField(ANode).ViewField = AFilterByViewField.DestinationField;
+              end,
+              // ...and clear them, forcing change event since we need it
+              // to update the UI.
+              procedure (const ANode: TEFNode)
+              begin
+                ANode.SetToNull(True);
+              end);
+          end;
+        end);
     end;
   end;
+  inherited;
 end;
 
 function TKViewTableRecord.FindField(const AFieldName: string): TKViewTableField;
@@ -2431,6 +2595,11 @@ begin
   Result := inherited HeaderField as TKViewTableHeaderField;
 end;
 
+function TKViewTableField.GetModelField: TKModelField;
+begin
+  Result := HeaderField.ModelField;
+end;
+
 function TKViewTableField.GetParentRecord: TKViewTableRecord;
 begin
   Result := inherited ParentRecord as TKViewTableRecord;
@@ -2441,6 +2610,11 @@ begin
   Result := HeaderField.ViewField;
 end;
 
+function TKViewTableField.IsPhysicalPartOfReference: Boolean;
+begin
+  Result := ViewField.IsReference and (ModelField <> ViewField.ModelField);
+end;
+
 { TKFileReferenceDataType }
 
 class function TKFileReferenceDataType.GetTypeName: string;
@@ -2449,6 +2623,12 @@ begin
 end;
 
 { TKViewTableHeaderField }
+
+function TKViewTableHeaderField.SetModelField(const AValue: TKModelField): TKViewTableHeaderField;
+begin
+  FModelField := AValue;
+  Result := Self;
+end;
 
 function TKViewTableHeaderField.SetViewField(const AValue: TKViewField; const AOverrideDataType: TEFDataType = nil): TKViewTableHeaderField;
 begin

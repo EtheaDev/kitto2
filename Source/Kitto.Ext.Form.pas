@@ -691,11 +691,11 @@ begin
   that would not work due to having only the caption
   and not the key values here.
   After the refactoring, this test can be removed. }
-  if LField.ViewField.IsReference then
+  if LField.ViewField.IsReference and not LField.IsPhysicalPartOfReference then
     Exit;
 
   // Refresh editors linked to changed field.
-  FEditItems.EditorsByFieldName(LField.FieldName,
+  FEditItems.EditorsByViewField(LField.ViewField,
     procedure (AEditor: IKExtEditor)
     begin
       AEditor.RefreshValue;
