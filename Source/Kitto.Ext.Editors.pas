@@ -2990,7 +2990,8 @@ var
 begin
   Assert(Assigned(AOwner));
 
-  if AViewField.IsBlob or (AViewField.Size div SizeOf(Char) >= MULTILINE_EDIT_THRESHOLD) then
+  if AViewField.IsBlob or (AViewField.Size div SizeOf(Char) >= MULTILINE_EDIT_THRESHOLD)
+    or AViewField.HasChild('EditLines') then
   begin
     LTextArea := TKExtFormTextArea.Create(AOwner);
     try
