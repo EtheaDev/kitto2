@@ -123,8 +123,7 @@ var
     Result := LColumnBreak;
   end;
 
-  procedure SetLabelWidthAndAlign(ANode: TEFNode;
-    ADefaultLabelAlign: TExtFormFormPanelLabelAlign);
+  procedure SetLabelWidthAndAlign(ANode: TEFNode; ADefaultLabelAlign: TExtFormFormPanelLabelAlign);
   var
     LLabelNode: TEFNode;
     LWidth: Integer;
@@ -253,6 +252,7 @@ begin
       FFilterPanel.Region := rgNorth;
       FFilterPanel.OnChange := FilterPanelChange;
       FFilterPanel.Configure(View, LItems.Parent as TEFNode);
+      FFilterPanel.On('afterrender', DoLayout);
     end;
   end;
 end;
