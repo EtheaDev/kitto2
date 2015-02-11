@@ -6,6 +6,8 @@ Fields:
     DefaultValue: %COMPACT_GUID%
   ROLE_NAME: String(20) not null
     DisplayWidth: 10
-  FEE: Float
+  FEE: Currency
     Rules:
       MinValue: 0
+    DisplayWidth: 10
+ImageName: operator

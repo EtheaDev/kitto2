@@ -67,3 +67,4 @@ Controller: List
 MainTable:
   IsReadOnly: True
   Model: ACTIVITY_BY_DATE
+ImageName: chart_bar

@@ -25,3 +25,4 @@ Rules:
   EnforceRange:
     From: START_DATE
     To: END_DATE
+ImageName: clock_play

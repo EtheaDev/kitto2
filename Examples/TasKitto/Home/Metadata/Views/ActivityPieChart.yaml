@@ -1,4 +1,4 @@
-Type: Data
+﻿Type: Data
 DisplayLabel: Pie Chart
 Controller: List
 
@@ -18,3 +18,4 @@ Controller: List
 MainTable:
   IsReadOnly: True
   Model: ACTIVITY_BY_DATE
+ImageName: chart_pie
