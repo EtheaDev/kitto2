@@ -14,7 +14,7 @@
    limitations under the License.
 -------------------------------------------------------------------------------}
 
-unit Kitto.Ext.DebenuQuickPDF.Tools;
+unit Kitto.Ext.DebenuQuickPDFTools;
 
 interface
 

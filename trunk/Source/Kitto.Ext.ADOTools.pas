@@ -14,7 +14,7 @@
    limitations under the License.
 -------------------------------------------------------------------------------}
 
-unit Kitto.Ext.ADO.Tools;
+unit Kitto.Ext.ADOTools;
 
 interface
 

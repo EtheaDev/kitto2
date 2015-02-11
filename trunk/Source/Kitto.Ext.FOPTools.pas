@@ -14,7 +14,7 @@
    limitations under the License.
 -------------------------------------------------------------------------------}
 
-unit Kitto.Ext.FOP.Tools;
+unit Kitto.Ext.FOPTools;
 
 interface
 
