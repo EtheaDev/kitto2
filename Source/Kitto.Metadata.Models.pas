@@ -123,6 +123,7 @@ type
     function GetDataType: TEFDataType; override;
   public
     function GetEmptyAsNull: Boolean; override;
+    procedure BeforeSave; override;
   public
     function GetResourceURI: string; override;
 
@@ -475,6 +476,7 @@ type
     class function BeautifyModelName(const AModelName: string): string; virtual;
     class function GetClassNameForResourceURI: string; override;
   public
+    procedure BeforeSave; override;
   public
     property Catalog: TKModels read GetCatalog;
 
@@ -767,6 +769,14 @@ end;
 
 procedure TKModel.BeforeNewRecord(const ARecord: TEFNode; const AIsCloned: Boolean);
 begin
+end;
+
+procedure TKModel.BeforeSave;
+begin
+  inherited;
+  // Avoid storing the DetailReferences node if it's empty.
+  if GetDetailReferences.DetailReferenceCount = 0 then
+    DeleteNode('DetailReferences');
 end;
 
 function TKModel.DetailReferenceByName(const AName: string): TKModelDetailReference;
@@ -1411,6 +1421,14 @@ end;
 class function TKModelField.BeautifyFieldName(const AFieldName: string): string;
 begin
   Result := DefaultBeautifyName(AFieldName);
+end;
+
+procedure TKModelField.BeforeSave;
+begin
+  inherited;
+  // Avoid storing the Fields node if it's empty.
+  if GetFields.FieldCount = 0 then
+    DeleteNode('Fields');
 end;
 
 function TKModelField.FieldByName(const AName: string): TKModelField;
