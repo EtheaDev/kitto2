@@ -31,6 +31,9 @@ uses
   EF.Types, EF.Tree, EF.ObserverIntf,
   Kitto.DatabaseRouter, Kitto.Ext.Base;
 
+const
+  DEFAULT_FILTER_WIDTH = 20;
+
 type
   ///	<summary>
   ///	  All filters must implement this interface.
@@ -492,7 +495,7 @@ var
 begin
   Assert(Assigned(AField));
 
-  Result := 10;
+  Result := DEFAULT_FILTER_WIDTH - TRIGGER_WIDTH;
   while not AField.DataSet.Eof do
   begin
     LWidth := Length(AField.AsString);
@@ -580,7 +583,7 @@ begin
     On('keyup', JSFunction(Format('fireChangeAfterNChars(%s, %d);', [JSName, LAutoSearchAfterChars])));
   end;
   FieldLabel := _(AConfig.AsString);
-  Width := CharsToPixels(AConfig.GetInteger('Width', 20));
+  Width := CharsToPixels(AConfig.GetInteger('Width', DEFAULT_FILTER_WIDTH));
   FCurrentValue := '';
   if FConfig.GetBoolean('Sys/IsReadOnly') then
     Disabled := True
