@@ -102,13 +102,13 @@ function TKAutoViewBuilderBase.BuildView(const AViews: TKViews;
   const APersistentName: string; const ANode: TEFNode): TKView;
 var
   LMainTable: TKViewTable;
-  //LMainTableController: TEFNode;
   LModel: TKModel;
   LFilters: TEFNode;
   LFilterItems: TEFNode;
   LSearchItem: TEFNode;
   LSourceControllerNode: TEFNode;
   LSourceMainTableControllerNode: TEFNode;
+  LSourceDisplayLabelNode: TEFNode;
   LControllerNode: TEFNode;
   LResourceName: TEFNode;
 begin
@@ -129,10 +129,13 @@ begin
     if Assigned(LResourceName) then
       Result.SetString('ResourceName', LResourceName.AsString);
 
+    LSourceDisplayLabelNode := FindNode('DisplayLabel');
+    if Assigned(LSourceDisplayLabelNode) then
+      Result.SetString('DisplayLabel', LSourceDisplayLabelNode.AsString);
+
     LSourceControllerNode := FindNode('Controller');
     if Assigned(LSourceControllerNode) then
       Result.AddChild(TEFNode.Clone(LSourceControllerNode));
-    //Result.SetString('DisplayLabel', LModel.PluralDisplayLabel);
     LControllerNode := Result.SetString('Controller', GetControllerType);
 
     LMainTable := Result.AddChild(TKViewTable.Create('MainTable')) as TKViewTable;
