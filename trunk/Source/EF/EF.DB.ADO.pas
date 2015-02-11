@@ -455,7 +455,17 @@ begin
   Connection.DBEngineType.BeforeExecute(FCommandText, FParams);
   UpdateInternalQueryParams;
   InternalBeforeExecute;
-  DataSet.Open;
+  try
+    DataSet.Open;
+  except
+    on E: Exception do
+    begin
+      raise EEFError.Create(_(Format('Error "%s" opening query: %s.',
+        [E.Message, FCommandText])));
+    end
+    else
+      raise;
+  end;
 end;
 
 procedure TEFDBADOQuery.Close;
