@@ -70,8 +70,8 @@ Databases:
 
 Auth: DB
   Defaults:
-    UserName: administrator
-    Password: password
+    UserName: cwolter
+    Password: cwolter
 
 AccessControl: Null
 
