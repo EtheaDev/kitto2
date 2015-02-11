@@ -1,16 +1,16 @@
-ModelName: PHASE
+﻿ModelName: PHASE
 Fields:
-  PHASE_ID:                  String(32) not null primary key
+  PHASE_ID: String(32) not null primary key
     IsVisible: False
     DefaultValue: %COMPACT_GUID%
-  PHASE_NAME:                String(40) not null
+  PHASE_NAME: String(40) not null
     DisplayWidth: 20
-  PROJECT:                   Reference(PROJECT) not null
+  PROJECT: Reference(PROJECT) not null
     Fields:
       PROJECT_ID:
-  START_DATE:                Date
-  END_DATE:                  Date
-  STATUS:                    String(12)
+  START_DATE: Date
+  END_DATE: Date
+  STATUS: String(12)
     AllowedValues:
       Started: Started
       Finished: Finished
