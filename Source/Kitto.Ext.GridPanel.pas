@@ -307,7 +307,7 @@ procedure TKExtGridPanel.SetGridColumnEditor(const AEditorManager: TKExtEditorMa
   const AViewField: TKViewField; const ALayoutNode: TEFNode; const AColumn: TExtGridColumn);
 var
   LEditable: boolean;
-  LPreventEditingNode: TEFNode;
+  LIsReadOnlyNode: TEFNode;
   LEditor: TExtFormField;
   LSubject: IEFSubject;
 begin
@@ -315,9 +315,9 @@ begin
 
   if Assigned(ALayoutNode) then
   begin
-    LPreventEditingNode := ALayoutNode.FindNode('PreventEditing');
-    if Assigned(LPreventEditingNode) then
-      LEditable := not LPreventEditingNode.AsBoolean
+    LIsReadOnlyNode := ALayoutNode.FindNode('IsReadOnly');
+    if Assigned(LIsReadOnlyNode) then
+      LEditable := not LIsReadOnlyNode.AsBoolean
     else
       LEditable := FInplaceEditing and not AViewField.IsReadOnly;
   end
