@@ -392,7 +392,7 @@ begin
   FItems := FConfig.GetNode('Items');
   Assert(Assigned(FItems));
 
-  Width := CharsToPixels(GetLargestFilterDisplayLabelWidth + TRIGGER_WIDTH);
+  Width := CharsToPixels(AConfig.GetInteger('Width', GetLargestFilterDisplayLabelWidth + TRIGGER_WIDTH));
   //ForceSelection := True;
   TriggerAction := 'all';
   Editable := False;
@@ -524,7 +524,7 @@ begin
     try
       Assert(LDBQuery.DataSet.FieldCount = 2);
       FValues := LDBQuery.GetFieldValuesAsStrings(LDBQuery.DataSet.Fields[VALUE_FIELD]);
-      Width := CharsToPixels(GetLargestFieldWidth(LDBQuery.DataSet.Fields[DISPLAY_FIELD]) + TRIGGER_WIDTH);
+      Width := CharsToPixels(AConfig.GetInteger('Width', GetLargestFieldWidth(LDBQuery.DataSet.Fields[DISPLAY_FIELD]) + TRIGGER_WIDTH));
       { TODO : Future enhancement: make loading optionally dynamic }
       StoreArray := JSArray(DataSetToJSON(LDBQuery.DataSet));
     finally
