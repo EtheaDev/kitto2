@@ -40,3 +40,4 @@ Rules:
   EnforceRange:
     From: START_TIME
     To: END_TIME
+ImageName: setting_tools

@@ -5,3 +5,4 @@ Fields:
     DefaultValue: %COMPACT_GUID%
   TYPE_NAME: String(20) not null
     DisplayWidth: 10
+ImageName: table_gear

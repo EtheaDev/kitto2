@@ -8,3 +8,4 @@ Fields:
     DisplayLabel: Password
     IsPassword: True
   IS_ACTIVE: Boolean
+ImageName: user_green

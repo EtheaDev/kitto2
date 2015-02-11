@@ -1,8 +1,14 @@
-Type: Tree
+﻿Type: Tree
 Folder: Tables
   View: Employees
-  View: Roles
-  View: ActivityTypes
+  View: Build AutoList
+    Model: OPERATOR_ROLE
+    DisplayLabel: Operator roles
+  View:
+    Type: Data
+    Controller: List
+    MainTable:
+      Model: ACTIVITY_TYPE
 Folder: Customers
   View: Customers
   View: Projects
