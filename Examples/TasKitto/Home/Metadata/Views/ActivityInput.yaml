@@ -9,6 +9,7 @@ Controller: List
       FreeSearch: Description
         ExpressionTemplate: (UPPER(Activity.Description) like UPPER('%{value}%'))
       DynaList: Activity Type
+        Width: 20
         CommandText: |
           select first 1 '%' TYPE_ID, '(All)' TYPE_NAME from kitto_users
             union all
@@ -58,7 +59,7 @@ MainTable:
         Controller: ExportTextTool
           RequireSelection: False
           IncludeHeader: False
-          ClientFileName: ActivityList.txt
+          ClientFileName: ActivityList_%YYYYMMDD_DATE%_%HHMM_TIME%.txt
       DownloadCSV:
         DisplayLabel: Download in CSV
         ImageName: download
