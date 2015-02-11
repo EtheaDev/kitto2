@@ -1,13 +1,13 @@
-ModelName: PROJECT
+﻿ModelName: PROJECT
 Fields:
-  PROJECT_ID:                String(32) not null primary key
+  PROJECT_ID: String(32) not null primary key
     IsVisible: False
     DefaultValue: %COMPACT_GUID%
-  PROJECT_NAME:              String(40) not null
-  CUSTOMER:                  Reference(CUSTOMER) not null
+  PROJECT_NAME: String(40) not null
+  CUSTOMER: Reference(CUSTOMER) not null
     Fields:
       CUSTOMER_ID:
-  STATUS:                    String(12)
+  STATUS: String(12)
     AllowedValues:
       Offered: Offered
       Open: Open
