@@ -15,9 +15,9 @@ uses
   // Kitto.Auth.DBServer,
   // Kitto.Auth.OSDB,
   // Kitto.Auth.TextFile,
-  Kitto.Ext.ADO.Tools, //For Excel export
-  Kitto.Ext.DebenuQuickPDF.Tools, //For PDF Merge
-  Kitto.Ext.FOP.Tools, //For FOP Engine
+  Kitto.Ext.ADOTools, //For Excel export
+  Kitto.Ext.DebenuQuickPDFTools, //For PDF Merge
+  Kitto.Ext.FOPTools, //For FOP Engine
   Kitto.Localization.dxgettext,
   Kitto.Ext.TilePanel,
   Kitto.Metadata.ModelImplementation,
