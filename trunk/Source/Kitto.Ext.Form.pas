@@ -344,7 +344,7 @@ begin
         try
           FStoreRecord.ReadFromNode(LDefaultValues);
         finally
-          if SameText(FOperation, ADD_OPERATION) then
+          if SameText(FOperation, DUPLICATE_OPERATION) then
             FStoreRecord.Store.EnableChangeNotifications;
         end;
         ViewTable.Model.BeforeNewRecord(FStoreRecord, Assigned(FCloneValues) and SameText(FOperation, ADD_OPERATION));
