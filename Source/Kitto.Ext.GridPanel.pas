@@ -294,6 +294,7 @@ begin
   FEditorGridPanel.AutoWidth := True;
   FEditorGridPanel.ColumnLines := True;
   FEditorGridPanel.TrackMouseOver := True;
+  FEditorGridPanel.EnableHdMenu := False;
 end;
 
 function TKExtGridPanel.IsMultiSelect: Boolean;
