@@ -118,6 +118,7 @@ type
     FDynamicScripts: TStringList;
     FDynamicStyles: TStringList;
     FAutoOpenViewName: string;
+    FHomeViewNodeName: string;
     procedure LoadLibraries;
     procedure DisplayHomeView;
     procedure DisplayLoginWindow;
@@ -405,13 +406,11 @@ procedure TKExtSession.DisplayHomeView;
 var
   LHomeView: TKView;
   LIntf: IKExtController;
-  LHomeViewNodeName: string;
 begin
   FreeAndNil(FHomeController);
-  LHomeViewNodeName := Queries.Values['home'];
-  if LHomeViewNodeName = '' then
-    LHomeViewNodeName := 'HomeView';
-  LHomeView := Config.Views.FindViewByNode(Config.Config.FindNode(LHomeViewNodeName));
+  if FHomeViewNodeName = '' then
+    FHomeViewNodeName := 'HomeView';
+  LHomeView := Config.Views.FindViewByNode(Config.Config.FindNode(FHomeViewNodeName));
   if not Assigned(LHomeView) then
     LHomeView := Config.Views.ViewByName('Home');
   FHomeController := TKExtControllerFactory.Instance.CreateController
@@ -449,6 +448,8 @@ begin
     FOpenControllers.Clear;
     FViewHost := nil;
     FStatusHost := nil;
+    FDynamicScripts.Clear;
+    FDynamicStyles.Clear;
   end
   else
   begin
@@ -470,6 +471,7 @@ begin
   FAutoOpenViewName := Queries.Values['view'];
   if FAutoOpenViewName <> '' then
     Queries.Values['view'] := '';
+  FHomeViewNodeName := Queries.Values['home'];
   if TKExtLoginWindow.Authenticate(Self) then
     DisplayHomeView
   else
