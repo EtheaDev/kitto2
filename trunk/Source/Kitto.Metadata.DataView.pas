@@ -638,11 +638,14 @@ type
     ///	</summary>
     function CreateStore: TKViewTableStore;
 
-    ///	<summary>Creates and returns a node with one child for each default
-    ///	value as specified in the view table or model. Any default expression
-    ///	is evaluated at this time.</summary>
-    ///	<remarks>The caller is responsible for freeing the returned node
-    ///	object.</remarks>
+    ///	<summary>
+    ///  Creates and returns a node with one child for each default
+    ///	 value as specified in the view table or model. Any default expression
+    ///	 is evaluated at this time.
+    /// </summary>
+    ///	<remarks>
+    ///  The caller is responsible for freeing the returned node object.
+    ///	</remarks>
     function GetDefaultValues(const AKeyOnly: Boolean = False): TEFNode;
 
     function GetResourceURI: string; override;
@@ -1291,6 +1294,8 @@ var
   LValue: Variant;
   LDefaultValueNode: TEFNode;
   I: Integer;
+  LConcatenation: string;
+  LStrValue: string;
 begin
   Assert(Assigned(ANode));
 
@@ -1313,6 +1318,24 @@ begin
     begin
       for I := 0 to LDefaultValueNode.ChildCount - 1 do
         ANode.SetValue(LDefaultValueNode.Children[I].Name, LDefaultValueNode.Children[I].Value);
+    end;
+    // Store values in concatenated form as well in case of multi-valued references.
+    if ModelField.FieldCount > 1 then
+    begin
+      LConcatenation := '';
+      for I := 0 to ModelField.FieldCount - 1 do
+      begin
+        LStrValue := ANode.GetString(ModelField.Fields[I].FieldName);
+        // Note: we need to keep the concatenated value and wipe the single values
+        // in order for their change handler to be triggered later when the compound value
+        // is expanded back to the single fields.
+        ANode.DeleteNode(ModelField.Fields[I].FieldName);
+        if LConcatenation = '' then
+          LConcatenation := LStrValue
+        else
+          LConcatenation := LConcatenation + TKConfig.Instance.MultiFieldSeparator + LStrValue;
+      end;
+      ANode.SetString(Join(ModelField.GetFieldNames, TKConfig.Instance.MultiFieldSeparator), LConcatenation);
     end;
   end;
 end;
@@ -1400,8 +1423,8 @@ begin
       // Get data.
       LDBQuery := TKConfig.Instance.DBConnections[Table.DatabaseName].CreateDBQuery;
       try
-        TKSQLBuilder.BuildDerivedSelectQuery(Self, LDBQuery, AKeyValues);
-        Result.Load(LDBQuery, False, True);
+        if TKSQLBuilder.BuildDerivedSelectQuery(Self, LDBQuery, AKeyValues) then
+          Result.Load(LDBQuery, False, True);
       finally
         FreeAndNil(LDBQuery);
       end;
@@ -2254,6 +2277,7 @@ begin
     begin
       ARuleImpl.NewRecord(Self);
     end);
+  MarkAsNew;
 end;
 
 procedure TKViewTableRecord.LoadDetailStores;
@@ -2313,6 +2337,7 @@ begin
   LField := TKViewTableField(AField);
   LViewField := LField.ViewField;
 
+  // Forward the changed value to the multi-valued field constituent parts.
   if IsCompositeField(LField.FieldName) then
   begin
     LFieldNames := LField.FieldName.Split([TKConfig.Instance.MultiFieldSeparator], None);
@@ -2328,66 +2353,64 @@ begin
       for I := Low(LFieldNames) to High(LFieldNames) do
         FieldByName(LFieldNames[I]).Value := LFieldValues[I];
     end;
-  end
-  else
-  begin
-    // See if LField is part of a reference. LField.ViewField gets a reference
-    // to the reference ViewField, if any, or the corresponding ViewField otherwise.
-    if LViewField.IsReference then
-    begin
-      if LField.FieldName <> LViewField.AliasedName then
-      begin
-        // Avoid re-entry.
-        if FReferenceViewFieldBeingChanged = LViewField then
-          Exit;
+  end;
 
-        FReferenceViewFieldBeingChanged := LViewField;
+  // See if LField is part of a reference. LField.ViewField gets a reference
+  // to the reference ViewField, if any, or the corresponding ViewField otherwise.
+  if LViewField.IsReference then
+  begin
+    if LField.FieldName <> LViewField.AliasedName then
+    begin
+      // Avoid re-entry.
+      if FReferenceViewFieldBeingChanged = LViewField then
+        Exit;
+
+      FReferenceViewFieldBeingChanged := LViewField;
+      try
+        // Get derived values.
+        { TODO : Optimization: If ANewValue is null or unassigned, you don't even need to create the store and query the database. }
+        LStore := LViewField.CreateDerivedFieldsStore(EFVarToStr(ANewValue));
         try
-          // Get derived values.
-          { TODO : Optimization: If ANewValue is null or unassigned, you don't even need to create the store and query the database. }
-          LStore := LViewField.CreateDerivedFieldsStore(EFVarToStr(ANewValue));
-          try
-            // Copy values to fields.
-            for I := 0 to LStore.Header.FieldCount - 1 do
+          // Copy values to fields.
+          for I := 0 to LStore.Header.FieldCount - 1 do
+          begin
+            LDerivedField := FindField(TranslateFieldName(LStore.Header.Fields[I].FieldName));
+            if Assigned(LDerivedField) then
             begin
-              LDerivedField := FindField(TranslateFieldName(LStore.Header.Fields[I].FieldName));
-              if Assigned(LDerivedField) then
-              begin
-                if LStore.RecordCount > 0 then
-                  LDerivedField.AssignValue(LStore.Records[0].Fields[I])
-                else
-                  LDerivedField.SetToNull;
-              end;
+              if LStore.RecordCount > 0 then
+                LDerivedField.AssignValue(LStore.Records[0].Fields[I])
+              else
+                LDerivedField.SetToNull;
             end;
-          finally
-            FreeAndNil(LStore);
           end;
         finally
-          FReferenceViewFieldBeingChanged := nil;
+          FreeAndNil(LStore);
         end;
+      finally
+        FReferenceViewFieldBeingChanged := nil;
       end;
-      // Clear filtered-by fields.
-      LFilteredByFields := LViewField.Table.GetFilterByFields(
-        function (AFilterByViewField: TKFilterByViewField): Boolean
-        begin
-          Result := AFilterByViewField.SourceField = LViewField;
-          if Result then
-          begin
-            EnumChildren(
-              // Select all destination fields...
-              function (const ANode: TEFNode): Boolean
-              begin
-                Result := TKVIewTableField(ANode).ViewField = AFilterByViewField.DestinationField;
-              end,
-              // ...and clear them, forcing change event since we need it
-              // to update the UI.
-              procedure (const ANode: TEFNode)
-              begin
-                ANode.SetToNull(True);
-              end);
-          end;
-        end);
     end;
+    // Clear filtered-by fields.
+    LFilteredByFields := LViewField.Table.GetFilterByFields(
+      function (AFilterByViewField: TKFilterByViewField): Boolean
+      begin
+        Result := AFilterByViewField.SourceField = LViewField;
+        if Result then
+        begin
+          EnumChildren(
+            // Select all destination fields...
+            function (const ANode: TEFNode): Boolean
+            begin
+              Result := TKVIewTableField(ANode).ViewField = AFilterByViewField.DestinationField;
+            end,
+            // ...and clear them, forcing change event since we need it
+            // to update the UI.
+            procedure (const ANode: TEFNode)
+            begin
+              ANode.SetToNull(True);
+            end);
+        end;
+      end);
   end;
   inherited;
 end;

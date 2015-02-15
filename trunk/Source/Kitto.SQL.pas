@@ -133,8 +133,8 @@ type
     ///   The field must be a reference field and at
     ///	  least one derived field must exist in the view table.
     /// </exception>
-    class procedure BuildDerivedSelectQuery(const AViewField: TKViewField;
-      const ADBQuery: TEFDBQuery; const AKeyValues: string);
+    class function BuildDerivedSelectQuery(const AViewField: TKViewField;
+      const ADBQuery: TEFDBQuery; const AKeyValues: string): Boolean;
 
     /// <summary>
     ///  Replaces '{Q}' tags in AString with AQualification plus a dot.
@@ -428,8 +428,8 @@ begin
     ARecord.FieldByName(ADBCommand.Params[I].Name).AssignValueToParam(ADBCommand.Params[I]);
 end;
 
-class procedure TKSQLBuilder.BuildDerivedSelectQuery(const AViewField: TKViewField;
-  const ADBQuery: TEFDBQuery; const AKeyValues: string);
+class function TKSQLBuilder.BuildDerivedSelectQuery(const AViewField: TKViewField;
+  const ADBQuery: TEFDBQuery; const AKeyValues: string): Boolean;
 var
   LDerivedFields: TArray<TKViewField>;
   LCommandText: string;
@@ -447,6 +447,7 @@ begin
   LDerivedFields := AViewField.GetDerivedFields;
   Assert(Length(LDerivedFields) > 0);
 
+  Result := False;
   LModel := AViewField.ModelField.ReferencedModel;
 
   LCommandText := '';
@@ -479,25 +480,28 @@ begin
       SetLength(LKeyValues, 1);
       LKeyValues[0] := AKeyValues;
     end;
-    Assert(Length(LKeyValues) = Length(LKeyDBColumnNames));
 
-    LClause := '';
-    for I := 0 to High(LKeyDBColumnNames) do
+    if Length(LKeyValues) = Length(LKeyDBColumnNames) then
     begin
-      LDBColumnName := LKeyDBColumnNames[I];
-      if LClause = '' then
-        LClause := LDBColumnName + ' = :' + LDBColumnName
-      else
-        LClause := LClause + ' and ' + LDBColumnName + ' = :' + LDBColumnName;
-      ADBQuery.Params.CreateParam(ftUnknown, LDBColumnName, ptInput);
+      LClause := '';
+      for I := 0 to High(LKeyDBColumnNames) do
+      begin
+        LDBColumnName := LKeyDBColumnNames[I];
+        if LClause = '' then
+          LClause := LDBColumnName + ' = :' + LDBColumnName
+        else
+          LClause := LClause + ' and ' + LDBColumnName + ' = :' + LDBColumnName;
+        ADBQuery.Params.CreateParam(ftUnknown, LDBColumnName, ptInput);
+      end;
+      LCommandText := SetSQLWhereClause(LCommandText, LClause);
+      ADBQuery.CommandText := TEFMacroExpansionEngine.Instance.Expand(LCommandText);
+      for I := 0 to ADBQuery.Params.Count - 1 do
+        ADBQuery.Params[I].Value := LKeyValues[I];
+      Result := True;
     end;
-    LCommandText := SetSQLWhereClause(LCommandText, LClause);
-    ADBQuery.CommandText := TEFMacroExpansionEngine.Instance.Expand(LCommandText);
   finally
     ADBQuery.Params.EndUpdate;
   end;
-  for I := 0 to ADBQuery.Params.Count - 1 do
-    ADBQuery.Params[I].Value := LKeyValues[I];
 end;
 
 procedure TKSQLBuilder.AfterConstruction;
