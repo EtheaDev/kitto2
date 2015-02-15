@@ -165,6 +165,7 @@ type
     procedure MarkAsModified;
     procedure MarkAsDeleted;
     procedure MarkAsClean;
+    procedure MarkAsNew;
 
     property IsNew: Boolean read GetIsNew;
     property IsDeleted: Boolean read GetIsDeleted;
@@ -1096,6 +1097,11 @@ procedure TKRecord.MarkAsModified;
 begin
   if not (FState in [rsNew, rsDeleted]) then
     FState := rsDirty;
+end;
+
+procedure TKRecord.MarkAsNew;
+begin
+  FState := rsNew;
 end;
 
 function TKRecord.MatchesValues(const AValues: TEFNode): Boolean;
