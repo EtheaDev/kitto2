@@ -183,6 +183,7 @@ begin
 
   FButton := TExtButton.CreateAndAddTo(FStatusBar.Items);
   FButton.Icon := Session.Config.GetImageURL('login');
+  FButton.Scale := 'medium';
   FButton.Text := _('Login');
 
   if HtmlPanel <> '' then
