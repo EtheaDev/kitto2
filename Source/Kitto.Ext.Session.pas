@@ -156,6 +156,7 @@ type
     class constructor Create;
     class destructor Destroy;
   public
+    function FindPageTemplate(const APageName: string; const AMustExists: Boolean): string;
     function GetPageTemplate(const APageName: string): string;
 
     procedure Refresh; override;
@@ -319,7 +320,8 @@ begin
   Result := GetPageTemplate('index');
 end;
 
-function TKExtSession.GetPageTemplate(const APageName: string): string;
+function TKExtSession.FindPageTemplate(const APageName: string;
+  const AMustExists: Boolean): string;
 var
   LFileName: string;
 
@@ -332,9 +334,20 @@ var
   end;
 
 begin
-  LFileName := Config.GetResourcePathName(APageName + '.html');
-  Result := TextFileToString(LFileName, GetEncoding);
-  Result := TEFMacroExpansionEngine.Instance.Expand(Result);
+  if AMustExists then
+    LFileName := Config.GetResourcePathName(APageName + '.html')
+  else
+    LFileName := Config.FindResourcePathName(APageName + '.html');
+  if LFileName <> '' then
+  begin
+    Result := TextFileToString(LFileName, GetEncoding);
+    Result := TEFMacroExpansionEngine.Instance.Expand(Result);
+  end;
+end;
+
+function TKExtSession.GetPageTemplate(const APageName: string): string;
+begin
+  Result := FindPageTemplate(APageName, True);
 end;
 
 function TKExtSession.GetQueries: ISuperObject;
