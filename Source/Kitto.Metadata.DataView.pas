@@ -2325,6 +2325,7 @@ var
   LFieldNames: TArray<string>;
   LFieldValues: TArray<string>;
   LFilteredByFields: TArray<TKFilterByViewField>;
+  LNewValue: string;
 
   function IsCompositeField(const AFieldName: string): Boolean;
   begin
@@ -2348,7 +2349,10 @@ begin
     end
     else
     begin
-      LFieldValues := string(ANewValue).Split([TKConfig.Instance.MultiFieldSeparator], None);
+      LNewValue := ANewValue;
+      if LNewValue = '' then
+        LNewValue := DupeString(TKConfig.Instance.MultiFieldSeparator, Length(LFieldNames));
+      LFieldValues := string(LNewValue).Split([TKConfig.Instance.MultiFieldSeparator], None);
       Assert(Length(LFieldNames) = Length(LFieldValues));
       for I := Low(LFieldNames) to High(LFieldNames) do
         FieldByName(LFieldNames[I]).Value := LFieldValues[I];
