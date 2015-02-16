@@ -768,7 +768,7 @@ type
     procedure SetFEnableColumnMove(Value: Boolean);
     procedure SetFEnableColumnResize(Value: Boolean);
     procedure SetFEnableDragDrop(Value: Boolean);
-    procedure SetFEnableHdMenu(Value: Boolean);
+    procedure SetEnableHdMenu(AValue: Boolean);
     procedure SetFHideHeaders(Value: Boolean);
     procedure SetFLoadMask(Value: TExtObject);
     procedure SetFMaxHeight(Value: Integer);
@@ -852,7 +852,7 @@ type
     property EnableColumnResize: Boolean read FEnableColumnResize
       write SetFEnableColumnResize;
     property EnableDragDrop: Boolean read FEnableDragDrop write SetFEnableDragDrop;
-    property EnableHdMenu: Boolean read FEnableHdMenu write SetFEnableHdMenu;
+    property EnableHdMenu: Boolean read FEnableHdMenu write SetEnableHdMenu;
     property HideHeaders: Boolean read FHideHeaders write SetFHideHeaders;
     property LoadMask: TExtObject read FLoadMask write SetFLoadMask;
     property MaxHeight: Integer read FMaxHeight write SetFMaxHeight;
@@ -2601,10 +2601,10 @@ begin
   JSCode('enableDragDrop:' + VarToJSON([Value]));
 end;
 
-procedure TExtGridGridPanel.SetFEnableHdMenu(Value: Boolean);
+procedure TExtGridGridPanel.SetEnableHdMenu(AValue: Boolean);
 begin
-  FEnableHdMenu := Value;
-  JSCode('enableHdMenu:' + VarToJSON([Value]));
+  FEnableHdMenu := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'enableHdMenu', [AValue]);
 end;
 
 procedure TExtGridGridPanel.SetFHideHeaders(Value: Boolean);
