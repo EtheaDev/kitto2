@@ -159,6 +159,7 @@ begin
   FFormPanel.Bbar := FStatusBar;
 
   FButton := TExtButton.CreateAndAddTo(FStatusBar.Items);
+  FButton.Scale := 'medium';
   FButton.Icon := Session.Config.GetImageURL('password');
   FButton.Text := _('Change password');
 
