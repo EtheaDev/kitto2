@@ -111,7 +111,11 @@ procedure TKExtDataPanelLeafController.AddTopToolbarButtons;
 begin
   TExtToolbarSpacer.CreateAndAddTo(TopToolbar.Items);
   FRefreshButton := TExtButton.CreateAndAddTo(TopToolbar.Items);
-  FRefreshButton.Icon := Session.Config.GetImageURL('refresh');
+  FRefreshButton.Scale := Config.GetString('ToolButtonScale', 'small');
+  if SameText(FRefreshButton.Scale, 'large') then
+    FRefreshButton.Icon := Session.Config.GetImageURL('refresh_large')
+  else
+    FRefreshButton.Icon := Session.Config.GetImageURL('refresh');
   FRefreshButton.Handler := Ajax(TKExtDataPanelController(Config.GetObject('Sys/ParentDataPanel', Self)).LoadData);
   FRefreshButton.Tooltip := _('Refresh data');
   inherited;

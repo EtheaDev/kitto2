@@ -1399,14 +1399,20 @@ begin
   FConfirmButton := TExtButton.CreateAndAddTo(Buttons);
   FConfirmButton.Scale := Config.GetString('ButtonScale', 'medium');
   FConfirmButton.FormBind := True;
-  FConfirmButton.Icon := Session.Config.GetImageURL('accept');
+  if SameText(FConfirmButton.Scale, 'large') then
+    FConfirmButton.Icon := Session.Config.GetImageURL('accept_large')
+  else
+    FConfirmButton.Icon := Session.Config.GetImageURL('accept');
   FConfirmButton.Text := Config.GetString('ConfirmButton/Caption', _('Confirm'));
   FConfirmButton.Tooltip := Config.GetString('ConfirmButton/Tooltip', _('Confirm action and close window'));
   FConfirmButton.Handler := JSFunction(GetConfirmJSCode());
 
   FCancelButton := TExtButton.CreateAndAddTo(Buttons);
   FCancelButton.Scale := Config.GetString('ButtonScale', 'medium');
-  FCancelButton.Icon := Session.Config.GetImageURL('cancel');
+  if SameText(FCancelButton.Scale, 'large') then
+    FCancelButton.Icon := Session.Config.GetImageURL('cancel_large')
+  else
+    FCancelButton.Icon := Session.Config.GetImageURL('cancel');
   FCancelButton.Text := _('Cancel');
   FCancelButton.Tooltip := _('Cancel changes');
   FCancelButton.Handler := Ajax(Cancel);

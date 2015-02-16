@@ -791,6 +791,7 @@ begin
   for I := 0 to FItems.ChildCount - 1 do
   begin
     LButton := TExtButton.CreateAndAddTo(Items);
+    LButton.Scale := Config.GetString('ButtonScale', 'small');
     LButton.Text := _(FItems.Children[I].AsString);
     LButton.AllowDepress := True;
     LButton.EnableToggle := True;
