@@ -2486,22 +2486,34 @@ begin
   LToolbar.Style := 'background: none; border: none;';
 
   FDownloadButton := TExtButton.CreateAndAddTo(LToolbar.Items);
+  FDownloadButton.Scale := Config.GetString('ButtonScale', 'small');
   FDownloadButton.Tooltip := _('Download file');
-  FDownloadButton.Icon := Session.Config.GetImageURL('download');
+  if SameText(FDownloadButton.Scale, 'large') then
+    FDownloadButton.Icon := Session.Config.GetImageURL('download_large')
+  else
+    FDownloadButton.Icon := Session.Config.GetImageURL('download');
   FDownloadButton.Handler := Ajax(StartDownload);
 
   LButtonCount := 1;
   if not FIsReadOnly then
   begin
     LUploadButton := TExtButton.CreateAndAddTo(LToolbar.Items);
+    LUploadButton.Scale := Config.GetString('ButtonScale', 'small');
     LUploadButton.Tooltip := _('Upload file');
-    LUploadButton.Icon := Session.Config.GetImageURL('upload');
+    if SameText(LUploadButton.Scale, 'large') then
+      LUploadButton.Icon := Session.Config.GetImageURL('upload_large')
+    else
+      LUploadButton.Icon := Session.Config.GetImageURL('upload');
     LUploadButton.Handler := Ajax(ShowUploadFileDialog);
     Inc(LButtonCount);
 
     FClearButton := TExtButton.CreateAndAddTo(LToolbar.Items);
+    FClearButton.Scale := Config.GetString('ButtonScale', 'small');
     FClearButton.Tooltip := _('Clear field');
-    FClearButton.Icon := Session.Config.GetImageURL('clear');
+    if SameText(FClearButton.Scale, 'large') then
+      FClearButton.Icon := Session.Config.GetImageURL('clear_large')
+    else
+      FClearButton.Icon := Session.Config.GetImageURL('clear');
     FClearButton.Handler := Ajax(Clear);
     Inc(LButtonCount);
   end
@@ -2603,6 +2615,7 @@ begin
   LUploadFormField.AllowBlank := False;
   LUploadFormField.Anchor := '0 5 0 0';
   LUploadButton := TExtButton.CreateAndAddTo(LFormPanel.Buttons);
+  LUploadButton.Scale := 'medium';
   LUploadButton.Text := _('Upload');
 
   LSubmitAction := TExtFormActionSubmit.Create(FWindow);
