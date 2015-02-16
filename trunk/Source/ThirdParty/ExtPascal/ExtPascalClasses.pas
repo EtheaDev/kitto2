@@ -173,6 +173,8 @@ type
     FSessionClass : TCustomWebSessionClass;
     FTerminated : Boolean;
     FTitle : string;
+    FContentWidth: string;
+    FUserScalable: string;
     procedure DoRun; virtual; abstract;
     function GetTerminated : Boolean; virtual;
     property Terminated : Boolean read GetTerminated;
@@ -191,6 +193,8 @@ type
     property Port : Word read FPort;
     property SessionClass : TCustomWebSessionClass read FSessionClass;
     property Title : string read FTitle; // Application title
+    property ContentWidth: string read FContentWidth; //content width for meta viewport
+    property UserScalable: string read FUserScalable; //content UserScalable for meta viewport
   end;
 
 implementation
@@ -869,6 +873,8 @@ begin
   FPort := APort;
   FMaxIdleMinutes := AMaxIdleMinutes;
   FMaxConns := AMaxConns;
+  FContentWidth := '480';
+  FUserScalable := '0';
 end;
 
 type TThreadAccess = class(TThread);

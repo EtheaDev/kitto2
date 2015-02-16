@@ -1166,7 +1166,9 @@ begin
       IfThen(HTMLQuirksMode, '<!docttype html public><html>',
       '<?xml version=1.0?>' + sLineBreak +
       '<!doctype html public "-//W3C//DTD XHTML 1.0 Strict//EN">' + sLineBreak +
-      '<html xmlns=http://www.w3org/1999/xthml>'));
+      '<html xmlns=http://www.w3org/1999/xthml>' + sLineBreak +
+      Format('<meta name="viewport" content="width=%s user-scalable=%s"/>',
+        [Application.ContentWidth, Application.UserScalable])));
     LMainPageCode := ReplaceText(LMainPageCode, '<%ApplicationTitle%>', Application.Title);
     LMainPageCode := ReplaceText(LMainPageCode, '<%ApplicationIconLink%>',
       IfThen(Application.Icon = '', '', '<link rel="shortcut icon" href="' + ImagePath + '/' + Application.Icon + '"/>'));
