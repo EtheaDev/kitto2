@@ -368,6 +368,16 @@ function TKExtSession.GetViewportContent: string;
 var
   LContent: TEFPairs;
   LPair: TEFPair;
+
+  function GetSeparator: string;
+  begin
+    // IE wants comma, others want space.
+    if RequestHeader['HTTP_USER_AGENT'].Contains('Windows Phone') then
+      Result := ', '
+    else
+      Result := ' ';
+  end;
+
 begin
   Result := '';
   LContent := GetHomeView.GetChildrenAsPairs('ViewportContent', True);
@@ -376,7 +386,7 @@ begin
     if Result = '' then
       Result := LPair.Key + '=' + LPair.Value
     else
-      Result := Result + ' ' + LPair.Key + '=' + LPair.Value;
+      Result := Result + GetSeparator + LPair.Key + '=' + LPair.Value;
   end;
 end;
 
