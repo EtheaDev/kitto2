@@ -432,6 +432,7 @@ type
     function JSConcat(PrevCommand, NextCommand : string) : string;
     function GetMainPageTemplate: string; virtual;
     procedure SetLanguage(const AValue: string); virtual;
+    function GetViewportContent: string; virtual;
   public
     HTMLQuirksMode : boolean; // Defines the (X)HTML DocType. True to Transitional (Quirks mode) or false to Strict. Default is false.
     Theme     : string; // Sets or gets Ext JS installed theme, default '' that is Ext Blue theme
@@ -735,6 +736,11 @@ begin
     Result := inherited GetUrlHandlerObject
   else
     Result := ObjectCatalog.FindExtObject(LObjectName);
+end;
+
+function TExtSession.GetViewportContent: string;
+begin
+  Result := '';
 end;
 
 {
@@ -1083,6 +1089,7 @@ begin
     '  <title><%ApplicationTitle%></title>' + sLineBreak +
     '  <%ApplicationIconLink%>' + sLineBreak +
     '  <meta http-equiv="content-type" content="charset=<%CharSet%>" />' + sLineBreak +
+    '  <meta name="viewport=" content="<%ViewportContent%>" />' + sLineBreak +
     '  <link rel=stylesheet href="<%ExtPath%>/resources/css/<%ExtBuild%>.css" />' + sLineBreak +
     '  <script src="<%ExtPath%>/adapter/ext/ext-base.js"></script>' + sLineBreak +
     '  <script src="<%ExtPath%>/<%ExtBuild%><%DebugSuffix%>.js"></script>' + sLineBreak +
@@ -1166,9 +1173,8 @@ begin
       IfThen(HTMLQuirksMode, '<!docttype html public><html>',
       '<?xml version=1.0?>' + sLineBreak +
       '<!doctype html public "-//W3C//DTD XHTML 1.0 Strict//EN">' + sLineBreak +
-      '<html xmlns=http://www.w3org/1999/xthml>' + sLineBreak +
-      Format('<meta name="viewport" content="width=%s user-scalable=%s"/>',
-        [Application.ContentWidth, Application.UserScalable])));
+      '<html xmlns=http://www.w3org/1999/xthml>' + sLineBreak));
+    LMainPageCode := ReplaceText(LMainPageCode, '<%ViewportContent%>', GetViewportContent);
     LMainPageCode := ReplaceText(LMainPageCode, '<%ApplicationTitle%>', Application.Title);
     LMainPageCode := ReplaceText(LMainPageCode, '<%ApplicationIconLink%>',
       IfThen(Application.Icon = '', '', '<link rel="shortcut icon" href="' + ImagePath + '/' + Application.Icon + '"/>'));
