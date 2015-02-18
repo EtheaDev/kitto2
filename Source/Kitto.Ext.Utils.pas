@@ -24,7 +24,7 @@ uses
   SysUtils,
   Ext, ExtPascal, ExtPascalUtils, ExtMenu, ExtTree,
   EF.ObserverIntf, EF.Tree,
-  Kitto.Ext.Controller, Kitto.Metadata.Views, Kitto.Ext.Session;
+  Kitto.Ext.Base, Kitto.Ext.Controller, Kitto.Metadata.Views, Kitto.Ext.Session;
 
 type
   TKExtTreeTreeNode = class(TExtTreeTreeNode)
@@ -35,7 +35,7 @@ type
     property View: TKView read FView write SetView;
   end;
 
-  TKExtButton = class(TExtButton)
+  TKExtViewButton = class(TKExtButton)
   private
     FView: TKView;
     procedure SetView(const AValue: TKView);
@@ -130,7 +130,7 @@ implementation
 uses
   Types, StrUtils, RTTI,
   EF.SysUtils, EF.StrUtils, EF.Classes, EF.Localization,
-  Kitto.AccessControl, Kitto.Utils, Kitto.Ext.Base;
+  Kitto.AccessControl, Kitto.Utils;
 
 function CallViewControllerStringMethod(const AView: TKView;
   const AMethodName: string; const ADefaultValue: string): string;
@@ -253,7 +253,7 @@ end;
 procedure TKExtTreeViewRenderer.AddButton(const ANode: TKTreeViewNode;
   const ADisplayLabel: string; const AContainer: TExtContainer);
 var
-  LButton: TKExtButton;
+  LButton: TKExtViewButton;
   LMenu: TExtMenuMenu;
   LIsEnabled: Boolean;
   LView: TKView;
@@ -264,7 +264,7 @@ begin
   LView := ANode.FindView(Session.Config.Views);
 
   LIsEnabled := not Assigned(LView) or LView.IsAccessGranted(ACM_RUN);
-  LButton := TKExtButton.CreateAndAddTo(AContainer.Items);
+  LButton := TKExtViewButton.CreateAndAddTo(AContainer.Items);
   try
     Inc(FAddedItems);
     LButton.View := LView;
@@ -493,9 +493,9 @@ begin
   end;
 end;
 
-{ TKExtButton }
+{ TKExtViewButton }
 
-procedure TKExtButton.SetView(const AValue: TKView);
+procedure TKExtViewButton.SetView(const AValue: TKView);
 begin
   FView := AValue;
 end;

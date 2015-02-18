@@ -63,13 +63,13 @@ type
       const AViewField: TKViewField; const ALayoutNode: TEFNode; const AColumn: TExtGridColumn);
 //    function GetConfirmJSCode(const AMethod: TExtProcedure): string;
   private
-    FNewButton: TExtButton;
-    FEditButton: TExtButton;
-    FViewButton: TExtButton;
-    FDeleteButton: TExtButton;
-    FDupButton: TExtButton;
-    FConfirmButton: TExtButton;
-    FCancelButton: TExtButton;
+    FNewButton: TKExtButton;
+    FEditButton: TKExtButton;
+    FViewButton: TKExtButton;
+    FDeleteButton: TKExtButton;
+    FDupButton: TKExtButton;
+    FConfirmButton: TKExtButton;
+    FCancelButton: TKExtButton;
     function GetConfirmJSCode(const AMethod: TExtProcedure): string;
     function GetBeforeEditJSCode(const AMethod: TExtProcedure): string;
     procedure ShowConfirmButtons(const AShow: Boolean);
@@ -87,7 +87,7 @@ type
     function GetSelectConfirmCall(const AMessage: string;
       const AMethod: TExtProcedure): string; override;
     function AddActionButton(const AView: TKView;
-      const AToolbar: TExtToolbar): TKExtActionButton; override;
+      const AToolbar: TKExtToolbar): TKExtActionButton; override;
     function GetSelectCall(const AMethod: TExtProcedure): TExtFunction; override;
     function IsMultiSelect: Boolean;
   public
@@ -805,25 +805,17 @@ begin
 
   if FInplaceEditing then
   begin
-    FConfirmButton := TExtButton.CreateAndAddTo(Buttons);
-    FConfirmButton.Scale := Config.GetString('ButtonScale', 'medium');
+    FConfirmButton := TKExtButton.CreateAndAddTo(Buttons);
+    FConfirmButton.SetIconAndScale('accept', Config.GetString('ButtonScale', 'medium'));
     FConfirmButton.Text := Config.GetString('ConfirmButton/Caption', _('Save'));
     FConfirmButton.Tooltip := Config.GetString('ConfirmButton/Tooltip', _('Save changes and finish editing'));
-    if SameText(FConfirmButton.Scale, 'large') then
-      FConfirmButton.Icon := Session.Config.GetImageURL('accept_large')
-    else
-      FConfirmButton.Icon := Session.Config.GetImageURL('accept');
     FConfirmButton.Hidden := True;
     FConfirmButton.Handler := Ajax(ConfirmInplaceChanges);
 
-    FCancelButton := TExtButton.CreateAndAddTo(Buttons);
-    FCancelButton.Scale := Config.GetString('ButtonScale', 'medium');
+    FCancelButton := TKExtButton.CreateAndAddTo(Buttons);
+    FCancelButton.SetIconAndScale('cancel', Config.GetString('ButtonScale', 'medium'));
     FCancelButton.Text := _('Cancel');
     FCancelButton.Tooltip := _('Cancel changes');
-    if SameText(FCancelButton.Scale, 'large') then
-      FCancelButton.Icon := Session.Config.GetImageURL('cancel_large')
-    else
-      FCancelButton.Icon := Session.Config.GetImageURL('cancel');
     FCancelButton.Hidden := True;
     FCancelButton.Handler := Ajax(CancelInplaceChanges);
 
@@ -1009,17 +1001,10 @@ begin
 end;
 
 function TKExtGridPanel.AddActionButton(const AView: TKView;
-  const AToolbar: TExtToolbar): TKExtActionButton;
-var
-  LFileExt: string;
+  const AToolbar: TKExtToolbar): TKExtActionButton;
 begin
   Result := inherited AddActionButton(AView, AToolbar);
-  Result.Scale := Config.GetString('ToolButtonScale', 'small');
-  if SameText(Result.Scale, 'large') then
-  begin
-    LFileExt := ExtractFileExt(Result.Icon);
-    Result.Icon := ChangeFileExt(Result.Icon, '_large'+LFileExt);
-  end;
+
   if AView.GetBoolean('Controller/RequireSelection', True) then
     FButtonsRequiringSelection.Add(Result);
 end;
@@ -1033,13 +1018,10 @@ begin
 
   if FIsAddVisible then
   begin
-    FNewButton := TExtButton.CreateAndAddTo(TopToolbar.Items);
-    FNewButton.Scale := Config.GetString('ToolButtonScale', 'small');
+    FNewButton := TKExtButton.CreateAndAddTo(TopToolbar.Items);
     FNewButton.Tooltip := Format(_('Add %s'), [_(ViewTable.DisplayLabel)]);
-    if SameText(FNewButton.Scale, 'large') then
-      FNewButton.Icon := Session.Config.GetImageURL('new_record_large')
-    else
-      FNewButton.Icon := Session.Config.GetImageURL('new_record');
+    FNewButton.SetIconAndScale('new_record');
+
     if not FIsAddAllowed then
       FNewButton.Disabled := True
     else
@@ -1049,13 +1031,9 @@ begin
   if FIsDupVisible then
   begin
     TExtToolbarSpacer.CreateAndAddTo(TopToolbar.Items);
-    FDupButton := TExtButton.CreateAndAddTo(TopToolbar.Items);
-    FDupButton.Scale := Config.GetString('ToolButtonScale', 'small');
+    FDupButton := TKExtButton.CreateAndAddTo(TopToolbar.Items);
     FDupButton.Tooltip := Format(_('Duplicate %s'), [_(ViewTable.DisplayLabel)]);
-    if SameText(FDupButton.Scale, 'large') then
-      FDupButton.Icon := Session.Config.GetImageURL('dup_record_large')
-    else
-      FDupButton.Icon := Session.Config.GetImageURL('dup_record');
+    FDupButton.SetIconAndScale('dup_record');
     if not FIsDupAllowed then
       FDupButton.Disabled := True
     else
@@ -1068,13 +1046,9 @@ begin
 
   if FIsViewVisible then
   begin
-    FViewButton := TExtButton.CreateAndAddTo(TopToolbar.Items);
-    FViewButton.Scale := Config.GetString('ToolButtonScale', 'small');
+    FViewButton := TKExtButton.CreateAndAddTo(TopToolbar.Items);
     FViewButton.Tooltip := Format(_('View %s'), [_(ViewTable.DisplayLabel)]);
-    if SameText(FViewButton.Scale, 'large') then
-      FViewButton.Icon := Session.Config.GetImageURL('view_record_large')
-    else
-      FViewButton.Icon := Session.Config.GetImageURL('view_record');
+    FViewButton.SetIconAndScale('view_record');
     if not FIsViewAllowed then
       FViewButton.Disabled := True
     else
@@ -1090,13 +1064,9 @@ begin
     if FIsEditVisible then
     begin
       TExtToolbarSpacer.CreateAndAddTo(TopToolbar.Items);
-      FEditButton := TExtButton.CreateAndAddTo(TopToolbar.Items);
-      FEditButton.Scale := Config.GetString('ToolButtonScale', 'small');
+      FEditButton := TKExtButton.CreateAndAddTo(TopToolbar.Items);
       FEditButton.Tooltip := Format(_('Edit %s'), [_(ViewTable.DisplayLabel)]);
-      if SameText(FEditButton.Scale, 'large') then
-        FEditButton.Icon := Session.Config.GetImageURL('edit_record_large')
-      else
-        FEditButton.Icon := Session.Config.GetImageURL('edit_record');
+      FEditButton.SetIconAndScale('edit_record');
       if not FIsEditAllowed then
         FEditButton.Disabled := True
       else
@@ -1111,13 +1081,9 @@ begin
   if FIsDeleteVisible then
   begin
     TExtToolbarSpacer.CreateAndAddTo(TopToolbar.Items);
-    FDeleteButton := TExtButton.CreateAndAddTo(TopToolbar.Items);
-    FDeleteButton.Scale := Config.GetString('ToolButtonScale', 'small');
+    FDeleteButton := TKExtButton.CreateAndAddTo(TopToolbar.Items);
     FDeleteButton.Tooltip := Format(_('Delete %s'), [_(ViewTable.DisplayLabel)]);
-    if SameText(FDeleteButton.Scale, 'large') then
-      FDeleteButton.Icon := Session.Config.GetImageURL('delete_record_large')
-    else
-      FDeleteButton.Icon := Session.Config.GetImageURL('delete_record');
+    FDeleteButton.SetIconAndScale('delete_record');
     if not FIsDeleteAllowed then
       FDeleteButton.Disabled := True
     else

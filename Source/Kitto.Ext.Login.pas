@@ -35,7 +35,7 @@ type
     FUserName: TExtFormTextField;
     FPassword: TExtFormTextField;
     FLanguage: TExtFormComboBox;
-    FButton: TExtButton;
+    FLoginButton: TKExtButton;
     FOnLogin: TKExtOnLogin;
     FStatusBar: TKExtStatusBar;
     FFormPanel: TExtFormFormPanel;
@@ -140,7 +140,7 @@ var
   begin
     Result := Format(
       '%s.setDisabled(%s.getValue() == "" || %s.getValue() == "");',
-      [FButton.JSName, FUserName.JSName, FPassword.JSName]);
+      [FLoginButton.JSName, FUserName.JSName, FPassword.JSName]);
   end;
 
   function GetSubmitJS: string;
@@ -148,7 +148,7 @@ var
     Result := Format(
       // For some reason != does not survive rendering.
       'if (e.getKey() == 13 && !(%s.getValue() == "") && !(%s.getValue() == "")) %s.handler.call(%s.scope, %s);',
-      [FUserName.JSName, FPassword.JSName, FButton.JSName, FButton.JSName, FButton.JSName]);
+      [FUserName.JSName, FPassword.JSName, FLoginButton.JSName, FLoginButton.JSName, FLoginButton.JSName]);
   end;
 
 begin
@@ -181,10 +181,9 @@ begin
   FFormPanel.MonitorValid := True;
   FFormPanel.Bbar := FStatusBar;
 
-  FButton := TExtButton.CreateAndAddTo(FStatusBar.Items);
-  FButton.Icon := Session.Config.GetImageURL('login');
-  FButton.Scale := 'medium';
-  FButton.Text := _('Login');
+  FLoginButton := TKExtButton.CreateAndAddTo(FStatusBar.Items);
+  FLoginButton.SetIconAndScale('login', 'medium');
+  FLoginButton.Text := _('Login');
 
   if HtmlPanel <> '' then
   begin
@@ -241,16 +240,16 @@ begin
     FLanguage := nil;
 
   if Assigned(FLanguage) then
-    FButton.Handler := Ajax(DoLogin, ['Dummy', FStatusBar.ShowBusy,
+    FLoginButton.Handler := Ajax(DoLogin, ['Dummy', FStatusBar.ShowBusy,
       'UserName', FUserName.GetValue, 'Password', FPassword.GetValue, 'Language', FLanguage.GetValue])
   else
-    FButton.Handler := Ajax(DoLogin, ['Dummy', FStatusBar.ShowBusy,
+    FLoginButton.Handler := Ajax(DoLogin, ['Dummy', FStatusBar.ShowBusy,
       'UserName', FUserName.GetValue, 'Password', FPassword.GetValue]);
 
   if Assigned(FLanguage) then
-    FButton.Disabled := (FUserName.Value = '') or (FPassword.Value = '') or (FLanguage.Value = '')
+    FLoginButton.Disabled := (FUserName.Value = '') or (FPassword.Value = '') or (FLanguage.Value = '')
   else
-    FButton.Disabled := (FUserName.Value = '') or (FPassword.Value = '');
+    FLoginButton.Disabled := (FUserName.Value = '') or (FPassword.Value = '');
 
   if (FUserName.Value <> '') and (FPassword.Value = '') then
     FPassword.Focus(False, 750)

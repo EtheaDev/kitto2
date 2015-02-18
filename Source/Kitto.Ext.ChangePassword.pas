@@ -30,7 +30,7 @@ type
     FOldPassword: TExtFormTextField;
     FNewPassword: TExtFormTextField;
     FConfirmNewPassword: TExtFormTextField;
-    FButton: TExtButton;
+    FConfirmButton: TKExtButton;
     FStatusBar: TKExtStatusBar;
     FFormPanel: TExtFormFormPanel;
     FOldPasswordHash: string;
@@ -114,7 +114,7 @@ procedure TKExtChangePasswordWindow.InitDefaults;
 
   function ReplaceMacros(const ACode: string): string;
   begin
-    Result := ReplaceStr(ACode, '%BUTTON%', FButton.JSName);
+    Result := ReplaceStr(ACode, '%BUTTON%', FConfirmButton.JSName);
     Result := ReplaceStr(Result, '%OLDPW%', FOldPassword.JSName);
     Result := ReplaceStr(Result, '%NEWPW%', FNewPassword.JSName);
     Result := ReplaceStr(Result, '%NEWPW2%', FConfirmNewPassword.JSName);
@@ -158,10 +158,9 @@ begin
   FFormPanel.MonitorValid := True;
   FFormPanel.Bbar := FStatusBar;
 
-  FButton := TExtButton.CreateAndAddTo(FStatusBar.Items);
-  FButton.Scale := 'medium';
-  FButton.Icon := Session.Config.GetImageURL('password');
-  FButton.Text := _('Change password');
+  FConfirmButton := TKExtButton.CreateAndAddTo(FStatusBar.Items);
+  FConfirmButton.SetIconAndScale('password', 'medium');
+  FConfirmButton.Text := _('Change password');
 
   FOldPassword := TExtFormTextField.CreateAndAddTo(FFormPanel.Items);
   FOldPassword.Name := 'OldPassword';
@@ -197,11 +196,11 @@ begin
   FNewPassword.On('specialkey', JSFunction('field, e', GetSubmitJS));
   FConfirmNewPassword.On('specialkey', JSFunction('field, e', GetSubmitJS));
 
-  FButton.Handler := Ajax(DoChangePassword, ['Dummy', FStatusBar.ShowBusy,
+  FConfirmButton.Handler := Ajax(DoChangePassword, ['Dummy', FStatusBar.ShowBusy,
     'OldPassword', FOldPassword.GetValue, 'NewPassword', FNewPassword.GetValue,
     'ConfirmNewPassword', FConfirmNewPassword.GetValue]);
 
-  FButton.Disabled := True;
+  FConfirmButton.Disabled := True;
 
   FOldPassword.Focus(False, 500);
 end;

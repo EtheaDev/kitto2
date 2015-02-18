@@ -33,7 +33,7 @@ type
   ///	<summary>
   ///	  A button that opens a popup detail form.
   ///	</summary>
-  TKExtDetailFormButton = class(TExtButton)
+  TKExtDetailFormButton = class(TKExtButton)
   private
     FViewTable: TKViewTable;
     FDetailHostWindow: TKExtModalWindow;
@@ -55,18 +55,18 @@ type
     FFormPanel: TKExtEditPanel;
     FMainPagePanel: TKExtEditPage;
     FIsReadOnly: Boolean;
-    FConfirmButton: TExtButton;
-    FEditButton: TExtButton;
-    FCancelButton: TExtButton;
-    FCloseButton: TExtButton;
-    FDetailToolbar: TExtToolbar;
+    FConfirmButton: TKExtButton;
+    FEditButton: TKExtButton;
+    FCancelButton: TKExtButton;
+    FCloseButton: TKExtButton;
+    FDetailToolbar: TKExtToolbar;
     FDetailButtons: TObjectList<TKExtDetailFormButton>;
     FDetailControllers: TObjectList<TObject>;
     FOperation: string;
     FFocusField: TExtFormField;
     FStoreRecord: TKViewTableRecord;
     FCloneValues: TEFNode;
-    FCloneButton: TExtButton;
+    FCloneButton: TKExtButton;
     FLabelAlign: TExtFormFormPanelLabelAlign;
     procedure CreateEditors;
     procedure RecreateEditors;
@@ -91,7 +91,7 @@ type
     procedure DoDisplay; override;
     procedure InitComponents; override;
     property StoreRecord: TKViewTableRecord read FStoreRecord;
-    function AddActionButton(const AView: TKView; const AToolbar: TExtToolbar): TKExtActionButton; override;
+    function AddActionButton(const AView: TKView; const AToolbar: TKExtToolbar): TKExtActionButton; override;
   public
     procedure LoadData; override;
     destructor Destroy; override;
@@ -172,7 +172,7 @@ begin
   begin
     FStoreRecord.EnsureDetailStores;
     Assert(FStoreRecord.DetailStoreCount = ViewTable.DetailTableCount);
-    FDetailToolbar := TExtToolbar.Create(Self);
+    FDetailToolbar := TKExtToolbar.Create(Self);
     FDetailButtons := TObjectList<TKExtDetailFormButton>.Create(False);
     for I := 0 to ViewTable.DetailTableCount - 1 do
     begin
@@ -472,61 +472,41 @@ begin
     LCloneButtonNode := Config.FindNode('CloneButton');
     if Assigned(LCloneButtonNode) then
     begin
-      FCloneButton := TExtButton.CreateAndAddTo(FFormPanel.Buttons);
-      FCloneButton.Scale := Config.GetString('ButtonScale', 'medium');
+      FCloneButton := TKExtButton.CreateAndAddTo(FFormPanel.Buttons);
+      FCloneButton.SetIconAndScale('accept_clone', Config.GetString('ButtonScale', 'medium'));
       FCloneButton.FormBind := True;
-      if SameText(FCloneButton.Scale, 'large') then
-        FCloneButton.Icon := Session.Config.GetImageURL('accept_clone_large')
-      else
-        FCloneButton.Icon := Session.Config.GetImageURL('accept_clone');
       FCloneButton.Text := LCloneButtonNode.GetString('Caption', _('Save & Clone'));
       FCloneButton.Tooltip := LCloneButtonNode.GetString('Tooltip', _('Save changes and create a new clone record'));
     end
     else
       FCloneButton := nil;
   end;
-  FConfirmButton := TExtButton.CreateAndAddTo(FFormPanel.Buttons);
-  FConfirmButton.Scale := Config.GetString('ButtonScale', 'medium');
+  FConfirmButton := TKExtButton.CreateAndAddTo(FFormPanel.Buttons);
+  FConfirmButton.SetIconAndScale('accept', Config.GetString('ButtonScale', 'medium'));
   FConfirmButton.FormBind := True;
-  if SameText(FConfirmButton.Scale, 'large') then
-    FConfirmButton.Icon := Session.Config.GetImageURL('accept_large')
-  else
-    FConfirmButton.Icon := Session.Config.GetImageURL('accept');
   FConfirmButton.Text := Config.GetString('ConfirmButton/Caption', _('Save'));
   FConfirmButton.Tooltip := Config.GetString('ConfirmButton/Tooltip', _('Save changes and finish editing'));
   FConfirmButton.Hidden := FIsReadOnly or IsViewMode;
 
   if IsViewMode then
   begin
-    FEditButton := TExtButton.CreateAndAddTo(FFormPanel.Buttons);
-    FEditButton.Scale := Config.GetString('ButtonScale', 'medium');
+    FEditButton := TKExtButton.CreateAndAddTo(FFormPanel.Buttons);
+    FEditButton.SetIconAndScale('edit_record', Config.GetString('ButtonScale', 'medium'));
     FEditButton.FormBind := True;
-    if SameText(FEditButton.Scale, 'large') then
-      FEditButton.Icon := Session.Config.GetImageURL('edit_record_large')
-    else
-      FEditButton.Icon := Session.Config.GetImageURL('edit_record');
     FEditButton.Text := Config.GetString('ConfirmButton/Caption', _(EDIT_OPERATION));
     FEditButton.Tooltip := Config.GetString('ConfirmButton/Tooltip', _('Switch to edit mode'));
     FEditButton.Hidden := FIsReadOnly;
   end;
 
-  FCancelButton := TExtButton.CreateAndAddTo(FFormPanel.Buttons);
-  FCancelButton.Scale := Config.GetString('ButtonScale', 'medium');
-  if SameText(FCancelButton.Scale, 'large') then
-    FCancelButton.Icon := Session.Config.GetImageURL('cancel_large')
-  else
-    FCancelButton.Icon := Session.Config.GetImageURL('cancel');
+  FCancelButton := TKExtButton.CreateAndAddTo(FFormPanel.Buttons);
+  FCancelButton.SetIconAndScale('cancel', Config.GetString('ButtonScale', 'medium'));
   FCancelButton.Text := _('Cancel');
   FCancelButton.Tooltip := _('Cancel changes');
   FCancelButton.Handler := Ajax(CancelChanges);
   FCancelButton.Hidden := FIsReadOnly;
 
-  FCloseButton := TExtButton.CreateAndAddTo(FFormPanel.Buttons);
-  FCloseButton.Scale := Config.GetString('ButtonScale', 'medium');
-  if SameText(FCloseButton.Scale, 'large') then
-    FCloseButton.Icon := Session.Config.GetImageURL('close_large')
-  else
-    FCloseButton.Icon := Session.Config.GetImageURL('close');
+  FCloseButton := TKExtButton.CreateAndAddTo(FFormPanel.Buttons);
+  FCloseButton.SetIconAndScale('close', Config.GetString('ButtonScale', 'medium'));
   FCloseButton.Text := _('Close');
   FCloseButton.Tooltip := _('Close this panel');
   // No need for an ajax call when we just close the client-side panel.
@@ -683,7 +663,7 @@ begin
 end;
 
 function TKExtFormPanelController.AddActionButton(const AView: TKView;
-  const AToolbar: TExtToolbar): TKExtActionButton;
+  const AToolbar: TKExtToolbar): TKExtActionButton;
 begin
   Result := inherited AddActionButton(AView, AToolbar);
   TKExtDataActionButton(Result).OnGetServerRecord :=
