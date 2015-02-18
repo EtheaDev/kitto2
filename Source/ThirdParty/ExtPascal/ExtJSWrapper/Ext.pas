@@ -3629,7 +3629,7 @@ type
     procedure SetFInitHidden(Value: Boolean);
     procedure SetFManager(Value: TExtWindowGroup);
     procedure SetMaximizable(const AValue: Boolean);
-    procedure SetFMaximized(Value: Boolean);
+    procedure SetMaximized(const AValue: Boolean);
     procedure SetFMinHeight(Value: Integer);
     procedure SetFMinWidth(Value: Integer);
     procedure SetFMinimizable(Value: Boolean);
@@ -3703,7 +3703,7 @@ type
     property InitHidden: Boolean read FInitHidden write SetFInitHidden;
     property Manager: TExtWindowGroup read FManager write SetFManager;
     property Maximizable: Boolean read FMaximizable write SetMaximizable;
-    property Maximized: Boolean read FMaximized write SetFMaximized;
+    property Maximized: Boolean read FMaximized write SetMaximized;
     property MinHeight: Integer read FMinHeight write SetFMinHeight;
     property MinWidth: Integer read FMinWidth write SetFMinWidth;
     property Minimizable: Boolean read FMinimizable write SetFMinimizable;
@@ -13994,10 +13994,10 @@ begin
   ExtSession.ResponseItems.SetConfigItem(Self, 'maximizable', [AValue]);
 end;
 
-procedure TExtWindow.SetFMaximized(Value: Boolean);
+procedure TExtWindow.SetMaximized(const AValue: Boolean);
 begin
-  FMaximized := Value;
-  JSCode('maximized:' + VarToJSON([Value]));
+  FMaximized := AValue;
+  Session.ResponseItems.SetConfigItem(Self, 'maximized', [AValue]);
 end;
 
 procedure TExtWindow.SetFMinHeight(Value: Integer);
