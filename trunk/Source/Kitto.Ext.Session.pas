@@ -143,6 +143,7 @@ type
     ///  If called multiple times, only the first time the file is added.
     ///	</summary>
     procedure EnsureDynamicScript(const AScriptBaseName: string);
+    function GetHomeView: TKView;
   protected
     function BeforeHandleRequest: Boolean; override;
     procedure AfterHandleRequest; override;
@@ -150,6 +151,7 @@ type
     function GetMainPageTemplate: string; override;
     procedure SetLanguage(const AValue: string); override;
     function GetSessionCookieName: string; override;
+    function GetViewportContent: string; override;
   public
     constructor Create(AOwner: TObject); override;
     destructor Destroy; override;
@@ -275,7 +277,7 @@ implementation
 uses
   StrUtils, ActiveX, ComObj, Types, FmtBcd,
   ExtPascalUtils, ExtForm,
-  EF.SysUtils, EF.StrUtils, EF.Logger,
+  EF.SysUtils, EF.StrUtils, EF.Logger, EF.Types,
   Kitto.Auth, Kitto.Types, Kitto.AccessControl,
   Kitto.Ext.Utils;
 
@@ -362,6 +364,22 @@ begin
   Result := 'kitto';
 end;
 
+function TKExtSession.GetViewportContent: string;
+var
+  LContent: TEFPairs;
+  LPair: TEFPair;
+begin
+  Result := '';
+  LContent := GetHomeView.GetChildrenAsPairs('ViewportContent', True);
+  for LPair in LContent do
+  begin
+    if Result = '' then
+      Result := LPair.Key + '=' + LPair.Value
+    else
+      Result := Result + ' ' + LPair.Key + '=' + LPair.Value;
+  end;
+end;
+
 destructor TKExtSession.Destroy;
 var
   LUploadDirectory: string;
@@ -413,17 +431,22 @@ begin
     DisplayHomeView;
 end;
 
+function TKExtSession.GetHomeView: TKView;
+begin
+  if FHomeViewNodeName = '' then
+    FHomeViewNodeName := 'HomeView';
+  Result := Config.Views.FindViewByNode(Config.Config.FindNode(FHomeViewNodeName));
+  if not Assigned(Result) then
+    Result := Config.Views.ViewByName('Home');
+end;
+
 procedure TKExtSession.DisplayHomeView;
 var
   LHomeView: TKView;
   LIntf: IKExtController;
 begin
   FreeAndNil(FHomeController);
-  if FHomeViewNodeName = '' then
-    FHomeViewNodeName := 'HomeView';
-  LHomeView := Config.Views.FindViewByNode(Config.Config.FindNode(FHomeViewNodeName));
-  if not Assigned(LHomeView) then
-    LHomeView := Config.Views.ViewByName('Home');
+  LHomeView := GetHomeView;
   FHomeController := TKExtControllerFactory.Instance.CreateController
     (ObjectCatalog, LHomeView, nil).AsObject;
   if Supports(FHomeController, IKExtController, LIntf) then
