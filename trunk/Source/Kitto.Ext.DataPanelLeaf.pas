@@ -24,13 +24,13 @@ uses
   SysUtils,
   Ext,
   EF.ObserverIntf,
-  Kitto.Ext.DataPanel;
+  Kitto.Ext.Base, Kitto.Ext.DataPanel;
 
 type
   ///	<summary>Base class for concrete data panels that handle database records.</summary>
   TKExtDataPanelLeafController = class abstract(TKExtDataPanelController)
   strict private
-    FRefreshButton: TExtButton;
+    FRefreshButton: TKExtButton;
   strict protected
     procedure AddTopToolbarButtons; override;
     procedure ExecuteNamedAction(const AActionName: string); override;
@@ -47,7 +47,7 @@ implementation
 uses
   ExtPascal,
   EF.Localization,
-  Kitto.Ext.Base, Kitto.Metadata.Views,
+  Kitto.Metadata.Views,
   Kitto.AccessControl, Kitto.Ext.Session;
 
 { TKExtDataPanelLeafController }
@@ -110,12 +110,8 @@ end;
 procedure TKExtDataPanelLeafController.AddTopToolbarButtons;
 begin
   TExtToolbarSpacer.CreateAndAddTo(TopToolbar.Items);
-  FRefreshButton := TExtButton.CreateAndAddTo(TopToolbar.Items);
-  FRefreshButton.Scale := Config.GetString('ToolButtonScale', 'small');
-  if SameText(FRefreshButton.Scale, 'large') then
-    FRefreshButton.Icon := Session.Config.GetImageURL('refresh_large')
-  else
-    FRefreshButton.Icon := Session.Config.GetImageURL('refresh');
+  FRefreshButton := TKExtButton.CreateAndAddTo(TopToolbar.Items);
+  FRefreshButton.SetIconAndScale('refresh');
   FRefreshButton.Handler := Ajax(TKExtDataPanelController(Config.GetObject('Sys/ParentDataPanel', Self)).LoadData);
   FRefreshButton.Tooltip := _('Refresh data');
   inherited;

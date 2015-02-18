@@ -130,6 +130,13 @@ type
     procedure ClosePanel(const APanel: TExtComponent);
   end;
 
+  TKExtToolbar = class(TExtToolbar)
+  strict private
+    FButtonScale: string;
+  public
+    property ButtonScale: string read FButtonScale write FButtonScale;
+  end;
+
   ///	<summary>
   ///	  Base Ext panel with subject and observer capabilities.
   ///	</summary>
@@ -157,7 +164,15 @@ type
     property Config: TEFNode read GetConfig;
   end;
 
-  TKExtActionButton = class(TExtButton)
+  TKExtButton = class(TExtButton)
+  strict protected
+    function FindOwnerToolbar: TKExtToolbar;
+    function GetOwnerToolbar: TKExtToolbar;
+  public
+    procedure SetIconAndScale(const AIconName: string; const AScale: string = '');
+  end;
+
+  TKExtActionButton = class(TKExtButton)
   strict private
     FView: TKView;
     FActionObserver: IEFObserver;
@@ -177,7 +192,7 @@ type
   strict private
     FView: TKView;
     FContainer: TExtContainer;
-    FTopToolbar: TExtToolbar;
+    FTopToolbar: TKExtToolbar;
     FActionButtons: TDictionary<string, TKExtActionButton>;
     procedure CreateTopToolbar;
     procedure EnsureAllSupportFiles;
@@ -193,11 +208,13 @@ type
     procedure SetContainer(const AValue: TExtContainer);
     property Container: TExtContainer read GetContainer write SetContainer;
     procedure InitSubController(const AController: IKExtController); virtual;
-    property TopToolbar: TExtToolbar read FTopToolbar;
+    property TopToolbar: TKExtToolbar read FTopToolbar;
     procedure BeforeCreateTopToolbar; virtual;
     procedure AfterCreateTopToolbar; virtual;
 
-    ///	<summary>Adds built-in buttons to the top toolbar.</summary>
+    ///	<summary>
+    ///  Adds built-in buttons to the top toolbar.
+    /// </summary>
     procedure AddTopToolbarButtons; virtual;
 
     ///	<summary>Adds ToolView buttons to the top toolbar. Called after
@@ -209,13 +226,13 @@ type
     ///	<param name="AConfigNode">ToolViews node. If nil or childrenless, no
     ///	buttons are added.</param>
     ///	<param name="AToolbar">Destination toolbar.</param>
-    procedure AddToolViewButtons(const AConfigNode: TEFNode; const AToolbar: TExtToolbar);
+    procedure AddToolViewButtons(const AConfigNode: TEFNode; const AToolbar: TKExtToolbar);
 
     ///	<summary>Adds an action button representing the specified tool view to
     ///	the specified toolbar. Override this method to create action buttons of
     ///	classes inherited from the base TKExtActionButton.</summary>
     function AddActionButton(const AView: TKView;
-      const AToolbar: TExtToolbar): TKExtActionButton; virtual;
+      const AToolbar: TKExtToolbar): TKExtActionButton; virtual;
 
     ///	<summary>
     ///	  Holds the list of named Buttons added to the Panel
@@ -287,8 +304,8 @@ type
   /// </summary>
   TKExtWindowToolController = class(TKExtWindowControllerBase)
   strict private
-    FConfirmButton: TExtButton;
-    FCancelButton: TExtButton;
+    FConfirmButton: TKExtButton;
+    FCancelButton: TKExtButton;
     procedure CreateButtons;
   strict protected
     procedure SetWindowSize; virtual;
@@ -900,7 +917,7 @@ begin
 end;
 
 function TKExtPanelControllerBase.AddActionButton(
-  const AView: TKView; const AToolbar: TExtToolbar): TKExtActionButton;
+  const AView: TKView; const AToolbar: TKExtToolbar): TKExtActionButton;
 var
   LConfirmationMessage: string;
   LConfirmationJS: string;
@@ -922,7 +939,7 @@ begin
 end;
 
 procedure TKExtPanelControllerBase.AddToolViewButtons(
-  const AConfigNode: TEFNode; const AToolbar: TExtToolbar);
+  const AConfigNode: TEFNode; const AToolbar: TKExtToolbar);
 var
   I: Integer;
   LView: TKView;
@@ -973,8 +990,9 @@ procedure TKExtPanelControllerBase.CreateTopToolbar;
 begin
   BeforeCreateTopToolbar;
 
-  FTopToolbar := TExtToolbar.Create(Self);
+  FTopToolbar := TKExtToolbar.Create(Self);
   try
+    FTopToolbar.ButtonScale := Config.GetString('ToolButtonScale');
     AddTopToolbarButtons;
     AddTopToolbarToolViewButtons;
   except
@@ -1019,8 +1037,7 @@ begin
   Result := False;
 end;
 
-procedure TKExtPanelControllerBase.PerformDelayedClick(
-  const AButton: TExtButton);
+procedure TKExtPanelControllerBase.PerformDelayedClick(const AButton: TExtButton);
 begin
   if Assigned(AButton) then
     AButton.On('render', JSFunction(AButton.PerformClick));
@@ -1356,19 +1373,20 @@ end;
 
 procedure TKExtActionButton.SetView(const AValue: TKView);
 var
-  LTooltip, LIcon: string;
+  LTooltip, LIconName: string;
 begin
   Assert(Assigned(AValue));
 
   FView := AValue;
   Text := _(FView.DisplayLabel);
 
-  LIcon := FView.GetString('ImageName');
-  if LIcon = '' then
-    LIcon := CallViewControllerStringMethod(FView, 'GetDefaultImageName', '');
-  if LIcon = '' then
-    LIcon := FView.ImageName;
-  Icon := Session.Config.GetImageURL(LIcon);
+  LIconName := FView.GetString('ImageName');
+  if LIconName = '' then
+    LIconName := CallViewControllerStringMethod(FView, 'GetDefaultImageName', '');
+  if LIconName = '' then
+    LIconName := FView.ImageName;
+
+  SetIconAndScale(LIconName);
 
   LTooltip := FView.GetExpandedString('Hint');
   if LTooltip <> '' then
@@ -1396,23 +1414,15 @@ end;
 
 procedure TKExtWindowToolController.CreateButtons;
 begin
-  FConfirmButton := TExtButton.CreateAndAddTo(Buttons);
-  FConfirmButton.Scale := Config.GetString('ButtonScale', 'medium');
+  FConfirmButton := TKExtButton.CreateAndAddTo(Buttons);
+  FConfirmButton.SetIconAndScale('accept', Config.GetString('ButtonScale', 'medium'));
   FConfirmButton.FormBind := True;
-  if SameText(FConfirmButton.Scale, 'large') then
-    FConfirmButton.Icon := Session.Config.GetImageURL('accept_large')
-  else
-    FConfirmButton.Icon := Session.Config.GetImageURL('accept');
   FConfirmButton.Text := Config.GetString('ConfirmButton/Caption', _('Confirm'));
   FConfirmButton.Tooltip := Config.GetString('ConfirmButton/Tooltip', _('Confirm action and close window'));
   FConfirmButton.Handler := JSFunction(GetConfirmJSCode());
 
-  FCancelButton := TExtButton.CreateAndAddTo(Buttons);
-  FCancelButton.Scale := Config.GetString('ButtonScale', 'medium');
-  if SameText(FCancelButton.Scale, 'large') then
-    FCancelButton.Icon := Session.Config.GetImageURL('cancel_large')
-  else
-    FCancelButton.Icon := Session.Config.GetImageURL('cancel');
+  FCancelButton := TKExtButton.CreateAndAddTo(Buttons);
+  FCancelButton.SetIconAndScale('cancel', Config.GetString('ButtonScale', 'medium'));
   FCancelButton.Text := _('Cancel');
   FCancelButton.Tooltip := _('Cancel changes');
   FCancelButton.Handler := Ajax(Cancel);
@@ -1444,6 +1454,42 @@ begin
   Width := 400;
   Height := 200;
   Resizable := False;
+end;
+
+{ TKExtButton }
+
+function TKExtButton.FindOwnerToolbar: TKExtToolbar;
+begin
+  if (Owner is TExtObjectList) and (TExtObjectList(Owner).Owner is TKExtToolbar) then
+    Result := TKExtToolbar(TExtObjectList(Owner).Owner)
+  else
+    Result := nil;
+end;
+
+function TKExtButton.GetOwnerToolbar: TKExtToolbar;
+begin
+  Result := FindOwnerToolbar;
+  if Result = nil then
+    raise Exception.Create('Owner Toolbar not found');
+end;
+
+procedure TKExtButton.SetIconAndScale(const AIconName: string; const AScale: string);
+var
+  LIconURL: string;
+  LToolbar: TKExtToolbar;
+begin
+  LToolbar := FindOwnerToolbar;
+
+  if AScale <> '' then
+    Scale := AScale
+  else if Assigned(LToolbar) then
+    Scale := LToolbar.ButtonScale;
+
+  LIconURL := Session.Config.FindImageURL(SmartConcat(AIconName, '_', Scale));
+  if LIconURL = '' then
+    LIconURL := Session.Config.FindImageURL(AIconName);
+
+  Icon := LIconURL;
 end;
 
 end.

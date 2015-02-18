@@ -773,7 +773,7 @@ end;
 procedure TKButtonListFilter.SetConfig(const AConfig: TEFNode);
 var
   I: Integer;
-  LButton: TExtButton;
+  LButton: TKExtButton;
   //LGroupName: string;
 begin
   Assert(Assigned(AConfig));
@@ -790,7 +790,7 @@ begin
   SetLength(FSelected, FItems.ChildCount);
   for I := 0 to FItems.ChildCount - 1 do
   begin
-    LButton := TExtButton.CreateAndAddTo(Items);
+    LButton := TKExtButton.CreateAndAddTo(Items);
     LButton.Scale := Config.GetString('ButtonScale', 'small');
     LButton.Text := _(FItems.Children[I].AsString);
     LButton.AllowDepress := True;

@@ -203,6 +203,8 @@ type
     class function GetResourcePathName(const AResourceFileName: string): string;
 
     class function FindImagePath(const AResourceName: string; const ASuffix: string = ''): string;
+
+    class function FindImageURL(const AResourceName: string; const ASuffix: string = ''): string;
     class function GetImageURL(const AResourceName: string; const ASuffix: string = ''): string;
 
     ///	<summary>A reference to the model catalog, opened on first
@@ -680,6 +682,11 @@ end;
 class function TKConfig.FindImagePath(const AResourceName: string; const ASuffix: string = ''): string;
 begin
   Result := FindResourcePathName(AdaptImageName(AResourceName, ASuffix));
+end;
+
+class function TKConfig.FindImageURL(const AResourceName, ASuffix: string): string;
+begin
+  Result := FindResourceURL(AdaptImageName(AResourceName, ASuffix));
 end;
 
 class function TKConfig.GetInstance: TKConfig;

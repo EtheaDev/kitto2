@@ -394,9 +394,9 @@ type
   strict private
     FDescriptionField: TExtFormTextField;
     FWindow: TKExtModalWindow;
-    FDownloadButton: TExtButton;
+    FDownloadButton: TKExtButton;
     FIsReadOnly: Boolean;
-    FClearButton: TExtButton;
+    FClearButton: TKExtButton;
     FTotalCharWidth: Integer;
     FPictureView: TExtPanel;
     FImageWidth: Integer;
@@ -2448,8 +2448,8 @@ end;
 procedure TKExtFormFileEditor.CreateGUI;
 var
   LPanel: TExtPanel;
-  LUploadButton: TExtButton;
-  LToolbar: TExtToolbar;
+  LUploadButton: TKExtButton;
+  LToolbar: TKExtToolbar;
   LButtonCount: Integer;
   LIsPicture: Boolean;
 begin
@@ -2468,9 +2468,9 @@ begin
     FPictureView.Frame := True;
     FPictureView.OnAfterrender := PictureViewAfterRender;
 
-    LToolbar := TExtToolbar.CreateAndAddTo(LPanel.Items);
+    LToolbar := TKExtToolbar.CreateAndAddTo(LPanel.Items);
     // Version below puts the toolbar at the bottom (in which case we should adjust the height as well)
-    //LToolbar := TExtToolbar.Create;
+    //LToolbar := TKExtToolbar.Create;
     //FPictureView.Bbar := LToolbar;
   end
   else
@@ -2480,40 +2480,28 @@ begin
     FDescriptionField.ReadOnly := True;
     FDescriptionField.Cls := 'x-form-readonly';
 
-    LToolbar := TExtToolbar.CreateAndAddTo(LPanel.Items);
+    LToolbar := TKExtToolbar.CreateAndAddTo(LPanel.Items);
   end;
 
   LToolbar.Style := 'background: none; border: none;';
 
-  FDownloadButton := TExtButton.CreateAndAddTo(LToolbar.Items);
-  FDownloadButton.Scale := Config.GetString('ButtonScale', 'small');
+  FDownloadButton := TKExtButton.CreateAndAddTo(LToolbar.Items);
+  FDownloadButton.SetIconAndScale('download', Config.GetString('ButtonScale', 'small'));
   FDownloadButton.Tooltip := _('Download file');
-  if SameText(FDownloadButton.Scale, 'large') then
-    FDownloadButton.Icon := Session.Config.GetImageURL('download_large')
-  else
-    FDownloadButton.Icon := Session.Config.GetImageURL('download');
   FDownloadButton.Handler := Ajax(StartDownload);
 
   LButtonCount := 1;
   if not FIsReadOnly then
   begin
-    LUploadButton := TExtButton.CreateAndAddTo(LToolbar.Items);
-    LUploadButton.Scale := Config.GetString('ButtonScale', 'small');
+    LUploadButton := TKExtButton.CreateAndAddTo(LToolbar.Items);
+    LUploadButton.SetIconAndScale('upload', Config.GetString('ButtonScale', 'small'));
     LUploadButton.Tooltip := _('Upload file');
-    if SameText(LUploadButton.Scale, 'large') then
-      LUploadButton.Icon := Session.Config.GetImageURL('upload_large')
-    else
-      LUploadButton.Icon := Session.Config.GetImageURL('upload');
     LUploadButton.Handler := Ajax(ShowUploadFileDialog);
     Inc(LButtonCount);
 
-    FClearButton := TExtButton.CreateAndAddTo(LToolbar.Items);
-    FClearButton.Scale := Config.GetString('ButtonScale', 'small');
+    FClearButton := TKExtButton.CreateAndAddTo(LToolbar.Items);
+    FClearButton.SetIconAndScale('clear', Config.GetString('ButtonScale', 'small'));
     FClearButton.Tooltip := _('Clear field');
-    if SameText(FClearButton.Scale, 'large') then
-      FClearButton.Icon := Session.Config.GetImageURL('clear_large')
-    else
-      FClearButton.Icon := Session.Config.GetImageURL('clear');
     FClearButton.Handler := Ajax(Clear);
     Inc(LButtonCount);
   end
@@ -2593,7 +2581,7 @@ end;
 
 procedure TKExtFormFileEditor.ShowUploadFileDialog;
 var
-  LUploadButton: TExtButton;
+  LUploadButton: TKExtButton;
   LFormPanel: TExtFormFormPanel;
   LSubmitAction: TExtFormActionSubmit;
   LUploadFormField: TKExtFormFileUploadField;
@@ -2614,7 +2602,7 @@ begin
   LUploadFormField.EmptyText := _('Select a file to upload');
   LUploadFormField.AllowBlank := False;
   LUploadFormField.Anchor := '0 5 0 0';
-  LUploadButton := TExtButton.CreateAndAddTo(LFormPanel.Buttons);
+  LUploadButton := TKExtButton.CreateAndAddTo(LFormPanel.Buttons);
   LUploadButton.Scale := 'medium';
   LUploadButton.Text := _('Upload');
 

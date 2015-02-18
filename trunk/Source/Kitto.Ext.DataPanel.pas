@@ -79,7 +79,7 @@ type
     function CreateClientStore: TExtDataStore; virtual;
     function CreateClientReader: TExtDataJsonReader; virtual;
     function AddActionButton(const AView: TKView;
-      const AToolbar: TExtToolbar): TKExtActionButton; override;
+      const AToolbar: TKExtToolbar): TKExtActionButton; override;
     function GetSelectConfirmCall(const AMessage: string;
       const AMethod: TExtProcedure): string; virtual;
     function GetSelectCall(const AMethod: TExtProcedure): TExtFunction; virtual;
@@ -190,7 +190,7 @@ begin
 end;
 
 function TKExtDataPanelController.AddActionButton(const AView: TKView;
-  const AToolbar: TExtToolbar): TKExtActionButton;
+  const AToolbar: TKExtToolbar): TKExtActionButton;
 var
   LConfirmationMessage: string;
   LRequireSelection: Boolean;
