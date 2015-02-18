@@ -650,6 +650,7 @@ var
   LFormController: IKExtController;
   LWidth: Integer;
   LHeight: Integer;
+  LFullScreen: Boolean;
 begin
   Assert((AEditMode = emNewrecord) or Assigned(ARecord));
   Assert(ViewTable <> nil);
@@ -685,13 +686,22 @@ begin
   LFormController.Config.SetObject('Sys/ViewTable', ViewTable);
   LFormController.Config.SetObject('Sys/HostWindow', FEditHostWindow);
 
-  LWidth := ViewTable.GetInteger('Controller/PopupWindow/Width', 0);
-  LHeight := ViewTable.GetInteger('Controller/PopupWindow/Height', 0);
+  LWidth := ViewTable.GetInteger('Controller/PopupWindow/Width');
+  LHeight := ViewTable.GetInteger('Controller/PopupWindow/Height');
+  LFullScreen := ViewTable.GetBoolean('Controller/PopupWindow/FullScreen');
+  FEditHostWindow.Maximized := True;
+  FEditHostWindow.Border := False;
+
   if (LWidth > 0) and (LHeight > 0) then
   begin
     FEditHostWindow.Width := LWidth;
     FEditHostWindow.Height := LHeight;
     LFormController.Config.SetBoolean('Sys/HostWindow/AutoSize', False);
+  end
+  else if LFullScreen then
+  begin
+    FEditHostWindow.Border := False;
+    FEditHostWindow.Maximized := True;
   end
   else
     LFormController.Config.SetBoolean('Sys/HostWindow/AutoSize', True);

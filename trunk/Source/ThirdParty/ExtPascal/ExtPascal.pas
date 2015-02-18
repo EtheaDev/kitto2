@@ -1090,6 +1090,7 @@ begin
     '  <%ApplicationIconLink%>' + sLineBreak +
     '  <meta http-equiv="content-type" content="charset=<%CharSet%>" />' + sLineBreak +
     '  <meta name="viewport=" content="<%ViewportContent%>" />' + sLineBreak +
+    '  <meta name="mobile-web-app-capable" content="yes" />' + sLineBreak +
     '  <link rel=stylesheet href="<%ExtPath%>/resources/css/<%ExtBuild%>.css" />' + sLineBreak +
     '  <script src="<%ExtPath%>/adapter/ext/ext-base.js"></script>' + sLineBreak +
     '  <script src="<%ExtPath%>/<%ExtBuild%><%DebugSuffix%>.js"></script>' + sLineBreak +
