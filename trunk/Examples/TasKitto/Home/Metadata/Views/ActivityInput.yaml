@@ -42,6 +42,7 @@ Controller: List
       FreeSearch: Last N Days
         ExpressionTemplate: ACTIVITY_DATE >= (getDate() - {value})
   GridPanelController:
+    ToolButtonScale: large
     AllowDuplicating: True
     AllowViewing: True
 
