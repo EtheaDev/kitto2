@@ -2325,7 +2325,6 @@ var
   LFieldNames: TArray<string>;
   LFieldValues: TArray<string>;
   LFilteredByFields: TArray<TKFilterByViewField>;
-  LNewValue: string;
 
   function IsCompositeField(const AFieldName: string): Boolean;
   begin
@@ -2342,17 +2341,16 @@ begin
   if IsCompositeField(LField.FieldName) then
   begin
     LFieldNames := LField.FieldName.Split([TKConfig.Instance.MultiFieldSeparator], None);
-    if VarIsNull(ANewValue) then
+    // Test for null and '' as well, since compound fields are always treated as
+    // strings and never set to null.
+    if VarIsNull(ANewValue) or (ANewValue = '') then
     begin
       for I := Low(LFieldNames) to High(LFieldNames) do
         FieldByName(LFieldNames[I]).SetToNull;
     end
     else
     begin
-      LNewValue := ANewValue;
-      if LNewValue = '' then
-        LNewValue := DupeString(TKConfig.Instance.MultiFieldSeparator, Length(LFieldNames));
-      LFieldValues := string(LNewValue).Split([TKConfig.Instance.MultiFieldSeparator], None);
+      LFieldValues := string(ANewValue).Split([TKConfig.Instance.MultiFieldSeparator], None);
       Assert(Length(LFieldNames) = Length(LFieldValues));
       for I := Low(LFieldNames) to High(LFieldNames) do
         FieldByName(LFieldNames[I]).Value := LFieldValues[I];
