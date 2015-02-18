@@ -156,7 +156,7 @@ type
     class constructor Create;
     class destructor Destroy;
   public
-    function FindPageTemplate(const APageName: string; const AMustExists: Boolean): string;
+    function FindPageTemplate(const APageName: string): string;
     function GetPageTemplate(const APageName: string): string;
 
     procedure Refresh; override;
@@ -320,8 +320,7 @@ begin
   Result := GetPageTemplate('index');
 end;
 
-function TKExtSession.FindPageTemplate(const APageName: string;
-  const AMustExists: Boolean): string;
+function TKExtSession.FindPageTemplate(const APageName: string): string;
 var
   LFileName: string;
 
@@ -334,10 +333,7 @@ var
   end;
 
 begin
-  if AMustExists then
-    LFileName := Config.GetResourcePathName(APageName + '.html')
-  else
-    LFileName := Config.FindResourcePathName(APageName + '.html');
+  LFileName := Config.FindResourcePathName(APageName + '.html');
   if LFileName <> '' then
   begin
     Result := TextFileToString(LFileName, GetEncoding);
@@ -347,7 +343,9 @@ end;
 
 function TKExtSession.GetPageTemplate(const APageName: string): string;
 begin
-  Result := FindPageTemplate(APageName, True);
+  Result := FindPageTemplate(APageName);
+  if Result = '' then
+    raise Exception.CreateFmt('Template not found for page %s', [APageName]);
 end;
 
 function TKExtSession.GetQueries: ISuperObject;
