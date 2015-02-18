@@ -150,6 +150,8 @@ type
     procedure CloseHostContainer;
     function GetHostWindow: TExtWindow;
     procedure InitDefaults; override;
+  strict protected
+    procedure LoadHtml(const AFileName: string; const APostProcessor: TFunc<string, string> = nil);
   public
     destructor Destroy; override;
 
@@ -393,7 +395,7 @@ implementation
 
 uses
   StrUtils,
-  EF.StrUtils, EF.Types, EF.Localization,
+  EF.StrUtils, EF.Types, EF.Localization, EF.Macros,
   Kitto.Ext.Utils, Kitto.Ext.Session;
 
 function OptionAsGridColumnAlign(const AAlign: string): TExtGridColumnAlign;
@@ -603,6 +605,22 @@ begin
   inherited;
   FSubjObserverImpl := TEFSubjectAndObserver.Create;
   Region := rgCenter;
+end;
+
+procedure TKExtPanelBase.LoadHtml(const AFileName: string;
+  const APostProcessor: TFunc<string, string>);
+var
+  LFullFileName: string;
+  LHtml: string;
+begin
+  LFullFileName := Session.Config.FindResourcePathName(AFileName);
+  if LFullFileName <> '' then
+    LHtml := TEFMacroExpansionEngine.Instance.Expand(TextFileToString(LFullFileName, TEncoding.UTF8))
+  else
+    LHtml := Format('File %s not found.', [AFileName]);
+  if Assigned(APostProcessor) then
+    LHtml := APostProcessor(LHtml);
+  Html := LHtml;
 end;
 
 procedure TKExtPanelBase.CloseHostContainer;

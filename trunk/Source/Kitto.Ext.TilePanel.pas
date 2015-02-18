@@ -284,7 +284,6 @@ var
   LTreeViewRenderer: TKExtTreeViewRenderer;
   LNode: TEFNode;
   LTreeView: TKTreeView;
-  LTemplate: string;
 begin
   FColorIndex :=  Low(FColors);
   FTileBoxHtml := '<div class="k-tile-box" style="%s">';
@@ -322,14 +321,14 @@ begin
   finally
     FreeAndNil(LTreeViewRenderer);
   end;
-  LTemplate := Session.FindPageTemplate('tilepanel', False);
-  if LTemplate <> '' then
-  begin
-    LTemplate := TEFMacroExpansionEngine.Instance.Expand(LTemplate);
-    Html := ReplaceText(LTemplate, '<%TileMenu%>', FTileBoxHtml);
-  end
-  else
-    Html := FTileBoxHtml;
+  LoadHtml('TilePanel.html',
+    function (AHtml: string): string
+    begin
+      if AHtml <> '' then
+        Result := ReplaceText(AHtml, '{content}', FTileBoxHtml)
+      else
+        Result := FTileBoxHtml;
+    end);
 end;
 
 initialization

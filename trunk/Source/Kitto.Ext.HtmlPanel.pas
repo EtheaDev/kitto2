@@ -42,7 +42,6 @@ uses
 procedure TKExtHtmlPanelController.DoDisplay;
 var
   LFileName: string;
-  LFullFileName: string;
   LHtml: string;
   LView: TKView;
 begin
@@ -57,13 +56,7 @@ begin
 
   LFileName := Config.GetExpandedString('FileName');
   if LFileName <> '' then
-  begin
-    LFullFileName := Session.Config.FindResourcePathName(LFileName);
-    if LFullFileName <> '' then
-      Html := TEFMacroExpansionEngine.Instance.Expand(TextFileToString(LFullFileName))
-    else
-      Html := Format('File %s not found.', [LFileName]);
-  end
+    LoadHtml(LFileName)
   else
   begin
     LHtml := Config.GetExpandedString('Html');
