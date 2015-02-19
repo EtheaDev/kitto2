@@ -617,7 +617,7 @@ begin
   if LFullFileName <> '' then
     LHtml := TEFMacroExpansionEngine.Instance.Expand(TextFileToString(LFullFileName, TEncoding.UTF8))
   else
-    LHtml := Format('File %s not found.', [AFileName]);
+    LHtml := '';
   if Assigned(APostProcessor) then
     LHtml := APostProcessor(LHtml);
   Html := LHtml;
@@ -1500,8 +1500,10 @@ begin
 
   if AScale <> '' then
     Scale := AScale
-  else if Assigned(LToolbar) then
-    Scale := LToolbar.ButtonScale;
+  else if Assigned(LToolbar) and (LToolbar.ButtonScale <> '') then
+    Scale := LToolbar.ButtonScale
+  else
+    Scale := 'small';
 
   LIconURL := Session.Config.FindImageURL(SmartConcat(AIconName, '_', Scale));
   if LIconURL = '' then
