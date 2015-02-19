@@ -119,6 +119,8 @@ type
     FDynamicStyles: TStringList;
     FAutoOpenViewName: string;
     FHomeViewNodeName: string;
+    FMobileBrowserDetectionDone: Boolean;
+    FIsMobileBrowser: Boolean;
     procedure LoadLibraries;
     procedure DisplayHomeView;
     procedure DisplayLoginWindow;
@@ -256,6 +258,8 @@ type
     ///   If the specified files don't exist or were already added, nothing is done.
     ///	</summary>
     procedure EnsureViewSupportFiles(const AView: TKView);
+
+    function IsMobileBrowser: Boolean;
   published
     procedure Logout;
   end;
@@ -371,7 +375,7 @@ var
 
   function GetSeparator: string;
   begin
-    // IE wants comma, others want space.
+    // IE on Windows Phone wants comma, others want space.
     if RequestHeader['HTTP_USER_AGENT'].Contains('Windows Phone') then
       Result := ', '
     else
@@ -855,6 +859,20 @@ begin
   inherited;
 end;
 
+function TKExtSession.IsMobileBrowser: Boolean;
+var
+  LUserAgent: string;
+begin
+  if not FMobileBrowserDetectionDone then
+  begin
+    LUserAgent := RequestHeader['HTTP_USER_AGENT'];
+    FIsMobileBrowser := LUserAgent.Contains('Windows Phone') or LUserAgent.Contains('iPhone')
+      or LUserAgent.Contains('Android ');
+    FMobileBrowserDetectionDone := True;
+  end;
+  Result := FIsMobileBrowser;
+end;
+
 procedure TKExtSession.AddUploadedFile(
   const AFileDescriptor: TKExtUploadedFile);
 begin
@@ -923,6 +941,7 @@ begin
   FDynamicStyles := TStringList.Create;
   FDynamicStyles.Sorted := True;
   FDynamicStyles.Duplicates := dupError;
+  FMobileBrowserDetectionDone := False;
 end;
 
 class constructor TKExtSession.Create;

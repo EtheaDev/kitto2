@@ -3083,6 +3083,8 @@ begin
       LDateField.AltFormats := DelphiDateFormatToJSDateFormat(Session.Config.JSFormatSettings.ShortDateFormat);
       if not AIsReadOnly then
         LDateField.AllowBlank := not AViewField.IsRequired;
+      if Session.IsMobileBrowser then
+        LDateField.Editable := False;
       Result := LDateField;
     except
       LDateField.Free;
@@ -3119,6 +3121,8 @@ begin
       LTimeField.AltFormats := DelphiTimeFormatToJSTimeFormat(Session.Config.JSFormatSettings.ShortTimeFormat);
       if not AIsReadOnly then
         LTimeField.AllowBlank := not AViewField.IsRequired;
+      if Session.IsMobileBrowser then
+        LTimeField.Editable := False;
       Result := LTimeField;
     except
       LTimeField.Free;
