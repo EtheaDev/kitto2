@@ -1010,7 +1010,8 @@ begin
 
   FTopToolbar := TKExtToolbar.Create(Self);
   try
-    FTopToolbar.ButtonScale := Config.GetString('ToolButtonScale');
+    FTopToolbar.ButtonScale := Config.GetString('ToolButtonScale',
+      IfThen(Session.IsMobileBrowser, 'large', ''));
     AddTopToolbarButtons;
     AddTopToolbarToolViewButtons;
   except
