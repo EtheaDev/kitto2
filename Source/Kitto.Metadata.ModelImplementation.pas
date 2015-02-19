@@ -44,7 +44,7 @@ type
   end;
 
   ///	<summary>
-  ///	  The default model implementation. Performs data I/O from a database
+  ///	 The default model implementation. Performs data I/O from a database
   ///  through SQL.
   ///	</summary>
   { TODO : Refactor: SQL management should be moved out of the store and into this class. }

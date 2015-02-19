@@ -686,23 +686,31 @@ begin
   LFormController.Config.SetObject('Sys/ViewTable', ViewTable);
   LFormController.Config.SetObject('Sys/HostWindow', FEditHostWindow);
 
-  LWidth := ViewTable.GetInteger('Controller/PopupWindow/Width');
-  LHeight := ViewTable.GetInteger('Controller/PopupWindow/Height');
-  LFullScreen := ViewTable.GetBoolean('Controller/PopupWindow/FullScreen');
-
-  if LFullScreen then
+  if Session.IsMobileBrowser then
   begin
-    FEditHostWindow.Maximized := True;
     FEditHostWindow.Border := False;
-  end
-  else if (LWidth > 0) and (LHeight > 0) then
-  begin
-    FEditHostWindow.Width := LWidth;
-    FEditHostWindow.Height := LHeight;
-    LFormController.Config.SetBoolean('Sys/HostWindow/AutoSize', False);
+    FEditHostWindow.Maximized := True;
   end
   else
-    LFormController.Config.SetBoolean('Sys/HostWindow/AutoSize', True);
+  begin
+    LWidth := ViewTable.GetInteger('Controller/PopupWindow/Width');
+    LHeight := ViewTable.GetInteger('Controller/PopupWindow/Height');
+    LFullScreen := ViewTable.GetBoolean('Controller/PopupWindow/FullScreen');
+
+    if (LWidth > 0) and (LHeight > 0) then
+    begin
+      FEditHostWindow.Width := LWidth;
+      FEditHostWindow.Height := LHeight;
+      LFormController.Config.SetBoolean('Sys/HostWindow/AutoSize', False);
+    end
+    else if LFullScreen then
+    begin
+      FEditHostWindow.Border := False;
+      FEditHostWindow.Maximized := True;
+    end
+    else
+      LFormController.Config.SetBoolean('Sys/HostWindow/AutoSize', True);
+  end;
 
   case AEditMode of
     emNewRecord : LFormController.Config.SetString('Sys/Operation', 'Add');
