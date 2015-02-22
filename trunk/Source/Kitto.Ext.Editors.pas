@@ -2589,7 +2589,7 @@ begin
   FreeAndNil(FWindow);
   FWindow := TKExtModalWindow.Create(Self);
   FWindow.Width := 400;
-  FWindow.Height := 100;
+  FWindow.Height := 120;
   FWindow.Closable := True;
   FWindow.Title := _('File upload');
 
