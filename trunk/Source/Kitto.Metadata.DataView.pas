@@ -1565,7 +1565,12 @@ var
 begin
   LNode := FindNode('CanInsert');
   if LNode = nil then
-    Result := ModelField.CanInsert
+  begin
+    if pos('.',Name) > 0 then
+      Result := False
+    else
+      Result := ModelField.CanInsert;
+  end
   else
     Result := LNode.AsBoolean and ModelField.CanActuallyModify;
 end;
@@ -1576,7 +1581,12 @@ var
 begin
   LNode := FindNode('CanUpdate');
   if LNode = nil then
-    Result := ModelField.CanUpdate
+  begin
+    if pos('.',Name) > 0 then
+      Result := False
+    else
+      Result := ModelField.CanUpdate;
+  end
   else
     Result := LNode.AsBoolean and ModelField.CanActuallyModify;
 end;
