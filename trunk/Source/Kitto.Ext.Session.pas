@@ -372,6 +372,7 @@ function TKExtSession.GetViewportContent: string;
 var
   LContent: TEFPairs;
   LPair: TEFPair;
+  LDefaultPairs: TEFPairs;
 
   function GetSeparator: string;
   begin
@@ -384,7 +385,11 @@ var
 
 begin
   Result := '';
-  LContent := GetHomeView.GetChildrenAsPairs('ViewportContent', True);
+  //Default Viewport content for mobile browsers: width 480 and user-scalable 0
+  SetLength(LDefaultPairs, 2);
+  LDefaultPairs[0] := TEFPair.Create('width','480');
+  LDefaultPairs[1] := TEFPair.Create('user-scalable','0');
+  LContent := GetHomeView.GetChildrenAsPairs('ViewportContent', True,LDefaultPairs);
   for LPair in LContent do
   begin
     if Result = '' then
@@ -866,8 +871,10 @@ begin
   if not FMobileBrowserDetectionDone then
   begin
     LUserAgent := RequestHeader['HTTP_USER_AGENT'];
-    FIsMobileBrowser := LUserAgent.Contains('Windows Phone') or LUserAgent.Contains('iPhone')
-      or LUserAgent.Contains('Android ');
+    FIsMobileBrowser := LUserAgent.Contains('Windows Phone') or
+      LUserAgent.Contains('iPhone') or
+      LUserAgent.Contains('iPad') or
+      LUserAgent.Contains('Android');
     FMobileBrowserDetectionDone := True;
   end;
   Result := FIsMobileBrowser;
