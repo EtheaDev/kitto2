@@ -396,6 +396,8 @@ var
 begin
   FEditButton.SetVisible(False);
   FConfirmButton.SetVisible(True);
+  if Assigned(FCloneButton) then
+    FCloneButton.SetVisible(True);
   FCloseButton.SetVisible(False);
   FCancelButton.SetVisible(True);
   FOperation := EDIT_OPERATION;
@@ -477,6 +479,7 @@ begin
       FCloneButton.FormBind := True;
       FCloneButton.Text := LCloneButtonNode.GetString('Caption', _('Save & Clone'));
       FCloneButton.Tooltip := LCloneButtonNode.GetString('Tooltip', _('Save changes and create a new clone record'));
+      FCloneButton.Hidden := FIsReadOnly or IsViewMode;
     end
     else
       FCloneButton := nil;
