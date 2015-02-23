@@ -8,6 +8,9 @@ Fields:
   CITY: String(60)
   PHONE: String(20)
   EMAIL: String(60)
+    Colors:
+      FFFF00: ^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,4}$
+      FF0000: .*
   STATUS: String(10)
     AllowedValues:
       Prospect: Prospect
