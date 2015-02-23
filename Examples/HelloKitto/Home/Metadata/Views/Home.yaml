@@ -36,5 +36,5 @@ Controller: Window
 
       SouthView:
         Controller: StatusBar
-          Text: <p>_(User: %Auth:UserName%)</p>
+          Text: _(User: %Auth:UserName%)
         ImageName: user

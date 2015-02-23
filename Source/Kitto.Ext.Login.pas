@@ -229,6 +229,8 @@ begin
     FLanguage.StoreArray := JSArray('["it", "Italiano"], ["en", "English"]');
     FLanguage.HiddenName := 'Language';
     FLanguage.Value := Session.Config.Authenticator.AuthData.GetExpandedString('Language');
+    if FLanguage.Value = '' then
+      FLanguage.Value := Session.Config.Config.GetString('LanguageId');
     FLanguage.FieldLabel := _('Language');
     FLanguage.Width := LEditWidth;
     //FLanguage.EnableKeyEvents := True;

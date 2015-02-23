@@ -1,6 +1,5 @@
 ﻿AppTitle: Tasks & Activities
 
-LanguagePerSession: True
 LoginWindowAppearance:
   HtmlPanel: |
     <center>
@@ -25,8 +24,8 @@ Databases:
 Auth: DB
   IsClearPassword: True
   Defaults:
-    UserName: admin
-    Password: admin
+    .UserName: admin
+    .Password: admin
 
 AccessControl: Null
 

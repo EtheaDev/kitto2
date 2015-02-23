@@ -9,7 +9,7 @@ Controller: Viewport
         Controller: TilePanel
           Border: True
           TileHeight: 60
-          TileWidth: 124
+          TileWidth: 120
           TreeView: MainMenu
 
       NorthView:
@@ -22,5 +22,5 @@ Controller: Viewport
           Height: 70
       SouthView:
         Controller: StatusBar
-          Text: <p>_(User: %Auth:UserName%)</p>
+          Text: _(User: %Auth:UserName%)
         ImageName: user
