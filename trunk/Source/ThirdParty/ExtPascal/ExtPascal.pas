@@ -434,6 +434,7 @@ type
     function GetMainPageTemplate: string; virtual;
     procedure SetLanguage(const AValue: string); virtual;
     function GetViewportContent: string; virtual;
+    function GetManifestFileName: string; virtual;
   public
     HTMLQuirksMode : boolean; // Defines the (X)HTML DocType. True to Transitional (Quirks mode) or false to Strict. Default is false.
     Theme     : string; // Sets or gets Ext JS installed theme, default '' that is Ext Blue theme
@@ -1134,6 +1135,11 @@ begin
     '</html>';
 end;
 
+function TExtSession.GetManifestFileName: string;
+begin
+  Result := '';
+end;
+
 procedure TExtSession.AfterHandleRequest;
 
   procedure HandleJSReturns;
@@ -1184,6 +1190,8 @@ begin
     LMainPageCode := ReplaceText(LMainPageCode, '<%ExtPath%>', ExtPath);
     LMainPageCode := ReplaceText(LMainPageCode, '<%ExtBuild%>', ExtBuild);
     LMainPageCode := ReplaceText(LMainPageCode, '<%DebugSuffix%>', {$IFDEF DebugExtJS}'-debug'{$ELSE}''{$ENDIF});
+    LMainPageCode := ReplaceText(LMainPageCode, '<%ManifestLink%>',
+      IfThen(GetManifestFileName = '', '', Format('<link rel="manifest" href="%s"/>', [GetManifestFileName])));
     LMainPageCode := ReplaceText(LMainPageCode, '<%ThemeLink%>',
       IfThen(Theme = '', '', '<link rel=stylesheet href="' + ExtPath + '/resources/css/xtheme-' + Theme + '.css" />'));
     LMainPageCode := ReplaceText(LMainPageCode, '<%LanguageLink%>',
