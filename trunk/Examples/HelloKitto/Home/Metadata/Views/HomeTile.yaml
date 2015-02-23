@@ -8,10 +8,9 @@ Controller: Viewport
       CenterView:
         Controller: TilePanel
           Border: True
+          TileHeight: 60
+          TileWidth: 124
           TreeView: MainMenu
-          .SubViews:
-            View: Girls
-            View: Dolls
 
       NorthView:
         Controller: HtmlPanel
