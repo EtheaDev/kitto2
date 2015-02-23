@@ -30,6 +30,7 @@ type
     FAppTitle: string;
     FTCPPort: Integer;
     FSessionTimeout: Integer;
+    FIcon: string;
   protected
     procedure Execute; override;
   public
@@ -40,6 +41,7 @@ type
     property AppTitle: string read FAppTitle;
     property TCPPort: Integer read FTCPPort;
     property SessionTimeout: Integer read FSessionTimeout;
+    property Icon: string read FIcon;
   end;
 
 implementation
@@ -62,6 +64,7 @@ begin
     FAppTitle := LConfig.AppTitle;
     FTCPPort := LConfig.Config.GetInteger('FastCGI/TCPPort', 2014);
     FSessionTimeout := LConfig.Config.GetInteger('FastCGI/SessionTimeout', 30);
+    FIcon := LConfig.FindImageURL(LConfig.Icon);
     TEFLogger.Instance.Log('AppName: ' + LConfig.AppName);
     TEFLogger.Instance.Log('AppTitle: ' + _(FAppTitle));
     TEFLogger.Instance.LogFmt('TCPPort: %d', [FTCPPort]);
@@ -84,6 +87,7 @@ procedure TKExtAppThread.Execute;
 begin
   FreeAndNil(Application);
   Application := CreateWebApplication(_(FAppTitle), TKExtSession, FTCPPort, FSessionTimeout);
+  Application.Icon := FIcon;
   Application.Run(Self);
 end;
 

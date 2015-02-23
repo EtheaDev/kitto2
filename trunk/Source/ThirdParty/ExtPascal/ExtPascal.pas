@@ -1090,9 +1090,11 @@ begin
     '<head>' + sLineBreak +
     '  <title><%ApplicationTitle%></title>' + sLineBreak +
     '  <%ApplicationIconLink%>' + sLineBreak +
+    '  <%AppleIconLink%>' + sLineBreak +
     '  <meta http-equiv="content-type" content="charset=<%CharSet%>" />' + sLineBreak +
     '  <meta name="viewport=" content="<%ViewportContent%>" />' + sLineBreak +
     '  <meta name="mobile-web-app-capable" content="yes" />' + sLineBreak +
+    '  <meta name="apple-mobile-web-app-capable" content="yes" />' + sLineBreak +
     '  <link rel=stylesheet href="<%ExtPath%>/resources/css/<%ExtBuild%>.css" />' + sLineBreak +
     '  <script src="<%ExtPath%>/adapter/ext/ext-base.js"></script>' + sLineBreak +
     '  <script src="<%ExtPath%>/<%ExtBuild%><%DebugSuffix%>.js"></script>' + sLineBreak +
@@ -1185,7 +1187,9 @@ begin
     LMainPageCode := ReplaceText(LMainPageCode, '<%ViewportContent%>', GetViewportContent);
     LMainPageCode := ReplaceText(LMainPageCode, '<%ApplicationTitle%>', Application.Title);
     LMainPageCode := ReplaceText(LMainPageCode, '<%ApplicationIconLink%>',
-      IfThen(Application.Icon = '', '', '<link rel="shortcut icon" href="' + ImagePath + '/' + Application.Icon + '"/>'));
+      IfThen(Application.Icon = '', '', '<link rel="shortcut icon" href="' + Application.Icon + '"/>'));
+    LMainPageCode := ReplaceText(LMainPageCode, '<%AppleIconLink%>',
+      IfThen(Application.Icon = '', '', '<link rel="apple-touch-icon" sizes="120x120" href="' + Application.Icon + '"/>'));
     LMainPageCode := ReplaceText(LMainPageCode, '<%CharSet%>', CharSet);
     LMainPageCode := ReplaceText(LMainPageCode, '<%ExtPath%>', ExtPath);
     LMainPageCode := ReplaceText(LMainPageCode, '<%ExtBuild%>', ExtBuild);
