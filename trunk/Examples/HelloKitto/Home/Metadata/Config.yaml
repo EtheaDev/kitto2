@@ -1,6 +1,6 @@
 AppTitle: _(Peoria Girls and their Dolls)
 
-.LanguagePerSession: True
+LanguagePerSession: True
 LoginWindowAppearance:
   HtmlPanel: |
     <center>
