@@ -155,6 +155,7 @@ type
     procedure SetLanguage(const AValue: string); override;
     function GetSessionCookieName: string; override;
     function GetViewportContent: string; override;
+    function GetManifestFileName: string; override;
   public
     constructor Create(AOwner: TObject); override;
     destructor Destroy; override;
@@ -329,6 +330,18 @@ begin
   Result := GetPageTemplate('index');
 end;
 
+function TKExtSession.GetManifestFileName: string;
+var
+  LManifestFile, LURL: string;
+begin
+  LManifestFile := GetHomeView.GetString('Manifest', 'Manifest.json');
+  LURL := Config.FindResourceURL(LManifestFile);
+  if LURL <> '' then
+    Result := LURL
+  else
+    Result := '';
+end;
+
 function TKExtSession.FindPageTemplate(const APageName: string): string;
 var
   LFileName: string;
@@ -389,7 +402,8 @@ var
 begin
   Result := '';
   FViewportWidth := 0;
-  //Default Viewport content for mobile browsers: width 480 and user-scalable 0
+  //Default Viewport content for mobile browsers:
+  //width 480 (optimal for Tablets) and user-scalable 0
   SetLength(LDefaultPairs, 2);
   LDefaultPairs[0] := TEFPair.Create('width','480');
   LDefaultPairs[1] := TEFPair.Create('user-scalable','0');
@@ -450,10 +464,8 @@ begin
   begin
     FRefreshingLanguage := True;
     Language := LNewLanguageId;
-    Reload;
-  end
-  else
-    DisplayHomeView;
+  end;
+  DisplayHomeView;
 end;
 
 function TKExtSession.GetHomeView: TKView;
