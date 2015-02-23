@@ -230,6 +230,9 @@ type
 
 implementation
 
+uses
+  EF.Localization;
+
 procedure TExtUxFormItemSelector.SetFMultiselects(Value : TExtObjectList); begin
   FMultiselects := Value;
     JSCode('multiselects:' + VarToJSON([Value, false]));
@@ -762,7 +765,7 @@ procedure TExtUxFormFileUploadField.InitDefaults; begin
   inherited;
   FButtonCfg := TExtObject.CreateInternal(Self, 'buttonCfg');
   FButtonOffset := 3;
-  FButtonText := 'Browse...';
+  FButtonText := _('Browse...');
 end;
 
 procedure TExtUxFormFileUploadField.HandleEvent(const AEvtName : string); begin
