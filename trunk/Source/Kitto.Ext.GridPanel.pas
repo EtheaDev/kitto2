@@ -265,7 +265,7 @@ begin
   FGridView.ForceFit := False;
   LRowClassProvider := ViewTable.GetExpandedString('Controller/RowClassProvider');
   if LRowClassProvider <> '' then
-    FGridView.SetCustomConfigItem('getRowClass', [LRowClassProvider])
+    FGridView.GetRowClass :=  FGridView.JSFunctionInLine(LRowClassProvider)
   else
   begin
     LRowColorPatterns := GetRowColorPatterns(LRowColorFieldName);
@@ -686,31 +686,24 @@ begin
   LFormController.Config.SetObject('Sys/ViewTable', ViewTable);
   LFormController.Config.SetObject('Sys/HostWindow', FEditHostWindow);
 
-  if Session.IsMobileBrowser then
+  LWidth := ViewTable.GetInteger('Controller/PopupWindow/Width');
+  LHeight := ViewTable.GetInteger('Controller/PopupWindow/Height');
+  LFullScreen := ViewTable.GetBoolean('Controller/PopupWindow/FullScreen',
+    Boolean(IfThen(Session.IsMobileBrowser, 1, 0)));
+
+  if LFullScreen then
   begin
     FEditHostWindow.Border := False;
     FEditHostWindow.Maximized := True;
   end
-  else
+  else if (LWidth > 0) and (LHeight > 0) then
   begin
-    LWidth := ViewTable.GetInteger('Controller/PopupWindow/Width');
-    LHeight := ViewTable.GetInteger('Controller/PopupWindow/Height');
-    LFullScreen := ViewTable.GetBoolean('Controller/PopupWindow/FullScreen');
-
-    if (LWidth > 0) and (LHeight > 0) then
-    begin
-      FEditHostWindow.Width := LWidth;
-      FEditHostWindow.Height := LHeight;
-      LFormController.Config.SetBoolean('Sys/HostWindow/AutoSize', False);
-    end
-    else if LFullScreen then
-    begin
-      FEditHostWindow.Border := False;
-      FEditHostWindow.Maximized := True;
-    end
-    else
-      LFormController.Config.SetBoolean('Sys/HostWindow/AutoSize', True);
-  end;
+    FEditHostWindow.Width := LWidth;
+    FEditHostWindow.Height := LHeight;
+    LFormController.Config.SetBoolean('Sys/HostWindow/AutoSize', False);
+  end
+  else
+    LFormController.Config.SetBoolean('Sys/HostWindow/AutoSize', True);
 
   case AEditMode of
     emNewRecord : LFormController.Config.SetString('Sys/Operation', 'Add');
@@ -1154,18 +1147,22 @@ begin
 end;
 
 function TKExtGridPanel.GetSelectConfirmCall(const AMessage: string; const AMethod: TExtProcedure): string;
+var
+  LMaxWindowWidth: Integer;
 begin
   if IsMultiSelect then
-    Result := Format('confirmCall("%s", "%s", ajaxMultiSelection, {methodURL: "%s", selModel: %s, fieldNames: "%s"});',
+    Result := Format('confirmCall("%s", "%s", ajaxMultiSelection, {methodURL: "%s", selModel: %s, fieldNames: "%s"}, %d);',
       [_(Session.Config.AppTitle), AMessage, MethodURI(AMethod),
-      FSelectionModel.JSName, Join(ViewTable.GetKeyFieldAliasedNames, ',')])
+      FSelectionModel.JSName, Join(ViewTable.GetKeyFieldAliasedNames, ','),
+      Session.MaxWindowWidth])
   else
     { TODO :
       Add CaptionField to ViewTable for cases when the model's CaptionField
       is not part of the ViewTable or is aliased. }
-    Result := Format('selectConfirmCall("%s", "%s", %s, "%s", {methodURL: "%s", selModel: %s, fieldNames: "%s"});',
+    Result := Format('selectConfirmCall("%s", "%s", %s, "%s", {methodURL: "%s", selModel: %s, fieldNames: "%s"}, %d);',
       [_(Session.Config.AppTitle), AMessage, FSelectionModel.JSName, ViewTable.Model.CaptionField.FieldName,
-      MethodURI(AMethod), FSelectionModel.JSName, Join(ViewTable.GetKeyFieldAliasedNames, ',')]);
+      MethodURI(AMethod), FSelectionModel.JSName, Join(ViewTable.GetKeyFieldAliasedNames, ','),
+      Session.MaxWindowWidth]);
 end;
 
 function TKExtGridPanel.GetSelectCall(const AMethod: TExtProcedure): TExtFunction;

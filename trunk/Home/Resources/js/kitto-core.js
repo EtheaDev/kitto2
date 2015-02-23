@@ -180,7 +180,7 @@ function ajaxSimple(buttonId, text, obj)
 // Asks a confirmation message and calls a specified function
 // when the dialog box is dismissed. Used together with ajaxSimple
 // and ajaxMultiSelection.
-function confirmCall(title, question, functionToCall, functionParams)
+function confirmCall(title, question, functionToCall, functionParams, maxWindowWidth)
 {
   Ext.Msg.show({
     title: title,
@@ -188,7 +188,8 @@ function confirmCall(title, question, functionToCall, functionParams)
     buttons: Ext.MessageBox.YESNO,
     icon: Ext.MessageBox.QUESTION,
     fn: functionToCall,
-    params: functionParams
+    params: functionParams,
+    maxWidth: maxWindowWidth
   });
 };
 
@@ -196,7 +197,7 @@ function confirmCall(title, question, functionToCall, functionParams)
 // when the dialog box is dismissed. The question is built by replacing
 // the {caption} token in questionTpl with the value of captionFieldName
 // in the last selected record in selModel.
-function selectConfirmCall(title, questionTpl, selModel, captionFieldName, functionParams)
+function selectConfirmCall(title, questionTpl, selModel, captionFieldName, functionParams, maxWindowWidth)
 {
   Ext.Msg.show({
     title: title,
@@ -204,7 +205,8 @@ function selectConfirmCall(title, questionTpl, selModel, captionFieldName, funct
     buttons: Ext.MessageBox.YESNO,
     icon: Ext.MessageBox.QUESTION,
     fn: ajaxSingleSelection,
-    params: functionParams
+    params: functionParams,
+    maxWidth: maxWindowWidth
   });
 };
 

@@ -324,11 +324,12 @@ type
     function JSArray(const AJSON: string; const ASquareBrackets: Boolean = True): TExtObjectList;
     function JSObject(const AJSON: string; const AObjectConstructor: string = '';
       const ACurlyBrackets: Boolean = True): TExtObject;
-    function JSFunction(const AParams, ABody: string): TExtFunction; overload;
+    function  JSFunction(const AParams, ABody: string): TExtFunction; overload;
     procedure JSFunction(const AName, AParams, ABody: string); overload;
     function JSFunction(const ABody: string): TExtFunction; overload;
     function JSFunction(Method : TExtProcedure; Silent : boolean = false) : TExtFunction; overload;
     function JSFunction(const AMethod: TProc; const ASilent: Boolean = False): TExtFunction; overload;
+    function JSFunctionInline(const ACode: string): TExtFunction;
     function GetJSFunctionCode(const AMethod: TProc; const ASilent: Boolean = False): string;
     function JSExpression(Expression : string; MethodsValues : array of const) : integer; overload;
     function JSExpression(Method : TExtFunction) : integer; overload;
@@ -1970,6 +1971,12 @@ Generates JS code to declare an anonymous JS function without parameters
 function TExtObject.JSFunction(const ABody: string): TExtFunction;
 begin
   Result := JSFunction('', ABody);
+end;
+
+function TExtObject.JSFunctionInline(const ACode: string): TExtFunction;
+begin
+  Result := TExtFunction.CreateInline(Self);
+  Result.FJSName := ACode;
 end;
 
 {
