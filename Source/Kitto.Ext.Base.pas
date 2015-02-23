@@ -981,8 +981,8 @@ end;
 
 function TKExtPanelControllerBase.GetConfirmCall(const AMessage: string; const AMethod: TExtProcedure): string;
 begin
-  Result := Format('confirmCall("%s", "%s", ajaxSimple, {methodURL: "%s"});',
-    [_(Session.Config.AppTitle), AMessage, MethodURI(AMethod)]);
+  Result := Format('confirmCall("%s", "%s", ajaxSimple, {methodURL: "%s"}, %d);',
+    [_(Session.Config.AppTitle), AMessage, MethodURI(AMethod), Session.MaxWindowWidth]);
 end;
 
 procedure TKExtPanelControllerBase.AfterConstruction;
@@ -1011,7 +1011,7 @@ begin
   FTopToolbar := TKExtToolbar.Create(Self);
   try
     FTopToolbar.ButtonScale := Config.GetString('ToolButtonScale',
-      IfThen(Session.IsMobileBrowser, 'large', ''));
+      IfThen(Session.IsMobileBrowser, 'large', 'small'));
     AddTopToolbarButtons;
     AddTopToolbarToolViewButtons;
   except
