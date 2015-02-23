@@ -284,6 +284,7 @@ var
   LTreeViewRenderer: TKExtTreeViewRenderer;
   LNode: TEFNode;
   LTreeView: TKTreeView;
+  LFileName: string;
 begin
   FColorIndex :=  Low(FColors);
   FTileBoxHtml := '<div class="k-tile-box" style="%s">';
@@ -318,17 +319,18 @@ begin
   </div>
 </div>
   *)
+    LFileName := ChangeFileExt(ExtractFileName(LTreeView.PersistentFileName), '.html');
+    LoadHtml(LFileName,
+      function (AHtml: string): string
+      begin
+        if AHtml <> '' then
+          Result := ReplaceText(AHtml, '{content}', FTileBoxHtml)
+        else
+          Result := FTileBoxHtml;
+      end);
   finally
     FreeAndNil(LTreeViewRenderer);
   end;
-  LoadHtml('TilePanel.html',
-    function (AHtml: string): string
-    begin
-      if AHtml <> '' then
-        Result := ReplaceText(AHtml, '{content}', FTileBoxHtml)
-      else
-        Result := FTileBoxHtml;
-    end);
 end;
 
 initialization
