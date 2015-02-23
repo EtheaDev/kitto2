@@ -1,4 +1,5 @@
 ﻿AppTitle: Employee demo
+Icon: FireBirdSql_120
 LoginWindowAppearance:
   HtmlPanel: |
     <center>
