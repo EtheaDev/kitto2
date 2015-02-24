@@ -52,7 +52,7 @@ type
 implementation
 
 uses
-  SysUtils, StrUtils,
+  SysUtils, StrUtils, Math,
   ExtPascalUtils,
   EF.Classes, EF.Localization, EF.Tree, EF.StrUtils,
   Kitto.Types, Kitto.Config,
@@ -142,6 +142,7 @@ begin
   Title := _(Session.Config.AppTitle);
   Width := 316;
   Height := 162;
+  Maximized := Session.IsMobileBrowser;
   Closable := True;
   Resizable := False;
 
@@ -151,7 +152,8 @@ begin
 
   FFormPanel := TExtFormFormPanel.CreateAndAddTo(Items);
   FFormPanel.Region := rgCenter;
-  FFormPanel.LabelWidth := 140;
+  FFormPanel.LabelWidth := 150;
+  FFormPanel.LabelAlign := laRight;
   FFormPanel.Border := False;
   FFormPanel.BodyStyle := SetPaddings(5, 5);
   FFormPanel.Frame := False;
