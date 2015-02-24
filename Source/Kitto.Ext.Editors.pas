@@ -2590,6 +2590,7 @@ begin
   FWindow := TKExtModalWindow.Create(Self);
   FWindow.Width := 400;
   FWindow.Height := 120;
+  FWindow.Maximized := Session.IsMobileBrowser;
   FWindow.Closable := True;
   FWindow.Title := _('File upload');
 
@@ -2597,14 +2598,16 @@ begin
   LFormPanel.Region := rgCenter;
   LFormPanel.Frame := True;
   LFormPanel.FileUpload := True;
+  LFormPanel.LabelAlign := laRight;
+  LFormPanel.LabelWidth := 50;
   LUploadFormField := TKExtFormFileUploadField.CreateAndAddTo(LFormPanel.Items);
   LUploadFormField.FieldLabel := _(FRecordField.ViewField.DisplayLabel);
   LUploadFormField.EmptyText := _('Select a file to upload');
   LUploadFormField.AllowBlank := False;
   LUploadFormField.Anchor := '0 5 0 0';
   LUploadButton := TKExtButton.CreateAndAddTo(LFormPanel.Buttons);
-  LUploadButton.Scale := 'medium';
   LUploadButton.Text := _('Upload');
+  LUploadButton.SetIconAndScale('Upload', IfThen(Session.IsMobileBrowser,'medium', 'small'));
 
   LSubmitAction := TExtFormActionSubmit.Create(FWindow);
   LSubmitAction.Url := MethodURI(Upload);
@@ -3000,6 +3003,7 @@ function TKExtEditorManager.TryCreateTextArea(
   const AIsReadOnly: Boolean): IKExtEditor;
 var
   LTextArea: TKExtFormTextArea;
+  LLines: Integer;
 begin
   Assert(Assigned(AOwner));
 
@@ -3022,7 +3026,7 @@ begin
           LTextArea.MaxLength  := AViewField.Size;
         LTextArea.AllowBlank := not AViewField.IsRequired;
       end;
-      LTextArea.Grow := True;
+      LTextArea.Grow := False;
       Result := LTextArea;
     except
       LTextArea.Free;
