@@ -177,10 +177,16 @@ function ajaxSimple(buttonId, text, obj)
   }
 };
 
+// Used to avoid displaying dialog boxes larger that the viewport in mobile browsers.
+function getMaxMsgWidth()
+{
+  return  Math.min(600, Math.max(document.documentElement.clientWidth, window.innerWidth || 0) - 6);
+}
+
 // Asks a confirmation message and calls a specified function
 // when the dialog box is dismissed. Used together with ajaxSimple
 // and ajaxMultiSelection.
-function confirmCall(title, question, functionToCall, functionParams, maxWindowWidth)
+function confirmCall(title, question, functionToCall, functionParams)
 {
   Ext.Msg.show({
     title: title,
@@ -189,7 +195,7 @@ function confirmCall(title, question, functionToCall, functionParams, maxWindowW
     icon: Ext.MessageBox.QUESTION,
     fn: functionToCall,
     params: functionParams,
-    maxWidth: maxWindowWidth
+    maxWidth: getMaxMsgWidth()
   });
 };
 
@@ -197,7 +203,7 @@ function confirmCall(title, question, functionToCall, functionParams, maxWindowW
 // when the dialog box is dismissed. The question is built by replacing
 // the {caption} token in questionTpl with the value of captionFieldName
 // in the last selected record in selModel.
-function selectConfirmCall(title, questionTpl, selModel, captionFieldName, functionParams, maxWindowWidth)
+function selectConfirmCall(title, questionTpl, selModel, captionFieldName, functionParams)
 {
   Ext.Msg.show({
     title: title,
@@ -206,7 +212,7 @@ function selectConfirmCall(title, questionTpl, selModel, captionFieldName, funct
     icon: Ext.MessageBox.QUESTION,
     fn: ajaxSingleSelection,
     params: functionParams,
-    maxWidth: maxWindowWidth
+    maxWidth: getMaxMsgWidth()
   });
 };
 
