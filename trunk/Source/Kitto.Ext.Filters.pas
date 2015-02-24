@@ -551,8 +551,11 @@ by generating more JS code, but not now. }
   if FConfig.GetBoolean('Sys/IsReadOnly') then
     Disabled := True
   else
+  begin
     //On('select', Ajax(Select, ['Value', GetEncodedValue()]));
     On('change', Ajax(ValueChanged, ['Value', GetEncodedValue()]));
+    On('select', Ajax(ValueChanged, ['Value', GetEncodedValue()]));
+  end;
   FCurrentValue := '';
 end;
 
