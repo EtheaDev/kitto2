@@ -981,7 +981,7 @@ end;
 
 function TKExtPanelControllerBase.GetConfirmCall(const AMessage: string; const AMethod: TExtProcedure): string;
 begin
-  Result := Format('confirmCall("%s", "%s", ajaxSimple, {methodURL: "%s"}, %d);',
+  Result := Format('confirmCall("%s", "%s", ajaxSimple, {methodURL: "%s"});',
     [_(Session.Config.AppTitle), AMessage, MethodURI(AMethod)]);
 end;
 
