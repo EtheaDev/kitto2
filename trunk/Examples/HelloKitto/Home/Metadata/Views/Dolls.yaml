@@ -1,4 +1,4 @@
-Type: Data
+﻿Type: Data
 
 Controller: List
   Filters:
@@ -30,7 +30,7 @@ MainTable:
     AutoOpen: False
     PopupWindow:
       Height: 500
-      Width: 460
+      Width: 400
 
     Grouping:
       FieldName: Hair

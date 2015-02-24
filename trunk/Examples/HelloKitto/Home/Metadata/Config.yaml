@@ -78,7 +78,7 @@ AccessControl: Null
 # Change this to use a custom view for the home page.
 # Alternatively, customize the Home view by replacing its controller.
 # Default: Home.
-HomeView: HomeTile
+HomeView: Home
 
 HomeGirls:
   Controller: Viewport
@@ -93,6 +93,9 @@ HelloWorld:
     SubView:
       Controller: HtmlPanel
         Html: <h1>Hello World!</h1>
+
+Tablet: HomeTile
+Phone: HomeTilePhone
 
 Ext:
   Theme: blue
