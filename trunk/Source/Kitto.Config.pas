@@ -73,7 +73,7 @@ type
     function GetDBAdapter(const ADatabaseName: string): TEFDBAdapter;
     function GetMacroExpansionEngine: TEFMacroExpansionEngine;
     function GetAppTitle: string;
-    function GetIcon: string;
+    function GetAppIcon: string;
     function GetModels: TKModels;
     function GetViews: TKViews;
     procedure FinalizeDBConnections;
@@ -241,7 +241,7 @@ type
 
     ///	<summary>Returns the application Icon, to be used mobile apps
     ///	and Browser</summary>
-    property Icon: string read GetIcon;
+    property AppIcon: string read GetAppIcon;
 
     ///	<summary>
     ///	  Global expansion engine. Kitto-specific macro expanders should be
@@ -679,9 +679,9 @@ begin
   Result := Result + '.png';
 end;
 
-function TKConfig.GetIcon: string;
+function TKConfig.GetAppIcon: string;
 begin
-  Result := Config.GetString('Icon', 'kitto_128');
+  Result := Config.GetString('AppIcon', 'kitto_128');
 end;
 
 class function TKConfig.GetImageURL(const AResourceName: string; const ASuffix: string = ''): string;
