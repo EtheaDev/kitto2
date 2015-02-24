@@ -1,3 +1,5 @@
+// Returns the specified object with its x and y properties
+// clipped to the window's client size.
 function clipToClientArea(size) {
   s = size;
   ws = getWindowClientSize();
@@ -8,6 +10,7 @@ function clipToClientArea(size) {
   return s;
 }
 
+// Returns the window's client size.
 function getWindowClientSize() {
   var
     w = window,
@@ -19,6 +22,12 @@ function getWindowClientSize() {
   result.x = w.innerWidth || e.clientWidth || g.clientWidth,
   result.y = w.innerHeight|| e.clientHeight|| g.clientHeight;
   return result;
+}
+
+// Used to avoid displaying dialog boxes larger that the viewport in mobile browsers.
+function getMaxMsgWidth()
+{
+  return  Math.min(600, Math.max(document.documentElement.clientWidth, window.innerWidth || 0) - 6);
 }
 
 // Returns an array of all defined style selectors in the document.
@@ -85,7 +94,7 @@ function addScriptRef(src) {
   head.appendChild(script);
 };
 
-// Fires change event if the object value is at least
+// Fires change event if the object's value is at least
 // minChars characters long. Also fires the event when the
 // value is empty. Used in filters.
 function fireChangeAfterNChars(obj, minChars)
@@ -99,6 +108,16 @@ function fireChangeAfterNChars(obj, minChars)
     obj.startValue = v;
   }
 };
+
+function fireChangeIfEmpty(obj)
+{
+  var v = obj.getRawValue();
+  if (v.length == 0)
+  {
+    obj.fireEvent("change", v, v);
+  }
+};
+
 
 // Calls an Ajax method if buttonId is "yes". The method to
 // call is specified in obj.params.methodURL. The selection model
@@ -176,12 +195,6 @@ function ajaxSimple(buttonId, text, obj)
     });
   }
 };
-
-// Used to avoid displaying dialog boxes larger that the viewport in mobile browsers.
-function getMaxMsgWidth()
-{
-  return  Math.min(600, Math.max(document.documentElement.clientWidth, window.innerWidth || 0) - 6);
-}
 
 // Asks a confirmation message and calls a specified function
 // when the dialog box is dismissed. Used together with ajaxSimple
