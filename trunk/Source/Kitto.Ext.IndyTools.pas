@@ -22,7 +22,7 @@ uses
   SysUtils,
   IdSMTP, IdMessage, IdEmailAddress,
   EF.Tree,
-  Kitto.Ext.DataTool;
+  Kitto.Config, Kitto.Ext.DataTool;
 
 type
   TSendEmailToolController = class(TKExtDataToolController)
@@ -48,36 +48,117 @@ var
   I: Integer;
   LAttachment: TIdAttachmentFile;
   LSender: TIdEMailAddressItem;
-  LFromNode: TEFNode;
+  LAddressNode: TEFNode;
   LFileName: string;
-  LToNode: TEFNode;
+  LServerNode: TEFNode;
+  LSingleAddress: string;
 begin
   inherited;
   LSMTP := TIdSMTP.Create(nil);
   try
     LSMTP.AuthType := satDefault;
-    LSMTP.Host := ExpandServerRecordValues(Config.GetExpandedString('Server/HostName'));
-    LSMTP.Username := ExpandServerRecordValues(Config.GetExpandedString('Server/UserName'));
-    LSMTP.Password := ExpandServerRecordValues(Config.GetExpandedString('Server/Password'));
+    LServerNode := TKConfig.Instance.Config.FindNode('Email/SMTP/' + Config.GetString('SMTP', 'Default'));
+    if Assigned(LServerNode) then
+      LServerNode.Merge(Config.FindNode('SMTP'))
+    else
+      LServerNode := Config.GetNode('SMTP');
+    LSMTP.Host := ExpandServerRecordValues(LServerNode.GetExpandedString('HostName'));
+    LSMTP.Username := ExpandServerRecordValues(LServerNode.GetExpandedString('UserName'));
+    LSMTP.Password := ExpandServerRecordValues(LServerNode.GetExpandedString('Password'));
 
     LMessage := TIdMessage.Create;
     try
-      // Senders.
-      LFromNode := Config.GetNode('Message/From');
-      for I := 0 to LFromNode.ChildCount - 1 do
+      // Try single sender first.
+      LAddressNode := Config.GetNode('Message/From');
+      LMessage.From.Text := LAddressNode.AsExpandedString;
+      if LMessage.From.Text = '' then
       begin
-        LSender := LMessage.FromList.Add;
-        LSender.Name := ExpandServerRecordValues(LFromNode[I].GetExpandedString('Name'));
-        LSender.Address := ExpandServerRecordValues(LFromNode[I].GetExpandedString('Address'));
+        // Multiple senders.
+        for I := 0 to LAddressNode.ChildCount - 1 do
+        begin
+          LSender := LMessage.FromList.Add;
+          LSender.Text := ExpandServerRecordValues(LAddressNode[I].AsExpandedString);
+          if LSender.Text = '' then
+          begin
+            LSender.Name := ExpandServerRecordValues(LAddressNode[I].GetExpandedString('Name'));
+            LSender.Address := ExpandServerRecordValues(LAddressNode[I].GetExpandedString('Address'));
+          end;
+        end;
       end;
 
-      // Recipients.
-      LToNode := Config.GetNode('Message/To');
-      for I := 0 to LFromNode.ChildCount - 1 do
+      // Try single recipient first.
+      LAddressNode := Config.GetNode('Message/To');
+      LSingleAddress := LAddressNode.AsExpandedString;
+      if LSingleAddress <> '' then
       begin
         LRecipient := LMessage.Recipients.Add;
-        LRecipient.Name := ExpandServerRecordValues(LToNode[I].GetExpandedString('Name'));
-        LRecipient.Address := ExpandServerRecordValues(LToNode[I].GetExpandedString('Address'));
+        LRecipient.Text := LSingleAddress;
+      end
+      else
+      begin
+        // Multiple recipients.
+        for I := 0 to LAddressNode.ChildCount - 1 do
+        begin
+          LRecipient := LMessage.Recipients.Add;
+          LRecipient.Text := ExpandServerRecordValues(LAddressNode[I].AsExpandedString);
+          if LRecipient.Text = '' then
+          begin
+            LRecipient.Name := ExpandServerRecordValues(LAddressNode[I].GetExpandedString('Name'));
+            LRecipient.Address := ExpandServerRecordValues(LAddressNode[I].GetExpandedString('Address'));
+          end;
+        end;
+      end;
+
+      // Optional CCs.
+      LAddressNode := Config.FindNode('Message/CC');
+      if Assigned(LAddressNode) then
+      begin
+        LSingleAddress := LAddressNode.AsExpandedString;
+        if LSingleAddress <> '' then
+        begin
+          LRecipient := LMessage.CCList.Add;
+          LRecipient.Text := LSingleAddress;
+        end
+        else
+        begin
+          // Multiple CC recipients.
+          for I := 0 to LAddressNode.ChildCount - 1 do
+          begin
+            LRecipient := LMessage.CCList.Add;
+            LRecipient.Text := ExpandServerRecordValues(LAddressNode[I].AsExpandedString);
+            if LRecipient.Text = '' then
+            begin
+              LRecipient.Name := ExpandServerRecordValues(LAddressNode[I].GetExpandedString('Name'));
+              LRecipient.Address := ExpandServerRecordValues(LAddressNode[I].GetExpandedString('Address'));
+            end;
+          end;
+        end;
+      end;
+
+      // Optional BCCs.
+      LAddressNode := Config.FindNode('Message/BCC');
+      if Assigned(LAddressNode) then
+      begin
+        LSingleAddress := LAddressNode.AsExpandedString;
+        if LSingleAddress <> '' then
+        begin
+          LRecipient := LMessage.BccList.Add;
+          LRecipient.Text := LSingleAddress;
+        end
+        else
+        begin
+          // Multiple BCC recipients.
+          for I := 0 to LAddressNode.ChildCount - 1 do
+          begin
+            LRecipient := LMessage.CCList.Add;
+            LRecipient.Text := ExpandServerRecordValues(LAddressNode[I].AsExpandedString);
+            if LRecipient.Text = '' then
+            begin
+              LRecipient.Name := ExpandServerRecordValues(LAddressNode[I].GetExpandedString('Name'));
+              LRecipient.Address := ExpandServerRecordValues(LAddressNode[I].GetExpandedString('Address'));
+            end;
+          end;
+        end;
       end;
 
       LMessage.Subject := ExpandServerRecordValues(Config.GetExpandedString('Message/Subject'));
