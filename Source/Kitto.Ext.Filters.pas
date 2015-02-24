@@ -555,6 +555,7 @@ by generating more JS code, but not now. }
     //On('select', Ajax(Select, ['Value', GetEncodedValue()]));
     On('change', Ajax(ValueChanged, ['Value', GetEncodedValue()]));
     On('select', Ajax(ValueChanged, ['Value', GetEncodedValue()]));
+    On('blur', JSFunction(Format('fireChangeIfEmpty(%s);', [JSName])));
   end;
   FCurrentValue := '';
 end;

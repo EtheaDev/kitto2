@@ -720,8 +720,7 @@ type
       write SetFDisableKeyFilter;
     property EmptyClass: string read FEmptyClass write SetFEmptyClass;
     property EmptyText: string read FEmptyText write SetEmptyText;
-    property EnableKeyEvents: Boolean read FEnableKeyEvents
-      write SetEnableKeyEvents;
+    property EnableKeyEvents: Boolean read FEnableKeyEvents write SetEnableKeyEvents;
     property Grow: Boolean read FGrow write SetGrow;
     property GrowMax: Integer read FGrowMax write SetFGrowMax;
     property GrowMin: Integer read FGrowMin write SetFGrowMin;
