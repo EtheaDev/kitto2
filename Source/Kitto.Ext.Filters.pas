@@ -180,7 +180,7 @@ type
     function GetExpression: string;
     procedure SetConfig(const AConfig: TEFNode); override;
   published
-    procedure Select;
+    procedure ValueChanged;
   end;
 
   ///	<summary>
@@ -457,7 +457,7 @@ end;
 //  NotifyObservers('FilterChanged');
 //end;
 
-procedure TKDynaListFilter.Select;
+procedure TKDynaListFilter.ValueChanged;
 var
   LNewValue: string;
 begin
@@ -518,7 +518,7 @@ begin
   LazyRender := True;
   SelectOnFocus := True;
   AutoSelect := False;
-  ForceSelection := True;
+  //ForceSelection := True;
   Mode := 'local';
   LDBQuery := Session.Config.DBConnections[GetDatabaseName].CreateDBQuery;
   try
@@ -551,7 +551,8 @@ by generating more JS code, but not now. }
   if FConfig.GetBoolean('Sys/IsReadOnly') then
     Disabled := True
   else
-    On('select', Ajax(Select, ['Value', GetEncodedValue()]));
+    //On('select', Ajax(Select, ['Value', GetEncodedValue()]));
+    On('change', Ajax(ValueChanged, ['Value', GetEncodedValue()]));
   FCurrentValue := '';
 end;
 

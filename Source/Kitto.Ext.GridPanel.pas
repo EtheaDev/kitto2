@@ -688,8 +688,7 @@ begin
 
   LWidth := ViewTable.GetInteger('Controller/PopupWindow/Width');
   LHeight := ViewTable.GetInteger('Controller/PopupWindow/Height');
-  LFullScreen := ViewTable.GetBoolean('Controller/PopupWindow/FullScreen',
-    Boolean(IfThen(Session.IsMobileBrowser, 1, 0)));
+  LFullScreen := ViewTable.GetBoolean('Controller/PopupWindow/FullScreen', Session.IsMobileBrowser);
 
   if LFullScreen then
   begin
