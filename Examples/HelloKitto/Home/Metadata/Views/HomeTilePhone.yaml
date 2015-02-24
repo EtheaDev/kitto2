@@ -8,9 +8,9 @@ Controller: Viewport
       CenterView:
         Controller: TilePanel
           Border: True
-          TileHeight: 70
-          TileWidth: 120
-          TreeView: MainMenuTile
+          TileHeight: 50
+          TileWidth: 100
+          TreeView: MainMenuTilePhone
 
       SouthView:
         Controller: StatusBar
@@ -19,7 +19,7 @@ Controller: Viewport
 
 MobileSettings:
   ViewportContent:
-    width: 480
+    width: 320
     user-scalable: 0
   Android:
-    Manifest: HomeTile.json
+    Manifest: HomeTilePhone.json
