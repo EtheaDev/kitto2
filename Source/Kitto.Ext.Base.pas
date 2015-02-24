@@ -1012,6 +1012,7 @@ begin
   try
     FTopToolbar.ButtonScale := Config.GetString('ToolButtonScale',
       IfThen(Session.IsMobileBrowser, 'large', 'small'));
+    FTopToolbar.AutoScroll := True;
     AddTopToolbarButtons;
     AddTopToolbarToolViewButtons;
   except
