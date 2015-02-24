@@ -121,7 +121,6 @@ type
     FHomeViewNodeName: string;
     FMobileBrowserDetectionDone: Boolean;
     FIsMobileBrowser: Boolean;
-    FViewportWidth: Integer;
     procedure LoadLibraries;
     procedure DisplayHomeView;
     procedure DisplayLoginWindow;
@@ -262,8 +261,6 @@ type
     procedure EnsureViewSupportFiles(const AView: TKView);
 
     function IsMobileBrowser: Boolean;
-
-    function MaxWindowWidth: Integer;
   published
     procedure Logout;
   end;
@@ -401,21 +398,18 @@ var
 
 begin
   Result := '';
-  FViewportWidth := 0;
   //Default Viewport content for mobile browsers:
   //width 480 (optimal for Tablets) and user-scalable 0
   SetLength(LDefaultPairs, 2);
-  LDefaultPairs[0] := TEFPair.Create('width','480');
-  LDefaultPairs[1] := TEFPair.Create('user-scalable','0');
-  LContent := GetHomeView.GetChildrenAsPairs('MobileSettings/ViewportContent', True,LDefaultPairs);
+  LDefaultPairs[0] := TEFPair.Create('width', '480');
+  LDefaultPairs[1] := TEFPair.Create('user-scalable', '0');
+  LContent := GetHomeView.GetChildrenAsPairs('MobileSettings/ViewportContent', True, LDefaultPairs);
   for LPair in LContent do
   begin
     if Result = '' then
       Result := LPair.Key + '=' + LPair.Value
     else
       Result := Result + GetSeparator + LPair.Key + '=' + LPair.Value;
-    if SameText(LPair.Key, 'width') then
-      FViewportWidth := StrToInt(LPair.Value);
   end;
 end;
 
@@ -1016,14 +1010,6 @@ begin
     ResponseItems.ExecuteJSCode(Format('addStyleRule("%s", "%s");', [LSelector, LRule]))
   else
     SetStyle(LSelector + ' ' + LRule);
-end;
-
-function TKExtSession.MaxWindowWidth: Integer;
-begin
-  if IsMobileBrowser then
-    Result := FViewportWidth-6
-  else
-    Result := 600;
 end;
 
 { TKExtUploadedFile }

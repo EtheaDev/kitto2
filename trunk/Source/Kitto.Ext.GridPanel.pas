@@ -1146,22 +1146,18 @@ begin
 end;
 
 function TKExtGridPanel.GetSelectConfirmCall(const AMessage: string; const AMethod: TExtProcedure): string;
-var
-  LMaxWindowWidth: Integer;
 begin
   if IsMultiSelect then
     Result := Format('confirmCall("%s", "%s", ajaxMultiSelection, {methodURL: "%s", selModel: %s, fieldNames: "%s"}, %d);',
       [_(Session.Config.AppTitle), AMessage, MethodURI(AMethod),
-      FSelectionModel.JSName, Join(ViewTable.GetKeyFieldAliasedNames, ','),
-      Session.MaxWindowWidth])
+      FSelectionModel.JSName, Join(ViewTable.GetKeyFieldAliasedNames, ',')])
   else
     { TODO :
       Add CaptionField to ViewTable for cases when the model's CaptionField
       is not part of the ViewTable or is aliased. }
     Result := Format('selectConfirmCall("%s", "%s", %s, "%s", {methodURL: "%s", selModel: %s, fieldNames: "%s"}, %d);',
       [_(Session.Config.AppTitle), AMessage, FSelectionModel.JSName, ViewTable.Model.CaptionField.FieldName,
-      MethodURI(AMethod), FSelectionModel.JSName, Join(ViewTable.GetKeyFieldAliasedNames, ','),
-      Session.MaxWindowWidth]);
+      MethodURI(AMethod), FSelectionModel.JSName, Join(ViewTable.GetKeyFieldAliasedNames, ',')]);
 end;
 
 function TKExtGridPanel.GetSelectCall(const AMethod: TExtProcedure): TExtFunction;
