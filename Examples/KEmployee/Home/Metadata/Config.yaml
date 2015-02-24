@@ -1,5 +1,6 @@
 ﻿AppTitle: Employee demo
-Icon: FireBirdSql_120
+AppIcon: FireBirdSql_120
+
 LoginWindowAppearance:
   HtmlPanel: |
     <center>
@@ -42,4 +43,3 @@ Charset: utf-8
 
 FastCGI:
   TCPPort: 2016
-

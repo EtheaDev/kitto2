@@ -334,7 +334,7 @@ function TKExtSession.GetManifestFileName: string;
 var
   LManifestFile, LURL: string;
 begin
-  LManifestFile := GetHomeView.GetString('Manifest', 'Manifest.json');
+  LManifestFile := GetHomeView.GetString('MobileSettings/Android/Manifest', 'Manifest.json');
   LURL := Config.FindResourceURL(LManifestFile);
   if LURL <> '' then
     Result := LURL
@@ -407,7 +407,7 @@ begin
   SetLength(LDefaultPairs, 2);
   LDefaultPairs[0] := TEFPair.Create('width','480');
   LDefaultPairs[1] := TEFPair.Create('user-scalable','0');
-  LContent := GetHomeView.GetChildrenAsPairs('ViewportContent', True,LDefaultPairs);
+  LContent := GetHomeView.GetChildrenAsPairs('MobileSettings/ViewportContent', True,LDefaultPairs);
   for LPair in LContent do
   begin
     if Result = '' then
