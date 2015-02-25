@@ -528,7 +528,10 @@ begin
 
   ResponseItems.ExecuteJSCode('kittoInit();');
   SetAjaxTimeout;
-  ExtQuickTips.Init(True);
+  if IsMobileBrowser then
+    ExtQuickTips.Disable
+  else
+    ExtQuickTips.Init(True);
   // Try authentication with default credentials, if any, and skip login
   // window if it succeeds.
   if not FRefreshingLanguage then

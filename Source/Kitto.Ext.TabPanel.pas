@@ -44,8 +44,8 @@ type
     function TabsVisible: Boolean; virtual;
     procedure ApplyTabSize;
     function GetDefaultTabSize: string; virtual;
-    procedure SetAsViewHost; virtual;
   public
+    procedure SetAsViewHost; virtual;
     procedure SetActiveView(const AIndex: Integer);
     function AsExtContainer: TExtContainer;
     procedure InitController(const AController: IKExtController);
@@ -86,6 +86,7 @@ begin
   FTabPanel.FConfig := Config;
   FTabPanel.FOwner := Self;
   FTabPanel.FView := View;
+  FTabPanel.SetAsViewHost;
   FTabPanel.DisplaySubViewsAndControllers;
 end;
 
@@ -124,8 +125,6 @@ begin
   Assert(Assigned(FOwner));
 
   FOwner.InitSubController(AController);
-
-  SetAsViewHost;
 end;
 
 procedure TKExtTabPanel.InitDefaults;

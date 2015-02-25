@@ -82,8 +82,7 @@ begin
   end;
 end;
 
-procedure TKExtDataPanelLeafController.ExecuteNamedAction(
-  const AActionName: string);
+procedure TKExtDataPanelLeafController.ExecuteNamedAction(const AActionName: string);
 begin
   if (AActionName = 'Refresh') then
     PerformDelayedClick(FRefreshButton)
