@@ -38,7 +38,6 @@
       "density": "4.0"
     }
   ],
-  "start_url": "http://192.168.1.100/kitto/2014?home=Phone",
-  "display": "standalone",
+  "display": "fullscreen",
   "orientation": "portrait"
 }
