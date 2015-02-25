@@ -44,6 +44,7 @@ type
     function TabsVisible: Boolean; virtual;
     procedure ApplyTabSize;
     function GetDefaultTabSize: string; virtual;
+    procedure SetAsViewHost; virtual;
   public
     procedure SetActiveView(const AIndex: Integer);
     function AsExtContainer: TExtContainer;
@@ -123,18 +124,27 @@ begin
   Assert(Assigned(FOwner));
 
   FOwner.InitSubController(AController);
+
+  SetAsViewHost;
 end;
 
 procedure TKExtTabPanel.InitDefaults;
 begin
   inherited;
-  if Session.ViewHost = nil then
-    Session.ViewHost := Self;
   Border := False;
   { TODO : remove this once all controllers set it by themselves. }
   Defaults := JSObject('autoscroll: true');
   // Layout problems in tabbed views if DeferredRender=False.
   DeferredRender := True;
+end;
+
+procedure TKExtTabPanel.SetAsViewHost;
+begin
+  Assert(Assigned(Config));
+
+  if Config.GetBoolean('IsViewHost', True) then
+    if (Session.ViewHost = nil) then
+      Session.ViewHost := Self;
 end;
 
 function TKExtTabPanel.AsExtContainer: TExtContainer;
@@ -156,7 +166,7 @@ end;
 
 destructor TKExtTabPanel.Destroy;
 begin
-  if Session.ViewHost.AsObject = Self then
+  if (Session.ViewHost <> nil) and (Session.ViewHost.AsObject = Self) then
     Session.ViewHost := nil;
   inherited;
 end;
@@ -169,7 +179,7 @@ var
   LView: TKView;
 begin
   Assert(Assigned(FOwner));
-  Assert(Assigned(FConfig));
+  Assert(Assigned(Config));
   Assert(Assigned(FView));
 
   if TabsVisible then
@@ -180,7 +190,7 @@ begin
   else
     AddClass('tab-strip-hidden');
 
-  LViews := FConfig.FindNode('SubViews');
+  LViews := Config.FindNode('SubViews');
   if Assigned(LViews) then
   begin
     for I := 0 to LViews.ChildCount - 1 do

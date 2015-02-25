@@ -600,6 +600,7 @@ begin
     FTabPanel.AutoScroll := False;
     FTabPanel.BodyStyle := 'background:none'; // Respects parent's background color.
     FTabPanel.DeferredRender := False;
+    FTabPanel.EnableTabScroll := True;
     FMainPagePanel := TKExtEditPage.CreateAndAddTo(FTabPanel.Items);
     FMainPagePanel.Title := _(ViewTable.DisplayLabel);
     if Config.GetBoolean('Sys/ShowIcon', True) then

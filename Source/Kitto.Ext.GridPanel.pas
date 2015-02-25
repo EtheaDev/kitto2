@@ -692,8 +692,8 @@ begin
 
   if LFullScreen then
   begin
-    FEditHostWindow.Border := False;
     FEditHostWindow.Maximized := True;
+    FEditHostWindow.Border := not FEditHostWindow.Maximized;
   end
   else if (LWidth > 0) and (LHeight > 0) then
   begin

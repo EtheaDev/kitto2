@@ -64,8 +64,8 @@ type
     FTilePanel: TKExtTilePanel;
     procedure AddTileSubPanel;
   strict protected
-    procedure ApplyTabSize;
-    function GetDefaultTabSize: string; override;
+    procedure SetAsViewHost; override;
+    function TabsVisible: Boolean; override;
   public
     procedure DisplaySubViewsAndControllers; override;
   end;
@@ -117,14 +117,16 @@ begin
     SetActiveTab(0);
 end;
 
-function TKExtTileTabPanel.GetDefaultTabSize: string;
+procedure TKExtTileTabPanel.SetAsViewHost;
 begin
-  Result := 'large';
+  // Don't act as view host on mobile - we want modal views there.
+  if not Session.IsMobileBrowser then
+    inherited;
 end;
 
-procedure TKExtTileTabPanel.ApplyTabSize;
+function TKExtTileTabPanel.TabsVisible: Boolean;
 begin
-  AddClass('tab-strip-large');
+  Result := Config.GetBoolean('TabsVisible', not Session.IsMobileBrowser);
 end;
 
 procedure TKExtTileTabPanel.AddTileSubPanel;
