@@ -464,6 +464,12 @@ var
     begin
       LNames := EF.StrUtils.Split(LItem.Name, LSep);
       LValues := EF.StrUtils.Split(LItem.Value.AsString, LSep);
+      if Length(LValues) = 0 then
+      begin
+        SetLength(LValues, Length(LNames));
+        for I := Low(LValues) to High(LValues) do
+          LValues[I] := 'null';
+      end;
       Assert(Length(LNames) = Length(LValues));
       for I := Low(LNames) to High(LNames) do
         LField.ParentRecord.FieldByName(LNames[I]).SetAsJSONValue(LValues[I], False, Session.Config.UserFormatSettings);

@@ -24,7 +24,6 @@ uses
   ExtPascal, Ext, ExtForm,
   Kitto.Ext.Base, Kitto.Ext.HtmlPanel;
 
-
 type
   TKExtOnLogin = procedure of object;
 
@@ -71,6 +70,7 @@ procedure TKExtLoginWindow.DoLogin;
 begin
   if Authenticate(Session) then
   begin
+    Session.ResponseItems.ExecuteJSCode(Format('Ext.TaskMgr.stop(%s.enableTask);', [JSName]));
     Close;
     if Assigned(FOnLogin) then
       FOnLogin;
@@ -218,10 +218,13 @@ begin
   FPassword.EnableKeyEvents := True;
   FPassword.SelectOnFocus := True;
 
-  FUserName.On('keyup', JSFunction(GetEnableButtonJS));
-  FPassword.On('keyup', JSFunction(GetEnableButtonJS));
   FUserName.On('specialkey', JSFunction('field, e', GetSubmitJS));
   FPassword.On('specialkey', JSFunction('field, e', GetSubmitJS));
+
+  Session.ResponseItems.ExecuteJSCode(Format(
+    '%s.enableTask = Ext.TaskMgr.start({ ' + sLineBreak +
+    '  run: function() {' + GetEnableButtonJS + '},' + sLineBreak +
+    '  interval: 500});', [JSName]));
 
   if FUseLanguageSelector then
   begin
