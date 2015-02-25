@@ -680,7 +680,8 @@ var
 begin
   Assert(Assigned(AView));
 
-  LIsModal := AView.GetBoolean('Controller/IsModal');
+  // If there's no view host, we treat all views as windows.
+  LIsModal := not Assigned(FViewHost) or AView.GetBoolean('Controller/IsModal');
   if Assigned(FControllerHostWindow) then
   begin
     FControllerHostWindow.Free(True);
@@ -695,6 +696,8 @@ begin
     Result := TKExtControllerFactory.Instance.CreateController(ObjectCatalog,
       AView, FControllerHostWindow, nil);
     FControllerHostWindow.FHostedController := Result.AsObject;
+    FControllerHostWindow.Maximized := IsMobileBrowser;
+    FControllerHostWindow.Border := not FControllerHostWindow.Maximized;
 
     LWidth := AView.GetInteger('Controller/PopupWindow/Width', -1);
     LHeight := AView.GetInteger('Controller/PopupWindow/Height', -1);
@@ -756,7 +759,6 @@ var
   LController: IKExtController;
 begin
   Assert(Assigned(AView));
-  Assert(Assigned(FViewHost));
 
   if AView.IsAccessGranted(ACM_VIEW) then
   begin

@@ -143,6 +143,7 @@ begin
   Width := 316;
   Height := 162;
   Maximized := Session.IsMobileBrowser;
+  Border := not Maximized;
   Closable := True;
   Resizable := False;
 

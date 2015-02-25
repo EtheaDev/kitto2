@@ -2591,6 +2591,7 @@ begin
   FWindow.Width := 400;
   FWindow.Height := 120;
   FWindow.Maximized := Session.IsMobileBrowser;
+  FWindow.Border := not FWindow.Maximized;
   FWindow.Closable := True;
   FWindow.Title := _('File upload');
 
@@ -3003,7 +3004,6 @@ function TKExtEditorManager.TryCreateTextArea(
   const AIsReadOnly: Boolean): IKExtEditor;
 var
   LTextArea: TKExtFormTextArea;
-  LLines: Integer;
 begin
   Assert(Assigned(AOwner));
 
