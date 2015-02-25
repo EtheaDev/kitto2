@@ -64,9 +64,9 @@ type
     FTilePanel: TKExtTilePanel;
     procedure AddTileSubPanel;
   strict protected
-    procedure SetAsViewHost; override;
     function TabsVisible: Boolean; override;
   public
+    procedure SetAsViewHost; override;
     procedure DisplaySubViewsAndControllers; override;
   end;
 

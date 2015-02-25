@@ -5941,7 +5941,7 @@ end;
 
 function TExtQuickTipsSingleton.Disable: TExtFunction;
 begin
-  JSCode(JSName + '.disable();', 'TExtQuickTipsSingleton');
+  ExtSession.ResponseItems.CallMethod(Self, 'disable', []);
   Result := Self;
 end;
 

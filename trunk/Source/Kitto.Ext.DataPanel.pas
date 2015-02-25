@@ -65,7 +65,6 @@ type
   strict protected
     FEditItems: TKEditItemList;
     procedure CheckCanRead;
-//    function GetRefreshJSCode: string; virtual;
     function GetOrderByClause: string; virtual;
     procedure SetViewTable(const AValue: TKViewTable); virtual;
     procedure CreateToolbar; virtual;
@@ -109,13 +108,6 @@ uses
   Kitto.Ext.Session;
 
 { TKExtDataPanelController }
-
-//function TKExtDataPanelController.GetRefreshJSCode: string;
-//begin
-//  Assert(Assigned(ClientStore));
-//
-//  Result := ClientStore.JSName + '.load({params:{start:0,limit:0,Obj:"' + JSName + '"}});';
-//end;
 
 destructor TKExtDataPanelController.Destroy;
 begin
