@@ -434,9 +434,9 @@ object KExtMainForm: TKExtMainForm
       ImageIndex = 1
       object LogMemo: TMemo
         Left = 0
-        Top = 81
+        Top = 99
         Width = 596
-        Height = 204
+        Height = 186
         Align = alClient
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
@@ -452,10 +452,13 @@ object KExtMainForm: TKExtMainForm
         Left = 0
         Top = 0
         Width = 596
-        Height = 81
+        Height = 99
         Align = alTop
         BevelOuter = bvNone
         TabOrder = 1
+        DesignSize = (
+          596
+          99)
         object SessionCountLabel: TLabel
           Left = 264
           Top = 25
@@ -540,6 +543,35 @@ object KExtMainForm: TKExtMainForm
           Visible = False
           OnClick = HomeURLLabelClick
         end
+        object HomeAppNameURLLabel: TLabel
+          Left = 4
+          Top = 80
+          Width = 117
+          Height = 13
+          Cursor = crHandPoint
+          Hint = 'Click to launch application in default browser'
+          Caption = 'HomeAppNameURLLabel'
+          Color = clBtnFace
+          Font.Charset = DEFAULT_CHARSET
+          Font.Color = clHotLight
+          Font.Height = -11
+          Font.Name = 'Tahoma'
+          Font.Style = [fsUnderline]
+          ParentColor = False
+          ParentFont = False
+          Visible = False
+          OnClick = HomeURLLabelClick
+        end
+        object AppIcon: TImage
+          Left = 528
+          Top = 0
+          Width = 64
+          Height = 64
+          Hint = 'Config.AppIcon'
+          Anchors = [akTop, akRight]
+          Proportional = True
+          Stretch = True
+        end
         object ConfigFileNameComboBox: TComboBox
           Left = 4
           Top = 22
@@ -580,7 +612,7 @@ object KExtMainForm: TKExtMainForm
     Left = 320
     Top = 65528
     Bitmap = {
-      494C010103004C00AC0010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C010103004C00B80010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000001000000001002000000000000010
       0000000000000000000000000000000000000000000000000000000000000000
       00000000001E00000031000000330000003300000033000000310000001E0000
