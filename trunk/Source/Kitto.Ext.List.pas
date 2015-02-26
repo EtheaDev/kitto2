@@ -218,7 +218,7 @@ begin
   Border := False;
   Layout := lyForm;
   Collapsible := True;
-  Collapsed := Session.IsMobileBrowser;
+  Collapsed := False;
   Frame := True;
   AutoHeight := True;
 end;
