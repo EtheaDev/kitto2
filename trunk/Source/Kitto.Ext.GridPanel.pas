@@ -1052,21 +1052,6 @@ begin
     end;
   end;
 
-  if FIsViewVisible then
-  begin
-    FViewButton := TKExtButton.CreateAndAddTo(TopToolbar.Items);
-    FViewButton.Tooltip := Format(_('View %s'), [_(ViewTable.DisplayLabel)]);
-    FViewButton.SetIconAndScale('view_record');
-    if not FIsViewAllowed then
-      FViewButton.Disabled := True
-    else
-    begin
-      LKeyFieldNames := Join(ViewTable.GetKeyFieldAliasedNames, ',');
-      FViewButton.On('click', AjaxSelection(ViewRecord, FSelectionModel, LKeyFieldNames, LKeyFieldNames, []));
-      FButtonsRequiringSelection.Add(FViewButton);
-    end;
-  end;
-
   if not FInplaceEditing then
   begin
     if FIsEditVisible then
@@ -1099,6 +1084,21 @@ begin
       FDeleteButton.Handler := JSFunction(GetSelectConfirmCall(
         Format(_('Selected %s {caption} will be deleted. Are you sure?'), [_(ViewTable.DisplayLabel)]), DeleteCurrentRecord));
       FButtonsRequiringSelection.Add(FDeleteButton);
+    end;
+  end;
+
+  if FIsViewVisible then
+  begin
+    FViewButton := TKExtButton.CreateAndAddTo(TopToolbar.Items);
+    FViewButton.Tooltip := Format(_('View %s'), [_(ViewTable.DisplayLabel)]);
+    FViewButton.SetIconAndScale('view_record');
+    if not FIsViewAllowed then
+      FViewButton.Disabled := True
+    else
+    begin
+      LKeyFieldNames := Join(ViewTable.GetKeyFieldAliasedNames, ',');
+      FViewButton.On('click', AjaxSelection(ViewRecord, FSelectionModel, LKeyFieldNames, LKeyFieldNames, []));
+      FButtonsRequiringSelection.Add(FViewButton);
     end;
   end;
 
