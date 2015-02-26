@@ -888,11 +888,13 @@ begin
   if not FMobileBrowserDetectionDone then
   begin
     LUserAgent := RequestHeader['HTTP_USER_AGENT'];
+    TEFLogger.Instance.Log('UserAgent: '+LUserAgent);
     FIsMobileBrowser := LUserAgent.Contains('Windows Phone') or
       LUserAgent.Contains('iPhone') or
       LUserAgent.Contains('iPad') or
       LUserAgent.Contains('Android');
     FMobileBrowserDetectionDone := True;
+    TEFLogger.Instance.Log('IsMobileBrowser: '+IfThen(FIsMobileBrowser,'True','False'));
   end;
   Result := FIsMobileBrowser;
 end;
