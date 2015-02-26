@@ -1,4 +1,5 @@
-AppTitle: _(Peoria Girls and their Dolls)
+﻿AppTitle: _(Peoria Girls and their Dolls)
+AppIcon: HelloKittoIcon
 
 LanguagePerSession: True
 LoginWindowAppearance:
@@ -107,4 +108,4 @@ LanguageId: it
 Charset: utf-8
 
 FastCGI:
-  TCPPort: 2014
+  TCPPort: 2201

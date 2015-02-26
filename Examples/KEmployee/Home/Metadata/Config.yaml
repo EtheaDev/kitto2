@@ -42,4 +42,4 @@ Ext:
 Charset: utf-8
 
 FastCGI:
-  TCPPort: 2016
+  TCPPort: 2203
