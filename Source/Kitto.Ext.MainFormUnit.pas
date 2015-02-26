@@ -58,6 +58,8 @@ type
     OpenConfigDialog: TOpenDialog;
     SpeedButton1: TSpeedButton;
     HomeURLLabel: TLabel;
+    HomeAppNameURLLabel: TLabel;
+    AppIcon: TImage;
     procedure StartActionUpdate(Sender: TObject);
     procedure StopActionUpdate(Sender: TObject);
     procedure StartActionExecute(Sender: TObject);
@@ -84,7 +86,7 @@ type
     procedure FillConfigFileNameCombo;
     procedure SetConfig(const AFileName: string);
     procedure SelectConfigFile;
-    procedure DisplayHomeURL(const AHomeURL: string);
+    procedure DisplayHomeURL(const AHomeURL, ANamedHomeURL: string);
     property AppThread: TKExtAppThread read GetAppThread;
     function HasConfigFileName: Boolean;
     procedure DoLog(const AString: string);
@@ -138,6 +140,8 @@ begin
   begin
     DoLog(_('Stopping listener...'));
     FAppThread.Terminate;
+    HomeURLLabel.Visible := False;
+    HomeAppNameURLLabel.Visible := False;
     while IsStarted do
       Forms.Application.ProcessMessages;
     if FRestart then
@@ -190,7 +194,7 @@ end;
 
 procedure TKExtMainForm.HomeURLLabelClick(Sender: TObject);
 begin
-  OpenDocument(HomeURLLabel.Caption);
+  OpenDocument((Sender as TLabel).Caption);
 end;
 
 function TKExtMainForm.IsStarted: Boolean;
@@ -235,6 +239,7 @@ procedure TKExtMainForm.SetConfig(const AFileName: string);
 var
   LConfig: TKConfig;
   LWasStarted: Boolean;
+  LAppIconFileName: string;
 begin
   LWasStarted := IsStarted;
   if LWasStarted then
@@ -244,6 +249,11 @@ begin
   LConfig := TKConfig.Create;
   try
     AppTitleLabel.Caption := Format(_('Application: %s'), [_(LConfig.AppTitle)]);
+    LAppIconFileName := LConfig.FindResourcePathName(LConfig.AppIcon+'.png');
+    if FileExists(LAppIconFileName) then
+      AppIcon.Picture.LoadFromFile(LAppIconFileName)
+    else
+      AppIcon.Picture.Bitmap := nil;
   finally
     FreeAndNil(LConfig);
   end;
@@ -252,11 +262,13 @@ begin
     StartAction.Execute;
 end;
 
-procedure TKExtMainForm.DisplayHomeURL(const AHomeURL: string);
+procedure TKExtMainForm.DisplayHomeURL(const AHomeURL, ANamedHomeURL: string);
 begin
   DoLog(Format(_('Home URL: %s'), [AHomeURL]));
   HomeURLLabel.Caption := AHomeURL;
+  HomeAppNameURLLabel.Caption := ANamedHomeURL;
   HomeURLLabel.Visible := True;
+  HomeAppNameURLLabel.Visible := True;
 end;
 
 procedure TKExtMainForm.FillConfigFileNameCombo;
@@ -290,7 +302,7 @@ begin
   DoLog(_('Listener started'));
   LConfig := TKConfig.Create;
   try
-    DisplayHomeURL(LConfig.GetHomeURL);
+    DisplayHomeURL(LConfig.GetHomeURL, LConfig.GetAppNameURL);
   finally
     FreeAndNil(LConfig);
   end;
