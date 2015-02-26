@@ -506,7 +506,7 @@ begin
   FCancelButton.Text := _('Cancel');
   FCancelButton.Tooltip := _('Cancel changes');
   FCancelButton.Handler := Ajax(CancelChanges);
-  FCancelButton.Hidden := FIsReadOnly;
+  FCancelButton.Hidden := FIsReadOnly or IsViewMode;
 
   FCloseButton := TKExtButton.CreateAndAddTo(FFormPanel.Buttons);
   FCloseButton.SetIconAndScale('close', Config.GetString('ButtonScale', 'medium'));
@@ -516,7 +516,7 @@ begin
   LHostWindow := GetHostWindow;
   if Assigned(LHostWindow) then
     FCloseButton.Handler := JSFunction(LHostWindow.JSName + '.close();');
-  FCloseButton.Hidden := not FIsReadOnly;
+  FCloseButton.Hidden := not FIsReadOnly and not IsViewMode;
 end;
 
 procedure TKExtFormPanelController.InitComponents;
