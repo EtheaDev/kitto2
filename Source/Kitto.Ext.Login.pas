@@ -162,9 +162,9 @@ begin
   Title := _(Session.Config.AppTitle);
   Width := LWidth + 20;
   if FUseLanguageSelector then
-    Height := LHeight + (30 * 3) + 66
+    Height := LHeight + (30 * 3) + 72
   else
-    Height := LHeight + (30 * 2) + 66;
+    Height := LHeight + (30 * 2) + 72;
   Closable := False;
   Resizable := False;
 
