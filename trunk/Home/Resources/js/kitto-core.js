@@ -30,45 +30,15 @@ function getMaxMsgWidth()
   return  Math.min(600, Math.max(document.documentElement.clientWidth, window.innerWidth || 0) - 6);
 }
 
-// Returns an array of all defined style selectors in the document.
-// Used by selectorExists.
-function getAllSelectors() {
-  var result = [];
-  for (var i = 0; i < document.styleSheets.length; i++) {
-    var rules = document.styleSheets[i].rules || document.styleSheets[i].cssRules;
-    for (var x in rules) {
-      if (typeof rules[x].selectorText == 'string')
-        result.push(rules[x].selectorText);
-    }
-  }
-  return result;
-}
-
-// Returns true if the specified style selector exists in the document.
-// Used by addStyleRule.
-function selectorExists(selector) { 
-  var selectors = getAllSelectors();
-  for (var i = 0; i < selectors.length; i++) {
-    if (selectors[i] == selector)
-      return true;
-  }
-  return false;
-}
-
 // Dynamically adds a style rule. Used to dynamically
 // add icons and other CSS classes in async responses.
 function addStyleRule(selector, rule) {
-  if (!selectorExists(selector)) {
-    var head = document.getElementsByTagName('head')[0],
-        style = document.createElement('style'),
-        rules = document.createTextNode(selector + ' ' + rule);
-    style.type = 'text/css';
-    if (style.styleSheet)
-      style.styleSheet.cssText = rules.nodeValue;
-    else
-      style.appendChild(rules);
-    head.appendChild(style);
-  }
+  existingRule = Ext.util.CSS.getRule(selector, false);
+  
+  if (!existingRule)
+    return Ext.util.CSS.createStyleSheet(selector + ' ' + rule);
+  else
+    return null;
 };
 
 // Dynamically adds a css <link> that references a URL. Used to
