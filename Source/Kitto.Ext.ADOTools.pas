@@ -65,7 +65,7 @@ const
   EXCEL_NEW_FILE_EXT = '.xlsx';
   EXCEL_NEW_TEMPLATE_EXT = '.xltx';
   EXCEL_ADDITIONAL_OPTION = 'IMEX=1;HDR=YES';
-  EXCEL_CONN_STRING_12 = 'Provider=Microsoft.ACE.OLEDB.12.0;Data Source=%s;Extended Properties=''%s''';
+  EXCEL_CONN_STRING_12 = 'Provider=Microsoft.ACE.OLEDB.12.0;Data Source=%s;Extended Properties=%s';
   EXCEL_CONN_STRING = 'Provider=Microsoft.Jet.OLEDB.4.0;Data Source=%s;Extended Properties=%s';
 
   AExcelVersion : Array[TExcelVersion] of string =
