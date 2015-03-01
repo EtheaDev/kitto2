@@ -517,7 +517,6 @@ begin
         ExtMessageBox.Alert(_(Session.Config.AppTitle), E.Message);
         Result := E.Message;
         ARecord.Assign(LOldRecord);
-        ARecord.MarkAsClean;
         Exit;
       end;
     end;
