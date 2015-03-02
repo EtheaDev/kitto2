@@ -643,6 +643,9 @@ begin
   Format := DelphiDateFormatToJSDateFormat(LFormat);
   AltFormats := DelphiDateFormatToJSDateFormat(Session.Config.JSFormatSettings.ShortDateFormat);
 
+  if Session.IsMobileBrowser then
+    Editable := False;
+
   if FConfig.GetBoolean('Sys/IsReadOnly') then
     Disabled := True
   else
