@@ -219,11 +219,8 @@ type
     ///	<summary>Makes sure catalogs are recreated upon next access.</summary>
     procedure InvalidateCatalogs;
 
-    ///	<summary>Returns the Home URL of the Kitto application</summary>
+    ///	<summary>Returns the Home URL of the Kitto application (lowercase of AppName)</summary>
     function GetHomeURL: string;
-
-    ///	<summary>Returns the Home URL with AppName of the Kitto application</summary>
-    function GetAppNameURL: string;
 
     ///	<summary>Gives access to a database connection by name, created on
     ///	demand.</summary>
@@ -442,12 +439,7 @@ end;
 
 function TKConfig.GetHomeURL: string;
 begin
-  Result := Format('http://localhost/kitto/%d', [Self.Config.GetInteger('FastCGI/TCPPort', 2014)]);
-end;
-
-function TKConfig.GetAppNameURL: string;
-begin
-  Result := Format('http://localhost/kitto/%s', [Self.AppName]);
+  Result := LowerCase(Format('http://localhost/kitto/%s', [Self.AppName]));
 end;
 
 function TKConfig.GetDBAdapter(const ADatabaseName: string): TEFDBAdapter;

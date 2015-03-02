@@ -58,7 +58,6 @@ type
     OpenConfigDialog: TOpenDialog;
     SpeedButton1: TSpeedButton;
     HomeURLLabel: TLabel;
-    HomeAppNameURLLabel: TLabel;
     AppIcon: TImage;
     procedure StartActionUpdate(Sender: TObject);
     procedure StopActionUpdate(Sender: TObject);
@@ -86,7 +85,7 @@ type
     procedure FillConfigFileNameCombo;
     procedure SetConfig(const AFileName: string);
     procedure SelectConfigFile;
-    procedure DisplayHomeURL(const AHomeURL, ANamedHomeURL: string);
+    procedure DisplayHomeURL(const AHomeURL: string);
     property AppThread: TKExtAppThread read GetAppThread;
     function HasConfigFileName: Boolean;
     procedure DoLog(const AString: string);
@@ -141,7 +140,6 @@ begin
     DoLog(_('Stopping listener...'));
     FAppThread.Terminate;
     HomeURLLabel.Visible := False;
-    HomeAppNameURLLabel.Visible := False;
     while IsStarted do
       Forms.Application.ProcessMessages;
     if FRestart then
@@ -194,7 +192,7 @@ end;
 
 procedure TKExtMainForm.HomeURLLabelClick(Sender: TObject);
 begin
-  OpenDocument((Sender as TLabel).Caption);
+  OpenDocument(HomeURLLabel.Caption);
 end;
 
 function TKExtMainForm.IsStarted: Boolean;
@@ -262,13 +260,11 @@ begin
     StartAction.Execute;
 end;
 
-procedure TKExtMainForm.DisplayHomeURL(const AHomeURL, ANamedHomeURL: string);
+procedure TKExtMainForm.DisplayHomeURL(const AHomeURL: string);
 begin
   DoLog(Format(_('Home URL: %s'), [AHomeURL]));
   HomeURLLabel.Caption := AHomeURL;
-  HomeAppNameURLLabel.Caption := ANamedHomeURL;
   HomeURLLabel.Visible := True;
-  HomeAppNameURLLabel.Visible := True;
 end;
 
 procedure TKExtMainForm.FillConfigFileNameCombo;
@@ -302,7 +298,7 @@ begin
   DoLog(_('Listener started'));
   LConfig := TKConfig.Create;
   try
-    DisplayHomeURL(LConfig.GetHomeURL, LConfig.GetAppNameURL);
+    DisplayHomeURL(LConfig.GetHomeURL);
   finally
     FreeAndNil(LConfig);
   end;
