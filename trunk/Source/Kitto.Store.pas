@@ -134,7 +134,6 @@ type
     procedure AfterConstruction; override;
     destructor Destroy; override;
     procedure FieldChanged(const AField: TKField; const AOldValue, ANewValue: Variant); virtual;
-    procedure Assign(const ASource: TEFTree); override;
   public
     property Records: TKRecords read GetRecords;
     property Store: TKStore read GetStore;
@@ -914,13 +913,6 @@ procedure TKRecord.AfterConstruction;
 begin
   inherited;
   FState := rsNew;
-end;
-
-procedure TKRecord.Assign(const ASource: TEFTree);
-begin
-  inherited;
-  if ASource is TKRecord then
-    FState := TKRecord(ASource).State;
 end;
 
 procedure TKRecord.Backup;
