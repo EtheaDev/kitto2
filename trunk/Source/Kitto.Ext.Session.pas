@@ -915,8 +915,6 @@ function TKExtSession.IsMobileBrowser: Boolean;
 var
   LUserAgent: string;
 begin
-  Exit(True);
-
   if not FMobileBrowserDetectionDone then
   begin
     LUserAgent := RequestHeader['HTTP_USER_AGENT'];
