@@ -162,9 +162,9 @@ begin
   Title := _(Session.Config.AppTitle);
   Width := LWidth + 20;
   if FUseLanguageSelector then
-    Height := LHeight + (30 * 3) + 72
+    Height := LHeight + (30 * 3) + 82
   else
-    Height := LHeight + (30 * 2) + 72;
+    Height := LHeight + (30 * 2) + 82;
   Closable := False;
   Resizable := False;
   //Maximized := Session.IsMobileBrowser;
