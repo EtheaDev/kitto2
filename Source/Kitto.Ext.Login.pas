@@ -167,6 +167,8 @@ begin
     Height := LHeight + (30 * 2) + 72;
   Closable := False;
   Resizable := False;
+  //Maximized := Session.IsMobileBrowser;
+  //Border := not Maximized;
 
   FStatusBar := TKExtStatusBar.Create(Self);
   FStatusBar.DefaultText := '';
@@ -175,6 +177,7 @@ begin
   FFormPanel := TExtFormFormPanel.CreateAndAddTo(Items);
   FFormPanel.Region := rgCenter;
   FFormPanel.LabelWidth := LLabelWidth;
+  FFormPanel.LabelAlign := laRight;
   FFormPanel.Border := False;
   FFormPanel.BodyStyle := SetPaddings(5, 5);
   FFormPanel.Frame := False;
