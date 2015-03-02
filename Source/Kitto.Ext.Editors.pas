@@ -3248,6 +3248,7 @@ begin
         LNumberField.AllowNegative := True;
         if LNumberField.AllowDecimals then
           LNumberField.DecimalPrecision := AViewField.DecimalPrecision;
+        LNumberField.AllowBlank := not AViewField.IsRequired;
       end;
       LNumberField.DecimalSeparator := Session.Config.UserFormatSettings.DecimalSeparator;
       Result := LNumberField;
