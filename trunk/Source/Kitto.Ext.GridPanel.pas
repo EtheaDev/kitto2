@@ -799,10 +799,10 @@ begin
     else
       LEvent := 'rowdblclick';
     LKeyFieldNames := Join(LViewTable.GetKeyFieldAliasedNames, ',');
-    if FIsEditAllowed then
-      FEditorGridPanel.On(LEvent, AjaxSelection(EditRecord, FSelectionModel, LKeyFieldNames, LKeyFieldNames, []))
+    if FIsViewAllowed or not FIsEditAllowed then
+      FEditorGridPanel.On(LEvent, AjaxSelection(ViewRecord, FSelectionModel, LKeyFieldNames, LKeyFieldNames, []))
     else
-      FEditorGridPanel.On(LEvent, AjaxSelection(ViewRecord, FSelectionModel, LKeyFieldNames, LKeyFieldNames, []));
+      FEditorGridPanel.On(LEvent, AjaxSelection(EditRecord, FSelectionModel, LKeyFieldNames, LKeyFieldNames, []));
   end;
 
   // By default show paging toolbar for large models.
