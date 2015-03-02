@@ -623,6 +623,10 @@ Duplicates must be handled/ignored. }
   SetRequiredLibrary('DateTimeField');
   SetRequiredLibrary('DefaultButton');
   SetRequiredLibrary('kitto-core', True);
+  if Session.IsMobileBrowser then
+    SetRequiredLibrary('kitto-core-mobile', True)
+  else
+    SetRequiredLibrary('kitto-core-desktop', True);
   SetRequiredLibrary('kitto-init');
   SetOptionalLibrary('application', True);
 
