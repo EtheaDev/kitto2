@@ -60,7 +60,7 @@ type
     procedure DetachObserver(const AObserver: IEFObserver); virtual;
     procedure NotifyObservers(const AContext: string = ''); virtual;
     procedure UpdateObserver(const ASubject: IEFSubject; const AContext: string = ''); virtual;
-    function SupportsContainer: Boolean;
+    class function SupportsContainer: Boolean;
     function IsSynchronous: Boolean;
     property Config: TEFNode read GetConfig;
 
@@ -114,7 +114,7 @@ type
     procedure DetachObserver(const AObserver: IEFObserver); virtual;
     procedure NotifyObservers(const AContext: string = ''); virtual;
     procedure UpdateObserver(const ASubject: IEFSubject; const AContext: string = ''); virtual;
-    function SupportsContainer: Boolean;
+    class function SupportsContainer: Boolean;
     function IsSynchronous: Boolean;
 
     property View: TKView read GetView write SetView;
@@ -243,7 +243,6 @@ type
   public
     procedure AfterConstruction; override;
     destructor Destroy; override;
-    function SupportsContainer: Boolean; virtual;
     function IsSynchronous: Boolean;
     property View: TKView read GetView write SetView;
     procedure Display;
@@ -274,7 +273,6 @@ type
     function AsObject: TObject;
     function _AddRef: Integer; stdcall;
     function _Release: Integer; stdcall;
-    function SupportsContainer: Boolean; virtual;
     function IsSynchronous: Boolean; virtual;
     property View: TKView read GetView write SetView;
     procedure Display;
@@ -296,7 +294,7 @@ type
     procedure AfterExecuteTool; virtual;
     procedure DoDisplay; override;
   public
-    function SupportsContainer: Boolean; override;
+    class function SupportsContainer: Boolean;
     function IsSynchronous: Boolean; override;
   end;
 
@@ -514,7 +512,7 @@ begin
   FView := AValue;
 end;
 
-function TKExtWindowControllerBase.SupportsContainer: Boolean;
+class function TKExtWindowControllerBase.SupportsContainer: Boolean;
 begin
   Result := False;
 end;
@@ -526,7 +524,7 @@ end;
 
 procedure TKExtWindowControllerBase.WindowClosed;
 begin
-  Session.RemoveController(GetControllerToRemove, True);
+  Session.RemoveController(GetControllerToRemove);
 end;
 
 function TKExtWindowControllerBase.GetControllerToRemove: TObject;
@@ -718,7 +716,7 @@ begin
   FView := AValue;
 end;
 
-function TKExtViewportControllerBase.SupportsContainer: Boolean;
+class function TKExtViewportControllerBase.SupportsContainer: Boolean;
 begin
   Result := False;
 end;
@@ -1073,11 +1071,6 @@ begin
   FView := AValue;
 end;
 
-function TKExtPanelControllerBase.SupportsContainer: Boolean;
-begin
-  Result := True;
-end;
-
 { TKExtFormTextField }
 
 function TKExtFormTextField.AsObject: TObject;
@@ -1308,11 +1301,6 @@ begin
   FView := AValue;
 end;
 
-function TKExtControllerBase.SupportsContainer: Boolean;
-begin
-  Result := True;
-end;
-
 procedure TKExtControllerBase.UpdateObserver(const ASubject: IEFSubject;
   const AContext: string);
 begin
@@ -1339,7 +1327,7 @@ begin
   Result := True;
 end;
 
-function TKExtToolController.SupportsContainer: Boolean;
+class function TKExtToolController.SupportsContainer: Boolean;
 begin
   Result := False;
 end;

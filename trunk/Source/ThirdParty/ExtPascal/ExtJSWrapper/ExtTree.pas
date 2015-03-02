@@ -259,7 +259,7 @@ type
     procedure SetFIcon(Value : String);
     procedure SetIconCls(const AValue: string);
     procedure SetFIsTarget(Value : Boolean);
-    procedure SetFQtip(Value : String);
+    procedure SetQtip(const AValue: string);
     procedure SetFQtipCfg(Value : String);
     procedure SetFSingleClickExpand(Value : Boolean);
     procedure _SetText(const AValue: string);
@@ -318,7 +318,7 @@ type
     property Icon : String read FIcon write SetFIcon;
     property IconCls : String read FIconCls write SetIconCls;
     property IsTarget : Boolean read FIsTarget write SetFIsTarget;
-    property Qtip : String read FQtip write SetFQtip;
+    property Qtip: string read FQtip write SetQtip;
     property QtipCfg : String read FQtipCfg write SetFQtipCfg;
     property SingleClickExpand : Boolean read FSingleClickExpand write SetFSingleClickExpand;
     property Text: string read FText write _SetText;
@@ -1115,9 +1115,10 @@ procedure TExtTreeTreeNode.SetFIsTarget(Value : Boolean); begin
   JSCode('isTarget:' + VarToJSON([Value]));
 end;
 
-procedure TExtTreeTreeNode.SetFQtip(Value : String); begin
-  FQtip := Value;
-  JSCode('qtip:' + VarToJSON([Value]));
+procedure TExtTreeTreeNode.SetQtip(const AValue: string);
+begin
+  FQtip := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'qtip', [AValue]);
 end;
 
 procedure TExtTreeTreeNode.SetFQtipCfg(Value : String); begin

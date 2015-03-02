@@ -92,7 +92,7 @@ type
 
   /// <summary>
   ///  A modal window that hosts a controller and removes the controller
-  ///  (instead fo itself) from the session when it's closed.
+  ///  (instead of itself) from the session when it's closed.
   /// </summary>
   TKExtControllerHostWindow = class(TKExtModalWindow)
   private
@@ -171,7 +171,7 @@ type
     property ViewHost: IKExtViewHost read FViewHost write SetViewHost;
 
     ///	<summary>
-    ///	  A reference to the status bar to be used for wait messages.
+    ///	 A reference to the status bar to be used for wait messages.
     ///	</summary>
     property StatusHost: TKExtStatusBar read FStatusHost write FStatusHost;
 
@@ -181,22 +181,24 @@ type
     procedure InitDefaultValues; override;
     procedure Home; override;
 
-    ///	<summary>Opens the specified URL in a new browser window/tab.</summary>
+    ///	<summary>
+    ///  Opens the specified URL in a new browser window/tab.
+    /// </summary>
     procedure Navigate(const AURL:string);
     ///	<summary>
-    ///	  <para>
-    ///	    Adds to the current session a style class named after AView's
-    ///	    ImageName (or the specified custom AImageName) plus a '_img'
-    ///	    suffix, that sets background:url to the URL of the view's image.
-    ///	  </para>
-    ///	  <para>
-    ///	    The style class can have an optional custom prefix before the name
-    ///	    and custom rules attached to it.
-    ///	  </para>
+    ///	 <para>
+    ///	  Adds to the current session a style class named after AView's
+    ///	  ImageName (or the specified custom AImageName) plus a '_img'
+    ///	  suffix, that sets background:url to the URL of the view's image.
+    ///	 </para>
+    ///	 <para>
+    ///	  The style class can have an optional custom prefix before the name
+    ///	  and custom rules attached to it.
+    ///	 </para>
     ///	</summary>
     ///	<returns>
-    ///	  Returns the class name so that it can be assigned to a component's
-    ///	  IconCls property.
+    ///	 Returns the class name so that it can be assigned to a component's
+    ///	 IconCls property.
     ///	</returns>
     function SetViewIconStyle(const AView: TKView; const AImageName: string = '';
       const ACustomPrefix: string = ''; const ACustomRules: string = ''): string;
@@ -208,59 +210,79 @@ type
 
     property Config: TKConfig read GetConfig;
 
-    ///	<summary>Called to signal that a new file has been uploaded. The
-    ///	descriptor holds information about the file and its context (for
-    ///	example which view is going to use it).</summary>
-    ///	<remarks>The session acquires ownership of the descriptor
-    ///	object.</remarks>
+    ///	<summary>
+    ///  Called to signal that a new file has been uploaded. The
+    ///	 descriptor holds information about the file and its context
+    ///	 (for example which view is going to use it).
+    /// </summary>
+    ///	<remarks>
+    ///  The session acquires ownership of the descriptor object.
+    ///	</remarks>
     procedure AddUploadedFile(const AFileDescriptor: TKExtUploadedFile);
 
-    ///	<summary>Removes a previously added file descriptor. To be called once
-    ///	the uploaded file has been processed.</summary>
+    ///	<summary>
+    ///  Removes a previously added file descriptor. To be called once
+    ///	 the uploaded file has been processed.
+    /// </summary>
     procedure RemoveUploadedFile(const AFileDescriptor: TKExtUploadedFile);
 
-    ///	<summary>Returns the first uploaded file descriptor matching the
-    ///	specified context, or nil if no descriptor is found.</summary>
+    ///	<summary>
+    ///  Returns the first uploaded file descriptor matching the
+    ///	 specified context, or nil if no descriptor is found.
+    /// </summary>
     function FindUploadedFile(const AContext: TObject): TKExtUploadedFile;
 
-    ///	<summary>Calls AProc for each uploaded file in list.</summary>
+    ///	<summary>
+    ///  Calls AProc for each uploaded file in list.
+    /// </summary>
     procedure EnumUploadedFiles(const AProc: TProc<TKExtUploadedFile>);
 
-    ///	<summary>If the specified object is a controller and is found in the
-    ///	list of open controllers, it is removed from the list. Otherwise
-    ///	nothing happens. Used by view hosts to notify the session that a
-    ///	controller was closed.</summary>
-    procedure RemoveController(const AObject: TObject; const AFreeIt: Boolean = False);
+    ///	<summary>
+    ///  If the specified object is found in the list of open controllers,
+    ///  it is removed from the list. Otherwise nothing happens.
+    ///  Used by view hosts to notify the session that a controller was closed.
+    /// </summary>
+    procedure RemoveController(const AObject: TObject);
 
     /// <summary>
-    ///   Returns all request query param name and values as an ISuperObject.
-    ///   Note: All values are treated as strings.
+    ///  Returns all request query param name and values as an ISuperObject.
+    ///  Note: All values are treated as strings.
     /// </summary>
     function GetQueries: ISuperObject;
 
     ///	<summary>
-    ///	  The current session's UUID.
+    ///	 The current session's UUID.
     ///	</summary>
     property SessionId: string read FSessionId;
 
     ///	<summary>
-    ///	  Ensures that existing js and css files with the specified base name
-    ///   are dynamically added to the page. If the specified files don't exist
-    ///   or were already added, nothing is done.
+    ///	 Ensures that existing js and css files with the specified base name
+    ///  are dynamically added to the page. If the specified files don't exist
+    ///  or were already added, nothing is done.
     ///	</summary>
     procedure EnsureSupportFiles(const ABaseName: string);
 
     ///	<summary>
-    ///	  Ensures that existing js and css files with a base name that depends
-    ///   on the specified view are dynamically added to the page.
-    ///   If the view has a 'SupportBaseName' attribute, then it is used as the
-    //    base name for the support files, otherwise the view's name (if any)
-    ///   is used.
-    ///   If the specified files don't exist or were already added, nothing is done.
+    ///	 Ensures that existing js and css files with a base name that depends
+    ///  on the specified view are dynamically added to the page.
+    ///  If the view has a 'SupportBaseName' attribute, then it is used as the
+    //   base name for the support files, otherwise the view's name (if any)
+    ///  is used.
+    ///  If the specified files don't exist or were already added, nothing is done.
     ///	</summary>
     procedure EnsureViewSupportFiles(const AView: TKView);
 
+    ///	<summary>
+    ///	 True if the last request came from a mobile browser.
+    ///  The user agent detection is performed once per session and then cached.
+    ///	</summary>
     function IsMobileBrowser: Boolean;
+
+    ///	<summary>
+    ///	 True if tooltips are enabled for the session. By default, tooltips
+    ///  are enabled for desktop browsers and disabled for mobile browsers.
+    ///	</summary>
+    function TooltipsEnabled: Boolean;
   published
     procedure Logout;
   end;
@@ -478,8 +500,7 @@ var
 begin
   FreeAndNil(FHomeController);
   LHomeView := GetHomeView;
-  FHomeController := TKExtControllerFactory.Instance.CreateController
-    (ObjectCatalog, LHomeView, nil).AsObject;
+  FHomeController := TKExtControllerFactory.Instance.CreateController(ObjectCatalog, LHomeView, nil).AsObject;
   if Supports(FHomeController, IKExtController, LIntf) then
     LIntf.Display;
   if FAutoOpenViewName <> '' then
@@ -515,6 +536,7 @@ begin
     FStatusHost := nil;
     FDynamicScripts.Clear;
     FDynamicStyles.Clear;
+    FreeAndNil(FControllerHostWindow);
   end
   else
   begin
@@ -528,10 +550,10 @@ begin
 
   ResponseItems.ExecuteJSCode('kittoInit();');
   SetAjaxTimeout;
-  if IsMobileBrowser then
-    ExtQuickTips.Disable
+  if TooltipsEnabled then
+    ExtQuickTips.Init(True)
   else
-    ExtQuickTips.Init(True);
+    ExtQuickTips.Disable;
   // Try authentication with default credentials, if any, and skip login
   // window if it succeeds.
   if not FRefreshingLanguage then
@@ -550,7 +572,7 @@ end;
 procedure TKExtSession.DisplayLoginWindow;
 begin
   FreeAndNil(FLoginWindow);
-  FLoginWindow := TKExtLoginWindow.Create(Self.ObjectCatalog);
+  FLoginWindow := TKExtLoginWindow.Create(ObjectCatalog);
   FLoginWindow.OnLogin := ReloadOrDisplayHomeView;
   FLoginWindow.Show;
 end;
@@ -660,7 +682,7 @@ begin
   Config.InvalidateCatalogs;
 end;
 
-procedure TKExtSession.RemoveController(const AObject: TObject; const AFreeIt: Boolean);
+procedure TKExtSession.RemoveController(const AObject: TObject);
 begin
   FOpenControllers.Remove(AObject);
 end;
@@ -697,31 +719,35 @@ begin
   if LIsModal then
   begin
     FControllerHostWindow := TKExtControllerHostWindow.Create(ObjectCatalog);
-    FControllerHostWindow.Layout := lyFit;
-    FControllerHostWindow.Title := _(AView.DisplayLabel);
-    FControllerHostWindow.Closable := AView.GetBoolean('Controller/AllowClose', True);
-    Result := TKExtControllerFactory.Instance.CreateController(ObjectCatalog,
-      AView, FControllerHostWindow, nil);
-    FControllerHostWindow.FHostedController := Result.AsObject;
-    FControllerHostWindow.Maximized := IsMobileBrowser;
-    FControllerHostWindow.Border := not FControllerHostWindow.Maximized;
-
-    LWidth := AView.GetInteger('Controller/PopupWindow/Width', -1);
-    LHeight := AView.GetInteger('Controller/PopupWindow/Height', -1);
-    if (LWidth <> -1) and (LHeight <> -1) then
-    begin
-      FControllerHostWindow.Width := LWidth;
-      FControllerHostWindow.Height := LHeight;
-      Result.Config.SetBoolean('Sys/HostWindow/AutoSize', False);
-    end
+    Result := TKExtControllerFactory.Instance.CreateController(ObjectCatalog, AView, FControllerHostWindow);
+    if not Result.Config.GetBoolean('Sys/SupportsContainer') then
+      FreeAndNil(FControllerHostWindow)
     else
-      Result.Config.SetBoolean('Sys/HostWindow/AutoSize', True);
-    Result.Config.SetObject('Sys/HostWindow', FControllerHostWindow);
+    begin
+      FControllerHostWindow.Layout := lyFit;
+      FControllerHostWindow.Title := _(AView.DisplayLabel);
+      FControllerHostWindow.Closable := AView.GetBoolean('Controller/AllowClose', True);
+      FControllerHostWindow.FHostedController := Result.AsObject;
+      FControllerHostWindow.Maximized := IsMobileBrowser;
+      FControllerHostWindow.Border := not FControllerHostWindow.Maximized;
+      LWidth := AView.GetInteger('Controller/PopupWindow/Width', -1);
+      LHeight := AView.GetInteger('Controller/PopupWindow/Height', -1);
+      if (LWidth <> -1) and (LHeight <> -1) then
+      begin
+        FControllerHostWindow.Width := LWidth;
+        FControllerHostWindow.Height := LHeight;
+        Result.Config.SetBoolean('Sys/HostWindow/AutoSize', False);
+      end
+      else
+        Result.Config.SetBoolean('Sys/HostWindow/AutoSize', True);
+      Result.Config.SetObject('Sys/HostWindow', FControllerHostWindow);
+    end;
   end
   else
   begin
-    Result := TKExtControllerFactory.Instance.CreateController(ObjectCatalog,
-      AView, FViewHost.AsExtContainer, nil);
+    Assert(Assigned(FViewHost));
+    Result := TKExtControllerFactory.Instance.CreateController(ObjectCatalog, AView, FViewHost.AsExtContainer);
+    Assert(Result.Config.GetBoolean('Sys/SupportsContainer'));
   end;
   LIsSynchronous := Result.IsSynchronous;
   if not LIsSynchronous then
@@ -778,7 +804,7 @@ begin
         if not Assigned(LController) then
           LController := DisplayNewController(AView);
       end;
-      if Assigned(LController) and LController.SupportsContainer and Assigned(FViewHost) then
+      if Assigned(LController) and Assigned(FViewHost) and LController.Config.GetBoolean('Sys/SupportsContainer') then
         SetActiveViewInViewHost(LController.AsObject);
     finally
       ClearStatus;
@@ -889,6 +915,8 @@ function TKExtSession.IsMobileBrowser: Boolean;
 var
   LUserAgent: string;
 begin
+  Exit(True);
+
   if not FMobileBrowserDetectionDone then
   begin
     LUserAgent := RequestHeader['HTTP_USER_AGENT'];
@@ -1021,6 +1049,11 @@ begin
     ResponseItems.ExecuteJSCode(Format('addStyleRule("%s", "%s");', [LSelector, LRule]))
   else
     SetStyle(LSelector + ' ' + LRule);
+end;
+
+function TKExtSession.TooltipsEnabled: Boolean;
+begin
+  Result := not IsMobileBrowser;
 end;
 
 { TKExtUploadedFile }

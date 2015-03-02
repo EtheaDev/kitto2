@@ -230,6 +230,7 @@ begin
           if LDisplayLabel = '' then
             LDisplayLabel := CallViewControllerStringMethod(LView, 'GetDefaultDisplayLabel', '');
           LMenuItem.Text := HTMLEncode(LDisplayLabel);
+          // No tooltip here - could be done through javascript if needed.
         end;
         if ANode.TreeViewNodes[I].TreeViewNodeCount > 0 then
         begin
@@ -275,7 +276,8 @@ begin
       LButton.Disabled := not LIsEnabled;
     end;
     LButton.Text := HTMLEncode(ADisplayLabel);
-    LButton.SetTooltip(LButton.Text);
+    if Session.TooltipsEnabled then
+      LButton.Tooltip := LButton.Text;
 
     if ANode.ChildCount > 0 then
     begin
@@ -321,7 +323,8 @@ begin
       LNode.Disabled := not LIsEnabled;
     end;
     LNode.Text := HTMLEncode(ADisplayLabel);
-    LNode.SetTooltip(LNode.Text);
+    if Session.TooltipsEnabled then
+      LNode.Qtip := LNode.Text;
     if ANode.TreeViewNodeCount > 0 then
     begin
       for I := 0 to ANode.TreeViewNodeCount - 1 do
