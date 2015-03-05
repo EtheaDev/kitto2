@@ -54,6 +54,8 @@ type
       const ADBCommand: TEFDBCommand; const ADBColumnName,
       AParamName: string): TParam; static;
     procedure AddFilterBy(const AViewField: TKViewField; const ADBQuery: TEFDBQuery; const ARecord: TKViewTableRecord);
+    procedure AssignQueryParams(const AViewTable: TKViewTable; const ADBQuery: TEFDBQuery;
+      const AMasterValues: TEFNode);
   public
     procedure AfterConstruction; override;
     destructor Destroy; override;
@@ -687,9 +689,9 @@ function TKSQLBuilder.GetSelectWhereClause(const AFilter: string;
   const ADBQuery: TEFDBQuery): string;
 var
   I: Integer;
-  LMasterFieldDBColumnNames: TStringDynArray;
+  LMasterFieldColumnNames: TStringDynArray;
   LDetailFieldDBColumnNames: TStringDynArray;
-  LClause: string;
+  LClause, LParamName: string;
 begin
   Result := '';
   if FViewTable.DefaultFilter <> '' then
@@ -700,21 +702,48 @@ begin
   if FViewTable.IsDetail then
   begin
     // Get master and detail field names...
-    LMasterFieldDBColumnNames := FViewTable.MasterTable.Model.GetKeyDBColumnNames;
-    Assert(Length(LMasterFieldDBColumnNames) > 0);
+    LMasterFieldColumnNames := FViewTable.MasterTable.Model.GetKeyFieldNames;
+    Assert(Length(LMasterFieldColumnNames) > 0);
     LDetailFieldDBColumnNames := FViewTable.ModelDetailReference.ReferenceField.GetDBColumnNames;
-    Assert(Length(LDetailFieldDBColumnNames) = Length(LMasterFieldDBColumnNames));
+    Assert(Length(LDetailFieldDBColumnNames) = Length(LMasterFieldColumnNames));
     LClause := '';
     for I := 0 to High(LDetailFieldDBColumnNames) do
     begin
       // ...and alias master field names. Don'alias detail field names used in the where clause.
-      LMasterFieldDBColumnNames[I] := FViewTable.MasterTable.ApplyFieldAliasedName(LMasterFieldDBColumnNames[I]);
-      LClause := LClause + FViewTable.Model.DBTableName + '.' + LDetailFieldDBColumnNames[I] + ' = :' + LMasterFieldDBColumnNames[I];
-      ADBQuery.Params.CreateParam(ftUnknown, LMasterFieldDBColumnNames[I], ptInput);
+      LParamName := LMasterFieldColumnNames[I];
+      LParamName := FViewTable.MasterTable.ApplyFieldAliasedName(LParamName);
+      LClause := LClause + FViewTable.Model.DBTableName + '.' + LDetailFieldDBColumnNames[I] + ' = :' + LParamName;
+      ADBQuery.Params.CreateParam(ftUnknown, LParamName, ptInput);
       if I < High(LDetailFieldDBColumnNames) then
         LClause := LClause + ' and ';
     end;
     Result := AddToSQLWhereClause(Result, '(' + LClause + ')');
+  end;
+end;
+
+procedure TKSQLBuilder.AssignQueryParams(const AViewTable: TKViewTable;
+  const ADBQuery: TEFDBQuery; const AMasterValues: TEFNode);
+var
+  I: Integer;
+  LField: TKModelField;
+  LParam: TParam;
+  LFieldName: string;
+begin
+  Assert((ADBQuery.Params.Count = 0) or Assigned(AMasterValues));
+  for I := 0 to ADBQuery.Params.Count - 1 do
+  begin
+    LParam := ADBQuery.Params[I];
+    LField := AViewTable.Model.FindFieldByPhysicalName(LParam.Name);
+    if Assigned(LField) then
+    begin
+      if LField.IsReference then
+        LFieldName := LField.ReferencedModel.Fields[I].FieldName
+      else
+        LFieldName := LField.FieldName;
+    end
+    else
+      LFieldName := LParam.Name;
+    AMasterValues.GetNode(LFieldName).AssignValueToParam(LParam);
   end;
 end;
 
@@ -754,22 +783,7 @@ begin
   finally
     ADBQuery.Params.EndUpdate;
   end;
-  Assert((ADBQuery.Params.Count = 0) or Assigned(AMasterValues));
-  for I := 0 to ADBQuery.Params.Count - 1 do
-  begin
-    LParam := ADBQuery.Params[I];
-    LField := AViewTable.Model.FindFieldByPhysicalName(LParam.Name);
-    if Assigned(LField) then
-    begin
-      if LField.IsReference then
-        LFieldName := LField.ReferencedModel.Fields[I].FieldName
-      else
-        LFieldName := LField.FieldName;
-    end
-    else
-      LFieldName := LParam.Name;
-    AMasterValues.GetNode(LFieldName).AssignValueToParam(LParam);
-  end;
+  AssignQueryParams(AViewTable, ADBQuery, AMasterValues);
 end;
 
 procedure TKSQLBuilder.InternalBuildCountQuery(const AViewTable: TKViewTable;
@@ -802,9 +816,7 @@ build only those that affect the count (outer joins). }
   finally
     ADBQuery.Params.EndUpdate;
   end;
-  Assert((ADBQuery.Params.Count = 0) or Assigned(AMasterValues));
-  for I := 0 to ADBQuery.Params.Count - 1 do
-    AMasterValues.GetNode(ADBQuery.Params[I].Name).AssignValueToParam(ADBQuery.Params[I]);
+  AssignQueryParams(AViewTable, ADBQuery, AMasterValues);
 end;
 
 procedure TKSQLBuilder.InternalBuildLookupSelectStatement(const AViewField: TKViewField;

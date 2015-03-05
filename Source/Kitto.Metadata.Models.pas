@@ -1747,7 +1747,7 @@ end;
 
 function TKModelField.GetPhysicalName: string;
 begin
-  Result := GetString('PhysicalName');
+  Result := GetString('PhysicalName', FieldName);
 end;
 
 { TKModelFields }
@@ -1783,7 +1783,7 @@ begin
   Result := FindChildByPredicate(
     function (const ANode: TEFNode): Boolean
     begin
-      Result := (ANode as TKModelField).PhysicalName = APhysicalName;
+      Result := SameText((ANode as TKModelField).PhysicalName, APhysicalName);
     end) as TKModelField;
   if not Assigned(Result) then
   begin
@@ -2034,7 +2034,7 @@ begin
   Result := FindChildByPredicate(
     function (const ANode: TEFNode): Boolean
     begin
-      Result := (ANode as TKModelDetailReference).PhysicalName = APhysicalName;
+      Result := SameText((ANode as TKModelDetailReference).PhysicalName, APhysicalName);
     end) as TKModelDetailReference;
 end;
 
