@@ -689,7 +689,7 @@ function TKSQLBuilder.GetSelectWhereClause(const AFilter: string;
   const ADBQuery: TEFDBQuery): string;
 var
   I: Integer;
-  LMasterFieldColumnNames: TStringDynArray;
+  LMasterFieldDBColumnNames: TStringDynArray;
   LDetailFieldDBColumnNames: TStringDynArray;
   LClause, LParamName: string;
 begin
@@ -702,15 +702,15 @@ begin
   if FViewTable.IsDetail then
   begin
     // Get master and detail field names...
-    LMasterFieldColumnNames := FViewTable.MasterTable.Model.GetKeyFieldNames;
-    Assert(Length(LMasterFieldColumnNames) > 0);
+    LMasterFieldDBColumnNames := FViewTable.MasterTable.Model.GetKeyDBColumnNames;
+    Assert(Length(LMasterFieldDBColumnNames) > 0);
     LDetailFieldDBColumnNames := FViewTable.ModelDetailReference.ReferenceField.GetDBColumnNames;
-    Assert(Length(LDetailFieldDBColumnNames) = Length(LMasterFieldColumnNames));
+    Assert(Length(LDetailFieldDBColumnNames) = Length(LMasterFieldDBColumnNames));
     LClause := '';
     for I := 0 to High(LDetailFieldDBColumnNames) do
     begin
       // ...and alias master field names. Don'alias detail field names used in the where clause.
-      LParamName := LMasterFieldColumnNames[I];
+      LParamName := LMasterFieldDBColumnNames[I];
       LParamName := FViewTable.MasterTable.ApplyFieldAliasedName(LParamName);
       LClause := LClause + FViewTable.Model.DBTableName + '.' + LDetailFieldDBColumnNames[I] + ' = :' + LParamName;
       ADBQuery.Params.CreateParam(ftUnknown, LParamName, ptInput);
@@ -738,6 +738,8 @@ begin
     begin
       if LField.IsReference then
         LFieldName := LField.ReferencedModel.Fields[I].FieldName
+      else if Assigned(LField.ParentField) and LField.ParentField.IsReference then
+        LFieldName := LField.ParentField.ReferencedModel.Fields[I].FieldName
       else
         LFieldName := LField.FieldName;
     end
