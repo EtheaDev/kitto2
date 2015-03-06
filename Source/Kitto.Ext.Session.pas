@@ -202,6 +202,8 @@ type
     ///	</returns>
     function SetViewIconStyle(const AView: TKView; const AImageName: string = '';
       const ACustomPrefix: string = ''; const ACustomRules: string = ''): string;
+    function SetIconStyle(const ADefaultImageName: string; const AImageName: string = '';
+      const ACustomPrefix: string = ''; const ACustomRules: string = ''): string;
 
     // Test
     function GetGCObjectCount: Integer;
@@ -1027,14 +1029,20 @@ end;
 
 function TKExtSession.SetViewIconStyle(const AView: TKView; const AImageName: string;
   const ACustomPrefix: string; const ACustomRules: string): string;
+begin
+  Assert(Assigned(AView));
+  Result := SetIconStyle(AView.ImageName, AImageName, ACustomPrefix, ACustomRules);
+end;
+
+function TKExtSession.SetIconStyle(const ADefaultImageName: string;
+  const AImageName: string; const ACustomPrefix: string;
+  const ACustomRules: string): string;
 var
   LIconURL: string;
   LRule: string;
   LSelector: string;
 begin
-  Assert(Assigned(AView));
-
-  Result := IfThen(AImageName <> '', AImageName, AView.ImageName);
+  Result := IfThen(AImageName <> '', AImageName, ADefaultImageName);
   LIconURL := Config.GetImageURL(Result);
   Result := ACustomPrefix + Result + '_img';
   // The !important rule allows to use a non-specific selector, so that the icon
