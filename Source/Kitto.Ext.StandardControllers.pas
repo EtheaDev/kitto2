@@ -125,6 +125,12 @@ type
   ///	      <description>Content type passed to the client; if not specified,
   ///	      it is derived from the file name's extension.</description>
   ///	    </item>
+  ///	    <item>
+  ///	      <term>PersistentFileName</term>
+  ///	      <description>Name of the file optionally persisted on the server
+  ///        before download. No files are left on the server if this parameter
+  ///        is not specified.</description>
+  ///	    </item>
   ///	  </list>
   ///	</remarks>
   TKExtDownloadFileController = class(TKExtDataToolController)
@@ -137,9 +143,9 @@ type
     function GetFileName: string;
     procedure DoDownloadStream(const AStream: TStream;
       const AFileName: string; const AContentType: string);
-  strict
-  private
-    procedure PersistFile(const AStream: TStream); protected
+    procedure PersistFile(const AStream: TStream);
+  strict protected
+    function GetPersistentFileName: string;
     procedure ExecuteTool; override;
     function NormalizeColumName(const FieldName: string): string; virtual;
     function GetFileExtension: string;
@@ -253,6 +259,8 @@ begin
 end;
 
 procedure TKExtDownloadFileController.ExecuteTool;
+var
+  LStream: TFileStream;
 begin
   inherited;
   try
@@ -260,11 +268,17 @@ begin
     if FFileName <> '' then
     begin
       PrepareFile(FFileName);
-      Download(DownloadFile);
+      LStream := TFileStream.Create(FFileName, fmOpenRead);
+      try
+        PersistFile(LStream);
+      finally
+        FreeAndNil(LStream);
+      end;
     end
     else
     begin
       FStream := CreateStream;
+      PersistFile(FStream);
       Download(DownloadStream);
     end;
   except
@@ -283,8 +297,12 @@ end;
 procedure TKExtDownloadFileController.DoDownloadStream(const AStream: TStream;
   const AFileName, AContentType: string);
 begin
-  PersistFile(AStream);
   Session.DownloadStream(AStream, AFileName, AContentType);
+end;
+
+function TKExtDownloadFileController.GetPersistentFileName: string;
+begin
+  Result := ExpandServerRecordValues(Config.GetExpandedString('PersistentFileName'));
 end;
 
 procedure TKExtDownloadFileController.PersistFile(const AStream: TStream);
@@ -294,7 +312,7 @@ var
 begin
   Assert(Assigned(AStream));
 
-  LPersistentFileName := ExpandServerRecordValues(Config.GetExpandedString('PersistentFileName'));
+  LPersistentFileName := GetPersistentFileName;
   if LPersistentFileName <> '' then
   begin
     if FileExists(LPersistentFileName) then

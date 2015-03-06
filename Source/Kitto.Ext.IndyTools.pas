@@ -22,12 +22,14 @@ uses
   SysUtils,
   IdSMTP, IdMessage, IdEmailAddress,
   EF.Tree,
-  Kitto.Config, Kitto.Ext.DataTool;
+  Kitto.Config, Kitto.Ext.DataTool, xmldoc;
 
 type
   TSendEmailToolController = class(TKExtDataToolController)
   strict protected
     procedure ExecuteTool; override;
+  public
+    class function GetDefaultImageName: string;
   end;
 
 implementation
@@ -191,6 +193,11 @@ begin
   finally
     FreeAndNil(LSMTP);
   end;
+end;
+
+class function TSendEmailToolController.GetDefaultImageName: string;
+begin
+  Result := 'email_go';
 end;
 
 initialization

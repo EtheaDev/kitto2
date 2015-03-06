@@ -45,7 +45,7 @@ type
     property ServerRecord: TKViewTableRecord read GetServerRecord;
     property OnGetServerRecord: TKExtGetServerRecordEvent read FOnGetServerRecord write FOnGetServerRecord;
   published
-    procedure ExecuteActionOnSelectedRows;
+    procedure ExecuteButtonAction; override;
   end;
 
   /// <summary>
@@ -77,7 +77,7 @@ type
     property ClientReader: TExtDataJsonReader read FClientReader;
     function CreateClientStore: TExtDataStore; virtual;
     function CreateClientReader: TExtDataJsonReader; virtual;
-    function AddActionButton(const AView: TKView;
+    function AddActionButton(const AUniqueId: string; const AView: TKView;
       const AToolbar: TKExtToolbar): TKExtActionButton; override;
     function GetSelectConfirmCall(const AMessage: string;
       const AMethod: TExtProcedure): string; virtual;
@@ -181,8 +181,8 @@ begin
   raise EKError.Create(_('Actions that require selection are not supported in this controller.'));
 end;
 
-function TKExtDataPanelController.AddActionButton(const AView: TKView;
-  const AToolbar: TKExtToolbar): TKExtActionButton;
+function TKExtDataPanelController.AddActionButton(const AUniqueId: string;
+  const AView: TKView; const AToolbar: TKExtToolbar): TKExtActionButton;
 var
   LConfirmationMessage: string;
   LRequireSelection: Boolean;
@@ -194,6 +194,7 @@ begin
   Assert(Assigned(ServerStore));
 
   Result := TKExtDataActionButton.CreateAndAddTo(AToolbar.Items);
+  Result.UniqueId := AUniqueId;
   Result.View := AView;
   Result.ActionObserver := Self;
   TKExtDataActionButton(Result).ViewTable := ViewTable;
@@ -205,14 +206,14 @@ begin
   LRequireSelection := AView.GetBoolean('Controller/RequireSelection', True);
 
   if LRequireSelection then
-    LConfirmationJS := GetSelectConfirmCall(LConfirmationMessage, TKExtDataActionButton(Result).ExecuteActionOnSelectedRows)
+    LConfirmationJS := GetSelectConfirmCall(LConfirmationMessage, TKExtDataActionButton(Result).ExecuteButtonAction)
   else
     LConfirmationJS := GetConfirmCall(LConfirmationMessage, Result.ExecuteButtonAction);
 
   if LConfirmationMessage <> '' then
     Result.Handler := JSFunction(LConfirmationJS)
   else if LRequireSelection then
-    Result.On('click', GetSelectCall(TKExtDataActionButton(Result).ExecuteActionOnSelectedRows))
+    Result.On('click', GetSelectCall(TKExtDataActionButton(Result).ExecuteButtonAction))
   else
     Result.On('click', Ajax(Result.ExecuteButtonAction, []));
 end;
@@ -383,18 +384,23 @@ end;
 
 { TKExtDataActionButton }
 
-procedure TKExtDataActionButton.ExecuteActionOnSelectedRows;
+procedure TKExtDataActionButton.ExecuteButtonAction;
 var
   LController: IKExtController;
 begin
+  //inherited;
   Assert(Assigned(View));
   Assert(Assigned(FViewTable));
   Assert(Assigned(FServerStore));
   Assert(Assigned(ActionObserver));
 
-  FServerRecord := FServerStore.GetRecord(Session.GetQueries, Session.Config.JSFormatSettings, 0);
+  PerformBeforeExecute;
   LController := TKExtControllerFactory.Instance.CreateController(
     Session.ObjectCatalog, View, nil, nil, ActionObserver);
+  if LController.Config.GetBoolean('RequireSelection', True) then
+    FServerRecord := FServerStore.GetRecord(Session.GetQueries, Session.Config.JSFormatSettings, 0)
+  else
+    FServerRecord := nil;
   InitController(LController);
   LController.Display;
 end;

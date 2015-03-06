@@ -349,26 +349,26 @@ type
     function Min(const AFieldName: string): Variant;
 
     ///	<summary>
-    ///   Locates and returns a record from the key values stored in AKey.
-    ///   Raises an exception if the record is not found.
+    ///  Locates and returns a record from the key values stored in AKey.
+    ///  Raises an exception if the record is not found.
+    ///	</summary>
     ///	<param name="AKey">
-    ///   Object containing at least on top-level pair for each key value.
+    ///  Object containing at least on top-level pair for each key value.
     /// </param>
     ///	<param name="AFormatSettings">
-    ///   Used to interpret string values (all pair values are read as string and
-    ///   then converted according to this settings object).
+    ///  Used to interpret string values (all pair values are read as string and
+    ///  then converted according to this settings object).
     /// </param>
     ///	<param name="ATranslator">
-    ///	  Pass a translation function if key names in AKey do not match
-    ///	  wanted child node names and you need to translate them. The function
-    ///	  receives the child name and should return the corresponding key name.
+    ///	 Pass a translation function if key names in AKey do not match
+    ///	 wanted child node names and you need to translate them. The function
+    ///	 receives the child name and should return the corresponding key name.
     ///	</param>
     ///	<param name="AValueIndex">
-    ///   If each pair in AKey contains more than one value, set this param to
-    ///   an index >=0 to consider that value. Normally each pair contains a
-    ///   single value, so you just don't pass this param.
+    ///  If each pair in AKey contains more than one value, set this param to
+    ///  an index >=0 to consider that value. Normally each pair contains a
+    ///  single value, so you just don't pass this param.
     /// </param>
-    ///	</summary>
     function GetRecord(const AKey: ISuperObject; const AFormatSettings: TFormatSettings;
       const ATranslator: TNameTranslator = nil; const AValueIndex: Integer = -1): TKRecord;
   end;
