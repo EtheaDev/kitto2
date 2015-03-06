@@ -91,7 +91,8 @@ type
     procedure DoDisplay; override;
     procedure InitComponents; override;
     property StoreRecord: TKViewTableRecord read FStoreRecord;
-    function AddActionButton(const AView: TKView; const AToolbar: TKExtToolbar): TKExtActionButton; override;
+    function AddActionButton(const AUniqueId: string; const AView: TKView;
+      const AToolbar: TKExtToolbar): TKExtActionButton; override;
   public
     procedure LoadData; override;
     destructor Destroy; override;
@@ -666,10 +667,10 @@ begin
   end;
 end;
 
-function TKExtFormPanelController.AddActionButton(const AView: TKView;
-  const AToolbar: TKExtToolbar): TKExtActionButton;
+function TKExtFormPanelController.AddActionButton(const AUniqueId: string;
+  const AView: TKView; const AToolbar: TKExtToolbar): TKExtActionButton;
 begin
-  Result := inherited AddActionButton(AView, AToolbar);
+  Result := inherited AddActionButton(AUniqueId, AView, AToolbar);
   TKExtDataActionButton(Result).OnGetServerRecord :=
     function: TKViewTableRecord
     begin

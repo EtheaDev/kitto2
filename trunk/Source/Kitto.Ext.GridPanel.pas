@@ -86,7 +86,7 @@ type
     procedure AddTopToolbarToolViewButtons; override;
     function GetSelectConfirmCall(const AMessage: string;
       const AMethod: TExtProcedure): string; override;
-    function AddActionButton(const AView: TKView;
+    function AddActionButton(const AUniqueId: string; const AView: TKView;
       const AToolbar: TKExtToolbar): TKExtActionButton; override;
     function GetSelectCall(const AMethod: TExtProcedure): TExtFunction; override;
     function IsMultiSelect: Boolean;
@@ -1013,10 +1013,10 @@ begin
   //FPagingToolbar.Store := nil; // Avoid double destruction of the store.
 end;
 
-function TKExtGridPanel.AddActionButton(const AView: TKView;
-  const AToolbar: TKExtToolbar): TKExtActionButton;
+function TKExtGridPanel.AddActionButton(const AUniqueId: string;
+  const AView: TKView; const AToolbar: TKExtToolbar): TKExtActionButton;
 begin
-  Result := inherited AddActionButton(AView, AToolbar);
+  Result := inherited AddActionButton(AUniqueId, AView, AToolbar);
 
   if AView.GetBoolean('Controller/RequireSelection', True) then
     FButtonsRequiringSelection.Add(Result);

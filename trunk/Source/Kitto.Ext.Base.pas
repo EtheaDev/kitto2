@@ -130,11 +130,14 @@ type
     procedure ClosePanel(const APanel: TExtComponent);
   end;
 
+  TKExtButton = class;
+
   TKExtToolbar = class(TExtToolbar)
   strict private
     FButtonScale: string;
   public
     property ButtonScale: string read FButtonScale write FButtonScale;
+    function FindButton(const AUniqueId: string): TKExtButton;
   end;
 
   ///	<summary>
@@ -167,10 +170,14 @@ type
   end;
 
   TKExtButton = class(TExtButton)
+  strict private
+    FUniqueId: string;
   strict protected
     function FindOwnerToolbar: TKExtToolbar;
     function GetOwnerToolbar: TKExtToolbar;
   public
+    // Unique Id of the button in its toolbar (if any).
+    property UniqueId: string read FUniqueId write FUniqueId;
     procedure SetIconAndScale(const AIconName: string; const AScale: string = '');
   end;
 
@@ -181,11 +188,13 @@ type
   strict protected
     procedure InitController(const AController: IKExtController); virtual;
     procedure SetView(const AValue: TKView); virtual;
+    procedure PerformBeforeExecute;
+    class procedure ExecuteHandler(const AButton: TKExtButton);
   public
     property View: TKView read FView write SetView;
     property ActionObserver: IEFObserver read FActionObserver write FActionObserver;
   published
-    procedure ExecuteButtonAction;
+    procedure ExecuteButtonAction; virtual;
   end;
 
   TKExtActionButtonClass = class of TKExtActionButton;
@@ -195,7 +204,6 @@ type
     FView: TKView;
     FContainer: TExtContainer;
     FTopToolbar: TKExtToolbar;
-    FActionButtons: TDictionary<string, TKExtActionButton>;
     procedure CreateTopToolbar;
     procedure EnsureAllSupportFiles;
   strict protected
@@ -230,18 +238,14 @@ type
     ///	<param name="AToolbar">Destination toolbar.</param>
     procedure AddToolViewButtons(const AConfigNode: TEFNode; const AToolbar: TKExtToolbar);
 
-    ///	<summary>Adds an action button representing the specified tool view to
-    ///	the specified toolbar. Override this method to create action buttons of
-    ///	classes inherited from the base TKExtActionButton.</summary>
-    function AddActionButton(const AView: TKView;
-      const AToolbar: TKExtToolbar): TKExtActionButton; virtual;
-
     ///	<summary>
-    ///	  Holds the list of named Buttons added to the Panel
-    ///	</summary>
-    property ActionButtons: TDictionary<string, TKExtActionButton> read FActionButtons;
+    ///  Adds an action button representing the specified tool view to
+    ///	 the specified toolbar. Override this method to create action buttons of
+    ///	 classes inherited from the base TKExtActionButton.
+    /// </summary>
+    function AddActionButton(const AUniqueId: string; const AView: TKView;
+      const AToolbar: TKExtToolbar): TKExtActionButton; virtual;
   public
-    procedure AfterConstruction; override;
     destructor Destroy; override;
     function IsSynchronous: Boolean;
     property View: TKView read GetView write SetView;
@@ -394,7 +398,7 @@ implementation
 uses
   StrUtils,
   EF.StrUtils, EF.Types, EF.Localization, EF.Macros,
-  Kitto.Ext.Utils, Kitto.Ext.Session;
+  Kitto.AccessControl, Kitto.Ext.Utils, Kitto.Ext.Session;
 
 function OptionAsGridColumnAlign(const AAlign: string): TExtGridColumnAlign;
 begin
@@ -481,6 +485,8 @@ begin
   inherited;
   FSubjObserverImpl := TEFSubjectAndObserver.Create;
   Layout := lyBorder;
+  if Session.IsMobileBrowser then
+    Maximized := True;
   Border := False;
   Plain := True;
 
@@ -814,7 +820,6 @@ end;
 destructor TKExtPanelControllerBase.Destroy;
 begin
   Session.RemoveController(Self);
-  FActionButtons.Free;
   inherited;
 end;
 
@@ -922,9 +927,10 @@ end;
 
 procedure TKExtPanelControllerBase.ExecuteNamedAction(const AActionName: string);
 var
-  LToolButton: TKExtActionButton;
+  LToolButton: TKExtButton;
 begin
-  if ActionButtons.TryGetValue(AActionName, LToolButton) then
+  LToolButton := FTopToolbar.FindButton(AActionName);
+  if Assigned(LToolButton) then
     PerformDelayedClick(LToolButton);
 end;
 
@@ -932,7 +938,7 @@ procedure TKExtPanelControllerBase.AddTopToolbarButtons;
 begin
 end;
 
-function TKExtPanelControllerBase.AddActionButton(
+function TKExtPanelControllerBase.AddActionButton(const AUniqueId: string;
   const AView: TKView; const AToolbar: TKExtToolbar): TKExtActionButton;
 var
   LConfirmationMessage: string;
@@ -942,6 +948,7 @@ begin
   Assert(Assigned(AToolbar));
 
   Result := TKExtActionButton.CreateAndAddTo(AToolbar.Items);
+  Result.UniqueId := AUniqueId;
   Result.View := AView;
   Result.ActionObserver := Self;
 
@@ -960,7 +967,6 @@ var
   I: Integer;
   LView: TKView;
   LNode: TEFNode;
-  //LToolButton: TKExtActionButton;
 begin
   Assert(Assigned(AToolbar));
 
@@ -971,8 +977,8 @@ begin
     begin
       LNode := AConfigNode.Children[I];
       LView := Session.Config.Views.ViewByNode(LNode);
-      FActionButtons.Add(LNode.Name, AddActionButton(LView, AToolbar));
-      TExtToolbarSpacer.CreateAndAddTo(AToolbar.Items);
+      if LView.GetBoolean('IsVisible', True) and LView.IsAccessGranted(ACM_VIEW) then
+        AddActionButton(LNode.Name, LView, AToolbar);
     end;
   end;
 end;
@@ -981,12 +987,6 @@ function TKExtPanelControllerBase.GetConfirmCall(const AMessage: string; const A
 begin
   Result := Format('confirmCall("%s", "%s", ajaxSimple, {methodURL: "%s"});',
     [_(Session.Config.AppTitle), AMessage, MethodURI(AMethod)]);
-end;
-
-procedure TKExtPanelControllerBase.AfterConstruction;
-begin
-  inherited;
-  FActionButtons := TDictionary<string, TKExtActionButton>.Create;
 end;
 
 procedure TKExtPanelControllerBase.AfterCreateTopToolbar;
@@ -1375,8 +1375,37 @@ begin
   LController.Display;
 end;
 
+class procedure TKExtActionButton.ExecuteHandler(const AButton: TKExtButton);
+var
+  LResponseItemBranch: TExtResponseItems;
+begin
+  if AButton is TKExtActionButton then
+  begin
+    LResponseItemBranch := AButton.Session.BranchResponseItems;
+    try
+      TKExtActionButton(AButton).ExecuteButtonAction;
+    finally
+      AButton.Session.UnbranchResponseItems(LResponseItemBranch, False); // throw away
+    end;
+  end;
+end;
+
 procedure TKExtActionButton.InitController(const AController: IKExtController);
 begin
+end;
+
+procedure TKExtActionButton.PerformBeforeExecute;
+var
+  LUniqueId: string;
+  LButton: TKExtButton;
+begin
+  LUniqueId := View.GetString('BeforeExecute');
+  if LUniqueId <> '' then
+  begin
+    LButton := GetOwnerToolbar.FindButton(LUniqueId);
+    if Assigned(LButton) then
+      ExecuteHandler(LButton as TKExtActionButton);
+  end;
 end;
 
 procedure TKExtActionButton.SetView(const AValue: TKView);
@@ -1500,6 +1529,23 @@ begin
     LIconURL := Session.Config.FindImageURL(AIconName);
 
   Icon := LIconURL;
+end;
+
+{ TKExtToolbar }
+
+function TKExtToolbar.FindButton(const AUniqueId: string): TKExtButton;
+var
+  I: Integer;
+begin
+  Result := nil;
+  for I := 0 to Items.Count - 1 do
+  begin
+    if (Items[I] is TKExtButton) and SameText(TKExtButton(Items[I]).UniqueId, AUniqueId) then
+     begin
+       Result := TKExtButton(Items[I]);
+       Break;
+     end;
+  end;
 end;
 
 end.
