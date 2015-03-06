@@ -80,6 +80,7 @@ type
     procedure CreateDetailBottomPanel;
     function GetDetailStyle: string;
     function GetExtraHeight: Integer;
+    function GetDetailBottomPanelHeight: Integer;
     procedure AssignFieldChangeEvent(const AAssign: Boolean);
     procedure FieldChange(const AField: TKField; const AOldValue, ANewValue: Variant);
     procedure CreateFormPanel;
@@ -115,9 +116,6 @@ uses
   EF.Localization, EF.Types, EF.Intf, EF.DB, EF.JSON, EF.VariantUtils, EF.StrUtils,
   Kitto.Types, Kitto.AccessControl, Kitto.Rules, Kitto.SQL, Kitto.Config,
   Kitto.Ext.Session, Kitto.Ext.Utils;
-
-const
-  DEFAULT_DETAIL_BOTTOM_PANEL_HEIGHT = 200;
 
 { TKExtFormPanelController }
 
@@ -208,7 +206,7 @@ begin
     FDetailBottomPanel.BodyStyle := 'background:none'; // Respects parent's background color.
     FDetailBottomPanel.DeferredRender := False;
     FDetailBottomPanel.EnableTabScroll := True;
-    FDetailBottomPanel.Height := DEFAULT_DETAIL_BOTTOM_PANEL_HEIGHT;
+    FDetailBottomPanel.Height := GetDetailBottomPanelHeight;
     FDetailBottomPanel.SetActiveTab(0);
     FDetailBottomPanel.On('tabchange', FDetailBottomPanel.JSFunction(FDetailBottomPanel.JSName + '.doLayout();'));
     CreateDetailPanels(FDetailBottomPanel);
@@ -308,6 +306,17 @@ begin
     FEditButton.Handler := JSFunction(GetConfirmJSCode(SwitchToEditMode));
   if Assigned(FCloneButton) then
     FCloneButton.Handler := JSFunction(GetConfirmJSCode(ConfirmChangesAndClone));
+end;
+
+function TKExtFormPanelController.GetDetailBottomPanelHeight: Integer;
+const
+  DEFAULT_DETAIL_BOTTOM_PANEL_HEIGHT = 200;
+var
+  LNode: TEFNode;
+begin
+  LNode := ViewTable.FindNode('DetailTables/Controller/Style');
+  if Assigned(LNode) then
+    Result := LNode.GetInteger('Height', DEFAULT_DETAIL_BOTTOM_PANEL_HEIGHT);
 end;
 
 function TKExtFormPanelController.GetDetailStyle: string;
@@ -682,7 +691,7 @@ begin
   if Assigned(TopToolbar) then
     Result := Result + 30;
   if Assigned(FDetailBottomPanel) then
-    Result := Result + DEFAULT_DETAIL_BOTTOM_PANEL_HEIGHT + 120;
+    Result := Result + GetDetailBottomPanelHeight + 120;
 end;
 
 function TKExtFormPanelController.IsViewMode: Boolean;
