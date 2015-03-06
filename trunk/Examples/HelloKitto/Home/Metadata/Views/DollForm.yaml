@@ -1,7 +1,10 @@
-Type: Data
-
+﻿Type: Data
+DisplayLabel: _(New Doll)
+ImageName: Doll_add
 Controller: Form
-  AllowClose: False
+  Operation: Add
+  Form:
+    Layout: Dolls_Form
 
 MainTable:
   Model: Doll

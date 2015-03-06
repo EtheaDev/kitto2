@@ -3,6 +3,7 @@
 Controller: List
   InplaceEditing: True
   Filters:
+    LabelWidth: 76
     DisplayLabel: Girls Filter
     Connector: and
     Items:

@@ -1,5 +1,43 @@
+# #-#-#-#-#  C:\Users\Carlo\AppData\Local\Temp\ML55HUW4.po (PACKAGE VERSION)  #-#-#-#-#
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# 
+# #-#-#-#-#  C:\ETHEA\Kitto\Examples\HelloKitto\Home\Locale\it\LC_MESSAGES\default.po  #-#-#-#-#
+# #-#-#-#-#  C:\Users\Carlo\AppData\Local\Temp\73520MD8.po (PACKAGE VERSION)  #-#-#-#-#
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# 
+#, fuzzy
 msgid ""
 msgstr ""
+"#-#-#-#-#  C:\\Users\\Carlo\\AppData\\Local\\Temp\\ML55HUW4.po (PACKAGE "
+"VERSION)  #-#-#-#-#\n"
+"Project-Id-Version: PACKAGE VERSION\n"
+"POT-Creation-Date: 2015-03-05 16.17\n"
+"PO-Revision-Date: 2015-03-05 16.17\n"
+"Last-Translator: Somebody <your.email@address.com>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: dxgettext 1.2.2\n"
+"#-#-#-#-#  C:\\ETHEA\\Kitto\\Examples\\HelloKitto\\Home\\Locale\\it"
+"\\LC_MESSAGES\\default.po  #-#-#-#-#\n"
+"#-#-#-#-#  C: \\Users\\Carlo\\AppData\\Local\\Temp\\73520MD8.po (PACKAGE "
+"VERSION)  #-#-#-#-#\n"
+"Project-Id-Version: \n"
+"POT-Creation-Date: 2015-03-05 16.13\n"
+"PO-Revision-Date: 2015-03-05 16:15+0100\n"
+"Last-Translator: Somebody <your.email@address.com>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 1.7.4\n"
+"#-#-#-#-#  C: \\ETHEA\\Kitto\\Examples\\HelloKitto\\Home\\Locale\\it"
+"\\LC_MESSAGES\\default.po  #-#-#-#-#\n"
 "Project-Id-Version: \n"
 "POT-Creation-Date: \n"
 "PO-Revision-Date: \n"
@@ -11,7 +49,7 @@ msgstr ""
 "Language: it\n"
 "X-Generator: Poedit 1.7.3\n"
 
-#: Rules.pas:25
+#: Rules.pas:25 
 msgid "Cannot invite the same girl twice."
 msgstr "Impossibile invitare la stessa bambina due volte."
 
@@ -190,3 +228,19 @@ msgstr "{[values.rs.length]} Bambole hanno la testa {text}"
 #: Girls.yaml
 msgid "Platinum"
 msgstr "Platino"
+
+#: DollForm.yaml
+msgid "New Doll"
+msgstr "Nuova Bambola"
+
+#: GirlForm.yaml
+msgid "New Girl"
+msgstr "Nuova Bambina"
+
+#: MainMenu.yaml
+msgid "Girl list"
+msgstr "Elenco Bambine"
+
+#: MainMenu.yaml
+msgid "Doll list"
+msgstr "Elenco Bambole"

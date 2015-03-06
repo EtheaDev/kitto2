@@ -71,7 +71,7 @@
                 <!-- logo image -->
                 <fo:table-cell >
                   <fo:block text-align="end">
-                    <fo:external-graphic src="%FILENAME_TO_URL(%APP_PATH%ReportTemplates/taskitto%20logo%20150.jpg)%" content-height="8mm" height="8mm"/>
+                    <fo:external-graphic src="%FILENAME_TO_URL(%APP_PATH%Resources/taskitto_logo_150.png)%" content-height="8mm" height="8mm"/>
                   </fo:block>
                 </fo:table-cell>
               </fo:table-row>

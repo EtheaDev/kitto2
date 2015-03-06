@@ -10,7 +10,7 @@ Controller: List
         # ExpressionTemplate should contain a {value} placeholder for the search term.
         ExpressionTemplate: >
           upper({Q}PROJECT_NAME) like                  
-            upper('%{value}%')
+               upper('%{value}%')
       DynaList: Customer
         Width: 40
         # CommandText must select the value field and the display field as the first two fields.
