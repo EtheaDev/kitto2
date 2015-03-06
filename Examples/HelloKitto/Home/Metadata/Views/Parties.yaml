@@ -9,8 +9,7 @@ Controller: List
       FreeSearch: Name/Address
         ExpressionTemplate: >
           upper(PARTY.ADDRESS) like upper('%{value}%') 
-                or upper(PARTY.PARTY_NAME) like       
-          upper('%{value}%')
+          or upper(PARTY.PARTY_NAME) like upper('%{value}%')
 
 MainTable:
   Model: Party
@@ -37,8 +36,8 @@ MainTable:
 
   DetailTables:
     Controller:
-      # Tabs/Popup. Default = Tabs.
-      Style: Tabs
+      # Tabs/Popup/Bottom. Default = Tabs.
+      Style: Bottom
     Table:
       Model: Invitation
       Fields:
