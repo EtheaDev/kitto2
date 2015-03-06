@@ -15,6 +15,9 @@ MainTable:
   Model: Party
 
   Controller:
+    PopupWindow:
+      Height: 500
+      Width: 500
     ToolViews:
       DownloadCSV:
         DisplayLabel: _(Download in CSV)
@@ -38,6 +41,7 @@ MainTable:
     Controller:
       # Tabs/Popup/Bottom. Default = Tabs.
       Style: Bottom
+        Height: 250
     Table:
       Model: Invitation
       Fields:
