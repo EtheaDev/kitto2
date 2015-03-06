@@ -68,14 +68,16 @@ type
     FCloneValues: TEFNode;
     FCloneButton: TKExtButton;
     FLabelAlign: TExtFormFormPanelLabelAlign;
+    FDetailBottomPanel: TExtTabPanel;
     procedure CreateEditors;
     procedure RecreateEditors;
     procedure CreateButtons;
     procedure ChangeEditorsState;
     procedure StartOperation;
     procedure FocusFirstField;
-    procedure CreateDetailPanels;
+    procedure CreateDetailPanels(const ATabPanel: TExtTabPanel);
     procedure CreateDetailToolbar;
+    procedure CreateDetailBottomPanel;
     function GetDetailStyle: string;
     function GetExtraHeight: Integer;
     procedure AssignFieldChangeEvent(const AAssign: Boolean);
@@ -113,6 +115,9 @@ uses
   EF.Localization, EF.Types, EF.Intf, EF.DB, EF.JSON, EF.VariantUtils, EF.StrUtils,
   Kitto.Types, Kitto.AccessControl, Kitto.Rules, Kitto.SQL, Kitto.Config,
   Kitto.Ext.Session, Kitto.Ext.Utils;
+
+const
+  DEFAULT_DETAIL_BOTTOM_PANEL_HEIGHT = 200;
 
 { TKExtFormPanelController }
 
@@ -186,7 +191,31 @@ begin
   end;
 end;
 
-procedure TKExtFormPanelController.CreateDetailPanels;
+procedure TKExtFormPanelController.CreateDetailBottomPanel;
+begin
+  Assert(ViewTable <> nil);
+  Assert(FDetailControllers = nil);
+  Assert(Assigned(FStoreRecord));
+  Assert(not Assigned(FDetailBottomPanel));
+
+  if ViewTable.DetailTableCount > 0 then
+  begin
+    FDetailBottomPanel := TExtTabPanel.CreateAndAddTo(Items);
+    FDetailBottomPanel.Split := True;
+    FDetailBottomPanel.Region := rgSouth;
+    FDetailBottomPanel.Border := False;
+    FDetailBottomPanel.AutoScroll := False;
+    FDetailBottomPanel.BodyStyle := 'background:none'; // Respects parent's background color.
+    FDetailBottomPanel.DeferredRender := False;
+    FDetailBottomPanel.EnableTabScroll := True;
+    FDetailBottomPanel.Height := DEFAULT_DETAIL_BOTTOM_PANEL_HEIGHT;
+    FDetailBottomPanel.SetActiveTab(0);
+    FDetailBottomPanel.On('tabchange', FDetailBottomPanel.JSFunction(FDetailBottomPanel.JSName + '.doLayout();'));
+    CreateDetailPanels(FDetailBottomPanel);
+  end;
+end;
+
+procedure TKExtFormPanelController.CreateDetailPanels(const ATabPanel: TExtTabPanel);
 var
   I: Integer;
   LController: IKExtController;
@@ -198,7 +227,7 @@ begin
 
   if ViewTable.DetailTableCount > 0 then
   begin
-    Assert(FTabPanel <> nil);
+    Assert(ATabPanel <> nil);
     FStoreRecord.EnsureDetailStores;
     Assert(FStoreRecord.DetailStoreCount = ViewTable.DetailTableCount);
     FDetailControllers := TObjectList<TObject>.Create(False);
@@ -208,8 +237,8 @@ begin
       // The node may exist and be '', which does not return the default value.
       if LControllerType = '' then
         LControllerType := 'GridPanel';
-      LController := TKExtControllerFactory.Instance.CreateController(FTabPanel,
-        View, FTabPanel, ViewTable.FindNode('Controller'), Self, LControllerType);
+      LController := TKExtControllerFactory.Instance.CreateController(ATabPanel,
+        View, ATabPanel, ViewTable.FindNode('Controller'), Self, LControllerType);
       LController.Config.SetObject('Sys/ViewTable', ViewTable.DetailTables[I]);
       LController.Config.SetObject('Sys/ServerStore', FStoreRecord.DetailStores[I]);
       LController.Config.SetBoolean('AllowClose', False);
@@ -293,15 +322,17 @@ var
 begin
   LDetailStyle := GetDetailStyle;
   if SameText(LDetailStyle, 'Tabs') then
-    CreateDetailPanels
+    CreateDetailPanels(FTabPanel)
   else if SameText(LDetailStyle, 'Popup') then
-    CreateDetailToolbar;
+    CreateDetailToolbar
+  else if SameText(LDetailStyle, 'Bottom') then
+    CreateDetailBottomPanel;
   // Resize the window after setting up toolbars and tabs, so that we
   // know the exact extra height needed.
   if Config.GetBoolean('Sys/HostWindow/AutoSize') then
   begin
     LHostWindow := GetHostWindow;
-    if Assigned(LHostWindow) then
+    if Assigned(LHostWindow) and not LHostWindow.Maximized then
       LHostWindow.On('afterrender', JSFunction(Format(
         '%s.setOptimalSize(0, %d); %s.center();',
           [LHostWindow.JSName, GetExtraHeight, LHostWindow.JSName])));
@@ -476,7 +507,7 @@ begin
     LCloneButtonNode := Config.FindNode('CloneButton');
     if Assigned(LCloneButtonNode) then
     begin
-      FCloneButton := TKExtButton.CreateAndAddTo(FFormPanel.Buttons);
+      FCloneButton := TKExtButton.CreateAndAddTo(Buttons);
       FCloneButton.SetIconAndScale('accept_clone', Config.GetString('ButtonScale', 'medium'));
       FCloneButton.FormBind := True;
       FCloneButton.Text := LCloneButtonNode.GetString('Caption', _('Save & Clone'));
@@ -486,7 +517,7 @@ begin
     else
       FCloneButton := nil;
   end;
-  FConfirmButton := TKExtButton.CreateAndAddTo(FFormPanel.Buttons);
+  FConfirmButton := TKExtButton.CreateAndAddTo(Buttons);
   FConfirmButton.SetIconAndScale('accept', Config.GetString('ButtonScale', 'medium'));
   FConfirmButton.FormBind := True;
   FConfirmButton.Text := Config.GetString('ConfirmButton/Caption', _('Save'));
@@ -495,7 +526,7 @@ begin
 
   if IsViewMode then
   begin
-    FEditButton := TKExtButton.CreateAndAddTo(FFormPanel.Buttons);
+    FEditButton := TKExtButton.CreateAndAddTo(Buttons);
     FEditButton.SetIconAndScale('edit_record', Config.GetString('ButtonScale', 'medium'));
     FEditButton.FormBind := True;
     FEditButton.Text := Config.GetString('ConfirmButton/Caption', _(EDIT_OPERATION));
@@ -503,14 +534,14 @@ begin
     FEditButton.Hidden := FIsReadOnly;
   end;
 
-  FCancelButton := TKExtButton.CreateAndAddTo(FFormPanel.Buttons);
+  FCancelButton := TKExtButton.CreateAndAddTo(Buttons);
   FCancelButton.SetIconAndScale('cancel', Config.GetString('ButtonScale', 'medium'));
   FCancelButton.Text := _('Cancel');
   FCancelButton.Tooltip := _('Cancel changes');
   FCancelButton.Handler := Ajax(CancelChanges);
   FCancelButton.Hidden := FIsReadOnly or IsViewMode;
 
-  FCloseButton := TKExtButton.CreateAndAddTo(FFormPanel.Buttons);
+  FCloseButton := TKExtButton.CreateAndAddTo(Buttons);
   FCloseButton.SetIconAndScale('close', Config.GetString('ButtonScale', 'medium'));
   FCloseButton.Text := _('Close');
   FCloseButton.Tooltip := _('Close this panel');
@@ -601,7 +632,11 @@ begin
 end;
 
 procedure TKExtFormPanelController.CreateFormPanel;
+var
+  LDetailStyle: string;
 begin
+  LDetailStyle := GetDetailStyle;
+
   FFormPanel := TKExtEditPanel.CreateAndAddTo(Items);
   FFormPanel.Region := rgCenter;
   FFormPanel.Border := False;
@@ -612,7 +647,7 @@ begin
   FFormPanel.MonitorValid := True;
   FFormPanel.Cls := 'x-panel-mc'; // Sets correct theme background color.
   FFormPanel.LabelAlign := FLabelAlign;
-  if ((ViewTable.DetailTableCount > 0) and SameText(GetDetailStyle, 'Tabs')) or LayoutContainsPageBreaks then
+  if ((ViewTable.DetailTableCount > 0) and SameText(LDetailStyle, 'Tabs')) or LayoutContainsPageBreaks then
   begin
     FTabPanel := TExtTabPanel.CreateAndAddTo(FFormPanel.Items);
     FTabPanel.Border := False;
@@ -645,6 +680,8 @@ begin
     Result := Result + 30;
   if Assigned(TopToolbar) then
     Result := Result + 30;
+  if Assigned(FDetailBottomPanel) then
+    Result := Result + DEFAULT_DETAIL_BOTTOM_PANEL_HEIGHT + 120;
 end;
 
 function TKExtFormPanelController.IsViewMode: Boolean;

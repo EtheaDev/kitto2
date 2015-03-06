@@ -78,7 +78,10 @@ function kittoInit()
         if (h > s.y)
           s.y = h;
       }
-      s.y += this.fbar.getEl().getHeight();
+      if (this.fbar)
+      {
+        s.y += this.fbar.getEl().getHeight();
+      }
       return s;
     }
   });
