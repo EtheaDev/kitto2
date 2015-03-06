@@ -2265,10 +2265,17 @@ end;
 function TEFTree.GetString(const APath, ADefaultValue: string): string;
 var
   LNode: TEFNode;
+  LValue: string;
 begin
   LNode := FindNode(APath);
   if Assigned(LNode) then
-    Result := LNode.AsString
+  begin
+    LValue := LNode.AsString;
+    if Pos('_(',LValue) = 1 then
+      Result := _(LValue)
+    else
+      Result := LValue;
+  end
   else
     Result := ADefaultValue;
 end;
