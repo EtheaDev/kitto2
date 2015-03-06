@@ -2,9 +2,11 @@
 DisplayLabel: _(New Doll)
 ImageName: Doll_add
 Controller: Form
+  IsModal: True
   Operation: Add
-  Form:
-    Layout: Dolls_Form
+  PopupWindow:
+    Height: 500
+    Width: 400
 
 MainTable:
   Model: Doll
@@ -19,3 +21,6 @@ MainTable:
       DisplayLabel: _(Mom's Phone)
     Aspect:
     Picture:
+  Controller:
+    Form:
+      Layout: Dolls_Form
