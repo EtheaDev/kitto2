@@ -21,6 +21,7 @@ Folder: Statistics
 Folder: Maintenance
   View: Users
     ImageName: user
+  View: UserForm
   View:
     Controller: Logout
     DisplayLabel: Logout

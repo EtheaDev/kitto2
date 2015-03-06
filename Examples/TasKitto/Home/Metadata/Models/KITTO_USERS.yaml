@@ -8,4 +8,8 @@ Fields:
     DisplayLabel: Password
     IsPassword: True
   IS_ACTIVE: Boolean
+  FIRST_NAME: String(50)
+    DisplayLabel: First Name
+  LAST_NAME: String(50)
+    DisplayLabel: Last Name
 ImageName: user_green

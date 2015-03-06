@@ -28,6 +28,7 @@ MainTable:
 
   Controller:
     AutoOpen: False
+    AllowViewing: True
     PopupWindow:
       Height: 500
       Width: 400

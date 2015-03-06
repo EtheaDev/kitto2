@@ -42,7 +42,7 @@ Controller: List
       FreeSearch: Last N Days
         ExpressionTemplate: ACTIVITY_DATE >= (getDate() - {value})
   GridPanelController:
-    ToolButtonScale: large
+    ToolButtonScale: medium
     AllowDuplicating: True
     AllowViewing: True
 
@@ -84,6 +84,12 @@ MainTable:
         Controller: FOPTool
           ClientFileName: ActivityByFOP.pdf
           TransformFileName: %APP_PATH%ReportTemplates\ActivityReport.xsl
+          RequireSelection: False
+      HTMLReport:
+        DisplayLabel: Activity by XSL-Html
+        Controller: XSLTool
+          ClientFileName: ActivityByXSL.html
+          TransformFileName: %APP_PATH%ReportTemplates\ActivityReportHtml.xsl
           RequireSelection: False
       TestDownload:
         DisplayLabel: Download a file

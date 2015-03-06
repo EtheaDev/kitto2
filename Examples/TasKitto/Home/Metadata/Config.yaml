@@ -24,8 +24,9 @@ Databases:
 Auth: DB
   IsClearPassword: True
   Defaults:
-    .UserName: admin
-    .Password: admin
+    UserName: admin
+    Password: admin
+  ReadUserCommandText: select USER_NAME, PASSWORD_HASH, FIRST_NAME, LAST_NAME from KITTO_USERS where IS_ACTIVE = 1 and USER_NAME = :USER_NAME
 
 AccessControl: Null
 

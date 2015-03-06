@@ -75,11 +75,8 @@ Auth: DB
     Password: password
 
 AccessControl: Null
-
-# Change this to use a custom view for the home page.
-# Alternatively, customize the Home view by replacing its controller.
-# Default: Home.
-HomeView: Home
+Tablet: HomeTile
+Phone: HomeTilePhone
 
 HomeGirls:
   Controller: Viewport
@@ -95,12 +92,8 @@ HelloWorld:
       Controller: HtmlPanel
         Html: <h1>Hello World!</h1>
 
-Tablet: HomeTile
-Phone: HomeTilePhone
-
 Ext:
   Theme: blue
-  URL: /ext
 
 LanguageId: it
 # Either utf-8 or a SBCS corresponding to the system code page
