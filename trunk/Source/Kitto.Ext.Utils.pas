@@ -206,13 +206,15 @@ var
   LIsEnabled: Boolean;
   LView: TKView;
   LDisplayLabel: string;
+  LNode: TKTreeViewNode;
 begin
   Assert(Assigned(ANode));
   Assert(Assigned(AMenu));
 
   for I := 0 to ANode.TreeViewNodeCount - 1 do
   begin
-    LView := ANode.TreeViewNodes[I].FindView(Session.Config.Views);
+    LNode := ANode.TreeViewNodes[I];
+    LView := LNode.FindView(Session.Config.Views);
 
     if not Assigned(LView) or LView.IsAccessGranted(ACM_VIEW) then
     begin
@@ -220,27 +222,30 @@ begin
       LMenuItem := TKExtMenuItem.CreateAndAddTo(AMenu.Items);
       try
         Inc(FAddedItems);
+        LMenuItem.Disabled := not LIsEnabled;
         LMenuItem.View := LView;
         if Assigned(LMenuItem.View) then
         begin
-          LMenuItem.IconCls := Session.SetViewIconStyle(LMenuItem.View, GetImageName(ANode.TreeViewNodes[I], LMenuItem.View));
+          LMenuItem.IconCls := Session.SetViewIconStyle(LMenuItem.View,
+            GetImageName(LNode, LMenuItem.View));
           LMenuItem.On('click', GetClickFunction(LMenuItem.View));
-          LMenuItem.Disabled := not LIsEnabled;
-          LDisplayLabel := _(LMenuItem.View.DisplayLabel);
+
+          LDisplayLabel := _(LNode.GetString('DisplayLabel', LMenuItem.View.DisplayLabel));
           if LDisplayLabel = '' then
             LDisplayLabel := CallViewControllerStringMethod(LView, 'GetDefaultDisplayLabel', '');
           LMenuItem.Text := HTMLEncode(LDisplayLabel);
           // No tooltip here - could be done through javascript if needed.
-        end;
-        if ANode.TreeViewNodes[I].TreeViewNodeCount > 0 then
+        end
+        else
         begin
-          LSubMenu := TExtMenuMenu.Create(AMenu);
-          try
+          if ANode.TreeViewNodes[I].TreeViewNodeCount > 0 then
+          begin
+            LDisplayLabel := _(LNode.GetString('DisplayLabel', LNode.AsString));
+            LMenuItem.Text := HTMLEncode(LDisplayLabel);
+            LMenuItem.IconCls := Session.SetIconStyle('Folder', LNode.GetString('ImageName'));
+            LSubMenu := TExtMenuMenu.Create(AMenu.Items);
             LMenuItem.Menu := LSubMenu;
             AddMenuItem(ANode.TreeViewNodes[I], LSubMenu);
-          except
-            FreeAndNil(LSubMenu);
-            raise;
           end;
         end;
       except
@@ -330,7 +335,7 @@ begin
       for I := 0 to ANode.TreeViewNodeCount - 1 do
       begin
         LSubNode := ANode.TreeViewNodes[I];
-        LDisplayLabel := GetDisplayLabelFromNode(LSubNode, Session.Config.Views);
+        LDisplayLabel := _(LSubNode.GetString('DisplayLabel', GetDisplayLabelFromNode(LSubNode, Session.Config.Views)));
         AddNode(LSubNode, LDisplayLabel, LNode);
       end;
       LNode.Expandable := True;

@@ -123,7 +123,7 @@ type
     procedure SetFIcon(Value: string);
     procedure SetIconCls(const AValue: string);
     procedure SetFItemCls(Value: string);
-    procedure SetFMenu(Value: TExtMenuMenu);
+    procedure SetMenu(AValue: TExtMenuMenu);
     procedure SetFShowDelay(Value: Integer);
     procedure SetText(const AValue: string);
     procedure SetFMenu_(Value: TExtMenuMenu);
@@ -138,7 +138,7 @@ type
     property Icon: string read FIcon write SetFIcon;
     property IconCls: string read FIconCls write SetIconCls;
     property ItemCls: string read FItemCls write SetFItemCls;
-    property Menu: TExtMenuMenu read FMenu write SetFMenu;
+    property Menu: TExtMenuMenu read FMenu write SetMenu;
     property ShowDelay: Integer read FShowDelay write SetFShowDelay;
     property Text: string read FText write SetText;
     property Menu_: TExtMenuMenu read FMenu_ write SetFMenu_;
@@ -568,10 +568,11 @@ begin
   JSCode('itemCls:' + VarToJSON([Value]));
 end;
 
-procedure TExtMenuItem.SetFMenu(Value: TExtMenuMenu);
+procedure TExtMenuItem.SetMenu(AValue: TExtMenuMenu);
 begin
-  FMenu := Value;
-  JSCode('menu:' + VarToJSON([Value, false]));
+  FMenu.Free;
+  FMenu := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'menu', [AValue, False]);
 end;
 
 procedure TExtMenuItem.SetFShowDelay(Value: Integer);
