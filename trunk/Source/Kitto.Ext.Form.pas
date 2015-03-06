@@ -591,10 +591,11 @@ begin
     FStoreRecord := Config.GetObject('Sys/Record') as TKViewTableRecord;
     if not Assigned(FStoreRecord) then
     begin
-      // Record was not provided by the caller, so we use the first record in
-      // the store.
+      // Record was not provided by the caller, so we load the store and use
+      // the single record contained.
       if ServerStore.RecordCount = 0 then
-        ViewTable.Model.LoadRecords(ServerStore, GetFilterExpression, '', 0, 1);
+        ViewTable.Model.LoadRecords(ServerStore, GetFilterExpression, '', 0, 0);
+      Assert(ServerStore.RecordCount=1);
       FStoreRecord := ServerStore.Records[0];
     end;
   end;
