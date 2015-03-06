@@ -96,6 +96,7 @@ type
   public
     procedure LoadData; override;
     destructor Destroy; override;
+    function GetFilterExpression: string; override;
   published
     procedure GetRecord;
     procedure SwitchToEditMode;
@@ -531,6 +532,11 @@ begin
   CreateButtons;
 end;
 
+function TKExtFormPanelController.GetFilterExpression: string;
+begin
+  Result := Config.GetExpandedString('FilterExpression');
+end;
+
 procedure TKExtFormPanelController.InitFlags;
 var
   LLabelAlignNode: TEFNode;
@@ -538,8 +544,6 @@ begin
   if Title = '' then
     Title := _(ViewTable.DisplayLabel);
 
-  FStoreRecord := Config.GetObject('Sys/Record') as TKViewTableRecord;
-  Assert((FOperation = ADD_OPERATION) or Assigned(FStoreRecord));
   if FOperation = ADD_OPERATION then
   begin
     Assert(not Assigned(FStoreRecord));
@@ -550,7 +554,21 @@ begin
     FreeAndNil(FCloneValues);
     FCloneValues := TEFNode.Clone(FStoreRecord);
     FStoreRecord := ServerStore.AppendRecord(nil);
+  end
+  else if (FOperation = EDIT_OPERATION) or (FOperation = VIEW_OPERATION) then
+  begin
+    FStoreRecord := Config.GetObject('Sys/Record') as TKViewTableRecord;
+    if not Assigned(FStoreRecord) then
+    begin
+      // Record was not provided by the caller, so we use the first record in
+      // the store.
+      if ServerStore.RecordCount = 0 then
+        ViewTable.Model.LoadRecords(ServerStore, GetFilterExpression, '', 0, 1);
+      FStoreRecord := ServerStore.Records[0];
+    end;
   end;
+  Assert(Assigned(FStoreRecord));
+
   AssignFieldChangeEvent(True);
 
   if MatchStr(FOperation, [ADD_OPERATION, DUPLICATE_OPERATION]) then
