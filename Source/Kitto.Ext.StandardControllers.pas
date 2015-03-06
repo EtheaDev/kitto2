@@ -274,6 +274,7 @@ begin
       finally
         FreeAndNil(LStream);
       end;
+      Download(DownloadFile);
     end
     else
     begin
