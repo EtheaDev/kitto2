@@ -100,7 +100,7 @@ begin
     //Save XML file
     LFileStream.SaveToFile(LXMLFileName);
     //Add to temporary files so it will cleaned up
-    //AddTempFilename(LXMLFileName);
+    AddTempFilename(LXMLFileName);
 
     //Load XSL file and macro-substitute some elements
     LXSLFileName := TransformFileName;
