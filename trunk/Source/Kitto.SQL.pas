@@ -34,6 +34,7 @@ type
     FUsedReferenceFields: TList<TKModelField>;
     FSelectTerms: string;
     FViewTable: TKViewTable;
+    FModel: TKModel;
     procedure Clear;
     procedure AddSelectTerm(const ATerm: string);
     procedure AddReferenceFieldTerms(const AViewField: TKViewField);
@@ -54,20 +55,28 @@ type
       const ADBCommand: TEFDBCommand; const ADBColumnName,
       AParamName: string): TParam; static;
     procedure AddFilterBy(const AViewField: TKViewField; const ADBQuery: TEFDBQuery; const ARecord: TKViewTableRecord);
-    procedure AssignQueryParams(const AViewTable: TKViewTable; const ADBQuery: TEFDBQuery;
+    procedure AssignSelectQueryParams(const AViewTable: TKViewTable; const ADBQuery: TEFDBQuery;
       const AMasterValues: TEFNode);
+    procedure InternalBuildSingletonSelectQuery(const AModel: TKModel;
+      const ADBQuery: TEFDBQuery; const AKeyValues: Variant);
+    function GetModelKeyWhereClause(const AModel: TKModel;
+      const ADBQuery: TEFDBQuery): string;
   public
     procedure AfterConstruction; override;
     destructor Destroy; override;
 
     ///	<summary>
-    ///	  <para>Builds in the specified query a select statement that selects
+    ///	 <para>
+    ///   Builds in the specified query a select statement that selects
     ///	  all fields from the specified view table with an optional filter
     ///	  clause. Handles joins and table aliases based on model
-    ///	  information.</para>
-    ///	  <para>If the view table is a detail table, a where clause with
+    ///	  information.
+    ///  </para>
+    ///	 <para>
+    ///   If the view table is a detail table, a where clause with
     ///	  parameters for the master fields is added as well, and param values
-    ///	  are set based on AMasterValues.</para>
+    ///	  are set based on AMasterValues.
+    ///  </para>
     ///	</summary>
     class procedure BuildSelectQuery(const AViewTable: TKViewTable; const AFilter: string;
       const AOrderBy: string; const ADBQuery: TEFDBQuery; const AMasterValues: TEFNode = nil;
@@ -76,6 +85,22 @@ type
     class procedure BuildCountQuery(const AViewTable: TKViewTable;
       const AFilter: string; const ADBQuery: TEFDBQuery;
       const AMasterValues: TEFNode);
+
+    ///	<summary>
+    ///	 <para>
+    ///   Builds in the specified query a select statement that selects
+    ///	  all fields from the specified view table with an optional filter
+    ///	  clause. Handles joins and table aliases based on model
+    ///	  information.
+    ///  </para>
+    ///	 <para>
+    ///   If the view table is a detail table, a where clause with
+    ///	  parameters for the master fields is added as well, and param values
+    ///	  are set based on AMasterValues.
+    ///  </para>
+    ///	</summary>
+    class procedure BuildSingletonSelectQuery(const AModel: TKModel;
+      const ADBQuery: TEFDBQuery; const AKeyValues: Variant);
 
     ///	<summary>
     ///  Builds and returns a SQL statement that selects the specified
@@ -170,6 +195,21 @@ begin
   begin
     try
       InternalBuildSelectQuery(AViewTable, AFilter, AOrderBy, ADBQuery, AMasterValues, AFrom, AFor);
+    finally
+      Free;
+    end;
+  end;
+end;
+
+class procedure TKSQLBuilder.BuildSingletonSelectQuery(const AModel: TKModel;
+  const ADBQuery: TEFDBQuery; const AKeyValues: Variant);
+begin
+  Assert(Assigned(AModel));
+
+  with TKSQLBuilder.Create do
+  begin
+    try
+      InternalBuildSingletonSelectQuery(AModel, ADBQuery, AKeyValues);
     finally
       Free;
     end;
@@ -721,7 +761,23 @@ begin
   end;
 end;
 
-procedure TKSQLBuilder.AssignQueryParams(const AViewTable: TKViewTable;
+function TKSQLBuilder.GetModelKeyWhereClause(const AModel: TKModel; const ADBQuery: TEFDBQuery): string;
+var
+  I: Integer;
+  LKeyDBColumnNames: TStringDynArray;
+begin
+  LKeyDBColumnNames := AModel.GetKeyDBColumnNames();
+  Result := '';
+  for I := Low(LKeyDBColumnNames) to High(LKeyDBColumnNames) do
+  begin
+    Result := Result + LKeyDBColumnNames[I] + ' = :' + LKeyDBColumnNames[I];
+    ADBQuery.Params.CreateParam(ftUnknown, LKeyDBColumnNames[I], ptInput);
+    if I < High(LKeyDBColumnNames) then
+      Result := Result + ' and ';
+  end;
+end;
+
+procedure TKSQLBuilder.AssignSelectQueryParams(const AViewTable: TKViewTable;
   const ADBQuery: TEFDBQuery; const AMasterValues: TEFNode);
 var
   I: Integer;
@@ -755,9 +811,6 @@ procedure TKSQLBuilder.InternalBuildSelectQuery(const AViewTable: TKViewTable;
 var
   I: Integer;
   LCommandText: string;
-  LField: TKModelField;
-  LParam: TParam;
-  LFieldName: string;
 begin
   Clear;
   FViewTable := AViewTable;
@@ -785,7 +838,7 @@ begin
   finally
     ADBQuery.Params.EndUpdate;
   end;
-  AssignQueryParams(AViewTable, ADBQuery, AMasterValues);
+  AssignSelectQueryParams(AViewTable, ADBQuery, AMasterValues);
 end;
 
 procedure TKSQLBuilder.InternalBuildCountQuery(const AViewTable: TKViewTable;
@@ -799,7 +852,7 @@ begin
   FViewTable := AViewTable;
 { TODO :
 Process all fields to build the from clause. A future refactoring might
-build only those that affect the count (outer joins). }
+build only those that affect the count (inner joins). }
   for I := 0 to AViewTable.FieldCount - 1 do
   begin
     if AViewTable.Fields[I].IsReference then
@@ -818,7 +871,42 @@ build only those that affect the count (outer joins). }
   finally
     ADBQuery.Params.EndUpdate;
   end;
-  AssignQueryParams(AViewTable, ADBQuery, AMasterValues);
+  AssignSelectQueryParams(AViewTable, ADBQuery, AMasterValues);
+end;
+
+procedure TKSQLBuilder.InternalBuildSingletonSelectQuery(const AModel: TKModel;
+  const ADBQuery: TEFDBQuery; const AKeyValues: Variant);
+var
+  I, J: Integer;
+  LCommandText: string;
+begin
+  Clear;
+  FModel := AModel;
+  for I := 0 to AModel.FieldCount - 1 do
+  begin
+    if AModel.Fields[I].IsReference then
+    begin
+      for J := 0 to AModel.Fields[I].FieldCount - 1 do
+        AddSelectTerm(AModel.Fields[I].Fields[J].AliasedDBColumnNameOrExpression);
+    end
+    else
+      AddSelectTerm(AModel.Fields[I].AliasedDBColumnNameOrExpression);
+  end;
+
+  if ADBQuery.Prepared then
+    ADBQuery.Prepared := False;
+  ADBQuery.Params.BeginUpdate;
+  try
+    ADBQuery.Params.Clear;
+    LCommandText :=
+      'select ' +  FSelectTerms +
+      ' from ' + AModel.DBTableName + ' where ' + GetModelKeyWhereClause(AModel, ADBQuery);
+    ADBQuery.CommandText := TEFMacroExpansionEngine.Instance.Expand(LCommandText);
+  finally
+    ADBQuery.Params.EndUpdate;
+  end;
+  for I := 0 to ADBQuery.Params.Count - 1 do
+    ADBQuery.Params[I].Value := AKeyValues[I];
 end;
 
 procedure TKSQLBuilder.InternalBuildLookupSelectStatement(const AViewField: TKViewField;

@@ -15,8 +15,8 @@
 -------------------------------------------------------------------------------}
 
 ///	<summary>
-///	  DB-related classes. This unit defines the base classes that implement
-///	  EF's abstract data access framework.
+///	 DB-related classes. This unit defines the base classes that implement
+///	 EF's abstract data access framework.
 ///	</summary>
 unit EF.DB;
 
@@ -32,8 +32,8 @@ type
   TEFDBSchemaInfo = class;
 
   ///	<summary>
-  ///	  A base class for database metadata info, useful for reverse engineering
-  ///	  of databases and generic database metadata access.
+  ///	 A base class for database metadata info, useful for reverse engineering
+  ///	 of databases and generic database metadata access.
   ///	</summary>
   TEFDBInfo = class(TEFComponent)
   private
@@ -65,8 +65,8 @@ type
   end;
 
   ///	<summary>
-  ///	  Base class for database metadata items, such as tables, columns and
-  ///	  constraints.
+  ///	 Base class for database metadata items, such as tables, columns and
+  ///	 constraints.
   ///	</summary>
   TEFDBItemInfo = class(TPersistent)
   private
@@ -78,8 +78,8 @@ type
   TEFDBTableInfo = class;
 
   ///	<summary>
-  ///	  Contains enough information to define a table's primary key. It is not
-  ///	  used alone, but together with TEFDBTableInfo.
+  ///	 Contains enough information to define a table's primary key. It is not
+  ///	 used alone, but together with TEFDBTableInfo.
   ///	</summary>
   TEFDBPrimaryKeyInfo = class(TEFDBItemInfo)
   private
@@ -93,11 +93,11 @@ type
   end;
 
   ///	<summary>
-  ///	  Contains enough information to define a table's column. It is not used
-  ///	  alone, but together with TEFDBTableInfo.
+  ///	 Contains enough information to define a table's column. It is not used
+  ///	 alone, but together with TEFDBTableInfo.
   ///	</summary>
   ///	<remarks>
-  ///	  Domains are not supported. Only plain field types are recognized.
+  ///	 Domains are not supported. Only plain field types are recognized.
   ///	</remarks>
   TEFDBColumnInfo = class(TEFDBItemInfo)
   private
@@ -112,14 +112,14 @@ type
     property DataType: TEFDataType read FDataType write FDataType;
 
     ///	<summary>
-    ///	  For string fields, this is the length in characters; for other data
-    ///	  types, it's 0.
+    ///	 For string fields, this is the length in characters; for other data
+    ///	 types, it's 0.
     ///	</summary>
     property Size: Integer read FSize write FSize;
 
     ///	<summary>
-    ///	  For decimal fields, this is the number of supported decimal digits;
-    ///   for other data types, it's 0.
+    ///	 For decimal fields, this is the number of supported decimal digits;
+    ///  for other data types, it's 0.
     ///	</summary>
     property Scale: Integer read FScale write FScale;
 
@@ -137,8 +137,8 @@ type
   end;
 
   ///	<summary>
-  ///	  Contains enough information to define a table's foreign key. It is not
-  ///	  used alone, but together with TEFDBTableInfo.
+  ///	 Contains enough information to define a table's foreign key. It is not
+  ///	 used alone, but together with TEFDBTableInfo.
   ///	</summary>
   TEFDBForeignKeyInfo = class(TEFDBItemInfo)
   private
@@ -163,7 +163,7 @@ type
   end;
 
   ///	<summary>
-  ///	  Contains enough information to describe a database table.
+  ///	 Contains enough information to describe a database table.
   ///	</summary>
   TEFDBTableInfo = class(TEFDBItemInfo)
   private
@@ -200,7 +200,7 @@ type
   end;
 
   ///	<summary>
-  ///	  Contains all database schema objects.
+  ///	 Contains all database schema objects.
   ///	</summary>
   TEFDBSchemaInfo = class(TEFDBItemInfo)
   private
@@ -244,8 +244,8 @@ type
   TEFDBConnection = class;
 
   ///	<summary>
-  ///	  Base class for components linked to a database connection, such as
-  ///	  commands and queries.
+  ///	 Base class for components linked to a database connection, such as
+  ///	 commands and queries.
   ///	</summary>
   TEFDBComponent = class(TEFComponent)
   private
@@ -271,7 +271,9 @@ type
     property Connection: TEFDBConnection read GetConnection write SetConnection;
   end;
 
-  ///	<summary>Base class for database commands that don't return data.</summary>
+  ///	<summary>
+  ///  Base class for database commands that don't return data.
+  /// </summary>
   TEFDBCommand = class(TEFDBComponent)
   protected
     function GetCommandText: string; virtual; abstract;
@@ -407,7 +409,7 @@ type
   end;
 
   ///	<summary>
-  ///	  A base class for database connections.
+  ///	 A base class for database connections.
   ///	</summary>
   TEFDBConnection = class(TEFComponent)
   private

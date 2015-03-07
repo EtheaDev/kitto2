@@ -311,12 +311,8 @@ end;
 function TKExtFormPanelController.GetDetailBottomPanelHeight: Integer;
 const
   DEFAULT_DETAIL_BOTTOM_PANEL_HEIGHT = 200;
-var
-  LNode: TEFNode;
 begin
-  LNode := ViewTable.FindNode('DetailTables/Controller/Style');
-  if Assigned(LNode) then
-    Result := LNode.GetInteger('Height', DEFAULT_DETAIL_BOTTOM_PANEL_HEIGHT);
+  Result := ViewTable.GetInteger('DetailTables/Controller/Style/Height', DEFAULT_DETAIL_BOTTOM_PANEL_HEIGHT);
 end;
 
 function TKExtFormPanelController.GetDetailStyle: string;

@@ -158,8 +158,11 @@ type
 
     function GetAsJSON(const AForDisplay: Boolean): string;
     function GetAsXML(const AForDisplay: Boolean): string;
-    ///	<summary>Expand an expression that contains reference to field of record.
-    ///	For example: 'Activity: %Description%'.</summary>
+
+    ///	<summary>
+    ///  Expand an expression that contains reference to field of record.
+    ///	 For example: 'Activity: %Description%'.
+    /// </summary>
     function ExpandExpression(const AExpression: string): string;
 
     procedure MarkAsModified;
@@ -181,6 +184,12 @@ type
     property OnFieldChange: TKFieldChangeEvent read FOnFieldChange write FOnFieldChange;
 
     function AddField(const AHeaderField: TKHeaderField): TKField;
+
+    ///	<summary>
+    ///  Returns a variant array with an item for each requested field value.
+    ///  Raises exceptions if fields are not found.
+    /// </summary>
+    function GetFieldValues(const AFieldNames: TStringDynArray): Variant;
   end;
 
   TKRecords = class(TEFNode)
@@ -247,12 +256,12 @@ type
     function GetChildClass(const AName: string): TEFNodeClass; override;
   public
     ///	<summary>
-    ///	  Adds to ARecord one field node with no name and the correct datatype
-    ///	  for each header field.
+    ///	 Adds to ARecord one field node with no name and the correct datatype
+    ///	 for each header field.
     ///	</summary>
     ///	<remarks>
-    ///	  Names are not set in all records in order to save space. Fields are
-    ///	  meant to be accessed by name in the header and by position in records.
+    ///	 Names are not set in all records in order to save space. Fields are
+    ///	 meant to be accessed by name in the header and by position in records.
     ///	</remarks>
     procedure Apply(const ARecord: TKRecord);
 
@@ -276,7 +285,9 @@ type
     procedure SetKey(const AValue: TKKey);
     function GetRecordCount: Integer;
     function GetHeader: TKHeader;
-  strict protected
+  strict
+  private
+    function GetIsEmpty: Boolean; protected
     function GetChildClass(const AName: string): TEFNodeClass; override;
   public
     destructor Destroy; override;
@@ -289,6 +300,7 @@ type
     property Header: TKHeader read GetHeader;
     property Records: TKRecords read GetRecords;
     property RecordCount: Integer read GetRecordCount;
+    property IsEmpty: Boolean read GetIsEmpty;
 
     procedure Load(const ADBConnection: TEFDBConnection;
       const ACommandText: string; const AAppend: Boolean = False); overload;
@@ -554,6 +566,11 @@ end;
 function TKStore.GetHeader: TKHeader;
 begin
   Result := FindChild('Header', True) as TKHeader;
+end;
+
+function TKStore.GetIsEmpty: Boolean;
+begin
+  Result := RecordCount = 0;
 end;
 
 function TKStore.GetKey: TKKey;
@@ -1048,6 +1065,15 @@ end;
 function TKRecord.GetFieldCount: Integer;
 begin
   Result := ChildCount;
+end;
+
+function TKRecord.GetFieldValues(const AFieldNames: TStringDynArray): Variant;
+var
+  I: Integer;
+begin
+  Result := VarArrayCreate([Low(AFieldNames), High(AFieldNames)], varVariant);
+  for I := Low(AFieldNames) to High(AFieldNames) do
+    Result[I] := FieldByName(AFieldNames[I]).Value;
 end;
 
 function TKRecord.GetIsDeleted: Boolean;
