@@ -139,9 +139,9 @@ type
     property DBColumnNameOrExpression: string read GetDBColumnNameOrExpression;
 
     ///	<summary>
-    ///   Returns the physical column name (DBColumnName) plus, if the
-    ///	  field has a different logical name, a space and the logical name
-    ///	  (FieldName).
+    ///  Returns the physical column name (DBColumnName) plus, if the
+    ///	 field has a different logical name, a space and the logical name
+    ///	 (FieldName).
     /// </summary>
     property AliasedDBColumnName: string read GetAliasedDBColumnName;
     property AliasedDBColumnNameOrExpression: string read GetAliasedDBColumnNameOrExpression;
@@ -488,9 +488,9 @@ type
     property PhysicalName: string read GetPhysicalName;
 
     ///	<summary>
-    ///   Returns the physical database table name (PhysicalName
-    ///	  property) or, if not specified, the ModelName. It is the name to be
-    ///	  used to update the physical table.
+    ///  Returns the physical database table name (PhysicalName
+    ///	 property) or, if not specified, the ModelName. It is the name to be
+    ///	 used to update the physical table.
     /// </summary>
     property DBTableName: string read GetDBTableName;
     property DisplayLabel: string read GetDisplayLabel;
@@ -507,7 +507,9 @@ type
     function FindFieldByPhysicalName(const APhysicalName: string): TKModelField;
     procedure EnumFields(const AProc: TProc<TKModelField>);
 
-    ///	<summary>Returns an array of key field names.</summary>
+    ///	<summary>
+    ///  Returns an array of key field names.
+    /// </summary>
     function GetKeyFieldNames: TStringDynArray;
     ///	<summary>Returns an array of key physical field names.</summary>
     ///	<param name="AQualify">If True, each field name is prefixed with the
@@ -590,79 +592,79 @@ type
     property DatabaseName: string read GetDatabaseName;
 
     ///	<summary>
-    ///	  Loads a set or a page of records into the specified store.
+    ///	 Loads a set or a page of records into the specified store.
     ///	</summary>
     ///	<param name="AStore">
-    ///	  Instance of the store to populate. May be (will probably be) an
-    ///	  instance of an inherited class.
+    ///	 Instance of the store to populate. May be (will probably be) an
+    ///	 instance of an inherited class.
     ///	</param>
     ///	<param name="AFilterExpression">
-    ///	  Optional filter expression. It is commonly a SQL predicate, but it
-    ///	  suffices that it is meaningful to the particular model class.
+    ///	 Optional filter expression. It is commonly a SQL predicate, but it
+    ///	 suffices that it is meaningful to the particular model class.
     ///	</param>
     ///	<param name="ASortExpression">
-    ///	  Optional sort expression. It is commonly a SQL ORDER BY clause, but
-    ///	  it suffices that it is meaningful to the particular model class.
+    ///	 Optional sort expression. It is commonly a SQL ORDER BY clause, but
+    ///	 it suffices that it is meaningful to the particular model class.
     ///	</param>
     ///	<param name="AStart">
-    ///	  Optional: First record to load. If both this argument and ALimit are
-    ///	  0, all records matching the filter are loaded, otherwise only a page
-    ///	  starting from this record and ALimit records long tops.
+    ///	 Optional: First record to load. If both this argument and ALimit are
+    ///	 0, all records matching the filter are loaded, otherwise only a page
+    ///	 starting from this record and ALimit records long tops.
     ///	</param>
     ///	<param name="ALimit">
-    ///	  Maximum number of records to load. It is the page size. Pass 0 in
-    ///	  both this argument and AStart to load all records matching the filter.
+    ///	 Maximum number of records to load. It is the page size. Pass 0 in
+    ///	 both this argument and AStart to load all records matching the filter.
     ///	</param>
     ///	<returns>
-    ///	  Count of actually loaded records.
+    ///	 Count of actually loaded records.
     ///	</returns>
     function LoadRecords(const AStore: TEFTree; const AFilterExpression: string;
       const ASortExpression: string; const AStart: Integer = 0;
       const ALimit: Integer = 0): Integer; virtual; abstract;
 
     ///	<summary>
-    ///	  Saves the specified record.
+    ///	 Saves the specified record.
     ///	</summary>
     ///	<param name="ARecord">
-    ///	  Instance of the record to save. May be (will probably be) an instance
-    ///	  of an inherited class.
+    ///	 Instance of the record to save. May be (will probably be) an instance
+    ///	 of an inherited class.
     ///	</param>
     ///	<param name="APersist">
-    ///	  If True, the record is to be persisted to the underlying data store,
-    ///	  otherwise it should only be prepared now and persisted later (for
-    ///	  example, when saving a detail record this argument is False).
+    ///	 If True, the record is to be persisted to the underlying data store,
+    ///	 otherwise it should only be prepared now and persisted later (for
+    ///	 example, when saving a detail record this argument is False).
     ///	</param>
     ///	<param name="AAfterPersist">
-    ///	  A procedure to be called after successfully persisting the record. It
-    ///	  will only be called if APersist is True and the save goes well.
+    ///	 A procedure to be called after successfully persisting the record. It
+    ///	 will only be called if APersist is True and the save goes well.
     ///	</param>
     ///	<remarks>
-    ///	  In case of errors, this method raises exceptions and does not call
-    ///	  AAfterPersist.
+    ///	 In case of errors, this method raises exceptions and does not call
+    ///	 AAfterPersist.
     ///	</remarks>
     procedure SaveRecord(const ARecord: TEFNode; const APersist: Boolean;
       const AAfterPersist: TProc); virtual; abstract;
     ///	<summary>
-    ///	  Called when a new record is being created in the GUI, after applying
-    ///   any default or cloned values but before applying new record rules.
+    ///	 Called when a new record is being created in the GUI, after applying
+    ///  any default or cloned values but before applying new record rules.
     ///	</summary>
     ///	<param name="ARecord">
-    ///	  Instance of the record just created. May be (will probably be) an instance
-    ///	  of an inherited class.
+    ///	 Instance of the record just created. May be (will probably be) an instance
+    ///	 of an inherited class.
     ///	</param>
     ///	<param name="AIsCloned">
-    ///	  If True, the record was created as a result of a clone operation, which
-    ///   means it should contain values; otherwise it is empty except for the
-    ///   default values.
+    ///	 If True, the record was created as a result of a clone operation, which
+    ///  means it should contain values; otherwise it is empty except for the
+    ///  default values.
     ///	</param>
     procedure BeforeNewRecord(const ARecord: TEFNode; const AIsCloned: Boolean); virtual;
     ///	<summary>
-    ///	  Called when a new record has been created in the GUI, after applying
-    ///   any default or cloned values and new record rules.
+    ///	 Called when a new record has been created in the GUI, after applying
+    ///  any default or cloned values and new record rules.
     ///	</summary>
     ///	<param name="ARecord">
-    ///	  Instance of the record just created. May be (will probably be) an instance
-    ///	  of an inherited class.
+    ///	 Instance of the record just created. May be (will probably be) an instance
+    ///	 of an inherited class.
     ///	</param>
     procedure AfterNewRecord(const ARecord: TEFNode); virtual;
   end;

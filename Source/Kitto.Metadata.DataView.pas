@@ -188,11 +188,17 @@ type
 
     ///	<summary>
     ///  Creates a store with the current field, all key fields of
-    ///	 the referenced model and a concatenation of all key fields (if >1 )
+    ///	 the referenced model and a concatenation of all key fields (if > 1)
     ///  stored as a single field (used by lookups).
-    ///  If reference = nil, an exception is raised.
+    ///  If the field is not a reference field, an exception is raised.
     /// </summary>
     function CreateReferenceStore: TKStore;
+
+    ///	<summary>
+    ///  Creates a store with all fields from the referenced model and fetches
+    ///  the record specified by the key values.
+    /// </summary>
+    function CreateReferencedModelStore(const AKeyValues: Variant): TKStore;
 
     ///	<summary>
     ///	 Extract and returns the model name from the Name. If no model name is
@@ -1463,6 +1469,52 @@ begin
       // Let's assume a concatenation is a string.
       LKeyFieldNames := Join(ModelField.ReferencedModel.GetKeyFieldNames, TKConfig.Instance.MultiFieldSeparator);
       Result.Header.AddField(LKeyFieldNames).DataType := TEFDataTypeFactory.Instance.GetDataType('String');
+    end;
+  except
+    FreeAndNil(Result);
+    raise;
+  end;
+end;
+
+
+function TKViewField.CreateReferencedModelStore(const AKeyValues: Variant): TKStore;
+var
+  I, J: Integer;
+  LField, LSubField: TKModelField;
+  LDBQuery: TEFDBQuery;
+begin
+  Assert(IsReference);
+
+  Result := TKStore.Create;
+  try
+    // Metadata.
+    for I := 0 to ModelField.ReferencedModel.FieldCount - 1 do
+    begin
+      LField := ModelField.ReferencedModel.Fields[I];
+      if LField.IsReference then
+      begin
+        for J := 0 to LField.FieldCount - 1 do
+        begin
+          LSubField := LField.Fields[J];
+          if LField.IsKey or LSubField.IsKey then
+            Result.Key.AddChild(LSubField.FieldName).DataType := LSubField.DataType;
+          Result.Header.AddField(LSubField.FieldName).DataType := LSubField.DataType;
+        end;
+      end
+      else
+      begin
+        if LField.IsKey then
+          Result.Key.AddChild(LField.FieldName).DataType := LField.DataType;
+        Result.Header.AddField(LField.FieldName).DataType := LField.DataType;
+      end;
+    end;
+    // Get data.
+    LDBQuery := TKConfig.Instance.DBConnections[Table.DatabaseName].CreateDBQuery;
+    try
+      TKSQLBuilder.BuildSingletonSelectQuery(ModelField.ReferencedModel, LDBQuery, AKeyValues);
+      Result.Load(LDBQuery, False, True);
+    finally
+      FreeAndNil(LDBQuery);
     end;
   except
     FreeAndNil(Result);
