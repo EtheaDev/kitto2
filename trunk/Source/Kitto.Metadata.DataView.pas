@@ -1479,45 +1479,33 @@ end;
 
 function TKViewField.CreateReferencedModelStore(const AKeyValues: Variant): TKStore;
 var
-  I, J: Integer;
-  LField, LSubField: TKModelField;
   LDBQuery: TEFDBQuery;
+  LStore: TKStore;
 begin
   Assert(IsReference);
 
-  Result := TKStore.Create;
+  LStore := TKStore.Create;
   try
     // Metadata.
-    for I := 0 to ModelField.ReferencedModel.FieldCount - 1 do
-    begin
-      LField := ModelField.ReferencedModel.Fields[I];
-      if LField.IsReference then
+    ModelField.ReferencedModel.EnumPhysicalFields(
+      procedure (AField: TKModelField)
       begin
-        for J := 0 to LField.FieldCount - 1 do
-        begin
-          LSubField := LField.Fields[J];
-          if LField.IsKey or LSubField.IsKey then
-            Result.Key.AddChild(LSubField.FieldName).DataType := LSubField.DataType;
-          Result.Header.AddField(LSubField.FieldName).DataType := LSubField.DataType;
-        end;
-      end
-      else
-      begin
-        if LField.IsKey then
-          Result.Key.AddChild(LField.FieldName).DataType := LField.DataType;
-        Result.Header.AddField(LField.FieldName).DataType := LField.DataType;
-      end;
-    end;
+        if AField.IsKey then
+          LStore.Key.AddChild(AField.FieldName).DataType := AField.DataType;
+        LStore.Header.AddField(AField.FieldName).DataType := AField.DataType;
+      end);
+
     // Get data.
     LDBQuery := TKConfig.Instance.DBConnections[Table.DatabaseName].CreateDBQuery;
     try
       TKSQLBuilder.BuildSingletonSelectQuery(ModelField.ReferencedModel, LDBQuery, AKeyValues);
-      Result.Load(LDBQuery, False, True);
+      LStore.Load(LDBQuery, False, True);
     finally
       FreeAndNil(LDBQuery);
     end;
+    Result := LStore;
   except
-    FreeAndNil(Result);
+    FreeAndNil(LStore);
     raise;
   end;
 end;

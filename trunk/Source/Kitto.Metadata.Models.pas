@@ -505,7 +505,16 @@ type
     function FieldByName(const AName: string): TKModelField;
     function FindField(const AName: string): TKModelField;
     function FindFieldByPhysicalName(const APhysicalName: string): TKModelField;
+    ///	<summary>
+    ///  Calls AProc for all first-level fields in the model.
+    /// </summary>
     procedure EnumFields(const AProc: TProc<TKModelField>);
+    ///	<summary>
+    ///  Calls AProc for all first-level fields in the model except fields with
+    ///  subfields (such as reference fields). In such cases, calls AProc for
+    ///  each subfield and never for the parent field.
+    /// </summary>
+    procedure EnumPhysicalFields(const AProc: TProc<TKModelField>);
 
     ///	<summary>
     ///  Returns an array of key field names.
@@ -793,6 +802,25 @@ begin
   if Assigned(AProc) then
     for I := 0 to FieldCount - 1 do
       AProc(Fields[I]);
+end;
+
+procedure TKModel.EnumPhysicalFields(const AProc: TProc<TKModelField>);
+var
+  I, J: Integer;
+begin
+  if Assigned(AProc) then
+  begin
+    for I := 0 to FieldCount - 1 do
+    begin
+      if Fields[I].FieldCount > 0 then
+      begin
+        for J := 0 to Fields[I].FieldCount - 1 do
+          AProc(Fields[I].Fields[J]);
+      end
+      else
+        AProc(Fields[I]);
+    end;
+  end;
 end;
 
 function TKModel.FieldByName(const AName: string): TKModelField;
