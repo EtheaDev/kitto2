@@ -877,21 +877,17 @@ end;
 procedure TKSQLBuilder.InternalBuildSingletonSelectQuery(const AModel: TKModel;
   const ADBQuery: TEFDBQuery; const AKeyValues: Variant);
 var
-  I, J: Integer;
   LCommandText: string;
+  I: Integer;
 begin
   Clear;
   FModel := AModel;
-  for I := 0 to AModel.FieldCount - 1 do
-  begin
-    if AModel.Fields[I].IsReference then
+
+  FModel.EnumPhysicalFields(
+    procedure (AField: TKModelField)
     begin
-      for J := 0 to AModel.Fields[I].FieldCount - 1 do
-        AddSelectTerm(AModel.Fields[I].Fields[J].AliasedDBColumnNameOrExpression);
-    end
-    else
-      AddSelectTerm(AModel.Fields[I].AliasedDBColumnNameOrExpression);
-  end;
+      AddSelectTerm(AField.AliasedDBColumnNameOrExpression);
+    end);
 
   if ADBQuery.Prepared then
     ADBQuery.Prepared := False;
