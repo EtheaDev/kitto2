@@ -29,6 +29,7 @@ uses
   , Kitto.Ext.Form
   , Kitto.Ext.GridPanel
   , Kitto.Ext.HtmlPanel
+  , Kitto.Ext.Login
   , Kitto.Ext.List
   , Kitto.Ext.Rules
   , Kitto.Ext.StandardControllers

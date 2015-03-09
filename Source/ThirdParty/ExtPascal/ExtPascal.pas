@@ -3023,16 +3023,19 @@ var
   LItem: TExtJSCode;
   I: Integer;
 begin
-  LItem := TExtJSCode.Create(Self, AObject);
-  try
-    LItem.AddDependency(FindObjectCreateItem(AObject));
-    LItem.JSCode := AJSCode;
-    for I := Low(AAdditionalDependencies) to High(AAdditionalDependencies) do
-      LItem.AddDependency(FindObjectCreateItem(AAdditionalDependencies[I]));
-    FList.Add(LItem);
-  except
-    FreeAndNil(LItem);
-    raise;
+  if AJSCode <> '' then
+  begin
+    LItem := TExtJSCode.Create(Self, AObject);
+    try
+      LItem.AddDependency(FindObjectCreateItem(AObject));
+      LItem.JSCode := AJSCode;
+      for I := Low(AAdditionalDependencies) to High(AAdditionalDependencies) do
+        LItem.AddDependency(FindObjectCreateItem(AAdditionalDependencies[I]));
+      FList.Add(LItem);
+    except
+      FreeAndNil(LItem);
+      raise;
+    end;
   end;
 end;
 

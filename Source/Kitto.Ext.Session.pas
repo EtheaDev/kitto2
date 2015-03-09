@@ -24,9 +24,9 @@ uses
   SysUtils, Classes, Generics.Collections,
   gnugettext, superobject,
   ExtPascal, Ext, ExtPascalClasses,
-  EF.Tree, EF.Macros, EF.Intf, EF.Localization,
+  EF.Tree, EF.Macros, EF.Intf, EF.Localization, EF.ObserverIntf,
   Kitto.Ext.Base, Kitto.Config, Kitto.Metadata.Views,
-  Kitto.Ext.Login, Kitto.Ext.Controller;
+  Kitto.Ext.Controller;
 
 type
   IKExtViewHost = interface(IEFInterface)
@@ -101,11 +101,10 @@ type
     function GetControllerToRemove: TObject; override;
   end;
 
-  TKExtSession = class(TExtSession)
+  TKExtSession = class(TExtSession, IEFInterface, IEFObserver)
   private
     FHomeController: TObject;
     FConfig: TKConfig;
-    FLoginWindow: TKExtLoginWindow;
     FViewHost: IKExtViewHost;
     FStatusHost: TKExtStatusBar;
     FSessionId: string;
@@ -121,9 +120,14 @@ type
     FHomeViewNodeName: string;
     FMobileBrowserDetectionDone: Boolean;
     FIsMobileBrowser: Boolean;
+    FLoginNode: TEFNode;
+    FOwnsLoginNode: Boolean;
+    FLoginController: TObject;
+    FViewportWidth: Integer;
+    FViewportContent: string;
     procedure LoadLibraries;
     procedure DisplayHomeView;
-    procedure DisplayLoginWindow;
+    procedure DisplayLoginView;
     procedure ReloadOrDisplayHomeView;
     function GetConfig: TKConfig;
     procedure ClearStatus;
@@ -146,6 +150,9 @@ type
     ///	</summary>
     procedure EnsureDynamicScript(const AScriptBaseName: string);
     function GetHomeView: TKView;
+    function GetLoginView: TKView;
+    procedure FreeLoginNode;
+    procedure SetViewportContent;
   protected
     function BeforeHandleRequest: Boolean; override;
     procedure AfterHandleRequest; override;
@@ -160,9 +167,24 @@ type
     destructor Destroy; override;
     class constructor Create;
     class destructor Destroy;
+    { IInterface }
+    function QueryInterface(const IID: TGUID; out Obj): HRESULT; stdcall;
+    function _AddRef: Integer; stdcall;
+    function _Release: Integer; stdcall;
+    { IEFInterface }
+    function AsObject: TObject;
+    { IEFObserver }
+    procedure UpdateObserver(const ASubject: IEFSubject; const AContext: string = '');
   public
     function FindPageTemplate(const APageName: string): string;
     function GetPageTemplate(const APageName: string): string;
+
+    ///	<summary>
+    ///	 Checks user credentials (fetched from Query parameters UserName and Passwords)
+    ///  and returns True if the current authenticator allows them, or if the
+    ///  user was already authenticated in this session.
+    ///	</summary>
+    function Authenticate: Boolean;
 
     procedure Refresh; override;
     ///	<summary>
@@ -279,6 +301,11 @@ type
     ///  The user agent detection is performed once per session and then cached.
     ///	</summary>
     function IsMobileBrowser: Boolean;
+
+    ///	<summary>
+    ///	 Viewport width in mobile applications.
+    ///	</summary>
+    property ViewportWidth: Integer read FViewportWidth;
 
     ///	<summary>
     ///	 True if tooltips are enabled for the session. By default, tooltips
@@ -406,34 +433,17 @@ begin
 end;
 
 function TKExtSession.GetViewportContent: string;
-var
-  LContent: TEFPairs;
-  LPair: TEFPair;
-  LDefaultPairs: TEFPairs;
-
-  function GetSeparator: string;
-  begin
-    // IE on Windows Phone wants comma, others want space.
-    if RequestHeader['HTTP_USER_AGENT'].Contains('Windows Phone') then
-      Result := ', '
-    else
-      Result := ' ';
-  end;
-
 begin
-  Result := '';
-  //Default Viewport content for mobile browsers:
-  //width 480 (optimal for Tablets) and user-scalable 0
-  SetLength(LDefaultPairs, 2);
-  LDefaultPairs[0] := TEFPair.Create('width', '480');
-  LDefaultPairs[1] := TEFPair.Create('user-scalable', '0');
-  LContent := GetHomeView.GetChildrenAsPairs('MobileSettings/ViewportContent', True, LDefaultPairs);
-  for LPair in LContent do
+  Result := FViewportContent;
+end;
+
+procedure TKExtSession.FreeLoginNode;
+begin
+  // Free login node if one was manufactured.
+  if FOwnsLoginNode and Assigned(FLoginNode) then
   begin
-    if Result = '' then
-      Result := LPair.Key + '=' + LPair.Value
-    else
-      Result := Result + GetSeparator + LPair.Key + '=' + LPair.Value;
+    Config.Views.DeleteNonpersistentObject(FLoginNode);
+    FreeAndNil(FLoginNode);
   end;
 end;
 
@@ -441,11 +451,6 @@ destructor TKExtSession.Destroy;
 var
   LUploadDirectory: string;
 begin
-  // Make sure objects find the session threadvar assigned when they are
-  // being garbage collected in case the session is being freed by a
-  // different thread. Otherwise objects don't mark themselves off the
-  // GC upon destruction and risk to be destroyed multiple times.
-  // _CurrentWebSession := Self;
   // Delete upload folder only for valid sessions.
   if FSessionId <> '' then
   begin
@@ -453,11 +458,13 @@ begin
     if DirectoryExists(LUploadDirectory) then
       DeleteTree(LUploadDirectory);
   end;
+  FreeLoginNode;
   FConfig.MacroExpansionEngine.RemoveExpander(FMacroExpander);
   FreeAndNil(FMacroExpander);
   FreeAndNil(FConfig);
   FreeAndNil(FUploadedFiles);
   FreeAndNil(FHomeController);
+  FreeAndNil(FLoginController);
   FreeAndNil(FGettextInstance);
   FreeAndNil(FDynamicScripts);
   FreeAndNil(FDynamicStyles);
@@ -532,7 +539,8 @@ begin
     if not FRefreshingLanguage then
       Config.Authenticator.Logout;
     FHomeController := nil;
-    FLoginWindow := nil;
+    FLoginController := nil;
+    FreeLoginNode;
     FOpenControllers.Clear;
     FViewHost := nil;
     FStatusHost := nil;
@@ -550,6 +558,7 @@ begin
     end;
   end;
 
+  SetViewportContent;
   ResponseItems.ExecuteJSCode('kittoInit();');
   SetAjaxTimeout;
   if TooltipsEnabled then
@@ -564,19 +573,83 @@ begin
   if FAutoOpenViewName <> '' then
     Queries.Values['view'] := '';
   FHomeViewNodeName := Queries.Values['home'];
-  if TKExtLoginWindow.Authenticate(Self) then
+
+  if Authenticate then
     DisplayHomeView
   else
-    DisplayLoginWindow;
+    DisplayLoginView;
   FRefreshingLanguage := False;
 end;
 
-procedure TKExtSession.DisplayLoginWindow;
+function TKExtSession.Authenticate: Boolean;
+var
+  LAuthData: TEFNode;
+  LUserName: string;
+  LPassword: string;
 begin
-  FreeAndNil(FLoginWindow);
-  FLoginWindow := TKExtLoginWindow.Create(ObjectCatalog);
-  FLoginWindow.OnLogin := ReloadOrDisplayHomeView;
-  FLoginWindow.Show;
+  if Config.Authenticator.IsAuthenticated then
+    Result := True
+  else
+  begin
+    LAuthData := TEFNode.Create;
+    try
+      Config.Authenticator.DefineAuthData(LAuthData);
+      LUserName := Query['UserName'];
+      if LUserName <> '' then
+        LAuthData.SetString('UserName', LUserName);
+      LPassword := Query['Password'];
+      if Query['Password'] <> '' then
+        LAuthData.SetString('Password', LPassword);
+      Result := Config.Authenticator.Authenticate(LAuthData);
+    finally
+      LAuthData.Free;
+    end;
+  end;
+end;
+
+function TKExtSession.GetLoginView: TKView;
+begin
+  if not Assigned(FLoginNode) then
+  begin
+    FOwnsLoginNode := False;
+    FLoginNode := Config.Config.FindNode('Login');
+    if not Assigned(FLoginNode) then
+    begin
+      Result := Config.Views.FindView('Login');
+      if Assigned(Result) then
+        Exit;
+
+      FLoginNode := TEFNode.Create('Login');
+      try
+        FOwnsLoginNode := True;
+        FLoginNode.SetString('Controller', 'Login');
+      except
+        FreeAndNil(FLoginNode);
+        FOwnsLoginNode := False;
+        raise;
+      end;
+    end;
+  end;
+  Result := Config.Views.FindViewByNode(FLoginNode);
+end;
+
+procedure TKExtSession.DisplayLoginView;
+var
+  LLoginView: TKView;
+  LIntf: IKExtController;
+  LType: string;
+begin
+  FreeAndNil(FLoginController);
+  LLoginView := GetLoginView;
+  if LLoginView.ControllerType = '' then
+    LType := 'Login'
+  else
+    LTYpe := '';
+  FLoginController := TKExtControllerFactory.Instance.CreateController(ObjectCatalog, LLoginView, nil, nil, Self, LType).AsObject;
+  if Supports(FLoginController, IKExtController, LIntf) then
+    LIntf.Display;
+  if FLoginController is TExtContainer then
+    TExtContainer(FLoginController).DoLayout;
 end;
 
 function TKExtSession.FindUploadedFile(
@@ -676,6 +749,14 @@ end;
 procedure TKExtSession.Navigate(const AURL: string);
 begin
   ResponseItems.ExecuteJSCode(Format('window.open("%s", "_blank");', [AURL]));
+end;
+
+function TKExtSession.QueryInterface(const IID: TGUID; out Obj): HRESULT;
+begin
+  if GetInterface(IID, Obj) then
+    Result := 0
+  else
+    Result := E_NOINTERFACE;
 end;
 
 procedure TKExtSession.Refresh;
@@ -956,6 +1037,11 @@ begin
   Theme := Config.Config.GetString('Ext/Theme');
 end;
 
+function TKExtSession.AsObject: TObject;
+begin
+  Result := Self;
+end;
+
 function TKExtSession.BeforeHandleRequest: Boolean;
 begin
   TEFLogger.Instance.LogStrings('BeforeHandleRequest', Queries,
@@ -1000,6 +1086,7 @@ begin
   FDynamicStyles.Sorted := True;
   FDynamicStyles.Duplicates := dupError;
   FMobileBrowserDetectionDone := False;
+  FOwnsLoginNode := False;
 end;
 
 class constructor TKExtSession.Create;
@@ -1034,6 +1121,53 @@ begin
   Result := SetIconStyle(AView.ImageName, AImageName, ACustomPrefix, ACustomRules);
 end;
 
+procedure TKExtSession.SetViewportContent;
+var
+  LContent: TEFPairs;
+  LPair: TEFPair;
+  LDefaultPairs: TEFPairs;
+
+  function GetSeparator: string;
+  begin
+    // IE on Windows Phone wants comma, others want space.
+    if RequestHeader['HTTP_USER_AGENT'].Contains('Windows Phone') then
+      Result := ', '
+    else
+      Result := ' ';
+  end;
+
+  procedure SetViewportWidth;
+  var
+    I: Integer;
+  begin
+    for I := Low(LContent) to High(LContent) do
+    begin
+      if SameText(LContent[I].Key, 'width') then
+      begin
+        FViewportWidth := LContent[I].Value.ToInteger;
+        Break;
+      end;
+    end;
+  end;
+
+begin
+  FViewportContent := '';
+  //Default Viewport content for mobile browsers:
+  //width 480 (optimal for Tablets) and user-scalable 0
+  SetLength(LDefaultPairs, 2);
+  LDefaultPairs[0] := TEFPair.Create('width', '480');
+  LDefaultPairs[1] := TEFPair.Create('user-scalable', '0');
+  LContent := GetHomeView.GetChildrenAsPairs('MobileSettings/ViewportContent', True, LDefaultPairs);
+  SetViewportWidth;
+  for LPair in LContent do
+  begin
+    if FViewportContent = '' then
+      FViewportContent := LPair.Key + '=' + LPair.Value
+    else
+      FViewportContent := FViewportContent + GetSeparator + LPair.Key + '=' + LPair.Value;
+  end;
+end;
+
 function TKExtSession.SetIconStyle(const ADefaultImageName: string;
   const AImageName: string; const ACustomPrefix: string;
   const ACustomRules: string): string;
@@ -1060,6 +1194,22 @@ end;
 function TKExtSession.TooltipsEnabled: Boolean;
 begin
   Result := not IsMobileBrowser;
+end;
+
+procedure TKExtSession.UpdateObserver(const ASubject: IEFSubject; const AContext: string);
+begin
+  if (ASubject.AsObject = FLoginController) and SameText(AContext, 'LoggedIn') then
+    ReloadOrDisplayHomeView;
+end;
+
+function TKExtSession._AddRef: Integer;
+begin
+  Result := -1;
+end;
+
+function TKExtSession._Release: Integer;
+begin
+  Result := -1;
 end;
 
 { TKExtUploadedFile }

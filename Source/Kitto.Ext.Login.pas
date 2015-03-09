@@ -22,36 +22,31 @@ interface
 
 uses
   ExtPascal, Ext, ExtForm,
-  Kitto.Ext.Base, Kitto.Ext.HtmlPanel;
+  Kitto.Ext.Base, Kitto.Ext.BorderPanel;
 
 type
-  TKExtOnLogin = procedure of object;
-
   TKExtLoginWindow = class(TKExtWindowControllerBase)
   private
-    FUseLanguageSelector: Boolean;
-    FHtmlPanel: TKExtHtmlPanelController;
+    FBorderPanel: TKExtBorderPanelController;
     FUserName: TExtFormTextField;
     FPassword: TExtFormTextField;
     FLanguage: TExtFormComboBox;
     FLoginButton: TKExtButton;
-    FOnLogin: TKExtOnLogin;
     FStatusBar: TKExtStatusBar;
     FFormPanel: TExtFormFormPanel;
-    function GetHtmlPanel: string;
-    function GetHtmlPanelWidth: integer;
-    function GetHtmlPanelHeight: integer;
-    function GetLabelWidth: integer;
-  protected
-    procedure InitDefaults; override;
+    function GetExtraWidth: Integer;
+    function GetExtraHeight: Integer;
+    function GetLabelWidth: Integer;
+    function GetLocalStorageMode: string;
+    function GetLocalStorageSaveJSCode(const ALocalStorageMode: string): string;
+    function GetLocalStorageRetrieveJSCode(const ALocalStorageMode: string): string;
+  strict protected
+    procedure DoDisplay; override;
   public
-    property OnLogin: TKExtOnLogin read FOnLogin write FOnLogin;
-    property HtmlPanel: string read GetHtmlPanel;
-    property HtmlPanelWidth: integer read GetHtmlPanelWidth;
-    property HtmlPanelHeight: integer read GetHtmlPanelHeight;
-    property LabelWidth: integer read GetLabelWidth;
-
-    class function Authenticate(const ASession: TExtSession): Boolean;
+    property ExtraWidth: Integer read GetExtraWidth;
+    property ExtraHeight: Integer read GetExtraHeight;
+    property LabelWidth: Integer read GetLabelWidth;
+    property LocalStorageMode: string read GetLocalStorageMode;
   published
     procedure DoLogin;
   end;
@@ -62,79 +57,19 @@ uses
   SysUtils, Math,
   ExtPascalUtils,
   EF.Classes, EF.Localization, EF.Tree, EF.Macros,
-  Kitto.Types, Kitto.Ext.Session;
+  Kitto.Types,
+  Kitto.Ext.Session, Kitto.Ext.Controller;
 
 { TKExtLoginWindow }
 
-procedure TKExtLoginWindow.DoLogin;
-begin
-  if Authenticate(Session) then
-  begin
-    Session.ResponseItems.ExecuteJSCode(Format('Ext.TaskMgr.stop(%s.enableTask);', [JSName]));
-    Close;
-    if Assigned(FOnLogin) then
-      FOnLogin;
-  end
-  else
-  begin
-    FStatusBar.SetErrorStatus(_('Invalid login.'));
-    FPassword.Focus(False, 750);
-  end;
-end;
-
-function TKExtLoginWindow.GetLabelWidth: integer;
-begin
-  Result := Session.Config.Config.GetInteger('LoginWindowAppearance/LabelWidth');
-end;
-
-function TKExtLoginWindow.GetHtmlPanelHeight: integer;
-begin
-  Result := Session.Config.Config.GetInteger('LoginWindowAppearance/HtmlPanelHeight');
-end;
-
-function TKExtLoginWindow.GetHtmlPanel: string;
-begin
-  Result := Session.Config.Config.GetString('LoginWindowAppearance/HtmlPanel');
-end;
-
-function TKExtLoginWindow.GetHtmlPanelWidth: integer;
-begin
-  Result := Session.Config.Config.GetInteger('LoginWindowAppearance/HtmlPanelWidth');
-end;
-
-class function TKExtLoginWindow.Authenticate(const ASession: TExtSession): Boolean;
+procedure TKExtLoginWindow.DoDisplay;
+const
+  STANDARD_HEIGHT = 82;
+  CONTROL_HEIGHT = 30;
 var
-  LAuthData: TEFNode;
-  LSession: TKExtSession;
-  LUserName: string;
-  LPassword: string;
-begin
-  Assert(ASession is TKExtSession);
-
-  LSession := TKExtSession(ASession);
-  if LSession.Config.Authenticator.IsAuthenticated then
-    Result := True
-  else
-  begin
-    LAuthData := TEFNode.Create;
-    try
-      LSession.Config.Authenticator.DefineAuthData(LAuthData);
-      LUserName := LSession.Query['UserName'];
-      if LUserName <> '' then
-        LAuthData.SetString('UserName', LUserName);
-      LPassword := LSession.Query['Password'];
-      if LSession.Query['Password'] <> '' then
-        LAuthData.SetString('Password', LPassword);
-      Result := LSession.Config.Authenticator.Authenticate(LAuthData);
-    finally
-      LAuthData.Free;
-    end;
-  end;
-end;
-
-procedure TKExtLoginWindow.InitDefaults;
-var
-  LWidth, LHeight, LLabelWidth, LEditWidth: integer;
+  LWidth, LHeight, LLabelWidth, LEditWidth: Integer;
+  LUseLanguageSelector: Boolean;
+  LFormPanelBodyStyle: string;
 
   function GetEnableButtonJS: string;
   begin
@@ -151,65 +86,80 @@ var
       [FUserName.JSName, FPassword.JSName, FLoginButton.JSName, FLoginButton.JSName, FLoginButton.JSName]);
   end;
 
+  function GetHorizontalMargin: Integer;
+  begin
+    if Maximized then
+      Result := Session.ViewportWidth div 4
+    else
+      Result := 40;
+  end;
+
 begin
-  inherited;
-  FUseLanguageSelector := Session.Config.LanguagePerSession;
-  LWidth := Max(HtmlPanelWidth, 228);
-  LHeight := Max(HtmlPanelHeight, 0);
-  LLabelWidth := Max(LabelWidth, 80);
-  LEditWidth := Max(LWidth - LLabelWidth - 10, 136);
+  Maximized := Session.IsMobileBrowser;
+  Border := not Maximized;
+  if Maximized then
+    LWidth := Session.ViewportWidth
+  else
+    LWidth := Max(ExtraWidth, 228);
+  LHeight := Max(ExtraHeight, 0) + STANDARD_HEIGHT;
+
+  if Maximized then
+  begin
+    LLabelWidth := Trunc(Session.ViewportWidth * 0.4);
+    LEditWidth := Trunc(Session.ViewportWidth * 0.6) - GetHorizontalMargin;
+  end
+  else
+  begin
+    LLabelWidth := Max(LabelWidth, 80);
+    LEditWidth := Max(LWidth - LLabelWidth - GetHorizontalMargin, 136);
+  end;
+  if not Maximized then
+    Width := LWidth;
+  LUseLanguageSelector := Session.Config.LanguagePerSession;
 
   Title := _(Session.Config.AppTitle);
-  Width := LWidth + 20;
-  if FUseLanguageSelector then
-    Height := LHeight + (30 * 3) + 82
-  else
-    Height := LHeight + (30 * 2) + 82;
   Closable := False;
   Resizable := False;
-  //Maximized := Session.IsMobileBrowser;
-  //Border := not Maximized;
+
+  FBorderPanel := TKExtBorderPanelController.CreateAndAddTo(Items);
+  FBorderPanel.Config.Assign(Config.FindNode('BorderPanel'));
+  //FBorderPanel.Border := False;
+  FBorderPanel.Frame := False;
+  FBorderPanel.View := View;
+  FBorderPanel.Display;
 
   FStatusBar := TKExtStatusBar.Create(Self);
   FStatusBar.DefaultText := '';
   FStatusBar.BusyText := _('Logging in...');
+  Bbar := FStatusBar;
 
-  FFormPanel := TExtFormFormPanel.CreateAndAddTo(Items);
+  FFormPanel := TExtFormFormPanel.CreateAndAddTo(FBorderPanel.Items);
   FFormPanel.Region := rgCenter;
-  FFormPanel.LabelWidth := LLabelWidth;
   FFormPanel.LabelAlign := laRight;
+  FFormPanel.LabelWidth := LLabelWidth;
   FFormPanel.Border := False;
-  FFormPanel.BodyStyle := SetPaddings(5, 5);
   FFormPanel.Frame := False;
+  LFormPanelBodyStyle := Config.GetString('FormPanel/BodyStyle');
+  if LFormPanelBodyStyle <> '' then
+    FFormPanel.BodyStyle := LFormPanelBodyStyle;
   FFormPanel.MonitorValid := True;
-  FFormPanel.Bbar := FStatusBar;
 
   FLoginButton := TKExtButton.CreateAndAddTo(FStatusBar.Items);
   FLoginButton.SetIconAndScale('login', 'medium');
   FLoginButton.Text := _('Login');
 
-  if HtmlPanel <> '' then
-  begin
-    FHtmlPanel := TKExtHtmlPanelController.CreateAndAddTo(FFormPanel.Items);
-    FHtmlPanel.Html := TEFMacroExpansionEngine.Instance.Expand(HtmlPanel);
-    FHtmlPanel.Border := False;
-    FHtmlPanel.Width := HtmlPanelWidth;
-    FHtmlPanel.Height := HtmlPanelHeight;
-    //Create a separator of 4 pixels
-    with TExtBoxComponent.CreateAndAddTo(FFormPanel.Items) do
-    begin
-      Height := 4;
-    end;
-  end;
+  with TExtBoxComponent.CreateAndAddTo(FFormPanel.Items) do
+    Height := 10;
 
   FUserName := TExtFormTextField.CreateAndAddTo(FFormPanel.Items);
   FUserName.Name := 'UserName';
   FUserName.Value := Session.Config.Authenticator.AuthData.GetExpandedString('UserName');
   FUserName.FieldLabel := _('User Name');
   FUserName.AllowBlank := False;
-  FUserName.Width := LEditWidth;
   FUserName.EnableKeyEvents := True;
   FUserName.SelectOnFocus := True;
+  FUserName.Width := LEditWidth;
+  Inc(LHeight, CONTROL_HEIGHT);
 
   FPassword := TExtFormTextField.CreateAndAddTo(FFormPanel.Items);
   FPassword.Name := 'Password';
@@ -217,9 +167,10 @@ begin
   FPassword.FieldLabel := _('Password');
   FPassword.InputType := itPassword;
   FPassword.AllowBlank := False;
-  FPassword.Width := LEditWidth;
   FPassword.EnableKeyEvents := True;
   FPassword.SelectOnFocus := True;
+  FPassword.Width := LEditWidth;
+  Inc(LHeight, CONTROL_HEIGHT);
 
   FUserName.On('specialkey', JSFunction('field, e', GetSubmitJS));
   FPassword.On('specialkey', JSFunction('field, e', GetSubmitJS));
@@ -229,7 +180,7 @@ begin
     '  run: function() {' + GetEnableButtonJS + '},' + sLineBreak +
     '  interval: 500});', [JSName]));
 
-  if FUseLanguageSelector then
+  if LUseLanguageSelector then
   begin
     FLanguage := TExtFormComboBox.CreateAndAddTo(FFormPanel.Items);
     FLanguage.StoreArray := JSArray('["it", "Italiano"], ["en", "English"]');
@@ -238,11 +189,12 @@ begin
     if FLanguage.Value = '' then
       FLanguage.Value := Session.Config.Config.GetString('LanguageId');
     FLanguage.FieldLabel := _('Language');
-    FLanguage.Width := LEditWidth;
     //FLanguage.EnableKeyEvents := True;
     //FLanguage.SelectOnFocus := True;
     FLanguage.ForceSelection := True;
     FLanguage.TriggerAction := 'all'; // Disable filtering list items based on current value.
+    FLanguage.Width := LEditWidth;
+    Inc(LHeight, CONTROL_HEIGHT);
   end
   else
     FLanguage := nil;
@@ -263,6 +215,70 @@ begin
     FPassword.Focus(False, 750)
   else
     FUserName.Focus(False, 750);
+
+  Height := LHeight;
+
+  On('render', JSFunction(GetLocalStorageRetrieveJSCode(LocalStorageMode)));
+  inherited;
 end;
+
+function TKExtLoginWindow.GetLocalStorageSaveJSCode(const ALocalStorageMode: string): string;
+begin
+  Result := '';
+  if SameText(ALocalStorageMode, 'UserName') or SameText(ALocalStorageMode, 'Password') then
+    Result := Result + 'localStorage.' + Session.Config.AppName + '_UserName = "' + Session.Query['UserName'] + '";';
+  if SameText(ALocalStorageMode, 'Password') then
+    Result := Result + 'localStorage.' + Session.Config.AppName + '_Password = "' + Session.Query['Password'] + '";';
+end;
+
+function TKExtLoginWindow.GetLocalStorageMode: string;
+begin
+  Result := Config.GetString('LocalStorageMode');
+end;
+
+function TKExtLoginWindow.GetLocalStorageRetrieveJSCode(const ALocalStorageMode: string): string;
+begin
+  if SameText(ALocalStorageMode, 'UserName') or SameText(ALocalStorageMode, 'Password') then
+    Result := Result + FUserName.JSName + '.setValue(localStorage.' + Session.Config.AppName + '_UserName);';
+  if SameText(ALocalStorageMode, 'Password') then
+    Result := Result + FPassword.JSName + '.setValue(localStorage.' + Session.Config.AppName + '_Password);';
+end;
+
+procedure TKExtLoginWindow.DoLogin;
+begin
+  if Session.Authenticate then
+  begin
+    Session.ResponseItems.ExecuteJSCode(Format('Ext.TaskMgr.stop(%s.enableTask);', [JSName]));
+    Session.ResponseItems.ExecuteJSCode(GetLocalStorageSaveJSCode(LocalStorageMode));
+    Close;
+    NotifyObservers('LoggedIn');
+  end
+  else
+  begin
+    FStatusBar.SetErrorStatus(_('Invalid login.'));
+    FPassword.Focus(False, 750);
+  end;
+end;
+
+function TKExtLoginWindow.GetLabelWidth: Integer;
+begin
+  Result := Config.GetInteger('LabelWidth');
+end;
+
+function TKExtLoginWindow.GetExtraHeight: Integer;
+begin
+  Result := Config.GetInteger('ExtraHeight');
+end;
+
+function TKExtLoginWindow.GetExtraWidth: Integer;
+begin
+  Result := Config.GetInteger('ExtraWidth');
+end;
+
+initialization
+  TKExtControllerRegistry.Instance.RegisterClass('Login', TKExtLoginWindow);
+
+finalization
+  TKExtControllerRegistry.Instance.UnregisterClass('Login');
 
 end.
