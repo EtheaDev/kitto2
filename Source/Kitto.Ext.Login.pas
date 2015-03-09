@@ -34,12 +34,15 @@ type
     FLoginButton: TKExtButton;
     FStatusBar: TKExtStatusBar;
     FFormPanel: TExtFormFormPanel;
+    FLocalStorageEnabled: TExtFormCheckbox;
     function GetExtraWidth: Integer;
     function GetExtraHeight: Integer;
     function GetLabelWidth: Integer;
     function GetLocalStorageMode: string;
     function GetLocalStorageSaveJSCode(const ALocalStorageMode: string): string;
     function GetLocalStorageRetrieveJSCode(const ALocalStorageMode: string): string;
+    function GetLocalStorageAskUser: Boolean;
+    function GetLocalStorageAskUserDefault: Boolean;
   strict protected
     procedure DoDisplay; override;
   public
@@ -70,6 +73,7 @@ var
   LWidth, LHeight, LLabelWidth, LEditWidth: Integer;
   LUseLanguageSelector: Boolean;
   LFormPanelBodyStyle: string;
+  LLocalStorageMode: string;
 
   function GetEnableButtonJS: string;
   begin
@@ -105,12 +109,12 @@ begin
 
   if Maximized then
   begin
-    LLabelWidth := Trunc(Session.ViewportWidth * 0.4);
-    LEditWidth := Trunc(Session.ViewportWidth * 0.6) - GetHorizontalMargin;
+    LLabelWidth := Trunc(Session.ViewportWidth * 0.5);
+    LEditWidth := Trunc(Session.ViewportWidth * 0.5) - GetHorizontalMargin;
   end
   else
   begin
-    LLabelWidth := Max(LabelWidth, 80);
+    LLabelWidth := Max(LabelWidth, 100);
     LEditWidth := Max(LWidth - LLabelWidth - GetHorizontalMargin, 136);
   end;
   if not Maximized then
@@ -199,12 +203,41 @@ begin
   else
     FLanguage := nil;
 
-  if Assigned(FLanguage) then
-    FLoginButton.Handler := Ajax(DoLogin, ['Dummy', FStatusBar.ShowBusy,
-      'UserName', FUserName.GetValue, 'Password', FPassword.GetValue, 'Language', FLanguage.GetValue])
+  LLocalStorageMode := GetLocalStorageMode;
+  if (LLocalStorageMode <> '') and GetLocalStorageAskUser then
+  begin
+    FLocalStorageEnabled := TExtFormCheckbox.CreateAndAddTo(FFormPanel.Items);
+    FLocalStorageEnabled.Name := 'LocalStorageEnabled';
+    FLocalStorageEnabled.Checked := GetLocalStorageAskUserDefault;
+    if SameText(LLocalStorageMode, 'Password') then
+      FLocalStorageEnabled.FieldLabel := _('Remember Credentials')
+    else
+      FLocalStorageEnabled.FieldLabel := _('Remember User Name');
+    Inc(LHeight, CONTROL_HEIGHT);
+  end
   else
-    FLoginButton.Handler := Ajax(DoLogin, ['Dummy', FStatusBar.ShowBusy,
-      'UserName', FUserName.GetValue, 'Password', FPassword.GetValue]);
+    FLocalStorageEnabled := nil;
+
+  if Assigned(FLanguage) then
+  begin
+    if Assigned(FLocalStorageEnabled) then
+      FLoginButton.Handler := Ajax(DoLogin, ['Dummy', FStatusBar.ShowBusy,
+        'UserName', FUserName.GetValue, 'Password', FPassword.GetValue, 'Language', FLanguage.GetValue,
+        'LocalStorageEnabled', FLocalStorageEnabled.GetValue])
+    else
+      FLoginButton.Handler := Ajax(DoLogin, ['Dummy', FStatusBar.ShowBusy,
+        'UserName', FUserName.GetValue, 'Password', FPassword.GetValue, 'Language', FLanguage.GetValue]);
+  end
+  else
+  begin
+    if Assigned(FLocalStorageEnabled) then
+      FLoginButton.Handler := Ajax(DoLogin, ['Dummy', FStatusBar.ShowBusy,
+        'UserName', FUserName.GetValue, 'Password', FPassword.GetValue,
+        'LocalStorageEnabled', FLocalStorageEnabled.GetValue])
+    else
+      FLoginButton.Handler := Ajax(DoLogin, ['Dummy', FStatusBar.ShowBusy,
+        'UserName', FUserName.GetValue, 'Password', FPassword.GetValue]);
+  end;
 
   if Assigned(FLanguage) then
     FLoginButton.Disabled := (FUserName.Value = '') or (FPassword.Value = '') or (FLanguage.Value = '')
@@ -223,17 +256,49 @@ begin
 end;
 
 function TKExtLoginWindow.GetLocalStorageSaveJSCode(const ALocalStorageMode: string): string;
+
+  function IfChecked: string;
+  begin
+    if Assigned(FLocalStorageEnabled) then
+      Result := 'if (' + FLocalStorageEnabled.JSName + '.getValue())'
+    else
+      Result := 'if (true)';
+  end;
+
 begin
   Result := '';
-  if SameText(ALocalStorageMode, 'UserName') or SameText(ALocalStorageMode, 'Password') then
-    Result := Result + 'localStorage.' + Session.Config.AppName + '_UserName = "' + Session.Query['UserName'] + '";';
-  if SameText(ALocalStorageMode, 'Password') then
-    Result := Result + 'localStorage.' + Session.Config.AppName + '_Password = "' + Session.Query['Password'] + '";';
+  if (ALocalStorageMode <> '') then
+  begin
+    Result := Result + IfChecked + '{';
+    if SameText(ALocalStorageMode, 'UserName') or SameText(ALocalStorageMode, 'Password') then
+      Result := Result + 'localStorage.' + Session.Config.AppName + '_UserName = "' + Session.Query['UserName'] + '";';
+    if SameText(ALocalStorageMode, 'Password') then
+      Result := Result + 'localStorage.' + Session.Config.AppName + '_Password = "' + Session.Query['Password'] + '";';
+    if GetLocalStorageAskUser then
+      Result := Result + 'localStorage.' + Session.Config.AppName + '_LocalStorageEnabled = "' + Session.Query['LocalStorageEnabled'] + '";';
+    Result := Result + '}';
+  end
+  else
+  begin
+    Result := Result + 'delete localStorage.' + Session.Config.AppName + '_UserName;';
+    Result := Result + 'delete localStorage.' + Session.Config.AppName + '_Password;';
+    Result := Result + 'delete localStorage.' + Session.Config.AppName + '_LocalStorageEnabled;';
+  end;
 end;
 
 function TKExtLoginWindow.GetLocalStorageMode: string;
 begin
-  Result := Config.GetString('LocalStorageMode');
+  Result := Config.GetString('LocalStorage/Mode');
+end;
+
+function TKExtLoginWindow.GetLocalStorageAskUser: Boolean;
+begin
+  Result := Config.GetBoolean('LocalStorage/AskUser');
+end;
+
+function TKExtLoginWindow.GetLocalStorageAskUserDefault: Boolean;
+begin
+  Result := Config.GetBoolean('LocalStorage/AskUser/Default', True);
 end;
 
 function TKExtLoginWindow.GetLocalStorageRetrieveJSCode(const ALocalStorageMode: string): string;
@@ -242,6 +307,8 @@ begin
     Result := Result + FUserName.JSName + '.setValue(localStorage.' + Session.Config.AppName + '_UserName);';
   if SameText(ALocalStorageMode, 'Password') then
     Result := Result + FPassword.JSName + '.setValue(localStorage.' + Session.Config.AppName + '_Password);';
+  if Assigned(FLocalStorageEnabled) then
+    Result := Result + FLocalStorageEnabled.JSName + '.setValue(localStorage.' + Session.Config.AppName + '_LocalStorageEnabled);';
 end;
 
 procedure TKExtLoginWindow.DoLogin;
