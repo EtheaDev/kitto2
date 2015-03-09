@@ -484,7 +484,7 @@ procedure TKExtWindowControllerBase.InitDefaults;
 begin
   inherited;
   FSubjObserverImpl := TEFSubjectAndObserver.Create;
-  Layout := lyBorder;
+  Layout := lyFit;
   if Session.IsMobileBrowser then
     Maximized := True;
   Border := False;
@@ -863,6 +863,7 @@ var
   LWidthStr: string;
   LHeightStr: string;
   LView: TKView;
+  LBodyStyle: string;
 begin
   EnsureAllSupportFiles;
 
@@ -923,6 +924,10 @@ begin
     Header := False;
 
   CreateTopToolbar;
+
+  LBodyStyle := Config.GetExpandedString('BodyStyle');
+  if LBodyStyle <> '' then
+    BodyStyle := LBodyStyle;
 end;
 
 procedure TKExtPanelControllerBase.ExecuteNamedAction(const AActionName: string);

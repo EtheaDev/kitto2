@@ -3605,7 +3605,6 @@ type
     FDd: TExtDdDD;
     FOnHide: TExtObject;
     FOnShow: TExtObject;
-    FBbar: TExtObjectList;
     FOnActivate: TExtWindowOnActivate;
     FOnDeactivate: TExtWindowOnDeactivate;
     FOnMaximize: TExtWindowOnMaximize;
@@ -3643,7 +3642,6 @@ type
     procedure SetFDd(Value: TExtDdDD);
     procedure SetFOnHide(Value: TExtObject);
     procedure SetFOnShow(Value: TExtObject);
-    procedure SetFBbar(Value: TExtObjectList);
     procedure SetFOnActivate(Value: TExtWindowOnActivate);
     procedure SetFOnDeactivate(Value: TExtWindowOnDeactivate);
     procedure SetFOnMaximize(Value: TExtWindowOnMaximize);
@@ -3717,7 +3715,6 @@ type
     property Dd: TExtDdDD read FDd write SetFDd;
     property OnHide: TExtObject read FOnHide write SetFOnHide;
     property OnShow: TExtObject read FOnShow write SetFOnShow;
-    property Bbar: TExtObjectList read FBbar write SetFBbar;
     property OnActivate: TExtWindowOnActivate read FOnActivate write SetFOnActivate;
     property OnDeactivate: TExtWindowOnDeactivate read FOnDeactivate
       write SetFOnDeactivate;
@@ -14076,12 +14073,6 @@ procedure TExtWindow.SetFOnShow(Value: TExtObject);
 begin
   FOnShow := Value;
   JSCode(JSName + '.onShow=' + VarToJSON([Value, false]) + ';');
-end;
-
-procedure TExtWindow.SetFBbar(Value: TExtObjectList);
-begin
-  FBbar := Value;
-  JSCode('bbar:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtWindow.SetFOnActivate(Value: TExtWindowOnActivate);

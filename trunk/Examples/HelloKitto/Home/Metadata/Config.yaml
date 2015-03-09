@@ -1,16 +1,6 @@
 ﻿AppTitle: _(Peoria Girls and their Dolls)
 AppIcon: HelloKittoIcon
 
-LanguagePerSession: True
-LoginWindowAppearance:
-  HtmlPanel: |
-    <center>
-      <p><img src="%IMAGE(hello_kitto_150)%"></img></p>
-      <p style="font: 14px arial,tahoma,verdana,helvetica;">_(Login)</p>
-    </center>
-  HtmlPanelWidth: 300
-  HtmlPanelHeight: 80
-
 BlobPath: %HOME_PATH%UploadedFiles\
 
 # Change this to switch databases.
@@ -70,12 +60,32 @@ Databases:
       Data Source: %COMPUTERNAME%
 
 Auth: DB
-  Defaults:
+  .Defaults:
     UserName: administrator
     Password: password
 
 AccessControl: Null
+
+LanguagePerSession: True
+
+Login:
+  Controller:
+    BorderPanel:
+      NorthView:
+        Controller: HtmlPanel
+          Height: 80
+          Html: |
+            <div style="text-align: center">
+              <p/>
+              <p><img src="%IMAGE(hello_kitto_150)%"></img></p>
+              <p/>
+            </div>
+    ExtraWidth: 300
+    ExtraHeight: 80
+    LocalStorageMode: Password
+
 Tablet: HomeTile
+
 Phone: HomeTilePhone
 
 HomeGirls:
