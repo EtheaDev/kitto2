@@ -80,9 +80,13 @@ Login:
               <p><img src="%IMAGE(hello_kitto_150)%"></img></p>
               <p/>
             </div>
-    ExtraWidth: 300
+    ExtraWidth: 400
+    LabelWidth: 150
     ExtraHeight: 80
-    LocalStorageMode: Password
+    LocalStorage:
+      Mode: Password
+      AskUser: True
+        .Default: False
 
 Tablet: HomeTile
 

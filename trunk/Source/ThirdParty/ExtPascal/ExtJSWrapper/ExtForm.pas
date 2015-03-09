@@ -839,7 +839,7 @@ type
     procedure SetFAutoCreateObject(Value: TExtObject);
     procedure SetBoxLabel(const AValue: string);
     procedure SetFBoxLabel_(Value: string);
-    procedure SetFChecked(Value: Boolean);
+    procedure SetChecked(const AValue: Boolean);
     procedure SetFFieldClass(Value: string);
     procedure SetFFocusClass(Value: string);
     procedure SetFHandler(Value: TExtFunction);
@@ -859,7 +859,7 @@ type
       write SetFAutoCreateObject;
     property BoxLabel: string read FBoxLabel write SetBoxLabel;
     property BoxLabel_: string read FBoxLabel_ write SetFBoxLabel_;
-    property Checked: Boolean read FChecked write SetFChecked;
+    property Checked: Boolean read FChecked write SetChecked;
     property FieldClass: string read FFieldClass write SetFFieldClass;
     property FocusClass: string read FFocusClass write SetFFocusClass;
     property Handler: TExtFunction read FHandler write SetFHandler;
@@ -3418,10 +3418,10 @@ begin
   JSCode('boxLabel:' + VarToJSON([Value]));
 end;
 
-procedure TExtFormCheckbox.SetFChecked(Value: Boolean);
+procedure TExtFormCheckbox.SetChecked(const AValue: Boolean);
 begin
-  FChecked := Value;
-  JSCode('checked:' + VarToJSON([Value]));
+  FChecked := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'checked', [AValue]);
 end;
 
 procedure TExtFormCheckbox.SetFFieldClass(Value: string);
