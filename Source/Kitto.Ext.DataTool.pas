@@ -65,12 +65,31 @@ type
     procedure EnumSelectedRecords(const AProc: TProc<TKViewTableRecord>);
   end;
 
+  ///	<summary>
+  ///  Base class for launch a command batch or an executable
+  /// </summary>
+  TKExtDataCmdToolController = class(TKExtDataToolController)
+  strict private
+  strict
+  private
+    function GetBatchFileName: string;
+  private
+    function GetParameters: string; protected
+    procedure ExecuteTool; override;
+    procedure AfterExecuteTool; override;
+  public
+    class function GetDefaultImageName: string;
+  published
+    property BatchFileName: string read GetBatchFileName;
+    property Parameters: string read GetParameters;
+  end;
+
 implementation
 
 uses
   StrUtils,
-  EF.Tree, EF.DB, EF.StrUtils,
-  Kitto.Config, Kitto.Ext.Session;
+  EF.Tree, EF.DB, EF.StrUtils, EF.SysUtils, EF.Localization,
+  Kitto.Config, Kitto.Ext.Session, Kitto.Ext.Controller;
 
 procedure LoadRecordDetails(const ARecord: TKViewTableRecord);
 begin
@@ -247,5 +266,53 @@ begin
   else
     NotifyObservers('RefreshCurrentRecord');
 end;
+
+{ TKExtDataCmdToolController }
+
+procedure TKExtDataCmdToolController.AfterExecuteTool;
+begin
+  inherited;
+  Session.Flash(_('Command executed succesfully.'));
+end;
+
+procedure TKExtDataCmdToolController.ExecuteTool;
+var
+  LBatchCommand, LParameters: string;
+begin
+  inherited;
+  LBatchCommand := BatchFileName;
+  Assert(LBatchCommand <> '','BatchFileName is mandatory');
+  if not FileExists(LBatchCommand) then
+    raise Exception.CreateFmt('File not found %s', [BatchFileName]);
+
+  LParameters := Parameters;
+  if LParameters <> '' then
+    LBatchCommand := LBatchCommand + ' ' + LParameters;
+
+  //Execute file
+  if ExecuteApplication(LBatchCommand, True) <> 0 then
+    raise Exception.CreateFmt('Error executing %s', [ExtractFileName(BatchFileName)]);
+end;
+
+function TKExtDataCmdToolController.GetBatchFileName: string;
+begin
+  Result := Config.GetExpandedString('BatchFileName');
+end;
+
+class function TKExtDataCmdToolController.GetDefaultImageName: string;
+begin
+  Result := 'execute_command';
+end;
+
+function TKExtDataCmdToolController.GetParameters: string;
+begin
+  Result := Config.GetExpandedString('Parameters');
+end;
+
+initialization
+  TKExtControllerRegistry.Instance.RegisterClass('ExecuteCmdTool', TKExtDataCmdToolController);
+
+finalization
+  TKExtControllerRegistry.Instance.UnregisterClass('ExecuteCmdTool');
 
 end.
