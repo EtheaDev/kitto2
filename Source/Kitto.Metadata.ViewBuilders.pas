@@ -88,6 +88,7 @@ begin
   begin
     LDetailTable := TKViewTable.Create;
     try
+      LDetailTable.Name := 'Table';
       LDetailTable.SetString('Model', AModel.DetailReferences[I].DetailModel.ModelName);
       AViewTable.AddDetailTable(LDetailTable);
       AddFields(LDetailTable, LDetailTable.Model);
