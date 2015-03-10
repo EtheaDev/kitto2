@@ -1144,7 +1144,7 @@ var
     begin
       if SameText(LContent[I].Key, 'width') then
       begin
-        FViewportWidth := LContent[I].Value.ToInteger;
+        FViewportWidth := StrToInt(LContent[I].Value);
         Break;
       end;
     end;
