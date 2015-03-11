@@ -293,6 +293,7 @@ function IsDigitChar(Ch : Char) : Boolean;
 ///	</summary>
 function IsDigitString(Str : String) : Boolean;
 
+function NormalizeColumName(const ColumnName: string): string;
 
 implementation
 
@@ -968,6 +969,11 @@ begin
   end;
 end;
 
+function NormalizeColumName(const ColumnName: string): string;
+begin
+  Result := StringReplace(ColumnName, ' ','_',[rfReplaceAll]);
+  Result := StringReplace(Result, '.','_',[rfReplaceAll]);
+end;
 
 initialization
   Randomize;

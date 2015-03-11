@@ -147,7 +147,6 @@ type
   strict protected
     function GetPersistentFileName: string;
     procedure ExecuteTool; override;
-    function NormalizeColumName(const FieldName: string): string; virtual;
     function GetFileExtension: string;
     function GetDefaultFileExtension: string; virtual;
     procedure AddTempFilename(const AFileName: string);
@@ -402,13 +401,6 @@ procedure TKExtDownloadFileController.InitDefaults;
 begin
   inherited;
   FTempFileNames := TStringList.Create;
-end;
-
-function TKExtDownloadFileController.NormalizeColumName(
-  const FieldName: string): string;
-begin
-  Result := StringReplace(FieldName, ' ','_',[rfReplaceAll]);
-  Result := StringReplace(Result, '.','_',[rfReplaceAll]);
 end;
 
 procedure TKExtDownloadFileController.PrepareFile(const AFileName: string);

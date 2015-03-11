@@ -2934,7 +2934,7 @@ type
     FOnSelectionchange: TExtDataViewOnSelectionchange;
     procedure SetFBlockRefresh(Value: Boolean);
     procedure SetFDeferEmptyText(Value: Boolean);
-    procedure SetFEmptyText(Value: string);
+    procedure SetEmptyText(AValue: string);
     procedure SetFItemSelector(Value: string);
     procedure SetFLoadingText(Value: string);
     procedure SetFMultiSelect(Value: Boolean);
@@ -2943,7 +2943,7 @@ type
     procedure SetFSimpleSelect(Value: Boolean);
     procedure SetFSingleSelect(Value: Boolean);
     procedure _SetStore(const AValue: TExtDataStore);
-    procedure SetFTpl(Value: string);
+    procedure SetTpl(AValue: string);
     procedure SetFTplArray(Value: TExtObjectList);
     procedure SetFTrackOver(Value: Boolean);
     procedure SetFOnBeforeclick(Value: TExtDataViewOnBeforeclick);
@@ -3008,7 +3008,7 @@ type
     function SetStore(const AStore: TExtDataStore): TExtFunction;
     property BlockRefresh: Boolean read FBlockRefresh write SetFBlockRefresh;
     property DeferEmptyText: Boolean read FDeferEmptyText write SetFDeferEmptyText;
-    property EmptyText: string read FEmptyText write SetFEmptyText;
+    property EmptyText: string read FEmptyText write SetEmptyText;
     property ItemSelector: string read FItemSelector write SetFItemSelector;
     property LoadingText: string read FLoadingText write SetFLoadingText;
     property MultiSelect: Boolean read FMultiSelect write SetFMultiSelect;
@@ -3017,7 +3017,7 @@ type
     property SimpleSelect: Boolean read FSimpleSelect write SetFSimpleSelect;
     property SingleSelect: Boolean read FSingleSelect write SetFSingleSelect;
     property Store: TExtDataStore read FStore write _SetStore;
-    property Tpl: string read FTpl write SetFTpl;
+    property Tpl: string read FTpl write SetTpl;
     property TplArray: TExtObjectList read FTplArray write SetFTplArray;
     property TrackOver: Boolean read FTrackOver write SetFTrackOver;
     property OnBeforeclick: TExtDataViewOnBeforeclick read FOnBeforeclick
@@ -12211,10 +12211,10 @@ begin
   JSCode('deferEmptyText:' + VarToJSON([Value]));
 end;
 
-procedure TExtDataView.SetFEmptyText(Value: string);
+procedure TExtDataView.SetEmptyText(AValue: string);
 begin
-  FEmptyText := Value;
-  JSCode('emptyText:' + VarToJSON([Value]));
+  FEmptyText := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'emptyText', [AValue]);
 end;
 
 procedure TExtDataView.SetFItemSelector(Value: string);
@@ -12265,10 +12265,10 @@ begin
   ExtSession.ResponseItems.SetConfigItem(Self, 'store', 'setStore', [AValue]);
 end;
 
-procedure TExtDataView.SetFTpl(Value: string);
+procedure TExtDataView.SetTpl(AValue: string);
 begin
-  FTpl := Value;
-  JSCode('tpl:' + VarToJSON([Value]));
+  FTpl := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'tpl', [AValue]);
 end;
 
 procedure TExtDataView.SetFTplArray(Value: TExtObjectList);
