@@ -1456,11 +1456,7 @@ procedure TKExtFormCheckbox.StoreValue(const AObjectName: string);
 begin
   if not ReadOnly then
     Session.ResponseItems.ExecuteJSCode(
-      AObjectName + '["' + Name + '"]=' + GetJSFunctionCode(
-        procedure
-        begin
-          GetValue;
-        end));
+      AObjectName + '["' + Name + '"]=' + JSName + '.checked;');
 end;
 
 procedure TKExtFormCheckbox.SetFieldName(const AValue: string);
