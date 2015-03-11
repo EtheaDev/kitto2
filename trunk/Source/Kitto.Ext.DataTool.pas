@@ -89,7 +89,8 @@ implementation
 uses
   StrUtils,
   EF.Tree, EF.DB, EF.StrUtils, EF.SysUtils, EF.Localization,
-  Kitto.Config, Kitto.Ext.Session, Kitto.Ext.Controller;
+  Kitto.Config, Kitto.Ext.Session, Kitto.Ext.Controller,
+  EF.Shell;
 
 procedure LoadRecordDetails(const ARecord: TKViewTableRecord);
 begin
@@ -290,7 +291,8 @@ begin
     LBatchCommand := LBatchCommand + ' ' + LParameters;
 
   //Execute file
-  if ExecuteApplication(LBatchCommand, True) <> 0 then
+//  if ExecuteApplication(LBatchCommand, True) <> 0 then
+  if OpenDocument(LBatchCommand, True) <> 0 then
     raise Exception.CreateFmt('Error executing %s', [ExtractFileName(BatchFileName)]);
 end;
 
