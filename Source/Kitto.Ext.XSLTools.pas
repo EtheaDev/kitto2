@@ -26,6 +26,12 @@ uses
   Kitto.Metadata.DataView, Kitto.Ext.StandardControllers;
 
 type
+  TXSLTransformer = class(TObject)
+  public
+    class function ApplyXslToHtml(const ATransformFileName: string;
+      AStore: TKViewTableStore; ARecord: TKViewTableRecord): string;
+  end;
+
   TXSLToolController = class(TKExtDownloadFileController)
   strict private
     function GetTransformFileName: string; protected
@@ -45,7 +51,7 @@ uses
   Ext, EF.Classes, EF.StrUtils, EF.Localization, EF.DB, EF.SysUtils, EF.Macros, EF.XML,
   Kitto.Metadata.Models, Kitto.Ext.Session, Kitto.Config;
 
-function TransformXMLText(const AXMLText, AXSLText: UTF8String): UTF8String;
+function TransformXMLText(const AXMLText, AXSLText: string): string;
 var
   LXMLDocument: IXMLDOMDocument;
   LXSLDocument: IXMLDOMDocument;
@@ -97,28 +103,46 @@ end;
 
 procedure TXSLToolController.PrepareFile(const AFileName: string);
 var
-  LRecord: TKViewTableRecord;
-  LStore: TKViewTableStore;
-  LXSLFileName, LHtmlFileName: string;
-  LXMLContent, LXSLContent: string;
   LHTMLText: string;
   LFileStream: TStringStream;
 begin
   Assert(TransformFileName <> '','XSL TransformFileName is mandatory');
+  LHTMLText := TXSLTransformer.ApplyXslToHtml(TransformFileName, ServerStore, ServerRecord);
 
-  LRecord := ServerRecord;
-  LStore := ServerStore;
+  LFileStream := TStringStream.Create(LHTMLText, TEncoding.UTF8);
+  try
+    //Save output file
+    LFileStream.SaveToFile(AFileName);
+  finally
+    LFileStream.Free;
+  end;
+
+  //Add to temporary files so it will cleaned up
+  AddTempFilename(AFileName);
+end;
+
+{ TXSLTransformer }
+
+class function TXSLTransformer.ApplyXslToHtml(const ATransformFileName: string; AStore: TKViewTableStore;
+  ARecord: TKViewTableRecord): string;
+var
+  LXSLFileName: string;
+  LXMLContent, LXSLContent: string;
+  LHTMLText: string;
+  LFileStream: TStringStream;
+begin
+  Assert(ATransformFileName <> '','XSL TransformFileName is mandatory');
 
   //Build XML data file
-  if Assigned(LRecord) then
-    LXMLContent := XMLHeader + LRecord.GetAsXML(True)
+  if Assigned(ARecord) then
+    LXMLContent := XMLHeader + ARecord.GetAsXML(True)
   else
-    LXMLContent := XMLHeader + LStore.GetAsXML(True);
+    LXMLContent := XMLHeader + AStore.GetAsXML(True);
 
   LFileStream := TStringStream.Create(LXMLContent, TEncoding.UTF8);
   try
     //Load XSL file and macro-substitute some elements
-    LXSLFileName := TransformFileName;
+    LXSLFileName := ATransformFileName;
     LFileStream.LoadFromFile(LXSLFileName);
     LXSLContent := LFileStream.DataString;
 
@@ -133,10 +157,8 @@ begin
     //Save output file
     LFileStream.Position := 0;
     LFileStream.WriteString(LHTMLText);
-    LFileStream.SaveToFile(AFileName);
+    Result := LFileStream.DataString;
 
-    //Add to temporary files so it will cleaned up
-    AddTempFilename(AFileName);
   finally
     LFileStream.Free;
   end;
