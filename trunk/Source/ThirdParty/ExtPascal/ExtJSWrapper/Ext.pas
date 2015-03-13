@@ -3251,8 +3251,8 @@ type
       Scope: TExtObject = nil): TExtFunction; overload;
     function AddButton(Config: TExtObject; Handler: TExtFunction; Scope: TExtObject)
       : TExtFunction; overload;
-    function Collapse(Animate: Boolean): TExtFunction;
-    function Expand(Animate: Boolean): TExtFunction;
+    function Collapse(const AAnimate: Boolean): TExtFunction;
+    function Expand(const AAnimate: Boolean): TExtFunction;
     function GetBottomToolbar: TExtFunction;
     function GetFooterToolbar: TExtFunction;
     function GetFrameHeight: TExtFunction;
@@ -13297,15 +13297,15 @@ begin
   Result := Self;
 end;
 
-function TExtPanel.Collapse(Animate: Boolean): TExtFunction;
+function TExtPanel.Collapse(const AAnimate: Boolean): TExtFunction;
 begin
-  JSCode(JSName + '.collapse(' + VarToJSON([Animate]) + ');', 'TExtPanel');
+  ExtSession.ResponseItems.CallMethod(Self, 'collapse', [AAnimate]);
   Result := Self;
 end;
 
-function TExtPanel.Expand(Animate: Boolean): TExtFunction;
+function TExtPanel.Expand(const AAnimate: Boolean): TExtFunction;
 begin
-  JSCode(JSName + '.expand(' + VarToJSON([Animate]) + ');', 'TExtPanel');
+  ExtSession.ResponseItems.CallMethod(Self, 'expand', [AAnimate]);
   Result := Self;
 end;
 

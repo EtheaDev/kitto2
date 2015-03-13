@@ -88,6 +88,8 @@ type
     function GetAsXMLValue(const AForDisplay: Boolean;
       const AEmptyNulls: Boolean = False): string; virtual;
     property FieldName: string read GetFieldName;
+
+    procedure SetTransientProperty(const APropertyName: string; const AValue: Variant);
   end;
 
   TKStore = class;
@@ -98,10 +100,10 @@ type
   TKRecord = class(TEFNode)
   strict private
     FBackup: TEFNode;
-    { TODO : move state management in view table record? }
     FState: TKRecordState;
     FDetailStores: TObjectList<TKStore>;
     FOnFieldChange: TKFieldChangeEvent;
+    FOnSetTransientProperty: TProc<string, string, string, Variant>;
     function GetRecords: TKRecords;
     function GetKey: TKKey;
     function GetField(I: Integer): TKField;
@@ -117,16 +119,16 @@ type
     function GetChildClass(const AName: string): TEFNodeClass; override;
 
     ///	<summary>
-    ///   Called by ReadFromNode after setting all values. Descendants
-    ///	  may overwrite some fields.
+    ///  Called by ReadFromNode after setting all values. Descendants
+    ///	 may overwrite some fields.
     /// </summary>
     procedure InternalAfterReadFromNode; virtual;
 
     ///	<summary>
-    ///	  A function that receives in input a store field name and returns the
-    ///   corresponding database field name (see ReadFromFields).
-    ///   The default implementation assumes that the store and database field
-    ///   names have matching names.
+    ///	 A function that receives in input a store field name and returns the
+    ///  corresponding database field name (see ReadFromFields).
+    ///  The default implementation assumes that the store and database field
+    ///  names have matching names.
     /// </summary>
     function TranslateFieldName(const AFieldName: string): string; virtual;
 
@@ -193,6 +195,10 @@ type
     ///  Raises exceptions if fields are not found.
     /// </summary>
     function GetFieldValues(const AFieldNames: TStringDynArray): Variant;
+
+    procedure SetTransientProperty(const ASubjectType, ASubjectName, APropertyName: string; const AValue: Variant);
+    property OnSetTransientProperty: TProc<string, string, string, Variant>
+      read FOnSetTransientProperty write FOnSetTransientProperty;
   end;
 
   TKRecords = class(TEFNode)
@@ -1278,6 +1284,12 @@ begin
   Assign(FBackup);
 end;
 
+procedure TKRecord.SetTransientProperty(const ASubjectType, ASubjectName, APropertyName: string; const AValue: Variant);
+begin
+  if Assigned(FOnSetTransientProperty) then
+    FOnSetTransientProperty(ASubjectType, ASubjectName, APropertyName, AValue);
+end;
+
 function TKRecord.TranslateFieldName(const AFieldName: string): string;
 begin
   Result := AFieldName;
@@ -1377,6 +1389,12 @@ begin
       ParentRecord.MarkAsModified;
   end;
   inherited;
+end;
+
+procedure TKField.SetTransientProperty(const APropertyName: string; const AValue: Variant);
+begin
+  if Assigned(ParentRecord) then
+    ParentRecord.SetTransientProperty('Field', FieldName, APropertyName, AValue);
 end;
 
 procedure TKField.SetValue(const AValue: Variant);

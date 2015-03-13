@@ -47,7 +47,7 @@ type
   end;
 
   ///	<summary>
-  ///	  The Form controller.
+  ///	 The Form controller.
   ///	</summary>
   TKExtFormPanelController = class(TKExtDataPanelController)
   strict private
@@ -90,10 +90,11 @@ type
     function FindLayout: TKLayout;
     function IsViewMode: Boolean;
     procedure RefreshEditorValues;
+    procedure SetStoreRecord(const AValue: TKViewTableRecord);
   strict protected
     procedure DoDisplay; override;
     procedure InitComponents; override;
-    property StoreRecord: TKViewTableRecord read FStoreRecord;
+    property StoreRecord: TKViewTableRecord read FStoreRecord write SetStoreRecord;
     function AddActionButton(const AUniqueId: string; const AView: TKView;
       const AToolbar: TKExtToolbar): TKExtActionButton; override;
   public
@@ -171,18 +172,18 @@ begin
   Assert(ViewTable <> nil);
   Assert(FDetailToolbar = nil);
   Assert(FDetailButtons = nil);
-  Assert(Assigned(FStoreRecord));
+  Assert(Assigned(StoreRecord));
 
   if ViewTable.DetailTableCount > 0 then
   begin
-    FStoreRecord.EnsureDetailStores;
-    Assert(FStoreRecord.DetailStoreCount = ViewTable.DetailTableCount);
+    StoreRecord.EnsureDetailStores;
+    Assert(StoreRecord.DetailStoreCount = ViewTable.DetailTableCount);
     FDetailToolbar := TKExtToolbar.Create(Self);
     FDetailButtons := TObjectList<TKExtDetailFormButton>.Create(False);
     for I := 0 to ViewTable.DetailTableCount - 1 do
     begin
       FDetailButtons.Add(TKExtDetailFormButton.CreateAndAddTo(FDetailToolbar.Items));
-      FDetailButtons[I].ServerStore := FStoreRecord.DetailStores[I];
+      FDetailButtons[I].ServerStore := StoreRecord.DetailStores[I];
       FDetailButtons[I].ViewTable := ViewTable.DetailTables[I];
     end;
     Tbar := FDetailToolbar;
@@ -193,7 +194,7 @@ procedure TKExtFormPanelController.CreateDetailBottomPanel;
 begin
   Assert(ViewTable <> nil);
   Assert(FDetailControllers = nil);
-  Assert(Assigned(FStoreRecord));
+  Assert(Assigned(StoreRecord));
   Assert(not Assigned(FDetailBottomPanel));
 
   if ViewTable.DetailTableCount > 0 then
@@ -221,13 +222,13 @@ var
 begin
   Assert(ViewTable <> nil);
   Assert(FDetailControllers = nil);
-  Assert(Assigned(FStoreRecord));
+  Assert(Assigned(StoreRecord));
 
   if ViewTable.DetailTableCount > 0 then
   begin
     Assert(ATabPanel <> nil);
-    FStoreRecord.EnsureDetailStores;
-    Assert(FStoreRecord.DetailStoreCount = ViewTable.DetailTableCount);
+    StoreRecord.EnsureDetailStores;
+    Assert(StoreRecord.DetailStoreCount = ViewTable.DetailTableCount);
     FDetailControllers := TObjectList<TObject>.Create(False);
     for I := 0 to ViewTable.DetailTableCount - 1 do
     begin
@@ -238,7 +239,7 @@ begin
       LController := TKExtControllerFactory.Instance.CreateController(ATabPanel,
         View, ATabPanel, ViewTable.FindNode('Controller'), Self, LControllerType);
       LController.Config.SetObject('Sys/ViewTable', ViewTable.DetailTables[I]);
-      LController.Config.SetObject('Sys/ServerStore', FStoreRecord.DetailStores[I]);
+      LController.Config.SetObject('Sys/ServerStore', StoreRecord.DetailStores[I]);
       LController.Config.SetBoolean('AllowClose', False);
       if SameText(FOperation, VIEW_OPERATION) then
       begin
@@ -268,13 +269,13 @@ procedure TKExtFormPanelController.CreateEditors;
 var
   LLayoutProcessor: TKExtLayoutProcessor;
 begin
-  Assert(Assigned(FStoreRecord));
+  Assert(Assigned(StoreRecord));
 
   FreeAndNil(FEditItems);
   FEditItems := TKEditItemList.Create;
   LLayoutProcessor := TKExtLayoutProcessor.Create;
   try
-    LLayoutProcessor.DataRecord := FStoreRecord;
+    LLayoutProcessor.DataRecord := StoreRecord;
     LLayoutProcessor.FormPanel := FFormPanel;
     LLayoutProcessor.MainEditPage := FMainPagePanel;
     LLayoutProcessor.TabPanel := FTabPanel;
@@ -345,6 +346,34 @@ begin
   StartOperation;
 end;
 
+procedure TKExtFormPanelController.SetStoreRecord(const AValue: TKViewTableRecord);
+begin
+  FStoreRecord := AValue;
+  FStoreRecord.OnSetTransientProperty :=
+    procedure(ASubjectType, ASubjectName, APropertyName: string; AValue: Variant)
+    begin
+      if Assigned(FEditItems) then
+      begin
+        if SameText(ASubjectType, 'Field') then
+        begin
+          FEditItems.EditorsByViewField(TKViewTableField(FStoreRecord.FieldByName(ASubjectName)).ViewField,
+            procedure (AEditor: IKExtEditor)
+            begin
+              AEditor.SetTransientProperty(APropertyName, AValue);
+            end);
+        end
+        else
+        begin
+          FEditItems.EditItemsById(ASubjectName,
+            procedure (AEditItem: IKExtEditItem)
+            begin
+              AEditItem.SetTransientProperty(APropertyName, AValue);
+            end);
+        end;
+      end;
+    end;
+end;
+
 procedure TKExtFormPanelController.StartOperation;
 var
   LDefaultValues: TEFNode;
@@ -362,7 +391,7 @@ var
   end;
 
 begin
-  Assert(Assigned(FStoreRecord));
+  Assert(Assigned(StoreRecord));
 
   AssignFieldChangeEvent(True);
   try
@@ -378,16 +407,16 @@ begin
         else
           LDefaultValues := ViewTable.GetDefaultValues;
         if SameText(FOperation, DUPLICATE_OPERATION) then
-          FStoreRecord.Store.DisableChangeNotifications;
+          StoreRecord.Store.DisableChangeNotifications;
         try
-          FStoreRecord.ReadFromNode(LDefaultValues);
+          StoreRecord.ReadFromNode(LDefaultValues);
         finally
           if SameText(FOperation, DUPLICATE_OPERATION) then
-            FStoreRecord.Store.EnableChangeNotifications;
+            StoreRecord.Store.EnableChangeNotifications;
         end;
-        ViewTable.Model.BeforeNewRecord(FStoreRecord, Assigned(FCloneValues) and SameText(FOperation, ADD_OPERATION));
-        FStoreRecord.ApplyNewRecordRules;
-        ViewTable.Model.AfterNewRecord(FStoreRecord);
+        ViewTable.Model.BeforeNewRecord(StoreRecord, Assigned(FCloneValues) and SameText(FOperation, ADD_OPERATION));
+        StoreRecord.ApplyNewRecordRules;
+        ViewTable.Model.AfterNewRecord(StoreRecord);
       finally
         FreeAndNil(LDefaultValues);
       end;
@@ -455,9 +484,9 @@ end;
 
 procedure TKExtFormPanelController.GetRecord;
 begin
-  Assert(Assigned(FStoreRecord));
+  Assert(Assigned(StoreRecord));
 
-  ExtSession.ResponseItems.AddJSON('{success:true,data:' + FStoreRecord.GetAsJSON(False) + '}');
+  ExtSession.ResponseItems.AddJSON('{success:true,data:' + StoreRecord.GetAsJSON(False) + '}');
 end;
 
 procedure TKExtFormPanelController.ConfirmChanges;
@@ -465,7 +494,7 @@ var
   LError: string;
 begin
   AssignFieldChangeEvent(False);
-  LError := UpdateRecord(FStoreRecord, SO(Session.RequestBody).O['new'], True);
+  LError := UpdateRecord(StoreRecord, SO(Session.RequestBody).O['new'], True);
   FreeAndNil(FCloneValues);
   if LError = '' then
   begin
@@ -478,9 +507,9 @@ end;
 
 procedure TKExtFormPanelController.ConfirmChangesAndClone;
 begin
-  UpdateRecord(FStoreRecord, SO(Session.RequestBody).O['new'], True);
-  FCloneValues := TEFNode.Clone(FStoreRecord);
-  FStoreRecord := ServerStore.AppendRecord(nil);
+  UpdateRecord(StoreRecord, SO(Session.RequestBody).O['new'], True);
+  FCloneValues := TEFNode.Clone(StoreRecord);
+  StoreRecord := ServerStore.AppendRecord(nil);
   FOperation := ADD_OPERATION;
   // recupera dati record
   StartOperation;
@@ -582,29 +611,29 @@ begin
 
   if FOperation = ADD_OPERATION then
   begin
-    Assert(not Assigned(FStoreRecord));
-    FStoreRecord := ServerStore.AppendRecord(nil);
+    Assert(not Assigned(StoreRecord));
+    StoreRecord := ServerStore.AppendRecord(nil);
   end
   else if FOperation = DUPLICATE_OPERATION then
   begin
     FreeAndNil(FCloneValues);
-    FCloneValues := TEFNode.Clone(FStoreRecord);
-    FStoreRecord := ServerStore.AppendRecord(nil);
+    FCloneValues := TEFNode.Clone(StoreRecord);
+    StoreRecord := ServerStore.AppendRecord(nil);
   end
   else if (FOperation = EDIT_OPERATION) or (FOperation = VIEW_OPERATION) then
   begin
-    FStoreRecord := Config.GetObject('Sys/Record') as TKViewTableRecord;
-    if not Assigned(FStoreRecord) then
+    StoreRecord := Config.GetObject('Sys/Record') as TKViewTableRecord;
+    if not Assigned(StoreRecord) then
     begin
       // Record was not provided by the caller, so we load the store and use
       // the single record contained.
       if ServerStore.RecordCount = 0 then
         ViewTable.Model.LoadRecords(ServerStore, GetFilterExpression, '', 0, 0);
       Assert(ServerStore.RecordCount=1);
-      FStoreRecord := ServerStore.Records[0];
+      StoreRecord := ServerStore.Records[0];
     end;
   end;
-  Assert(Assigned(FStoreRecord));
+  Assert(Assigned(StoreRecord));
 
   AssignFieldChangeEvent(True);
 
@@ -703,15 +732,15 @@ begin
 
   if MatchStr(FOperation, [ADD_OPERATION, DUPLICATE_OPERATION]) then
   begin
-    ServerStore.RemoveRecord(FStoreRecord);
-    FStoreRecord := nil;
+    ServerStore.RemoveRecord(StoreRecord);
+    StoreRecord := nil;
   end;
   NotifyObservers('Canceled');
   if LKeepOpen then
   begin
     if FOperation = ADD_OPERATION then
     begin
-      FStoreRecord := ServerStore.AppendRecord(nil);
+      StoreRecord := ServerStore.AppendRecord(nil);
       RecreateEditors;
     end
     else
@@ -741,11 +770,11 @@ end;
 
 procedure TKExtFormPanelController.AssignFieldChangeEvent(const AAssign: Boolean);
 begin
-  if Assigned(FStoreRecord) then
+  if Assigned(StoreRecord) then
     if AAssign then
-      FStoreRecord.OnFieldChange := FieldChange
+      StoreRecord.OnFieldChange := FieldChange
     else
-      FStoreRecord.OnFieldChange := nil;
+      StoreRecord.OnFieldChange := nil;
 end;
 
 procedure TKExtFormPanelController.FieldChange(const AField: TKField; const AOldValue, ANewValue: Variant);

@@ -48,6 +48,9 @@ type
     function AsExtObject: TExtObject;
     // Generates and executes JS code to refresh the displayed value(s) from the server record.
     procedure RefreshValue;
+
+    procedure SetTransientProperty(const APropertyName: string; const AValue: Variant);
+    function GetEditItemId: string;
   end;
 
   IKExtEditContainer = interface(IKExtEditItem)
@@ -81,6 +84,7 @@ type
     FEditPanel: TKExtEditPanel;
     FDataRecord: TKViewTableRecord;
     FUnexpandedTitle: string;
+    FEditItemId: string;
     procedure SetUnexpandedTitle(const AValue: string);
   protected
     procedure InitDefaults; override;
@@ -92,6 +96,8 @@ type
     procedure SetOption(const ANode: TEFNode);
     function AsExtObject: TExtObject;
     procedure RefreshValue;
+    procedure SetTransientProperty(const APropertyName: string; const AValue: Variant);
+    function GetEditItemId: string;
 
     property EditPanel: TKExtEditPanel read FEditPanel write FEditPanel;
     property DataRecord: TKViewTableRecord read FDataRecord write FDataRecord;
@@ -100,6 +106,7 @@ type
 
   TKExtFormFieldSet = class(TExtFormFieldSet, IKExtEditItem, IKExtEditContainer)
   strict private
+    FEditItemId: string;
     FDataRecord: TKViewTableRecord;
     FUnexpandedTitle: string;
   private
@@ -114,11 +121,17 @@ type
     procedure SetOption(const ANode: TEFNode);
     function AsExtObject: TExtObject;
     procedure RefreshValue;
+    procedure SetTransientProperty(const APropertyName: string; const AValue: Variant);
+    function GetEditItemId: string;
+    property EditItemId: string read FEditItemId write FEditItemId;
+
     property DataRecord: TKViewTableRecord read FDataRecord write FDataRecord;
     property UnexpandedTitle: string read FUnexpandedTitle write SetUnexpandedTitle;
   end;
 
   TKExtFormCompositeField = class(TExtFormCompositeField, IKExtEditItem, IKExtEditContainer)
+  strict private
+    FEditItemId: string;
   public
     function AsObject: TObject; inline;
     function _AddRef: Integer; stdcall;
@@ -127,9 +140,14 @@ type
     procedure SetOption(const ANode: TEFNode);
     function AsExtObject: TExtObject; inline;
     procedure RefreshValue;
+    procedure SetTransientProperty(const APropertyName: string; const AValue: Variant);
+    function GetEditItemId: string;
+    property EditItemId: string read FEditItemId write FEditItemId;
   end;
 
   TKExtFormContainer = class(TExtContainer, IKExtEditItem)
+  strict private
+    FEditItemId: string;
   protected
     procedure InitDefaults; override;
     function InternalSetOption(const ANode: TEFNode): Boolean; virtual;
@@ -141,6 +159,9 @@ type
     procedure SetOption(const ANode: TEFNode);
     function AsExtObject: TExtObject; inline;
     procedure RefreshValue;
+    procedure SetTransientProperty(const APropertyName: string; const AValue: Variant);
+    function GetEditItemId: string;
+    property EditItemId: string read FEditItemId write FEditItemId;
   end;
 
   TKExtFormRow = class(TKExtFormContainer, IKExtEditContainer)
@@ -153,10 +174,11 @@ type
   ///	  interface, as it is a commodity class only.
   ///	</summary>
   TKExtFormRowField = class(TKExtFormContainer, IKExtEditor)
-  private
+  strict private
     FEditor: IKExtEditor;
     FCharWidth: Integer;
     FRecordField: TKViewTableField;
+    FEditItemId: string;
     procedure SetCharWidth(const AValue: Integer);
   protected
     procedure InitDefaults; override;
@@ -173,6 +195,8 @@ type
     procedure SetFieldName(const AValue: string);
     procedure RefreshValue;
     procedure StoreValue(const AObjectName: string);
+    procedure SetTransientProperty(const APropertyName: string; const AValue: Variant);
+    function GetEditItemId: string;
   end;
 
 { TODO : support the CheckboxGroup and Radiogroup containers? }
@@ -195,6 +219,8 @@ type
     procedure SetFieldName(const AValue: string);
     procedure RefreshValue;
     procedure StoreValue(const AObjectName: string);
+    procedure SetTransientProperty(const APropertyName: string; const AValue: Variant);
+    function GetEditItemId: string;
   end;
 
   TKExtFormTextField = class(TExtFormTextField, IKExtEditItem, IKExtEditor)
@@ -215,6 +241,8 @@ type
     procedure SetFieldName(const AValue: string);
     procedure RefreshValue;
     procedure StoreValue(const AObjectName: string);
+    procedure SetTransientProperty(const APropertyName: string; const AValue: Variant);
+    function GetEditItemId: string;
   end;
 
   TKExtFormTextArea = class(TExtFormTextArea, IKExtEditItem, IKExtEditor)
@@ -235,6 +263,8 @@ type
     procedure SetFieldName(const AValue: string);
     procedure RefreshValue;
     procedure StoreValue(const AObjectName: string);
+    procedure SetTransientProperty(const APropertyName: string; const AValue: Variant);
+    function GetEditItemId: string;
   end;
 
   TKExtFormCheckbox = class(TExtFormCheckbox, IKExtEditItem, IKExtEditor)
@@ -255,6 +285,8 @@ type
     procedure SetFieldName(const AValue: string);
     procedure RefreshValue;
     procedure StoreValue(const AObjectName: string);
+    procedure SetTransientProperty(const APropertyName: string; const AValue: Variant);
+    function GetEditItemId: string;
   end;
 
   TKExtFormDateField = class(TExtFormDateField, IKExtEditItem, IKExtEditor)
@@ -275,6 +307,8 @@ type
     procedure SetFieldName(const AValue: string);
     procedure RefreshValue;
     procedure StoreValue(const AObjectName: string);
+    procedure SetTransientProperty(const APropertyName: string; const AValue: Variant);
+    function GetEditItemId: string;
   end;
 
   TKExtFormTimeField = class(TExtFormTimeField, IKExtEditItem, IKExtEditor)
@@ -295,6 +329,8 @@ type
     procedure SetFieldName(const AValue: string);
     procedure RefreshValue;
     procedure StoreValue(const AObjectName: string);
+    procedure SetTransientProperty(const APropertyName: string; const AValue: Variant);
+    function GetEditItemId: string;
   end;
 
   TKExtFormDateTimeField = class(TExtFormField, IKExtEditItem, IKExtEditor)
@@ -338,6 +374,8 @@ type
     property AltDateFormats: string read FAltDateFormats write SetAltDateFormats;
     property AltTimeFormats: string read FAltTimeFormats write SetAltTimeFormats;
     property AllowBlank: Boolean read FAllowBlank write SetAllowBlank;
+    procedure SetTransientProperty(const APropertyName: string; const AValue: Variant);
+    function GetEditItemId: string;
   end;
 
   TKExtFormComboBoxEditor = class(TKExtFormComboBox, IKExtEditItem, IKExtEditor)
@@ -366,6 +404,8 @@ type
     procedure SetFieldName(const AValue: string);
     procedure RefreshValue;
     procedure StoreValue(const AObjectName: string);
+    procedure SetTransientProperty(const APropertyName: string; const AValue: Variant);
+    function GetEditItemId: string;
   published
     procedure GetRecordPage;
     procedure ValueChanged;
@@ -388,6 +428,8 @@ type
     procedure SetFieldName(const AValue: string);
     procedure RefreshValue;
     procedure StoreValue(const AObjectName: string);
+    procedure SetTransientProperty(const APropertyName: string; const AValue: Variant);
+    function GetEditItemId: string;
   end;
 
   TKExtFormFileEditor = class(TKExtPanelBase, IKExtEditItem, IKExtEditor)
@@ -434,6 +476,8 @@ type
     procedure StoreValue(const AObjectName: string);
     property IsReadOnly: Boolean read FIsReadOnly write FIsReadOnly;
     property TotalCharWidth: Integer read FTotalCharWidth write SetTotalCharWidth;
+    procedure SetTransientProperty(const APropertyName: string; const AValue: Variant);
+    function GetEditItemId: string;
   published
     procedure ShowUploadFileDialog;
     procedure Upload;
@@ -512,11 +556,11 @@ type
     function CreateEditor(const AFieldName: string;
       const AContainer: IKExtEditContainer;
       const AOptions: TEFNode = nil): IKExtEditor;
-    function CreateFieldSet(const ATitle: string): IKExtEditItem;
-    function CreateCompositeField(const ALabel: string): IKExtEditItem;
+    function CreateFieldSet(const AId: string): IKExtEditItem;
+    function CreateCompositeField(const AId: string): IKExtEditItem;
     procedure SetGlobalOption(const ANode: TEFNode);
     procedure LayoutError(const AErrorMessage: string);
-    function CreateRow: IKExtEditItem;
+    function CreateRow(const AId: string): IKExtEditItem;
     procedure CreateEditorsFromLayout(const ALayout: TKLayout);
     procedure ProcessLayoutNode(const ANode: TEFNode);
     property Session: TKExtSession read GetSession;
@@ -605,6 +649,7 @@ type
   TExtFormFieldHelper = class helper for TExtFormField
   public
     procedure StoreValue(const AObjectName: string);
+    procedure SetTransientProperty(const APropertyName: string; const AValue: Variant);
   end;
 
   TKEditItemList = class(TList<TObject>)
@@ -619,6 +664,7 @@ type
       const AHandler: TProc<IKExtEditItem>);
     procedure AllNonEditors(const AHandler: TProc<IKExtEditItem>);
     procedure AllEditItems(const AHandler: TProc<IKExtEditItem>);
+    procedure EditItemsById(const AId: string; const AHandler: TProc<IKExtEditItem>);
   end;
 
 implementation
@@ -626,7 +672,7 @@ implementation
 uses
   Math, StrUtils, Windows, Graphics, jpeg, pngimage, superobject,
   EF.SysUtils, EF.StrUtils, EF.Localization, EF.YAML, EF.Types, EF.SQL, EF.JSON,
-  EF.DB, EF.Macros,
+  EF.DB, EF.Macros, EF.VariantUtils,
   Kitto.SQL, Kitto.Metadata.Models, Kitto.Types, Kitto.AccessControl,
   Kitto.Rules, Kitto.Ext.Utils, Kitto.Ext.Rules, Kitto.Config;
 
@@ -707,6 +753,21 @@ begin
     Result := True
   else
     Result := False;
+end;
+
+procedure InvalidTransientProperty(APropertyName: string; const AValue: Variant);
+begin
+  raise EEFError.CreateFmt(_('Unknown transient property: %s = %s.'), [APropertyName, EFVarToStr(AValue)]);
+end;
+
+procedure SetComponentTransientProperty(const AComponent: TExtComponent; APropertyName: string; const AValue: Variant);
+begin
+  if SameText(APropertyName, 'Visible') then
+    AComponent.SetVisible(AValue)
+  else if SameText(APropertyName, 'Enabled') then
+    AComponent.SetDisabled(not AValue)
+  else
+    InvalidTransientProperty(APropertyName, AValue);
 end;
 
 { TKExtLayoutProcessor }
@@ -839,11 +900,11 @@ begin
   if SameText(ANode.Name, 'Field') then
     Result := CreateEditor(ANode.Value, AContainer, ANode)
   else if SameText(ANode.Name, 'FieldSet') then
-    Result := CreateFieldSet(_(ANode.Value))
+    Result := CreateFieldSet(ANode.AsExpandedString)
   else if SameText(ANode.Name, 'CompositeField') then
-    Result := CreateCompositeField(_(ANode.Value))
+    Result := CreateCompositeField(ANode.AsExpandedString)
   else if SameText(ANode.Name, 'Row') then
-    Result := CreateRow
+    Result := CreateRow(ANode.AsExpandedString)
   else
     raise EEFError.CreateFmt(_('Unknown edit item type %s.'), [ANode.Name]);
   if Assigned(AContainer) then
@@ -944,7 +1005,7 @@ begin
     Result := LRowField;
 end;
 
-function TKExtLayoutProcessor.CreateFieldSet(const ATitle: string): IKExtEditItem;
+function TKExtLayoutProcessor.CreateFieldSet(const AId: string): IKExtEditItem;
 var
   LFieldSet: TKExtFormFieldSet;
 begin
@@ -952,9 +1013,9 @@ begin
   Assert(Assigned(FDataRecord));
 
   LFieldSet := TKExtFormFieldSet.Create(FCurrentEditPage);
+  LFieldSet.EditItemId := AId;
   LFieldSet.Collapsible := False;
   LFieldSet.DataRecord := FDataRecord;
-  LFieldSet.UnexpandedTitle := ATitle;
 
   Result := LFieldSet;
 end;
@@ -991,26 +1052,26 @@ begin
     end;
 end;
 
-function TKExtLayoutProcessor.CreateCompositeField(const ALabel: string): IKExtEditItem;
+function TKExtLayoutProcessor.CreateCompositeField(const AId: string): IKExtEditItem;
 var
   LCompositeField: TKExtFormCompositeField;
 begin
   Assert(Assigned(FCurrentEditPage));
 
   LCompositeField := TKExtFormCompositeField.Create(FCurrentEditPage);
-  if ALabel <> '' then
-    LCompositeField.FieldLabel := ALabel;
+  LCompositeField.EditItemId := AId;
   LCompositeField.Anchor := '-32';
   Result := LCompositeField;
 end;
 
-function TKExtLayoutProcessor.CreateRow: IKExtEditItem;
+function TKExtLayoutProcessor.CreateRow(const AId: string): IKExtEditItem;
 var
   LRow: TKExtFormRow;
 begin
   Assert(Assigned(FCurrentEditPage));
 
   LRow := TKExtFormRow.Create(FCurrentEditPage);
+  LRow.EditItemId := AId;
   Result := LRow;
 end;
 
@@ -1078,6 +1139,11 @@ begin
   Result := Self;
 end;
 
+function TKExtEditPage.GetEditItemId: string;
+begin
+  Result := FEditItemId;
+end;
+
 procedure TKExtEditPage.InitDefaults;
 begin
   inherited;
@@ -1119,6 +1185,11 @@ begin
     InvalidOption(ANode);
 end;
 
+procedure TKExtEditPage.SetTransientProperty(const APropertyName: string; const AValue: Variant);
+begin
+  SetComponentTransientProperty(Self, APropertyName, AValue);
+end;
+
 procedure TKExtEditPage.SetUnexpandedTitle(const AValue: string);
 begin
   FUnexpandedTitle := AValue;
@@ -1150,6 +1221,11 @@ end;
 function TKExtFormFieldSet.AsObject: TObject;
 begin
   Result := Self;
+end;
+
+function TKExtFormFieldSet.GetEditItemId: string;
+begin
+  Result := FEditItemId;
 end;
 
 procedure TKExtFormFieldSet.InitDefaults;
@@ -1202,8 +1278,23 @@ begin
     else
       On('afterrender', JSFunction(JSName + '.expand(true);'))
   end
+  else if SameText(ANode.Name, 'Title') then
+    UnexpandedTitle := ANode.AsExpandedString
   else
     InvalidOption(ANode);
+end;
+
+procedure TKExtFormFieldSet.SetTransientProperty(const APropertyName: string; const AValue: Variant);
+begin
+  if SameText(APropertyName, 'Collapsed') then
+  begin
+    if AValue then
+      Collapse(True)
+    else
+      Expand(True);
+  end
+  else
+    SetComponentTransientProperty(Self, APropertyName, AValue);
 end;
 
 procedure TKExtFormFieldSet.SetUnexpandedTitle(const AValue: string);
@@ -1239,13 +1330,26 @@ begin
   Result := Self;
 end;
 
+function TKExtFormCompositeField.GetEditItemId: string;
+begin
+  Result := FEditItemId;
+end;
+
 procedure TKExtFormCompositeField.RefreshValue;
 begin
 end;
 
 procedure TKExtFormCompositeField.SetOption(const ANode: TEFNode);
 begin
-  InvalidOption(ANode);
+  if SameText(ANode.Name, 'Title') then
+    FieldLabel := _(ANode.AsExpandedString)
+  else
+    InvalidOption(ANode);
+end;
+
+procedure TKExtFormCompositeField.SetTransientProperty(const APropertyName: string; const AValue: Variant);
+begin
+  SetComponentTransientProperty(Self, APropertyName, AValue);
 end;
 
 function TKExtFormCompositeField._AddRef: Integer;
@@ -1280,6 +1384,11 @@ begin
   Result := FFieldName;
 end;
 
+function TKExtFormTextField.GetEditItemId: string;
+begin
+  Result := FRecordField.FieldName;
+end;
+
 function TKExtFormTextField.GetRecordField: TKViewTableField;
 begin
   Result := FRecordField;
@@ -1298,6 +1407,11 @@ begin
   FRecordField := AValue;
   if not ReadOnly and IsChangeHandlerNeeded(FRecordField) then
     OnChange := FieldChange;
+end;
+
+procedure TKExtFormTextField.SetTransientProperty(const APropertyName: string; const AValue: Variant);
+begin
+  AsExtFormField.SetTransientProperty(APropertyName, AValue);
 end;
 
 procedure TKExtFormTextField.StoreValue(const AObjectName: string);
@@ -1360,6 +1474,11 @@ begin
   Result := FFieldName;
 end;
 
+function TKExtFormTextArea.GetEditItemId: string;
+begin
+  Result := FRecordField.FieldName;
+end;
+
 function TKExtFormTextArea.GetRecordField: TKViewTableField;
 begin
   Result := FRecordField;
@@ -1375,6 +1494,11 @@ begin
   FRecordField := AValue;
   if not ReadOnly and IsChangeHandlerNeeded(FRecordField) then
     OnChange := FieldChange;
+end;
+
+procedure TKExtFormTextArea.SetTransientProperty(const APropertyName: string; const AValue: Variant);
+begin
+  AsExtFormField.SetTransientProperty(APropertyName, AValue);
 end;
 
 procedure TKExtFormTextArea.StoreValue(const AObjectName: string);
@@ -1436,6 +1560,11 @@ begin
   Result := FFieldName;
 end;
 
+function TKExtFormCheckbox.GetEditItemId: string;
+begin
+  Result := FRecordField.FieldName;
+end;
+
 function TKExtFormCheckbox.GetRecordField: TKViewTableField;
 begin
   Result := FRecordField;
@@ -1451,6 +1580,11 @@ begin
   FRecordField := AValue;
   if not ReadOnly and IsChangeHandlerNeeded(FRecordField) then
     OnChange := FieldChange;
+end;
+
+procedure TKExtFormCheckbox.SetTransientProperty(const APropertyName: string; const AValue: Variant);
+begin
+  AsExtFormField.SetTransientProperty(APropertyName, AValue);
 end;
 
 procedure TKExtFormCheckbox.StoreValue(const AObjectName: string);
@@ -1509,6 +1643,11 @@ begin
   Result := FFieldName;
 end;
 
+function TKExtFormDateField.GetEditItemId: string;
+begin
+  Result := FRecordField.FieldName;
+end;
+
 function TKExtFormDateField.GetRecordField: TKViewTableField;
 begin
   Result := FRecordField;
@@ -1524,6 +1663,11 @@ begin
   FRecordField := AValue;
   if not ReadOnly and IsChangeHandlerNeeded(FRecordField) then
     OnChange := FieldChange;
+end;
+
+procedure TKExtFormDateField.SetTransientProperty(const APropertyName: string; const AValue: Variant);
+begin
+  AsExtFormField.SetTransientProperty(APropertyName, AValue);
 end;
 
 procedure TKExtFormDateField.StoreValue(const AObjectName: string);
@@ -1573,6 +1717,11 @@ end;
 function TKExtFormComboBoxEditor.GetFieldName: string;
 begin
   Result := FFieldName;
+end;
+
+function TKExtFormComboBoxEditor.GetEditItemId: string;
+begin
+  Result := FRecordField.FieldName;
 end;
 
 function TKExtFormComboBoxEditor.GetRecordField: TKViewTableField;
@@ -1665,6 +1814,11 @@ begin
       On('change', JSFunction(GetChangeJSCode(ValueChanged)));
     On('select', JSFunction(JSName + '.kitto$isChanged = true;'));
   end;
+end;
+
+procedure TKExtFormComboBoxEditor.SetTransientProperty(const APropertyName: string; const AValue: Variant);
+begin
+  AsExtFormField.SetTransientProperty(APropertyName, AValue);
 end;
 
 procedure TKExtFormComboBoxEditor.ValueChanged;
@@ -1824,6 +1978,11 @@ begin
   Result := Self;
 end;
 
+function TKExtFormContainer.GetEditItemId: string;
+begin
+  Result := FEditItemId;
+end;
+
 procedure TKExtFormContainer.InitDefaults;
 begin
   inherited;
@@ -1855,6 +2014,11 @@ procedure TKExtFormContainer.SetOption(const ANode: TEFNode);
 begin
   if not InternalSetOption(ANode) then
     InvalidOption(ANode);
+end;
+
+procedure TKExtFormContainer.SetTransientProperty(const APropertyName: string; const AValue: Variant);
+begin
+  SetComponentTransientProperty(Self, APropertyName, AValue);
 end;
 
 function TKExtFormContainer._AddRef: Integer;
@@ -1942,6 +2106,11 @@ begin
   Result := FEditor.FieldName;
 end;
 
+function TKExtFormRowField.GetEditItemId: string;
+begin
+  Result := FEditItemId;
+end;
+
 function TKExtFormRowField.GetRecordField: TKViewTableField;
 begin
   Result := FRecordField;
@@ -1961,6 +2130,11 @@ end;
 procedure TKExtFormRowField.SetRecordField(const AValue: TKViewTableField);
 begin
   FRecordField := AValue;
+end;
+
+procedure TKExtFormRowField.SetTransientProperty(const APropertyName: string; const AValue: Variant);
+begin
+  SetComponentTransientProperty(Self, APropertyName, AValue);
 end;
 
 procedure TKExtFormRowField.StoreValue(const AObjectName: string);
@@ -1996,6 +2170,11 @@ begin
   Result := FFieldName;
 end;
 
+function TKExtFormNumberField.GetEditItemId: string;
+begin
+  Result := FRecordField.FieldName;
+end;
+
 function TKExtFormNumberField.GetRecordField: TKViewTableField;
 begin
   Result := FRecordField;
@@ -2011,6 +2190,11 @@ begin
   FRecordField := AValue;
   if not ReadOnly and IsChangeHandlerNeeded(FRecordField) then
     OnChange := FieldChange;
+end;
+
+procedure TKExtFormNumberField.SetTransientProperty(const APropertyName: string; const AValue: Variant);
+begin
+  AsExtFormField.SetTransientProperty(APropertyName, AValue);
 end;
 
 procedure TKExtFormNumberField.StoreValue(const AObjectName: string);
@@ -2072,6 +2256,11 @@ end;
 function TKExtFormDateTimeField.GetFieldName: string;
 begin
   Result := FFieldName;
+end;
+
+function TKExtFormDateTimeField.GetEditItemId: string;
+begin
+  Result := FRecordField.FieldName;
 end;
 
 function TKExtFormDateTimeField.GetRecordField: TKViewTableField;
@@ -2147,6 +2336,11 @@ begin
   ExtSession.ResponseItems.SetConfigItem(Self, 'timeFormat', [AValue]);
 end;
 
+procedure TKExtFormDateTimeField.SetTransientProperty(const APropertyName: string; const AValue: Variant);
+begin
+  AsExtFormField.SetTransientProperty(APropertyName, AValue);
+end;
+
 procedure TKExtFormDateTimeField.StoreValue(const AObjectName: string);
 begin
   AsExtFormField.StoreValue(AObjectName);
@@ -2180,6 +2374,11 @@ begin
   Result := FFieldName;
 end;
 
+function TKExtFormTimeField.GetEditItemId: string;
+begin
+  Result := FRecordField.FieldName;
+end;
+
 function TKExtFormTimeField.GetRecordField: TKViewTableField;
 begin
   Result := FRecordField;
@@ -2195,6 +2394,11 @@ begin
   FRecordField := AValue;
   if not ReadOnly and IsChangeHandlerNeeded(FRecordField) then
     OnChange := FieldChange;
+end;
+
+procedure TKExtFormTimeField.SetTransientProperty(const APropertyName: string; const AValue: Variant);
+begin
+  AsExtFormField.SetTransientProperty(APropertyName, AValue);
 end;
 
 procedure TKExtFormTimeField.StoreValue(const AObjectName: string);
@@ -2245,6 +2449,11 @@ begin
   Result := FFieldName;
 end;
 
+function TKExtFormFileUploadField.GetEditItemId: string;
+begin
+  Result := FRecordField.FieldName;
+end;
+
 function TKExtFormFileUploadField.GetRecordField: TKViewTableField;
 begin
   Result := FRecordField;
@@ -2258,6 +2467,11 @@ end;
 procedure TKExtFormFileUploadField.SetRecordField(const AValue: TKViewTableField);
 begin
   FRecordField := AValue;
+end;
+
+procedure TKExtFormFileUploadField.SetTransientProperty(const APropertyName: string; const AValue: Variant);
+begin
+  AsExtFormField.SetTransientProperty(APropertyName, AValue);
 end;
 
 procedure TKExtFormFileUploadField.StoreValue(const AObjectName: string);
@@ -2542,6 +2756,11 @@ begin
   FTotalCharWidth := AValue;
 end;
 
+procedure TKExtFormFileEditor.SetTransientProperty(const APropertyName: string; const AValue: Variant);
+begin
+  SetComponentTransientProperty(Self, APropertyName, AValue);
+end;
+
 procedure TKExtFormFileEditor.GetImageContent;
 begin
   if GetCurrentServerFileName = '' then
@@ -2661,6 +2880,11 @@ end;
 function TKExtFormFileEditor.GetFieldName: string;
 begin
   Result := FFieldName;
+end;
+
+function TKExtFormFileEditor.GetEditItemId: string;
+begin
+  Result := FRecordField.FieldName;
 end;
 
 procedure TKExtFormFileEditor.GetImage;
@@ -3305,6 +3529,11 @@ end;
 
 { TExtFormFieldHelper }
 
+procedure TExtFormFieldHelper.SetTransientProperty(const APropertyName: string; const AValue: Variant);
+begin
+  SetComponentTransientProperty(Self, APropertyName, AValue);
+end;
+
 procedure TExtFormFieldHelper.StoreValue(const AObjectName: string);
 begin
   if not ReadOnly then
@@ -3322,7 +3551,7 @@ procedure TKEditItemList.EditorsByFieldName(const AFieldName: string;
   const AHandler: TProc<IKExtEditor>);
 begin
   EnumEditors(
-    function (AEditor: IKExteditor): Boolean
+    function (AEditor: IKExtEditor): Boolean
     begin
       Result := SameText(AEditor.GetRecordField.ViewField.AliasedName, AFieldName);
     end,
@@ -3333,9 +3562,19 @@ procedure TKEditItemList.EditorsByViewField(const AViewField: TKVIewField;
   const AHandler: TProc<IKExtEditor>);
 begin
   EnumEditors(
-    function (AEditor: IKExteditor): Boolean
+    function (AEditor: IKExtEditor): Boolean
     begin
       Result := AEditor.GetRecordField.ViewField = AViewField;
+    end,
+    AHandler);
+end;
+
+procedure TKEditItemList.EditItemsById(const AId: string; const AHandler: TProc<IKExtEditItem>);
+begin
+  EnumEditItems(
+    function (AEditItem: IKExtEditItem): Boolean
+    begin
+      Result := SameText(AEditItem.GetEditItemId, AId);
     end,
     AHandler);
 end;
