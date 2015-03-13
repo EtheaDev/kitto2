@@ -125,6 +125,12 @@ type
     ///	 implementation does nothing.
     /// </summary>
     procedure BeforeAddOrUpdate(const ARecord: TKRecord); virtual;
+
+    ///	<summary>
+    ///  Called by both AfterAdd and AfterUpdate. The default
+    ///	 implementation does nothing.
+    /// </summary>
+    procedure AfterAddOrUpdate(const ARecord: TKRecord); virtual;
   public
     procedure AfterConstruction; override;
     destructor Destroy; override;
@@ -265,7 +271,7 @@ type
     ///	<summary>
     ///	 Returns a value from the model instance pointed to by the specified
     ///  reference field. Raises exceptions if the field is not found or is not
-    //   a reference.
+    ///  a reference.
     ///	</summary>
     function GetReferencedModelInstanceValue(const AReferenceName, AFieldName: string; const ARecord: TKRecord): Variant;
   end;
@@ -317,6 +323,11 @@ uses
 
 procedure TKRuleImpl.AfterAdd(const ARecord: TKRecord);
 begin
+  AfterAddOrUpdate(ARecord);
+end;
+
+procedure TKRuleImpl.AfterAddOrUpdate(const ARecord: TKRecord);
+begin
 end;
 
 procedure TKRuleImpl.AfterConstruction;
@@ -331,6 +342,7 @@ end;
 
 procedure TKRuleImpl.AfterUpdate(const ARecord: TKRecord);
 begin
+  AfterAddOrUpdate(ARecord);
 end;
 
 procedure TKRuleImpl.BeforeAdd(const ARecord: TKRecord);

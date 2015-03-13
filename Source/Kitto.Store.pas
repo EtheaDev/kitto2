@@ -359,6 +359,8 @@ type
 
     function Max(const AFieldName: string): Variant;
     function Min(const AFieldName: string): Variant;
+    function Sum(const AFieldName: string): Variant;
+    function Avg(const AFieldName: string): Variant;
 
     ///	<summary>
     ///  Locates and returns a record from the key values stored in AKey.
@@ -404,6 +406,26 @@ begin
   finally
     EnableChangeNotifications;
   end;
+end;
+
+function TKStore.Avg(const AFieldName: string): Variant;
+var
+  LSum: Variant;
+  LCount: Integer;
+begin
+  LSum := 0;
+  LCount := 0;
+  Iterate(
+    procedure (ARecord: TKRecord)
+    begin
+      if not VarIsNull(LSum) then
+      begin
+        LSum := LSum + ARecord.FieldByName(AFieldName).Value;
+        Inc(LCount);
+      end;
+    end,
+    [ExcludeDeleted()]);
+  Result := LSum / LCount;
 end;
 
 function TKStore.ChangeNotificationsEnabled: Boolean;
@@ -659,6 +681,21 @@ end;
 procedure TKStore.SetKey(const AValue: TKKey);
 begin
   Records.Key := AValue;
+end;
+
+function TKStore.Sum(const AFieldName: string): Variant;
+var
+  LSum: Variant;
+begin
+  LSum := 0;
+  Iterate(
+    procedure (ARecord: TKRecord)
+    begin
+      if not VarIsNull(LSum) then
+        LSum := LSum + ARecord.FieldByName(AFieldName).Value;
+    end,
+    [ExcludeDeleted()]);
+  Result := LSum;
 end;
 
 { TKRecords }
