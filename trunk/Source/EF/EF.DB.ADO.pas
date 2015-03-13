@@ -39,6 +39,12 @@ type
     ///	  current object's parameter.
     ///	</summary>
     procedure AssignValuesTo(const ADestination: TParameters);
+    ///	<summary>
+    ///	  Retrieve the Value property of every parameter from ASource whose name
+    ///	  matches the name of a parameter in the current object to that of the
+    ///	  current object's parameter.
+    ///	</summary>
+    procedure AssignValuesFrom(const ASource: TParameters);
   end;
 
   ///	<summary>
@@ -94,6 +100,8 @@ type
     FCommandText: string;
     // Copies the values in FParams to FCommand.Parameters.
     procedure UpdateInternalCommandParams;
+    // Copies the values in FCommand.Parameters. to FParams
+    procedure UpdateParamsFromParameters;
     // Updates FCommand's command, if necessary, and prepares the command.
     procedure UpdateInternalCommandCommandText;
   protected
@@ -189,6 +197,19 @@ begin
     LDestinationParameter := ADestination.FindParam(Items[LParamIndex].Name);
     if Assigned(LDestinationParameter) then
       LDestinationParameter.Value := Items[LParamIndex].Value;
+  end;
+end;
+
+procedure TEFDBADOParams.AssignValuesFrom(const ASource: TParameters);
+var
+  LParamIndex: Integer;
+  LDestinationParam: TParam;
+begin
+  for LParamIndex := 0 to ASource.Count - 1 do
+  begin
+    LDestinationParam := FindParam(ASource.Items[LParamIndex].Name);
+    if Assigned(LDestinationParam) then
+      LDestinationParam.Value := ASource.Items[LParamIndex].Value;
   end;
 end;
 
@@ -358,6 +379,7 @@ begin
   UpdateInternalCommandParams;
   inherited;
   FCommand.Execute(Result, EmptyParam);
+  UpdateParamsFromParameters;
 end;
 
 function TEFDBADOCommand.GetCommandText: string;
@@ -416,6 +438,11 @@ end;
 procedure TEFDBADOCommand.UpdateInternalCommandParams;
 begin
   FParams.AssignValuesTo(FCommand.Parameters);
+end;
+
+procedure TEFDBADOCommand.UpdateParamsFromParameters;
+begin
+  FParams.AssignValuesFrom(FCommand.Parameters);
 end;
 
 { TEFDBADOQuery }
