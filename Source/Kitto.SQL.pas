@@ -828,7 +828,7 @@ begin
   ADBQuery.Params.BeginUpdate;
   try
     ADBQuery.Params.Clear;
-    LSelectClause := 'select ' +  FSelectTerms;
+    LSelectClause := 'select ' +  ExpandQualification(FSelectTerms, AViewTable.Model.DBTableName);
     LFromClause := 'from ' + GetFromClause;
     LWhereClause := GetSelectWhereClause(AFilter, ADBQuery);
     if (AOrderBy <> '') or (FViewTable.DefaultSorting <> '') then
