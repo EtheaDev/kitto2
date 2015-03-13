@@ -358,8 +358,8 @@ type
     ///	  <para>If both AFrom and ATo are 0, the statement is returned
     ///	  unchanged.</para>
     ///	</summary>
-    function AddLimitClause(const ACommandText: string;
-      const AFrom, AFor: Integer): string; virtual;
+    function AddLimitClause(const ASelectClause, AFromClause, AWhereClause, AOrderByClause: string;
+      const AFrom: Integer; const AFor: Integer): string; virtual;
 
     ///	<summary>
     ///	  <para>Expands database-specific macros. Called before executing a
@@ -397,8 +397,8 @@ type
 
   TEFSQLServerDBEngineType = class(TEFDBEngineType)
   public
-    function AddLimitClause(const ACommandText: string; const AFrom: Integer;
-      const AFor: Integer): string; override;
+    function AddLimitClause(const ASelectClause, AFromClause, AWhereClause, AOrderByClause: string;
+      const AFrom: Integer; const AFor: Integer): string; override;
     function ExpandCommandText(const ACommandText: string): string; override;
     function FormatDateTime(const ADateTimeValue: TDateTime): string; override;
   end;
@@ -1150,23 +1150,23 @@ end;
 
 { TEFDBEngineType }
 
-function TEFDBEngineType.AddLimitClause(const ACommandText: string; const AFrom,
-  AFor: Integer): string;
+function TEFDBEngineType.AddLimitClause(
+  const ASelectClause, AFromClause, AWhereClause, AOrderByClause: string;
+  const AFrom: Integer; const AFor: Integer): string;
 var
   LOrderByClause: string;
 begin
-  Result := ACommandText;
+  Result := ASelectClause + ' ' + AFromClause + ' ' + AWhereClause;
   if (AFrom <> 0) or (AFor <> 0) then
   begin
-    LOrderByClause := GetSQLOrderByClause(ACommandText);
-    if LOrderByClause <> '' then
-      Result := SetSQLOrderByClause(ACommandText, LOrderByClause + ' ' +
-        Format(' rows %d to %d', [AFrom + 1, AFrom + 1 + AFor - 1]))
+    if AOrderByClause <> '' then
+      Result := Result + LOrderByClause + ' ' +
+        Format(' rows %d to %d', [AFrom + 1, AFrom + 1 + AFor - 1])
     else
       raise EEFError.Create('Cannot add limit clause without order by clause.');
   end
   else
-    Result := ACommandText;
+    Result := Result + ' ' + AOrderByClause;
 end;
 
 procedure TEFDBEngineType.BeforeExecute(const ACommandText: string;
@@ -1190,35 +1190,24 @@ end;
 
 { TEFSQLServerDBEngineType }
 
-function TEFSQLServerDBEngineType.AddLimitClause(const ACommandText: string;
+function TEFSQLServerDBEngineType.AddLimitClause(
+  const ASelectClause, AFromClause, AWhereClause, AOrderByClause: string;
   const AFrom, AFor: Integer): string;
-var
-  LSelectClause: string;
-  LOrderByClause: string;
-  LFromClause: string;
-  LWhereClause: string;
 begin
   if (AFrom <> 0) or (AFor <> 0) then
   begin
-    LSelectClause := GetSQLSelectClause(ACommandText);
-    LFromClause := GetSQLFromClause(ACommandText);
-    LWhereClause := GetSQLWhereClause(ACommandText);
-    if LWhereClause <> '' then
-      LWhereClause := ' where ' + LWhereClause;
-    LOrderByClause := GetSQLOrderByClause(ACommandText);
-    if LOrderByClause <> '' then
-      LOrderByClause := ' order by ' + LOrderByClause
-    else
+    if AOrderByClause = '' then
       raise EEFError.Create('Cannot add limit clause without order by clause.');
 { TODO :
 Don't select the __ROWNUM field to save bandwidth?
 Select clause massaging would be required. }
-    Result := Format('select * from (select %s, row_number() over (%s) as __ROWNUM ' +
-      'from %s%s) as __OUTER where __OUTER.__ROWNUM between %d and %d',
-      [LSelectClause, LOrderByClause, LFromClause, LWhereClause, AFrom + 1, AFrom + 1 + AFor - 1]);
+    Result := Format('select * from (%s, row_number() over (%s) as __ROWNUM ' +
+      '%s %s) as __OUTER where __OUTER.__ROWNUM between %d and %d',
+      [ASelectClause, AOrderByClause, AFromClause, AWhereClause, AFrom + 1, AFrom + 1 + AFor - 1]);
   end
   else
-    Result := inherited AddLimitClause(ACommandText, AFrom, AFor);
+    Result := inherited AddLimitClause(ASelectClause, AFromClause, AWhereClause, AOrderByClause,
+      AFrom, AFor);
 end;
 
 function TEFSQLServerDBEngineType.ExpandCommandText(const ACommandText: string): string;
