@@ -294,12 +294,14 @@ type
   /// </summary>
   TKExtToolController = class(TKExtControllerBase)
   strict protected
+    function GetDisplayLabel: string;
     procedure ExecuteTool; virtual;
     procedure AfterExecuteTool; virtual;
     procedure DoDisplay; override;
   public
     class function SupportsContainer: Boolean;
     function IsSynchronous: Boolean; override;
+    property DisplayLabel: string read GetDisplayLabel;
   end;
 
   ///	<summary>
@@ -1325,6 +1327,14 @@ end;
 
 procedure TKExtToolController.ExecuteTool;
 begin
+end;
+
+function TKExtToolController.GetDisplayLabel: string;
+begin
+  if Assigned(View) then
+    Result := Config.GetExpandedString('Title', View.DisplayLabel)
+  else
+    Result := '';
 end;
 
 function TKExtToolController.IsSynchronous: Boolean;
