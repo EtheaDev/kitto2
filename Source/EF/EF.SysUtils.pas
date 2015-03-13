@@ -783,7 +783,7 @@ begin
 
     FillChar(LStartupInfo, SizeOf(LStartupInfo), #0);
     LStartupInfo.cb := SizeOf(LStartupInfo);
-    LStartupInfo.dwFlags := STARTF_USESHOWWINDOW ;//or STARTF_USESTDHANDLES;
+    LStartupInfo.dwFlags := STARTF_USESHOWWINDOW;// or STARTF_USESTDHANDLES;
     LStartupInfo.wShowWindow := AVisibility;
     if LUseOutputTempFile then
     begin
@@ -838,7 +838,7 @@ function ExecuteApplication(const AFileName: string; const AOutput: TStrings): I
 var
   LDummy: Cardinal;
 begin
-  Result := InternalExecuteApplication(AFileName, SW_HIDE, True, False, LDummy, '');
+  Result := InternalExecuteApplication(AFileName, SW_HIDE, True, False, LDummy, '', AOutput);
 end;
 
 function ExecuteApplication(const AFileName, AWorkingDirectory: string;

@@ -71,7 +71,7 @@ implementation
 uses
   StrUtils,
   Ext, EF.XML, EF.Tree, EF.StrUtils,
-  Kitto.Ext.Session, Kitto.Config;
+  Kitto.Ext.Session, Kitto.Config, Kitto.Utils;
 
 { TExportCSVToolController }
 
@@ -184,7 +184,7 @@ begin
       LViewField := LStore.Header.Fields[LFieldIndex].ViewField;
       if Assigned(LViewField) then
       begin
-        LValue := NormalizeColumName(LViewField.DisplayLabel);
+        LValue := NormalizeColumnName(LViewField.DisplayLabel);
         if LFixedLength then
           LLine := LLine + FormatValue(LValue, LViewField.DisplayWidth)
         else
