@@ -19,7 +19,7 @@ unit Kitto.Ext.SQLTool;
 interface
 
 uses
-  SysUtils, Data.DB,
+  SysUtils, Classes, Data.DB,
   Kitto.Metadata.DataView,
   Kitto.Ext.Base, Kitto.Ext.DataTool;
 
@@ -30,11 +30,9 @@ type
   TKExtDataExecSQLCmdToolController = class(TKExtDataToolController)
   strict private
     function GetSQLCommandText: string;
-  strict
-  private
-    function GetDatabaseName: string; protected
+    function GetDatabaseName: string;
+  strict protected
     procedure ExecuteTool; override;
-    procedure AfterExecuteTool; override;
     procedure AssignParamValue(const AParam: TParam;var AValue: Variant);
   public
     class function GetDefaultImageName: string;
@@ -46,6 +44,7 @@ type
   ///	<summary>
   ///  Base class to execute a Stored Procedure
   /// </summary>
+(*
   TKExtDataExecSPToolController = class(TKExtDataToolController)
   strict private
     function GetStoredProcName: string;
@@ -53,7 +52,6 @@ type
   private
     function GetDatabaseName: string; protected
     procedure ExecuteTool; override;
-    procedure AfterExecuteTool; override;
     procedure AssignParamValue(const AParam: TParam;var AValue: Variant);
   public
     class function GetDefaultImageName: string;
@@ -61,6 +59,7 @@ type
     property StoredProcName: string read GetStoredProcName;
     property DatabaseName: string read GetDatabaseName;
   end;
+*)
 
 implementation
 
@@ -70,12 +69,6 @@ uses
   Kitto.DatabaseRouter, Kitto.Config, Kitto.Ext.Session, Kitto.Ext.Controller;
 
 { TKExtDataExecSQLCmdToolController }
-
-procedure TKExtDataExecSQLCmdToolController.AfterExecuteTool;
-begin
-  inherited;
-  Session.Flash(_('Command executed succesfully.'));
-end;
 
 procedure TKExtDataExecSQLCmdToolController.AssignParamValue(const AParam: TParam; var AValue: Variant);
 var
@@ -109,10 +102,23 @@ var
   LCommandText: string;
   LProcedure: TEFDBCommand;
   LDBConnection: TEFDBConnection;
-  LResult: Integer;
   I: Integer;
   LParam: TParam;
-  AValue: Variant;
+  LParamNode: TEFNode;
+  LSuccessNode: TEFNode;
+  LFailureNode: TEFNode;
+  LSuccess: Boolean;
+  LSuccessMessage, LErrorMessage: string;
+  LExpandedValue: string;
+
+  function ExpandExpression(const AExpression: string): string;
+  begin
+    Result := AExpression;
+    if Assigned(ServerRecord) then
+      Result := ServerRecord.ExpandFieldJSONValues(Result, True);
+    Result := TEFMacroExpansionEngine.Instance.Expand(Result);
+  end;
+
 begin
   inherited;
   LDBConnection := TKConfig.Instance.DBConnections[DatabaseName];
@@ -120,14 +126,74 @@ begin
   Assert(LCommandText <> '','SQLCommandText is mandatory');
   LProcedure := LDBConnection.CreateDBCommand;
   LProcedure.CommandText := LCommandText;
+  //Assign Input param values
   for I := 0 to LProcedure.Params.Count -1 do
   begin
     LParam := LProcedure.Params[I];
-    if LParam.ParamType in [ptInput, ptInputOutput] then
-      AssignParamValue(LParam, AValue);
+    LParamNode := Config.FindNode('InputParams/'+LParam.Name);
+    if Assigned(LParamNode) then
+    begin
+      LExpandedValue := ExpandExpression(LParamNode.GetString('Value'));
+      if not SameText(LExpandedValue, LParamNode.AsString) then
+        LParam.AsString := LExpandedValue
+      else
+        LParamNode.AssignToParam(LParam);
+    end;
   end;
-  if LProcedure.Execute <> 0 then
-    raise Exception.CreateFmt('Error executing "%s"', [Config.GetString('DisplayLabel')]);
+
+  //Execute Command
+  ExecuteInTransaction(
+    procedure
+    var
+      I: Integer;
+
+      function ExpandParamNode(const AExpression: string): string;
+      var
+        I: Integer;
+        LParam: TParam;
+      begin
+        Result := AExpression;
+        for I := 0 to LProcedure.Params.Count - 1 do
+        begin
+          LParam := LProcedure.Params[I];
+          Result := ReplaceText(Result, '{' + LParam.Name + '}', LParam.AsString);
+        end;
+      end;
+
+    begin
+      LProcedure.Execute;
+
+      //Read output parameters
+      LSuccess := True;
+      for I := 0 to LProcedure.Params.Count -1 do
+      begin
+        LParam := LProcedure.Params[I];
+        LParamNode := Config.FindNode('OutputParams/'+LParam.Name);
+        if Assigned(LParamNode) then
+        begin
+          LParamNode.Value := LParam.Value;
+          LSuccessNode := LParamNode.FindNode('SuccessValue');
+          LFailureNode := LParamNode.FindNode('FailureValue');
+          if Assigned(LFailureNode) then
+            LSuccess := LFailureNode.Value <> LParam.Value
+          else if Assigned(LSuccessNode) then
+            LSuccess := LSuccessNode.Value = LParam.Value;
+        end;
+      end;
+
+      if LSuccess then
+      begin
+        LSuccessMessage := ExpandParamNode(Config.GetString('SuccessMessageTemplate',
+          Format(_('Command "%s" executed succesfully!'), [DisplayLabel])));
+        Session.Flash(LSuccessMessage);
+      end
+      else
+      begin
+        LErrorMessage := ExpandParamNode(Config.GetString('ErrorMessageTemplate',
+          Format(_('Error executing command "%s"!'), [DisplayLabel])));
+        raise Exception.Create(LErrorMessage);
+      end;
+    end);
 end;
 
 function TKExtDataExecSQLCmdToolController.GetSQLCommandText: string;
@@ -146,13 +212,7 @@ begin
 end;
 
 { TKExtDataExecSPToolController }
-
-procedure TKExtDataExecSPToolController.AfterExecuteTool;
-begin
-  inherited;
-  Session.Flash(_('Command executed succesfully.'));
-end;
-
+(*
 procedure TKExtDataExecSPToolController.AssignParamValue(const AParam: TParam; var AValue: Variant);
 var
   LNode: TEFNode;
@@ -185,7 +245,6 @@ var
   LCommandText, LStoredProcName: string;
   LProcedure: TEFDBCommand;
   LDBConnection: TEFDBConnection;
-  LResult: Integer;
   I: Integer;
   LParam: TParam;
   AValue: Variant;
@@ -221,13 +280,14 @@ class function TKExtDataExecSPToolController.GetDefaultImageName: string;
 begin
   Result := 'exec_storedproc';
 end;
+*)
 
 initialization
-  TKExtControllerRegistry.Instance.RegisterClass('ExecuteStoredProc', TKExtDataExecSPToolController);
+//  TKExtControllerRegistry.Instance.RegisterClass('ExecuteStoredProc', TKExtDataExecSPToolController);
   TKExtControllerRegistry.Instance.RegisterClass('ExecuteSQLCommand', TKExtDataExecSQLCmdToolController);
 
 finalization
-  TKExtControllerRegistry.Instance.UnregisterClass('ExecuteStoredProc');
+//  TKExtControllerRegistry.Instance.UnregisterClass('ExecuteStoredProc');
   TKExtControllerRegistry.Instance.UnregisterClass('ExecuteSQLCommand');
 
 end.
