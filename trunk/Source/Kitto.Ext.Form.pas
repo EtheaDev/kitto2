@@ -751,11 +751,22 @@ end;
 procedure TKExtFormPanelController.FieldChange(const AField: TKField; const AOldValue, ANewValue: Variant);
 var
   LField: TKViewTableField;
+  LOldValue: Variant;
+  LNewValue: Variant;
 begin
   Assert(Assigned(AField));
   Assert(AField is TKViewTableField);
 
   LField := TKViewTableField(AField);
+
+  LOldValue := AOldValue;
+  LNewValue := ANewValue;
+  LField.ViewField.ApplyRules(
+    procedure (ARuleImpl: TKRuleImpl)
+    begin
+      ARuleImpl.AfterFieldChange(AField, LOldValue, LNewValue);
+    end);
+
   { TODO :
   Refactor the way derived fields are determined.
   Reference fields should not have derived fields.

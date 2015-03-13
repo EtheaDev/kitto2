@@ -830,6 +830,7 @@ type
     procedure SetValue(const AValue: Variant); virtual;
     function GetRoot: TEFTree; override;
     function IsDataTypeLocked: Boolean;
+    procedure ValueChanging(const AOldValue: Variant; var ANewValue: Variant; var ADoIt: Boolean); virtual;
     procedure ValueChanged(const AOldValue, ANewValue: Variant); virtual;
     function CompareValues(const AValue1, AValue2: Variant): Boolean;
     function GetDataType: TEFDataType; virtual;
@@ -1846,13 +1847,21 @@ end;
 procedure TEFNode.SetValue(const AValue: Variant);
 var
   LOldValue: Variant;
+  LNewValue: Variant;
+  LDoIt: Boolean;
 begin
-  LOldValue := FValue;
-  FValue := AValue;
-  if not IsDataTypeLocked then
-    FDataType := GetVariantDataType(FValue);
-  if (FDataType <> GetVariantDataType(LOldValue)) or not CompareValues(LOldValue, FValue) then
-    ValueChanged(LOldValue, FValue);
+  LDoIt := True;
+  LNewValue := AValue;
+  ValueChanging(FValue, LNewValue, LDoIt);
+  if LDoIt then
+  begin
+    LOldValue := FValue;
+    FValue := LNewValue;
+    if not IsDataTypeLocked then
+      FDataType := GetVariantDataType(FValue);
+    if (FDataType <> GetVariantDataType(LOldValue)) or not CompareValues(LOldValue, FValue) then
+      ValueChanged(LOldValue, FValue);
+  end;
 end;
 
 function TEFNode.CompareValues(const AValue1, AValue2: Variant): Boolean;
@@ -1878,6 +1887,10 @@ begin
 end;
 
 procedure TEFNode.ValueChanged(const AOldValue, ANewValue: Variant);
+begin
+end;
+
+procedure TEFNode.ValueChanging(const AOldValue: Variant; var ANewValue: Variant; var ADoIt: Boolean);
 begin
 end;
 
@@ -2878,10 +2891,10 @@ end;
 
 function TEFDataType.ValueToBoolean(const AValue: Variant): Boolean;
 begin
-  if AValue <> NULL then
-    Result := AValue
+  if VarIsNull(AValue) then
+    Result := False
   else
-    Result := False;
+    Result := AValue;
 end;
 
 function TEFDataType.ValueToBytes(const AValue: Variant): TBytes;
@@ -2902,7 +2915,10 @@ end;
 
 function TEFDataType.ValueToCurrency(const AValue: Variant): Currency;
 begin
-  Result := AValue;
+  if VarIsNull(AValue) then
+    Result := 0
+  else
+    Result := AValue;
 end;
 
 function TEFDataType.ValueToDate(const AValue: Variant): TDate;

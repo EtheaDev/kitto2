@@ -255,6 +255,22 @@ type
     procedure AfterDelete(const ARecord: TKRecord); virtual;
 
     ///	<summary>
+    ///	 Called before changing a field's value. This method can silently disallow
+    ///	 the change by setting ADoIt to False, or it can call RaiseError to abort
+    ///	 with an error message, or even modify the new value before it is written
+    ///  to the field by modifying ANewValue.
+    ///	</summary>
+    procedure BeforeFieldChange(const AField: TKField; const AOldValue: Variant;
+      var ANewValue: Variant; var ADoIt: Boolean); virtual;
+
+    ///	<summary>
+    ///	 Called after a field's value has been successfully changed.
+    ///	 This method can still abort the operation but the old field value will
+    ///	 not be restored automatically.
+    ///	</summary>
+    procedure AfterFieldChange(const AField: TKField; const AOldValue, ANewValue: Variant); virtual;
+
+    ///	<summary>
     ///	 Creates and returns a store with one record containing the values of
     ///	 the model instance pointed to by the specified reference field. Raises
     ///  exceptions if the field is not found or is not a reference.
@@ -340,6 +356,10 @@ procedure TKRuleImpl.AfterDelete(const ARecord: TKRecord);
 begin
 end;
 
+procedure TKRuleImpl.AfterFieldChange(const AField: TKField; const AOldValue, ANewValue: Variant);
+begin
+end;
+
 procedure TKRuleImpl.AfterUpdate(const ARecord: TKRecord);
 begin
   AfterAddOrUpdate(ARecord);
@@ -355,6 +375,11 @@ begin
 end;
 
 procedure TKRuleImpl.BeforeDelete(const ARecord: TKRecord);
+begin
+end;
+
+procedure TKRuleImpl.BeforeFieldChange(const AField: TKField; const AOldValue: Variant;
+  var ANewValue: Variant; var ADoIt: Boolean);
 begin
 end;
 

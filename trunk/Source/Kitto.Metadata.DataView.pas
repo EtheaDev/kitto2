@@ -251,8 +251,8 @@ type
     property DisplayTemplate: string read GetDisplayTemplate;
 
     property Rules: TKRules read GetRules;
-
     procedure ApplyRules(const AApplyProc: TProc<TKRuleImpl>);
+    function HasRules: Boolean;
 
     ///	<summary>
     ///  If the field is a reference field, creates and returns an array
@@ -457,6 +457,8 @@ type
     function GetXMLTagName: string; override;
     function TranslateFieldName(const AFieldName: string): string; override;
   public
+    procedure FieldChanging(const AField: TKField; const AOldValue: Variant;
+      var ANewValue: Variant; var ADoIt: Boolean); override;
     procedure FieldChanged(const AField: TKField; const AOldValue, ANewValue: Variant); override;
     property Records: TKViewTableRecords read GetRecords;
     property Store: TKViewTableStore read GetStore;
@@ -1542,6 +1544,11 @@ begin
   Result := Assigned(LModelField);
 end;
 
+function TKViewField.HasRules: Boolean;
+begin
+  Result := (Rules.RuleCount > 0) or (ModelField.Rules.RuleCount > 0);
+end;
+
 function TKViewField.FindNode(const APath: string;
   const ACreateMissingNodes: Boolean): TEFNode;
 begin
@@ -2465,6 +2472,31 @@ begin
       end);
   end;
   inherited;
+end;
+
+procedure TKViewTableRecord.FieldChanging(const AField: TKField;
+  const AOldValue: Variant; var ANewValue: Variant; var ADoIt: Boolean);
+var
+  LField: TKViewTableField;
+  LOldValue: Variant;
+  LNewValue: Variant;
+  LDoIt: Boolean;
+begin
+  inherited;
+  Assert(AField is TKViewTableField);
+
+  LField := TKViewTableField(AField);
+  LOldValue := AOldValue;
+  LNewValue := ANewValue;
+  LDoIt := ADoIt;
+  LField.ViewField.ApplyRules(
+    procedure (ARuleImpl: TKRuleImpl)
+    begin
+      ARuleImpl.BeforeFieldChange(AField, LOldValue, LNewValue, LDoIt);
+    end);
+  ADoIt := LDoIt;
+  if ADoIt then
+    ANewValue := LNewValue;
 end;
 
 function TKViewTableRecord.FindField(const AFieldName: string): TKViewTableField;
