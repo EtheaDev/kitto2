@@ -810,6 +810,7 @@ procedure TKSQLBuilder.InternalBuildSelectQuery(const AViewTable: TKViewTable;
   const AMasterValues: TEFNode; const AFrom: Integer; const AFor: Integer);
 var
   I: Integer;
+  LSelectClause, LFromClause, LWhereClause, LOrderByClause: string;
   LCommandText: string;
 begin
   Clear;
@@ -827,13 +828,14 @@ begin
   ADBQuery.Params.BeginUpdate;
   try
     ADBQuery.Params.Clear;
-    LCommandText :=
-      'select ' +  FSelectTerms +
-      ' from ' + GetFromClause + GetSelectWhereClause(AFilter, ADBQuery);
+    LSelectClause := 'select ' +  FSelectTerms;
+    LFromClause := 'from ' + GetFromClause;
+    LWhereClause := GetSelectWhereClause(AFilter, ADBQuery);
     if (AOrderBy <> '') or (FViewTable.DefaultSorting <> '') then
-      LCommandText := LCommandText + ' order by ' + IfThen(AOrderBy <> '', AOrderBy,
+      LOrderByClause := 'order by ' + IfThen(AOrderBy <> '', AOrderBy,
         ExpandQualification(FViewTable.DefaultSorting, AViewTable.Model.DBTableName));
-    LCommandText := ADBQuery.Connection.DBEngineType.AddLimitClause(LCommandText, AFrom, AFor);
+    LCommandText := ADBQuery.Connection.DBEngineType.AddLimitClause(
+      LSelectClause, LFromClause, LWhereClause, LOrderByClause, AFrom, AFor);
     ADBQuery.CommandText := TEFMacroExpansionEngine.Instance.Expand(LCommandText);
   finally
     ADBQuery.Params.EndUpdate;
