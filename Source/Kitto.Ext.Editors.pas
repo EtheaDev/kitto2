@@ -685,11 +685,12 @@ end;
 
 function IsChangeHandlerNeeded(const AViewTableField: TKViewTableField): Boolean;
 begin
-  { TODO : Consider server-side field-level rules as well. }
   { TODO : Consider dependencies such as field names used in layout elements
     (such as field set titles). In order to do that, build a dependency list/tree. }
   if AViewTableField.ViewField.FileNameField <> '' then
     // Uploads always need the change handler.
+    Result := True
+  else if AViewTableField.ViewField.HasRules then
     Result := True
   else if AViewTableField.ViewField.DerivedFieldsExist then
     // Derived fields must be updated when source field changes.

@@ -71,6 +71,7 @@ type
     function GetXMLTagName: string; virtual;
     function GetName: string; override;
     procedure SetValue(const AValue: Variant); override;
+    procedure ValueChanging(const AOldValue: Variant; var ANewValue: Variant; var ADoIt: Boolean); override;
     procedure ValueChanged(const AOldValue: Variant; const ANewValue: Variant); override;
     function GetDataType: TEFDataType; override;
   public
@@ -133,6 +134,8 @@ type
   public
     procedure AfterConstruction; override;
     destructor Destroy; override;
+    procedure FieldChanging(const AField: TKField; const AOldValue: Variant;
+      var ANewValue: Variant; var ADoIt: Boolean); virtual;
     procedure FieldChanged(const AField: TKField; const AOldValue, ANewValue: Variant); virtual;
   public
     property Records: TKRecords read GetRecords;
@@ -1008,8 +1011,12 @@ begin
     raise EKError.CreateFmt(_('Field %s not found.'), [AFieldName]);
 end;
 
-procedure TKRecord.FieldChanged(const AField: TKField; const AOldValue,
-  ANewValue: Variant);
+procedure TKRecord.FieldChanging(const AField: TKField; const AOldValue: Variant;
+  var ANewValue: Variant; var ADoIt: Boolean);
+begin
+end;
+
+procedure TKRecord.FieldChanged(const AField: TKField; const AOldValue, ANewValue: Variant);
 begin
   if Assigned(FOnFieldChange) then
     FOnFieldChange(AField, AOldValue, ANewValue);
@@ -1388,6 +1395,14 @@ begin
   inherited;
   if Assigned(ParentRecord) and Assigned(ParentRecord.Store) and ParentRecord.Store.ChangeNotificationsEnabled then
     ParentRecord.FieldChanged(Self, AOldValue, ANewValue);
+end;
+
+procedure TKField.ValueChanging(const AOldValue: Variant;
+  var ANewValue: Variant; var ADoIt: Boolean);
+begin
+  inherited;
+  if Assigned(ParentRecord) and Assigned(ParentRecord.Store) and ParentRecord.Store.ChangeNotificationsEnabled then
+    ParentRecord.FieldChanging(Self, AOldValue, ANewValue, ADoIt);
 end;
 
 { TKHeader }
