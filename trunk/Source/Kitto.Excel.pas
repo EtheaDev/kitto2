@@ -14,7 +14,7 @@
    limitations under the License.
 -------------------------------------------------------------------------------}
 
-unit Kitto.Ext.ExcelEngine;
+unit Kitto.Excel;
 
 interface
 
@@ -37,8 +37,6 @@ type
 
   TKExtExcelEngine = class(TComponent)
   strict private
-    FExcelRangeName: string;
-    FTemplateFileName: string;
     procedure CreateExcelSheet(AViewTable: TKViewTable;
       AConnectionString, AExcelRangeName: string);
     function GetConnectionString(ExcelFileName: string): string;
@@ -60,8 +58,8 @@ implementation
 
 uses
   Math,
-  Ext, EF.StrUtils, EF.DB, EF.SysUtils,
-  Kitto.Metadata.Models, Kitto.Ext.Session, Kitto.Config;
+  EF.StrUtils, EF.DB, EF.SysUtils,
+  Kitto.Metadata.Models, Kitto.Config, Kitto.Utils;
 
 const
   ADO_EXCEL_2000 = 'Excel 8.0';
@@ -175,7 +173,7 @@ begin
     LViewField := AViewTable.Fields[LFieldIndex];
     if IsValidField(LViewField) then
     begin
-      LColumnName := NormalizeColumName(LViewField.FieldName);
+      LColumnName := NormalizeColumnName(LViewField.FieldName);
       LFieldSize := LViewField.Size;
       GetADOXDataType(LViewField.ActualDataType, LFieldSize, LADOXDataType);
       AddExcelColumn(LColumnName, LADOXDataType, LFieldSize);
@@ -235,7 +233,7 @@ var
     begin
       LViewTableField := LRecord.Fields[LFieldIndex];
       if Assigned(LViewTableField) and Assigned(LViewTableField.ViewField) and
-        SameText(NormalizeColumName(LViewTableField.ViewField.FieldName), NormalizeColumName(AFieldName)) then
+        SameText(NormalizeColumnName(LViewTableField.ViewField.FieldName), NormalizeColumnName(AFieldName)) then
       begin
         Result := LViewTableField;
         Break;

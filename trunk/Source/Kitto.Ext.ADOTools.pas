@@ -20,7 +20,7 @@ interface
 
 uses
   SysUtils, Classes,
-  EF.Tree, Kitto.Ext.ExcelEngine,
+  EF.Tree, Kitto.Excel,
   Kitto.Ext.Controller, Kitto.Ext.DataTool, Kitto.Ext.Base, Kitto.Ext.Tools,
   Kitto.Metadata.DataView, Kitto.Ext.StandardControllers;
 
@@ -31,12 +31,12 @@ type
     function GetExcelRangeName: string;
     function GetTemplateFileName: string;
   strict protected
-    procedure AfterConstruction; override;
     function GetDefaultFileName: string; override;
     function GetDefaultFileExtension: string; override;
     procedure PrepareFile(const AFileName: string); override;
     procedure AcceptRecord(ARecord: TKViewTableRecord; var AAccept: boolean); virtual;
   public
+    procedure AfterConstruction; override;
     class function GetDefaultImageName: string;
     property ExportEngine: TKExtExcelEngine read FExportExcelEngine;
   published

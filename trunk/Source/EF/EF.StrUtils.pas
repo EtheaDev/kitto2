@@ -283,18 +283,6 @@ function JoinPairs(const APairs: TEFPairs; const ASeparator: string = ''): strin
 ///	<example>FormatByteSize(2560) yields '2.5 KBs'</example>
 function FormatByteSize(const AByteSize: Longint; const AFormatSettings: TFormatSettings): string;
 
-///	<summary>
-/// Checks if the character Ch is a number between 0 and 9
-///	</summary>
-function IsDigitChar(Ch : Char) : Boolean;
-
-///	<summary>
-/// Checks if string contains only numeric chars
-///	</summary>
-function IsDigitString(Str : String) : Boolean;
-
-function NormalizeColumName(const ColumnName: string): string;
-
 implementation
 
 uses
@@ -947,32 +935,6 @@ begin
     Result := FormatFloat('0.## KBs', AByteSize / KB, AFormatSettings)
   else
     Result := FormatFloat('0 bytes', AByteSize, AFormatSettings);
-end;
-
-function IsDigitChar(Ch : Char) : Boolean;
-begin
-  Result := Ch in ['0'..'9'];
-end;
-
-function IsDigitString(Str : String) : Boolean;
-var
-  i : integer;
-begin
-  Result := True;
-  for i := 1 to Length(Str) do
-  begin
-    if not IsDigitChar(Str[i]) then
-    begin
-      Result := False;
-      Exit;
-    end;
-  end;
-end;
-
-function NormalizeColumName(const ColumnName: string): string;
-begin
-  Result := StringReplace(ColumnName, ' ','_',[rfReplaceAll]);
-  Result := StringReplace(Result, '.','_',[rfReplaceAll]);
 end;
 
 initialization

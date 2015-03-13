@@ -22,10 +22,12 @@ interface
 
 function HTMLEncode(const AString: string): string;
 
+function NormalizeColumnName(const AColumnName: string): string;
+
 implementation
 
 uses
-  {$IFDEF D21+}System.NetEncoding{$ELSE}Web.HTTPApp{$ENDIF};
+  {$IFDEF D21+}System.NetEncoding{$ELSE}Web.HTTPApp{$ENDIF}, StrUtils;
 
 function HTMLEncode(const AString: string): string;
 begin
@@ -34,6 +36,12 @@ begin
   {$ELSE}
   Result := Web.HTTPApp.HTMLEncode(AString);
   {$ENDIF}
+end;
+
+function NormalizeColumnName(const AColumnName: string): string;
+begin
+  Result := ReplaceStr(AColumnName, ' ', '_');
+  Result := ReplaceStr(Result, '.', '_');
 end;
 
 end.
