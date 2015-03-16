@@ -32,6 +32,9 @@ type
     function GetDefaultFileName: string; override;
     procedure PrepareFile(const AFileName: string); override;
     function GetDefaultFileExtension: string; override;
+  strict protected
+    function GetRecordAsXML: string; virtual;
+    function GetStoreAsXML: string; virtual;
   public
     class function GetDefaultImageName: string;
   published
@@ -47,6 +50,16 @@ uses
   Kitto.Metadata.Models, Kitto.Ext.Session, Kitto.Config;
 
 { TFOPToolController }
+
+function TFOPToolController.GetRecordAsXML: string;
+begin
+  Result := XMLHeader + ServerRecord.GetAsXML(True);
+end;
+
+function TFOPToolController.GetStoreAsXML: string;
+begin
+  Result := XMLHeader + ServerStore.GetAsXML(True);
+end;
 
 function TFOPToolController.GetDefaultFileExtension: string;
 begin
@@ -86,14 +99,14 @@ begin
   Assert(TransformFileName <> '','FOP TransformFileName is mandatory');
 
   LXMLFileName := ChangeFileExt(AFileName, '.xml');
-  LRecord := ServerRecord;
-  LStore := ServerStore;
 
   //Build XML data file
-  if Assigned(LRecord) then
-    LXMLContent := XMLHeader + LRecord.GetAsXML(True)
+  if Assigned(ServerRecord) then
+    LXMLContent := GetRecordAsXML
+  else if Assigned(ServerStore) then
+    LXMLContent := GetStoreAsXML
   else
-    LXMLContent := XMLHeader + LStore.GetAsXML(True);
+    LXMLContent := XMLHeader;
 
   LFileStream := TStringStream.Create(LXMLContent, TEncoding.UTF8);
   try
