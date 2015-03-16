@@ -340,7 +340,7 @@ begin
       FreeAndNil(LStream);
     end;
   finally
-    Cleanup;
+    //Cleanup;
   end;
 end;
 
@@ -353,7 +353,7 @@ begin
       FreeAndNil(FStream);
     end;
   finally
-    Cleanup;
+    //Cleanup;
   end;
 end;
 
