@@ -349,29 +349,32 @@ end;
 procedure TKExtFormPanelController.SetStoreRecord(const AValue: TKViewTableRecord);
 begin
   FStoreRecord := AValue;
-  FStoreRecord.OnSetTransientProperty :=
-    procedure(ASubjectType, ASubjectName, APropertyName: string; AValue: Variant)
-    begin
-      if Assigned(FEditItems) then
+  if Assigned(FStoreRecord) then
+  begin
+    FStoreRecord.OnSetTransientProperty :=
+      procedure(ASubjectType, ASubjectName, APropertyName: string; AValue: Variant)
       begin
-        if SameText(ASubjectType, 'Field') then
+        if Assigned(FEditItems) then
         begin
-          FEditItems.EditorsByViewField(TKViewTableField(FStoreRecord.FieldByName(ASubjectName)).ViewField,
-            procedure (AEditor: IKExtEditor)
-            begin
-              AEditor.SetTransientProperty(APropertyName, AValue);
-            end);
-        end
-        else
-        begin
-          FEditItems.EditItemsById(ASubjectName,
-            procedure (AEditItem: IKExtEditItem)
-            begin
-              AEditItem.SetTransientProperty(APropertyName, AValue);
-            end);
+          if SameText(ASubjectType, 'Field') then
+          begin
+            FEditItems.EditorsByViewField(TKViewTableField(FStoreRecord.FieldByName(ASubjectName)).ViewField,
+              procedure (AEditor: IKExtEditor)
+              begin
+                AEditor.SetTransientProperty(APropertyName, AValue);
+              end);
+          end
+          else
+          begin
+            FEditItems.EditItemsById(ASubjectName,
+              procedure (AEditItem: IKExtEditItem)
+              begin
+                AEditItem.SetTransientProperty(APropertyName, AValue);
+              end);
+          end;
         end;
       end;
-    end;
+  end;
 end;
 
 procedure TKExtFormPanelController.StartOperation;
