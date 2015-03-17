@@ -2811,11 +2811,20 @@ function TEFDataType.NodeToXMLValue(const AForDisplay: Boolean;
   const ANode: TEFNode; const AFormatSettings: TFormatSettings;
   const AEmptyNulls: Boolean = False): string;
 var
-  LTagName: string;
+  LTagName, XMLContent: string;
 begin
   Assert(Assigned(ANode));
   LTagName := ANode.Name;
-  Result := XMLEscape(InternalNodeToJSONValue(AForDisplay, ANode, AFormatSettings));
+  Result := InternalNodeToJSONValue(AForDisplay, ANode, AFormatSettings);
+
+  if PosXMLHeader(Result) > 0 then
+  begin
+    ClearXMLHeader(Result);
+    ClearDOCTYPE(Result);
+    ClearXmlNameSpaces(Result);
+  end
+  else
+    Result := XMLEscape(Result);
   if not ((Result = '') and AEmptyNulls) then
     Result := Format(XMLTagFormat, [LTagName, Result, LTagName]);
 end;
