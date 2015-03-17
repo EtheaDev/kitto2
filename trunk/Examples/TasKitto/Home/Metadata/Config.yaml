@@ -26,7 +26,7 @@ Auth: DB
   Defaults:
     UserName: admin
     Password: admin
-  ReadUserCommandText: select USER_NAME, PASSWORD_HASH, FIRST_NAME, LAST_NAME from KITTO_USERS where IS_ACTIVE = 1 and USER_NAME = :USER_NAME
+  ReadUserCommandText: select USER_NAME, PASSWORD_HASH, FIRST_NAME, LAST_NAME from KITTO_USERS where IS_ACTIVE = 1 and UPPER(USER_NAME) = UPPER(:USER_NAME)
 
 AccessControl: Null
 
