@@ -2,7 +2,7 @@
 
 Controller: List
   Filters:
-    DisplayLabel: Types
+    DisplayLabel: Search panel
     LabelWidth: 90
     Connector: and
     Items:
@@ -42,7 +42,6 @@ Controller: List
       FreeSearch: Last N Days
         ExpressionTemplate: ACTIVITY_DATE >= (getDate() - {value})
   GridPanelController:
-    ToolButtonScale: medium
     AllowDuplicating: True
     AllowViewing: True
 

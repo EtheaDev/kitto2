@@ -2,6 +2,7 @@
 Type: Data
 Controller: Form
   Operation: Edit
+  IsModal: True
 MainTable:
   Model: KITTO_USERS
   DefaultFilter: {Q}USER_NAME = '%Auth:USER_NAME%'
