@@ -153,7 +153,7 @@ type
   ///	  SubType: alpha_space
   ///	</code>
   ///	  <para>Example of adding a new vtype to ExtJS (from
-  ///	  kitto-core.js):</para>
+  ///	  kitto-init.js):</para>
   ///	  <code lang="Delphi">
   ///	// Additional form vtypes.
   ///	var
@@ -211,7 +211,7 @@ type
     procedure ApplyToFormField(const AField: TExtFormField); override;
   end;
 
-  ///	<summary>Applies a custom rexex as a char filter to a field.</summary>
+  ///	<summary>Applies a custom regex as a char filter to a field.</summary>
   ///	<example>
   ///	  <code>
   ///	Rules:

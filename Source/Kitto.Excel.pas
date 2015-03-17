@@ -37,9 +37,9 @@ type
 
   TKExtExcelEngine = class(TComponent)
   strict private
-    procedure CreateExcelSheet(AViewTable: TKViewTable;
+    procedure CreateExcelSheet(const AViewTable: TKViewTable;
       AConnectionString, AExcelRangeName: string);
-    function GetConnectionString(ExcelFileName: string): string;
+    function GetConnectionString(const ExcelFileName: string): string;
     function IsValidField(const AViewField: TKViewField;
       AAcceptFieldEvent: TExportAcceptFieldEvent = nil): Boolean;
   strict protected
@@ -84,7 +84,7 @@ const
 
 { TKExtExcelEngine }
 
-function TKExtExcelEngine.GetConnectionString(ExcelFileName: string): string;
+function TKExtExcelEngine.GetConnectionString(const ExcelFileName: string): string;
 var
   FileExt: string;
   ExcelVersion: TExcelVersion;
@@ -132,7 +132,7 @@ begin
     AADOXDataType := adLongVarWChar;
 end;
 
-procedure TKExtExcelEngine.CreateExcelSheet(AViewTable: TKViewTable;
+procedure TKExtExcelEngine.CreateExcelSheet(const AViewTable: TKViewTable;
   AConnectionString, AExcelRangeName: string);
 var
   LCatalog: _Catalog;
