@@ -27,7 +27,6 @@ MainTable:
     Picture:
 
   Controller:
-    AutoOpen: False
     AllowViewing: True
     PopupWindow:
       Height: 500

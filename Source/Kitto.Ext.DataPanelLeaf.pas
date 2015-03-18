@@ -102,7 +102,7 @@ procedure TKExtDataPanelLeafController.UpdateObserver(
   const ASubject: IEFSubject; const AContext: string);
 begin
   inherited;
-  if (AContext = 'RefreshAllRecords') or (AContext = 'RefreshCurrentRecord') then
+  if AContext = 'RefreshAllRecords' then
     TKExtDataPanelController(Config.GetObject('Sys/ParentDataPanel', Self)).LoadData;
 end;
 

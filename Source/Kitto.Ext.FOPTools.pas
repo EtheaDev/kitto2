@@ -89,8 +89,6 @@ end;
 
 procedure TFOPToolController.PrepareFile(const AFileName: string);
 var
-  LRecord: TKViewTableRecord;
-  LStore: TKViewTableStore;
   LXSLFileName, LXMLFileName: string;
   LXMLContent, LXSLContent: string;
   LFileStream: TStringStream;

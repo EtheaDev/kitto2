@@ -96,6 +96,7 @@ type
     function GetIsPassword: Boolean;
     function GetDBName: string;
     function GetAliasedDBName: string;
+    function GetQualifiedAliasedDBName: string;
   strict protected
     function GetChildClass(const AName: string): TEFNodeClass; override;
     function GetDataType: TEFDataType; override;
@@ -109,13 +110,13 @@ type
     property Table: TKViewTable read GetTable;
     property Model: TKModel read GetModel;
 
-    ///	<summary>
+    /// <summary>
     ///  Returns a reference to the model field, or raises an exception
-    ///	 if the model field is not found.
+    ///  if the model field is not found.
     /// </summary>
     property ModelField: TKModelField read GetModelField;
 
-    ///	<summary>
+    /// <summary>
     ///  Returns a reference to the model field, or nil.
     /// </summary>
     function FindModelField: TKModelField;
@@ -124,6 +125,7 @@ type
     property QualifiedAliasedDBNameOrExpression: string read GetQualifiedAliasedDBNameOrExpression;
     property DBName: string read GetDBName;
     property AliasedDBName: string read GetAliasedDBName;
+    property QualifiedAliasedDBName: string read GetQualifiedAliasedDBName;
     property QualifiedDBName: string read GetQualifiedDBName;
     property QualifiedDBNameOrExpression: string read GetQualifiedDBNameOrExpression;
     property AllowedValues: TEFPairs read GetAllowedValues;
@@ -131,92 +133,92 @@ type
     property CanInsert: Boolean read GetCanInsert;
     property CanUpdate: Boolean read GetCanUpdate;
 
-    ///	<summary>
-    ///	 If the field is referenced, returns the names of the key fields
-    ///	 in the reference, separated by TKConfig.Instance.MultiFieldSeparator.
-    ///	 Otherwise, returns the FieldName.
-    ///	</summary>
+    /// <summary>
+    ///  If the field is referenced, returns the names of the key fields
+    ///  in the reference, separated by TKConfig.Instance.MultiFieldSeparator.
+    ///  Otherwise, returns the FieldName.
+    /// </summary>
     property FieldNamesForUpdate: string read GetFieldNamesForUpdate;
 
-    ///	<summary>
+    /// <summary>
     ///  Returns True if the field is a reference field, that is if the
-    ///	 field is part of the containing view table's model and the underlying
-    ///	 model field is a reference field.
+    ///  field is part of the containing view table's model and the underlying
+    ///  model field is a reference field.
     /// </summary>
     property IsReference: Boolean read GetIsReference;
 
-    ///	<summary>
-    ///	 Optional filter to use when creating select lists. Only applies to
-    ///	 reference fields.
-    ///	</summary>
+    /// <summary>
+    ///  Optional filter to use when creating select lists. Only applies to
+    ///  reference fields.
+    /// </summary>
     property DefaultFilter: string read GetDefaultFilter;
 
-    ///	<summary>
-    ///	 Specifies the logical connector to use when appending the
-    ///	 DefaultFilter to an existing WHERE clause (for example, a referenced
-    ///	 model's own DefaultFilter). Defaults to 'and'; another common value
-    ///	 is 'or'.
-    ///	</summary>
+    /// <summary>
+    ///  Specifies the logical connector to use when appending the
+    ///  DefaultFilter to an existing WHERE clause (for example, a referenced
+    ///  model's own DefaultFilter). Defaults to 'and'; another common value
+    ///  is 'or'.
+    /// </summary>
     property DefaultFilterConnector: string read GetDefaultFilterConnector;
 
-    ///	<summary>
+    /// <summary>
     ///  Returns the field's DataType, unless it's a reference field,
-    ///	 in which case returns the data type of the referenced model's
-    ///	 CaptionField.
+    ///  in which case returns the data type of the referenced model's
+    ///  CaptionField.
     /// </summary>
     function GetActualDataType: TEFDataType;
 
-    ///	<summary>
+    /// <summary>
     ///  If the field is from a different model than the table's model,
-    ///	 returns the model field that references its model, otherwise returns
-    ///	 nil.
+    ///  returns the model field that references its model, otherwise returns
+    ///  nil.
     /// </summary>
     property ReferenceField: TKModelField read GetReferenceField;
 
-    ///	<summary>
-    ///	 <para>
+    /// <summary>
+    ///  <para>
     ///   Returns True if the field is the reference field of
-    ///	  MasterTable's model's detail reference to this vie wtable's
-    ///	  model.
+    ///   MasterTable's model's detail reference to this vie wtable's
+    ///   model.
     ///  </para>
-    ///	 <para>
+    ///  <para>
     ///   IOW, returns True if the view table is a detail table and the
-    ///	  field is (part of) the link to its master table.
+    ///   field is (part of) the link to its master table.
     ///  </para>
-    ///	</summary>
+    /// </summary>
     property IsDetailReference: Boolean read GetIsDetailReference;
 
-    ///	<summary>
+    /// <summary>
     ///  Creates a store with the current field, all key fields of
-    ///	 the referenced model and a concatenation of all key fields (if > 1)
+    ///  the referenced model and a concatenation of all key fields (if > 1)
     ///  stored as a single field (used by lookups).
     ///  If the field is not a reference field, an exception is raised.
     /// </summary>
     function CreateReferenceStore: TKStore;
 
-    ///	<summary>
+    /// <summary>
     ///  Creates a store with all fields from the referenced model and fetches
     ///  the record specified by the key values.
     /// </summary>
     function CreateReferencedModelStore(const AKeyValues: Variant): TKStore;
 
-    ///	<summary>
-    ///	 Extract and returns the model name from the Name. If no model name is
-    ///	 specified (because the field is part of the main model), returns the
-    ///	 main model name.
-    ///	</summary>
+    /// <summary>
+    ///  Extract and returns the model name from the Name. If no model name is
+    ///  specified (because the field is part of the main model), returns the
+    ///  main model name.
+    /// </summary>
     property ModelName: string read GetModelName;
 
-    ///	<summary>
-    ///	 Extract and returns the reference name from the Name, or '' if the
-    ///	 field is not a reference field.
-    ///	</summary>
+    /// <summary>
+    ///  Extract and returns the reference name from the Name, or '' if the
+    ///  field is not a reference field.
+    /// </summary>
     property ReferenceName: string read GetReferenceName;
 
-    ///	<summary>
-    ///	 Extract and returns the field name without the model name qualifier.
-    ///	 If the field is part of the main model, this is equal to Name.
-    ///	</summary>
+    /// <summary>
+    ///  Extract and returns the field name without the model name qualifier.
+    ///  If the field is part of the main model, this is equal to Name.
+    /// </summary>
     property FieldName: string read GetFieldName;
 
     property IsKey: Boolean read GetIsKey;
@@ -254,44 +256,44 @@ type
     procedure ApplyRules(const AApplyProc: TProc<TKRuleImpl>);
     function HasRules: Boolean;
 
-    ///	<summary>
+    /// <summary>
     ///  If the field is a reference field, creates and returns an array
-    ///	 of view fields in the current view table from the same referenced
-    ///	 model (including itself).
+    ///  of view fields in the current view table from the same referenced
+    ///  model (including itself).
     /// </summary>
-    ///	<exception cref="Assert">
+    /// <exception cref="Assert">
     ///  Violation if IsReference is False.
     /// </exception>
-    ///	<example>
+    /// <example>
     ///  If the field is a reference field called City, then all fields
-    ///	 called City.* are added to the returned array, plus itself (City).
+    ///  called City.* are added to the returned array, plus itself (City).
     /// </example>
     function GetDerivedFields: TArray<TKViewField>;
 
-    ///	<summary>
+    /// <summary>
     ///  Creates and loads a store with a record containing all derived
-    ///	 values for a reference field. The caller is responsible for freeing the
-    ///	 store object.
+    ///  values for a reference field. The caller is responsible for freeing the
+    ///  store object.
     /// </summary>
-    ///	<param name="AKeyValues">
+    /// <param name="AKeyValues">
     ///  Key values for the record to fetch.
     /// </param>
-    ///	<exception cref="Assert">
+    /// <exception cref="Assert">
     ///  If the field is not a reference field, an
-    ///	 assertion violation is raised.
+    ///  assertion violation is raised.
     /// </exception>
     function CreateDerivedFieldsStore(const AKeyValues: string): TKStore;
 
-    ///	<summary>
+    /// <summary>
     ///  For blob or file reference fields, optionally specifies the
-    ///	 name of another field in the same view table that will store the
-    ///	 original file name upon upload.
+    ///  name of another field in the same view table that will store the
+    ///  original file name upon upload.
     /// </summary>
     property FileNameField: string read GetFileNameField;
 
-    ///	<summary>
+    /// <summary>
     ///  Returns True if any view fields exist in the view table that
-    ///	 have this field's model field as reference field. Used to discover
+    ///  have this field's model field as reference field. Used to discover
     ///  if there are any fields that need to be refreshed when the current
     ///  field's value changes.
     /// </summary>
@@ -338,39 +340,39 @@ type
 
     procedure Load(const AFilter: string; const AOrderBy: string);
 
-    ///	<summary>Loads a page of data according to AFrom and AFor arguments,
-    ///	and returns the total number of records in all pages.</summary>
-    ///	<param name="AFilter">Additional SQL filter.</param>
-    ///	<param name="AFrom">Number of the first record to retrieve
-    ///	(0-based).</param>
-    ///	<param name="ATo">Maximum count of records to retrieve.</param>
-    ///	<remarks>
-    ///	  <para>This method will perform two database queries, one to get the
-    ///	  total count and one to get the requested data page.</para>
-    ///	  <para>If AFrom or ATo are 0, the method calls <see cref=
-    ///	  "Load" />.</para>
-    ///	</remarks>
+    /// <summary>Loads a page of data according to AFrom and AFor arguments,
+    /// and returns the total number of records in all pages.</summary>
+    /// <param name="AFilter">Additional SQL filter.</param>
+    /// <param name="AFrom">Number of the first record to retrieve
+    /// (0-based).</param>
+    /// <param name="ATo">Maximum count of records to retrieve.</param>
+    /// <remarks>
+    ///   <para>This method will perform two database queries, one to get the
+    ///   total count and one to get the requested data page.</para>
+    ///   <para>If AFrom or ATo are 0, the method calls <see cref=
+    ///   "Load" />.</para>
+    /// </remarks>
     function LoadPage(const AFilter: string; const AOrderBy: string; const AFrom, AFor: Integer): Integer;
 
-    ///	<summary>
+    /// <summary>
     ///  Appends a record and fills it with the specified values.
-    ///	</summary>
+    /// </summary>
     function AppendRecord(const AValues: TEFNode): TKViewTableRecord;
 
     procedure Save(const AUseTransaction: Boolean);
 
-    ///	<summary>
+    /// <summary>
     ///  Locates and returns a record from the key values stored in AKey.
     ///  Raises an exception if the record is not found.
-    ///	</summary>
-    ///	<param name="AKey">
+    /// </summary>
+    /// <param name="AKey">
     ///  Object containing at least one top-level pair for each key value.
     /// </param>
-    ///	<param name="AFormatSettings">
+    /// <param name="AFormatSettings">
     ///  Used to interpret string values (all pair values are read as string and
     ///  then converted according to this settings object).
     /// </param>
-    ///	<param name="AValueIndex">
+    /// <param name="AValueIndex">
     ///  If each pair in AKey contains more than one value, set this param to
     ///  an index >=0 to consider that value. Normally each pair contains a
     ///  single value, so you just don't pass this param.
@@ -468,6 +470,7 @@ type
     property DetailStores[I: Integer]: TKViewTableStore read GetDetailsStore;
     function AddDetailStore(const AStore: TKViewTableStore): TKViewTableStore;
     procedure Save(const AUseTransaction: Boolean);
+    procedure Refresh(const AStrict: Boolean = False);
     procedure SetDetailFieldValues(const AMasterRecord: TKViewTableRecord);
 
     procedure ApplyNewRecordRules;
@@ -478,13 +481,13 @@ type
     function FindField(const AFieldName: string): TKViewTableField;
     function FieldByName(const AFieldName: string): TKViewTableField;
 
-    ///	<summary>
+    /// <summary>
     ///   Replaces all field name markers in AText with the current field values
-    ///	  in JSON format and returns the resulting expanded string.
+    ///   in JSON format and returns the resulting expanded string.
     ///   A field name marker is in the form {FieldName}.
     ///   Pass True in AEmptyNulls to expand null fields to empty strings,
     ///   otherwise they are expanded as 'null'.
-    ///	  If ASender is specified, then the value of the corresponding field
+    ///   If ASender is specified, then the value of the corresponding field
     //    is not expanded (useful to avoid infinite recursion when this method
     //    is called by TKViewTableField.GetAsJSONValue).
     /// </summary>
@@ -545,18 +548,18 @@ type
     property IsDetail: Boolean read GetIsDetail;
     property MasterTable: TKViewTable read GetMasterTable;
 
-    ///	<summary>
+    /// <summary>
     ///   If the view table is a detail, this property contains the name
-    ///	  of the detail reference in the master view table's model. Otherwise
-    ///	  it's empty.
+    ///   of the detail reference in the master view table's model. Otherwise
+    ///   it's empty.
     /// </summary>
     property ModelDetailReferenceName: string read GetModelDetailReferenceName;
 
-    ///	<summary>If the view table is a detail, this property returns the model
-    ///	detail reference in the master view table's model. Otherwise raises an
-    ///	exception.</summary>
-    ///	<remarks>Check IsDetail before calling this method, if you want to
-    ///	avoid exceptions.</remarks>
+    /// <summary>If the view table is a detail, this property returns the model
+    /// detail reference in the master view table's model. Otherwise raises an
+    /// exception.</summary>
+    /// <remarks>Check IsDetail before calling this method, if you want to
+    /// avoid exceptions.</remarks>
     property ModelDetailReference: TKModelDetailReference read GetModelDetailReference;
 
     property DisplayLabel: string read GetDisplayLabel;
@@ -598,19 +601,19 @@ type
 
     property IsReadOnly: Boolean read GetIsReadOnly;
 
-    ///	<summary>
-    ///	 Optional fixed filter expression to apply when building the select
-    ///	 SQL statement to display data. Should refer to fields through
-    ///	 qualified names. Defaults to ''.
-    ///	</summary>
+    /// <summary>
+    ///  Optional fixed filter expression to apply when building the select
+    ///  SQL statement to display data. Should refer to fields through
+    ///  qualified names. Defaults to ''.
+    /// </summary>
     property DefaultFilter: string read GetDefaultFilter;
 
-    ///	<summary>
-    ///	 Optional fixed ORDER BY expression to apply when building the select
-    ///	 SQL statement to display data. Should refer to fields through
-    ///	 qualified names (or ordinal numbers for expression-based fields).
+    /// <summary>
+    ///  Optional fixed ORDER BY expression to apply when building the select
+    ///  SQL statement to display data. Should refer to fields through
+    ///  qualified names (or ordinal numbers for expression-based fields).
     ///  Defaults to Model.DefaultSorting.
-    ///	</summary>
+    /// </summary>
     property DefaultSorting: string read GetDefaultSorting;
 
     property DetailTableCount: Integer read GetDetailTableCount;
@@ -620,40 +623,40 @@ type
 
     property View: TKDataView read GetView;
 
-    ///	<summary>
+    /// <summary>
     ///  Returns an array with any view table's model name
     ///  (except the view's MainTable, which is assumed
-    ///	 implicit) downto and including the current view table's name.
+    ///  implicit) downto and including the current view table's name.
     /// </summary>
-    ///	<example>
-    ///	 <para>Called on the Parties view's MainTable yields an empty array</para>
-    ///	 <para>Called on its only detail table yields 'Invitation'</para>
-    ///	</example>
+    /// <example>
+    ///  <para>Called on the Parties view's MainTable yields an empty array</para>
+    ///  <para>Called on its only detail table yields 'Invitation'</para>
+    /// </example>
     function GetNamePath: TStringDynArray;
 
-    ///	<summary>
-    ///	  Finds and returns a reference to a layout named after the view's
-    ///	  PersistentName plus an underscore ('_') and the specified kind. If no
-    ///	  layout exists under that name, returns nil.
-    ///	</summary>
-    ///	<param name="AKind">
-    ///	  Kind of layout to look for. Common kinds are 'List' and 'Form'.
-    ///	</param>
+    /// <summary>
+    ///   Finds and returns a reference to a layout named after the view's
+    ///   PersistentName plus an underscore ('_') and the specified kind. If no
+    ///   layout exists under that name, returns nil.
+    /// </summary>
+    /// <param name="AKind">
+    ///   Kind of layout to look for. Common kinds are 'List' and 'Form'.
+    /// </param>
     function FindLayout(const AKind: string): TKLayout;
 
-    ///	<summary>
-    ///	 Creates and returns a store with the view's metadata.
-    ///	</summary>
+    /// <summary>
+    ///  Creates and returns a store with the view's metadata.
+    /// </summary>
     function CreateStore: TKViewTableStore;
 
-    ///	<summary>
+    /// <summary>
     ///  Creates and returns a node with one child for each default
-    ///	 value as specified in the view table or model. Any default expression
-    ///	 is evaluated at this time.
+    ///  value as specified in the view table or model. Any default expression
+    ///  is evaluated at this time.
     /// </summary>
-    ///	<remarks>
+    /// <remarks>
     ///  The caller is responsible for freeing the returned node object.
-    ///	</remarks>
+    /// </remarks>
     function GetDefaultValues(const AKeyOnly: Boolean = False): TEFNode;
 
     function GetResourceURI: string; override;
@@ -663,10 +666,10 @@ type
     property Rules: TKRules read GetRules;
     procedure ApplyRules(const AApplyProc: TProc<TKRuleImpl>);
 
-    ///	<summary>
+    /// <summary>
     ///  If the specified field exists in the view table, the method
-    ///	 returns its AliasedName, otherwise the specified field name is
-    ///	 returned.
+    ///  returns its AliasedName, otherwise the specified field name is
+    ///  returned.
     /// </summary>
     function ApplyFieldAliasedName(const AFieldName: string): string;
 
@@ -1651,6 +1654,15 @@ begin
   Result := GetChildrenAsPairs('Colors', True);
 end;
 
+function TKViewField.GetQualifiedAliasedDBName: string;
+begin
+  Result := Alias;
+  if Result = '' then
+    Result := ReplaceStr(QualifiedDBName, '.', '_');
+  if Result = '' then
+    raise EKError.CreateFmt('ViewField %s must have an alias.', [Name]);
+end;
+
 function TKViewField.GetQualifiedAliasedDBNameOrExpression: string;
 var
   LExpression: string;
@@ -2351,6 +2363,26 @@ begin
   end;
 end;
 
+procedure TKViewTableRecord.Refresh(const AStrict: Boolean = False);
+var
+  LDBQuery: TEFDBQuery;
+begin
+  Assert(Assigned(ViewTable));
+
+  LDBQuery := TKConfig.Instance.DBConnections[ViewTable.DatabaseName].CreateDBQuery;
+  try
+    TKSQLBuilder.BuildSingletonSelectQuery(ViewTable, LDBQuery, GetFieldValues(Store.ViewTable.Model.GetKeyFieldNames));
+    LDBQuery.Open;
+    if AStrict and LDBQuery.DataSet.IsEmpty then
+      raise Exception.Create('Record not found');
+    if not LDBQuery.DataSet.IsEmpty then
+      ReadFromFields(LDBQuery.DataSet.Fields);
+    MarkAsClean;
+  finally
+    FreeAndNil(LDBQuery);
+  end;
+end;
+
 procedure TKViewTableRecord.EnsureDetailStores;
 var
   I: Integer;
@@ -2382,12 +2414,6 @@ var
   LFieldNames: TArray<string>;
   LFieldValues: TArray<string>;
   LFilteredByFields: TArray<TKFilterByViewField>;
-
-  function IsCompositeField(const AFieldName: string): Boolean;
-  begin
-    Result := AFieldName.Contains(TKConfig.Instance.MultiFieldSeparator);
-  end;
-
 begin
   Assert(AField is TKViewTableField);
 
@@ -2395,7 +2421,7 @@ begin
   LViewField := LField.ViewField;
 
   // Forward the changed value to the multi-valued field constituent parts.
-  if IsCompositeField(LField.FieldName) then
+  if LField.IsCompositeField then
   begin
     LFieldNames := LField.FieldName.Split([TKConfig.Instance.MultiFieldSeparator], None);
     // Test for null and '' as well, since compound fields are always treated as
@@ -2416,7 +2442,7 @@ begin
 
   // See if LField is part of a reference. LField.ViewField gets a reference
   // to the reference ViewField, if any, or the corresponding ViewField otherwise.
-  if LViewField.IsReference then
+  if LViewField.IsReference and not LField.IsPartOfCompositeField then
   begin
     if LField.FieldName <> LViewField.AliasedName then
     begin
