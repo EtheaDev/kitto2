@@ -1288,7 +1288,7 @@ begin
       if Length(LStrings) > 2 then
         ADecimalPrecision := StrToInt(Trim(LStrings[2]))
       else
-        ADecimalPrecision := -1;
+        ADecimalPrecision := 0;
 
       AReferencedModel := '';
     end;
@@ -1296,7 +1296,7 @@ begin
   else
   begin
     ASize := 0;
-    ADecimalPrecision := -1;
+    ADecimalPrecision := 0;
     AReferencedModel := '';
   end;
 end;
