@@ -388,7 +388,7 @@ type
     procedure SetFOriginalValue(Value: string);
     procedure SetFStartValue(Value: string);
     procedure SetFOnBlur(Value: TExtFormFieldOnBlur);
-    procedure SetFOnChange(Value: TExtFormFieldOnChange);
+    procedure SetOnChange(const AValue: TExtFormFieldOnChange);
     procedure SetFOnFocus(Value: TExtFormFieldOnFocus);
     procedure SetFOnInvalid(Value: TExtFormFieldOnInvalid);
     procedure SetFOnSpecialkey(Value: TExtFormFieldOnSpecialkey);
@@ -447,7 +447,7 @@ type
     property OriginalValue: string read FOriginalValue write SetFOriginalValue;
     property StartValue: string read FStartValue write SetFStartValue;
     property OnBlur: TExtFormFieldOnBlur read FOnBlur write SetFOnBlur;
-    property OnChange: TExtFormFieldOnChange read FOnChange write SetFOnChange;
+    property OnChange: TExtFormFieldOnChange read FOnChange write SetOnChange;
     property OnFocus: TExtFormFieldOnFocus read FOnFocus write SetFOnFocus;
     property OnInvalid: TExtFormFieldOnInvalid read FOnInvalid
       write SetFOnInvalid;
@@ -2326,13 +2326,13 @@ begin
   FOnBlur := Value;
 end;
 
-procedure TExtFormField.SetFOnChange(Value: TExtFormFieldOnChange);
+procedure TExtFormField.SetOnChange(const AValue: TExtFormFieldOnChange);
 begin
   if Assigned(FOnChange) then
-    JSCode(JSName + '.events ["change"].listeners=[];');
-  if Assigned(Value) then
-    on('change', Ajax('change', ['This', '%0.nm', 'NewValue', '%1', 'OldValue', '%2'], true));
-  FOnChange := Value;
+    Session.ResponseItems.ExecuteJSCode(Self, JSName + '.events["change"].listeners=[];');
+  if Assigned(AValue) then
+    On('change', Ajax('change', ['This', '%0.nm', 'NewValue', '%1', 'OldValue', '%2'], True));
+  FOnChange := AValue;
 end;
 
 procedure TExtFormField.SetFOnFocus(Value: TExtFormFieldOnFocus);

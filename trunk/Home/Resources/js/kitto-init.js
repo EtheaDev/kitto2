@@ -109,6 +109,44 @@ function kittoInit()
     }
   });
 
+  // Used by TKExtForceUpperCase and siblings.
+  Ext.override(Ext.form.Field, {
+
+    setCursorPosition: function(pos) {
+       var el = this.getEl().dom;
+       if (el.createTextRange) {
+          var range = el.createTextRange();
+          range.move("character", pos);
+          range.select();
+       } else if(typeof el.selectionStart == "number" ) { 
+          el.focus(); 
+          el.setSelectionRange(pos, pos); 
+       } else {
+         alert('Method not supported');
+       }
+    },
+
+    getCursorPosition: function() {
+       var el = this.getEl().dom;
+       var rng, ii=-1;
+       if (typeof el.selectionStart=="number") {
+          ii=el.selectionStart;
+       } else if (document.selection && el.createTextRange){
+          rng=document.selection.createRange();
+          rng.collapse(true);
+          rng.moveStart("character", -el.value.length);
+          ii=rng.text.length;
+       }
+       return ii;
+    },
+    
+    setValuePreservingCaretPos: function(v) {
+      var p = this.getCursorPosition();
+      this.setValue(v);
+      this.setCursorPosition(p);
+    }
+  });
+
   // Used by TKExtForceCamelCaps.
   String.prototype.capitalize = function(){
     return this.replace( /(^|\s)([a-z])/g , function(m,p1,p2){ return p1+p2.toUpperCase(); } );
