@@ -26,9 +26,9 @@ uses
   Kitto.Config, Kitto.Store, Kitto.Metadata.Models, Kitto.Metadata.DataView;
 
 type
-  ///	<summary>
-  ///	  Builds SQL select statements on request.
-  ///	</summary>
+  /// <summary>
+  ///   Builds SQL select statements on request.
+  /// </summary>
   TKSQLBuilder = class
   private
     FUsedReferenceFields: TList<TKModelField>;
@@ -57,27 +57,26 @@ type
     procedure AddFilterBy(const AViewField: TKViewField; const ADBQuery: TEFDBQuery; const ARecord: TKViewTableRecord);
     procedure AssignSelectQueryParams(const AViewTable: TKViewTable; const ADBQuery: TEFDBQuery;
       const AMasterValues: TEFNode);
-    procedure InternalBuildSingletonSelectQuery(const AModel: TKModel;
-      const ADBQuery: TEFDBQuery; const AKeyValues: Variant);
-    function GetModelKeyWhereClause(const AModel: TKModel;
-      const ADBQuery: TEFDBQuery): string;
+    procedure InternalBuildSingletonSelectQuery(const AModel: TKModel; const ADBQuery: TEFDBQuery; const AKeyValues: Variant); overload;
+    procedure InternalBuildSingletonSelectQuery(const AViewTable: TKViewTable; const ADBQuery: TEFDBQuery; const AKeyValues: Variant); overload;
+    function GetModelKeyWhereClause(const AModel: TKModel; const ADBQuery: TEFDBQuery): string;
   public
     procedure AfterConstruction; override;
     destructor Destroy; override;
 
-    ///	<summary>
-    ///	 <para>
+    /// <summary>
+    ///  <para>
     ///   Builds in the specified query a select statement that selects
-    ///	  all fields from the specified view table with an optional filter
-    ///	  clause. Handles joins and table aliases based on model
-    ///	  information.
+    ///   all fields from the specified view table with an optional filter
+    ///   clause. Handles joins and table aliases based on model
+    ///   information.
     ///  </para>
-    ///	 <para>
+    ///  <para>
     ///   If the view table is a detail table, a where clause with
-    ///	  parameters for the master fields is added as well, and param values
-    ///	  are set based on AMasterValues.
+    ///   parameters for the master fields is added as well, and param values
+    ///   are set based on AMasterValues.
     ///  </para>
-    ///	</summary>
+    /// </summary>
     class procedure BuildSelectQuery(const AViewTable: TKViewTable; const AFilter: string;
       const AOrderBy: string; const ADBQuery: TEFDBQuery; const AMasterValues: TEFNode = nil;
       const AFrom: Integer = 0; const AFor: Integer = 0);
@@ -86,79 +85,79 @@ type
       const AFilter: string; const ADBQuery: TEFDBQuery;
       const AMasterValues: TEFNode);
 
-    ///	<summary>
-    ///	 <para>
-    ///   Builds in the specified query a select statement that selects
-    ///	  all fields from the specified view table with an optional filter
-    ///	  clause. Handles joins and table aliases based on model
-    ///	  information.
-    ///  </para>
-    ///	 <para>
-    ///   If the view table is a detail table, a where clause with
-    ///	  parameters for the master fields is added as well, and param values
-    ///	  are set based on AMasterValues.
-    ///  </para>
-    ///	</summary>
+    /// <summary>
+    ///  Builds in the specified query a select statement that selects
+    ///  all fields from a given record of the specified model.
+    ///  Handles joins and table aliases based on model information.
+    /// </summary>
     class procedure BuildSingletonSelectQuery(const AModel: TKModel;
-      const ADBQuery: TEFDBQuery; const AKeyValues: Variant);
+      const ADBQuery: TEFDBQuery; const AKeyValues: Variant); overload;
 
-    ///	<summary>
+    /// <summary>
+    ///  Builds in the specified query a select statement that selects
+    ///  all fields from a given record of the specified view table.
+    ///  Handles joins and table aliases based on model information.
+    /// </summary>
+    class procedure BuildSingletonSelectQuery(const AViewTable: TKViewTable;
+      const ADBQuery: TEFDBQuery; const AKeyValues: Variant); overload;
+
+    /// <summary>
     ///  Builds and returns a SQL statement that selects the specified
-    ///	 field plus all key fields from the specified field's table. AViewField
-    ///	 must be a reference field, otherwise an exception is raised.
+    ///  field plus all key fields from the specified field's table. AViewField
+    ///  must be a reference field, otherwise an exception is raised.
     ///  If ASearchString is specified, the statement includes a WHERE clause
     ///  that filters on the specified value.
-    ///	</summary>
+    /// </summary>
     class procedure BuildLookupSelectStatement(const AViewField: TKViewField;
       const ADBQuery: TEFDBQuery; const ASearchString: string; const ARecord: TKViewTableRecord);
 
-    ///	<summary>
+    /// <summary>
     ///   Builds in the specified command an insert statement against
-    ///	  the specified record's table with a parameter for each value in AValues.
-    ///	  Also sets the parameter values, so that the command is ready for
-    ///	  execution.
+    ///   the specified record's table with a parameter for each value in AValues.
+    ///   Also sets the parameter values, so that the command is ready for
+    ///   execution.
     /// </summary>
     class procedure BuildInsertCommand(const ADBCommand: TEFDBCommand;
       const ARecord: TKViewTableRecord);
 
-    ///	<summary>
+    /// <summary>
     ///   Builds in the specified command an update statement against
-    ///	  the specified record's table with a parameter for each value in ARecord
+    ///   the specified record's table with a parameter for each value in ARecord
     ///   plus a where clause with a parameter for each key field.
-    ///	  Also sets the parameter values, so that the command is ready for
-    ///	  execution.
+    ///   Also sets the parameter values, so that the command is ready for
+    ///   execution.
     ///   ARecord must contain at least the key fields.
     /// </summary>
     class procedure BuildUpdateCommand(const ADBCommand: TEFDBCommand;
       const ARecord: TKViewTableRecord);
 
-    ///	<summary>
+    /// <summary>
     ///   Builds in the specified command a delete statement against
-    ///	  the specified record's table with a where clause with a parameter for
+    ///   the specified record's table with a where clause with a parameter for
     ///   each key field.
-    ///	  Also sets the parameter values, so that the command is ready for
-    ///	  execution. AValues must contain at least the key fields.
+    ///   Also sets the parameter values, so that the command is ready for
+    ///   execution. AValues must contain at least the key fields.
     /// </summary>
     class procedure BuildDeleteCommand(const ADBCommand: TEFDBCommand;
       const ARecord: TKViewTableRecord);
 
-    ///	<summary>
+    /// <summary>
     ///   Builds in the specified query a select statement that selects
-    ///	  all derived fields from the referenced model, locating the record by
-    ///	  means of the specified key.</summary>
-    ///	<param name="AViewField">
+    ///   all derived fields from the referenced model, locating the record by
+    ///   means of the specified key.</summary>
+    /// <param name="AViewField">
     ///   Originating reference field.
     /// </param>
-    ///	<param name="ADBQuery">
+    /// <param name="ADBQuery">
     ///   Query object into which to build the statement
-    ///	  and the params.
+    ///   and the params.
     /// </param>
-    ///	<param name="AKeyValues">
+    /// <param name="AKeyValues">
     ///   Key values for the referenced model row.
     /// </param>
-    ///	<exception cref="Assert">
+    /// <exception cref="Assert">
     ///   The field must be a reference field and at
-    ///	  least one derived field must exist in the view table.
+    ///   least one derived field must exist in the view table.
     /// </exception>
     class function BuildDerivedSelectQuery(const AViewField: TKViewField;
       const ADBQuery: TEFDBQuery; const AKeyValues: string): Boolean;
@@ -195,6 +194,22 @@ begin
   begin
     try
       InternalBuildSelectQuery(AViewTable, AFilter, AOrderBy, ADBQuery, AMasterValues, AFrom, AFor);
+    finally
+      Free;
+    end;
+  end;
+end;
+
+class procedure TKSQLBuilder.BuildSingletonSelectQuery(
+  const AViewTable: TKViewTable; const ADBQuery: TEFDBQuery;
+  const AKeyValues: Variant);
+begin
+  Assert(Assigned(AViewTable));
+
+  with TKSQLBuilder.Create do
+  begin
+    try
+      InternalBuildSingletonSelectQuery(AViewTable, ADBQuery, AKeyValues);
     finally
       Free;
     end;
@@ -841,6 +856,40 @@ begin
     ADBQuery.Params.EndUpdate;
   end;
   AssignSelectQueryParams(AViewTable, ADBQuery, AMasterValues);
+end;
+
+procedure TKSQLBuilder.InternalBuildSingletonSelectQuery(const AViewTable: TKViewTable;
+  const ADBQuery: TEFDBQuery; const AKeyValues: Variant);
+var
+  I: Integer;
+  LSelectClause: string;
+  LFromClause: string;
+  LWhereClause: string;
+  LCommandText: string;
+begin
+  Clear;
+  FViewTable := AViewTable;
+  for I := 0 to AViewTable.FieldCount - 1 do
+  begin
+    if AViewTable.Fields[I].IsReference then
+      AddReferenceFieldTerms(AViewTable.Fields[I])
+    else
+      AddSelectTerm(AViewTable.Fields[I].QualifiedAliasedDBNameOrExpression);
+  end;
+
+  if ADBQuery.Prepared then
+    ADBQuery.Prepared := False;
+  ADBQuery.Params.BeginUpdate;
+  try
+    ADBQuery.Params.Clear;
+    LCommandText := 'select ' +  ExpandQualification(FSelectTerms, AViewTable.Model.DBTableName) +
+      ' from ' + GetFromClause + ' where ' + GetModelKeyWhereClause(AViewTable.Model, ADBQuery);
+    ADBQuery.CommandText := TEFMacroExpansionEngine.Instance.Expand(LCommandText);
+  finally
+    ADBQuery.Params.EndUpdate;
+  end;
+  for I := 0 to ADBQuery.Params.Count - 1 do
+    ADBQuery.Params[I].Value := AKeyValues[I];
 end;
 
 procedure TKSQLBuilder.InternalBuildCountQuery(const AViewTable: TKViewTable;

@@ -733,11 +733,14 @@ var
 begin
   LKeepOpen := Config.GetBoolean('KeepOpenAfterOperation');
 
-  if MatchStr(FOperation, [ADD_OPERATION, DUPLICATE_OPERATION]) then
+  if MatchText(FOperation, [ADD_OPERATION, DUPLICATE_OPERATION]) then
   begin
     ServerStore.RemoveRecord(StoreRecord);
     StoreRecord := nil;
-  end;
+  end
+  else if SameText(FOperation, EDIT_OPERATION) then
+    StoreRecord.Refresh;
+
   NotifyObservers('Canceled');
   if LKeepOpen then
   begin
@@ -788,6 +791,9 @@ var
 begin
   Assert(Assigned(AField));
   Assert(AField is TKViewTableField);
+
+  if AField.IsPartOfCompositeField then
+    Exit;
 
   LField := TKViewTableField(AField);
 

@@ -88,6 +88,8 @@ type
     function GetAsXMLValue(const AForDisplay: Boolean;
       const AEmptyNulls: Boolean = False): string; virtual;
     property FieldName: string read GetFieldName;
+    function IsCompositeField: Boolean;
+    function IsPartOfCompositeField: Boolean;
 
     procedure SetTransientProperty(const APropertyName: string; const AValue: Variant);
   end;
@@ -118,14 +120,14 @@ type
     property State: TKRecordState read FState;
     function GetChildClass(const AName: string): TEFNodeClass; override;
 
-    ///	<summary>
+    /// <summary>
     ///  Called by ReadFromNode after setting all values. Descendants
-    ///	 may overwrite some fields.
+    ///  may overwrite some fields.
     /// </summary>
     procedure InternalAfterReadFromNode; virtual;
 
-    ///	<summary>
-    ///	 A function that receives in input a store field name and returns the
+    /// <summary>
+    ///  A function that receives in input a store field name and returns the
     ///  corresponding database field name (see ReadFromFields).
     ///  The default implementation assumes that the store and database field
     ///  names have matching names.
@@ -147,26 +149,27 @@ type
     property FieldCount: Integer read GetFieldCount;
     function FindField(const AFieldName: string): TKField;
     function FieldByName(const AFieldName: string): TKField;
+    procedure EnumFields(const AProc: TFunc<TKField, Boolean>);
     function MatchesValues(const AValues: TEFNode): Boolean;
 
-    ///	<summary>
-    ///	 Reads field values from the current dataset record, applying
+    /// <summary>
+    ///  Reads field values from the current dataset record, applying
     ///  field name translation by calling TranslateFieldName.
     ///  If AByIndex is True, field values are copied by index instead of by
     ///  name.
-    ///	</summary>
+    /// </summary>
     procedure ReadFromFields(const AFields: TFields; const AByIndex: Boolean = False);
 
-    ///	<summary>Reads any values from the specified node by name. Fields whose
-    ///	names are not in the passed node are set to Null.</summary>
+    /// <summary>Reads any values from the specified node by name. Fields whose
+    /// names are not in the passed node are set to Null.</summary>
     procedure ReadFromNode(const ANode: TEFNode);
 
     function GetAsJSON(const AForDisplay: Boolean): string;
     function GetAsXML(const AForDisplay: Boolean): string;
 
-    ///	<summary>
+    /// <summary>
     ///  Expand an expression that contains reference to field of record.
-    ///	 For example: 'Activity: %Description%'.
+    ///  For example: 'Activity: %Description%'.
     /// </summary>
     function ExpandExpression(const AExpression: string): string;
 
@@ -190,7 +193,7 @@ type
 
     function AddField(const AHeaderField: TKHeaderField): TKField;
 
-    ///	<summary>
+    /// <summary>
     ///  Returns a variant array with an item for each requested field value.
     ///  Raises exceptions if fields are not found.
     /// </summary>
@@ -264,14 +267,14 @@ type
   protected
     function GetChildClass(const AName: string): TEFNodeClass; override;
   public
-    ///	<summary>
-    ///	 Adds to ARecord one field node with no name and the correct datatype
-    ///	 for each header field.
-    ///	</summary>
-    ///	<remarks>
-    ///	 Names are not set in all records in order to save space. Fields are
-    ///	 meant to be accessed by name in the header and by position in records.
-    ///	</remarks>
+    /// <summary>
+    ///  Adds to ARecord one field node with no name and the correct datatype
+    ///  for each header field.
+    /// </summary>
+    /// <remarks>
+    ///  Names are not set in all records in order to save space. Fields are
+    ///  meant to be accessed by name in the header and by position in records.
+    /// </remarks>
     procedure Apply(const ARecord: TKRecord);
 
     property FieldCount: Integer read GetFieldCount;
@@ -316,15 +319,15 @@ type
     procedure Load(const ADBQuery: TEFDBQuery; const AAppend: Boolean = False;
       const AFieldsByIndex: Boolean = False); overload;
 
-    ///	<summary>
+    /// <summary>
     ///   Appends a record and fills it with the specified values.
-    ///	</summary>
+    /// </summary>
     function AppendRecord(const AValues: TEFNode): TKRecord;
 
-    ///	<summary>Removes the record from the store, if present.</summary>
-    ///	<remarks>Calling this method will NOT trigger any database operation.
-    ///	It is meant to cancel pending changes.</remarks>
-    ///	<seealso cref="TKRecord.MarkAsDeleted"></seealso>
+    /// <summary>Removes the record from the store, if present.</summary>
+    /// <remarks>Calling this method will NOT trigger any database operation.
+    /// It is meant to cancel pending changes.</remarks>
+    /// <seealso cref="TKRecord.MarkAsDeleted"></seealso>
     procedure RemoveRecord(const ARecord: TKRecord);
 
     function GetAsJSON(const AForDisplay: Boolean; const AFrom: Integer = 0;
@@ -335,33 +338,33 @@ type
 
     function ChangesPending: Boolean;
 
-    ///	<summary>Iterates all records in the store (regardless of state)
+    /// <summary>Iterates all records in the store (regardless of state)
     /// calling APredicate for each record and then calling AProc when
-    ///	the predicate returns True. Use the optional predicate to filter
+    /// the predicate returns True. Use the optional predicate to filter
     /// records before passing them to AProc.</summary>
-    ///	<param name="AProc">A procedure that receives a TKRecord.</param>
-    ///	<param name="AProc">A function that receives a TKRecord and
+    /// <param name="AProc">A procedure that receives a TKRecord.</param>
+    /// <param name="AProc">A function that receives a TKRecord and
     /// returns a Boolean indicating whether to include the record in the
     /// enumeration or not. You can pass predefined predicates such as All
     /// and NotDeleted or code your own.</param>
     procedure Iterate(const AProc: TProc<TKRecord>;
       const APredicates: array of TPredicate<TKRecord>);
 
-    ///	<summary>Pass this as a predicate to one of the predicate-accepting
+    /// <summary>Pass this as a predicate to one of the predicate-accepting
     /// methodse to specify that you want to include all records (including
     /// those marked as deleted).</summary>
     function All: TPredicate<TKRecord>;
 
-    ///	<summary>Pass this as a predicate to one of the predicate-accepting
+    /// <summary>Pass this as a predicate to one of the predicate-accepting
     /// methodse to specify that you want to include all records except
     /// those marked as deleted.</summary>
     function ExcludeDeleted: TPredicate<TKRecord>;
 
-    ///	<summary>Returns the number of records in which all the specified
+    /// <summary>Returns the number of records in which all the specified
     /// predicates hold (that is, all return True for a given record).</summary>
     function Count(const APredicates: array of TPredicate<TKRecord>): Integer; overload;
 
-    ///	<summary>Returns the number of non-deleted records in which the specified
+    /// <summary>Returns the number of non-deleted records in which the specified
     /// field has the specified value. This is a special case of the more generic
     /// predicate-based Count method.</summary>
     function Count(const AFieldName: string; const AValue: Variant): Integer; overload;
@@ -371,23 +374,23 @@ type
     function Sum(const AFieldName: string): Variant;
     function Avg(const AFieldName: string): Variant;
 
-    ///	<summary>
+    /// <summary>
     ///  Locates and returns a record from the key values stored in AKey.
     ///  Raises an exception if the record is not found.
-    ///	</summary>
-    ///	<param name="AKey">
+    /// </summary>
+    /// <param name="AKey">
     ///  Object containing at least on top-level pair for each key value.
     /// </param>
-    ///	<param name="AFormatSettings">
+    /// <param name="AFormatSettings">
     ///  Used to interpret string values (all pair values are read as string and
     ///  then converted according to this settings object).
     /// </param>
-    ///	<param name="ATranslator">
-    ///	 Pass a translation function if key names in AKey do not match
-    ///	 wanted child node names and you need to translate them. The function
-    ///	 receives the child name and should return the corresponding key name.
-    ///	</param>
-    ///	<param name="AValueIndex">
+    /// <param name="ATranslator">
+    ///  Pass a translation function if key names in AKey do not match
+    ///  wanted child node names and you need to translate them. The function
+    ///  receives the child name and should return the corresponding key name.
+    /// </param>
+    /// <param name="AValueIndex">
     ///  If each pair in AKey contains more than one value, set this param to
     ///  an index >=0 to consider that value. Normally each pair contains a
     ///  single value, so you just don't pass this param.
@@ -946,6 +949,20 @@ begin
     FDetailStores := TObjectList<TKStore>.Create;
 end;
 
+procedure TKRecord.EnumFields(const AProc: TFunc<TKField, Boolean>);
+var
+  I: Integer;
+begin
+  if Assigned(AProc) then
+  begin
+    for I := 0 to FieldCount - 1 do
+    begin
+      if not AProc(Fields[I]) then
+        Break;
+    end;
+  end;
+end;
+
 function TKRecord.ExpandExpression(const AExpression: string): string;
 var
   I: Integer;
@@ -1373,6 +1390,26 @@ end;
 function TKField.GetXMLTagName: string;
 begin
   Result := FieldName;
+end;
+
+function TKField.IsCompositeField: Boolean;
+begin
+  Result := FieldName.Contains(TKConfig.Instance.MultiFieldSeparator);
+end;
+
+function TKField.IsPartOfCompositeField: Boolean;
+var
+  LFound: Boolean;
+begin
+  LFound := False;
+  ParentRecord.EnumFields(
+    function(AField: TKField): Boolean
+    begin
+      if AField.IsCompositeField then
+        LFound := MatchText(FieldName, AField.FieldName.Split([TKConfig.Instance.MultiFieldSeparator], None));
+      Result := not LFound;
+    end);
+  Result := LFound;
 end;
 
 procedure TKField.MarkAsUnmodified;

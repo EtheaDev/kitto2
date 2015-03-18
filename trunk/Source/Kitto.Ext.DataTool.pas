@@ -89,8 +89,7 @@ implementation
 uses
   StrUtils,
   EF.Tree, EF.DB, EF.StrUtils, EF.SysUtils, EF.Localization,
-  Kitto.Config, Kitto.Ext.Session, Kitto.Ext.Controller,
-  EF.Shell;
+  Kitto.Config, Kitto.Ext.Session, Kitto.Ext.Controller;
 
 procedure LoadRecordDetails(const ARecord: TKViewTableRecord);
 begin
@@ -185,7 +184,7 @@ begin
   if AAllRecords then
     NotifyObservers('RefreshAllRecords')
   else
-    NotifyObservers('RefreshCurrentRecord');
+    ServerRecord.Refresh;
 end;
 
 { TKExtDataWindowToolController }
@@ -265,7 +264,7 @@ begin
   if AAllRecords then
     NotifyObservers('RefreshAllRecords')
   else
-    NotifyObservers('RefreshCurrentRecord');
+    ServerRecord.Refresh;
 end;
 
 { TKExtDataCmdToolController }
@@ -291,8 +290,7 @@ begin
     LBatchCommand := LBatchCommand + ' ' + LParameters;
 
   //Execute file
-//  if ExecuteApplication(LBatchCommand, True) <> 0 then
-  if OpenDocument(LBatchCommand, True) <> 0 then
+  if ExecuteApplication(LBatchCommand, True) <> 0 then
     raise Exception.CreateFmt('Error executing %s', [ExtractFileName(BatchFileName)]);
 end;
 

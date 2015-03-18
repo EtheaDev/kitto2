@@ -43,100 +43,100 @@ type
     procedure DeleteDetailReference(const ADetailReference: TKModelDetailReference);
   end;
 
-  ///	<summary>
-  ///	 The default model implementation. Performs data I/O from a database
+  /// <summary>
+  ///  The default model implementation. Performs data I/O from a database
   ///  through SQL.
-  ///	</summary>
+  /// </summary>
   { TODO : Refactor: SQL management should be moved out of the store and into this class. }
   TKDefaultModel = class(TKModel)
   strict protected
     procedure AddDetailReference(const ADetailReference: TKModelDetailReference);
     procedure DeleteDetailReference(const ADetailReference: TKModelDetailReference);
     function AddField(const AField: TKModelField): TKModelField; overload;
-    ///	<summary>
+    /// <summary>
     ///  Helper method to add a field. Useful for dynamic models.
-    ///	</summary>
+    /// </summary>
     function AddField(const AFieldName, ADataType: string;
       const ASize: Integer = 0; const AScale: Integer = 0;
       const AIsRequired: Boolean = False; const AIsKey: Boolean = False;
       const AReferencedModel: string = ''): TKModelField; overload;
     procedure DeleteField(const AField: TKModelField);
   strict protected
-    ///	<summary>
-    ///	 Loads requested records into the store. Override this method to add
+    /// <summary>
+    ///  Loads requested records into the store. Override this method to add
     ///  custom additional behaviour (by calling inherited and then do something
     ///  else) or populate the store in a custom way (by not calling inherited).
-    ///	</summary>
+    /// </summary>
     function InternalLoadRecords(const AStore: TKViewTableStore;
       const AFilterExpression, ASortExpression: string; const AStart,
       ALimit: Integer): Integer; virtual;
-    ///	<summary>
+    /// <summary>
     ///  Called by SaveRecord just before marking the record as modified (which
     ///  will guarantee that it is then actually saved). Set ADoIt to False to
     ///  prevent marking the record as modified.
     ///  The default implementation does nothing.
-    ///	</summary>
+    /// </summary>
     procedure BeforeMarkRecordAsModified(const ARecord: TKViewTableRecord; var ADoIt: Boolean); virtual;
-    ///	<summary>
+    /// <summary>
     ///  Called by SaveRecord just after marking the record as modified (only
     ///  if BeforeMarkRecordAsModified didn't set ADoIt to False).
     ///  The default implementation does nothing.
-    ///	</summary>
+    /// </summary>
     procedure AfterMarkRecordAsModified(const ARecord: TKViewTableRecord); virtual;
-    ///	<summary>
+    /// <summary>
     ///  Called by SaveRecord just before applying any Before rules to the record.
     ///  This is called regardless of the value of SaveRecord's APersist argument.
     ///  Set ADoIt to False to prevent applying the rules.
     ///  The default implementation does nothing.
-    ///	</summary>
+    /// </summary>
     procedure BeforeApplyBeforeRulesToRecord(const ARecord: TKViewTableRecord; var ADoIt: Boolean); virtual;
-    ///	<summary>
+    /// <summary>
     ///  Called by SaveRecord just after applying any of the record's Before
     ///  rules (only if BeforeApplyBeforeRulesToRecord didn't set ADoIt to False).
     ///  The default implementation does nothing.
-    ///	</summary>
+    /// </summary>
     procedure AfterApplyBeforeRulesToRecord(const ARecord: TKViewTableRecord); virtual;
-    ///	<summary>
+    /// <summary>
     ///  Called by SaveRecord just before persisting the record (only if
     ///  SaveRecord's APersist argument is True).
     ///  Set ADoIt to False to prevent persisting the record.
     ///  The default implementation does nothing.
-    ///	</summary>
+    /// </summary>
     procedure BeforePersistRecord(const ARecord: TKViewTableRecord; var AUseTransactions: Boolean; var ADoIt: Boolean); virtual;
-    ///	<summary>
+    /// <summary>
     ///  Called by SaveRecord to persist the record (only if BeforePersistRecord
     ///  didn't set ADoIt to False).
     ///  The default implementation just calls the record's Save method.
-    ///	</summary>
+    /// </summary>
     procedure PersistRecord(const ARecord: TKViewTableRecord; const AUseTransactions: Boolean); virtual;
-    ///	<summary>
+    /// <summary>
     ///  Called by SaveRecord just after persisting the record (only if
     ///  BeforePersistRecord didn't set ADoIt to False).
     ///  The default implementation does nothing.
-    ///	</summary>
+    /// </summary>
     procedure AfterPersistRecord(const ARecord: TKViewTableRecord; const AUseTransactions: Boolean); virtual;
-    ///	<summary>
+    /// <summary>
     ///  Called by SaveRecord just before applying any After rules to the record.
     ///  This is called regardless of the value of SaveRecord's APersist argument.
     ///  Set ADoIt to False to prevent applying the rules.
     ///  The default implementation does nothing.
-    ///	</summary>
+    /// </summary>
     procedure BeforeApplyAfterRulesToRecord(const ARecord: TKViewTableRecord; var ADoIt: Boolean); virtual;
-    ///	<summary>
+    /// <summary>
     ///  Called by SaveRecord just after applying any of the record's After
     ///  rules (only if BeforeApplyAfterRulesToRecord didn't set ADoIt to False).
     ///  The default implementation does nothing.
-    ///	</summary>
+    /// </summary>
     procedure AfterApplyAfterRulesToRecord(const ARecord: TKViewTableRecord); virtual;
   public
-    ///	<summary>
-    ///	 Requires that AStore is a TKViewTableStore and calls InternalLoadRecords.
-    ///	</summary>
+    /// <summary>
+    ///  Requires that AStore is a TKViewTableStore and calls InternalLoadRecords.
+    /// </summary>
     function LoadRecords(const AStore: TEFTree; const AFilterExpression: string;
       const ASortExpression: string; const AStart: Integer = 0; const ALimit: Integer = 0): Integer; override;
-    ///	<summary>
-    ///	 Persists the specified record. Calls various protected virtual methods.
-    ///	</summary>
+    /// <summary>
+    ///  Persists the specified record. Calls various protected virtual methods.
+    /// </summary>
     procedure SaveRecord(const ARecord: TEFNode; const APersist: Boolean;
       const AAfterPersist: TProc); override;
   end;
