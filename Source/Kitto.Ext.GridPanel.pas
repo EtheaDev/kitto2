@@ -708,7 +708,13 @@ begin
     emNewRecord : LFormController.Config.SetString('Sys/Operation', 'Add');
     emDupCurrentRecord : LFormController.Config.SetString('Sys/Operation', 'Dup');
     emEditCurrentRecord : LFormController.Config.SetString('Sys/Operation', 'Edit');
-    emViewCurrentRecord : LFormController.Config.SetString('Sys/Operation', 'View');
+    emViewCurrentRecord :
+    begin
+      //Inform Form to hide edit button visibility
+      if not FIsEditAllowed then
+        LFormController.Config.SetBoolean('PreventEditing', True);
+      LFormController.Config.SetString('Sys/Operation', 'View');
+    end;
   end;
 
   LFormController.Display;
