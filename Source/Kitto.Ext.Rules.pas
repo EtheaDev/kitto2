@@ -234,13 +234,15 @@ type
     procedure ApplyToFormField(const AField: TExtFormField); override;
   end;
 
-  ///	<summary>Converts character input to upper case while typing.</summary>
-  ///	<example>
-  ///	  <code lang="Delphi">
-  ///	Rules:
-  ///	  ForceUpperCase:
-  ///	</code>
-  ///	</example>
+  /// <summary>
+  ///  Converts character input to upper case while typing.
+  /// </summary>
+  /// <example>
+  ///  <code lang="Delphi">
+  ///   Rules:
+  ///     ForceUpperCase:
+  ///  </code>
+  /// </example>
   TKExtForceUpperCase = class(TKExtForceCase)
   protected
     procedure SetEventListener(const AField: TExtFormTextField); override;
@@ -496,21 +498,23 @@ end;
 
 procedure TKExtForceUpperCase.SetEventListener(const AField: TExtFormTextField);
 begin
-  AField.On('keyup', AField.JSFunction('field, e', 'field.setValue(field.getRawValue().toUpperCase());'));
+  // Filter control characters - don't use >= as it's not rendered correctly.
+  AField.On('keyup', AField.JSFunction('f, e', 'if (e.getCharCode() > 31) f.setValuePreservingCaretPos(f.getRawValue().toUpperCase());'));
 end;
 
 { TKExtForceLowerCase }
 
 procedure TKExtForceLowerCase.SetEventListener(const AField: TExtFormTextField);
 begin
-  AField.On('keyup', AField.JSFunction('field, e', 'field.setValue(field.getRawValue().toLowerCase());'));
+  // Filter control characters - don't use >= as it's not rendered correctly.
+  AField.On('keyup', AField.JSFunction('f, e', 'if (e.getCharCode() > 31) f.setValuePreservingCaretPos(f.getRawValue().toLowerCase());'));
 end;
 
 { TKExtForceCamelCaps }
 
 procedure TKExtForceCamelCaps.SetEventListener(const AField: TExtFormTextField);
 begin
-  AField.On('change', AField.JSFunction('field, newValue, oldValue', 'field.setValue(newValue.capitalize());'));
+  AField.On('change', AField.JSFunction('f, newValue, oldValue', 'f.setValuePreservingCaretPos(newValue.capitalize());'));
 end;
 
 initialization
