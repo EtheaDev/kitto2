@@ -1412,14 +1412,27 @@ end;
 procedure TKExtActionButton.PerformBeforeExecute;
 var
   LUniqueId: string;
+  LBeforeExecuteNode, LChildNode: TEFNode;
+  I: Integer;
   LButton: TKExtButton;
 begin
-  LUniqueId := View.GetString('BeforeExecute');
-  if LUniqueId <> '' then
+  LBeforeExecuteNode := View.FindNode('BeforeExecute');
+  if Assigned(LBeforeExecuteNode) then
   begin
-    LButton := GetOwnerToolbar.FindButton(LUniqueId);
-    if Assigned(LButton) then
-      ExecuteHandler(LButton as TKExtActionButton);
+    for I := 0 to LBeforeExecuteNode.ChildCount-1 do
+    begin
+      LChildNode := LBeforeExecuteNode.Children[I];
+      if SameText(LChildNode.Name, 'ToolView') then
+      begin
+        LUniqueId := LChildNode.AsString;
+        if LUniqueId <> '' then
+        begin
+          LButton := GetOwnerToolbar.FindButton(LUniqueId);
+          if Assigned(LButton) then
+            ExecuteHandler(LButton as TKExtActionButton);
+        end;
+      end;
+    end;
   end;
 end;
 
