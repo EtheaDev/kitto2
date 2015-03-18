@@ -222,26 +222,26 @@ type
     procedure BeforeCreateTopToolbar; virtual;
     procedure AfterCreateTopToolbar; virtual;
 
-    ///	<summary>
+    /// <summary>
     ///  Adds built-in buttons to the top toolbar.
     /// </summary>
     procedure AddTopToolbarButtons; virtual;
 
-    ///	<summary>Adds ToolView buttons to the top toolbar. Called after
-    ///	AddTopToolbarButtons so that these stay at the end.</summary>
+    /// <summary>Adds ToolView buttons to the top toolbar. Called after
+    /// AddTopToolbarButtons so that these stay at the end.</summary>
     procedure AddTopToolbarToolViewButtons; virtual;
 
-    ///	<summary>Adds to the specified toolbar buttons for any ToolViews
-    ///	configured in the specified node.</summary>
-    ///	<param name="AConfigNode">ToolViews node. If nil or childrenless, no
-    ///	buttons are added.</param>
-    ///	<param name="AToolbar">Destination toolbar.</param>
+    /// <summary>Adds to the specified toolbar buttons for any ToolViews
+    /// configured in the specified node.</summary>
+    /// <param name="AConfigNode">ToolViews node. If nil or childrenless, no
+    /// buttons are added.</param>
+    /// <param name="AToolbar">Destination toolbar.</param>
     procedure AddToolViewButtons(const AConfigNode: TEFNode; const AToolbar: TKExtToolbar);
 
-    ///	<summary>
+    /// <summary>
     ///  Adds an action button representing the specified tool view to
-    ///	 the specified toolbar. Override this method to create action buttons of
-    ///	 classes inherited from the base TKExtActionButton.
+    ///  the specified toolbar. Override this method to create action buttons of
+    ///  classes inherited from the base TKExtActionButton.
     /// </summary>
     function AddActionButton(const AUniqueId: string; const AView: TKView;
       const AToolbar: TKExtToolbar): TKExtActionButton; virtual;
@@ -252,10 +252,10 @@ type
     procedure Display;
   end;
 
-  ///	<summary>
+  /// <summary>
   ///  Base class for controllers that don't have a specific visual
-  ///	 representation, yet can be used to render views, such as custom action
-  ///	 controllers.
+  ///  representation, yet can be used to render views, such as custom action
+  ///  controllers.
   /// </summary>
   TKExtControllerBase = class(TExtObject, IInterface, IEFInterface, IKExtController, IEFSubject, IEFObserver)
   private
@@ -289,7 +289,7 @@ type
     procedure UpdateObserver(const ASubject: IEFSubject; const AContext: string = ''); virtual;
   end;
 
-  ///	<summary>
+  /// <summary>
   ///  Base class for tool controllers.
   /// </summary>
   TKExtToolController = class(TKExtControllerBase)
@@ -304,7 +304,7 @@ type
     property DisplayLabel: string read GetDisplayLabel;
   end;
 
-  ///	<summary>
+  /// <summary>
   ///  Base class for tool controllers that display a (modal) window with
   ///  a set of ok/cancel buttons.
   /// </summary>

@@ -1015,6 +1015,7 @@ begin
   FPagingToolbar.Store := FEditorGridPanel.Store;
   FPagingToolbar.DisplayInfo := False;
   FPagingToolbar.PageSize := FPageRecordCount;
+  FPagingToolbar.Cls := 'k-bbar';
   Result := FPagingToolbar;
   //FPagingToolbar.Store := nil; // Avoid double destruction of the store.
 end;

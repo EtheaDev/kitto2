@@ -149,6 +149,7 @@ begin
     Title := LTitle
   else
     Title := _('Home');
+  AutoScroll := Session.IsMobileBrowser;
   BuildTileBoxHtml;
 end;
 
