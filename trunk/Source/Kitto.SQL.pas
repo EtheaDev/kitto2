@@ -785,7 +785,7 @@ begin
   Result := '';
   for I := Low(LKeyDBColumnNames) to High(LKeyDBColumnNames) do
   begin
-    Result := Result + LKeyDBColumnNames[I] + ' = :' + LKeyDBColumnNames[I];
+    Result := Result + '{Q}' + LKeyDBColumnNames[I] + ' = :' + LKeyDBColumnNames[I];
     ADBQuery.Params.CreateParam(ftUnknown, LKeyDBColumnNames[I], ptInput);
     if I < High(LKeyDBColumnNames) then
       Result := Result + ' and ';
@@ -883,7 +883,8 @@ begin
   try
     ADBQuery.Params.Clear;
     LCommandText := 'select ' +  ExpandQualification(FSelectTerms, AViewTable.Model.DBTableName) +
-      ' from ' + GetFromClause + ' where ' + GetModelKeyWhereClause(AViewTable.Model, ADBQuery);
+      ' from ' + GetFromClause +
+      ' where ' + ExpandQualification(GetModelKeyWhereClause(AViewTable.Model, ADBQuery), AViewTable.Model.DBTableName);
     ADBQuery.CommandText := TEFMacroExpansionEngine.Instance.Expand(LCommandText);
   finally
     ADBQuery.Params.EndUpdate;
