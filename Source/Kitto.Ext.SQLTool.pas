@@ -184,13 +184,13 @@ begin
       if LSuccess then
       begin
         LSuccessMessage := ExpandParamNode(Config.GetString('SuccessMessageTemplate',
-          Format(_('Command "%s" executed succesfully!'), [DisplayLabel])));
+          Format(_('Command %s executed succesfully!'), [DisplayLabel])));
         Session.Flash(LSuccessMessage);
       end
       else
       begin
         LErrorMessage := ExpandParamNode(Config.GetString('ErrorMessageTemplate',
-          Format(_('Error executing command "%s"!'), [DisplayLabel])));
+          Format(_('Error executing command %s!'), [DisplayLabel])));
         raise Exception.Create(LErrorMessage);
       end;
     end);
