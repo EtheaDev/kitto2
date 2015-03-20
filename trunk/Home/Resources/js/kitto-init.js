@@ -158,6 +158,7 @@ function kittoInit()
     partita_iva_re = /^[0-9]{11}$/,
     alpha_space_re = /^[a-zA-Z_ ]+$/;
     phone_number_re = /^\+[0-9]+\-[0-9]+$/
+    digits_only_re = /^[0-9]/
   Ext.apply(Ext.form.VTypes, {
     codice_fiscale: function(val, field) {
       return codice_fiscale_re.test(val) || partita_iva_re.test(val);
@@ -175,7 +176,13 @@ function kittoInit()
       return phone_number_re.test(val);
     },
     phone_numberText: 'Invalid phone number.',
-    phone_numberMask: /[a-z0-9\-\+]/
+    phone_numberMask: /[a-z0-9\-\+]/,
+
+    digits_only: function(val, field) {
+      return digits_only_re.test(val);
+    },
+    digits_onlyText: 'This field accepts only digits.',
+    digits_onlyMask: /[0-9]/
   });
 
   // Additional formats and renderers.
