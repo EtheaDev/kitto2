@@ -35,7 +35,7 @@ type
 implementation
 
 uses
-  IdAttachmentFile,
+  IdAttachmentFile, IdExplicitTLSClientServerBase, IdSSLOpenSSL,
   EF.Localization,
   Kitto.Ext.Controller, KItto.Ext.Session;
 
@@ -54,8 +54,11 @@ var
   LFileName: string;
   LServerNode: TEFNode;
   LSingleAddress: string;
+  LIdSSLIOHandler: TIdSSLIOHandlerSocketOpenSSL;
+
 begin
   inherited;
+  LIdSSLIOHandler := nil;
   LSMTP := TIdSMTP.Create(nil);
   try
     LSMTP.AuthType := satDefault;
@@ -67,6 +70,15 @@ begin
     LSMTP.Host := ExpandServerRecordValues(LServerNode.GetExpandedString('HostName'));
     LSMTP.Username := ExpandServerRecordValues(LServerNode.GetExpandedString('UserName'));
     LSMTP.Password := ExpandServerRecordValues(LServerNode.GetExpandedString('Password'));
+    LSMTP.Port := LServerNode.GetInteger('Port');
+    if (LServerNode.GetBoolean('UseTLS')) then
+    begin
+      LIdSSLIOHandler := TIdSSLIOHandlerSocketOpenSSL.Create;
+      LSMTP.IOHandler := LIdSSLIOHandler;
+      LSMTP.UseTLS := utUseRequireTLS;
+    end
+    else
+      LSMTP.UseTLS := utNoTLSSupport;
 
     LMessage := TIdMessage.Create;
     try
@@ -192,6 +204,7 @@ begin
     end;
   finally
     FreeAndNil(LSMTP);
+    LIdSSLIOHandler.Free;
   end;
 end;
 
