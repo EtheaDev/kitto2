@@ -194,6 +194,7 @@ begin
   Assert(Assigned(ServerStore));
 
   Result := TKExtDataActionButton.CreateAndAddTo(AToolbar.Items);
+  Result.Hidden := not AView.GetBoolean('IsVisible', True);
   Result.UniqueId := AUniqueId;
   Result.View := AView;
   Result.ActionObserver := Self;
