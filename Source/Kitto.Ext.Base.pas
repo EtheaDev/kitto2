@@ -955,6 +955,7 @@ begin
   Assert(Assigned(AToolbar));
 
   Result := TKExtActionButton.CreateAndAddTo(AToolbar.Items);
+  Result.Hidden := not AView.GetBoolean('IsVisible', True);
   Result.UniqueId := AUniqueId;
   Result.View := AView;
   Result.ActionObserver := Self;
@@ -984,7 +985,7 @@ begin
     begin
       LNode := AConfigNode.Children[I];
       LView := Session.Config.Views.ViewByNode(LNode);
-      if LView.GetBoolean('IsVisible', True) and LView.IsAccessGranted(ACM_VIEW) then
+      if LView.IsAccessGranted(ACM_VIEW) then
         AddActionButton(LNode.Name, LView, AToolbar);
     end;
   end;
