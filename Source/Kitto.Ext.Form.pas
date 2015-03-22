@@ -673,6 +673,7 @@ procedure TKExtFormPanelController.CreateFormPanel;
 var
   LDetailStyle: string;
 begin
+  Cls := 'x-window-mc'; // Sets correct theme background color.
   LDetailStyle := GetDetailStyle;
 
   FFormPanel := TKExtEditPanel.CreateAndAddTo(Items);
