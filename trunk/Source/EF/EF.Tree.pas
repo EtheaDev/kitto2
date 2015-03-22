@@ -2811,7 +2811,7 @@ function TEFDataType.NodeToXMLValue(const AForDisplay: Boolean;
   const ANode: TEFNode; const AFormatSettings: TFormatSettings;
   const AEmptyNulls: Boolean = False): string;
 var
-  LTagName, XMLContent: string;
+  LTagName: string;
 begin
   Assert(Assigned(ANode));
   LTagName := ANode.Name;

@@ -862,9 +862,6 @@ procedure TKSQLBuilder.InternalBuildSingletonSelectQuery(const AViewTable: TKVie
   const ADBQuery: TEFDBQuery; const AKeyValues: Variant);
 var
   I: Integer;
-  LSelectClause: string;
-  LFromClause: string;
-  LWhereClause: string;
   LCommandText: string;
 begin
   Clear;
