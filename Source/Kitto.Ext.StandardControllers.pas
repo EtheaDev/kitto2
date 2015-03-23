@@ -345,7 +345,7 @@ begin
       end;
     end;
   finally
-    Cleanup;
+//    Cleanup;
   end;
 end;
 
