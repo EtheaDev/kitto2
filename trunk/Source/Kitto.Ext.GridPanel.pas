@@ -800,7 +800,7 @@ begin
 
   if not FInplaceEditing then
   begin
-    if Session.IsMobileBrowser then
+    if Session.IsMobileBrowser and FIsViewAllowed then
       LEvent := 'rowclick'
     else
       LEvent := 'rowdblclick';
