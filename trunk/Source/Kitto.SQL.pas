@@ -945,7 +945,7 @@ begin
     ADBQuery.Params.Clear;
     LCommandText :=
       'select ' +  FSelectTerms +
-      ' from ' + AModel.DBTableName + ' where ' + GetModelKeyWhereClause(AModel, ADBQuery);
+      ' from ' + AModel.DBTableName + ' where ' + ExpandQualification(GetModelKeyWhereClause(AModel, ADBQuery), AModel.DBTableName);
     ADBQuery.CommandText := TEFMacroExpansionEngine.Instance.Expand(LCommandText);
   finally
     ADBQuery.Params.EndUpdate;
