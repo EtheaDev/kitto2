@@ -472,6 +472,8 @@ type
     procedure Save(const AUseTransaction: Boolean);
     procedure Refresh(const AStrict: Boolean = False);
     procedure SetDetailFieldValues(const AMasterRecord: TKViewTableRecord);
+    function FindDetailStoreByModelName(const AModelName: string): TKViewTableStore;
+    function GetDetailStoreByModelName(const AModelName: string): TKViewTableStore;
 
     procedure ApplyNewRecordRules;
     procedure ApplyBeforeRules;
@@ -703,7 +705,7 @@ implementation
 
 uses
   StrUtils, Variants, TypInfo, Math,
-  EF.DB, EF.StrUtils, EF.VariantUtils, EF.Macros, EF.JSON,
+  EF.Localization, EF.DB, EF.StrUtils, EF.VariantUtils, EF.Macros, EF.JSON,
   Kitto.SQL, Kitto.Types, Kitto.Config, Kitto.AccessControl,
   Kitto.DatabaseRouter;
 
@@ -2699,6 +2701,30 @@ begin
   end
   else
     Result := LViewField.AliasedDBName;
+end;
+
+function TKViewTableRecord.FindDetailStoreByModelName(const AModelName: string): TKViewTableStore;
+var
+  I: Integer;
+  LDetailTableStore: TKViewTableStore;
+begin
+  Result := nil;
+  for I := 0 to DetailStoreCount -1 do
+  begin
+    LDetailTableStore := DetailStores[I];
+    if SameText(LDetailTableStore.ViewTable.ModelName, AModelName) then
+    begin
+      Result := LDetailTableStore;
+      break;
+    end;
+  end;
+end;
+
+function TKViewTableRecord.GetDetailStoreByModelName(const AModelName: string): TKViewTableStore;
+begin
+  Result := FindDetailStoreByModelName(AModelName);
+  if not Assigned(Result) then
+    raise EKError.CreateFmt(_('DetailStore %s not found.'), [AModelName]);
 end;
 
 { TKViewTableField }
