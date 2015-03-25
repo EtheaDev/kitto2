@@ -46,8 +46,9 @@ type
     property OnChange: TNotifyEvent read FOnChange write FOnChange;
   end;
 
-  ///	<summary>Provides the filtering feature for contained multi-record data
-  ///	panels.</summary>
+  /// <summary>
+  ///  Provides the filtering feature for contained multi-record data panels.
+  /// </summary>
   TKExtListPanelController = class(TKExtDataPanelCompositeController)
   strict private
     FFilterPanel: TKExtFilterPanel;

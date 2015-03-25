@@ -206,7 +206,7 @@ type
     FOnRowsinserted: TExtGridGridViewOnRowsinserted;
     FOnRowupdated: TExtGridGridViewOnRowupdated;
     FGetRowClass: TExtFunction;
-    procedure SetFAutoFill(Value: Boolean);
+    procedure SetAutoFill(const AValue: Boolean);
     procedure SetFCellSelector(Value: string);
     procedure SetFCellSelectorDepth(Value: Integer);
     procedure SetFColumnsText(Value: string);
@@ -251,7 +251,7 @@ type
     function GetRow(Index: Integer): TExtFunction;
     function Refresh(HeadersToo: Boolean = false): TExtFunction;
     function ScrollToTop: TExtFunction;
-    property AutoFill: Boolean read FAutoFill write SetFAutoFill;
+    property AutoFill: Boolean read FAutoFill write SetAutoFill;
     property CellSelector: string read FCellSelector write SetFCellSelector;
     property CellSelectorDepth: Integer read FCellSelectorDepth
       write SetFCellSelectorDepth;
@@ -1272,10 +1272,10 @@ begin
   FFormat := '0,000.00';
 end;
 
-procedure TExtGridGridView.SetFAutoFill(Value: Boolean);
+procedure TExtGridGridView.SetAutoFill(const AValue: Boolean);
 begin
-  FAutoFill := Value;
-  JSCode('autoFill:' + VarToJSON([Value]));
+  FAutoFill := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'autoFill', [AValue]);
 end;
 
 procedure TExtGridGridView.SetFCellSelector(Value: string);

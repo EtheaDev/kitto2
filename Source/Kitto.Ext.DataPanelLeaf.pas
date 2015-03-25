@@ -27,7 +27,9 @@ uses
   Kitto.Ext.Base, Kitto.Ext.DataPanel;
 
 type
-  ///	<summary>Base class for concrete data panels that handle database records.</summary>
+  /// <summary>
+  ///  Base class for concrete data panels that handle database records.
+  /// </summary>
   TKExtDataPanelLeafController = class abstract(TKExtDataPanelController)
   strict private
     FRefreshButton: TKExtButton;
@@ -84,7 +86,7 @@ end;
 
 procedure TKExtDataPanelLeafController.ExecuteNamedAction(const AActionName: string);
 begin
-  if (AActionName = 'Refresh') then
+  if (AActionName = 'Refresh') and Assigned(FRefreshButton) then
     PerformDelayedClick(FRefreshButton)
   else
     inherited;
@@ -108,11 +110,14 @@ end;
 
 procedure TKExtDataPanelLeafController.AddTopToolbarButtons;
 begin
-  TExtToolbarSpacer.CreateAndAddTo(TopToolbar.Items);
-  FRefreshButton := TKExtButton.CreateAndAddTo(TopToolbar.Items);
-  FRefreshButton.SetIconAndScale('refresh');
-  FRefreshButton.Handler := Ajax(TKExtDataPanelController(Config.GetObject('Sys/ParentDataPanel', Self)).LoadData);
-  FRefreshButton.Tooltip := _('Refresh data');
+  if not ViewTable.GetBoolean('Controller/PreventRefreshing') then
+  begin
+    TExtToolbarSpacer.CreateAndAddTo(TopToolbar.Items);
+    FRefreshButton := TKExtButton.CreateAndAddTo(TopToolbar.Items);
+    FRefreshButton.SetIconAndScale('refresh');
+    FRefreshButton.Handler := Ajax(TKExtDataPanelController(Config.GetObject('Sys/ParentDataPanel', Self)).LoadData);
+    FRefreshButton.Tooltip := _('Refresh data');
+  end;
   inherited;
 end;
 

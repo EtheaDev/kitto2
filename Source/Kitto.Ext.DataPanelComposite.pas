@@ -24,8 +24,10 @@ uses
   Kitto.Ext.DataPanel, Kitto.Ext.Controller;
 
 type
-  ///	<summary>A data panel whose purpose is to contain other (leaf)
-  ///	data panels and delegate implementation to them.</summary>
+  /// <summary>
+  ///  A data panel whose purpose is to contain other (leaf)
+  ///  data panels and delegate implementation to them.
+  /// </summary>
   TKExtDataPanelCompositeController = class abstract(TKExtDataPanelController)
   public
     function GetFilterExpression: string; override;
