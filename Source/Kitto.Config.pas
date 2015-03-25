@@ -98,109 +98,109 @@ type
     class property AppName: string read GetAppName;
     class property OnGetAppName: TKConfigGetAppNameEvent read FOnGetAppName write FOnGetAppName;
 
-    ///	<summary>
-    ///	  <para>Returns or changes the Application Home path.</para>
-    ///	  <para>The Application Home path defaults to the exe file directory
-    ///	  unless specified through the '-home' command line argument.</para>
-    ///	  <para>Setting this property, if necessary, should be done at
-    ///	  application startup, preferably in a unit's initialization
-    ///	  section.</para>
-    ///	</summary>
-    ///	<remarks>Changing this property affects all TKConfg instances created
-    ///	from that point on, not existing instances.</remarks>
+    /// <summary>
+    ///   <para>Returns or changes the Application Home path.</para>
+    ///   <para>The Application Home path defaults to the exe file directory
+    ///   unless specified through the '-home' command line argument.</para>
+    ///   <para>Setting this property, if necessary, should be done at
+    ///   application startup, preferably in a unit's initialization
+    ///   section.</para>
+    /// </summary>
+    /// <remarks>Changing this property affects all TKConfg instances created
+    /// from that point on, not existing instances.</remarks>
     class property AppHomePath: string read GetAppHomePath write SetAppHomePath;
 
-    ///	<summary>
-    ///	  <para>Returns or changes the System Home path, which is used to find
-    ///	  any resources that are not found in the Application Home path.
-    ///	  Generally, the System Home path contains all predefined metadata and
-    ///	  resources of the framework.</para>
-    ///	  <para>The System Home path defaults to a "Home" directory inside a
-    ///	  nearby directory named "Kitto". The following paths, relative to the
-    ///	  executable directory, are searched in order:</para>
-    ///	  <list type="number">
-    ///	    <item>..\Externals\Kitto\Home</item>
-    ///	    <item>..\..\Externals\Kitto\Home</item>
-    ///	    <item>..\..\..\Home</item>
-    ///	    <item>%KITTO%\Home</item>
-    ///	  </list>
-    ///	  <para>The first existing path is used. If none of these exist, the
-    ///	  value of AppHomePath is assumed.</para>
-    ///	  <para>If no default is suitable for your application, you can set
-    ///	  this property at application startup, preferably in a unit's
-    ///	  initialization section. If you also need to set AppHomePath, do it
-    ///	  <b>before</b> setting this property.</para>
-    ///	</summary>
-    ///	<remarks>Changing this property affects all TKConfg instances created
-    ///	from that point on, not existing instances.</remarks>
+    /// <summary>
+    ///   <para>Returns or changes the System Home path, which is used to find
+    ///   any resources that are not found in the Application Home path.
+    ///   Generally, the System Home path contains all predefined metadata and
+    ///   resources of the framework.</para>
+    ///   <para>The System Home path defaults to a "Home" directory inside a
+    ///   nearby directory named "Kitto". The following paths, relative to the
+    ///   executable directory, are searched in order:</para>
+    ///   <list type="number">
+    ///     <item>..\Externals\Kitto\Home</item>
+    ///     <item>..\..\Externals\Kitto\Home</item>
+    ///     <item>..\..\..\Home</item>
+    ///     <item>%KITTO%\Home</item>
+    ///   </list>
+    ///   <para>The first existing path is used. If none of these exist, the
+    ///   value of AppHomePath is assumed.</para>
+    ///   <para>If no default is suitable for your application, you can set
+    ///   this property at application startup, preferably in a unit's
+    ///   initialization section. If you also need to set AppHomePath, do it
+    ///   <b>before</b> setting this property.</para>
+    /// </summary>
+    /// <remarks>Changing this property affects all TKConfg instances created
+    /// from that point on, not existing instances.</remarks>
     class property SystemHomePath: string read GetSystemHomePath write SetSystemHomePath;
 
-    ///	<summary>
-    ///	  Returns the full path of the Metadata directory inside the home path.
-    ///	</summary>
+    /// <summary>
+    ///   Returns the full path of the Metadata directory inside the home path.
+    /// </summary>
     class function GetMetadataPath: string;
 
-    ///	<summary>
-    ///	  Format settings for Javascript/JSON data encoded in text format. use
-    ///	  it, don't change it.
-    ///	</summary>
+    /// <summary>
+    ///   Format settings for Javascript/JSON data encoded in text format. use
+    ///   it, don't change it.
+    /// </summary>
     class property JSFormatSettings: TFormatSettings read FJSFormatSettings;
 
-    ///	<summary>
-    ///	  Name of the config file. Defaults to Config.yaml. Changing this
-    ///	  property only affects instances created afterwards.
-    ///	</summary>
+    /// <summary>
+    ///   Name of the config file. Defaults to Config.yaml. Changing this
+    ///   property only affects instances created afterwards.
+    /// </summary>
     class property BaseConfigFileName: string read FBaseConfigFileName write FBaseConfigFileName;
 
-    ///	<summary>
-    ///	  Sets a global function that returns the global config object. In web
-    ///	  applications there will be a config object per session.
-    ///	</summary>
+    /// <summary>
+    ///   Sets a global function that returns the global config object. In web
+    ///   applications there will be a config object per session.
+    /// </summary>
     class property OnGetInstance: TKGetConfig read FOnGetInstance write FOnGetInstance;
 
-    ///	<summary>
-    ///	  Returns a singleton instance.
-    ///	</summary>
+    /// <summary>
+    ///   Returns a singleton instance.
+    /// </summary>
     class property Instance: TKConfig read GetInstance;
 
-    ///	<summary>
-    ///	  Returns the URL for the specified resource, based on the first
-    ///	  existing file in the ordered list of resource folders. If no existing
-    ///	  file is found, an exception is raised.
-    ///	</summary>
-    ///	<param name="AResourceFileName">
-    ///	  Resource file name relative to the resource folder. Examples:
-    ///	  some_image.png, js\some_library.js.
-    ///	</param>
+    /// <summary>
+    ///   Returns the URL for the specified resource, based on the first
+    ///   existing file in the ordered list of resource folders. If no existing
+    ///   file is found, an exception is raised.
+    /// </summary>
+    /// <param name="AResourceFileName">
+    ///   Resource file name relative to the resource folder. Examples:
+    ///   some_image.png, js\some_library.js.
+    /// </param>
     class function GetResourceURL(const AResourceFileName: string): string;
 
-    ///	<summary>Returns the URL for the specified resource, based on the first
-    ///	existing file in the ordered list of resource folders. If no existing
-    ///	file is found, returns ''.</summary>
-    ///	<param name="AResourceFileName">Resource file name relative to the
-    ///	resource folder. Examples: some_image.png, js\some_library.js.</param>
+    /// <summary>Returns the URL for the specified resource, based on the first
+    /// existing file in the ordered list of resource folders. If no existing
+    /// file is found, returns ''.</summary>
+    /// <param name="AResourceFileName">Resource file name relative to the
+    /// resource folder. Examples: some_image.png, js\some_library.js.</param>
     class function FindResourceURL(const AResourceFileName: string): string;
 
-    ///	<summary>
+    /// <summary>
     ///   Returns the full pathname for the specified resource, based on
-    ///	  the first existing file in the ordered list of resource folders. If no
-    ///	  existing file is found, returns ''.
+    ///   the first existing file in the ordered list of resource folders. If no
+    ///   existing file is found, returns ''.
     /// </summary>
-    ///	<param name="AResourceFileName">
+    /// <param name="AResourceFileName">
     ///   Resource file name relative to the resource folder.
     ///   Examples: some_image.png, js\some_library.js.
     /// </param>
     class function FindResourcePathName(const AResourceFileName: string): string;
 
-    ///	<summary>
-    ///	  Returns the full pathname for the specified resource, based on the first
-    ///	  existing file in the ordered list of resource folders. If no existing
-    ///	  file is found, an exception is raised.
-    ///	</summary>
-    ///	<param name="AResourceFileName">
-    ///	  Resource file name relative to the resource folder. Examples:
-    ///	  some_image.png, js\some_library.js.
-    ///	</param>
+    /// <summary>
+    ///   Returns the full pathname for the specified resource, based on the first
+    ///   existing file in the ordered list of resource folders. If no existing
+    ///   file is found, an exception is raised.
+    /// </summary>
+    /// <param name="AResourceFileName">
+    ///   Resource file name relative to the resource folder. Examples:
+    ///   some_image.png, js\some_library.js.
+    /// </param>
     class function GetResourcePathName(const AResourceFileName: string): string;
 
     class function FindImagePath(const AResourceName: string; const ASuffix: string = ''): string;
@@ -208,66 +208,66 @@ type
     class function FindImageURL(const AResourceName: string; const ASuffix: string = ''): string;
     class function GetImageURL(const AResourceName: string; const ASuffix: string = ''): string;
 
-    ///	<summary>A reference to the model catalog, opened on first
-    ///	access.</summary>
+    /// <summary>A reference to the model catalog, opened on first
+    /// access.</summary>
     property Models: TKModels read GetModels;
 
-    ///	<summary>A reference to the model catalog, opened on first
-    ///	access.</summary>
+    /// <summary>A reference to the model catalog, opened on first
+    /// access.</summary>
     property Views: TKViews read GetViews;
 
-    ///	<summary>Makes sure catalogs are recreated upon next access.</summary>
+    /// <summary>Makes sure catalogs are recreated upon next access.</summary>
     procedure InvalidateCatalogs;
 
-    ///	<summary>Returns the Home URL of the Kitto application (lowercase of AppName)</summary>
+    /// <summary>Returns the Home URL of the Kitto application (lowercase of AppName)</summary>
     function GetHomeURL: string;
 
-    ///	<summary>Gives access to a database connection by name, created on
-    ///	demand.</summary>
+    /// <summary>Gives access to a database connection by name, created on
+    /// demand.</summary>
     property DBConnections[const AName: string]: TEFDBConnection read GetDBConnection;
 
-    ///	<summary>Returns the names of all defined database
-    ///	connections.</summary>
+    /// <summary>Returns the names of all defined database
+    /// connections.</summary>
     property DBConnectionNames: TStringDynArray read GetDBConnectionNames;
 
-    ///	<summary>Default DatabaseName to use when not specified elsewhere. Can
-    ///	be set through the DatabaseRouter/DatabaseName node or through the
-    ///	DefaultDatabaseName node.</summary>
+    /// <summary>Default DatabaseName to use when not specified elsewhere. Can
+    /// be set through the DatabaseRouter/DatabaseName node or through the
+    /// DefaultDatabaseName node.</summary>
     property DatabaseName: string read GetDatabaseName;
 
-    ///	<summary>Returns the application title, to be used for captions, about
-    ///	boxes, etc.</summary>
+    /// <summary>Returns the application title, to be used for captions, about
+    /// boxes, etc.</summary>
     property AppTitle: string read GetAppTitle;
 
-    ///	<summary>Returns the application Icon, to be used mobile apps
-    ///	and Browser</summary>
+    /// <summary>Returns the application Icon, to be used mobile apps
+    /// and Browser</summary>
     property AppIcon: string read GetAppIcon;
 
-    ///	<summary>
-    ///	  Global expansion engine. Kitto-specific macro expanders should be
-    ///	  added here at run time. This engine is chained to the default engine,
-    ///	  so all default EF macros are supported.
-    ///	</summary>
+    /// <summary>
+    ///   Global expansion engine. Kitto-specific macro expanders should be
+    ///   added here at run time. This engine is chained to the default engine,
+    ///   so all default EF macros are supported.
+    /// </summary>
     property MacroExpansionEngine: TEFMacroExpansionEngine read GetMacroExpansionEngine;
 
-    ///	<summary>Access to the current authenticator.</summary>
+    /// <summary>Access to the current authenticator.</summary>
     property Authenticator: TKAuthenticator read GetAuthenticator;
 
-    ///	<summary>The current Access Controller.</summary>
+    /// <summary>The current Access Controller.</summary>
     property AC: TKAccessController read GetAC;
 
-    ///	<summary>Calls AC.GetAccessGrantValue passing the current user and
-    ///	returns the result.</summary>
+    /// <summary>Calls AC.GetAccessGrantValue passing the current user and
+    /// returns the result.</summary>
     function GetAccessGrantValue(const AResourceURI, AMode: string;
       const ADefaultValue: Variant): Variant; virtual;
 
-    ///	<summary>Shortcut for GetAccessGrantValue for Boolean
-    ///	values. Returns True if a value is granted and it equals
-    ///	ACV_TRUE.</summary>
+    /// <summary>Shortcut for GetAccessGrantValue for Boolean
+    /// values. Returns True if a value is granted and it equals
+    /// ACV_TRUE.</summary>
     function IsAccessGranted(const AResourceURI, AMode: string): Boolean;
 
-    ///	<summary>Calls IsAccessGranted and raises an "access denied" exception
-    ///	if the return value is not True.</summary>
+    /// <summary>Calls IsAccessGranted and raises an "access denied" exception
+    /// if the return value is not True.</summary>
     procedure CheckAccessGranted(const AResourceURI, AMode: string);
 
     property UserFormatSettings: TFormatSettings read FUserFormatSettings;
@@ -276,28 +276,28 @@ type
 
     property LanguagePerSession: Boolean read GetLanguagePerSession;
 
-    ///	<summary>
-    ///	  <para>Returns or changes the home path for FOP engine.</para>
-    ///	</summary>
+    /// <summary>
+    ///   <para>Returns or changes the home path for FOP engine.</para>
+    /// </summary>
     property FOPEnginePath: string read GetFOPEnginePath;
   end;
 
-  ///	<summary>
-  ///	  <para>
-  ///	    A macro expander that can expand globally available macros.
-  ///	  </para>
-  ///	  <para>
-  ///	    %HOME_PATH% = TKConfig.Instance.GetAppHomePath.
-  ///	  </para>
-  ///	  <para>
-  ///	    It also expands any macros in the Config namespace to the
-  ///	    corresponding environment config string. Example:
-  ///	  </para>
-  ///	  <para>
-  ///	    %Config:AppTitle% = The string value of the AppTitle node in
-  ///	    Config.yaml.
-  ///	  </para>
-  ///	</summary>
+  /// <summary>
+  ///   <para>
+  ///     A macro expander that can expand globally available macros.
+  ///   </para>
+  ///   <para>
+  ///     %HOME_PATH% = TKConfig.Instance.GetAppHomePath.
+  ///   </para>
+  ///   <para>
+  ///     It also expands any macros in the Config namespace to the
+  ///     corresponding environment config string. Example:
+  ///   </para>
+  ///   <para>
+  ///     %Config:AppTitle% = The string value of the AppTitle node in
+  ///     Config.yaml.
+  ///   </para>
+  /// </summary>
   TKConfigMacroExpander = class(TEFTreeMacroExpander)
   protected
     function InternalExpand(const AString: string): string; override;
