@@ -14,11 +14,11 @@
    limitations under the License.
 -------------------------------------------------------------------------------}
 
-///	<summary>
-///	  Defines the base authenticator and related classes and services.
-///	  Authenticators allow the creation of applications that require user
-///	  anthentication at startup.
-///	</summary>
+/// <summary>
+///   Defines the base authenticator and related classes and services.
+///   Authenticators allow the creation of applications that require user
+///   anthentication at startup.
+/// </summary>
 unit Kitto.Auth;
 
 {$I Kitto.Defines.inc}
@@ -30,149 +30,146 @@ uses
   EF.Macros, EF.Types, EF.Classes, EF.Tree;
 
 type
-  ///	<summary>
-  ///	  <para>Abstract base authenticator. An authenticator defines a method
-  ///	  for user authentication.</para>
-  ///	  <para>Only one authenticator may be active at any one time.</para>
-  ///	  <para>Applications wanting to use a custom authentication scheme should
-  ///	  create and register an authenticator, and then make it active through
-  ///	  the configuration.</para>
-  ///	</summary>
+  /// <summary>
+  ///   <para>Abstract base authenticator. An authenticator defines a method
+  ///   for user authentication.</para>
+  ///   <para>Only one authenticator may be active at any one time.</para>
+  ///   <para>Applications wanting to use a custom authentication scheme should
+  ///   create and register an authenticator, and then make it active through
+  ///   the configuration.</para>
+  /// </summary>
   TKAuthenticator = class(TEFComponent)
   private
     FAuthData: TEFNode;
     FMacroExpander: TEFMacroExpander;
     FIsAuthenticated: Boolean;
     procedure ClearAuthData;
-  protected
+  strict protected
     function GetIsAuthenticated: Boolean; virtual;
 
-    ///	<summary>Implements the IsClearPassword property.</summary>
+    /// <summary>
+    ///  Implements the IsClearPassword property.
+    /// </summary>
     function GetIsClearPassword: Boolean; virtual;
 
-    ///	<summary>Called at the beginning of the authentication process, before
-    ///	InternalAuthenticate.</summary>
-    procedure InternalBeforeAuthenticate(
-      const AAuthenticationData: TEFNode); virtual;
+    /// <summary>Called at the beginning of the authentication process, before
+    /// InternalAuthenticate.</summary>
+    procedure InternalBeforeAuthenticate(const AAuthData: TEFNode); virtual;
 
-    ///	<summary>Called at the end of the authentication process, in case of
-    ///	successful authentication.</summary>
-    procedure InternalAfterAuthenticate(
-      const AAuthenticationData: TEFNode); virtual;
+    /// <summary>Called at the end of the authentication process, in case of
+    /// successful authentication.</summary>
+    procedure InternalAfterAuthenticate(const AAuthData: TEFNode); virtual;
 
-    ///	<summary>Implements Authenticate. Descendants should verify that
-    ///	AAuthData contains all required items, query whatever authentication
-    ///	mechanism they encapsulate, and return True if a match is found and
-    ///	False otherwise.</summary>
+    /// <summary>Implements Authenticate. Descendants should verify that
+    /// AAuthData contains all required items, query whatever authentication
+    /// mechanism they encapsulate, and return True if a match is found and
+    /// False otherwise.</summary>
     function InternalAuthenticate(const AAuthData: TEFNode): Boolean; virtual; abstract;
 
-    ///	<summary>Implements DefineAuthData.</summary>
-    procedure InternalDefineAuthData(
-      const AAuthenticationData: TEFNode); virtual; abstract;
+    /// <summary>Implements DefineAuthData.</summary>
+    procedure InternalDefineAuthData(const AAuthData: TEFNode); virtual; abstract;
 
-    ///	<summary>This function should return a unique user identifier, to be
-    ///	used for example for access control. The default implementation returns
-    ///	'PUBLIC', while a descendant will return the user name or something
-    ///	else, as needed.</summary>
+    /// <summary>This function should return a unique user identifier, to be
+    /// used for example for access control. The default implementation returns
+    /// 'PUBLIC', while a descendant will return the user name or something
+    /// else, as needed.</summary>
     function GetUserName: string; virtual;
 
-    ///	<summary>For password-based authenticators, this function should return
-    ///	the current user's password (or hash). The default implementation
-    ///	returns a blank string.</summary>
+    /// <summary>For password-based authenticators, this function should return
+    /// the current user's password (or hash). The default implementation
+    /// returns a blank string.</summary>
     function GetPassword: string; virtual;
 
-    ///	<summary>Changes the current user's password in whatever underlying
-    ///	storage the authenticator uses. Only makes sense for password-based
-    ///	authenticator. The default implementation does nothing.</summary>
-    ///	<remarks>After calling this method, the user stays authenticated and
-    ///	the session's password is updated (the password used when first
-    ///	authenticating is lost). This allows a usr to change his password more
-    ///	than once per session.</remarks>
+    /// <summary>Changes the current user's password in whatever underlying
+    /// storage the authenticator uses. Only makes sense for password-based
+    /// authenticator. The default implementation does nothing.</summary>
+    /// <remarks>After calling this method, the user stays authenticated and
+    /// the session's password is updated (the password used when first
+    /// authenticating is lost). This allows a usr to change his password more
+    /// than once per session.</remarks>
     procedure SetPassword(const AValue: string); virtual;
   public
     procedure AfterConstruction; override;
     destructor Destroy; override;
   public
-    ///	<summary>
-    ///	  <para>Receives an empty node which it should fill with the
-    ///	  definitions (names and types, not values) of all required auth items.
-    ///	  The system uses this information at login time, so that the user can
-    ///	  supply any auth data needed by the currently active authenticator.
-    ///	  The most common example of auth data is a UserName + Password
-    ///	  combination.</para>
-    ///	  <para>If no auth items are defined, then the system will not prompt
-    ///	  the user but will still call Authenticate passing in an empty
-    ///	  node.</para>
-    ///	</summary>
+    /// <summary>
+    ///   <para>Receives an empty node which it should fill with the
+    ///   definitions (names and types, not values) of all required auth items.
+    ///   The system uses this information at login time, so that the user can
+    ///   supply any auth data needed by the currently active authenticator.
+    ///   The most common example of auth data is a UserName + Password
+    ///   combination.</para>
+    ///   <para>If no auth items are defined, then the system will not prompt
+    ///   the user but will still call Authenticate passing in an empty
+    ///   node.</para>
+    /// </summary>
     procedure DefineAuthData(const AAuthData: TEFNode);
 
-    ///	<summary>Checks whether the specified auth data designates a valid user
-    ///	or not, and returns False if the authentication fails.</summary>
+    /// <summary>Checks whether the specified auth data designates a valid user
+    /// or not, and returns False if the authentication fails.</summary>
     function Authenticate(const AAuthData: TEFNode): Boolean;
 
-    ///	<summary>Gives access to a copy of the auth data that was last passed
-    ///	to Authenticate (and possibly modified by the object during
-    ///	authentication).</summary>
+    /// <summary>Gives access to a copy of the auth data that was last passed
+    /// to Authenticate (and possibly modified by the object during
+    /// authentication).</summary>
     property AuthData: TEFNode read FAuthData;
 
-    ///	<summary>Clears AuthData and turns off IsAuthenticated.</summary>
+    /// <summary>Clears AuthData and turns off IsAuthenticated.</summary>
     procedure Logout;
 
-    ///	<summary>A unique identifier for the currently logged in user. The
-    ///	value depends on the particular descendant. By default, it's
-    ///	'PUBLIC'.</summary>
+    /// <summary>A unique identifier for the currently logged in user. The
+    /// value depends on the particular descendant. By default, it's
+    /// 'PUBLIC'.</summary>
     property UserName: string read GetUserName;
 
-    ///	<summary>For password-based authenticators, returns the current user's
-    ///	password or hash. The default implementation returns a blank
-    ///	string.</summary>
+    /// <summary>For password-based authenticators, returns the current user's
+    /// password or hash. The default implementation returns a blank
+    /// string.</summary>
     property Password: string read GetPassword write SetPassword;
 
-    ///	<summary>Returns True if the autheticator uses clear passwords, False
-    ///	if hashing is used. Only meaningful for password-based authenticators.
-    ///	By default, returns True.</summary>
+    /// <summary>Returns True if the autheticator uses clear passwords, False
+    /// if hashing is used. Only meaningful for password-based authenticators.
+    /// By default, returns True.</summary>
     property IsClearPassword: Boolean read GetIsClearPassword;
 
-    ///	<summary>Returns True if authentication has successfully taken
-    ///	place.</summary>
+    /// <summary>Returns True if authentication has successfully taken
+    /// place.</summary>
     property IsAuthenticated: Boolean read GetIsAuthenticated;
 
-    ///	<summary>
-    ///	  Access to the authenticator macro expander, that expands auth data.
-    ///	</summary>
+    /// <summary>
+    ///   Access to the authenticator macro expander, that expands auth data.
+    /// </summary>
     property MacroExpander: TEFMacroExpander read FMacroExpander;
   end;
   TKAuthenticatorClass = class of TKAuthenticator;
 
-  ///	<summary>
-  ///	  <para>An abstract authenticator that requires UserName and Password as
-  ///	  auth data.</para>
-  ///	  <para>How the auth data is checked is deferred to the concrete
-  ///	  descendants. The value of the UserName auth item is also used as the
-  ///	  value for the UserName property.</para>
-  ///	</summary>
+  /// <summary>
+  ///   <para>An abstract authenticator that requires UserName and Password as
+  ///   auth data.</para>
+  ///   <para>How the auth data is checked is deferred to the concrete
+  ///   descendants. The value of the UserName auth item is also used as the
+  ///   value for the UserName property.</para>
+  /// </summary>
   TKClassicAuthenticator = class(TKAuthenticator)
   protected
-    procedure InternalDefineAuthData(
-      const AAuthData: TEFNode); override;
+    procedure InternalDefineAuthData(const AAuthData: TEFNode); override;
     function GetUserName: string; override;
     function GetPassword: string; override;
     procedure SetPassword(const AValue: string); override;
   end;
 
-  ///	<summary>The Null authenticator does not require authentication data and
-  ///	always grants authentication. It is used by default.</summary>
+  /// <summary>The Null authenticator does not require authentication data and
+  /// always grants authentication. It is used by default.</summary>
   TKNullAuthenticator = class(TKAuthenticator)
   protected
-    procedure InternalDefineAuthData(
-      const AAuthData: TEFNode); override;
+    procedure InternalDefineAuthData(const AAuthData: TEFNode); override;
     function InternalAuthenticate(
       const AAuthData: TEFNode): Boolean; override;
     function GetIsAuthenticated: Boolean; override;
   end;
 
-  ///	<summary>This class holds a list of registered authenticator
-  ///	classes.</summary>
+  /// <summary>This class holds a list of registered authenticator
+  /// classes.</summary>
   TKAuthenticatorRegistry = class(TEFRegistry)
   private
     class var FInstance: TKAuthenticatorRegistry;
@@ -181,11 +178,11 @@ type
     class destructor Destroy;
     class property Instance: TKAuthenticatorRegistry read GetInstance;
 
-    ///	<summary>Adds an authenticator class to the registry.</summary>
+    /// <summary>Adds an authenticator class to the registry.</summary>
     procedure RegisterClass(const AId: string; const AClass: TKAuthenticatorClass);
   end;
 
-  ///	<summary>Creates authenticators by Id.</summary>
+  /// <summary>Creates authenticators by Id.</summary>
   TKAuthenticatorFactory = class(TEFFactory)
   private
     class var FInstance: TKAuthenticatorFactory;
@@ -194,9 +191,9 @@ type
     class destructor Destroy;
     class property Instance: TKAuthenticatorFactory read GetInstance;
 
-    ///	<summary>Creates and returns an instance of the authenticator class
-    ///	identified by AClassId. Raises an exception if said class is not
-    ///	registered.</summary>
+    /// <summary>Creates and returns an instance of the authenticator class
+    /// identified by AClassId. Raises an exception if said class is not
+    /// registered.</summary>
     function CreateObject(const AClassId: string): TKAuthenticator;
   end;
 
@@ -267,6 +264,7 @@ procedure TKAuthenticator.AfterConstruction;
 begin
   inherited;
   FAuthData := TEFNode.Create;
+  DefineAuthData(FAuthData);
   FMacroExpander := TEFTreeMacroExpander.Create(FAuthData, 'Auth');
   FIsAuthenticated := False;
 end;
@@ -310,8 +308,7 @@ begin
   Result := 'PUBLIC';
 end;
 
-procedure TKAuthenticator.InternalBeforeAuthenticate(
-  const AAuthenticationData: TEFNode);
+procedure TKAuthenticator.InternalBeforeAuthenticate(const AAuthData: TEFNode);
 begin
 end;
 
@@ -332,7 +329,7 @@ begin
 end;
 
 procedure TKAuthenticator.InternalAfterAuthenticate(
-  const AAuthenticationData: TEFNode);
+  const AAuthData: TEFNode);
 begin
 end;
 
@@ -373,9 +370,9 @@ begin
   Result := AuthData.GetString('UserName');
 end;
 
-procedure TKClassicAuthenticator.InternalDefineAuthData(
-  const AAuthData: TEFNode);
+procedure TKClassicAuthenticator.InternalDefineAuthData(const AAuthData: TEFNode);
 begin
+  inherited;
   AAuthData.SetString('UserName', '');
   AAuthData.SetString('Password', '');
   AAuthData.SetString('Language', '');

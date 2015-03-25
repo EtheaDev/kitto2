@@ -1170,7 +1170,7 @@ type
   ///	    object. Each macro in this format:
   ///	  </para>
   ///	  <para>
-  ///	    %&lt;NameSpace&gt;:&lt;Path&gt;%
+  ///	    %<NameSpace>:<Path>%
   ///	  </para>
   ///	  <para>
   ///	    is expanded to the string value of the tree node located by the path.
