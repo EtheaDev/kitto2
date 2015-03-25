@@ -262,7 +262,7 @@ begin
   FGridView.EmptyText := _('No data to display.');
   FGridView.EnableRowBody := True;
   { TODO : make ForceFit configurable? }
-  FGridView.ForceFit := False;
+  //FGridView.ForceFit := False;
   LRowClassProvider := ViewTable.GetExpandedString('Controller/RowClassProvider');
   if LRowClassProvider <> '' then
     FGridView.GetRowClass :=  FGridView.JSFunctionInLine(LRowClassProvider)
