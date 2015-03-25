@@ -14,11 +14,11 @@
    limitations under the License.
 -------------------------------------------------------------------------------}
 
-///	<summary>
-///	  Filters are used by the List controller to implement a user interface for
-///	  data filtering. Several filters can be combined in a single controller.
-///	  Filters are configured in the view, below the Controller node.
-///	</summary>
+/// <summary>
+///  Filters are used by the List controller to implement a user interface for
+///  data filtering. Several filters can be combined in a single controller.
+///  Filters are configured in the view, below the Controller node.
+/// </summary>
 unit Kitto.Ext.Filters;
 
 {$I Kitto.Defines.inc}
@@ -35,69 +35,67 @@ const
   DEFAULT_FILTER_WIDTH = 20;
 
 type
-  ///	<summary>
-  ///	  All filters must implement this interface.
-  ///	</summary>
+  /// <summary>
+  ///  All filters must implement this interface.
+  /// </summary>
   IKExtFilter = interface(IEFSubject)
     ['{A7E485F3-FA8B-4446-BC8D-71E92188DA57}']
 
-    ///	<summary>
-    ///	  Builds and returns the filter expression.
-    ///	</summary>
-    ///	<returns>
-    ///	  The expression build according to the filter state.
-    ///	</returns>
-    ///	<remarks>
-    ///	  Returns '' if the filter has no expression in its current state.
-    ///	</remarks>
+    /// <summary>
+    ///  Builds and returns the filter expression.
+    /// </summary>
+    /// <returns>
+    ///  The expression build according to the filter state.
+    /// </returns>
+    /// <remarks>
+    ///  Returns '' if the filter has no expression in its current state.
+    /// </remarks>
     function GetExpression: string;
 
-    ///	<summary>
-    ///	  Returns a reference to the object implementing the filter.
-    ///	</summary>
-    ///	<remarks>
-    ///	  A filter MUST be a TExtObject descendant.
-    ///	</remarks>
+    /// <summary>
+    ///  Returns a reference to the object implementing the filter.
+    /// </summary>
+    /// <remarks>
+    ///  A filter MUST be a TExtObject descendant.
+    /// </remarks>
     function AsExtObject: TExtObject;
 
-    ///	<summary>
-    ///	  Called to pass the filter's configuration data, extracted as a node
-    ///	  from the view.
-    ///	</summary>
-    ///	<param name="AConfig">
-    ///	  A tree of parameters that configure the filter.
-    ///	</param>
+    /// <summary>
+    ///  Called to pass the filter's configuration data, extracted as a node
+    ///  from the view.
+    /// </summary>
+    /// <param name="AConfig">
+    ///  A tree of parameters that configure the filter.
+    /// </param>
     procedure SetConfig(const AConfig: TEFNode);
   end;
 
-  ///	<summary>
-  ///	  Keeps track of all registered filter classes. All new filters must be
-  ///	  registered before they can be used in controllers.
-  ///	</summary>
+  /// <summary>
+  ///  Keeps track of all registered filter classes. All new filters must be
+  ///  registered before they can be used in controllers.
+  /// </summary>
   TKExtFilterRegistry = class(TEFRegistry)
   private
     class var FInstance: TKExtFilterRegistry;
     class function GetInstance: TKExtFilterRegistry; static;
   protected
-    procedure BeforeRegisterClass(const AId: string; const AClass: TClass);
-      override;
+    procedure BeforeRegisterClass(const AId: string; const AClass: TClass); override;
   public
     class property Instance: TKExtFilterRegistry read GetInstance;
     class destructor Destroy;
     function GetClass(const AId: string): TExtObjectClass;
   end;
 
-  ///	<summary>
-  ///	  Queries the registry to create filter objects by class Id. It is
-  ///	  friend to TKControllerRegistry.
-  ///	</summary>
+  /// <summary>
+  ///  Queries the registry to create filter objects by class Id. It is
+  ///  friend to TKControllerRegistry.
+  /// </summary>
   TKExtFilterFactory = class(TEFFactory)
   private
     FContainer: TExtObjectList;
     class var FInstance: TKExtFilterFactory;
     class function GetInstance: TKExtFilterFactory; static;
-    function CreateObject(const AId: string;
-      const AContainer: TExtObjectList): IKExtFilter;
+    function CreateObject(const AId: string; const AContainer: TExtObjectList): IKExtFilter;
   protected
     function DoCreateObject(const AClass: TClass): TObject; override;
     class destructor Destroy;
@@ -108,9 +106,9 @@ type
       const AContainer: TExtObjectList): IKExtFilter;
   end;
 
-  ///	<summary>
-  ///	  Base class for list-based filters.
-  ///	</summary>
+  /// <summary>
+  ///  Base class for list-based filters.
+  /// </summary>
   TKListFilterBase = class(TKExtFormComboBox)
   protected
     FConfig: TEFNode;
@@ -120,26 +118,32 @@ type
     function AsExtObject: TExtObject;
   end;
 
-  ///	<summary>Static list. Displays a combo box with a list of mutually
-  ///	exclusive filter expressions. When an item is selected, the corresponding
-  ///	expression is applied.</summary>
-  ///	<remarks>
-  ///	  <para>If no item has IsDefault set to True, then the first item is the
-  ///	  default item.</para>
-  ///	  <para>An empty Expression means no filter (thus, all records
-  ///	  retrieved).</para>
-  ///	</remarks>
-  ///	<example>
-  ///	  <code>
-  ///	Items:
-  ///	  List: Shipping date
-  ///	    Items:
-  ///	      Today: Goods shipped today
-  ///	        Expression: datediff(day, GOODS.SHIPPING_DATE, getdate()) = 0
-  ///	      Everything: Everything else
-  ///	        IsDefault: True
-  ///	  </code>
-  ///	</example>
+  /// <summary>
+  ///  Static list. Displays a combo box with a list of mutually
+  ///  exclusive filter expressions. When an item is selected, the corresponding
+  ///  expression is applied.
+  /// </summary>
+  /// <remarks>
+  ///  <para>
+  ///   If no item has IsDefault set to True, then the first item is the
+  ///   default item.
+  ///  </para>
+  ///  <para>
+  ///   An empty Expression means no filter (thus, all records
+  ///   retrieved).
+  ///  </para>
+  /// </remarks>
+  /// <example>
+  ///  <code>
+  ///   Items:
+  ///     List: Shipping date
+  ///       Items:
+  ///         Today: Goods shipped today
+  ///           Expression: datediff(day, GOODS.SHIPPING_DATE, getdate()) = 0
+  ///         Everything: Everything else
+  ///           IsDefault: True
+  ///  </code>
+  /// </example>
   TKListFilter = class(TKListFilterBase, IKExtFilter)
   private
     FActiveIndex: Integer;
@@ -151,31 +155,28 @@ type
     procedure SetConfig(const AConfig: TEFNode); override;
   end;
 
-  ///	<summary>Dynamic list. Displays a list of items obtained by executing a
-  ///	query. When an item is selected, the corresponding value is merged into a
-  ///	specified expression template to build the filter expression.</summary>
-  ///	<example>
-  ///	  <code>
-  ///	Items:
-  ///	  DynaList: Employee
-  ///	    CommandText: |
-  ///	      select distinct SSN, LAST_NAME + ' ' + FIRST_NAME + ' (' + SSN + ')'
-  ///	      from CERTIFICATES order by 1
-  ///	    ExpressionTemplate: SSN = '{value}'
-  ///	</code>
-  ///	</example>
+  /// <summary>
+  ///  Dynamic list. Displays a list of items obtained by executing a
+  ///  query. When an item is selected, the corresponding value is merged into a
+  ///  specified expression template to build the filter expression.
+  /// </summary>
+  /// <example>
+  ///  <code>
+  ///   Items:
+  ///     DynaList: Employee
+  ///       CommandText: |
+  ///         select distinct SSN, LAST_NAME + ' ' + FIRST_NAME + ' (' + SSN + ')'
+  ///         from CERTIFICATES order by 1
+  ///       ExpressionTemplate: SSN = '{value}'
+  ///  </code>
+  /// </example>
   TKDynaListFilter = class(TKListFilterBase, IKExtFilter)
-  private
+  strict private
     FValues: TStringDynArray;
     FCurrentValue: string;
     const VALUE_FIELD = 0;
     const DISPLAY_FIELD = 1;
     function GetLargestFieldWidth(const AField: TField): Integer;
-//    procedure ComboBoxChange(This: TExtFormField; NewValue, OldValue: string);
-//    procedure ComboBoxSelect(Combo: TExtFormComboBox; RecordJS: TExtDataRecord;
-//      Index: Integer);
-  protected
-    function GetDatabaseName: string;
   public
     function GetExpression: string;
     procedure SetConfig(const AConfig: TEFNode); override;
@@ -183,13 +184,17 @@ type
     procedure ValueChanged;
   end;
 
-  ///	<summary>
-  ///	  <para>Free search. Displays an edit for a free search criteria input.</para>
-  ///   <para>AutoSearchAfterChars determines the number of characters that can
-  ///     be entered before the search fires. Default is 4 characters.</para>
-  ///	</summary>
+  /// <summary>
+  ///  <para>
+  ///   Free search. Displays an edit for a free search criteria input.
+  ///  </para>
+  ///  <para>
+  ///   AutoSearchAfterChars determines the number of characters that can
+  ///   be entered before the search fires. Default is 4 characters.
+  ///  </para>
+  /// </summary>
   TKFreeSearchFilter = class(TKExtFormTextField, IKExtFilter)
-  private
+  strict private
     FCurrentValue: string;
     FConfig: TEFNode;
     procedure FieldChange(This: TExtFormField; NewValue, OldValue: string);
@@ -199,59 +204,103 @@ type
     function GetExpression: string;
   end;
 
-  ///	<summary>
-  ///	  <para>Date search. Displays a calendar edit for a search of a date value.</para>
-  ///	</summary>
+  /// <summary>
+  ///  <para>
+  ///   Date search. Displays a calendar edit for a search of a date value.
+  ///  </para>
+  /// </summary>
   TKDateSearchFilter = class(TKExtFormDateField, IKExtFilter)
-  private
+  strict private
     FCurrentValue: TDateTime;
     FConfig: TEFNode;
     procedure FieldChange(This: TExtFormField; NewValue, OldValue: string);
-  protected
-    function GetDatabaseName: string;
   public
     procedure SetConfig(const AConfig: TEFNode);
     function AsExtObject: TExtObject;
     function GetExpression: string;
   end;
 
-  ///	<summary>
-  ///	  <para>Boolean search. Displays a checkbox for activate a particular filter
-  ///   defined in Expression Template.</para>
-  ///	</summary>
+  /// <summary>
+  ///  <para>
+  ///   Boolean search. Displays a checkbox for activate a particular filter
+  ///   defined in Expression Template.
+  ///  </para>
+  /// </summary>
   TKBooleanSearchFilter = class(TKExtFormCheckBoxField, IKExtFilter)
-  private
+  strict private
     FCurrentValue: Boolean;
     FConfig: TEFNode;
     procedure FieldChecked(This: TExtFormCheckBox; Checked: boolean);
-  protected
-    function GetDatabaseName: string;
   public
     procedure SetConfig(const AConfig: TEFNode);
     function AsExtObject: TExtObject;
     function GetExpression: string;
   end;
 
-  ///	<summary>
-  ///	  <para>Similar to a ListFilter, but uses a set of buttons instead of a
-  ///	  combo box.</para>
-  ///	  <para>The difference is that several buttons can be pressed at once, in
-  ///	  which case their expressions are concatenated with a Connector (default
-  ///	  'or').</para>
-  ///	  <para>All filters with IsDefault set to True are renderd as initially
-  ///	  pressed buttons.</para>
-  ///	</summary>
-  TKButtonListFilter = class(TKExtPanelBase, IKExtFilter)
-  private
+  TKButtonListFilterBase = class(TKExtPanelBase)
+  strict private
+    FSelected: array of Boolean;
+  strict protected
     FConfig: TEFNode;
     FItems: TEFNode;
-    FSelected: array of Boolean;
+    function RetrieveItems: TEFNode; virtual; abstract;
+    function GetItemExpression(const AItemIndex: Integer): string; virtual; abstract;
   public
     procedure SetConfig(const AConfig: TEFNode);
     function AsExtObject: TExtObject;
     function GetExpression: string;
   published
     procedure ButtonClick;
+  end;
+
+  /// <summary>
+  ///  <para>
+  ///   Similar to a ListFilter, but uses a set of buttons instead of a
+  ///   combo box.
+  ///  </para>
+  ///  <para>
+  ///   The difference is that several buttons can be pressed at once, in
+  ///   which case their expressions are concatenated with a Connector (default
+  ///   'or').
+  ///  </para>
+  ///  <para>
+  ///   All filters with IsDefault set to True are renderd as initially
+  ///   pressed buttons.
+  ///  </para>
+  /// </summary>
+  TKButtonListFilter = class(TKButtonListFilterBase, IKExtFilter)
+  strict protected
+    function RetrieveItems: TEFNode; override;
+    function GetItemExpression(const AItemIndex: Integer): string; override;
+  end;
+
+  /// <summary>
+  ///  Dynamic button list. Builds its set of buttons by executing a
+  ///  query. When an item is selected, the corresponding value is merged into a
+  ///  specified expression template to build the filter expression.
+  /// </summary>
+  /// <example>
+  ///  <code>
+  ///   Items:
+  ///     DynaButtonList: Employee
+  ///       CommandText: |
+  ///         select TYPE_ID, DESCRIPTION
+  ///         from TYPES order by 1
+  ///       ExpressionTemplate: {Q}TYPE_ID = '{value}'
+  ///  </code>
+  /// </example>
+  /// <seealso>
+  ///  TKButtonListFilter
+  /// </seealso>
+  TKDynaButtonListFilter = class(TKButtonListFilterBase, IKExtFilter)
+  strict private
+    const VALUE_FIELD = 0;
+    const DISPLAY_FIELD = 1;
+  strict protected
+    function RetrieveItems: TEFNode; override;
+    function GetItemExpression(const AItemIndex: Integer): string; override;
+  public
+    destructor Destroy; override;
   end;
 
 implementation
@@ -282,6 +331,17 @@ begin
     Result := AItems.Children[0];
 end;
 
+function GetDatabaseName(const AConfig: TEFNode; const ACallerContext: TObject): string;
+var
+  LDatabaseRouterNode: TEFNode;
+begin
+  LDatabaseRouterNode := AConfig.FindNode('DatabaseRouter');
+  if Assigned(LDatabaseRouterNode) then
+    Result := TKDatabaseRouterFactory.Instance.GetDatabaseName(
+      LDatabaseRouterNode.AsString, ACallerContext, LDatabaseRouterNode)
+  else
+    Result := TKConfig.Instance.DatabaseName;
+end;
 
 { TKExtFilterRegistry }
 
@@ -450,13 +510,6 @@ end;
 
 { TKDynaListFilter }
 
-//procedure TKDynaListFilter.ComboBoxSelect(Combo: TExtFormComboBox;
-//  RecordJS: TExtDataRecord; Index: Integer);
-//begin
-//  FCurrentValue := FValues[Index];
-//  NotifyObservers('FilterChanged');
-//end;
-
 procedure TKDynaListFilter.ValueChanged;
 var
   LNewValue: string;
@@ -467,18 +520,6 @@ begin
     FCurrentValue := LNewValue;
     NotifyObservers('FilterChanged');
   end;
-end;
-
-function TKDynaListFilter.GetDatabaseName: string;
-var
-  LDatabaseRouterNode: TEFNode;
-begin
-  LDatabaseRouterNode := FConfig.FindNode('DatabaseRouter');
-  if Assigned(LDatabaseRouterNode) then
-    Result := TKDatabaseRouterFactory.Instance.GetDatabaseName(
-      LDatabaseRouterNode.AsString, Self, LDatabaseRouterNode)
-  else
-    Result := TKConfig.Instance.DatabaseName;
 end;
 
 function TKDynaListFilter.GetExpression: string;
@@ -520,7 +561,7 @@ begin
   AutoSelect := False;
   //ForceSelection := True;
   Mode := 'local';
-  LDBQuery := Session.Config.DBConnections[GetDatabaseName].CreateDBQuery;
+  LDBQuery := Session.Config.DBConnections[GetDatabaseName(FConfig, Self)].CreateDBQuery;
   try
     LDBQuery.CommandText := FConfig.GetExpandedString('CommandText');
     LDBQuery.Open;
@@ -540,14 +581,6 @@ begin
   //Resizable := True;
   //MinListWidth := LFieldWidth;
   //MinHeight := LinesToPixels(5);
-{ TODO :
-In order to save a trip by calling the refresh code directly,
-we should include status information from all filters. Doable,
-by generating more JS code, but not now. }
-  //On('select', JSFunction(AConfig.GetString('Sys/ApplyJSCode')));
-  //OnChange := ComboBoxChange;
-  // OnSelect only passes the relative index in the filtered list.
-  //OnSelect := ComboBoxSelect;
   if FConfig.GetBoolean('Sys/IsReadOnly') then
     Disabled := True
   else
@@ -559,12 +592,6 @@ by generating more JS code, but not now. }
   end;
   FCurrentValue := '';
 end;
-
-//procedure TKDynaListFilter.ComboBoxChange(This: TExtFormField; NewValue: string; OldValue: string);
-//begin
-//  FCurrentValue := NewValue;
-//  NotifyObservers('FilterChanged');
-//end;
 
 { TKFreeSearchFilter }
 
@@ -667,18 +694,6 @@ begin
   end;
 end;
 
-function TKDateSearchFilter.GetDatabaseName: string;
-var
-  LDatabaseRouterNode: TEFNode;
-begin
-  LDatabaseRouterNode := FConfig.FindNode('DatabaseRouter');
-  if Assigned(LDatabaseRouterNode) then
-    Result := TKDatabaseRouterFactory.Instance.GetDatabaseName(
-      LDatabaseRouterNode.AsString, Self, LDatabaseRouterNode)
-  else
-    Result := TKConfig.Instance.DatabaseName;
-end;
-
 function TKDateSearchFilter.GetExpression: string;
 var
   LDateTimeValue: string;
@@ -686,7 +701,7 @@ begin
   //A zero date is considered blank
   if FCurrentValue <> 0 then
   begin
-    LDateTimeValue := Session.Config.DBConnections[GetDatabaseName].DBEngineType.FormatDateTime(FCurrentValue);
+    LDateTimeValue := Session.Config.DBConnections[GetDatabaseName(FConfig, Self)].DBEngineType.FormatDateTime(FCurrentValue);
     Result := ReplaceText(FConfig.GetExpandedString('ExpressionTemplate'), '{value}', LDateTimeValue);
   end
   else
@@ -722,18 +737,6 @@ begin
   end;
 end;
 
-function TKBooleanSearchFilter.GetDatabaseName: string;
-var
-  LDatabaseRouterNode: TEFNode;
-begin
-  LDatabaseRouterNode := FConfig.FindNode('DatabaseRouter');
-  if Assigned(LDatabaseRouterNode) then
-    Result := TKDatabaseRouterFactory.Instance.GetDatabaseName(
-      LDatabaseRouterNode.AsString, Self, LDatabaseRouterNode)
-  else
-    Result := TKConfig.Instance.DatabaseName;
-end;
-
 function TKBooleanSearchFilter.GetExpression: string;
 begin
   //A zero date is considered blank
@@ -743,57 +746,21 @@ begin
     Result := '';
 end;
 
-{ TKButtonListFilter }
+{ TKButtonListFilterBase }
 
-function TKButtonListFilter.AsExtObject: TExtObject;
-begin
-  Result := Self;
-end;
-
-function TKButtonListFilter.GetExpression: string;
-var
-  I: Integer;
-  LConnector: string;
-  LExpression: string;
-begin
-  Assert(Assigned(FItems));
-
-  Result := '';
-  for I := 0 to High(FSelected) do
-  begin
-    LConnector := FConfig.GetString('Connector', 'or');
-    if FSelected[I] then
-    begin
-      LExpression := FItems.Children[I].GetExpandedString('Expression');
-      if LExpression <> '' then
-        LExpression := '(' + LExpression + ')';
-
-      if Result = '' then
-        Result := LExpression
-      else
-        Result := Result + ' ' + LConnector + ' ' + LExpression;
-    end;
-  end;
-  if Result <> '' then
-    Result := '(' + Result + ')';
-end;
-
-procedure TKButtonListFilter.SetConfig(const AConfig: TEFNode);
+procedure TKButtonListFilterBase.SetConfig(const AConfig: TEFNode);
 var
   I: Integer;
   LButton: TKExtButton;
-  //LGroupName: string;
 begin
   Assert(Assigned(AConfig));
 
   FConfig := AConfig;
   FieldLabel := _(AConfig.AsString);
 
-  FItems := FConfig.GetNode('Items');
-  Assert(Assigned(FItems));
+  FItems := RetrieveItems;
 
   Layout := lyColumn;
-  //LGroupName := IntToStr(Integer(Pointer(Self)));
 
   SetLength(FSelected, FItems.ChildCount);
   for I := 0 to FItems.ChildCount - 1 do
@@ -803,18 +770,11 @@ begin
     LButton.Text := _(FItems.Children[I].AsString);
     LButton.AllowDepress := True;
     LButton.EnableToggle := True;
-    //LButton.ToggleGroup := LGroupName;
     if FItems.Children[I].GetBoolean('IsDefault') then
     begin
-      { TODO : Check if the config item is enough, if not use the property }
       LButton.Pressed := True;
       FSelected[I] := True;
     end;
-{ TODO :
-In order to save a trip by calling the refresh code directly,
-we should include status information from all filters. Doable,
-by generating more JS code, but not now. }
-  //LButton.On('click', JSFunction(AConfig.GetString('Sys/ApplyJSCode')));
     if FConfig.GetBoolean('Sys/IsReadOnly') then
       LButton.Disabled := True
     else
@@ -822,7 +782,12 @@ by generating more JS code, but not now. }
   end;
 end;
 
-procedure TKButtonListFilter.ButtonClick;
+function TKButtonListFilterBase.AsExtObject: TExtObject;
+begin
+  Result := Self;
+end;
+
+procedure TKButtonListFilterBase.ButtonClick;
 var
   LPressed: Boolean;
   LIndex: Integer;
@@ -836,11 +801,100 @@ begin
   end;
 end;
 
+function TKButtonListFilterBase.GetExpression: string;
+var
+  I: Integer;
+  LConnector: string;
+  LExpression: string;
+begin
+  Assert(Assigned(FItems));
+
+  Result := '';
+  for I := 0 to High(FSelected) do
+  begin
+    LConnector := FConfig.GetString('Connector', 'or');
+    if FSelected[I] then
+    begin
+      LExpression := GetItemExpression(I);
+      if LExpression <> '' then
+        LExpression := '(' + LExpression + ')';
+
+      if Result = '' then
+        Result := LExpression
+      else
+        Result := Result + ' ' + LConnector + ' ' + LExpression;
+    end;
+  end;
+  if Result <> '' then
+    Result := '(' + Result + ')';
+end;
+
+{ TKButtonListFilter }
+
+function TKButtonListFilter.GetItemExpression(const AItemIndex: Integer): string;
+begin
+  Result := FItems.Children[AItemIndex].GetExpandedString('Expression');
+end;
+
+function TKButtonListFilter.RetrieveItems: TEFNode;
+begin
+  Result := FConfig.GetNode('Items');
+end;
+
+{ TKDynaButtonListFilter }
+
+destructor TKDynaButtonListFilter.Destroy;
+begin
+  FreeAndNil(FItems);
+  inherited;
+end;
+
+function TKDynaButtonListFilter.GetItemExpression(const AItemIndex: Integer): string;
+begin
+  if FItems[AItemIndex].GetString('Value') <> '' then
+    Result := ReplaceText(FConfig.GetExpandedString('ExpressionTemplate'), '{value}', FItems[AItemIndex].GetExpandedString('Value'))
+  else
+    Result := '';
+end;
+
+function TKDynaButtonListFilter.RetrieveItems: TEFNode;
+var
+  LDBQuery: TEFDBQuery;
+  LItem: TEFNode;
+begin
+  Result := TEFNode.Create('Items');
+  try
+    LDBQuery := Session.Config.DBConnections[GetDatabaseName(FConfig, Self)].CreateDBQuery;
+    try
+      LDBQuery.CommandText := FConfig.GetExpandedString('CommandText');
+      LDBQuery.Open;
+      try
+        Assert(LDBQuery.DataSet.FieldCount = 2);
+        while not LDBQuery.DataSet.Eof do
+        begin
+          LItem := Result.AddChild('Item', LDBQuery.DataSet.Fields[DISPLAY_FIELD].DisplayText);
+          LItem.SetValue('Value', LDBQuery.DataSet.Fields[VALUE_FIELD].Value);
+          //LItem.SetInteger('Width', CharsToPixels(AConfig.GetInteger('Width', GetLargestFieldWidth(LDBQuery.DataSet.Fields[DISPLAY_FIELD]) + TRIGGER_WIDTH)));
+          LDBQuery.DataSet.Next;
+        end;
+      finally
+        LDBQuery.Close;
+      end;
+    finally
+      FreeAndNil(LDBQuery);
+    end;
+  except
+    FreeAndNil(Result);
+    raise;
+  end;
+end;
+
 initialization
   TKExtFilterRegistry.Instance.RegisterClass('List', TKListFilter);
   TKExtFilterRegistry.Instance.RegisterClass('DynaList', TKDynaListFilter);
   TKExtFilterRegistry.Instance.RegisterClass('FreeSearch', TKFreeSearchFilter);
   TKExtFilterRegistry.Instance.RegisterClass('ButtonList', TKButtonListFilter);
+  TKExtFilterRegistry.Instance.RegisterClass('DynaButtonList', TKDynaButtonListFilter);
   TKExtFilterRegistry.Instance.RegisterClass('DateSearch', TKDateSearchFilter);
   TKExtFilterRegistry.Instance.RegisterClass('BooleanSearch', TKBooleanSearchFilter);
 
@@ -849,5 +903,8 @@ finalization
   TKExtFilterRegistry.Instance.UnregisterClass('DynaList');
   TKExtFilterRegistry.Instance.UnregisterClass('FreeSearch');
   TKExtFilterRegistry.Instance.UnregisterClass('ButtonList');
+  TKExtFilterRegistry.Instance.UnregisterClass('DynaButtonList');
+  TKExtFilterRegistry.Instance.UnregisterClass('DateSearch');
+  TKExtFilterRegistry.Instance.UnregisterClass('BooleanSearch');
 
 end.
