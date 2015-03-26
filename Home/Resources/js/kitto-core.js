@@ -343,4 +343,4 @@ function objectToParams(object)
       return encodeURIComponent(k) + '=' + encodeURIComponent(object[k]);
     }
   ).join('&');
-}
+};

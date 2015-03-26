@@ -74,6 +74,7 @@ type
     procedure ValueChanging(const AOldValue: Variant; var ANewValue: Variant; var ADoIt: Boolean); override;
     procedure ValueChanged(const AOldValue: Variant; const ANewValue: Variant); override;
     function GetDataType: TEFDataType; override;
+    function GetDecimalPrecision: Integer; virtual;
   public
     procedure Assign(const ASource: TEFTree); override;
     property HeaderField: TKHeaderField read FHeaderField write FHeaderField;
@@ -1344,8 +1345,18 @@ end;
 
 function TKField.GetAsJSONValue(const AForDisplay: Boolean; const AQuote: Boolean;
   const AEmptyNulls: Boolean): string;
+var
+  LJSFormatSettings: TFormatSettings;
 begin
-  Result := DataType.NodeToJSONValue(AForDisplay, Self, TKConfig.JSFormatSettings, AQuote, AEmptyNulls);
+  LJSFormatSettings := TKConfig.JSFormatSettings;
+  // Store the number of decimal digits so that decimal values can be formatted correctly.
+  LJSFormatSettings.CurrencyDecimals := GetDecimalPrecision;
+  Result := DataType.NodeToJSONValue(AForDisplay, Self, LJSFormatSettings, AQuote, AEmptyNulls);
+end;
+
+function TKField.GetDecimalPrecision: Integer;
+begin
+  Result := 2;
 end;
 
 function TKField.GetAsXML(const AForDisplay: Boolean): string;

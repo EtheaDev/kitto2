@@ -1007,10 +1007,8 @@ type
     property AllowDecimals: Boolean read FAllowDecimals write SetAllowDecimals;
     property AllowNegative: Boolean read FAllowNegative write SetAllowNegative;
     property BaseChars: string read FBaseChars write SetFBaseChars;
-    property DecimalPrecision: Integer read FDecimalPrecision
-      write SetDecimalPrecision;
-    property DecimalSeparator: string read FDecimalSeparator
-      write SetDecimalSeparator;
+    property DecimalPrecision: Integer read FDecimalPrecision write SetDecimalPrecision;
+    property DecimalSeparator: string read FDecimalSeparator write SetDecimalSeparator;
     property FieldClass: string read FFieldClass write SetFFieldClass;
     property MaxText: string read FMaxText write SetMaxText;
     property MaxValue: Integer read FMaxValue write _SetMaxValue;
