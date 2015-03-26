@@ -2932,6 +2932,7 @@ type
     FOnMouseenter: TExtDataViewOnMouseenter;
     FOnMouseleave: TExtDataViewOnMouseleave;
     FOnSelectionchange: TExtDataViewOnSelectionchange;
+    FStoreArray: TExtObjectList;
     procedure SetFBlockRefresh(Value: Boolean);
     procedure SetFDeferEmptyText(Value: Boolean);
     procedure SetEmptyText(AValue: string);
@@ -2956,6 +2957,7 @@ type
     procedure SetFOnMouseenter(Value: TExtDataViewOnMouseenter);
     procedure SetFOnMouseleave(Value: TExtDataViewOnMouseleave);
     procedure SetFOnSelectionchange(Value: TExtDataViewOnSelectionchange);
+    procedure SetStoreArray(const AValue: TExtObjectList);
   protected
     procedure InitDefaults; override;
     procedure HandleEvent(const AEvtName: string); override;
@@ -3017,6 +3019,7 @@ type
     property SimpleSelect: Boolean read FSimpleSelect write SetFSimpleSelect;
     property SingleSelect: Boolean read FSingleSelect write SetFSingleSelect;
     property Store: TExtDataStore read FStore write _SetStore;
+    property StoreArray: TExtObjectList read FStoreArray write SetStoreArray;
     property Tpl: string read FTpl write SetTpl;
     property TplArray: TExtObjectList read FTplArray write SetFTplArray;
     property TrackOver: Boolean read FTrackOver write SetFTrackOver;
@@ -12262,8 +12265,9 @@ end;
 
 procedure TExtDataView._SetStore(const AValue: TExtDataStore);
 begin
+  FStore.Free;
   FStore := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'store', 'setStore', [AValue]);
+  ExtSession.ResponseItems.SetConfigItem(Self, 'store', 'setStore', [AValue, False]);
 end;
 
 procedure TExtDataView.SetTpl(AValue: string);
@@ -12638,6 +12642,13 @@ begin
   FStore := AStore;
   ExtSession.ResponseItems.CallMethod(Self, 'setStore', [AStore]);
   Result := Self;
+end;
+
+procedure TExtDataView.SetStoreArray(const AValue: TExtObjectList);
+begin
+  FStoreArray.Free;
+  FStoreArray := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'store', [AValue, False]);
 end;
 
 procedure TExtDataView.HandleEvent(const AEvtName: string);
