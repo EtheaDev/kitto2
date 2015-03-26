@@ -386,7 +386,7 @@ type
     procedure _SetValue(const AValue: string);
     procedure SetFLabelJS(Value: TExtElement);
     procedure SetFOriginalValue(Value: string);
-    procedure SetFStartValue(Value: string);
+    procedure SetStartValue(const AValue: string);
     procedure SetFOnBlur(Value: TExtFormFieldOnBlur);
     procedure SetOnChange(const AValue: TExtFormFieldOnChange);
     procedure SetFOnFocus(Value: TExtFormFieldOnFocus);
@@ -446,7 +446,7 @@ type
     property Value: string read FValue write _SetValue;
     property LabelJS: TExtElement read FLabelJS write SetFLabelJS;
     property OriginalValue: string read FOriginalValue write SetFOriginalValue;
-    property StartValue: string read FStartValue write SetFStartValue;
+    property StartValue: string read FStartValue write SetStartValue;
     property OnBlur: TExtFormFieldOnBlur read FOnBlur write SetFOnBlur;
     property OnChange: TExtFormFieldOnChange read FOnChange write SetOnChange;
     property OnFocus: TExtFormFieldOnFocus read FOnFocus write SetFOnFocus;
@@ -2319,10 +2319,10 @@ begin
   JSCode(JSName + '.originalValue=' + VarToJSON([Value]) + ';');
 end;
 
-procedure TExtFormField.SetFStartValue(Value: string);
+procedure TExtFormField.SetStartValue(const AValue: string);
 begin
-  FStartValue := Value;
-  JSCode(JSName + '.startValue=' + VarToJSON([Value]) + ';');
+  FStartValue := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'startValue', [AValue]);
 end;
 
 procedure TExtFormField.SetFOnBlur(Value: TExtFormFieldOnBlur);
