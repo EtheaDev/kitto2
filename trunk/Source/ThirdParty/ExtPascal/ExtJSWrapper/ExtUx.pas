@@ -800,7 +800,7 @@ end;
 
 function TExtUxStatusBar.GetObjectNamePrefix: string;
 begin
-  Result := 'sb';
+  Result := 'statusbar';
 end;
 
 function TExtUxStatusBar.GetText: TExtFunction;

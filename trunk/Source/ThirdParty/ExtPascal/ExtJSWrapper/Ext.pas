@@ -12082,7 +12082,7 @@ end;
 
 function TExtButton.GetObjectNamePrefix: string;
 begin
-  Result := 'b';
+  Result := 'btn';
 end;
 
 function TExtButton.GetPressed(const AGroup: string): TExtFunction;
@@ -12691,7 +12691,7 @@ end;
 
 function TExtViewport.GetObjectNamePrefix: string;
 begin
-  Result := 'v';
+  Result := 'vp';
 end;
 
 procedure TExtViewport.InitDefaults;
@@ -13359,7 +13359,7 @@ end;
 
 function TExtPanel.GetObjectNamePrefix: string;
 begin
-  Result := 'p';
+  Result := 'pnl';
 end;
 
 function TExtPanel.GetTool(Id: string): TExtFunction;
@@ -13505,7 +13505,7 @@ end;
 
 function TExtToolbarSpacer.GetObjectNamePrefix: string;
 begin
-  Result := 's';
+  Result := 'spacer';
 end;
 
 procedure TExtToolbarSpacer.InitDefaults;
@@ -14322,7 +14322,7 @@ end;
 
 function TExtWindow.GetObjectNamePrefix: string;
 begin
-  Result := 'w';
+  Result := 'win';
 end;
 
 procedure TExtTabPanel._SetActiveTab(const AValue: string);
@@ -14554,7 +14554,7 @@ end;
 
 function TExtTabPanel.GetObjectNamePrefix: string;
 begin
-  Result := 'tp';
+  Result := 'tabpnl';
 end;
 
 function TExtTabPanel.GetTabEl(TAB: TExtPanel): TExtFunction;

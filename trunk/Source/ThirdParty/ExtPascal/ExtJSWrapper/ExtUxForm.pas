@@ -205,6 +205,7 @@ type
   protected
     procedure InitDefaults; override;
     procedure HandleEvent(const AEvtName: string); override;
+    function GetObjectNamePrefix: string; override;
   public
     class function JSClassName : string; override;
     property ButtonCfg : TExtObject read FButtonCfg write SetFButtonCfg;
@@ -766,6 +767,11 @@ procedure TExtUxFormFileUploadField.InitDefaults; begin
   FButtonCfg := TExtObject.CreateInternal(Self, 'buttonCfg');
   FButtonOffset := 3;
   FButtonText := _('Browse...');
+end;
+
+function TExtUxFormFileUploadField.GetObjectNamePrefix: string;
+begin
+  Result := 'uplfld';
 end;
 
 procedure TExtUxFormFileUploadField.HandleEvent(const AEvtName : string); begin

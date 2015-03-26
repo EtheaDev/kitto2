@@ -1468,7 +1468,7 @@ end;
 
 function TExtDataDataReader.GetObjectNamePrefix: string;
 begin
-  Result := 'r';
+  Result := 'reader';
 end;
 
 procedure TExtDataDataReader.InitDefaults;
@@ -1858,7 +1858,7 @@ end;
 
 function TExtDataField.GetObjectNamePrefix: string;
 begin
-  Result := 'f';
+  Result := 'dfld';
 end;
 
 class function TExtDataField.JSClassName: string;
@@ -3020,7 +3020,7 @@ end;
 
 function TExtDataStore.GetObjectNamePrefix: string;
 begin
-  Result := 'ds';
+  Result := 'store';
 end;
 
 function TExtDataStore.GetRange(StartIndex: Integer = 0; EndIndex: Integer = 0)

@@ -160,6 +160,7 @@ type
     FItems: TEFNode;
     function GetLargestFilterDisplayLabelWidth: Integer;
     procedure ComboBoxSelect(Combo: TExtFormComboBox; RecordJS: TExtDataRecord; Index: Integer);
+    procedure ComboBoxChange(This: TExtFormField; NewValue, OldValue: string);
   public
     function GetExpression: string;
     procedure SetConfig(const AConfig: TEFNode); override;
@@ -484,7 +485,7 @@ begin
   Width := CharsToPixels(AConfig.GetInteger('Width', GetLargestFilterDisplayLabelWidth + TRIGGER_WIDTH));
   //ForceSelection := True;
   TriggerAction := 'all';
-  Editable := False;
+  Editable := True;
   LazyRender := True;
   SelectOnFocus := False;
   Mode := 'local';
@@ -504,15 +505,13 @@ begin
     FActiveIndex := 0
   else
     FActiveIndex := -1;
-{ TODO :
-In order to save a trip by calling the refresh code directly,
-we should include status information from all filters. Doable,
-by generating more JS code, but not now. }
-  //On('select', JSFunction(AConfig.GetString('Sys/ApplyJSCode')));
   if FConfig.GetBoolean('Sys/IsReadOnly') then
     Disabled := True
   else
+  begin
     OnSelect := ComboBoxSelect;
+    OnChange := ComboBoxChange;
+  end;
 end;
 
 procedure TKListFilter.ComboBoxSelect(Combo: TExtFormComboBox; RecordJS: TExtDataRecord; Index: Integer);
@@ -520,6 +519,15 @@ begin
   if FActiveIndex <> Index then
   begin
     FActiveIndex := Index;
+    NotifyObservers('FilterChanged');
+  end;
+end;
+
+procedure TKListFilter.ComboBoxChange(This: TExtFormField; NewValue: string; OldValue: string);
+begin
+  if NewValue = '' then
+  begin
+    FActiveIndex := -1;
     NotifyObservers('FilterChanged');
   end;
 end;

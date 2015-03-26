@@ -1197,7 +1197,7 @@ end;
 
 function TExtGridColumn.GetObjectNamePrefix: string;
 begin
-  Result := 'c';
+  Result := 'col';
 end;
 
 procedure TExtGridColumn.InitDefaults;
@@ -1542,7 +1542,7 @@ end;
 
 function TExtGridGridView.GetObjectNamePrefix: string;
 begin
-  Result := 'gv';
+  Result := 'gridview';
 end;
 
 function TExtGridGridView.GetRow(Index: Integer): TExtFunction;
@@ -1955,7 +1955,7 @@ end;
 
 function TExtGridAbstractSelectionModel.GetObjectNamePrefix: string;
 begin
-  Result := 'sm';
+  Result := 'selmodel';
 end;
 
 procedure TExtGridAbstractSelectionModel.InitDefaults;
@@ -3128,7 +3128,7 @@ end;
 
 function TExtGridGridPanel.GetObjectNamePrefix: string;
 begin
-  Result := 'gp';
+  Result := 'gridpnl';
 end;
 
 function TExtGridGridPanel.GetSelectionModel: TExtFunction;

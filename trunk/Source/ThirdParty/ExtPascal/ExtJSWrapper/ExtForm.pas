@@ -396,6 +396,7 @@ type
   protected
     procedure InitDefaults; override;
     procedure HandleEvent(const AEvtName: string); override;
+    function GetObjectNamePrefix: string; override;
   public
     class function JSClassName: string; override;
     function ClearInvalid: TExtFunction;
@@ -708,6 +709,7 @@ type
   protected
     procedure InitDefaults; override;
     procedure HandleEvent(const AEvtName: string); override;
+    function GetObjectNamePrefix: string; override;
   public
     class function JSClassName: string; override;
     function AutoSize: TExtFunction;
@@ -795,6 +797,7 @@ type
     procedure SetFRendered(Value: Boolean);
   protected
     procedure InitDefaults; override;
+    function GetObjectNamePrefix: string; override;
   public
     class function JSClassName: string; override;
     function BuildCombinedErrorMessage(Errors: TExtObjectList): TExtFunction;
@@ -849,6 +852,7 @@ type
   protected
     procedure InitDefaults; override;
     procedure HandleEvent(const AEvtName: string); override;
+    function GetObjectNamePrefix: string; override;
   public
     class function JSClassName: string; override;
     function GetValue: TExtFunction;
@@ -924,6 +928,7 @@ type
     procedure SetFPreventScrollbars(Value: Boolean);
   protected
     procedure InitDefaults; override;
+    function GetObjectNamePrefix: string; override;
   public
     class function JSClassName: string; override;
     function AutoSize: TExtFunction;
@@ -999,6 +1004,7 @@ type
     procedure SetNanText(const AValue: string);
   protected
     procedure InitDefaults; override;
+    function GetObjectNamePrefix: string; override;
   public
     class function JSClassName: string; override;
     function GetErrors(Value: string): TExtFunction;
@@ -1037,6 +1043,7 @@ type
     procedure SetFLayout(Value: string);
   protected
     procedure InitDefaults; override;
+    function GetObjectNamePrefix: string; override;
   public
     class function JSClassName: string; override;
     function OnCheckClick: TExtFunction;
@@ -1204,6 +1211,7 @@ type
   protected
     procedure InitDefaults; override;
     procedure HandleEvent(const AEvtName: string); override;
+    function GetObjectNamePrefix: string; override;
   public
     class function JSClassName: string; override;
     function GetErrors(Value: string): TExtFunction;
@@ -1365,6 +1373,7 @@ type
   protected
     procedure InitDefaults; override;
     procedure HandleEvent(const AEvtName: string); override;
+    function GetObjectNamePrefix: string; override;
   public
     class function JSClassName: string; override;
     function ClearValue: TExtFunction;
@@ -1490,6 +1499,7 @@ type
     procedure SetFMinValueString(Value: string);
   protected
     procedure InitDefaults; override;
+    function GetObjectNamePrefix: string; override;
   public
     class function JSClassName: string; override;
     function SetMaxValue(const AValue: TDateTime): TExtFunction; overload;
@@ -2413,6 +2423,11 @@ begin
   Result := Self;
 end;
 
+function TExtFormField.GetObjectNamePrefix: string;
+begin
+  Result := 'ffld';
+end;
+
 function TExtFormField.GetRawValue: TExtFunction;
 begin
   ExtSession.ResponseItems.CallMethod(Self, 'getRawValue', []);
@@ -3173,6 +3188,11 @@ begin
   Result := Self;
 end;
 
+function TExtFormTextField.GetObjectNamePrefix: string;
+begin
+  Result := 'txtfld';
+end;
+
 function TExtFormTextField.Reset: TExtFunction;
 begin
   JSCode(JSName + '.reset();', 'TExtFormTextField');
@@ -3352,6 +3372,11 @@ begin
   Result := Self;
 end;
 
+function TExtFormCompositeField.GetObjectNamePrefix: string;
+begin
+  Result := 'compfld';
+end;
+
 function TExtFormCompositeField.IsDirty: TExtFunction;
 begin
   JSCode(JSName + '.isDirty();', 'TExtFormCompositeField');
@@ -3473,6 +3498,11 @@ begin
   FAutoCreateObject := TExtObject.CreateInternal(Self, 'autoCreate');
   FFieldClass := 'x-form-field';
   FScope := TExtObject.CreateInternal(Self, 'scope');
+end;
+
+function TExtFormCheckbox.GetObjectNamePrefix: string;
+begin
+  Result := 'chkbox';
 end;
 
 function TExtFormCheckbox.GetValue: TExtFunction;
@@ -3628,6 +3658,11 @@ end;
 class function TExtFormTextArea.JSClassName: string;
 begin
   Result := 'Ext.form.TextArea';
+end;
+
+function TExtFormTextArea.GetObjectNamePrefix: string;
+begin
+  Result := 'txtarea';
 end;
 
 procedure TExtFormTextArea.InitDefaults;
@@ -3794,6 +3829,11 @@ begin
   Result := 'Ext.form.NumberField';
 end;
 
+function TExtFormNumberField.GetObjectNamePrefix: string;
+begin
+  Result := 'numfld';
+end;
+
 procedure TExtFormNumberField.InitDefaults;
 begin
   inherited;
@@ -3880,6 +3920,11 @@ end;
 class function TExtFormFieldSet.JSClassName: string;
 begin
   Result := 'Ext.form.FieldSet';
+end;
+
+function TExtFormFieldSet.GetObjectNamePrefix: string;
+begin
+  Result := 'fldset';
 end;
 
 procedure TExtFormFieldSet.InitDefaults;
@@ -4274,6 +4319,11 @@ begin
   JSCode(JSName + '.getErrors(' + VarToJSON([Value]) + ');',
     'TExtFormDateField');
   Result := Self;
+end;
+
+function TExtFormDateField.GetObjectNamePrefix: string;
+begin
+  Result := 'datefld';
 end;
 
 function TExtFormDateField.GetValue: TExtFunction;
@@ -4740,6 +4790,11 @@ begin
   Result := Self;
 end;
 
+function TExtFormComboBox.GetObjectNamePrefix: string;
+begin
+  Result := 'combo';
+end;
+
 function TExtFormComboBox.GetStore: TExtFunction;
 begin
   ExtSession.ResponseItems.CallMethod(Self, 'getStore', []);
@@ -4904,6 +4959,11 @@ end;
 class function TExtFormTimeField.JSClassName: string;
 begin
   Result := 'Ext.form.TimeField';
+end;
+
+function TExtFormTimeField.GetObjectNamePrefix: string;
+begin
+  Result := 'timefld';
 end;
 
 procedure TExtFormTimeField.InitDefaults;
