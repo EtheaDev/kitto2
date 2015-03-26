@@ -34,7 +34,7 @@ type
 implementation
 
 uses
-  SysUtils, Forms, Classes, SvcMgr, ShlObj,
+  SysUtils, Forms, Classes, SvcMgr, ShlObj, Themes, Styles,
   EF.SysUtils, EF.Logger, EF.Localization,
   Kitto.Config,
   Kitto.Ext.MainFormUnit, Kitto.Ext.Service;
@@ -73,6 +73,7 @@ begin
   begin
     TEFLogger.Instance.Log('Starting as application.');
     Forms.Application.Initialize;
+    TStyleManager.TrySetStyle('Aqua Light Slate');
     Forms.Application.CreateForm(TKExtMainForm, KExtMainForm);
     Forms.Application.Run;
   end;
