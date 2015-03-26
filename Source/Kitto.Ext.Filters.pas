@@ -346,8 +346,6 @@ begin
       Break;
     end;
   end;
-  if (Result = nil) and (AItems.ChildCount > 0) then
-    Result := AItems.Children[0];
 end;
 
 function GetDatabaseName(const AConfig: TEFNode; const ACallerContext: TObject;
@@ -487,7 +485,9 @@ begin
   TriggerAction := 'all';
   Editable := True;
   LazyRender := True;
-  SelectOnFocus := False;
+  SelectOnFocus := True;
+  AutoSelect := False;
+  AllowBlank := True;
   Mode := 'local';
   { TODO : design a naming scheme that allows master/details and maybe more instances of the same view }
   StoreArray := JSArray(PairsToJSON(FItems.GetChildPairs, False));
@@ -501,8 +501,6 @@ begin
     SetValue(LDefaultFilter.Name);
     FActiveIndex := LDefaultFilter.Index;
   end
-  else if FConfig.ChildCount > 0 then
-    FActiveIndex := 0
   else
     FActiveIndex := -1;
   if FConfig.GetBoolean('Sys/IsReadOnly') then
