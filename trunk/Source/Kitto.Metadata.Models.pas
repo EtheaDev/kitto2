@@ -1674,6 +1674,8 @@ end;
 function TKModelField.GetDisplayFormat: string;
 begin
   Result := GetString('DisplayFormat');
+  if (Result = '') and (DataType is TEFNumericDataTypeBase) then
+    Result := ',0.' + DupeString('0', DecimalPrecision);
 end;
 
 function TKModelField.GetDisplayLabel: string;

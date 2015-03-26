@@ -427,6 +427,8 @@ type
     function GetViewField: TKViewField;
   private
     function GetModelField: TKModelField;
+  strict protected
+    function GetDecimalPrecision: Integer; override;
   public
     function GetEmptyAsNull: Boolean; override;
     function GetAsJSONValue(const AForDisplay: Boolean; const AQuote: Boolean = True;
@@ -2750,6 +2752,11 @@ begin
   end;
   if AQuote and not SameText(Result, 'null') then
     Result := QuoteJSONStr(Result);
+end;
+
+function TKViewTableField.GetDecimalPrecision: Integer;
+begin
+  Result := ViewField.DecimalPrecision;
 end;
 
 function TKViewTableField.GetEmptyAsNull: Boolean;

@@ -14,10 +14,10 @@
    limitations under the License.
 -------------------------------------------------------------------------------}
 
-///	<summary>
-///	  Defines the tree and node class that implement a tree of named data
-///	  values. A tree can represent a Yaml file or a JSON stream, for example.
-///	</summary>
+/// <summary>
+///   Defines the tree and node class that implement a tree of named data
+///   values. A tree can represent a Yaml file or a JSON stream, for example.
+/// </summary>
 unit EF.Tree;
 
 {$I EF.Defines.inc}
@@ -35,11 +35,11 @@ const
 type
   TEFNode = class;
 
-  ///	<summary>
-  ///	  Base class for node data types. The system supports pluggable data
-  ///	  types. Descendants of this class define how to interpret, store, copy,
-  ///	  encode and decode data of a particular type.
-  ///	</summary>
+  /// <summary>
+  ///  Base class for node data types. The system supports pluggable data
+  ///  types. Descendants of this class define how to interpret, store, copy,
+  ///  encode and decode data of a particular type.
+  /// </summary>
   TEFDataType = class
   protected
     procedure InternalNodeToParam(const ANode: TEFNode; const AParam: TParam); virtual;
@@ -294,10 +294,10 @@ type
     class function HasScale: Boolean; override;
   end;
 
-  ///	<summary>
-  ///	  Stores the address of an object. This is only used for in-memory
-  ///	  transfers, it is not persistable.
-  ///	</summary>
+  /// <summary>
+  ///   Stores the address of an object. This is only used for in-memory
+  ///   transfers, it is not persistable.
+  /// </summary>
   TEFObjectDataType = class(TEFDataType)
   protected
     procedure InternalFieldValueToNode(const AField: TField; const ANode: TEFNode); override;
@@ -310,9 +310,9 @@ type
   TEFNodeClass = class of TEFNode;
   TEFNodes = TObjectList<TEFNode>;
 
-  ///	<summary>
-  ///	  The root of a tree. Contains a set of nodes which are in turn trees.
-  ///	</summary>
+  /// <summary>
+  ///   The root of a tree. Contains a set of nodes which are in turn trees.
+  /// </summary>
   TEFTree = class
   private
     FCriticalSection: TCriticalSection;
@@ -330,96 +330,96 @@ type
     procedure LeaveCS; virtual;
     function GetRoot: TEFTree; virtual;
 
-    ///	<summary>
-    ///	  Access to the set of children as a list.
-    ///	</summary>
+    /// <summary>
+    ///   Access to the set of children as a list.
+    /// </summary>
     property NodeList: TEFNodes read FNodes;
   public
     constructor Create; virtual;
     destructor Destroy; override;
     procedure BeforeSave; virtual;
   public
-    ///	<summary>
-    ///	  Creates a new tree holding a deep copy of the specified tree.
-    ///	</summary>
+    /// <summary>
+    ///   Creates a new tree holding a deep copy of the specified tree.
+    /// </summary>
     constructor Clone(const ASource: TEFTree); virtual;
 
-    ///	<summary>
-    ///	  Clears the tree, recursively deleting all nodes.
-    ///	</summary>
+    /// <summary>
+    ///   Clears the tree, recursively deleting all nodes.
+    /// </summary>
     procedure Clear; virtual;
 
-    ///	<summary>
-    ///	 Makes the current object a copy of the specified tree.
-    ///	</summary>
+    /// <summary>
+    ///  Makes the current object a copy of the specified tree.
+    /// </summary>
     procedure Assign(const ASource: TEFTree); virtual;
 
-    ///	<summary>
-    ///	  Adds all nodes in ASource, overwriting any existing nodes with the same
+    /// <summary>
+    ///   Adds all nodes in ASource, overwriting any existing nodes with the same
     ///   name. Note: does not copy annotations.
-    ///	</summary>
+    /// </summary>
     procedure Merge(const ASource: TEFTree); virtual;
 
-    ///	<summary>
-    ///	  Adds a child node. Returns a reference to the added object.
-    ///	</summary>
+    /// <summary>
+    ///   Adds a child node. Returns a reference to the added object.
+    /// </summary>
     function AddChild(const ANode: TEFNode): TEFNode; overload;
 
-    ///	<summary>
-    ///	  Creates a child node of a type that may depend on the parameters,
-    ///	  fills and adds it. Then returns a reference to the added object.
-    ///	</summary>
+    /// <summary>
+    ///   Creates a child node of a type that may depend on the parameters,
+    ///   fills and adds it. Then returns a reference to the added object.
+    /// </summary>
     function AddChild(const AName: string; const AValue: Variant): TEFNode; overload;
 
-    ///	<summary>
-    ///	  Creates a child node of a type that may depend on the parameters,
-    ///	  sets the name and adds it. Then returns a reference to the added object.
-    ///	</summary>
+    /// <summary>
+    ///   Creates a child node of a type that may depend on the parameters,
+    ///   sets the name and adds it. Then returns a reference to the added object.
+    /// </summary>
     function AddChild(const AName: string): TEFNode; overload;
 
-    ///	<summary>
-    ///	  Returns the count of direct children (of any type).
-    ///	</summary>
+    /// <summary>
+    ///   Returns the count of direct children (of any type).
+    /// </summary>
     property ChildCount: Integer read GetChildCount;
 
-    ///	<summary>
-    ///	  Indexed access to the list of direct children of any type.
-    ///	</summary>
+    /// <summary>
+    ///   Indexed access to the list of direct children of any type.
+    /// </summary>
     property Children[I: Integer]: TEFNode read GetChild; default;
 
-    ///	<summary>
-    ///	  Finds a child node by name. Returns nil if not found.
-    ///	</summary>
+    /// <summary>
+    ///   Finds a child node by name. Returns nil if not found.
+    /// </summary>
     function FindChild(const AName: string; const ACreateMissingNodes: Boolean = False): TEFNode;
 
-    ///	<summary>Finds a direct child with specified name and value and returns a
-    ///	reference to it, or nil if the node is not found.</summary>
-    ///	<param name="AName">Name of the child node to look for.</param>
-    ///	<param name="AValue">Value of the child node to look for.</param>
+    /// <summary>Finds a direct child with specified name and value and returns a
+    /// reference to it, or nil if the node is not found.</summary>
+    /// <param name="AName">Name of the child node to look for.</param>
+    /// <param name="AValue">Value of the child node to look for.</param>
     function FindChildByNameAndValue(const AName: string; const AValue: Variant): TEFNode;
 
-    ///	<summary>
-    ///	  Returns True if a child with the given name exists, and False otherwise.
-    ///	</summary>
+    /// <summary>
+    ///   Returns True if a child with the given name exists, and False otherwise.
+    /// </summary>
     function HasChild(const AName: string): Boolean;
 
     type
-      ///	<summary>
+      /// <summary>
       ///  Type used by FindChildByPredicate and EnumChildren.
       /// </summary>
       TPredicate = reference to function (const ANode: TEFNode): Boolean;
 
-    ///	<summary>
-    ///	 Finds a child node by predicate. The predicate function is called
+    /// <summary>
+    ///  Finds a child node by predicate. The predicate function is called
     ///  for each child and should return True if a child qualifies.
     ///  The method returns the first qualifying child (and stops as soon
     ///  as it is found).
     ///  If no qualifying child is found, the method return nil.
-    ///	</summary>
+    /// </summary>
     function FindChildByPredicate(const APredicate: TPredicate): TEFNode;
 
     type
-      ///	<summary>
+      /// <summary>
       ///  Type used by EnumChildren.
       /// </summary>
       TNodeProc = reference to procedure (const ANode: TEFNode);
@@ -430,303 +430,303 @@ type
     /// </summary>
     procedure EnumChildren(const APredicate: TPredicate; const AProc: TNodeProc);
 
-    ///	<summary>
-    ///	  Finds a child node by name. Raises an exception if not found.
-    ///	</summary>
+    /// <summary>
+    ///   Finds a child node by name. Raises an exception if not found.
+    /// </summary>
     function ChildByName(const AName: string): TEFNode;
 
-    ///	<summary>
-    ///	  Removes the child from the list of children, if present.
-    ///	</summary>
+    /// <summary>
+    ///   Removes the child from the list of children, if present.
+    /// </summary>
     procedure RemoveChild(const ANode: TEFNode);
 
-    ///	<summary>
-    ///	  Removes all children, recursively.
-    ///	</summary>
+    /// <summary>
+    ///   Removes all children, recursively.
+    /// </summary>
     procedure ClearChildren;
 
-    ///	<summary>
-    ///	 Returns the count of direct children of a specified type.
-    ///	</summary>
+    /// <summary>
+    ///  Returns the count of direct children of a specified type.
+    /// </summary>
     function GetChildCount<T: class>: Integer; overload;
 
-    ///	<summary>
-    ///	 Indexed access to a list of children limited to the set of children
-    ///	 that are of the specified type.
-    ///	</summary>
+    /// <summary>
+    ///  Indexed access to a list of children limited to the set of children
+    ///  that are of the specified type.
+    /// </summary>
     function GetChild<T: class>(const AIndex: Integer): T; overload;
 
-    ///	<summary>
-    ///	 Searches a node by a path. Separate hierarchy elements with a /.
-    ///	</summary>
-    ///	<param name="APath">
-    ///	 A string path. Example: Node/SubNode.
-    ///	</param>
-    ///	<param name="ACreateMissingNodes">
-    ///	 If True, creates any missing nodes throughout the path and the final
-    ///	 node as well. This guarantees that the result is not nil.
-    ///	</param>
-    ///	<returns>
-    ///	 The found node, or nil.
-    ///	</returns>
+    /// <summary>
+    ///  Searches a node by a path. Separate hierarchy elements with a /.
+    /// </summary>
+    /// <param name="APath">
+    ///  A string path. Example: Node/SubNode.
+    /// </param>
+    /// <param name="ACreateMissingNodes">
+    ///  If True, creates any missing nodes throughout the path and the final
+    ///  node as well. This guarantees that the result is not nil.
+    /// </param>
+    /// <returns>
+    ///  The found node, or nil.
+    /// </returns>
     function FindNode(const APath: string; const ACreateMissingNodes: Boolean = False): TEFNode; virtual;
 
-    ///	<summary>
-    ///	 Works like FindNode, but raises an exception if ACreateMissingNodes
-    ///	 is False and the wanted node does not exist.
-    ///	</summary>
-    ///	<param name="ACreateMissingNodes">
-    ///	 If True, creates any missing nodes throughout the path and the final
-    ///	 node as well. This guarantees that the result is not nil.
-    ///	</param>
-    ///	<returns>
-    ///	 The found node.
-    ///	</returns>
+    /// <summary>
+    ///  Works like FindNode, but raises an exception if ACreateMissingNodes
+    ///  is False and the wanted node does not exist.
+    /// </summary>
+    /// <param name="ACreateMissingNodes">
+    ///  If True, creates any missing nodes throughout the path and the final
+    ///  node as well. This guarantees that the result is not nil.
+    /// </param>
+    /// <returns>
+    ///  The found node.
+    /// </returns>
     function GetNode(const APath: string; const ACreateMissingNodes: Boolean = False): TEFNode;
 
-    ///	<summary>
-    ///	 Finds a node by path and, if found, deletes it.
-    ///	</summary>
+    /// <summary>
+    ///  Finds a node by path and, if found, deletes it.
+    /// </summary>
     procedure DeleteNode(const APath: string);
 
-    ///	<summary>
-    ///	 Finds a node by path and, if found, returns its value, otherwise
-    ///	 returns ADefaultValue.
-    ///	</summary>
+    /// <summary>
+    ///  Finds a node by path and, if found, returns its value, otherwise
+    ///  returns ADefaultValue.
+    /// </summary>
     function GetValue(const APath: string; const ADefaultValue: Variant): Variant; overload;
 
-    ///	<summary>
-    ///	 Finds a node by path and, if found, returns its value, otherwise
-    ///	 returns Null.
-    ///	</summary>
+    /// <summary>
+    ///  Finds a node by path and, if found, returns its value, otherwise
+    ///  returns Null.
+    /// </summary>
     function GetValue(const APath: string): Variant; overload;
 
-    ///	<summary>
-    ///	 Finds a node by path and, if found, returns its value as a Boolean,
-    ///	 otherwise returns ADefaultValue.
-    ///	</summary>
+    /// <summary>
+    ///  Finds a node by path and, if found, returns its value as a Boolean,
+    ///  otherwise returns ADefaultValue.
+    /// </summary>
     function GetBoolean(const APath: string; const ADefaultValue: Boolean = False): Boolean;
 
-    ///	<summary>
-    ///	 Finds a node by path and, if found, returns its value as a Double,
-    ///	 otherwise returns ADefaultValue.
-    ///	</summary>
+    /// <summary>
+    ///  Finds a node by path and, if found, returns its value as a Double,
+    ///  otherwise returns ADefaultValue.
+    /// </summary>
     function GetFloat(const APath: string; const ADefaultValue: Double = 0): Double;
 
-    ///	<summary>
-    ///	 Finds a node by path and, if found, returns its value as an Integer,
-    ///	 otherwise returns ADefaultValue.
-    ///	</summary>
+    /// <summary>
+    ///  Finds a node by path and, if found, returns its value as an Integer,
+    ///  otherwise returns ADefaultValue.
+    /// </summary>
     function GetInteger(const APath: string; const ADefaultValue: Integer = 0): Integer;
 
-    ///	<summary>
-    ///	 Finds a node by path and, if found, returns its value as a string,
-    ///	 otherwise returns ADefaultValue.
-    ///	</summary>
+    /// <summary>
+    ///  Finds a node by path and, if found, returns its value as a string,
+    ///  otherwise returns ADefaultValue.
+    /// </summary>
     function GetString(const APath: string; const ADefaultValue: string = ''): string;
 
-    ///	<summary>
-    ///	 Finds a node by path and, if found, returns its value as a char,
-    ///	 otherwise returns ADefaultValue.
-    ///	</summary>
+    /// <summary>
+    ///  Finds a node by path and, if found, returns its value as a char,
+    ///  otherwise returns ADefaultValue.
+    /// </summary>
     function GetChar(const APath: string; const ADefaultValue: Char = #0): Char;
 
-    ///	<summary>
-    ///	 Finds a node by path and, if found, returns its value as a Date,
-    ///	 otherwise returns ADefaultValue.
-    ///	</summary>
+    /// <summary>
+    ///  Finds a node by path and, if found, returns its value as a Date,
+    ///  otherwise returns ADefaultValue.
+    /// </summary>
     function GetDate(const APath: string; const ADefaultValue: TDate = 0): TDate;
 
-    ///	<summary>
-    ///	 Finds a node by path and, if found, returns its value as an expanded
-    ///	 string, otherwise returns ADefaultValue.
-    ///	</summary>
-    ///	<returns>
-    ///	 The found node's string with any macros expanded.
-    ///	<returns>
-    ///	<remarks>
-    ///	 If the node is not found, macros in ADefaultValues are expanded as
-    ///	 well before returning it. This method guarantees that the return
-    ///	 value has all known macros expanded anyway.
-    ///	</remarks>
+    /// <summary>
+    ///  Finds a node by path and, if found, returns its value as an expanded
+    ///  string, otherwise returns ADefaultValue.
+    /// </summary>
+    /// <returns>
+    ///  The found node's string with any macros expanded.
+    /// <returns>
+    /// <remarks>
+    ///  If the node is not found, macros in ADefaultValues are expanded as
+    ///  well before returning it. This method guarantees that the return
+    ///  value has all known macros expanded anyway.
+    /// </remarks>
     function GetExpandedString(const APath: string; const ADefaultValue: string = ''): string;
 
-    ///	<summary>
-    ///	  Finds a node by path and, if found, returns its value as a string
-    ///	  array, otherwise returns ADefaultValue.
-    ///	</summary>
+    /// <summary>
+    ///   Finds a node by path and, if found, returns its value as a string
+    ///   array, otherwise returns ADefaultValue.
+    /// </summary>
     function GetStringArray(const APath: string; const ADefaultValue: TStringDynArray = nil): TStringDynArray;
 
-    ///	<summary>
-    ///	  Finds a node by path and, if found, returns its value as a list of
-    ///	  pairs, otherwise returns ADefaultValue.
-    ///	</summary>
+    /// <summary>
+    ///   Finds a node by path and, if found, returns its value as a list of
+    ///   pairs, otherwise returns ADefaultValue.
+    /// </summary>
     function GetPairs(const APath: string; const ADefaultValue: TEFPairs = nil): TEFPairs;
 
-    ///	<summary>
-    ///	  Returns a separated list of all children of the specified node in the
-    ///	  form Name&lt;AConnector&gt;AsString.
-    ///	</summary>
-    ///	<param name="APath">
-    ///	  Locates the parent node of the strings to extract.
-    ///	</param>
-    ///	<param name="ASeparator">
-    ///	  Separator for name/value pairs (ex. '=').
-    ///	</param>
-    ///	<param name="AConnector">
-    ///	  String used to connect pairs (ex. sLineBreak).
-    ///	</param>
-    ///	<param name="ADefaultValue">
-    ///	  Value to return when the node does not exist.
-    ///	</param>
-    ///	<returns>
-    ///	  A concatenation of all children of the specified node built according
-    ///	  to the arguments.
-    ///	</returns>
+    /// <summary>
+    ///   Returns a separated list of all children of the specified node in the
+    ///   form Name&lt;AConnector&gt;AsString.
+    /// </summary>
+    /// <param name="APath">
+    ///   Locates the parent node of the strings to extract.
+    /// </param>
+    /// <param name="ASeparator">
+    ///   Separator for name/value pairs (ex. '=').
+    /// </param>
+    /// <param name="AConnector">
+    ///   String used to connect pairs (ex. sLineBreak).
+    /// </param>
+    /// <param name="ADefaultValue">
+    ///   Value to return when the node does not exist.
+    /// </param>
+    /// <returns>
+    ///   A concatenation of all children of the specified node built according
+    ///   to the arguments.
+    /// </returns>
     function GetChildrenAsStrings(const APath: string; const ASeparator: string = sLineBreak;
       const AConnector: string = '='; const ADefaultValue: string = ''): string; overload;
 
-    ///	<summary>
-    ///	  Returns a list of all children of the specified node in the
-    ///	  form Name=AsString.
-    ///	</summary>
-    ///	<param name="APath">
-    ///	  Locates the parent node of the strings to extract.
-    ///	</param>
-    ///	<param name="AStrings">
-    ///	  Object to which strings are to be added. Any exiting contents are
+    /// <summary>
+    ///   Returns a list of all children of the specified node in the
+    ///   form Name=AsString.
+    /// </summary>
+    /// <param name="APath">
+    ///   Locates the parent node of the strings to extract.
+    /// </param>
+    /// <param name="AStrings">
+    ///   Object to which strings are to be added. Any exiting contents are
     ///   deleted.
-    ///	</param>
-    ///	<returns>
-    ///	  The number of appended items.
-    ///	</returns>
+    /// </param>
+    /// <returns>
+    ///   The number of appended items.
+    /// </returns>
     function GetChildrenAsStrings(const APath: string; const AStrings: TStrings): Integer; overload;
 
-    ///	<summary>Deletes all children nodes and replaces them with one node for
-    ///	each item in the specified string list. Strings must be in the form
-    ///	Name=Value.</summary>
+    /// <summary>Deletes all children nodes and replaces them with one node for
+    /// each item in the specified string list. Strings must be in the form
+    /// Name=Value.</summary>
     procedure SetChildrenAsStrings(const APath: string; const AStrings: TStrings);
 
-    ///	<summary>
-    ///	  Returns an array of all children of the specified node, which must be
+    /// <summary>
+    ///   Returns an array of all children of the specified node, which must be
     ///   in name=value format, as pairs.
-    ///	</summary>
-    ///	<param name="APath">
-    ///	  Locates the parent node of the strings to extract.
-    ///	</param>
-    ///	<returns>
-    ///	  Array of name/value pairs.
-    ///	</returns>
+    /// </summary>
+    /// <param name="APath">
+    ///   Locates the parent node of the strings to extract.
+    /// </param>
+    /// <returns>
+    ///   Array of name/value pairs.
+    /// </returns>
     function GetChildrenAsPairs(const APath: string;
       const AExpandMacrosInValues: Boolean = False;
       const ADefaultValue: TEFPairs = nil): TEFPairs;
 
-    ///	<summary>
-    ///	  Same as GetChildrenAsStrings, but returns expanded strings: Each string is
-    ///	  passed to the macro expander before concatenation.
-    ///	</summary>
+    /// <summary>
+    ///   Same as GetChildrenAsStrings, but returns expanded strings: Each string is
+    ///   passed to the macro expander before concatenation.
+    /// </summary>
     function GetChildrenAsExpandedStrings(const APath: string; const ASeparator: string = sLineBreak;
       const AConnector: string = '='; const ADefaultValue: string = ''): string;
 
-    ///	<summary>
-    ///	  Finds a node by path and, if found, returns its value as an object,
-    ///	  otherwise returns ADefaultValue.
-    ///	</summary>
+    /// <summary>
+    ///   Finds a node by path and, if found, returns its value as an object,
+    ///   otherwise returns ADefaultValue.
+    /// </summary>
     function GetObject(const APath: string; const ADefaultValue: TObject = nil): TObject;
 
-    ///	<summary>
-    ///	  Sets a node value by path. The node is created if it doesn't exist
-    ///	  yet.
-    ///	</summary>
+    /// <summary>
+    ///   Sets a node value by path. The node is created if it doesn't exist
+    ///   yet.
+    /// </summary>
     procedure SetInteger(const APath: string; const AValue: Integer);
 
-    ///	<summary>
-    ///	  Sets a node value by path. The node is created if it doesn't exist
-    ///	  yet.
-    ///	</summary>
+    /// <summary>
+    ///   Sets a node value by path. The node is created if it doesn't exist
+    ///   yet.
+    /// </summary>
     function SetString(const APath: string; const AValue: string): TEFNode;
 
-    ///	<summary>
-    ///	  Sets a node value by path. The node is created if it doesn't exist
-    ///	  yet.
-    ///	</summary>
+    /// <summary>
+    ///   Sets a node value by path. The node is created if it doesn't exist
+    ///   yet.
+    /// </summary>
     function SetFloat(const APath: string; const AValue: Double): TEFNode;
 
-    ///	<summary>
-    ///	  Sets a node value by path. The node is created if it doesn't exist
-    ///	  yet.
-    ///	</summary>
+    /// <summary>
+    ///   Sets a node value by path. The node is created if it doesn't exist
+    ///   yet.
+    /// </summary>
     function SetValue(const APath: string; const AValue: Variant): TEFNode;
 
-    ///	<summary>
-    ///	  Sets a node value by path. The node is created if it doesn't exist
-    ///	  yet.
-    ///	</summary>
+    /// <summary>
+    ///   Sets a node value by path. The node is created if it doesn't exist
+    ///   yet.
+    /// </summary>
     procedure SetObject(const APath: string; const AValue: TObject);
 
-    ///	<summary>
-    ///	  Sets a node value by path. The node is created if it doesn't exist
-    ///	  yet.
-    ///	</summary>
+    /// <summary>
+    ///   Sets a node value by path. The node is created if it doesn't exist
+    ///   yet.
+    /// </summary>
     procedure SetBoolean(const APath: string; const AValue: Boolean);
 
-    ///	<summary>
-    ///	  Creates a children for each field in AField and sets its value to the
-    ///	  field's value. Node names are field names. Existing nodes are
-    ///	  overwritten.
-    ///	</summary>
+    /// <summary>
+    ///   Creates a children for each field in AField and sets its value to the
+    ///   field's value. Node names are field names. Existing nodes are
+    ///   overwritten.
+    /// </summary>
     procedure AddFieldsAsChildren(const AFields: TFields);
 
-    ///	<summary>
-    ///	  Tries to read from AStrings a value for each child node interpreting
-    ///	  it according to the child node's DataType. Read values are stored in
-    ///	  the child nodes.
-    ///	</summary>
-    ///	<param name="AStrings">
-    ///	  Source strings. Each string may contain one value. If AValueIndex
-    ///	  is >= 0, each string may contain one or more comma-separated values,
-    ///	  of which only the one with index AValueIndex is read.
-    ///	</param>
-    ///	<param name="AUseJSDateFormat">
-    ///	  True if any dates in source strings are in JS format; False for
-    ///	  system format.
-    ///	</param>
-    ///	<param name="AFormatSettings">
-    ///	  Custom format settings to decode values.
-    ///	</param>
-    ///	<param name="ATranslator">
-    ///	  Pass a translation function if key names in AStrings do not match
-    ///	  wanted child node names and you need to translate them. The function
-    ///	  receives the child name and should return the corresponding key name.
-    ///	</param>
+    /// <summary>
+    ///   Tries to read from AStrings a value for each child node interpreting
+    ///   it according to the child node's DataType. Read values are stored in
+    ///   the child nodes.
+    /// </summary>
+    /// <param name="AStrings">
+    ///   Source strings. Each string may contain one value. If AValueIndex
+    ///   is >= 0, each string may contain one or more comma-separated values,
+    ///   of which only the one with index AValueIndex is read.
+    /// </param>
+    /// <param name="AUseJSDateFormat">
+    ///   True if any dates in source strings are in JS format; False for
+    ///   system format.
+    /// </param>
+    /// <param name="AFormatSettings">
+    ///   Custom format settings to decode values.
+    /// </param>
+    /// <param name="ATranslator">
+    ///   Pass a translation function if key names in AStrings do not match
+    ///   wanted child node names and you need to translate them. The function
+    ///   receives the child name and should return the corresponding key name.
+    /// </param>
     { TODO : remove once the code using superobject has stabilized }
     procedure SetChildValuesfromStrings(const AStrings: TStrings;
       const AUseJSDateFormat: Boolean; const AFormatSettings: TFormatSettings;
       const ATranslator: TNameTranslator; const AValueIndex: Integer = -1); deprecated 'Use SetChildValuesfromSuperObject';
 
-    ///	<summary>
-    ///	  Tries to read from ASuperObject a value for each child node interpreting
-    ///	  it according to the child node's DataType. Read values are stored in
-    ///	  the child nodes.
-    ///	</summary>
-    ///	<param name="ASuperObject">
-    ///	  Source data. Only top-level pairs are used. Each pair may contain one
+    /// <summary>
+    ///   Tries to read from ASuperObject a value for each child node interpreting
+    ///   it according to the child node's DataType. Read values are stored in
+    ///   the child nodes.
+    /// </summary>
+    /// <param name="ASuperObject">
+    ///   Source data. Only top-level pairs are used. Each pair may contain one
     ///   value. If AValueIndex is >= 0, each string may contain one or more
     ///   comma-separated values, of which only the one with index
     ///   AValueIndex is read.
-    ///	</param>
-    ///	<param name="AUseJSDateFormat">
-    ///	  True if any dates in source strings are in JS format; False for
-    ///	  system format.
-    ///	</param>
-    ///	<param name="AFormatSettings">
-    ///	  Custom format settings to decode values.
-    ///	</param>
-    ///	<param name="ATranslator">
-    ///	  Pass a translation function if key names in ASuperObject do not match
-    ///	  wanted child node names and you need to translate them. The function
-    ///	  receives the child name and should return the corresponding key name.
-    ///	</param>
+    /// </param>
+    /// <param name="AUseJSDateFormat">
+    ///   True if any dates in source strings are in JS format; False for
+    ///   system format.
+    /// </param>
+    /// <param name="AFormatSettings">
+    ///   Custom format settings to decode values.
+    /// </param>
+    /// <param name="ATranslator">
+    ///   Pass a translation function if key names in ASuperObject do not match
+    ///   wanted child node names and you need to translate them. The function
+    ///   receives the child name and should return the corresponding key name.
+    /// </param>
     procedure SetChildValuesfromSuperObject(const ASuperObject: ISuperObject;
       const AUseJSDateFormat: Boolean; const AFormatSettings: TFormatSettings;
       const ATranslator: TNameTranslator; const AValueIndex: Integer = -1);
@@ -736,22 +736,22 @@ type
     function AddAnnotation(const AAnnotation: string): Integer;
     procedure AssignAnnotations(const AStrings: TStrings);
 
-    ///	<summary>Returns a string-based path.</summary>
-    ///	<remarks>Returns '' in the tree, and a slash-separated path in the
-    ///	nodes.</remarks>
+    /// <summary>Returns a string-based path.</summary>
+    /// <remarks>Returns '' in the tree, and a slash-separated path in the
+    /// nodes.</remarks>
     function GetPath: string; virtual;
 
-    ///	<summary>
-    ///	  A reference to the root tree. In this class, returns Self.
-    ///	</summary>
+    /// <summary>
+    ///   A reference to the root tree. In this class, returns Self.
+    /// </summary>
     property Root: TEFTree read GetRoot;
 
   end;
 
   TEFTreeClass = class of TEFTree;
 
-  ///	<summary>A tree that stores a file name (or other logical
-  ///	identifier).</summary>
+  /// <summary>A tree that stores a file name (or other logical
+  /// identifier).</summary>
   TEFPersistentTree = class(TEFTree)
   strict private
     FPersistentName: string;
@@ -768,13 +768,13 @@ type
 
     property IsPersistent: Boolean read GetIsPersistent;
 
-    ///	<summary>Returns the full path name of the persistent file.</summary>
+    /// <summary>Returns the full path name of the persistent file.</summary>
     property PersistentFileName: string read GetPersistentFileName;
   end;
 
-  ///	<summary>
-  ///	  A node in a tree. Has a name and a value, and can have subnodes.
-  ///	</summary>
+  /// <summary>
+  ///   A node in a tree. Has a name and a value, and can have subnodes.
+  /// </summary>
   TEFNode = class(TEFTree)
   private
     FParent: TEFTree;
@@ -841,358 +841,358 @@ type
     function FindNode(const APath: string;
       const ACreateMissingNodes: Boolean = False): TEFNode; override;
 
-    ///	<summary>
-    ///	  Copies everything from ASource, overwriting any existing data. if
-    ///	  ASource is a node, name and value are copied as well.
-    ///	</summary>
+    /// <summary>
+    ///   Copies everything from ASource, overwriting any existing data. if
+    ///   ASource is a node, name and value are copied as well.
+    /// </summary>
     procedure Assign(const ASource: TEFTree); override;
 
-    ///	<summary>
-    ///	  Copies the value (and datatype) from the specified node. The name is
-    ///	  unchanged.
-    ///	</summary>
+    /// <summary>
+    ///   Copies the value (and datatype) from the specified node. The name is
+    ///   unchanged.
+    /// </summary>
     procedure AssignValue(const ASource: TEFNode);
 
-    ///	<summary>
-    ///	  A reference to the parent node, if any.
-    ///	</summary>
+    /// <summary>
+    ///   A reference to the parent node, if any.
+    /// </summary>
     property Parent: TEFTree read FParent;
 
-    ///	<summary>
-    ///	  Index of the node in the parent's list of node.
-    ///	</summary>
-    ///	<value>
-    ///	  -1 if the node has no parent.
-    ///	</value>
+    /// <summary>
+    ///   Index of the node in the parent's list of node.
+    /// </summary>
+    /// <value>
+    ///   -1 if the node has no parent.
+    /// </value>
     property Index: Integer read GetIndex;
 
-    ///	<summary>
-    ///	  Creates a node with specified name and value.
-    ///	</summary>
+    /// <summary>
+    ///   Creates a node with specified name and value.
+    /// </summary>
     constructor Create(const AName: string; const AValue: Variant); reintroduce; overload; virtual;
 
-    ///	<summary>
-    ///	  Creates a node with specified name and no value.
-    ///	</summary>
+    /// <summary>
+    ///   Creates a node with specified name and no value.
+    /// </summary>
     constructor Create(const AName: string); reintroduce; overload;
 
-    ///	<summary>
-    ///	  Creates a node with no name and no value.
-    ///	</summary>
+    /// <summary>
+    ///   Creates a node with no name and no value.
+    /// </summary>
     constructor Create; reintroduce; overload;
 
-    ///	<summary>
-    ///	  Creates a new node and assigns the specified node to it.
-    ///	</summary>
+    /// <summary>
+    ///   Creates a new node and assigns the specified node to it.
+    /// </summary>
     constructor Clone(const ASource: TEFTree); override;
 
-    ///	<summary>
-    ///	  Deletes all subnodes, recursively.
-    ///	</summary>
+    /// <summary>
+    ///   Deletes all subnodes, recursively.
+    /// </summary>
     procedure Clear; override;
 
-    ///	<summary>
-    ///	  Removes itself from its parent. This causes the parent to free the
-    ///	  current object.
-    ///	</summary>
+    /// <summary>
+    ///   Removes itself from its parent. This causes the parent to free the
+    ///   current object.
+    /// </summary>
     procedure Delete;
 
-    ///	<summary>
-    ///	  Identifies the node among its siblings. Should be unique inside the
-    ///	  parent.
-    ///	</summary>
+    /// <summary>
+    ///   Identifies the node among its siblings. Should be unique inside the
+    ///   parent.
+    /// </summary>
     property Name: string read GetName write SetName;
 
-    ///	<summary>Renames the node. Normally shouldn't be used.</summary>
+    /// <summary>Renames the node. Normally shouldn't be used.</summary>
     procedure Rename(const ANewName: string);
 
-    ///	<summary>
-    ///	  A reference to the node's data type. Should be an object managed by
-    ///	  the data type factory.
-    ///	</summary>
+    /// <summary>
+    ///   A reference to the node's data type. Should be an object managed by
+    ///   the data type factory.
+    /// </summary>
     property DataType: TEFDataType read GetDataType write SetDataType;
 
-    ///	<summary>Increments and returns the DataType lock count. When the
-    ///	number is &gt; 0, assigning a value through the As... properties will
-    ///	<b>not</b> change the datatype (unless it's unknown). This also applies
-    ///	to any other operation that implicitly changes the DataType. Explicitly
-    ///	setting DataType is still allowed even when locked.</summary>
+    /// <summary>Increments and returns the DataType lock count. When the
+    /// number is &gt; 0, assigning a value through the As... properties will
+    /// <b>not</b> change the datatype (unless it's unknown). This also applies
+    /// to any other operation that implicitly changes the DataType. Explicitly
+    /// setting DataType is still allowed even when locked.</summary>
     function LockDataType: Integer;
 
-    ///	<summary>Decrements and returns the DataType lock count.</summary>
-    ///	<remarks>This call does <b>not</b> guarantee that the DataType will be
-    ///	unlocked. It will only when the returned value is zero, which happens
-    ///	when calls to LockDataType and UnlockDataType are balanced.</remarks>
-    ///	<seealso cref="LockDataType"></seealso>
+    /// <summary>Decrements and returns the DataType lock count.</summary>
+    /// <remarks>This call does <b>not</b> guarantee that the DataType will be
+    /// unlocked. It will only when the returned value is zero, which happens
+    /// when calls to LockDataType and UnlockDataType are balanced.</remarks>
+    /// <seealso cref="LockDataType"></seealso>
     function UnlockDataType: Integer;
 
-    ///	<summary>
-    ///	 Plain value of the node.
-    ///	</summary>
+    /// <summary>
+    ///  Plain value of the node.
+    /// </summary>
     property Value: Variant read GetValue write SetValue;
 
-    ///	<summary>Used for I/O.</summary>
+    /// <summary>Used for I/O.</summary>
     property ValueAttributes: string read FValueAttributes write FValueAttributes;
 
     property IsMultiLineValue: Boolean read GetIsMultiLineValue;
     property IsMultiLineWithNLValue: Boolean read GetIsMultiLineWithNLValue;
 
-    ///	<summary>
-    ///	  Node value as a string.
-    ///	</summary>
+    /// <summary>
+    ///   Node value as a string.
+    /// </summary>
     property AsString: string read GetAsString write SetAsString;
 
-    ///	<summary>
-    ///	  Node value as a string.
-    ///	</summary>
+    /// <summary>
+    ///   Node value as a string.
+    /// </summary>
     property AsChar: Char read GetAsChar write SetAsChar;
 
-    ///	<summary>
-    ///	  Node value as a string array.
-    ///	</summary>
+    /// <summary>
+    ///   Node value as a string array.
+    /// </summary>
     property AsStringArray: TStringDynArray read GetAsStringArray write SetAsStringArray;
 
-    ///	<summary>
-    ///	  Node value as a pair.
-    ///	</summary>
+    /// <summary>
+    ///   Node value as a pair.
+    /// </summary>
     property AsPair: TEFPair read GetAsPair write SetAsPair;
 
-    ///	<summary>
-    ///	  Node value as a pair with expanded macros in the value part.
-    ///	</summary>
+    /// <summary>
+    ///   Node value as a pair with expanded macros in the value part.
+    /// </summary>
     property AsExpandedPair: TEFPair read GetAsExpandedPair;
 
-    ///	<summary>
-    ///	  Node value as a list of pairs.
-    ///	</summary>
+    /// <summary>
+    ///   Node value as a list of pairs.
+    /// </summary>
     property AsPairs: TEFPairs read GetAsPairs write SetAsPairs;
 
-    ///	<summary>
-    ///	  Node value as an expanded string.
-    ///	</summary>
+    /// <summary>
+    ///   Node value as an expanded string.
+    /// </summary>
     property AsExpandedString: string read GetAsExpandedString;
 
-    ///	<summary>
-    ///	  Node value as an Integer.
-    ///	</summary>
+    /// <summary>
+    ///   Node value as an Integer.
+    /// </summary>
     property AsInteger: Integer read GetAsInteger write SetAsInteger;
 
-    ///	<summary>
-    ///	  Node value as an object.
-    ///	</summary>
+    /// <summary>
+    ///   Node value as an object.
+    /// </summary>
     property AsObject: TObject read GetAsObject write SetAsObject;
 
-    ///	<summary>
-    ///	  Node value as a Boolean.
-    ///	</summary>
+    /// <summary>
+    ///   Node value as a Boolean.
+    /// </summary>
     property AsBoolean: Boolean read GetAsBoolean write SetAsBoolean;
 
-    ///	<summary>
-    ///	  Node value as a Date.
-    ///	</summary>
+    /// <summary>
+    ///   Node value as a Date.
+    /// </summary>
     property AsDate: TDate read GetAsDate write SetAsDate;
 
-    ///	<summary>
-    ///	  Node value as a Time.
-    ///	</summary>
+    /// <summary>
+    ///   Node value as a Time.
+    /// </summary>
     property AsTime: TTime read GetAsTime write SetAsTime;
 
-    ///	<summary>
-    ///	  Node value as a DateTime.
-    ///	</summary>
+    /// <summary>
+    ///   Node value as a DateTime.
+    /// </summary>
     property AsDateTime: TDateTime read GetAsDateTime write SetAsDateTime;
 
-    ///	<summary>
-    ///	  Node value as a Currency.
-    ///	</summary>
+    /// <summary>
+    ///   Node value as a Currency.
+    /// </summary>
     property AsCurrency: Currency read GetAsCurrency write SetAsCurrency;
 
-    ///	<summary>
-    ///	  Node value as a Double floating point value.
-    ///	</summary>
+    /// <summary>
+    ///   Node value as a Double floating point value.
+    /// </summary>
     property AsFloat: Double read GetAsFloat write SetAsFloat;
 
-    ///	<summary>
-    ///	  Node value as a decimal (BCD) value.
-    ///	</summary>
+    /// <summary>
+    ///   Node value as a decimal (BCD) value.
+    /// </summary>
     property AsDecimal: TBcd read GetAsDecimal write SetAsDecimal;
 
     property AsBytes: TBytes read GetAsBytes write SetAsBytes;
 
-    ///	<summary>
+    /// <summary>
     ///  Parses AValue trying to guess its data type and sets Value and
-    ///	 DataType accordingly.
+    ///  DataType accordingly.
     /// </summary>
-    ///	<param name="AValue">Value to parse, usually read from a Yaml	stream.</param>
-    ///	<param name="AFormatSettings">Format settings to use to parse the
-    ///	value. You can use Session.UserFormatSettings, or
-    ///	Session.JSFormatSettings, or custom settings.</param>
+    /// <param name="AValue">Value to parse, usually read from a Yaml stream.</param>
+    /// <param name="AFormatSettings">Format settings to use to parse the
+    /// value. You can use Session.UserFormatSettings, or
+    /// Session.JSFormatSettings, or custom settings.</param>
     /// <returns>Returns Self to allow for fluent calls.</returns>
     function SetAsYamlValue(const AValue: string; const AFormatSettings: TFormatSettings): TEFNode;
 
-    ///	<summary>Parses AValue according to DataType and sets its own value
-    ///	to the parsed value.</summary>
-    ///	<param name="AValue">Value to parse, usually got from a web request.</param>
-    ///	<param name="AUseJSDateFormat">Set to True if date/times are specified in JS long format.</param>
-    ///	<param name="AFormatSettings">Format settings to use to parse the
-    ///	value. You can use Session.UserFormatSettings, or
-    ///	Session.JSFormatSettings, or custom settings.</param>
-    ///	<returns>Returns Self to allow for fluent calls.</returns>
+    /// <summary>Parses AValue according to DataType and sets its own value
+    /// to the parsed value.</summary>
+    /// <param name="AValue">Value to parse, usually got from a web request.</param>
+    /// <param name="AUseJSDateFormat">Set to True if date/times are specified in JS long format.</param>
+    /// <param name="AFormatSettings">Format settings to use to parse the
+    /// value. You can use Session.UserFormatSettings, or
+    /// Session.JSFormatSettings, or custom settings.</param>
+    /// <returns>Returns Self to allow for fluent calls.</returns>
     function SetAsJSONValue(const AValue: string; const AUseJSDateFormat: Boolean;
       const AFormatSettings: TFormatSettings): TEFNode;
 
-    ///	<summary>
-    ///	  True if the node is null. Null is meant as absence of a value. Nodes
-    ///	  are made null by calling their SetToNull method.
-    ///	</summary>
+    /// <summary>
+    ///   True if the node is null. Null is meant as absence of a value. Nodes
+    ///   are made null by calling their SetToNull method.
+    /// </summary>
     property IsNull: Boolean read GetIsNull;
 
-    ///	<summary>
-    ///	  Sets the node to null, effectively clearing the value.
-    ///	</summary>
-    ///	<remarks>
-    ///	  Children are unaffected.
-    ///	</remarks>
+    /// <summary>
+    ///   Sets the node to null, effectively clearing the value.
+    /// </summary>
+    /// <remarks>
+    ///   Children are unaffected.
+    /// </remarks>
     procedure SetToNull(const AForceChangeNotification: Boolean = False); virtual;
 
-    ///	<summary>
-    ///	  Returns true if the current node has the same name and value as the
-    ///	  specified node, or if both are null.
-    ///	</summary>
-    ///	<remarks>
-    ///	  Children are not considered.
-    ///	</remarks>
+    /// <summary>
+    ///   Returns true if the current node has the same name and value as the
+    ///   specified node, or if both are null.
+    /// </summary>
+    /// <remarks>
+    ///   Children are not considered.
+    /// </remarks>
     function EqualsNode(const ANode: TEFNode): Boolean;
 
-    ///	<summary>
-    ///	  Returns True if the current node has specified value or if both
-    ///	  the node and the value are null.
-    ///	</summary>
-    ///	<remarks>
-    ///	  Children are not considered.
-    ///	</remarks>
+    /// <summary>
+    ///   Returns True if the current node has specified value or if both
+    ///   the node and the value are null.
+    /// </summary>
+    /// <remarks>
+    ///   Children are not considered.
+    /// </remarks>
     function EqualsValue(const AValue: Variant): Boolean;
 
-    ///	<summary>
-    ///	  Returns all child nodes as a string of name&lt;AConnector&gt;value
-    ///	  pairs separated by ASeparator.
-    ///	</summary>
+    /// <summary>
+    ///   Returns all child nodes as a string of name&lt;AConnector&gt;value
+    ///   pairs separated by ASeparator.
+    /// </summary>
     function GetChildStrings(const ASeparator: string = sLineBreak;
       const AConnector: string = '='; const ADefaultValue: string = ''): string; overload;
 
-    ///	<summary>Adds to the specified string list all child nodes as strings
-    ///	in the form Name=Value. Returns the number of added items.</summary>
-    ///	<remarks>All existing contents in AStrings are deleted.</remarks>
+    /// <summary>Adds to the specified string list all child nodes as strings
+    /// in the form Name=Value. Returns the number of added items.</summary>
+    /// <remarks>All existing contents in AStrings are deleted.</remarks>
     function GetChildStrings(const AStrings: TStrings): Integer; overload;
 
-    ///	<summary>Adds to the specified string list all child node values.
-    ///	Returns the number of added items.</summary>
-    ///	<remarks>All existing contents in AStrings are deleted.</remarks>
+    /// <summary>Adds to the specified string list all child node values.
+    /// Returns the number of added items.</summary>
+    /// <remarks>All existing contents in AStrings are deleted.</remarks>
     function GetChildValues(const AStrings: TStrings): Integer; overload;
 
-    ///	<summary>Deletes all children and adds a new children for each string
-    ///	in the specified string list. Strings must be in the form
-    ///	Name=Value.</summary>
-    ///	<remarks>All existing contents in AStrings are deleted.</remarks>
+    /// <summary>Deletes all children and adds a new children for each string
+    /// in the specified string list. Strings must be in the form
+    /// Name=Value.</summary>
+    /// <remarks>All existing contents in AStrings are deleted.</remarks>
     procedure SetChildStrings(const AStrings: TStrings);
 
-    ///	<summary>
-    ///	  Returns all child nodes as a string of name&lt;AConnector&gt;value
-    ///	  pairs separated by ASeparator. Values are expanded.
-    ///	</summary>
+    /// <summary>
+    ///   Returns all child nodes as a string of name&lt;AConnector&gt;value
+    ///   pairs separated by ASeparator. Values are expanded.
+    /// </summary>
     function GetExpandedChildStrings(const ASeparator, AConnector,
       ADefaultValue: string): string;
 
-    ///	<summary>
-    ///	  Returns all child nodes as name/value pairs.
-    ///	</summary>
+    /// <summary>
+    ///   Returns all child nodes as name/value pairs.
+    /// </summary>
     function GetChildPairs(const AExpandMacrosInValues: Boolean = False): TEFPairs;
 
-    ///	<summary>
-    ///	  Returns an array of names of all direct children of the node.
-    ///	</summary>
+    /// <summary>
+    ///   Returns an array of names of all direct children of the node.
+    /// </summary>
     function GetChildNames: TStringDynArray;
 
-    ///	<summary>
-    ///	  Returns an array of references to all direct children of the node.
-    ///	</summary>
+    /// <summary>
+    ///   Returns an array of references to all direct children of the node.
+    /// </summary>
     function ToArray: TArray<TEFNode>;
 
-    ///	<summary>
-    ///	 Assigns a field's value to the node. May also change or set the
-    ///	 node's datatype.
-    ///	</summary>
+    /// <summary>
+    ///  Assigns a field's value to the node. May also change or set the
+    ///  node's datatype.
+    /// </summary>
     procedure AssignFieldValue(const AField: TField);
 
-    ///	<summary>
-    ///	 Assigns the node's value to the specified field.
-    ///	</summary>
+    /// <summary>
+    ///  Assigns the node's value to the specified field.
+    /// </summary>
     procedure AssignValueToField(const AField: TField);
 
-    ///	<summary>
-    ///	 Assigns the node's value to the specified param. May also set the
-    ///	 param's data type.
-    ///	</summary>
+    /// <summary>
+    ///  Assigns the node's value to the specified param. May also set the
+    ///  param's data type.
+    /// </summary>
     procedure AssignValueToParam(const AParam: TParam);
 
-    ///	<summary>
-    ///	 Assigns the node's name and value to the specified param. May also
-    ///	 set the param's data type.
-    ///	</summary>
+    /// <summary>
+    ///  Assigns the node's name and value to the specified param. May also
+    ///  set the param's data type.
+    /// </summary>
     procedure AssignToParam(const AParam: TParam);
 
-    ///	<summary>Returns the node's slash-separated path, up to the
-    ///	root.</summary>
+    /// <summary>Returns the node's slash-separated path, up to the
+    /// root.</summary>
     function GetPath: string; override;
   end;
 
-  ///	<summary>
-  ///	  Creates trees of specified types from files.
-  ///	</summary>
+  /// <summary>
+  ///   Creates trees of specified types from files.
+  /// </summary>
   TEFTreeFactory = class
   public
-    ///	<summary>
-    ///	  Loads the specified yaml file and builds a tree of the specified type
-    ///	  with all data in it.
-    ///	</summary>
+    /// <summary>
+    ///   Loads the specified yaml file and builds a tree of the specified type
+    ///   with all data in it.
+    /// </summary>
     class function LoadFromFile<T: TEFTree, constructor>(const AFileName: string): T;
 
-    ///	<summary>
-    ///	  Reloads the specified yaml file into an existing tree, overwriting
-    ///	  any data in it.
-    ///	</summary>
+    /// <summary>
+    ///   Reloads the specified yaml file into an existing tree, overwriting
+    ///   any data in it.
+    /// </summary>
     class procedure ReloadFromFile(const ATree: TEFTree; const AFileName: string);
   end;
 
-  ///	<summary>
-  ///	  <para>
-  ///	    A macro expander that expands all the strings contained in a TEFTree
-  ///	    object. Each macro in this format:
-  ///	  </para>
-  ///	  <para>
-  ///	    %<NameSpace>:<Path>%
-  ///	  </para>
-  ///	  <para>
-  ///	    is expanded to the string value of the tree node located by the path.
-  ///	    This macro expander holds a reference to a TEFTree. &lt;NameSpace&gt;
-  ///	    is a value set upon creation. If it is empty, then no ':' separator
-  ///	    is required in the macros.
-  ///	  </para>
-  ///	</summary>
-  ///	<remarks>
-  ///	  <para>
-  ///	    The need for a name space stems from the fact that you can have
-  ///	    multiple macro expanders of this kind active at the same time, each
-  ///	    linked to a different tree object, and use the namespace string to
-  ///	    differentiate them.
-  ///	  </para>
-  ///	  <para>
-  ///	    This macro expander is not registered by default, as it needs a
-  ///	    reference to an external object to work. So, applications will create
-  ///	    and use this class autonomously (by querying it directly or adding it
-  ///	    to an expansion engine, without registering it) as required.
-  ///	  </para>
-  ///	</remarks>
+  /// <summary>
+  ///   <para>
+  ///     A macro expander that expands all the strings contained in a TEFTree
+  ///     object. Each macro in this format:
+  ///   </para>
+  ///   <para>
+  ///     %<NameSpace>:<Path>%
+  ///   </para>
+  ///   <para>
+  ///     is expanded to the string value of the tree node located by the path.
+  ///     This macro expander holds a reference to a TEFTree. &lt;NameSpace&gt;
+  ///     is a value set upon creation. If it is empty, then no ':' separator
+  ///     is required in the macros.
+  ///   </para>
+  /// </summary>
+  /// <remarks>
+  ///   <para>
+  ///     The need for a name space stems from the fact that you can have
+  ///     multiple macro expanders of this kind active at the same time, each
+  ///     linked to a different tree object, and use the namespace string to
+  ///     differentiate them.
+  ///   </para>
+  ///   <para>
+  ///     This macro expander is not registered by default, as it needs a
+  ///     reference to an external object to work. So, applications will create
+  ///     and use this class autonomously (by querying it directly or adding it
+  ///     to an expansion engine, without registering it) as required.
+  ///   </para>
+  /// </remarks>
   TEFTreeMacroExpander = class(TEFMacroExpander)
   private
     FTree: TEFTree;
@@ -1205,9 +1205,9 @@ type
   end;
 
 type
-  ///	<summary>
-  ///	  Keeps track of all registered data types.
-  ///	</summary>
+  /// <summary>
+  ///   Keeps track of all registered data types.
+  /// </summary>
   TEFDataTypeRegistry = class(TEFRegistry)
   private
     class var FInstance: TEFDataTypeRegistry;
@@ -1219,9 +1219,9 @@ type
     function GetClass(const AId: string): TEFDataTypeClass;
   end;
 
-  ///	<summary>
-  ///	  Holds a list of registered data types and manages their lifetimes.
-  ///	</summary>
+  /// <summary>
+  ///   Holds a list of registered data types and manages their lifetimes.
+  /// </summary>
   TEFDataTypeFactory = class(TEFFactory)
   private
     FDataTypes: TDictionary<string, TEFDataType>;
@@ -1234,14 +1234,14 @@ type
   public
     class property Instance: TEFDataTypeFactory read GetInstance;
 
-    ///	<summary>
-    ///	  Returns a reference to the registered data type specified by name.
-    ///	</summary>
+    /// <summary>
+    ///   Returns a reference to the registered data type specified by name.
+    /// </summary>
     function GetDataType(const AId: string): TEFDataType; overload;
 
-    ///	<summary>
-    ///	  Returns a reference to the registered data type specified by class.
-    ///	</summary>
+    /// <summary>
+    ///   Returns a reference to the registered data type specified by class.
+    /// </summary>
     function GetDataType(const ADataTypeClass: TEFDataTypeClass): TEFDataType; overload;
   end;
 
@@ -3395,9 +3395,9 @@ function TEFCurrencyDataType.InternalNodeToJSONValue(const AForDisplay: Boolean;
   const ANode: TEFNode; const AJSFormatSettings: TFormatSettings): string;
 begin
   if AForDisplay then
-    Result := FormatCurr(',0.00', ANode.AsCurrency, AJSFormatSettings)
+    Result := FormatCurr(',0.' + DupeString('0', AJSFormatSettings.CurrencyDecimals), ANode.AsCurrency, AJSFormatSettings)
   else
-    Result := FormatCurr('0.00', ANode.AsCurrency, AJSFormatSettings)
+    Result := FormatCurr('0.' + DupeString('0', AJSFormatSettings.CurrencyDecimals), ANode.AsCurrency, AJSFormatSettings);
 end;
 
 procedure TEFCurrencyDataType.InternalNodeToParam(const ANode: TEFNode;
@@ -3444,16 +3444,16 @@ procedure TEFFloatDataType.InternalJSONValueToNode(const ANode: TEFNode;
   const AValue: string; const AUseJSDateFormat: Boolean;
   const AJSFormatSettings: TFormatSettings);
 begin
-  ANode.AsFloat := StrToFloat(AValue, AJSFormatSettings);
+  ANode.AsFloat := StrToFloat(ReplaceStr(AValue, AJSFormatSettings.ThousandSeparator, ''), AJSFormatSettings);
 end;
 
 function TEFFloatDataType.InternalNodeToJSONValue(const AForDisplay: Boolean;
   const ANode: TEFNode; const AJSFormatSettings: TFormatSettings): string;
 begin
   if AForDisplay then
-    Result := FormatFloat(',0.00', ANode.AsFloat, AJSFormatSettings)
+    Result := FormatFloat(',0.' + DupeString('0', AJSFormatSettings.CurrencyDecimals), ANode.AsFloat, AJSFormatSettings)
   else
-    Result := FormatFloat('0.00', ANode.AsFloat, AJSFormatSettings)
+    Result := FormatFloat('0.' + DupeString('0', AJSFormatSettings.CurrencyDecimals), ANode.AsFloat, AJSFormatSettings);
 end;
 
 procedure TEFFloatDataType.InternalNodeToParam(const ANode: TEFNode;
@@ -3538,9 +3538,9 @@ function TEFDecimalDataType.InternalNodeToJSONValue(const AForDisplay: Boolean;
   const ANode: TEFNode; const AJSFormatSettings: TFormatSettings): string;
 begin
   if AForDisplay then
-    Result := FormatFloat(',0.00', BcdToDouble(ANode.AsDecimal), AJSFormatSettings)
+    Result := FormatFloat(',0.' + DupeString('0', AJSFormatSettings.CurrencyDecimals), BcdToDouble(ANode.AsDecimal), AJSFormatSettings)
   else
-    Result := FormatFloat('0.00', BcdToDouble(ANode.AsDecimal), AJSFormatSettings)
+    Result := FormatFloat('0.' + DupeString('0', AJSFormatSettings.CurrencyDecimals), BcdToDouble(ANode.AsDecimal), AJSFormatSettings);
 end;
 
 procedure TEFDecimalDataType.InternalNodeToParam(const ANode: TEFNode;

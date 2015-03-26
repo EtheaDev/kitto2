@@ -718,6 +718,7 @@ Duplicates must be handled/ignored. }
 
   SetLibrary(ExtPath + '/examples/shared/examples'); // For Ext.msg.
   SetRequiredLibrary('DateTimeField');
+  SetRequiredLibrary('NumericField');
   SetRequiredLibrary('DefaultButton');
   SetRequiredLibrary('kitto-core', True);
   if Session.IsMobileBrowser then
