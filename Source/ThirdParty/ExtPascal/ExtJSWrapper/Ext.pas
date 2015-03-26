@@ -12090,7 +12090,8 @@ end;
 
 procedure TExtButton.PerformClick;
 begin
-  ExtSession.ResponseItems.ExecuteJSCode(JSName + '.el.dom.click();');
+  //ExtSession.ResponseItems.ExecuteJSCode(JSName + '.el.dom.click();');
+  FireEvent('click', nil);
 end;
 
 function TExtButton.Pressed_: TExtFunction;

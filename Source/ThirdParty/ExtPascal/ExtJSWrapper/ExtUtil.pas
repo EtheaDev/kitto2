@@ -36,7 +36,7 @@ type
       Scope: TExtObject = nil; Options: TExtObject = nil): TExtFunction;
     function EnableBubble(Events: string): TExtFunction; overload;
     function EnableBubble(Events: TExtObjectList): TExtFunction; overload;
-    function FireEvent(EventName: string; Args: TExtObjectList): TExtFunction;
+    function FireEvent(const AEventName: string; const AArgs: TExtObjectList): TExtFunction;
     function HasListener(EventName: string): TExtFunction;
     function &On(const AEventName: string; const AHandler: TExtFunction;
       const AScope: TExtObject = nil; const AOptions: TExtObject = nil): TExtFunction;
@@ -346,11 +346,9 @@ begin
   Result := Self;
 end;
 
-function TExtUtilObservable.FireEvent(EventName: string; Args: TExtObjectList)
-  : TExtFunction;
+function TExtUtilObservable.FireEvent(const AEventName: string; const AArgs: TExtObjectList): TExtFunction;
 begin
-  JSCode(JSName + '.fireEvent(' + VarToJSON([EventName]) + ',' + VarToJSON(Args) + ');',
-    'TExtUtilObservable');
+  Session.ResponseItems.CallMethod(Self, 'fireEvent', [AEventName, AArgs]);
   Result := Self;
 end;
 

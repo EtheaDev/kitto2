@@ -135,9 +135,12 @@ type
   TKExtToolbar = class(TExtToolbar)
   strict private
     FButtonScale: string;
+  private
+    function GetVisibleButtonCount: Integer;
   public
     property ButtonScale: string read FButtonScale write FButtonScale;
     function FindButton(const AUniqueId: string): TKExtButton;
+    property VisibleButtonCount: Integer read GetVisibleButtonCount;
   end;
 
   ///	<summary>
@@ -964,7 +967,7 @@ begin
   LConfirmationMessage := AView.GetExpandedString('Controller/ConfirmationMessage');
   LConfirmationJS := GetConfirmCall(LConfirmationMessage, Result.ExecuteButtonAction);
   if LConfirmationMessage <> '' then
-    Result.Handler := JSFunction(LConfirmationJS)
+    Result.On('click', JSFunction(LConfirmationJS))
   else
     Result.On('click', Ajax(Result.ExecuteButtonAction, []));
 end;
@@ -1028,7 +1031,11 @@ begin
   if FTopToolbar.Items.Count = 0 then
     FreeAndNil(FTopToolbar)
   else
+  begin
+    if FTopToolbar.VisibleButtonCount = 0 then
+      FTopToolbar.Hidden := True;
     Tbar := FTopToolbar;
+  end;
   AfterCreateTopToolbar;
 end;
 
@@ -1574,6 +1581,18 @@ begin
        Result := TKExtButton(Items[I]);
        Break;
      end;
+  end;
+end;
+
+function TKExtToolbar.GetVisibleButtonCount: Integer;
+var
+  I: Integer;
+begin
+  Result := 0;
+  for I := 0 to Items.Count - 1 do
+  begin
+    if Items[I] is TKExtButton and not (TKExtButton(Items[I]).Hidden) then
+      Inc(Result);
   end;
 end;
 
