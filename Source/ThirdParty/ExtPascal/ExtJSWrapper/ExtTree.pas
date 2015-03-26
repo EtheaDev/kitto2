@@ -1317,7 +1317,7 @@ end;
 
 function TExtTreeTreeNode.GetObjectNamePrefix: string;
 begin
-  Result := 'tn';
+  Result := 'treenode';
 end;
 
 function TExtTreeTreeNode.GetUI : TExtFunction; begin

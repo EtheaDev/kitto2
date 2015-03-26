@@ -88,6 +88,7 @@ type
     procedure SetUnexpandedTitle(const AValue: string);
   protected
     procedure InitDefaults; override;
+    function GetObjectNamePrefix: string; override;
   public
     function AsObject: TObject;
     function _AddRef: Integer; stdcall;
@@ -167,12 +168,13 @@ type
   TKExtFormRow = class(TKExtFormContainer, IKExtEditContainer)
   protected
     procedure InitDefaults; override;
+    function GetObjectNamePrefix: string; override;
   end;
 
-  ///	<summary>
-  ///	  Encapsulates a field in a row. Does NOT implement the container
-  ///	  interface, as it is a commodity class only.
-  ///	</summary>
+  /// <summary>
+  ///   Encapsulates a field in a row. Does NOT implement the container
+  ///   interface, as it is a commodity class only.
+  /// </summary>
   TKExtFormRowField = class(TKExtFormContainer, IKExtEditor)
   strict private
     FEditor: IKExtEditor;
@@ -183,6 +185,7 @@ type
   protected
     procedure InitDefaults; override;
     function InternalSetOption(const ANode: TEFNode): Boolean; override;
+    function GetObjectNamePrefix: string; override;
   public
     destructor Destroy; override;
   public
@@ -358,6 +361,8 @@ type
     procedure SetAllowBlank(const AValue: Boolean);
     procedure SetAltTimeFormats(const AValue: string);
     procedure FieldChange(This: TExtFormField; NewValue, OldValue: string);
+  protected
+    function GetObjectNamePrefix: string; override;
   public
     destructor Destroy; override;
     class function JSClassName: string; override;
@@ -469,6 +474,8 @@ type
     procedure DownloadThumbnailedFile(const AServerFileName, AClientFileName: string); virtual; abstract;
     procedure ClearContents; virtual;
     procedure DownloadThumbnailedStream(const AStream: TStream; const AFileName: string);
+  protected
+    function GetObjectNamePrefix: string; override;
   public
     function AsObject: TObject; inline;
     function _AddRef: Integer; stdcall;
@@ -535,10 +542,10 @@ type
 
   TKExtEditorManager = class;
 
-  ///	<summary>
-  ///	  Creates editors based on layouts. Can synthesize a default layout if
-  ///	  missing.
-  ///	</summary>
+  /// <summary>
+  ///   Creates editors based on layouts. Can synthesize a default layout if
+  ///   missing.
+  /// </summary>
   TKExtLayoutProcessor = class
   strict private
     FDataRecord: TKViewTableRecord;
@@ -588,27 +595,27 @@ type
     property OnNewEditItem: TProc<IKExtEditItem> read FOnNewEditItem write FOnNewEditItem;
     property Operation: TKExtEditOperation read FOperation write SetOperation;
 
-    ///	<summary>
-    ///	  Creates editors according to the specified layout or a default layout.
-    ///	</summary>
-    ///	<param name="ALayout">
-    ///	  Layout used to create the editors. Pass nil to manufacture a default
-    ///	  layout.
-    ///	</param>
+    /// <summary>
+    ///   Creates editors according to the specified layout or a default layout.
+    /// </summary>
+    /// <param name="ALayout">
+    ///   Layout used to create the editors. Pass nil to manufacture a default
+    ///   layout.
+    /// </param>
     procedure CreateEditors(const ALayout: TKLayout);
 
-    ///	<summary>
-    ///	  A reference to the first field to focus. Only valid after calling
-    ///	  CreateEditors method.
-    ///	</summary>
+    /// <summary>
+    ///   A reference to the first field to focus. Only valid after calling
+    ///   CreateEditors method.
+    /// </summary>
     property FocusField: TExtFormField read FFocusField;
   end;
 
-  ///	<summary>
-  ///	  Creates editors for edit forms and in-place editors for grids.
+  /// <summary>
+  ///   Creates editors for edit forms and in-place editors for grids.
   ///   Keeps track of created editors.
-  ///	  Used by the layout processor; can be used directly.
-  ///	</summary>
+  ///   Used by the layout processor; can be used directly.
+  /// </summary>
   TKExtEditorManager = class
   strict private
     FOnGetSession: TKExtSessionGetEvent;
@@ -647,9 +654,9 @@ type
     function CreateEditor(const AOwner: TComponent; const AViewField: TKViewField;
       const ARowField: TKExtFormRowField; const AFieldCharWidth: Integer;
       const AIsReadOnly: Boolean; const ALabel: string = ''): IKExtEditor;
-    ///	<summary>
-    ///	  Creates an in-place editor for the specified field.
-    ///	</summary>
+    /// <summary>
+    ///   Creates an in-place editor for the specified field.
+    /// </summary>
     function CreateGridCellEditor(const AOwner: TComponent;
       const AViewField: TKViewField): TExtFormField;
   end;
@@ -1150,6 +1157,11 @@ end;
 function TKExtEditPage.GetEditItemId: string;
 begin
   Result := FEditItemId;
+end;
+
+function TKExtEditPage.GetObjectNamePrefix: string;
+begin
+  Result := 'page';
 end;
 
 procedure TKExtEditPage.InitDefaults;
@@ -2041,6 +2053,11 @@ end;
 
 { TKExtFormRow }
 
+function TKExtFormRow.GetObjectNamePrefix: string;
+begin
+  Result := 'row';
+end;
+
 procedure TKExtFormRow.InitDefaults;
 begin
   inherited;
@@ -2112,6 +2129,11 @@ end;
 function TKExtFormRowField.GetFieldName: string;
 begin
   Result := FEditor.FieldName;
+end;
+
+function TKExtFormRowField.GetObjectNamePrefix: string;
+begin
+  Result := 'rowfld';
 end;
 
 function TKExtFormRowField.GetEditItemId: string;
@@ -2281,6 +2303,11 @@ end;
 function TKExtFormDateTimeField.GetFieldName: string;
 begin
   Result := FFieldName;
+end;
+
+function TKExtFormDateTimeField.GetObjectNamePrefix: string;
+begin
+  Result := 'datetimefld';
 end;
 
 function TKExtFormDateTimeField.GetEditItemId: string;
@@ -2795,6 +2822,11 @@ begin
     // after an upload.
     ExtSession.ResponseItems.AddHTML(Format('<img src="%s&time=%s">', [MethodURI(GetImage),
       FormatDateTime('yyyymmddhhnnsszzz', Now())]));
+end;
+
+function TKExtFormFileEditor.GetObjectNamePrefix: string;
+begin
+  Result := 'fileed';
 end;
 
 procedure TKExtFormFileEditor.UpdateGUI(const AUpdatePicture: Boolean);
