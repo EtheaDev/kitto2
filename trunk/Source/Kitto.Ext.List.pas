@@ -39,7 +39,7 @@ type
   protected
     procedure InitDefaults; override;
   public
-    procedure Configure(const AView: TKDataView; const AConfig: TEFNode);
+    procedure Configure(const AViewTable: TKViewTable; const AConfig: TEFNode);
     function GetFilterExpression: string;
     procedure UpdateObserver(const ASubject: IEFSubject;
       const AContext: string = ''); override;
@@ -102,7 +102,7 @@ begin
     Result := not TKConfig.Instance.IsAccessGranted(GetFilterResourceURI(AResourceName), ACM_MODIFY);
 end;
 
-procedure TKExtFilterPanel.Configure(const AView: TKDataView; const AConfig: TEFNode);
+procedure TKExtFilterPanel.Configure(const AViewTable: TKViewTable; const AConfig: TEFNode);
 var
   LItems: TEFNode;
   I: Integer;
@@ -144,12 +144,12 @@ var
   end;
 
 begin
-  Assert(Assigned(AView));
+  Assert(Assigned(AViewTable));
   Assert(Assigned(AConfig));
 
   Title := _(AConfig.GetString('DisplayLabel', _('Search')));
   FConnector := AConfig.GetString('Connector', 'and');
-  FView := AView;
+  FView := AViewTable.View;
 
   LItems := AConfig.GetNode('Items');
   if LItems.FindNode('ColumnBreak') <> nil then
@@ -177,7 +177,7 @@ begin
         SetLabelWidthAndAlign(LNode, Self.LabelAlign);
       end
       else
-        TKExtFilterFactory.Instance.CreateFilter(LNode, Self, LCurrentPanel.Items);
+        TKExtFilterFactory.Instance.CreateFilter(LNode, Self, LCurrentPanel.Items, AViewTable);
     end;
   end;
 end;
@@ -253,7 +253,7 @@ begin
       FFilterPanel := TKExtFilterPanel.CreateAndAddTo(Items);
       FFilterPanel.Region := rgNorth;
       FFilterPanel.OnChange := FilterPanelChange;
-      FFilterPanel.Configure(View, LItems.Parent as TEFNode);
+      FFilterPanel.Configure(ViewTable, LItems.Parent as TEFNode);
       FFilterPanel.On('afterrender', DoLayout);
     end;
   end;

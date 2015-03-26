@@ -29,7 +29,7 @@ uses
   Types, DB,
   Ext, ExtPascal, ExtForm, ExtData,
   EF.Types, EF.Tree, EF.ObserverIntf,
-  Kitto.DatabaseRouter, Kitto.Ext.Base;
+  Kitto.DatabaseRouter, Kitto.Metadata.DataView, Kitto.Ext.Base;
 
 const
   DEFAULT_FILTER_WIDTH = 20;
@@ -68,6 +68,14 @@ type
     ///  A tree of parameters that configure the filter.
     /// </param>
     procedure SetConfig(const AConfig: TEFNode);
+
+    /// <summary>
+    ///  Called to initialize the view table upon which the filter is working.
+    /// </summary>
+    /// <param name="AViewTable">
+    ///  A reference to the view table.
+    /// </param>
+    procedure SetViewTable(const AViewTable: TKViewTable);
   end;
 
   /// <summary>
@@ -103,7 +111,7 @@ type
     class property Instance: TKExtFilterFactory read GetInstance;
 
     function CreateFilter(const AFilterConfig: TEFNode; const AObserver: IEFObserver;
-      const AContainer: TExtObjectList): IKExtFilter;
+      const AContainer: TExtObjectList; const AViewTable: TKViewTable): IKExtFilter;
   end;
 
   /// <summary>
@@ -112,10 +120,12 @@ type
   TKListFilterBase = class(TKExtFormComboBox)
   protected
     FConfig: TEFNode;
+    FViewTable: TKViewTable;
     const TRIGGER_WIDTH = 4;
   public
     procedure SetConfig(const AConfig: TEFNode); virtual;
     function AsExtObject: TExtObject;
+    procedure SetViewTable(const AViewTable: TKViewTable);
   end;
 
   /// <summary>
@@ -197,11 +207,13 @@ type
   strict private
     FCurrentValue: string;
     FConfig: TEFNode;
+    FViewTable: TKViewTable;
     procedure FieldChange(This: TExtFormField; NewValue, OldValue: string);
   public
     procedure SetConfig(const AConfig: TEFNode);
     function AsExtObject: TExtObject;
     function GetExpression: string;
+    procedure SetViewTable(const AViewTable: TKViewTable);
   end;
 
   /// <summary>
@@ -213,11 +225,13 @@ type
   strict private
     FCurrentValue: TDateTime;
     FConfig: TEFNode;
+    FViewTable: TKViewTable;
     procedure FieldChange(This: TExtFormField; NewValue, OldValue: string);
   public
     procedure SetConfig(const AConfig: TEFNode);
     function AsExtObject: TExtObject;
     function GetExpression: string;
+    procedure SetViewTable(const AViewTable: TKViewTable);
   end;
 
   /// <summary>
@@ -230,11 +244,13 @@ type
   strict private
     FCurrentValue: Boolean;
     FConfig: TEFNode;
+    FViewTable: TKViewTable;
     procedure FieldChecked(This: TExtFormCheckBox; Checked: boolean);
   public
     procedure SetConfig(const AConfig: TEFNode);
     function AsExtObject: TExtObject;
     function GetExpression: string;
+    procedure SetViewTable(const AViewTable: TKViewTable);
   end;
 
   TKButtonListFilterBase = class(TKExtPanelBase)
@@ -243,12 +259,14 @@ type
   strict protected
     FConfig: TEFNode;
     FItems: TEFNode;
+    FViewTable: TKViewTable;
     function RetrieveItems: TEFNode; virtual; abstract;
     function GetItemExpression(const AItemIndex: Integer): string; virtual; abstract;
   public
     procedure SetConfig(const AConfig: TEFNode);
     function AsExtObject: TExtObject;
     function GetExpression: string;
+    procedure SetViewTable(const AViewTable: TKViewTable);
   published
     procedure ButtonClick;
   end;
@@ -331,7 +349,8 @@ begin
     Result := AItems.Children[0];
 end;
 
-function GetDatabaseName(const AConfig: TEFNode; const ACallerContext: TObject): string;
+function GetDatabaseName(const AConfig: TEFNode; const ACallerContext: TObject;
+  const ADefaultDatabaseName: string): string;
 var
   LDatabaseRouterNode: TEFNode;
 begin
@@ -340,7 +359,7 @@ begin
     Result := TKDatabaseRouterFactory.Instance.GetDatabaseName(
       LDatabaseRouterNode.AsString, ACallerContext, LDatabaseRouterNode)
   else
-    Result := TKConfig.Instance.DatabaseName;
+    Result := ADefaultDatabaseName;
 end;
 
 { TKExtFilterRegistry }
@@ -373,7 +392,8 @@ end;
 { TKExtFilterFactory }
 
 function TKExtFilterFactory.CreateFilter(const AFilterConfig: TEFNode;
-  const AObserver: IEFObserver; const AContainer: TExtObjectList): IKExtFilter;
+  const AObserver: IEFObserver; const AContainer: TExtObjectList;
+  const AViewTable: TKViewTable): IKExtFilter;
 begin
   Assert(AFilterConfig <> nil);
   Assert(Assigned(AContainer));
@@ -381,6 +401,7 @@ begin
   Result := CreateObject(AFilterConfig.Name, AContainer);
   if Assigned(AObserver) then
     Result.AttachObserver(AObserver);
+  Result.SetViewTable(AViewTable);
   Result.SetConfig(AFilterConfig);
 end;
 
@@ -427,6 +448,11 @@ begin
 
   FConfig := AConfig;
   FieldLabel := _(AConfig.AsString);
+end;
+
+procedure TKListFilterBase.SetViewTable(const AViewTable: TKViewTable);
+begin
+  FViewTable := AViewTable;
 end;
 
 { TKListFilter }
@@ -561,7 +587,7 @@ begin
   AutoSelect := False;
   //ForceSelection := True;
   Mode := 'local';
-  LDBQuery := Session.Config.DBConnections[GetDatabaseName(FConfig, Self)].CreateDBQuery;
+  LDBQuery := Session.Config.DBConnections[GetDatabaseName(FConfig, Self, FViewTable.DatabaseName)].CreateDBQuery;
   try
     LDBQuery.CommandText := FConfig.GetExpandedString('CommandText');
     LDBQuery.Open;
@@ -623,6 +649,11 @@ begin
     OnChange := FieldChange;
 end;
 
+procedure TKFreeSearchFilter.SetViewTable(const AViewTable: TKViewTable);
+begin
+  FViewTable := AViewTable;
+end;
+
 procedure TKFreeSearchFilter.FieldChange(This: TExtFormField; NewValue: string; OldValue: string);
 begin
   if FCurrentValue <> NewValue then
@@ -679,6 +710,11 @@ begin
     OnChange := FieldChange;
 end;
 
+procedure TKDateSearchFilter.SetViewTable(const AViewTable: TKViewTable);
+begin
+  FViewTable := AViewTable;
+end;
+
 procedure TKDateSearchFilter.FieldChange(This: TExtFormField; NewValue, OldValue: string);
 var
   LNewValue: TDateTime;
@@ -701,7 +737,7 @@ begin
   //A zero date is considered blank
   if FCurrentValue <> 0 then
   begin
-    LDateTimeValue := Session.Config.DBConnections[GetDatabaseName(FConfig, Self)].DBEngineType.FormatDateTime(FCurrentValue);
+    LDateTimeValue := Session.Config.DBConnections[GetDatabaseName(FConfig, Self, FViewTable.DatabaseName)].DBEngineType.FormatDateTime(FCurrentValue);
     Result := ReplaceText(FConfig.GetExpandedString('ExpressionTemplate'), '{value}', LDateTimeValue);
   end
   else
@@ -726,6 +762,11 @@ begin
     Disabled := True
   else
     OnCheck := FieldChecked;
+end;
+
+procedure TKBooleanSearchFilter.SetViewTable(const AViewTable: TKViewTable);
+begin
+  FViewTable := AViewTable;
 end;
 
 procedure TKBooleanSearchFilter.FieldChecked(This: TExtFormCheckBox; Checked: boolean);
@@ -780,6 +821,11 @@ begin
     else
       LButton.On('click', Ajax(ButtonClick, ['Index', I, 'Pressed', LButton.Pressed_]));
   end;
+end;
+
+procedure TKButtonListFilterBase.SetViewTable(const AViewTable: TKViewTable);
+begin
+  FViewTable := AViewTable;
 end;
 
 function TKButtonListFilterBase.AsExtObject: TExtObject;
@@ -864,7 +910,7 @@ var
 begin
   Result := TEFNode.Create('Items');
   try
-    LDBQuery := Session.Config.DBConnections[GetDatabaseName(FConfig, Self)].CreateDBQuery;
+    LDBQuery := Session.Config.DBConnections[GetDatabaseName(FConfig, Self, FViewTable.DatabaseName)].CreateDBQuery;
     try
       LDBQuery.CommandText := FConfig.GetExpandedString('CommandText');
       LDBQuery.Open;
