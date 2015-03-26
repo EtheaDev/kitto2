@@ -234,7 +234,7 @@ function TKExtDataPanelController.CreateClientReader: TExtDataJsonReader;
   var
     I: Integer;
   begin
-    DoAddReaderField(AReader, AViewField.AliasedName, AViewField.DataType.GetJSTypeName);
+    DoAddReaderField(AReader, AViewField.AliasedName, AViewField.ActualDataType.GetJSTypeName);
     if AViewField.IsReference then
     begin
       for I := 0 to AViewField.ModelField.FieldCount - 1 do
@@ -261,6 +261,7 @@ end;
 function TKExtDataPanelController.CreateClientStore: TExtDataStore;
 begin
   Result := TExtDataStore.Create(Self);
+  { TODO : customize? }
   Result.RemoteSort := False;
   Result.Url := MethodURI(GetRecordPage);
   Result.On('exception', JSFunction('proxy, type, action, options, response, arg', 'loadError(type, action, response);'));
