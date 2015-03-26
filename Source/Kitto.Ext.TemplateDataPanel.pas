@@ -33,7 +33,6 @@ type
   strict protected
     procedure InitDefaults; override;
     procedure SetViewTable(const AValue: TKViewTable); override;
-    function CreateClientStore: TExtDataStore; override;
   published
   end;
 
@@ -48,35 +47,23 @@ uses
 
 { TKExTemplateDataPanel }
 
-function TKExTemplateDataPanel.CreateClientStore: TExtDataStore;
-begin
-  Result := inherited CreateClientStore;
-end;
-
 procedure TKExTemplateDataPanel.CreateTemplateView;
-var
-  LTemplateBody: string;
 begin
-  //LTemplateBody := Config.GetString('Controller/Template');
-  LTemplateBody := '<p>Total: {Total}</p>';
-(*
-   '<tpl for="Root">'+
-   '<div class="x-grid3-row-table" id="{ACTIVITY_ID}">Activity: {DESCRIPTION} - Phase: {PHASE}</div>'+
-   '</tpl>'+
-   '<div class="x-clear"></div>';
-*)
-  //FTemplate := TExtXTemplate.Create(Self, LTemplateBody);
-  FDataView := TExtDataView.CreateAndAddTo(Items);
-  FDataView.Tpl := LTemplateBody;
-  FDataView.EmptyText := _('No data to display.');
-  FDataView.AutoHeight := True;
-  FDataView.Region := rgCenter;
+  FDataView.Tpl := Config.GetExpandedString('Template');
+  //FDataView.StoreArray := JSArray('{id: "1", descr: "one"}, {id: "2", descr: "two"}, {id: "3", descr: "three"}');
   FDataView.Store := ClientStore;
 end;
 
 procedure TKExTemplateDataPanel.InitDefaults;
 begin
   inherited;
+  FDataView := TExtDataView.CreateAndAddTo(Items);
+  FDataView.EmptyText := _('No data to display.');
+  FDataView.AutoHeight := False;
+  FDataView.Region := rgCenter;
+  FDataView.Store := ClientStore;
+  FDataView.AutoScroll := True;
+  FDataView.AutoWidth := True;
 end;
 
 procedure TKExTemplateDataPanel.SetViewTable(const AValue: TKViewTable);

@@ -5,7 +5,12 @@ Controller: List
     ToolButtonScale: medium
     AllowDuplicating: True
     AllowViewing: True
-    Template: <p><p>Activity: {DESCRIPTION}</p><p>Phase: {PHASE}</p></p>
+    Template: >
+      <tpl for=".">
+        <div class="thumb-wrap" id="{ACTIVITY_ID}">Record
+        <span class="x-editable">{DESCRIPTION}</span></div>
+      </tpl>
+      <div class="x-clear"></div>
     RequireSelection: False
 
   Filters:
