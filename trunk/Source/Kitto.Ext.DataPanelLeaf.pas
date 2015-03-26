@@ -87,7 +87,7 @@ end;
 procedure TKExtDataPanelLeafController.ExecuteNamedAction(const AActionName: string);
 begin
   if (AActionName = 'Refresh') and Assigned(FRefreshButton) then
-    PerformDelayedClick(FRefreshButton)
+    FRefreshButton.PerformClick
   else
     inherited;
 end;
@@ -110,14 +110,13 @@ end;
 
 procedure TKExtDataPanelLeafController.AddTopToolbarButtons;
 begin
-  if not ViewTable.GetBoolean('Controller/PreventRefreshing') then
-  begin
-    TExtToolbarSpacer.CreateAndAddTo(TopToolbar.Items);
-    FRefreshButton := TKExtButton.CreateAndAddTo(TopToolbar.Items);
-    FRefreshButton.SetIconAndScale('refresh');
-    FRefreshButton.Handler := Ajax(TKExtDataPanelController(Config.GetObject('Sys/ParentDataPanel', Self)).LoadData);
-    FRefreshButton.Tooltip := _('Refresh data');
-  end;
+  TExtToolbarSpacer.CreateAndAddTo(TopToolbar.Items);
+  FRefreshButton := TKExtButton.CreateAndAddTo(TopToolbar.Items);
+  FRefreshButton.SetIconAndScale('refresh');
+  FRefreshButton.Tooltip := _('Refresh data');
+  FRefreshButton.On('click', Ajax(TKExtDataPanelController(Config.GetObject('Sys/ParentDataPanel', Self)).LoadData));
+  if ViewTable.GetBoolean('Controller/PreventRefreshing') then
+    FRefreshButton.Hidden := True;
   inherited;
 end;
 
