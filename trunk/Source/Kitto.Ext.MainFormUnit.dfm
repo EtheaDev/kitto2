@@ -451,8 +451,6 @@ object KExtMainForm: TKExtMainForm
         ReadOnly = True
         ScrollBars = ssVertical
         TabOrder = 0
-        ExplicitTop = 99
-        ExplicitHeight = 186
       end
       object ControlPanel: TPanel
         Left = 0
@@ -462,6 +460,9 @@ object KExtMainForm: TKExtMainForm
         Align = alTop
         BevelOuter = bvNone
         TabOrder = 1
+        DesignSize = (
+          596
+          81)
         object SessionCountLabel: TLabel
           Left = 264
           Top = 25
@@ -596,7 +597,7 @@ object KExtMainForm: TKExtMainForm
     Left = 320
     Top = 65528
     Bitmap = {
-      494C010103004C00AC0010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C010103004C00B40010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000001000000001002000000000000010
       0000000000000000000000000000000000000000000000000000000000000000
       00000000001E00000031000000330000003300000033000000310000001E0000
