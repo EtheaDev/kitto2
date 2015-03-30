@@ -25,7 +25,7 @@ uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics,
   Controls, Forms, Dialogs, ComCtrls, ToolWin, Kitto.Ext.Application,
   ActnList, Kitto.Config, StdCtrls, Buttons, ExtCtrls, ImgList, EF.Logger,
-  System.Actions;
+  Actions;
 
 type
   TKExtLogEvent = procedure (const AString: string) of object;
@@ -77,6 +77,7 @@ type
     FAppThread: TKExtAppThread;
     FRestart: Boolean;
     FLogEndPoint: TKExtMainFormLogEndpoint;
+    FTaskbar: TComponent;
     function IsStarted: Boolean;
     function GetAppThread: TKExtAppThread;
     procedure AppThreadTerminated(Sender: TObject);
@@ -86,6 +87,9 @@ type
     procedure SetConfig(const AFileName: string);
     procedure SelectConfigFile;
     procedure DisplayHomeURL(const AHomeURL: string);
+    {$IFDEF D20+}
+    procedure SetupTaskbar;
+    {$ENDIF}
     property AppThread: TKExtAppThread read GetAppThread;
     function HasConfigFileName: Boolean;
     procedure DoLog(const AString: string);
@@ -99,7 +103,7 @@ implementation
 {$R *.dfm}
 
 uses
-  Math,
+  Math, {$IFDEF D20+}System.Win.TaskbarCore, Vcl.Taskbar,{$ENDIF}
   EF.SysUtils, EF.Shell, EF.Localization,
   FCGIApp;
 
@@ -258,6 +262,35 @@ begin
   StartAction.Update;
   if LWasStarted then
     StartAction.Execute;
+  {$IFDEF D20+}
+  SetupTaskbar;
+  {$ENDIF}
+end;
+
+procedure TKExtMainForm.SetupTaskbar;
+var
+  LTaskbar: TTaskbar;
+
+  procedure AddButton(const AAction: TAction);
+  var
+    LButton: TThumbBarButton;
+  begin
+    LButton := LTaskbar.TaskBarButtons.Add;
+    LButton.Action := AAction;
+  end;
+
+begin
+  FreeAndNil(FTaskbar);
+  FTaskbar := TTaskbar.Create(Self);
+  LTaskbar := TTaskbar(FTaskbar);
+  // Needed to avoid AVs when LTaskbar.TaskBarButtons.Add is called.
+  // the component does not really support being configured at run time.
+  LTaskbar.TaskBarButtons.OnChange := nil;
+  AddButton(StartAction);
+  AddButton(StopAction);
+  AddButton(RestartAction);
+  // Apply the changes to the windows taskbar.
+  LTaskbar.Initialize;
 end;
 
 procedure TKExtMainForm.DisplayHomeURL(const AHomeURL: string);
