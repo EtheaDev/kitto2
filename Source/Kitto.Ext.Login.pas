@@ -95,7 +95,7 @@ var
     if Maximized then
       Result := Session.ViewportWidth div 4
     else
-      Result := 40;
+      Result := 20;
   end;
 
 begin
@@ -104,18 +104,18 @@ begin
   if Maximized then
     LWidth := Session.ViewportWidth
   else
-    LWidth := Max(ExtraWidth, 228);
+    LWidth := Max(ExtraWidth, 236);
   LHeight := Max(ExtraHeight, 0) + STANDARD_HEIGHT;
 
   if Maximized then
   begin
-    LLabelWidth := Trunc(Session.ViewportWidth * 0.5);
-    LEditWidth := Trunc(Session.ViewportWidth * 0.5) - GetHorizontalMargin;
+    LLabelWidth := Trunc(Session.ViewportWidth * 0.4);
+    LEditWidth := Trunc(Session.ViewportWidth * 0.6) - GetHorizontalMargin;
   end
   else
   begin
     LLabelWidth := Max(LabelWidth, 100);
-    LEditWidth := Max(LWidth - LLabelWidth - GetHorizontalMargin, 136);
+    LEditWidth := Max(LWidth - LLabelWidth - GetHorizontalMargin * 2, 96);
   end;
   if not Maximized then
     Width := LWidth;
