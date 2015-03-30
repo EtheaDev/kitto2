@@ -344,3 +344,22 @@ function objectToParams(object)
     }
   ).join('&');
 };
+
+var
+  kittoLoadMaskShowCount = 0;
+
+// shows (1) or hides (-1) the loading mask.
+// The mask is shown as long as the current sum of show calls
+// is > 0, hidden otherwise. So the 1 and -1 calls must be balanced.
+// Pass 0 to reset the counter.
+function showKittoLoadMask(amount)
+{
+  if (amount == 0)
+    kittoLoadMaskShowCount = 0;
+  else
+    kittoLoadMaskShowCount += amount;
+  if (kittoLoadMaskShowCount > 0)
+    kittoLoadMask.show();
+  else
+    kittoLoadMask.hide();
+}
