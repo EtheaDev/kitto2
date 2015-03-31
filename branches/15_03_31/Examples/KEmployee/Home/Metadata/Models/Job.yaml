@@ -1,0 +1,25 @@
+﻿ModelName: Job
+Fields:
+  JobCode: String(5) not null primary key
+    PhysicalName: JOB_CODE
+  JobGrade: Integer not null primary key
+    PhysicalName: JOB_GRADE
+  JobTitle: String(25) not null
+    PhysicalName: JOB_TITLE
+  MinSalary: Decimal(10, 2) not null
+    PhysicalName: MIN_SALARY
+  MaxSalary: Decimal(10, 2) not null
+    PhysicalName: MAX_SALARY
+  JobRequirement: Memo
+    PhysicalName: JOB_REQUIREMENT
+  LanguageReq: String(15)
+    PhysicalName: LANGUAGE_REQ
+  JobCountryRef: Reference(Country) not null primary key
+    PhysicalName: JOB_COUNTRY
+    Fields:
+      JobCountry:
+        PhysicalName: JOB_COUNTRY
+  JobDescription: String(50)
+    Expression: JOB_TITLE || ' (Level ' || {Q}JOB_GRADE || ') ' || {Q}JOB_COUNTRY
+CaptionField: JobDescription
+ImageName: setting_tools

@@ -1,0 +1,31 @@
+﻿ModelName: Employee
+IsLarge: True
+PhysicalName: EMPLOYEE
+Fields:
+  EmpNo: Integer not null primary key
+    PhysicalName: EMP_NO
+  FirstName: String(15) not null
+    PhysicalName: FIRST_NAME
+  LastName: String(20) not null
+    PhysicalName: LAST_NAME
+  PhoneExt: String(4)
+    PhysicalName: PHONE_EXT
+  HireDate: DateTime not null
+    PhysicalName: HIRE_DATE
+  Salary: Decimal(10, 2) not null
+  FullName: String
+    PhysicalName: FULL_NAME
+  DeptNoRef: Reference(Department) not null
+    PhysicalName: DEPT_NO
+    Fields:
+      DeptNo:
+        PhysicalName: DEPT_NO
+  JobRef: Reference(Job) not null
+    Fields:
+      JobCode:
+        PhysicalName: JOB_CODE
+      JobGrade:
+        PhysicalName: JOB_GRADE
+      JobCountry:
+        PhysicalName: JOB_COUNTRY
+ImageName: user_green

@@ -1,0 +1,15 @@
+﻿ModelName: Project
+Fields:
+  ProjId: String(5) not null primary key
+    PhysicalName: PROJ_ID
+  ProjName: String(20) not null
+    PhysicalName: PROJ_NAME
+  ProjDesc: Blob
+    PhysicalName: PROJ_DESC
+  Product: String(12)
+  TeamLeaderRef: Reference(Employee)
+    PhysicalName: TEAM_LEADER
+    Fields:
+      TeamLeader:
+        PhysicalName: TEAM_LEADER
+ImageName: building_edit

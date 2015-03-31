@@ -1,0 +1,32 @@
+﻿ModelName: Sales
+Fields:
+  PoNumber: String(8) not null primary key
+    PhysicalName: PO_NUMBER
+  OrderStatus: String(7) not null
+    PhysicalName: ORDER_STATUS
+  OrderDate: DateTime not null
+    PhysicalName: ORDER_DATE
+  ShipDate: DateTime
+    PhysicalName: SHIP_DATE
+  DateNeeded: DateTime
+    PhysicalName: DATE_NEEDED
+  Paid: String(1)
+  QtyOrdered: Integer not null
+    PhysicalName: QTY_ORDERED
+  TotalValue: Decimal(9, 2) not null
+    PhysicalName: TOTAL_VALUE
+  Discount: Float not null
+  ItemType: String(12)
+    PhysicalName: ITEM_TYPE
+  Aged: Decimal
+  CustNoRef: Reference(Customer) not null
+    PhysicalName: INTEG_77
+    Fields:
+      CustNo:
+        PhysicalName: CUST_NO
+  SalesRepRef: Reference(Employee)
+    PhysicalName: integ_78
+    Fields:
+      SalesRep:
+        PhysicalName: SALES_REP
+ImageName: money_add

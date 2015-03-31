@@ -1,0 +1,6 @@
+﻿ModelName: ACTIVITY_BY_DATE
+Fields:
+  ACTIVITY_DATE: DATE primary key
+  DURATION: INTEGER
+  ACTIVITIES: INTEGER
+ImageName: date

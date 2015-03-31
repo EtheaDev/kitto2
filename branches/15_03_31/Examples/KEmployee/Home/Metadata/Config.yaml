@@ -1,0 +1,58 @@
+﻿AppTitle: Employee demo
+AppIcon: FireBirdSql_120
+
+
+Databases:
+  Main: DBX
+    Connection:
+      DriverName: Firebird
+      DataBase: localhost:EMPLOYEE
+      User_Name: SYSDBA
+      Password: masterkey
+      #ServerCharSet: UTF8
+      WaitOnLocks: True
+      IsolationLevel: ReadCommitted
+      Trim Char: False
+
+Auth: TextFile
+  IsClearPassword: True
+  .Defaults:
+    UserName: user
+    Password: password
+
+AccessControl: Null
+
+Login:
+  Controller:
+    BorderPanel:
+      NorthView:
+        Controller: HtmlPanel
+          Height: 100
+          Html: |
+            <div style="text-align: center">
+              <p/>
+              <p><img src="%IMAGE(Firebird_Employee)%"></img></p>
+              <p>An example activity tracking application.</p>
+              <p/>
+            </div>
+    ExtraWidth: 360
+    LabelWidth: 150
+    ExtraHeight: 120
+    LocalStorage:
+      Mode: Password
+      AskUser: True
+        .Default: False
+
+# Change this to use a custom view for the home page.
+# Alternatively, customize the Home view by replacing its controller.
+# Default: Home.
+#HomeView: Home
+
+Ext:
+  Theme: custom
+# Either utf-8 or a SBCS corresponding to the system code page
+# (such as iso-8859-1 for Western Europe). Defaults to utf-8.
+Charset: utf-8
+
+FastCGI:
+  TCPPort: 2203

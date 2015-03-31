@@ -1,0 +1,19 @@
+﻿Type: Data
+Controller: List
+  Filters:
+    DisplayLabel: Search Jobs
+    Items:
+      FreeSearch: Free Search
+        ExpressionTemplate: (Job.JOB_CODE like '%{value}%') or (Job.JOB_TITLE like '%{value}%') or (Job.LANGUAGE_REQ like '%{value}%')
+MainTable:
+  Model: Job
+  Fields:
+    JobCode:
+    JobGrade:
+    JobTitle:
+    MinSalary:
+    MaxSalary:
+    JobRequirement:
+    LanguageReq:
+    JobCountryRef:
+    JobCountryRef.Currency: Job_Currency
