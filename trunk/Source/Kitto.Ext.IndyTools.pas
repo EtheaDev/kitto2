@@ -164,7 +164,7 @@ begin
           // Multiple BCC recipients.
           for I := 0 to LAddressNode.ChildCount - 1 do
           begin
-            LRecipient := LMessage.CCList.Add;
+            LRecipient := LMessage.BCCList.Add;
             LRecipient.Text := ExpandServerRecordValues(LAddressNode[I].AsExpandedString);
             if LRecipient.Text = '' then
             begin
