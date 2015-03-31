@@ -1,8 +1,6 @@
 program HelloKitto;
 
 uses
-  DBXMSSQL,
-  DBXFirebird,
   Kitto.Ext.Start,
   Controllers in '..\..\Source\Controllers.pas',
   Rules in '..\..\Source\Rules.pas',
