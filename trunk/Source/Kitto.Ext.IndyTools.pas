@@ -51,10 +51,12 @@ var
   LAttachment: TIdAttachmentFile;
   LSender: TIdEMailAddressItem;
   LAddressNode: TEFNode;
+  LChildNode: TEFNode;
   LFileName: string;
   LServerNode: TEFNode;
   LSingleAddress: string;
   LIdSSLIOHandler: TIdSSLIOHandlerSocketOpenSSL;
+  LAddress, LText: string;
 
 begin
   inherited;
@@ -90,12 +92,25 @@ begin
         // Multiple senders.
         for I := 0 to LAddressNode.ChildCount - 1 do
         begin
-          LSender := LMessage.FromList.Add;
-          LSender.Text := ExpandServerRecordValues(LAddressNode[I].AsExpandedString);
-          if LSender.Text = '' then
+          LChildNode := LAddressNode[I];
+          if SameText(LChildNode.Name, 'Sender') then
           begin
-            LSender.Name := ExpandServerRecordValues(LAddressNode[I].GetExpandedString('Name'));
-            LSender.Address := ExpandServerRecordValues(LAddressNode[I].GetExpandedString('Address'));
+            LText := ExpandServerRecordValues(LChildNode.AsExpandedString);
+            if LText <> '' then
+            begin
+              LSender := LMessage.FromList.Add;
+              LSender.Text := LText;
+            end
+            else
+            begin
+              LAddress := ExpandServerRecordValues(LChildNode.GetExpandedString('Address'));
+              if LAddress <> '' then
+              begin
+                LSender := LMessage.FromList.Add;
+                LSender.Name := ExpandServerRecordValues(LChildNode.GetExpandedString('Name'));
+                LSender.Address := LAddress;
+              end;
+            end;
           end;
         end;
       end;
@@ -113,12 +128,25 @@ begin
         // Multiple recipients.
         for I := 0 to LAddressNode.ChildCount - 1 do
         begin
-          LRecipient := LMessage.Recipients.Add;
-          LRecipient.Text := ExpandServerRecordValues(LAddressNode[I].AsExpandedString);
-          if LRecipient.Text = '' then
+          LChildNode := LAddressNode[I];
+          if SameText(LChildNode.Name, 'Recipient') then
           begin
-            LRecipient.Name := ExpandServerRecordValues(LAddressNode[I].GetExpandedString('Name'));
-            LRecipient.Address := ExpandServerRecordValues(LAddressNode[I].GetExpandedString('Address'));
+            LText := ExpandServerRecordValues(LChildNode.AsExpandedString);
+            if LText <> '' then
+            begin
+              LRecipient := LMessage.Recipients.Add;
+              LRecipient.Text := LText;
+            end
+            else
+            begin
+              LAddress := ExpandServerRecordValues(LChildNode.GetExpandedString('Address'));
+              if LAddress <> '' then
+              begin
+                LRecipient := LMessage.Recipients.Add;
+                LRecipient.Name := ExpandServerRecordValues(LChildNode.GetExpandedString('Name'));
+                LRecipient.Address := LAddress;
+              end;
+            end;
           end;
         end;
       end;
@@ -138,12 +166,25 @@ begin
           // Multiple CC recipients.
           for I := 0 to LAddressNode.ChildCount - 1 do
           begin
-            LRecipient := LMessage.CCList.Add;
-            LRecipient.Text := ExpandServerRecordValues(LAddressNode[I].AsExpandedString);
-            if LRecipient.Text = '' then
+            LChildNode := LAddressNode[I];
+            if SameText(LChildNode.Name, 'Recipient') then
             begin
-              LRecipient.Name := ExpandServerRecordValues(LAddressNode[I].GetExpandedString('Name'));
-              LRecipient.Address := ExpandServerRecordValues(LAddressNode[I].GetExpandedString('Address'));
+              LText := ExpandServerRecordValues(LChildNode.AsExpandedString);
+              if LText <> '' then
+              begin
+                LRecipient := LMessage.CCList.Add;
+                LRecipient.Text := LText;
+              end
+              else
+              begin
+                LAddress := ExpandServerRecordValues(LChildNode.GetExpandedString('Address'));
+                if LAddress <> '' then
+                begin
+                  LRecipient := LMessage.CCList.Add;
+                  LRecipient.Name := ExpandServerRecordValues(LChildNode.GetExpandedString('Name'));
+                  LRecipient.Address := LAddress;
+                end;
+              end;
             end;
           end;
         end;
@@ -164,12 +205,25 @@ begin
           // Multiple BCC recipients.
           for I := 0 to LAddressNode.ChildCount - 1 do
           begin
-            LRecipient := LMessage.BCCList.Add;
-            LRecipient.Text := ExpandServerRecordValues(LAddressNode[I].AsExpandedString);
-            if LRecipient.Text = '' then
+            LChildNode := LAddressNode[I];
+            if SameText(LChildNode.Name, 'Recipient') then
             begin
-              LRecipient.Name := ExpandServerRecordValues(LAddressNode[I].GetExpandedString('Name'));
-              LRecipient.Address := ExpandServerRecordValues(LAddressNode[I].GetExpandedString('Address'));
+              LText := ExpandServerRecordValues(LChildNode.AsExpandedString);
+              if LText <> '' then
+              begin
+                LRecipient := LMessage.BccList.Add;
+                LRecipient.Text := LText;
+              end
+              else
+              begin
+                LAddress := ExpandServerRecordValues(LChildNode.GetExpandedString('Address'));
+                if LAddress <> '' then
+                begin
+                  LRecipient := LMessage.BccList.Add;
+                  LRecipient.Name := ExpandServerRecordValues(LChildNode.GetExpandedString('Name'));
+                  LRecipient.Address := LAddress;
+                end;
+              end;
             end;
           end;
         end;
