@@ -82,6 +82,7 @@ type
     function GetLanguagePerSession: Boolean;
     function GetFOPEnginePath: string;
     class function AdaptImageName(const AResourceName: string; const ASuffix: string = ''): string;
+    function GetDefaultDBConnection: TEFDBConnection;
   strict protected
     function GetConfigFileName: string; override;
     class function FindSystemHomePath: string;
@@ -234,6 +235,11 @@ type
     /// be set through the DatabaseRouter/DatabaseName node or through the
     /// DefaultDatabaseName node.</summary>
     property DatabaseName: string read GetDatabaseName;
+
+    /// <summary>
+    ///  Returns a reference to the default database connection, if any.
+    /// </summary>
+    property DefaultDBConnection: TEFDBConnection read GetDefaultDBConnection;
 
     /// <summary>Returns the application title, to be used for captions, about
     /// boxes, etc.</summary>
@@ -430,6 +436,11 @@ end;
 function TKConfig.GetDefaultDatabaseName: string;
 begin
   Result := Config.GetExpandedString('DefaultDatabaseName', 'Main');
+end;
+
+function TKConfig.GetDefaultDBConnection: TEFDBConnection;
+begin
+  Result := DBConnections[DatabaseName];
 end;
 
 function TKConfig.GetFOPEnginePath: string;

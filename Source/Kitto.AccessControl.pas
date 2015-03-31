@@ -14,11 +14,11 @@
    limitations under the License.
 -------------------------------------------------------------------------------}
 
-///	<summary>
-///	  Defines the base access controller and related classes and services.
-///	  Access control allows the creation of EW applications that restrict
-///	  access to resources (such as GUI elements) for certain users.
-///	</summary>
+/// <summary>
+///   Defines the base access controller and related classes and services.
+///   Access control allows the creation of EW applications that restrict
+///   access to resources (such as GUI elements) for certain users.
+/// </summary>
 unit Kitto.AccessControl;
 
 {$I Kitto.Defines.inc}
@@ -31,15 +31,15 @@ uses
   Kitto.Types;
 
 type
-  ///	<summary>
-  ///	  <para>Abstract base access controller. An access controller tells if
-  ///	  and how a user (identified by a string Id) is allowed to access a
-  ///	  resource (identified by a URI).</para>
-  ///	  <para>Only one access controller may be active at any one time.</para>
-  ///	  <para>Applications wanting to use a custom access control policy should
-  ///	  create and register an access controller, and then make it active in
-  ///	  Config.yaml.</para>
-  ///	</summary>
+  /// <summary>
+  ///   <para>Abstract base access controller. An access controller tells if
+  ///   and how a user (identified by a string Id) is allowed to access a
+  ///   resource (identified by a URI).</para>
+  ///   <para>Only one access controller may be active at any one time.</para>
+  ///   <para>Applications wanting to use a custom access control policy should
+  ///   create and register an access controller, and then make it active in
+  ///   Config.yaml.</para>
+  /// </summary>
   TKAccessController = class(TEFComponent)
   strict private
     FLogWriter: TStreamWriter;
@@ -51,50 +51,50 @@ type
   strict protected
     class function InternalGetClassId: string; override;
 
-    ///	<summary>Implements GetAccessGrantValue; descendants must return a
-    ///	value that depends on AMode. In most cases this value will have to be
-    ///	True if the specified auser is allowed to access the resource and False
-    ///	otherwise, but it can be a value of any type.</summary>
+    /// <summary>Implements GetAccessGrantValue; descendants must return a
+    /// value that depends on AMode. In most cases this value will have to be
+    /// True if the specified auser is allowed to access the resource and False
+    /// otherwise, but it can be a value of any type.</summary>
     function InternalGetAccessGrantValue(
       const AUserId, AResourceURI, AMode: string): Variant; virtual; abstract;
 
-    ///	<summary>Implements Init.</summary>
+    /// <summary>Implements Init.</summary>
     procedure InternalInit; virtual;
   public
-    ///	<summary>
-    ///	  <para>Returns the access grant value for the specified resource, mode
-    ///	  and user.</para>
-    ///	  <para>This methods tells if the user can access the resource in the
-    ///	  specified mode, and how the access is granted. Generally, the return
-    ///	  value would be a Boolean, but - depending on the mode - it can be
-    ///	  anything.</para>
-    ///	  <para>See the access control documentation for information about how
-    ///	  to construct a resource URI, where to get the user Id and what modes
-    ///	  are available.</para>
-    ///	</summary>
+    /// <summary>
+    ///   <para>Returns the access grant value for the specified resource, mode
+    ///   and user.</para>
+    ///   <para>This methods tells if the user can access the resource in the
+    ///   specified mode, and how the access is granted. Generally, the return
+    ///   value would be a Boolean, but - depending on the mode - it can be
+    ///   anything.</para>
+    ///   <para>See the access control documentation for information about how
+    ///   to construct a resource URI, where to get the user Id and what modes
+    ///   are available.</para>
+    /// </summary>
     function GetAccessGrantValue(const AUserId, AResourceURI, AMode: string;
       const ADefaultValue: Variant): Variant;
 
-    ///	<summary>Shortcut for GetAccessGrantValue for Boolean values. Returns
-    ///	True if a value is granted and it equals ACV_TRUE.</summary>
+    /// <summary>Shortcut for GetAccessGrantValue for Boolean values. Returns
+    /// True if a value is granted and it equals ACV_TRUE.</summary>
     function IsAccessGranted(const AUserId, AResourceURI, AMode: string): Boolean;
 
-    ///	<summary>Returns True if the specified access mode is a standard mode,
-    ///	that is one of the ACM_* constants (except ACM_ALL).</summary>
+    /// <summary>Returns True if the specified access mode is a standard mode,
+    /// that is one of the ACM_* constants (except ACM_ALL).</summary>
     class function IsStandardMode(const AMode: string): Boolean;
 
-    ///	<summary>Called by the system after setting all config
-    ///	values.</summary>
+    /// <summary>Called by the system after setting all config
+    /// values.</summary>
     procedure Init;
   end;
   TKAccessControllerClass = class of TKAccessController;
 
-  ///	<summary>Exception raised when access to a certain resource is
-  ///	deniend.</summary>
+  /// <summary>Exception raised when access to a certain resource is
+  /// deniend.</summary>
   EKAccessDeniedError = class(EKError);
 
-  ///	<summary>This class holds a list of registered access controller
-  ///	classes.</summary>
+  /// <summary>This class holds a list of registered access controller
+  /// classes.</summary>
   TKAccessControllerRegistry = class(TEFRegistry)
   private
     class var FInstance: TKAccessControllerRegistry;
@@ -103,12 +103,12 @@ type
     class destructor Destroy;
     class property Instance: TKAccessControllerRegistry read GetInstance;
 
-    ///	<summary>Adds an access controller class to the registry.</summary>
+    /// <summary>Adds an access controller class to the registry.</summary>
     procedure RegisterClass(const AId: string; const AClass: TKAccessControllerClass);
   end;
 
-  ///	<summary>Uses the registry to create access controllers by class
-  ///	Id.</summary>
+  /// <summary>Uses the registry to create access controllers by class
+  /// Id.</summary>
   TKAccessControllerFactory = class(TEFFactory)
   private
     class var FInstance: TKAccessControllerFactory;
@@ -117,48 +117,48 @@ type
     class destructor Destroy;
     class property Instance: TKAccessControllerFactory read GetInstance;
 
-    ///	<summary>Creates and returns an instance of the access controller class
-    ///	identified by AClassId. Raises an exception if said class is not
-    ///	registered.</summary>
+    /// <summary>Creates and returns an instance of the access controller class
+    /// identified by AClassId. Raises an exception if said class is not
+    /// registered.</summary>
     function CreateObject(const AClassId: string): TKAccessController;
   end;
 
 const
-  ///	<summary>Ability to view a resource, such as a view. Resources for which
-  ///	access is not granted in this mode are invisible to the user.</summary>
+  /// <summary>Ability to view a resource, such as a view. Resources for which
+  /// access is not granted in this mode are invisible to the user.</summary>
   ACM_VIEW = 'VIEW';
 
-  ///	<summary>Ability to execute a resource. If a user has access to a
-  ///	resource in VIEW mode but not RUN mode, he can see the menu item (or
-  ///	button) but not click it to display the resource.</summary>
+  /// <summary>Ability to execute a resource. If a user has access to a
+  /// resource in VIEW mode but not RUN mode, he can see the menu item (or
+  /// button) but not click it to display the resource.</summary>
   ACM_RUN = 'RUN';
 
-  ///	<summary>Ability to display data (such as a Model).</summary>
+  /// <summary>Ability to display data (such as a Model).</summary>
   ACM_READ = 'READ';
 
-  ///	<summary>Ability to create new records in a model.</summary>
+  /// <summary>Ability to create new records in a model.</summary>
   ACM_ADD = 'ADD';
 
-  ///	<summary>Ability to modify existing model records.</summary>
+  /// <summary>Ability to modify existing model records.</summary>
   ACM_MODIFY = 'MODIFY';
 
-  ///	<summary>Ability to delete model records.</summary>
+  /// <summary>Ability to delete model records.</summary>
   ACM_DELETE = 'DELETE';
 
-  ///	<summary>Unlimited access on a resource.</summary>
+  /// <summary>Unlimited access on a resource.</summary>
   ACM_ALL = 'ALL';
 
-  ///	<summary>This value is considered True (grant) when stored in a
-  ///	permission.</summary>
+  /// <summary>This value is considered True (grant) when stored in a
+  /// permission.</summary>
   ACV_TRUE = 1;
 
-  ///	<summary>This value is considered False (deny) when stored in a
-  ///	permission.</summary>
+  /// <summary>This value is considered False (deny) when stored in a
+  /// permission.</summary>
   ACV_FALSE = 0;
 
 type
-  ///	<summary>The Null access controller always grants access. It is used by
-  ///	default.</summary>
+  /// <summary>The Null access controller always grants access. It is used by
+  /// default.</summary>
   TKNullAccessController = class(TKAccessController)
   protected
     function InternalGetAccessGrantValue(
