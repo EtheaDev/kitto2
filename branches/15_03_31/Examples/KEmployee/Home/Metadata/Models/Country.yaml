@@ -1,6 +1,0 @@
-﻿ModelName: Country
-Fields:
-  Country: String(15) not null primary key
-  Currency: String(10) not null
-CaptionField: Country
-ImageName: locate

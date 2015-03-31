@@ -1,6 +1,0 @@
-﻿Field: Party_Name
-Row:
-  Field: Party_Date
-  Field: Party_Time
-Field: Address
-  CharWidth: 60
