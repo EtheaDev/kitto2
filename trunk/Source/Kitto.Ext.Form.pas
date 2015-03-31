@@ -302,11 +302,17 @@ begin
   FMainPagePanel.On('afterrender', JSFunction(FMainPagePanel.JSName + '.body.dom.scrollTop = 0;'));
   // Set button handlers (editors are needed by GetConfirmJSCode).
   if Assigned(FConfirmButton) then
+  begin
     FConfirmButton.Handler := JSFunction(GetConfirmJSCode(ConfirmChanges));
+    FFormPanel.On('clientvalidation', JSFunction('form, valid', FConfirmButton.JSName+'.setDisabled(!valid);'));
+  end;
   if Assigned(FEditButton) then
     FEditButton.Handler := JSFunction(GetConfirmJSCode(SwitchToEditMode));
   if Assigned(FCloneButton) then
+  begin
     FCloneButton.Handler := JSFunction(GetConfirmJSCode(ConfirmChangesAndClone));
+    FFormPanel.On('clientvalidation', JSFunction('form, valid', FCloneButton.JSName+'.setDisabled(!valid);'));
+  end;
 end;
 
 function TKExtFormPanelController.GetDetailBottomPanelHeight: Integer;
@@ -546,7 +552,6 @@ begin
     begin
       FCloneButton := TKExtButton.CreateAndAddTo(Buttons);
       FCloneButton.SetIconAndScale('accept_clone', Config.GetString('ButtonScale', 'medium'));
-      FCloneButton.FormBind := True;
       FCloneButton.Text := LCloneButtonNode.GetString('Caption', _('Save & Clone'));
       FCloneButton.Tooltip := LCloneButtonNode.GetString('Tooltip', _('Save changes and create a new clone record'));
       FCloneButton.Hidden := FIsReadOnly or IsViewMode;
@@ -556,7 +561,6 @@ begin
   end;
   FConfirmButton := TKExtButton.CreateAndAddTo(Buttons);
   FConfirmButton.SetIconAndScale('accept', Config.GetString('ButtonScale', 'medium'));
-  FConfirmButton.FormBind := True;
   FConfirmButton.Text := Config.GetString('ConfirmButton/Caption', _('Save'));
   FConfirmButton.Tooltip := Config.GetString('ConfirmButton/Tooltip', _('Save changes and finish editing'));
   FConfirmButton.Hidden := FIsReadOnly or IsViewMode;
@@ -565,7 +569,6 @@ begin
   begin
     FEditButton := TKExtButton.CreateAndAddTo(Buttons);
     FEditButton.SetIconAndScale('edit_record', Config.GetString('ButtonScale', 'medium'));
-    FEditButton.FormBind := True;
     FEditButton.Text := Config.GetString('ConfirmButton/Caption', _(EDIT_OPERATION));
     FEditButton.Tooltip := Config.GetString('ConfirmButton/Tooltip', _('Switch to edit mode'));
     FEditButton.Hidden := FIsReadOnly;
