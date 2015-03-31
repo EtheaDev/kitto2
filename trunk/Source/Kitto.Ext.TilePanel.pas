@@ -21,6 +21,7 @@ unit Kitto.Ext.TilePanel;
 interface
 
 uses
+  Types,
   EF.Tree,
   Kitto.Metadata.Views,
   Kitto.Ext.Base, Kitto.Ext.Controller, Kitto.Ext.Session, Kitto.Ext.TabPanel;
@@ -28,29 +29,26 @@ uses
 type
   // A tile page to be added to a container.
   TKExtTilePanel = class(TKExtPanelBase)
-  private
-    const
-      FColors: array[0..9] of string = (
-        // Metro colors.
-        '#A200FF', '#FF0097', '#00ABA9', '#8CBF26', '#A05000',
-        '#E671B8', '#F09609', '#1BA1E2', '#E51400', '#339933');
+  strict private
+    FView: TKView;
+    FConfig: TEFTree;
+    FTileBoxHtml: string;
+    FMaxTilesPerFolder: Integer;
+    FTileRows: Integer;
+    FColors: TStringDynArray;
+    FColorIndex: Integer;
     procedure AddBreak;
     procedure AddTitle(const ADisplayLabel: string);
     function GetTileHeight: Integer;
     function GetTileWidth: Integer;
-    var
-      FView: TKView;
-      FConfig: TEFTree;
-      FTileBoxHtml: string;
-      FColorIndex: Integer;
-      FMaxTilesPerFolder: Integer;
-      FTileRows: Integer;
     procedure BuildTileBoxHtml;
     function GetBoxStyle(const ATilesPerRow, ARows: Integer): string;
     procedure AddTile(const ANode: TKTreeViewNode; const ADisplayLabel: string);
     procedure AddTiles(const ANode: TKTreeViewNode; const ADisplayLabel: string);
     function GetNextTileColor: string;
+    function GetColors(const AColorSetName: string): TStringDynArray;
   public
+    const DEFAULT_COLOR_SET = 'Metro';
     property Config: TEFTree read FConfig write FConfig;
     property View: TKView read FView write FView;
     procedure DoDisplay;
@@ -150,6 +148,8 @@ begin
   else
     Title := _('Home');
   AutoScroll := Session.IsMobileBrowser;
+
+  FColors := GetColors(Config.GetExpandedString('ColorSet', DEFAULT_COLOR_SET));
   BuildTileBoxHtml;
 end;
 
@@ -165,6 +165,22 @@ begin
   { TODO : add space for folders/titles }
  //Result := Format('width:%dpx;height:%dpx;', [LWidth, LHeight]);
  Result := '';
+end;
+
+function TKExtTilePanel.GetColors(const AColorSetName: string): TStringDynArray;
+begin
+  if SameText(AColorSetName, 'Metro') then
+    Result := ['#A200FF', '#FF0097', '#00ABA9', '#8CBF26', '#A05000', '#E671B8', '#F09609', '#1BA1E2', '#E51400', '#339933']
+  else if SameText(AColorSetName, 'Blue') then
+    Result := ['#1240AB', '#365BB0', '#5777C0', '#0D3184', '#082568']
+  else if SameText(AColorSetName, 'Red') then
+    Result := ['#FF0000', '#FF3939', '#FF6363', '#C50000', '#9B0000']
+  else if SameText(AColorSetName, 'Gold') then
+    Result := ['#FFD300', '#FFDD39', '#FFE463', '#C5A300', '#9B8000']
+  else if SameText(AColorSetName, 'Violet') then
+    Result := ['#3914AF', '#5538B4', '#735AC3', '#2B0E88', '#20096A']
+  else
+    Result := ['#000000'];
 end;
 
 function TKExtTilePanel.GetNextTileColor: string;
@@ -289,7 +305,7 @@ var
   LTreeView: TKTreeView;
   LFileName: string;
 begin
-  FColorIndex :=  Low(FColors);
+  FColorIndex :=  0;
   FTileBoxHtml := '<div class="k-tile-box" style="%s">';
 
   LTreeViewRenderer := TKExtTreeViewRenderer.Create;
@@ -307,21 +323,7 @@ begin
       Self, DisplayView);
     FTileBoxHtml := FTileBoxHtml + '</div></div>';
     FTileBoxHtml := Format(FTileBoxHtml, [GetBoxStyle(FMaxTilesPerFolder, FTileRows)]);
-  (*
-  <div class="k-tile-row">
-    <a href="#" onclick="alert('hello');"><div class="k-tile" style="background-color:#A200FF">Dolls</div></a>
-    <div class="k-tile" style="background-color:#FF0097">Girls</div>
-    <div class="k-tile" style="background-color:#A05000">Parties</div>
-    <br style="clear:left;" />
-  </div>
-  <div class="k-tile_row">
-    <div class="k-tile" style="background-color:#00ABA9">Tile</div>
-    <div class="k-tile" style="background-color:#8CBF26">Tile</div>
-    <div class="k-tile" style="background-color:#E671B8">Tile</div>
-    <br style="clear:left;" />
-  </div>
-</div>
-  *)
+
     LFileName := ChangeFileExt(ExtractFileName(LTreeView.PersistentFileName), '.html');
     LoadHtml(LFileName,
       function (AHtml: string): string
