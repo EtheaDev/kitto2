@@ -267,6 +267,7 @@ begin
   {$ENDIF}
 end;
 
+{$IFDEF D20+}
 procedure TKExtMainForm.SetupTaskbar;
 var
   LTaskbar: TTaskbar;
@@ -292,6 +293,7 @@ begin
   // Apply the changes to the windows taskbar.
   LTaskbar.Initialize;
 end;
+{$ENDIF}
 
 procedure TKExtMainForm.DisplayHomeURL(const AHomeURL: string);
 begin
