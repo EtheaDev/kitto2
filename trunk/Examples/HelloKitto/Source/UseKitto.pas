@@ -3,6 +3,8 @@ unit UseKitto;
 interface
 
 uses
+  DBXMSSQL,
+  DBXFirebird,
   EF.DB.ADO,
   EF.DB.DBX,
 {$IFDEF D20+}

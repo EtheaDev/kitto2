@@ -1,4 +1,4 @@
-DisplayLabel: %Config:AppTitle%
+﻿DisplayLabel: %Config:AppTitle%
 # Valid top-level controllers are Window and Viewport
 Controller: Viewport
 
@@ -7,6 +7,7 @@ Controller: Viewport
 
       CenterView:
         Controller: TilePanel
+          ColorSet: Red
           Border: True
           TileHeight: 50
           TileWidth: 100
