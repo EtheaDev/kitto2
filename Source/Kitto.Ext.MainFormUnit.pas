@@ -77,7 +77,9 @@ type
     FAppThread: TKExtAppThread;
     FRestart: Boolean;
     FLogEndPoint: TKExtMainFormLogEndpoint;
+    {$IFDEF D20+}
     FTaskbar: TComponent;
+    {$ENDIF}
     function IsStarted: Boolean;
     function GetAppThread: TKExtAppThread;
     procedure AppThreadTerminated(Sender: TObject);
