@@ -170,17 +170,60 @@ end;
 function TKExtTilePanel.GetColors(const AColorSetName: string): TStringDynArray;
 begin
   if SameText(AColorSetName, 'Metro') then
-    Result := ['#A200FF', '#FF0097', '#00ABA9', '#8CBF26', '#A05000', '#E671B8', '#F09609', '#1BA1E2', '#E51400', '#339933']
+  begin
+    SetLength(Result, 10);
+    Result[0] := '#A200FF';
+    Result[1] := '#FF0097';
+    Result[2] := '#00ABA9';
+    Result[3] := '#8CBF26';
+    Result[4] := '#A05000';
+    Result[5] := '#E671B8';
+    Result[6] := '#F09609';
+    Result[7] := '#1BA1E2';
+    Result[8] := '#E51400';
+    Result[9] := '#339933';
+  end
   else if SameText(AColorSetName, 'Blue') then
-    Result := ['#1240AB', '#365BB0', '#5777C0', '#0D3184', '#082568']
+  begin
+    SetLength(Result, 5);
+    Result[0] := '#1240AB';
+    Result[1] := '#365BB0';
+    Result[2] := '#5777C0';
+    Result[3] := '#0D3184';
+    Result[4] := '#082568';
+  end
   else if SameText(AColorSetName, 'Red') then
-    Result := ['#FF0000', '#FF3939', '#FF6363', '#C50000', '#9B0000']
+  begin
+    SetLength(Result, 5);
+    Result[0] := '#FF0000';
+    Result[1] := '#FF3939';
+    Result[2] := '#FF6363';
+    Result[3] := '#C50000';
+    Result[4] := '#9B0000';
+  end
   else if SameText(AColorSetName, 'Gold') then
-    Result := ['#FFD300', '#FFDD39', '#FFE463', '#C5A300', '#9B8000']
+  begin
+    SetLength(Result, 5);
+    Result[0] := '#FFD300';
+    Result[1] := '#FFDD39';
+    Result[2] := '#FFE463';
+    Result[3] := '#C5A300';
+    Result[4] := '#9B8000';
+  end
   else if SameText(AColorSetName, 'Violet') then
-    Result := ['#3914AF', '#5538B4', '#735AC3', '#2B0E88', '#20096A']
+  begin
+    SetLength(Result, 5);
+    Result[0] := '#3914AF';
+    Result[1] := '#5538B4';
+    Result[2] := '#735AC3';
+    Result[3] := '#2B0E88';
+    Result[4] := '#20096A';
+  end
   else
-    Result := ['#000000'];
+  begin
+    SetLength(Result, 1);
+    Result[0] := '#000000';
+  end;
 end;
 
 function TKExtTilePanel.GetNextTileColor: string;
