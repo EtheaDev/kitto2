@@ -33,6 +33,7 @@ type
   strict protected
     procedure InitDefaults; override;
     procedure SetViewTable(const AValue: TKViewTable); override;
+    procedure AddTopToolbarToolViewButtons; override;
   published
   end;
 
@@ -41,16 +42,29 @@ implementation
 uses
   Classes,
   SysUtils, StrUtils,
-  EF.Localization, EF.Macros,
+  EF.Localization, EF.Macros, EF.StrUtils,
   Kitto.Types, Kitto.Ext.Utils, Kitto.Metadata.Models, Kitto.Metadata.Views,
   Kitto.Ext.Session, Kitto.Ext.Controller, Kitto.Ext.XSLTools;
 
 { TKExTemplateDataPanel }
 
-procedure TKExTemplateDataPanel.CreateTemplateView;
+procedure TKExTemplateDataPanel.AddTopToolbarToolViewButtons;
 begin
-  FDataView.Tpl := Config.GetExpandedString('Template');
-  //FDataView.StoreArray := JSArray('{id: "1", descr: "one"}, {id: "2", descr: "two"}, {id: "3", descr: "three"}');
+  inherited AddToolViewButtons(ViewTable.FindNode('Controller/ToolViews'), TopToolbar);
+end;
+
+procedure TKExTemplateDataPanel.CreateTemplateView;
+var
+  LTemplateContent: string;
+begin
+  LTemplateContent := Config.GetExpandedString('Template');
+  if FileExists(LTemplateContent) then
+  begin
+    FDataView.Tpl := TEFMacroExpansionEngine.Instance.Expand(TextFileToString(LTemplateContent, 
+      TEncoding.UTF8))
+  end
+  else
+    FDataView.Tpl := LTemplateContent;
   FDataView.Store := ClientStore;
 end;
 
@@ -59,11 +73,9 @@ begin
   inherited;
   FDataView := TExtDataView.CreateAndAddTo(Items);
   FDataView.EmptyText := _('No data to display.');
-  FDataView.AutoHeight := False;
   FDataView.Region := rgCenter;
   FDataView.Store := ClientStore;
   FDataView.AutoScroll := True;
-  FDataView.AutoWidth := True;
 end;
 
 procedure TKExTemplateDataPanel.SetViewTable(const AValue: TKViewTable);
