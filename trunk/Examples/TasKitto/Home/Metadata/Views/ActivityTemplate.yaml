@@ -1,16 +1,8 @@
 ﻿Type: Data
-DisplayLabel: Activity Template
+DisplayLabel: Activity Report
 Controller: List
   GridPanelController: TemplateDataPanel
-    ToolButtonScale: medium
-    AllowDuplicating: True
-    AllowViewing: True
-    Template: >
-      <tpl for=".">
-        <div class="thumb-wrap" id="{ACTIVITY_ID}">Record
-        <span class="x-editable">{DESCRIPTION}</span></div>
-      </tpl>
-      <div class="x-clear"></div>
+    Template: %APP_PATH%ReportTemplates\ActivityReport.html
     RequireSelection: False
 
   Filters:
@@ -56,7 +48,7 @@ Controller: List
 
 MainTable:
   Model: ACTIVITY
-  Controller: HTMLDataPanel
+  Controller:
     ToolViews:
       DownloadText:
         DisplayLabel: Download in TXT
@@ -75,13 +67,6 @@ MainTable:
           ClientFileName: ActivityList.xls
           TemplateFileName: %APP_PATH%ReportTemplates\ActivityList.xlt
           RequireSelection: False
-      PDFReport:
-        DisplayLabel: Activity report PDF
-        Controller: MergePDFTool
-          ClientFileName: Activity_{Description}.pdf
-          BaseFileName: %APP_PATH%ReportTemplates\ActivityReport.pdf
-          LayoutFileName: %APP_PATH%ReportTemplates\ActivityPDFMerge.yaml
-          RequireSelection: True
       FOPReport:
         DisplayLabel: Activity by FOP
         Controller: FOPTool
