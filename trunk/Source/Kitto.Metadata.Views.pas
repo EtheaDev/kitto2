@@ -89,7 +89,8 @@ type
   public
     property ViewCount: Integer read GetViewCount;
     property Views[I: Integer]: TKView read GetView; default;
-    function ViewByName(const AName: string): TKView;
+    function ViewByName(const AName: string): TKView; overload;
+    function ViewByName(const ANames: TStringDynArray): TKView; overload;
     function FindView(const AName: string): TKView;
 
     function ViewByNode(const ANode: TEFNode): TKView;
@@ -352,6 +353,11 @@ end;
 function TKViews.ViewByName(const AName: string): TKView;
 begin
   Result := ObjectByName(AName) as TKView;
+end;
+
+function TKViews.ViewByName(const ANames: TStringDynArray): TKView;
+begin
+  Result := ObjectByName(ANames) as TKView;
 end;
 
 function TKViews.ViewByNode(const ANode: TEFNode): TKView;

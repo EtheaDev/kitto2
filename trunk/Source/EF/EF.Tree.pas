@@ -469,7 +469,18 @@ type
     /// <returns>
     ///  The found node, or nil.
     /// </returns>
-    function FindNode(const APath: string; const ACreateMissingNodes: Boolean = False): TEFNode; virtual;
+    function FindNode(const APath: string; const ACreateMissingNodes: Boolean = False): TEFNode; overload; virtual;
+
+    /// <summary>
+    ///  Searches a node by trying a sequence of paths in given order.
+    /// </summary>
+    /// <param name="APaths">
+    ///  A sequence of string paths to try. Example: ['Node/SubNode', 'Node/SubNode2'].
+    /// </param>
+    /// <returns>
+    ///  The first node found, or nil.
+    /// </returns>
+    function FindNode(const APaths: TStringDynArray): TEFNode; overload;
 
     /// <summary>
     ///  Works like FindNode, but raises an exception if ACreateMissingNodes
@@ -2129,6 +2140,19 @@ begin
       Result := Children[I];
       Break;
     end;
+  end;
+end;
+
+function TEFTree.FindNode(const APaths: TStringDynArray): TEFNode;
+var
+  APath: string;
+begin
+  Result := nil;
+  for APath in APaths do
+  begin
+    Result := FindNode(APath);
+    if Assigned(Result) then
+      Break;
   end;
 end;
 

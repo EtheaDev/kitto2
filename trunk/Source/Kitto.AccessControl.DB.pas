@@ -14,8 +14,8 @@
    limitations under the License.
 -------------------------------------------------------------------------------}
 
-///	<summary>Defines the DB access controller, an implementation of RBAC that
-///	uses roles and permissions stored in two database tables.</summary>
+/// <summary>Defines the DB access controller, an implementation of RBAC that
+/// uses roles and permissions stored in two database tables.</summary>
 unit Kitto.AccessControl.DB;
 
 {$I Kitto.Defines.inc}
@@ -39,9 +39,9 @@ const
     + 'order by ROLE_NAME';
 
 type
-  ///	<summary>Utility class used by <see cref="TKDBAccessController" />.
-  ///	Encapsulates the permission storage for a user and all the roles granted
-  ///	to him.</summary>
+  /// <summary>Utility class used by <see cref="TKDBAccessController" />.
+  /// Encapsulates the permission storage for a user and all the roles granted
+  /// to him.</summary>
   TKUserPermissionStorage = class(TEFComponent)
   private
     // Field indexes.
@@ -62,129 +62,129 @@ type
     procedure AfterConstruction; override;
     destructor Destroy; override;
 
-    ///	<summary>Name of the user whose this object is holding permissions. Set
-    ///	this property to have all permissions for a given user and all his
-    ///	roles loaded into memory.</summary>
+    /// <summary>Name of the user whose this object is holding permissions. Set
+    /// this property to have all permissions for a given user and all his
+    /// roles loaded into memory.</summary>
     property UserId: string read FUserId write SetUserId;
 
-    ///	<summary>
-    ///	  <para>Returns the grant value for the specified resource URI and
-    ///	  access mode, fetching it from the in-memory data.</para>
-    ///	  <para>Call this method only after setting UserId. If several
-    ///	  permission records are found, the value of the last one is returned;
-    ///	  the search sequence is: first user permissions, then roles
-    ///	  permissions in role name alphabetical order.</para>
-    ///	  <para>Standard modes (which are all Boolean) are treated slightly
-    ///	  differently:</para>
-    ///	  <list type="bullet">
-    ///	    <item>If True is found, then the search continues until False is
-    ///	    found (in which case the method returns False) or all records are
-    ///	    processed (in which case the method returns True). This allows to
-    ///	    selectively deny permissions.</item>
-    ///	    <item>If no matching permission record is found, then Null is
-    ///	    returned.</item>
-    ///	  </list>
-    ///	</summary>
+    /// <summary>
+    ///   <para>Returns the grant value for the specified resource URI and
+    ///   access mode, fetching it from the in-memory data.</para>
+    ///   <para>Call this method only after setting UserId. If several
+    ///   permission records are found, the value of the last one is returned;
+    ///   the search sequence is: first user permissions, then roles
+    ///   permissions in role name alphabetical order.</para>
+    ///   <para>Standard modes (which are all Boolean) are treated slightly
+    ///   differently:</para>
+    ///   <list type="bullet">
+    ///     <item>If True is found, then the search continues until False is
+    ///     found (in which case the method returns False) or all records are
+    ///     processed (in which case the method returns True). This allows to
+    ///     selectively deny permissions.</item>
+    ///     <item>If no matching permission record is found, then Null is
+    ///     returned.</item>
+    ///   </list>
+    /// </summary>
     function GetAccessGrantValue(const AResourceURI, AMode: string): Variant;
 
-    ///	<summary>See the same-named param in <see cref=
-    ///	"TKDBAccessController" />.</summary>
+    /// <summary>See the same-named param in <see cref=
+    /// "TKDBAccessController" />.</summary>
     property ReadPermissionsCommandText: string
       read FReadPermissionsCommandText write FReadPermissionsCommandText;
 
-    ///	<summary>See the same-named param in <see cref=
-    ///	"TKDBAccessController" />.</summary>
+    /// <summary>See the same-named param in <see cref=
+    /// "TKDBAccessController" />.</summary>
     property ReadRolesCommandText: string
       read FReadRolesCommandText write FReadRolesCommandText;
   end;
 
-  ///	<summary>
-  ///	  <para>The DB access controller uses a set of tables in the database to
-  ///	  store user permissions. The tables have fixed structures; to use
-  ///	  different table names or structures, you either create a descendant or
-  ///	  set parameters.</para>
-  ///	  <para>In order for this access controller to work, it is required that
-  ///	  the database contains the following tables:</para>
-  ///	  <para><b>KITTO_USER_ROLES</b>This table holds the roles that are
-  ///	  assigned to each user.</para>
-  ///	  <list type="table">
-  ///	    <listheader>
-  ///	      <term>Term</term>
-  ///	      <description>Description</description>
-  ///	    </listheader>
-  ///	    <item>
-  ///	      <term>USER_NAME</term>
-  ///	      <description>Unique user identifier.</description>
-  ///	    </item>
-  ///	    <item>
-  ///	      <term>ROLE_NAME</term>
-  ///	      <description>Unique role identifier.</description>
-  ///	    </item>
-  ///	  </list>
-  ///	  <para>The USER_NAME + ROLE_NAME combination must be unique.</para>
-  ///	  <para><b>KITTO_PERMISSIONS</b>This table holds the permissions granted
-  ///	  to each user or role.</para>
-  ///	  <list type="table">
-  ///	    <listheader>
-  ///	      <term>Term</term>
-  ///	      <description>Description</description>
-  ///	    </listheader>
-  ///	    <item>
-  ///	      <term>RESOURCE_URI_PATTERN</term>
-  ///	      <description>Unique resource URI; may contain the wildcards * and
-  ///	      ?; may begin with ~, which has the effect of negating the rest of
-  ///	      the pattern; may contain macros, which are expanded before
-  ///	      evaluation; may contain a regular expression, if prefixed with
-  ///	      'REGEX:', or a negated regular expression
-  ///	      ('~REGEX:').</description>
-  ///	    </item>
-  ///	    <item>
-  ///	      <term>GRANTEE_NAME</term>
-  ///	      <description>User or role name.</description>
-  ///	    </item>
-  ///	    <item>
-  ///	      <term>ACCESS_MODES</term>
-  ///	      <description>Comma-separated list of access modes for which the
-  ///	      permission is granted; no spaces allowed.</description>
-  ///	    </item>
-  ///	    <item>
-  ///	      <term>GRANT_VALUE</term>
-  ///	      <description>Granted value; use '0' and '1' for Boolean
-  ///	      values.</description>
-  ///	    </item>
-  ///	  </list>
-  ///	  <para>The first three fields are unique. The first time an access
-  ///	  control method is called, the access controller fetches all permission
-  ///	  data for the specified user and all the roles granted to him, and then
-  ///	  checks how access is granted and returns the result.</para>
-  ///	  <para><b>Config parameters:</b></para>
-  ///	  <list type="table">
-  ///	    <listheader>
-  ///	      <term>Term</term>
-  ///	      <description>Description</description>
-  ///	    </listheader>
-  ///	    <item>
-  ///	      <term>ReadPermissionsCommandText</term>
-  ///	      <description>A SQL select statement that selects all permission
-  ///	      records for a grantee, with the first three fields representing the
-  ///	      first tree fields in KITTO_PERMISSIONS and a single string
-  ///	      parameter that will be filled in with the grantee name. Example
-  ///	      (this is also the default setting):select RESOURCE_URI_PATTERN,
-  ///	      ACCESS_MODES, GRANT_VALUEfrom KITTO_PERMISSIONS where GRANTEE_NAME
-  ///	      = :GRANTEE_NAMEorder by RESOURCE_URI_PATTERN,
-  ///	      ACCESS_MODES</description>
-  ///	    </item>
-  ///	    <item>
-  ///	      <term>ReadRolesCommandText</term>
-  ///	      <description>A SQL select statement that selects all roles granted
-  ///	      to a user, with a single field representing the role name and a
-  ///	      single string parameter that will be filled in with the user name.
-  ///	      Example (this is also the default setting): select ROLE_NAME from
-  ///	      KITTO_USER_ROLES where USER_NAME = :USER_NAME order by
-  ///	      ROLE_NAME</description>
-  ///	    </item>
-  ///	  </list>
-  ///	</summary>
+  /// <summary>
+  ///   <para>The DB access controller uses a set of tables in the database to
+  ///   store user permissions. The tables have fixed structures; to use
+  ///   different table names or structures, you either create a descendant or
+  ///   set parameters.</para>
+  ///   <para>In order for this access controller to work, it is required that
+  ///   the database contains the following tables:</para>
+  ///   <para><b>KITTO_USER_ROLES</b>This table holds the roles that are
+  ///   assigned to each user.</para>
+  ///   <list type="table">
+  ///     <listheader>
+  ///       <term>Term</term>
+  ///       <description>Description</description>
+  ///     </listheader>
+  ///     <item>
+  ///       <term>USER_NAME</term>
+  ///       <description>Unique user identifier.</description>
+  ///     </item>
+  ///     <item>
+  ///       <term>ROLE_NAME</term>
+  ///       <description>Unique role identifier.</description>
+  ///     </item>
+  ///   </list>
+  ///   <para>The USER_NAME + ROLE_NAME combination must be unique.</para>
+  ///   <para><b>KITTO_PERMISSIONS</b>This table holds the permissions granted
+  ///   to each user or role.</para>
+  ///   <list type="table">
+  ///     <listheader>
+  ///       <term>Term</term>
+  ///       <description>Description</description>
+  ///     </listheader>
+  ///     <item>
+  ///       <term>RESOURCE_URI_PATTERN</term>
+  ///       <description>Unique resource URI; may contain the wildcards * and
+  ///       ?; may begin with ~, which has the effect of negating the rest of
+  ///       the pattern; may contain macros, which are expanded before
+  ///       evaluation; may contain a regular expression, if prefixed with
+  ///       'REGEX:', or a negated regular expression
+  ///       ('~REGEX:').</description>
+  ///     </item>
+  ///     <item>
+  ///       <term>GRANTEE_NAME</term>
+  ///       <description>User or role name.</description>
+  ///     </item>
+  ///     <item>
+  ///       <term>ACCESS_MODES</term>
+  ///       <description>Comma-separated list of access modes for which the
+  ///       permission is granted; no spaces allowed.</description>
+  ///     </item>
+  ///     <item>
+  ///       <term>GRANT_VALUE</term>
+  ///       <description>Granted value; use '0' and '1' for Boolean
+  ///       values.</description>
+  ///     </item>
+  ///   </list>
+  ///   <para>The first three fields are unique. The first time an access
+  ///   control method is called, the access controller fetches all permission
+  ///   data for the specified user and all the roles granted to him, and then
+  ///   checks how access is granted and returns the result.</para>
+  ///   <para><b>Config parameters:</b></para>
+  ///   <list type="table">
+  ///     <listheader>
+  ///       <term>Term</term>
+  ///       <description>Description</description>
+  ///     </listheader>
+  ///     <item>
+  ///       <term>ReadPermissionsCommandText</term>
+  ///       <description>A SQL select statement that selects all permission
+  ///       records for a grantee, with the first three fields representing the
+  ///       first tree fields in KITTO_PERMISSIONS and a single string
+  ///       parameter that will be filled in with the grantee name. Example
+  ///       (this is also the default setting):select RESOURCE_URI_PATTERN,
+  ///       ACCESS_MODES, GRANT_VALUEfrom KITTO_PERMISSIONS where GRANTEE_NAME
+  ///       = :GRANTEE_NAMEorder by RESOURCE_URI_PATTERN,
+  ///       ACCESS_MODES</description>
+  ///     </item>
+  ///     <item>
+  ///       <term>ReadRolesCommandText</term>
+  ///       <description>A SQL select statement that selects all roles granted
+  ///       to a user, with a single field representing the role name and a
+  ///       single string parameter that will be filled in with the user name.
+  ///       Example (this is also the default setting): select ROLE_NAME from
+  ///       KITTO_USER_ROLES where USER_NAME = :USER_NAME order by
+  ///       ROLE_NAME</description>
+  ///     </item>
+  ///   </list>
+  /// </summary>
   TKDBAccessController = class(TKAccessController)
   private
     FUserPermissions: TStringList;
@@ -349,7 +349,7 @@ begin
   begin
     LRecord := FPermissions.Records[I];
     LPattern := LRecord[RESOURCE_URI_PATTERN].AsString;
-    // Only trigger macro expansion is a macro is found. Ugly, but more
+    // Only trigger macro expansion if a macro is found. Ugly, but more
     // efficient.
     if Pos('%', LPattern) > 0 then
       LPattern := TKConfig.Instance.MacroExpansionEngine.Expand(LPattern);
