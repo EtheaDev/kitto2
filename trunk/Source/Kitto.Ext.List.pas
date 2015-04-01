@@ -32,6 +32,7 @@ type
     FConnector: string;
     FOnChange: TNotifyEvent;
     FView: TKDataView;
+    FLiveMode: Boolean;
     procedure DoChange;
     function IsFilterVisible(const AResourceName: string): Boolean;
     function GetFilterResourceURI(const AResourceName: string): string;
@@ -41,8 +42,7 @@ type
   public
     procedure Configure(const AViewTable: TKViewTable; const AConfig: TEFNode);
     function GetFilterExpression: string;
-    procedure UpdateObserver(const ASubject: IEFSubject;
-      const AContext: string = ''); override;
+    procedure UpdateObserver(const ASubject: IEFSubject; const AContext: string = ''); override;
     property OnChange: TNotifyEvent read FOnChange write FOnChange;
   end;
 
@@ -72,7 +72,7 @@ type
 implementation
 
 uses
-  SysUtils,
+  SysUtils, StrUtils,
   EF.Localization, EF.StrUtils,
   Kitto.Types, Kitto.Config, Kitto.AccessControl,
   Kitto.Ext.Session, Kitto.Ext.Controller, Kitto.Ext.Filters;
@@ -110,21 +110,31 @@ var
   LFilterResourceName: string;
   LCurrentPanel: TKExtFilterPanel;
 
-  function CreateColumnBreak: TKExtFilterPanel;
+  function CreateColumnBreak(const ANode: TEFNode): TKExtFilterPanel;
   var
-    LColumnBreak: TKExtFilterPanel;
+    LColumnWidth: Double;
   begin
-    LColumnBreak := TKExtFilterPanel.CreateAndAddTo(Items);
-    LColumnBreak.Border := False;
-    LColumnBreak.Layout := lyForm;
-    LColumnBreak.Collapsible := False;
-    LColumnBreak.Frame := False;
-    LColumnBreak.FConnector := FConnector;
-    LColumnBreak.LabelWidth := LabelWidth;
-    Result := LColumnBreak;
+    Result := TKExtFilterPanel.CreateAndAddTo(Items);
+    try
+      Result.Border := False;
+      Result.Layout := lyForm;
+      Result.Collapsible := False;
+      Result.Frame := False;
+      Result.FConnector := FConnector;
+      Result.LabelWidth := LabelWidth;
+      if Assigned(ANode) then
+      begin
+        LColumnWidth := ANode.GetFloat('ColumnWidth');
+        if LColumnWidth <> 0 then
+          Result.ColumnWidth := LColumnWidth;
+      end;
+    except
+      FreeAndNil(Result);
+      raise;
+    end;
   end;
 
-  procedure SetLabelWidthAndAlign(ANode: TEFNode; ADefaultLabelAlign: TExtFormFormPanelLabelAlign);
+  procedure SetLabelWidthAndAlign(const ANode: TEFNode; const ADefaultLabelAlign: TExtFormFormPanelLabelAlign);
   var
     LLabelNode: TEFNode;
     LWidth: Integer;
@@ -154,12 +164,13 @@ begin
   LItems := AConfig.GetNode('Items');
   if LItems.FindNode('ColumnBreak') <> nil then
   begin
-    Layout := lyColumn;
-    LCurrentPanel := CreateColumnBreak;
+    Layout := lyHbox;
+    LCurrentPanel := CreateColumnBreak(nil);
   end
   else
     LCurrentPanel := Self;
 
+  FLiveMode := LItems.FindNode('ApplyButton') = nil;
   SetLabelWidthAndAlign(AConfig, laRight);
   Self.LabelAlign := LCurrentPanel.LabelAlign;
   Self.LabelWidth := LCurrentPanel.LabelWidth;
@@ -173,7 +184,7 @@ begin
       LNode.SetBoolean('Sys/IsReadOnly', IsFilterReadOnly(LFilterResourceName));
       if SameText(LNode.Name, 'ColumnBreak') then
       begin
-        LCurrentPanel := CreateColumnBreak;
+        LCurrentPanel := CreateColumnBreak(LNode);
         SetLabelWidthAndAlign(LNode, Self.LabelAlign);
       end
       else
@@ -228,7 +239,7 @@ procedure TKExtFilterPanel.UpdateObserver(const ASubject: IEFSubject;
   const AContext: string);
 begin
   inherited;
-  if AContext = 'FilterChanged' then
+  if AContext = IfThen(FLiveMode, 'FilterChanged', 'FilterApplied') then
     DoChange;
 end;
 

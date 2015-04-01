@@ -32,9 +32,9 @@ type
     procedure Apply(const AProc: TProc<TExtObject>);
   end;
 
-  ///	<summary>
-  ///	 Base Ext window with subject, observer and controller capabilities.
-  ///	</summary>
+  /// <summary>
+  ///  Base Ext window with subject, observer and controller capabilities.
+  /// </summary>
   TKExtWindowControllerBase = class(TExtWindow, IInterface, IEFInterface, IEFSubject, IEFObserver, IKExtController)
   strict private
     FSubjObserverImpl: TEFSubjectAndObserver;
@@ -78,18 +78,18 @@ type
   protected
     procedure InitDefaults; override;
   public
-    ///	<summary>
+    /// <summary>
     ///  Call this after adding the panel so that the window can hook its
     ///  beforeclose event and close itself.
-    ///	<summary>
+    /// <summary>
     procedure HookPanel(const APanel: TExtPanel);
   published
     procedure PanelClosed;
   end;
 
-  ///	<summary>
-  ///	 Base ext viewport with subject, observer and controller capabilities.
-  ///	</summary>
+  /// <summary>
+  ///  Base ext viewport with subject, observer and controller capabilities.
+  /// </summary>
   TKExtViewportControllerBase = class(TExtViewport, IInterface, IEFInterface, IEFSubject, IEFObserver, IKExtController)
   private
     FSubjObserverImpl: TEFSubjectAndObserver;
@@ -121,10 +121,10 @@ type
     procedure Display;
   end;
 
-  ///	<summary>
-  ///	  Implemented by controllers that host panels and are able to close them
-  ///	  on request, such as the TabPanel controller.
-  ///	</summary>
+  /// <summary>
+  ///   Implemented by controllers that host panels and are able to close them
+  ///   on request, such as the TabPanel controller.
+  /// </summary>
   IKExtPanelHost = interface(IEFInterface)
     ['{F1DCE0C8-1CD9-4F97-9315-7FB2AC9CAADC}']
     procedure ClosePanel(const APanel: TExtComponent);
@@ -143,9 +143,9 @@ type
     property VisibleButtonCount: Integer read GetVisibleButtonCount;
   end;
 
-  ///	<summary>
-  ///	  Base Ext panel with subject and observer capabilities.
-  ///	</summary>
+  /// <summary>
+  ///   Base Ext panel with subject and observer capabilities.
+  /// </summary>
   TKExtPanelBase = class(TExtPanel, IInterface, IEFInterface, IEFSubject, IEFObserver)
   private
     FSubjObserverImpl: TEFSubjectAndObserver;
@@ -172,13 +172,22 @@ type
     property Config: TEFNode read GetConfig;
   end;
 
-  TKExtButton = class(TExtButton)
+  TKExtButton = class(TExtButton, IEFSubject, IEFObserver)
   strict private
+    FSubjObserverImpl: TEFSubjectAndObserver;
     FUniqueId: string;
   strict protected
     function FindOwnerToolbar: TKExtToolbar;
     function GetOwnerToolbar: TKExtToolbar;
+  protected
+    procedure InitDefaults; override;
   public
+    destructor Destroy; override;
+    function AsObject: TObject;
+    procedure AttachObserver(const AObserver: IEFObserver); virtual;
+    procedure DetachObserver(const AObserver: IEFObserver); virtual;
+    procedure NotifyObservers(const AContext: string = ''); virtual;
+    procedure UpdateObserver(const ASubject: IEFSubject; const AContext: string = ''); virtual;
     // Unique Id of the button in its toolbar (if any).
     property UniqueId: string read FUniqueId write FUniqueId;
     procedure SetIconAndScale(const AIconName: string; const AScale: string = '');
@@ -1531,6 +1540,27 @@ end;
 
 { TKExtButton }
 
+function TKExtButton.AsObject: TObject;
+begin
+  Result := Self;
+end;
+
+procedure TKExtButton.AttachObserver(const AObserver: IEFObserver);
+begin
+  FSubjObserverImpl.AttachObserver(AObserver);
+end;
+
+destructor TKExtButton.Destroy;
+begin
+  FreeAndNil(FSubjObserverImpl);
+  inherited;
+end;
+
+procedure TKExtButton.DetachObserver(const AObserver: IEFObserver);
+begin
+  FSubjObserverImpl.DetachObserver(AObserver);
+end;
+
 function TKExtButton.FindOwnerToolbar: TKExtToolbar;
 begin
   if (Owner is TExtObjectList) and (TExtObjectList(Owner).Owner is TKExtToolbar) then
@@ -1544,6 +1574,17 @@ begin
   Result := FindOwnerToolbar;
   if Result = nil then
     raise Exception.Create('Owner Toolbar not found');
+end;
+
+procedure TKExtButton.InitDefaults;
+begin
+  inherited;
+  FSubjObserverImpl := TEFSubjectAndObserver.Create;
+end;
+
+procedure TKExtButton.NotifyObservers(const AContext: string);
+begin
+  FSubjObserverImpl.NotifyObserversOnBehalfOf(Self, AContext);
 end;
 
 procedure TKExtButton.SetIconAndScale(const AIconName: string; const AScale: string);
@@ -1565,6 +1606,11 @@ begin
     LIconURL := Session.Config.FindImageURL(AIconName);
 
   Icon := LIconURL;
+end;
+
+procedure TKExtButton.UpdateObserver(const ASubject: IEFSubject;
+  const AContext: string);
+begin
 end;
 
 { TKExtToolbar }

@@ -256,13 +256,15 @@ type
 
   TKButtonListFilterBase = class(TKExtPanelBase)
   strict private
-    FSelected: array of Boolean;
+    FSelected: TArray<Boolean>;
   strict protected
     FConfig: TEFNode;
     FItems: TEFNode;
     FViewTable: TKViewTable;
     function RetrieveItems: TEFNode; virtual; abstract;
     function GetItemExpression(const AItemIndex: Integer): string; virtual; abstract;
+    function IsSingleSelect: Boolean;
+    function IsButtonVisible(const AResourceName: string): Boolean; virtual;
   public
     procedure SetConfig(const AConfig: TEFNode);
     function AsExtObject: TExtObject;
@@ -322,13 +324,31 @@ type
     destructor Destroy; override;
   end;
 
+  TKFilterApplyButton = class(TKExtButton, IKExtFilter)
+  public
+    function GetExpression: string;
+    procedure SetConfig(const AConfig: TEFNode);
+    function AsExtObject: TExtObject;
+    procedure SetViewTable(const AViewTable: TKViewTable);
+  published
+    procedure ButtonClick;
+  end;
+
+  TKFilterSpacer = class(TKExtPanelBase, IKExtFilter)
+  public
+    function GetExpression: string;
+    procedure SetConfig(const AConfig: TEFNode);
+    function AsExtObject: TExtObject;
+    procedure SetViewTable(const AViewTable: TKViewTable);
+  end;
+
 implementation
 
 uses
   SysUtils, Math, StrUtils,
   ExtPascalUtils,
   EF.Localization,  EF.DB, EF.StrUtils, EF.JSON,
-  Kitto.Types, Kitto.Config, Kitto.Ext.Session, Kitto.Ext.Utils;
+  Kitto.Types, Kitto.Config, KItto.AccessControl, Kitto.Ext.Session, Kitto.Ext.Utils;
 
 function GetDefaultFilter(const AItems: TEFNode): TEFNode;
 var
@@ -447,6 +467,13 @@ begin
 
   FConfig := AConfig;
   FieldLabel := _(AConfig.AsString);
+  TriggerAction := 'all';
+  Editable := True;
+  LazyRender := True;
+  SelectOnFocus := True;
+  AutoSelect := False;
+  AllowBlank := True;
+  Mode := 'local';
 end;
 
 procedure TKListFilterBase.SetViewTable(const AViewTable: TKViewTable);
@@ -481,15 +508,6 @@ begin
   Assert(Assigned(FItems));
 
   Width := CharsToPixels(AConfig.GetInteger('Width', GetLargestFilterDisplayLabelWidth + TRIGGER_WIDTH));
-  //ForceSelection := True;
-  TriggerAction := 'all';
-  Editable := True;
-  LazyRender := True;
-  SelectOnFocus := True;
-  AutoSelect := False;
-  AllowBlank := True;
-  Mode := 'local';
-  { TODO : design a naming scheme that allows master/details and maybe more instances of the same view }
   StoreArray := JSArray(PairsToJSON(FItems.GetChildPairs, False));
   //PageSize := 10;
   //Resizable := True;
@@ -584,15 +602,7 @@ var
   LDBQuery: TEFDBQuery;
 begin
   inherited;
-  //ForceSelection := True;
-  TriggerAction := 'all';
-  Editable := True;
   TypeAhead := True;
-  LazyRender := True;
-  SelectOnFocus := True;
-  AutoSelect := False;
-  //ForceSelection := True;
-  Mode := 'local';
   LDBQuery := Session.Config.DBConnections[GetDatabaseName(FConfig, Self, FViewTable.DatabaseName)].CreateDBQuery;
   try
     LDBQuery.CommandText := FConfig.GetExpandedString('CommandText');
@@ -617,7 +627,6 @@ begin
     Disabled := True
   else
   begin
-    //On('select', Ajax(Select, ['Value', GetEncodedValue()]));
     On('change', Ajax(ValueChanged, ['Value', GetEncodedValue()]));
     On('select', Ajax(ValueChanged, ['Value', GetEncodedValue()]));
     On('blur', JSFunction(Format('fireChangeIfEmpty(%s);', [JSName])));
@@ -795,10 +804,28 @@ end;
 
 { TKButtonListFilterBase }
 
+function TKButtonListFilterBase.IsButtonVisible(const AResourceName: string): Boolean;
+var
+  LResourceURI: string;
+begin
+  Result := True;
+  if Assigned(FViewTable) and Assigned(FConfig) then
+  begin
+    LResourceURI := FViewTable.View.GetResourceURI + '/Filters/' +  FConfig.GetExpandedString('ResourceName') + '/' + AResourceName;
+    Result := TKConfig.Instance.IsAccessGranted(LResourceURI, ACM_VIEW);
+  end;
+end;
+
+function TKButtonListFilterBase.IsSingleSelect: Boolean;
+begin
+  Result := FConfig.GetBoolean('IsSingleSelect');
+end;
+
 procedure TKButtonListFilterBase.SetConfig(const AConfig: TEFNode);
 var
   I: Integer;
-  LButton: TKExtButton;
+  LIsDefaultSet: Boolean;
+  LButtons: TArray<TKExtButton>;
 begin
   Assert(Assigned(AConfig));
 
@@ -810,22 +837,36 @@ begin
   Layout := lyColumn;
 
   SetLength(FSelected, FItems.ChildCount);
+  SetLength(LButtons, FItems.ChildCount);
+  LIsDefaultSet := False;
   for I := 0 to FItems.ChildCount - 1 do
   begin
-    LButton := TKExtButton.CreateAndAddTo(Items);
-    LButton.Scale := Config.GetString('ButtonScale', 'small');
-    LButton.Text := _(FItems.Children[I].AsString);
-    LButton.AllowDepress := True;
-    LButton.EnableToggle := True;
-    if FItems.Children[I].GetBoolean('IsDefault') then
+    LButtons[I] := TKExtButton.CreateAndAddTo(Items);
+    LButtons[I].Scale := Config.GetString('ButtonScale', 'small');
+    LButtons[I].Text := _(FItems.Children[I].AsString);
+    LButtons[I].AllowDepress := not IsSingleSelect;
+    LButtons[I].EnableToggle := True;
+    if IsButtonVisible(FItems.Children[I].GetExpandedString('ResourceName')) then
     begin
-      LButton.Pressed := True;
-      FSelected[I] := True;
-    end;
-    if FConfig.GetBoolean('Sys/IsReadOnly') then
-      LButton.Disabled := True
+      if IsSingleSelect then
+        LButtons[I].ToggleGroup := Integer(Pointer(Self)).ToString;
+      // In single select mode, only press the first default button.
+      if not IsSingleSelect or not LIsDefaultSet then
+      begin
+        if FItems.Children[I].GetBoolean('IsDefault') then
+        begin
+          LButtons[I].Pressed := True;
+          FSelected[I] := True;
+          LIsDefaultSet := True;
+        end;
+      end;
+      if FConfig.GetBoolean('Sys/IsReadOnly') then
+        LButtons[I].Disabled := True
+      else
+        LButtons[I].On('click', Ajax(ButtonClick, ['Index', I, 'Pressed', LButtons[I].Pressed_]));
+    end
     else
-      LButton.On('click', Ajax(ButtonClick, ['Index', I, 'Pressed', LButton.Pressed_]));
+      LButtons[I].Hidden := True;
   end;
 end;
 
@@ -843,14 +884,42 @@ procedure TKButtonListFilterBase.ButtonClick;
 var
   LPressed: Boolean;
   LIndex: Integer;
+  I: Integer;
+  LSelected: TArray<Boolean>;
+
+  procedure StoreSelection;
+  var
+    I: Integer;
+  begin
+    SetLength(LSelected, Length(FSelected));
+    for I := Low(FSelected) to High(FSelected) do
+      LSelected[I] := FSelected[I];
+  end;
+
+  function SelectionChanged: Boolean;
+  var
+    I: Integer;
+  begin
+    Result := False;
+    for I := Low(FSelected) to High(FSelected) do
+      if FSelected[I] <> LSelected[I] then
+        Exit(True);
+  end;
+
 begin
   LIndex := ParamAsInteger('Index');
   LPressed := ParamAsBoolean('Pressed');
-  if FSelected[LIndex] <> LPressed then
+  StoreSelection;
+  FSelected[LIndex] := LPressed;
+  // Deselect other options.
+  if IsSingleSelect then
   begin
-    FSelected[LIndex] := LPressed;
-    NotifyObservers('FilterChanged');
+    for I := 0 to High(FSelected) do
+      if I <> LIndex then
+        FSelected[I] := False;
   end;
+  if SelectionChanged then
+    NotifyObservers('FilterChanged');
 end;
 
 function TKButtonListFilterBase.GetExpression: string;
@@ -869,12 +938,14 @@ begin
     begin
       LExpression := GetItemExpression(I);
       if LExpression <> '' then
+      begin
         LExpression := '(' + LExpression + ')';
 
-      if Result = '' then
-        Result := LExpression
-      else
-        Result := Result + ' ' + LConnector + ' ' + LExpression;
+        if Result = '' then
+          Result := LExpression
+        else
+          Result := Result + ' ' + LConnector + ' ' + LExpression;
+      end;
     end;
   end;
   if Result <> '' then
@@ -941,6 +1012,67 @@ begin
   end;
 end;
 
+{ TKFilterApplyButton }
+
+function TKFilterApplyButton.AsExtObject: TExtObject;
+begin
+  Result := Self;
+end;
+
+procedure TKFilterApplyButton.ButtonClick;
+begin
+  NotifyObservers('FilterApplied');
+end;
+
+function TKFilterApplyButton.GetExpression: string;
+begin
+  Result := '';
+end;
+
+procedure TKFilterApplyButton.SetConfig(const AConfig: TEFNode);
+var
+  LText: string;
+begin
+  inherited;
+  Assert(Assigned(AConfig));
+  LText := AConfig.AsExpandedString;
+  if LText = '' then
+    LText := _('Apply');
+  Text := LText;
+  On('click', Ajax(ButtonClick));
+end;
+
+procedure TKFilterApplyButton.SetViewTable(const AViewTable: TKViewTable);
+begin
+end;
+
+{ TKFilterSpacer }
+
+function TKFilterSpacer.AsExtObject: TExtObject;
+begin
+  Result := Self;
+end;
+
+function TKFilterSpacer.GetExpression: string;
+begin
+  Result := '';
+end;
+
+procedure TKFilterSpacer.SetConfig(const AConfig: TEFNode);
+begin
+  Assert(Assigned(AConfig));
+
+  Width := CharsToPixels(AConfig.GetInteger('Width', DEFAULT_FILTER_WIDTH));
+  // Hide keeping set width.
+  Title := '&nbsp;';
+  //On('afterrender', JSFunction(JSName + '.getEl().setOpacity(0);'));
+  Session.ResponseItems.ExecuteJSCode(Self, JSName + '.getEl().setOpacity(0);');
+end;
+
+procedure TKFilterSpacer.SetViewTable(const AViewTable: TKViewTable);
+begin
+end;
+
 initialization
   TKExtFilterRegistry.Instance.RegisterClass('List', TKListFilter);
   TKExtFilterRegistry.Instance.RegisterClass('DynaList', TKDynaListFilter);
@@ -949,6 +1081,8 @@ initialization
   TKExtFilterRegistry.Instance.RegisterClass('DynaButtonList', TKDynaButtonListFilter);
   TKExtFilterRegistry.Instance.RegisterClass('DateSearch', TKDateSearchFilter);
   TKExtFilterRegistry.Instance.RegisterClass('BooleanSearch', TKBooleanSearchFilter);
+  TKExtFilterRegistry.Instance.RegisterClass('ApplyButton', TKFilterApplyButton);
+  TKExtFilterRegistry.Instance.RegisterClass('Spacer', TKFilterSpacer);
 
 finalization
   TKExtFilterRegistry.Instance.UnregisterClass('List');
@@ -958,5 +1092,7 @@ finalization
   TKExtFilterRegistry.Instance.UnregisterClass('DynaButtonList');
   TKExtFilterRegistry.Instance.UnregisterClass('DateSearch');
   TKExtFilterRegistry.Instance.UnregisterClass('BooleanSearch');
+  TKExtFilterRegistry.Instance.UnregisterClass('ApplyButton');
+  TKExtFilterRegistry.Instance.UnregisterClass('Spacer');
 
 end.
