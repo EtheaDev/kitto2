@@ -1,0 +1,15 @@
+﻿Type: Data
+DisplayLabel: _(New Girl)
+ImageName: Girl_add
+Controller: Form
+  Operation: Add
+
+MainTable:
+  Model: Girl
+  Fields:
+    Girl_Id:
+      IsVisible: False
+    Girl_Name:
+    Age:
+    Phone:
+    Hair:

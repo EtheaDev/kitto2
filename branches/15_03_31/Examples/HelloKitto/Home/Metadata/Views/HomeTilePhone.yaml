@@ -1,0 +1,26 @@
+﻿DisplayLabel: %Config:AppTitle%
+# Valid top-level controllers are Window and Viewport
+Controller: Viewport
+
+  SubView:
+    Controller: BorderPanel
+
+      CenterView:
+        Controller: TilePanel
+          ColorSet: Red
+          Border: True
+          TileHeight: 50
+          TileWidth: 100
+          TreeView: MainMenuTilePhone
+
+      SouthView:
+        Controller: StatusBar
+          Text: _(User: %Auth:UserName%)
+        ImageName: user
+
+MobileSettings:
+  ViewportContent:
+    width: 320
+    user-scalable: 0
+  Android:
+    Manifest: HomeTilePhone.json

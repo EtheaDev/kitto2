@@ -1,0 +1,45 @@
+﻿Type: Data
+
+Controller: List
+  GridPanelController: TemplateDataPanel
+    Template: |
+      <tpl for=".">
+        <div id="{Doll_Id}">
+          <p>Name:<b>{Doll_Name}</b> - Bought Date: <b>{Date_Bought:date}</b></br>
+          Hair:<b>{Hair}</b> - Dress size:<b>{Dress_Size}</b></p>
+          </div>
+        </div>
+      </tpl>
+    RequireSelection: False
+
+MainTable:
+  Model: Doll
+  Fields:
+    Doll_Id:
+    Doll_Name:
+    Date_Bought:
+    Hair:
+    Dress_Size:
+    Mom:
+    Mom.Phone: Mom_Phone
+      DisplayLabel: _(Mom's Phone)
+    Aspect:
+    Picture:
+
+  Controller:
+    AllowViewing: True
+    PopupWindow:
+      Height: 500
+      Width: 400
+    ToolViews:
+      DownloadText:
+        DisplayLabel: _(Download in TXT)
+        Controller: ExportTextTool
+          RequireSelection: False
+          IncludeHeader: False
+          ClientFileName: DollList.txt
+      DownloadCSV:
+        DisplayLabel: _(Download in CSV)
+        ImageName: download
+        Controller: ExportCSVTool
+          RequireSelection: False

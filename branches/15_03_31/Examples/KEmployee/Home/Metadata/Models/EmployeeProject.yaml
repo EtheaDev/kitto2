@@ -1,0 +1,14 @@
+﻿ModelName: EmployeeProject
+PhysicalName: EMPLOYEE_PROJECT
+Fields:
+  EmpNoRef: Reference(Employee) not null primary key
+    .PhysicalName: EMP_NO
+    Fields:
+      EmpNo:
+        PhysicalName: EMP_NO
+  ProjRef: Reference(Project) not null primary key
+    .PhysicalName: PROJ_ID
+    Fields:
+      ProjId:
+        PhysicalName: PROJ_ID
+ImageName: reseller_programm

@@ -1,0 +1,70 @@
+<style type="text/css">
+.Table_Title {
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 18px;
+	font-weight: bold;
+	color: #FFFFFF;
+	background-color: #BAECFC;
+	padding: 2px;
+}
+.Table_Header {
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 12px;
+	font-weight: bold;
+	color: #FFFFFF;
+	background-color: #3300FF;
+	padding: 2px;
+	border: thin solid #0066FF;
+}
+.Table_Body {
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 12px;
+	font-weight: bold;
+	color: #333333;
+	background-color: #FFFF99;
+	padding: 2px;
+	border: thin solid #FFCC00;	
+}
+.ReportTitle {
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 24px;
+	font-weight: bold;
+	color: #000033;
+}
+</style>
+<div class="Table_Title">
+<table width="100%"  border="0">
+  <tr>
+    <td width="33%">
+      <p align="left" class="ReportTitle">Report</p>	</td>
+    <td width="34%">
+    <p align="center" class="ReportTitle">ACTIVITY LIST</p>	</td>
+    <td width="33%">
+    <p align="right"><img src="%IMAGE(taskitto_logo_150)%" /></p>	</td>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr>
+    <td width="15%" class="Table_Header">Description</td>
+    <td width="15%" class="Table_Header">Phase</td>
+    <td width="20%" class="Table_Header">Employee</td>
+    <td width="15%" class="Table_Header">Role</td>
+    <td width="15%" class="Table_Header">Type</td>
+    <td width="10%" class="Table_Header"><div align="center">Activity Date </div></td>
+    <td width="5%" class="Table_Header"><div align="center">Start Time </div></td>
+    <td width="5%" class="Table_Header"><div align="center">End Time </div></td>
+  </tr>
+<tpl for=".">
+  <tr>
+    <td class="Table_Body">{DESCRIPTION}</td>
+    <td class="Table_Body">{PHASE}</td>
+    <td class="Table_Body">{EMPLOYEE}</td>
+    <td class="Table_Body">{ROLE}</td>
+    <td class="Table_Body">{TYPE}</td>
+    <td class="Table_Body">{ACTIVITY_DATE:date}</td>
+    <td class="Table_Body">{START_TIME}</td>
+    <td class="Table_Body">{END_TIME}</td>
+  </tr>
+</tpl>
+</table>
+</div>

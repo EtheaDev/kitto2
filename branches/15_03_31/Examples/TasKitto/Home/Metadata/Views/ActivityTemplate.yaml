@@ -1,0 +1,90 @@
+﻿Type: Data
+DisplayLabel: Activity Report
+Controller: List
+  GridPanelController: TemplateDataPanel
+    Template: %APP_PATH%ReportTemplates\ActivityReport.html
+    RequireSelection: False
+
+  Filters:
+    DisplayLabel: Search panel
+    LabelWidth: 90
+    Connector: and
+    Items:
+      FreeSearch: Description
+        ExpressionTemplate: (UPPER(Activity.Description) like UPPER('%{value}%'))
+      DynaList: Activity Type
+        Width: 20
+        CommandText: |
+          select first 1 '%' TYPE_ID, '(All)' TYPE_NAME from kitto_users
+            union all
+          select TYPE_ID, TYPE_NAME from ACTIVITY_TYPE 
+            order by 2
+        ExpressionTemplate: Activity.TYPE_ID like '{value}'
+      ColumnBreak:
+        LabelWidth: 50
+      DateSearch: From
+        ExpressionTemplate: ACTIVITY_DATE >= '{value}'
+      DateSearch: To
+        ExpressionTemplate: ACTIVITY_DATE <= '{value}'
+      ColumnBreak:
+        LabelWidth: 80
+      List: Period
+        Items:
+          Today: Today
+            Expression: (ACTIVITY_DATE > %DB.CURRENT_DATE%-1)
+          LastWeek: Last Week
+            Expression: (ACTIVITY_DATE <= %DB.CURRENT_DATE%) and (ACTIVITY_DATE >= %DB.CURRENT_DATE% - 7)
+          CurrMonth: Current Month
+            Expression: |
+              EXTRACT(month FROM ACTIVITY_DATE) = EXTRACT(month FROM %DB.CURRENT_DATE%) 
+              and EXTRACT(year FROM ACTIVITY_DATE) = EXTRACT(year FROM %DB.CURRENT_DATE%)                
+          CurrYear: Current Year
+            Expression: EXTRACT(year FROM ACTIVITY_DATE) = EXTRACT(year FROM %DB.CURRENT_DATE%)
+          All: Whole Archive
+            Expression: 1=1
+            IsDefault: True
+      FreeSearch: Last N Days
+        ExpressionTemplate: ACTIVITY_DATE >= (getDate() - {value})
+
+MainTable:
+  Model: ACTIVITY
+  Controller:
+    ToolViews:
+      DownloadText:
+        DisplayLabel: Download in TXT
+        Controller: ExportTextTool
+          RequireSelection: False
+          IncludeHeader: False
+          ClientFileName: ActivityList_%YYYYMMDD_DATE%_%HHMM_TIME%.txt
+      DownloadCSV:
+        DisplayLabel: Download in CSV
+        ImageName: download
+        Controller: ExportCSVTool
+          RequireSelection: False
+      DownloadExcel:
+        DisplayLabel: Download in Excel
+        Controller: ExportExcelTool
+          ClientFileName: ActivityList.xls
+          TemplateFileName: %APP_PATH%ReportTemplates\ActivityList.xlt
+          RequireSelection: False
+      FOPReport:
+        DisplayLabel: Activity by FOP
+        Controller: FOPTool
+          ClientFileName: ActivityByFOP.pdf
+          TransformFileName: %APP_PATH%ReportTemplates\ActivityReport.xsl
+          RequireSelection: False
+      HTMLReport:
+        DisplayLabel: Activity by XSL-Html
+        Controller: XSLTool
+          ClientFileName: ActivityByXSL.html
+          TransformFileName: %APP_PATH%ReportTemplates\ActivityReportHtml.xsl
+          RequireSelection: False
+      TestDownload:
+        DisplayLabel: Download a file
+        ImageName: download
+        Controller: DownloadFile
+          ConfirmationMessage: Are you sure you want to download the file?
+          RequireSelection: False
+          FileName: %APP_PATH%\Resources\taskitto_logo_150.png
+          ClientFileName: takitto_logo.png
+          ContentType: image/png

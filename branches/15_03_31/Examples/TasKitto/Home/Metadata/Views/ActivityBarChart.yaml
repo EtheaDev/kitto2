@@ -1,0 +1,70 @@
+﻿Type: Data
+DisplayLabel: Line Chart
+Controller: List
+
+  EastController: ChartPanel
+    Width: 800
+    Chart:
+      Type: Line
+      Axes:
+        X:
+          Field: ACTIVITY_DATE
+          Title: _(Days of activities)
+          .MajorTimeUnit: days
+          MajorUnit: 1
+        Y:
+          Min: 0
+          Max: 15
+          MajorUnit: 1
+      Series:
+        Series:
+          Type: Line
+          XField: ACTIVITY_DATE
+          YField: DURATION
+          DisplayName: _(Date)
+          Style:
+            Color: 6709248
+        Series:
+          Type: Column
+          YField: DURATION
+          DisplayName: _(Duration)
+          Style:
+            Mode: stretch
+            image: %IMAGE(chart_column_bar)%
+
+  .WestController: ChartPanel
+    Width: 800
+    Chart:
+      .Width: 800
+      Type: StackedBar
+      Axes:
+        Y:
+          Field: ACTIVITY_DATE
+          Title: _(Day)
+        .X:
+          MajorUnit: 1
+      Series:
+        Series:
+          Stacked: True
+          XField: DURATION
+          YField: ACTIVITY_DATE
+          DisplayName: _(Duration)
+          Style:
+            Color: 1638
+        Series:
+          XField: ACTIVITIES
+          YField: ACTIVITY_DATE
+          DisplayName: _(Activities)
+          Style:
+            Color: 6709248
+      ChartStyle: |
+        {
+          legend: {
+            display: 'bottom'
+          }
+        }
+
+MainTable:
+  IsReadOnly: True
+  Model: ACTIVITY_BY_DATE
+ImageName: chart_bar
