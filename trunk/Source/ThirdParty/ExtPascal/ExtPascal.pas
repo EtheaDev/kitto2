@@ -270,8 +270,8 @@ type
     function AddJSReturn(Expression : string; MethodsValues : array of const): string;
     function FindMethod(Method : TExtProcedure; var PascalName, ObjName : string) : TExtFunction;
     function GetDownloadJS(Method: TExtProcedure; Params: array of const): string;
-    function DoGetAjaxCode(const AMethodName, ARawParams: string;
-      const AParams: array of const; const AExtraCode: string): string;
+    function DoGetAjaxCode(const AMethodName, ARawParams: string; const AParams: array of const;
+      const AExtraCode: string): string;
   protected
     // Set by some classes with custom constructors that need to call the
     // inherited Create with a custom string to be passed to CreateVar.
@@ -368,6 +368,8 @@ type
     // Use these to generate and return js code that performs an ajax call, useful
     // when building js handlers. These methods DO NOT add any code to the
     // current response.
+    function GetAjaxCode(const AMethod: TExtProcedure; const AParams: array of const;
+      const AExtraCode: string): string; overload;
     function GetAjaxCode(const AMethodName, ARawParams: string;
       const AParams: array of const): string; overload;
     function GetAjaxCode(const AMethod: TExtProcedure;
@@ -414,7 +416,7 @@ type
   TExtSession = class(TWebSession)
   private
     FObjectSequences: TDictionary<string, Cardinal>;
-    FStyles, FLibraries, FCustomJS, FLanguage : string;
+    FStyles, FLibraries, FLanguage : string;
     JSReturns : TStringList;
     FResponseItemsStack: TStack<TExtResponseItems>;
     Sequence: Cardinal;
@@ -435,6 +437,7 @@ type
     procedure SetLanguage(const AValue: string); virtual;
     function GetViewportContent: string; virtual;
     function GetManifestFileName: string; virtual;
+    function GetCustomJS: string; virtual;
   public
     HTMLQuirksMode : boolean; // Defines the (X)HTML DocType. True to Transitional (Quirks mode) or false to Strict. Default is false.
     Theme     : string; // Sets or gets Ext JS installed theme, default '' that is Ext Blue theme
@@ -451,7 +454,6 @@ type
     procedure SetLibrary(pLibrary : string = ''; CSS : boolean = false; HasDebug : boolean = false; DisableExistenceCheck : boolean = false);
     procedure SetCSS(pCSS : string; Check : boolean = true);
     procedure SetIconCls(Cls : array of string);
-    procedure SetCustomJS(JS : string = '');
     procedure ErrorMessage(const AMessage: string; const AAction: string = ''); overload;
     procedure ErrorMessage(const AMessage: string; const AAction: TExtFunction); overload;
     procedure Alert(const Msg : string); override;
@@ -636,18 +638,6 @@ begin
       else
         FLibraries := FLibraries + '<link rel=stylesheet href="' + pCSS + '.css" />';
     end;
-end;
-{
-Adds/Removes an user JS code to be used in current response.
-Repeated code is ignored.
-@param JS JS code to inject in response. If JS is '' then all user JS code to this session will be removed from response.
-}
-procedure TExtSession.SetCustomJS(JS : string = ''); begin
-  if pos(JS, FCustomJS) = 0 then
-    if JS = '' then
-      FCustomJS := ''
-    else
-      FCustomJS := FCustomJS + JS;
 end;
 
 {
@@ -1084,6 +1074,11 @@ begin
   FSingletons := TDictionary<string, TExtObject>.Create;
 end;
 
+function TExtSession.GetCustomJS: string;
+begin
+  Result := '';
+end;
+
 function TExtSession.GetMainPageTemplate: string;
 begin
   Result := '<%HTMLDeclaration%>' + sLineBreak +
@@ -1202,7 +1197,7 @@ begin
       IfThen(FLanguage = 'en', '', '<script src="' + ExtPath + SourcePath + '/locale/ext-lang-' + FLanguage + '.js"></script>'));
     LMainPageCode := ReplaceText(LMainPageCode, '<%StyleTag%>', GetStyleTag);
     LMainPageCode := ReplaceText(LMainPageCode, '<%LibraryTags%>', FLibraries);
-    LMainPageCode := ReplaceText(LMainPageCode, '<%CustomJS%>', FCustomJS);
+    LMainPageCode := ReplaceText(LMainPageCode, '<%CustomJS%>', GetCustomJS);
     LMainPageCode := ReplaceText(LMainPageCode, '<%Response%>', Response);
     Response := LMainPageCode;
     {$IFDEF DEBUGJS}
@@ -1471,6 +1466,18 @@ begin
   LParams := IfThen(LObjectName = '', '', 'Obj=' + LObjectName);
   LParams := LParams + ARawParams;
   Result :=  GetAjaxCode(LMethodName, LParams, AParams);
+end;
+
+function TExtObject.GetAjaxCode(const AMethod: TExtProcedure;
+  const AParams: array of const; const AExtraCode: string): string;
+var
+  LParams: string;
+  LMethodName: string;
+  LObjectName: string;
+begin
+  FindMethod(AMethod, LMethodName, LObjectName);
+  LParams := IfThen(LObjectName = '', '', 'Obj=' + LObjectName);
+  Result := DoGetAjaxCode(LMethodName, LParams, AParams, AExtraCode);
 end;
 
 function TExtObject.GetConstructionJS: string;
@@ -2439,12 +2446,16 @@ begin
 end;
 
 function TExtObject.DoGetAjaxCode(const AMethodName, ARawParams: string; const AParams: array of const; const AExtraCode: string): string;
+var
+  LParams: string;
 begin
+  LParams := IfThen(ARawParams = '', '', ARawParams) + IfThen(Length(AParams) > 0, IfThen(ARawParams = '', '', '&') + FormatParams(AMethodName, AParams), '');
+
   Result :=
     'Ext.Ajax.request({' + sLineBreak +
     AExtraCode +
     '  url: "' + ExtSession.MethodURI(AMethodName) + '",' + sLinebreak +
-    '  params: "Ajax=1&' + IfThen(ARawParams = '', '', ARawParams) +  IfThen(Length(AParams) > 0,  '&' + FormatParams(AMethodName, AParams), '') + '",' + sLineBreak +
+    '  params: "' + LParams + '",' + sLineBreak +
     '  success: AjaxSuccess,' + sLineBreak +
     '  failure: AjaxFailure' + sLineBreak +
     '});';

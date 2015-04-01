@@ -24,10 +24,33 @@ function getWindowClientSize() {
   return result;
 }
 
+function getViewportWidth()
+{
+  return Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
+}
+
+function getViewportHeight()
+{
+  return Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
+}
+
+function getViewportWidthInInches()
+{
+  var dpiEl = document.getElementById('dpi');
+  var w = getViewportWidth() / dpiEl.offsetWidth;
+  return Math.round(w);
+}
+
 // Used to avoid displaying dialog boxes larger that the viewport in mobile browsers.
 function getMaxMsgWidth()
 {
-  return  Math.min(600, Math.max(document.documentElement.clientWidth, window.innerWidth || 0) - 6);
+  return Math.min(600, getViewportWidth() - 6);
+}
+
+// Used to make dialog boxes as large as the viewport in mobile browsers.
+function getMinMsgWidth()
+{
+  return isMobileBrowser() ? getMaxMsgWidth() : 100;
 }
 
 // Dynamically adds a style rule. Used to dynamically
@@ -171,14 +194,13 @@ function ajaxSimple(buttonId, text, obj)
 // and ajaxMultiSelection.
 function confirmCall(title, question, functionToCall, functionParams)
 {
-  Ext.Msg.show({
+  showMessage({
     title: title,
     msg: question,
     buttons: Ext.MessageBox.YESNO,
     icon: Ext.MessageBox.QUESTION,
     fn: functionToCall,
-    params: functionParams,
-    maxWidth: getMaxMsgWidth()
+    params: functionParams
   });
 };
 
@@ -188,14 +210,13 @@ function confirmCall(title, question, functionToCall, functionParams)
 // in the last selected record in selModel.
 function selectConfirmCall(title, questionTpl, selModel, captionFieldName, functionParams)
 {
-  Ext.Msg.show({
+  showMessage({
     title: title,
     msg: (captionFieldName !== "") && (questionTpl.indexOf("{caption}") !== -1) ? questionTpl.replace("{caption}", selModel.getSelections().slice(-1)[0].get(captionFieldName).toString()) : questionTpl,
     buttons: Ext.MessageBox.YESNO,
     icon: Ext.MessageBox.QUESTION,
     fn: ajaxSingleSelection,
-    params: functionParams,
-    maxWidth: getMaxMsgWidth()
+    params: functionParams
   });
 };
 
@@ -345,8 +366,7 @@ function objectToParams(object)
   ).join('&');
 };
 
-var
-  kittoLoadMaskShowCount = 0;
+window.kittoLoadMaskShowCount = 0;
 
 // shows (1) or hides (-1) the loading mask.
 // The mask is shown as long as the current sum of show calls
@@ -355,11 +375,24 @@ var
 function showKittoLoadMask(amount)
 {
   if (amount == 0)
-    kittoLoadMaskShowCount = 0;
+    window.kittoLoadMaskShowCount = 0;
   else
-    kittoLoadMaskShowCount += amount;
-  if (kittoLoadMaskShowCount > 0)
+    window.kittoLoadMaskShowCount += amount;
+  if (window.kittoLoadMaskShowCount > 0)
     kittoLoadMask.show();
   else
     kittoLoadMask.hide();
+}
+
+function isMobileBrowser()
+{
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+}
+
+// A shortcut for Ext.Msg.show that enforces dialog size.
+function showMessage(config)
+{
+  config.maxWidth = getMaxMsgWidth();
+  config.minWidth = getMinMsgWidth();
+  return Ext.Msg.show(config);
 }
