@@ -7,8 +7,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2015-03-31 09:54\n"
-"PO-Revision-Date: 2015-03-31 09:54\n"
+"POT-Creation-Date: 2015-04-01 16:51\n"
+"PO-Revision-Date: 2015-04-01 16:51\n"
 "Last-Translator: Somebody <your.email@address.com>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -43,7 +43,7 @@ msgstr ""
 
 #. KExtMainForm..PageControl..HomeTabSheet..Caption
 #: Kitto.Ext.MainFormUnit.dfm:433
-#: Kitto.Ext.TilePanel.pas:151
+#: Kitto.Ext.TilePanel.pas:149
 msgid "Home"
 msgstr ""
 
@@ -242,32 +242,32 @@ msgid "AccordionPanel's SubViews node may only contain View or Controller "
 msgstr ""
 
 #. alLeft, alRight, alCenter
-#: Kitto.Ext.Base.pas:418
+#: Kitto.Ext.Base.pas:427
 msgid "Invalid value %s. Valid values: \"Left\", \"Right\", "
 "\"Center\"."
 msgstr ""
 
-#: Kitto.Ext.Base.pas:430
+#: Kitto.Ext.Base.pas:439
 msgid "Invalid value %s. Valid values: \"Left\", \"Top\", "
 "\"Right\"."
 msgstr ""
 
-#: Kitto.Ext.Base.pas:1493
+#: Kitto.Ext.Base.pas:1502
 msgid "Confirm"
 msgstr ""
 
-#: Kitto.Ext.Base.pas:1494
+#: Kitto.Ext.Base.pas:1503
 msgid "Confirm action and close window"
 msgstr ""
 
-#: Kitto.Ext.Base.pas:1499
-#: Kitto.Ext.Form.pas:576
+#: Kitto.Ext.Base.pas:1508
+#: Kitto.Ext.Form.pas:579
 #: Kitto.Ext.GridPanel.pas:838
 msgid "Cancel"
 msgstr ""
 
-#: Kitto.Ext.Base.pas:1500
-#: Kitto.Ext.Form.pas:577
+#: Kitto.Ext.Base.pas:1509
+#: Kitto.Ext.Form.pas:580
 #: Kitto.Ext.GridPanel.pas:839
 msgid "Cancel changes"
 msgstr ""
@@ -543,54 +543,58 @@ msgstr ""
 msgid "%s file (%s)"
 msgstr ""
 
-#: Kitto.Ext.Form.pas:478
+#: Kitto.Ext.Filters.pas:1057
+msgid "Apply"
+msgstr ""
+
+#: Kitto.Ext.Form.pas:484
 #: Kitto.Ext.GridPanel.pas:671
 #: Kitto.Ext.GridPanel.pas:1100
 msgid "Edit %s"
 msgstr ""
 
-#: Kitto.Ext.Form.pas:550
+#: Kitto.Ext.Form.pas:555
 msgid "Save & Clone"
 msgstr ""
 
-#: Kitto.Ext.Form.pas:551
+#: Kitto.Ext.Form.pas:556
 msgid "Save changes and create a new clone "
 "record"
 msgstr ""
 
-#: Kitto.Ext.Form.pas:560
+#: Kitto.Ext.Form.pas:564
 #: Kitto.Ext.GridPanel.pas:831
 msgid "Save"
 msgstr ""
 
-#: Kitto.Ext.Form.pas:561
+#: Kitto.Ext.Form.pas:565
 #: Kitto.Ext.GridPanel.pas:832
 msgid "Save changes and finish editing"
 msgstr ""
 
-#: Kitto.Ext.Form.pas:570
+#: Kitto.Ext.Form.pas:573
 msgid "Switch to edit mode"
 msgstr ""
 
-#: Kitto.Ext.Form.pas:583
+#: Kitto.Ext.Form.pas:586
 msgid "Close"
 msgstr ""
 
-#: Kitto.Ext.Form.pas:584
+#: Kitto.Ext.Form.pas:587
 msgid "Close this panel"
 msgstr ""
 
-#: Kitto.Ext.Form.pas:657
+#: Kitto.Ext.Form.pas:660
 msgid "Operation Add not supported on read-only "
 "data."
 msgstr ""
 
-#: Kitto.Ext.Form.pas:659
+#: Kitto.Ext.Form.pas:662
 msgid "Operation Edit not supported on read-only "
 "data."
 msgstr ""
 
-#: Kitto.Ext.Form.pas:661
+#: Kitto.Ext.Form.pas:664
 msgid "Operation Duplicate not supported on read-only "
 "data."
 msgstr ""
@@ -635,12 +639,12 @@ msgstr ""
 msgid "E-mail message sent successfully."
 msgstr ""
 
-#: Kitto.Ext.List.pas:136
+#: Kitto.Ext.List.pas:146
 msgid "Invalid value %s. Valid values: whole "
 "numbers."
 msgstr ""
 
-#: Kitto.Ext.List.pas:150
+#: Kitto.Ext.List.pas:160
 msgid "Search"
 msgstr ""
 
@@ -648,31 +652,31 @@ msgstr ""
 msgid "Logging in..."
 msgstr ""
 
-#: Kitto.Ext.Login.pas:153
+#: Kitto.Ext.Login.pas:154
 msgid "Login"
 msgstr ""
 
-#: Kitto.Ext.Login.pas:161
+#: Kitto.Ext.Login.pas:162
 msgid "User Name"
 msgstr ""
 
-#: Kitto.Ext.Login.pas:171
+#: Kitto.Ext.Login.pas:172
 msgid "Password"
 msgstr ""
 
-#: Kitto.Ext.Login.pas:195
+#: Kitto.Ext.Login.pas:196
 msgid "Language"
 msgstr ""
 
-#: Kitto.Ext.Login.pas:213
+#: Kitto.Ext.Login.pas:214
 msgid "Remember Credentials"
 msgstr ""
 
-#: Kitto.Ext.Login.pas:215
+#: Kitto.Ext.Login.pas:216
 msgid "Remember User Name"
 msgstr ""
 
-#: Kitto.Ext.Login.pas:325
+#: Kitto.Ext.Login.pas:326
 msgid "Invalid login."
 msgstr ""
 
@@ -692,11 +696,11 @@ msgstr ""
 msgid "Application: %s"
 msgstr ""
 
-#: Kitto.Ext.MainFormUnit.pas:298
+#: Kitto.Ext.MainFormUnit.pas:300
 msgid "Home URL: %s"
 msgstr ""
 
-#: Kitto.Ext.MainFormUnit.pas:331
+#: Kitto.Ext.MainFormUnit.pas:333
 msgid "Listener started"
 msgstr ""
 

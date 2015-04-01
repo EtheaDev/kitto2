@@ -2794,7 +2794,7 @@ type
     procedure SetFTabIndex(Value: Integer);
     procedure SetFTemplate(Value: TExtTemplate);
     procedure _SetText(const AValue: string);
-    procedure SetFToggleGroup(Value: string);
+    procedure SetToggleGroup(const AValue: string);
     procedure SetFToggleHandler(Value: TExtFunction);
     procedure _SetTooltip(const AValue: string);
     procedure SetFTooltipObject(Value: TExtObject);
@@ -2861,7 +2861,7 @@ type
     property TabIndex: Integer read FTabIndex write SetFTabIndex;
     property Template: TExtTemplate read FTemplate write SetFTemplate;
     property Text: string read FText write _SetText;
-    property ToggleGroup: string read FToggleGroup write SetFToggleGroup;
+    property ToggleGroup: string read FToggleGroup write SetToggleGroup;
     property ToggleHandler: TExtFunction read FToggleHandler write SetFToggleHandler;
     property Tooltip: string read FTooltip write _SetTooltip;
     property TooltipObject: TExtObject read FTooltipObject write SetFTooltipObject;
@@ -9929,7 +9929,7 @@ begin
   Result := Self;
 end;
 
-function TExtComponent.GetEl: TExtFunction;
+function TExtComponent.GetEl: TExtElement;
 begin
   JSCode(JSName + '.getEl();', 'TExtComponent');
   Result := Self;
@@ -11928,10 +11928,10 @@ begin
   ExtSession.ResponseItems.SetConfigItem(Self, 'text', 'setText', [AValue]);
 end;
 
-procedure TExtButton.SetFToggleGroup(Value: string);
+procedure TExtButton.SetToggleGroup(const AValue: string);
 begin
-  FToggleGroup := Value;
-  JSCode('toggleGroup:' + VarToJSON([Value]));
+  FToggleGroup := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'toggleGroup', [AValue]);
 end;
 
 procedure TExtButton.SetFToggleHandler(Value: TExtFunction);
