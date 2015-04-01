@@ -4,7 +4,7 @@
   <%ApplicationIconLink%>
   <%AppleIconLink%>
   <meta http-equiv="content-type" content="charset=<%CharSet%>" />
-  <meta name="viewport" content="<%ViewportContent%>" />
+  <meta id="viewport" name="viewport" content="<%ViewportContent%>" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <link rel=stylesheet href="<%ExtPath%>/resources/css/<%ExtBuild%>.css" />
@@ -22,18 +22,18 @@
     <img src="<%ExtPath%>/resources/images/default/shared/loading-balls.gif"/>Loading <%ApplicationTitle%>...
   </div>
 </div>
+<div id="dpi" style="height: 1in; width: 1in; left: 100%; position: fixed; top: 100%;"></div>
 <noscript>This web application requires JavaScript enabled</noscript>
 </body>
   <script>
     <%CustomJS%>
 
     function AjaxError(m) {
-      Ext.Msg.show({
+      showMessage({
         title: "Ajax Error",
         msg: m,
         icon: Ext.Msg.ERROR,
-        buttons: Ext.Msg.OK,
-        maxWidth: getMaxMsgWidth()
+        buttons: Ext.Msg.OK
       });
     };
     function AjaxSuccess(response) {

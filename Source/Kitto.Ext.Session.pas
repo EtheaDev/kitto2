@@ -21,7 +21,7 @@ unit Kitto.Ext.Session;
 interface
 
 uses
-  SysUtils, Classes, Generics.Collections,
+  SysUtils, Classes, Generics.Collections, Types,
   gnugettext, superobject,
   ExtPascal, Ext, ExtPascalClasses,
   EF.Tree, EF.Macros, EF.Intf, EF.Localization, EF.ObserverIntf,
@@ -66,14 +66,14 @@ type
     constructor Create(const ASession: TKExtSession); reintroduce;
   end;
 
-  ///	<summary>
-  ///	  This class serves two purposes: redirects localization calls to a
-  ///	  per-session instance of dxgettext so we can have per-session language
-  ///	  selection, and configures Kitto's localization scheme based on two text
-  ///	  domains (the application's default.mo and Kitto's own Kitto.mo). The
-  ///	  former is located under the application home directory, the latter
-  ///	  under the system home directory.
-  ///	</summary>
+  /// <summary>
+  ///   This class serves two purposes: redirects localization calls to a
+  ///   per-session instance of dxgettext so we can have per-session language
+  ///   selection, and configures Kitto's localization scheme based on two text
+  ///   domains (the application's default.mo and Kitto's own Kitto.mo). The
+  ///   former is located under the application home directory, the latter
+  ///   under the system home directory.
+  /// </summary>
   TKExtSessionLocalizationTool = class(TEFNoRefCountObject, IInterface,
     IEFInterface, IEFLocalizationTool)
   private const
@@ -125,6 +125,7 @@ type
     FLoginController: TObject;
     FViewportWidth: Integer;
     FViewportContent: string;
+    FViewportWidthInInches: Integer;
     procedure LoadLibraries;
     procedure DisplayHomeView;
     procedure DisplayLoginView;
@@ -137,22 +138,25 @@ type
     procedure SetLanguageFromQueriesOrConfig;
     procedure Reload;
     procedure SetViewHost(const AValue: IKExtViewHost);
-    ///	<summary>
-    ///	 If the specifield css file name exists, generates code that
+    /// <summary>
+    ///  If the specifield css file name exists, generates code that
     ///  adds it to the page and adds that code to the current response.
     ///  If called multiple times, only the first time the file is added.
-    ///	</summary>
+    /// </summary>
     procedure EnsureDynamicStyle(const AStyleBaseName: string);
-    ///	<summary>
-    ///	 If the specifield script file name exists, generates code that
+    /// <summary>
+    ///  If the specifield script file name exists, generates code that
     ///  adds it to the page and adds that code to the current response.
     ///  If called multiple times, only the first time the file is added.
-    ///	</summary>
+    /// </summary>
     procedure EnsureDynamicScript(const AScriptBaseName: string);
     function GetHomeView: TKView;
     function GetLoginView: TKView;
     procedure FreeLoginNode;
     procedure SetViewportContent;
+    function GetDefaultHomeViewNodeNames(const ASuffix: string): TStringDynArray;
+    function GetDefaultViewportWidth: Integer;
+    const DEFAULT_VIEWPORT_WIDTH = 480;
   protected
     function BeforeHandleRequest: Boolean; override;
     procedure AfterHandleRequest; override;
@@ -162,6 +166,7 @@ type
     function GetSessionCookieName: string; override;
     function GetViewportContent: string; override;
     function GetManifestFileName: string; override;
+    function GetCustomJS: string; override;
   public
     constructor Create(AOwner: TObject); override;
     destructor Destroy; override;
@@ -179,22 +184,22 @@ type
     function FindPageTemplate(const APageName: string): string;
     function GetPageTemplate(const APageName: string): string;
 
-    ///	<summary>
-    ///	 Checks user credentials (fetched from Query parameters UserName and Passwords)
+    /// <summary>
+    ///  Checks user credentials (fetched from Query parameters UserName and Passwords)
     ///  and returns True if the current authenticator allows them, or if the
     ///  user was already authenticated in this session.
-    ///	</summary>
+    /// </summary>
     function Authenticate: Boolean;
 
     procedure Refresh; override;
-    ///	<summary>
-    ///	 A reference to the main view container.
-    ///	</summary>
+    /// <summary>
+    ///  A reference to the main view container.
+    /// </summary>
     property ViewHost: IKExtViewHost read FViewHost write SetViewHost;
 
-    ///	<summary>
-    ///	 A reference to the status bar to be used for wait messages.
-    ///	</summary>
+    /// <summary>
+    ///  A reference to the status bar to be used for wait messages.
+    /// </summary>
     property StatusHost: TKExtStatusBar read FStatusHost write FStatusHost;
 
     procedure DisplayView(const AName: string); overload;
@@ -203,25 +208,25 @@ type
     procedure InitDefaultValues; override;
     procedure Home; override;
 
-    ///	<summary>
+    /// <summary>
     ///  Opens the specified URL in a new browser window/tab.
     /// </summary>
     procedure Navigate(const AURL:string);
-    ///	<summary>
-    ///	 <para>
-    ///	  Adds to the current session a style class named after AView's
-    ///	  ImageName (or the specified custom AImageName) plus a '_img'
-    ///	  suffix, that sets background:url to the URL of the view's image.
-    ///	 </para>
-    ///	 <para>
-    ///	  The style class can have an optional custom prefix before the name
-    ///	  and custom rules attached to it.
-    ///	 </para>
-    ///	</summary>
-    ///	<returns>
-    ///	 Returns the class name so that it can be assigned to a component's
-    ///	 IconCls property.
-    ///	</returns>
+    /// <summary>
+    ///  <para>
+    ///   Adds to the current session a style class named after AView's
+    ///   ImageName (or the specified custom AImageName) plus a '_img'
+    ///   suffix, that sets background:url to the URL of the view's image.
+    ///  </para>
+    ///  <para>
+    ///   The style class can have an optional custom prefix before the name
+    ///   and custom rules attached to it.
+    ///  </para>
+    /// </summary>
+    /// <returns>
+    ///  Returns the class name so that it can be assigned to a component's
+    ///  IconCls property.
+    /// </returns>
     function SetViewIconStyle(const AView: TKView; const AImageName: string = '';
       const ACustomPrefix: string = ''; const ACustomRules: string = ''): string;
     function SetIconStyle(const ADefaultImageName: string; const AImageName: string = '';
@@ -234,34 +239,34 @@ type
 
     property Config: TKConfig read GetConfig;
 
-    ///	<summary>
+    /// <summary>
     ///  Called to signal that a new file has been uploaded. The
-    ///	 descriptor holds information about the file and its context
-    ///	 (for example which view is going to use it).
+    ///  descriptor holds information about the file and its context
+    ///  (for example which view is going to use it).
     /// </summary>
-    ///	<remarks>
+    /// <remarks>
     ///  The session acquires ownership of the descriptor object.
-    ///	</remarks>
+    /// </remarks>
     procedure AddUploadedFile(const AFileDescriptor: TKExtUploadedFile);
 
-    ///	<summary>
+    /// <summary>
     ///  Removes a previously added file descriptor. To be called once
-    ///	 the uploaded file has been processed.
+    ///  the uploaded file has been processed.
     /// </summary>
     procedure RemoveUploadedFile(const AFileDescriptor: TKExtUploadedFile);
 
-    ///	<summary>
+    /// <summary>
     ///  Returns the first uploaded file descriptor matching the
-    ///	 specified context, or nil if no descriptor is found.
+    ///  specified context, or nil if no descriptor is found.
     /// </summary>
     function FindUploadedFile(const AContext: TObject): TKExtUploadedFile;
 
-    ///	<summary>
+    /// <summary>
     ///  Calls AProc for each uploaded file in list.
     /// </summary>
     procedure EnumUploadedFiles(const AProc: TProc<TKExtUploadedFile>);
 
-    ///	<summary>
+    /// <summary>
     ///  If the specified object is found in the list of open controllers,
     ///  it is removed from the list. Otherwise nothing happens.
     ///  Used by view hosts to notify the session that a controller was closed.
@@ -274,53 +279,54 @@ type
     /// </summary>
     function GetQueries: ISuperObject;
 
-    ///	<summary>
-    ///	 The current session's UUID.
-    ///	</summary>
+    /// <summary>
+    ///  The current session's UUID.
+    /// </summary>
     property SessionId: string read FSessionId;
 
-    ///	<summary>
-    ///	 Ensures that existing js and css files with the specified base name
+    /// <summary>
+    ///  Ensures that existing js and css files with the specified base name
     ///  are dynamically added to the page. If the specified files don't exist
     ///  or were already added, nothing is done.
-    ///	</summary>
+    /// </summary>
     procedure EnsureSupportFiles(const ABaseName: string);
 
-    ///	<summary>
-    ///	 Ensures that existing js and css files with a base name that depends
+    /// <summary>
+    ///  Ensures that existing js and css files with a base name that depends
     ///  on the specified view are dynamically added to the page.
     ///  If the view has a 'SupportBaseName' attribute, then it is used as the
     //   base name for the support files, otherwise the view's name (if any)
     ///  is used.
     ///  If the specified files don't exist or were already added, nothing is done.
-    ///	</summary>
+    /// </summary>
     procedure EnsureViewSupportFiles(const AView: TKView);
 
-    ///	<summary>
-    ///	 True if the last request came from a mobile browser.
+    /// <summary>
+    ///  True if the last request came from a mobile browser.
     ///  The user agent detection is performed once per session and then cached.
-    ///	</summary>
+    /// </summary>
     function IsMobileBrowser: Boolean;
 
-    ///	<summary>
-    ///	 Viewport width in mobile applications.
-    ///	</summary>
+    /// <summary>
+    ///  Viewport width in mobile applications.
+    /// </summary>
     property ViewportWidth: Integer read FViewportWidth;
 
-    ///	<summary>
-    ///	 True if tooltips are enabled for the session. By default, tooltips
+    /// <summary>
+    ///  True if tooltips are enabled for the session. By default, tooltips
     ///  are enabled for desktop browsers and disabled for mobile browsers.
-    ///	</summary>
+    /// </summary>
     function TooltipsEnabled: Boolean;
   published
+    procedure DelayedHome;
     procedure Logout;
   end;
   TKExtSessionGetEvent = reference to procedure(out ASession: TKExtSession);
 
-  ///	<summary>
-  ///	 This helper guarantees that each Ext object has access to the current
-  ///	 thread's session, cast to the correct type.
-  ///	</summary>
+  /// <summary>
+  ///  This helper guarantees that each Ext object has access to the current
+  ///  thread's session, cast to the correct type.
+  /// </summary>
   TKExtObjectHelper = class helper for TExtObject
   private
     function GetSession: TKExtSession;
@@ -328,10 +334,17 @@ type
     property Session: TKExtSession read GetSession;
   end;
 
+  TKExtDelayedHome = class(TExtFunction)
+  public
+    function GetViewportWidthInInches: TExtFunction;
+  published
+    procedure Execute;
+  end;
+
 implementation
 
 uses
-  StrUtils, ActiveX, ComObj, Types, FmtBcd,
+  StrUtils, ActiveX, ComObj, FmtBcd,
   ExtPascalUtils, ExtForm,
   EF.SysUtils, EF.StrUtils, EF.Logger, EF.Types,
   Kitto.Auth, Kitto.Types, Kitto.AccessControl,
@@ -349,6 +362,17 @@ begin
   if not Assigned(FConfig) then
     FConfig := TKConfig.Create;
   Result := FConfig;
+end;
+
+function TKExtSession.GetCustomJS: string;
+begin
+  Result :=
+    'function setViewportWidth(w) {' + sLineBreak +
+    '  var defWidth = ' + DEFAULT_VIEWPORT_WIDTH.ToString + ';' + sLineBreak +
+    '  var mvp = document.getElementById("viewport");' + sLineBreak +
+    '  if (w != defWidth)' + sLineBreak +
+    '    mvp.setAttribute("content", "' + ReplaceStr(FViewportContent, '{width}', '" + w + "') + '");' + sLineBreak +
+    '}';
 end;
 
 type
@@ -434,7 +458,7 @@ end;
 
 function TKExtSession.GetViewportContent: string;
 begin
-  Result := FViewportContent;
+  Result := ReplaceStr(FViewportContent, '{width}', DEFAULT_VIEWPORT_WIDTH.ToString);
 end;
 
 procedure TKExtSession.FreeLoginNode;
@@ -493,13 +517,39 @@ begin
   DisplayHomeView;
 end;
 
-function TKExtSession.GetHomeView: TKView;
+function TKExtSession.GetDefaultHomeViewNodeNames(const ASuffix: string): TStringDynArray;
 begin
-  if FHomeViewNodeName = '' then
-    FHomeViewNodeName := 'HomeView';
-  Result := Config.Views.FindViewByNode(Config.Config.FindNode(FHomeViewNodeName));
+  case FViewportWidthInInches of
+    0..5: Result := ['HomeTiny' + ASuffix, 'HomeSmall' + ASuffix, 'Home' + ASuffix];
+    6..10: Result := ['HomeSmall' + ASuffix, 'Home' + ASuffix];
+  else
+    Result := ['Home' + ASuffix];
+  end;
+end;
+
+function TKExtSession.GetDefaultViewportWidth: Integer;
+begin
+  Result := FViewportWidthInInches * 96;
+//  case FViewportWidthInInches of
+//    0..4: Result := 320;
+//    5..7: Result := 480;
+//    8..10: Result := 640;
+//  else
+//    Result := 0;
+//  end;
+end;
+
+function TKExtSession.GetHomeView: TKView;
+var
+  LNodeNames: TStringDynArray;
+begin
+  if FHomeViewNodeName <> '' then
+    LNodeNames := [FHomeViewNodeName]
+  else
+    LNodeNames := GetDefaultHomeViewNodeNames('View');
+  Result := Config.Views.FindViewByNode(Config.Config.FindNode(LNodeNames));
   if not Assigned(Result) then
-    Result := Config.Views.ViewByName('Home');
+    Result := Config.Views.ViewByName(GetDefaultHomeViewNodeNames(''));
 end;
 
 procedure TKExtSession.DisplayHomeView;
@@ -533,30 +583,23 @@ procedure TKExtSession.Home;
   end;
 
 begin
-  if not NewThread then
-  begin
-    Refresh;
-    if not FRefreshingLanguage then
-      Config.Authenticator.Logout;
-    FHomeController := nil;
-    FLoginController := nil;
-    FreeLoginNode;
-    FOpenControllers.Clear;
-    FViewHost := nil;
-    FStatusHost := nil;
-    FDynamicScripts.Clear;
-    FDynamicStyles.Clear;
-    FreeAndNil(FControllerHostWindow);
-  end
-  else
-  begin
-    if not IsAjax then
-    begin
-      LoadLibraries;
-      FDynamicScripts.Clear;
-      FDynamicStyles.Clear;
-    end;
-  end;
+  if IsAjax then
+    raise Exception.Create('Cannot navigate to home in async mode.');
+
+  Refresh;
+  if not FRefreshingLanguage then
+    Config.Authenticator.Logout;
+  FHomeController := nil;
+  FLoginController := nil;
+  FreeLoginNode;
+  FOpenControllers.Clear;
+  FViewHost := nil;
+  FStatusHost := nil;
+  FDynamicScripts.Clear;
+  FDynamicStyles.Clear;
+  FreeAndNil(FControllerHostWindow);
+
+  LoadLibraries;
 
   SetViewportContent;
   ResponseItems.ExecuteJSCode('kittoInit();');
@@ -565,15 +608,32 @@ begin
     ExtQuickTips.Init(True)
   else
     ExtQuickTips.Disable;
-  // Try authentication with default credentials, if any, and skip login
-  // window if it succeeds.
+
   if not FRefreshingLanguage then
     SetLanguageFromQueriesOrConfig;
+
   FAutoOpenViewName := Queries.Values['view'];
   if FAutoOpenViewName <> '' then
     Queries.Values['view'] := '';
   FHomeViewNodeName := Queries.Values['home'];
 
+  with TKExtDelayedHome.Create(ObjectCatalog) do
+  begin
+    try
+      Execute;
+    finally
+      Free;
+    end;
+  end;
+end;
+
+procedure TKExtSession.DelayedHome;
+begin
+  FViewportWidthInInches := QueryAsInteger['vpWidthInches'];
+  FViewportWidth := GetDefaultViewportWidth();
+  ResponseItems.ExecuteJSCode('setViewportWidth(' + FViewportWidth.ToString + ');');
+  // Try authentication with default credentials, if any, and skip login
+  // window if it succeeds.
   if Authenticate then
     DisplayHomeView
   else
@@ -1124,9 +1184,8 @@ end;
 
 procedure TKExtSession.SetViewportContent;
 var
-  LContent: TEFPairs;
   LPair: TEFPair;
-  LDefaultPairs: TEFPairs;
+  LPairs: TEFPairs;
 
   function GetSeparator: string;
   begin
@@ -1137,30 +1196,12 @@ var
       Result := ' ';
   end;
 
-  procedure SetViewportWidth;
-  var
-    I: Integer;
-  begin
-    for I := Low(LContent) to High(LContent) do
-    begin
-      if SameText(LContent[I].Key, 'width') then
-      begin
-        FViewportWidth := StrToInt(LContent[I].Value);
-        Break;
-      end;
-    end;
-  end;
-
 begin
   FViewportContent := '';
-  //Default Viewport content for mobile browsers:
-  //width 480 (optimal for Tablets) and user-scalable 0
-  SetLength(LDefaultPairs, 2);
-  LDefaultPairs[0] := TEFPair.Create('width', '480');
-  LDefaultPairs[1] := TEFPair.Create('user-scalable', '0');
-  LContent := GetHomeView.GetChildrenAsPairs('MobileSettings/ViewportContent', True, LDefaultPairs);
-  SetViewportWidth;
-  for LPair in LContent do
+  SetLength(LPairs, 2);
+  LPairs[0] := TEFPair.Create('width', '{width}');
+  LPairs[1] := TEFPair.Create('user-scalable', '0');
+  for LPair in LPairs do
   begin
     if FViewportContent = '' then
       FViewportContent := LPair.Key + '=' + LPair.Value
@@ -1337,6 +1378,19 @@ begin
   Assert(Assigned(FHostedController));
 
   Result := FHostedController;
+end;
+
+{ TKExtDelayedHome }
+
+procedure TKExtDelayedHome.Execute;
+begin
+  Session.ResponseItems.ExecuteJSCode(GetAjaxCode(Session.DelayedHome, ['vpWidthInches', GetViewportWidthInInches]));
+end;
+
+function TKExtDelayedHome.GetViewportWidthInInches: TExtFunction;
+begin
+  Session.ResponseItems.ExecuteJSCode(Self, 'getViewportWidthInInches()');
+  Result := Self;
 end;
 
 initialization
