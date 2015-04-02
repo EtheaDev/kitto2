@@ -51,6 +51,7 @@ type
       AAcceptFieldEvent: TExportAcceptDataFieldEvent = nil): Boolean; overload;
     procedure AddExcelColumn(ATable: _Table; const AColumnName: string;
       const ADataType: DataTypeEnum; const ASize: Integer);
+    procedure AssignBlankValue(Field: TField);
   strict protected
     procedure GetADOXDataType(const ADataType: TEFDataType;
       const AFieldSize: Integer; out AADOXDataType: DataTypeEnum);
@@ -75,7 +76,7 @@ type
 implementation
 
 uses
-  Math,
+  Math, Variants,
   EF.StrUtils, EF.DB, EF.SysUtils,
   Kitto.Metadata.Models, Kitto.Config, Kitto.Utils;
 
@@ -169,6 +170,17 @@ begin
   end;
   if Field.Size > MAX_EXCEL_STRING_COLUMN_SIZE then
     AADOXDataType := adLongVarWChar;
+end;
+
+procedure TKExtExcelEngine.AssignBlankValue(Field: TField);
+begin
+  case Field.DataType of
+    ftFixedChar, ftString, ftGuid, ftWideString, ftMemo: Field.Value := ' ';
+    ftLargeint, ftAutoInc, ftInteger, ftSmallint, ftWord,
+    ftFloat, ftBCD, ftCurrency, ftFMTBcd,
+    ftDate, ftTime, ftDateTime, ftTimeStamp: Field.Value := 0;
+    ftBoolean: Field.Value := False;
+  end;
 end;
 
 procedure TKExtExcelEngine.AddExcelColumn(ATable: _Table;
@@ -376,11 +388,13 @@ begin
             begin
               if LSourceField.ViewField.ActualDataType is TEFMemoDataType then
                 LDestField.AsString := StringReplace(LSourceField.AsString, sLineBreak, chr(10), [rfReplaceAll])
+              else if not VarIsNull(LSourceField.Value) then
+                LSourceField.AssignValueToField(LDestField)
               else
-                LSourceField.AssignValueToField(LDestField);
+                AssignBlankValue(LDestField);
             end
             else
-              LDestField.Clear;
+              AssignBlankValue(LDestField);
           end;
           LAdoTable.Post;
         except
@@ -401,7 +415,7 @@ procedure TKExtExcelEngine.FillAdoTableByDataSet(const AExcelFileName, AExcelRan
   AAcceptFieldEvent: TExportAcceptDataFieldEvent = nil);
 var
   LFirstAccepted: Boolean;
-  LRecordIndex, LFieldIndex: Integer;
+  LFieldIndex: Integer;
   LAcceptRecord, LAcceptField: Boolean;
   LDestField: TField;
   LSourceField: TField;
@@ -461,11 +475,13 @@ begin
             begin
               if LSourceField is TMemoField then
                 LDestField.AsString := StringReplace(LSourceField.AsString, sLineBreak, chr(10), [rfReplaceAll])
+              else if not VarIsNull(LSourceField.Value) then
+                LDestField.Value := LSourceField.Value
               else
-                LDestField.Value := LSourceField.Value;
+                AssignBlankValue(LDestField);
             end
             else
-              LDestField.Clear;
+              AssignBlankValue(LDestField);
           end;
           LAdoTable.Post;
         except
