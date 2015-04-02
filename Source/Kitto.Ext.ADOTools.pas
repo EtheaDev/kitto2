@@ -95,18 +95,18 @@ begin
   LStore := ServerStore;
   LViewTable := ViewTable;
 
-  //Se non ho un template scrivo il file Excel creando la struttura attraverso ADOX
+  //if not using a template file we must built the structure of a new excel file using ADOX
   if (TemplateFileName = '') then
     FExportExcelEngine.CreateFileByTable(AFileName, LViewTable, ExcelRangeName)
   else
   begin
     Assert(FileExists(TemplateFileName),
       Format('Excel template file "%s" not found!',[TemplateFileName]));
-    //Salvo il Template file come file di output
+    //Save the template file as the output file
     CopyFile(TemplateFileName, AFileName);
   end;
 
-  //A questo punto ho il file Excel creato: mi collego con una AdoTable e ci infilo i dati
+  //Now the output file is ready: filling data
   FExportExcelEngine.FillAdoTable(AFileName, ExcelRangeName, LStore,
     AcceptRecord);
 end;
