@@ -368,7 +368,7 @@ function TKExtSession.GetCustomJS: string;
 begin
   Result :=
     'function setViewportWidth(w) {' + sLineBreak +
-    '  var defWidth = ' + DEFAULT_VIEWPORT_WIDTH.ToString + ';' + sLineBreak +
+    '  var defWidth = ' + IntToStr(DEFAULT_VIEWPORT_WIDTH) + ';' + sLineBreak +
     '  var mvp = document.getElementById("viewport");' + sLineBreak +
     '  if (w != defWidth)' + sLineBreak +
     '    mvp.setAttribute("content", "' + ReplaceStr(FViewportContent, '{width}', '" + w + "') + '");' + sLineBreak +
@@ -458,7 +458,7 @@ end;
 
 function TKExtSession.GetViewportContent: string;
 begin
-  Result := ReplaceStr(FViewportContent, '{width}', DEFAULT_VIEWPORT_WIDTH.ToString);
+  Result := ReplaceStr(FViewportContent, '{width}', IntToStr(DEFAULT_VIEWPORT_WIDTH));
 end;
 
 procedure TKExtSession.FreeLoginNode;
@@ -520,10 +520,24 @@ end;
 function TKExtSession.GetDefaultHomeViewNodeNames(const ASuffix: string): TStringDynArray;
 begin
   case FViewportWidthInInches of
-    0..5: Result := ['HomeTiny' + ASuffix, 'HomeSmall' + ASuffix, 'Home' + ASuffix];
-    6..10: Result := ['HomeSmall' + ASuffix, 'Home' + ASuffix];
+    0..5:
+    begin
+      SetLength(Result, 3);
+      Result[0] := 'HomeTiny' + ASuffix;
+      Result[1] := 'HomeSmall' + ASuffix;
+      Result[2] := 'Home' + ASuffix;
+    end;
+    6..10:
+    begin
+      SetLength(Result, 2);
+      Result[0] := 'HomeSmall' + ASuffix;
+      Result[1] := 'Home' + ASuffix;
+    end
   else
-    Result := ['Home' + ASuffix];
+    begin
+      SetLength(Result, 1);
+      Result[0] := 'Home' + ASuffix;
+    end;
   end;
 end;
 
@@ -544,7 +558,10 @@ var
   LNodeNames: TStringDynArray;
 begin
   if FHomeViewNodeName <> '' then
-    LNodeNames := [FHomeViewNodeName]
+  begin
+    SetLength(LNodeNames,1);
+    LNodeNames[0] := FHomeViewNodeName;
+  end
   else
     LNodeNames := GetDefaultHomeViewNodeNames('View');
   Result := Config.Views.FindViewByNode(Config.Config.FindNode(LNodeNames));
@@ -631,7 +648,7 @@ procedure TKExtSession.DelayedHome;
 begin
   FViewportWidthInInches := QueryAsInteger['vpWidthInches'];
   FViewportWidth := GetDefaultViewportWidth();
-  ResponseItems.ExecuteJSCode('setViewportWidth(' + FViewportWidth.ToString + ');');
+  ResponseItems.ExecuteJSCode('setViewportWidth(' + IntToStr(FViewportWidth) + ');');
   // Try authentication with default credentials, if any, and skip login
   // window if it succeeds.
   if Authenticate then

@@ -9929,7 +9929,7 @@ begin
   Result := Self;
 end;
 
-function TExtComponent.GetEl: TExtElement;
+function TExtComponent.GetEl: TExtFunction;
 begin
   JSCode(JSName + '.getEl();', 'TExtComponent');
   Result := Self;
