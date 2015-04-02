@@ -1218,6 +1218,7 @@ begin
   SetLength(LPairs, 2);
   LPairs[0] := TEFPair.Create('width', '{width}');
   LPairs[1] := TEFPair.Create('user-scalable', '0');
+  LPairs := GetHomeView.GetChildrenAsPairs('MobileSettings/ViewportContent', True, LPairs);
   for LPair in LPairs do
   begin
     if FViewportContent = '' then
