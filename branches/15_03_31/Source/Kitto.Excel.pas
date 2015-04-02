@@ -35,23 +35,41 @@ type
   TExportAcceptRecordEvent = procedure(ARecord: TKViewTableRecord; var AAccept: boolean) of object;
   TExportAcceptFieldEvent = procedure(AViewField: TKViewField; var AAccept: boolean) of object;
 
+  TExportAcceptDataRecordEvent = procedure(ADataSet: TDataSet; var AAccept: boolean) of object;
+  TExportAcceptDataFieldEvent = procedure(AField: TField; var AAccept: boolean) of object;
+
   TKExtExcelEngine = class(TComponent)
   strict private
     procedure CreateExcelSheet(const AViewTable: TKViewTable;
-      AConnectionString, AExcelRangeName: string);
+      AConnectionString, AExcelRangeName: string); overload;
+    procedure CreateExcelSheet(const ADataSet: TDataSet;
+      AConnectionString, AExcelRangeName: string); overload;
     function GetConnectionString(const ExcelFileName: string): string;
     function IsValidField(const AViewField: TKViewField;
-      AAcceptFieldEvent: TExportAcceptFieldEvent = nil): Boolean;
+      AAcceptFieldEvent: TExportAcceptFieldEvent = nil): Boolean; overload;
+    function IsValidDataField(const AField: TField;
+      AAcceptFieldEvent: TExportAcceptDataFieldEvent = nil): Boolean; overload;
+    procedure AddExcelColumn(ATable: _Table; const AColumnName: string;
+      const ADataType: DataTypeEnum; const ASize: Integer);
   strict protected
-    function GetADOXDataType(const ADataType: TEFDataType;
-      const AFieldSize: Integer; out AADOXDataType: DataTypeEnum): Boolean; protected
+    procedure GetADOXDataType(const ADataType: TEFDataType;
+      const AFieldSize: Integer; out AADOXDataType: DataTypeEnum);
+    procedure GetADOXFieldType(const Field : TField;
+  out AADOXDataType : DataTypeEnum);
   public
     procedure CreateFileByTable(const AFileName: string; const ATable: TKViewTable;
       const AExcelRangeName: string = ''; AAcceptFieldEvent: TExportAcceptFieldEvent = nil);
+    procedure CreateFileByDataSet(const AFileName: string; const ADataSet: TDataSet;
+      const AExcelRangeName: string = ''; AAcceptFieldEvent: TExportAcceptDataFieldEvent = nil);
     procedure FillAdoTable(const AExcelFileName, AExcelRangeName: string;
       const ATableStore: TKViewTableStore;
       AAcceptRecordEvent: TExportAcceptRecordEvent = nil;
       AAcceptFieldEvent: TExportAcceptFieldEvent = nil);
+    procedure FillAdoTableByDataSet(const AExcelFileName, AExcelRangeName: string;
+      const ADataSet: TDataSet;
+      AAcceptRecordEvent: TExportAcceptDataRecordEvent = nil;
+      AAcceptFieldEvent: TExportAcceptDataFieldEvent = nil);
+
   end;
 
 implementation
@@ -108,10 +126,9 @@ begin
     [ExcelFileName,AExcelVersion[ExcelVersion]+AdditionalOptions]);
 end;
 
-function TKExtExcelEngine.GetADOXDataType(const ADataType: TEFDataType;
-  const AFieldSize: Integer; out AADOXDataType: DataTypeEnum): Boolean;
+procedure TKExtExcelEngine.GetADOXDataType(const ADataType: TEFDataType;
+  const AFieldSize: Integer; out AADOXDataType: DataTypeEnum);
 begin
-  Result := True;
   if ADataType is TEFStringDataType then
     AADOXDataType := adVarWChar
   else if ADataType is TEFMemoDataType then
@@ -132,32 +149,56 @@ begin
     AADOXDataType := adLongVarWChar;
 end;
 
+procedure TKExtExcelEngine.GetAdoXFieldType(const Field : TField;
+  out AADOXDataType : DataTypeEnum);
+begin
+  case Field.DataType of
+    ftFixedChar, ftString, ftGuid : AADOXDataType := adVarWChar;
+    ftWideString : AADOXDataType := adVarWChar;
+    ftMemo : AADOXDataType := adLongVarWChar;
+    ftLargeint : AADOXDataType := adBigInt;
+    ftAutoInc, ftInteger : AADOXDataType := adInteger;
+    ftSmallint, ftWord : AADOXDataType := adSmallInt;
+    ftFloat, ftBCD : AADOXDataType := adDouble;
+    ftCurrency : AADOXDataType := adCurrency;
+    ftFMTBcd : AADOXDataType := adDouble;
+    ftBoolean : AADOXDataType := adBoolean;
+    ftDate, ftTime, ftDateTime, ftTimeStamp : AADOXDataType := adDate;
+  else
+    AADOXDataType := adVarWChar;
+  end;
+  if Field.Size > MAX_EXCEL_STRING_COLUMN_SIZE then
+    AADOXDataType := adLongVarWChar;
+end;
+
+procedure TKExtExcelEngine.AddExcelColumn(ATable: _Table;
+  const AColumnName: string; const ADataType: DataTypeEnum; const ASize: Integer);
+var
+  LColumn: _Column;
+begin
+  LColumn := CoColumn.Create;
+  with LColumn do
+  begin
+    Set_Name(AColumnName);
+    Set_Type_(ADataType);
+    if ASize <> 0 then
+      Set_DefinedSize(Min(ASize,MAX_EXCEL_STRING_COLUMN_SIZE));
+  end;
+  //add column to table
+  ATable.Columns.Append(LColumn, ADataType, ASize);
+  LColumn := nil;
+end;
+
 procedure TKExtExcelEngine.CreateExcelSheet(const AViewTable: TKViewTable;
   AConnectionString, AExcelRangeName: string);
 var
   LCatalog: _Catalog;
   LTable: _Table;
-  LColumn: _Column;
   LFieldIndex: Integer;
   LViewField: TKViewField;
   LColumnName: string;
   LADOXDataType: DataTypeEnum;
   LFieldSize: Integer;
-
-  procedure AddExcelColumn(const AColumnName: string; const ADataType: DataTypeEnum; const ASize: Integer);
-  begin
-    LColumn := nil;
-    LColumn := CoColumn.Create;
-    with LColumn do
-    begin
-      Set_Name(AColumnName);
-      Set_Type_(ADataType);
-      if ASize <> 0 then
-        Set_DefinedSize(Min(ASize,MAX_EXCEL_STRING_COLUMN_SIZE));
-    end;
-    //add column to table
-    LTable.Columns.Append(LColumn, ADataType, ASize);
-  end;
 
 begin
   //WorkBook creation (database)
@@ -176,14 +217,52 @@ begin
       LColumnName := NormalizeColumnName(LViewField.FieldName);
       LFieldSize := LViewField.Size;
       GetADOXDataType(LViewField.ActualDataType, LFieldSize, LADOXDataType);
-      AddExcelColumn(LColumnName, LADOXDataType, LFieldSize);
+      AddExcelColumn(LTable, LColumnName, LADOXDataType, LFieldSize);
     end;
   end;
 
   //add table to database
   LCatalog.Tables.Append(LTable);
 
-  LColumn := nil;
+  LTable := nil;
+  LCatalog := nil;
+end;
+
+procedure TKExtExcelEngine.CreateExcelSheet(const ADataSet: TDataSet;
+  AConnectionString, AExcelRangeName: string);
+var
+  LCatalog: _Catalog;
+  LTable: _Table;
+  LFieldIndex: Integer;
+  LField: TField;
+  LColumnName: string;
+  LADOXDataType: DataTypeEnum;
+  LFieldSize: Integer;
+
+begin
+  //WorkBook creation (database)
+  LCatalog := CoCatalog.Create;
+  LCatalog.Set_ActiveConnection(AConnectionString);
+  //WorkSheet creation (table)
+  LTable := CoTable.Create;
+  LTable.Set_Name(AExcelRangeName);
+
+  //Columns creation (fields)
+  for LFieldIndex := 0 to ADataSet.FieldCount - 1 do
+  begin
+    LField := ADataSet.Fields[LFieldIndex];
+    if IsValidDataField(LField) then
+    begin
+      LColumnName := NormalizeColumnName(LField.FieldName);
+      LFieldSize := LField.Size;
+      GetADOXFieldType(LField, LADOXDataType);
+      AddExcelColumn(LTable, LColumnName, LADOXDataType, LFieldSize);
+    end;
+  end;
+
+  //add table to database
+  LCatalog.Tables.Append(LTable);
+
   LTable := nil;
   LCatalog := nil;
 end;
@@ -193,11 +272,23 @@ function TKExtExcelEngine.IsValidField(const AViewField: TKViewField;
 var
   LDummy: DataTypeEnum;
 begin
-  Result := False;
+  Result := True;
   if Assigned(AViewField) and (AViewField.IsVisible) then
-    Result := GetADOXDataType(AViewField.ActualDataType, AViewField.Size, LDummy);
+    GetADOXDataType(AViewField.ActualDataType, AViewField.Size, LDummy);
   if Assigned(AAcceptFieldEvent) then
     AAcceptFieldEvent(AViewField, Result);
+end;
+
+function TKExtExcelEngine.IsValidDataField(const AField: TField;
+  AAcceptFieldEvent: TExportAcceptDataFieldEvent = nil): Boolean;
+var
+  LDummy: DataTypeEnum;
+begin
+  Result := True;
+  if Assigned(AField) and (AField.Visible) then
+    GetADOXFieldType(AField, LDummy);
+  if Assigned(AAcceptFieldEvent) then
+    AAcceptFieldEvent(AField, Result);
 end;
 
 procedure TKExtExcelEngine.CreateFileByTable(const AFileName: string;
@@ -208,6 +299,15 @@ var
 begin
   LConnectionString := GetConnectionString(AFileName);
   CreateExcelSheet(ATable, LConnectionString, AExcelRangeName)
+end;
+
+procedure TKExtExcelEngine.CreateFileByDataSet(const AFileName: string; const ADataSet: TDataSet;
+  const AExcelRangeName: string = ''; AAcceptFieldEvent: TExportAcceptDataFieldEvent = nil);
+var
+  LConnectionString: string;
+begin
+  LConnectionString := GetConnectionString(AFileName);
+  CreateExcelSheet(ADataSet, LConnectionString, AExcelRangeName)
 end;
 
 procedure TKExtExcelEngine.FillAdoTable(const AExcelFileName, AExcelRangeName: string;
@@ -226,22 +326,22 @@ var
   function FindValidField(const AFieldName: string): TKViewTableField;
   var
     LFieldIndex: Integer;
-    LViewTableField: TKViewTableField;
+    LField: TKViewTableField;
   begin
     Result := nil;
     for LFieldIndex := 0 to LRecord.FieldCount - 1 do
     begin
-      LViewTableField := LRecord.Fields[LFieldIndex];
-      if Assigned(LViewTableField) and Assigned(LViewTableField.ViewField) and
-        SameText(NormalizeColumnName(LViewTableField.ViewField.FieldName), NormalizeColumnName(AFieldName)) then
+      LField := LRecord.Fields[LFieldIndex];
+      if Assigned(LField) and Assigned(LField.ViewField) and
+        SameText(NormalizeColumnName(LField.ViewField.FieldName), NormalizeColumnName(AFieldName)) then
       begin
-        Result := LViewTableField;
+        Result := LField;
         Break;
       end;
     end;
   end;
 begin
-  //Apro la tabella Ado dentro il file Excel
+  //Opens the Ado table using a range defined inside the excel file
   LAdoTable := TAdoTable.Create(nil);
   LAdoTable.CursorType := ctStatic;
   LAdoTable.ConnectionString := GetConnectionString(AExcelFileName);
@@ -249,10 +349,10 @@ begin
   LAdoTable.Open;
   try
     LFirstAccepted := False;
-    //Ciclo sui record dello store per riempire il dataset
+    //Fill the Ado dataset using the records of the store
     for LRecordIndex := 0 to ATableStore.RecordCount -1 do
     begin
-      //Ciclo sui records: il primo record lo modifico, dal secondo in poi append
+      //only the first record of the range is edited, then appends new records
       LRecord := ATableStore.Records[LRecordIndex];
       LAcceptRecord := not LRecord.IsDeleted;
       if Assigned(AAcceptRecordEvent) then
@@ -265,7 +365,7 @@ begin
           LAdoTable.Append;
         LFirstAccepted := True;
         try
-          //Aggiorno i campi: comanda sempre il template
+          //Update ado tabel fields by the structure of the range
           for LFieldIndex := 0 to LAdoTable.FieldCount - 1 do
           begin
             LDestField := LAdoTable.Fields[LFieldIndex];
@@ -288,6 +388,92 @@ begin
           raise;
         end;
       end;
+    end;
+  finally
+    LAdoTable.Close;
+    LAdoTable.Free;
+  end;
+end;
+
+procedure TKExtExcelEngine.FillAdoTableByDataSet(const AExcelFileName, AExcelRangeName: string;
+  const ADataSet: TDataSet;
+  AAcceptRecordEvent: TExportAcceptDataRecordEvent = nil;
+  AAcceptFieldEvent: TExportAcceptDataFieldEvent = nil);
+var
+  LFirstAccepted: Boolean;
+  LRecordIndex, LFieldIndex: Integer;
+  LAcceptRecord, LAcceptField: Boolean;
+  LDestField: TField;
+  LSourceField: TField;
+  LAdoTable: TAdoTable;
+
+  function FindValidField(const AFieldName: string): TField;
+  var
+    LFieldIndex: Integer;
+    LField: TField;
+  begin
+    Result := nil;
+    for LFieldIndex := 0 to ADataSet.FieldCount - 1 do
+    begin
+      LField := ADataSet.Fields[LFieldIndex];
+      if Assigned(LField) and
+        SameText(NormalizeColumnName(LField.FieldName), NormalizeColumnName(AFieldName)) then
+      begin
+        Result := LField;
+        Break;
+      end;
+    end;
+  end;
+
+begin
+  //Opens the Ado table using a range defined inside the excel file
+  LAdoTable := TAdoTable.Create(nil);
+  LAdoTable.CursorType := ctStatic;
+  LAdoTable.ConnectionString := GetConnectionString(AExcelFileName);
+  LAdoTable.TableName := AExcelRangeName;
+  LAdoTable.Open;
+  try
+    LFirstAccepted := False;
+    //Fill the Ado dataset using the records of the store
+    ADataSet.First;
+    while not ADataSet.Eof do
+    begin
+      //only the first record of the range is edited, then appends new records
+      LAcceptRecord := True;
+      if Assigned(AAcceptRecordEvent) then
+        AAcceptRecordEvent(ADataSet, LAcceptRecord);
+      if LAcceptRecord then
+      begin
+        if not LFirstAccepted then
+          LAdoTable.Edit
+        else
+          LAdoTable.Append;
+        LFirstAccepted := True;
+        try
+          //Update ado tabel fields by the structure of the range
+          for LFieldIndex := 0 to LAdoTable.FieldCount - 1 do
+          begin
+            LDestField := LAdoTable.Fields[LFieldIndex];
+            LSourceField := FindValidField(LDestField.FieldName);
+            LAcceptField := Assigned(LSourceField) and IsValidDataField(LSourceField,
+              AAcceptFieldEvent);
+            if LAcceptField then
+            begin
+              if LSourceField is TMemoField then
+                LDestField.AsString := StringReplace(LSourceField.AsString, sLineBreak, chr(10), [rfReplaceAll])
+              else
+                LDestField.Value := LSourceField.Value;
+            end
+            else
+              LDestField.Clear;
+          end;
+          LAdoTable.Post;
+        except
+          LAdoTable.Cancel;
+          raise;
+        end;
+      end;
+      ADataSet.Next;
     end;
   finally
     LAdoTable.Close;
