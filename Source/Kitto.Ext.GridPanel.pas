@@ -667,9 +667,9 @@ begin
 
   if AEditMode in [emNewRecord, emDupCurrentRecord] then
     FEditHostWindow.Title := Format(_('Add %s'), [_(ViewTable.DisplayLabel)])
-  else if (AEditMode = emEditCurrentRecord) and FIsActionAllowed['Edit'] then
+  else if (AEditMode = emEditCurrentRecord) and FIsActionAllowed[EDIT_OPERATION] then
     FEditHostWindow.Title := Format(_('Edit %s'), [_(ViewTable.DisplayLabel)])
-  else if (AEditMode = emViewCurrentRecord) and FIsActionAllowed['View'] then
+  else if (AEditMode = emViewCurrentRecord) and FIsActionAllowed[VIEW_OPERATION] then
     FEditHostWindow.Title := Format(_('View %s'), [_(ViewTable.DisplayLabel)])
   else
     FEditHostWindow.Title := _(ViewTable.DisplayLabel);
@@ -708,14 +708,14 @@ begin
     LFormController.Config.SetBoolean('Sys/HostWindow/AutoSize', True);
 
   case AEditMode of
-    emNewRecord : LFormController.Config.SetString('Sys/Operation', 'Add');
-    emDupCurrentRecord : LFormController.Config.SetString('Sys/Operation', 'Dup');
-    emEditCurrentRecord : LFormController.Config.SetString('Sys/Operation', 'Edit');
+    emNewRecord : LFormController.Config.SetString('Sys/Operation', ADD_OPERATION);
+    emDupCurrentRecord : LFormController.Config.SetString('Sys/Operation', DUPLICATE_OPERATION);
+    emEditCurrentRecord : LFormController.Config.SetString('Sys/Operation', EDIT_OPERATION);
     emViewCurrentRecord :
     begin
-      if not FIsActionAllowed ['Edit'] then
+      if not FIsActionAllowed [EDIT_OPERATION] then
         LFormController.Config.SetBoolean('PreventEditing', True);
-      LFormController.Config.SetString('Sys/Operation', 'View');
+      LFormController.Config.SetString('Sys/Operation', VIEW_OPERATION);
     end;
   end;
 
@@ -755,8 +755,8 @@ begin
   Assert(Assigned(LView));
   Assert(Assigned(FEditorGridPanel));
 
-  FIsActionVisible.AddOrSetValue('View', LViewTable.GetBoolean('Controller/AllowViewing') or Config.GetBoolean('AllowViewing'));
-  FIsActionAllowed.AddOrSetValue('View', FIsActionVisible['View'] and LViewTable.IsAccessGranted(ACM_VIEW));
+  FIsActionVisible.AddOrSetValue(VIEW_OPERATION, LViewTable.GetBoolean('Controller/AllowViewing') or Config.GetBoolean('AllowViewing'));
+  FIsActionAllowed.AddOrSetValue(VIEW_OPERATION, FIsActionVisible[VIEW_OPERATION] and LViewTable.IsAccessGranted(ACM_VIEW));
 
   FIsActionVisible.AddOrSetValue('New',
     not LViewTable.GetBoolean('Controller/PreventAdding')
@@ -765,21 +765,21 @@ begin
     and not Config.GetBoolean('PreventAdding'));
   FIsActionAllowed.AddOrSetValue('New', FIsActionVisible['New'] and LViewTable.IsAccessGranted(ACM_ADD));
 
-  FIsActionVisible.AddOrSetValue('Dup',
+  FIsActionVisible.AddOrSetValue(DUPLICATE_OPERATION,
     LViewTable.GetBoolean('Controller/AllowDuplicating')
     or Config.GetBoolean('AllowDuplicating')
     and not LViewTable.GetBoolean('Controller/PreventAdding')
     and not LView.GetBoolean('IsReadOnly')
     and not LViewTable.IsReadOnly
     and not Config.GetBoolean('PreventAdding'));
-  FIsActionAllowed.AddOrSetValue('Dup', FIsActionVisible['Dup'] and LViewTable.IsAccessGranted(ACM_ADD));
+  FIsActionAllowed.AddOrSetValue(DUPLICATE_OPERATION, FIsActionVisible[DUPLICATE_OPERATION] and LViewTable.IsAccessGranted(ACM_ADD));
 
-  FIsActionVisible.AddOrSetValue('Edit',
+  FIsActionVisible.AddOrSetValue(EDIT_OPERATION,
     not LViewTable.GetBoolean('Controller/PreventEditing')
     and not LView.GetBoolean('IsReadOnly')
     and not LViewTable.IsReadOnly
     and not Config.GetBoolean('PreventEditing'));
-  FIsActionAllowed.AddOrSetValue('Edit', FIsActionVisible['Edit'] and LViewTable.IsAccessGranted(ACM_MODIFY));
+  FIsActionAllowed.AddOrSetValue(EDIT_OPERATION, FIsActionVisible[EDIT_OPERATION] and LViewTable.IsAccessGranted(ACM_MODIFY));
 
   FIsActionVisible.AddOrSetValue('Delete',
     not LViewTable.GetBoolean('Controller/PreventDeleting')
@@ -805,7 +805,7 @@ begin
 
   if not FInplaceEditing and HasDefaultAction then
   begin
-    if Session.IsMobileBrowser then
+    if Session.IsMobileBrowser and FIsActionAllowed[VIEW_OPERATION] then
       LEventName := 'rowclick'
     else
       LEventName := 'rowdblclick';
@@ -857,7 +857,7 @@ begin
   LDefaultAction := GetDefaultAction;
   Result := LDefaultAction <> '';
   if not Result then
-    Result := FIsActionAllowed['View'] or FIsActionAllowed['Edit'];
+    Result := FIsActionAllowed[VIEW_OPERATION] or FIsActionAllowed[EDIT_OPERATION];
 end;
 
 procedure TKExtGridPanel.CheckGroupColumn;
@@ -959,10 +959,10 @@ begin
   LActionName := GetDefaultAction;
   if LActionName = '' then
   begin
-    if FIsActionAllowed['View'] then
-      LActionName := 'View'
-    else if FIsActionAllowed['Edit'] then
-      LActionName := 'Edit';
+    if FIsActionAllowed[VIEW_OPERATION] then
+      LActionName := VIEW_OPERATION
+    else if FIsActionAllowed[EDIT_OPERATION] then
+      LActionName := EDIT_OPERATION;
   end;
   if LActionName <> '' then
     ExecuteNamedAction(LActionName);
@@ -1031,13 +1031,13 @@ begin
   { TODO : check AC? }
   if (AActionName = 'New') then
     FNewButton.PerformClick
-  else if (AActionName = 'Edit') then
+  else if (AActionName = EDIT_OPERATION) then
     FEditButton.PerformClick
-  else if (AActionName = 'View') then
+  else if (AActionName = VIEW_OPERATION) then
     FViewButton.PerformClick
   else if (AActionName = 'Delete') then
     FDeleteButton.PerformClick
-  else if (AActionName = 'Dup') then
+  else if (AActionName = DUPLICATE_OPERATION) then
     FDupButton.PerformClick
   else
     inherited;
@@ -1088,9 +1088,9 @@ begin
   FDupButton.Tooltip := Format(_('Duplicate %s'), [_(ViewTable.DisplayLabel)]);
   FDupButton.SetIconAndScale('dup_record');
   FDupButton.On('click', AjaxSelection(DuplicateRecord, FSelectionModel, LKeyFieldNames, LKeyFieldNames, []));
-  if not FIsActionVisible['Dup'] then
+  if not FIsActionVisible[DUPLICATE_OPERATION] then
     FDupButton.Hidden := True
-  else if not FIsActionAllowed['Dup'] then
+  else if not FIsActionAllowed[DUPLICATE_OPERATION] then
     FDupButton.Disabled := True
   else
     FButtonsRequiringSelection.Add(FDupButton);
@@ -1100,9 +1100,9 @@ begin
   FEditButton.Tooltip := Format(_('Edit %s'), [_(ViewTable.DisplayLabel)]);
   FEditButton.SetIconAndScale('edit_record');
   FEditButton.On('click', AjaxSelection(EditRecord, FSelectionModel, LKeyFieldNames, LKeyFieldNames, []));
-  if not FIsActionVisible['Edit'] or FInplaceEditing then
+  if not FIsActionVisible[EDIT_OPERATION] or FInplaceEditing then
     FEditButton.Hidden := True
-  else if not FIsActionAllowed['Edit'] then
+  else if not FIsActionAllowed[EDIT_OPERATION] then
     FEditButton.Disabled := True
   else
     FButtonsRequiringSelection.Add(FEditButton);
@@ -1124,9 +1124,9 @@ begin
   FViewButton.Tooltip := Format(_('View %s'), [_(ViewTable.DisplayLabel)]);
   FViewButton.SetIconAndScale('view_record');
   FViewButton.On('click', AjaxSelection(ViewRecord, FSelectionModel, LKeyFieldNames, LKeyFieldNames, []));
-  if not FIsActionVisible['View'] then
+  if not FIsActionVisible[VIEW_OPERATION] then
     FViewButton.Hidden := True
-  else if not FIsActionAllowed['View'] then
+  else if not FIsActionAllowed[VIEW_OPERATION] then
    FViewButton.Disabled := True
   else
     FButtonsRequiringSelection.Add(FViewButton);
