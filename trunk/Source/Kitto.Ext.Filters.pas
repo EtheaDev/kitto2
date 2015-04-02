@@ -849,7 +849,7 @@ begin
     if IsButtonVisible(FItems.Children[I].GetExpandedString('ResourceName')) then
     begin
       if IsSingleSelect then
-        LButtons[I].ToggleGroup := Integer(Pointer(Self)).ToString;
+        LButtons[I].ToggleGroup := IntToStr(Integer(Pointer(Self)));
       // In single select mode, only press the first default button.
       if not IsSingleSelect or not LIsDefaultSet then
       begin
