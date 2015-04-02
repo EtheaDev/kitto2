@@ -713,7 +713,7 @@ begin
     emEditCurrentRecord : LFormController.Config.SetString('Sys/Operation', EDIT_OPERATION);
     emViewCurrentRecord :
     begin
-      if not FIsActionAllowed [EDIT_OPERATION] then
+      if not FIsActionAllowed[EDIT_OPERATION] then
         LFormController.Config.SetBoolean('PreventEditing', True);
       LFormController.Config.SetString('Sys/Operation', VIEW_OPERATION);
     end;
@@ -805,9 +805,9 @@ begin
 
   if not FInplaceEditing and HasDefaultAction then
   begin
-    if Session.IsMobileBrowser and FIsActionAllowed[VIEW_OPERATION] then
-      LEventName := 'rowclick'
-    else
+    //if Session.IsMobileBrowser then
+    //  LEventName := 'rowclick'
+    //else
       LEventName := 'rowdblclick';
       LKeyFieldNames := Join(LViewTable.GetKeyFieldAliasedNames, ',');
       FEditorGridPanel.On(LEventName, AjaxSelection(DefaultAction, FSelectionModel, LKeyFieldNames, LKeyFieldNames, []));
