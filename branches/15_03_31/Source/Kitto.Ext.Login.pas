@@ -143,6 +143,7 @@ begin
   FFormPanel.LabelWidth := LLabelWidth;
   FFormPanel.Border := False;
   FFormPanel.Frame := False;
+  FFormPanel.AutoScroll := True;
   LFormPanelBodyStyle := Config.GetString('FormPanel/BodyStyle');
   if LFormPanelBodyStyle <> '' then
     FFormPanel.BodyStyle := LFormPanelBodyStyle;
