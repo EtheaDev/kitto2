@@ -601,6 +601,7 @@ begin
 
   LoadLibraries;
 
+  FHomeViewNodeName := Queries.Values['home'];
   SetViewportContent;
   ResponseItems.ExecuteJSCode('kittoInit();');
   SetAjaxTimeout;
@@ -615,7 +616,6 @@ begin
   FAutoOpenViewName := Queries.Values['view'];
   if FAutoOpenViewName <> '' then
     Queries.Values['view'] := '';
-  FHomeViewNodeName := Queries.Values['home'];
 
   with TKExtDelayedHome.Create(ObjectCatalog) do
   begin
