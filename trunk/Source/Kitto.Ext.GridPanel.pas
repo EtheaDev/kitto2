@@ -365,6 +365,8 @@ var
       LCustomRenderer: TEFNode;
       LColorPairs: TEFPairs;
       LColors: TEFNode;
+      LAllowedValues: TEFPairs;
+      LJSCode: string;
     begin
       Result := False;
 
@@ -426,6 +428,21 @@ var
             'metaData.css += getColorStyleRuleForValue(value, [%s]);' +
             'return %s ? null : formatWithDisplayTemplate(value, ''%s'');',
             [PairsToJSON(LColorPairs), IfThen(AViewField.BlankValue, 'true', 'false'), AViewField.DisplayTemplate]));
+        Result := True;
+        Exit;
+      end;
+
+      LAllowedValues := AViewField.GetChildrenAsPairs('AllowedValues', True);
+      if Length(LAllowedValues) > 0 then
+      begin
+        LJSCode := '';
+        for I := Low(LAllowedValues) to High(LAllowedValues) do
+        begin
+          LAllowedValues[I].Value := _(LAllowedValues[I].Value);
+          LJSCode := LJSCode + Format('if (v == "%s") return "%s";' + sLineBreak, [LAllowedValues[I].Key, LAllowedValues[I].Value]);
+        end;
+        LJSCode := LJSCode + 'return v;';
+        AColumn.RendererExtFunction := AColumn.JSFunction('v', LJSCode);
         Result := True;
         Exit;
       end;
