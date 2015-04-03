@@ -1889,6 +1889,7 @@ begin
   HiddenName := AViewField.FieldNamesForUpdate;
 
   TypeAhead := True;
+  MinChars := AViewField.GetInteger('AutoCompleteMinChars', 4);
   if AViewField.IsReference then
   begin
     FListMode := Lookup;
@@ -1913,7 +1914,6 @@ begin
       MinListWidth := 250; // Enough to accomodate all buttons.
       Resizable := True;
       MinHeight := LinesToPixels(5);
-      MinChars := AViewField.GetInteger('AutoCompleteMinChars', 4);
     end;
   end
   else
@@ -1928,8 +1928,6 @@ begin
 
     StoreArray := JSArray(PairsToJSON(LAllowedValues));
     ValueField := AViewField.FieldNamesForUpdate;
-
-    MinChars := AViewField.GetInteger('AutoCompleteMinChars', 0);
   end;
 
   if AIsReadOnly then
