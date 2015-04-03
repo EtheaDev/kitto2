@@ -67,6 +67,7 @@ type
     procedure ShowConfirmButtons(const AShow: Boolean);
     function HasDefaultAction: Boolean;
     function GetDefaultAction: string;
+    function HasExplicitDefaultAction: Boolean;
   strict protected
     procedure ExecuteNamedAction(const AActionName: string); override;
     function GetEditWindowDefaultControllerType: string; virtual;
@@ -805,12 +806,15 @@ begin
 
   if not FInplaceEditing and HasDefaultAction then
   begin
-    //if Session.IsMobileBrowser then
-    //  LEventName := 'rowclick'
-    //else
+    if Session.IsMobileBrowser then
+      LEventName := IfThen(HasExplicitDefaultAction, 'rowclick', '')
+    else
       LEventName := 'rowdblclick';
+    if LEventName <> '' then
+    begin
       LKeyFieldNames := Join(LViewTable.GetKeyFieldAliasedNames, ',');
       FEditorGridPanel.On(LEventName, AjaxSelection(DefaultAction, FSelectionModel, LKeyFieldNames, LKeyFieldNames, []));
+    end;
   end;
 
   // By default show paging toolbar for large models.
@@ -858,6 +862,11 @@ begin
   Result := LDefaultAction <> '';
   if not Result then
     Result := FIsActionAllowed[VIEW_OPERATION] or FIsActionAllowed[EDIT_OPERATION];
+end;
+
+function TKExtGridPanel.HasExplicitDefaultAction: Boolean;
+begin
+  Result := GetDefaultAction <> '';
 end;
 
 procedure TKExtGridPanel.CheckGroupColumn;
