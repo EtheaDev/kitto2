@@ -35,6 +35,7 @@ type
     function GetDefaultFileExtension: string; override;
     procedure PrepareFile(const AFileName: string); override;
     procedure AcceptRecord(ARecord: TKViewTableRecord; var AAccept: boolean); virtual;
+    procedure AcceptField(AViewField: TKViewField; var AAccept: boolean); virtual;
   public
     procedure AfterConstruction; override;
     class function GetDefaultImageName: string;
@@ -86,6 +87,12 @@ begin
     AAccept := ARecord = ServerRecord;
 end;
 
+procedure TExportExcelToolController.AcceptField(AViewField: TKViewField; var AAccept: boolean);
+begin
+  AAccept := AViewField.IsVisible or
+    Config.GetBoolean('AcceptHiddenFields', False);
+end;
+
 procedure TExportExcelToolController.PrepareFile(const AFileName: string);
 var
   LStore: TKViewTableStore;
@@ -97,7 +104,8 @@ begin
 
   //if not using a template file we must built the structure of a new excel file using ADOX
   if (TemplateFileName = '') then
-    FExportExcelEngine.CreateFileByTable(AFileName, LViewTable, ExcelRangeName)
+    FExportExcelEngine.CreateFileByTable(AFileName, LViewTable, ExcelRangeName,
+      AcceptField)
   else
   begin
     Assert(FileExists(TemplateFileName),
@@ -108,7 +116,7 @@ begin
 
   //Now the output file is ready: filling data
   FExportExcelEngine.FillAdoTable(AFileName, ExcelRangeName, LStore,
-    AcceptRecord);
+    AcceptRecord, AcceptField);
 end;
 
 function TExportExcelToolController.GetDefaultFileName: string;
