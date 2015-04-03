@@ -588,7 +588,7 @@ begin
   TriggerAction := 'all';
   Editable := True;
   TypeAhead := True;
-  MinChars := FConfig.GetInteger('AutoCompleteMinChars', 0);
+  MinChars := FConfig.GetInteger('AutoCompleteMinChars', 4);
   LazyRender := True;
   SelectOnFocus := True;
   AutoSelect := False;
