@@ -776,8 +776,12 @@ end;
 procedure TExtSession.OnError(const AMessage, AMethodName, AParams : string);
 begin
   ResponseItems.Clear;
-  ErrorMessage(AMessage + '<br/>Method: ' + IfThen(AMethodName = '', 'Home', AMethodName) +
-    IfThen(AParams = '', '', '<br/>Params:<br/>' + AnsiReplaceStr(AParams, '&', '<br/>')));
+  {$IFDEF DEBUG}
+    ErrorMessage(AMessage + '<br/>Method: ' + IfThen(AMethodName = '', 'Home', AMethodName) +
+      IfThen(AParams = '', '', '<br/>Params:<br/>' + AnsiReplaceStr(AParams, '&', '<br/>')));
+  {$ELSE}
+    ErrorMessage(AMessage);
+  {$ENDIF}
 end;
 
 procedure TExtSession.Alert(const Msg : string); begin
