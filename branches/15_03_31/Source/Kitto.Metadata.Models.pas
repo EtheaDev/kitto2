@@ -113,9 +113,8 @@ type
     function GetAliasedDBColumnNameOrExpression: string;
     function GetDisplayTemplate: string;
     function GetBlankValue: Boolean;
-  strict
-  private
-    function GetLookupFilter: string; protected
+    function GetLookupFilter: string;
+  strict protected
     class function BeautifyFieldName(const AFieldName: string): string; virtual;
     function GetChildClass(const AName: string): TEFNodeClass; override;
     /// <summary>Returns all main field properties at once.</summary>
