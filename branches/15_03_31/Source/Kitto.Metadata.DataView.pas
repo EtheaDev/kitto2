@@ -97,6 +97,7 @@ type
     function GetDBName: string;
     function GetAliasedDBName: string;
     function GetQualifiedAliasedDBName: string;
+    function GetLookupFilter: string;
   strict protected
     function GetChildClass(const AName: string): TEFNodeClass; override;
     function GetDataType: TEFDataType; override;
@@ -152,6 +153,12 @@ type
     ///  reference fields.
     /// </summary>
     property DefaultFilter: string read GetDefaultFilter;
+
+    /// <summary>
+    ///  Optional filter to use when creating lookup lists. Only applies to
+    ///  reference fields.
+    /// </summary>
+    property LookupFilter: string read GetLookupFilter;
 
     /// <summary>
     ///  Specifies the logical connector to use when appending the
@@ -487,14 +494,14 @@ type
     function FieldByName(const AFieldName: string): TKViewTableField;
 
     /// <summary>
-    ///   Replaces all field name markers in AText with the current field values
-    ///   in JSON format and returns the resulting expanded string.
-    ///   A field name marker is in the form {FieldName}.
-    ///   Pass True in AEmptyNulls to expand null fields to empty strings,
-    ///   otherwise they are expanded as 'null'.
-    ///   If ASender is specified, then the value of the corresponding field
-    //    is not expanded (useful to avoid infinite recursion when this method
-    //    is called by TKViewTableField.GetAsJSONValue).
+    ///  Replaces all field name markers in AText with the current field values
+    ///  in JSON format and returns the resulting expanded string.
+    ///  A field name marker is in the form {FieldName}.
+    ///  Pass True in AEmptyNulls to expand null fields to empty strings,
+    ///  otherwise they are expanded as 'null'.
+    ///  If ASender is specified, then the value of the corresponding field
+    ///  is not expanded (useful to avoid infinite recursion when this method
+    ///  is called by TKViewTableField.GetAsJSONValue).
     /// </summary>
     function ExpandFieldJSONValues(const AText: string;
       const AEmptyNulls: Boolean; const ASender: TKViewField = nil): string;
@@ -1897,6 +1904,13 @@ end;
 function TKViewField.GetIsVisible: Boolean;
 begin
   Result := GetBoolean('IsVisible', True);
+end;
+
+function TKViewField.GetLookupFilter: string;
+begin
+  Result := GetString('LookupFilter');
+  if Result = '' then
+    Result := ModelField.LookupFilter;
 end;
 
 function TKViewField.GetQualifiedDBName: string;

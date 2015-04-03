@@ -52,8 +52,8 @@ type
     property RuleCount: Integer read GetRuleCount;
     property Rules[I: Integer]: TKRule read GetRule; default;
 
-    ///	<summary>Returns True if there's a rule of the same type as the passed
-    ///	one.</summary>
+    /// <summary>Returns True if there's a rule of the same type as the passed
+    /// one.</summary>
     function HasRule(const ARule: TKRule): Boolean;
   end;
 
@@ -113,10 +113,12 @@ type
     function GetAliasedDBColumnNameOrExpression: string;
     function GetDisplayTemplate: string;
     function GetBlankValue: Boolean;
-  strict protected
+  strict
+  private
+    function GetLookupFilter: string; protected
     class function BeautifyFieldName(const AFieldName: string): string; virtual;
     function GetChildClass(const AName: string): TEFNodeClass; override;
-    ///	<summary>Returns all main field properties at once.</summary>
+    /// <summary>Returns all main field properties at once.</summary>
     procedure GetFieldSpec(out ADataType: string; out ASize, ADecimalPrecision: Integer;
       out AIsRequired: Boolean; out AIsKey: Boolean; out AReferencedModel: string);
     function GetFields: TKModelFields;
@@ -131,17 +133,17 @@ type
     property FieldName: string read GetFieldName;
     property PhysicalName: string read GetPhysicalName;
 
-    ///	<summary>
+    /// <summary>
     ///   Returns the PhysicalName or, if not specified, the
-    ///	  FieldName.
+    ///   FieldName.
     /// </summary>
     property DBColumnName: string read GetDBColumnName;
     property DBColumnNameOrExpression: string read GetDBColumnNameOrExpression;
 
-    ///	<summary>
+    /// <summary>
     ///  Returns the physical column name (DBColumnName) plus, if the
-    ///	 field has a different logical name, a space and the logical name
-    ///	 (FieldName).
+    ///  field has a different logical name, a space and the logical name
+    ///  (FieldName).
     /// </summary>
     property AliasedDBColumnName: string read GetAliasedDBColumnName;
     property AliasedDBColumnNameOrExpression: string read GetAliasedDBColumnNameOrExpression;
@@ -161,39 +163,45 @@ type
     property EditFormat: string read GetEditFormat;
     property DisplayFormat: string read GetDisplayFormat;
 
-    ///	<summary>
+    /// <summary>
     ///   If the field is contained (as with local children of a
-    ///	  reference fields), returns the parent field, otherwise nil.
+    ///   reference fields), returns the parent field, otherwise nil.
     /// </summary>
     property ParentField: TKModelField read GetParentField;
 
-    ///	<summary>Returns True if the field has a ParentField.</summary>
+    /// <summary>Returns True if the field has a ParentField.</summary>
     property IsContained: Boolean read GetIsContained;
 
-    ///	<summary>True if the field is a reference.</summary>
+    /// <summary>True if the field is a reference.</summary>
     property IsReference: Boolean read GetIsReference;
 
-    ///	<summary>
-    ///	  Optional filter to use when creating select lists. Only applies to
-    ///	  reference fields.
-    ///	</summary>
+    /// <summary>
+    ///  Optional filter to use when creating select lists. Only applies to
+    ///  reference fields.
+    /// </summary>
     property DefaultFilter: string read GetDefaultFilter;
 
-    ///	<summary>
-    ///	  Specifies the logical connector to use when appending the
-    ///	  DefaultFilter to an existing WHERE clause (for example, a referenced
-    ///	  model's own DefaultFilter). Defaults to 'and'; another common value
-    ///	  is 'or'.
-    ///	</summary>
+    /// <summary>
+    ///  Optional filter to use when creating lookup lists. Only applies to
+    ///  reference fields.
+    /// </summary>
+    property LookupFilter: string read GetLookupFilter;
+
+    /// <summary>
+    ///   Specifies the logical connector to use when appending the
+    ///   DefaultFilter to an existing WHERE clause (for example, a referenced
+    ///   model's own DefaultFilter). Defaults to 'and'; another common value
+    ///   is 'or'.
+    /// </summary>
     property DefaultFilterConnector: string read GetDefaultFilterConnector;
 
-    ///	<summary>If the field is part of a reference field, returns the number
-    ///	of physical fields that make up the reference.</summary>
+    /// <summary>If the field is part of a reference field, returns the number
+    /// of physical fields that make up the reference.</summary>
     property FieldCount: Integer read GetFieldCount;
 
-    ///	<summary>
+    /// <summary>
     ///  If the field is part of a reference field, returns the
-    ///	 physical fields that make up the reference.
+    ///  physical fields that make up the reference.
     /// </summary>
     property Fields[I: Integer]: TKModelField read GetField;
 
@@ -202,158 +210,158 @@ type
     function FindFieldByPhysicalName(const APhysicalName: string): TKModelField;
     function FindFieldByPredicate(const APredicate: TKModelFieldPredicate): TKModelField;
 
-    ///	<summary>Returns the names of the sub-fields, if any.</summary>
+    /// <summary>Returns the names of the sub-fields, if any.</summary>
     function GetFieldNames: TStringDynArray;
 
-    ///	<summary>Returns the DB names of the sub-fields, if any.</summary>
+    /// <summary>Returns the DB names of the sub-fields, if any.</summary>
     function GetDBColumnNames: TStringDynArray;
 
-    ///	<summary>If the field is a reference, returns the referenced model's
-    ///	name, otherwise ''.</summary>
+    /// <summary>If the field is a reference, returns the referenced model's
+    /// name, otherwise ''.</summary>
     property ReferencedModelName: string read GetReferencedModelName;
 
-    ///	<summary>If the field is a reference, returns the referenced model,
-    ///	otherwise nil.</summary>
+    /// <summary>If the field is a reference, returns the referenced model,
+    /// otherwise nil.</summary>
     property ReferencedModel: TKModel read GetReferencedModel;
 
-    ///	<summary>If the field is a reference, returns the reference field names
-    ///	(that is the names of the fields, in the underlying table, that make up
-    ///	the foreign key to the referenced model).</summary>
+    /// <summary>If the field is a reference, returns the reference field names
+    /// (that is the names of the fields, in the underlying table, that make up
+    /// the foreign key to the referenced model).</summary>
     property ReferenceFieldNames: TStringDynArray read GetReferenceFieldNames;
 
-    ///	<summary>If the field is a reference, returns an array of its subfields
-    ///	(that is the fields, in the underlying table, that make up the foreign
-    ///	key to the referenced model).</summary>
+    /// <summary>If the field is a reference, returns an array of its subfields
+    /// (that is the fields, in the underlying table, that make up the foreign
+    /// key to the referenced model).</summary>
     function GetReferenceFields: TKModelFieldArray;
 
-    ///	<summary>
-    ///	  Default requiredness status of this field in views. Defaults to
+    /// <summary>
+    ///   Default requiredness status of this field in views. Defaults to
     ///   the database nullability status of the column.
-    ///	</summary>
+    /// </summary>
     property IsRequired: Boolean read GetIsRequired;
 
-    ///	<summary>
-    ///	  Default visibility status of this field in views. Defaults to True.
-    ///	</summary>
+    /// <summary>
+    ///   Default visibility status of this field in views. Defaults to True.
+    /// </summary>
     property IsVisible: Boolean read GetIsVisible;
 
-    ///	<summary>
-    ///	  Default read-only status of this field in views. Defaults to False.
-    ///	</summary>
+    /// <summary>
+    ///   Default read-only status of this field in views. Defaults to False.
+    /// </summary>
     property IsReadOnly: Boolean read GetIsReadOnly;
 
-    ///	<summary>
-    ///	  Returns True if the field is auto-generated at the database level,
+    /// <summary>
+    ///   Returns True if the field is auto-generated at the database level,
     ///   such as an auto-increment field. Default is False.
-    ///	</summary>
+    /// </summary>
     property IsGenerated: Boolean read GetIsGenerated;
 
-    ///	<summary>A field that is not a physical field but rather computed by a
-    ///	SQL expression will have the expression stored in this
-    ///	property.</summary>
+    /// <summary>A field that is not a physical field but rather computed by a
+    /// SQL expression will have the expression stored in this
+    /// property.</summary>
     property Expression: string read GetExpression;
 
-    ///	<summary>Returns True if the field can be modified when inserting a new
-    ///	record. By default all fields for which CanActuallyModify returns True
-    ///	are editable, but you can makle a field non editable during insert by
-    ///	adding 'CanInsert: False' to its definition.</summary>
-    ///	<remarks>You can't make editable a field that is naturally non
-    ///	editable, such as an expression field.</remarks>
+    /// <summary>Returns True if the field can be modified when inserting a new
+    /// record. By default all fields for which CanActuallyModify returns True
+    /// are editable, but you can makle a field non editable during insert by
+    /// adding 'CanInsert: False' to its definition.</summary>
+    /// <remarks>You can't make editable a field that is naturally non
+    /// editable, such as an expression field.</remarks>
     property CanInsert: Boolean read GetCanInsert;
 
-    ///	<summary>Returns True if the field can be modified when editing an
-    ///	existing record. By default all fields for which CanActuallyModify
-    ///	returns True are editable, but you can makle a field non editable
-    ///	during update by adding 'CanUpdate: False' to its definition.</summary>
-    ///	<remarks>You can't make editable a field that is naturally non
-    ///	editable, such as an expression field.</remarks>
+    /// <summary>Returns True if the field can be modified when editing an
+    /// existing record. By default all fields for which CanActuallyModify
+    /// returns True are editable, but you can makle a field non editable
+    /// during update by adding 'CanUpdate: False' to its definition.</summary>
+    /// <remarks>You can't make editable a field that is naturally non
+    /// editable, such as an expression field.</remarks>
     property CanUpdate: Boolean read GetCanUpdate;
 
-    ///	<summary>Returns True if a field is natually editable. All fields
-    ///	except expression fields are currently considered natually
-    ///	editable.</summary>
+    /// <summary>Returns True if a field is natually editable. All fields
+    /// except expression fields are currently considered natually
+    /// editable.</summary>
     function CanActuallyModify: Boolean;
 
-    ///	<summary>
-    ///	  Indicates that an empty value input by the user should be converted
-    ///	  to null when writing to the database. For string/date/time/datetime
-    ///	  fields defaults to True; for other data types defaults to False.
-    ///	</summary>
-    ///	<remarks>
-    ///	  Only relevant for string/date/time/datetime fields. In other cases,
-    ///	  empty values are always converted to null. If the field is not of one
-    ///	  of these types, this property always returns True.
-    ///	</remarks>
-    ///	<remarks>
-    ///	  If the field has a parent field, then the parent field's EmptyAsNull
-    ///	  is returned (IOW setting EmptyAsNull on fields that are part of
+    /// <summary>
+    ///   Indicates that an empty value input by the user should be converted
+    ///   to null when writing to the database. For string/date/time/datetime
+    ///   fields defaults to True; for other data types defaults to False.
+    /// </summary>
+    /// <remarks>
+    ///   Only relevant for string/date/time/datetime fields. In other cases,
+    ///   empty values are always converted to null. If the field is not of one
+    ///   of these types, this property always returns True.
+    /// </remarks>
+    /// <remarks>
+    ///   If the field has a parent field, then the parent field's EmptyAsNull
+    ///   is returned (IOW setting EmptyAsNull on fields that are part of
     ///   other fields, such as in multi-column reference fields, is
     ///   ineffective. You set it once for all in the parent field).
-    ///	</remarks>
+    /// </remarks>
     property EmptyAsNull: Boolean read GetEmptyAsNull;
 
-    ///	<summary>If the field has a fixed list of allowed values, it is stored
-    ///	here. Each value has as an associated label.</summary>
-    ///	<remarks>Only string fields are currently supported.</remarks>
+    /// <summary>If the field has a fixed list of allowed values, it is stored
+    /// here. Each value has as an associated label.</summary>
+    /// <remarks>Only string fields are currently supported.</remarks>
     property AllowedValues: TEFPairs read GetAllowedValues;
 
-    ///	<summary>
-    ///	  Default label for this field in views. Defaults to a beautified field
-    ///	  name. The beautifying function can be customized.
-    ///	</summary>
+    /// <summary>
+    ///   Default label for this field in views. Defaults to a beautified field
+    ///   name. The beautifying function can be customized.
+    /// </summary>
     property DisplayLabel: string read GetDisplayLabel;
 
     property Hint: string read GetHint;
 
-    ///	<summary>
-    ///	  Default width for this field in views. Defaults to the field size for
-    ///	  string fields, and reasonable sizes for other field types.
-    ///	</summary>
+    /// <summary>
+    ///   Default width for this field in views. Defaults to the field size for
+    ///   string fields, and reasonable sizes for other field types.
+    /// </summary>
     property DisplayWidth: Integer read GetDisplayWidth;
 
-    ///	<summary>
-    ///	  A string format that will be used to render the field's value.
+    /// <summary>
+    ///   A string format that will be used to render the field's value.
     ///  may include the {value} placeholder that will be replaced with the field's value
     ///  in read-only GUIs, and any {FieldName} placeholders for other fields' values.
     ///  A template of '{value}' acts the same as no template.
-    ///	</summary>
+    /// </summary>
     property DisplayTemplate: string read GetDisplayTemplate;
 
-    ///	<summary>
-    ///	  Indicates to hide the field value when an image is displayed
+    /// <summary>
+    ///   Indicates to hide the field value when an image is displayed
     ///   (otherwise both image and value are shown).
     ///   If no image is displayed, this property is ignored.
-    ///	</summary>
+    /// </summary>
     property BlankValue: Boolean read GetBlankValue;
 
-    ///	<summary>
-    ///	  Optional value to set for the field when a new record is created.
-    ///	</summary>
+    /// <summary>
+    ///   Optional value to set for the field when a new record is created.
+    /// </summary>
     property DefaultValue: Variant read GetDefaultValue;
 
-    ///	<summary>
-    ///	  Returns the default Display Width based on the DataType
-    ///	</summary>
+    /// <summary>
+    ///   Returns the default Display Width based on the DataType
+    /// </summary>
     property DefaultDisplayWidth: Integer read GetDefaultDisplayWidth;
 
-    ///	<summary>
-    ///	  Returns the default Display label of the field as a
+    /// <summary>
+    ///   Returns the default Display label of the field as a
     ///   beautified value of FieldName
-    ///	</summary>
+    /// </summary>
     property DefaultDisplayLabel: string read GetDefaultDisplayLabel;
 
-    ///	<summary>
-    ///	  Returns the default value form EmptyAsNull based on the DataType
-    ///	</summary>
+    /// <summary>
+    ///   Returns the default value form EmptyAsNull based on the DataType
+    /// </summary>
     property DefaultEmptyAsNull: Boolean read GetDefaultEmptyAsNull;
 
     property IsKey: Boolean read GetIsKey;
 
     property Rules: TKRules read GetRules;
 
-    ///	<summary>For blob or file reference fields, optionally specifies the
-    ///	name of another field in the same model that will store the
-    ///	original file name upon upload.</summary>
+    /// <summary>For blob or file reference fields, optionally specifies the
+    /// name of another field in the same model that will store the
+    /// original file name upon upload.</summary>
     property FileNameField: string read GetFileNameField;
 
     function GetFilterByFields: TArray<TKFilterByField>;
@@ -376,8 +384,8 @@ type
     function GetFieldNames: TStringDynArray;
     function GetDBColumnNames: TStringDynArray;
 
-    ///	<summary>If the fields are contained inside a parent field, this
-    ///	property returns the parent field, otherwise nil.</summary>
+    /// <summary>If the fields are contained inside a parent field, this
+    /// property returns the parent field, otherwise nil.</summary>
     property ParentField: TKModelField read GetParentField;
   end;
 
@@ -402,18 +410,18 @@ type
     class function BeautifyDetailName(const ADetailName: string): string; virtual;
   public
     property PhysicalName: string read GetPhysicalName;
-    ///	<summary>Returns PhysicalName.</summary>
+    /// <summary>Returns PhysicalName.</summary>
     property DBForeignKeyName: string read GetDBForeignKeyName;
     property DisplayLabel: string read GetDisplayLabel;
     property DetailReferenceName: string read GetDetailReferenceName;
     property DetailModel: TKModel read GetDetailModel;
     property DetailModelName: string read GetDetailModelName;
 
-    ///	<summary>Returns the counterpart reference field in the detail model.
-    ///	If there's only one reference field from the detail model to this
-    ///	master model, then it's assumed it is the one being looked for,
-    ///	otherwise its name is fetched from the ReferenceField parameter of the
-    ///	DetailReference.</summary>
+    /// <summary>Returns the counterpart reference field in the detail model.
+    /// If there's only one reference field from the detail model to this
+    /// master model, then it's assumed it is the one being looked for,
+    /// otherwise its name is fetched from the ReferenceField parameter of the
+    /// DetailReference.</summary>
     property ReferenceField: TKModelField read GetReferenceField;
     property ReferenceFieldName: string read GetReferenceFieldName;
   end;
@@ -487,10 +495,10 @@ type
     property DefaultPhysicalName: string read GetDefaultPhysicalName;
     property PhysicalName: string read GetPhysicalName;
 
-    ///	<summary>
+    /// <summary>
     ///  Returns the physical database table name (PhysicalName
-    ///	 property) or, if not specified, the ModelName. It is the name to be
-    ///	 used to update the physical table.
+    ///  property) or, if not specified, the ModelName. It is the name to be
+    ///  used to update the physical table.
     /// </summary>
     property DBTableName: string read GetDBTableName;
     property DisplayLabel: string read GetDisplayLabel;
@@ -505,27 +513,27 @@ type
     function FieldByName(const AName: string): TKModelField;
     function FindField(const AName: string): TKModelField;
     function FindFieldByPhysicalName(const APhysicalName: string): TKModelField;
-    ///	<summary>
+    /// <summary>
     ///  Calls AProc for all first-level fields in the model.
     /// </summary>
     procedure EnumFields(const AProc: TProc<TKModelField>);
-    ///	<summary>
+    /// <summary>
     ///  Calls AProc for all first-level fields in the model except fields with
     ///  subfields (such as reference fields). In such cases, calls AProc for
     ///  each subfield and never for the parent field.
     /// </summary>
     procedure EnumPhysicalFields(const AProc: TProc<TKModelField>);
 
-    ///	<summary>
+    /// <summary>
     ///  Returns an array of key field names.
     /// </summary>
     function GetKeyFieldNames: TStringDynArray;
-    ///	<summary>Returns an array of key physical field names.</summary>
-    ///	<param name="AQualify">If True, each field name is prefixed with the
-    ///	table name and a dot.</param>
-    ///	<param name="AAlias">If True, makes it so that every field that has a
-    ///	different physical name is aliased (meaning the physical name is
-    ///	output, followed by a space and the FieldName).</param>
+    /// <summary>Returns an array of key physical field names.</summary>
+    /// <param name="AQualify">If True, each field name is prefixed with the
+    /// table name and a dot.</param>
+    /// <param name="AAlias">If True, makes it so that every field that has a
+    /// different physical name is aliased (meaning the physical name is
+    /// output, followed by a space and the FieldName).</param>
     function GetKeyDBColumnNames(const AQualify: Boolean = False;
       const AAlias: Boolean = False): TStringDynArray;
     property KeyFieldCount: Integer read GetKeyFieldCount;
@@ -537,58 +545,58 @@ type
     function FindDetailReference(const AName: string): TKModelDetailReference;
     function FindDetailReferenceByPhysicalName(const APhysicalName: string): TKModelDetailReference;
 
-    ///	<summary>If there's exactly one detail reference to the specified
-    ///	model, returns it, otherwise returns nil.</summary>
+    /// <summary>If there's exactly one detail reference to the specified
+    /// model, returns it, otherwise returns nil.</summary>
     function FindDetailReferenceByModel(const AModel: TKModel): TKModelDetailReference;
 
-    ///	<summary>If there's exactly one detail reference to the model with the
-    ///	specified name, returns it, otherwise returns nil.</summary>
+    /// <summary>If there's exactly one detail reference to the model with the
+    /// specified name, returns it, otherwise returns nil.</summary>
     function FindDetailReferenceByModelName(const AModelName: string): TKModelDetailReference;
 
-    ///	<summary>Returns the first found detail reference to the specified
-    ///	reference field. If not found, returns nil.</summary>
+    /// <summary>Returns the first found detail reference to the specified
+    /// reference field. If not found, returns nil.</summary>
     function FindDetailReferenceByField(const AField: TKModelField): TKModelDetailReference;
 
-    ///	<summary>If there's exactly one field referencing the specified model,
-    ///	it is returned. Otherwise the method returns nil.</summary>
+    /// <summary>If there's exactly one field referencing the specified model,
+    /// it is returned. Otherwise the method returns nil.</summary>
     function FindReferenceField(const AModel: TKModel): TKModelField; overload;
 
-    ///	<summary>Finds and returns a field referencing a model with the
-    ///	specified name and all subfields listed in the specified field name
-    ///	array (and only these), otherwise nil.</summary>
-    ///	<param name="AModelName">Name of the referenced model.</param>
-    ///	<param name="AFieldNames">Names of the referencing fields.</param>
-    ///	<remarks>If AFieldNames contains only one item, a same-named reference
-    ///	field with no subfields does qualify as a return value. If AFieldNames
-    ///	contains several items (indicating a multi-field reference) then the
-    ///	name of the field does not matter and only the subfields
-    ///	contribute.</remarks>
+    /// <summary>Finds and returns a field referencing a model with the
+    /// specified name and all subfields listed in the specified field name
+    /// array (and only these), otherwise nil.</summary>
+    /// <param name="AModelName">Name of the referenced model.</param>
+    /// <param name="AFieldNames">Names of the referencing fields.</param>
+    /// <remarks>If AFieldNames contains only one item, a same-named reference
+    /// field with no subfields does qualify as a return value. If AFieldNames
+    /// contains several items (indicating a multi-field reference) then the
+    /// name of the field does not matter and only the subfields
+    /// contribute.</remarks>
     function FindReferenceField(const AModelName: string;
       const AFieldNames: TStringDynArray): TKModelField; overload;
 
-    ///	<summary>If a reference field with a ForeignKeyName property equals to
-    ///	the specified name exists, it is returned. Otherwise nil is
-    ///	returned.</summary>
-    ///	<param name="AForeignKeyName">Name of the database-level foreign
-    ///	key.</param>
-    ///	<remarks>Not all reference fields have a ForeignKeyName set.</remarks>
+    /// <summary>If a reference field with a ForeignKeyName property equals to
+    /// the specified name exists, it is returned. Otherwise nil is
+    /// returned.</summary>
+    /// <param name="AForeignKeyName">Name of the database-level foreign
+    /// key.</param>
+    /// <remarks>Not all reference fields have a ForeignKeyName set.</remarks>
     function FindReferenceField(const AForeignKeyName: string): TKModelField; overload;
 
     property IsReadOnly: Boolean read GetIsReadOnly;
     property DefaultFilter: string read GetDefaultFilter;
 
-    ///	<summary>True if the model's underlying data store is a large one. Used
-    ///	to decide the kind of lookup combo box to create. Se this to True if
-    ///	the cardinality of the underlying database table exceeds what you are
-    ///	comfortable to put in an Ajax response (typically a few hundred records,
+    /// <summary>True if the model's underlying data store is a large one. Used
+    /// to decide the kind of lookup combo box to create. Se this to True if
+    /// the cardinality of the underlying database table exceeds what you are
+    /// comfortable to put in an Ajax response (typically a few hundred records,
     /// depending on the number and size of columns).</summary>
     property IsLarge: Boolean read GetIsLarge;
 
-    ///	<summary>
-    ///	 Optional fixed ORDER BY expression to apply when building the select
-    ///	 SQL statement to display data. Should refer to fields through
-    ///	 qualified names. Defaults to the list of fields in the key, if any.
-    ///	</summary>
+    /// <summary>
+    ///  Optional fixed ORDER BY expression to apply when building the select
+    ///  SQL statement to display data. Should refer to fields through
+    ///  qualified names. Defaults to the list of fields in the key, if any.
+    /// </summary>
     property DefaultSorting: string read GetDefaultSorting;
     property DefaultDefaultSorting: string read GetDefaultDefaultSorting;
 
@@ -600,81 +608,81 @@ type
 
     property DatabaseName: string read GetDatabaseName;
 
-    ///	<summary>
-    ///	 Loads a set or a page of records into the specified store.
-    ///	</summary>
-    ///	<param name="AStore">
-    ///	 Instance of the store to populate. May be (will probably be) an
-    ///	 instance of an inherited class.
-    ///	</param>
-    ///	<param name="AFilterExpression">
-    ///	 Optional filter expression. It is commonly a SQL predicate, but it
-    ///	 suffices that it is meaningful to the particular model class.
-    ///	</param>
-    ///	<param name="ASortExpression">
-    ///	 Optional sort expression. It is commonly a SQL ORDER BY clause, but
-    ///	 it suffices that it is meaningful to the particular model class.
-    ///	</param>
-    ///	<param name="AStart">
-    ///	 Optional: First record to load. If both this argument and ALimit are
-    ///	 0, all records matching the filter are loaded, otherwise only a page
-    ///	 starting from this record and ALimit records long tops.
-    ///	</param>
-    ///	<param name="ALimit">
-    ///	 Maximum number of records to load. It is the page size. Pass 0 in
-    ///	 both this argument and AStart to load all records matching the filter.
-    ///	</param>
-    ///	<returns>
-    ///	 Count of actually loaded records.
-    ///	</returns>
+    /// <summary>
+    ///  Loads a set or a page of records into the specified store.
+    /// </summary>
+    /// <param name="AStore">
+    ///  Instance of the store to populate. May be (will probably be) an
+    ///  instance of an inherited class.
+    /// </param>
+    /// <param name="AFilterExpression">
+    ///  Optional filter expression. It is commonly a SQL predicate, but it
+    ///  suffices that it is meaningful to the particular model class.
+    /// </param>
+    /// <param name="ASortExpression">
+    ///  Optional sort expression. It is commonly a SQL ORDER BY clause, but
+    ///  it suffices that it is meaningful to the particular model class.
+    /// </param>
+    /// <param name="AStart">
+    ///  Optional: First record to load. If both this argument and ALimit are
+    ///  0, all records matching the filter are loaded, otherwise only a page
+    ///  starting from this record and ALimit records long tops.
+    /// </param>
+    /// <param name="ALimit">
+    ///  Maximum number of records to load. It is the page size. Pass 0 in
+    ///  both this argument and AStart to load all records matching the filter.
+    /// </param>
+    /// <returns>
+    ///  Count of actually loaded records.
+    /// </returns>
     function LoadRecords(const AStore: TEFTree; const AFilterExpression: string;
       const ASortExpression: string; const AStart: Integer = 0;
       const ALimit: Integer = 0): Integer; virtual; abstract;
 
-    ///	<summary>
-    ///	 Saves the specified record.
-    ///	</summary>
-    ///	<param name="ARecord">
-    ///	 Instance of the record to save. May be (will probably be) an instance
-    ///	 of an inherited class.
-    ///	</param>
-    ///	<param name="APersist">
-    ///	 If True, the record is to be persisted to the underlying data store,
-    ///	 otherwise it should only be prepared now and persisted later (for
-    ///	 example, when saving a detail record this argument is False).
-    ///	</param>
-    ///	<param name="AAfterPersist">
-    ///	 A procedure to be called after successfully persisting the record. It
-    ///	 will only be called if APersist is True and the save goes well.
-    ///	</param>
-    ///	<remarks>
-    ///	 In case of errors, this method raises exceptions and does not call
-    ///	 AAfterPersist.
-    ///	</remarks>
+    /// <summary>
+    ///  Saves the specified record.
+    /// </summary>
+    /// <param name="ARecord">
+    ///  Instance of the record to save. May be (will probably be) an instance
+    ///  of an inherited class.
+    /// </param>
+    /// <param name="APersist">
+    ///  If True, the record is to be persisted to the underlying data store,
+    ///  otherwise it should only be prepared now and persisted later (for
+    ///  example, when saving a detail record this argument is False).
+    /// </param>
+    /// <param name="AAfterPersist">
+    ///  A procedure to be called after successfully persisting the record. It
+    ///  will only be called if APersist is True and the save goes well.
+    /// </param>
+    /// <remarks>
+    ///  In case of errors, this method raises exceptions and does not call
+    ///  AAfterPersist.
+    /// </remarks>
     procedure SaveRecord(const ARecord: TEFNode; const APersist: Boolean;
       const AAfterPersist: TProc); virtual; abstract;
-    ///	<summary>
-    ///	 Called when a new record is being created in the GUI, after applying
+    /// <summary>
+    ///  Called when a new record is being created in the GUI, after applying
     ///  any default or cloned values but before applying new record rules.
-    ///	</summary>
-    ///	<param name="ARecord">
-    ///	 Instance of the record just created. May be (will probably be) an instance
-    ///	 of an inherited class.
-    ///	</param>
-    ///	<param name="AIsCloned">
-    ///	 If True, the record was created as a result of a clone operation, which
+    /// </summary>
+    /// <param name="ARecord">
+    ///  Instance of the record just created. May be (will probably be) an instance
+    ///  of an inherited class.
+    /// </param>
+    /// <param name="AIsCloned">
+    ///  If True, the record was created as a result of a clone operation, which
     ///  means it should contain values; otherwise it is empty except for the
     ///  default values.
-    ///	</param>
+    /// </param>
     procedure BeforeNewRecord(const ARecord: TEFNode; const AIsCloned: Boolean); virtual;
-    ///	<summary>
-    ///	 Called when a new record has been created in the GUI, after applying
+    /// <summary>
+    ///  Called when a new record has been created in the GUI, after applying
     ///  any default or cloned values and new record rules.
-    ///	</summary>
-    ///	<param name="ARecord">
-    ///	 Instance of the record just created. May be (will probably be) an instance
-    ///	 of an inherited class.
-    ///	</param>
+    /// </summary>
+    /// <param name="ARecord">
+    ///  Instance of the record just created. May be (will probably be) an instance
+    ///  of an inherited class.
+    /// </param>
     procedure AfterNewRecord(const ARecord: TEFNode); virtual;
   end;
 
@@ -707,10 +715,10 @@ type
     function ModelByNode(const ANode: TEFNode): TKModel;
     function FindModelByNode(const ANode: TEFNode): TKModel;
 
-    ///	<summary>Returns a reference to the first found model with the
-    ///	specified physical name. If a model has no custom physical name
-    ///	specified, the (case insensitive) match is done on its name
-    ///	instead.</summary>
+    /// <summary>Returns a reference to the first found model with the
+    /// specified physical name. If a model has no custom physical name
+    /// specified, the (case insensitive) match is done on its name
+    /// instead.</summary>
     function FindModelByPhysicalName(const APhysicalName: string): TKModel;
   end;
 
@@ -726,9 +734,9 @@ type
     function GetClass(const AId1, AId2: string): TKModelClass;
   end;
 
-///	<summary>Returns the input value unless it's a supported literal, in which
-///	case evaluates the literal and returns it. Used by model and view fields to
-///	compute default values.</summary>
+/// <summary>Returns the input value unless it's a supported literal, in which
+/// case evaluates the literal and returns it. Used by model and view fields to
+/// compute default values.</summary>
 function EvalExpression(const AExpression: Variant): Variant;
 
 function Pluralize(const AName: string): string;
@@ -1382,6 +1390,11 @@ end;
 function TKModelField.GetIsVisible: Boolean;
 begin
   Result := GetBoolean('IsVisible', True);
+end;
+
+function TKModelField.GetLookupFilter: string;
+begin
+  Result := GetString('LookupFilter');
 end;
 
 function TKModelField.GetQualifiedDBColumnName: string;
