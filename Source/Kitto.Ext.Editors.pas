@@ -1888,6 +1888,8 @@ begin
   // visible description on the server.
   HiddenName := AViewField.FieldNamesForUpdate;
 
+  TypeAhead := True;
+  MinChars := AViewField.GetInteger('AutoCompleteMinChars', 4);
   if AViewField.IsReference then
   begin
     FListMode := Lookup;
@@ -1907,14 +1909,11 @@ begin
           Name := FServerStore.Header.Fields[I].FieldName;
       ValueField := Join(FServerStore.Key.GetFieldNames, TKConfig.Instance.MultiFieldSeparator);
       DisplayField := AViewField.ModelField.ReferencedModel.CaptionField.FieldName;
-      { TODO : make these configurable. }
-      MinChars := 4;
       if AViewField.ModelField.ReferencedModel.IsLarge then
         PageSize := 100;
       MinListWidth := 250; // Enough to accomodate all buttons.
       Resizable := True;
       MinHeight := LinesToPixels(5);
-      TypeAhead := True;
     end;
   end
   else
