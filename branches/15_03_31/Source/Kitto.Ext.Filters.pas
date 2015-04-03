@@ -447,6 +447,8 @@ begin
 
   FConfig := AConfig;
   FieldLabel := _(AConfig.AsString);
+  TypeAhead := True;
+  MinChars := FConfig.GetInteger('AutoCompleteMinChars', 4);
 end;
 
 procedure TKListFilterBase.SetViewTable(const AViewTable: TKViewTable);
@@ -587,8 +589,6 @@ begin
   //ForceSelection := True;
   TriggerAction := 'all';
   Editable := True;
-  TypeAhead := True;
-  MinChars := FConfig.GetInteger('AutoCompleteMinChars', 4);
   LazyRender := True;
   SelectOnFocus := True;
   AutoSelect := False;
