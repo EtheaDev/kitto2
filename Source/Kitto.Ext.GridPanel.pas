@@ -625,8 +625,12 @@ begin
 end;
 
 procedure TKExtGridPanel.EditRecord;
+var
+  LRecord: TKViewTableRecord;
 begin
-  ShowEditWindow(GetCurrentViewRecord, emEditCurrentRecord);
+  LRecord := GetCurrentViewRecord;
+  LRecord.ApplyEditRecordRules;
+  ShowEditWindow(LRecord, emEditCurrentRecord);
 end;
 
 function TKExtGridPanel.GetRowColorPatterns(out AFieldName: string): TEFPairs;
