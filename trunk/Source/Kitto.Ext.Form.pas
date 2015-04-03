@@ -470,6 +470,7 @@ procedure TKExtFormPanelController.SwitchToEditMode;
 var
   LHostWindow: TExtWindow;
 begin
+  FStoreRecord.ApplyEditRecordRules;
   FEditButton.SetVisible(False);
   FConfirmButton.SetVisible(True);
   if Assigned(FCloneButton) then

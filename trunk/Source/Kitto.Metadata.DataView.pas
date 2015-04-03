@@ -478,6 +478,7 @@ type
     function GetDetailStoreByModelName(const AModelName: string): TKViewTableStore;
 
     procedure ApplyNewRecordRules;
+    procedure ApplyEditRecordRules;
     procedure ApplyBeforeRules;
     procedure ApplyAfterRules;
 
@@ -2334,6 +2335,15 @@ begin
     Restore;
     raise;
   end;
+end;
+
+procedure TKViewTableRecord.ApplyEditRecordRules;
+begin
+  ViewTable.ApplyRules(
+    procedure (ARuleImpl: TKRuleImpl)
+    begin
+      ARuleImpl.EditRecord(Self);
+    end);
 end;
 
 procedure TKViewTableRecord.ApplyNewRecordRules;

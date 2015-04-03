@@ -14,51 +14,51 @@
    limitations under the License.
 -------------------------------------------------------------------------------}
 
-///	<summary>
-///	 <para>
+/// <summary>
+///  <para>
 ///   This unit contains the classes that make up Kitto's support for
-///	  rules. A rule in Kitto is a business rule, or constraint, applied during
-///	  data entry. Rules are associated to models, model fields, view tables and
-///	  view table fiels, in a subnode <c>Rules</c> of the object definition.
-///	 </para>
-///	 <para>
+///   rules. A rule in Kitto is a business rule, or constraint, applied during
+///   data entry. Rules are associated to models, model fields, view tables and
+///   view table fiels, in a subnode <c>Rules</c> of the object definition.
+///  </para>
+///  <para>
 ///   A rule influences Kitto's data entry behaviour at different times
-///	  and places. For example, a rule that forces character case on a given
-///	  field is applied on the client side through ExtJS, while a custom rule
-///	  written in Delphi code that performs cross-field checks for data
-///	  integrity before writing a record to the database is applied on the
-///	  server after a form is submitted.
+///   and places. For example, a rule that forces character case on a given
+///   field is applied on the client side through ExtJS, while a custom rule
+///   written in Delphi code that performs cross-field checks for data
+///   integrity before writing a record to the database is applied on the
+///   server after a form is submitted.
 ///  </para>
-///	 <para>
+///  <para>
 ///   Kitto includes a number of predefined rules for common validation
-///	  tasks, defined both in this unit and in Kitto.Ext.Rule. You can add new
-///	  rules by creating classes inherited from <c>TKRuleImpl</c> and
-///	  registering them this way:
+///   tasks, defined both in this unit and in Kitto.Ext.Rule. You can add new
+///   rules by creating classes inherited from <c>TKRuleImpl</c> and
+///   registering them this way:
 ///  </para>
-///	 <code lang="Delphi">
-///	  initialization
-///	    TKRuleImplRegistry.Instance.RegisterClass(TKExtMyRule.GetClassId, TKExtMyRule);
-///	  finalization
-///	    TKRuleImplRegistry.Instance.UnregisterClass(TKExtMyRule.GetClassId);
-///	 </code>
+///  <code lang="Delphi">
+///   initialization
+///     TKRuleImplRegistry.Instance.RegisterClass(TKExtMyRule.GetClassId, TKExtMyRule);
+///   finalization
+///     TKRuleImplRegistry.Instance.UnregisterClass(TKExtMyRule.GetClassId);
+///  </code>
 ///  You then use it by mentioning it in the definition of a model, a
-///	 model field, a view table or a view table field. Rules are called (applied)
-///	 depending on where they are used:
-///	 <list type="bullet">
-///	  <item>A model-level rule is always applied.</item>
-///	  <item>A table-view-level rule is always applied when editing data
-///	   through the view, in addition to (and before) any model-level
-///	   rules.</item>
-///	  <item>A model-field-level rule is always applied unless a
-///	   view-table-field-level rule of the same type is also defined (for
-///	   example, you cannot force case to upper case in the model and lower
-///	   case in the view - you have to do it only once where it's
-///	   appropriate).</item>
-///	  <item>A view-table-field-level rule is always applied when editing data
-///	   through the view.</item>
-///	 </list>
-///	</summary>
-///	<seealso cref="TKRuleImpl">How to create custom rules.</seealso>
+///  model field, a view table or a view table field. Rules are called (applied)
+///  depending on where they are used:
+///  <list type="bullet">
+///   <item>A model-level rule is always applied.</item>
+///   <item>A table-view-level rule is always applied when editing data
+///    through the view, in addition to (and before) any model-level
+///    rules.</item>
+///   <item>A model-field-level rule is always applied unless a
+///    view-table-field-level rule of the same type is also defined (for
+///    example, you cannot force case to upper case in the model and lower
+///    case in the view - you have to do it only once where it's
+///    appropriate).</item>
+///   <item>A view-table-field-level rule is always applied when editing data
+///    through the view.</item>
+///  </list>
+/// </summary>
+/// <seealso cref="TKRuleImpl">How to create custom rules.</seealso>
 unit Kitto.Rules;
 
 {$I Kitto.Defines.inc}
@@ -75,7 +75,7 @@ type
 
   EKValidationError = class(EKRuleError);
 
-  ///	<summary>
+  /// <summary>
   ///  Base class for all classes that implement rules.
   /// </summary>
   TKRuleImpl = class
@@ -89,46 +89,46 @@ type
     procedure CheckRuleParam(const APath: string);
     procedure CheckRuleValueParam;
 
-    ///	<summary>
+    /// <summary>
     ///  Returns the error message, which can be customized through the
-    ///	 ErrorMessage parameter or kept as default value.
+    ///  ErrorMessage parameter or kept as default value.
     /// </summary>
-    ///	<remarks>
+    /// <remarks>
     ///  Not all rules use error messages. Some rules constrain or
-    ///	 massage input without displaying errors.
+    ///  massage input without displaying errors.
     /// </remarks>
     function GetErrorMessage: string;
 
-    ///	<summary>
+    /// <summary>
     ///  Override this method to provide a custom error message for the rule.
-    ///	</summary>
-    ///	<remarks>
+    /// </summary>
+    /// <remarks>
     ///  The custom error message is NOT used if the rule's
-    ///	 <c>ErrorMessage</c> parameter is specified.
+    ///  <c>ErrorMessage</c> parameter is specified.
     /// </remarks>
     function InternalGetErrorMessage: string; virtual;
 
-    ///	<summary>
+    /// <summary>
     ///  Raises a validation error. If no message is passed, then the
-    ///	 result of GetErrorMessage is used.
+    ///  result of GetErrorMessage is used.
     /// </summary>
     procedure RaiseError(const AMessage: string = ''); overload;
 
-    ///	<summary>
+    /// <summary>
     ///  Raises a validation error formatted with params. If no message
     ///  is passed, then the result of GetErrorMessage is used.
     /// </summary>
     procedure RaiseError(const AParams: array of const; const AMessage: string = ''); overload;
 
-    ///	<summary>
+    /// <summary>
     ///  Called by both BeforeAdd and BeforeUpdate. The default
-    ///	 implementation does nothing.
+    ///  implementation does nothing.
     /// </summary>
     procedure BeforeAddOrUpdate(const ARecord: TKRecord); virtual;
 
-    ///	<summary>
+    /// <summary>
     ///  Called by both AfterAdd and AfterUpdate. The default
-    ///	 implementation does nothing.
+    ///  implementation does nothing.
     /// </summary>
     procedure AfterAddOrUpdate(const ARecord: TKRecord); virtual;
   public
@@ -137,158 +137,173 @@ type
   public
     property Rule: TKRule read FRule write SetRule;
 
-    ///	<summary>
+    /// <summary>
     ///  Called when creating a new record before showing it in the
-    ///	 user interface. Descendants may set computed default values
-    ///	 (declarative default values are already applied when this method is
-    ///	 called). Calling RaiseError in this method displays an error message to
-    ///	 the user and aborts the insert operation.
+    ///  user interface. Descendants may set computed default values
+    ///  (declarative default values are already applied when this method is
+    ///  called). Calling RaiseError in this method displays an error message to
+    ///  the user and aborts the insert operation.
     /// </summary>
-    ///	<param name="ARecord">
+    /// <param name="ARecord">
     ///  The record being created. It is usually an
-    ///	 instance of TKViewTableRecord.
+    ///  instance of TKViewTableRecord.
     /// </param>
-    ///	<remarks>
-    ///  If an exception is raised, the insert is aborted.
+    /// <remarks>
+    ///  If an exception is raised, the insert operation is aborted.
     /// </remarks>
     procedure NewRecord(const ARecord: TKRecord); virtual;
 
-    ///	<summary>
-    ///	 <para>
-    ///	  Server side validation before writing a new record to the database.
-    ///	  Descendants should read the values in ARecord and call RaiseError
-    ///	  (which will raise an exception with the default or a custom
-    ///	  message) in order to stop the write operation and display an error
-    ///	  to the user.
-    ///	 </para>
-    ///	 <para>
-    ///	  Descendants may also change values.
-    ///	 </para>
-    ///	</summary>
-    ///	<param name="ARecord">
-    ///	 The record being created. It is usually an instance of
-    ///	 TKViewTableRecord.
-    ///	</param>
-    ///	<remarks>
-    ///	 If an exception is raised, any change is lost.
-    ///	</remarks>
+    /// <summary>
+    ///  Called when editing a record in the user interface.
+    ///  Descendants may set computed values.
+    ///  Calling RaiseError in this method displays an error message to
+    ///  the user and aborts the edit operation.
+    /// </summary>
+    /// <param name="ARecord">
+    ///  The record being edited. It is usually an
+    ///  instance of TKViewTableRecord.
+    /// </param>
+    /// <remarks>
+    ///  If an exception is raised, the edit operation is aborted.
+    /// </remarks>
+    procedure EditRecord(const ARecord: TKRecord); virtual;
+
+    /// <summary>
+    ///  <para>
+    ///   Server side validation before writing a new record to the database.
+    ///   Descendants should read the values in ARecord and call RaiseError
+    ///   (which will raise an exception with the default or a custom
+    ///   message) in order to stop the write operation and display an error
+    ///   to the user.
+    ///  </para>
+    ///  <para>
+    ///   Descendants may also change values.
+    ///  </para>
+    /// </summary>
+    /// <param name="ARecord">
+    ///  The record being created. It is usually an instance of
+    ///  TKViewTableRecord.
+    /// </param>
+    /// <remarks>
+    ///  If an exception is raised, any change is lost.
+    /// </remarks>
     procedure BeforeAdd(const ARecord: TKRecord); virtual;
 
-    ///	<summary>
-    ///	 <para>
-    ///	  Server side validation before updating an existing database record.
-    ///	  Descendants should read the values in ARecord and call RaiseError
-    ///	  (which will raise an exception with the default or a custom
-    ///	  message) in order to stop the write operation and display an error
-    ///	  to the user.
-    ///	 </para>
-    ///	 <para>
-    ///	  Descendants may also change values.
-    ///	 </para>
-    ///	</summary>
-    ///	<param name="ARecord">
-    ///	 The record being written to the database. It is usually an instance
-    ///	 of TKViewTableRecord.
-    ///	</param>
-    ///	<remarks>
-    ///	 <para>
-    ///	  If an exception is raised, any change is lost.
-    ///	 </para>
-    ///	 <para>
-    ///	  Changing key values has the effect of updating a different record.
-    ///	 </para>
-    ///	</remarks>
+    /// <summary>
+    ///  <para>
+    ///   Server side validation before updating an existing database record.
+    ///   Descendants should read the values in ARecord and call RaiseError
+    ///   (which will raise an exception with the default or a custom
+    ///   message) in order to stop the write operation and display an error
+    ///   to the user.
+    ///  </para>
+    ///  <para>
+    ///   Descendants may also change values.
+    ///  </para>
+    /// </summary>
+    /// <param name="ARecord">
+    ///  The record being written to the database. It is usually an instance
+    ///  of TKViewTableRecord.
+    /// </param>
+    /// <remarks>
+    ///  <para>
+    ///   If an exception is raised, any change is lost.
+    ///  </para>
+    ///  <para>
+    ///   Changing key values has the effect of updating a different record.
+    ///  </para>
+    /// </remarks>
     procedure BeforeUpdate(const ARecord: TKRecord); virtual;
 
-    ///	<summary>
-    ///	 <para>
-    ///	  Server side validation before deleting a database record.
-    ///	  Descendants should read the values in ARecord and call RaiseError
-    ///	  (which will raise an exception with the default or a custom
-    ///	  message) in order to stop the delete operation and display an error
-    ///	  to the user.
-    ///	 </para>
-    ///	 <para>
-    ///	  Descendants may also change values, although the changes are
-    ///	  meaningless.
-    ///	 </para>
-    ///	</summary>
-    ///	<param name="ARecord">
-    ///	 The record being deleted. It is usually an instance of
-    ///	 TKViewTableRecord.
-    ///	</param>
-    ///	<remarks>
-    ///	 Changing a key value will have the effect of deleting a different
-    ///	 record.
-    ///	</remarks>
+    /// <summary>
+    ///  <para>
+    ///   Server side validation before deleting a database record.
+    ///   Descendants should read the values in ARecord and call RaiseError
+    ///   (which will raise an exception with the default or a custom
+    ///   message) in order to stop the delete operation and display an error
+    ///   to the user.
+    ///  </para>
+    ///  <para>
+    ///   Descendants may also change values, although the changes are
+    ///   meaningless.
+    ///  </para>
+    /// </summary>
+    /// <param name="ARecord">
+    ///  The record being deleted. It is usually an instance of
+    ///  TKViewTableRecord.
+    /// </param>
+    /// <remarks>
+    ///  Changing a key value will have the effect of deleting a different
+    ///  record.
+    /// </remarks>
     procedure BeforeDelete(const ARecord: TKRecord); virtual;
 
-    ///	<summary>
-    ///	 Called after successfully writing a new record to the database. This
-    ///	 method can still raise an exception (by calling RaiseError) causing
-    ///	 the transaction to be rolled back.
-    ///	</summary>
-    ///	<remarks>
-    ///	 Any values set or changed at the database level (by database
-    ///	 triggers, for example), are not available at this point. Changes
-    ///	 performed in BeforeAdd by this or another rule are.
-    ///	</remarks>
+    /// <summary>
+    ///  Called after successfully writing a new record to the database. This
+    ///  method can still raise an exception (by calling RaiseError) causing
+    ///  the transaction to be rolled back.
+    /// </summary>
+    /// <remarks>
+    ///  Any values set or changed at the database level (by database
+    ///  triggers, for example), are not available at this point. Changes
+    ///  performed in BeforeAdd by this or another rule are.
+    /// </remarks>
     procedure AfterAdd(const ARecord: TKRecord); virtual;
 
-    ///	<summary>
-    ///	 Called after successfully updating a record in the database. This
-    ///	 method can still raise an exception (by calling RaiseError) causing
-    ///	 the transaction to be rolled back.
-    ///	</summary>
-    ///	<remarks>
-    ///	 Any values set or changed at the database level (by database
-    ///	 triggers, for example), are not available at this point. Changes
-    ///	 performed in BeforeUpdate by this or another rule are.
-    ///	</remarks>
+    /// <summary>
+    ///  Called after successfully updating a record in the database. This
+    ///  method can still raise an exception (by calling RaiseError) causing
+    ///  the transaction to be rolled back.
+    /// </summary>
+    /// <remarks>
+    ///  Any values set or changed at the database level (by database
+    ///  triggers, for example), are not available at this point. Changes
+    ///  performed in BeforeUpdate by this or another rule are.
+    /// </remarks>
     procedure AfterUpdate(const ARecord: TKRecord); virtual;
 
-    ///	<summary>
-    ///	 Called after successfully deleting a record in the database. This
-    ///	 method can still raise an exception (by calling RaiseError) causing
-    ///	 the transaction to be rolled back.
-    ///	</summary>
+    /// <summary>
+    ///  Called after successfully deleting a record in the database. This
+    ///  method can still raise an exception (by calling RaiseError) causing
+    ///  the transaction to be rolled back.
+    /// </summary>
     procedure AfterDelete(const ARecord: TKRecord); virtual;
 
-    ///	<summary>
-    ///	 Called before changing a field's value. This method can silently disallow
-    ///	 the change by setting ADoIt to False, or it can call RaiseError to abort
-    ///	 with an error message, or even modify the new value before it is written
+    /// <summary>
+    ///  Called before changing a field's value. This method can silently disallow
+    ///  the change by setting ADoIt to False, or it can call RaiseError to abort
+    ///  with an error message, or even modify the new value before it is written
     ///  to the field by modifying ANewValue.
-    ///	</summary>
+    /// </summary>
     procedure BeforeFieldChange(const AField: TKField; const AOldValue: Variant;
       var ANewValue: Variant; var ADoIt: Boolean); virtual;
 
-    ///	<summary>
-    ///	 Called after a field's value has been successfully changed.
-    ///	 This method can still abort the operation but the old field value will
-    ///	 not be restored automatically.
-    ///	</summary>
+    /// <summary>
+    ///  Called after a field's value has been successfully changed.
+    ///  This method can still abort the operation but the old field value will
+    ///  not be restored automatically.
+    /// </summary>
     procedure AfterFieldChange(const AField: TKField; const AOldValue, ANewValue: Variant); virtual;
 
-    ///	<summary>
-    ///	 Creates and returns a store with one record containing the values of
-    ///	 the model instance pointed to by the specified reference field. Raises
+    /// <summary>
+    ///  Creates and returns a store with one record containing the values of
+    ///  the model instance pointed to by the specified reference field. Raises
     ///  exceptions if the field is not found or is not a reference.
-    ///	</summary>
-    ///	<remarks>
-    ///	 If no referenced model instance is found, the returned store is empty.
-    ///	</remarks>
-    ///	<remarks>
-    ///	 The caller does not need to free the returned object - it will be freed
+    /// </summary>
+    /// <remarks>
+    ///  If no referenced model instance is found, the returned store is empty.
+    /// </remarks>
+    /// <remarks>
+    ///  The caller does not need to free the returned object - it will be freed
     ///  together with this object.
-    ///	</remarks>
+    /// </remarks>
     function GetReferencedModelInstance(const AReferenceName: string; const ARecord: TKRecord): TKStore;
 
-    ///	<summary>
-    ///	 Returns a value from the model instance pointed to by the specified
+    /// <summary>
+    ///  Returns a value from the model instance pointed to by the specified
     ///  reference field. Raises exceptions if the field is not found or is not
     ///  a reference.
-    ///	</summary>
+    /// </summary>
     function GetReferencedModelInstanceValue(const AReferenceName, AFieldName: string; const ARecord: TKRecord): Variant;
   end;
   TKRuleImplClass = class of TKRuleImpl;
@@ -301,7 +316,7 @@ type
     class destructor Destroy;
     class property Instance: TKRuleImplRegistry read GetInstance;
 
-    ///	<summary>Adds a rule implementation class to the registry.</summary>
+    /// <summary>Adds a rule implementation class to the registry.</summary>
     procedure RegisterClass(const AId: string; const AClass: TKRuleImplClass);
   end;
 
@@ -313,10 +328,10 @@ type
     class destructor Destroy;
     class property Instance: TKRuleImplFactory read GetInstance;
 
-    ///	<summary>
+    /// <summary>
     ///  Creates and returns an instance of the rule implementation class
-    ///	 identified by AClassId. Raises an exception if said class is not
-    ///	 registered.
+    ///  identified by AClassId. Raises an exception if said class is not
+    ///  registered.
     /// </summary>
     function CreateObject(const AClassId: string): TKRuleImpl;
   end;
@@ -417,6 +432,10 @@ begin
     LStores[I].Free;
   FreeAndNil(FReferencedModelStores);
   inherited;
+end;
+
+procedure TKRuleImpl.EditRecord(const ARecord: TKRecord);
+begin
 end;
 
 class function TKRuleImpl.GetClassId: string;
