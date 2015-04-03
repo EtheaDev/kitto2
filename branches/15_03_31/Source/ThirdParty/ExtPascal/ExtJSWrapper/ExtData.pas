@@ -258,6 +258,7 @@ type
     FSortDir: string;
     FSortType: TExtFunction;
     FType: string;
+    FUseNull: Boolean;
     procedure SetAllowBlank(const AValue: Boolean);
     procedure SetFConvert(Value: TExtFunction);
     procedure SetFDateFormat(Value: string);
@@ -268,6 +269,7 @@ type
     procedure SetFSortDir(Value: string);
     procedure SetFSortType(Value: TExtFunction);
     procedure SetType(const AValue: string);
+    procedure SetUseNull(const AValue: Boolean);
   protected
     function GetObjectNamePrefix: string; override;
   public
@@ -282,6 +284,7 @@ type
     property SortDir: string read FSortDir write SetFSortDir;
     property SortType: TExtFunction read FSortType write SetFSortType;
     property &Type: string read FType write SetType;
+    property UseNull: Boolean read FUseNull write SetUseNull;
   end;
 
   TExtDataSortTypesSingleton = class(TExtFunction)
@@ -1854,6 +1857,12 @@ procedure TExtDataField.SetType(const AValue: string);
 begin
   FType := AValue;
   ExtSession.ResponseItems.SetConfigItem(Self, 'type', [AValue]);
+end;
+
+procedure TExtDataField.SetUseNull(const AValue: Boolean);
+begin
+  FUseNull := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'useNull', [AValue]);
 end;
 
 function TExtDataField.GetObjectNamePrefix: string;
