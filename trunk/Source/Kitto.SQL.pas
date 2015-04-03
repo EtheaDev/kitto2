@@ -962,6 +962,7 @@ var
   LLookupModelDefaultFilter: string;
   LColumnNames: TStringDynArray;
   LQueryText: string;
+  LLookupFilter: string;
 begin
   Assert(Assigned(AViewField));
   Assert(Assigned(ADBQuery));
@@ -983,13 +984,17 @@ begin
   if LDefaultFilter <> '' then
     LQueryText := AddToSQLWhereClause(LQueryText, '(' + ExpandQualification(LDefaultFilter, '')  + ')', AViewField.DefaultFilterConnector);
 
+  LLookupFilter := AViewField.LookupFilter;
+  if LLookupFilter <> '' then
+    LQueryText := AddToSQLWhereClause(LQueryText, '(' + ExpandQualification(LLookupFilter, '')  + ')');
+
   if ASearchString <> '' then
     LQueryText := AddToSQLWhereClause(LQueryText, '(' + AViewField.ModelField.ReferencedModel.CaptionField.DBColumnName + ' like ''%' + ASearchString + '%'')');
 
   LQueryText := LQueryText + ' order by ' + ExpandQualification(LLookupModel.CaptionField.DBColumnNameOrExpression, '');
 
-  ADBQuery.CommandText := TEFMacroExpansionEngine.Instance.Expand(LQueryText);
-
+  LQueryText := TEFMacroExpansionEngine.Instance.Expand(LQueryText);
+  ADBQuery.CommandText := ARecord.ExpandExpression(LQueryText);
   AddFilterBy(AViewField, ADBQuery, ARecord);
 end;
 
