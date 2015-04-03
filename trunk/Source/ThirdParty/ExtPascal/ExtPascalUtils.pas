@@ -355,7 +355,7 @@ var
   BR   : string;
 begin
   BR := IfThen(UseBR, '<br/>', '\n');
-  Result := AnsiReplaceStr(S, '"', '''');
+  Result := AnsiReplaceStr(S, '"', '\"');
   Result := AnsiReplaceStr(Result, ^M^J, BR);
   Result := AnsiReplaceStr(Result, ^M, BR);
   Result := AnsiReplaceStr(Result, ^J, BR);
