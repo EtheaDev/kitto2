@@ -221,25 +221,26 @@ end;
 
 function TKExtDataPanelController.CreateClientReader: TExtDataJsonReader;
 
-  procedure DoAddReaderField(const AReader: TExtDataJsonReader; const AName, AType: string);
+  procedure DoAddReaderField(const AReader: TExtDataJsonReader; const AName, AType: string; const AUseNull: Boolean);
   var
     LField: TExtDataField;
   begin
     LField := TExtDataField.CreateAndAddTo(AReader.Fields);
     LField.Name := AName;
     LField.&Type := AType;
+    LField.UseNull := AUseNull;
   end;
 
   procedure AddReaderField(const AReader: TExtDataJsonReader; const AViewField: TKViewField);
   var
     I: Integer;
   begin
-    DoAddReaderField(AReader, AViewField.AliasedName, AViewField.ActualDataType.GetJSTypeName);
+    DoAddReaderField(AReader, AViewField.AliasedName, AViewField.ActualDataType.GetJSTypeName, not AViewField.IsRequired);
     if AViewField.IsReference then
     begin
       for I := 0 to AViewField.ModelField.FieldCount - 1 do
         DoAddReaderField(AReader, AViewField.ModelField.Fields[I].FieldName,
-          AViewField.ModelField.Fields[I].DataType.GetJSTypeName);
+          AViewField.ModelField.Fields[I].DataType.GetJSTypeName, not AViewField.ModelField.Fields[I].IsRequired);
     end;
   end;
 var
