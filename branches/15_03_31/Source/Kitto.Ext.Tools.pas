@@ -30,6 +30,7 @@ type
     function GetFixedLength: boolean;
     function GetIncludeHeader: boolean;
     function GetQuoteChar: char;
+    function GetUseDisplayLabels: boolean;
   strict protected
     function GetDefaultFileExtension: string; override;
     function CreateStream: TStream; override;
@@ -44,6 +45,7 @@ type
     property FixedLength: boolean read GetFixedLength;
     property Delimiter: char read GetDelimiter;
     property QuoteChar: char read GetQuoteChar;
+    property UseDisplayLabels: boolean read GetUseDisplayLabels;
   end;
 
   TExportCSVToolController = class(TExportTextToolController)
@@ -137,6 +139,11 @@ begin
   Result := Config.GetChar('QuoteChar',GetDefaultQuoteChar);
 end;
 
+function TExportTextToolController.GetUseDisplayLabels: Boolean;
+begin
+  Result := Config.GetBoolean('UseDisplayLabels');
+end;
+
 function TExportTextToolController.GetDefaultFileExtension: string;
 begin
   Result := '.txt';
@@ -153,6 +160,7 @@ var
   LRecord: TKViewTableRecord;
   LFieldIndex: Integer;
   LField: TKViewTableField;
+  LViewTableHeaderField: TKViewTableHeaderField;
   LViewField: TKViewField;
   LContent: string;
 
@@ -181,10 +189,14 @@ begin
     LLine := '';
     for LFieldIndex := 0 to LStore.Header.FieldCount - 1 do
     begin
-      LViewField := LStore.Header.Fields[LFieldIndex].ViewField;
+      LViewTableHeaderField := LStore.Header.Fields[LFieldIndex];
+      LViewField := LViewTableHeaderField.ViewField;
       if Assigned(LViewField) then
       begin
-        LValue := NormalizeColumnName(LViewField.DisplayLabel);
+        if not UseDisplayLabels then
+          LValue := LViewTableHeaderField.FieldName
+        else
+          LValue := LViewField.DisplayLabel;
         if LFixedLength then
           LLine := LLine + FormatValue(LValue, LViewField.DisplayWidth)
         else
