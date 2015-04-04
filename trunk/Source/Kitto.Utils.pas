@@ -22,8 +22,6 @@ interface
 
 function HTMLEncode(const AString: string): string;
 
-function NormalizeColumnName(const AColumnName: string): string;
-
 implementation
 
 uses
@@ -36,12 +34,6 @@ begin
   {$ELSE}
   Result := Web.HTTPApp.HTMLEncode(AString);
   {$ENDIF}
-end;
-
-function NormalizeColumnName(const AColumnName: string): string;
-begin
-  Result := ReplaceStr(AColumnName, ' ', '_');
-  Result := ReplaceStr(Result, '.', '_');
 end;
 
 end.

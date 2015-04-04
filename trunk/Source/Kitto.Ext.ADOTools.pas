@@ -30,6 +30,7 @@ type
     FExportExcelEngine: TKExtExcelEngine;
     function GetExcelRangeName: string;
     function GetTemplateFileName: string;
+    function GetUseDisplayLabels: boolean;
   strict protected
     function GetDefaultFileName: string; override;
     function GetDefaultFileExtension: string; override;
@@ -43,6 +44,7 @@ type
   published
     property ExcelRangeName: string read GetExcelRangeName;
     property TemplateFileName: string read GetTemplateFileName;
+    property UseDisplayLabels: boolean read GetUseDisplayLabels;
   end;
 
 implementation
@@ -81,6 +83,11 @@ begin
   Result := Config.GetExpandedString('TemplateFileName');
 end;
 
+function TExportExcelToolController.GetUseDisplayLabels: Boolean;
+begin
+  Result := Config.GetBoolean('UseDisplayLabels');
+end;
+
 procedure TExportExcelToolController.AcceptRecord(ARecord: TKViewTableRecord; var AAccept: boolean);
 begin
   if AAccept and Assigned(ServerRecord) then
@@ -89,23 +96,19 @@ end;
 
 procedure TExportExcelToolController.AcceptField(AViewField: TKViewField; var AAccept: boolean);
 begin
-  AAccept := AViewField.IsVisible or
-    Config.GetBoolean('AcceptHiddenFields', False);
+  AAccept := AViewField.IsVisible;
 end;
 
 procedure TExportExcelToolController.PrepareFile(const AFileName: string);
 var
   LStore: TKViewTableStore;
-  LViewTable: TKViewTable;
 begin
   inherited;
   LStore := ServerStore;
-  LViewTable := ViewTable;
-
   //if not using a template file we must built the structure of a new excel file using ADOX
   if (TemplateFileName = '') then
-    FExportExcelEngine.CreateFileByTable(AFileName, LViewTable, ExcelRangeName,
-      AcceptField)
+    FExportExcelEngine.CreateFileByTable(AFileName, LStore, ExcelRangeName,
+      AcceptField, UseDisplayLabels)
   else
   begin
     Assert(FileExists(TemplateFileName),
@@ -116,7 +119,7 @@ begin
 
   //Now the output file is ready: filling data
   FExportExcelEngine.FillAdoTable(AFileName, ExcelRangeName, LStore,
-    AcceptRecord, AcceptField);
+    AcceptRecord, AcceptField, UseDisplayLabels);
 end;
 
 function TExportExcelToolController.GetDefaultFileName: string;
