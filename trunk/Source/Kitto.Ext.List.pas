@@ -37,6 +37,7 @@ type
     function IsFilterVisible(const AResourceName: string): Boolean;
     function GetFilterResourceURI(const AResourceName: string): string;
     function IsFilterReadOnly(const AResourceName: string): Boolean;
+    procedure InvalidateFilter(const AId: string);
   protected
     procedure InitDefaults; override;
   public
@@ -235,12 +236,28 @@ begin
   AutoHeight := True;
 end;
 
-procedure TKExtFilterPanel.UpdateObserver(const ASubject: IEFSubject;
-  const AContext: string);
+procedure TKExtFilterPanel.UpdateObserver(const ASubject: IEFSubject; const AContext: string);
 begin
   inherited;
   if AContext = IfThen(FLiveMode, 'FilterChanged', 'FilterApplied') then
     DoChange;
+  if AContext.StartsWith('FilterInvalidated ') then
+    InvalidateFilter(AContext.Split([' '])[1]);
+end;
+
+procedure TKExtFilterPanel.InvalidateFilter(const AId: string);
+var
+  I: Integer;
+  LIntf: IKExtFilter;
+begin
+  for I := 0 to Items.Count - 1 do
+  begin
+    if Items[I] is TKExtFilterPanel then
+      TKExtFilterPanel(Items[I]).InvalidateFilter(AId)
+    else if Supports(Items[I], IKExtFilter, LIntf) then
+      if SameText(LIntf.GetId, AId) then
+        LIntf.Invalidate;
+  end;
 end;
 
 { TKExtListPanelController }
