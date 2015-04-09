@@ -266,6 +266,13 @@ function TKExtLoginWindow.GetLocalStorageSaveJSCode(const ALocalStorageMode: str
       Result := 'if (true)';
   end;
 
+  function GetDeleteCode: string;
+  begin
+    Result := 'delete localStorage.' + Session.Config.AppName + '_UserName;' + sLineBreak;
+    Result := Result + 'delete localStorage.' + Session.Config.AppName + '_Password;' + sLineBreak;
+    Result := Result + 'delete localStorage.' + Session.Config.AppName + '_LocalStorageEnabled;' + sLineBreak;
+  end;
+
 begin
   Result := '';
   if (ALocalStorageMode <> '') then
@@ -277,14 +284,10 @@ begin
       Result := Result + 'localStorage.' + Session.Config.AppName + '_Password = "' + Session.Query['Password'] + '";';
     if GetLocalStorageAskUser then
       Result := Result + 'localStorage.' + Session.Config.AppName + '_LocalStorageEnabled = "' + Session.Query['LocalStorageEnabled'] + '";';
-    Result := Result + '}';
+    Result := Result + '} else {' + GetDeleteCode + '};';
   end
   else
-  begin
-    Result := Result + 'delete localStorage.' + Session.Config.AppName + '_UserName;';
-    Result := Result + 'delete localStorage.' + Session.Config.AppName + '_Password;';
-    Result := Result + 'delete localStorage.' + Session.Config.AppName + '_LocalStorageEnabled;';
-  end;
+    Result := GetDeleteCode;
 end;
 
 function TKExtLoginWindow.GetLocalStorageMode: string;
@@ -305,11 +308,11 @@ end;
 function TKExtLoginWindow.GetLocalStorageRetrieveJSCode(const ALocalStorageMode: string): string;
 begin
   if SameText(ALocalStorageMode, 'UserName') or SameText(ALocalStorageMode, 'Password') then
-    Result := Result + FUserName.JSName + '.setValue(localStorage.' + Session.Config.AppName + '_UserName);';
+    Result := Result + 'var u = localStorage.' + Session.Config.AppName + '_UserName; if (u) ' + FUserName.JSName + '.setValue(u);';
   if SameText(ALocalStorageMode, 'Password') then
-    Result := Result + FPassword.JSName + '.setValue(localStorage.' + Session.Config.AppName + '_Password);';
+    Result := Result + 'var p = localStorage.' + Session.Config.AppName + '_Password; if (p) ' + FPassword.JSName + '.setValue(p);';
   if Assigned(FLocalStorageEnabled) then
-    Result := Result + FLocalStorageEnabled.JSName + '.setValue(localStorage.' + Session.Config.AppName + '_LocalStorageEnabled);';
+    Result := Result + 'var l = localStorage.' + Session.Config.AppName + '_LocalStorageEnabled; if (l) ' + FLocalStorageEnabled.JSName + '.setValue(l);';
 end;
 
 procedure TKExtLoginWindow.DoLogin;
