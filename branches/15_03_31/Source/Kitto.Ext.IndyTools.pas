@@ -86,7 +86,7 @@ begin
     try
       // Try single sender first.
       LAddressNode := Config.GetNode('Message/From');
-      LMessage.From.Text := LAddressNode.AsExpandedString;
+      LMessage.From.Text := ExpandServerRecordValues(LAddressNode.AsExpandedString);
       if LMessage.From.Text = '' then
       begin
         // Multiple senders.
@@ -117,7 +117,7 @@ begin
 
       // Try single recipient first.
       LAddressNode := Config.GetNode('Message/To');
-      LSingleAddress := LAddressNode.AsExpandedString;
+      LSingleAddress := ExpandServerRecordValues(LAddressNode.AsExpandedString);
       if LSingleAddress <> '' then
       begin
         LRecipient := LMessage.Recipients.Add;
@@ -155,7 +155,7 @@ begin
       LAddressNode := Config.FindNode('Message/CC');
       if Assigned(LAddressNode) then
       begin
-        LSingleAddress := LAddressNode.AsExpandedString;
+        LSingleAddress := ExpandServerRecordValues(LAddressNode.AsExpandedString);
         if LSingleAddress <> '' then
         begin
           LRecipient := LMessage.CCList.Add;
@@ -194,7 +194,7 @@ begin
       LAddressNode := Config.FindNode('Message/BCC');
       if Assigned(LAddressNode) then
       begin
-        LSingleAddress := LAddressNode.AsExpandedString;
+        LSingleAddress := ExpandServerRecordValues(LAddressNode.AsExpandedString);
         if LSingleAddress <> '' then
         begin
           LRecipient := LMessage.BccList.Add;
