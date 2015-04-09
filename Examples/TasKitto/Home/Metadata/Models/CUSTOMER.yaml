@@ -1,4 +1,5 @@
 ﻿ModelName: CUSTOMER
+ImageName: basket_put
 Fields:
   CUSTOMER_ID: String(32) not null primary key
     IsVisible: False
@@ -19,4 +20,3 @@ Fields:
 
 DetailReferences:
   PROJECT: PROJECT
-ImageName: basket_put

@@ -1,4 +1,5 @@
 ﻿ModelName: PHASE
+ImageName: clock_play
 Fields:
   PHASE_ID: String(32) not null primary key
     IsVisible: False
@@ -25,4 +26,3 @@ Rules:
   EnforceRange:
     From: START_DATE
     To: END_DATE
-ImageName: clock_play

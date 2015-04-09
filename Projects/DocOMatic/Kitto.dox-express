@@ -91,7 +91,7 @@ Path0=..\..\..\..\Program Files (x86)\Doc-O-Matic 7 Express\graphics
 Path1=..\..\..\..\Program Files (x86)\Doc-O-Matic 7 Express\graphics\en
 
 [Configurations\Help 2\Output Options]
-ClassHierarchyLayoutOutputDir=..\..\Docs\External\Reference\graphics
+ClassHierarchyLayoutOutputDir=C:\ETHEA\EtheaNewSite\trunk\home\docs\kitto\en\ref\graphics
 
 [Configurations\Help 2\OutputFormat]
 ID={D3A588E0-9472-11D3-BDD1-0080C8BA053D}
@@ -159,7 +159,7 @@ Path0=..\..\..\..\Program Files (x86)\Doc-O-Matic 7 Express\graphics
 Path1=..\..\..\..\Program Files (x86)\Doc-O-Matic 7 Express\graphics\en
 
 [Configurations\Help 3\Output Options]
-ClassHierarchyLayoutOutputDir=..\..\Docs\External\Reference\graphics
+ClassHierarchyLayoutOutputDir=C:\ETHEA\EtheaNewSite\trunk\home\docs\kitto\en\ref\graphics
 
 [Configurations\Help 3\OutputFormat]
 ID={D3A588E0-9472-11D3-BDD1-0080C8BA053D}
@@ -227,7 +227,7 @@ Path0=..\..\..\..\Program Files (x86)\Doc-O-Matic 7 Express\graphics
 Path1=..\..\..\..\Program Files (x86)\Doc-O-Matic 7 Express\graphics\en
 
 [Configurations\HTML Help\Output Options]
-ClassHierarchyLayoutOutputDir=..\..\Docs\External\Reference\graphics
+ClassHierarchyLayoutOutputDir=C:\ETHEA\EtheaNewSite\trunk\home\docs\kitto\en\ref\graphics
 
 [Configurations\HTML Help\OutputFormat]
 ID={D3A588E0-9472-11D3-BDD1-0080C8BA053D}
@@ -242,7 +242,7 @@ File3=..\..\..\..\Program Files (x86)\Doc-O-Matic 7 Express\graphics\html_titleb
 [Configurations\HTML\{D3A588E0-9472-11D3-BDD1-0080C8BA053D}\General]
 ClearDirectoryBeforeExport=1
 HelpKind=0
-OutputDir=..\..\Docs\External\Reference\Html
+OutputDir=C:\ETHEA\EtheaNewSite\trunk\home\docs\kitto\en\ref\Html
 OutputXHTML=1
 TargetBOM=0
 TargetCodepage=utf-8
@@ -295,7 +295,7 @@ Path0=..\..\..\..\Program Files (x86)\Doc-O-Matic 7 Express\graphics
 Path1=..\..\..\..\Program Files (x86)\Doc-O-Matic 7 Express\graphics\en
 
 [Configurations\HTML\Output Options]
-ClassHierarchyLayoutOutputDir=..\..\Docs\External\Reference\graphics
+ClassHierarchyLayoutOutputDir=C:\ETHEA\EtheaNewSite\trunk\home\docs\kitto\en\ref\graphics
 
 [Configurations\HTML\OutputFormat]
 ID={D3A588E0-9472-11D3-BDD1-0080C8BA053D}

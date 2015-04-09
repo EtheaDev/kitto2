@@ -1,4 +1,5 @@
 ﻿ModelName: EMPLOYEE
+ImageName: employee
 IsLarge: True
 Fields:
   EMPLOYEE_ID: String(32) not null primary key
@@ -13,4 +14,3 @@ Fields:
       PROG: Programmer
       PROJ_MGR: Project Manager
       AN_PROG: Analyst Programmer
-ImageName: employee

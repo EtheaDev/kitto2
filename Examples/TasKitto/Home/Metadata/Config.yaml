@@ -1,14 +1,5 @@
 ﻿AppTitle: Tasks & Activities
 
-LoginWindowAppearance:
-  HtmlPanel: |
-    <center>
-      <p><img src="%IMAGE(taskitto_logo_150)%"></img></p>
-      <p>An example activity tracking application.</p>
-    </center>
-  HtmlPanelWidth: 300
-  HtmlPanelHeight: 80
-
 Databases:
   Main: DBX
     Connection:
@@ -29,6 +20,24 @@ Auth: DB
   ReadUserCommandText: select USER_NAME, PASSWORD_HASH, FIRST_NAME, LAST_NAME from KITTO_USERS where IS_ACTIVE = 1 and UPPER(USER_NAME) = UPPER(:USER_NAME)
 
 AccessControl: Null
+
+Login:
+  Controller:
+    BorderPanel:
+      NorthView:
+        Controller: HtmlPanel
+          Height: 100
+          Html: |
+            <div style="text-align: center">
+              <center>
+                <p><img src="%IMAGE(taskitto_logo_150)%"></img></p>
+                <p><H1>An example activity tracking application</H1></p>
+              </center>
+              <p/>
+            </div>
+    ExtraWidth: 400
+    LabelWidth: 150
+    ExtraHeight: 100
 
 # Change this to use a custom view for the home page.
 # Alternatively, customize the Home view by replacing its controller.
