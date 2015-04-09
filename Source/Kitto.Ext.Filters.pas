@@ -29,7 +29,7 @@ uses
   Types, DB,
   Ext, ExtPascal, ExtForm, ExtData,
   EF.Types, EF.Tree, EF.ObserverIntf,
-  Kitto.DatabaseRouter, Kitto.Metadata.DataView, Kitto.Ext.Base;
+  Kitto.DatabaseRouter, Kitto.Store, Kitto.Metadata.DataView, Kitto.Ext.Base;
 
 const
   DEFAULT_FILTER_WIDTH = 20;
@@ -76,6 +76,34 @@ type
     ///  A reference to the view table.
     /// </param>
     procedure SetViewTable(const AViewTable: TKViewTable);
+
+    /// <summary>
+    ///  Expands any occurrences of tags representing the filter's current value(s)
+    ///  with the actual value, if applicable. Tags are in the form {FilterId},
+    ///  where FilterId is the Id attribute of the filter, if any.
+    /// </summary>
+    /// <remarks>
+    ///  Only single-select string-based filters support this kind of tag expansion.
+    ///  Only filters with an Id support it.
+    /// </remarks>
+    /// <param name="AString">
+    ///  The input string that is returned with tags expanded. Unknown tags are left as-is.
+    /// </param>
+    function ExpandValues(const AString: string): string;
+
+    /// <summary>
+    ///  Returns a unique Id that identifies the filter in a set of filters.
+    ///  Used for features that require filters referencing each other.
+    ///  It is usually specified as a subnode named Id in the filter configuration.
+    /// </summary>
+    function GetId: string;
+
+    /// <summary>
+    ///  Filters that support lists of values should reload the list (or mark
+    ///  it for reload) when this method is called. It is used to have a filter
+    ///  that depends on the value of another filter.
+    /// </summary>
+    procedure Invalidate;
   end;
 
   /// <summary>
@@ -118,14 +146,19 @@ type
   ///  Base class for list-based filters.
   /// </summary>
   TKListFilterBase = class(TKExtFormComboBox)
-  protected
+  strict protected
     FConfig: TEFNode;
     FViewTable: TKViewTable;
+    FServerStore: TKStore;
     const TRIGGER_WIDTH = 4;
   public
     procedure SetConfig(const AConfig: TEFNode); virtual;
     function AsExtObject: TExtObject;
     procedure SetViewTable(const AViewTable: TKViewTable);
+    function GetId: string;
+    procedure Invalidate;
+  published
+    procedure GetRecordPage;
   end;
 
   /// <summary>
@@ -158,12 +191,12 @@ type
   private
     FActiveIndex: Integer;
     FItems: TEFNode;
-    function GetLargestFilterDisplayLabelWidth: Integer;
     procedure ComboBoxSelect(Combo: TExtFormComboBox; RecordJS: TExtDataRecord; Index: Integer);
     procedure ComboBoxChange(This: TExtFormField; NewValue, OldValue: string);
   public
     function GetExpression: string;
     procedure SetConfig(const AConfig: TEFNode); override;
+    function ExpandValues(const AString: string): string;
   end;
 
   /// <summary>
@@ -183,14 +216,13 @@ type
   /// </example>
   TKDynaListFilter = class(TKListFilterBase, IKExtFilter)
   strict private
-    FValues: TStringDynArray;
     FCurrentValue: string;
     const VALUE_FIELD = 0;
     const DISPLAY_FIELD = 1;
-    function GetLargestFieldWidth(const AField: TField): Integer;
   public
     function GetExpression: string;
     procedure SetConfig(const AConfig: TEFNode); override;
+    function ExpandValues(const AString: string): string;
   published
     procedure ValueChanged;
   end;
@@ -215,6 +247,9 @@ type
     function AsExtObject: TExtObject;
     function GetExpression: string;
     procedure SetViewTable(const AViewTable: TKViewTable);
+    function ExpandValues(const AString: string): string;
+    function GetId: string;
+    procedure Invalidate;
   end;
 
   /// <summary>
@@ -233,6 +268,9 @@ type
     function AsExtObject: TExtObject;
     function GetExpression: string;
     procedure SetViewTable(const AViewTable: TKViewTable);
+    function ExpandValues(const AString: string): string;
+    function GetId: string;
+    procedure Invalidate;
   end;
 
   /// <summary>
@@ -252,6 +290,9 @@ type
     function AsExtObject: TExtObject;
     function GetExpression: string;
     procedure SetViewTable(const AViewTable: TKViewTable);
+    function ExpandValues(const AString: string): string;
+    function GetId: string;
+    procedure Invalidate;
   end;
 
   TKButtonListFilterBase = class(TKExtPanelBase)
@@ -270,6 +311,9 @@ type
     function AsExtObject: TExtObject;
     function GetExpression: string;
     procedure SetViewTable(const AViewTable: TKViewTable);
+    function ExpandValues(const AString: string): string;
+    function GetId: string;
+    procedure Invalidate;
   published
     procedure ButtonClick;
   end;
@@ -330,6 +374,9 @@ type
     procedure SetConfig(const AConfig: TEFNode);
     function AsExtObject: TExtObject;
     procedure SetViewTable(const AViewTable: TKViewTable);
+    function ExpandValues(const AString: string): string;
+    function  GetId: string;
+    procedure Invalidate;
   published
     procedure ButtonClick;
   end;
@@ -340,6 +387,9 @@ type
     procedure SetConfig(const AConfig: TEFNode);
     function AsExtObject: TExtObject;
     procedure SetViewTable(const AViewTable: TKViewTable);
+    function ExpandValues(const AString: string): string;
+    function GetId: string;
+    procedure Invalidate;
   end;
 
 implementation
@@ -379,6 +429,19 @@ begin
       LDatabaseRouterNode.AsString, ACallerContext, LDatabaseRouterNode)
   else
     Result := ADefaultDatabaseName;
+end;
+
+function ExpandFilterValues(const AList: TExtObjectList; const AString: string): string;
+var
+  I: Integer;
+  LFilter: IKExtFilter;
+begin
+  Result := AString;
+  for I := 0 to AList.Count - 1 do
+  begin
+    if Supports(AList[I], IKExtFilter, LFilter) then
+      Result := LFilter.ExpandValues(Result);
+  end;
 end;
 
 { TKExtFilterRegistry }
@@ -443,8 +506,6 @@ end;
 function TKExtFilterFactory.DoCreateObject(const AClass: TClass): TObject;
 begin
   Result := TExtObjectClass(AClass).CreateAndAddTo(FContainer);
-  // If this AddTo call is ever changed to Create, don't forget to add a call
-  // to InitDefaults because TExtObject.Create doesn't do that.
 end;
 
 class function TKExtFilterFactory.GetInstance: TKExtFilterFactory;
@@ -461,7 +522,56 @@ begin
   Result := Self;
 end;
 
+function TKListFilterBase.GetId: string;
+begin
+  Assert(Assigned(FConfig));
+
+  Result := FConfig.GetExpandedString('Id');
+end;
+
+procedure TKListFilterBase.GetRecordPage;
+var
+  LStart: Integer;
+  LLimit: Integer;
+  LPageRecordCount: Integer;
+  LDBQuery: TEFDBQuery;
+begin
+  Assert(Assigned(FServerStore));
+
+  LDBQuery := Session.Config.DBConnections[GetDatabaseName(FConfig, Self, FViewTable.DatabaseName)].CreateDBQuery;
+  try
+    LDBQuery.CommandText := ExpandFilterValues(Owner as TExtObjectList, FConfig.GetExpandedString('CommandText'));
+    LDBQuery.Open;
+    try
+      Assert(LDBQuery.DataSet.FieldCount = 2);
+      FServerStore.Load(LDBQuery, False, True);
+    finally
+      LDBQuery.Close;
+    end;
+  finally
+    FreeAndNil(LDBQuery);
+  end;
+
+  LStart := Session.QueryAsInteger['start'];
+  LLimit := Session.QueryAsInteger['limit'];
+  LPageRecordCount := Min(LLimit, FServerStore.RecordCount - LStart);
+
+  ExtSession.ResponseItems.AddJSON('{Total: ' + IntToStr(FServerStore.RecordCount)
+    + ', Root: ' + FServerStore.GetAsJSON(False, LStart, LPageRecordCount) + '}');
+end;
+
+procedure TKListFilterBase.Invalidate;
+begin
+  SetRawValue('');
+  // Force the combo to refresh its list at next drop down.
+  Store.RemoveAll();
+  Store.TotalLength := 0;
+  Session.ResponseItems.ExecuteJSCode(Format('%s.lastQuery = null;', [JSName]));
+end;
+
 procedure TKListFilterBase.SetConfig(const AConfig: TEFNode);
+var
+  I: Integer;
 begin
   Assert(Assigned(AConfig));
 
@@ -473,7 +583,24 @@ begin
   SelectOnFocus := True;
   AutoSelect := False;
   AllowBlank := True;
-  Mode := 'local';
+  Mode := 'remote';
+  FServerStore := TKStore.Create;
+  Store := TExtDataStore.Create(Self);
+  FServerStore.Header.AddField('Id');
+  FServerStore.Header.AddField('Description');
+  FServerStore.Key.SetFieldNames(['Id']);
+  Store.Url := MethodURI(GetRecordPage);
+  Store.Reader := TExtDataJsonReader.Create(Self, JSObject('')); // Must pass '' otherwise invalid code is generated.
+  TExtDataJsonReader(Store.Reader).Root := 'Root';
+  TExtDataJsonReader(Store.Reader).TotalProperty := 'Total';
+  for I := 0 to FServerStore.Header.FieldCount - 1 do
+    with TExtDataField.CreateAndAddTo(Store.Reader.Fields) do
+      Name := FServerStore.Header.Fields[I].FieldName;
+  ValueField := 'Id';
+  DisplayField := 'Description';
+  Width := CharsToPixels(FConfig.GetInteger('Width', DEFAULT_FILTER_WIDTH));
+  TypeAhead := True;
+  MinChars := FConfig.GetInteger('AutoCompleteMinChars', 4);
 end;
 
 procedure TKListFilterBase.SetViewTable(const AViewTable: TKViewTable);
@@ -483,22 +610,6 @@ end;
 
 { TKListFilter }
 
-function TKListFilter.GetLargestFilterDisplayLabelWidth: Integer;
-var
-  I: Integer;
-  LLength: Integer;
-begin
-  Assert(Assigned(FItems));
-
-  Result := 10;
-  for I := 0 to FItems.ChildCount - 1 do
-  begin
-    LLength := Length(FItems.Children[I].AsString);
-    if LLength > Result then
-      Result := LLength;
-  end;
-end;
-
 procedure TKListFilter.SetConfig(const AConfig: TEFNode);
 var
   LDefaultFilter: TEFNode;
@@ -506,9 +617,6 @@ begin
   inherited;
   FItems := FConfig.GetNode('Items');
   Assert(Assigned(FItems));
-
-  Width := CharsToPixels(AConfig.GetInteger('Width', GetLargestFilterDisplayLabelWidth + TRIGGER_WIDTH));
-  StoreArray := JSArray(PairsToJSON(FItems.GetChildPairs, False));
   //PageSize := 10;
   //Resizable := True;
   //MinListWidth := LFieldWidth;
@@ -539,6 +647,11 @@ begin
   end;
 end;
 
+function TKListFilter.ExpandValues(const AString: string): string;
+begin
+  Result := AString;
+end;
+
 procedure TKListFilter.ComboBoxChange(This: TExtFormField; NewValue: string; OldValue: string);
 begin
   if NewValue = '' then
@@ -563,13 +676,21 @@ end;
 procedure TKDynaListFilter.ValueChanged;
 var
   LNewValue: string;
+  LInvalidate: string;
 begin
   LNewValue := ParamAsString('Value');
   if FCurrentValue <> LNewValue then
   begin
     FCurrentValue := LNewValue;
     NotifyObservers('FilterChanged');
+    for LInvalidate in FConfig.GetStringArray('Invalidates') do
+      NotifyObservers('FilterInvalidated ' + LInvalidate);
   end;
+end;
+
+function TKDynaListFilter.ExpandValues(const AString: string): string;
+begin
+  Result := ReplaceText(AString, '{' + GetId + '}', FCurrentValue);
 end;
 
 function TKDynaListFilter.GetExpression: string;
@@ -580,45 +701,9 @@ begin
     Result := '';
 end;
 
-function TKDynaListFilter.GetLargestFieldWidth(const AField: TField): Integer;
-var
-  LWidth: Integer;
-begin
-  Assert(Assigned(AField));
-
-  Result := DEFAULT_FILTER_WIDTH - TRIGGER_WIDTH;
-  while not AField.DataSet.Eof do
-  begin
-    LWidth := Length(AField.AsString);
-    if LWidth > Result then
-      Result := LWidth;
-    AField.DataSet.Next;
-  end;
-  Result := Min(80, Result);
-end;
-
 procedure TKDynaListFilter.SetConfig(const AConfig: TEFNode);
-var
-  LDBQuery: TEFDBQuery;
 begin
   inherited;
-  TypeAhead := True;
-  LDBQuery := Session.Config.DBConnections[GetDatabaseName(FConfig, Self, FViewTable.DatabaseName)].CreateDBQuery;
-  try
-    LDBQuery.CommandText := FConfig.GetExpandedString('CommandText');
-    LDBQuery.Open;
-    try
-      Assert(LDBQuery.DataSet.FieldCount = 2);
-      FValues := LDBQuery.GetFieldValuesAsStrings(LDBQuery.DataSet.Fields[VALUE_FIELD]);
-      Width := CharsToPixels(AConfig.GetInteger('Width', GetLargestFieldWidth(LDBQuery.DataSet.Fields[DISPLAY_FIELD]) + TRIGGER_WIDTH));
-      { TODO : Future enhancement: make loading optionally dynamic }
-      StoreArray := JSArray(DataSetToJSON(LDBQuery.DataSet));
-    finally
-      LDBQuery.Close;
-    end;
-  finally
-    FreeAndNil(LDBQuery);
-  end;
   //PageSize := 10;
   //Resizable := True;
   //MinListWidth := LFieldWidth;
@@ -669,6 +754,11 @@ begin
   FViewTable := AViewTable;
 end;
 
+function TKFreeSearchFilter.ExpandValues(const AString: string): string;
+begin
+  Result := AString;
+end;
+
 procedure TKFreeSearchFilter.FieldChange(This: TExtFormField; NewValue: string; OldValue: string);
 begin
   if FCurrentValue <> NewValue then
@@ -686,6 +776,18 @@ begin
     Result := '';
 end;
 
+function TKFreeSearchFilter.GetId: string;
+begin
+  Assert(Assigned(FConfig));
+
+  Result := FConfig.GetExpandedString('Id');
+end;
+
+procedure TKFreeSearchFilter.Invalidate;
+begin
+  SetValue('');
+end;
+
 { TKDateSearchFilter }
 
 function TKDateSearchFilter.AsExtObject: TExtObject;
@@ -695,20 +797,10 @@ end;
 
 procedure TKDateSearchFilter.SetConfig(const AConfig: TEFNode);
 var
-//  LAutoSearchAfterChars: Integer;
   LFormat: string;
 begin
   Assert(Assigned(AConfig));
   FConfig := AConfig;
-(* it seems to work not correctly
-  LAutoSearchAfterChars := AConfig.GetInteger('AutoSearchAfterChars', 10);
-  if LAutoSearchAfterChars <> 0 then
-  begin
-    // Auto-fire change event when at least MinChars characters are typed.
-    EnableKeyEvents := True;
-    On('keyup', JSFunction(SysUtils.Format('fireChangeAfterNChars(%s, %d);', [JSName, LAutoSearchAfterChars])));
-  end;
-*)
   FieldLabel := _(AConfig.AsString);
   Width := CharsToPixels(AConfig.GetInteger('Width', 12));
   FCurrentValue := 0;
@@ -728,6 +820,11 @@ end;
 procedure TKDateSearchFilter.SetViewTable(const AViewTable: TKViewTable);
 begin
   FViewTable := AViewTable;
+end;
+
+function TKDateSearchFilter.ExpandValues(const AString: string): string;
+begin
+  Result := AString;
 end;
 
 procedure TKDateSearchFilter.FieldChange(This: TExtFormField; NewValue, OldValue: string);
@@ -759,6 +856,18 @@ begin
     Result := '';
 end;
 
+function TKDateSearchFilter.GetId: string;
+begin
+  Assert(Assigned(FConfig));
+
+  Result := FConfig.GetExpandedString('Id');
+end;
+
+procedure TKDateSearchFilter.Invalidate;
+begin
+  SetValue('');
+end;
+
 { TKBooleanSearchFilter }
 
 function TKBooleanSearchFilter.AsExtObject: TExtObject;
@@ -784,6 +893,11 @@ begin
   FViewTable := AViewTable;
 end;
 
+function TKBooleanSearchFilter.ExpandValues(const AString: string): string;
+begin
+  Result := AString;
+end;
+
 procedure TKBooleanSearchFilter.FieldChecked(This: TExtFormCheckBox; Checked: boolean);
 begin
   if FCurrentValue <> Checked then
@@ -802,7 +916,24 @@ begin
     Result := '';
 end;
 
+function TKBooleanSearchFilter.GetId: string;
+begin
+  Assert(Assigned(FConfig));
+
+  Result := FConfig.GetExpandedString('Id');
+end;
+
+procedure TKBooleanSearchFilter.Invalidate;
+begin
+  SetValue(False);
+end;
+
 { TKButtonListFilterBase }
+
+procedure TKButtonListFilterBase.Invalidate;
+begin
+  { TODO : implement }
+end;
 
 function TKButtonListFilterBase.IsButtonVisible(const AResourceName: string): Boolean;
 var
@@ -922,6 +1053,11 @@ begin
     NotifyObservers('FilterChanged');
 end;
 
+function TKButtonListFilterBase.ExpandValues(const AString: string): string;
+begin
+  Result := AString;
+end;
+
 function TKButtonListFilterBase.GetExpression: string;
 var
   I: Integer;
@@ -950,6 +1086,13 @@ begin
   end;
   if Result <> '' then
     Result := '(' + Result + ')';
+end;
+
+function TKButtonListFilterBase.GetId: string;
+begin
+  Assert(Assigned(FConfig));
+
+  Result := FConfig.GetExpandedString('Id');
 end;
 
 { TKButtonListFilter }
@@ -1024,9 +1167,23 @@ begin
   NotifyObservers('FilterApplied');
 end;
 
+function TKFilterApplyButton.ExpandValues(const AString: string): string;
+begin
+  Result := AString;
+end;
+
 function TKFilterApplyButton.GetExpression: string;
 begin
   Result := '';
+end;
+
+function TKFilterApplyButton.GetId: string;
+begin
+  Result := '';
+end;
+
+procedure TKFilterApplyButton.Invalidate;
+begin
 end;
 
 procedure TKFilterApplyButton.SetConfig(const AConfig: TEFNode);
@@ -1053,9 +1210,23 @@ begin
   Result := Self;
 end;
 
+function TKFilterSpacer.ExpandValues(const AString: string): string;
+begin
+  Result := AString;
+end;
+
 function TKFilterSpacer.GetExpression: string;
 begin
   Result := '';
+end;
+
+function TKFilterSpacer.GetId: string;
+begin
+  Result := '';
+end;
+
+procedure TKFilterSpacer.Invalidate;
+begin
 end;
 
 procedure TKFilterSpacer.SetConfig(const AConfig: TEFNode);
