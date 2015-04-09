@@ -1,4 +1,5 @@
 ﻿ModelName: ACTIVITY
+ImageName: setting_tools
 Fields:
   ACTIVITY_ID: String(32) not null primary key
     IsVisible: False
@@ -40,4 +41,3 @@ Rules:
   EnforceRange:
     From: START_TIME
     To: END_TIME
-ImageName: setting_tools

@@ -1,2 +1,3 @@
 user=password
 admin=admin
+guest=password

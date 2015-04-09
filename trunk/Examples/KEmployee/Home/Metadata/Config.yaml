@@ -16,9 +16,9 @@ Databases:
 
 Auth: TextFile
   IsClearPassword: True
-  .Defaults:
-    UserName: user
-    Password: password
+  Defaults:
+    UserName: guest
+    .Password: password
 
 AccessControl: Null
 
@@ -27,12 +27,12 @@ Login:
     BorderPanel:
       NorthView:
         Controller: HtmlPanel
-          Height: 100
+          Height: 120
           Html: |
             <div style="text-align: center">
               <p/>
               <p><img src="%IMAGE(Firebird_Employee)%"></img></p>
-              <p>An example activity tracking application.</p>
+              <p><H1>Firebird Employee Demo</H1></p>
               <p/>
             </div>
     ExtraWidth: 360
