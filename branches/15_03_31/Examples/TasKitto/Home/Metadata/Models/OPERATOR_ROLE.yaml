@@ -1,4 +1,5 @@
 ﻿ModelName: OPERATOR_ROLE
+ImageName: operator
 DisplayLabel: Role
 Fields:
   ROLE_ID: String(32) not null primary key
@@ -10,4 +11,3 @@ Fields:
     Rules:
       MinValue: 0
     DisplayWidth: 10
-ImageName: operator

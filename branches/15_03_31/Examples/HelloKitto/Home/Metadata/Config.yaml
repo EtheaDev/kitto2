@@ -61,8 +61,8 @@ Databases:
 
 Auth: DB
   Defaults:
-    UserName: administrator
-    Password: password
+    UserName: guest
+    .Password: password
 
 AccessControl: Null
 
@@ -83,7 +83,7 @@ Login:
     ExtraWidth: 400
     LabelWidth: 150
     ExtraHeight: 80
-    LocalStorage:
+    .LocalStorage:
       Mode: Password
       AskUser: True
         .Default: False

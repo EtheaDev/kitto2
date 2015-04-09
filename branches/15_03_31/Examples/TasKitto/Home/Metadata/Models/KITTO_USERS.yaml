@@ -1,4 +1,5 @@
 ﻿ModelName: KITTO_USERS
+ImageName: user_green
 DisplayLabel: User
 Fields:
   USER_NAME: String(20) not null primary key
@@ -12,4 +13,3 @@ Fields:
     DisplayLabel: First Name
   LAST_NAME: String(50)
     DisplayLabel: Last Name
-ImageName: user_green
