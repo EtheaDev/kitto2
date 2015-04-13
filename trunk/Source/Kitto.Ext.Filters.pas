@@ -599,6 +599,7 @@ begin
   ValueField := 'Id';
   DisplayField := 'Description';
   Width := CharsToPixels(FConfig.GetInteger('Width', DEFAULT_FILTER_WIDTH));
+  ListWidth := CharsToPixels(FConfig.GetInteger('ListWidth', DEFAULT_FILTER_WIDTH));
   TypeAhead := True;
   MinChars := FConfig.GetInteger('AutoCompleteMinChars', 4);
 end;
@@ -619,7 +620,6 @@ begin
   Assert(Assigned(FItems));
   //PageSize := 10;
   //Resizable := True;
-  //MinListWidth := LFieldWidth;
   //MinHeight := LinesToPixels(5);
   LDefaultFilter := GetDefaultFilter(FItems);
   if Assigned(LDefaultFilter) then
@@ -706,7 +706,6 @@ begin
   inherited;
   //PageSize := 10;
   //Resizable := True;
-  //MinListWidth := LFieldWidth;
   //MinHeight := LinesToPixels(5);
   if FConfig.GetBoolean('Sys/IsReadOnly') then
     Disabled := True
