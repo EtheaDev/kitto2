@@ -1034,8 +1034,11 @@ end;
 
 procedure TKExtSession.EnsureSupportFiles(const ABaseName: string);
 begin
-  EnsureDynamicStyle(ABaseName);
-  EnsureDynamicScript(ABaseName);
+  if ABaseName <> '' then
+  begin
+    EnsureDynamicStyle(ABaseName);
+    EnsureDynamicScript(ABaseName);
+  end;
 end;
 
 procedure TKExtSession.EnsureViewSupportFiles(const AView: TKView);
@@ -1147,6 +1150,7 @@ begin
   inherited;
   TEFLocalizationToolRegistry.CurrentTool.ForceLanguage(AValue);
   TEFLogger.Instance.LogFmt('Language %s set.', [AValue], TEFLogger.LOG_MEDIUM);
+  Config.Config.SetString('LanguageId', AValue);
 end;
 
 constructor TKExtSession.Create(AOwner: TObject);

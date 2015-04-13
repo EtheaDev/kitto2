@@ -1205,14 +1205,14 @@ type
   ///   </para>
   /// </remarks>
   TEFTreeMacroExpander = class(TEFMacroExpander)
-  private
+  strict private
     FTree: TEFTree;
     FPrefix: string;
-  protected
+  strict protected
+    property Tree: TEFTree read FTree;
     function InternalExpand(const AString: string): string; override;
   public
-    constructor Create(const ATree: TEFTree;
-      const ANameSpace: string); reintroduce;
+    constructor Create(const ATree: TEFTree; const ANameSpace: string); reintroduce;
   end;
 
 type
