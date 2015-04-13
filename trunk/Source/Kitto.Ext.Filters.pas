@@ -572,6 +572,7 @@ end;
 procedure TKListFilterBase.SetConfig(const AConfig: TEFNode);
 var
   I: Integer;
+  LFieldNames: TStringDynArray;
 begin
   Assert(Assigned(AConfig));
 
@@ -588,7 +589,9 @@ begin
   Store := TExtDataStore.Create(Self);
   FServerStore.Header.AddField('Id');
   FServerStore.Header.AddField('Description');
-  FServerStore.Key.SetFieldNames(['Id']);
+  SetLength(LFieldNames,1);
+  LFieldNames[0] := 'Id';
+  FServerStore.Key.SetFieldNames(LFieldNames);
   Store.Url := MethodURI(GetRecordPage);
   Store.Reader := TExtDataJsonReader.Create(Self, JSObject('')); // Must pass '' otherwise invalid code is generated.
   TExtDataJsonReader(Store.Reader).Root := 'Root';
