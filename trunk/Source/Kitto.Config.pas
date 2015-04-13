@@ -38,13 +38,19 @@ type
 
   TKConfig = class(TEFComponent)
   strict private
+  type
+    TPathURL = record
+      Path: string;        
+      URL: string;
+      constructor Create(const APath, AURL: string);
+    end;
   class var
     FAppHomePath: string;
     FJSFormatSettings: TFormatSettings;
     FBaseConfigFileName: string;
     FOnGetInstance: TKGetConfig;
     FInstance: TKConfig;
-    FResourcePathsURLs: TDictionary<string, string>;
+    FResourcePathsURLs: TList<TPathURL>;
     FSystemHomePath: string;
     FConfigClass: TKConfigClass;
     FOnGetAppName: TKConfigGetAppNameEvent;
@@ -173,14 +179,14 @@ type
     ///   Resource file name relative to the resource folder. Examples:
     ///   some_image.png, js\some_library.js.
     /// </param>
-    class function GetResourceURL(const AResourceFileName: string): string;
+    function GetResourceURL(const AResourceFileName: string): string;
 
     /// <summary>Returns the URL for the specified resource, based on the first
     /// existing file in the ordered list of resource folders. If no existing
     /// file is found, returns ''.</summary>
     /// <param name="AResourceFileName">Resource file name relative to the
     /// resource folder. Examples: some_image.png, js\some_library.js.</param>
-    class function FindResourceURL(const AResourceFileName: string): string;
+    function FindResourceURL(const AResourceFileName: string): string;
 
     /// <summary>
     ///   Returns the full pathname for the specified resource, based on
@@ -191,7 +197,7 @@ type
     ///   Resource file name relative to the resource folder.
     ///   Examples: some_image.png, js\some_library.js.
     /// </param>
-    class function FindResourcePathName(const AResourceFileName: string): string;
+    function FindResourcePathName(const AResourceFileName: string): string;
 
     /// <summary>
     ///   Returns the full pathname for the specified resource, based on the first
@@ -202,12 +208,12 @@ type
     ///   Resource file name relative to the resource folder. Examples:
     ///   some_image.png, js\some_library.js.
     /// </param>
-    class function GetResourcePathName(const AResourceFileName: string): string;
+    function GetResourcePathName(const AResourceFileName: string): string;
 
-    class function FindImagePath(const AResourceName: string; const ASuffix: string = ''): string;
+    function FindImagePath(const AResourceName: string; const ASuffix: string = ''): string;
 
-    class function FindImageURL(const AResourceName: string; const ASuffix: string = ''): string;
-    class function GetImageURL(const AResourceName: string; const ASuffix: string = ''): string;
+    function FindImageURL(const AResourceName: string; const ASuffix: string = ''): string;
+    function GetImageURL(const AResourceName: string; const ASuffix: string = ''): string;
 
     /// <summary>A reference to the model catalog, opened on first
     /// access.</summary>
@@ -305,8 +311,13 @@ type
   ///   </para>
   /// </summary>
   TKConfigMacroExpander = class(TEFTreeMacroExpander)
-  protected
+  strict private
+    FConfig: TKConfig;
+  strict protected
+    property Config: TKConfig read FConfig;
     function InternalExpand(const AString: string): string; override;
+  public
+    constructor Create(const AConfig: TKConfig); reintroduce;
   end;
 
 implementation
@@ -355,14 +366,25 @@ end;
 class procedure TKConfig.SetupResourcePathsURLs;
 var
   LPath: string;
+
+  function PathInList(const APath: string): Boolean;
+  var
+    LPathURL: TPathURL;
+  begin
+    Result := False;
+    for LPathURL in FResourcePathsURLs do
+      if SameText(LPathURL.Path, APath) then
+        Exit(True);      
+  end;
+  
 begin
   FResourcePathsURLs.Clear;
   LPath := GetAppHomePath + 'Resources';
   if DirectoryExists(LPath) then
-    FResourcePathsURLs.Add(IncludeTrailingPathDelimiter(LPath), '/' + GetAppName + '/');
+    FResourcePathsURLs.Add(TPathURL.Create(IncludeTrailingPathDelimiter(LPath), '/' + GetAppName + '/'));
   LPath := FindSystemHomePath + 'Resources';
-  if DirectoryExists(LPath) and not FResourcePathsURLs.ContainsKey(IncludeTrailingPathDelimiter(LPath)) then
-    FResourcePathsURLs.Add(IncludeTrailingPathDelimiter(LPath), '/' + GetAppName + '-Kitto/');
+  if DirectoryExists(LPath) and not PathInList(IncludeTrailingPathDelimiter(LPath)) then
+    FResourcePathsURLs.Add(TPathURL.Create(IncludeTrailingPathDelimiter(LPath), '/' + GetAppName + '-Kitto/'));
 end;
 
 procedure TKConfig.UpdateObserver(const ASubject: IEFSubject;
@@ -477,7 +499,7 @@ begin
         Result := UserFormatSettings;
       end;
     AddStandardMacroExpanders(FMacroExpansionEngine);
-    FMacroExpansionEngine.AddExpander(TKConfigMacroExpander.Create(Config, 'Config'));
+    FMacroExpansionEngine.AddExpander(TKConfigMacroExpander.Create(Self));
   end;
   Result := FMacroExpansionEngine;
 end;
@@ -504,15 +526,15 @@ begin
   Result := Config.GetString('MultiFieldSeparator', '~');
 end;
 
-class function TKConfig.FindResourcePathName(const AResourceFileName: string): string;
+function TKConfig.FindResourcePathName(const AResourceFileName: string): string;
 var
-  LURL: string;
+  LPathURL: TPathURL;
   LPath: string;
 begin
   Result := '';
-  for LURL in FResourcePathsURLs.Keys do
+  for LPathURL in FResourcePathsURLs do
   begin
-    LPath := LURL + AResourceFileName;
+    LPath := LPathURL.Path + AResourceFileName;
     if FileExists(LPath) then
     begin
       Result := LPath;
@@ -521,31 +543,46 @@ begin
   end;
 end;
 
-class function TKConfig.GetResourcePathName(const AResourceFileName: string): string;
+function TKConfig.GetResourcePathName(const AResourceFileName: string): string;
 begin
   Result := FindResourcePathName(AResourceFileName);
   if Result = '' then
     raise EKError.CreateFmt(_('Resource %s not found.'), [AResourceFileName]);
 end;
 
-class function TKConfig.FindResourceURL(const AResourceFileName: string): string;
-var
-  LURL: string;
-  LPath: string;
-begin
-  Result := '';
-  for LURL in FResourcePathsURLs.Keys do
+function TKConfig.FindResourceURL(const AResourceFileName: string): string;
+
+  function TryFind(const AName: string): string;
+  var
+    LURL: TPathURL;
+    LPath: string;
   begin
-    LPath := LURL + AResourceFileName;
-    if FileExists(LPath) then
+    Result := '';
+    for LURL in FResourcePathsURLs do
     begin
-      Result := FResourcePathsURLs[LURL] + ReplaceStr(AResourceFileName, '\', '/');
-      Break;
+      LPath := LURL.Path + AName;
+      if FileExists(LPath) then
+      begin
+        Result := LURL.URL + ReplaceStr(AName, '\', '/');
+        Break;
+      end;
     end;
+  end;
+
+var
+  LLocalizedName: string;
+begin
+  if SameText(Config.GetString('LanguageId'), 'en') or SameText(Config.GetString('LanguageId'), '') then
+    Result := TryFind(AResourceFileName)
+  else begin
+    LLocalizedName := ChangeFileExt(AResourceFileName, '_' + Config.GetString('LanguageId') + ExtractFileExt(AResourceFileName));
+    Result := TryFind(LLocalizedName);
+    if Result = '' then
+      Result := TryFind(AResourceFileName);
   end;
 end;
 
-class function TKConfig.GetResourceURL(const AResourceFileName: string): string;
+function TKConfig.GetResourceURL(const AResourceFileName: string): string;
 begin
   Result := FindResourceURL(AResourceFileName);
   if Result = '' then
@@ -594,7 +631,7 @@ begin
   FConfigClass := TKConfig;
   FBaseConfigFileName := 'Config.yaml';
 
-  FResourcePathsURLs := TDictionary<string, string>.Create;
+  FResourcePathsURLs := TList<TPathURL>.Create;
   SetupResourcePathsURLs;
 
   FJSFormatSettings := GetFormatSettings;
@@ -695,17 +732,17 @@ begin
   Result := Config.GetString('AppIcon', 'kitto_128');
 end;
 
-class function TKConfig.GetImageURL(const AResourceName: string; const ASuffix: string = ''): string;
+function TKConfig.GetImageURL(const AResourceName: string; const ASuffix: string = ''): string;
 begin
   Result := GetResourceURL(AdaptImageName(AResourceName, ASuffix));
 end;
 
-class function TKConfig.FindImagePath(const AResourceName: string; const ASuffix: string = ''): string;
+function TKConfig.FindImagePath(const AResourceName: string; const ASuffix: string = ''): string;
 begin
   Result := FindResourcePathName(AdaptImageName(AResourceName, ASuffix));
 end;
 
-class function TKConfig.FindImageURL(const AResourceName, ASuffix: string): string;
+function TKConfig.FindImageURL(const AResourceName, ASuffix: string): string;
 begin
   Result := FindResourceURL(AdaptImageName(AResourceName, ASuffix));
 end;
@@ -794,6 +831,14 @@ end;
 
 { TKConfigMacroExpander }
 
+constructor TKConfigMacroExpander.Create(const AConfig: TKConfig);
+begin
+  Assert(Assigned(AConfig));
+
+  FConfig := AConfig;
+  inherited Create(AConfig.Config, 'Config');
+end;
+
 function TKConfigMacroExpander.InternalExpand(const AString: string): string;
 const
   IMAGE_MACRO_HEAD = '%IMAGE(';
@@ -814,10 +859,18 @@ begin
     begin
       LName := Copy(Result, LPosHead + Length(IMAGE_MACRO_HEAD),
         LPosTail - (LPosHead + Length(IMAGE_MACRO_HEAD)));
-      Result := Copy(Result, 1, LPosHead - 1) + TKConfig.GetImageURL(LName)
+      Result := Copy(Result, 1, LPosHead - 1) + Config.GetImageURL(LName)
         + InternalExpand(Copy(Result, LPosTail + Length(MACRO_TAIL), MaxInt));
     end;
   end;
+end;
+
+{ TKConfig.TResourcePathURL }
+
+constructor TKConfig.TPathURL.Create(const APath, AURL: string);
+begin
+  Path := APath;
+  URL := AURL;
 end;
 
 end.

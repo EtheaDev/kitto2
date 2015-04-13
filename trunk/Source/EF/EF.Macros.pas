@@ -14,11 +14,11 @@
    limitations under the License.
 -------------------------------------------------------------------------------}
 
-///	<summary>
-///	  This unit defines classes and routines to help with macro-expansion in
-///	  strings. The macro-expansion engine can be extended by defining and
-///	  registering custom expander classes.
-///	</summary>
+/// <summary>
+///   This unit defines classes and routines to help with macro-expansion in
+///   strings. The macro-expansion engine can be extended by defining and
+///   registering custom expander classes.
+/// </summary>
 unit EF.Macros;
 
 {$I EF.Defines.inc}
@@ -31,52 +31,52 @@ uses
 type
   TEFMacroExpansionEngine = class;
 
-  ///	<summary>
-  ///	 Abstract macro expander class. Descendants are able to expand a certain
-  ///	 set of macros in a given string. This class is used with
-  ///	 TEFMacroExpansionEngine but it can be used on its own as well.
-  ///	</summary>
+  /// <summary>
+  ///  Abstract macro expander class. Descendants are able to expand a certain
+  ///  set of macros in a given string. This class is used with
+  ///  TEFMacroExpansionEngine but it can be used on its own as well.
+  /// </summary>
   TEFMacroExpander = class
   private
     FOwner: TEFMacroExpansionEngine;
   strict protected
-    ///	<summary>
-    ///	  Utility method: replaces all occurrences of AMacroName in AString with
-    ///	  AMacroValue, and returns the resulting string. Should be used by all
-    ///	  inherited classes to expand macros. Implements support for control
-    ///	  sequences (such as %Q, that encapsulates QuotedStr()).
-    ///	</summary>
+    /// <summary>
+    ///   Utility method: replaces all occurrences of AMacroName in AString with
+    ///   AMacroValue, and returns the resulting string. Should be used by all
+    ///   inherited classes to expand macros. Implements support for control
+    ///   sequences (such as %Q, that encapsulates QuotedStr()).
+    /// </summary>
     function ExpandMacros(const AString, AMacroName, AMacroValue: string): string;
 
-    ///	<summary>
+    /// <summary>
     ///   Implements Expand. The default implementation just returns the input
     ///   argument unchanged.
-    ///	</summary>
+    /// </summary>
     function InternalExpand(const AString: string): string; virtual;
 
     function GetFormatSettings: TFormatSettings;
   public
     constructor Create; virtual;
 
-    ///	<summary>
-    ///	  Expands all supported macros found in a given string, and returns the
-    ///	  string with macros expanded. Calls the virtual protected method
-    ///	  InternalExpand to do the job.
-    ///	</summary>
+    /// <summary>
+    ///   Expands all supported macros found in a given string, and returns the
+    ///   string with macros expanded. Calls the virtual protected method
+    ///   InternalExpand to do the job.
+    /// </summary>
     function Expand(const AString: string): string;
   end;
   TEFMacroExpanderClass = class of TEFMacroExpander;
 
   TEFGetMacroExpansionEngine = reference to function: TEFMacroExpansionEngine;
 
-  ///	<summary>
-  ///	  The engine is able to expand an open-ended set of macros in a given
-  ///	  string. Use AddExpander calls to add support for more macros, and call
-  ///	  Expand to trigger macro expansion. Alternatively, you can use a
-  ///	  ready-made singleton engine which supports all registered expanders
-  ///	  out-of-the-box. Macro expansion engines can be chained: each engine
-  ///	  calls the previous engine in the chain, if available, when invoked.
-  ///	</summary>
+  /// <summary>
+  ///   The engine is able to expand an open-ended set of macros in a given
+  ///   string. Use AddExpander calls to add support for more macros, and call
+  ///   Expand to trigger macro expansion. Alternatively, you can use a
+  ///   ready-made singleton engine which supports all registered expanders
+  ///   out-of-the-box. Macro expansion engines can be chained: each engine
+  ///   calls the previous engine in the chain, if available, when invoked.
+  /// </summary>
   TEFMacroExpansionEngine = class
   strict private
     FExpanders: TObjectList<TEFMacroExpander>;
@@ -99,159 +99,159 @@ type
     class property OnGetInstance: TEFGetMacroExpansionEngine
       read FOnGetInstance write FOnGetInstance;
 
-    ///	<summary>
-    ///	  Expands all recognized macros in AString and returns the resulting
-    ///	  string. The result depends on the set of macro expanders used. Add a
-    ///	  new macro expander by calling AddExpander before calling Expand. If
-    ///	  no macro expanders are used, the result is the same as the input
-    ///	  string.
-    ///	</summary>
+    /// <summary>
+    ///   Expands all recognized macros in AString and returns the resulting
+    ///   string. The result depends on the set of macro expanders used. Add a
+    ///   new macro expander by calling AddExpander before calling Expand. If
+    ///   no macro expanders are used, the result is the same as the input
+    ///   string.
+    /// </summary>
     function Expand(const AString: string): string;
 
-    ///	<summary>
-    ///	  Adds an expander to the list used by the Expand method. Acquires
-    ///	  ownership of AExpander, which means it will be destroyed when
-    ///	  RemoveExpanders or ClearExpanders are called, or when the current
-    ///	  object is itself destroyed.
-    ///	</summary>
+    /// <summary>
+    ///   Adds an expander to the list used by the Expand method. Acquires
+    ///   ownership of AExpander, which means it will be destroyed when
+    ///   RemoveExpanders or ClearExpanders are called, or when the current
+    ///   object is itself destroyed.
+    /// </summary>
     procedure AddExpander(const AExpander: TEFMacroExpander);
 
-    ///	<summary>
-    ///	  Removes a previously added expander from the list used by the Expand
-    ///	  method. Returns True if the specified object was found and removed,
-    ///	  and False otherwise.
-    ///	</summary>
-    ///	<remarks>
-    ///	  The removed object is NOT freed automatically.
-    ///	</remarks>
+    /// <summary>
+    ///   Removes a previously added expander from the list used by the Expand
+    ///   method. Returns True if the specified object was found and removed,
+    ///   and False otherwise.
+    /// </summary>
+    /// <remarks>
+    ///   The removed object is NOT freed automatically.
+    /// </remarks>
     function RemoveExpander(const AExpander: TEFMacroExpander): Boolean;
 
-    ///	<summary>
-    ///	  Returns the index of a given expander in the list, or -1 if it is not
-    ///	  found. Use this method to check whether an expander is part of an
-    ///	  expansion engine.
-    ///	</summary>
+    /// <summary>
+    ///   Returns the index of a given expander in the list, or -1 if it is not
+    ///   found. Use this method to check whether an expander is part of an
+    ///   expansion engine.
+    /// </summary>
     function IndexOfExpander(const AExpander: TEFMacroExpander): Integer;
 
-    ///	<summary>
-    ///	  Removes from the list and frees all expanders of the given class.
-    ///	</summary>
+    /// <summary>
+    ///   Removes from the list and frees all expanders of the given class.
+    /// </summary>
     procedure RemoveExpanders(const AExpanderClass: TEFMacroExpanderClass);
 
-    ///	<summary>
-    ///	 Removes all expanders from the list and destroys them.
-    ///	</summary>
+    /// <summary>
+    ///  Removes all expanders from the list and destroys them.
+    /// </summary>
     procedure ClearExpanders;
 
-    ///	<summary>
-    ///	 Function that returns settings for format-sensitive macros such as %DATE%.
+    /// <summary>
+    ///  Function that returns settings for format-sensitive macros such as %DATE%.
     ///  If not specified, global FormatSettings variable is used.
-    ///	</summary>
+    /// </summary>
     property OnGetFormatSettings: TFunc<TFormatSettings> read FOnGetFormatSettings write FOnGetFormatSettings;
   end;
 
-  ///	<summary>
-  ///	  <para>A macro expander that can expand some path-related macros.</para>
-  ///	  <para>Supported macros (case sensitive):</para>
-  ///	  <list type="table">
-  ///	    <listheader>
-  ///	      <term>Name</term>
-  ///	      <description>Expands to</description>
-  ///	    </listheader>
-  ///	    <item>
-  ///	      <term>%APP_PATH%</term>
-  ///	      <description>ExtractFilePath(ParamStr(0))</description>
-  ///	    </item>
-  ///	    <item>
-  ///	      <term>%APP_NAME%</term>
-  ///	      <description>ParamStr(0)</description>
-  ///	    </item>
-  ///	    <item>
-  ///	      <term>%APP_FILENAME%</term>
-  ///	      <description>ExtractFileName(ParamStr(0))</description>
-  ///	    </item>
-  ///	    <item>
-  ///	      <term>%APP_BASENAME%</term>
-  ///	      <description>
-  ///	      RemoveFileExt(ExtractFileName(ParamStr(0)))</description>
-  ///	    </item>
-  ///	    <item>
-  ///	      <term>%WIN_DIR%</term>
-  ///	      <description>GetWindowsDirectory (including final
-  ///	      backslash)</description>
-  ///	    </item>
-  ///	    <item>
-  ///	      <term>%SYS_DIR%</term>
-  ///	      <description>GetSystemDirectory (including final
-  ///	      backslash)</description>
-  ///	    </item>
-  ///	  </list>
-  ///	</summary>
+  /// <summary>
+  ///   <para>A macro expander that can expand some path-related macros.</para>
+  ///   <para>Supported macros (case sensitive):</para>
+  ///   <list type="table">
+  ///     <listheader>
+  ///       <term>Name</term>
+  ///       <description>Expands to</description>
+  ///     </listheader>
+  ///     <item>
+  ///       <term>%APP_PATH%</term>
+  ///       <description>ExtractFilePath(ParamStr(0))</description>
+  ///     </item>
+  ///     <item>
+  ///       <term>%APP_NAME%</term>
+  ///       <description>ParamStr(0)</description>
+  ///     </item>
+  ///     <item>
+  ///       <term>%APP_FILENAME%</term>
+  ///       <description>ExtractFileName(ParamStr(0))</description>
+  ///     </item>
+  ///     <item>
+  ///       <term>%APP_BASENAME%</term>
+  ///       <description>
+  ///       RemoveFileExt(ExtractFileName(ParamStr(0)))</description>
+  ///     </item>
+  ///     <item>
+  ///       <term>%WIN_DIR%</term>
+  ///       <description>GetWindowsDirectory (including final
+  ///       backslash)</description>
+  ///     </item>
+  ///     <item>
+  ///       <term>%SYS_DIR%</term>
+  ///       <description>GetSystemDirectory (including final
+  ///       backslash)</description>
+  ///     </item>
+  ///   </list>
+  /// </summary>
   TEFPathMacroExpander = class(TEFMacroExpander)
   strict protected
     function InternalExpand(const AString: string): string; override;
   end;
 
-  ///	<summary>
-  ///	  <para>A macro expander that can expand some system macros.</para>
-  ///	  <para>Supported macros (case sensitive):</para>
-  ///	  <list type="table">
-  ///	    <listheader>
-  ///	      <term>Name</term>
-  ///	      <description>Expands to</description>
-  ///	    </listheader>
-  ///	    <item>
-  ///	      <term>%DATE%</term>
-  ///	      <description>DateToStr(Date)</description>
-  ///	    </item>
-  ///	    <item>
-  ///	      <term>%YESTERDAY%</term>
-  ///	      <description>DateToStr(Date - 1)</description>
-  ///	    </item>
-  ///	    <item>
-  ///	      <term>%TOMORROW%</term>
-  ///	      <description>DateToStr(Date + 1)</description>
-  ///	    </item>
-  ///	    <item>
-  ///	      <term>%TIME%</term>
-  ///	      <description>TimeToStr(Now)</description>
-  ///	    </item>
-  ///	    <item>
-  ///	      <term>%PROCESS_ID%</term>
-  ///	      <description>An integer value that is the current process'
-  ///	      Id</description>
-  ///	    </item>
-  ///	    <item>
-  ///	      <term>%THREAD_ID%</term>
-  ///	      <description>An integer value that is the current thread's
-  ///	      Id</description>
-  ///	    </item>
-  ///	  </list>
-  ///	</summary>
+  /// <summary>
+  ///   <para>A macro expander that can expand some system macros.</para>
+  ///   <para>Supported macros (case sensitive):</para>
+  ///   <list type="table">
+  ///     <listheader>
+  ///       <term>Name</term>
+  ///       <description>Expands to</description>
+  ///     </listheader>
+  ///     <item>
+  ///       <term>%DATE%</term>
+  ///       <description>DateToStr(Date)</description>
+  ///     </item>
+  ///     <item>
+  ///       <term>%YESTERDAY%</term>
+  ///       <description>DateToStr(Date - 1)</description>
+  ///     </item>
+  ///     <item>
+  ///       <term>%TOMORROW%</term>
+  ///       <description>DateToStr(Date + 1)</description>
+  ///     </item>
+  ///     <item>
+  ///       <term>%TIME%</term>
+  ///       <description>TimeToStr(Now)</description>
+  ///     </item>
+  ///     <item>
+  ///       <term>%PROCESS_ID%</term>
+  ///       <description>An integer value that is the current process'
+  ///       Id</description>
+  ///     </item>
+  ///     <item>
+  ///       <term>%THREAD_ID%</term>
+  ///       <description>An integer value that is the current thread's
+  ///       Id</description>
+  ///     </item>
+  ///   </list>
+  /// </summary>
   TEFSysMacroExpander = class(TEFMacroExpander)
   strict protected
     function InternalExpand(const AString: string): string; override;
   end;
 
-  ///	<summary>A macro expander that expands all environment variables. See
-  ///	EF.SysUtils.ExpandEnvironmentVariables for details on format and case
-  ///	sensitivity.</summary>
-  ///	<example>%COMPUTERNAME% expands to the current computer's name.</example>
-  ///	<seealso cref="EF.SysUtils.ExpandEnvironmentVariables"></seealso>
+  /// <summary>A macro expander that expands all environment variables. See
+  /// EF.SysUtils.ExpandEnvironmentVariables for details on format and case
+  /// sensitivity.</summary>
+  /// <example>%COMPUTERNAME% expands to the current computer's name.</example>
+  /// <seealso cref="EF.SysUtils.ExpandEnvironmentVariables"></seealso>
   TEFEnvironmentVariableMacroExpander = class(TEFMacroExpander)
   strict protected
     function InternalExpand(const AString: string): string; override;
   end;
 
-  ///	<summary>Expands named parameters passed on the command line. A named
-  ///	command line parameter is prefixed with / or - characters, it has a name,
-  ///	a space and a value.</summary>
-  ///	<example>
-  ///	  <para>Given the following command line:</para>
-  ///	  <para><c>app.exe /p1 value -p2 value2</c></para>
-  ///	  <para>the sequence '%Cmd:p1%' expands to 'value'.</para>
-  ///	</example>
-  ///	<seealso cref="EF.SysUtils.GetCmdLineParamValue"></seealso>
+  /// <summary>Expands named parameters passed on the command line. A named
+  /// command line parameter is prefixed with / or - characters, it has a name,
+  /// a space and a value.</summary>
+  /// <example>
+  ///   <para>Given the following command line:</para>
+  ///   <para><c>app.exe /p1 value -p2 value2</c></para>
+  ///   <para>the sequence '%Cmd:p1%' expands to 'value'.</para>
+  /// </example>
+  /// <seealso cref="EF.SysUtils.GetCmdLineParamValue"></seealso>
   TEFCmdLineParamMacroExpander = class(TEFMacroExpander)
   strict private
     FParams: TStringList;
@@ -263,147 +263,147 @@ type
     destructor Destroy; override;
   end;
 
-  ///	<summary>
-  ///	  <para>Expands the current date and/or time formatted in several
-  ///	  ways.</para>
-  ///	  <para>Supported macros (case sensitive):</para>
-  ///	  <list type="table">
-  ///	    <listheader>
-  ///	      <term>Name</term>
-  ///	      <description>Expands to</description>
-  ///	    </listheader>
-  ///	    <item>
-  ///	      <term>%YYYYMMDD_DATE%</term>
-  ///	      <description>The current date (Date) in YYYYMMDD
-  ///	      format</description>
-  ///	    </item>
-  ///	    <item>
-  ///	      <term>%YYYYMMDD_YESTERDAY%</term>
-  ///	      <description>Date - 1 day in YYYYMMDD format</description>
-  ///	    </item>
-  ///	    <item>
-  ///	      <term>%YYYYMMDD_TOMORROW%</term>
-  ///	      <description>Date + 1 day in YYYYMMDD format</description>
-  ///	    </item>
-  ///	    <item>
-  ///	      <term>%YYMMDD_DATE%</term>
-  ///	      <description>Date in YYMMDD format</description>
-  ///	    </item>
-  ///	    <item>
-  ///	      <term>%YYMMDD_YESTERDAY%</term>
-  ///	      <description>Date - 1 day in YYMMDD format</description>
-  ///	    </item>
-  ///	    <item>
-  ///	      <term>%YYMMDD_TOMORROW%</term>
-  ///	      <description>Date + 1 day in YYMMDD format</description>
-  ///	    </item>
-  ///	    <item>
-  ///	      <term>%MMDD_DATE%</term>
-  ///	      <description>The current date in MMDD format</description>
-  ///	    </item>
-  ///	    <item>
-  ///	      <term>%DD_DATE%</term>
-  ///	      <description>The current day of the month</description>
-  ///	    </item>
-  ///	    <item>
-  ///	      <term>%MM_DATE%</term>
-  ///	      <description>The current month of the year</description>
-  ///	    </item>
-  ///	    <item>
-  ///	      <term>%YYYY_DATE%</term>
-  ///	      <description>The current year</description>
-  ///	    </item>
-  ///	    <item>
-  ///	      <term>%WEEKDAYNAME_SHORT%</term>
-  ///	      <description>The short name of the current day of the
-  ///	      week</description>
-  ///	    </item>
-  ///	    <item>
-  ///	      <term>%WEEKDAYNAME_LONG%</term>
-  ///	      <description>The name of the current day of the week</description>
-  ///	    </item>
-  ///	    <item>
-  ///	      <term>%WEEKDAYNR%</term>
-  ///	      <description>The number of the current day of the week (1 =
-  ///	      sunday)</description>
-  ///	    </item>
-  ///	    <item>
-  ///	      <term>%ISOWEEKDAYNR%</term>
-  ///	      <description>The number of the current day of the week (1 =
-  ///	      monday)</description>
-  ///	    </item>
-  ///	    <item>
-  ///	      <term>%HHMMSS_TIME%</term>
-  ///	      <description>The current time in HHMMSS format</description>
-  ///	    </item>
-  ///	    <item>
-  ///	      <term>%HHMM_TIME%</term>
-  ///	      <description>The current time in HHMM format</description>
-  ///	    </item>
-  ///	    <item>
-  ///	      <term>%HH_TIME%</term>
-  ///	      <description>The current hour</description>
-  ///	    </item>
-  ///	    <item>
-  ///	      <term>%MM_TIME%</term>
-  ///	      <description>The current minute</description>
-  ///	    </item>
-  ///	    <item>
-  ///	      <term>%SS_TIME%</term>
-  ///	      <description>The current second</description>
-  ///	    </item>
-  ///	  </list>
-  ///	</summary>
+  /// <summary>
+  ///   <para>Expands the current date and/or time formatted in several
+  ///   ways.</para>
+  ///   <para>Supported macros (case sensitive):</para>
+  ///   <list type="table">
+  ///     <listheader>
+  ///       <term>Name</term>
+  ///       <description>Expands to</description>
+  ///     </listheader>
+  ///     <item>
+  ///       <term>%YYYYMMDD_DATE%</term>
+  ///       <description>The current date (Date) in YYYYMMDD
+  ///       format</description>
+  ///     </item>
+  ///     <item>
+  ///       <term>%YYYYMMDD_YESTERDAY%</term>
+  ///       <description>Date - 1 day in YYYYMMDD format</description>
+  ///     </item>
+  ///     <item>
+  ///       <term>%YYYYMMDD_TOMORROW%</term>
+  ///       <description>Date + 1 day in YYYYMMDD format</description>
+  ///     </item>
+  ///     <item>
+  ///       <term>%YYMMDD_DATE%</term>
+  ///       <description>Date in YYMMDD format</description>
+  ///     </item>
+  ///     <item>
+  ///       <term>%YYMMDD_YESTERDAY%</term>
+  ///       <description>Date - 1 day in YYMMDD format</description>
+  ///     </item>
+  ///     <item>
+  ///       <term>%YYMMDD_TOMORROW%</term>
+  ///       <description>Date + 1 day in YYMMDD format</description>
+  ///     </item>
+  ///     <item>
+  ///       <term>%MMDD_DATE%</term>
+  ///       <description>The current date in MMDD format</description>
+  ///     </item>
+  ///     <item>
+  ///       <term>%DD_DATE%</term>
+  ///       <description>The current day of the month</description>
+  ///     </item>
+  ///     <item>
+  ///       <term>%MM_DATE%</term>
+  ///       <description>The current month of the year</description>
+  ///     </item>
+  ///     <item>
+  ///       <term>%YYYY_DATE%</term>
+  ///       <description>The current year</description>
+  ///     </item>
+  ///     <item>
+  ///       <term>%WEEKDAYNAME_SHORT%</term>
+  ///       <description>The short name of the current day of the
+  ///       week</description>
+  ///     </item>
+  ///     <item>
+  ///       <term>%WEEKDAYNAME_LONG%</term>
+  ///       <description>The name of the current day of the week</description>
+  ///     </item>
+  ///     <item>
+  ///       <term>%WEEKDAYNR%</term>
+  ///       <description>The number of the current day of the week (1 =
+  ///       sunday)</description>
+  ///     </item>
+  ///     <item>
+  ///       <term>%ISOWEEKDAYNR%</term>
+  ///       <description>The number of the current day of the week (1 =
+  ///       monday)</description>
+  ///     </item>
+  ///     <item>
+  ///       <term>%HHMMSS_TIME%</term>
+  ///       <description>The current time in HHMMSS format</description>
+  ///     </item>
+  ///     <item>
+  ///       <term>%HHMM_TIME%</term>
+  ///       <description>The current time in HHMM format</description>
+  ///     </item>
+  ///     <item>
+  ///       <term>%HH_TIME%</term>
+  ///       <description>The current hour</description>
+  ///     </item>
+  ///     <item>
+  ///       <term>%MM_TIME%</term>
+  ///       <description>The current minute</description>
+  ///     </item>
+  ///     <item>
+  ///       <term>%SS_TIME%</term>
+  ///       <description>The current second</description>
+  ///     </item>
+  ///   </list>
+  /// </summary>
   TEFDateTimeStrMacroExpander = class(TEFMacroExpander)
   strict protected
     function InternalExpand(const AString: string): string; override;
   end;
 
-  ///	<summary>
-  ///	  <para>A macro expander that generates GUIDs.</para>
-  ///	  <para>Supported macros (case sensitive):</para>
-  ///	  <list type="table">
-  ///	    <listheader>
-  ///	      <term>Name</term>
-  ///	      <description>Expands to</description>
-  ///	    </listheader>
-  ///	    <item>
-  ///	      <term>%GUID%</term>
-  ///	      <description>CreateGuidStr()</description>
-  ///	    </item>
-  ///	    <item>
-  ///	      <term>%COMPACT_GUID%</term>
-  ///	      <description>CreateCompactGuidStr()</description>
-  ///	    </item>
-  ///	  </list>
-  ///	</summary>
-  ///	<seealso cref="CreateGuidStr"></seealso>
-  ///	<seealso cref="CreateCompactGuidStr"></seealso>
+  /// <summary>
+  ///   <para>A macro expander that generates GUIDs.</para>
+  ///   <para>Supported macros (case sensitive):</para>
+  ///   <list type="table">
+  ///     <listheader>
+  ///       <term>Name</term>
+  ///       <description>Expands to</description>
+  ///     </listheader>
+  ///     <item>
+  ///       <term>%GUID%</term>
+  ///       <description>CreateGuidStr()</description>
+  ///     </item>
+  ///     <item>
+  ///       <term>%COMPACT_GUID%</term>
+  ///       <description>CreateCompactGuidStr()</description>
+  ///     </item>
+  ///   </list>
+  /// </summary>
+  /// <seealso cref="CreateGuidStr"></seealso>
+  /// <seealso cref="CreateCompactGuidStr"></seealso>
   TEFGUIDMacroExpander = class(TEFMacroExpander)
   strict protected
     function InternalExpand(const AString: string): string; override;
   end;
 
-  ///	<summary>
-  ///	  <para>A macro expander that expands symbols to characters.</para>
-  ///	  <para>Supported macros (case sensitive):</para>
-  ///	  <list type="table">
-  ///	    <listheader>
-  ///	      <term>Name</term>
-  ///	      <description>Expands to</description>
-  ///	    </listheader>
-  ///	    <item>
-  ///	      <term>%TAB%</term>
-  ///	      <description>The Tab (#9) character</description>
-  ///	    </item>
-  ///	    <item>
-  ///	      <term>%SPACE%</term>
-  ///	      <description>The space character</description>
-  ///	    </item>
-  ///	  </list>
-  ///	</summary>
-  ///	<seealso cref="CreateGuidStr"></seealso>
-  ///	<seealso cref="CreateCompactGuidStr"></seealso>
+  /// <summary>
+  ///   <para>A macro expander that expands symbols to characters.</para>
+  ///   <para>Supported macros (case sensitive):</para>
+  ///   <list type="table">
+  ///     <listheader>
+  ///       <term>Name</term>
+  ///       <description>Expands to</description>
+  ///     </listheader>
+  ///     <item>
+  ///       <term>%TAB%</term>
+  ///       <description>The Tab (#9) character</description>
+  ///     </item>
+  ///     <item>
+  ///       <term>%SPACE%</term>
+  ///       <description>The space character</description>
+  ///     </item>
+  ///   </list>
+  /// </summary>
+  /// <seealso cref="CreateGuidStr"></seealso>
+  /// <seealso cref="CreateCompactGuidStr"></seealso>
   TEFEntityMacroExpander = class(TEFMacroExpander)
   strict protected
     function InternalExpand(const AString: string): string; override;
@@ -411,55 +411,55 @@ type
 
   TStringArray = TArray<string>;
 
-  ///	<summary>A base class for macro expanders that support parameterized
-  ///	macros, in the form %NAME([param1[,param2[,...]])%.</summary>
+  /// <summary>A base class for macro expanders that support parameterized
+  /// macros, in the form %NAME([param1[,param2[,...]])%.</summary>
   TEFParameterizedMacroExpanderBase = class abstract(TEFMacroExpander)
   strict protected
-    ///	<summary>Returns a list of names of macros to look for.</summary>
+    /// <summary>Returns a list of names of macros to look for.</summary>
     function GetMacroNames: TArray<string>; virtual; abstract;
 
-    ///	<summary>Expands the specified parameterized macro and returns the
-    ///	expanded value; the default implementation returns an empty string.
-    ///	Derived classes should expand supported macros (returned by
-    ///	GetMacroNames) and call inherited for any unsupported case.</summary>
+    /// <summary>Expands the specified parameterized macro and returns the
+    /// expanded value; the default implementation returns an empty string.
+    /// Derived classes should expand supported macros (returned by
+    /// GetMacroNames) and call inherited for any unsupported case.</summary>
     function ExpandParameterizedMacro(const AMacroName: string; const AParams: TArray<string>): string; virtual;
 
     function InternalExpand(const AString: string): string; override;
   end;
 
-  ///	<summary>
-  ///	  <para>The %FILE()% macro expands to the contents of a specified (text)
-  ///	  file.</para>
-  ///	  <para>The macro format is as follows:</para>
-  ///	  <list type="table">
-  ///	    <listheader>
-  ///	      <term>Format</term>
-  ///	      <description>Description</description>
-  ///	    </listheader>
-  ///	    <item>
-  ///	      <term>(%FILE(&lt;filename&gt;[,&lt;param1&gt;[...]]))%</term>
-  ///	      <description>The contents of &lt;filename&gt;. If &lt;filename&gt;
-  ///	      is not a fully qualified filename, then the value of the
-  ///	      DefaultPath property of the expander is pre-prended to it before
-  ///	      trying to load it. If parameters are passed after the file name,
-  ///	      then they are used to substitute parameter placeholders in the file
-  ///	      contents. Placeholders are in the form %%P1%%, %%P2%% and so
-  ///	      on.</description>
-  ///	    </item>
-  ///	  </list>
-  ///	</summary>
-  ///	<remarks>
-  ///	  <para>Any macros in the file name or contents are expanded as
-  ///	  well.</para>
-  ///	  <para>If a parameter (or the file name) includes a space or a comma,
-  ///	  the entire parameter should be enclosed in ". Space and comma are both
-  ///	  valid parameter separators. If a parameter includes the " character,
-  ///	  then the character should be doubled (as well as the entire parameter
-  ///	  be enclosed between " characters).</para>
-  ///	  <para>If the file name is not specified or the file doesn't exist, then
-  ///	  the macro expands to ''. If a parameter doesn't exist, it expands to
-  ///	  ''.</para>
-  ///	</remarks>
+  /// <summary>
+  ///   <para>The %FILE()% macro expands to the contents of a specified (text)
+  ///   file.</para>
+  ///   <para>The macro format is as follows:</para>
+  ///   <list type="table">
+  ///     <listheader>
+  ///       <term>Format</term>
+  ///       <description>Description</description>
+  ///     </listheader>
+  ///     <item>
+  ///       <term>(%FILE(&lt;filename&gt;[,&lt;param1&gt;[...]]))%</term>
+  ///       <description>The contents of &lt;filename&gt;. If &lt;filename&gt;
+  ///       is not a fully qualified filename, then the value of the
+  ///       DefaultPath property of the expander is pre-prended to it before
+  ///       trying to load it. If parameters are passed after the file name,
+  ///       then they are used to substitute parameter placeholders in the file
+  ///       contents. Placeholders are in the form %%P1%%, %%P2%% and so
+  ///       on.</description>
+  ///     </item>
+  ///   </list>
+  /// </summary>
+  /// <remarks>
+  ///   <para>Any macros in the file name or contents are expanded as
+  ///   well.</para>
+  ///   <para>If a parameter (or the file name) includes a space or a comma,
+  ///   the entire parameter should be enclosed in ". Space and comma are both
+  ///   valid parameter separators. If a parameter includes the " character,
+  ///   then the character should be doubled (as well as the entire parameter
+  ///   be enclosed between " characters).</para>
+  ///   <para>If the file name is not specified or the file doesn't exist, then
+  ///   the macro expands to ''. If a parameter doesn't exist, it expands to
+  ///   ''.</para>
+  /// </remarks>
   TEFFileMacroExpander = class(TEFParameterizedMacroExpanderBase)
   strict private
     FDefaultPath: string;
@@ -479,10 +479,10 @@ type
     property DefaultPath: string read FDefaultPath write FDefaultPath;
   end;
 
-  ///	<summary>
-  ///	  <para>The %FILENAME_TO_URL()% macro converts the server filename
-  ///	  as an url file name.</para>
-  ///	</summary>
+  /// <summary>
+  ///   <para>The %FILENAME_TO_URL()% macro converts the server filename
+  ///   as an url file name.</para>
+  /// </summary>
   TEFFileNameToUrlMacroExpander = class(TEFParameterizedMacroExpanderBase)
   strict private
     function ExpandParam(const AFileName: string): string;
@@ -492,9 +492,9 @@ type
       const AParams: TArray<string>): string; override;
   end;
 
-///	<summary>Creates and adds instances of all standard macro expanders to the
-///	specified macro expansion engine, which acquires ownership of
-///	them.</summary>
+/// <summary>Creates and adds instances of all standard macro expanders to the
+/// specified macro expansion engine, which acquires ownership of
+/// them.</summary>
 procedure AddStandardMacroExpanders(const AMacroExpansionEngine: TEFMacroExpansionEngine);
 
 implementation

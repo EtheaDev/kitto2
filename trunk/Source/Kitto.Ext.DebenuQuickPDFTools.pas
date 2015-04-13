@@ -396,7 +396,7 @@ begin
         LWidth := LNode.GetInteger('Width');
         LHeight := LNode.GetInteger('Height');
         //Add an image
-        LImageFileName := TKConfig.FindResourcePathName(LImageFileName);
+        LImageFileName := Session.Config.FindResourcePathName(LImageFileName);
         AddImage(LImageFileName,LLeft,LTop,LWidth,LHeight);
       end
       else if SameText(LNode.Name,'Text') then
