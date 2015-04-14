@@ -744,7 +744,14 @@ begin
     StoreRecord := nil;
   end
   else if SameText(FOperation, EDIT_OPERATION) then
-    StoreRecord.Refresh;
+  begin
+    StoreRecord.Store.DisableChangeNotifications;
+    try
+      StoreRecord.Refresh;
+    finally
+      StoreRecord.Store.EnableChangeNotifications;
+    end;
+  end;
 
   NotifyObservers('Canceled');
   if LKeepOpen then
