@@ -89,6 +89,7 @@ type
     procedure UpdateObserver(const ASubject: IEFSubject; const AContext: string = ''); override;
     procedure AfterConstruction; override;
     destructor Destroy; override;
+    procedure Activate; override;
   published
     procedure EditRecord;
     procedure ViewRecord;
@@ -1084,6 +1085,13 @@ begin
   FPagingToolbar.Cls := 'k-bbar';
   Result := FPagingToolbar;
   //FPagingToolbar.Store := nil; // Avoid double destruction of the store.
+end;
+
+procedure TKExtGridPanel.Activate;
+begin
+  inherited;
+  if Assigned(FSelectionModel) then
+    FSelectionModel.SelectFirstRow;
 end;
 
 function TKExtGridPanel.AddActionButton(const AUniqueId: string;
