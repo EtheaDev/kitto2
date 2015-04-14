@@ -3732,7 +3732,7 @@ type
     CurrentTab: TExtPanel) of object;
   TExtTabPanelOnContextmenu = procedure(This: TExtTabPanel; TAB: TExtPanel;
     E: TExtEventObjectSingleton) of object;
-  TExtTabPanelOnTabchange = procedure(This: TExtTabPanel; TAB: TExtPanel) of object;
+  TExtTabPanelOnTabchange = procedure(This: TExtTabPanel; Tab: TExtPanel) of object;
 
   TExtTabPanel = class(TExtPanel)
   private
@@ -3761,7 +3761,7 @@ type
     FWheelIncrement: Integer; // 20
     FOnBeforetabchange: TExtTabPanelOnBeforetabchange;
     FOnContextmenu: TExtTabPanelOnContextmenu;
-    FOnTabchange: TExtTabPanelOnTabchange;
+    FOnTabChange: TExtTabPanelOnTabchange;
     procedure _SetActiveTab(const AValue: string);
     procedure SetActiveTabNumber(const AValue: Integer);
     procedure SetFAnimScroll(Value: Boolean);
@@ -3787,7 +3787,7 @@ type
     procedure SetFWheelIncrement(Value: Integer);
     procedure SetFOnBeforetabchange(Value: TExtTabPanelOnBeforetabchange);
     procedure SetFOnContextmenu(Value: TExtTabPanelOnContextmenu);
-    procedure SetFOnTabchange(Value: TExtTabPanelOnTabchange);
+    procedure SetOnTabChange(const AValue: TExtTabPanelOnTabchange);
   protected
     procedure InitDefaults; override;
     procedure HandleEvent(const AEvtName: string); override;
@@ -3844,7 +3844,7 @@ type
       write SetFOnBeforetabchange;
     property OnContextmenu: TExtTabPanelOnContextmenu read FOnContextmenu
       write SetFOnContextmenu;
-    property OnTabchange: TExtTabPanelOnTabchange read FOnTabchange write SetFOnTabchange;
+    property OnTabchange: TExtTabPanelOnTabchange read FOnTabChange write SetOnTabChange;
   end;
 
   // Procedural types for events TExtPagingToolbar
@@ -14483,13 +14483,13 @@ begin
   FOnContextmenu := Value;
 end;
 
-procedure TExtTabPanel.SetFOnTabchange(Value: TExtTabPanelOnTabchange);
+procedure TExtTabPanel.SetOnTabChange(const AValue: TExtTabPanelOnTabchange);
 begin
-  if Assigned(FOnTabchange) then
-    JSCode(JSName + '.events ["tabchange"].listeners=[];');
-  if Assigned(Value) then
-    on('tabchange', Ajax('tabchange', ['This', '%0.nm', 'Tab', '%1.nm'], true));
-  FOnTabchange := Value;
+  if Assigned(FOnTabChange) then
+    Session.ResponseItems.ExecuteJSCode(Self, JSName + '.events["tabchange"].listeners=[];');
+  if Assigned(AValue) then
+    On('tabchange', Ajax('tabchange', ['This', '%0.nm', 'Tab', '%1.nm'], True));
+  FOnTabChange := AValue;
 end;
 
 class function TExtTabPanel.JSClassName: string;
@@ -14652,8 +14652,8 @@ begin
   else if (AEvtName = 'contextmenu') and Assigned(FOnContextmenu) then
     FOnContextmenu(TExtTabPanel(ParamAsObject('This')), TExtPanel(ParamAsObject('Tab')),
       ExtEventObject)
-  else if (AEvtName = 'tabchange') and Assigned(FOnTabchange) then
-    FOnTabchange(TExtTabPanel(ParamAsObject('This')), TExtPanel(ParamAsObject('Tab')));
+  else if (AEvtName = 'tabchange') and Assigned(FOnTabChange) then
+    FOnTabChange(TExtTabPanel(ParamAsObject('This')), TExtPanel(ParamAsObject('Tab')));
 end;
 
 procedure TExtPagingToolbar.SetFAfterPageText(Value: string);

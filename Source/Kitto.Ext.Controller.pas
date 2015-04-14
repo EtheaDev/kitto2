@@ -27,16 +27,16 @@ uses
   Kitto.Types, Kitto.Metadata.Views;
 
 type
-  ///	<summary>
-  ///	 Base interface for controllers. Controllers manages views to build
+  /// <summary>
+  ///  Base interface for controllers. Controllers manages views to build
   ///  the user interface.
-  ///	</summary>
+  /// </summary>
   IKExtController = interface(IEFInterface)
     ['{FCDFC7CC-E202-4C20-961C-11255CABE497}']
 
-    ///	<summary>
-    ///	  Renders AView according to the Config.
-    ///	</summary>
+    /// <summary>
+    ///   Renders AView according to the Config.
+    /// </summary>
     procedure Display;
 
     function GetConfig: TEFNode;
@@ -50,10 +50,10 @@ type
     procedure SetContainer(const AValue: TExtContainer);
     property Container: TExtContainer read GetContainer write SetContainer;
 
-    ///	<summary>
+    /// <summary>
     ///  Returns True if the controller should be freed right after
-    ///	 calling Display because it does all its job inside that method, and
-    ///	 False if the controller stays on screen and is interactive instead.
+    ///  calling Display because it does all its job inside that method, and
+    ///  False if the controller stays on screen and is interactive instead.
     /// </summary>
     function IsSynchronous: Boolean;
   end;
@@ -63,13 +63,22 @@ type
     procedure InitController(const AController: IKExtController);
   end;
 
-  ///	<summary>
-  ///	 Holds a list of registered controller classes.
-  ///	</summary>
-  ///	<remarks>
-  ///	 Classes passed to RegisterClass and UnregisterClass must implement
-  ///	 IKController, otherwise an exception is raised.
-  ///	</remarks>
+  /// <summary>
+  ///  Interface implemented by objects that can be activated in some way,
+  ///  for example put into tab pages.
+  /// </summary>
+  IKExtActivable = interface(IEFInterface)
+    ['{D6B1AA36-C8D7-4D20-856A-7DCC7DB50423}']
+    procedure Activate;
+  end;
+
+  /// <summary>
+  ///  Holds a list of registered controller classes.
+  /// </summary>
+  /// <remarks>
+  ///  Classes passed to RegisterClass and UnregisterClass must implement
+  ///  IKController, otherwise an exception is raised.
+  /// </remarks>
  { TODO :
 allow to overwrite registrations in order to override predefined controllers;
 keep track of all classes registered under the same name to handle
@@ -88,10 +97,10 @@ de-registration gracefully. }
     procedure RegisterClass(const AId: string; const AClass: TExtObjectClass);
   end;
 
-  ///	<summary>
-  ///	 Queries the registry to create controllers by class Id. It is
-  ///	 friend to TKControllerRegistry.
-  ///	</summary>
+  /// <summary>
+  ///  Queries the registry to create controllers by class Id. It is
+  ///  friend to TKControllerRegistry.
+  /// </summary>
   TKExtControllerFactory = class
   private
     class var FInstance: TKExtControllerFactory;
@@ -102,28 +111,28 @@ de-registration gracefully. }
     class destructor Destroy;
     class property Instance: TKExtControllerFactory read GetInstance;
 
-    ///	<summary>
+    /// <summary>
     ///  Creates a controller for the specified view.
     /// </summary>
-    ///	<param name="AOwner">
+    /// <param name="AOwner">
     ///  Owner for the created object (only used if AContainer is nil,
     ///  otherwise the container is the owner).
     /// </param>
-    ///	<param name="AView">
+    /// <param name="AView">
     ///  A reference to the view to control. The view object's lifetime is
     ///  managed externally.
     /// </param>
-    ///	<param name="AContainer">
+    /// <param name="AContainer">
     ///  Visual container to which to add the newly created controller.
     /// </param>
-    ///	<param name="AConfig">
+    /// <param name="AConfig">
     ///  Optional controller config node. If not specified, it is taken from
     ///  the view's 'Controller' node.
     /// </param>
-    ///	<param name="AObserver">
+    /// <param name="AObserver">
     ///  Optional observer that will receive events posted by the controller.
     /// </param>
-    ///	<param name="ACustomType">
+    /// <param name="ACustomType">
     ///  Custom controller type, used to override the one specified in the view.
     /// </param>
     function CreateController(const AOwner: TComponent; const AView: TKView;

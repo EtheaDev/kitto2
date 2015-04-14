@@ -30,9 +30,9 @@ uses
   Kitto.Ext.GridPanel;
 
 type
-  ///	<summary>
-  ///	  A button that opens a popup detail form.
-  ///	</summary>
+  /// <summary>
+  ///  A button that opens a popup detail form.
+  /// </summary>
   TKExtDetailFormButton = class(TKExtButton)
   private
     FViewTable: TKViewTable;
@@ -46,9 +46,9 @@ type
     procedure ShowDetailWindow;
   end;
 
-  ///	<summary>
-  ///	 The Form controller.
-  ///	</summary>
+  /// <summary>
+  ///  The Form controller.
+  /// </summary>
   TKExtFormPanelController = class(TKExtDataPanelController)
   strict private
     FTabPanel: TExtTabPanel;
@@ -97,6 +97,7 @@ type
     property StoreRecord: TKViewTableRecord read FStoreRecord write SetStoreRecord;
     function AddActionButton(const AUniqueId: string; const AView: TKView;
       const AToolbar: TKExtToolbar): TKExtActionButton; override;
+    procedure TabChange(AThis: TExtTabPanel; ATab: TExtPanel); virtual;
   public
     procedure LoadData; override;
     destructor Destroy; override;
@@ -698,6 +699,7 @@ begin
     FTabPanel.BodyStyle := 'background:none'; // Respects parent's background color.
     FTabPanel.DeferredRender := False;
     FTabPanel.EnableTabScroll := True;
+    FTabPanel.OnTabChange := TabChange;
     FMainPagePanel := TKExtEditPage.CreateAndAddTo(FTabPanel.Items);
     FMainPagePanel.Title := _(ViewTable.DisplayLabel);
     if Config.GetBoolean('Sys/ShowIcon', True) then
@@ -714,6 +716,14 @@ begin
     FMainPagePanel.EditPanel := FFormPanel;
   end;
   //Session.ResponseItems.ExecuteJSCode(Format('%s.getForm().url = "%s";', [FFormPanel.JSName, MethodURI(ConfirmChanges)]));
+end;
+
+procedure TKExtFormPanelController.TabChange(AThis: TExtTabPanel; ATab: TExtPanel);
+var
+  LIntf: IKExtActivable;
+begin
+  if Assigned(ATab) and Supports(ATab, IKExtActivable, LIntf) then
+    LIntf.Activate;
 end;
 
 function TKExtFormPanelController.GetExtraHeight: Integer;

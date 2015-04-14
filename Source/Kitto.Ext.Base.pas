@@ -146,7 +146,7 @@ type
   /// <summary>
   ///   Base Ext panel with subject and observer capabilities.
   /// </summary>
-  TKExtPanelBase = class(TExtPanel, IInterface, IEFInterface, IEFSubject, IEFObserver)
+  TKExtPanelBase = class(TExtPanel, IInterface, IEFInterface, IEFSubject, IEFObserver, IKExtActivable)
   private
     FSubjObserverImpl: TEFSubjectAndObserver;
     FConfig: TEFNode;
@@ -168,6 +168,7 @@ type
     procedure DetachObserver(const AObserver: IEFObserver); virtual;
     procedure NotifyObservers(const AContext: string = ''); virtual;
     procedure UpdateObserver(const ASubject: IEFSubject; const AContext: string = ''); virtual;
+    procedure Activate; virtual;
 
     property Config: TEFNode read GetConfig;
   end;
@@ -563,6 +564,10 @@ begin
 end;
 
 { TKExtPanelBase }
+
+procedure TKExtPanelBase.Activate;
+begin
+end;
 
 function TKExtPanelBase.AsObject: TObject;
 begin
