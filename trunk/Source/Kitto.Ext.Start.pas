@@ -59,7 +59,7 @@ class procedure TKExtStart.Start;
 begin
   Configure;
 
-  if IsUserAnAdmin and not FindCmdLineSwitch('a') then
+  if not FindCmdLineSwitch('a') then
   begin
     TEFLogger.Instance.Log('Starting as service.');
     if not SvcMgr.Application.DelayInitialize or SvcMgr.Application.Installing then
