@@ -202,7 +202,7 @@ type
 implementation
 
 uses
-  Generics.Defaults,
+  Generics.Defaults, {$IFDEF D22+}System.Hash,{$ENDIF}
   EF.Localization;
 
 { EEFError }
@@ -231,7 +231,11 @@ var
   LString: string;
 begin
   LString := UpperCase(Value);
+  {$IFDEF D22+}
+  Result := THashBobJenkins.GetHashValue(LString);
+  {$ELSE}
   Result := BobJenkinsHash(LString[1], Length(LString) * SizeOf(LString[1]), 0);
+  {$ENDIF}
 end;
 
 { TEFRegistry }
