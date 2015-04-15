@@ -225,7 +225,7 @@ begin
   end
   else
     Result := inherited CreateClientStore;
-  Result.On('load', FSelectionModel.SelectFirstRow);
+  //Result.On('load', FSelectionModel.SelectFirstRow);
   FEditorGridPanel.Store := Result;
 end;
 

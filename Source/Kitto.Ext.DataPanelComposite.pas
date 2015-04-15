@@ -35,6 +35,7 @@ type
     procedure InitSubController(const AController: IKExtController); override;
     procedure DoDisplay; override;
   public
+    procedure Activate; override;
   published
     procedure LoadData; override;
   end;
@@ -47,6 +48,17 @@ uses
   Kitto.Ext.Base;
 
 { TKExtDataPanelCompositeController }
+
+procedure TKExtDataPanelCompositeController.Activate;
+begin
+  inherited;
+  Apply(
+    procedure (AObject: TExtObject)
+    begin
+      if AObject is TKExtPanelBase then
+        TKExtPanelBase(AObject).Activate;
+    end);
+end;
 
 procedure TKExtDataPanelCompositeController.DoDisplay;
 begin

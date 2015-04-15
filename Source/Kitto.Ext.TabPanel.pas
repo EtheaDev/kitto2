@@ -28,10 +28,10 @@ uses
 type
   TKExtTabPanelController = class;
 
-  ///	<summary>
-  ///	 A tab panel that knows when its hosted panels are closed. Used
+  /// <summary>
+  ///  A tab panel that knows when its hosted panels are closed. Used
   ///  by the TabPanel controller.
-  ///	</summary>
+  /// </summary>
   TKExtTabPanel = class(TExtTabPanel, IKExtPanelHost, IKExtViewHost, IKExtControllerHost)
   private
     FConfig: TEFTree;
@@ -44,6 +44,7 @@ type
     function TabsVisible: Boolean; virtual;
     procedure ApplyTabSize;
     function GetDefaultTabSize: string; virtual;
+    procedure TabChange(AThis: TExtTabPanel; ATab: TExtPanel); virtual;
   public
     procedure SetAsViewHost; virtual;
     procedure SetActiveView(const AIndex: Integer);
@@ -192,6 +193,7 @@ begin
   LViews := Config.FindNode('SubViews');
   if Assigned(LViews) then
   begin
+    OnTabChange := TabChange;
     for I := 0 to LViews.ChildCount - 1 do
     begin
       if SameText(LViews.Children[I].Name, 'View') then
@@ -240,6 +242,14 @@ end;
 function TKExtTabPanel.GetDefaultTabSize: string;
 begin
   Result := 'normal';
+end;
+
+procedure TKExtTabPanel.TabChange(AThis: TExtTabPanel; ATab: TExtPanel);
+var
+  LIntf: IKExtActivable;
+begin
+  if Assigned(ATab) and Supports(ATab, IKExtActivable, LIntf) then
+    LIntf.Activate;
 end;
 
 function TKExtTabPanel.TabsVisible: Boolean;
