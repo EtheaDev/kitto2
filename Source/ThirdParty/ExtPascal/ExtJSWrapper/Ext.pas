@@ -14488,7 +14488,7 @@ begin
   if Assigned(FOnTabChange) then
     Session.ResponseItems.ExecuteJSCode(Self, JSName + '.events["tabchange"].listeners=[];');
   if Assigned(AValue) then
-    On('tabchange', Ajax('tabchange', ['This', '%0.nm', 'Tab', '%1.nm'], True));
+    On('tabchange', Ajax('tabchange', ['This', '%0.nm', 'Tab', '(%1?%1.nm:null)'], True));
   FOnTabChange := AValue;
 end;
 
