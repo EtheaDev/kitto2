@@ -729,8 +729,7 @@ begin
     TExtContainer(FLoginController).DoLayout;
 end;
 
-function TKExtSession.FindUploadedFile(
-  const AContext: TObject): TKExtUploadedFile;
+function TKExtSession.FindUploadedFile(const AContext: TObject): TKExtUploadedFile;
 var
   I: Integer;
 begin
@@ -848,8 +847,7 @@ begin
   FOpenControllers.Remove(AObject);
 end;
 
-procedure TKExtSession.RemoveUploadedFile(
-  const AFileDescriptor: TKExtUploadedFile);
+procedure TKExtSession.RemoveUploadedFile(const AFileDescriptor: TKExtUploadedFile);
 begin
   FUploadedFiles.Remove(AFileDescriptor);
 end;

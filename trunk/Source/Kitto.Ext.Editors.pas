@@ -461,6 +461,7 @@ type
     procedure UpdateGUI(const AUpdatePicture: Boolean);
     procedure PictureViewAfterRender(This: TExtComponent);
     procedure SetTotalCharWidth(const AValue: Integer);
+    const EMPTY_DESCRIPTION = 'Empty';
   strict protected
     FFieldName: string;
     FRecordField: TKViewTableField;
@@ -474,6 +475,8 @@ type
     procedure DownloadThumbnailedFile(const AServerFileName, AClientFileName: string); virtual; abstract;
     procedure ClearContents; virtual;
     procedure DownloadThumbnailedStream(const AStream: TStream; const AFileName: string);
+    function IsEmpty: Boolean;
+    function IsPicture: Boolean;
   protected
     function GetObjectNamePrefix: string; override;
   public
@@ -2702,6 +2705,18 @@ begin
   Result := FRecordField;
 end;
 
+function TKExtFormFileEditor.IsEmpty: Boolean;
+begin
+  Result := GetCurrentServerFileName = '';
+end;
+
+function TKExtFormFileEditor.IsPicture: Boolean;
+begin
+  Assert(Assigned(FRecordField));
+
+  Result := FRecordField.ViewField.GetBoolean('IsPicture');
+end;
+
 procedure TKExtFormFileEditor.RefreshValue;
 begin
 end;
@@ -2723,7 +2738,7 @@ var
 begin
   Layout := lyForm;
 
-  LIsPicture := FRecordField.ViewField.GetBoolean('IsPicture');
+  LIsPicture := IsPicture;
 
   LPanel := TExtPanel.CreateAndAddTo(Items);
   FImageWidth := FRecordField.ViewField.GetInteger('IsPicture/Thumbnail/Width', 100);
@@ -2815,9 +2830,9 @@ end;
 procedure TKExtFormFileEditor.GetImageContent;
 begin
   if GetCurrentServerFileName = '' then
-    ExtSession.ResponseItems.AddHTML('<p>' + _('Empty') + '</p>')
+    ExtSession.ResponseItems.AddHTML('<p>' + _(EMPTY_DESCRIPTION) + '</p>')
   else
-    // Add dummy paraneter to the URL to force the browser to refresh the image
+    // Add dummy parameter to the URL to force the browser to refresh the image
     // after an upload.
     ExtSession.ResponseItems.AddHTML(Format('<img src="%s&time=%s">', [MethodURI(GetImage),
       FormatDateTime('yyyymmddhhnnsszzz', Now())]));
@@ -2832,7 +2847,7 @@ procedure TKExtFormFileEditor.UpdateGUI(const AUpdatePicture: Boolean);
 var
   LIsEmpty: Boolean;
 begin
-  LIsEmpty := GetCurrentServerFileName = '';
+  LIsEmpty := IsEmpty;
   if Assigned(FDescriptionField) then
     FDescriptionField.Value := GetContentDescription;
   if AUpdatePicture and Assigned(FPictureView) then
@@ -2906,7 +2921,22 @@ begin
 end;
 
 procedure TKExtFormFileEditor.StoreValue(const AObjectName: string);
+var
+  LMsg: string;
 begin
+  Assert(Assigned(FRecordField));
+
+  if FRecordField.ViewField.IsRequired then
+  begin
+    LMsg := Format(_('Field %s is required. Please upload a file.'), [FRecordField.ViewField.DisplayLabel]);
+    if Assigned(FDescriptionField) then
+      Session.ResponseItems.ExecuteJSCode(Self,
+        Format('if (%s.getValue() == "%s") { alert("%s"); throw "validation error"; }',
+        [FDescriptionField.JSName, _(EMPTY_DESCRIPTION), LMsg]))
+    else if Assigned(FPictureView) then
+      Session.ResponseItems.ExecuteJSCode(Self,
+        Format('if (%s.html.indexOf("<img" = -1) { alert("%s"); throw "validation error"; }', [FDescriptionField.JSName, LMsg]));
+  end;
 end;
 
 procedure TKExtFormFileEditor.Upload;
@@ -2930,7 +2960,7 @@ begin
       [StripPrefix(ExtractFileExt(LFileName), '.'),
       FormatByteSize(GetCurrentContentSize, Session.Config.UserFormatSettings)])
   else
-    Result := _('Empty');
+    Result := _(EMPTY_DESCRIPTION);
 end;
 
 function TKExtFormFileEditor.GetFieldName: string;
