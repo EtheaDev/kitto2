@@ -671,8 +671,10 @@ begin
     FLabelAlign := laTop
   else if Assigned(LLabelAlignNode) then
     FLabelAlign := OptionAsLabelAlign(LLabelAlignNode.AsString)
+  else if Session.IsMobileBrowser then
+    FLabelAlign := laTop
   else
-    FLabelAlign := laRight; //Default to right
+    FLabelAlign := laRight;
 end;
 
 procedure TKExtFormPanelController.CreateFormPanel;
