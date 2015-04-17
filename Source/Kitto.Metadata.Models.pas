@@ -1471,6 +1471,8 @@ begin
   // Avoid storing the Fields node if it's empty.
   if GetFields.FieldCount = 0 then
     DeleteNode('Fields');
+  if Length(AllowedValues) = 0 then
+    DeleteNode('AllowedValues');
 end;
 
 function TKModelField.FieldByName(const AName: string): TKModelField;
