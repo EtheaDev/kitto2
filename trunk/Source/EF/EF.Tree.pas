@@ -389,14 +389,18 @@ type
 
     /// <summary>
     ///   Finds a child node by name. Returns nil if not found.
+    ///   <param name="AName">Name of the child node to look for.</param>
+    ///   <param name="ACreateMissingNode">Creates the node if not found.</param>
+    ///   <param name="ARecursively">If true, searches also in child nodes recursively</param>
     /// </summary>
-    function FindChild(const AName: string; const ACreateMissingNodes: Boolean = False;
+    function FindChild(const AName: string; const ACreateMissingNode: Boolean = False;
       const ARecursively: Boolean = False): TEFNode;
 
     /// <summary>Finds a direct child with specified name and value and returns a
-    /// reference to it, or nil if the node is not found.</summary>
-    /// <param name="AName">Name of the child node to look for.</param>
-    /// <param name="AValue">Value of the child node to look for.</param>
+    ///   reference to it, or nil if the node is not found.</summary>
+    ///   <param name="AName">Name of the child node to look for.</param>
+    ///   <param name="AValue">Value of the child node to look for.</param>
+    ///   <param name="ARecursively">If true, searches also in child nodes recursively</param>
     function FindChildByNameAndValue(const AName: string; const AValue: Variant;
       const ARecursively: Boolean = False): TEFNode;
 
@@ -417,6 +421,8 @@ type
     ///  The method returns the first qualifying child (and stops as soon
     ///  as it is found).
     ///  If no qualifying child is found, the method return nil.
+    ///   <param name="APredicate">Function for testing purpose</param>
+    ///   <param name="ARecursively">If true, searches also in child nodes recursively</param>
     /// </summary>
     function FindChildByPredicate(const APredicate: TPredicate;
       const ARecursively: Boolean = False): TEFNode;
@@ -2105,8 +2111,8 @@ begin
   end;
 end;
 
-function TEFTree.FindChild(const AName: string; const ACreateMissingNodes: Boolean = False;
-  const ARecursively: Boolean = False): TEFNode;
+function TEFTree.FindChild(const AName: string; const ACreateMissingNode: Boolean;
+  const ARecursively: Boolean): TEFNode;
 begin
   Result := FindChildByPredicate(
     function (const ANode: TEFNode): Boolean
@@ -2114,12 +2120,12 @@ begin
       Result := SameText(ANode.Name, AName);
     end,
     ARecursively);
-  if (Result = nil) and ACreateMissingNodes then
+  if (Result = nil) and ACreateMissingNode then
     Result := AddChild(AName);
 end;
 
 function TEFTree.FindChildByNameAndValue(const AName: string;
-  const AValue: Variant; const ARecursively: Boolean = False): TEFNode;
+  const AValue: Variant; const ARecursively: Boolean): TEFNode;
 var
   LValue: Variant;
 begin
@@ -2133,9 +2139,9 @@ begin
 end;
 
 function TEFTree.FindChildByPredicate(const APredicate: TPredicate;
-  const ARecursively: Boolean = False): TEFNode;
+  const ARecursively: Boolean): TEFNode;
 var
-  I, J: Integer;
+  I: Integer;
   LChildNode: TEFNode;
 begin
   Assert(Assigned(APredicate));
