@@ -15,7 +15,7 @@ Folder: Customers
 Folder: Activities
   View: ActivityInput
   View: ActivityReport
-  .View: ActivityTemplate
+  View: ActivityTemplate
 Folder: Statistics
   View: ActivityPieChart
   View: ActivityBarChart
