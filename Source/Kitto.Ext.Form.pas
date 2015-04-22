@@ -127,7 +127,7 @@ var
   LInsertOperation: Boolean;
 begin
   LViewMode := IsViewMode;
-  LInsertOperation := FOperation = ADD_OPERATION;
+  LInsertOperation := FOperation = 'Add';
   FEditItems.AllEditors(
     procedure (AEditor: IKExtEditor)
     var
@@ -243,7 +243,7 @@ begin
       LController.Config.SetObject('Sys/ViewTable', ViewTable.DetailTables[I]);
       LController.Config.SetObject('Sys/ServerStore', StoreRecord.DetailStores[I]);
       LController.Config.SetBoolean('AllowClose', False);
-      if SameText(FOperation, VIEW_OPERATION) then
+      if SameText(FOperation, 'View') then
       begin
         //Cascading View mode
         LController.Config.SetBoolean('AllowViewing', True);
@@ -291,7 +291,7 @@ begin
           LSubject.AttachObserver(Self);
       end;
     LLayoutProcessor.ForceReadOnly := FIsReadOnly;
-    if MatchStr(FOperation, [ADD_OPERATION, DUPLICATE_OPERATION]) then
+    if MatchStr(FOperation, ['Add', 'Dup']) then
       LLayoutProcessor.Operation := eoInsert
     else
       LLayoutProcessor.Operation := eoUpdate;
@@ -406,7 +406,7 @@ begin
 
   AssignFieldChangeEvent(True);
   try
-    if MatchStr(FOperation, [ADD_OPERATION, DUPLICATE_OPERATION]) then
+    if MatchText(FOperation, ['Add', 'Dup']) then
     begin
       LDefaultValues := nil;
       try
@@ -417,15 +417,15 @@ begin
         end
         else
           LDefaultValues := ViewTable.GetDefaultValues;
-        if SameText(FOperation, DUPLICATE_OPERATION) then
+        if SameText(FOperation, 'Dup') then
           StoreRecord.Store.DisableChangeNotifications;
         try
           StoreRecord.ReadFromNode(LDefaultValues);
         finally
-          if SameText(FOperation, DUPLICATE_OPERATION) then
+          if SameText(FOperation, 'Dup') then
             StoreRecord.Store.EnableChangeNotifications;
         end;
-        ViewTable.Model.BeforeNewRecord(StoreRecord, Assigned(FCloneValues) and SameText(FOperation, ADD_OPERATION));
+        ViewTable.Model.BeforeNewRecord(StoreRecord, Assigned(FCloneValues) and SameText(FOperation, 'Add'));
         StoreRecord.ApplyNewRecordRules;
         ViewTable.Model.AfterNewRecord(StoreRecord);
       finally
@@ -479,7 +479,7 @@ begin
     FCloneButton.SetVisible(True);
   FCloseButton.SetVisible(False);
   FCancelButton.SetVisible(True);
-  FOperation := EDIT_OPERATION;
+  FOperation := 'Edit';
   InitFlags;
   ChangeEditorsState;
   LHostWindow := GetHostWindow;
@@ -522,7 +522,7 @@ begin
   UpdateRecord(StoreRecord, SO(Session.RequestBody).O['new'], True);
   FCloneValues := TEFNode.Clone(StoreRecord);
   StoreRecord := ServerStore.AppendRecord(nil);
-  FOperation := ADD_OPERATION;
+  FOperation := 'Add';
   // recupera dati record
   StartOperation;
 end;
@@ -572,7 +572,7 @@ begin
   begin
     FEditButton := TKExtButton.CreateAndAddTo(Buttons);
     FEditButton.SetIconAndScale('edit_record', Config.GetString('ButtonScale', 'medium'));
-    FEditButton.Text := Config.GetString('ConfirmButton/Caption', _(EDIT_OPERATION));
+    FEditButton.Text := Config.GetString('ConfirmButton/Caption', _('Edit'));
     FEditButton.Tooltip := Config.GetString('ConfirmButton/Tooltip', _('Switch to edit mode'));
     FEditButton.Hidden := FIsReadOnly;
   end;
@@ -618,18 +618,18 @@ begin
   if Title = '' then
     Title := _(ViewTable.DisplayLabel);
 
-  if FOperation = ADD_OPERATION then
+  if SameText(FOperation, 'Add') then
   begin
     Assert(not Assigned(StoreRecord));
     StoreRecord := ServerStore.AppendRecord(nil);
   end
-  else if FOperation = DUPLICATE_OPERATION then
+  else if SameText(FOperation, 'Dup') then
   begin
     FreeAndNil(FCloneValues);
     FCloneValues := TEFNode.Clone(StoreRecord);
     StoreRecord := ServerStore.AppendRecord(nil);
   end
-  else if (FOperation = EDIT_OPERATION) or (FOperation = VIEW_OPERATION) then
+  else if MatchText(FOperation, ['Edit', 'View']) then
   begin
     StoreRecord := Config.GetObject('Sys/Record') as TKViewTableRecord;
     if not Assigned(StoreRecord) then
@@ -646,7 +646,7 @@ begin
 
   AssignFieldChangeEvent(True);
 
-  if MatchStr(FOperation, [ADD_OPERATION, DUPLICATE_OPERATION]) then
+  if MatchText(FOperation, ['Add', 'Dup']) then
     FIsReadOnly := ViewTable.GetBoolean('Controller/PreventAdding')
       or View.GetBoolean('IsReadOnly')
       or ViewTable.IsReadOnly
@@ -659,11 +659,11 @@ begin
       or Config.GetBoolean('PreventEditing')
       or not ViewTable.IsAccessGranted(ACM_MODIFY);
 
-  if SameText(FOperation, ADD_OPERATION) and FIsReadOnly then
+  if SameText(FOperation, 'Add') and FIsReadOnly then
     raise EEFError.Create(_('Operation Add not supported on read-only data.'))
-  else if SameText(FOperation, EDIT_OPERATION) and FIsReadOnly then
+  else if SameText(FOperation, 'Edit') and FIsReadOnly then
     raise EEFError.Create(_('Operation Edit not supported on read-only data.'))
-  else if SameText(FOperation, DUPLICATE_OPERATION) and FIsReadOnly then
+  else if SameText(FOperation, 'Dup') and FIsReadOnly then
     raise EEFError.Create(_('Operation Duplicate not supported on read-only data.'));
 
   LLabelAlignNode := ViewTable.FindNode('Controller/FormController/LabelAlign');
@@ -742,7 +742,7 @@ end;
 
 function TKExtFormPanelController.IsViewMode: Boolean;
 begin
-  Result := FOperation = VIEW_OPERATION;
+  Result := FOperation = 'View';
 end;
 
 procedure TKExtFormPanelController.CancelChanges;
@@ -751,12 +751,12 @@ var
 begin
   LKeepOpen := Config.GetBoolean('KeepOpenAfterOperation');
 
-  if MatchText(FOperation, [ADD_OPERATION, DUPLICATE_OPERATION]) then
+  if MatchText(FOperation, ['Add', 'Dup']) then
   begin
     ServerStore.RemoveRecord(StoreRecord);
     StoreRecord := nil;
   end
-  else if SameText(FOperation, EDIT_OPERATION) then
+  else if SameText(FOperation, 'Edit') then
   begin
     StoreRecord.Store.DisableChangeNotifications;
     try
@@ -769,7 +769,7 @@ begin
   NotifyObservers('Canceled');
   if LKeepOpen then
   begin
-    if FOperation = ADD_OPERATION then
+    if SameText(FOperation, 'Add') then
     begin
       StoreRecord := ServerStore.AppendRecord(nil);
       RecreateEditors;
@@ -838,8 +838,8 @@ begin
   that would not work due to having only the caption
   and not the key values here.
   After the refactoring, this test can be removed. }
-  if LField.ViewField.IsReference and not LField.IsPhysicalPartOfReference then
-    Exit;
+//  if LField.ViewField.IsReference and not LField.IsPhysicalPartOfReference then
+//    Exit;
 
   // Refresh editors linked to changed field.
   FEditItems.EditorsByViewField(LField.ViewField,

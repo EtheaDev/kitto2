@@ -53,7 +53,6 @@ type
     procedure InitColumnEditors(const ARecord: TKViewTableRecord);
     procedure SetGridColumnEditor(const AEditorManager: TKExtEditorManager;
       const AViewField: TKViewField; const ALayoutNode: TEFNode; const AColumn: TExtGridColumn);
-//    function GetConfirmJSCode(const AMethod: TExtProcedure): string;
   private
     FNewButton: TKExtButton;
     FEditButton: TKExtButton;
@@ -62,6 +61,7 @@ type
     FDupButton: TKExtButton;
     FConfirmButton: TKExtButton;
     FCancelButton: TKExtButton;
+    FClientStoreOnLoadSet: Boolean;
     function GetConfirmJSCode(const AMethod: TExtProcedure): string;
     function GetBeforeEditJSCode(const AMethod: TExtProcedure): string;
     procedure ShowConfirmButtons(const AShow: Boolean);
@@ -85,6 +85,7 @@ type
       const AToolbar: TKExtToolbar): TKExtActionButton; override;
     function GetSelectCall(const AMethod: TExtProcedure): TExtFunction; override;
     function IsMultiSelect: Boolean;
+    function IsLookupMode: Boolean;
   public
     procedure UpdateObserver(const ASubject: IEFSubject; const AContext: string = ''); override;
     procedure AfterConstruction; override;
@@ -103,6 +104,8 @@ type
     procedure BeforeEdit;
     procedure ConfirmInplaceChanges;
     procedure CancelInplaceChanges;
+    procedure ConfirmLookup;
+    procedure CancelLookup;
   end;
 
 implementation
@@ -159,6 +162,7 @@ begin
   inherited;
   FIsActionAllowed := TDictionary<string, Boolean>.Create;
   FIsActionVisible := TDictionary<string, Boolean>.Create;
+  FClientStoreOnLoadSet := False;
 end;
 
 procedure TKExtGridPanel.AfterCreateTopToolbar;
@@ -225,7 +229,6 @@ begin
   end
   else
     Result := inherited CreateClientStore;
-  //Result.On('load', FSelectionModel.SelectFirstRow);
   FEditorGridPanel.Store := Result;
 end;
 
@@ -300,6 +303,11 @@ begin
   FEditorGridPanel.ColumnLines := True;
   FEditorGridPanel.TrackMouseOver := True;
   FEditorGridPanel.EnableHdMenu := False;
+end;
+
+function TKExtGridPanel.IsLookupMode: Boolean;
+begin
+  Result := Config.GetBoolean('Sys/LookupMode');
 end;
 
 function TKExtGridPanel.IsMultiSelect: Boolean;
@@ -690,9 +698,9 @@ begin
 
   if AEditMode in [emNewRecord, emDupCurrentRecord] then
     FEditHostWindow.Title := Format(_('Add %s'), [_(ViewTable.DisplayLabel)])
-  else if (AEditMode = emEditCurrentRecord) and FIsActionAllowed[EDIT_OPERATION] then
+  else if (AEditMode = emEditCurrentRecord) and FIsActionAllowed['Edit'] then
     FEditHostWindow.Title := Format(_('Edit %s'), [_(ViewTable.DisplayLabel)])
-  else if (AEditMode = emViewCurrentRecord) and FIsActionAllowed[VIEW_OPERATION] then
+  else if (AEditMode = emViewCurrentRecord) and FIsActionAllowed['View'] then
     FEditHostWindow.Title := Format(_('View %s'), [_(ViewTable.DisplayLabel)])
   else
     FEditHostWindow.Title := _(ViewTable.DisplayLabel);
@@ -731,14 +739,14 @@ begin
     LFormController.Config.SetBoolean('Sys/HostWindow/AutoSize', True);
 
   case AEditMode of
-    emNewRecord : LFormController.Config.SetString('Sys/Operation', ADD_OPERATION);
-    emDupCurrentRecord : LFormController.Config.SetString('Sys/Operation', DUPLICATE_OPERATION);
-    emEditCurrentRecord : LFormController.Config.SetString('Sys/Operation', EDIT_OPERATION);
+    emNewRecord : LFormController.Config.SetString('Sys/Operation', 'Add');
+    emDupCurrentRecord : LFormController.Config.SetString('Sys/Operation', 'Dup');
+    emEditCurrentRecord : LFormController.Config.SetString('Sys/Operation', 'Edit');
     emViewCurrentRecord :
     begin
-      if not FIsActionAllowed[EDIT_OPERATION] then
+      if not FIsActionAllowed['Edit'] then
         LFormController.Config.SetBoolean('PreventEditing', True);
-      LFormController.Config.SetString('Sys/Operation', VIEW_OPERATION);
+      LFormController.Config.SetString('Sys/Operation', 'View');
     end;
   end;
 
@@ -778,31 +786,31 @@ begin
   Assert(Assigned(LView));
   Assert(Assigned(FEditorGridPanel));
 
-  FIsActionVisible.AddOrSetValue(VIEW_OPERATION, LViewTable.GetBoolean('Controller/AllowViewing') or Config.GetBoolean('AllowViewing'));
-  FIsActionAllowed.AddOrSetValue(VIEW_OPERATION, FIsActionVisible[VIEW_OPERATION] and LViewTable.IsAccessGranted(ACM_VIEW));
+  FIsActionVisible.AddOrSetValue('View', LViewTable.GetBoolean('Controller/AllowViewing') or Config.GetBoolean('AllowViewing'));
+  FIsActionAllowed.AddOrSetValue('View', FIsActionVisible['View'] and LViewTable.IsAccessGranted(ACM_VIEW));
 
-  FIsActionVisible.AddOrSetValue('New',
+  FIsActionVisible.AddOrSetValue('Add',
     not LViewTable.GetBoolean('Controller/PreventAdding')
     and not LView.GetBoolean('IsReadOnly')
     and not LViewTable.IsReadOnly
     and not Config.GetBoolean('PreventAdding'));
-  FIsActionAllowed.AddOrSetValue('New', FIsActionVisible['New'] and LViewTable.IsAccessGranted(ACM_ADD));
+  FIsActionAllowed.AddOrSetValue('Add', FIsActionVisible['Add'] and LViewTable.IsAccessGranted(ACM_ADD));
 
-  FIsActionVisible.AddOrSetValue(DUPLICATE_OPERATION,
+  FIsActionVisible.AddOrSetValue('Dup',
     LViewTable.GetBoolean('Controller/AllowDuplicating')
     or Config.GetBoolean('AllowDuplicating')
     and not LViewTable.GetBoolean('Controller/PreventAdding')
     and not LView.GetBoolean('IsReadOnly')
     and not LViewTable.IsReadOnly
     and not Config.GetBoolean('PreventAdding'));
-  FIsActionAllowed.AddOrSetValue(DUPLICATE_OPERATION, FIsActionVisible[DUPLICATE_OPERATION] and LViewTable.IsAccessGranted(ACM_ADD));
+  FIsActionAllowed.AddOrSetValue('Dup', FIsActionVisible['Dup'] and LViewTable.IsAccessGranted(ACM_ADD));
 
-  FIsActionVisible.AddOrSetValue(EDIT_OPERATION,
+  FIsActionVisible.AddOrSetValue('Edit',
     not LViewTable.GetBoolean('Controller/PreventEditing')
     and not LView.GetBoolean('IsReadOnly')
     and not LViewTable.IsReadOnly
     and not Config.GetBoolean('PreventEditing'));
-  FIsActionAllowed.AddOrSetValue(EDIT_OPERATION, FIsActionVisible[EDIT_OPERATION] and LViewTable.IsAccessGranted(ACM_MODIFY));
+  FIsActionAllowed.AddOrSetValue('Edit', FIsActionVisible['Edit'] and LViewTable.IsAccessGranted(ACM_MODIFY));
 
   FIsActionVisible.AddOrSetValue('Delete',
     not LViewTable.GetBoolean('Controller/PreventDeleting')
@@ -816,7 +824,12 @@ begin
   inherited;
 
   if Title = '' then
-    Title := _(LViewTable.PluralDisplayLabel);
+  begin
+    if IsLookupMode then
+      Title := _(Format('Choose %s', [LViewTable.DisplayLabel]))
+    else
+      Title := _(LViewTable.PluralDisplayLabel);
+  end;
 
   if FInplaceEditing then
     FEditorGridPanel.ClicksToEdit := 1;
@@ -850,7 +863,23 @@ begin
 
   CheckGroupColumn;
 
-  if FInplaceEditing then
+  if IsLookupMode then
+  begin
+    FConfirmButton := TKExtButton.CreateAndAddTo(Buttons);
+    FConfirmButton.SetIconAndScale('accept', Config.GetString('ButtonScale', 'medium'));
+    FConfirmButton.Text := Config.GetString('LookupConfirmButton/Caption', _('Select'));
+    FConfirmButton.Tooltip := Config.GetString('LookupConfirmButton/Tooltip', _('Select the current record and close the window'));
+    LKeyFieldNames := Join(LViewTable.GetKeyFieldAliasedNames, ',');
+    FConfirmButton.On('click', AjaxSelection(ConfirmLookup, FSelectionModel, LKeyFieldNames, LKeyFieldNames, []));
+    FButtonsRequiringSelection.Add(FConfirmButton);
+
+    FCancelButton := TKExtButton.CreateAndAddTo(Buttons);
+    FCancelButton.SetIconAndScale('cancel', Config.GetString('ButtonScale', 'medium'));
+    FCancelButton.Text := _('Cancel');
+    FCancelButton.Tooltip := _('Close the window without selecting a record');
+    FCancelButton.Handler := Ajax(CancelLookup);
+  end
+  else if FInplaceEditing then
   begin
     FConfirmButton := TKExtButton.CreateAndAddTo(Buttons);
     FConfirmButton.SetIconAndScale('accept', Config.GetString('ButtonScale', 'medium'));
@@ -880,10 +909,14 @@ function TKExtGridPanel.HasDefaultAction: Boolean;
 var
   LDefaultAction: string;
 begin
-  LDefaultAction := GetDefaultAction;
-  Result := LDefaultAction <> '';
+  Result := IsLookupMode;
   if not Result then
-    Result := FIsActionAllowed[VIEW_OPERATION] or FIsActionAllowed[EDIT_OPERATION];
+  begin
+    LDefaultAction := GetDefaultAction;
+    Result := LDefaultAction <> '';
+    if not Result then
+      Result := FIsActionAllowed['View'] or FIsActionAllowed['Edit'];
+  end;
 end;
 
 function TKExtGridPanel.HasExplicitDefaultAction: Boolean;
@@ -923,11 +956,24 @@ begin
   LoadData;
 end;
 
+procedure TKExtGridPanel.ConfirmLookup;
+begin
+  GetParentDataPanel.Config.SetObject('Sys/LookupResultRecord', GetCurrentViewRecord);
+  CloseHostContainer;
+  GetParentDataPanel.NotifyObservers('LookupConfirmed');
+end;
+
 procedure TKExtGridPanel.CancelInplaceChanges;
 begin
   ShowConfirmButtons(False);
   ServerStore.Records.MarkAsClean;
   LoadData;
+end;
+
+procedure TKExtGridPanel.CancelLookup;
+begin
+  CloseHostContainer;
+  GetParentDataPanel.NotifyObservers('LookupCanceled');
 end;
 
 procedure TKExtGridPanel.ShowConfirmButtons(const AShow: Boolean);
@@ -975,7 +1021,14 @@ procedure TKExtGridPanel.UpdateObserver(const ASubject: IEFSubject;
 begin
   inherited;
   if (AContext = 'Confirmed') and Supports(ASubject.AsObject, IKExtController) then
+  begin
+    if not FClientStoreOnLoadSet then
+    begin
+      ClientStore.On('load', FSelectionModel.SelectFirstRow);
+      FClientStoreOnLoadSet := True;
+    end;
     LoadData;
+  end;
 end;
 
 procedure TKExtGridPanel.ViewRecord;
@@ -990,10 +1043,12 @@ begin
   LActionName := GetDefaultAction;
   if LActionName = '' then
   begin
-    if FIsActionAllowed[VIEW_OPERATION] then
-      LActionName := VIEW_OPERATION
-    else if FIsActionAllowed[EDIT_OPERATION] then
-      LActionName := EDIT_OPERATION;
+    if IsLookupMode then
+      LActionName := 'LookupConfirm'
+    else if FIsActionAllowed['View'] then
+      LActionName := 'View'
+    else if FIsActionAllowed['Edit'] then
+      LActionName := 'Edit';
   end;
   if LActionName <> '' then
     ExecuteNamedAction(LActionName);
@@ -1060,16 +1115,18 @@ end;
 procedure TKExtGridPanel.ExecuteNamedAction(const AActionName: string);
 begin
   { TODO : check AC? }
-  if (AActionName = 'New') then
+  if (AActionName = 'Add') then
     FNewButton.PerformClick
-  else if (AActionName = EDIT_OPERATION) then
+  else if (AActionName = 'Edit') then
     FEditButton.PerformClick
-  else if (AActionName = VIEW_OPERATION) then
+  else if (AActionName = 'View') then
     FViewButton.PerformClick
   else if (AActionName = 'Delete') then
     FDeleteButton.PerformClick
-  else if (AActionName = DUPLICATE_OPERATION) then
+  else if (AActionName = 'Dup') then
     FDupButton.PerformClick
+  else if (AActionName = 'LookupConfirm') then
+    FConfirmButton.PerformClick
   else
     inherited;
 end;
@@ -1116,9 +1173,9 @@ begin
   FNewButton.Tooltip := Format(_('Add %s'), [_(ViewTable.DisplayLabel)]);
   FNewButton.SetIconAndScale('new_record');
   FNewButton.On('click', Ajax(NewRecord));
-  if not FIsActionVisible['New'] then
+  if not FIsActionVisible['Add'] then
     FNewButton.Hidden := True
-  else if not FIsActionAllowed['New'] then
+  else if not FIsActionAllowed['Add'] then
     FNewButton.Disabled := True;
 
   TExtToolbarSpacer.CreateAndAddTo(TopToolbar.Items);
@@ -1126,9 +1183,9 @@ begin
   FDupButton.Tooltip := Format(_('Duplicate %s'), [_(ViewTable.DisplayLabel)]);
   FDupButton.SetIconAndScale('dup_record');
   FDupButton.On('click', AjaxSelection(DuplicateRecord, FSelectionModel, LKeyFieldNames, LKeyFieldNames, []));
-  if not FIsActionVisible[DUPLICATE_OPERATION] then
+  if not FIsActionVisible['Dup'] then
     FDupButton.Hidden := True
-  else if not FIsActionAllowed[DUPLICATE_OPERATION] then
+  else if not FIsActionAllowed['Dup'] then
     FDupButton.Disabled := True
   else
     FButtonsRequiringSelection.Add(FDupButton);
@@ -1138,9 +1195,9 @@ begin
   FEditButton.Tooltip := Format(_('Edit %s'), [_(ViewTable.DisplayLabel)]);
   FEditButton.SetIconAndScale('edit_record');
   FEditButton.On('click', AjaxSelection(EditRecord, FSelectionModel, LKeyFieldNames, LKeyFieldNames, []));
-  if not FIsActionVisible[EDIT_OPERATION] or FInplaceEditing then
+  if not FIsActionVisible['Edit'] or FInplaceEditing then
     FEditButton.Hidden := True
-  else if not FIsActionAllowed[EDIT_OPERATION] then
+  else if not FIsActionAllowed['Edit'] then
     FEditButton.Disabled := True
   else
     FButtonsRequiringSelection.Add(FEditButton);
@@ -1162,9 +1219,9 @@ begin
   FViewButton.Tooltip := Format(_('View %s'), [_(ViewTable.DisplayLabel)]);
   FViewButton.SetIconAndScale('view_record');
   FViewButton.On('click', AjaxSelection(ViewRecord, FSelectionModel, LKeyFieldNames, LKeyFieldNames, []));
-  if not FIsActionVisible[VIEW_OPERATION] then
+  if not FIsActionVisible['View'] then
     FViewButton.Hidden := True
-  else if not FIsActionAllowed[VIEW_OPERATION] then
+  else if not FIsActionAllowed['View'] then
    FViewButton.Disabled := True
   else
     FButtonsRequiringSelection.Add(FViewButton);

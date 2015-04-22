@@ -1,5 +1,5 @@
 ﻿Type: Data
-
+IsLookup: True
 Controller: List
   Filters:
     DisplayLabel: Employee Filter
@@ -14,3 +14,5 @@ MainTable:
     EMPLOYEE_ID:
     EMPLOYEE_NAME:
     EMPLOYEE_TYPE:
+  Controller:
+    AutoOpen: True

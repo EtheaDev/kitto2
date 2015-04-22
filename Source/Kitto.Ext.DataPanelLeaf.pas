@@ -36,6 +36,7 @@ type
   strict protected
     procedure AddTopToolbarButtons; override;
     procedure ExecuteNamedAction(const AActionName: string); override;
+    function GetParentDataPanel: TKExtDataPanelController;
   public
     procedure UpdateObserver(const ASubject: IEFSubject;
       const AContext: string = ''); override;
@@ -92,6 +93,11 @@ begin
     inherited;
 end;
 
+function TKExtDataPanelLeafController.GetParentDataPanel: TKExtDataPanelController;
+begin
+  Result := TKExtDataPanelController(Config.GetObject('Sys/ParentDataPanel', Self));
+end;
+
 procedure TKExtDataPanelLeafController.LoadData;
 begin
   inherited;
@@ -105,7 +111,7 @@ procedure TKExtDataPanelLeafController.UpdateObserver(
 begin
   inherited;
   if AContext = 'RefreshAllRecords' then
-    TKExtDataPanelController(Config.GetObject('Sys/ParentDataPanel', Self)).LoadData;
+    GetParentDataPanel.LoadData;
 end;
 
 procedure TKExtDataPanelLeafController.AddTopToolbarButtons;
@@ -114,7 +120,7 @@ begin
   FRefreshButton := TKExtButton.CreateAndAddTo(TopToolbar.Items);
   FRefreshButton.SetIconAndScale('refresh');
   FRefreshButton.Tooltip := _('Refresh data');
-  FRefreshButton.On('click', Ajax(TKExtDataPanelController(Config.GetObject('Sys/ParentDataPanel', Self)).LoadData));
+  FRefreshButton.On('click', Ajax(GetParentDataPanel.LoadData));
   if ViewTable.GetBoolean('Controller/PreventRefreshing') then
     FRefreshButton.Hidden := True;
   inherited;

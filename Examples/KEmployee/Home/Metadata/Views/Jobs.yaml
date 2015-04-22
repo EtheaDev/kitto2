@@ -1,4 +1,5 @@
 ﻿Type: Data
+IsLookup: True
 Controller: List
   Filters:
     DisplayLabel: Search Jobs
@@ -17,3 +18,5 @@ MainTable:
     LanguageReq:
     JobCountryRef:
     JobCountryRef.Currency: Job_Currency
+    JobDescription:
+      IsVisible: False

@@ -132,7 +132,6 @@ type
     procedure ReloadOrDisplayHomeView;
     function GetConfig: TKConfig;
     procedure ClearStatus;
-    function DisplayNewController(const AView: TKView): IKExtController;
     function FindOpenController(const AView: TKView): IKExtController;
     procedure SetActiveViewInViewHost(const AObject: TObject);
     procedure SetLanguageFromQueriesOrConfig;
@@ -180,6 +179,10 @@ type
     function AsObject: TObject;
     { IEFObserver }
     procedure UpdateObserver(const ASubject: IEFSubject; const AContext: string = '');
+
+    function DisplayNewController(const AView: TKView; const AForceModal: Boolean = False;
+      const AAfterCreateWindow: TProc<TKExtControllerHostWindow> = nil;
+      const AAfterCreate: TProc<IKExtController> = nil): IKExtController;
   public
     function FindPageTemplate(const APageName: string): string;
     function GetPageTemplate(const APageName: string): string;
@@ -859,7 +862,9 @@ begin
   DisplayView(Config.Views.ViewByName(AName));
 end;
 
-function TKExtSession.DisplayNewController(const AView: TKView): IKExtController;
+function TKExtSession.DisplayNewController(const AView: TKView; const AForceModal: Boolean;
+  const AAfterCreateWindow: TProc<TKExtControllerHostWindow>;
+  const AAfterCreate: TProc<IKExtController>): IKExtController;
 var
   LIsSynchronous: Boolean;
   LWidth: Integer;
@@ -869,7 +874,7 @@ begin
   Assert(Assigned(AView));
 
   // If there's no view host, we treat all views as windows.
-  LIsModal := not Assigned(FViewHost) or AView.GetBoolean('Controller/IsModal');
+  LIsModal := AForceModal or not Assigned(FViewHost) or AView.GetBoolean('Controller/IsModal');
   if Assigned(FControllerHostWindow) then
   begin
     FControllerHostWindow.Free(True);
@@ -878,13 +883,18 @@ begin
   if LIsModal then
   begin
     FControllerHostWindow := TKExtControllerHostWindow.Create(ObjectCatalog);
+    if Assigned(AAfterCreateWindow) then
+      AAfterCreateWindow(FControllerHostWindow);
     Result := TKExtControllerFactory.Instance.CreateController(ObjectCatalog, AView, FControllerHostWindow);
+    if Assigned(AAfterCreate) then
+      AAfterCreate(Result);
     if not Result.Config.GetBoolean('Sys/SupportsContainer') then
       FreeAndNil(FControllerHostWindow)
     else
     begin
       FControllerHostWindow.Layout := lyFit;
-      FControllerHostWindow.Title := _(AView.DisplayLabel);
+      if FControllerHostWindow.Title = '' then
+        FControllerHostWindow.Title := _(AView.DisplayLabel);
       FControllerHostWindow.Closable := AView.GetBoolean('Controller/AllowClose', True);
       FControllerHostWindow.FHostedController := Result.AsObject;
       FControllerHostWindow.Maximized := IsMobileBrowser;

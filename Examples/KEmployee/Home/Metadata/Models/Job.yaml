@@ -20,6 +20,6 @@ Fields:
       JobCountry:
         PhysicalName: JOB_COUNTRY
   JobDescription: String(50)
-    Expression: JOB_TITLE || ' (Level ' || {Q}JOB_GRADE || ') ' || {Q}JOB_COUNTRY
+    Expression: {Q}JOB_TITLE || ' (Level ' || {Q}JOB_GRADE || ') ' || {Q}JOB_COUNTRY
 CaptionField: JobDescription
 ImageName: setting_tools
