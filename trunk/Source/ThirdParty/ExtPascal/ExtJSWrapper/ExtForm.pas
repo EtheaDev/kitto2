@@ -956,7 +956,7 @@ type
     procedure _SetEditable(const AValue: Boolean);
     procedure SetFHideTrigger(Value: Boolean);
     procedure _SetReadOnly(const AValue: Boolean);
-    procedure SetFTriggerClass(Value: string);
+    procedure SetTriggerClass(const AValue: string);
     procedure SetFTriggerConfig(Value: string);
     procedure SetFWrapFocusClass(Value: string);
   protected
@@ -972,7 +972,7 @@ type
     property Editable: Boolean read FEditable write _SetEditable;
     property HideTrigger: Boolean read FHideTrigger write SetFHideTrigger;
     property ReadOnly: Boolean read FReadOnly write _SetReadOnly;
-    property TriggerClass: string read FTriggerClass write SetFTriggerClass;
+    property TriggerClass: string read FTriggerClass write SetTriggerClass;
     property TriggerConfig: string read FTriggerConfig write SetFTriggerConfig;
     property WrapFocusClass: string read FWrapFocusClass
       write SetFWrapFocusClass;
@@ -1460,8 +1460,8 @@ type
     FTrigger1Class: string;
     FTrigger2Class: string;
     FTriggerConfig: string;
-    procedure SetFTrigger1Class(Value: string);
-    procedure SetFTrigger2Class(Value: string);
+    procedure SetTrigger1Class(const AValue: string);
+    procedure SetTrigger2Class(const AValue: string);
     procedure SetFTriggerConfig(Value: string);
   protected
     procedure InitDefaults; override;
@@ -1469,8 +1469,8 @@ type
     class function JSClassName: string; override;
     function OnTrigger1Click(E: TEventObject): TExtFunction;
     function OnTrigger2Click(E: TEventObject): TExtFunction;
-    property Trigger1Class: string read FTrigger1Class write SetFTrigger1Class;
-    property Trigger2Class: string read FTrigger2Class write SetFTrigger2Class;
+    property Trigger1Class: string read FTrigger1Class write SetTrigger1Class;
+    property Trigger2Class: string read FTrigger2Class write SetTrigger2Class;
     property TriggerConfig: string read FTriggerConfig write SetFTriggerConfig;
   end;
 
@@ -3709,10 +3709,10 @@ begin
   ExtSession.ResponseItems.SetConfigItem(Self, 'readOnly', 'setReadOnly', [AValue]);
 end;
 
-procedure TExtFormTriggerField.SetFTriggerClass(Value: string);
+procedure TExtFormTriggerField.SetTriggerClass(const AValue: string);
 begin
-  FTriggerClass := Value;
-  JSCode('triggerClass:' + VarToJSON([Value]));
+  FTriggerClass := AValue;
+  Session.ResponseItems.SetConfigItem(Self, 'triggerClass', [AValue]);
 end;
 
 procedure TExtFormTriggerField.SetFTriggerConfig(Value: string);
@@ -4852,16 +4852,16 @@ begin
       TExtDataRecord(ParamAsObject('RecordJS')), ParamAsInteger('Index'));
 end;
 
-procedure TExtFormTwinTriggerField.SetFTrigger1Class(Value: string);
+procedure TExtFormTwinTriggerField.SetTrigger1Class(const AValue: string);
 begin
-  FTrigger1Class := Value;
-  JSCode('trigger1Class:' + VarToJSON([Value]));
+  FTrigger1Class := AValue;
+  Session.ResponseItems.SetConfigItem(Self, 'trigger1Class', [AValue]);
 end;
 
-procedure TExtFormTwinTriggerField.SetFTrigger2Class(Value: string);
+procedure TExtFormTwinTriggerField.SetTrigger2Class(const AValue: string);
 begin
-  FTrigger2Class := Value;
-  JSCode('trigger2Class:' + VarToJSON([Value]));
+  FTrigger2Class := AValue;
+  Session.ResponseItems.SetConfigItem(Self, 'trigger2Class', [AValue]);
 end;
 
 procedure TExtFormTwinTriggerField.SetFTriggerConfig(Value: string);

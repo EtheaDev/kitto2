@@ -10,11 +10,12 @@ Fields:
     PhysicalName: LAST_NAME
   PhoneExt: String(4)
     PhysicalName: PHONE_EXT
-  HireDate: DateTime not null
+  HireDate: Date not null
     PhysicalName: HIRE_DATE
   Salary: Decimal(10, 2) not null
   FullName: String
     PhysicalName: FULL_NAME
+    IsReadOnly: True
   DeptNoRef: Reference(Department) not null
     PhysicalName: DEPT_NO
     Fields:

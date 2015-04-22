@@ -14,11 +14,11 @@
    limitations under the License.
 -------------------------------------------------------------------------------}
 
-///	<summary>
-///	  All interfaces in EF are based on EFInterface and disable reference
-///	  counting. This unit defines the base interface and the norefcount-related
-///	  classes and utility routines.
-///	</summary>
+/// <summary>
+///   All interfaces in EF are based on EFInterface and disable reference
+///   counting. This unit defines the base interface and the norefcount-related
+///   classes and utility routines.
+/// </summary>
 unit EF.Intf;
 
 {$I EF.Defines.inc}
@@ -26,23 +26,23 @@ unit EF.Intf;
 interface
 
 type
-  ///	<summary>
-  ///	  Base interface for all EF interfaces.
-  ///	</summary>
+  /// <summary>
+  ///   Base interface for all EF interfaces.
+  /// </summary>
   IEFInterface = interface
     ['{9E0408C7-0923-4DA4-86F8-CB0561D43B49}']
 
-    ///	<summary>
-    ///	  Gives access to the implementing object. Implementors should return
-    ///	  Self.
-    ///	</summary>
+    /// <summary>
+    ///   Gives access to the implementing object. Implementors should return
+    ///   Self.
+    /// </summary>
     function AsObject: TObject;
   end;
 
-  ///	<summary>
-  ///	  Base class for objects that implement interfaces but disable reference
-  ///	  counting.
-  ///	</summary>
+  /// <summary>
+  ///   Base class for objects that implement interfaces but disable reference
+  ///   counting.
+  /// </summary>
   TEFNoRefCountObject = class(TObject, IInterface, IEFInterface)
   public
     function QueryInterface(const IID: TGUID; out Obj): HRESULT; stdcall;
@@ -51,20 +51,20 @@ type
     function AsObject: TObject;
   end;
 
-///	<summary>
-///	  Frees the object and sets the reference to nil. It is mandatory to use
-///	  this function instead of FreeAnNil on references of type IEFInterface or
-///	  descendants, which are *not* reference-counted. Don't pass anything else
-///	  to this function.
-///	</summary>
+/// <summary>
+///   Frees the object and sets the reference to nil. It is mandatory to use
+///   this function instead of FreeAnNil on references of type IEFInterface or
+///   descendants, which are *not* reference-counted. Don't pass anything else
+///   to this function.
+/// </summary>
 procedure FreeAndNilEFIntf(var AEFIntferface);
 
-///	<summary>
-///	  Sets the reference to nil but doesn't free the object.
-///	  It is mandatory to use this function instead of simply setting the reference
-///	  to nil on references of type IEFInterface or descendants, which are *not*
-///	  reference-counted. Don't pass anything else to this function.
-///	</summary>
+/// <summary>
+///   Sets the reference to nil but doesn't free the object.
+///   It is mandatory to use this function instead of simply setting the reference
+///   to nil on references of type IEFInterface or descendants, which are *not*
+///   reference-counted. Don't pass anything else to this function.
+/// </summary>
 procedure NilEFIntf(var AEFIntferface);
 
 implementation

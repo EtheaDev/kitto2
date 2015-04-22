@@ -200,6 +200,12 @@ type
     /// </summary>
     function GetFieldValues(const AFieldNames: TStringDynArray): Variant;
 
+    /// <summary>
+    ///  Returns a concatenation field values using the specified separator.
+    ///  Raises exceptions if fields are not found.
+    /// </summary>
+    function GetFieldValuesAsString(const AFieldNames: TStringDynArray; const ASeparator: string): string;
+
     procedure SetTransientProperty(const ASubjectType, ASubjectName, APropertyName: string; const AValue: Variant);
     property OnSetTransientProperty: TProc<string, string, string, Variant>
       read FOnSetTransientProperty write FOnSetTransientProperty;
@@ -1142,6 +1148,17 @@ begin
   Result := VarArrayCreate([Low(AFieldNames), High(AFieldNames)], varVariant);
   for I := Low(AFieldNames) to High(AFieldNames) do
     Result[I] := FieldByName(AFieldNames[I]).Value;
+end;
+
+function TKRecord.GetFieldValuesAsString(const AFieldNames: TStringDynArray; const ASeparator: string): string;
+var
+  I: Integer;
+begin
+  for I := Low(AFieldNames) to High(AFieldNames) do
+    if I = Low(AFieldNames) then
+      Result := FieldByName(AFieldNames[I]).AsString
+    else
+      Result := Result + ASeparator + FieldByName(AFieldNames[I]).AsString;
 end;
 
 function TKRecord.GetIsDeleted: Boolean;

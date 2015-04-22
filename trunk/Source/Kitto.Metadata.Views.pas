@@ -67,9 +67,9 @@ type
 
   TKLayoutClass = class of TKLayout;
 
-  ///	<summary>
-  ///	  A catalog of views.
-  ///	</summary>
+  /// <summary>
+  ///   A catalog of views.
+  /// </summary>
   TKViews = class(TKMetadataCatalog)
   strict private
     FLayouts: TKLayouts;
@@ -102,9 +102,9 @@ type
     procedure Close; override;
   end;
 
-  ///	<summary>
-  ///	  A catalog of layouts. Internally used by the catalog of views.
-  ///	</summary>
+  /// <summary>
+  ///   A catalog of layouts. Internally used by the catalog of views.
+  /// </summary>
   TKLayouts = class(TKMetadataCatalog)
   strict private
     function GetLayout(I: Integer): TKLayout;
@@ -123,14 +123,14 @@ type
     function FindLayoutByNode(const ANode: TEFNode): TKLayout;
   end;
 
-  ///	<summary>
-  ///	  A view that executes an action.
-  ///	</summary>
+  /// <summary>
+  ///   A view that executes an action.
+  /// </summary>
   TKActionView = class(TKView)
 
   end;
 
-  ///	<summary>The type of nodes in a tree view.</summary>
+  /// <summary>The type of nodes in a tree view.</summary>
   TKTreeViewNode = class(TEFNode)
   private
     function GetTreeViewNodeCount: Integer;
@@ -144,9 +144,9 @@ type
     function FindView(const AViews: TKViews): TKView; virtual;
   end;
 
-  ///	<summary>
+  /// <summary>
   ///   A node in a tree view that is a folder (i.e. contains other
-  ///	  nodes and doesn't represent a view).
+  ///   nodes and doesn't represent a view).
   /// </summary>
   TKTreeViewFolder = class(TKTreeViewNode)
   private
@@ -156,10 +156,10 @@ type
     function FindView(const AViews: TKViews): TKView; override;
   end;
 
-  ///	<summary>
-  ///	  A view that is a tree of views. Contains views and folders, which
+  /// <summary>
+  ///   A view that is a tree of views. Contains views and folders, which
   ///  in turn contain views.
-  ///	</summary>
+  /// </summary>
   TKTreeView = class(TKView)
   private
     function GetTreeViewNode(I: Integer): TKTreeViewNode;
