@@ -2329,9 +2329,11 @@ begin
   if Assigned(LNode) then
   begin
     LValue := LNode.AsString;
+{$IFNDEF KIDE}
     if Pos('_(',LValue) = 1 then
       Result := _(LValue)
     else
+{$ENDIF}
       Result := LValue;
   end
   else
