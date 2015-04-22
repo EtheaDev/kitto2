@@ -1538,7 +1538,7 @@ end;
 
 function TKModelField.CanActuallyModify: Boolean;
 begin
-  Result := Expression = '';
+  Result := (Expression = '') and not GetBoolean('IsComputed');
 end;
 
 function TKModelField.GetCanUpdate: Boolean;

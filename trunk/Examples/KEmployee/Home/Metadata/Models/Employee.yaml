@@ -15,7 +15,7 @@ Fields:
   Salary: Decimal(10, 2) not null
   FullName: String
     PhysicalName: FULL_NAME
-    IsReadOnly: True
+    IsComputed: True
   DeptNoRef: Reference(Department) not null
     PhysicalName: DEPT_NO
     Fields:
