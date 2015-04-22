@@ -217,7 +217,10 @@ type
     function GetJSTypeName: string; override;
   end;
 
-  TEFNumericDataTypeBase = class(TEFDataType);
+  TEFNumericDataTypeBase = class(TEFDataType)
+  strict protected
+    function StripThousandSeparator(const AValue: string; const AFormatSettings: TFormatSettings): string;
+  end;
 
   TEFIntegerDataType = class(TEFNumericDataTypeBase)
   protected
@@ -3179,7 +3182,7 @@ procedure TEFIntegerDataType.InternalJSONValueToNode(const ANode: TEFNode;
   const AValue: string; const AUseJSDateFormat: Boolean;
   const AJSFormatSettings: TFormatSettings);
 begin
-  ANode.AsInteger := StrToInt(AValue);
+  ANode.AsInteger := StrToInt(StripThousandSeparator(AValue, AJSFormatSettings));
 end;
 
 procedure TEFIntegerDataType.InternalNodeToParam(const ANode: TEFNode;
@@ -3435,7 +3438,7 @@ procedure TEFCurrencyDataType.InternalJSONValueToNode(const ANode: TEFNode;
   const AValue: string; const AUseJSDateFormat: Boolean;
   const AJSFormatSettings: TFormatSettings);
 begin
-  ANode.AsCurrency := StrToFloat(AValue, AJSFormatSettings);
+  ANode.AsCurrency := StrToFloat(StripThousandSeparator(AValue, AJSFormatSettings), AJSFormatSettings);
 end;
 
 function TEFCurrencyDataType.InternalNodeToJSONValue(const AForDisplay: Boolean;
@@ -3491,7 +3494,7 @@ procedure TEFFloatDataType.InternalJSONValueToNode(const ANode: TEFNode;
   const AValue: string; const AUseJSDateFormat: Boolean;
   const AJSFormatSettings: TFormatSettings);
 begin
-  ANode.AsFloat := StrToFloat(ReplaceStr(AValue, AJSFormatSettings.ThousandSeparator, ''), AJSFormatSettings);
+  ANode.AsFloat := StrToFloat(StripThousandSeparator(AValue, AJSFormatSettings), AJSFormatSettings);
 end;
 
 function TEFFloatDataType.InternalNodeToJSONValue(const AForDisplay: Boolean;
@@ -3578,7 +3581,7 @@ procedure TEFDecimalDataType.InternalJSONValueToNode(const ANode: TEFNode;
   const AValue: string; const AUseJSDateFormat: Boolean;
   const AJSFormatSettings: TFormatSettings);
 begin
-  ANode.AsDecimal := DoubleToBcd(StrToFloat(AValue, AJSFormatSettings));
+  ANode.AsDecimal := DoubleToBcd(StrToFloat(StripThousandSeparator(AValue, AJSFormatSettings), AJSFormatSettings));
 end;
 
 function TEFDecimalDataType.InternalNodeToJSONValue(const AForDisplay: Boolean;
@@ -3738,6 +3741,14 @@ end;
 function TEFDateTimeDataTypeBase.GetDefaultEmptyAsNull: Boolean;
 begin
   Result := True;
+end;
+
+{ TEFNumericDataTypeBase }
+
+function TEFNumericDataTypeBase.StripThousandSeparator(const AValue: string;
+  const AFormatSettings: TFormatSettings): string;
+begin
+  Result := ReplaceStr(AValue, AFormatSettings.ThousandSeparator, '');
 end;
 
 initialization
