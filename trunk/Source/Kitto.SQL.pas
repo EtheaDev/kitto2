@@ -511,7 +511,7 @@ begin
   for LDerivedField in LDerivedFields do
   begin
     if SameText(LDerivedField.FieldName, AViewField.FieldName) then
-      LDBColumnName := AViewField.ModelField.ReferencedModel.CaptionField.DBColumnName + ' ' + LDerivedField.ModelField.DBColumnName
+      LDBColumnName := ExpandQualification(LModel.CaptionField.DBColumnNameOrExpression, '') + ' ' + LDerivedField.ModelField.DBColumnName
     else
       LDBColumnName := LDerivedField.ModelField.DBColumnName;
 
@@ -721,6 +721,15 @@ procedure TKSQLBuilder.AddReferenceFieldTerms(const AViewField: TKViewField);
 var
   LFields: TKModelFieldArray;
   I: Integer;
+
+  function GetQualifiedExpression(const AModelField: TKModelField): string;
+  begin
+    if AModelField.Expression <> '' then
+      Result := ExpandQualification(AModelField.Expression, AViewField.ModelField.DBColumnName)
+    else
+      Result := AViewField.ModelField.DBColumnName + '.' + AModelField.DBColumnName;
+  end;
+
 begin
   Assert(Assigned(FViewTable));
   Assert(Assigned(AViewField));
@@ -731,10 +740,8 @@ begin
 
   // Add the caption field of the referenced model as well.
   // The reference field name is used as table alias.
-  AddSelectTerm(
-    AViewField.ModelField.DBColumnName + '.' +
-      AViewField.ModelField.ReferencedModel.CaptionField.DBColumnNameOrExpression
-      + ' ' + AViewField.ModelField.FieldName);
+  AddSelectTerm(GetQualifiedExpression(AViewField.ModelField.ReferencedModel.CaptionField)
+    + ' ' + AViewField.ModelField.FieldName);
   LFields := AViewField.ModelField.GetReferenceFields;
   for I := Low(LFields) to High(LFields) do
     AddSelectTerm(FViewTable.Model.DBTableName + '.' + LFields[I].DBColumnName);
