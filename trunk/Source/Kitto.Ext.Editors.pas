@@ -3947,13 +3947,7 @@ end;
 class function TKExtLookupEditor.SupportsViewField(const AViewField: TKViewField): Boolean;
 begin
   Assert(Assigned(AViewField));
-
-  Result := AViewField.IsReference and Assigned(AViewField.Table.View.Catalog.FindObjectByPredicate(
-    function (const AObject: TKMetadata): Boolean
-    begin
-      Result := (AObject is TKDataView) and AObject.GetBoolean('IsLookup')
-        and (TKDataView(AObject).MainTable.Model = AViewField.ModelField.ReferencedModel);
-    end));
+  Result := AViewField.IsReference and Assigned(FindLookupView(AViewField));
 end;
 
 class function TKExtLookupEditor.FindLookupView(const AViewField: TKViewField): TKView;
@@ -3982,6 +3976,8 @@ begin
     procedure (AWindow: TKExtControllerHostWindow)
     begin
       AWindow.Title := _(Format('Choose %s', [FRecordField.ViewField.DisplayLabel]));
+      AWindow.Width := LView.GetInteger('IsLookup/Width', AWindow.Width);
+      AWindow.Height := LView.GetInteger('IsLookup/Height', AWindow.Height);
     end,
     procedure (AController: IKExtController)
     begin
