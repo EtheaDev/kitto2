@@ -2,7 +2,7 @@
 DisplayLabel: Line Chart
 Controller: List
 
-  EastController: ChartPanel
+  CenterController: ChartPanel
     Width: 800
     Chart:
       Type: Line
@@ -31,38 +31,8 @@ Controller: List
           Style:
             Mode: stretch
             image: %IMAGE(chart_column_bar)%
-
-  .WestController: ChartPanel
-    Width: 800
-    Chart:
-      .Width: 800
-      Type: StackedBar
-      Axes:
-        Y:
-          Field: ACTIVITY_DATE
-          Title: _(Day)
-        .X:
-          MajorUnit: 1
-      Series:
-        Series:
-          Stacked: True
-          XField: DURATION
-          YField: ACTIVITY_DATE
-          DisplayName: _(Duration)
-          Style:
-            Color: 1638
-        Series:
-          XField: ACTIVITIES
-          YField: ACTIVITY_DATE
-          DisplayName: _(Activities)
-          Style:
-            Color: 6709248
-      ChartStyle: |
-        {
-          legend: {
-            display: 'bottom'
-          }
-        }
+  WestController: GridPanel
+    Width: 250
 
 MainTable:
   IsReadOnly: True

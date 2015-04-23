@@ -21,7 +21,7 @@ Controller: List
         # ExpressionTemplate should contain a {value} placeholder for the value field selected by the CommandText.
         ExpressionTemplate: CUSTOMER.CUSTOMER_ID = '{value}'
 
-  GridPanelController:
+  CenterController:
     AllowViewing: True
 
 MainTable:
