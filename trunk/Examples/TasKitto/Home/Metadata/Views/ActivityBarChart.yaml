@@ -3,7 +3,6 @@ DisplayLabel: Line Chart
 Controller: List
 
   CenterController: ChartPanel
-    Width: 800
     Chart:
       Type: Line
       Axes:

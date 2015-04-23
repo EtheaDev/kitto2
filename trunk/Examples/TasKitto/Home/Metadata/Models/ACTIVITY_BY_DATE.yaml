@@ -4,3 +4,4 @@ Fields:
   DURATION: INTEGER
   ACTIVITIES: INTEGER
 ImageName: date
+CaptionField: ACTIVITY_DATE
