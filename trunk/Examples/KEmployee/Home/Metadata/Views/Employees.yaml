@@ -1,4 +1,4 @@
-Type: Data
+﻿Type: Data
 Controller: List
   Filters:
     DisplayLabel: Search Employees
@@ -18,3 +18,6 @@ MainTable:
     DeptNoRef:
     JobRef:
   Controller:
+    PopUpWindow:
+      Width: 600
+      Height: 400
