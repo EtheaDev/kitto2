@@ -53,21 +53,15 @@ type
   TKExtListPanelController = class(TKExtDataPanelCompositeController)
   strict private
     FFilterPanel: TKExtFilterPanel;
-    FCenterControllerConfig: TEFNode;
-    function GetCenterRegionControllerConfig: TEFNode;
-    function GetCenterRegionDefaultControllerType: string;
     procedure CreateFilterPanel;
     procedure FilterPanelChange(Sender: TObject);
   strict protected
     procedure InitComponents; override;
-    function GetRegionControllerName(const ARegion: TExtBoxComponentRegion): string; override;
-    function GetRegionControllerConfig(const ARegion: TExtBoxComponentRegion): TEFNode; override;
     procedure SetViewTable(const AValue: TKViewTable); override;
   protected
-    procedure InitDefaults; override;
+    class function GetRegionDefaultControllerClass(const ARegion: TExtBoxComponentRegion): string; override;
   public
     function GetFilterExpression: string; override;
-    destructor Destroy; override;
   end;
 
 implementation
@@ -292,48 +286,6 @@ begin
   LoadData;
 end;
 
-destructor TKExtListPanelController.Destroy;
-begin
-  FreeAndNil(FCenterControllerConfig);
-  inherited;
-end;
-
-function TKExtListPanelController.GetCenterRegionControllerConfig: TEFNode;
-begin
-  Result := Config.FindNode(GetRegionControllerName(rgCenter) + 'Controller');
-  if Result <> nil then
-  begin
-    if Result.AsString = '' then
-      Result.AsString := GetCenterRegionDefaultControllerType;
-  end
-  else
-    Result := FCenterControllerConfig;
-end;
-
-function TKExtListPanelController.GetRegionControllerConfig(
-  const ARegion: TExtBoxComponentRegion): TEFNode;
-begin
-  if ARegion = rgCenter then
-    Result := GetCenterRegionControllerConfig
-  else if (ARegion = rgNorth) and Assigned(Config.FindNode('Filters/Items')) then
-    // Preserve the filter panel's region.
-    Result := nil
-  else
-    Result := inherited GetRegionControllerConfig(ARegion);
-end;
-
-function TKExtListPanelController.GetRegionControllerName(
-  const ARegion: TExtBoxComponentRegion): string;
-begin
-  if ARegion = rgCenter then
-    Result := 'GridPanel'
-  else if (ARegion = rgNorth) and Assigned(Config.FindNode('Filters/Items')) then
-    // Preserve the filter panel's region.
-    Result := ''
-  else
-    Result := inherited GetRegionControllerName(ARegion);
-end;
-
 procedure TKExtListPanelController.InitComponents;
 begin
   inherited;
@@ -341,15 +293,12 @@ begin
     Title := _(Session.Config.MacroExpansionEngine.Expand(ViewTable.PluralDisplayLabel));
 end;
 
-procedure TKExtListPanelController.InitDefaults;
+class function TKExtListPanelController.GetRegionDefaultControllerClass(const ARegion: TExtBoxComponentRegion): string;
 begin
-  inherited;
-  FCenterControllerConfig := TEFNode.Create(GetRegionControllerName(rgCenter) + 'Controller', GetCenterRegionDefaultControllerType);
-end;
-
-function TKExtListPanelController.GetCenterRegionDefaultControllerType: string;
-begin
-  Result := 'GridPanel';
+  if ARegion = rgCenter then
+    Result := 'GridPanel'
+  else
+    Result := '';
 end;
 
 procedure TKExtListPanelController.SetViewTable(const AValue: TKViewTable);

@@ -1,7 +1,7 @@
 ﻿Type: Data
 
 Controller: List
-  GridPanelController: TemplateDataPanel
+  CenterController: TemplateDataPanel
     Template: |
       <tpl for=".">
         <div id="{Doll_Id}">

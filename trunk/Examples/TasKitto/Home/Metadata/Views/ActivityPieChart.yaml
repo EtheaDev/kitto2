@@ -1,9 +1,9 @@
 ﻿Type: Data
 DisplayLabel: Pie Chart
 Controller: List
-
-  WestController: ChartPanel
-    Width: 600
+  EastController: GridPanel
+    Width: 250
+  CenterController: ChartPanel
     Chart:
       Type: Pie
       DataField: DURATION

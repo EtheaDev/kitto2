@@ -30,14 +30,15 @@ type
   TKExtBorderPanelController = class(TKExtPanelControllerBase)
   private
     FControllers: array[TExtBoxComponentRegion] of TObject;
-    function GetRegionName(const ARegion: TExtBoxComponentRegion): string;
-    function GetRegionViewNodeName(const ARegion: TExtBoxComponentRegion): string;
-    function GetRegionControllerNodeName(const ARegion: TExtBoxComponentRegion): string;
     procedure CreateController(const ARegion: TExtBoxComponentRegion);
+    function FindRegionControllerConfig(const ARegion: TExtBoxComponentRegion): TEFNode;
   protected
-    function GetRegionControllerName(const ARegion: TExtBoxComponentRegion): string; virtual;
-    function GetRegionControllerConfig(const ARegion: TExtBoxComponentRegion): TEFNode; virtual;
+    class function GetRegionDefaultControllerClass(const ARegion: TExtBoxComponentRegion): string; virtual;
     procedure DoDisplay; override;
+  public
+    class function GetRegionName(const ARegion: TExtBoxComponentRegion): string; virtual;
+    class function GetRegionViewNodeName(const ARegion: TExtBoxComponentRegion): string; virtual;
+    class function GetRegionControllerNodeName(const ARegion: TExtBoxComponentRegion): string; virtual;
   end;
 
 implementation
@@ -49,30 +50,54 @@ uses
 
 { TKExtBorderPanelController }
 
-function TKExtBorderPanelController.GetRegionName(const ARegion: TExtBoxComponentRegion): string;
+class function TKExtBorderPanelController.GetRegionName(const ARegion: TExtBoxComponentRegion): string;
 begin
   Result := StripPrefix(GetEnumName(TypeInfo(TExtBoxComponentRegion), Ord(ARegion)), 'rg');
 end;
 
-function TKExtBorderPanelController.GetRegionViewNodeName(const ARegion: TExtBoxComponentRegion): string;
+class function TKExtBorderPanelController.GetRegionViewNodeName(const ARegion: TExtBoxComponentRegion): string;
 begin
   Result := GetRegionName(ARegion) + 'View';
 end;
 
-function TKExtBorderPanelController.GetRegionControllerNodeName(const ARegion: TExtBoxComponentRegion): string;
+class function TKExtBorderPanelController.GetRegionControllerNodeName(const ARegion: TExtBoxComponentRegion): string;
 begin
   Result := GetRegionName(ARegion) + 'Controller';
 end;
 
-function TKExtBorderPanelController.GetRegionControllerConfig(
-  const ARegion: TExtBoxComponentRegion): TEFNode;
+class function TKExtBorderPanelController.GetRegionDefaultControllerClass(
+  const ARegion: TExtBoxComponentRegion): string;
 begin
-  Result := Config.GetNode(GetRegionControllerNodeName(ARegion));
+  Result := '';
 end;
 
-function TKExtBorderPanelController.GetRegionControllerName(const ARegion: TExtBoxComponentRegion): string;
+function TKExtBorderPanelController.FindRegionControllerConfig(
+  const ARegion: TExtBoxComponentRegion): TEFNode;
+var
+  LRegionControllerNodeName: string;
+  LRegionDefaultControllerClass: string;
 begin
-  Result := Config.GetString(GetRegionControllerNodeName(ARegion));
+  LRegionControllerNodeName := GetRegionControllerNodeName(ARegion);
+  LRegionDefaultControllerClass := GetRegionDefaultControllerClass(ARegion);
+  Assert(LRegionControllerNodeName <> '');
+  Result := Config.FindNode(LRegionControllerNodeName);
+  if not Assigned(Result) then
+  begin
+    LRegionControllerNodeName := TKExtBorderPanelController.GetRegionControllerNodeName(ARegion);
+    Assert(LRegionControllerNodeName <> '');
+    Result := Config.FindNode(LRegionControllerNodeName);
+    if not Assigned(Result) then
+    begin
+      LRegionControllerNodeName := GetRegionControllerNodeName(ARegion);
+      if LRegionDefaultControllerClass <> '' then
+        Result := TEFNode.Create(LRegionControllerNodeName, LRegionDefaultControllerClass);
+    end;
+  end
+  else
+  begin
+    if Result.Value = '' then
+      Result.Value := LRegionDefaultControllerClass;
+  end;
 end;
 
 procedure TKExtBorderPanelController.CreateController(const ARegion: TExtBoxComponentRegion);
@@ -87,11 +112,10 @@ begin
   LControllerConfig := nil;
   // If subcontrollers are specified, they inherit this controller's view.
   // If no subcontroller is configured for a given region, look for a subview.
-  LSubControllerName := GetRegionControllerName(ARegion);
-  if LSubControllerName <> '' then
+  LControllerConfig := FindRegionControllerConfig(ARegion);
+  if Assigned(LControllerConfig) then
   begin
     LSubView := View;
-    LControllerConfig := GetRegionControllerConfig(ARegion);
   end
   else
     LSubView := Session.Config.Views.FindViewByNode(Config.FindNode(GetRegionViewNodeName(ARegion)));
