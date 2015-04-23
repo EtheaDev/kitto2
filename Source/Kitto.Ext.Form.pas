@@ -210,7 +210,8 @@ begin
     FDetailBottomPanel.EnableTabScroll := True;
     FDetailBottomPanel.Height := GetDetailBottomPanelHeight;
     FDetailBottomPanel.SetActiveTab(0);
-    FTabPanel.OnTabChange := TabChange;
+    if Assigned(FTabPanel) then
+      FTabPanel.OnTabChange := TabChange;
     FDetailBottomPanel.On('tabchange', FDetailBottomPanel.JSFunction(FDetailBottomPanel.JSName + '.doLayout();'));
     CreateDetailPanels(FDetailBottomPanel);
   end;
