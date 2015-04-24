@@ -77,6 +77,7 @@ type
     function GetDisplayLabel: string;
     function GetIsVisible: Boolean;
     function GetDisplayWidth: Integer;
+    function GetIsComputed: Boolean;
     function GetIsReadOnly: Boolean;
     function GetIsKey: Boolean;
     function GetIsGenerated: Boolean;
@@ -248,6 +249,11 @@ type
     ///   Default read-only status of this field in views. Defaults to False.
     /// </summary>
     property IsReadOnly: Boolean read GetIsReadOnly;
+
+    /// <summary>
+    ///   A field computed on server side. At client side is not editable. Defaults to False.
+    /// </summary>
+    property IsComputed: Boolean read GetIsComputed;
 
     /// <summary>
     ///   Returns True if the field is auto-generated at the database level,
@@ -1361,6 +1367,11 @@ begin
     GetFieldSpec(LDataType, LSize, LDecimalPrecision, LIsRequired, Result, LReferencedModel);
 end;
 
+function TKModelField.GetIsComputed: Boolean;
+begin
+  Result := GetBoolean('IsComputed');
+end;
+
 function TKModelField.GetIsReadOnly: Boolean;
 begin
   Result := GetBoolean('IsReadOnly', False);
@@ -1538,7 +1549,7 @@ end;
 
 function TKModelField.CanActuallyModify: Boolean;
 begin
-  Result := (Expression = '') and not GetBoolean('IsComputed');
+  Result := (Expression = '') and not IsComputed;
 end;
 
 function TKModelField.GetCanUpdate: Boolean;
