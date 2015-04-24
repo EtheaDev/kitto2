@@ -27,15 +27,19 @@ uses
   Kitto.Ext.Base, Kitto.Ext.Controller;
 
 type
+  TKExtBorderPanelController = class;
+
+  TKExtBorderPanelControllerClass = class of TKExtBorderPanelController;
+
   TKExtBorderPanelController = class(TKExtPanelControllerBase)
   private
     FControllers: array[TExtBoxComponentRegion] of TObject;
     procedure CreateController(const ARegion: TExtBoxComponentRegion);
     function FindRegionControllerConfig(const ARegion: TExtBoxComponentRegion): TEFNode;
   protected
-    class function GetRegionDefaultControllerClass(const ARegion: TExtBoxComponentRegion): string; virtual;
     procedure DoDisplay; override;
   public
+    class function GetRegionDefaultControllerClass(const ARegion: TExtBoxComponentRegion): string; virtual;
     class function GetRegionName(const ARegion: TExtBoxComponentRegion): string; virtual;
     class function GetRegionViewNodeName(const ARegion: TExtBoxComponentRegion): string; virtual;
     class function GetRegionControllerNodeName(const ARegion: TExtBoxComponentRegion): string; virtual;
