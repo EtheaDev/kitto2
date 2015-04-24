@@ -1,8 +1,9 @@
 ﻿Type: Data
 IsLookup: True
-  Width: 800
-  Height: 600
 Controller: List
+  PopUpWindow:
+    Width: 800
+    Height: 400
   Filters:
     DisplayLabel: Search Jobs
     Items:

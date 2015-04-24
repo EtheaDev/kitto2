@@ -3976,8 +3976,6 @@ begin
     procedure (AWindow: TKExtControllerHostWindow)
     begin
       AWindow.Title := _(Format('Choose %s', [FRecordField.ViewField.DisplayLabel]));
-      AWindow.Width := LView.GetInteger('IsLookup/Width', AWindow.Width);
-      AWindow.Height := LView.GetInteger('IsLookup/Height', AWindow.Height);
     end,
     procedure (AController: IKExtController)
     begin
