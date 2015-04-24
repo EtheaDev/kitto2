@@ -35,9 +35,9 @@ Login:
               <p><H1>Firebird Employee Demo</H1></p>
               <p/>
             </div>
-    ExtraWidth: 360
+    ExtraWidth: 400
     LabelWidth: 150
-    ExtraHeight: 120
+    ExtraHeight: 150
     LocalStorage:
       Mode: Password
       AskUser: True
@@ -49,9 +49,11 @@ Login:
 #HomeView: Home
 
 Ext:
+  Theme: access
 # Either utf-8 or a SBCS corresponding to the system code page
 # (such as iso-8859-1 for Western Europe). Defaults to utf-8.
 Charset: utf-8
 
 FastCGI:
   TCPPort: 2203
+LanguageId: en
