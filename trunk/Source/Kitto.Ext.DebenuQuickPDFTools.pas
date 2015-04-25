@@ -104,7 +104,7 @@ type
     procedure PrepareFile(const AFileName: string); override;
     function GetDefaultFileExtension: string; override;
   public
-    class function GetDefaultImageName: string;
+    class function GetDefaultImageName: string; override;
   published
     property LayoutFileName: string read GetLayoutFileName;
     property BaseFileName: string read GetBaseFileName;

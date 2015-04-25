@@ -39,7 +39,7 @@ type
     procedure PrepareFile(const AFileName: string); override;
     function GetDefaultFileExtension: string; override;
   public
-    class function GetDefaultImageName: string;
+    class function GetDefaultImageName: string; override;
   published
     property TransformFileName: string read GetTransformFileName;
   end;

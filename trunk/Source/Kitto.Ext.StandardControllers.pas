@@ -37,7 +37,7 @@ type
 
     /// <summary>Returns the image name to use by default when not specified at
     /// the view or other level. Called through RTTI.</summary>
-    class function GetDefaultImageName: string;
+    class function GetDefaultImageName: string; override;
   end;
 
 

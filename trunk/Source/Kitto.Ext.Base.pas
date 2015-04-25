@@ -312,10 +312,13 @@ type
     procedure AfterExecuteTool; virtual;
     procedure DoDisplay; override;
   public
+    class function GetDefaultImageName: string; virtual;
     class function SupportsContainer: Boolean;
     function IsSynchronous: Boolean; override;
     property DisplayLabel: string read GetDisplayLabel;
   end;
+
+  TExtToolControllerClass = class of TKExtToolController;
 
   /// <summary>
   ///  Base class for tool controllers that display a (modal) window with
@@ -1367,6 +1370,11 @@ end;
 class function TKExtToolController.SupportsContainer: Boolean;
 begin
   Result := False;
+end;
+
+class function TKExtToolController.GetDefaultImageName: string;
+begin
+  Result := 'tool_exec';
 end;
 
 procedure TKExtToolController.AfterExecuteTool;
