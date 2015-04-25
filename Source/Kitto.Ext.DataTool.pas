@@ -78,7 +78,7 @@ type
     procedure ExecuteTool; override;
     procedure AfterExecuteTool; override;
   public
-    class function GetDefaultImageName: string;
+    class function GetDefaultImageName: string; override;
   published
     property BatchFileName: string read GetBatchFileName;
     property Parameters: string read GetParameters;

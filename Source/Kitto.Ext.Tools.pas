@@ -39,7 +39,7 @@ type
     function GetDefaultDelimiter: char; virtual;
     function GetDefaultQuoteChar: char; virtual;
   public
-    class function GetDefaultImageName: string;
+    class function GetDefaultImageName: string; override;
   published
     property IncludeHeader: boolean read GetIncludeHeader;
     property FixedLength: boolean read GetFixedLength;
@@ -63,7 +63,7 @@ type
     function GetDefaultIncludeHeader: boolean; virtual;
     function CreateStream: TStream; override;
   public
-    class function GetDefaultImageName: string;
+    class function GetDefaultImageName: string; override;
   published
     property IncludeHeader: boolean read GetIncludeHeader;
   end;

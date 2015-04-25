@@ -39,7 +39,7 @@ type
     procedure AcceptField(AViewField: TKViewField; var AAccept: boolean); virtual;
   public
     procedure AfterConstruction; override;
-    class function GetDefaultImageName: string;
+    class function GetDefaultImageName: string; override;
     property ExportEngine: TKExtExcelEngine read FExportExcelEngine;
   published
     property ExcelRangeName: string read GetExcelRangeName;

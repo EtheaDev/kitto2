@@ -29,7 +29,7 @@ type
   strict protected
     procedure ExecuteTool; override;
   public
-    class function GetDefaultImageName: string;
+    class function GetDefaultImageName: string; override;
   end;
 
 implementation

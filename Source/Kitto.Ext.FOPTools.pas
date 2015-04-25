@@ -36,7 +36,7 @@ type
     function GetRecordAsXML: string; virtual;
     function GetStoreAsXML: string; virtual;
   public
-    class function GetDefaultImageName: string;
+    class function GetDefaultImageName: string; override;
   published
     property TransformFileName: string read GetTransformFileName;
   end;

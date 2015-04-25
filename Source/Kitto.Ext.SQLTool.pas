@@ -35,7 +35,7 @@ type
     procedure ExecuteTool; override;
     procedure AssignParamValue(const AParam: TParam;var AValue: Variant);
   public
-    class function GetDefaultImageName: string;
+    class function GetDefaultImageName: string; override;
   published
     property SQLCommandText: string read GetSQLCommandText;
     property DatabaseName: string read GetDatabaseName;
@@ -54,7 +54,7 @@ type
     procedure ExecuteTool; override;
     procedure AssignParamValue(const AParam: TParam;var AValue: Variant);
   public
-    class function GetDefaultImageName: string;
+    class function GetDefaultImageName: string; override;
   published
     property StoredProcName: string read GetStoredProcName;
     property DatabaseName: string read GetDatabaseName;
