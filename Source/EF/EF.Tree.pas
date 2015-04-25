@@ -399,13 +399,19 @@ type
     function FindChild(const AName: string; const ACreateMissingNode: Boolean = False;
       const ARecursively: Boolean = False): TEFNode;
 
-    /// <summary>Finds a direct child with specified name and value and returns a
+    /// <summary>Finds a child node with specified name and value and returns a
     ///   reference to it, or nil if the node is not found.</summary>
     ///   <param name="AName">Name of the child node to look for.</param>
     ///   <param name="AValue">Value of the child node to look for.</param>
     ///   <param name="ARecursively">If true, searches also in child nodes recursively</param>
     function FindChildByNameAndValue(const AName: string; const AValue: Variant;
       const ARecursively: Boolean = False): TEFNode;
+
+    /// <summary>Finds a child node with specified value and returns a
+    ///   reference to it, or nil if the node is not found.</summary>
+    ///   <param name="AValue">Value of the child node to look for.</param>
+    ///   <param name="ARecursively">If true, searches also in child nodes recursively</param>
+    function FindChildByValue(const AValue: Variant; const ARecursively: Boolean = False): TEFNode;
 
     /// <summary>
     ///   Returns True if a child with the given name exists, and False otherwise.
@@ -1113,6 +1119,11 @@ type
     /// <remarks>All existing contents in AStrings are deleted.</remarks>
     function GetChildValues(const AStrings: TStrings): Integer; overload;
 
+    /// <summary>Adds to the specified string list all child node names.
+    /// Returns the number of added items.</summary>
+    /// <remarks>All existing contents in AStrings are deleted.</remarks>
+    function GetChildNames(const AStrings: TStrings): Integer; overload;
+
     /// <summary>Deletes all children and adds a new children for each string
     /// in the specified string list. Strings must be in the form
     /// Name=Value.</summary>
@@ -1134,7 +1145,7 @@ type
     /// <summary>
     ///   Returns an array of names of all direct children of the node.
     /// </summary>
-    function GetChildNames: TStringDynArray;
+    function GetChildNames: TStringDynArray; overload;
 
     /// <summary>
     ///   Returns an array of references to all direct children of the node.
@@ -1578,6 +1589,17 @@ begin
   AStrings.Text := GetChildStrings;
   for I := 0 to AStrings.Count - 1 do
     AStrings[I] := AStrings.ValueFromIndex[I];
+  Result := AStrings.Count;
+end;
+
+function TEFNode.GetChildNames(const AStrings: TStrings): Integer;
+var
+  I: Integer;
+begin
+  Assert(Assigned(AStrings));
+  AStrings.Clear;
+  for I := 0 to FNodes.Count - 1 do
+    AStrings.Add(FNodes[I].Name);
   Result := AStrings.Count;
 end;
 
@@ -2136,7 +2158,20 @@ begin
   Result := FindChildByPredicate(
     function (const ANode: TEFNode): Boolean
     begin
-      Result := SameText(ANode.Name, AName) and (ANode.Value = LValue);
+      Result := SameText(ANode.Name, AName) and SameText(ANode.Value, LValue);
+    end,
+    ARecursively);
+end;
+
+function TEFTree.FindChildByValue(const AValue: Variant; const ARecursively: Boolean): TEFNode;
+var
+  LValue: Variant;
+begin
+  LValue := AValue; // works around "cannot capture symbol" error.
+  Result := FindChildByPredicate(
+    function (const ANode: TEFNode): Boolean
+    begin
+      Result := SameText(ANode.Value, LValue);
     end,
     ARecursively);
 end;
