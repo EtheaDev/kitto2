@@ -59,8 +59,8 @@ type
     procedure InitComponents; override;
     procedure SetViewTable(const AValue: TKViewTable); override;
   protected
-    class function GetRegionDefaultControllerClass(const ARegion: TExtBoxComponentRegion): string; override;
   public
+    class function GetRegionDefaultControllerClass(const ARegion: TExtBoxComponentRegion): string; override;
     function GetFilterExpression: string; override;
   end;
 

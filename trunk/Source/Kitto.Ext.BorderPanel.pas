@@ -107,13 +107,11 @@ end;
 procedure TKExtBorderPanelController.CreateController(const ARegion: TExtBoxComponentRegion);
 var
   LSubView: TKView;
-  LSubControllerName: string;
   LControllerConfig: TEFNode;
   LIntf: IKExtController;
 begin
   Assert(Assigned(View));
 
-  LControllerConfig := nil;
   // If subcontrollers are specified, they inherit this controller's view.
   // If no subcontroller is configured for a given region, look for a subview.
   LControllerConfig := FindRegionControllerConfig(ARegion);
