@@ -564,8 +564,15 @@ begin
       FCloneButton := nil;
   end;
   FConfirmButton := TKExtButton.CreateAndAddTo(Buttons);
-  FConfirmButton.SetIconAndScale('accept', Config.GetString('ButtonScale', 'medium'));
-  FConfirmButton.Text := Config.GetString('ConfirmButton/Caption', _('Save'));
+  if ViewTable.IsDetail or (ViewTable.DetailTableCount = 0) then
+    FConfirmButton.SetIconAndScale('accept', Config.GetString('ButtonScale', 'medium'))
+  else
+    FConfirmButton.SetIconAndScale('save_all', Config.GetString('ButtonScale', 'medium'));
+
+  if ViewTable.DetailTableCount > 0 then
+    FConfirmButton.Text := Config.GetString('ConfirmButton/Caption', _('Save all'))
+  else
+    FConfirmButton.Text := Config.GetString('ConfirmButton/Caption', _('Save'));
   FConfirmButton.Tooltip := Config.GetString('ConfirmButton/Tooltip', _('Save changes and finish editing'));
   FConfirmButton.Hidden := FIsReadOnly or IsViewMode;
 
