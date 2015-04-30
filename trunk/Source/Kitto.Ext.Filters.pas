@@ -150,7 +150,6 @@ type
     FConfig: TEFNode;
     FViewTable: TKViewTable;
     FServerStore: TKStore;
-    const TRIGGER_WIDTH = 4;
   public
     procedure SetConfig(const AConfig: TEFNode); virtual;
     function AsExtObject: TExtObject;

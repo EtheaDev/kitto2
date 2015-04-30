@@ -550,6 +550,8 @@ type
     function GetFields: TKViewFields;
     function GetDetailTables: TKViewTables;
   public
+    function GetDefaultDisplayLabel: string;
+
     function FindNode(const APath: string;
       const ACreateMissingNodes: Boolean = False): TEFNode; override;
 
@@ -996,6 +998,14 @@ begin
     Result := '(' + Result + ')';
 end;
 
+function TKViewTable.GetDefaultDisplayLabel: string;
+begin
+  if IsDetail then
+    Result := ModelDetailReference.DisplayLabel
+  else
+    Result := Model.DisplayLabel;
+end;
+
 function TKViewTable.GetDetailTableCount: Integer;
 begin
   Result := GetDetailTables.GetChildCount<TKViewTable>;
@@ -1010,12 +1020,7 @@ function TKViewTable.GetDisplayLabel: string;
 begin
   Result := GetString('DisplayLabel');
   if Result = '' then
-  begin
-    if IsDetail then
-      Result := ModelDetailReference.DisplayLabel
-    else
-      Result := Model.DisplayLabel;
-  end;
+    Result := GetDefaultDisplayLabel;
 end;
 
 function TKViewTable.GetField(I: Integer): TKViewField;
@@ -1146,7 +1151,7 @@ end;
 function TKViewTable.GetPluralDisplayLabel: string;
 begin
   Result := GetString('PluralDisplayLabel');
-  if Result = ''then
+  if Result = '' then
     Result := Model.PluralDisplayLabel;
 end;
 
