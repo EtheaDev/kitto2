@@ -210,13 +210,16 @@ type
     FRecordField: TKViewTableField;
     FThousandSeparator: string;
     FAlwaysDisplayDecimals: Boolean;
+    FUseThousandSeparator: Boolean;
     procedure FieldChange(This: TExtFormField; NewValue, OldValue: string);
     procedure SetThousandSeparator(const AValue: string);
     procedure SetAlwaysDisplayDecimals(const AValue: Boolean);
+    procedure SetUseThousandSeparator(const AValue: Boolean);
   public
     class function JSClassName: string; override;
     property ThousandSeparator: string read FThousandSeparator write SetThousandSeparator;
     property AlwaysDisplayDecimals: Boolean read FAlwaysDisplayDecimals write SetAlwaysDisplayDecimals;
+    property UseThousandSeparator: Boolean read FUseThousandSeparator write SetUseThousandSeparator;
 
     function AsObject: TObject; inline;
     function _AddRef: Integer; stdcall;
@@ -2266,13 +2269,19 @@ end;
 
 procedure TKExtFormNumericField.SetThousandSeparator(const AValue: string);
 begin
-  FThousandSeparator := Value;
+  FThousandSeparator := AValue;
   ExtSession.ResponseItems.SetConfigItem(Self, 'thousandSeparator', [AValue]);
 end;
 
 procedure TKExtFormNumericField.SetTransientProperty(const APropertyName: string; const AValue: Variant);
 begin
   AsExtFormField.SetTransientProperty(APropertyName, AValue);
+end;
+
+procedure TKExtFormNumericField.SetUseThousandSeparator(const AValue: Boolean);
+begin
+  FUseThousandSeparator := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'useThousandSeparator', [AValue]);
 end;
 
 procedure TKExtFormNumericField.StoreValue(const AObjectName: string);
@@ -3630,6 +3639,10 @@ begin
       LNumericField.AllowBlank := not AViewField.IsRequired;
       LNumericField.DecimalSeparator := Session.Config.UserFormatSettings.DecimalSeparator;
       LNumericField.ThousandSeparator := Session.Config.UserFormatSettings.ThousandSeparator;
+      if (AViewField.EditFormat = '') or (Pos(AViewField.EditFormat, Session.Config.UserFormatSettings.ThousandSeparator) >= 1) then
+        LNumericField.UseThousandSeparator := True
+      else
+        LNumericField.UseThousandSeparator := False;
       LNumericField.AlwaysDisplayDecimals := AViewField.DecimalPrecision <> 0;
       Result := LNumericField;
     except
