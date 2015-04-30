@@ -1233,14 +1233,18 @@ begin
 end;
 
 procedure TKFilterSpacer.SetConfig(const AConfig: TEFNode);
+var
+  LCode: string;
 begin
   Assert(Assigned(AConfig));
 
   Width := CharsToPixels(AConfig.GetInteger('Width', DEFAULT_FILTER_WIDTH));
   // Hide keeping set width.
   Title := '&nbsp;';
-  //On('afterrender', JSFunction(JSName + '.getEl().setOpacity(0);'));
-  Session.ResponseItems.ExecuteJSCode(Self, JSName + '.getEl().setOpacity(0);');
+
+  LCode := 'var e = ' + JSName + '.getEl(); if (e) e.setOpacity(0);';
+  On('afterrender', JSFunction(LCode));
+  Session.ResponseItems.ExecuteJSCode(Self, LCode);
 end;
 
 procedure TKFilterSpacer.SetViewTable(const AViewTable: TKViewTable);
