@@ -158,7 +158,7 @@ type
     function GetId: string;
     procedure Invalidate;
   published
-    procedure GetRecordPage;
+    procedure GetRecordPage; virtual; abstract;
   end;
 
   /// <summary>
@@ -197,6 +197,8 @@ type
     function GetExpression: string;
     procedure SetConfig(const AConfig: TEFNode); override;
     function ExpandValues(const AString: string): string;
+  published
+    procedure GetRecordPage; override;
   end;
 
   /// <summary>
@@ -225,6 +227,7 @@ type
     function ExpandValues(const AString: string): string;
   published
     procedure ValueChanged;
+    procedure GetRecordPage; override;
   end;
 
   /// <summary>
@@ -529,37 +532,6 @@ begin
   Result := FConfig.GetExpandedString('Id');
 end;
 
-procedure TKListFilterBase.GetRecordPage;
-var
-  LStart: Integer;
-  LLimit: Integer;
-  LPageRecordCount: Integer;
-  LDBQuery: TEFDBQuery;
-begin
-  Assert(Assigned(FServerStore));
-
-  LDBQuery := Session.Config.DBConnections[GetDatabaseName(FConfig, Self, FViewTable.DatabaseName)].CreateDBQuery;
-  try
-    LDBQuery.CommandText := ExpandFilterValues(Owner as TExtObjectList, FConfig.GetExpandedString('CommandText'));
-    LDBQuery.Open;
-    try
-      Assert(LDBQuery.DataSet.FieldCount = 2);
-      FServerStore.Load(LDBQuery, False, True);
-    finally
-      LDBQuery.Close;
-    end;
-  finally
-    FreeAndNil(LDBQuery);
-  end;
-
-  LStart := Session.QueryAsInteger['start'];
-  LLimit := Session.QueryAsInteger['limit'];
-  LPageRecordCount := Min(LLimit, FServerStore.RecordCount - LStart);
-
-  ExtSession.ResponseItems.AddJSON('{Total: ' + IntToStr(FServerStore.RecordCount)
-    + ', Root: ' + FServerStore.GetAsJSON(False, LStart, LPageRecordCount) + '}');
-end;
-
 procedure TKListFilterBase.Invalidate;
 begin
   SetRawValue('');
@@ -617,10 +589,22 @@ end;
 procedure TKListFilter.SetConfig(const AConfig: TEFNode);
 var
   LDefaultFilter: TEFNode;
+  I: Integer;
+  LRecord: TKRecord;
 begin
   inherited;
   FItems := FConfig.GetNode('Items');
   Assert(Assigned(FItems));
+
+  Assert(Assigned(FServerStore));
+  FServerStore.Records.Clear;
+  for I := 0 to FItems.ChildCount - 1 do
+  begin
+    LRecord := FServerStore.AppendRecord(nil);
+    LRecord.Fields[0].AsInteger := I;
+    LRecord.Fields[1].AsString := FItems.Children[I].AsExpandedString;
+  end;
+
   //PageSize := 10;
   //Resizable := True;
   //MinHeight := LinesToPixels(5);
@@ -639,6 +623,8 @@ begin
     OnSelect := ComboBoxSelect;
     OnChange := ComboBoxChange;
   end;
+  if FActiveIndex >= 0 then
+    SetValue(FServerStore.Records[FActiveIndex].Fields[1].AsString);
 end;
 
 procedure TKListFilter.ComboBoxSelect(Combo: TExtFormComboBox; RecordJS: TExtDataRecord; Index: Integer);
@@ -674,6 +660,15 @@ begin
     Result := '';
 end;
 
+procedure TKListFilter.GetRecordPage;
+begin
+  inherited;
+  Assert(Assigned(FServerStore));
+
+  ExtSession.ResponseItems.AddJSON('{Total: ' + IntToStr(FServerStore.RecordCount)
+    + ', Root: ' + FServerStore.GetAsJSON(False) + '}');
+end;
+
 { TKDynaListFilter }
 
 procedure TKDynaListFilter.ValueChanged;
@@ -702,6 +697,39 @@ begin
     Result := ReplaceText(FConfig.GetExpandedString('ExpressionTemplate'), '{value}', FCurrentValue)
   else
     Result := '';
+end;
+
+procedure TKDynaListFilter.GetRecordPage;
+var
+  LStart: Integer;
+  LLimit: Integer;
+  LPageRecordCount: Integer;
+  LDBQuery: TEFDBQuery;
+begin
+  inherited;
+
+  Assert(Assigned(FServerStore));
+
+  LDBQuery := Session.Config.DBConnections[GetDatabaseName(FConfig, Self, FViewTable.DatabaseName)].CreateDBQuery;
+  try
+    LDBQuery.CommandText := ExpandFilterValues(Owner as TExtObjectList, FConfig.GetExpandedString('CommandText'));
+    LDBQuery.Open;
+    try
+      Assert(LDBQuery.DataSet.FieldCount = 2);
+      FServerStore.Load(LDBQuery, False, True);
+    finally
+      LDBQuery.Close;
+    end;
+  finally
+    FreeAndNil(LDBQuery);
+  end;
+
+  LStart := Session.QueryAsInteger['start'];
+  LLimit := Session.QueryAsInteger['limit'];
+  LPageRecordCount := Min(LLimit, FServerStore.RecordCount - LStart);
+
+  ExtSession.ResponseItems.AddJSON('{Total: ' + IntToStr(FServerStore.RecordCount)
+    + ', Root: ' + FServerStore.GetAsJSON(False, LStart, LPageRecordCount) + '}');
 end;
 
 procedure TKDynaListFilter.SetConfig(const AConfig: TEFNode);
