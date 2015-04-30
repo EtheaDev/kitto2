@@ -41,6 +41,12 @@ Controller: List
             IsDefault: True
       FreeSearch: Last N Days
         ExpressionTemplate: ACTIVITY_DATE >= (getDate() - {value})
+      ColumnBreak:
+      Spacer:
+        width: 1
+      ColumnBreak:
+      ApplyButton: Apply search
+        ImageName: Find
   CenterController:
     AllowDuplicating: True
     AllowViewing: True

@@ -1198,6 +1198,7 @@ begin
   if LText = '' then
     LText := _('Apply');
   Text := LText;
+  SetIconAndScale(AConfig.GetString('ImageName'), AConfig.GetString('ButtonScale', 'small'));
   On('click', Ajax(ButtonClick));
 end;
 
