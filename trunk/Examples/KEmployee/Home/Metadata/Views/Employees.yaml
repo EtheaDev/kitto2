@@ -18,6 +18,6 @@ MainTable:
     DeptNoRef:
     JobRef:
   Controller:
-    PopUpWindow:
+    PopuWindow:
       Width: 600
       Height: 500

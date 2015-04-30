@@ -27,7 +27,7 @@ Controller: List
       List: Period
         Items:
           Today: Today
-            Expression: (ACTIVITY_DATE > %DB.CURRENT_DATE%-1)
+            Expression: (ACTIVITY_DATE > %DB.CURRENT_DATE% - 1)
           LastWeek: Last Week
             Expression: (ACTIVITY_DATE <= %DB.CURRENT_DATE%) and (ACTIVITY_DATE >= %DB.CURRENT_DATE% - 7)
           CurrMonth: Current Month
@@ -40,10 +40,10 @@ Controller: List
             Expression: 1=1
             IsDefault: True
       FreeSearch: Last N Days
-        ExpressionTemplate: ACTIVITY_DATE >= (getDate() - {value})
+        ExpressionTemplate: (ACTIVITY_DATE >= %DB.CURRENT_DATE% - {value})
       ColumnBreak:
       Spacer:
-        width: 1
+        Width: 1
       ColumnBreak:
       ApplyButton: Apply search
         ImageName: Find
