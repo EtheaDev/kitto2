@@ -88,6 +88,7 @@ type
     function FindViewLayout(const ALayoutName: string): TKLayout;
     function UpdateRecord(const ARecord: TKVIewTableRecord; const ANewValues: ISuperObject;
       const APersist: Boolean): string;
+    function GetDefaultRemoteSort: Boolean; virtual;
   public
     destructor Destroy; override;
     property ViewTable: TKViewTable read FViewTable write SetViewTable;
@@ -104,7 +105,7 @@ implementation
 uses
   SysUtils, StrUtils, Math, Types,
   EF.StrUtils, EF.Tree, EF.Localization,
-  Kitto.Types, Kitto.AccessControl, Kitto.Config, Kitto.Rules,
+  Kitto.Types, Kitto.AccessControl, Kitto.Config, Kitto.Rules, Kitto.SQL,
   Kitto.Ext.Session;
 
 { TKExtDataPanelController }
@@ -262,8 +263,7 @@ end;
 function TKExtDataPanelController.CreateClientStore: TExtDataStore;
 begin
   Result := TExtDataStore.Create(Self);
-  { TODO : customize? }
-  Result.RemoteSort := False;
+  Result.RemoteSort := ViewTable.GetBoolean('Controller/RemoteSort', GetDefaultRemoteSort);
   Result.Url := MethodURI(GetRecordPage);
   Result.On('exception', JSFunction('proxy, type, action, options, response, arg', 'loadError(type, action, response);'));
 end;
@@ -335,15 +335,33 @@ begin
   Result := not ViewTable.Model.IsLarge;
 end;
 
+function TKExtDataPanelController.GetDefaultRemoteSort: Boolean;
+begin
+  Result := False;
+end;
+
 function TKExtDataPanelController.GetFilterExpression: string;
 begin
   Result := '';
 end;
 
 function TKExtDataPanelController.GetOrderByClause: string;
+var
+  LFieldName: string;
+  LDirection: string;
 begin
-  { TODO : provide default ordering when not grouping? }
-  Result := '';
+  LFieldName := Session.Query['sort'];
+  LDirection := Session.Query['dir'];
+
+  if (LFieldName <> '') then
+  begin
+    Result := TKSQLBuilder.ExpandQualification(ServerStore.Header.FieldByName(LFieldName).ViewField.DBNameOrExpression,
+      ServerStore.Header.FieldByName(LFieldName).ViewField.DBName);
+    if SameText(LDirection, 'desc') then
+      Result := Result + ' desc';
+  end
+  else
+    Result := '';
 end;
 
 function TKExtDataPanelController.GetParentDataPanel: TKExtDataPanelController;

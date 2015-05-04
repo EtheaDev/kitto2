@@ -98,6 +98,7 @@ type
     function GetAliasedDBName: string;
     function GetQualifiedAliasedDBName: string;
     function GetLookupFilter: string;
+    function GetDBNameOrExpression: string;
   strict protected
     function GetChildClass(const AName: string): TEFNodeClass; override;
     function GetDataType: TEFDataType; override;
@@ -129,6 +130,7 @@ type
     property QualifiedAliasedDBName: string read GetQualifiedAliasedDBName;
     property QualifiedDBName: string read GetQualifiedDBName;
     property QualifiedDBNameOrExpression: string read GetQualifiedDBNameOrExpression;
+    property DBNameOrExpression: string read GetDBNameOrExpression;
     property AllowedValues: TEFPairs read GetAllowedValues;
 
     property CanInsert: Boolean read GetCanInsert;
@@ -398,6 +400,8 @@ type
   public
     function AddField(const AFieldName: string): TKViewTableHeaderField;
     property Fields[I: Integer]: TKViewTableHeaderField read GetField;
+    function FindField(const AFieldName: string): TKViewTableHeaderField;
+    function FieldByName(const AFieldName: string): TKViewTableHeaderField;
   end;
 
   TKViewTableHeaderField = class(TKHeaderField)
@@ -1724,6 +1728,16 @@ begin
     Result := ModelField.DBColumnName;
 end;
 
+function TKViewField.GetDBNameOrExpression: string;
+begin
+  if IsReference then
+    Result := ModelField.ReferencedModel.CaptionField.FieldNameOrExpression
+  else if Expression <> '' then
+    Result := Expression
+  else
+    Result := DBName;
+end;
+
 function TKViewField.GetModelField: TKModelField;
 begin
   Result := Model.FieldByName(FieldName);
@@ -2240,6 +2254,16 @@ end;
 function TKViewTableHeader.AddField(const AFieldName: string): TKViewTableHeaderField;
 begin
   Result := inherited AddField(AFieldName) as TKViewTableHeaderField;
+end;
+
+function TKViewTableHeader.FieldByName(const AFieldName: string): TKViewTableHeaderField;
+begin
+  Result := inherited FieldByName(AFieldName) as TKViewTableHeaderField;
+end;
+
+function TKViewTableHeader.FindField(const AFieldName: string): TKViewTableHeaderField;
+begin
+  Result := inherited FindField(AFieldName) as TKViewTableHeaderField;
 end;
 
 function TKViewTableHeader.GetChildClass(const AName: string): TEFNodeClass;
