@@ -1153,14 +1153,12 @@ end;
 function TEFDBEngineType.AddLimitClause(
   const ASelectClause, AFromClause, AWhereClause, AOrderByClause: string;
   const AFrom: Integer; const AFor: Integer): string;
-var
-  LOrderByClause: string;
 begin
   Result := ASelectClause + ' ' + AFromClause + ' ' + AWhereClause;
   if (AFrom <> 0) or (AFor <> 0) then
   begin
     if AOrderByClause <> '' then
-      Result := Result + LOrderByClause + ' ' +
+      Result := Result + AOrderByClause + ' ' +
         Format(' rows %d to %d', [AFrom + 1, AFrom + 1 + AFor - 1])
     else
       raise EEFError.Create('Cannot add limit clause without order by clause.');
