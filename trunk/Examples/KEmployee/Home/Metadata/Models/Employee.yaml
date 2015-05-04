@@ -13,7 +13,7 @@ Fields:
   HireDate: Date not null
     PhysicalName: HIRE_DATE
   Salary: Decimal(10, 2) not null
-  FullName: String
+  FullName: String(37)
     PhysicalName: FULL_NAME
     IsComputed: True
   DeptNoRef: Reference(Department) not null

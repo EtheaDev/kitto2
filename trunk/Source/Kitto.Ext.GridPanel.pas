@@ -86,6 +86,8 @@ type
     function GetSelectCall(const AMethod: TExtProcedure): TExtFunction; override;
     function IsMultiSelect: Boolean;
     function IsLookupMode: Boolean;
+    function GetDefaultRemoteSort: Boolean; override;
+    function GetIsPaged: Boolean;
   public
     procedure UpdateObserver(const ASubject: IEFSubject; const AContext: string = ''); override;
     procedure AfterConstruction; override;
@@ -155,6 +157,13 @@ end;
 function TKExtGridPanel.GetGroupingFieldName: string;
 begin
   Result := ViewTable.GetExpandedString('Controller/Grouping/FieldName');
+end;
+
+function TKExtGridPanel.GetIsPaged: Boolean;
+begin
+  Assert(Assigned(ViewTable));
+
+  Result := ViewTable.GetBoolean('Controller/PagingTools', ViewTable.Model.IsLarge);
 end;
 
 procedure TKExtGridPanel.AfterConstruction;
@@ -853,7 +862,7 @@ begin
   end;
 
   // By default show paging toolbar for large models.
-  if LViewTable.GetBoolean('Controller/PagingTools', LViewTable.Model.IsLarge) then
+  if GetIsPaged then
   begin
     FPageRecordCount := LViewTable.GetInteger('Controller/PageRecordCount', 100);
     FEditorGridPanel.Bbar := CreatePagingToolbar;
@@ -903,6 +912,11 @@ end;
 function TKExtGridPanel.GetDefaultAction: string;
 begin
   Result := ViewTable.GetExpandedString('Controller/DefaultAction');
+end;
+
+function TKExtGridPanel.GetDefaultRemoteSort: Boolean;
+begin
+  Result := GetIsPaged;
 end;
 
 function TKExtGridPanel.HasDefaultAction: Boolean;
