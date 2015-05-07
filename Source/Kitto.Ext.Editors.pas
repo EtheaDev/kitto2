@@ -179,9 +179,11 @@ type
   strict private
     FEditor: IKExtEditor;
     FCharWidth: Integer;
+    FLabelWidth: Integer;
     FRecordField: TKViewTableField;
     FEditItemId: string;
     procedure SetCharWidth(const AValue: Integer);
+    procedure SetLabelWidth(const AValue: Integer);
   protected
     procedure InitDefaults; override;
     function InternalSetOption(const ANode: TEFNode): Boolean; override;
@@ -191,6 +193,7 @@ type
   public
     function Encapsulate(const AValue: IKExtEditor): IKExtEditor;
     property CharWidth: Integer read FCharWidth write SetCharWidth;
+    property LabelWidth: Integer read FLabelWidth write SetLabelWidth;
     function AsExtFormField: TExtFormField;
     function GetRecordField: TKViewTableField;
     procedure SetRecordField(const AValue: TKViewTableField);
@@ -593,6 +596,8 @@ type
     FFocusField: TExtFormField;
     FDefaults: TKExtLayoutDefaults;
     FCurrentEditItem: IKExtEditItem;
+    FCurrentLabelWidth: Integer;
+    FCurrentLabelAlign: TExtFormFormPanelLabelAlign;
     FEditContainers: TStack<IKExtEditContainer>;
     FOnNewEditItem: TProc<IKExtEditItem>;
     FOperation: TKExtEditOperation;
@@ -729,7 +734,7 @@ uses
   EF.SysUtils, EF.StrUtils, EF.Localization, EF.YAML, EF.Types, EF.SQL, EF.JSON,
   EF.DB, EF.Macros, EF.VariantUtils,
   Kitto.Config, Kitto.SQL, Kitto.Metadata, Kitto.Metadata.Models, Kitto.Types,
-  Kitto.AccessControl, Kitto.Rules,
+  Kitto.AccessControl, Kitto.Rules, Kitto.Ext.Form,
   Kitto.Ext.Utils, Kitto.Ext.Rules;
 
 procedure InvalidOption(const ANode: TEFNode);
@@ -841,6 +846,8 @@ begin
   Assert(Assigned(ALayout));
 
   FCurrentEditItem := nil;
+  FCurrentLabelWidth := FORM_LABELWIDTH;
+  FCurrentLabelAlign := FCurrentEditPage.LabelAlign;
   FEditContainers.Clear;
   for I := 0 to ALayout.ChildCount - 1 do
     ProcessLayoutNode(ALayout.Children[I]);
@@ -870,6 +877,7 @@ begin
       Exit;
   end;
 
+  //Process Specific Nodes of Layout
   if MatchText(ANode.Name, ['Field', 'FieldSet', 'CompositeField', 'Row']) then
   begin
     if FEditContainers.Count > 0 then
@@ -887,9 +895,7 @@ begin
   begin
     if FEditContainers.Count > 0 then
       raise Exception.Create('PageBreak must be a top-level node in a layout.');
-    CreatePageBreak(_(ANode.Value));
-    ProcessChildNodes;
-    Exit;
+    FCurrentEditItem := CreatePageBreak(_(ANode.Value));
   end
   // Unknown name - must be an option.
   else if SameText(ANode.Name, 'DisplayLabel') then
@@ -902,11 +908,19 @@ begin
     if ANode.ChildCount > 0 then
       LayoutError(Format(_('Option node %s cannot have child nodes.'), [ANode.Name]));
 
-    if Assigned(FCurrentEditItem) then
-      FCurrentEditItem.SetOption(ANode)
-    else
+    if (ANode.Parent is TKLayout) then
       SetGlobalOption(ANode)
+    else if Assigned(FCurrentEditItem) then
+      FCurrentEditItem.SetOption(ANode);
+
+    if SameText(ANode.Name, 'LabelAlign') then
+      FCurrentLabelAlign := OptionAsLabelAlign(ANode.AsString)
+    else if SameText(ANode.Name, 'LabelWidth') then
+      FCurrentLabelWidth := ANode.AsInteger;
   end;
+
+  if (FCurrentEditItem is TKExtFormRowField) and (FCurrentLabelAlign <> laTop) then
+    TKExtFormRowField(FCurrentEditItem).LabelWidth := FCurrentLabelWidth;
 
   ProcessChildNodes;
 
@@ -1090,6 +1104,7 @@ begin
   LPageBreak.EditPanel := FFormPanel;
   LPageBreak.DataRecord := FDataRecord;
   LPageBreak.UnexpandedTitle := ATitle;
+  LPageBreak.LabelWidth := FCurrentLabelWidth;
   FCurrentEditPage := LPageBreak;
 
   Result := LPageBreak;
@@ -1242,6 +1257,8 @@ begin
     Assert(Assigned(FEditPanel));
     FEditPanel.LabelPad := Anode.AsInteger;
   end
+  else if SameText(ANode.Name, 'ImageName') then
+    IconCls := Session.SetIconStyle('', ANode.AsString)
   else
     InvalidOption(ANode);
 end;
@@ -1325,7 +1342,9 @@ end;
 
 procedure TKExtFormFieldSet.SetOption(const ANode: TEFNode);
 begin
-  if SameText(ANode.Name, 'LabelWidth') then
+  if SameText(ANode.Name, 'LabelAlign') then
+    LabelAlign := OptionAsLabelAlign(ANode.AsString)
+  else if SameText(ANode.Name, 'LabelWidth') then
     LabelWidth := ANode.AsInteger
   else if SameText(ANode.Name, 'Collapsible') then
     Collapsible := ANode.AsBoolean
@@ -2052,6 +2071,7 @@ end;
 function TKExtFormContainer.InternalSetOption(const ANode: TEFNode): Boolean;
 begin
   Result := True;
+
   if SameText(ANode.Name, 'Layout') then
     LayoutString := ANode.AsString
   else if SameText(ANode.Name, 'ColumnWidth') then
@@ -2189,7 +2209,16 @@ end;
 procedure TKExtFormRowField.SetCharWidth(const AValue: Integer);
 begin
   FCharWidth := AValue;
-  Width := CharsToPixels(AValue, 5);
+  Width := CharsToPixels(FCharWidth, 5);
+end;
+
+procedure TKExtFormRowField.SetLabelWidth(const AValue: Integer);
+begin
+  FLabelWidth := AValue;
+  if AValue <> 0 then
+    Width := CharsToPixels(FCharWidth, FLabelWidth + 10)
+  else
+    Width := CharsToPixels(FCharWidth, 5);
 end;
 
 procedure TKExtFormRowField.SetFieldName(const AValue: string);
@@ -3359,7 +3388,8 @@ end;
 
 function TKExtEditorManager.TryCreateComboBox(
   const AOwner: TComponent; const AViewField: TKViewField;
-  const ARowField: TKExtFormRowField; const AFieldCharWidth: Integer;
+  const ARowField: TKExtFormRowField;
+  const AFieldCharWidth: Integer;
   const AIsReadOnly: Boolean): IKExtEditor;
 var
   LComboBox: TKExtFormComboBoxEditor;

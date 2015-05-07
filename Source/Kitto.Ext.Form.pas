@@ -29,6 +29,9 @@ uses
   Kitto.Ext.Controller, Kitto.Ext.Base, Kitto.Ext.DataPanel, Kitto.Ext.Editors,
   Kitto.Ext.GridPanel;
 
+const
+  FORM_LABELWIDTH = 120;
+
 type
   /// <summary>
   ///  A button that opens a popup detail form.
@@ -698,7 +701,7 @@ begin
   FFormPanel.Header := False;
   FFormPanel.Layout := lyFit; // Vital to avoid detail grids with zero height!
   FFormPanel.AutoScroll := False;
-  FFormPanel.LabelWidth := 120;
+  FFormPanel.LabelWidth := FORM_LABELWIDTH;
   FFormPanel.MonitorValid := True;
   FFormPanel.Cls := 'x-panel-mc'; // Sets correct theme background color.
   FFormPanel.LabelAlign := FLabelAlign;

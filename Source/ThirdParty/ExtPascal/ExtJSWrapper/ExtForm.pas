@@ -1039,7 +1039,7 @@ type
     procedure SetFCheckboxToggle(Value: string);
     procedure SetCollapsible(const AValue: Boolean);
     procedure SetFItemCls(Value: string);
-    procedure SetFLabelWidth(Value: Integer);
+    procedure SetLabelWidth(AValue: Integer);
     procedure SetFLayout(Value: string);
   protected
     procedure InitDefaults; override;
@@ -1054,7 +1054,7 @@ type
       write SetFCheckboxToggle;
     property Collapsible: Boolean read FCollapsible write SetCollapsible;
     property ItemCls: string read FItemCls write SetFItemCls;
-    property LabelWidth: Integer read FLabelWidth write SetFLabelWidth;
+    property LabelWidth: Integer read FLabelWidth write SetLabelWidth;
     property Layout: string read FLayout write SetFLayout;
   end;
 
@@ -3905,10 +3905,10 @@ begin
   JSCode('itemCls:' + VarToJSON([Value]));
 end;
 
-procedure TExtFormFieldSet.SetFLabelWidth(Value: Integer);
+procedure TExtFormFieldSet.SetLabelWidth(AValue: Integer);
 begin
-  FLabelWidth := Value;
-  JSCode('labelWidth:' + VarToJSON([Value]));
+  FLabelWidth := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'labelWidth', [AValue]);
 end;
 
 procedure TExtFormFieldSet.SetFLayout(Value: string);
