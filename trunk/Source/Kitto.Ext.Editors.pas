@@ -847,7 +847,7 @@ begin
 
   FCurrentEditItem := nil;
   FCurrentLabelWidth := FORM_LABELWIDTH;
-  FCurrentLabelAlign := FCurrentEditPage.LabelAlign;
+  FCurrentLabelAlign := laTop;
   FEditContainers.Clear;
   for I := 0 to ALayout.ChildCount - 1 do
     ProcessLayoutNode(ALayout.Children[I]);
