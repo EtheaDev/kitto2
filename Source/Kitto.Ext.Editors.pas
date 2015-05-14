@@ -1846,6 +1846,7 @@ begin
   TypeAhead := True;
   LazyRender := True;
   SelectOnFocus := False;
+  ForceSelection := True;
 end;
 
 procedure TKExtFormComboBoxEditor.RefreshValue;
@@ -1866,6 +1867,10 @@ begin
     Store.RemoveAll();
     Store.TotalLength := 0;
     Session.ResponseItems.ExecuteJSCode(Format('%s.lastQuery = null;', [JSName]));
+
+    // Provide the display value to set when the user types an invalid value
+    // and the store is not loaded yet.
+    Session.ResponseItems.ExecuteJSCode(Format('%s.lastSelectionText = %s.getRawValue();', [JSName, JSName]));
   end;
   Session.ResponseItems.ExecuteJSCode(JSName + '.kitto$isChanged = false;');
 end;
