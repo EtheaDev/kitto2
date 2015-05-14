@@ -623,6 +623,7 @@ begin
   end
   else if FOperation = DUPLICATE_OPERATION then
   begin
+    StoreRecord := Config.GetObject('Sys/Record') as TKViewTableRecord;
     FreeAndNil(FCloneValues);
     FCloneValues := TEFNode.Clone(StoreRecord);
     StoreRecord := ServerStore.AppendRecord(nil);
