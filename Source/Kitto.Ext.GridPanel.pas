@@ -965,7 +965,7 @@ end;
 procedure TKExtGridPanel.ConfirmInplaceChanges;
 begin
   ShowConfirmButtons(False);
-  ServerStore.Save(True);
+  ViewTable.Model.SaveRecords(ServerStore, not ViewTable.IsDetail, nil);
   Session.Flash(_('Changes saved succesfully.'));
   LoadData;
 end;
@@ -1090,7 +1090,7 @@ begin
 
   if not ViewTable.IsDetail then
   begin
-    LRecord.Save(True);
+    ViewTable.Model.SaveRecord(LRecord, not ViewTable.IsDetail, nil);
     Session.Flash(Format(_('%s deleted.'), [_(ViewTable.DisplayLabel)]));
   end;
   LoadData;

@@ -118,7 +118,6 @@ type
     function GetIsDeleted: Boolean;
     function GetIsNew: Boolean;
   strict protected
-    property State: TKRecordState read FState;
     function GetChildClass(const AName: string): TEFNodeClass; override;
 
     /// <summary>
@@ -143,6 +142,7 @@ type
       var ANewValue: Variant; var ADoIt: Boolean); virtual;
     procedure FieldChanged(const AField: TKField; const AOldValue, ANewValue: Variant); virtual;
   public
+    property State: TKRecordState read FState;
     property Records: TKRecords read GetRecords;
     property Store: TKStore read GetStore;
     property Key: TKKey read GetKey;

@@ -68,8 +68,15 @@ type
     ///  else) or populate the store in a custom way (by not calling inherited).
     /// </summary>
     function InternalLoadRecords(const AStore: TKViewTableStore;
-      const AFilterExpression, ASortExpression: string; const AStart,
+      const AFilter, ASort: string; const AStart,
       ALimit: Integer): Integer; virtual;
+    /// <summary>
+    ///  Saves all modified records in the specified store. Override this method to add
+    ///  custom additional behaviour (by calling inherited and then do something
+    ///  else) or persist the store in a custom way (by not calling inherited).
+    /// </summary>
+    procedure InternalSaveRecords(const AStore: TKViewTableStore;
+      const APersist: Boolean; const AUseTransaction: Boolean; const AAfterPersist: TProc); virtual;
     /// <summary>
     ///  Called by SaveRecord just before marking the record as modified (which
     ///  will guarantee that it is then actually saved). Set ADoIt to False to
@@ -134,6 +141,13 @@ type
     /// </summary>
     function LoadRecords(const AStore: TEFTree; const AFilterExpression: string;
       const ASortExpression: string; const AStart: Integer = 0; const ALimit: Integer = 0): Integer; override;
+
+    /// <summary>
+    ///  Requires that AStore is a TKViewTableStore and calls InternalSaveRecords.
+    /// </summary>
+    procedure SaveRecords(const AStore: TEFTree; const APersist: Boolean;
+      const AAfterPersist: TProc); override;
+
     /// <summary>
     ///  Persists the specified record. Calls various protected virtual methods.
     /// </summary>
@@ -142,6 +156,10 @@ type
   end;
 
 implementation
+
+uses
+  TypInfo,
+  EF.DB, Kitto.Config, KItto.SQL, Kitto.Store, Kitto.Types;
 
 { TKModelFieldHelper }
 
@@ -255,30 +273,19 @@ end;
 function TKDefaultModel.LoadRecords(const AStore: TEFTree;
   const AFilterExpression, ASortExpression: string; const AStart,
   ALimit: Integer): Integer;
-var
-  LStore: TKViewTableStore;
 begin
   Assert(Assigned(AStore));
   Assert(AStore is TKViewTableStore);
 
-  LStore := TKViewTableStore(AStore);
-
-  Result := InternalLoadRecords(LStore, AFilterExpression, ASortExpression, AStart, ALimit);
+  Result := InternalLoadRecords(TKViewTableStore(AStore), AFilterExpression, ASortExpression, AStart, ALimit);
 end;
 
 function TKDefaultModel.InternalLoadRecords(const AStore: TKViewTableStore;
-  const AFilterExpression, ASortExpression: string; const AStart,
-  ALimit: Integer): Integer;
+  const AFilter, ASort: string; const AStart, ALimit: Integer): Integer;
 begin
   Assert(Assigned(AStore));
 
-  if (AStart <> 0) or (ALimit <> 0) then
-    Result := AStore.LoadPage(AFilterExpression, ASortExpression, AStart, ALimit)
-  else
-  begin
-    AStore.Load(AFilterExpression, ASortExpression);
-    Result := AStore.RecordCount;
-  end;
+  Result := AStore.Load(AFilter, ASort, AStart, ALimit);
 end;
 
 procedure TKDefaultModel.AfterApplyAfterRulesToRecord(const ARecord: TKViewTableRecord);
@@ -320,10 +327,74 @@ end;
 
 procedure TKDefaultModel.PersistRecord(const ARecord: TKViewTableRecord;
   const AUseTransactions: Boolean);
+var
+  LDBCommand: TEFDBCommand;
+  LRowsAffected: Integer;
+  I: Integer;
+  LFileToDelete: string;
+  LDBConnection: TEFDBConnection;
 begin
   Assert(Assigned(ARecord));
 
-  ARecord.Save(AUseTransactions);
+  if ARecord.State = rsClean then
+    Exit;
+
+  // Take care of any instructions to clear fields.
+  for I := 0 to ARecord.FieldCount - 1 do
+  begin
+    if ARecord.Fields[I].GetBoolean('Sys/SetToNull') then
+      ARecord.Fields[I].SetToNull;
+  end;
+
+  // BEFORE rules are applied before calling this method.
+  LDBConnection := TKConfig.Instance.DBConnections[ARecord.Store.ViewTable.DatabaseName];
+  if AUseTransactions then
+    LDBConnection.StartTransaction;
+  try
+    LDBCommand := LDBConnection.CreateDBCommand;
+    try
+      TKSQLBuilder.CreateAndExecute(
+        procedure (ASQLBuilder: TKSQLBuilder)
+        begin
+          case ARecord.State of
+            rsNew: ASQLBuilder.BuildInsertCommand(LDBCommand, ARecord);
+            rsDirty: ASQLBuilder.BuildUpdateCommand(LDBCommand, ARecord);
+            rsDeleted: ASQLBuilder.BuildDeleteCommand(LDBCommand, ARecord);
+          else
+            raise EKError.CreateFmt('Unexpected record state %s.', [GetEnumName(TypeInfo(TKRecordState), Ord(ARecord.State))]);
+          end;
+        end);
+      if LDBCommand.CommandText <> '' then
+      begin
+        LRowsAffected := LDBCommand.Execute;
+        if LRowsAffected <> 1 then
+          raise EKError.CreateFmt('Update error. Rows affected: %d.', [LRowsAffected]);
+      end;
+      { TODO : implement cascade delete? }
+      for I := 0 to ARecord.DetailStoreCount - 1 do
+        SaveRecords(ARecord.DetailStores[I], True, nil);
+      ARecord.ApplyAfterRules;
+      if AUseTransactions then
+        LDBConnection.CommitTransaction;
+      // Take care of any cleared external files.
+      for I := 0 to ARecord.FieldCount - 1 do
+      begin
+        if (ARecord.Fields[I].DataType is TKFileReferenceDataType) and (ARecord.Fields[I].IsNull) then
+        begin
+          LFileToDelete := ARecord.Fields[I].GetString('Sys/DeleteFile');
+          if FileExists(LFileToDelete) then
+            DeleteFile(LFileToDelete);
+        end;
+      end;
+      ARecord.MarkAsClean;
+    finally
+      FreeAndNil(LDBCommand);
+    end;
+  except
+    if AUseTransactions then
+      LDBConnection.RollbackTransaction;
+    raise;
+  end;
 end;
 
 procedure TKDefaultModel.SaveRecord(const ARecord: TEFNode;
@@ -376,6 +447,36 @@ begin
   begin
     LRecord.ApplyAfterRules;
     AfterApplyAfterRulesToRecord(LRecord);
+  end;
+end;
+
+procedure TKDefaultModel.SaveRecords(const AStore: TEFTree;
+  const APersist: Boolean; const AAfterPersist: TProc);
+begin
+  Assert(Assigned(AStore));
+  Assert(AStore is TKViewTableStore);
+
+  InternalSaveRecords(TKViewTableStore(AStore), APersist, True, AAfterPersist);
+end;
+
+procedure TKDefaultModel.InternalSaveRecords(const AStore: TKViewTableStore;
+  const APersist: Boolean; const AUseTransaction: Boolean; const AAfterPersist: TProc);
+var
+  I: Integer;
+  LConnection: TEFDBConnection;
+begin
+  LConnection := TKConfig.Instance.DBConnections[AStore.ViewTable.DatabaseName];
+  if AUseTransaction then
+    LConnection.StartTransaction;
+  try
+    for I := 0 to AStore.RecordCount - 1 do
+      SaveRecord(AStore.Records[I], APersist, AAfterPersist);
+    if AUseTransaction then
+      LConnection.CommitTransaction;
+  except
+    if AUseTransaction then
+      LConnection.RollbackTransaction;
+    raise;
   end;
 end;
 

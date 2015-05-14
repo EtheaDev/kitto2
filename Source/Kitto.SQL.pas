@@ -21,7 +21,7 @@ unit Kitto.SQL;
 interface
 
 uses
-  Classes, Generics.Collections, DB,
+  SysUtils, Classes, Generics.Collections, DB,
   EF.Classes,  EF.Tree, EF.DB,
   Kitto.Config, Kitto.Store, Kitto.Metadata.Models, Kitto.Metadata.DataView;
 
@@ -40,26 +40,25 @@ type
     procedure AddReferenceFieldTerms(const AViewField: TKViewField);
     function GetFromClause: string;
     function BuildJoin(const AReferenceField: TKModelField): string;
-
-    procedure InternalBuildSelectQuery(const AViewTable: TKViewTable;
-      const AFilter: string; const AOrderBy: string; const ADBQuery: TEFDBQuery;
-      const AMasterValues: TEFNode = nil; const AFrom: Integer = 0; const AFor: Integer = 0);
-    procedure InternalBuildCountQuery(const AViewTable: TKViewTable;
-      const AFilter: string; const ADBQuery: TEFDBQuery;
-      const AMasterValues: TEFNode);
     function GetSelectWhereClause(const AFilter: string; const ADBQuery: TEFDBQuery): string;
-    procedure InternalBuildLookupSelectStatement(const AViewField: TKViewField; const ADBQuery: TEFDBQuery;
-      const ASearchString: string; const ARecord: TKViewTableRecord);
-    // Helpers.
     class function AddDBColumnName(var ADBColumnNames, AValueNames: string;
       const ADBCommand: TEFDBCommand; const ADBColumnName,
       AParamName: string): TParam; static;
     procedure AddFilterBy(const AViewField: TKViewField; const ADBQuery: TEFDBQuery; const ARecord: TKViewTableRecord);
     procedure AssignSelectQueryParams(const AViewTable: TKViewTable; const ADBQuery: TEFDBQuery;
       const AMasterValues: TEFNode);
-    procedure InternalBuildSingletonSelectQuery(const AModel: TKModel; const ADBQuery: TEFDBQuery; const AKeyValues: Variant); overload;
-    procedure InternalBuildSingletonSelectQuery(const AViewTable: TKViewTable; const ADBQuery: TEFDBQuery; const AKeyValues: Variant); overload;
     function GetModelKeyWhereClause(const AModel: TKModel; const ADBQuery: TEFDBQuery): string;
+
+    /// <summary>
+    ///  Replaces '{Q}' tags in AString with AQualification plus a dot.
+    ///  If AQualification is '', tags are simply removed from the string.
+    ///  Returns the modified string.
+    /// </summary>
+    /// <remarks>
+    ///  If AString does not contain any '{Q}' tags, it is assumed to have
+    ///  an implicit one at the beginning.
+    /// </remarks>
+    function ExpandQualification(const AString, AQualification: string): string;
   public
     procedure AfterConstruction; override;
     destructor Destroy; override;
@@ -77,11 +76,11 @@ type
     ///   are set based on AMasterValues.
     ///  </para>
     /// </summary>
-    class procedure BuildSelectQuery(const AViewTable: TKViewTable; const AFilter: string;
+    procedure BuildSelectQuery(const AViewTable: TKViewTable; const AFilter: string;
       const AOrderBy: string; const ADBQuery: TEFDBQuery; const AMasterValues: TEFNode = nil;
       const AFrom: Integer = 0; const AFor: Integer = 0);
 
-    class procedure BuildCountQuery(const AViewTable: TKViewTable;
+    procedure BuildCountQuery(const AViewTable: TKViewTable;
       const AFilter: string; const ADBQuery: TEFDBQuery;
       const AMasterValues: TEFNode);
 
@@ -90,7 +89,7 @@ type
     ///  all fields from a given record of the specified model.
     ///  Handles joins and table aliases based on model information.
     /// </summary>
-    class procedure BuildSingletonSelectQuery(const AModel: TKModel;
+    procedure BuildSingletonSelectQuery(const AModel: TKModel;
       const ADBQuery: TEFDBQuery; const AKeyValues: Variant); overload;
 
     /// <summary>
@@ -98,7 +97,7 @@ type
     ///  all fields from a given record of the specified view table.
     ///  Handles joins and table aliases based on model information.
     /// </summary>
-    class procedure BuildSingletonSelectQuery(const AViewTable: TKViewTable;
+    procedure BuildSingletonSelectQuery(const AViewTable: TKViewTable;
       const ADBQuery: TEFDBQuery; const AKeyValues: Variant); overload;
 
     /// <summary>
@@ -108,142 +107,219 @@ type
     ///  If ASearchString is specified, the statement includes a WHERE clause
     ///  that filters on the specified value.
     /// </summary>
-    class procedure BuildLookupSelectStatement(const AViewField: TKViewField;
+    procedure BuildLookupSelectStatement(const AViewField: TKViewField;
       const ADBQuery: TEFDBQuery; const ASearchString: string; const ARecord: TKViewTableRecord);
 
     /// <summary>
-    ///   Builds in the specified command an insert statement against
-    ///   the specified record's table with a parameter for each value in AValues.
-    ///   Also sets the parameter values, so that the command is ready for
-    ///   execution.
+    ///  Builds in the specified command an insert statement against
+    ///  the specified record's table with a parameter for each value in AValues.
+    ///  Also sets the parameter values, so that the command is ready for
+    ///  execution.
     /// </summary>
-    class procedure BuildInsertCommand(const ADBCommand: TEFDBCommand;
-      const ARecord: TKViewTableRecord);
+    procedure BuildInsertCommand(const ADBCommand: TEFDBCommand; const ARecord: TKViewTableRecord);
 
     /// <summary>
-    ///   Builds in the specified command an update statement against
-    ///   the specified record's table with a parameter for each value in ARecord
-    ///   plus a where clause with a parameter for each key field.
-    ///   Also sets the parameter values, so that the command is ready for
-    ///   execution.
-    ///   ARecord must contain at least the key fields.
+    ///  Builds in the specified command an update statement against
+    ///  the specified record's table with a parameter for each value in ARecord
+    ///  plus a where clause with a parameter for each key field.
+    ///  Also sets the parameter values, so that the command is ready for
+    ///  execution.
+    ///  ARecord must contain at least the key fields.
     /// </summary>
-    class procedure BuildUpdateCommand(const ADBCommand: TEFDBCommand;
-      const ARecord: TKViewTableRecord);
+    procedure BuildUpdateCommand(const ADBCommand: TEFDBCommand; const ARecord: TKViewTableRecord);
 
     /// <summary>
-    ///   Builds in the specified command a delete statement against
-    ///   the specified record's table with a where clause with a parameter for
-    ///   each key field.
-    ///   Also sets the parameter values, so that the command is ready for
-    ///   execution. AValues must contain at least the key fields.
+    ///  Builds in the specified command a delete statement against
+    ///  the specified record's table with a where clause with a parameter for
+    ///  each key field.
+    ///  Also sets the parameter values, so that the command is ready for
+    ///  execution. AValues must contain at least the key fields.
     /// </summary>
-    class procedure BuildDeleteCommand(const ADBCommand: TEFDBCommand;
-      const ARecord: TKViewTableRecord);
+    procedure BuildDeleteCommand(const ADBCommand: TEFDBCommand; const ARecord: TKViewTableRecord);
 
     /// <summary>
-    ///   Builds in the specified query a select statement that selects
-    ///   all derived fields from the referenced model, locating the record by
-    ///   means of the specified key.</summary>
+    ///  Builds in the specified query a select statement that selects
+    ///  all derived fields from the referenced model, locating the record by
+    ///  means of the specified key.
+    /// </summary>
     /// <param name="AViewField">
-    ///   Originating reference field.
+    ///  Originating reference field.
     /// </param>
     /// <param name="ADBQuery">
-    ///   Query object into which to build the statement
-    ///   and the params.
+    ///  Query object into which to build the statement
+    ///  and the params.
     /// </param>
     /// <param name="AKeyValues">
-    ///   Key values for the referenced model row.
+    ///  Key values for the referenced model row.
     /// </param>
+    /// <result>
+    ///  True if a query was generated, False if no derived fields were found.
+    /// </result>
     /// <exception cref="Assert">
-    ///   The field must be a reference field and at
-    ///   least one derived field must exist in the view table.
+    ///  The field must be a reference field and at
+    ///  least one derived field must exist in the view table.
     /// </exception>
-    class function BuildDerivedSelectQuery(const AViewField: TKViewField;
+    function BuildDerivedSelectQuery(const AViewField: TKViewField;
       const ADBQuery: TEFDBQuery; const AKeyValues: string): Boolean;
 
     /// <summary>
-    ///  Replaces '{Q}' tags in AString with AQualification plus a dot.
-    ///  If AQualification is '', tags are simply removed from the string.
-    ///  Returns the modified string.
-    /// </summary>
-    /// <remarks>
-    ///  If AString does not contain any '{Q}' tags, it is assumed to have
-    ///  an implicit one at the beginning.
-    /// </remarks>
-    class function ExpandQualification(const AString, AQualification: string): string;
+    ///  Translates the specified field and direction indication into a SQL
+    ///  expression compatible with ORDER BY.
+    function GetSortClause(const AViewField: TKViewField; const AIsDescending: Boolean): string;
+
+    class procedure CreateAndExecute(const AProc: TProc<TKSQLBuilder>);
   end;
 
 
 implementation
 
 uses
-  SysUtils, StrUtils, Types, Variants,
+  StrUtils, Types, Variants,
   EF.Intf, EF.Localization, EF.Types, EF.StrUtils, EF.SQL, EF.Macros,
   Kitto.Types;
 
 { TKSQLQueryBuilder }
 
-class procedure TKSQLBuilder.BuildSelectQuery(const AViewTable: TKViewTable;
+procedure TKSQLBuilder.BuildSelectQuery(const AViewTable: TKViewTable;
   const AFilter: string; const AOrderBy: string; const ADBQuery: TEFDBQuery;
   const AMasterValues: TEFNode; const AFrom: Integer; const AFor: Integer);
+var
+  I: Integer;
+  LSelectClause, LFromClause, LWhereClause, LOrderByClause: string;
+  LCommandText: string;
 begin
   Assert(Assigned(AViewTable));
 
-  with TKSQLBuilder.Create do
+  Clear;
+  FViewTable := AViewTable;
+  for I := 0 to AViewTable.FieldCount - 1 do
   begin
-    try
-      InternalBuildSelectQuery(AViewTable, AFilter, AOrderBy, ADBQuery, AMasterValues, AFrom, AFor);
-    finally
-      Free;
-    end;
+    if AViewTable.Fields[I].IsReference then
+      AddReferenceFieldTerms(AViewTable.Fields[I])
+    else
+      AddSelectTerm(AViewTable.Fields[I].QualifiedAliasedDBNameOrExpression);
   end;
+
+  if ADBQuery.Prepared then
+    ADBQuery.Prepared := False;
+  ADBQuery.Params.BeginUpdate;
+  try
+    ADBQuery.Params.Clear;
+    LSelectClause := 'select ' +  ExpandQualification(FSelectTerms, AViewTable.Model.DBTableName);
+    LFromClause := 'from ' + GetFromClause;
+    LWhereClause := GetSelectWhereClause(AFilter, ADBQuery);
+    if (AOrderBy <> '') or (FViewTable.DefaultSorting <> '') then
+      LOrderByClause := 'order by ' + IfThen(AOrderBy <> '', AOrderBy,
+        ExpandQualification(FViewTable.DefaultSorting, AViewTable.Model.DBTableName));
+    LCommandText := ADBQuery.Connection.DBEngineType.AddLimitClause(
+      LSelectClause, LFromClause, LWhereClause, LOrderByClause, AFrom, AFor);
+    ADBQuery.CommandText := TEFMacroExpansionEngine.Instance.Expand(LCommandText);
+  finally
+    ADBQuery.Params.EndUpdate;
+  end;
+  AssignSelectQueryParams(AViewTable, ADBQuery, AMasterValues);
 end;
 
-class procedure TKSQLBuilder.BuildSingletonSelectQuery(
+procedure TKSQLBuilder.BuildSingletonSelectQuery(
   const AViewTable: TKViewTable; const ADBQuery: TEFDBQuery;
   const AKeyValues: Variant);
+var
+  I: Integer;
+  LCommandText: string;
 begin
   Assert(Assigned(AViewTable));
 
-  with TKSQLBuilder.Create do
+  Clear;
+  FViewTable := AViewTable;
+  for I := 0 to AViewTable.FieldCount - 1 do
   begin
-    try
-      InternalBuildSingletonSelectQuery(AViewTable, ADBQuery, AKeyValues);
-    finally
-      Free;
-    end;
+    if AViewTable.Fields[I].IsReference then
+      AddReferenceFieldTerms(AViewTable.Fields[I])
+    else
+      AddSelectTerm(AViewTable.Fields[I].QualifiedAliasedDBNameOrExpression);
   end;
+
+  if ADBQuery.Prepared then
+    ADBQuery.Prepared := False;
+  ADBQuery.Params.BeginUpdate;
+  try
+    ADBQuery.Params.Clear;
+    LCommandText := 'select ' +  ExpandQualification(FSelectTerms, AViewTable.Model.DBTableName) +
+      ' from ' + GetFromClause +
+      ' where ' + ExpandQualification(GetModelKeyWhereClause(AViewTable.Model, ADBQuery), AViewTable.Model.DBTableName);
+    ADBQuery.CommandText := TEFMacroExpansionEngine.Instance.Expand(LCommandText);
+  finally
+    ADBQuery.Params.EndUpdate;
+  end;
+  for I := 0 to ADBQuery.Params.Count - 1 do
+    ADBQuery.Params[I].Value := AKeyValues[I];
 end;
 
-class procedure TKSQLBuilder.BuildSingletonSelectQuery(const AModel: TKModel;
+procedure TKSQLBuilder.BuildSingletonSelectQuery(const AModel: TKModel;
   const ADBQuery: TEFDBQuery; const AKeyValues: Variant);
+var
+  LCommandText: string;
+  I: Integer;
 begin
   Assert(Assigned(AModel));
 
-  with TKSQLBuilder.Create do
-  begin
-    try
-      InternalBuildSingletonSelectQuery(AModel, ADBQuery, AKeyValues);
-    finally
-      Free;
-    end;
+  Clear;
+  FModel := AModel;
+
+  FModel.EnumPhysicalFields(
+    procedure (AField: TKModelField)
+    begin
+      AddSelectTerm(AField.AliasedDBColumnNameOrExpression);
+    end);
+
+  if ADBQuery.Prepared then
+    ADBQuery.Prepared := False;
+  ADBQuery.Params.BeginUpdate;
+  try
+    ADBQuery.Params.Clear;
+    LCommandText :=
+      'select ' +  FSelectTerms +
+      ' from ' + AModel.DBTableName + ' where ' + ExpandQualification(GetModelKeyWhereClause(AModel, ADBQuery), AModel.DBTableName);
+    ADBQuery.CommandText := TEFMacroExpansionEngine.Instance.Expand(LCommandText);
+  finally
+    ADBQuery.Params.EndUpdate;
   end;
+  for I := 0 to ADBQuery.Params.Count - 1 do
+    ADBQuery.Params[I].Value := AKeyValues[I];
 end;
 
-class procedure TKSQLBuilder.BuildCountQuery(const AViewTable: TKViewTable;
+procedure TKSQLBuilder.BuildCountQuery(const AViewTable: TKViewTable;
   const AFilter: string; const ADBQuery: TEFDBQuery; const AMasterValues: TEFNode);
+var
+  I: Integer;
+  LCommandText: string;
 begin
   Assert(Assigned(AViewTable));
 
-  with TKSQLBuilder.Create do
+  Clear;
+  FViewTable := AViewTable;
+{ TODO :
+Process all fields to build the from clause. A future refactoring might
+build only those that affect the count (inner joins). }
+  for I := 0 to AViewTable.FieldCount - 1 do
   begin
-    try
-      InternalBuildCountQuery(AViewTable, AFilter, ADBQuery, AMasterValues);
-    finally
-      Free;
-    end;
+    if AViewTable.Fields[I].IsReference then
+      AddReferenceFieldTerms(AViewTable.Fields[I])
+    else
+      AddSelectTerm(AViewTable.Fields[I].QualifiedAliasedDBNameOrExpression);
   end;
+
+  if ADBQuery.Prepared then
+    ADBQuery.Prepared := False;
+  ADBQuery.Params.BeginUpdate;
+  try
+    ADBQuery.Params.Clear;
+    LCommandText := 'select count(*) from ' + GetFromClause + GetSelectWhereClause(AFilter, ADBQuery);
+    ADBQuery.CommandText := TEFMacroExpansionEngine.Instance.Expand(LCommandText);
+  finally
+    ADBQuery.Params.EndUpdate;
+  end;
+  AssignSelectQueryParams(AViewTable, ADBQuery, AMasterValues);
 end;
 
 class function TKSQLBuilder.AddDBColumnName(var ADBColumnNames, AValueNames: string;
@@ -262,8 +338,7 @@ begin
   Result := ADBCommand.Params.CreateParam(ftUnknown, AParamName, ptInput);
 end;
 
-class procedure TKSQLBuilder.BuildInsertCommand(const ADBCommand: TEFDBCommand;
-  const ARecord: TKViewTableRecord);
+procedure TKSQLBuilder.BuildInsertCommand(const ADBCommand: TEFDBCommand; const ARecord: TKViewTableRecord);
 var
   LCommandText: string;
   I: Integer;
@@ -355,8 +430,7 @@ begin
       ARecord.FieldByName(ADBCommand.Params[I].Name).AssignValueToParam(ADBCommand.Params[I]);
 end;
 
-class procedure TKSQLBuilder.BuildUpdateCommand(const ADBCommand: TEFDBCommand;
-  const ARecord: TKViewTableRecord);
+procedure TKSQLBuilder.BuildUpdateCommand(const ADBCommand: TEFDBCommand; const ARecord: TKViewTableRecord);
 var
   LCommandText: string;
   I: Integer;
@@ -451,8 +525,7 @@ begin
     ARecord.FieldByName(ADBCommand.Params[I].Name).AssignValueToParam(ADBCommand.Params[I]);
 end;
 
-class procedure TKSQLBuilder.BuildDeleteCommand(const ADBCommand: TEFDBCommand;
-  const ARecord: TKViewTableRecord);
+procedure TKSQLBuilder.BuildDeleteCommand(const ADBCommand: TEFDBCommand; const ARecord: TKViewTableRecord);
 var
   LCommandText: string;
   I: Integer;
@@ -485,7 +558,7 @@ begin
     ARecord.FieldByName(ADBCommand.Params[I].Name).AssignValueToParam(ADBCommand.Params[I]);
 end;
 
-class function TKSQLBuilder.BuildDerivedSelectQuery(const AViewField: TKViewField;
+function TKSQLBuilder.BuildDerivedSelectQuery(const AViewField: TKViewField;
   const ADBQuery: TEFDBQuery; const AKeyValues: string): Boolean;
 var
   LDerivedFields: TArray<TKViewField>;
@@ -573,7 +646,7 @@ begin
   FreeAndNil(FUsedReferenceFields);
 end;
 
-class function TKSQLBuilder.ExpandQualification(const AString, AQualification: string): string;
+function TKSQLBuilder.ExpandQualification(const AString, AQualification: string): string;
 begin
   if AQualification = '' then
     Result := ReplaceStr(AString, '{Q}', '')
@@ -586,6 +659,20 @@ begin
   FViewTable := nil;
   FSelectTerms := '';
   FUsedReferenceFields.Clear;
+end;
+
+class procedure TKSQLBuilder.CreateAndExecute(const AProc: TProc<TKSQLBuilder>);
+var
+  LSQLBuilder: TKSQLBuilder;
+begin
+  Assert(Assigned(AProc));
+
+  LSQLBuilder := TKSQLBuilder.Create;
+  try
+    AProc(LSQLBuilder);
+  finally
+    FreeAndNil(LSQLBuilder);
+  end;
 end;
 
 procedure TKSQLBuilder.AddSelectTerm(const ATerm: string);
@@ -607,17 +694,48 @@ begin
     Result := Result + sLineBreak + BuildJoin(FUsedReferenceFields[I]);
 end;
 
-class procedure TKSQLBuilder.BuildLookupSelectStatement(const AViewField: TKViewField;
+procedure TKSQLBuilder.BuildLookupSelectStatement(const AViewField: TKViewField;
   const ADBQuery: TEFDBQuery; const ASearchString: string; const ARecord: TKViewTableRecord);
+var
+  LLookupModel: TKModel;
+  LDefaultFilter: string;
+  LLookupModelDefaultFilter: string;
+  LColumnNames: TStringDynArray;
+  LQueryText: string;
+  LLookupFilter: string;
 begin
-  with TKSQLBuilder.Create do
-  begin
-    try
-      InternalBuildLookupSelectStatement(AViewField, ADBQuery, ASearchString, ARecord);
-    finally
-      Free;
-    end;
-  end;
+  Assert(Assigned(AViewField));
+  Assert(Assigned(ADBQuery));
+  Assert(AViewField.IsReference);
+
+  LLookupModel := AViewField.ModelField.ReferencedModel;
+  LColumnNames := LLookupModel.GetKeyDBColumnNames(False, True);
+  LQueryText := 'select ' + Join(LColumnNames, ', ');
+  // Ensure caption field is contained in select list.
+  if not LLookupModel.CaptionField.IsKey then
+    LQueryText := LQueryText + ', ' + ExpandQualification(LLookupModel.CaptionField.AliasedDBColumnNameOrExpression, '');
+  LQueryText := LQueryText + ' from ' + LLookupModel.DBTableName;
+
+  LLookupModelDefaultFilter := LLookupModel.DefaultFilter;
+  if LLookupModelDefaultFilter <> '' then
+    LQueryText := AddToSQLWhereClause(LQueryText, '(' + ExpandQualification(LLookupModelDefaultFilter, '') + ')');
+
+  LDefaultFilter := AViewField.DefaultFilter;
+  if LDefaultFilter <> '' then
+    LQueryText := AddToSQLWhereClause(LQueryText, '(' + ExpandQualification(LDefaultFilter, '')  + ')', AViewField.DefaultFilterConnector);
+
+  LLookupFilter := AViewField.LookupFilter;
+  if LLookupFilter <> '' then
+    LQueryText := AddToSQLWhereClause(LQueryText, '(' + ExpandQualification(LLookupFilter, '')  + ')');
+
+  if ASearchString <> '' then
+    LQueryText := AddToSQLWhereClause(LQueryText, '(' + AViewField.ModelField.ReferencedModel.CaptionField.DBColumnName + ' like ''%' + ASearchString + '%'')');
+
+  LQueryText := LQueryText + ' order by ' + ExpandQualification(LLookupModel.CaptionField.DBColumnNameOrExpression, '');
+
+  LQueryText := TEFMacroExpansionEngine.Instance.Expand(LQueryText);
+  ADBQuery.CommandText := ARecord.ExpandExpression(LQueryText);
+  AddFilterBy(AViewField, ADBQuery, ARecord);
 end;
 
 procedure TKSQLBuilder.AddFilterBy(const AViewField: TKViewField; const ADBQuery: TEFDBQuery; const ARecord: TKViewTableRecord);
@@ -783,6 +901,13 @@ begin
   end;
 end;
 
+function TKSQLBuilder.GetSortClause(const AViewField: TKViewField; const AIsDescending: Boolean): string;
+begin
+  Result := ExpandQualification(AViewField.DBNameOrExpression, AViewField.DBName);
+  if AIsDescending then
+    Result := Result + ' desc';
+end;
+
 function TKSQLBuilder.GetModelKeyWhereClause(const AModel: TKModel; const ADBQuery: TEFDBQuery): string;
 var
   I: Integer;
@@ -825,184 +950,6 @@ begin
       LFieldName := LParam.Name;
     AMasterValues.GetNode(LFieldName).AssignValueToParam(LParam);
   end;
-end;
-
-procedure TKSQLBuilder.InternalBuildSelectQuery(const AViewTable: TKViewTable;
-  const AFilter: string; const AOrderBy: string; const ADBQuery: TEFDBQuery;
-  const AMasterValues: TEFNode; const AFrom: Integer; const AFor: Integer);
-var
-  I: Integer;
-  LSelectClause, LFromClause, LWhereClause, LOrderByClause: string;
-  LCommandText: string;
-begin
-  Clear;
-  FViewTable := AViewTable;
-  for I := 0 to AViewTable.FieldCount - 1 do
-  begin
-    if AViewTable.Fields[I].IsReference then
-      AddReferenceFieldTerms(AViewTable.Fields[I])
-    else
-      AddSelectTerm(AViewTable.Fields[I].QualifiedAliasedDBNameOrExpression);
-  end;
-
-  if ADBQuery.Prepared then
-    ADBQuery.Prepared := False;
-  ADBQuery.Params.BeginUpdate;
-  try
-    ADBQuery.Params.Clear;
-    LSelectClause := 'select ' +  ExpandQualification(FSelectTerms, AViewTable.Model.DBTableName);
-    LFromClause := 'from ' + GetFromClause;
-    LWhereClause := GetSelectWhereClause(AFilter, ADBQuery);
-    if (AOrderBy <> '') or (FViewTable.DefaultSorting <> '') then
-      LOrderByClause := 'order by ' + IfThen(AOrderBy <> '', AOrderBy,
-        ExpandQualification(FViewTable.DefaultSorting, AViewTable.Model.DBTableName));
-    LCommandText := ADBQuery.Connection.DBEngineType.AddLimitClause(
-      LSelectClause, LFromClause, LWhereClause, LOrderByClause, AFrom, AFor);
-    ADBQuery.CommandText := TEFMacroExpansionEngine.Instance.Expand(LCommandText);
-  finally
-    ADBQuery.Params.EndUpdate;
-  end;
-  AssignSelectQueryParams(AViewTable, ADBQuery, AMasterValues);
-end;
-
-procedure TKSQLBuilder.InternalBuildSingletonSelectQuery(const AViewTable: TKViewTable;
-  const ADBQuery: TEFDBQuery; const AKeyValues: Variant);
-var
-  I: Integer;
-  LCommandText: string;
-begin
-  Clear;
-  FViewTable := AViewTable;
-  for I := 0 to AViewTable.FieldCount - 1 do
-  begin
-    if AViewTable.Fields[I].IsReference then
-      AddReferenceFieldTerms(AViewTable.Fields[I])
-    else
-      AddSelectTerm(AViewTable.Fields[I].QualifiedAliasedDBNameOrExpression);
-  end;
-
-  if ADBQuery.Prepared then
-    ADBQuery.Prepared := False;
-  ADBQuery.Params.BeginUpdate;
-  try
-    ADBQuery.Params.Clear;
-    LCommandText := 'select ' +  ExpandQualification(FSelectTerms, AViewTable.Model.DBTableName) +
-      ' from ' + GetFromClause +
-      ' where ' + ExpandQualification(GetModelKeyWhereClause(AViewTable.Model, ADBQuery), AViewTable.Model.DBTableName);
-    ADBQuery.CommandText := TEFMacroExpansionEngine.Instance.Expand(LCommandText);
-  finally
-    ADBQuery.Params.EndUpdate;
-  end;
-  for I := 0 to ADBQuery.Params.Count - 1 do
-    ADBQuery.Params[I].Value := AKeyValues[I];
-end;
-
-procedure TKSQLBuilder.InternalBuildCountQuery(const AViewTable: TKViewTable;
-  const AFilter: string; const ADBQuery: TEFDBQuery;
-  const AMasterValues: TEFNode);
-var
-  I: Integer;
-  LCommandText: string;
-begin
-  Clear;
-  FViewTable := AViewTable;
-{ TODO :
-Process all fields to build the from clause. A future refactoring might
-build only those that affect the count (inner joins). }
-  for I := 0 to AViewTable.FieldCount - 1 do
-  begin
-    if AViewTable.Fields[I].IsReference then
-      AddReferenceFieldTerms(AViewTable.Fields[I])
-    else
-      AddSelectTerm(AViewTable.Fields[I].QualifiedAliasedDBNameOrExpression);
-  end;
-
-  if ADBQuery.Prepared then
-    ADBQuery.Prepared := False;
-  ADBQuery.Params.BeginUpdate;
-  try
-    ADBQuery.Params.Clear;
-    LCommandText := 'select count(*) from ' + GetFromClause + GetSelectWhereClause(AFilter, ADBQuery);
-    ADBQuery.CommandText := TEFMacroExpansionEngine.Instance.Expand(LCommandText);
-  finally
-    ADBQuery.Params.EndUpdate;
-  end;
-  AssignSelectQueryParams(AViewTable, ADBQuery, AMasterValues);
-end;
-
-procedure TKSQLBuilder.InternalBuildSingletonSelectQuery(const AModel: TKModel;
-  const ADBQuery: TEFDBQuery; const AKeyValues: Variant);
-var
-  LCommandText: string;
-  I: Integer;
-begin
-  Clear;
-  FModel := AModel;
-
-  FModel.EnumPhysicalFields(
-    procedure (AField: TKModelField)
-    begin
-      AddSelectTerm(AField.AliasedDBColumnNameOrExpression);
-    end);
-
-  if ADBQuery.Prepared then
-    ADBQuery.Prepared := False;
-  ADBQuery.Params.BeginUpdate;
-  try
-    ADBQuery.Params.Clear;
-    LCommandText :=
-      'select ' +  FSelectTerms +
-      ' from ' + AModel.DBTableName + ' where ' + ExpandQualification(GetModelKeyWhereClause(AModel, ADBQuery), AModel.DBTableName);
-    ADBQuery.CommandText := TEFMacroExpansionEngine.Instance.Expand(LCommandText);
-  finally
-    ADBQuery.Params.EndUpdate;
-  end;
-  for I := 0 to ADBQuery.Params.Count - 1 do
-    ADBQuery.Params[I].Value := AKeyValues[I];
-end;
-
-procedure TKSQLBuilder.InternalBuildLookupSelectStatement(const AViewField: TKViewField;
-  const ADBQuery: TEFDBQuery; const ASearchString: string; const ARecord: TKViewTableRecord);
-var
-  LLookupModel: TKModel;
-  LDefaultFilter: string;
-  LLookupModelDefaultFilter: string;
-  LColumnNames: TStringDynArray;
-  LQueryText: string;
-  LLookupFilter: string;
-begin
-  Assert(Assigned(AViewField));
-  Assert(Assigned(ADBQuery));
-  Assert(AViewField.IsReference);
-
-  LLookupModel := AViewField.ModelField.ReferencedModel;
-  LColumnNames := LLookupModel.GetKeyDBColumnNames(False, True);
-  LQueryText := 'select ' + Join(LColumnNames, ', ');
-  // Ensure caption field is contained in select list.
-  if not LLookupModel.CaptionField.IsKey then
-    LQueryText := LQueryText + ', ' + ExpandQualification(LLookupModel.CaptionField.AliasedDBColumnNameOrExpression, '');
-  LQueryText := LQueryText + ' from ' + LLookupModel.DBTableName;
-
-  LLookupModelDefaultFilter := LLookupModel.DefaultFilter;
-  if LLookupModelDefaultFilter <> '' then
-    LQueryText := AddToSQLWhereClause(LQueryText, '(' + ExpandQualification(LLookupModelDefaultFilter, '') + ')');
-
-  LDefaultFilter := AViewField.DefaultFilter;
-  if LDefaultFilter <> '' then
-    LQueryText := AddToSQLWhereClause(LQueryText, '(' + ExpandQualification(LDefaultFilter, '')  + ')', AViewField.DefaultFilterConnector);
-
-  LLookupFilter := AViewField.LookupFilter;
-  if LLookupFilter <> '' then
-    LQueryText := AddToSQLWhereClause(LQueryText, '(' + ExpandQualification(LLookupFilter, '')  + ')');
-
-  if ASearchString <> '' then
-    LQueryText := AddToSQLWhereClause(LQueryText, '(' + AViewField.ModelField.ReferencedModel.CaptionField.DBColumnName + ' like ''%' + ASearchString + '%'')');
-
-  LQueryText := LQueryText + ' order by ' + ExpandQualification(LLookupModel.CaptionField.DBColumnNameOrExpression, '');
-
-  LQueryText := TEFMacroExpansionEngine.Instance.Expand(LQueryText);
-  ADBQuery.CommandText := ARecord.ExpandExpression(LQueryText);
-  AddFilterBy(AViewField, ADBQuery, ARecord);
 end;
 
 end.

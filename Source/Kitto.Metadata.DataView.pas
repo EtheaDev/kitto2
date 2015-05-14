@@ -311,6 +311,12 @@ type
     function GetColorsAsPairs: TEFPairs;
 
     function GetFilterByFields: TArray<TKFilterByViewField>;
+
+    /// <summary>
+    ///  Translate and returns a sort clause suitable for ordering a set of
+    ///  records on this field.
+    /// </summary>
+    function BuildSortClause(const AIsDescending: Boolean): string;
   end;
 
   TKViewFields = class(TKMetadataItem)
@@ -347,28 +353,28 @@ type
     property Header: TKViewTableHeader read GetHeader;
     property Records: TKViewTableRecords read GetRecords;
 
-    procedure Load(const AFilter: string; const AOrderBy: string);
-
-    /// <summary>Loads a page of data according to AFrom and AFor arguments,
-    /// and returns the total number of records in all pages.</summary>
+    /// <summary>
+    ///  Loads a page of data according to AFrom and AFor arguments,
+    ///  and returns the total number of records in all pages.
+    /// </summary>
     /// <param name="AFilter">Additional SQL filter.</param>
-    /// <param name="AFrom">Number of the first record to retrieve
-    /// (0-based).</param>
+    /// <param name="AFrom">Number of the first record to retrieve (0-based).</param>
     /// <param name="ATo">Maximum count of records to retrieve.</param>
     /// <remarks>
-    ///   <para>This method will perform two database queries, one to get the
-    ///   total count and one to get the requested data page.</para>
-    ///   <para>If AFrom or ATo are 0, the method calls <see cref=
-    ///   "Load" />.</para>
+    ///  <para>
+    ///   This method will perform two database queries, one to get the
+    ///   total count and one to get the requested data page.
+    ///  </para>
+    ///  <para>
+    ///   If AFrom or ATo are 0, the method calls <see cref="Load" />.
+    ///  </para>
     /// </remarks>
-    function LoadPage(const AFilter: string; const AOrderBy: string; const AFrom, AFor: Integer): Integer;
+    function Load(const AFilter, ASort: string; const AFrom: Integer = 0; const AFor: Integer = 0): Integer; overload;
 
     /// <summary>
     ///  Appends a record and fills it with the specified values.
     /// </summary>
     function AppendRecord(const AValues: TEFNode): TKViewTableRecord;
-
-    procedure Save(const AUseTransaction: Boolean);
 
     /// <summary>
     ///  Locates and returns a record from the key values stored in AKey.
@@ -482,7 +488,6 @@ type
     procedure LoadDetailStores;
     property DetailStores[I: Integer]: TKViewTableStore read GetDetailsStore;
     function AddDetailStore(const AStore: TKViewTableStore): TKViewTableStore;
-    procedure Save(const AUseTransaction: Boolean);
     procedure Refresh(const AStrict: Boolean = False);
     procedure SetDetailFieldValues(const AMasterRecord: TKViewTableRecord);
     function FindDetailStoreByModelName(const AModelName: string): TKViewTableStore;
@@ -1405,6 +1410,18 @@ begin
   end;
 end;
 
+function TKViewField.BuildSortClause(const AIsDescending: Boolean): string;
+var
+  LResult: string;
+begin
+  TKSQLBuilder.CreateAndExecute(
+    procedure (ASQLBuilder: TKSQLBuilder)
+    begin
+      LResult := ASQLBuilder.GetSortClause(Self, AIsDescending);
+    end);
+  Result := LResult;
+end;
+
 function TKViewField.CanEditField(const AInsertOperation: Boolean): Boolean;
 var
   LReadOnly: Boolean;
@@ -1432,6 +1449,7 @@ var
   LDerivedFields: TArray<TKViewField>;
   LDerivedField: TKViewField;
   LDBQuery: TEFDBQuery;
+  LHasDerivedFields: Boolean;
 begin
   Assert(IsReference);
 
@@ -1448,7 +1466,12 @@ begin
       // Get data.
       LDBQuery := TKConfig.Instance.DBConnections[Table.DatabaseName].CreateDBQuery;
       try
-        if TKSQLBuilder.BuildDerivedSelectQuery(Self, LDBQuery, AKeyValues) then
+        TKSQLBuilder.CreateAndExecute(
+          procedure (ASQLBuilder: TKSQLBuilder)
+          begin
+            LHasDerivedFields := ASQLBuilder.BuildDerivedSelectQuery(Self, LDBQuery, AKeyValues);
+          end);
+        if LHasDerivedFields then
           Result.Load(LDBQuery, False, True);
       finally
         FreeAndNil(LDBQuery);
@@ -1517,7 +1540,12 @@ begin
     // Get data.
     LDBQuery := TKConfig.Instance.DBConnections[Table.DatabaseName].CreateDBQuery;
     try
-      TKSQLBuilder.BuildSingletonSelectQuery(ModelField.ReferencedModel, LDBQuery, AKeyValues);
+      with TKSQLBuilder.Create do
+        try
+          BuildSingletonSelectQuery(ModelField.ReferencedModel, LDBQuery, AKeyValues);
+        finally
+          Free;
+        end;
       LStore.Load(LDBQuery, False, True);
     finally
       FreeAndNil(LDBQuery);
@@ -2070,8 +2098,7 @@ end;
 
 { TKViewTableStore }
 
-function TKViewTableStore.AppendRecord(
-  const AValues: TEFNode): TKViewTableRecord;
+function TKViewTableStore.AppendRecord(const AValues: TEFNode): TKViewTableRecord;
 begin
   Result := inherited AppendRecord(AValues) as TKViewTableRecord;
   // The above will cause InternalAfterReadFromNode to be called, which
@@ -2088,26 +2115,6 @@ begin
   inherited Create;
   FViewTable := AViewTable;
   SetupFields;
-end;
-
-procedure TKViewTableStore.Save(const AUseTransaction: Boolean);
-var
-  I: Integer;
-  LConnection: TEFDBConnection;
-begin
-  LConnection := TKConfig.Instance.DBConnections[ViewTable.DatabaseName];
-  if AUseTransaction then
-    LConnection.StartTransaction;
-  try
-    for I := 0 to RecordCount - 1 do
-      Records[I].Save(False);
-    if AUseTransaction then
-      LConnection.CommitTransaction;
-  except
-    if AUseTransaction then
-      LConnection.RollbackTransaction;
-    raise;
-  end;
 end;
 
 procedure TKViewTableStore.SetupFields;
@@ -2205,7 +2212,8 @@ begin
   Result := inherited Records as TKViewTableRecords;
 end;
 
-procedure TKViewTableStore.Load(const AFilter: string; const AOrderBy: string);
+function TKViewTableStore.Load(const AFilter, ASort: string;
+  const AFrom, AFor: Integer): Integer;
 var
   LDBQuery: TEFDBQuery;
 begin
@@ -2213,39 +2221,38 @@ begin
 
   LDBQuery := TKConfig.Instance.DBConnections[ViewTable.DatabaseName].CreateDBQuery;
   try
-    TKSQLBuilder.BuildSelectQuery(FViewTable, AFilter, AOrderBy, LDBQuery, FMasterRecord);
-    inherited Load(LDBQuery);
-  finally
-    FreeAndNil(LDBQuery);
-  end;
-end;
-
-function TKViewTableStore.LoadPage(const AFilter: string; const AOrderBy: string;
-  const AFrom, AFor: Integer): Integer;
-var
-  LDBQuery: TEFDBQuery;
-begin
-  if (AFrom = 0) and (AFor = 0) then
-  begin
-    Load(AFilter, AOrderBy);
-    Result := RecordCount;
-  end
-  else
-  begin
-    LDBQuery := TKConfig.Instance.DBConnections[ViewTable.DatabaseName].CreateDBQuery;
-    try
-      TKSQLBuilder.BuildCountQuery(FViewTable, AFilter, LDBQuery, FMasterRecord);
+    if (AFrom = 0) and (AFor = 0) then
+    begin
+      TKSQLBuilder.CreateAndExecute(
+        procedure (ASQLBuilder: TKSQLBuilder)
+        begin
+          ASQLBuilder.BuildSelectQuery(FViewTable, AFilter, ASort, LDBQuery, FMasterRecord);
+        end);
+      inherited Load(LDBQuery);
+      Result := RecordCount;
+    end
+    else
+    begin
+      TKSQLBuilder.CreateAndExecute(
+        procedure (ASQLBuilder: TKSQLBuilder)
+        begin
+          ASQLBuilder.BuildCountQuery(FViewTable, AFilter, LDBQuery, FMasterRecord);
+        end);
       LDBQuery.Open;
       try
         Result := LDBQuery.DataSet.Fields[0].AsInteger;
       finally
         LDBQuery.Close;
       end;
-      TKSQLBuilder.BuildSelectQuery(FViewTable, AFilter, AOrderBy, LDBQuery, FMasterRecord, AFrom, AFor);
+      TKSQLBuilder.CreateAndExecute(
+        procedure (ASQLBuilder: TKSQLBuilder)
+        begin
+          ASQLBuilder.BuildSelectQuery(FViewTable, AFilter, ASort, LDBQuery, FMasterRecord, AFrom, AFor);
+        end);
       inherited Load(LDBQuery);
-    finally
-      FreeAndNil(LDBQuery);
     end;
+  finally
+    FreeAndNil(LDBQuery);
   end;
 end;
 
@@ -2421,7 +2428,11 @@ begin
 
   LDBQuery := TKConfig.Instance.DBConnections[ViewTable.DatabaseName].CreateDBQuery;
   try
-    TKSQLBuilder.BuildSingletonSelectQuery(ViewTable, LDBQuery, GetFieldValues(Store.ViewTable.Model.GetKeyFieldNames));
+    TKSQLBuilder.CreateAndExecute(
+      procedure (ASQLBuilder: TKSQLBuilder)
+      begin
+        ASQLBuilder.BuildSingletonSelectQuery(ViewTable, LDBQuery, GetFieldValues(Store.ViewTable.Model.GetKeyFieldNames));
+      end);
     LDBQuery.Open;
     if AStrict and LDBQuery.DataSet.IsEmpty then
       raise Exception.Create('Record not found');
@@ -2636,71 +2647,6 @@ begin
     begin
       Result := ReplaceText(Result, '{' + LField.FieldName + '}', LField.GetAsJSONValue(True, False, True));
     end;
-  end;
-end;
-
-procedure TKViewTableRecord.Save(const AUseTransaction: Boolean);
-var
-  LDBCommand: TEFDBCommand;
-  LRowsAffected: Integer;
-  I: Integer;
-  LFileToDelete: string;
-  LDBConnection: TEFDBConnection;
-begin
-  if State = rsClean then
-    Exit;
-
-  // Take care of any instructions to clear fields.
-  for I := 0 to FieldCount - 1 do
-  begin
-    if Fields[I].GetBoolean('Sys/SetToNull') then
-      Fields[I].SetToNull;
-  end;
-
-  // BEFORE rules are applied before calling this method.
-  LDBConnection := TKConfig.Instance.DBConnections[ViewTable.DatabaseName];
-  if AUseTransaction then
-    LDBConnection.StartTransaction;
-  try
-    LDBCommand := LDBConnection.CreateDBCommand;
-    try
-      case State of
-        rsNew: TKSQLBuilder.BuildInsertCommand(LDBCommand, Self);
-        rsDirty: TKSQLBuilder.BuildUpdateCommand(LDBCommand, Self);
-        rsDeleted: TKSQLBuilder.BuildDeleteCommand(LDBCommand, Self);
-      else
-        raise EKError.CreateFmt('Unexpected record state %s.', [GetEnumName(TypeInfo(TKRecordState), Ord(State))]);
-      end;
-      if LDBCommand.CommandText <> '' then
-      begin
-        LRowsAffected := LDBCommand.Execute;
-        if LRowsAffected <> 1 then
-          raise EKError.CreateFmt('Update error. Rows affected: %d.', [LRowsAffected]);
-      end;
-      { TODO : implement cascade delete? }
-      for I := 0 to DetailStoreCount - 1 do
-        DetailStores[I].Save(False);
-      ApplyAfterRules;
-      if AUseTransaction then
-        LDBConnection.CommitTransaction;
-      // Take care of any cleared external files.
-      for I := 0 to FieldCount - 1 do
-      begin
-        if (Fields[I].DataType is TKFileReferenceDataType) and (Fields[I].IsNull) then
-        begin
-          LFileToDelete := Fields[I].GetString('Sys/DeleteFile');
-          if FileExists(LFileToDelete) then
-            DeleteFile(LFileToDelete);
-        end;
-      end;
-      MarkAsClean;
-    finally
-      FreeAndNil(LDBCommand);
-    end;
-  except
-    if AUseTransaction then
-      LDBConnection.RollbackTransaction;
-    raise;
   end;
 end;
 
