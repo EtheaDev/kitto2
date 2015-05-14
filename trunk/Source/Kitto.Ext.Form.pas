@@ -636,6 +636,7 @@ begin
   end
   else if SameText(FOperation, 'Dup') then
   begin
+    StoreRecord := Config.GetObject('Sys/Record') as TKViewTableRecord;
     FreeAndNil(FCloneValues);
     FCloneValues := TEFNode.Clone(StoreRecord);
     StoreRecord := ServerStore.AppendRecord(nil);
