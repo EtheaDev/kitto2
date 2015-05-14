@@ -1820,8 +1820,12 @@ begin
 
   LDBQuery := Session.Config.DBConnections[FRecordField.ViewField.Table.DatabaseName].CreateDBQuery;
   try
-    TKSQLBuilder.BuildLookupSelectStatement(FRecordField.ViewField, LDBQuery,
-      ReplaceStr(Session.Query['query'], '''', ''''''), FRecordField.ParentRecord);
+    TKSQLBuilder.CreateAndExecute(
+      procedure (ASQLBuilder: TKSQLBuilder)
+      begin
+        ASQLBuilder.BuildLookupSelectStatement(FRecordField.ViewField, LDBQuery,
+          ReplaceStr(Session.Query['query'], '''', ''''''), FRecordField.ParentRecord);
+      end);
     FServerStore.Load(LDBQuery);
   finally
     FreeAndNil(LDBQuery);

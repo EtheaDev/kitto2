@@ -353,13 +353,8 @@ begin
   LFieldName := Session.Query['sort'];
   LDirection := Session.Query['dir'];
 
-  if (LFieldName <> '') then
-  begin
-    Result := TKSQLBuilder.ExpandQualification(ServerStore.Header.FieldByName(LFieldName).ViewField.DBNameOrExpression,
-      ServerStore.Header.FieldByName(LFieldName).ViewField.DBName);
-    if SameText(LDirection, 'desc') then
-      Result := Result + ' desc';
-  end
+  if LFieldName <> '' then
+    Result := ServerStore.Header.FieldByName(LFieldName).ViewField.BuildSortClause(SameText(LDirection, 'desc'))
   else
     Result := '';
 end;

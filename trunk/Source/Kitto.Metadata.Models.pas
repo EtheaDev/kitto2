@@ -644,6 +644,9 @@ type
       const ASortExpression: string; const AStart: Integer = 0;
       const ALimit: Integer = 0): Integer; virtual; abstract;
 
+    procedure SaveRecords(const AStore: TEFTree; const APersist: Boolean;
+      const AAfterPersist: TProc); virtual; abstract;
+
     /// <summary>
     ///  Saves the specified record.
     /// </summary>
@@ -666,6 +669,7 @@ type
     /// </remarks>
     procedure SaveRecord(const ARecord: TEFNode; const APersist: Boolean;
       const AAfterPersist: TProc); virtual; abstract;
+
     /// <summary>
     ///  Called when a new record is being created in the GUI, after applying
     ///  any default or cloned values but before applying new record rules.
