@@ -1077,19 +1077,42 @@ begin
 end;
 
 function TKViewTable.GetFields: TKViewFields;
+var
+  LFields: TKViewFields;
 
   procedure CreateDefaultFields;
   var
-    I: Integer;
+    I, J, K: Integer;
+    LModelField: TKModelField;
+    LAutoAddFields: TEFNode;
+    LViewField: TKViewField;
+    LAutoAddField: TEFNode;
   begin
     for I := 0 to Model.FieldCount - 1 do
-      GetNode('Fields').AddChild(TKViewField.Create(Model.Fields[I].FieldName));
+    begin
+      LModelField := Model.Fields[I];
+      LViewField := TKViewField.Create(LModelField.FieldName);
+      LFields.AddChild(LViewField);
+      LAutoAddFields := LModelField.FindNode('AutoAddFields');
+      if Assigned(LAutoAddFields) then
+      begin
+        for J := 0 to LAutoAddFields.ChildCount - 1 do
+        begin
+          LAutoAddField := LAutoAddFields.Children[J];
+          LViewField := TKViewField.Create(LModelField.FieldName + '.' + LAutoAddField.Name, LAutoAddField.AsExpandedString);
+          for K := 0 to LAutoAddField.ChildCount - 1 do
+            LViewField.AddChild(TEFNode.Clone(LAutoAddField.Children[K]));
+          LFields.AddChild(LViewField);
+        end;
+      end;
+    end;
   end;
 
 begin
-  Result := GetNode('Fields', True) as TKViewFields;
-  if Result.FieldCount = 0 then
+  LFields := GetNode('Fields', True) as TKViewFields;
+  if LFields.FieldCount = 0 then
     CreateDefaultFields;
+  Result := LFields;
 end;
 
 function TKViewTable.GetFilterByFields(APredicate: TFunc<TKFilterByViewField, Boolean>): TArray<TKFilterByViewField>;
