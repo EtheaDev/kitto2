@@ -14,17 +14,6 @@ Controller: List
 
 MainTable:
   Model: Doll
-  Fields:
-    Doll_Id:
-    Doll_Name:
-    Date_Bought:
-    Hair:
-    Dress_Size:
-    Mom:
-    Mom.Phone: Mom_Phone
-      DisplayLabel: _(Mom's Phone)
-    Aspect:
-    Picture:
 
   Controller:
     AllowViewing: True
