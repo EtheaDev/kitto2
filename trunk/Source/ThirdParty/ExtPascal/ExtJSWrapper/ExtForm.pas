@@ -1396,8 +1396,7 @@ type
     property ClearFilterOnReset: Boolean read FClearFilterOnReset
       write SetFClearFilterOnReset;
     property DisplayField: string read FDisplayField write SetDisplayField;
-    property ForceSelection: Boolean read FForceSelection
-      write SetForceSelection;
+    property ForceSelection: Boolean read FForceSelection write SetForceSelection;
     property HandleHeight: Integer read FHandleHeight write SetFHandleHeight;
     property HiddenId: string read FHiddenId write SetFHiddenId;
     property HiddenName: string read FHiddenName write SetHiddenName;
