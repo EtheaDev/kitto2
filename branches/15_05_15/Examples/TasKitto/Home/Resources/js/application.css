@@ -1,0 +1,11 @@
+/* This file is automatically included in all rendered pages. */
+/* Put extra CSS classes used in views here. */
+body
+{
+  background: url(../background.png) repeat;
+}
+
+.x-tab-panel-body
+{
+background-image: url(../background.png);
+}

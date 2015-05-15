@@ -1,0 +1,75 @@
+﻿<%HTMLDeclaration%>
+<head>
+  <title><%ApplicationTitle%></title>
+  <%ApplicationIconLink%>
+  <%AppleIconLink%>
+  <meta http-equiv="content-type" content="charset=<%CharSet%>" />
+  <meta id="viewport" name="viewport" content="<%ViewportContent%>" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <link rel=stylesheet href="<%ExtPath%>/resources/css/<%ExtBuild%>.css" />
+  <script src="<%ExtPath%>/adapter/ext/ext-base.js"></script>
+  <script src="<%ExtPath%>/<%ExtBuild%><%DebugSuffix%>.js"></script>
+  <%ManifestLink%>
+  <%ThemeLink%>
+  <%LanguageLink%>
+  <%StyleTag%>
+  <%LibraryTags%>
+</head>
+<body>
+<div id="body">
+  <div id="loading" style="position:absolute;font-family:verdana;top:40%;left:40%">
+    <img src="<%ExtPath%>/resources/images/default/shared/loading-balls.gif"/>Loading <%ApplicationTitle%>...
+  </div>
+</div>
+<div id="dpi" style="height: 1in; width: 1in; left: 100%; position: fixed; top: 100%;"></div>
+<noscript>This web application requires JavaScript enabled</noscript>
+</body>
+  <script>
+    <%CustomJS%>
+
+    function AjaxError(m) {
+      showMessage({
+        title: "Ajax Error",
+        msg: m,
+        icon: Ext.Msg.ERROR,
+        buttons: Ext.Msg.OK
+      });
+    };
+    function AjaxSuccess(response) {
+      try {
+        eval(response.responseText);
+      } catch (err) {
+        console.log(err.stack);
+        if (err.message)
+          AjaxError(err.message);
+        else
+          AjaxError(err);
+      }
+    };
+    function sleep(ms) {
+      var start = new Date().getTime();
+      for (var i = 0; i < 1e7; i++)
+        if ((new Date().getTime() - start) > ms)
+          break;
+    };
+    function AjaxFailure() {
+      AjaxError("Server unavailable, try later.");
+    };
+    Ext.onReady(
+      function() {
+        Ext.get("loading").remove();
+        Ext.BLANK_IMAGE_URL="<%ExtPath%>/resources/images/default/s.gif";
+        TextMetrics = Ext.util.TextMetrics.createInstance("body");
+        Download = Ext.DomHelper.append(document.body, {tag: "iframe", cls: "x-hidden"});
+
+        kittoLoadMask = new Ext.LoadMask(Ext.getBody());
+        Ext.Ajax.on("beforerequest", function() { showKittoLoadMask(1); });
+        Ext.Ajax.on("requestcomplete", function() { showKittoLoadMask(-1); });
+        Ext.Ajax.on("requestexception", function() { showKittoLoadMask(0); });
+
+        <%Response%>
+      }
+    );
+  </script>
+</html>

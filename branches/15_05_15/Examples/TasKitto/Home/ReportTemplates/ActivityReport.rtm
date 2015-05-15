@@ -1,0 +1,896 @@
+object ppReport: TppReport
+  PrinterSetup.BinName = 'Default'
+  PrinterSetup.DocumentName = 'Report'
+  PrinterSetup.Orientation = poLandscape
+  PrinterSetup.PaperName = 'A4'
+  PrinterSetup.PrinterName = 'Default'
+  PrinterSetup.SaveDeviceSettings = False
+  PrinterSetup.mmMarginBottom = 6350
+  PrinterSetup.mmMarginLeft = 6350
+  PrinterSetup.mmMarginRight = 6350
+  PrinterSetup.mmMarginTop = 6350
+  PrinterSetup.mmPaperHeight = 210000
+  PrinterSetup.mmPaperWidth = 297000
+  PrinterSetup.PaperSize = 9
+  SaveAsTemplate = True
+  Template.FileName = 
+    'C:\ETHEA\Kitto\Examples\TasKitto\Home\ReportTemplates\ActivityRe' +
+    'port.rtm'
+  Template.Format = ftASCII
+  Units = utMillimeters
+  ArchiveFileName = '($MyDocuments)\ReportArchive.raf'
+  DeviceType = 'Screen'
+  DefaultFileDeviceType = 'PDF'
+  EmailSettings.ReportFormat = 'PDF'
+  LanguageID = 'English (United States)'
+  OutlineSettings.CreateNode = True
+  OutlineSettings.CreatePageNodes = True
+  OutlineSettings.Enabled = True
+  OutlineSettings.Visible = True
+  PDFSettings.EmbedFontOptions = [efUseSubset]
+  PDFSettings.EncryptSettings.AllowCopy = True
+  PDFSettings.EncryptSettings.AllowInteract = True
+  PDFSettings.EncryptSettings.AllowModify = True
+  PDFSettings.EncryptSettings.AllowPrint = True
+  PDFSettings.EncryptSettings.Enabled = False
+  PDFSettings.FontEncoding = feAnsi
+  PDFSettings.ImageCompressionLevel = 25
+  RTFSettings.DefaultFont.Charset = DEFAULT_CHARSET
+  RTFSettings.DefaultFont.Color = clWindowText
+  RTFSettings.DefaultFont.Height = -13
+  RTFSettings.DefaultFont.Name = 'Arial'
+  RTFSettings.DefaultFont.Style = []
+  ShowAutoSearchDialog = True
+  TextFileName = '($MyDocuments)\Report.pdf'
+  TextSearchSettings.DefaultString = '<FindText>'
+  TextSearchSettings.Enabled = True
+  XLSSettings.AppName = 'ReportBuilder'
+  XLSSettings.Author = 'ReportBuilder'
+  XLSSettings.Subject = 'Report'
+  XLSSettings.Title = 'Report'
+  Left = 249
+  Top = 26
+  Version = '14.06'
+  mmColumnWidth = 0
+  object ppHeaderBand1: TppHeaderBand
+    Background.Brush.Style = bsClear
+    mmBottomOffset = 0
+    mmHeight = 14817
+    mmPrintPosition = 0
+    object ppLabel1: TppLabel
+      UserName = 'Label1'
+      HyperlinkEnabled = False
+      AutoSize = False
+      Caption = 'Activity Report'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clBlack
+      Font.Name = 'Arial'
+      Font.Size = 14
+      Font.Style = []
+      TextAlignment = taCentered
+      Transparent = True
+      mmHeight = 5821
+      mmLeft = 529
+      mmTop = 2117
+      mmWidth = 283634
+      BandType = 0
+      LayerName = Foreground
+    end
+    object ppLabel2: TppLabel
+      UserName = 'Label2'
+      AutoSize = False
+      Caption = 'Description'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clBlack
+      Font.Name = 'Arial'
+      Font.Size = 12
+      Font.Style = []
+      Transparent = True
+      mmHeight = 4763
+      mmLeft = 529
+      mmTop = 10054
+      mmWidth = 53711
+      BandType = 0
+      LayerName = Foreground
+    end
+    object ppLabel3: TppLabel
+      UserName = 'Label3'
+      AutoSize = False
+      Caption = 'Phase'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clBlack
+      Font.Name = 'Arial'
+      Font.Size = 12
+      Font.Style = []
+      Transparent = True
+      mmHeight = 4763
+      mmLeft = 55033
+      mmTop = 10054
+      mmWidth = 30163
+      BandType = 0
+      LayerName = Foreground
+    end
+    object ppLabel4: TppLabel
+      UserName = 'Label4'
+      AutoSize = False
+      Caption = 'Employee'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clBlack
+      Font.Name = 'Arial'
+      Font.Size = 12
+      Font.Style = []
+      Transparent = True
+      mmHeight = 4763
+      mmLeft = 86254
+      mmTop = 10054
+      mmWidth = 38629
+      BandType = 0
+      LayerName = Foreground
+    end
+    object ppLabel5: TppLabel
+      UserName = 'Label5'
+      AutoSize = False
+      Caption = 'Role'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clBlack
+      Font.Name = 'Arial'
+      Font.Size = 12
+      Font.Style = []
+      Transparent = True
+      mmHeight = 4763
+      mmLeft = 125942
+      mmTop = 10054
+      mmWidth = 26988
+      BandType = 0
+      LayerName = Foreground
+    end
+    object ppLabel6: TppLabel
+      UserName = 'Label6'
+      AutoSize = False
+      Caption = 'Type'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clBlack
+      Font.Name = 'Arial'
+      Font.Size = 12
+      Font.Style = []
+      Transparent = True
+      mmHeight = 4763
+      mmLeft = 154252
+      mmTop = 10054
+      mmWidth = 26194
+      BandType = 0
+      LayerName = Foreground
+    end
+    object ppLabel7: TppLabel
+      UserName = 'Label7'
+      AutoSize = False
+      Caption = 'Activity date'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clBlack
+      Font.Name = 'Arial'
+      Font.Size = 12
+      Font.Style = []
+      Transparent = True
+      mmHeight = 4763
+      mmLeft = 181505
+      mmTop = 10054
+      mmWidth = 23813
+      BandType = 0
+      LayerName = Foreground
+    end
+    object ppLabel8: TppLabel
+      UserName = 'Label8'
+      AutoSize = False
+      Caption = 'Start time'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clBlack
+      Font.Name = 'Arial'
+      Font.Size = 12
+      Font.Style = []
+      Transparent = True
+      mmHeight = 4763
+      mmLeft = 206375
+      mmTop = 10054
+      mmWidth = 18000
+      BandType = 0
+      LayerName = Foreground
+    end
+    object ppLabel9: TppLabel
+      UserName = 'Label9'
+      AutoSize = False
+      Caption = 'End time'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clBlack
+      Font.Name = 'Arial'
+      Font.Size = 12
+      Font.Style = []
+      Transparent = True
+      mmHeight = 4763
+      mmLeft = 225161
+      mmTop = 10054
+      mmWidth = 18000
+      BandType = 0
+      LayerName = Foreground
+    end
+    object ppLabel10: TppLabel
+      UserName = 'Label10'
+      AutoSize = False
+      Caption = 'Duration'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clBlack
+      Font.Name = 'Arial'
+      Font.Size = 12
+      Font.Style = []
+      Transparent = True
+      mmHeight = 4763
+      mmLeft = 244211
+      mmTop = 10054
+      mmWidth = 16669
+      BandType = 0
+      LayerName = Foreground
+    end
+    object ppLabel11: TppLabel
+      UserName = 'Label11'
+      AutoSize = False
+      Caption = 'Status'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clBlack
+      Font.Name = 'Arial'
+      Font.Size = 12
+      Font.Style = []
+      Transparent = True
+      mmHeight = 4763
+      mmLeft = 262467
+      mmTop = 10054
+      mmWidth = 17463
+      BandType = 0
+      LayerName = Foreground
+    end
+  end
+  object ppDetailBand1: TppDetailBand
+    Background1.Brush.Style = bsClear
+    Background2.Brush.Style = bsClear
+    mmBottomOffset = 0
+    mmHeight = 6350
+    mmPrintPosition = 0
+    object ppDBText1: TppDBText
+      UserName = 'DBText1'
+      DataField = 'DESCRIPTION'
+      DataPipeline = daSQLQueryDataView2.ACTIVITY
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clBlack
+      Font.Name = 'Arial'
+      Font.Size = 12
+      Font.Style = []
+      ParentDataPipeline = False
+      Transparent = True
+      DataPipelineName = 'ACTIVITY'
+      mmHeight = 4763
+      mmLeft = 529
+      mmTop = 529
+      mmWidth = 53711
+      BandType = 4
+      LayerName = Foreground
+    end
+    object ppDBText2: TppDBText
+      UserName = 'DBText2'
+      DataField = 'PHASE_NAME'
+      DataPipeline = daSQLQueryDataView2.ACTIVITY
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clBlack
+      Font.Name = 'Arial'
+      Font.Size = 12
+      Font.Style = []
+      ParentDataPipeline = False
+      Transparent = True
+      DataPipelineName = 'ACTIVITY'
+      mmHeight = 4763
+      mmLeft = 55033
+      mmTop = 529
+      mmWidth = 30000
+      BandType = 4
+      LayerName = Foreground
+    end
+    object ppDBText3: TppDBText
+      UserName = 'DBText3'
+      DataField = 'EMPLOYEE_NAME'
+      DataPipeline = daSQLQueryDataView2.ACTIVITY
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clBlack
+      Font.Name = 'Arial'
+      Font.Size = 12
+      Font.Style = []
+      ParentDataPipeline = False
+      Transparent = True
+      DataPipelineName = 'ACTIVITY'
+      mmHeight = 4763
+      mmLeft = 86254
+      mmTop = 529
+      mmWidth = 38629
+      BandType = 4
+      LayerName = Foreground
+    end
+    object ppDBText4: TppDBText
+      UserName = 'DBText4'
+      DataField = 'ROLE_NAME'
+      DataPipeline = daSQLQueryDataView2.ACTIVITY
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clBlack
+      Font.Name = 'Arial'
+      Font.Size = 12
+      Font.Style = []
+      ParentDataPipeline = False
+      Transparent = True
+      DataPipelineName = 'ACTIVITY'
+      mmHeight = 4763
+      mmLeft = 125942
+      mmTop = 529
+      mmWidth = 26988
+      BandType = 4
+      LayerName = Foreground
+    end
+    object ppDBText5: TppDBText
+      UserName = 'DBText5'
+      DataField = 'TYPE_NAME'
+      DataPipeline = daSQLQueryDataView2.ACTIVITY
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clBlack
+      Font.Name = 'Arial'
+      Font.Size = 12
+      Font.Style = []
+      ParentDataPipeline = False
+      Transparent = True
+      DataPipelineName = 'ACTIVITY'
+      mmHeight = 4763
+      mmLeft = 154252
+      mmTop = 529
+      mmWidth = 26194
+      BandType = 4
+      LayerName = Foreground
+    end
+    object ppDBText6: TppDBText
+      UserName = 'DBText6'
+      DataField = 'ACTIVITY_DATE'
+      DataPipeline = daSQLQueryDataView2.ACTIVITY
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clBlack
+      Font.Name = 'Arial'
+      Font.Size = 12
+      Font.Style = []
+      ParentDataPipeline = False
+      TextAlignment = taCentered
+      Transparent = True
+      DataPipelineName = 'ACTIVITY'
+      mmHeight = 4868
+      mmLeft = 181505
+      mmTop = 529
+      mmWidth = 23813
+      BandType = 4
+      LayerName = Foreground
+    end
+    object ppDBText7: TppDBText
+      UserName = 'DBText7'
+      DataField = 'START_TIME'
+      DataPipeline = daSQLQueryDataView2.ACTIVITY
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clBlack
+      Font.Name = 'Arial'
+      Font.Size = 12
+      Font.Style = []
+      ParentDataPipeline = False
+      TextAlignment = taRightJustified
+      Transparent = True
+      DataPipelineName = 'ACTIVITY'
+      mmHeight = 4868
+      mmLeft = 206375
+      mmTop = 529
+      mmWidth = 18000
+      BandType = 4
+      LayerName = Foreground
+    end
+    object ppDBText8: TppDBText
+      UserName = 'DBText8'
+      DataField = 'END_TIME'
+      DataPipeline = daSQLQueryDataView2.ACTIVITY
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clBlack
+      Font.Name = 'Arial'
+      Font.Size = 12
+      Font.Style = []
+      ParentDataPipeline = False
+      TextAlignment = taRightJustified
+      Transparent = True
+      DataPipelineName = 'ACTIVITY'
+      mmHeight = 4868
+      mmLeft = 225161
+      mmTop = 529
+      mmWidth = 18000
+      BandType = 4
+      LayerName = Foreground
+    end
+    object ppDBText9: TppDBText
+      UserName = 'DBText9'
+      DataField = 'DATEDIFF_MINUTE_FROM_STAR'
+      DataPipeline = daSQLQueryDataView2.ACTIVITY
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clBlack
+      Font.Name = 'Arial'
+      Font.Size = 12
+      Font.Style = []
+      ParentDataPipeline = False
+      TextAlignment = taRightJustified
+      Transparent = True
+      DataPipelineName = 'ACTIVITY'
+      mmHeight = 4868
+      mmLeft = 250825
+      mmTop = 529
+      mmWidth = 10054
+      BandType = 4
+      LayerName = Foreground
+    end
+    object ppDBText10: TppDBText
+      UserName = 'DBText10'
+      DataField = 'STATUS'
+      DataPipeline = daSQLQueryDataView2.ACTIVITY
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clBlack
+      Font.Name = 'Arial'
+      Font.Size = 12
+      Font.Style = []
+      ParentDataPipeline = False
+      Transparent = True
+      DataPipelineName = 'ACTIVITY'
+      mmHeight = 4763
+      mmLeft = 262467
+      mmTop = 529
+      mmWidth = 20373
+      BandType = 4
+      LayerName = Foreground
+    end
+  end
+  object ppFooterBand1: TppFooterBand
+    Background.Brush.Style = bsClear
+    mmBottomOffset = 0
+    mmHeight = 265
+    mmPrintPosition = 0
+  end
+  object daDataModule1: TdaDataModule
+    object daSQLQueryDataView2: TdaSQLQueryDataView
+      UserName = 'Query_ACTIVITY'
+      Height = 292
+      Left = 8
+      NameColumnWidth = 105
+      SizeColumnWidth = 35
+      SortMode = 0
+      Top = 9
+      TypeColumnWidth = 52
+      Width = 274
+      AutoSearchTabOrder = 0
+      object ACTIVITY: TppChildDBPipeline
+        AutoCreateFields = False
+        UserName = 'ACTIVITY'
+        object ppField1: TppField
+          FieldAlias = 'DESCRIPTION'
+          FieldName = 'DESCRIPTION'
+          FieldLength = 320
+          DisplayWidth = 320
+          Position = 0
+          TableName = 'ACTIVITY_1'
+        end
+        object ppField2: TppField
+          FieldAlias = 'PHASE_NAME'
+          FieldName = 'PHASE_NAME'
+          FieldLength = 160
+          IsDetail = True
+          DisplayWidth = 160
+          Position = 1
+          TableName = 'PHASE_1'
+        end
+        object ppField3: TppField
+          FieldAlias = 'EMPLOYEE_NAME'
+          FieldName = 'EMPLOYEE_NAME'
+          FieldLength = 160
+          IsDetail = True
+          DisplayWidth = 160
+          Position = 2
+          TableName = 'EMPLOYEE_1'
+        end
+        object ppField4: TppField
+          FieldAlias = 'ROLE_NAME'
+          FieldName = 'ROLE_NAME'
+          FieldLength = 80
+          IsDetail = True
+          DisplayWidth = 80
+          Position = 3
+          TableName = 'OPERATOR_ROLE_1'
+        end
+        object ppField5: TppField
+          FieldAlias = 'TYPE_NAME'
+          FieldName = 'TYPE_NAME'
+          FieldLength = 80
+          IsDetail = True
+          DisplayWidth = 80
+          Position = 4
+          TableName = 'ACTIVITY_TYPE_1'
+        end
+        object ppField6: TppField
+          FieldAlias = 'ACTIVITY_DATE'
+          FieldName = 'ACTIVITY_DATE'
+          FieldLength = 0
+          DataType = dtDate
+          DisplayWidth = 10
+          Position = 5
+          TableName = 'ACTIVITY_1'
+        end
+        object ppField7: TppField
+          FieldAlias = 'START_TIME'
+          FieldName = 'START_TIME'
+          FieldLength = 0
+          DataType = dtTime
+          DisplayWidth = 10
+          Position = 6
+          TableName = 'ACTIVITY_1'
+        end
+        object ppField8: TppField
+          FieldAlias = 'END_TIME'
+          FieldName = 'END_TIME'
+          FieldLength = 0
+          DataType = dtTime
+          DisplayWidth = 10
+          Position = 7
+          TableName = 'ACTIVITY_1'
+        end
+        object ppField9: TppField
+          FieldAlias = 'STATUS'
+          FieldName = 'STATUS'
+          FieldLength = 48
+          IsDetail = True
+          DisplayWidth = 48
+          Position = 8
+          TableName = 'PHASE_1'
+        end
+        object ppField10: TppField
+          FieldAlias = 'DURATION'
+          FieldName = 'DATEDIFF_MINUTE_FROM_STAR'
+          FieldLength = 0
+          DataType = dtLargeInt
+          DisplayWidth = 10
+          Position = 9
+          TableName = 'PHASE_1'
+        end
+      end
+      object daSQL2: TdaSQL
+        DatabaseName = 'Main'
+        DatabaseType = dtFirebird
+        DataPipelineName = 'ACTIVITY'
+        LinkColor = clNavy
+        LinkType = ltMagicSQL
+        MaxSQLFieldAliasLength = 25
+        SQLText.Strings = (
+          'SELECT ACTIVITY_1.DESCRIPTION, '
+          '       PHASE_1.PHASE_NAME, '
+          '       EMPLOYEE_1.EMPLOYEE_NAME, '
+          '       OPERATOR_ROLE_1.ROLE_NAME, '
+          '       ACTIVITY_TYPE_1.TYPE_NAME, '
+          '       ACTIVITY_1.ACTIVITY_DATE, '
+          '       ACTIVITY_1.START_TIME, '
+          '       ACTIVITY_1.END_TIME, PHASE_1.STATUS, '
+          
+            '       DATEDIFF(MINUTE FROM START_TIME TO END_TIME) DATEDIFF_MIN' +
+            'UTE_FROM_STAR'
+          'FROM ACTIVITY ACTIVITY_1'
+          '      LEFT OUTER JOIN EMPLOYEE EMPLOYEE_1 ON '
+          '     (EMPLOYEE_1.EMPLOYEE_ID = ACTIVITY_1.EMPLOYEE_ID)'
+          '      LEFT OUTER JOIN OPERATOR_ROLE OPERATOR_ROLE_1 ON '
+          '     (OPERATOR_ROLE_1.ROLE_ID = ACTIVITY_1.ROLE_ID)'
+          '      LEFT OUTER JOIN ACTIVITY_TYPE ACTIVITY_TYPE_1 ON '
+          '     (ACTIVITY_TYPE_1.TYPE_ID = ACTIVITY_1.TYPE_ID)'
+          '      LEFT OUTER JOIN PHASE PHASE_1 ON '
+          '     (PHASE_1.PHASE_ID = ACTIVITY_1.PHASE_ID)'
+          'WHERE ('#39'c'#39' <> '#39'c'#39' ) AND ('
+          
+            '      ( ACTIVITY_1.ACTIVITY_ID = '#39'1BF2DBA042C78244A133D9633207D0' +
+            'BA'#39' )'
+          '      )')
+        SQLType = sqSQL2
+        object daCalculation1: TdaCalculation
+          ChildType = 8
+          Alias = 'DURATION'
+          DataType = dtLargeInt
+          DisplayWidth = 10
+          FieldAlias = 'END_DATE'
+          FieldLength = 0
+          FieldName = 'END_DATE'
+          SQLFieldName = 'DATEDIFF_MINUTE_FROM_STAR'
+          TableAlias = 'PHASE'
+          TableName = 'PHASE'
+          TableSQLAlias = 'PHASE_1'
+          CalcType = dacaExpression
+          Expression = 'DATEDIFF(MINUTE FROM START_TIME TO END_TIME)'
+        end
+        object daCriteria1: TdaCriteria
+          ChildType = 7
+          Level = 0
+          Value = '1BF2DBA042C78244A133D9633207D0BA'
+          object TdaField
+            Alias = 'ACTIVITY_ID'
+            AutoSearch = True
+            DisplayWidth = 128
+            FieldAlias = 'ACTIVITY_ID'
+            FieldLength = 128
+            FieldName = 'ACTIVITY_ID'
+            Mandatory = True
+            SQLFieldName = 'ACTIVITY_ID'
+            TableAlias = 'ACTIVITY'
+            TableName = 'ACTIVITY'
+            TableSQLAlias = 'ACTIVITY_1'
+          end
+        end
+        object daField1: TdaField
+          Alias = 'DESCRIPTION'
+          DisplayWidth = 320
+          FieldAlias = 'DESCRIPTION'
+          FieldLength = 320
+          FieldName = 'DESCRIPTION'
+          SQLFieldName = 'DESCRIPTION'
+          TableAlias = 'ACTIVITY'
+          TableName = 'ACTIVITY'
+          TableSQLAlias = 'ACTIVITY_1'
+        end
+        object daField2: TdaField
+          Alias = 'PHASE_NAME'
+          DisplayWidth = 160
+          FieldAlias = 'PHASE_NAME'
+          FieldLength = 160
+          FieldName = 'PHASE_NAME'
+          IsDetail = True
+          SQLFieldName = 'PHASE_NAME'
+          TableAlias = 'PHASE'
+          TableName = 'PHASE'
+          TableSQLAlias = 'PHASE_1'
+        end
+        object daField3: TdaField
+          Alias = 'EMPLOYEE_NAME'
+          DisplayWidth = 160
+          FieldAlias = 'EMPLOYEE_NAME'
+          FieldLength = 160
+          FieldName = 'EMPLOYEE_NAME'
+          IsDetail = True
+          SQLFieldName = 'EMPLOYEE_NAME'
+          TableAlias = 'EMPLOYEE'
+          TableName = 'EMPLOYEE'
+          TableSQLAlias = 'EMPLOYEE_1'
+        end
+        object daField4: TdaField
+          Alias = 'ROLE_NAME'
+          DisplayWidth = 80
+          FieldAlias = 'ROLE_NAME'
+          FieldLength = 80
+          FieldName = 'ROLE_NAME'
+          IsDetail = True
+          SQLFieldName = 'ROLE_NAME'
+          TableAlias = 'OPERATOR_ROLE'
+          TableName = 'OPERATOR_ROLE'
+          TableSQLAlias = 'OPERATOR_ROLE_1'
+        end
+        object daField5: TdaField
+          Alias = 'TYPE_NAME'
+          DisplayWidth = 80
+          FieldAlias = 'TYPE_NAME'
+          FieldLength = 80
+          FieldName = 'TYPE_NAME'
+          IsDetail = True
+          SQLFieldName = 'TYPE_NAME'
+          TableAlias = 'ACTIVITY_TYPE'
+          TableName = 'ACTIVITY_TYPE'
+          TableSQLAlias = 'ACTIVITY_TYPE_1'
+        end
+        object daField6: TdaField
+          Alias = 'ACTIVITY_DATE'
+          DataType = dtDate
+          DisplayWidth = 10
+          FieldAlias = 'ACTIVITY_DATE'
+          FieldLength = 0
+          FieldName = 'ACTIVITY_DATE'
+          SQLFieldName = 'ACTIVITY_DATE'
+          TableAlias = 'ACTIVITY'
+          TableName = 'ACTIVITY'
+          TableSQLAlias = 'ACTIVITY_1'
+        end
+        object daField7: TdaField
+          Alias = 'START_TIME'
+          DataType = dtTime
+          DisplayWidth = 10
+          FieldAlias = 'START_TIME'
+          FieldLength = 0
+          FieldName = 'START_TIME'
+          SQLFieldName = 'START_TIME'
+          TableAlias = 'ACTIVITY'
+          TableName = 'ACTIVITY'
+          TableSQLAlias = 'ACTIVITY_1'
+        end
+        object daField8: TdaField
+          Alias = 'END_TIME'
+          DataType = dtTime
+          DisplayWidth = 10
+          FieldAlias = 'END_TIME'
+          FieldLength = 0
+          FieldName = 'END_TIME'
+          SQLFieldName = 'END_TIME'
+          TableAlias = 'ACTIVITY'
+          TableName = 'ACTIVITY'
+          TableSQLAlias = 'ACTIVITY_1'
+        end
+        object daField9: TdaField
+          Alias = 'STATUS'
+          DisplayWidth = 48
+          FieldAlias = 'STATUS'
+          FieldLength = 48
+          FieldName = 'STATUS'
+          IsDetail = True
+          SQLFieldName = 'STATUS'
+          TableAlias = 'PHASE'
+          TableName = 'PHASE'
+          TableSQLAlias = 'PHASE_1'
+        end
+        object daTable1: TdaTable
+          ChildType = 5
+          Alias = 'ACTIVITY'
+          JoinType = dajtNone
+          SQLAlias = 'ACTIVITY_1'
+          TableAlias = 'ACTIVITY'
+          TableName = 'ACTIVITY'
+        end
+        object daTable2: TdaTable
+          ChildType = 5
+          Alias = 'EMPLOYEE'
+          JoinType = dajtLeftOuter
+          SQLAlias = 'EMPLOYEE_1'
+          TableAlias = 'EMPLOYEE'
+          TableName = 'EMPLOYEE'
+          object daTableJoin1: TdaTableJoin
+            ChildType = 6
+            object daField11: TdaField
+              ChildType = 3
+              Alias = 'EMPLOYEE_ID'
+              DisplayWidth = 128
+              FieldAlias = 'EMPLOYEE_ID'
+              FieldLength = 128
+              FieldName = 'EMPLOYEE_ID'
+              SQLFieldName = 'EMPLOYEE_ID'
+              TableAlias = 'EMPLOYEE'
+              TableName = 'EMPLOYEE'
+              TableSQLAlias = 'EMPLOYEE_1'
+            end
+            object daField10: TdaField
+              ChildType = 4
+              Alias = 'EMPLOYEE_ID'
+              DisplayWidth = 128
+              FieldAlias = 'EMPLOYEE_ID'
+              FieldLength = 128
+              FieldName = 'EMPLOYEE_ID'
+              SQLFieldName = 'EMPLOYEE_ID'
+              TableAlias = 'ACTIVITY'
+              TableName = 'ACTIVITY'
+              TableSQLAlias = 'ACTIVITY_1'
+            end
+          end
+        end
+        object daTable3: TdaTable
+          ChildType = 5
+          Alias = 'OPERATOR_ROLE'
+          JoinType = dajtLeftOuter
+          SQLAlias = 'OPERATOR_ROLE_1'
+          TableAlias = 'OPERATOR_ROLE'
+          TableName = 'OPERATOR_ROLE'
+          object daTableJoin2: TdaTableJoin
+            ChildType = 6
+            object daField13: TdaField
+              ChildType = 3
+              Alias = 'ROLE_ID'
+              DisplayWidth = 128
+              FieldAlias = 'ROLE_ID'
+              FieldLength = 128
+              FieldName = 'ROLE_ID'
+              SQLFieldName = 'ROLE_ID'
+              TableAlias = 'OPERATOR_ROLE'
+              TableName = 'OPERATOR_ROLE'
+              TableSQLAlias = 'OPERATOR_ROLE_1'
+            end
+            object daField12: TdaField
+              ChildType = 4
+              Alias = 'ROLE_ID'
+              DisplayWidth = 128
+              FieldAlias = 'ROLE_ID'
+              FieldLength = 128
+              FieldName = 'ROLE_ID'
+              SQLFieldName = 'ROLE_ID'
+              TableAlias = 'ACTIVITY'
+              TableName = 'ACTIVITY'
+              TableSQLAlias = 'ACTIVITY_1'
+            end
+          end
+        end
+        object daTable4: TdaTable
+          ChildType = 5
+          Alias = 'ACTIVITY_TYPE'
+          JoinType = dajtLeftOuter
+          SQLAlias = 'ACTIVITY_TYPE_1'
+          TableAlias = 'ACTIVITY_TYPE'
+          TableName = 'ACTIVITY_TYPE'
+          object daTableJoin3: TdaTableJoin
+            ChildType = 6
+            object daField15: TdaField
+              ChildType = 3
+              Alias = 'TYPE_ID'
+              DisplayWidth = 128
+              FieldAlias = 'TYPE_ID'
+              FieldLength = 128
+              FieldName = 'TYPE_ID'
+              SQLFieldName = 'TYPE_ID'
+              TableAlias = 'ACTIVITY_TYPE'
+              TableName = 'ACTIVITY_TYPE'
+              TableSQLAlias = 'ACTIVITY_TYPE_1'
+            end
+            object daField14: TdaField
+              ChildType = 4
+              Alias = 'TYPE_ID'
+              DisplayWidth = 128
+              FieldAlias = 'TYPE_ID'
+              FieldLength = 128
+              FieldName = 'TYPE_ID'
+              SQLFieldName = 'TYPE_ID'
+              TableAlias = 'ACTIVITY'
+              TableName = 'ACTIVITY'
+              TableSQLAlias = 'ACTIVITY_1'
+            end
+          end
+        end
+        object daTable5: TdaTable
+          ChildType = 5
+          Alias = 'PHASE'
+          JoinType = dajtLeftOuter
+          SQLAlias = 'PHASE_1'
+          TableAlias = 'PHASE'
+          TableName = 'PHASE'
+          object daTableJoin4: TdaTableJoin
+            ChildType = 6
+            object daField17: TdaField
+              ChildType = 3
+              Alias = 'PHASE_ID'
+              DisplayWidth = 128
+              FieldAlias = 'PHASE_ID'
+              FieldLength = 128
+              FieldName = 'PHASE_ID'
+              SQLFieldName = 'PHASE_ID'
+              TableAlias = 'PHASE'
+              TableName = 'PHASE'
+              TableSQLAlias = 'PHASE_1'
+            end
+            object daField16: TdaField
+              ChildType = 4
+              Alias = 'PHASE_ID'
+              DisplayWidth = 128
+              FieldAlias = 'PHASE_ID'
+              FieldLength = 128
+              FieldName = 'PHASE_ID'
+              SQLFieldName = 'PHASE_ID'
+              TableAlias = 'ACTIVITY'
+              TableName = 'ACTIVITY'
+              TableSQLAlias = 'ACTIVITY_1'
+            end
+          end
+        end
+      end
+    end
+  end
+  object ppDesignLayers1: TppDesignLayers
+    object ppDesignLayer1: TppDesignLayer
+      UserName = 'Foreground'
+      LayerType = ltBanded
+      Index = 0
+    end
+  end
+  object ppParameterList1: TppParameterList
+  end
+end

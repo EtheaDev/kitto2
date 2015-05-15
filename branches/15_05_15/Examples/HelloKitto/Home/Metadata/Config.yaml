@@ -1,0 +1,118 @@
+﻿AppTitle: _(Peoria Girls and their Dolls)
+AppIcon: HelloKittoIcon
+
+BlobPath: %HOME_PATH%UploadedFiles\
+
+# Change this to switch databases.
+DefaultDatabaseName: DBXFb
+# DefaultDatabaseName: ADOMSSQL
+# DefaultDatabaseName: FDMSSQL
+# DefaultDatabaseName: FDFb
+
+Databases:
+  DBXFb: DBX
+    Connection:
+      DriverName: Firebird
+      DataBase: localhost:HelloKitto
+      User_Name: SYSDBA
+      Password: masterkey
+      ServerCharSet: UTF8
+      WaitOnLocks: True
+      IsolationLevel: ReadCommitted
+      Trim Char: False
+
+  FDMSSQL: FD
+    Connection:
+      DriverID: MSSQL
+      Server: %COMPUTERNAME%\MSSQL2K8R2
+      ApplicationName: %APPTITLE%
+      Database: HelloKitto
+      OSAuthent: Yes
+      Isolation: RepeatableRead
+
+  FDFb: FD
+    Connection:
+      DriverID: FB
+      # Alias of database defined in Aliases.conf
+      Database: HELLOKITTO
+      User_Name: SYSDBA
+      Password: masterkey
+      Server: localhost
+      CharacterSet: UTF8
+      Protocol: TCPIP
+
+  DBXMSSQL: DBX
+    Connection:
+      DriverName: MSSQL
+      HostName: localhost
+      DataBase: HelloKitto
+      OS Authentication: True
+
+  ADOMSSQL: ADO
+    Connection:
+      # This doesn't work because of a bug with date and time fields in ADO/OLEDB.
+      # See http://qc.embarcadero.com/wc/qcmain.aspx?d=78910
+      #Provider: SQLOLEDB.1
+      # Using the Native client fixes the date bug but still not the time bug.
+      Provider: SQLNCLI10
+      Trusted_Connection: Yes
+      Initial Catalog: HelloKitto
+      Data Source: %COMPUTERNAME%
+
+Auth: DB
+  Defaults:
+    UserName: administrator
+    .Password: password
+
+AccessControl: Null
+
+LanguagePerSession: True
+
+Login:
+  Controller:
+    BorderPanel:
+      NorthView:
+        Controller: HtmlPanel
+          Height: 80
+          Html: |
+            <div style="text-align: center">
+              <p/>
+              <p><img src="%IMAGE(hello_kitto_150)%"></img></p>
+              <p/>
+            </div>
+    ExtraWidth: 400
+    LabelWidth: 150
+    ExtraHeight: 80
+    LocalStorage:
+      Mode: Password
+      AskUser: True
+        .Default: False
+
+Tablet: HomeTile
+
+Phone: HomeTilePhone
+
+HomeGirls:
+  Controller: Viewport
+    SubView: Girls
+
+HomeDolls:
+  Controller: Viewport
+    SubView: Dolls
+
+HelloWorld:
+  Controller: Viewport
+    SubView:
+      Controller: HtmlPanel
+        Html: <h1>Hello World!</h1>
+
+Ext:
+  Theme: blue
+
+LanguageId: it
+# Either utf-8 or a SBCS corresponding to the system code page
+# (such as iso-8859-1 for Western Europe). Defaults to utf-8.
+Charset: utf-8
+
+FastCGI:
+  TCPPort: 2201

@@ -1,0 +1,16 @@
+﻿DisplayLabel: Modify Account
+Type: Data
+Controller: Form
+  Operation: Edit
+  IsModal: True
+MainTable:
+  Model: KITTO_USERS
+  DefaultFilter: {Q}USER_NAME = '%Auth:USER_NAME%'
+  Fields:
+    USER_NAME:
+      IsReadOnly: True
+    PASSWORD_HASH:
+      IsReadOnly: True
+    FIRST_NAME:
+    LAST_NAME:
+  Controller:

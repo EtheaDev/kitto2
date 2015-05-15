@@ -1,0 +1,28 @@
+DisplayLabel: %Config:AppTitle%
+# Valid top-level controllers are Window and Viewport
+Controller: Viewport
+
+  SubView:
+    Controller: BorderPanel
+
+      .WestView:
+        DisplayLabel: Main Menu
+        Controller: TreePanel
+          TreeView: MainMenu
+      
+      CenterView:
+        Controller: TabPanel
+          # List of views to be auto-opened in tabs.
+          SubViews:
+            View: ActivityReport
+            View: ActivityInput
+            View: Projects
+
+      NorthView:
+        Controller: ToolBar
+          TreeView: MainMenu
+
+      .SouthView:
+        Controller: StatusBar
+          Text: <p>Connected user: %Auth:UserName%</p>
+        ImageName: user

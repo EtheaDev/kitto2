@@ -1,0 +1,26 @@
+﻿Type: Data
+DisplayLabel: _(New Doll)
+ImageName: Doll_add
+Controller: Form
+  IsModal: True
+  Operation: Add
+  PopupWindow:
+    Height: 500
+    Width: 400
+
+MainTable:
+  Model: Doll
+  Fields:
+    Doll_Id:
+    Doll_Name:
+    Date_Bought:
+    Hair:
+    Dress_Size:
+    Mom:
+    Mom.Phone: Mom_Phone
+      DisplayLabel: _(Mom's Phone)
+    Aspect:
+    Picture:
+  Controller:
+    Form:
+      Layout: Dolls_Form
