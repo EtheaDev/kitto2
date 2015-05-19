@@ -626,6 +626,7 @@ type
     destructor Destroy; override;
   private
     procedure SetOperation(const AValue: TKExtEditOperation);
+    procedure InitLabelPosAndWidth(const ANode: TEfTree);
   public
     // Set all properties before calling the CreateEditors methods.
     property DataRecord: TKViewTableRecord read FDataRecord write FDataRecord;
@@ -838,6 +839,22 @@ begin
   raise EEFError.CreateFmt(_('Layout parsing error. %s.'), [AErrorMessage]);
 end;
 
+procedure TKExtLayoutProcessor.InitLabelPosAndWidth(const ANode: TEfTree);
+var
+  LNode: TEFNode;
+begin
+  LNode := ANode.FindNode('LabelAlign');
+  if Assigned(LNode) then
+  begin
+    FCurrentLabelAlign := OptionAsLabelAlign(LNode.AsString);
+    if Assigned(FCurrentEditPage) then
+      FCurrentEditPage.LabelAlign := FCurrentLabelAlign;
+  end;
+  LNode := ANode.FindNode('LabelWidth');
+  if Assigned(LNode) then
+    FCurrentLabelWidth := LNode.AsInteger;
+end;
+
 procedure TKExtLayoutProcessor.CreateEditorsFromLayout(const ALayout: TKLayout);
 var
   I: Integer;
@@ -847,8 +864,11 @@ begin
 
   FCurrentEditItem := nil;
   FCurrentLabelWidth := FORM_LABELWIDTH;
-  FCurrentLabelAlign := laTop;
+  FCurrentLabelAlign := FCurrentEditPage.LabelAlign;
   FEditContainers.Clear;
+
+  InitLabelPosAndWidth(ALayout);
+
   for I := 0 to ALayout.ChildCount - 1 do
     ProcessLayoutNode(ALayout.Children[I]);
 end;
@@ -868,6 +888,8 @@ var
 
 begin
   Assert(Assigned(ANode));
+
+  InitLabelPosAndWidth(ANode);
 
   // Skip invisible fields.
   if SameText(ANode.Name, 'Field') then
@@ -912,11 +934,6 @@ begin
       SetGlobalOption(ANode)
     else if Assigned(FCurrentEditItem) then
       FCurrentEditItem.SetOption(ANode);
-
-    if SameText(ANode.Name, 'LabelAlign') then
-      FCurrentLabelAlign := OptionAsLabelAlign(ANode.AsString)
-    else if SameText(ANode.Name, 'LabelWidth') then
-      FCurrentLabelWidth := ANode.AsInteger;
   end;
 
   if (FCurrentEditItem is TKExtFormRowField) and (FCurrentLabelAlign <> laTop) then
