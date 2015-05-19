@@ -719,6 +719,7 @@ begin
     if Config.GetBoolean('Sys/ShowIcon', True) then
       FMainPagePanel.IconCls := Session.SetViewIconStyle(ViewTable.View);
     FMainPagePanel.EditPanel := FFormPanel;
+    FMainPagePanel.LabelAlign := FLabelAlign;
     FTabPanel.SetActiveTab(0);
     FTabPanel.OnTabChange := TabChange;
     FTabPanel.On('tabchange', FTabPanel.JSFunction(FTabPanel.JSName + '.doLayout();'));
@@ -729,6 +730,7 @@ begin
     FMainPagePanel := TKExtEditPage.CreateAndAddTo(FFormPanel.Items);
     FMainPagePanel.Region := rgCenter;
     FMainPagePanel.EditPanel := FFormPanel;
+    FMainPagePanel.LabelAlign := FLabelAlign;
   end;
   //Session.ResponseItems.ExecuteJSCode(Format('%s.getForm().url = "%s";', [FFormPanel.JSName, MethodURI(ConfirmChanges)]));
 end;
