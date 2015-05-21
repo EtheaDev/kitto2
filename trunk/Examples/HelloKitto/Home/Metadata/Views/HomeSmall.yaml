@@ -7,11 +7,10 @@ Controller: Viewport
 
       CenterView:
         Controller: TilePanel
-          ColorSet: Red
           Border: True
-          TileHeight: 50
-          TileWidth: 100
-          TreeView: MainMenuTilePhone
+          TileHeight: 70
+          TileWidth: 120
+          TreeView: MainMenuSmall
 
       SouthView:
         Controller: StatusBar
@@ -20,7 +19,7 @@ Controller: Viewport
 
 MobileSettings:
   ViewportContent:
-    width: 320
+    width: 480
     user-scalable: 0
   Android:
-    Manifest: HomeTilePhone.json
+    Manifest: HomeSmall.json

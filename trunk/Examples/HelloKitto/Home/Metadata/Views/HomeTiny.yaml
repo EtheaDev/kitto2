@@ -1,4 +1,4 @@
-DisplayLabel: %Config:AppTitle%
+﻿DisplayLabel: %Config:AppTitle%
 # Valid top-level controllers are Window and Viewport
 Controller: Viewport
 
@@ -7,10 +7,11 @@ Controller: Viewport
 
       CenterView:
         Controller: TilePanel
+          ColorSet: Red
           Border: True
-          TileHeight: 70
-          TileWidth: 120
-          TreeView: MainMenuTile
+          TileHeight: 50
+          TileWidth: 100
+          TreeView: MainMenuTiny
 
       SouthView:
         Controller: StatusBar
@@ -19,7 +20,7 @@ Controller: Viewport
 
 MobileSettings:
   ViewportContent:
-    width: 480
+    width: 320
     user-scalable: 0
   Android:
-    Manifest: HomeTile.json
+    Manifest: HomeTiny.json
