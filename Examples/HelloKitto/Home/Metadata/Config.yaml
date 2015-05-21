@@ -88,10 +88,6 @@ Login:
       AskUser: True
         .Default: False
 
-Tablet: HomeTile
-
-Phone: HomeTilePhone
-
 HomeGirls:
   Controller: Viewport
     SubView: Girls
