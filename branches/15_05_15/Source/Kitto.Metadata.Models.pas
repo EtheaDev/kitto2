@@ -547,6 +547,8 @@ type
     property DetailReferenceCount: Integer read GetDetailReferenceCount;
     property DetailReferences[I: Integer]: TKModelDetailReference read GetDetailReference;
     function DetailReferenceByName(const AName: string): TKModelDetailReference;
+    function FindDefaultCaptionField: TKModelField;
+    function FindCaptionField: TKModelField;
     function FindDetailReference(const AName: string): TKModelDetailReference;
     function FindDetailReferenceByPhysicalName(const APhysicalName: string): TKModelDetailReference;
 
@@ -1122,7 +1124,7 @@ begin
   Result := PersistentName;
 end;
 
-function TKModel.GetDefaultCaptionField: TKModelField;
+function TKModel.FindDefaultCaptionField: TKModelField;
 var
   I: Integer;
   LFirstVisibleField: TKModelField;
@@ -1149,7 +1151,18 @@ begin
     Result := Fields[0];
 end;
 
+function TKModel.GetDefaultCaptionField: TKModelField;
+begin
+  Result := FindDefaultCaptionField;
+end;
+
 function TKModel.GetCaptionField: TKModelField;
+begin
+  Result := FindCaptionField;
+  Assert(Result <> nil);
+end;
+
+function TKModel.FindCaptionField: TKModelField;
 var
   LFieldName: string;
 begin
@@ -1159,9 +1172,7 @@ begin
     Result := FindField(LFieldName);
   // Find first visible non-key field.
   if Result = nil then
-    Result := GetDefaultCaptionField;
-
-  Assert(Result <> nil);
+    Result := FindDefaultCaptionField;
 end;
 
 function TKModel.GetCaptionFieldName: string;
