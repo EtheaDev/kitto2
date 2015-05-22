@@ -10,7 +10,7 @@ Standard mode
 -------------
 To see the application in stand-alone mode, use the standard Config.yaml and the standard URL such as:
 
-http://localhost/kitto/2014
+http://localhost/kitto/hellokitto
 
 Embedded mode
 -------------
@@ -25,4 +25,4 @@ Hello World
 -----------
 To see the most minimal Kitto application, the classic "Hello World" example, use a custom URL such as:
 
-http://localhost/kitto/2014?home=HelloWorld
+http://localhost/kitto/hellokitto?home=HelloWorld
