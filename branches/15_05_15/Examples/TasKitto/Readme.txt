@@ -7,3 +7,7 @@ To use the TasKitto database you need to:
 To see the application in stand-alone mode, use Config.yaml.
 
 To see the application in a different mode, use ConfigMini.yaml.
+
+URL to launch demo
+------------------
+http://localhost/kitto/taskitto
