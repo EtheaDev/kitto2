@@ -68,8 +68,8 @@ type
     ///  else) or populate the store in a custom way (by not calling inherited).
     /// </summary>
     function InternalLoadRecords(const AStore: TKViewTableStore;
-      const AFilter, ASort: string; const AStart,
-      ALimit: Integer): Integer; virtual;
+      const AFilter, ASort: string; const AStart, ALimit: Integer;
+      const AForEachRecord: TProc<TKViewTableRecord>): Integer; virtual;
     /// <summary>
     ///  Saves all modified records in the specified store. Override this method to add
     ///  custom additional behaviour (by calling inherited and then do something
@@ -140,7 +140,8 @@ type
     ///  Requires that AStore is a TKViewTableStore and calls InternalLoadRecords.
     /// </summary>
     function LoadRecords(const AStore: TEFTree; const AFilterExpression: string;
-      const ASortExpression: string; const AStart: Integer = 0; const ALimit: Integer = 0): Integer; override;
+      const ASortExpression: string; const AStart: Integer = 0; const ALimit: Integer = 0;
+      const AForEachRecord: TProc<TEFNode> = nil): Integer; override;
 
     /// <summary>
     ///  Requires that AStore is a TKViewTableStore and calls InternalSaveRecords.
@@ -271,21 +272,26 @@ begin
 end;
 
 function TKDefaultModel.LoadRecords(const AStore: TEFTree;
-  const AFilterExpression, ASortExpression: string; const AStart,
-  ALimit: Integer): Integer;
+  const AFilterExpression, ASortExpression: string; const AStart, ALimit: Integer;
+  const AForEachRecord: TProc<TEFNode>): Integer;
 begin
   Assert(Assigned(AStore));
   Assert(AStore is TKViewTableStore);
 
-  Result := InternalLoadRecords(TKViewTableStore(AStore), AFilterExpression, ASortExpression, AStart, ALimit);
+  Result := InternalLoadRecords(TKViewTableStore(AStore), AFilterExpression, ASortExpression, AStart, ALimit,
+    procedure (ARecord: TKViewTableRecord)
+    begin
+      AForEachRecord(ARecord);
+    end);
 end;
 
 function TKDefaultModel.InternalLoadRecords(const AStore: TKViewTableStore;
-  const AFilter, ASort: string; const AStart, ALimit: Integer): Integer;
+  const AFilter, ASort: string; const AStart, ALimit: Integer;
+  const AForEachRecord: TProc<TKViewTableRecord>): Integer;
 begin
   Assert(Assigned(AStore));
 
-  Result := AStore.Load(AFilter, ASort, AStart, ALimit);
+  Result := AStore.Load(AFilter, ASort, AStart, ALimit, AForEachRecord);
 end;
 
 procedure TKDefaultModel.AfterApplyAfterRulesToRecord(const ARecord: TKViewTableRecord);

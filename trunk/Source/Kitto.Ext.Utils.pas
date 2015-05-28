@@ -21,7 +21,7 @@ unit Kitto.Ext.Utils;
 interface
 
 uses
-  SysUtils,
+  SysUtils, Classes,
   Ext, ExtPascal, ExtPascalUtils, ExtMenu, ExtTree,
   EF.ObserverIntf, EF.Tree,
   Kitto.Ext.Base, Kitto.Ext.Controller, Kitto.Metadata.Views, Kitto.Ext.Session;
@@ -51,10 +51,10 @@ type
     property View: TKView read FView write SetView;
   end;
 
-  ///	<summary>
-  ///	  Renders a tree view on a container in various ways: as a set of buttons
-  ///	  with submenus, an Ext treeview control, etc.
-  ///	</summary>
+  /// <summary>
+  ///  Renders a tree view on a container in various ways: as a set of buttons
+  ///  with submenus, an Ext treeview control, etc.
+  /// </summary>
   TKExtTreeViewRenderer = class
   private
     FOwner: TExtObject;
@@ -66,39 +66,39 @@ type
     procedure AddNode(const ANode: TKTreeViewNode; const ADisplayLabel: string; const AParent: TExtTreeTreeNode);
     function GetClickFunction(const AView: TKView): TExtFunction;
 
-    ///	<summary>
-    ///   Clones the specified tree view, filters all invisible items
-    ///	  (including folders containing no visible items) and returns the
-    ///	  clone.
+    /// <summary>
+    ///  Clones the specified tree view, filters all invisible items
+    ///  (including folders containing no visible items) and returns the
+    ///  clone.
     /// </summary>
-    ///	<remarks>
-    ///   The caller is responsible for freeing the returned object.
+    /// <remarks>
+    ///  The caller is responsible for freeing the returned object.
     /// </remarks>
     function CloneAndFilter(const ATreeView: TKTreeView): TKTreeView;
     procedure Filter(const ANode: TKTreeViewNode);
   public
     property Session: TKExtSession read FSession write FSession;
 
-    ///	<summary>
-    ///	  Attaches to the container a set of buttons, one for each top-level
-    ///	  element of the specified tree view. Each button has a submenu tree
-    ///	  with the child views. Returns the total number of effectively added
-    ///	  items.
-    ///	</summary>
+    /// <summary>
+    ///  Attaches to the container a set of buttons, one for each top-level
+    ///  element of the specified tree view. Each button has a submenu tree
+    ///  with the child views. Returns the total number of effectively added
+    ///  items.
+    /// </summary>
     function RenderAsButtons(const ATreeView: TKTreeView;
       const AContainer: TExtContainer; const AOwner: TExtObject;
       const AClickHandler: TExtProcedure): Integer;
 
-    ///	<summary>
-    ///	  Renders a tree under ARoot with all views in the tree view. Returns
-    ///	  the total number of effectively added items.
-    ///	</summary>
+    /// <summary>
+    ///  Renders a tree under ARoot with all views in the tree view. Returns
+    ///  the total number of effectively added items.
+    /// </summary>
     function RenderAsTree(const ATreeView: TKTreeView; const ARoot: TExtTreeTreeNode;
       const AOwner: TExtObject; const AClickHandler: TExtProcedure): Integer;
 
-    ///	<summary>
-    ///	  Renders a tree by calling AProc for each top-level element in the tree view.
-    ///	</summary>
+    /// <summary>
+    ///  Renders a tree by calling AProc for each top-level element in the tree view.
+    /// </summary>
     function Render(const ATreeView: TKTreeView; const AProc: TProc<TKTreeViewNode, string>;
       const AOwner: TExtObject; const AClickHandler: TExtProcedure): Integer;
   end;
@@ -107,28 +107,33 @@ function DelphiDateTimeFormatToJSDateTimeFormat(const ADateTimeFormat: string): 
 function DelphiDateFormatToJSDateFormat(const ADateFormat: string): string;
 function DelphiTimeFormatToJSTimeFormat(const ATimeFormat: string): string;
 
-///	<summary>Adapts a standard number format string (with , as thousand
-///	separator and . as decimal separator) according to the
-///	specificed format settings for displaying to the user.</summary>
+/// <summary>
+///  Adapts a standard number format string (with , as thousand
+///  separator and . as decimal separator) according to the
+///  specificed format settings for displaying to the user.
+/// </summary>
 function AdaptExtNumberFormat(const AFormat: string; const AFormatSettings: TFormatSettings): string;
 
 
 /// <summary>
-///   Computes and returns a display label based on the underlying view,
-///   if any, or the node itself (if no view is found).
+///  Computes and returns a display label based on the underlying view,
+///  if any, or the node itself (if no view is found).
 /// </summary>
 function GetDisplayLabelFromNode(const ANode: TKTreeViewNode; const AViews: TKViews): string;
 
 /// <summary>
-///   Invoke a method of a View that return a string using RTTI
+///  Invoke a method of a View that return a string using RTTI
 /// </summary>
 function CallViewControllerStringMethod(const AView: TKView;
   const AMethodName: string; const ADefaultValue: string): string;
 
+procedure DownloadThumbnailedStream(const AStream: TStream; const AFileName: string;
+  const AThumbnailWidth, AThumbnailHeight: Integer);
+
 implementation
 
 uses
-  Types, StrUtils, RTTI,
+  Types, StrUtils, RTTI, Graphics, jpeg, pngimage,
   EF.SysUtils, EF.StrUtils, EF.Classes, EF.Localization,
   Kitto.AccessControl, Kitto.Utils;
 
@@ -513,6 +518,88 @@ end;
 procedure TKExtMenuItem.SetView(const AValue: TKView);
 begin
   FView := AValue;
+end;
+
+procedure DownloadThumbnailedStream(const AStream: TStream; const AFileName: string;
+  const AThumbnailWidth, AThumbnailHeight: Integer);
+var
+  LFileExt: string;
+  LTempFileName: string;
+  LStream: TFileStream;
+
+  procedure WriteTempFile;
+  var
+    LFileStream: TFileStream;
+  begin
+    LFileStream := TFileStream.Create(LTempFileName, fmCreate);
+    try
+      AStream.Position := 0;
+      LFileStream.CopyFrom(AStream, AStream.Size);
+      AStream.Position := 0;
+    finally
+      FreeAndNil(LFileStream);
+    end;
+  end;
+
+  procedure TransformTempFileToThumbnail(const AMaxWidth, AMaxHeight: Integer;
+    const AImageClass: TGraphicClass);
+  var
+    LImage: TGraphic;
+    LScale: Extended;
+    LBitmap: TBitmap;
+  begin
+    LImage := AImageClass.Create;
+    try
+      LImage.LoadFromFile(LTempFileName);
+      if (LImage.Height <= AMaxHeight) and (LImage.Width <= AMaxWidth) then
+        Exit;
+      if LImage.Height > LImage.Width then
+        LScale := AMaxHeight / LImage.Height
+      else
+        LScale := AMaxWidth / LImage.Width;
+      LBitmap := TBitmap.Create;
+      try
+        LBitmap.Width := Round(LImage.Width * LScale);
+        LBitmap.Height := Round(LImage.Height * LScale);
+        LBitmap.Canvas.StretchDraw(LBitmap.Canvas.ClipRect, LImage);
+
+        LImage.Assign(LBitmap);
+        LImage.SaveToFile(LTempFileName);
+      finally
+        LBitmap.Free;
+      end;
+    finally
+      LImage.Free;
+    end;
+  end;
+
+begin
+  Assert(Assigned(AStream));
+
+  LFileExt := ExtractFileExt(AFileName);
+  if MatchText(LFileExt, ['.jpg', '.jpeg', '.png']) then
+  begin
+    LTempFileName := GetTempFileName(LFileExt);
+    try
+      WriteTempFile;
+      if MatchText(LFileExt, ['.jpg', '.jpeg']) then
+        TransformTempFileToThumbnail(AThumbnailWidth, AThumbnailHeight, TJPEGImage)
+      else
+        TransformTempFileToThumbnail(AThumbnailWidth, AThumbnailHeight, TPngImage);
+
+      LStream := TFileStream.Create(LTempFileName, fmOpenRead + fmShareDenyWrite);
+      try
+        Session.DownloadStream(LStream, AFileName);
+      finally
+        FreeAndNil(LStream);
+      end;
+    finally
+      if FileExists(LTempFileName) then
+        DeleteFile(LTempFileName);
+    end;
+  end
+  else
+    Session.DownloadStream(AStream, AFileName);
 end;
 
 end.

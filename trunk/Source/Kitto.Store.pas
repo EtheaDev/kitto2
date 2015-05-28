@@ -322,9 +322,11 @@ type
     property IsEmpty: Boolean read GetIsEmpty;
 
     procedure Load(const ADBConnection: TEFDBConnection;
-      const ACommandText: string; const AAppend: Boolean = False); overload;
+      const ACommandText: string; const AAppend: Boolean = False;
+      const AForEachRecord: TProc<TKRecord> = nil); overload;
     procedure Load(const ADBQuery: TEFDBQuery; const AAppend: Boolean = False;
-      const AFieldsByIndex: Boolean = False); overload;
+      const AFieldsByIndex: Boolean = False;
+      const AForEachRecord: TProc<TKRecord> = nil); overload;
 
     /// <summary>
     ///   Appends a record and fills it with the specified values.
@@ -647,7 +649,7 @@ begin
 end;
 
 procedure TKStore.Load(const ADBQuery: TEFDBQuery; const AAppend: Boolean;
-  const AFieldsByIndex: Boolean);
+  const AFieldsByIndex: Boolean; const AForEachRecord: TProc<TKRecord>);
 var
   LRecord: TKRecord;
 begin
@@ -663,6 +665,8 @@ begin
     begin
       LRecord := Records.AppendAndInitialize;
       LRecord.ReadFromFields(ADBQuery.DataSet.Fields, AFieldsByIndex);
+      if Assigned(AForEachRecord) then
+        AForEachRecord(LRecord);
       ADBQuery.DataSet.Next;
     end;
   finally
@@ -670,13 +674,9 @@ begin
   end;
 end;
 
-procedure TKStore.RemoveRecord(const ARecord: TKRecord);
-begin
-  Records.Remove(ARecord);
-end;
-
 procedure TKStore.Load(const ADBConnection: TEFDBConnection;
-  const ACommandText: string; const AAppend: Boolean = False);
+  const ACommandText: string; const AAppend: Boolean;
+  const AForEachRecord: TProc<TKRecord>);
 var
   LDBQuery: TEFDBQuery;
 begin
@@ -688,13 +688,18 @@ begin
     LDBQuery.CommandText := ACommandText;
     LDBQuery.Open;
     try
-      Load(LDBQuery, AAppend);
+      Load(LDBQuery, AAppend, False, AForEachRecord);
     finally
       LDBQuery.Close;
     end;
   finally
     FreeAndNil(LDBQuery);
   end;
+end;
+
+procedure TKStore.RemoveRecord(const ARecord: TKRecord);
+begin
+  Records.Remove(ARecord);
 end;
 
 procedure TKStore.SetKey(const AValue: TKKey);

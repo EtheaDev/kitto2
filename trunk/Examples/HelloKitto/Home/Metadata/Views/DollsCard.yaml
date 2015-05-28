@@ -2,15 +2,11 @@
 
 Controller: List
   CenterController: TemplateDataPanel
-    Template: |
-      <tpl for=".">
-        <div id="{Doll_Id}">
-          <p>Name:<b>{Doll_Name}</b> - Bought Date: <b>{Date_Bought:date}</b></br>
-          Hair:<b>{Hair}</b> - Dress size:<b>{Dress_Size}</b></p>
-          </div>
-        </div>
-      </tpl>
-    RequireSelection: False
+    TemplateFileName: DollsCard.html
+    TemplateView:
+      Id: images-view
+      SelectorClass: div.thumb-wrap
+      OverClass: x-view-over
 
 MainTable:
   Model: Doll
@@ -31,13 +27,15 @@ MainTable:
     PopupWindow:
       Height: 500
       Width: 400
+    Form:
+      Layout: Dolls_Form
     ToolViews:
       DownloadText:
         DisplayLabel: _(Download in TXT)
         Controller: ExportTextTool
-          RequireSelection: False
           IncludeHeader: False
           ClientFileName: DollList.txt
+          RequireSelection: False
       DownloadCSV:
         DisplayLabel: _(Download in CSV)
         ImageName: download

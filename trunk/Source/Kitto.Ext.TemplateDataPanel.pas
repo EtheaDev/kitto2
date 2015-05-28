@@ -21,7 +21,7 @@ unit Kitto.Ext.TemplateDataPanel;
 interface
 
 uses
-  Ext, ExtChart, ExtData,
+  Ext, ExtChart, ExtData, ExtPascal, ExtPascalUtils,
   EF.Tree,
   Kitto.Metadata.DataView, Kitto.Ext.Base, Kitto.Ext.DataPanelLeaf;
 
@@ -30,10 +30,12 @@ type
   strict private
     FDataView: TExtDataView;
     procedure CreateTemplateView;
+    function ProcessTemplate(const ATemplate: string): string;
   strict protected
     procedure InitDefaults; override;
     procedure SetViewTable(const AValue: TKViewTable); override;
     procedure AddTopToolbarToolViewButtons; override;
+    function IsActionSupported(const AActionName: string): Boolean; override;
   published
   end;
 
@@ -55,17 +57,36 @@ end;
 
 procedure TKExTemplateDataPanel.CreateTemplateView;
 var
-  LTemplateContent: string;
+  LFileName: string;
+  LTemplate: string;
 begin
-  LTemplateContent := Config.GetExpandedString('Template');
-  if FileExists(LTemplateContent) then
-  begin
-    FDataView.Tpl := TEFMacroExpansionEngine.Instance.Expand(TextFileToString(LTemplateContent, 
-      TEncoding.UTF8))
-  end
+  LFileName := Session.Config.FindResourcePathName(Config.GetExpandedString('TemplateFileName'));
+  if LFileName <> '' then
+    FDataView.Tpl := ProcessTemplate(TEFMacroExpansionEngine.Instance.Expand(TextFileToString(LFileName, TEncoding.UTF8)))
   else
-    FDataView.Tpl := LTemplateContent;
+  begin
+    LTemplate := Config.GetExpandedString('Template');
+    if LTemplate = '' then
+      FDataView.Tpl := 'TemplateFileName or Template parameters not specified.'
+    else
+      FDataView.Tpl := ProcessTemplate(LTemplate);
+  end;
   FDataView.Store := ClientStore;
+end;
+
+function TKExTemplateDataPanel.ProcessTemplate(const ATemplate: string): string;
+var
+  I: Integer;
+begin
+  Assert(Assigned(ViewTable));
+
+  Result := ATemplate;
+  for I := 0 to ViewTable.FieldCount - 1 do
+  begin
+    if ViewTable.Fields[I].IsPicture then
+      Result := ReplaceText(Result, '{' + ViewTable.Fields[I].AliasedName + '}',
+        '{' + ViewTable.Fields[I].GetURLFieldName + '}');
+  end;
 end;
 
 procedure TKExTemplateDataPanel.InitDefaults;
@@ -74,14 +95,28 @@ begin
   FDataView := TExtDataView.CreateAndAddTo(Items);
   FDataView.EmptyText := _('No data to display.');
   FDataView.Region := rgCenter;
-  FDataView.Store := ClientStore;
   FDataView.AutoScroll := True;
+end;
+
+function TKExTemplateDataPanel.IsActionSupported(const AActionName: string): Boolean;
+begin
+  { TODO : Implement GetSelectCall in order to support actions that require selection. }
+  Result := MatchText(AActionName, ['Add']);
 end;
 
 procedure TKExTemplateDataPanel.SetViewTable(const AValue: TKViewTable);
 begin
   Assert(Assigned(AValue));
   inherited;
+  FDataView.Id := Config.GetString('TemplateView/Id');
+  FDataView.ItemSelector := Config.GetString('TemplateView/SelectorClass');
+  FDataView.OverClass := Config.GetString('TemplateView/OverClass');
+  if ViewTable.GetBoolean('Controller/IsMultiSelect', False) then
+    FDataView.MultiSelect := True
+  else
+    FDataView.SingleSelect := True;
+//  FDataView.On('dblclick', JSFunction('this, idx, node, e', GetAjaxCode(
+//    DefaultAction, )
   CreateTemplateView;
 end;
 

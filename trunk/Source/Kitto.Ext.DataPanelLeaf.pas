@@ -116,14 +116,15 @@ end;
 
 procedure TKExtDataPanelLeafController.AddTopToolbarButtons;
 begin
-  TExtToolbarSpacer.CreateAndAddTo(TopToolbar.Items);
-  FRefreshButton := TKExtButton.CreateAndAddTo(TopToolbar.Items);
-  FRefreshButton.SetIconAndScale('refresh');
-  FRefreshButton.Tooltip := _('Refresh data');
-  FRefreshButton.On('click', Ajax(GetParentDataPanel.LoadData));
-  if ViewTable.GetBoolean('Controller/PreventRefreshing') then
-    FRefreshButton.Hidden := True;
   inherited;
+  TExtToolbarSpacer.CreateAndAddTo(TopToolbar.Items);
+  FRefreshButton := AddTopToolbarButton('', _('Refresh data'), 'refresh', False);
+  if Assigned(FRefreshButton) then
+  begin
+    FRefreshButton.On('click', Ajax(GetParentDataPanel.LoadData));
+    if ViewTable.GetBoolean('Controller/PreventRefreshing') then
+      FRefreshButton.Hidden := True;
+  end;
 end;
 
 end.
