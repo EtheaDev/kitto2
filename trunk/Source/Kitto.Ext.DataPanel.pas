@@ -532,7 +532,7 @@ begin
           SetupURLFields(TKViewTableRecord(ARecord));
         end);
       if (LStart <> 0) or (LLimit <> 0) then
-        LData := ServerStore.GetAsJSON(True)
+        LData := ServerStore.GetAsJSON(True, LStart, LLimit)
       else
         // When loading all records, apply a limit on the display.
         { TODO : If there's a limit on the display of records, try to pass it over and only load
