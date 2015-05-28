@@ -155,7 +155,6 @@ end;
 destructor TKExtFormPanelController.Destroy;
 begin
   FreeAndNil(FCloneValues);
-  FreeAndNil(FEditItems);
   FreeAndNil(FDetailButtons);
   FreeAndNil(FDetailControllers);
   inherited;

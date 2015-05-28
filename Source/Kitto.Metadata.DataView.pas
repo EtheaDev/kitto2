@@ -99,6 +99,8 @@ type
     function GetQualifiedAliasedDBName: string;
     function GetLookupFilter: string;
     function GetDBNameOrExpression: string;
+    function GetIsPicture: Boolean;
+    const URL_PREFIX = '_URL_';
   strict protected
     function GetChildClass(const AName: string): TEFNodeClass; override;
     function GetDataType: TEFDataType; override;
@@ -317,6 +319,11 @@ type
     ///  records on this field.
     /// </summary>
     function BuildSortClause(const AIsDescending: Boolean): string;
+
+    property IsPicture: Boolean read GetIsPicture;
+
+    function GetURLFieldName: string;
+    class function IsURLFieldName(const AFieldName: string): Boolean;
   end;
 
   TKViewFields = class(TKMetadataItem)
@@ -369,7 +376,8 @@ type
     ///   If AFrom or ATo are 0, the method calls <see cref="Load" />.
     ///  </para>
     /// </remarks>
-    function Load(const AFilter, ASort: string; const AFrom: Integer = 0; const AFor: Integer = 0): Integer; overload;
+    function Load(const AFilter, ASort: string; const AFrom: Integer = 0; const AFor: Integer = 0;
+      const AForEachRecord: TProc<TKVIewTableRecord> = nil): Integer; overload;
 
     /// <summary>
     ///  Appends a record and fills it with the specified values.
@@ -2030,6 +2038,11 @@ begin
   Result := GetBoolean('IsPassword');
 end;
 
+function TKViewField.GetIsPicture: Boolean;
+begin
+  Result := GetBoolean('IsPicture');
+end;
+
 function TKViewField.GetIsReadOnly: Boolean;
 begin
   Result := GetBoolean('IsReadOnly');
@@ -2056,10 +2069,20 @@ begin
   Result := (Parent as TKViewFields).Table;
 end;
 
+function TKViewField.GetURLFieldName: string;
+begin
+  Result := URL_PREFIX + AliasedName;
+end;
+
 function TKViewField.IsAccessGranted(const AMode: string): Boolean;
 begin
   Result := TKConfig.Instance.IsAccessGranted(GetResourceURI, AMode)
     and TKConfig.Instance.IsAccessGranted(ModelField.GetResourceURI, AMode);
+end;
+
+class function TKViewField.IsURLFieldName(const AFieldName: string): Boolean;
+begin
+  Result := AFieldName.StartsWith(URL_PREFIX);
 end;
 
 function TKViewField.GetReferenceName: string;
@@ -2171,6 +2194,11 @@ begin
     SetupField(LViewField, LViewField.AliasedName, LViewField.DataType,
       LViewField.IsKey and not LViewField.IsReference, LViewField.IsAccessGranted(ACM_READ),
       LViewField.ModelField);
+    // URL fields for datatypes that provide downloadable content, such as images.
+    if LViewField.IsPicture then
+      SetupField(LViewField, LViewField.GetURLFieldName,
+        TEFDataTypeFactory.Instance.GetDataType('String'),
+        False, LViewField.IsAccessGranted(ACM_READ), LViewField.ModelField);
     // Expand reference fields. Also keep the reference field itself (above)
     // as it will hold the user-readable reference description.
     // For each reference field we create:
@@ -2236,7 +2264,7 @@ begin
 end;
 
 function TKViewTableStore.Load(const AFilter, ASort: string;
-  const AFrom, AFor: Integer): Integer;
+  const AFrom, AFor: Integer; const AForEachRecord: TProc<TKVIewTableRecord>): Integer;
 var
   LDBQuery: TEFDBQuery;
 begin
@@ -2251,7 +2279,12 @@ begin
         begin
           ASQLBuilder.BuildSelectQuery(FViewTable, AFilter, ASort, LDBQuery, FMasterRecord);
         end);
-      inherited Load(LDBQuery);
+      inherited Load(LDBQuery, False, False,
+        procedure (ARecord: Kitto.Store.TKRecord)
+        begin
+          if Assigned(AForEachRecord) then
+            AForEachRecord(ARecord as TKViewTableRecord);
+        end);
       Result := RecordCount;
     end
     else

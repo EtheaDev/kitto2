@@ -911,12 +911,11 @@ procedure TExtObject.JSSleep(MiliSeconds : integer); begin
   JSCode('sleep(' + IntToStr(MiliSeconds) + ');')
 end;
 
-function TExtObject.MethodURI(Method : TExtProcedure; Params : array of const) : string; begin
+function TExtObject.MethodURI(Method : TExtProcedure; Params : array of const) : string;
+begin
   Result := MethodURI(Method);
-  if length(Params) <> 0 then begin
-    if pos('?', Result) = 0 then Result := Result + '?';
-    Result := Result + FormatParams('TExtObject.MethodURI', Params)
-  end;
+  if Length(Params) <> 0 then
+    Result := Result + '&' + FormatParams('TExtObject.MethodURI', Params);
 end;
 
 function TExtObject.MethodURI(Method : TExtProcedure) : string;

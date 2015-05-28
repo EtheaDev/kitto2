@@ -491,8 +491,6 @@ type
     FClearButton: TKExtButton;
     FTotalCharWidth: Integer;
     FPictureView: TExtPanel;
-    FImageWidth: Integer;
-    FImageHeight: Integer;
     function GetContentDescription: string;
     procedure CreateGUI;
     procedure UpdateGUI(const AUpdatePicture: Boolean);
@@ -504,6 +502,8 @@ type
     FRecordField: TKViewTableField;
     FLastUploadedFullFileName: string;
     FLastUploadedOriginalFileName: string;
+    FImageWidth: Integer;
+    FImageHeight: Integer;
     function GetCurrentServerFileName: string; virtual; abstract;
     function GetCurrentClientFileName: string; virtual; abstract;
     function GetCurrentContentSize: Integer; virtual; abstract;
@@ -511,7 +511,6 @@ type
     procedure DownloadFile(const AServerFileName, AClientFileName: string); virtual; abstract;
     procedure DownloadThumbnailedFile(const AServerFileName, AClientFileName: string); virtual; abstract;
     procedure ClearContents; virtual;
-    procedure DownloadThumbnailedStream(const AStream: TStream; const AFileName: string);
     function IsEmpty: Boolean;
     function IsPicture: Boolean;
   protected
@@ -731,7 +730,7 @@ type
 implementation
 
 uses
-  Math, StrUtils, Windows, Graphics, Variants, jpeg, pngimage, superobject,
+  Math, StrUtils, Windows, Graphics, Variants, superobject,
   EF.SysUtils, EF.StrUtils, EF.Localization, EF.YAML, EF.Types, EF.SQL, EF.JSON,
   EF.DB, EF.Macros, EF.VariantUtils,
   Kitto.Config, Kitto.SQL, Kitto.Metadata, Kitto.Metadata.Models, Kitto.Types,
@@ -2705,86 +2704,6 @@ begin
     DownloadFile(LServerFileName, GetCurrentClientFileName);
 end;
 
-procedure TKExtFormFileEditor.DownloadThumbnailedStream(const AStream: TStream;
-  const AFileName: string);
-var
-  LFileExt: string;
-  LTempFileName: string;
-  LStream: TFileStream;
-
-  procedure WriteTempFile;
-  var
-    LFileStream: TFileStream;
-  begin
-    LFileStream := TFileStream.Create(LTempFileName, fmCreate);
-    try
-      AStream.Position := 0;
-      LFileStream.CopyFrom(AStream, AStream.Size);
-      AStream.Position := 0;
-    finally
-      FreeAndNil(LFileStream);
-    end;
-  end;
-
-  procedure TransformTempFileToThumbnail(const AMaxWidth, AMaxHeight: Integer;
-    const AImageClass: TGraphicClass);
-  var
-    LImage: TGraphic;
-    LScale: Extended;
-    LBitmap: TBitmap;
-  begin
-    LImage := AImageClass.Create;
-    try
-      LImage.LoadFromFile(LTempFileName);
-      if (LImage.Height <= AMaxHeight) and (LImage.Width <= AMaxWidth) then
-        Exit;
-      if LImage.Height > LImage.Width then
-        LScale := AMaxHeight / LImage.Height
-      else
-        LScale := AMaxWidth / LImage.Width;
-      LBitmap := TBitmap.Create;
-      try
-        LBitmap.Width := Round(LImage.Width * LScale);
-        LBitmap.Height := Round(LImage.Height * LScale);
-        LBitmap.Canvas.StretchDraw(LBitmap.Canvas.ClipRect, LImage);
-
-        LImage.Assign(LBitmap);
-        LImage.SaveToFile(LTempFileName);
-      finally
-        LBitmap.Free;
-      end;
-    finally
-      LImage.Free;
-    end;
-  end;
-
-begin
-  LFileExt := ExtractFileExt(AFileName);
-  if FRecordField.ViewField.GetBoolean('IsPicture') and MatchText(LFileExt, ['.jpg', '.jpeg', '.png']) then
-  begin
-    LTempFileName := GetTempFileName(LFileExt);
-    try
-      WriteTempFile;
-      if MatchText(LFileExt, ['.jpg', '.jpeg']) then
-        TransformTempFileToThumbnail(FImageWidth, FImageHeight, TJPEGImage)
-      else
-        TransformTempFileToThumbnail(FImageWidth, FImageHeight, TPngImage);
-
-      LStream := TFileStream.Create(LTempFileName, fmOpenRead + fmShareDenyWrite);
-      try
-        Session.DownloadStream(LStream, AFileName);
-      finally
-        FreeAndNil(LStream);
-      end;
-    finally
-      if FileExists(LTempFileName) then
-        DeleteFile(LTempFileName);
-    end;
-  end
-  else
-    Session.DownloadStream(AStream, AFileName);
-end;
-
 procedure TKExtFormFileEditor.FileUploaded(const AFileName: string);
 var
   LFileNameField: string;
@@ -2813,7 +2732,7 @@ function TKExtFormFileEditor.IsPicture: Boolean;
 begin
   Assert(Assigned(FRecordField));
 
-  Result := FRecordField.ViewField.GetBoolean('IsPicture');
+  Result := FRecordField.ViewField.IsPicture;
 end;
 
 procedure TKExtFormFileEditor.RefreshValue;
@@ -2933,8 +2852,8 @@ begin
   else
     // Add dummy parameter to the URL to force the browser to refresh the image
     // after an upload.
-    ExtSession.ResponseItems.AddHTML(Format('<img src="%s&time=%s">', [MethodURI(GetImage),
-      FormatDateTime('yyyymmddhhnnsszzz', Now())]));
+    ExtSession.ResponseItems.AddHTML(Format('<img src="%s">',
+      [MethodURI(GetImage, ['time', FormatDateTime('yyyymmddhhnnsszzz', Now())])]));
 end;
 
 function TKExtFormFileEditor.GetObjectNamePrefix: string;
@@ -3174,10 +3093,10 @@ begin
   inherited;
   if FileExists(AServerFileName) then
     LStream := TFileStream.Create(AServerFileName, fmOpenRead + fmShareDenyWrite)
-  else if not FrecordField.IsNull then
+  else if not FRecordField.IsNull then
     LStream := TBytesStream.Create(FRecordField.AsBytes);
   try
-    DownloadThumbnailedStream(LStream, AClientFileName);
+    DownloadThumbnailedStream(LStream, AClientFileName, FImageWidth, FImageHeight);
   finally
     FreeAndNil(LStream);
   end;
@@ -3252,7 +3171,7 @@ begin
   inherited;
   LStream := TFileStream.Create(AServerFileName, fmOpenRead + fmShareDenyWrite);
   try
-    DownloadThumbnailedStream(LStream, AClientFileName);
+    DownloadThumbnailedStream(LStream, AClientFileName, FImageWidth, FImageHeight);
   finally
     FreeAndNil(LStream);
   end;

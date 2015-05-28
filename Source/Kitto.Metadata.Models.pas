@@ -644,7 +644,7 @@ type
     /// </returns>
     function LoadRecords(const AStore: TEFTree; const AFilterExpression: string;
       const ASortExpression: string; const AStart: Integer = 0;
-      const ALimit: Integer = 0): Integer; virtual; abstract;
+      const ALimit: Integer = 0; const AForEachRecord: TProc<TEFNode> = nil): Integer; virtual; abstract;
 
     procedure SaveRecords(const AStore: TEFTree; const APersist: Boolean;
       const AAfterPersist: TProc); virtual; abstract;
