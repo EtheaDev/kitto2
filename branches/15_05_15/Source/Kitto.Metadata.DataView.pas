@@ -1748,7 +1748,7 @@ end;
 function TKViewField.GetQualifiedDBNameOrExpression: string;
 begin
   if IsReference then
-    Result := FieldName + '.' + ModelField.ReferencedModel.CaptionField.FieldNameOrExpression
+    Result := DBName + '.' + ModelField.ReferencedModel.CaptionField.DBColumnNameOrExpression
   else if Expression <> '' then
     Result := Expression
   else
@@ -1782,7 +1782,7 @@ end;
 function TKViewField.GetDBNameOrExpression: string;
 begin
   if IsReference then
-    Result := ModelField.ReferencedModel.CaptionField.FieldNameOrExpression
+    Result := ModelField.ReferencedModel.CaptionField.DBColumnNameOrExpression
   else if Expression <> '' then
     Result := Expression
   else
