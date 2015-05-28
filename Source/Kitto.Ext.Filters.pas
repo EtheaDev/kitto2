@@ -235,7 +235,8 @@ type
   ///  </para>
   ///  <para>
   ///   AutoSearchAfterChars determines the number of characters that can
-  ///   be entered before the search fires. Default is 4 characters.
+  ///   be entered before the search automatically fires. Default is 0
+  ///   characters (no auto search).
   ///  </para>
   /// </summary>
   TKFreeSearchFilter = class(TKExtFormTextField, IKExtFilter)
@@ -762,7 +763,7 @@ begin
   Assert(Assigned(AConfig));
   FConfig := AConfig;
 
-  LAutoSearchAfterChars := AConfig.GetInteger('AutoSearchAfterChars', 4);
+  LAutoSearchAfterChars := AConfig.GetInteger('AutoSearchAfterChars', 0);
   if LAutoSearchAfterChars <> 0 then
   begin
     // Auto-fire change event when at least MinChars characters are typed.
