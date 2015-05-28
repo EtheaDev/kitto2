@@ -2305,7 +2305,12 @@ begin
         begin
           ASQLBuilder.BuildSelectQuery(FViewTable, AFilter, ASort, LDBQuery, FMasterRecord, AFrom, AFor);
         end);
-      inherited Load(LDBQuery);
+      inherited Load(LDBQuery, False, False,
+        procedure (ARecord: Kitto.Store.TKRecord)
+        begin
+          if Assigned(AForEachRecord) then
+            AForEachRecord(ARecord as TKViewTableRecord);
+        end);
     end;
   finally
     FreeAndNil(LDBQuery);

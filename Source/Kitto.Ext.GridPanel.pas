@@ -830,7 +830,6 @@ end;
 
 procedure TKExtGridPanel.UpdateObserver(const ASubject: IEFSubject; const AContext: string);
 begin
-  inherited;
   if (AContext = 'Confirmed') and Supports(ASubject.AsObject, IKExtController) then
   begin
     if not FClientStoreOnLoadSet then
@@ -838,8 +837,8 @@ begin
       ClientStore.On('load', FSelectionModel.SelectFirstRow);
       FClientStoreOnLoadSet := True;
     end;
-    LoadData;
   end;
+  inherited;
 end;
 
 procedure TKExtGridPanel.LoadData;
