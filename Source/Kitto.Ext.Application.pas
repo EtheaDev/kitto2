@@ -78,7 +78,7 @@ end;
 
 destructor TKExtAppThread.Destroy;
 begin
-  Application.TerminateAllThreads;
+  //Application.TerminateAllThreads;
   FreeAndNil(Application);
   inherited;
 end;

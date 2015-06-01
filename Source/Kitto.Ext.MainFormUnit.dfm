@@ -3,7 +3,7 @@ object KExtMainForm: TKExtMainForm
   Top = 0
   Caption = 'Kitto Application'
   ClientHeight = 313
-  ClientWidth = 604
+  ClientWidth = 680
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -424,7 +424,7 @@ object KExtMainForm: TKExtMainForm
   object PageControl: TPageControl
     Left = 0
     Top = 0
-    Width = 604
+    Width = 680
     Height = 313
     ActivePage = HomeTabSheet
     Align = alClient
@@ -435,8 +435,8 @@ object KExtMainForm: TKExtMainForm
       object LogMemo: TMemo
         Left = 0
         Top = 81
-        Width = 596
-        Height = 204
+        Width = 672
+        Height = 183
         Align = alClient
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
@@ -451,13 +451,13 @@ object KExtMainForm: TKExtMainForm
       object ControlPanel: TPanel
         Left = 0
         Top = 0
-        Width = 596
+        Width = 672
         Height = 81
         Align = alTop
         BevelOuter = bvNone
         TabOrder = 1
         DesignSize = (
-          596
+          672
           81)
         object SessionCountLabel: TLabel
           Left = 264
@@ -544,7 +544,7 @@ object KExtMainForm: TKExtMainForm
           OnClick = HomeURLLabelClick
         end
         object AppIcon: TImage
-          Left = 528
+          Left = 604
           Top = 0
           Width = 64
           Height = 64
@@ -561,6 +561,95 @@ object KExtMainForm: TKExtMainForm
           Style = csDropDownList
           TabOrder = 0
           OnChange = ConfigFileNameComboBoxChange
+        end
+      end
+      object MainTabSet: TTabSet
+        AlignWithMargins = True
+        Left = 4
+        Top = 264
+        Width = 664
+        Height = 21
+        Margins.Left = 4
+        Margins.Top = 0
+        Margins.Right = 4
+        Margins.Bottom = 0
+        Align = alBottom
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -11
+        Font.Name = 'Tahoma'
+        Font.Style = []
+        SoftTop = True
+        Style = tsModernPopout
+        Tabs.Strings = (
+          'Log'
+          'Sessions')
+        TabIndex = 0
+        OnChange = MainTabSetChange
+      end
+      object SessionPanel: TPanel
+        Left = 0
+        Top = 81
+        Width = 672
+        Height = 183
+        Align = alClient
+        BevelOuter = bvNone
+        Padding.Left = 4
+        Padding.Right = 4
+        Padding.Bottom = 2
+        TabOrder = 3
+        object SessionToolPanel: TPanel
+          Left = 4
+          Top = 0
+          Width = 664
+          Height = 36
+          Align = alTop
+          BevelOuter = bvNone
+          TabOrder = 0
+          ExplicitLeft = 0
+        end
+        object Button1: TButton
+          Left = 4
+          Top = 6
+          Width = 75
+          Height = 25
+          Caption = 'Refresh'
+          TabOrder = 1
+          OnClick = Button1Click
+        end
+        object SessionListView: TListView
+          Left = 4
+          Top = 36
+          Width = 664
+          Height = 145
+          Align = alClient
+          BevelInner = bvNone
+          BevelOuter = bvNone
+          Columns = <
+            item
+              Caption = 'Session Name'
+              Width = 180
+            end
+            item
+              Caption = 'Start Time'
+              Width = 120
+            end
+            item
+              Caption = 'Last Request'
+              Width = 120
+            end
+            item
+              Caption = 'User Name'
+              Width = 100
+            end
+            item
+              Caption = 'Origin'
+              Width = 100
+            end>
+          TabOrder = 2
+          ViewStyle = vsReport
+          OnEdited = SessionListViewEdited
+          OnInfoTip = SessionListViewInfoTip
         end
       end
     end
@@ -593,7 +682,7 @@ object KExtMainForm: TKExtMainForm
     Left = 320
     Top = 65528
     Bitmap = {
-      494C010103004C00BC0010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C010103004C00C00010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000001000000001002000000000000010
       0000000000000000000000000000000000000000000000000000000000000000
       00000000001E00000031000000330000003300000033000000310000001E0000

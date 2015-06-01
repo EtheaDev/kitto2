@@ -48,6 +48,10 @@ type
 
   TWebSession = class(TFCGISession);
 
+  TFCGIThreadData = record
+    Session: TFCGISession;
+  end;
+
   {
   Statefull and multi-thread behavior for FastCGI applications. This class has a garbage collector that frees idle threads.
   The initial state in a FastCGI application is a listening socket, through which it accepts connections from a Web server.
@@ -73,6 +77,7 @@ type
     procedure DoRun; override;
     function CanConnect(Address : string) : boolean;
     function GetThread(I : integer) : TThread;
+    function GetThreadData(const I: Integer): TFCGIThreadData;
     function ThreadsCount : integer;
     function ReachedMaxConns : boolean;
     procedure OnPortInUseError; virtual;
@@ -785,6 +790,14 @@ function TFCGIApplication.GetThread(I : integer) : TThread; begin
   Result := TThread(FThreads.Objects[I])
 end;
 
+function TFCGIApplication.GetThreadData(const I: Integer): TFCGIThreadData;
+var
+  LThread: TFCGIThread;
+begin
+  LThread := TFCGIThread(FThreads.Objects[I]);
+  Result.Session := LThread.FSession;
+end;
+
 {
 Handles "Port #### already in use" error. Occurs when the port is already in use for another service or application.
 Can be overrided in descendent thread class. It shall be overrided if the application is a service.
@@ -813,6 +826,7 @@ begin
     try
       Bind(Port, 1000);
       if Error = 0 then
+      begin
         repeat
           NewSocket := Accept(250);
           if NewSocket <> 0 then TFCGIThread.Create(NewSocket);
@@ -822,7 +836,9 @@ begin
             I := 0;
           end;
           inc(I);
-        until Terminated
+        until Terminated;
+        TerminateAllThreads;
+      end
       else
         OnPortInUseError;
     finally
