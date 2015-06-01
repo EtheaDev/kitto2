@@ -89,6 +89,7 @@ type
     function UpdateRecord(const ARecord: TKVIewTableRecord; const ANewValues: ISuperObject;
       const APersist: Boolean): string;
     function GetDefaultRemoteSort: Boolean; virtual;
+    function IsLookupMode: Boolean;
   public
     destructor Destroy; override;
     property ViewTable: TKViewTable read FViewTable write SetViewTable;
@@ -274,6 +275,21 @@ var
   LLimit: Integer;
   LTotal: Integer;
   LData: string;
+
+  function GetFilter: string;
+  var
+    LFilter: string;
+    LLookupFilter: string;
+  begin
+    LFilter := GetRootDataPanel.GetFilterExpression;
+    if LFilter <> '' then
+      LFilter := '(' + LFilter + ')';
+    LLookupFilter := Config.GetString('Sys/LookupFilter');
+    if LLookupFilter <> '' then
+      LLookupFilter := '(' + LLookupFilter + ')';
+    Result := SmartConcat(LFilter, ' and ', LLookupFilter);
+  end;
+
 begin
   try
     // Don't refresh if there are pending changes.
@@ -287,7 +303,7 @@ begin
       LStart := Session.QueryAsInteger['start'];
       LLimit := Session.QueryAsInteger['limit'];
 
-      LTotal := ViewTable.Model.LoadRecords(ServerStore, GetRootDataPanel.GetFilterExpression, GetOrderByClause, LStart, LLimit);
+      LTotal := ViewTable.Model.LoadRecords(ServerStore, GetFilter, GetOrderByClause, LStart, LLimit);
       if (LStart <> 0) or (LLimit <> 0) then
         LData := ServerStore.GetAsJSON(True)
       else
@@ -387,6 +403,11 @@ begin
 
   AController.Config.SetObject('Sys/ViewTable', FViewTable);
   AController.Config.SetObject('Sys/ServerStore', FServerStore);
+end;
+
+function TKExtDataPanelController.IsLookupMode: Boolean;
+begin
+  Result := Config.GetBoolean('Sys/LookupMode');
 end;
 
 procedure TKExtDataPanelController.SetViewTable(const AValue: TKViewTable);

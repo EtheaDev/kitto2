@@ -85,7 +85,6 @@ type
       const AToolbar: TKExtToolbar): TKExtActionButton; override;
     function GetSelectCall(const AMethod: TExtProcedure): TExtFunction; override;
     function IsMultiSelect: Boolean;
-    function IsLookupMode: Boolean;
     function GetDefaultRemoteSort: Boolean; override;
     function GetIsPaged: Boolean;
   public

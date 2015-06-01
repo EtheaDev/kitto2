@@ -4049,6 +4049,7 @@ begin
     procedure (AController: IKExtController)
     begin
       AController.Config.SetBoolean('Sys/LookupMode', True);
+      AController.Config.SetString('Sys/LookupFilter', FRecordField.ViewField.LookupFilter);
     end);
   if Supports(FLookupController, IEFSubject, LSubject) then
     LSubject.AttachObserver(Self);
