@@ -705,6 +705,7 @@ begin
       FResponseItemsStack.Peek.ExecuteJSCode(LSender, LBranch.Consume);
     end;
   end;
+  FreeAndNil(LBranch);
 
   Assert(FResponseItemsStack.Count = LInitialCount - 1);
 end;
