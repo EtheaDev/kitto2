@@ -647,6 +647,7 @@ end;
 class destructor TKConfig.Destroy;
 begin
   FreeAndNil(FResourcePathsURLs);
+  FreeAndNil(FInstance);
 end;
 
 function TKConfig.GetAppTitle: string;

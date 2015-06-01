@@ -31,6 +31,8 @@ uses
 
 const
   FORM_LABELWIDTH = 120;
+  DEFAULT_DETAIL_PANEL_HEIGHT = 200;
+  DEFAULT_DETAIL_STYLE = 'Tabs';
 
 type
   /// <summary>
@@ -322,15 +324,13 @@ begin
 end;
 
 function TKExtFormPanelController.GetDetailBottomPanelHeight: Integer;
-const
-  DEFAULT_DETAIL_BOTTOM_PANEL_HEIGHT = 200;
 begin
-  Result := ViewTable.GetInteger('DetailTables/Controller/Style/Height', DEFAULT_DETAIL_BOTTOM_PANEL_HEIGHT);
+  Result := ViewTable.GetInteger('DetailTables/Controller/Style/Height', DEFAULT_DETAIL_PANEL_HEIGHT);
 end;
 
 function TKExtFormPanelController.GetDetailStyle: string;
 begin
-  Result := ViewTable.GetString('DetailTables/Controller/Style', 'Tabs');
+  Result := ViewTable.GetString('DetailTables/Controller/Style', DEFAULT_DETAIL_STYLE);
 end;
 
 procedure TKExtFormPanelController.LoadData;
