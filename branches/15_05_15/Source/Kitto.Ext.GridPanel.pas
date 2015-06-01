@@ -313,11 +313,6 @@ begin
   FEditorGridPanel.EnableHdMenu := False;
 end;
 
-function TKExtGridPanel.IsLookupMode: Boolean;
-begin
-  Result := Config.GetBoolean('Sys/LookupMode');
-end;
-
 function TKExtGridPanel.IsMultiSelect: Boolean;
 begin
   Assert(Assigned(FSelectionModel));
