@@ -79,4 +79,7 @@ begin
   end;
 end;
 
+initialization
+  ReportMemoryLeaksOnShutdown := DebugHook <> 0;
+
 end.
