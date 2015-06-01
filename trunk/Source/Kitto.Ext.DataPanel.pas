@@ -512,6 +512,21 @@ var
   LLimit: Integer;
   LTotal: Integer;
   LData: string;
+
+  function GetFilter: string;
+  var
+    LFilter: string;
+    LLookupFilter: string;
+  begin
+    LFilter := GetRootDataPanel.GetFilterExpression;
+    if LFilter <> '' then
+      LFilter := '(' + LFilter + ')';
+    LLookupFilter := Config.GetString('Sys/LookupFilter');
+    if LLookupFilter <> '' then
+      LLookupFilter := '(' + LLookupFilter + ')';
+    Result := SmartConcat(LFilter, ' and ', LLookupFilter);
+  end;
+
 begin
   try
     // Don't refresh if there are pending changes.
@@ -525,7 +540,7 @@ begin
       LStart := Session.QueryAsInteger['start'];
       LLimit := Session.QueryAsInteger['limit'];
 
-      LTotal := ViewTable.Model.LoadRecords(ServerStore, GetRootDataPanel.GetFilterExpression, GetOrderByClause, LStart, LLimit,
+      LTotal := ViewTable.Model.LoadRecords(ServerStore, GetFilter, GetOrderByClause, LStart, LLimit,
         procedure (ARecord: TEFNode)
         begin
           Assert(ARecord is TKViewTableRecord);
