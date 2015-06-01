@@ -102,7 +102,7 @@ type
   end;
 
   TKExtSession = class(TExtSession, IEFInterface, IEFObserver)
-  private
+  strict private
     FHomeController: TObject;
     FConfig: TKConfig;
     FViewHost: IKExtViewHost;
@@ -111,7 +111,6 @@ type
     FUploadedFiles: TObjectList<TKExtUploadedFile>;
     FOpenControllers: TObjectList<TObject>;
     FMacroExpander: TKExtSessionMacroExpander;
-    FGettextInstance: TGnuGettextInstance;
     FRefreshingLanguage: Boolean;
     FControllerHostWindow: TKExtControllerHostWindow;
     FDynamicScripts: TStringList;
@@ -126,6 +125,9 @@ type
     FViewportWidth: Integer;
     FViewportContent: string;
     FViewportWidthInInches: Integer;
+    FCreationDateTime: TDateTime;
+    FLastRequestDateTime: TDateTime;
+    FDisplayName: string;
     procedure LoadLibraries;
     procedure DisplayHomeView;
     procedure DisplayLoginView;
@@ -156,7 +158,11 @@ type
     function GetDefaultHomeViewNodeNames(const ASuffix: string): TStringDynArray;
     function GetDefaultViewportWidth: Integer;
     const DEFAULT_VIEWPORT_WIDTH = 480;
-  protected
+    function GetDisplayName: string;
+    procedure SetDisplayName(const AValue: string);
+  private
+    FGettextInstance: TGnuGettextInstance;
+  strict protected
     function BeforeHandleRequest: Boolean; override;
     procedure AfterHandleRequest; override;
     procedure AfterNewSession; override;
@@ -320,6 +326,12 @@ type
     ///  are enabled for desktop browsers and disabled for mobile browsers.
     /// </summary>
     function TooltipsEnabled: Boolean;
+
+    property CreationDateTime: TDateTime read FCreationDateTime;
+    property LastRequestDateTime: TDateTime read FLastRequestDateTime;
+    property DisplayName: string read GetDisplayName write SetDisplayName;
+    function GetLoggedInUserName: string;
+    function GetOrigin: string;
   published
     procedure DelayedHome;
     procedure Logout;
@@ -417,6 +429,11 @@ begin
     Result := '';
 end;
 
+function TKExtSession.GetOrigin: string;
+begin
+  Result := RequestHeader['REMOTE_ADDR'];
+end;
+
 function TKExtSession.FindPageTemplate(const APageName: string): string;
 var
   LFileName: string;
@@ -457,6 +474,14 @@ end;
 function TKExtSession.GetSessionCookieName: string;
 begin
   Result := 'kitto';
+end;
+
+function TKExtSession.GetLoggedInUserName: string;
+begin
+  if Config.Authenticator.IsAuthenticated then
+    Result := Config.Authenticator.UserName
+  else
+    Result := '<Not Authenticated>';
 end;
 
 function TKExtSession.GetViewportContent: string;
@@ -554,6 +579,13 @@ begin
 //  else
 //    Result := 0;
 //  end;
+end;
+
+function TKExtSession.GetDisplayName: string;
+begin
+  Result := FDisplayName;
+  if Result = '' then
+    Result := SessionId;
 end;
 
 function TKExtSession.GetHomeView: TKView;
@@ -1002,6 +1034,11 @@ begin
   end;
 end;
 
+procedure TKExtSession.SetDisplayName(const AValue: string);
+begin
+  FDisplayName := AValue;
+end;
+
 procedure TKExtSession.ClearStatus;
 begin
   if Assigned(FStatusHost) then
@@ -1117,6 +1154,7 @@ end;
 procedure TKExtSession.AfterNewSession;
 begin
   inherited;
+  FCreationDateTime := Now;
   FSessionId := SessionCookie;
   TEFLogger.Instance.LogFmt('New session %s.', [FSessionId],
     TEFLogger.LOG_MEDIUM);
@@ -1133,6 +1171,7 @@ end;
 
 function TKExtSession.BeforeHandleRequest: Boolean;
 begin
+  FLastRequestDateTime := Now;
   TEFLogger.Instance.LogStrings('BeforeHandleRequest', Queries,
     TEFLogger.LOG_DETAILED);
   { TODO : only do this when ADO is used }
