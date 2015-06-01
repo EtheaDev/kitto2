@@ -3987,8 +3987,8 @@ begin
       begin
         LRecord := FLookupController.Config.GetObject('Sys/LookupResultRecord') as TKViewTableRecord;
         Assert(Assigned(LRecord));
+        LResultKeyValues := LRecord.GetFieldValuesAsString(FRecordField.ViewField.ModelField.ReferencedModel.GetKeyFieldNames, TKConfig.Instance.MultiFieldSeparator);
         LKeyFieldNames := Join(FRecordField.ViewField.ModelField.GetFieldNames, TKConfig.Instance.MultiFieldSeparator);
-        LResultKeyValues := LRecord.GetFieldValuesAsString(FRecordField.ViewField.ModelField.GetFieldNames, TKConfig.Instance.MultiFieldSeparator);
         FRecordField.ParentRecord.FieldByName(LKeyFieldNames).AsString := LResultKeyValues;
       end;
       FreeAndNilEFIntf(FLookupController);
