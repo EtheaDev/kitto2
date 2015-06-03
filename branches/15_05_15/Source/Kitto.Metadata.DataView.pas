@@ -535,6 +535,7 @@ type
 
   TKViewTable = class(TKMetadataItem)
   strict private
+    FFindingNode: Boolean;
     function GetIsDetail: Boolean;
     function GetField(I: Integer): TKViewField;
     function GetFieldCount: Integer;
@@ -570,6 +571,8 @@ type
 
     property IsDetail: Boolean read GetIsDetail;
     property MasterTable: TKViewTable read GetMasterTable;
+
+    function HasModelName: Boolean;
 
     /// <summary>
     ///   If the view table is a detail, this property contains the name
@@ -938,6 +941,11 @@ begin
     Result := '';
 end;
 
+function TKViewTable.HasModelName: Boolean;
+begin
+  Result := ModelName <> '';
+end;
+
 function TKViewTable.GetModel: TKModel;
 begin
   Result := View.Catalog.Models.ModelByName(ModelName);
@@ -1224,9 +1232,17 @@ function TKViewTable.FindNode(const APath: string;
   const ACreateMissingNodes: Boolean): TEFNode;
 begin
   Result := inherited FindNode(APath, ACreateMissingNodes);
-  if not Assigned(Result) then
-    // ACreateMissingNodes is False here.
-    Result := Model.FindNode(APath, False);
+  if not Assigned(Result) and not FFindingNode then
+  begin
+    // Prevent Stack-overflow when testing HasModelName
+    FFindingNode := True;
+    try
+      if HasModelName then
+        Result := Model.FindNode(APath, False);
+    finally
+      FFindingNode := False;
+    end;
+  end;
 end;
 
 function TKViewTable.FindParentField(const AFieldName: string): TKViewField;
