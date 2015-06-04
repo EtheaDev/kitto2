@@ -33,7 +33,6 @@ MainTable:
       DownloadText:
         DisplayLabel: _(Download in TXT)
         Controller: ExportTextTool
-          IncludeHeader: False
           ClientFileName: DollList.txt
           RequireSelection: False
       DownloadCSV:
