@@ -24,6 +24,10 @@ uses
   Kitto.Metadata.DataView, Kitto.Ext.StandardControllers;
 
 type
+  TExportTextToolController = class;
+
+  TExportTextToolControllerClass = class of TExportTextToolController;
+
   TExportTextToolController = class(TKExtDownloadFileController)
   strict private
     function GetDelimiter: char;
@@ -34,11 +38,11 @@ type
   strict protected
     function GetDefaultFileExtension: string; override;
     function CreateStream: TStream; override;
-    function GetDefaultIncludeHeader: boolean; virtual;
     function GetDefaultFixedLength: boolean; virtual;
     function GetDefaultDelimiter: char; virtual;
     function GetDefaultQuoteChar: char; virtual;
   public
+    class function GetDefaultIncludeHeader: boolean; virtual;
     class function GetDefaultImageName: string; override;
   published
     property IncludeHeader: boolean read GetIncludeHeader;
@@ -51,8 +55,9 @@ type
   TExportCSVToolController = class(TExportTextToolController)
   strict protected
     function GetDefaultFileExtension: string; override;
-    function GetDefaultIncludeHeader: boolean; override;
     function GetDefaultFixedLength: boolean; override;
+  public
+    class function GetDefaultIncludeHeader: boolean; override;
   end;
 
   TExportXMLToolController = class(TKExtDownloadFileController)
@@ -60,9 +65,9 @@ type
     function GetIncludeHeader: boolean;
   strict protected
     function GetDefaultFileExtension: string; override;
-    function GetDefaultIncludeHeader: boolean; virtual;
     function CreateStream: TStream; override;
   public
+    class function GetDefaultIncludeHeader: boolean; virtual;
     class function GetDefaultImageName: string; override;
   published
     property IncludeHeader: boolean read GetIncludeHeader;
@@ -82,7 +87,7 @@ begin
   Result := False;
 end;
 
-function TExportCSVToolController.GetDefaultIncludeHeader: boolean;
+class function TExportCSVToolController.GetDefaultIncludeHeader: boolean;
 begin
   Result := True;
 end;
@@ -109,7 +114,7 @@ begin
   Result := 'text_document';
 end;
 
-function TExportTextToolController.GetDefaultIncludeHeader: boolean;
+class function TExportTextToolController.GetDefaultIncludeHeader: boolean;
 begin
   Result := False;
 end;
@@ -272,7 +277,7 @@ begin
   Result := 'xml_document';
 end;
 
-function TExportXMLToolController.GetDefaultIncludeHeader: boolean;
+class function TExportXMLToolController.GetDefaultIncludeHeader: boolean;
 begin
   Result := True;
 end;
