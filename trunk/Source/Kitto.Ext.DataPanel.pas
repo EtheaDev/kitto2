@@ -327,6 +327,7 @@ begin
     LFormController.Config.SetObject('Sys/Record', ARecord);
   LFormController.Config.SetObject('Sys/ViewTable', ViewTable);
   LFormController.Config.SetObject('Sys/HostWindow', FEditHostWindow);
+  LFormController.Config.SetObject('Sys/CallingController', Self);
 
   LWidth := ViewTable.GetInteger('Controller/PopupWindow/Width');
   LHeight := ViewTable.GetInteger('Controller/PopupWindow/Height');

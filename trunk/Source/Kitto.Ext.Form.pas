@@ -108,6 +108,7 @@ type
     procedure LoadData; override;
     destructor Destroy; override;
     function GetFilterExpression: string; override;
+    function GetRegionName(const ARegion: TExtBoxComponentRegion): string; override;
   published
     procedure GetRecord;
     procedure SwitchToEditMode;
@@ -901,6 +902,13 @@ end;
 function TKExtFormPanelController.FindLayout: TKLayout;
 begin
   Result := FindViewLayout('Form');
+end;
+
+function TKExtFormPanelController.GetRegionName(const ARegion: TExtBoxComponentRegion): string;
+begin
+  Result := inherited GetRegionName(ARegion);
+  if Config.GetObject('Sys/CallingController') <> nil then
+    Result := 'SecondaryController/' + Result;
 end;
 
 function TKExtFormPanelController.GetConfirmJSCode(const AMethod: TExtProcedure): string;
