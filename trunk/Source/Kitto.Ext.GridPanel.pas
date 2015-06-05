@@ -818,7 +818,7 @@ var
   LError: string;
 begin
   LReqBody := SO(Session.RequestBody);
-  LError := UpdateRecord(ServerStore.GetRecord(LReqBody.O['new'], Session.Config.UserFormatSettings), LReqBody.O['new'], False);
+  LError := UpdateRecord(ServerStore.GetRecord(LReqBody.O['new'], Session.Config.UserFormatSettings), LReqBody.O['new'], False, True);
   if LError = '' then
     // ok - nothing
   else
@@ -830,7 +830,7 @@ end;
 
 procedure TKExtGridPanel.UpdateObserver(const ASubject: IEFSubject; const AContext: string);
 begin
-  if (AContext = 'Confirmed') and Supports(ASubject.AsObject, IKExtController) then
+  if MatchText(AContext, ['Confirmed', 'Canceled']) and Supports(ASubject.AsObject, IKExtController) then
   begin
     if not FClientStoreOnLoadSet then
     begin

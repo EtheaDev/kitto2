@@ -94,7 +94,6 @@ type
     procedure InitFlags;
     function FindLayout: TKLayout;
     function IsViewMode: Boolean;
-    procedure RefreshEditorValues;
     procedure SetStoreRecord(const AValue: TKViewTableRecord);
   strict protected
     procedure DoDisplay; override;
@@ -103,6 +102,8 @@ type
     function AddActionButton(const AUniqueId: string; const AView: TKView;
       const AToolbar: TKExtToolbar): TKExtActionButton; override;
     procedure TabChange(AThis: TExtTabPanel; ATab: TExtPanel); virtual;
+    procedure RefreshEditorValues;
+    procedure RefreshEditorFields;
   public
     procedure LoadData; override;
     destructor Destroy; override;
@@ -386,6 +387,7 @@ begin
           end;
         end;
       end;
+    RefreshEditorFields;
   end;
 end;
 
@@ -405,6 +407,22 @@ var
     end;
   end;
 
+  function IsCloned: Boolean;
+  begin
+    Result := SameText(FOperation, 'Add') and Assigned(FCloneValues);
+  end;
+
+  procedure SwitchChangeNotifications(const AOn: Boolean);
+  begin
+    if SameText(FOperation, 'Dup') or IsCloned then
+    begin
+      if AOn then
+        StoreRecord.Store.EnableChangeNotifications
+      else
+        StoreRecord.Store.DisableChangeNotifications;
+    end;
+  end;
+
 begin
   Assert(Assigned(StoreRecord));
 
@@ -421,15 +439,13 @@ begin
         end
         else
           LDefaultValues := ViewTable.GetDefaultValues;
-        if SameText(FOperation, 'Dup') then
-          StoreRecord.Store.DisableChangeNotifications;
+        SwitchChangeNotifications(False);
         try
           StoreRecord.ReadFromNode(LDefaultValues);
         finally
-          if SameText(FOperation, 'Dup') then
-            StoreRecord.Store.EnableChangeNotifications;
+          SwitchChangeNotifications(True);
         end;
-        ViewTable.Model.BeforeNewRecord(StoreRecord, Assigned(FCloneValues) and SameText(FOperation, 'Add'));
+        ViewTable.Model.BeforeNewRecord(StoreRecord, IsCloned);
         StoreRecord.ApplyNewRecordRules;
         ViewTable.Model.AfterNewRecord(StoreRecord);
       finally
@@ -451,25 +467,36 @@ end;
 
 procedure TKExtFormPanelController.RefreshEditorValues;
 begin
-  // Load data. Combo boxes can only have their raw value set after they're rendered.
-  FEditItems.AllEditors(
-    procedure (AEditor: IKExtEditor)
-    var
-      LFormField: TExtFormField;
-    begin
-      LFormField := AEditor.AsExtFormField;
-      if Assigned(LFormField) then
+  if Assigned(FEditItems) then
+    // Load data. Combo boxes can only have their raw value set after they're rendered.
+    FEditItems.AllEditors(
+      procedure (AEditor: IKExtEditor)
+      var
+        LFormField: TExtFormField;
       begin
-        LFormField.RemoveAllListeners('afterrender');
-        LFormField.On('afterrender', LFormField.JSFunction(
-          procedure()
-          begin
-            AEditor.RefreshValue;
-          end));
-      end
-      else
-        AEditor.RefreshValue;
-    end);
+        LFormField := AEditor.AsExtFormField;
+        if Assigned(LFormField) then
+        begin
+          LFormField.RemoveAllListeners('afterrender');
+          LFormField.On('afterrender', LFormField.JSFunction(
+            procedure()
+            begin
+              AEditor.RefreshValue;
+            end));
+        end
+        else
+          AEditor.RefreshValue;
+      end);
+end;
+
+procedure TKExtFormPanelController.RefreshEditorFields;
+begin
+  if Assigned(FEditItems) then
+    FEditItems.AllEditors(
+      procedure (AEditor: IKExtEditor)
+      begin
+        AEditor.RecordField := StoreRecord.FieldByName(AEditor.FieldName);
+      end);
 end;
 
 procedure TKExtFormPanelController.SwitchToEditMode;
@@ -510,7 +537,7 @@ var
   LError: string;
 begin
   AssignFieldChangeEvent(False);
-  LError := UpdateRecord(StoreRecord, SO(Session.RequestBody).O['new'], True);
+  LError := UpdateRecord(StoreRecord, SO(Session.RequestBody).O['new'], True, Config.GetBoolean('KeepOpenAfterOperation'));
   FreeAndNil(FCloneValues);
   if LError = '' then
   begin
@@ -523,7 +550,7 @@ end;
 
 procedure TKExtFormPanelController.ConfirmChangesAndClone;
 begin
-  UpdateRecord(StoreRecord, SO(Session.RequestBody).O['new'], True);
+  UpdateRecord(StoreRecord, SO(Session.RequestBody).O['new'], True, True);
   FCloneValues := TEFNode.Clone(StoreRecord);
   StoreRecord := ServerStore.AppendRecord(nil);
   FOperation := 'Add';

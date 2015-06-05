@@ -100,7 +100,8 @@ type
     function GetParentDataPanel: TKExtDataPanelController;
     function GetRootDataPanel: TKExtDataPanelController;
     function FindViewLayout(const ALayoutName: string): TKLayout;
-    function UpdateRecord(const ARecord: TKVIewTableRecord; const ANewValues: ISuperObject; const APersist: Boolean): string;
+    function UpdateRecord(const ARecord: TKVIewTableRecord; const ANewValues: ISuperObject;
+      const APersist, ASuppressNotification: Boolean): string;
     function GetDefaultRemoteSort: Boolean; virtual;
     function GetCurrentViewRecord: TKViewTableRecord;
     procedure ShowEditWindow(const ARecord: TKRecord; const AEditMode: TKEditMode);
@@ -898,7 +899,7 @@ begin
 end;
 
 function TKExtDataPanelController.UpdateRecord(const ARecord: TKVIewTableRecord; const ANewValues: ISuperObject;
-  const APersist: Boolean): string;
+  const APersist, ASuppressNotification: Boolean): string;
 var
   LItem: TSuperAvlEntry;
   LOldRecord: TKViewTableRecord;
@@ -985,7 +986,8 @@ begin
         Exit;
       end;
     end;
-    NotifyObservers('Confirmed');
+    if not ASuppressNotification then
+      NotifyObservers('Confirmed');
   finally
     FreeAndNil(LOldRecord);
   end;

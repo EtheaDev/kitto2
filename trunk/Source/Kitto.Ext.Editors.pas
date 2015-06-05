@@ -2153,6 +2153,8 @@ end;
 
 function TKExtFormRowField.AsExtFormField: TExtFormField;
 begin
+  Assert(Assigned(FEditor));
+
   Result := FEditor.AsExtFormField;
 end;
 
@@ -2164,6 +2166,8 @@ end;
 
 function TKExtFormRowField.InternalSetOption(const ANode: TEFNode): Boolean;
 begin
+  Assert(Assigned(FEditor));
+
   // Widths are set for both the container and the contained editor.
   if SameText(ANode.Name, 'ColumnWidth') then
   begin
@@ -2199,6 +2203,8 @@ begin
   Assert(Assigned(AValue));
 
   FEditor := AValue;
+  if Assigned(FRecordField) then
+    FEditor.RecordField := FRecordField;
   Items.Add(FEditor.AsExtObject);
   LNode := TEFNode.Create('Anchor');
   try
@@ -2213,6 +2219,8 @@ end;
 
 function TKExtFormRowField.GetFieldName: string;
 begin
+  Assert(Assigned(FEditor));
+
   Result := FEditor.FieldName;
 end;
 
@@ -2248,12 +2256,17 @@ end;
 
 procedure TKExtFormRowField.SetFieldName(const AValue: string);
 begin
+  Assert(Assigned(FEditor));
+
   FEditor.FieldName := AValue;
 end;
 
 procedure TKExtFormRowField.SetRecordField(const AValue: TKViewTableField);
 begin
   FRecordField := AValue;
+
+  if Assigned(FEditor) then
+    FEditor.RecordField := FRecordField;
 end;
 
 procedure TKExtFormRowField.SetTransientProperty(const APropertyName: string; const AValue: Variant);
@@ -2263,6 +2276,8 @@ end;
 
 procedure TKExtFormRowField.StoreValue(const AObjectName: string);
 begin
+  Assert(Assigned(FEditor));
+
   FEditor.StoreValue(AObjectName);
 end;
 
@@ -3731,8 +3746,7 @@ begin
     AHandler);
 end;
 
-procedure TKEditItemList.EnumEditors(
-  const APredicate: TFunc<IKExtEditor, Boolean>;
+procedure TKEditItemList.EnumEditors(const APredicate: TFunc<IKExtEditor, Boolean>;
   const AHandler: TProc<IKExtEditor>);
 var
   I: Integer;
