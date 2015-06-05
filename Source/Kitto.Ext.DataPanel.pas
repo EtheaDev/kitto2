@@ -60,8 +60,8 @@ type
     FClientReader: TExtDataJsonReader;
     FViewTable: TKViewTable;
     FOwnsServerStore: Boolean;
-    FIsActionVisible: TDictionary<string, Boolean>;
-    FIsActionAllowed: TDictionary<string, Boolean>;
+    FVisibleActions: TDictionary<string, Boolean>;
+    FAllowedActions: TDictionary<string, Boolean>;
     FEditHostWindow: TKExtModalWindow;
     FNewButton: TKExtButton;
     FEditButton: TKExtButton;
@@ -208,8 +208,8 @@ destructor TKExtDataPanelController.Destroy;
 begin
   if FOwnsServerStore then
     FreeAndNil(FServerStore);
-  FreeAndNil(FIsActionAllowed);
-  FreeAndNil(FIsActionVisible);
+  FreeAndNil(FAllowedActions);
+  FreeAndNil(FVisibleActions);
   FreeAndNil(FEditItems);
   FreeAndNil(FButtonsRequiringSelection);
   inherited;
@@ -694,18 +694,22 @@ end;
 
 function TKExtDataPanelController.IsActionAllowed(const AActionName: string): Boolean;
 begin
-  Result := FIsActionAllowed[AActionName];
+  // Unknown actions are always allowed.
+  if not FAllowedActions.TryGetValue(AActionName, Result) then
+    Result := True;
+end;
+
+function TKExtDataPanelController.IsActionVisible(const AActionName: string): Boolean;
+begin
+  // Unknown actions are always visible.
+  if not FVisibleActions.TryGetValue(AActionName, Result) then
+    Result := True;
 end;
 
 function TKExtDataPanelController.IsActionSupported(const AActionName: string): Boolean;
 begin
   // Let inherited controllers explictly declare their supported actions.
   Result := False;
-end;
-
-function TKExtDataPanelController.IsActionVisible(const AActionName: string): Boolean;
-begin
-  Result := FIsActionVisible[AActionName];
 end;
 
 function TKExtDataPanelController.IsLookupMode: Boolean;
@@ -731,41 +735,41 @@ begin
   FClientReader := CreateClientReader;
   FClientStore.Reader := FClientReader;
 
-  FIsActionVisible.AddOrSetValue('View', IsActionSupported('View') and (FViewTable.GetBoolean('Controller/AllowViewing') or Config.GetBoolean('AllowViewing')));
-  FIsActionAllowed.AddOrSetValue('View', FIsActionVisible['View'] and FViewTable.IsAccessGranted(ACM_VIEW));
+  FVisibleActions.AddOrSetValue('View', IsActionSupported('View') and (FViewTable.GetBoolean('Controller/AllowViewing') or Config.GetBoolean('AllowViewing')));
+  FAllowedActions.AddOrSetValue('View', FVisibleActions['View'] and FViewTable.IsAccessGranted(ACM_VIEW));
 
-  FIsActionVisible.AddOrSetValue('Add',
+  FVisibleActions.AddOrSetValue('Add',
     IsActionSupported('Add')
     and not FViewTable.GetBoolean('Controller/PreventAdding')
     and not View.GetBoolean('IsReadOnly')
     and not FViewTable.IsReadOnly
     and not Config.GetBoolean('PreventAdding'));
-  FIsActionAllowed.AddOrSetValue('Add', FIsActionVisible['Add'] and FViewTable.IsAccessGranted(ACM_ADD));
+  FAllowedActions.AddOrSetValue('Add', FVisibleActions['Add'] and FViewTable.IsAccessGranted(ACM_ADD));
 
-  FIsActionVisible.AddOrSetValue('Dup',
+  FVisibleActions.AddOrSetValue('Dup',
     IsActionSupported('Dupo')
     and (FViewTable.GetBoolean('Controller/AllowDuplicating') or Config.GetBoolean('AllowDuplicating'))
     and not FViewTable.GetBoolean('Controller/PreventAdding')
     and not View.GetBoolean('IsReadOnly')
     and not FViewTable.IsReadOnly
     and not Config.GetBoolean('PreventAdding'));
-  FIsActionAllowed.AddOrSetValue('Dup', FIsActionVisible['Dup'] and FViewTable.IsAccessGranted(ACM_ADD));
+  FAllowedActions.AddOrSetValue('Dup', FVisibleActions['Dup'] and FViewTable.IsAccessGranted(ACM_ADD));
 
-  FIsActionVisible.AddOrSetValue('Edit',
+  FVisibleActions.AddOrSetValue('Edit',
     IsActionSupported('Edit')
     and not FViewTable.GetBoolean('Controller/PreventEditing')
     and not View.GetBoolean('IsReadOnly')
     and not FViewTable.IsReadOnly
     and not Config.GetBoolean('PreventEditing'));
-  FIsActionAllowed.AddOrSetValue('Edit', FIsActionVisible['Edit'] and FViewTable.IsAccessGranted(ACM_MODIFY));
+  FAllowedActions.AddOrSetValue('Edit', FVisibleActions['Edit'] and FViewTable.IsAccessGranted(ACM_MODIFY));
 
-  FIsActionVisible.AddOrSetValue('Delete',
+  FVisibleActions.AddOrSetValue('Delete',
     IsActionSupported('Delete')
     and not FViewTable.GetBoolean('Controller/PreventDeleting')
     and not View.GetBoolean('IsReadOnly')
     and not FViewTable.IsReadOnly
     and not Config.GetBoolean('PreventDeleting'));
-  FIsActionAllowed.AddOrSetValue('Delete', FIsActionVisible['Delete'] and FViewTable.IsAccessGranted(ACM_DELETE));
+  FAllowedActions.AddOrSetValue('Delete', FVisibleActions['Delete'] and FViewTable.IsAccessGranted(ACM_DELETE));
 end;
 
 { TKExtDataActionButton }
@@ -864,8 +868,8 @@ end;
 procedure TKExtDataPanelController.AfterConstruction;
 begin
   inherited;
-  FIsActionAllowed := TDictionary<string, Boolean>.Create;
-  FIsActionVisible := TDictionary<string, Boolean>.Create;
+  FAllowedActions := TDictionary<string, Boolean>.Create;
+  FVisibleActions := TDictionary<string, Boolean>.Create;
   FButtonsRequiringSelection := TList<TExtObject>.Create;
 end;
 
