@@ -58,9 +58,8 @@ type
   strict protected
     procedure InitComponents; override;
     procedure SetViewTable(const AValue: TKViewTable); override;
-  protected
+    function GetRegionDefaultControllerClass(const ARegion: TExtBoxComponentRegion): string; override;
   public
-    class function GetRegionDefaultControllerClass(const ARegion: TExtBoxComponentRegion): string; override;
     function GetFilterExpression: string; override;
   end;
 
@@ -293,12 +292,12 @@ begin
     Title := _(Session.Config.MacroExpansionEngine.Expand(ViewTable.PluralDisplayLabel));
 end;
 
-class function TKExtListPanelController.GetRegionDefaultControllerClass(const ARegion: TExtBoxComponentRegion): string;
+function TKExtListPanelController.GetRegionDefaultControllerClass(const ARegion: TExtBoxComponentRegion): string;
 begin
   if ARegion = rgCenter then
     Result := 'GridPanel'
   else
-    Result := '';
+    Result := inherited GetRegionDefaultControllerClass(ARegion);
 end;
 
 procedure TKExtListPanelController.SetViewTable(const AValue: TKViewTable);
