@@ -2870,6 +2870,6 @@ initialization
 finalization
   TKViewRegistry.Instance.UnregisterClass(TKMetadata.SYS_PREFIX + 'Data');
   TEFDataTypeRegistry.Instance.UnregisterClass(TKFileReferenceDataType.GetTypeName);
-  TKViewRegistry.Instance.Free;
+//  TKViewRegistry.Instance.Free;
 
 end.
