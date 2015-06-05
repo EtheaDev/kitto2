@@ -25,7 +25,7 @@ uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics,
   Controls, Forms, Dialogs, ComCtrls, ToolWin, Kitto.Ext.Application,
   ActnList, Kitto.Config, StdCtrls, Buttons, ExtCtrls, ImgList, EF.Logger,
-  Actions, Vcl.Tabs, System.ImageList, Vcl.Grids;
+  Actions, Vcl.Tabs, Vcl.Grids;
 
 type
   TKExtLogEvent = procedure (const AString: string) of object;
