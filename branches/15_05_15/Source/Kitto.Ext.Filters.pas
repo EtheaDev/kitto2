@@ -235,7 +235,8 @@ type
   ///  </para>
   ///  <para>
   ///   AutoSearchAfterChars determines the number of characters that can
-  ///   be entered before the search fires. Default is 4 characters.
+  ///   be entered before the search automatically fires. Default is 0
+  ///   characters (no auto search).
   ///  </para>
   /// </summary>
   TKFreeSearchFilter = class(TKExtFormTextField, IKExtFilter)
@@ -762,7 +763,7 @@ begin
   Assert(Assigned(AConfig));
   FConfig := AConfig;
 
-  LAutoSearchAfterChars := AConfig.GetInteger('AutoSearchAfterChars', 4);
+  LAutoSearchAfterChars := AConfig.GetInteger('AutoSearchAfterChars', 0);
   if LAutoSearchAfterChars <> 0 then
   begin
     // Auto-fire change event when at least MinChars characters are typed.
@@ -771,7 +772,9 @@ begin
   end;
   FieldLabel := _(AConfig.AsString);
   Width := CharsToPixels(AConfig.GetInteger('Width', DEFAULT_FILTER_WIDTH));
-  FCurrentValue := '';
+  FCurrentValue := AConfig.GetExpandedString('DefaultValue');
+  if FCurrentValue <> '' then
+    SetValue(FCurrentValue);
   if FConfig.GetBoolean('Sys/IsReadOnly') then
     Disabled := True
   else
@@ -826,13 +829,20 @@ end;
 
 procedure TKDateSearchFilter.SetConfig(const AConfig: TEFNode);
 var
-  LFormat: string;
+  LDefaultValue, LFormat: string;
 begin
   Assert(Assigned(AConfig));
   FConfig := AConfig;
   FieldLabel := _(AConfig.AsString);
   Width := CharsToPixels(AConfig.GetInteger('Width', 12));
-  FCurrentValue := 0;
+  LDefaultValue := AConfig.GetExpandedString('DefaultValue');
+  if LDefaultValue <> '' then
+  begin
+    FCurrentValue := StrToDate(LDefaultValue, Session.Config.UserFormatSettings);
+    SetValue(DateToStr(FCurrentValue, Session.Config.UserFormatSettings));
+  end
+  else
+    FCurrentValue := 0;
   LFormat := Session.Config.UserFormatSettings.ShortDateFormat;
   Format := DelphiDateFormatToJSDateFormat(LFormat);
   AltFormats := DelphiDateFormatToJSDateFormat(Session.Config.JSFormatSettings.ShortDateFormat);
