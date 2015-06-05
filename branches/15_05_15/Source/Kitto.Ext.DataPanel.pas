@@ -87,7 +87,7 @@ type
     function GetRootDataPanel: TKExtDataPanelController;
     function FindViewLayout(const ALayoutName: string): TKLayout;
     function UpdateRecord(const ARecord: TKVIewTableRecord; const ANewValues: ISuperObject;
-      const APersist: Boolean): string;
+      const APersist, ASuppressNotification: Boolean): string;
     function GetDefaultRemoteSort: Boolean; virtual;
     function IsLookupMode: Boolean;
   public
@@ -476,7 +476,7 @@ begin
 end;
 
 function TKExtDataPanelController.UpdateRecord(const ARecord: TKVIewTableRecord; const ANewValues: ISuperObject;
-  const APersist: Boolean): string;
+  const APersist, ASuppressNotification: Boolean): string;
 var
   LItem: TSuperAvlEntry;
   LOldRecord: TKViewTableRecord;
@@ -563,7 +563,8 @@ begin
         Exit;
       end;
     end;
-    NotifyObservers('Confirmed');
+    if not ASuppressNotification then
+      NotifyObservers('Confirmed');
   finally
     FreeAndNil(LOldRecord);
   end;
