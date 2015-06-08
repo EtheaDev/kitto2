@@ -58,6 +58,10 @@ type
   private
     FConnection: TFDConnection;
     function FDDataTypeToEFDataType(const AFDDataType: TFDDataType): TEFDataType;
+    procedure FetchTableIndexColumns(const ATable: TEFDBTableInfo;
+      const AIndexName: string; const ColumnNames: TStrings);
+    procedure FetchTableForeignKeysColumns(const ATable: TEFDBTableInfo;
+      const AForeignKeyName: string; const ColumnNames, ReferencedColumnNames: TStrings);
   protected
     procedure BeforeFetchInfo; override;
     procedure FetchTables(const ASchema: TEFDBSchemaInfo); override;
@@ -172,28 +176,7 @@ uses
   //DBXMetaDataNames,
   EF.StrUtils, EF.Localization, EF.Types;
 
-function TEFDBFDInfo.FDDataTypeToEFDataType(const AFDDataType: TFDDataType): TEFDataType;
-var
-  LClass: TEFDataTypeClass;
-begin
-  case AFDDataType of
-    dtBoolean: LClass := TEFBooleanDataType;
-    dtSByte, dtInt16, dtInt32, dtInt64, dtByte,
-    dtUInt16, dtUInt32, dtUInt64: LClass := TEFIntegerDataType;
-    dtSingle, dtDouble, dtExtended: LClass := TEFFloatDataType;
-    dtCurrency, dtBCD, dtFmtBCD: LClass := TEFDecimalDataType;
-    dtDateTime, dtDate, dtDateTimeStamp: LClass := TEFDateDataType;
-    dtTime, dtTimeIntervalFull, dtTimeIntervalYM, dtTimeIntervalDS: LClass := TEFTimeDataType;
-    dtAnsiString, dtWideString, dtByteString: LClass := TEFStringDataType;
-    dtBlob: LClass := TEFBlobDataType;
-    dtMemo, dtWideMemo, dtXML: LClass := TEFMemoDataType;
-  else
-    LClass := TEFStringDataType;
-  end;
-  Result := TEFDataTypeFactory.Instance.GetDataType(LClass);
-end;
-
-{ TEFDBADOParams }
+{ TEFDBFDParams }
 
 procedure TEFDBFDParams.AssignValuesTo(const ADestination: TFDParams);
 var
@@ -225,6 +208,7 @@ procedure TEFDBFDConnection.InternalOpen;
 var
   LDriverId: string;
   LIsolation: Integer;
+  LServer, LPort: string;
 begin
   inherited;
   FConnection.Params.Clear;
@@ -238,9 +222,17 @@ begin
   if SameText(LDriverID, 'MSSQL') then
   begin
     // Use Specific parameters for MS-SQL
-    FConnection.Params.Values['Server'] := Config.GetExpandedString('Connection/Server');
+    LPort := Config.GetString('Connection/Port');
+    LServer := Config.GetExpandedString('Connection/Server');
+    if LPort <> '' then
+      FConnection.Params.Values['Server'] := LServer+', '+LPort
+    else
+      FConnection.Params.Values['Server'] := LServer;
     FConnection.Params.Values['User_Name'] := Config.GetExpandedString('Connection/User_Name');
     FConnection.Params.Values['Password'] := Config.GetExpandedString('Connection/Password');
+    FConnection.Params.Values['Network'] := Config.GetExpandedString('Connection/Network');
+    FConnection.Params.Values['Address'] := Config.GetExpandedString('Connection/Address');
+    FConnection.Params.Values['Language'] := Config.GetExpandedString('Connection/Language');    
     FConnection.Params.Values['ApplicationName'] := Config.GetExpandedString('Connection/ApplicationName');
     FConnection.Params.Values['Database'] := Config.GetExpandedString('Connection/Database');
     FConnection.Params.Values['OSAuthent'] := Config.GetString('Connection/OSAuthent', 'No');
@@ -249,12 +241,29 @@ begin
   else if SameText(LDriverID, 'FB') then
   begin
     // Use Specific parameters for Firebird
-    FConnection.Params.Values['Server'] := Config.GetExpandedString('Connection/Server');
+    FConnection.Params.Values['Database'] := Config.GetExpandedString('Connection/Database');
+    FConnection.Params.Values['OSAuthent'] := Config.GetString('Connection/OSAuthent', 'No');
     FConnection.Params.Values['User_Name'] := Config.GetExpandedString('Connection/User_Name');
     FConnection.Params.Values['Password'] := Config.GetExpandedString('Connection/Password');
     FConnection.Params.Values['CharacterSet'] := Config.GetExpandedString('Connection/CharacterSet');
-    FConnection.Params.Values['Database'] := Config.GetExpandedString('Connection/Database');
+    FConnection.Params.Values['Port'] := Config.GetString('Connection/Port', '3050');
     FConnection.Params.Values['Protocol'] := Config.GetExpandedString('Connection/Protocol');
+    FConnection.Params.Values['Server'] := Config.GetExpandedString('Connection/Server');
+    FConnection.Params.Values['SQLDialect'] := Config.GetExpandedString('Connection/SQLDialect');
+    FConnection.Params.Values['RoleName'] := Config.GetExpandedString('Connection/RoleName');
+  end
+  else if SameText(LDriverID, 'Ora') then
+  begin
+    // Use Specific parameters for Oracle
+    FConnection.Params.Values['Database'] := Config.GetExpandedString('Connection/Database');
+    FConnection.Params.Values['OSAuthent'] := Config.GetString('Connection/OSAuthent', 'No');
+    FConnection.Params.Values['User_Name'] := Config.GetExpandedString('Connection/User_Name');
+    FConnection.Params.Values['Password'] := Config.GetExpandedString('Connection/Password');
+    FConnection.Params.Values['AuthMode'] := Config.GetExpandedString('Connection/AuthMode', 'Normal');
+    FConnection.Params.Values['CharacterSet'] := Config.GetExpandedString('Connection/CharacterSet');
+    FConnection.Params.Values['BooleanFormat'] := Config.GetExpandedString('Connection/BooleanFormat', 'Integer');
+    FConnection.Params.Values['ApplicationName'] := Config.GetExpandedString('Connection/ApplicationName');
+    FConnection.Params.Values['MetaDefSchema'] := Config.GetExpandedString('Connection/MetaDefSchema');
   end;
 
   FConnection.Open;
@@ -380,7 +389,7 @@ end;
 function TEFDBFDConnection.GetLastAutoincValue(
   const ATableName: string = ''): Int64;
 begin
-  // Auto-inc fields currently not supported in dbExpress.
+  // Auto-inc fields currently not supported in FireDac.
   Result := 0;
 end;
 
@@ -594,6 +603,27 @@ end;
 
 { TEFDBFDInfo }
 
+function TEFDBFDInfo.FDDataTypeToEFDataType(const AFDDataType: TFDDataType): TEFDataType;
+var
+  LClass: TEFDataTypeClass;
+begin
+  case AFDDataType of
+    dtBoolean: LClass := TEFBooleanDataType;
+    dtSByte, dtInt16, dtInt32, dtInt64, dtByte,
+    dtUInt16, dtUInt32, dtUInt64: LClass := TEFIntegerDataType;
+    dtSingle, dtDouble, dtExtended: LClass := TEFFloatDataType;
+    dtCurrency, dtBCD, dtFmtBCD: LClass := TEFDecimalDataType;
+    dtDateTime, dtDate, dtDateTimeStamp: LClass := TEFDateDataType;
+    dtTime, dtTimeIntervalFull, dtTimeIntervalYM, dtTimeIntervalDS: LClass := TEFTimeDataType;
+    dtAnsiString, dtWideString, dtByteString: LClass := TEFStringDataType;
+    dtBlob: LClass := TEFBlobDataType;
+    dtMemo, dtWideMemo, dtXML: LClass := TEFMemoDataType;
+  else
+    LClass := TEFStringDataType;
+  end;
+  Result := TEFDataTypeFactory.Instance.GetDataType(LClass);
+end;
+
 procedure TEFDBFDInfo.BeforeFetchInfo;
 begin
   inherited;
@@ -601,29 +631,27 @@ begin
 end;
 
 procedure TEFDBFDInfo.FetchTables(const ASchema: TEFDBSchemaInfo);
-(*
 var
-  LTableDataSet: TADODataSet;
+  LTableDataSet: TFDMetaInfoQuery;
   LTable: TEFDBTableInfo;
-  LTableType: string;
-*)
+  LTableType: TFDPhysTableKind;
 begin
-(*
-  LTableDataSet := TADODataSet.Create(nil);
+  LTableDataSet := TFDMetaInfoQuery.Create(nil);
   try
-    FConnection.OpenSchema(siTables,
-      VarArrayOf([Unassigned, Unassigned, Unassigned, Unassigned]),
-      EmptyParam, LTableDataSet);
+    LTableDataSet.Connection := FConnection;
+    LTableDataSet.MetaInfoKind := mkTables;
+    LTableDataSet.TableKinds := [tkTable, tkView];
+    LTableDataSet.Open;
     while not LTableDataSet.Eof do
     begin
-      LTableType := LTableDataSet.FieldByName('TABLE_TYPE').AsString;
-      if SameText(LTableType, 'Table') or (ViewsAsTables and SameText(LTableType, 'VIEW')) then
+      LTableType := TFDPhysTableKind(LTableDataSet.FieldByName('TABLE_TYPE').AsInteger);
+      if (LTableType = tkTable) or (LTableType = tkView) then
       begin
         LTable := TEFDBTableInfo.Create;
         try
           LTable.Name := LTableDataSet.FieldByName('TABLE_NAME').AsString;
           FetchTableColumns(LTable);
-          if LTableDataSet.FieldByName('TABLE_TYPE').AsString = 'TABLE' then
+          if LTableType = tkTable then
           begin
             FetchTablePrimaryKey(LTable);
             FetchTableForeignKeys(LTable);
@@ -639,7 +667,6 @@ begin
   finally
     LTableDataSet.Free;
   end;
-*)
 end;
 
 constructor TEFDBFDInfo.Create(const AConnection: TFDConnection);
@@ -649,27 +676,33 @@ begin
 end;
 
 procedure TEFDBFDInfo.FetchTableColumns(const ATable: TEFDBTableInfo);
-(*
 var
-  LColumnDataSet: TADODataSet;
+  I: Integer;
+  LColumnDataSet: TFDMetaInfoQuery;
   LColumn: TEFDBColumnInfo;
-*)
+  LColumnAttributes : TFDDataAttributes;
+  LColumnDataType: TFDDataType;
 begin
-(*
-  LColumnDataSet := TADODataSet.Create(nil);
+  LColumnDataSet := TFDMetaInfoQuery.Create(nil);
   try
-    FConnection.OpenSchema(siColumns,
-      VarArrayOf([Unassigned, Unassigned, ATable.Name, Unassigned]),
-      EmptyParam, LColumnDataSet);
+    LColumnDataSet.Connection := FConnection;
+    LColumnDataSet.ObjectName := ATable.Name;
+    LColumnDataSet.MetaInfoKind := mkTableFields;
+    LColumnDataSet.Open;
     while not LColumnDataSet.Eof do
     begin
       LColumn := TEFDBColumnInfo.Create;
       try
+        LColumnDataType := TFDDataType(LColumnDataSet.FieldByName('COLUMN_DATATYPE').AsInteger);
+        I := LColumnDataSet.FieldByName('COLUMN_ATTRIBUTES').AsInteger;
+        LColumnAttributes := TFDDataAttributes(Pointer(@I)^);
         LColumn.Name := LColumnDataSet.FieldByName('COLUMN_NAME').AsString;
-        LColumn.DataType := TEFDataTypeFactory.Instance.GetDataType(
-          ADODataTypeToEFDataType(LColumnDataSet.FieldByName('DATA_TYPE').AsInteger));
-        LColumn.Size := LColumnDataSet.FieldByName('CHARACTER_MAXIMUM_LENGTH').AsInteger;
-        LColumn.IsRequired := not LColumnDataSet.FieldByName('IS_NULLABLE').AsBoolean;
+        LColumn.DataType := FDDataTypeToEFDataType(LColumnDataType);
+        LColumn.Size := LColumnDataSet.FieldByName('COLUMN_LENGTH').AsInteger;
+        LColumn.Scale := LColumnDataSet.FieldByName('COLUMN_SCALE').AsInteger;
+        if LColumn.Size = 0 then
+          LColumn.Size :=  LColumnDataSet.FieldByName('COLUMN_PRECISION').AsInteger;
+        LColumn.IsRequired := not (caAllowNull in LColumnAttributes);
         ATable.AddColumn(LColumn);
       except
         FreeAndNil(LColumn);
@@ -679,63 +712,118 @@ begin
   finally
     LColumnDataSet.Free;
   end;
-*)
 end;
 
 procedure TEFDBFDInfo.FetchTablePrimaryKey(const ATable: TEFDBTableInfo);
-(*
 var
-  LPrimaryKeyDataSet: TADODataSet;
-*)
+  LPrimaryKeyDataSet: TFDMetaInfoQuery;
+  LIndexName: string;
 begin
-(*
-  LPrimaryKeyDataSet := TADODataSet.Create(nil);
+  LPrimaryKeyDataSet := TFDMetaInfoQuery.Create(nil);
   try
-    FConnection.OpenSchema(siPrimaryKeys,
-      VarArrayOf([Unassigned, Unassigned, ATable.Name]),
-      EmptyParam, LPrimaryKeyDataSet);
+    LPrimaryKeyDataSet.Connection := FConnection;
+    LPrimaryKeyDataSet.ObjectName := ATable.Name;
+    LPrimaryKeyDataSet.MetaInfoKind := mkPrimaryKey;
+    LPrimaryKeyDataSet.Open;
     while not LPrimaryKeyDataSet.Eof do
     begin
       if ATable.PrimaryKey.Name = '' then
-        ATable.PrimaryKey.Name := LPrimaryKeyDataSet.FieldByName('PK_NAME').AsString
-      else if ATable.PrimaryKey.Name <> LPrimaryKeyDataSet.FieldByName('PK_NAME').AsString then
+        ATable.PrimaryKey.Name := LPrimaryKeyDataSet.FieldByName('PKEY_NAME').AsString
+      else if ATable.PrimaryKey.Name <> LPrimaryKeyDataSet.FieldByName('PKEY_NAME').AsString then
         raise EEFError.Create('Error fetching primary key data for table ' + ATable.Name);
-      ATable.PrimaryKey.ColumnNames.Add(LPrimaryKeyDataSet.FieldByName('COLUMN_NAME').AsString);
+      LIndexName := LPrimaryKeyDataSet.FieldByName('INDEX_NAME').AsString;
+      FetchTableIndexColumns(ATable, LIndexName, ATable.PrimaryKey.ColumnNames);
       LPrimaryKeyDataSet.Next;
     end;
   finally
     LPrimaryKeyDataSet.Free;
   end;
-*)
 end;
 
-procedure TEFDBFDInfo.FetchTableForeignKeys(const ATable: TEFDBTableInfo);
-(*
+procedure TEFDBFDInfo.FetchTableIndexColumns(const ATable: TEFDBTableInfo;
+  const AIndexName: string; const ColumnNames: TStrings);
 var
-  LForeignKeyDataSet: TADODataSet;
-  LForeignKey: TEFDBForeignKeyInfo;
-*)
+  LIndexFieldsDataSet: TFDMetaInfoQuery;
+  LIndexColumnName: string;
+  LPos, LIndexColumnPosition: Integer;
 begin
-(*
-  LForeignKeyDataSet := TADODataSet.Create(nil);
+  LIndexFieldsDataSet := TFDMetaInfoQuery.Create(nil);
   try
-    FConnection.OpenSchema(siForeignKeys,
-      VarArrayOf([Unassigned, Unassigned, Unassigned, Unassigned, Unassigned, ATable.Name]),
-      EmptyParam, LForeignKeyDataSet);
+    LIndexFieldsDataSet.Connection := FConnection;
+    LIndexFieldsDataSet.BaseObjectName := ATable.Name;
+    LIndexFieldsDataSet.ObjectName := AIndexName;
+    LIndexFieldsDataSet.MetaInfoKind := mkIndexFields;
+    LIndexFieldsDataSet.Open;
+    while not LIndexFieldsDataSet.Eof do
+    begin
+      LIndexColumnName := LIndexFieldsDataSet.FieldByName('COLUMN_NAME').AsString;
+      LIndexColumnPosition := LIndexFieldsDataSet.FieldByName('COLUMN_POSITION').AsInteger;
+      LPos := ColumnNames.Add(LindexColumnName) +1;
+      Assert((LPos = LIndexColumnPosition), 'Index order wrong');
+      LIndexFieldsDataSet.Next;
+    end;
+  finally
+    LIndexFieldsDataSet.Free;
+  end;
+end;
+
+procedure TEFDBFDInfo.FetchTableForeignKeysColumns(const ATable: TEFDBTableInfo;
+  const AForeignKeyName: string; const ColumnNames, ReferencedColumnNames: TStrings);
+var
+  LFKFieldsDataSet: TFDMetaInfoQuery;
+  LFKColumnName, LRefColumnName: string;
+  LPos, LColumnPosition: Integer;
+begin
+  LFKFieldsDataSet := TFDMetaInfoQuery.Create(nil);
+  try
+    LFKFieldsDataSet.Connection := FConnection;
+    LFKFieldsDataSet.BaseObjectName := ATable.Name;
+    LFKFieldsDataSet.ObjectName := AForeignKeyName;
+    LFKFieldsDataSet.MetaInfoKind := mkForeignKeyFields;
+    LFKFieldsDataSet.Open;
+    while not LFKFieldsDataSet.Eof do
+    begin
+      LFKColumnName := LFKFieldsDataSet.FieldByName('COLUMN_NAME').AsString;
+      LRefColumnName := LFKFieldsDataSet.FieldByName('PKEY_COLUMN_NAME').AsString;
+      LColumnPosition := LFKFieldsDataSet.FieldByName('COLUMN_POSITION').AsInteger;
+      LPos := ColumnNames.Add(LFKColumnName) +1;
+      Assert((LPos = LColumnPosition), 'FK column position order wrong');
+      LPos := ReferencedColumnNames.Add(LFKColumnName) +1;
+      Assert((LPos = LColumnPosition), 'FK referenced column position order wrong');
+      LFKFieldsDataSet.Next;
+    end;
+  finally
+    LFKFieldsDataSet.Free;
+  end;
+end;
+
+
+procedure TEFDBFDInfo.FetchTableForeignKeys(const ATable: TEFDBTableInfo);
+var
+  LForeignKeyDataSet: TFDMetaInfoQuery;
+  LForeignKey: TEFDBForeignKeyInfo;
+  LForeignKeyName: string;
+begin
+  LForeignKeyDataSet := TFDMetaInfoQuery.Create(nil);
+  try
+    LForeignKeyDataSet.Connection := FConnection;
+    LForeignKeyDataSet.ObjectName := ATable.Name;
+    LForeignKeyDataSet.MetaInfoKind := mkForeignKeys;
+    LForeignKeyDataSet.Open;
     try
       while not LForeignKeyDataSet.Eof do
       begin
-        LForeignKey := ATable.FindForeignKey(LForeignKeyDataSet.FieldByName('FK_NAME').AsString);
+        LForeignKeyName := LForeignKeyDataSet.FieldByName('FKEY_NAME').AsString;
+        LForeignKey := ATable.FindForeignKey(LForeignKeyName);
         if not Assigned(LForeignKey) then
         begin
           LForeignKey := TEFDBForeignKeyInfo.Create;
-          LForeignKey.Name := LForeignKeyDataSet.FieldByName('FK_NAME').AsString;
+          LForeignKey.Name := LForeignKeyName;
           ATable.AddForeignKey(LForeignKey);
         end;
-        LForeignKey.ForeignTableName := LForeignKeyDataSet.FieldByName('PK_TABLE_NAME').AsString;
-        LForeignKey.ColumnNames.Add(LForeignKeyDataSet.FieldByName('FK_COLUMN_NAME').AsString);
-        LForeignKey.ForeignColumnNames.Add(LForeignKeyDataSet.FieldByName('PK_COLUMN_NAME').AsString);
-
+        LForeignKey.ForeignTableName := LForeignKeyDataSet.FieldByName('PKEY_TABLE_NAME').AsString;
+        FetchTableForeignKeysColumns(ATable, LForeignKeyName, 
+          LForeignKey.ColumnNames, LForeignKey.ForeignColumnNames);
         LForeignKeyDataSet.Next;
       end;
     except
@@ -745,7 +833,6 @@ begin
   finally
     LForeignKeyDataSet.Free;
   end;
-*)
 end;
 
 { TEFDBFDAdapter }
