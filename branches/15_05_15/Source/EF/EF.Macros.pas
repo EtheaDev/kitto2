@@ -217,6 +217,10 @@ type
   ///       <description>TimeToStr(Now)</description>
   ///     </item>
   ///     <item>
+  ///       <term>%DATETIME%</term>
+  ///       <description>DateTimeToStr(Now)</description>
+  ///     </item>
+  ///     <item>
   ///       <term>%PROCESS_ID%</term>
   ///       <description>An integer value that is the current process'
   ///       Id</description>

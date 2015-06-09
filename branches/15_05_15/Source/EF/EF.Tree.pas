@@ -157,7 +157,6 @@ type
   TEFDateDataType = class(TEFDateTimeDataTypeBase)
   protected
     procedure InternalNodeToParam(const ANode: TEFNode; const AParam: TParam); override;
-    class function GetFieldType: TFieldType; override;
     procedure InternalFieldValueToNode(const AField: TField; const ANode: TEFNode); override;
     procedure InternalYamlValueToNode(const AYamlValue: string; const ANode: TEFNode;
       const AFormatSettings: TFormatSettings); override;
@@ -165,6 +164,7 @@ type
       const AValue: string; const AUseJSDateFormat: Boolean;
       const AJSFormatSettings: TFormatSettings); override;
   public
+    class function GetFieldType: TFieldType; override;
     function GetDefaultDisplayWidth(const ASize: Integer): Integer; override;
     function SupportsEmptyAsNull: Boolean; override;
     function InternalNodeToJSONValue(const AForDisplay: Boolean;
@@ -192,7 +192,6 @@ type
   TEFDateTimeDataType = class(TEFDateTimeDataTypeBase)
   protected
     procedure InternalNodeToParam(const ANode: TEFNode; const AParam: TParam); override;
-    class function GetFieldType: TFieldType; override;
     procedure InternalFieldValueToNode(const AField: TField; const ANode: TEFNode); override;
     procedure InternalYamlValueToNode(const AYamlValue: string; const ANode: TEFNode;
       const AFormatSettings: TFormatSettings); override;
@@ -200,6 +199,7 @@ type
       const AValue: string; const AUseJSDateFormat: Boolean;
       const AJSFormatSettings: TFormatSettings); override;
   public
+    class function GetFieldType: TFieldType; override;
     function GetDefaultDisplayWidth(const ASize: Integer): Integer; override;
     function SupportsEmptyAsNull: Boolean; override;
     function InternalNodeToJSONValue(const AForDisplay: Boolean;
