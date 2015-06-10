@@ -69,7 +69,7 @@ type
     FRenderer_: TExtFunction;
     FRendererExtFunction: TExtFunction;
     procedure SetAlign(const AValue: TExtGridColumnAlign);
-    procedure SetFCss(Value: string);
+    procedure SetCss(const AValue: string);
     procedure SetDataIndex(const AValue: string);
     procedure SetEditable(const AValue: Boolean);
     procedure SetEditor(AValue: TExtFormField);
@@ -99,7 +99,7 @@ type
     class function JSClassName: string; override;
     function GetCellEditor(RowIndex: Integer): TExtFunction;
     property Align: TExtGridColumnAlign read FAlign write SetAlign;
-    property Css: string read FCss write SetFCss;
+    property Css: string read FCss write SetCss;
     property DataIndex: string read FDataIndex write SetDataIndex;
     property Editable: Boolean read FEditable write SetEditable;
     property Editor: TExtFormField read FEditor write SetEditor;
@@ -1052,10 +1052,10 @@ begin
     [EnumToJSString(TypeInfo(TExtGridColumnAlign), ord(AValue))]);
 end;
 
-procedure TExtGridColumn.SetFCss(Value: string);
+procedure TExtGridColumn.SetCss(const AValue: string);
 begin
-  FCss := Value;
-  JSCode('css:' + VarToJSON([Value]));
+  FCss := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'css', [AValue]);
 end;
 
 procedure TExtGridColumn.SetDataIndex(const AValue: string);
