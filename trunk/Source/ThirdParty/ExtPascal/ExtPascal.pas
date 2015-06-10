@@ -421,6 +421,8 @@ type
     FResponseItemsStack: TStack<TExtResponseItems>;
     Sequence: Cardinal;
     FSingletons: TDictionary<string, TExtObject>;
+    FMobileBrowserDetectionDone: Boolean;
+    FIsMobileApple: Boolean;
     procedure RelocateVar(JS, JSName : string; I : integer);
     function GetStyleTag: string;
     function GetSequence: string;
@@ -465,6 +467,7 @@ type
       const AConsolidate: Boolean = True);
 
     function GetSingleton<T: TExtObject>(const AName: string): T;
+    function IsMobileApple: Boolean;
   published
     procedure HandleEvent; virtual;
   end;
@@ -1032,6 +1035,21 @@ procedure TExtSession.InitDefaultValues; begin
   UpLoadPath    := '/uploads';
 end;
 
+function TExtSession.IsMobileApple: Boolean;
+var
+  LUserAgent: string;
+begin
+  if not FMobileBrowserDetectionDone then
+  begin
+    LUserAgent := RequestHeader['HTTP_USER_AGENT'];
+    FIsMobileApple :=
+      LUserAgent.Contains('iPhone') or
+      LUserAgent.Contains('iPad');
+    FMobileBrowserDetectionDone := True;
+  end;
+  Result := FIsMobileApple;
+end;
+
 // Calls events using Delphi style
 procedure TExtSession.HandleEvent;
 var
@@ -1500,7 +1518,10 @@ begin
     P := P + 'Obj=' + ObjName;
   end;
   if P <> '' then P := '?' + P;
-  Result := 'Download.src="' + ExtSession.MethodURI(MetName) + P + '";';
+  if Session.IsMobileApple then
+    Result := 'window.open("' + ExtSession.MethodURI(MetName) + P + '");'
+  else
+    Result := 'Download.src="' + ExtSession.MethodURI(MetName) + P + '";';
 end;
 
 function TExtObject.GetExtSession(const AOwner: TComponent): TExtSession;
