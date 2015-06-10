@@ -4759,7 +4759,7 @@ end;
 
 function TExtFormComboBox.ClearValue: TExtFunction;
 begin
-  JSCode(JSName + '.clearValue();', 'TExtFormComboBox');
+  Session.ResponseItems.CallMethod(Self, 'clearValue', []);
   Result := Self;
 end;
 
