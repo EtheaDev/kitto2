@@ -99,6 +99,7 @@ type
     function GetQualifiedAliasedDBName: string;
     function GetLookupFilter: string;
     function GetDBNameOrExpression: string;
+    function GetFieldType: TFieldType;
   strict protected
     function GetChildClass(const AName: string): TEFNodeClass; override;
     function GetDataType: TEFDataType; override;
@@ -253,6 +254,7 @@ type
     property DisplayWidth: Integer read GetDisplayWidth;
     property DecimalPrecision: Integer read GetDecimalPrecision;
     property DataType: TEFDataType read GetDataType;
+    property FieldType: TFieldType read GetFieldType;
     property ActualDataType: TEFDataType read GetActualDataType;
     property Size: Integer read GetSize;
     property IsBlob: Boolean read GetIsBlob;
@@ -1769,6 +1771,14 @@ begin
     Result := Expression
   else
     Result := QualifiedDBName;
+end;
+
+function TKViewField.GetFieldType: TFieldType;
+begin
+  if IsReference then
+    Result := ModelField.ReferencedModel.CaptionField.DataType.GetFieldType
+  else
+    Result := GetDataType.GetFieldType;
 end;
 
 function TKViewField.GetDataType: TEFDataType;
