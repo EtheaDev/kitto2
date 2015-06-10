@@ -99,6 +99,7 @@ type
     function GetQualifiedAliasedDBName: string;
     function GetLookupFilter: string;
     function GetDBNameOrExpression: string;
+    function GetFieldType: TFieldType;
     function GetIsPicture: Boolean;
     const URL_PREFIX = '_URL_';
   strict protected
@@ -255,6 +256,7 @@ type
     property DisplayWidth: Integer read GetDisplayWidth;
     property DecimalPrecision: Integer read GetDecimalPrecision;
     property DataType: TEFDataType read GetDataType;
+    property FieldType: TFieldType read GetFieldType;
     property ActualDataType: TEFDataType read GetActualDataType;
     property Size: Integer read GetSize;
     property IsBlob: Boolean read GetIsBlob;
@@ -1779,6 +1781,14 @@ begin
     Result := QualifiedDBName;
 end;
 
+function TKViewField.GetFieldType: TFieldType;
+begin
+  if IsReference then
+    Result := ModelField.ReferencedModel.CaptionField.DataType.GetFieldType
+  else
+    Result := GetDataType.GetFieldType;
+end;
+
 function TKViewField.GetDataType: TEFDataType;
 var
   LDataTypeName: string;
@@ -1806,7 +1816,7 @@ end;
 function TKViewField.GetDBNameOrExpression: string;
 begin
   if IsReference then
-    Result := ModelField.ReferencedModel.CaptionField.FieldNameOrExpression
+    Result := ModelField.ReferencedModel.CaptionField.DBColumnNameOrExpression
   else if Expression <> '' then
     Result := Expression
   else
