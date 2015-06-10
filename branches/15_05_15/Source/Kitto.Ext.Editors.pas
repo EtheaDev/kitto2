@@ -1919,6 +1919,8 @@ begin
     if IsChangeHandlerNeeded(FRecordField) then
       On('change', JSFunction(GetChangeJSCode(ValueChanged)));
     On('select', JSFunction(JSName + '.kitto$isChanged = true;'));
+    On('change', JSFunction('field, newValue, oldValue',
+      'if (newValue!==oldValue) ' + JSName + '.kitto$isChanged = true;'));
   end;
 end;
 
