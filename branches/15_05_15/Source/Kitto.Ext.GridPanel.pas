@@ -460,6 +460,32 @@ var
       end;
     end;
 
+    function GetStringNode(const AName: string): string;
+    var
+      LNode: TEFNode;
+    begin
+      LNode := nil;
+      if Assigned(ALayoutNode) then
+        LNode := ALayoutNode.FindNode(AName);
+      if not Assigned(LNode) then
+        LNode := AViewField.FindNode(AName);
+      if Assigned(LNode) then
+        Result := LNode.AsExpandedString;
+    end;
+
+    procedure SetColumnCSS(const AColumn: TExtGridColumn);
+    var
+      LCSS: string;
+      LColor: string;
+    begin
+      LCSS := GetStringNode('CSS');
+      LColor := GetStringNode('Color');
+      if LColor <> '' then
+        LCSS := LCSS + 'background-color: ' + LColor + ';';
+      if LCSS <> '' then
+        AColumn.Css := LCSS;
+    end;
+
     function CreateColumn: TExtGridColumn;
     var
       LDataType: TEFDataType;
@@ -575,6 +601,8 @@ var
 
       //In-place editing
       SetGridColumnEditor(LEditorManager, AViewField, ALayoutNode, Result);
+
+      SetColumnCSS(Result);
     end;
 
   begin
