@@ -479,7 +479,7 @@ procedure TCustomWebSession.DownloadBuffer(const FileName: string; const Size: L
     ContentType := AContentType;
   CustomResponseHeaders['content-disposition'] := Format('attachment;filename="%s"', [ExtractFileName(FileName)]);
   CustomResponseHeaders['Content-Length'] := IntToStr(Size);
-    Response := string(Buffer);
+  Response := string(Buffer);
   IsDownload := True;
 end;
 
