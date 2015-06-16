@@ -64,7 +64,6 @@ MainTable:
         DisplayLabel: Download in TXT
         Controller: ExportTextTool
           RequireSelection: False
-          IncludeHeader: False
           ClientFileName: ActivityList_%YYYYMMDD_DATE%_%HHMM_TIME%.txt
       DownloadCSV:
         DisplayLabel: Download in CSV
