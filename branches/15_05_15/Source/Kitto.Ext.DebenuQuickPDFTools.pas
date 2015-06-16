@@ -95,11 +95,9 @@ type
       const FullFileName: string = '');
     function LoadLayout(const ALayoutFileName: string): TEFPersistentTree;
     property PDFDoc: TPDFLibrary read GetPDFDoc;
-  strict
-  private
     function GetLayoutFileName: string;
-  private
-    function GetBaseFileName: string; protected
+    function GetBaseFileName: string;
+  strict protected
     function GetDefaultFileName: string; override;
     procedure PrepareFile(const AFileName: string); override;
     function GetDefaultFileExtension: string; override;
