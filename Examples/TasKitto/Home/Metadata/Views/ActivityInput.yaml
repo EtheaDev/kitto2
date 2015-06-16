@@ -9,7 +9,6 @@ Controller: List
       FreeSearch: Description
         ExpressionTemplate: (UPPER(Activity.Description) like UPPER('%{value}%'))
       DynaList: Activity Type
-        Width: 20
         CommandText: |
           select first 1 '%' TYPE_ID, '(All)' TYPE_NAME from kitto_users
             union all
