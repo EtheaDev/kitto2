@@ -756,7 +756,7 @@ begin
   if LLoginView.ControllerType = '' then
     LType := 'Login'
   else
-    LTYpe := '';
+    LType := '';
   FLoginController := TKExtControllerFactory.Instance.CreateController(ObjectCatalog, LLoginView, nil, nil, Self, LType).AsObject;
   if Supports(FLoginController, IKExtController, LIntf) then
     LIntf.Display;
