@@ -26,7 +26,7 @@ uses
   Kitto.Metadata.DataView, Kitto.Ext.Base, Kitto.Ext.DataPanelLeaf;
 
 type
-  TKExTemplateDataPanel = class(TKExtDataPanelLeafController)
+  TKExtTemplateDataPanel = class(TKExtDataPanelLeafController)
   strict private
     FDataView: TExtDataView;
     procedure CreateTemplateView;
@@ -48,14 +48,14 @@ uses
   Kitto.Types, Kitto.Ext.Utils, Kitto.Metadata.Models, Kitto.Metadata.Views,
   Kitto.Ext.Session, Kitto.Ext.Controller, Kitto.Ext.XSLTools;
 
-{ TKExTemplateDataPanel }
+{ TKExtTemplateDataPanel }
 
-procedure TKExTemplateDataPanel.AddTopToolbarToolViewButtons;
+procedure TKExtTemplateDataPanel.AddTopToolbarToolViewButtons;
 begin
   inherited AddToolViewButtons(ViewTable.FindNode('Controller/ToolViews'), TopToolbar);
 end;
 
-procedure TKExTemplateDataPanel.CreateTemplateView;
+procedure TKExtTemplateDataPanel.CreateTemplateView;
 var
   LFileName: string;
   LTemplate: string;
@@ -74,7 +74,7 @@ begin
   FDataView.Store := ClientStore;
 end;
 
-function TKExTemplateDataPanel.ProcessTemplate(const ATemplate: string): string;
+function TKExtTemplateDataPanel.ProcessTemplate(const ATemplate: string): string;
 var
   I: Integer;
 begin
@@ -89,7 +89,7 @@ begin
   end;
 end;
 
-procedure TKExTemplateDataPanel.InitDefaults;
+procedure TKExtTemplateDataPanel.InitDefaults;
 begin
   inherited;
   FDataView := TExtDataView.CreateAndAddTo(Items);
@@ -98,13 +98,13 @@ begin
   FDataView.AutoScroll := True;
 end;
 
-function TKExTemplateDataPanel.IsActionSupported(const AActionName: string): Boolean;
+function TKExtTemplateDataPanel.IsActionSupported(const AActionName: string): Boolean;
 begin
   { TODO : Implement GetSelectCall in order to support actions that require selection. }
   Result := MatchText(AActionName, ['Add']);
 end;
 
-procedure TKExTemplateDataPanel.SetViewTable(const AValue: TKViewTable);
+procedure TKExtTemplateDataPanel.SetViewTable(const AValue: TKViewTable);
 begin
   Assert(Assigned(AValue));
   inherited;
@@ -121,7 +121,7 @@ begin
 end;
 
 initialization
-  TKExtControllerRegistry.Instance.RegisterClass('TemplateDataPanel', TKExTemplateDataPanel);
+  TKExtControllerRegistry.Instance.RegisterClass('TemplateDataPanel', TKExtTemplateDataPanel);
 
 finalization
   TKExtControllerRegistry.Instance.UnregisterClass('TemplateDataPanel');
