@@ -492,7 +492,6 @@ type
     FTotalCharWidth: Integer;
     FPictureView: TExtPanel;
     function GetContentDescription: string;
-    procedure CreateGUI;
     procedure UpdateGUI(const AUpdatePicture: Boolean);
     procedure PictureViewAfterRender(This: TExtComponent);
     procedure SetTotalCharWidth(const AValue: Integer);
@@ -514,6 +513,7 @@ type
     function IsEmpty: Boolean;
     function IsPicture: Boolean;
   protected
+    procedure CreateGUI(const AViewField: TKViewField);
     function GetObjectNamePrefix: string; override;
   public
     function AsObject: TObject; inline;
@@ -2763,7 +2763,7 @@ begin
   FPictureView.Load(JSObject(Format('url:"%s"', [MethodURI(GetImageContent)])));
 end;
 
-procedure TKExtFormFileEditor.CreateGUI;
+procedure TKExtFormFileEditor.CreateGUI(const AViewField: TKViewField);
 var
   LPanel: TExtPanel;
   LUploadButton: TKExtButton;
@@ -2773,11 +2773,11 @@ var
 begin
   Layout := lyForm;
 
-  LIsPicture := IsPicture;
+  LIsPicture := AViewField.IsPicture;
 
   LPanel := TExtPanel.CreateAndAddTo(Items);
-  FImageWidth := FRecordField.ViewField.GetInteger('IsPicture/Thumbnail/Width', 100);
-  FImageHeight := FRecordField.ViewField.GetInteger('IsPicture/Thumbnail/Height', 100);
+  FImageWidth := AViewField.GetInteger('IsPicture/Thumbnail/Width', 100);
+  FImageHeight := AViewField.GetInteger('IsPicture/Thumbnail/Height', 100);
 
   if LIsPicture then
   begin
@@ -2848,7 +2848,6 @@ end;
 procedure TKExtFormFileEditor.SetRecordField(const AValue: TKViewTableField);
 begin
   FRecordField := AValue;
-  CreateGUI;
   UpdateGUI(False);
 end;
 
@@ -3596,6 +3595,7 @@ begin
       LFileEditor.TotalCharWidth := AFieldCharWidth - 1;
       if Assigned(ARowField) then
         ARowField.CharWidth := AFieldCharWidth;
+      LFileEditor.CreateGUI(AViewField);
       Result := LFileEditor;
     except
       LFileEditor.Free;
