@@ -617,15 +617,15 @@ begin
 
   FCancelButton := TKExtButton.CreateAndAddTo(Buttons);
   FCancelButton.SetIconAndScale('cancel', Config.GetString('ButtonScale', 'medium'));
-  FCancelButton.Text := _('Cancel');
-  FCancelButton.Tooltip := _('Cancel changes');
+  FCancelButton.Text := Config.GetString('CancelButton/Caption', _('Cancel'));
+  FCancelButton.Tooltip := Config.GetString('CancelButton/Tooltip', _('Cancel changes'));
   FCancelButton.Handler := Ajax(CancelChanges);
   FCancelButton.Hidden := FIsReadOnly or IsViewMode;
 
   FCloseButton := TKExtButton.CreateAndAddTo(Buttons);
   FCloseButton.SetIconAndScale('close', Config.GetString('ButtonScale', 'medium'));
-  FCloseButton.Text := _('Close');
-  FCloseButton.Tooltip := _('Close this panel');
+  FCloseButton.Text := Config.GetString('CloseButton/Caption', _('Close'));
+  FCloseButton.Tooltip := Config.GetString('CloseButton/Tooltip', _('Close this panel'));
   // No need for an ajax call when we just close the client-side panel.
   LHostWindow := GetHostWindow;
   if Assigned(LHostWindow) then
