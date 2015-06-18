@@ -100,6 +100,7 @@ type
     function GetLookupFilter: string;
     function GetDBNameOrExpression: string;
     function GetFieldType: TFieldType;
+    function GetIsPicture: Boolean;
   strict protected
     function GetChildClass(const AName: string): TEFNodeClass; override;
     function GetDataType: TEFDataType; override;
@@ -319,6 +320,9 @@ type
     ///  records on this field.
     /// </summary>
     function BuildSortClause(const AIsDescending: Boolean): string;
+
+    property IsPicture: Boolean read GetIsPicture;
+
   end;
 
   TKViewFields = class(TKMetadataItem)
@@ -2054,6 +2058,11 @@ end;
 function TKViewField.GetIsPassword: Boolean;
 begin
   Result := GetBoolean('IsPassword');
+end;
+
+function TKViewField.GetIsPicture: Boolean;
+begin
+  Result := GetBoolean('IsPicture');
 end;
 
 function TKViewField.GetIsReadOnly: Boolean;
