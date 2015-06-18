@@ -299,6 +299,9 @@ type
     procedure HandleEvent(const AEvtName : string); virtual;
     property ExtSession: TExtSession read GetExtSession;
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
+    procedure SetConfigItem(const AName, AMethodName: string; const AValue: array of const); overload;
+    procedure SetConfigItem(const AName, AValue: string); overload;
+    procedure SetConfigItem(const AName: string; const AValue: TExtFunction); overload;
   public
     IsChild : boolean;
     constructor CreateInternal(const AOwner: TExtObject; const AAttribute: string); virtual;
@@ -1614,6 +1617,22 @@ end;
 function TExtObject.GetExtSession: TExtSession;
 begin
   Result := GetExtSession(Owner);
+end;
+
+procedure TExtObject.SetConfigItem(const AName, AMethodName: string;
+  const AValue: array of const);
+begin
+  ExtSession.ResponseItems.SetConfigItem(Self, AName, AMethodName, AValue);
+end;
+
+procedure TExtObject.SetConfigItem(const AName, AValue: string);
+begin
+  ExtSession.ResponseItems.SetConfigItem(Self, AName, [AValue]);
+end;
+
+procedure TExtObject.SetConfigItem(const AName: string; const AValue: TExtFunction);
+begin
+  ExtSession.ResponseItems.SetConfigItem(Self, AName, [AValue, True]);
 end;
 
 procedure TExtObject.SetCustomConfigItem(const AName: string; const AValues: array of const);
