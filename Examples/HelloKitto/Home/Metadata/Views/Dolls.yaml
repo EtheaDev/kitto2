@@ -22,7 +22,7 @@ MainTable:
       Height: 500
       Width: 400
 
-    .Grouping:
+    Grouping:
       FieldName: Hair
       StartCollapsed: False
       ShowName: False
