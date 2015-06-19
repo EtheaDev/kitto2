@@ -59,8 +59,7 @@ type
     function CreateClientStore: TExtDataStore; override;
     procedure AfterCreateTopToolbar; override;
     procedure AddTopToolbarToolViewButtons; override;
-    function GetSelectConfirmCall(const AMessage: string;
-      const AMethod: TExtProcedure): string; override;
+    function GetSelectConfirmCall(const AMessage: string; const AMethod: TExtProcedure): string; override;
     function AddActionButton(const AUniqueId: string; const AView: TKView;
       const AToolbar: TKExtToolbar): TKExtActionButton; override;
     function GetSelectCall(const AMethod: TExtProcedure): TExtFunction; override;

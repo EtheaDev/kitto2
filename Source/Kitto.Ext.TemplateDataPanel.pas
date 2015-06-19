@@ -36,6 +36,8 @@ type
     procedure SetViewTable(const AValue: TKViewTable); override;
     procedure AddTopToolbarToolViewButtons; override;
     function IsActionSupported(const AActionName: string): Boolean; override;
+    function GetSelectCall(const AMethod: TExtProcedure): TExtFunction; override;
+    function GetSelectConfirmCall(const AMessage: string; const AMethod: TExtProcedure): string; override;
   published
   end;
 
@@ -74,6 +76,20 @@ begin
   FDataView.Store := ClientStore;
 end;
 
+function TKExtTemplateDataPanel.GetSelectCall(const AMethod: TExtProcedure): TExtFunction;
+begin
+  Result := JSFunction(Format('ajaxDataViewSelection("yes", "", {params: {methodURL: "%s", dataView: %s, fieldNames: "%s"}});',
+    [MethodURI(AMethod), FDataView.JSName, Join(ViewTable.GetKeyFieldAliasedNames, ',')]));
+end;
+
+function TKExtTemplateDataPanel.GetSelectConfirmCall(const AMessage: string; const AMethod: TExtProcedure): string;
+begin
+  { TODO : Replace the caption tag in AMessage. }
+  Result := Format('selectDataViewConfirmCall("%s", "%s", %s, "%s", {methodURL: "%s", dataView: %s, fieldNames: "%s"});',
+    [_(Session.Config.AppTitle), AMessage, FDataView.JSName, ViewTable.Model.CaptionField.FieldName, MethodURI(AMethod),
+    FDataView.JSName, Join(ViewTable.GetKeyFieldAliasedNames, ',')]);
+end;
+
 function TKExtTemplateDataPanel.ProcessTemplate(const ATemplate: string): string;
 var
   I: Integer;
@@ -100,8 +116,7 @@ end;
 
 function TKExtTemplateDataPanel.IsActionSupported(const AActionName: string): Boolean;
 begin
-  { TODO : Implement GetSelectCall in order to support actions that require selection. }
-  Result := MatchText(AActionName, ['Add']);
+  Result := True;
 end;
 
 procedure TKExtTemplateDataPanel.SetViewTable(const AValue: TKViewTable);

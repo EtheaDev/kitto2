@@ -37,6 +37,7 @@ type
     procedure AddTopToolbarButtons; override;
     procedure ExecuteNamedAction(const AActionName: string); override;
     function GetParentDataPanel: TKExtDataPanelController;
+    function IsActionSupported(const AActionName: string): Boolean; override;
   public
     procedure UpdateObserver(const ASubject: IEFSubject;
       const AContext: string = ''); override;
@@ -48,7 +49,7 @@ type
 implementation
 
 uses
-  ExtPascal,
+  ExtPascal, StrUtils,
   EF.Localization,
   Kitto.Metadata.Views,
   Kitto.AccessControl, Kitto.Ext.Session;
@@ -96,6 +97,11 @@ end;
 function TKExtDataPanelLeafController.GetParentDataPanel: TKExtDataPanelController;
 begin
   Result := TKExtDataPanelController(Config.GetObject('Sys/ParentDataPanel', Self));
+end;
+
+function TKExtDataPanelLeafController.IsActionSupported(const AActionName: string): Boolean;
+begin
+  Result := MatchText(AActionName, ['Refresh']);
 end;
 
 procedure TKExtDataPanelLeafController.LoadData;
