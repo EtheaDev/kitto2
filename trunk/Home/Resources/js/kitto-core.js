@@ -36,8 +36,13 @@ function getViewportHeight()
 
 function getViewportWidthInInches()
 {
-  var dpiEl = document.getElementById('dpi');
-  var w = getViewportWidth() / dpiEl.offsetWidth;
+  var div = document.createElement("div");
+  div.style.width="1in";
+  var body = document.getElementsByTagName("body")[0];
+  body.appendChild(div);
+  var ppi = document.defaultView.getComputedStyle(div, null).getPropertyValue('width');
+  body.removeChild(div);
+  var w = getViewportWidth() / parseFloat(ppi);
   return Math.round(w);
 }
 

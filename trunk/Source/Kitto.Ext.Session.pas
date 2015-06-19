@@ -386,7 +386,7 @@ begin
     '  var defWidth = ' + IntToStr(DEFAULT_VIEWPORT_WIDTH) + ';' + sLineBreak +
     '  var mvp = document.getElementById("viewport");' + sLineBreak +
     '  if (w != defWidth)' + sLineBreak +
-    '    mvp.setAttribute("content", "' + ReplaceStr(FViewportContent, '{width}', '" + w + "') + '");' + sLineBreak +
+    '    mvp.setAttribute("content", "' + ReplaceStr(FViewportContent, '{width}', '" + w + ') + '");' + sLineBreak +
     '}';
 end;
 
@@ -680,8 +680,22 @@ begin
 end;
 
 procedure TKExtSession.DelayedHome;
+var
+  LUserAgent: string;
+
+
 begin
-  FViewportWidthInInches := QueryAsInteger['vpWidthInches'];
+  if IsMobileApple then
+  begin
+    LUserAgent := RequestHeader['HTTP_USER_AGENT'];
+    if LUserAgent.Contains('iPhone') then
+      FViewportWidthInInches := 4
+    else
+      FViewportWidthInInches := 8;
+  end
+  else
+    FViewportWidthInInches := QueryAsInteger['vpWidthInches'];
+
   FViewportWidth := GetDefaultViewportWidth();
   ResponseItems.ExecuteJSCode('setViewportWidth(' + IntToStr(FViewportWidth) + ');');
   // Try authentication with default credentials, if any, and skip login
