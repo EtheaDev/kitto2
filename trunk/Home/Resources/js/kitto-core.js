@@ -172,6 +172,38 @@ function ajaxMultiSelection(buttonId, text, obj)
 };
 
 // Calls an Ajax method if buttonId is "yes". The method to
+// call is specified in obj.params.methodURL. The data view
+// specified in obj.params.dataView is used to get all values specified
+// in obj.params.fieldNames from all selected records and pass
+// them in the Selection param to the Ajax method.
+// This function should be used as a message box handler.
+// All params specified above should be passed in the message
+// box opt config, inside an object called params.
+function ajaxDataViewSelection(buttonId, text, obj)
+{
+  if (buttonId == "yes")
+  {
+    var
+      selValues = [],
+      selRecords = obj.params.dataView.getSelectedRecords(),
+      fieldNames = obj.params.fieldNames.split(',');
+    for (var i = 0; i < fieldNames.length; i++)
+    {
+      var fieldValues = [];
+      for (var j = 0; j < selRecords.length; j++)
+        fieldValues.push(selRecords[j].get(fieldNames[i]));
+      selValues.push(fieldNames[i] + "=" + fieldValues.toString());
+    }
+    return Ext.Ajax.request({
+      url: obj.params.methodURL,
+      params: "Ajax=1&" + selValues.toString(),
+      success: AjaxSuccess,
+      failure: AjaxFailure
+    });
+  }
+};
+
+// Calls an Ajax method if buttonId is "yes". The method to
 // call is specified in obj.params.methodURL.
 // This function should be used as a message box handler.
 // All params specified above should be passed in the message
@@ -216,6 +248,22 @@ function selectConfirmCall(title, questionTpl, selModel, captionFieldName, funct
     buttons: Ext.MessageBox.YESNO,
     icon: Ext.MessageBox.QUESTION,
     fn: ajaxSingleSelection,
+    params: functionParams
+  });
+};
+
+// Asks a confirmation message and calls ajaxDataViewSelection
+// when the dialog box is dismissed. The question is built by replacing
+// the {caption} token in questionTpl with the value of captionFieldName
+// in the last selected record in selModel.
+function selectDataViewConfirmCall(title, questionTpl, dataView, captionFieldName, functionParams)
+{
+  showMessage({
+    title: title,
+    msg: (captionFieldName !== "") && (questionTpl.indexOf("{caption}") !== -1) ? questionTpl.replace("{caption}", dataView.getSelectedRecords()[0].get(captionFieldName).toString()) : questionTpl,
+    buttons: Ext.MessageBox.YESNO,
+    icon: Ext.MessageBox.QUESTION,
+    fn: ajaxDataViewSelection,
     params: functionParams
   });
 };

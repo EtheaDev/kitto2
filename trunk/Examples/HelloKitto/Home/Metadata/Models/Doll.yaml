@@ -1,6 +1,5 @@
 ﻿ModelName: Doll
 ImageName: Doll
-IsLarge: True
 Fields:
   Doll_Id: String(32) not null primary key
     IsVisible: False
