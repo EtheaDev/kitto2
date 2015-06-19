@@ -97,13 +97,16 @@ function addScriptRef(src) {
 // value is empty. Used in filters.
 function fireChangeAfterNChars(obj, minChars)
 {
-  var v = obj.getValue();
-  if (v.length >= minChars || v.length == 0)
+  if (!Ext.Ajax.isLoading())
   {
-    obj.fireEvent("change", v, v);
-    // Prevents firing of further change event
-    // when focus leaves the control later.
-    obj.startValue = v;
+    var v = obj.getValue();
+    if (v.length >= minChars || v.length == 0)
+    {
+      obj.fireEvent("change", v, v);
+      // Prevents firing of further change event
+      // when focus leaves the control later.
+      obj.startValue = v;
+    }
   }
 };
 
