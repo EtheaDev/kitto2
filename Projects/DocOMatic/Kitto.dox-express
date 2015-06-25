@@ -2,7 +2,7 @@
 ; This file is maintained by Doc-O-Matic, do not edit manually.
 
 [AutoTexts]
-Empty=0
+Empty=1
 Saved=1
 Text0=This is unknown %SYMBOLNAME%.
 Text1=This is class %SYMBOLNAME%.
@@ -91,7 +91,7 @@ Path0=..\..\..\..\Program Files (x86)\Doc-O-Matic 7 Express\graphics
 Path1=..\..\..\..\Program Files (x86)\Doc-O-Matic 7 Express\graphics\en
 
 [Configurations\Help 2\Output Options]
-ClassHierarchyLayoutOutputDir=C:\ETHEA\EtheaNewSite\trunk\home\docs\kitto\en\ref
+ClassHierarchyLayoutOutputDir=..\..\..\EtheaNewSite\trunk\home\docs\kitto\en\ref
 
 [Configurations\Help 2\OutputFormat]
 ID={D3A588E0-9472-11D3-BDD1-0080C8BA053D}
@@ -159,7 +159,7 @@ Path0=..\..\..\..\Program Files (x86)\Doc-O-Matic 7 Express\graphics
 Path1=..\..\..\..\Program Files (x86)\Doc-O-Matic 7 Express\graphics\en
 
 [Configurations\Help 3\Output Options]
-ClassHierarchyLayoutOutputDir=C:\ETHEA\EtheaNewSite\trunk\home\docs\kitto\en\ref
+ClassHierarchyLayoutOutputDir=..\..\..\EtheaNewSite\trunk\home\docs\kitto\en\ref
 
 [Configurations\Help 3\OutputFormat]
 ID={D3A588E0-9472-11D3-BDD1-0080C8BA053D}
@@ -227,7 +227,7 @@ Path0=..\..\..\..\Program Files (x86)\Doc-O-Matic 7 Express\graphics
 Path1=..\..\..\..\Program Files (x86)\Doc-O-Matic 7 Express\graphics\en
 
 [Configurations\HTML Help\Output Options]
-ClassHierarchyLayoutOutputDir=C:\ETHEA\EtheaNewSite\trunk\home\docs\kitto\en\ref
+ClassHierarchyLayoutOutputDir=..\..\..\EtheaNewSite\trunk\home\docs\kitto\en\ref
 
 [Configurations\HTML Help\OutputFormat]
 ID={D3A588E0-9472-11D3-BDD1-0080C8BA053D}
@@ -242,7 +242,7 @@ File3=..\..\..\..\Program Files (x86)\Doc-O-Matic 7 Express\graphics\html_titleb
 [Configurations\HTML\{D3A588E0-9472-11D3-BDD1-0080C8BA053D}\General]
 ClearDirectoryBeforeExport=1
 HelpKind=0
-OutputDir=C:\ETHEA\EtheaNewSite\trunk\home\docs\kitto\en\ref
+OutputDir=..\..\..\EtheaNewSite\trunk\home\docs\kitto\en\ref
 OutputXHTML=1
 TargetBOM=0
 TargetCodepage=utf-8
@@ -295,20 +295,20 @@ Path0=..\..\..\..\Program Files (x86)\Doc-O-Matic 7 Express\graphics
 Path1=..\..\..\..\Program Files (x86)\Doc-O-Matic 7 Express\graphics\en
 
 [Configurations\HTML\Output Options]
-ClassHierarchyLayoutOutputDir=C:\ETHEA\EtheaNewSite\trunk\home\docs\kitto\en\ref
+ClassHierarchyLayoutOutputDir=..\..\..\EtheaNewSite\trunk\home\docs\kitto\en\ref
 
 [Configurations\HTML\OutputFormat]
 ID={D3A588E0-9472-11D3-BDD1-0080C8BA053D}
 
 [General]
 Author=Nando Dessena - Carlo Barazzetta
-AuthorEmail=nando.dessena@ethea.it
-Copyright=Copyright (c) 2011-2015 Ethea. All rights reserved.
+AuthorEmail=info@ethea.it
+Copyright=Copyright (c) 2011-2015 Ethea. Apache License 2.0
 Summary=A framework for creating data-driven web applications in Delphi
 Title=KittoReference
 VersionBuild=0
 VersionMajor=2
-VersionMinor=0
+VersionMinor=1
 VersionRelease=0
 
 [Macro Header Files]
@@ -935,134 +935,92 @@ ID9=9
 SavedValues=1
 
 [Source Files]
-Count=127
+Count=85
 File0=..\..\Source\EF\EF.Classes.pas
 File1=..\..\Source\EF\EF.DB.ADO.pas
-File10=..\..\Source\EF\EF.Localization.dxgettext.pas
-File100=..\..\Source\ThirdParty\ExtPascal\ExtJSWrapper\ExtDd.pas
-File101=..\..\Source\ThirdParty\ExtPascal\ExtJSWrapper\ExtDirect.pas
-File102=..\..\Source\ThirdParty\ExtPascal\ExtJSWrapper\ExtForm.pas
-File103=..\..\Source\ThirdParty\ExtPascal\ExtJSWrapper\ExtGrid.pas
-File104=..\..\Source\ThirdParty\ExtPascal\ExtJSWrapper\ExtLayout.pas
-File105=..\..\Source\ThirdParty\ExtPascal\ExtJSWrapper\ExtList.pas
-File106=..\..\Source\ThirdParty\ExtPascal\ExtJSWrapper\ExtMenu.pas
-File107=..\..\Source\ThirdParty\ExtPascal\ExtJSWrapper\ExtSlider.pas
-File108=..\..\Source\ThirdParty\ExtPascal\ExtJSWrapper\ExtState.pas
-File109=..\..\Source\ThirdParty\ExtPascal\ExtJSWrapper\ExtTree.pas
-File11=..\..\Source\EF\EF.Localization.pas
-File110=..\..\Source\ThirdParty\ExtPascal\ExtJSWrapper\ExtUtil.pas
-File111=..\..\Source\ThirdParty\ExtPascal\ExtJSWrapper\ExtUx.pas
-File112=..\..\Source\ThirdParty\ExtPascal\ExtJSWrapper\ExtUxData.pas
-File113=..\..\Source\ThirdParty\ExtPascal\ExtJSWrapper\ExtUxForm.pas
-File114=..\..\Source\ThirdParty\ExtPascal\ExtJSWrapper\ExtUxGrid.pas
-File115=..\..\Source\ThirdParty\ExtPascal\ExtJSWrapper\ExtUxLayout.pas
-File116=..\..\Source\ThirdParty\ExtPascal\ExtJSWrapper\ExtUxTree.pas
-File117=..\..\Source\ThirdParty\ExtPascal\ExtPascal.pas
-File118=..\..\Source\ThirdParty\ExtPascal\ExtPascalClasses.pas
-File119=..\..\Source\ThirdParty\ExtPascal\ExtPascalUtils.pas
-File12=..\..\Source\EF\EF.Logger.CodeSite.pas
-File120=..\..\Source\ThirdParty\ExtPascal\FCGIApp.pas
-File121=..\..\Source\ThirdParty\ExtPascal\Services.pas
-File122=..\..\Source\ThirdParty\ExtPascal\SocketsDelphi.pas
-File123=..\..\Source\ThirdParty\ExtPascal\WinSockDelphi.pas
-File124=..\..\Source\ThirdParty\gnugettext.pas
-File125=..\..\Source\ThirdParty\SuperObject\superobject.pas
-File126=..\..\Source\ThirdParty\SuperObject\superxmlparser.pas
-File13=..\..\Source\EF\EF.Logger.pas
-File14=..\..\Source\EF\EF.Logger.TextFile.pas
-File15=..\..\Source\EF\EF.Macros.pas
-File16=..\..\Source\EF\EF.ObserverIntf.pas
-File17=..\..\Source\EF\EF.RegEx.pas
-File18=..\..\Source\EF\EF.Rtti.pas
-File19=..\..\Source\EF\EF.Shell.pas
+File10=..\..\Source\EF\EF.Macros.pas
+File11=..\..\Source\EF\EF.SQL.pas
+File12=..\..\Source\EF\EF.Streams.pas
+File13=..\..\Source\EF\EF.StrUtils.pas
+File14=..\..\Source\EF\EF.SysUtils.pas
+File15=..\..\Source\EF\EF.Tree.pas
+File16=..\..\Source\EF\EF.Types.pas
+File17=..\..\Source\EF\EF.VariantUtils.pas
+File18=..\..\Source\EF\EF.XML.pas
+File19=..\..\Source\EF\EF.YAML.pas
 File2=..\..\Source\EF\EF.DB.DBX.pas
-File20=..\..\Source\EF\EF.SQL.pas
-File21=..\..\Source\EF\EF.Streams.pas
-File22=..\..\Source\EF\EF.StrUtils.pas
-File23=..\..\Source\EF\EF.SysUtils.pas
-File24=..\..\Source\EF\EF.Tree.pas
-File25=..\..\Source\EF\EF.Types.pas
-File26=..\..\Source\EF\EF.VariantUtils.pas
-File27=..\..\Source\EF\EF.XML.pas
-File28=..\..\Source\EF\EF.YAML.pas
-File29=..\..\Source\Kitto.AccessControl.DB.pas
+File20=..\..\Source\Kitto.AccessControl.DB.pas
+File21=..\..\Source\Kitto.AccessControl.pas
+File22=..\..\Source\Kitto.Auth.DB.pas
+File23=..\..\Source\Kitto.Auth.DBServer.pas
+File24=..\..\Source\Kitto.Auth.OSDB.pas
+File25=..\..\Source\Kitto.Auth.pas
+File26=..\..\Source\Kitto.Auth.TextFile.pas
+File27=..\..\Source\Kitto.Config.pas
+File28=..\..\Source\Kitto.DatabaseRouter.pas
+File29=..\..\Source\Kitto.Defines.inc
 File3=..\..\Source\EF\EF.DB.FD.pas
-File30=..\..\Source\Kitto.AccessControl.pas
-File31=..\..\Source\Kitto.Auth.DB.pas
-File32=..\..\Source\Kitto.Auth.DBServer.pas
-File33=..\..\Source\Kitto.Auth.OSDB.pas
-File34=..\..\Source\Kitto.Auth.pas
-File35=..\..\Source\Kitto.Auth.TextFile.pas
-File36=..\..\Source\Kitto.Config.pas
-File37=..\..\Source\Kitto.DatabaseRouter.pas
-File38=..\..\Source\Kitto.Defines.inc
-File39=..\..\Source\Kitto.Excel.pas
+File30=..\..\Source\Kitto.Excel.pas
+File31=..\..\Source\Kitto.Ext.AccordionPanel.pas
+File32=..\..\Source\Kitto.Ext.ADOTools.pas
+File33=..\..\Source\Kitto.Ext.All.pas
+File34=..\..\Source\Kitto.Ext.Application.pas
+File35=..\..\Source\Kitto.Ext.Base.pas
+File36=..\..\Source\Kitto.Ext.BorderPanel.pas
+File37=..\..\Source\Kitto.Ext.ChangePassword.pas
+File38=..\..\Source\Kitto.Ext.ChartPanel.pas
+File39=..\..\Source\Kitto.Ext.Controller.pas
 File4=..\..\Source\EF\EF.DB.pas
-File40=..\..\Source\Kitto.Ext.AccordionPanel.pas
-File41=..\..\Source\Kitto.Ext.ADOTools.pas
-File42=..\..\Source\Kitto.Ext.All.pas
-File43=..\..\Source\Kitto.Ext.Application.pas
-File44=..\..\Source\Kitto.Ext.Base.pas
-File45=..\..\Source\Kitto.Ext.BorderPanel.pas
-File46=..\..\Source\Kitto.Ext.ChangePassword.pas
-File47=..\..\Source\Kitto.Ext.ChartPanel.pas
-File48=..\..\Source\Kitto.Ext.Controller.pas
-File49=..\..\Source\Kitto.Ext.DataPanel.pas
+File40=..\..\Source\Kitto.Ext.DataPanel.pas
+File41=..\..\Source\Kitto.Ext.DataPanelComposite.pas
+File42=..\..\Source\Kitto.Ext.DataPanelLeaf.pas
+File43=..\..\Source\Kitto.Ext.DataTool.pas
+File44=..\..\Source\Kitto.Ext.DebenuQuickPDFTools.pas
+File45=..\..\Source\Kitto.Ext.Editors.pas
+File46=..\..\Source\Kitto.Ext.FOPTools.pas
+File47=..\..\Source\Kitto.Ext.Form.pas
+File48=..\..\Source\Kitto.Ext.GridPanel.pas
+File49=..\..\Source\Kitto.Ext.HtmlPanel.pas
 File5=..\..\Source\EF\EF.Defines.inc
-File50=..\..\Source\Kitto.Ext.DataPanelComposite.pas
-File51=..\..\Source\Kitto.Ext.DataPanelLeaf.pas
-File52=..\..\Source\Kitto.Ext.DataTool.pas
-File53=..\..\Source\Kitto.Ext.DebenuQuickPDFTools.pas
-File54=..\..\Source\Kitto.Ext.Editors.pas
-File55=..\..\Source\Kitto.Ext.Filters.pas
-File56=..\..\Source\Kitto.Ext.FOPTools.pas
-File57=..\..\Source\Kitto.Ext.Form.pas
-File58=..\..\Source\Kitto.Ext.GridPanel.pas
-File59=..\..\Source\Kitto.Ext.HtmlPanel.pas
+File50=..\..\Source\Kitto.Ext.IndyTools.pas
+File51=..\..\Source\Kitto.Ext.List.pas
+File52=..\..\Source\Kitto.Ext.Login.pas
+File53=..\..\Source\Kitto.Ext.MainFormUnit.pas
+File54=..\..\Source\Kitto.Ext.Rules.pas
+File55=..\..\Source\Kitto.Ext.Service.pas
+File56=..\..\Source\Kitto.Ext.Session.pas
+File57=..\..\Source\Kitto.Ext.SQLTool.pas
+File58=..\..\Source\Kitto.Ext.StandardControllers.pas
+File59=..\..\Source\Kitto.Ext.Start.pas
 File6=..\..\Source\EF\EF.Emailer.pas
-File60=..\..\Source\Kitto.Ext.IndyTools.pas
-File61=..\..\Source\Kitto.Ext.List.pas
-File62=..\..\Source\Kitto.Ext.Login.pas
-File63=..\..\Source\Kitto.Ext.MainFormUnit.pas
-File64=..\..\Source\Kitto.Ext.Rules.pas
-File65=..\..\Source\Kitto.Ext.Service.pas
-File66=..\..\Source\Kitto.Ext.Session.pas
-File67=..\..\Source\Kitto.Ext.SQLTool.pas
-File68=..\..\Source\Kitto.Ext.StandardControllers.pas
-File69=..\..\Source\Kitto.Ext.Start.pas
-File7=..\..\Source\EF\EF.FOP.pas
-File70=..\..\Source\Kitto.Ext.StatusBar.pas
-File71=..\..\Source\Kitto.Ext.TabPanel.pas
-File72=..\..\Source\Kitto.Ext.TemplateDataPanel.pas
-File73=..\..\Source\Kitto.Ext.TilePanel.pas
-File74=..\..\Source\Kitto.Ext.ToolBar.pas
-File75=..\..\Source\Kitto.Ext.Tools.pas
-File76=..\..\Source\Kitto.Ext.TreePanel.pas
-File77=..\..\Source\Kitto.Ext.Utils.pas
-File78=..\..\Source\Kitto.Ext.Viewport.pas
-File79=..\..\Source\Kitto.Ext.Window.pas
-File8=..\..\Source\EF\EF.Intf.pas
-File80=..\..\Source\Kitto.Ext.XSLTools.pas
-File81=..\..\Source\Kitto.JSON.pas
-File82=..\..\Source\Kitto.Localization.dxgettext.pas
-File83=..\..\Source\Kitto.Metadata.DataView.pas
-File84=..\..\Source\Kitto.Metadata.ModelImplementation.pas
-File85=..\..\Source\Kitto.Metadata.Models.pas
-File86=..\..\Source\Kitto.Metadata.pas
-File87=..\..\Source\Kitto.Metadata.ViewBuilders.pas
-File88=..\..\Source\Kitto.Metadata.Views.pas
-File89=..\..\Source\Kitto.Rules.pas
-File9=..\..\Source\EF\EF.JSON.pas
-File90=..\..\Source\Kitto.SQL.pas
-File91=..\..\Source\Kitto.Store.pas
-File92=..\..\Source\Kitto.Types.pas
-File93=..\..\Source\Kitto.Utils.pas
-File94=..\..\Source\ThirdParty\ADOX_TypeLibrary.pas
-File95=..\..\Source\ThirdParty\DebenuPDFLibraryLite1112_TypeLibrary.pas
-File96=..\..\Source\ThirdParty\ExtPascal\BlockSocket.pas
-File97=..\..\Source\ThirdParty\ExtPascal\ExtJSWrapper\Ext.pas
-File98=..\..\Source\ThirdParty\ExtPascal\ExtJSWrapper\ExtChart.pas
-File99=..\..\Source\ThirdParty\ExtPascal\ExtJSWrapper\ExtData.pas
+File60=..\..\Source\Kitto.Ext.StatusBar.pas
+File61=..\..\Source\Kitto.Ext.TabPanel.pas
+File62=..\..\Source\Kitto.Ext.TemplateDataPanel.pas
+File63=..\..\Source\Kitto.Ext.TilePanel.pas
+File64=..\..\Source\Kitto.Ext.ToolBar.pas
+File65=..\..\Source\Kitto.Ext.Tools.pas
+File66=..\..\Source\Kitto.Ext.TreePanel.pas
+File67=..\..\Source\Kitto.Ext.Utils.pas
+File68=..\..\Source\Kitto.Ext.Viewport.pas
+File69=..\..\Source\Kitto.Ext.Window.pas
+File7=..\..\Source\EF\EF.JSON.pas
+File70=..\..\Source\Kitto.Ext.XSLTools.pas
+File71=..\..\Source\Kitto.JSON.pas
+File72=..\..\Source\Kitto.Localization.dxgettext.pas
+File73=..\..\Source\Kitto.LocalStorage.pas
+File74=..\..\Source\Kitto.Metadata.DataView.pas
+File75=..\..\Source\Kitto.Metadata.ModelImplementation.pas
+File76=..\..\Source\Kitto.Metadata.Models.pas
+File77=..\..\Source\Kitto.Metadata.pas
+File78=..\..\Source\Kitto.Metadata.ViewBuilders.pas
+File79=..\..\Source\Kitto.Metadata.Views.pas
+File8=..\..\Source\EF\EF.Localization.dxgettext.pas
+File80=..\..\Source\Kitto.Rules.pas
+File81=..\..\Source\Kitto.SQL.pas
+File82=..\..\Source\Kitto.Store.pas
+File83=..\..\Source\Kitto.Types.pas
+File84=..\..\Source\Kitto.Utils.pas
+File9=..\..\Source\EF\EF.Localization.pas
 
 [Source Include Directories]
 Count=2
