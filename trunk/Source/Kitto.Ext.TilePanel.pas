@@ -26,6 +26,10 @@ uses
   Kitto.Metadata.Views,
   Kitto.Ext.Base, Kitto.Ext.Controller, Kitto.Ext.Session, Kitto.Ext.TabPanel;
 
+const
+  DEFAULT_TILE_HEIGHT = 50;
+  DEFAULT_TILE_WIDTH = 100;
+
 type
   // A tile page to be added to a container.
   TKExtTilePanel = class(TKExtPanelBase)
@@ -236,12 +240,12 @@ end;
 
 function TKExtTilePanel.GetTileHeight: Integer;
 begin
-  Result := Config.GetInteger('TileHeight', 50);
+  Result := Config.GetInteger('TileHeight', DEFAULT_TILE_HEIGHT);
 end;
 
 function TKExtTilePanel.GetTileWidth: Integer;
 begin
-  Result := Config.GetInteger('TileWidth', 100);
+  Result := Config.GetInteger('TileWidth', DEFAULT_TILE_WIDTH);
 end;
 
 procedure TKExtTilePanel.AddTiles(const ANode: TKTreeViewNode; const ADisplayLabel: string);
