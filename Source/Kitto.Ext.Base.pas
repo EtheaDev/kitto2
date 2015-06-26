@@ -26,6 +26,12 @@ uses
   EF.Intf, EF.Tree, EF.ObserverIntf, EF.Classes,
   Kitto.Ext.Controller, Kitto.Metadata.Views;
 
+const
+  DEFAULT_WINDOW_WIDTH = 600;
+  DEFAULT_WINDOW_HEIGHT = 400;
+  DEFAULT_WINDOW_TOOL_WIDTH = 400;
+  DEFAULT_WINDOW_TOOL_HEIGHT = 200;
+
 type
   TKExtContainerHelper = class helper for TExtContainer
   public
@@ -776,8 +782,8 @@ end;
 procedure TKExtModalWindow.InitDefaults;
 begin
   inherited;
-  Width := 600;
-  Height := 400;
+  Width := DEFAULT_WINDOW_WIDTH;
+  Height := DEFAULT_WINDOW_HEIGHT;
   Closable := False;
   Modal := True;
 end;
@@ -982,6 +988,8 @@ begin
 
   // A Tool may or may not have a confirmation message.
   LConfirmationMessage := AView.GetExpandedString('Controller/ConfirmationMessage');
+  // Cleanup Linebreaks with <br> tag
+  LConfirmationMessage := StringReplace(LConfirmationMessage, sLineBreak, '<br>',[rfReplaceAll]);
   LConfirmationJS := GetConfirmCall(LConfirmationMessage, Result.ExecuteButtonAction);
   if LConfirmationMessage <> '' then
     Result.On('click', JSFunction(LConfirmationJS))
@@ -1546,8 +1554,8 @@ end;
 
 procedure TKExtWindowToolController.SetWindowSize;
 begin
-  Width := 400;
-  Height := 200;
+  Width := DEFAULT_WINDOW_TOOL_WIDTH;
+  Height := DEFAULT_WINDOW_TOOL_HEIGHT;
   Resizable := False;
 end;
 

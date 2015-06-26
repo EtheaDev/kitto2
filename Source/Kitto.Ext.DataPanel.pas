@@ -421,6 +421,8 @@ begin
   // A Tool may or may not have a confirmation message and may or may not require
   // a selected row. We must handle all combinations.
   LConfirmationMessage := AView.GetExpandedString('Controller/ConfirmationMessage');
+  // Cleanup Linebreaks with <br> tag
+  LConfirmationMessage := StringReplace(LConfirmationMessage, sLineBreak, '<br>',[rfReplaceAll]);
   LRequireSelection := AView.GetBoolean('Controller/RequireSelection', True);
 
   if LRequireSelection then
