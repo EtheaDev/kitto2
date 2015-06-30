@@ -28,7 +28,7 @@ Controller: Window
           Border: True
           SubViews:
             View: Girls
-            #View: DollsCard
+            View: Dolls
 
       NorthView:
         Controller: ToolBar
