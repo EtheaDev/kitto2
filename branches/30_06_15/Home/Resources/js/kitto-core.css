@@ -1,0 +1,15 @@
+.x-form-invalid 
+{
+  background-color: #cc7777;
+}
+
+.x-form-readonly
+{
+  color: #666666;
+}
+
+.x-form-empty-field
+{
+  font-style: italic;
+  color: #333333;
+}

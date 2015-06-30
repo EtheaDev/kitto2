@@ -1,0 +1,46 @@
+﻿AppTitle: Tasks & Activities
+
+Databases:
+  Main: DBX
+    Connection:
+      DriverName: Firebird
+      DataBase: localhost:TASKITTO
+      User_Name: SYSDBA
+      Password: masterkey
+      ServerCharSet: UTF8
+      WaitOnLocks: True
+      IsolationLevel: ReadCommitted
+      Trim Char: False
+
+Auth: DB
+  IsClearPassword: True
+  Defaults:
+    UserName: admin
+    Password: admin
+  ReadUserCommandText: select USER_NAME, PASSWORD_HASH, FIRST_NAME, LAST_NAME from KITTO_USERS where IS_ACTIVE = 1 and UPPER(USER_NAME) = UPPER(:USER_NAME)
+
+AccessControl: Null
+
+Login: LoginView
+
+# Change this to use a custom view for the home page.
+# Alternatively, customize the Home view by replacing its controller.
+# Default: Home.
+#HomeView: Home
+
+Ext:
+  Theme: gray
+
+LanguageId: en
+# Either utf-8 or a SBCS corresponding to the system code page
+# (such as iso-8859-1 for Western Europe). Defaults to utf-8.
+Charset: utf-8
+
+FOPEnginePath: %FOP1_1%
+
+FastCGI:
+  TCPPort: 2202
+
+UserFormats:
+  Date: dd/mm/yyyy
+  Time: hh:nn
