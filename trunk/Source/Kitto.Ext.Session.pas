@@ -757,6 +757,8 @@ begin
     end;
   end;
   Result := Config.Views.FindViewByNode(FLoginNode);
+  if not Assigned(Result) then
+    raise Exception.Create('Login View not found');
 end;
 
 procedure TKExtSession.DisplayLoginView;
