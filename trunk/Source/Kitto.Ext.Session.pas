@@ -386,7 +386,7 @@ begin
     '  var defWidth = ' + IntToStr(DEFAULT_VIEWPORT_WIDTH) + ';' + sLineBreak +
     '  var mvp = document.getElementById("viewport");' + sLineBreak +
     '  if (w != defWidth)' + sLineBreak +
-    '    mvp.setAttribute("content", "' + ReplaceStr(FViewportContent, '{width}', '" + w + ') + '");' + sLineBreak +
+    '    mvp.setAttribute("content", "' + ReplaceStr(FViewportContent, '{width}', '" + w + "') + '");' + sLineBreak +
     '}';
 end;
 
