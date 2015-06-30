@@ -1,0 +1,9 @@
+DisplayLabel: %Config:AppTitle%
+Controller: Viewport
+  SubView:
+    Controller: BorderPanel
+      CenterView:
+        Controller: TabPanel
+          SubViews:
+            View: Girls
+            View: Dolls
