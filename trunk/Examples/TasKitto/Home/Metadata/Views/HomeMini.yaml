@@ -1,4 +1,4 @@
-DisplayLabel: %Config:AppTitle%
+﻿DisplayLabel: %Config:AppTitle%
 # Valid top-level controllers are Window and Viewport
 Controller: Viewport
 
@@ -9,7 +9,7 @@ Controller: Viewport
         DisplayLabel: Main Menu
         Controller: TreePanel
           TreeView: MainMenu
-      
+
       CenterView:
         Controller: TabPanel
           # List of views to be auto-opened in tabs.

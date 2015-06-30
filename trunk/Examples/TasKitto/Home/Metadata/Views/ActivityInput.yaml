@@ -98,7 +98,9 @@ MainTable:
         DisplayLabel: Download a file
         ImageName: download
         Controller: DownloadFile
-          ConfirmationMessage: Are you sure you want to download the file?
+          ConfirmationMessage: |
+            Are you sure you want to 
+            <b>download</b> the file?
           RequireSelection: False
           FileName: %APP_PATH%\Resources\taskitto_logo_150.png
           ClientFileName: takitto_logo.png

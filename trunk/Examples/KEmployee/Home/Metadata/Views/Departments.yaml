@@ -1,10 +1,12 @@
-Type: Data
+﻿Type: Data
 Controller: List
   Filters:
     DisplayLabel: Search Departments
     Items:
       FreeSearch: Free Search
         ExpressionTemplate: (Department.DEPT_NO like '%{value}%') or (Department.Department like '%{value}%') or (Department.Location like '%{value}%') or (Department.PHONE_NO like '%{value}%')
+      FreeSearch: Manager
+        ExpressionTemplate: (MngrNoRef.LastName like '%{value}%')
 MainTable:
   Model: Department
   Fields:
