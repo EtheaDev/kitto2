@@ -412,7 +412,7 @@ implementation
 
 uses
   Math, FmtBcd, Variants, StrUtils,
-  EF.StrUtils, EF.Localization, EF.JSON, EF.XML,
+  EF.StrUtils, EF.Localization, EF.JSON, EF.XML, EF.superobject,
   Kitto.Types, Kitto.Config;
 
 { TKStore }
