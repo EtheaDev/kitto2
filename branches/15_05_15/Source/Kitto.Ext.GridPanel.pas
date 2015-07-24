@@ -821,10 +821,12 @@ begin
   FIsActionAllowed.AddOrSetValue('View', FIsActionVisible['View'] and LViewTable.IsAccessGranted(ACM_VIEW));
 
   FIsActionVisible.AddOrSetValue('Add',
-    not LViewTable.GetBoolean('Controller/PreventAdding')
+    (not LViewTable.GetBoolean('Controller/PreventAdding')
     and not LView.GetBoolean('IsReadOnly')
     and not LViewTable.IsReadOnly
-    and not Config.GetBoolean('PreventAdding'));
+    and not Config.GetBoolean('PreventAdding'))
+    or not LViewTable.GetBoolean('Controller/PreventAdding', True) //explicit PreventAdding: False
+    );
   FIsActionAllowed.AddOrSetValue('Add', FIsActionVisible['Add'] and LViewTable.IsAccessGranted(ACM_ADD));
 
   FIsActionVisible.AddOrSetValue('Dup',
@@ -837,17 +839,21 @@ begin
   FIsActionAllowed.AddOrSetValue('Dup', FIsActionVisible['Dup'] and LViewTable.IsAccessGranted(ACM_ADD));
 
   FIsActionVisible.AddOrSetValue('Edit',
-    not LViewTable.GetBoolean('Controller/PreventEditing')
+    (not LViewTable.GetBoolean('Controller/PreventEditing')
     and not LView.GetBoolean('IsReadOnly')
     and not LViewTable.IsReadOnly
-    and not Config.GetBoolean('PreventEditing'));
+    and not Config.GetBoolean('PreventEditing'))
+    or not LViewTable.GetBoolean('Controller/PreventEditing', True) //explicit PreventEditing: False;
+    );
   FIsActionAllowed.AddOrSetValue('Edit', FIsActionVisible['Edit'] and LViewTable.IsAccessGranted(ACM_MODIFY));
 
   FIsActionVisible.AddOrSetValue('Delete',
-    not LViewTable.GetBoolean('Controller/PreventDeleting')
+    (not LViewTable.GetBoolean('Controller/PreventDeleting')
     and not LView.GetBoolean('IsReadOnly')
     and not LViewTable.IsReadOnly
-    and not Config.GetBoolean('PreventDeleting'));
+    and not Config.GetBoolean('PreventDeleting'))
+    or not LViewTable.GetBoolean('Controller/PreventDeleting', True) //explicit PreventDeleting: False;
+    );
   FIsActionAllowed.AddOrSetValue('Delete', FIsActionVisible['Delete'] and LViewTable.IsAccessGranted(ACM_DELETE));
 
   FInplaceEditing := LView.GetBoolean('Controller/InplaceEditing');
