@@ -742,15 +742,17 @@ begin
   FAllowedActions.AddOrSetValue('View', FVisibleActions['View'] and FViewTable.IsAccessGranted(ACM_VIEW));
 
   FVisibleActions.AddOrSetValue('Add',
-    IsActionSupported('Add')
-    and not FViewTable.GetBoolean('Controller/PreventAdding')
+    IsActionSupported('Add') and (
+    not FViewTable.GetBoolean('Controller/PreventAdding')
     and not View.GetBoolean('IsReadOnly')
     and not FViewTable.IsReadOnly
-    and not Config.GetBoolean('PreventAdding'));
+    and not Config.GetBoolean('PreventAdding'))
+    or not FViewTable.GetBoolean('Controller/PreventAdding', True) //explicit PreventAdding: False
+    );
   FAllowedActions.AddOrSetValue('Add', FVisibleActions['Add'] and FViewTable.IsAccessGranted(ACM_ADD));
 
   FVisibleActions.AddOrSetValue('Dup',
-    IsActionSupported('Dupo')
+    IsActionSupported('Dup')
     and (FViewTable.GetBoolean('Controller/AllowDuplicating') or Config.GetBoolean('AllowDuplicating'))
     and not FViewTable.GetBoolean('Controller/PreventAdding')
     and not View.GetBoolean('IsReadOnly')
@@ -759,19 +761,23 @@ begin
   FAllowedActions.AddOrSetValue('Dup', FVisibleActions['Dup'] and FViewTable.IsAccessGranted(ACM_ADD));
 
   FVisibleActions.AddOrSetValue('Edit',
-    IsActionSupported('Edit')
-    and not FViewTable.GetBoolean('Controller/PreventEditing')
+    IsActionSupported('Edit') and (
+    not FViewTable.GetBoolean('Controller/PreventEditing')
     and not View.GetBoolean('IsReadOnly')
     and not FViewTable.IsReadOnly
-    and not Config.GetBoolean('PreventEditing'));
+    and not Config.GetBoolean('PreventEditing'))
+    or not FViewTable.GetBoolean('Controller/PreventEditing', True) //explicit PreventEditing: False;
+    );
   FAllowedActions.AddOrSetValue('Edit', FVisibleActions['Edit'] and FViewTable.IsAccessGranted(ACM_MODIFY));
 
   FVisibleActions.AddOrSetValue('Delete',
-    IsActionSupported('Delete')
-    and not FViewTable.GetBoolean('Controller/PreventDeleting')
+    IsActionSupported('Delete') and
+    (not FViewTable.GetBoolean('Controller/PreventDeleting')
     and not View.GetBoolean('IsReadOnly')
     and not FViewTable.IsReadOnly
-    and not Config.GetBoolean('PreventDeleting'));
+    and not Config.GetBoolean('PreventDeleting'))
+    or not FViewTable.GetBoolean('Controller/PreventDeleting', True) //explicit PreventDeleting: False;
+    );
   FAllowedActions.AddOrSetValue('Delete', FVisibleActions['Delete'] and FViewTable.IsAccessGranted(ACM_DELETE));
 end;
 
