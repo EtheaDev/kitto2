@@ -2303,7 +2303,7 @@ end;
 procedure TKExtFormNumericField.FieldChange(This: TExtFormField; NewValue,
   OldValue: string);
 begin
-  FRecordField.SetAsJSONValue(NewValue, False, Session.Config.UserFormatSettings);
+  FRecordField.SetAsJSONValue(NewValue, False, Session.Config.JSFormatSettings);
 end;
 
 function TKExtFormNumericField.GetFieldName: string;
