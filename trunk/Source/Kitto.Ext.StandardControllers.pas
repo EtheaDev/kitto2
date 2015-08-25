@@ -173,11 +173,64 @@ type
     procedure InitDefaults; override;
   public
     destructor Destroy; override;
+    /// <summary>Returns the image name to use by default when not specified at
+    /// the view or other level. Called through RTTI.</summary>
+    class function GetDefaultImageName: string; override;
   published
     procedure DownloadFile;
     procedure DownloadStream;
     property FileName: string read GetFileName;
     property ClientFileName: string read GetClientFileName;
+    property ContentType: string read GetContentType;
+  end;
+
+  /// <summary>Uploads a file provided showing an Upload file dialog</summary>
+  /// <remarks>
+  ///   <para>This class can be uses as-is to Upload a file to the server, or
+  ///   inherited to serve on-demand import.</para>
+  ///   <para>Params for the as-is version:</para>
+  ///   <list type="table">
+  ///     <listheader>
+  ///       <term>Term</term>
+  ///       <description>Description</description>
+  ///     </listheader>
+  ///     <item>
+  ///       <term>FileName</term>
+  ///       <description>Name of the server file to save (complete with full path).
+  ///       May contain macros.</description>
+  ///     </item>
+  ///     <item>
+  ///       <term>ContentType</term>
+  ///       <description>Content type passed from the client; if not specified,
+  ///       it is derived from the file name's extension.</description>
+  ///     </item>
+  ///   </list>
+  /// </remarks>
+  TKExtUploadFileController = class(TKExtDataToolController)
+  strict private
+    FTempFileNames: TStrings;
+    function GetContentType: string;
+    function GetPath: string;
+  strict protected
+    procedure ExecuteTool; override;
+    function GetWildCard: string; virtual;
+    function GetDefaultPath: string; virtual;
+    procedure AddTempFilename(const AFileName: string);
+    procedure Cleanup;
+  protected
+    /// <summary>This method is called when the file was uploaded to the server.</summary>
+    /// <param name="AUploadedFileName">File name uploaded</param>
+    procedure ProcessUploadedFile(const AUploadedFileName: string); virtual;
+
+    procedure InitDefaults; override;
+  public
+    destructor Destroy; override;
+    /// <summary>Returns the image name to use by default when not specified at
+    /// the view or other level. Called through RTTI.</summary>
+    class function GetDefaultImageName: string; override;
+  published
+    property Path: string read GetPath;
+    property WildCard: string read GetWildCard;
     property ContentType: string read GetContentType;
   end;
 
@@ -389,6 +442,11 @@ begin
   Result := '';
 end;
 
+class function TKExtDownloadFileController.GetDefaultImageName: string;
+begin
+  Result := 'download';
+end;
+
 function TKExtDownloadFileController.GetFileExtension: string;
 begin
   if ClientFileName <> '' then
@@ -430,16 +488,96 @@ begin
   Result := 'logout';
 end;
 
+{ TKExtUploadFileController }
+
+procedure TKExtUploadFileController.AddTempFilename(const AFileName: string);
+begin
+  FTempFileNames.Add(AFileName);
+end;
+
+procedure TKExtUploadFileController.Cleanup;
+var
+  I: Integer;
+begin
+  for I := 0 to FTempFileNames.Count - 1 do
+    DeleteFile(FTempFileNames[I]);
+  FTempFileNames.Clear;
+end;
+
+destructor TKExtUploadFileController.Destroy;
+begin
+  inherited;
+  Cleanup;
+  FTempFileNames.Free;
+end;
+
+procedure TKExtUploadFileController.ExecuteTool;
+var
+  LFileName: string;
+begin
+  inherited;
+  try
+    LFileName := GetPath;
+    { TODO: show upload dialog }
+
+    { TODO: perform upload of file and store in LFileName }
+
+    AddTempFilename(LFileName);
+    //Call
+    ProcessUploadedFile(LFileName);
+  except
+    Cleanup;
+    raise;
+  end;
+end;
+
+function TKExtUploadFileController.GetContentType: string;
+begin
+  Result := Config.GetExpandedString('ContentType');
+end;
+
+function TKExtUploadFileController.GetDefaultPath: string;
+begin
+  Result := '';
+end;
+
+class function TKExtUploadFileController.GetDefaultImageName: string;
+begin
+  Result := 'upload';
+end;
+
+function TKExtUploadFileController.GetPath: string;
+begin
+  Result := Config.GetExpandedString('Path', GetDefaultPath);
+end;
+
+function TKExtUploadFileController.GetWildCard: string;
+begin
+  Result := Config.GetExpandedString('Path', GetDefaultPath);
+end;
+
+procedure TKExtUploadFileController.InitDefaults;
+begin
+  inherited;
+  FTempFileNames := TStringList.Create;
+end;
+
+procedure TKExtUploadFileController.ProcessUploadedFile(const AUploadedFileName: string);
+begin
+end;
+
 initialization
   TKExtControllerRegistry.Instance.RegisterClass('Logout', TKExtLogoutController);
   TKExtControllerRegistry.Instance.RegisterClass('URL', TKExtURLController);
   TKExtControllerRegistry.Instance.RegisterClass('FilteredURL', TKExtFilteredURLController);
   TKExtControllerRegistry.Instance.RegisterClass('DownloadFile', TKExtDownloadFileController);
+  TKExtControllerRegistry.Instance.RegisterClass('UploadFile', TKExtUploadFileController);
 
 finalization
   TKExtControllerRegistry.Instance.UnregisterClass('Logout');
   TKExtControllerRegistry.Instance.UnregisterClass('URL');
   TKExtControllerRegistry.Instance.UnregisterClass('FilteredURL');
   TKExtControllerRegistry.Instance.UnregisterClass('DownloadFile');
+  TKExtControllerRegistry.Instance.UnregisterClass('UploadFile');
 
 end.

@@ -8,6 +8,7 @@ FieldSet:
     Field: ROLE
     Field: TYPE
 FieldSet:
+  Title: Timing and status
   Row:
     Field: ACTIVITY_DATE
     Field: START_TIME

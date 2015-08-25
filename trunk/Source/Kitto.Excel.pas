@@ -32,58 +32,91 @@ const
 type
   TExcelVersion = (ex2000, ex2007);
 
-  TExportAcceptRecordEvent = procedure(ARecord: TKViewTableRecord; var AAccept: boolean) of object;
-  TExportAcceptFieldEvent = procedure(AViewField: TKViewField; var AAccept: boolean) of object;
+  TAcceptViewFieldEvent = procedure(AViewField: TKViewField; var AAccept: boolean) of object;
+  TAcceptDataFieldEvent = procedure(AField: TField; var AAccept: boolean) of object;
 
-  TExportAcceptDataRecordEvent = procedure(ADataSet: TDataSet; var AAccept: boolean) of object;
-  TExportAcceptDataFieldEvent = procedure(AField: TField; var AAccept: boolean) of object;
+  TKExcelEngine = class(TComponent)
+  protected
+    function ValidColumnName(Field: TField): string;
+    function GetConnectionString(const ExcelFileName: string): string;
+    function OpenExcelRange(const AExcelFileName, AExcelRangeName: string): TAdoTable;
+    procedure CloseExcelRange(const AAdoTable: TAdoTable);
+    function IsAcceptedViewField(const AViewField: TKViewField;
+      AAcceptFieldEvent: TAcceptViewFieldEvent = nil): Boolean; overload;
+    function IsAccepterDataField(const AField: TField;
+      AAcceptFieldEvent: TAcceptDataFieldEvent = nil): Boolean; overload;
+  end;
 
-  TKExtExcelEngine = class(TComponent)
+  TAcceptExportRecordEvent = procedure(ARecord: TKViewTableRecord; var AAccept: boolean) of object;
+  TAcceptExportDataRecordEvent = procedure(ADataSet: TDataSet; var AAccept: boolean) of object;
+
+  TKExcelExportEngine = class(TKExcelEngine)
   strict private
     procedure CreateExcelSheet(const AViewTableStore: TKViewTableStore;
       AConnectionString, AExcelRangeName: string;
-      AAcceptFieldEvent: TExportAcceptFieldEvent = nil;
+      AAcceptFieldEvent: TAcceptViewFieldEvent = nil;
       AUseDisplayLabels: Boolean = False); overload;
     procedure CreateExcelSheet(const ADataSet: TDataSet;
       AConnectionString, AExcelRangeName: string;
-      AAcceptFieldEvent: TExportAcceptDataFieldEvent = nil;
+      AAcceptFieldEvent: TAcceptDataFieldEvent = nil;
       AUseDisplayLabels: Boolean = False); overload;
-    function GetConnectionString(const ExcelFileName: string): string;
-    function IsValidField(const AViewField: TKViewField;
-      AAcceptFieldEvent: TExportAcceptFieldEvent = nil): Boolean; overload;
-    function IsValidDataField(const AField: TField;
-      AAcceptFieldEvent: TExportAcceptDataFieldEvent = nil): Boolean; overload;
     function AddExcelColumn(ATable: _Table; const AColumnName: string;
       const ADataType: DataTypeEnum; const ASize: Integer): Boolean;
     procedure ForceZeroValue(Field: TField);
     function IsFieldToForceZero(Field: TField): Boolean;
-    function OpenExcelRange(const AExcelFileName, AExcelRangeName: string): TAdoTable;
   strict protected
     procedure GetADOXDataType(const ADataType: TEFDataType;
       const AFieldSize: Integer; out AADOXDataType: DataTypeEnum);
     procedure GetADOXFieldType(const Field : TField;
-  out AADOXDataType : DataTypeEnum);
+      out AADOXDataType : DataTypeEnum);
   public
     procedure CreateFileByTable(const AFileName: string;
       const ATableStore: TKViewTableStore;
       const AExcelRangeName: string = '';
-      const AAcceptFieldEvent: TExportAcceptFieldEvent = nil;
+      const AAcceptFieldEvent: TAcceptViewFieldEvent = nil;
       const AUseDisplayLabels: Boolean = False);
     procedure CreateFileByDataSet(const AFileName: string;
       const ADataSet: TDataSet;
       const AExcelRangeName: string = '';
-      const AAcceptFieldEvent: TExportAcceptDataFieldEvent = nil;
+      const AAcceptFieldEvent: TAcceptDataFieldEvent = nil;
       const AUseDisplayLabels: Boolean = False);
     procedure FillAdoTable(const AExcelFileName, AExcelRangeName: string;
       const ATableStore: TKViewTableStore;
-      AAcceptRecordEvent: TExportAcceptRecordEvent = nil;
-      AAcceptFieldEvent: TExportAcceptFieldEvent = nil;
+      AAcceptRecordEvent: TAcceptExportRecordEvent = nil;
+      AAcceptFieldEvent: TAcceptViewFieldEvent = nil;
       AUseDisplayLabels: Boolean = false);
     procedure FillAdoTableByDataSet(const AExcelFileName, AExcelRangeName: string;
       const ADataSet: TDataSet;
-      AAcceptRecordEvent: TExportAcceptDataRecordEvent = nil;
-      AAcceptFieldEvent: TExportAcceptDataFieldEvent = nil;
+      AAcceptRecordEvent: TAcceptExportDataRecordEvent = nil;
+      AAcceptFieldEvent: TAcceptDataFieldEvent = nil;
       AUseDisplayLabels: Boolean = false);
+  end;
+
+  TAcceptImportRecordEvent = procedure(const ADataSet: TDataSet; var AAccept: boolean) of object;
+  TImportSetFieldValue = procedure(const ADestFieldName: string; const AValue : Variant) of object;
+
+  TImportPostRecordEvent = procedure(const AAdoTable: TAdoTable; const PostRecord: boolean) of object;
+
+  TImportDatabaseErrorEvent = procedure(E : Exception; RecordNumber : integer;
+    var IgnoreError : boolean) of object;
+
+  TKExcelImportEngine = class(TKExcelEngine)
+  strict private
+    FFieldMappings: TStringList;
+    FOnDatabaseError: TImportDatabaseErrorEvent;
+    function GetFieldMappings: TStringList;
+    procedure SetFieldMappings(const Value: TStringList); protected
+  public
+    procedure ImportFile(
+      const AFileName: string;
+      const AOnSetFieldValue: TImportSetFieldValue;
+      const AOnPostRecord: TImportPostRecordEvent;
+      const AExcelRangeName: string = '';
+      const AOnAcceptRecord: TAcceptImportRecordEvent = nil;
+      const AOnAcceptField: TAcceptDataFieldEvent = nil;
+      const AUseDisplayLabels: Boolean = False);
+    property FieldMappings : TStringList read GetFieldMappings write SetFieldMappings;
+    property OnDatabaseError : TImportDatabaseErrorEvent read FOnDatabaseError write FOnDatabaseError;
   end;
 
 implementation
@@ -114,33 +147,9 @@ const
    (EXCEL_TEMPLATE_EXT,
      EXCEL_NEW_TEMPLATE_EXT);
 
-{ TKExtExcelEngine }
+{ TKExcelExportEngine }
 
-function TKExtExcelEngine.GetConnectionString(const ExcelFileName: string): string;
-var
-  FileExt: string;
-  ExcelVersion: TExcelVersion;
-  ConnectionString: string;
-  AdditionalOptions: string;
-begin
-  FileExt := ExtractFileExt(ExcelFileName);
-  if SameText(FileExt, EXCEL_FILE_EXT) then
-  begin
-    ExcelVersion := ex2000;
-    ConnectionString := EXCEL_CONN_STRING;
-    AdditionalOptions := '';
-  end
-  else
-  begin
-    ExcelVersion := ex2007;
-    ConnectionString := EXCEL_CONN_STRING_12;
-    AdditionalOptions := '';
-  end;
-  Result := Format(ConnectionString,
-    [ExcelFileName,AExcelVersion[ExcelVersion]+AdditionalOptions]);
-end;
-
-procedure TKExtExcelEngine.GetADOXDataType(const ADataType: TEFDataType;
+procedure TKExcelExportEngine.GetADOXDataType(const ADataType: TEFDataType;
   const AFieldSize: Integer; out AADOXDataType: DataTypeEnum);
 begin
   if ADataType is TEFStringDataType then
@@ -163,7 +172,7 @@ begin
     AADOXDataType := adLongVarWChar;
 end;
 
-procedure TKExtExcelEngine.GetAdoXFieldType(const Field : TField;
+procedure TKExcelExportEngine.GetAdoXFieldType(const Field : TField;
   out AADOXDataType : DataTypeEnum);
 begin
   case Field.DataType of
@@ -185,14 +194,14 @@ begin
     AADOXDataType := adLongVarWChar;
 end;
 
-function TKExtExcelEngine.IsFieldToForceZero(Field: TField): Boolean;
+function TKExcelExportEngine.IsFieldToForceZero(Field: TField): Boolean;
 begin
   Result := Field.DataType in [ftDate, ftTime, ftDateTime, ftTimeStamp,
     ftLargeint, ftAutoInc, ftInteger, ftSmallint, ftWord,
     ftFloat, ftBCD, ftCurrency, ftFMTBcd, ftBoolean];
 end;
 
-procedure TKExtExcelEngine.ForceZeroValue(Field: TField);
+procedure TKExcelExportEngine.ForceZeroValue(Field: TField);
 begin
   case Field.DataType of
     ftFixedChar, ftString, ftGuid, ftWideString, ftMemo: Field.Value := ' ';
@@ -203,7 +212,7 @@ begin
   end;
 end;
 
-function TKExtExcelEngine.AddExcelColumn(ATable: _Table;
+function TKExcelExportEngine.AddExcelColumn(ATable: _Table;
   const AColumnName: string; const ADataType: DataTypeEnum; const ASize: Integer): Boolean;
 var
   LColumn: _Column;
@@ -232,9 +241,9 @@ begin
   Result := True;
 end;
 
-procedure TKExtExcelEngine.CreateExcelSheet(const AViewTableStore: TKViewTableStore;
+procedure TKExcelExportEngine.CreateExcelSheet(const AViewTableStore: TKViewTableStore;
   AConnectionString, AExcelRangeName: string;
-  AAcceptFieldEvent: TExportAcceptFieldEvent = nil;
+  AAcceptFieldEvent: TAcceptViewFieldEvent = nil;
   AUseDisplayLabels: Boolean = False);
 var
   LCatalog: _Catalog;
@@ -261,7 +270,7 @@ begin
     LViewField := LViewTableHeaderField.ViewField;
     if Assigned(LViewField) then
     begin
-      if IsValidField(LViewField, AAcceptFieldEvent) then
+      if IsAcceptedViewField(LViewField, AAcceptFieldEvent) then
       begin
         if not AUseDisplayLabels then
           LColumnName := LViewTableHeaderField.FieldName
@@ -281,9 +290,9 @@ begin
   LCatalog := nil;
 end;
 
-procedure TKExtExcelEngine.CreateExcelSheet(const ADataSet: TDataSet;
+procedure TKExcelExportEngine.CreateExcelSheet(const ADataSet: TDataSet;
   AConnectionString, AExcelRangeName: string;
-  AAcceptFieldEvent: TExportAcceptDataFieldEvent = nil;
+  AAcceptFieldEvent: TAcceptDataFieldEvent = nil;
   AUseDisplayLabels: Boolean = False);
 var
   LCatalog: _Catalog;
@@ -306,7 +315,7 @@ begin
   for LFieldIndex := 0 to ADataSet.FieldCount - 1 do
   begin
     LField := ADataSet.Fields[LFieldIndex];
-    if IsValidDataField(LField, AAcceptFieldEvent) then
+    if IsAccepterDataField(LField, AAcceptFieldEvent) then
     begin
       if not AUseDisplayLabels then
         LColumnName := LField.FieldName
@@ -325,28 +334,10 @@ begin
   LCatalog := nil;
 end;
 
-function TKExtExcelEngine.IsValidField(const AViewField: TKViewField;
-  AAcceptFieldEvent: TExportAcceptFieldEvent = nil): Boolean;
-begin
-  Assert(Assigned(AViewField));
-  Result := AViewField.IsVisible;
-  if Assigned(AAcceptFieldEvent) then
-    AAcceptFieldEvent(AViewField, Result);
-end;
-
-function TKExtExcelEngine.IsValidDataField(const AField: TField;
-  AAcceptFieldEvent: TExportAcceptDataFieldEvent = nil): Boolean;
-begin
-  Assert(Assigned(AField));
-  Result := AField.Visible;
-  if Assigned(AAcceptFieldEvent) then
-    AAcceptFieldEvent(AField, Result);
-end;
-
-procedure TKExtExcelEngine.CreateFileByTable(const AFileName: string;
+procedure TKExcelExportEngine.CreateFileByTable(const AFileName: string;
   const ATableStore: TKViewTableStore;
   const AExcelRangeName: string = '';
-  const AAcceptFieldEvent: TExportAcceptFieldEvent = nil;
+  const AAcceptFieldEvent: TAcceptViewFieldEvent = nil;
   const AUseDisplayLabels: Boolean = False);
 var
   LConnectionString: string;
@@ -356,10 +347,10 @@ begin
     AAcceptFieldEvent, AUseDisplayLabels);
 end;
 
-procedure TKExtExcelEngine.CreateFileByDataSet(const AFileName: string;
+procedure TKExcelExportEngine.CreateFileByDataSet(const AFileName: string;
   const ADataSet: TDataSet;
   const AExcelRangeName: string = '';
-  const AAcceptFieldEvent: TExportAcceptDataFieldEvent = nil;
+  const AAcceptFieldEvent: TAcceptDataFieldEvent = nil;
   const AUseDisplayLabels: Boolean = False);
 var
   LConnectionString: string;
@@ -369,20 +360,10 @@ begin
     AAcceptFieldEvent, AUseDisplayLabels)
 end;
 
-function TKExtExcelEngine.OpenExcelRange(const AExcelFileName, AExcelRangeName: string): TAdoTable;
-begin
-  //Opens the Ado table using a range defined inside the excel file
-  Result := TAdoTable.Create(nil);
-  Result.CursorType := ctStatic;
-  Result.ConnectionString := GetConnectionString(AExcelFileName);
-  Result.TableName := AExcelRangeName;
-  Result.Open;
-end;
-
-procedure TKExtExcelEngine.FillAdoTable(const AExcelFileName, AExcelRangeName: string;
+procedure TKExcelExportEngine.FillAdoTable(const AExcelFileName, AExcelRangeName: string;
   const ATableStore: TKViewTableStore;
-  AAcceptRecordEvent: TExportAcceptRecordEvent = nil;
-  AAcceptFieldEvent: TExportAcceptFieldEvent = nil;
+  AAcceptRecordEvent: TAcceptExportRecordEvent = nil;
+  AAcceptFieldEvent: TAcceptViewFieldEvent = nil;
   AUseDisplayLabels: Boolean = false);
 var
   LFirstAccepted: Boolean;
@@ -451,7 +432,7 @@ begin
           begin
             LDestField := LAdoTable.Fields[LFieldIndex];
             LSourceField := FindValidField(LDestField, AUseDisplayLabels);
-            LAcceptField := Assigned(LSourceField) and IsValidField(LSourceField.ViewField,
+            LAcceptField := Assigned(LSourceField) and IsAcceptedViewField(LSourceField.ViewField,
               AAcceptFieldEvent);
             if LAcceptField then
             begin
@@ -481,8 +462,7 @@ begin
       end;
     end;
   finally
-    LAdoTable.Close;
-    LAdoTable.Free;
+    CloseExcelRange(LAdoTable);
   end;
 
   if LZeroValueForced then
@@ -501,7 +481,7 @@ begin
           begin
             LDestField := LAdoTable.Fields[LFieldIndex];
             LSourceField := FindValidField(LDestField, AUseDisplayLabels);
-            LAcceptField := Assigned(LSourceField) and IsValidField(LSourceField.ViewField,
+            LAcceptField := Assigned(LSourceField) and IsAcceptedViewField(LSourceField.ViewField,
               AAcceptFieldEvent);
             if LAcceptField and IsFieldToForceZero(LDestField) and LSourceField.IsNull then
               LDestField.Clear;
@@ -520,10 +500,10 @@ begin
   end;
 end;
 
-procedure TKExtExcelEngine.FillAdoTableByDataSet(const AExcelFileName, AExcelRangeName: string;
+procedure TKExcelExportEngine.FillAdoTableByDataSet(const AExcelFileName, AExcelRangeName: string;
   const ADataSet: TDataSet;
-  AAcceptRecordEvent: TExportAcceptDataRecordEvent = nil;
-  AAcceptFieldEvent: TExportAcceptDataFieldEvent = nil;
+  AAcceptRecordEvent: TAcceptExportDataRecordEvent = nil;
+  AAcceptFieldEvent: TAcceptDataFieldEvent = nil;
   AUseDisplayLabels: Boolean = false);
 var
   LFirstAccepted: Boolean;
@@ -585,7 +565,7 @@ begin
           begin
             LDestField := LAdoTable.Fields[LFieldIndex];
             LSourceField := FindValidField(LDestField, AUseDisplayLabels);
-            LAcceptField := Assigned(LSourceField) and IsValidDataField(LSourceField,
+            LAcceptField := Assigned(LSourceField) and IsAccepterDataField(LSourceField,
               AAcceptFieldEvent);
             if LAcceptField then
             begin
@@ -635,7 +615,7 @@ begin
           begin
             LDestField := LAdoTable.Fields[LFieldIndex];
             LSourceField := FindValidField(LDestField, AUseDisplayLabels);
-            LAcceptField := Assigned(LSourceField) and IsValidDataField(LSourceField,
+            LAcceptField := Assigned(LSourceField) and IsAccepterDataField(LSourceField,
               AAcceptFieldEvent);
             if LAcceptField and IsFieldToForceZero(LDestField) and LSourceField.IsNull then
               LDestField.Clear;
@@ -653,6 +633,189 @@ begin
       LAdoTable.Free;
     end;
   end;
+end;
+
+{ TKExcelImportEngine }
+
+function TKExcelImportEngine.GetFieldMappings: TStringList;
+begin
+  if not Assigned(FFieldMappings) then
+    FFieldMappings := TStringList.Create;
+  Result := FFieldMappings;
+end;
+
+procedure TKExcelImportEngine.ImportFile(
+  const AFileName: string;
+  const AOnSetFieldValue: TImportSetFieldValue;
+  const AOnPostRecord: TImportPostRecordEvent;
+  const AExcelRangeName: string = '';
+  const AOnAcceptRecord: TAcceptImportRecordEvent = nil;
+  const AOnAcceptField: TAcceptDataFieldEvent = nil;
+  const AUseDisplayLabels: Boolean = False);
+var
+  LAdoTable: TAdoTable;
+  LAccept : boolean;
+  LIgnoreError : boolean;
+  J,I : integer;
+  LSourceField : TField;
+  LEqualPos : integer;
+  LSourceFieldNameMap, LDestFieldNameMap, LDestFieldName: string;
+
+begin
+  LAdoTable := OpenExcelRange(AFileName, AExcelRangeName);
+  Try
+    LAdoTable.First;
+    //Ciclo sui records e li aggiungo al dataset di destinazione in base alla mappatura
+    while not LAdoTable.Eof do
+    begin
+      //Verifico se il record è accettato e se devo agiungerlo o modificarlo
+      LAccept := True; //Di default il record viene accettato
+      if Assigned(AOnAcceptRecord) then
+        AOnAcceptRecord(LAdoTable, LAccept);
+      if LAccept then
+      begin
+        Try
+          //Aggiorno i campi utilizzando la mappatura: se la mappatura è vuota utilizzo il nome dei campi corrispondenti
+          for j := 0 to LAdoTable.FieldCount - 1 do
+          begin
+            LSourceField := LAdoTable.Fields[j];
+            //Verifico se il campo di import è accettato
+            LAccept := (LSourceField <> nil);
+            if (LSourceField <> nil) and Assigned(AOnAcceptField) then
+              AOnAcceptField(LSourceField, LAccept);
+            if LAccept then
+            begin
+              //Di default il campo destinazione è uguale a quello sorgente
+              LDestFieldName := LSourceField.FieldName;
+              //Se c'è la mappatura, cerco se il nome del campo destinazione è definito nella mappatura
+              if FieldMappings.Count > 0 then
+              begin
+                //Ciclo sulla mappatura per cercare il nome del campo destinazione
+                LSourceField := nil;
+                for i := 0 to FieldMappings.Count -1 do
+                begin
+                  LEqualPos := pos('=',FieldMappings.Strings[i]);
+                  if LEqualPos <= 1 then
+                    Continue;
+                  LSourceFieldNameMap := Copy(FieldMappings.Strings[i],1,LEqualPos-1);
+                  LDestFieldNameMap := Copy(FieldMappings.Strings[i],LEqualPos+1,MaxInt);
+                  if SameText(LSourceFieldNameMap, LSourceField.FieldName) and (LDestFieldNameMap <> '') then
+                  begin
+                    LDestFieldName := LDestFieldNameMap;
+                    break;
+                  end;
+                end;
+              end;
+              if Assigned(AOnSetFieldValue) then
+                AOnSetFieldValue(LDestFieldName, LSourceField.Value);
+            end;
+          end;
+          if Assigned(AOnPostRecord) then
+            AOnPostRecord(LAdoTable, True);
+        Except
+          On E: Exception do
+          begin
+            if Assigned(AOnPostRecord) then
+              AOnPostRecord(LAdoTable, False);
+            if Assigned(FOnDatabaseError) then
+            begin
+              LIgnoreError := False;
+              FOnDatabaseError(E, LAdoTable.RecNo, LIgnoreError);
+            end
+            else
+              LIgnoreError := False;
+            if not LIgnoreError then
+              raise;
+          end;
+        End;
+      end;
+      LAdoTable.Next;
+    end;
+
+  Finally
+    CloseExcelRange(LAdoTable);
+  End;
+end;
+
+procedure TKExcelImportEngine.SetFieldMappings(const Value: TStringList);
+begin
+  if Assigned(Value) then
+    FieldMappings.Assign(Value)
+  else
+    FieldMappings.Clear;
+end;
+
+{ TKExcelEngine }
+
+procedure TKExcelEngine.CloseExcelRange(const AAdoTable: TAdoTable);
+begin
+  AAdoTable.Close;
+  AAdoTable.ConnectionString := '';
+  AAdoTable.Free;
+end;
+
+function TKExcelEngine.GetConnectionString(const ExcelFileName: string): string;
+var
+  FileExt: string;
+  ExcelVersion: TExcelVersion;
+  ConnectionString: string;
+  AdditionalOptions: string;
+begin
+  FileExt := ExtractFileExt(ExcelFileName);
+  if SameText(FileExt, EXCEL_FILE_EXT) then
+  begin
+    ExcelVersion := ex2000;
+    ConnectionString := EXCEL_CONN_STRING;
+    AdditionalOptions := '';
+  end
+  else
+  begin
+    ExcelVersion := ex2007;
+    ConnectionString := EXCEL_CONN_STRING_12;
+    AdditionalOptions := '';
+  end;
+  Result := Format(ConnectionString,
+    [ExcelFileName,AExcelVersion[ExcelVersion]+AdditionalOptions]);
+end;
+
+function TKExcelEngine.OpenExcelRange(const AExcelFileName, AExcelRangeName: string): TAdoTable;
+begin
+  //Opens the Ado table using a range defined inside the excel file
+  Result := TAdoTable.Create(nil);
+  try
+    Result.CursorType := ctStatic;
+    Result.ConnectionString := GetConnectionString(AExcelFileName);
+    Result.TableName := AExcelRangeName;
+    Result.Open;
+  except
+    Result.Free;
+    raise;
+  end;
+end;
+
+function TKExcelEngine.ValidColumnName(Field: TField): string;
+begin
+  Result := StringReplace(Field.FieldName, ' ', '_', [rfReplaceAll]);
+  Result := StringReplace(Field.FieldName, '.', '_', [rfReplaceAll]);
+//  Result := KillChars(Result,['(',')','!','\','=',CR,LF]);
+end;
+
+function TKExcelEngine.IsAcceptedViewField(const AViewField: TKViewField;
+  AAcceptFieldEvent: TAcceptViewFieldEvent = nil): Boolean;
+begin
+  Assert(Assigned(AViewField));
+  Result := AViewField.IsVisible;
+  if Assigned(AAcceptFieldEvent) then
+    AAcceptFieldEvent(AViewField, Result);
+end;
+
+function TKExcelEngine.IsAccepterDataField(const AField: TField;
+  AAcceptFieldEvent: TAcceptDataFieldEvent = nil): Boolean;
+begin
+  Assert(Assigned(AField));
+  Result := AField.Visible;
+  if Assigned(AAcceptFieldEvent) then
+    AAcceptFieldEvent(AField, Result);
 end;
 
 end.
