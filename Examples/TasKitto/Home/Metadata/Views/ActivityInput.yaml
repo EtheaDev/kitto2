@@ -105,3 +105,16 @@ MainTable:
           FileName: %APP_PATH%\Resources\taskitto_logo_150.png
           ClientFileName: takitto_logo.png
           ContentType: image/png
+      UploadFile:
+        DisplayLabel: Upload a file
+        Controller: UploadFile
+          Path: %APP_PATH%\Documents\Uploaded
+          WildCard: *.*
+      UploadExcel:
+        DisplayLabel: Upload an Excel File
+        Controller: ImportExcelTool
+          ExcelRangeName: DataRange
+          UseDisplayLabels: False
+          FieldMappings:
+            IdColumn: IdField
+        WildCard: *.xlsx

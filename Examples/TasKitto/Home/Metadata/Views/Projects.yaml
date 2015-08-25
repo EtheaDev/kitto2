@@ -10,7 +10,7 @@ Controller: List
         # ExpressionTemplate should contain a {value} placeholder for the search term.
         ExpressionTemplate: >
           upper({Q}PROJECT_NAME) like                  
-                upper('%{value}%')
+                 upper('%{value}%')
       DynaList: Customer
         Width: 40
         # CommandText must select the value field and the display field as the first two fields.
@@ -40,6 +40,21 @@ MainTable:
             RequireSelection: False
             IncludeHeader: False
             ClientFileName: ProjectList.xml
+    ToolViews:
+      UploadFile:
+        DisplayLabel: Upload a file
+        Controller: UploadFile
+          RequireSelection: False
+          Path: %APP_PATH%\Documents\Uploaded
+          WildCard: *.*
+      DownloadFile:
+        DisplayLabel: Download a file
+        Controller: DownloadFile
+          ConfirmationMessage: Are you sure you want to download the file?
+          RequireSelection: False
+          FileName: %APP_PATH%\Documents\Uploaded\logo.png
+          ClientFileName: kitto_logo.png
+          ContentType: image/png
 
   DetailTables:
     Table:

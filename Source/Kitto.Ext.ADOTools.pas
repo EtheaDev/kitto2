@@ -19,7 +19,7 @@ unit Kitto.Ext.ADOTools;
 interface
 
 uses
-  SysUtils, Classes,
+  SysUtils, Classes, ADODB, DB,
   EF.Tree, Kitto.Excel,
   Kitto.Ext.Controller, Kitto.Ext.DataTool, Kitto.Ext.Base, Kitto.Ext.Tools,
   Kitto.Metadata.DataView, Kitto.Ext.StandardControllers;
@@ -27,7 +27,7 @@ uses
 type
   TExportExcelToolController = class(TKExtDownloadFileController)
   strict private
-    FExportExcelEngine: TKExtExcelEngine;
+    FExportExcelEngine: TKExcelExportEngine;
     function GetExcelRangeName: string;
     function GetTemplateFileName: string;
     function GetUseDisplayLabels: boolean;
@@ -39,12 +39,40 @@ type
     procedure AcceptField(AViewField: TKViewField; var AAccept: boolean); virtual;
   public
     procedure AfterConstruction; override;
+    destructor Destroy; override;
     class function GetDefaultImageName: string; override;
-    property ExportEngine: TKExtExcelEngine read FExportExcelEngine;
+    property ExportEngine: TKExcelExportEngine read FExportExcelEngine;
   published
     property ExcelRangeName: string read GetExcelRangeName;
     property TemplateFileName: string read GetTemplateFileName;
     property UseDisplayLabels: boolean read GetUseDisplayLabels;
+  end;
+
+  TImportExcelToolController = class(TKExtUploadFileController)
+  strict private
+    FImportExcelEngine: TKExcelImportEngine;
+    FFieldMapping: TStringList;
+    FNewRecord: TKViewTableRecord;
+    function GetExcelRangeName: string;
+    function GetUseDisplayLabels: boolean;
+    function GetFieldMappings: TStringList;
+  private
+  protected
+    function GetWildCard: string; override;
+    procedure ProcessUploadedFile(const AFileName: string); override;
+    procedure AcceptRecord(const ARecord: TDataSet; var AAccept: boolean); virtual;
+    procedure AcceptField(AField: TField; var AAccept: boolean); virtual;
+    procedure SetFieldValue(const ADestFieldName: string; const AValue: Variant); virtual;
+    procedure PostRecord(const AAdoTable: TAdoTable; const PostRecord: boolean); virtual;
+  public
+    procedure AfterConstruction; override;
+    destructor Destroy; override;
+    class function GetDefaultImageName: string; override;
+    property ImportEngine: TKExcelImportEngine read FImportExcelEngine;
+  published
+    property ExcelRangeName: string read GetExcelRangeName;
+    property UseDisplayLabels: boolean read GetUseDisplayLabels;
+    property FieldMappings: TStringList read GetFieldMappings;
   end;
 
 implementation
@@ -56,11 +84,16 @@ uses
 
 { TExportExcelToolController }
 
-
 procedure TExportExcelToolController.AfterConstruction;
 begin
   inherited;
-  FExportExcelEngine := TKExtExcelEngine.Create(self);
+  FExportExcelEngine := TKExcelExportEngine.Create(self);
+end;
+
+destructor TExportExcelToolController.Destroy;
+begin
+  FExportExcelEngine.Free;
+  inherited;
 end;
 
 function TExportExcelToolController.GetDefaultFileExtension: string;
@@ -133,12 +166,109 @@ begin
   AddTempFilename(Result);
 end;
 
+{ TImportExcelToolController }
 
+procedure TImportExcelToolController.AfterConstruction;
+begin
+  inherited;
+  FImportExcelEngine := TKExcelImportEngine.Create(self);
+end;
+
+destructor TImportExcelToolController.Destroy;
+begin
+  FImportExcelEngine.Free;
+  FFieldMapping.Free;
+  inherited;
+end;
+
+class function TImportExcelToolController.GetDefaultImageName: string;
+begin
+  Result := 'excel_document';
+end;
+
+function TImportExcelToolController.GetWildCard: string;
+begin
+  Result := Format('*%s;*%s', [EXCEL_NEW_FILE_EXT, EXCEL_FILE_EXT]);
+end;
+
+function TImportExcelToolController.GetExcelRangeName: string;
+begin
+  Result := Config.GetString('ExcelRangeName', 'DataRange');
+end;
+
+function TImportExcelToolController.GetUseDisplayLabels: Boolean;
+begin
+  Result := Config.GetBoolean('UseDisplayLabels');
+end;
+
+procedure TImportExcelToolController.AcceptRecord(
+  const ARecord: TDataSet; var AAccept: boolean);
+begin
+  //If the first field of the Excel Table is empty the record is not accepted
+  AAccept := not ARecord.Fields[0].IsNull;
+  if AAccept then
+    FNewRecord := ServerStore.Records.Append;
+end;
+
+procedure TImportExcelToolController.AcceptField(
+  AField: TField; var AAccept: boolean);
+begin
+  AAccept := FNewRecord.FindField(AField.FieldName) <> nil;
+end;
+
+function TImportExcelToolController.GetFieldMappings: TStringList;
+var
+  FieldMappingsNode: TEFNode;
+  FieldMappingNode: TEFNode;
+  I: Integer;
+begin
+  if not Assigned(FFieldMapping) then
+  begin
+    FFieldMapping := TStringList.Create;
+    try
+      FieldMappingsNode := Config.FindNode('FieldMappings');
+      if Assigned(FieldMappingsNode) then
+      begin
+        for I := 0 to FieldMappingsNode.ChildCount -1 do
+        begin
+          FieldMappingNode := FieldMappingsNode.Children[I];
+          FFieldMapping.Add(FieldMappingNode.Name+'='+FieldMappingNode.AsString);
+        end;
+      end;
+    except
+      FFieldMapping.Free;
+      raise;
+    end;
+  end;
+  Result := FFieldMapping;
+end;
+
+procedure TImportExcelToolController.PostRecord(
+  const AAdoTable: TAdoTable; const PostRecord: boolean);
+begin
+end;
+
+procedure TImportExcelToolController.ProcessUploadedFile(const AFileName: string);
+begin
+  inherited;
+  FImportExcelEngine.FieldMappings := FieldMappings;
+  FImportExcelEngine.ImportFile(AFileName, SetFieldValue, PostRecord, ExcelRangeName,
+    AcceptRecord, AcceptField, UseDisplayLabels);
+  ViewTable.Model.SaveRecords(ServerStore, True, nil);
+end;
+
+procedure TImportExcelToolController.SetFieldValue(const ADestFieldName: string;
+  const AValue: Variant);
+begin
+  FNewRecord.FieldByName(ADestFieldName).Value := AValue;
+end;
 
 initialization
   TKExtControllerRegistry.Instance.RegisterClass('ExportExcelTool', TExportExcelToolController);
+  TKExtControllerRegistry.Instance.RegisterClass('ImportExcelTool', TImportExcelToolController);
 
 finalization
   TKExtControllerRegistry.Instance.UnregisterClass('ExportExcelTool');
+  TKExtControllerRegistry.Instance.UnregisterClass('ImportExcelTool');
 
 end.
