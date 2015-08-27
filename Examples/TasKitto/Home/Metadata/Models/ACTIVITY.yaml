@@ -41,3 +41,4 @@ Rules:
   EnforceRange:
     From: START_TIME
     To: END_TIME
+DefaultSorting: ACTIVITY.ACTIVITY_DATE DESC, ACTIVITY.START_TIME DESC

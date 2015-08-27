@@ -107,6 +107,7 @@ type
     function GetFieldMappings: TStringList;
     procedure SetFieldMappings(const Value: TStringList); protected
   public
+    function GetFieldMapping(const ASourceField: TField): string;
     procedure ImportFile(
       const AFileName: string;
       const AOnSetFieldValue: TImportSetFieldValue;
@@ -637,6 +638,33 @@ end;
 
 { TKExcelImportEngine }
 
+function TKExcelImportEngine.GetFieldMapping(const ASourceField: TField): string;
+var
+  LEqualPos : integer;
+  LSourceFieldNameMap, LDestFieldNameMap, LDestFieldName: string;
+  I: Integer;
+begin
+  Result := ASourceField.FieldName;
+  if FieldMappings.Count > 0 then
+  begin
+    //If mapping is defined, only mapped fields are accepted
+    Result := '';
+    for I := 0 to FieldMappings.Count -1 do
+    begin
+      LEqualPos := pos('=',FieldMappings.Strings[i]);
+      if LEqualPos <= 1 then
+        Continue;
+      LSourceFieldNameMap := Copy(FieldMappings.Strings[i],1,LEqualPos-1);
+      LDestFieldNameMap := Copy(FieldMappings.Strings[i],LEqualPos+1,MaxInt);
+      if SameText(LSourceFieldNameMap, ASourceField.FieldName) and (LDestFieldNameMap <> '') then
+      begin
+        Result := LDestFieldNameMap;
+        break;
+      end;
+    end;
+  end;
+end;
+
 function TKExcelImportEngine.GetFieldMappings: TStringList;
 begin
   if not Assigned(FFieldMappings) then
@@ -658,9 +686,7 @@ var
   LIgnoreError : boolean;
   J,I : integer;
   LSourceField : TField;
-  LEqualPos : integer;
-  LSourceFieldNameMap, LDestFieldNameMap, LDestFieldName: string;
-
+  LDestFieldName: string;
 begin
   LAdoTable := OpenExcelRange(AFileName, AExcelRangeName);
   Try
@@ -685,28 +711,8 @@ begin
               AOnAcceptField(LSourceField, LAccept);
             if LAccept then
             begin
-              //Di default il campo destinazione è uguale a quello sorgente
-              LDestFieldName := LSourceField.FieldName;
-              //Se c'è la mappatura, cerco se il nome del campo destinazione è definito nella mappatura
-              if FieldMappings.Count > 0 then
-              begin
-                //Ciclo sulla mappatura per cercare il nome del campo destinazione
-                LSourceField := nil;
-                for i := 0 to FieldMappings.Count -1 do
-                begin
-                  LEqualPos := pos('=',FieldMappings.Strings[i]);
-                  if LEqualPos <= 1 then
-                    Continue;
-                  LSourceFieldNameMap := Copy(FieldMappings.Strings[i],1,LEqualPos-1);
-                  LDestFieldNameMap := Copy(FieldMappings.Strings[i],LEqualPos+1,MaxInt);
-                  if SameText(LSourceFieldNameMap, LSourceField.FieldName) and (LDestFieldNameMap <> '') then
-                  begin
-                    LDestFieldName := LDestFieldNameMap;
-                    break;
-                  end;
-                end;
-              end;
-              if Assigned(AOnSetFieldValue) then
+              LDestFieldName := GetFieldMapping(LSourceField);
+              if (LDestFieldName <> '') and Assigned(AOnSetFieldValue) then
                 AOnSetFieldValue(LDestFieldName, LSourceField.Value);
             end;
           end;

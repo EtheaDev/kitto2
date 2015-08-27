@@ -115,6 +115,16 @@ MainTable:
         Controller: ImportExcelTool
           ExcelRangeName: DataRange
           UseDisplayLabels: False
+          AutoRefresh: All
+          RequireSelection: False
           FieldMappings:
-            IdColumn: IdField
-        WildCard: *.xlsx
+            DESCRIPTION: DESCRIPTION
+            PHASE ID: PHASE_ID
+            EMPLOYEE ID: EMPLOYEE_ID
+            ROLE ID: ROLE_ID
+            TYPE ID: TYPE_ID
+            ACTIVITY DATE: ACTIVITY_DATE
+            START TIME: START_TIME
+            END TIME: END_TIME
+            STATUS: STATUS
+        WildCard: *.xls

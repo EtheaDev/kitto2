@@ -19,7 +19,7 @@ unit Kitto.Ext.ADOTools;
 interface
 
 uses
-  SysUtils, Classes, ADODB, DB,
+  SysUtils, Classes, ADODB, DB, Generics.Collections,
   EF.Tree, Kitto.Excel,
   Kitto.Ext.Controller, Kitto.Ext.DataTool, Kitto.Ext.Base, Kitto.Ext.Tools,
   Kitto.Metadata.DataView, Kitto.Ext.StandardControllers;
@@ -52,11 +52,13 @@ type
   strict private
     FImportExcelEngine: TKExcelImportEngine;
     FFieldMapping: TStringList;
-    FNewRecord: TKViewTableRecord;
+    FAddedRecord: TKViewTableRecord;
+    FAddedRecords: TObjectList<TKViewTableRecord>;
     function GetExcelRangeName: string;
     function GetUseDisplayLabels: boolean;
     function GetFieldMappings: TStringList;
   private
+    procedure RollbackAddedRecords;
   protected
     function GetWildCard: string; override;
     procedure ProcessUploadedFile(const AFileName: string); override;
@@ -172,12 +174,14 @@ procedure TImportExcelToolController.AfterConstruction;
 begin
   inherited;
   FImportExcelEngine := TKExcelImportEngine.Create(self);
+  FAddedRecords := TObjectList<TKViewTableRecord>.Create(False);
 end;
 
 destructor TImportExcelToolController.Destroy;
 begin
-  FImportExcelEngine.Free;
-  FFieldMapping.Free;
+  FreeAndNil(FAddedRecords);
+  FreeAndNil(FImportExcelEngine);
+  FreeAndNil(FFieldMapping);
   inherited;
 end;
 
@@ -203,17 +207,41 @@ end;
 
 procedure TImportExcelToolController.AcceptRecord(
   const ARecord: TDataSet; var AAccept: boolean);
+var
+  LDefaultValues: TEFNode;
 begin
   //If the first field of the Excel Table is empty the record is not accepted
   AAccept := not ARecord.Fields[0].IsNull;
   if AAccept then
-    FNewRecord := ServerStore.Records.Append;
+  begin
+    FAddedRecord := ServerStore.Records.AppendAndInitialize;
+    FAddedRecords.Add(FAddedRecord);
+    {TODO: copied from TKExtFormPanelController.StartOperation: need refactoring }
+    LDefaultValues := nil;
+    try
+      LDefaultValues := ViewTable.GetDefaultValues;
+      FAddedRecord.Store.DisableChangeNotifications;
+      try
+        FAddedRecord.ReadFromNode(LDefaultValues);
+      finally
+        FAddedRecord.Store.EnableChangeNotifications;
+      end;
+      ViewTable.Model.BeforeNewRecord(FAddedRecord, False);
+      FAddedRecord.ApplyNewRecordRules;
+      ViewTable.Model.AfterNewRecord(FAddedRecord);
+    finally
+      FreeAndNil(LDefaultValues);
+    end;
+  end;
 end;
 
 procedure TImportExcelToolController.AcceptField(
   AField: TField; var AAccept: boolean);
+var
+  LFieldNameMap: string;
 begin
-  AAccept := FNewRecord.FindField(AField.FieldName) <> nil;
+  LFieldNameMap := FImportExcelEngine.GetFieldMapping(AField);
+  AAccept := FAddedRecord.FindField(LFieldNameMap) <> nil;
 end;
 
 function TImportExcelToolController.GetFieldMappings: TStringList;
@@ -246,21 +274,46 @@ end;
 procedure TImportExcelToolController.PostRecord(
   const AAdoTable: TAdoTable; const PostRecord: boolean);
 begin
+  FAddedRecord.ApplyNewRecordRules;
 end;
 
 procedure TImportExcelToolController.ProcessUploadedFile(const AFileName: string);
+var
+  LFileName: string;
 begin
   inherited;
+  LFileName := AFileName;
+  //LFileName := 'C:\Users\Public\Documents\UploadTest.xls';
   FImportExcelEngine.FieldMappings := FieldMappings;
-  FImportExcelEngine.ImportFile(AFileName, SetFieldValue, PostRecord, ExcelRangeName,
-    AcceptRecord, AcceptField, UseDisplayLabels);
-  ViewTable.Model.SaveRecords(ServerStore, True, nil);
+  try
+    FAddedRecord := nil;
+    FAddedRecords.Clear;
+    FImportExcelEngine.ImportFile(LFileName, SetFieldValue, PostRecord, ExcelRangeName,
+      AcceptRecord, AcceptField, UseDisplayLabels);
+    ViewTable.Model.SaveRecords(ServerStore, True, nil);
+  except
+    RollbackAddedRecords;
+    raise;
+  end;
+end;
+
+procedure TImportExcelToolController.RollbackAddedRecords;
+var
+  I: Integer;
+  LAddedRecord: TKViewTableRecord;
+begin
+  for I := FAddedRecords.Count -1 downto 0 do
+  begin
+    LAddedRecord := FAddedRecords.Items[I];
+    ServerStore.Records.Remove(LAddedRecord);
+  end;
+  FAddedRecords.Clear;
 end;
 
 procedure TImportExcelToolController.SetFieldValue(const ADestFieldName: string;
   const AValue: Variant);
 begin
-  FNewRecord.FieldByName(ADestFieldName).Value := AValue;
+  FAddedRecord.FieldByName(ADestFieldName).Value := AValue;
 end;
 
 initialization
