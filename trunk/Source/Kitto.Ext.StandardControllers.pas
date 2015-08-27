@@ -204,13 +204,20 @@ type
   ///       <description>Content type passed from the client; if not specified,
   ///       it is derived from the file name's extension.</description>
   ///     </item>
+  ///     <item>
+  ///       <term>MaxUploadSize</term>
+  ///       <description>Maximum allowed size for the uploaded file.</description>
+  ///     </item>
   ///   </list>
   /// </remarks>
   TKExtUploadFileController = class(TKExtDataToolController)
   strict private
     FTempFileNames: TStrings;
+    FWindow: TKExtModalWindow;
     function GetContentType: string;
     function GetPath: string;
+    function GetMaxUploadSize: Integer;
+    procedure ShowUploadFileDialog;
   strict protected
     procedure ExecuteTool; override;
     function GetWildCard: string; virtual;
@@ -232,11 +239,16 @@ type
     property Path: string read GetPath;
     property WildCard: string read GetWildCard;
     property ContentType: string read GetContentType;
+
+    procedure Upload;
+    procedure PostUpload;
   end;
 
 implementation
 
 uses
+  StrUtils,
+  Ext, ExtForm, ExtUxForm,
   EF.SysUtils, EF.Tree, EF.RegEx, EF.Localization,
   Kitto.Ext.Session, Kitto.Ext.Controller, Kitto.Metadata.DataView;
 
@@ -512,22 +524,67 @@ begin
 end;
 
 procedure TKExtUploadFileController.ExecuteTool;
+begin
+  ShowUploadFileDialog;
+end;
+
+procedure TKExtUploadFileController.ShowUploadFileDialog;
+var
+  LUploadButton: TKExtButton;
+  LFormPanel: TExtFormFormPanel;
+  LSubmitAction: TExtFormActionSubmit;
+  LUploadFormField: TExtUxFormFileUploadField;
+begin
+  FreeAndNil(FWindow);
+  FWindow := TKExtModalWindow.Create(Self);
+  FWindow.Width := 400;
+  FWindow.Height := 120;
+  FWindow.Maximized := Session.IsMobileBrowser;
+  FWindow.Border := not FWindow.Maximized;
+  FWindow.Closable := True;
+  FWindow.Title := _('File upload');
+
+  LFormPanel := TExtFormFormPanel.CreateAndAddTo(FWindow.Items);
+  LFormPanel.Region := rgCenter;
+  LFormPanel.Frame := True;
+  LFormPanel.FileUpload := True;
+  LFormPanel.LabelAlign := laRight;
+  LFormPanel.LabelWidth := 100;
+  LUploadFormField := TExtUxFormFileUploadField.CreateAndAddTo(LFormPanel.Items);
+  LUploadFormField.FieldLabel := _('Upload a file');
+  LUploadFormField.EmptyText := _('Select a file to upload');
+  LUploadFormField.AllowBlank := False;
+  LUploadFormField.Anchor := '0 5 0 0';
+  LUploadButton := TKExtButton.CreateAndAddTo(LFormPanel.Buttons);
+  LUploadButton.Text := _('Upload');
+  LUploadButton.SetIconAndScale('Upload', IfThen(Session.IsMobileBrowser,'medium', 'small'));
+
+  LSubmitAction := TExtFormActionSubmit.Create(FWindow);
+  LSubmitAction.Url := MethodURI(Upload);
+  LSubmitAction.WaitMsg := _('File upload in progress...');
+  LSubmitAction.WaitTitle := _('Please wait...');
+  LSubmitAction.Success := Ajax(PostUpload);
+  LSubmitAction.Failure := ExtMessageBox.Alert(_('File upload error'), '%1.result.message');
+  LUploadButton.Handler := TExtFormBasicForm(LFormPanel.GetForm).Submit(LSubmitAction);
+
+  Session.MaxUploadSize := GetMaxUploadSize;
+  FWindow.Show;
+end;
+
+procedure TKExtUploadFileController.Upload;
 var
   LFileName: string;
 begin
-  inherited;
-  try
-    LFileName := GetPath;
-    { TODO: show upload dialog }
-
-    { TODO: perform upload of file and store in LFileName }
-
+  LFileName := Session.FileUploadedFullName;
+  { TODO : Check the file against limitations such as type and size}
+  if (LFileName <> '') and FileExists(LFileName) then
+  begin
     AddTempFilename(LFileName);
-    //Call
-    ProcessUploadedFile(LFileName);
-  except
-    Cleanup;
-    raise;
+    try
+      ProcessUploadedFile(LFileName);
+    finally
+      Cleanup;
+    end;
   end;
 end;
 
@@ -539,6 +596,11 @@ end;
 function TKExtUploadFileController.GetDefaultPath: string;
 begin
   Result := '';
+end;
+
+function TKExtUploadFileController.GetMaxUploadSize: Integer;
+begin
+  Result := Config.GetInteger('MaxUploadSize', MaxLongint);
 end;
 
 class function TKExtUploadFileController.GetDefaultImageName: string;
@@ -560,6 +622,11 @@ procedure TKExtUploadFileController.InitDefaults;
 begin
   inherited;
   FTempFileNames := TStringList.Create;
+end;
+
+procedure TKExtUploadFileController.PostUpload;
+begin
+  FWindow.Close;
 end;
 
 procedure TKExtUploadFileController.ProcessUploadedFile(const AUploadedFileName: string);
