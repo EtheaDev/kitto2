@@ -147,13 +147,13 @@ type
     ///  Requires that AStore is a TKViewTableStore and calls InternalSaveRecords.
     /// </summary>
     procedure SaveRecords(const AStore: TEFTree; const APersist: Boolean;
-      const AAfterPersist: TProc); override;
+      const AAfterPersist: TProc; const AUseTransaction: Boolean = True); override;
 
     /// <summary>
     ///  Persists the specified record. Calls various protected virtual methods.
     /// </summary>
     procedure SaveRecord(const ARecord: TEFNode; const APersist: Boolean;
-      const AAfterPersist: TProc); override;
+      const AAfterPersist: TProc; const AUseTransaction: Boolean = True); override;
   end;
 
 implementation
@@ -404,7 +404,8 @@ begin
 end;
 
 procedure TKDefaultModel.SaveRecord(const ARecord: TEFNode;
-  const APersist: Boolean; const AAfterPersist: TProc);
+  const APersist: Boolean; const AAfterPersist: TProc;
+  const AUseTransaction: Boolean = True);
 var
   LRecord: TKViewTableRecord;
   LUseTransactions: Boolean;
@@ -434,9 +435,9 @@ begin
 
   if APersist then
   begin
-    LUseTransactions := True;
+    LUseTransactions := AUseTransaction;
     LDoIt := True;
-    BeforePersistRecord(LRecord, LDoIt, LUseTransactions);
+    BeforePersistRecord(LRecord, LUseTransactions, LDoIt);
     if LDoIt then
     begin
       { TODO : Add support for calling virtual methods before and after applying After rules. }
@@ -457,12 +458,13 @@ begin
 end;
 
 procedure TKDefaultModel.SaveRecords(const AStore: TEFTree;
-  const APersist: Boolean; const AAfterPersist: TProc);
+  const APersist: Boolean; const AAfterPersist: TProc;
+  const AUseTransaction: Boolean = True);
 begin
   Assert(Assigned(AStore));
   Assert(AStore is TKViewTableStore);
 
-  InternalSaveRecords(TKViewTableStore(AStore), APersist, True, AAfterPersist);
+  InternalSaveRecords(TKViewTableStore(AStore), APersist, AUseTransaction, AAfterPersist);
 end;
 
 procedure TKDefaultModel.InternalSaveRecords(const AStore: TKViewTableStore;
@@ -470,13 +472,16 @@ procedure TKDefaultModel.InternalSaveRecords(const AStore: TKViewTableStore;
 var
   I: Integer;
   LConnection: TEFDBConnection;
+  LUseTransaction: Boolean;
 begin
   LConnection := TKConfig.Instance.DBConnections[AStore.ViewTable.DatabaseName];
   if AUseTransaction then
     LConnection.StartTransaction;
   try
+    //Save any record in a single transaction only if the connection is not is transaction
+    LUseTransaction := not LConnection.IsInTransaction;
     for I := 0 to AStore.RecordCount - 1 do
-      SaveRecord(AStore.Records[I], APersist, AAfterPersist);
+      SaveRecord(AStore.Records[I], APersist, AAfterPersist, LUseTransaction);
     if AUseTransaction then
       LConnection.CommitTransaction;
   except
