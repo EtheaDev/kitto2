@@ -586,6 +586,7 @@ begin
       Cleanup;
     end;
   end;
+  AfterExecuteTool;
 end;
 
 function TKExtUploadFileController.GetContentType: string;

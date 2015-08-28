@@ -112,7 +112,7 @@ MainTable:
           WildCard: *.*
       UploadExcel:
         DisplayLabel: Upload an Excel File
-        Controller: ImportExcelTool
+        Controller: UploadExcelTool
           ExcelRangeName: DataRange
           UseDisplayLabels: False
           AutoRefresh: All

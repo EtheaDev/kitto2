@@ -48,24 +48,24 @@ type
     property UseDisplayLabels: boolean read GetUseDisplayLabels;
   end;
 
-  TImportExcelToolController = class(TKExtUploadFileController)
+  TUploadExcelToolController = class(TKExtUploadFileController)
   strict private
     FImportExcelEngine: TKExcelImportEngine;
-    FFieldMapping: TStringList;
+    FFieldMappings: TStringList;
     FAddedRecord: TKViewTableRecord;
-    FAddedRecords: TObjectList<TKViewTableRecord>;
+    FTempStore: TKViewTableStore;
     function GetExcelRangeName: string;
     function GetUseDisplayLabels: boolean;
     function GetFieldMappings: TStringList;
   private
-    procedure RollbackAddedRecords;
   protected
     function GetWildCard: string; override;
     procedure ProcessUploadedFile(const AFileName: string); override;
     procedure AcceptRecord(const ARecord: TDataSet; var AAccept: boolean); virtual;
     procedure AcceptField(AField: TField; var AAccept: boolean); virtual;
     procedure SetFieldValue(const ADestFieldName: string; const AValue: Variant); virtual;
-    procedure PostRecord(const AAdoTable: TAdoTable; const PostRecord: boolean); virtual;
+    procedure BeforePostRecord(const AAdoTable: TAdoTable;
+      const ANewRecord: TKViewTableRecord); virtual;
   public
     procedure AfterConstruction; override;
     destructor Destroy; override;
@@ -168,160 +168,97 @@ begin
   AddTempFilename(Result);
 end;
 
-{ TImportExcelToolController }
+{ TUploadExcelToolController }
 
-procedure TImportExcelToolController.AfterConstruction;
+procedure TUploadExcelToolController.AfterConstruction;
 begin
   inherited;
   FImportExcelEngine := TKExcelImportEngine.Create(self);
-  FAddedRecords := TObjectList<TKViewTableRecord>.Create(False);
 end;
 
-destructor TImportExcelToolController.Destroy;
+destructor TUploadExcelToolController.Destroy;
 begin
-  FreeAndNil(FAddedRecords);
   FreeAndNil(FImportExcelEngine);
-  FreeAndNil(FFieldMapping);
+  FreeAndNil(FFieldMappings);
+  FreeAndNil(FTempStore);
   inherited;
 end;
 
-class function TImportExcelToolController.GetDefaultImageName: string;
+class function TUploadExcelToolController.GetDefaultImageName: string;
 begin
   Result := 'excel_document';
 end;
 
-function TImportExcelToolController.GetWildCard: string;
+function TUploadExcelToolController.GetWildCard: string;
 begin
   Result := Format('*%s;*%s', [EXCEL_NEW_FILE_EXT, EXCEL_FILE_EXT]);
 end;
 
-function TImportExcelToolController.GetExcelRangeName: string;
+function TUploadExcelToolController.GetExcelRangeName: string;
 begin
   Result := Config.GetString('ExcelRangeName', 'DataRange');
 end;
 
-function TImportExcelToolController.GetUseDisplayLabels: Boolean;
+function TUploadExcelToolController.GetUseDisplayLabels: Boolean;
 begin
   Result := Config.GetBoolean('UseDisplayLabels');
 end;
 
-procedure TImportExcelToolController.AcceptRecord(
+procedure TUploadExcelToolController.AcceptRecord(
   const ARecord: TDataSet; var AAccept: boolean);
-var
-  LDefaultValues: TEFNode;
 begin
-  //If the first field of the Excel Table is empty the record is not accepted
-  AAccept := not ARecord.Fields[0].IsNull;
-  if AAccept then
-  begin
-    FAddedRecord := ServerStore.Records.AppendAndInitialize;
-    FAddedRecords.Add(FAddedRecord);
-    {TODO: copied from TKExtFormPanelController.StartOperation: need refactoring }
-    LDefaultValues := nil;
-    try
-      LDefaultValues := ViewTable.GetDefaultValues;
-      FAddedRecord.Store.DisableChangeNotifications;
-      try
-        FAddedRecord.ReadFromNode(LDefaultValues);
-      finally
-        FAddedRecord.Store.EnableChangeNotifications;
-      end;
-      ViewTable.Model.BeforeNewRecord(FAddedRecord, False);
-      FAddedRecord.ApplyNewRecordRules;
-      ViewTable.Model.AfterNewRecord(FAddedRecord);
-    finally
-      FreeAndNil(LDefaultValues);
-    end;
-  end;
+  ;
 end;
 
-procedure TImportExcelToolController.AcceptField(
+procedure TUploadExcelToolController.AcceptField(
   AField: TField; var AAccept: boolean);
-var
-  LFieldNameMap: string;
 begin
-  LFieldNameMap := FImportExcelEngine.GetFieldMapping(AField);
-  AAccept := FAddedRecord.FindField(LFieldNameMap) <> nil;
+  ;
 end;
 
-function TImportExcelToolController.GetFieldMappings: TStringList;
+function TUploadExcelToolController.GetFieldMappings: TStringList;
 var
   FieldMappingsNode: TEFNode;
   FieldMappingNode: TEFNode;
   I: Integer;
 begin
-  if not Assigned(FFieldMapping) then
+  if not Assigned(FFieldMappings) then
   begin
-    FFieldMapping := TStringList.Create;
-    try
-      FieldMappingsNode := Config.FindNode('FieldMappings');
-      if Assigned(FieldMappingsNode) then
-      begin
-        for I := 0 to FieldMappingsNode.ChildCount -1 do
-        begin
-          FieldMappingNode := FieldMappingsNode.Children[I];
-          FFieldMapping.Add(FieldMappingNode.Name+'='+FieldMappingNode.AsString);
-        end;
-      end;
-    except
-      FFieldMapping.Free;
-      raise;
-    end;
+    FFieldMappings := TStringList.Create;
+    Config.GetChildrenAsStrings('FieldMappings', FFieldMappings);
   end;
-  Result := FFieldMapping;
+  Result := FFieldMappings;
 end;
 
-procedure TImportExcelToolController.PostRecord(
-  const AAdoTable: TAdoTable; const PostRecord: boolean);
+procedure TUploadExcelToolController.SetFieldValue(const ADestFieldName: string;
+  const AValue: Variant);
 begin
-  FAddedRecord.ApplyNewRecordRules;
+  ;
 end;
 
-procedure TImportExcelToolController.ProcessUploadedFile(const AFileName: string);
+procedure TUploadExcelToolController.BeforePostRecord(const AAdoTable: TAdoTable;
+  const ANewRecord: TKViewTableRecord);
+begin
+	;
+end;
+
+procedure TUploadExcelToolController.ProcessUploadedFile(const AFileName: string);
 var
   LFileName: string;
 begin
   inherited;
   LFileName := AFileName;
-  //LFileName := 'C:\Users\Public\Documents\UploadTest.xls';
-  FImportExcelEngine.FieldMappings := FieldMappings;
-  try
-    FAddedRecord := nil;
-    FAddedRecords.Clear;
-    FImportExcelEngine.ImportFile(LFileName, SetFieldValue, PostRecord, ExcelRangeName,
-      AcceptRecord, AcceptField, UseDisplayLabels);
-    ViewTable.Model.SaveRecords(ServerStore, True, nil);
-  except
-    RollbackAddedRecords;
-    raise;
-  end;
-end;
-
-procedure TImportExcelToolController.RollbackAddedRecords;
-var
-  I: Integer;
-  LAddedRecord: TKViewTableRecord;
-begin
-  for I := FAddedRecords.Count -1 downto 0 do
-  begin
-    LAddedRecord := FAddedRecords.Items[I];
-    ServerStore.Records.Remove(LAddedRecord);
-  end;
-  FAddedRecords.Clear;
-end;
-
-procedure TImportExcelToolController.SetFieldValue(const ADestFieldName: string;
-  const AValue: Variant);
-begin
-  FAddedRecord.FieldByName(ADestFieldName).Value := AValue;
+  FImportExcelEngine.ImportFileIntoViewTable(
+    LFileName, ViewTable, FieldMappings, ExcelRangeName, UseDisplayLabels,
+    AcceptRecord, AcceptField, SetFieldValue, BeforePostRecord);
 end;
 
 initialization
   TKExtControllerRegistry.Instance.RegisterClass('ExportExcelTool', TExportExcelToolController);
-  TKExtControllerRegistry.Instance.RegisterClass('ImportExcelTool', TImportExcelToolController);
+  TKExtControllerRegistry.Instance.RegisterClass('UploadExcelTool', TUploadExcelToolController);
 
 finalization
   TKExtControllerRegistry.Instance.UnregisterClass('ExportExcelTool');
-  TKExtControllerRegistry.Instance.UnregisterClass('ImportExcelTool');
+  TKExtControllerRegistry.Instance.UnregisterClass('UploadExcelTool');
 
 end.
