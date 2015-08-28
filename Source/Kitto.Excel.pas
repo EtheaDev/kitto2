@@ -114,7 +114,6 @@ type
       const AViewTable: TKViewTable;
       const AFieldMappings: TStringList = nil;
       const AExcelRangeName: string = '';
-      const AUseDisplayLabels: Boolean = False;
       const AOnAcceptRecord: TAcceptImportRecordEvent = nil;
       const AOnAcceptField: TAcceptDataFieldEvent = nil;
       const AOnSetFieldValue: TImportSetFieldValue = nil;
@@ -673,7 +672,6 @@ procedure TKExcelImportEngine.ImportFileIntoViewTable(
   const AViewTable: TKViewTable;
   const AFieldMappings: TStringList = nil;
   const AExcelRangeName: string = '';
-  const AUseDisplayLabels: Boolean = False;
   const AOnAcceptRecord: TAcceptImportRecordEvent = nil;
   const AOnAcceptField: TAcceptDataFieldEvent = nil;
   const AOnSetFieldValue: TImportSetFieldValue = nil;
