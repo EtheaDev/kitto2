@@ -315,6 +315,10 @@ type
   strict protected
     function GetDisplayLabel: string;
     procedure ExecuteTool; virtual;
+    // Called after ExecuteTool. The default implementation calls AfterExecuteTool.
+    // Override this with an empty method if you plan to call AfterExecuteTool at
+    // a different time.
+    procedure DoAfterExecuteTool; virtual;
     procedure AfterExecuteTool; virtual;
     procedure DoDisplay; override;
   public
@@ -1389,11 +1393,16 @@ procedure TKExtToolController.AfterExecuteTool;
 begin
 end;
 
+procedure TKExtToolController.DoAfterExecuteTool;
+begin
+  AfterExecuteTool;
+end;
+
 procedure TKExtToolController.DoDisplay;
 begin
   inherited;
   ExecuteTool;
-  AfterExecuteTool;
+  DoAfterExecuteTool;
   //NotifyObservers('Closed');
 end;
 
