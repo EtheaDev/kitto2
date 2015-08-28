@@ -73,7 +73,6 @@ begin
   begin
     TEFLogger.Instance.Log('Starting as application.');
     Forms.Application.Initialize;
-    TStyleManager.TrySetStyle('Aqua Light Slate');
     Forms.Application.CreateForm(TKExtMainForm, KExtMainForm);
     Forms.Application.Run;
   end;

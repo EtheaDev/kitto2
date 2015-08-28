@@ -95,7 +95,8 @@ type
   TAcceptImportRecordEvent = procedure(const ADataSet: TDataSet; var AAccept: boolean) of object;
   TImportSetFieldValue = procedure(const ADestFieldName: string; const AValue : Variant) of object;
 
-  TImportPostRecordEvent = procedure(const AAdoTable: TAdoTable; const PostRecord: boolean) of object;
+  TImportBeforePostRecordEvent = procedure(const AAdoTable: TAdoTable;
+    const ANewRecord: TKViewTableRecord) of object;
 
   TImportDatabaseErrorEvent = procedure(E : Exception; RecordNumber : integer;
     var IgnoreError : boolean) of object;
@@ -104,19 +105,20 @@ type
   strict private
     FFieldMappings: TStringList;
     FOnDatabaseError: TImportDatabaseErrorEvent;
-    function GetFieldMappings: TStringList;
-    procedure SetFieldMappings(const Value: TStringList); protected
+  protected
   public
-    function GetFieldMapping(const ASourceField: TField): string;
-    procedure ImportFile(
+    function GetFieldMappingName(const ASourceField: TField;
+      const AFieldMappings: TStringList): string;
+    procedure ImportFileIntoViewTable(
       const AFileName: string;
-      const AOnSetFieldValue: TImportSetFieldValue;
-      const AOnPostRecord: TImportPostRecordEvent;
+      const AViewTable: TKViewTable;
+      const AFieldMappings: TStringList = nil;
       const AExcelRangeName: string = '';
+      const AUseDisplayLabels: Boolean = False;
       const AOnAcceptRecord: TAcceptImportRecordEvent = nil;
       const AOnAcceptField: TAcceptDataFieldEvent = nil;
-      const AUseDisplayLabels: Boolean = False);
-    property FieldMappings : TStringList read GetFieldMappings write SetFieldMappings;
+      const AOnSetFieldValue: TImportSetFieldValue = nil;
+      const AOnBeforePostRecord: TImportBeforePostRecordEvent = nil);
     property OnDatabaseError : TImportDatabaseErrorEvent read FOnDatabaseError write FOnDatabaseError;
   end;
 
@@ -638,24 +640,25 @@ end;
 
 { TKExcelImportEngine }
 
-function TKExcelImportEngine.GetFieldMapping(const ASourceField: TField): string;
+function TKExcelImportEngine.GetFieldMappingName(const ASourceField: TField;
+  const AFieldMappings: TStringList): string;
 var
   LEqualPos : integer;
   LSourceFieldNameMap, LDestFieldNameMap, LDestFieldName: string;
   I: Integer;
 begin
   Result := ASourceField.FieldName;
-  if FieldMappings.Count > 0 then
+  if AFieldMappings.Count > 0 then
   begin
     //If mapping is defined, only mapped fields are accepted
     Result := '';
-    for I := 0 to FieldMappings.Count -1 do
+    for I := 0 to AFieldMappings.Count -1 do
     begin
-      LEqualPos := pos('=',FieldMappings.Strings[i]);
+      LEqualPos := pos('=', AFieldMappings.Strings[i]);
       if LEqualPos <= 1 then
         Continue;
-      LSourceFieldNameMap := Copy(FieldMappings.Strings[i],1,LEqualPos-1);
-      LDestFieldNameMap := Copy(FieldMappings.Strings[i],LEqualPos+1,MaxInt);
+      LSourceFieldNameMap := Copy(AFieldMappings.Strings[i],1,LEqualPos-1);
+      LDestFieldNameMap := Copy(AFieldMappings.Strings[i],LEqualPos+1,MaxInt);
       if SameText(LSourceFieldNameMap, ASourceField.FieldName) and (LDestFieldNameMap <> '') then
       begin
         Result := LDestFieldNameMap;
@@ -665,64 +668,87 @@ begin
   end;
 end;
 
-function TKExcelImportEngine.GetFieldMappings: TStringList;
-begin
-  if not Assigned(FFieldMappings) then
-    FFieldMappings := TStringList.Create;
-  Result := FFieldMappings;
-end;
-
-procedure TKExcelImportEngine.ImportFile(
+procedure TKExcelImportEngine.ImportFileIntoViewTable(
   const AFileName: string;
-  const AOnSetFieldValue: TImportSetFieldValue;
-  const AOnPostRecord: TImportPostRecordEvent;
+  const AViewTable: TKViewTable;
+  const AFieldMappings: TStringList = nil;
   const AExcelRangeName: string = '';
+  const AUseDisplayLabels: Boolean = False;
   const AOnAcceptRecord: TAcceptImportRecordEvent = nil;
   const AOnAcceptField: TAcceptDataFieldEvent = nil;
-  const AUseDisplayLabels: Boolean = False);
+  const AOnSetFieldValue: TImportSetFieldValue = nil;
+  const AOnBeforePostRecord: TImportBeforePostRecordEvent = nil);
 var
+  LStore: TKViewTableStore;
   LAdoTable: TAdoTable;
+  LAddedRecord: TKViewTableRecord;
+  LDefaultValues: TEFNode;
   LAccept : boolean;
   LIgnoreError : boolean;
   J,I : integer;
   LSourceField : TField;
   LDestFieldName: string;
+  LDestField: TKViewTableField;
+  LFieldValue: Variant;
 begin
   LAdoTable := OpenExcelRange(AFileName, AExcelRangeName);
+  LStore := nil;
   Try
+    LStore := AViewTable.CreateStore;
     LAdoTable.First;
     //Ciclo sui records e li aggiungo al dataset di destinazione in base alla mappatura
     while not LAdoTable.Eof do
     begin
-      //Verifico se il record è accettato e se devo agiungerlo o modificarlo
-      LAccept := True; //Di default il record viene accettato
+      //If the first field of the Excel Table is empty the record is not accepted
+      LAccept := not LAdoTable.Fields[0].IsNull;
       if Assigned(AOnAcceptRecord) then
         AOnAcceptRecord(LAdoTable, LAccept);
       if LAccept then
       begin
+        //Create a new record into ViewTable
+        LAddedRecord := LStore.Records.AppendAndInitialize;
+
+        {TODO: copied from TKExtFormPanelController.StartOperation: need refactoring }
+        LDefaultValues := nil;
+        try
+          LDefaultValues := AViewTable.GetDefaultValues;
+          LAddedRecord.Store.DisableChangeNotifications;
+          try
+            LAddedRecord.ReadFromNode(LDefaultValues);
+          finally
+            LAddedRecord.Store.EnableChangeNotifications;
+          end;
+          AViewTable.Model.BeforeNewRecord(LAddedRecord, False);
+          LAddedRecord.ApplyNewRecordRules;
+          AViewTable.Model.AfterNewRecord(LAddedRecord);
+        finally
+          FreeAndNil(LDefaultValues);
+        end;
+
         Try
-          //Aggiorno i campi utilizzando la mappatura: se la mappatura è vuota utilizzo il nome dei campi corrispondenti
           for j := 0 to LAdoTable.FieldCount - 1 do
           begin
             LSourceField := LAdoTable.Fields[j];
-            //Verifico se il campo di import è accettato
-            LAccept := (LSourceField <> nil);
-            if (LSourceField <> nil) and Assigned(AOnAcceptField) then
+            //Verify if field is accepted
+            LDestFieldName := GetFieldMappingName(LSourceField, AFieldMappings);
+            if LDestFieldName <> '' then
+              LDestField := LAddedRecord.FindField(LDestFieldName);
+            //Verify if target field exists
+            LAccept := (LDestFieldName <> '') and (LDestField <> nil);
+            if LAccept and Assigned(AOnAcceptField) then
               AOnAcceptField(LSourceField, LAccept);
             if LAccept then
             begin
-              LDestFieldName := GetFieldMapping(LSourceField);
-              if (LDestFieldName <> '') and Assigned(AOnSetFieldValue) then
-                AOnSetFieldValue(LDestFieldName, LSourceField.Value);
+              LFieldValue := LSourceField.Value;
+              if Assigned(AOnSetFieldValue) then
+                AOnSetFieldValue(LDestFieldName, LFieldValue);
+              LDestField.Value := LFieldValue;
             end;
           end;
-          if Assigned(AOnPostRecord) then
-            AOnPostRecord(LAdoTable, True);
+          LAddedRecord.ApplyNewRecordRules;
         Except
           On E: Exception do
           begin
-            if Assigned(AOnPostRecord) then
-              AOnPostRecord(LAdoTable, False);
             if Assigned(FOnDatabaseError) then
             begin
               LIgnoreError := False;
@@ -735,20 +761,17 @@ begin
           end;
         End;
       end;
+      if Assigned(AOnBeforePostRecord) then
+        AOnBeforePostRecord(LAdoTable, LAddedRecord);
       LAdoTable.Next;
     end;
+    //Store all records
+    AViewTable.Model.SaveRecords(LStore, True, nil);
 
   Finally
+    FreeAndNil(LStore);
     CloseExcelRange(LAdoTable);
   End;
-end;
-
-procedure TKExcelImportEngine.SetFieldMappings(const Value: TStringList);
-begin
-  if Assigned(Value) then
-    FieldMappings.Assign(Value)
-  else
-    FieldMappings.Clear;
 end;
 
 { TKExcelEngine }
