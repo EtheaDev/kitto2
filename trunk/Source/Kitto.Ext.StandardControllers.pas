@@ -151,6 +151,7 @@ type
     function GetDefaultFileExtension: string; virtual;
     procedure AddTempFilename(const AFileName: string);
     procedure Cleanup;
+    procedure DoAfterExecuteTool; override;
   protected
     /// <summary>Override this method to provide a default file name if it's
     /// not specified in the config. If you are using streams, don't override
@@ -224,6 +225,7 @@ type
     function GetDefaultPath: string; virtual;
     procedure AddTempFilename(const AFileName: string);
     procedure Cleanup;
+    procedure DoAfterExecuteTool; override;
   protected
     /// <summary>This method is called when the file was uploaded to the server.</summary>
     /// <param name="AUploadedFileName">File name uploaded</param>
@@ -359,10 +361,16 @@ begin
   FTempFileNames.Free;
 end;
 
+procedure TKExtDownloadFileController.DoAfterExecuteTool;
+begin
+  // We'll call AfterExecuteTool in DoDownloadStream.
+end;
+
 procedure TKExtDownloadFileController.DoDownloadStream(const AStream: TStream;
   const AFileName, AContentType: string);
 begin
   Session.DownloadStream(AStream, AFileName, AContentType);
+  AfterExecuteTool;
 end;
 
 function TKExtDownloadFileController.GetPersistentFileName: string;
@@ -521,6 +529,11 @@ begin
   inherited;
   Cleanup;
   FTempFileNames.Free;
+end;
+
+procedure TKExtUploadFileController.DoAfterExecuteTool;
+begin
+  // We'll call AfterExecuteTool in PostUpload.
 end;
 
 procedure TKExtUploadFileController.ExecuteTool;
