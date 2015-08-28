@@ -237,7 +237,7 @@ function GetProgramFilesDirectory: string;
 ///   extension AExtension. Keeps generating random names until it finds a free
 ///   name.
 /// </summary>
-function GetUniqueFileName(const APath, AExtension: string): string;
+function GetUniqueFileName(const APath, AExtension: string; ADefaultFileName: string=''): string;
 
 /// <summary>
 ///   Returns a new TFormatSettings records in a manner that unifies syntax for
@@ -1025,11 +1025,20 @@ begin
   Result := IncludeTrailingPathDelimiter(Result);
 end;
 
-function GetUniqueFileName(const APath, AExtension: string): string;
+function GetUniqueFileName(const APath, AExtension: string; ADefaultFileName: string=''): string;
+var
+  LFileName: string;
 begin
-  repeat
-    Result := APath + GetRandomString(8) + AExtension;
-  until not FileExists(Result);
+  if (ADefaultFileName <> '') and not FileExists(APath + ADefaultFileName + AExtension) then
+    Result := (APath + ADefaultFileName + AExtension)
+  else begin
+    LFileName := '';
+    if ADefaultFileName <> '' then
+      LFileName := ADefaultFileName + '_';
+    repeat
+      Result := APath + LFileName + GetRandomString(8) + AExtension;
+    until not FileExists(Result);
+  end;
 end;
 
 function GetTempFileName(const AFileExtension: string = '.tmp'): string;
