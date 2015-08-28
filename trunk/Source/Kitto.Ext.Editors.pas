@@ -3198,7 +3198,7 @@ var
   LFileName: string;
 begin
   inherited;
-  FLastUploadedFullFileName := GetUniqueFileName(GetFieldPath, ExtractFileExt(AFileName));
+  FLastUploadedFullFileName := GetUniqueFileName(GetFieldPath, ExtractFileExt(AFileName), ChangeFileExt(ExtractFileName(AFileName),''));
   // Don't rename: move, since the files could be on different drives.
   CopyFile(AFileName, FLastUploadedFullFileName);
   DeleteFile(AFileName);
