@@ -114,7 +114,6 @@ MainTable:
         DisplayLabel: Upload an Excel File
         Controller: UploadExcelTool
           ExcelRangeName: DataRange
-          UseDisplayLabels: False
           AutoRefresh: All
           RequireSelection: False
           FieldMappings:

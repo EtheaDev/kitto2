@@ -52,10 +52,8 @@ type
   strict private
     FImportExcelEngine: TKExcelImportEngine;
     FFieldMappings: TStringList;
-    FAddedRecord: TKViewTableRecord;
     FTempStore: TKViewTableStore;
     function GetExcelRangeName: string;
-    function GetUseDisplayLabels: boolean;
     function GetFieldMappings: TStringList;
   private
   protected
@@ -73,7 +71,6 @@ type
     property ImportEngine: TKExcelImportEngine read FImportExcelEngine;
   published
     property ExcelRangeName: string read GetExcelRangeName;
-    property UseDisplayLabels: boolean read GetUseDisplayLabels;
     property FieldMappings: TStringList read GetFieldMappings;
   end;
 
@@ -199,11 +196,6 @@ begin
   Result := Config.GetString('ExcelRangeName', 'DataRange');
 end;
 
-function TUploadExcelToolController.GetUseDisplayLabels: Boolean;
-begin
-  Result := Config.GetBoolean('UseDisplayLabels');
-end;
-
 procedure TUploadExcelToolController.AcceptRecord(
   const ARecord: TDataSet; var AAccept: boolean);
 begin
@@ -217,10 +209,6 @@ begin
 end;
 
 function TUploadExcelToolController.GetFieldMappings: TStringList;
-var
-  FieldMappingsNode: TEFNode;
-  FieldMappingNode: TEFNode;
-  I: Integer;
 begin
   if not Assigned(FFieldMappings) then
   begin
@@ -249,7 +237,7 @@ begin
   inherited;
   LFileName := AFileName;
   FImportExcelEngine.ImportFileIntoViewTable(
-    LFileName, ViewTable, FieldMappings, ExcelRangeName, UseDisplayLabels,
+    LFileName, ViewTable, FieldMappings, ExcelRangeName,
     AcceptRecord, AcceptField, SetFieldValue, BeforePostRecord);
 end;
 
