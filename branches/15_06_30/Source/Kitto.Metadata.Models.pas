@@ -647,7 +647,7 @@ type
       const ALimit: Integer = 0; const AForEachRecord: TProc<TEFNode> = nil): Integer; virtual; abstract;
 
     procedure SaveRecords(const AStore: TEFTree; const APersist: Boolean;
-      const AAfterPersist: TProc); virtual; abstract;
+      const AAfterPersist: TProc; const AUseTransaction: Boolean = True); virtual; abstract;
 
     /// <summary>
     ///  Saves the specified record.
@@ -670,7 +670,7 @@ type
     ///  AAfterPersist.
     /// </remarks>
     procedure SaveRecord(const ARecord: TEFNode; const APersist: Boolean;
-      const AAfterPersist: TProc); virtual; abstract;
+      const AAfterPersist: TProc; const AUseTransaction: Boolean = True); virtual; abstract;
 
     /// <summary>
     ///  Called when a new record is being created in the GUI, after applying

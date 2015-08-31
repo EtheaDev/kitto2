@@ -18,6 +18,13 @@ MainTable:
     DeptNoRef:
     JobRef:
   Controller:
+    PageRecordCount: 20
     PopuWindow:
       Width: 600
       Height: 500
+    ToolViews:
+      DownloadText:
+        DisplayLabel: Download in TXT
+        Controller: ExportTextTool
+          RequireSelection: True
+          ClientFileName: Employees_%YYYYMMDD_DATE%_%HHMM_TIME%.txt
