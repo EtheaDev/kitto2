@@ -30,19 +30,23 @@ uses
 
 type
   TKExtGetServerRecordEvent = reference to function: TKViewTableRecord;
+  TKExtGetServerStoreEvent = reference to function: TKViewTableStore;
 
   TKExtDataActionButton = class(TKExtActionButton)
   strict private
     FServerStore: TKViewTableStore;
+    FOnGetServerStore: TKExtGetServerStoreEvent;
     FViewTable: TKViewTable;
-    FOnGetServerRecord: TKExtGetServerRecordEvent;
     FServerRecord: TKViewTableRecord;
+    FOnGetServerRecord: TKExtGetServerRecordEvent;
     function GetServerRecord: TKViewTableRecord;
+    function GetServerStore: TKViewTableStore;
   strict protected
     procedure InitController(const AController: IKExtController); override;
   public
     property ViewTable: TKViewTable read FViewTable write FViewTable;
-    property ServerStore: TKViewTableStore read FServerStore write FServerStore;
+    property ServerStore: TKViewTableStore read GetServerStore;
+    property OnGetServerStore: TKExtGetServerStoreEvent read FOnGetServerStore write FOnGetServerStore;
     property ServerRecord: TKViewTableRecord read GetServerRecord;
     property OnGetServerRecord: TKExtGetServerRecordEvent read FOnGetServerRecord write FOnGetServerRecord;
   published
@@ -118,6 +122,7 @@ type
     function IsActionSupported(const AActionName: string): Boolean; virtual;
     function GetRowButtonsDisableJS: string;
     procedure ExecuteNamedAction(const AActionName: string); override;
+    procedure DoGetRecordPage(const AStart, ALimit: Integer; const AFillResponse: Boolean);
   public
     procedure AfterConstruction; override;
     destructor Destroy; override;
@@ -145,6 +150,53 @@ uses
   EF.StrUtils, EF.SysUtils, EF.Tree, EF.Localization,
   Kitto.AccessControl, Kitto.Config, Kitto.Rules, Kitto.SQL,
   Kitto.Ext.Session, KItto.Ext.Utils;
+
+{ TKExtDataActionButton }
+
+procedure TKExtDataActionButton.ExecuteButtonAction;
+var
+  LController: IKExtController;
+begin
+  //inherited;
+  Assert(Assigned(View));
+  Assert(Assigned(FViewTable));
+  Assert(Assigned(ActionObserver));
+
+  PerformBeforeExecute;
+  LController := TKExtControllerFactory.Instance.CreateController(
+    Session.ObjectCatalog, View, nil, nil, ActionObserver);
+  if LController.Config.GetBoolean('RequireSelection', True) then
+    FServerRecord := ServerStore.GetRecord(Session.GetQueries, Session.Config.JSFormatSettings, 0)
+  else
+    FServerRecord := nil;
+  InitController(LController);
+  LController.Display;
+end;
+
+function TKExtDataActionButton.GetServerRecord: TKViewTableRecord;
+begin
+  if Assigned(FOnGetServerRecord) then
+    FServerRecord := FOnGetServerRecord;
+  Result := FServerRecord;
+end;
+
+function TKExtDataActionButton.GetServerStore: TKViewTableStore;
+begin
+  if Assigned(FOnGetServerStore) then
+    FServerStore := FOnGetServerStore;
+  Result := FServerStore;
+end;
+
+procedure TKExtDataActionButton.InitController(const AController: IKExtController);
+begin
+  inherited;
+  Assert(Assigned(FViewTable));
+  Assert(Assigned(AController));
+
+  AController.Config.SetObject('Sys/ServerStore', ServerStore);
+  AController.Config.SetObject('Sys/ViewTable', FViewTable);
+  AController.Config.SetObject('Sys/Record', ServerRecord);
+end;
 
 { TKExtDataPanelController }
 
@@ -416,7 +468,13 @@ begin
   Result.View := AView;
   Result.ActionObserver := Self;
   TKExtDataActionButton(Result).ViewTable := ViewTable;
-  TKExtDataActionButton(Result).ServerStore := ServerStore;
+  TKExtDataActionButton(Result).OnGetServerStore :=
+    function: TKViewTableStore
+    begin
+      if not AView.GetBoolean('Controller/RequireSelection', True) and AView.GetBoolean('Controller/LoadAllRecords', True) then
+        DoGetRecordPage(0, 0, False);
+      Result := ServerStore;
+    end;
 
   // A Tool may or may not have a confirmation message and may or may not require
   // a selected row. We must handle all combinations.
@@ -511,9 +569,13 @@ begin
 end;
 
 procedure TKExtDataPanelController.GetRecordPage;
+begin
+  DoGetRecordPage(Session.QueryAsInteger['start'], Session.QueryAsInteger['limit'], True);
+end;
+
+procedure TKExtDataPanelController.DoGetRecordPage(const AStart, ALimit: Integer;
+  const AFillResponse: Boolean);
 var
-  LStart: Integer;
-  LLimit: Integer;
   LTotal: Integer;
   LData: string;
 
@@ -537,33 +599,40 @@ begin
     if ServerStore.ChangesPending then
     begin
       LTotal := ServerStore.Records.GetRecordCount(ServerStore.Records.EnumNonDeletedRecords);
-      LData := ServerStore.GetAsJSON(True);
+      if AFillResponse then
+        LData := ServerStore.GetAsJSON(True);
     end
     else
     begin
-      LStart := Session.QueryAsInteger['start'];
-      LLimit := Session.QueryAsInteger['limit'];
-
-      LTotal := ViewTable.Model.LoadRecords(ServerStore, GetFilter, GetOrderByClause, LStart, LLimit,
+      LTotal := ViewTable.Model.LoadRecords(ServerStore, GetFilter, GetOrderByClause, AStart, ALimit,
         procedure (ARecord: TEFNode)
         begin
           Assert(ARecord is TKViewTableRecord);
           SetupURLFields(TKViewTableRecord(ARecord));
         end);
-      if (LStart <> 0) or (LLimit <> 0) then
-        LData := ServerStore.GetAsJSON(True, LStart, LLimit)
-      else
-        // When loading all records, apply a limit on the display.
-        { TODO : If there's a limit on the display of records, try to pass it over and only load
-          needed records into the store. }
-        LData := ServerStore.GetAsJSON(True, 0, Min(GetMaxRecords(), LTotal));
+      if AFillResponse then
+      begin
+        if (AStart <> 0) or (ALimit <> 0) then
+          LData := ServerStore.GetAsJSON(True)
+        else
+          // When loading all records, apply a limit on the display.
+          { TODO : If there's a limit on the display of records, try to pass it over and only load
+            needed records into the store. }
+          LData := ServerStore.GetAsJSON(True, 0, Min(GetMaxRecords(), LTotal));
+      end;
     end;
-    Session.ResponseItems.AddJSON(Format('{Success: true, Total: %d, Root: %s}', [LTotal, LData]));
+    if AFillResponse then
+      Session.ResponseItems.AddJSON(Format('{Success: true, Total: %d, Root: %s}', [LTotal, LData]));
   except
     on E: Exception do
     begin
-      Session.ResponseItems.Clear;
-      Session.ResponseItems.AddJSON(Format('{Success: false, Msg: "%s", Root: []}', [E.Message]));
+      if AFillResponse then
+      begin
+        Session.ResponseItems.Clear;
+        Session.ResponseItems.AddJSON(Format('{Success: false, Msg: "%s", Root: []}', [E.Message]));
+      end
+      else
+        raise;
     end;
   end;
 end;
@@ -779,48 +848,6 @@ begin
     or not FViewTable.GetBoolean('Controller/PreventDeleting', True) //explicit PreventDeleting: False;
     );
   FAllowedActions.AddOrSetValue('Delete', FVisibleActions['Delete'] and FViewTable.IsAccessGranted(ACM_DELETE));
-end;
-
-{ TKExtDataActionButton }
-
-procedure TKExtDataActionButton.ExecuteButtonAction;
-var
-  LController: IKExtController;
-begin
-  //inherited;
-  Assert(Assigned(View));
-  Assert(Assigned(FViewTable));
-  Assert(Assigned(FServerStore));
-  Assert(Assigned(ActionObserver));
-
-  PerformBeforeExecute;
-  LController := TKExtControllerFactory.Instance.CreateController(
-    Session.ObjectCatalog, View, nil, nil, ActionObserver);
-  if LController.Config.GetBoolean('RequireSelection', True) then
-    FServerRecord := FServerStore.GetRecord(Session.GetQueries, Session.Config.JSFormatSettings, 0)
-  else
-    FServerRecord := nil;
-  InitController(LController);
-  LController.Display;
-end;
-
-function TKExtDataActionButton.GetServerRecord: TKViewTableRecord;
-begin
-  if Assigned(FOnGetServerRecord) then
-    FServerRecord := FOnGetServerRecord;
-  Result := FServerRecord;
-end;
-
-procedure TKExtDataActionButton.InitController(const AController: IKExtController);
-begin
-  inherited;
-  Assert(Assigned(FViewTable));
-  Assert(Assigned(FServerStore));
-  Assert(Assigned(AController));
-
-  AController.Config.SetObject('Sys/ServerStore', FServerStore);
-  AController.Config.SetObject('Sys/ViewTable', FViewTable);
-  AController.Config.SetObject('Sys/Record', ServerRecord);
 end;
 
 function TKExtDataPanelController.AddTopToolbarButton(const AActionName, ATooltip, AImageName: string;
