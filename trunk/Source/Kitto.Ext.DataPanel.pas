@@ -123,6 +123,7 @@ type
     function GetRowButtonsDisableJS: string;
     procedure ExecuteNamedAction(const AActionName: string); override;
     procedure DoGetRecordPage(const AStart, ALimit: Integer; const AFillResponse: Boolean);
+    function GetIsPaged: Boolean; virtual;
   public
     procedure AfterConstruction; override;
     destructor Destroy; override;
@@ -471,7 +472,7 @@ begin
   TKExtDataActionButton(Result).OnGetServerStore :=
     function: TKViewTableStore
     begin
-      if not AView.GetBoolean('Controller/RequireSelection', True) and AView.GetBoolean('Controller/LoadAllRecords', True) then
+      if GetIsPaged and not AView.GetBoolean('Controller/RequireSelection', True) and AView.GetBoolean('Controller/LoadAllRecords', True) then
         DoGetRecordPage(0, 0, False);
       Result := ServerStore;
     end;
@@ -718,6 +719,11 @@ begin
     Result := 'Edit'
   else
     Result := '';
+end;
+
+function TKExtDataPanelController.GetIsPaged: Boolean;
+begin
+  Result := False;
 end;
 
 function TKExtDataPanelController.GetOrderByClause: string;
