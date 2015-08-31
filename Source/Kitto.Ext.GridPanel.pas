@@ -65,7 +65,7 @@ type
     function GetSelectCall(const AMethod: TExtProcedure): TExtFunction; override;
     function IsMultiSelect: Boolean; override;
     function GetDefaultRemoteSort: Boolean; override;
-    function GetIsPaged: Boolean;
+    function GetIsPaged: Boolean; override;
     function IsActionVisible(const AActionName: string): Boolean; override;
     function IsActionSupported(const AActionName: string): Boolean; override;
   public
