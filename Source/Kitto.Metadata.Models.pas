@@ -125,9 +125,11 @@ type
     function GetFields: TKModelFields;
     function GetDataType: TEFDataType; override;
   public
+    const DEFAULT_AUTOCOMPLETEMINCHARS = 4;
+
     function GetEmptyAsNull: Boolean; override;
     procedure BeforeSave; override;
-  public
+
     function GetResourceURI: string; override;
 
     property Model: TKModel read GetModel;
@@ -1572,7 +1574,7 @@ end;
 
 function TKModelField.GetAutoCompleteMinChars: Integer;
 begin
-  Result := GetInteger('AutoCompleteMinChars', 4);
+  Result := GetInteger('AutoCompleteMinChars', DEFAULT_AUTOCOMPLETEMINCHARS);
 end;
 
 function TKModelField.CanActuallyModify: Boolean;
