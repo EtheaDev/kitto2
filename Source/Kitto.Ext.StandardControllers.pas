@@ -241,6 +241,7 @@ type
     property Path: string read GetPath;
     property WildCard: string read GetWildCard;
     property ContentType: string read GetContentType;
+    property MaxUploadSize: Integer read GetMaxUploadSize;
 
     procedure Upload;
     procedure PostUpload;
@@ -580,7 +581,7 @@ begin
   LSubmitAction.Failure := ExtMessageBox.Alert(_('File upload error'), '%1.result.message');
   LUploadButton.Handler := TExtFormBasicForm(LFormPanel.GetForm).Submit(LSubmitAction);
 
-  Session.MaxUploadSize := GetMaxUploadSize;
+  Session.MaxUploadSize := MaxUploadSize;
   FWindow.Show;
 end;
 

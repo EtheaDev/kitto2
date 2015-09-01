@@ -28,6 +28,7 @@ const
   EXCEL_TEMPLATE_EXT = '.xlt';
   EXCEL_NEW_FILE_EXT = '.xlsx';
   EXCEL_NEW_TEMPLATE_EXT = '.xltx';
+  EXCEL_DEFAULT_RANGE = 'DataRange';
 
 type
   TExcelVersion = (ex2000, ex2007);
@@ -103,7 +104,6 @@ type
 
   TKExcelImportEngine = class(TKExcelEngine)
   strict private
-    FFieldMappings: TStringList;
     FOnDatabaseError: TImportDatabaseErrorEvent;
   protected
   public
@@ -134,8 +134,8 @@ const
 
   MAX_EXCEL_STRING_COLUMN_SIZE = 255;
   EXCEL_ADDITIONAL_OPTION = 'IMEX=1;HDR=YES';
-  EXCEL_CONN_STRING_12 = 'Provider=Microsoft.ACE.OLEDB.12.0;Data Source=%s;Extended Properties=%s';
-  EXCEL_CONN_STRING = 'Provider=Microsoft.Jet.OLEDB.4.0;Data Source=%s;Extended Properties=%s';
+  EXCEL_CONN_STRING_12 = 'Provider=Microsoft.ACE.OLEDB.12.0;Data Source=%s;Extended Properties="%s"';
+  EXCEL_CONN_STRING = 'Provider=Microsoft.Jet.OLEDB.4.0;Data Source=%s;Extended Properties=''%s''';
 
   AExcelVersion : Array[TExcelVersion] of string =
     (ADO_EXCEL_2000,
@@ -154,10 +154,10 @@ const
 procedure TKExcelExportEngine.GetADOXDataType(const ADataType: TEFDataType;
   const AFieldSize: Integer; out AADOXDataType: DataTypeEnum);
 begin
-  if ADataType is TEFStringDataType then
-    AADOXDataType := adVarWChar
-  else if ADataType is TEFMemoDataType then
+  if ADataType is TEFMemoDataType then
     AADOXDataType := adLongVarWChar
+  else if ADataType is TEFStringDataType then
+    AADOXDataType := adVarWChar
   else if ADataType is TEFIntegerDataType then
     AADOXDataType := adInteger
   else if (ADataType is TEFDateDataType) or (ADataType is TEFTimeDataType) or (ADataType is TEFDateTimeDataType) then
@@ -172,6 +172,8 @@ begin
     AADOXDataType := adVarWChar
   else
     AADOXDataType := adLongVarWChar;
+  if AFieldSize > MAX_EXCEL_STRING_COLUMN_SIZE then
+    AAdoXDataType := adLongVarWChar;
 end;
 
 procedure TKExcelExportEngine.GetAdoXFieldType(const Field : TField;
@@ -206,7 +208,7 @@ end;
 procedure TKExcelExportEngine.ForceZeroValue(Field: TField);
 begin
   case Field.DataType of
-    ftFixedChar, ftString, ftGuid, ftWideString, ftMemo: Field.Value := ' ';
+    ftFixedChar, ftString, ftGuid, ftWideString, ftMemo, ftWideMemo: Field.Value := ' ';
     ftLargeint, ftAutoInc, ftInteger, ftSmallint, ftWord,
     ftFloat, ftBCD, ftCurrency, ftFMTBcd: Field.Value := 0;
     ftDate, ftTime, ftDateTime, ftTimeStamp: Field.Value := 0;
@@ -440,7 +442,12 @@ begin
             begin
               LZeroValueForced := IsFieldToForceZero(LDestField) or LZeroValueForced;
               if LSourceField.ViewField.ActualDataType is TEFMemoDataType then
-                LDestField.AsString := StringReplace(LSourceField.AsString, sLineBreak, chr(10), [rfReplaceAll])
+              begin
+                if not VarIsNull(LSourceField.Value) then
+                  LDestField.AsString := StringReplace(LSourceField.AsString, sLineBreak, chr(10), [rfReplaceAll])
+                else
+                  ForceZeroValue(LDestField);
+              end
               else if LSourceField.ViewField.ActualDataType is TEFBooleanDataType then
               begin
                 if LDestField is TNumericField then
@@ -573,7 +580,12 @@ begin
             begin
               LZeroValueForced := IsFieldToForceZero(LDestField) or LZeroValueForced;
               if LSourceField is TMemoField then
-                LDestField.AsString := StringReplace(LSourceField.AsString, sLineBreak, chr(10), [rfReplaceAll])
+              begin
+                if not VarIsNull(LSourceField.Value) then
+                  LDestField.AsString := StringReplace(LSourceField.AsString, sLineBreak, chr(10), [rfReplaceAll])
+                else
+                  ForceZeroValue(LDestField);
+              end
               else if LSourceField is TBooleanField then
               begin
                 if LDestField is TNumericField then
@@ -683,7 +695,7 @@ var
   LDefaultValues: TEFNode;
   LAccept : boolean;
   LIgnoreError : boolean;
-  J,I : integer;
+  J : integer;
   LSourceField : TField;
   LDestFieldName: string;
   LDestField: TKViewTableField;
@@ -730,7 +742,9 @@ begin
             //Verify if field is accepted
             LDestFieldName := GetFieldMappingName(LSourceField, AFieldMappings);
             if LDestFieldName <> '' then
-              LDestField := LAddedRecord.FindField(LDestFieldName);
+              LDestField := LAddedRecord.FindField(LDestFieldName)
+            else
+              LDestField := nil;
             //Verify if target field exists
             LAccept := (LDestFieldName <> '') and (LDestField <> nil);
             if LAccept and Assigned(AOnAcceptField) then

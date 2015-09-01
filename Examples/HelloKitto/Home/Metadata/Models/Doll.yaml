@@ -1,7 +1,7 @@
 ﻿ModelName: Doll
 ImageName: Doll
 Fields:
-  Doll_Id: String(32) not null primary key
+  Doll_Id: String(32) not null
     IsVisible: False
     DefaultValue: %COMPACT_GUID%
   Doll_Name: String(40) not null
