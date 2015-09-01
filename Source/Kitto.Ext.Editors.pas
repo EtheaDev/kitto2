@@ -1976,7 +1976,7 @@ begin
   HiddenName := AViewField.FieldNamesForUpdate;
 
   TypeAhead := True;
-  MinChars := AViewField.GetInteger('AutoCompleteMinChars', 4);
+  MinChars := AViewField.AutoCompleteMinChars;
   if AViewField.IsReference then
   begin
     FListMode := Lookup;

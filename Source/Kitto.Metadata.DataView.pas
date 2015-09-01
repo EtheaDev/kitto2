@@ -88,6 +88,7 @@ type
     function GetQualifiedDBNameOrExpression: string;
     function GetReferenceField: TKModelField;
     function GetBlankValue: Boolean;
+    function GetAutoCompleteMinChars: Integer;
     function GetReferenceName: string;
     function GetDisplayTemplate: string;
     function GetFileNameField: string;
@@ -263,6 +264,7 @@ type
     property EditFormat: string read GetEditFormat;
     property DisplayFormat: string read GetDisplayFormat;
     property BlankValue: Boolean read GetBlankValue;
+    property AutoCompleteMinChars: Integer read GetAutoCompleteMinChars;
     property DisplayTemplate: string read GetDisplayTemplate;
 
     property Rules: TKRules read GetRules;
@@ -1698,6 +1700,17 @@ begin
     Result := ModelField.BlankValue
   else
     Result := LNode.AsBoolean;
+end;
+
+function TKViewField.GetAutoCompleteMinChars: Integer;
+var
+  LNode: TEFNode;
+begin
+  LNode := FindNode('AutoCompleteMinChars');
+  if LNode = nil then
+    Result := ModelField.AutoCompleteMinChars
+  else
+    Result := LNode.AsInteger;
 end;
 
 function TKViewField.GetCanInsert: Boolean;

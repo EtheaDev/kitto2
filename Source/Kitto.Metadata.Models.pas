@@ -114,6 +114,7 @@ type
     function GetAliasedDBColumnNameOrExpression: string;
     function GetDisplayTemplate: string;
     function GetBlankValue: Boolean;
+    function GetAutoCompleteMinChars: Integer;
     function GetLookupFilter: string;
   strict protected
     class function BeautifyFieldName(const AFieldName: string): string; virtual;
@@ -338,6 +339,13 @@ type
     ///   If no image is displayed, this property is ignored.
     /// </summary>
     property BlankValue: Boolean read GetBlankValue;
+
+    /// <summary>
+    ///   Indicates how many chars must be edited before the
+    ///   search starts.
+    ///   By default after 4 characters
+    /// </summary>
+    property AutoCompleteMinChars: Integer read GetAutoCompleteMinChars;
 
     /// <summary>
     ///   Optional value to set for the field when a new record is created.
@@ -1560,6 +1568,11 @@ end;
 function TKModelField.GetBlankValue: Boolean;
 begin
   Result := GetBoolean('BlankValue');
+end;
+
+function TKModelField.GetAutoCompleteMinChars: Integer;
+begin
+  Result := GetInteger('AutoCompleteMinChars', 4);
 end;
 
 function TKModelField.CanActuallyModify: Boolean;
