@@ -44,3 +44,6 @@ FastCGI:
 UserFormats:
   Date: dd/mm/yyyy
   Time: hh:nn
+Email:
+  SMTP:
+    Default:

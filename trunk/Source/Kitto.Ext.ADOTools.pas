@@ -105,7 +105,7 @@ end;
 
 destructor TExportExcelToolController.Destroy;
 begin
-  FExportExcelEngine.Free;
+  FreeAndNil(FExportExcelEngine);
   inherited;
 end;
 
@@ -121,7 +121,7 @@ end;
 
 function TExportExcelToolController.GetExcelRangeName: string;
 begin
-  Result := Config.GetString('ExcelRangeName', 'DataRange');
+  Result := Config.GetString('ExcelRangeName', EXCEL_DEFAULT_RANGE);
 end;
 
 function TExportExcelToolController.GetTemplateFileName: string;
@@ -206,7 +206,7 @@ end;
 
 function TUploadExcelToolController.GetExcelRangeName: string;
 begin
-  Result := Config.GetString('ExcelRangeName', 'DataRange');
+  Result := Config.GetString('ExcelRangeName', EXCEL_DEFAULT_RANGE);
 end;
 
 function TUploadExcelToolController.GetFieldMappings: TStringList;
@@ -253,7 +253,7 @@ end;
 
 function TImportExcelToolController.GetExcelRangeName: string;
 begin
-  Result := Config.GetString('ExcelRangeName', 'DataRange');
+  Result := Config.GetString('ExcelRangeName', EXCEL_DEFAULT_RANGE);
 end;
 
 function TImportExcelToolController.GetFieldMappings: TStringList;
