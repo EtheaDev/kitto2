@@ -24,19 +24,19 @@ MainTable:
 
     Grouping:
       FieldName: Hair
-      StartCollapsed: False
-      ShowName: False
       ShowCount: True
         Template: _({[values.rs.length]} Dolls have {text} hair)
-      SortFieldNames: Doll_Name
+        PluralItemName:
+        ItemName:
+      SortFieldNames: Hair Doll_Name
 
     ToolViews:
       DownloadText:
-        DisplayLabel: _(Download in TXT)
-        Controller: ExportTextTool
+        DisplayLabel: _(Download in CSV)
+        Controller: ExportCSVTool
           RequireSelection: False
-          IncludeHeader: False
-          ClientFileName: DollList.txt
+          ClientFileName:
+        ImageName: download
       DownloadCSV:
         DisplayLabel: _(Download in CSV)
         ImageName: download
