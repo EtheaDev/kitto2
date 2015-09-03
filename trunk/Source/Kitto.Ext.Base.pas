@@ -204,6 +204,7 @@ type
   strict private
     FView: TKView;
     FActionObserver: IEFObserver;
+    FOnInitController: TProc<IKExtController>;
   strict protected
     procedure InitController(const AController: IKExtController); virtual;
     procedure SetView(const AValue: TKView); virtual;
@@ -212,6 +213,7 @@ type
   public
     property View: TKView read FView write SetView;
     property ActionObserver: IEFObserver read FActionObserver write FActionObserver;
+    property OnInitController: TProc<IKExtController> read FOnInitController write FOnInitController;
   published
     procedure ExecuteButtonAction; virtual;
   end;
@@ -1454,6 +1456,8 @@ end;
 
 procedure TKExtActionButton.InitController(const AController: IKExtController);
 begin
+  if Assigned(FOnInitController) then
+    FOnInitController(AController);
 end;
 
 procedure TKExtActionButton.PerformBeforeExecute;

@@ -24,7 +24,8 @@ uses
   Classes,
   Ext, ExtPascal,
   EF.Tree, EF.ObserverIntf,
-  Kitto.Metadata.DataView, Kitto.Ext.Base, Kitto.Ext.DataPanelComposite;
+  Kitto.Ext.Controller, Kitto.Metadata.DataView, Kitto.Ext.Base,
+  Kitto.Ext.DataPanelComposite;
 
 type
   TKExtFilterPanel = class(TKExtPanelBase)
@@ -69,7 +70,7 @@ uses
   SysUtils, StrUtils,
   EF.Localization, EF.StrUtils,
   Kitto.Types, Kitto.Config, Kitto.AccessControl,
-  Kitto.Ext.Session, Kitto.Ext.Controller, Kitto.Ext.Filters;
+  Kitto.Ext.Session, Kitto.Ext.Filters;
 
 { TKExtFilterPanel }
 

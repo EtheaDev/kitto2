@@ -132,6 +132,7 @@ type
     property DefaultAutoOpen: Boolean read GetDefaultAutoOpen;
     function GetFilterExpression: string; virtual;
     procedure UpdateObserver(const ASubject: IEFSubject; const AContext: string = ''); override;
+    procedure InitActionController(const AAction: TKExtActionButton; const AController: IKExtController); virtual;
   published
     procedure GetRecordPage;
     procedure GetImage;
@@ -457,6 +458,7 @@ var
   LConfirmationMessage: string;
   LRequireSelection: Boolean;
   LConfirmationJS: string;
+  LResult: TKExtActionButton;
 begin
   Assert(Assigned(AView));
   Assert(Assigned(AToolbar));
@@ -475,6 +477,12 @@ begin
       if GetIsPaged and not AView.GetBoolean('Controller/RequireSelection', True) and AView.GetBoolean('Controller/LoadAllRecords', True) then
         DoGetRecordPage(0, 0, False);
       Result := ServerStore;
+    end;
+  LResult := Result;
+  TKExtDataActionButton(Result).OnInitController :=
+    procedure (AController: IKExtController)
+    begin
+      InitActionController(LResult, AController);
     end;
 
   // A Tool may or may not have a confirmation message and may or may not require
@@ -747,6 +755,12 @@ end;
 
 procedure TKExtDataPanelController.CreateToolbar;
 begin
+end;
+
+procedure TKExtDataPanelController.InitActionController(const AAction: TKExtActionButton;
+  const AController: IKExtController);
+begin
+  AController.Config.SetString('Sys/FilterExpression', GetFilterExpression);
 end;
 
 procedure TKExtDataPanelController.InitComponents;

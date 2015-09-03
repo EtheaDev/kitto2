@@ -24,7 +24,7 @@ uses
   SysUtils,
   Ext,
   EF.ObserverIntf,
-  Kitto.Ext.Base, Kitto.Ext.DataPanel;
+  Kitto.Ext.Base, Kitto.Ext.Controller, Kitto.Ext.DataPanel;
 
 type
   /// <summary>
@@ -39,8 +39,8 @@ type
     function GetParentDataPanel: TKExtDataPanelController;
     function IsActionSupported(const AActionName: string): Boolean; override;
   public
-    procedure UpdateObserver(const ASubject: IEFSubject;
-      const AContext: string = ''); override;
+    procedure InitActionController(const AAction: TKExtActionButton; const AController: IKExtController); override;
+    procedure UpdateObserver(const ASubject: IEFSubject; const AContext: string = ''); override;
   published
     procedure LoadData; override;
     procedure DoDisplay; override;
@@ -97,6 +97,17 @@ end;
 function TKExtDataPanelLeafController.GetParentDataPanel: TKExtDataPanelController;
 begin
   Result := TKExtDataPanelController(Config.GetObject('Sys/ParentDataPanel', Self));
+end;
+
+procedure TKExtDataPanelLeafController.InitActionController(
+  const AAction: TKExtActionButton; const AController: IKExtController);
+var
+  LParentDataPanel: TKExtDataPanelController;
+begin
+  inherited;
+  LParentDataPanel := GetParentDataPanel;
+  if Assigned(LParentDataPanel) then
+    LParentDataPanel.InitActionController(AAction, AController);
 end;
 
 function TKExtDataPanelLeafController.IsActionSupported(const AActionName: string): Boolean;
