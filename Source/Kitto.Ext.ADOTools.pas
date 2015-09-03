@@ -56,7 +56,7 @@ type
     function GetFieldMappings: TStringList;
   private
   protected
-    function GetWildCard: string; override;
+    function GetAcceptedWildcards: string; override;
     procedure ProcessUploadedFile(const AFileName: string); override;
   public
     procedure AfterConstruction; override;
@@ -76,7 +76,7 @@ type
     function GetFieldMappings: TStringList;
   private
   protected
-    function GetWildCard: string; override;
+    function GetAcceptedWildcards: string; override;
     procedure ProcessUploadedFile(const AFileName: string); override;
   public
     procedure AfterConstruction; override;
@@ -199,9 +199,11 @@ begin
   Result := 'excel_document';
 end;
 
-function TUploadExcelToolController.GetWildCard: string;
+function TUploadExcelToolController.GetAcceptedWildcards: string;
 begin
-  Result := Format('*%s;*%s', [EXCEL_NEW_FILE_EXT, EXCEL_FILE_EXT]);
+  Result := inherited GetAcceptedWildcards;
+  if Result = '' then
+    Format('*%s *%s', [EXCEL_NEW_FILE_EXT, EXCEL_FILE_EXT]);
 end;
 
 function TUploadExcelToolController.GetExcelRangeName: string;
@@ -246,9 +248,11 @@ begin
   Result := 'excel_document';
 end;
 
-function TImportExcelToolController.GetWildCard: string;
+function TImportExcelToolController.GetAcceptedWildcards: string;
 begin
-  Result := Format('*%s;*%s', [EXCEL_NEW_FILE_EXT, EXCEL_FILE_EXT]);
+  Result := inherited GetAcceptedWildcards;
+  if Result = '' then
+    Format('*%s *%s', [EXCEL_NEW_FILE_EXT, EXCEL_FILE_EXT]);
 end;
 
 function TImportExcelToolController.GetExcelRangeName: string;

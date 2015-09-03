@@ -106,12 +106,12 @@ MainTable:
           ClientFileName: takitto_logo.png
           ContentType: image/png
       UploadFile:
-        DisplayLabel: Upload a file
+        DisplayLabel: Upload image
         Controller: UploadFile
           Path: %APP_PATH%\Documents\Uploaded
-          WildCard: *.*
+          AcceptedWildcards: *.jpg *.png
       UploadExcel:
-        DisplayLabel: Upload an Excel File
+        DisplayLabel: Upload Excel File
         Controller: UploadExcelTool
           ExcelRangeName: DataRange
           AutoRefresh: All
@@ -126,4 +126,4 @@ MainTable:
             START TIME: START_TIME
             END TIME: END_TIME
             STATUS: STATUS
-        WildCard: *.xls
+          AcceptedWildcards: *.xls
