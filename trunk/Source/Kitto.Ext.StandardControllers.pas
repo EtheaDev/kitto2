@@ -221,7 +221,7 @@ type
     procedure ShowUploadFileDialog;
   strict protected
     procedure ExecuteTool; override;
-    function GetWildCard: string; virtual;
+    function GetAcceptedWildcards: string; virtual;
     function GetDefaultPath: string; virtual;
     procedure AddTempFilename(const AFileName: string);
     procedure Cleanup;
@@ -239,7 +239,7 @@ type
     class function GetDefaultImageName: string; override;
   published
     property Path: string read GetPath;
-    property WildCard: string read GetWildCard;
+    property AcceptedWildcards: string read GetAcceptedWildcards;
     property ContentType: string read GetContentType;
     property MaxUploadSize: Integer read GetMaxUploadSize;
 
@@ -250,7 +250,7 @@ type
 implementation
 
 uses
-  StrUtils,
+  Types, StrUtils, Masks,
   Ext, ExtForm, ExtUxForm,
   EF.SysUtils, EF.Tree, EF.RegEx, EF.Localization,
   Kitto.Ext.Session, Kitto.Ext.Controller, Kitto.Metadata.DataView;
@@ -548,8 +548,10 @@ var
   LFormPanel: TExtFormFormPanel;
   LSubmitAction: TExtFormActionSubmit;
   LUploadFormField: TExtUxFormFileUploadField;
+  LAcceptedWildcards: string;
 begin
   FreeAndNil(FWindow);
+  LAcceptedWildcards := AcceptedWildcards;
   FWindow := TKExtModalWindow.Create(Self);
   FWindow.Width := 400;
   FWindow.Height := 120;
@@ -565,8 +567,11 @@ begin
   LFormPanel.LabelAlign := laRight;
   LFormPanel.LabelWidth := 100;
   LUploadFormField := TExtUxFormFileUploadField.CreateAndAddTo(LFormPanel.Items);
-  LUploadFormField.FieldLabel := _('Upload a file');
-  LUploadFormField.EmptyText := _('Select a file to upload');
+  LUploadFormField.FieldLabel := _(Self.DisplayLabel);
+  if LAcceptedWildcards <> '' then
+    LUploadFormField.EmptyText := Format(_('File matching %s'), [LAcceptedWildcards])
+  else
+    LUploadFormField.EmptyText := _('Select a file to upload');
   LUploadFormField.AllowBlank := False;
   LUploadFormField.Anchor := '0 5 0 0';
   LUploadButton := TKExtButton.CreateAndAddTo(LFormPanel.Buttons);
@@ -587,10 +592,31 @@ end;
 
 procedure TKExtUploadFileController.Upload;
 var
-  LFileName: string;
+  LFileName, LAcceptedWildcards, LWildcard: string;
+  LWildcards: TStringDynArray;
+  I: Integer;
+  LAccepted: Boolean;
 begin
   LFileName := Session.FileUploadedFullName;
-  { TODO : Check the file against limitations such as type and size}
+  LAcceptedWildcards := AcceptedWildcards;
+  if LAcceptedWildcards <> '' then
+  begin
+    LWildcards := SplitString(LAcceptedWildcards, ' ');
+    LAccepted := False;
+    for I := 0 to High(LWildcards) do
+    begin
+      LWildcard := LWildcards[I];
+      if (LWildcard <> '') and MatchesMask(LFileName, LWildcard) then
+      begin
+        LAccepted := True;
+        Break;
+      end;
+    end;
+    if not LAccepted then
+      raise Exception.Create(Format(_('Error: uploaded file don''t match Wildcard (%s)'),
+        [LAcceptedWildcards]));
+  end;
+  { TODO : Check the file against limitations such as size}
   if (LFileName <> '') and FileExists(LFileName) then
   begin
     AddTempFilename(LFileName);
@@ -628,9 +654,9 @@ begin
   Result := Config.GetExpandedString('Path', GetDefaultPath);
 end;
 
-function TKExtUploadFileController.GetWildCard: string;
+function TKExtUploadFileController.GetAcceptedWildcards: string;
 begin
-  Result := Config.GetExpandedString('Path', GetDefaultPath);
+  Result := Config.GetString('AcceptedWildcards');
 end;
 
 procedure TKExtUploadFileController.InitDefaults;
