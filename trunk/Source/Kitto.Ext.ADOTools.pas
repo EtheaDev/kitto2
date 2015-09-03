@@ -88,12 +88,19 @@ type
     property FieldMappings: TStringList read GetFieldMappings;
   end;
 
+function DefaultExcelWildcards: string;
+
 implementation
 
 uses
   Math,
   Ext, EF.DB, EF.SysUtils, EF.StrUtils,
   Kitto.Metadata.Models, Kitto.Ext.Session, Kitto.Config;
+
+function DefaultExcelWildcards: string;
+begin
+  Result := Format('*%s *%s', [EXCEL_NEW_FILE_EXT, EXCEL_FILE_EXT]);
+end;
 
 { TExportExcelToolController }
 
@@ -203,7 +210,7 @@ function TUploadExcelToolController.GetAcceptedWildcards: string;
 begin
   Result := inherited GetAcceptedWildcards;
   if Result = '' then
-    Format('*%s *%s', [EXCEL_NEW_FILE_EXT, EXCEL_FILE_EXT]);
+    Result := DefaultExcelWildcards;
 end;
 
 function TUploadExcelToolController.GetExcelRangeName: string;
@@ -252,7 +259,7 @@ function TImportExcelToolController.GetAcceptedWildcards: string;
 begin
   Result := inherited GetAcceptedWildcards;
   if Result = '' then
-    Format('*%s *%s', [EXCEL_NEW_FILE_EXT, EXCEL_FILE_EXT]);
+    Result := DefaultExcelWildcards;
 end;
 
 function TImportExcelToolController.GetExcelRangeName: string;
