@@ -136,7 +136,7 @@ function TKExtGridPanel.GetIsPaged: Boolean;
 begin
   Assert(Assigned(ViewTable));
 
-  Result := ViewTable.GetBoolean('Controller/PagingTools', ViewTable.Model.IsLarge);
+  Result := ViewTable.GetBoolean('Controller/PagingTools', ViewTable.IsLarge);
 end;
 
 procedure TKExtGridPanel.AfterConstruction;

@@ -662,7 +662,7 @@ function TKExtDataPanelController.GetMaxRecords: Integer;
 begin
   Assert(ViewTable <> nil);
 
-  if ViewTable.Model.IsLarge then
+  if ViewTable.IsLarge then
     Result := ViewTable.GetInteger('MaxRecords', 100)
   else
     Result := 1000;
@@ -672,7 +672,7 @@ function TKExtDataPanelController.GetDefaultAutoOpen: Boolean;
 begin
   Assert(Assigned(ViewTable));
   Assert(Assigned(ViewTable.Model));
-  Result := not ViewTable.Model.IsLarge;
+  Result := not ViewTable.IsLarge;
 end;
 
 function TKExtDataPanelController.GetDefaultRemoteSort: Boolean;
