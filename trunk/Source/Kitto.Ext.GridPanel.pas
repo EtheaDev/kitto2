@@ -98,24 +98,33 @@ uses
 function TKExtGridPanel.GetOrderByClause: string;
 var
   LSortFieldNames: TStringDynArray;
-  LGroupingFieldName: string;
+  LSortFieldNameClause: string;
+  LGroupingFieldName, LGroupingClause: string;
   I: Integer;
 begin
-  LSortFieldNames := ViewTable.GetStringArray('Controller/Grouping/SortFieldNames');
-  if Length(LSortFieldNames) = 0 then
-  begin
-    LGroupingFieldName := GetGroupingFieldName;
-    if LGroupingFieldName <> '' then
-      Result := ViewTable.FieldByName(GetGroupingFieldName).QualifiedDBNameOrExpression
-    else
-      Result := inherited GetOrderByClause;
-  end
+  LGroupingFieldName := GetGroupingFieldName;
+  if LGroupingFieldName <> '' then
+    LGroupingClause := ViewTable.FieldByName(LGroupingFieldName).QualifiedDBNameOrExpression
   else
+    LGroupingClause := '';
+  LSortFieldNames := ViewTable.GetStringArray('Controller/Grouping/SortFieldNames');
+  if Length(LSortFieldNames) > 0 then
   begin
     for I := Low(LSortFieldNames) to High(LSortFieldNames) do
       LSortFieldNames[I] := ViewTable.FieldByName(LSortFieldNames[I]).QualifiedDBNameOrExpression;
-    Result := Join(LSortFieldNames, ', ');
-  end;
+    LSortFieldNameClause := Join(LSortFieldNames, ', ');
+  end
+  else
+    LSortFieldNameClause := '';
+  if (LGroupingClause <> '') then
+  begin
+    if (LSortFieldNameClause <> '') then
+      Result := LGroupingClause + ', ' + LSortFieldNameClause
+    else
+      Result := LGroupingClause;
+  end
+  else
+    Result := inherited GetOrderByClause;
 end;
 
 function TKExtGridPanel.GetGroupingFieldName: string;
