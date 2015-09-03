@@ -907,7 +907,10 @@ end;
 
 function TKSQLBuilder.GetSortClause(const AViewField: TKViewField; const AIsDescending: Boolean): string;
 begin
-  Result := ExpandQualification(AViewField.DBNameOrExpression, AViewField.DBName);
+  if AViewField.Expression <> '' then
+    Result := ExpandQualification(AViewField.Expression, AViewField.Table.Model.DBTableName)
+  else
+    Result := AViewField.QualifiedDBNameOrExpression;
   if AIsDescending then
     Result := Result + ' desc';
 end;
