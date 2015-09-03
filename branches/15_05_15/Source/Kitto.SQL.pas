@@ -165,6 +165,7 @@ type
     /// <summary>
     ///  Translates the specified field and direction indication into a SQL
     ///  expression compatible with ORDER BY.
+    /// </summary>
     function GetSortClause(const AViewField: TKViewField; const AIsDescending: Boolean): string;
 
     class procedure CreateAndExecute(const AProc: TProc<TKSQLBuilder>);
@@ -381,6 +382,9 @@ begin
     try
       for I := 0 to ARecord.ChildCount - 1 do
       begin
+        if TKViewField.IsURLFieldName(ARecord[I].FieldName) then
+          Continue;
+
         LViewField := ARecord[I].ViewField;
         if Assigned(LViewField) and ARecord[I].IsModified and LViewField.CanInsert then
         begin
