@@ -98,33 +98,24 @@ uses
 function TKExtGridPanel.GetOrderByClause: string;
 var
   LSortFieldNames: TStringDynArray;
-  LSortFieldNameClause: string;
-  LGroupingFieldName, LGroupingClause: string;
+  LGroupingFieldName: string;
   I: Integer;
 begin
-  LGroupingFieldName := GetGroupingFieldName;
-  if LGroupingFieldName <> '' then
-    LGroupingClause := ViewTable.FieldByName(LGroupingFieldName).QualifiedDBNameOrExpression
-  else
-    LGroupingClause := '';
   LSortFieldNames := ViewTable.GetStringArray('Controller/Grouping/SortFieldNames');
-  if Length(LSortFieldNames) > 0 then
+  if Length(LSortFieldNames) = 0 then
+  begin
+    LGroupingFieldName := GetGroupingFieldName;
+    if LGroupingFieldName <> '' then
+      Result := ViewTable.FieldByName(GetGroupingFieldName).QualifiedDBNameOrExpression
+    else
+      Result := inherited GetOrderByClause;
+  end
+  else
   begin
     for I := Low(LSortFieldNames) to High(LSortFieldNames) do
       LSortFieldNames[I] := ViewTable.FieldByName(LSortFieldNames[I]).QualifiedDBNameOrExpression;
-    LSortFieldNameClause := Join(LSortFieldNames, ', ');
-  end
-  else
-    LSortFieldNameClause := '';
-  if (LGroupingClause <> '') then
-  begin
-    if (LSortFieldNameClause <> '') then
-      Result := LGroupingClause + ', ' + LSortFieldNameClause
-    else
-      Result := LGroupingClause;
-  end
-  else
-    Result := inherited GetOrderByClause;
+    Result := Join(LSortFieldNames, ', ');
+  end;
 end;
 
 function TKExtGridPanel.GetGroupingFieldName: string;
@@ -221,7 +212,7 @@ begin
   if (LGroupingFieldName <> '') or LGroupingMenu then
   begin
     FGridView := TExtGridGroupingView.Create(Self);
-    TExtGridGroupingView(FGridView).EmptyGroupText := _('No data to display in this group.');
+    TExtGridGroupingView(FGridView).EmptyGroupText := _('Grouping value undefined.');
     TExtGridGroupingView(FGridView).StartCollapsed := ViewTable.GetBoolean('Controller/Grouping/StartCollapsed');
     TExtGridGroupingView(FGridView).EnableGroupingMenu := LGroupingMenu;
     TExtGridGroupingView(FGridView).EnableNoGroups := LGroupingMenu;
