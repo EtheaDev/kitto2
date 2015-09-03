@@ -28,6 +28,7 @@ MainTable:
       ShowName: False
       ShowCount: True
         Template: _({[values.rs.length]} Dolls have {text} hair)
+      SortFieldNames: Doll_Name
 
     ToolViews:
       DownloadText:
