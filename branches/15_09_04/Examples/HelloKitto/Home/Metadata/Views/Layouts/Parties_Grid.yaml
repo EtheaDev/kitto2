@@ -1,0 +1,8 @@
+﻿Field: Party_Period
+Field: Party_Name
+  DisplayWidth: 30
+Field: Party_Date
+  Align: Center
+Field: Party_Time
+  Align: Center
+Field: Address

@@ -1,0 +1,44 @@
+﻿Type: Data
+
+Controller: List
+  Filters:
+    DisplayLabel: _(Choose Mom)
+    Items:
+      DynaList: Mom
+        # CommandText must select the value field and the display field as the first two fields.
+        CommandText: |
+          select GIRL_ID, GIRL_NAME
+          from GIRL order by GIRL_NAME
+        # ExpressionTemplate should contain a {value} placeholder for the value field selected by the CommandText.
+        ExpressionTemplate: Doll.Mom_Id = '{value}'
+
+MainTable:
+  Model: Doll
+
+  Controller:
+    PageRecordCount: 2
+    AllowViewing: True
+    PopupWindow:
+      Height: 500
+      Width: 400
+
+    Grouping:
+      FieldName: Hair
+      ShowCount: True
+        Template: _({[values.rs.length]} Dolls have {text} hair)
+        PluralItemName:
+        ItemName:
+      SortFieldNames: Hair Doll_Name
+
+    ToolViews:
+      DownloadText:
+        DisplayLabel: _(Download in CSV)
+        Controller: ExportCSVTool
+          RequireSelection: False
+          ClientFileName:
+        ImageName: download
+      DownloadCSV:
+        DisplayLabel: _(Download in CSV)
+        ImageName: download
+        Controller: ExportCSVTool
+          RequireSelection: False

@@ -1,0 +1,8 @@
+Row:
+  Field: PROJECT
+    CharWidth: 40
+Field: PHASE_NAME
+Row:
+  Field: START_DATE
+  Field: END_DATE
+  Field: STATUS

@@ -1,0 +1,34 @@
+﻿Type: Data
+IsLookup: True
+Controller: List
+  PopUpWindow:
+    Width: 800
+    Height: 400
+  Filters:
+    DisplayLabel: Search Jobs
+    Items:
+      FreeSearch: Free Search
+        ExpressionTemplate: (Job.JOB_CODE like '%{value}%') or (Job.JOB_TITLE like '%{value}%') or (Job.LANGUAGE_REQ like '%{value}%')
+MainTable:
+  Model: Job
+  Fields:
+    JobCode:
+    JobGrade:
+    JobTitle:
+    MinSalary:
+    MaxSalary:
+    JobRequirement:
+    LanguageReq:
+    JobCountryRef:
+    JobCountryRef.Currency: Job_Currency
+    JobDescription:
+      IsVisible: False
+  Controller:
+    PageRecordCount: 20
+    ToolViews:
+      DownloadText:
+        DisplayLabel: Download n Excel
+        Controller: ExportExcelTool
+          ClientFileName: Jobs_%YYYYMMDD_DATE%_%HHMM_TIME%.xls
+          TemplateFileName: %APP_PATH%ReportTemplates\Jobs.xlt
+          RequireSelection: False
