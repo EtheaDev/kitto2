@@ -746,7 +746,9 @@ begin
     On('select', Ajax(ValueChanged, ['Value', GetEncodedValue()]));
     On('blur', JSFunction(Format('fireChangeIfEmpty(%s);', [JSName])));
   end;
-  FCurrentValue := '';
+  FCurrentValue := AConfig.GetExpandedString('DefaultValue');
+  if FCurrentValue <> '' then
+    SetRawValue(FCurrentValue);
 end;
 
 { TKFreeSearchFilter }
