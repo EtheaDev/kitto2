@@ -79,6 +79,8 @@ begin
 end;
 
 initialization
+  {$IFDEF WIN32}
   ReportMemoryLeaksOnShutdown := DebugHook <> 0;
+  {$ENDIF}
 
 end.
