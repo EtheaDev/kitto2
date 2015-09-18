@@ -281,7 +281,8 @@ begin
   Result := InternalLoadRecords(TKViewTableStore(AStore), AFilterExpression, ASortExpression, AStart, ALimit,
     procedure (ARecord: TKViewTableRecord)
     begin
-      AForEachRecord(ARecord);
+      if Assigned(AForEachRecord) then
+        AForEachRecord(ARecord);
     end);
 end;
 
