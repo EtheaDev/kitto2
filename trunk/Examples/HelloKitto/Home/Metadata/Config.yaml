@@ -87,6 +87,7 @@ Login:
       Mode: Password
       AskUser: True
         .Default: False
+      AutoLogin: True
 
 HomeGirls:
   Controller: Viewport

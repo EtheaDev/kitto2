@@ -43,6 +43,7 @@ type
     function GetLocalStorageRetrieveJSCode(const ALocalStorageMode: string): string;
     function GetLocalStorageAskUser: Boolean;
     function GetLocalStorageAskUserDefault: Boolean;
+    function GetLocalStorageAutoLogin: Boolean;
   strict protected
     procedure DoDisplay; override;
   public
@@ -305,6 +306,11 @@ begin
   Result := Config.GetBoolean('LocalStorage/AskUser/Default', True);
 end;
 
+function TKExtLoginWindow.GetLocalStorageAutoLogin: Boolean;
+begin
+  Result := Config.GetBoolean('LocalStorage/AutoLogin', False);
+end;
+
 function TKExtLoginWindow.GetLocalStorageRetrieveJSCode(const ALocalStorageMode: string): string;
 begin
   if SameText(ALocalStorageMode, 'UserName') or SameText(ALocalStorageMode, 'Password') then
@@ -313,6 +319,8 @@ begin
     Result := Result + 'var p = localStorage.' + Session.Config.AppName + '_Password; if (p) ' + FPassword.JSName + '.setValue(p);';
   if Assigned(FLocalStorageEnabled) then
     Result := Result + 'var l = localStorage.' + Session.Config.AppName + '_LocalStorageEnabled; if (l) ' + FLocalStorageEnabled.JSName + '.setValue(l);';
+  if GetLocalStorageAutoLogin then
+    Result := Result + Format('setTimeout(function(){ %s.getEl().dom.click(); }, 100);', [FLoginButton.JSName]);
 end;
 
 procedure TKExtLoginWindow.DoLogin;
