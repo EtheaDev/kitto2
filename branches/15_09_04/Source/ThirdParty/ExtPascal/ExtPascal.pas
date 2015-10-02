@@ -2430,9 +2430,9 @@ begin
   I := pos('%', Param);
   if (I <> 0) and (I <> length(Param))  then
     if CharInSet(Param[I+1], ['0'..'9']) then
-      Result := '"+' + Param + '+"'
+      Result := '"+encodeURIComponent(' + Param + ')+"'
     else
-      Result := '"+' + copy(Param, I+1, length(Param)) + '+"'
+      Result := '"+encodeURIComponent(' + copy(Param, I+1, length(Param)) + ')+"'
   else
     Result := Param;
 end;
