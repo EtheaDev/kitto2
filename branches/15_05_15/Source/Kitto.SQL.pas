@@ -382,9 +382,6 @@ begin
     try
       for I := 0 to ARecord.ChildCount - 1 do
       begin
-        if TKViewField.IsURLFieldName(ARecord[I].FieldName) then
-          Continue;
-
         LViewField := ARecord[I].ViewField;
         if Assigned(LViewField) and ARecord[I].IsModified and LViewField.CanInsert then
         begin
