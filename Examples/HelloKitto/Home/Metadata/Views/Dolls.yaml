@@ -8,9 +8,13 @@ Controller: List
         # CommandText must select the value field and the display field as the first two fields.
         CommandText: |
           select GIRL_ID, GIRL_NAME
-          from GIRL order by GIRL_NAME
+          from GIRL     {query}
+          order by GIRL_NAME
         # ExpressionTemplate should contain a {value} placeholder for the value field selected by the CommandText.
         ExpressionTemplate: Doll.Mom_Id = '{value}'
+        QueryTemplate: where GIRL_NAME like '{queryValue}%'
+        AutoCompleteMinChars: 1
+        Width: 30
 
 MainTable:
   Model: Doll
