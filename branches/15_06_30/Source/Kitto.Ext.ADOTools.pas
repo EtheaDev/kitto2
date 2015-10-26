@@ -39,6 +39,7 @@ type
     procedure AcceptField(AViewField: TKViewField; var AAccept: boolean); virtual;
   public
     procedure AfterConstruction; override;
+    destructor Destroy; override;
     class function GetDefaultImageName: string; override;
     property ExportEngine: TKExtExcelEngine read FExportExcelEngine;
   published
@@ -56,11 +57,16 @@ uses
 
 { TExportExcelToolController }
 
-
 procedure TExportExcelToolController.AfterConstruction;
 begin
   inherited;
   FExportExcelEngine := TKExtExcelEngine.Create(self);
+end;
+
+destructor TExportExcelToolController.Destroy;
+begin
+  FreeAndNil(FExportExcelEngine);
+  inherited;
 end;
 
 function TExportExcelToolController.GetDefaultFileExtension: string;
@@ -75,7 +81,7 @@ end;
 
 function TExportExcelToolController.GetExcelRangeName: string;
 begin
-  Result := Config.GetString('ExcelRangeName', 'DataRange');
+  Result := Config.GetString('ExcelRangeName', EXCEL_DEFAULT_RANGE);
 end;
 
 function TExportExcelToolController.GetTemplateFileName: string;

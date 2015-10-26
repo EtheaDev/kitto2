@@ -28,6 +28,7 @@ const
   EXCEL_TEMPLATE_EXT = '.xlt';
   EXCEL_NEW_FILE_EXT = '.xlsx';
   EXCEL_NEW_TEMPLATE_EXT = '.xltx';
+  EXCEL_DEFAULT_RANGE = 'DataRange';
 
 type
   TExcelVersion = (ex2000, ex2007);
@@ -143,10 +144,10 @@ end;
 procedure TKExtExcelEngine.GetADOXDataType(const ADataType: TEFDataType;
   const AFieldSize: Integer; out AADOXDataType: DataTypeEnum);
 begin
-  if ADataType is TEFStringDataType then
-    AADOXDataType := adVarWChar
-  else if ADataType is TEFMemoDataType then
+  if ADataType is TEFMemoDataType then
     AADOXDataType := adLongVarWChar
+  else if ADataType is TEFStringDataType then
+    AADOXDataType := adVarWChar
   else if ADataType is TEFIntegerDataType then
     AADOXDataType := adInteger
   else if (ADataType is TEFDateDataType) or (ADataType is TEFTimeDataType) or (ADataType is TEFDateTimeDataType) then
@@ -161,6 +162,8 @@ begin
     AADOXDataType := adVarWChar
   else
     AADOXDataType := adLongVarWChar;
+  if AFieldSize > MAX_EXCEL_STRING_COLUMN_SIZE then
+    AAdoXDataType := adLongVarWChar;
 end;
 
 procedure TKExtExcelEngine.GetAdoXFieldType(const Field : TField;
@@ -195,7 +198,7 @@ end;
 procedure TKExtExcelEngine.ForceZeroValue(Field: TField);
 begin
   case Field.DataType of
-    ftFixedChar, ftString, ftGuid, ftWideString, ftMemo: Field.Value := ' ';
+    ftFixedChar, ftString, ftGuid, ftWideString, ftMemo, ftWideMemo: Field.Value := ' ';
     ftLargeint, ftAutoInc, ftInteger, ftSmallint, ftWord,
     ftFloat, ftBCD, ftCurrency, ftFMTBcd: Field.Value := 0;
     ftDate, ftTime, ftDateTime, ftTimeStamp: Field.Value := 0;
@@ -457,7 +460,12 @@ begin
             begin
               LZeroValueForced := IsFieldToForceZero(LDestField) or LZeroValueForced;
               if LSourceField.ViewField.ActualDataType is TEFMemoDataType then
-                LDestField.AsString := StringReplace(LSourceField.AsString, sLineBreak, chr(10), [rfReplaceAll])
+              begin
+                if not VarIsNull(LSourceField.Value) then
+                  LDestField.AsString := StringReplace(LSourceField.AsString, sLineBreak, chr(10), [rfReplaceAll])
+                else
+                  ForceZeroValue(LDestField);
+              end
               else if LSourceField.ViewField.ActualDataType is TEFBooleanDataType then
               begin
                 if LDestField is TNumericField then
@@ -591,7 +599,12 @@ begin
             begin
               LZeroValueForced := IsFieldToForceZero(LDestField) or LZeroValueForced;
               if LSourceField is TMemoField then
-                LDestField.AsString := StringReplace(LSourceField.AsString, sLineBreak, chr(10), [rfReplaceAll])
+              begin
+                if not VarIsNull(LSourceField.Value) then
+                  LDestField.AsString := StringReplace(LSourceField.AsString, sLineBreak, chr(10), [rfReplaceAll])
+                else
+                  ForceZeroValue(LDestField);
+              end
               else if LSourceField is TBooleanField then
               begin
                 if LDestField is TNumericField then

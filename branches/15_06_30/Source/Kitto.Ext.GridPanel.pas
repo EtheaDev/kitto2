@@ -69,6 +69,7 @@ type
     function IsActionVisible(const AActionName: string): Boolean; override;
     function IsActionSupported(const AActionName: string): Boolean; override;
   public
+    const DEFAULT_PAGE_RECORD_COUNT = 100;
     procedure UpdateObserver(const ASubject: IEFSubject; const AContext: string = ''); override;
     procedure AfterConstruction; override;
     procedure Activate; override;
@@ -723,7 +724,7 @@ begin
   // By default show paging toolbar for large models.
   if GetIsPaged then
   begin
-    FPageRecordCount := LViewTable.GetInteger('Controller/PageRecordCount', 100);
+    FPageRecordCount := LViewTable.GetInteger('Controller/PageRecordCount', DEFAULT_PAGE_RECORD_COUNT);
     FEditorGridPanel.Bbar := CreatePagingToolbar;
   end;
 
