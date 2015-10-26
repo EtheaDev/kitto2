@@ -400,7 +400,7 @@ implementation
 uses
   SysUtils, Math, StrUtils,
   ExtPascalUtils,
-  EF.Localization,  EF.DB, EF.StrUtils, EF.JSON,
+  EF.Localization,  EF.DB, EF.StrUtils, EF.JSON, EF.SQL,
   Kitto.Types, Kitto.Config, KItto.AccessControl, Kitto.Ext.Session, Kitto.Ext.Utils;
 
 function GetDefaultFilter(const AItems: TEFNode): TEFNode;
@@ -545,6 +545,8 @@ procedure TKListFilterBase.SetConfig(const AConfig: TEFNode);
 var
   I: Integer;
   LFieldNames: TStringDynArray;
+  LWidth: Integer;
+  LListWidth: Integer;
 begin
   Assert(Assigned(AConfig));
 
@@ -573,8 +575,13 @@ begin
       Name := FServerStore.Header.Fields[I].FieldName;
   ValueField := 'Id';
   DisplayField := 'Description';
-  Width := CharsToPixels(FConfig.GetInteger('Width', DEFAULT_FILTER_WIDTH));
-  ListWidth := CharsToPixels(FConfig.GetInteger('ListWidth', DEFAULT_FILTER_WIDTH));
+
+  LWidth := FConfig.GetInteger('Width', DEFAULT_FILTER_WIDTH);
+  Width := CharsToPixels(LWidth);
+  LListWidth := FConfig.GetInteger('ListWidth', -1);
+  if LListWidth = -1 then
+    LListWidth := LWidth;
+  ListWidth := CharsToPixels(LListWidth);
   TypeAhead := True;
   MinChars := FConfig.GetInteger('AutoCompleteMinChars', 4);
 end;
@@ -705,6 +712,9 @@ var
   LLimit: Integer;
   LPageRecordCount: Integer;
   LDBQuery: TEFDBQuery;
+  LCommandText: string;
+  LQuery: string;
+  LQueryExpression: string;
 begin
   inherited;
 
@@ -712,7 +722,13 @@ begin
 
   LDBQuery := Session.Config.DBConnections[GetDatabaseName(FConfig, Self, FViewTable.DatabaseName)].CreateDBQuery;
   try
-    LDBQuery.CommandText := ExpandFilterValues(Owner as TExtObjectList, FConfig.GetExpandedString('CommandText'));
+    LCommandText := ExpandFilterValues(Owner as TExtObjectList, FConfig.GetExpandedString('CommandText'));
+    LQuery := Session.Query['query'];
+    if LQuery <> '' then
+      LQueryExpression := ReplaceStr(FConfig.GetExpandedString('QueryTemplate'), '{queryValue}', LQuery)
+    else
+      LQueryExpression := '';
+    LDBQuery.CommandText := ReplaceStr(LCommandText, '{query}', LQueryExpression);
     LDBQuery.Open;
     try
       Assert(LDBQuery.DataSet.FieldCount = 2);
