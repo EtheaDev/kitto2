@@ -1758,8 +1758,6 @@ function GetDataType(const ABytes: TBytes; const ADefault: string): string;
 const
   MIN_BYTES = 8;
 begin
-  Assert(Assigned(ABytes));
-
   Result := ADefault;
 
   if Length(ABytes) >= MIN_BYTES then
