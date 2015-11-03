@@ -47,10 +47,10 @@ type
   private
     FConfirmButton: TKExtButton;
     FCancelButton: TKExtButton;
-    FClientStoreOnLoadSet: Boolean;
     function GetConfirmJSCode(const AMethod: TExtProcedure): string;
     function GetBeforeEditJSCode(const AMethod: TExtProcedure): string;
     procedure ShowConfirmButtons(const AShow: Boolean);
+    function GetSelectLastEditedRecordCode(const ARecord: TKViewTableRecord): string;
   strict protected
     procedure ExecuteNamedAction(const AActionName: string); override;
     function GetOrderByClause: string; override;
@@ -71,7 +71,6 @@ type
   public
     const DEFAULT_PAGE_RECORD_COUNT = 100;
     procedure UpdateObserver(const ASubject: IEFSubject; const AContext: string = ''); override;
-    procedure AfterConstruction; override;
     procedure Activate; override;
   published
     procedure LoadData; override;
@@ -128,12 +127,6 @@ begin
   Assert(Assigned(ViewTable));
 
   Result := ViewTable.GetBoolean('Controller/PagingTools', ViewTable.IsLarge);
-end;
-
-procedure TKExtGridPanel.AfterConstruction;
-begin
-  inherited;
-  FClientStoreOnLoadSet := False;
 end;
 
 procedure TKExtGridPanel.AfterCreateTopToolbar;
@@ -856,15 +849,49 @@ begin
   end;
 end;
 
-procedure TKExtGridPanel.UpdateObserver(const ASubject: IEFSubject; const AContext: string);
+function TKExtGridPanel.GetSelectLastEditedRecordCode(const ARecord: TKViewTableRecord): string;
+var
+  LFunction: string;
+  LFieldNames: TStringDynArray;
+  LPredicate: string;
+  I: Integer;
+  LPredicates: string;
 begin
-  if MatchText(AContext, ['Confirmed', 'Canceled']) and Supports(ASubject.AsObject, IKExtController) then
+  if Assigned(ARecord) then
   begin
-    if not FClientStoreOnLoadSet then
+    // Prepare a JS function that compares all key values in a record r with the
+    // values in ARecord in order to locate it.
+    LPredicate := '';
+    LPredicates := '';
+    LFieldNames := ViewTable.GetKeyFieldAliasedNames;
+    for I := Low(LFieldNames) to High(LFieldNames) do
     begin
-      ClientStore.On('load', FSelectionModel.SelectFirstRow);
-      FClientStoreOnLoadSet := True;
+      LPredicate := Format('(r.get("%s") == %s)', [LFieldNames[I], ARecord.FieldByName(LFieldNames[I]).GetAsJSONValue(False)]);
+      if LPredicates = '' then
+        LPredicates := LPredicate
+      else
+        LPredicates := LPredicates + ' && ' + LPredicate;
     end;
+
+    LFunction := Format('function(r) { if (%s) return true; else return false;}', [LPredicates]);
+
+    // findBy() retrieves the record index through our custom function, and
+    // getAt() returns the corresponding Record object to be passed to the selection model.
+    Result := Format('%s.selectRecords([%s.getAt(%s.findBy(%s))]);',
+      [FSelectionModel.JSName, ClientStore.JSName, ClientStore.JSName, LFunction]);
+  end
+  else
+    Result := 'return false;'
+end;
+
+procedure TKExtGridPanel.UpdateObserver(const ASubject: IEFSubject; const AContext: string);
+var
+  LController: IKExtController;
+begin
+  if Supports(ASubject.AsObject, IKExtController, LController) then
+  begin
+    if MatchText(AContext, ['Confirmed', 'Canceled']) then
+      ClientStore.On('load', JSFunction(GetSelectLastEditedRecordCode(LController.Config.GetObject('Sys/Record') as TKViewTableRecord)));
   end;
   inherited;
 end;
