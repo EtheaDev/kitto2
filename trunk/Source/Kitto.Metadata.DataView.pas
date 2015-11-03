@@ -889,8 +889,7 @@ begin
     Result[I] := FieldByModelField(AModelFields[I]);
 end;
 
-function TKViewTable.FieldByDBColumnName(
-  const ADBColumnName: string): TKViewField;
+function TKViewTable.FieldByDBColumnName(const ADBColumnName: string): TKViewField;
 begin
   Result := FindFieldByDBColumnName(ADBColumnName);
   if not Assigned(Result) then
