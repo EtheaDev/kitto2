@@ -557,7 +557,7 @@ var
   LError: string;
 begin
   AssignFieldChangeEvent(False);
-  LError := UpdateRecord(StoreRecord, SO(Session.RequestBody).O['new'], True, Config.GetBoolean('KeepOpenAfterOperation'));
+  LError := UpdateRecord(StoreRecord, SO(Session.RequestBody).O['new'], True);
   FreeAndNil(FCloneValues);
   if LError = '' then
   begin
@@ -580,7 +580,7 @@ var
   LError: string;
 begin
   AssignFieldChangeEvent(False);
-  LError := UpdateRecord(StoreRecord, SO(Session.RequestBody).O['new'], True, True);
+  LError := UpdateRecord(StoreRecord, SO(Session.RequestBody).O['new'], True);
   if LError = '' then
   begin
     FChangesApplied := True;
@@ -591,7 +591,7 @@ end;
 
 procedure TKExtFormPanelController.ConfirmChangesAndClone;
 begin
-  UpdateRecord(StoreRecord, SO(Session.RequestBody).O['new'], True, True);
+  UpdateRecord(StoreRecord, SO(Session.RequestBody).O['new'], True);
   FCloneValues := TEFNode.Clone(StoreRecord);
   StoreRecord := ServerStore.AppendRecord(nil);
   FOperation := 'Add';

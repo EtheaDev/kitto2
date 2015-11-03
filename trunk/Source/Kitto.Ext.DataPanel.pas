@@ -105,7 +105,7 @@ type
     function GetRootDataPanel: TKExtDataPanelController;
     function FindViewLayout(const ALayoutName: string): TKLayout;
     function UpdateRecord(const ARecord: TKVIewTableRecord; const ANewValues: ISuperObject;
-      const APersist, ASuppressNotification: Boolean): string;
+      const APersist: Boolean): string;
     function GetDefaultRemoteSort: Boolean; virtual;
     function GetCurrentViewRecord: TKViewTableRecord;
     procedure ShowEditWindow(const ARecord: TKViewTableRecord; const AEditMode: TKEditMode);
@@ -959,7 +959,7 @@ begin
 end;
 
 function TKExtDataPanelController.UpdateRecord(const ARecord: TKVIewTableRecord; const ANewValues: ISuperObject;
-  const APersist, ASuppressNotification: Boolean): string;
+  const APersist: Boolean): string;
 var
   LItem: TSuperAvlEntry;
   LOldRecord: TKViewTableRecord;
@@ -1036,6 +1036,7 @@ begin
         begin
           Session.Flash(_('Changes saved succesfully.'));
         end);
+      Config.SetObject('Sys/Record', ARecord);
       Result := '';
     except
       on E: EKValidationError do
@@ -1045,11 +1046,6 @@ begin
         ARecord.Assign(LOldRecord);
         Exit;
       end;
-    end;
-    if not ASuppressNotification then
-    begin
-      Config.SetObject('Sys/Record', ARecord);
-      NotifyObservers('Confirmed');
     end;
   finally
     FreeAndNil(LOldRecord);

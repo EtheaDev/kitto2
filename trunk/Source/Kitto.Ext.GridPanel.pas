@@ -839,7 +839,7 @@ var
   LError: string;
 begin
   LReqBody := SO(Session.RequestBody);
-  LError := UpdateRecord(ServerStore.GetRecord(LReqBody.O['new'], Session.Config.UserFormatSettings), LReqBody.O['new'], False, True);
+  LError := UpdateRecord(ServerStore.GetRecord(LReqBody.O['new'], Session.Config.UserFormatSettings), LReqBody.O['new'], False);
   if LError = '' then
     // ok - nothing
   else
