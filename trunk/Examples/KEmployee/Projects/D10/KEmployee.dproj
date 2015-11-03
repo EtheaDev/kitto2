@@ -1,4 +1,4 @@
-<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
         <ProjectGuid>{1FBC6B9D-04F2-4238-A7C5-07DEC4D673BB}</ProjectGuid>
         <MainSource>KEmployee.dpr</MainSource>
@@ -103,7 +103,7 @@
         <DCC_GenerateStackFrames>true</DCC_GenerateStackFrames>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2_Win32)'!=''">
-        <DCC_Define>DEBUGJS;DEBUGEXTJS;$(DCC_Define)</DCC_Define>
+        <DCC_Define>DEBUGEXTJS;$(DCC_Define)</DCC_Define>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
         <VerInfo_Locale>1033</VerInfo_Locale>
     </PropertyGroup>
