@@ -75,6 +75,7 @@ type
     FCloneButton: TKExtButton;
     FLabelAlign: TExtFormFormPanelLabelAlign;
     FDetailBottomPanel: TExtTabPanel;
+    FChangesApplied: Boolean;
     procedure CreateEditors;
     procedure RecreateEditors;
     procedure CreateButtons;
@@ -105,11 +106,13 @@ type
     procedure TabChange(AThis: TExtTabPanel; ATab: TExtPanel); virtual;
     procedure RefreshEditorValues;
     procedure RefreshEditorFields;
+    procedure CloseHostContainer; override;
   public
     procedure LoadData; override;
     destructor Destroy; override;
     function GetFilterExpression: string; override;
     function GetRegionName(const ARegion: TExtBoxComponentRegion): string; override;
+    procedure AfterConstruction; override;
   published
     procedure GetRecord;
     procedure SwitchToEditMode;
@@ -156,6 +159,13 @@ begin
             FFocusField := LFormField;
       end;
     end);
+end;
+
+procedure TKExtFormPanelController.CloseHostContainer;
+begin
+  if FChangesApplied then
+    NotifyObservers('Confirmed');
+  inherited;
 end;
 
 destructor TKExtFormPanelController.Destroy;
@@ -551,11 +561,18 @@ begin
   FreeAndNil(FCloneValues);
   if LError = '' then
   begin
+    FChangesApplied := True;
     if Config.GetBoolean('KeepOpenAfterOperation') then
       StartOperation
     else
       CloseHostContainer;
   end;
+end;
+
+procedure TKExtFormPanelController.AfterConstruction;
+begin
+  inherited;
+  FChangesApplied := False;
 end;
 
 procedure TKExtFormPanelController.ApplyChanges;
@@ -566,6 +583,7 @@ begin
   LError := UpdateRecord(StoreRecord, SO(Session.RequestBody).O['new'], True, True);
   if LError = '' then
   begin
+    FChangesApplied := True;
     FOperation := 'Edit';
     StartOperation;
   end;
