@@ -108,7 +108,7 @@ type
       const APersist, ASuppressNotification: Boolean): string;
     function GetDefaultRemoteSort: Boolean; virtual;
     function GetCurrentViewRecord: TKViewTableRecord;
-    procedure ShowEditWindow(const ARecord: TKRecord; const AEditMode: TKEditMode);
+    procedure ShowEditWindow(const ARecord: TKViewTableRecord; const AEditMode: TKEditMode);
     function GetEditWindowDefaultControllerType: string; virtual;
     function IsMultiSelect: Boolean; virtual;
     function HasDefaultAction: Boolean;
@@ -338,7 +338,7 @@ begin
   ShowEditWindow(LRecord, emEditCurrentRecord);
 end;
 
-procedure TKExtDataPanelController.ShowEditWindow(const ARecord: TKRecord;
+procedure TKExtDataPanelController.ShowEditWindow(const ARecord: TKViewTableRecord;
   const AEditMode: TKEditMode);
 var
   LFormControllerType: string;
@@ -1047,7 +1047,10 @@ begin
       end;
     end;
     if not ASuppressNotification then
+    begin
+      Config.SetObject('Sys/Record', ARecord);
       NotifyObservers('Confirmed');
+    end;
   finally
     FreeAndNil(LOldRecord);
   end;
