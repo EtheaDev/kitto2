@@ -61,6 +61,7 @@ type
     FMainPagePanel: TKExtEditPage;
     FIsReadOnly: Boolean;
     FConfirmButton: TKExtButton;
+    FApplyButton: TKExtButton;
     FEditButton: TKExtButton;
     FCancelButton: TKExtButton;
     FCloseButton: TKExtButton;
@@ -113,6 +114,7 @@ type
     procedure GetRecord;
     procedure SwitchToEditMode;
     procedure ConfirmChanges;
+    procedure ApplyChanges;
     procedure ConfirmChangesAndClone;
     procedure CancelChanges;
   end;
@@ -311,6 +313,11 @@ begin
   // Scroll back to top - can't do that until afterrender because body.dom is needed.
   FMainPagePanel.On('afterrender', JSFunction(FMainPagePanel.JSName + '.body.dom.scrollTop = 0;'));
   // Set button handlers (editors are needed by GetConfirmJSCode).
+  if Assigned(FApplyButton) then
+  begin
+    FApplyButton.Handler := JSFunction(GetConfirmJSCode(ApplyChanges));
+    FFormPanel.On('clientvalidation', JSFunction('form, valid', FApplyButton.JSName+'.setDisabled(!valid);'));
+  end;
   if Assigned(FConfirmButton) then
   begin
     FConfirmButton.Handler := JSFunction(GetConfirmJSCode(ConfirmChanges));
@@ -506,6 +513,8 @@ var
 begin
   FStoreRecord.ApplyEditRecordRules;
   FEditButton.SetVisible(False);
+  if Assigned(FApplyButton) then
+    FApplyButton.SetVisible(True);
   FConfirmButton.SetVisible(True);
   if Assigned(FCloneButton) then
     FCloneButton.SetVisible(True);
@@ -549,6 +558,19 @@ begin
   end;
 end;
 
+procedure TKExtFormPanelController.ApplyChanges;
+var
+  LError: string;
+begin
+  AssignFieldChangeEvent(False);
+  LError := UpdateRecord(StoreRecord, SO(Session.RequestBody).O['new'], True, True);
+  if LError = '' then
+  begin
+    FOperation := 'Edit';
+    StartOperation;
+  end;
+end;
+
 procedure TKExtFormPanelController.ConfirmChangesAndClone;
 begin
   UpdateRecord(StoreRecord, SO(Session.RequestBody).O['new'], True, True);
@@ -579,7 +601,25 @@ procedure TKExtFormPanelController.CreateButtons;
 var
   LCloneButtonNode: TEFNode;
   LHostWindow: TExtWindow;
+  LApplyButtonNode: TEFNode;
 begin
+  // Apply button
+  FApplyButton := nil;
+  LApplyButtonNode := ViewTable.FindNode('Controller/FormController/ApplyButton');
+  if Assigned(LApplyButtonNode) and not ViewTable.IsDetail then
+  begin
+    FApplyButton := TKExtButton.CreateAndAddTo(Buttons);
+    FApplyButton.SetIconAndScale('accept', Config.GetString('ButtonScale', 'medium'));
+
+    if ViewTable.DetailTableCount > 0 then
+      FApplyButton.Text := LApplyButtonNode.GetString('Caption', _('Apply all'))
+    else
+      FApplyButton.Text := LApplyButtonNode.GetString('Caption', _('Apply'));
+    FApplyButton.Tooltip := LApplyButtonNode.GetString('Tooltip', _('Apply changes and keep editing'));
+    FApplyButton.Hidden := FIsReadOnly or IsViewMode;
+  end;
+
+  // Clone button
   if not FIsReadOnly then
   begin
     LCloneButtonNode := Config.FindNode('CloneButton');
@@ -594,17 +634,28 @@ begin
     else
       FCloneButton := nil;
   end;
+
+  // Confirm button
   FConfirmButton := TKExtButton.CreateAndAddTo(Buttons);
-  if ViewTable.IsDetail or (ViewTable.DetailTableCount = 0) then
+  if ViewTable.IsDetail then
     FConfirmButton.SetIconAndScale('accept', Config.GetString('ButtonScale', 'medium'))
+  else if ViewTable.DetailTableCount = 0 then
+    FConfirmButton.SetIconAndScale('save', Config.GetString('ButtonScale', 'medium'))
   else
     FConfirmButton.SetIconAndScale('save_all', Config.GetString('ButtonScale', 'medium'));
 
-  if ViewTable.DetailTableCount > 0 then
+  if ViewTable.IsDetail then
+    FConfirmButton.Text := Config.GetString('ConfirmButton/Caption', _('OK'))
+  else if ViewTable.DetailTableCount > 0 then
     FConfirmButton.Text := Config.GetString('ConfirmButton/Caption', _('Save all'))
   else
     FConfirmButton.Text := Config.GetString('ConfirmButton/Caption', _('Save'));
-  FConfirmButton.Tooltip := Config.GetString('ConfirmButton/Tooltip', _('Save changes and finish editing'));
+
+  if ViewTable.IsDetail then
+    FConfirmButton.Tooltip := Config.GetString('ConfirmButton/Tooltip', _('Confirm changes and finish editing'))
+  else
+    FConfirmButton.Tooltip := Config.GetString('ConfirmButton/Tooltip', _('Save changes and finish editing'));
+
   FConfirmButton.Hidden := FIsReadOnly or IsViewMode;
 
   if IsViewMode then

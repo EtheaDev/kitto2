@@ -24,6 +24,8 @@ MainTable:
     JobDescription:
       IsVisible: False
   Controller:
+    FormController:
+      ApplyButton:
     PageRecordCount: 20
     ToolViews:
       DownloadText:

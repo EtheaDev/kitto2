@@ -1635,11 +1635,14 @@ begin
   else
     Scale := 'small';
 
-  LIconURL := Session.Config.FindImageURL(SmartConcat(AIconName, '_', Scale));
-  if LIconURL = '' then
-    LIconURL := Session.Config.FindImageURL(AIconName);
+  if AIconName <> '' then
+  begin
+    LIconURL := Session.Config.FindImageURL(SmartConcat(AIconName, '_', Scale));
+    if LIconURL = '' then
+      LIconURL := Session.Config.FindImageURL(AIconName);
 
-  Icon := LIconURL;
+    Icon := LIconURL;
+  end;
 end;
 
 procedure TKExtButton.UpdateObserver(const ASubject: IEFSubject;
