@@ -153,16 +153,15 @@ type
   ///   Base Ext panel with subject and observer capabilities.
   /// </summary>
   TKExtPanelBase = class(TExtPanel, IInterface, IEFInterface, IEFSubject, IEFObserver, IKExtActivable)
-  private
+  strict private
     FSubjObserverImpl: TEFSubjectAndObserver;
     FConfig: TEFNode;
-  protected
+  strict protected
     function GetConfig: TEFNode;
     // Closes the hosting window or tab.
-    procedure CloseHostContainer;
+    procedure CloseHostContainer; virtual;
     function GetHostWindow: TExtWindow;
     procedure InitDefaults; override;
-  strict protected
     procedure LoadHtml(const AFileName: string; const APostProcessor: TFunc<string, string> = nil);
   public
     destructor Destroy; override;
