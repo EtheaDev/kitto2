@@ -1,0 +1,36 @@
+.k-tile-box
+{
+  margin-top: 10px;
+  margin-left: 10px;
+}
+
+.k-tile-row
+{
+  float: top;
+}
+
+.k-tile-title-row
+{
+  float: top;
+  font-size: 150%;
+  font-style: bold;
+}
+
+.k-tile
+{
+  font-size: 150%;
+  color: white;
+  float: left;
+  text-align: center;
+  margin-right: 10px;
+  margin-bottom: 10px;
+  padding: 10px 10px 10px 10px;
+  width: 100px;
+  height: 40px;
+}
+
+.k-tile-inner
+{
+  display: inline-block;
+  height: 60px;
+}

@@ -1,0 +1,11 @@
+/* This file is automatically included in all rendered pages. */
+/* Put extra CSS classes used in views here. */
+body
+{
+  background: url(../firebird_sql_logo.png) repeat;
+}
+
+.x-tab-panel-body
+{
+background-image: url(../firebird_sql_logo.png);
+}

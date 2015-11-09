@@ -1,0 +1,65 @@
+DefaultFont: Courier
+  Color: Red
+  Size: 15.5
+
+Information:
+  Author: %Auth:UserName%
+  Title: Activity Form
+  Subject: {Description}
+  Creator: Taskitto
+  Keywords: Activity, Taskitto, {Description}
+  CreationDate: %DATETIME%
+  
+Items:
+  Image: 
+    FileName: taskitto_logo_150.png
+    Left: 10
+    Top: 100
+    Width: 440
+    Height: 94
+  Image: 
+    FileName: kitto_logo_100.png
+    Left: 10
+    Top: 200
+    Width: 100
+    Height: 31
+  Text: 
+    Expression: Activity: {Description} on %DATETIME%
+    XPos: 10
+    YPos: 600
+    Font: Helvetica
+      Size: 12
+      Color: Green
+  Text: 
+    Expression: {Employee}
+    XPos: 10
+    YPos: 550
+    Font: HelveticaBold
+      Size: 18.5
+      Color: Blue
+  QRCode: 
+    Expression: %ActivityId%
+    XPos: 10
+    YPos: 700
+    Size: 45.5
+    Rotation: 90
+  TextBox: 
+    Expression: |
+      Lorem ipsum dolor sit amet, consectetuer adipiscing elit. 
+      Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. 
+      Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem. 
+      Nulla consequat massa quis enim. Donec pede justo, fringilla vel, aliquet nec, vulputate eget, arcu. 
+      In enim justo, rhoncus ut, imperdiet a, venenatis vitae, justo. Nullam dictum felis eu pede mollis pretium. 
+      Integer tincidunt. Cras dapibus. Vivamus elementum semper nisi. Aenean vulputate eleifend tellus. 
+      Aenean leo ligula, porttitor eu, consequat vitae, eleifend ac, enim. Aliquam lorem ante, dapibus in, viverra quis, feugiat a, tellus.    
+    Left: 10
+    Top: 500
+    Width: 440
+    Height: 200
+    Align: Justified
+    VertAlign: top
+    Font: TimesRoman
+      Size: 12
+      Color: #0000FF
+    
+    

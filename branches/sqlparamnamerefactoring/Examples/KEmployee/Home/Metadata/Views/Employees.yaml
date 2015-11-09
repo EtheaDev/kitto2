@@ -1,0 +1,31 @@
+﻿Type: Data
+Controller: List
+  Filters:
+    DisplayLabel: Search Employees
+    Items:
+      FreeSearch: Free Search
+        ExpressionTemplate: (Employee.FIRST_NAME like '%{value}%') or (Employee.LAST_NAME like '%{value}%') or (Employee.PHONE_EXT like '%{value}%') or (Employee.FULL_NAME like '%{value}%')
+MainTable:
+  Model: Employee
+  Fields:
+    EmpNo:
+    FirstName:
+    LastName:
+    PhoneExt:
+    HireDate:
+    Salary:
+    FullName:
+    DeptNoRef:
+    JobRef:
+  Controller:
+    PageRecordCount: 20
+    IsMultiSelect: True
+    PopuWindow:
+      Width: 600
+      Height: 500
+    ToolViews:
+      DownloadText:
+        DisplayLabel: Download in TXT
+        Controller: ExportTextTool
+          RequireSelection: True
+          ClientFileName: Employees_%YYYYMMDD_DATE%_%HHMM_TIME%.txt
