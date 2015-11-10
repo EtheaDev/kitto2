@@ -1,0 +1,16 @@
+﻿Type: Data
+Controller: List
+  Filters:
+    DisplayLabel: Search Projects
+    Items:
+      FreeSearch: Free Search
+        ExpressionTemplate: (Project.PROJ_ID like '%{value}%') or (Project.PROJ_NAME like '%{value}%') or (Project.Product like '%{value}%')
+MainTable:
+  Model: Project
+  Fields:
+    ProjId:
+    ProjName:
+    ProjDesc:
+    Product:
+    TeamLeaderRef:
+  Controller:

@@ -1,0 +1,11 @@
+﻿Type: Tree
+Folder: _(Options)
+  View: Girls
+    BackgroundColor: orange
+  View: Dolls
+Folder:
+  View: Parties
+Folder: _(Lookup tables)
+  View: Hairs
+  View:
+    Controller: ChangePassword
