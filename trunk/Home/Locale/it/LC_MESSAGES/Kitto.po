@@ -2,15 +2,15 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: 1.0\n"
-"POT-Creation-Date: 2015-09-03 17:55+0100\n"
-"PO-Revision-Date: 2015-09-03 17:55+0100\n"
+"POT-Creation-Date: 2015-11-10 15:03+0100\n"
+"PO-Revision-Date: 2015-11-10 15:06+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: it\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 1.8\n"
+"X-Generator: Poedit 1.7.3\n"
 "X-Poedit-Basepath: ..\\..\\..\\..\\Source\\\n"
 "X-Poedit-SearchPath-0: .\n"
 
@@ -144,28 +144,28 @@ msgstr ""
 "Controller."
 
 #. alLeft, alRight, alCenter
-#: Kitto.Ext.Base.pas:441
+#: Kitto.Ext.Base.pas:442
 msgid "Invalid value %s. Valid values: \"Left\", \"Right\", \"Center\"."
 msgstr "Valore %s non valido. Deve essere  \"Left\", \"Right\", \"Center\""
 
-#: Kitto.Ext.Base.pas:453
+#: Kitto.Ext.Base.pas:454
 msgid "Invalid value %s. Valid values: \"Left\", \"Top\", \"Right\"."
 msgstr "Valore %s non valido. Deve essere \"Left\", \"Top\" o \"Right\"."
 
-#: Kitto.Ext.Base.pas:1532
+#: Kitto.Ext.Base.pas:1535
 msgid "Confirm"
 msgstr "Conferma"
 
-#: Kitto.Ext.Base.pas:1533
+#: Kitto.Ext.Base.pas:1536
 msgid "Confirm action and close window"
 msgstr "Conferma l'azione e chiude la finestra"
 
-#: Kitto.Ext.Base.pas:1538 Kitto.Ext.Form.pas:621 Kitto.Ext.GridPanel.pas:755
-#: Kitto.Ext.GridPanel.pas:770
+#: Kitto.Ext.Base.pas:1541 Kitto.Ext.Form.pas:690 Kitto.Ext.GridPanel.pas:739
+#: Kitto.Ext.GridPanel.pas:754
 msgid "Cancel"
 msgstr "Annulla"
 
-#: Kitto.Ext.Base.pas:1539 Kitto.Ext.Form.pas:622 Kitto.Ext.GridPanel.pas:771
+#: Kitto.Ext.Base.pas:1542 Kitto.Ext.Form.pas:691 Kitto.Ext.GridPanel.pas:755
 msgid "Cancel changes"
 msgstr "Annulla modifiche"
 
@@ -212,50 +212,50 @@ msgstr "Conferma nuova password"
 msgid "Unknown chart type %s."
 msgstr "Tipo di grafico %s sconosciuto."
 
-#: Kitto.Ext.DataPanel.pas:255
+#: Kitto.Ext.DataPanel.pas:256
 msgid "%s deleted."
 msgstr "%s cancellato."
 
-#: Kitto.Ext.DataPanel.pas:361 Kitto.Ext.DataPanel.pas:883
+#: Kitto.Ext.DataPanel.pas:362 Kitto.Ext.DataPanel.pas:897
 msgid "Add %s"
 msgstr "Aggiungi %s"
 
-#: Kitto.Ext.DataPanel.pas:363 Kitto.Ext.DataPanel.pas:893
-#: Kitto.Ext.Form.pas:519
+#: Kitto.Ext.DataPanel.pas:364 Kitto.Ext.DataPanel.pas:907
+#: Kitto.Ext.Form.pas:538
 msgid "Edit %s"
 msgstr "Modifica %s"
 
-#: Kitto.Ext.DataPanel.pas:365 Kitto.Ext.DataPanel.pas:903
+#: Kitto.Ext.DataPanel.pas:366 Kitto.Ext.DataPanel.pas:917
 msgid "View %s"
 msgstr "Mostra %s"
 
-#: Kitto.Ext.DataPanel.pas:446 Kitto.Ext.DataPanel.pas:451
+#: Kitto.Ext.DataPanel.pas:447 Kitto.Ext.DataPanel.pas:452
 msgid "Actions that require selection are not supported in this controller."
 msgstr "Questo controller non supporta azioni con RequireSelection=True."
 
-#: Kitto.Ext.DataPanel.pas:888
+#: Kitto.Ext.DataPanel.pas:902
 msgid "Duplicate %s"
 msgstr "%s duplicato"
 
-#: Kitto.Ext.DataPanel.pas:898
+#: Kitto.Ext.DataPanel.pas:912
 msgid "Delete %s"
 msgstr "Elimina %s"
 
-#: Kitto.Ext.DataPanel.pas:901
+#: Kitto.Ext.DataPanel.pas:915
 msgid "Selected %s {caption} will be deleted. Are you sure?"
 msgstr "Il record {caption} di tipo %s sarà eliminato. Continuo?"
 
 #. Get uploaded files.
-#: Kitto.Ext.DataPanel.pas:1014
+#: Kitto.Ext.DataPanel.pas:1028
 msgid "Data type %s does not support file upload."
 msgstr "Il tipo di dato %s non supporta l'upload di file."
 
 #. Save record.
-#: Kitto.Ext.DataPanel.pas:1023 Kitto.Ext.GridPanel.pas:813
+#: Kitto.Ext.DataPanel.pas:1037 Kitto.Ext.GridPanel.pas:797
 msgid "Changes saved succesfully."
 msgstr "Modifica memorizzate correttamente."
 
-#: Kitto.Ext.DataPanelLeaf.pas:127
+#: Kitto.Ext.DataPanelLeaf.pas:138
 msgid "Refresh data"
 msgstr "Aggiorna i dati"
 
@@ -463,75 +463,92 @@ msgstr "Il campo %s è obbligatorio. Si prega di caricare il file."
 msgid "%s file (%s)"
 msgstr "File %s (%s)"
 
-#: Kitto.Ext.Filters.pas:1236
+#: Kitto.Ext.Filters.pas:1254 Kitto.Ext.Form.pas:635
 msgid "Apply"
 msgstr "Applica"
 
-#: Kitto.Ext.Form.pas:590
+#: Kitto.Ext.Form.pas:633
+msgid "Apply all"
+msgstr "Applica tutto"
+
+#: Kitto.Ext.Form.pas:636
+msgid "Apply changes and keep editing"
+msgstr "Applica le modifiche e continua"
+
+#. Clone button
+#: Kitto.Ext.Form.pas:648
 msgid "Save & Clone"
 msgstr "Salva e duplica"
 
-#: Kitto.Ext.Form.pas:591
+#: Kitto.Ext.Form.pas:649
 msgid "Save changes and create a new clone record"
 msgstr "Salva e crea un nuovo record duplicato"
 
-#: Kitto.Ext.Form.pas:604
+#: Kitto.Ext.Form.pas:666
+msgid "OK"
+msgstr "OK"
+
+#: Kitto.Ext.Form.pas:668
 msgid "Save all"
 msgstr "Salva tutto"
 
-#: Kitto.Ext.Form.pas:606 Kitto.Ext.GridPanel.pas:763
+#: Kitto.Ext.Form.pas:670 Kitto.Ext.GridPanel.pas:747
 msgid "Save"
 msgstr "Salva"
 
-#: Kitto.Ext.Form.pas:607 Kitto.Ext.GridPanel.pas:764
+#: Kitto.Ext.Form.pas:673
+msgid "Confirm changes and finish editing"
+msgstr "Conferma le modifiche e termina"
+
+#: Kitto.Ext.Form.pas:675 Kitto.Ext.GridPanel.pas:748
 msgid "Save changes and finish editing"
 msgstr "Salva le modifiche"
 
-#: Kitto.Ext.Form.pas:614
+#: Kitto.Ext.Form.pas:683
 msgid "Edit"
 msgstr "Modifica"
 
-#: Kitto.Ext.Form.pas:615
+#: Kitto.Ext.Form.pas:684
 msgid "Switch to edit mode"
 msgstr "Abilita modifica"
 
-#: Kitto.Ext.Form.pas:628
+#: Kitto.Ext.Form.pas:697
 msgid "Close"
 msgstr "Chiudi"
 
-#: Kitto.Ext.Form.pas:629
+#: Kitto.Ext.Form.pas:698
 msgid "Close this panel"
 msgstr "Chiudi il pannello"
 
-#: Kitto.Ext.Form.pas:703
+#: Kitto.Ext.Form.pas:772
 msgid "Operation Add not supported on read-only data."
 msgstr "Aggiunta non consentita su dati a sola lettura."
 
-#: Kitto.Ext.Form.pas:705
+#: Kitto.Ext.Form.pas:774
 msgid "Operation Edit not supported on read-only data."
 msgstr "Operazione di modifica non consentita su dati a sola lettura."
 
-#: Kitto.Ext.Form.pas:707
+#: Kitto.Ext.Form.pas:776
 msgid "Operation Duplicate not supported on read-only data."
 msgstr "Operazione Duplicazione non consentita su dati a sola lettura."
 
-#: Kitto.Ext.GridPanel.pas:224
+#: Kitto.Ext.GridPanel.pas:208
 msgid "Grouping value undefined."
 msgstr "Valore di gruppo non definito."
 
-#: Kitto.Ext.GridPanel.pas:244 Kitto.Ext.TemplateDataPanel.pas:129
+#: Kitto.Ext.GridPanel.pas:228 Kitto.Ext.TemplateDataPanel.pas:129
 msgid "No data to display."
 msgstr "Nessun dato da mostrare."
 
-#: Kitto.Ext.GridPanel.pas:748
+#: Kitto.Ext.GridPanel.pas:732
 msgid "Select"
 msgstr "Seleziona"
 
-#: Kitto.Ext.GridPanel.pas:749
+#: Kitto.Ext.GridPanel.pas:733
 msgid "Select the current record and close the window"
 msgstr "Seleziona il record corrente e chiudi la finestra"
 
-#: Kitto.Ext.GridPanel.pas:756
+#: Kitto.Ext.GridPanel.pas:740
 msgid "Close the window without selecting a record"
 msgstr "Chiudi la finestra senza selezionare un record"
 
@@ -539,44 +556,44 @@ msgstr "Chiudi la finestra senza selezionare un record"
 msgid "E-mail message sent successfully."
 msgstr "Messaggio E-mail inviato con successo."
 
-#: Kitto.Ext.List.pas:140
+#: Kitto.Ext.List.pas:141
 msgid "Invalid value %s. Valid values: whole numbers."
 msgstr "Valore %s non valido. Deve essere un numero intero."
 
-#: Kitto.Ext.List.pas:154
+#: Kitto.Ext.List.pas:155
 msgid "Search"
 msgstr "Cerca"
 
-#: Kitto.Ext.Login.pas:137
+#: Kitto.Ext.Login.pas:138
 msgid "Logging in..."
 msgstr "Accesso in corso..."
 
-#: Kitto.Ext.Login.pas:154
+#: Kitto.Ext.Login.pas:155
 msgid "Login"
 msgstr "Accedi"
 
 #. KExtMainForm..PageControl..HomeTabSheet..SessionPanel..SessionListView......Caption
-#: Kitto.Ext.Login.pas:162 Kitto.Ext.MainFormUnit.dfm:642
+#: Kitto.Ext.Login.pas:163 Kitto.Ext.MainFormUnit.dfm:642
 msgid "User Name"
 msgstr "Nome utente"
 
-#: Kitto.Ext.Login.pas:172
+#: Kitto.Ext.Login.pas:173
 msgid "Password"
 msgstr "Password"
 
-#: Kitto.Ext.Login.pas:196
+#: Kitto.Ext.Login.pas:197
 msgid "Language"
 msgstr "Lingua"
 
-#: Kitto.Ext.Login.pas:214
+#: Kitto.Ext.Login.pas:215
 msgid "Remember Credentials"
 msgstr "Ricorda credenziali"
 
-#: Kitto.Ext.Login.pas:216
+#: Kitto.Ext.Login.pas:217
 msgid "Remember User Name"
 msgstr "Ricorda Nome Utente"
 
-#: Kitto.Ext.Login.pas:329
+#: Kitto.Ext.Login.pas:337
 msgid "Invalid login."
 msgstr "Credenziali di accesso errate."
 
@@ -656,7 +673,7 @@ msgstr ""
 msgid "Home"
 msgstr "Home"
 
-#: Kitto.Metadata.DataView.pas:2821
+#: Kitto.Metadata.DataView.pas:2840
 msgid "DetailStore %s not found."
 msgstr "DetailStore %s non trovato."
 
