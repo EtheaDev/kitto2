@@ -35,7 +35,7 @@ type
 implementation
 
 uses
-  IdAttachmentFile, IdExplicitTLSClientServerBase, IdSSLOpenSSL,
+  IdAttachmentFile, IdExplicitTLSClientServerBase, IdSSLOpenSSL, IdText,
   EF.Localization,
   Kitto.Ext.Controller, KItto.Ext.Session;
 
@@ -47,16 +47,45 @@ var
   LMessage: TIdMessage;
   LRecipient: TIdEMailAddressItem;
   LAttachments: TEFNode;
+  LRelatedAttachments: TEFNode;
   I: Integer;
   LAttachment: TIdAttachmentFile;
   LSender: TIdEMailAddressItem;
   LAddressNode: TEFNode;
   LChildNode: TEFNode;
-  LFileName: string;
   LServerNode: TEFNode;
   LSingleAddress: string;
   LIdSSLIOHandler: TIdSSLIOHandlerSocketOpenSSL;
   LAddress, LText: string;
+  LBody: string;
+  LHTMLBody: string;
+
+  procedure AddTextPart(const AContent, AContentType: string; const AParentPart: Integer = -1);
+  begin
+    with TIdText.Create(LMessage.MessageParts, nil) do
+    begin
+      Body.Text := AContent;
+      ContentType := AContentType;
+      ParentPart := AParentPart;
+    end;
+  end;
+
+  procedure AddFileAttachmentParts(const AAttachmentsNode: TEFNode; const AParentPart: Integer = -1);
+  var
+    I: Integer;
+    LFileName: string;
+  begin
+    for I := 0 to AAttachmentsNode.ChildCount - 1 do
+    begin
+      LFileName := ExpandServerRecordValues(AAttachmentsNode.Children[I].AsExpandedString);
+      if not FileExists(LFileName) then
+        raise Exception.CreateFmt('File not found %s', [LFileName]);
+      LAttachment := TIdAttachmentFile.Create(LMessage.MessageParts, LFileName);
+      LAttachment.FileName := ExpandServerRecordValues(AAttachmentsNode.Children[I].Name);
+      LAttachment.ParentPart := AParentPart;
+      LAttachment.ContentID := AAttachmentsNode.Children[I].GetExpandedString('ContentId');
+    end;
+  end;
 
 begin
   inherited;
@@ -229,20 +258,103 @@ begin
         end;
       end;
 
+      // Subject
       LMessage.Subject := ExpandServerRecordValues(Config.GetExpandedString('Message/Subject'));
 
-      LMessage.Body.Text := ExpandServerRecordValues(Config.GetExpandedString('Message/Body'));
-
+      // Body and attachments.
+      LBody := ExpandServerRecordValues(Config.GetExpandedString('Message/Body'));
+      LHTMLBody := ExpandServerRecordValues(Config.GetExpandedString('Message/HTMLBody'));
       LAttachments := Config.FindNode('Message/Attachments');
-      if Assigned(LAttachments) then
+      LRelatedAttachments := Config.FindNode('Message/RelatedAttachments');
+      if LHTMLBody <> '' then
       begin
-        for I := 0 to LAttachments.ChildCount - 1 do
+        // HTML body present.
+        if LBody = '' then
         begin
-          LFileName := ExpandServerRecordValues(LAttachments.Children[I].AsExpandedString);
-          if not FileExists(LFileName) then
-            raise Exception.CreateFmt('File not found %s', [LFileName]);
-          LAttachment := TIdAttachmentFile.Create(LMessage.MessageParts, LFileName);
-          LAttachment.FileName := ExpandServerRecordValues(LAttachments.Children[I].Name);
+          // HTML only.
+          // no attachments
+          if not Assigned(LAttachments) and not Assigned(LRelatedAttachments) then
+          begin
+            LMessage.ContentType := 'text/html';
+            LMessage.Body.Text := LHTMLBody;
+          end
+          // related attachments only
+          else if not Assigned(LAttachments) and Assigned(LRelatedAttachments) then
+          begin
+            LMessage.ContentType := 'multipart/related; type="text/html"';
+            AddTextPart(LHTMLBody, 'text/html');
+            AddFileAttachmentParts(LRelatedAttachments);
+          end
+          // unrelated attachments only
+          else if Assigned(LAttachments) and not Assigned(LRelatedAttachments) then
+          begin
+            LMessage.ContentType := 'multipart/mixed';
+            AddTextPart(LHTMLBody, 'text/html');
+            AddFileAttachmentParts(LAttachments);
+          end
+          // both related and unrelated attachments.
+          else
+          begin
+            LMessage.ContentType := 'multipart/mixed';
+            AddTextPart('', 'multipart/related');
+            AddTextPart(LHTMLBody, 'text/html', 0);
+            AddFileAttachmentParts(LRelatedAttachments, 0);
+            AddFileAttachmentParts(LAttachments);
+          end;
+        end
+        else
+        begin
+          // HTML + plaintext
+          // no attachments
+          if not Assigned(LAttachments) and not Assigned(LRelatedAttachments) then
+          begin
+            LMessage.ContentType := 'multipart/alternative';
+            AddTextPart(LBody, 'text/plain');
+            AddTextPart(LHTMLBody, 'text/html');
+          end
+          // related attachments only
+          else if not Assigned(LAttachments) and Assigned(LRelatedAttachments) then
+          begin
+            LMessage.ContentType := 'multipart/related; type="multipart/alternative"';
+            AddTextPart('', 'multipart/alternative');
+            AddTextPart(LBody, 'text/plain', 0);
+            AddTextPart(LHTMLBody, 'text/html', 0);
+            AddFileAttachmentParts(LRelatedAttachments);
+          end
+          // unrelated attachments only
+          else if Assigned(LAttachments) and not Assigned(LRelatedAttachments) then
+          begin
+            LMessage.ContentType := 'multipart/mixed';
+            AddTextPart('', 'multipart/alternative');
+            AddTextPart(LBody, 'text/plain', 0);
+            AddTextPart(LHTMLBody, 'text/html', 0);
+            AddFileAttachmentParts(LAttachments);
+          end
+          // both related and unrelated attachments.
+          else
+          begin
+            LMessage.ContentType := 'multipart/mixed';
+            AddTextPart('', 'multipart/related; type="multipart/alternative"');
+            AddTextPart('', 'multipart/alternative', 0);
+            AddTextPart(LBody, 'text/plain', 1);
+            AddTextPart(LHTMLBody, 'text/html', 1);
+            AddFileAttachmentParts(LRelatedAttachments, 0);
+            AddFileAttachmentParts(LAttachments);
+          end;
+        end;
+      end
+      else
+      begin
+        if not Assigned(LAttachments) then
+        begin
+          LMessage.ContentType := 'text/plain';
+          LMessage.Body.Text := LBody;
+        end
+        else
+        begin
+          LMessage.ContentType := 'multipart/mixed';
+          AddTextPart(LBody, 'text/plain');
+          AddFileAttachmentParts(LAttachments);
         end;
       end;
 
