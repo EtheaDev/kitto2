@@ -48,6 +48,8 @@ type
       const AFormatSettings: TFormatSettings); virtual; abstract;
     function InternalNodeToJSONValue(const AForDisplay: Boolean;
       const ANode: TEFNode; const AJSFormatSettings: TFormatSettings): string; virtual;
+    function InternalNodeToXMLValue(const AForDisplay: Boolean;
+      const ANode: TEFNode; const AFormatSettings: TFormatSettings): string; virtual;
     procedure InternalJSONValueToNode(const ANode: TEFNode;
       const AValue: string; const AUseJSDateFormat: Boolean;
       const AJSFormatSettings: TFormatSettings); virtual;
@@ -168,6 +170,8 @@ type
     function SupportsEmptyAsNull: Boolean; override;
     function InternalNodeToJSONValue(const AForDisplay: Boolean;
       const ANode: TEFNode; const AJSFormatSettings: TFormatSettings): string; override;
+    function InternalNodeToXMLValue(const AForDisplay: Boolean;
+      const ANode: TEFNode; const AFormatSettings: TFormatSettings): string; override;
     function GetJSTypeName: string; override;
   end;
 
@@ -186,6 +190,8 @@ type
     function SupportsEmptyAsNull: Boolean; override;
     function InternalNodeToJSONValue(const AForDisplay: Boolean;
       const ANode: TEFNode; const AJSFormatSettings: TFormatSettings): string; override;
+    function InternalNodeToXMLValue(const AForDisplay: Boolean;
+      const ANode: TEFNode; const AFormatSettings: TFormatSettings): string; override;
   end;
 
   TEFDateTimeDataType = class(TEFDateTimeDataTypeBase)
@@ -203,6 +209,8 @@ type
     function SupportsEmptyAsNull: Boolean; override;
     function InternalNodeToJSONValue(const AForDisplay: Boolean;
       const ANode: TEFNode; const AJSFormatSettings: TFormatSettings): string; override;
+    function InternalNodeToXMLValue(const AForDisplay: Boolean;
+      const ANode: TEFNode; const AFormatSettings: TFormatSettings): string; override;
     function GetJSTypeName: string; override;
   end;
 
@@ -220,6 +228,8 @@ type
     function GetDefaultDisplayWidth(const ASize: Integer): Integer; override;
     function InternalNodeToJSONValue(const AForDisplay: Boolean;
       const ANode: TEFNode; const AJSFormatSettings: TFormatSettings): string; override;
+    function InternalNodeToXMLValue(const AForDisplay: Boolean;
+      const ANode: TEFNode; const AFormatSettings: TFormatSettings): string; override;
     function GetJSTypeName: string; override;
   end;
 
@@ -262,6 +272,8 @@ type
     function SupportsEmptyAsNull: Boolean; override;
     function InternalNodeToJSONValue(const AForDisplay: Boolean;
       const ANode: TEFNode; const AJSFormatSettings: TFormatSettings): string; override;
+    function InternalNodeToXMLValue(const AForDisplay: Boolean;
+      const ANode: TEFNode; const AFormatSettings: TFormatSettings): string; override;
     function GetJSTypeName: string; override;
     class function HasSize: Boolean; override;
     class function HasScale: Boolean; override;
@@ -283,6 +295,8 @@ type
     function SupportsEmptyAsNull: Boolean; override;
     function InternalNodeToJSONValue(const AForDisplay: Boolean;
       const ANode: TEFNode; const AJSFormatSettings: TFormatSettings): string; override;
+    function InternalNodeToXMLValue(const AForDisplay: Boolean;
+      const ANode: TEFNode; const AFormatSettings: TFormatSettings): string; override;
     function GetJSTypeName: string; override;
   end;
 
@@ -302,6 +316,8 @@ type
     function SupportsEmptyAsNull: Boolean; override;
     function InternalNodeToJSONValue(const AForDisplay: Boolean;
       const ANode: TEFNode; const AJSFormatSettings: TFormatSettings): string; override;
+    function InternalNodeToXMLValue(const AForDisplay: Boolean;
+      const ANode: TEFNode; const AFormatSettings: TFormatSettings): string; override;
     function GetJSTypeName: string; override;
     class function HasSize: Boolean; override;
     class function HasScale: Boolean; override;
@@ -2720,6 +2736,12 @@ begin
   raise EEFError.CreateFmt('%s.InternalNodeToParam: Unsupported call.', [ClassName]);
 end;
 
+function TEFDataType.InternalNodeToXMLValue(const AForDisplay: Boolean;
+  const ANode: TEFNode; const AFormatSettings: TFormatSettings): string;
+begin
+  Result := ANode.AsString;
+end;
+
 procedure TEFDataType.InternalNodeToField(const ANode: TEFNode; const AField: TField);
 begin
   case AField.DataType of
@@ -2844,7 +2866,7 @@ var
 begin
   Assert(Assigned(ANode));
   LTagName := ANode.Name;
-  Result := InternalNodeToJSONValue(AForDisplay, ANode, AFormatSettings);
+  Result := InternalNodeToXMLValue(AForDisplay, ANode, AFormatSettings);
 
   if PosXMLHeader(Result) > 0 then
   begin
@@ -3231,6 +3253,12 @@ begin
   AParam.AsDate := ANode.AsDate;
 end;
 
+function TEFDateDataType.InternalNodeToXMLValue(const AForDisplay: Boolean;
+  const ANode: TEFNode; const AFormatSettings: TFormatSettings): string;
+begin
+  Result := InternalNodeToJSONValue(AForDisplay, ANode, AFormatSettings);
+end;
+
 procedure TEFDateDataType.InternalYamlValueToNode(const AYamlValue: string;
   const ANode: TEFNode; const AFormatSettings: TFormatSettings);
 begin
@@ -3280,6 +3308,12 @@ procedure TEFTimeDataType.InternalNodeToParam(const ANode: TEFNode;
   const AParam: TParam);
 begin
   AParam.AsTime := ANode.AsTime;
+end;
+
+function TEFTimeDataType.InternalNodeToXMLValue(const AForDisplay: Boolean;
+  const ANode: TEFNode; const AFormatSettings: TFormatSettings): string;
+begin
+  Result := InternalNodeToJSONValue(AForDisplay, ANode, AFormatSettings);
 end;
 
 procedure TEFTimeDataType.InternalYamlValueToNode(const AYamlValue: string;
@@ -3339,6 +3373,12 @@ procedure TEFDateTimeDataType.InternalNodeToParam(const ANode: TEFNode;
   const AParam: TParam);
 begin
   AParam.AsDateTime := ANode.AsDateTime;
+end;
+
+function TEFDateTimeDataType.InternalNodeToXMLValue(const AForDisplay: Boolean;
+  const ANode: TEFNode; const AFormatSettings: TFormatSettings): string;
+begin
+  Result := InternalNodeToJSONValue(AForDisplay, ANode, AFormatSettings);
 end;
 
 procedure TEFDateTimeDataType.InternalYamlValueToNode(const AYamlValue: string;
@@ -3401,6 +3441,12 @@ procedure TEFBooleanDataType.InternalNodeToParam(const ANode: TEFNode;
   const AParam: TParam);
 begin
   AParam.AsBoolean := ANode.AsBoolean;
+end;
+
+function TEFBooleanDataType.InternalNodeToXMLValue(const AForDisplay: Boolean;
+  const ANode: TEFNode; const AFormatSettings: TFormatSettings): string;
+begin
+  Result := InternalNodeToJSONValue(AForDisplay, ANode, AFormatSettings);
 end;
 
 procedure TEFBooleanDataType.InternalYamlValueToNode(const AYamlValue: string;
@@ -3470,6 +3516,12 @@ begin
   AParam.AsCurrency := ANode.AsCurrency;
 end;
 
+function TEFCurrencyDataType.InternalNodeToXMLValue(const AForDisplay: Boolean;
+  const ANode: TEFNode; const AFormatSettings: TFormatSettings): string;
+begin
+  Result := InternalNodeToJSONValue(AForDisplay, ANode, AFormatSettings);
+end;
+
 procedure TEFCurrencyDataType.InternalYamlValueToNode(const AYamlValue: string;
   const ANode: TEFNode; const AFormatSettings: TFormatSettings);
 begin
@@ -3529,6 +3581,12 @@ procedure TEFFloatDataType.InternalNodeToParam(const ANode: TEFNode;
   const AParam: TParam);
 begin
   AParam.AsFloat := ANode.AsFloat;
+end;
+
+function TEFFloatDataType.InternalNodeToXMLValue(const AForDisplay: Boolean;
+  const ANode: TEFNode; const AFormatSettings: TFormatSettings): string;
+begin
+  Result := InternalNodeToJSONValue(AForDisplay, ANode, AFormatSettings);
 end;
 
 procedure TEFFloatDataType.InternalYamlValueToNode(const AYamlValue: string;
@@ -3621,6 +3679,12 @@ procedure TEFDecimalDataType.InternalNodeToParam(const ANode: TEFNode;
   const AParam: TParam);
 begin
   AParam.AsFMTBCD := ANode.AsDecimal;
+end;
+
+function TEFDecimalDataType.InternalNodeToXMLValue(const AForDisplay: Boolean;
+  const ANode: TEFNode; const AFormatSettings: TFormatSettings): string;
+begin
+  Result := InternalNodeToJSONValue(AForDisplay, ANode, AFormatSettings);
 end;
 
 procedure TEFDecimalDataType.InternalYamlValueToNode(const AYamlValue: string;
