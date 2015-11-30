@@ -25,7 +25,7 @@ uses
   Ext, ExtPascal, ExtPascalUtils, ExtForm, ExtGrid, ExtData, ExtUxForm,
   EF.Intf, EF.Classes, EF.Tree, EF.ObserverIntf,
   Kitto.Ext.Base, Kitto.Metadata.Views, Kitto.Metadata.DataView, Kitto.Store,
-  Kitto.Ext.Session, Kitto.Ext.Controller;
+  Kitto.Ext.Session, Kitto.Ext.Controller, KItto.Ext.LookupField;
 
 const
   // String fields of this size or longer are represented by multiline edit
@@ -397,19 +397,15 @@ type
     function GetEditItemId: string;
   end;
 
-  TKExtLookupEditor = class(TExtFormTwinTriggerField, IEFObserver, IKExtEditItem, IKExtEditor)
+  TKExtLookupEditor = class(TKExtLookupField, IKExtEditItem, IKExtEditor)
   private
     FFieldName: string;
     FHiddenName: string;
     FRecordField: TKViewTableField;
-    FLookupController: IKExtController;
-    function GetClickJSCode(const AMethod: TExtProcedure): string;
-    class function FindLookupView(const AViewField: TKViewField): TKView;
-  protected
-    procedure InitDefaults; override;
+  strict protected
+    procedure LookupConfirmed(const ARecord: TKViewTableRecord); override;
   public
     procedure Setup(const AViewField: TKVIewField; const AIsReadOnly: Boolean; const AFieldCharWidth: Integer);
-    class function SupportsViewField(const AViewField: TKViewField): Boolean;
     function AsExtFormField: TExtFormField;
     function GetRecordField: TKViewTableField;
     procedure SetRecordField(const AValue: TKViewTableField);
@@ -417,16 +413,12 @@ type
     procedure SetFieldName(const AValue: string);
     procedure StoreValue(const AObjectName: string);
     procedure SetOption(const ANode: TEFNode);
-    function AsExtObject: TExtObject;
     procedure RefreshValue;
     procedure SetTransientProperty(const APropertyName: string; const AValue: Variant);
     function GetEditItemId: string;
     function AsObject: TObject;
-    procedure UpdateObserver(const ASubject: IEFSubject; const AContext: string = '');
-    destructor Destroy; override;
   published
-    procedure TriggerClick;
-    procedure ClearClick;
+    procedure ClearClick; override;
   end;
 
   TKExtFormComboBoxEditor = class(TKExtFormComboBox, IKExtEditItem, IKExtEditor)
@@ -3820,11 +3812,6 @@ begin
   Result := Self;
 end;
 
-function TKExtLookupEditor.AsExtObject: TExtObject;
-begin
-  Result := Self;
-end;
-
 function TKExtLookupEditor.AsObject: TObject;
 begin
   Result := Self;
@@ -3836,17 +3823,6 @@ var
 begin
   LKeyFieldNames := Join(FRecordField.ViewField.ModelField.GetFieldNames, TKConfig.Instance.MultiFieldSeparator);
   FRecordField.ParentRecord.FieldByName(LKeyFieldNames).SetToNull;
-end;
-
-destructor TKExtLookupEditor.Destroy;
-begin
-  FreeAndNilEFIntf(FLookupController);
-  inherited;
-end;
-
-function TKExtLookupEditor.GetClickJSCode(const AMethod: TExtProcedure): string;
-begin
-  Result := GetPOSTAjaxCode(AMethod, [], 'null');
 end;
 
 function TKExtLookupEditor.GetEditItemId: string;
@@ -3864,12 +3840,15 @@ begin
   Result := FRecordField;
 end;
 
-procedure TKExtLookupEditor.InitDefaults;
+procedure TKExtLookupEditor.LookupConfirmed(const ARecord: TKViewTableRecord);
+var
+  LResultKeyValues: string;
+  LKeyFieldNames: string;
 begin
   inherited;
-  Editable := False;
-  Trigger1Class := 'x-form-search-trigger';
-  Trigger2Class := 'x-form-clear-trigger';
+  LResultKeyValues := ARecord.GetFieldValuesAsString(FRecordField.ViewField.ModelField.ReferencedModel.GetKeyFieldNames, TKConfig.Instance.MultiFieldSeparator);
+  LKeyFieldNames := Join(FRecordField.ViewField.ModelField.GetFieldNames, TKConfig.Instance.MultiFieldSeparator);
+  FRecordField.ParentRecord.FieldByName(LKeyFieldNames).AsString := LResultKeyValues;
 end;
 
 procedure TKExtLookupEditor.RefreshValue;
@@ -3897,13 +3876,10 @@ end;
 procedure TKExtLookupEditor.SetRecordField(const AValue: TKViewTableField);
 begin
   FRecordField := AValue;
-  if not ReadOnly then
-  begin
-    Session.ResponseItems.ExecuteJSCode(Self,
-      JSName + '.onTrigger1Click = function(e) { ' + GetClickJSCode(TriggerClick) + '};');
-    Session.ResponseItems.ExecuteJSCode(Self,
-      JSName + '.onTrigger2Click = function(e) { ' + GetClickJSCode(ClearClick) + '};');
-  end;
+  if Assigned(FRecordField) then
+    SetViewField(FRecordField.ViewField)
+  else
+    SetViewField(nil);
 end;
 
 procedure TKExtLookupEditor.SetTransientProperty(const APropertyName: string; const AValue: Variant);
@@ -3945,71 +3921,6 @@ begin
           begin
             GetRawValue;
           end) + ';';
-  end;
-end;
-
-class function TKExtLookupEditor.SupportsViewField(const AViewField: TKViewField): Boolean;
-begin
-  Assert(Assigned(AViewField));
-  Result := AViewField.IsReference and Assigned(FindLookupView(AViewField));
-end;
-
-class function TKExtLookupEditor.FindLookupView(const AViewField: TKViewField): TKView;
-begin
-  Result := AViewField.Table.View.Catalog.FindObjectByPredicate(
-    function (const AObject: TKMetadata): Boolean
-    begin
-      Result := (AObject is TKDataView) and AObject.GetBoolean('IsLookup')
-        and (TKDataView(AObject).MainTable.Model = AViewField.ModelField.ReferencedModel);
-    end) as TKView;
-end;
-
-procedure TKExtLookupEditor.TriggerClick;
-var
-  LView: TKView;
-  LSubject: IEFSubject;
-begin
-  Assert(Assigned(FRecordField));
-
-  FreeAndNilEFIntf(FLookupController);
-
-  LView := FindLookupView(FRecordField.ViewField);
-  Assert(Assigned(LView));
-
-  FLookupController := Session.DisplayNewController(LView, True,
-    procedure (AWindow: TKExtControllerHostWindow)
-    begin
-      AWindow.Title := _(Format('Choose %s', [FRecordField.ViewField.DisplayLabel]));
-    end,
-    procedure (AController: IKExtController)
-    begin
-      AController.Config.SetBoolean('Sys/LookupMode', True);
-      AController.Config.SetString('Sys/LookupFilter', FRecordField.ViewField.LookupFilter);
-    end);
-  if Supports(FLookupController, IEFSubject, LSubject) then
-    LSubject.AttachObserver(Self);
-end;
-
-procedure TKExtLookupEditor.UpdateObserver(const ASubject: IEFSubject; const AContext: string);
-var
-  LRecord: TKViewTableRecord;
-  LKeyFieldNames: string;
-  LResultKeyValues: string;
-begin
-  if ASubject.AsObject = FLookupController.AsObject then
-  begin
-    if MatchText(AContext, ['LookupConfirmed', 'LookupCanceled']) then
-    begin
-      if SameText(AContext, 'LookupConfirmed') then
-      begin
-        LRecord := FLookupController.Config.GetObject('Sys/LookupResultRecord') as TKViewTableRecord;
-        Assert(Assigned(LRecord));
-        LResultKeyValues := LRecord.GetFieldValuesAsString(FRecordField.ViewField.ModelField.ReferencedModel.GetKeyFieldNames, TKConfig.Instance.MultiFieldSeparator);
-        LKeyFieldNames := Join(FRecordField.ViewField.ModelField.GetFieldNames, TKConfig.Instance.MultiFieldSeparator);
-        FRecordField.ParentRecord.FieldByName(LKeyFieldNames).AsString := LResultKeyValues;
-      end;
-      FreeAndNilEFIntf(FLookupController);
-    end;
   end;
 end;
 
