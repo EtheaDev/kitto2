@@ -169,8 +169,8 @@ type
     function GetAsXML(const AForDisplay: Boolean): string;
 
     /// <summary>
-    ///  Expand an expression that contains reference to field of record.
-    ///  For example: 'Activity: %Description%'.
+    ///  Replaces occurrencess of {FieldName} tags in the specified string
+    ///  with actual field values, formatted as strings.
     /// </summary>
     function ExpandExpression(const AExpression: string): string;
 
@@ -978,13 +978,13 @@ end;
 function TKRecord.ExpandExpression(const AExpression: string): string;
 var
   I: Integer;
-  Field: TKField;
+  LField: TKField;
 begin
   Result := AExpression;
   for I := 0 to FieldCount - 1 do
   begin
-    Field := Fields[I];
-    Result := ReplaceText(Result, Format('{%s}',[Field.FieldName]), Field.AsString);
+    LField := Fields[I];
+    Result := ReplaceText(Result, Format('{%s}',[LField.FieldName]), LField.AsString);
   end;
 end;
 

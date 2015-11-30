@@ -27,9 +27,10 @@ interface
 
 uses
   Types, DB,
-  Ext, ExtPascal, ExtForm, ExtData,
+  Ext, ExtPascal, ExtPascalUtils, ExtForm, ExtData,
   EF.Types, EF.Tree, EF.ObserverIntf,
-  Kitto.DatabaseRouter, Kitto.Store, Kitto.Metadata.DataView, Kitto.Ext.Base;
+  Kitto.DatabaseRouter, Kitto.Store, Kitto.Metadata.Views, Kitto.Metadata.DataView,
+  Kitto.Ext.Base, Kitto.Ext.Controller, Kitto.Ext.LookupField;
 
 const
   DEFAULT_FILTER_WIDTH = 20;
@@ -371,6 +372,11 @@ type
     destructor Destroy; override;
   end;
 
+  /// <summary>
+  ///  A button that causes the filter expression to be rebuilt for the entire
+  ///  panel. When an item of this type is present, the filter expression is
+  ///  no longer automatically rebuilt every time a filter item changes.
+  /// </summary>
   TKFilterApplyButton = class(TKExtButton, IKExtFilter)
   public
     function GetExpression: string;
@@ -384,6 +390,9 @@ type
     procedure ButtonClick;
   end;
 
+  /// <summary>
+  ///  A spacer, to be used for layout purposes when using multiple columns.
+  /// </summary>
   TKFilterSpacer = class(TKExtPanelBase, IKExtFilter)
   public
     function GetExpression: string;
@@ -395,11 +404,48 @@ type
     procedure Invalidate;
   end;
 
+  /// <summary>
+  ///  A filter that mimics the lookup editor. A trigger button opens a view
+  ///  that allows the user to select a record whose values can then be used in
+  ///  building a filter expression. The ReferenceFieldName parameter must
+  ///  contain the name of a reference ViewField. A view with IsLookup=True
+  ///  must exist based on the referenced model.
+  /// </summary>
+  /// <example>
+  ///  <code>
+  ///   Items:
+  ///     Lookup: By Job
+  ///       ReferenceFieldName: JobRef
+  ///       ExpressionTemplate: (Employee.JOB_CODE = '{JobCode}') and (Employee.JOB_GRADE = '{JobGrade}') and (Employee.JOB_COUNTRY = '{JobCountry}')
+  ///  </code>
+  /// </example>
+  /// <seealso>
+  ///  TKButtonListFilter
+  /// </seealso>
+  TKLookupFilter = class(TKExtLookupField, IKExtFilter)
+  private
+    FCurrentValues: TKViewTableStore;
+    FViewTable: TKViewTable;
+    FConfig: TEFNode;
+  strict protected
+    procedure LookupConfirmed(const ARecord: TKViewTableRecord); override;
+  public
+    destructor Destroy; override;
+    function GetExpression: string;
+    procedure SetConfig(const AConfig: TEFNode);
+    procedure SetViewTable(const AViewTable: TKViewTable);
+    function ExpandValues(const AString: string): string;
+    function GetId: string;
+    procedure Invalidate;
+    function AsExtObject: TExtObject;
+  published
+    procedure ClearClick; override;
+  end;
+
 implementation
 
 uses
   SysUtils, Math, StrUtils,
-  ExtPascalUtils,
   EF.Localization,  EF.DB, EF.StrUtils, EF.JSON, EF.SQL,
   Kitto.Types, Kitto.Config, KItto.AccessControl, Kitto.Ext.Session, Kitto.Ext.Utils;
 
@@ -551,7 +597,7 @@ begin
   Assert(Assigned(AConfig));
 
   FConfig := AConfig;
-  FieldLabel := _(AConfig.AsString);
+  FieldLabel := _(FConfig.AsString);
   TriggerAction := 'all';
   Editable := True;
   LazyRender := True;
@@ -1306,6 +1352,80 @@ procedure TKFilterSpacer.SetViewTable(const AViewTable: TKViewTable);
 begin
 end;
 
+{ TKLookupFilter }
+
+function TKLookupFilter.AsExtObject: TExtObject;
+begin
+  Result := Self;
+end;
+
+procedure TKLookupFilter.ClearClick;
+begin
+  FreeAndNil(FCurrentValues);
+  SetValue('');
+  NotifyObservers('FilterChanged');
+end;
+
+destructor TKLookupFilter.Destroy;
+begin
+  FreeAndNil(FCurrentValues);
+  inherited;
+end;
+
+function TKLookupFilter.ExpandValues(const AString: string): string;
+begin
+  Result := AString;
+end;
+
+function TKLookupFilter.GetExpression: string;
+begin
+  if Assigned(FCurrentValues) and (FCurrentValues.RecordCount > 0) then
+    Result := FCurrentValues.Records[0].ExpandExpression(FConfig.GetExpandedString('ExpressionTemplate'))
+  else
+    Result := '';
+end;
+
+function TKLookupFilter.GetId: string;
+begin
+  Assert(Assigned(FConfig));
+
+  Result := FConfig.GetExpandedString('Id');
+end;
+
+procedure TKLookupFilter.Invalidate;
+begin
+  FreeAndNil(FCurrentValues);
+  SetValue('');
+end;
+
+procedure TKLookupFilter.LookupConfirmed(const ARecord: TKViewTableRecord);
+begin
+  inherited;
+  FreeAndNil(FCurrentValues);
+  FCurrentValues := ARecord.ViewTable.CreateStore;
+  FCurrentValues.AppendRecord(ARecord);
+  SetValue(FCurrentValues.Records[0].FieldByName(ViewField.ModelField.ReferencedModel.CaptionField.FieldName).AsString);
+  NotifyObservers('FilterChanged');
+end;
+
+procedure TKLookupFilter.SetConfig(const AConfig: TEFNode);
+begin
+  Assert(Assigned(FViewTable));
+  Assert(Assigned(AConfig));
+
+  FConfig := AConfig;
+  FieldLabel := _(FConfig.AsString);
+  Width := CharsToPixels(AConfig.GetInteger('Width', DEFAULT_FILTER_WIDTH));
+  if FConfig.GetBoolean('Sys/IsReadOnly') then
+    ReadOnly := True;
+  SetViewField(FViewTable.FieldByAliasedName(FConfig.GetString('ReferenceFieldName')));
+end;
+
+procedure TKLookupFilter.SetViewTable(const AViewTable: TKViewTable);
+begin
+  FViewTable := AViewTable;
+end;
+
 initialization
   TKExtFilterRegistry.Instance.RegisterClass('List', TKListFilter);
   TKExtFilterRegistry.Instance.RegisterClass('DynaList', TKDynaListFilter);
@@ -1316,6 +1436,7 @@ initialization
   TKExtFilterRegistry.Instance.RegisterClass('BooleanSearch', TKBooleanSearchFilter);
   TKExtFilterRegistry.Instance.RegisterClass('ApplyButton', TKFilterApplyButton);
   TKExtFilterRegistry.Instance.RegisterClass('Spacer', TKFilterSpacer);
+  TKExtFilterRegistry.Instance.RegisterClass('Lookup', TKLookupFilter);
 
 finalization
   TKExtFilterRegistry.Instance.UnregisterClass('List');
@@ -1327,5 +1448,6 @@ finalization
   TKExtFilterRegistry.Instance.UnregisterClass('BooleanSearch');
   TKExtFilterRegistry.Instance.UnregisterClass('ApplyButton');
   TKExtFilterRegistry.Instance.UnregisterClass('Spacer');
+  TKExtFilterRegistry.Instance.UnregisterClass('Lookup');
 
 end.

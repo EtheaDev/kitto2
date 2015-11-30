@@ -4,7 +4,11 @@ Controller: List
     DisplayLabel: Search Employees
     Items:
       FreeSearch: Free Search
-        ExpressionTemplate: (Employee.FIRST_NAME like '%{value}%') or (Employee.LAST_NAME like '%{value}%') or (Employee.PHONE_EXT like '%{value}%') or (Employee.FULL_NAME like '%{value}%')
+        ExpressionTemplate: ({Q}FIRST_NAME like '%{value}%') or ({Q}LAST_NAME like '%{value}%') or ({Q}PHONE_EXT like '%{value}%') or ({Q}FULL_NAME like '%{value}%')
+      Lookup: By Job
+        Width: 40
+        ReferenceFieldName: JobRef
+        ExpressionTemplate: ({Q}JOB_CODE = '{JobCode}') and ({Q}JOB_GRADE = '{JobGrade}') and ({Q}JOB_COUNTRY = '{JobCountry}')
 MainTable:
   Model: Employee
   Fields:
