@@ -1303,7 +1303,7 @@ begin
   begin
     Result := MasterTable.GetNamePath;
     SetLength(Result, Length(Result) + 1);
-    Result[High(Result)] := MasterTable.GetModelDetailReferenceName;
+    Result[High(Result)] := '/' + MasterTable.GetModelDetailReferenceName;
     if Result[High(Result)] = '' then
       Result[High(Result)] := ModelName;
   end
