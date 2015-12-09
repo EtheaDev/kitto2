@@ -1300,7 +1300,10 @@ begin
     LText := _('Apply');
   Text := LText;
   SetIconAndScale(AConfig.GetString('ImageName'), AConfig.GetString('ButtonScale', 'small'));
-  On('click', Ajax(ButtonClick));
+  Handler := Ajax(ButtonClick);
+  // The click event is not always fired when the focus is on a text filter,
+  // so we increase the probability that the button has the focus when it is clicked.
+  On('mouseover', JSFunction(JSName + '.focus();'));
 end;
 
 procedure TKFilterApplyButton.SetViewTable(const AViewTable: TKViewTable);
