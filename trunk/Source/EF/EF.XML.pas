@@ -42,12 +42,12 @@ function XMLEscape(const AString: string): string;
 ///   Clear the XMLHeader from an XML string.
 ///   Returns true if the header was found and cleared
 /// </summary>
-function ClearXMLHeader(var Text: string): boolean;
+function ClearXMLHeader(var AText: string): Boolean;
 
 /// <summary>
 ///   Returns the position of the XMLHeader if found
 /// </summary>
-function PosXMLHeader(const Text: string): integer;
+function XMLHeaderPos(const AText: string): Integer;
 
 /// <summary>
 ///   Clear the DOCTYPE node from an XML string.
@@ -97,23 +97,23 @@ begin
   end;
 end;
 
-function PosXMLHeader(const Text: string): integer;
+function XMLHeaderPos(const AText: string): Integer;
 begin
-  Result := Pos(Copy(XMLHeader,1,36), Text);
+  Result := Pos(Copy(XMLHeader, 1, 36), AText);
 end;
 
-function ClearXMLHeader(var Text: string): boolean;
+function ClearXMLHeader(var AText: string): Boolean;
 var
   LXmlHeaderPos, LClosedTagPos: Integer;
 begin
   Result := False;
-  LXmlHeaderPos := PosXMLHeader(Text);
+  LXmlHeaderPos := XMLHeaderPos(AText);
   if LXmlHeaderPos > 0 then
   begin
-    LClosedTagPos := Pos('>', Text);
+    LClosedTagPos := Pos('>', AText);
     if LClosedTagPos > 0 then
     begin
-      Text := Copy(Text, LClosedTagPos+1, MaxInt);
+      AText := Copy(AText, LClosedTagPos + 1, MaxInt);
       Result := True;
     end;
   end;

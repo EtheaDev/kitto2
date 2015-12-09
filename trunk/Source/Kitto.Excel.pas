@@ -655,7 +655,7 @@ function TKExcelImportEngine.GetFieldMappingName(const ASourceField: TField;
   const AFieldMappings: TStringList): string;
 var
   LEqualPos : integer;
-  LSourceFieldNameMap, LDestFieldNameMap, LDestFieldName: string;
+  LSourceFieldNameMap, LDestFieldNameMap: string;
   I: Integer;
 begin
   Result := ASourceField.FieldName;
@@ -709,6 +709,7 @@ begin
     //Ciclo sui records e li aggiungo al dataset di destinazione in base alla mappatura
     while not LAdoTable.Eof do
     begin
+      LAddedRecord := nil;
       //If the first field of the Excel Table is empty the record is not accepted
       LAccept := not LAdoTable.Fields[0].IsNull;
       if Assigned(AOnAcceptRecord) then
@@ -735,7 +736,7 @@ begin
           FreeAndNil(LDefaultValues);
         end;
 
-        Try
+        try
           for j := 0 to LAdoTable.FieldCount - 1 do
           begin
             LSourceField := LAdoTable.Fields[j];
@@ -758,8 +759,8 @@ begin
             end;
           end;
           LAddedRecord.ApplyNewRecordRules;
-        Except
-          On E: Exception do
+        except
+          on E: Exception do
           begin
             if Assigned(FOnDatabaseError) then
             begin
@@ -771,7 +772,7 @@ begin
             if not LIgnoreError then
               raise;
           end;
-        End;
+        end;
       end;
       if Assigned(AOnBeforePostRecord) then
         AOnBeforePostRecord(LAdoTable, LAddedRecord);

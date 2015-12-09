@@ -53,6 +53,7 @@
         <Base>true</Base>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base)'!=''">
+        <DCC_SYMBOL_PLATFORM>false</DCC_SYMBOL_PLATFORM>
         <Custom_Styles>&quot;Aqua Light Slate|VCLSTYLE|$(PUBLIC)\Documents\Embarcadero\Studio\14.0\Styles\AquaLightSlate.vsf&quot;</Custom_Styles>
         <SanitizedProjectName>TasKitto</SanitizedProjectName>
         <DCC_DUPLICATE_CTOR_DTOR>false</DCC_DUPLICATE_CTOR_DTOR>
