@@ -1,0 +1,16 @@
+﻿Controller:
+  BorderPanel:
+    NorthView:
+      Controller: HtmlPanel
+        Height: 100
+        Html: |
+          <div style="text-align: center">
+            <center>
+              <p><img src="%IMAGE(taskitto_logo_150)%"></img></p>
+              <p><H1>An example activity tracking application</H1></p>
+            </center>
+            <p/>
+          </div>
+  ExtraWidth: 400
+  LabelWidth: 150
+  ExtraHeight: 100
