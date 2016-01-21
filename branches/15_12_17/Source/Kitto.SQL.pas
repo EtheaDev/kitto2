@@ -725,15 +725,15 @@ begin
 
   LLookupModelDefaultFilter := LLookupModel.DefaultFilter;
   if LLookupModelDefaultFilter <> '' then
-    LQueryText := AddToSQLWhereClause(LQueryText, '(' + ExpandQualification(LLookupModelDefaultFilter, '') + ')');
+    LQueryText := AddToSQLWhereClause(LQueryText, '(' + ExpandQualification(ARecord.ExpandExpression(LLookupModelDefaultFilter), '') + ')');
 
   LDefaultFilter := AViewField.DefaultFilter;
   if LDefaultFilter <> '' then
-    LQueryText := AddToSQLWhereClause(LQueryText, '(' + ExpandQualification(LDefaultFilter, '')  + ')', AViewField.DefaultFilterConnector);
+    LQueryText := AddToSQLWhereClause(LQueryText, '(' + ExpandQualification(ARecord.ExpandExpression(LDefaultFilter), '')  + ')', AViewField.DefaultFilterConnector);
 
   LLookupFilter := AViewField.LookupFilter;
   if LLookupFilter <> '' then
-    LQueryText := AddToSQLWhereClause(LQueryText, '(' + ExpandQualification(LLookupFilter, '')  + ')');
+    LQueryText := AddToSQLWhereClause(LQueryText, '(' + ExpandQualification(ARecord.ExpandExpression(LLookupFilter), '')  + ')');
 
   if ASearchString <> '' then
     LQueryText := AddToSQLWhereClause(LQueryText, '(' + AViewField.ModelField.ReferencedModel.CaptionField.DBColumnName + ' like ''%' + ASearchString + '%'')');

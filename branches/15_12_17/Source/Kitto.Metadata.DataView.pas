@@ -526,6 +526,15 @@ type
     /// </summary>
     function ExpandFieldJSONValues(const AText: string;
       const AEmptyNulls: Boolean; const ASender: TKViewField = nil): string;
+
+    /// <summary>
+    ///  Replaces occurrencess of {FieldName} tags in the specified string
+    ///  with actual field values, formatted as strings.
+    ///  If the record's store has a master record, this method also replaces
+    ///  occurrences of {MasterRecord.FieldName} with string representations of
+    ///  master record field values.
+    /// </summary>
+    function ExpandExpression(const AExpression: string): string; override;
   end;
 
   TKViewTableRecords = class(TKRecords)
@@ -2750,6 +2759,22 @@ begin
   inherited;
   if Records.Store.MasterRecord <> nil then
     SetDetailFieldValues(Records.Store.MasterRecord);
+end;
+
+function TKViewTableRecord.ExpandExpression(const AExpression: string): string;
+var
+  I: Integer;
+  LField: TKViewTableField;
+begin
+  Result := inherited ExpandExpression(AExpression);
+  if Assigned(Store) and Assigned(Store.MasterRecord) then
+  begin
+    for I := 0 to Store.MasterRecord.FieldCount - 1 do
+    begin
+      LField := Store.MasterRecord.Fields[I];
+      Result := ReplaceText(Result, Format('{MasterRecord.%s}',[LField.FieldName]), LField.AsString);
+    end;
+  end;
 end;
 
 function TKViewTableRecord.ExpandFieldJSONValues(const AText: string;
