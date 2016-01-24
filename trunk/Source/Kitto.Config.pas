@@ -822,9 +822,13 @@ begin
       Result := LExePath + '..\..\..\Home\';
       if not DirectoryExists(Result) then
       begin
-        Result := ExpandEnvironmentVariables('%KITTO%\Home\');
+        Result := LExePath + '..\..\..\..\Kitto\Home\';
         if not DirectoryExists(Result) then
-          Result := GetAppHomePath;
+        begin
+          Result := ExpandEnvironmentVariables('%KITTO%\Home\');
+          if not DirectoryExists(Result) then
+            Result := GetAppHomePath;
+        end;
       end;
     end;
   end;
