@@ -279,21 +279,23 @@ end;
 
 procedure TKExtDataCmdToolController.ExecuteTool;
 var
-  LBatchCommand, LParameters: string;
+  LBatchFileName, LBatchCommand, LParameters: string;
 begin
   inherited;
-  LBatchCommand := BatchFileName;
-  Assert(LBatchCommand <> '','BatchFileName is mandatory');
-  if not FileExists(LBatchCommand) then
-    raise Exception.CreateFmt('File not found %s', [BatchFileName]);
+  LBatchFileName := ExpandServerRecordValues(BatchFileName);
+  Assert(LBatchFileName <> '','BatchFileName is mandatory');
+  if not FileExists(LBatchFileName) then
+    raise Exception.CreateFmt('File not found %s', [LBatchFileName]);
 
-  LParameters := Parameters;
+  LParameters := ExpandServerRecordValues(Parameters);
   if LParameters <> '' then
-    LBatchCommand := LBatchCommand + ' ' + LParameters;
+    LBatchCommand := LBatchFileName + ' ' + LParameters
+  else
+    LBatchCommand := LBatchFileName;
 
   //Execute file
   if ExecuteApplication(LBatchCommand, True) <> 0 then
-    raise Exception.CreateFmt('Error executing %s', [ExtractFileName(BatchFileName)]);
+    raise Exception.CreateFmt('Error executing %s', [ExtractFileName(LBatchFileName)]);
 end;
 
 function TKExtDataCmdToolController.GetBatchFileName: string;
