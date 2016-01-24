@@ -158,15 +158,6 @@
                     <VersionInfoKeys Name="Comments"/>
                 </VersionInfoKeys>
                 <Excluded_Packages>
-                    <Excluded_Packages Name="C:\Program Files (x86)\FastReports\LibD17\dclfs17.bpl">File C:\Program Files (x86)\FastReports\LibD17\dclfs17.bpl not found</Excluded_Packages>
-                    <Excluded_Packages Name="C:\Program Files (x86)\FastReports\LibD17\dclfrx17.bpl">File C:\Program Files (x86)\FastReports\LibD17\dclfrx17.bpl not found</Excluded_Packages>
-                    <Excluded_Packages Name="C:\Program Files (x86)\FastReports\LibD17\dclfsDB17.bpl">File C:\Program Files (x86)\FastReports\LibD17\dclfsDB17.bpl not found</Excluded_Packages>
-                    <Excluded_Packages Name="C:\Program Files (x86)\FastReports\LibD17\dclfrxDB17.bpl">File C:\Program Files (x86)\FastReports\LibD17\dclfrxDB17.bpl not found</Excluded_Packages>
-                    <Excluded_Packages Name="C:\Program Files (x86)\FastReports\LibD17\dclfrxe17.bpl">File C:\Program Files (x86)\FastReports\LibD17\dclfrxe17.bpl not found</Excluded_Packages>
-                    <Excluded_Packages Name="C:\Users\Public\Documents\RAD Studio\10.0\Bpl\UniSynEdit_DXE3.bpl">File C:\Users\Public\Documents\RAD Studio\10.0\Bpl\UniSynEdit_DXE3.bpl not found</Excluded_Packages>
-                    <Excluded_Packages Name="$(BDSBIN)\dcloffice2k170.bpl">Microsoft Office 2000 Sample Automation Server Wrapper Components</Excluded_Packages>
-                    <Excluded_Packages Name="$(BDSBIN)\dclofficexp170.bpl">Microsoft Office XP Sample Automation Server Wrapper Components</Excluded_Packages>
-                    <Excluded_Packages Name="C:\ETHEA\TMS Component Pack\DelphiXE3\TMSDeDXE3.bpl">TMS Component Pack design time support</Excluded_Packages>
                 </Excluded_Packages>
             </Delphi.Personality>
             <Platforms>
