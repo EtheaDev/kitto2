@@ -47,7 +47,7 @@ type
   private
     FConfirmButton: TKExtButton;
     FCancelButton: TKExtButton;
-    function GetConfirmJSCode(const AMethod: TExtProcedure): string;
+    function GetAfterEditJSCode(const AMethod: TExtProcedure): string;
     function GetBeforeEditJSCode(const AMethod: TExtProcedure): string;
     procedure ShowConfirmButtons(const AShow: Boolean);
     function GetSelectLastEditedRecordCode(const ARecord: TKViewTableRecord): string;
@@ -757,7 +757,7 @@ begin
     FCancelButton.On('click', Ajax(CancelInplaceChanges));
 
     FEditorGridPanel.On('beforeedit', JSFunction('e', GetBeforeEditJSCode(BeforeEdit)));
-    FEditorGridPanel.On('afteredit', JSFunction('e', GetConfirmJSCode(UpdateField)));
+    FEditorGridPanel.On('afteredit', JSFunction('e', GetAfterEditJSCode(UpdateField)));
   end;
 end;
 
@@ -839,7 +839,8 @@ var
   LError: string;
 begin
   LReqBody := SO(Session.RequestBody);
-  LError := UpdateRecord(ServerStore.GetRecord(LReqBody.O['new'], Session.Config.UserFormatSettings), LReqBody.O['new'], False);
+  LError := UpdateRecord(ServerStore.GetRecord(LReqBody.O['new'], Session.Config.UserFormatSettings),
+    LReqBody.O['new'], LReqBody.S['fieldName'], False);
   if LError = '' then
     // ok - nothing
   else
@@ -959,13 +960,14 @@ begin
   Result := LCode;
 end;
 
-function TKExtGridPanel.GetConfirmJSCode(const AMethod: TExtProcedure): string;
+function TKExtGridPanel.GetAfterEditJSCode(const AMethod: TExtProcedure): string;
 var
   LCode: string;
 begin
   LCode :=
     'var json = new Object;' + sLineBreak +
-    'json.new = e.record.data;' + sLineBreak;
+    'json.new = e.record.data;' + sLineBreak +
+    'json.fieldName = e.field;' + sLineBreak;
 
   LCode := LCode + GetJSFunctionCode(
     procedure
