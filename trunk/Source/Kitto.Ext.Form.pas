@@ -274,8 +274,9 @@ begin
       end;
       FDetailControllers.Add(LController.AsObject);
       LController.Display;
-      if (LController.AsObject is TKExtDataPanelController) then
-        TKExtDataPanelController(LController.AsObject).LoadData;
+      if not SameText(FOperation, 'Add') then
+        if (LController.AsObject is TKExtDataPanelController) then
+          TKExtDataPanelController(LController.AsObject).LoadData;
     end;
   end;
 end;
@@ -557,7 +558,7 @@ var
   LError: string;
 begin
   AssignFieldChangeEvent(False);
-  LError := UpdateRecord(StoreRecord, SO(Session.RequestBody).O['new'], True);
+  LError := UpdateRecord(StoreRecord, SO(Session.RequestBody).O['new'], '', True);
   FreeAndNil(FCloneValues);
   if LError = '' then
   begin
@@ -580,7 +581,7 @@ var
   LError: string;
 begin
   AssignFieldChangeEvent(False);
-  LError := UpdateRecord(StoreRecord, SO(Session.RequestBody).O['new'], True);
+  LError := UpdateRecord(StoreRecord, SO(Session.RequestBody).O['new'], '', True);
   if LError = '' then
   begin
     FChangesApplied := True;
@@ -590,13 +591,18 @@ begin
 end;
 
 procedure TKExtFormPanelController.ConfirmChangesAndClone;
+var
+  LError: string;
 begin
-  UpdateRecord(StoreRecord, SO(Session.RequestBody).O['new'], True);
-  FCloneValues := TEFNode.Clone(StoreRecord);
-  StoreRecord := ServerStore.AppendRecord(nil);
-  FOperation := 'Add';
-  // recupera dati record
-  StartOperation;
+  LError := UpdateRecord(StoreRecord, SO(Session.RequestBody).O['new'], '', True);
+  if LError = '' then
+  begin
+    FCloneValues := TEFNode.Clone(StoreRecord);
+    StoreRecord := ServerStore.AppendRecord(nil);
+    FOperation := 'Add';
+    // recupera dati record
+    StartOperation;
+  end;
 end;
 
 function TKExtFormPanelController.LayoutContainsPageBreaks: Boolean;

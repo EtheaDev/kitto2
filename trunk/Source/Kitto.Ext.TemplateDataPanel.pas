@@ -83,28 +83,10 @@ begin
 end;
 
 function TKExtTemplateDataPanel.GetSelectConfirmCall(const AMessage: string; const AMethod: TExtProcedure): string;
-var
-  LOpen, LClose: Integer;
-  LFieldName: string;
-  LMessage: string;
 begin
-  LOpen := pos('{', AMessage);
-  LClose := pos('}', AMessage);
-  LFieldName := copy(AMessage, LOpen+1, LClose-LOpen-1);
-  if (LFieldName <> '') and not SameText(LFieldName, 'caption') then
-  begin
-    LMessage := copy(AMessage,1,LOpen)+'caption'+copy(AMessage,LClose,maxInt);
-    Result := Format('selectDataViewConfirmCall("%s", "%s", %s, "%s", {methodURL: "%s", dataView: %s, fieldNames: "%s"});',
-      [_(Session.Config.AppTitle), LMessage, FDataView.JSName, LFieldName,
-      MethodURI(AMethod), FDataView.JSName, Join(ViewTable.GetKeyFieldAliasedNames, ',')]);
-  end
-  else
-  begin
-    { TODO : Replace the caption tag in AMessage. }
-    Result := Format('selectDataViewConfirmCall("%s", "%s", %s, "%s", {methodURL: "%s", dataView: %s, fieldNames: "%s"});',
-      [_(Session.Config.AppTitle), AMessage, FDataView.JSName, ViewTable.Model.CaptionField.FieldName, MethodURI(AMethod),
-      FDataView.JSName, Join(ViewTable.GetKeyFieldAliasedNames, ',')]);
-  end;
+  Result := Format('selectDataViewConfirmCall("%s", "%s", %s, "%s", {methodURL: "%s", dataView: %s, fieldNames: "%s"});',
+    [_(Session.Config.AppTitle), AMessage, FDataView.JSName, ViewTable.Model.CaptionField.FieldName, MethodURI(AMethod),
+    FDataView.JSName, Join(ViewTable.GetKeyFieldAliasedNames, ',')]);
 end;
 
 function TKExtTemplateDataPanel.ProcessTemplate(const ATemplate: string): string;

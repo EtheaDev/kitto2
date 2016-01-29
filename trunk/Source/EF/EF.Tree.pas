@@ -2563,8 +2563,7 @@ begin
   Result.AsString := AValue;
 end;
 
-function TEFTree.SetValue(const APath: string;
-  const AValue: Variant): TEFNode;
+function TEFTree.SetValue(const APath: string; const AValue: Variant): TEFNode;
 begin
   Result := GetNode(APath, True);
   Result.Value := AValue;
