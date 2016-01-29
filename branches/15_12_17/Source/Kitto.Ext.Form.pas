@@ -591,13 +591,18 @@ begin
 end;
 
 procedure TKExtFormPanelController.ConfirmChangesAndClone;
+var
+  LError: string;
 begin
-  UpdateRecord(StoreRecord, SO(Session.RequestBody).O['new'], '', True);
-  FCloneValues := TEFNode.Clone(StoreRecord);
-  StoreRecord := ServerStore.AppendRecord(nil);
-  FOperation := 'Add';
-  // recupera dati record
-  StartOperation;
+  LError := UpdateRecord(StoreRecord, SO(Session.RequestBody).O['new'], '', True);
+  if LError = '' then
+  begin
+    FCloneValues := TEFNode.Clone(StoreRecord);
+    StoreRecord := ServerStore.AppendRecord(nil);
+    FOperation := 'Add';
+    // recupera dati record
+    StartOperation;
+  end;
 end;
 
 function TKExtFormPanelController.LayoutContainsPageBreaks: Boolean;
