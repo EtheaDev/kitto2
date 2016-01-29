@@ -25,37 +25,9 @@ uses
 
 type
   TKExtViewportController = class(TKExtViewportControllerBase)
-  private
-    procedure CreateSubController;
-  protected
-    procedure DoDisplay; override;
   end;
 
 implementation
-
-uses
-  Ext,
-  Kitto.Ext.Session, Kitto.Metadata.Views;
-
-{ TKExtViewportController }
-
-procedure TKExtViewportController.DoDisplay;
-begin
-  inherited;
-  CreateSubController;
-end;
-
-procedure TKExtViewportController.CreateSubController;
-var
-  LSubView: TKView;
-  LController: IKExtController;
-begin
-  Assert(Assigned(View));
-
-  LSubView := Session.Config.Views.ViewByNode(View.GetNode('Controller/SubView'));
-  LController := TKExtControllerFactory.Instance.CreateController(Self, LSubView, Self);
-  LController.Display;
-end;
 
 initialization
   TKExtControllerRegistry.Instance.RegisterClass('Viewport', TKExtViewportController);

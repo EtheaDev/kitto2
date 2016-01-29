@@ -99,8 +99,7 @@ type
     function CreateClientReader: TExtDataJsonReader; virtual;
     function AddActionButton(const AUniqueId: string; const AView: TKView;
       const AToolbar: TKExtToolbar): TKExtActionButton; override;
-    function GetSelectConfirmCall(const AMessage: string;
-      const AMethod: TExtProcedure): string; virtual;
+    function GetSelectConfirmCall(const AMessage: string; const AMethod: TExtProcedure): string; virtual;
     function GetSelectCall(const AMethod: TExtProcedure): TExtFunction; virtual;
     function AutoLoadData: Boolean; virtual;
     function GetParentDataPanel: TKExtDataPanelController;

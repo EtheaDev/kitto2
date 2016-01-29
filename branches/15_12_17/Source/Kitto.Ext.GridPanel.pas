@@ -991,49 +991,19 @@ begin
 end;
 
 function TKExtGridPanel.GetSelectConfirmCall(const AMessage: string; const AMethod: TExtProcedure): string;
-var
-  LOpen, LClose: Integer;
-  LFieldName: string;
-  LMessage: string;
 begin
-  if IsMultiSelect then
-    Result := Format('confirmCall("%s", "%s", ajaxMultiSelection, {methodURL: "%s", selModel: %s, fieldNames: "%s"});',
-      [_(Session.Config.AppTitle), AMessage, MethodURI(AMethod),
-      FSelectionModel.JSName, Join(ViewTable.GetKeyFieldAliasedNames, ',')])
-  else
-  begin
-      (* WORKAROUND :
-        If the message contains a {fieldname} instead of {caption}, the name of the field is
-        used as CaptionFieldName and the macro is substituted with {caption}. so the
-        javascript selectConfirmCall function can work with a *)
-    LOpen := pos('{', AMessage);
-    LClose := pos('}', AMessage);
-    LFieldName := copy(AMessage, LOpen+1, LClose-LOpen-1);
-    if (LFieldName <> '') and not SameText(LFieldName, 'caption') then
-    begin
-      LMessage := copy(AMessage,1,LOpen)+'caption'+copy(AMessage,LClose,maxInt);
-      Result := Format('selectConfirmCall("%s", "%s", %s, "%s", {methodURL: "%s", selModel: %s, fieldNames: "%s"});',
-        [_(Session.Config.AppTitle), LMessage, FSelectionModel.JSName, LFieldName,
-        MethodURI(AMethod), FSelectionModel.JSName, Join(ViewTable.GetKeyFieldAliasedNames, ',')]);
-    end
-    else
-    begin
-      { TODO :
-        Add CaptionField to ViewTable for cases when the model's CaptionField
-        is not part of the ViewTable or is aliased. }
-      Result := Format('selectConfirmCall("%s", "%s", %s, "%s", {methodURL: "%s", selModel: %s, fieldNames: "%s"});',
-        [_(Session.Config.AppTitle), AMessage, FSelectionModel.JSName, ViewTable.Model.CaptionField.FieldName,
-        MethodURI(AMethod), FSelectionModel.JSName, Join(ViewTable.GetKeyFieldAliasedNames, ',')]);
-    end;
-  end;
+  { TODO :
+    Add CaptionField to ViewTable for cases when the model's CaptionField
+    is not part of the ViewTable or is aliased. }
+  Result := Format('selectConfirmCall("%s", "%s", %s, "%s", {methodURL: "%s", selModel: %s, fieldNames: "%s"});',
+    [_(Session.Config.AppTitle), AMessage, FSelectionModel.JSName, ViewTable.Model.CaptionField.FieldName,
+    MethodURI(AMethod), FSelectionModel.JSName, Join(ViewTable.GetKeyFieldAliasedNames, ',')]);
 end;
 
 function TKExtGridPanel.GetSelectCall(const AMethod: TExtProcedure): TExtFunction;
-var
-  LKeyFieldNames: string;
 begin
-  LKeyFieldNames := Join(ViewTable.GetKeyFieldAliasedNames, ',');
-  Result := AjaxSelection(AMethod, FSelectionModel, LKeyFieldNames, LKeyFieldNames, []);
+  Result := JSFunction(Format('ajaxSelection("yes", "", {params: {methodURL: "%s", selModel: %s, fieldNames: "%s"}});',
+    [MethodURI(AMethod), FSelectionModel.JSName, Join(ViewTable.GetKeyFieldAliasedNames, ',')]));
 end;
 
 initialization

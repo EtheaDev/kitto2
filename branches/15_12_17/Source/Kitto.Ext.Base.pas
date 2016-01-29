@@ -49,6 +49,7 @@ type
     FContainer: TExtContainer;
     function GetView: TKView;
     function GetConfig: TEFNode;
+    procedure CreateSubController;
   strict protected
     procedure SetView(const AValue: TKView);
     procedure DoDisplay; virtual;
@@ -104,6 +105,7 @@ type
     FContainer: TExtContainer;
     function GetView: TKView;
     function GetConfig: TEFNode;
+    procedure CreateSubController;
   protected
     procedure SetView(const AValue: TKView);
     procedure DoDisplay; virtual;
@@ -345,6 +347,7 @@ type
     procedure InitDefaults; override;
     procedure DoDisplay; override;
     function GetConfirmJSCode: string; virtual;
+    function GetConfirmJsonData: string; virtual;
     procedure AfterExecuteTool; virtual;
   published
     procedure Confirm; virtual;
@@ -466,6 +469,18 @@ begin
   FSubjObserverImpl.AttachObserver(AObserver);
 end;
 
+procedure TKExtWindowControllerBase.CreateSubController;
+var
+  LSubView: TKView;
+  LController: IKExtController;
+begin
+  Assert(Assigned(View));
+
+  LSubView := Session.Config.Views.ViewByNode(View.GetNode('Controller/SubView'));
+  LController := TKExtControllerFactory.Instance.CreateController(Self, LSubView, Self);
+  LController.Display;
+end;
+
 destructor TKExtWindowControllerBase.Destroy;
 begin
   FreeAndNil(FSubjObserverImpl);
@@ -489,6 +504,7 @@ procedure TKExtWindowControllerBase.DoDisplay;
 begin
   Session.EnsureSupportFiles(TKExtControllerRegistry.Instance.FindClassId(Self.ClassType));
   Session.EnsureViewSupportFiles(View);
+  CreateSubController;
   Show;
 end;
 
@@ -708,6 +724,7 @@ procedure TKExtViewportControllerBase.DoDisplay;
 begin
   Session.EnsureSupportFiles(TKExtControllerRegistry.Instance.FindClassId(Self.ClassType));
   Session.EnsureViewSupportFiles(View);
+  CreateSubController;
   Show;
 end;
 
@@ -773,6 +790,18 @@ end;
 function TKExtViewportControllerBase._Release: Integer;
 begin
   Result := -1;
+end;
+
+procedure TKExtViewportControllerBase.CreateSubController;
+var
+  LSubView: TKView;
+  LController: IKExtController;
+begin
+  Assert(Assigned(View));
+
+  LSubView := Session.Config.Views.ViewByNode(View.GetNode('Controller/SubView'));
+  LController := TKExtControllerFactory.Instance.CreateController(Self, LSubView, Self);
+  LController.Display;
 end;
 
 { TKExtModalWindow }
@@ -1512,13 +1541,13 @@ end;
 
 procedure TKExtWindowToolController.AfterExecuteTool;
 begin
-  NotifyObservers('Confirmed');
+  NotifyObservers('ToolConfirmed');
   Close;
 end;
 
 procedure TKExtWindowToolController.Cancel;
 begin
-  NotifyObservers('Canceled');
+  NotifyObservers('ToolCanceled');
   Close;
 end;
 
@@ -1552,7 +1581,12 @@ end;
 
 function TKExtWindowToolController.GetConfirmJSCode: string;
 begin
-  Result := GetPOSTAjaxCode(Confirm, [], '');
+  Result := GetPOSTAjaxCode(Confirm, [], GetConfirmJsonData);
+end;
+
+function TKExtWindowToolController.GetConfirmJsonData: string;
+begin
+  Result := '{}';
 end;
 
 procedure TKExtWindowToolController.InitDefaults;
