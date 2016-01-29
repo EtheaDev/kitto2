@@ -76,6 +76,8 @@ type
     function GetMaxRecords: Integer;
     function GetDefaultAutoOpen: Boolean;
     procedure SetupURLFields(const ARecord: TKViewTableRecord);
+    procedure SetFieldValue(const AField: TKViewTableField; const AValue: TSuperAvlEntry);
+    function FindValueByName(const AValues: ISuperObject; const AName: string): TSuperAvlEntry;
   strict protected
     FButtonsRequiringSelection: TList<TExtObject>;
     FEditItems: TKEditItemList;
@@ -97,15 +99,14 @@ type
     function CreateClientReader: TExtDataJsonReader; virtual;
     function AddActionButton(const AUniqueId: string; const AView: TKView;
       const AToolbar: TKExtToolbar): TKExtActionButton; override;
-    function GetSelectConfirmCall(const AMessage: string;
-      const AMethod: TExtProcedure): string; virtual;
+    function GetSelectConfirmCall(const AMessage: string; const AMethod: TExtProcedure): string; virtual;
     function GetSelectCall(const AMethod: TExtProcedure): TExtFunction; virtual;
     function AutoLoadData: Boolean; virtual;
     function GetParentDataPanel: TKExtDataPanelController;
     function GetRootDataPanel: TKExtDataPanelController;
     function FindViewLayout(const ALayoutName: string): TKLayout;
     function UpdateRecord(const ARecord: TKVIewTableRecord; const ANewValues: ISuperObject;
-      const APersist: Boolean): string;
+      const AFieldName: string; const APersist: Boolean): string;
     function GetDefaultRemoteSort: Boolean; virtual;
     function GetCurrentViewRecord: TKViewTableRecord;
     procedure ShowEditWindow(const ARecord: TKViewTableRecord; const AEditMode: TKEditMode);
@@ -958,30 +959,26 @@ begin
   Session.Config.CheckAccessGranted(ViewTable.GetResourceURI, ACM_READ);
 end;
 
-function TKExtDataPanelController.UpdateRecord(const ARecord: TKVIewTableRecord; const ANewValues: ISuperObject;
-  const APersist: Boolean): string;
+procedure TKExtDataPanelController.SetFieldValue(const AField: TKViewTableField;
+  const AValue: TSuperAvlEntry);
 var
-  LItem: TSuperAvlEntry;
-  LOldRecord: TKViewTableRecord;
-  LField: TKViewTableField;
-  LParentField: TKViewField;
-  LParentValue: string;
+  LNames: TStringDynArray;
+  LValues: TStringDynArray;
+  LSep, LValue: string;
+  I: Integer;
+begin
+  Assert(Assigned(AField));
 
-  procedure SetFieldValue;
-  var
-    LNames: TStringDynArray;
-    LValues: TStringDynArray;
-    LSep, LValue: string;
-    I: Integer;
+  if Assigned(AValue) then
   begin
-    LValue := LItem.Value.AsString;
-    LField.SetAsJSONValue(LValue, False, Session.Config.UserFormatSettings);
+    LValue := AValue.Value.AsString;
+    AField.SetAsJSONValue(LValue, False, Session.Config.UserFormatSettings);
 
     LSep := TKConfig.Instance.MultiFieldSeparator;
-    if LItem.Name.Contains(LSep) then
+    if AValue.Name.Contains(LSep) then
     begin
-      LNames := EF.StrUtils.Split(LItem.Name, LSep);
-      LValues := EF.StrUtils.Split(LItem.Value.AsString, LSep);
+      LNames := EF.StrUtils.Split(AValue.Name, LSep);
+      LValues := EF.StrUtils.Split(AValue.Value.AsString, LSep);
       if Length(LValues) = 0 then
       begin
         SetLength(LValues, Length(LNames));
@@ -990,26 +987,54 @@ var
       end;
       Assert(Length(LNames) = Length(LValues));
       for I := Low(LNames) to High(LNames) do
-        LField.ParentRecord.FieldByName(LNames[I]).SetAsJSONValue(LValues[I], False, Session.Config.UserFormatSettings);
+        AField.ParentRecord.FieldByName(LNames[I]).SetAsJSONValue(LValues[I], False, Session.Config.UserFormatSettings);
     end;
   end;
+end;
 
+function TKExtDataPanelController.FindValueByName(const AValues: ISuperObject; const AName: string): TSuperAvlEntry;
+var
+  LValue: TSuperAvlEntry;
+begin
+  Result := nil;
+  for LValue in AValues.AsObject do
+  begin
+    if SameText(LValue.Name, AName) then
+      Exit(LValue);
+  end;
+end;
+
+function TKExtDataPanelController.UpdateRecord(const ARecord: TKVIewTableRecord; const ANewValues: ISuperObject;
+  const AFieldName: string; const APersist: Boolean): string;
+var
+  LOldRecord: TKViewTableRecord;
+  LField: TKViewTableField;
+  LValue: TSuperAvlEntry;
 begin
   LOldRecord := TKViewTableRecord.Clone(ARecord);
   try
     try
       ARecord.Store.DisableChangeNotifications;
       try
-        // Modify record values.
-        for LItem in ANewValues.AsObject do
+        // Modify record value(s).
+        if AFieldName <> '' then
         begin
-          LField := ARecord.FieldByName(LItem.Name);
-          LParentField := LField.ViewField.Table.FindParentField(LField.FieldName);
-          if Assigned(LParentField) then
-            LParentValue := ANewValues.AsObject.S[LParentField.FieldName]
-          else
-            LParentValue := '';
-          SetFieldValue;
+          FEditItems.EditorsByFieldName(AFieldName,
+            procedure (AEditor: IKExtEditor)
+            begin
+              LField := ARecord.FieldByName(AEditor.FieldName);
+              LValue := FindValueByName(ANewValues, LField.FieldName);
+              Assert(Assigned(LValue));
+              SetFieldValue(LField, LValue);
+            end);
+        end
+        else
+        begin
+          for LValue in ANewValues.AsObject do
+          begin
+            LField := ARecord.FieldByName(LValue.Name);
+            SetFieldValue(LField, LValue);
+          end;
         end;
       finally
         ARecord.Store.EnableChangeNotifications;

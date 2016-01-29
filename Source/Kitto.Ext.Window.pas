@@ -25,8 +25,6 @@ uses
 
 type
   TKExtWindowController = class(TKExtWindowControllerBase)
-  private
-    procedure CreateSubController;
   protected
     procedure DoDisplay; override;
     procedure InitDefaults; override;
@@ -49,10 +47,7 @@ begin
   ResizeHandles := View.GetString('Controller/ResizeHandles');
   Resizable := ResizeHandles <> '';
   Maximizable := View.GetBoolean('Controller/Maximizable', Resizable);
-
   Draggable := View.GetBoolean('Controller/Movable', True);
-
-  CreateSubController;
   inherited;
 end;
 
@@ -61,18 +56,6 @@ begin
   inherited;
   Constrain := True;
   Closable := False;
-end;
-
-procedure TKExtWindowController.CreateSubController;
-var
-  LSubView: TKView;
-  LController: IKExtController;
-begin
-  Assert(Assigned(View));
-
-  LSubView := Session.Config.Views.ViewByNode(View.GetNode('Controller/SubView'));
-  LController := TKExtControllerFactory.Instance.CreateController(Self, LSubView, Self);
-  LController.Display;
 end;
 
 initialization
