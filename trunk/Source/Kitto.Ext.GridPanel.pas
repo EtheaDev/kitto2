@@ -876,10 +876,13 @@ begin
 
     LFunction := Format('function(r) { if (%s) return true; else return false;}', [LPredicates]);
 
-    // findBy() retrieves the record index through our custom function, and
-    // getAt() returns the corresponding Record object to be passed to the selection model.
-    Result := Format('%s.selectRecords([%s.getAt(%s.findBy(%s))]);',
-      [FSelectionModel.JSName, ClientStore.JSName, ClientStore.JSName, LFunction]);
+    // Make sure the record is selected and scrolled into view.
+    //   findBy() retrieves the record index through our custom function, and
+    //   getAt() returns the corresponding Record object to be passed to the selection model.
+    Result :=
+      Format('var idx = %s.findBy(%s);', [ClientStore.JSName, LFunction]) + sLineBreak +
+      Format('%s.selectRecords([%s.getAt(idx)]);', [FSelectionModel.JSName, ClientStore.JSName]) + sLineBreak +
+      Format('%s.getRow(idx).scrollIntoView();', [FGridView.JSName]);
   end
   else
     Result := 'return false;'
