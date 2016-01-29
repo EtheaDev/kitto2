@@ -274,8 +274,9 @@ begin
       end;
       FDetailControllers.Add(LController.AsObject);
       LController.Display;
-      if (LController.AsObject is TKExtDataPanelController) then
-        TKExtDataPanelController(LController.AsObject).LoadData;
+      if not SameText(FOperation, 'Add') then
+        if (LController.AsObject is TKExtDataPanelController) then
+          TKExtDataPanelController(LController.AsObject).LoadData;
     end;
   end;
 end;
