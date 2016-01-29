@@ -955,7 +955,7 @@ var
 begin
   LCode :=
     'var json = new Object;' + sLineBreak +
-    'json.data = e.record.data;' + sLineBreak;
+    'json.data = e.record.data;' + sLineBreak;  // needed for the PK (see GetRecord).
   LCode := LCode + GetPOSTAjaxCode(AMethod, [], 'json') + sLineBreak;
   Result := LCode;
 end;
@@ -966,7 +966,7 @@ var
 begin
   LCode :=
     'var json = new Object;' + sLineBreak +
-    'json.new = e.record.data;' + sLineBreak +
+    'json.new = e.record.data;' + sLineBreak + // needed for the PK (see GetRecord).
     'json.fieldName = e.field;' + sLineBreak;
 
   LCode := LCode + GetJSFunctionCode(

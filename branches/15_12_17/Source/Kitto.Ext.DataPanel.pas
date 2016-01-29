@@ -77,7 +77,7 @@ type
     function GetDefaultAutoOpen: Boolean;
     procedure SetupURLFields(const ARecord: TKViewTableRecord);
     procedure SetFieldValue(const AField: TKViewTableField; const AValue: TSuperAvlEntry);
-    function GetValueByName(const AValues: ISuperObject; const AName: string): TSuperAvlEntry;
+    function FindValueByName(const AValues: ISuperObject; const AName: string): TSuperAvlEntry;
   strict protected
     FButtonsRequiringSelection: TList<TExtObject>;
     FEditItems: TKEditItemList;
@@ -969,29 +969,31 @@ var
   I: Integer;
 begin
   Assert(Assigned(AField));
-  Assert(Assigned(AValue));
 
-  LValue := AValue.Value.AsString;
-  AField.SetAsJSONValue(LValue, False, Session.Config.UserFormatSettings);
-
-  LSep := TKConfig.Instance.MultiFieldSeparator;
-  if AValue.Name.Contains(LSep) then
+  if Assigned(AValue) then
   begin
-    LNames := EF.StrUtils.Split(AValue.Name, LSep);
-    LValues := EF.StrUtils.Split(AValue.Value.AsString, LSep);
-    if Length(LValues) = 0 then
+    LValue := AValue.Value.AsString;
+    AField.SetAsJSONValue(LValue, False, Session.Config.UserFormatSettings);
+
+    LSep := TKConfig.Instance.MultiFieldSeparator;
+    if AValue.Name.Contains(LSep) then
     begin
-      SetLength(LValues, Length(LNames));
-      for I := Low(LValues) to High(LValues) do
-        LValues[I] := 'null';
+      LNames := EF.StrUtils.Split(AValue.Name, LSep);
+      LValues := EF.StrUtils.Split(AValue.Value.AsString, LSep);
+      if Length(LValues) = 0 then
+      begin
+        SetLength(LValues, Length(LNames));
+        for I := Low(LValues) to High(LValues) do
+          LValues[I] := 'null';
+      end;
+      Assert(Length(LNames) = Length(LValues));
+      for I := Low(LNames) to High(LNames) do
+        AField.ParentRecord.FieldByName(LNames[I]).SetAsJSONValue(LValues[I], False, Session.Config.UserFormatSettings);
     end;
-    Assert(Length(LNames) = Length(LValues));
-    for I := Low(LNames) to High(LNames) do
-      AField.ParentRecord.FieldByName(LNames[I]).SetAsJSONValue(LValues[I], False, Session.Config.UserFormatSettings);
   end;
 end;
 
-function TKExtDataPanelController.GetValueByName(const AValues: ISuperObject; const AName: string): TSuperAvlEntry;
+function TKExtDataPanelController.FindValueByName(const AValues: ISuperObject; const AName: string): TSuperAvlEntry;
 var
   LValue: TSuperAvlEntry;
 begin
@@ -1001,7 +1003,6 @@ begin
     if SameText(LValue.Name, AName) then
       Exit(LValue);
   end;
-  Assert(Assigned(Result));
 end;
 
 function TKExtDataPanelController.UpdateRecord(const ARecord: TKVIewTableRecord; const ANewValues: ISuperObject;
@@ -1009,6 +1010,7 @@ function TKExtDataPanelController.UpdateRecord(const ARecord: TKVIewTableRecord;
 var
   LOldRecord: TKViewTableRecord;
   LField: TKViewTableField;
+  LValue: TSuperAvlEntry;
 begin
   LOldRecord := TKViewTableRecord.Clone(ARecord);
   try
@@ -1022,17 +1024,18 @@ begin
             procedure (AEditor: IKExtEditor)
             begin
               LField := ARecord.FieldByName(AEditor.FieldName);
-              SetFieldValue(LField, GetValueByName(ANewValues, LField.FieldName));
+              LValue := FindValueByName(ANewValues, LField.FieldName);
+              Assert(Assigned(LValue));
+              SetFieldValue(LField, LValue);
             end);
         end
         else
         begin
-          FEditItems.AllEditors(
-            procedure (AEditor: IKExtEditor)
-            begin
-              LField := ARecord.FieldByName(AEditor.FieldName);
-              SetFieldValue(LField, GetValueByName(ANewValues, LField.FieldName));
-            end);
+          for LValue in ANewValues.AsObject do
+          begin
+            LField := ARecord.FieldByName(LValue.Name);
+            SetFieldValue(LField, LValue);
+          end;
         end;
       finally
         ARecord.Store.EnableChangeNotifications;
