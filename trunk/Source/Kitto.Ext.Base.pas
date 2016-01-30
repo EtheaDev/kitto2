@@ -473,12 +473,20 @@ procedure TKExtWindowControllerBase.CreateSubController;
 var
   LSubView: TKView;
   LController: IKExtController;
+  LNode: TEFNode;
 begin
   Assert(Assigned(View));
 
-  LSubView := Session.Config.Views.ViewByNode(View.GetNode('Controller/SubView'));
-  LController := TKExtControllerFactory.Instance.CreateController(Self, LSubView, Self);
-  LController.Display;
+  LNode := View.FindNode('Controller/SubView');
+  if Assigned(LNode) then
+  begin
+    LSubView := Session.Config.Views.FindViewByNode(LNode);
+    if Assigned(LSubView) then
+    begin
+      LController := TKExtControllerFactory.Instance.CreateController(Self, LSubView, Self);
+      LController.Display;
+    end;
+  end;
 end;
 
 destructor TKExtWindowControllerBase.Destroy;
@@ -796,12 +804,20 @@ procedure TKExtViewportControllerBase.CreateSubController;
 var
   LSubView: TKView;
   LController: IKExtController;
+  LNode: TEFNode;
 begin
   Assert(Assigned(View));
 
-  LSubView := Session.Config.Views.ViewByNode(View.GetNode('Controller/SubView'));
-  LController := TKExtControllerFactory.Instance.CreateController(Self, LSubView, Self);
-  LController.Display;
+  LNode := View.FindNode('Controller/SubView');
+  if Assigned(LNode) then
+  begin
+    LSubView := Session.Config.Views.FindViewByNode(LNode);
+    if Assigned(LSubView) then
+    begin
+      LController := TKExtControllerFactory.Instance.CreateController(Self, LSubView, Self);
+      LController.Display;
+    end;
+  end;
 end;
 
 { TKExtModalWindow }
