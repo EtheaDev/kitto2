@@ -84,6 +84,7 @@ type
     FWriter: TEFYAMLWriter;
     FDisposedObjects: TList<TKMetadata>;
     FNonpersistentObjects: TDictionary<TEFNode, TKMetadata>;
+    FDynamicObjects: TDictionary<string, TKMetadata>;
     procedure RefreshIndex;
     function GetObjectCount: Integer;
     function GetReader: TEFYAMLReader;
@@ -119,6 +120,10 @@ type
     function FindNonpersistentObject(const ANode: TEFNode): TKMetadata;
     procedure AddNonpersistentObject(const AObject: TKMetadata; const ANode: TEFNode);
     procedure DeleteNonpersistentObject(const ANode: TEFNode);
+
+    function FindDynamicObject(const AName: string): TKMetadata;
+    procedure AddDynamicObject(const AObject: TKMetadata; const AName: string);
+    procedure DeleteDynamicObject(const AName: string);
   public
     property Path: string read FPath write SetPath;
 
@@ -222,6 +227,7 @@ begin
   inherited;
   FDisposedObjects := TList<TKMetadata>.Create;
   FNonpersistentObjects := TDictionary<TEFNode, TKMetadata>.Create;
+  FDynamicObjects := TDictionary<string, TKMetadata>.Create;
 end;
 
 procedure TKMetadataCatalog.CreateIndex;
@@ -264,6 +270,10 @@ begin
     LObject.Free;
   FNonpersistentObjects.Clear;
 
+  for LObject in FDynamicObjects.Values do
+    LObject.Free;
+  FDynamicObjects.Clear;
+
   for I := FDisposedObjects.Count - 1 downto 0 do
   begin
     FDisposedObjects[I].Free;
@@ -298,6 +308,11 @@ end;
 procedure TKMetadataCatalog.DuplicateObjectError(const AName: string);
 begin
   raise EKError.CreateFmt(_('Duplicate object %s.'), [AName]);
+end;
+
+procedure TKMetadataCatalog.DeleteDynamicObject(const AName: string);
+begin
+  FDynamicObjects.Remove(AName);
 end;
 
 procedure TKMetadataCatalog.DeleteNonpersistentObject(const ANode: TEFNode);
@@ -335,6 +350,7 @@ begin
     Close;
   FreeAndNil(FDisposedObjects);
   FreeAndNil(FNonpersistentObjects);
+  FreeAndNil(FDynamicObjects);
   FreeAndNil(FReader);
   FreeAndNil(FWriter);
   inherited;
@@ -459,8 +475,15 @@ begin
   end;
 end;
 
-function TKMetadataCatalog.FindNonpersistentObject(
-  const ANode: TEFNode): TKMetadata;
+function TKMetadataCatalog.FindDynamicObject(const AName: string): TKMetadata;
+begin
+  if FDynamicObjects.ContainsKey(AName) then
+    Result := FDynamicObjects[AName]
+  else
+    Result := nil;
+end;
+
+function TKMetadataCatalog.FindNonpersistentObject(const ANode: TEFNode): TKMetadata;
 begin
   if FNonpersistentObjects.ContainsKey(ANode) then
     Result := FNonpersistentObjects[ANode]
@@ -471,6 +494,7 @@ end;
 function TKMetadataCatalog.FindObject(const AName: string): TKMetadata;
 var
   LIndex: Integer;
+  LClass: TKMetadataClass;
 begin
   Assert(IsOpen);
 
@@ -484,7 +508,19 @@ begin
     end;
   end
   else
-    Result := nil;
+  begin
+    Result := FindDynamicObject(AName);
+    if not Assigned(Result) then
+    begin
+      LClass := GetMetadataRegistry.FindClass(AName, '');
+      if Assigned(LClass) then
+      begin
+        Result := LClass.Create;
+        Result.PersistentName := AName;
+        AddDynamicObject(Result, AName);
+      end;
+    end;
+  end;
 end;
 
 function TKMetadataCatalog.FindObjectByPredicate(
@@ -630,6 +666,13 @@ begin
   end
   else
     Result := AObject;
+end;
+
+procedure TKMetadataCatalog.AddDynamicObject(const AObject: TKMetadata;
+  const AName: string);
+begin
+  FDynamicObjects.Add(AName, AObject);
+  AfterAddObject(AObject);
 end;
 
 procedure TKMetadataCatalog.AddNonpersistentObject(const AObject: TKMetadata;

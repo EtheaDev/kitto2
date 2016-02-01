@@ -21,7 +21,7 @@ interface
 uses
   SysUtils,
   Kitto.Metadata.DataView,
-  Kitto.Ext.Base;
+  Kitto.Ext.Base, Kitto.Ext.Controller;
 
 { TODO : refactor these two classes to keep duplicated code to a minimum }
 type
@@ -89,7 +89,7 @@ implementation
 uses
   StrUtils,
   EF.Tree, EF.DB, EF.StrUtils, EF.SysUtils, EF.Localization,
-  Kitto.Config, Kitto.Ext.Session, Kitto.Ext.Controller;
+  Kitto.Config, Kitto.Ext.Session;
 
 procedure LoadRecordDetails(const ARecord: TKViewTableRecord);
 begin

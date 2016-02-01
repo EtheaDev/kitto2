@@ -49,7 +49,6 @@ type
     FContainer: TExtContainer;
     function GetView: TKView;
     function GetConfig: TEFNode;
-    procedure CreateSubController;
   strict protected
     procedure SetView(const AValue: TKView);
     procedure DoDisplay; virtual;
@@ -57,6 +56,8 @@ type
     procedure SetContainer(const AValue: TExtContainer);
     procedure InitDefaults; override;
     function GetControllerToRemove: TObject; virtual;
+    function CreateSubController: IKExtController; virtual;
+    procedure InitSubController(const AController: IKExtController); virtual;
   public
     destructor Destroy; override;
 
@@ -341,6 +342,7 @@ type
   strict private
     FConfirmButton: TKExtButton;
     FCancelButton: TKExtButton;
+    FSubController: IKExtController;
     procedure CreateButtons;
   strict protected
     procedure SetWindowSize; virtual;
@@ -349,6 +351,10 @@ type
     function GetConfirmJSCode: string; virtual;
     function GetConfirmJsonData: string; virtual;
     procedure AfterExecuteTool; virtual;
+    procedure InitSubController(const AController: IKExtController); override;
+    property SubController: IKExtController read FSubController;
+  public
+    procedure UpdateObserver(const ASubject: IEFSubject; const AContext: string = ''); override;
   published
     procedure Confirm; virtual;
     procedure Cancel;  virtual;
@@ -469,22 +475,23 @@ begin
   FSubjObserverImpl.AttachObserver(AObserver);
 end;
 
-procedure TKExtWindowControllerBase.CreateSubController;
+function TKExtWindowControllerBase.CreateSubController: IKExtController;
 var
   LSubView: TKView;
-  LController: IKExtController;
   LNode: TEFNode;
 begin
   Assert(Assigned(View));
 
+  Result := nil;
   LNode := View.FindNode('Controller/SubView');
   if Assigned(LNode) then
   begin
     LSubView := Session.Config.Views.FindViewByNode(LNode);
     if Assigned(LSubView) then
     begin
-      LController := TKExtControllerFactory.Instance.CreateController(Self, LSubView, Self);
-      LController.Display;
+      Result := TKExtControllerFactory.Instance.CreateController(Self, LSubView, Self);
+      InitSubController(Result);
+      Result.Display;
     end;
   end;
 end;
@@ -544,6 +551,10 @@ begin
   Plain := True;
 
   On('close', Ajax(WindowClosed, ['Window', JSName]));
+end;
+
+procedure TKExtWindowControllerBase.InitSubController(const AController: IKExtController);
+begin
 end;
 
 function TKExtWindowControllerBase.IsSynchronous: Boolean;
@@ -1592,7 +1603,9 @@ procedure TKExtWindowToolController.DoDisplay;
 begin
   inherited;
   Title := View.DisplayLabel;
-  CreateButtons;
+  SetWindowSize;
+  if not Config.GetBoolean('HideButtons') then
+    CreateButtons;
 end;
 
 function TKExtWindowToolController.GetConfirmJSCode: string;
@@ -1610,15 +1623,32 @@ begin
   inherited;
   Modal := True;
   Closable := False;
-  SetWindowSize;
   Layout := lyFit;
+end;
+
+procedure TKExtWindowToolController.InitSubController(const AController: IKExtController);
+var
+  LSubject: IEFSubject;
+begin
+  inherited;
+  FSubController := AController;
+  if Supports(FSubController.AsObject, IEFSubject, LSubject) then
+    LSubject.AttachObserver(Self);
 end;
 
 procedure TKExtWindowToolController.SetWindowSize;
 begin
-  Width := DEFAULT_WINDOW_TOOL_WIDTH;
-  Height := DEFAULT_WINDOW_TOOL_HEIGHT;
+  Width := Config.GetInteger('WindowWidth', DEFAULT_WINDOW_TOOL_WIDTH);
+  Height := Config.GetInteger('WindowHeight', DEFAULT_WINDOW_TOOL_HEIGHT);
   Resizable := False;
+end;
+
+procedure TKExtWindowToolController.UpdateObserver(const ASubject: IEFSubject;
+  const AContext: string);
+begin
+  inherited;
+  if (ASubject.AsObject = FSubController.AsObject) and (AContext = 'Confirmed') then
+    Confirm;
 end;
 
 { TKExtButton }
