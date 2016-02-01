@@ -283,6 +283,7 @@ begin
     begin
       if Assigned(AForEachRecord) then
         AForEachRecord(ARecord);
+      ARecord.MarkAsClean;
     end);
 end;
 
