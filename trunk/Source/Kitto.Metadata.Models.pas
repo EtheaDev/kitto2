@@ -714,6 +714,8 @@ type
     procedure AddModelNamesToStrings(const AStrings: TStrings);
   end;
 
+  TKModelRegistry = class;
+
   TKModels = class(TKMetadataCatalog)
   strict private
     class var FDefaultModelClassType: TKModelClass;
@@ -722,6 +724,7 @@ type
   strict protected
     function GetObjectClassType: TKMetadataClass; override;
     function GetMetadataRegistry: TKMetadataRegistry; override;
+    function GetModelRegistry: TKModelRegistry;
   public
     class constructor Create;
   public
@@ -2005,6 +2008,11 @@ end;
 function TKModels.GetModelCount: Integer;
 begin
   Result := ObjectCount;
+end;
+
+function TKModels.GetModelRegistry: TKModelRegistry;
+begin
+  Result := GetMetadataRegistry as TKModelRegistry;
 end;
 
 function TKModels.ModelByName(const AName: string): TKModel;
