@@ -381,6 +381,7 @@ end;
 procedure TKExtFormPanelController.SetStoreRecord(const AValue: TKViewTableRecord);
 begin
   FStoreRecord := AValue;
+  Config.SetObject('Sys/Record', FStoreRecord);
   if Assigned(FStoreRecord) then
   begin
     FStoreRecord.OnSetTransientProperty :=
