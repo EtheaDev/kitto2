@@ -66,7 +66,8 @@ type
   end;
 
   ///	<summary>
-  ///  Base class for launch a command batch or an executable
+  ///  Executes a command or executable file.
+  ///  Params: WaitForCompletion: Boolean (default True).
   /// </summary>
   TKExtDataCmdToolController = class(TKExtDataToolController)
   strict private
@@ -294,7 +295,7 @@ begin
     LBatchCommand := LBatchFileName;
 
   //Execute file
-  if ExecuteApplication(LBatchCommand, True) <> 0 then
+  if ExecuteApplication(LBatchCommand, Config.GetBoolean('WaitForCompletion', True)) <> 0 then
     raise Exception.CreateFmt('Error executing %s', [ExtractFileName(LBatchFileName)]);
 end;
 
