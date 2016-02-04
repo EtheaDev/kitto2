@@ -3,7 +3,7 @@ PhysicalName: ACTIVITY_PLANNER
 Fields:
   EventId: String(32) primary key
     PhysicalName: EventId
-  CalendarId: String(32)
+  CalendarId: Integer
     PhysicalName: CalendarId
   Title: String(332)
     PhysicalName: Title
