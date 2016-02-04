@@ -1,0 +1,6 @@
+﻿Type: Data
+DisplayLabel: Activity Calendar
+Controller: List
+  CenterController: CalendarPanel
+MainTable:
+  Model: ACTIVITY_PLANNER
