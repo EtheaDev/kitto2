@@ -263,7 +263,7 @@ type
     procedure SetFConvert(Value: TExtFunction);
     procedure SetFDateFormat(Value: string);
     procedure SetFDefaultValue(Value: string);
-    procedure SetFMapping(Value: string);
+    procedure SetMapping(AValue: string);
     procedure SetFMappingNumber(Value: Integer);
     procedure _SetName(const AValue: string);
     procedure SetFSortDir(Value: string);
@@ -278,7 +278,7 @@ type
     property Convert: TExtFunction read FConvert write SetFConvert;
     property DateFormat: string read FDateFormat write SetFDateFormat;
     property DefaultValue: string read FDefaultValue write SetFDefaultValue;
-    property Mapping: string read FMapping write SetFMapping;
+    property Mapping: string read FMapping write SetMapping;
     property MappingNumber: Integer read FMappingNumber write SetFMappingNumber;
     property name: string read FName write _SetName;
     property SortDir: string read FSortDir write SetFSortDir;
@@ -591,7 +591,7 @@ type
     FOnWrite: TExtDataStoreOnWrite;
     FTotalLength: Integer;
     procedure SetFAutoDestroy(Value: Boolean);
-    procedure SetFAutoLoad(Value: Boolean);
+    procedure SetAutoLoad(const AValue: Boolean);
     procedure SetFAutoLoadObject(Value: TExtObject);
     procedure SetFAutoSave(Value: Boolean);
     procedure SetFBaseParams(Value: TExtObject);
@@ -605,7 +605,7 @@ type
     procedure SetRemoteSort(const AValue: Boolean);
     procedure SetFRestful(Value: Boolean);
     procedure SetFSortInfo(Value: TExtObject);
-    procedure SetFStoreId(Value: string);
+    procedure SetStoreId(AValue: string);
     procedure SetUrl(const AValue: string);
     procedure SetWriter(const AValue: TExtDataDataWriter);
     procedure SetFBaseParams_(Value: TExtObject);
@@ -699,7 +699,7 @@ type
     function Sum(PropertyJS: string; Start: Integer = 0; EndJS: Integer = 0)
       : TExtFunction;
     property AutoDestroy: Boolean read FAutoDestroy write SetFAutoDestroy;
-    property AutoLoad: Boolean read FAutoLoad write SetFAutoLoad;
+    property AutoLoad: Boolean read FAutoLoad write SetAutoLoad;
     property AutoLoadObject: TExtObject read FAutoLoadObject write SetFAutoLoadObject;
     property AutoSave: Boolean read FAutoSave write SetFAutoSave;
     property BaseParams: TExtObject read FBaseParams write SetFBaseParams;
@@ -715,7 +715,7 @@ type
     property RemoteSort: Boolean read FRemoteSort write SetRemoteSort;
     property Restful: Boolean read FRestful write SetFRestful;
     property SortInfo: TExtObject read FSortInfo write SetFSortInfo;
-    property StoreId: string read FStoreId write SetFStoreId;
+    property StoreId: string read FStoreId write SetStoreId;
     property TotalLength: Integer  read FTotalLength write SetTotalLength;
     property Url: string read FUrl write SetUrl;
     property Writer: TExtDataDataWriter read FWriter write SetWriter;
@@ -1823,10 +1823,10 @@ begin
   JSCode('defaultValue:' + VarToJSON([Value]));
 end;
 
-procedure TExtDataField.SetFMapping(Value: string);
+procedure TExtDataField.SetMapping(AValue: string);
 begin
-  FMapping := Value;
-  JSCode('mapping:' + VarToJSON([Value]));
+  FMapping := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'mapping', [AValue]);
 end;
 
 procedure TExtDataField.SetFMappingNumber(Value: Integer);
@@ -2579,10 +2579,10 @@ begin
   JSCode('autoDestroy:' + VarToJSON([Value]));
 end;
 
-procedure TExtDataStore.SetFAutoLoad(Value: Boolean);
+procedure TExtDataStore.SetAutoLoad(const AValue: Boolean);
 begin
-  FAutoLoad := Value;
-  JSCode('autoLoad:' + VarToJSON([Value]));
+  FAutoLoad := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'autoLoad', [AValue]);
 end;
 
 procedure TExtDataStore.SetFAutoLoadObject(Value: TExtObject);
@@ -2671,10 +2671,10 @@ begin
   JSCode('sortInfo:' + VarToJSON([Value, false]));
 end;
 
-procedure TExtDataStore.SetFStoreId(Value: string);
+procedure TExtDataStore.SetStoreId(AValue: string);
 begin
-  FStoreId := Value;
-  JSCode('storeId:' + VarToJSON([Value]));
+  FStoreId := AValue;
+  ExtSession.ResponseItems.SetProperty(Self, 'storeId', [AValue]);
 end;
 
 procedure TExtDataStore.SetUrl(const AValue: string);
