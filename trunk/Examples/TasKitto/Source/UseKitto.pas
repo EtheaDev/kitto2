@@ -20,6 +20,7 @@ uses
   Kitto.Localization.dxgettext,
   Kitto.Metadata.ModelImplementation,
   Kitto.Metadata.ViewBuilders,
+  Kitto.Ext.CalendarPanel,
   Kitto.Ext.All
   ;
 

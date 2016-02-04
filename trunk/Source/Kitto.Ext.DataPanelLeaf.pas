@@ -34,6 +34,7 @@ type
   strict private
     FRefreshButton: TKExtButton;
   strict protected
+    function IsClientStoreAutoLoadEnabled: Boolean; virtual;
     procedure AddTopToolbarButtons; override;
     procedure ExecuteNamedAction(const AActionName: string); override;
     function GetParentDataPanel: TKExtDataPanelController;
@@ -118,9 +119,17 @@ end;
 procedure TKExtDataPanelLeafController.LoadData;
 begin
   inherited;
-  Assert(Assigned(ClientStore));
+  if not IsClientStoreAutoLoadEnabled then
+  begin
+    Assert(Assigned(ClientStore));
 
-  ClientStore.Load(JSObject('params:{start:0,limit:0,Obj:"' + JSName + '"}'));
+    ClientStore.Load(JSObject('params:{start:0,limit:0,Obj:"' + JSName + '"}'));
+  end;
+end;
+
+function TKExtDataPanelLeafController.IsClientStoreAutoLoadEnabled: Boolean;
+begin
+  Result := False;
 end;
 
 procedure TKExtDataPanelLeafController.UpdateObserver(

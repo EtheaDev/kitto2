@@ -101,6 +101,11 @@ type
     function GetControllerToRemove: TObject; override;
   end;
 
+  TKExtRef = record
+    IsCSS: Boolean;
+    Path: string;
+  end;
+
   TKExtSession = class(TExtSession, IEFInterface, IEFObserver)
   strict private
     FHomeController: TObject;
@@ -128,6 +133,8 @@ type
     FCreationDateTime: TDateTime;
     FLastRequestDateTime: TDateTime;
     FDisplayName: string;
+    class var
+      FAdditionalRefs: TList<TKExtRef>;
     procedure LoadLibraries;
     procedure DisplayHomeView;
     procedure DisplayLoginView;
@@ -309,6 +316,12 @@ type
     ///  If the specified files don't exist or were already added, nothing is done.
     /// </summary>
     procedure EnsureViewSupportFiles(const AView: TKView);
+
+    /// <summary>
+    ///  Calls this in the initialization section of a unit defining a controller
+    ///  to ensure that additional javascript or css files are included.
+    /// </summary>
+    class procedure AddAdditionalRef(const APath: string; const AIsCSS: Boolean = False);
 
     /// <summary>
     ///  True if the last request came from a mobile browser.
@@ -530,6 +543,7 @@ class destructor TKExtSession.Destroy;
 begin
   TEFMacroExpansionEngine.OnGetInstance := nil;
   TKConfig.OnGetInstance := nil;
+  FreeAndNil(FAdditionalRefs);
 end;
 
 procedure TKExtSession.ReloadOrDisplayHomeView;
@@ -828,6 +842,7 @@ procedure TKExtSession.LoadLibraries;
 var
   LLibraries: TStringDynArray;
   LLibName: string;
+  LRef: TKExtRef;
 begin
 { TODO :
 Find a way to reference optional libraries only if the controllers that need
@@ -839,11 +854,8 @@ Duplicates must be handled/ignored. }
   SetLibrary(ExtPath + '/examples/ux/fileuploadfield/FileUploadField');
   SetCSS(ExtPath + '/examples/ux/fileuploadfield/css/fileuploadfield');
 
-  SetLibrary(ExtPath + '/examples/ux/RowEditor');
-  SetCSS(ExtPath + '/examples/shared/examples');
-  SetCSS(ExtPath + '/examples/ux/css/RowEditor');
-
   SetLibrary(ExtPath + '/examples/shared/examples'); // For Ext.msg.
+  SetCSS(ExtPath + '/examples/shared/examples');
   SetRequiredLibrary('DateTimeField');
   SetRequiredLibrary('NumericField');
   SetRequiredLibrary('DefaultButton');
@@ -855,34 +867,13 @@ Duplicates must be handled/ignored. }
   SetRequiredLibrary('kitto-init');
   SetOptionalLibrary('application', True);
 
-  // For Calendar support
-  SetCSS(ExtPath + '/examples/calendar/resources/css/calendar');
-  SetLibrary(ExtPath + '/examples/calendar/src/Ext.calendar');
-  SetLibrary(ExtPath + '/examples/calendar/src/templates/DayHeaderTemplate');
-  SetLibrary(ExtPath + '/examples/calendar/src/templates/DayBodyTemplate');
-  SetLibrary(ExtPath + '/examples/calendar/src/templates/DayViewTemplate');
-  SetLibrary(ExtPath + '/examples/calendar/src/templates/BoxLayoutTemplate');
-  SetLibrary(ExtPath + '/examples/calendar/src/templates/MonthViewTemplate');
-  SetLibrary(ExtPath + '/examples/calendar/src/dd/CalendarScrollManager');
-  SetLibrary(ExtPath + '/examples/calendar/src/dd/StatusProxy');
-  SetLibrary(ExtPath + '/examples/calendar/src/dd/CalendarDD');
-  SetLibrary(ExtPath + '/examples/calendar/src/dd/DayViewDD');
-  SetLibrary(ExtPath + '/examples/calendar/src/EventRecord');
-  SetLibrary(ExtPath + '/examples/calendar/src/widgets/CalendarPicker');
-  SetLibrary(ExtPath + '/examples/calendar/src/WeekEventRenderer');
-  SetLibrary(ExtPath + '/examples/calendar/src/views/CalendarView');
-  SetLibrary(ExtPath + '/examples/calendar/src/views/DayHeaderView');
-  SetLibrary(ExtPath + '/examples/calendar/src/views/DayBodyView');
-  SetLibrary(ExtPath + '/examples/calendar/src/views/DayView');
-  SetLibrary(ExtPath + '/examples/calendar/src/views/MonthDayDetailView');
-  SetLibrary(ExtPath + '/examples/calendar/src/views/MonthView');
-  SetLibrary(ExtPath + '/examples/calendar/src/views/WeekView');
-  SetLibrary(ExtPath + '/examples/calendar/src/widgets/DateRangeField');
-  SetLibrary(ExtPath + '/examples/calendar/src/widgets/ReminderField');
-  SetLibrary(ExtPath + '/examples/calendar/src/EventEditForm');
-  SetLibrary(ExtPath + '/examples/calendar/src/EventEditWindow');
-  SetLibrary(ExtPath + '/examples/calendar/src/CalendarPanel');
-
+  for LRef in FAdditionalRefs do
+  begin
+    if LRef.IsCSS then
+      SetCSS(ExtPath + LRef.Path)
+    else
+      SetLibrary(ExtPath + LRef.Path);
+  end;
 
   LLibraries := Config.Config.GetStringArray('JavaScriptLibraries');
   for LLibName in LLibraries do
@@ -1183,6 +1174,15 @@ begin
   Result := FIsMobileBrowser;
 end;
 
+class procedure TKExtSession.AddAdditionalRef(const APath: string; const AIsCSS: Boolean);
+var
+  LValue: TKExtRef;
+begin
+  LValue.Path := APath;
+  LValue.IsCSS := AIsCSS;
+  FAdditionalRefs.Add(LValue);
+end;
+
 procedure TKExtSession.AddUploadedFile(
   const AFileDescriptor: TKExtUploadedFile);
 begin
@@ -1281,6 +1281,7 @@ begin
       else
         Result := nil;
     end;
+  FAdditionalRefs := TList<TKExtRef>.Create;
 end;
 
 procedure TKExtSession.SetViewHost(const AValue: IKExtViewHost);
