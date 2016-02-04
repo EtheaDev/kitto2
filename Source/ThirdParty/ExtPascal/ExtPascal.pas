@@ -1116,7 +1116,7 @@ begin
     '  <meta name="mobile-web-app-capable" content="yes" />' + sLineBreak +
     '  <meta name="apple-mobile-web-app-capable" content="yes" />' + sLineBreak +
     '  <link rel=stylesheet href="<%ExtPath%>/resources/css/<%ExtBuild%>.css" />' + sLineBreak +
-    '  <script src="<%ExtPath%>/adapter/ext/ext-base.js"></script>' + sLineBreak +
+    '  <script src="<%ExtPath%>/adapter/ext/ext-base<%DebugSuffix%>.js"></script>' + sLineBreak +
     '  <script src="<%ExtPath%>/<%ExtBuild%><%DebugSuffix%>.js"></script>' + sLineBreak +
     {$IFDEF DEBUGJS}
     '  <script src="/codepress/Ext.ux.CodePress.js"></script>' + sLineBreak +
