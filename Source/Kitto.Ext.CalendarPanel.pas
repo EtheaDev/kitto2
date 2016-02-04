@@ -29,21 +29,26 @@ type
   TKExtCalendarPanel = class(TKExtDataPanelLeafController)
   strict private
     FCalendarPanel: TExtCalendarPanel;
+    FCalendarStore: TExtDataStore;
+    FCalendarReader: TExtDataJsonReader;
     procedure CreateAndInitCalendar;
-  strict
-  private
     function GetStartDateFieldName: string;
-  private
-    function GetEndDateFieldName: string; protected
+    function GetEndDateFieldName: string;
+    function CreateCalendarReader: TExtDataJsonReader;
+    function CreateCalendarStore: TExtDataStore;
+  strict protected
+    property CalendarStore: TExtDataStore read FCalendarStore;
     procedure SetViewTable(const AValue: TKViewTable); override;
     function IsClientStoreAutoLoadEnabled: Boolean; override;
     function GetRecordPageFilter: string; override;
+  published
+    procedure GetCalendarRecords;
   end;
 
 implementation
 
 uses
-  SysUtils, StrUtils, Types,
+  SysUtils, StrUtils, Types, JSON,
   EF.Localization, EF.Macros, EF.StrUtils, EF.SQL,
   Kitto.Types, Kitto.Ext.Utils, Kitto.Metadata.Models, Kitto.Ext.Session,
   Kitto.Ext.Controller;
@@ -60,7 +65,6 @@ begin
 
   FCalendarPanel.ActiveItem := 2; // month view
 
-
   // Some optional CalendarPanel configs to experiment with:
   FCalendarPanel.ShowDayView := False;
   FCalendarPanel.ShowWeekView := False;
@@ -68,10 +72,9 @@ begin
   FCalendarPanel.ShowNavBar := True;
   FCalendarPanel.ShowTodayText := True;
   FCalendarPanel.ShowTime := True;
+
   FCalendarPanel.EventStore := ClientStore;
-//  FCalendarPanel.CalendarStore := TExtDataArrayStore.Create(Self);
-//  FCalendarPanel.CalendarStore.StoreId := 'calendarStore';
-  //FCalendarPanel.CalendarStore.idProperty := 'id';
+  FCalendarPanel.CalendarStore := CalendarStore;
 end;
 
 function TKExtCalendarPanel.GetRecordPageFilter: string;
@@ -86,7 +89,7 @@ var
   begin
     LParts := EF.StrUtils.Split(ADateMDY, '-');
     if Length(LParts) = 3 then
-      Result := EncodeDate(LParts[2].ToInteger, LParts[0].ToInteger, LParts[1].ToInteger)
+      Result := EncodeDate(StrToInt(LParts[2]), StrToInt(LParts[0]), StrToInt(LParts[1]))
     else
       Result := 0;
   end;
@@ -114,6 +117,30 @@ begin
   Result := 'StartDate';
 end;
 
+procedure TKExtCalendarPanel.GetCalendarRecords;
+var
+  LJSONArray: TJSONArray;
+
+  procedure AddItem(const AId: Integer; const ATitle: string);
+  var
+    LObject: TJSONObject;
+  begin
+    LObject := TJSONObject.Create;
+    LObject.AddPair('CalendarId', TJSONNumber.Create(AId));
+    LObject.AddPair('Title', ATitle);
+    LJSONArray.AddElement(LObject);
+  end;
+
+begin
+  LJSONArray := TJSONArray.Create;
+  try
+    AddItem(1, 'Installation');
+    Session.ResponseItems.AddJSON(Format('{Success: true, Total: %d, Root: %s}', [6, LJSONArray.ToJSON]));
+  finally
+    Free;
+  end;
+end;
+
 function TKExtCalendarPanel.GetEndDateFieldName: string;
 begin
   Result := 'EndDate';
@@ -132,13 +159,53 @@ begin
 
   Assert(Assigned(AValue));
 
+  FCalendarStore := CreateCalendarStore;
+  FCalendarReader := CreateCalendarReader;
+  FCalendarStore.Reader := FCalendarReader;
+
   CreateAndInitCalendar;
+end;
+
+function TKExtCalendarPanel.CreateCalendarReader: TExtDataJsonReader;
+
+  procedure AddReaderField(const AReader: TExtDataJsonReader; const AName, AType: string; const AUseNull: Boolean);
+  var
+    LField: TExtDataField;
+  begin
+    LField := TExtDataField.CreateAndAddTo(AReader.Fields);
+    LField.Name := AName;
+    LField.&Type := AType;
+    LField.UseNull := AUseNull;
+  end;
+
+begin
+  Assert(Assigned(ViewTable));
+
+  Result := TExtDataJsonReader.Create(Self, JSObject('')); // Must pass '' otherwise invalid code is generated.
+  Result.Root := 'Root';
+  Result.TotalProperty := 'Total';
+  Result.MessageProperty := 'Msg';
+  Result.SuccessProperty := 'Success';
+
+  AddReaderField(Result, 'CalendarId', 'int', False);
+  AddReaderField(Result, 'Title', 'string', False);
+end;
+
+function TKExtCalendarPanel.CreateCalendarStore: TExtDataStore;
+begin
+  Result := TExtDataStore.Create(Self);
+  Result.RemoteSort := False;
+  Result.Url := MethodURI(GetCalendarRecords);
+  Result.On('exception', JSFunction('proxy, type, action, options, response, arg', 'loadError(type, action, response);'));
 end;
 
 initialization
   TKExtControllerRegistry.Instance.RegisterClass('CalendarPanel', TKExtCalendarPanel);
 
   TKExtSession.AddAdditionalRef('/examples/calendar/resources/css/calendar', True);
+  TKExtSession.AddAdditionalRef('/examples/calendar/calendar-all' + {$IFDEF DebugExtJS}'-debug'{$ELSE}''{$ENDIF});
+
+(*
   TKExtSession.AddAdditionalRef('/examples/calendar/src/Ext.calendar');
   TKExtSession.AddAdditionalRef('/examples/calendar/src/templates/DayHeaderTemplate');
   TKExtSession.AddAdditionalRef('/examples/calendar/src/templates/DayBodyTemplate');
@@ -164,6 +231,7 @@ initialization
   TKExtSession.AddAdditionalRef('/examples/calendar/src/EventEditForm');
   TKExtSession.AddAdditionalRef('/examples/calendar/src/EventEditWindow');
   TKExtSession.AddAdditionalRef('/examples/calendar/src/CalendarPanel');
+*)
 
 finalization
   TKExtControllerRegistry.Instance.UnregisterClass('CalendarPanel');
