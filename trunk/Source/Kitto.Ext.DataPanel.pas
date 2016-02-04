@@ -125,6 +125,7 @@ type
     procedure ExecuteNamedAction(const AActionName: string); override;
     procedure DoGetRecordPage(const AStart, ALimit: Integer; const AFillResponse: Boolean);
     function GetIsPaged: Boolean; virtual;
+    function GetRecordPageFilter: string; virtual;
   public
     procedure AfterConstruction; override;
     destructor Destroy; override;
@@ -583,26 +584,25 @@ begin
   DoGetRecordPage(Session.QueryAsInteger['start'], Session.QueryAsInteger['limit'], True);
 end;
 
+function TKExtDataPanelController.GetRecordPageFilter: string;
+var
+  LFilter: string;
+  LLookupFilter: string;
+begin
+  LFilter := GetRootDataPanel.GetFilterExpression;
+  if LFilter <> '' then
+    LFilter := '(' + LFilter + ')';
+  LLookupFilter := Config.GetString('Sys/LookupFilter');
+  if LLookupFilter <> '' then
+    LLookupFilter := '(' + LLookupFilter + ')';
+  Result := SmartConcat(LFilter, ' and ', LLookupFilter);
+end;
+
 procedure TKExtDataPanelController.DoGetRecordPage(const AStart, ALimit: Integer;
   const AFillResponse: Boolean);
 var
   LTotal: Integer;
   LData: string;
-
-  function GetFilter: string;
-  var
-    LFilter: string;
-    LLookupFilter: string;
-  begin
-    LFilter := GetRootDataPanel.GetFilterExpression;
-    if LFilter <> '' then
-      LFilter := '(' + LFilter + ')';
-    LLookupFilter := Config.GetString('Sys/LookupFilter');
-    if LLookupFilter <> '' then
-      LLookupFilter := '(' + LLookupFilter + ')';
-    Result := SmartConcat(LFilter, ' and ', LLookupFilter);
-  end;
-
 begin
   try
     // Don't refresh if there are pending changes.
@@ -614,7 +614,7 @@ begin
     end
     else
     begin
-      LTotal := ViewTable.Model.LoadRecords(ServerStore, GetFilter, GetOrderByClause, AStart, ALimit,
+      LTotal := ViewTable.Model.LoadRecords(ServerStore, GetRecordPageFilter, GetOrderByClause, AStart, ALimit,
         procedure (ARecord: TEFNode)
         begin
           Assert(ARecord is TKViewTableRecord);

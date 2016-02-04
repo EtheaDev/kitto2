@@ -30,16 +30,21 @@ type
   strict private
     FCalendarPanel: TExtCalendarPanel;
     procedure CreateAndInitCalendar;
-  strict protected
+  strict
+  private
+    function GetStartDateFieldName: string;
+  private
+    function GetEndDateFieldName: string; protected
     procedure SetViewTable(const AValue: TKViewTable); override;
     function IsClientStoreAutoLoadEnabled: Boolean; override;
+    function GetRecordPageFilter: string; override;
   end;
 
 implementation
 
 uses
-  SysUtils, StrUtils,
-  EF.Localization, EF.Macros,
+  SysUtils, StrUtils, Types,
+  EF.Localization, EF.Macros, EF.StrUtils, EF.SQL,
   Kitto.Types, Kitto.Ext.Utils, Kitto.Metadata.Models, Kitto.Ext.Session,
   Kitto.Ext.Controller;
 
@@ -67,6 +72,51 @@ begin
 //  FCalendarPanel.CalendarStore := TExtDataArrayStore.Create(Self);
 //  FCalendarPanel.CalendarStore.StoreId := 'calendarStore';
   //FCalendarPanel.CalendarStore.idProperty := 'id';
+end;
+
+function TKExtCalendarPanel.GetRecordPageFilter: string;
+var
+  LStartDateStr: string;
+  LEndDateStr: string;
+  LFilter: string;
+
+  function ParseJSDate(const ADateMDY: string): TDateTime;
+  var
+    LParts: TStringDynArray;
+  begin
+    LParts := EF.StrUtils.Split(ADateMDY, '-');
+    if Length(LParts) = 3 then
+      Result := EncodeDate(LParts[2].ToInteger, LParts[0].ToInteger, LParts[1].ToInteger)
+    else
+      Result := 0;
+  end;
+
+begin
+  Result := inherited GetRecordPageFilter;
+
+  LStartDateStr := Session.Query['start'];
+  LEndDateStr := Session.Query['end'];
+  if (LStartDateStr <> '') and (LEndDateStr <> '') then
+  begin
+    LStartDateStr := Session.Config.DBConnections[ViewTable.DatabaseName].DBEngineType.FormatDateTime(ParseJSDate(LStartDateStr));
+    LEndDateStr := Session.Config.DBConnections[ViewTable.DatabaseName].DBEngineType.FormatDateTime(ParseJSDate(LEndDateStr));
+    LFilter := GetStartDateFieldName + ' between ' + SQLQuotedStr(LStartDateStr) + ' and ' + SQLQuotedStr(LEndDateStr) +
+      ' or ' + SQLQuotedStr(LStartDateStr) + ' between ' + GetStartDateFieldName + ' and ' + GetEndDateFieldName;
+    if Result = '' then
+      Result := LFilter
+    else
+      Result := Result + ' and (' + LFilter + ')';
+  end;
+end;
+
+function TKExtCalendarPanel.GetStartDateFieldName: string;
+begin
+  Result := 'StartDate';
+end;
+
+function TKExtCalendarPanel.GetEndDateFieldName: string;
+begin
+  Result := 'EndDate';
 end;
 
 function TKExtCalendarPanel.IsClientStoreAutoLoadEnabled: Boolean;
