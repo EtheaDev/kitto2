@@ -3081,6 +3081,7 @@ type
     FAutoHeight: Boolean;
     FAutoLoad: TExtObject;
     FAutoLoadString: string;
+    FAutoLoadBoolean: Boolean;
     FAutoLoadFunction: TExtFunction;
     FBaseCls: string; // 'x-panel'
     FBbar: TExtObject;
@@ -3164,7 +3165,8 @@ type
     procedure SetFApplyTo(Value: string);
     procedure SetAutoHeight(const AValue: Boolean);
     procedure SetFAutoLoad(Value: TExtObject);
-    procedure SetFAutoLoadString(Value: string);
+    procedure SetAutoLoadString(AValue: string);
+    procedure SetAutoLoadBoolean(const AValue: Boolean);
     procedure SetFAutoLoadFunction(Value: TExtFunction);
     procedure SetFBaseCls(Value: string);
     procedure SetBbar(const AValue: TExtObject);
@@ -3275,7 +3277,8 @@ type
     property ApplyTo: string read FApplyTo write SetFApplyTo;
     property AutoHeight: Boolean read FAutoHeight write SetAutoHeight;
     property AutoLoad: TExtObject read FAutoLoad write SetFAutoLoad;
-    property AutoLoadString: string read FAutoLoadString write SetFAutoLoadString;
+    property AutoLoadString: string read FAutoLoadString write SetAutoLoadString;
+    property AutoLoadBoolean: Boolean read FAutoLoadBoolean write SetAutoLoadBoolean;
     property AutoLoadFunction: TExtFunction read FAutoLoadFunction
       write SetFAutoLoadFunction;
     property BaseCls: string read FBaseCls write SetFBaseCls;
@@ -11413,13 +11416,13 @@ end;
 procedure TExtContainer.SetFActiveItem(Value: string);
 begin
   FActiveItem := Value;
-  JSCode('activeItem:' + VarToJSON([Value]));
+  ExtSession.ResponseItems.SetConfigItem(Self, 'activeItem', [Value]);
 end;
 
 procedure TExtContainer.SetFActiveItemNumber(Value: Integer);
 begin
   FActiveItemNumber := Value;
-  JSCode('activeItem:' + VarToJSON([Value]));
+  ExtSession.ResponseItems.SetConfigItem(Self, 'activeItemNumber', [Value]);
 end;
 
 procedure TExtContainer.SetFAutoDestroy(Value: Boolean);
@@ -12723,10 +12726,16 @@ begin
   JSCode('autoLoad:' + VarToJSON([Value, false]));
 end;
 
-procedure TExtPanel.SetFAutoLoadString(Value: string);
+procedure TExtPanel.SetAutoLoadString(AValue: string);
 begin
-  FAutoLoadString := Value;
-  JSCode('autoLoad:' + VarToJSON([Value]));
+  FAutoLoadString := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'autoLoad', [AValue]);
+end;
+
+procedure TExtPanel.SetAutoLoadBoolean(const AValue: Boolean);
+begin
+  FAutoLoadBoolean := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'autoLoad', [AValue]);
 end;
 
 procedure TExtPanel.SetFAutoLoadFunction(Value: TExtFunction);

@@ -855,6 +855,35 @@ Duplicates must be handled/ignored. }
   SetRequiredLibrary('kitto-init');
   SetOptionalLibrary('application', True);
 
+  // For Calendar support
+  SetCSS(ExtPath + '/examples/calendar/resources/css/calendar');
+  SetLibrary(ExtPath + '/examples/calendar/src/Ext.calendar');
+  SetLibrary(ExtPath + '/examples/calendar/src/templates/DayHeaderTemplate');
+  SetLibrary(ExtPath + '/examples/calendar/src/templates/DayBodyTemplate');
+  SetLibrary(ExtPath + '/examples/calendar/src/templates/DayViewTemplate');
+  SetLibrary(ExtPath + '/examples/calendar/src/templates/BoxLayoutTemplate');
+  SetLibrary(ExtPath + '/examples/calendar/src/templates/MonthViewTemplate');
+  SetLibrary(ExtPath + '/examples/calendar/src/dd/CalendarScrollManager');
+  SetLibrary(ExtPath + '/examples/calendar/src/dd/StatusProxy');
+  SetLibrary(ExtPath + '/examples/calendar/src/dd/CalendarDD');
+  SetLibrary(ExtPath + '/examples/calendar/src/dd/DayViewDD');
+  SetLibrary(ExtPath + '/examples/calendar/src/EventRecord');
+  SetLibrary(ExtPath + '/examples/calendar/src/widgets/CalendarPicker');
+  SetLibrary(ExtPath + '/examples/calendar/src/WeekEventRenderer');
+  SetLibrary(ExtPath + '/examples/calendar/src/views/CalendarView');
+  SetLibrary(ExtPath + '/examples/calendar/src/views/DayHeaderView');
+  SetLibrary(ExtPath + '/examples/calendar/src/views/DayBodyView');
+  SetLibrary(ExtPath + '/examples/calendar/src/views/DayView');
+  SetLibrary(ExtPath + '/examples/calendar/src/views/MonthDayDetailView');
+  SetLibrary(ExtPath + '/examples/calendar/src/views/MonthView');
+  SetLibrary(ExtPath + '/examples/calendar/src/views/WeekView');
+  SetLibrary(ExtPath + '/examples/calendar/src/widgets/DateRangeField');
+  SetLibrary(ExtPath + '/examples/calendar/src/widgets/ReminderField');
+  SetLibrary(ExtPath + '/examples/calendar/src/EventEditForm');
+  SetLibrary(ExtPath + '/examples/calendar/src/EventEditWindow');
+  SetLibrary(ExtPath + '/examples/calendar/src/CalendarPanel');
+
+
   LLibraries := Config.Config.GetStringArray('JavaScriptLibraries');
   for LLibName in LLibraries do
     SetRequiredLibrary(LLibName);
