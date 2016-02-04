@@ -1,0 +1,23 @@
+﻿ModelName: ACTIVITY_PLANNER
+PhysicalName: ACTIVITY_PLANNER
+Fields:
+  EventId: String(32) primary key
+    PhysicalName: EventId
+  CalendarId: String(32)
+    PhysicalName: CalendarId
+  Title: String(332)
+    PhysicalName: Title
+  StartDate: DateTime
+    PhysicalName: StartDate
+  EndDate: DateTime
+    PhysicalName: EndDate
+  Notes: String(80)
+    PhysicalName: Notes
+  RoleId: String(32)
+    PhysicalName: ROLE_ID
+  TypeId: String(32)
+    PhysicalName: TYPE_ID
+  ActivityDate: Date
+    PhysicalName: ACTIVITY_DATE
+  Status: String(12)
+    PhysicalName: STATUS

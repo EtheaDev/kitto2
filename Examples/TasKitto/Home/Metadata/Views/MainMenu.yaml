@@ -16,6 +16,7 @@ Folder: Activities
   View: ActivityInput
   View: ActivityReport
   View: ActivityTemplate
+  View: ActivityCalendar
 Folder: Statistics
   View: ActivityPieChart
   View: ActivityBarChart
