@@ -119,34 +119,6 @@ function fireChangeIfEmpty(obj)
   }
 };
 
-
-// Calls an Ajax method if buttonId is "yes". The method to
-// call is specified in obj.params.methodURL. The selection model
-// specified in obj.params.selModel is used to get all values specified
-// in obj.params.fieldNames from the first selected record and pass
-// them in the Selection param to the Ajax method.
-// This function should be used as a message box handler.
-// All params specified above should be passed in the message
-// box opt config, inside an object called params.
-function ajaxSingleSelection(buttonId, text, obj)
-{
-  if (buttonId == "yes")
-  {
-    var
-      selValues = {},
-      selRecord = obj.params.selModel.getSelected(),
-      fieldNames = obj.params.fieldNames.split(',');
-    for (var i = 0; i < fieldNames.length; i++)
-      selValues[fieldNames[i]] = selRecord.get(fieldNames[i]);
-    return Ext.Ajax.request({
-      url: obj.params.methodURL,
-      params: "Ajax=1&" + objectToParams(selValues),
-      success: AjaxSuccess,
-      failure: AjaxFailure
-    });
-  }
-};
-
 // Calls an Ajax method if buttonId is "yes". The method to
 // call is specified in obj.params.methodURL. The selection model
 // specified in obj.params.selModel is used to get all values specified
@@ -155,7 +127,7 @@ function ajaxSingleSelection(buttonId, text, obj)
 // This function should be used as a message box handler.
 // All params specified above should be passed in the message
 // box opt config, inside an object called params.
-function ajaxMultiSelection(buttonId, text, obj)
+function ajaxSelection(buttonId, text, obj)
 {
   if (buttonId == "yes")
   {
@@ -230,8 +202,7 @@ function ajaxSimple(buttonId, text, obj)
 };
 
 // Asks a confirmation message and calls a specified function
-// when the dialog box is dismissed. Used together with ajaxSimple
-// and ajaxMultiSelection.
+// when the dialog box is dismissed. To be used with functions like ajaxSimple.
 function confirmCall(title, question, functionToCall, functionParams)
 {
   showMessage({
@@ -244,18 +215,31 @@ function confirmCall(title, question, functionToCall, functionParams)
   });
 };
 
-// Asks a confirmation message and calls ajaxSingleSelection
+function expandObjectProperties(template, object)
+{
+  var s = template;
+  for (var p in object)
+    s = s.replace('{' + p + '}', object[p]);
+  return s;
+}
+
+// Asks a confirmation message and calls ajaxSelection
 // when the dialog box is dismissed. The question is built by replacing
 // the {caption} token in questionTpl with the value of captionFieldName
 // in the last selected record in selModel.
+// Any {fieldname} tokens are also replaced with values from the same record.
 function selectConfirmCall(title, questionTpl, selModel, captionFieldName, functionParams)
 {
+  var lastRecord = selModel.getSelections().slice(-1)[0];
+  var processedMsg = (captionFieldName !== "") && (questionTpl.indexOf("{caption}") !== -1) ? questionTpl.replace("{caption}", lastRecord.get(captionFieldName).toString()) : questionTpl;
+  processedMsg = expandObjectProperties(processedMsg, lastRecord.data);
+
   showMessage({
     title: title,
-    msg: (captionFieldName !== "") && (questionTpl.indexOf("{caption}") !== -1) ? questionTpl.replace("{caption}", selModel.getSelections().slice(-1)[0].get(captionFieldName).toString()) : questionTpl,
+    msg: processedMsg,
     buttons: Ext.MessageBox.YESNO,
     icon: Ext.MessageBox.QUESTION,
-    fn: ajaxSingleSelection,
+    fn: ajaxSelection,
     params: functionParams
   });
 };
@@ -266,9 +250,13 @@ function selectConfirmCall(title, questionTpl, selModel, captionFieldName, funct
 // in the last selected record in selModel.
 function selectDataViewConfirmCall(title, questionTpl, dataView, captionFieldName, functionParams)
 {
+  var lastRecord = dataView.getSelectedRecords()[0];
+  var processedMsg = (captionFieldName !== "") && (questionTpl.indexOf("{caption}") !== -1) ? questionTpl.replace("{caption}", lastRecord.get(captionFieldName).toString()) : questionTpl;
+  processedMsg = expandObjectProperties(processedMsg, lastRecord.data);
+  
   showMessage({
     title: title,
-    msg: (captionFieldName !== "") && (questionTpl.indexOf("{caption}") !== -1) ? questionTpl.replace("{caption}", dataView.getSelectedRecords()[0].get(captionFieldName).toString()) : questionTpl,
+    msg: processedMsg,
     buttons: Ext.MessageBox.YESNO,
     icon: Ext.MessageBox.QUESTION,
     fn: ajaxDataViewSelection,
