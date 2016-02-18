@@ -280,7 +280,7 @@ type
     property DefaultValue: string read FDefaultValue write SetFDefaultValue;
     property Mapping: string read FMapping write SetMapping;
     property MappingNumber: Integer read FMappingNumber write SetFMappingNumber;
-    property name: string read FName write _SetName;
+    property Name: string read FName write _SetName;
     property SortDir: string read FSortDir write SetFSortDir;
     property SortType: TExtFunction read FSortType write SetFSortType;
     property &Type: string read FType write SetType;
