@@ -32,8 +32,8 @@ type
     FCalendarStore: TExtDataStore;
     FCalendarReader: TExtDataJsonReader;
     procedure CreateAndInitCalendar;
-    function GetStartDateFieldName: string;
-    function GetEndDateFieldName: string;
+    function GetStartDateDBName: string;
+    function GetEndDateDBName: string;
     function CreateCalendarReader: TExtDataJsonReader;
     function CreateCalendarStore: TExtDataStore;
   strict protected
@@ -103,8 +103,8 @@ begin
   begin
     LStartDateStr := Session.Config.DBConnections[ViewTable.DatabaseName].DBEngineType.FormatDateTime(ParseJSDate(LStartDateStr));
     LEndDateStr := Session.Config.DBConnections[ViewTable.DatabaseName].DBEngineType.FormatDateTime(ParseJSDate(LEndDateStr));
-    LFilter := GetStartDateFieldName + ' between ' + SQLQuotedStr(LStartDateStr) + ' and ' + SQLQuotedStr(LEndDateStr) +
-      ' or ' + SQLQuotedStr(LStartDateStr) + ' between ' + GetStartDateFieldName + ' and ' + GetEndDateFieldName;
+    LFilter := GetStartDateDBName + ' between ' + SQLQuotedStr(LStartDateStr) + ' and ' + SQLQuotedStr(LEndDateStr) +
+      ' or ' + SQLQuotedStr(LStartDateStr) + ' between ' + GetStartDateDBName + ' and ' + GetEndDateDBName;
     if Result = '' then
       Result := LFilter
     else
@@ -112,9 +112,14 @@ begin
   end;
 end;
 
-function TKExtCalendarPanel.GetStartDateFieldName: string;
+function TKExtCalendarPanel.GetStartDateDBName: string;
 begin
-  Result := 'StartDate';
+  Result := ViewTable.FieldByAliasedName('StartDate').DBNameOrExpression;
+end;
+
+function TKExtCalendarPanel.GetEndDateDBName: string;
+begin
+  Result := ViewTable.FieldByAliasedName('EndDate').DBNameOrExpression;
 end;
 
 procedure TKExtCalendarPanel.GetCalendarRecords;
@@ -139,11 +144,6 @@ begin
   finally
     Free;
   end;
-end;
-
-function TKExtCalendarPanel.GetEndDateFieldName: string;
-begin
-  Result := 'EndDate';
 end;
 
 function TKExtCalendarPanel.IsClientStoreAutoLoadEnabled: Boolean;
