@@ -40,7 +40,7 @@ type
   ///  encode and decode data of a particular type.
   /// </summary>
   TEFDataType = class
-  protected
+  strict protected
     procedure InternalNodeToParam(const ANode: TEFNode; const AParam: TParam); virtual;
     procedure InternalFieldValueToNode(const AField: TField; const ANode: TEFNode); virtual;
     procedure InternalNodeToField(const ANode: TEFNode; const AField: TField); virtual;
@@ -56,6 +56,7 @@ type
     class function HasSize: Boolean; virtual;
     class function HasScale: Boolean; virtual;
     class function GetFieldType: TFieldType; virtual;
+    class function NeedsQuotes: Boolean; virtual;
 
     class procedure SetNodeDataTypeAndValueFromYaml(const AYamlValue: string;
       const ANode: TEFNode; const AFormatSettings: TFormatSettings;
@@ -226,6 +227,8 @@ type
   TEFNumericDataTypeBase = class(TEFDataType)
   strict protected
     function StripThousandSeparator(const AValue: string; const AFormatSettings: TFormatSettings): string;
+  public
+    class function NeedsQuotes: Boolean; override;
   end;
 
   TEFIntegerDataType = class(TEFNumericDataTypeBase)
@@ -2857,6 +2860,11 @@ begin
     Result := Format(XMLTagFormat, [LTagName, Result, LTagName]);
 end;
 
+class function TEFDataType.NeedsQuotes: Boolean;
+begin
+  Result := True;
+end;
+
 procedure TEFDataType.NodeToField(const ANode: TEFNode; const AField: TField);
 begin
   Assert(Assigned(ANode));
@@ -3777,6 +3785,11 @@ begin
 end;
 
 { TEFNumericDataTypeBase }
+
+class function TEFNumericDataTypeBase.NeedsQuotes: Boolean;
+begin
+  Result := False;
+end;
 
 function TEFNumericDataTypeBase.StripThousandSeparator(const AValue: string;
   const AFormatSettings: TFormatSettings): string;

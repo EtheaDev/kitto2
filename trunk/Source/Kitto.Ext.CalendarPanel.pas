@@ -21,14 +21,14 @@ unit Kitto.Ext.CalendarPanel;
 interface
 
 uses
-  Ext, ExtCalendar, ExtData,
+  Ext, ExtPascal, ExtPascalUtils, ExtensibleCalendar, ExtData,
   EF.Tree,
   Kitto.Metadata.DataView, Kitto.Ext.Base, Kitto.Ext.DataPanelLeaf;
 
 type
   TKExtCalendarPanel = class(TKExtDataPanelLeafController)
   strict private
-    FCalendarPanel: TExtCalendarPanel;
+    FCalendarPanel: TExtensibleCalendarPanel;
     FCalendarStore: TExtDataStore;
     FCalendarReader: TExtDataJsonReader;
     procedure CreateAndInitCalendar;
@@ -37,12 +37,16 @@ type
     function CreateCalendarReader: TExtDataJsonReader;
     function CreateCalendarStore: TExtDataStore;
   strict protected
+    function GetSelectCall(const AMethod: TExtProcedure): TExtFunction; override;
+    function GetSelectConfirmCall(const AMessage: string; const AMethod: TExtProcedure): string; override;
     property CalendarStore: TExtDataStore read FCalendarStore;
     procedure SetViewTable(const AValue: TKViewTable); override;
     function IsClientStoreAutoLoadEnabled: Boolean; override;
     function GetRecordPageFilter: string; override;
+    function IsActionSupported(const AActionName: string): Boolean; override;
   published
     procedure GetCalendarRecords;
+    procedure LoadData; override;
   end;
 
 implementation
@@ -59,19 +63,29 @@ procedure TKExtCalendarPanel.CreateAndInitCalendar;
 begin
   Assert(ClientStore <> nil);
 
-  FCalendarPanel := TExtCalendarPanel.CreateAndAddTo(Items);
+  FCalendarPanel := TExtensibleCalendarPanel.CreateAndAddTo(Items);
   FCalendarPanel.Region := rgCenter;
   FCalendarPanel.Border := False;
 
-  FCalendarPanel.ActiveItem := 2; // month view
+  FCalendarPanel.DayText := _('Day');
+  FCalendarPanel.MonthText := _('Month');
+  FCalendarPanel.GoText := _('Go');
+  FCalendarPanel.JumpToText := _('Jump to:');
+  // Disables the built-in editors.
+  //FCalendarPanel.ReadOnly := True;
 
-  // Some optional CalendarPanel configs to experiment with:
-  FCalendarPanel.ShowDayView := False;
-  FCalendarPanel.ShowWeekView := False;
+  FCalendarPanel.ShowDayView := True;
+  FCalendarPanel.ShowMultiDayView := True; // 3 days
+  FCalendarPanel.ShowWeekView := True;
+  FCalendarPanel.ShowMultiWeekView := True; // 2 weeks
   FCalendarPanel.ShowMonthView := True;
+  FCalendarPanel.ActiveItem := 4; // month view
+
   FCalendarPanel.ShowNavBar := True;
   FCalendarPanel.ShowTodayText := True;
   FCalendarPanel.ShowTime := True;
+
+  FCalendarPanel.On('dayclick', Ajax(NewRecord));
 
   FCalendarPanel.EventStore := ClientStore;
   FCalendarPanel.CalendarStore := CalendarStore;
@@ -83,13 +97,13 @@ var
   LEndDateStr: string;
   LFilter: string;
 
-  function ParseJSDate(const ADateMDY: string): TDateTime;
+  function ParseJSDate(const ADateYMD: string): TDateTime;
   var
     LParts: TStringDynArray;
   begin
-    LParts := EF.StrUtils.Split(ADateMDY, '-');
+    LParts := EF.StrUtils.Split(ADateYMD, '-');
     if Length(LParts) = 3 then
-      Result := EncodeDate(StrToInt(LParts[2]), StrToInt(LParts[0]), StrToInt(LParts[1]))
+      Result := EncodeDate(StrToInt(LParts[0]), StrToInt(LParts[1]), StrToInt(LParts[2]))
     else
       Result := 0;
   end;
@@ -112,6 +126,20 @@ begin
   end;
 end;
 
+function TKExtCalendarPanel.GetSelectCall(const AMethod: TExtProcedure): TExtFunction;
+begin
+  Result := JSFunction(Format('ajaxCalendarSelection("yes", "", {params: {methodURL: "%s", calendarPanel: %s, fieldNames: "%s"}});',
+    [MethodURI(AMethod), FCalendarPanel.JSName, Join(ViewTable.GetKeyFieldAliasedNames, ',')]));
+end;
+
+function TKExtCalendarPanel.GetSelectConfirmCall(const AMessage: string;
+  const AMethod: TExtProcedure): string;
+begin
+  Result := Format('selectCalendarConfirmCall("%s", "%s", %s, "%s", {methodURL: "%s", calendarPanel: %s, fieldNames: "%s"});',
+    [_(Session.Config.AppTitle), AMessage, FCalendarPanel.JSName, ViewTable.Model.CaptionField.FieldName, MethodURI(AMethod),
+    FCalendarPanel.JSName, Join(ViewTable.GetKeyFieldAliasedNames, ',')]);
+end;
+
 function TKExtCalendarPanel.GetStartDateDBName: string;
 begin
   Result := ViewTable.FieldByAliasedName('StartDate').DBNameOrExpression;
@@ -126,31 +154,56 @@ procedure TKExtCalendarPanel.GetCalendarRecords;
 var
   LJSONArray: TJSONArray;
 
-  procedure AddItem(const AId: Integer; const ATitle: string);
+  procedure AddItem(const AId: Integer; const ATitle, ADescription: string;
+    const AColorId: Integer; AIsHidden: Boolean);
   var
     LObject: TJSONObject;
   begin
     LObject := TJSONObject.Create;
     LObject.AddPair('CalendarId', TJSONNumber.Create(AId));
     LObject.AddPair('Title', ATitle);
+    LObject.AddPair('Description', ADescription);
+    LObject.AddPair('ColorId', TJSONNumber.Create(AColorId));
+    LObject.AddPair('IsHidden', TJSONBool.Create(AIsHidden));
     LJSONArray.AddElement(LObject);
   end;
 
 begin
   LJSONArray := TJSONArray.Create;
   try
-    AddItem(1, 'Installation');
-    Session.ResponseItems.AddJSON(Format('{Success: true, Total: %d, Root: %s}', [6, LJSONArray.ToJSON]));
+    AddItem(1, 'First', 'First Calendar', 16711680, False);
+    AddItem(2, 'Second', 'Second Calendar', 65280, False);
+    AddItem(3, 'Third', 'Third Calendar', 255, False);
+    AddItem(4, 'Fourth', 'Fourth Calendar', 16711680, False);
+    AddItem(5, 'Fifth', 'Fifth Calendar', 65280, False);
+    AddItem(6, 'Sixth', 'Sixth Calendar', 255, False);
+    AddItem(7, 'Seventh', 'Seventh Calendar', 16711680, False);
+    AddItem(8, 'Eighth', 'Eighth Calendar', 65280, False);
+    AddItem(9, 'Ninth', 'Ninth Calendar', 255, False);
+    AddItem(10, 'Tenth', 'Tenth Calendar', 65280, False);
+    Session.ResponseItems.AddJSON(Format('{Success: true, Total: %d, Root: %s}', [3, LJSONArray.ToJSON]));
   finally
-    Free;
+    FreeAndNil(LJSONArray);
   end;
+end;
+
+function TKExtCalendarPanel.IsActionSupported(const AActionName: string): Boolean;
+begin
+  Result := True;
 end;
 
 function TKExtCalendarPanel.IsClientStoreAutoLoadEnabled: Boolean;
 begin
   // We don't need to call the store's load method, as the calendar
   // panel does that automatically.
-  Result := True;
+  Result := False;
+end;
+
+procedure TKExtCalendarPanel.LoadData;
+begin
+  inherited;
+  if Assigned(CalendarStore) then
+    CalendarStore.Load(JSObject(''));
 end;
 
 procedure TKExtCalendarPanel.SetViewTable(const AValue: TKViewTable);
@@ -189,6 +242,9 @@ begin
 
   AddReaderField(Result, 'CalendarId', 'int', False);
   AddReaderField(Result, 'Title', 'string', False);
+  AddReaderField(Result, 'Description', 'string', False);
+  AddReaderField(Result, 'ColorId', 'string', False);
+  AddReaderField(Result, 'Hidden', 'boolean', False);
 end;
 
 function TKExtCalendarPanel.CreateCalendarStore: TExtDataStore;
@@ -202,35 +258,38 @@ end;
 initialization
   TKExtControllerRegistry.Instance.RegisterClass('CalendarPanel', TKExtCalendarPanel);
 
-  TKExtSession.AddAdditionalRef('/examples/calendar/resources/css/calendar', True);
-  TKExtSession.AddAdditionalRef('/examples/calendar/calendar-all' + {$IFDEF DebugExtJS}'-debug'{$ELSE}''{$ENDIF});
+  TKExtSession.AddAdditionalRef('/extensible-1.0.2/resources/css/extensible-all', True);
+  TKExtSession.AddAdditionalRef('/extensible-1.0.2/lib/extensible-all' + {$IFDEF DebugExtJS}'-debug'{$ELSE}''{$ENDIF});
+
+//  TKExtSession.AddAdditionalRef('{ext}/examples/calendar/resources/css/calendar', True);
+//  TKExtSession.AddAdditionalRef('{ext}/examples/calendar/calendar-all' + {$IFDEF DebugExtJS}'-debug'{$ELSE}''{$ENDIF});
 
 (*
-  TKExtSession.AddAdditionalRef('/examples/calendar/src/Ext.calendar');
-  TKExtSession.AddAdditionalRef('/examples/calendar/src/templates/DayHeaderTemplate');
-  TKExtSession.AddAdditionalRef('/examples/calendar/src/templates/DayBodyTemplate');
-  TKExtSession.AddAdditionalRef('/examples/calendar/src/templates/DayViewTemplate');
-  TKExtSession.AddAdditionalRef('/examples/calendar/src/templates/BoxLayoutTemplate');
-  TKExtSession.AddAdditionalRef('/examples/calendar/src/templates/MonthViewTemplate');
-  TKExtSession.AddAdditionalRef('/examples/calendar/src/dd/CalendarScrollManager');
-  TKExtSession.AddAdditionalRef('/examples/calendar/src/dd/StatusProxy');
-  TKExtSession.AddAdditionalRef('/examples/calendar/src/dd/CalendarDD');
-  TKExtSession.AddAdditionalRef('/examples/calendar/src/dd/DayViewDD');
-  TKExtSession.AddAdditionalRef('/examples/calendar/src/EventRecord');
-  TKExtSession.AddAdditionalRef('/examples/calendar/src/widgets/CalendarPicker');
-  TKExtSession.AddAdditionalRef('/examples/calendar/src/WeekEventRenderer');
-  TKExtSession.AddAdditionalRef('/examples/calendar/src/views/CalendarView');
-  TKExtSession.AddAdditionalRef('/examples/calendar/src/views/DayHeaderView');
-  TKExtSession.AddAdditionalRef('/examples/calendar/src/views/DayBodyView');
-  TKExtSession.AddAdditionalRef('/examples/calendar/src/views/DayView');
-  TKExtSession.AddAdditionalRef('/examples/calendar/src/views/MonthDayDetailView');
-  TKExtSession.AddAdditionalRef('/examples/calendar/src/views/MonthView');
-  TKExtSession.AddAdditionalRef('/examples/calendar/src/views/WeekView');
-  TKExtSession.AddAdditionalRef('/examples/calendar/src/widgets/DateRangeField');
-  TKExtSession.AddAdditionalRef('/examples/calendar/src/widgets/ReminderField');
-  TKExtSession.AddAdditionalRef('/examples/calendar/src/EventEditForm');
-  TKExtSession.AddAdditionalRef('/examples/calendar/src/EventEditWindow');
-  TKExtSession.AddAdditionalRef('/examples/calendar/src/CalendarPanel');
+  TKExtSession.AddAdditionalRef('{ext}/examples/calendar/src/Ext.calendar');
+  TKExtSession.AddAdditionalRef('{ext}/examples/calendar/src/templates/DayHeaderTemplate');
+  TKExtSession.AddAdditionalRef('{ext}/examples/calendar/src/templates/DayBodyTemplate');
+  TKExtSession.AddAdditionalRef('{ext}/examples/calendar/src/templates/DayViewTemplate');
+  TKExtSession.AddAdditionalRef('{ext}/examples/calendar/src/templates/BoxLayoutTemplate');
+  TKExtSession.AddAdditionalRef('{ext}/examples/calendar/src/templates/MonthViewTemplate');
+  TKExtSession.AddAdditionalRef('{ext}/examples/calendar/src/dd/CalendarScrollManager');
+  TKExtSession.AddAdditionalRef('{ext}/examples/calendar/src/dd/StatusProxy');
+  TKExtSession.AddAdditionalRef('{ext}/examples/calendar/src/dd/CalendarDD');
+  TKExtSession.AddAdditionalRef('{ext}/examples/calendar/src/dd/DayViewDD');
+  TKExtSession.AddAdditionalRef('{ext}/examples/calendar/src/EventRecord');
+  TKExtSession.AddAdditionalRef('{ext}/examples/calendar/src/widgets/CalendarPicker');
+  TKExtSession.AddAdditionalRef('{ext}/examples/calendar/src/WeekEventRenderer');
+  TKExtSession.AddAdditionalRef('{ext}/examples/calendar/src/views/CalendarView');
+  TKExtSession.AddAdditionalRef('{ext}/examples/calendar/src/views/DayHeaderView');
+  TKExtSession.AddAdditionalRef('{ext}/examples/calendar/src/views/DayBodyView');
+  TKExtSession.AddAdditionalRef('{ext}/examples/calendar/src/views/DayView');
+  TKExtSession.AddAdditionalRef('{ext}/examples/calendar/src/views/MonthDayDetailView');
+  TKExtSession.AddAdditionalRef('{ext}/examples/calendar/src/views/MonthView');
+  TKExtSession.AddAdditionalRef('{ext}/examples/calendar/src/views/WeekView');
+  TKExtSession.AddAdditionalRef('{ext}/examples/calendar/src/widgets/DateRangeField');
+  TKExtSession.AddAdditionalRef('{ext}/examples/calendar/src/widgets/ReminderField');
+  TKExtSession.AddAdditionalRef('{ext}/examples/calendar/src/EventEditForm');
+  TKExtSession.AddAdditionalRef('{ext}/examples/calendar/src/EventEditWindow');
+  TKExtSession.AddAdditionalRef('{ext}/examples/calendar/src/CalendarPanel');
 *)
 
 finalization
