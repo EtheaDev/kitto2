@@ -2973,7 +2973,10 @@ initialization
   TEFDataTypeRegistry.Instance.RegisterClass(TKFileReferenceDataType.GetTypeName, TKFileReferenceDataType);
 
 finalization
-  TKViewRegistry.Instance.UnregisterClass(TKMetadata.SYS_PREFIX + 'Data');
+  // For some reason, the unit defining TKViewRegistry is finalized before this one.
+  // I need to avlid creating TKViewRegistry.Instance at this point.
+  if TKViewRegistry.HasInstance then
+    TKViewRegistry.Instance.UnregisterClass(TKMetadata.SYS_PREFIX + 'Data');
   TEFDataTypeRegistry.Instance.UnregisterClass(TKFileReferenceDataType.GetTypeName);
 
 end.
