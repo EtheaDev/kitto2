@@ -180,6 +180,7 @@ type
     class destructor Destroy;
   public
     class property Instance: TKViewRegistry read GetInstance;
+    class function HasInstance: Boolean;
     function GetClass(const AId1, AId2: string): TKViewClass;
   end;
 
@@ -610,6 +611,11 @@ begin
   if FInstance = nil then
     FInstance := TKViewRegistry.Create;
   Result := FInstance;
+end;
+
+class function TKViewRegistry.HasInstance: Boolean;
+begin
+  Result := Assigned(FInstance);
 end;
 
 { TKLayoutRegistry }
