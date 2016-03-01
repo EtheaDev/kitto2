@@ -601,6 +601,7 @@ procedure TExtSession.SetLibrary(pLibrary : string = ''; CSS : boolean = false; 
 var
   Root : string;
 begin
+  pLibrary := ReplaceStr(pLibrary, '{ext}', ExtPath);
   if pos(pLibrary + '.js', FLibraries) = 0 then
     if pLibrary = '' then
       FLibraries := '' // Clear FLibraries
@@ -634,6 +635,7 @@ procedure TExtSession.SetCSS(pCSS : string; Check : boolean = true);
 var
   Root : string;
 begin
+  pCSS := ReplaceStr(pCSS, '{ext}', ExtPath);
   if pos(pCSS + '.css', FLibraries) = 0 then
     if pCSS = '' then
       FLibraries := '' // Clear FLibraries

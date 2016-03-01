@@ -3,4 +3,10 @@ DisplayLabel: Activity Calendar
 Controller: List
   CenterController: CalendarPanel
 MainTable:
-  Model: ACTIVITY_PLANNER
+  Model: ACTIVITY_CALENDAR
+  Controller:
+    FormController:
+      CloneButton:
+    PopupWindow:
+      Width: 600
+      Height: 400
