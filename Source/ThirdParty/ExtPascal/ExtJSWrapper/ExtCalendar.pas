@@ -756,6 +756,15 @@ procedure TExtCalendarView.SetFOnDatechange(Value : TExtCalendarViewOnDatechange
   FOnDatechange := Value;
 end;
 
+procedure TExtCalendarView.SetFOnDayclick(Value: TExtCalendarViewOnDayclick);
+begin
+  if Assigned(FOnDayover) then
+    JSCode(JSName+'.events ["dayclick"].listeners=[];');
+  if Assigned(Value) then
+    AddListener('dayclick', Ajax('dayclick', ['This', '%0.nm', 'Dt', '%1', 'AllDay', '%2', 'El', '%3.nm'], true));
+  FOnDayover := Value;
+end;
+
 procedure TExtCalendarView.SetFOnDayout(Value : TExtCalendarViewOnDayout); begin
   if Assigned(FOnDayout) then
     JSCode(JSName+'.events ["dayout"].listeners=[];');

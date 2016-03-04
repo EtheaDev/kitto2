@@ -34,6 +34,7 @@ type
     procedure CreateAndInitCalendar;
     function GetStartDateDBName: string;
     function GetEndDateDBName: string;
+    function GetDateFieldNameForNewRecords: string;
     function CreateCalendarReader: TExtDataJsonReader;
     function CreateCalendarStore: TExtDataStore;
   strict protected
@@ -44,9 +45,11 @@ type
     function IsClientStoreAutoLoadEnabled: Boolean; override;
     function GetRecordPageFilter: string; override;
     function IsActionSupported(const AActionName: string): Boolean; override;
+    procedure SetNewRecordDefaultValues(const ANode: TEFNode); override;
   published
     procedure GetCalendarRecords;
     procedure LoadData; override;
+    procedure CalendarDayClick(This : TExtensibleCalendarPanel; Dt : TDateTime; Allday : Boolean; El : TExtElement);
   end;
 
 implementation
@@ -58,6 +61,11 @@ uses
   Kitto.Ext.Controller;
 
 { TKExtCalendarPanel }
+
+procedure TKExtCalendarPanel.CalendarDayClick(This : TExtensibleCalendarPanel; Dt : TDateTime; Allday : Boolean; El : TExtElement);
+begin
+  NewRecord;
+end;
 
 procedure TKExtCalendarPanel.CreateAndInitCalendar;
 begin
@@ -85,7 +93,8 @@ begin
   FCalendarPanel.ShowTodayText := True;
   FCalendarPanel.ShowTime := True;
 
-  FCalendarPanel.On('dayclick', Ajax(NewRecord));
+  FCalendarPanel.On('dayclick', JSFunction('cal, dt, allday, el',
+    GetAjaxCode(NewRecord, '', ['m', '%dt.getMonth() + 1', 'y', '%dt.getFullYear()', 'd', '%dt.getDate()', 'allday', '%allday']) + 'return false;'));
 
   FCalendarPanel.EventStore := ClientStore;
   FCalendarPanel.CalendarStore := CalendarStore;
@@ -150,6 +159,19 @@ begin
   Result := ViewTable.FieldByAliasedName('EndDate').DBNameOrExpression;
 end;
 
+procedure TKExtCalendarPanel.SetNewRecordDefaultValues(const ANode: TEFNode);
+var
+  LDay: Integer;
+  LMonth: Integer;
+  LYear: Integer;
+begin
+  LDay := Session.QueryAsInteger['d'];
+  LMonth := Session.QueryAsInteger['m'];
+  LYear := Session.QueryAsInteger['y'];
+
+  ANode.GetNode('Sys/DefaultValues/' + GetDateFieldNameForNewRecords, True).AsDateTime :=  EncodeDate(LYear, LMonth, LDay);
+end;
+
 procedure TKExtCalendarPanel.GetCalendarRecords;
 var
   LJSONArray: TJSONArray;
@@ -185,6 +207,11 @@ begin
   finally
     FreeAndNil(LJSONArray);
   end;
+end;
+
+function TKExtCalendarPanel.GetDateFieldNameForNewRecords: string;
+begin
+  Result := ViewTable.GetString('Controller/DateFieldName', 'StartDate');
 end;
 
 function TKExtCalendarPanel.IsActionSupported(const AActionName: string): Boolean;

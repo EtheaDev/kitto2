@@ -5,6 +5,7 @@ Controller: List
 MainTable:
   Model: ACTIVITY_CALENDAR
   Controller:
+    DateFieldName: ActivityDate
     FormController:
       CloneButton:
     PopupWindow:
