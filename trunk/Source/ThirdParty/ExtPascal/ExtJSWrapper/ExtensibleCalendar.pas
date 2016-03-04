@@ -1093,9 +1093,9 @@ end;
 
 procedure TExtensibleCalendarPanel.SetFOnDayclick(Value : TExtensibleCalendarPanelOnDayclick); begin
   if Assigned(FOnDayclick) then
-    JSCode(JSName+'.events ["dayclick"].listeners=[];');
+    RemoveAllListeners('dayclick');
   if Assigned(Value) then
-    AddListener('dayclick', Ajax('dayclick', ['This', '%0.nm','Dt', '%1','Allday', '%2','El', '%3.nm'], true));
+    AddListener('dayclick', Ajax('dayclick', ['This', '%0.nm','Dt', '%1','Allday', '%2','El', '%3.nm'], True));
   FOnDayclick := Value;
 end;
 

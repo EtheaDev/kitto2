@@ -427,6 +427,15 @@ var
     end;
   end;
 
+  procedure MergeCallerDefaultValues;
+  var
+    LCallerDefaultValues: TEFNode;
+  begin
+    LCallerDefaultValues := Config.FindNode('Sys/DefaultValues');
+    if Assigned(LCallerDefaultValues) then
+      LDefaultValues.Merge(LCallerDefaultValues);
+  end;
+
   function IsCloned: Boolean;
   begin
     Result := SameText(FOperation, 'Add') and Assigned(FCloneValues);
@@ -459,6 +468,7 @@ begin
         end
         else
           LDefaultValues := ViewTable.GetDefaultValues;
+        MergeCallerDefaultValues;
         SwitchChangeNotifications(False);
         try
           StoreRecord.ReadFromNode(LDefaultValues);

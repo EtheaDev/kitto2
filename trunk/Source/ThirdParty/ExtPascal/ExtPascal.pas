@@ -2425,16 +2425,16 @@ begin
   end;
 end;
 
-function SurroundAjaxParam(Param : string) : string;
+function SurroundAjaxParam(Param: string): string;
 var
-  I : integer;
+  I: Integer;
 begin
-  I := pos('%', Param);
-  if (I <> 0) and (I <> length(Param))  then
-    if CharInSet(Param[I+1], ['0'..'9']) then
-      Result := '"+encodeURIComponent(' + Param + ')+"'
+  I := Pos('%', Param);
+  if (I <> 0) and (I <> Length(Param))  then
+    if CharInSet(Param[I + 1], ['0'..'9']) then
+      Result := '" + encodeURIComponent(' + Param + ') + "'
     else
-      Result := '"+encodeURIComponent(' + copy(Param, I+1, length(Param)) + ')+"'
+      Result := '" + encodeURIComponent(' + Copy(Param, I + 1, Length(Param)) + ') + "'
   else
     Result := Param;
 end;

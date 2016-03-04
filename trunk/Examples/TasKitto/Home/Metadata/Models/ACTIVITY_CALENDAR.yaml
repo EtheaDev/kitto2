@@ -8,8 +8,7 @@ Fields:
     PhysicalName: ACTIVITY_ID
     DefaultValue: %COMPACT_GUID%
   CalendarId: Integer
-    Expression: 1
-    Expression2: cast(rand() * 10 as int)
+    Expression: cast(rand() * 10 as int)
   Employee: Reference(EMPLOYEE) not null
     Fields:
       EMPLOYEE_ID:

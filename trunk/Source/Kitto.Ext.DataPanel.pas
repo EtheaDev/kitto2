@@ -24,7 +24,7 @@ uses
   Generics.Collections,
   Ext, ExtPascal, ExtPascalUtils, ExtData,
   superobject,
-  EF.Classes, EF.ObserverIntf,
+  EF.Classes, EF.ObserverIntf, EF.Tree,
   Kitto.Metadata.Views, Kitto.Metadata.DataView, Kitto.Store, Kitto.Types,
   Kitto.Ext.Base, Kitto.Ext.Controller, Kitto.Ext.BorderPanel, Kitto.Ext.Editors;
 
@@ -126,6 +126,7 @@ type
     procedure DoGetRecordPage(const AStart, ALimit: Integer; const AFillResponse: Boolean);
     function GetIsPaged: Boolean; virtual;
     function GetRecordPageFilter: string; virtual;
+    procedure SetNewRecordDefaultValues(const ANode: TEFNode); virtual;
   public
     procedure AfterConstruction; override;
     destructor Destroy; override;
@@ -151,7 +152,7 @@ implementation
 
 uses
   SysUtils, StrUtils, Math, Types, Classes,
-  EF.StrUtils, EF.SysUtils, EF.Tree, EF.Localization,
+  EF.StrUtils, EF.SysUtils, EF.Localization,
   Kitto.AccessControl, Kitto.Config, Kitto.Rules, Kitto.SQL,
   Kitto.Ext.Session, KItto.Ext.Utils;
 
@@ -380,7 +381,9 @@ begin
     FEditHostWindow, ViewTable.View, FEditHostWindow, LFormControllerNode, Self, LFormControllerType);
   LFormController.Config.SetObject('Sys/ServerStore', ServerStore);
   if Assigned(ARecord) then
-    LFormController.Config.SetObject('Sys/Record', ARecord);
+    LFormController.Config.SetObject('Sys/Record', ARecord)
+  else
+    SetNewRecordDefaultValues(LFormController.Config);
   LFormController.Config.SetObject('Sys/ViewTable', ViewTable);
   LFormController.Config.SetObject('Sys/HostWindow', FEditHostWindow);
   LFormController.Config.SetObject('Sys/CallingController', Self);
@@ -667,6 +670,10 @@ begin
     Result := ViewTable.GetInteger('MaxRecords', 100)
   else
     Result := 1000;
+end;
+
+procedure TKExtDataPanelController.SetNewRecordDefaultValues(const ANode: TEFNode);
+begin
 end;
 
 function TKExtDataPanelController.GetDefaultAutoOpen: Boolean;

@@ -329,8 +329,7 @@ end;
 function TExtUtilObservable.AddListener(EventName: string; Handler: TExtFunction;
   Scope: TExtObject = nil; Options: TExtObject = nil): TExtFunction;
 begin
-  JSCode(JSName + '.addListener(' + VarToJSON([EventName, Handler, true, Scope, false,
-    Options, false]) + ');', 'TExtUtilObservable');
+  ExtSession.ResponseItems.CallMethod(Self, 'addListener', [EventName, Handler, True, Scope, False, Options, False]);
   Result := Self;
 end;
 
