@@ -306,10 +306,11 @@ type
     FConfig: TEFNode;
     FItems: TEFNode;
     FViewTable: TKViewTable;
+    function GetACName: string;
     function RetrieveItems: TEFNode; virtual; abstract;
     function GetItemExpression(const AItemIndex: Integer): string; virtual; abstract;
     function IsSingleSelect: Boolean;
-    function IsButtonVisible(const AResourceName: string): Boolean; virtual;
+    function IsButtonVisible(const AACName: string): Boolean; virtual;
   public
     procedure SetConfig(const AConfig: TEFNode);
     function AsExtObject: TExtObject;
@@ -1038,15 +1039,15 @@ begin
   { TODO : implement }
 end;
 
-function TKButtonListFilterBase.IsButtonVisible(const AResourceName: string): Boolean;
+function TKButtonListFilterBase.IsButtonVisible(const AACName: string): Boolean;
 var
-  LResourceURI: string;
+  LACURI: string;
 begin
   Result := True;
   if Assigned(FViewTable) and Assigned(FConfig) then
   begin
-    LResourceURI := FViewTable.View.GetResourceURI + '/Filters/' +  FConfig.GetExpandedString('ResourceName') + '/' + AResourceName;
-    Result := TKConfig.Instance.IsAccessGranted(LResourceURI, ACM_VIEW);
+    LACURI := FViewTable.View.GetACURI + '/Filters/' +  GetACName + '/' + AACName;
+    Result := TKConfig.Instance.IsAccessGranted(LACURI, ACM_VIEW);
   end;
 end;
 
@@ -1060,6 +1061,14 @@ var
   I: Integer;
   LIsDefaultSet: Boolean;
   LButtons: TArray<TKExtButton>;
+
+  function GetACName(const AIndex: Integer): string;
+  begin
+    Result := FItems.Children[AIndex].GetExpandedString('ACName');
+    if Result = '' then
+      Result := FItems.Children[AIndex].GetExpandedString('ResourceName');
+  end;
+
 begin
   Assert(Assigned(AConfig));
 
@@ -1080,7 +1089,7 @@ begin
     LButtons[I].Text := _(FItems.Children[I].AsString);
     LButtons[I].AllowDepress := not IsSingleSelect;
     LButtons[I].EnableToggle := True;
-    if IsButtonVisible(FItems.Children[I].GetExpandedString('ResourceName')) then
+    if IsButtonVisible(GetACName(I)) then
     begin
       if IsSingleSelect then
         LButtons[I].ToggleGroup := IntToStr(Integer(Pointer(Self)));
@@ -1159,6 +1168,13 @@ end;
 function TKButtonListFilterBase.ExpandValues(const AString: string): string;
 begin
   Result := AString;
+end;
+
+function TKButtonListFilterBase.GetACName: string;
+begin
+  Result := FConfig.GetExpandedString('ACName');
+  if Result = '' then
+    Result := FConfig.GetExpandedString('ResourceName');
 end;
 
 function TKButtonListFilterBase.GetExpression: string;

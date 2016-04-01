@@ -956,7 +956,7 @@ procedure TKExtDataPanelController.CheckCanRead;
 begin
   Assert(ViewTable <> nil);
 
-  Session.Config.CheckAccessGranted(ViewTable.GetResourceURI, ACM_READ);
+  ViewTable.CheckAccessGranted(ACM_READ);
 end;
 
 procedure TKExtDataPanelController.SetFieldValue(const AField: TKViewTableField;

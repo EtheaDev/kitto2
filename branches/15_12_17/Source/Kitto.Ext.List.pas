@@ -35,9 +35,9 @@ type
     FView: TKDataView;
     FLiveMode: Boolean;
     procedure DoChange;
-    function IsFilterVisible(const AResourceName: string): Boolean;
-    function GetFilterResourceURI(const AResourceName: string): string;
-    function IsFilterReadOnly(const AResourceName: string): Boolean;
+    function IsFilterVisible(const AACName: string): Boolean;
+    function GetFilterACURI(const AACName: string): string;
+    function IsFilterReadOnly(const AACName: string): Boolean;
     procedure InvalidateFilter(const AId: string);
   protected
     procedure InitDefaults; override;
@@ -74,27 +74,27 @@ uses
 
 { TKExtFilterPanel }
 
-function TKExtFilterPanel.GetFilterResourceURI(const AResourceName: string): string;
+function TKExtFilterPanel.GetFilterACURI(const AACName: string): string;
 begin
   Assert(Assigned(FView));
 
-  Result := FView.GetResourceURI + '/Filters/' + AResourceName;
+  Result := FView.GetResourceURI + '/Filters/' + AACName;
 end;
 
-function TKExtFilterPanel.IsFilterVisible(const AResourceName: string): Boolean;
+function TKExtFilterPanel.IsFilterVisible(const AACName: string): Boolean;
 begin
-  if AResourceName = '' then
+  if AACName = '' then
     Result := True
   else
-    Result := TKConfig.Instance.IsAccessGranted(GetFilterResourceURI(AResourceName), ACM_VIEW);
+    Result := TKConfig.Instance.IsAccessGranted(GetFilterACURI(AACName), ACM_VIEW);
 end;
 
-function TKExtFilterPanel.IsFilterReadOnly(const AResourceName: string): Boolean;
+function TKExtFilterPanel.IsFilterReadOnly(const AACName: string): Boolean;
 begin
-  if AResourceName = '' then
+  if AACName = '' then
     Result := False
   else
-    Result := not TKConfig.Instance.IsAccessGranted(GetFilterResourceURI(AResourceName), ACM_MODIFY);
+    Result := not TKConfig.Instance.IsAccessGranted(GetFilterACURI(AACName), ACM_MODIFY);
 end;
 
 procedure TKExtFilterPanel.Configure(const AViewTable: TKViewTable; const AConfig: TEFNode);
@@ -102,7 +102,7 @@ var
   LItems: TEFNode;
   I: Integer;
   LNode: TEFNode;
-  LFilterResourceName: string;
+  LFilterACName: string;
   LCurrentPanel: TKExtFilterPanel;
 
   function CreateColumnBreak(const ANode: TEFNode): TKExtFilterPanel;
@@ -173,10 +173,12 @@ begin
   for I := 0 to LItems.ChildCount - 1 do
   begin
     LNode := LItems.Children[I];
-    LFilterResourceName := LNode.GetExpandedString('ResourceName');
-    if IsFilterVisible(LFilterResourceName) then
+    LFilterACName := LNode.GetExpandedString('ACName');
+    if LFilterACName = '' then
+      LFilterACName := LNode.GetExpandedString('ResourceName');
+    if IsFilterVisible(LFilterACName) then
     begin
-      LNode.SetBoolean('Sys/IsReadOnly', IsFilterReadOnly(LFilterResourceName));
+      LNode.SetBoolean('Sys/IsReadOnly', IsFilterReadOnly(LFilterACName));
       if SameText(LNode.Name, 'ColumnBreak') then
       begin
         LCurrentPanel := CreateColumnBreak(LNode);

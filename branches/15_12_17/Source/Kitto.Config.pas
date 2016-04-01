@@ -270,13 +270,13 @@ type
 
     /// <summary>Calls AC.GetAccessGrantValue passing the current user and
     /// returns the result.</summary>
-    function GetAccessGrantValue(const AResourceURI, AMode: string;
+    function GetAccessGrantValue(const AACURI, AMode: string;
       const ADefaultValue: Variant): Variant; virtual;
 
     /// <summary>Shortcut for GetAccessGrantValue for Boolean
     /// values. Returns True if a value is granted and it equals
     /// ACV_TRUE.</summary>
-    function IsAccessGranted(const AResourceURI, AMode: string): Boolean;
+    function IsAccessGranted(const AACURI, AMode: string): Boolean;
 
     /// <summary>Calls IsAccessGranted and raises an "access denied" exception
     /// if the return value is not True.</summary>
@@ -409,10 +409,9 @@ begin
   FreeAndNil(FModels);
 end;
 
-function TKConfig.IsAccessGranted(const AResourceURI,
-  AMode: string): Boolean;
+function TKConfig.IsAccessGranted(const AACURI, AMode: string): Boolean;
 begin
-  Result := GetAccessGrantValue(AResourceURI, AMode, Null) = ACV_TRUE;
+  Result := GetAccessGrantValue(AACURI, AMode, Null) = ACV_TRUE;
 end;
 
 function TKConfig.GetDBConnection(const ADatabaseName: string): TEFDBConnection;
@@ -700,11 +699,9 @@ begin
   Result := GetMetadataPath + FBaseConfigFileName;
 end;
 
-function TKConfig.GetAccessGrantValue(const AResourceURI,
-  AMode: string; const ADefaultValue: Variant): Variant;
+function TKConfig.GetAccessGrantValue(const AACURI, AMode: string; const ADefaultValue: Variant): Variant;
 begin
-  Result := AC.GetAccessGrantValue(Authenticator.UserName,
-    AResourceURI, AMode, ADefaultValue);
+  Result := AC.GetAccessGrantValue(Authenticator.UserName, AACURI, AMode, ADefaultValue);
 end;
 
 // Adds a .png extension to the resource name.

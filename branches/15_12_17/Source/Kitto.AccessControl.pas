@@ -46,8 +46,7 @@ type
     FLogHeader: Boolean;
     FLogSeparator: string;
     FLogDelimiter: string;
-    procedure WriteLog(const AUserId, AResourceURI, AMode, ADefaultValue,
-      AResult: string);
+    procedure WriteLog(const AUserId, AURI, AMode, ADefaultValue, AResult: string);
   strict protected
     class function InternalGetClassId: string; override;
 
@@ -55,8 +54,7 @@ type
     /// value that depends on AMode. In most cases this value will have to be
     /// True if the specified auser is allowed to access the resource and False
     /// otherwise, but it can be a value of any type.</summary>
-    function InternalGetAccessGrantValue(
-      const AUserId, AResourceURI, AMode: string): Variant; virtual; abstract;
+    function InternalGetAccessGrantValue(const AUserId, AURI, AMode: string): Variant; virtual; abstract;
 
     /// <summary>Implements Init.</summary>
     procedure InternalInit; virtual;
@@ -72,12 +70,11 @@ type
     ///   to construct a resource URI, where to get the user Id and what modes
     ///   are available.</para>
     /// </summary>
-    function GetAccessGrantValue(const AUserId, AResourceURI, AMode: string;
-      const ADefaultValue: Variant): Variant;
+    function GetAccessGrantValue(const AUserId, AURI, AMode: string; const ADefaultValue: Variant): Variant;
 
     /// <summary>Shortcut for GetAccessGrantValue for Boolean values. Returns
     /// True if a value is granted and it equals ACV_TRUE.</summary>
-    function IsAccessGranted(const AUserId, AResourceURI, AMode: string): Boolean;
+    function IsAccessGranted(const AUserId, AURI, AMode: string): Boolean;
 
     /// <summary>Returns True if the specified access mode is a standard mode,
     /// that is one of the ACM_* constants (except ACM_ALL).</summary>
@@ -161,8 +158,7 @@ type
   /// default.</summary>
   TKNullAccessController = class(TKAccessController)
   protected
-    function InternalGetAccessGrantValue(
-      const AUserId, AResourceURI, AMode: string): Variant; override;
+    function InternalGetAccessGrantValue(const AUserId, AURI, AMode: string): Variant; override;
   end;
 
 implementation
@@ -218,8 +214,7 @@ begin
     ACM_DELETE]);
 end;
 
-function TKAccessController.GetAccessGrantValue(const AUserId, AResourceURI,
-  AMode: string; const ADefaultValue: Variant): Variant;
+function TKAccessController.GetAccessGrantValue(const AUserId, AURI, AMode: string; const ADefaultValue: Variant): Variant;
 var
   LAllResult: Variant;
 begin
@@ -228,27 +223,27 @@ begin
 
   // Empty URIs identify nameless objects, access to which is always granted
   // and we don't even need to log it.
-  if AResourceURI = '' then
+  if AURI = '' then
     Result := ACV_TRUE
   else
   begin
-    Result := InternalGetAccessGrantValue(AUserId, AResourceURI, AMode);
+    Result := InternalGetAccessGrantValue(AUserId, AURI, AMode);
     // If no permission was found and a standard mode was specified,
     // try the catch-all-standard-modes mode. If a TRUE permission was found,
     // give a chance to revoke it (only for standard modes).
     if IsStandardMode(AMode) and (VarIsNull(Result) or (Result = ACV_TRUE)) then
     begin
-      LAllResult := InternalGetAccessGrantValue(AUserId, AResourceURI, ACM_ALL);
+      LAllResult := InternalGetAccessGrantValue(AUserId, AURI, ACM_ALL);
       if not VarIsNull(LAllResult) then
         Result := LAllResult;
     end;
     if VarIsNull(Result) then
       Result := ADefaultValue;
-    WriteLog(AUserId, AResourceURI, AMode, EFVarToStr(ADefaultValue), EFVarToStr(Result));
+    WriteLog(AUserId, AURI, AMode, EFVarToStr(ADefaultValue), EFVarToStr(Result));
   end;
 end;
 
-procedure TKAccessController.WriteLog(const AUserId, AResourceURI,
+procedure TKAccessController.WriteLog(const AUserId, AURI,
   AMode, ADefaultValue, AResult: string);
 
   function Delimit(const AString: string): string;
@@ -265,7 +260,7 @@ begin
   LLine :=
     Delimit(DateTimeToStr(Now)) + FLogSeparator +
     Delimit(AUserId) + FLogSeparator +
-    Delimit(AResourceURI) + FLogSeparator +
+    Delimit(AURI) + FLogSeparator +
     Delimit(AMode) + FLogSeparator +
     Delimit(IfThen(ADefaultValue = '', '<null>', ADefaultValue)) + FLogSeparator +
     Delimit(IfThen(AResult = '', '<null>', AResult));
@@ -277,7 +272,7 @@ begin
       FLogWriter.WriteLine(
         Delimit('DateTime') + FLogSeparator +
         Delimit('UserId') + FLogSeparator +
-        Delimit('ResourceURI') + FLogSeparator +
+        Delimit('URI') + FLogSeparator +
         Delimit('Mode') + FLogSeparator +
         Delimit('DefaultValue') + FLogSeparator +
         Delimit('Result'));
@@ -338,16 +333,16 @@ begin
   end;
 end;
 
-function TKAccessController.IsAccessGranted(const AUserId, AResourceURI,
+function TKAccessController.IsAccessGranted(const AUserId, AURI,
   AMode: string): Boolean;
 begin
-  Result := GetAccessGrantValue(AUserId, AResourceURI, AMode, Null) = ACV_TRUE;
+  Result := GetAccessGrantValue(AUserId, AURI, AMode, Null) = ACV_TRUE;
 end;
 
 { TKNullAccessController }
 
 function TKNullAccessController.InternalGetAccessGrantValue(
-  const AUserId, AResourceURI, AMode: string): Variant;
+  const AUserId, AURI, AMode: string): Variant;
 begin
   if IsStandardMode(AMode) then
     Result := ACV_TRUE
