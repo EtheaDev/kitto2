@@ -270,7 +270,7 @@ begin
   FModel.EnumPhysicalFields(
     procedure (AField: TKModelField)
     begin
-      AddSelectTerm(AField.AliasedDBColumnNameOrExpression);
+      AddSelectTerm(ExpandQualification(AField.DBColumnNameOrExpression,aModel.DBtablename));
     end);
 
   if ADBQuery.Prepared then
