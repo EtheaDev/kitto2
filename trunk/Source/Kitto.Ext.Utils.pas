@@ -61,6 +61,7 @@ type
     FClickHandler: TExtProcedure;
     FAddedItems: Integer;
     FSession: TKExtSession;
+    FTreeView: TKTreeView;
     procedure AddButton(const ANode: TKTreeViewNode; const ADisplayLabel: string; const AContainer: TExtContainer);
     procedure AddMenuItem(const ANode: TKTreeViewNode; const AMenu: TExtMenuMenu);
     procedure AddNode(const ANode: TKTreeViewNode; const ADisplayLabel: string; const AParent: TExtTreeTreeNode);
@@ -135,7 +136,7 @@ implementation
 uses
   Types, StrUtils, RTTI, Graphics, jpeg, pngimage,
   EF.SysUtils, EF.StrUtils, EF.Classes, EF.Localization,
-  Kitto.AccessControl, Kitto.Utils;
+  Kitto.AccessControl, Kitto.Utils, Kitto.Config;
 
 function CallViewControllerStringMethod(const AView: TKView;
   const AMethodName: string; const ADefaultValue: string): string;
@@ -221,42 +222,43 @@ begin
     LNode := ANode.TreeViewNodes[I];
     LView := LNode.FindView(Session.Config.Views);
 
-    if not Assigned(LView) or LView.IsAccessGranted(ACM_VIEW) then
-    begin
-      LIsEnabled := not Assigned(LView) or LView.IsAccessGranted(ACM_RUN);
-      LMenuItem := TKExtMenuItem.CreateAndAddTo(AMenu.Items);
-      try
-        Inc(FAddedItems);
-        LMenuItem.Disabled := not LIsEnabled;
-        LMenuItem.View := LView;
-        if Assigned(LMenuItem.View) then
-        begin
-          LMenuItem.IconCls := Session.SetViewIconStyle(LMenuItem.View,
-            GetImageName(LNode, LMenuItem.View));
-          LMenuItem.On('click', GetClickFunction(LMenuItem.View));
+    if Assigned(LView) then
+      LIsEnabled := LView.IsAccessGranted(ACM_RUN)
+    else
+      LIsEnabled := TKConfig.Instance.IsAccessGranted(ANode.GetACURI(FTreeView), ACM_RUN);
 
-          LDisplayLabel := _(LNode.GetString('DisplayLabel', LMenuItem.View.DisplayLabel));
-          if LDisplayLabel = '' then
-            LDisplayLabel := CallViewControllerStringMethod(LView, 'GetDefaultDisplayLabel', '');
-          LMenuItem.Text := HTMLEncode(LDisplayLabel);
-          // No tooltip here - could be done through javascript if needed.
-        end
-        else
+    LMenuItem := TKExtMenuItem.CreateAndAddTo(AMenu.Items);
+    try
+      Inc(FAddedItems);
+      LMenuItem.Disabled := not LIsEnabled;
+      LMenuItem.View := LView;
+      if Assigned(LMenuItem.View) then
+      begin
+        LMenuItem.IconCls := Session.SetViewIconStyle(LMenuItem.View,
+          GetImageName(LNode, LMenuItem.View));
+        LMenuItem.On('click', GetClickFunction(LMenuItem.View));
+
+        LDisplayLabel := _(LNode.GetString('DisplayLabel', LMenuItem.View.DisplayLabel));
+        if LDisplayLabel = '' then
+          LDisplayLabel := CallViewControllerStringMethod(LView, 'GetDefaultDisplayLabel', '');
+        LMenuItem.Text := HTMLEncode(LDisplayLabel);
+        // No tooltip here - could be done through javascript if needed.
+      end
+      else
+      begin
+        if ANode.TreeViewNodes[I].TreeViewNodeCount > 0 then
         begin
-          if ANode.TreeViewNodes[I].TreeViewNodeCount > 0 then
-          begin
-            LDisplayLabel := _(LNode.GetString('DisplayLabel', LNode.AsString));
-            LMenuItem.Text := HTMLEncode(LDisplayLabel);
-            LMenuItem.IconCls := Session.SetIconStyle('Folder', LNode.GetString('ImageName'));
-            LSubMenu := TExtMenuMenu.Create(AMenu.Items);
-            LMenuItem.Menu := LSubMenu;
-            AddMenuItem(ANode.TreeViewNodes[I], LSubMenu);
-          end;
+          LDisplayLabel := _(LNode.GetString('DisplayLabel', LNode.AsString));
+          LMenuItem.Text := HTMLEncode(LDisplayLabel);
+          LMenuItem.IconCls := Session.SetIconStyle('Folder', LNode.GetString('ImageName'));
+          LSubMenu := TExtMenuMenu.Create(AMenu.Items);
+          LMenuItem.Menu := LSubMenu;
+          AddMenuItem(ANode.TreeViewNodes[I], LSubMenu);
         end;
-      except
-        FreeAndNil(LMenuItem);
-        raise;
       end;
+    except
+      FreeAndNil(LMenuItem);
+      raise;
     end;
   end;
 end;
@@ -273,8 +275,11 @@ begin
   Assert(Assigned(AContainer));
 
   LView := ANode.FindView(Session.Config.Views);
+  if Assigned(LView) then
+    LIsEnabled := LView.IsAccessGranted(ACM_RUN)
+  else
+    LIsEnabled := TKConfig.Instance.IsAccessGranted(ANode.GetACURI(FTreeView), ACM_RUN);
 
-  LIsEnabled := not Assigned(LView) or LView.IsAccessGranted(ACM_RUN);
   LButton := TKExtViewButton.CreateAndAddTo(AContainer.Items);
   try
     Inc(FAddedItems);
@@ -320,8 +325,10 @@ begin
   Assert(Assigned(AParent));
 
   LView := ANode.FindView(Session.Config.Views);
-
-  LIsEnabled := not Assigned(LView) or LView.IsAccessGranted(ACM_RUN);
+  if Assigned(LView) then
+    LIsEnabled := LView.IsAccessGranted(ACM_RUN)
+  else
+    LIsEnabled := TKConfig.Instance.IsAccessGranted(ANode.GetACURI(FTreeView), ACM_RUN);
   LNode := TKExtTreeTreeNode.Create(AParent.ChildNodes);
   try
     Inc(FAddedItems);
@@ -373,11 +380,17 @@ procedure TKExtTreeViewRenderer.Filter(const ANode: TKTreeViewNode);
 var
   LView: TKView;
   I: Integer;
+  LIsVisible: Boolean;
 begin
   Assert(Assigned(ANode));
 
   LView := ANode.FindView(Session.Config.Views);
-  if Assigned(LView) and not LView.IsAccessGranted(ACM_VIEW) then
+  if Assigned(LView) then
+    LIsVisible := LView.IsAccessGranted(ACM_VIEW)
+  else
+    LIsVisible := TKConfig.Instance.IsAccessGranted(ANode.GetACURI(FTreeView), ACM_VIEW);
+
+  if not LIsVisible then
     ANode.Delete
   else
   begin
@@ -394,8 +407,8 @@ function TKExtTreeViewRenderer.Render(const ATreeView: TKTreeView;
   const AClickHandler: TExtProcedure): Integer;
 var
   I: Integer;
-  LTreeView: TKTreeView;
   LNode: TKTreeViewNode;
+  LTreeView: TKTreeView;
 begin
   Assert(Assigned(ATreeView));
   Assert(Assigned(AProc));
@@ -403,6 +416,7 @@ begin
   Assert(Assigned(AClickHandler));
 
   FOwner := AOwner;
+  FTreeView := ATreeView;
   FClickHandler := AClickHandler;
   FAddedItems := 0;
 
