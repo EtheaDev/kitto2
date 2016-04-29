@@ -55,7 +55,8 @@ type
 implementation
 
 uses
-  SysUtils, StrUtils, Types, JSON,
+  SysUtils, StrUtils, Types,
+  {$IFDEF D21+}JSON, {$ELSE}DBXJSON,{$ENDIF}
   EF.Localization, EF.Macros, EF.StrUtils, EF.SQL,
   Kitto.Types, Kitto.Ext.Utils, Kitto.Metadata.Models, Kitto.Ext.Session,
   Kitto.Ext.Controller;
@@ -186,7 +187,15 @@ var
     LObject.AddPair('Title', ATitle);
     LObject.AddPair('Description', ADescription);
     LObject.AddPair('ColorId', TJSONNumber.Create(AColorId));
+    {$IFDEF D22+}
     LObject.AddPair('IsHidden', TJSONBool.Create(AIsHidden));
+    {$ELSE}
+    if AIsHidden then
+      LObject.AddPair('IsHidden', TJSONTrue.Create)
+    else
+      LObject.AddPair('IsHidden', TJSONFalse.Create);
+    {$ENDIF}
+    if AIsHidden then
     LJSONArray.AddElement(LObject);
   end;
 
@@ -203,7 +212,8 @@ begin
     AddItem(8, 'Eighth', 'Eighth Calendar', 65280, False);
     AddItem(9, 'Ninth', 'Ninth Calendar', 255, False);
     AddItem(10, 'Tenth', 'Tenth Calendar', 65280, False);
-    Session.ResponseItems.AddJSON(Format('{Success: true, Total: %d, Root: %s}', [3, LJSONArray.ToJSON]));
+    Session.ResponseItems.AddJSON(Format('{Success: true, Total: %d, Root: %s}',
+      [3, {$IFDEF D21+}LJSONArray.ToJSON{$ELSE}LJSONArray.ToString{$ENDIF}]));
   finally
     FreeAndNil(LJSONArray);
   end;
