@@ -27,12 +27,15 @@ uses
 type
   TKMetadataCatalog = class;
 
-  /// <summary>A metadata object is a tree object (often persistent) that is
-  /// managed by a catalog. There are catalogs for models, views,
-  /// layouts.</summary>
+  /// <summary>
+  ///  A metadata object is a tree object (often persistent) that is
+  ///  managed by a catalog. There are catalogs for models, views,
+  ///  layouts.
+  /// </summary>
   TKMetadata = class(TEFPersistentTree)
   private
     FCatalog: TKMetadataCatalog;
+    function BuildURI(const AName: string): string;
   strict protected
     class function GetClassNameForResourceURI: string; virtual;
     function GetPersistentFileName: string; override;
@@ -41,15 +44,32 @@ type
 
     property Catalog: TKMetadataCatalog read FCatalog;
 
-    /// <summary>Returns a string URI that uniquely identifies the object, to
-    /// be used for access control.</summary>
+    /// <summary>
+    ///  Returns a string URI that uniquely identifies the object, to
+    ///  be used for access control or other purposes.
+    /// </summary>
     function GetResourceURI: string; virtual;
 
-    /// <summary>Returns true if access is granted to the resource representing
-    /// the metadata object in the specified mode. This is a shortcut to
-    /// calling TKConfig.Instance.IsAccessGranted (possibly multiple times for
-    /// cascading, and "or"ing the results).</summary>
+    /// <summary>
+    ///  Returns a string URI that (non necessarily uniquely) identifies the
+    ///  object for access control purposes. By default, returns the same value
+    ///  as GetResourceURI.
+    /// </summary>
+    function GetACURI: string; virtual;
+
+    /// <summary>
+    ///  Returns true if access is granted to the resource representing
+    ///  the metadata object in the specified mode. This is a shortcut to
+    ///  calling TKConfig.Instance.IsAccessGranted (possibly multiple times for
+    ///  cascading, and "or"ing the results).
+    /// </summary>
     function IsAccessGranted(const AMode: string): Boolean; virtual;
+
+    /// <summary>
+    ///  Calls IsAccessGranted and raises an exception if the method returns False.
+    ///  This is a shortcut to calling TKConfig.Instance.CheckAccessGranted. (possibly multiple times for
+    /// </summary>
+    procedure CheckAccessGranted(const AMode: string);
 
     /// <summary>
     ///  Makes the current object a copy of the specified tree.
@@ -63,15 +83,32 @@ type
   strict protected
     class function GetClassNameForResourceURI: string; virtual;
   public
-    /// <summary>Returns a string URI that uniquely identifies the object, to
-    /// be used for access control.</summary>
+    /// <summary>
+    ///  Returns a string URI that uniquely identifies the object, to
+    ///  be used for access control and other purposes.
+    /// </summary>
     function GetResourceURI: string; virtual;
 
-    /// <summary>Returns true if access is granted to the resource representing
-    /// the metadata object in the specified mode. This is a shortcut to
-    /// calling TKConfig.Instance.IsAccessGranted (possibly multiple times for
-    /// cascading, and "or"ing the results).</summary>
+    /// <summary>
+    ///  Returns a string URI that (non necessarily uniquely) identifies the
+    ///  object for access control purposes. By default, returns the same value
+    ///  as GetResourceURI.
+    /// </summary>
+    function GetACURI: string; virtual;
+
+    /// <summary>
+    ///  Returns True if access is granted to the resource representing
+    ///  the metadata object in the specified mode. This is a shortcut to
+    ///  calling TKConfig.Instance.IsAccessGranted (possibly multiple times for
+    ///  cascading, and "or"ing the results).
+    /// </summary>
     function IsAccessGranted(const AMode: string): Boolean; virtual;
+
+    /// <summary>
+    ///  Calls IsAccessGranted and raises an exception if the method returns False.
+    ///  This is a shortcut to calling TKConfig.Instance.CheckAccessGranted. (possibly multiple times for
+    /// </summary>
+    procedure CheckAccessGranted(const AMode: string);
   end;
 
   TKMetadataRegistry = class;
@@ -794,18 +831,18 @@ function TKMetadata.GetResourceURI: string;
 var
   LName: string;
 begin
-  LName := PersistentName;
+  LName := GetString('ResourceName');
   if LName = '' then
-    LName := GetString('ResourceName');
+    LName := PersistentName;
   if LName = '' then
     Result := ''
   else
-    Result := 'metadata://' + GetClassNameForResourceURI + '/' + LName;
+    Result := BuildURI(LName);
 end;
 
 function TKMetadata.IsAccessGranted(const AMode: string): Boolean;
 begin
-  Result := TKConfig.Instance.IsAccessGranted(GetResourceURI, AMode);
+  Result := TKConfig.Instance.IsAccessGranted(GetACURI, AMode);
 end;
 
 procedure TKMetadata.Assign(const ASource: TEFTree);
@@ -815,12 +852,48 @@ begin
     FCatalog := TKMetadata(ASource).Catalog;
 end;
 
+procedure TKMetadata.CheckAccessGranted(const AMode: string);
+begin
+  TKConfig.Instance.CheckAccessGranted(GetACURI, AMode);
+end;
+
+function TKMetadata.GetACURI: string;
+var
+  LName: string;
+begin
+  LName := GetString('ACName');
+  if LName = '' then
+    LName := GetString('ResourceName');
+  if LName = '' then
+    LName := PersistentName;
+  if LName = '' then
+    Result := ''
+  else
+    Result := BuildURI(LName);
+end;
+
+function TKMetadata.BuildURI(const AName: string): string;
+begin
+  Result := 'metadata://' + GetClassNameForResourceURI + '/' + AName;
+end;
+
+
 class function TKMetadata.GetClassNameForResourceURI: string;
 begin
   Result := StripPrefix(ClassName, 'TK');
 end;
 
 { TKMetadataItem }
+
+procedure TKMetadataItem.CheckAccessGranted(const AMode: string);
+begin
+  TKConfig.Instance.CheckAccessGranted(GetACURI, AMode);
+end;
+
+function TKMetadataItem.GetACURI: string;
+begin
+  Result := GetResourceURI;
+end;
 
 class function TKMetadataItem.GetClassNameForResourceURI: string;
 begin
@@ -837,7 +910,7 @@ end;
 
 function TKMetadataItem.IsAccessGranted(const AMode: string): Boolean;
 begin
-  Result := TKConfig.Instance.IsAccessGranted(GetResourceURI, AMode);
+  Result := TKConfig.Instance.IsAccessGranted(GetACURI, AMode);
 end;
 
 end.

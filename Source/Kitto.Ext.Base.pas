@@ -1647,8 +1647,13 @@ procedure TKExtWindowToolController.UpdateObserver(const ASubject: IEFSubject;
   const AContext: string);
 begin
   inherited;
-  if (ASubject.AsObject = FSubController.AsObject) and (AContext = 'Confirmed') then
-    Confirm;
+  if (ASubject.AsObject = FSubController.AsObject) then
+  begin
+    if AContext = 'Confirmed' then
+      Confirm
+    else if AContext = 'Canceled' then
+      Cancel;
+  end;
 end;
 
 { TKExtButton }

@@ -142,6 +142,8 @@ type
     property TreeViewNodes[I: Integer]: TKTreeViewNode read GetTreeViewNode;
 
     function FindView(const AViews: TKViews): TKView; virtual;
+
+    function GetACURI(const AView: TKView): string;
   end;
 
   /// <summary>
@@ -462,6 +464,21 @@ begin
   Assert(Assigned(AViews));
 
   Result := AViews.ViewByNode(Self);
+end;
+
+function TKTreeViewNode.GetACURI(const AView: TKView): string;
+var
+  LName: string;
+begin
+  Assert(Assigned(AView));
+
+  LName := GetString('ACName');
+  if LName = '' then
+    LName := GetString('ResourceName');
+  if LName = '' then
+    Result := ''
+  else
+    Result := AView.GetACURI + '/' + LName;
 end;
 
 function TKTreeViewNode.GetChildClass(const AName: string): TEFNodeClass;
