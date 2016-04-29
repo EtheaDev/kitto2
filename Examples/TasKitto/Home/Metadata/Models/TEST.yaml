@@ -1,0 +1,9 @@
+﻿ModelName: TEST
+Fields:
+  StringField: String(10) primary key
+    PhysicalName: STRINGHETTA
+  FloatField: Float
+  BooleanField: Boolean
+  DateField: Date
+  StringField: String(10)
+  xxx: FileReference
