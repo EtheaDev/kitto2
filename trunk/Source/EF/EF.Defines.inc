@@ -177,7 +177,7 @@
   {$DEFINE D22+}
 {$ENDIF}
 
-// 10
+// 10 Seattle
 
 {$IFDEF VER300}
   {$DEFINE D7+}
@@ -196,6 +196,28 @@
   {$DEFINE D22+}
   {$DEFINE D23}
   {$DEFINE D23+}
+{$ENDIF}
+
+// 10.1 Berlin
+
+{$IFDEF VER310}
+  {$DEFINE D7+}
+  {$DEFINE D9+}
+  {$DEFINE D10+}
+  {$DEFINE D11+}
+  {$DEFINE D12+}
+  {$DEFINE D14+}
+  {$DEFINE D15+}
+  {$DEFINE D16+}
+  {$DEFINE D17+}
+  {$DEFINE D18+}
+  {$DEFINE D19+}
+  {$DEFINE D20+}
+  {$DEFINE D21+}
+  {$DEFINE D22+}
+  {$DEFINE D23+}
+  {$DEFINE D24}
+  {$DEFINE D24+}
 {$ENDIF}
 
 {$IFDEF FPC}

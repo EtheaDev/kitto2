@@ -104,7 +104,7 @@ HelloWorld:
         Html: <h1>Hello World!</h1>
 
 Ext:
-  Theme: blue
+  Theme: tobiuBlue2
 
 LanguageId: it
 # Either utf-8 or a SBCS corresponding to the system code page

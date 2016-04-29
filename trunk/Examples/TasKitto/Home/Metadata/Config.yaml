@@ -14,7 +14,7 @@ Databases:
 
 Auth: DB
   IsClearPassword: True
-  Defaults:
+  .Defaults:
     UserName: admin
     Password: admin
   ReadUserCommandText: select USER_NAME, PASSWORD_HASH, FIRST_NAME, LAST_NAME from KITTO_USERS where IS_ACTIVE = 1 and UPPER(USER_NAME) = UPPER(:USER_NAME)
@@ -29,7 +29,7 @@ Login: LoginView
 #HomeView: Home
 
 Ext:
-  Theme: gray
+  Theme: tobiuBlue2
 
 LanguageId: en
 # Either utf-8 or a SBCS corresponding to the system code page
