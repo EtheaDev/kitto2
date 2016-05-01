@@ -1,5 +1,5 @@
 ﻿ModelName: ACTIVITY
-ImageName: setting_tools
+ImageName: settings
 Fields:
   ACTIVITY_ID: String(32) not null primary key
     IsVisible: False

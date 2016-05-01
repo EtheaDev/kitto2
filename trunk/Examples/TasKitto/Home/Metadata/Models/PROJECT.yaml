@@ -1,5 +1,5 @@
 ﻿ModelName: PROJECT
-ImageName: bulb
+ImageName: project
 Fields:
   PROJECT_ID: String(32) not null primary key
     IsVisible: False

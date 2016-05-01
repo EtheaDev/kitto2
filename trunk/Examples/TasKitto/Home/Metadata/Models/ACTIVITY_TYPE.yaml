@@ -1,5 +1,5 @@
 ﻿ModelName: ACTIVITY_TYPE
-ImageName: table_gear
+ImageName: activity
 Fields:
   TYPE_ID: String(32) not null primary key
     IsVisible: False

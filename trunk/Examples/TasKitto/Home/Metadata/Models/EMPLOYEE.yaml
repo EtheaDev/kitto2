@@ -1,5 +1,5 @@
 ﻿ModelName: EMPLOYEE
-ImageName: employee
+ImageName: people
 IsLarge: True
 Fields:
   EMPLOYEE_ID: String(32) not null primary key
