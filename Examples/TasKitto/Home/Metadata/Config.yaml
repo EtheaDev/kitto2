@@ -29,7 +29,7 @@ Login: LoginView
 #HomeView: Home
 
 Ext:
-  Theme: tobiuBlue2
+  Theme: gray
 
 LanguageId: en
 # Either utf-8 or a SBCS corresponding to the system code page

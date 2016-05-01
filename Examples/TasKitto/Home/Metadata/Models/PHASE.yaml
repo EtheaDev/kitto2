@@ -1,5 +1,5 @@
 ﻿ModelName: PHASE
-ImageName: clock_play
+ImageName: clock
 Fields:
   PHASE_ID: String(32) not null primary key
     IsVisible: False
