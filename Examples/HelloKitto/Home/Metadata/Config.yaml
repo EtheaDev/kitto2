@@ -87,7 +87,7 @@ Login:
       Mode: Password
       AskUser: True
         .Default: False
-      AutoLogin: True
+      AutoLogin: False
 
 HomeGirls:
   Controller: Viewport
@@ -104,7 +104,7 @@ HelloWorld:
         Html: <h1>Hello World!</h1>
 
 Ext:
-  Theme: tobiuBlue2
+  Theme: blue
 
 LanguageId: it
 # Either utf-8 or a SBCS corresponding to the system code page
