@@ -1,0 +1,19 @@
+﻿ModelName: SalaryHistory
+PhysicalName: SALARY_HISTORY
+Fields:
+  ChangeDate: DateTime not null primary key
+    PhysicalName: CHANGE_DATE
+  UpdaterId: String(20) not null primary key
+    PhysicalName: UPDATER_ID
+  OldSalary: Decimal(10, 2) not null
+    PhysicalName: OLD_SALARY
+  PercentChange: Float not null
+    PhysicalName: PERCENT_CHANGE
+  NewSalary: Float
+    PhysicalName: NEW_SALARY
+  EmpNoRef: Reference(Employee) not null
+    PhysicalName: EMP_NO
+    Fields:
+      EmpNo:
+        PhysicalName: EMP_NO
+ImageName: table_money

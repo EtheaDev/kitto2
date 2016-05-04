@@ -1,0 +1,17 @@
+﻿Type: Data
+Controller: List
+  Filters:
+    DisplayLabel: Search Salary Histories
+    Items:
+      FreeSearch: Free Search
+        ExpressionTemplate: (SALARY_HISTORY.UPDATER_ID like '%{value}%')
+MainTable:
+  Model: SalaryHistory
+  Fields:
+    ChangeDate:
+    UpdaterId:
+    OldSalary:
+    PercentChange:
+    NewSalary:
+    EmpNoRef:
+  Controller:
