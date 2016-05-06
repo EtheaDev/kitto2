@@ -2,7 +2,7 @@
 DisplayLabel: Activity Report
 Controller: List
   CenterController: TemplateDataPanel
-    Template: %APP_PATH%ReportTemplates\ActivityReport.html
+    TemplateFileName: ActivityReport.html
     RequireSelection: False
 
   Filters:
