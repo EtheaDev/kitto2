@@ -1356,7 +1356,8 @@ function TKField.GetAsJSON(const AForDisplay: Boolean): string;
 begin
   if DataType.SupportsJSON then
   begin
-    Result := QuoteJSONStr(GetJSONName) + ':' + GetAsJSONValue(AForDisplay, DataType.NeedsQuotes);
+    // Always quote when AForDisplay = True, so that thousand separators don't get in the way.
+    Result := QuoteJSONStr(GetJSONName) + ':' + GetAsJSONValue(AForDisplay, AForDisplay or DataType.NeedsQuotes);
     if AForDisplay then
     begin
       Result := ReplaceStr(Result, #13#10, '<br/>');

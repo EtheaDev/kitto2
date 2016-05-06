@@ -144,7 +144,7 @@ function ajaxSelection(buttonId, text, obj)
     }
     return Ext.Ajax.request({
       url: obj.params.methodURL,
-      params: "Ajax=1&" + selValues.toString(),
+      params: "Ajax=1&" + selValues.join('&'),
       success: AjaxSuccess,
       failure: AjaxFailure
     });
