@@ -752,18 +752,25 @@ var
   I: Integer;
   LParams: TParams;
 
-  function GetReferenceClause(const AReferenceField: TKModelField{; const AReferencedField: TKModelField}): string;
+  function GetReferenceClause(const AReferenceField: TKModelField; const AForeignFieldName: string): string;
   var
     I: Integer;
+    LForeignField: TKModelField;
+    LForeignFieldName: string;
+    LFieldName: string;
     LParamName: string;
     LParam: TParam;
   begin
+    LForeignField := AViewField.ModelField.ReferencedModel.FieldByName(AForeignFieldName);
+    Assert(LForeignField.FieldCount = AReferenceField.FieldCount);
     for I := 0 to AReferenceField.FieldCount - 1 do
     begin
+      LForeignFieldName := LForeignField.Fields[I].DBColumnNameOrExpression;
+      LFieldName := AReferenceField.Fields[I].FieldName;
       LParamName := AReferenceField.Fields[I].DBColumnName;
-      Result := LParamName + ' = :' + LParamName;
+      Result := LForeignFieldName + ' = :' + LParamName;
       LParam := LParams.CreateParam(ftUnknown, LParamName, ptInput);
-      ARecord.FieldByName(AReferenceField.Fields[I].FieldName).AssignValueToParam(LParam);
+      ARecord.FieldByName(LFieldName).AssignValueToParam(LParam);
       if I < AReferenceField.FieldCount - 1 then
         Result := Result + ' and ';
     end;
@@ -783,7 +790,7 @@ begin
       for I := Low(LFilterByFields) to High(LFilterByFields) do
       begin
         Assert(LFilterByFields[I].SourceField.IsReference);
-        LClause := LClause + GetReferenceClause(LFilterByFields[I].SourceField.ModelField);
+        LClause := LClause + GetReferenceClause(LFilterByFields[I].SourceField.ModelField, LFilterByFields[I].ForeignFieldName);
         if I < High(LFilterByFields) then
           LClause := LClause + ' and ';
       end;
