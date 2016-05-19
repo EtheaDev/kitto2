@@ -25,7 +25,8 @@ unit EF.Tree;
 interface
 
 uses
-  SysUtils, Types, Classes, Variants, DB, FmtBcd, Generics.Collections, SyncObjs,
+  SysUtils, Types, Classes, Variants, DB, FmtBcd, Generics.Collections,
+  Generics.Defaults, SyncObjs,
   EF.Types, EF.Macros;
 
 const
@@ -326,11 +327,13 @@ type
   TEFNodeClass = class of TEFNode;
   TEFNodes = TObjectList<TEFNode>;
 
+  TEFNodeCompareFunc = TFunc<TEFNode, TEFNode, Integer>;
+
   /// <summary>
-  ///   The root of a tree. Contains a set of nodes which are in turn trees.
+  ///  The root of a tree. Contains a set of nodes which are in turn trees.
   /// </summary>
   TEFTree = class
-  private
+  strict private
     FCriticalSection: TCriticalSection;
     FNodes: TEFNodes;
     FAnnotations: TStrings;
@@ -340,16 +343,18 @@ type
     function GetAnnotation(const AIndex: Integer): string;
     function GetAnnotationCount: Integer;
     procedure SetAnnotation(const AIndex: Integer; const AValue: string);
-  protected
+  strict protected
+    type
+      TComparer = class(TComparer<TEFNode>, IComparer<TEFNode>)
+      private
+        FCompareFunc: TEFNodeCompareFunc;
+      public
+        constructor Create(const ACompareFunc: TEFNodeCompareFunc);
+        function Compare(const Left, Right: TEFNode): Integer; override;
+      end;
     function GetChildClass(const AName: string): TEFNodeClass; virtual;
     procedure EnterCS; virtual;
     procedure LeaveCS; virtual;
-    function GetRoot: TEFTree; virtual;
-
-    /// <summary>
-    ///   Access to the set of children as a list.
-    /// </summary>
-    property NodeList: TEFNodes read FNodes;
   public
     constructor Create; virtual;
     destructor Destroy; override;
@@ -359,6 +364,13 @@ type
     ///   Creates a new tree holding a deep copy of the specified tree.
     /// </summary>
     constructor Clone(const ASource: TEFTree); virtual;
+
+    /// <summary>
+    ///  Access to the set of children as a list.
+    /// </summary>
+    property NodeList: TEFNodes read FNodes;
+
+    function GetRoot: TEFTree; virtual;
 
     /// <summary>
     ///   Clears the tree, recursively deleting all nodes.
@@ -719,33 +731,6 @@ type
     /// </summary>
     procedure AddFieldsAsChildren(const AFields: TFields);
 
-    /// <summary>
-    ///   Tries to read from AStrings a value for each child node interpreting
-    ///   it according to the child node's DataType. Read values are stored in
-    ///   the child nodes.
-    /// </summary>
-    /// <param name="AStrings">
-    ///   Source strings. Each string may contain one value. If AValueIndex
-    ///   is >= 0, each string may contain one or more comma-separated values,
-    ///   of which only the one with index AValueIndex is read.
-    /// </param>
-    /// <param name="AUseJSDateFormat">
-    ///   True if any dates in source strings are in JS format; False for
-    ///   system format.
-    /// </param>
-    /// <param name="AFormatSettings">
-    ///   Custom format settings to decode values.
-    /// </param>
-    /// <param name="ATranslator">
-    ///   Pass a translation function if key names in AStrings do not match
-    ///   wanted child node names and you need to translate them. The function
-    ///   receives the child name and should return the corresponding key name.
-    /// </param>
-    { TODO : remove once the code using superobject has stabilized }
-    procedure SetChildValuesfromStrings(const AStrings: TStrings;
-      const AUseJSDateFormat: Boolean; const AFormatSettings: TFormatSettings;
-      const ATranslator: TNameTranslator; const AValueIndex: Integer = -1); deprecated 'Use SetChildValuesfromSuperObject';
-
     property AnnotationCount: Integer read GetAnnotationCount;
     property Annotations[const AIndex: Integer]: string read GetAnnotation write SetAnnotation;
     function AddAnnotation(const AAnnotation: string): Integer;
@@ -761,6 +746,7 @@ type
     /// </summary>
     property Root: TEFTree read GetRoot;
 
+    procedure Sort(const ACompareFunc: TEFNodeCompareFunc);
   end;
 
   TEFTreeClass = class of TEFTree;
@@ -843,7 +829,6 @@ type
   strict protected
     function GetName: string; virtual;
     procedure SetValue(const AValue: Variant); virtual;
-    function GetRoot: TEFTree; override;
     function IsDataTypeLocked: Boolean;
     procedure ValueChanging(const AOldValue: Variant; var ANewValue: Variant; var ADoIt: Boolean); virtual;
     procedure ValueChanged(const AOldValue, ANewValue: Variant); virtual;
@@ -853,6 +838,7 @@ type
     function GetEnumerator: TEnumerator<TEFNode>;
     function GetEmptyAsNull: Boolean; virtual;
   public
+    function GetRoot: TEFTree; override;
     function FindNode(const APath: string;
       const ACreateMissingNodes: Boolean = False): TEFNode; override;
 
@@ -1584,8 +1570,8 @@ var
 begin
   Assert(Assigned(AStrings));
   AStrings.Clear;
-  for I := 0 to FNodes.Count - 1 do
-    AStrings.Add(FNodes[I].Name);
+  for I := 0 to NodeList.Count - 1 do
+    AStrings.Add(NodeList[I].Name);
   Result := AStrings.Count;
 end;
 
@@ -1602,12 +1588,12 @@ var
   I: Integer;
 begin
   Result := '';
-  for I := 0 to FNodes.Count - 1 do
+  for I := 0 to NodeList.Count - 1 do
   begin
     if Result = '' then
-      Result := FNodes[I].Name + AConnector + FNodes[I].AsString
+      Result := NodeList[I].Name + AConnector + NodeList[I].AsString
     else
-      Result := Result + ASeparator + FNodes[I].Name + AConnector + FNodes[I].AsString;
+      Result := Result + ASeparator + NodeList[I].Name + AConnector + NodeList[I].AsString;
   end;
 end;
 
@@ -1654,7 +1640,7 @@ end;
 
 function TEFNode.GetEnumerator: TEnumerator<TEFNode>;
 begin
-  Result := FNodes.GetEnumerator;
+  Result := NodeList.GetEnumerator;
 end;
 
 function TEFNode.GetExpandedChildStrings(const ASeparator, AConnector,
@@ -1663,12 +1649,12 @@ var
   I: Integer;
 begin
   Result := '';
-  for I := 0 to FNodes.Count - 1 do
+  for I := 0 to NodeList.Count - 1 do
   begin
     if Result = '' then
-      Result := FNodes[I].Name + AConnector + FNodes[I].AsExpandedString
+      Result := NodeList[I].Name + AConnector + NodeList[I].AsExpandedString
     else
-      Result := Result + ASeparator + FNodes[I].Name + AConnector + FNodes[I].AsExpandedString;
+      Result := Result + ASeparator + NodeList[I].Name + AConnector + NodeList[I].AsExpandedString;
   end;
 end;
 
@@ -2500,50 +2486,6 @@ begin
   GetNode(APath, True).SetChildStrings(AStrings);
 end;
 
-procedure TEFTree.SetChildValuesfromStrings(const AStrings: TStrings;
-  const AUseJSDateFormat: Boolean; const AFormatSettings: TFormatSettings;
-  const ATranslator: TNameTranslator; const AValueIndex: Integer);
-var
-  I: Integer;
-  LChild: TEFNode;
-  LName: string;
-  LStringValue: string;
-  LStringValues: TStringDynArray;
-
-  function Translate(const AName: string): string;
-  begin
-    if Assigned(ATranslator) then
-      Result := ATranslator(AName)
-    else
-      Result := AName;
-  end;
-
-begin
-  for I := 0 to ChildCount - 1 do
-  begin
-    LChild := Children[I];
-    LName := Translate(LChild.Name);
-    Assert(LName <> '');
-    if AStrings.IndexOfName(LName) >= 0 then
-    begin
-      if AValueIndex >= 0 then
-      begin
-        LStringValues := Split(AStrings.Values[LName], ',');
-        if Length(LStringValues) > AValueIndex then
-          LStringValue := LStringValues[AValueIndex]
-        else
-          LStringValue := '';
-      end
-      else
-        LStringValue := AStrings.Values[LName];
-      LChild.SetAsJSONValue(LStringValue, AUseJSDateFormat, AFormatSettings);
-    end
-    // Checkboxes are not submitted when unchecked, which for us means False.
-    else if LChild.DataType is TEFBooleanDataType then
-      LChild.AsBoolean := False;
-  end;
-end;
-
 function TEFTree.SetFloat(const APath: string; const AValue: Double): TEFNode;
 begin
   Result := GetNode(APath, True);
@@ -2570,6 +2512,11 @@ function TEFTree.SetValue(const APath: string; const AValue: Variant): TEFNode;
 begin
   Result := GetNode(APath, True);
   Result.Value := AValue;
+end;
+
+procedure TEFTree.Sort(const ACompareFunc: TEFNodeCompareFunc);
+begin
+  NodeList.Sort(TComparer.Create(ACompareFunc));
 end;
 
 procedure TEFTree.EnterCS;
@@ -3795,6 +3742,23 @@ function TEFNumericDataTypeBase.StripThousandSeparator(const AValue: string;
   const AFormatSettings: TFormatSettings): string;
 begin
   Result := ReplaceStr(AValue, AFormatSettings.ThousandSeparator, '');
+end;
+
+{ TEFTree.TComparer }
+
+function TEFTree.TComparer.Compare(const Left, Right: TEFNode): Integer;
+begin
+  Assert(Assigned(FCompareFunc));
+
+  Result := FCompareFunc(Left, Right);
+end;
+
+constructor TEFTree.TComparer.Create(const ACompareFunc: TEFNodeCompareFunc);
+begin
+  Assert(Assigned(ACompareFunc));
+
+  inherited Create;
+  FCompareFunc := ACompareFunc;
 end;
 
 initialization
