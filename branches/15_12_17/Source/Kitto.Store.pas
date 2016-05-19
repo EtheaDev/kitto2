@@ -21,7 +21,7 @@ unit Kitto.Store;
 interface
 
 uses
-  SysUtils, Types, Classes, DB, Generics.Collections,
+  SysUtils, Types, Classes, DB, Generics.Collections, Generics.Defaults,
   superobject,
   EF.Tree, EF.DB, EF.Types,
   Kitto.Metadata.Models;
@@ -214,6 +214,8 @@ type
       read FOnSetTransientProperty write FOnSetTransientProperty;
   end;
 
+  TKRecordCompareFunc = TFunc<TKRecord, TKRecord, Integer>;
+
   TKRecords = class(TEFNode)
   private
     FKey: TKKey;
@@ -259,6 +261,11 @@ type
       const AFrom: Integer = 0; const AFor: Integer = 0): string;
 
     procedure ForEach(const AProc: TProc<TKRecord>);
+
+    /// <summary>
+    ///  Sorts the records by calling the specified compare function.
+    /// </summary>
+    procedure Sort(const ACompareFunc: TKRecordCompareFunc); reintroduce;
 
     procedure MarkAsClean;
   end;
@@ -336,9 +343,13 @@ type
     /// </summary>
     function AppendRecord(const AValues: TEFNode): TKRecord;
 
-    /// <summary>Removes the record from the store, if present.</summary>
-    /// <remarks>Calling this method will NOT trigger any database operation.
-    /// It is meant to cancel pending changes.</remarks>
+    /// <summary>
+    ///  Removes the record from the store, if present.
+    /// </summary>
+    /// <remarks>
+    ///  Calling this method will NOT trigger any database operation.
+    ///  It is meant to cancel pending changes.
+    /// </remarks>
     /// <seealso cref="TKRecord.MarkAsDeleted"></seealso>
     procedure RemoveRecord(const ARecord: TKRecord);
 
@@ -350,41 +361,56 @@ type
 
     function ChangesPending: Boolean;
 
-    /// <summary>Iterates all records in the store (regardless of state)
-    /// calling APredicate for each record and then calling AProc when
-    /// the predicate returns True. Use the optional predicate to filter
-    /// records before passing them to AProc.</summary>
+    /// <summary>
+    ///  Iterates all records in the store (regardless of state)
+    ///  calling APredicate for each record and then calling AProc when all
+    ///  predicates return True. Use the optional predicate to filter
+    ///  records before passing them to AProc.
+    /// </summary>
     /// <param name="AProc">A procedure that receives a TKRecord.</param>
-    /// <param name="AProc">A function that receives a TKRecord and
-    /// returns a Boolean indicating whether to include the record in the
+    /// <param name="APredicates">An array of functions that receive a TKRecord
+    /// and return a Boolean indicating whether to include the record in the
     /// enumeration or not. You can pass predefined predicates such as All
     /// and NotDeleted or code your own.</param>
     procedure Iterate(const AProc: TProc<TKRecord>;
       const APredicates: array of TPredicate<TKRecord>);
 
-    /// <summary>Pass this as a predicate to one of the predicate-accepting
-    /// methodse to specify that you want to include all records (including
-    /// those marked as deleted).</summary>
+    /// <summary>
+    ///  Pass this as a predicate to one of the predicate-accepting
+    ///  methods to specify that you want to include all records (including
+    ///  those marked as deleted).
+    /// </summary>
     function All: TPredicate<TKRecord>;
 
-    /// <summary>Pass this as a predicate to one of the predicate-accepting
-    /// methodse to specify that you want to include all records except
-    /// those marked as deleted.</summary>
+    /// <summary>
+    ///  Pass this as a predicate to one of the predicate-accepting
+    ///  methods to specify that you want to include all records except
+    ///  those marked as deleted.
+    /// </summary>
     function ExcludeDeleted: TPredicate<TKRecord>;
 
-    /// <summary>Returns the number of records in which all the specified
-    /// predicates hold (that is, all return True for a given record).</summary>
+    /// <summary>
+    ///  Returns the number of records in which all the specified
+    ///  predicates hold (that is, all return True for a given record).
+    /// </summary>
     function Count(const APredicates: array of TPredicate<TKRecord>): Integer; overload;
 
-    /// <summary>Returns the number of non-deleted records in which the specified
-    /// field has the specified value. This is a special case of the more generic
-    /// predicate-based Count method.</summary>
+    /// <summary>
+    ///  Returns the number of non-deleted records in which the specified
+    ///  field has the specified value. This is a special case of the more generic
+    ///  predicate-based Count method.
+    /// </summary>
     function Count(const AFieldName: string; const AValue: Variant): Integer; overload;
 
     function Max(const AFieldName: string): Variant;
     function Min(const AFieldName: string): Variant;
     function Sum(const AFieldName: string): Variant;
     function Avg(const AFieldName: string): Variant;
+
+    /// <summary>
+    ///  Sorts the store records by calling the specified compare function.
+    /// </summary>
+    procedure Sort(const ACompareFunc: TKRecordCompareFunc);
 
     /// <summary>
     ///  Locates and returns a record from the key values stored in AKey.
@@ -710,6 +736,11 @@ begin
   Records.Key := AValue;
 end;
 
+procedure TKStore.Sort(const ACompareFunc: TKRecordCompareFunc);
+begin
+  Records.Sort(ACompareFunc);
+end;
+
 function TKStore.Sum(const AFieldName: string): Variant;
 var
   LSum: Variant;
@@ -912,6 +943,16 @@ end;
 procedure TKRecords.SetKey(const AValue: TKKey);
 begin
   FKey.Assign(AValue);
+end;
+
+procedure TKRecords.Sort(const ACompareFunc: TKRecordCompareFunc);
+begin
+  inherited Sort(
+    function (ALeft, ARight: TEFNode): Integer
+    begin
+      Result := ACompareFunc(TKRecord(ALeft), TKRecord(ARight));
+    end
+  );
 end;
 
 function TKRecords.GetRecordByIndex(I: Integer): TKRecord;
