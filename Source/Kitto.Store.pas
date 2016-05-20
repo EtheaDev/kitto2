@@ -173,9 +173,6 @@ type
     /// <summary>
     ///  Replaces occurrencess of {FieldName} tags in the specified string
     ///  with actual field values, formatted as strings.
-    ///  If the record's store has a master record, this method also replaces
-    ///  occurrences of {MasterRecord.FieldName} with string representations of
-    ///  master record field values.
     /// </summary>
     function ExpandExpression(const AExpression: string): string; virtual;
 

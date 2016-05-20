@@ -794,7 +794,7 @@ begin
   else if AViewTableField.ViewField.DerivedFieldsExist then
     // Derived fields must be updated when source field changes.
     Result := True
-  else if AViewTableField.GetBoolean('NotifyChange') then
+  else if AViewTableField.ViewField.GetBoolean('NotifyChange') then
     // Temporary, for cases not handled by this detector and setup manually.
     Result := True
   else if Length(AViewTableField.ViewField.Table.GetFilterByFields(
