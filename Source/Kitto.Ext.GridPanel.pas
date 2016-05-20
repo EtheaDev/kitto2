@@ -21,6 +21,7 @@ unit Kitto.Ext.GridPanel;
 interface
 
 uses
+  Generics.Collections,
   ExtPascal, Ext, ExtData, ExtForm, ExtGrid, ExtPascalUtils, ExtUxGrid,
   EF.ObserverIntf, EF.Types, EF.Tree,
   Kitto.Metadata.Views, Kitto.Metadata.DataView, Kitto.Store, Kitto.Types,
@@ -29,6 +30,8 @@ uses
 type
   TKExtGridPanel = class(TKExtDataPanelLeafController)
   strict private
+    FConfirmButton: TKExtButton;
+    FCancelButton: TKExtButton;
     FEditorGridPanel: TExtGridEditorGridPanel;
     FGridView: TExtGridGridView;
     FPagingToolbar: TExtPagingToolbar;
@@ -44,9 +47,6 @@ type
     procedure InitColumnEditors(const ARecord: TKViewTableRecord);
     procedure SetGridColumnEditor(const AEditorManager: TKExtEditorManager;
       const AViewField: TKViewField; const ALayoutNode: TEFNode; const AColumn: TExtGridColumn);
-  private
-    FConfirmButton: TKExtButton;
-    FCancelButton: TKExtButton;
     function GetAfterEditJSCode(const AMethod: TExtProcedure): string;
     function GetBeforeEditJSCode(const AMethod: TExtProcedure): string;
     procedure ShowConfirmButtons(const AShow: Boolean);
@@ -68,6 +68,7 @@ type
     function GetIsPaged: Boolean; override;
     function IsActionVisible(const AActionName: string): Boolean; override;
     function IsActionSupported(const AActionName: string): Boolean; override;
+    procedure AddUsedViewFields; override;
   public
     const DEFAULT_PAGE_RECORD_COUNT = 100;
     procedure UpdateObserver(const ASubject: IEFSubject; const AContext: string = ''); override;
@@ -567,6 +568,8 @@ var
     end;
 
   begin
+    AddUsedViewField(AViewField);
+
     LColumn := CreateColumn;
     LColumn.Sortable := not AViewField.IsBlob;
     if Assigned(ALayoutNode) then
@@ -991,6 +994,19 @@ procedure TKExtGridPanel.AddTopToolbarToolViewButtons;
 begin
   { TODO : Allow to specify the relative order of Controller-level and ViewTable-level tool buttons? }
   inherited AddToolViewButtons(ViewTable.FindNode('Controller/ToolViews'), TopToolbar);
+end;
+
+procedure TKExtGridPanel.AddUsedViewFields;
+var
+  I: Integer;
+begin
+  //inherited;
+  // We only add key fields plus any fields used in the grid columns in order to
+  // send smaller JSON data packets. See additional calls to AddUsedViewField
+  // elsewhere in this class.
+  for I := 0 to ViewTable.FieldCount - 1 do
+    if ViewTable.Fields[I].IsKey then
+      AddUsedViewField(ViewTable.Fields[I]);
 end;
 
 function TKExtGridPanel.GetSelectConfirmCall(const AMessage: string; const AMethod: TExtProcedure): string;

@@ -24,7 +24,7 @@ unit EF.Types;
 interface
 
 uses
-  SysUtils, Generics.Collections;
+  SysUtils, Generics.Collections, Generics.Defaults;
 
 type
   ///	<summary>
@@ -199,10 +199,25 @@ type
     function HasClass(const AId: string): Boolean;
   end;
 
+  TEFArray = class(Generics.Collections.TArray)
+  public
+    class function Contains<T>(const Values: array of T; const Item: T;
+      const Comparer: IEqualityComparer<T>; out ItemIndex: Integer): Boolean;
+      overload; static;
+    class function Contains<T>(const Values: array of T; const Item: T;
+      out ItemIndex: Integer): Boolean; overload; static;
+    class function Contains<T>(const Values: array of T; const Item: T): Boolean;
+      overload; static;
+    class function IndexOf<T>(const Values: array of T; const Item: T;
+      const Comparer: IEqualityComparer<T>): Integer; overload; static;
+    class function IndexOf<T>(const Values: array of T; const Item: T): Integer;
+      overload; static;
+  end;
+
 implementation
 
 uses
-  Generics.Defaults, {$IFDEF D22+}System.Hash,{$ENDIF}
+  {$IFDEF D22+}System.Hash,{$ENDIF}
   EF.Localization;
 
 { EEFError }
@@ -402,6 +417,48 @@ begin
   Value1 := AValue1;
   Value2 := AValue2;
   Value3 := AValue3;
+end;
+
+{ TEFArray }
+
+class function TEFArray.Contains<T>(const Values: array of T; const Item: T;
+  const Comparer: IEqualityComparer<T>; out ItemIndex: Integer): Boolean;
+var
+  Index: Integer;
+begin
+  for Index := 0 to high(Values) do begin
+    if Comparer.Equals(Values[Index], Item) then begin
+      ItemIndex := Index;
+      Result := True;
+      exit;
+    end;
+  end;
+  ItemIndex := -1;
+  Result := False;
+end;
+
+class function TEFArray.Contains<T>(const Values: array of T; const Item: T;
+  out ItemIndex: Integer): Boolean;
+begin
+  Result := Contains<T>(Values, Item, TEqualityComparer<T>.Default, ItemIndex);
+end;
+
+class function TEFArray.Contains<T>(const Values: array of T; const Item: T): Boolean;
+var
+  ItemIndex: Integer;
+begin
+  Result := Contains<T>(Values, Item, ItemIndex);
+end;
+
+class function TEFArray.IndexOf<T>(const Values: array of T; const Item: T;
+  const Comparer: IEqualityComparer<T>): Integer;
+begin
+  Contains<T>(Values, Item, Comparer, Result);
+end;
+
+class function TEFArray.IndexOf<T>(const Values: array of T; const Item: T): Integer;
+begin
+  Contains<T>(Values, Item, Result);
 end;
 
 end.
