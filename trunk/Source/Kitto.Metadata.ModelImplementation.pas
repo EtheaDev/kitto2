@@ -83,13 +83,13 @@ type
     ///  prevent marking the record as modified.
     ///  The default implementation does nothing.
     /// </summary>
-    procedure BeforeMarkRecordAsModified(const ARecord: TKViewTableRecord; var ADoIt: Boolean); virtual;
+//    procedure BeforeMarkRecordAsModified(const ARecord: TKViewTableRecord; var ADoIt: Boolean); virtual;
     /// <summary>
     ///  Called by SaveRecord just after marking the record as modified (only
     ///  if BeforeMarkRecordAsModified didn't set ADoIt to False).
     ///  The default implementation does nothing.
     /// </summary>
-    procedure AfterMarkRecordAsModified(const ARecord: TKViewTableRecord); virtual;
+//    procedure AfterMarkRecordAsModified(const ARecord: TKViewTableRecord); virtual;
     /// <summary>
     ///  Called by SaveRecord just before applying any Before rules to the record.
     ///  This is called regardless of the value of SaveRecord's APersist argument.
@@ -304,9 +304,9 @@ procedure TKDefaultModel.AfterApplyBeforeRulesToRecord(const ARecord: TKViewTabl
 begin
 end;
 
-procedure TKDefaultModel.AfterMarkRecordAsModified(const ARecord: TKViewTableRecord);
-begin
-end;
+//procedure TKDefaultModel.AfterMarkRecordAsModified(const ARecord: TKViewTableRecord);
+//begin
+//end;
 
 procedure TKDefaultModel.AfterPersistRecord(const ARecord: TKViewTableRecord;
   const AUseTransactions: Boolean);
@@ -323,10 +323,10 @@ procedure TKDefaultModel.BeforeApplyBeforeRulesToRecord(
 begin
 end;
 
-procedure TKDefaultModel.BeforeMarkRecordAsModified(const ARecord: TKViewTableRecord;
-  var ADoIt: Boolean);
-begin
-end;
+//procedure TKDefaultModel.BeforeMarkRecordAsModified(const ARecord: TKViewTableRecord;
+//  var ADoIt: Boolean);
+//begin
+//end;
 
 procedure TKDefaultModel.BeforePersistRecord(const ARecord: TKViewTableRecord;
   var AUseTransactions, ADoIt: Boolean);
@@ -419,13 +419,13 @@ begin
 
   LRecord := TKViewTableRecord(ARecord);
 
-  LDoIt := True;
-  BeforeMarkRecordAsModified(LRecord, LDoIt);
-  if LDoIt then
-  begin
-    LRecord.MarkAsModified;
-    AfterMarkRecordAsModified(LRecord);
-  end;
+//  LDoIt := True;
+//  BeforeMarkRecordAsModified(LRecord, LDoIt);
+//  if LDoIt then
+//  begin
+//    LRecord.MarkAsModified;
+//    AfterMarkRecordAsModified(LRecord);
+//  end;
 
   LDoIt := True;
   BeforeApplyBeforeRulesToRecord(LRecord, LDoIt);

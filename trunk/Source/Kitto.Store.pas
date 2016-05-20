@@ -106,6 +106,7 @@ type
   strict private
     FBackup: TEFNode;
     FState: TKRecordState;
+    FPreviousState: TKRecordState;
     FDetailStores: TObjectList<TKStore>;
     FOnFieldChange: TKFieldChangeEvent;
     FOnSetTransientProperty: TProc<string, string, string, Variant>;
@@ -119,6 +120,7 @@ type
     function GetStore: TKStore;
     function GetIsDeleted: Boolean;
     function GetIsNew: Boolean;
+    procedure SetState(const AValue: TKRecordState);
   strict protected
     function GetChildClass(const AName: string): TEFNodeClass; override;
 
@@ -145,6 +147,7 @@ type
     procedure FieldChanged(const AField: TKField; const AOldValue, ANewValue: Variant); virtual;
   public
     property State: TKRecordState read FState;
+    procedure RestorePreviousState;
     property Records: TKRecords read GetRecords;
     property Store: TKStore read GetStore;
     property Key: TKKey read GetKey;
@@ -1050,7 +1053,7 @@ end;
 procedure TKRecord.AfterConstruction;
 begin
   inherited;
-  FState := rsNew;
+  SetState(rsNew);
 end;
 
 procedure TKRecord.Backup;
@@ -1250,26 +1253,26 @@ end;
 
 procedure TKRecord.MarkAsClean;
 begin
-  FState := rsClean;
+  SetState(rsClean);
 end;
 
 procedure TKRecord.MarkAsDeleted;
 begin
-  if FState = rsNew then
-    FState := rsClean
-  else
-    FState := rsDeleted;
+//  if FState = rsNew then
+//    SetState(rsClean)
+//  else
+  SetState(rsDeleted);
 end;
 
 procedure TKRecord.MarkAsModified;
 begin
   if not (FState in [rsNew, rsDeleted]) then
-    FState := rsDirty;
+    SetState(rsDirty);
 end;
 
 procedure TKRecord.MarkAsNew;
 begin
-  FState := rsNew;
+  SetState(rsNew);
 end;
 
 function TKRecord.MatchesValues(const AValues: TEFNode): Boolean;
@@ -1329,7 +1332,7 @@ begin
       end;
       // Still not found - must be a reference.
     end;
-    FState := rsClean;
+    SetState(rsClean);
   except
     Restore;
     raise;
@@ -1353,7 +1356,7 @@ begin
     end;
     InternalAfterReadFromNode;
     if FState = rsClean then
-      FState := rsDirty;
+      SetState(rsDirty);
   except
     Store.DisableChangeNotifications;
     try
@@ -1374,6 +1377,17 @@ begin
   Assert(Assigned(FBackup));
 
   Assign(FBackup);
+end;
+
+procedure TKRecord.RestorePreviousState;
+begin
+  SetState(FPreviousState);
+end;
+
+procedure TKRecord.SetState(const AValue: TKRecordState);
+begin
+  FPreviousState := FState;
+  FState := AValue;
 end;
 
 procedure TKRecord.SetTransientProperty(const ASubjectType, ASubjectName, APropertyName: string; const AValue: Variant);
