@@ -234,27 +234,31 @@ end;
 procedure TKExtDataPanelController.DeleteCurrentRecord;
 var
   LRecord: TKViewTableRecord;
+  LPersistIt: Boolean;
+  LOldState: TKRecordState;
 begin
   Assert(ViewTable <> nil);
 
-  // Apply BEFORE rules now even though actual save migh be deferred.
   LRecord := GetCurrentViewRecord;
+  LPersistIt := not ViewTable.IsDetail;
+
+  LOldState := LRecord.State;
   LRecord.MarkAsDeleted;
   try
-    LRecord.ApplyBeforeRules;
+    ViewTable.Model.SaveRecord(LRecord, LPersistIt, nil);
+    // Make sure that we don't try to delete a nonpersistent record later
+    // when we save master/detail changes to the database.
+    if not LPersistIt and (LOldState = rsNew) then
+      LRecord.MarkAsClean;
+    if LPersistIt then
+      Session.Flash(Format(_('%s deleted.'), [_(ViewTable.DisplayLabel)]));
   except
     on E: EKValidationError do
     begin
-      LRecord.MarkAsClean;
+      LRecord.RestorePreviousState;
       ExtMessageBox.Alert(_(Session.Config.AppTitle), E.Message);
       Exit;
     end;
-  end;
-
-  if not ViewTable.IsDetail then
-  begin
-    ViewTable.Model.SaveRecord(LRecord, not ViewTable.IsDetail, nil);
-    Session.Flash(Format(_('%s deleted.'), [_(ViewTable.DisplayLabel)]));
   end;
   LoadData;
 end;
