@@ -1146,7 +1146,10 @@ end;
 procedure TKExtDataPanelController.AddUsedViewField(const AViewField: TKViewField);
 begin
   if not TEFArray.Contains<TKViewField>(FUsedViewFields, AViewField) then
-    FUsedViewFields := FUsedViewFields + [AViewField];
+  begin
+    SetLength(FUsedViewFields, Length(FUsedViewFields) + 1);
+    FUsedViewFields[High(FUsedViewFields)] := AViewField;
+  end;
 end;
 
 end.
