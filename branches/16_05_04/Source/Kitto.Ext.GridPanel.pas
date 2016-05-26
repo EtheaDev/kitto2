@@ -69,7 +69,7 @@ type
     function IsActionVisible(const AActionName: string): Boolean; override;
     function IsActionSupported(const AActionName: string): Boolean; override;
   public
-    const DEFAULT_PAGE_RECORD_COUNT = 100;
+    const DEFAULT_PAGE_RECORD_COUNT = 30;    ///100;
     procedure UpdateObserver(const ASubject: IEFSubject; const AContext: string = ''); override;
     procedure Activate; override;
   published
