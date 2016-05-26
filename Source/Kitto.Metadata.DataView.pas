@@ -504,6 +504,7 @@ type
     procedure SetDetailFieldValues(const AMasterRecord: TKViewTableRecord);
     function FindDetailStoreByModelName(const AModelName: string): TKViewTableStore;
     function GetDetailStoreByModelName(const AModelName: string): TKViewTableStore;
+    procedure HandleDeleteFileInstructions;
 
     procedure ApplyNewRecordRules;
     procedure ApplyEditRecordRules;
@@ -2752,6 +2753,24 @@ end;
 function TKViewTableRecord.GetXMLTagName: string;
 begin
   Result := ViewTable.ModelName;
+end;
+
+procedure TKViewTableRecord.HandleDeleteFileInstructions;
+begin
+  EnumFields(
+    function (AField: TKField): Boolean
+    var
+      LFileToDelete: string;
+    begin
+      if (AField.DataType is TKFileReferenceDataType) and (AField.IsNull) then
+      begin
+        LFileToDelete := AField.GetString('Sys/DeleteFile');
+        if FileExists(LFileToDelete) then
+          DeleteFile(LFileToDelete);
+      end;
+      Result := True;
+    end
+  );
 end;
 
 procedure TKViewTableRecord.InternalAfterReadFromNode;
