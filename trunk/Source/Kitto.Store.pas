@@ -157,6 +157,7 @@ type
     function FieldByName(const AFieldName: string): TKField;
     procedure EnumFields(const AProc: TFunc<TKField, Boolean>);
     function MatchesValues(const AValues: TEFNode): Boolean;
+    procedure HandleSetToNullInstructions;
 
     /// <summary>
     ///  Reads field values from the current dataset record, applying
@@ -179,10 +180,25 @@ type
     /// </summary>
     function ExpandExpression(const AExpression: string): string; virtual;
 
-    procedure MarkAsModified;
-    procedure MarkAsDeleted;
-    procedure MarkAsClean;
+    /// <summary>
+    ///  Marks the record as new. An insert instruction will be executed when
+    ///  persisting it.
+    /// </summary>
     procedure MarkAsNew;
+    /// <summary>
+    ///  Marks the record as dirty unless it's already new or deleted.
+    /// </summary>
+    procedure MarkAsModified;
+    /// <summary>
+    ///  Marks the record as deleted. A delete instruction will be executed when
+    ///  persisting it.
+    /// </summary>
+    procedure MarkAsDeleted;
+    /// <summary>
+    ///  Marks the record as clean. No instructions will be performed when
+    ///  persisting it.
+    /// </summary>
+    procedure MarkAsClean;
 
     property IsNew: Boolean read GetIsNew;
     property IsDeleted: Boolean read GetIsDeleted;
@@ -1251,6 +1267,18 @@ begin
   Result := Name;
 end;
 
+procedure TKRecord.HandleSetToNullInstructions;
+begin
+  EnumFields(
+    function (AField: TKField): Boolean
+    begin
+      if AField.GetBoolean('Sys/SetToNull') then
+        AField.SetToNull;
+      Result := True;
+    end
+  );
+end;
+
 procedure TKRecord.MarkAsClean;
 begin
   SetState(rsClean);
@@ -1258,9 +1286,6 @@ end;
 
 procedure TKRecord.MarkAsDeleted;
 begin
-//  if FState = rsNew then
-//    SetState(rsClean)
-//  else
   SetState(rsDeleted);
 end;
 
