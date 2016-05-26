@@ -78,19 +78,6 @@ type
     procedure InternalSaveRecords(const AStore: TKViewTableStore;
       const APersist: Boolean; const AUseTransaction: Boolean; const AAfterPersist: TProc); virtual;
     /// <summary>
-    ///  Called by SaveRecord just before marking the record as modified (which
-    ///  will guarantee that it is then actually saved). Set ADoIt to False to
-    ///  prevent marking the record as modified.
-    ///  The default implementation does nothing.
-    /// </summary>
-//    procedure BeforeMarkRecordAsModified(const ARecord: TKViewTableRecord; var ADoIt: Boolean); virtual;
-    /// <summary>
-    ///  Called by SaveRecord just after marking the record as modified (only
-    ///  if BeforeMarkRecordAsModified didn't set ADoIt to False).
-    ///  The default implementation does nothing.
-    /// </summary>
-//    procedure AfterMarkRecordAsModified(const ARecord: TKViewTableRecord); virtual;
-    /// <summary>
     ///  Called by SaveRecord just before applying any Before rules to the record.
     ///  This is called regardless of the value of SaveRecord's APersist argument.
     ///  Set ADoIt to False to prevent applying the rules.
@@ -304,10 +291,6 @@ procedure TKDefaultModel.AfterApplyBeforeRulesToRecord(const ARecord: TKViewTabl
 begin
 end;
 
-//procedure TKDefaultModel.AfterMarkRecordAsModified(const ARecord: TKViewTableRecord);
-//begin
-//end;
-
 procedure TKDefaultModel.AfterPersistRecord(const ARecord: TKViewTableRecord;
   const AUseTransactions: Boolean);
 begin
@@ -323,11 +306,6 @@ procedure TKDefaultModel.BeforeApplyBeforeRulesToRecord(
 begin
 end;
 
-//procedure TKDefaultModel.BeforeMarkRecordAsModified(const ARecord: TKViewTableRecord;
-//  var ADoIt: Boolean);
-//begin
-//end;
-
 procedure TKDefaultModel.BeforePersistRecord(const ARecord: TKViewTableRecord;
   var AUseTransactions, ADoIt: Boolean);
 begin
@@ -338,21 +316,30 @@ procedure TKDefaultModel.PersistRecord(const ARecord: TKViewTableRecord;
 var
   LDBCommand: TEFDBCommand;
   LRowsAffected: Integer;
-  I: Integer;
-  LFileToDelete: string;
   LDBConnection: TEFDBConnection;
+
+  procedure PersistDetailStores;
+  var
+    I: Integer;
+  begin
+    { TODO : implement cascade delete? }
+    for I := 0 to ARecord.DetailStoreCount - 1 do
+      SaveRecords(ARecord.DetailStores[I], True, nil);
+  end;
+
 begin
   Assert(Assigned(ARecord));
 
   if ARecord.State = rsClean then
+  begin
+    // If the record is not dirty, we don't need to persist it - still we may
+    // have dirty detail records.
+    PersistDetailStores;
     Exit;
+  end;
 
   // Take care of any instructions to clear fields.
-  for I := 0 to ARecord.FieldCount - 1 do
-  begin
-    if ARecord.Fields[I].GetBoolean('Sys/SetToNull') then
-      ARecord.Fields[I].SetToNull;
-  end;
+  ARecord.HandleSetToNullInstructions;
 
   // BEFORE rules are applied before calling this method.
   LDBConnection := TKConfig.Instance.DBConnections[ARecord.Store.ViewTable.DatabaseName];
@@ -378,22 +365,12 @@ begin
         if LRowsAffected <> 1 then
           raise EKError.CreateFmt('Update error. Rows affected: %d.', [LRowsAffected]);
       end;
-      { TODO : implement cascade delete? }
-      for I := 0 to ARecord.DetailStoreCount - 1 do
-        SaveRecords(ARecord.DetailStores[I], True, nil);
+      PersistDetailStores;
       ARecord.ApplyAfterRules;
       if AUseTransactions then
         LDBConnection.CommitTransaction;
       // Take care of any cleared external files.
-      for I := 0 to ARecord.FieldCount - 1 do
-      begin
-        if (ARecord.Fields[I].DataType is TKFileReferenceDataType) and (ARecord.Fields[I].IsNull) then
-        begin
-          LFileToDelete := ARecord.Fields[I].GetString('Sys/DeleteFile');
-          if FileExists(LFileToDelete) then
-            DeleteFile(LFileToDelete);
-        end;
-      end;
+      ARecord.HandleDeleteFileInstructions;
       ARecord.MarkAsClean;
     finally
       FreeAndNil(LDBCommand);
@@ -419,14 +396,6 @@ begin
 
   LRecord := TKViewTableRecord(ARecord);
 
-//  LDoIt := True;
-//  BeforeMarkRecordAsModified(LRecord, LDoIt);
-//  if LDoIt then
-//  begin
-//    LRecord.MarkAsModified;
-//    AfterMarkRecordAsModified(LRecord);
-//  end;
-
   LDoIt := True;
   BeforeApplyBeforeRulesToRecord(LRecord, LDoIt);
   if LDoIt then
@@ -442,7 +411,6 @@ begin
     BeforePersistRecord(LRecord, LUseTransactions, LDoIt);
     if LDoIt then
     begin
-      { TODO : Add support for calling virtual methods before and after applying After rules. }
       PersistRecord(LRecord, LUseTransactions);
       AfterPersistRecord(LRecord, LUseTransactions);
       if Assigned(AAfterPersist) then
