@@ -21,7 +21,7 @@ unit Kitto.Ext.DataPanel;
 interface
 
 uses
-  Generics.Collections,
+  SysUtils, Generics.Collections,
   Ext, ExtPascal, ExtPascalUtils, ExtData,
   superobject,
   EF.Classes, EF.ObserverIntf, EF.Tree,
@@ -53,6 +53,8 @@ type
     procedure ExecuteButtonAction; override;
   end;
 
+  TKViewFieldFilterFunc = TFunc<TKViewField, Boolean>;
+
   /// <summary>
   ///  Base class for controllers that handle database records (either
   ///  single records or record sets).
@@ -72,12 +74,14 @@ type
     FViewButton: TKExtButton;
     FDeleteButton: TKExtButton;
     FDupButton: TKExtButton;
+    FUsedViewFields: TArray<TKViewField>;
     function GetView: TKDataView;
     function GetMaxRecords: Integer;
     function GetDefaultAutoOpen: Boolean;
-    procedure SetupURLFields(const ARecord: TKViewTableRecord);
+    procedure SetURLFieldValues(const ARecord: TKViewTableRecord);
     procedure SetFieldValue(const AField: TKViewTableField; const AValue: TSuperAvlEntry);
     function FindValueByName(const AValues: ISuperObject; const AName: string): TSuperAvlEntry;
+    function GetFieldFilterFunc: TKFieldFilterFunc;
   strict protected
     FButtonsRequiringSelection: TList<TExtObject>;
     FEditItems: TKEditItemList;
@@ -97,6 +101,8 @@ type
     property ClientReader: TExtDataJsonReader read FClientReader;
     function CreateClientStore: TExtDataStore; virtual;
     function CreateClientReader: TExtDataJsonReader; virtual;
+    procedure AddClientReaderField(const AReader: TExtDataJsonReader; const AViewField: TKViewField);
+    procedure CreateClientReaderFields;
     function AddActionButton(const AUniqueId: string; const AView: TKView;
       const AToolbar: TKExtToolbar): TKExtActionButton; override;
     function GetSelectConfirmCall(const AMessage: string; const AMethod: TExtProcedure): string; virtual;
@@ -127,6 +133,9 @@ type
     function GetIsPaged: Boolean; virtual;
     function GetRecordPageFilter: string; virtual;
     procedure SetNewRecordDefaultValues(const ANode: TEFNode); virtual;
+    function IsViewFieldIncludedInClientStore(const AViewField: TKViewField): Boolean; virtual;
+    procedure AddUsedViewFields; virtual;
+    procedure AddUsedViewField(const AViewField: TKViewField);
   public
     procedure AfterConstruction; override;
     destructor Destroy; override;
@@ -151,8 +160,8 @@ type
 implementation
 
 uses
-  SysUtils, StrUtils, Math, Types, Classes,
-  EF.StrUtils, EF.SysUtils, EF.Localization,
+  StrUtils, Math, Types, Classes,
+  EF.StrUtils, EF.SysUtils, EF.Localization, EF.Types,
   Kitto.AccessControl, Kitto.Config, Kitto.Rules, Kitto.SQL,
   Kitto.Ext.Session, KItto.Ext.Utils;
 
@@ -236,27 +245,31 @@ end;
 procedure TKExtDataPanelController.DeleteCurrentRecord;
 var
   LRecord: TKViewTableRecord;
+  LPersistIt: Boolean;
+  LOldState: TKRecordState;
 begin
   Assert(ViewTable <> nil);
 
-  // Apply BEFORE rules now even though actual save migh be deferred.
   LRecord := GetCurrentViewRecord;
+  LPersistIt := not ViewTable.IsDetail;
+
+  LOldState := LRecord.State;
   LRecord.MarkAsDeleted;
   try
-    LRecord.ApplyBeforeRules;
+    ViewTable.Model.SaveRecord(LRecord, LPersistIt, nil);
+    // Make sure that we don't try to delete a nonpersistent record later
+    // when we save master/detail changes to the database.
+    if not LPersistIt and (LOldState = rsNew) then
+      LRecord.MarkAsClean;
+    if LPersistIt then
+      Session.Flash(Format(_('%s deleted.'), [_(ViewTable.DisplayLabel)]));
   except
     on E: EKValidationError do
     begin
-      LRecord.MarkAsClean;
+      LRecord.RestorePreviousState;
       ExtMessageBox.Alert(_(Session.Config.AppTitle), E.Message);
       Exit;
     end;
-  end;
-
-  if not ViewTable.IsDetail then
-  begin
-    ViewTable.Model.SaveRecord(LRecord, not ViewTable.IsDetail, nil);
-    Session.Flash(Format(_('%s deleted.'), [_(ViewTable.DisplayLabel)]));
   end;
   LoadData;
 end;
@@ -321,6 +334,10 @@ begin
   Assert(Assigned(FServerStore));
 
   ViewTable := LViewTable;
+
+  // We do this after setting ViewTable in order to give descendants a chance
+  // to define which view fields are used.
+  CreateClientReaderFields;
 
   inherited; // Creates subcontrollers.
 
@@ -511,6 +528,19 @@ begin
 end;
 
 function TKExtDataPanelController.CreateClientReader: TExtDataJsonReader;
+begin
+  Assert(Assigned(ViewTable));
+
+  Result := TExtDataJsonReader.Create(Self, JSObject('')); // Must pass '' otherwise invalid code is generated.
+  Result.Root := 'Root';
+  Result.TotalProperty := 'Total';
+  Result.MessageProperty := 'Msg';
+  Result.SuccessProperty := 'Success';
+end;
+
+procedure TKExtDataPanelController.AddClientReaderField(const AReader: TExtDataJsonReader; const AViewField: TKViewField);
+var
+  I: Integer;
 
   procedure DoAddReaderField(const AReader: TExtDataJsonReader; const AName, AType: string; const AUseNull: Boolean);
   var
@@ -522,35 +552,26 @@ function TKExtDataPanelController.CreateClientReader: TExtDataJsonReader;
     LField.UseNull := AUseNull;
   end;
 
-  procedure AddReaderField(const AReader: TExtDataJsonReader; const AViewField: TKViewField);
-  var
-    I: Integer;
+begin
+  DoAddReaderField(AReader, AViewField.AliasedName, AViewField.ActualDataType.GetJSTypeName, not AViewField.IsRequired);
+  if AViewField.IsPicture then
+    DoAddReaderField(AReader, AViewField.GetURLFieldName,
+      TEFDataTypeFactory.Instance.GetDataType('String').GetJSTypeName, not AViewField.IsRequired);
+  if AViewField.IsReference then
   begin
-    DoAddReaderField(AReader, AViewField.AliasedName, AViewField.ActualDataType.GetJSTypeName, not AViewField.IsRequired);
-    if AViewField.IsPicture then
-      DoAddReaderField(AReader, AViewField.GetURLFieldName,
-        TEFDataTypeFactory.Instance.GetDataType('String').GetJSTypeName, not AViewField.IsRequired);
-    if AViewField.IsReference then
-    begin
-      for I := 0 to AViewField.ModelField.FieldCount - 1 do
-        DoAddReaderField(AReader, AViewField.ModelField.Fields[I].FieldName,
-          AViewField.ModelField.Fields[I].DataType.GetJSTypeName, not AViewField.ModelField.Fields[I].IsRequired);
-    end;
+    for I := 0 to AViewField.ModelField.FieldCount - 1 do
+      DoAddReaderField(AReader, AViewField.ModelField.Fields[I].FieldName,
+        AViewField.ModelField.Fields[I].DataType.GetJSTypeName, not AViewField.ModelField.Fields[I].IsRequired);
   end;
+end;
+
+procedure TKExtDataPanelController.CreateClientReaderFields;
 var
   I: Integer;
-
 begin
-  Assert(Assigned(ViewTable));
-
-  Result := TExtDataJsonReader.Create(Self, JSObject('')); // Must pass '' otherwise invalid code is generated.
-  Result.Root := 'Root';
-  Result.TotalProperty := 'Total';
-  Result.MessageProperty := 'Msg';
-  Result.SuccessProperty := 'Success';
-
   for I := 0 to ViewTable.FieldCount - 1 do
-    AddReaderField(Result, ViewTable.Fields[I]);
+    if IsViewFieldIncludedInClientStore(ViewTable.Fields[I]) then
+      AddClientReaderField(ClientReader, ViewTable.Fields[I]);
 end;
 
 function TKExtDataPanelController.CreateClientStore: TExtDataStore;
@@ -561,7 +582,7 @@ begin
   Result.On('exception', JSFunction('proxy, type, action, options, response, arg', 'loadError(type, action, response);'));
 end;
 
-procedure TKExtDataPanelController.SetupURLFields(const ARecord: TKViewTableRecord);
+procedure TKExtDataPanelController.SetURLFieldValues(const ARecord: TKViewTableRecord);
 var
   I: Integer;
   LViewTableField: TKViewTableField;
@@ -601,6 +622,15 @@ begin
   Result := SmartConcat(LFilter, ' and ', LLookupFilter);
 end;
 
+function TKExtDataPanelController.GetFieldFilterFunc: TKFieldFilterFunc;
+begin
+  Result :=
+    function (AField: TKField): Boolean
+    begin
+      Result := IsViewFieldIncludedInClientStore((AField as TKViewTableField).ViewField);
+    end;
+end;
+
 procedure TKExtDataPanelController.DoGetRecordPage(const AStart, ALimit: Integer;
   const AFillResponse: Boolean);
 var
@@ -613,7 +643,7 @@ begin
     begin
       LTotal := ServerStore.Records.GetRecordCount(ServerStore.Records.EnumNonDeletedRecords);
       if AFillResponse then
-        LData := ServerStore.GetAsJSON(True);
+        LData := ServerStore.GetAsJSON(True, 0, 0, GetFieldFilterFunc());
     end
     else
     begin
@@ -621,17 +651,17 @@ begin
         procedure (ARecord: TEFNode)
         begin
           Assert(ARecord is TKViewTableRecord);
-          SetupURLFields(TKViewTableRecord(ARecord));
+          SetURLFieldValues(TKViewTableRecord(ARecord));
         end);
       if AFillResponse then
       begin
         if (AStart <> 0) or (ALimit <> 0) then
-          LData := ServerStore.GetAsJSON(True)
+          LData := ServerStore.GetAsJSON(True, 0, 0, GetFieldFilterFunc())
         else
           // When loading all records, apply a limit on the display.
           { TODO : If there's a limit on the display of records, try to pass it over and only load
             needed records into the store. }
-          LData := ServerStore.GetAsJSON(True, 0, Min(GetMaxRecords(), LTotal));
+          LData := ServerStore.GetAsJSON(True, 0, Min(GetMaxRecords(), LTotal), GetFieldFilterFunc());
       end;
     end;
     if AFillResponse then
@@ -822,6 +852,11 @@ begin
   Result := False;
 end;
 
+function TKExtDataPanelController.IsViewFieldIncludedInClientStore(const AViewField: TKViewField): Boolean;
+begin
+  Result := Assigned(AViewField) and TEFArray.Contains<TKViewField>(FUsedViewFields, AViewField);
+end;
+
 procedure TKExtDataPanelController.NewRecord;
 begin
   ShowEditWindow(nil, emNewRecord);
@@ -830,6 +865,8 @@ end;
 procedure TKExtDataPanelController.SetViewTable(const AValue: TKViewTable);
 begin
   FViewTable := AValue;
+
+  AddUsedViewFields;
 
   FClientStore := CreateClientStore;
   FClientReader := CreateClientReader;
@@ -876,6 +913,16 @@ begin
     or not FViewTable.GetBoolean('Controller/PreventDeleting', True) //explicit PreventDeleting: False;
     );
   FAllowedActions.AddOrSetValue('Delete', FVisibleActions['Delete'] and FViewTable.IsAccessGranted(ACM_DELETE));
+end;
+
+procedure TKExtDataPanelController.AddUsedViewFields;
+var
+  I: Integer;
+begin
+  // By default we add all fields to preserve backward compatibility.
+  // Descendants may do things differently as appropriate.
+  for I := 0 to ViewTable.FieldCount - 1 do
+    AddUsedViewField(ViewTable.Fields[I]);
 end;
 
 function TKExtDataPanelController.AddTopToolbarButton(const AActionName, ATooltip, AImageName: string;
@@ -1094,6 +1141,12 @@ begin
   inherited;
   if (AContext = 'Confirmed') and Supports(ASubject.AsObject, IKExtController) then
     LoadData;
+end;
+
+procedure TKExtDataPanelController.AddUsedViewField(const AViewField: TKViewField);
+begin
+  if not TEFArray.Contains<TKViewField>(FUsedViewFields, AViewField) then
+    FUsedViewFields := FUsedViewFields + [AViewField];
 end;
 
 end.

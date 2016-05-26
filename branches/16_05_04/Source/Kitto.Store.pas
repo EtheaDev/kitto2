@@ -100,10 +100,13 @@ type
 
   TKRecordState = (rsNew, rsClean, rsDirty, rsDeleted);
 
+  TKFieldFilterFunc = TFunc<TKField, Boolean>;
+
   TKRecord = class(TEFNode)
   strict private
     FBackup: TEFNode;
     FState: TKRecordState;
+    FPreviousState: TKRecordState;
     FDetailStores: TObjectList<TKStore>;
     FOnFieldChange: TKFieldChangeEvent;
     FOnSetTransientProperty: TProc<string, string, string, Variant>;
@@ -117,6 +120,7 @@ type
     function GetStore: TKStore;
     function GetIsDeleted: Boolean;
     function GetIsNew: Boolean;
+    procedure SetState(const AValue: TKRecordState);
   strict protected
     function GetChildClass(const AName: string): TEFNodeClass; override;
 
@@ -143,6 +147,7 @@ type
     procedure FieldChanged(const AField: TKField; const AOldValue, ANewValue: Variant); virtual;
   public
     property State: TKRecordState read FState;
+    procedure RestorePreviousState;
     property Records: TKRecords read GetRecords;
     property Store: TKStore read GetStore;
     property Key: TKKey read GetKey;
@@ -165,15 +170,12 @@ type
     /// names are not in the passed node are set to Null.</summary>
     procedure ReadFromNode(const ANode: TEFNode);
 
-    function GetAsJSON(const AForDisplay: Boolean): string;
-    function GetAsXML(const AForDisplay: Boolean): string;
+    function GetAsJSON(const AForDisplay: Boolean; const AFieldFilterFunc: TKFieldFilterFunc = nil): string;
+    function GetAsXML(const AForDisplay: Boolean; const AFieldFilterFunc: TKFieldFilterFunc = nil): string;
 
     /// <summary>
     ///  Replaces occurrencess of {FieldName} tags in the specified string
     ///  with actual field values, formatted as strings.
-    ///  If the record's store has a master record, this method also replaces
-    ///  occurrences of {MasterRecord.FieldName} with string representations of
-    ///  master record field values.
     /// </summary>
     function ExpandExpression(const AExpression: string): string; virtual;
 
@@ -255,10 +257,12 @@ type
     procedure Remove(const ARecord: TKRecord);
 
     function GetAsJSON(const AForDisplay: Boolean;
-      const AFrom: Integer = 0; const AFor: Integer = 0): string;
+      const AFrom: Integer = 0; const AFor: Integer = 0;
+      const AFieldFilterFunc: TKFieldFilterFunc = nil): string;
 
     function GetAsXML(const AForDisplay: Boolean;
-      const AFrom: Integer = 0; const AFor: Integer = 0): string;
+      const AFrom: Integer = 0; const AFor: Integer = 0;
+      const AFieldFilterFunc: TKFieldFilterFunc = nil): string;
 
     procedure ForEach(const AProc: TProc<TKRecord>);
 
@@ -354,7 +358,7 @@ type
     procedure RemoveRecord(const ARecord: TKRecord);
 
     function GetAsJSON(const AForDisplay: Boolean; const AFrom: Integer = 0;
-      const AFor: Integer = 0): string;
+      const AFor: Integer = 0; const AFieldFilterFunc: TKFieldFilterFunc = nil): string;
 
     function GetAsXML(const AForDisplay: Boolean; const AFrom: Integer = 0;
       const AFor: Integer = 0): string;
@@ -614,9 +618,9 @@ begin
 end;
 
 function TKStore.GetAsJSON(const AForDisplay: Boolean; const AFrom: Integer;
-  const AFor: Integer): string;
+  const AFor: Integer; const AFieldFilterFunc: TKFieldFilterFunc): string;
 begin
-  Result := Records.GetAsJSON(AForDisplay, AFrom, AFor);
+  Result := Records.GetAsJSON(AForDisplay, AFrom, AFor, AFieldFilterFunc);
 end;
 
 function TKStore.GetAsXML(const AForDisplay: Boolean; const AFrom: Integer;
@@ -854,7 +858,8 @@ begin
 end;
 
 function TKRecords.GetAsJSON(const AForDisplay: Boolean;
-  const AFrom: Integer; const AFor: Integer): string;
+  const AFrom: Integer; const AFor: Integer;
+  const AFieldFilterFunc: TKFieldFilterFunc): string;
 var
   LResult: string;
 begin
@@ -863,15 +868,15 @@ begin
     procedure(ARecord: TKRecord)
     begin
       if LResult = '' then
-        LResult := ARecord.GetAsJSON(AForDisplay)
+        LResult := ARecord.GetAsJSON(AForDisplay, AFieldFilterFunc)
       else
-        LResult := LResult + ',' + ARecord.GetAsJSON(AForDisplay);
+        LResult := LResult + ',' + ARecord.GetAsJSON(AForDisplay, AFieldFilterFunc);
     end);
   Result := '[' + LResult + ']';
 end;
 
 function TKRecords.GetAsXML(const AForDisplay: Boolean;
-  const AFrom, AFor: Integer): string;
+  const AFrom, AFor: Integer; const AFieldFilterFunc: TKFieldFilterFunc): string;
 var
   LTagName: string;
   LResult: string;
@@ -881,9 +886,9 @@ begin
     procedure(ARecord: TKRecord)
     begin
       if LResult = '' then
-        LResult := ARecord.GetAsXML(AForDisplay)
+        LResult := ARecord.GetAsXML(AForDisplay, AFieldFilterFunc)
       else
-        LResult := LResult + ARecord.GetAsXML(AForDisplay);
+        LResult := LResult + ARecord.GetAsXML(AForDisplay, AFieldFilterFunc);
     end);
   LTagName := GetXMLTagName;
   Result := Format(XMLTagFormat,[LTagName, LResult, LTagName]);
@@ -1048,7 +1053,7 @@ end;
 procedure TKRecord.AfterConstruction;
 begin
   inherited;
-  FState := rsNew;
+  SetState(rsNew);
 end;
 
 procedure TKRecord.Backup;
@@ -1116,7 +1121,7 @@ begin
   end;
 end;
 
-function TKRecord.GetAsJSON(const AForDisplay: Boolean): string;
+function TKRecord.GetAsJSON(const AForDisplay: Boolean; const AFieldFilterFunc: TKFieldFilterFunc): string;
 var
   I: Integer;
   LJSON: string;
@@ -1124,19 +1129,22 @@ begin
   Result := '';
   for I := 0 to FieldCount - 1 do
   begin
-    LJSON := Fields[I].GetAsJSON(AForDisplay);
-    if LJSON <> '' then
+    if not Assigned(AFieldFilterFunc) or AFieldFilterFunc(Fields[I]) then
     begin
-      if Result <> '' then
-        Result := Result + ',' + LJSON
-      else
-        Result := LJSON;
+      LJSON := Fields[I].GetAsJSON(AForDisplay);
+      if LJSON <> '' then
+      begin
+        if Result <> '' then
+          Result := Result + ',' + LJSON
+        else
+          Result := LJSON;
+      end;
     end;
   end;
   Result := '{' + Result + '}';
 end;
 
-function TKRecord.GetAsXML(const AForDisplay: Boolean): string;
+function TKRecord.GetAsXML(const AForDisplay: Boolean; const AFieldFilterFunc: TKFieldFilterFunc): string;
 var
   I: Integer;
   LXML, LTagName: string;
@@ -1145,11 +1153,14 @@ begin
   Result := '';
   for I := 0 to FieldCount - 1 do
   begin
-    LXML := Fields[I].GetAsXML(AForDisplay);
-    if LXML <> '' then
-      Result := Result + sLineBreak + LXML
-    else
-      Result := LXML;
+    if not Assigned(AFieldFilterFunc) or not AFieldFilterFunc(Fields[I]) then
+    begin
+      LXML := Fields[I].GetAsXML(AForDisplay);
+      if LXML <> '' then
+        Result := Result + sLineBreak + LXML
+      else
+        Result := LXML;
+    end;
   end;
   for I := 0 to DetailStoreCount -1 do
   begin
@@ -1242,26 +1253,26 @@ end;
 
 procedure TKRecord.MarkAsClean;
 begin
-  FState := rsClean;
+  SetState(rsClean);
 end;
 
 procedure TKRecord.MarkAsDeleted;
 begin
-  if FState = rsNew then
-    FState := rsClean
-  else
-    FState := rsDeleted;
+//  if FState = rsNew then
+//    SetState(rsClean)
+//  else
+  SetState(rsDeleted);
 end;
 
 procedure TKRecord.MarkAsModified;
 begin
   if not (FState in [rsNew, rsDeleted]) then
-    FState := rsDirty;
+    SetState(rsDirty);
 end;
 
 procedure TKRecord.MarkAsNew;
 begin
-  FState := rsNew;
+  SetState(rsNew);
 end;
 
 function TKRecord.MatchesValues(const AValues: TEFNode): Boolean;
@@ -1321,7 +1332,7 @@ begin
       end;
       // Still not found - must be a reference.
     end;
-    FState := rsClean;
+    SetState(rsClean);
   except
     Restore;
     raise;
@@ -1345,7 +1356,7 @@ begin
     end;
     InternalAfterReadFromNode;
     if FState = rsClean then
-      FState := rsDirty;
+      SetState(rsDirty);
   except
     Store.DisableChangeNotifications;
     try
@@ -1366,6 +1377,17 @@ begin
   Assert(Assigned(FBackup));
 
   Assign(FBackup);
+end;
+
+procedure TKRecord.RestorePreviousState;
+begin
+  SetState(FPreviousState);
+end;
+
+procedure TKRecord.SetState(const AValue: TKRecordState);
+begin
+  FPreviousState := FState;
+  FState := AValue;
 end;
 
 procedure TKRecord.SetTransientProperty(const ASubjectType, ASubjectName, APropertyName: string; const AValue: Variant);
