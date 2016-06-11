@@ -403,6 +403,13 @@ type
     function FormatDateTime(const ADateTimeValue: TDateTime): string; override;
   end;
 
+  TEFOracleDBEngineType = class(TEFDBEngineType)
+  public
+    function AddLimitClause(const ASelectClause, AFromClause, AWhereClause, AOrderByClause: string;
+      const AFrom: Integer; const AFor: Integer): string; override;
+    function FormatDateTime(const ADateTimeValue: TDateTime): string; override;
+  end;
+
   TEFFirebirdDBEngineType = class(TEFDBEngineType)
   public
     procedure BeforeExecute(const ACommandText: string; const AParams: TParams); override;
@@ -1269,6 +1276,29 @@ begin
         AParams[I].Clear;
     end;
   end;
+end;
+
+{ TEFOracleDBEngineType }
+
+function TEFOracleDBEngineType.AddLimitClause(const ASelectClause, AFromClause,
+  AWhereClause, AOrderByClause: string; const AFrom, AFor: Integer): string;
+begin
+  Result := ASelectClause + ' ' + AFromClause + ' ' + AWhereClause + AOrderByClause;
+  if (AFrom <> 0) or (AFor <> 0) then
+  begin
+    Result := Format(
+      'select * from (select /*+ FIRST_ROWS(n) */ LIMITED_QUERY.*, ROWNUM rnum from (%s) LIMITED_QUERY'+
+      ' where ROWNUM < %d ) where rnum >= %d', [Result, AFrom+AFor, AFrom]);
+  end;
+end;
+
+function TEFOracleDBEngineType.FormatDateTime(const ADateTimeValue: TDateTime): string;
+begin
+  //Check if the value is only a date
+  if Trunc(ADateTimeValue) = ADateTimeValue then
+    Result := Format('to_date(''%s'', ''yyyymmdd'')', [SysUtils.FormatDateTime('yyyymmdd', ADateTimeValue)])
+  else
+    Result := Format('to_date(''%s'', ''yyyy/mm/dd hh24:mi:ss'')', [SysUtils.FormatDateTime('yyyymmdd hh:mm:ss', ADateTimeValue)]);
 end;
 
 end.
