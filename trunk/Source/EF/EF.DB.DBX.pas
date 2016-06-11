@@ -249,6 +249,8 @@ function TEFDBDBXConnection.CreateDBEngineType: TEFDBEngineType;
 begin
   if ContainsText(FConnection.DriverName, 'MSSQL') or ContainsText(FConnection.DriverName, 'SQLServer') then
     Result := TEFSQLServerDBEngineType.Create
+  else if ContainsText(FConnection.DriverName, 'Oracle') then
+    Result := TEFOracleDBEngineType.Create
   else if ContainsText(FConnection.DriverName, 'Firebird') or ContainsText(FConnection.DriverName, 'InterBase') then
     Result := TEFFirebirdDBEngineType.Create
   else
