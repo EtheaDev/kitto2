@@ -1,0 +1,17 @@
+﻿Field: Notes
+  CharWidth: 70
+FieldSet:
+  Collapsible: True
+  Row:
+    Field: Phase
+    Field: Employee
+    Field: Role
+    Field: Type
+FieldSet:
+  Title: Timing and status
+  Row:
+    Field: ActivityDate
+    Field: START_TIME
+    Field: END_TIME
+    Field: DURATION
+    Field: STATUS

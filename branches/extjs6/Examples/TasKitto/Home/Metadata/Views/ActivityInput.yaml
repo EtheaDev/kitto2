@@ -1,0 +1,128 @@
+﻿Type: Data
+
+Controller: List
+  Filters:
+    DisplayLabel: Search panel
+    LabelWidth: 90
+    Connector: and
+    Items:
+      FreeSearch: Description
+        ExpressionTemplate: (UPPER(Activity.Description) like UPPER('%{value}%'))
+      DynaList: Activity Type
+        CommandText: |
+          select first 1 '%' TYPE_ID, '(All)' TYPE_NAME from kitto_users
+            union all
+          select TYPE_ID, TYPE_NAME from ACTIVITY_TYPE 
+            order by 2
+        ExpressionTemplate: Activity.TYPE_ID like '{value}'
+      ColumnBreak:
+        LabelWidth: 50
+      DateSearch: From
+        ExpressionTemplate: ACTIVITY_DATE >= '{value}'
+      DateSearch: To
+        ExpressionTemplate: ACTIVITY_DATE <= '{value}'
+      ColumnBreak:
+        LabelWidth: 80
+      List: Period
+        Items:
+          Today: Today
+            Expression: (ACTIVITY_DATE > %DB.CURRENT_DATE% - 1)
+          LastWeek: Last Week
+            Expression: (ACTIVITY_DATE <= %DB.CURRENT_DATE%) and (ACTIVITY_DATE >= %DB.CURRENT_DATE% - 7)
+          CurrMonth: Current Month
+            Expression: |
+              EXTRACT(month FROM ACTIVITY_DATE) = EXTRACT(month FROM %DB.CURRENT_DATE%) 
+              and EXTRACT(year FROM ACTIVITY_DATE) = EXTRACT(year FROM %DB.CURRENT_DATE%)                
+          CurrYear: Current Year
+            Expression: EXTRACT(year FROM ACTIVITY_DATE) = EXTRACT(year FROM %DB.CURRENT_DATE%)
+          All: Whole Archive
+            Expression: 1=1
+            IsDefault: True
+      FreeSearch: Last N Days
+        ExpressionTemplate: (ACTIVITY_DATE >= %DB.CURRENT_DATE% - {value})
+      ColumnBreak:
+      Spacer:
+        Width: 1
+      ColumnBreak:
+      ApplyButton: Apply search
+        ImageName: Find
+  CenterController:
+    AllowDuplicating: True
+    AllowViewing: True
+
+MainTable:
+  Model: ACTIVITY
+  Controller:
+    FormController:
+      CloneButton:
+    PopupWindow:
+      Width: 600
+      Height: 400
+    ToolViews:
+      DownloadText:
+        DisplayLabel: Download in TXT
+        Controller: ExportTextTool
+          RequireSelection: False
+          ClientFileName: ActivityList_%YYYYMMDD_DATE%_%HHMM_TIME%.txt
+      DownloadCSV:
+        DisplayLabel: Download in CSV
+        ImageName: download
+        Controller: ExportCSVTool
+          RequireSelection: False
+      DownloadExcel:
+        DisplayLabel: Download in Excel
+        Controller: ExportExcelTool
+          ClientFileName: ActivityList.xls
+          TemplateFileName: %APP_PATH%ReportTemplates\ActivityList.xlt
+          RequireSelection: False
+      PDFReport:
+        DisplayLabel: Activity report PDF
+        Controller: MergePDFTool
+          ClientFileName: Activity_{Description}.pdf
+          BaseFileName: %APP_PATH%ReportTemplates\ActivityReport.pdf
+          LayoutFileName: %APP_PATH%ReportTemplates\ActivityPDFMerge.yaml
+          RequireSelection: True
+      FOPReport:
+        DisplayLabel: Activity by FOP
+        Controller: FOPTool
+          ClientFileName: ActivityByFOP.pdf
+          TransformFileName: %APP_PATH%ReportTemplates\ActivityReport.xsl
+          RequireSelection: False
+      HTMLReport:
+        DisplayLabel: Activity by XSL-Html
+        Controller: XSLTool
+          ClientFileName: ActivityByXSL.html
+          TransformFileName: %APP_PATH%ReportTemplates\ActivityReportHtml.xsl
+          RequireSelection: False
+      TestDownload:
+        DisplayLabel: Download a file
+        ImageName: download
+        Controller: DownloadFile
+          ConfirmationMessage: |
+            Are you sure you want to 
+            <b>download</b> the file?
+          RequireSelection: False
+          FileName: %APP_PATH%\Resources\taskitto_logo_150.png
+          ClientFileName: takitto_logo.png
+          ContentType: image/png
+      UploadFile:
+        DisplayLabel: Upload image
+        Controller: UploadFile
+          Path: %APP_PATH%\Documents\Uploaded
+          AcceptedWildcards: *.jpg *.png
+      UploadExcel:
+        DisplayLabel: Upload Excel File
+        Controller: UploadExcelTool
+          AutoRefresh: All
+          RequireSelection: False
+          FieldMappings:
+            DESCRIPTION: DESCRIPTION
+            PHASE ID: PHASE_ID
+            EMPLOYEE ID: EMPLOYEE_ID
+            ROLE ID: ROLE_ID
+            TYPE ID: TYPE_ID
+            ACTIVITY DATE: ACTIVITY_DATE
+            START TIME: START_TIME
+            END TIME: END_TIME
+            STATUS: STATUS
+          AcceptedWildcards: *.xls

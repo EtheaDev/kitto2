@@ -1,0 +1,3 @@
+Those icons included in Kitto are a subset of google material design icons, licensed under the terms of the Creative Commons Attribution 4.0 International Public License.
+The name of the icons are different from the original to map with default names used by Kitto
+Visit https://design.google.com/icons/ to get more icons.
