@@ -727,8 +727,6 @@ type
 
     function GetFilterByFields(APredicate: TFunc<TKFilterByViewField, Boolean>): TArray<TKFilterByViewField>;
 
-    function GetFilteredByFields(const AViewField: TKViewField): TKViewFieldArray;
-
     /// <summary>
     ///  True if the underlying data store is a large one. Set this to True at the
     ///  view table level to override the setting in the model (for example if
@@ -1179,11 +1177,6 @@ begin
       end;
     end;
   end;
-end;
-
-function TKViewTable.GetFilteredByFields(const AViewField: TKViewField): TKViewFieldArray;
-begin
-
 end;
 
 function TKViewTable.GetImageName: string;
@@ -2665,27 +2658,31 @@ begin
         FReferenceViewFieldBeingChanged := nil;
       end;
     end;
-    // Clear filtered-by fields.
-    LFilteredByFields := LViewField.Table.GetFilterByFields(
-      function (AFilterByViewField: TKFilterByViewField): Boolean
-      begin
-        Result := AFilterByViewField.SourceField = LViewField;
-        if Result then
+    // Clear filtered-by fields only when changing the view field itself (not
+    // any underlying real fields).
+    if LField.FieldName = LViewField.AliasedName then
+    begin
+      LFilteredByFields := LViewField.Table.GetFilterByFields(
+        function (AFilterByViewField: TKFilterByViewField): Boolean
         begin
-          EnumChildren(
-            // Select all destination fields...
-            function (const ANode: TEFNode): Boolean
-            begin
-              Result := TKVIewTableField(ANode).ViewField = AFilterByViewField.DestinationField;
-            end,
-            // ...and clear them, forcing change event since we need it
-            // to update the UI.
-            procedure (const ANode: TEFNode)
-            begin
-              ANode.SetToNull(True);
-            end);
-        end;
-      end);
+          Result := AFilterByViewField.SourceField = LViewField;
+          if Result then
+          begin
+            EnumChildren(
+              // Select all destination fields...
+              function (const ANode: TEFNode): Boolean
+              begin
+                Result := TKVIewTableField(ANode).ViewField = AFilterByViewField.DestinationField;
+              end,
+              // ...and clear them, forcing change event since we need it
+              // to update the UI.
+              procedure (const ANode: TEFNode)
+              begin
+                ANode.SetToNull(True);
+              end);
+          end;
+        end);
+    end;
   end;
   inherited;
 end;
