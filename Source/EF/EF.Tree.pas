@@ -2696,17 +2696,20 @@ var
   LDouble: Double;
   LDateTime: TDateTime;
   LBoolean: Boolean;
+  LCouldBeDateTime: Boolean;
 begin
   Assert(Assigned(ANode));
+
+  LCouldBeDateTime := Length(AYamlValue) >= 5;
 
   // Numbers are treated as strings.
   if APreferStrings then
   begin
-    if TryStrToDateTime(AYamlValue, LDateTime, AFormatSettings) then
+    if LCouldBeDateTime and TryStrToDateTime(AYamlValue, LDateTime, AFormatSettings) then
       ANode.AsDateTime := LDateTime
-    else if TryStrToDate(AYamlValue, LDateTime, AFormatSettings) then
+    else if LCouldBeDateTime and TryStrToDate(AYamlValue, LDateTime, AFormatSettings) then
       ANode.AsDate := LDateTime
-    else if TryStrToTime(AYamlValue, LDateTime, AFormatSettings) then
+    else if LCouldBeDateTime and TryStrToTime(AYamlValue, LDateTime, AFormatSettings) then
       ANode.AsTime := LDateTime
     else
       ANode.AsString := AYamlValue;
@@ -2717,11 +2720,11 @@ begin
       ANode.AsInteger := LInteger
     else if TryStrToFloat(AYamlValue, LDouble, AFormatSettings) then
       ANode.AsFloat := LDouble
-    else if TryStrToDateTime(AYamlValue, LDateTime, AFormatSettings) then
+    else if LCouldBeDateTime and TryStrToDateTime(AYamlValue, LDateTime, AFormatSettings) then
       ANode.AsDateTime := LDateTime
-    else if TryStrToDate(AYamlValue, LDateTime, AFormatSettings) then
+    else if LCouldBeDateTime and TryStrToDate(AYamlValue, LDateTime, AFormatSettings) then
       ANode.AsDate := LDateTime
-    else if TryStrToTime(AYamlValue, LDateTime, AFormatSettings) then
+    else if LCouldBeDateTime and TryStrToTime(AYamlValue, LDateTime, AFormatSettings) then
       ANode.AsTime := LDateTime
     else if TryStrToBool(AYamlValue, LBoolean) then
       ANode.AsBoolean := LBoolean
