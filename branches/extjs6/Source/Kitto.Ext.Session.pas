@@ -848,7 +848,7 @@ begin
 Find a way to reference optional libraries only if the controllers that need
 them are linked in; maybe a global repository fed by initialization sections.
 Duplicates must be handled/ignored. }
-  SetLibrary('{ext}/packages/ux/classic/src/statusbar/StatusBar');
+//  SetLibrary('{ext}/packages/ux/classic/src/statusbar/StatusBar');
 //  SetCSS('{ext}/examples/ux/statusbar/css/statusbar');
 
 //  SetLibrary('{ext}/examples/ux/fileuploadfield/FileUploadField');
@@ -856,14 +856,14 @@ Duplicates must be handled/ignored. }
 
 //  SetLibrary('{ext}/examples/shared/examples'); // For Ext.msg.
 //  SetCSS('{ext}/examples/shared/examples');
-  SetRequiredLibrary('DateTimeField');
-  SetRequiredLibrary('NumericField');
-  SetRequiredLibrary('DefaultButton');
-  SetRequiredLibrary('kitto-core', True);
-  if Session.IsMobileBrowser then
-    SetRequiredLibrary('kitto-core-mobile', True)
-  else
-    SetRequiredLibrary('kitto-core-desktop', True);
+//  SetRequiredLibrary('DateTimeField');
+//  SetRequiredLibrary('NumericField');
+//  SetRequiredLibrary('DefaultButton');
+//  SetRequiredLibrary('kitto-core', True);
+//  if Session.IsMobileBrowser then
+//    SetRequiredLibrary('kitto-core-mobile', True)
+//  else
+//    SetRequiredLibrary('kitto-core-desktop', True);
   SetRequiredLibrary('kitto-init');
   SetOptionalLibrary('application', True);
 

@@ -1032,7 +1032,7 @@ procedure TExtSession.InitDefaultValues; begin
 {$IFDEF CacheFly}
   ExtPath       := 'http://extjs.cachefly.net/ext-3.2.1';
 {$ELSE}
-  ExtPath       := '/ext';
+  ExtPath       := '/ext6';
 {$ENDIF}
   ImagePath     := '/images';
   ExtBuild      := 'ext-all';
@@ -1131,7 +1131,7 @@ begin
     '<body>' + sLineBreak +
     '<div id="body">' + sLineBreak +
     '  <div id="loading" style="position:absolute;font-family:verdana;top:40%;left:40%">' + sLineBreak +
-    '    <img src="<%ExtPath%>/resources/images/default/shared/loading-balls.gif"/>Loading <%ApplicationTitle%>...' + sLineBreak +
+    '    <img src="<%ExtPath%>/classic/theme-classic/resources/images/shared/loading-balls.gif"/>Loading <%ApplicationTitle%>...' + sLineBreak +
     '  </div>' + sLineBreak +
     '</div>' + sLineBreak +
     '<noscript>This web application requires JavaScript enabled</noscript>' + sLineBreak +
