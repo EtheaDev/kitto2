@@ -231,7 +231,7 @@ begin
     FDetailBottomPanel.SetActiveTab(0);
     if Assigned(FTabPanel) then
       FTabPanel.OnTabChange := TabChange;
-    FDetailBottomPanel.On('tabchange', FDetailBottomPanel.JSFunction(FDetailBottomPanel.JSName + '.doLayout();'));
+    FDetailBottomPanel.On('tabchange', FDetailBottomPanel.JSFunction(FDetailBottomPanel.JSName + '.updateLayout();'));
     CreateDetailPanels(FDetailBottomPanel);
   end;
 end;
@@ -836,7 +836,7 @@ begin
     FMainPagePanel.LabelAlign := FLabelAlign;
     FTabPanel.SetActiveTab(0);
     FTabPanel.OnTabChange := TabChange;
-    FTabPanel.On('tabchange', FTabPanel.JSFunction(FTabPanel.JSName + '.doLayout();'));
+    FTabPanel.On('tabchange', FTabPanel.JSFunction(FTabPanel.JSName + '.updateLayout();'));
   end
   else
   begin

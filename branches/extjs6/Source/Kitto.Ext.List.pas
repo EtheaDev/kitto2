@@ -278,7 +278,7 @@ begin
       FFilterPanel.Region := rgNorth;
       FFilterPanel.OnChange := FilterPanelChange;
       FFilterPanel.Configure(ViewTable, LItems.Parent as TEFNode);
-      FFilterPanel.On('afterrender', DoLayout);
+      FFilterPanel.On('afterrender', UpdateLayout);
     end;
   end;
 end;

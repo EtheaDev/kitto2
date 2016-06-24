@@ -423,9 +423,9 @@ function showKittoLoadMask(amount)
   else
     window.kittoLoadMaskShowCount += amount;
   if (window.kittoLoadMaskShowCount > 0)
-    kittoLoadMask.show();
+    Ext.getBody().mask();
   else
-    kittoLoadMask.hide();
+    Ext.getBody().unmask();
 }
 
 function isMobileBrowser()

@@ -627,14 +627,17 @@ begin
   LHomeView := GetHomeView;
   FHomeController := TKExtControllerFactory.Instance.CreateController(ObjectCatalog, LHomeView, nil).AsObject;
   if Supports(FHomeController, IKExtController, LIntf) then
+  begin
+    ResponseItems.ExecuteJSCode('var kittoHomeContainer = ' + (LIntf.AsObject as TExtObject).JSName + ';');
     LIntf.Display;
+  end;
   if FAutoOpenViewName <> '' then
   begin
     DisplayView(FAutoOpenViewName);
     FAutoOpenViewName := '';
   end;
   if FHomeController is TExtContainer then
-    TExtContainer(FHomeController).DoLayout;
+    TExtContainer(FHomeController).UpdateLayout;
 end;
 
 procedure TKExtSession.Home;
@@ -791,7 +794,7 @@ begin
   if Supports(FLoginController, IKExtController, LIntf) then
     LIntf.Display;
   if FLoginController is TExtContainer then
-    TExtContainer(FLoginController).DoLayout;
+    TExtContainer(FLoginController).UpdateLayout;
 end;
 
 function TKExtSession.FindUploadedFile(const AContext: TObject): TKExtUploadedFile;
@@ -859,11 +862,11 @@ Duplicates must be handled/ignored. }
 //  SetRequiredLibrary('DateTimeField');
 //  SetRequiredLibrary('NumericField');
 //  SetRequiredLibrary('DefaultButton');
-//  SetRequiredLibrary('kitto-core', True);
-//  if Session.IsMobileBrowser then
-//    SetRequiredLibrary('kitto-core-mobile', True)
-//  else
-//    SetRequiredLibrary('kitto-core-desktop', True);
+  SetRequiredLibrary('kitto-core', True);
+  if Session.IsMobileBrowser then
+    SetRequiredLibrary('kitto-core-mobile', True)
+  else
+    SetRequiredLibrary('kitto-core-desktop', True);
   SetRequiredLibrary('kitto-init');
   SetOptionalLibrary('application', True);
 

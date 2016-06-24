@@ -512,7 +512,7 @@ end;
 procedure TKExtWindowControllerBase.Display;
 begin
   DoDisplay;
-  On('render', DoLayout);
+  On('render', UpdateLayout);
 end;
 
 procedure TKExtWindowControllerBase.DoDisplay;
@@ -736,7 +736,7 @@ end;
 procedure TKExtViewportControllerBase.Display;
 begin
   DoDisplay;
-  On('render', DoLayout);
+  On('render', UpdateLayout);
 end;
 
 procedure TKExtViewportControllerBase.DoDisplay;

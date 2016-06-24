@@ -833,7 +833,7 @@ begin
     FConfirmButton.Hide;
     FCancelButton.Hide;
   end;
-  DoLayout();
+  UpdateLayout();
 end;
 
 procedure TKExtGridPanel.UpdateField;

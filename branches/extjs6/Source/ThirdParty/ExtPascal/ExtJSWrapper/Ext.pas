@@ -2656,8 +2656,8 @@ type
       : TExtFunction;
     function Cascade(Fn: TExtFunction; Scope: TExtObject = nil;
       Args: TExtObjectList = nil): TExtFunction;
-    function DoLayout(const AShallow: Boolean; const AForce: Boolean): TExtFunction; overload;
-    function DoLayout: TExtFunction; overload;
+    function UpdateLayout(const AShallow: Boolean; const AForce: Boolean): TExtFunction; overload;
+    function UpdateLayout: TExtFunction; overload;
     function Find(Prop: string; Value: string): TExtFunction;
     function FindBy(Fn: TExtFunction; Scope: TExtObject = nil): TExtFunction;
     function FindById(Id: string): TExtFunction;
@@ -11641,14 +11641,14 @@ begin
   Result := Self;
 end;
 
-function TExtContainer.DoLayout: TExtFunction;
+function TExtContainer.UpdateLayout: TExtFunction;
 begin
-  Result := DoLayout(False, False);
+  Result := UpdateLayout(False, False);
 end;
 
-function TExtContainer.DoLayout(const AShallow: Boolean; const AForce: Boolean): TExtFunction;
+function TExtContainer.UpdateLayout(const AShallow: Boolean; const AForce: Boolean): TExtFunction;
 begin
-  ExtSession.ResponseItems.CallMethod(Self, 'doLayout', [AShallow, AForce]);
+  ExtSession.ResponseItems.CallMethod(Self, 'updateLayout', [AShallow, AForce]);
   Result := Self;
 end;
 

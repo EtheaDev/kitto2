@@ -1334,7 +1334,7 @@ begin
 //    'if ("kPreviousHeight" in this && this.getTopOwner() instanceof Ext.Window) ' +
 //    '  this.getTopOwner().setClippedHeight(this.getTopOwner().getHeight() - this.kPreviousHeight + this.getHeight());'
 //  ), Self);
-  On('expand', JSFunction('this.getTopOwner().doLayout();'), Self);
+  On('expand', JSFunction('this.getTopOwner().updateLayout();'), Self);
 end;
 
 procedure TKExtFormFieldSet.RefreshValue;
