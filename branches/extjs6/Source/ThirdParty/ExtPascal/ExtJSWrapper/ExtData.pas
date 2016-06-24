@@ -995,14 +995,14 @@ type
   TExtDataJsonReader = class(TExtDataDataReader)
   private
     FIdProperty: string;
-    FRoot: string;
+    FRootProperty: string;
     FSuccessProperty: string;
     FMessageProperty: string;
     FTotalProperty: string;
     FJsonData: TExtObject;
     FMeta: string;
     procedure SetFIdProperty(Value: string);
-    procedure SetRoot(const AValue: string);
+    procedure SetRootProperty(const AValue: string);
     procedure SetSuccessProperty(const AValue: string);
     procedure SetTotalProperty(const AValue: string);
     procedure SetFJsonData(Value: TExtObject);
@@ -1018,7 +1018,7 @@ type
     function ReadRecords(O: TExtObject): TExtFunction;
     function ReadResponse(Action: string; Response: TExtObject): TExtFunction;
     property IdProperty: string read FIdProperty write SetFIdProperty;
-    property Root: string read FRoot write SetRoot;
+    property RootProperty: string read FRootProperty write SetRootProperty;
     property SuccessProperty: string read FSuccessProperty write SetSuccessProperty;
     property MessageProperty: string read FMessageProperty write SetMessageProperty;
     property TotalProperty: string read FTotalProperty write SetTotalProperty;
@@ -3816,10 +3816,10 @@ begin
   JSCode('idProperty:' + VarToJSON([Value]));
 end;
 
-procedure TExtDataJsonReader.SetRoot(const AValue: string);
+procedure TExtDataJsonReader.SetRootProperty(const AValue: string);
 begin
-  FRoot := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'root', [AValue]);
+  FRootProperty := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'rootProperty', [AValue]);
 end;
 
 procedure TExtDataJsonReader.SetSuccessProperty(const AValue: string);

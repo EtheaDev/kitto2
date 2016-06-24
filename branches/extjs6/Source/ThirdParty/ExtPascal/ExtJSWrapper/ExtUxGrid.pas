@@ -13,7 +13,6 @@ type
   TExtUxGridGroupSummary = class;
   TExtUxGridRowExpander = class;
   TExtUxGridHybridSummary = class;
-  TExtUxGridBufferView = class;
   TExtUxGridRowEditor = class;
   TExtUxGridTableGrid = class;
 
@@ -79,32 +78,6 @@ type
     class function JSClassName: string; override;
     function GetSummaryData(GroupValue : string) : TExtFunction;
     function UpdateSummaryData(GroupValue : string; Data : TExtObject; SkipRefresh : Boolean = false) : TExtFunction;
-  end;
-
-  TExtUxGridBufferView = class(TExtGridGridView)
-  private
-    FBorderHeight : Integer;
-    FCacheSize : Integer;
-    FCleanDelay : Integer;
-    FRowHeight : Integer;
-    FScrollDelay : Boolean;
-    FScrollDelayNumber : Integer;
-    procedure SetFBorderHeight(Value : Integer);
-    procedure SetFCacheSize(Value : Integer);
-    procedure SetFCleanDelay(Value : Integer);
-    procedure SetFRowHeight(Value : Integer);
-    procedure SetFScrollDelay(Value : Boolean);
-    procedure SetFScrollDelayNumber(Value : Integer);
-  protected
-    procedure InitDefaults; override;
-  public
-    class function JSClassName: string; override;
-    property BorderHeight : Integer read FBorderHeight write SetFBorderHeight;
-    property CacheSize : Integer read FCacheSize write SetFCacheSize;
-    property CleanDelay : Integer read FCleanDelay write SetFCleanDelay;
-    property RowHeight : Integer read FRowHeight write SetFRowHeight;
-    property ScrollDelay : Boolean read FScrollDelay write SetFScrollDelay;
-    property ScrollDelayNumber : Integer read FScrollDelayNumber write SetFScrollDelayNumber;
   end;
 
   // Procedural types for events TExtUxGridRowEditor
@@ -274,44 +247,7 @@ function TExtUxGridHybridSummary.UpdateSummaryData(GroupValue : string; Data : T
   Result := Self;
 end;
 
-procedure TExtUxGridBufferView.SetFBorderHeight(Value : Integer); begin
-  FBorderHeight := Value;
-  JSCode('borderHeight:' + VarToJSON([Value]));
-end;
-
-procedure TExtUxGridBufferView.SetFCacheSize(Value : Integer); begin
-  FCacheSize := Value;
-  JSCode('cacheSize:' + VarToJSON([Value]));
-end;
-
-procedure TExtUxGridBufferView.SetFCleanDelay(Value : Integer); begin
-  FCleanDelay := Value;
-  JSCode('cleanDelay:' + VarToJSON([Value]));
-end;
-
-procedure TExtUxGridBufferView.SetFRowHeight(Value : Integer); begin
-  FRowHeight := Value;
-  JSCode('rowHeight:' + VarToJSON([Value]));
-end;
-
-procedure TExtUxGridBufferView.SetFScrollDelay(Value : Boolean); begin
-  FScrollDelay := Value;
-  JSCode('scrollDelay:' + VarToJSON([Value]));
-end;
-
-procedure TExtUxGridBufferView.SetFScrollDelayNumber(Value : Integer); begin
-  FScrollDelayNumber := Value;
-  JSCode('scrollDelay:' + VarToJSON([Value]));
-end;
-
-class function TExtUxGridBufferView.JSClassName: string;
-begin
-  Result := 'Ext.ux.grid.BufferView';
-end;
-
-procedure TExtUxGridBufferView.InitDefaults; begin
-  inherited;
-end;
+{ TExtUxGridRowEditor }
 
 procedure TExtUxGridRowEditor.SetCancelText(const AValue: string);
 begin

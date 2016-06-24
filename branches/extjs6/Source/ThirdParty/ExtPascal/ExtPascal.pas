@@ -889,7 +889,7 @@ Concats two JS commands only to translate nested Object Pascal typecasts as:
 @param NextCommand Command that will be concatenated with PrevCommand.
 @return The JS commands concatenated
 @example <code>
-TExtGridRowSelectionModel(GetSelectionModel).SelectFirstRow;
+TExtSelectionRowModel(GetSelectionModel).SelectFirstRow;
 // It's usually could be translated to:
 O1.getSelectionModel;
 O1.selectFirstRow;
@@ -2384,7 +2384,7 @@ var
 begin
   Assert(Assigned(AMethod));
   Assert(Assigned(ASelectionModel));
-  Assert(ASelectionModel is TExtGridRowSelectionModel);
+  Assert(ASelectionModel is TExtSelectionRowModel);
 
   LAttributes := TStringList.Create;
   try
@@ -2412,7 +2412,7 @@ begin
           LBody := LBody + Format('Sel%d.push(Rec.get("' + Trim(LAttributes[I]) + '"));', [I]);
           LParams := LParams + '&' + FormatParams(LMethodName, [Trim(LTargetQueries[I]), '%' + Format('Sel%d.toString()', [I])]);
         end;
-        TExtGridRowSelectionModel(ASelectionModel).Each(JSFunction('Rec', LBody));
+        TExtSelectionRowModel(ASelectionModel).Each(JSFunction('Rec', LBody));
         AjaxCode(LMethodName, LParams, AParams, [ASelectionModel]);
       finally
         ExtSession.UnbranchResponseItems(LResponseItemsBranch);

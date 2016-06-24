@@ -532,7 +532,7 @@ begin
   Assert(Assigned(ViewTable));
 
   Result := TExtDataJsonReader.Create(Self, JSObject('')); // Must pass '' otherwise invalid code is generated.
-  Result.Root := 'Root';
+  Result.RootProperty := 'Root';
   Result.TotalProperty := 'Total';
   Result.MessageProperty := 'Msg';
   Result.SuccessProperty := 'Success';

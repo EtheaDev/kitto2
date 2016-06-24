@@ -33,16 +33,16 @@ type
     FConfirmButton: TKExtButton;
     FCancelButton: TKExtButton;
     FEditorGridPanel: TExtGridEditorGridPanel;
-    FGridView: TExtGridGridView;
+    FExtViewTable: TExtViewTable;
     FPagingToolbar: TExtPagingToolbar;
     FPageRecordCount: Integer;
-    FSelectionModel: TExtGridRowSelectionModel;
+    FSelectionModel: TExtSelectionRowModel;
     FInplaceEditing: Boolean;
     function GetGroupingFieldName: string;
     function CreatePagingToolbar: TExtPagingToolbar;
     procedure InitGridColumns;
     function GetRowColorPatterns(out AFieldName: string): TEFPairs;
-    procedure CreateGridView;
+    procedure CreateExtViewTable;
     procedure CheckGroupColumn;
     procedure InitColumnEditors(const ARecord: TKViewTableRecord);
     procedure SetGridColumnEditor(const AEditorManager: TKExtEditorManager;
@@ -191,7 +191,7 @@ begin
   FEditorGridPanel.Store := Result;
 end;
 
-procedure TKExtGridPanel.CreateGridView;
+procedure TKExtGridPanel.CreateExtViewTable;
 var
   LGroupingMenu: Boolean;
   LCountTemplate: string;
@@ -205,13 +205,13 @@ begin
   LGroupingMenu := ViewTable.GetBoolean('Controller/Grouping/EnableMenu');
   if (LGroupingFieldName <> '') or LGroupingMenu then
   begin
-    FGridView := TExtGridGroupingView.Create(Self);
-    TExtGridGroupingView(FGridView).EmptyGroupText := _('Grouping value undefined.');
-    TExtGridGroupingView(FGridView).StartCollapsed := ViewTable.GetBoolean('Controller/Grouping/StartCollapsed');
-    TExtGridGroupingView(FGridView).EnableGroupingMenu := LGroupingMenu;
-    TExtGridGroupingView(FGridView).EnableNoGroups := LGroupingMenu;
-    TExtGridGroupingView(FGridView).HideGroupedColumn := True;
-    TExtGridGroupingView(FGridView).ShowGroupName := ViewTable.GetBoolean('Controller/Grouping/ShowName');
+    FExtViewTable := TExtGridGroupingView.Create(Self);
+    TExtGridGroupingView(FExtViewTable).EmptyGroupText := _('Grouping value undefined.');
+    TExtGridGroupingView(FExtViewTable).StartCollapsed := ViewTable.GetBoolean('Controller/Grouping/StartCollapsed');
+    TExtGridGroupingView(FExtViewTable).EnableGroupingMenu := LGroupingMenu;
+    TExtGridGroupingView(FExtViewTable).EnableNoGroups := LGroupingMenu;
+    TExtGridGroupingView(FExtViewTable).HideGroupedColumn := True;
+    TExtGridGroupingView(FExtViewTable).ShowGroupName := ViewTable.GetBoolean('Controller/Grouping/ShowName');
     if ViewTable.GetBoolean('Controller/Grouping/ShowCount') then
     begin
       LCountTemplate := ViewTable.GetString('Controller/Grouping/ShowCount/Template',
@@ -221,27 +221,29 @@ begin
         _(ViewTable.GetString('Controller/Grouping/ShowCount/PluralItemName', ViewTable.PluralDisplayLabel)));
       LCountTemplate := ReplaceText(LCountTemplate, '%ITEM%',
         _(ViewTable.GetString('Controller/Grouping/ShowCount/ItemName', ViewTable.DisplayLabel)));
-      TExtGridGroupingView(FGridView).GroupTextTpl := LCountTemplate;
+      TExtGridGroupingView(FExtViewTable).GroupTextTpl := LCountTemplate;
     end;
   end
   else
-    FGridView := TExtGridGridView.Create(Self);
-  FGridView.EmptyText := _('No data to display.');
-  FGridView.EnableRowBody := True;
+    FExtViewTable := TExtViewTable.Create(Self);
+  FExtViewTable.EmptyText := _('No data to display.');
+  FExtViewTable.EnableRowBody := True;
+
+  FExtViewTable.SetCustomConfigItem('grid', [Self]);
   { TODO : make ForceFit configurable? }
-  //FGridView.ForceFit := False;
+  //FExtViewTable.ForceFit := False;
   LRowClassProvider := ViewTable.GetExpandedString('Controller/RowClassProvider');
   if LRowClassProvider <> '' then
-    FGridView.GetRowClass :=  FGridView.JSFunctionInLine(LRowClassProvider)
+    FExtViewTable.GetRowClass :=  FExtViewTable.JSFunctionInLine(LRowClassProvider)
   else
   begin
     LRowColorPatterns := GetRowColorPatterns(LRowColorFieldName);
     if Length(LRowColorPatterns) > 0 then
-      FGridView.SetCustomConfigItem('getRowClass',
+      FExtViewTable.SetCustomConfigItem('getRowClass',
         [JSFunction('r', Format('return getColorStyleRuleForRecordField(r, ''%s'', [%s]);',
           [LRowColorFieldName, PairsToJSON(LRowColorPatterns)])), True]);
   end;
-  FEditorGridPanel.View := FGridView;
+  FEditorGridPanel.View := FExtViewTable;
 end;
 
 procedure TKExtGridPanel.InitDefaults;
@@ -251,7 +253,7 @@ begin
   FEditorGridPanel.Border := False;
   FEditorGridPanel.Header := False;
   FEditorGridPanel.Region := rgCenter;
-  FSelectionModel := TExtGridRowSelectionModel.Create(FEditorGridPanel);
+  FSelectionModel := TExtSelectionRowModel.Create(FEditorGridPanel);
   FSelectionModel.Grid := FEditorGridPanel;
   FEditorGridPanel.SelModel := FSelectionModel;
   FEditorGridPanel.StripeRows := True;
@@ -702,7 +704,7 @@ begin
   if FInplaceEditing then
     FEditorGridPanel.ClicksToEdit := 1;
 
-  CreateGridView;
+  CreateExtViewTable;
 
   if not LViewTable.GetBoolean('Controller/IsMultiSelect', False) then
     FSelectionModel.SingleSelect := True;
@@ -885,7 +887,7 @@ begin
     Result :=
       Format('var idx = %s.findBy(%s);', [ClientStore.JSName, LFunction]) + sLineBreak +
       Format('%s.selectRecords([%s.getAt(idx)]);', [FSelectionModel.JSName, ClientStore.JSName]) + sLineBreak +
-      Format('%s.getRow(idx).scrollIntoView();', [FGridView.JSName]);
+      Format('%s.getRow(idx).scrollIntoView();', [FExtViewTable.JSName]);
   end
   else
     Result := 'return false;'

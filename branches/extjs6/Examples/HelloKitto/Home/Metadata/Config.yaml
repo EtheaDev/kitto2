@@ -89,11 +89,11 @@ LanguagePerSession: True
         .Default: False
       AutoLogin: False
 
-HomeGirls:
+HomeView:
   Controller: Viewport
     SubView: Girls
 
-HomeView:
+HomeDolls:
   Controller: Viewport
     SubView: Dolls
 

@@ -615,7 +615,7 @@ begin
   FServerStore.Key.SetFieldNames(LFieldNames);
   Store.Url := MethodURI(GetRecordPage);
   Store.Reader := TExtDataJsonReader.Create(Self, JSObject('')); // Must pass '' otherwise invalid code is generated.
-  TExtDataJsonReader(Store.Reader).Root := 'Root';
+  TExtDataJsonReader(Store.Reader).RootProperty := 'Root';
   TExtDataJsonReader(Store.Reader).TotalProperty := 'Total';
   for I := 0 to FServerStore.Header.FieldCount - 1 do
     with TExtDataField.CreateAndAddTo(Store.Reader.Fields) do

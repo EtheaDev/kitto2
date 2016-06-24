@@ -15,14 +15,14 @@ type
   TExtGridTemplateColumn = class;
   TExtGridPropertyStore = class;
   TExtGridNumberColumn = class;
-  TExtGridGridView = class;
+  TExtViewTable = class;
   TExtGridColumnModel = class;
   TExtGridBooleanColumn = class;
   TExtGridDateColumn = class;
   TExtGridAbstractSelectionModel = class;
   TExtGridPropertyColumnModel = class;
   TExtGridCellSelectionModel = class;
-  TExtGridRowSelectionModel = class;
+  TExtSelectionRowModel = class;
   TExtGridGroupingView = class;
   TExtGridCheckboxSelectionModel = class;
   TExtGridGridDragZone = class;
@@ -162,21 +162,21 @@ type
     property Format: string read FFormat write SetFormat;
   end;
 
-  // Procedural types for events TExtGridGridView
-  TExtGridGridViewOnBeforerefresh = procedure(View: TExtGridGridView) of object;
-  TExtGridGridViewOnBeforerowremoved = procedure(View: TExtGridGridView;
+  // Procedural types for events TExtViewTable
+  TExtViewTableOnBeforerefresh = procedure(View: TExtViewTable) of object;
+  TExtViewTableOnBeforerowremoved = procedure(View: TExtViewTable;
     RowIndex: Integer; RecordJS: TExtDataRecord) of object;
-  TExtGridGridViewOnBeforerowsinserted = procedure(View: TExtGridGridView;
+  TExtViewTableOnBeforerowsinserted = procedure(View: TExtViewTable;
     FirstRow: Integer; LastRow: Integer) of object;
-  TExtGridGridViewOnRefresh = procedure(View: TExtGridGridView) of object;
-  TExtGridGridViewOnRowremoved = procedure(View: TExtGridGridView; RowIndex: Integer;
+  TExtViewTableOnRefresh = procedure(View: TExtViewTable) of object;
+  TExtViewTableOnRowremoved = procedure(View: TExtViewTable; RowIndex: Integer;
     RecordJS: TExtDataRecord) of object;
-  TExtGridGridViewOnRowsinserted = procedure(View: TExtGridGridView; FirstRow: Integer;
+  TExtViewTableOnRowsinserted = procedure(View: TExtViewTable; FirstRow: Integer;
     LastRow: Integer) of object;
-  TExtGridGridViewOnRowupdated = procedure(View: TExtGridGridView; FirstRow: Integer;
+  TExtViewTableOnRowupdated = procedure(View: TExtViewTable; FirstRow: Integer;
     RecordJS: TExtDataRecord) of object;
 
-  TExtGridGridView = class(TExtUtilObservable)
+  TExtViewTable = class(TExtUtilObservable)
   private
     FAutoFill: Boolean;
     FCellSelector: string; // 'td.x-grid3-cell'
@@ -198,13 +198,13 @@ type
     FSortDescText: string; // 'Sort Descending'
     FDragZone: TExtGridGridDragZone;
     FMainBody: TExtElement;
-    FOnBeforerefresh: TExtGridGridViewOnBeforerefresh;
-    FOnBeforerowremoved: TExtGridGridViewOnBeforerowremoved;
-    FOnBeforerowsinserted: TExtGridGridViewOnBeforerowsinserted;
-    FOnRefresh: TExtGridGridViewOnRefresh;
-    FOnRowremoved: TExtGridGridViewOnRowremoved;
-    FOnRowsinserted: TExtGridGridViewOnRowsinserted;
-    FOnRowupdated: TExtGridGridViewOnRowupdated;
+    FOnBeforerefresh: TExtViewTableOnBeforerefresh;
+    FOnBeforerowremoved: TExtViewTableOnBeforerowremoved;
+    FOnBeforerowsinserted: TExtViewTableOnBeforerowsinserted;
+    FOnRefresh: TExtViewTableOnRefresh;
+    FOnRowremoved: TExtViewTableOnRowremoved;
+    FOnRowsinserted: TExtViewTableOnRowsinserted;
+    FOnRowupdated: TExtViewTableOnRowupdated;
     FGetRowClass: TExtFunction;
     procedure SetAutoFill(const AValue: Boolean);
     procedure SetFCellSelector(Value: string);
@@ -226,13 +226,13 @@ type
     procedure SetFSortDescText(Value: string);
     procedure SetFDragZone(Value: TExtGridGridDragZone);
     procedure SetFMainBody(Value: TExtElement);
-    procedure SetFOnBeforerefresh(Value: TExtGridGridViewOnBeforerefresh);
-    procedure SetFOnBeforerowremoved(Value: TExtGridGridViewOnBeforerowremoved);
-    procedure SetFOnBeforerowsinserted(Value: TExtGridGridViewOnBeforerowsinserted);
-    procedure SetFOnRefresh(Value: TExtGridGridViewOnRefresh);
-    procedure SetFOnRowremoved(Value: TExtGridGridViewOnRowremoved);
-    procedure SetFOnRowsinserted(Value: TExtGridGridViewOnRowsinserted);
-    procedure SetFOnRowupdated(Value: TExtGridGridViewOnRowupdated);
+    procedure SetFOnBeforerefresh(Value: TExtViewTableOnBeforerefresh);
+    procedure SetFOnBeforerowremoved(Value: TExtViewTableOnBeforerowremoved);
+    procedure SetFOnBeforerowsinserted(Value: TExtViewTableOnBeforerowsinserted);
+    procedure SetFOnRefresh(Value: TExtViewTableOnRefresh);
+    procedure SetFOnRowremoved(Value: TExtViewTableOnRowremoved);
+    procedure SetFOnRowsinserted(Value: TExtViewTableOnRowsinserted);
+    procedure SetFOnRowupdated(Value: TExtViewTableOnRowupdated);
     procedure SetGetRowClass(const AValue: TExtFunction);
   protected
     procedure InitDefaults; override;
@@ -274,18 +274,18 @@ type
     property SortDescText: string read FSortDescText write SetFSortDescText;
     property DragZone: TExtGridGridDragZone read FDragZone write SetFDragZone;
     property MainBody: TExtElement read FMainBody write SetFMainBody;
-    property OnBeforerefresh: TExtGridGridViewOnBeforerefresh read FOnBeforerefresh
+    property OnBeforerefresh: TExtViewTableOnBeforerefresh read FOnBeforerefresh
       write SetFOnBeforerefresh;
-    property OnBeforerowremoved: TExtGridGridViewOnBeforerowremoved
+    property OnBeforerowremoved: TExtViewTableOnBeforerowremoved
       read FOnBeforerowremoved write SetFOnBeforerowremoved;
-    property OnBeforerowsinserted: TExtGridGridViewOnBeforerowsinserted
+    property OnBeforerowsinserted: TExtViewTableOnBeforerowsinserted
       read FOnBeforerowsinserted write SetFOnBeforerowsinserted;
-    property OnRefresh: TExtGridGridViewOnRefresh read FOnRefresh write SetFOnRefresh;
-    property OnRowremoved: TExtGridGridViewOnRowremoved read FOnRowremoved
+    property OnRefresh: TExtViewTableOnRefresh read FOnRefresh write SetFOnRefresh;
+    property OnRowremoved: TExtViewTableOnRowremoved read FOnRowremoved
       write SetFOnRowremoved;
-    property OnRowsinserted: TExtGridGridViewOnRowsinserted read FOnRowsinserted
+    property OnRowsinserted: TExtViewTableOnRowsinserted read FOnRowsinserted
       write SetFOnRowsinserted;
-    property OnRowupdated: TExtGridGridViewOnRowupdated read FOnRowupdated
+    property OnRowupdated: TExtViewTableOnRowupdated read FOnRowupdated
       write SetFOnRowupdated;
   end;
 
@@ -457,30 +457,29 @@ type
       read FOnSelectionchange write SetFOnSelectionchange;
   end;
 
-  // Procedural types for events TExtGridRowSelectionModel
-  TExtGridRowSelectionModelOnBeforerowselect = procedure(This: TExtGridRowSelectionModel;
+  // Procedural types for events TExtSelectionRowModel
+  TExtSelectionRowModelOnBeforerowselect = procedure(This: TExtSelectionRowModel;
     RowIndex: Integer; KeepExisting: Boolean; RecordJS: TExtDataRecord) of object;
-  TExtGridRowSelectionModelOnRowdeselect = procedure(This: TExtGridRowSelectionModel;
+  TExtSelectionRowModelOnRowdeselect = procedure(This: TExtSelectionRowModel;
     RowIndex: Integer; RecordJS: TExtDataRecord) of object;
-  TExtGridRowSelectionModelOnRowselect = procedure(This: TExtGridRowSelectionModel;
+  TExtSelectionRowModelOnRowselect = procedure(This: TExtSelectionRowModel;
     RowIndex: Integer; R: TExtDataRecord) of object;
-  TExtGridRowSelectionModelOnSelectionchange = procedure(This: TExtGridRowSelectionModel)
-    of object;
+  TExtSelectionRowModelOnSelectionchange = procedure(This: TExtSelectionRowModel) of object;
 
-  TExtGridRowSelectionModel = class(TExtGridAbstractSelectionModel)
+  TExtSelectionRowModel = class(TExtGridAbstractSelectionModel)
   private
     FMoveEditorOnEnter: Boolean;
     FSingleSelect: Boolean;
-    FOnBeforerowselect: TExtGridRowSelectionModelOnBeforerowselect;
-    FOnRowdeselect: TExtGridRowSelectionModelOnRowdeselect;
-    FOnRowselect: TExtGridRowSelectionModelOnRowselect;
-    FOnSelectionchange: TExtGridRowSelectionModelOnSelectionchange;
+    FOnBeforerowselect: TExtSelectionRowModelOnBeforerowselect;
+    FOnRowdeselect: TExtSelectionRowModelOnRowdeselect;
+    FOnRowselect: TExtSelectionRowModelOnRowselect;
+    FOnSelectionchange: TExtSelectionRowModelOnSelectionchange;
     procedure SetFMoveEditorOnEnter(Value: Boolean);
     procedure SetSingleSelect(const AValue: Boolean);
-    procedure SetFOnBeforerowselect(Value: TExtGridRowSelectionModelOnBeforerowselect);
-    procedure SetFOnRowdeselect(Value: TExtGridRowSelectionModelOnRowdeselect);
-    procedure SetFOnRowselect(Value: TExtGridRowSelectionModelOnRowselect);
-    procedure SetFOnSelectionchange(Value: TExtGridRowSelectionModelOnSelectionchange);
+    procedure SetFOnBeforerowselect(Value: TExtSelectionRowModelOnBeforerowselect);
+    procedure SetFOnRowdeselect(Value: TExtSelectionRowModelOnRowdeselect);
+    procedure SetFOnRowselect(Value: TExtSelectionRowModelOnRowselect);
+    procedure SetFOnSelectionchange(Value: TExtSelectionRowModelOnSelectionchange);
   protected
     procedure HandleEvent(const AEvtName: string); override;
   public
@@ -514,17 +513,17 @@ type
     property MoveEditorOnEnter: Boolean read FMoveEditorOnEnter
       write SetFMoveEditorOnEnter;
     property SingleSelect: Boolean read FSingleSelect write SetSingleSelect;
-    property OnBeforerowselect: TExtGridRowSelectionModelOnBeforerowselect
+    property OnBeforerowselect: TExtSelectionRowModelOnBeforerowselect
       read FOnBeforerowselect write SetFOnBeforerowselect;
-    property OnRowdeselect: TExtGridRowSelectionModelOnRowdeselect read FOnRowdeselect
+    property OnRowdeselect: TExtSelectionRowModelOnRowdeselect read FOnRowdeselect
       write SetFOnRowdeselect;
-    property OnRowselect: TExtGridRowSelectionModelOnRowselect read FOnRowselect
+    property OnRowselect: TExtSelectionRowModelOnRowselect read FOnRowselect
       write SetFOnRowselect;
-    property OnSelectionchange: TExtGridRowSelectionModelOnSelectionchange
+    property OnSelectionchange: TExtSelectionRowModelOnSelectionchange
       read FOnSelectionchange write SetFOnSelectionchange;
   end;
 
-  TExtGridGroupingView = class(TExtGridGridView)
+  TExtGridGroupingView = class(TExtViewTable)
   private
     FEmptyGroupText: string;
     FEnableGrouping: Boolean; // true
@@ -579,7 +578,7 @@ type
     property StartCollapsed: Boolean read FStartCollapsed write SetStartCollapsed;
   end;
 
-  TExtGridCheckboxSelectionModel = class(TExtGridRowSelectionModel)
+  TExtGridCheckboxSelectionModel = class(TExtSelectionRowModel)
   private
     FCheckOnly: Boolean;
     FHeader: string;
@@ -1272,133 +1271,133 @@ begin
   FFormat := '0,000.00';
 end;
 
-procedure TExtGridGridView.SetAutoFill(const AValue: Boolean);
+procedure TExtViewTable.SetAutoFill(const AValue: Boolean);
 begin
   FAutoFill := AValue;
   ExtSession.ResponseItems.SetConfigItem(Self, 'autoFill', [AValue]);
 end;
 
-procedure TExtGridGridView.SetFCellSelector(Value: string);
+procedure TExtViewTable.SetFCellSelector(Value: string);
 begin
   FCellSelector := Value;
   JSCode('cellSelector:' + VarToJSON([Value]));
 end;
 
-procedure TExtGridGridView.SetFCellSelectorDepth(Value: Integer);
+procedure TExtViewTable.SetFCellSelectorDepth(Value: Integer);
 begin
   FCellSelectorDepth := Value;
   JSCode('cellSelectorDepth:' + VarToJSON([Value]));
 end;
 
-procedure TExtGridGridView.SetFColumnsText(Value: string);
+procedure TExtViewTable.SetFColumnsText(Value: string);
 begin
   FColumnsText := Value;
   JSCode('columnsText:' + VarToJSON([Value]));
 end;
 
-procedure TExtGridGridView.SetFDeferEmptyText(Value: Boolean);
+procedure TExtViewTable.SetFDeferEmptyText(Value: Boolean);
 begin
   FDeferEmptyText := Value;
   JSCode('deferEmptyText:' + VarToJSON([Value]));
 end;
 
-procedure TExtGridGridView.SetEmptyText(const AValue: string);
+procedure TExtViewTable.SetEmptyText(const AValue: string);
 begin
   FEmptyText := AValue;
   ExtSession.ResponseItems.SetConfigItem(Self, 'emptyText', [AValue]);
 end;
 
-procedure TExtGridGridView.SetEnableRowBody(const AValue: Boolean);
+procedure TExtViewTable.SetEnableRowBody(const AValue: Boolean);
 begin
   FEnableRowBody := AValue;
   ExtSession.ResponseItems.SetConfigItem(Self, 'enableRowBody', [AValue]);
 end;
 
-procedure TExtGridGridView.SetForceFit(const AValue: Boolean);
+procedure TExtViewTable.SetForceFit(const AValue: Boolean);
 begin
   FForceFit := AValue;
   ExtSession.ResponseItems.SetConfigItem(Self, 'forceFit', [AValue]);
 end;
 
-procedure TExtGridGridView.SetGetRowClass(const AValue: TExtFunction);
+procedure TExtViewTable.SetGetRowClass(const AValue: TExtFunction);
 begin
   FGetRowClass := AValue;
   ExtSession.ResponseItems.SetConfigItem(Self, 'getRowClass', [AValue]);
 end;
 
-procedure TExtGridGridView.SetFHeadersDisabled(Value: Boolean);
+procedure TExtViewTable.SetFHeadersDisabled(Value: Boolean);
 begin
   FHeadersDisabled := Value;
   JSCode('headersDisabled:' + VarToJSON([Value]));
 end;
 
-procedure TExtGridGridView.SetFRowBodySelector(Value: string);
+procedure TExtViewTable.SetFRowBodySelector(Value: string);
 begin
   FRowBodySelector := Value;
   JSCode('rowBodySelector:' + VarToJSON([Value]));
 end;
 
-procedure TExtGridGridView.SetFRowBodySelectorDepth(Value: Integer);
+procedure TExtViewTable.SetFRowBodySelectorDepth(Value: Integer);
 begin
   FRowBodySelectorDepth := Value;
   JSCode('rowBodySelectorDepth:' + VarToJSON([Value]));
 end;
 
-procedure TExtGridGridView.SetFRowSelector(Value: string);
+procedure TExtViewTable.SetFRowSelector(Value: string);
 begin
   FRowSelector := Value;
   JSCode('rowSelector:' + VarToJSON([Value]));
 end;
 
-procedure TExtGridGridView.SetFRowSelectorDepth(Value: Integer);
+procedure TExtViewTable.SetFRowSelectorDepth(Value: Integer);
 begin
   FRowSelectorDepth := Value;
   JSCode('rowSelectorDepth:' + VarToJSON([Value]));
 end;
 
-procedure TExtGridGridView.SetFScrollOffset(Value: Integer);
+procedure TExtViewTable.SetFScrollOffset(Value: Integer);
 begin
   FScrollOffset := Value;
   JSCode('scrollOffset:' + VarToJSON([Value]));
 end;
 
-procedure TExtGridGridView.SetFSelectedRowClass(Value: string);
+procedure TExtViewTable.SetFSelectedRowClass(Value: string);
 begin
   FSelectedRowClass := Value;
   JSCode('selectedRowClass:' + VarToJSON([Value]));
 end;
 
-procedure TExtGridGridView.SetFSortAscText(Value: string);
+procedure TExtViewTable.SetFSortAscText(Value: string);
 begin
   FSortAscText := Value;
   JSCode('sortAscText:' + VarToJSON([Value]));
 end;
 
-procedure TExtGridGridView.SetFSortClasses(Value: TExtObjectList);
+procedure TExtViewTable.SetFSortClasses(Value: TExtObjectList);
 begin
   FSortClasses := Value;
   JSCode('sortClasses:' + VarToJSON([Value, false]));
 end;
 
-procedure TExtGridGridView.SetFSortDescText(Value: string);
+procedure TExtViewTable.SetFSortDescText(Value: string);
 begin
   FSortDescText := Value;
   JSCode('sortDescText:' + VarToJSON([Value]));
 end;
 
-procedure TExtGridGridView.SetFDragZone(Value: TExtGridGridDragZone);
+procedure TExtViewTable.SetFDragZone(Value: TExtGridGridDragZone);
 begin
   FDragZone := Value;
   JSCode(JSName + '.dragZone=' + VarToJSON([Value, false]) + ';');
 end;
 
-procedure TExtGridGridView.SetFMainBody(Value: TExtElement);
+procedure TExtViewTable.SetFMainBody(Value: TExtElement);
 begin
   FMainBody := Value;
   JSCode(JSName + '.mainBody=' + VarToJSON([Value, false]) + ';');
 end;
 
-procedure TExtGridGridView.SetFOnBeforerefresh(Value: TExtGridGridViewOnBeforerefresh);
+procedure TExtViewTable.SetFOnBeforerefresh(Value: TExtViewTableOnBeforerefresh);
 begin
   if Assigned(FOnBeforerefresh) then
     JSCode(JSName + '.events ["beforerefresh"].listeners=[];');
@@ -1407,8 +1406,8 @@ begin
   FOnBeforerefresh := Value;
 end;
 
-procedure TExtGridGridView.SetFOnBeforerowremoved
-  (Value: TExtGridGridViewOnBeforerowremoved);
+procedure TExtViewTable.SetFOnBeforerowremoved
+  (Value: TExtViewTableOnBeforerowremoved);
 begin
   if Assigned(FOnBeforerowremoved) then
     JSCode(JSName + '.events ["beforerowremoved"].listeners=[];');
@@ -1418,8 +1417,8 @@ begin
   FOnBeforerowremoved := Value;
 end;
 
-procedure TExtGridGridView.SetFOnBeforerowsinserted
-  (Value: TExtGridGridViewOnBeforerowsinserted);
+procedure TExtViewTable.SetFOnBeforerowsinserted
+  (Value: TExtViewTableOnBeforerowsinserted);
 begin
   if Assigned(FOnBeforerowsinserted) then
     JSCode(JSName + '.events ["beforerowsinserted"].listeners=[];');
@@ -1429,7 +1428,7 @@ begin
   FOnBeforerowsinserted := Value;
 end;
 
-procedure TExtGridGridView.SetFOnRefresh(Value: TExtGridGridViewOnRefresh);
+procedure TExtViewTable.SetFOnRefresh(Value: TExtViewTableOnRefresh);
 begin
   if Assigned(FOnRefresh) then
     JSCode(JSName + '.events ["refresh"].listeners=[];');
@@ -1438,7 +1437,7 @@ begin
   FOnRefresh := Value;
 end;
 
-procedure TExtGridGridView.SetFOnRowremoved(Value: TExtGridGridViewOnRowremoved);
+procedure TExtViewTable.SetFOnRowremoved(Value: TExtViewTableOnRowremoved);
 begin
   if Assigned(FOnRowremoved) then
     JSCode(JSName + '.events ["rowremoved"].listeners=[];');
@@ -1448,7 +1447,7 @@ begin
   FOnRowremoved := Value;
 end;
 
-procedure TExtGridGridView.SetFOnRowsinserted(Value: TExtGridGridViewOnRowsinserted);
+procedure TExtViewTable.SetFOnRowsinserted(Value: TExtViewTableOnRowsinserted);
 begin
   if Assigned(FOnRowsinserted) then
     JSCode(JSName + '.events ["rowsinserted"].listeners=[];');
@@ -1458,7 +1457,7 @@ begin
   FOnRowsinserted := Value;
 end;
 
-procedure TExtGridGridView.SetFOnRowupdated(Value: TExtGridGridViewOnRowupdated);
+procedure TExtViewTable.SetFOnRowupdated(Value: TExtViewTableOnRowupdated);
 begin
   if Assigned(FOnRowupdated) then
     JSCode(JSName + '.events ["rowupdated"].listeners=[];');
@@ -1468,12 +1467,12 @@ begin
   FOnRowupdated := Value;
 end;
 
-class function TExtGridGridView.JSClassName: string;
+class function TExtViewTable.JSClassName: string;
 begin
-  Result := 'Ext.grid.GridView';
+  Result := 'Ext.view.Table';
 end;
 
-procedure TExtGridGridView.InitDefaults;
+procedure TExtViewTable.InitDefaults;
 begin
   inherited;
   FCellSelector := 'td.x-grid3-cell';
@@ -1492,98 +1491,98 @@ begin
   FMainBody := TExtElement.CreateInternal(Self, 'mainBody');
 end;
 
-function TExtGridGridView.FindCellIndex(El: THTMLElement): TExtFunction;
+function TExtViewTable.FindCellIndex(El: THTMLElement): TExtFunction;
 begin
-  JSCode(JSName + '.findCellIndex(' + VarToJSON([El, false]) + ');', 'TExtGridGridView');
+  JSCode(JSName + '.findCellIndex(' + VarToJSON([El, false]) + ');', 'TExtViewTable');
   Result := Self;
 end;
 
-function TExtGridGridView.FindRow(El: THTMLElement): TExtFunction;
+function TExtViewTable.FindRow(El: THTMLElement): TExtFunction;
 begin
-  JSCode(JSName + '.findRow(' + VarToJSON([El, false]) + ');', 'TExtGridGridView');
+  JSCode(JSName + '.findRow(' + VarToJSON([El, false]) + ');', 'TExtViewTable');
   Result := Self;
 end;
 
-function TExtGridGridView.FindRowBody(El: THTMLElement): TExtFunction;
+function TExtViewTable.FindRowBody(El: THTMLElement): TExtFunction;
 begin
-  JSCode(JSName + '.findRowBody(' + VarToJSON([El, false]) + ');', 'TExtGridGridView');
+  JSCode(JSName + '.findRowBody(' + VarToJSON([El, false]) + ');', 'TExtViewTable');
   Result := Self;
 end;
 
-function TExtGridGridView.FindRowIndex(El: THTMLElement): TExtFunction;
+function TExtViewTable.FindRowIndex(El: THTMLElement): TExtFunction;
 begin
-  JSCode(JSName + '.findRowIndex(' + VarToJSON([El, false]) + ');', 'TExtGridGridView');
+  JSCode(JSName + '.findRowIndex(' + VarToJSON([El, false]) + ');', 'TExtViewTable');
   Result := Self;
 end;
 
-function TExtGridGridView.FocusCell(Row: Integer; Col: Integer): TExtFunction;
+function TExtViewTable.FocusCell(Row: Integer; Col: Integer): TExtFunction;
 begin
-  JSCode(JSName + '.focusCell(' + VarToJSON([Row, Col]) + ');', 'TExtGridGridView');
+  JSCode(JSName + '.focusCell(' + VarToJSON([Row, Col]) + ');', 'TExtViewTable');
   Result := Self;
 end;
 
-function TExtGridGridView.FocusRow(Row: Integer): TExtFunction;
+function TExtViewTable.FocusRow(Row: Integer): TExtFunction;
 begin
-  JSCode(JSName + '.focusRow(' + VarToJSON([Row]) + ');', 'TExtGridGridView');
+  JSCode(JSName + '.focusRow(' + VarToJSON([Row]) + ');', 'TExtViewTable');
   Result := Self;
 end;
 
-function TExtGridGridView.GetCell(Row: Integer; Col: Integer): TExtFunction;
+function TExtViewTable.GetCell(Row: Integer; Col: Integer): TExtFunction;
 begin
-  JSCode(JSName + '.getCell(' + VarToJSON([Row, Col]) + ');', 'TExtGridGridView');
+  JSCode(JSName + '.getCell(' + VarToJSON([Row, Col]) + ');', 'TExtViewTable');
   Result := Self;
 end;
 
-function TExtGridGridView.GetHeaderCell(Index: Integer): TExtFunction;
+function TExtViewTable.GetHeaderCell(Index: Integer): TExtFunction;
 begin
-  JSCode(JSName + '.getHeaderCell(' + VarToJSON([index]) + ');', 'TExtGridGridView');
+  JSCode(JSName + '.getHeaderCell(' + VarToJSON([index]) + ');', 'TExtViewTable');
   Result := Self;
 end;
 
-function TExtGridGridView.GetObjectNamePrefix: string;
+function TExtViewTable.GetObjectNamePrefix: string;
 begin
-  Result := 'gridview';
+  Result := 'viewtable';
 end;
 
-function TExtGridGridView.GetRow(Index: Integer): TExtFunction;
+function TExtViewTable.GetRow(Index: Integer): TExtFunction;
 begin
-  JSCode(JSName + '.getRow(' + VarToJSON([index]) + ');', 'TExtGridGridView');
+  JSCode(JSName + '.getRow(' + VarToJSON([index]) + ');', 'TExtViewTable');
   Result := Self;
 end;
 
-function TExtGridGridView.Refresh(HeadersToo: Boolean = false): TExtFunction;
+function TExtViewTable.Refresh(HeadersToo: Boolean = false): TExtFunction;
 begin
-  JSCode(JSName + '.refresh(' + VarToJSON([HeadersToo]) + ');', 'TExtGridGridView');
+  JSCode(JSName + '.refresh(' + VarToJSON([HeadersToo]) + ');', 'TExtViewTable');
   Result := Self;
 end;
 
-function TExtGridGridView.ScrollToTop: TExtFunction;
+function TExtViewTable.ScrollToTop: TExtFunction;
 begin
-  JSCode(JSName + '.scrollToTop();', 'TExtGridGridView');
+  JSCode(JSName + '.scrollToTop();', 'TExtViewTable');
   Result := Self;
 end;
 
-procedure TExtGridGridView.HandleEvent(const AEvtName: string);
+procedure TExtViewTable.HandleEvent(const AEvtName: string);
 begin
   inherited;
   if (AEvtName = 'beforerefresh') and Assigned(FOnBeforerefresh) then
-    FOnBeforerefresh(TExtGridGridView(ParamAsObject('View')))
+    FOnBeforerefresh(TExtViewTable(ParamAsObject('View')))
   else if (AEvtName = 'beforerowremoved') and Assigned(FOnBeforerowremoved) then
-    FOnBeforerowremoved(TExtGridGridView(ParamAsObject('View')),
+    FOnBeforerowremoved(TExtViewTable(ParamAsObject('View')),
       ParamAsInteger('RowIndex'), TExtDataRecord(ParamAsObject('RecordJS')))
   else if (AEvtName = 'beforerowsinserted') and Assigned(FOnBeforerowsinserted) then
-    FOnBeforerowsinserted(TExtGridGridView(ParamAsObject('View')),
+    FOnBeforerowsinserted(TExtViewTable(ParamAsObject('View')),
       ParamAsInteger('FirstRow'), ParamAsInteger('LastRow'))
   else if (AEvtName = 'refresh') and Assigned(FOnRefresh) then
-    FOnRefresh(TExtGridGridView(ParamAsObject('View')))
+    FOnRefresh(TExtViewTable(ParamAsObject('View')))
   else if (AEvtName = 'rowremoved') and Assigned(FOnRowremoved) then
-    FOnRowremoved(TExtGridGridView(ParamAsObject('View')), ParamAsInteger('RowIndex'),
+    FOnRowremoved(TExtViewTable(ParamAsObject('View')), ParamAsInteger('RowIndex'),
       TExtDataRecord(ParamAsObject('RecordJS')))
   else if (AEvtName = 'rowsinserted') and Assigned(FOnRowsinserted) then
-    FOnRowsinserted(TExtGridGridView(ParamAsObject('View')), ParamAsInteger('FirstRow'),
+    FOnRowsinserted(TExtViewTable(ParamAsObject('View')), ParamAsInteger('FirstRow'),
       ParamAsInteger('LastRow'))
   else if (AEvtName = 'rowupdated') and Assigned(FOnRowupdated) then
-    FOnRowupdated(TExtGridGridView(ParamAsObject('View')), ParamAsInteger('FirstRow'),
+    FOnRowupdated(TExtViewTable(ParamAsObject('View')), ParamAsInteger('FirstRow'),
       TExtDataRecord(ParamAsObject('RecordJS')));
 end;
 
@@ -2072,20 +2071,20 @@ begin
       TExtObject(ParamAsObject('Selection')));
 end;
 
-procedure TExtGridRowSelectionModel.SetFMoveEditorOnEnter(Value: Boolean);
+procedure TExtSelectionRowModel.SetFMoveEditorOnEnter(Value: Boolean);
 begin
   FMoveEditorOnEnter := Value;
   JSCode('moveEditorOnEnter:' + VarToJSON([Value]));
 end;
 
-procedure TExtGridRowSelectionModel.SetSingleSelect(const AValue: Boolean);
+procedure TExtSelectionRowModel.SetSingleSelect(const AValue: Boolean);
 begin
   FSingleSelect := AValue;
   ExtSession.ResponseItems.SetConfigItem(Self, 'singleSelect', [AValue]);
 end;
 
-procedure TExtGridRowSelectionModel.SetFOnBeforerowselect
-  (Value: TExtGridRowSelectionModelOnBeforerowselect);
+procedure TExtSelectionRowModel.SetFOnBeforerowselect
+  (Value: TExtSelectionRowModelOnBeforerowselect);
 begin
   if Assigned(FOnBeforerowselect) then
     JSCode(JSName + '.events ["beforerowselect"].listeners=[];');
@@ -2095,8 +2094,8 @@ begin
   FOnBeforerowselect := Value;
 end;
 
-procedure TExtGridRowSelectionModel.SetFOnRowdeselect
-  (Value: TExtGridRowSelectionModelOnRowdeselect);
+procedure TExtSelectionRowModel.SetFOnRowdeselect
+  (Value: TExtSelectionRowModelOnRowdeselect);
 begin
   if Assigned(FOnRowdeselect) then
     JSCode(JSName + '.events ["rowdeselect"].listeners=[];');
@@ -2106,8 +2105,8 @@ begin
   FOnRowdeselect := Value;
 end;
 
-procedure TExtGridRowSelectionModel.SetFOnRowselect
-  (Value: TExtGridRowSelectionModelOnRowselect);
+procedure TExtSelectionRowModel.SetFOnRowselect
+  (Value: TExtSelectionRowModelOnRowselect);
 begin
   if Assigned(FOnRowselect) then
     JSCode(JSName + '.events ["rowselect"].listeners=[];');
@@ -2117,8 +2116,8 @@ begin
   FOnRowselect := Value;
 end;
 
-procedure TExtGridRowSelectionModel.SetFOnSelectionchange
-  (Value: TExtGridRowSelectionModelOnSelectionchange);
+procedure TExtSelectionRowModel.SetFOnSelectionchange
+  (Value: TExtSelectionRowModelOnSelectionchange);
 begin
   if Assigned(FOnSelectionchange) then
     JSCode(JSName + '.events ["selectionchange"].listeners=[];');
@@ -2127,179 +2126,179 @@ begin
   FOnSelectionchange := Value;
 end;
 
-class function TExtGridRowSelectionModel.JSClassName: string;
+class function TExtSelectionRowModel.JSClassName: string;
 begin
-  Result := 'Ext.grid.RowSelectionModel';
+  Result := 'Ext.selection.RowModel';
 end;
 
-function TExtGridRowSelectionModel.ClearSelections(Fast: Boolean = false): TExtFunction;
+function TExtSelectionRowModel.ClearSelections(Fast: Boolean = false): TExtFunction;
 begin
   JSCode(JSName + '.clearSelections(' + VarToJSON([Fast]) + ');',
-    'TExtGridRowSelectionModel');
+    'TExtSelectionRowModel');
   Result := Self;
 end;
 
-function TExtGridRowSelectionModel.DeselectRange(StartRow: Integer; EndRow: Integer)
+function TExtSelectionRowModel.DeselectRange(StartRow: Integer; EndRow: Integer)
   : TExtFunction;
 begin
   JSCode(JSName + '.deselectRange(' + VarToJSON([StartRow, EndRow]) + ');',
-    'TExtGridRowSelectionModel');
+    'TExtSelectionRowModel');
   Result := Self;
 end;
 
-function TExtGridRowSelectionModel.DeselectRow(Row: Integer;
+function TExtSelectionRowModel.DeselectRow(Row: Integer;
   PreventViewNotify: Boolean = false): TExtFunction;
 begin
   JSCode(JSName + '.deselectRow(' + VarToJSON([Row, PreventViewNotify]) + ');',
-    'TExtGridRowSelectionModel');
+    'TExtSelectionRowModel');
   Result := Self;
 end;
 
-function TExtGridRowSelectionModel.Each(const AFunction: TExtFunction; const AScope: TExtObject): TExtFunction;
+function TExtSelectionRowModel.Each(const AFunction: TExtFunction; const AScope: TExtObject): TExtFunction;
 begin
   ExtSession.ResponseItems.CallMethod(Self, 'each', [AFunction, True, AScope, False]);
   Result := Self;
 end;
 
-function TExtGridRowSelectionModel.GetCount: TExtFunction;
+function TExtSelectionRowModel.GetCount: TExtFunction;
 begin
   ExtSession.ResponseItems.CallMethod(Self, 'getCount', []);
   Result := Self;
 end;
 
-function TExtGridRowSelectionModel.GetSelected: TExtFunction;
+function TExtSelectionRowModel.GetSelected: TExtFunction;
 begin
   ExtSession.ResponseItems.CallMethod(Self, 'getSelected', []);
   Result := Self;
 end;
 
-function TExtGridRowSelectionModel.GetSelections: TExtFunction;
+function TExtSelectionRowModel.GetSelections: TExtFunction;
 begin
   ExtSession.ResponseItems.CallMethod(Self, 'getSelections', []);
   Result := Self;
 end;
 
-function TExtGridRowSelectionModel.HasNext: TExtFunction;
+function TExtSelectionRowModel.HasNext: TExtFunction;
 begin
   ExtSession.ResponseItems.CallMethod(Self, 'hasNext', []);
   Result := Self;
 end;
 
-function TExtGridRowSelectionModel.HasPrevious: TExtFunction;
+function TExtSelectionRowModel.HasPrevious: TExtFunction;
 begin
   ExtSession.ResponseItems.CallMethod(Self, 'hasPrevious', []);
   Result := Self;
 end;
 
-function TExtGridRowSelectionModel.HasSelection: TExtFunction;
+function TExtSelectionRowModel.HasSelection: TExtFunction;
 begin
-  JSCode(JSName + '.hasSelection();', 'TExtGridRowSelectionModel');
+  JSCode(JSName + '.hasSelection();', 'TExtSelectionRowModel');
   Result := Self;
 end;
 
-function TExtGridRowSelectionModel.IsIdSelected(Id: string): TExtFunction;
+function TExtSelectionRowModel.IsIdSelected(Id: string): TExtFunction;
 begin
-  JSCode(JSName + '.isIdSelected(' + VarToJSON([Id]) + ');', 'TExtGridRowSelectionModel');
+  JSCode(JSName + '.isIdSelected(' + VarToJSON([Id]) + ');', 'TExtSelectionRowModel');
   Result := Self;
 end;
 
-function TExtGridRowSelectionModel.IsSelected(Index: Integer): TExtFunction;
+function TExtSelectionRowModel.IsSelected(Index: Integer): TExtFunction;
 begin
   JSCode(JSName + '.isSelected(' + VarToJSON([index]) + ');',
-    'TExtGridRowSelectionModel');
+    'TExtSelectionRowModel');
   Result := Self;
 end;
 
-function TExtGridRowSelectionModel.IsSelected(Index: TExtDataRecord): TExtFunction;
+function TExtSelectionRowModel.IsSelected(Index: TExtDataRecord): TExtFunction;
 begin
   JSCode(JSName + '.isSelected(' + VarToJSON([index, false]) + ');',
-    'TExtGridRowSelectionModel');
+    'TExtSelectionRowModel');
   Result := Self;
 end;
 
-function TExtGridRowSelectionModel.SelectAll: TExtFunction;
+function TExtSelectionRowModel.SelectAll: TExtFunction;
 begin
-  JSCode(JSName + '.selectAll();', 'TExtGridRowSelectionModel');
+  JSCode(JSName + '.selectAll();', 'TExtSelectionRowModel');
   Result := Self;
 end;
 
-function TExtGridRowSelectionModel.SelectFirstRow: TExtFunction;
+function TExtSelectionRowModel.SelectFirstRow: TExtFunction;
 begin
   ExtSession.ResponseItems.CallMethod(Self, 'selectFirstRow', []);
   Result := Self;
 end;
 
-function TExtGridRowSelectionModel.SelectLastRow(KeepExisting: Boolean = false)
+function TExtSelectionRowModel.SelectLastRow(KeepExisting: Boolean = false)
   : TExtFunction;
 begin
   JSCode(JSName + '.selectLastRow(' + VarToJSON([KeepExisting]) + ');',
-    'TExtGridRowSelectionModel');
+    'TExtSelectionRowModel');
   Result := Self;
 end;
 
-function TExtGridRowSelectionModel.SelectNext(KeepExisting: Boolean = false)
+function TExtSelectionRowModel.SelectNext(KeepExisting: Boolean = false)
   : TExtFunction;
 begin
   JSCode(JSName + '.selectNext(' + VarToJSON([KeepExisting]) + ');',
-    'TExtGridRowSelectionModel');
+    'TExtSelectionRowModel');
   Result := Self;
 end;
 
-function TExtGridRowSelectionModel.SelectPrevious(KeepExisting: Boolean = false)
+function TExtSelectionRowModel.SelectPrevious(KeepExisting: Boolean = false)
   : TExtFunction;
 begin
   JSCode(JSName + '.selectPrevious(' + VarToJSON([KeepExisting]) + ');',
-    'TExtGridRowSelectionModel');
+    'TExtSelectionRowModel');
   Result := Self;
 end;
 
-function TExtGridRowSelectionModel.SelectRange(StartRow: Integer; EndRow: Integer;
+function TExtSelectionRowModel.SelectRange(StartRow: Integer; EndRow: Integer;
   KeepExisting: Boolean = false): TExtFunction;
 begin
   JSCode(JSName + '.selectRange(' + VarToJSON([StartRow, EndRow, KeepExisting]) + ');',
-    'TExtGridRowSelectionModel');
+    'TExtSelectionRowModel');
   Result := Self;
 end;
 
-function TExtGridRowSelectionModel.SelectRecords(Records: TExtObjectList;
+function TExtSelectionRowModel.SelectRecords(Records: TExtObjectList;
   KeepExisting: Boolean = false): TExtFunction;
 begin
   JSCode(JSName + '.selectRecords(' + VarToJSON(Records) + ',' + VarToJSON([KeepExisting])
-    + ');', 'TExtGridRowSelectionModel');
+    + ');', 'TExtSelectionRowModel');
   Result := Self;
 end;
 
-function TExtGridRowSelectionModel.SelectRow(Row: Integer; KeepExisting: Boolean = false;
+function TExtSelectionRowModel.SelectRow(Row: Integer; KeepExisting: Boolean = false;
   PreventViewNotify: Boolean = false): TExtFunction;
 begin
   JSCode(JSName + '.selectRow(' + VarToJSON([Row, KeepExisting, PreventViewNotify]) +
-    ');', 'TExtGridRowSelectionModel');
+    ');', 'TExtSelectionRowModel');
   Result := Self;
 end;
 
-function TExtGridRowSelectionModel.SelectRows(Rows: TExtObjectList;
+function TExtSelectionRowModel.SelectRows(Rows: TExtObjectList;
   KeepExisting: Boolean = false): TExtFunction;
 begin
   JSCode(JSName + '.selectRows(' + VarToJSON(Rows) + ',' + VarToJSON([KeepExisting]) +
-    ');', 'TExtGridRowSelectionModel');
+    ');', 'TExtSelectionRowModel');
   Result := Self;
 end;
 
-procedure TExtGridRowSelectionModel.HandleEvent(const AEvtName: string);
+procedure TExtSelectionRowModel.HandleEvent(const AEvtName: string);
 begin
   inherited;
   if (AEvtName = 'beforerowselect') and Assigned(FOnBeforerowselect) then
-    FOnBeforerowselect(TExtGridRowSelectionModel(ParamAsObject('This')),
+    FOnBeforerowselect(TExtSelectionRowModel(ParamAsObject('This')),
       ParamAsInteger('RowIndex'), ParamAsBoolean('KeepExisting'),
       TExtDataRecord(ParamAsObject('RecordJS')))
   else if (AEvtName = 'rowdeselect') and Assigned(FOnRowdeselect) then
-    FOnRowdeselect(TExtGridRowSelectionModel(ParamAsObject('This')),
+    FOnRowdeselect(TExtSelectionRowModel(ParamAsObject('This')),
       ParamAsInteger('RowIndex'), TExtDataRecord(ParamAsObject('RecordJS')))
   else if (AEvtName = 'rowselect') and Assigned(FOnRowselect) then
-    FOnRowselect(TExtGridRowSelectionModel(ParamAsObject('This')),
+    FOnRowselect(TExtSelectionRowModel(ParamAsObject('This')),
       ParamAsInteger('RowIndex'), TExtDataRecord(ParamAsObject('R')))
   else if (AEvtName = 'selectionchange') and Assigned(FOnSelectionchange) then
-    FOnSelectionchange(TExtGridRowSelectionModel(ParamAsObject('This')));
+    FOnSelectionchange(TExtSelectionRowModel(ParamAsObject('This')));
 end;
 
 procedure TExtGridGroupingView.SetEmptyGroupText(const AValue: string);
