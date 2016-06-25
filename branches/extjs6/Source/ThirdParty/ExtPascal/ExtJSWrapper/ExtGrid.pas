@@ -27,7 +27,6 @@ type
   TExtGridCheckboxSelectionModel = class;
   TExtGridGridDragZone = class;
   TExtGridGridPanel = class;
-  TExtGridEditorGridPanel = class;
   TExtGridPropertyGrid = class;
 
   TExtGridRowNumberer = class(TExtFunction)
@@ -206,6 +205,7 @@ type
     FOnRowsinserted: TExtViewTableOnRowsinserted;
     FOnRowupdated: TExtViewTableOnRowupdated;
     FGetRowClass: TExtFunction;
+    FDisableSelection: Boolean;
     procedure SetAutoFill(const AValue: Boolean);
     procedure SetFCellSelector(Value: string);
     procedure SetFCellSelectorDepth(Value: Integer);
@@ -234,6 +234,7 @@ type
     procedure SetFOnRowsinserted(Value: TExtViewTableOnRowsinserted);
     procedure SetFOnRowupdated(Value: TExtViewTableOnRowupdated);
     procedure SetGetRowClass(const AValue: TExtFunction);
+    procedure SetDisableSelection(const AValue: Boolean);
   protected
     procedure InitDefaults; override;
     procedure HandleEvent(const AEvtName: string); override;
@@ -257,6 +258,7 @@ type
       write SetFCellSelectorDepth;
     property ColumnsText: string read FColumnsText write SetFColumnsText;
     property DeferEmptyText: Boolean read FDeferEmptyText write SetFDeferEmptyText;
+    property DisableSelection: Boolean read FDisableSelection write SetDisableSelection;
     property EmptyText: string read FEmptyText write SetEmptyText;
     property EnableRowBody: Boolean read FEnableRowBody write SetEnableRowBody;
     property ForceFit: Boolean read FForceFit write SetForceFit;
@@ -287,6 +289,11 @@ type
       write SetFOnRowsinserted;
     property OnRowupdated: TExtViewTableOnRowupdated read FOnRowupdated
       write SetFOnRowupdated;
+  end;
+
+  TExtGridView = class(TExtViewTable)
+  public
+    class function JSClassName: string; override;
   end;
 
   // Procedural types for events TExtGridColumnModel
@@ -523,7 +530,7 @@ type
       read FOnSelectionchange write SetFOnSelectionchange;
   end;
 
-  TExtGridGroupingView = class(TExtViewTable)
+  TExtGridGroupingView = class(TExtGridView)
   private
     FEmptyGroupText: string;
     FEnableGrouping: Boolean; // true
@@ -762,7 +769,7 @@ type
     procedure SetFDdGroup(Value: string);
     procedure SetFDdText(Value: string);
     procedure SetFDeferRowRender(Value: Boolean);
-    procedure SetFDisableSelection(Value: Boolean);
+    procedure SetDisableSelection(const AValue: Boolean);
     procedure SetFEnableColumnHide(Value: Boolean);
     procedure SetFEnableColumnMove(Value: Boolean);
     procedure SetFEnableColumnResize(Value: Boolean);
@@ -772,7 +779,7 @@ type
     procedure SetFLoadMask(Value: TExtObject);
     procedure SetFMaxHeight(Value: Integer);
     procedure SetFMinColumnWidth(Value: Integer);
-    procedure SetFSelModel(Value: TExtObject);
+    procedure SetSelModel(const AValue: TExtObject);
     procedure SetFSm(Value: TExtObject);
     procedure SetFStateEvents(Value: TExtObjectList);
     procedure SetStore(const AValue: TExtDataStore);
@@ -845,7 +852,7 @@ type
     property DdGroup: string read FDdGroup write SetFDdGroup;
     property DdText: string read FDdText write SetFDdText;
     property DeferRowRender: Boolean read FDeferRowRender write SetFDeferRowRender;
-    property DisableSelection: Boolean read FDisableSelection write SetFDisableSelection;
+    property DisableSelection: Boolean read FDisableSelection write SetDisableSelection;
     property EnableColumnHide: Boolean read FEnableColumnHide write SetFEnableColumnHide;
     property EnableColumnMove: Boolean read FEnableColumnMove write SetFEnableColumnMove;
     property EnableColumnResize: Boolean read FEnableColumnResize
@@ -856,7 +863,7 @@ type
     property LoadMask: TExtObject read FLoadMask write SetFLoadMask;
     property MaxHeight: Integer read FMaxHeight write SetFMaxHeight;
     property MinColumnWidth: Integer read FMinColumnWidth write SetFMinColumnWidth;
-    property SelModel: TExtObject read FSelModel write SetFSelModel;
+    property SelModel: TExtObject read FSelModel write SetSelModel;
     property Sm: TExtObject read FSm write SetFSm;
     property StateEvents: TExtObjectList read FStateEvents write SetFStateEvents;
     property Store: TExtDataStore read FStore write SetStore;
@@ -944,53 +951,13 @@ type
       write SetFOnViewready;
   end;
 
-  // Procedural types for events TExtGridEditorGridPanel
-  TExtGridEditorGridPanelOnAfteredit = procedure(E: TExtObject) of object;
-  TExtGridEditorGridPanelOnBeforeedit = procedure(E: TExtObject) of object;
-  TExtGridEditorGridPanelOnValidateedit = procedure(E: TExtObject) of object;
-
-  TExtGridEditorGridPanel = class(TExtGridGridPanel)
-  private
-    FAutoEncode: Boolean;
-    FClicksToEdit: Integer; // 2
-    FForceValidation: Boolean;
-    FSelModel: TExtObject;
-    FOnAfteredit: TExtGridEditorGridPanelOnAfteredit;
-    FOnBeforeedit: TExtGridEditorGridPanelOnBeforeedit;
-    FOnValidateedit: TExtGridEditorGridPanelOnValidateedit;
-    procedure SetFAutoEncode(Value: Boolean);
-    procedure SetClicksToEdit(AValue: Integer);
-    procedure SetFForceValidation(Value: Boolean);
-    procedure SetSelModel(const AValue: TExtObject);
-    procedure SetFOnAfteredit(Value: TExtGridEditorGridPanelOnAfteredit);
-    procedure SetFOnBeforeedit(Value: TExtGridEditorGridPanelOnBeforeedit);
-    procedure SetFOnValidateedit(Value: TExtGridEditorGridPanelOnValidateedit);
-  protected
-    procedure InitDefaults; override;
-    procedure HandleEvent(const AEvtName: string); override;
-  public
-    class function JSClassName: string; override;
-    function StartEditing(const ARowIndex: Integer; const AColIndex: Integer): TExtFunction;
-    function StopEditing(const ACancel: Boolean = False): TExtFunction;
-    property AutoEncode: Boolean read FAutoEncode write SetFAutoEncode;
-    property ClicksToEdit: Integer read FClicksToEdit write SetClicksToEdit;
-    property ForceValidation: Boolean read FForceValidation write SetFForceValidation;
-    property SelModel: TExtObject read FSelModel write SetSelModel;
-    property OnAfteredit: TExtGridEditorGridPanelOnAfteredit read FOnAfteredit
-      write SetFOnAfteredit;
-    property OnBeforeedit: TExtGridEditorGridPanelOnBeforeedit read FOnBeforeedit
-      write SetFOnBeforeedit;
-    property OnValidateedit: TExtGridEditorGridPanelOnValidateedit read FOnValidateedit
-      write SetFOnValidateedit;
-  end;
-
   // Procedural types for events TExtGridPropertyGrid
   TExtGridPropertyGridOnBeforepropertychange = procedure(Source: TExtObject;
     RecordId: string; Value: string; OldValue: string) of object;
   TExtGridPropertyGridOnPropertychange = procedure(Source: TExtObject; RecordId: string;
     Value: string; OldValue: string) of object;
 
-  TExtGridPropertyGrid = class(TExtGridEditorGridPanel)
+  TExtGridPropertyGrid = class(TExtGridGridPanel)
   private
     FCustomEditors: TExtObject;
     FCustomRenderers: TExtObject;
@@ -1277,6 +1244,12 @@ begin
   ExtSession.ResponseItems.SetConfigItem(Self, 'autoFill', [AValue]);
 end;
 
+procedure TExtViewTable.SetDisableSelection(const AValue: Boolean);
+begin
+  FDisableSelection := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'disableSelection', [AValue]);
+end;
+
 procedure TExtViewTable.SetFCellSelector(Value: string);
 begin
   FCellSelector := Value;
@@ -1489,6 +1462,7 @@ begin
   FSortDescText := 'Sort Descending';
   FDragZone := TExtGridGridDragZone.CreateInternal(Self, 'dragZone');
   FMainBody := TExtElement.CreateInternal(Self, 'mainBody');
+  DisableSelection := False;
 end;
 
 function TExtViewTable.FindCellIndex(El: THTMLElement): TExtFunction;
@@ -2570,10 +2544,10 @@ begin
   JSCode('deferRowRender:' + VarToJSON([Value]));
 end;
 
-procedure TExtGridGridPanel.SetFDisableSelection(Value: Boolean);
+procedure TExtGridGridPanel.SetDisableSelection(const AValue: Boolean);
 begin
-  FDisableSelection := Value;
-  JSCode('disableSelection:' + VarToJSON([Value]));
+  FDisableSelection := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'disableSelection', [AValue]);
 end;
 
 procedure TExtGridGridPanel.SetFEnableColumnHide(Value: Boolean);
@@ -2630,10 +2604,10 @@ begin
   JSCode('minColumnWidth:' + VarToJSON([Value]));
 end;
 
-procedure TExtGridGridPanel.SetFSelModel(Value: TExtObject);
+procedure TExtGridGridPanel.SetSelModel(const AValue: TExtObject);
 begin
-  FSelModel := Value;
-  JSCode('selModel:' + VarToJSON([Value, false]));
+  FSelModel := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'selModel', [AValue, False]);
 end;
 
 procedure TExtGridGridPanel.SetFSm(Value: TExtObject);
@@ -3105,6 +3079,7 @@ begin
   FStore := TExtDataStore.CreateInternal(Self, 'store');
   FView := TExtObject.CreateInternal(Self, 'view');
   FViewConfig := TExtObject.CreateInternal(Self, 'viewConfig');
+  DisableSelection := False;
 end;
 
 function TExtGridGridPanel.GetColumnModel: TExtFunction;
@@ -3264,96 +3239,6 @@ begin
     FOnViewready(TExtGridGridPanel(ParamAsObject('This')));
 end;
 
-procedure TExtGridEditorGridPanel.SetFAutoEncode(Value: Boolean);
-begin
-  FAutoEncode := Value;
-  JSCode('autoEncode:' + VarToJSON([Value]));
-end;
-
-procedure TExtGridEditorGridPanel.SetClicksToEdit(AValue: Integer);
-begin
-  FClicksToEdit := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'clicksToEdit', [AValue]);
-end;
-
-procedure TExtGridEditorGridPanel.SetFForceValidation(Value: Boolean);
-begin
-  FForceValidation := Value;
-  JSCode('forceValidation:' + VarToJSON([Value]));
-end;
-
-procedure TExtGridEditorGridPanel.SetSelModel(const AValue: TExtObject);
-begin
-  FSelModel.Free;
-  FSelModel := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'selModel', [AValue, False]);
-end;
-
-procedure TExtGridEditorGridPanel.SetFOnAfteredit
-  (Value: TExtGridEditorGridPanelOnAfteredit);
-begin
-  if Assigned(FOnAfteredit) then
-    JSCode(JSName + '.events ["afteredit"].listeners=[];');
-  if Assigned(Value) then
-    on('afteredit', Ajax('afteredit', ['E', '%0.nm'], true));
-  FOnAfteredit := Value;
-end;
-
-procedure TExtGridEditorGridPanel.SetFOnBeforeedit
-  (Value: TExtGridEditorGridPanelOnBeforeedit);
-begin
-  if Assigned(FOnBeforeedit) then
-    JSCode(JSName + '.events ["beforeedit"].listeners=[];');
-  if Assigned(Value) then
-    on('beforeedit', Ajax('beforeedit', ['E', '%0.nm'], true));
-  FOnBeforeedit := Value;
-end;
-
-procedure TExtGridEditorGridPanel.SetFOnValidateedit
-  (Value: TExtGridEditorGridPanelOnValidateedit);
-begin
-  if Assigned(FOnValidateedit) then
-    JSCode(JSName + '.events ["validateedit"].listeners=[];');
-  if Assigned(Value) then
-    on('validateedit', Ajax('validateedit', ['E', '%0.nm'], true));
-  FOnValidateedit := Value;
-end;
-
-class function TExtGridEditorGridPanel.JSClassName: string;
-begin
-  Result := 'Ext.grid.EditorGridPanel';
-end;
-
-procedure TExtGridEditorGridPanel.InitDefaults;
-begin
-  inherited;
-  FClicksToEdit := 2;
-  FSelModel := TExtObject.CreateInternal(Self, 'selModel');
-end;
-
-function TExtGridEditorGridPanel.StartEditing(const ARowIndex: Integer; const AColIndex: Integer): TExtFunction;
-begin
-  Session.ResponseItems.CallMethod(Self, 'startEditing', [ARowIndex, AColIndex]);
-  Result := Self;
-end;
-
-function TExtGridEditorGridPanel.StopEditing(const ACancel: Boolean): TExtFunction;
-begin
-  Session.ResponseItems.CallMethod(Self, 'stopEditing', [ACancel]);
-  Result := Self;
-end;
-
-procedure TExtGridEditorGridPanel.HandleEvent(const AEvtName: string);
-begin
-  inherited;
-  if (AEvtName = 'afteredit') and Assigned(FOnAfteredit) then
-    FOnAfteredit(TExtObject(ParamAsObject('E')))
-  else if (AEvtName = 'beforeedit') and Assigned(FOnBeforeedit) then
-    FOnBeforeedit(TExtObject(ParamAsObject('E')))
-  else if (AEvtName = 'validateedit') and Assigned(FOnValidateedit) then
-    FOnValidateedit(TExtObject(ParamAsObject('E')));
-end;
-
 procedure TExtGridPropertyGrid.SetFCustomEditors(Value: TExtObject);
 begin
   FCustomEditors := Value;
@@ -3450,6 +3335,13 @@ begin
   else if (AEvtName = 'propertychange') and Assigned(FOnPropertychange) then
     FOnPropertychange(TExtObject(ParamAsObject('Source')), ParamAsString('RecordId'),
       ParamAsString('Value'), ParamAsString('OldValue'));
+end;
+
+{ TExtGridView }
+
+class function TExtGridView.JSClassName: string;
+begin
+  Result := 'Ext.grid.View';
 end;
 
 end.

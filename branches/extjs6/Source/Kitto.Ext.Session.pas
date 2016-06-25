@@ -1209,7 +1209,7 @@ begin
   UploadPath := '/uploads/' + Config.AppName + '/' + SessionGUID;
   ExtPath := Config.Config.GetString('Ext/URL', '/ext6');
   Charset := Config.Config.GetString('Charset', 'utf-8');
-  Theme := Config.Config.GetString('Ext/Theme');
+  Theme := Config.Config.GetString('Ext/Theme', 'classic');
 end;
 
 function TKExtSession.AsObject: TObject;

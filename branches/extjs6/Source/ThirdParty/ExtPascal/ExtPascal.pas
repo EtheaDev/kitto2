@@ -987,7 +987,7 @@ begin
     I := pos('-', FLanguage);
     if I <> 0 then begin
       FLanguage := copy(FLanguage, I-2, 2) + '_' + Uppercase(copy(FLanguage, I+1, 2));
-      if not FileExists(RequestHeader['DOCUMENT_ROOT'] + ExtPath + SourcePath + '/locale/ext-lang-' + FLanguage + '.js') then
+      if not FileExists(RequestHeader['DOCUMENT_ROOT'] + ExtPath + '/build/classic/locale/locale-' + FLanguage + '.js') then
         FLanguage := copy(FLanguage, 1, 2)
     end;
   end;
@@ -1219,9 +1219,9 @@ begin
     LMainPageCode := ReplaceText(LMainPageCode, '<%ManifestLink%>',
       IfThen(GetManifestFileName = '', '', Format('<link rel="manifest" href="%s"/>', [GetManifestFileName])));
     LMainPageCode := ReplaceText(LMainPageCode, '<%ThemeLink%>',
-      IfThen(Theme = '', '', '<link rel=stylesheet href="' + ExtPath + '/resources/css/xtheme-' + Theme + '.css" />'));
+      IfThen(Theme = '', '', '<link rel=stylesheet href="' + ExtPath + '/build/classic/theme-' + Theme + '/resources/theme-' + Theme + '-all.css" />'));
     LMainPageCode := ReplaceText(LMainPageCode, '<%LanguageLink%>',
-      IfThen(FLanguage = 'en', '', '<script src="' + ExtPath + SourcePath + '/locale/ext-lang-' + FLanguage + '.js"></script>'));
+      IfThen(FLanguage = 'en', '', '<script src="' + ExtPath + '/build/classic/locale/locale-' + FLanguage + '.js"></script>'));
     LMainPageCode := ReplaceText(LMainPageCode, '<%StyleTag%>', GetStyleTag);
     LMainPageCode := ReplaceText(LMainPageCode, '<%LibraryTags%>', FLibraries);
     LMainPageCode := ReplaceText(LMainPageCode, '<%CustomJS%>', GetCustomJS);
@@ -1980,7 +1980,7 @@ The expression will be called in the browser side and should returns an integer.
 @param MethodsValues Array of Methods or Integer values to use in Expression
 @return Integer Internal value to return used by ExtPascal to generate the corresponding Javascript code
 @example <code>
-Grid := TExtGridEditorGridPanel.Create;
+Grid := TExtGridGridPanel.Create;
 with Grid do begin
   Width  := JSExpression(Panel.GetInnerWidth);
   Height := JSExpression(Panel.GetInnerHeight);

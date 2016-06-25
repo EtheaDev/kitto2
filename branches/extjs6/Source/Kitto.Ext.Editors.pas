@@ -207,7 +207,7 @@ type
 
 { TODO : support the CheckboxGroup and Radiogroup containers? }
 
-  TKExtFormNumericField = class(TExtFormNumberField, IKExtEditItem, IKExtEditor)
+  TKExtFormNumberField = class(TExtFormNumberField, IKExtEditItem, IKExtEditor)
   private
     FFieldName: string;
     FRecordField: TKViewTableField;
@@ -219,7 +219,6 @@ type
     procedure SetAlwaysDisplayDecimals(const AValue: Boolean);
     procedure SetUseThousandSeparator(const AValue: Boolean);
   public
-    class function JSClassName: string; override;
     property ThousandSeparator: string read FThousandSeparator write SetThousandSeparator;
     property AlwaysDisplayDecimals: Boolean read FAlwaysDisplayDecimals write SetAlwaysDisplayDecimals;
     property UseThousandSeparator: Boolean read FUseThousandSeparator write SetUseThousandSeparator;
@@ -674,7 +673,7 @@ type
     function TryCreateDateTimeField(const AOwner: TComponent; const AViewField: TKViewField;
       const ARowField: TKExtFormRowField; const AFieldCharWidth: Integer;
       const AIsReadOnly: Boolean): IKExtEditor;
-    function TryCreateNumericField(const AOwner: TComponent; const AViewField: TKViewField;
+    function TryCreateNumberField(const AOwner: TComponent; const AViewField: TKViewField;
       const ARowField: TKExtFormRowField; const AFieldCharWidth: Integer;
       const AIsReadOnly: Boolean): IKExtEditor;
     function TryCreateFileEditor(const AOwner: TComponent; const AViewField: TKViewField;
@@ -2277,104 +2276,99 @@ end;
 
 { TKExtFormNumericField }
 
-function TKExtFormNumericField.AsExtFormField: TExtFormField;
+function TKExtFormNumberField.AsExtFormField: TExtFormField;
 begin
   Result := Self;
 end;
 
-function TKExtFormNumericField.AsExtObject: TExtObject;
+function TKExtFormNumberField.AsExtObject: TExtObject;
 begin
   Result := Self;
 end;
 
-function TKExtFormNumericField.AsObject: TObject;
+function TKExtFormNumberField.AsObject: TObject;
 begin
   Result := Self;
 end;
 
-procedure TKExtFormNumericField.FieldChange(This: TExtFormField; NewValue,
+procedure TKExtFormNumberField.FieldChange(This: TExtFormField; NewValue,
   OldValue: string);
 begin
   FRecordField.SetAsJSONValue(NewValue, False, Session.Config.JSFormatSettings);
 end;
 
-function TKExtFormNumericField.GetFieldName: string;
+function TKExtFormNumberField.GetFieldName: string;
 begin
   Result := FFieldName;
 end;
 
-function TKExtFormNumericField.GetEditItemId: string;
+function TKExtFormNumberField.GetEditItemId: string;
 begin
   Result := FRecordField.FieldName;
 end;
 
-function TKExtFormNumericField.GetRecordField: TKViewTableField;
+function TKExtFormNumberField.GetRecordField: TKViewTableField;
 begin
   Result := FRecordField;
 end;
 
-class function TKExtFormNumericField.JSClassName: string;
-begin
-  Result := 'Ext.ux.NumericField';
-end;
-
-procedure TKExtFormNumericField.RefreshValue;
+procedure TKExtFormNumberField.RefreshValue;
 begin
   SetValue(JSONNullToEmptyStr(FRecordField.GetAsJSONValue(False, False)));
 end;
 
-procedure TKExtFormNumericField.SetRecordField(const AValue: TKViewTableField);
+procedure TKExtFormNumberField.SetRecordField(const AValue: TKViewTableField);
 begin
   FRecordField := AValue;
   if not ReadOnly and IsChangeHandlerNeeded(FRecordField) then
     OnChange := FieldChange;
 end;
 
-procedure TKExtFormNumericField.SetThousandSeparator(const AValue: string);
+procedure TKExtFormNumberField.SetThousandSeparator(const AValue: string);
 begin
   FThousandSeparator := AValue;
   ExtSession.ResponseItems.SetConfigItem(Self, 'thousandSeparator', [AValue]);
 end;
 
-procedure TKExtFormNumericField.SetTransientProperty(const APropertyName: string; const AValue: Variant);
+procedure TKExtFormNumberField.SetTransientProperty(const APropertyName: string; const AValue: Variant);
 begin
   AsExtFormField.SetTransientProperty(APropertyName, AValue);
 end;
 
-procedure TKExtFormNumericField.SetUseThousandSeparator(const AValue: Boolean);
+procedure TKExtFormNumberField.SetUseThousandSeparator(const AValue: Boolean);
 begin
   FUseThousandSeparator := AValue;
   ExtSession.ResponseItems.SetConfigItem(Self, 'useThousandSeparator', [AValue]);
 end;
 
-procedure TKExtFormNumericField.StoreValue(const AObjectName: string);
+procedure TKExtFormNumberField.StoreValue(const AObjectName: string);
 begin
   AsExtFormField.StoreValue(AObjectName);
 end;
 
-procedure TKExtFormNumericField.SetAlwaysDisplayDecimals(const AValue: Boolean);
+procedure TKExtFormNumberField.SetAlwaysDisplayDecimals(const AValue: Boolean);
 begin
   FAlwaysDisplayDecimals := AValue;
   ExtSession.ResponseItems.SetConfigItem(Self, 'alwaysDisplayDecimals', [AValue]);
 end;
 
-procedure TKExtFormNumericField.SetFieldName(const AValue: string);
+procedure TKExtFormNumberField.SetFieldName(const AValue: string);
 begin
   FFieldName := AValue;
 end;
 
-procedure TKExtFormNumericField.SetOption(const ANode: TEFNode);
+procedure TKExtFormNumberField.SetOption(const ANode: TEFNode);
 begin
   if not SetExtFormFieldOption(AsExtFormField, ANode) then
     InvalidOption(ANode);
 end;
 
-function TKExtFormNumericField._AddRef: Integer;
+function TKExtFormNumberField._AddRef: Integer;
 begin
   Result := -1;
 end;
 
-function TKExtFormNumericField._Release: Integer;
+function TKExtFormNumberField._Release: Integer;
 begin
   Result := -1;
 end;
@@ -3279,7 +3273,7 @@ begin
   if Result = nil then
     Result := TryCreateDateTimeField(AOwner, AViewField, ARowField, AFieldCharWidth, AIsReadOnly);
   if Result = nil then
-    Result := TryCreateNumericField(AOwner, AViewField, ARowField, AFieldCharWidth, AIsReadOnly);
+    Result := TryCreateNumberField(AOwner, AViewField, ARowField, AFieldCharWidth, AIsReadOnly);
   if Result = nil then
     Result := CreateTextField(AOwner, AViewField, ARowField, AFieldCharWidth, AIsReadOnly);
   Result.FieldName := AViewField.AliasedName;
@@ -3598,18 +3592,18 @@ begin
     Result := nil;
 end;
 
-function TKExtEditorManager.TryCreateNumericField(const AOwner: TComponent;
+function TKExtEditorManager.TryCreateNumberField(const AOwner: TComponent;
   const AViewField: TKViewField;
   const ARowField: TKExtFormRowField; const AFieldCharWidth: Integer;
   const AIsReadOnly: Boolean): IKExtEditor;
 var
-  LNumericField: TKExtFormNumericField;
+  LNumericField: TKExtFormNumberField;
 begin
   Assert(Assigned(AOwner));
 
   if AViewField.DataType is TEFNumericDataTypeBase then
   begin
-    LNumericField := TKExtFormNumericField.Create(AOwner);
+    LNumericField := TKExtFormNumberField.Create(AOwner);
     try
       if not Assigned(ARowField) then
         LNumericField.Width := LNumericField.CharsToPixels(AFieldCharWidth)

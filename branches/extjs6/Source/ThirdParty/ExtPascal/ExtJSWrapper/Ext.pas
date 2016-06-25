@@ -8,10 +8,6 @@ interface
 uses
   Classes, StrUtils, ExtPascal, ExtPascalUtils, ExtUtil;
 
-const
-  IsExtJS3 = true;
-  SourcePath = '/src';
-
 type
   TExtKeyMap = class;
   TExtFx = class;

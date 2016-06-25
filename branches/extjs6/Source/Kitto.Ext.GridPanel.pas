@@ -32,8 +32,8 @@ type
   strict private
     FConfirmButton: TKExtButton;
     FCancelButton: TKExtButton;
-    FEditorGridPanel: TExtGridEditorGridPanel;
-    FExtViewTable: TExtViewTable;
+    FGridPanel: TExtGridGridPanel;
+    FExtGridView: TExtGridView;
     FPagingToolbar: TExtPagingToolbar;
     FPageRecordCount: Integer;
     FSelectionModel: TExtSelectionRowModel;
@@ -188,7 +188,7 @@ begin
   end
   else
     Result := inherited CreateClientStore;
-  FEditorGridPanel.Store := Result;
+  FGridPanel.Store := Result;
 end;
 
 procedure TKExtGridPanel.CreateExtViewTable;
@@ -205,13 +205,13 @@ begin
   LGroupingMenu := ViewTable.GetBoolean('Controller/Grouping/EnableMenu');
   if (LGroupingFieldName <> '') or LGroupingMenu then
   begin
-    FExtViewTable := TExtGridGroupingView.Create(Self);
-    TExtGridGroupingView(FExtViewTable).EmptyGroupText := _('Grouping value undefined.');
-    TExtGridGroupingView(FExtViewTable).StartCollapsed := ViewTable.GetBoolean('Controller/Grouping/StartCollapsed');
-    TExtGridGroupingView(FExtViewTable).EnableGroupingMenu := LGroupingMenu;
-    TExtGridGroupingView(FExtViewTable).EnableNoGroups := LGroupingMenu;
-    TExtGridGroupingView(FExtViewTable).HideGroupedColumn := True;
-    TExtGridGroupingView(FExtViewTable).ShowGroupName := ViewTable.GetBoolean('Controller/Grouping/ShowName');
+    FExtGridView := TExtGridGroupingView.Create(Self);
+    TExtGridGroupingView(FExtGridView).EmptyGroupText := _('Grouping value undefined.');
+    TExtGridGroupingView(FExtGridView).StartCollapsed := ViewTable.GetBoolean('Controller/Grouping/StartCollapsed');
+    TExtGridGroupingView(FExtGridView).EnableGroupingMenu := LGroupingMenu;
+    TExtGridGroupingView(FExtGridView).EnableNoGroups := LGroupingMenu;
+    TExtGridGroupingView(FExtGridView).HideGroupedColumn := True;
+    TExtGridGroupingView(FExtGridView).ShowGroupName := ViewTable.GetBoolean('Controller/Grouping/ShowName');
     if ViewTable.GetBoolean('Controller/Grouping/ShowCount') then
     begin
       LCountTemplate := ViewTable.GetString('Controller/Grouping/ShowCount/Template',
@@ -221,48 +221,48 @@ begin
         _(ViewTable.GetString('Controller/Grouping/ShowCount/PluralItemName', ViewTable.PluralDisplayLabel)));
       LCountTemplate := ReplaceText(LCountTemplate, '%ITEM%',
         _(ViewTable.GetString('Controller/Grouping/ShowCount/ItemName', ViewTable.DisplayLabel)));
-      TExtGridGroupingView(FExtViewTable).GroupTextTpl := LCountTemplate;
+      TExtGridGroupingView(FExtGridView).GroupTextTpl := LCountTemplate;
     end;
   end
   else
-    FExtViewTable := TExtViewTable.Create(Self);
-  FExtViewTable.EmptyText := _('No data to display.');
-  FExtViewTable.EnableRowBody := True;
+    FExtGridView := TExtGridView.Create(Self);
+  FExtGridView.EmptyText := _('No data to display.');
+  FExtGridView.EnableRowBody := True;
 
-  FExtViewTable.SetCustomConfigItem('grid', [Self]);
+  FExtGridView.SetCustomConfigItem('grid', [FGridPanel, False]);
   { TODO : make ForceFit configurable? }
   //FExtViewTable.ForceFit := False;
   LRowClassProvider := ViewTable.GetExpandedString('Controller/RowClassProvider');
   if LRowClassProvider <> '' then
-    FExtViewTable.GetRowClass :=  FExtViewTable.JSFunctionInLine(LRowClassProvider)
+    FExtGridView.GetRowClass :=  FExtGridView.JSFunctionInLine(LRowClassProvider)
   else
   begin
     LRowColorPatterns := GetRowColorPatterns(LRowColorFieldName);
     if Length(LRowColorPatterns) > 0 then
-      FExtViewTable.SetCustomConfigItem('getRowClass',
+      FExtGridView.SetCustomConfigItem('getRowClass',
         [JSFunction('r', Format('return getColorStyleRuleForRecordField(r, ''%s'', [%s]);',
           [LRowColorFieldName, PairsToJSON(LRowColorPatterns)])), True]);
   end;
-  FEditorGridPanel.View := FExtViewTable;
+  //FGridPanel.View := FExtViewTable;
 end;
 
 procedure TKExtGridPanel.InitDefaults;
 begin
   inherited;
-  FEditorGridPanel := TExtGridEditorGridPanel.CreateAndAddTo(Items);
-  FEditorGridPanel.Border := False;
-  FEditorGridPanel.Header := False;
-  FEditorGridPanel.Region := rgCenter;
-  FSelectionModel := TExtSelectionRowModel.Create(FEditorGridPanel);
-  FSelectionModel.Grid := FEditorGridPanel;
-  FEditorGridPanel.SelModel := FSelectionModel;
-  FEditorGridPanel.StripeRows := True;
-  FEditorGridPanel.Frame := False;
-  FEditorGridPanel.AutoScroll := True;
-  FEditorGridPanel.AutoWidth := True;
-  FEditorGridPanel.ColumnLines := True;
-  FEditorGridPanel.TrackMouseOver := True;
-  FEditorGridPanel.EnableHdMenu := False;
+  FGridPanel := TExtGridGridPanel.CreateAndAddTo(Items);
+  FGridPanel.Border := False;
+  FGridPanel.Header := False;
+  FGridPanel.Region := rgCenter;
+  FSelectionModel := TExtSelectionRowModel.Create(FGridPanel);
+  FSelectionModel.Grid := FGridPanel;
+  FGridPanel.SelModel := FSelectionModel;
+  FGridPanel.StripeRows := True;
+  FGridPanel.Frame := False;
+  FGridPanel.AutoScroll := True;
+  FGridPanel.AutoWidth := True;
+  FGridPanel.ColumnLines := True;
+  FGridPanel.TrackMouseOver := True;
+  FGridPanel.EnableHdMenu := False;
 end;
 
 function TKExtGridPanel.IsActionSupported(const AActionName: string): Boolean;
@@ -310,7 +310,7 @@ begin
   AColumn.Editable := LEditable;
   if LEditable then
   begin
-    LEditor := AEditorManager.CreateGridCellEditor(FEditorGridPanel, AViewField);
+    LEditor := AEditorManager.CreateGridCellEditor(FGridPanel, AViewField);
     if Supports(LEditor, IEFSubject, LSubject) then
       LSubject.AttachObserver(Self);
     FEditItems.Add(LEditor);
@@ -478,13 +478,13 @@ var
       if LDataType is TEFBooleanDataType then
       begin
         // Don't use TExtGridBooleanColumn here, otherwise the renderer will be inneffective.
-        Result := TExtGridColumn.CreateAndAddTo(FEditorGridPanel.Columns);
+        Result := TExtGridColumn.CreateAndAddTo(FGridPanel.Columns);
         if not SetRenderer(Result) then
           Result.Renderer := 'checkboxRenderer';
       end
       else if LDataType is TEFDateDataType then
       begin
-        Result := TExtGridDateColumn.CreateAndAddTo(FEditorGridPanel.Columns);
+        Result := TExtGridDateColumn.CreateAndAddTo(FGridPanel.Columns);
         LFormat := GetDisplayFormat;
         if LFormat = '' then
           LFormat := Session.Config.UserFormatSettings.ShortDateFormat;
@@ -492,7 +492,7 @@ var
       end
       else if LDataType is TEFTimeDataType then
       begin
-        Result := TExtGridColumn.CreateAndAddTo(FEditorGridPanel.Columns);
+        Result := TExtGridColumn.CreateAndAddTo(FGridPanel.Columns);
         if not SetRenderer(Result) then
         begin
           LFormat := GetDisplayFormat;
@@ -504,7 +504,7 @@ var
       end
       else if LDataType is TEFDateTimeDataType then
       begin
-        Result := TExtGridDateColumn.CreateAndAddTo(FEditorGridPanel.Columns);
+        Result := TExtGridDateColumn.CreateAndAddTo(FGridPanel.Columns);
         LFormat := GetDisplayFormat;
         if LFormat = '' then
           LFormat := Session.Config.UserFormatSettings.ShortDateFormat + ' ' +
@@ -513,7 +513,7 @@ var
       end
       else if LDataType is TEFIntegerDataType then
       begin
-        Result := TExtGridNumberColumn.CreateAndAddTo(FEditorGridPanel.Columns);
+        Result := TExtGridNumberColumn.CreateAndAddTo(FGridPanel.Columns);
         if not SetRenderer(Result) then
         begin
           LFormat := GetDisplayFormat;
@@ -524,7 +524,7 @@ var
       end
       else if (LDataType is TEFFloatDataType) or (LDataType is TEFDecimalDataType) then
       begin
-        Result := TExtGridNumberColumn.CreateAndAddTo(FEditorGridPanel.Columns);
+        Result := TExtGridNumberColumn.CreateAndAddTo(FGridPanel.Columns);
         if not SetRenderer(Result) then
         begin
           LFormat := GetDisplayFormat;
@@ -535,7 +535,7 @@ var
       end
       else if LDataType is TEFCurrencyDataType then
       begin
-        Result := TExtGridNumberColumn.CreateAndAddTo(FEditorGridPanel.Columns);
+        Result := TExtGridNumberColumn.CreateAndAddTo(FGridPanel.Columns);
         if not SetRenderer(Result) then
         begin
           { TODO : format as money? }
@@ -547,7 +547,7 @@ var
       end
       else
       begin
-        Result := TExtGridColumn.CreateAndAddTo(FEditorGridPanel.Columns);
+        Result := TExtGridColumn.CreateAndAddTo(FGridPanel.Columns);
         SetRenderer(Result);
       end;
 
@@ -561,7 +561,7 @@ var
       end;
 
       if not ViewTable.IsFieldVisible(AViewField) and not (AViewField.AliasedName = GetGroupingFieldName) then
-        FEditorGridPanel.ColModel.SetHidden(FEditorGridPanel.Columns.Count - 1, True);
+        FGridPanel.ColModel.SetHidden(FGridPanel.Columns.Count - 1, True);
 
       //In-place editing
       SetGridColumnEditor(LEditorManager, AViewField, ALayoutNode, Result);
@@ -636,7 +636,7 @@ begin
     end;
     LAutoExpandColumn := ViewTable.GetString('Controller/AutoExpandFieldName');
     if LAutoExpandColumn <> '' then
-      FEditorGridPanel.AutoExpandColumn := LAutoExpandColumn;
+      FGridPanel.AutoExpandColumn := LAutoExpandColumn;
   finally
     FreeAndNil(LEditorManager);
   end;
@@ -687,7 +687,7 @@ begin
 
   Assert(Assigned(AValue));
   Assert(Assigned(LView));
-  Assert(Assigned(FEditorGridPanel));
+  Assert(Assigned(FGridPanel));
 
   FInplaceEditing := LView.GetBoolean('Controller/InplaceEditing');
 
@@ -701,8 +701,8 @@ begin
       Title := _(LViewTable.PluralDisplayLabel);
   end;
 
-  if FInplaceEditing then
-    FEditorGridPanel.ClicksToEdit := 1;
+//  if FInplaceEditing then
+//    FGridPanel.ClicksToEdit := 1;
 
   CreateExtViewTable;
 
@@ -716,14 +716,14 @@ begin
     else
       LEventName := 'rowdblclick';
     if LEventName <> '' then
-      FEditorGridPanel.On(LEventName, GetSelectCall(DefaultAction));
+      FGridPanel.On(LEventName, GetSelectCall(DefaultAction));
   end;
 
   // By default show paging toolbar for large models.
   if GetIsPaged then
   begin
     FPageRecordCount := LViewTable.GetInteger('Controller/PageRecordCount', DEFAULT_PAGE_RECORD_COUNT);
-    FEditorGridPanel.Bbar := CreatePagingToolbar;
+    FGridPanel.Bbar := CreatePagingToolbar;
   end;
 
   InitGridColumns;
@@ -761,8 +761,8 @@ begin
     FCancelButton.Hidden := True;
     FCancelButton.On('click', Ajax(CancelInplaceChanges));
 
-    FEditorGridPanel.On('beforeedit', JSFunction('e', GetBeforeEditJSCode(BeforeEdit)));
-    FEditorGridPanel.On('afteredit', JSFunction('e', GetAfterEditJSCode(UpdateField)));
+    FGridPanel.On('beforeedit', JSFunction('e', GetBeforeEditJSCode(BeforeEdit)));
+    FGridPanel.On('afteredit', JSFunction('e', GetAfterEditJSCode(UpdateField)));
   end;
 end;
 
@@ -782,9 +782,9 @@ begin
   if LGroupingFieldName <> '' then
   begin
     LFound := False;
-    for I := 0 to FEditorGridPanel.Columns.Count - 1 do
+    for I := 0 to FGridPanel.Columns.Count - 1 do
     begin
-      if SameText(TExtGridColumn(FEditorGridPanel.Columns[I]).DataIndex, LGroupingFieldName) then
+      if SameText(TExtGridColumn(FGridPanel.Columns[I]).DataIndex, LGroupingFieldName) then
       begin
         LFound := True;
         Break;
@@ -851,7 +851,7 @@ begin
   else
   begin
     // go back in edit mode.
-    //FEditorGridPanel.StartEditing(LReqBody.I['rowIndex'], 0);
+    //FGridPanel.StartEditing(LReqBody.I['rowIndex'], 0);
   end;
 end;
 
@@ -887,7 +887,7 @@ begin
     Result :=
       Format('var idx = %s.findBy(%s);', [ClientStore.JSName, LFunction]) + sLineBreak +
       Format('%s.selectRecords([%s.getAt(idx)]);', [FSelectionModel.JSName, ClientStore.JSName]) + sLineBreak +
-      Format('%s.getRow(idx).scrollIntoView();', [FExtViewTable.JSName]);
+      Format('%s.getRow(idx).scrollIntoView();', [FExtGridView.JSName]);
   end
   else
     Result := 'return false;'
@@ -933,7 +933,7 @@ begin
   Assert(ViewTable <> nil);
 
   FPagingToolbar := TExtPagingToolbar.Create(Self);
-  FPagingToolbar.Store := FEditorGridPanel.Store;
+  FPagingToolbar.Store := FGridPanel.Store;
   FPagingToolbar.DisplayInfo := False;
   FPagingToolbar.PageSize := FPageRecordCount;
   FPagingToolbar.Cls := 'k-bbar';
