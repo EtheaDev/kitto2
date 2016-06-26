@@ -60,7 +60,7 @@ Databases:
       Data Source: %COMPUTERNAME%
 
 Auth: DB
-  Defaults:
+  .Defaults:
     UserName: administrator
     Password: password
 
@@ -68,7 +68,7 @@ AccessControl: Null
 
 LanguagePerSession: True
 
-.Login:
+Login:
   Controller:
     BorderPanel:
       NorthView:

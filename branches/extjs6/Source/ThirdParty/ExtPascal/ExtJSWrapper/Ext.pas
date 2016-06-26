@@ -11102,7 +11102,7 @@ end;
 
 class function TExtBoxComponent.JSClassName: string;
 begin
-  Result := 'Ext.BoxComponent';
+  Result := 'Ext.Component';
 end;
 
 procedure TExtBoxComponent.InitDefaults;

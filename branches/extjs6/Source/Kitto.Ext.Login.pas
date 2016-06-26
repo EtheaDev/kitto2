@@ -182,7 +182,7 @@ begin
   FPassword.On('specialkey', JSFunction('field, e', GetSubmitJS));
 
   Session.ResponseItems.ExecuteJSCode(Format(
-    '%s.enableTask = Ext.TaskMgr.start({ ' + sLineBreak +
+    '%s.enableTask = Ext.TaskManager.start({ ' + sLineBreak +
     '  run: function() {' + GetEnableButtonJS + '},' + sLineBreak +
     '  interval: 500});', [JSName]));
 
@@ -327,7 +327,7 @@ procedure TKExtLoginWindow.DoLogin;
 begin
   if Session.Authenticate then
   begin
-    Session.ResponseItems.ExecuteJSCode(Format('Ext.TaskMgr.stop(%s.enableTask);', [JSName]));
+    Session.ResponseItems.ExecuteJSCode(Format('Ext.TaskManager.stop(%s.enableTask);', [JSName]));
     Session.ResponseItems.ExecuteJSCode(GetLocalStorageSaveJSCode(LocalStorageMode));
     Close;
     NotifyObservers('LoggedIn');

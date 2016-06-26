@@ -780,7 +780,7 @@ end;
 
 class function TExtUxStatusBar.JSClassName: string;
 begin
-  Result := 'Ext.ux.StatusBar';
+  Result := 'Ext.ux.statusbar.StatusBar';
 end;
 
 procedure TExtUxStatusBar.InitDefaults;
