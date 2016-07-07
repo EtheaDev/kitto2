@@ -587,7 +587,7 @@ type
     FDefaults: TKExtLayoutDefaults;
     FCurrentEditItem: IKExtEditItem;
     FCurrentLabelWidth: Integer;
-    FCurrentLabelAlign: TExtFormFormPanelLabelAlign;
+    FCurrentLabelAlign: TExtContainerLabelAlign;
     FEditContainers: TStack<IKExtEditContainer>;
     FOnNewEditItem: TProc<IKExtEditItem>;
     FOperation: TKExtEditOperation;

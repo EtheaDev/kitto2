@@ -91,6 +91,9 @@ type
     // Create an object.
     procedure CreateObject(const AObject: TExtObject);
 
+    // Create an internal object; could be a config items of an object type.
+    procedure CreateInternalObject(const AObject: TExtObject; const AAttributeName: string);
+
     // Set a config item, set a same-named property if not possible.
     // AValues must be either a single value of any type or an object value followed by the IsFunction boolean flag.
     procedure SetConfigItemOrProperty(const AObject: TExtObject; const AItemName: string; const AValues: array of const);
@@ -176,6 +179,7 @@ type
   TExtCreateObject = class(TExtResponseItem)
   private
     FConfigItems: TStrings;
+    function ConfigItemValuesAsString(const AIndex: Integer): string;
   public
     procedure AfterConstruction; override;
     destructor Destroy; override;
@@ -183,6 +187,8 @@ type
     function ToString: string; override;
 
     procedure SetConfigItem(const AName: string; const AValues: array of const);
+    // Creates an empty object-type config item.
+    procedure InitObjectConfigItem(const AName: string);
 
     procedure AddToConfigItem(const AName: string; const AValues: array of const);
     function IsCode: Boolean; override;
@@ -259,6 +265,10 @@ type
   }
   TExtObject = class(TComponent)
   private
+    // Assigned if the object was created with CreateInternal.
+    FExtObjectOwner: TExtObject;
+    // Assigned if the object was created with CreateInternal.
+    FAttributeName: string;
     FSession: TExtSession;
     function  WriteFunction(Command : string): string;
     //function  GetJSCommand : string;
@@ -299,12 +309,8 @@ type
     procedure HandleEvent(const AEvtName : string); virtual;
     property ExtSession: TExtSession read GetExtSession;
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
-    procedure SetConfigItem(const AName, AMethodName: string; const AValue: array of const); overload;
-    procedure SetConfigItem(const AName, AValue: string); overload;
-    procedure SetConfigItem(const AName: string; const AValue: TExtFunction); overload;
   public
-    IsChild : boolean;
-    constructor CreateInternal(const AOwner: TExtObject; const AAttribute: string); virtual;
+    constructor CreateInternal(const AOwner: TExtObject; const AAttributeName: string); virtual;
 
     constructor Create(AOwner: TComponent); override;
     constructor CreateInline(AOwner: TComponent); virtual;
@@ -315,6 +321,9 @@ type
 
     constructor Init(AOwner: TComponent; AMethod: TExtFunction); overload;
     constructor Init(const AOwner: TComponent; const ACommand: string); overload;
+
+    property ExtObjectOwner: TExtObject read FExtObjectOwner;
+    property AttributeName: string read FAttributeName;
 
     function GetConstructionJS: string; virtual;
 
@@ -400,7 +409,11 @@ type
     property JSName: string read FJSName; // JS variable name to this object, it's created automatically when the object is created
     function FindExtObject(const AJSName: string): TObject;
 
-    procedure SetCustomConfigItem(const AName: string; const AValues: array of const);
+    procedure SetConfigItem(const AName, AMethodName: string; const AValue: array of const); overload;
+    procedure SetConfigItem(const AName, AValue: string); overload;
+    procedure SetConfigItem(const AName: string; const AValue: TExtFunction); overload;
+    procedure SetConfigItem(const AName: string; const AValue: Integer); overload;
+    procedure SetConfigItem(const AName: string; const AValue: Boolean); overload;
   end;
 
   TExtObjectClass = class of TExtObject;
@@ -1581,13 +1594,17 @@ begin
   InitDefaults;
 end;
 
-constructor TExtObject.CreateInternal(const AOwner: TExtObject; const AAttribute: string);
+constructor TExtObject.CreateInternal(const AOwner: TExtObject; const AAttributeName: string);
 begin
   Assert(Assigned(AOwner));
+  Assert(AAttributeName <> '');
 
   inherited Create(AOwner);
-  FJSName := AOwner.JSName + '.' + AAttribute;
+  FExtObjectOwner := AOwner;
+  FAttributeName := AAttributeName;
+  FJSName := FExtObjectOwner.JSName + '.' + FAttributeName;
   //InitDefaults;
+  ExtSession.ResponseItems.CreateInternalObject(Self, AAttributeName);
 end;
 
 // Returns 'Object' that is the default class name for Ext JS objects
@@ -1635,11 +1652,6 @@ end;
 procedure TExtObject.SetConfigItem(const AName: string; const AValue: TExtFunction);
 begin
   ExtSession.ResponseItems.SetConfigItem(Self, AName, [AValue, True]);
-end;
-
-procedure TExtObject.SetCustomConfigItem(const AName: string; const AValues: array of const);
-begin
-  ExtSession.ResponseItems.SetConfigItem(Self, AName, AValues);
 end;
 
 {
@@ -2866,9 +2878,14 @@ begin
   if I >= 0 then
   begin
     LPreviousValue := FConfigItems.ValueFromIndex[I];
-    Assert((LPreviousValue <> '') and (LPreviousValue[Length(LPreviousValue)] = ']'));
-    Insert(', ' + LAdditionalValue, LPreviousValue, Length(LPreviousValue));
-    FConfigItems.ValueFromIndex[I] := LPreviousValue;
+    if LPreviousValue = '' then
+      FConfigItems.ValueFromIndex[I] := '[' + LAdditionalValue + ']'
+    else
+    begin
+      Assert(LPreviousValue[Length(LPreviousValue)] = ']');
+      Insert(', ' + LAdditionalValue, LPreviousValue, Length(LPreviousValue));
+      FConfigItems.ValueFromIndex[I] := LPreviousValue;
+    end;
   end
   else
     FConfigItems.Add(AName + '=' + '[' + LAdditionalValue + ']');
@@ -2884,9 +2901,24 @@ begin
 end;
 
 destructor TExtCreateObject.Destroy;
+var
+  I: Integer;
 begin
+  for I := 0 to FConfigItems.Count - 1 do
+    FConfigItems.Objects[I].Free;
   FreeAndNil(FConfigItems);
   inherited;
+end;
+
+procedure TExtCreateObject.InitObjectConfigItem(const AName: string);
+var
+  I: Integer;
+begin
+  I := FConfigItems.IndexOfName(AName);
+  if I < 0 then
+    FConfigItems.AddObject(AName + '=', TStringList.Create)
+  else
+    raise Exception.CreateFmt('Config item %s already initialized.', [AName]);
 end;
 
 function TExtCreateObject.IsCode: Boolean;
@@ -2898,10 +2930,19 @@ procedure TExtCreateObject.SetConfigItem(const AName: string; const AValues: arr
 var
   I: Integer;
   LAdditionalValue: string;
+  LNameParts: TArray<string>;
+  LIsInternal: Boolean;
+  J: Integer;
 begin
   Assert(Assigned(FParent));
 
-  I := FConfigItems.IndexOfName(AName);
+  LNameParts := AName.Split(['.']);
+  LIsInternal := Length(LNameParts) > 1;
+
+  I := FConfigItems.IndexOfName(LNameParts[0]);
+
+  if (I < 0) and LIsInternal then
+    raise Exception.CreateFmt('Couldn''t find config item %s.', [LNameParts[0]]);
 
   LAdditionalValue := Sender.VarToJSON(AValues,
     procedure (AParam: string; AObjectParam: TObject; AIsFunction: Boolean)
@@ -2911,27 +2952,69 @@ begin
     end);
 
   if I >= 0 then
-    FConfigItems.ValueFromIndex[I] := LAdditionalValue
+  begin
+    if LIsInternal then
+    begin
+      J := TStrings(FConfigItems.Objects[I]).IndexOfName(LNameParts[1]);
+      if J >= 0 then
+        TStrings(FConfigItems.Objects[I]).ValueFromIndex[J] := LAdditionalValue
+      else
+        TStrings(FConfigItems.Objects[I]).Add(LNameParts[1] + '=' + LAdditionalValue);
+    end
+    else
+      FConfigItems.ValueFromIndex[I] := LAdditionalValue;
+  end
   else
     FConfigItems.Add(AName + '=' + LAdditionalValue);
+end;
+
+function TExtCreateObject.ConfigItemValuesAsString(const AIndex: Integer): string;
+var
+  LStrings: TStrings;
+  I: Integer;
+begin
+  Assert(Assigned(FConfigItems.Objects[AIndex]));
+  Assert(FConfigItems.Objects[AIndex] is TStrings);
+
+  LStrings := TStrings(FConfigItems.Objects[AIndex]);
+  Result := '';
+  for I := 0 to LStrings.Count - 1 do
+  begin
+    if Result <> '' then
+      Result := Result + ', ';
+    Result := Result + LStrings.Names[I] + ': ' + LStrings.ValueFromIndex[I];
+  end;
+  if Result <> '' then
+    Result := FConfigItems.Names[AIndex] + ': {' + Result + '}';
 end;
 
 function TExtCreateObject.ToString: string;
 var
   I: Integer;
+  LObjectAsString: string;
 begin
   Assert(Assigned(Sender));
 
-  Result := Sender.JSName + ' = ' + Sender.GetConstructionJS + '({' + sLineBreak;
+  Result := '';
   for I := 0 to FConfigItems.Count - 1 do
   begin
-    Result := Result + '  ' + FConfigItems.Names[I] + ': ' + FConfigItems.ValueFromIndex[I];
-    if I < FConfigItems.Count - 1 then
-      Result := Result + ',';
-    Result := Result + sLineBreak;
+    if FConfigItems.ValueFromIndex[I] <> '' then
+      Result := Result + sLineBreak + '  ' + FConfigItems.Names[I] + ': ' + FConfigItems.ValueFromIndex[I] + ','
+    else if Assigned(FConfigItems.Objects[I]) then
+    begin
+      LObjectAsString := ConfigItemValuesAsString(I);
+      if LObjectAsString <> '' then
+        Result := Result + sLineBreak + '  ' + LObjectAsString + ',';
+    end;
   end;
-  Result := Result + '});' + sLineBreak;
-  Result := Result + Sender.JSName + '.nm = "' + Sender.JSName + '";' + sLineBreak;
+  if Result.EndsWith(',') then
+    Result := Result.Substring(0, Result.Length - 1);
+
+  Result :=
+    Sender.JSName + ' = ' + Sender.GetConstructionJS + '({' +
+    Result + sLineBreak +
+    '});' + sLineBreak +
+    Sender.JSName + '.nm = "' + Sender.JSName + '";' + sLineBreak;
 end;
 
 { TExtJSCode }
@@ -3046,6 +3129,14 @@ begin
     FreeAndNil(LItem);
     raise;
   end;
+end;
+
+procedure TExtResponseItems.CreateInternalObject(const AObject: TExtObject; const AAttributeName: string);
+var
+  LObjectCreateItem: TExtCreateObject;
+begin
+  LObjectCreateItem := GetObjectCreateItem(AObject.Owner as TExtObject);
+  LObjectCreateItem.InitObjectConfigItem(AAttributeName);
 end;
 
 procedure TExtResponseItems.CreateObject(const AObject: TExtObject);
@@ -3259,17 +3350,30 @@ end;
 
 procedure TExtResponseItems.SetConfigItem(const AObject: TExtObject;
   const AItemName: string; const AValues: array of const);
+var
+  LObjectCreateItem: TExtCreateObject;
+  LItemName: string;
 begin
   Assert(Assigned(AObject));
   Assert(AItemName <> '');
   Assert((Length(Avalues) = 1) or (Length(AValues) = 2));
 
-  try
-    GetObjectCreateItem(AObject).SetConfigItem(AItemName, AValues);
-  except
-    on E: Exception do
-      raise Exception.CreateFmt('Cannot set config item %s.%s. %s', [AObject.JSName, AItemName, E.Message]);
+  // Internal objects have no top-level create item.
+  if Assigned(AObject.ExtObjectOwner) then
+  begin
+    LObjectCreateItem := FindObjectCreateItem(AObject.ExtObjectOwner);
+    LItemName := AObject.AttributeName + '.' + AItemName;
+  end
+  else
+  begin
+    LObjectCreateItem := FindObjectCreateItem(AObject);
+    LItemName := AItemName;
   end;
+
+  if Assigned(LObjectCreateItem) then
+    LObjectCreateItem.SetConfigItem(LItemName, AValues)
+  else
+    raise Exception.CreateFmt('Cannot set config item %s.%s. Object was not created in this request.', [AObject.JSName, AItemName]);
 end;
 
 procedure TExtResponseItems.SetConfigItem(const AObject: TExtObject;
@@ -3492,6 +3596,16 @@ end;
 function TExtTextBase.ToString: string;
 begin
   Result := FText;
+end;
+
+procedure TExtObject.SetConfigItem(const AName: string; const AValue: Integer);
+begin
+  ExtSession.ResponseItems.SetConfigItem(Self, AName, [AValue]);
+end;
+
+procedure TExtObject.SetConfigItem(const AName: string; const AValue: Boolean);
+begin
+  ExtSession.ResponseItems.SetConfigItem(Self, AName, [AValue]);
 end;
 
 initialization

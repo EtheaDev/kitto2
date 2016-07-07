@@ -33,7 +33,7 @@ type
     FConfirmButton: TKExtButton;
     FCancelButton: TKExtButton;
     FGridPanel: TExtGridGridPanel;
-    FExtGridView: TExtGridView;
+//    FExtGridView: TExtGridView;
     FPagingToolbar: TExtPagingToolbar;
     FPageRecordCount: Integer;
     FSelectionModel: TExtSelectionRowModel;
@@ -201,48 +201,48 @@ var
   LRowColorFieldName: string;
 begin
   { TODO : investigate the row body feature }
-  LGroupingFieldName := GetGroupingFieldName;
-  LGroupingMenu := ViewTable.GetBoolean('Controller/Grouping/EnableMenu');
-  if (LGroupingFieldName <> '') or LGroupingMenu then
-  begin
-    FExtGridView := TExtGridGroupingView.Create(Self);
-    TExtGridGroupingView(FExtGridView).EmptyGroupText := _('Grouping value undefined.');
-    TExtGridGroupingView(FExtGridView).StartCollapsed := ViewTable.GetBoolean('Controller/Grouping/StartCollapsed');
-    TExtGridGroupingView(FExtGridView).EnableGroupingMenu := LGroupingMenu;
-    TExtGridGroupingView(FExtGridView).EnableNoGroups := LGroupingMenu;
-    TExtGridGroupingView(FExtGridView).HideGroupedColumn := True;
-    TExtGridGroupingView(FExtGridView).ShowGroupName := ViewTable.GetBoolean('Controller/Grouping/ShowName');
-    if ViewTable.GetBoolean('Controller/Grouping/ShowCount') then
-    begin
-      LCountTemplate := ViewTable.GetString('Controller/Grouping/ShowCount/Template',
-        '{text} ({[values.rs.length]} {[values.rs.length > 1 ? "%ITEMS%" : "%ITEM%"]})');
-      LCountTemplate := _(LCountTemplate);
-      LCountTemplate := ReplaceText(LCountTemplate, '%ITEMS%',
-        _(ViewTable.GetString('Controller/Grouping/ShowCount/PluralItemName', ViewTable.PluralDisplayLabel)));
-      LCountTemplate := ReplaceText(LCountTemplate, '%ITEM%',
-        _(ViewTable.GetString('Controller/Grouping/ShowCount/ItemName', ViewTable.DisplayLabel)));
-      TExtGridGroupingView(FExtGridView).GroupTextTpl := LCountTemplate;
-    end;
-  end
-  else
-    FExtGridView := TExtGridView.Create(Self);
-  FExtGridView.EmptyText := _('No data to display.');
-  FExtGridView.EnableRowBody := True;
-
-  FExtGridView.SetCustomConfigItem('grid', [FGridPanel, False]);
-  { TODO : make ForceFit configurable? }
-  //FExtViewTable.ForceFit := False;
-  LRowClassProvider := ViewTable.GetExpandedString('Controller/RowClassProvider');
-  if LRowClassProvider <> '' then
-    FExtGridView.GetRowClass :=  FExtGridView.JSFunctionInLine(LRowClassProvider)
-  else
-  begin
-    LRowColorPatterns := GetRowColorPatterns(LRowColorFieldName);
-    if Length(LRowColorPatterns) > 0 then
-      FExtGridView.SetCustomConfigItem('getRowClass',
-        [JSFunction('r', Format('return getColorStyleRuleForRecordField(r, ''%s'', [%s]);',
-          [LRowColorFieldName, PairsToJSON(LRowColorPatterns)])), True]);
-  end;
+//  LGroupingFieldName := GetGroupingFieldName;
+//  LGroupingMenu := ViewTable.GetBoolean('Controller/Grouping/EnableMenu');
+//  if (LGroupingFieldName <> '') or LGroupingMenu then
+//  begin
+//    FExtGridView := TExtGridGroupingView.Create(Self);
+//    TExtGridGroupingView(FExtGridView).EmptyGroupText := _('Grouping value undefined.');
+//    TExtGridGroupingView(FExtGridView).StartCollapsed := ViewTable.GetBoolean('Controller/Grouping/StartCollapsed');
+//    TExtGridGroupingView(FExtGridView).EnableGroupingMenu := LGroupingMenu;
+//    TExtGridGroupingView(FExtGridView).EnableNoGroups := LGroupingMenu;
+//    TExtGridGroupingView(FExtGridView).HideGroupedColumn := True;
+//    TExtGridGroupingView(FExtGridView).ShowGroupName := ViewTable.GetBoolean('Controller/Grouping/ShowName');
+//    if ViewTable.GetBoolean('Controller/Grouping/ShowCount') then
+//    begin
+//      LCountTemplate := ViewTable.GetString('Controller/Grouping/ShowCount/Template',
+//        '{text} ({[values.rs.length]} {[values.rs.length > 1 ? "%ITEMS%" : "%ITEM%"]})');
+//      LCountTemplate := _(LCountTemplate);
+//      LCountTemplate := ReplaceText(LCountTemplate, '%ITEMS%',
+//        _(ViewTable.GetString('Controller/Grouping/ShowCount/PluralItemName', ViewTable.PluralDisplayLabel)));
+//      LCountTemplate := ReplaceText(LCountTemplate, '%ITEM%',
+//        _(ViewTable.GetString('Controller/Grouping/ShowCount/ItemName', ViewTable.DisplayLabel)));
+//      TExtGridGroupingView(FExtGridView).GroupTextTpl := LCountTemplate;
+//    end;
+//  end
+//  else
+//    FExtGridView := TExtGridView.Create(Self);
+//  FExtGridView.EmptyText := _('No data to display.');
+//  FExtGridView.EnableRowBody := True;
+//
+//  FExtGridView.SetCustomConfigItem('grid', [FGridPanel, False]);
+//  { TODO : make ForceFit configurable? }
+//  //FExtViewTable.ForceFit := False;
+//  LRowClassProvider := ViewTable.GetExpandedString('Controller/RowClassProvider');
+//  if LRowClassProvider <> '' then
+//    FExtGridView.GetRowClass :=  FExtGridView.JSFunctionInLine(LRowClassProvider)
+//  else
+//  begin
+//    LRowColorPatterns := GetRowColorPatterns(LRowColorFieldName);
+//    if Length(LRowColorPatterns) > 0 then
+//      FExtGridView.SetCustomConfigItem('getRowClass',
+//        [JSFunction('r', Format('return getColorStyleRuleForRecordField(r, ''%s'', [%s]);',
+//          [LRowColorFieldName, PairsToJSON(LRowColorPatterns)])), True]);
+//  end;
   //FGridPanel.View := FExtViewTable;
 end;
 
@@ -886,8 +886,8 @@ begin
     //   getAt() returns the corresponding Record object to be passed to the selection model.
     Result :=
       Format('var idx = %s.findBy(%s);', [ClientStore.JSName, LFunction]) + sLineBreak +
-      Format('%s.selectRecords([%s.getAt(idx)]);', [FSelectionModel.JSName, ClientStore.JSName]) + sLineBreak +
-      Format('%s.getRow(idx).scrollIntoView();', [FExtGridView.JSName]);
+      Format('%s.selectRecords([%s.getAt(idx)]);', [FSelectionModel.JSName, ClientStore.JSName]);// + sLineBreak +
+//      Format('%s.getRow(idx).scrollIntoView();', [FExtGridView.JSName]);
   end
   else
     Result := 'return false;'

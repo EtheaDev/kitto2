@@ -244,6 +244,7 @@ type
     property TopToolbar: TKExtToolbar read FTopToolbar;
     procedure BeforeCreateTopToolbar; virtual;
     procedure AfterCreateTopToolbar; virtual;
+    function GetDefaultAllowClose: Boolean; virtual;
 
     /// <summary>
     ///  Adds built-in buttons to the top toolbar.
@@ -428,7 +429,7 @@ type
     procedure ClearStatus; virtual;
   end;
 
-function OptionAsLabelAlign(const AAlign: string): TExtFormFormPanelLabelAlign;
+function OptionAsLabelAlign(const AAlign: string): TExtContainerLabelAlign;
 function OptionAsGridColumnAlign(const AAlign: string): TExtGridColumnAlign;
 
 implementation
@@ -451,7 +452,7 @@ begin
     raise EEFError.CreateFmt(_('Invalid value %s. Valid values: "Left", "Right", "Center".'), [AAlign]);
 end;
 
-function OptionAsLabelAlign(const AAlign: string): TExtFormFormPanelLabelAlign;
+function OptionAsLabelAlign(const AAlign: string): TExtContainerLabelAlign;
 begin
   if SameText(AAlign, 'Left') then
     Result := laLeft
@@ -916,7 +917,7 @@ procedure TKExtPanelControllerBase.Display;
 begin
   if Container <> nil then
   begin
-    if Config.GetBoolean('AllowClose', True) then
+    if Config.GetBoolean('AllowClose', GetDefaultAllowClose) then
     begin
       Closable := True;
       On('close', Container.Ajax('PanelClosed', ['Panel', JSName]));
@@ -1123,6 +1124,11 @@ begin
     Tbar := FTopToolbar;
   end;
   AfterCreateTopToolbar;
+end;
+
+function TKExtPanelControllerBase.GetDefaultAllowClose: Boolean;
+begin
+  Result := True;
 end;
 
 function TKExtPanelControllerBase.GetDefaultSplit: Boolean;

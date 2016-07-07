@@ -73,7 +73,6 @@ type
     FStoreRecord: TKViewTableRecord;
     FCloneValues: TEFNode;
     FCloneButton: TKExtButton;
-    FLabelAlign: TExtFormFormPanelLabelAlign;
     FDetailBottomPanel: TExtTabPanel;
     FChangesApplied: Boolean;
     procedure CreateEditors;
@@ -794,13 +793,13 @@ begin
 
   LLabelAlignNode := ViewTable.FindNode('Controller/FormController/LabelAlign');
   if FindLayout <> nil then
-    FLabelAlign := laTop
+    LabelAlign := laTop
   else if Assigned(LLabelAlignNode) then
-    FLabelAlign := OptionAsLabelAlign(LLabelAlignNode.AsString)
+    LabelAlign := OptionAsLabelAlign(LLabelAlignNode.AsString)
   else if Session.IsMobileBrowser then
-    FLabelAlign := laTop
+    LabelAlign := laTop
   else
-    FLabelAlign := laRight;
+    LabelAlign := laRight;
 end;
 
 procedure TKExtFormPanelController.CreateFormPanel;
@@ -819,7 +818,7 @@ begin
   FFormPanel.LabelWidth := FORM_LABELWIDTH;
   FFormPanel.MonitorValid := True;
   FFormPanel.Cls := 'x-panel-mc'; // Sets correct theme background color.
-  FFormPanel.LabelAlign := FLabelAlign;
+  FFormPanel.LabelAlign := LabelAlign;
   if ((ViewTable.DetailTableCount > 0) and SameText(LDetailStyle, 'Tabs')) or LayoutContainsPageBreaks then
   begin
     FTabPanel := TExtTabPanel.CreateAndAddTo(FFormPanel.Items);
@@ -833,7 +832,7 @@ begin
     if Config.GetBoolean('Sys/ShowIcon', True) then
       FMainPagePanel.IconCls := Session.SetViewIconStyle(ViewTable.View);
     FMainPagePanel.EditPanel := FFormPanel;
-    FMainPagePanel.LabelAlign := FLabelAlign;
+    FMainPagePanel.LabelAlign := LabelAlign;
     FTabPanel.SetActiveTab(0);
     FTabPanel.OnTabChange := TabChange;
     FTabPanel.On('tabchange', FTabPanel.JSFunction(FTabPanel.JSName + '.updateLayout();'));
@@ -844,7 +843,7 @@ begin
     FMainPagePanel := TKExtEditPage.CreateAndAddTo(FFormPanel.Items);
     FMainPagePanel.Region := rgCenter;
     FMainPagePanel.EditPanel := FFormPanel;
-    FMainPagePanel.LabelAlign := FLabelAlign;
+    FMainPagePanel.LabelAlign := LabelAlign;
   end;
   //Session.ResponseItems.ExecuteJSCode(Format('%s.getForm().url = "%s";', [FFormPanel.JSName, MethodURI(ConfirmChanges)]));
 end;

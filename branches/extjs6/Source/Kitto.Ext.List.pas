@@ -129,7 +129,7 @@ var
     end;
   end;
 
-  procedure SetLabelWidthAndAlign(const ANode: TEFNode; const ADefaultLabelAlign: TExtFormFormPanelLabelAlign);
+  procedure SetLabelWidthAndAlign(const ANode: TEFNode; const ADefaultLabelAlign: TExtContainerLabelAlign);
   var
     LLabelNode: TEFNode;
     LWidth: Integer;

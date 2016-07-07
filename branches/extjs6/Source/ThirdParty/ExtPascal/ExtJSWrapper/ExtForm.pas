@@ -1069,10 +1069,8 @@ type
     FFormId: string;
     FHideLabels: Boolean;
     FItemCls: string;
-    FLabelAlign: TExtFormFormPanelLabelAlign; // 'right'
     FLabelPad: Integer; // 5
     FLabelSeparator: string;
-    FLabelWidth: Integer; // 100
     FLayout: string;
     FMinButtonWidth: Integer; // 75
     FMonitorPoll: Integer; // 200
@@ -1083,10 +1081,8 @@ type
     procedure SetFFormId(Value: string);
     procedure SetFHideLabels(Value: Boolean);
     procedure SetFItemCls(Value: string);
-    procedure SetLabelAlign(const AValue: TExtFormFormPanelLabelAlign);
     procedure SetFLabelPad(Value: Integer);
     procedure SetLabelSeparator(const AValue: string);
-    procedure SetLabelWidth(const AValue: Integer);
     procedure SetFLayout(Value: string);
     procedure SetFMinButtonWidth(Value: Integer);
     procedure SetFMonitorPoll(Value: Integer);
@@ -1108,12 +1104,9 @@ type
     property FormId: string read FFormId write SetFFormId;
     property HideLabels: Boolean read FHideLabels write SetFHideLabels;
     property ItemCls: string read FItemCls write SetFItemCls;
-    property LabelAlign: TExtFormFormPanelLabelAlign read FLabelAlign
-      write SetLabelAlign;
     property LabelPad: Integer read FLabelPad write SetFLabelPad;
     property LabelSeparator: string read FLabelSeparator
       write SetLabelSeparator;
-    property LabelWidth: Integer read FLabelWidth write SetLabelWidth;
     property LayoutString: string read FLayout write SetFLayout;
     property MinButtonWidth: Integer read FMinButtonWidth
       write SetFMinButtonWidth;
@@ -3494,7 +3487,7 @@ procedure TExtFormCheckbox.InitDefaults;
 begin
   inherited;
   FAutoCreate := 'input';
-  FAutoCreateObject := TExtObject.CreateInternal(Self, 'autoCreate');
+//  FAutoCreateObject := TExtObject.CreateInternal(Self, 'autoCreate');
   FFieldClass := 'x-form-field';
   FScope := TExtObject.CreateInternal(Self, 'scope');
 end;
@@ -3734,7 +3727,7 @@ end;
 procedure TExtFormTriggerField.InitDefaults;
 begin
   inherited;
-  FAutoCreateObject := TExtObject.CreateInternal(Self, 'autoCreate');
+//  FAutoCreateObject := TExtObject.CreateInternal(Self, 'autoCreate');
   FEditable := true;
 end;
 
@@ -3964,12 +3957,6 @@ begin
   JSCode('itemCls:' + VarToJSON([Value]));
 end;
 
-procedure TExtFormFormPanel.SetLabelAlign(const AValue: TExtFormFormPanelLabelAlign);
-begin
-  FLabelAlign := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'labelAlign', [EnumToJSString(TypeInfo(TExtFormFormPanelLabelAlign), Ord(AValue))]);
-end;
-
 procedure TExtFormFormPanel.SetFLabelPad(Value: Integer);
 begin
   FLabelPad := Value;
@@ -3980,12 +3967,6 @@ procedure TExtFormFormPanel.SetLabelSeparator(const AValue: string);
 begin
   FLabelSeparator := AValue;
   ExtSession.ResponseItems.SetConfigItem(Self, 'labelSeparator', [AValue]);
-end;
-
-procedure TExtFormFormPanel.SetLabelWidth(const AValue: Integer);
-begin
-  FLabelWidth := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'labelWidth', [AValue]);
 end;
 
 procedure TExtFormFormPanel.SetFLayout(Value: string);
@@ -4039,10 +4020,8 @@ begin
   inherited;
   FButtons := TExtObjectList.CreateAsAttribute(Self, 'buttons');
   FLabelPad := 5;
-  FLabelWidth := 100;
   FMinButtonWidth := 75;
   FMonitorPoll := 200;
-  FLabelAlign := laRight;
   FForm := TExtFormBasicForm.CreateInternal(Self, 'getForm()');
 end;
 
@@ -4728,7 +4707,7 @@ end;
 procedure TExtFormComboBox.InitDefaults;
 begin
   inherited;
-  FAutoCreateObject := TExtObject.CreateInternal(Self, 'autoCreate');
+//  FAutoCreateObject := TExtObject.CreateInternal(Self, 'autoCreate');
   FAutoSelect := true;
   FClearFilterOnReset := true;
   FDisplayField := 'output/Ext.form.ComboBox.html#Ext.form.ComboBox-mode';

@@ -2880,7 +2880,7 @@ begin
   FReader := TExtDataDataReader.CreateInternal(Self, 'reader');
   FSortInfo := TExtObject.CreateInternal(Self, 'sortInfo');
   FWriter := TExtDataDataWriter.CreateInternal(Self, 'writer');
-  FBaseParams_ := TExtObject.CreateInternal(Self, 'baseParams');
+//  FBaseParams_ := TExtObject.CreateInternal(Self, 'baseParams');
   FFields := TExtObjectList.CreateAsAttribute(Self, 'fields');
   FLastOptions := TExtObject.CreateInternal(Self, 'lastOptions');
   FMultiSortInfo := TExtObject.CreateInternal(Self, 'multiSortInfo');

@@ -133,7 +133,7 @@ begin
   inherited;
   Border := False;
   { TODO : remove this once all controllers set it by themselves. }
-  Defaults := JSObject('autoscroll: true');
+  Defaults.SetConfigItem('autoscroll', True);
   // Layout problems in tabbed views if DeferredRender=False.
   DeferredRender := True;
 end;

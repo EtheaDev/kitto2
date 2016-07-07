@@ -131,6 +131,9 @@ begin
   //FBorderPanel.Border := False;
   FBorderPanel.Frame := False;
   FBorderPanel.View := View;
+{ TODO :
+If the object list contains controllers, perhaps it should call the Display method itself when Display is called on its containing controller.
+Or maybe skip the object list altogether and use the ownership. }
   FBorderPanel.Display;
 
   FStatusBar := TKExtStatusBar.Create(Self);
@@ -164,7 +167,7 @@ begin
   FUserName.AllowBlank := False;
   FUserName.EnableKeyEvents := True;
   FUserName.SelectOnFocus := True;
-  FUserName.Width := LEditWidth;
+  FUserName.Width := LEditWidth + LLabelWidth;
   Inc(LHeight, CONTROL_HEIGHT);
 
   FPassword := TExtFormTextField.CreateAndAddTo(FFormPanel.Items);
@@ -175,7 +178,7 @@ begin
   FPassword.AllowBlank := False;
   FPassword.EnableKeyEvents := True;
   FPassword.SelectOnFocus := True;
-  FPassword.Width := LEditWidth;
+  FPassword.Width := LEditWidth + LLabelWidth;
   Inc(LHeight, CONTROL_HEIGHT);
 
   FUserName.On('specialkey', JSFunction('field, e', GetSubmitJS));
@@ -199,7 +202,7 @@ begin
     //FLanguage.SelectOnFocus := True;
     FLanguage.ForceSelection := True;
     FLanguage.TriggerAction := 'all'; // Disable filtering list items based on current value.
-    FLanguage.Width := LEditWidth;
+    FLanguage.Width := LEditWidth + LLabelWidth;
     Inc(LHeight, CONTROL_HEIGHT);
   end
   else
