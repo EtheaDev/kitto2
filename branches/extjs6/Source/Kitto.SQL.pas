@@ -27,7 +27,7 @@ uses
 
 type
   /// <summary>
-  ///   Builds SQL select statements on request.
+  ///  Builds SQL select statements on request.
   /// </summary>
   TKSQLBuilder = class
   private

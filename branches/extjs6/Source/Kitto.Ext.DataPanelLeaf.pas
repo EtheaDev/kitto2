@@ -98,6 +98,8 @@ end;
 function TKExtDataPanelLeafController.GetParentDataPanel: TKExtDataPanelController;
 begin
   Result := TKExtDataPanelController(Config.GetObject('Sys/ParentDataPanel', Self));
+
+  Assert(Assigned(Result));
 end;
 
 procedure TKExtDataPanelLeafController.InitActionController(
