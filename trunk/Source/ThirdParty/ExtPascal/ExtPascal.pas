@@ -3098,7 +3098,7 @@ end;
 
 function TExtResponseItems.ToString: string;
 var
-  LItem: TExtResponseItem;
+  I: Integer;
   //LEmittedString: string;
 
 //  procedure AppendStringToStream(const AString: string; const AStream: TStream;
@@ -3138,24 +3138,23 @@ begin
   FEmittedItems.Clear;
   //LEmittedString := '';
 
-  for LItem in FList do
-    LItem.Emit(FEmittedItems);
+  for I := 0 to FList.Count - 1 do
+    FList[I].Emit(FEmittedItems);
 
   //FEmittedItems.AddRange(FList.ToArray);
 
   //Assert(FEmittedItems.Count = FList.Count);
 
   Result := '';
-  for LItem in FEmittedItems do
+  for I := 0 to FEmittedItems.Count - 1 do
   begin
     //Result := Result + '// ' + FormatDateTime('hh:nn:ss.zzz', LItem.FCreationDateTime) + sLineBreak;
-
-    Result := Result + LItem.ToString;
+    Result := Result + FEmittedItems[I].ToString;
     //LEmittedString := LEmittedString + LItem.Sender.JSName + '-' + LItem.ClassName + sLineBreak;
   end;
   FEmittedItems.Clear;
-  for LItem in FList do
-    LItem.UnEmit;
+  for I := 0 to FList.Count - 1 do
+    FList[I].UnEmit;
   //StringToTextFile(LEmittedString, 'c:\users\nandod\ethea\kitto\graph.txt', TEncoding.Unicode);
 end;
 

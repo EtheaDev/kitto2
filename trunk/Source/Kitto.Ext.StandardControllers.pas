@@ -167,11 +167,15 @@ type
     /// returned by GetDefaultFileName.</param>
     procedure PrepareFile(const AFileName: string); virtual;
 
-    /// <summary>Creates and returns a stream with the content to download.
-    /// Override this method if you are using streams as opposed to
-    /// files.</summary>
-    /// <remarks>The caller will be responsible for freeing the stream when no
-    /// longer needed.</remarks>
+    /// <summary>
+    ///  Creates and returns a stream with the content to download.
+    ///  Override this method if you are using streams as opposed to
+    ///  files.
+    /// </summary>
+    /// <remarks>
+    ///  The caller will be responsible for freeing the stream when no
+    ///  longer needed.
+    /// </remarks>
     function CreateStream: TStream; virtual;
     procedure InitDefaults; override;
   public
