@@ -479,6 +479,13 @@ type
     function ChildByName(const AName: string): TEFNode;
 
     /// <summary>
+    ///   Returns the index of a given child node, or -1 if the specified
+    ///   node is not a direct child of the current tree. If ARecursively is True,
+    ///   then the search is performed recursively on all direct and indirect children.
+    /// </summary>
+    function GetChildIndex(const AChild: TEFNode; const ARecursively: Boolean = False): Integer;
+
+    /// <summary>
     ///   Removes the child from the list of children, if present.
     /// </summary>
     procedure RemoveChild(const ANode: TEFNode);
@@ -2215,6 +2222,22 @@ begin
     if Children[I].InheritsFrom(T) then
       Inc(Result);
   end;
+end;
+
+function TEFTree.GetChildIndex(const AChild: TEFNode; const ARecursively: Boolean): Integer;
+var
+  LNode: TEFNode;
+begin
+  LNode := FindChildByPredicate(
+    function (const ANode: TEFNode): Boolean
+    begin
+      Result := ANode = AChild;
+    end,
+    ARecursively);
+  if Assigned(LNode) then
+    Result := LNode.Index
+  else
+    Result := -1;
 end;
 
 function TEFTree.GetChildrenAsPairs(const APath: string;
