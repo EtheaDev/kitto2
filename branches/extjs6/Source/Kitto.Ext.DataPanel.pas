@@ -364,9 +364,6 @@ var
   LFormControllerType: string;
   LFormControllerNode: TEFNode;
   LFormController: IKExtController;
-  LWidth: Integer;
-  LHeight: Integer;
-  LFullScreen: Boolean;
 begin
   Assert((AEditMode = emNewrecord) or Assigned(ARecord));
   Assert(ViewTable <> nil);
@@ -404,24 +401,8 @@ begin
   LFormController.Config.SetObject('Sys/ViewTable', ViewTable);
   LFormController.Config.SetObject('Sys/HostWindow', FEditHostWindow);
   LFormController.Config.SetObject('Sys/CallingController', Self);
-
-  LWidth := ViewTable.GetInteger('Controller/PopupWindow/Width');
-  LHeight := ViewTable.GetInteger('Controller/PopupWindow/Height');
-  LFullScreen := ViewTable.GetBoolean('Controller/PopupWindow/FullScreen', Session.IsMobileBrowser);
-
-  if LFullScreen then
-  begin
-    FEditHostWindow.Maximized := True;
-    FEditHostWindow.Border := not FEditHostWindow.Maximized;
-  end
-  else if (LWidth > 0) and (LHeight > 0) then
-  begin
-    FEditHostWindow.Width := LWidth;
-    FEditHostWindow.Height := LHeight;
-    LFormController.Config.SetBoolean('Sys/HostWindow/AutoSize', False);
-  end
-  else
-    LFormController.Config.SetBoolean('Sys/HostWindow/AutoSize', True);
+  LFormController.Config.SetBoolean('Sys/HostWindow/AutoSize',
+    FEditHostWindow.SetSizeFromTree(ViewTable, 'Controller/PopupWindow/'));
 
   case AEditMode of
     emNewRecord : LFormController.Config.SetString('Sys/Operation', 'Add');

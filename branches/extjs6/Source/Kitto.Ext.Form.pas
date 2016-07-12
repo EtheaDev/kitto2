@@ -872,9 +872,9 @@ end;
 
 procedure TKExtFormPanelController.TabChange(AThis: TExtTabPanel; ATab: TExtPanel);
 var
-  LControllerIntf: IKExtController;
-  LViewTable: TKViewTable;
-  LDetailIndex: Integer;
+//  LControllerIntf: IKExtController;
+//  LViewTable: TKViewTable;
+//  LDetailIndex: Integer;
   LActivableIntf: IKExtActivable;
 begin
   if Assigned(ATab) then
@@ -1088,6 +1088,8 @@ begin
   LController.Config.SetObject('Sys/ServerStore', ServerStore);
   LController.Config.SetObject('Sys/ViewTable', ViewTable);
   LController.Config.SetObject('Sys/HostWindow', FDetailHostWindow);
+  LController.Config.SetBoolean('Sys/HostWindow/AutoSize',
+    FDetailHostWindow.SetSizeFromTree(FViewTable, 'Controller/PopupWindow/'));
   LController.Display;
   FDetailHostWindow.Show;
 end;
