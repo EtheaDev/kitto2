@@ -935,8 +935,6 @@ function TKExtSession.DisplayNewController(const AView: TKView; const AForceModa
   const AAfterCreate: TProc<IKExtController>): IKExtController;
 var
   LIsSynchronous: Boolean;
-  LWidth: Integer;
-  LHeight: Integer;
   LIsModal: Boolean;
 begin
   Assert(Assigned(AView));
@@ -965,19 +963,9 @@ begin
         FControllerHostWindow.Title := _(AView.DisplayLabel);
       FControllerHostWindow.Closable := AView.GetBoolean('Controller/AllowClose', True);
       FControllerHostWindow.FHostedController := Result.AsObject;
-      FControllerHostWindow.Maximized := IsMobileBrowser;
-      FControllerHostWindow.Border := not FControllerHostWindow.Maximized;
-      LWidth := AView.GetInteger('Controller/PopupWindow/Width', -1);
-      LHeight := AView.GetInteger('Controller/PopupWindow/Height', -1);
-      if (LWidth <> -1) and (LHeight <> -1) then
-      begin
-        FControllerHostWindow.Width := LWidth;
-        FControllerHostWindow.Height := LHeight;
-        Result.Config.SetBoolean('Sys/HostWindow/AutoSize', False);
-      end
-      else
-        Result.Config.SetBoolean('Sys/HostWindow/AutoSize', True);
       Result.Config.SetObject('Sys/HostWindow', FControllerHostWindow);
+      Result.Config.SetBoolean('Sys/HostWindow/AutoSize',
+        FControllerHostWindow.SetSizeFromTree(AView, 'Controller/PopupWindow/'));
     end;
   end
   else
