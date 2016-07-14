@@ -512,7 +512,7 @@ function TKExtDataPanelController.CreateClientReader: TExtDataJsonReader;
 begin
   Assert(Assigned(ViewTable));
 
-  Result := TExtDataJsonReader.Create(Self, JSObject('')); // Must pass '' otherwise invalid code is generated.
+  Result := TExtDataJsonReader.Create(Self);
   Result.RootProperty := 'Root';
   Result.TotalProperty := 'Total';
   Result.MessageProperty := 'Msg';
@@ -556,10 +556,14 @@ begin
 end;
 
 function TKExtDataPanelController.CreateClientStore: TExtDataStore;
+var
+  LProxy: TExtDataAjaxProxy;
 begin
   Result := TExtDataStore.Create(Self);
   Result.RemoteSort := ViewTable.GetBoolean('Controller/RemoteSort', GetDefaultRemoteSort);
-  Result.Url := MethodURI(GetRecordPage);
+  LProxy := TExtDataAjaxProxy.Create(Result);
+  LProxy.Url := MethodURI(GetRecordPage);
+  Result.Proxy := LProxy;
   Result.On('exception', JSFunction('proxy, type, action, options, response, arg', 'loadError(type, action, response);'));
 end;
 
@@ -851,7 +855,7 @@ begin
 
   FClientStore := CreateClientStore;
   FClientReader := CreateClientReader;
-  FClientStore.Reader := FClientReader;
+  FClientStore.Proxy.Reader := FClientReader;
 
   FVisibleActions.AddOrSetValue('View', IsActionSupported('View') and (FViewTable.GetBoolean('Controller/AllowViewing') or Config.GetBoolean('AllowViewing')));
   FAllowedActions.AddOrSetValue('View', FVisibleActions['View'] and FViewTable.IsAccessGranted(ACM_VIEW));
@@ -932,18 +936,24 @@ begin
 
   FNewButton := AddTopToolbarButton('Add', Format(_('Add %s'), [_(ViewTable.DisplayLabel)]), 'new_record', False);
   if Assigned(FNewButton) then
+  begin
     FNewButton.On('click', Ajax(NewRecord));
-  TExtToolbarSpacer.CreateAndAddTo(TopToolbar.Items);
+//    TExtToolbarSpacer.CreateAndAddTo(TopToolbar.Items);
+  end;
 
   FDupButton := AddTopToolbarButton('Dup', Format(_('Duplicate %s'), [_(ViewTable.DisplayLabel)]), 'dup_record', True);
   if Assigned(FDupButton) then
+  begin
     FDupButton.On('click', GetSelectCall(DuplicateRecord));
-  TExtToolbarSpacer.CreateAndAddTo(TopToolbar.Items);
+//    TExtToolbarSpacer.CreateAndAddTo(TopToolbar.Items);
+  end;
 
   FEditButton := AddTopToolbarButton('Edit', Format(_('Edit %s'), [_(ViewTable.DisplayLabel)]), 'edit_record', True);
   if Assigned(FEditButton) then
+  begin
     FEditButton.On('click', GetSelectCall(EditRecord));
-  TExtToolbarSpacer.CreateAndAddTo(TopToolbar.Items);
+//    TExtToolbarSpacer.CreateAndAddTo(TopToolbar.Items);
+  end;
 
   FDeleteButton := AddTopToolbarButton('Delete', Format(_('Delete %s'), [_(ViewTable.DisplayLabel)]), 'delete_record', True);
   if Assigned(FDeleteButton) then

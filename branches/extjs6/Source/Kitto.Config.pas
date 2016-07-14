@@ -851,7 +851,11 @@ var
   LName: string;
 begin
   Result := inherited InternalExpand(AString);
-  Result := ExpandMacros(Result, '%HOME_PATH%', TKConfig.AppHomePath);
+  Result := ExpandMacros(Result, '%HOME_PATH%', FConfig.AppHomePath); // Backward compatibility.
+  Result := ExpandMacros(Result, '%Config.AppName%', FConfig.AppName);
+  Result := ExpandMacros(Result, '%Config.AppHomePath%', FConfig.AppHomePath);
+  Result := ExpandMacros(Result, '%Config.AppTitle%', FConfig.Instance.AppTitle);
+  Result := ExpandMacros(Result, '%Config.AppIcon%', FConfig.AppIcon);
 
   LPosHead := Pos(IMAGE_MACRO_HEAD, Result);
   if LPosHead > 0 then

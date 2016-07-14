@@ -49,7 +49,6 @@ type
   TExtCompositeElement = class;
   TExtWindowMgrSingleton = class;
   TExtXTemplate = class;
-  TExtAjaxSingleton = class;
   TExtEditor = class;
   TExtStoreMgrSingleton = class;
   TExtColorPalette = class;
@@ -2100,37 +2099,6 @@ type
     function Compile: TExtFunction;
   end;
 
-  TExtAjaxSingleton = class(TExtDataConnection)
-  private
-    FAutoAbort: Boolean;
-    FDefaultHeaders: TExtObject;
-    FDisableCaching: Boolean; // true
-    FExtraParams: TExtObject;
-    FMethod: string; // 'POST'
-    FTimeout: Integer; // 30000
-    FUrl: string;
-    procedure SetFAutoAbort(Value: Boolean);
-    procedure SetFDefaultHeaders(Value: TExtObject);
-    procedure SetFDisableCaching(Value: Boolean);
-    procedure SetFExtraParams(Value: TExtObject);
-    procedure SetFMethod(Value: string);
-    procedure SetTimeout(AValue: Integer);
-    procedure SetFUrl(Value: string);
-  protected
-    procedure InitDefaults; override;
-  public
-    class function JSClassName: string; override;
-    function SerializeForm(Form: string): TExtFunction; overload;
-    function SerializeForm(Form: THTMLElement): TExtFunction; overload;
-    property AutoAbort: Boolean read FAutoAbort write SetFAutoAbort;
-    property DefaultHeaders: TExtObject read FDefaultHeaders write SetFDefaultHeaders;
-    property DisableCaching: Boolean read FDisableCaching write SetFDisableCaching;
-    property ExtraParams: TExtObject read FExtraParams write SetFExtraParams;
-    property Method: string read FMethod write SetFMethod;
-    property Timeout: Integer read FTimeout write SetTimeout;
-    property Url: string read FUrl write SetFUrl;
-  end;
-
   // Procedural types for events TExtEditor
   TExtEditorOnBeforecomplete = procedure(This: TExtEditor; Value: string;
     StartValue: string) of object;
@@ -4000,7 +3968,6 @@ function ExtComponentMgr: TExtComponentMgrSingleton;
 function ExtDomHelper: TExtDomHelperSingleton;
 function ExtDomQuery: TExtDomQuerySingleton;
 function ExtWindowMgr: TExtWindowMgrSingleton;
-function ExtAjax: TExtAjaxSingleton;
 function ExtStoreMgr: TExtStoreMgrSingleton;
 function LabelAlignAsOption(const AValue: TExtContainerLabelAlign): string;
 
@@ -4086,13 +4053,6 @@ begin
     Result := nil;
 end;
 
-function ExtAjax: TExtAjaxSingleton;
-begin
-  if (Session <> nil) then
-    Result := Session.GetSingleton<TExtAjaxSingleton>(TExtAjaxSingleton.JSClassName)
-  else
-    Result := nil;
-end;
 
 function ExtStoreMgr: TExtStoreMgrSingleton;
 begin
@@ -10305,76 +10265,6 @@ end;
 function TExtXTemplate.Compile: TExtFunction;
 begin
   JSCode(JSName + '.compile();', 'TExtXTemplate');
-  Result := Self;
-end;
-
-procedure TExtAjaxSingleton.SetFAutoAbort(Value: Boolean);
-begin
-  FAutoAbort := Value;
-  JSCode(JSName + '.autoAbort=' + VarToJSON([Value]) + ';');
-end;
-
-procedure TExtAjaxSingleton.SetFDefaultHeaders(Value: TExtObject);
-begin
-  FDefaultHeaders := Value;
-  JSCode(JSName + '.defaultHeaders=' + VarToJSON([Value, false]) + ';');
-end;
-
-procedure TExtAjaxSingleton.SetFDisableCaching(Value: Boolean);
-begin
-  FDisableCaching := Value;
-  JSCode(JSName + '.disableCaching=' + VarToJSON([Value]) + ';');
-end;
-
-procedure TExtAjaxSingleton.SetFExtraParams(Value: TExtObject);
-begin
-  FExtraParams := Value;
-  JSCode(JSName + '.extraParams=' + VarToJSON([Value, false]) + ';');
-end;
-
-procedure TExtAjaxSingleton.SetFMethod(Value: string);
-begin
-  FMethod := Value;
-  JSCode(JSName + '.method=' + VarToJSON([Value]) + ';');
-end;
-
-procedure TExtAjaxSingleton.SetTimeout(AValue: Integer);
-begin
-  FTimeout := AValue;
-  ExtSession.ResponseItems.SetProperty(Self, 'timeout', [AValue]);
-end;
-
-procedure TExtAjaxSingleton.SetFUrl(Value: string);
-begin
-  FUrl := Value;
-  JSCode(JSName + '.url=' + VarToJSON([Value]) + ';');
-end;
-
-class function TExtAjaxSingleton.JSClassName: string;
-begin
-  Result := 'Ext.Ajax';
-end;
-
-procedure TExtAjaxSingleton.InitDefaults;
-begin
-  inherited;
-  FDefaultHeaders := TExtObject.CreateInternal(Self, 'defaultHeaders');
-  FDisableCaching := true;
-  FExtraParams := TExtObject.CreateInternal(Self, 'extraParams');
-  FMethod := 'POST';
-  FTimeout := 30000;
-end;
-
-function TExtAjaxSingleton.SerializeForm(Form: string): TExtFunction;
-begin
-  JSCode(JSName + '.serializeForm(' + VarToJSON([Form]) + ');', 'TExtAjaxSingleton');
-  Result := Self;
-end;
-
-function TExtAjaxSingleton.SerializeForm(Form: THTMLElement): TExtFunction;
-begin
-  JSCode(JSName + '.serializeForm(' + VarToJSON([Form, false]) + ');',
-    'TExtAjaxSingleton');
   Result := Self;
 end;
 

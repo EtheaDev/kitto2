@@ -6,7 +6,7 @@ unit ExtGrid;
 interface
 
 uses
-  Classes, StrUtils, ExtPascal, ExtPascalUtils, ExtUtil, ExtDd, Ext, ExtData;
+  Classes, StrUtils, ExtPascal, ExtPascalUtils, ExtUtil, Ext, ExtData;
 
 type
   TExtGridRowNumberer = class;
@@ -25,7 +25,6 @@ type
   TExtSelectionRowModel = class;
   TExtGridGroupingView = class;
   TExtGridCheckboxSelectionModel = class;
-  TExtGridGridDragZone = class;
   TExtGridGridPanel = class;
   TExtGridPropertyGrid = class;
 
@@ -195,7 +194,6 @@ type
     FSortAscText: string; // 'Sort Ascending'
     FSortClasses: TExtObjectList;
     FSortDescText: string; // 'Sort Descending'
-    FDragZone: TExtGridGridDragZone;
     FMainBody: TExtElement;
     FOnBeforerefresh: TExtViewTableOnBeforerefresh;
     FOnBeforerowremoved: TExtViewTableOnBeforerowremoved;
@@ -224,7 +222,6 @@ type
     procedure SetFSortAscText(Value: string);
     procedure SetFSortClasses(Value: TExtObjectList);
     procedure SetFSortDescText(Value: string);
-    procedure SetFDragZone(Value: TExtGridGridDragZone);
     procedure SetFMainBody(Value: TExtElement);
     procedure SetFOnBeforerefresh(Value: TExtViewTableOnBeforerefresh);
     procedure SetFOnBeforerowremoved(Value: TExtViewTableOnBeforerowremoved);
@@ -274,7 +271,6 @@ type
     property SortAscText: string read FSortAscText write SetFSortAscText;
     property SortClasses: TExtObjectList read FSortClasses write SetFSortClasses;
     property SortDescText: string read FSortDescText write SetFSortDescText;
-    property DragZone: TExtGridGridDragZone read FDragZone write SetFDragZone;
     property MainBody: TExtElement read FMainBody write SetFMainBody;
     property OnBeforerefresh: TExtViewTableOnBeforerefresh read FOnBeforerefresh
       write SetFOnBeforerefresh;
@@ -603,17 +599,6 @@ type
     property Header: string read FHeader write SetFHeader;
     property Sortable: Boolean read FSortable write SetFSortable;
     property Width: Integer read FWidth write SetFWidth;
-  end;
-
-  TExtGridGridDragZone = class(TExtDdDragZone)
-  protected
-    procedure InitDefaults; override;
-  public
-    class function JSClassName: string; override;
-    function AfterRepair: TExtFunction;
-    function GetDragData: TExtFunction;
-    function GetRepairXY(E: TEventObject): TExtFunction;
-    function OnInitDrag: TExtFunction;
   end;
 
   // Procedural types for events TExtGridGridPanel
@@ -1358,12 +1343,6 @@ begin
   JSCode('sortDescText:' + VarToJSON([Value]));
 end;
 
-procedure TExtViewTable.SetFDragZone(Value: TExtGridGridDragZone);
-begin
-  FDragZone := Value;
-  JSCode(JSName + '.dragZone=' + VarToJSON([Value, false]) + ';');
-end;
-
 procedure TExtViewTable.SetFMainBody(Value: TExtElement);
 begin
   FMainBody := Value;
@@ -1460,7 +1439,6 @@ begin
   FSortAscText := 'Sort Ascending';
   FSortClasses := TExtObjectList.CreateAsAttribute(Self, 'sortClasses');
   FSortDescText := 'Sort Descending';
-  FDragZone := TExtGridGridDragZone.CreateInternal(Self, 'dragZone');
   FMainBody := TExtElement.CreateInternal(Self, 'mainBody');
   DisableSelection := False;
 end;
@@ -2446,40 +2424,6 @@ begin
   FWidth := 20;
 end;
 
-class function TExtGridGridDragZone.JSClassName: string;
-begin
-  Result := 'Ext.grid.GridDragZone';
-end;
-
-procedure TExtGridGridDragZone.InitDefaults;
-begin
-  inherited;
-end;
-
-function TExtGridGridDragZone.AfterRepair: TExtFunction;
-begin
-  JSCode(JSName + '.afterRepair();', 'TExtGridGridDragZone');
-  Result := Self;
-end;
-
-function TExtGridGridDragZone.GetDragData: TExtFunction;
-begin
-  JSCode(JSName + '.getDragData();', 'TExtGridGridDragZone');
-  Result := Self;
-end;
-
-function TExtGridGridDragZone.GetRepairXY(E: TEventObject): TExtFunction;
-begin
-  JSCode(JSName + '.getRepairXY(' + VarToJSON([E, false]) + ');', 'TExtGridGridDragZone');
-  Result := Self;
-end;
-
-function TExtGridGridDragZone.OnInitDrag: TExtFunction;
-begin
-  JSCode(JSName + '.onInitDrag();', 'TExtGridGridDragZone');
-  Result := Self;
-end;
-
 procedure TExtGridGridPanel.SetAutoExpandColumn(const AValue: string);
 begin
   FAutoExpandColumn := AValue;
@@ -3063,7 +3007,7 @@ end;
 
 class function TExtGridGridPanel.JSClassName: string;
 begin
-  Result := 'Ext.grid.GridPanel';
+  Result := 'Ext.grid.Panel';
 end;
 
 procedure TExtGridGridPanel.InitDefaults;

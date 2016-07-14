@@ -6,7 +6,7 @@ unit ExtTree;
 interface
 
 uses
-  StrUtils, ExtPascal, ExtPascalUtils, ExtUtil, ExtDd, Ext, ExtData;
+  StrUtils, ExtPascal, ExtPascalUtils, ExtUtil, Ext, ExtData;
 
 type
   TExtTreeRootTreeNodeUI = class;
@@ -19,9 +19,7 @@ type
   TExtTreeTreeNode = class;
   TExtTreeAsyncTreeNode = class;
   TExtTreeTreeEditor = class;
-  TExtTreeTreeDropZone = class;
   TExtTreeTreePanel = class;
-  TExtTreeTreeDragZone = class;
 
   TExtTreeRootTreeNodeUI = class(TExtFunction)
   public
@@ -400,35 +398,6 @@ type
     property EditNode : TExtTreeTreeNode read FEditNode write SetFEditNode;
   end;
 
-  TExtTreeTreeDropZone = class(TExtDdDropZone)
-  private
-    FAllowContainerDrop : String;
-    FAllowParentInsert : Boolean;
-    FAppendOnly : String;
-    FDdGroup : String; // 'TreeDD'
-    FExpandDelay : String;
-    FDragOverData : TExtTreeTreePanel;
-    FTree : TExtTreeTreePanel;
-    procedure SetFAllowContainerDrop(Value : String);
-    procedure SetFAllowParentInsert(Value : Boolean);
-    procedure SetFAppendOnly(Value : String);
-    procedure SetFDdGroup(Value : String);
-    procedure SetFExpandDelay(Value : String);
-    procedure SetFDragOverData(Value : TExtTreeTreePanel);
-    procedure SetFTree(Value : TExtTreeTreePanel);
-  protected
-    procedure InitDefaults; override;
-  public
-    class function JSClassName : string; override;
-    property AllowContainerDrop : String read FAllowContainerDrop write SetFAllowContainerDrop;
-    property AllowParentInsert : Boolean read FAllowParentInsert write SetFAllowParentInsert;
-    property AppendOnly : String read FAppendOnly write SetFAppendOnly;
-    property DdGroup : String read FDdGroup write SetFDdGroup;
-    property ExpandDelay : String read FExpandDelay write SetFExpandDelay;
-    property DragOverData : TExtTreeTreePanel read FDragOverData write SetFDragOverData;
-    property Tree : TExtTreeTreePanel read FTree write SetFTree;
-  end;
-
   // Procedural types for events TExtTreeTreePanel
   TExtTreeTreePanelOnAppend = procedure(Tree : TExtDataTree; Parent : TExtDataNode; Node : TExtDataNode; Index : Integer) of object;
   TExtTreeTreePanelOnBeforeappend = procedure(Tree : TExtDataTree; Parent : TExtDataNode; Node : TExtDataNode) of object;
@@ -487,8 +456,6 @@ type
     FSingleExpand : Boolean;
     FTrackMouseOver : Boolean;
     FUseArrows : Boolean;
-    FDragZone : TExtTreeTreeDragZone;
-    FDropZone : TExtTreeTreeDropZone;
     FRoot_ : TExtTreeTreeNode;
     FOnAppend : TExtTreeTreePanelOnAppend;
     FOnBeforeappend : TExtTreeTreePanelOnBeforeappend;
@@ -544,8 +511,6 @@ type
     procedure SetFSingleExpand(Value : Boolean);
     procedure SetFTrackMouseOver(Value : Boolean);
     procedure SetFUseArrows(Value : Boolean);
-    procedure SetFDragZone(Value : TExtTreeTreeDragZone);
-    procedure SetFDropZone(Value : TExtTreeTreeDropZone);
     procedure SetFRoot_(Value : TExtTreeTreeNode);
     procedure SetFOnAppend(Value : TExtTreeTreePanelOnAppend);
     procedure SetFOnBeforeappend(Value : TExtTreeTreePanelOnBeforeappend);
@@ -617,8 +582,6 @@ type
     property SingleExpand : Boolean read FSingleExpand write SetFSingleExpand;
     property TrackMouseOver : Boolean read FTrackMouseOver write SetFTrackMouseOver;
     property UseArrows : Boolean read FUseArrows write SetFUseArrows;
-    property DragZone : TExtTreeTreeDragZone read FDragZone write SetFDragZone;
-    property DropZone : TExtTreeTreeDropZone read FDropZone write SetFDropZone;
     property Root_ : TExtTreeTreeNode read FRoot_ write SetFRoot_;
     property OnAppend : TExtTreeTreePanelOnAppend read FOnAppend write SetFOnAppend;
     property OnBeforeappend : TExtTreeTreePanelOnBeforeappend read FOnBeforeappend write SetFOnBeforeappend;
@@ -652,20 +615,6 @@ type
     property OnRemove : TExtTreeTreePanelOnRemove read FOnRemove write SetFOnRemove;
     property OnStartdrag : TExtTreeTreePanelOnStartdrag read FOnStartdrag write SetFOnStartdrag;
     property OnTextchange : TExtTreeTreePanelOnTextchange read FOnTextchange write SetFOnTextchange;
-  end;
-
-  TExtTreeTreeDragZone = class(TExtDdDragZone)
-  private
-    FDdGroup : String; // 'TreeDD'
-    FTree : TExtTreeTreePanel;
-    procedure SetFDdGroup(Value : String);
-    procedure SetFTree(Value : TExtTreeTreePanel);
-  protected
-    procedure InitDefaults; override;
-  public
-    class function JSClassName : string; override;
-    property DdGroup : String read FDdGroup write SetFDdGroup;
-    property Tree : TExtTreeTreePanel read FTree write SetFTree;
   end;
 
 implementation
@@ -1506,52 +1455,6 @@ function TExtTreeTreeEditor.TriggerEdit(Node : TExtTreeTreeNode) : TExtFunction;
   Result := Self;
 end;
 
-procedure TExtTreeTreeDropZone.SetFAllowContainerDrop(Value : String); begin
-  FAllowContainerDrop := Value;
-  JSCode('allowContainerDrop:' + VarToJSON([Value]));
-end;
-
-procedure TExtTreeTreeDropZone.SetFAllowParentInsert(Value : Boolean); begin
-  FAllowParentInsert := Value;
-  JSCode('allowParentInsert:' + VarToJSON([Value]));
-end;
-
-procedure TExtTreeTreeDropZone.SetFAppendOnly(Value : String); begin
-  FAppendOnly := Value;
-  JSCode('appendOnly:' + VarToJSON([Value]));
-end;
-
-procedure TExtTreeTreeDropZone.SetFDdGroup(Value : String); begin
-  FDdGroup := Value;
-  JSCode('ddGroup:' + VarToJSON([Value]));
-end;
-
-procedure TExtTreeTreeDropZone.SetFExpandDelay(Value : String); begin
-  FExpandDelay := Value;
-  JSCode('expandDelay:' + VarToJSON([Value]));
-end;
-
-procedure TExtTreeTreeDropZone.SetFDragOverData(Value : TExtTreeTreePanel); begin
-  FDragOverData := Value;
-    JSCode(JSName + '.dragOverData=' + VarToJSON([Value, false]) + ';');
-end;
-
-procedure TExtTreeTreeDropZone.SetFTree(Value : TExtTreeTreePanel); begin
-  FTree := Value;
-    JSCode(JSName + '.tree=' + VarToJSON([Value, false]) + ';');
-end;
-
-class function TExtTreeTreeDropZone.JSClassName : string; begin
-  Result := 'Ext.tree.TreeDropZone';
-end;
-
-procedure TExtTreeTreeDropZone.InitDefaults; begin
-  inherited;
-  FDdGroup := 'TreeDD';
-  FDragOverData := TExtTreeTreePanel.CreateInternal(Self, 'dragOverData');
-  FTree := TExtTreeTreePanel.CreateInternal(Self, 'tree');
-end;
-
 procedure TExtTreeTreePanel.SetFAnimate(Value : Boolean); begin
   FAnimate := Value;
   JSCode('animate:' + VarToJSON([Value]));
@@ -1663,16 +1566,6 @@ end;
 procedure TExtTreeTreePanel.SetFUseArrows(Value : Boolean); begin
   FUseArrows := Value;
   JSCode('useArrows:' + VarToJSON([Value]));
-end;
-
-procedure TExtTreeTreePanel.SetFDragZone(Value : TExtTreeTreeDragZone); begin
-  FDragZone := Value;
-    JSCode(JSName + '.dragZone=' + VarToJSON([Value, false]) + ';');
-end;
-
-procedure TExtTreeTreePanel.SetFDropZone(Value : TExtTreeTreeDropZone); begin
-  FDropZone := Value;
-    JSCode(JSName + '.dropZone=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtTreeTreePanel.SetFRoot_(Value : TExtTreeTreeNode); begin
@@ -1952,8 +1845,6 @@ procedure TExtTreeTreePanel.InitDefaults; begin
   FRoot := TExtTreeTreeNode.CreateInternal(Self, 'root');
   FRootVisible := true;
   FSelModel := TExtObject.CreateInternal(Self, 'selModel');
-  FDragZone := TExtTreeTreeDragZone.CreateInternal(Self, 'dragZone');
-  FDropZone := TExtTreeTreeDropZone.CreateInternal(Self, 'dropZone');
   FRoot_ := TExtTreeTreeNode.CreateInternal(Self, 'root');
 end;
 
@@ -2078,26 +1969,6 @@ procedure TExtTreeTreePanel.HandleEvent(const AEvtName : string); begin
     FOnStartdrag(TExtTreeTreePanel(ParamAsObject('This')), TExtTreeTreeNode(ParamAsObject('Node')), TEvent(ParamAsObject('E')))
   else if (AEvtName = 'textchange') and Assigned(FOnTextchange) then
     FOnTextchange(TExtDataNode(ParamAsObject('Node')), ParamAsString('Text'), ParamAsString('OldText'));
-end;
-
-procedure TExtTreeTreeDragZone.SetFDdGroup(Value : String); begin
-  FDdGroup := Value;
-  JSCode('ddGroup:' + VarToJSON([Value]));
-end;
-
-procedure TExtTreeTreeDragZone.SetFTree(Value : TExtTreeTreePanel); begin
-  FTree := Value;
-    JSCode(JSName + '.tree=' + VarToJSON([Value, false]) + ';');
-end;
-
-class function TExtTreeTreeDragZone.JSClassName : string; begin
-  Result := 'Ext.tree.TreeDragZone';
-end;
-
-procedure TExtTreeTreeDragZone.InitDefaults; begin
-  inherited;
-  FDdGroup := 'TreeDD';
-  FTree := TExtTreeTreePanel.CreateInternal(Self, 'tree');
 end;
 
 end.

@@ -60,7 +60,7 @@ Databases:
       Data Source: %COMPUTERNAME%
 
 Auth: DB
-  Defaults:
+  .Defaults:
     UserName: administrator
     Password: password
 
@@ -104,7 +104,7 @@ HelloWorld:
         Html: <h1>Hello World!</h1>
 
 Ext:
-  Theme: classic
+  Theme: triton
 
 LanguageId: it
 # Either utf-8 or a SBCS corresponding to the system code page

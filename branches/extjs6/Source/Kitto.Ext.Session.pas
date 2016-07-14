@@ -648,7 +648,7 @@ procedure TKExtSession.Home;
   begin
     LTimeout := Config.Config.FindNode('Ext/AjaxTimeout');
     if Assigned(LTimeout) then
-      ExtAjax.Timeout := LTimeout.AsInteger;
+      ResponseItems.ExecuteJSCode(Format('Ext.Ajax.setTimeout(%d);', [LTimeout.AsInteger]));
   end;
 
 begin

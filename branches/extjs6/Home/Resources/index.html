@@ -26,39 +26,9 @@
 </body>
   <script>
     <%CustomJS%>
-
-    function AjaxError(m) {
-      showMessage({
-        title: "Ajax Error",
-        msg: m,
-        icon: Ext.Msg.ERROR,
-        buttons: Ext.Msg.OK
-      });
-    };
-    function AjaxSuccess(response) {
-      try {
-        eval(response.responseText);
-      } catch (err) {
-        console.log(err.stack);
-        if (err.message)
-          AjaxError(err.message);
-        else
-          AjaxError(err);
-      }
-    };
-    function sleep(ms) {
-      var start = new Date().getTime();
-      for (var i = 0; i < 1e7; i++)
-        if ((new Date().getTime() - start) > ms)
-          break;
-    };
-    function AjaxFailure() {
-      AjaxError("Server unavailable, try later.");
-    };
     Ext.onReady(
       function() {
-        Ext.get("loading").remove();
-        Ext.BLANK_IMAGE_URL="<%ExtPath%>/resources/images/default/s.gif";
+        Ext.BLANK_IMAGE_URL = "<%ExtPath%>/resources/images/default/s.gif";
         TextMetrics = new Ext.util.TextMetrics("body");
         Download = Ext.DomHelper.append(document.body, {tag: "iframe", cls: "x-hidden"});
 
@@ -68,6 +38,7 @@
         Ext.Ajax.on("requestexception", function() { showKittoLoadMask(0); });
 
         <%Response%>
+        Ext.get("loading").remove();
       }
     );
   </script>

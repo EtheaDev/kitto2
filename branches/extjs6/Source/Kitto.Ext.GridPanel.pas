@@ -22,7 +22,7 @@ interface
 
 uses
   Generics.Collections,
-  ExtPascal, Ext, ExtData, ExtForm, ExtGrid, ExtPascalUtils, ExtUxGrid,
+  ExtPascal, Ext, ExtData, ExtForm, ExtGrid, ExtPascalUtils,
   EF.ObserverIntf, EF.Types, EF.Tree,
   Kitto.Metadata.Views, Kitto.Metadata.DataView, Kitto.Store, Kitto.Types,
   Kitto.Ext.Base, Kitto.Ext.Controller, Kitto.Ext.DataPanelLeaf, Kitto.Ext.Editors;
@@ -173,20 +173,21 @@ var
 begin
   LGroupingFieldName := GetGroupingFieldName;
   LGroupingMenu := ViewTable.GetBoolean('Controller/Grouping/EnableMenu');
-  if (LGroupingFieldName <> '') or LGroupingMenu then
-  begin
-    if ViewTable.FindField(LGroupingFieldName) = nil then
-      raise Exception.CreateFmt('Field %s not found. Cannot group.', [LGroupingFieldName]);
-    Result := TExtDataGroupingStore.Create(Self);
-    Result.Url := MethodURI(GetRecordPage);
-    //TExtDataGroupingStore(Result).GroupOnSort := True;
-    if LGroupingFieldName <> '' then
-    begin
-      TExtDataGroupingStore(Result).GroupField := LGroupingFieldName;
-      Result.RemoteSort := True;
-    end;
-  end
-  else
+{ TODO : reimplement - no need to create different type of store }
+//  if (LGroupingFieldName <> '') or LGroupingMenu then
+//  begin
+//    if ViewTable.FindField(LGroupingFieldName) = nil then
+//      raise Exception.CreateFmt('Field %s not found. Cannot group.', [LGroupingFieldName]);
+//    Result := TExtDataGroupingStore.Create(Self);
+//    Result.Proxy.Url := MethodURI(GetRecordPage);
+//    //TExtDataGroupingStore(Result).GroupOnSort := True;
+//    if LGroupingFieldName <> '' then
+//    begin
+//      TExtDataGroupingStore(Result).GroupField := LGroupingFieldName;
+//      Result.RemoteSort := True;
+//    end;
+//  end
+//  else
     Result := inherited CreateClientStore;
   FGridPanel.Store := Result;
 end;

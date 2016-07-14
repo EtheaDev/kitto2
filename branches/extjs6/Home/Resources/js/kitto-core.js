@@ -1,3 +1,35 @@
+function AjaxError(m) {
+  showMessage({
+    title: "Ajax Error",
+    msg: m,
+    icon: Ext.Msg.ERROR,
+    buttons: Ext.Msg.OK
+  });
+};
+
+function AjaxSuccess(response) {
+  try {
+    eval(response.responseText);
+  } catch (err) {
+    console.log(err.stack);
+    if (err.message)
+      AjaxError(err.message);
+    else
+      AjaxError(err);
+  }
+};
+
+function sleep(ms) {
+  var start = new Date().getTime();
+  for (var i = 0; i < 1e7; i++)
+    if ((new Date().getTime() - start) > ms)
+      break;
+};
+
+function AjaxFailure() {
+  AjaxError("Server unavailable, try later.");
+};
+
 // Returns the specified object with its x and y properties
 // clipped to the window's client size.
 function clipToClientArea(size) {

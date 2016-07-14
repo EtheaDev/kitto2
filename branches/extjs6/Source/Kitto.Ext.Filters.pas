@@ -594,6 +594,8 @@ var
   LFieldNames: TStringDynArray;
   LWidth: Integer;
   LListWidth: Integer;
+  LProxy: TExtDataAjaxProxy;
+  LReader: TExtDataJsonReader;
 begin
   Assert(Assigned(AConfig));
 
@@ -613,12 +615,15 @@ begin
   SetLength(LFieldNames,1);
   LFieldNames[0] := 'Id';
   FServerStore.Key.SetFieldNames(LFieldNames);
-  Store.Url := MethodURI(GetRecordPage);
-  Store.Reader := TExtDataJsonReader.Create(Self, JSObject('')); // Must pass '' otherwise invalid code is generated.
-  TExtDataJsonReader(Store.Reader).RootProperty := 'Root';
-  TExtDataJsonReader(Store.Reader).TotalProperty := 'Total';
+  LProxy := TExtDataAjaxProxy.Create(Store);
+  LProxy.Url := MethodURI(GetRecordPage);
+  Store.Proxy := LProxy;
+  LReader := TExtDataJsonReader.Create(Self);
+  LReader.RootProperty := 'Root';
+  LReader.TotalProperty := 'Total';
+  LProxy.Reader := LReader;
   for I := 0 to FServerStore.Header.FieldCount - 1 do
-    with TExtDataField.CreateAndAddTo(Store.Reader.Fields) do
+    with TExtDataField.CreateAndAddTo(Store.Proxy.Reader.Fields) do
       Name := FServerStore.Header.Fields[I].FieldName;
   ValueField := 'Id';
   DisplayField := 'Description';

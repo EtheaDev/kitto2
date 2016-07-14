@@ -145,7 +145,7 @@ end;
 procedure TKExtDataPanelLeafController.AddTopToolbarButtons;
 begin
   inherited;
-  TExtToolbarSpacer.CreateAndAddTo(TopToolbar.Items);
+//  TExtToolbarSpacer.CreateAndAddTo(TopToolbar.Items);
   FRefreshButton := AddTopToolbarButton('Refresh', _('Refresh data'), 'refresh', False);
   if Assigned(FRefreshButton) then
   begin

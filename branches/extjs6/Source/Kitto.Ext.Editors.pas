@@ -1958,6 +1958,8 @@ procedure TKExtFormComboBoxEditor.Setup(const AViewField: TKVIewField; const AIs
 var
   LAllowedValues: TEFPairs;
   I: Integer;
+  LProxy: TExtDataAjaxProxy;
+  LReader: TExtDataJsonReader;
 begin
   Assert(Assigned(AViewField));
 
@@ -1978,12 +1980,15 @@ begin
       FreeAndNil(FServerStore);
       FServerStore := AViewField.CreateReferenceStore;
       Store := TExtDataStore.Create(Self);
-      Store.Url := MethodURI(GetRecordPage);
-      Store.Reader := TExtDataJsonReader.Create(Self, JSObject('')); // Must pass '' otherwise invalid code is generated.
-      TExtDataJsonReader(Store.Reader).RootProperty := 'Root';
-      TExtDataJsonReader(Store.Reader).TotalProperty := 'Total';
+      LProxy := TExtDataAjaxProxy.Create(Store);
+      LProxy.Url := MethodURI(GetRecordPage);
+      Store.Proxy := LProxy;
+      LReader := TExtDataJsonReader.Create(Self);
+      LProxy.Reader := LReader;
+      LReader.RootProperty := 'Root';
+      LReader.TotalProperty := 'Total';
       for I := 0 to FServerStore.Header.FieldCount - 1 do
-        with TExtDataField.CreateAndAddTo(Store.Reader.Fields) do
+        with TExtDataField.CreateAndAddTo(Store.Proxy.Reader.Fields) do
           Name := FServerStore.Header.Fields[I].FieldName;
       ValueField := Join(FServerStore.Key.GetFieldNames, TKConfig.Instance.MultiFieldSeparator);
       DisplayField := AViewField.ModelField.ReferencedModel.CaptionField.FieldName;
