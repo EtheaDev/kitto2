@@ -42,7 +42,6 @@ type
     function CreatePagingToolbar: TExtPagingToolbar;
     procedure InitGridColumns;
     function GetRowColorPatterns(out AFieldName: string): TEFPairs;
-    procedure CreateExtViewTable;
     procedure CheckGroupColumn;
     procedure InitColumnEditors(const ARecord: TKViewTableRecord);
     procedure SetGridColumnEditor(const AEditorManager: TKExtEditorManager;
@@ -51,6 +50,7 @@ type
     function GetBeforeEditJSCode(const AMethod: TExtProcedure): string;
     procedure ShowConfirmButtons(const AShow: Boolean);
     function GetSelectLastEditedRecordCode(const ARecord: TKViewTableRecord): string;
+    procedure InitGroupingFeature;
   strict protected
     procedure ExecuteNamedAction(const AActionName: string); override;
     function GetOrderByClause: string; override;
@@ -167,84 +167,9 @@ begin
 end;
 
 function TKExtGridPanel.CreateClientStore: TExtDataStore;
-var
-  LGroupingFieldName: string;
-  LGroupingMenu: Boolean;
 begin
-  LGroupingFieldName := GetGroupingFieldName;
-  LGroupingMenu := ViewTable.GetBoolean('Controller/Grouping/EnableMenu');
-{ TODO : reimplement - no need to create different type of store }
-//  if (LGroupingFieldName <> '') or LGroupingMenu then
-//  begin
-//    if ViewTable.FindField(LGroupingFieldName) = nil then
-//      raise Exception.CreateFmt('Field %s not found. Cannot group.', [LGroupingFieldName]);
-//    Result := TExtDataGroupingStore.Create(Self);
-//    Result.Proxy.Url := MethodURI(GetRecordPage);
-//    //TExtDataGroupingStore(Result).GroupOnSort := True;
-//    if LGroupingFieldName <> '' then
-//    begin
-//      TExtDataGroupingStore(Result).GroupField := LGroupingFieldName;
-//      Result.RemoteSort := True;
-//    end;
-//  end
-//  else
-    Result := inherited CreateClientStore;
+  Result := inherited CreateClientStore;
   FGridPanel.Store := Result;
-end;
-
-procedure TKExtGridPanel.CreateExtViewTable;
-var
-  LGroupingMenu: Boolean;
-  LCountTemplate: string;
-  LGroupingFieldName: string;
-  LRowClassProvider: string;
-  LRowColorPatterns: TEFPairs;
-  LRowColorFieldName: string;
-begin
-  { TODO : investigate the row body feature }
-//  LGroupingFieldName := GetGroupingFieldName;
-//  LGroupingMenu := ViewTable.GetBoolean('Controller/Grouping/EnableMenu');
-//  if (LGroupingFieldName <> '') or LGroupingMenu then
-//  begin
-//    FExtGridView := TExtGridGroupingView.Create(Self);
-//    TExtGridGroupingView(FExtGridView).EmptyGroupText := _('Grouping value undefined.');
-//    TExtGridGroupingView(FExtGridView).StartCollapsed := ViewTable.GetBoolean('Controller/Grouping/StartCollapsed');
-//    TExtGridGroupingView(FExtGridView).EnableGroupingMenu := LGroupingMenu;
-//    TExtGridGroupingView(FExtGridView).EnableNoGroups := LGroupingMenu;
-//    TExtGridGroupingView(FExtGridView).HideGroupedColumn := True;
-//    TExtGridGroupingView(FExtGridView).ShowGroupName := ViewTable.GetBoolean('Controller/Grouping/ShowName');
-//    if ViewTable.GetBoolean('Controller/Grouping/ShowCount') then
-//    begin
-//      LCountTemplate := ViewTable.GetString('Controller/Grouping/ShowCount/Template',
-//        '{text} ({[values.rs.length]} {[values.rs.length > 1 ? "%ITEMS%" : "%ITEM%"]})');
-//      LCountTemplate := _(LCountTemplate);
-//      LCountTemplate := ReplaceText(LCountTemplate, '%ITEMS%',
-//        _(ViewTable.GetString('Controller/Grouping/ShowCount/PluralItemName', ViewTable.PluralDisplayLabel)));
-//      LCountTemplate := ReplaceText(LCountTemplate, '%ITEM%',
-//        _(ViewTable.GetString('Controller/Grouping/ShowCount/ItemName', ViewTable.DisplayLabel)));
-//      TExtGridGroupingView(FExtGridView).GroupTextTpl := LCountTemplate;
-//    end;
-//  end
-//  else
-//    FExtGridView := TExtGridView.Create(Self);
-//  FExtGridView.EmptyText := _('No data to display.');
-//  FExtGridView.EnableRowBody := True;
-//
-//  FExtGridView.SetCustomConfigItem('grid', [FGridPanel, False]);
-//  { TODO : make ForceFit configurable? }
-//  //FExtViewTable.ForceFit := False;
-//  LRowClassProvider := ViewTable.GetExpandedString('Controller/RowClassProvider');
-//  if LRowClassProvider <> '' then
-//    FExtGridView.GetRowClass :=  FExtGridView.JSFunctionInLine(LRowClassProvider)
-//  else
-//  begin
-//    LRowColorPatterns := GetRowColorPatterns(LRowColorFieldName);
-//    if Length(LRowColorPatterns) > 0 then
-//      FExtGridView.SetCustomConfigItem('getRowClass',
-//        [JSFunction('r', Format('return getColorStyleRuleForRecordField(r, ''%s'', [%s]);',
-//          [LRowColorFieldName, PairsToJSON(LRowColorPatterns)])), True]);
-//  end;
-  //FGridPanel.View := FExtViewTable;
 end;
 
 procedure TKExtGridPanel.InitDefaults;
@@ -562,7 +487,7 @@ var
       end;
 
       if not ViewTable.IsFieldVisible(AViewField) and not (AViewField.AliasedName = GetGroupingFieldName) then
-        FGridPanel.ColModel.SetHidden(FGridPanel.Columns.Count - 1, True);
+        Result.Hidden := True;
 
       //In-place editing
       SetGridColumnEditor(LEditorManager, AViewField, ALayoutNode, Result);
@@ -705,8 +630,6 @@ begin
 //  if FInplaceEditing then
 //    FGridPanel.ClicksToEdit := 1;
 
-  CreateExtViewTable;
-
   if not LViewTable.GetBoolean('Controller/IsMultiSelect', False) then
     FSelectionModel.SingleSelect := True;
 
@@ -730,6 +653,8 @@ begin
   InitGridColumns;
 
   CheckGroupColumn;
+
+  InitGroupingFeature;
 
   if IsLookupMode then
   begin
@@ -764,6 +689,37 @@ begin
 
     FGridPanel.On('beforeedit', JSFunction('e', GetBeforeEditJSCode(BeforeEdit)));
     FGridPanel.On('afteredit', JSFunction('e', GetAfterEditJSCode(UpdateField)));
+  end;
+end;
+
+procedure TKExtGridPanel.InitGroupingFeature;
+var
+  LGroupingFieldName: string;
+  LGroupingMenu: Boolean;
+  LGroupingFeature: TExtGridGroupingFeature;
+begin
+  LGroupingFieldName := GetGroupingFieldName;
+  LGroupingMenu := ViewTable.GetBoolean('Controller/Grouping/EnableMenu');
+
+  if (LGroupingFieldName <> '') or LGroupingMenu then
+  begin
+    if ViewTable.FindField(LGroupingFieldName) = nil then
+      raise Exception.CreateFmt('Field %s not found. Cannot group.', [LGroupingFieldName]);
+    if LGroupingFieldName <> '' then
+    begin
+      LGroupingFeature := TExtGridGroupingFeature.Create(FGridPanel);
+      LGroupingFeature.StartCollapsed := ViewTable.GetBoolean('Controller/Grouping/StartCollapsed');
+      LGroupingFeature.EnableGroupingMenu := LGroupingMenu;
+      LGroupingFeature.EnableNoGroups := LGroupingMenu;
+      LGroupingFeature.HideGroupedHeader := True;
+{ TODO : Set to true if at least one column has a summaryType - see also features Summary/GroupingSummary }
+      LGroupingFeature.ShowSummaryRow := False;
+{ TODO : use groupHeaderTpl }
+//    LGroupingFeature.ShowGroupName := ViewTable.GetBoolean('Controller/Grouping/ShowName');
+      FGridPanel.Features.Add(LGroupingFeature);
+      ClientStore.GroupField := LGroupingFieldName;
+      ClientStore.RemoteSort := True;
+    end;
   end;
 end;
 

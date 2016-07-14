@@ -16,11 +16,9 @@ type
   TExtGridPropertyStore = class;
   TExtGridNumberColumn = class;
   TExtViewTable = class;
-  TExtGridColumnModel = class;
   TExtGridBooleanColumn = class;
   TExtGridDateColumn = class;
   TExtGridAbstractSelectionModel = class;
-  TExtGridPropertyColumnModel = class;
   TExtGridCellSelectionModel = class;
   TExtSelectionRowModel = class;
   TExtGridGroupingView = class;
@@ -292,90 +290,6 @@ type
     class function JSClassName: string; override;
   end;
 
-  // Procedural types for events TExtGridColumnModel
-  TExtGridColumnModelOnColumnmoved = procedure(This: TExtGridColumnModel;
-    OldIndex: Integer; NewIndex: Integer) of object;
-  TExtGridColumnModelOnConfigchange = procedure(This: TExtGridColumnModel) of object;
-  TExtGridColumnModelOnHeaderchange = procedure(This: TExtGridColumnModel;
-    ColumnIndex: Integer; NewText: string) of object;
-  TExtGridColumnModelOnHiddenchange = procedure(This: TExtGridColumnModel;
-    ColumnIndex: Integer; Hidden: Boolean) of object;
-  TExtGridColumnModelOnWidthchange = procedure(This: TExtGridColumnModel;
-    ColumnIndex: Integer; NewWidth: Integer) of object;
-
-  TExtGridColumnModel = class(TExtUtilObservable)
-  private
-    FColumns: TExtObjectList;
-    FDefaultSortable: Boolean;
-    FDefaultWidth: Integer; // 100
-    FDefaults: TExtObject;
-    FOnColumnmoved: TExtGridColumnModelOnColumnmoved;
-    FOnConfigchange: TExtGridColumnModelOnConfigchange;
-    FOnHeaderchange: TExtGridColumnModelOnHeaderchange;
-    FOnHiddenchange: TExtGridColumnModelOnHiddenchange;
-    FOnWidthchange: TExtGridColumnModelOnWidthchange;
-    procedure SetFColumns(Value: TExtObjectList);
-    procedure SetFDefaultSortable(Value: Boolean);
-    procedure SetFDefaultWidth(Value: Integer);
-    procedure SetFDefaults(Value: TExtObject);
-    procedure SetFOnColumnmoved(Value: TExtGridColumnModelOnColumnmoved);
-    procedure SetFOnConfigchange(Value: TExtGridColumnModelOnConfigchange);
-    procedure SetFOnHeaderchange(Value: TExtGridColumnModelOnHeaderchange);
-    procedure SetFOnHiddenchange(Value: TExtGridColumnModelOnHiddenchange);
-    procedure SetFOnWidthchange(Value: TExtGridColumnModelOnWidthchange);
-  protected
-    procedure InitDefaults; override;
-    procedure HandleEvent(const AEvtName: string); override;
-  public
-    class function JSClassName: string; override;
-    function DestroyJS: TExtFunction; override;
-    function FindColumnIndex(Col: string): TExtFunction;
-    function GetCellEditor(ColIndex: Integer; RowIndex: Integer): TExtFunction;
-    function GetColumnById(Id: string): TExtFunction;
-    function GetColumnCount(VisibleOnly: Boolean): TExtFunction;
-    function GetColumnHeader(Col: Integer): TExtFunction;
-    function GetColumnId(Index: Integer): TExtFunction;
-    function GetColumnTooltip(Col: Integer): TExtFunction;
-    function GetColumnWidth(Col: Integer): TExtFunction;
-    function GetColumnsBy(Fn: TExtFunction; Scope: TExtObject = nil): TExtFunction;
-    function GetDataIndex(Col: Integer): TExtFunction;
-    function GetIndexById(Id: string): TExtFunction;
-    function GetRenderer(Col: Integer): TExtFunction;
-    function GetTotalWidth(IncludeHidden: Boolean): TExtFunction;
-    function IsCellEditable(ColIndex: Integer; RowIndex: Integer): TExtFunction;
-    function IsFixed(ColIndex: Integer): TExtFunction;
-    function IsHidden(ColIndex: Integer): TExtFunction;
-    function IsMenuDisabled(Col: Integer): TExtFunction;
-    function IsResizable: TExtFunction;
-    function IsSortable(Col: Integer): TExtFunction;
-    function MoveColumn(OldIndex: Integer; NewIndex: Integer): TExtFunction;
-    function SetColumnHeader(Col: Integer; Header: string): TExtFunction;
-    function SetColumnTooltip(Col: Integer; Tooltip: string): TExtFunction;
-    function SetColumnWidth(Col: Integer; Width: Integer; SuppressEvent: Boolean)
-      : TExtFunction;
-    function SetConfig(Config: TExtObjectList = nil; Initial: Boolean = false)
-      : TExtFunction;
-    function SetDataIndex(Col: Integer; DataIndex: string): TExtFunction;
-    function SetEditable(const ACol: Integer; const AEditable: Boolean): TExtFunction;
-    function SetEditor(Col: Integer; Editor: TExtObject): TExtFunction;
-    function SetHidden(const AColIndex: Integer; const AHidden: Boolean): TExtFunction;
-    function SetRenderer(const ACol: Integer; const AFn: TExtFunction): TExtFunction;
-    property Columns: TExtObjectList read FColumns write SetFColumns;
-    property DefaultSortable: Boolean read FDefaultSortable write SetFDefaultSortable;
-    property DefaultWidth: Integer read FDefaultWidth write SetFDefaultWidth;
-    property Defaults: TExtObject read FDefaults write SetFDefaults;
-    property OnColumnmoved: TExtGridColumnModelOnColumnmoved read FOnColumnmoved
-      write SetFOnColumnmoved;
-    property OnConfigchange: TExtGridColumnModelOnConfigchange read FOnConfigchange
-      write SetFOnConfigchange;
-    property OnHeaderchange: TExtGridColumnModelOnHeaderchange read FOnHeaderchange
-      write SetFOnHeaderchange;
-    property OnHiddenchange: TExtGridColumnModelOnHiddenchange read FOnHiddenchange
-      write SetFOnHiddenchange;
-    property OnWidthchange: TExtGridColumnModelOnWidthchange read FOnWidthchange
-      write SetFOnWidthchange;
-  end;
-
   TExtGridBooleanColumn = class(TExtGridColumn)
   private
     FFalseText: string; // 'false'
@@ -417,13 +331,6 @@ type
     function Lock: TExtFunction;
     function Unlock: TExtFunction;
     property Grid: TExtObject read FGrid write SetGrid;
-  end;
-
-  TExtGridPropertyColumnModel = class(TExtGridColumnModel)
-  protected
-    procedure InitDefaults; override;
-  public
-    class function JSClassName: string; override;
   end;
 
   // Procedural types for events TExtGridCellSelectionModel
@@ -651,8 +558,6 @@ type
   TExtGridGridPanelOnMouseout = procedure(E: TExtEventObjectSingleton) of object;
   TExtGridGridPanelOnMouseover = procedure(E: TExtEventObjectSingleton) of object;
   TExtGridGridPanelOnMouseup = procedure(E: TExtEventObjectSingleton) of object;
-  TExtGridGridPanelOnReconfigure = procedure(This: TExtGridGridPanel;
-    Store: TExtDataStore; ColModel: TExtGridColumnModel) of object;
   TExtGridGridPanelOnRowbodyclick = procedure(This: TExtGridGridPanel; RowIndex: Integer;
     E: TExtEventObjectSingleton) of object;
   TExtGridGridPanelOnRowbodycontextmenu = procedure(This: TExtGridGridPanel;
@@ -679,7 +584,6 @@ type
     FAutoExpandMax: Integer;
     FAutoExpandMin: Integer;
     FCm: TExtObject;
-    FColModel: TExtGridColumnModel;
     FColumnLines: Boolean;
     FColumns: TExtObjectList;
     FDdGroup: string;
@@ -691,6 +595,7 @@ type
     FEnableColumnResize: Boolean;
     FEnableDragDrop: Boolean;
     FEnableHdMenu: Boolean;
+    FFeatures: TExtObjectList;
     FHideHeaders: Boolean;
     FLoadMask: TExtObject;
     FMaxHeight: Integer;
@@ -733,7 +638,6 @@ type
     FOnMouseout: TExtGridGridPanelOnMouseout;
     FOnMouseover: TExtGridGridPanelOnMouseover;
     FOnMouseup: TExtGridGridPanelOnMouseup;
-    FOnReconfigure: TExtGridGridPanelOnReconfigure;
     FOnRowbodyclick: TExtGridGridPanelOnRowbodyclick;
     FOnRowbodycontextmenu: TExtGridGridPanelOnRowbodycontextmenu;
     FOnRowbodydblclick: TExtGridGridPanelOnRowbodydblclick;
@@ -748,9 +652,7 @@ type
     procedure SetFAutoExpandMax(Value: Integer);
     procedure SetFAutoExpandMin(Value: Integer);
     procedure SetFCm(Value: TExtObject);
-    procedure SetFColModel(Value: TExtGridColumnModel);
     procedure SetColumnLines(const AValue: Boolean);
-    procedure SetFColumns(Value: TExtObjectList);
     procedure SetFDdGroup(Value: string);
     procedure SetFDdText(Value: string);
     procedure SetFDeferRowRender(Value: Boolean);
@@ -802,7 +704,6 @@ type
     procedure SetFOnMouseout(Value: TExtGridGridPanelOnMouseout);
     procedure SetFOnMouseover(Value: TExtGridGridPanelOnMouseover);
     procedure SetFOnMouseup(Value: TExtGridGridPanelOnMouseup);
-    procedure SetFOnReconfigure(Value: TExtGridGridPanelOnReconfigure);
     procedure SetFOnRowbodyclick(Value: TExtGridGridPanelOnRowbodyclick);
     procedure SetFOnRowbodycontextmenu(Value: TExtGridGridPanelOnRowbodycontextmenu);
     procedure SetFOnRowbodydblclick(Value: TExtGridGridPanelOnRowbodydblclick);
@@ -825,15 +726,12 @@ type
     function GetSelectionModel: TExtFunction;
     function GetStore: TExtFunction;
     function GetView: TExtFunction;
-    function Reconfigure(Store: TExtDataStore; ColModel: TExtGridColumnModel)
-      : TExtFunction;
     property AutoExpandColumn: string read FAutoExpandColumn write SetAutoExpandColumn;
     property AutoExpandMax: Integer read FAutoExpandMax write SetFAutoExpandMax;
     property AutoExpandMin: Integer read FAutoExpandMin write SetFAutoExpandMin;
     property Cm: TExtObject read FCm write SetFCm;
-    property ColModel: TExtGridColumnModel read FColModel write SetFColModel;
     property ColumnLines: Boolean read FColumnLines write SetColumnLines;
-    property Columns: TExtObjectList read FColumns write SetFColumns;
+    property Columns: TExtObjectList read FColumns;
     property DdGroup: string read FDdGroup write SetFDdGroup;
     property DdText: string read FDdText write SetFDdText;
     property DeferRowRender: Boolean read FDeferRowRender write SetFDeferRowRender;
@@ -844,6 +742,7 @@ type
       write SetFEnableColumnResize;
     property EnableDragDrop: Boolean read FEnableDragDrop write SetFEnableDragDrop;
     property EnableHdMenu: Boolean read FEnableHdMenu write SetEnableHdMenu;
+    property Features: TExtObjectList read FFeatures;
     property HideHeaders: Boolean read FHideHeaders write SetFHideHeaders;
     property LoadMask: TExtObject read FLoadMask write SetFLoadMask;
     property MaxHeight: Integer read FMaxHeight write SetFMaxHeight;
@@ -912,8 +811,6 @@ type
     property OnMouseover: TExtGridGridPanelOnMouseover read FOnMouseover
       write SetFOnMouseover;
     property OnMouseup: TExtGridGridPanelOnMouseup read FOnMouseup write SetFOnMouseup;
-    property OnReconfigure: TExtGridGridPanelOnReconfigure read FOnReconfigure
-      write SetFOnReconfigure;
     property OnRowbodyclick: TExtGridGridPanelOnRowbodyclick read FOnRowbodyclick
       write SetFOnRowbodyclick;
     property OnRowbodycontextmenu: TExtGridGridPanelOnRowbodycontextmenu
@@ -975,6 +872,45 @@ type
       read FOnBeforepropertychange write SetFOnBeforepropertychange;
     property OnPropertychange: TExtGridPropertyGridOnPropertychange read FOnPropertychange
       write SetFOnPropertychange;
+  end;
+
+  TExtGridFeatureFeature = class(TExtUtilObservable)
+  end;
+
+  TExtGridGroupingFeature = class(TExtGridFeatureFeature)
+  private
+    FStartCollapsed: Boolean;
+    FEnableGroupingMenu: Boolean;
+    FEnableNoGroups: Boolean;
+    FHideGroupedHeader: Boolean;
+    FShowSummaryRow: Boolean;
+    procedure SetStartCollapsed(const AValue: Boolean);
+    procedure SetEnableGroupingMenu(const AValue: Boolean);
+    procedure SetEnableNoGroups(const AValue: Boolean);
+    procedure SetHideGroupedHeader(const AValue: Boolean);
+    procedure SetShowSummaryRow(const AValue: Boolean);
+  protected
+    procedure InitDefaults; override;
+  public
+    class function JSClassName: string; override;
+    property StartCollapsed: Boolean read FStartCollapsed write SetStartCollapsed;
+    property EnableGroupingMenu: Boolean read FEnableGroupingMenu write SetEnableGroupingMenu;
+    property EnableNoGroups: Boolean read FEnableNoGroups write SetEnableNoGroups;
+    property HideGroupedHeader: Boolean read FHideGroupedHeader write SetHideGroupedHeader;
+    property ShowSummaryRow: Boolean read FShowSummaryRow write SetShowSummaryRow;
+  end;
+
+  TExtGridPluginEditing = class(TExtPluginAbstract)
+  end;
+
+  TExtGridPluginCellEditing = class(TExtGridPluginEditing)
+  public
+    class function JSClassName: string; override;
+  end;
+
+  TExtGridPluginRowEditing = class(TExtGridPluginEditing)
+  public
+    class function JSClassName: string; override;
   end;
 
 implementation
@@ -1066,7 +1002,7 @@ end;
 procedure TExtGridColumn.SetHidden(const AValue: Boolean);
 begin
   FHidden := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'hidden', [AValue]);
+  ExtSession.ResponseItems.SetConfigItem(Self, 'hidden', 'setHidden', [AValue]);
 end;
 
 procedure TExtGridColumn.SetHideable(const AValue: Boolean);
@@ -1538,313 +1474,6 @@ begin
       TExtDataRecord(ParamAsObject('RecordJS')));
 end;
 
-procedure TExtGridColumnModel.SetFColumns(Value: TExtObjectList);
-begin
-  FColumns := Value;
-  JSCode('columns:' + VarToJSON([Value, false]));
-end;
-
-procedure TExtGridColumnModel.SetFDefaultSortable(Value: Boolean);
-begin
-  FDefaultSortable := Value;
-  JSCode('defaultSortable:' + VarToJSON([Value]));
-end;
-
-procedure TExtGridColumnModel.SetFDefaultWidth(Value: Integer);
-begin
-  FDefaultWidth := Value;
-  JSCode('defaultWidth:' + VarToJSON([Value]));
-end;
-
-procedure TExtGridColumnModel.SetFDefaults(Value: TExtObject);
-begin
-  FDefaults := Value;
-  JSCode('defaults:' + VarToJSON([Value, false]));
-end;
-
-procedure TExtGridColumnModel.SetFOnColumnmoved(Value: TExtGridColumnModelOnColumnmoved);
-begin
-  if Assigned(FOnColumnmoved) then
-    JSCode(JSName + '.events ["columnmoved"].listeners=[];');
-  if Assigned(Value) then
-    on('columnmoved', Ajax('columnmoved', ['This', '%0.nm', 'OldIndex', '%1', 'NewIndex',
-      '%2'], true));
-  FOnColumnmoved := Value;
-end;
-
-procedure TExtGridColumnModel.SetFOnConfigchange
-  (Value: TExtGridColumnModelOnConfigchange);
-begin
-  if Assigned(FOnConfigchange) then
-    JSCode(JSName + '.events ["configchange"].listeners=[];');
-  if Assigned(Value) then
-    on('configchange', Ajax('configchange', ['This', '%0.nm'], true));
-  FOnConfigchange := Value;
-end;
-
-procedure TExtGridColumnModel.SetFOnHeaderchange
-  (Value: TExtGridColumnModelOnHeaderchange);
-begin
-  if Assigned(FOnHeaderchange) then
-    JSCode(JSName + '.events ["headerchange"].listeners=[];');
-  if Assigned(Value) then
-    on('headerchange', Ajax('headerchange', ['This', '%0.nm', 'ColumnIndex', '%1',
-      'NewText', '%2'], true));
-  FOnHeaderchange := Value;
-end;
-
-procedure TExtGridColumnModel.SetFOnHiddenchange
-  (Value: TExtGridColumnModelOnHiddenchange);
-begin
-  if Assigned(FOnHiddenchange) then
-    JSCode(JSName + '.events ["hiddenchange"].listeners=[];');
-  if Assigned(Value) then
-    on('hiddenchange', Ajax('hiddenchange', ['This', '%0.nm', 'ColumnIndex', '%1',
-      'Hidden', '%2'], true));
-  FOnHiddenchange := Value;
-end;
-
-procedure TExtGridColumnModel.SetFOnWidthchange(Value: TExtGridColumnModelOnWidthchange);
-begin
-  if Assigned(FOnWidthchange) then
-    JSCode(JSName + '.events ["widthchange"].listeners=[];');
-  if Assigned(Value) then
-    on('widthchange', Ajax('widthchange', ['This', '%0.nm', 'ColumnIndex', '%1',
-      'NewWidth', '%2'], true));
-  FOnWidthchange := Value;
-end;
-
-class function TExtGridColumnModel.JSClassName: string;
-begin
-  Result := 'Ext.grid.ColumnModel';
-end;
-
-procedure TExtGridColumnModel.InitDefaults;
-begin
-  inherited;
-  FColumns := TExtObjectList.CreateAsAttribute(Self, 'columns');
-  FDefaultWidth := 100;
-  FDefaults := TExtObject.CreateInternal(Self, 'defaults');
-end;
-
-function TExtGridColumnModel.DestroyJS: TExtFunction;
-begin
-  JSCode(JSName + '.destroy();', 'TExtGridColumnModel');
-  Result := Self;
-end;
-
-function TExtGridColumnModel.FindColumnIndex(Col: string): TExtFunction;
-begin
-  JSCode(JSName + '.findColumnIndex(' + VarToJSON([Col]) + ');', 'TExtGridColumnModel');
-  Result := Self;
-end;
-
-function TExtGridColumnModel.GetCellEditor(ColIndex: Integer; RowIndex: Integer)
-  : TExtFunction;
-begin
-  JSCode(JSName + '.getCellEditor(' + VarToJSON([ColIndex, RowIndex]) + ');',
-    'TExtGridColumnModel');
-  Result := Self;
-end;
-
-function TExtGridColumnModel.GetColumnById(Id: string): TExtFunction;
-begin
-  JSCode(JSName + '.getColumnById(' + VarToJSON([Id]) + ');', 'TExtGridColumnModel');
-  Result := Self;
-end;
-
-function TExtGridColumnModel.GetColumnCount(VisibleOnly: Boolean): TExtFunction;
-begin
-  JSCode(JSName + '.getColumnCount(' + VarToJSON([VisibleOnly]) + ');',
-    'TExtGridColumnModel');
-  Result := Self;
-end;
-
-function TExtGridColumnModel.GetColumnHeader(Col: Integer): TExtFunction;
-begin
-  JSCode(JSName + '.getColumnHeader(' + VarToJSON([Col]) + ');', 'TExtGridColumnModel');
-  Result := Self;
-end;
-
-function TExtGridColumnModel.GetColumnId(Index: Integer): TExtFunction;
-begin
-  JSCode(JSName + '.getColumnId(' + VarToJSON([index]) + ');', 'TExtGridColumnModel');
-  Result := Self;
-end;
-
-function TExtGridColumnModel.GetColumnTooltip(Col: Integer): TExtFunction;
-begin
-  JSCode(JSName + '.getColumnTooltip(' + VarToJSON([Col]) + ');', 'TExtGridColumnModel');
-  Result := Self;
-end;
-
-function TExtGridColumnModel.GetColumnWidth(Col: Integer): TExtFunction;
-begin
-  JSCode(JSName + '.getColumnWidth(' + VarToJSON([Col]) + ');', 'TExtGridColumnModel');
-  Result := Self;
-end;
-
-function TExtGridColumnModel.GetColumnsBy(Fn: TExtFunction; Scope: TExtObject = nil)
-  : TExtFunction;
-begin
-  JSCode(JSName + '.getColumnsBy(' + VarToJSON([Fn, true, Scope, false]) + ');',
-    'TExtGridColumnModel');
-  Result := Self;
-end;
-
-function TExtGridColumnModel.GetDataIndex(Col: Integer): TExtFunction;
-begin
-  JSCode(JSName + '.getDataIndex(' + VarToJSON([Col]) + ');', 'TExtGridColumnModel');
-  Result := Self;
-end;
-
-function TExtGridColumnModel.GetIndexById(Id: string): TExtFunction;
-begin
-  JSCode(JSName + '.getIndexById(' + VarToJSON([Id]) + ');', 'TExtGridColumnModel');
-  Result := Self;
-end;
-
-function TExtGridColumnModel.GetRenderer(Col: Integer): TExtFunction;
-begin
-  JSCode(JSName + '.getRenderer(' + VarToJSON([Col]) + ');', 'TExtGridColumnModel');
-  Result := Self;
-end;
-
-function TExtGridColumnModel.GetTotalWidth(IncludeHidden: Boolean): TExtFunction;
-begin
-  JSCode(JSName + '.getTotalWidth(' + VarToJSON([IncludeHidden]) + ');',
-    'TExtGridColumnModel');
-  Result := Self;
-end;
-
-function TExtGridColumnModel.IsCellEditable(ColIndex: Integer; RowIndex: Integer)
-  : TExtFunction;
-begin
-  JSCode(JSName + '.isCellEditable(' + VarToJSON([ColIndex, RowIndex]) + ');',
-    'TExtGridColumnModel');
-  Result := Self;
-end;
-
-function TExtGridColumnModel.IsFixed(ColIndex: Integer): TExtFunction;
-begin
-  JSCode(JSName + '.isFixed(' + VarToJSON([ColIndex]) + ');', 'TExtGridColumnModel');
-  Result := Self;
-end;
-
-function TExtGridColumnModel.IsHidden(ColIndex: Integer): TExtFunction;
-begin
-  JSCode(JSName + '.isHidden(' + VarToJSON([ColIndex]) + ');', 'TExtGridColumnModel');
-  Result := Self;
-end;
-
-function TExtGridColumnModel.IsMenuDisabled(Col: Integer): TExtFunction;
-begin
-  JSCode(JSName + '.isMenuDisabled(' + VarToJSON([Col]) + ');', 'TExtGridColumnModel');
-  Result := Self;
-end;
-
-function TExtGridColumnModel.IsResizable: TExtFunction;
-begin
-  JSCode(JSName + '.isResizable();', 'TExtGridColumnModel');
-  Result := Self;
-end;
-
-function TExtGridColumnModel.IsSortable(Col: Integer): TExtFunction;
-begin
-  JSCode(JSName + '.isSortable(' + VarToJSON([Col]) + ');', 'TExtGridColumnModel');
-  Result := Self;
-end;
-
-function TExtGridColumnModel.MoveColumn(OldIndex: Integer; NewIndex: Integer)
-  : TExtFunction;
-begin
-  JSCode(JSName + '.moveColumn(' + VarToJSON([OldIndex, NewIndex]) + ');',
-    'TExtGridColumnModel');
-  Result := Self;
-end;
-
-function TExtGridColumnModel.SetColumnHeader(Col: Integer; Header: string): TExtFunction;
-begin
-  JSCode(JSName + '.setColumnHeader(' + VarToJSON([Col, Header]) + ');',
-    'TExtGridColumnModel');
-  Result := Self;
-end;
-
-function TExtGridColumnModel.SetColumnTooltip(Col: Integer; Tooltip: string)
-  : TExtFunction;
-begin
-  JSCode(JSName + '.setColumnTooltip(' + VarToJSON([Col, Tooltip]) + ');',
-    'TExtGridColumnModel');
-  Result := Self;
-end;
-
-function TExtGridColumnModel.SetColumnWidth(Col: Integer; Width: Integer;
-  SuppressEvent: Boolean): TExtFunction;
-begin
-  JSCode(JSName + '.setColumnWidth(' + VarToJSON([Col, Width, SuppressEvent]) + ');',
-    'TExtGridColumnModel');
-  Result := Self;
-end;
-
-function TExtGridColumnModel.SetConfig(Config: TExtObjectList = nil;
-  Initial: Boolean = false): TExtFunction;
-begin
-  JSCode(JSName + '.setConfig(' + VarToJSON(Config) + ',' + VarToJSON([Initial]) + ');',
-    'TExtGridColumnModel');
-  Result := Self;
-end;
-
-function TExtGridColumnModel.SetDataIndex(Col: Integer; DataIndex: string): TExtFunction;
-begin
-  JSCode(JSName + '.setDataIndex(' + VarToJSON([Col, DataIndex]) + ');',
-    'TExtGridColumnModel');
-  Result := Self;
-end;
-
-function TExtGridColumnModel.SetEditable(const ACol: Integer; const AEditable: Boolean): TExtFunction;
-begin
-  ExtSession.ResponseItems.CallMethod(Self, 'setEditable', [ACol, AEditable]);
-  Result := Self;
-end;
-
-function TExtGridColumnModel.SetEditor(Col: Integer; Editor: TExtObject): TExtFunction;
-begin
-  JSCode(JSName + '.setEditor(' + VarToJSON([Col, Editor, false]) + ');',
-    'TExtGridColumnModel');
-  Result := Self;
-end;
-
-function TExtGridColumnModel.SetHidden(const AColIndex: Integer; const AHidden: Boolean): TExtFunction;
-begin
-  ExtSession.ResponseItems.CallMethod(Self, 'setHidden', [AColIndex, AHidden]);
-  Result := Self;
-end;
-
-function TExtGridColumnModel.SetRenderer(const ACol: Integer; const AFn: TExtFunction): TExtFunction;
-begin
-  ExtSession.ResponseItems.CallMethod(Self, 'setRenderer', [ACol, AFn, True]);
-  Result := Self;
-end;
-
-procedure TExtGridColumnModel.HandleEvent(const AEvtName: string);
-begin
-  inherited;
-  if (AEvtName = 'columnmoved') and Assigned(FOnColumnmoved) then
-    FOnColumnmoved(TExtGridColumnModel(ParamAsObject('This')), ParamAsInteger('OldIndex'),
-      ParamAsInteger('NewIndex'))
-  else if (AEvtName = 'configchange') and Assigned(FOnConfigchange) then
-    FOnConfigchange(TExtGridColumnModel(ParamAsObject('This')))
-  else if (AEvtName = 'headerchange') and Assigned(FOnHeaderchange) then
-    FOnHeaderchange(TExtGridColumnModel(ParamAsObject('This')),
-      ParamAsInteger('ColumnIndex'), ParamAsString('NewText'))
-  else if (AEvtName = 'hiddenchange') and Assigned(FOnHiddenchange) then
-    FOnHiddenchange(TExtGridColumnModel(ParamAsObject('This')),
-      ParamAsInteger('ColumnIndex'), ParamAsBoolean('Hidden'))
-  else if (AEvtName = 'widthchange') and Assigned(FOnWidthchange) then
-    FOnWidthchange(TExtGridColumnModel(ParamAsObject('This')),
-      ParamAsInteger('ColumnIndex'), ParamAsInteger('NewWidth'));
-end;
-
 procedure TExtGridBooleanColumn.SetFFalseText(Value: string);
 begin
   FFalseText := Value;
@@ -1931,16 +1560,6 @@ function TExtGridAbstractSelectionModel.Unlock: TExtFunction;
 begin
   JSCode(JSName + '.unlock();', 'TExtGridAbstractSelectionModel');
   Result := Self;
-end;
-
-class function TExtGridPropertyColumnModel.JSClassName: string;
-begin
-  Result := 'Ext.grid.PropertyColumnModel';
-end;
-
-procedure TExtGridPropertyColumnModel.InitDefaults;
-begin
-  inherited;
 end;
 
 procedure TExtGridCellSelectionModel.SetFOnBeforecellselect
@@ -2448,26 +2067,10 @@ begin
   JSCode('cm:' + VarToJSON([Value, false]));
 end;
 
-procedure TExtGridGridPanel.SetFColModel(Value: TExtGridColumnModel);
-begin
-  if FColModel <> Value then
-  begin
-    FColModel.Free;
-    FColModel := Value;
-    JSCode('colModel:' + VarToJSON([Value, false]));
-  end;
-end;
-
 procedure TExtGridGridPanel.SetColumnLines(const AValue: Boolean);
 begin
   FColumnLines := AValue;
   ExtSession.ResponseItems.SetConfigItem(Self, 'columnLines', [AValue]);
-end;
-
-procedure TExtGridGridPanel.SetFColumns(Value: TExtObjectList);
-begin
-  FColumns := Value;
-  JSCode('columns:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtGridGridPanel.SetFDdGroup(Value: string);
@@ -2893,16 +2496,6 @@ begin
   FOnMouseup := Value;
 end;
 
-procedure TExtGridGridPanel.SetFOnReconfigure(Value: TExtGridGridPanelOnReconfigure);
-begin
-  if Assigned(FOnReconfigure) then
-    JSCode(JSName + '.events ["reconfigure"].listeners=[];');
-  if Assigned(Value) then
-    on('reconfigure', Ajax('reconfigure', ['This', '%0.nm', 'Store', '%1.nm', 'ColModel',
-      '%2.nm'], true));
-  FOnReconfigure := Value;
-end;
-
 procedure TExtGridGridPanel.SetFOnRowbodyclick(Value: TExtGridGridPanelOnRowbodyclick);
 begin
   if Assigned(FOnRowbodyclick) then
@@ -3014,8 +2607,8 @@ procedure TExtGridGridPanel.InitDefaults;
 begin
   inherited;
   FCm := TExtObject.CreateInternal(Self, 'cm');
-  FColModel := TExtGridColumnModel.CreateInternal(Self, 'colModel');
   FColumns := TExtObjectList.CreateAsAttribute(Self, 'columns');
+  FFeatures := TExtObjectList.CreateAsAttribute(Self, 'features');
   FLoadMask := TExtObject.CreateInternal(Self, 'loadMask');
   FSelModel := TExtObject.CreateInternal(Self, 'selModel');
   FSm := TExtObject.CreateInternal(Self, 'sm');
@@ -3064,14 +2657,6 @@ end;
 function TExtGridGridPanel.GetView: TExtFunction;
 begin
   JSCode(JSName + '.getView();', 'TExtGridGridPanel');
-  Result := Self;
-end;
-
-function TExtGridGridPanel.Reconfigure(Store: TExtDataStore;
-  ColModel: TExtGridColumnModel): TExtFunction;
-begin
-  JSCode(JSName + '.reconfigure(' + VarToJSON([Store, false, ColModel, false]) + ');',
-    'TExtGridGridPanel');
   Result := Self;
 end;
 
@@ -3148,10 +2733,6 @@ begin
     FOnMouseover(ExtEventObject)
   else if (AEvtName = 'mouseup') and Assigned(FOnMouseup) then
     FOnMouseup(ExtEventObject)
-  else if (AEvtName = 'reconfigure') and Assigned(FOnReconfigure) then
-    FOnReconfigure(TExtGridGridPanel(ParamAsObject('This')),
-      TExtDataStore(ParamAsObject('Store')),
-      TExtGridColumnModel(ParamAsObject('ColModel')))
   else if (AEvtName = 'rowbodyclick') and Assigned(FOnRowbodyclick) then
     FOnRowbodyclick(TExtGridGridPanel(ParamAsObject('This')), ParamAsInteger('RowIndex'),
       ExtEventObject)
@@ -3286,6 +2867,67 @@ end;
 class function TExtGridView.JSClassName: string;
 begin
   Result := 'Ext.grid.View';
+end;
+
+{ TExtGridGroupingFeature }
+
+procedure TExtGridGroupingFeature.InitDefaults;
+begin
+  inherited;
+  FStartCollapsed := False;
+  FEnableGroupingMenu := True;
+  FEnableNoGroups := True;
+  FHideGroupedHeader := False;
+  FShowSummaryRow := False;
+end;
+
+class function TExtGridGroupingFeature.JSClassName: string;
+begin
+  Result := 'Ext.grid.feature.Grouping';
+end;
+
+procedure TExtGridGroupingFeature.SetEnableGroupingMenu(const AValue: Boolean);
+begin
+  FEnableGroupingMenu := AValue;
+  SetConfigItem('enableGroupingMenu', AValue);
+end;
+
+procedure TExtGridGroupingFeature.SetEnableNoGroups(const AValue: Boolean);
+begin
+  FEnableNoGroups := AValue;
+  SetConfigItem('enableNoGroups', AValue);
+end;
+
+procedure TExtGridGroupingFeature.SetHideGroupedHeader(const AValue: Boolean);
+begin
+  FHideGroupedHeader := AValue;
+  SetConfigItem('hideGroupedHeader', AValue);
+end;
+
+procedure TExtGridGroupingFeature.SetShowSummaryRow(const AValue: Boolean);
+begin
+  FShowSummaryRow := AValue;
+  SetConfigItem('showSummaryRow', AValue);
+end;
+
+procedure TExtGridGroupingFeature.SetStartCollapsed(const AValue: Boolean);
+begin
+  FStartCollapsed := AValue;
+  SetConfigItem('startCollapsed', AValue);
+end;
+
+{ TExtGridPluginCellEditing }
+
+class function TExtGridPluginCellEditing.JSClassName: string;
+begin
+  Result := 'Ext.grid.plugin.CellEditing';
+end;
+
+{ TExtGridPluginRowEditing }
+
+class function TExtGridPluginRowEditing.JSClassName: string;
+begin
+  Result := 'Ext.grid.plugin.RowEditing';
 end;
 
 end.

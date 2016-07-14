@@ -60,7 +60,7 @@ Databases:
       Data Source: %COMPUTERNAME%
 
 Auth: DB
-  .Defaults:
+  Defaults:
     UserName: administrator
     Password: password
 
@@ -89,11 +89,11 @@ Login:
         .Default: False
       AutoLogin: False
 
-HomeView:
+HomeGirls:
   Controller: Viewport
     SubView: Girls
 
-HomeDolls:
+HomeView:
   Controller: Viewport
     SubView: Dolls
 

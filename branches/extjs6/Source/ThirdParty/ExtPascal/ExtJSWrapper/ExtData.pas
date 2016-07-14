@@ -387,6 +387,7 @@ type
     FOnUpdate: TExtDataStoreOnUpdate;
     FOnWrite: TExtDataStoreOnWrite;
     FTotalLength: Integer;
+    FGroupField: string;
     procedure SetFAutoDestroy(Value: Boolean);
     procedure SetAutoLoad(const AValue: Boolean);
     procedure SetFAutoLoadObject(Value: TExtObject);
@@ -425,6 +426,7 @@ type
     procedure SetFOnUpdate(Value: TExtDataStoreOnUpdate);
     procedure SetFOnWrite(Value: TExtDataStoreOnWrite);
     procedure SetTotalLength(const AValue: Integer);
+    procedure SetGroupField(const AValue: string);
   protected
     procedure InitDefaults; override;
     procedure HandleEvent(const AEvtName: string); override;
@@ -502,6 +504,7 @@ type
     property Data: TExtObjectList read FData write SetFData;
     property DefaultParamNames: TExtObject read FDefaultParamNames
       write SetFDefaultParamNames;
+    property GroupField: string read FGroupField write SetGroupField;
     property ParamNames: TExtObject read FParamNames write SetFParamNames;
     property Proxy: TExtDataProxy read FProxy write SetProxy;
     property PruneModifiedRecords: Boolean read FPruneModifiedRecords
@@ -1837,6 +1840,12 @@ begin
   FSortInfo.Free;
   FSortInfo := Value;
   JSCode('sortInfo:' + VarToJSON([Value, false]));
+end;
+
+procedure TExtDataStore.SetGroupField(const AValue: string);
+begin
+  FGroupField := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'groupField', [AValue]);
 end;
 
 procedure TExtDataStore.SetStoreId(AValue: string);

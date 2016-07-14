@@ -3958,6 +3958,9 @@ type
     property Target: string read FTarget write SetFTarget;
   end;
 
+  TExtPluginAbstract = class(TExtObject)
+  end;
+
 function ExtLoader: TExtLoaderSingleton;
 function ExtFlashProxy: TExtFlashProxySingleton;
 function ExtEventManager: TExtEventManagerSingleton;
@@ -9384,7 +9387,7 @@ end;
 procedure TExtComponent.SetHidden(const AValue: Boolean);
 begin
   FHidden := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'hidden', [AValue]);
+  ExtSession.ResponseItems.SetConfigItem(Self, 'hidden', 'setHidden', [AValue]);
 end;
 
 procedure TExtComponent.SetFHideLabel(Value: Boolean);
