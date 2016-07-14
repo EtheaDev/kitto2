@@ -153,9 +153,11 @@ type
     procedure Cleanup;
     procedure DoAfterExecuteTool; override;
   protected
-    /// <summary>Override this method to provide a default file name if it's
-    /// not specified in the config. If you are using streams, don't override
-    /// this method.</summary>
+    /// <summary>
+    ///  Override this method to provide a default file name if it's
+    ///  not specified in the config. If you are using streams, don't override
+    ///  this method.
+    /// </summary>
     function GetDefaultFileName: string; virtual;
 
     /// <summary>If you are creating a file on demand, do it in this method. If
@@ -165,11 +167,15 @@ type
     /// returned by GetDefaultFileName.</param>
     procedure PrepareFile(const AFileName: string); virtual;
 
-    /// <summary>Creates and returns a stream with the content to download.
-    /// Override this method if you are using streams as opposed to
-    /// files.</summary>
-    /// <remarks>The caller will be responsible for freeing the stream when no
-    /// longer needed.</remarks>
+    /// <summary>
+    ///  Creates and returns a stream with the content to download.
+    ///  Override this method if you are using streams as opposed to
+    ///  files.
+    /// </summary>
+    /// <remarks>
+    ///  The caller will be responsible for freeing the stream when no
+    ///  longer needed.
+    /// </remarks>
     function CreateStream: TStream; virtual;
     procedure InitDefaults; override;
   public
@@ -478,7 +484,7 @@ end;
 
 function TKExtDownloadFileController.GetFileName: string;
 begin
-  Result := Config.GetExpandedString('FileName', GetDefaultFileName);
+  Result := ExpandServerRecordValues(Config.GetExpandedString('FileName', GetDefaultFileName));
 end;
 
 procedure TKExtDownloadFileController.InitDefaults;

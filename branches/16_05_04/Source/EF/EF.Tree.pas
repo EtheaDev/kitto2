@@ -479,6 +479,13 @@ type
     function ChildByName(const AName: string): TEFNode;
 
     /// <summary>
+    ///   Returns the index of a given child node, or -1 if the specified
+    ///   node is not a direct child of the current tree. If ARecursively is True,
+    ///   then the search is performed recursively on all direct and indirect children.
+    /// </summary>
+    function GetChildIndex(const AChild: TEFNode; const ARecursively: Boolean = False): Integer;
+
+    /// <summary>
     ///   Removes the child from the list of children, if present.
     /// </summary>
     procedure RemoveChild(const ANode: TEFNode);
@@ -2217,6 +2224,22 @@ begin
   end;
 end;
 
+function TEFTree.GetChildIndex(const AChild: TEFNode; const ARecursively: Boolean): Integer;
+var
+  LNode: TEFNode;
+begin
+  LNode := FindChildByPredicate(
+    function (const ANode: TEFNode): Boolean
+    begin
+      Result := ANode = AChild;
+    end,
+    ARecursively);
+  if Assigned(LNode) then
+    Result := LNode.Index
+  else
+    Result := -1;
+end;
+
 function TEFTree.GetChildrenAsPairs(const APath: string;
   const AExpandMacrosInValues: Boolean; const ADefaultValue: TEFPairs): TEFPairs;
 var
@@ -2696,17 +2719,20 @@ var
   LDouble: Double;
   LDateTime: TDateTime;
   LBoolean: Boolean;
+  LCouldBeDateTime: Boolean;
 begin
   Assert(Assigned(ANode));
+
+  LCouldBeDateTime := Length(AYamlValue) >= 5;
 
   // Numbers are treated as strings.
   if APreferStrings then
   begin
-    if TryStrToDateTime(AYamlValue, LDateTime, AFormatSettings) then
+    if LCouldBeDateTime and TryStrToDateTime(AYamlValue, LDateTime, AFormatSettings) then
       ANode.AsDateTime := LDateTime
-    else if TryStrToDate(AYamlValue, LDateTime, AFormatSettings) then
+    else if LCouldBeDateTime and TryStrToDate(AYamlValue, LDateTime, AFormatSettings) then
       ANode.AsDate := LDateTime
-    else if TryStrToTime(AYamlValue, LDateTime, AFormatSettings) then
+    else if LCouldBeDateTime and TryStrToTime(AYamlValue, LDateTime, AFormatSettings) then
       ANode.AsTime := LDateTime
     else
       ANode.AsString := AYamlValue;
@@ -2717,11 +2743,11 @@ begin
       ANode.AsInteger := LInteger
     else if TryStrToFloat(AYamlValue, LDouble, AFormatSettings) then
       ANode.AsFloat := LDouble
-    else if TryStrToDateTime(AYamlValue, LDateTime, AFormatSettings) then
+    else if LCouldBeDateTime and TryStrToDateTime(AYamlValue, LDateTime, AFormatSettings) then
       ANode.AsDateTime := LDateTime
-    else if TryStrToDate(AYamlValue, LDateTime, AFormatSettings) then
+    else if LCouldBeDateTime and TryStrToDate(AYamlValue, LDateTime, AFormatSettings) then
       ANode.AsDate := LDateTime
-    else if TryStrToTime(AYamlValue, LDateTime, AFormatSettings) then
+    else if LCouldBeDateTime and TryStrToTime(AYamlValue, LDateTime, AFormatSettings) then
       ANode.AsTime := LDateTime
     else if TryStrToBool(AYamlValue, LBoolean) then
       ANode.AsBoolean := LBoolean

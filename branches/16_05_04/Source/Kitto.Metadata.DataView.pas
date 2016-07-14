@@ -669,6 +669,7 @@ type
     property DetailTableCount: Integer read GetDetailTableCount;
     property DetailTables[I: Integer]: TKViewTable read GetDetailTable;
     function DetailTableByName(const AName: string): TKViewTable;
+    function GetDetailTableIndex(const AViewTable: TKViewTable): Integer;
     procedure AddDetailTable(const AViewTable: TKViewTable);
 
     property View: TKDataView read GetView;
@@ -1054,6 +1055,11 @@ end;
 function TKViewTable.GetDetailTableCount: Integer;
 begin
   Result := GetDetailTables.GetChildCount<TKViewTable>;
+end;
+
+function TKViewTable.GetDetailTableIndex(const AViewTable: TKViewTable): Integer;
+begin
+  Result := GetDetailTables.GetChildIndex(AViewTable);
 end;
 
 function TKViewTable.GetDetailTables: TKViewTables;

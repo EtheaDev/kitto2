@@ -97,6 +97,8 @@ type
     function FindLayout: TKLayout;
     function IsViewMode: Boolean;
     procedure SetStoreRecord(const AValue: TKViewTableRecord);
+    procedure EnsureDetailController(const ATabPanel: TExtTabPanel;
+      const ADetailIndex: Integer);
   strict protected
     procedure DoDisplay; override;
     procedure InitComponents; override;
@@ -206,14 +208,21 @@ begin
       FDetailButtons[I].ServerStore := StoreRecord.DetailStores[I];
       FDetailButtons[I].ViewTable := ViewTable.DetailTables[I];
     end;
-    Tbar := FDetailToolbar;
+    // FIXME: We should really always use just Tbar here, but it is causing AV when
+    // emitting the response items, so we are temporarily switching to a different panel.
+    if Assigned(FTabPanel) then
+      FTabPanel.Tbar := FDetailToolbar
+    else if Assigned(FFormPanel) then
+      FFormPanel.Tbar := FDetailToolbar
+    else
+      Tbar := FDetailToolbar;
   end;
 end;
 
 procedure TKExtFormPanelController.CreateDetailBottomPanel;
 begin
   Assert(ViewTable <> nil);
-  Assert(FDetailControllers = nil);
+  Assert(FDetailControllers.Count = 0);
   Assert(Assigned(StoreRecord));
   Assert(not Assigned(FDetailBottomPanel));
 
@@ -229,8 +238,7 @@ begin
     FDetailBottomPanel.EnableTabScroll := True;
     FDetailBottomPanel.Height := GetDetailBottomPanelHeight;
     FDetailBottomPanel.SetActiveTab(0);
-    if Assigned(FTabPanel) then
-      FTabPanel.OnTabChange := TabChange;
+    FDetailBottomPanel.OnTabChange := TabChange;
     FDetailBottomPanel.On('tabchange', FDetailBottomPanel.JSFunction(FDetailBottomPanel.JSName + '.doLayout();'));
     CreateDetailPanels(FDetailBottomPanel);
   end;
@@ -239,45 +247,58 @@ end;
 procedure TKExtFormPanelController.CreateDetailPanels(const ATabPanel: TExtTabPanel);
 var
   I: Integer;
-  LController: IKExtController;
-  LControllerType: string;
 begin
   Assert(ViewTable <> nil);
-  Assert(FDetailControllers = nil);
+  Assert(FDetailControllers.Count = 0);
   Assert(Assigned(StoreRecord));
 
   if ViewTable.DetailTableCount > 0 then
   begin
     Assert(ATabPanel <> nil);
+    { TODO : do them one at a time and on demand }
     StoreRecord.EnsureDetailStores;
     Assert(StoreRecord.DetailStoreCount = ViewTable.DetailTableCount);
-    FDetailControllers := TObjectList<TObject>.Create(False);
     for I := 0 to ViewTable.DetailTableCount - 1 do
     begin
-      LControllerType := ViewTable.GetString('Controller', 'GridPanel');
-      // The node may exist and be '', which does not return the default value.
-      if LControllerType = '' then
-        LControllerType := 'GridPanel';
-      LController := TKExtControllerFactory.Instance.CreateController(ATabPanel,
-        View, ATabPanel, ViewTable.FindNode('Controller'), Self, LControllerType);
-      LController.Config.SetObject('Sys/ViewTable', ViewTable.DetailTables[I]);
-      LController.Config.SetObject('Sys/ServerStore', StoreRecord.DetailStores[I]);
-      LController.Config.SetBoolean('AllowClose', False);
-      if SameText(FOperation, 'View') then
-      begin
-        //Cascading View mode
-        LController.Config.SetBoolean('AllowViewing', True);
-        LController.Config.SetBoolean('PreventEditing', True);
-        LController.Config.SetBoolean('PreventAdding', True);
-        LController.Config.SetBoolean('PreventDeleting', True);
-        LController.Config.SetBoolean('AllowDuplicating', False);
-      end;
-      FDetailControllers.Add(LController.AsObject);
-      LController.Display;
-      if not SameText(FOperation, 'Add') then
-        if (LController.AsObject is TKExtDataPanelController) then
-          TKExtDataPanelController(LController.AsObject).LoadData;
+      FDetailControllers.Add(nil);
+      EnsureDetailController(ATabPanel, I);
     end;
+  end;
+end;
+
+procedure TKExtFormPanelController.EnsureDetailController(const ATabPanel: TExtTabPanel;
+  const ADetailIndex: Integer);
+var
+  LController: IKExtController;
+  LControllerType: string;
+begin
+  Assert(FDetailControllers.Count > ADetailIndex);
+
+  if not Assigned(FDetailControllers[ADetailIndex]) then
+  begin
+    LControllerType := ViewTable.GetString('Controller', 'GridPanel');
+    // The node may exist and be '', which does not return the default value.
+    if LControllerType = '' then
+      LControllerType := 'GridPanel';
+    LController := TKExtControllerFactory.Instance.CreateController(ATabPanel,
+      View, ATabPanel, ViewTable.FindNode('Controller'), Self, LControllerType);
+    LController.Config.SetObject('Sys/ViewTable', ViewTable.DetailTables[ADetailIndex]);
+    LController.Config.SetObject('Sys/ServerStore', StoreRecord.DetailStores[ADetailIndex]);
+    LController.Config.SetBoolean('AllowClose', False);
+    if SameText(FOperation, 'View') then
+    begin
+      //Cascading View mode
+      LController.Config.SetBoolean('AllowViewing', True);
+      LController.Config.SetBoolean('PreventEditing', True);
+      LController.Config.SetBoolean('PreventAdding', True);
+      LController.Config.SetBoolean('PreventDeleting', True);
+      LController.Config.SetBoolean('AllowDuplicating', False);
+    end;
+    FDetailControllers[ADetailIndex] := LController.AsObject;
+    LController.Display;
+    if not SameText(FOperation, 'Add') then
+      if (LController.AsObject is TKExtDataPanelController) then
+        TKExtDataPanelController(LController.AsObject).LoadData;
   end;
 end;
 
@@ -585,6 +606,7 @@ procedure TKExtFormPanelController.AfterConstruction;
 begin
   inherited;
   FChangesApplied := False;
+  FDetailControllers := TObjectList<TObject>.Create(False);
 end;
 
 procedure TKExtFormPanelController.ApplyChanges;
@@ -851,10 +873,26 @@ end;
 
 procedure TKExtFormPanelController.TabChange(AThis: TExtTabPanel; ATab: TExtPanel);
 var
-  LIntf: IKExtActivable;
+  LControllerIntf: IKExtController;
+  LViewTable: TKViewTable;
+  LDetailIndex: Integer;
+  LActivableIntf: IKExtActivable;
 begin
-  if Assigned(ATab) and Supports(ATab, IKExtActivable, LIntf) then
-    LIntf.Activate;
+  if Assigned(ATab) then
+  begin
+{ TODO Finish lazy-loading of detail tabs }
+//    if Supports(ATab, IKExtController, LControllerIntf) then
+//    begin
+//      LViewTable := TKViewTable(LControllerIntf.Config.GetObject('Sys/ViewTable'));
+//      Assert(Assigned(LViewTable));
+//      LDetailIndex := ViewTable.GetDetailTableIndex(LVIewTable);
+//      Assert(LDetailIndex >= 0);
+//      EnsureDetailController(AThis, LDetailIndex);
+//    end;
+//  end;
+    if Supports(ATab, IKExtActivable, LActivableIntf) then
+      LActivableIntf.Activate;
+  end;
 end;
 
 function TKExtFormPanelController.GetExtraHeight: Integer;
