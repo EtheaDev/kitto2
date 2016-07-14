@@ -57,17 +57,16 @@
     };
     Ext.onReady(
       function() {
-        Ext.get("loading").remove();
         Ext.BLANK_IMAGE_URL="<%ExtPath%>/resources/images/default/s.gif";
         TextMetrics = Ext.util.TextMetrics.createInstance("body");
         Download = Ext.DomHelper.append(document.body, {tag: "iframe", cls: "x-hidden"});
 
-        kittoLoadMask = new Ext.LoadMask(Ext.getBody());
         Ext.Ajax.on("beforerequest", function() { showKittoLoadMask(1); });
         Ext.Ajax.on("requestcomplete", function() { showKittoLoadMask(-1); });
         Ext.Ajax.on("requestexception", function() { showKittoLoadMask(0); });
 
         <%Response%>
+        Ext.get("loading").remove();
       }
     );
   </script>

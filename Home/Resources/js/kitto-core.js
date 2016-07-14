@@ -411,6 +411,7 @@ function objectToParams(object)
 };
 
 window.kittoLoadMaskShowCount = 0;
+window.kittoLoadMask = null;
 
 // shows (1) or hides (-1) the loading mask.
 // The mask is shown as long as the current sum of show calls
@@ -422,10 +423,13 @@ function showKittoLoadMask(amount)
     window.kittoLoadMaskShowCount = 0;
   else
     window.kittoLoadMaskShowCount += amount;
-  if (window.kittoLoadMaskShowCount > 0)
-    kittoLoadMask.show();
+  if (window.kittoLoadMaskShowCount > 0) {
+    if (window.kittoLoadMask === null)
+      window.kittoLoadMask = new Ext.LoadMask(Ext.getBody());
+    window.kittoLoadMask.show();
+  }
   else
-    kittoLoadMask.hide();
+    window.kittoLoadMask.hide();
 }
 
 function isMobileBrowser()
