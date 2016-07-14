@@ -13,3 +13,8 @@
   font-style: italic;
   color: #333333;
 }
+
+.ext-el-mask {
+  /* .ext-el-mask-msg has 20001 */
+  z-index: 20000;
+}
