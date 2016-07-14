@@ -1059,7 +1059,7 @@ end;
 
 function TKViewTable.GetDetailTableIndex(const AViewTable: TKViewTable): Integer;
 begin
-  Result := GetDetailTables.GetChildIndex(AViewTable);
+  Result := GetDetailTables.GetChildIndex<TKViewTable>(AViewTable);
 end;
 
 function TKViewTable.GetDetailTables: TKViewTables;

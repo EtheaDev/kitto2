@@ -238,7 +238,10 @@ begin
     raise EKError.Create('Object does not support IKController.');
 
   if Assigned(AContainer) and LSupportsContainer then
+  begin
     LObject.AddTo(AContainer.Items);
+    AContainer.DoLayout;
+  end;
 
   if AConfig <> nil then
     Result.Config.Assign(AConfig)

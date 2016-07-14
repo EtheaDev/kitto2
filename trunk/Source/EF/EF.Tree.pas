@@ -479,13 +479,6 @@ type
     function ChildByName(const AName: string): TEFNode;
 
     /// <summary>
-    ///   Returns the index of a given child node, or -1 if the specified
-    ///   node is not a direct child of the current tree. If ARecursively is True,
-    ///   then the search is performed recursively on all direct and indirect children.
-    /// </summary>
-    function GetChildIndex(const AChild: TEFNode; const ARecursively: Boolean = False): Integer;
-
-    /// <summary>
     ///   Removes the child from the list of children, if present.
     /// </summary>
     procedure RemoveChild(const ANode: TEFNode);
@@ -505,6 +498,13 @@ type
     ///  that are of the specified type.
     /// </summary>
     function GetChild<T: class>(const AIndex: Integer): T; overload;
+
+    /// <summary>
+    ///  Returns the index of a given child node in a list of children limited
+    ///  to the set of children that are of the specified type, or -1 if the specified
+    ///  children is not a direct child of the current tree.
+    /// </summary>
+    function GetChildIndex<T: class>(const AChild: T): Integer;
 
     /// <summary>
     ///  Searches a node by a path. Separate hierarchy elements with a /.
@@ -2224,20 +2224,22 @@ begin
   end;
 end;
 
-function TEFTree.GetChildIndex(const AChild: TEFNode; const ARecursively: Boolean): Integer;
+function TEFTree.GetChildIndex<T>(const AChild: T): Integer;
 var
-  LNode: TEFNode;
+  I: Integer;
+  LTIndex: Integer;
 begin
-  LNode := FindChildByPredicate(
-    function (const ANode: TEFNode): Boolean
+  Result := -1;
+  for I := 0 to ChildCount - 1 do
+  begin
+    // Don't use "is" here. Either a bug in generics implementation or as designed.
+    if Children[I].InheritsFrom(T) then
     begin
-      Result := ANode = AChild;
-    end,
-    ARecursively);
-  if Assigned(LNode) then
-    Result := LNode.Index
-  else
-    Result := -1;
+      Inc(Result);
+      if T(Children[I]) = AChild then
+        Break;
+    end;
+  end;
 end;
 
 function TEFTree.GetChildrenAsPairs(const APath: string;
