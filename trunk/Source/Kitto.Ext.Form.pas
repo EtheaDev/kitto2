@@ -268,7 +268,6 @@ begin
   if ViewTable.DetailTableCount > 0 then
   begin
     Assert(AContainer <> nil);
-    { TODO : do them one at a time and on demand }
     StoreRecord.EnsureDetailStores;
     Assert(StoreRecord.DetailStoreCount = ViewTable.DetailTableCount);
     for I := 0 to ViewTable.DetailTableCount - 1 do

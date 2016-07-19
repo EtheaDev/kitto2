@@ -380,7 +380,8 @@ type
     ///   If AFrom or ATo are 0, the method calls <see cref="Load" />.
     ///  </para>
     /// </remarks>
-    function Load(const AFilter, ASort: string; const AFrom: Integer = 0; const AFor: Integer = 0;
+    function Load(const AFilter: string = ''; const ASort: string = '';
+      const AFrom: Integer = 0; const AFor: Integer = 0;
       const AForEachRecord: TProc<TKVIewTableRecord> = nil): Integer; overload;
 
     /// <summary>
@@ -502,8 +503,8 @@ type
     function AddDetailStore(const AStore: TKViewTableStore): TKViewTableStore;
     procedure Refresh(const AStrict: Boolean = False);
     procedure SetDetailFieldValues(const AMasterRecord: TKViewTableRecord);
-    function FindDetailStoreByModelName(const AModelName: string): TKViewTableStore;
-    function GetDetailStoreByModelName(const AModelName: string): TKViewTableStore;
+    function FindDetailStoreByModelName(const AModelName: string; const AForceLoad: Boolean = False): TKViewTableStore;
+    function GetDetailStoreByModelName(const AModelName: string; const AForceLoad: Boolean = False): TKViewTableStore;
     procedure HandleDeleteFileInstructions;
 
     procedure ApplyNewRecordRules;
@@ -2542,7 +2543,7 @@ begin
   EnsureDetailStores;
   for I := 0 to DetailStoreCount - 1 do
   begin
-    DetailStores[I].Load('', '');
+    DetailStores[I].Load;
     for LRecordIndex := 0 to DetailStores[I].RecordCount - 1 do
       DetailStores[I].Records[LRecordIndex].LoadDetailStores;
   end;
@@ -2863,7 +2864,8 @@ begin
     Result := LViewField.AliasedDBName;
 end;
 
-function TKViewTableRecord.FindDetailStoreByModelName(const AModelName: string): TKViewTableStore;
+function TKViewTableRecord.FindDetailStoreByModelName(const AModelName: string;
+  const AForceLoad: Boolean): TKViewTableStore;
 var
   I: Integer;
   LDetailTableStore: TKViewTableStore;
@@ -2875,14 +2877,17 @@ begin
     if SameText(LDetailTableStore.ViewTable.ModelName, AModelName) then
     begin
       Result := LDetailTableStore;
-      break;
+      if (Result.RecordCount = 0) or AForceLoad then
+        Result.Load;
+      Break;
     end;
   end;
 end;
 
-function TKViewTableRecord.GetDetailStoreByModelName(const AModelName: string): TKViewTableStore;
+function TKViewTableRecord.GetDetailStoreByModelName(const AModelName: string;
+  const AForceLoad: Boolean): TKViewTableStore;
 begin
-  Result := FindDetailStoreByModelName(AModelName);
+  Result := FindDetailStoreByModelName(AModelName, AForceLoad);
   if not Assigned(Result) then
     raise EKError.CreateFmt(_('DetailStore %s not found.'), [AModelName]);
 end;
