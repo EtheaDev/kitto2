@@ -341,6 +341,7 @@ var
       LColors: TEFNode;
       LAllowedValues: TEFPairs;
       LJSCode: string;
+      LColorValueFieldName: string;
     begin
       Result := False;
 
@@ -397,11 +398,19 @@ var
           LTriples[I].Value3 := AViewField.DisplayTemplate;
         end;
         // Pass array to the client-side renderer.
-        AColumn.RendererExtFunction := AColumn.JSFunction('value, metaData',
-          Format(
-            'metaData.css += getColorStyleRuleForValue(value, [%s]);' +
-            'return %s ? null : formatWithDisplayTemplate(value, ''%s'');',
-            [PairsToJSON(LColorPairs), IfThen(AViewField.BlankValue, 'true', 'false'), AViewField.DisplayTemplate]));
+        LColorValueFieldName := AViewField.GetExpandedString('ColorValueFieldName');
+        if LColorValueFieldName <> '' then
+          AColumn.RendererExtFunction := AColumn.JSFunction('value, metaData, record',
+            Format(
+              'metaData.css += getColorStyleRuleForRecordField(record, ''%s'', [%s]);' +
+              'return %s ? null : formatWithDisplayTemplate(value, ''%s'');',
+              [LColorValueFieldName, PairsToJSON(LColorPairs), IfThen(AViewField.BlankValue, 'true', 'false'), AViewField.DisplayTemplate]))
+        else
+          AColumn.RendererExtFunction := AColumn.JSFunction('value, metaData',
+            Format(
+              'metaData.css += getColorStyleRuleForValue(value, [%s]);' +
+              'return %s ? null : formatWithDisplayTemplate(value, ''%s'');',
+              [PairsToJSON(LColorPairs), IfThen(AViewField.BlankValue, 'true', 'false'), AViewField.DisplayTemplate]));
         Result := True;
         Exit;
       end;
