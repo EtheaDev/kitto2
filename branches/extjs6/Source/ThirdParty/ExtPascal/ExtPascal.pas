@@ -1493,7 +1493,7 @@ end;
 function TExtObject.CharsToPixels(const AChars: Integer; const AOffset: Integer = 0): Integer;
 begin
   // + 16 sort of compensates for text-to-border left and right margins.
-  Result := JSExpression('(%s * %d) + %d', [ExtUtilTextMetrics.GetWidth('g'), AChars, 16 + AOffset]);
+  Result := JSExpression('(%s * %d * 1.2) + %d', [ExtUtilTextMetrics.GetWidth('g'), AChars, 16 + AOffset]);
 end;
 
 {

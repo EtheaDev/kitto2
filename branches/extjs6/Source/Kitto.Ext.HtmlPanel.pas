@@ -25,8 +25,7 @@ uses
 
 type
   TKExtHtmlPanelController = class(TKExtPanelControllerBase)
-  protected
-    function GetDefaultAllowClose: Boolean; override;
+  strict protected
     procedure DoDisplay; override;
   end;
 
@@ -66,11 +65,6 @@ begin
     else
       Html := LHtml;
   end
-end;
-
-function TKExtHtmlPanelController.GetDefaultAllowClose: Boolean;
-begin
-  Result := False;
 end;
 
 initialization

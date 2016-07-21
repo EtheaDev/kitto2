@@ -1160,7 +1160,7 @@ end;
 
 function TKExtPanelControllerBase.GetDefaultAllowClose: Boolean;
 begin
-  Result := True;
+  Result := False;
 end;
 
 function TKExtPanelControllerBase.GetDefaultSplit: Boolean;

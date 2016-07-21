@@ -136,6 +136,7 @@ type
     function IsViewFieldIncludedInClientStore(const AViewField: TKViewField): Boolean; virtual;
     procedure AddUsedViewFields; virtual;
     procedure AddUsedViewField(const AViewField: TKViewField);
+    function GetDefaultAllowClose: Boolean; override;
   public
     procedure AfterConstruction; override;
     destructor Destroy; override;
@@ -689,6 +690,11 @@ end;
 
 procedure TKExtDataPanelController.SetNewRecordDefaultValues(const ANode: TEFNode);
 begin
+end;
+
+function TKExtDataPanelController.GetDefaultAllowClose: Boolean;
+begin
+  Result := True;
 end;
 
 function TKExtDataPanelController.GetDefaultAutoOpen: Boolean;
