@@ -403,6 +403,12 @@ type
     function MethodURI(Method : TExtProcedure) : string; overload;
     function MethodURI(MethodName : string; Params : array of const) : string; overload;
     function MethodURI(MethodName : string) : string; overload;
+    {
+    Converts a TExtFormField length in characters to pixels to use in Width property.
+    Uses dynamic JS in browser.
+    @param Chars Field length in characters
+    @return Pixels used by browser to render these Chars
+    }
     function CharsToPixels(const AChars: Integer; const AOffset: Integer = 0): Integer;
     function LinesToPixels(const ALines: Integer): Integer;
     destructor Destroy; override;
@@ -410,10 +416,37 @@ type
     function FindExtObject(const AJSName: string): TObject;
 
     procedure SetConfigItem(const AName, AMethodName: string; const AValue: array of const); overload;
-    procedure SetConfigItem(const AName, AValue: string); overload;
-    procedure SetConfigItem(const AName: string; const AValue: TExtFunction); overload;
-    procedure SetConfigItem(const AName: string; const AValue: Integer); overload;
-    procedure SetConfigItem(const AName: string; const AValue: Boolean); overload;
+    function SetConfigItem(const AName, AMethodName: string; const AValue: string): string; overload;
+    function SetConfigItem(const AName, AMethodName: string; const AValue: Boolean): Boolean; overload;
+    function SetConfigItem(const AName, AMethodName: string; const AValue: Integer): Integer; overload;
+    function SetConfigItem(const AName, AMethodName: string; const AValue: TDateTime): TDateTime; overload;
+    function SetConfigItem(const AName, AMethodName: string; const AValue: TExtObject): TExtObject; overload;
+    function SetFunctionConfigItem(const AName, AMethodName: string; const AValue: TExtFunction): TExtFunction; overload;
+
+    function SetConfigItem(const AName, AValue: string): string; overload;
+    function SetConfigItem(const AName: string; const AValue: TExtObject): TExtObject; overload;
+    function SetConfigItem(const AName: string; const AValue: Integer): Integer; overload;
+    function SetConfigItem(const AName: string; const AValue: Boolean): Boolean; overload;
+    function SetConfigItem(const AName: string; const AValue: Double): Double; overload;
+    function SetFunctionConfigItem(const AName: string; const AValue: TExtFunction): TExtFunction; overload;
+
+    function SetConfigItemOrProperty(const AName, AValue: string): string; overload;
+    function SetConfigItemOrProperty(const AName: string; const AValue: Boolean): Boolean; overload;
+
+    function SetProperty(const AName: string; const AValue: Integer): Integer; overload;
+    function SetProperty(const AName, AValue: string): string; overload;
+    function SetProperty(const AName: string; const AValue: TExtFunction): TExtFunction; overload;
+    function SetProperty(const AName: string; const AValue: TExtObject): TExtObject; overload;
+    function SetProperty(const AName: string; const AValue: Boolean): Boolean; overload;
+    function SetProperty(const AName: string; const AValue: TDateTime): TDateTime; overload;
+
+    function CallMethod(const AName: string; const AValue: Boolean): TExtFunction; overload;
+    function CallMethod(const AName, AValue: string): TExtFunction; overload;
+    function CallMethod(const AName: string; const AValue: TDateTime): TExtFunction; overload;
+    function CallMethod(const AName: string): TExtFunction; overload;
+    function CallMethod(const AName: string; const AValue: array of const): TExtFunction; overload;
+    function CallMethod(const AName: string; const AValue: TExtObject): TExtFunction; overload;
+    function CallFunctionMethod(const AName: string; const AValue: TExtFunction): TExtFunction;
   end;
 
   TExtObjectClass = class of TExtObject;
@@ -1427,12 +1460,36 @@ begin
   InitDefaults;
 end;
 
-{
-Converts a TExtFormField length in characters to pixels to use in Width property.
-Uses dynamic JS in browser.
-@param Chars Field length in characters
-@return Pixels used by browser to render these Chars
-}
+function TExtObject.CallMethod(const AName: string; const AValue: Boolean): TExtFunction;
+begin
+  Session.ResponseItems.CallMethod(Self, AName, [AValue]);
+  Result := TExtFunction(Self);
+end;
+
+function TExtObject.CallMethod(const AName: string): TExtFunction;
+begin
+  Session.ResponseItems.CallMethod(Self, AName, []);
+  Result := TExtFunction(Self);
+end;
+
+function TExtObject.CallMethod(const AName, AValue: string): TExtFunction;
+begin
+  Session.ResponseItems.CallMethod(Self, AName, [AValue]);
+  Result := TExtFunction(Self);
+end;
+
+function TExtObject.CallMethod(const AName: string; const AValue: TDateTime): TExtFunction;
+begin
+  Session.ResponseItems.CallMethod(Self, AName, [AValue]);
+  Result := TExtFunction(Self);
+end;
+
+function TExtObject.CallMethod(const AName: string; const AValue: array of const): TExtFunction;
+begin
+  Session.ResponseItems.CallMethod(Self, AName, AValue);
+  Result := TExtFunction(Self);
+end;
+
 function TExtObject.CharsToPixels(const AChars: Integer; const AOffset: Integer = 0): Integer;
 begin
   // + 16 sort of compensates for text-to-border left and right margins.
@@ -1457,7 +1514,7 @@ begin
   { TODO : JSName could be assigned on demand. }
   CreateJSName;
 
-  ExtSession.ResponseItems.CreateObject(Self);
+  Session.ResponseItems.CreateObject(Self);
 end;
 
 // Deletes JS object from Browser memory
@@ -1476,7 +1533,7 @@ begin
     // for cases in which the owner is freeing its own components (which it
     // does AFTER calling RemoveComponent, thus at a time when it's not the owner
     // anymore.
-    ExtSession.ResponseItems.RemoveAll(Self);
+    Session.ResponseItems.RemoveAll(Self);
   end;
 end;
 
@@ -1485,7 +1542,7 @@ destructor TExtObject.Destroy;
 begin
   // See Notification for details.
   if Assigned(Owner) then
-    ExtSession.ResponseItems.RemoveAll(Self);
+    Session.ResponseItems.RemoveAll(Self);
   inherited;
 end;
 
@@ -1561,7 +1618,7 @@ end;
 
 procedure TExtObject.Download(Method: TExtProcedure; Params: array of const);
 begin
-  ExtSession.ResponseItems.ExecuteJSCode(Self, GetDownloadJS(Method, Params));
+  Session.ResponseItems.ExecuteJSCode(Self, GetDownloadJS(Method, Params));
 end;
 
 procedure TExtObject.Download(Method: TExtProcedure);
@@ -1604,13 +1661,12 @@ begin
   FAttributeName := AAttributeName;
   FJSName := FExtObjectOwner.JSName + '.' + FAttributeName;
   //InitDefaults;
-  ExtSession.ResponseItems.CreateInternalObject(Self, AAttributeName);
+  Session.ResponseItems.CreateInternalObject(Self, AAttributeName);
 end;
 
-// Returns 'Object' that is the default class name for Ext JS objects
 class function TExtObject.JSClassName : string;
 begin
-  Result := 'Object';
+  Result := 'Ext.Base';
 end;
 
 {
@@ -1638,20 +1694,21 @@ begin
   Result := GetExtSession(Owner);
 end;
 
-procedure TExtObject.SetConfigItem(const AName, AMethodName: string;
-  const AValue: array of const);
+procedure TExtObject.SetConfigItem(const AName, AMethodName: string; const AValue: array of const);
 begin
-  ExtSession.ResponseItems.SetConfigItem(Self, AName, AMethodName, AValue);
+  Session.ResponseItems.SetConfigItem(Self, AName, AMethodName, AValue);
 end;
 
-procedure TExtObject.SetConfigItem(const AName, AValue: string);
+function TExtObject.SetConfigItem(const AName, AValue: string): string;
 begin
-  ExtSession.ResponseItems.SetConfigItem(Self, AName, [AValue]);
+  Session.ResponseItems.SetConfigItem(Self, AName, [AValue]);
+  Result := AValue;
 end;
 
-procedure TExtObject.SetConfigItem(const AName: string; const AValue: TExtFunction);
+function TExtObject.SetFunctionConfigItem(const AName: string; const AValue: TExtFunction): TExtFunction;
 begin
-  ExtSession.ResponseItems.SetConfigItem(Self, AName, [AValue, True]);
+  Session.ResponseItems.SetConfigItem(Self, AName, [AValue, True]);
+  Result := AValue;
 end;
 
 {
@@ -1770,7 +1827,7 @@ begin
           begin
             LCurrentParam := WriteFunction(LCodeItem.ToString);
             Result := Result + LCurrentParam;
-            ExtSession.ResponseItems.Remove(LCodeItem);
+            Session.ResponseItems.Remove(LCodeItem);
           end
           else
           begin
@@ -1851,6 +1908,24 @@ end;
 function TExtObject.RequestDownload(Method : TExtProcedure; Params : array of const): TExtFunction;
 begin
   Result := JSFunction(GetDownloadJS(Method, Params));
+end;
+
+function TExtObject.SetConfigItem(const AName, AMethodName, AValue: string): string;
+begin
+  Session.ResponseItems.SetConfigItem(Self, AName, AMethodName, [AValue]);
+  Result := AValue;
+end;
+
+function TExtObject.SetConfigItem(const AName, AMethodName: string; const AValue: Integer): Integer;
+begin
+  Session.ResponseItems.SetConfigItem(Self, AName, AMethodName, [AValue]);
+  Result := AValue;
+end;
+
+function TExtObject.SetConfigItem(const AName, AMethodName: string; const AValue: Boolean): Boolean;
+begin
+  Session.ResponseItems.SetConfigItem(Self, AName, AMethodName, [AValue]);
+  Result := AValue;
 end;
 
 function TExtObject.RequestDownload(Method : TExtProcedure) : TExtFunction; begin
@@ -2064,7 +2139,7 @@ Declares a named JS function with parameters.
 }
 procedure TExtObject.JSFunction(const AName, AParams, ABody: string);
 begin
-  ExtSession.ResponseItems.ExecuteJSCode(Self,
+  Session.ResponseItems.ExecuteJSCode(Self,
     'function ' + AName + '(' + AParams + ') { ' + ABody + ' };');
 end;
 
@@ -2498,7 +2573,7 @@ end;
 procedure TExtObject.AjaxCode(const AMethodName, ARawParams: string; const AParams: array of const;
   const AAdditionalDependencies: array of TExtObject);
 begin
-  ExtSession.ResponseItems.ExecuteJSCode(Self,
+  Session.ResponseItems.ExecuteJSCode(Self,
     GetAjaxCode(AMethodName, ARawParams, AParams),
     AAdditionalDependencies);
 end;
@@ -2557,7 +2632,7 @@ function TExtObject.Ajax(const AMethod: TExtProcedure;
   const AAdditionalDependencies: array of TExtObject;
   const AIsEvent: Boolean): TExtFunction;
 begin
-  ExtSession.ResponseItems.ExecuteJSCode(Self,
+  Session.ResponseItems.ExecuteJSCode(Self,
     GetAjaxCode(AMethod, AParams, AIsEvent),
     AAdditionalDependencies);
   Result := TExtFunction(Self);
@@ -2647,11 +2722,11 @@ function TExtObject.ExtractJSCommand: string;
 var
   LCodeItem: TExtResponseItem;
 begin
-  LCodeItem := ExtSession.ResponseItems.FindLastCodeItem(Self);
+  LCodeItem := Session.ResponseItems.FindLastCodeItem(Self);
   if Assigned(LCodeItem) then
   begin
     Result := RemoveLastJSTerminator(LCodeItem.ToString);
-    ExtSession.ResponseItems.Remove(LCodeItem);
+    Session.ResponseItems.Remove(LCodeItem);
   end
   else
     Result := '';
@@ -3597,14 +3672,106 @@ begin
   Result := FText;
 end;
 
-procedure TExtObject.SetConfigItem(const AName: string; const AValue: Integer);
+function TExtObject.SetConfigItem(const AName: string; const AValue: Integer): Integer;
 begin
-  ExtSession.ResponseItems.SetConfigItem(Self, AName, [AValue]);
+  Session.ResponseItems.SetConfigItem(Self, AName, [AValue]);
+  Result := AValue;
 end;
 
-procedure TExtObject.SetConfigItem(const AName: string; const AValue: Boolean);
+function TExtObject.SetConfigItem(const AName: string; const AValue: Boolean): Boolean;
 begin
-  ExtSession.ResponseItems.SetConfigItem(Self, AName, [AValue]);
+  Session.ResponseItems.SetConfigItem(Self, AName, [AValue]);
+  Result := AValue;
+end;
+
+function TExtObject.SetConfigItem(const AName: string; const AValue: Double): Double;
+begin
+  Session.ResponseItems.SetConfigItem(Self, AName, [AValue]);
+  Result := AValue;
+end;
+
+function TExtObject.SetFunctionConfigItem(const AName, AMethodName: string; const AValue: TExtFunction): TExtFunction;
+begin
+  Session.ResponseItems.SetConfigItem(Self, AName, AMethodName, [AValue, True]);
+  Result := AValue;
+end;
+
+function TExtObject.SetConfigItem(const AName, AMethodName: string; const AValue: TExtObject): TExtObject;
+begin
+  Session.ResponseItems.SetConfigItem(Self, AName, AMethodName, [AValue, False]);
+  Result := AValue;
+end;
+
+function TExtObject.SetConfigItemOrProperty(const AName: string; const AValue: Boolean): Boolean;
+begin
+  Session.ResponseItems.SetConfigItemOrProperty(Self, AName, [AValue]);
+  Result := AValue;
+end;
+
+function TExtObject.SetProperty(const AName: string; const AValue: TExtFunction): TExtFunction;
+begin
+  Session.ResponseItems.SetProperty(Self, AName, [AValue, True]);
+  Result := AValue;
+end;
+
+function TExtObject.SetProperty(const AName: string; const AValue: TExtObject): TExtObject;
+begin
+  Session.ResponseItems.SetProperty(Self, AName, [AValue, False]);
+  Result := AValue;
+end;
+
+function TExtObject.SetProperty(const AName: string; const AValue: Boolean): Boolean;
+begin
+  Session.ResponseItems.SetProperty(Self, AName, [AValue]);
+  Result := AValue;
+end;
+
+function TExtObject.SetProperty(const AName, AValue: string): string;
+begin
+  Session.ResponseItems.SetProperty(Self, AName, [AValue]);
+  Result := AValue;
+end;
+
+function TExtObject.SetProperty(const AName: string; const AValue: Integer): Integer;
+begin
+  Session.ResponseItems.SetProperty(Self, AName, [AValue]);
+  Result := AValue;
+end;
+
+function TExtObject.SetConfigItemOrProperty(const AName, AValue: string): string;
+begin
+  Session.ResponseItems.SetConfigItemOrProperty(Self, AName, [AValue]);
+  Result := AValue;
+end;
+
+function TExtObject.SetConfigItem(const AName: string; const AValue: TExtObject): TExtObject;
+begin
+  Session.ResponseItems.SetConfigItem(Self, AName, [AValue, False]);
+  Result := Self;
+end;
+
+function TExtObject.SetConfigItem(const AName, AMethodName: string; const AValue: TDateTime): TDateTime;
+begin
+  Session.ResponseItems.SetConfigItem(Self, AName, [AValue]);
+  Result := AValue;
+end;
+
+function TExtObject.SetProperty(const AName: string; const AValue: TDateTime): TDateTime;
+begin
+  Session.ResponseItems.SetProperty(Self, AName, [AValue]);
+  Result := AValue;
+end;
+
+function TExtObject.CallFunctionMethod(const AName: string; const AValue: TExtFunction): TExtFunction;
+begin
+  Session.ResponseItems.CallMethod(Self, AName, [AValue, True]);
+  Result := TExtFunction(Self);
+end;
+
+function TExtObject.CallMethod(const AName: string; const AValue: TExtObject): TExtFunction;
+begin
+  Session.ResponseItems.CallMethod(Self, AName, [AValue, False]);
+  Result := TExtFunction(Self);
 end;
 
 initialization

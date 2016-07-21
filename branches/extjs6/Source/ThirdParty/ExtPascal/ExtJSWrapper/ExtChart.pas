@@ -378,20 +378,20 @@ end;
 procedure TExtChartSeries.SetDisplayName(const AValue: String);
 begin
   FDisplayName := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'displayName', [AValue]);
+  SetConfigItem('displayName', AValue);
 end;
 
 procedure TExtChartSeries.SetTypeJS(const AValue: String);
 begin
   FTypeJS := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'type', [AValue]);
+  SetConfigItem('type', AValue);
 end;
 
 procedure TExtChartSeries.SetStyle(const AValue: TExtChartSeriesStyle);
 begin
   FStyle.Free;
   FStyle := AValue;
-  ExtSession.ResponseItems.SetProperty(Self, 'style', [AValue, False]);
+  SetProperty('style', AValue);
 end;
 
 class function TExtChartSeries.JSClassName : string; begin
@@ -401,19 +401,19 @@ end;
 procedure TExtChartSeriesStyle.SetImage(const AValue: String);
 begin
   FImage := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'image', 'setImage', [AValue]);
+  SetConfigItem('image', 'setImage', AValue);
 end;
 
 procedure TExtChartSeriesStyle.SetMode(const AValue: String);
 begin
   FMode := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'mode', [AValue]);
+  SetConfigItem('mode', AValue);
 end;
 
 procedure TExtChartSeriesStyle.SetColor(const AValue: String);
 begin
   FColor := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'color', [AValue]);
+  SetConfigItem('color', AValue);
 end;
 
 class function TExtChartSeriesStyle.JSClassName : string; begin
@@ -427,8 +427,7 @@ end;
 
 procedure TExtChartAxis.SetLabelFunction(const AValue: String);
 begin
-  FLabelFunction := AValue;
-  ExtSession.ResponseItems.SetProperty(Self, 'labelFunction', [AValue]);
+  FLabelFunction := SetProperty('labelFunction', AValue);
 end;
 
 procedure TExtChartAxis.SetFLabelSpacing(Value : Integer); begin
@@ -459,7 +458,7 @@ end;
 procedure TExtChartAxis.SetTitle(const AValue: String);
 begin
   FTitle := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'title', [AValue]);
+  SetConfigItem('title', AValue);
 end;
 
 class function TExtChartAxis.JSClassName : string; begin
@@ -488,26 +487,22 @@ end;
 
 procedure TExtChartNumericAxis.SetMajorUnit(const AValue: Integer);
 begin
-  FMajorUnit := AValue;
-  ExtSession.ResponseItems.SetProperty(Self, 'majorUnit', [AValue]);
+  FMajorUnit := SetProperty('majorUnit', AValue);
 end;
 
 procedure TExtChartNumericAxis.SetMaximum(const AValue: Integer);
 begin
-  FMaximum := AValue;
-  ExtSession.ResponseItems.SetProperty(Self, 'maximum', [AValue]);
+  FMaximum := SetProperty('maximum', AValue);
 end;
 
 procedure TExtChartNumericAxis.SetMinimum(const AValue: Integer);
 begin
-  FMinimum := AValue;
-  ExtSession.ResponseItems.SetProperty(Self, 'minimum', [AValue]);
+  FMinimum := SetProperty('minimum', AValue);
 end;
 
 procedure TExtChartNumericAxis.SetMinorUnit(const AValue: Integer);
 begin
-  FMinorUnit := AValue;
-  ExtSession.ResponseItems.SetProperty(Self, 'minorUnit', [AValue]);
+  FMinorUnit := SetProperty('minorUnit', AValue);
 end;
 
 procedure TExtChartNumericAxis.SetFPosition(Value : String); begin
@@ -532,8 +527,7 @@ end;
 
 procedure TExtChartNumericAxis.SetStackingEnabled(const AValue: Boolean);
 begin
-  FStackingEnabled := AValue;
-  ExtSession.ResponseItems.SetProperty(Self, 'stackingEnabled', [AValue]);
+  FStackingEnabled := SetProperty('stackingEnabled', AValue);
 end;
 
 class function TExtChartNumericAxis.JSClassName : string; begin
@@ -547,32 +541,27 @@ end;
 
 procedure TExtChartTimeAxis.SetMajorTimeUnit(const AValue: String);
 begin
-  FMajorTimeUnit := AValue;
-  ExtSession.ResponseItems.SetProperty(Self, 'majorTimeUnit', [AValue]);
+  FMajorTimeUnit := SetProperty('majorTimeUnit', AValue);
 end;
 
 procedure TExtChartTimeAxis.SetMajorUnit(const AValue: Integer);
 begin
-  FMajorUnit := AValue;
-  ExtSession.ResponseItems.SetProperty(Self, 'majorUnit', [AValue]);
+  FMajorUnit := SetProperty('majorUnit', AValue);
 end;
 
 procedure TExtChartTimeAxis.SetMinorUnit(const AValue: Integer);
 begin
-  FMinorUnit := AValue;
-  ExtSession.ResponseItems.SetProperty(Self, 'minorUnit', [AValue]);
+  FMinorUnit := SetProperty('minorUnit', AValue);
 end;
 
 procedure TExtChartTimeAxis.SetMaximum(const AValue: Integer);
 begin
-  FMaximum := AValue;
-  ExtSession.ResponseItems.SetProperty(Self, 'maximum', [AValue]);
+  FMaximum := SetProperty('maximum', AValue);
 end;
 
 procedure TExtChartTimeAxis.SetMinimum(const AValue: TDateTime);
 begin
-  FMinimum := AValue;
-  ExtSession.ResponseItems.SetProperty(Self, 'minimum', [AValue]);
+  FMinimum := SetProperty('minimum', AValue);
 end;
 
 procedure TExtChartTimeAxis.SetFSnapToUnits(Value : Boolean); begin
@@ -582,8 +571,7 @@ end;
 
 procedure TExtChartTimeAxis.SetStackingEnabled(const AValue: Boolean);
 begin
-  FStackingEnabled := AValue;
-  ExtSession.ResponseItems.SetProperty(Self, 'stackingEnabled', [AValue]);
+  FStackingEnabled := SetProperty('stackingEnabled', AValue);
 end;
 
 class function TExtChartTimeAxis.JSClassName : string; begin
@@ -606,14 +594,12 @@ end;
 
 procedure TExtChartCartesianSeries.SetXField(const AValue: String);
 begin
-  FXField := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'xField', [AValue]);
+  FXField := SetConfigItem('xField', AValue);
 end;
 
 procedure TExtChartCartesianSeries.SetYField(const AValue: String);
 begin
-  FYField := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'yField', [AValue]);
+  FYField := SetConfigItem('yField', AValue);
 end;
 
 class function TExtChartCartesianSeries.JSClassName : string; begin
@@ -649,8 +635,7 @@ end;
 procedure TExtChartChart.SetChartStyle(const AValue: TExtObject);
 begin
   FChartStyle.Free;
-  FChartStyle := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'chartStyle', [AValue, False]);
+  FChartStyle := SetConfigItem('chartStyle', AValue);
 end;
 
 procedure TExtChartChart.SetFDisableCaching(Value : Boolean); begin
@@ -671,47 +656,43 @@ end;
 
 procedure TExtChartChart.SetUrl(const AValue: String);
 begin
-  FUrl := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'url', [AValue]);
+  FUrl := SetConfigItem('url', AValue);
 end;
 
 procedure TExtChartChart.SetStore(const AValue: TExtDataStore);
 begin
   FStore.Free;
   FStore := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'store', [AValue, False]);
+  SetConfigItem('store', AValue);
 end;
 
 procedure TExtChartChart.SetYField(const AValue: String);
 begin
-  FYField := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'yField', [AValue]);
+  FYField := SetConfigItem('yField', AValue);
 end;
 
 procedure TExtChartChart.SetXField(const AValue: String);
 begin
-  FXField := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'xField', [AValue]);
+  FXField := SetConfigItem('xField', AValue);
 end;
 
 procedure TExtChartChart.SetXAxis(const AValue: TExtChartAxis);
 begin
   FXAxis.Free;
   FXAxis := AValue;
-  ExtSession.ResponseItems.SetProperty(Self, 'xAxis', [AValue, False]);
+  SetProperty('xAxis', AValue);
 end;
 
 procedure TExtChartChart.SetYAxis(const AValue: TExtChartAxis);
 begin
   FYAxis.Free;
   FYAxis := AValue;
-  ExtSession.ResponseItems.SetProperty(Self, 'yAxis', [AValue, False]);
+  SetProperty('yAxis', AValue);
 end;
 
 procedure TExtChartChart.SetTipRenderer(const AValue: TExtFunction);
 begin
-  FTipRenderer := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'tipRenderer', 'setTipRenderer', [AValue]);
+  FTipRenderer := SetFunctionConfigItem('tipRenderer', 'setTipRenderer', AValue);
 end;
 
 procedure TExtChartChart.SetFSeries(Value : TExtObjectList); begin
@@ -793,14 +774,12 @@ end;
 
 procedure TExtChartPieChart.SetDataField(const AValue: String);
 begin
-  FDataField := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'dataField', [AValue]);
+  FDataField := SetConfigItem('dataField', AValue);
 end;
 
 procedure TExtChartPieChart.SetCategoryField(const AValue: String);
 begin
-  FCategoryField := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'categoryField', [AValue]);
+  FCategoryField := SetConfigItem('categoryField', AValue);
 end;
 
 class function TExtChartPieChart.JSClassName : string; begin

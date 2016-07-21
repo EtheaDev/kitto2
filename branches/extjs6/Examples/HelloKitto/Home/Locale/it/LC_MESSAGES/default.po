@@ -128,8 +128,8 @@ msgstr "Nome festa"
 msgid "Party Time"
 msgstr "Ora festa"
 
-msgid "Peoria Girls and their Dolls"
-msgstr "Le bambine di Peoria e le loro bambole"
+msgid "Peoria Dolls"
+msgstr "Le bambole di Peoria"
 
 msgid "Phone"
 msgstr "Telefono"

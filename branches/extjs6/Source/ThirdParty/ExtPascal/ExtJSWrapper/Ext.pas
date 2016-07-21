@@ -19,7 +19,6 @@ type
   TExtProgressWaitConfig = class;
   TExtEventObjectSingleton = class;
   TExtLoadMask = class;
-  TExtUpdaterDefaults = class;
   TExtSplitBarBasicLayoutAdapter = class;
   TExtTemplate = class;
   TExtUpdaterBasicRenderer = class;
@@ -433,33 +432,6 @@ type
     property RemoveMask: Boolean read FRemoveMask write SetFRemoveMask;
     property Store: TExtDataStore read FStore write SetFStore;
     property Disabled: Boolean read FDisabled write SetFDisabled;
-  end;
-
-  TExtUpdaterDefaults = class(TExtFunction)
-  private
-    FDisableCaching: Boolean;
-    FIndicatorText: string; // 'div class='
-    FLoadScripts: Boolean;
-    FShowLoadIndicator: Boolean; // true
-    FSslBlankUrl: string; // 'output/Ext.html#Ext-SSL_SECURE_URL'
-    FTimeout: Integer;
-    procedure SetFDisableCaching(Value: Boolean);
-    procedure SetFIndicatorText(Value: string);
-    procedure SetFLoadScripts(Value: Boolean);
-    procedure SetFShowLoadIndicator(Value: Boolean);
-    procedure SetFSslBlankUrl(Value: string);
-    procedure SetFTimeout(const AValue: Integer);
-  protected
-    procedure InitDefaults; override;
-  public
-    class function JSClassName: string; override;
-    property DisableCaching: Boolean read FDisableCaching write SetFDisableCaching;
-    property IndicatorText: string read FIndicatorText write SetFIndicatorText;
-    property LoadScripts: Boolean read FLoadScripts write SetFLoadScripts;
-    property ShowLoadIndicator: Boolean read FShowLoadIndicator
-      write SetFShowLoadIndicator;
-    property SslBlankUrl: string read FSslBlankUrl write SetFSslBlankUrl;
-    property Timeout: Integer read FTimeout write SetFTimeout;
   end;
 
   TExtSplitBarBasicLayoutAdapter = class(TExtFunction)
@@ -1853,7 +1825,6 @@ type
     procedure SetLabelStyle(const AValue: string);
     procedure SetOverCls(const AValue: string);
     procedure SetPlugins(const AValue: TExtObject);
-    procedure SetFPluginsArray(Value: TExtObjectList);
     procedure SetFPtype(Value: string);
     procedure SetFRef(Value: string);
     procedure SetFRenderTo(Value: string);
@@ -1903,7 +1874,7 @@ type
     procedure HandleEvent(const AEvtName: string); override;
   public
     class function JSClassName: string; override;
-    function AddClass(const AClassName: string): TExtFunction;
+    function AddCls(const AClsName: string): TExtFunction;
     function AnElement(Cls: string): TExtFunction;
     function ApplyToMarkup(El: string): TExtFunction; overload;
     function ApplyToMarkup(El: THTMLElement): TExtFunction; overload;
@@ -1982,7 +1953,7 @@ type
     property LabelStyle: string read FLabelStyle write SetLabelStyle;
     property OverCls: string read FOverCls write SetOverCls;
     property Plugins: TExtObject read FPlugins write SetPlugins;
-    property PluginsArray: TExtObjectList read FPluginsArray write SetFPluginsArray;
+    property PluginsArray: TExtObjectList read FPluginsArray;
     property Ptype: string read FPtype write SetFPtype;
     property Ref: string read FRef write SetFRef;
     property RenderTo: string read FRenderTo write SetFRenderTo;
@@ -2257,11 +2228,6 @@ type
   private
     FCancelText: string; // 'Cancel'
     FDayNames: TExtObjectList;
-    FDisabledDates: TExtObjectList;
-    FDisabledDatesRE: TRegExp;
-    FDisabledDatesText: string; // 'Disabled'
-    FDisabledDays: TExtObjectList;
-    FDisabledDaysText: string; // 'Disabled'
     FFormat: string; // 'm/d/y'
     FHandler: TExtFunction;
     FMaxDate: TDateTime;
@@ -2281,11 +2247,6 @@ type
     FOnSelect: TExtDatePickerOnSelect;
     procedure SetFCancelText(Value: string);
     procedure SetFDayNames(Value: TExtObjectList);
-    procedure _SetDisabledDates(const AValue: TExtObjectList);
-    procedure SetFDisabledDatesRE(Value: TRegExp);
-    procedure SetFDisabledDatesText(Value: string);
-    procedure _SetDisabledDays(const AValue: TExtObjectList);
-    procedure SetFDisabledDaysText(Value: string);
     procedure SetFFormat(Value: string);
     procedure SetFHandler(Value: TExtFunction);
     procedure _SetMaxDate(const AValue: TDateTime);
@@ -2309,20 +2270,11 @@ type
   public
     class function JSClassName: string; override;
     function GetValue: TExtFunction;
-    function SetDisabledDates(const ADisabledDates: TExtObjectList): TExtFunction; overload;
-    function SetDisabledDates(const ADisabledDates: TRegExp): TExtFunction; overload;
-    function SetDisabledDays(const ADisabledDays: TExtObjectList): TExtFunction;
     function SetMaxDate(const AValue: TDateTime): TExtFunction;
     function SetMinDate(const AValue: TDateTime): TExtFunction;
     function SetValue(Value: TDateTime): TExtFunction;
     property CancelText: string read FCancelText write SetFCancelText;
     property DayNames: TExtObjectList read FDayNames write SetFDayNames;
-    property DisabledDates: TExtObjectList read FDisabledDates write _SetDisabledDates;
-    property DisabledDatesRE: TRegExp read FDisabledDatesRE write SetFDisabledDatesRE;
-    property DisabledDatesText: string read FDisabledDatesText
-      write SetFDisabledDatesText;
-    property DisabledDays: TExtObjectList read FDisabledDays write _SetDisabledDays;
-    property DisabledDaysText: string read FDisabledDaysText write SetFDisabledDaysText;
     property Format: string read FFormat write SetFFormat;
     property Handler: TExtFunction read FHandler write SetFHandler;
     property MaxDate: TDateTime read FMaxDate write _SetMaxDate;
@@ -2585,8 +2537,8 @@ type
     FOnRemove: TExtContainerOnRemove;
     FLabelWidth: Integer;
     FLabelAlign: TExtContainerLabelAlign;
-    procedure SetFActiveItem(Value: string);
-    procedure SetFActiveItemNumber(Value: Integer);
+    procedure SetActiveItem(const AValue: string);
+    procedure SetActiveItemNumber(const AValue: Integer);
     procedure SetFAutoDestroy(Value: Boolean);
     procedure SetFBufferResize(Value: Boolean);
     procedure SetFBufferResizeNumber(Value: Integer);
@@ -2643,8 +2595,8 @@ type
     function Remove(Component: string; AutoDestroy: Boolean = false)
       : TExtFunction; overload;
     function RemoveAll(AutoDestroy: Boolean = false): TExtFunction;
-    property ActiveItem: string read FActiveItem write SetFActiveItem;
-    property ActiveItemNumber: Integer read FActiveItemNumber write SetFActiveItemNumber;
+    property ActiveItem: string read FActiveItem write SetActiveItem;
+    property ActiveItemNumber: Integer read FActiveItemNumber write SetActiveItemNumber;
     property AutoDestroy: Boolean read FAutoDestroy write SetFAutoDestroy;
     property BufferResize: Boolean read FBufferResize write SetFBufferResize;
     property BufferResizeNumber: Integer read FBufferResizeNumber
@@ -3127,7 +3079,6 @@ type
     FOnExpand: TExtPanelOnExpand;
     FOnIconchange: TExtPanelOnIconchange;
     FOnTitlechange: TExtPanelOnTitlechange;
-    FLabelWidth: Integer;
     procedure SetFAnimCollapse(Value: Boolean);
     procedure SetFApplyTo(Value: string);
     procedure SetAutoHeight(const AValue: Boolean);
@@ -3287,7 +3238,6 @@ type
     property IconCls: string read FIconCls write SetIconCls;
     property Keys: TExtObject read FKeys write SetKeys;
     property KeysArray: TExtObjectList read FKeysArray write SetFKeysArray;
-    property LabelWidth: Integer read FLabelWidth write SetLabelWidth;
     property MaskDisabled: Boolean read FMaskDisabled write SetFMaskDisabled;
     property MinButtonWidth: Integer read FMinButtonWidth write SetFMinButtonWidth;
     property Padding: Integer read FPadding write SetFPadding;
@@ -3711,9 +3661,6 @@ type
     FBaseCls: string; // 'x-tab-panel'
     FDeferredRender: Boolean;
     FEnableTabScroll: Boolean;
-    FItemTpl: TExtTemplate;
-    FItemTplXTemplate: TExtXTemplate;
-    FLayoutConfig: TExtObject;
     FLayoutOnTabChange: Boolean;
     FMinTabWidth: Integer; // 30
     FPlain: Boolean;
@@ -3737,9 +3684,6 @@ type
     procedure SetFBaseCls(Value: string);
     procedure SetDeferredRender(const AValue: Boolean);
     procedure SetEnableTabScroll(const AValue: Boolean);
-    procedure SetFItemTpl(Value: TExtTemplate);
-    procedure SetFItemTplXTemplate(Value: TExtXTemplate);
-    procedure SetFLayoutConfig(Value: TExtObject);
     procedure SetLayoutOnTabChange(const AValue: Boolean);
     procedure SetFMinTabWidth(Value: Integer);
     procedure SetFPlain(Value: Boolean);
@@ -3789,10 +3733,6 @@ type
     property BaseCls: string read FBaseCls write SetFBaseCls;
     property DeferredRender: Boolean read FDeferredRender write SetDeferredRender;
     property EnableTabScroll: Boolean read FEnableTabScroll write SetEnableTabScroll;
-    property ItemTpl: TExtTemplate read FItemTpl write SetFItemTpl;
-    property ItemTplXTemplate: TExtXTemplate read FItemTplXTemplate
-      write SetFItemTplXTemplate;
-    property LayoutConfig: TExtObject read FLayoutConfig write SetFLayoutConfig;
     property LayoutOnTabChange: Boolean read FLayoutOnTabChange
       write SetLayoutOnTabChange;
     property MinTabWidth: Integer read FMinTabWidth write SetFMinTabWidth;
@@ -4392,8 +4332,7 @@ end;
 
 procedure TExtKeyNav._SetDisabled(const AValue: Boolean);
 begin
-  FDisabled := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'disabled', 'setDisabled', [AValue]);
+  FDisabled := SetConfigItem('disabled', 'setDisabled', AValue);
 end;
 
 procedure TExtKeyNav.SetFForceKeyDown(Value: Boolean);
@@ -4428,8 +4367,7 @@ end;
 function TExtKeyNav.SetDisabled(const ADisabled: Boolean): TExtFunction;
 begin
   FDisabled := ADisabled;
-  ExtSession.ResponseItems.CallMethod(Self, 'setDisabled', [ADisabled]);
-  Result := Self;
+  Result := CallMethod('setDisabled', [ADisabled]);
 end;
 
 class function TExtFlashProxySingleton.JSClassName: string;
@@ -5256,55 +5194,6 @@ begin
   Result := Self;
 end;
 
-procedure TExtUpdaterDefaults.SetFDisableCaching(Value: Boolean);
-begin
-  FDisableCaching := Value;
-  JSCode(JSName + '.disableCaching=' + VarToJSON([Value]) + ';');
-end;
-
-procedure TExtUpdaterDefaults.SetFIndicatorText(Value: string);
-begin
-  FIndicatorText := Value;
-  JSCode(JSName + '.indicatorText=' + VarToJSON([Value]) + ';');
-end;
-
-procedure TExtUpdaterDefaults.SetFLoadScripts(Value: Boolean);
-begin
-  FLoadScripts := Value;
-  JSCode(JSName + '.loadScripts=' + VarToJSON([Value]) + ';');
-end;
-
-procedure TExtUpdaterDefaults.SetFShowLoadIndicator(Value: Boolean);
-begin
-  FShowLoadIndicator := Value;
-  JSCode(JSName + '.showLoadIndicator=' + VarToJSON([Value]) + ';');
-end;
-
-procedure TExtUpdaterDefaults.SetFSslBlankUrl(Value: string);
-begin
-  FSslBlankUrl := Value;
-  JSCode(JSName + '.sslBlankUrl=' + VarToJSON([Value]) + ';');
-end;
-
-procedure TExtUpdaterDefaults.SetFTimeout(const AValue: Integer);
-begin
-  FTimeout := AValue;
-  ExtSession.ResponseItems.SetProperty(Self, 'timeout', [AValue]);
-end;
-
-class function TExtUpdaterDefaults.JSClassName: string;
-begin
-  Result := 'Ext.Updater.defaults';
-end;
-
-procedure TExtUpdaterDefaults.InitDefaults;
-begin
-  inherited;
-  FIndicatorText := 'div class=';
-  FShowLoadIndicator := true;
-  FSslBlankUrl := 'output/Ext.html#Ext-SSL_SECURE_URL';
-end;
-
 class function TExtSplitBarBasicLayoutAdapter.JSClassName: string;
 begin
   Result := 'Ext.SplitBar.BasicLayoutAdapter';
@@ -5609,8 +5498,7 @@ end;
 
 procedure TExtShowConfig.SetModal(const AValue: Boolean);
 begin
-  FModal := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'modal', [AValue]);
+  FModal := SetConfigItem('modal', AValue);
 end;
 
 procedure TExtShowConfig.SetFMsg(Value: string);
@@ -5806,8 +5694,7 @@ end;
 function TExtMessageBoxSingleton.Alert(const ATitle: string; const AMsg: string;
   const AFn: TExtFunction = nil; const AScope: TExtObject = nil): TExtFunction;
 begin
-  ExtSession.ResponseItems.CallMethod(Self, 'alert', [ATitle, AMsg, AFn, True, AScope, False]);
-  Result := Self;
+  Result := CallMethod('alert', [ATitle, AMsg, AFn, True, AScope, False]);
 end;
 
 function TExtMessageBoxSingleton.Confirm(Title: string; Msg: string;
@@ -5903,8 +5790,7 @@ end;
 
 function TExtQuickTipsSingleton.Disable: TExtFunction;
 begin
-  ExtSession.ResponseItems.CallMethod(Self, 'disable', []);
-  Result := Self;
+  Result := CallMethod('disable', []);
 end;
 
 function TExtQuickTipsSingleton.Enable: TExtFunction;
@@ -5921,8 +5807,7 @@ end;
 
 function TExtQuickTipsSingleton.Init(const AAutoRender: Boolean): TExtFunction;
 begin
-  ExtSession.ResponseItems.CallMethod(Self, 'init', [AAutoRender]);
-  Result := Self;
+  Result := CallMethod('init', AAutoRender);
 end;
 
 function TExtQuickTipsSingleton.IsEnabled: TExtFunction;
@@ -6440,8 +6325,7 @@ end;
 
 function TExtElement.AddClass(const AClassName: string): TExtFunction;
 begin
-  Session.ResponseItems.CallMethod(Self, 'addClass', [AClassName]);
-  Result := Self;
+  Result := CallMethod('addClass', AClassName);
 end;
 
 function TExtElement.AddClass(ClassName: TExtObjectList): TExtFunction;
@@ -8423,20 +8307,17 @@ end;
 
 procedure TExtAction._SetDisabled(const AValue: Boolean);
 begin
-  FDisabled := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'disabled', 'setDisabled', [AValue]);
+  FDisabled := SetConfigItem('disabled', 'setDisabled', AValue);
 end;
 
 procedure TExtAction._SetHandler(const AValue: TExtFunction);
 begin
-  FHandler := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'handler', 'setHandler', [AValue, True]);
+  FHandler := SetFunctionConfigItem('handler', 'setHandler', AValue);
 end;
 
 procedure TExtAction._SetHidden(const AValue: Boolean);
 begin
-  FHidden := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'hidden', 'setHidden', [AValue]);
+  FHidden := SetConfigItem('hidden', 'setHidden', AValue);
 end;
 
 procedure TExtAction.SetFIconCls(Value: string);
@@ -8459,8 +8340,7 @@ end;
 
 procedure TExtAction._SetText(const AValue: string);
 begin
-  FText := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'text', 'setText', [AValue]);
+  FText := SetConfigItem('text', 'setText', AValue);
 end;
 
 class function TExtAction.JSClassName: string;
@@ -8531,22 +8411,19 @@ end;
 function TExtAction.SetDisabled(const ADisabled: Boolean): TExtFunction;
 begin
   FDisabled := ADisabled;
-  ExtSession.ResponseItems.CallMethod(Self, 'setDisabled', [ADisabled]);
-  Result := Self;
+  Result := CallMethod('setDisabled', ADisabled);
 end;
 
 function TExtAction.SetHandler(const AFn: TExtFunction; const AScope: TExtObject): TExtFunction;
 begin
   FHandler := AFn;
-  ExtSession.ResponseItems.CallMethod(Self, 'setHandler', [AFn, True, AScope, False]);
-  Result := Self;
+  Result := CallMethod('setHandler', [AFn, True, AScope, False]);
 end;
 
 function TExtAction.SetHidden(const AHidden: Boolean): TExtFunction;
 begin
   FHidden := AHidden;
-  ExtSession.ResponseItems.CallMethod(Self, 'setHidden', [AHidden]);
-  Result := Self;
+  Result := CallMethod('setHidden', AHidden);
 end;
 
 function TExtAction.SetIconClass(Cls: string): TExtFunction;
@@ -8558,8 +8435,7 @@ end;
 function TExtAction.SetText(const AText: string): TExtFunction;
 begin
   FText := AText;
-  ExtSession.ResponseItems.CallMethod(Self, 'setText', [AText]);
-  Result := Self;
+  Result := CallMethod('setText', AText);
 end;
 
 function TExtAction.Show: TExtFunction;
@@ -9344,8 +9220,7 @@ end;
 
 procedure TExtComponent.SetCls(const AValue: string);
 begin
-  FCls := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'cls', [AValue]);
+  FCls := SetConfigItem('cls', AValue);
 end;
 
 procedure TExtComponent.SetFContentEl(Value: string);
@@ -9368,8 +9243,7 @@ end;
 
 procedure TExtComponent._SetDisabled(const AValue: Boolean);
 begin
-  FDisabled := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'disabled', 'setDisabled', [AValue]);
+  FDisabled := SetConfigItem('disabled', 'setDisabled', AValue);
 end;
 
 procedure TExtComponent.SetFDisabledClass(Value: string);
@@ -9380,14 +9254,12 @@ end;
 
 procedure TExtComponent.SetFieldLabel(const AValue: string);
 begin
-  FFieldLabel := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'fieldLabel', [AValue]);
+  FFieldLabel := SetConfigItem('fieldLabel', AValue);
 end;
 
 procedure TExtComponent.SetHidden(const AValue: Boolean);
 begin
-  FHidden := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'hidden', 'setHidden', [AValue]);
+  FHidden := SetConfigItem('hidden', 'setHidden', AValue);
 end;
 
 procedure TExtComponent.SetFHideLabel(Value: Boolean);
@@ -9410,8 +9282,7 @@ end;
 
 procedure TExtComponent.SetHtml(const AValue: string);
 begin
-  FHtml := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'html', [AValue]);
+  FHtml := SetConfigItem('html', AValue);
 end;
 
 procedure TExtComponent.SetFHtmlObject(Value: TExtObject);
@@ -9422,51 +9293,39 @@ end;
 
 procedure TExtComponent.SetId(const AValue: string);
 begin
-  FId := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'id', [AValue]);
+  FId := SetConfigItem('id', AValue);
 end;
 
 procedure TExtComponent.SetItemCls(const AValue: string);
 begin
-  FItemCls := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'itemCls', [AValue]);
+  FItemCls := SetConfigItem('itemCls', AValue);
 end;
 
 procedure TExtComponent.SetItemId(const AValue: string);
 begin
-  FItemId := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'itemId', [AValue]);
+  FItemId := SetConfigItem('itemId', AValue);
 end;
 
 procedure TExtComponent.SetLabelSeparator(const AValue: string);
 begin
-  FLabelSeparator := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'labelSeparator', [AValue]);
+  FLabelSeparator := SetConfigItem('labelSeparator', AValue);
 end;
 
 procedure TExtComponent.SetLabelStyle(const AValue: string);
 begin
-  FLabelStyle := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'labelStyle', [AValue]);
+  FLabelStyle := SetConfigItem('labelStyle', AValue);
 end;
 
 procedure TExtComponent.SetOverCls(const AValue: string);
 begin
-  FOverCls := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'overCls', [AValue]);
+  FOverCls := SetConfigItem('overCls', AValue);
 end;
 
 procedure TExtComponent.SetPlugins(const AValue: TExtObject);
 begin
   FPlugins.Free;
   FPlugins := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'plugins', [AValue, False]);
-end;
-
-procedure TExtComponent.SetFPluginsArray(Value: TExtObjectList);
-begin
-  FPluginsArray := Value;
-  JSCode('plugins:' + VarToJSON([Value, false]));
+  SetConfigItem('plugins', AValue);
 end;
 
 procedure TExtComponent.SetFPtype(Value: string);
@@ -9507,14 +9366,12 @@ end;
 
 procedure TExtComponent.SetStyle(const AValue: string);
 begin
-  FStyle := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'style', [AValue]);
+  FStyle := SetConfigItem('style', AValue);
 end;
 
 procedure TExtComponent.SetTpl(const AValue: string);
 begin
-  FTpl := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'tpl', [AValue]);
+  FTpl := SetConfigItem('tpl', AValue);
 end;
 
 procedure TExtComponent.SetFTplWriteMode(Value: string);
@@ -9556,7 +9413,7 @@ end;
 procedure TExtComponent.SetOwnerCt(AValue: TExtContainer);
 begin
   FOwnerCt := AValue;
-  ExtSession.ResponseItems.SetProperty(Self, 'ownerCt', [AValue, False]);
+  SetProperty('ownerCt', AValue);
 end;
 
 procedure TExtComponent.SetFRefOwner(Value: TExtContainer);
@@ -9574,37 +9431,37 @@ end;
 procedure TExtComponent.SetSplit(const AValue: Boolean);
 begin
   FSplit := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'split', [AValue]);
+  SetConfigItem('split', AValue);
 end;
 
 procedure TExtComponent.SetCollapseMode(const AValue: string);
 begin
   FCollapseMode := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'collapseMode', [AValue]);
+  SetConfigItem('collapseMode', AValue);
 end;
 
 procedure TExtComponent.SetMinWidth(const AValue: Integer);
 begin
   FMinWidth := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'minWidth', [AValue]);
+  SetConfigItem('minWidth', AValue);
 end;
 
 procedure TExtComponent.SetMaxWidth(const AValue: Integer);
 begin
   FMaxWidth := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'maxWidth', [AValue]);
+  SetConfigItem('maxWidth', AValue);
 end;
 
 procedure TExtComponent.SetMinSize(const AValue: Integer);
 begin
   FMinSize := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'minSize', [AValue]);
+  SetConfigItem('minSize', AValue);
 end;
 
 procedure TExtComponent.SetMaxSize(const AValue: Integer);
 begin
   FMaxSize := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'maxSize', [AValue]);
+  SetConfigItem('maxSize', AValue);
 end;
 
 procedure TExtComponent.SetFCmargins(Value: string);
@@ -9811,10 +9668,9 @@ begin
   FStyleExtObject := TExtObject.CreateInternal(Self, 'style');
 end;
 
-function TExtComponent.AddClass(const AClassName: string): TExtFunction;
+function TExtComponent.AddCls(const AClsName: string): TExtFunction;
 begin
-  Session.ResponseItems.CallMethod(Self, 'addClass', [AClassName]);
-  Result := Self;
+  Result := CallMethod('addCls', AClsName);
 end;
 
 function TExtComponent.AnElement(Cls: string): TExtFunction;
@@ -9875,14 +9731,12 @@ end;
 
 function TExtComponent.Focus(const ASelectText: Boolean; const ADelay: Boolean): TExtFunction;
 begin
-  ExtSession.ResponseItems.CallMethod(Self, 'focus', [ASelectText, ADelay]);
-  Result := Self;
+  Result := CallMethod('focus', [ASelectText, ADelay]);
 end;
 
 function TExtComponent.Focus(const ASelectText: Boolean; const ADelay: Integer): TExtFunction;
 begin
-  ExtSession.ResponseItems.CallMethod(Self, 'focus', [ASelectText, ADelay]);
-  Result := Self;
+  Result := CallMethod('focus', [ASelectText, ADelay]);
 end;
 
 function TExtComponent.GetBubbleTarget: TExtFunction;
@@ -9923,8 +9777,7 @@ end;
 
 function TExtComponent.Hide: TExtFunction;
 begin
-  ExtSession.ResponseItems.CallMethod(Self, 'hide', []);
-  Result := Self;
+  Result := CallMethod('hide', []);
 end;
 
 function TExtComponent.IsVisible: TExtFunction;
@@ -10065,20 +9918,17 @@ end;
 
 function TExtComponent.SetDisabled(const AValue: Boolean): TExtFunction;
 begin
-  ExtSession.ResponseItems.CallMethod(Self, 'setDisabled', [AValue]);
-  Result := Self;
+  Result := CallMethod('setDisabled', AValue);
 end;
 
 function TExtComponent.SetVisible(const AValue: Boolean): TExtFunction;
 begin
-  ExtSession.ResponseItems.CallMethod(Self, 'setVisible', [AValue]);
-  Result := Self;
+  Result := CallMethod('setVisible', AValue);
 end;
 
 function TExtComponent.Show: TExtFunction;
 begin
-  ExtSession.ResponseItems.CallMethod(Self, 'show', []);
-  Result := Self;
+  Result := CallMethod('show');
 end;
 
 function TExtComponent.Update(HtmlOrData: string; LoadScripts: Boolean = false;
@@ -10184,8 +10034,8 @@ end;
 
 procedure TExtLayer._SetZindex(const AValue: Integer);
 begin
+  SetConfigItem('zindex', 'setZindex', AValue);
   FZindex := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'zindex', 'setZindex', [AValue]);
 end;
 
 class function TExtLayer.JSClassName: string;
@@ -10205,8 +10055,7 @@ end;
 
 function TExtLayer.SetZIndex(const AZindex: Integer): TExtFunction;
 begin
-  ExtSession.ResponseItems.CallMethod(Self, 'setZindex', [AZindex]);
-  Result := Self;
+  Result := CallMethod('setZindex', AZindex);
 end;
 
 class function TExtCompositeElement.JSClassName: string;
@@ -10370,7 +10219,7 @@ end;
 procedure TExtEditor._SetValue(const AValue: string);
 begin
   FValue := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'value', 'setValue', [AValue]);
+  SetConfigItem('value', 'setValue', AValue);
 end;
 
 procedure TExtEditor.SetFOnBeforecomplete(Value: TExtEditorOnBeforecomplete);
@@ -10479,8 +10328,7 @@ end;
 function TExtEditor.SetValue(const AValue: string): TExtFunction;
 begin
   FValue := AValue;
-  ExtSession.ResponseItems.CallMethod(Self, 'setValue', [AValue]);
-  Result := Self;
+  Result := CallMethod('setValue', AValue);
 end;
 
 function TExtEditor.StartEdit(El: string; Value: string = ''): TExtFunction;
@@ -10636,38 +10484,6 @@ begin
   JSCode('dayNames:' + VarToJSON([Value, false]));
 end;
 
-procedure TExtDatePicker._SetDisabledDates(const AValue: TExtObjectList);
-begin
-  FDisabledDates.Free;
-  FDisabledDates := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'disabledDates', 'setDisabledDates', [AValue]);
-end;
-
-procedure TExtDatePicker.SetFDisabledDatesRE(Value: TRegExp);
-begin
-  FDisabledDatesRE := Value;
-  JSCode('disabledDatesRE:' + VarToJSON([#3 + Value]));
-end;
-
-procedure TExtDatePicker.SetFDisabledDatesText(Value: string);
-begin
-  FDisabledDatesText := Value;
-  JSCode('disabledDatesText:' + VarToJSON([Value]));
-end;
-
-procedure TExtDatePicker._SetDisabledDays(const AValue: TExtObjectList);
-begin
-  FDisabledDays.Free;
-  FDisabledDays := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'disabledDays', 'setDisabledDays', [AValue]);
-end;
-
-procedure TExtDatePicker.SetFDisabledDaysText(Value: string);
-begin
-  FDisabledDaysText := Value;
-  JSCode('disabledDaysText:' + VarToJSON([Value]));
-end;
-
 procedure TExtDatePicker.SetFFormat(Value: string);
 begin
   FFormat := Value;
@@ -10683,7 +10499,7 @@ end;
 procedure TExtDatePicker._SetMaxDate(const AValue: TDateTime);
 begin
   FMaxDate := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'maxDate', 'setMaxDate', [AValue]);
+  SetConfigItem('maxDate', 'setMaxDate', AValue);
 end;
 
 procedure TExtDatePicker.SetFMaxText(Value: string);
@@ -10695,7 +10511,7 @@ end;
 procedure TExtDatePicker._SetMinDate(const AValue: TDateTime);
 begin
   FMinDate := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'minDate', 'setMinDate', [AValue]);
+  SetConfigItem('minDate', 'setMinDate', AValue);
 end;
 
 procedure TExtDatePicker.SetFMinText(Value: string);
@@ -10783,10 +10599,6 @@ begin
   inherited;
   FCancelText := 'Cancel';
   FDayNames := TExtObjectList.CreateAsAttribute(Self, 'dayNames');
-  FDisabledDates := TExtObjectList.CreateAsAttribute(Self, 'disabledDates');
-  FDisabledDatesText := 'Disabled';
-  FDisabledDays := TExtObjectList.CreateAsAttribute(Self, 'disabledDays');
-  FDisabledDaysText := 'Disabled';
   FFormat := 'm/d/y';
   FMaxText := 'This date is after the maximum date';
   FMinText := 'This date is before the minimum date';
@@ -10804,40 +10616,16 @@ begin
   Result := Self;
 end;
 
-function TExtDatePicker.SetDisabledDates(const ADisabledDates: TExtObjectList): TExtFunction;
-begin
-  FDisabledDates.Free;
-  FDisabledDates := ADisabledDates;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'setDisabledDates', [ADisabledDates]);
-  Result := Self;
-end;
-
-function TExtDatePicker.SetDisabledDates(const ADisabledDates: TRegExp): TExtFunction;
-begin
-  ExtSession.ResponseItems.SetConfigItem(Self, 'setDisabledDates', [#3 + ADisabledDates]);
-  Result := Self;
-end;
-
-function TExtDatePicker.SetDisabledDays(const ADisabledDays: TExtObjectList): TExtFunction;
-begin
-  FDisabledDays.Free;
-  FDisabledDays := ADisabledDays;
-  ExtSession.ResponseItems.CallMethod(Self, 'setDisabledDays', [ADisabledDays]);
-  Result := Self;
-end;
-
 function TExtDatePicker.SetMaxDate(const AValue: TDateTime): TExtFunction;
 begin
   FMaxDate := AValue;
-  ExtSession.ResponseItems.CallMethod(Self, 'setMaxDate', [AValue]);
-  Result := Self;
+  Result := CallMethod('setMaxDate', AValue);
 end;
 
 function TExtDatePicker.SetMinDate(const AValue: TDateTime): TExtFunction;
 begin
   FMinDate := AValue;
-  ExtSession.ResponseItems.CallMethod(Self, 'setMinDate', [AValue]);
-  Result := Self;
+  Result := CallMethod('setMinDate', AValue);
 end;
 
 function TExtDatePicker.SetValue(Value: TDateTime): TExtFunction;
@@ -10856,25 +10644,25 @@ end;
 procedure TExtBoxComponent.SetAnchor(const AValue: string);
 begin
   FAnchor := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'anchor', [AValue]);
+  SetConfigItem('anchor', AValue);
 end;
 
 procedure TExtBoxComponent.SetAutoHeight(const AValue: Boolean);
 begin
   FAutoHeight := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'autoHeight', [AValue]);
+  SetConfigItem('autoHeight', AValue);
 end;
 
 procedure TExtBoxComponent._SetAutoScroll(const AValue: Boolean);
 begin
   FAutoScroll := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'autoScroll', 'setAutoScroll', [AValue]);
+  SetConfigItem('autoScroll', 'setAutoScroll', AValue);
 end;
 
 procedure TExtBoxComponent.SetAutoWidth(const AValue: Boolean);
 begin
   FAutoWidth := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'autoWidth', [AValue]);
+  SetConfigItem('autoWidth', AValue);
 end;
 
 procedure TExtBoxComponent.SetFBoxMaxHeight(Value: Integer);
@@ -10904,25 +10692,25 @@ end;
 procedure TExtBoxComponent.SetFlex(const AValue: Integer);
 begin
   FFlex := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'flex', [AValue]);
+  SetConfigItem('flex', AValue);
 end;
 
 procedure TExtBoxComponent.SetHeight(const AValue: Integer);
 begin
   FHeight := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'height', 'setHeight', [AValue]);
+  SetConfigItem('height', 'setHeight', AValue);
 end;
 
 procedure TExtBoxComponent.SetHeightString(const AValue: string);
 begin
   FHeightString := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'height', 'setHeight', [AValue]);
+  SetConfigItem('height', 'setHeight', AValue);
 end;
 
 procedure TExtBoxComponent.SetMargins(AValue: string);
 begin
   FMargins := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'margins', [AValue]);
+  SetConfigItem('margins', AValue);
 end;
 
 procedure TExtBoxComponent.SetFPageX(Value: Integer);
@@ -10940,8 +10728,7 @@ end;
 procedure TExtBoxComponent.SetRegion(const AValue: TExtBoxComponentRegion);
 begin
   FRegion := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'region',
-    [EnumToJSString(TypeInfo(TExtBoxComponentRegion), Ord(AValue))]);
+  SetConfigItem('region', EnumToJSString(TypeInfo(TExtBoxComponentRegion), Ord(AValue)));
 end;
 
 procedure TExtBoxComponent.SetFTabTip(Value: string);
@@ -10953,13 +10740,13 @@ end;
 procedure TExtBoxComponent.SetWidth(const AValue: Integer);
 begin
   FWidth := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'width', 'setWidth', [AValue]);
+  SetConfigItem('width', 'setWidth', AValue);
 end;
 
 procedure TExtBoxComponent.SetWidthString(const AValue: string);
 begin
   FWidthString := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'width', 'setWidth', [AValue]);
+  SetConfigItem('width', 'setWidth', AValue);
 end;
 
 procedure TExtBoxComponent.SetFX(Value: Integer);
@@ -11302,16 +11089,14 @@ begin
   inherited;
 end;
 
-procedure TExtContainer.SetFActiveItem(Value: string);
+procedure TExtContainer.SetActiveItem(const AValue: string);
 begin
-  FActiveItem := Value;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'activeItem', [Value]);
+  FActiveItem := SetConfigItem('activeItem', AValue);
 end;
 
-procedure TExtContainer.SetFActiveItemNumber(Value: Integer);
+procedure TExtContainer.SetActiveItemNumber(const AValue: Integer);
 begin
-  FActiveItemNumber := Value;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'activeItemNumber', [Value]);
+  FActiveItemNumber := SetConfigItem('activeItemNumber', AValue);
 end;
 
 procedure TExtContainer.SetFAutoDestroy(Value: Boolean);
@@ -11343,7 +11128,7 @@ end;
 //begin
 //  FDefaults.Free;
 //  FDefaults := AValue;
-//  ExtSession.ResponseItems.SetConfigItem(Self, 'defaults', [AValue, False]);
+//  SetConfigItem('defaults', AValue);
 //end;
 
 procedure TExtContainer.SetFDefaultsFunction(Value: TExtFunction);
@@ -11391,8 +11176,7 @@ end;
 procedure TExtContainer.SetLayout(const AValue: TExtContainerLayout);
 begin
   FLayout := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'layout',
-    [EnumToJSString(TypeInfo(TExtContainerLayout), Ord(AValue))]);
+  SetConfigItem('layout', EnumToJSString(TypeInfo(TExtContainerLayout), Ord(AValue)));
 end;
 
 procedure TExtContainer.SetFLayoutObject(Value: TExtObject);
@@ -11446,8 +11230,7 @@ end;
 
 procedure TExtContainer.SetColumnWidth(const AValue: Double);
 begin
-  FColumnWidth := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'columnWidth', [AValue]);
+  FColumnWidth := SetConfigItem('columnWidth', AValue);
 end;
 
 procedure TExtContainer.SetFOnAdd(Value: TExtContainerOnAdd);
@@ -11549,8 +11332,7 @@ end;
 
 function TExtContainer.UpdateLayout(const AShallow: Boolean; const AForce: Boolean): TExtFunction;
 begin
-  ExtSession.ResponseItems.CallMethod(Self, 'updateLayout', [AShallow, AForce]);
-  Result := Self;
+  Result := CallMethod('updateLayout', [AShallow, AForce]);
 end;
 
 function TExtContainer.Find(Prop: string; Value: string): TExtFunction;
@@ -11628,11 +11410,9 @@ begin
   Result := Self;
 end;
 
-function TExtContainer.Remove(const AComponent: TExtComponent;
-  const AAutoDestroy: Boolean = False): TExtFunction;
+function TExtContainer.Remove(const AComponent: TExtComponent; const AAutoDestroy: Boolean): TExtFunction;
 begin
-  ExtSession.ResponseItems.CallMethod(Self, 'remove', [AComponent, False, AAutoDestroy]);
-  Result := Self;
+  Result := CallMethod('remove', [AComponent, False, AAutoDestroy]);
 end;
 
 function TExtContainer.Remove(Component: string; AutoDestroy: Boolean = false)
@@ -11672,7 +11452,7 @@ end;
 procedure TExtButton.SetAllowDepress(const AValue: Boolean);
 begin
   FAllowDepress := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'allowDepress', [AValue]);
+  SetConfigItem('allowDepress', AValue);
 end;
 
 procedure TExtButton.SetFArrowAlign(Value: string);
@@ -11708,19 +11488,19 @@ end;
 procedure TExtButton.SetDisabled(const AValue: Boolean);
 begin
   FDisabled := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'disabled', [AValue]);
+  SetConfigItem('disabled', AValue);
 end;
 
 procedure TExtButton.SetEnableToggle(const AValue: Boolean);
 begin
   FEnableToggle := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'enableToggle', [AValue]);
+  SetConfigItem('enableToggle', AValue);
 end;
 
 procedure TExtButton.SetFormBind(const AValue: Boolean);
 begin
   FFormBind := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'formBind', [AValue]);
+  SetConfigItem('formBind', AValue);
 end;
 
 procedure TExtButton.SetFHandleMouseEvents(Value: Boolean);
@@ -11732,19 +11512,19 @@ end;
 procedure TExtButton._SetHandler(const AValue: TExtFunction);
 begin
   FHandler := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'handler', 'setHandler', [AValue, True]);
+  SetConfigItem('handler', 'setHandler', [AValue, True]);
 end;
 
 procedure TExtButton.SetHidden(const AValue: Boolean);
 begin
   FHidden := AValue;
-  Session.ResponseItems.SetConfigItemOrProperty(Self, 'hidden', [AValue]);
+  SetConfigItemOrProperty('hidden', AValue);
 end;
 
 procedure TExtButton._SetIcon(const AValue: string);
 begin
   FIcon := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'icon', 'setIcon', [AValue]);
+  SetConfigItem('icon', 'setIcon', AValue);
 end;
 
 procedure TExtButton.SetFIconAlign(Value: string);
@@ -11756,14 +11536,14 @@ end;
 procedure TExtButton.SetIconCls(const AValue: string);
 begin
   FIconCls := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'iconCls', [AValue]);
+  SetConfigItem('iconCls', AValue);
 end;
 
 procedure TExtButton.SetMenu(AValue: TExtUtilObservable);
 begin
   FMenu.Free;
   FMenu := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'menu', [AValue, False]);
+  SetConfigItem('menu', AValue);
 end;
 
 procedure TExtButton.SetFMenuAlign(Value: string);
@@ -11774,8 +11554,7 @@ end;
 
 procedure TExtButton.SetFMinWidth(const AValue: Integer);
 begin
-  FMinWidth := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'minWidth', [AValue, False]);
+  FMinWidth := SetConfigItem('minWidth', AValue);
 end;
 
 procedure TExtButton.SetFOverflowText(Value: string);
@@ -11786,8 +11565,7 @@ end;
 
 procedure TExtButton.SetPressed(const AValue: Boolean);
 begin
-  FPressed := AValue;
-  ExtSession.ResponseItems.SetConfigItemOrProperty(Self, 'pressed', [AValue]);
+  FPressed := SetConfigItemOrProperty('pressed', AValue);
 end;
 
 procedure TExtButton.SetFRepeatJS(Value: Boolean);
@@ -11805,7 +11583,7 @@ end;
 procedure TExtButton.SetScale(const AValue: string);
 begin
   FScale := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'scale', [AValue]);
+  SetConfigItem('scale', AValue);
 end;
 
 procedure TExtButton.SetFScope(Value: TExtObject);
@@ -11829,13 +11607,13 @@ end;
 procedure TExtButton._SetText(const AValue: string);
 begin
   FText := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'text', 'setText', [AValue]);
+  SetConfigItem('text', 'setText', AValue);
 end;
 
 procedure TExtButton.SetToggleGroup(const AValue: string);
 begin
   FToggleGroup := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'toggleGroup', [AValue]);
+  SetConfigItem('toggleGroup', AValue);
 end;
 
 procedure TExtButton.SetFToggleHandler(Value: TExtFunction);
@@ -11847,7 +11625,7 @@ end;
 procedure TExtButton._SetTooltip(const AValue: string);
 begin
   FTooltip := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'tooltip', 'setTooltip', [AValue]);
+  SetConfigItem('tooltip', 'setTooltip', AValue);
 end;
 
 procedure TExtButton.SetFTooltipObject(Value: TExtObject);
@@ -11991,13 +11769,11 @@ end;
 
 function TExtButton.GetPressed(const AGroup: string): TExtFunction;
 begin
-  ExtSession.ResponseItems.CallMethod(Self, 'getPressed', [AGroup]);
-  Result := Self;
+  Result := CallMethod('getPressed', AGroup);
 end;
 
 procedure TExtButton.PerformClick;
 begin
-  //ExtSession.ResponseItems.ExecuteJSCode(JSName + '.el.dom.click();');
   FireEvent('click', nil);
 end;
 
@@ -12009,34 +11785,28 @@ end;
 
 function TExtButton.GetTemplateArgs: TExtFunction;
 begin
-  ExtSession.ResponseItems.CallMethod(Self, 'getTemplateArgs', []);
-  Result := Self;
+  Result := CallMethod('getTemplateArgs', []);
 end;
 
 function TExtButton.GetText: TExtFunction;
 begin
-  ExtSession.ResponseItems.CallMethod(Self, 'getText', []);
-  Result := Self;
+  Result := CallMethod('getText', []);
 end;
 
 function TExtButton.HasVisibleMenu: TExtFunction;
 begin
-  ExtSession.ResponseItems.CallMethod(Self, 'hasVisibleMenu', []);
-  Result := Self;
+  Result := CallMethod('hasVisibleMenu', []);
 end;
 
 function TExtButton.HideMenu: TExtFunction;
 begin
-  ExtSession.ResponseItems.CallMethod(Self, 'hideMenu', []);
-  Result := Self;
+  Result := CallMethod('hideMenu', []);
 end;
 
-function TExtButton.SetHandler(const AHandler: TExtFunction; const AScope: TExtObject)
-  : TExtFunction;
+function TExtButton.SetHandler(const AHandler: TExtFunction; const AScope: TExtObject): TExtFunction;
 begin
   FHandler := AHandler;
-  ExtSession.ResponseItems.CallMethod(Self, 'setHandler', [AHandler, True, AScope, False]);
-  Result := Self;
+  Result := CallMethod('setHandler', [AHandler, True, AScope, False]);
 end;
 
 function TExtButton.SetIcon(Icon: string): TExtFunction;
@@ -12054,21 +11824,18 @@ end;
 function TExtButton.SetText(const AText: string): TExtFunction;
 begin
   FText := AText;
-  ExtSession.ResponseItems.CallMethod(Self, 'setText', [AText]);
-  Result := Self;
+  Result := CallMethod('setText', AText);
 end;
 
 function TExtButton.SetTooltip(const ATooltip: string): TExtFunction;
 begin
   FTooltip := ATooltip;
-  ExtSession.ResponseItems.CallMethod(Self, 'setTooltip', [ATooltip]);
-  Result := Self;
+  Result := CallMethod('setTooltip', ATooltip);
 end;
 
 function TExtButton.SetTooltip(const ATooltip: TExtObject): TExtFunction;
 begin
-  ExtSession.ResponseItems.CallMethod(Self, 'setTooltip', [ATooltip, False]);
-  Result := Self;
+  Result := CallMethod('setTooltip', [ATooltip, False]);
 end;
 
 function TExtButton.ShowMenu: TExtFunction;
@@ -12122,13 +11889,12 @@ end;
 procedure TExtDataView.SetEmptyText(AValue: string);
 begin
   FEmptyText := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'emptyText', [AValue]);
+  SetConfigItem('emptyText', AValue);
 end;
 
 procedure TExtDataView.SetItemSelector(const AValue: string);
 begin
-  FItemSelector := AValue;
-  Session.ResponseItems.SetConfigItem(Self, 'itemSelector', [AValue]);
+  FItemSelector := SetConfigItem('itemSelector', AValue);
 end;
 
 procedure TExtDataView.SetFLoadingText(Value: string);
@@ -12139,14 +11905,13 @@ end;
 
 procedure TExtDataView.SetMultiSelect(const AValue: Boolean);
 begin
-  FMultiSelect := AValue;
-  Session.ResponseItems.SetConfigItem(Self, 'multiSelect', [AValue]);
+  FMultiSelect := SetConfigItem('multiSelect', AValue);
 end;
 
 procedure TExtDataView.SetOverClass(const AValue: string);
 begin
   FOverClass := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'overClass', [AValue]);
+  SetConfigItem('overClass', AValue);
 end;
 
 procedure TExtDataView.SetFSelectedClass(Value: string);
@@ -12163,21 +11928,19 @@ end;
 
 procedure TExtDataView.SetSingleSelect(const AValue: Boolean);
 begin
-  FSingleSelect := AValue;
-  Session.ResponseItems.SetConfigItem(Self, 'singleSelect', [AValue]);
+  FSingleSelect := SetConfigItem('singleSelect', AValue);
 end;
 
 procedure TExtDataView._SetStore(const AValue: TExtDataStore);
 begin
   FStore.Free;
   FStore := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'store', 'setStore', [AValue, False]);
+  SetConfigItem('store', 'setStore', AValue);
 end;
 
 procedure TExtDataView.SetTpl(AValue: string);
 begin
-  FTpl := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'tpl', [AValue]);
+  FTpl := SetConfigItem('tpl', AValue);
 end;
 
 procedure TExtDataView.SetFTplArray(Value: TExtObjectList);
@@ -12544,15 +12307,14 @@ end;
 function TExtDataView.SetStore(const AStore: TExtDataStore): TExtFunction;
 begin
   FStore := AStore;
-  ExtSession.ResponseItems.CallMethod(Self, 'setStore', [AStore]);
-  Result := Self;
+  Result := CallMethod('setStore', AStore);
 end;
 
 procedure TExtDataView.SetStoreArray(const AValue: TExtObjectList);
 begin
   FStoreArray.Free;
   FStoreArray := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'store', [AValue, False]);
+  SetConfigItem('store', AValue);
 end;
 
 procedure TExtDataView.HandleEvent(const AEvtName: string);
@@ -12618,7 +12380,7 @@ end;
 procedure TExtPanel.SetAutoHeight(const AValue: Boolean);
 begin
   FAutoHeight := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'autoHeight', [AValue]);
+  SetConfigItem('autoHeight', AValue);
 end;
 
 procedure TExtPanel.SetFAutoLoad(Value: TExtObject);
@@ -12630,13 +12392,13 @@ end;
 procedure TExtPanel.SetAutoLoadString(AValue: string);
 begin
   FAutoLoadString := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'autoLoad', [AValue]);
+  SetConfigItem('autoLoad', AValue);
 end;
 
 procedure TExtPanel.SetAutoLoadBoolean(const AValue: Boolean);
 begin
   FAutoLoadBoolean := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'autoLoad', [AValue]);
+  SetConfigItem('autoLoad', AValue);
 end;
 
 procedure TExtPanel.SetFAutoLoadFunction(Value: TExtFunction);
@@ -12655,7 +12417,7 @@ procedure TExtPanel.SetBbar(const AValue: TExtObject);
 begin
   FBbar.Free;
   FBbar := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'bbar', [AValue, False]);
+  SetConfigItem('bbar', AValue);
 end;
 
 procedure TExtPanel.SetFBbarArray(Value: TExtObjectList);
@@ -12703,7 +12465,7 @@ end;
 procedure TExtPanel.SetBodyStyle(const AValue: string);
 begin
   FBodyStyle := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'bodyStyle', [AValue]);
+  SetConfigItem('bodyStyle', AValue);
 end;
 
 procedure TExtPanel.SetFBodyStyleObject(Value: TExtObject);
@@ -12721,7 +12483,7 @@ end;
 procedure TExtPanel.SetBorder(const AValue: Boolean);
 begin
   FBorder := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'border', [AValue]);
+  SetConfigItem('border', AValue);
 end;
 
 procedure TExtPanel.SetFButtonAlign(Value: TExtPanelButtonAlign);
@@ -12746,7 +12508,7 @@ end;
 procedure TExtPanel.SetClosable(const AValue: Boolean);
 begin
   FClosable := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'closable', [AValue]);
+  SetConfigItem('closable', AValue);
 end;
 
 procedure TExtPanel.SetFCollapseFirst(Value: Boolean);
@@ -12764,7 +12526,7 @@ end;
 procedure TExtPanel.SetCollapsible(const AValue: Boolean);
 begin
   FCollapsible := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'collapsible', [AValue]);
+  SetConfigItem('collapsible', AValue);
 end;
 
 procedure TExtPanel.SetFDisabled(Value: Boolean);
@@ -12812,7 +12574,7 @@ end;
 procedure TExtPanel.SetFooter(const AValue: Boolean);
 begin
   FFooter := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'footer', [AValue]);
+  SetConfigItem('footer', AValue);
 end;
 
 procedure TExtPanel.SetFFooterCfg(Value: TExtObject);
@@ -12824,13 +12586,13 @@ end;
 procedure TExtPanel.SetFrame(const AValue: Boolean);
 begin
   FFrame := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'frame', [AValue]);
+  SetConfigItem('frame', AValue);
 end;
 
 procedure TExtPanel.SetHeader(const AValue: Boolean);
 begin
   FHeader := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'header', [AValue]);
+  SetConfigItem('header', AValue);
 end;
 
 procedure TExtPanel.SetFHeaderAsText(Value: Boolean);
@@ -12854,14 +12616,14 @@ end;
 procedure TExtPanel.SetIconCls(const AValue: string);
 begin
   FIconCls := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'iconCls', [AValue]);
+  SetConfigItem('iconCls', AValue);
 end;
 
 procedure TExtPanel.SetKeys(const AValue: TExtObject);
 begin
   FKeys.Free;
   FKeys := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'keys', [AValue, False]);
+  SetConfigItem('keys', AValue);
 end;
 
 procedure TExtPanel.SetFKeysArray(Value: TExtObjectList);
@@ -12879,7 +12641,7 @@ end;
 procedure TExtPanel.SetFMinButtonWidth(const AValue: Integer);
 begin
   FMinButtonWidth := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'minButtonWidth', [AValue]);
+  SetConfigItem('minButtonWidth', AValue);
 end;
 
 procedure TExtPanel.SetFPadding(Value: Integer);
@@ -12891,7 +12653,7 @@ end;
 procedure TExtPanel.SetPaddingString(const AValue: string);
 begin
   FPaddingString := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'padding', [AValue]);
+  SetConfigItem('padding', AValue);
 end;
 
 procedure TExtPanel.SetFPreventBodyReset(Value: Boolean);
@@ -12934,7 +12696,7 @@ procedure TExtPanel.SetTbar(const AValue: TExtObject);
 begin
   FTbar.Free;
   FTbar := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'tbar', [AValue, False]);
+  SetConfigItem('tbar', AValue);
 end;
 
 procedure TExtPanel.SetFTbarArray(Value: TExtObjectList);
@@ -12952,7 +12714,7 @@ end;
 procedure TExtPanel._SetTitle(AValue: string);
 begin
   FTitle := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'title', 'setTitle', [AValue]);
+  SetConfigItem('title', 'setTitle', AValue);
 end;
 
 procedure TExtPanel.SetFTitleCollapse(Value: Boolean);
@@ -13005,8 +12767,7 @@ end;
 
 procedure TExtPanel.SetCollapsed(const AValue: Boolean);
 begin
-  FCollapsed := AValue;
-  ExtSession.ResponseItems.SetConfigItemorProperty(Self, 'collapsed', [AValue]);
+  FCollapsed := SetConfigItemorProperty('collapsed', AValue);
 end;
 
 procedure TExtPanel.SetFDd(Value: TExtDdDragSource);
@@ -13207,14 +12968,12 @@ end;
 
 function TExtPanel.Collapse(const AAnimate: Boolean): TExtFunction;
 begin
-  ExtSession.ResponseItems.CallMethod(Self, 'collapse', [AAnimate]);
-  Result := Self;
+  Result := CallMethod('collapse', AAnimate);
 end;
 
 function TExtPanel.Expand(const AAnimate: Boolean): TExtFunction;
 begin
-  ExtSession.ResponseItems.CallMethod(Self, 'expand', [AAnimate]);
-  Result := Self;
+  Result := CallMethod('expand', AAnimate);
 end;
 
 function TExtPanel.GetBottomToolbar: TExtFunction;
@@ -13278,20 +13037,17 @@ end;
 
 function TExtPanel.Load(const AConfig: TExtObject = nil): TExtFunction;
 begin
-  ExtSession.ResponseItems.CallMethod(Self, 'load', [AConfig, False]);
-  Result := Self;
+  Result := CallMethod('load', AConfig);
 end;
 
 function TExtPanel.Load(const AConfig: string): TExtFunction;
 begin
-  ExtSession.ResponseItems.CallMethod(Self, 'load', [AConfig]);
-  Result := Self;
+  Result := CallMethod('load', AConfig);
 end;
 
 function TExtPanel.Load(const AConfig: TExtFunction): TExtFunction;
 begin
-  ExtSession.ResponseItems.CallMethod(Self, 'load', [AConfig, True]);
-  Result := Self;
+  Result := CallFunctionMethod('load', AConfig);
 end;
 
 function TExtPanel.SetIconClass(Cls: string): TExtFunction;
@@ -13304,8 +13060,7 @@ function TExtPanel.SetTitle(const ATitle: string; const AIconCls: string): TExtF
 begin
   FTitle := ATitle;
   FIconCls := AIconCls;
-  ExtSession.ResponseItems.CallMethod(Self, 'setTitle', [ATitle, AIconCls]);
-  Result := Self;
+  Result := CallMethod('setTitle', [ATitle, AIconCls]);
 end;
 
 function TExtPanel.ToggleCollapse(Animate: Boolean): TExtFunction;
@@ -13346,7 +13101,7 @@ end;
 procedure TExtSplitButton._SetArrowHandler(const AValue: TExtFunction);
 begin
   FArrowHandler := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'arrowHandler', 'setArrowHandler', [AValue, True]);
+  SetConfigItem('arrowHandler', 'setArrowHandler', [AValue, True]);
 end;
 
 procedure TExtSplitButton.SetFArrowTooltip(Value: string);
@@ -13377,8 +13132,7 @@ end;
 function TExtSplitButton.SetArrowHandler(const AHandler: TExtFunction; const AScope: TExtObject): TExtFunction;
 begin
   FArrowHandler := AHandler;
-  ExtSession.ResponseItems.CallMethod(Self, 'setArrowHandler', [AHandler, True, AScope, False]);
-  Result := Self;
+  Result := CallMethod('setArrowHandler', [AHandler, True, AScope, False]);
 end;
 
 procedure TExtSplitButton.HandleEvent(const AEvtName: string);
@@ -13413,7 +13167,7 @@ end;
 procedure TExtToolbarTextItem._SetText(const AValue: string);
 begin
   FText := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'text', 'setText', [AValue]);
+  SetConfigItem('text', 'setText', AValue);
 end;
 
 class function TExtToolbarTextItem.JSClassName: string;
@@ -13429,8 +13183,7 @@ end;
 function TExtToolbarTextItem.SetText(const AText: string): TExtFunction;
 begin
   FText := AText;
-  ExtSession.ResponseItems.CallMethod(Self, 'setText', [AText]);
-  Result := Self;
+  Result := CallMethod('setText', AText);
 end;
 
 procedure TExtToolbar.SetFButtonAlign(Value: string);
@@ -13800,7 +13553,7 @@ end;
 procedure TExtWindow._SetAnimateTarget(const AValue: string);
 begin
   FAnimateTarget := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'animateTarget', 'setAnimateTarget', [AValue]);
+  SetConfigItem('animateTarget', 'setAnimateTarget', AValue);
 end;
 
 procedure TExtWindow.SetFAnimateTargetElement(Value: TExtElement);
@@ -13818,7 +13571,7 @@ end;
 procedure TExtWindow.SetClosable(const AValue: Boolean);
 begin
   FClosable := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'closable', [AValue]);
+  SetConfigItem('closable', AValue);
 end;
 
 procedure TExtWindow.SetFCloseAction(Value: string);
@@ -13836,7 +13589,7 @@ end;
 procedure TExtWindow.SetConstrain(const AValue: Boolean);
 begin
   FConstrain := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'constrain', [AValue]);
+  SetConfigItem('constrain', AValue);
 end;
 
 procedure TExtWindow.SetFConstrainHeader(Value: Boolean);
@@ -13866,7 +13619,7 @@ end;
 procedure TExtWindow.SetDraggable(const AValue: Boolean);
 begin
   FDraggable := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'draggable', [AValue]);
+  SetConfigItem('draggable', AValue);
 end;
 
 procedure TExtWindow.SetFExpandOnShow(Value: Boolean);
@@ -13896,13 +13649,12 @@ end;
 procedure TExtWindow.SetMaximizable(const AValue: Boolean);
 begin
   FMaximizable := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'maximizable', [AValue]);
+  SetConfigItem('maximizable', AValue);
 end;
 
 procedure TExtWindow.SetMaximized(const AValue: Boolean);
 begin
-  FMaximized := AValue;
-  Session.ResponseItems.SetConfigItem(Self, 'maximized', [AValue]);
+  FMaximized := SetConfigItem('maximized', AValue);
 end;
 
 procedure TExtWindow.SetFMinHeight(Value: Integer);
@@ -13925,8 +13677,7 @@ end;
 
 procedure TExtWindow.SetModal(const AValue: Boolean);
 begin
-  FModal := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'modal', [AValue]);
+  FModal := SetConfigItem('modal', AValue);
 end;
 
 procedure TExtWindow.SetFOnEsc(Value: TExtFunction);
@@ -13937,20 +13688,17 @@ end;
 
 procedure TExtWindow.SetPlain(const AValue: Boolean);
 begin
-  FPlain := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'plain', [AValue]);
+  FPlain := SetConfigItem('plain', AValue);
 end;
 
 procedure TExtWindow.SetResizable(const AValue: Boolean);
 begin
-  FResizable := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'resizable', [AValue]);
+  FResizable := SetConfigItem('resizable', AValue);
 end;
 
 procedure TExtWindow.SetResizeHandles(const AValue: string);
 begin
-  FResizeHandles := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'resizeHandles', [AValue]);
+  FResizeHandles := SetConfigItem('resizeHandles', AValue);
 end;
 
 procedure TExtWindow.SetFX(Value: Integer);
@@ -14101,8 +13849,7 @@ end;
 
 function TExtWindow.Close: TExtFunction;
 begin
-  ExtSession.ResponseItems.CallMethod(Self, 'close', []);
-  Result := Self;
+  Result := CallMethod('close', []);
 end;
 
 function TExtWindow.Focus: TExtFunction;
@@ -14154,7 +13901,7 @@ end;
 function TExtWindow.SetAnimateTarget(const AElement: string): TExtFunction;
 begin
   FAnimateTarget := AElement;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'animateTarget', 'setAnimateTarget', [AElement]);
+  SetConfigItem('animateTarget', 'setAnimateTarget', [AElement]);
   Result := Self;
 end;
 
@@ -14167,17 +13914,13 @@ end;
 function TExtWindow.Show(const AAnimateTarget: string; const ACallback: TExtFunction;
   const AScope: TExtObject): TExtFunction;
 begin
-  ExtSession.ResponseItems.CallMethod(Self, 'show',
-    [AAnimateTarget, ACallback, True, AScope, False]);
-  Result := Self;
+  Result := CallMethod('show', [AAnimateTarget, ACallback, True, AScope, False]);
 end;
 
 function TExtWindow.Show(const AAnimateTarget: TExtElement; const ACallback: TExtFunction;
   const AScope: TExtObject): TExtFunction;
 begin
-  ExtSession.ResponseItems.CallMethod(Self, 'show',
-    [AAnimateTarget, ACallback, True, AScope, False]);
-  Result := Self;
+  Result := CallMethod('show', [AAnimateTarget, ACallback, True, AScope, False]);
 end;
 
 function TExtWindow.ToBack: TExtFunction;
@@ -14224,13 +13967,13 @@ end;
 procedure TExtTabPanel._SetActiveTab(const AValue: string);
 begin
   FActiveTab := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'activeTab', 'setActiveTab', [AValue]);
+  SetConfigItem('activeTab', 'setActiveTab', AValue);
 end;
 
 procedure TExtTabPanel.SetActiveTabNumber(const AValue: Integer);
 begin
   FActiveTabNumber := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'activeTab', [AValue]);
+  SetConfigItem('activeTab', AValue);
 end;
 
 procedure TExtTabPanel.SetFAnimScroll(Value: Boolean);
@@ -14260,37 +14003,19 @@ end;
 procedure TExtTabPanel.SetDeferredRender(const AValue: Boolean);
 begin
   FDeferredRender := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'deferredRender', [AValue]);
+  SetConfigItem('deferredRender', AValue);
 end;
 
 procedure TExtTabPanel.SetEnableTabScroll(const AValue: Boolean);
 begin
   FEnableTabScroll := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'enableTabScroll', [AValue]);
-end;
-
-procedure TExtTabPanel.SetFItemTpl(Value: TExtTemplate);
-begin
-  FItemTpl := Value;
-  JSCode('itemTpl:' + VarToJSON([Value, false]));
-end;
-
-procedure TExtTabPanel.SetFItemTplXTemplate(Value: TExtXTemplate);
-begin
-  FItemTplXTemplate := Value;
-  JSCode('itemTpl:' + VarToJSON([Value, false]));
-end;
-
-procedure TExtTabPanel.SetFLayoutConfig(Value: TExtObject);
-begin
-  FLayoutConfig := Value;
-  JSCode('layoutConfig:' + VarToJSON([Value, false]));
+  SetConfigItem('enableTabScroll', AValue);
 end;
 
 procedure TExtTabPanel.SetLayoutOnTabChange(const AValue: Boolean);
 begin
   FLayoutOnTabChange := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'layoutOnTabChange', [AValue]);
+  SetConfigItem('layoutOnTabChange', AValue);
 end;
 
 procedure TExtTabPanel.SetFMinTabWidth(Value: Integer);
@@ -14399,9 +14124,6 @@ begin
   FAnimScroll := true;
   FAutoTabSelector := 'div.x-tab';
   FBaseCls := 'x-tab-panel';
-  FItemTpl := TExtTemplate.CreateInternal(Self, 'itemTpl');
-  FItemTplXTemplate := TExtXTemplate.CreateInternal(Self, 'itemTpl');
-  FLayoutConfig := TExtObject.CreateInternal(Self, 'layoutConfig');
   FMinTabWidth := 30;
   FScrollDuration := 0.35;
   FScrollIncrement := 100;
@@ -14438,8 +14160,7 @@ end;
 
 function TExtTabPanel.GetActiveTab: TExtFunction;
 begin
-  ExtSession.ResponseItems.CallMethod(Self, 'getActiveTab', []);
-  Result := Self;
+  Result := CallMethod('getActiveTab', []);
 end;
 
 function TExtTabPanel.GetItem(Id: string): TExtFunction;
@@ -14510,14 +14231,12 @@ end;
 
 function TExtTabPanel.SetActiveTab(const AItem: string): TExtFunction;
 begin
-  ExtSession.ResponseItems.CallMethod(Self, 'setActiveTab', [AItem]);
-  Result := Self;
+  Result := CallMethod('setActiveTab', AItem);
 end;
 
 function TExtTabPanel.SetActiveTab(const AItem: Integer): TExtFunction;
 begin
-  ExtSession.ResponseItems.CallMethod(Self, 'setActiveTab', [AItem]);
-  Result := Self;
+  Result := CallMethod('setActiveTab', AItem);
 end;
 
 function TExtTabPanel.UnhideTabStripItem(Item: Integer): TExtFunction;
@@ -14567,7 +14286,7 @@ end;
 procedure TExtPagingToolbar.SetDisplayInfo(const AValue: Boolean);
 begin
   FDisplayInfo := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'displayInfo', [AValue]);
+  SetConfigItem('displayInfo', AValue);
 end;
 
 procedure TExtPagingToolbar.SetFDisplayMsg(Value: string);
@@ -14603,7 +14322,7 @@ end;
 procedure TExtPagingToolbar.SetPageSize(const AValue: Integer);
 begin
   FPageSize := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'pageSize', [AValue]);
+  SetConfigItem('pageSize', AValue);
 end;
 
 procedure TExtPagingToolbar.SetFPrependButtons(Value: Boolean);
@@ -14629,7 +14348,7 @@ begin
   FStore.Free;
   FStore := AValue;
   if FStore <> nil then
-    ExtSession.ResponseItems.SetConfigItem(Self, 'store', [AValue, False]);
+    SetConfigItem('store', AValue);
 end;
 
 procedure TExtPagingToolbar.SetFCursor(Value: Integer);
@@ -14718,26 +14437,22 @@ end;
 
 function TExtPagingToolbar.MoveFirst: TExtFunction;
 begin
-  ExtSession.ResponseItems.CallMethod(Self, 'moveFirst', []);
-  Result := Self;
+  Result := CallMethod('moveFirst', []);
 end;
 
 function TExtPagingToolbar.MoveLast: TExtFunction;
 begin
-  ExtSession.ResponseItems.CallMethod(Self, 'moveLast', []);
-  Result := Self;
+  Result := CallMethod('moveLast', []);
 end;
 
 function TExtPagingToolbar.MoveNext: TExtFunction;
 begin
-  ExtSession.ResponseItems.CallMethod(Self, 'moveNext', []);
-  Result := Self;
+  Result := CallMethod('moveNext', []);
 end;
 
 function TExtPagingToolbar.MovePrevious: TExtFunction;
 begin
-  ExtSession.ResponseItems.CallMethod(Self, 'movePrevious', []);
-  Result := Self;
+  Result := CallMethod('movePrevious', []);
 end;
 
 function TExtPagingToolbar.Unbind(Store: TExtDataStore): TExtFunction;

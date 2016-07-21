@@ -186,8 +186,7 @@ end;
 
 { TKExtTreeViewRenderer }
 
-function TKExtTreeViewRenderer.GetClickFunction(
-  const AView: TKView): TExtFunction;
+function TKExtTreeViewRenderer.GetClickFunction(const AView: TKView): TExtFunction;
 begin
   Assert(Assigned(FOwner));
   Assert(Assigned(FClickHandler));
@@ -329,14 +328,15 @@ begin
     LIsEnabled := LView.IsAccessGranted(ACM_RUN)
   else
     LIsEnabled := TKConfig.Instance.IsAccessGranted(ANode.GetACURI(FTreeView), ACM_RUN);
-  LNode := TKExtTreeTreeNode.Create(AParent.ChildNodes);
+  LNode := TKExtTreeTreeNode.CreateAndAddTo(AParent.Children);
   try
     Inc(FAddedItems);
     LNode.View := LView;
     if Assigned(LNode.View) then
     begin
       LNode.IconCls := Session.SetViewIconStyle(LNode.View, GetImageName(ANode, LNode.View));
-      LNode.On('click', GetClickFunction(LNode.View));
+      { TODO : find a way to use the tree panel's itemclick event }
+      //LNode.On('click', GetClickFunction(LNode.View));
       LNode.Disabled := not LIsEnabled;
     end;
     LNode.Text := HTMLEncode(ADisplayLabel);
@@ -357,7 +357,6 @@ begin
         LNode.Expanded := True;
       LNode.Leaf := False;
     end;
-    AParent.AppendChild(LNode);
   except
     FreeAndNil(LNode);
     raise;

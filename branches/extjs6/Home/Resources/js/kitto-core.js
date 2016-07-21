@@ -388,14 +388,7 @@ function matchValue(value, patterns)
 // Used to color grid cells and rows according to field values.
 function getColorStyleRuleForRecordField(record, fieldName, patterns)
 {
-  var color = matchValue(record.get(fieldName), patterns);
-  if (color != '') {
-    var ruleName = 'kitto-color-' + color;
-    addStyleRule('.' + ruleName, '{ background-color: #' + color + '; }');
-    return ruleName;
-  }
-  else
-    return '';
+  return getColorStyleRuleForValue(record.get(fieldName), patterns);
 };
 
 // Creates a style rule (see addStyleRule()) named after the

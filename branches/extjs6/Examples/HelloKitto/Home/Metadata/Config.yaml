@@ -93,7 +93,7 @@ HomeGirls:
   Controller: Viewport
     SubView: Girls
 
-HomeView:
+HomeDolls:
   Controller: Viewport
     SubView: Dolls
 

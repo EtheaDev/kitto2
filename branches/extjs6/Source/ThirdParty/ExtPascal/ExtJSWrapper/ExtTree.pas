@@ -456,7 +456,6 @@ type
     FSingleExpand : Boolean;
     FTrackMouseOver : Boolean;
     FUseArrows : Boolean;
-    FRoot_ : TExtTreeTreeNode;
     FOnAppend : TExtTreeTreePanelOnAppend;
     FOnBeforeappend : TExtTreeTreePanelOnBeforeappend;
     FOnBeforechildrenrendered : TExtTreeTreePanelOnBeforechildrenrendered;
@@ -511,7 +510,6 @@ type
     procedure SetFSingleExpand(Value : Boolean);
     procedure SetFTrackMouseOver(Value : Boolean);
     procedure SetFUseArrows(Value : Boolean);
-    procedure SetFRoot_(Value : TExtTreeTreeNode);
     procedure SetFOnAppend(Value : TExtTreeTreePanelOnAppend);
     procedure SetFOnBeforeappend(Value : TExtTreeTreePanelOnBeforeappend);
     procedure SetFOnBeforechildrenrendered(Value : TExtTreeTreePanelOnBeforechildrenrendered);
@@ -582,7 +580,6 @@ type
     property SingleExpand : Boolean read FSingleExpand write SetFSingleExpand;
     property TrackMouseOver : Boolean read FTrackMouseOver write SetFTrackMouseOver;
     property UseArrows : Boolean read FUseArrows write SetFUseArrows;
-    property Root_ : TExtTreeTreeNode read FRoot_ write SetFRoot_;
     property OnAppend : TExtTreeTreePanelOnAppend read FOnAppend write SetFOnAppend;
     property OnBeforeappend : TExtTreeTreePanelOnBeforeappend read FOnBeforeappend write SetFOnBeforeappend;
     property OnBeforechildrenrendered : TExtTreeTreePanelOnBeforechildrenrendered read FOnBeforechildrenrendered write SetFOnBeforechildrenrendered;
@@ -1007,7 +1004,7 @@ end;
 procedure TExtTreeTreeNode.SetDisabled(const AValue: Boolean);
 begin
   FDisabled := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'disabled', [AValue]);
+  SetConfigItem('disabled', AValue);
 end;
 
 procedure TExtTreeTreeNode.SetFDraggable(Value : Boolean); begin
@@ -1023,19 +1020,19 @@ end;
 procedure TExtTreeTreeNode.SetExpandable(const AValue: Boolean);
 begin
   FExpandable := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'expandable', [AValue]);
+  SetConfigItem('expandable', AValue);
 end;
 
 procedure TExtTreeTreeNode.SetExpanded(const AValue: Boolean);
 begin
   FExpanded := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'expanded', [AValue]);
+  SetConfigItem('expanded', AValue);
 end;
 
 procedure TExtTreeTreeNode.SetHidden(const AValue: Boolean);
 begin
   FHidden := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'hidden', [AValue]);
+  SetConfigItem('hidden', AValue);
 end;
 
 procedure TExtTreeTreeNode.SetFHref(Value : String); begin
@@ -1056,7 +1053,7 @@ end;
 procedure TExtTreeTreeNode.SetIconCls(const AValue: string);
 begin
   FIconCls := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'iconCls', [AValue]);
+  SetConfigItem('iconCls', AValue);
 end;
 
 procedure TExtTreeTreeNode.SetFIsTarget(Value : Boolean); begin
@@ -1067,7 +1064,7 @@ end;
 procedure TExtTreeTreeNode.SetQtip(const AValue: string);
 begin
   FQtip := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'qtip', [AValue]);
+  SetConfigItem('qtip', AValue);
 end;
 
 procedure TExtTreeTreeNode.SetFQtipCfg(Value : String); begin
@@ -1082,7 +1079,7 @@ end;
 
 procedure TExtTreeTreeNode._SetText(const AValue: string); begin
   FText := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'text', 'setText', [AValue]);
+  SetConfigItem('text', 'setText', AValue);
 end;
 
 procedure TExtTreeTreeNode.SetFUiProvider(Value : TExtFunction); begin
@@ -1216,7 +1213,7 @@ procedure TExtTreeTreeNode.SetFOnTextchange(Value : TExtTreeTreeNodeOnTextchange
 end;
 
 class function TExtTreeTreeNode.JSClassName : string; begin
-  Result := 'Ext.tree.TreeNode';
+  Result := 'Object';
 end;
 
 procedure TExtTreeTreeNode.InitDefaults; begin
@@ -1292,26 +1289,22 @@ end;
 function TExtTreeTreeNode.SetText(const AText: string): TExtFunction;
 begin
   FText := AText;
-  ExtSession.ResponseItems.CallMethod(Self, 'setText', [AText]);
-  Result := Self;
+  Result := CallMethod('setText', AText);
 end;
 
 function TExtTreeTreeNode.SetTooltip(const ATip, ATitle: string): TExtFunction;
 begin
-  ExtSession.ResponseItems.CallMethod(Self, 'setTooltip', [ATip, ATitle]);
-  Result := Self;
+  Result := CallMethod('setTooltip', [ATip, ATitle]);
 end;
 
 function TExtTreeTreeNode.Toggle : TExtFunction;
 begin
-  ExtSession.ResponseItems.CallMethod(Self, 'toggle', []);
-  Result := Self;
+  Result := CallMethod('toggle', []);
 end;
 
 function TExtTreeTreeNode.Unselect(const ASilent: Boolean): TExtFunction;
 begin
-  ExtSession.ResponseItems.CallMethod(Self, 'unselect', [ASilent]);
-  Result := Self;
+  Result := CallMethod('unselect', ASilent);
 end;
 
 procedure TExtTreeTreeNode.HandleEvent(const AEvtName : string); begin
@@ -1539,13 +1532,13 @@ procedure TExtTreeTreePanel.SetRoot(const AValue: TExtTreeTreeNode);
 begin
   FRoot.Free;
   FRoot := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'root', [AValue, False]);
+  SetConfigItem('root', AValue);
 end;
 
 procedure TExtTreeTreePanel.SetRootVisible(const AValue: Boolean);
 begin
   FRootVisible := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'rootVisible', [AValue]);
+  SetConfigItem('rootVisible', AValue);
 end;
 
 procedure TExtTreeTreePanel.SetFSelModel(Value : TExtObject); begin
@@ -1566,11 +1559,6 @@ end;
 procedure TExtTreeTreePanel.SetFUseArrows(Value : Boolean); begin
   FUseArrows := Value;
   JSCode('useArrows:' + VarToJSON([Value]));
-end;
-
-procedure TExtTreeTreePanel.SetFRoot_(Value : TExtTreeTreeNode); begin
-  FRoot_ := Value;
-    JSCode(JSName + '.root=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtTreeTreePanel.SetFOnAppend(Value : TExtTreeTreePanelOnAppend); begin
@@ -1845,7 +1833,6 @@ procedure TExtTreeTreePanel.InitDefaults; begin
   FRoot := TExtTreeTreeNode.CreateInternal(Self, 'root');
   FRootVisible := true;
   FSelModel := TExtObject.CreateInternal(Self, 'selModel');
-  FRoot_ := TExtTreeTreeNode.CreateInternal(Self, 'root');
 end;
 
 function TExtTreeTreePanel.CollapseAll : TExtFunction; begin

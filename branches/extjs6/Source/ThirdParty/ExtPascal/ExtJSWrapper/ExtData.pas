@@ -228,7 +228,7 @@ type
     FId: string;
     FLeaf: Boolean;
     FAttributes: TExtObject;
-    FChildNodes: TExtObjectList;
+    FChildren: TExtObjectList;
     FFirstChild: TExtDataNode;
     FId_: string;
     FLastChild: TExtDataNode;
@@ -246,7 +246,6 @@ type
     procedure _SetId(const AValue: string);
     procedure SetLeaf(const AValue: Boolean);
     procedure SetFAttributes(Value: TExtObject);
-    procedure SetChildNodes(const AValue: TExtObjectList);
     procedure SetFFirstChild(Value: TExtDataNode);
     procedure SetFId_(Value: string);
     procedure SetFLastChild(Value: TExtDataNode);
@@ -301,7 +300,7 @@ type
     property Id: string read FId write _SetId;
     property Leaf: Boolean read FLeaf write SetLeaf;
     property Attributes: TExtObject read FAttributes write SetFAttributes;
-    property ChildNodes: TExtObjectList read FChildNodes write SetChildNodes;
+    property Children: TExtObjectList read FChildren;
     property FirstChild: TExtDataNode read FFirstChild write SetFFirstChild;
     property Id_: string read FId_ write SetFId_;
     property LastChild: TExtDataNode read FLastChild write SetFLastChild;
@@ -364,7 +363,6 @@ type
     FRestful: Boolean;
     FSortInfo: TExtObject;
     FStoreId: string;
-    FUrl: string;
     FBaseParams_: TExtObject;
     FFields: TExtObjectList;
     FHasMultiSort: Boolean;
@@ -403,7 +401,6 @@ type
     procedure SetFRestful(Value: Boolean);
     procedure SetFSortInfo(Value: TExtObject);
     procedure SetStoreId(AValue: string);
-    procedure SetUrl(const AValue: string);
     procedure SetFBaseParams_(Value: TExtObject);
     procedure SetFFields(Value: TExtObjectList);
     procedure SetFHasMultiSort(Value: Boolean);
@@ -665,7 +662,6 @@ type
     FOnLoadexception: TExtDataDataProxyOnLoadexception;
     FOnWrite_: TExtDataDataProxyOnWrite_;
     FReader: TExtDataDataReader;
-    FUrl: string;
     procedure SetFApi(Value: TExtObject);
     procedure SetFDoRequest(Value: TExtFunction);
     procedure SetFOnRead(Value: TExtFunction);
@@ -842,6 +838,7 @@ type
   TExtDataAjaxProxy = class(TExtDataProxy)
   private
     FConn: TExtDataConnection;
+    FUrl: string;
     procedure SetFConn(Value: TExtDataConnection);
     procedure SetUrl(const AValue: string);
   protected
@@ -1307,8 +1304,7 @@ end;
 
 procedure TExtDataField.SetAllowBlank(const AValue: Boolean);
 begin
-  FAllowBlank := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'allowBlank', [AValue]);
+  FAllowBlank := SetConfigItem('allowBlank', AValue);
 end;
 
 procedure TExtDataField.SetFConvert(Value: TExtFunction);
@@ -1331,8 +1327,7 @@ end;
 
 procedure TExtDataField.SetMapping(AValue: string);
 begin
-  FMapping := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'mapping', [AValue]);
+  FMapping := SetConfigItem('mapping', AValue);
 end;
 
 procedure TExtDataField.SetFMappingNumber(Value: Integer);
@@ -1343,8 +1338,7 @@ end;
 
 procedure TExtDataField._SetName(const AValue: string);
 begin
-  FName := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'name', [AValue]);
+  FName := SetConfigItem('name', AValue);
 end;
 
 procedure TExtDataField.SetFSortDir(Value: string);
@@ -1361,14 +1355,12 @@ end;
 
 procedure TExtDataField.SetType(const AValue: string);
 begin
-  FType := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'type', [AValue]);
+  FType := SetConfigItem('type', AValue);
 end;
 
 procedure TExtDataField.SetUseNull(const AValue: Boolean);
 begin
-  FUseNull := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'useNull', [AValue]);
+  FUseNull := SetConfigItem('useNull', AValue);
 end;
 
 function TExtDataField.GetObjectNamePrefix: string;
@@ -1383,27 +1375,18 @@ end;
 
 procedure TExtDataNode._SetId(const AValue: string);
 begin
-  FId := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'id', 'setId', [AValue]);
+  FId := SetConfigItem('id', 'setId', AValue);
 end;
 
 procedure TExtDataNode.SetLeaf(const AValue: Boolean);
 begin
-  FLeaf := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'leaf', [AValue]);
+  FLeaf := SetConfigItem('leaf', AValue);
 end;
 
 procedure TExtDataNode.SetFAttributes(Value: TExtObject);
 begin
   FAttributes := Value;
   JSCode(JSName + '.attributes=' + VarToJSON([Value, false]) + ';');
-end;
-
-procedure TExtDataNode.SetChildNodes(const AValue: TExtObjectList);
-begin
-  FChildNodes.Free;
-  FChildNodes := AValue;
-  ExtSession.ResponseItems.AddToList(Self, 'childNodes', [AValue]);
 end;
 
 procedure TExtDataNode.SetFFirstChild(Value: TExtDataNode);
@@ -1531,7 +1514,7 @@ procedure TExtDataNode.InitDefaults;
 begin
   inherited;
   FAttributes := TExtObject.CreateInternal(Self, 'attributes');
-  FChildNodes := TExtObjectList.CreateAsAttribute(Self, 'childNodes');
+  FChildren := TExtObjectList.CreateAsAttribute(Self, 'children');
   FFirstChild := TExtDataNode.CreateInternal(Self, 'firstChild');
   FLastChild := TExtDataNode.CreateInternal(Self, 'lastChild');
   FNextSibling := TExtDataNode.CreateInternal(Self, 'nextSibling');
@@ -1541,16 +1524,14 @@ end;
 
 function TExtDataNode.AppendChild(const ANode: TExtDataNode): TExtFunction;
 begin
-  FChildNodes.AddInternal(ANode);
-  ExtSession.ResponseItems.CallMethod(Self, 'appendChild', [ANode, False]);
-  Result := Self;
+  FChildren.AddInternal(ANode);
+  Result := CallMethod('appendChild', ANode);
 end;
 
 function TExtDataNode.AppendChild(const ANodes: TExtObjectList): TExtFunction;
 begin
-  FChildNodes.AddInternal(ANodes);
-  ExtSession.ResponseItems.CallMethod(Self, 'appendChild', [ANodes]);
-  Result := Self;
+  FChildren.AddInternal(ANodes);
+  Result := CallMethod('appendChild', ANodes);
 end;
 
 function TExtDataNode.Bubble(Fn: TExtFunction; Scope: TExtObject = nil;
@@ -1709,8 +1690,7 @@ end;
 function TExtDataNode.SetId(const AId: string): TExtFunction;
 begin
   FId := AId;
-  ExtSession.ResponseItems.CallMethod(Self, 'setId', [AId]);
-  Result := Self;
+  Result := CallMethod('setId', AId);
 end;
 
 function TExtDataNode.Sort(Fn: TExtFunction; Scope: TExtObject = nil): TExtFunction;
@@ -1759,8 +1739,7 @@ end;
 
 procedure TExtDataStore.SetAutoLoad(const AValue: Boolean);
 begin
-  FAutoLoad := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'autoLoad', [AValue]);
+  FAutoLoad := SetConfigItem('autoLoad', AValue);
 end;
 
 procedure TExtDataStore.SetFAutoLoadObject(Value: TExtObject);
@@ -1808,7 +1787,7 @@ end;
 procedure TExtDataStore.SetProxy(const AValue: TExtDataProxy);
 begin
   FProxy := AValue;
-  Session.ResponseItems.SetConfigItem(Self, 'proxy', [AValue, False]);
+  SetConfigItem('proxy', AValue);
 end;
 
 procedure TExtDataStore.SetFPruneModifiedRecords(Value: Boolean);
@@ -1819,14 +1798,12 @@ end;
 
 procedure TExtDataStore.SetRemoteSort(const AValue: Boolean);
 begin
-  FRemoteSort := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'remoteSort', [AValue]);
+  FRemoteSort := SetConfigItem('remoteSort', AValue);
 end;
 
 procedure TExtDataStore.SetTotalLength(const AValue: Integer);
 begin
-  FTotalLength := AValue;
-  ExtSession.ResponseItems.SetProperty(Self, 'totalLength', [AValue]);
+  FTotalLength := SetProperty('totalLength', AValue);
 end;
 
 procedure TExtDataStore.SetFRestful(Value: Boolean);
@@ -1844,20 +1821,12 @@ end;
 
 procedure TExtDataStore.SetGroupField(const AValue: string);
 begin
-  FGroupField := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'groupField', [AValue]);
+  FGroupField := SetConfigItem('groupField', AValue);
 end;
 
 procedure TExtDataStore.SetStoreId(AValue: string);
 begin
-  FStoreId := AValue;
-  ExtSession.ResponseItems.SetProperty(Self, 'storeId', [AValue]);
-end;
-
-procedure TExtDataStore.SetUrl(const AValue: string);
-begin
-  FUrl := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'url', [AValue]);
+  FStoreId := SetProperty('storeId', AValue);
 end;
 
 procedure TExtDataStore.SetFBaseParams_(Value: TExtObject);
@@ -2248,8 +2217,7 @@ end;
 
 function TExtDataStore.Load(const AOptions: TExtObject): TExtFunction;
 begin
-  ExtSession.ResponseItems.CallMethod(Self, 'load', [AOptions, False]);
-  Result := Self;
+  Result := CallMethod('load', AOptions);
 end;
 
 function TExtDataStore.LoadData(Data: TExtObject; Append: Boolean = false): TExtFunction;
@@ -2316,7 +2284,7 @@ end;
 
 procedure TExtDataStore.RemoveAll(const ASilent: Boolean);
 begin
-  Session.ResponseItems.CallMethod(Self, 'removeAll', [ASilent]);
+  CallMethod('removeAll', ASilent);
 end;
 
 function TExtDataStore.RemoveAt(Index: Integer): TExtFunction;
@@ -2672,7 +2640,7 @@ procedure TExtDataProxy.SetReader(const AValue: TExtDataDataReader);
 begin
   FReader.Free;
   FReader := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'reader', [AValue, False]);
+  SetConfigItem('reader', AValue);
 end;
 
 procedure TExtDataProxy.SetFOnBeforeload(Value: TExtDataDataProxyOnBeforeload);
@@ -2795,8 +2763,7 @@ end;
 
 function TExtDataProxy.SetApi(const AApi: string; const AUrl: string): TExtFunction;
 begin
-  Session.ResponseItems.CallMethod(Self, 'setApi', [AApi, AUrl]);
-  Result := Self;
+  Result := CallMethod('setApi', [AApi, AUrl]);
 end;
 
 function TExtDataProxy.SetApi(Api: TExtObject; Url: string): TExtFunction;
@@ -2979,20 +2946,17 @@ end;
 
 procedure TExtDataJsonReader.SetRootProperty(const AValue: string);
 begin
-  FRootProperty := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'rootProperty', [AValue]);
+  FRootProperty := SetConfigItem('rootProperty', AValue);
 end;
 
 procedure TExtDataJsonReader.SetSuccessProperty(const AValue: string);
 begin
-  FSuccessProperty := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'successProperty', [AValue]);
+  FSuccessProperty := SetConfigItem('successProperty', AValue);
 end;
 
 procedure TExtDataJsonReader.SetTotalProperty(const AValue: string);
 begin
-  FTotalProperty := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'totalProperty', [AValue]);
+  FTotalProperty := SetConfigItem('totalProperty', AValue);
 end;
 
 procedure TExtDataJsonReader.SetFJsonData(Value: TExtObject);
@@ -3009,8 +2973,7 @@ end;
 
 procedure TExtDataJsonReader.SetMessageProperty(const AValue: string);
 begin
-  FMessageProperty := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'messageProperty', [AValue]);
+  FMessageProperty := SetConfigItem('messageProperty', AValue);
 end;
 
 class function TExtDataJsonReader.JSClassName: string;
@@ -3111,8 +3074,7 @@ end;
 
 procedure TExtDataAjaxProxy.SetUrl(const AValue: string);
 begin
-  FUrl := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'url', [AValue]);
+  FUrl := SetConfigItem('url', AValue);
 end;
 
 class function TExtDataAjaxProxy.JSClassName: string;

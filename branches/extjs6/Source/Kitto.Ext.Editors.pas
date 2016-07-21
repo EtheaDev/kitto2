@@ -2331,8 +2331,7 @@ end;
 
 procedure TKExtFormNumberField.SetThousandSeparator(const AValue: string);
 begin
-  FThousandSeparator := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'thousandSeparator', [AValue]);
+  FThousandSeparator := SetConfigItem('thousandSeparator', AValue);
 end;
 
 procedure TKExtFormNumberField.SetTransientProperty(const APropertyName: string; const AValue: Variant);
@@ -2342,8 +2341,7 @@ end;
 
 procedure TKExtFormNumberField.SetUseThousandSeparator(const AValue: Boolean);
 begin
-  FUseThousandSeparator := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'useThousandSeparator', [AValue]);
+  FUseThousandSeparator := SetConfigItem('useThousandSeparator', AValue);
 end;
 
 procedure TKExtFormNumberField.StoreValue(const AObjectName: string);
@@ -2353,8 +2351,7 @@ end;
 
 procedure TKExtFormNumberField.SetAlwaysDisplayDecimals(const AValue: Boolean);
 begin
-  FAlwaysDisplayDecimals := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'alwaysDisplayDecimals', [AValue]);
+  FAlwaysDisplayDecimals := SetConfigItem('alwaysDisplayDecimals', AValue);
 end;
 
 procedure TKExtFormNumberField.SetFieldName(const AValue: string);
@@ -2456,26 +2453,22 @@ end;
 
 procedure TKExtFormDateTimeField.SetAllowBlank(const AValue: Boolean);
 begin
-  FAllowBlank := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'allowBlank', [AValue]);
+  FAllowBlank := SetConfigItem('allowBlank', AValue);
 end;
 
 procedure TKExtFormDateTimeField.SetAltDateFormats(const AValue: string);
 begin
-  FAltDateFormats := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'altDateFormats', [AValue]);
+  FAltDateFormats := SetConfigItem('altDateFormats', AValue);
 end;
 
 procedure TKExtFormDateTimeField.SetAltTimeFormats(const AValue: string);
 begin
-  FAltTimeFormats := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'altTimeFormats', [AValue]);
+  FAltTimeFormats := SetConfigItem('altTimeFormats', AValue);
 end;
 
 procedure TKExtFormDateTimeField.SetDateFormat(const AValue: string);
 begin
-  FTimeFormat := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'dateFormat', [AValue]);
+  FTimeFormat := SetConfigItem('dateFormat', AValue);
 end;
 
 procedure TKExtFormDateTimeField.SetFieldName(const AValue: string);
@@ -2492,8 +2485,7 @@ end;
 
 procedure TKExtFormDateTimeField.SetTimeFormat(const AValue: string);
 begin
-  FTimeFormat := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'timeFormat', [AValue]);
+  FTimeFormat := SetConfigItem('timeFormat', AValue);
 end;
 
 procedure TKExtFormDateTimeField.SetTransientProperty(const APropertyName: string; const AValue: Variant);

@@ -904,8 +904,12 @@ type
   end;
 
   TExtGridPluginCellEditing = class(TExtGridPluginEditing)
+  private
+    FClicksToEdit: Integer;
+    procedure SetClicksToEdit(const AValue: Integer);
   public
     class function JSClassName: string; override;
+    property ClicksToEdit: Integer read FClicksToEdit write SetClicksToEdit;
   end;
 
   TExtGridPluginRowEditing = class(TExtGridPluginEditing)
@@ -935,56 +939,48 @@ end;
 procedure TExtGridColumn.SetAlign(const AValue: TExtGridColumnAlign);
 begin
   FAlign := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'align',
-    [EnumToJSString(TypeInfo(TExtGridColumnAlign), ord(AValue))]);
+  SetConfigItem('align', EnumToJSString(TypeInfo(TExtGridColumnAlign), Ord(AValue)));
 end;
 
 procedure TExtGridColumn.SetCss(const AValue: string);
 begin
-  FCss := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'css', [AValue]);
+  FCss := SetConfigItem('css', AValue);
 end;
 
 procedure TExtGridColumn.SetDataIndex(const AValue: string);
 begin
-  FDataIndex := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'dataIndex', [AValue]);
+  FDataIndex := SetConfigItem('dataIndex', AValue);
 end;
 
 procedure TExtGridColumn.SetEditable(const AValue: Boolean);
 begin
-  FEditable := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'editable', [AValue]);
+  FEditable := SetConfigItem('editable', AValue);
 end;
 
 procedure TExtGridColumn.SetEditor(AValue: TExtFormField);
 begin
   FEditor := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'editor', 'setEditor', [Editor, False]);
+  SetConfigItem('editor', 'setEditor', AValue);
 end;
 
 procedure TExtGridColumn.SetEmptyGroupText(const AValue: string);
 begin
-  FEmptyGroupText := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'emptyGroupText', [AValue]);
+  FEmptyGroupText := SetConfigItem('emptyGroupText', AValue);
 end;
 
 procedure TExtGridColumn.SetFixed(const AValue: Boolean);
 begin
-  FFixed := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'fixed', [AValue]);
+  FFixed := SetConfigItem('fixed', AValue);
 end;
 
 procedure TExtGridColumn.SetGroupName(const AValue: string);
 begin
-  FGroupName := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'groupName', [AValue]);
+  FGroupName := SetConfigItem('groupName', AValue);
 end;
 
 procedure TExtGridColumn.SetGroupRenderer(const AValue: TExtFunction);
 begin
-  FGroupRenderer := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'groupRenderer', [AValue, True]);
+  FGroupRenderer := SetFunctionConfigItem('groupRenderer', AValue);
 end;
 
 procedure TExtGridColumn.SetFGroupable(Value: Boolean);
@@ -995,20 +991,17 @@ end;
 
 procedure TExtGridColumn.SetHeader(const AValue: string);
 begin
-  FHeader := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'header', [AValue]);
+  FHeader := SetConfigItem('header', AValue);
 end;
 
 procedure TExtGridColumn.SetHidden(const AValue: Boolean);
 begin
-  FHidden := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'hidden', 'setHidden', [AValue]);
+  FHidden := SetConfigItem('hidden', 'setHidden', AValue);
 end;
 
 procedure TExtGridColumn.SetHideable(const AValue: Boolean);
 begin
-  FHideable := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'hideable', [AValue]);
+  FHideable := SetConfigItem('hideable', AValue);
 end;
 
 procedure TExtGridColumn.SetFId(Value: string);
@@ -1025,8 +1018,7 @@ end;
 
 procedure TExtGridColumn.SetRenderer(const AValue: string);
 begin
-  FRenderer := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'renderer', [AValue]);
+  FRenderer := SetConfigItem('renderer', AValue);
 end;
 
 procedure TExtGridColumn.SetFResizable(Value: Boolean);
@@ -1043,8 +1035,7 @@ end;
 
 procedure TExtGridColumn.SetSortable(const AValue: Boolean);
 begin
-  FSortable := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'sortable', [AValue]);
+  FSortable := SetConfigItem('sortable', AValue);
 end;
 
 procedure TExtGridColumn.SetFTooltip(Value: string);
@@ -1055,8 +1046,7 @@ end;
 
 procedure TExtGridColumn.SetWidth(const AValue: Integer);
 begin
-  FWidth := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'width', [AValue]);
+  FWidth := SetConfigItem('width', AValue);
 end;
 
 procedure TExtGridColumn.SetFXtype(Value: string);
@@ -1073,8 +1063,7 @@ end;
 
 procedure TExtGridColumn.SetRendererExtFunction(const AValue: TExtFunction);
 begin
-  FRendererExtFunction := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'renderer', [AValue, True]);
+  FRendererExtFunction := SetFunctionConfigItem('renderer', AValue);
 end;
 
 class function TExtGridColumn.JSClassName: string;
@@ -1144,8 +1133,7 @@ end;
 
 procedure TExtGridNumberColumn.SetFormat(const AValue: string);
 begin
-  FFormat := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'format', [AValue]);
+  FFormat := SetConfigItem('format', AValue);
 end;
 
 class function TExtGridNumberColumn.JSClassName: string;
@@ -1161,14 +1149,12 @@ end;
 
 procedure TExtViewTable.SetAutoFill(const AValue: Boolean);
 begin
-  FAutoFill := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'autoFill', [AValue]);
+  FAutoFill := SetConfigItem('autoFill', AValue);
 end;
 
 procedure TExtViewTable.SetDisableSelection(const AValue: Boolean);
 begin
-  FDisableSelection := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'disableSelection', [AValue]);
+  FDisableSelection := SetConfigItem('disableSelection', AValue);
 end;
 
 procedure TExtViewTable.SetFCellSelector(Value: string);
@@ -1197,26 +1183,22 @@ end;
 
 procedure TExtViewTable.SetEmptyText(const AValue: string);
 begin
-  FEmptyText := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'emptyText', [AValue]);
+  FEmptyText := SetConfigItem('emptyText', AValue);
 end;
 
 procedure TExtViewTable.SetEnableRowBody(const AValue: Boolean);
 begin
-  FEnableRowBody := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'enableRowBody', [AValue]);
+  FEnableRowBody := SetConfigItem('enableRowBody', AValue);
 end;
 
 procedure TExtViewTable.SetForceFit(const AValue: Boolean);
 begin
-  FForceFit := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'forceFit', [AValue]);
+  FForceFit := SetConfigItem('forceFit', AValue);
 end;
 
 procedure TExtViewTable.SetGetRowClass(const AValue: TExtFunction);
 begin
-  FGetRowClass := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'getRowClass', [AValue]);
+  FGetRowClass := SetFunctionConfigItem('getRowClass', AValue);
 end;
 
 procedure TExtViewTable.SetFHeadersDisabled(Value: Boolean);
@@ -1506,8 +1488,7 @@ end;
 
 procedure TExtGridDateColumn.SetFormat(const AValue: string);
 begin
-  FFormat := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'format', [AValue]);
+  FFormat := SetConfigItem('format', AValue);
 end;
 
 class function TExtGridDateColumn.JSClassName: string;
@@ -1524,8 +1505,7 @@ end;
 procedure TExtGridAbstractSelectionModel.SetGrid(const AValue: TExtObject);
 begin
   FGrid.Free;
-  FGrid := AValue;
-  ExtSession.ResponseItems.SetProperty(Self, 'grid', [AValue, False]);
+  FGrid := SetProperty('grid', AValue);
 end;
 
 class function TExtGridAbstractSelectionModel.JSClassName: string;
@@ -1650,8 +1630,7 @@ end;
 
 procedure TExtSelectionRowModel.SetSingleSelect(const AValue: Boolean);
 begin
-  FSingleSelect := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'singleSelect', [AValue]);
+  FSingleSelect := SetConfigItem('singleSelect', AValue);
 end;
 
 procedure TExtSelectionRowModel.SetFOnBeforerowselect
@@ -1727,38 +1706,32 @@ end;
 
 function TExtSelectionRowModel.Each(const AFunction: TExtFunction; const AScope: TExtObject): TExtFunction;
 begin
-  ExtSession.ResponseItems.CallMethod(Self, 'each', [AFunction, True, AScope, False]);
-  Result := Self;
+  Result := CallMethod('each', [AFunction, True, AScope, False]);
 end;
 
 function TExtSelectionRowModel.GetCount: TExtFunction;
 begin
-  ExtSession.ResponseItems.CallMethod(Self, 'getCount', []);
-  Result := Self;
+  Result := CallMethod('getCount', []);
 end;
 
 function TExtSelectionRowModel.GetSelected: TExtFunction;
 begin
-  ExtSession.ResponseItems.CallMethod(Self, 'getSelected', []);
-  Result := Self;
+  Result := CallMethod('getSelected', []);
 end;
 
 function TExtSelectionRowModel.GetSelections: TExtFunction;
 begin
-  ExtSession.ResponseItems.CallMethod(Self, 'getSelections', []);
-  Result := Self;
+  Result := CallMethod('getSelections', []);
 end;
 
 function TExtSelectionRowModel.HasNext: TExtFunction;
 begin
-  ExtSession.ResponseItems.CallMethod(Self, 'hasNext', []);
-  Result := Self;
+  Result := CallMethod('hasNext', []);
 end;
 
 function TExtSelectionRowModel.HasPrevious: TExtFunction;
 begin
-  ExtSession.ResponseItems.CallMethod(Self, 'hasPrevious', []);
-  Result := Self;
+  Result := CallMethod('hasPrevious', []);
 end;
 
 function TExtSelectionRowModel.HasSelection: TExtFunction;
@@ -1795,8 +1768,7 @@ end;
 
 function TExtSelectionRowModel.SelectFirstRow: TExtFunction;
 begin
-  ExtSession.ResponseItems.CallMethod(Self, 'selectFirstRow', []);
-  Result := Self;
+  Result := CallMethod('selectFirstRow', []);
 end;
 
 function TExtSelectionRowModel.SelectLastRow(KeepExisting: Boolean = false)
@@ -1874,26 +1846,22 @@ end;
 
 procedure TExtGridGroupingView.SetEmptyGroupText(const AValue: string);
 begin
-  FEmptyGroupText := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'emptyGroupText', [AValue]);
+  FEmptyGroupText := SetConfigItem('emptyGroupText', AValue);
 end;
 
 procedure TExtGridGroupingView.SetEnableGrouping(const AValue: Boolean);
 begin
-  FEnableGrouping := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'enableGrouping', [AValue]);
+  FEnableGrouping := SetConfigItem('enableGrouping', AValue);
 end;
 
 procedure TExtGridGroupingView.SetEnableGroupingMenu(const AValue: Boolean);
 begin
-  FEnableGroupingMenu := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'enableGroupingMenu', [AValue]);
+  FEnableGroupingMenu := SetConfigItem('enableGroupingMenu', AValue);
 end;
 
 procedure TExtGridGroupingView.SetEnableNoGroups(const AValue: Boolean);
 begin
-  FEnableNoGroups := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'enableNoGroups', [AValue]);
+  FEnableNoGroups := SetConfigItem('enableNoGroups', AValue);
 end;
 
 procedure TExtGridGroupingView.SetFGroupByText(Value: string);
@@ -1904,26 +1872,22 @@ end;
 
 procedure TExtGridGroupingView.SetGroupMode(const AValue: string);
 begin
-  FGroupMode := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'groupMode', [AValue]);
+  FGroupMode := SetConfigItem('groupMode', AValue);
 end;
 
 procedure TExtGridGroupingView.SetGroupRenderer(const AValue: TExtFunction);
 begin
-  FGroupRenderer := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'groupRenderer', [AValue, True]);
+  FGroupRenderer := SetFunctionConfigItem('groupRenderer', AValue);
 end;
 
 procedure TExtGridGroupingView.SetGroupTextTpl(const AValue: string);
 begin
-  FGroupTextTpl := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'groupTextTpl', [AValue]);
+  FGroupTextTpl := SetConfigItem('groupTextTpl', AValue);
 end;
 
 procedure TExtGridGroupingView.SetHideGroupedColumn(const AValue: Boolean);
 begin
-  FHideGroupedColumn := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'hideGroupedColumn', [AValue]);
+  FHideGroupedColumn := SetConfigItem('hideGroupedColumn', AValue);
 end;
 
 procedure TExtGridGroupingView.SetFIgnoreAdd(Value: Boolean);
@@ -1934,20 +1898,17 @@ end;
 
 procedure TExtGridGroupingView.SetShowGroupName(const AValue: Boolean);
 begin
-  FShowGroupName := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'showGroupName', [AValue]);
+  FShowGroupName := SetConfigItem('showGroupName', AValue);
 end;
 
 procedure TExtGridGroupingView.SetShowGroupsText(const AValue: string);
 begin
-  FShowGroupsText := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'showGroupsText', [AValue]);
+  FShowGroupsText := SetConfigItem('showGroupsText', AValue);
 end;
 
 procedure TExtGridGroupingView.SetStartCollapsed(const AValue: Boolean);
 begin
-  FStartCollapsed := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'startCollapsed', [AValue]);
+  FStartCollapsed := SetConfigItem('startCollapsed', AValue);
 end;
 
 class function TExtGridGroupingView.JSClassName: string;
@@ -2045,8 +2006,7 @@ end;
 
 procedure TExtGridGridPanel.SetAutoExpandColumn(const AValue: string);
 begin
-  FAutoExpandColumn := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'autoExpandColumn', [AValue]);
+  FAutoExpandColumn := SetConfigItem('autoExpandColumn', AValue);
 end;
 
 procedure TExtGridGridPanel.SetFAutoExpandMax(Value: Integer);
@@ -2069,8 +2029,7 @@ end;
 
 procedure TExtGridGridPanel.SetColumnLines(const AValue: Boolean);
 begin
-  FColumnLines := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'columnLines', [AValue]);
+  FColumnLines := SetConfigItem('columnLines', AValue);
 end;
 
 procedure TExtGridGridPanel.SetFDdGroup(Value: string);
@@ -2093,8 +2052,7 @@ end;
 
 procedure TExtGridGridPanel.SetDisableSelection(const AValue: Boolean);
 begin
-  FDisableSelection := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'disableSelection', [AValue]);
+  FDisableSelection := SetConfigItem('disableSelection', AValue);
 end;
 
 procedure TExtGridGridPanel.SetFEnableColumnHide(Value: Boolean);
@@ -2123,8 +2081,7 @@ end;
 
 procedure TExtGridGridPanel.SetEnableHdMenu(AValue: Boolean);
 begin
-  FEnableHdMenu := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'enableHdMenu', [AValue]);
+  FEnableHdMenu := SetConfigItem('enableHdMenu', AValue);
 end;
 
 procedure TExtGridGridPanel.SetFHideHeaders(Value: Boolean);
@@ -2153,8 +2110,7 @@ end;
 
 procedure TExtGridGridPanel.SetSelModel(const AValue: TExtObject);
 begin
-  FSelModel := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'selModel', [AValue, False]);
+  FSelModel := SetConfigItem('selModel', AValue);
 end;
 
 procedure TExtGridGridPanel.SetFSm(Value: TExtObject);
@@ -2174,26 +2130,23 @@ procedure TExtGridGridPanel.SetStore(const AValue: TExtDataStore);
 begin
   FStore.Free;
   FStore := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'store', [AValue, False]);
+  SetConfigItem('store', AValue);
 end;
 
 procedure TExtGridGridPanel.SetStripeRows(const AValue: Boolean);
 begin
-  FStripeRows := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'stripeRows', [AValue]);
+  FStripeRows := SetConfigItem('stripeRows', AValue);
 end;
 
 procedure TExtGridGridPanel.SetTrackMouseOver(const AValue: Boolean);
 begin
-  FTrackMouseOver := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'trackMouseOver', [AValue]);
+  FTrackMouseOver := SetConfigItem('trackMouseOver', AValue);
 end;
 
 procedure TExtGridGridPanel.SetView(const AValue: TExtObject);
 begin
   FView.Free;
-  FView := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'view', [AValue, False]);
+  FView := SetConfigItem('view', AValue);
 end;
 
 procedure TExtGridGridPanel.SetFViewConfig(Value: TExtObject);
@@ -2784,8 +2737,7 @@ end;
 
 procedure TExtGridPropertyGrid._SetSource(const AValue: TExtObject);
 begin
-  FSource := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'source', [AValue, False]);
+  FSource := SetConfigItem('source', AValue);
 end;
 
 procedure TExtGridPropertyGrid.SetFOnBeforepropertychange
@@ -2847,8 +2799,7 @@ end;
 function TExtGridPropertyGrid.SetSource(const ASource: TExtObject): TExtFunction;
 begin
   FSource := ASource;
-  ExtSession.ResponseItems.CallMethod(Self, 'setSource', [ASource, False]);
-  Result := Self;
+  Result := CallMethod('setSource', ASource);
 end;
 
 procedure TExtGridPropertyGrid.HandleEvent(const AEvtName: string);
@@ -2921,6 +2872,12 @@ end;
 class function TExtGridPluginCellEditing.JSClassName: string;
 begin
   Result := 'Ext.grid.plugin.CellEditing';
+end;
+
+procedure TExtGridPluginCellEditing.SetClicksToEdit(const AValue: Integer);
+begin
+  FClicksToEdit := AValue;
+  SetConfigItem('clicksToEdit', AValue);
 end;
 
 { TExtGridPluginRowEditing }

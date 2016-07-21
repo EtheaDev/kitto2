@@ -32,8 +32,8 @@ type
     function ObservableReleaseCapture(O: TExtUtilObservable): TExtFunction;
     function AddEvents(O: TExtObject; Optional: string): TExtFunction; overload;
     function AddEvents(O: string; Optional: string): TExtFunction; overload;
-    function AddListener(EventName: string; Handler: TExtFunction;
-      Scope: TExtObject = nil; Options: TExtObject = nil): TExtFunction;
+    function AddListener(const AEventName: string; const AHandler: TExtFunction;
+      const AScope: TExtObject = nil; const AOptions: TExtObject = nil): TExtFunction;
     function EnableBubble(Events: string): TExtFunction; overload;
     function EnableBubble(Events: TExtObjectList): TExtFunction; overload;
     function FireEvent(const AEventName: string; const AArgs: TExtObjectList): TExtFunction;
@@ -326,11 +326,10 @@ begin
   Result := Self;
 end;
 
-function TExtUtilObservable.AddListener(EventName: string; Handler: TExtFunction;
-  Scope: TExtObject = nil; Options: TExtObject = nil): TExtFunction;
+function TExtUtilObservable.AddListener(const AEventName: string; const AHandler: TExtFunction;
+  const AScope: TExtObject = nil; const AOptions: TExtObject = nil): TExtFunction;
 begin
-  ExtSession.ResponseItems.CallMethod(Self, 'addListener', [EventName, Handler, True, Scope, False, Options, False]);
-  Result := Self;
+  Result := CallMethod('addListener', [AEventName, AHandler, True, AScope, False, AOptions, False]);
 end;
 
 function TExtUtilObservable.EnableBubble(Events: string): TExtFunction;
@@ -347,8 +346,7 @@ end;
 
 function TExtUtilObservable.FireEvent(const AEventName: string; const AArgs: TExtObjectList): TExtFunction;
 begin
-  Session.ResponseItems.CallMethod(Self, 'fireEvent', [AEventName, AArgs]);
-  Result := Self;
+  Result := CallMethod('fireEvent', [AEventName, AArgs, False]);
 end;
 
 function TExtUtilObservable.HasListener(EventName: string): TExtFunction;
@@ -360,8 +358,7 @@ end;
 function TExtUtilObservable.&On(const AEventName: string; const AHandler: TExtFunction;
   const AScope: TExtObject; const AOptions: TExtObject): TExtFunction;
 begin
-  ExtSession.ResponseItems.CallMethod(Self, 'on', [AEventName, AHandler, True, AScope, False, AOptions, False]);
-  Result := Self;
+  Result := CallMethod('on', [AEventName, AHandler, True, AScope, False, AOptions, False]);
 end;
 
 function TExtUtilObservable.PurgeListeners: TExtFunction;
@@ -472,8 +469,7 @@ end;
 
 function TExtUtilTextMetricsSingleton.GetHeight(const AText: string): TExtFunction;
 begin
-  ExtSession.ResponseItems.CallMethod(Self, 'getHeight', [AText]);
-  Result := Self;
+  Result := CallMethod('getHeight', AText);
 end;
 
 function TExtUtilTextMetricsSingleton.GetSize(Text: string): TExtFunction;
@@ -484,8 +480,7 @@ end;
 
 function TExtUtilTextMetricsSingleton.GetWidth(const AText: string): TExtFunction;
 begin
-  ExtSession.ResponseItems.CallMethod(Self, 'getWidth', [AText]);
-  Result := Self;
+  Result := CallMethod('getWidth', AText);
 end;
 
 function TExtUtilTextMetricsSingleton.Measure(El: string; Text: string;

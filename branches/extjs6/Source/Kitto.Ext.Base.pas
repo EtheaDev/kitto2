@@ -912,7 +912,7 @@ end;
 
 function TKExtFormComboBox.GetEncodedValue: TExtFunction;
 begin
-  ExtSession.ResponseItems.ExecuteJSCode(Self, Format('encodeURI(%s.getValue())', [JSName]));
+  Session.ResponseItems.ExecuteJSCode(Self, Format('encodeURI(%s.getValue())', [JSName]));
   Result := Self;
 end;
 

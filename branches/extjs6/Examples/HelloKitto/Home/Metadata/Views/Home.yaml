@@ -1,8 +1,8 @@
 ﻿DisplayLabel: %Config:AppTitle%
 # Valid top-level controllers are Window and Viewport
 Controller: Window
-  Width: 1000
-  Height: 600
+  Width: 1200
+  Height: 700
 
   SubView:
     Controller: BorderPanel
@@ -10,7 +10,7 @@ Controller: Window
       WestView:
         DisplayLabel: _(Main menu)
         Controller: BorderPanel
-          Width: 155
+          Width: 230
           Collapsible: True
           Border: True
           Split: True
@@ -18,7 +18,7 @@ Controller: Window
           NorthView:
             Controller: HtmlPanel
               Split: False
-              Html: <p><img src="%IMAGE(hello_kitto_150)%" width="150" height="47"></img></p>
+              Html: <center><p><img src="%IMAGE(hello_kitto_150)%" width="150" height="47"></img></p></center>
           CenterView:
             Controller: TreePanel
               TreeView: MainMenu

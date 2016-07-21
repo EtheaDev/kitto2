@@ -116,7 +116,6 @@ type
     FMenu: TExtMenuMenu;
     FShowDelay: Integer; // 200
     FText: string;
-    FMenu_: TExtMenuMenu;
     procedure SetFCanActivate(Value: Boolean);
     procedure SetFHref(Value: string);
     procedure SetFHrefTarget(Value: string);
@@ -126,7 +125,6 @@ type
     procedure SetMenu(AValue: TExtMenuMenu);
     procedure SetFShowDelay(Value: Integer);
     procedure SetText(const AValue: string);
-    procedure SetFMenu_(Value: TExtMenuMenu);
   protected
     procedure InitDefaults; override;
   public
@@ -141,7 +139,6 @@ type
     property Menu: TExtMenuMenu read FMenu write SetMenu;
     property ShowDelay: Integer read FShowDelay write SetFShowDelay;
     property Text: string read FText write SetText;
-    property Menu_: TExtMenuMenu read FMenu_ write SetFMenu_;
   end;
 
   // Procedural types for events TExtMenuCheckItem
@@ -196,13 +193,11 @@ type
     FAllowOtherMenus: Boolean;
     FDefaultAlign: string; // 'tl-bl?'
     FDefaultOffsets: TExtObjectList;
-    FDefaults: TExtObject;
     FEnableScrolling: Boolean; // true
     FFloating: Boolean;
     FIgnoreParentClicks: Boolean;
     FItems: TExtObjectList;
     FLayout: string;
-    FLayoutObject: TExtObject;
     FMaxHeight: Integer;
     FMinWidth: Integer; // 120
     FPlain: Boolean;
@@ -219,13 +214,11 @@ type
     procedure SetFAllowOtherMenus(Value: Boolean);
     procedure SetFDefaultAlign(Value: string);
     procedure SetFDefaultOffsets(Value: TExtObjectList);
-    procedure SetFDefaults(Value: TExtObject);
     procedure SetFEnableScrolling(Value: Boolean);
     procedure SetFFloating(Value: Boolean);
     procedure SetFIgnoreParentClicks(Value: Boolean);
     procedure SetFItems(Value: TExtObjectList);
     procedure SetFLayout(Value: string);
-    procedure SetFLayoutObject(Value: TExtObject);
     procedure SetFMaxHeight(Value: Integer);
     procedure SetFMinWidth(Value: Integer);
     procedure SetFPlain(Value: Boolean);
@@ -257,14 +250,12 @@ type
     property AllowOtherMenus: Boolean read FAllowOtherMenus write SetFAllowOtherMenus;
     property DefaultAlign: string read FDefaultAlign write SetFDefaultAlign;
     property DefaultOffsets: TExtObjectList read FDefaultOffsets write SetFDefaultOffsets;
-    property Defaults: TExtObject read FDefaults write SetFDefaults;
     property EnableScrolling: Boolean read FEnableScrolling write SetFEnableScrolling;
     property Floating: Boolean read FFloating write SetFFloating;
     property IgnoreParentClicks: Boolean read FIgnoreParentClicks
       write SetFIgnoreParentClicks;
     property Items: TExtObjectList read FItems write SetFItems;
     property Layout: string read FLayout write SetFLayout;
-    property LayoutObject: TExtObject read FLayoutObject write SetFLayoutObject;
     property MaxHeight: Integer read FMaxHeight write SetFMaxHeight;
     property MinWidth: Integer read FMinWidth write SetFMinWidth;
     property Plain: Boolean read FPlain write SetFPlain;
@@ -398,7 +389,7 @@ procedure TExtMenuBaseItem._SetHandler(const AValue: TExtFunction);
 begin
   FHandler.Free;
   FHandler := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'handler', 'setHandler', [AValue, True]);
+  SetConfigItem('handler', 'setHandler', [AValue, True]);
 end;
 
 procedure TExtMenuBaseItem.SetFHideOnClick(Value: Boolean);
@@ -465,8 +456,7 @@ function TExtMenuBaseItem.SetHandler(const AHandler: TExtFunction; const AScope:
 begin
   FHandler.Free;
   FHandler := AHandler;
-  ExtSession.ResponseItems.CallMethod(Self, 'setHandler', [AHandler, True, AScope, False]);
-  Result := Self;
+  Result := CallMethod('setHandler', [AHandler, True, AScope, False]);
 end;
 
 procedure TExtMenuBaseItem.HandleEvent(const AEvtName: string);
@@ -559,7 +549,7 @@ end;
 procedure TExtMenuItem.SetIconCls(const AValue: string);
 begin
   FIconCls := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'iconCls', [AValue]);
+  SetConfigItem('iconCls', AValue);
 end;
 
 procedure TExtMenuItem.SetFItemCls(Value: string);
@@ -572,7 +562,7 @@ procedure TExtMenuItem.SetMenu(AValue: TExtMenuMenu);
 begin
   FMenu.Free;
   FMenu := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'menu', [AValue, False]);
+  SetConfigItem('menu', AValue);
 end;
 
 procedure TExtMenuItem.SetFShowDelay(Value: Integer);
@@ -584,13 +574,7 @@ end;
 procedure TExtMenuItem.SetText(const AValue: string);
 begin
   FText := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'text', 'setText', [AValue]);
-end;
-
-procedure TExtMenuItem.SetFMenu_(Value: TExtMenuMenu);
-begin
-  FMenu_ := Value;
-  JSCode(JSName + '.menu=' + VarToJSON([Value, false]) + ';');
+  SetConfigItem('text', 'setText', AValue);
 end;
 
 class function TExtMenuItem.JSClassName: string;
@@ -606,7 +590,6 @@ begin
   FItemCls := 'x-menu-item';
   FMenu := TExtMenuMenu.CreateInternal(Self, 'menu');
   FShowDelay := 200;
-  FMenu_ := TExtMenuMenu.CreateInternal(Self, 'menu');
 end;
 
 function TExtMenuItem.SetIconClass(Cls: string): TExtFunction;
@@ -617,7 +600,7 @@ end;
 procedure TExtMenuCheckItem._SetChecked(const AValue: Boolean);
 begin
   FChecked := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'checked', 'setChacked', [AValue]);
+  SetConfigItem('checked', 'setChacked', AValue);
 end;
 
 procedure TExtMenuCheckItem.SetFGroup(Value: string);
@@ -681,8 +664,7 @@ end;
 function TExtMenuCheckItem.SetChecked(const AChecked: Boolean; const ASuppressEvent: Boolean): TExtFunction;
 begin
   FChecked := AChecked;
-  ExtSession.ResponseItems.CallMethod(Self, 'setChacked', [AChecked, ASuppressEvent]);
-  Result := Self;
+  Result := CallMethod('setChecked', [AChecked, ASuppressEvent]);
 end;
 
 procedure TExtMenuCheckItem.HandleEvent(const AEvtName: string);
@@ -713,12 +695,6 @@ begin
   JSCode('defaultOffsets:' + VarToJSON([Value, false]));
 end;
 
-procedure TExtMenuMenu.SetFDefaults(Value: TExtObject);
-begin
-  FDefaults := Value;
-  JSCode('defaults:' + VarToJSON([Value, false]));
-end;
-
 procedure TExtMenuMenu.SetFEnableScrolling(Value: Boolean);
 begin
   FEnableScrolling := Value;
@@ -747,12 +723,6 @@ procedure TExtMenuMenu.SetFLayout(Value: string);
 begin
   FLayout := Value;
   JSCode('layout:' + VarToJSON([Value]));
-end;
-
-procedure TExtMenuMenu.SetFLayoutObject(Value: TExtObject);
-begin
-  FLayoutObject := Value;
-  JSCode('layout:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtMenuMenu.SetFMaxHeight(Value: Integer);
@@ -858,10 +828,8 @@ begin
   inherited;
   FDefaultAlign := 'tl-bl?';
   FDefaultOffsets := TExtObjectList.CreateAsAttribute(Self, 'defaultOffsets');
-  FDefaults := TExtObject.CreateInternal(Self, 'defaults');
   FEnableScrolling := true;
   FItems := TExtObjectList.CreateAsAttribute(Self, 'items');
-  FLayoutObject := TExtObject.CreateInternal(Self, 'layout');
   FMinWidth := 120;
   FScrollIncrement := 24;
   FShowSeparator := true;

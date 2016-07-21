@@ -188,7 +188,7 @@ begin
     EnableTabScroll := True;
   end
   else
-    AddClass('tab-strip-hidden');
+    AddCls('tab-strip-hidden');
 
   LViews := Config.FindNode('SubViews');
   if Assigned(LViews) then
@@ -236,7 +236,7 @@ end;
 
 procedure TKExtTabPanel.ApplyTabSize;
 begin
-  AddClass('tab-strip-' + Config.GetString('TabSize', GetDefaultTabSize));
+  AddCls('tab-strip-' + Config.GetString('TabSize', GetDefaultTabSize));
 end;
 
 function TKExtTabPanel.GetDefaultTabSize: string;

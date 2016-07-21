@@ -1535,8 +1535,7 @@ end;
 
 procedure TExtFormAction.SetFailure(const AValue: TExtFunction);
 begin
-  FFailure := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'failure', [AValue, True]);
+  FFailure := SetFunctionConfigItem('failure', AValue);
 end;
 
 procedure TExtFormAction.SetFMethod(Value: string);
@@ -1571,32 +1570,27 @@ end;
 
 procedure TExtFormAction.SetSuccess(const AValue: TExtFunction);
 begin
-  FSuccess := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'success', [AValue, True]);
+  FSuccess := SetFunctionConfigItem('success', AValue);
 end;
 
 procedure TExtFormAction.SetTimeout(const AValue: Integer);
 begin
-  FTimeout := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'timeout', [AValue]);
+  FTimeout := SetConfigItem('timeout', AValue);
 end;
 
 procedure TExtFormAction.SetUrl(const AValue: string);
 begin
-  FUrl := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'url', [AValue]);
+  FUrl := SetConfigItem('url', AValue);
 end;
 
 procedure TExtFormAction.SetWaitMsg(const AValue: string);
 begin
-  FWaitMsg := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'waitMsg', [AValue]);
+  FWaitMsg := SetConfigItem('waitMsg', AValue);
 end;
 
 procedure TExtFormAction.SetWaitTitle(const AValue: string);
 begin
-  FWaitTitle := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'waitTitle', [AValue]);
+  FWaitTitle := SetConfigItem('waitTitle', AValue);
 end;
 
 procedure TExtFormAction.SetFFailureType(Value: string);
@@ -1797,8 +1791,7 @@ end;
 
 procedure TExtFormBasicForm.SetUrl(const AValue: string);
 begin
-  FUrl := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'url', [AValue]);
+  FUrl := SetConfigItem('url', AValue);
 end;
 
 procedure TExtFormBasicForm.SetFWaitTitle(Value: string);
@@ -1929,16 +1922,14 @@ begin
   Result := Self;
 end;
 
-function TExtFormBasicForm.GetFieldValues(const ADirtyOnly: Boolean = False): TExtFunction;
+function TExtFormBasicForm.GetFieldValues(const ADirtyOnly: Boolean): TExtFunction;
 begin
-  ExtSession.ResponseItems.CallMethod(Self, 'getFieldValues', [ADirtyOnly]);
-  Result := Self;
+  Result := CallMethod('getFieldValues', ADirtyOnly);
 end;
 
 function TExtFormBasicForm.GetValues(const AAsString: Boolean): TExtFunction;
 begin
-  ExtSession.ResponseItems.CallMethod(Self, 'getValues', [AAsString]);
-  Result := Self;
+  Result := CallMethod('getValues', AAsString);
 end;
 
 function TExtFormBasicForm.IsDirty: TExtFunction;
@@ -1955,8 +1946,7 @@ end;
 
 function TExtFormBasicForm.Load(const AOptions: TExtObject): TExtFunction;
 begin
-  ExtSession.ResponseItems.CallMethod(Self, 'load', [AOptions, False]);
-  Result := Self;
+  Result := CallMethod('load', AOptions);
 end;
 
 function TExtFormBasicForm.LoadRecord(RecordJS: TExtDataRecord): TExtFunction;
@@ -2015,8 +2005,7 @@ end;
 
 function TExtFormBasicForm.Submit(const AOptions: TExtObject): TExtFunction;
 begin
-  ExtSession.ResponseItems.CallMethod(Self, 'submit', [AOptions, False]);
-  Result := Self;
+  Result := CallMethod('submit', AOptions);
 end;
 
 function TExtFormBasicForm.UpdateRecord(RecordJS: TExtDataRecord): TExtFunction;
@@ -2187,14 +2176,12 @@ end;
 
 procedure TExtFormField.SetCls(const AValue: string);
 begin
-  FCls := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'cls', [AValue]);
+  FCls := SetConfigItem('cls', AValue);
 end;
 
 procedure TExtFormField.SetDisabled(const AValue: Boolean);
 begin
-  FDisabled := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'disabled', 'setDisabled', [AValue]);
+  FDisabled := SetConfigItem('disabled', 'setDisabled', AValue);
 end;
 
 procedure TExtFormField.SetFFieldClass(Value: string);
@@ -2212,7 +2199,7 @@ end;
 procedure TExtFormField.SetInputType(const AValue: TExtFormFieldInputType);
 begin
   FInputType := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'inputType', [EnumToJSString(TypeInfo(TExtFormFieldInputType), Ord(AValue))]);
+  SetConfigItem('inputType', EnumToJSString(TypeInfo(TExtFormFieldInputType), Ord(AValue)));
 end;
 
 procedure TExtFormField.SetFInvalidClass(Value: string);
@@ -2235,14 +2222,12 @@ end;
 
 procedure TExtFormField.SetMsgTarget(const AValue: string);
 begin
-  FMsgTarget := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'msgTarget', [AValue]);
+  FMsgTarget := SetConfigItem('msgTarget', AValue);
 end;
 
 procedure TExtFormField._SetName(const AValue: string);
 begin
-  FName := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'name', [AValue]);
+  FName := SetConfigItem('name', AValue);
 end;
 
 procedure TExtFormField.SetFPreventMark(Value: Boolean);
@@ -2253,14 +2238,12 @@ end;
 
 procedure TExtFormField._SetReadOnly(const AValue: Boolean);
 begin
-  FReadOnly := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'readOnly', 'setReadOnly', [AValue]);
+  FReadOnly := SetConfigItem('readOnly', 'setReadOnly', AValue);
 end;
 
 procedure TExtFormField.SetSubmitValue(const AValue: Boolean);
 begin
-  FSubmitValue := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'submitValue', [AValue]);
+  FSubmitValue := SetConfigItem('submitValue', AValue);
 end;
 
 procedure TExtFormField.SetFTabIndex(Value: Integer);
@@ -2295,8 +2278,7 @@ end;
 
 procedure TExtFormField._SetValue(const AValue: string);
 begin
-  FValue := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'value', 'setValue', [AValue]);
+  FValue := SetConfigItem('value', 'setValue', AValue);
 end;
 
 procedure TExtFormField.SetFLabelJS(Value: TExtElement);
@@ -2313,8 +2295,7 @@ end;
 
 procedure TExtFormField.SetStartValue(const AValue: string);
 begin
-  FStartValue := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'startValue', [AValue]);
+  FStartValue := SetConfigItem('startValue', AValue);
 end;
 
 procedure TExtFormField.SetFOnBlur(Value: TExtFormFieldOnBlur);
@@ -2422,14 +2403,12 @@ end;
 
 function TExtFormField.GetRawValue: TExtFunction;
 begin
-  ExtSession.ResponseItems.CallMethod(Self, 'getRawValue', []);
-  Result := Self;
+  Result := CallMethod('getRawValue', []);
 end;
 
 function TExtFormField.GetValue: TExtFunction;
 begin
-  ExtSession.ResponseItems.CallMethod(Self, 'getValue', []);
-  Result := Self;
+  Result := CallMethod('getValue', []);
 end;
 
 function TExtFormField.IsDirty: TExtFunction;
@@ -2474,20 +2453,17 @@ end;
 
 function TExtFormField.SetRawValue(const AValue: string): TExtFunction;
 begin
-  ExtSession.ResponseItems.CallMethod(Self, 'setRawValue', [AValue]);
-  Result := Self;
+  Result := CallMethod('setRawValue', AValue);
 end;
 
 function TExtFormField.SetReadOnly(const AReadOnly: Boolean): TExtFunction;
 begin
-  ExtSession.ResponseItems.CallMethod(Self, 'setReadOnly', [AReadOnly]);
-  Result := Self;
+  Result := CallMethod('setReadOnly', AReadOnly);
 end;
 
 function TExtFormField.SetValue(const AValue: string): TExtFunction;
 begin
-  ExtSession.ResponseItems.CallMethod(Self, 'setValue', [AValue]);
-  Result := Self;
+  Result := CallMethod('setValue', AValue);
 end;
 
 function TExtFormField.UnsetActiveError(SuppressEvent: Boolean): TExtFunction;
@@ -2536,13 +2512,13 @@ end;
 procedure TExtFormLabel.SetHtml(AValue: string);
 begin
   FHtml := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'html', [AValue]);
+  SetConfigItem('html', AValue);
 end;
 
 procedure TExtFormLabel._SetText(const AValue: string);
 begin
   FText := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'text', 'setText', [AValue]);
+  SetConfigItem('text', 'setText', AValue);
 end;
 
 class function TExtFormLabel.JSClassName: string;
@@ -2558,8 +2534,7 @@ end;
 function TExtFormLabel.SetText(const AText: string; const AEncode: Boolean): TExtFunction;
 begin
   FText := AText;
-  ExtSession.ResponseItems.CallMethod(Self, 'setText', [AText, AEncode]);
-  Result := Self;
+  Result := CallMethod('setText', [AText, AEncode]);
 end;
 
 class function TExtFormHidden.JSClassName: string;
@@ -2858,7 +2833,7 @@ end;
 procedure TExtUxCodePress._SetCode(const AValue: string);
 begin
   FCode := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'code', 'setCode', [AValue]);
+  SetConfigItem('code', 'setCode', AValue);
 end;
 
 procedure TExtUxCodePress.SetFHeight(Value: Integer);
@@ -2929,8 +2904,7 @@ end;
 
 function TExtUxCodePress.SetCode(const ACode: string): TExtFunction;
 begin
-  ExtSession.ResponseItems.CallMethod(Self, 'setCode', [ACode]);
-  Result := Self;
+  Result := CallMethod('setCode', ACode);
 end;
 
 function TExtUxCodePress.GetCode: TExtFunction;
@@ -2990,7 +2964,7 @@ end;
 procedure TExtFormTextField.SetAllowBlank(const AValue: Boolean);
 begin
   FAllowBlank := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'allowBlank', [AValue]);
+  SetConfigItem('allowBlank', AValue);
 end;
 
 procedure TExtFormTextField.SetFBlankText(Value: string);
@@ -3014,19 +2988,19 @@ end;
 procedure TExtFormTextField.SetEmptyText(const AValue: string);
 begin
   FEmptyText := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'emptyText', [AValue]);
+  SetConfigItem('emptyText', AValue);
 end;
 
 procedure TExtFormTextField.SetEnableKeyEvents(const AValue: Boolean);
 begin
   FEnableKeyEvents := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'enableKeyEvents', [AValue]);
+  SetConfigItem('enableKeyEvents', AValue);
 end;
 
 procedure TExtFormTextField.SetGrow(const AValue: Boolean);
 begin
   FGrow := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'grow', [AValue]);
+  SetConfigItem('grow', AValue);
 end;
 
 procedure TExtFormTextField.SetFGrowMax(Value: Integer);
@@ -3050,25 +3024,25 @@ end;
 procedure TExtFormTextField.SetMaxLength(const AValue: Integer);
 begin
   FMaxLength := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'maxLength', [AValue]);
+  SetConfigItem('maxLength', AValue);
 end;
 
 procedure TExtFormTextField.SetMaxLengthText(const AValue: string);
 begin
   FMaxLengthText := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'maxLengthText', [AValue]);
+  SetConfigItem('maxLengthText', AValue);
 end;
 
 procedure TExtFormTextField.SetMinLength(const AValue: Integer);
 begin
   FMinLength := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'minLength', [AValue]);
+  SetConfigItem('minLength', AValue);
 end;
 
 procedure TExtFormTextField.SetMinLengthText(const AValue: string);
 begin
   FMinLengthText := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'minLengthText', [AValue]);
+  SetConfigItem('minLengthText', AValue);
 end;
 
 procedure TExtFormTextField.SetFRegex(Value: TRegExp);
@@ -3086,7 +3060,7 @@ end;
 procedure TExtFormTextField.SetSelectOnFocus(const AValue: Boolean);
 begin
   FSelectOnFocus := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'selectOnFocus', [AValue]);
+  SetConfigItem('selectOnFocus', AValue);
 end;
 
 procedure TExtFormTextField.SetFStripCharsRe(Value: TRegExp);
@@ -3104,13 +3078,13 @@ end;
 procedure TExtFormTextField.SetVtype(const AValue: string);
 begin
   FVtype := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'vtype', [AValue]);
+  SetConfigItem('vtype', AValue);
 end;
 
 procedure TExtFormTextField.SetFVtypeText(const AValue: string);
 begin
   FVtypeText := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'vtypeText', [AValue]);
+  SetConfigItem('vtypeText', AValue);
 end;
 
 procedure TExtFormTextField.SetFOnAutosize(Value: TExtFormTextFieldOnAutosize);
@@ -3424,7 +3398,7 @@ end;
 procedure TExtFormCheckbox.SetBoxLabel(const AValue: string);
 begin
   FBoxLabel := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'boxLabel', [AValue]);
+  SetConfigItem('boxLabel', AValue);
 end;
 
 procedure TExtFormCheckbox.SetFBoxLabel_(Value: string);
@@ -3436,7 +3410,7 @@ end;
 procedure TExtFormCheckbox.SetChecked(const AValue: Boolean);
 begin
   FChecked := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'checked', [AValue]);
+  SetConfigItem('checked', AValue);
 end;
 
 procedure TExtFormCheckbox.SetFFieldClass(Value: string);
@@ -3499,20 +3473,17 @@ end;
 
 function TExtFormCheckbox.GetValue: TExtFunction;
 begin
-  ExtSession.ResponseItems.CallMethod(Self, 'getValue', []);
-  Result := Self;
+  Result := CallMethod('getValue', []);
 end;
 
 function TExtFormCheckbox.SetValue(const AChecked: Boolean): TExtFunction;
 begin
-  ExtSession.ResponseItems.CallMethod(Self, 'setValue', [AChecked]);
-  Result := Self;
+  Result := CallMethod('setValue', AChecked);
 end;
 
 function TExtFormCheckbox.SetValue(const AChecked: string): TExtFunction;
 begin
-  ExtSession.ResponseItems.CallMethod(Self, 'setValue', [AChecked]);
-  Result := Self;
+  Result := CallMethod('setValue', AChecked);
 end;
 
 procedure TExtFormCheckbox.HandleEvent(const AEvtName: string);
@@ -3686,7 +3657,7 @@ end;
 procedure TExtFormTriggerField._SetEditable(const AValue: Boolean);
 begin
   FEditable := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'editable', 'setEditable', [AValue]);
+  SetConfigItem('editable', 'setEditable', AValue);
 end;
 
 procedure TExtFormTriggerField.SetFHideTrigger(Value: Boolean);
@@ -3698,13 +3669,12 @@ end;
 procedure TExtFormTriggerField._SetReadOnly(const AValue: Boolean);
 begin
   FReadOnly := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'readOnly', 'setReadOnly', [AValue]);
+  SetConfigItem('readOnly', 'setReadOnly', AValue);
 end;
 
 procedure TExtFormTriggerField.SetTriggerClass(const AValue: string);
 begin
-  FTriggerClass := AValue;
-  Session.ResponseItems.SetConfigItem(Self, 'triggerClass', [AValue]);
+  FTriggerClass := SetConfigItem('triggerClass', AValue);
 end;
 
 procedure TExtFormTriggerField.SetFTriggerConfig(Value: string);
@@ -3740,26 +3710,24 @@ end;
 
 function TExtFormTriggerField.SetEditable(const AValue: Boolean): TExtFunction;
 begin
-  ExtSession.ResponseItems.CallMethod(Self, 'setEditable', [AValue]);
-  Result := Self;
+  Result := CallMethod('setEditable', AValue);
 end;
 
 function TExtFormTriggerField.SetReadOnly(const AValue: Boolean): TExtFunction;
 begin
-  ExtSession.ResponseItems.CallMethod(Self, 'setReadOnly', [AValue]);
-  Result := Self;
+  Result := CallMethod('setReadOnly', AValue);
 end;
 
 procedure TExtFormNumberField.SetAllowDecimals(const AValue: Boolean);
 begin
   FAllowDecimals := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'allowDecimals', [AValue]);
+  SetConfigItem('allowDecimals', AValue);
 end;
 
 procedure TExtFormNumberField.SetAllowNegative(AValue: Boolean);
 begin
   FAllowNegative := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'allowNegative', [AValue]);
+  SetConfigItem('allowNegative', AValue);
 end;
 
 procedure TExtFormNumberField.SetFBaseChars(Value: string);
@@ -3771,13 +3739,13 @@ end;
 procedure TExtFormNumberField.SetDecimalPrecision(const AValue: Integer);
 begin
   FDecimalPrecision := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'decimalPrecision', [AValue]);
+  SetConfigItem('decimalPrecision', AValue);
 end;
 
 procedure TExtFormNumberField.SetDecimalSeparator(const AValue: string);
 begin
   FDecimalSeparator := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'decimalSeparator', [AValue]);
+  SetConfigItem('decimalSeparator', AValue);
 end;
 
 procedure TExtFormNumberField.SetFFieldClass(Value: string);
@@ -3789,31 +3757,31 @@ end;
 procedure TExtFormNumberField.SetMaxText(const AValue: string);
 begin
   FMaxText := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'maxText', [AValue]);
+  SetConfigItem('maxText', AValue);
 end;
 
 procedure TExtFormNumberField._SetMaxValue(const AValue: Integer);
 begin
   FMaxValue := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'maxValue', 'setMaxValue', [AValue]);
+  SetConfigItem('maxValue', 'setMaxValue', AValue);
 end;
 
 procedure TExtFormNumberField.SetMinText(const AValue: string);
 begin
   FMinText := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'minText', [AValue]);
+  SetConfigItem('minText', AValue);
 end;
 
 procedure TExtFormNumberField._SetMinValue(const AValue: Integer);
 begin
   FMinValue := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'minValue', 'setMinValue', [AValue]);
+  SetConfigItem('minValue', 'setMinValue', AValue);
 end;
 
 procedure TExtFormNumberField.SetNanText(const AValue: string);
 begin
   FNanText := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'nanText', [AValue]);
+  SetConfigItem('nanText', AValue);
 end;
 
 class function TExtFormNumberField.JSClassName: string;
@@ -3850,15 +3818,13 @@ end;
 function TExtFormNumberField.SetMaxValue(const AValue: Integer): TExtFunction;
 begin
   FMaxValue := AValue;
-  ExtSession.ResponseItems.CallMethod(Self, 'setMaxValue', [AValue]);
-  Result := Self;
+  Result := CallMethod('setMaxValue', AValue);
 end;
 
 function TExtFormNumberField.SetMinValue(const AValue: Integer): TExtFunction;
 begin
   FMinValue := AValue;
-  ExtSession.ResponseItems.CallMethod(Self, 'setMinValue', [AValue]);
-  Result := Self;
+  Result := CallMethod('setMinValue', AValue);
 end;
 
 procedure TExtFormFieldSet.SetFAnimCollapse(Value: Boolean);
@@ -3888,7 +3854,7 @@ end;
 procedure TExtFormFieldSet.SetCollapsible(const AValue: Boolean);
 begin
   FCollapsible := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'collapsible', [AValue]);
+  SetConfigItem('collapsible', AValue);
 end;
 
 procedure TExtFormFieldSet.SetFItemCls(Value: string);
@@ -3900,7 +3866,7 @@ end;
 procedure TExtFormFieldSet.SetLabelWidth(AValue: Integer);
 begin
   FLabelWidth := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'labelWidth', [AValue]);
+  SetConfigItem('labelWidth', AValue);
 end;
 
 procedure TExtFormFieldSet.SetFLayout(Value: string);
@@ -3966,7 +3932,7 @@ end;
 procedure TExtFormFormPanel.SetLabelSeparator(const AValue: string);
 begin
   FLabelSeparator := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'labelSeparator', [AValue]);
+  SetConfigItem('labelSeparator', AValue);
 end;
 
 procedure TExtFormFormPanel.SetFLayout(Value: string);
@@ -3990,13 +3956,13 @@ end;
 procedure TExtFormFormPanel.SetMonitorValid(const AValue: Boolean);
 begin
   FMonitorValid := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'monitorValid', [AValue]);
+  SetConfigItem('monitorValid', AValue);
 end;
 
 procedure TExtFormFormPanel.SetFileUpload(const AValue: Boolean);
 begin
   FFileUpload := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'fileUpload', [AValue]);
+  SetConfigItem('fileUpload', AValue);
 end;
 
 procedure TExtFormFormPanel.SetFOnClientvalidation
@@ -4027,15 +3993,14 @@ end;
 
 function TExtFormFormPanel.GetForm: TExtFormBasicForm;
 begin
-  //ExtSession.ResponseItems.CallMethod(Self, 'getForm', []);
+  //CallMethod('getForm', []);
   //Result := Self;
   Result := FForm;
 end;
 
 function TExtFormFormPanel.Load(const AOptions: TExtObject): TExtFunction;
 begin
-  ExtSession.ResponseItems.CallMethod(Self, 'load', [AOptions, False]);
-  Result := Self;
+  Result := CallMethod('load', AOptions);
 end;
 
 function TExtFormFormPanel.StartMonitoring: TExtFunction;
@@ -4159,7 +4124,7 @@ end;
 procedure TExtFormDateField.SetAltFormats(const AValue: string);
 begin
   FAltFormats := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'altFormats', [AValue]);
+  SetConfigItem('altFormats', AValue);
 end;
 
 procedure TExtFormDateField.SetFAutoCreate(Value: string);
@@ -4177,7 +4142,7 @@ end;
 procedure TExtFormDateField._SetDisabledDates(const AValue: TExtObjectList);
 begin
   FDisabledDates := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'disabledDates', 'setDisabledDates', [AValue]);
+  SetConfigItem('disabledDates', 'setDisabledDates', AValue);
 end;
 
 procedure TExtFormDateField.SetFDisabledDatesText(Value: string);
@@ -4190,7 +4155,7 @@ procedure TExtFormDateField._SetDisabledDays(Value: TExtObjectList);
 begin
   FDisabledDays.Free;
   FDisabledDays := Value;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'disabledDays', 'setDisabledDays', [FDisabledDays, False]);
+  SetConfigItem('disabledDays', 'setDisabledDays', [FDisabledDays, False]);
 end;
 
 procedure TExtFormDateField.SetFDisabledDaysText(Value: string);
@@ -4202,7 +4167,7 @@ end;
 procedure TExtFormDateField.SetFormat(const AValue: string);
 begin
   FFormat := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'format', [AValue]);
+  SetConfigItem('format', AValue);
 end;
 
 procedure TExtFormDateField.SetFInvalidText(Value: string);
@@ -4220,7 +4185,7 @@ end;
 procedure TExtFormDateField._SetMaxValue(const AValue: TDateTime);
 begin
   FMaxValue := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'maxValue', 'setMaxValue', [AValue]);
+  SetConfigItem('maxValue', 'setMaxValue', AValue);
 end;
 
 procedure TExtFormDateField.SetFMaxValueString(Value: string);
@@ -4238,7 +4203,7 @@ end;
 procedure TExtFormDateField._SetMinValue(const AValue: TDateTime);
 begin
   FMinValue := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'minValue', 'setMinValue', [AValue]);
+  SetConfigItem('minValue', 'setMinValue', AValue);
 end;
 
 procedure TExtFormDateField.SetFMinValueString(Value: string);
@@ -4306,50 +4271,43 @@ end;
 
 function TExtFormDateField.GetValue: TExtFunction;
 begin
-  ExtSession.ResponseItems.CallMethod(Self, 'getValue', []);
-  Result := Self;
+  Result := CallMethod('getValue', []);
 end;
 
 function TExtFormDateField.SetDisabledDates(const ADisabledDates: TExtObjectList): TExtFunction;
 begin
   FDisabledDates.Free;
   FDisabledDates := ADisabledDates;
-  ExtSession.ResponseItems.CallMethod(Self, 'setDisabledDates', [ADisabledDates]);
-  Result := Self;
+  Result := CallMethod('setDisabledDates', ADisabledDates);
 end;
 
 function TExtFormDateField.SetDisabledDays(const ADisabledDays: TExtObjectList): TExtFunction;
 begin
   FDisabledDays.Free;
   FDisabledDays := ADisabledDays;
-  ExtSession.ResponseItems.CallMethod(Self, 'setDisabledDays', [ADisabledDays, False]);
-  Result := Self;
+  Result := CallMethod('setDisabledDays', ADisabledDays);
 end;
 
 function TExtFormDateField.SetMaxValue(const AValue: TDateTime): TExtFunction;
 begin
   FMaxValue := AValue;
-  ExtSession.ResponseItems.CallMethod(Self, 'setMaxValue', [AValue]);
-  Result := Self;
+  Result := CallMethod('setMaxValue', AValue);
 end;
 
 function TExtFormDateField.SetMinValue(const AValue: TDateTime): TExtFunction;
 begin
   FMinValue := AValue;
-  ExtSession.ResponseItems.CallMethod(Self, 'setMinValue', [AValue]);
-  Result := Self;
+  Result := CallMethod('setMinValue', AValue);
 end;
 
 function TExtFormDateField.SetValue(const ADate: string): TExtFunction;
 begin
-  ExtSession.ResponseItems.CallMethod(Self, 'setValue', [ADate]);
-  Result := Self;
+  Result := CallMethod('setValue', [ADate]);
 end;
 
 function TExtFormDateField.SetValue(const ADate: TDateTime): TExtFunction;
 begin
-  ExtSession.ResponseItems.CallMethod(Self, 'setValue', [ADate]);
-  Result := Self;
+  Result := CallMethod('setValue', [ADate]);
 end;
 
 procedure TExtFormDateField.HandleEvent(const AEvtName: string);
@@ -4381,7 +4339,7 @@ end;
 procedure TExtFormComboBox.SetAutoSelect(const AValue: Boolean);
 begin
   FAutoSelect := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'autoSelect', [AValue]);
+  SetConfigItem('autoSelect', AValue);
 end;
 
 procedure TExtFormComboBox.SetFClearFilterOnReset(Value: Boolean);
@@ -4393,13 +4351,13 @@ end;
 procedure TExtFormComboBox.SetDisplayField(const AValue: string);
 begin
   FDisplayField := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'displayField', [AValue]);
+  SetConfigItem('displayField', AValue);
 end;
 
 procedure TExtFormComboBox.SetForceSelection(const AValue: Boolean);
 begin
   FForceSelection := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'forceSelection', [AValue]);
+  SetConfigItem('forceSelection', AValue);
 end;
 
 procedure TExtFormComboBox.SetFHandleHeight(Value: Integer);
@@ -4417,13 +4375,12 @@ end;
 procedure TExtFormComboBox.SetHiddenName(const AValue: string);
 begin
   FHiddenName := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'hiddenName', [AValue]);
+  SetConfigItem('hiddenName', AValue);
 end;
 
 procedure TExtFormComboBox.SetHiddenValue(const AValue: string);
 begin
-  FHiddenValue := AValue;
-  Session.ResponseItems.SetConfigItem(Self, 'hiddenValue', [AValue]);
+  FHiddenValue := SetConfigItem('hiddenValue', AValue);
 end;
 
 procedure TExtFormComboBox.SetFItemSelector(Value: string);
@@ -4440,8 +4397,7 @@ end;
 
 procedure TExtFormComboBox.SetLazyRender(const AValue: Boolean);
 begin
-  FLazyRender := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'lazyRender', [AValue]);
+  FLazyRender := SetConfigItem('lazyRender', AValue);
 end;
 
 procedure TExtFormComboBox.SetFListAlign(Value: string);
@@ -4470,8 +4426,7 @@ end;
 
 procedure TExtFormComboBox.SetListWidth(const AValue: Integer);
 begin
-  FListWidth := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'listWidth', [AValue]);
+  FListWidth := SetConfigItem('listWidth', AValue);
 end;
 
 procedure TExtFormComboBox.SetFLoadingText(Value: string);
@@ -4488,62 +4443,60 @@ end;
 
 procedure TExtFormComboBox.SetMinChars(const AValue: Integer);
 begin
-  FMinChars := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'minChars', [AValue]);
+  FMinChars := SetConfigItem('minChars', AValue);
 end;
 
 procedure TExtFormComboBox.SetMinHeight(const AValue: Integer);
 begin
-  FMinHeight := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'minHeight', [AValue]);
+  FMinHeight := SetConfigItem('minHeight', AValue);
 end;
 
 procedure TExtFormComboBox.SetMinListWidth(const AValue: Integer);
 begin
   FMinListWidth := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'minListWidth', [AValue]);
+  SetConfigItem('minListWidth', AValue);
 end;
 
 procedure TExtFormComboBox.SetMode(const AValue: string);
 begin
   FMode := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'mode', [AValue]);
+  SetConfigItem('mode', AValue);
 end;
 
 procedure TExtFormComboBox.SetPageSize(const AValue: Integer);
 begin
   FPageSize := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'pageSize', [AValue]);
+  SetConfigItem('pageSize', AValue);
 end;
 
 procedure TExtFormComboBox.SetQueryDelay(const AValue: Integer);
 begin
   FQueryDelay := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'queryDelay', [AValue]);
+  SetConfigItem('queryDelay', AValue);
 end;
 
 procedure TExtFormComboBox.SetQueryParam(const AValue: string);
 begin
   FQueryParam := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'queryParam', [AValue]);
+  SetConfigItem('queryParam', AValue);
 end;
 
 procedure TExtFormComboBox.SetResizable(const AValue: Boolean);
 begin
   FResizable := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'resizable', [AValue]);
+  SetConfigItem('resizable', AValue);
 end;
 
 procedure TExtFormComboBox.SetSelectOnFocus(const AValue: Boolean);
 begin
   FSelectOnFocus := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'selectOnFocus', [AValue]);
+  SetConfigItem('selectOnFocus', AValue);
 end;
 
 procedure TExtFormComboBox.SetSelectedClass(const AValue: string);
 begin
   FSelectedClass := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'selectedClass', [AValue]);
+  SetConfigItem('selectedClass', AValue);
 end;
 
 procedure TExtFormComboBox.SetFShadow(Value: Boolean);
@@ -4562,14 +4515,14 @@ procedure TExtFormComboBox.SetStore(const AValue: TExtDataStore);
 begin
   FStore.Free;
   FStore := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'store', [AValue, False]);
+  SetConfigItem('store', AValue);
 end;
 
 procedure TExtFormComboBox.SetStoreArray(const AValue: TExtObjectList);
 begin
   FStoreArray.Free;
   FStoreArray := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'store', [AValue, False]);
+  SetConfigItem('store', AValue);
 end;
 
 procedure TExtFormComboBox.SetFTitle(Value: string);
@@ -4599,7 +4552,7 @@ end;
 procedure TExtFormComboBox.SetTriggerAction(const AValue: string);
 begin
   FTriggerAction := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'triggerAction', [AValue]);
+  SetConfigItem('triggerAction', AValue);
 end;
 
 procedure TExtFormComboBox.SetFTriggerClass(Value: string);
@@ -4611,25 +4564,25 @@ end;
 procedure TExtFormComboBox.SetTypeAhead(const AValue: Boolean);
 begin
   FTypeAhead := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'typeAhead', [AValue]);
+  SetConfigItem('typeAhead', AValue);
 end;
 
 procedure TExtFormComboBox.SetTypeAheadDelay(const AValue: Integer);
 begin
   FTypeAheadDelay := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'typeAheadDelay', [AValue]);
+  SetConfigItem('typeAheadDelay', AValue);
 end;
 
 procedure TExtFormComboBox.SetValueField(const AValue: string);
 begin
   FValueField := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'valueField', [AValue]);
+  SetConfigItem('valueField', AValue);
 end;
 
 procedure TExtFormComboBox.SetValueNotFoundText(const AValue: string);
 begin
   FValueNotFoundText := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'valueNotFoundText', [AValue]);
+  SetConfigItem('valueNotFoundText', AValue);
 end;
 
 procedure TExtFormComboBox.SetFKeyNav(Value: TExtKeyNav);
@@ -4738,8 +4691,7 @@ end;
 
 function TExtFormComboBox.ClearValue: TExtFunction;
 begin
-  Session.ResponseItems.CallMethod(Self, 'clearValue', []);
-  Result := Self;
+  Result := CallMethod('clearValue', []);
 end;
 
 function TExtFormComboBox.Collapse: TExtFunction;
@@ -4758,14 +4710,12 @@ end;
 
 function TExtFormComboBox.Expand: TExtFunction;
 begin
-  ExtSession.ResponseItems.CallMethod(Self, 'expand', []);
-  Result := Self;
+  Result := CallMethod('expand', []);
 end;
 
 function TExtFormComboBox.GetListParent: TExtFunction;
 begin
-  ExtSession.ResponseItems.CallMethod(Self, 'getListParent', []);
-  Result := Self;
+  Result := CallMethod('getListParent', []);
 end;
 
 function TExtFormComboBox.GetObjectNamePrefix: string;
@@ -4775,20 +4725,17 @@ end;
 
 function TExtFormComboBox.GetStore: TExtFunction;
 begin
-  ExtSession.ResponseItems.CallMethod(Self, 'getStore', []);
-  Result := Self;
+  Result := CallMethod('getStore', []);
 end;
 
 function TExtFormComboBox.GetValue: TExtFunction;
 begin
-  ExtSession.ResponseItems.CallMethod(Self, 'getValue', []);
-  Result := Self;
+  Result := CallMethod('getValue', []);
 end;
 
 function TExtFormComboBox.IsExpanded: TExtFunction;
 begin
-  ExtSession.ResponseItems.CallMethod(Self, 'isExpanded', []);
-  Result := Self;
+  Result := CallMethod('isExpanded', []);
 end;
 
 function TExtFormComboBox.Select(Index: Integer; ScrollIntoView: Boolean)
@@ -4809,8 +4756,7 @@ end;
 
 function TExtFormComboBox.SetValue(const AValue: string): TExtFunction;
 begin
-  ExtSession.ResponseItems.CallMethod(Self, 'setValue', [AValue]);
-  Result := Self;
+  Result := CallMethod('setValue', AValue);
 end;
 
 procedure TExtFormComboBox.HandleEvent(const AEvtName: string);
@@ -4832,14 +4778,12 @@ end;
 
 procedure TExtFormTwinTriggerField.SetTrigger1Class(const AValue: string);
 begin
-  FTrigger1Class := AValue;
-  Session.ResponseItems.SetConfigItem(Self, 'trigger1Class', [AValue]);
+  FTrigger1Class := SetConfigItem('trigger1Class', AValue);
 end;
 
 procedure TExtFormTwinTriggerField.SetTrigger2Class(const AValue: string);
 begin
-  FTrigger2Class := AValue;
-  Session.ResponseItems.SetConfigItem(Self, 'trigger2Class', [AValue]);
+  FTrigger2Class := SetConfigItem('trigger2Class', AValue);
 end;
 
 procedure TExtFormTwinTriggerField.SetFTriggerConfig(Value: string);
@@ -4877,13 +4821,13 @@ end;
 procedure TExtFormTimeField.SetAltFormats(const AValue: string);
 begin
   FAltFormats := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'altFormats', [AValue]);
+  SetConfigItem('altFormats', AValue);
 end;
 
 procedure TExtFormTimeField.SetFormat(const AValue: string);
 begin
   FFormat := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'format', [AValue]);
+  SetConfigItem('format', AValue);
 end;
 
 procedure TExtFormTimeField.SetFIncrement(Value: Integer);
@@ -4907,7 +4851,7 @@ end;
 procedure TExtFormTimeField._SetMaxValue(const AValue: TDateTime);
 begin
   FMaxValue := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'maxValue', 'setMaxValue', [AValue]);
+  SetConfigItem('maxValue', 'setMaxValue', AValue);
 end;
 
 procedure TExtFormTimeField.SetFMaxValueString(Value: string);
@@ -4925,7 +4869,7 @@ end;
 procedure TExtFormTimeField._SetMinValue(const AValue: TDateTime);
 begin
   FMinValue := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'minValue', 'setMinValue', [AValue]);
+  SetConfigItem('minValue', 'setMinValue', AValue);
 end;
 
 procedure TExtFormTimeField.SetFMinValueString(Value: string);
@@ -4959,8 +4903,7 @@ end;
 function TExtFormTimeField.SetMaxValue(const AValue: TDateTime): TExtFunction;
 begin
   FMaxValue := AValue;
-  ExtSession.ResponseItems.CallMethod(Self, 'setMaxValue', [AValue]);
-  Result := Self;
+  Result := CallMethod('setMaxValue', AValue);
 end;
 
 function TExtFormTimeField.SetMaxValue(Value: string): TExtFunction;
@@ -4973,8 +4916,7 @@ end;
 function TExtFormTimeField.SetMinValue(const AValue: TDateTime): TExtFunction;
 begin
   FMinValue := AValue;
-  ExtSession.ResponseItems.CallMethod(Self, 'setMinValue', [AValue]);
-  Result := Self;
+  Result := CallMethod('setMinValue', AValue);
 end;
 
 function TExtFormTimeField.SetMinValue(Value: string): TExtFunction;

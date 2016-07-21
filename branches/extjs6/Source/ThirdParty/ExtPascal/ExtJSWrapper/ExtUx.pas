@@ -726,56 +726,55 @@ end;
 
 procedure TExtUxStatusBar.SetAutoClear(const AValue: Integer);
 begin
-  FAutoClear := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'autoClear', [AValue]);
+  FAutoClear := SetConfigItem('autoClear', AValue);
 end;
 
 procedure TExtUxStatusBar.SetBusyIconCls(const AValue: string);
 begin
   FBusyIconCls := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'busyIconCls', [AValue]);
+  SetConfigItem('busyIconCls', AValue);
 end;
 
 procedure TExtUxStatusBar.SetBusyText(const AValue: string);
 begin
   FBusyText := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'busyText', [AValue]);
+  SetConfigItem('busyText', AValue);
 end;
 
 procedure TExtUxStatusBar.SetCls(const AValue: string);
 begin
   FCls := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'cls', [AValue]);
+  SetConfigItem('cls', AValue);
 end;
 
 procedure TExtUxStatusBar.SetDefaultIconCls(const AValue: string);
 begin
   FDefaultIconCls := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'defaultIconCls', [AValue]);
+  SetConfigItem('defaultIconCls', AValue);
 end;
 
 procedure TExtUxStatusBar.SetDefaultText(const AValue: string);
 begin
   FDefaultText := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'defaultText', [AValue]);
+  SetConfigItem('defaultText', AValue);
 end;
 
 procedure TExtUxStatusBar.SetIconCls(const AValue: string);
 begin
   FIconCls := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'iconCls', [AValue]);
+  SetConfigItem('iconCls', AValue);
 end;
 
 procedure TExtUxStatusBar.SetStatusAlign(const AValue: string);
 begin
   FStatusAlign := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'statusAlign', [AValue]);
+  SetConfigItem('statusAlign', AValue);
 end;
 
 procedure TExtUxStatusBar._SetText(const AValue: string);
 begin
   FText := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'text', 'setText', [AValue]);
+  SetConfigItem('text', 'setText', AValue);
 end;
 
 class function TExtUxStatusBar.JSClassName: string;
@@ -794,8 +793,7 @@ end;
 
 function TExtUxStatusBar.ClearStatus(const AConfig: TExtObject = nil): TExtFunction;
 begin
-  ExtSession.ResponseItems.CallMethod(Self, 'clearStatus', [AConfig, False]);
-  Result := Self;
+  Result := CallMethod('clearStatus', AConfig);
 end;
 
 function TExtUxStatusBar.GetObjectNamePrefix: string;
@@ -805,44 +803,37 @@ end;
 
 function TExtUxStatusBar.GetText: TExtFunction;
 begin
-  ExtSession.ResponseItems.CallMethod(Self, 'getText', []);
-  Result := Self;
+  Result := CallMethod('getText', []);
 end;
 
 function TExtUxStatusBar.SetIcon(const AIconCls: string): TExtFunction;
 begin
-  ExtSession.ResponseItems.CallMethod(Self, 'setIcon', [AIconCls]);
-  Result := Self;
+  Result := CallMethod('setIcon', AIconCls);
 end;
 
 function TExtUxStatusBar.SetStatus(const AConfig: TExtObject): TExtFunction;
 begin
-  ExtSession.ResponseItems.CallMethod(Self, 'setStatus', [AConfig, False]);
-  Result := Self;
+  Result := CallMethod('setStatus', AConfig);
 end;
 
 function TExtUxStatusBar.SetStatus(const AConfig: string): TExtFunction;
 begin
-  ExtSession.ResponseItems.CallMethod(Self, 'setStatus', [AConfig]);
-  Result := Self;
+  Result := CallMethod('setStatus', AConfig);
 end;
 
 function TExtUxStatusBar.SetText(const AText: string): TExtFunction;
 begin
-  ExtSession.ResponseItems.CallMethod(Self, 'setText', [AText]);
-  Result := Self;
+  Result := CallMethod('setText', AText);
 end;
 
 function TExtUxStatusBar.ShowBusy(const AConfig: TExtObject): TExtFunction;
 begin
-  ExtSession.ResponseItems.CallMethod(Self, 'showBusy', [AConfig, False]);
-  Result := Self;
+  Result := CallMethod('showBusy', AConfig);
 end;
 
 function TExtUxStatusBar.ShowBusy(const AConfig: string): TExtFunction;
 begin
-  ExtSession.ResponseItems.CallMethod(Self, 'showBusy', [AConfig]);
-  Result := Self;
+  Result := CallMethod('showBusy', AConfig);
 end;
 
 class function TExtUxSliderTip.JSClassName: string;

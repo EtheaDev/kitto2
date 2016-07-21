@@ -130,7 +130,9 @@ type
 
   end;
 
-  /// <summary>The type of nodes in a tree view.</summary>
+  /// <summary>
+  ///  The type of nodes in a tree view.
+  /// </summary>
   TKTreeViewNode = class(TEFNode)
   private
     function GetTreeViewNodeCount: Integer;

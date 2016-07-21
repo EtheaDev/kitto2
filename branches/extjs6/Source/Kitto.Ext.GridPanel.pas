@@ -127,7 +127,7 @@ function TKExtGridPanel.GetIsPaged: Boolean;
 begin
   Assert(Assigned(ViewTable));
 
-  Result := ViewTable.GetBoolean('Controller/PagingTools', ViewTable.IsLarge);
+  Result := not ViewTable.IsDetail and ViewTable.GetBoolean('Controller/PagingTools', ViewTable.IsLarge);
 end;
 
 procedure TKExtGridPanel.AfterCreateTopToolbar;
@@ -269,6 +269,7 @@ var
       LColors: TEFNode;
       LAllowedValues: TEFPairs;
       LJSCode: string;
+      LColorValueFieldName: string;
     begin
       Result := False;
 
@@ -325,11 +326,19 @@ var
           LTriples[I].Value3 := AViewField.DisplayTemplate;
         end;
         // Pass array to the client-side renderer.
-        AColumn.RendererExtFunction := AColumn.JSFunction('value, metaData',
-          Format(
-            'metaData.css += getColorStyleRuleForValue(value, [%s]);' +
-            'return %s ? null : formatWithDisplayTemplate(value, ''%s'');',
-            [PairsToJSON(LColorPairs), IfThen(AViewField.BlankValue, 'true', 'false'), AViewField.DisplayTemplate]));
+        LColorValueFieldName := AViewField.GetExpandedString('ColorValueFieldName');
+        if LColorValueFieldName <> '' then
+          AColumn.RendererExtFunction := AColumn.JSFunction('value, metaData, record',
+            Format(
+              'metaData.css += getColorStyleRuleForRecordField(record, ''%s'', [%s]);' +
+              'return %s ? null : formatWithDisplayTemplate(value, ''%s'');',
+              [LColorValueFieldName, PairsToJSON(LColorPairs), IfThen(AViewField.BlankValue, 'true', 'false'), AViewField.DisplayTemplate]))
+        else
+          AColumn.RendererExtFunction := AColumn.JSFunction('value, metaData',
+            Format(
+              'metaData.css += getColorStyleRuleForValue(value, [%s]);' +
+              'return %s ? null : formatWithDisplayTemplate(value, ''%s'');',
+              [PairsToJSON(LColorPairs), IfThen(AViewField.BlankValue, 'true', 'false'), AViewField.DisplayTemplate]));
         Result := True;
         Exit;
       end;
@@ -607,6 +616,7 @@ var
   LView: TKDataView;
   LViewTable: TKViewTable;
   LEventName: string;
+  LCellEditing: TExtGridPluginCellEditing;
 begin
   LView := View;
   LViewTable := AValue;
@@ -627,8 +637,11 @@ begin
       Title := _(LViewTable.PluralDisplayLabel);
   end;
 
-//  if FInplaceEditing then
-//    FGridPanel.ClicksToEdit := 1;
+  if FInplaceEditing then
+  begin
+    LCellEditing := TExtGridPluginCellEditing.CreateAndAddTo(FGridPanel.PluginsArray);
+    LCellEditing.ClicksToEdit := 1;
+  end;
 
   if not LViewTable.GetBoolean('Controller/IsMultiSelect', False) then
     FSelectionModel.SingleSelect := True;
@@ -687,8 +700,8 @@ begin
     FCancelButton.Hidden := True;
     FCancelButton.On('click', Ajax(CancelInplaceChanges));
 
-    FGridPanel.On('beforeedit', JSFunction('e', GetBeforeEditJSCode(BeforeEdit)));
-    FGridPanel.On('afteredit', JSFunction('e', GetAfterEditJSCode(UpdateField)));
+    FGridPanel.On('beforeedit', JSFunction('editor, context', GetBeforeEditJSCode(BeforeEdit)));
+    FGridPanel.On('edit', JSFunction('editor, context', GetAfterEditJSCode(UpdateField)));
   end;
 end;
 
@@ -920,7 +933,7 @@ var
 begin
   LCode :=
     'var json = new Object;' + sLineBreak +
-    'json.data = e.record.data;' + sLineBreak;  // needed for the PK (see GetRecord).
+    'json.data = context.record.data;' + sLineBreak;  // needed for the PK (see GetRecord).
   LCode := LCode + GetPOSTAjaxCode(AMethod, [], 'json') + sLineBreak;
   Result := LCode;
 end;
@@ -931,8 +944,8 @@ var
 begin
   LCode :=
     'var json = new Object;' + sLineBreak +
-    'json.new = e.record.data;' + sLineBreak + // needed for the PK (see GetRecord).
-    'json.fieldName = e.field;' + sLineBreak;
+    'json.new = context.record.data;' + sLineBreak + // needed for the PK (see GetRecord).
+    'json.fieldName = context.field;' + sLineBreak;
 
   LCode := LCode + GetJSFunctionCode(
     procedure

@@ -993,94 +993,94 @@ end;
 procedure TExtensibleCalendarPanel.SetActiveItem(const AValue: Integer);
 begin
   FActiveItem := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'activeItem', [AValue]);
+  SetConfigItem('activeItem', [AValue]);
 end;
 
 procedure TExtensibleCalendarPanel.SetCalendarStore(const AValue: TExtDataStore);
 begin
   FCalendarStore.Free;
   FCalendarStore := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'calendarStore', [AValue, False]);
+  SetConfigItem('calendarStore', [AValue, False]);
 end;
 
 procedure TExtensibleCalendarPanel.SetDayText(const AValue: string);
 begin
   FDayText := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'dayText', [AValue]);
+  SetConfigItem('dayText', [AValue]);
 end;
 
 procedure TExtensibleCalendarPanel.SetEventStore(const AValue: TExtDataStore);
 begin
   FEventStore.Free;
   FEventStore := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'eventStore', [AValue, False]);
+  SetConfigItem('eventStore', [AValue, False]);
 end;
 
 procedure TExtensibleCalendarPanel.SetMonthText(Value : String);
 begin
   FMonthText := Value;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'monthText', [Value]);
+  SetConfigItem('monthText', [Value]);
 end;
 
 procedure TExtensibleCalendarPanel.SetReadOnly(const AValue: Boolean);
 begin
   FReadOnly := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'readOnly', [AValue]);
+  SetConfigItem('readOnly', [AValue]);
 end;
 
 procedure TExtensibleCalendarPanel.SetShowDayView(Value : Boolean);
 begin
   FShowDayView := Value;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'showDayView', [Value]);
+  SetConfigItem('showDayView', [Value]);
 end;
 
 procedure TExtensibleCalendarPanel.SetShowMonthView(Value : Boolean);
 begin
   FShowMonthView := Value;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'showMonthView', [Value]);
+  SetConfigItem('showMonthView', [Value]);
 end;
 
 procedure TExtensibleCalendarPanel.SetShowMultiDayView(const AValue: Boolean);
 begin
   FShowMultiDayView := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'showMultiDayView', [AValue]);
+  SetConfigItem('showMultiDayView', [AValue]);
 end;
 
 procedure TExtensibleCalendarPanel.SetShowMultiWeekView(const AValue: Boolean);
 begin
   FShowMultiWeekView := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'showMultiWeekView', [AValue]);
+  SetConfigItem('showMultiWeekView', [AValue]);
 end;
 
 procedure TExtensibleCalendarPanel.SetShowNavBar(Value : Boolean);
 begin
   FShowNavBar := Value;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'showNavBar', [Value]);
+  SetConfigItem('showNavBar', [Value]);
 end;
 
 procedure TExtensibleCalendarPanel.SetShowTime(Value : Boolean); begin
   FShowTime := Value;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'showTime', [Value]);
+  SetConfigItem('showTime', [Value]);
 end;
 
 procedure TExtensibleCalendarPanel.SetShowTodayText(Value : Boolean); begin
   FShowTodayText := Value;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'showTodayText', [Value]);
+  SetConfigItem('showTodayText', [Value]);
 end;
 
 procedure TExtensibleCalendarPanel.SetShowWeekView(Value : Boolean); begin
   FShowWeekView := Value;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'showWeekView', [Value]);
+  SetConfigItem('showWeekView', [Value]);
 end;
 
 procedure TExtensibleCalendarPanel.SetTodayText(Value : String); begin
   FTodayText := Value;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'todayText', [Value]);
+  SetConfigItem('todayText', [Value]);
 end;
 
 procedure TExtensibleCalendarPanel.SetWeekText(Value : String); begin
   FWeekText := Value;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'weekText', [Value]);
+  SetConfigItem('weekText', [Value]);
 end;
 
 procedure TExtensibleCalendarPanel.SetFOnDatechange(Value : TExtensibleCalendarPanelOnDatechange); begin
@@ -1206,13 +1206,13 @@ end;
 procedure TExtensibleCalendarPanel.SetGoText(const AValue: string);
 begin
   FGoText := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'goText', [AValue]);
+  SetConfigItem('goText', [AValue]);
 end;
 
 procedure TExtensibleCalendarPanel.SetJumpToText(const AValue: string);
 begin
   FJumpToText := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'jumpToText', [AValue]);
+  SetConfigItem('jumpToText', [AValue]);
 end;
 
 class function TExtensibleCalendarPanel.JSClassName : string; begin
