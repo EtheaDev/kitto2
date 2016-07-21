@@ -68,8 +68,9 @@ uses
 
 procedure TKExtLoginWindow.DoDisplay;
 const
-  STANDARD_HEIGHT = 82;
-  CONTROL_HEIGHT = 30;
+  STANDARD_HEIGHT = 160;
+  STANDARD_WIDTH = 380;
+  CONTROL_HEIGHT = 32;
 var
   LWidth, LHeight, LLabelWidth, LEditWidth: Integer;
   LUseLanguageSelector: Boolean;
@@ -105,7 +106,7 @@ begin
   if Maximized then
     LWidth := Session.ViewportWidth
   else
-    LWidth := Max(ExtraWidth, 236);
+    LWidth := Max(ExtraWidth, STANDARD_WIDTH);
   LHeight := Max(ExtraHeight, 0) + STANDARD_HEIGHT;
 
   if Maximized then
@@ -158,7 +159,7 @@ Or maybe skip the object list altogether and use the ownership. }
   FLoginButton.Text := _('Login');
 
   with TExtBoxComponent.CreateAndAddTo(FFormPanel.Items) do
-    Height := 10;
+    Height := 20;
 
   FUserName := TExtFormTextField.CreateAndAddTo(FFormPanel.Items);
   FUserName.Name := 'UserName';
