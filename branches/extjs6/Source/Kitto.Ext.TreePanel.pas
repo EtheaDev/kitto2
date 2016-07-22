@@ -26,16 +26,27 @@ uses
   Kitto.Ext.Base, Kitto.Ext.Controller, Kitto.Metadata.Views, Kitto.Ext.Utils;
 
 type
+  TKExtTreeTreeNode = class(TExtTreeTreeNode)
+  private
+    FView: TKView;
+    procedure SetView(const AValue: TKView);
+  public
+    property View: TKView read FView write SetView;
+  end;
+
   ///	<summary>
-  ///	  A tree panel that can display a tree view with clickable nodes. Used
-  ///   by the TreePanel controller.
+  ///	 A tree panel that can display a tree view with clickable nodes. Used
+  ///  by the TreePanel controller.
   ///	</summary>
   TKExtTreePanel = class(TExtTreeTreePanel)
   private
     FView: TKView;
     FTreeViewRenderer: TKExtTreeViewRenderer;
     FConfig: TEFNode;
+    FTreeView: TKTreeView;
     procedure SetView(const AValue: TKView);
+    procedure AddNode(const ANode: TKTreeViewNode; const ADisplayLabel: string;
+      const AParent: TExtTreeTreeNode);
   protected
     procedure InitDefaults; override;
   public
@@ -59,7 +70,21 @@ uses
   SysUtils,
   Ext,
   EF.Localization,
-  Kitto.Ext.Session;
+  Kitto.Config, Kitto.Utils, Kitto.AccessControl, Kitto.Ext.Session;
+
+{ TKExtTreeTreeNode }
+
+procedure TKExtTreeTreeNode.SetView(const AValue: TKView);
+begin
+  FView := AValue;
+  if Assigned(FView) then
+  begin
+    Expandable := False;
+    Expanded := False;
+    Leaf := True;
+    SetConfigItem('viewId', Integer(FView).ToString);
+  end;
+end;
 
 { TKExtTreePanelController }
 
@@ -99,7 +124,6 @@ end;
 procedure TKExtTreePanel.SetView(const AValue: TKView);
 var
   LViewNode: TEFNode;
-  LView: TKTreeView;
 begin
   Assert(Assigned(AValue));
 
@@ -110,13 +134,72 @@ begin
     FTreeViewrenderer.Session := Session;
   end;
   LViewNode := FConfig.GetNode('TreeView');
-  LView := Session.Config.Views.ViewByNode(LViewNode) as TKTreeView;
-  FTreeViewRenderer.RenderAsTree(LView, Root, Self, DisplayView);
+  FTreeView := Session.Config.Views.ViewByNode(LViewNode) as TKTreeView;
+  Assert(Assigned(FTreeView));
+  FTreeViewRenderer.Render(FTreeView,
+    procedure (ANode: TKTreeViewNode; ADisplayLabel: string)
+    begin
+      AddNode(ANode, ADisplayLabel, Root);
+    end,
+    { TODO : remove these parameters }
+    Self, nil);
+  On('itemclick', JSFunction('view, record, item, index',
+    GetAjaxCode(DisplayView, '', ['View', '%record.data.viewId'])));
 end;
 
 procedure TKExtTreePanel.DisplayView;
 begin
   Session.DisplayView(TKView(Session.QueryAsInteger['View']));
+end;
+
+procedure TKExtTreePanel.AddNode(const ANode: TKTreeViewNode;
+  const ADisplayLabel: string; const AParent: TExtTreeTreeNode);
+var
+  LNode: TKExtTreeTreeNode;
+  I: Integer;
+  LIsEnabled: Boolean;
+  LView: TKView;
+  LSubNode: TKTreeViewNode;
+  LDisplayLabel: string;
+begin
+  Assert(Assigned(ANode));
+  Assert(Assigned(AParent));
+
+  LView := ANode.FindView(Session.Config.Views);
+  if Assigned(LView) then
+    LIsEnabled := LView.IsAccessGranted(ACM_RUN)
+  else
+    LIsEnabled := TKConfig.Instance.IsAccessGranted(ANode.GetACURI(FTreeView), ACM_RUN);
+  LNode := TKExtTreeTreeNode.CreateAndAddTo(AParent.Children);
+  try
+    LNode.View := LView;
+    if Assigned(LNode.View) then
+    begin
+      LNode.IconCls := Session.SetViewIconStyle(LNode.View, GetTreeViewNodeImageName(ANode, LNode.View));
+      LNode.Disabled := not LIsEnabled;
+    end;
+    LNode.Text := HTMLEncode(ADisplayLabel);
+    if Session.TooltipsEnabled then
+      LNode.Qtip := LNode.Text;
+    if ANode.TreeViewNodeCount > 0 then
+    begin
+      for I := 0 to ANode.TreeViewNodeCount - 1 do
+      begin
+        LSubNode := ANode.TreeViewNodes[I];
+        LDisplayLabel := _(LSubNode.GetString('DisplayLabel', GetDisplayLabelFromNode(LSubNode, Session.Config.Views)));
+        AddNode(LSubNode, LDisplayLabel, LNode);
+      end;
+      LNode.Expandable := True;
+      if ANode is TKTreeViewFolder then
+        LNode.Expanded := not TKTreeViewFolder(ANode).IsInitiallyCollapsed
+      else
+        LNode.Expanded := True;
+      LNode.Leaf := False;
+    end;
+  except
+    FreeAndNil(LNode);
+    raise;
+  end;
 end;
 
 initialization

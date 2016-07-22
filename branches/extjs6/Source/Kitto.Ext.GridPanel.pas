@@ -207,7 +207,7 @@ function TKExtGridPanel.IsMultiSelect: Boolean;
 begin
   Assert(Assigned(FSelectionModel));
 
-  Result := not FSelectionModel.SingleSelect;
+  Result := FSelectionModel.Mode = TExtSelectionRowModel.MULTI_SELECT;
 end;
 
 procedure TKExtGridPanel.SetGridColumnEditor(const AEditorManager: TKExtEditorManager;
@@ -643,8 +643,10 @@ begin
     LCellEditing.ClicksToEdit := 1;
   end;
 
-  if not LViewTable.GetBoolean('Controller/IsMultiSelect', False) then
-    FSelectionModel.SingleSelect := True;
+  if LViewTable.GetBoolean('Controller/IsMultiSelect', False) then
+    FSelectionModel.Mode := TExtSelectionRowModel.MULTI_SELECT
+  else
+    FSelectionModel.Mode := TExtSelectionRowModel.SINGLE_SELECT;
 
   if not FInplaceEditing and HasDefaultAction then
   begin
@@ -915,7 +917,7 @@ procedure TKExtGridPanel.Activate;
 begin
   inherited;
   if Assigned(FSelectionModel) then
-    FSelectionModel.SelectFirstRow;
+    FSelectionModel.Select(0);
 end;
 
 function TKExtGridPanel.AddActionButton(const AUniqueId: string;

@@ -227,7 +227,6 @@ type
     FDisabled_ : Boolean;
     FHidden_ : Boolean;
     FText_ : String;
-    FUi : TExtTreeTreeNodeUI;
     FOnBeforechildrenrendered : TExtTreeTreeNodeOnBeforechildrenrendered;
     FOnBeforeclick : TExtTreeTreeNodeOnBeforeclick;
     FOnBeforecollapse : TExtTreeTreeNodeOnBeforecollapse;
@@ -265,7 +264,6 @@ type
     procedure SetFDisabled_(Value : Boolean);
     procedure SetFHidden_(Value : Boolean);
     procedure SetFText_(Value : String);
-    procedure SetFUi(Value : TExtTreeTreeNodeUI);
     procedure SetFOnBeforechildrenrendered(Value : TExtTreeTreeNodeOnBeforechildrenrendered);
     procedure SetFOnBeforeclick(Value : TExtTreeTreeNodeOnBeforeclick);
     procedure SetFOnBeforecollapse(Value : TExtTreeTreeNodeOnBeforecollapse);
@@ -324,7 +322,6 @@ type
     property Disabled_ : Boolean read FDisabled_ write SetFDisabled_;
     property Hidden_ : Boolean read FHidden_ write SetFHidden_;
     property Text_ : String read FText_ write SetFText_;
-    property Ui : TExtTreeTreeNodeUI read FUi write SetFUi;
     property OnBeforechildrenrendered : TExtTreeTreeNodeOnBeforechildrenrendered read FOnBeforechildrenrendered write SetFOnBeforechildrenrendered;
     property OnBeforeclick : TExtTreeTreeNodeOnBeforeclick read FOnBeforeclick write SetFOnBeforeclick;
     property OnBeforecollapse : TExtTreeTreeNodeOnBeforecollapse read FOnBeforecollapse write SetFOnBeforecollapse;
@@ -1102,12 +1099,6 @@ procedure TExtTreeTreeNode.SetFText_(Value : String); begin
   JSCode(JSName + '.text=' + VarToJSON([Value]) + ';');
 end;
 
-procedure TExtTreeTreeNode.SetFUi(Value : TExtTreeTreeNodeUI); begin
-  FUi.Free;
-  FUi := Value;
-    JSCode(JSName + '.ui=' + VarToJSON([Value, false]) + ';');
-end;
-
 procedure TExtTreeTreeNode.SetFOnBeforechildrenrendered(Value : TExtTreeTreeNodeOnBeforechildrenrendered); begin
   if Assigned(FOnBeforechildrenrendered) then
     JSCode(JSName+'.events ["beforechildrenrendered"].listeners=[];');
@@ -1223,7 +1214,6 @@ procedure TExtTreeTreeNode.InitDefaults; begin
   FAllowDrop := true;
   FEditable := true;
   FIsTarget := true;
-  FUi := TExtTreeTreeNodeUI.CreateInternal(Self, 'ui');
 end;
 
 function TExtTreeTreeNode.Collapse(Deep : Boolean = false; Anim : Boolean = false; Callback : TExtFunction = nil; Scope : TExtObject = nil) : TExtFunction; begin

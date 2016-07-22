@@ -379,20 +379,25 @@ type
   TExtSelectionRowModel = class(TExtGridAbstractSelectionModel)
   private
     FMoveEditorOnEnter: Boolean;
-    FSingleSelect: Boolean;
     FOnBeforerowselect: TExtSelectionRowModelOnBeforerowselect;
     FOnRowdeselect: TExtSelectionRowModelOnRowdeselect;
     FOnRowselect: TExtSelectionRowModelOnRowselect;
     FOnSelectionchange: TExtSelectionRowModelOnSelectionchange;
+    FMode: string;
     procedure SetFMoveEditorOnEnter(Value: Boolean);
-    procedure SetSingleSelect(const AValue: Boolean);
     procedure SetFOnBeforerowselect(Value: TExtSelectionRowModelOnBeforerowselect);
     procedure SetFOnRowdeselect(Value: TExtSelectionRowModelOnRowdeselect);
     procedure SetFOnRowselect(Value: TExtSelectionRowModelOnRowselect);
     procedure SetFOnSelectionchange(Value: TExtSelectionRowModelOnSelectionchange);
+    procedure SetMode(const AValue: string);
   protected
     procedure HandleEvent(const AEvtName: string); override;
+    procedure InitDefaults; override;
   public
+    const
+      SIMPLE_SELECT = 'SIMPLE';
+      SINGLE_SELECT = 'SINGLE';
+      MULTI_SELECT = 'MULTI';
     class function JSClassName: string; override;
     function ClearSelections(Fast: Boolean = false): TExtFunction;
     function DeselectRange(StartRow: Integer; EndRow: Integer): TExtFunction;
@@ -408,8 +413,7 @@ type
     function IsSelected(Index: Integer): TExtFunction; overload;
     function IsSelected(Index: TExtDataRecord): TExtFunction; overload;
     function SelectAll: TExtFunction;
-    function SelectFirstRow: TExtFunction;
-    function SelectLastRow(KeepExisting: Boolean = false): TExtFunction;
+    function Select(const AIndex: Integer; const AKeepExisting: Boolean = False): TExtFunction;
     function SelectNext(KeepExisting: Boolean = false): TExtFunction;
     function SelectPrevious(KeepExisting: Boolean = false): TExtFunction;
     function SelectRange(StartRow: Integer; EndRow: Integer;
@@ -420,9 +424,9 @@ type
       PreventViewNotify: Boolean = false): TExtFunction;
     function SelectRows(Rows: TExtObjectList; KeepExisting: Boolean = false)
       : TExtFunction;
+    property Mode: string read FMode write SetMode;
     property MoveEditorOnEnter: Boolean read FMoveEditorOnEnter
       write SetFMoveEditorOnEnter;
-    property SingleSelect: Boolean read FSingleSelect write SetSingleSelect;
     property OnBeforerowselect: TExtSelectionRowModelOnBeforerowselect
       read FOnBeforerowselect write SetFOnBeforerowselect;
     property OnRowdeselect: TExtSelectionRowModelOnRowdeselect read FOnRowdeselect
@@ -1628,11 +1632,6 @@ begin
   JSCode('moveEditorOnEnter:' + VarToJSON([Value]));
 end;
 
-procedure TExtSelectionRowModel.SetSingleSelect(const AValue: Boolean);
-begin
-  FSingleSelect := SetConfigItem('singleSelect', AValue);
-end;
-
 procedure TExtSelectionRowModel.SetFOnBeforerowselect
   (Value: TExtSelectionRowModelOnBeforerowselect);
 begin
@@ -1674,6 +1673,11 @@ begin
   if Assigned(Value) then
     on('selectionchange', Ajax('selectionchange', ['This', '%0.nm'], true));
   FOnSelectionchange := Value;
+end;
+
+procedure TExtSelectionRowModel.SetMode(const AValue: string);
+begin
+  FMode := SetConfigItem('mode', AValue);
 end;
 
 class function TExtSelectionRowModel.JSClassName: string;
@@ -1740,6 +1744,12 @@ begin
   Result := Self;
 end;
 
+procedure TExtSelectionRowModel.InitDefaults;
+begin
+  inherited;
+  FMode := SINGLE_SELECT;
+end;
+
 function TExtSelectionRowModel.IsIdSelected(Id: string): TExtFunction;
 begin
   JSCode(JSName + '.isIdSelected(' + VarToJSON([Id]) + ');', 'TExtSelectionRowModel');
@@ -1760,27 +1770,18 @@ begin
   Result := Self;
 end;
 
+function TExtSelectionRowModel.Select(const AIndex: Integer; const AKeepExisting: Boolean): TExtFunction;
+begin
+  Result := CallMethod('select', [AIndex, AKeepExisting]);
+end;
+
 function TExtSelectionRowModel.SelectAll: TExtFunction;
 begin
   JSCode(JSName + '.selectAll();', 'TExtSelectionRowModel');
   Result := Self;
 end;
 
-function TExtSelectionRowModel.SelectFirstRow: TExtFunction;
-begin
-  Result := CallMethod('selectFirstRow', []);
-end;
-
-function TExtSelectionRowModel.SelectLastRow(KeepExisting: Boolean = false)
-  : TExtFunction;
-begin
-  JSCode(JSName + '.selectLastRow(' + VarToJSON([KeepExisting]) + ');',
-    'TExtSelectionRowModel');
-  Result := Self;
-end;
-
-function TExtSelectionRowModel.SelectNext(KeepExisting: Boolean = false)
-  : TExtFunction;
+function TExtSelectionRowModel.SelectNext(KeepExisting: Boolean): TExtFunction;
 begin
   JSCode(JSName + '.selectNext(' + VarToJSON([KeepExisting]) + ');',
     'TExtSelectionRowModel');

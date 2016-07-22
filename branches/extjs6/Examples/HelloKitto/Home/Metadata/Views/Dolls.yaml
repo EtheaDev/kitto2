@@ -41,8 +41,3 @@ MainTable:
           RequireSelection: False
           ClientFileName:
         ImageName: download
-      DownloadCSV:
-        DisplayLabel: _(Download in CSV)
-        ImageName: download
-        Controller: ExportCSVTool
-          RequireSelection: False

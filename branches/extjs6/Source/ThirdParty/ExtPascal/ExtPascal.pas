@@ -318,6 +318,7 @@ type
     constructor CreateWithConfig(AOwner: TComponent; AConfig: TExtObject = nil);
     constructor CreateSingleton(const AOwner: TComponent; const AAttribute: string = '');
     constructor CreateAndAddTo(List: TExtObjectList);
+    constructor CreateInlineAndAddTo(List: TExtObjectList);
 
     constructor Init(AOwner: TComponent; AMethod: TExtFunction); overload;
     constructor Init(const AOwner: TComponent; const ACommand: string); overload;
@@ -1649,6 +1650,13 @@ begin
   // Inline = don't create the declaration.
   inherited Create(AOwner);
   InitDefaults;
+end;
+
+{ TODO : WIP - we want to be able to create some objects inline in order to output more compact code }
+constructor TExtObject.CreateInlineAndAddTo(List: TExtObjectList);
+begin
+  CreateInline(List);
+  AddTo(List);
 end;
 
 constructor TExtObject.CreateInternal(const AOwner: TExtObject; const AAttributeName: string);
