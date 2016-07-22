@@ -30,6 +30,8 @@ type
   private
     FView: TKView;
     procedure SetView(const AValue: TKView);
+  protected
+    procedure InitDefaults; override;
   public
     property View: TKView read FView write SetView;
   end;
@@ -73,6 +75,12 @@ uses
   Kitto.Config, Kitto.Utils, Kitto.AccessControl, Kitto.Ext.Session;
 
 { TKExtTreeTreeNode }
+
+procedure TKExtTreeTreeNode.InitDefaults;
+begin
+  inherited;
+  SetConfigItem('viewId', '');
+end;
 
 procedure TKExtTreeTreeNode.SetView(const AValue: TKView);
 begin
@@ -148,8 +156,12 @@ begin
 end;
 
 procedure TKExtTreePanel.DisplayView;
+var
+  LViewId: string;
 begin
-  Session.DisplayView(TKView(Session.QueryAsInteger['View']));
+  LViewId := Session.Query['View'];
+  if LViewId <> '' then
+    Session.DisplayView(TKView(LViewId.ToInteger));
 end;
 
 procedure TKExtTreePanel.AddNode(const ANode: TKTreeViewNode;

@@ -1,4 +1,5 @@
-﻿AppTitle: _(Peoria Girls and their Dolls)
+﻿AppName: HelloKitto6
+AppTitle: _(Peoria Girls and their Dolls)
 AppIcon: HelloKittoIcon
 
 BlobPath: %HOME_PATH%UploadedFiles\
@@ -112,4 +113,4 @@ LanguageId: it
 Charset: utf-8
 
 FastCGI:
-  TCPPort: 2201
+  TCPPort: 2601

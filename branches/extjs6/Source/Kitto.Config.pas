@@ -787,10 +787,27 @@ begin
 end;
 
 class function TKConfig.GetAppName: string;
+var
+  LConfig: TKConfig;
 begin
+  Result := '';
   if Assigned(FOnGetAppName) then
-    FOnGetAppName(Result)
-  else
+    FOnGetAppName(Result);
+
+  if Result = '' then
+    Result := GetCmdLineParamValue('appname');
+
+  if Result = '' then
+  begin
+    LConfig := TKConfig.Create;
+    try
+      Result := LConfig.Config.GetString('AppName', '');
+    finally
+      FreeAndNil(LConfig);
+    end;
+  end;
+
+  if Result = '' then
     Result := ChangeFileExt(ExtractFileName(ParamStr(0)), '');
 end;
 

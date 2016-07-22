@@ -334,7 +334,6 @@ type
   TExtFormField = class(TExtBoxComponent)
   private
     FAutoCreate: string;
-    FAutoCreateObject: TExtObject;
     FCls: string;
     FDisabled: Boolean;
     FFieldClass: string; // 'x-form-field'
@@ -363,8 +362,7 @@ type
     FOnInvalid: TExtFormFieldOnInvalid;
     FOnSpecialkey: TExtFormFieldOnSpecialkey;
     FOnValid: TExtFormFieldOnValid;
-    procedure SetFAutoCreate(Value: string);
-    procedure SetFAutoCreateObject(Value: TExtObject);
+    procedure SetAutoCreate(const AValue: string);
     procedure SetCls(const AValue: string);
     procedure SetDisabled(const AValue: Boolean);
     procedure SetFFieldClass(Value: string);
@@ -417,9 +415,7 @@ type
     function UnsetActiveError(SuppressEvent: Boolean): TExtFunction;
     function Validate: TExtFunction;
     function ValidateValue(The: string): TExtFunction;
-    property AutoCreate: string read FAutoCreate write SetFAutoCreate;
-    property AutoCreateObject: TExtObject read FAutoCreateObject
-      write SetFAutoCreateObject;
+    property AutoCreate: string read FAutoCreate write SetAutoCreate;
     property Cls: string read FCls write SetCls;
     property Disabled: Boolean read FDisabled write SetDisabled;
     property FieldClass: string read FFieldClass write SetFFieldClass;
@@ -828,7 +824,6 @@ type
   TExtFormCheckbox = class(TExtFormField)
   private
     FAutoCreate: string; // 'input'
-    FAutoCreateObject: TExtObject;
     FBoxLabel: string;
     FBoxLabel_: string;
     FChecked: Boolean;
@@ -839,7 +834,6 @@ type
     FScope: TExtObject;
     FOnCheck: TExtFormCheckboxOnCheck;
     procedure SetFAutoCreate(Value: string);
-    procedure SetFAutoCreateObject(Value: TExtObject);
     procedure SetBoxLabel(const AValue: string);
     procedure SetFBoxLabel_(Value: string);
     procedure SetChecked(const AValue: Boolean);
@@ -859,8 +853,6 @@ type
     function SetValue(const AChecked: Boolean): TExtFunction; overload;
     function SetValue(const AChecked: string): TExtFunction; overload;
     property AutoCreate: string read FAutoCreate write SetFAutoCreate;
-    property AutoCreateObject: TExtObject read FAutoCreateObject
-      write SetFAutoCreateObject;
     property BoxLabel: string read FBoxLabel write SetBoxLabel;
     property BoxLabel_: string read FBoxLabel_ write SetFBoxLabel_;
     property Checked: Boolean read FChecked write SetChecked;
@@ -917,12 +909,10 @@ type
   TExtFormTextArea = class(TExtFormTextField)
   private
     FAutoCreate: string;
-    FAutoCreateObject: TExtObject;
     FGrowMax: Integer; // 1000
     FGrowMin: Integer; // 60
     FPreventScrollbars: Boolean;
     procedure SetFAutoCreate(Value: string);
-    procedure SetFAutoCreateObject(Value: TExtObject);
     procedure SetFGrowMax(Value: Integer);
     procedure SetFGrowMin(Value: Integer);
     procedure SetFPreventScrollbars(Value: Boolean);
@@ -933,8 +923,6 @@ type
     class function JSClassName: string; override;
     function AutoSize: TExtFunction;
     property AutoCreate: string read FAutoCreate write SetFAutoCreate;
-    property AutoCreateObject: TExtObject read FAutoCreateObject
-      write SetFAutoCreateObject;
     property GrowMax: Integer read FGrowMax write SetFGrowMax;
     property GrowMin: Integer read FGrowMin write SetFGrowMin;
     property PreventScrollbars: Boolean read FPreventScrollbars
@@ -944,7 +932,6 @@ type
   TExtFormTriggerField = class(TExtFormTextField)
   private
     FAutoCreate: string;
-    FAutoCreateObject: TExtObject;
     FEditable: Boolean; // true
     FHideTrigger: Boolean;
     FReadOnly: Boolean;
@@ -952,7 +939,6 @@ type
     FTriggerConfig: string;
     FWrapFocusClass: string;
     procedure SetFAutoCreate(Value: string);
-    procedure SetFAutoCreateObject(Value: TExtObject);
     procedure _SetEditable(const AValue: Boolean);
     procedure SetFHideTrigger(Value: Boolean);
     procedure _SetReadOnly(const AValue: Boolean);
@@ -967,8 +953,6 @@ type
     function SetEditable(const AValue: Boolean): TExtFunction;
     function SetReadOnly(const AValue: Boolean): TExtFunction;
     property AutoCreate: string read FAutoCreate write SetFAutoCreate;
-    property AutoCreateObject: TExtObject read FAutoCreateObject
-      write SetFAutoCreateObject;
     property Editable: Boolean read FEditable write _SetEditable;
     property HideTrigger: Boolean read FHideTrigger write SetFHideTrigger;
     property ReadOnly: Boolean read FReadOnly write _SetReadOnly;
@@ -1166,7 +1150,6 @@ type
     FAltFormats: string;
     // 'm/d/Y/n/j/Y/n/j/y/m/j/y/n/d/y/m/j/Y/n/d/Y/m-d-y/m-d-Y/m/d/m-d/md/mdy/mdY/d/Y-m-d'
     FAutoCreate: string;
-    FAutoCreateObject: TExtObject;
     FDisabledDates: TExtObjectList;
     FDisabledDatesText: string; // 'Disabled'
     FDisabledDays: TExtObjectList;
@@ -1185,7 +1168,6 @@ type
     FOnSelect: TExtFormDateFieldOnSelect;
     procedure SetAltFormats(const AValue: string);
     procedure SetFAutoCreate(Value: string);
-    procedure SetFAutoCreateObject(Value: TExtObject);
     procedure _SetDisabledDates(const AValue: TExtObjectList);
     procedure SetFDisabledDatesText(Value: string);
     procedure _SetDisabledDays(Value: TExtObjectList);
@@ -1217,8 +1199,6 @@ type
     function SetValue(const ADate: TDateTime): TExtFunction; overload;
     property AltFormats: string read FAltFormats write SetAltFormats;
     property AutoCreate: string read FAutoCreate write SetFAutoCreate;
-    property AutoCreateObject: TExtObject read FAutoCreateObject
-      write SetFAutoCreateObject;
     property DisabledDates: TExtObjectList read FDisabledDates
       write _SetDisabledDates;
     property DisabledDatesText: string read FDisabledDatesText
@@ -1256,7 +1236,6 @@ type
   private
     FAllQuery: string;
     FAutoCreate: string;
-    FAutoCreateObject: TExtObject;
     FAutoSelect: Boolean; // true
     FClearFilterOnReset: Boolean; // true
     FDisplayField: string;
@@ -1312,7 +1291,6 @@ type
     FOnSelect: TExtFormComboBoxOnSelect;
     procedure SetFAllQuery(Value: string);
     procedure SetFAutoCreate(Value: string);
-    procedure SetFAutoCreateObject(Value: TExtObject);
     procedure SetAutoSelect(const AValue: Boolean);
     procedure SetFClearFilterOnReset(Value: Boolean);
     procedure SetDisplayField(const AValue: string);
@@ -1383,8 +1361,6 @@ type
     function SetValue(const AValue: string): TExtFunction;
     property AllQuery: string read FAllQuery write SetFAllQuery;
     property AutoCreate: string read FAutoCreate write SetFAutoCreate;
-    property AutoCreateObject: TExtObject read FAutoCreateObject
-      write SetFAutoCreateObject;
     property AutoSelect: Boolean read FAutoSelect write SetAutoSelect;
     property ClearFilterOnReset: Boolean read FClearFilterOnReset
       write SetFClearFilterOnReset;
@@ -2162,18 +2138,6 @@ begin
   Result := 'Ext.form.Action.DirectSubmit';
 end;
 
-procedure TExtFormField.SetFAutoCreate(Value: string);
-begin
-  FAutoCreate := Value;
-  JSCode('autoCreate:' + VarToJSON([Value]));
-end;
-
-procedure TExtFormField.SetFAutoCreateObject(Value: TExtObject);
-begin
-  FAutoCreateObject := Value;
-  JSCode('autoCreate:' + VarToJSON([Value, false]));
-end;
-
 procedure TExtFormField.SetCls(const AValue: string);
 begin
   FCls := SetConfigItem('cls', AValue);
@@ -2182,6 +2146,11 @@ end;
 procedure TExtFormField.SetDisabled(const AValue: Boolean);
 begin
   FDisabled := SetConfigItem('disabled', 'setDisabled', AValue);
+end;
+
+procedure TExtFormField.SetAutoCreate(const AValue: string);
+begin
+  FAutoCreate := SetConfigItem('autoCreate', AValue);
 end;
 
 procedure TExtFormField.SetFFieldClass(Value: string);
@@ -2360,7 +2329,6 @@ end;
 procedure TExtFormField.InitDefaults;
 begin
   inherited;
-  FAutoCreateObject := TExtObject.CreateInternal(Self, 'autoCreate');
   FFieldClass := 'x-form-field';
   FFocusClass := 'x-form-focus';
   FInvalidClass := 'x-form-invalid';
@@ -3389,12 +3357,6 @@ begin
   JSCode('autoCreate:' + VarToJSON([Value]));
 end;
 
-procedure TExtFormCheckbox.SetFAutoCreateObject(Value: TExtObject);
-begin
-  FAutoCreateObject := Value;
-  JSCode('autoCreate:' + VarToJSON([Value, false]));
-end;
-
 procedure TExtFormCheckbox.SetBoxLabel(const AValue: string);
 begin
   FBoxLabel := AValue;
@@ -3461,7 +3423,6 @@ procedure TExtFormCheckbox.InitDefaults;
 begin
   inherited;
   FAutoCreate := 'input';
-//  FAutoCreateObject := TExtObject.CreateInternal(Self, 'autoCreate');
   FFieldClass := 'x-form-field';
   FScope := TExtObject.CreateInternal(Self, 'scope');
 end;
@@ -3594,12 +3555,6 @@ begin
   JSCode('autoCreate:' + VarToJSON([Value]));
 end;
 
-procedure TExtFormTextArea.SetFAutoCreateObject(Value: TExtObject);
-begin
-  FAutoCreateObject := Value;
-  JSCode('autoCreate:' + VarToJSON([Value, false]));
-end;
-
 procedure TExtFormTextArea.SetFGrowMax(Value: Integer);
 begin
   FGrowMax := Value;
@@ -3631,7 +3586,6 @@ end;
 procedure TExtFormTextArea.InitDefaults;
 begin
   inherited;
-  FAutoCreateObject := TExtObject.CreateInternal(Self, 'autoCreate');
   FGrowMax := 1000;
   FGrowMin := 60;
 end;
@@ -3646,12 +3600,6 @@ procedure TExtFormTriggerField.SetFAutoCreate(Value: string);
 begin
   FAutoCreate := Value;
   JSCode('autoCreate:' + VarToJSON([Value]));
-end;
-
-procedure TExtFormTriggerField.SetFAutoCreateObject(Value: TExtObject);
-begin
-  FAutoCreateObject := Value;
-  JSCode('autoCreate:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtFormTriggerField._SetEditable(const AValue: Boolean);
@@ -3697,7 +3645,6 @@ end;
 procedure TExtFormTriggerField.InitDefaults;
 begin
   inherited;
-//  FAutoCreateObject := TExtObject.CreateInternal(Self, 'autoCreate');
   FEditable := true;
 end;
 
@@ -4133,12 +4080,6 @@ begin
   JSCode('autoCreate:' + VarToJSON([Value]));
 end;
 
-procedure TExtFormDateField.SetFAutoCreateObject(Value: TExtObject);
-begin
-  FAutoCreateObject := Value;
-  JSCode('autoCreate:' + VarToJSON([Value, false]));
-end;
-
 procedure TExtFormDateField._SetDisabledDates(const AValue: TExtObjectList);
 begin
   FDisabledDates := AValue;
@@ -4243,7 +4184,6 @@ begin
   inherited;
   FAltFormats :=
     'm/d/Y|n/j/Y|n/j/y|m/j/y|n/d/y|m/j/Y|n/d/Y|m-d-y|m-d-Y|m/d|m-d|md|mdy|mdY|d|Y-m-d';
-  FAutoCreateObject := TExtObject.CreateInternal(Self, 'autoCreate');
   FDisabledDates := TExtObjectList.CreateAsAttribute(Self, 'disabledDates');
   FDisabledDatesText := 'Disabled';
   FDisabledDays := TExtObjectList.CreateAsAttribute(Self, 'disabledDays');
@@ -4328,12 +4268,6 @@ procedure TExtFormComboBox.SetFAutoCreate(Value: string);
 begin
   FAutoCreate := Value;
   JSCode('autoCreate:' + VarToJSON([Value]));
-end;
-
-procedure TExtFormComboBox.SetFAutoCreateObject(Value: TExtObject);
-begin
-  FAutoCreateObject := Value;
-  JSCode('autoCreate:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtFormComboBox.SetAutoSelect(const AValue: Boolean);
@@ -4660,7 +4594,6 @@ end;
 procedure TExtFormComboBox.InitDefaults;
 begin
   inherited;
-//  FAutoCreateObject := TExtObject.CreateInternal(Self, 'autoCreate');
   FAutoSelect := true;
   FClearFilterOnReset := true;
   FDisplayField := 'output/Ext.form.ComboBox.html#Ext.form.ComboBox-mode';

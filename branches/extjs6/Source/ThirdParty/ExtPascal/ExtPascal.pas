@@ -512,6 +512,7 @@ type
     procedure Refresh; override;
 
     property ResponseItems: TExtResponseItems read GetResponseItems;
+    function HasResponseItems: Boolean;
     function BranchResponseItems: TExtResponseItems;
     procedure UnbranchResponseItems(const AResponseItems: TExtResponseItems;
       const AConsolidate: Boolean = True);
@@ -1117,6 +1118,11 @@ begin
   end;
 end;
 
+function TExtSession.HasResponseItems: Boolean;
+begin
+  Result := Assigned(FResponseItemsStack);
+end;
+
 {
 Does tasks after Request processing.
 1. Extracts Comments, auxiliary delimiters, and sets:
@@ -1542,7 +1548,7 @@ end;
 destructor TExtObject.Destroy;
 begin
   // See Notification for details.
-  if Assigned(Owner) then
+  if Assigned(Owner) and (Session <> nil) and Session.HasResponseItems then
     Session.ResponseItems.RemoveAll(Self);
   inherited;
 end;
