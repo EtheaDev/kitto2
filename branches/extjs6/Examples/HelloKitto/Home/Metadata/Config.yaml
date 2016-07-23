@@ -61,7 +61,7 @@ Databases:
       Data Source: %COMPUTERNAME%
 
 Auth: DB
-  Defaults:
+  .Defaults:
     UserName: administrator
     Password: password
 

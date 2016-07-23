@@ -1,4 +1,5 @@
-﻿AppTitle: Tasks & Activities
+﻿AppName: Taskitto6
+AppTitle: Tasks & Activities
 
 Databases:
   Main: DBX
@@ -29,8 +30,8 @@ Login: LoginView
 #HomeView: Home
 
 Ext:
-  Theme: gray
-
+  Theme: neptune
+  
 LanguageId: en
 # Either utf-8 or a SBCS corresponding to the system code page
 # (such as iso-8859-1 for Western Europe). Defaults to utf-8.
@@ -39,7 +40,7 @@ Charset: utf-8
 FOPEnginePath: %FOP1_1%
 
 FastCGI:
-  TCPPort: 2202
+  TCPPort: 2602
 
 UserFormats:
   Date: dd/mm/yyyy
