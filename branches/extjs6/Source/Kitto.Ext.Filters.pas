@@ -661,7 +661,7 @@ begin
   begin
     LRecord := FServerStore.AppendRecord(nil);
     LRecord.Fields[0].AsInteger := I;
-    LRecord.Fields[1].AsString := FItems.Children[I].AsExpandedString;
+    LRecord.Fields[1].AsString := _(FItems.Children[I].AsExpandedString);
   end;
 
   //PageSize := 10;
