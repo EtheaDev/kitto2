@@ -77,6 +77,7 @@ type
   strict protected
     function GetTabPanelClass: TKExtTabPanelClass; override;
     function GetDefaultTabIconsVisible: Boolean; override;
+    procedure InitDefaults; override;
   published
     procedure DisplayPage;
   end;
@@ -107,6 +108,11 @@ end;
 function TKExtTilePanelController.GetTabPanelClass: TKExtTabPanelClass;
 begin
   Result := TKExtTileTabPanel;
+end;
+
+procedure TKExtTilePanelController.InitDefaults;
+begin
+  inherited;
 end;
 
 { TKExtTileTabPanel }
@@ -151,7 +157,7 @@ begin
     Title := LTitle
   else
     Title := _('Home');
-  AutoScroll := Session.IsMobileBrowser;
+  AutoScroll := True;
 
   FColors := GetColors(Config.GetExpandedString('ColorSet', DEFAULT_COLOR_SET));
   BuildTileBoxHtml;
