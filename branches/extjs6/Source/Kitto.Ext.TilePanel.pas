@@ -151,7 +151,7 @@ begin
     Title := LTitle
   else
     Title := _('Home');
-  AutoScroll := Session.IsMobileBrowser;
+  AutoScroll := True;
 
   FColors := GetColors(Config.GetExpandedString('ColorSet', DEFAULT_COLOR_SET));
   BuildTileBoxHtml;
