@@ -77,7 +77,6 @@ type
   strict protected
     function GetTabPanelClass: TKExtTabPanelClass; override;
     function GetDefaultTabIconsVisible: Boolean; override;
-    procedure InitDefaults; override;
   published
     procedure DisplayPage;
   end;
@@ -108,11 +107,6 @@ end;
 function TKExtTilePanelController.GetTabPanelClass: TKExtTabPanelClass;
 begin
   Result := TKExtTileTabPanel;
-end;
-
-procedure TKExtTilePanelController.InitDefaults;
-begin
-  inherited;
 end;
 
 { TKExtTileTabPanel }
