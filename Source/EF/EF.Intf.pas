@@ -27,21 +27,21 @@ interface
 
 type
   /// <summary>
-  ///   Base interface for all EF interfaces.
+  ///  Base interface for all EF interfaces.
   /// </summary>
   IEFInterface = interface
     ['{9E0408C7-0923-4DA4-86F8-CB0561D43B49}']
 
     /// <summary>
-    ///   Gives access to the implementing object. Implementors should return
-    ///   Self.
+    ///  Gives access to the implementing object. Implementors should return
+    ///  Self.
     /// </summary>
     function AsObject: TObject;
   end;
 
   /// <summary>
-  ///   Base class for objects that implement interfaces but disable reference
-  ///   counting.
+  ///  Base class for objects that implement interfaces but disable reference
+  ///  counting.
   /// </summary>
   TEFNoRefCountObject = class(TObject, IInterface, IEFInterface)
   public

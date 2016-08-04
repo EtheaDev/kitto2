@@ -9452,7 +9452,7 @@ end;
 procedure TExtComponent.SetHtml(const AValue: string);
 begin
   FHtml := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'html', [AValue]);
+  ExtSession.ResponseItems.SetConfigItem(Self, 'html', 'update', [AValue]);
 end;
 
 procedure TExtComponent.SetFHtmlObject(Value: TExtObject);

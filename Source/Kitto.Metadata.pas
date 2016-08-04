@@ -74,7 +74,7 @@ type
     /// <summary>
     ///  Makes the current object a copy of the specified tree.
     /// </summary>
-    procedure Assign(const ASource: TEFTree); override;
+    procedure Assign(const ASource: TEFTree; const AProc: TEFTree.TAssignNodeProc = nil); override;
   end;
 
   TKMetadataClass = class of TKMetadata;
@@ -845,7 +845,7 @@ begin
   Result := TKConfig.Instance.IsAccessGranted(GetACURI, AMode);
 end;
 
-procedure TKMetadata.Assign(const ASource: TEFTree);
+procedure TKMetadata.Assign(const ASource: TEFTree; const AProc: TEFTree.TAssignNodeProc);
 begin
   inherited;
   if Assigned(ASource) and (ASource is TKMetadata) then
