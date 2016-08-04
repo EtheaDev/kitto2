@@ -103,7 +103,7 @@ type
   end;
 
   /// <summary>
-  ///   A catalog of layouts. Internally used by the catalog of views.
+  ///  A catalog of layouts. Internally used by the catalog of views.
   /// </summary>
   TKLayouts = class(TKMetadataCatalog)
   strict private
@@ -160,8 +160,8 @@ type
   end;
 
   /// <summary>
-  ///   A node in a tree view that is a folder (i.e. contains other
-  ///   nodes and doesn't represent a view).
+  ///  A node in a tree view that is a folder (i.e. contains other
+  ///  nodes and doesn't represent a view).
   /// </summary>
   TKTreeViewFolder = class(TKTreeViewNode)
   private
