@@ -370,7 +370,12 @@ var
 begin
   Assert(Assigned(ATreeView));
 
-  Result := TKTreeView.Clone(ATreeView);
+  Result := TKTreeView.Clone(ATreeView,
+    procedure (const ASource, ADestination: TEFNode)
+    begin
+      ADestination.SetObject('Sys/SourceNode', ASource);
+    end
+  );
 
   for I := Result.TreeViewNodeCount - 1 downto 0 do
     Filter(Result.TreeViewNodes[I]);
