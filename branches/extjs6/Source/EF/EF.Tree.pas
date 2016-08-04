@@ -359,11 +359,17 @@ type
     constructor Create; virtual;
     destructor Destroy; override;
     procedure BeforeSave; virtual;
+    function QueryInterface(const IID: TGUID; out Obj): HRESULT; stdcall;
+    function _AddRef: Integer; stdcall;
+    function _Release: Integer; stdcall;
   public
+    type
+      TAssignNodeProc = reference to procedure (const ASource, ADestination: TEFNode);
+
     /// <summary>
-    ///   Creates a new tree holding a deep copy of the specified tree.
+    ///  Creates a new tree holding a deep copy of the specified tree.
     /// </summary>
-    constructor Clone(const ASource: TEFTree); virtual;
+    constructor Clone(const ASource: TEFTree; const AProc: TAssignNodeProc = nil); virtual;
 
     /// <summary>
     ///  Access to the set of children as a list.
@@ -380,7 +386,7 @@ type
     /// <summary>
     ///  Makes the current object a copy of the specified tree.
     /// </summary>
-    procedure Assign(const ASource: TEFTree); virtual;
+    procedure Assign(const ASource: TEFTree; const AProc: TAssignNodeProc = nil); virtual;
 
     /// <summary>
     ///   Adds all nodes in ASource, overwriting any existing nodes with the same
@@ -411,18 +417,18 @@ type
     property ChildCount: Integer read GetChildCount;
 
     /// <summary>
-    ///   Indexed access to the list of direct children of any type.
+    ///  Indexed access to the list of direct children of any type.
     /// </summary>
     property Children[I: Integer]: TEFNode read GetChild; default;
 
     /// <summary>
-    ///   Finds a child node by name. Returns nil if not found.
-    ///   <param name="AName">Name of the child node to look for.</param>
-    ///   <param name="ACreateMissingNode">Creates the node if not found.</param>
-    ///   <param name="ARecursively">If true, searches also in child nodes recursively</param>
+    ///  Finds a child node by name. Returns nil if not found.
+    ///  <param name="AName">Name of the child node to look for.</param>
+    ///  <param name="ACreateMissingNode">Creates the node if not found.</param>
+    ///  <param name="ARecursively">If true, searches also in child nodes recursively</param>
     /// </summary>
     function FindChild(const AName: string; const ACreateMissingNode: Boolean = False;
-      const ARecursively: Boolean = False): TEFNode;
+      const ARecursively: Boolean = False): TEFNode; overload;
 
     /// <summary>Finds a child node with specified name and value and returns a
     ///   reference to it, or nil if the node is not found.</summary>
@@ -439,9 +445,14 @@ type
     function FindChildByValue(const AValue: Variant; const ARecursively: Boolean = False): TEFNode;
 
     /// <summary>
-    ///   Returns True if a child with the given name exists, and False otherwise.
+    ///  Returns True if a child with the given name exists, and False otherwise.
     /// </summary>
-    function HasChild(const AName: string): Boolean;
+    function HasChild(const AName: string; const ARecursive: Boolean = False): Boolean; overload;
+
+    /// <summary>
+    ///  Returns True if the specified child exists, and False otherwise.
+    /// </summary>
+    function HasChild(const AChild: TEFNode; const ARecursively: Boolean = False): Boolean; overload;
 
     type
       /// <summary>
@@ -479,13 +490,6 @@ type
     function ChildByName(const AName: string): TEFNode;
 
     /// <summary>
-    ///   Returns the index of a given child node, or -1 if the specified
-    ///   node is not a direct child of the current tree. If ARecursively is True,
-    ///   then the search is performed recursively on all direct and indirect children.
-    /// </summary>
-    function GetChildIndex(const AChild: TEFNode; const ARecursively: Boolean = False): Integer;
-
-    /// <summary>
     ///   Removes the child from the list of children, if present.
     /// </summary>
     procedure RemoveChild(const ANode: TEFNode);
@@ -505,6 +509,13 @@ type
     ///  that are of the specified type.
     /// </summary>
     function GetChild<T: class>(const AIndex: Integer): T; overload;
+
+    /// <summary>
+    ///  Returns the index of a given child node in a list of children limited
+    ///  to the set of children that are of the specified type, or -1 if the specified
+    ///  children is not a direct child of the current tree.
+    /// </summary>
+    function GetChildIndex<T: class>(const AChild: T): Integer;
 
     /// <summary>
     ///  Searches a node by a path. Separate hierarchy elements with a /.
@@ -770,7 +781,7 @@ type
   public
     procedure AfterLoad;
 
-    procedure Assign(const ASource: TEFTree); override;
+    procedure Assign(const ASource: TEFTree; const AProc: TEFTree.TAssignNodeProc = nil); override;
 
     property PersistentName: string read FPersistentName write FPersistentName;
 
@@ -781,7 +792,7 @@ type
   end;
 
   /// <summary>
-  ///   A node in a tree. Has a name and a value, and can have subnodes.
+  ///  A node in a tree. Has a name and a value, and can have subnodes.
   /// </summary>
   TEFNode = class(TEFTree)
   private
@@ -850,10 +861,10 @@ type
       const ACreateMissingNodes: Boolean = False): TEFNode; override;
 
     /// <summary>
-    ///   Copies everything from ASource, overwriting any existing data. if
-    ///   ASource is a node, name and value are copied as well.
+    ///  Copies everything from ASource, overwriting any existing data. if
+    ///  ASource is a node, name and value are copied as well.
     /// </summary>
-    procedure Assign(const ASource: TEFTree); override;
+    procedure Assign(const ASource: TEFTree; const AProc: TEFTree.TAssignNodeProc = nil); override;
 
     /// <summary>
     ///   Copies the value (and datatype) from the specified node. The name is
@@ -892,7 +903,7 @@ type
     /// <summary>
     ///   Creates a new node and assigns the specified node to it.
     /// </summary>
-    constructor Clone(const ASource: TEFTree); override;
+    constructor Clone(const ASource: TEFTree; const AProc: TEFTree.TAssignNodeProc = nil); override;
 
     /// <summary>
     ///   Deletes all subnodes, recursively.
@@ -1372,7 +1383,7 @@ end;
 
 { TEFNode }
 
-procedure TEFNode.Assign(const ASource: TEFTree);
+procedure TEFNode.Assign(const ASource: TEFTree; const AProc: TEFTree.TAssignNodeProc);
 begin
   inherited;
   if Assigned(ASource) and (ASource is TEFNode) then
@@ -1386,6 +1397,8 @@ begin
       UnlockDataType;
     end;
     FValueAttributes := TEFNode(ASource).ValueAttributes;
+    if Assigned(AProc) then
+      AProc(TEFNode(ASource), Self);
   end;
 end;
 
@@ -1431,12 +1444,12 @@ begin
   FValue := Unassigned;
 end;
 
-constructor TEFNode.Clone(const ASource: TEFTree);
+constructor TEFNode.Clone(const ASource: TEFTree; const AProc: TEFTree.TAssignNodeProc);
 begin
   Assert((ASource = nil) or (ASource is TEFNode));
 
   inherited;
-  Assign(TEFNode(ASource));
+  Assign(TEFNode(ASource), AProc);
 end;
 
 constructor TEFNode.Create(const AName: string);
@@ -1999,7 +2012,7 @@ begin
   Result := AddChild(GetChildClass(AName).Create(AName));
 end;
 
-procedure TEFTree.Assign(const ASource: TEFTree);
+procedure TEFTree.Assign(const ASource: TEFTree; const AProc: TAssignNodeProc);
 var
   LNode: TEFNode;
 begin
@@ -2009,7 +2022,7 @@ begin
     if ASource.AnnotationCount > 0 then
       GetAnnotations.Assign(ASource.FAnnotations);
     for LNode in ASource.FNodes do
-      AddChild(GetChildClass(LNode.Name).Clone(LNode));
+      AddChild(GetChildClass(LNode.Name).Clone(LNode, AProc));
   end;
 end;
 
@@ -2029,6 +2042,14 @@ begin
         AddChild(GetChildClass(LYourNode.Name).Clone(LYourNode));
     end;
   end;
+end;
+
+function TEFTree.QueryInterface(const IID: TGUID; out Obj): HRESULT;
+begin
+  if GetInterface(IID, Obj) then
+    Result := 0
+  else
+    Result := E_NOINTERFACE;
 end;
 
 procedure TEFTree.AssignAnnotations(const AStrings: TStrings);
@@ -2054,10 +2075,10 @@ begin
   FNodes.Clear;
 end;
 
-constructor TEFTree.Clone(const ASource: TEFTree);
+constructor TEFTree.Clone(const ASource: TEFTree; const AProc: TAssignNodeProc);
 begin
   Create;
-  Assign(ASource);
+  Assign(ASource, AProc);
 end;
 
 constructor TEFTree.Create;
@@ -2176,7 +2197,7 @@ begin
     begin
       Result := LChildNode.FindChildByPredicate(APredicate, ARecursively);
       if Assigned(Result) then
-        break;
+        Break;
     end;
   end;
 end;
@@ -2224,20 +2245,22 @@ begin
   end;
 end;
 
-function TEFTree.GetChildIndex(const AChild: TEFNode; const ARecursively: Boolean): Integer;
+function TEFTree.GetChildIndex<T>(const AChild: T): Integer;
 var
-  LNode: TEFNode;
+  I: Integer;
+  LTIndex: Integer;
 begin
-  LNode := FindChildByPredicate(
-    function (const ANode: TEFNode): Boolean
+  Result := -1;
+  for I := 0 to ChildCount - 1 do
+  begin
+    // Don't use "is" here. Either a bug in generics implementation or as designed.
+    if Children[I].InheritsFrom(T) then
     begin
-      Result := ANode = AChild;
-    end,
-    ARecursively);
-  if Assigned(LNode) then
-    Result := LNode.Index
-  else
-    Result := -1;
+      Inc(Result);
+      if T(Children[I]) = AChild then
+        Break;
+    end;
+  end;
 end;
 
 function TEFTree.GetChildrenAsPairs(const APath: string;
@@ -2402,9 +2425,19 @@ begin
   Result := GetValue(APath, Null);
 end;
 
-function TEFTree.HasChild(const AName: string): Boolean;
+function TEFTree.HasChild(const AChild: TEFNode; const ARecursively: Boolean): Boolean;
 begin
-  Result := Assigned(FindChild(AName));
+  Result := Assigned(FindChildByPredicate(
+    function (const ANode: TEFNode): Boolean
+    begin
+      Result := ANode = AChild;
+    end,
+    ARecursively));
+end;
+
+function TEFTree.HasChild(const AName: string; const ARecursive: Boolean): Boolean;
+begin
+  Result := Assigned(FindChild(AName, False, ARecursive));
 end;
 
 function TEFTree.GetValue(const APath: string;
@@ -2540,6 +2573,16 @@ end;
 procedure TEFTree.Sort(const ACompareFunc: TEFNodeCompareFunc);
 begin
   NodeList.Sort(TComparer.Create(ACompareFunc));
+end;
+
+function TEFTree._AddRef: Integer;
+begin
+  Result := -1;
+end;
+
+function TEFTree._Release: Integer;
+begin
+  Result := -1;
 end;
 
 procedure TEFTree.EnterCS;
@@ -3743,7 +3786,7 @@ begin
   InternalAfterLoad;
 end;
 
-procedure TEFPersistentTree.Assign(const ASource: TEFTree);
+procedure TEFPersistentTree.Assign(const ASource: TEFTree; const AProc: TEFTree.TAssignNodeProc);
 begin
   inherited;
   if Assigned(ASource) and (ASource is TEFPersistentTree) then

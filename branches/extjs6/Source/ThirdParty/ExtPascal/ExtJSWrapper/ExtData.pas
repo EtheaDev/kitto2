@@ -11,7 +11,6 @@ uses
 type
   TExtDataDataReader = class;
   TExtDataRequest = class;
-  TExtDataRecord = class;
   TExtDataField = class;
   TExtDataNode = class;
   TExtDataStore = class;
@@ -107,61 +106,6 @@ type
     property RsExtDataRecord: TExtDataRecord read FRsExtDataRecord
       write SetFRsExtDataRecord;
     property Scope: TExtObject read FScope write SetFScope;
-  end;
-
-  TExtDataRecord = class(TExtFunction)
-  private
-    FData: TExtObject;
-    FDirty: Boolean;
-    FFields: TExtObjectList;
-    FId: TExtObject;
-    FJson: TExtObjectList;
-    FJsonObject: TExtObject;
-    FModified: TExtObject;
-    FNode: TXMLElement;
-    FPhantom: Boolean;
-    FStore: TExtDataStore;
-    procedure SetFData(Value: TExtObject);
-    procedure SetFDirty(Value: Boolean);
-    procedure SetFFields(Value: TExtObjectList);
-    procedure SetFId(Value: TExtObject);
-    procedure SetFJson(Value: TExtObjectList);
-    procedure SetFJsonObject(Value: TExtObject);
-    procedure SetFModified(Value: TExtObject);
-    procedure SetFNode(Value: TXMLElement);
-    procedure SetFPhantom(Value: Boolean);
-    procedure SetFStore(Value: TExtDataStore);
-  protected
-    procedure InitDefaults; override;
-    procedure CreateVar(AJSCode: string); override;
-  public
-    class function JSClassName: string; override;
-    constructor Create(AOwner: TComponent; Data: TExtObjectList); reintroduce;
-    function TheGeneratedConstructorHasTheSameSignatureAsThisConstructor: TExtFunction;
-    function BeginEdit: TExtFunction;
-    function CancelEdit: TExtFunction;
-    function Commit(Silent: Boolean = false): TExtFunction;
-    function Copy(Id: string = ''): TExtFunction;
-    function Field: TExtFunction;
-    function Get(Name: string): TExtFunction;
-    function GetChanges: TExtFunction;
-    function IsModified(FieldName: string): TExtFunction;
-    function IsValid: TExtFunction;
-    function MarkDirty: TExtFunction;
-    function Reject(Silent: Boolean = false): TExtFunction;
-    function SetJS(Name: string; Value: string): TExtFunction; overload;
-    function SetJS(Name: string; Value: TExtObject): TExtFunction; overload;
-    function SetJS(Name: string; Value: TExtObjectList): TExtFunction; overload;
-    property Data: TExtObject read FData write SetFData;
-    property Dirty: Boolean read FDirty write SetFDirty;
-    property Fields: TExtObjectList read FFields write SetFFields;
-    property Id: TExtObject read FId write SetFId;
-    property Json: TExtObjectList read FJson write SetFJson;
-    property JsonObject: TExtObject read FJsonObject write SetFJsonObject;
-    property Modified: TExtObject read FModified write SetFModified;
-    property Node: TXMLElement read FNode write SetFNode;
-    property Phantom: Boolean read FPhantom write SetFPhantom;
-    property Store: TExtDataStore read FStore write SetFStore;
   end;
 
   TExtDataField = class(TExtFunction)
@@ -557,8 +501,6 @@ type
     procedure SetFXmlData(Value: TXMLDocument);
   public
     class function JSClassName: string; override;
-    constructor Create(AOwner: TComponent; Meta: TExtObject; RecordType: TExtObject);
-      reintroduce;
     function Read(Response: TExtObject): TExtFunction;
     function ReadRecords(Doc: TExtObject): TExtFunction;
     function ReadResponse(Action: string; Response: TExtObject): TExtFunction;
@@ -683,9 +625,6 @@ type
     function IsApiAction(ExtDataApiCREATEREADUPDATEDESTROY: string): TExtFunction;
     function Load(Params: TExtObject; Reader: TExtObject; Callback: TExtObject;
       Scope: TExtObject; Arg: TExtObject): TExtFunction;
-    function Request(Action: string; Rs: TExtDataRecord; Params: TExtObject;
-      Reader: TExtDataDataReader; Callback: TExtFunction; Scope: TExtObject;
-      Options: TExtObject): TExtFunction; overload;
     function Request(Action: string; Rs: TExtObjectList; Params: TExtObject;
       Reader: TExtDataDataReader; Callback: TExtFunction; Scope: TExtObject;
       Options: TExtObject): TExtFunction; overload;
@@ -819,10 +758,6 @@ type
     procedure SetFIdIndex(Value: Integer);
   public
     class function JSClassName: string; override;
-    constructor Create(AOwner: TComponent; Meta: TExtObject; RecordType: TExtObjectList);
-      reintroduce; overload;
-    constructor Create(AOwner: TComponent; Meta: TExtObject; RecordType: TExtObject);
-      reintroduce; overload;
     function ReadRecords(O: TExtObject): TExtFunction;
     property Id: Integer read FId write SetFId;
     property IdIndex: Integer read FIdIndex write SetFIdIndex;
@@ -870,7 +805,6 @@ type
     procedure HandleEvent(const AEvtName: string); override;
   public
     class function JSClassName: string; override;
-    constructor Create(AOwner: TComponent; Data: TExtObject); reintroduce;
     function DoRequest(Action: string; Rs: TExtDataRecord; Params: TExtObject;
       Reader: TExtDataDataReader; Callback: TExtFunction; Scope: TExtObject;
       Arg: TExtObject): TExtFunction; overload;
@@ -1109,197 +1043,6 @@ end;
 class function TExtDataRequest.JSClassName: string;
 begin
   Result := 'Ext.data.Request';
-end;
-
-procedure TExtDataRecord.SetFData(Value: TExtObject);
-begin
-  FData := Value;
-  JSCode(JSName + '.data=' + VarToJSON([Value, false]) + ';');
-end;
-
-procedure TExtDataRecord.SetFDirty(Value: Boolean);
-begin
-  FDirty := Value;
-  JSCode(JSName + '.dirty=' + VarToJSON([Value]) + ';');
-end;
-
-procedure TExtDataRecord.SetFFields(Value: TExtObjectList);
-begin
-  FFields := Value;
-  JSCode(JSName + '.fields=' + VarToJSON([Value, false]) + ';');
-end;
-
-procedure TExtDataRecord.SetFId(Value: TExtObject);
-begin
-  FId := Value;
-  JSCode(JSName + '.id=' + VarToJSON([Value, false]) + ';');
-end;
-
-procedure TExtDataRecord.SetFJson(Value: TExtObjectList);
-begin
-  FJson := Value;
-  JSCode(JSName + '.json=' + VarToJSON([Value, false]) + ';');
-end;
-
-procedure TExtDataRecord.SetFJsonObject(Value: TExtObject);
-begin
-  FJsonObject := Value;
-  JSCode(JSName + '.json=' + VarToJSON([Value, false]) + ';');
-end;
-
-procedure TExtDataRecord.SetFModified(Value: TExtObject);
-begin
-  FModified := Value;
-  JSCode(JSName + '.modified=' + VarToJSON([Value, false]) + ';');
-end;
-
-procedure TExtDataRecord.SetFNode(Value: TXMLElement);
-begin
-  FNode := Value;
-  JSCode(JSName + '.node=' + VarToJSON([Value, false]) + ';');
-end;
-
-procedure TExtDataRecord.SetFPhantom(Value: Boolean);
-begin
-  FPhantom := Value;
-  JSCode(JSName + '.phantom=' + VarToJSON([Value]) + ';');
-end;
-
-procedure TExtDataRecord.SetFStore(Value: TExtDataStore);
-begin
-  FStore := Value;
-  JSCode(JSName + '.store=' + VarToJSON([Value, false]) + ';');
-end;
-
-class function TExtDataRecord.JSClassName: string;
-begin
-  Result := 'Ext.data.Record';
-end;
-
-procedure TExtDataRecord.InitDefaults;
-begin
-  inherited;
-  FData := TExtObject.CreateInternal(Self, 'data');
-  FFields := TExtObjectList.CreateAsAttribute(Self, 'fields');
-  FId := TExtObject.CreateInternal(Self, 'id');
-  FJson := TExtObjectList.CreateAsAttribute(Self, 'json');
-  FJsonObject := TExtObject.CreateInternal(Self, 'json');
-  FModified := TExtObject.CreateInternal(Self, 'modified');
-  FStore := TExtDataStore.CreateInternal(Self, 'store');
-end;
-
-constructor TExtDataRecord.Create(AOwner: TComponent; Data: TExtObjectList);
-begin
-  FCreateVarArgs := JSClassName + '.create(' + VarToJSON(Data) + ');';
-  inherited Create(AOwner);
-end;
-
-procedure TExtDataRecord.CreateVar(AJSCode: string);
-begin
-  CreateJSName;
-  if FCreateVarArgs <> '' then
-  begin
-    AJSCode := FCreateVarArgs;
-    FCreateVarArgs := '';
-  end;
-  Insert('/*' + JSName + '*/', AJSCode, Length(AJSCode) - IfThen(Pos('});', AJSCode) <>
-    0, 2, 1));
-  JSCode(CommandDelim + DeclareJS + JSName + '= ' + AJSCode);
-  JSCode(JSName + '.nm="' + JSName + '";');
-end;
-
-function TExtDataRecord.TheGeneratedConstructorHasTheSameSignatureAsThisConstructor
-  : TExtFunction;
-begin
-  JSCode(JSName +
-    '.The generated constructor has the same signature as this constructor.();',
-    'TExtDataRecord');
-  Result := Self;
-end;
-
-function TExtDataRecord.BeginEdit: TExtFunction;
-begin
-  JSCode(JSName + '.beginEdit();', 'TExtDataRecord');
-  Result := Self;
-end;
-
-function TExtDataRecord.CancelEdit: TExtFunction;
-begin
-  JSCode(JSName + '.cancelEdit();', 'TExtDataRecord');
-  Result := Self;
-end;
-
-function TExtDataRecord.Commit(Silent: Boolean = false): TExtFunction;
-begin
-  JSCode(JSName + '.commit(' + VarToJSON([Silent]) + ');', 'TExtDataRecord');
-  Result := Self;
-end;
-
-function TExtDataRecord.Copy(Id: string = ''): TExtFunction;
-begin
-  JSCode(JSName + '.copy(' + VarToJSON([Id]) + ');', 'TExtDataRecord');
-  Result := Self;
-end;
-
-function TExtDataRecord.Field: TExtFunction;
-begin
-  JSCode(JSName + '.Field();', 'TExtDataRecord');
-  Result := Self;
-end;
-
-function TExtDataRecord.Get(Name: string): TExtFunction;
-begin
-  JSCode(JSName + '.get(' + VarToJSON([name]) + ');', 'TExtDataRecord');
-  Result := Self;
-end;
-
-function TExtDataRecord.GetChanges: TExtFunction;
-begin
-  JSCode(JSName + '.getChanges();', 'TExtDataRecord');
-  Result := Self;
-end;
-
-function TExtDataRecord.IsModified(FieldName: string): TExtFunction;
-begin
-  JSCode(JSName + '.isModified(' + VarToJSON([FieldName]) + ');', 'TExtDataRecord');
-  Result := Self;
-end;
-
-function TExtDataRecord.IsValid: TExtFunction;
-begin
-  JSCode(JSName + '.isValid();', 'TExtDataRecord');
-  Result := Self;
-end;
-
-function TExtDataRecord.MarkDirty: TExtFunction;
-begin
-  JSCode(JSName + '.markDirty();', 'TExtDataRecord');
-  Result := Self;
-end;
-
-function TExtDataRecord.Reject(Silent: Boolean = false): TExtFunction;
-begin
-  JSCode(JSName + '.reject(' + VarToJSON([Silent]) + ');', 'TExtDataRecord');
-  Result := Self;
-end;
-
-function TExtDataRecord.SetJS(Name: string; Value: string): TExtFunction;
-begin
-  JSCode(JSName + '.set(' + VarToJSON([name, Value]) + ');', 'TExtDataRecord');
-  Result := Self;
-end;
-
-function TExtDataRecord.SetJS(Name: string; Value: TExtObject): TExtFunction;
-begin
-  JSCode(JSName + '.set(' + VarToJSON([name, Value, false]) + ');', 'TExtDataRecord');
-  Result := Self;
-end;
-
-function TExtDataRecord.SetJS(Name: string; Value: TExtObjectList): TExtFunction;
-begin
-  JSCode(JSName + '.set(' + VarToJSON([name]) + ',' + VarToJSON(Value) + ');',
-    'TExtDataRecord');
-  Result := Self;
 end;
 
 procedure TExtDataField.SetAllowBlank(const AValue: Boolean);
@@ -2424,14 +2167,6 @@ begin
   Result := 'Ext.data.XmlReader';
 end;
 
-constructor TExtDataXmlReader.Create(AOwner: TComponent; Meta: TExtObject;
-  RecordType: TExtObject);
-begin
-  FCreateVarArgs := JSClassName + '(' +
-    VarToJSON([Meta, False, RecordType, False], GetExtSession(AOwner)) + ');';
-  inherited Create(AOwner);
-end;
-
 function TExtDataXmlReader.Read(Response: TExtObject): TExtFunction;
 begin
   JSCode(JSName + '.read(' + VarToJSON([Response, false]) + ');', 'TExtDataXmlReader');
@@ -2733,15 +2468,6 @@ begin
   Result := Self;
 end;
 
-function TExtDataProxy.Request(Action: string; Rs: TExtDataRecord; Params: TExtObject;
-  Reader: TExtDataDataReader; Callback: TExtFunction; Scope: TExtObject;
-  Options: TExtObject): TExtFunction;
-begin
-  JSCode(JSName + '.request(' + VarToJSON([Action, Rs, false, Params, false, Reader,
-    false, Callback, true, Scope, false, Options, false]) + ');', 'TExtDataDataProxy');
-  Result := Self;
-end;
-
 function TExtDataProxy.Request(Action: string; Rs: TExtObjectList; Params: TExtObject;
   Reader: TExtDataDataReader; Callback: TExtFunction; Scope: TExtObject;
   Options: TExtObject): TExtFunction;
@@ -3034,22 +2760,6 @@ begin
   Result := 'Ext.data.ArrayReader';
 end;
 
-constructor TExtDataArrayReader.Create(AOwner: TComponent; Meta: TExtObject;
-  RecordType: TExtObjectList);
-begin
-  FCreateVarArgs := JSClassName + '(' + VarToJSON([Meta, False], GetExtSession(AOwner)) + ',' +
-    VarToJSON(RecordType) + ');';
-  inherited Create(AOwner);
-end;
-
-constructor TExtDataArrayReader.Create(AOwner: TComponent; Meta: TExtObject;
-  RecordType: TExtObject);
-begin
-  FCreateVarArgs := JSClassName + '(' +
-    VarToJSON([Meta, False, RecordType, False], GetExtSession(AOwner)) + ');';
-  inherited Create(AOwner);
-end;
-
 function TExtDataArrayReader.ReadRecords(O: TExtObject): TExtFunction;
 begin
   JSCode(JSName + '.readRecords(' + VarToJSON([O, false]) + ');', 'TExtDataArrayReader');
@@ -3143,12 +2853,6 @@ end;
 class function TExtDataMemoryProxy.JSClassName: string;
 begin
   Result := 'Ext.data.MemoryProxy';
-end;
-
-constructor TExtDataMemoryProxy.Create(AOwner: TComponent; Data: TExtObject);
-begin
-  FCreateVarArgs := JSClassName + '(' + VarToJSON([Data, False], GetExtSession(AOwner)) + ');';
-  inherited Create(AOwner);
 end;
 
 function TExtDataMemoryProxy.DoRequest(Action: string; Rs: TExtDataRecord;

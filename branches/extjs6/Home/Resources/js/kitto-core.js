@@ -165,13 +165,13 @@ function ajaxSelection(buttonId, text, obj)
   {
     var
       selValues = [],
-      selRecords = obj.params.selModel.getSelections(),
+      selModels = obj.params.selModel.getSelection(),
       fieldNames = obj.params.fieldNames.split(',');
     for (var i = 0; i < fieldNames.length; i++)
     {
       var fieldValues = [];
-      for (var j = 0; j < selRecords.length; j++)
-        fieldValues.push(selRecords[j].get(fieldNames[i]));
+      for (var j = 0; j < selModels.length; j++)
+        fieldValues.push(selModels[j].data[fieldNames[i]]);
       selValues.push(fieldNames[i] + "=" + fieldValues.toString());
     }
     return Ext.Ajax.request({

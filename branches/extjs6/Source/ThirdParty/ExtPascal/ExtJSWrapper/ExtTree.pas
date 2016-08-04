@@ -444,7 +444,6 @@ type
     FHlColor : String; // 'C3DAF9'
     FHlDrop : Boolean;
     FLines : Boolean; // true
-    FLoader : TExtTreeTreeLoader;
     FPathSeparator : String; // '/'
     FRequestMethod : String; // 'output/Ext.Ajax.html#Ext.Ajax-method'
     FRoot : TExtTreeTreeNode;
@@ -568,7 +567,6 @@ type
     property HlColor : String read FHlColor write SetFHlColor;
     property HlDrop : Boolean read FHlDrop write SetFHlDrop;
     property Lines : Boolean read FLines write SetFLines;
-    property Loader : TExtTreeTreeLoader read FLoader write SetFLoader;
     property PathSeparator : String read FPathSeparator write SetFPathSeparator;
     property RequestMethod : String read FRequestMethod write SetFRequestMethod;
     property Root: TExtTreeTreeNode read FRoot write SetRoot;
@@ -1503,11 +1501,6 @@ procedure TExtTreeTreePanel.SetFLines(Value : Boolean); begin
   JSCode('lines:' + VarToJSON([Value]));
 end;
 
-procedure TExtTreeTreePanel.SetFLoader(Value : TExtTreeTreeLoader); begin
-  FLoader := Value;
-    JSCode('loader:' + VarToJSON([Value, false]));
-end;
-
 procedure TExtTreeTreePanel.SetFPathSeparator(Value : String); begin
   FPathSeparator := Value;
   JSCode('pathSeparator:' + VarToJSON([Value]));
@@ -1817,7 +1810,6 @@ procedure TExtTreeTreePanel.InitDefaults; begin
   FDropConfig := TExtObject.CreateInternal(Self, 'dropConfig');
   FHlColor := 'C3DAF9';
   FLines := true;
-  FLoader := TExtTreeTreeLoader.CreateInternal(Self, 'loader');
   FPathSeparator := '/';
   FRequestMethod := 'output/Ext.Ajax.html#Ext.Ajax-method';
   FRoot := TExtTreeTreeNode.CreateInternal(Self, 'root');

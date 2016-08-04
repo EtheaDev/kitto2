@@ -91,7 +91,7 @@ type
     // Create an object.
     procedure CreateObject(const AObject: TExtObject);
 
-    // Create an internal object; could be a config items of an object type.
+    // Create an internal object; could be a config item of an object type.
     procedure CreateInternalObject(const AObject: TExtObject; const AAttributeName: string);
 
     // Set a config item, set a same-named property if not possible.
@@ -283,9 +283,6 @@ type
     function DoGetAjaxCode(const AMethodName, ARawParams: string; const AParams: array of const;
       const AExtraCode: string): string;
   protected
-    // Set by some classes with custom constructors that need to call the
-    // inherited Create with a custom string to be passed to CreateVar.
-    FCreateVarArgs: string;
     FJSName    : string;  // Internal JavaScript name generated automatically by <link TExtObject.CreateJSName, CreateJSName>
     function GetExtSession: TExtSession; overload;
     function GetExtSession(const AOwner: TComponent): TExtSession; overload;
@@ -302,7 +299,6 @@ type
     function ParamAsString(ParamName : string) : string;
     function ParamAsTDateTime(ParamName : string) : TDateTime;
     function ParamAsObject(ParamName : string) : TExtObject;
-    procedure CreateVar(AJSCode : string); virtual;
     procedure CreateJSName; virtual;
     function GetObjectNamePrefix: string; virtual;
     procedure InitDefaults; virtual;
@@ -310,12 +306,11 @@ type
     property ExtSession: TExtSession read GetExtSession;
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   public
-    constructor CreateInternal(const AOwner: TExtObject; const AAttributeName: string); virtual;
+    constructor CreateInternal(const AOwner: TExtObject; const AAttributeName: string);
 
     constructor Create(AOwner: TComponent); override;
-    constructor CreateInline(AOwner: TComponent); virtual;
+    constructor CreateInline(AOwner: TComponent; const AInitDefaults: Boolean = True);
 
-    constructor CreateWithConfig(AOwner: TComponent; AConfig: TExtObject = nil);
     constructor CreateSingleton(const AOwner: TComponent; const AAttribute: string = '');
     constructor CreateAndAddTo(List: TExtObjectList);
     constructor CreateInlineAndAddTo(List: TExtObjectList);
@@ -326,7 +321,7 @@ type
     property ExtObjectOwner: TExtObject read FExtObjectOwner;
     property AttributeName: string read FAttributeName;
 
-    function GetConstructionJS: string; virtual;
+    function GetConstructionJS: string;
 
     procedure AddTo(List: TExtObjectList);
 
@@ -533,7 +528,6 @@ type
     function GetCount: Integer;
     property OwnerExtObject: TExtObject read GetOwnerExtObject;
   protected
-    procedure CreateVar(AJSCode: string); override;
     procedure CreateJSName; override;
   public
     procedure AfterConstruction; override;
@@ -1359,11 +1353,6 @@ begin
   Name := '';
 end;
 
-procedure TExtObjectList.CreateVar(AJSCode: string);
-begin
-  CreateJSName;
-end;
-
 // Frees this list and all objects linked in it
 destructor TExtObjectList.Destroy;
 begin
@@ -1446,9 +1435,7 @@ end;
 procedure TExtObject.CreateJSName;
 begin
   if FJSName = '' then
-    //FJSName := 'O' + IdentDelim + TExtThread(CurrentWebSession).GetSequence + IdentDelim;
     FJSName := ExtSession.GetNextJSName(GetObjectNamePrefix);
-  //Name := TExtThread(CurrentWebSession).GarbageFixName(FJSName);
   Name := FJSName;
 end;
 
@@ -1512,16 +1499,6 @@ Uses dynamic JS in browser.
 function TExtObject.LinesToPixels(const ALines: Integer): Integer;
 begin
   Result := JSExpression('%s * %.2f', [ExtUtilTextMetrics.GetHeight('W'), ALines * 0.8]);
-end;
-
-procedure TExtObject.CreateVar(AJSCode: string);
-begin
-  Assert(Assigned(ExtSession));
-
-  { TODO : JSName could be assigned on demand. }
-  CreateJSName;
-
-  Session.ResponseItems.CreateObject(Self);
 end;
 
 // Deletes JS object from Browser memory
@@ -1639,9 +1616,12 @@ Creates a TExtObject and generate corresponding JS code using <link TExtObject.J
 }
 constructor TExtObject.Create(AOwner: TComponent);
 begin
+  Assert(Session <> nil);
   Assert(Assigned(AOwner));
   inherited Create(AOwner);
-  CreateVar(JSClassName + '({});');
+  CreateJSName;
+  if JSName <> '' then
+    Session.ResponseItems.CreateObject(Self);
   InitDefaults;
 end;
 
@@ -1650,12 +1630,17 @@ Used by Parser to build <link TExtObject.InitDefaults, InitDefaults> methods use
 @param Owner TExtObject where this property is declared
 @param Attribute Public JS property name
 }
-constructor TExtObject.CreateInline(AOwner: TComponent);
+constructor TExtObject.CreateInline(AOwner: TComponent; const AInitDefaults: Boolean);
 begin
+  Assert(Session <> nil);
   Assert(Assigned(AOwner));
   // Inline = don't create the declaration.
   inherited Create(AOwner);
-  InitDefaults;
+  if AInitDefaults then
+  begin
+    Session.ResponseItems.CreateObject(Self);
+    InitDefaults;
+  end;
 end;
 
 { TODO : WIP - we want to be able to create some objects inline in order to output more compact code }
@@ -1958,13 +1943,6 @@ begin
   Assert(False, 'Not implemented - ' + JS);
 end;
 
-constructor TExtObject.CreateWithConfig(AOwner: TComponent; AConfig: TExtObject);
-begin
-  if Assigned(AConfig) then
-    FCreateVarArgs := JSClassName + '(' + VarToJSON([AConfig, False], GetExtSession(AOwner)) + ');';
-  Create(AOwner);
-end;
-
 {
 Adds this object in a list.
 If called as constructor creates the object before adds it to the list.
@@ -2036,7 +2014,7 @@ It is necessary in 3 cases:
 function TExtObject.JSObject(const AJSON: string; const AObjectConstructor: string;
   const ACurlyBrackets: Boolean): TExtObject;
 begin
-  Result := TExtObject.CreateInline(Self);
+  Result := TExtObject.CreateInline(Self, False);
   try
     if ACurlyBrackets then
       Result.FJSName := '{' + AJSON + '}'
@@ -2125,7 +2103,7 @@ Generates JS code to declare an anonymous JS function with parameters
 }
 function TExtObject.JSFunction(const AParams, ABody: string): TExtFunction;
 begin
-  Result := TExtFunction.CreateInline(Self);
+  Result := TExtFunction.CreateInline(Self, False);
   Result.FJSName := 'function(' + AParams + ') { ' + ABody + ' }';
 end;
 
@@ -2141,7 +2119,7 @@ end;
 
 function TExtObject.JSFunctionInline(const ACode: string): TExtFunction;
 begin
-  Result := TExtFunction.CreateInline(Self);
+  Result := TExtFunction.CreateInline(Self, False);
   Result.FJSName := ACode;
 end;
 
@@ -2218,7 +2196,7 @@ end;
 // Same as above but with anonymous method.
 function TExtObject.JSFunction(const AMethod: TProc; const ASilent: Boolean): TExtFunction;
 begin
-  Result := TExtFunction.CreateInline(Self);
+  Result := TExtFunction.CreateInline(Self, False);
   Result.FJSName := 'function() { ' + GetJSFunctionCode(AMethod, ASilent) + ' }';
 end;
 
@@ -3099,11 +3077,16 @@ begin
   if Result.EndsWith(',') then
     Result := Result.Substring(0, Result.Length - 1);
 
-  Result :=
-    Sender.JSName + ' = ' + Sender.GetConstructionJS + '({' +
-    Result + sLineBreak +
-    '});' + sLineBreak +
-    Sender.JSName + '.nm = "' + Sender.JSName + '";' + sLineBreak;
+  if Sender.JSName <> '' then
+  begin
+    Result :=
+      Sender.JSName + ' = ' + Sender.GetConstructionJS + '({' +
+      Result + sLineBreak +
+      '});' + sLineBreak +
+      Sender.JSName + '.nm = "' + Sender.JSName + '";' + sLineBreak;
+  end
+  else
+    Result := '{' + Result + '}';
 end;
 
 { TExtJSCode }

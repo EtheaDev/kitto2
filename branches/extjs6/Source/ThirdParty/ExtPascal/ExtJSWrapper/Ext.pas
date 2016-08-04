@@ -93,8 +93,6 @@ type
   public
     class function JSClassName: string; override;
 
-    constructor Create(AOwner: TComponent; El: string; Config: TExtObject = nil;
-      EventName: string = ''); reintroduce;
     function AddBinding(Config: TExtObject = nil): TExtFunction; overload;
     function AddBinding(Config: TExtObjectList): TExtFunction; overload;
     function Disable: TExtFunction;
@@ -456,7 +454,6 @@ type
     procedure SetFRe_(Value: TRegExp);
   public
     class function JSClassName: string; override;
-    constructor Create(AOwner: TComponent; Config: string = ''); reintroduce;
     function TemplateFrom(El: string; Config: TExtObject = nil): TExtFunction; overload;
     function TemplateFrom(El: THTMLElement; Config: TExtObject = nil)
       : TExtFunction; overload;
@@ -1292,8 +1289,6 @@ type
   TFusionCharts = class(TExtFunction)
   public
     class function JSClassName: string; override;
-    constructor Create(AOwner: TComponent; SwfURL: string; Id: string; Width: Integer;
-      Height: Integer; DebugMode: Integer = 0; RegisterWithJS: Integer = 0); reintroduce;
     function SetDataURL(XML: string): TExtFunction;
     function Render(Id: string): TExtFunction;
   end;
@@ -1426,8 +1421,6 @@ type
     procedure HandleEvent(const AEvtName: string); override;
   public
     class function JSClassName: string; override;
-    constructor Create(AOwner: TComponent; DragElement: string; ResizingElement: string;
-      Orientation: Integer = 0; Placement: Integer = 0); reintroduce;
     function GetAdapter: TExtFunction;
     function GetMaximumSize: TExtFunction;
     function GetMinimumSize: TExtFunction;
@@ -1799,6 +1792,7 @@ type
     FOnShow: TExtComponentOnShow;
     FOnStaterestore: TExtComponentOnStaterestore;
     FOnStatesave: TExtComponentOnStatesave;
+    FLoader: TExtObject;
     procedure SetFAllowDomMove(Value: Boolean);
     procedure SetFApplyTo(Value: string);
     procedure SetFAutoEl(Value: TExtObject);
@@ -1951,6 +1945,7 @@ type
     property ItemId: string read FItemId write SetItemId;
     property LabelSeparator: string read FLabelSeparator write SetLabelSeparator;
     property LabelStyle: string read FLabelStyle write SetLabelStyle;
+    property Loader: TExtObject read FLoader;
     property OverCls: string read FOverCls write SetOverCls;
     property Plugins: TExtObject read FPlugins write SetPlugins;
     property PluginsArray: TExtObjectList read FPluginsArray;
@@ -2061,7 +2056,6 @@ type
   TExtXTemplate = class(TExtTemplate)
   public
     class function JSClassName: string; override;
-    constructor Create(AOwner: TComponent; Config: string = ''); reintroduce;
     function XTemplateFrom(El: string): TExtFunction; overload;
     function XTemplateFrom(El: THTMLElement): TExtFunction; overload;
     function Apply(Values: TExtObject): TExtFunction; overload;
@@ -3183,9 +3177,6 @@ type
     function GetTool(Id: string): TExtFunction;
     function GetTopToolbar: TExtFunction;
     function GetUpdater: TExtFunction;
-    function Load(const AConfig: TExtObject = nil): TExtFunction; overload;
-    function Load(const AConfig: string): TExtFunction; overload;
-    function Load(const AConfig: TExtFunction): TExtFunction; overload;
     function SetIconClass(Cls: string): TExtFunction;
     function SetTitle(const ATitle: string; const AIconCls: string = ''): TExtFunction;
     function ToggleCollapse(Animate: Boolean): TExtFunction;
@@ -4023,13 +4014,6 @@ end;
 class function TExtKeyMap.JSClassName: string;
 begin
   Result := 'Ext.KeyMap';
-end;
-
-constructor TExtKeyMap.Create(AOwner: TComponent; El: string; Config: TExtObject = nil;
-  EventName: string = '');
-begin
-  FCreateVarArgs := JSClassName + '(' + VarToJSON([El, Config, False, EventName], GetExtSession(AOwner)) + ');';
-  inherited Create(AOwner);
 end;
 
 function TExtKeyMap.AddBinding(Config: TExtObject = nil): TExtFunction;
@@ -5247,12 +5231,6 @@ end;
 class function TExtTemplate.JSClassName: string;
 begin
   Result := 'Ext.Template';
-end;
-
-constructor TExtTemplate.Create(AOwner: TComponent; Config: string = '');
-begin
-  FCreateVarArgs := JSClassName + '(' + VarToJSON([Config], GetExtSession(AOwner)) + ');';
-  inherited Create(AOwner);
 end;
 
 function TExtTemplate.TemplateFrom(El: string; Config: TExtObject = nil): TExtFunction;
@@ -8074,14 +8052,6 @@ begin
   Result := 'FusionCharts';
 end;
 
-constructor TFusionCharts.Create(AOwner: TComponent; SwfURL: string; Id: string;
-  Width: Integer; Height: Integer; DebugMode: Integer = 0; RegisterWithJS: Integer = 0);
-begin
-  FCreateVarArgs := JSClassName + '(' + VarToJSON([SwfURL, Id, Width, Height, DebugMode,
-    RegisterWithJS], GetExtSession(AOwner)) + ');';
-  inherited Create(AOwner);
-end;
-
 function TFusionCharts.SetDataURL(XML: string): TExtFunction;
 begin
   JSCode(JSName + '.setDataURL(' + VarToJSON([XML]) + ');', 'TFusionCharts');
@@ -8509,14 +8479,6 @@ end;
 class function TExtSplitBar.JSClassName: string;
 begin
   Result := 'Ext.SplitBar';
-end;
-
-constructor TExtSplitBar.Create(AOwner: TComponent; DragElement: string;
-  ResizingElement: string; Orientation: Integer = 0; Placement: Integer = 0);
-begin
-  FCreateVarArgs := JSClassName + '(' +
-    VarToJSON([DragElement, ResizingElement, Orientation, Placement], GetExtSession(AOwner)) + ');';
-  inherited Create(AOwner);
 end;
 
 function TExtSplitBar.GetAdapter: TExtFunction;
@@ -9282,7 +9244,7 @@ end;
 
 procedure TExtComponent.SetHtml(const AValue: string);
 begin
-  FHtml := SetConfigItem('html', AValue);
+  FHtml := SetConfigItem('html', 'update', AValue);
 end;
 
 procedure TExtComponent.SetFHtmlObject(Value: TExtObject);
@@ -9666,6 +9628,7 @@ begin
   FOwnerCt := TExtContainer.CreateInternal(Self, 'ownerCt');
   FRefOwner := TExtContainer.CreateInternal(Self, 'refOwner');
   FStyleExtObject := TExtObject.CreateInternal(Self, 'style');
+  FLoader := TExtObject.CreateInternal(Self, 'loader');
 end;
 
 function TExtComponent.AddCls(const AClsName: string): TExtFunction;
@@ -10076,12 +10039,6 @@ end;
 class function TExtXTemplate.JSClassName: string;
 begin
   Result := 'Ext.XTemplate';
-end;
-
-constructor TExtXTemplate.Create(AOwner: TComponent; Config: string = '');
-begin
-  FCreateVarArgs := JSClassName + '(' + VarToJSON([Config], GetExtSession(AOwner)) + ');';
-  inherited Create(AOwner);
 end;
 
 function TExtXTemplate.XTemplateFrom(El: string): TExtFunction;
@@ -13033,21 +12990,6 @@ function TExtPanel.GetUpdater: TExtFunction;
 begin
   JSCode(JSName + '.getUpdater();', 'TExtPanel');
   Result := Self;
-end;
-
-function TExtPanel.Load(const AConfig: TExtObject = nil): TExtFunction;
-begin
-  Result := CallMethod('load', AConfig);
-end;
-
-function TExtPanel.Load(const AConfig: string): TExtFunction;
-begin
-  Result := CallMethod('load', AConfig);
-end;
-
-function TExtPanel.Load(const AConfig: TExtFunction): TExtFunction;
-begin
-  Result := CallFunctionMethod('load', AConfig);
 end;
 
 function TExtPanel.SetIconClass(Cls: string): TExtFunction;

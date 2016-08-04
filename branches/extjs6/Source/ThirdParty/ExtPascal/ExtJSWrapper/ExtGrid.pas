@@ -13,7 +13,6 @@ type
   TExtGridColumn = class;
   TExtGridPropertyRecord = class;
   TExtGridTemplateColumn = class;
-  TExtGridPropertyStore = class;
   TExtGridNumberColumn = class;
   TExtViewTable = class;
   TExtGridBooleanColumn = class;
@@ -138,13 +137,6 @@ type
     class function JSClassName: string; override;
     property Tpl: string read FTpl write SetFTpl;
     property TplXTemplate: TExtXTemplate read FTplXTemplate write SetFTplXTemplate;
-  end;
-
-  TExtGridPropertyStore = class(TExtUtilObservable)
-  public
-    class function JSClassName: string; override;
-    constructor Create(AOwner: TComponent; Grid: TExtGridGrid; Source: TExtObject);
-      reintroduce;
   end;
 
   TExtGridNumberColumn = class(TExtGridColumn)
@@ -677,7 +669,7 @@ type
     procedure SetStripeRows(const AValue: Boolean);
     procedure SetTrackMouseOver(const AValue: Boolean);
     procedure SetView(const AValue: TExtObject);
-    procedure SetFViewConfig(Value: TExtObject);
+    procedure SetFViewConfig(const AValue: TExtObject);
     procedure SetFLoadMaskBoolean(Value: Boolean);
     procedure SetFOnBodyscroll(Value: TExtGridGridPanelOnBodyscroll);
     procedure SetFOnCellclick(Value: TExtGridGridPanelOnCellclick);
@@ -1121,18 +1113,6 @@ procedure TExtGridTemplateColumn.InitDefaults;
 begin
   inherited;
   FTplXTemplate := TExtXTemplate.CreateInternal(Self, 'tpl');
-end;
-
-class function TExtGridPropertyStore.JSClassName: string;
-begin
-  Result := 'Ext.grid.PropertyStore';
-end;
-
-constructor TExtGridPropertyStore.Create(AOwner: TComponent; Grid: TExtGridGrid;
-  Source: TExtObject);
-begin
-  FCreateVarArgs := JSClassName + '(' + VarToJSON([Grid, False, Source, False], GetExtSession(AOwner)) + ');';
-  inherited Create(AOwner);
 end;
 
 procedure TExtGridNumberColumn.SetFormat(const AValue: string);
@@ -2150,11 +2130,10 @@ begin
   FView := SetConfigItem('view', AValue);
 end;
 
-procedure TExtGridGridPanel.SetFViewConfig(Value: TExtObject);
+procedure TExtGridGridPanel.SetFViewConfig(const AValue: TExtObject);
 begin
   FViewConfig.Free;
-  FViewConfig := Value;
-  JSCode('viewConfig:' + VarToJSON([Value, false]));
+  FViewConfig := SetConfigItem('viewConfig', AValue);
 end;
 
 procedure TExtGridGridPanel.SetFLoadMaskBoolean(Value: Boolean);

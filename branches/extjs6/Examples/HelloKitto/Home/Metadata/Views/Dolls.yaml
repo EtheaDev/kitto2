@@ -23,8 +23,8 @@ MainTable:
     PageRecordCount: 2
     AllowViewing: True
     PopupWindow:
-      Height: 500
-      Width: 400
+      Height: 740
+      Width: 600
 
     Grouping:
       FieldName: Hair

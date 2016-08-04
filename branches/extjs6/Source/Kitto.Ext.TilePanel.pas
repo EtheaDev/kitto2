@@ -37,18 +37,17 @@ type
     FView: TKView;
     FConfig: TEFTree;
     FTileBoxHtml: string;
-    FMaxTilesPerFolder: Integer;
-    FTileRows: Integer;
     FColors: TStringDynArray;
     FColorIndex: Integer;
+    FRootNode: TKTreeViewNode;
     procedure AddBreak;
     procedure AddTitle(const ADisplayLabel: string);
     function GetTileHeight: Integer;
     function GetTileWidth: Integer;
-    procedure BuildTileBoxHtml;
-    function GetBoxStyle(const ATilesPerRow, ARows: Integer): string;
+    procedure BuildTileBoxHtml(const ARootNode: TKTreeViewNode = nil);
     procedure AddTile(const ANode: TKTreeViewNode; const ADisplayLabel: string);
     procedure AddTiles(const ANode: TKTreeViewNode; const ADisplayLabel: string);
+    procedure AddBackTile;
     function GetNextTileColor: string;
     function GetColors(const AColorSetName: string): TStringDynArray;
   public
@@ -58,6 +57,7 @@ type
     procedure DoDisplay;
   published
     procedure DisplayView;
+    procedure DisplayPage;
   end;
 
   // Hosted by the tile panel controller; manages the additional tile page.
@@ -77,8 +77,6 @@ type
   strict protected
     function GetTabPanelClass: TKExtTabPanelClass; override;
     function GetDefaultTabIconsVisible: Boolean; override;
-  published
-    procedure DisplayPage;
   end;
 
 implementation
@@ -90,14 +88,6 @@ uses
   Kitto.Config, Kitto.Utils, Kitto.Ext.Utils;
 
 { TKExtTilePanelController }
-
-procedure TKExtTilePanelController.DisplayPage;
-begin
-  { TODO : To be called when the tile is a multi-level tile.
-    Should change the html to reflect the specified page or sub-page,
-    perhaps using animation. As an alternative, produce all pages at once
-    and animate among them. }
-end;
 
 function TKExtTilePanelController.GetDefaultTabIconsVisible: Boolean;
 begin
@@ -157,18 +147,14 @@ begin
   BuildTileBoxHtml;
 end;
 
+procedure TKExtTilePanel.DisplayPage;
+begin
+  BuildTileBoxHtml(TKTreeViewNode(Session.QueryAsInteger['PageId']));
+end;
+
 procedure TKExtTilePanel.DisplayView;
 begin
   Session.DisplayView(TKView(Session.QueryAsInteger['View']));
-end;
-
-function TKExtTilePanel.GetBoxStyle(const ATilesPerRow, ARows: Integer): string;
-begin
-//  LWidth := (ATilesPerRow * GetTileWidth) + Succ(ATilesPerRow) * 2 * GetBorderWidth;
-//  LHeight := (ARows * GetTileHeight) + Succ(ATilesPerRow) * 2 * GetBorderWidth;
-  { TODO : add space for folders/titles }
- //Result := Format('width:%dpx;height:%dpx;', [LWidth, LHeight]);
- Result := '';
 end;
 
 function TKExtTilePanel.GetColors(const AColorSetName: string): TStringDynArray;
@@ -250,33 +236,74 @@ end;
 
 procedure TKExtTilePanel.AddTiles(const ANode: TKTreeViewNode; const ADisplayLabel: string);
 var
-  I: Integer;
-  LSubNode: TKTreeViewNode;
-  LDisplayLabelNode: TEFNode;
-  LDisplayLabel: string;
+  LOriginalNode: TKTreeViewNode;
+
+  function IsNodeIncluded(const ACurrentNode: TEFNode): Boolean;
+  begin
+    Result := (FRootNode = nil) or FRootNode.HasChild(ACurrentNode, True);
+  end;
+
+  procedure ProcessChildren(const AParentNode: TKTreeViewNode);
+  var
+    LDisplayLabelNode: TEFNode;
+    LDisplayLabel: string;
+    I: Integer;
+    LSubNode: TKTreeViewNode;
+    LOriginalSubNode: TKTreeViewNode;
+    LAddedTileCount: Integer;
+  begin
+    LAddedTileCount := 0;
+    for I := 0 to AParentNode.TreeViewNodeCount - 1 do
+    begin
+      LSubNode := AParentNode.TreeViewNodes[I];
+      LOriginalSubNode := TKTreeViewNode(LSubNode.GetObject('Sys/SourceNode'));
+      if IsNodeIncluded(LOriginalSubNode) then
+      begin
+        LDisplayLabelNode := LOriginalSubNode.FindNode('DisplayLabel');
+        if Assigned(LDisplayLabelNode) then
+          LDisplayLabel := _(LDisplayLabelNode.AsString)
+        else
+          LDisplayLabel := GetDisplayLabelFromNode(LOriginalSubNode, Session.Config.Views);
+        // Render folders as rows not tiles in second level.
+        if not (LOriginalSubNode is TKTreeViewFolder) or not Assigned(FRootNode) then
+        begin
+          AddTile(LOriginalSubNode, LDisplayLabel);
+          Inc(LAddedTileCount);
+        end;
+      end;
+      // Only when not rendering the first level, look ahead for children.
+      if (LSubNode is TKTreeViewFolder) and Assigned(FRootNode) then
+        ProcessChildren(LSubNode);
+    end;
+    if LAddedTileCount > 0 then
+      AddBreak;
+  end;
+
 begin
+  LOriginalNode := TKTreeViewNode(ANode.GetObject('Sys/SourceNode'));
   FTileBoxHtml := FTileBoxHtml + '<div class="k-tile-row">';
   if ANode is TKTreeViewFolder then
   begin
-    AddTitle(ADisplayLabel);
-    for I := 0 to ANode.TreeViewNodeCount - 1 do
-    begin
-      LSubNode := ANode.TreeViewNodes[I];
-      LDisplayLabelNode := LSubNode.FindNode('DisplayLabel');
-      if Assigned(LDisplayLabelNode) then
-        LDisplayLabel := _(LDisplayLabelNode.AsString)
-      else
-        LDisplayLabel := GetDisplayLabelFromNode(LSubNode, Session.Config.Views);
-      AddTile(LSubNode, LDisplayLabel);
-    end;
-    if FMaxTilesPerFolder < ANode.TreeViewNodeCount then
-      FMaxTilesPerFolder := ANode.TreeViewNodeCount;
-    Inc(FTileRows);
+    // Render folders as rows not tiles in second level.
+    if IsNodeIncluded(LOriginalNode) and not Assigned(FRootNode) then
+      AddTitle(ADisplayLabel);
+    ProcessChildren(ANode);
   end
-  else
-    AddTile(ANode, ADisplayLabel);
-  AddBreak;
+  else if IsNodeIncluded(LOriginalNode) then
+    AddTile(LOriginalNode, ADisplayLabel);
   FTileBoxHtml := FTileBoxHtml + '</div>';
+end;
+
+procedure TKExtTilePanel.AddBackTile;
+var
+  LClickCode: string;
+begin
+  LClickCode := JSMethod(Ajax(DisplayPage, ['PageId', 0]));
+
+  FTileBoxHtml := FTileBoxHtml + Format(
+    '<a href="#" onclick="%s"><div class="k-tile k-tile-back" style="background-color:%s;width:%dpx;height:%dpx">' +
+    '<div class="k-tile-inner k-tile-back-inner">%s</div></div></a>',
+    [HTMLEncode(LClickCode), GetNextTileColor, GetTileWidth, GetTileHeight, _('Back')]);
 end;
 
 procedure TKExtTilePanel.AddBreak;
@@ -286,9 +313,10 @@ end;
 
 procedure TKExtTilePanel.AddTitle(const ADisplayLabel: string);
 begin
-  FTileBoxHtml := FTileBoxHtml + Format(
-    '<div class="k-tile-title-row">%s</div>',
-    [HTMLEncode(ADisplayLabel)]);
+  if ADisplayLabel <> '' then
+    FTileBoxHtml := FTileBoxHtml + Format(
+      '<div class="k-tile-title-row">%s</div>',
+      [HTMLEncode(ADisplayLabel)]);
 end;
 
 procedure TKExtTilePanel.AddTile(const ANode: TKTreeViewNode; const ADisplayLabel: string);
@@ -326,9 +354,11 @@ var
   end;
 
 begin
-  Assert(not (ANode is TKTreeViewFolder));
+  if ANode is TKTreeViewFolder then
+    LClickCode := JSMethod(Ajax(DisplayPage, ['PageId', Integer(ANode)]))
+  else
+    LClickCode := JSMethod(Ajax(DisplayView, ['View', Integer(Session.Config.Views.ViewByNode(ANode))]));
 
-  LClickCode := JSMethod(Ajax(DisplayView, ['View', Integer(Session.Config.Views.ViewByNode(ANode))]));
   if GetCSS <> '' then
   begin
     FTileBoxHtml := FTileBoxHtml + Format(
@@ -345,7 +375,7 @@ begin
   end;
 end;
 
-procedure TKExtTilePanel.BuildTileBoxHtml;
+procedure TKExtTilePanel.BuildTileBoxHtml(const ARootNode: TKTreeViewNode);
 var
   LTreeViewRenderer: TKExtTreeViewRenderer;
   LNode: TEFNode;
@@ -353,15 +383,19 @@ var
   LFileName: string;
 begin
   FColorIndex :=  0;
-  FTileBoxHtml := '<div class="k-tile-box" style="%s">';
+  FTileBoxHtml := '<div class="k-tile-box">';
+  FRootNode := ARootNode;
+  if Assigned(FRootNode) then
+  begin
+    AddBackTile;
+    AddBreak;
+  end;
 
   LTreeViewRenderer := TKExtTreeViewRenderer.Create;
   try
     LTreeViewRenderer.Session := Session;
     LNode := Config.GetNode('TreeView');
     LTreeView := Session.Config.Views.ViewByNode(LNode) as TKTreeView;
-    FMaxTilesPerFolder := 0;
-    FTileRows := 0;
     LTreeViewRenderer.Render(LTreeView,
       procedure (ANode: TKTreeViewNode; ADisplayLabel: string)
       begin
@@ -369,7 +403,6 @@ begin
       end,
       Self, DisplayView);
     FTileBoxHtml := FTileBoxHtml + '</div></div>';
-    FTileBoxHtml := Format(FTileBoxHtml, [GetBoxStyle(FMaxTilesPerFolder, FTileRows)]);
 
     LFileName := ChangeFileExt(ExtractFileName(LTreeView.PersistentFileName), '.html');
     LoadHtml(LFileName,

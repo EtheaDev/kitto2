@@ -2743,7 +2743,7 @@ procedure TKExtFormFileEditor.PictureViewAfterRender(This: TExtComponent);
 begin
   Assert(Assigned(FPictureView));
 
-  FPictureView.Load(JSObject(Format('url:"%s"', [MethodURI(GetImageContent)])));
+  Session.ResponseItems.ExecuteJSCode(FPictureView.JSName + '.getLoader().load()');
 end;
 
 procedure TKExtFormFileEditor.CreateGUI(const AViewField: TKViewField);
@@ -2767,6 +2767,7 @@ begin
     LPanel.Layout := lyColumn;
     FPictureView := TExtPanel.CreateAndAddTo(LPanel.Items);
     FPictureView.Frame := True;
+    FPictureView.Loader.SetConfigItem('url', MethodURI(GetImageContent));
     FPictureView.OnAfterrender := PictureViewAfterRender;
 
     LToolbar := TKExtToolbar.CreateAndAddTo(LPanel.Items);

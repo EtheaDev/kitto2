@@ -33,7 +33,6 @@ type
     FConfirmButton: TKExtButton;
     FCancelButton: TKExtButton;
     FGridPanel: TExtGridGridPanel;
-//    FExtGridView: TExtGridView;
     FPagingToolbar: TExtPagingToolbar;
     FPageRecordCount: Integer;
     FSelectionModel: TExtSelectionRowModel;
@@ -617,6 +616,9 @@ var
   LViewTable: TKViewTable;
   LEventName: string;
   LCellEditing: TExtGridPluginCellEditing;
+  LRowClassProvider: string;
+  LRowColorPatterns: TEFPairs;
+  LRowColorFieldName: string;
 begin
   LView := View;
   LViewTable := AValue;
@@ -641,6 +643,18 @@ begin
   begin
     LCellEditing := TExtGridPluginCellEditing.CreateAndAddTo(FGridPanel.PluginsArray);
     LCellEditing.ClicksToEdit := 1;
+  end;
+
+  LRowClassProvider := ViewTable.GetExpandedString('Controller/RowClassProvider');
+  if LRowClassProvider <> '' then
+    FGridPanel.ViewConfig.SetFunctionConfigItem('getRowClass', JSFunctionInline(LRowClassProvider))
+  else
+  begin
+    LRowColorPatterns := GetRowColorPatterns(LRowColorFieldName);
+    if Length(LRowColorPatterns) > 0 then
+      FGridPanel.ViewConfig.SetFunctionConfigItem('getRowClass',
+        JSFunction('r', Format('return getColorStyleRuleForRecordField(r, ''%s'', [%s]);',
+          [LRowColorFieldName, PairsToJSON(LRowColorPatterns)])));
   end;
 
   if LViewTable.GetBoolean('Controller/IsMultiSelect', False) then

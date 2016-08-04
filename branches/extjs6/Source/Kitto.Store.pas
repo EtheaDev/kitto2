@@ -76,7 +76,7 @@ type
     function GetDataType: TEFDataType; override;
     function GetDecimalPrecision: Integer; virtual;
   public
-    procedure Assign(const ASource: TEFTree); override;
+    procedure Assign(const ASource: TEFTree; const AProc: TEFTree.TAssignNodeProc = nil); override;
     property HeaderField: TKHeaderField read FHeaderField write FHeaderField;
     procedure MarkAsUnmodified;
     procedure SetToNull(const AForceChangeNotification: Boolean = False); override;
@@ -1433,7 +1433,7 @@ begin
   Result := FieldName;
 end;
 
-procedure TKField.Assign(const ASource: TEFTree);
+procedure TKField.Assign(const ASource: TEFTree; const AProc: TEFTree.TAssignNodeProc);
 begin
   if ASource is TKField then
     FHeaderField := TKField(ASource).HeaderField;

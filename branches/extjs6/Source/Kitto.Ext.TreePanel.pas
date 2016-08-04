@@ -167,49 +167,55 @@ end;
 procedure TKExtTreePanel.AddNode(const ANode: TKTreeViewNode;
   const ADisplayLabel: string; const AParent: TExtTreeTreeNode);
 var
-  LNode: TKExtTreeTreeNode;
+  LExtNode: TKExtTreeTreeNode;
   I: Integer;
   LIsEnabled: Boolean;
   LView: TKView;
   LSubNode: TKTreeViewNode;
   LDisplayLabel: string;
+  LOriginalNode: TKTreeViewNode;
 begin
   Assert(Assigned(ANode));
   Assert(Assigned(AParent));
 
-  LView := ANode.FindView(Session.Config.Views);
+  LOriginalNode := TKTreeViewNode(ANode.GetObject('Sys/SourceNode'));
+  if LOriginalNode = nil then
+    LOriginalNode := ANode;
+
+  LView := LOriginalNode.FindView(Session.Config.Views);
   if Assigned(LView) then
     LIsEnabled := LView.IsAccessGranted(ACM_RUN)
   else
-    LIsEnabled := TKConfig.Instance.IsAccessGranted(ANode.GetACURI(FTreeView), ACM_RUN);
-  LNode := TKExtTreeTreeNode.CreateAndAddTo(AParent.Children);
+    LIsEnabled := TKConfig.Instance.IsAccessGranted(LOriginalNode.GetACURI(FTreeView), ACM_RUN);
+  { TODO: Make CreateInlineAndAddTo work }
+  LExtNode := TKExtTreeTreeNode.CreateAndAddTo(AParent.Children);
   try
-    LNode.View := LView;
-    if Assigned(LNode.View) then
+    LExtNode.View := LView;
+    if Assigned(LExtNode.View) then
     begin
-      LNode.IconCls := Session.SetViewIconStyle(LNode.View, GetTreeViewNodeImageName(ANode, LNode.View));
-      LNode.Disabled := not LIsEnabled;
+      LExtNode.IconCls := Session.SetViewIconStyle(LExtNode.View, GetTreeViewNodeImageName(LOriginalNode, LExtNode.View));
+      LExtNode.Disabled := not LIsEnabled;
     end;
-    LNode.Text := HTMLEncode(ADisplayLabel);
+    LExtNode.Text := HTMLEncode(ADisplayLabel);
     if Session.TooltipsEnabled then
-      LNode.Qtip := LNode.Text;
-    if ANode.TreeViewNodeCount > 0 then
+      LExtNode.Qtip := LExtNode.Text;
+    if LOriginalNode.TreeViewNodeCount > 0 then
     begin
-      for I := 0 to ANode.TreeViewNodeCount - 1 do
+      for I := 0 to LOriginalNode.TreeViewNodeCount - 1 do
       begin
-        LSubNode := ANode.TreeViewNodes[I];
+        LSubNode := LOriginalNode.TreeViewNodes[I];
         LDisplayLabel := _(LSubNode.GetString('DisplayLabel', GetDisplayLabelFromNode(LSubNode, Session.Config.Views)));
-        AddNode(LSubNode, LDisplayLabel, LNode);
+        AddNode(LSubNode, LDisplayLabel, LExtNode);
       end;
-      LNode.Expandable := True;
-      if ANode is TKTreeViewFolder then
-        LNode.Expanded := not TKTreeViewFolder(ANode).IsInitiallyCollapsed
+      LExtNode.Expandable := True;
+      if LOriginalNode is TKTreeViewFolder then
+        LExtNode.Expanded := not TKTreeViewFolder(LOriginalNode).IsInitiallyCollapsed
       else
-        LNode.Expanded := True;
-      LNode.Leaf := False;
+        LExtNode.Expanded := True;
+      LExtNode.Leaf := False;
     end;
   except
-    FreeAndNil(LNode);
+    FreeAndNil(LExtNode);
     raise;
   end;
 end;

@@ -22,7 +22,7 @@ interface
 
 uses
   Types, Classes, Generics.Collections,
-  EF.Classes, EF.Types, EF.Tree,
+  EF.Classes, EF.Types, EF.Tree, EF.Intf,
   Kitto.Metadata, Kitto.Metadata.Models, Kitto.Store, Kitto.Rules;
 
 type
@@ -130,10 +130,21 @@ type
 
   end;
 
+  TKTreeViewNode = class;
+
+  IKTreeViewNodes = interface
+    ['{5A14D9B3-6363-4B29-888B-EAF70857094E}']
+    function GetTreeViewNodeCount: Integer;
+    function GetTreeViewNode(I: Integer): TKTreeViewNode;
+
+    property TreeViewNodeCount: Integer read GetTreeViewNodeCount;
+    property TreeViewNodes[I: Integer]: TKTreeViewNode read GetTreeViewNode;
+  end;
+
   /// <summary>
   ///  The type of nodes in a tree view.
   /// </summary>
-  TKTreeViewNode = class(TEFNode)
+  TKTreeViewNode = class(TEFNode, IKTreeViewNodes)
   private
     function GetTreeViewNodeCount: Integer;
     function GetTreeViewNode(I: Integer): TKTreeViewNode;
@@ -164,7 +175,7 @@ type
   ///   A view that is a tree of views. Contains views and folders, which
   ///  in turn contain views.
   /// </summary>
-  TKTreeView = class(TKView)
+  TKTreeView = class(TKView, IKTreeViewNodes)
   private
     function GetTreeViewNode(I: Integer): TKTreeViewNode;
     function GetTreeViewNodeCount: Integer;

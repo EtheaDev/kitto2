@@ -138,8 +138,6 @@ type
   TExtUtilDelayedTask = class(TExtFunction)
   public
     class function JSClassName: string; override;
-    constructor Create(AOwner: TComponent; Fn: TExtFunction = nil;
-      Scope: TExtObject = nil; Args: TExtObjectList = nil); reintroduce;
     function Cancel: TExtFunction;
     function Delay(Delay: Integer; NewFn: TExtFunction = nil; NewScope: TExtObject = nil;
       NewArgs: TExtObjectList = nil): TExtFunction;
@@ -169,8 +167,6 @@ type
     procedure HandleEvent(const AEvtName: string); override;
   public
     class function JSClassName: string; override;
-    constructor Create(AOwner: TComponent; AllowFunctions: Boolean; KeyFn: TExtFunction);
-      reintroduce;
     function Add(Key: string; O: TExtObject): TExtFunction;
     function AddAll(Objs: TExtObject): TExtFunction; overload;
     function AddAll(Objs: TExtObjectList): TExtFunction; overload;
@@ -229,6 +225,9 @@ function ExtUtilCSS: TExtUtilCSSSingleton;
 function ExtUtilCookies: TExtUtilCookiesSingleton;
 
 implementation
+
+uses
+  SysUtils;
 
 function ExtUtilJSON: TExtUtilJSONSingleton;
 begin
@@ -377,7 +376,8 @@ end;
 
 function TExtUtilObservable.RemoveAllListeners(const AEventName: string): TExtFunction;
 begin
-  Session.ResponseItems.ExecuteJSCode(Self, JSName + '.events["' + AEventName + '"].listeners = [];');
+  Session.ResponseItems.ExecuteJSCode(Self, Format('if (%s.events.%s) delete (%s.events.%s)',
+    [JSName, AEventName, JSName, AEventName]));
   Result := Self;
 end;
 
@@ -784,14 +784,6 @@ begin
   Result := 'Ext.util.DelayedTask';
 end;
 
-constructor TExtUtilDelayedTask.Create(AOwner: TComponent; Fn: TExtFunction = nil;
-  Scope: TExtObject = nil; Args: TExtObjectList = nil);
-begin
-  FCreateVarArgs := JSClassName + '(' + VarToJSON([Fn, True, Scope, False], GetExtSession(AOwner)) + ',' +
-    VarToJSON(Args) + ');';
-  inherited Create(AOwner);
-end;
-
 function TExtUtilDelayedTask.Cancel: TExtFunction;
 begin
   JSCode(JSName + '.cancel();', 'TExtUtilDelayedTask');
@@ -851,13 +843,6 @@ end;
 class function TExtUtilMixedCollection.JSClassName: string;
 begin
   Result := 'Ext.util.MixedCollection';
-end;
-
-constructor TExtUtilMixedCollection.Create(AOwner: TComponent; AllowFunctions: Boolean;
-  KeyFn: TExtFunction);
-begin
-  FCreateVarArgs := JSClassName + '(' + VarToJSON([AllowFunctions, KeyFn, True], GetExtSession(AOwner)) + ');';
-  inherited Create(AOwner);
 end;
 
 function TExtUtilMixedCollection.Add(Key: string; O: TExtObject): TExtFunction;

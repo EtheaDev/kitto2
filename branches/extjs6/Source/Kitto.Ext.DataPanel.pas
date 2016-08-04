@@ -985,7 +985,7 @@ function TKExtDataPanelController.GetRowButtonsDisableJS: string;
 var
   I: Integer;
 begin
-  Result := 'var disabled = s.getCount() == 0;';
+  Result := 'var disabled = s.getCount() === 0;';
   for I := 0 to FButtonsRequiringSelection.Count - 1 do
     Result := Result + Format('%s.setDisabled(disabled);', [FButtonsRequiringSelection[I].JSName]);
 end;
