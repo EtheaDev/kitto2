@@ -90,7 +90,7 @@ begin
     Expandable := False;
     Expanded := False;
     Leaf := True;
-    SetConfigItem('viewId', Integer(FView).ToString);
+    SetConfigItem('viewId', IntToStr(Integer(FView)));
   end;
 end;
 
@@ -161,7 +161,7 @@ var
 begin
   LViewId := Session.Query['View'];
   if LViewId <> '' then
-    Session.DisplayView(TKView(LViewId.ToInteger));
+    Session.DisplayView(TKView(StrToInt(LViewId)));
 end;
 
 procedure TKExtTreePanel.AddNode(const ANode: TKTreeViewNode;
