@@ -27,6 +27,9 @@ uses
   Kitto.Metadata.Views, Kitto.Metadata.DataView, Kitto.Store, Kitto.Types,
   Kitto.Ext.Base, Kitto.Ext.Controller, Kitto.Ext.DataPanelLeaf, Kitto.Ext.Editors;
 
+const
+  DEFAULT_PAGE_RECORD_COUNT = 100;
+
 type
   TKExtGridPanel = class(TKExtDataPanelLeafController)
   strict private
@@ -70,7 +73,6 @@ type
     function IsActionSupported(const AActionName: string): Boolean; override;
     procedure AddUsedViewFields; override;
   public
-    const DEFAULT_PAGE_RECORD_COUNT = 100;
     procedure UpdateObserver(const ASubject: IEFSubject; const AContext: string = ''); override;
     procedure Activate; override;
   published
@@ -729,7 +731,8 @@ begin
   // By default show paging toolbar for large models.
   if GetIsPaged then
   begin
-    FPageRecordCount := LViewTable.GetInteger('Controller/PageRecordCount', DEFAULT_PAGE_RECORD_COUNT);
+    FPageRecordCount := LViewTable.GetInteger('Controller/PageRecordCount',
+      Session.Config.Config.GetInteger('Defaults/Grid/PageRecordCount', DEFAULT_PAGE_RECORD_COUNT));
     FEditorGridPanel.Bbar := CreatePagingToolbar;
   end;
 
