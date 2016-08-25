@@ -1,0 +1,65 @@
+﻿Type: Data
+Controller: List
+  .InplaceEditing: True
+  Filters:
+    DisplayLabel: Search Customers
+    Items:
+      FreeSearch: Free Search
+        ExpressionTemplate: ({Q}.Customer like '%{value}%') or ({Q}.CONTACT_FIRST like '%{value}%') or ({Q}.CONTACT_LAST like '%{value}%') or ({Q}.PHONE_NO like '%{value}%') or ({Q}.ADDRESS_LINE1 like '%{value}%') or ({Q}.ADDRESS_LINE2 like '%{value}%') or ({Q}.City like '%{value}%') or ({Q}.STATE_PROVINCE like '%{value}%') or ({Q}.POSTAL_CODE like '%{value}%') or ({Q}.ON_HOLD like '%{value}%')
+MainTable:
+  Model: Customer
+  Fields:
+    CustNo:
+      IsReadOnly: True
+    Customer:
+    ContactFirst:
+    ContactLast:
+    PhoneNo:
+    AddressLine1:
+    AddressLine2:
+    City:
+    StateProvince:
+    PostalCode:
+    OnHold:
+    CountryRef:
+  Controller:
+    PopupWindow:
+      Width: 800
+      Height: 500
+
+    ToolViews:
+      DownloadCSV:
+        DisplayLabel: Download in CSV
+        ImageName: download
+        Controller: ExportCSVTool
+          RequireSelection: False
+      DownloadExcel:
+        DisplayLabel: Download in Excel
+        Controller: ExportExcelTool
+          OutputFileName: PartyList.xls
+          UseTemplate: PartyList.xlt
+          RequireSelection: False
+  DetailTables:
+    Controller:
+      # Tabs/Popup. Default = Tabs.
+      Style: Tabs
+    Table:
+      Model: Sales
+      Fields:
+        CustNoRef:
+          Fields:
+            CustNo:
+          IsVisible: False
+        PoNumber:
+          IsVisible: False
+        OrderStatus:
+        OrderDate:
+        ShipDate:
+        DateNeeded:
+        Paid:
+        QtyOrdered:
+        TotalValue:
+        Discount:
+        ItemType:
+        Aged:
+        SalesRepRef:

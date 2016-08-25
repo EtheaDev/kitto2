@@ -1,0 +1,54 @@
+﻿ModelName: ACTIVITY_CALENDAR
+DisplayLabel: Activity
+PhysicalName: ACTIVITY
+Fields:
+  Title:
+    Expression: Employee.EMPLOYEE_NAME || ' - ' || Phase.PHASE_NAME
+  EventId: String(32) primary key
+    PhysicalName: ACTIVITY_ID
+    DefaultValue: %COMPACT_GUID%
+  CalendarId: Integer
+    Expression: cast(rand() * 10 as int)
+  Employee: Reference(EMPLOYEE) not null
+    Fields:
+      EMPLOYEE_ID:
+  Phase: Reference(PHASE) not null
+    Fields:
+      PHASE_ID:
+  StartDate: DateTime
+    Expression: {Q}ACTIVITY_DATE + {Q}START_TIME
+  EndDate: DateTime
+    Expression: {Q}ACTIVITY_DATE + {Q}END_TIME
+  Notes: String(80)
+    PhysicalName: DESCRIPTION
+    DisplayWidth: 50
+  Role: Reference(OPERATOR_ROLE) not null
+    Fields:
+      ROLE_ID:
+  Type: Reference(ACTIVITY_TYPE) not null
+    Fields:
+      TYPE_ID:
+  ActivityDate: Date
+    PhysicalName: ACTIVITY_DATE
+  START_TIME: Time
+  END_TIME: Time
+  STATUS: String(12)
+    DisplayWidth: 6
+    AllowedValues:
+      Inserted: Inserted
+      Approved: Approved
+      Billed: Billed
+      NotBillable: Not Billable
+      Internal: Internal
+      Done: Done
+  DURATION: Float
+    DisplayWidth: 8
+    Expression: |
+      case
+        when ({Q}START_TIME is null) or ({Q}END_TIME is null) then 0
+        else ({Q}END_TIME - {Q}START_TIME) / 3600
+      end
+Rules:
+  EnforceRange:
+    From: START_TIME
+    To: END_TIME
