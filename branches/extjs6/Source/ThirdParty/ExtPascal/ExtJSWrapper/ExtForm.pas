@@ -31,6 +31,7 @@ type
   TExtFormTextArea = class;
   TExtFormTriggerField = class;
   TExtFormNumberField = class;
+  TExtFormFieldContainer = class;
   TExtFormFieldSet = class;
   TExtFormFormPanel = class;
   TExtFormRadioGroup = class;
@@ -1500,6 +1501,11 @@ type
   public
     class function JSClassName: string; override;
     property Separator: string read FSeparator write SetFSeparator;
+  end;
+
+  TExtFormFieldContainer = class(TExtContainer)
+  public
+    class function JSClassName: string; override;
   end;
 
 function ExtFormVTypes: TExtFormVTypesSingleton;
@@ -4879,6 +4885,13 @@ end;
 class function TExtUxFormLovCombo.JSClassName: string;
 begin
   Result := 'Ext.ux.form.LovCombo';
+end;
+
+{ TExtFormFieldContainer }
+
+class function TExtFormFieldContainer.JSClassName: string;
+begin
+  Result := 'Ext.form.FieldContainer';
 end;
 
 end.

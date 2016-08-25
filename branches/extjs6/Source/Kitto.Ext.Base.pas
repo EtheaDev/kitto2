@@ -160,7 +160,7 @@ type
   end;
 
   /// <summary>
-  ///   Base Ext panel with subject and observer capabilities.
+  ///  Base Ext panel with subject and observer capabilities.
   /// </summary>
   TKExtPanelBase = class(TExtPanel, IInterface, IEFInterface, IEFSubject, IEFObserver, IKExtActivable)
   strict private

@@ -473,7 +473,7 @@ type
     function GetEditItemId: string;
   end;
 
-  TKExtFormFileEditor = class(TKExtPanelBase, IKExtEditItem, IKExtEditor)
+  TKExtFormFileEditor = class(TExtFormFieldContainer, IKExtEditItem, IKExtEditor)
   strict private
     FDescriptionField: TExtFormTextField;
     FWindow: TKExtModalWindow;
@@ -2797,7 +2797,7 @@ begin
   LToolbar.Style := 'background: none; border: none;';
 
   FDownloadButton := TKExtButton.CreateAndAddTo(LToolbar.Items);
-  FDownloadButton.SetIconAndScale('download', Config.GetString('ButtonScale', 'small'));
+  FDownloadButton.SetIconAndScale('download');
   FDownloadButton.Tooltip := _('Download file');
   FDownloadButton.Handler := Ajax(StartDownload);
 
@@ -2805,13 +2805,13 @@ begin
   if not FIsReadOnly then
   begin
     LUploadButton := TKExtButton.CreateAndAddTo(LToolbar.Items);
-    LUploadButton.SetIconAndScale('upload', Config.GetString('ButtonScale', 'small'));
+    LUploadButton.SetIconAndScale('upload');
     LUploadButton.Tooltip := _('Upload file');
     LUploadButton.Handler := Ajax(ShowUploadFileDialog);
     Inc(LButtonCount);
 
     FClearButton := TKExtButton.CreateAndAddTo(LToolbar.Items);
-    FClearButton.SetIconAndScale('clear', Config.GetString('ButtonScale', 'small'));
+    FClearButton.SetIconAndScale('clear');
     FClearButton.Tooltip := _('Clear field');
     FClearButton.Handler := Ajax(Clear);
     Inc(LButtonCount);
