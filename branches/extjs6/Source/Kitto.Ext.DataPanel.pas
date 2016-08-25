@@ -717,6 +717,8 @@ end;
 function TKExtDataPanelController.GetExplicitDefaultAction: string;
 begin
   Result := ViewTable.GetExpandedString('Controller/DefaultAction');
+  if (Result <> '') and not IsActionAllowed(Result) then
+    Result := '';
 end;
 
 function TKExtDataPanelController.GetFilterExpression: string;
@@ -747,15 +749,23 @@ begin
 end;
 
 function TKExtDataPanelController.GetImplicitDefaultAction: string;
+var
+  LConfigDefaultAction: string;
 begin
   if IsLookupMode then
     Result := 'LookupConfirm'
+  else
+  begin
+    LConfigDefaultAction := Session.Config.Config.GetString('Defaults/Grid/DefaultAction');
+    if (LConfigDefaultAction <> '') and IsActionAllowed(LConfigDefaultAction) then
+      Result := LConfigDefaultAction
   else if IsActionAllowed('View') then
     Result := 'View'
   else if IsActionAllowed('Edit') then
     Result := 'Edit'
   else
     Result := '';
+  end;
 end;
 
 function TKExtDataPanelController.GetIsPaged: Boolean;

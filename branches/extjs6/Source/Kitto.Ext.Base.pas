@@ -877,8 +877,8 @@ end;
 procedure TKExtModalWindow.InitDefaults;
 begin
   inherited;
-  Width := DEFAULT_WINDOW_WIDTH;
-  Height := DEFAULT_WINDOW_HEIGHT;
+  Width := Session.Config.Config.GetInteger('Defaults/Window/Width', DEFAULT_WINDOW_WIDTH);
+  Height := Session.Config.Config.GetInteger('Defaults/Window/Height', DEFAULT_WINDOW_HEIGHT);
   Closable := False;
   Modal := True;
 end;
