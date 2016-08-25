@@ -1793,6 +1793,7 @@ type
     FOnStaterestore: TExtComponentOnStaterestore;
     FOnStatesave: TExtComponentOnStatesave;
     FLoader: TExtObject;
+    FPadding: string;
     procedure SetFAllowDomMove(Value: Boolean);
     procedure SetFApplyTo(Value: string);
     procedure SetFAutoEl(Value: TExtObject);
@@ -1863,6 +1864,7 @@ type
     procedure SetFOnShow(Value: TExtComponentOnShow);
     procedure SetFOnStaterestore(Value: TExtComponentOnStaterestore);
     procedure SetFOnStatesave(Value: TExtComponentOnStatesave);
+    procedure SetPadding(const AValue: string);
   protected
     procedure InitDefaults; override;
     procedure HandleEvent(const AEvtName: string); override;
@@ -1947,6 +1949,7 @@ type
     property LabelStyle: string read FLabelStyle write SetLabelStyle;
     property Loader: TExtObject read FLoader;
     property OverCls: string read FOverCls write SetOverCls;
+    property Padding: string read FPadding write SetPadding;
     property Plugins: TExtObject read FPlugins write SetPlugins;
     property PluginsArray: TExtObjectList read FPluginsArray;
     property Ptype: string read FPtype write SetFPtype;
@@ -2496,8 +2499,11 @@ type
     of object;
 
   // Enumerated types for properties
-  TExtContainerLayout = (lyAuto, lyAbsolute, lyAccordion, lyAnchor, lyBorder, lyCard,
-    lyColumn, lyFit, lyForm, lyHbox, lyMenu, lyTable, lyToolbar, lyVbox);
+  TExtContainerLayout = (lyAuto, lyAbsolute, lyAccordion, lyAnchor, lyBody,
+    lyBorder, lyBoundlist, lyBox, lyCard, lyCenter, lyCheckboxgroup,
+    lyColumn, lyColumncomponent, lyContainer, lyDashboard, lyDock, lyEditor,
+    lyFieldContainer, lyFieldset, lyFit, lyForm, lyGridcolumn, lyHbox,
+    lyResponsivecolumn, lySegmentedbutton, lyTable, lyTableview, lyVbox);
   TExtContainerLabelAlign = (laLeft, laRight, laTop);
 
   TExtContainer = class(TExtBoxComponent)
@@ -9283,6 +9289,11 @@ begin
   FOverCls := SetConfigItem('overCls', AValue);
 end;
 
+procedure TExtComponent.SetPadding(const AValue: string);
+begin
+  FPadding := SetConfigItem('padding', AValue);
+end;
+
 procedure TExtComponent.SetPlugins(const AValue: TExtObject);
 begin
   FPlugins.Free;
@@ -11080,13 +11091,6 @@ begin
   JSCode('defaultType:"' + EnumToJSString(TypeInfo(TExtComponentXtype),
     ord(Value)) + '"');
 end;
-
-//procedure TExtContainer.SetDefaults(const AValue: TExtObject);
-//begin
-//  FDefaults.Free;
-//  FDefaults := AValue;
-//  SetConfigItem('defaults', AValue);
-//end;
 
 procedure TExtContainer.SetFDefaultsFunction(Value: TExtFunction);
 begin

@@ -497,7 +497,6 @@ type
     procedure SetFHlColor(Value : String);
     procedure SetFHlDrop(Value : Boolean);
     procedure SetFLines(Value : Boolean);
-    procedure SetFLoader(Value : TExtTreeTreeLoader);
     procedure SetFPathSeparator(Value : String);
     procedure SetFRequestMethod(Value : String);
     procedure SetRoot(const AValue: TExtTreeTreeNode);

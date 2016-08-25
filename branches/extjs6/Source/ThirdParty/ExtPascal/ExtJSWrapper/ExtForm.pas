@@ -362,6 +362,8 @@ type
     FOnInvalid: TExtFormFieldOnInvalid;
     FOnSpecialkey: TExtFormFieldOnSpecialkey;
     FOnValid: TExtFormFieldOnValid;
+    FLabelAlign: TExtContainerLabelAlign;
+    FLabelWidth: Integer;
     procedure SetAutoCreate(const AValue: string);
     procedure SetCls(const AValue: string);
     procedure SetDisabled(const AValue: Boolean);
@@ -391,6 +393,8 @@ type
     procedure SetFOnInvalid(Value: TExtFormFieldOnInvalid);
     procedure SetFOnSpecialkey(Value: TExtFormFieldOnSpecialkey);
     procedure SetFOnValid(Value: TExtFormFieldOnValid);
+    procedure SetLabelAlign(const AValue: TExtContainerLabelAlign);
+    procedure SetLabelWidth(const AValue: Integer);
   protected
     procedure InitDefaults; override;
     procedure HandleEvent(const AEvtName: string); override;
@@ -424,6 +428,8 @@ type
       write SetInputType;
     property InvalidClass: string read FInvalidClass write SetFInvalidClass;
     property InvalidText: string read FInvalidText write SetFInvalidText;
+    property LabelAlign: TExtContainerLabelAlign read FLabelAlign write SetLabelAlign;
+    property LabelWidth: Integer read FLabelWidth write SetLabelWidth;
     property MsgFx: string read FMsgFx write SetFMsgFx;
     property MsgTarget: string read FMsgTarget write SetMsgTarget;
     property Name: string read FName write _SetName;
@@ -1253,6 +1259,7 @@ type
     FListAlignArray: TExtObjectList;
     FListClass: string;
     FListEmptyText: string;
+    FListConfig: TExtObject;
     FListWidth: Integer;
     FLoadingText: string; // 'Loading...'
     FMaxHeight: Integer; // 300
@@ -1263,7 +1270,6 @@ type
     FPageSize: Integer; // 0
     FQueryDelay: Integer; // 500
     FQueryParam: string; // 'query'
-    FResizable: Boolean;
     FSelectOnFocus: Boolean; // true
     FSelectedClass: string; // 'x-combo-selected'
     FShadow: Boolean;
@@ -1316,7 +1322,6 @@ type
     procedure SetPageSize(const AValue: Integer);
     procedure SetQueryDelay(const AValue: Integer);
     procedure SetQueryParam(const AValue: string);
-    procedure SetResizable(const AValue: Boolean);
     procedure SetSelectOnFocus(const AValue: Boolean);
     procedure SetSelectedClass(const AValue: string);
     procedure SetFShadow(Value: Boolean);
@@ -1377,6 +1382,7 @@ type
     property ListAlignArray: TExtObjectList read FListAlignArray
       write SetFListAlignArray;
     property ListClass: string read FListClass write SetFListClass;
+    property ListConfig: TExtObject read FListConfig;
     property ListEmptyText: string read FListEmptyText write SetFListEmptyText;
     property ListWidth: Integer read FListWidth write SetListWidth;
     property LoadingText: string read FLoadingText write SetFLoadingText;
@@ -1388,7 +1394,6 @@ type
     property PageSize: Integer read FPageSize write SetPageSize;
     property QueryDelay: Integer read FQueryDelay write SetQueryDelay;
     property QueryParam: string read FQueryParam write SetQueryParam;
-    property Resizable: Boolean read FResizable write SetResizable;
     property SelectOnFocus: Boolean read FSelectOnFocus write SetSelectOnFocus;
     property SelectedClass: string read FSelectedClass write SetSelectedClass;
     property Shadow: Boolean read FShadow write SetFShadow;
@@ -2169,6 +2174,17 @@ procedure TExtFormField.SetInputType(const AValue: TExtFormFieldInputType);
 begin
   FInputType := AValue;
   SetConfigItem('inputType', EnumToJSString(TypeInfo(TExtFormFieldInputType), Ord(AValue)));
+end;
+
+procedure TExtFormField.SetLabelAlign(const AValue: TExtContainerLabelAlign);
+begin
+  FLabelAlign := AValue;
+  SetConfigItem('labelAlign', EnumToJSString(TypeInfo(TExtContainerLabelAlign), Ord(AValue)));
+end;
+
+procedure TExtFormField.SetLabelWidth(const AValue: Integer);
+begin
+  FLabelWidth := SetConfigItem('labelWidth', AValue);
 end;
 
 procedure TExtFormField.SetFInvalidClass(Value: string);
@@ -4415,12 +4431,6 @@ begin
   SetConfigItem('queryParam', AValue);
 end;
 
-procedure TExtFormComboBox.SetResizable(const AValue: Boolean);
-begin
-  FResizable := AValue;
-  SetConfigItem('resizable', AValue);
-end;
-
 procedure TExtFormComboBox.SetSelectOnFocus(const AValue: Boolean);
 begin
   FSelectOnFocus := AValue;
@@ -4602,6 +4612,7 @@ begin
   FLazyInit := true;
   FListAlign := 'tl-bl?';
   FListAlignArray := TExtObjectList.CreateAsAttribute(Self, 'listAlign');
+  FListConfig := TExtObject.CreateInternal(Self, 'listConfig');
   FLoadingText := 'Loading...';
   FMaxHeight := 300;
   FMinChars := 4;

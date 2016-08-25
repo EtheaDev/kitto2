@@ -710,6 +710,7 @@ begin
   inherited;
   FSubjObserverImpl := TEFSubjectAndObserver.Create;
   Region := rgCenter;
+  Border := False;
 end;
 
 procedure TKExtPanelBase.LoadHtml(const AFileName: string;

@@ -1498,7 +1498,7 @@ Uses dynamic JS in browser.
 }
 function TExtObject.LinesToPixels(const ALines: Integer): Integer;
 begin
-  Result := JSExpression('%s * %.2f', [ExtUtilTextMetrics.GetHeight('W'), ALines * 0.8]);
+  Result := JSExpression('%s * %d * 1.3', [ExtUtilTextMetrics.GetHeight('W'), ALines]);
 end;
 
 // Deletes JS object from Browser memory

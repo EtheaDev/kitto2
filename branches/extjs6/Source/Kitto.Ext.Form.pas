@@ -774,6 +774,7 @@ end;
 procedure TKExtFormPanelController.InitFlags;
 var
   LLabelAlignNode: TEFNode;
+  LLabelAlign: TExtContainerLabelAlign;
 begin
   if Title = '' then
     Title := _(ViewTable.DisplayLabel);
@@ -829,13 +830,15 @@ begin
 
   LLabelAlignNode := ViewTable.FindNode('Controller/FormController/LabelAlign');
   if FindLayout <> nil then
-    LabelAlign := laTop
+    LLabelAlign := laTop
   else if Assigned(LLabelAlignNode) then
-    LabelAlign := OptionAsLabelAlign(LLabelAlignNode.AsString)
+    LLabelAlign := OptionAsLabelAlign(LLabelAlignNode.AsString)
   else if Session.IsMobileBrowser then
-    LabelAlign := laTop
+    LLabelAlign := laTop
   else
-    LabelAlign := laRight;
+    LLabelAlign := laRight;
+  if LLabelAlign <> LabelAlign then
+    LabelAlign := LLabelAlign;
 end;
 
 procedure TKExtFormPanelController.CreateFormPanel;

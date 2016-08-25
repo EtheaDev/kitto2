@@ -172,8 +172,8 @@ type
   end;
 
   /// <summary>
-  ///   Encapsulates a field in a row. Does NOT implement the container
-  ///   interface, as it is a commodity class only.
+  ///  Encapsulates a field in a row. Does NOT implement the container
+  ///  interface, as it is a commodity class only.
   /// </summary>
   TKExtFormRowField = class(TKExtFormContainer, IKExtEditor)
   strict private
@@ -926,8 +926,11 @@ begin
       FCurrentEditItem.SetOption(ANode);
   end;
 
-  if (FCurrentEditItem is TKExtFormRowField) and (FCurrentLabelAlign <> laTop) then
+  if FCurrentEditItem is TKExtFormRowField then
+  begin
+    TKExtFormRowField(FCurrentEditItem).LabelAlign := FCurrentLabelAlign;
     TKExtFormRowField(FCurrentEditItem).LabelWidth := FCurrentLabelWidth;
+  end;
 
   ProcessChildNodes;
 
@@ -1071,6 +1074,9 @@ begin
   if Assigned(LFormField) then
   begin
     LFormField.FieldLabel := LLabel;
+    LFormField.LabelAlign := FCurrentLabelAlign;
+    LFormField.LabelWidth := FCurrentLabelWidth;
+
     //LFormField.SubmitValue := not LIsReadOnly;
     LFormField.MsgTarget := LowerCase(FDefaults.MsgTarget);
 
@@ -1150,6 +1156,8 @@ begin
 
   LRow := TKExtFormRow.Create(FCurrentEditPage);
   LRow.EditItemId := AId;
+  LRow.LabelAlign := FCurrentLabelAlign;
+  LRow.LabelWidth := FCurrentLabelWidth;
   Result := LRow;
 end;
 
@@ -1947,7 +1955,7 @@ begin
   if not SetExtFormFieldOption(AsExtFormField, ANode) then
   begin
     if SameText(ANode.Name, 'Resizable') then
-      Resizable := ANode.AsBoolean
+      ListConfig.SetConfigItem('resizable', ANode.AsBoolean)
     else
       InvalidOption(ANode);
   end;
@@ -1995,7 +2003,7 @@ begin
       if AViewField.ModelField.ReferencedModel.IsLarge then
         PageSize := 100;
       MinListWidth := 250; // Enough to accomodate all buttons.
-      Resizable := True;
+      ListConfig.SetConfigItem('resizable', True);
       MinHeight := LinesToPixels(5);
     end;
   end
@@ -2159,7 +2167,8 @@ end;
 procedure TKExtFormRowField.InitDefaults;
 begin
   inherited;
-  Layout := lyForm;
+  Layout := lyFit;
+  Padding := '0 10 0 0';
 end;
 
 function TKExtFormRowField.InternalSetOption(const ANode: TEFNode): Boolean;
@@ -2883,7 +2892,7 @@ end;
 procedure TKExtFormFileEditor.SetOption(const ANode: TEFNode);
 begin
   if SameText(ANode.Name, 'CharWidth') then
-    TotalCharWidth := Anode.AsInteger
+    TotalCharWidth := ANode.AsInteger
   else if SameText(ANode.Name, 'Anchor') then
     Anchor := ANode.AsString
   else
