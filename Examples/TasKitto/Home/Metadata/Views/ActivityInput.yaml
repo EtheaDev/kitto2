@@ -52,6 +52,7 @@ Controller: List
 
 MainTable:
   Model: ACTIVITY
+  IsLarge: True
   Controller:
     FormController:
       CloneButton:

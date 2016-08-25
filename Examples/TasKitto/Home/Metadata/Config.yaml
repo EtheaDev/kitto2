@@ -1,5 +1,16 @@
 ﻿AppTitle: Tasks & Activities
 
+Defaults:
+  Grid:
+    PageRecordCount: 50
+    DefaultAction: Edit
+  Window:
+    Width: 800
+    Height: 600
+  WindowTool:
+    Width: 800
+    Height: 600
+  
 Databases:
   Main: DBX
     Connection:
@@ -44,3 +55,12 @@ FastCGI:
 UserFormats:
   Date: dd/mm/yyyy
   Time: hh:nn
+
+Log:
+  # 1 = Minimal, 5 = Debug.
+  Level: 5
+  TextFile:
+    FileName: %APP_PATH%log.txt
+    # Set this to false to disable this logger without deleting its configuration.
+    IsEnabled: True
+
