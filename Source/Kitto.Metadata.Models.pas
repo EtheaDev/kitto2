@@ -785,7 +785,7 @@ end;
 
 function Pluralize(const AName: string): string;
 begin
-  Result := AName;
+  Result := StripPrefixAndSuffix(AName, '_(' , ')');
   if Result  <> '' then
   begin
     if EndsText('y', Result) then
