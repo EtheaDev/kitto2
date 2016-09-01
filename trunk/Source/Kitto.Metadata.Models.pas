@@ -1160,7 +1160,7 @@ begin
   LFirstVisibleField := nil;
   for I := 0 to FieldCount - 1 do
   begin
-    if Fields[I].IsVisible then
+    if Fields[I].IsVisible and not Fields[i].IsReference then
     begin
       if not Assigned(LFirstVisibleField) then
         LFirstVisibleField := Fields[I];
