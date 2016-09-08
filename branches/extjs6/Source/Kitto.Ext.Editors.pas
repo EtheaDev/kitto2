@@ -22,10 +22,11 @@ interface
 
 uses
   SysUtils, Classes, Generics.Collections, Types,
-  Ext, ExtPascal, ExtPascalUtils, ExtForm, ExtGrid, ExtData, ExtUxForm,
+  Ext.Base, Ext.Form, Ext.Grid, Ext.Data, Ext.Ux.Form,
   EF.Intf, EF.Classes, EF.Tree, EF.ObserverIntf,
-  Kitto.Ext.Base, Kitto.Metadata.Views, Kitto.Metadata.DataView, Kitto.Store,
-  Kitto.Ext.Session, Kitto.Ext.Controller, KItto.Ext.LookupField;
+  Kitto.JS, Kitto.Metadata.Views, Kitto.Metadata.DataView, Kitto.Store,
+  Kitto.Ext, Kitto.Ext.Base, Kitto.Ext.Session, Kitto.Ext.Controller,
+  KItto.Ext.LookupField;
 
 const
   // String fields of this size or longer are represented by multiline edit
@@ -310,6 +311,10 @@ type
     FFieldName: string;
     FRecordField: TKViewTableField;
     procedure FieldChange(This: TExtFormField; NewValue, OldValue: string);
+    // Converts a date from javascript's implicit format (the one used when
+    // firing the change handler) to the format expected by SetAsJSONValue
+    // (see FieldChange)
+    function ConvertDate(const AValue: string): string;
   public
     function AsObject: TObject; inline;
     function _AddRef: Integer; stdcall;
@@ -332,6 +337,10 @@ type
     FFieldName: string;
     FRecordField: TKViewTableField;
     procedure FieldChange(This: TExtFormField; NewValue, OldValue: string);
+    // Converts a time from javascript's implicit format (the one used when
+    // firing the change handler) to the format expected by SetAsJSONValue
+    // (see FieldChange)
+    function ConvertTime(const AValue: string): string;
   public
     function AsObject: TObject; inline;
     function _AddRef: Integer; stdcall;
@@ -366,6 +375,10 @@ type
     procedure SetAllowBlank(const AValue: Boolean);
     procedure SetAltTimeFormats(const AValue: string);
     procedure FieldChange(This: TExtFormField; NewValue, OldValue: string);
+    // Converts a date/time from javascript's implicit format (the one used when
+    // firing the change handler) to the format expected by SetAsJSONValue
+    // (see FieldChange)
+    function ConvertDateTime(const AValue: string): string;
   protected
     function GetObjectNamePrefix: string; override;
   public
@@ -721,12 +734,13 @@ type
 implementation
 
 uses
-  Math, StrUtils, Windows, Graphics, Variants, superobject,
+  Math, StrUtils, Windows, Graphics, Variants, DateUtils,
+  superobject,
   EF.SysUtils, EF.StrUtils, EF.Localization, EF.YAML, EF.Types, EF.SQL, EF.JSON,
   EF.DB, EF.Macros, EF.VariantUtils,
   Kitto.Config, Kitto.SQL, Kitto.Metadata, Kitto.Metadata.Models, Kitto.Types,
-  Kitto.AccessControl, Kitto.Rules, Kitto.Ext.Form,
-  Kitto.Ext.Utils, Kitto.Ext.Rules;
+  Kitto.AccessControl, Kitto.Rules,
+  Kitto.Ext.Form, Kitto.Ext.Utils, Kitto.Ext.Rules;
 
 procedure InvalidOption(const ANode: TEFNode);
 begin
@@ -1113,7 +1127,7 @@ begin
 
   FinalizeCurrentEditPage;
 
-  LPageBreak := TKExtEditPage.CreateAndAddTo(FTabPanel.Items);
+  LPageBreak := TKExtEditPage.CreateAndAddToList(FTabPanel.Items);
   LPageBreak.EditPanel := FFormPanel;
   LPageBreak.DataRecord := FDataRecord;
   LPageBreak.UnexpandedTitle := ATitle;
@@ -1727,10 +1741,22 @@ begin
   Result := Self;
 end;
 
-procedure TKExtFormDateField.FieldChange(This: TExtFormField; NewValue,
-  OldValue: string);
+function TKExtFormDateField.ConvertDate(const AValue: string): string;
+var
+  LDate: TDate;
 begin
-  FRecordField.SetAsJSONValue(NewValue, False, Session.Config.UserFormatSettings);
+  if AValue <> '' then
+  begin
+    LDate := DateOf(TJS.JSDateToDateTime(AValue));
+    Result := DateToStr(LDate, Session.Config.UserFormatSettings);
+  end
+  else
+    Result := '';
+end;
+
+procedure TKExtFormDateField.FieldChange(This: TExtFormField; NewValue, OldValue: string);
+begin
+  FRecordField.SetAsJSONValue(ConvertDate(NewValue), False, Session.Config.UserFormatSettings);
 end;
 
 function TKExtFormDateField.GetFieldName: string;
@@ -1850,7 +1876,7 @@ begin
   LLimit := Session.QueryAsInteger['limit'];
   LPageRecordCount := Min(LLimit, FServerStore.RecordCount - LStart);
 
-  ExtSession.ResponseItems.AddJSON('{Total: ' + IntToStr(FServerStore.RecordCount)
+  Session.ResponseItems.AddJSON('{Total: ' + IntToStr(FServerStore.RecordCount)
     + ', Root: ' + FServerStore.GetAsJSON(False, LStart, LPageRecordCount) + '}');
 end;
 
@@ -1996,7 +2022,7 @@ begin
       LReader.RootProperty := 'Root';
       LReader.TotalProperty := 'Total';
       for I := 0 to FServerStore.Header.FieldCount - 1 do
-        with TExtDataField.CreateAndAddTo(Store.Proxy.Reader.Fields) do
+        with TExtDataField.CreateAndAddToList(Store.Proxy.Reader.Fields) do
           Name := FServerStore.Header.Fields[I].FieldName;
       ValueField := Join(FServerStore.Key.GetFieldNames, TKConfig.Instance.MultiFieldSeparator);
       DisplayField := AViewField.ModelField.ReferencedModel.CaptionField.FieldName;
@@ -2401,6 +2427,19 @@ begin
   Result := Self;
 end;
 
+function TKExtFormDateTimeField.ConvertDateTime(const AValue: string): string;
+var
+  LDateTime: TDateTime;
+begin
+  if AValue <> '' then
+  begin
+    LDateTime := Trunc(TJS.JSDateToDateTime(AValue));
+    Result := DateTimeToStr(LDateTime, Session.Config.UserFormatSettings);
+  end
+  else
+    Result := '';
+end;
+
 destructor TKExtFormDateTimeField.Destroy;
 begin
   FreeAndNil(FDateConfig);
@@ -2411,7 +2450,7 @@ end;
 procedure TKExtFormDateTimeField.FieldChange(This: TExtFormField; NewValue,
   OldValue: string);
 begin
-  FRecordField.SetAsJSONValue(NewValue, False, Session.Config.UserFormatSettings);
+  FRecordField.SetAsJSONValue(ConvertDateTime(NewValue), False, Session.Config.UserFormatSettings);
 end;
 
 function TKExtFormDateTimeField.GetFieldName: string;
@@ -2524,10 +2563,23 @@ begin
   Result := Self;
 end;
 
+function TKExtFormTimeField.ConvertTime(const AValue: string): string;
+var
+  LTime: TTime;
+begin
+  if AValue <> '' then
+  begin
+    LTime := TimeOf(TJS.JSDateToDateTime(AValue));
+    Result := TimeToStr(LTime, Session.Config.UserFormatSettings);
+  end
+  else
+    Result := '';
+end;
+
 procedure TKExtFormTimeField.FieldChange(This: TExtFormField; NewValue,
   OldValue: string);
 begin
-  FRecordField.SetAsJSONValue(NewValue, False, Session.Config.UserFormatSettings);
+  FRecordField.SetAsJSONValue(ConvertTime(NewValue), False, Session.Config.UserFormatSettings);
 end;
 
 function TKExtFormTimeField.GetFieldName: string;
@@ -2767,19 +2819,19 @@ begin
 
   LIsPicture := AViewField.IsPicture;
 
-  LPanel := TExtPanel.CreateAndAddTo(Items);
+  LPanel := TExtPanel.CreateAndAddToList(Items);
   FImageWidth := AViewField.GetInteger('IsPicture/Thumbnail/Width', 100);
   FImageHeight := AViewField.GetInteger('IsPicture/Thumbnail/Height', 100);
 
   if LIsPicture then
   begin
     LPanel.Layout := lyColumn;
-    FPictureView := TExtPanel.CreateAndAddTo(LPanel.Items);
+    FPictureView := TExtPanel.CreateAndAddToList(LPanel.Items);
     FPictureView.Frame := True;
     FPictureView.Loader.SetConfigItem('url', MethodURI(GetImageContent));
     FPictureView.OnAfterrender := PictureViewAfterRender;
 
-    LToolbar := TKExtToolbar.CreateAndAddTo(LPanel.Items);
+    LToolbar := TKExtToolbar.CreateAndAddToList(LPanel.Items);
     // Version below puts the toolbar at the bottom (in which case we should adjust the height as well)
     //LToolbar := TKExtToolbar.Create;
     //FPictureView.Bbar := LToolbar;
@@ -2787,16 +2839,16 @@ begin
   else
   begin
     LPanel.Layout := lyHbox;
-    FDescriptionField := TExtFormTextField.CreateAndAddTo(LPanel.Items);
+    FDescriptionField := TExtFormTextField.CreateAndAddToList(LPanel.Items);
     FDescriptionField.ReadOnly := True;
     FDescriptionField.Cls := 'x-form-readonly';
 
-    LToolbar := TKExtToolbar.CreateAndAddTo(LPanel.Items);
+    LToolbar := TKExtToolbar.CreateAndAddToList(LPanel.Items);
   end;
 
   LToolbar.Style := 'background: none; border: none;';
 
-  FDownloadButton := TKExtButton.CreateAndAddTo(LToolbar.Items);
+  FDownloadButton := TKExtButton.CreateAndAddToList(LToolbar.Items);
   FDownloadButton.SetIconAndScale('download');
   FDownloadButton.Tooltip := _('Download file');
   FDownloadButton.Handler := Ajax(StartDownload);
@@ -2804,13 +2856,13 @@ begin
   LButtonCount := 1;
   if not FIsReadOnly then
   begin
-    LUploadButton := TKExtButton.CreateAndAddTo(LToolbar.Items);
+    LUploadButton := TKExtButton.CreateAndAddToList(LToolbar.Items);
     LUploadButton.SetIconAndScale('upload');
     LUploadButton.Tooltip := _('Upload file');
     LUploadButton.Handler := Ajax(ShowUploadFileDialog);
     Inc(LButtonCount);
 
-    FClearButton := TKExtButton.CreateAndAddTo(LToolbar.Items);
+    FClearButton := TKExtButton.CreateAndAddToList(LToolbar.Items);
     FClearButton.SetIconAndScale('clear');
     FClearButton.Tooltip := _('Clear field');
     FClearButton.Handler := Ajax(Clear);
@@ -2857,11 +2909,11 @@ end;
 procedure TKExtFormFileEditor.GetImageContent;
 begin
   if GetCurrentServerFileName = '' then
-    ExtSession.ResponseItems.AddHTML('<p>' + _(EMPTY_DESCRIPTION) + '</p>')
+    Session.ResponseItems.AddHTML('<p>' + _(EMPTY_DESCRIPTION) + '</p>')
   else
     // Add dummy parameter to the URL to force the browser to refresh the image
     // after an upload.
-    ExtSession.ResponseItems.AddHTML(Format('<img src="%s">',
+    Session.ResponseItems.AddHTML(Format('<img src="%s">',
       [MethodURI(GetImage, ['time', FormatDateTime('yyyymmddhhnnsszzz', Now())])]));
 end;
 
@@ -2915,18 +2967,18 @@ begin
   FWindow.Closable := True;
   FWindow.Title := _('File upload');
 
-  LFormPanel := TExtFormFormPanel.CreateAndAddTo(FWindow.Items);
+  LFormPanel := TExtFormFormPanel.CreateAndAddToList(FWindow.Items);
   LFormPanel.Region := rgCenter;
   LFormPanel.Frame := True;
   LFormPanel.FileUpload := True;
   LFormPanel.LabelAlign := laRight;
   LFormPanel.LabelWidth := 50;
-  LUploadFormField := TKExtFormFileUploadField.CreateAndAddTo(LFormPanel.Items);
+  LUploadFormField := TKExtFormFileUploadField.CreateAndAddToList(LFormPanel.Items);
   LUploadFormField.FieldLabel := _(FRecordField.ViewField.DisplayLabel);
   LUploadFormField.EmptyText := _('Select a file to upload');
   LUploadFormField.AllowBlank := False;
   LUploadFormField.Anchor := '0 5 0 0';
-  LUploadButton := TKExtButton.CreateAndAddTo(LFormPanel.Buttons);
+  LUploadButton := TKExtButton.CreateAndAddToList(LFormPanel.Buttons);
   LUploadButton.Text := _('Upload');
   LUploadButton.SetIconAndScale('Upload', IfThen(Session.IsMobileBrowser,'medium', 'small'));
 
@@ -3456,8 +3508,8 @@ begin
       LFormat := AViewField.EditFormat;
       if LFormat = '' then
         LFormat := Session.Config.UserFormatSettings.ShortDateFormat;
-      LDateField.Format := DelphiDateFormatToJSDateFormat(LFormat);
-      LDateField.AltFormats := DelphiDateFormatToJSDateFormat(Session.Config.JSFormatSettings.ShortDateFormat);
+      LDateField.Format := TJS.DelphiDateFormatToJSDateFormat(LFormat);
+      LDateField.AltFormats := TJS.DelphiDateFormatToJSDateFormat(Session.Config.JSFormatSettings.ShortDateFormat);
       if not AIsReadOnly then
         LDateField.AllowBlank := not AViewField.IsRequired;
       if Session.IsMobileBrowser then
@@ -3494,8 +3546,8 @@ begin
       LFormat := AViewField.EditFormat;
       if LFormat = '' then
         LFormat := Session.Config.UserFormatSettings.ShortTimeFormat;
-      LTimeField.Format := DelphiTimeFormatToJSTimeFormat(LFormat);
-      LTimeField.AltFormats := DelphiTimeFormatToJSTimeFormat(Session.Config.JSFormatSettings.ShortTimeFormat);
+      LTimeField.Format := TJS.DelphiTimeFormatToJSTimeFormat(LFormat);
+      LTimeField.AltFormats := TJS.DelphiTimeFormatToJSTimeFormat(Session.Config.JSFormatSettings.ShortTimeFormat);
       if not AIsReadOnly then
         LTimeField.AllowBlank := not AViewField.IsRequired;
       if Session.IsMobileBrowser then
@@ -3541,22 +3593,12 @@ begin
         LTimeFormat := LFormats[1]
       else
         LTimeFormat := Session.Config.UserFormatSettings.ShortTimeFormat;
-      LDateTimeField.DateFormat := DelphiDateFormatToJSDateFormat(LDateFormat);
-      LDateTimeField.AltDateFormats := DelphiDateFormatToJSDateFormat(Session.Config.JSFormatSettings.ShortDateFormat);
-      LDateTimeField.TimeFormat := DelphiTimeFormatToJSTimeFormat(Session.Config.UserFormatSettings.ShortTimeFormat);
-      LDateTimeField.AltTimeFormats := DelphiTimeFormatToJSTimeFormat(Session.Config.JSFormatSettings.ShortTimeFormat);
+      LDateTimeField.DateFormat := TJS.DelphiDateFormatToJSDateFormat(LDateFormat);
+      LDateTimeField.AltDateFormats := TJS.DelphiDateFormatToJSDateFormat(Session.Config.JSFormatSettings.ShortDateFormat);
+      LDateTimeField.TimeFormat := TJS.DelphiTimeFormatToJSTimeFormat(Session.Config.UserFormatSettings.ShortTimeFormat);
+      LDateTimeField.AltTimeFormats := TJS.DelphiTimeFormatToJSTimeFormat(Session.Config.JSFormatSettings.ShortTimeFormat);
       if not AIsReadOnly then
         LDateTimeField.AllowBlank := not AViewField.IsRequired;
-//      if not AIsReadOnly then
-//      begin
-//        LDateTimeField.DateConfig := LDateTimeField.JSObject('allowBlank:false');
-//        LDateTimeField.TimeConfig := LDateTimeField.JSObject('allowBlank:false');
-//      end
-//      else
-//      begin
-//        LDateTimeField.DateConfig := LDateTimeField.JSObject('readOnly:true');
-//        LDateTimeField.TimeConfig := LDateTimeField.JSObject('readOnly:true');
-//      end;
       Result := LDateTimeField;
     except
       LDateTimeField.Free;

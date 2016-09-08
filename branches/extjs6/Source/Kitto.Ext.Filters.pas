@@ -27,10 +27,10 @@ interface
 
 uses
   Types, DB,
-  Ext, ExtPascal, ExtPascalUtils, ExtForm, ExtData,
+  Ext.Base, Ext.Form, Ext.Data,
   EF.Types, EF.Tree, EF.ObserverIntf,
-  Kitto.DatabaseRouter, Kitto.Store, Kitto.Metadata.Views, Kitto.Metadata.DataView,
-  Kitto.Ext.Base, Kitto.Ext.Controller, Kitto.Ext.LookupField;
+  Kitto.JS, Kitto.DatabaseRouter, Kitto.Store, Kitto.Metadata.Views, Kitto.Metadata.DataView,
+  Kitto.Ext, Kitto.Ext.Base, Kitto.Ext.Controller, Kitto.Ext.LookupField;
 
 const
   DEFAULT_FILTER_WIDTH = 20;
@@ -448,7 +448,8 @@ implementation
 uses
   SysUtils, Math, StrUtils,
   EF.Localization,  EF.DB, EF.StrUtils, EF.JSON, EF.SQL,
-  Kitto.Types, Kitto.Config, KItto.AccessControl, Kitto.Ext.Session, Kitto.Ext.Utils;
+  Kitto.Types, Kitto.Config, KItto.AccessControl,
+  Kitto.Ext.Session, Kitto.Ext.Utils;
 
 function GetDefaultFilter(const AItems: TEFNode): TEFNode;
 var
@@ -555,7 +556,7 @@ end;
 
 function TKExtFilterFactory.DoCreateObject(const AClass: TClass): TObject;
 begin
-  Result := TExtObjectClass(AClass).CreateAndAddTo(FContainer);
+  Result := TExtObjectClass(AClass).CreateAndAddToList(FContainer);
 end;
 
 class function TKExtFilterFactory.GetInstance: TKExtFilterFactory;
@@ -623,7 +624,7 @@ begin
   LReader.TotalProperty := 'Total';
   LProxy.Reader := LReader;
   for I := 0 to FServerStore.Header.FieldCount - 1 do
-    with TExtDataField.CreateAndAddTo(Store.Proxy.Reader.Fields) do
+    with TExtDataField.CreateAndAddToList(Store.Proxy.Reader.Fields) do
       Name := FServerStore.Header.Fields[I].FieldName;
   ValueField := 'Id';
   DisplayField := 'Description';
@@ -724,7 +725,7 @@ begin
   inherited;
   Assert(Assigned(FServerStore));
 
-  ExtSession.ResponseItems.AddJSON('{Total: ' + IntToStr(FServerStore.RecordCount)
+  Session.ResponseItems.AddJSON('{Total: ' + IntToStr(FServerStore.RecordCount)
     + ', Root: ' + FServerStore.GetAsJSON(False) + '}');
 end;
 
@@ -796,7 +797,7 @@ begin
   LLimit := Session.QueryAsInteger['limit'];
   LPageRecordCount := Min(LLimit, FServerStore.RecordCount - LStart);
 
-  ExtSession.ResponseItems.AddJSON('{Total: ' + IntToStr(FServerStore.RecordCount)
+  Session.ResponseItems.AddJSON('{Total: ' + IntToStr(FServerStore.RecordCount)
     + ', Root: ' + FServerStore.GetAsJSON(False, LStart, LPageRecordCount) + '}');
 end;
 
@@ -914,8 +915,8 @@ begin
   else
     FCurrentValue := 0;
   LFormat := Session.Config.UserFormatSettings.ShortDateFormat;
-  Format := DelphiDateFormatToJSDateFormat(LFormat);
-  AltFormats := DelphiDateFormatToJSDateFormat(Session.Config.JSFormatSettings.ShortDateFormat);
+  Format := TJS.DelphiDateFormatToJSDateFormat(LFormat);
+  AltFormats := TJS.DelphiDateFormatToJSDateFormat(Session.Config.JSFormatSettings.ShortDateFormat);
 
   if Session.IsMobileBrowser then
     Editable := False;
@@ -941,7 +942,7 @@ var
   LNewValue: TDateTime;
 begin
   if NewValue <> '' then
-    LNewValue := JSDateToDateTime(NewValue)
+    LNewValue := TJS.JSDateToDateTime(NewValue)
   else
     LNewValue := 0;
   if FCurrentValue <> LNewValue then
@@ -1089,7 +1090,7 @@ begin
   LIsDefaultSet := False;
   for I := 0 to FItems.ChildCount - 1 do
   begin
-    LButtons[I] := TKExtButton.CreateAndAddTo(Items);
+    LButtons[I] := TKExtButton.CreateAndAddToList(Items);
     LButtons[I].Scale := Config.GetString('ButtonScale', 'small');
     LButtons[I].Text := _(FItems.Children[I].AsString);
     LButtons[I].AllowDepress := not IsSingleSelect;

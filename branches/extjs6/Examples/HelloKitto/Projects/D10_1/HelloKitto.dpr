@@ -4,7 +4,8 @@ uses
   Kitto.Ext.Start,
   Controllers in '..\..\Source\Controllers.pas',
   Rules in '..\..\Source\Rules.pas',
-  UseKitto in '..\..\Source\UseKitto.pas';
+  UseKitto in '..\..\Source\UseKitto.pas',
+  Kitto.Ext in '..\..\..\..\Source\Kitto.Ext.pas';
 
 {$R *.res}
 

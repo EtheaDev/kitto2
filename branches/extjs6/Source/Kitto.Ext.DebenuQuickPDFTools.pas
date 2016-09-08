@@ -113,7 +113,7 @@ implementation
 uses
   Windows,
   System.Math , System.TypInfo, System.UIConsts,
-  Ext, EF.Classes, EF.StrUtils, EF.Localization, EF.DB, EF.SysUtils, EF.Macros,
+  Ext.Base, EF.Classes, EF.StrUtils, EF.Localization, EF.DB, EF.SysUtils, EF.Macros,
   Kitto.Metadata.Models, Kitto.Ext.Session, Kitto.Config;
 
 { TMergePDFToolController }

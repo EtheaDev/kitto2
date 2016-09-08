@@ -21,9 +21,9 @@ unit Kitto.Ext.CalendarPanel;
 interface
 
 uses
-  Ext, ExtPascal, ExtPascalUtils, ExtensibleCalendar, ExtData,
+  Ext.Base, Ext.Calendar, Ext.Data,
   EF.Tree,
-  Kitto.Metadata.DataView, Kitto.Ext.Base, Kitto.Ext.DataPanelLeaf;
+  Kitto.JS, Kitto.Metadata.DataView, Kitto.Ext.Base, Kitto.Ext.DataPanelLeaf;
 
 type
   TKExtCalendarPanel = class(TKExtDataPanelLeafController)

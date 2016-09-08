@@ -22,9 +22,9 @@ interface
 
 uses
   SysUtils, Classes,
-  Ext, ExtPascal,
+  Ext.Base,
   EF.Intf, EF.ObserverIntf, EF.Tree, EF.Types,
-  Kitto.Types, Kitto.Metadata.Views;
+  Kitto.Ext, Kitto.Types, Kitto.Metadata.Views;
 
 type
   /// <summary>
@@ -238,7 +238,7 @@ begin
     raise EKError.Create('Object does not support IKController.');
 
   if Assigned(AContainer) and LSupportsContainer then
-    LObject.AddTo(AContainer.Items);
+    AContainer.Items.Add(LObject);
 
   if AConfig <> nil then
     Result.Config.Assign(AConfig)

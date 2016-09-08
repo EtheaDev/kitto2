@@ -21,7 +21,7 @@ unit Kitto.Ext.AccordionPanel;
 interface
 
 uses
-  Ext,
+  Ext.Base,
   Kitto.Ext.Base, Kitto.Metadata.Views;
 
 type
@@ -39,7 +39,7 @@ implementation
 
 uses
   SysUtils,
-  ExtPascal, ExtLayout,
+  Ext.Layout,
   EF.Tree, EF.Localization,
   Kitto.Types, Kitto.AccessControl, Kitto.Ext.Controller, Kitto.Ext.Session;
 

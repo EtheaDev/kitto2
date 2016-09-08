@@ -23,9 +23,9 @@ interface
 
 uses
   SysUtils,
-  ExtPascal, ExtPascalUtils, ExtForm,
+  Ext.Form,
   EF.Intf, EF.ObserverIntf,
-  Kitto.Metadata.Views, Kitto.Metadata.DataView,
+  Kitto.Ext, Kitto.Metadata.Views, Kitto.Metadata.DataView,
   Kitto.Ext.Controller;
 
 type

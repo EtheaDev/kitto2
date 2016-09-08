@@ -36,4 +36,3 @@ finalization
   TKExtControllerRegistry.Instance.UnregisterClass('Viewport');
 
 end.
-

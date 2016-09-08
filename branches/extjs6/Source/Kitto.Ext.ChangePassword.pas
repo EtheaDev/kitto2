@@ -21,7 +21,7 @@ unit Kitto.Ext.ChangePassword;
 interface
 
 uses
-  Ext, ExtForm,
+  Ext.Base, Ext.Form,
   Kitto.Ext.Base;
 
 type
@@ -53,9 +53,8 @@ implementation
 
 uses
   SysUtils, StrUtils, Math,
-  ExtPascalUtils,
   EF.Classes, EF.Localization, EF.Tree, EF.StrUtils,
-  Kitto.Types, Kitto.Config,
+  Kitto.Types, Kitto.Config, Kitto.JS,
   Kitto.Ext.Controller, Kitto.Ext.Session;
 
 { TKExtChangePasswordWindow }
@@ -151,21 +150,21 @@ begin
   FStatusBar.DefaultText := '';
   FStatusBar.BusyText := _('Changing password...');
 
-  FFormPanel := TExtFormFormPanel.CreateAndAddTo(Items);
+  FFormPanel := TExtFormFormPanel.CreateAndAddToList(Items);
   FFormPanel.Region := rgCenter;
   FFormPanel.LabelWidth := 150;
   FFormPanel.LabelAlign := laRight;
   FFormPanel.Border := False;
-  FFormPanel.BodyStyle := SetPaddings(5, 5);
+  FFormPanel.BodyStyle := TJS.GetPadding(5, 5);
   FFormPanel.Frame := False;
   FFormPanel.MonitorValid := True;
   FFormPanel.Bbar := FStatusBar;
 
-  FConfirmButton := TKExtButton.CreateAndAddTo(FStatusBar.Items);
+  FConfirmButton := TKExtButton.CreateAndAddToList(FStatusBar.Items);
   FConfirmButton.SetIconAndScale('password', 'medium');
   FConfirmButton.Text := _('Change password');
 
-  FOldPassword := TExtFormTextField.CreateAndAddTo(FFormPanel.Items);
+  FOldPassword := TExtFormTextField.CreateAndAddToList(FFormPanel.Items);
   FOldPassword.Name := 'OldPassword';
   //FOldPassword.Value := ...
   FOldPassword.FieldLabel := _('Old Password');
@@ -174,7 +173,7 @@ begin
   FOldPassword.Width := 136;
   FOldPassword.EnableKeyEvents := True;
 
-  FNewPassword := TExtFormTextField.CreateAndAddTo(FFormPanel.Items);
+  FNewPassword := TExtFormTextField.CreateAndAddToList(FFormPanel.Items);
   FNewPassword.Name := 'NewPassword';
   //FNewPassword.Value := ...
   FNewPassword.FieldLabel := _('New Password');
@@ -183,7 +182,7 @@ begin
   FNewPassword.Width := 136;
   FNewPassword.EnableKeyEvents := True;
 
-  FConfirmNewPassword := TExtFormTextField.CreateAndAddTo(FFormPanel.Items);
+  FConfirmNewPassword := TExtFormTextField.CreateAndAddToList(FFormPanel.Items);
   FConfirmNewPassword.Name := 'ConfirmNewPassword';
   //FConfirmNewPassword.Value := ...
   FConfirmNewPassword.FieldLabel := _('Confirm New Password');

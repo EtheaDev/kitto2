@@ -23,9 +23,9 @@ interface
 uses
   SysUtils, Classes, Generics.Collections, Types,
   gnugettext, superobject,
-  ExtPascal, Ext, ExtPascalClasses,
+  Ext.Base, ExtPascalClasses,
   EF.Tree, EF.Macros, EF.Intf, EF.Localization, EF.ObserverIntf,
-  Kitto.Ext.Base, Kitto.Config, Kitto.Metadata.Views,
+  Kitto.Ext, Kitto.Ext.Base, Kitto.Config, Kitto.Metadata.Views,
   Kitto.Ext.Controller;
 
 type
@@ -373,14 +373,14 @@ implementation
 
 uses
   StrUtils, ActiveX, ComObj, FmtBcd,
-  ExtPascalUtils, ExtForm,
+  Ext.Form,
   EF.SysUtils, EF.StrUtils, EF.Logger, EF.Types,
   Kitto.Auth, Kitto.Types, Kitto.AccessControl,
   Kitto.Ext.Utils;
 
-function Session: TKExtSession;
+function GetSession: TKExtSession;
 begin
-  Result := TKExtSession(ExtPascal.Session);
+  Result := TKExtSession(Kitto.Ext.GetSession);
 end;
 
 { TKExtSession }
@@ -863,7 +863,7 @@ Duplicates must be handled/ignored. }
 //  SetRequiredLibrary('NumericField');
 //  SetRequiredLibrary('DefaultButton');
   SetRequiredLibrary('kitto-core', True);
-  if Session.IsMobileBrowser then
+  if GetSession.IsMobileBrowser then
     SetRequiredLibrary('kitto-core-mobile', True)
   else
     SetRequiredLibrary('kitto-core-desktop', True);
@@ -1259,16 +1259,16 @@ begin
   TEFMacroExpansionEngine.OnGetInstance :=
     function: TEFMacroExpansionEngine
     begin
-      if Session <> nil then
-        Result := Session.Config.MacroExpansionEngine
+      if GetSession <> nil then
+        Result := GetSession.Config.MacroExpansionEngine
       else
         Result := nil;
     end;
   TKConfig.OnGetInstance :=
     function: TKConfig
     begin
-      if Session <> nil then
-        Result := Session.Config
+      if GetSession <> nil then
+        Result := GetSession.Config
       else
         Result := nil;
     end;
@@ -1395,7 +1395,7 @@ end;
 
 function TKExtObjectHelper.GetSession: TKExtSession;
 begin
-  Result := ExtSession as TKExtSession;
+  Result := Session as TKExtSession;
 end;
 
 { TKExtSessionMacroExpander }
@@ -1450,8 +1450,8 @@ end;
 
 function TKExtSessionLocalizationTool.GetGnuGettextInstance: TGnuGettextInstance;
 begin
-  if Session <> nil then
-    Result := Session.FGettextInstance
+  if GetSession <> nil then
+    Result := GetSession.FGettextInstance
   else
     Result := gnugettext.DefaultInstance;
 end;

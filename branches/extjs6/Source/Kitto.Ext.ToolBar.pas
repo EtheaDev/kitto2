@@ -21,8 +21,8 @@ unit Kitto.Ext.ToolBar;
 interface
 
 uses
-  Ext, ExtUx,
-  Kitto.Ext.Base, Kitto.Metadata.Views, Kitto.Ext.Utils;
+  Ext.Base, Ext.Ux,
+  Kitto.Metadata.Views, Kitto.Ext.Base, Kitto.Ext.Utils;
 
 type
   TKExtToolBarController = class(TKExtPanelControllerBase)
@@ -42,7 +42,6 @@ implementation
 
 uses
   SysUtils,
-  ExtPascal,
   EF.Tree,
   Kitto.Ext.Controller, Kitto.Ext.Session;
 
@@ -81,7 +80,7 @@ begin
   Layout := lyFit;
 //  Height := 28;
 
-  FToolBar := TExtToolbar.CreateAndAddTo(Items);
+  FToolBar := TExtToolbar.CreateAndAddToList(Items);
 end;
 
 initialization

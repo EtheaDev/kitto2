@@ -22,7 +22,7 @@ interface
 
 uses
   SysUtils,
-  Ext,
+  Ext.Base,
   EF.ObserverIntf,
   Kitto.Ext.Base, Kitto.Ext.Controller, Kitto.Ext.DataPanel;
 
@@ -50,7 +50,7 @@ type
 implementation
 
 uses
-  ExtPascal, StrUtils,
+  StrUtils,
   EF.Localization,
   Kitto.Metadata.Views,
   Kitto.AccessControl, Kitto.Ext.Session;

@@ -23,8 +23,7 @@ unit FCGIApp;
 interface
 
 uses
-  {$IFNDEF MSWINDOWS}cthreads,{$ENDIF}
-  BlockSocket, SysUtils, SyncObjs, Classes, ExtPascalClasses, ExtPascalUtils;
+  BlockSocket, SysUtils, SyncObjs, Classes, ExtPascalClasses, Kitto.JS.Types;
 
 type
   TFCGISession = class(TCustomWebSession)
@@ -101,7 +100,7 @@ function CreateWebApplication(const ATitle : string; ASessionClass : TCustomWebS
 implementation
 
 uses
-  StrUtils, Math;
+  StrUtils, Math, Kitto.Utils;
 
 function CreateWebApplication(const ATitle : string; ASessionClass : TCustomWebSessionClass; APort : Word = 2014;
                               AMaxIdleMinutes : Word = 30; AShutdownAfterLastThreadDown : Boolean = False;
@@ -235,7 +234,7 @@ destructor TFCGIThread.Destroy; begin
   FSession.Free;
   FRequestHeader.Free;
   dec(Application.FThreadsCount);
-  {$IFDEF MSWINDOWS}inherited;{$ENDIF} // Collateral effect of Unix RTL FPC bug
+  inherited;
 end;
 
 {
@@ -530,8 +529,13 @@ begin
 end;
 
 procedure TFCGIThread.CopyContextFrom(const AThread: TFCGIThread);
+//var
+//  I: Integer;
 begin
-  StrToTStrings(AThread.FRequestHeader.DelimitedText, FRequestHeader);
+  FRequestHeader.Assign(AThread.FRequestHeader);
+  // Not sure why trimming would be needed here.
+//  for I := 0 to FRequestHeader.Count - 1 do
+//    FRequestHeader[I] := Trim(FRequestHeader[I]);
   FSession.CopyContextFrom(AThread.FSession);
 end;
 
@@ -660,7 +664,6 @@ begin
     FLastAccess := 0;
     Application.GarbageNow := true;
   end;
-  {$IFNDEF MSWINDOWS}EndThread(0){$ENDIF} // Unix RTL FPC bug
 end;
 
 {

@@ -21,9 +21,10 @@ unit Kitto.Ext.TemplateDataPanel;
 interface
 
 uses
-  Ext, ExtChart, ExtData, ExtPascal, ExtPascalUtils,
+  Ext.Base, Ext.Chart, Ext.Data,
   EF.Tree,
-  Kitto.Metadata.DataView, Kitto.Ext.Base, Kitto.Ext.DataPanelLeaf;
+  Kitto.Metadata.DataView,
+  Kitto.Ext, Kitto.Ext.Base, Kitto.Ext.DataPanelLeaf;
 
 type
   TKExtTemplateDataPanel = class(TKExtDataPanelLeafController)
@@ -107,7 +108,7 @@ end;
 procedure TKExtTemplateDataPanel.InitDefaults;
 begin
   inherited;
-  FDataView := TExtDataView.CreateAndAddTo(Items);
+  FDataView := TExtDataView.CreateAndAddToList(Items);
   FDataView.EmptyText := _('No data to display.');
   FDataView.Region := rgCenter;
   FDataView.AutoScroll := True;

@@ -22,10 +22,10 @@ interface
 
 uses
   SysUtils, Generics.Collections,
-  Ext, ExtPascal, ExtPascalUtils, ExtData,
+  Ext.Base, Ext.Data,
   superobject,
   EF.Classes, EF.ObserverIntf, EF.Tree,
-  Kitto.Metadata.Views, Kitto.Metadata.DataView, Kitto.Store, Kitto.Types,
+  Kitto.Ext, Kitto.Metadata.Views, Kitto.Metadata.DataView, Kitto.Store, Kitto.Types,
   Kitto.Ext.Base, Kitto.Ext.Controller, Kitto.Ext.BorderPanel, Kitto.Ext.Editors;
 
 type
@@ -469,7 +469,7 @@ begin
   Assert(Assigned(ViewTable));
   Assert(Assigned(ServerStore));
 
-  Result := TKExtDataActionButton.CreateAndAddTo(AToolbar.Items);
+  Result := TKExtDataActionButton.CreateAndAddToList(AToolbar.Items);
   Result.Hidden := not AView.GetBoolean('IsVisible', True);
   Result.UniqueId := AUniqueId;
   Result.View := AView;
@@ -528,7 +528,7 @@ var
   var
     LField: TExtDataField;
   begin
-    LField := TExtDataField.CreateAndAddTo(AReader.Fields);
+    LField := TExtDataField.CreateAndAddToList(AReader.Fields);
     LField.Name := AName;
     LField.&Type := AType;
     LField.UseNull := AUseNull;
@@ -931,7 +931,7 @@ function TKExtDataPanelController.AddTopToolbarButton(const AActionName, AToolti
 begin
   if (AActionName <> '') and IsActionSupported(AActionName) then
   begin
-    Result := TKExtButton.CreateAndAddTo(TopToolbar.Items);
+    Result := TKExtButton.CreateAndAddToList(TopToolbar.Items);
     Result.Tooltip := ATooltip;
     Result.SetIconAndScale(AImageName);
     if (AActionName <> '') and not IsActionVisible(AActionName) then

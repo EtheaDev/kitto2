@@ -22,7 +22,7 @@ interface
 
 uses
   SysUtils,
-  Ext,
+  Ext.Base,
   EF.Tree,
   Kitto.Ext.Base, Kitto.Ext.Controller;
 

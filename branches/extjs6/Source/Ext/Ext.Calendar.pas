@@ -1,9 +1,9 @@
-unit ExtensibleCalendar;
+unit Ext.Calendar;
 
 interface
 
 uses
-  StrUtils, ExtUtil, ExtPascal, ExtPascalUtils, Ext, ExtData;
+  StrUtils, Ext.Util, Ext.Base, Ext.Data;
 
 type
   TExtCalendarBoxLayoutTemplate = class;

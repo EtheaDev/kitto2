@@ -22,9 +22,9 @@ interface
 
 uses
   Generics.Collections,
-  ExtPascal, Ext, ExtData, ExtForm, ExtGrid, ExtPascalUtils,
+  Ext.Base, Ext.Data, Ext.Form, Ext.Grid,
   EF.ObserverIntf, EF.Types, EF.Tree,
-  Kitto.Metadata.Views, Kitto.Metadata.DataView, Kitto.Store, Kitto.Types,
+  Kitto.Ext, Kitto.Metadata.Views, Kitto.Metadata.DataView, Kitto.Store, Kitto.Types,
   Kitto.Ext.Base, Kitto.Ext.Controller, Kitto.Ext.DataPanelLeaf, Kitto.Ext.Editors;
 
 const
@@ -91,7 +91,7 @@ uses
   SysUtils, StrUtils, Math, Types,
   superobject,
   EF.StrUtils, EF.Localization, EF.JSON, EF.Macros,
-  Kitto.Metadata.Models, Kitto.Rules, Kitto.AccessControl, Kitto.Config,
+  Kitto.Metadata.Models, Kitto.Rules, Kitto.AccessControl, Kitto.Config, Kitto.JS,
   Kitto.Ext.Session, Kitto.Ext.Utils;
 
 { TKExtGridPanel }
@@ -176,7 +176,7 @@ end;
 procedure TKExtGridPanel.InitDefaults;
 begin
   inherited;
-  FGridPanel := TExtGridGridPanel.CreateAndAddTo(Items);
+  FGridPanel := TExtGridGridPanel.CreateAndAddToList(Items);
   FGridPanel.Border := False;
   FGridPanel.Header := False;
   FGridPanel.Region := rgCenter;
@@ -414,42 +414,42 @@ var
       if LDataType is TEFBooleanDataType then
       begin
         // Don't use TExtGridBooleanColumn here, otherwise the renderer will be inneffective.
-        Result := TExtGridColumn.CreateAndAddTo(FGridPanel.Columns);
+        Result := TExtGridColumn.CreateAndAddToList(FGridPanel.Columns);
         if not SetRenderer(Result) then
           Result.Renderer := 'checkboxRenderer';
       end
       else if LDataType is TEFDateDataType then
       begin
-        Result := TExtGridDateColumn.CreateAndAddTo(FGridPanel.Columns);
+        Result := TExtGridDateColumn.CreateAndAddToList(FGridPanel.Columns);
         LFormat := GetDisplayFormat;
         if LFormat = '' then
           LFormat := Session.Config.UserFormatSettings.ShortDateFormat;
-        TExtGridDateColumn(Result).Format := DelphiDateFormatToJSDateFormat(LFormat);
+        TExtGridDateColumn(Result).Format := TJS.DelphiDateFormatToJSDateFormat(LFormat);
       end
       else if LDataType is TEFTimeDataType then
       begin
-        Result := TExtGridColumn.CreateAndAddTo(FGridPanel.Columns);
+        Result := TExtGridColumn.CreateAndAddToList(FGridPanel.Columns);
         if not SetRenderer(Result) then
         begin
           LFormat := GetDisplayFormat;
           if LFormat = '' then
             LFormat := Session.Config.UserFormatSettings.ShortTimeFormat;
           Result.RendererExtFunction := Result.JSFunction('v',
-            Format('return formatTime(v, "%s");', [DelphiTimeFormatToJSTimeFormat(LFormat)]));
+            Format('return formatTime(v, "%s");', [TJS.DelphiTimeFormatToJSTimeFormat(LFormat)]));
         end;
       end
       else if LDataType is TEFDateTimeDataType then
       begin
-        Result := TExtGridDateColumn.CreateAndAddTo(FGridPanel.Columns);
+        Result := TExtGridDateColumn.CreateAndAddToList(FGridPanel.Columns);
         LFormat := GetDisplayFormat;
         if LFormat = '' then
           LFormat := Session.Config.UserFormatSettings.ShortDateFormat + ' ' +
             Session.Config.UserFormatSettings.ShortTimeFormat;
-        TExtGridDateColumn(Result).Format := DelphiDateTimeFormatToJSDateTimeFormat(LFormat);
+        TExtGridDateColumn(Result).Format := TJS.DelphiDateTimeFormatToJSDateTimeFormat(LFormat);
       end
       else if LDataType is TEFIntegerDataType then
       begin
-        Result := TExtGridNumberColumn.CreateAndAddTo(FGridPanel.Columns);
+        Result := TExtGridNumberColumn.CreateAndAddToList(FGridPanel.Columns);
         if not SetRenderer(Result) then
         begin
           LFormat := GetDisplayFormat;
@@ -460,7 +460,7 @@ var
       end
       else if (LDataType is TEFFloatDataType) or (LDataType is TEFDecimalDataType) then
       begin
-        Result := TExtGridNumberColumn.CreateAndAddTo(FGridPanel.Columns);
+        Result := TExtGridNumberColumn.CreateAndAddToList(FGridPanel.Columns);
         if not SetRenderer(Result) then
         begin
           LFormat := GetDisplayFormat;
@@ -471,7 +471,7 @@ var
       end
       else if LDataType is TEFCurrencyDataType then
       begin
-        Result := TExtGridNumberColumn.CreateAndAddTo(FGridPanel.Columns);
+        Result := TExtGridNumberColumn.CreateAndAddToList(FGridPanel.Columns);
         if not SetRenderer(Result) then
         begin
           { TODO : format as money? }
@@ -483,7 +483,7 @@ var
       end
       else
       begin
-        Result := TExtGridColumn.CreateAndAddTo(FGridPanel.Columns);
+        Result := TExtGridColumn.CreateAndAddToList(FGridPanel.Columns);
         SetRenderer(Result);
       end;
 
@@ -643,13 +643,13 @@ begin
 
   if FInplaceEditing then
   begin
-    LCellEditing := TExtGridPluginCellEditing.CreateAndAddTo(FGridPanel.PluginsArray);
+    LCellEditing := TExtGridPluginCellEditing.CreateAndAddToList(FGridPanel.Plugins);
     LCellEditing.ClicksToEdit := 1;
   end;
 
   LRowClassProvider := ViewTable.GetExpandedString('Controller/RowClassProvider');
   if LRowClassProvider <> '' then
-    FGridPanel.ViewConfig.SetFunctionConfigItem('getRowClass', JSFunctionInline(LRowClassProvider))
+    FGridPanel.ViewConfig.SetFunctionConfigItem('getRowClass', JSCodeBlock(LRowClassProvider))
   else
   begin
     LRowColorPatterns := GetRowColorPatterns(LRowColorFieldName);
@@ -690,14 +690,14 @@ begin
 
   if IsLookupMode then
   begin
-    FConfirmButton := TKExtButton.CreateAndAddTo(Buttons);
+    FConfirmButton := TKExtButton.CreateAndAddToList(Buttons);
     FConfirmButton.SetIconAndScale('accept', Config.GetString('ButtonScale', 'medium'));
     FConfirmButton.Text := Config.GetString('LookupConfirmButton/Caption', _('Select'));
     FConfirmButton.Tooltip := Config.GetString('LookupConfirmButton/Tooltip', _('Select the current record and close the window'));
     FConfirmButton.On('click', GetSelectCall(ConfirmLookup));
     FButtonsRequiringSelection.Add(FConfirmButton);
 
-    FCancelButton := TKExtButton.CreateAndAddTo(Buttons);
+    FCancelButton := TKExtButton.CreateAndAddToList(Buttons);
     FCancelButton.SetIconAndScale('cancel', Config.GetString('ButtonScale', 'medium'));
     FCancelButton.Text := _('Cancel');
     FCancelButton.Tooltip := _('Close the window without selecting a record');
@@ -705,14 +705,14 @@ begin
   end
   else if FInplaceEditing then
   begin
-    FConfirmButton := TKExtButton.CreateAndAddTo(Buttons);
+    FConfirmButton := TKExtButton.CreateAndAddToList(Buttons);
     FConfirmButton.SetIconAndScale('accept', Config.GetString('ButtonScale', 'medium'));
     FConfirmButton.Text := Config.GetString('ConfirmButton/Caption', _('Save'));
     FConfirmButton.Tooltip := Config.GetString('ConfirmButton/Tooltip', _('Save changes and finish editing'));
     FConfirmButton.Hidden := True;
     FConfirmButton.On('click', Ajax(ConfirmInplaceChanges));
 
-    FCancelButton := TKExtButton.CreateAndAddTo(Buttons);
+    FCancelButton := TKExtButton.CreateAndAddToList(Buttons);
     FCancelButton.SetIconAndScale('cancel', Config.GetString('ButtonScale', 'medium'));
     FCancelButton.Text := _('Cancel');
     FCancelButton.Tooltip := _('Cancel changes');

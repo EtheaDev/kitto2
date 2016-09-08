@@ -21,9 +21,9 @@ unit Kitto.Ext.TreePanel;
 interface
 
 uses
-  ExtTree,
+  Ext.Tree,
   EF.Tree,
-  Kitto.Ext.Base, Kitto.Ext.Controller, Kitto.Metadata.Views, Kitto.Ext.Utils;
+  Kitto.Metadata.Views, Kitto.Ext.Base, Kitto.Ext.Controller, Kitto.Ext.Utils;
 
 type
   TKExtTreeTreeNode = class(TExtTreeTreeNode)
@@ -70,7 +70,7 @@ implementation
 
 uses
   SysUtils,
-  Ext,
+  Ext.Base,
   EF.Localization,
   Kitto.Config, Kitto.Utils, Kitto.AccessControl, Kitto.Ext.Session;
 
@@ -109,7 +109,7 @@ begin
   inherited;
   Layout := lyFit;
 
-  FTreePanel := TKExtTreePanel.CreateAndAddTo(Items);
+  FTreePanel := TKExtTreePanel.CreateAndAddToList(Items);
 end;
 
 { TKExtTreePanel }
@@ -123,7 +123,6 @@ end;
 procedure TKExtTreePanel.InitDefaults;
 begin
   inherited;
-  Root := TExtTreeTreeNode.Create(Self);
   RootVisible := False;
   AutoScroll := True;
   Border := False;
@@ -187,8 +186,7 @@ begin
     LIsEnabled := LView.IsAccessGranted(ACM_RUN)
   else
     LIsEnabled := TKConfig.Instance.IsAccessGranted(LOriginalNode.GetACURI(FTreeView), ACM_RUN);
-  { TODO: Make CreateInlineAndAddTo work }
-  LExtNode := TKExtTreeTreeNode.CreateAndAddTo(AParent.Children);
+  LExtNode := TKExtTreeTreeNode.CreateInlineAndAddToList(AParent.Children);
   try
     LExtNode.View := LView;
     if Assigned(LExtNode.View) then

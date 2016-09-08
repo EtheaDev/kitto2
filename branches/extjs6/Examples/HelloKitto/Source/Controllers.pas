@@ -23,7 +23,7 @@ implementation
 
 uses
   SysUtils, Classes,
-  Ext,
+  Ext.Base,
   Kitto.Ext.Session;
 
 { TTestToolController }

@@ -45,7 +45,7 @@ implementation
 
 uses
   System.Math , System.TypInfo, System.UIConsts, System.UITypes,
-  Ext, EF.Classes, EF.StrUtils, EF.Localization, EF.DB, EF.SysUtils, EF.Macros,
+  Ext.Base, EF.Classes, EF.StrUtils, EF.Localization, EF.DB, EF.SysUtils, EF.Macros,
   EF.XML, EF.FOP,
   Kitto.Metadata.Models, Kitto.Ext.Session, Kitto.Config;
 

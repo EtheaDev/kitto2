@@ -273,15 +273,26 @@ function Join(const AStrings: TStringDynArray; const ASeparator: string = ''): s
 function SplitPairs(const AString: string; const ASeparators: string = ' '): TEFPairs;
 
 ///	<summary>
-///	  Joins the pairs producing a string with a list of name=value pairs
-///	  separated by the specified separator.
+///	 Joins the pairs producing a string with a list of name=value pairs
+///	 separated by the specified separator.
 ///	</summary>
 function JoinPairs(const APairs: TEFPairs; const ASeparator: string = ''): string;
 
-///	<summary>Formats the specified number of bytes in GBs, MBs, KBs or bytes
-///	according to the size.</summary>
-///	<example>FormatByteSize(2560) yields '2.5 KBs'</example>
+///	<summary>
+///  Formats the specified number of bytes in GBs, MBs, KBs or bytes
+///	 according to the size.
+/// </summary>
+///	<example>
+///  FormatByteSize(2560) yields '2.5 KBs'
+/// </example>
 function FormatByteSize(const AByteSize: Longint; const AFormatSettings: TFormatSettings): string;
+
+///	<summary>
+///  The opposite of RTL's LastDelimiter function.
+///  Returns the index of the first occurence in a string of one of the specified characters.
+///  If none of the characters in ADelimiters appear in the string S, the function returns 0.
+/// </summary>
+function FirstDelimiter(const ADelimiters, AString: string; AOffset: Integer = 1): Integer;
 
 implementation
 
@@ -935,6 +946,17 @@ begin
     Result := FormatFloat('0.## KBs', AByteSize / KB, AFormatSettings)
   else
     Result := FormatFloat('0 bytes', AByteSize, AFormatSettings);
+end;
+
+function FirstDelimiter(const ADelimiters, AString: string; AOffset: Integer): Integer;
+var
+  I : integer;
+begin
+  for Result := AOffset to Length(AString) do
+    for I := 1 to Length(ADelimiters) do
+      if ADelimiters[I] = AString[Result] then
+        Exit;
+  Result := 0;
 end;
 
 initialization

@@ -22,7 +22,7 @@ interface
 
 uses
   Classes,
-  Ext, ExtPascal,
+  Ext.Base,
   EF.Tree, EF.ObserverIntf,
   Kitto.Ext.Controller, Kitto.Metadata.DataView, Kitto.Ext.Base,
   Kitto.Ext.DataPanelComposite;
@@ -70,7 +70,7 @@ uses
   SysUtils, StrUtils,
   EF.Localization, EF.StrUtils,
   Kitto.Types, Kitto.Config, Kitto.AccessControl,
-  Kitto.Ext.Session, Kitto.Ext.Filters;
+  Kitto.Ext, Kitto.Ext.Session, Kitto.Ext.Filters;
 
 { TKExtFilterPanel }
 
@@ -109,7 +109,7 @@ var
   var
     LColumnWidth: Double;
   begin
-    Result := TKExtFilterPanel.CreateAndAddTo(Items);
+    Result := TKExtFilterPanel.CreateAndAddToList(Items);
     try
       Result.Border := False;
       Result.Layout := lyForm;
@@ -274,7 +274,7 @@ begin
     LItems := Config.FindNode('Filters/Items');
     if Assigned(LItems) and (LItems.ChildCount > 0) then
     begin
-      FFilterPanel := TKExtFilterPanel.CreateAndAddTo(Items);
+      FFilterPanel := TKExtFilterPanel.CreateAndAddToList(Items);
       FFilterPanel.Region := rgNorth;
       FFilterPanel.OnChange := FilterPanelChange;
       FFilterPanel.Configure(ViewTable, LItems.Parent as TEFNode);

@@ -22,9 +22,9 @@ interface
 
 uses
   SysUtils, Classes, Generics.Collections,
-  ExtPascal, ExtPascalUtils, Ext, ExtForm, ExtUx,
+  Ext.Base, Ext.Form, Ext.Ux,
   EF.Intf, EF.Tree, EF.ObserverIntf, EF.Classes,
-  Kitto.Ext.Controller, Kitto.Metadata.Views;
+  Kitto.Ext, Kitto.JS.Types, Kitto.Ext.Controller, Kitto.Metadata.Views;
 
 const
   DEFAULT_WINDOW_WIDTH = 800;
@@ -803,6 +803,9 @@ begin
   inherited;
   FSubjObserverImpl := TEFSubjectAndObserver.Create;
   Layout := lyBorder;
+
+  { TODO: Testing }
+  Defaults.SetConfigItem('test', 1);
 end;
 
 function TKExtViewportControllerBase.IsSynchronous: Boolean;
@@ -1075,7 +1078,7 @@ begin
   Assert(Assigned(AView));
   Assert(Assigned(AToolbar));
 
-  Result := TKExtActionButton.CreateAndAddTo(AToolbar.Items);
+  Result := TKExtActionButton.CreateAndAddToList(AToolbar.Items);
   Result.Hidden := not AView.GetBoolean('IsVisible', True);
   Result.UniqueId := AUniqueId;
   Result.View := AView;
@@ -1103,7 +1106,7 @@ begin
 
   if Assigned(AConfigNode) and (AConfigNode.ChildCount > 0) then
   begin
-    TExtToolbarSeparator.CreateAndAddTo(AToolbar.Items);
+    TExtToolbarSeparator.CreateAndAddToList(AToolbar.Items);
     for I := 0 to AConfigNode.ChildCount - 1 do
     begin
       LNode := AConfigNode.Children[I];
@@ -1624,14 +1627,14 @@ end;
 
 procedure TKExtWindowToolController.CreateButtons;
 begin
-  FConfirmButton := TKExtButton.CreateAndAddTo(Buttons);
+  FConfirmButton := TKExtButton.CreateAndAddToList(Buttons);
   FConfirmButton.SetIconAndScale('accept', Config.GetString('ButtonScale', 'medium'));
   FConfirmButton.FormBind := True;
   FConfirmButton.Text := Config.GetString('ConfirmButton/Caption', _('Confirm'));
   FConfirmButton.Tooltip := Config.GetString('ConfirmButton/Tooltip', _('Confirm action and close window'));
   FConfirmButton.Handler := JSFunction(GetConfirmJSCode());
 
-  FCancelButton := TKExtButton.CreateAndAddTo(Buttons);
+  FCancelButton := TKExtButton.CreateAndAddToList(Buttons);
   FCancelButton.SetIconAndScale('cancel', Config.GetString('ButtonScale', 'medium'));
   FCancelButton.Text := _('Cancel');
   FCancelButton.Tooltip := _('Cancel changes');

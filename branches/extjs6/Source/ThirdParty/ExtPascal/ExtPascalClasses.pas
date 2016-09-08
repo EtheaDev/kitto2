@@ -3,7 +3,7 @@ unit ExtPascalClasses;
 interface
 
 uses
-  SysUtils, Classes, IniFiles, ExtPascalUtils;
+  SysUtils, Classes, Kitto.JS.Types;
 
 type
   TCustomWebApplication = class;
@@ -12,22 +12,10 @@ type
   TCustomWebSession = class;
 {$M-}
 
-  TObjectCatalog = class(TComponent)
-  private
-    FSession: TCustomWebSession;
-  public
-    function FindExtObject(const AJSName: string): TObject;
-
-    procedure FreeAllExtObjects;
-
-    property Session: TCustomWebSession read FSession;
-  end;
-
 {$M+}
-  TCustomWebSession = class(TObject)
+  TCustomWebSession = class
   private
     FUploadedFileTooBig: Boolean;
-    FObjectCatalog: TObjectCatalog;
     FNameSpace: string;
     FScriptName : string;
     FSessionGUID: string;
@@ -113,7 +101,7 @@ type
     procedure DownloadStream(const Stream : TStream; const FileName : string; AContentType : string = '');
     procedure Refresh; virtual;
     function MethodURI(MethodName : string): string; overload;
-    function MethodURI(Method : TExtProcedure): string; overload;
+    function MethodURI(Method : TJSProcedure): string; overload;
     function EncodeResponse: AnsiString;
     property Browser : TBrowser read FBrowser; // Browser in use in this session
     property ContentType : string read FContentType write FContentType; // HTTP response content-type header, default is 'text/html'
@@ -136,8 +124,6 @@ type
     property ScriptName : string read FScriptName write SetScriptName;
     property UploadPath : string read FUploadPath write FUploadPath; // Upload path below document root. e.g. '/uploads'
     property WebServer : string read GetWebServer; // WebServer in use in this session
-
-    property ObjectCatalog: TObjectCatalog read FObjectCatalog;
 
     procedure CopyContextFrom(const ASession: TCustomWebSession); virtual;
 
@@ -163,7 +149,6 @@ type
 
   TCustomWebApplication = class(TComponent)
   protected
-    FConfig : TCustomIniFile;
     FIcon : string;
     FMaxConns : Integer;
     FMaxIdleMinutes : Word;
@@ -182,7 +167,6 @@ type
     function Reconfig(AReload : Boolean = True) : Boolean; virtual;
     procedure Run(AOwnerThread : TThread = nil); // To enter the main loop
     procedure Terminate; // To terminate the application
-    property Config : TCustomIniFile read FConfig;
     property Icon : string read FIcon write FIcon; // Icon to show in Browser
     property MaxConns : Integer read FMaxConns;
     property MaxIdleMinutes : Word read FMaxIdleMinutes;
@@ -196,7 +180,7 @@ type
 implementation
 
 uses
-  StrUtils, HTTPApp, ExtPascal;
+  StrUtils, Kitto.Utils, EF.StrUtils;
 
 const
   CBrowserNames: array[TBrowser] of string = ('Unknown', 'MSIE', 'Firefox', 'Chrome', 'Safari', 'Opera', 'Konqueror', 'Safari');
@@ -391,8 +375,6 @@ type
 constructor TCustomWebSession.Create(AOwner: TObject);
 begin
   inherited Create;
-  FObjectCatalog := TObjectCatalog.Create(nil);
-  FObjectCatalog.FSession := Self;
   FOwner := AOwner;
   FGarbageCollector := TStringList.Create;
   TStringList(FGarbageCollector).Sorted := True;
@@ -424,7 +406,6 @@ begin
   FCustomResponseHeaders.Free;
   FCookies.Free;
   FGarbageCollector.Free;
-  FreeAndNil(FObjectCatalog);
   inherited;
 end;
 
@@ -595,7 +576,8 @@ procedure TCustomWebSession.HandleRequest(const ARequest : AnsiString); begin
         if CanHandleUrlPath and not HandleUrlPath and not TryToServeFile then
           OnNotFoundError;
     except
-      on E: Exception do OnError(E.Message, PathInfo, string(HTTPDecode(ARequest)));
+      on E: Exception do
+        OnError(E.Message, PathInfo, string(URLDecode(string(ARequest))));
     end;
   if CanCallAfterHandleRequest then AfterHandleRequest;
 end;
@@ -640,7 +622,7 @@ begin
   Result := Result + MethodName;
 end;
 
-function TCustomWebSession.MethodURI(Method : TExtProcedure) : string; begin
+function TCustomWebSession.MethodURI(Method : TJSProcedure) : string; begin
   Result := GetCurrentWebSession.MethodName(@Method);
   if Result <> '' then
     Result := MethodURI(Result)
@@ -667,7 +649,6 @@ end;</code>
 }
 procedure TCustomWebSession.Refresh;
 begin
-  ObjectCatalog.FreeAllExtObjects;
 end;
 
 {
@@ -813,7 +794,7 @@ begin
   end
   else if FUploadedFileTooBig then begin
     UploadResponse(False, Format('File too big. Maximum allowed size is %s.',
-      [FormatByteSize(MaxUploadSize)]));
+      [FormatByteSize(MaxUploadSize, FormatSettings)]));
     Exit;
   end;
   ForceDirectories(ExtractFilePath(FileUploadedFullName));
@@ -888,40 +869,6 @@ end;
 
 procedure TCustomWebApplication.Terminate; begin
   FTerminated := True;
-end;
-
-{ TObjectCatalog }
-
-function TObjectCatalog.FindExtObject(const AJSName: string): TObject;
-var
-  I: Integer;
-begin
-  Assert(AJSName <> '');
-
-  Result := FindComponent(AJSName);
-  if not Assigned(Result) then
-  begin
-    for I := 0 to ComponentCount - 1 do
-    begin
-      if SameText(Components[I].Name, AJSName) then
-        Result := Components[I]
-      else if Components[I] is TExtObject then
-        Result := TExtObject(Components[I]).FindExtObject(AJSName)
-      else
-        Result := Components[I].FindComponent(AJSName);
-      if Assigned(Result) then
-        Break;
-    end;
-  end;
-end;
-
-procedure TObjectCatalog.FreeAllExtObjects;
-var
-  I: Integer;
-begin
-  for I := ComponentCount - 1 downto 0 do
-    Components[I].Free;
-  Assert(ComponentCount = 0);
 end;
 
 end.

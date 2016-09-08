@@ -83,7 +83,7 @@ implementation
 
 uses
   SysUtils, StrUtils,
-  Ext,
+  Ext.Base,
   EF.StrUtils, EF.Macros, EF.Localization,
   Kitto.Config, Kitto.Utils, Kitto.Ext.Utils;
 
@@ -124,7 +124,7 @@ end;
 procedure TKExtTileTabPanel.AddTileSubPanel;
 begin
   inherited;
-  FTilePanel := TKExtTilePanel.CreateAndAddTo(Items);
+  FTilePanel := TKExtTilePanel.CreateAndAddToList(Items);
   FTilePanel.View := View;
   FTilePanel.Config := Config;
   FTilePanel.DoDisplay;

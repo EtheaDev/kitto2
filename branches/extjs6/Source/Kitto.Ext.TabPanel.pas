@@ -21,7 +21,7 @@ unit Kitto.Ext.TabPanel;
 interface
 
 uses
-  Ext,
+  Ext.Base,
   EF.Tree,
   Kitto.Metadata.Views, Kitto.Ext.Base, Kitto.Ext.Controller, Kitto.Ext.Session;
 
@@ -105,7 +105,7 @@ procedure TKExtTabPanelController.InitDefaults;
 begin
   inherited;
   Layout := lyFit;
-  FTabPanel := GetTabPanelClass.CreateAndAddTo(Items);
+  FTabPanel := GetTabPanelClass.CreateAndAddToList(Items);
 end;
 
 procedure TKExtTabPanelController.InitSubController(const AController: IKExtController);

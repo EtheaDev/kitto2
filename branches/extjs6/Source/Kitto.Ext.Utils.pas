@@ -22,9 +22,9 @@ interface
 
 uses
   SysUtils, Classes,
-  Ext, ExtPascal, ExtPascalUtils, ExtMenu,
+  Ext.Base, Ext.Menu,
   EF.ObserverIntf, EF.Tree,
-  Kitto.Ext.Base, Kitto.Ext.Controller, Kitto.Metadata.Views, Kitto.Ext.Session;
+  Kitto.Ext, Kitto.JS.Types, Kitto.Ext.Base, Kitto.Ext.Controller, Kitto.Metadata.Views, Kitto.Ext.Session;
 
 type
   TKExtViewButton = class(TKExtButton)
@@ -89,10 +89,6 @@ type
   end;
 
 function GetTreeViewNodeImageName(const ANode: TKTreeViewNode; const AView: TKView): string;
-
-function DelphiDateTimeFormatToJSDateTimeFormat(const ADateTimeFormat: string): string;
-function DelphiDateFormatToJSDateFormat(const ADateFormat: string): string;
-function DelphiTimeFormatToJSTimeFormat(const ATimeFormat: string): string;
 
 /// <summary>
 ///  Adapts a standard number format string (with , as thousand
@@ -212,7 +208,7 @@ begin
     else
       LIsEnabled := TKConfig.Instance.IsAccessGranted(ANode.GetACURI(FTreeView), ACM_RUN);
 
-    LMenuItem := TKExtViewMenuItem.CreateAndAddTo(AMenu.Items);
+    LMenuItem := TKExtViewMenuItem.CreateAndAddToList(AMenu.Items);
     try
       LMenuItem.Disabled := not LIsEnabled;
       LMenuItem.View := LView;
@@ -264,7 +260,7 @@ begin
   else
     LIsEnabled := TKConfig.Instance.IsAccessGranted(ANode.GetACURI(FTreeView), ACM_RUN);
 
-  LButton := TKExtViewButton.CreateAndAddTo(AContainer.Items);
+  LButton := TKExtViewButton.CreateAndAddToList(AContainer.Items);
   try
     LButton.View := LView;
     if Assigned(LButton.View) then
@@ -380,33 +376,6 @@ begin
     AOwner, AClickHandler);
 end;
 
-function DelphiDateTimeFormatToJSDateTimeFormat(const ADateTimeFormat: string): string;
-var
-  LFormats: TStringDynArray;
-begin
-  LFormats := Split(ADateTimeFormat);
-  Assert(Length(LFormats) = 2);
-
-  Result := DelphiDateFormatToJSDateFormat(LFormats[0]) + ' ' +
-    DelphiTimeFormatToJSTimeFormat(LFormats[1]);
-end;
-
-function DelphiDateFormatToJSDateFormat(const ADateFormat: string): string;
-begin
-  Result := ReplaceText(ADateFormat, 'yyyy', 'Y');
-  Result := ReplaceText(Result, 'yy', 'y');
-  Result := ReplaceText(Result, 'dd', 'd');
-  Result := ReplaceText(Result, 'mm', 'm');
-end;
-
-function DelphiTimeFormatToJSTimeFormat(const ATimeFormat: string): string;
-begin
-  Result := ReplaceText(ATimeFormat, 'hh', 'H');
-  Result := ReplaceText(Result, 'mm', 'i');
-  Result := ReplaceText(Result, 'nn', 'i');
-  Result := ReplaceText(Result, 'ss', 's');
-end;
-
 function AdaptExtNumberFormat(const AFormat: string; const AFormatSettings: TFormatSettings): string;
 var
   I: Integer;
@@ -508,7 +477,7 @@ begin
 
       LStream := TFileStream.Create(LTempFileName, fmOpenRead + fmShareDenyWrite);
       try
-        Session.DownloadStream(LStream, AFileName);
+        GetSession.DownloadStream(LStream, AFileName);
       finally
         FreeAndNil(LStream);
       end;
@@ -518,7 +487,7 @@ begin
     end;
   end
   else
-    Session.DownloadStream(AStream, AFileName);
+    GetSession.DownloadStream(AStream, AFileName);
 end;
 
 end.
