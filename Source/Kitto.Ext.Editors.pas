@@ -311,6 +311,10 @@ type
     FFieldName: string;
     FRecordField: TKViewTableField;
     procedure FieldChange(This: TExtFormField; NewValue, OldValue: string);
+    // Converts a date from javascript's implicit format (the one used when
+    // firing the change handler) to the format expected by SetAsJSONValue
+    // (see FieldChange)
+    function ConvertDate(const AValue: string): string;
   public
     function AsObject: TObject; inline;
     function _AddRef: Integer; stdcall;
@@ -333,6 +337,10 @@ type
     FFieldName: string;
     FRecordField: TKViewTableField;
     procedure FieldChange(This: TExtFormField; NewValue, OldValue: string);
+    // Converts a time from javascript's implicit format (the one used when
+    // firing the change handler) to the format expected by SetAsJSONValue
+    // (see FieldChange)
+    function ConvertTime(const AValue: string): string;
   public
     function AsObject: TObject; inline;
     function _AddRef: Integer; stdcall;
@@ -367,6 +375,10 @@ type
     procedure SetAllowBlank(const AValue: Boolean);
     procedure SetAltTimeFormats(const AValue: string);
     procedure FieldChange(This: TExtFormField; NewValue, OldValue: string);
+    // Converts a date/time from javascript's implicit format (the one used when
+    // firing the change handler) to the format expected by SetAsJSONValue
+    // (see FieldChange)
+    function ConvertDateTime(const AValue: string): string;
   protected
     function GetObjectNamePrefix: string; override;
   public
@@ -722,7 +734,8 @@ type
 implementation
 
 uses
-  Math, StrUtils, Windows, Graphics, Variants, superobject,
+  Math, StrUtils, Windows, Graphics, Variants, DateUtils,
+  superobject,
   EF.SysUtils, EF.StrUtils, EF.Localization, EF.YAML, EF.Types, EF.SQL, EF.JSON,
   EF.DB, EF.Macros, EF.VariantUtils,
   Kitto.Config, Kitto.SQL, Kitto.Metadata, Kitto.Metadata.Models, Kitto.Types,
@@ -1720,10 +1733,22 @@ begin
   Result := Self;
 end;
 
-procedure TKExtFormDateField.FieldChange(This: TExtFormField; NewValue,
-  OldValue: string);
+function TKExtFormDateField.ConvertDate(const AValue: string): string;
+var
+  LDate: TDate;
 begin
-  FRecordField.SetAsJSONValue(NewValue, False, Session.Config.UserFormatSettings);
+  if AValue <> '' then
+  begin
+    LDate := DateOf(JSDateToDateTime(AValue));
+    Result := DateToStr(LDate, Session.Config.UserFormatSettings);
+  end
+  else
+    Result := '';
+end;
+
+procedure TKExtFormDateField.FieldChange(This: TExtFormField; NewValue, OldValue: string);
+begin
+  FRecordField.SetAsJSONValue(ConvertDate(NewValue), False, Session.Config.UserFormatSettings);
 end;
 
 function TKExtFormDateField.GetFieldName: string;
@@ -2396,6 +2421,19 @@ begin
   Result := Self;
 end;
 
+function TKExtFormDateTimeField.ConvertDateTime(const AValue: string): string;
+var
+  LDateTime: TDateTime;
+begin
+  if AValue <> '' then
+  begin
+    LDateTime := Trunc(JSDateToDateTime(AValue));
+    Result := DateTimeToStr(LDateTime, Session.Config.UserFormatSettings);
+  end
+  else
+    Result := '';
+end;
+
 destructor TKExtFormDateTimeField.Destroy;
 begin
   FreeAndNil(FDateConfig);
@@ -2406,7 +2444,7 @@ end;
 procedure TKExtFormDateTimeField.FieldChange(This: TExtFormField; NewValue,
   OldValue: string);
 begin
-  FRecordField.SetAsJSONValue(NewValue, False, Session.Config.UserFormatSettings);
+  FRecordField.SetAsJSONValue(ConvertDateTime(NewValue), False, Session.Config.UserFormatSettings);
 end;
 
 function TKExtFormDateTimeField.GetFieldName: string;
@@ -2524,10 +2562,23 @@ begin
   Result := Self;
 end;
 
+function TKExtFormTimeField.ConvertTime(const AValue: string): string;
+var
+  LTime: TTime;
+begin
+  if AValue <> '' then
+  begin
+    LTime := TimeOf(JSDateToDateTime(AValue));
+    Result := TimeToStr(LTime, Session.Config.UserFormatSettings);
+  end
+  else
+    Result := '';
+end;
+
 procedure TKExtFormTimeField.FieldChange(This: TExtFormField; NewValue,
   OldValue: string);
 begin
-  FRecordField.SetAsJSONValue(NewValue, False, Session.Config.UserFormatSettings);
+  FRecordField.SetAsJSONValue(ConvertTime(NewValue), False, Session.Config.UserFormatSettings);
 end;
 
 function TKExtFormTimeField.GetFieldName: string;
@@ -3546,16 +3597,6 @@ begin
       LDateTimeField.AltTimeFormats := DelphiTimeFormatToJSTimeFormat(Session.Config.JSFormatSettings.ShortTimeFormat);
       if not AIsReadOnly then
         LDateTimeField.AllowBlank := not AViewField.IsRequired;
-//      if not AIsReadOnly then
-//      begin
-//        LDateTimeField.DateConfig := LDateTimeField.JSObject('allowBlank:false');
-//        LDateTimeField.TimeConfig := LDateTimeField.JSObject('allowBlank:false');
-//      end
-//      else
-//      begin
-//        LDateTimeField.DateConfig := LDateTimeField.JSObject('readOnly:true');
-//        LDateTimeField.TimeConfig := LDateTimeField.JSObject('readOnly:true');
-//      end;
       Result := LDateTimeField;
     except
       LDateTimeField.Free;
