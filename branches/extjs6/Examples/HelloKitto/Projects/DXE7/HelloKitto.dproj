@@ -63,7 +63,7 @@
         <Icon_MainIcon>..\HelloKitto_Icon.ico</Icon_MainIcon>
         <DCC_ExeOutput>..\..\Home</DCC_ExeOutput>
         <DCC_DcuOutput>..\..\Lib\$(ProductVersion)\$(Config)\$(Platform)</DCC_DcuOutput>
-        <DCC_UnitSearchPath>..\..\..\..\Source;..\..\..\..\Source\EF;..\..\..\..\Source\ThirdParty;..\..\..\..\Source\ThirdParty\ExtPascal;..\..\..\..\Source\ThirdParty\ExtPascal\ExtJSWrapper;..\..\..\..\Source\ThirdParty\SuperObject;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
+        <DCC_UnitSearchPath>..\..\..\..\Source;..\..\..\..\Source\EF;..\..\..\..\Source\Ext;..\..\..\..\Source\ThirdParty;..\..\..\..\Source\ThirdParty\ExtPascal;..\..\..\..\Source\ThirdParty\SuperObject;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
         <DCC_WriteableConstants>true</DCC_WriteableConstants>
         <DCC_E>false</DCC_E>
         <DCC_ImageBase>00400000</DCC_ImageBase>
@@ -106,7 +106,6 @@
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2_Win32)'!=''">
         <Debugger_RunParams>-a</Debugger_RunParams>
-        <Icon_MainIcon>..\HelloKitto_Icon.ico</Icon_MainIcon>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
         <VerInfo_Locale>1033</VerInfo_Locale>
     </PropertyGroup>
@@ -170,6 +169,12 @@
                     <VersionInfoKeys Name="Comments"/>
                 </VersionInfoKeys>
                 <Excluded_Packages>
+                    <Excluded_Packages Name="D:\Program Files (x86)\FastReports\LibD21\dclfrx21.bpl">File D:\Program Files (x86)\FastReports\LibD21\dclfrx21.bpl not found</Excluded_Packages>
+                    <Excluded_Packages Name="D:\Program Files (x86)\FastReports\LibD21\dclfrxDB21.bpl">File D:\Program Files (x86)\FastReports\LibD21\dclfrxDB21.bpl not found</Excluded_Packages>
+                    <Excluded_Packages Name="D:\Program Files (x86)\FastReports\LibD21\dclfrxe21.bpl">File D:\Program Files (x86)\FastReports\LibD21\dclfrxe21.bpl not found</Excluded_Packages>
+                    <Excluded_Packages Name="D:\Program Files (x86)\FastReports\LibD21\dclfrxtee21.bpl">File D:\Program Files (x86)\FastReports\LibD21\dclfrxtee21.bpl not found</Excluded_Packages>
+                    <Excluded_Packages Name="$(BDSBIN)\dcloffice2k210.bpl">Microsoft Office 2000 Sample Automation Server Wrapper Components</Excluded_Packages>
+                    <Excluded_Packages Name="$(BDSBIN)\dclofficexp210.bpl">Microsoft Office XP Sample Automation Server Wrapper Components</Excluded_Packages>
                 </Excluded_Packages>
             </Delphi.Personality>
             <Platforms>
