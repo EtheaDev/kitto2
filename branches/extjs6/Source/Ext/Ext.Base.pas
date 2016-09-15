@@ -1304,7 +1304,6 @@ type
     // 'output/Ext.Updater.defaults.html#Ext.Updater.defaults-indicatorText'
     FLoadScripts: Boolean;
     FRefreshDelegate: TExtFunction;
-    FRenderer: TExtObject;
     FShowLoadIndicator: string;
     // 'output/Ext.Updater.defaults.html#Ext.Updater.defaults-showLoadIndicator'
     FSslBlankUrl: string;
@@ -1322,7 +1321,6 @@ type
     procedure SetFIndicatorText(Value: string);
     procedure SetFLoadScripts(Value: Boolean);
     procedure SetFRefreshDelegate(Value: TExtFunction);
-    procedure SetFRenderer(Value: TExtObject);
     procedure SetFShowLoadIndicator(Value: string);
     procedure SetFSslBlankUrl(Value: string);
     procedure SetFTimeout(Value: Integer);
@@ -1376,7 +1374,6 @@ type
     property LoadScripts: Boolean read FLoadScripts write SetFLoadScripts;
     property RefreshDelegate: TExtFunction read FRefreshDelegate
       write SetFRefreshDelegate;
-    property Renderer: TExtObject read FRenderer write SetFRenderer;
     property ShowLoadIndicator: string read FShowLoadIndicator
       write SetFShowLoadIndicator;
     property SslBlankUrl: string read FSslBlankUrl write SetFSslBlankUrl;
@@ -1466,10 +1463,6 @@ type
     FDisabled_: Boolean;
     FEl: string;
     FHidden_: Boolean;
-    FInitialConfig: TExtObject;
-    FOwnerCt: TExtContainer;
-    FRefOwner: TExtContainer;
-    FRendered: Boolean;
     FSplit: Boolean;
     FCollapseMode: string;
     FMinWidth: Integer;
@@ -1537,10 +1530,6 @@ type
     procedure SetFDisabled_(Value: Boolean);
     procedure SetFEl(Value: string);
     procedure SetFHidden_(Value: Boolean);
-    procedure SetFInitialConfig(Value: TExtObject);
-    procedure SetOwnerCt(AValue: TExtContainer);
-    procedure SetFRefOwner(Value: TExtContainer);
-    procedure SetFRendered(Value: Boolean);
     procedure SetSplit(const AValue: Boolean);
     procedure SetCollapseMode(const AValue: string);
     procedure SetMinWidth(const AValue: Integer);
@@ -1664,10 +1653,6 @@ type
     property Disabled_: Boolean read FDisabled_ write SetFDisabled_;
     property El: string read FEl write SetFEl;
     property Hidden_: Boolean read FHidden_ write SetFHidden_;
-    property InitialConfig: TExtObject read FInitialConfig write SetFInitialConfig;
-    property OwnerCt: TExtContainer read FOwnerCt write SetOwnerCt;
-    property RefOwner: TExtContainer read FRefOwner write SetFRefOwner;
-    property Rendered: Boolean read FRendered write SetFRendered;
     property Split: Boolean read FSplit write SetSplit;
     property CollapseMode: string read FCollapseMode write SetCollapseMode;
     property MinWidth: Integer read FMinWidth write SetMinWidth;
@@ -3192,7 +3177,6 @@ type
     function Restore: TExtFunction;
     function SetActive(Active: Boolean): TExtFunction;
     function SetAnimateTarget(const AElement: string): TExtFunction; overload;
-    function SetAnimateTarget(El: TExtElement): TExtFunction; overload;
     function Show(const AAnimateTarget: string = ''; const ACallback: TExtFunction = nil;
       const AScope: TExtObject = nil): TExtFunction; overload;
     function Show(const AAnimateTarget: TExtElement; const ACallback: TExtFunction = nil;
@@ -7658,12 +7642,6 @@ begin
   JSCodeBlock(JSName + '.refreshDelegate=' + VarToJSON([Value, true]) + ';');
 end;
 
-procedure TExtUpdater.SetFRenderer(Value: TExtObject);
-begin
-  FRenderer := Value;
-  JSCodeBlock(JSName + '.renderer=' + VarToJSON([Value, false]) + ';');
-end;
-
 procedure TExtUpdater.SetFShowLoadIndicator(Value: string);
 begin
   FShowLoadIndicator := Value;
@@ -7732,7 +7710,6 @@ begin
   inherited;
   FEl := TExtElement.CreateInternal(Self, 'el');
   FIndicatorText := 'output/Ext.Updater.defaults.html#Ext.Updater.defaults-indicatorText';
-  FRenderer := TExtObject.CreateInternal(Self, 'renderer');
   FShowLoadIndicator :=
     'output/Ext.Updater.defaults.html#Ext.Updater.defaults-showLoadIndicator';
   FSslBlankUrl := 'output/Ext.Updater.defaults.html#Ext.Updater.defaults-sslBlankUrl';
@@ -8129,30 +8106,6 @@ begin
   JSCodeBlock(JSName + '.hidden=' + VarToJSON([Value]) + ';');
 end;
 
-procedure TExtComponent.SetFInitialConfig(Value: TExtObject);
-begin
-  FInitialConfig := Value;
-  JSCodeBlock(JSName + '.initialConfig=' + VarToJSON([Value, false]) + ';');
-end;
-
-procedure TExtComponent.SetOwnerCt(AValue: TExtContainer);
-begin
-  FOwnerCt := AValue;
-  SetProperty('ownerCt', AValue);
-end;
-
-procedure TExtComponent.SetFRefOwner(Value: TExtContainer);
-begin
-  FRefOwner := Value;
-  JSCodeBlock(JSName + '.refOwner=' + VarToJSON([Value, false]) + ';');
-end;
-
-procedure TExtComponent.SetFRendered(Value: Boolean);
-begin
-  FRendered := Value;
-  JSCodeBlock(JSName + '.rendered=' + VarToJSON([Value]) + ';');
-end;
-
 procedure TExtComponent.SetSplit(const AValue: Boolean);
 begin
   FSplit := AValue;
@@ -8382,13 +8335,9 @@ begin
   FBubbleEvents := TExtObjectList.CreateInternal(Self, 'bubbleEvents');
   FClearCls := 'x-form-clear-left';
   FDisabledClass := 'x-item-disabled';
-//  FHtmlObject := TExtObject.CreateInternal(Self, 'html');
   FLabelSeparator := ':';
   FPlugins := TExtObjectList.CreateInternal(Self, 'plugins');
   FStateEvents := TExtObjectList.CreateInternal(Self, 'stateEvents');
-  FInitialConfig := TExtObject.CreateInternal(Self, 'initialConfig');
-  FOwnerCt := TExtContainer.CreateInternal(Self, 'ownerCt', False);
-  FRefOwner := TExtContainer.CreateInternal(Self, 'refOwner', False);
   FStyleExtObject := TExtObject.CreateInternal(Self, 'style');
   FLoader := TExtObject.CreateInternal(Self, 'loader');
 end;
@@ -10148,7 +10097,7 @@ end;
 procedure TExtButton._SetHandler(const AValue: TExtFunction);
 begin
   FHandler := AValue;
-  SetConfigItem('handler', 'setHandler', [AValue, True]);
+  SetFunctionConfigItem('handler', 'setHandler', AValue);
 end;
 
 procedure TExtButton.SetHidden(const AValue: Boolean);
@@ -11512,8 +11461,7 @@ end;
 
 procedure TExtSplitButton._SetArrowHandler(const AValue: TExtFunction);
 begin
-  FArrowHandler := AValue;
-  SetConfigItem('arrowHandler', 'setArrowHandler', [AValue, True]);
+  FArrowHandler := SetFunctionConfigItem('arrowHandler', 'setArrowHandler', AValue);
 end;
 
 procedure TExtSplitButton.SetFArrowTooltip(Value: string);
@@ -12299,14 +12247,7 @@ end;
 
 function TExtWindow.SetAnimateTarget(const AElement: string): TExtFunction;
 begin
-  FAnimateTarget := AElement;
-  SetConfigItem('animateTarget', 'setAnimateTarget', [AElement]);
-  Result := Self;
-end;
-
-function TExtWindow.SetAnimateTarget(El: TExtElement): TExtFunction;
-begin
-  JSCode(JSName + '.setAnimateTarget(' + VarToJSON([El, false]) + ');', 'TExtWindow');
+  FAnimateTarget := SetConfigItem('animateTarget', 'setAnimateTarget', AElement);
   Result := Self;
 end;
 

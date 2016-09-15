@@ -316,7 +316,8 @@ end;
 
 procedure TKExtFormPanelController.RecreateEditors;
 begin
-  FFormPanel.Free(True);
+  FFormPanel.Delete;
+  FreeAndNil(FFormPanel);
   CreateFormPanel;
   CreateEditors;
 end;
@@ -1089,7 +1090,10 @@ begin
   Assert(Assigned(FViewTable));
 
   if Assigned(FDetailHostWindow) then
-    FDetailHostWindow.Free(True);
+  begin
+    FDetailHostWindow.Delete;
+    FreeAndNil(FDetailHostWindow);
+  end;
   FDetailHostWindow := TKExtModalWindow.Create(Self);
 
   FDetailHostWindow.Title := _(ViewTable.PluralDisplayLabel);

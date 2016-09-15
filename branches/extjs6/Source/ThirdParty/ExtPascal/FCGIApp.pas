@@ -129,8 +129,7 @@ type
     FRole : TRole; // FastCGI Thread role
     FRequestMethod : TRequestMethod; // Current HTTP request method
     FSocket : TBlockSocket; // Current socket for current FastCGI request
-    FGarbage,
-    FKeepConn : boolean; // Not used
+    FGarbage: Boolean;
     FRequest: RawByteString;
     FRequestHeader : TStringList;
     FSession : TFCGISession;
@@ -322,7 +321,6 @@ begin
   if BeginRequest.Role in [rResponder..rFilter] then begin
     FRequestID := BeginRequest.Header.ID;
     FRole      := BeginRequest.Role;
-    FKeepConn  := BeginRequest.KeepConn; // can't close socket if true
   end
   else
     SendEndRequest(psUnknownRole);

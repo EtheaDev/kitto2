@@ -248,9 +248,6 @@ type
     function SetIconStyle(const ADefaultImageName: string; const AImageName: string = '';
       const ACustomPrefix: string = ''; const ACustomRules: string = ''): string;
 
-    // Test
-    function GetGCObjectCount: Integer;
-
     procedure Flash(const AMessage: string);
 
     property Config: TKConfig read GetConfig;
@@ -375,10 +372,10 @@ uses
   StrUtils, ActiveX, ComObj, FmtBcd,
   Ext.Form,
   EF.SysUtils, EF.StrUtils, EF.Logger, EF.Types,
-  Kitto.Auth, Kitto.Types, Kitto.AccessControl,
+  Kitto.JS, Kitto.Auth, Kitto.Types, Kitto.AccessControl,
   Kitto.Ext.Utils;
 
-function GetSession: TKExtSession;
+function GetExtSession: TKExtSession;
 begin
   Result := TKExtSession(Kitto.Ext.GetSession);
 end;
@@ -401,28 +398,6 @@ begin
     '  if (w != defWidth)' + sLineBreak +
     '    mvp.setAttribute("content", "' + ReplaceStr(FViewportContent, '{width}', '" + w + "') + '");' + sLineBreak +
     '}';
-end;
-
-type
-  PGarbage = ^TGarbage;
-
-  TGarbage = record
-    Garbage: TObject;
-    Persistent: Boolean;
-  end;
-
-function TKExtSession.GetGCObjectCount: Integer;
-var
-  I: Integer;
-  LObject: TObject;
-begin
-  Result := 0;
-  for I := 0 to FGarbageCollector.Count - 1 do
-  begin
-    LObject := FGarbageCollector.Objects[I];
-    if (LObject <> nil) and (PGarbage(LObject)^.Garbage <> nil) then
-      Inc(Result);
-  end;
 end;
 
 function TKExtSession.GetMainPageTemplate: string;
@@ -863,7 +838,7 @@ Duplicates must be handled/ignored. }
 //  SetRequiredLibrary('NumericField');
 //  SetRequiredLibrary('DefaultButton');
   SetRequiredLibrary('kitto-core', True);
-  if GetSession.IsMobileBrowser then
+  if GetExtSession.IsMobileBrowser then
     SetRequiredLibrary('kitto-core-mobile', True)
   else
     SetRequiredLibrary('kitto-core-desktop', True);
@@ -946,8 +921,8 @@ begin
   LIsModal := AForceModal or not Assigned(FViewHost) or AView.GetBoolean('Controller/IsModal');
   if Assigned(FControllerHostWindow) then
   begin
-    FControllerHostWindow.Free(True);
-    FControllerHostWindow := nil;
+    FControllerHostWindow.Delete;
+    FreeAndNil(FControllerHostWindow);
   end;
   if LIsModal then
   begin
@@ -1259,8 +1234,8 @@ begin
   TEFMacroExpansionEngine.OnGetInstance :=
     function: TEFMacroExpansionEngine
     begin
-      if GetSession <> nil then
-        Result := GetSession.Config.MacroExpansionEngine
+      if GetExtSession <> nil then
+        Result := GetExtSession.Config.MacroExpansionEngine
       else
         Result := nil;
     end;
@@ -1268,7 +1243,7 @@ begin
     function: TKConfig
     begin
       if GetSession <> nil then
-        Result := GetSession.Config
+        Result := GetExtSession.Config
       else
         Result := nil;
     end;
@@ -1395,7 +1370,7 @@ end;
 
 function TKExtObjectHelper.GetSession: TKExtSession;
 begin
-  Result := Session as TKExtSession;
+  Result := GetExtSession;
 end;
 
 { TKExtSessionMacroExpander }
@@ -1450,8 +1425,8 @@ end;
 
 function TKExtSessionLocalizationTool.GetGnuGettextInstance: TGnuGettextInstance;
 begin
-  if GetSession <> nil then
-    Result := GetSession.FGettextInstance
+  if GetExtSession <> nil then
+    Result := GetExtSession.FGettextInstance
   else
     Result := gnugettext.DefaultInstance;
 end;

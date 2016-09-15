@@ -743,6 +743,12 @@ type
     procedure SetBoolean(const APath: string; const AValue: Boolean);
 
     /// <summary>
+    ///   Sets a node value by path. The node is created if it doesn't exist
+    ///   yet.
+    /// </summary>
+    procedure SetDateTime(const APath: string; const AValue: TDateTime);
+
+    /// <summary>
     ///   Creates a children for each field in AField and sets its value to the
     ///   field's value. Node names are field names. Existing nodes are
     ///   overwritten.
@@ -1817,6 +1823,9 @@ begin
   if not IsDataTypeLocked then
     FDataType := TEFDataTypeFactory.Instance.GetDataType('Object');
   Value := DataType.ObjectToValue(AValue);
+  // Setting Value will revert the data type to integer.
+  if not IsDataTypeLocked then
+    FDataType := TEFDataTypeFactory.Instance.GetDataType('Object');
 end;
 
 procedure TEFNode.SetAsPair(const AValue: TEFPair);
@@ -2540,6 +2549,11 @@ end;
 procedure TEFTree.SetChildrenAsStrings(const APath: string; const AStrings: TStrings);
 begin
   GetNode(APath, True).SetChildStrings(AStrings);
+end;
+
+procedure TEFTree.SetDateTime(const APath: string; const AValue: TDateTime);
+begin
+  GetNode(APath, True).AsDateTime := AValue;
 end;
 
 function TEFTree.SetFloat(const APath: string; const AValue: Double): TEFNode;

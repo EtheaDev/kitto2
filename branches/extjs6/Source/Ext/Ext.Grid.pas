@@ -58,7 +58,6 @@ type
     FTooltip: string;
     FWidth: Integer;
     FXtype: string;
-    FRenderer_: TExtFunction;
     FRendererExtFunction: TExtFunction;
     procedure SetAlign(const AValue: TExtGridColumnAlign);
     procedure SetCss(const AValue: string);
@@ -82,7 +81,6 @@ type
     procedure SetFTooltip(Value: string);
     procedure SetWidth(const AValue: Integer);
     procedure SetFXtype(Value: string);
-    procedure SetFRenderer_(Value: TExtFunction);
     procedure SetRendererExtFunction(const AValue: TExtFunction);
   protected
     procedure InitDefaults; override;
@@ -112,7 +110,6 @@ type
     property Tooltip: string read FTooltip write SetFTooltip;
     property Width: Integer read FWidth write SetWidth;
     property Xtype: string read FXtype write SetFXtype;
-    property Renderer_: TExtFunction read FRenderer_ write SetFRenderer_;
     property RendererExtFunction: TExtFunction read FRendererExtFunction
       write SetRendererExtFunction;
   end;
@@ -1045,12 +1042,6 @@ procedure TExtGridColumn.SetFXtype(Value: string);
 begin
   FXtype := Value;
   JSCode('xtype:' + VarToJSON([Value]));
-end;
-
-procedure TExtGridColumn.SetFRenderer_(Value: TExtFunction);
-begin
-  FRenderer_ := Value;
-  JSCode(JSName + '.renderer=' + VarToJSON([Value, true]) + ';');
 end;
 
 procedure TExtGridColumn.SetRendererExtFunction(const AValue: TExtFunction);

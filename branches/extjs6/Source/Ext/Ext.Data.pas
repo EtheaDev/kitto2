@@ -170,7 +170,6 @@ type
     FAttributes: TExtObject;
     FChildren: TExtObjectList;
     FId_: string;
-    FParentNode: TExtDataNode;
     FOnAppend: TExtDataNodeOnAppend;
     FOnBeforeappend: TExtDataNodeOnBeforeappend;
     FOnBeforeinsert: TExtDataNodeOnBeforeinsert;
@@ -183,7 +182,6 @@ type
     procedure SetLeaf(const AValue: Boolean);
     procedure SetFAttributes(Value: TExtObject);
     procedure SetFId_(Value: string);
-    procedure SetFParentNode(Value: TExtDataNode);
     procedure SetFOnAppend(Value: TExtDataNodeOnAppend);
     procedure SetFOnBeforeappend(Value: TExtDataNodeOnBeforeappend);
     procedure SetFOnBeforeinsert(Value: TExtDataNodeOnBeforeinsert);
@@ -204,7 +202,6 @@ type
     function Cascade(Fn: TExtFunction; Scope: TExtObject = nil;
       Args: TExtObjectList = nil): TExtFunction;
     function Contains(Node: TExtDataNode): TExtFunction;
-    function DestroyJS: TExtFunction; override;
     function EachChild(Fn: TExtFunction; Scope: TExtObject = nil;
       Args: TExtObjectList = nil): TExtFunction;
     function FindChild(Attribute: string; Value: string; Deep: Boolean = false)
@@ -234,7 +231,6 @@ type
     property Attributes: TExtObject read FAttributes write SetFAttributes;
     property Children: TExtObjectList read FChildren;
     property Id_: string read FId_ write SetFId_;
-    property ParentNode: TExtDataNode read FParentNode write SetFParentNode;
     property OnAppend: TExtDataNodeOnAppend read FOnAppend write SetFOnAppend;
     property OnBeforeappend: TExtDataNodeOnBeforeappend read FOnBeforeappend
       write SetFOnBeforeappend;
@@ -357,7 +353,6 @@ type
     function Collect(DataIndex: string; AllowNull: Boolean = false;
       BypassFilter: Boolean = false): TExtFunction;
     function CommitChanges: TExtFunction;
-    function DestroyJS: TExtFunction; override;
     function Each(Fn: TExtFunction; Scope: TExtObject = nil): TExtFunction;
     function Filter(Field: string; Value: string; AnyMatch: Boolean = false;
       CaseSensitive: Boolean = false; ExactMatch: Boolean = false): TExtFunction;
@@ -554,7 +549,6 @@ type
     procedure HandleEvent(const AEvtName: string); override;
   public
     class function JSClassName: string; override;
-    function DestroyJS: TExtFunction; override;
     function IsApiAction(ExtDataApiCREATEREADUPDATEDESTROY: string): TExtFunction;
     function Load(Params: TExtObject; Reader: TExtObject; Callback: TExtObject;
       Scope: TExtObject; Arg: TExtObject): TExtFunction;
@@ -1066,12 +1060,6 @@ begin
   JSCode(JSName + '.id=' + VarToJSON([Value]) + ';');
 end;
 
-procedure TExtDataNode.SetFParentNode(Value: TExtDataNode);
-begin
-  FParentNode := Value;
-  JSCode(JSName + '.parentNode=' + VarToJSON([Value, false]) + ';');
-end;
-
 procedure TExtDataNode.SetFOnAppend(Value: TExtDataNodeOnAppend);
 begin
   if Assigned(FOnAppend) then
@@ -1162,7 +1150,7 @@ begin
   inherited;
   FAttributes := TExtObject.CreateInternal(Self, 'attributes');
   FChildren := TExtObjectList.CreateInternal(Self, 'children');
-  FParentNode := TExtDataNode.CreateInternal(Self, 'parentNode', False);
+  SetConfigItem('children', FChildren);
 end;
 
 function TExtDataNode.AppendChild(const ANode: TExtDataNode): TExtFunction;
@@ -1196,12 +1184,6 @@ end;
 function TExtDataNode.Contains(Node: TExtDataNode): TExtFunction;
 begin
   JSCode(JSName + '.contains(' + VarToJSON([Node, false]) + ');', 'TExtDataNode');
-  Result := Self;
-end;
-
-function TExtDataNode.DestroyJS: TExtFunction;
-begin
-  JSCode(JSName + '.destroy();', 'TExtDataNode');
   Result := Self;
 end;
 
@@ -1678,12 +1660,6 @@ end;
 function TExtDataStore.CommitChanges: TExtFunction;
 begin
   JSCode(JSName + '.commitChanges();', 'TExtDataStore');
-  Result := Self;
-end;
-
-function TExtDataStore.DestroyJS: TExtFunction;
-begin
-  JSCode(JSName + '.destroy();', 'TExtDataStore');
   Result := Self;
 end;
 
@@ -2219,12 +2195,6 @@ procedure TExtDataProxy.InitDefaults;
 begin
   inherited;
   FApi := TExtObject.CreateInternal(Self, 'api');
-end;
-
-function TExtDataProxy.DestroyJS: TExtFunction;
-begin
-  JSCode(JSName + '.destroy();', 'TExtDataDataProxy');
-  Result := Self;
 end;
 
 function TExtDataProxy.IsApiAction(ExtDataApiCREATEREADUPDATEDESTROY: string)

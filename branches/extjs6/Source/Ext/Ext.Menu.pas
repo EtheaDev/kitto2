@@ -385,8 +385,7 @@ end;
 procedure TExtMenuBaseItem._SetHandler(const AValue: TExtFunction);
 begin
   FHandler.Free;
-  FHandler := AValue;
-  SetConfigItem('handler', 'setHandler', [AValue, True]);
+  FHandler := SetFunctionConfigItem('handler', 'setHandler', AValue);
 end;
 
 procedure TExtMenuBaseItem.SetFHideOnClick(Value: Boolean);

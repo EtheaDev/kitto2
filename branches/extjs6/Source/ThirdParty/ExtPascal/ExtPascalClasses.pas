@@ -39,7 +39,6 @@ type
     FCustomResponseHeaders : TStrings;
     FFileUploaded : string;
     FFileUploadedFullName : string;
-    FGarbageCollector : TStrings; // Object list to free when the session ends
     FIsAjax : Boolean;
     FIsDownload : Boolean;
     FIsUpload : Boolean;
@@ -376,8 +375,6 @@ constructor TCustomWebSession.Create(AOwner: TObject);
 begin
   inherited Create;
   FOwner := AOwner;
-  FGarbageCollector := TStringList.Create;
-  TStringList(FGarbageCollector).Sorted := True;
   FMaxUploadSize := MaxLongInt;
   FCookies := TStringList.Create;
   FCookies.StrictDelimiter := True;
@@ -405,7 +402,6 @@ begin
   FQueries.Free;
   FCustomResponseHeaders.Free;
   FCookies.Free;
-  FGarbageCollector.Free;
   inherited;
 end;
 

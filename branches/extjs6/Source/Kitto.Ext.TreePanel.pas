@@ -30,8 +30,6 @@ type
   private
     FView: TKView;
     procedure SetView(const AValue: TKView);
-  protected
-    procedure InitDefaults; override;
   public
     property View: TKView read FView write SetView;
   end;
@@ -76,12 +74,6 @@ uses
 
 { TKExtTreeTreeNode }
 
-procedure TKExtTreeTreeNode.InitDefaults;
-begin
-  inherited;
-  SetConfigItem('viewId', '');
-end;
-
 procedure TKExtTreeTreeNode.SetView(const AValue: TKView);
 begin
   FView := AValue;
@@ -123,6 +115,7 @@ end;
 procedure TKExtTreePanel.InitDefaults;
 begin
   inherited;
+  Root := TExtTreeTreeNode.CreateInline(Self);
   RootVisible := False;
   AutoScroll := True;
   Border := False;

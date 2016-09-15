@@ -1173,7 +1173,7 @@ type
     procedure SetFAutoCreate(Value: string);
     procedure _SetDisabledDates(const AValue: TExtObjectList);
     procedure SetFDisabledDatesText(Value: string);
-    procedure _SetDisabledDays(Value: TExtObjectList);
+    procedure _SetDisabledDays(const AValue: TExtObjectList);
     procedure SetFDisabledDaysText(Value: string);
     procedure SetFormat(const AValue: string);
     procedure SetFInvalidText(Value: string);
@@ -4104,11 +4104,10 @@ begin
   JSCodeBlock('disabledDatesText:' + VarToJSON([Value]));
 end;
 
-procedure TExtFormDateField._SetDisabledDays(Value: TExtObjectList);
+procedure TExtFormDateField._SetDisabledDays(const AValue: TExtObjectList);
 begin
   FDisabledDays.Free;
-  FDisabledDays := Value;
-  SetConfigItem('disabledDays', 'setDisabledDays', [FDisabledDays, False]);
+  FDisabledDays := TExtObjectList(SetConfigItem('disabledDays', 'setDisabledDays', AValue));
 end;
 
 procedure TExtFormDateField.SetFDisabledDaysText(Value: string);

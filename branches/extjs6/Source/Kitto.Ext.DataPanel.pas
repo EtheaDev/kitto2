@@ -370,7 +370,10 @@ begin
   Assert(ViewTable <> nil);
 
   if Assigned(FEditHostWindow) then
-    FEditHostWindow.Free(True);
+  begin
+    FEditHostWindow.Delete;
+    FreeAndNil(FEditHostWindow);
+  end;
   FEditHostWindow := TKExtModalWindow.Create(Self);
 
   //FEditHostWindow.ResizeHandles := 'n s';
