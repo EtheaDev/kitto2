@@ -105,7 +105,7 @@ procedure TKExtTabPanelController.InitDefaults;
 begin
   inherited;
   Layout := lyFit;
-  FTabPanel := GetTabPanelClass.CreateAndAddToList(Items);
+  FTabPanel := GetTabPanelClass.CreateAndAddToArray(Items);
 end;
 
 procedure TKExtTabPanelController.InitSubController(const AController: IKExtController);

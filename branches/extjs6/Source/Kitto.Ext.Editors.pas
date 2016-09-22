@@ -1127,7 +1127,7 @@ begin
 
   FinalizeCurrentEditPage;
 
-  LPageBreak := TKExtEditPage.CreateAndAddToList(FTabPanel.Items);
+  LPageBreak := TKExtEditPage.CreateAndAddToArray(FTabPanel.Items);
   LPageBreak.EditPanel := FFormPanel;
   LPageBreak.DataRecord := FDataRecord;
   LPageBreak.UnexpandedTitle := ATitle;
@@ -2022,7 +2022,7 @@ begin
       LReader.RootProperty := 'Root';
       LReader.TotalProperty := 'Total';
       for I := 0 to FServerStore.Header.FieldCount - 1 do
-        with TExtDataField.CreateAndAddToList(Store.Proxy.Reader.Fields) do
+        with TExtDataField.CreateAndAddToArray(Store.Proxy.Reader.Fields) do
           Name := FServerStore.Header.Fields[I].FieldName;
       ValueField := Join(FServerStore.Key.GetFieldNames, TKConfig.Instance.MultiFieldSeparator);
       DisplayField := AViewField.ModelField.ReferencedModel.CaptionField.FieldName;
@@ -2819,19 +2819,19 @@ begin
 
   LIsPicture := AViewField.IsPicture;
 
-  LPanel := TExtPanel.CreateAndAddToList(Items);
+  LPanel := TExtPanel.CreateAndAddToArray(Items);
   FImageWidth := AViewField.GetInteger('IsPicture/Thumbnail/Width', 100);
   FImageHeight := AViewField.GetInteger('IsPicture/Thumbnail/Height', 100);
 
   if LIsPicture then
   begin
     LPanel.Layout := lyColumn;
-    FPictureView := TExtPanel.CreateAndAddToList(LPanel.Items);
+    FPictureView := TExtPanel.CreateAndAddToArray(LPanel.Items);
     FPictureView.Frame := True;
     FPictureView.Loader.SetConfigItem('url', MethodURI(GetImageContent));
     FPictureView.OnAfterrender := PictureViewAfterRender;
 
-    LToolbar := TKExtToolbar.CreateAndAddToList(LPanel.Items);
+    LToolbar := TKExtToolbar.CreateAndAddToArray(LPanel.Items);
     // Version below puts the toolbar at the bottom (in which case we should adjust the height as well)
     //LToolbar := TKExtToolbar.Create;
     //FPictureView.Bbar := LToolbar;
@@ -2839,16 +2839,16 @@ begin
   else
   begin
     LPanel.Layout := lyHbox;
-    FDescriptionField := TExtFormTextField.CreateAndAddToList(LPanel.Items);
+    FDescriptionField := TExtFormTextField.CreateAndAddToArray(LPanel.Items);
     FDescriptionField.ReadOnly := True;
     FDescriptionField.Cls := 'x-form-readonly';
 
-    LToolbar := TKExtToolbar.CreateAndAddToList(LPanel.Items);
+    LToolbar := TKExtToolbar.CreateAndAddToArray(LPanel.Items);
   end;
 
   LToolbar.Style := 'background: none; border: none;';
 
-  FDownloadButton := TKExtButton.CreateAndAddToList(LToolbar.Items);
+  FDownloadButton := TKExtButton.CreateAndAddToArray(LToolbar.Items);
   FDownloadButton.SetIconAndScale('download');
   FDownloadButton.Tooltip := _('Download file');
   FDownloadButton.Handler := Ajax(StartDownload);
@@ -2856,13 +2856,13 @@ begin
   LButtonCount := 1;
   if not FIsReadOnly then
   begin
-    LUploadButton := TKExtButton.CreateAndAddToList(LToolbar.Items);
+    LUploadButton := TKExtButton.CreateAndAddToArray(LToolbar.Items);
     LUploadButton.SetIconAndScale('upload');
     LUploadButton.Tooltip := _('Upload file');
     LUploadButton.Handler := Ajax(ShowUploadFileDialog);
     Inc(LButtonCount);
 
-    FClearButton := TKExtButton.CreateAndAddToList(LToolbar.Items);
+    FClearButton := TKExtButton.CreateAndAddToArray(LToolbar.Items);
     FClearButton.SetIconAndScale('clear');
     FClearButton.Tooltip := _('Clear field');
     FClearButton.Handler := Ajax(Clear);
@@ -2967,18 +2967,18 @@ begin
   FWindow.Closable := True;
   FWindow.Title := _('File upload');
 
-  LFormPanel := TExtFormFormPanel.CreateAndAddToList(FWindow.Items);
+  LFormPanel := TExtFormFormPanel.CreateAndAddToArray(FWindow.Items);
   LFormPanel.Region := rgCenter;
   LFormPanel.Frame := True;
   LFormPanel.FileUpload := True;
   LFormPanel.LabelAlign := laRight;
   LFormPanel.LabelWidth := 50;
-  LUploadFormField := TKExtFormFileUploadField.CreateAndAddToList(LFormPanel.Items);
+  LUploadFormField := TKExtFormFileUploadField.CreateAndAddToArray(LFormPanel.Items);
   LUploadFormField.FieldLabel := _(FRecordField.ViewField.DisplayLabel);
   LUploadFormField.EmptyText := _('Select a file to upload');
   LUploadFormField.AllowBlank := False;
   LUploadFormField.Anchor := '0 5 0 0';
-  LUploadButton := TKExtButton.CreateAndAddToList(LFormPanel.Buttons);
+  LUploadButton := TKExtButton.CreateAndAddToArray(LFormPanel.Buttons);
   LUploadButton.Text := _('Upload');
   LUploadButton.SetIconAndScale('Upload', IfThen(Session.IsMobileBrowser,'medium', 'small'));
 

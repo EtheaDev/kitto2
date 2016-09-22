@@ -176,7 +176,7 @@ end;
 procedure TKExtGridPanel.InitDefaults;
 begin
   inherited;
-  FGridPanel := TExtGridGridPanel.CreateAndAddToList(Items);
+  FGridPanel := TExtGridGridPanel.CreateAndAddToArray(Items);
   FGridPanel.Border := False;
   FGridPanel.Header := False;
   FGridPanel.Region := rgCenter;
@@ -414,13 +414,13 @@ var
       if LDataType is TEFBooleanDataType then
       begin
         // Don't use TExtGridBooleanColumn here, otherwise the renderer will be inneffective.
-        Result := TExtGridColumn.CreateAndAddToList(FGridPanel.Columns);
+        Result := TExtGridColumn.CreateAndAddToArray(FGridPanel.Columns);
         if not SetRenderer(Result) then
           Result.Renderer := 'checkboxRenderer';
       end
       else if LDataType is TEFDateDataType then
       begin
-        Result := TExtGridDateColumn.CreateAndAddToList(FGridPanel.Columns);
+        Result := TExtGridDateColumn.CreateAndAddToArray(FGridPanel.Columns);
         LFormat := GetDisplayFormat;
         if LFormat = '' then
           LFormat := Session.Config.UserFormatSettings.ShortDateFormat;
@@ -428,7 +428,7 @@ var
       end
       else if LDataType is TEFTimeDataType then
       begin
-        Result := TExtGridColumn.CreateAndAddToList(FGridPanel.Columns);
+        Result := TExtGridColumn.CreateAndAddToArray(FGridPanel.Columns);
         if not SetRenderer(Result) then
         begin
           LFormat := GetDisplayFormat;
@@ -440,7 +440,7 @@ var
       end
       else if LDataType is TEFDateTimeDataType then
       begin
-        Result := TExtGridDateColumn.CreateAndAddToList(FGridPanel.Columns);
+        Result := TExtGridDateColumn.CreateAndAddToArray(FGridPanel.Columns);
         LFormat := GetDisplayFormat;
         if LFormat = '' then
           LFormat := Session.Config.UserFormatSettings.ShortDateFormat + ' ' +
@@ -449,7 +449,7 @@ var
       end
       else if LDataType is TEFIntegerDataType then
       begin
-        Result := TExtGridNumberColumn.CreateAndAddToList(FGridPanel.Columns);
+        Result := TExtGridNumberColumn.CreateAndAddToArray(FGridPanel.Columns);
         if not SetRenderer(Result) then
         begin
           LFormat := GetDisplayFormat;
@@ -460,7 +460,7 @@ var
       end
       else if (LDataType is TEFFloatDataType) or (LDataType is TEFDecimalDataType) then
       begin
-        Result := TExtGridNumberColumn.CreateAndAddToList(FGridPanel.Columns);
+        Result := TExtGridNumberColumn.CreateAndAddToArray(FGridPanel.Columns);
         if not SetRenderer(Result) then
         begin
           LFormat := GetDisplayFormat;
@@ -471,7 +471,7 @@ var
       end
       else if LDataType is TEFCurrencyDataType then
       begin
-        Result := TExtGridNumberColumn.CreateAndAddToList(FGridPanel.Columns);
+        Result := TExtGridNumberColumn.CreateAndAddToArray(FGridPanel.Columns);
         if not SetRenderer(Result) then
         begin
           { TODO : format as money? }
@@ -483,7 +483,7 @@ var
       end
       else
       begin
-        Result := TExtGridColumn.CreateAndAddToList(FGridPanel.Columns);
+        Result := TExtGridColumn.CreateAndAddToArray(FGridPanel.Columns);
         SetRenderer(Result);
       end;
 
@@ -643,7 +643,7 @@ begin
 
   if FInplaceEditing then
   begin
-    LCellEditing := TExtGridPluginCellEditing.CreateAndAddToList(FGridPanel.Plugins);
+    LCellEditing := TExtGridPluginCellEditing.CreateAndAddToArray(FGridPanel.Plugins);
     LCellEditing.ClicksToEdit := 1;
   end;
 
@@ -690,14 +690,14 @@ begin
 
   if IsLookupMode then
   begin
-    FConfirmButton := TKExtButton.CreateAndAddToList(Buttons);
+    FConfirmButton := TKExtButton.CreateAndAddToArray(Buttons);
     FConfirmButton.SetIconAndScale('accept', Config.GetString('ButtonScale', 'medium'));
     FConfirmButton.Text := Config.GetString('LookupConfirmButton/Caption', _('Select'));
     FConfirmButton.Tooltip := Config.GetString('LookupConfirmButton/Tooltip', _('Select the current record and close the window'));
     FConfirmButton.On('click', GetSelectCall(ConfirmLookup));
     FButtonsRequiringSelection.Add(FConfirmButton);
 
-    FCancelButton := TKExtButton.CreateAndAddToList(Buttons);
+    FCancelButton := TKExtButton.CreateAndAddToArray(Buttons);
     FCancelButton.SetIconAndScale('cancel', Config.GetString('ButtonScale', 'medium'));
     FCancelButton.Text := _('Cancel');
     FCancelButton.Tooltip := _('Close the window without selecting a record');
@@ -705,14 +705,14 @@ begin
   end
   else if FInplaceEditing then
   begin
-    FConfirmButton := TKExtButton.CreateAndAddToList(Buttons);
+    FConfirmButton := TKExtButton.CreateAndAddToArray(Buttons);
     FConfirmButton.SetIconAndScale('accept', Config.GetString('ButtonScale', 'medium'));
     FConfirmButton.Text := Config.GetString('ConfirmButton/Caption', _('Save'));
     FConfirmButton.Tooltip := Config.GetString('ConfirmButton/Tooltip', _('Save changes and finish editing'));
     FConfirmButton.Hidden := True;
     FConfirmButton.On('click', Ajax(ConfirmInplaceChanges));
 
-    FCancelButton := TKExtButton.CreateAndAddToList(Buttons);
+    FCancelButton := TKExtButton.CreateAndAddToArray(Buttons);
     FCancelButton.SetIconAndScale('cancel', Config.GetString('ButtonScale', 'medium'));
     FCancelButton.Text := _('Cancel');
     FCancelButton.Tooltip := _('Cancel changes');

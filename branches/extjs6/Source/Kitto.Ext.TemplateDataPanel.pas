@@ -108,7 +108,7 @@ end;
 procedure TKExtTemplateDataPanel.InitDefaults;
 begin
   inherited;
-  FDataView := TExtDataView.CreateAndAddToList(Items);
+  FDataView := TExtDataView.CreateAndAddToArray(Items);
   FDataView.EmptyText := _('No data to display.');
   FDataView.Region := rgCenter;
   FDataView.AutoScroll := True;

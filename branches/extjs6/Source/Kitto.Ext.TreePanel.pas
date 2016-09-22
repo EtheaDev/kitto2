@@ -101,7 +101,7 @@ begin
   inherited;
   Layout := lyFit;
 
-  FTreePanel := TKExtTreePanel.CreateAndAddToList(Items);
+  FTreePanel := TKExtTreePanel.CreateAndAddToArray(Items);
 end;
 
 { TKExtTreePanel }

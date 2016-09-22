@@ -214,7 +214,7 @@ begin
     FDetailButtons := TObjectList<TKExtDetailFormButton>.Create(False);
     for I := 0 to ViewTable.DetailTableCount - 1 do
     begin
-      FDetailButtons.Add(TKExtDetailFormButton.CreateAndAddToList(FDetailToolbar.Items));
+      FDetailButtons.Add(TKExtDetailFormButton.CreateAndAddToArray(FDetailToolbar.Items));
       FDetailButtons[I].ServerStore := StoreRecord.DetailStores[I];
       FDetailButtons[I].ViewTable := ViewTable.DetailTables[I];
     end;
@@ -238,7 +238,7 @@ begin
 
   if ViewTable.DetailTableCount > 0 then
   begin
-    FDetailBottomPanel := TExtTabPanel.CreateAndAddToList(Items);
+    FDetailBottomPanel := TExtTabPanel.CreateAndAddToArray(Items);
     FDetailBottomPanel.Split := True;
     FDetailBottomPanel.Region := rgSouth;
     FDetailBottomPanel.Border := False;
@@ -271,7 +271,7 @@ begin
     for I := 0 to ViewTable.DetailTableCount - 1 do
     begin
       FDetailControllers.Add(nil);
-      LDetailPanel := TKExtDetailPanel.CreateAndAddToList(AContainer.Items);
+      LDetailPanel := TKExtDetailPanel.CreateAndAddToArray(AContainer.Items);
       LDetailPanel.ServerStore := StoreRecord.DetailStores[I];
       LDetailPanel.ViewTable := ViewTable.DetailTables[I];
     end;
@@ -678,7 +678,7 @@ begin
   LApplyButtonNode := ViewTable.FindNode('Controller/FormController/ApplyButton');
   if Assigned(LApplyButtonNode) and not ViewTable.IsDetail then
   begin
-    FApplyButton := TKExtButton.CreateAndAddToList(Buttons);
+    FApplyButton := TKExtButton.CreateAndAddToArray(Buttons);
     FApplyButton.SetIconAndScale('accept', Config.GetString('ButtonScale', 'medium'));
 
     if ViewTable.DetailTableCount > 0 then
@@ -695,7 +695,7 @@ begin
     LCloneButtonNode := Config.FindNode('CloneButton');
     if Assigned(LCloneButtonNode) then
     begin
-      FCloneButton := TKExtButton.CreateAndAddToList(Buttons);
+      FCloneButton := TKExtButton.CreateAndAddToArray(Buttons);
       FCloneButton.SetIconAndScale('accept_clone', Config.GetString('ButtonScale', 'medium'));
       FCloneButton.Text := LCloneButtonNode.GetString('Caption', _('Save & Clone'));
       FCloneButton.Tooltip := LCloneButtonNode.GetString('Tooltip', _('Save changes and create a new clone record'));
@@ -706,7 +706,7 @@ begin
   end;
 
   // Confirm button
-  FConfirmButton := TKExtButton.CreateAndAddToList(Buttons);
+  FConfirmButton := TKExtButton.CreateAndAddToArray(Buttons);
   if ViewTable.IsDetail then
     FConfirmButton.SetIconAndScale('accept', Config.GetString('ButtonScale', 'medium'))
   else if ViewTable.DetailTableCount = 0 then
@@ -730,21 +730,21 @@ begin
 
   if IsViewMode then
   begin
-    FEditButton := TKExtButton.CreateAndAddToList(Buttons);
+    FEditButton := TKExtButton.CreateAndAddToArray(Buttons);
     FEditButton.SetIconAndScale('edit_record', Config.GetString('ButtonScale', 'medium'));
     FEditButton.Text := Config.GetString('ConfirmButton/Caption', _('Edit'));
     FEditButton.Tooltip := Config.GetString('ConfirmButton/Tooltip', _('Switch to edit mode'));
     FEditButton.Hidden := FIsReadOnly;
   end;
 
-  FCancelButton := TKExtButton.CreateAndAddToList(Buttons);
+  FCancelButton := TKExtButton.CreateAndAddToArray(Buttons);
   FCancelButton.SetIconAndScale('cancel', Config.GetString('ButtonScale', 'medium'));
   FCancelButton.Text := Config.GetString('CancelButton/Caption', _('Cancel'));
   FCancelButton.Tooltip := Config.GetString('CancelButton/Tooltip', _('Cancel changes'));
   FCancelButton.Handler := Ajax(CancelChanges);
   FCancelButton.Hidden := FIsReadOnly or IsViewMode;
 
-  FCloseButton := TKExtButton.CreateAndAddToList(Buttons);
+  FCloseButton := TKExtButton.CreateAndAddToArray(Buttons);
   FCloseButton.SetIconAndScale('close', Config.GetString('ButtonScale', 'medium'));
   FCloseButton.Text := Config.GetString('CloseButton/Caption', _('Close'));
   FCloseButton.Tooltip := Config.GetString('CloseButton/Tooltip', _('Close this panel'));
@@ -848,7 +848,7 @@ begin
   Cls := 'x-panel-mc'; // Sets correct theme background color same as panel
   LDetailStyle := GetDetailStyle;
 
-  FFormPanel := TKExtEditPanel.CreateAndAddToList(Items);
+  FFormPanel := TKExtEditPanel.CreateAndAddToArray(Items);
   FFormPanel.Region := rgCenter;
   FFormPanel.Border := False;
   FFormPanel.Header := False;
@@ -860,13 +860,13 @@ begin
   FFormPanel.LabelAlign := LabelAlign;
   if ((ViewTable.DetailTableCount > 0) and SameText(LDetailStyle, 'Tabs')) or LayoutContainsPageBreaks then
   begin
-    FTabPanel := TExtTabPanel.CreateAndAddToList(FFormPanel.Items);
+    FTabPanel := TExtTabPanel.CreateAndAddToArray(FFormPanel.Items);
     FTabPanel.Border := False;
     FTabPanel.AutoScroll := False;
     FTabPanel.BodyStyle := 'background:none'; // Respects parent's background color.
     FTabPanel.DeferredRender := False;
     FTabPanel.EnableTabScroll := True;
-    FMainPagePanel := TKExtEditPage.CreateAndAddToList(FTabPanel.Items);
+    FMainPagePanel := TKExtEditPage.CreateAndAddToArray(FTabPanel.Items);
     FMainPagePanel.Title := _(ViewTable.DisplayLabel);
     if Config.GetBoolean('Sys/ShowIcon', True) then
       FMainPagePanel.IconCls := Session.SetViewIconStyle(ViewTable.View);
@@ -879,7 +879,7 @@ begin
   else
   begin
     FTabPanel := nil;
-    FMainPagePanel := TKExtEditPage.CreateAndAddToList(FFormPanel.Items);
+    FMainPagePanel := TKExtEditPage.CreateAndAddToArray(FFormPanel.Items);
     FMainPagePanel.Region := rgCenter;
     FMainPagePanel.EditPanel := FFormPanel;
     FMainPagePanel.LabelAlign := LabelAlign;

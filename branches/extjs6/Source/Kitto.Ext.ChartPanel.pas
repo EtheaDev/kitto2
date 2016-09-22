@@ -173,11 +173,11 @@ var
 
     if FChart is TExtChartPieChart then
     begin
-      LSeries := TExtChartPieSeries.CreateAndAddToList(FChart.Series);
+      LSeries := TExtChartPieSeries.CreateAndAddToArray(FChart.Series);
     end
     else
     begin
-      LSeries := TExtChartCartesianSeries.CreateAndAddToList(FChart.Series);
+      LSeries := TExtChartCartesianSeries.CreateAndAddToArray(FChart.Series);
       LOption := AConfigNode.GetString('XField');
       if LOption <> '' then
         TExtChartCartesianSeries(LSeries).XField := LOption;
@@ -271,32 +271,32 @@ begin
 
   if SameText(AChartType, 'Line') then
   begin
-    FChart := TExtChartLineChart.CreateAndAddToList(Items);
+    FChart := TExtChartLineChart.CreateAndAddToArray(Items);
     CreateDefaultXYAxes;
   end
   else if SameText(AChartType, 'Bar') then
   begin
-    FChart := TExtChartBarChart.CreateAndAddToList(Items);
+    FChart := TExtChartBarChart.CreateAndAddToArray(Items);
     CreateDefaultXYAxes;
   end
   else if SameText(AChartType, 'Column') then
   begin
-    FChart := TExtChartColumnChart.CreateAndAddToList(Items);
+    FChart := TExtChartColumnChart.CreateAndAddToArray(Items);
     CreateDefaultXYAxes;
   end
   else if SameText(AChartType, 'StackedBar') then
   begin
-    FChart := TExtChartStackedBarChart.CreateAndAddToList(Items);
+    FChart := TExtChartStackedBarChart.CreateAndAddToArray(Items);
     CreateDefaultXYAxes;
   end
   else if SameText(AChartType, 'StackedColumn') then
   begin
-    FChart := TExtChartStackedColumnChart.CreateAndAddToList(Items);
+    FChart := TExtChartStackedColumnChart.CreateAndAddToArray(Items);
     CreateDefaultXYAxes;
   end
   else if SameText(AChartType, 'Pie') then
   begin
-    FChart := TExtChartPieChart.CreateAndAddToList(Items);
+    FChart := TExtChartPieChart.CreateAndAddToArray(Items);
     LFieldName := Config.GetString('Chart/DataField');
     TExtChartPieChart(FChart).DataField := LFieldName;
     LFieldName := Config.GetString('Chart/CategoryField');

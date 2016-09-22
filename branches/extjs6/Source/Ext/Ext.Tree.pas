@@ -885,7 +885,7 @@ begin
   inherited;
   FBaseAttrs := TExtObject.CreateInternal(Self, 'baseAttrs');
   FBaseParams := TExtObject.CreateInternal(Self, 'baseParams');
-  FParamOrder := TExtObjectList.CreateInternal(Self, 'paramOrder');
+  FParamOrder := CreateConfigArray('paramOrder');
   FRequestMethod := 'output/Ext.Ajax.html#Ext.Ajax-method';
   FUiProviders := TExtObject.CreateInternal(Self, 'uiProviders');
 end;

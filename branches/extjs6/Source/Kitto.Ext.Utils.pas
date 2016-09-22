@@ -208,7 +208,7 @@ begin
     else
       LIsEnabled := TKConfig.Instance.IsAccessGranted(ANode.GetACURI(FTreeView), ACM_RUN);
 
-    LMenuItem := TKExtViewMenuItem.CreateAndAddToList(AMenu.Items);
+    LMenuItem := TKExtViewMenuItem.CreateAndAddToArray(AMenu.Items);
     try
       LMenuItem.Disabled := not LIsEnabled;
       LMenuItem.View := LView;
@@ -260,7 +260,7 @@ begin
   else
     LIsEnabled := TKConfig.Instance.IsAccessGranted(ANode.GetACURI(FTreeView), ACM_RUN);
 
-  LButton := TKExtViewButton.CreateAndAddToList(AContainer.Items);
+  LButton := TKExtViewButton.CreateAndAddToArray(AContainer.Items);
   try
     LButton.View := LView;
     if Assigned(LButton.View) then

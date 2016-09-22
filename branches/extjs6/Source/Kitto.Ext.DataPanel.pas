@@ -472,7 +472,7 @@ begin
   Assert(Assigned(ViewTable));
   Assert(Assigned(ServerStore));
 
-  Result := TKExtDataActionButton.CreateAndAddToList(AToolbar.Items);
+  Result := TKExtDataActionButton.CreateAndAddToArray(AToolbar.Items);
   Result.Hidden := not AView.GetBoolean('IsVisible', True);
   Result.UniqueId := AUniqueId;
   Result.View := AView;
@@ -531,7 +531,7 @@ var
   var
     LField: TExtDataField;
   begin
-    LField := TExtDataField.CreateAndAddToList(AReader.Fields);
+    LField := TExtDataField.CreateAndAddToArray(AReader.Fields);
     LField.Name := AName;
     LField.&Type := AType;
     LField.UseNull := AUseNull;
@@ -934,7 +934,7 @@ function TKExtDataPanelController.AddTopToolbarButton(const AActionName, AToolti
 begin
   if (AActionName <> '') and IsActionSupported(AActionName) then
   begin
-    Result := TKExtButton.CreateAndAddToList(TopToolbar.Items);
+    Result := TKExtButton.CreateAndAddToArray(TopToolbar.Items);
     Result.Tooltip := ATooltip;
     Result.SetIconAndScale(AImageName);
     if (AActionName <> '') and not IsActionVisible(AActionName) then

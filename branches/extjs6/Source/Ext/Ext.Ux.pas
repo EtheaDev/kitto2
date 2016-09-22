@@ -549,7 +549,7 @@ procedure TExtUxTaskBarTaskButton.InitDefaults;
 begin
   inherited;
   FTplExtXTemplate := TExtXTemplate.CreateInternal(Self, 'tpl');
-  FValue := TExtObjectList.CreateInternal(Self, 'value');
+  FValue := CreateConfigArray('value');
   FBookDetail := TExtObject.CreateInternal(Self, 'bookDetail');
   FBookGrid := TExtObject.CreateInternal(Self, 'bookGrid');
   FBookMasterDetail := TExtObject.CreateInternal(Self, 'bookMasterDetail');

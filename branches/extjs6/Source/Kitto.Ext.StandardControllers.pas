@@ -566,13 +566,13 @@ begin
   FWindow.Closable := True;
   FWindow.Title := _('File upload');
 
-  LFormPanel := TExtFormFormPanel.CreateAndAddToList(FWindow.Items);
+  LFormPanel := TExtFormFormPanel.CreateAndAddToArray(FWindow.Items);
   LFormPanel.Region := rgCenter;
   LFormPanel.Frame := True;
   LFormPanel.FileUpload := True;
   LFormPanel.LabelAlign := laRight;
   LFormPanel.LabelWidth := 100;
-  LUploadFormField := TExtUxFormFileUploadField.CreateAndAddToList(LFormPanel.Items);
+  LUploadFormField := TExtUxFormFileUploadField.CreateAndAddToArray(LFormPanel.Items);
   LUploadFormField.FieldLabel := _(Self.DisplayLabel);
   if LAcceptedWildcards <> '' then
     LUploadFormField.EmptyText := Format(_('File matching %s'), [LAcceptedWildcards])
@@ -580,7 +580,7 @@ begin
     LUploadFormField.EmptyText := _('Select a file to upload');
   LUploadFormField.AllowBlank := False;
   LUploadFormField.Anchor := '0 5 0 0';
-  LUploadButton := TKExtButton.CreateAndAddToList(LFormPanel.Buttons);
+  LUploadButton := TKExtButton.CreateAndAddToArray(LFormPanel.Buttons);
   LUploadButton.Text := _('Upload');
   LUploadButton.SetIconAndScale('Upload', IfThen(Session.IsMobileBrowser,'medium', 'small'));
 

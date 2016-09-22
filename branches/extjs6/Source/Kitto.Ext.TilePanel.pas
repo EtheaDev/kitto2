@@ -124,7 +124,7 @@ end;
 procedure TKExtTileTabPanel.AddTileSubPanel;
 begin
   inherited;
-  FTilePanel := TKExtTilePanel.CreateAndAddToList(Items);
+  FTilePanel := TKExtTilePanel.CreateAndAddToArray(Items);
   FTilePanel.View := View;
   FTilePanel.Config := Config;
   FTilePanel.DoDisplay;

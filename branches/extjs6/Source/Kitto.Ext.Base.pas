@@ -1078,7 +1078,7 @@ begin
   Assert(Assigned(AView));
   Assert(Assigned(AToolbar));
 
-  Result := TKExtActionButton.CreateAndAddToList(AToolbar.Items);
+  Result := TKExtActionButton.CreateAndAddToArray(AToolbar.Items);
   Result.Hidden := not AView.GetBoolean('IsVisible', True);
   Result.UniqueId := AUniqueId;
   Result.View := AView;
@@ -1106,7 +1106,7 @@ begin
 
   if Assigned(AConfigNode) and (AConfigNode.ChildCount > 0) then
   begin
-    TExtToolbarSeparator.CreateAndAddToList(AToolbar.Items);
+    TExtToolbarSeparator.CreateAndAddToArray(AToolbar.Items);
     for I := 0 to AConfigNode.ChildCount - 1 do
     begin
       LNode := AConfigNode.Children[I];
@@ -1627,14 +1627,14 @@ end;
 
 procedure TKExtWindowToolController.CreateButtons;
 begin
-  FConfirmButton := TKExtButton.CreateAndAddToList(Buttons);
+  FConfirmButton := TKExtButton.CreateAndAddToArray(Buttons);
   FConfirmButton.SetIconAndScale('accept', Config.GetString('ButtonScale', 'medium'));
   FConfirmButton.FormBind := True;
   FConfirmButton.Text := Config.GetString('ConfirmButton/Caption', _('Confirm'));
   FConfirmButton.Tooltip := Config.GetString('ConfirmButton/Tooltip', _('Confirm action and close window'));
   FConfirmButton.Handler := JSFunction(GetConfirmJSCode());
 
-  FCancelButton := TKExtButton.CreateAndAddToList(Buttons);
+  FCancelButton := TKExtButton.CreateAndAddToArray(Buttons);
   FCancelButton.SetIconAndScale('cancel', Config.GetString('ButtonScale', 'medium'));
   FCancelButton.Text := _('Cancel');
   FCancelButton.Tooltip := _('Cancel changes');

@@ -6767,7 +6767,7 @@ end;
 procedure TExtCompositeElementLite.InitDefaults;
 begin
   inherited;
-  FElements := TExtObjectList.CreateInternal(Self, 'elements');
+  FElements := CreateConfigArray('elements');
 end;
 
 function TExtCompositeElementLite.Add(Els: string): TExtFunction;
@@ -7430,7 +7430,7 @@ end;
 procedure TExtResizable.InitDefaults;
 begin
   inherited;
-  FAdjustments := TExtObjectList.CreateInternal(Self, 'adjustments');
+  FAdjustments := CreateConfigArray('adjustments');
   FDuration := 0;
   FEasing := 'easingOutStrong';
   FEnabled := true;
@@ -8245,12 +8245,12 @@ procedure TExtComponent.InitDefaults;
 begin
   inherited;
   FAllowDomMove := True;
-  FBubbleEvents := TExtObjectList.CreateInternal(Self, 'bubbleEvents');
+  FBubbleEvents := CreateConfigArray('bubbleEvents');
   FClearCls := 'x-form-clear-left';
   FDisabledClass := 'x-item-disabled';
   FLabelSeparator := ':';
-  FPlugins := TExtObjectList.CreateInternal(Self, 'plugins');
-  FStateEvents := TExtObjectList.CreateInternal(Self, 'stateEvents');
+  FPlugins := CreateConfigArray('plugins');
+  FStateEvents := CreateConfigArray('stateEvents');
   FStyleExtObject := TExtObject.CreateInternal(Self, 'style');
   FLoader := TExtObject.CreateInternal(Self, 'loader');
 end;
@@ -8844,7 +8844,7 @@ begin
   inherited;
   FField := TExtFormField.CreateInternal(Self, 'field');
   FHideEl := true;
-  FOffsets := TExtObjectList.CreateInternal(Self, 'offsets');
+  FOffsets := CreateConfigArray('offsets');
   FRevertInvalid := true;
   FSwallowKeys := true;
 end;
@@ -8979,7 +8979,7 @@ begin
   inherited;
   FItemCls := 'x-color-palette';
   FScope := TExtObject.CreateInternal(Self, 'scope');
-  FColors := TExtObjectList.CreateInternal(Self, 'colors');
+  FColors := CreateConfigArray('colors');
 end;
 
 function TExtColorPalette.Select(Color: string; SuppressEvent: Boolean = false)
@@ -9123,11 +9123,11 @@ procedure TExtDatePicker.InitDefaults;
 begin
   inherited;
   FCancelText := 'Cancel';
-  FDayNames := TExtObjectList.CreateInternal(Self, 'dayNames');
+  FDayNames := CreateConfigArray('dayNames');
   FFormat := 'm/d/y';
   FMaxText := 'This date is after the maximum date';
   FMinText := 'This date is before the minimum date';
-  FMonthNames := TExtObjectList.CreateInternal(Self, 'monthNames');
+  FMonthNames := CreateConfigArray('monthNames');
   FOkText := 'OK';
   FScope := TExtObject.CreateInternal(Self, 'scope');
   FShowToday := true;
@@ -9796,7 +9796,7 @@ begin
   inherited;
   FAutoDestroy := True;
   FDefaults := TExtObject.CreateInternal(Self, 'defaults');
-  FItems := TExtObjectList.CreateInternal(Self, 'items');
+  FItems := CreateConfigArray('items');
   FLayoutObject := TExtObject.CreateInternal(Self, 'layout');
   FLayoutConfig := TExtObject.CreateInternal(Self, 'layoutConfig');
 end;
@@ -10477,7 +10477,7 @@ begin
   inherited;
   FSelectedClass := 'x-view-selected';
   FStore := TExtDataStore.CreateInternal(Self, 'store');
-  FTplArray := TExtObjectList.CreateInternal(Self, 'tpl');
+  FTplArray := CreateConfigArray('tpl');
 end;
 
 function TExtDataView.BindStore(Store: TExtDataStore): TExtFunction;
@@ -11207,19 +11207,19 @@ begin
   FAnimCollapse := true;
   FAutoLoad := TExtObject.CreateInternal(Self, 'autoLoad');
   FBaseCls := 'x-panel';
-  FBbar := TExtObjectList.CreateInternal(Self, 'bbar');
+  FBbar := CreateConfigArray('bbar');
   FBbarCfg := TExtObject.CreateInternal(Self, 'bbarCfg');
   FBodyBorder := true;
   FBodyCfg := TExtObject.CreateInternal(Self, 'bodyCfg');
   FBodyCssClassObject := TExtObject.CreateInternal(Self, 'bodyCssClass');
   FBodyStyleObject := TExtObject.CreateInternal(Self, 'bodyStyle');
   FBorder := true;
-  FButtons := TExtObjectList.CreateInternal(Self, 'buttons');
+  FButtons := CreateConfigArray('buttons');
   FBwrapCfg := TExtObject.CreateInternal(Self, 'bwrapCfg');
   FCollapseFirst := true;
   FCollapsedCls := 'x-panel-collapsed';
   FDraggableObject := TExtObject.CreateInternal(Self, 'draggable');
-  FFbar := TExtObjectList.CreateInternal(Self, 'fbar');
+  FFbar := CreateConfigArray('fbar');
   FFooterCfg := TExtObject.CreateInternal(Self, 'footerCfg');
   FHeaderAsText := true;
   FHeaderCfg := TExtObject.CreateInternal(Self, 'headerCfg');
@@ -11231,7 +11231,7 @@ begin
   FTbarCfg := TExtObject.CreateInternal(Self, 'tbarCfg');
   FToolTemplate := TExtTemplate.CreateInternal(Self, 'toolTemplate');
 //  FToolTemplateExtXTemplate := TExtXTemplate.CreateInternal(Self, 'toolTemplate');
-  FTools := TExtObjectList.CreateInternal(Self, 'tools');
+  FTools := CreateConfigArray('tools');
   FBody := TExtElement.CreateInternal(Self, 'body');
   FBwrap := TExtElement.CreateInternal(Self, 'bwrap');
   FFooter_ := TExtElement.CreateInternal(Self, 'footer');
@@ -11790,7 +11790,7 @@ end;
 procedure TExtCycleButton.InitDefaults;
 begin
   inherited;
-  FItems := TExtObjectList.CreateInternal(Self, 'items');
+  FItems := CreateConfigArray('items');
   FMenu := TExtMenuMenu.CreateInternal(Self, 'menu');
 end;
 
@@ -12074,7 +12074,7 @@ begin
 //  FDd := TExtDdDD.CreateInternal(Self, 'dd');
   FOnHide := TExtObject.CreateInternal(Self, 'onHide');
   FOnShow := TExtObject.CreateInternal(Self, 'onShow');
-  FBbar := TExtObjectList.CreateInternal(Self, 'bbar');
+  FBbar := CreateConfigArray('bbar');
 end;
 
 function TExtWindow.AlignTo(Element: string; Position: string;
@@ -12804,7 +12804,7 @@ begin
   FAutoHide := true;
   FDismissDelay := 5000;
   FHideDelay := 200;
-  FMouseOffset := TExtObjectList.CreateInternal(Self, 'mouseOffset');
+  FMouseOffset := CreateConfigArray('mouseOffset');
   FShowDelay := 500;
 end;
 

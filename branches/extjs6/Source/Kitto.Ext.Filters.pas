@@ -556,7 +556,7 @@ end;
 
 function TKExtFilterFactory.DoCreateObject(const AClass: TClass): TObject;
 begin
-  Result := TExtObjectClass(AClass).CreateAndAddToList(FContainer);
+  Result := TExtObjectClass(AClass).CreateAndAddToArray(FContainer);
 end;
 
 class function TKExtFilterFactory.GetInstance: TKExtFilterFactory;
@@ -624,7 +624,7 @@ begin
   LReader.TotalProperty := 'Total';
   LProxy.Reader := LReader;
   for I := 0 to FServerStore.Header.FieldCount - 1 do
-    with TExtDataField.CreateAndAddToList(Store.Proxy.Reader.Fields) do
+    with TExtDataField.CreateAndAddToArray(Store.Proxy.Reader.Fields) do
       Name := FServerStore.Header.Fields[I].FieldName;
   ValueField := 'Id';
   DisplayField := 'Description';
@@ -1090,7 +1090,7 @@ begin
   LIsDefaultSet := False;
   for I := 0 to FItems.ChildCount - 1 do
   begin
-    LButtons[I] := TKExtButton.CreateAndAddToList(Items);
+    LButtons[I] := TKExtButton.CreateAndAddToArray(Items);
     LButtons[I].Scale := Config.GetString('ButtonScale', 'small');
     LButtons[I].Text := _(FItems.Children[I].AsString);
     LButtons[I].AllowDepress := not IsSingleSelect;

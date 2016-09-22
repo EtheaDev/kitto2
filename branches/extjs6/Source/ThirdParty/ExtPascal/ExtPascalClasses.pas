@@ -61,7 +61,6 @@ type
     function DownloadContentType(const FileName, Default : string) : string;
     class function GetCurrentWebSession : TCustomWebSession; virtual; abstract;
     function GetDocumentRoot : string; virtual; abstract;
-    function GarbageFixName(const Name : string) : string; virtual;
     function GetRequestHeader(const Name : string) : string; virtual; abstract;
     function GetRequestBody: string; virtual; abstract;
     function GetUrlHandlerObject : TObject; virtual;
@@ -518,10 +517,6 @@ begin
     Result := {$IFDEF MSWINDOWS}AnsiToUTF8{$ENDIF}(Response)
   else
     Result := AnsiString(Response);
-end;
-
-function TCustomWebSession.GarbageFixName(const Name : string) : string; begin
-  Result := Name;
 end;
 
 function TCustomWebSession.GetCookie(const Name : string) : string; begin

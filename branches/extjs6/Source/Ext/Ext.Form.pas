@@ -1846,10 +1846,10 @@ begin
   FApi := TExtObject.CreateInternal(Self, 'api');
   FBaseParams := TExtObject.CreateInternal(Self, 'baseParams');
   FErrorReader := TExtDataDataReader.CreateInternal(Self, 'errorReader');
-  FParamOrder := TExtObjectList.CreateInternal(Self, 'paramOrder');
+  FParamOrder := CreateConfigArray('paramOrder');
   FReader := TExtDataDataReader.CreateInternal(Self, 'reader');
   FWaitTitle := 'Please Wait...';
-  FItems := TExtObjectList.CreateInternal(Self, 'items');
+  FItems := CreateConfigArray('items');
 end;
 
 function TExtFormBasicForm.Add(Fields: TExtObjectList = nil): TExtFunction;
@@ -2703,7 +2703,7 @@ begin
   FEnableLinks := true;
   FEnableLists := true;
   FEnableSourceEdit := true;
-  FFontFamilies := TExtObjectList.CreateInternal(Self, 'fontFamilies');
+  FFontFamilies := CreateConfigArray('fontFamilies');
   FButtonTips := TExtObject.CreateInternal(Self, 'buttonTips');
 end;
 
@@ -3303,9 +3303,9 @@ end;
 procedure TExtFormCompositeField.InitDefaults;
 begin
   inherited;
-  FFieldErrors := TExtObjectList.CreateInternal(Self, 'fieldErrors');
+  FFieldErrors := CreateConfigArray('fieldErrors');
   FInnerCt := TExtContainer.CreateInternal(Self, 'innerCt');
-  FItems := TExtObjectList.CreateInternal(Self, 'items');
+  FItems := CreateConfigArray('items');
   FRendered := true;
 end;
 
@@ -3542,8 +3542,8 @@ begin
   inherited;
   FAllowBlank := true;
   FBlankText := 'You must select at least one item in this group';
-  FColumnsArray := TExtObjectList.CreateInternal(Self, 'columns');
-  FItems := TExtObjectList.CreateInternal(Self, 'items');
+  FColumnsArray := CreateConfigArray('columns');
+  FItems := CreateConfigArray('items');
 end;
 
 function TExtFormCheckboxGroup.GetErrors: TExtFunction;
@@ -3949,7 +3949,7 @@ end;
 procedure TExtFormFormPanel.InitDefaults;
 begin
   inherited;
-  FButtons := TExtObjectList.CreateInternal(Self, 'buttons');
+  FButtons := CreateConfigArray('buttons');
   FLabelPad := 5;
   FMinButtonWidth := 75;
   FMonitorPoll := 200;
@@ -4025,7 +4025,7 @@ begin
   inherited;
   FAllowBlank := true;
   FBlankText := 'You must select one item in this group';
-  FItems := TExtObjectList.CreateInternal(Self, 'items');
+  FItems := CreateConfigArray('items');
 end;
 
 function TExtFormRadioGroup.GetValue: TExtFunction;
@@ -4201,9 +4201,9 @@ begin
   inherited;
   FAltFormats :=
     'm/d/Y|n/j/Y|n/j/y|m/j/y|n/d/y|m/j/Y|n/d/Y|m-d-y|m-d-Y|m/d|m-d|md|mdy|mdY|d|Y-m-d';
-  FDisabledDates := TExtObjectList.CreateInternal(Self, 'disabledDates');
+  FDisabledDates := CreateConfigArray('disabledDates');
   FDisabledDatesText := 'Disabled';
-  FDisabledDays := TExtObjectList.CreateInternal(Self, 'disabledDays');
+  FDisabledDays := CreateConfigArray('disabledDays');
   FDisabledDaysText := 'Disabled';
   FFormat := 'm/d/Y';
   FInvalidText :=
@@ -4622,7 +4622,7 @@ begin
   FHiddenId := 'output/Ext.form.ComboBox.html#Ext.form.ComboBox-hiddenName';
   FLazyInit := true;
   FListAlign := 'tl-bl?';
-  FListAlignArray := TExtObjectList.CreateInternal(Self, 'listAlign');
+  FListAlignArray := CreateConfigArray('listAlign');
   FListConfig := TExtObject.CreateInternal(Self, 'listConfig');
   FLoadingText := 'Loading...';
   FMaxHeight := 300;
@@ -4635,7 +4635,7 @@ begin
   FSelectOnFocus := true;
   FSelectedClass := 'x-combo-selected';
   FStore := TExtDataStore.CreateInternal(Self, 'store');
-  FStoreArray := TExtObjectList.CreateInternal(Self, 'store');
+  FStoreArray := CreateConfigArray('store');
   FTplExtXTemplate := TExtXTemplate.CreateInternal(Self, 'tpl');
   FTriggerClass := 'x-form-arrow-trigger';
   FTypeAheadDelay := 250;

@@ -242,7 +242,7 @@ end;
 
 procedure TExtUxFormItemSelector.InitDefaults; begin
   inherited;
-  FMultiselects := TExtObjectList.CreateInternal(Self, 'multiselects');
+  FMultiselects := CreateConfigArray('multiselects');
 end;
 
 procedure TExtUxFormMultiSelect.SetFAllowBlank(Value : Boolean); begin
@@ -373,14 +373,14 @@ procedure TExtUxFormMultiSelect.InitDefaults; begin
   inherited;
   FAllowBlank := true;
   FDelimiter := ',';
-  FDragGroupArray := TExtObjectList.CreateInternal(Self, 'dragGroup');
-  FDropGroupArray := TExtObjectList.CreateInternal(Self, 'dropGroup');
+  FDragGroupArray := CreateConfigArray('dragGroup');
+  FDropGroupArray := CreateConfigArray('dropGroup');
   FHeight := 100;
   FMinSelections := 0;
   FStore := TExtDataStore.CreateInternal(Self, 'store');
-  FStoreArray := TExtObjectList.CreateInternal(Self, 'store');
+  FStoreArray := CreateConfigArray('store');
   FTbar := TExtObject.CreateInternal(Self, 'tbar');
-  FTbarArray := TExtObjectList.CreateInternal(Self, 'tbar');
+  FTbarArray := CreateConfigArray('tbar');
   FView := TExtObject.CreateInternal(Self, 'view');
   FWidth := 100;
 end;

@@ -126,7 +126,7 @@ begin
   Closable := False;
   Resizable := False;
 
-  FBorderPanel := TKExtBorderPanelController.CreateAndAddToList(Items);
+  FBorderPanel := TKExtBorderPanelController.CreateAndAddToArray(Items);
   FBorderPanel.Config.Assign(Config.FindNode('BorderPanel'));
   //FBorderPanel.Border := False;
   FBorderPanel.Frame := False;
@@ -141,7 +141,7 @@ Or maybe skip the object list altogether and use the ownership. }
   FStatusBar.BusyText := _('Logging in...');
   Bbar := FStatusBar;
 
-  FFormPanel := TExtFormFormPanel.CreateAndAddToList(FBorderPanel.Items);
+  FFormPanel := TExtFormFormPanel.CreateAndAddToArray(FBorderPanel.Items);
   FFormPanel.Region := rgCenter;
   FFormPanel.LabelAlign := laRight;
   FFormPanel.LabelWidth := LLabelWidth;
@@ -153,14 +153,14 @@ Or maybe skip the object list altogether and use the ownership. }
     FFormPanel.BodyStyle := LFormPanelBodyStyle;
   FFormPanel.MonitorValid := True;
 
-  FLoginButton := TKExtButton.CreateAndAddToList(FStatusBar.Items);
+  FLoginButton := TKExtButton.CreateAndAddToArray(FStatusBar.Items);
   FLoginButton.SetIconAndScale('login', 'medium');
   FLoginButton.Text := _('Login');
 
-  with TExtBoxComponent.CreateAndAddToList(FFormPanel.Items) do
+  with TExtBoxComponent.CreateAndAddToArray(FFormPanel.Items) do
     Height := 20;
 
-  FUserName := TExtFormTextField.CreateAndAddToList(FFormPanel.Items);
+  FUserName := TExtFormTextField.CreateAndAddToArray(FFormPanel.Items);
   FUserName.Name := 'UserName';
   FUserName.Value := Session.Config.Authenticator.AuthData.GetExpandedString('UserName');
   FUserName.FieldLabel := _('User Name');
@@ -170,7 +170,7 @@ Or maybe skip the object list altogether and use the ownership. }
   FUserName.Width := LEditWidth + LLabelWidth;
   Inc(LHeight, CONTROL_HEIGHT);
 
-  FPassword := TExtFormTextField.CreateAndAddToList(FFormPanel.Items);
+  FPassword := TExtFormTextField.CreateAndAddToArray(FFormPanel.Items);
   FPassword.Name := 'Password';
   FPassword.Value := Session.Config.Authenticator.AuthData.GetExpandedString('Password');
   FPassword.FieldLabel := _('Password');
@@ -191,7 +191,7 @@ Or maybe skip the object list altogether and use the ownership. }
 
   if LUseLanguageSelector then
   begin
-    FLanguage := TExtFormComboBox.CreateAndAddToList(FFormPanel.Items);
+    FLanguage := TExtFormComboBox.CreateAndAddToArray(FFormPanel.Items);
     FLanguage.StoreArray := JSArray('["it", "Italiano"], ["en", "English"]');
     FLanguage.HiddenName := 'Language';
     FLanguage.Value := Session.Config.Authenticator.AuthData.GetExpandedString('Language');
@@ -211,7 +211,7 @@ Or maybe skip the object list altogether and use the ownership. }
   LLocalStorageMode := GetLocalStorageMode;
   if (LLocalStorageMode <> '') and GetLocalStorageAskUser then
   begin
-    FLocalStorageEnabled := TExtFormCheckbox.CreateAndAddToList(FFormPanel.Items);
+    FLocalStorageEnabled := TExtFormCheckbox.CreateAndAddToArray(FFormPanel.Items);
     FLocalStorageEnabled.Name := 'LocalStorageEnabled';
     FLocalStorageEnabled.Checked := GetLocalStorageAskUserDefault;
     if SameText(LLocalStorageMode, 'Password') then

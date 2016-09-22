@@ -823,9 +823,9 @@ procedure TExtMenuMenu.InitDefaults;
 begin
   inherited;
   FDefaultAlign := 'tl-bl?';
-  FDefaultOffsets := TExtObjectList.CreateInternal(Self, 'defaultOffsets');
+  FDefaultOffsets := CreateConfigArray('defaultOffsets');
   FEnableScrolling := true;
-  FItems := TExtObjectList.CreateInternal(Self, 'items');
+  FItems := CreateConfigArray('items');
   FMinWidth := 120;
   FScrollIncrement := 24;
   FShowSeparator := true;

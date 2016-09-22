@@ -150,7 +150,7 @@ begin
   FStatusBar.DefaultText := '';
   FStatusBar.BusyText := _('Changing password...');
 
-  FFormPanel := TExtFormFormPanel.CreateAndAddToList(Items);
+  FFormPanel := TExtFormFormPanel.CreateAndAddToArray(Items);
   FFormPanel.Region := rgCenter;
   FFormPanel.LabelWidth := 150;
   FFormPanel.LabelAlign := laRight;
@@ -160,11 +160,11 @@ begin
   FFormPanel.MonitorValid := True;
   FFormPanel.Bbar := FStatusBar;
 
-  FConfirmButton := TKExtButton.CreateAndAddToList(FStatusBar.Items);
+  FConfirmButton := TKExtButton.CreateAndAddToArray(FStatusBar.Items);
   FConfirmButton.SetIconAndScale('password', 'medium');
   FConfirmButton.Text := _('Change password');
 
-  FOldPassword := TExtFormTextField.CreateAndAddToList(FFormPanel.Items);
+  FOldPassword := TExtFormTextField.CreateAndAddToArray(FFormPanel.Items);
   FOldPassword.Name := 'OldPassword';
   //FOldPassword.Value := ...
   FOldPassword.FieldLabel := _('Old Password');
@@ -173,7 +173,7 @@ begin
   FOldPassword.Width := 136;
   FOldPassword.EnableKeyEvents := True;
 
-  FNewPassword := TExtFormTextField.CreateAndAddToList(FFormPanel.Items);
+  FNewPassword := TExtFormTextField.CreateAndAddToArray(FFormPanel.Items);
   FNewPassword.Name := 'NewPassword';
   //FNewPassword.Value := ...
   FNewPassword.FieldLabel := _('New Password');
@@ -182,7 +182,7 @@ begin
   FNewPassword.Width := 136;
   FNewPassword.EnableKeyEvents := True;
 
-  FConfirmNewPassword := TExtFormTextField.CreateAndAddToList(FFormPanel.Items);
+  FConfirmNewPassword := TExtFormTextField.CreateAndAddToArray(FFormPanel.Items);
   FConfirmNewPassword.Name := 'ConfirmNewPassword';
   //FConfirmNewPassword.Value := ...
   FConfirmNewPassword.FieldLabel := _('Confirm New Password');

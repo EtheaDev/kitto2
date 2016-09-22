@@ -109,7 +109,7 @@ var
   var
     LColumnWidth: Double;
   begin
-    Result := TKExtFilterPanel.CreateAndAddToList(Items);
+    Result := TKExtFilterPanel.CreateAndAddToArray(Items);
     try
       Result.Border := False;
       Result.Layout := lyForm;
@@ -274,7 +274,7 @@ begin
     LItems := Config.FindNode('Filters/Items');
     if Assigned(LItems) and (LItems.ChildCount > 0) then
     begin
-      FFilterPanel := TKExtFilterPanel.CreateAndAddToList(Items);
+      FFilterPanel := TKExtFilterPanel.CreateAndAddToArray(Items);
       FFilterPanel.Region := rgNorth;
       FFilterPanel.OnChange := FilterPanelChange;
       FFilterPanel.Configure(ViewTable, LItems.Parent as TEFNode);

@@ -729,7 +729,7 @@ procedure TExtChartChart.InitDefaults; begin
   FStore := TExtDataStore.CreateInternal(Self, 'store');
   FXAxis := TExtChartAxis.CreateInternal(Self, 'xAxis');
   FYAxis := TExtChartAxis.CreateInternal(Self, 'yAxis');
-  FSeries := TExtObjectList.CreateInternal(Self, 'series');
+  FSeries := CreateConfigArray('series');
 end;
 
 function TExtChartChart.BindStore(Store : TExtDataStore) : TExtFunction; begin

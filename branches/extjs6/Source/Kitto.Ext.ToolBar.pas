@@ -80,7 +80,7 @@ begin
   Layout := lyFit;
 //  Height := 28;
 
-  FToolBar := TExtToolbar.CreateAndAddToList(Items);
+  FToolBar := TExtToolbar.CreateAndAddToArray(Items);
 end;
 
 initialization

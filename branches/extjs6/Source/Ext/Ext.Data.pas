@@ -841,7 +841,7 @@ end;
 procedure TExtDataDataReader.InitDefaults;
 begin
   inherited;
-  FFields := TExtObjectList.CreateInternal(Self, 'fields');
+  FFields := CreateConfigArray('fields');
   FFieldsObject := TExtObject.CreateInternal(Self, 'fields');
   FBuildExtractors := TExtObject.CreateInternal(Self, 'buildExtractors');
   FExtractValues := TExtObject.CreateInternal(Self, 'extractValues');
@@ -1149,8 +1149,7 @@ procedure TExtDataNode.InitDefaults;
 begin
   inherited;
   FAttributes := TExtObject.CreateInternal(Self, 'attributes');
-  FChildren := TExtObjectList.CreateInternal(Self, 'children');
-  SetConfigItem('children', FChildren);
+  FChildren := CreateConfigArray('children');
 end;
 
 function TExtDataNode.AppendChild(const ANode: TExtDataNode): TExtFunction;
@@ -1619,14 +1618,14 @@ begin
   inherited;
   FAutoLoadObject := TExtObject.CreateInternal(Self, 'autoLoad');
   FBaseParams := TExtObject.CreateInternal(Self, 'baseParams');
-  FData := TExtObjectList.CreateInternal(Self, 'data');
+  FData := CreateConfigArray('data');
   FDefaultParamNames := TExtObject.CreateInternal(Self, 'defaultParamNames');
   FParamNames := TExtObject.CreateInternal(Self, 'paramNames');
   FProxy := TExtDataProxy.CreateInternal(Self, 'proxy');
   FPruneModifiedRecords := true;
   FSortInfo := TExtObject.CreateInternal(Self, 'sortInfo');
 //  FBaseParams_ := TExtObject.CreateInternal(Self, 'baseParams');
-  FFields := TExtObjectList.CreateInternal(Self, 'fields');
+  FFields := CreateConfigArray('fields');
   FLastOptions := TExtObject.CreateInternal(Self, 'lastOptions');
   FMultiSortInfo := TExtObject.CreateInternal(Self, 'multiSortInfo');
 end;

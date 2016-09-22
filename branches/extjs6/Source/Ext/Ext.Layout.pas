@@ -584,7 +584,7 @@ end;
 
 procedure TExtLayoutToolbarLayout.InitDefaults; begin
   inherited;
-  FHiddenItems := TExtObjectList.CreateInternal(Self, 'hiddenItems');
+  FHiddenItems := CreateConfigArray('hiddenItems');
 end;
 
 procedure TExtLayoutBorderLayoutSplitRegion.SetFCollapsibleSplitTip(Value : String); begin

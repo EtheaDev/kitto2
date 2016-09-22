@@ -1333,7 +1333,7 @@ begin
   FRowSelectorDepth := 10;
   FSelectedRowClass := 'x-grid3-row-selected';
   FSortAscText := 'Sort Ascending';
-  FSortClasses := TExtObjectList.CreateInternal(Self, 'sortClasses');
+  FSortClasses := CreateConfigArray('sortClasses');
   FSortDescText := 'Sort Descending';
   FMainBody := TExtElement.CreateInternal(Self, 'mainBody');
   DisableSelection := False;
@@ -2510,12 +2510,12 @@ procedure TExtGridGridPanel.InitDefaults;
 begin
   inherited;
   FCm := TExtObject.CreateInternal(Self, 'cm');
-  FColumns := TExtObjectList.CreateInternal(Self, 'columns');
-  FFeatures := TExtObjectList.CreateInternal(Self, 'features');
+  FColumns := CreateConfigArray('columns');
+  FFeatures := CreateConfigArray('features');
   FLoadMask := TExtObject.CreateInternal(Self, 'loadMask');
   FSelModel := TExtObject.CreateInternal(Self, 'selModel');
   FSm := TExtObject.CreateInternal(Self, 'sm');
-  FStateEvents := TExtObjectList.CreateInternal(Self, 'stateEvents');
+  FStateEvents := CreateConfigArray('stateEvents');
   FStore := TExtDataStore.CreateInternal(Self, 'store');
   FView := TExtObject.CreateInternal(Self, 'view');
   FViewConfig := TExtObject.CreateInternal(Self, 'viewConfig');
