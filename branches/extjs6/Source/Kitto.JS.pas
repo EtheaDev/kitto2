@@ -3203,7 +3203,7 @@ var
     LString: string;
   begin
     Result := False;
-    LString := ANode.DataType.NodeToJSONValue(False, ANode, AFormatter.FormatSettings, True);
+    LString := ANode.DataType.NodeToJSONValue(False, ANode, AFormatter.FormatSettings, ANode.DataType.NeedsQuotes, True);
     if LString <> '' then
     begin
       AFormatter.AddIndented(ANode.Name + ': ' + LString);
