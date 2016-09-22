@@ -99,10 +99,14 @@ type
     function OpenArray: TJSFormatter;
     function CloseArray: TJSFormatter;
     function Add(const AString: string): TJSFormatter;
+    function AddLine(const ALine: string): TJSFormatter;
     function AddIndent: TJSFormatter;
     function AddIndented(const AString: string): TJSFormatter;
     function AddIndentedLine(const ALine: string): TJSFormatter;
-    function AddIndentedPair(const AName, AStrValue: string; const AQuoteValue: Boolean = True): TJSFormatter;
+    function AddIndentedPairLine(const AName, AStrValue: string;
+      const AQuoteValue: Boolean = True; const AAddComma: Boolean = True): TJSFormatter;
+    function AddIndentedPair(const AName, AStrValue: string;
+      const AQuoteValue: Boolean = True; const AAddComma: Boolean = True): TJSFormatter;
     // Adds empty line
     function SkipLine: TJSFormatter;
     function AddIndentedList(const ALines: TArray<string>): TJSFormatter;
@@ -181,7 +185,6 @@ type
   protected
     function GetJSSession: TJSSession; overload;
     function GetJSSession(const AOwner: TComponent): TJSSession; overload;
-    function ExtractJSCommand: string;
     function IsParent(CName: string): Boolean;
     function VarToJSON(const AVars: array of const; const ASession: TJSSession = nil): string; overload;
     function VarToJSON(const AVars: array of const; const AProc: TVarToJSONProc): string; overload;
@@ -229,13 +232,9 @@ type
     function JSFunction(const ABody: string): TJSFunction; overload;
     function JSFunction(const AMethod: TJSProcedure; const ASilent: Boolean = False): TJSFunction; overload;
     function JSFunction(const AMethod: TProc; const ASilent: Boolean = False): TJSFunction; overload;
-    function JSCodeBlock(const ACode: string): TJSFunction;
+    function JSFunctionFromCodeBlock(const ACode: string): TJSFunction;
     function GetJSFunctionCode(const AMethod: TProc; const ASilent: Boolean = False): string;
-    function JSExpression(Expression: string; MethodsValues: array of const): Integer; overload;
-    function JSExpression(Method: TJSFunction): Integer; overload;
-    function JSString(Expression: string; MethodsValues: array of const): string; overload;
-    function JSString(Method: TJSFunction): string; overload;
-    function JSMethod(Method: TJSFunction): string;
+    function JSExpression(const AExpression: string; const AValues: array of TJSFunction): TJSFunction;
     procedure JSCode(JS: string; pJSName: string = ''; pOwner: string = '');
     procedure JSSleep(MiliSeconds: Integer);
 
@@ -274,6 +273,8 @@ type
     function GetPOSTAjaxCode(const AMethod: TJSProcedure; const AParams: array of const; const AJsonData: string)
       : string; overload;
 
+    function ExtractJSCommand: string;
+
     function RequestDownload(Method: TJSProcedure): TJSFunction; overload;
     function RequestDownload(Method: TJSProcedure; Params: array of const): TJSFunction; overload;
     procedure Download(Method: TJSProcedure); overload;
@@ -288,8 +289,8 @@ type
       @param Chars Field length in characters
       @return Pixels used by browser to render these Chars
     }
-    function CharsToPixels(const AChars: Integer; const AOffset: Integer = 0): Integer;
-    function LinesToPixels(const ALines: Integer): Integer;
+    function CharsToPixels(const AChars: Integer; const AOffset: Integer = 0): TJSFunction;
+    function LinesToPixels(const ALines: Integer): TJSFunction;
     destructor Destroy; override;
     property JSName: string read FJSName;
     function FindJSObject(const AJSName: string): TObject;
@@ -442,6 +443,9 @@ type
 
     // Create an internal object; could be a config item of an object type.
     procedure CreateInternalObject(const AObject: TJSObject; const AAttributeName: string);
+
+    // Use this method to have object creation statements in the correct order when emitting the response.
+    procedure AddObjectDependency(const ADependentObject, ADependedUponObject: TJSObject);
 
 //    // Set a config item, set a same-named property if not possible.
 //    // AValues must be either a single value of any type or an object value followed by the IsFunction boolean flag.
@@ -868,6 +872,15 @@ begin
     FreeAndNil(LItem);
     raise;
   end;
+end;
+
+procedure TJSResponseItems.AddObjectDependency(const ADependentObject, ADependedUponObject: TJSObject);
+var
+  LDependentObjectCreateItem: TJSCreateObject;
+begin
+  LDependentObjectCreateItem := FindObjectCreateItem(ADependentObject);
+  if Assigned(LDependentObjectCreateItem) then
+    LDependentObjectCreateItem.AddDependency(FindObjectCreateItem(ADependedUponObject));
 end;
 
 procedure TJSResponseItems.AfterConstruction;
@@ -1575,7 +1588,7 @@ end;
 
 procedure TJSObject.JSSleep(MiliSeconds: Integer);
 begin
-  JSCodeBlock('sleep(' + IntToStr(MiliSeconds) + ');')
+  JSFunctionFromCodeBlock('sleep(' + IntToStr(MiliSeconds) + ');')
 end;
 
 function TJSObject.MethodURI(Method: TJSProcedure; Params: array of const): string;
@@ -2079,10 +2092,10 @@ begin
   Result := TJSFunction(Self);
 end;
 
-function TJSObject.CharsToPixels(const AChars: Integer; const AOffset: Integer = 0): Integer;
+function TJSObject.CharsToPixels(const AChars: Integer; const AOffset: Integer = 0): TJSFunction;
 begin
   // + 16 sort of compensates for text-to-border left and right margins.
-  Result := JSExpression('(%s * %d * 1.2) + %d', [ExtUtilTextMetrics.GetWidth('g'), AChars, 16 + AOffset]);
+  Result := JSExpression(Format('({func0} * %d * 1.2) + %d', [AChars, 16 + AOffset]), [ExtUtilTextMetrics.GetWidth('g')]);
 end;
 
 {
@@ -2091,9 +2104,9 @@ end;
   @param Lines TextArea height in characters.
   @return Pixels used by browser to render these Lines
 }
-function TJSObject.LinesToPixels(const ALines: Integer): Integer;
+function TJSObject.LinesToPixels(const ALines: Integer): TJSFunction;
 begin
-  Result := JSExpression('%s * %d * 1.3', [ExtUtilTextMetrics.GetHeight('W'), ALines]);
+  Result := JSExpression(Format('{func0} * %d * 1.3', [ALines]), [ExtUtilTextMetrics.GetHeight('W')]);
 end;
 
 // Deletes JS object from Browser memory
@@ -2636,49 +2649,15 @@ begin
   JSSession.JSReturns.Values[Result] := Format(AExpression, AMethodValues, _JSFormatSettings);
 end;
 
-{
-  Lets use a JS expression to set a ExtJS property or parameter on browser side. <link TExtFunction, ExtJS function> in ExtJS properties and parameters.
-  The expression will be called in the browser side and should returns an integer.
-  @param Expression JS Expression using or not Delphi Format specifiers: (%s, %d and etc), use %s for ExtPascal methods' results and %d for integers
-  @param MethodsValues Array of Methods or Integer values to use in Expression
-  @return Integer Internal value to return used by ExtPascal to generate the corresponding Javascript code
-  @example <code>
-  Grid := TExtGridGridPanel.Create;
-  with Grid do begin
-  Width  := JSExpression(Panel.GetInnerWidth);
-  Height := JSExpression(Panel.GetInnerHeight);
-  end;
-  FormWidth := 40;
-  with TExtWindow.Create do
-  Width := JSExpression('%s * %d', [ExtUtilTextMetrics.GetWidth('g'), FormWidth]);
-  // or Width := JSExpression('Ext.util.TextMetrics.getWidth("g") * ' + IntToStr(FormWidth), []);
-  </code>
-}
-function TJSObject.JSExpression(Expression: string; MethodsValues: array of const): Integer;
+function TJSObject.JSExpression(const AExpression: string; const AValues: array of TJSFunction): TJSFunction;
+var
+  LExpression: string;
+  I: Integer;
 begin
-  Result := StrToInt(AddJSReturn(Expression, MethodsValues))
-end;
-
-// Shortcut version of JSExpression method
-function TJSObject.JSExpression(Method: TJSFunction): Integer;
-begin
-  Result := JSExpression('%s', [Method]);
-end;
-
-function TJSObject.JSString(Expression: string; MethodsValues: array of const): string;
-begin
-  Result := AddJSReturn('"+' + Expression + '+"', MethodsValues);
-end;
-
-function TJSObject.JSString(Method: TJSFunction): string;
-begin
-  Result := JSString('%s', [Method]);
-end;
-
-// Returns the JS command generated by a method
-function TJSObject.JSMethod(Method: TJSFunction): string;
-begin
-  Result := Method.ExtractJSCommand;
+  LExpression := AExpression;
+  for I := Low(AValues) to High(AValues) do
+    LExpression := LExpression.Replace('{func' + I.ToString + '}', AValues[I].ExtractJSCommand);
+  Result := JSFunctionFromCodeBlock(LExpression);
 end;
 
 procedure TJSObject.HandleEvent(const AEvtName: string);
@@ -2686,8 +2665,20 @@ begin
 end;
 
 function TJSObject.JSFunction(const AParams, ABody: string): TJSFunction;
+var
+  LFormatter: TJSFormatter;
 begin
-  Result := JSCodeBlock('function(' + AParams + ') { ' + ABody + ' }');
+  LFormatter := TJSFormatter.Create;
+  try
+    LFormatter.SkipLine.AddIndent
+      .AddIndented('function(').Add(AParams).AddLine(')')
+      .Indent.AddIndent.OpenObject
+        .AddIndentedLine(ABody)
+      .Outdent.AddIndent.CloseObject;
+    Result := JSFunctionFromCodeBlock(LFormatter.FormattedText);
+  finally
+    FreeAndNil(LFormatter);
+  end;
 end;
 
 function TJSObject.JSFunction(const ABody: string): TJSFunction;
@@ -2695,7 +2686,7 @@ begin
   Result := JSFunction('', ABody);
 end;
 
-function TJSObject.JSCodeBlock(const ACode: string): TJSFunction;
+function TJSObject.JSFunctionFromCodeBlock(const ACode: string): TJSFunction;
 begin
   Result := TJSFunction.CreateInline(Self);
   Result.FJSName := ACode;
@@ -3012,15 +3003,16 @@ begin
   { TODO : virtualize ajax code generation }
   LFormatter := TJSFormatter.Create;
   try
-    LFormatter.Add('Ext.Ajax.request(').OpenObject;
+    LFormatter.SkipLine.Indent;
+    LFormatter.AddIndented('Ext.Ajax.request(').SkipLine.Indent.AddIndent.OpenObject;
     if AExtraCode <> '' then
       LFormatter.AddIndented(AExtraCode); // includes the comma.
-    LFormatter.AddIndentedPair('url', JSSession.MethodURI(AMethodName));
-    LFormatter.AddIndentedPair('params', LParams);
-    LFormatter.AddIndentedPair('success', 'AjaxSuccess', False);
-    LFormatter.AddIndentedPair('failure', 'AjaxFailure', False);
+    LFormatter.AddIndentedPairLine('url', JSSession.MethodURI(AMethodName));
+    LFormatter.AddIndentedPairLine('params', LParams);
+    LFormatter.AddIndentedPairLine('success', 'AjaxSuccess', False);
+    LFormatter.AddIndentedPairLine('failure', 'AjaxFailure', False);
     LFormatter.DeleteTrailing(',' + sLineBreak);
-    LFormatter.CloseObject.SkipLine.AddIndented(');');
+    LFormatter.CloseObject.SkipLine.Outdent.AddIndentedLine(');');
     Result := LFormatter.FormattedText;
   finally
     FreeAndNil(LFormatter);
@@ -3346,9 +3338,12 @@ begin
 end;
 
 function TJSObject.SetConfigItem(const AName: string; const AValue: TJSObject): TJSObject;
+var
+  LCreateItem: TJSCreateObject;
 begin
   FJSConfig.CheckReadOnly(AName);
   FJSConfig.Values.SetObject(AName, AValue);
+  JSSession.ResponseItems.AddObjectDependency(Self, AValue);
   Result := AValue;
 end;
 
@@ -3594,6 +3589,12 @@ var
       AArray := AArray + [AValue];
   end;
 
+  function FormatFunction(const AName: string; const AObject: TJSFunction): Boolean;
+  begin
+    AFormatter.AddIndentedPair(AName, AObject.JSName, False, False);
+    Result := True;
+  end;
+
   function FormatObjectConfig(const AName: string; const AObject: TJSObject): Boolean;
   begin
     Result := True;
@@ -3650,9 +3651,7 @@ begin
     LValue := Values.Children[I];
     LAdded := False;
     if IsFunction(LValue) then
-    begin
-
-    end
+      LAdded := FormatFunction(LValue.Name, LValue.AsObject as TJSFunction)
     else if IsObjectList(LValue) then
       LAdded := FormatObjectListConfig(LValue.Name, LValue.AsObject as TJSObjectList)
     else if IsObject(LValue) then
@@ -3681,13 +3680,12 @@ end;
 
 function TJSFormatter.AddIndented(const AString: string): TJSFormatter;
 begin
-  Result := Add(IndentStr + AString);
+  Result := Add(IndentStr + AString.Replace(sLineBreak, sLineBreak + IndentStr));
 end;
 
 function TJSFormatter.AddIndentedLine(const ALine: string): TJSFormatter;
 begin
-  FFormattedText := FFormattedText + IndentStr + ALine + sLineBreak;
-  Result := Self;
+  Result := AddIndented(ALine + sLineBreak);
 end;
 
 function TJSFormatter.AddIndentedList(const ALines: TArray<string>): TJSFormatter;
@@ -3704,9 +3702,23 @@ begin
   Result := Self;
 end;
 
-function TJSFormatter.AddIndentedPair(const AName, AStrValue: string; const AQuoteValue: Boolean): TJSFormatter;
+function TJSFormatter.AddIndentedPair(const AName, AStrValue: string;
+  const AQuoteValue, AAddComma: Boolean): TJSFormatter;
 begin
-  Result := AddIndentedLine(AName + ': ' + IfThen(AQuoteValue, '"', '') + AStrValue + IfThen(AQuoteValue, '"', '') + ',');
+  Result := AddIndented(AName + ': ' + IfThen(AQuoteValue, '"', '') + AStrValue + IfThen(AQuoteValue, '"', '')
+    + IfThen(AAddComma, ',', ''));
+end;
+
+function TJSFormatter.AddIndentedPairLine(const AName, AStrValue: string;
+  const AQuoteValue: Boolean; const AAddComma: Boolean): TJSFormatter;
+begin
+  Result := AddIndentedLine(AName + ': ' + IfThen(AQuoteValue, '"', '') + AStrValue + IfThen(AQuoteValue, '"', '')
+    + IfThen(AAddComma, ',', ''));
+end;
+
+function TJSFormatter.AddLine(const ALine: string): TJSFormatter;
+begin
+  Result := Add(ALine + sLineBreak);
 end;
 
 procedure TJSFormatter.AfterConstruction;
@@ -3717,16 +3729,12 @@ end;
 
 function TJSFormatter.CloseArray: TJSFormatter;
 begin
-  SkipLine;
-  Outdent;
-  Result := AddIndented(']');
+  Result := SkipLine.Outdent.AddIndented(']');
 end;
 
 function TJSFormatter.CloseObject: TJSFormatter;
 begin
-  SkipLine;
-  Outdent;
-  Result := AddIndented('}');
+  Result := SkipLine.Outdent.AddIndented('}');
 end;
 
 function TJSFormatter.DeleteTrailing(const AString: string): TJSFormatter;
@@ -3737,16 +3745,12 @@ end;
 
 function TJSFormatter.FormatArray(const ALines: TArray<string>): TJSFormatter;
 begin
-  OpenArray;
-  AddIndentedList(ALines);
-  Result := CloseArray;
+  Result := OpenArray.AddIndentedList(ALines).CloseArray;
 end;
 
 function TJSFormatter.FormatObject(const ALines: TArray<string>): TJSFormatter;
 begin
-  OpenObject;
-  AddIndentedList(ALines);
-  Result := CloseObject;
+  Result := OpenObject.AddIndentedList(ALines).CloseObject;
 end;
 
 function TJSFormatter.Indent: TJSFormatter;

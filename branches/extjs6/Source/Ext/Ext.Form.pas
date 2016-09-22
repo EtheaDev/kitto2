@@ -1292,6 +1292,8 @@ type
     FOnCollapse: TExtFormComboBoxOnCollapse;
     FOnExpand: TExtFormComboBoxOnExpand;
     FOnSelect: TExtFormComboBoxOnSelect;
+    FMinHeightFunc: TExtFunction;
+    FListWidthFunc: TExtFunction;
     procedure SetFAllQuery(Value: string);
     procedure SetFAutoCreate(Value: string);
     procedure SetAutoSelect(const AValue: Boolean);
@@ -1343,6 +1345,8 @@ type
     procedure SetFOnCollapse(Value: TExtFormComboBoxOnCollapse);
     procedure SetFOnExpand(Value: TExtFormComboBoxOnExpand);
     procedure SetFOnSelect(Value: TExtFormComboBoxOnSelect);
+    procedure SetMinHeightFunc(const AValue: TExtFunction);
+    procedure SetListWidthFunc(const AValue: TExtFunction);
   protected
     procedure InitDefaults; override;
     procedure HandleEvent(const AEvtName: string); override;
@@ -1382,10 +1386,12 @@ type
     property ListConfig: TExtObject read FListConfig;
     property ListEmptyText: string read FListEmptyText write SetFListEmptyText;
     property ListWidth: Integer read FListWidth write SetListWidth;
+    property ListWidthFunc: TExtFunction read FListWidthFunc write SetListWidthFunc;
     property LoadingText: string read FLoadingText write SetFLoadingText;
     property MaxHeight: Integer read FMaxHeight write SetFMaxHeight;
     property MinChars: Integer read FMinChars write SetMinChars;
     property MinHeight: Integer read FMinHeight write SetMinHeight;
+    property MinHeightFunc: TExtFunction read FMinHeightFunc write SetMinHeightFunc;
     property MinListWidth: Integer read FMinListWidth write SetMinListWidth;
     property Mode: string read FMode write SetMode;
     property PageSize: Integer read FPageSize write SetPageSize;
@@ -1525,31 +1531,31 @@ end;
 procedure TExtFormAction.SetFMethod(Value: string);
 begin
   FMethod := Value;
-  JSCodeBlock('method:' + VarToJSON([Value]));
+  JSCode('method:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormAction.SetFParams(Value: string);
 begin
   FParams := Value;
-  JSCodeBlock('params:' + VarToJSON([Value]));
+  JSCode('params:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormAction.SetFReset(Value: Boolean);
 begin
   FReset := Value;
-  JSCodeBlock('reset:' + VarToJSON([Value]));
+  JSCode('reset:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormAction.SetFScope(Value: TExtObject);
 begin
   FScope := Value;
-  JSCodeBlock('scope:' + VarToJSON([Value, false]));
+  JSCode('scope:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtFormAction.SetFSubmitEmptyText(Value: Boolean);
 begin
   FSubmitEmptyText := Value;
-  JSCodeBlock('submitEmptyText:' + VarToJSON([Value]));
+  JSCode('submitEmptyText:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormAction.SetSuccess(const AValue: TExtFunction);
@@ -1580,25 +1586,25 @@ end;
 procedure TExtFormAction.SetFFailureType(Value: string);
 begin
   FFailureType := Value;
-  JSCodeBlock(JSName + '.failureType=' + VarToJSON([Value]) + ';');
+  JSCode(JSName + '.failureType=' + VarToJSON([Value]) + ';');
 end;
 
 procedure TExtFormAction.SetFResponse(Value: TExtObject);
 begin
   FResponse := Value;
-  JSCodeBlock(JSName + '.response=' + VarToJSON([Value, false]) + ';');
+  JSCode(JSName + '.response=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtFormAction.SetFResultJS(Value: TExtObject);
 begin
   FResultJS := Value;
-  JSCodeBlock(JSName + '.resultJS=' + VarToJSON([Value, false]) + ';');
+  JSCode(JSName + '.resultJS=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtFormAction.SetFTypeJS(Value: string);
 begin
   FTypeJS := Value;
-  JSCodeBlock(JSName + '.typeJS=' + VarToJSON([Value]) + ';');
+  JSCode(JSName + '.typeJS=' + VarToJSON([Value]) + ';');
 end;
 
 class function TExtFormAction.JSClassName: string;
@@ -1629,43 +1635,43 @@ end;
 procedure TExtFormVTypesSingleton.SetFAlphaMask(Value: string);
 begin
   FAlphaMask := Value;
-  JSCodeBlock(JSName + '.alphaMask=' + VarToJSON([#3 + Value]) + ';');
+  JSCode(JSName + '.alphaMask=' + VarToJSON([#3 + Value]) + ';');
 end;
 
 procedure TExtFormVTypesSingleton.SetFAlphaText(Value: string);
 begin
   FAlphaText := Value;
-  JSCodeBlock(JSName + '.alphaText=' + VarToJSON([Value]) + ';');
+  JSCode(JSName + '.alphaText=' + VarToJSON([Value]) + ';');
 end;
 
 procedure TExtFormVTypesSingleton.SetFAlphanumMask(Value: string);
 begin
   FAlphanumMask := Value;
-  JSCodeBlock(JSName + '.alphanumMask=' + VarToJSON([#3 + Value]) + ';');
+  JSCode(JSName + '.alphanumMask=' + VarToJSON([#3 + Value]) + ';');
 end;
 
 procedure TExtFormVTypesSingleton.SetFAlphanumText(Value: string);
 begin
   FAlphanumText := Value;
-  JSCodeBlock(JSName + '.alphanumText=' + VarToJSON([Value]) + ';');
+  JSCode(JSName + '.alphanumText=' + VarToJSON([Value]) + ';');
 end;
 
 procedure TExtFormVTypesSingleton.SetFEmailMask(Value: string);
 begin
   FEmailMask := Value;
-  JSCodeBlock(JSName + '.emailMask=' + VarToJSON([#3 + Value]) + ';');
+  JSCode(JSName + '.emailMask=' + VarToJSON([#3 + Value]) + ';');
 end;
 
 procedure TExtFormVTypesSingleton.SetFEmailText(Value: string);
 begin
   FEmailText := Value;
-  JSCodeBlock(JSName + '.emailText=' + VarToJSON([Value]) + ';');
+  JSCode(JSName + '.emailText=' + VarToJSON([Value]) + ';');
 end;
 
 procedure TExtFormVTypesSingleton.SetFUrlText(Value: string);
 begin
   FUrlText := Value;
-  JSCodeBlock(JSName + '.urlText=' + VarToJSON([Value]) + ';');
+  JSCode(JSName + '.urlText=' + VarToJSON([Value]) + ';');
 end;
 
 class function TExtFormVTypesSingleton.JSClassName: string;
@@ -1704,73 +1710,73 @@ end;
 procedure TExtFormBasicForm.SetFApi(Value: TExtObject);
 begin
   FApi := Value;
-  JSCodeBlock('api:' + VarToJSON([Value, false]));
+  JSCode('api:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtFormBasicForm.SetFBaseParams(Value: TExtObject);
 begin
   FBaseParams := Value;
-  JSCodeBlock('baseParams:' + VarToJSON([Value, false]));
+  JSCode('baseParams:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtFormBasicForm.SetFErrorReader(Value: TExtDataDataReader);
 begin
   FErrorReader := Value;
-  JSCodeBlock('errorReader:' + VarToJSON([Value, false]));
+  JSCode('errorReader:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtFormBasicForm.SetFFileUpload(Value: Boolean);
 begin
   FFileUpload := Value;
-  JSCodeBlock('fileUpload:' + VarToJSON([Value]));
+  JSCode('fileUpload:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormBasicForm.SetFMethod(Value: string);
 begin
   FMethod := Value;
-  JSCodeBlock('method:' + VarToJSON([Value]));
+  JSCode('method:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormBasicForm.SetFParamOrder(Value: TExtObjectList);
 begin
   FParamOrder := Value;
-  JSCodeBlock('paramOrder:' + VarToJSON([Value, false]));
+  JSCode('paramOrder:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtFormBasicForm.SetFParamOrderString(Value: string);
 begin
   FParamOrderString := Value;
-  JSCodeBlock('paramOrder:' + VarToJSON([Value]));
+  JSCode('paramOrder:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormBasicForm.SetFParamsAsHash(Value: Boolean);
 begin
   FParamsAsHash := Value;
-  JSCodeBlock('paramsAsHash:' + VarToJSON([Value]));
+  JSCode('paramsAsHash:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormBasicForm.SetFReader(Value: TExtDataDataReader);
 begin
   FReader := Value;
-  JSCodeBlock('reader:' + VarToJSON([Value, false]));
+  JSCode('reader:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtFormBasicForm.SetFStandardSubmit(Value: Boolean);
 begin
   FStandardSubmit := Value;
-  JSCodeBlock('standardSubmit:' + VarToJSON([Value]));
+  JSCode('standardSubmit:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormBasicForm.SetFTimeout(Value: Integer);
 begin
   FTimeout := Value;
-  JSCodeBlock('timeout:' + VarToJSON([Value]));
+  JSCode('timeout:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormBasicForm.SetFTrackResetOnLoad(Value: Boolean);
 begin
   FTrackResetOnLoad := Value;
-  JSCodeBlock('trackResetOnLoad:' + VarToJSON([Value]));
+  JSCode('trackResetOnLoad:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormBasicForm.SetUrl(const AValue: string);
@@ -1781,26 +1787,26 @@ end;
 procedure TExtFormBasicForm.SetFWaitTitle(Value: string);
 begin
   FWaitTitle := Value;
-  JSCodeBlock('waitTitle:' + VarToJSON([Value]));
+  JSCode('waitTitle:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormBasicForm.SetFItems(Value: TExtObjectList);
 begin
   FItems := Value;
-  JSCodeBlock(JSName + '.items=' + VarToJSON([Value, false]) + ';');
+  JSCode(JSName + '.items=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtFormBasicForm.SetFWaitMsgTarget(Value: string);
 begin
   FWaitMsgTarget := Value;
-  JSCodeBlock(JSName + '.waitMsgTarget=' + VarToJSON([Value]) + ';');
+  JSCode(JSName + '.waitMsgTarget=' + VarToJSON([Value]) + ';');
 end;
 
 procedure TExtFormBasicForm.SetFOnActioncomplete
   (Value: TExtFormBasicFormOnActioncomplete);
 begin
   if Assigned(FOnActioncomplete) then
-    JSCodeBlock(JSName + '.events ["actioncomplete"].listeners=[];');
+    JSCode(JSName + '.events ["actioncomplete"].listeners=[];');
   if Assigned(Value) then
     on('actioncomplete', Ajax('actioncomplete', ['This', '%0.nm', 'Action',
       '%1.nm'], true));
@@ -1811,7 +1817,7 @@ procedure TExtFormBasicForm.SetFOnActionfailed
   (Value: TExtFormBasicFormOnActionfailed);
 begin
   if Assigned(FOnActionfailed) then
-    JSCodeBlock(JSName + '.events ["actionfailed"].listeners=[];');
+    JSCode(JSName + '.events ["actionfailed"].listeners=[];');
   if Assigned(Value) then
     on('actionfailed', Ajax('actionfailed', ['This', '%0.nm', 'Action',
       '%1.nm'], true));
@@ -1822,7 +1828,7 @@ procedure TExtFormBasicForm.SetFOnBeforeaction
   (Value: TExtFormBasicFormOnBeforeaction);
 begin
   if Assigned(FOnBeforeaction) then
-    JSCodeBlock(JSName + '.events ["beforeaction"].listeners=[];');
+    JSCode(JSName + '.events ["beforeaction"].listeners=[];');
   if Assigned(Value) then
     on('beforeaction', Ajax('beforeaction', ['This', '%0.nm', 'Action',
       '%1.nm'], true));
@@ -2016,85 +2022,85 @@ end;
 procedure TExtUxGridRecordForm.SetFCancelIconCls(Value: string);
 begin
   FCancelIconCls := Value;
-  JSCodeBlock('cancelIconCls:' + VarToJSON([Value]));
+  JSCode('cancelIconCls:' + VarToJSON([Value]));
 end;
 
 procedure TExtUxGridRecordForm.SetFCancelText(Value: string);
 begin
   FCancelText := Value;
-  JSCodeBlock('cancelText:' + VarToJSON([Value]));
+  JSCode('cancelText:' + VarToJSON([Value]));
 end;
 
 procedure TExtUxGridRecordForm.SetFColumnCount(Value: Integer);
 begin
   FColumnCount := Value;
-  JSCodeBlock('columnCount:' + VarToJSON([Value]));
+  JSCode('columnCount:' + VarToJSON([Value]));
 end;
 
 procedure TExtUxGridRecordForm.SetFDirtyRowCls(Value: string);
 begin
   FDirtyRowCls := Value;
-  JSCodeBlock('dirtyRowCls:' + VarToJSON([Value]));
+  JSCode('dirtyRowCls:' + VarToJSON([Value]));
 end;
 
 procedure TExtUxGridRecordForm.SetFIconCls(Value: string);
 begin
   FIconCls := Value;
-  JSCodeBlock('iconCls:' + VarToJSON([Value]));
+  JSCode('iconCls:' + VarToJSON([Value]));
 end;
 
 procedure TExtUxGridRecordForm.SetFOkIconCls(Value: string);
 begin
   FOkIconCls := Value;
-  JSCodeBlock('okIconCls:' + VarToJSON([Value]));
+  JSCode('okIconCls:' + VarToJSON([Value]));
 end;
 
 procedure TExtUxGridRecordForm.SetFOkText(Value: string);
 begin
   FOkText := Value;
-  JSCodeBlock('okText:' + VarToJSON([Value]));
+  JSCode('okText:' + VarToJSON([Value]));
 end;
 
 procedure TExtUxGridRecordForm.SetFNewRowCls(Value: string);
 begin
   FNewRowCls := Value;
-  JSCodeBlock('newRowCls:' + VarToJSON([Value]));
+  JSCode('newRowCls:' + VarToJSON([Value]));
 end;
 
 procedure TExtUxGridRecordForm.SetFTitle(Value: string);
 begin
   FTitle := Value;
-  JSCodeBlock('title:' + VarToJSON([Value]));
+  JSCode('title:' + VarToJSON([Value]));
 end;
 
 procedure TExtUxGridRecordForm.SetFShowButtons(Value: Boolean);
 begin
   FShowButtons := Value;
-  JSCodeBlock('showButtons:' + VarToJSON([Value]));
+  JSCode('showButtons:' + VarToJSON([Value]));
 end;
 
 procedure TExtUxGridRecordForm.SetFIgnoreFields(Value: TExtObject);
 begin
   FIgnoreFields := Value;
-  JSCodeBlock('ignoreFields:' + VarToJSON([Value, false]));
+  JSCode('ignoreFields:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtUxGridRecordForm.SetFReadonlyFields(Value: TExtObject);
 begin
   FReadonlyFields := Value;
-  JSCodeBlock('readonlyFields:' + VarToJSON([Value, false]));
+  JSCode('readonlyFields:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtUxGridRecordForm.SetFDisabledFields(Value: TExtObject);
 begin
   FDisabledFields := Value;
-  JSCodeBlock('disabledFields:' + VarToJSON([Value, false]));
+  JSCode('disabledFields:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtUxGridRecordForm.SetFFormConfig(Value: TExtObject);
 begin
   FFormConfig := Value;
-  JSCodeBlock('formConfig:' + VarToJSON([Value, false]));
+  JSCode('formConfig:' + VarToJSON([Value, false]));
 end;
 
 class function TExtUxGridRecordForm.JSClassName: string;
@@ -2113,13 +2119,13 @@ end;
 procedure TExtFormActionSubmit.SetFClientValidation(Value: Boolean);
 begin
   FClientValidation := Value;
-  JSCodeBlock('clientValidation:' + VarToJSON([Value]));
+  JSCode('clientValidation:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormActionSubmit.SetFErrorReader(Value: TExtDataDataReader);
 begin
   FErrorReader := Value;
-  JSCodeBlock('errorReader:' + VarToJSON([Value, false]));
+  JSCode('errorReader:' + VarToJSON([Value, false]));
 end;
 
 class function TExtFormActionSubmit.JSClassName: string;
@@ -2164,13 +2170,13 @@ end;
 procedure TExtFormField.SetFFieldClass(Value: string);
 begin
   FFieldClass := Value;
-  JSCodeBlock('fieldClass:' + VarToJSON([Value]));
+  JSCode('fieldClass:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormField.SetFFocusClass(Value: string);
 begin
   FFocusClass := Value;
-  JSCodeBlock('focusClass:' + VarToJSON([Value]));
+  JSCode('focusClass:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormField.SetInputType(const AValue: TExtFormFieldInputType);
@@ -2193,19 +2199,19 @@ end;
 procedure TExtFormField.SetFInvalidClass(Value: string);
 begin
   FInvalidClass := Value;
-  JSCodeBlock('invalidClass:' + VarToJSON([Value]));
+  JSCode('invalidClass:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormField.SetFInvalidText(Value: string);
 begin
   FInvalidText := Value;
-  JSCodeBlock('invalidText:' + VarToJSON([Value]));
+  JSCode('invalidText:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormField.SetFMsgFx(Value: string);
 begin
   FMsgFx := Value;
-  JSCodeBlock('msgFx:' + VarToJSON([Value]));
+  JSCode('msgFx:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormField.SetMsgTarget(const AValue: string);
@@ -2221,7 +2227,7 @@ end;
 procedure TExtFormField.SetFPreventMark(Value: Boolean);
 begin
   FPreventMark := Value;
-  JSCodeBlock('preventMark:' + VarToJSON([Value]));
+  JSCode('preventMark:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormField._SetReadOnly(const AValue: Boolean);
@@ -2237,31 +2243,31 @@ end;
 procedure TExtFormField.SetFTabIndex(Value: Integer);
 begin
   FTabIndex := Value;
-  JSCodeBlock('tabIndex:' + VarToJSON([Value]));
+  JSCode('tabIndex:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormField.SetFValidateOnBlur(Value: Boolean);
 begin
   FValidateOnBlur := Value;
-  JSCodeBlock('validateOnBlur:' + VarToJSON([Value]));
+  JSCode('validateOnBlur:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormField.SetFValidationDelay(Value: Integer);
 begin
   FValidationDelay := Value;
-  JSCodeBlock('validationDelay:' + VarToJSON([Value]));
+  JSCode('validationDelay:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormField.SetFValidationEvent(Value: string);
 begin
   FValidationEvent := Value;
-  JSCodeBlock('validationEvent:' + VarToJSON([Value]));
+  JSCode('validationEvent:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormField.SetFValidationEventBoolean(Value: Boolean);
 begin
   FValidationEventBoolean := Value;
-  JSCodeBlock('validationEvent:' + VarToJSON([Value]));
+  JSCode('validationEvent:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormField._SetValue(const AValue: string);
@@ -2272,13 +2278,13 @@ end;
 procedure TExtFormField.SetFLabelJS(Value: TExtElement);
 begin
   FLabelJS := Value;
-  JSCodeBlock(JSName + '.labelJS=' + VarToJSON([Value, false]) + ';');
+  JSCode(JSName + '.labelJS=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtFormField.SetFOriginalValue(Value: string);
 begin
   FOriginalValue := Value;
-  JSCodeBlock(JSName + '.originalValue=' + VarToJSON([Value]) + ';');
+  JSCode(JSName + '.originalValue=' + VarToJSON([Value]) + ';');
 end;
 
 procedure TExtFormField.SetStartValue(const AValue: string);
@@ -2289,7 +2295,7 @@ end;
 procedure TExtFormField.SetFOnBlur(Value: TExtFormFieldOnBlur);
 begin
   if Assigned(FOnBlur) then
-    JSCodeBlock(JSName + '.events ["blur"].listeners=[];');
+    JSCode(JSName + '.events ["blur"].listeners=[];');
   if Assigned(Value) then
     on('blur', Ajax('blur', ['This', '%0.nm'], true));
   FOnBlur := Value;
@@ -2307,7 +2313,7 @@ end;
 procedure TExtFormField.SetFOnFocus(Value: TExtFormFieldOnFocus);
 begin
   if Assigned(FOnFocus) then
-    JSCodeBlock(JSName + '.events ["focus"].listeners=[];');
+    JSCode(JSName + '.events ["focus"].listeners=[];');
   if Assigned(Value) then
     on('focus', Ajax('focus', ['This', '%0.nm'], true));
   FOnFocus := Value;
@@ -2316,7 +2322,7 @@ end;
 procedure TExtFormField.SetFOnInvalid(Value: TExtFormFieldOnInvalid);
 begin
   if Assigned(FOnInvalid) then
-    JSCodeBlock(JSName + '.events ["invalid"].listeners=[];');
+    JSCode(JSName + '.events ["invalid"].listeners=[];');
   if Assigned(Value) then
     on('invalid', Ajax('invalid', ['This', '%0.nm', 'Msg', '%1'], true));
   FOnInvalid := Value;
@@ -2325,7 +2331,7 @@ end;
 procedure TExtFormField.SetFOnSpecialkey(Value: TExtFormFieldOnSpecialkey);
 begin
   if Assigned(FOnSpecialkey) then
-    JSCodeBlock(JSName + '.events ["specialkey"].listeners=[];');
+    JSCode(JSName + '.events ["specialkey"].listeners=[];');
   if Assigned(Value) then
     on('specialkey', Ajax('specialkey', ['This', '%0.nm', 'E', '%1.nm'], true));
   FOnSpecialkey := Value;
@@ -2334,7 +2340,7 @@ end;
 procedure TExtFormField.SetFOnValid(Value: TExtFormFieldOnValid);
 begin
   if Assigned(FOnValid) then
-    JSCodeBlock(JSName + '.events ["valid"].listeners=[];');
+    JSCode(JSName + '.events ["valid"].listeners=[];');
   if Assigned(Value) then
     on('valid', Ajax('valid', ['This', '%0.nm'], true));
   FOnValid := Value;
@@ -2493,7 +2499,7 @@ end;
 procedure TExtFormLabel.SetFForId(Value: string);
 begin
   FForId := Value;
-  JSCodeBlock('forId:' + VarToJSON([Value]));
+  JSCode('forId:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormLabel.SetHtml(AValue: string);
@@ -2537,86 +2543,86 @@ end;
 procedure TExtFormHtmlEditor.SetFCreateLinkText(Value: string);
 begin
   FCreateLinkText := Value;
-  JSCodeBlock('createLinkText:' + VarToJSON([Value]));
+  JSCode('createLinkText:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormHtmlEditor.SetFDefaultLinkValue(Value: string);
 begin
   FDefaultLinkValue := Value;
-  JSCodeBlock('defaultLinkValue:' + VarToJSON([Value]));
+  JSCode('defaultLinkValue:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormHtmlEditor.SetFDefaultValue(Value: string);
 begin
   FDefaultValue := Value;
-  JSCodeBlock('defaultValue:' + VarToJSON([Value]));
+  JSCode('defaultValue:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormHtmlEditor.SetFEnableAlignments(Value: Boolean);
 begin
   FEnableAlignments := Value;
-  JSCodeBlock('enableAlignments:' + VarToJSON([Value]));
+  JSCode('enableAlignments:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormHtmlEditor.SetFEnableColors(Value: Boolean);
 begin
   FEnableColors := Value;
-  JSCodeBlock('enableColors:' + VarToJSON([Value]));
+  JSCode('enableColors:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormHtmlEditor.SetFEnableFont(Value: Boolean);
 begin
   FEnableFont := Value;
-  JSCodeBlock('enableFont:' + VarToJSON([Value]));
+  JSCode('enableFont:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormHtmlEditor.SetFEnableFontSize(Value: Boolean);
 begin
   FEnableFontSize := Value;
-  JSCodeBlock('enableFontSize:' + VarToJSON([Value]));
+  JSCode('enableFontSize:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormHtmlEditor.SetFEnableFormat(Value: Boolean);
 begin
   FEnableFormat := Value;
-  JSCodeBlock('enableFormat:' + VarToJSON([Value]));
+  JSCode('enableFormat:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormHtmlEditor.SetFEnableLinks(Value: Boolean);
 begin
   FEnableLinks := Value;
-  JSCodeBlock('enableLinks:' + VarToJSON([Value]));
+  JSCode('enableLinks:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormHtmlEditor.SetFEnableLists(Value: Boolean);
 begin
   FEnableLists := Value;
-  JSCodeBlock('enableLists:' + VarToJSON([Value]));
+  JSCode('enableLists:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormHtmlEditor.SetFEnableSourceEdit(Value: Boolean);
 begin
   FEnableSourceEdit := Value;
-  JSCodeBlock('enableSourceEdit:' + VarToJSON([Value]));
+  JSCode('enableSourceEdit:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormHtmlEditor.SetFFontFamilies(Value: TExtObjectList);
 begin
   FFontFamilies := Value;
-  JSCodeBlock('fontFamilies:' + VarToJSON([Value, false]));
+  JSCode('fontFamilies:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtFormHtmlEditor.SetFButtonTips(Value: TExtObject);
 begin
   FButtonTips := Value;
-  JSCodeBlock(JSName + '.buttonTips=' + VarToJSON([Value, false]) + ';');
+  JSCode(JSName + '.buttonTips=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtFormHtmlEditor.SetFOnActivate
   (Value: TExtFormHtmlEditorOnActivate);
 begin
   if Assigned(FOnActivate) then
-    JSCodeBlock(JSName + '.events ["activate"].listeners=[];');
+    JSCode(JSName + '.events ["activate"].listeners=[];');
   if Assigned(Value) then
     on('activate', Ajax('activate', ['This', '%0.nm'], true));
   FOnActivate := Value;
@@ -2626,7 +2632,7 @@ procedure TExtFormHtmlEditor.SetFOnBeforepush
   (Value: TExtFormHtmlEditorOnBeforepush);
 begin
   if Assigned(FOnBeforepush) then
-    JSCodeBlock(JSName + '.events ["beforepush"].listeners=[];');
+    JSCode(JSName + '.events ["beforepush"].listeners=[];');
   if Assigned(Value) then
     on('beforepush', Ajax('beforepush', ['This', '%0.nm', 'Html', '%1'], true));
   FOnBeforepush := Value;
@@ -2636,7 +2642,7 @@ procedure TExtFormHtmlEditor.SetFOnBeforesync
   (Value: TExtFormHtmlEditorOnBeforesync);
 begin
   if Assigned(FOnBeforesync) then
-    JSCodeBlock(JSName + '.events ["beforesync"].listeners=[];');
+    JSCode(JSName + '.events ["beforesync"].listeners=[];');
   if Assigned(Value) then
     on('beforesync', Ajax('beforesync', ['This', '%0.nm', 'Html', '%1'], true));
   FOnBeforesync := Value;
@@ -2646,7 +2652,7 @@ procedure TExtFormHtmlEditor.SetFOnEditmodechange
   (Value: TExtFormHtmlEditorOnEditmodechange);
 begin
   if Assigned(FOnEditmodechange) then
-    JSCodeBlock(JSName + '.events ["editmodechange"].listeners=[];');
+    JSCode(JSName + '.events ["editmodechange"].listeners=[];');
   if Assigned(Value) then
     on('editmodechange', Ajax('editmodechange', ['This', '%0.nm', 'SourceEdit',
       '%1'], true));
@@ -2657,7 +2663,7 @@ procedure TExtFormHtmlEditor.SetFOnInitialize
   (Value: TExtFormHtmlEditorOnInitialize);
 begin
   if Assigned(FOnInitialize) then
-    JSCodeBlock(JSName + '.events ["initialize"].listeners=[];');
+    JSCode(JSName + '.events ["initialize"].listeners=[];');
   if Assigned(Value) then
     on('initialize', Ajax('initialize', ['This', '%0.nm'], true));
   FOnInitialize := Value;
@@ -2666,7 +2672,7 @@ end;
 procedure TExtFormHtmlEditor.SetFOnPush(Value: TExtFormHtmlEditorOnPush);
 begin
   if Assigned(FOnPush) then
-    JSCodeBlock(JSName + '.events ["push"].listeners=[];');
+    JSCode(JSName + '.events ["push"].listeners=[];');
   if Assigned(Value) then
     on('push', Ajax('push', ['This', '%0.nm', 'Html', '%1'], true));
   FOnPush := Value;
@@ -2675,7 +2681,7 @@ end;
 procedure TExtFormHtmlEditor.SetFOnSync(Value: TExtFormHtmlEditorOnSync);
 begin
   if Assigned(FOnSync) then
-    JSCodeBlock(JSName + '.events ["sync"].listeners=[];');
+    JSCode(JSName + '.events ["sync"].listeners=[];');
   if Assigned(Value) then
     on('sync', Ajax('sync', ['This', '%0.nm', 'Html', '%1'], true));
   FOnSync := Value;
@@ -2808,13 +2814,13 @@ end;
 procedure TExtUxCodePress.SetFAutoComplete(Value: Boolean);
 begin
   FAutoComplete := Value;
-  JSCodeBlock('autoComplete:' + VarToJSON([Value]));
+  JSCode('autoComplete:' + VarToJSON([Value]));
 end;
 
 procedure TExtUxCodePress.SetFAutoResize(Value: Boolean);
 begin
   FAutoResize := Value;
-  JSCodeBlock('autoResize:' + VarToJSON([Value]));
+  JSCode('autoResize:' + VarToJSON([Value]));
 end;
 
 procedure TExtUxCodePress._SetCode(const AValue: string);
@@ -2826,55 +2832,55 @@ end;
 procedure TExtUxCodePress.SetFHeight(Value: Integer);
 begin
   FHeight := Value;
-  JSCodeBlock('height:' + VarToJSON([Value]));
+  JSCode('height:' + VarToJSON([Value]));
 end;
 
 procedure TExtUxCodePress.SetFLanguage(Value: string);
 begin
   FLanguage := Value;
-  JSCodeBlock('language:' + VarToJSON([Value]));
+  JSCode('language:' + VarToJSON([Value]));
 end;
 
 procedure TExtUxCodePress.SetFLineNumbers(Value: Boolean);
 begin
   FLineNumbers := Value;
-  JSCodeBlock('lineNumbers:' + VarToJSON([Value]));
+  JSCode('lineNumbers:' + VarToJSON([Value]));
 end;
 
 procedure TExtUxCodePress.SetFPath(Value: string);
 begin
   FPath := Value;
-  JSCodeBlock('path:' + VarToJSON([Value]));
+  JSCode('path:' + VarToJSON([Value]));
 end;
 
 procedure TExtUxCodePress.SetFReadOnly(Value: Boolean);
 begin
   FReadOnly := Value;
-  JSCodeBlock('readOnly:' + VarToJSON([Value]));
+  JSCode('readOnly:' + VarToJSON([Value]));
 end;
 
 procedure TExtUxCodePress.SetFSourceEl(Value: string);
 begin
   FSourceEl := Value;
-  JSCodeBlock('sourceEl:' + VarToJSON([Value]));
+  JSCode('sourceEl:' + VarToJSON([Value]));
 end;
 
 procedure TExtUxCodePress.SetFTrim(Value: Boolean);
 begin
   FTrim := Value;
-  JSCodeBlock('trim:' + VarToJSON([Value]));
+  JSCode('trim:' + VarToJSON([Value]));
 end;
 
 procedure TExtUxCodePress.SetFUrl(Value: string);
 begin
   FUrl := Value;
-  JSCodeBlock('url:' + VarToJSON([Value]));
+  JSCode('url:' + VarToJSON([Value]));
 end;
 
 procedure TExtUxCodePress.SetFWidth(Value: Integer);
 begin
   FWidth := Value;
-  JSCodeBlock('width:' + VarToJSON([Value]));
+  JSCode('width:' + VarToJSON([Value]));
 end;
 
 class function TExtUxCodePress.JSClassName: string;
@@ -2957,19 +2963,19 @@ end;
 procedure TExtFormTextField.SetFBlankText(Value: string);
 begin
   FBlankText := Value;
-  JSCodeBlock('blankText:' + VarToJSON([Value]));
+  JSCode('blankText:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormTextField.SetFDisableKeyFilter(Value: Boolean);
 begin
   FDisableKeyFilter := Value;
-  JSCodeBlock('disableKeyFilter:' + VarToJSON([Value]));
+  JSCode('disableKeyFilter:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormTextField.SetFEmptyClass(Value: string);
 begin
   FEmptyClass := Value;
-  JSCodeBlock('emptyClass:' + VarToJSON([Value]));
+  JSCode('emptyClass:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormTextField.SetEmptyText(const AValue: string);
@@ -2993,19 +2999,19 @@ end;
 procedure TExtFormTextField.SetFGrowMax(Value: Integer);
 begin
   FGrowMax := Value;
-  JSCodeBlock('growMax:' + VarToJSON([Value]));
+  JSCode('growMax:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormTextField.SetFGrowMin(Value: Integer);
 begin
   FGrowMin := Value;
-  JSCodeBlock('growMin:' + VarToJSON([Value]));
+  JSCode('growMin:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormTextField.SetFMaskRe(Value: string);
 begin
   FMaskRe := Value;
-  JSCodeBlock('maskRe:' + VarToJSON([#3 + Value]));
+  JSCode('maskRe:' + VarToJSON([#3 + Value]));
 end;
 
 procedure TExtFormTextField.SetMaxLength(const AValue: Integer);
@@ -3035,13 +3041,13 @@ end;
 procedure TExtFormTextField.SetFRegex(Value: string);
 begin
   FRegex := Value;
-  JSCodeBlock('regex:' + VarToJSON([#3 + Value]));
+  JSCode('regex:' + VarToJSON([#3 + Value]));
 end;
 
 procedure TExtFormTextField.SetFRegexText(Value: string);
 begin
   FRegexText := Value;
-  JSCodeBlock('regexText:' + VarToJSON([Value]));
+  JSCode('regexText:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormTextField.SetSelectOnFocus(const AValue: Boolean);
@@ -3053,13 +3059,13 @@ end;
 procedure TExtFormTextField.SetFStripCharsRe(Value: string);
 begin
   FStripCharsRe := Value;
-  JSCodeBlock('stripCharsRe:' + VarToJSON([#3 + Value]));
+  JSCode('stripCharsRe:' + VarToJSON([#3 + Value]));
 end;
 
 procedure TExtFormTextField.SetFValidator(Value: TExtFunction);
 begin
   FValidator := Value;
-  JSCodeBlock('validator:' + VarToJSON([Value, true]));
+  JSCode('validator:' + VarToJSON([Value, true]));
 end;
 
 procedure TExtFormTextField.SetVtype(const AValue: string);
@@ -3077,7 +3083,7 @@ end;
 procedure TExtFormTextField.SetFOnAutosize(Value: TExtFormTextFieldOnAutosize);
 begin
   if Assigned(FOnAutosize) then
-    JSCodeBlock(JSName + '.events ["autosize"].listeners=[];');
+    JSCode(JSName + '.events ["autosize"].listeners=[];');
   if Assigned(Value) then
     on('autosize', Ajax('autosize', ['This', '%0.nm', 'Width', '%1'], true));
   FOnAutosize := Value;
@@ -3086,7 +3092,7 @@ end;
 procedure TExtFormTextField.SetFOnKeydown(Value: TExtFormTextFieldOnKeydown);
 begin
   if Assigned(FOnKeydown) then
-    JSCodeBlock(JSName + '.events ["keydown"].listeners=[];');
+    JSCode(JSName + '.events ["keydown"].listeners=[];');
   if Assigned(Value) then
     on('keydown', Ajax('keydown', ['This', '%0.nm', 'E', '%1.nm'], true));
   FOnKeydown := Value;
@@ -3095,7 +3101,7 @@ end;
 procedure TExtFormTextField.SetFOnKeypress(Value: TExtFormTextFieldOnKeypress);
 begin
   if Assigned(FOnKeypress) then
-    JSCodeBlock(JSName + '.events ["keypress"].listeners=[];');
+    JSCode(JSName + '.events ["keypress"].listeners=[];');
   if Assigned(Value) then
     on('keypress', Ajax('keypress', ['This', '%0.nm', 'E', '%1.nm'], true));
   FOnKeypress := Value;
@@ -3104,7 +3110,7 @@ end;
 procedure TExtFormTextField.SetFOnKeyup(Value: TExtFormTextFieldOnKeyup);
 begin
   if Assigned(FOnKeyup) then
-    JSCodeBlock(JSName + '.events ["keyup"].listeners=[];');
+    JSCode(JSName + '.events ["keyup"].listeners=[];');
   if Assigned(Value) then
     on('keyup', Ajax('keyup', ['This', '%0.nm', 'E', '%1.nm'], true));
   FOnKeyup := Value;
@@ -3177,13 +3183,13 @@ end;
 procedure TExtFormSliderField.SetFTipText(Value: TExtFunction);
 begin
   FTipText := Value;
-  JSCodeBlock('tipText:' + VarToJSON([Value, true]));
+  JSCode('tipText:' + VarToJSON([Value, true]));
 end;
 
 procedure TExtFormSliderField.SetFUseTips(Value: Boolean);
 begin
   FUseTips := Value;
-  JSCodeBlock('useTips:' + VarToJSON([Value]));
+  JSCode('useTips:' + VarToJSON([Value]));
 end;
 
 class function TExtFormSliderField.JSClassName: string;
@@ -3227,13 +3233,13 @@ end;
 procedure TExtFormDisplayField.SetFFieldClass(Value: string);
 begin
   FFieldClass := Value;
-  JSCodeBlock('fieldClass:' + VarToJSON([Value]));
+  JSCode('fieldClass:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormDisplayField.SetFHtmlEncode(Value: Boolean);
 begin
   FHtmlEncode := Value;
-  JSCodeBlock('htmlEncode:' + VarToJSON([Value]));
+  JSCode('htmlEncode:' + VarToJSON([Value]));
 end;
 
 class function TExtFormDisplayField.JSClassName: string;
@@ -3250,43 +3256,43 @@ end;
 procedure TExtFormCompositeField.SetFY(Value: Integer);
 begin
   FY := Value;
-  JSCodeBlock('y:' + VarToJSON([Value]));
+  JSCode('y:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormCompositeField.SetFDefaultMargins(Value: string);
 begin
   FDefaultMargins := Value;
-  JSCodeBlock('defaultMargins:' + VarToJSON([Value]));
+  JSCode('defaultMargins:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormCompositeField.SetFFieldErrors(Value: TExtObjectList);
 begin
   FFieldErrors := Value;
-  JSCodeBlock('fieldErrors:' + VarToJSON([Value, false]));
+  JSCode('fieldErrors:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtFormCompositeField.SetFInnerCt(Value: TExtContainer);
 begin
   FInnerCt := Value;
-  JSCodeBlock('innerCt:' + VarToJSON([Value, false]));
+  JSCode('innerCt:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtFormCompositeField.SetFIsComposite(Value: Boolean);
 begin
   FIsComposite := Value;
-  JSCodeBlock('isComposite:' + VarToJSON([Value]));
+  JSCode('isComposite:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormCompositeField.SetFItems(Value: TExtObjectList);
 begin
   FItems := Value;
-  JSCodeBlock('items:' + VarToJSON([Value, false]));
+  JSCode('items:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtFormCompositeField.SetFRendered(Value: Boolean);
 begin
   FRendered := Value;
-  JSCodeBlock('rendered:' + VarToJSON([Value]));
+  JSCode('rendered:' + VarToJSON([Value]));
 end;
 
 class function TExtFormCompositeField.JSClassName: string;
@@ -3373,7 +3379,7 @@ end;
 procedure TExtFormCheckbox.SetFAutoCreate(Value: string);
 begin
   FAutoCreate := Value;
-  JSCodeBlock('autoCreate:' + VarToJSON([Value]));
+  JSCode('autoCreate:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormCheckbox.SetBoxLabel(const AValue: string);
@@ -3385,7 +3391,7 @@ end;
 procedure TExtFormCheckbox.SetFBoxLabel_(Value: string);
 begin
   FBoxLabel_ := Value;
-  JSCodeBlock('boxLabel:' + VarToJSON([Value]));
+  JSCode('boxLabel:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormCheckbox.SetChecked(const AValue: Boolean);
@@ -3397,37 +3403,37 @@ end;
 procedure TExtFormCheckbox.SetFFieldClass(Value: string);
 begin
   FFieldClass := Value;
-  JSCodeBlock('fieldClass:' + VarToJSON([Value]));
+  JSCode('fieldClass:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormCheckbox.SetFFocusClass(Value: string);
 begin
   FFocusClass := Value;
-  JSCodeBlock('focusClass:' + VarToJSON([Value]));
+  JSCode('focusClass:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormCheckbox.SetFHandler(Value: TExtFunction);
 begin
   FHandler := Value;
-  JSCodeBlock('handler:' + VarToJSON([Value, true]));
+  JSCode('handler:' + VarToJSON([Value, true]));
 end;
 
 procedure TExtFormCheckbox.SetFInputValue(Value: string);
 begin
   FInputValue := Value;
-  JSCodeBlock('inputValue:' + VarToJSON([Value]));
+  JSCode('inputValue:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormCheckbox.SetFScope(Value: TExtObject);
 begin
   FScope := Value;
-  JSCodeBlock('scope:' + VarToJSON([Value, false]));
+  JSCode('scope:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtFormCheckbox.SetFOnCheck(Value: TExtFormCheckboxOnCheck);
 begin
   if Assigned(FOnCheck) then
-    JSCodeBlock(JSName + '.events ["check"].listeners=[];');
+    JSCode(JSName + '.events ["check"].listeners=[];');
   if Assigned(Value) then
     on('check', Ajax('check', ['This', '%0.nm', 'Checked', '%1'], true));
   FOnCheck := Value;
@@ -3477,50 +3483,50 @@ end;
 procedure TExtFormCheckboxGroup.SetFAllowBlank(Value: Boolean);
 begin
   FAllowBlank := Value;
-  JSCodeBlock('allowBlank:' + VarToJSON([Value]));
+  JSCode('allowBlank:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormCheckboxGroup.SetFBlankText(Value: string);
 begin
   FBlankText := Value;
-  JSCodeBlock('blankText:' + VarToJSON([Value]));
+  JSCode('blankText:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormCheckboxGroup.SetFColumns(Value: string);
 begin
   FColumns := Value;
-  JSCodeBlock('columns:' + VarToJSON([Value]));
+  JSCode('columns:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormCheckboxGroup.SetFColumnsNumber(Value: Integer);
 begin
   FColumnsNumber := Value;
-  JSCodeBlock('columns:' + VarToJSON([Value]));
+  JSCode('columns:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormCheckboxGroup.SetFColumnsArray(Value: TExtObjectList);
 begin
   FColumnsArray := Value;
-  JSCodeBlock('columns:' + VarToJSON([Value, false]));
+  JSCode('columns:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtFormCheckboxGroup.SetFItems(Value: TExtObjectList);
 begin
   FItems := Value;
-  JSCodeBlock('items:' + VarToJSON([Value, false]));
+  JSCode('items:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtFormCheckboxGroup.SetFVertical(Value: Boolean);
 begin
   FVertical := Value;
-  JSCodeBlock('vertical:' + VarToJSON([Value]));
+  JSCode('vertical:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormCheckboxGroup.SetFOnChange
   (Value: TExtFormCheckboxGroupOnChange);
 begin
   if Assigned(FOnChange) then
-    JSCodeBlock(JSName + '.events ["change"].listeners=[];');
+    JSCode(JSName + '.events ["change"].listeners=[];');
   if Assigned(Value) then
     on('change', Ajax('change', ['This', '%0.nm', 'Checked', '%1.nm'], true));
   FOnChange := Value;
@@ -3571,25 +3577,25 @@ end;
 procedure TExtFormTextArea.SetFAutoCreate(Value: string);
 begin
   FAutoCreate := Value;
-  JSCodeBlock('autoCreate:' + VarToJSON([Value]));
+  JSCode('autoCreate:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormTextArea.SetFGrowMax(Value: Integer);
 begin
   FGrowMax := Value;
-  JSCodeBlock('growMax:' + VarToJSON([Value]));
+  JSCode('growMax:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormTextArea.SetFGrowMin(Value: Integer);
 begin
   FGrowMin := Value;
-  JSCodeBlock('growMin:' + VarToJSON([Value]));
+  JSCode('growMin:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormTextArea.SetFPreventScrollbars(Value: Boolean);
 begin
   FPreventScrollbars := Value;
-  JSCodeBlock('preventScrollbars:' + VarToJSON([Value]));
+  JSCode('preventScrollbars:' + VarToJSON([Value]));
 end;
 
 class function TExtFormTextArea.JSClassName: string;
@@ -3618,7 +3624,7 @@ end;
 procedure TExtFormTriggerField.SetFAutoCreate(Value: string);
 begin
   FAutoCreate := Value;
-  JSCodeBlock('autoCreate:' + VarToJSON([Value]));
+  JSCode('autoCreate:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormTriggerField._SetEditable(const AValue: Boolean);
@@ -3630,7 +3636,7 @@ end;
 procedure TExtFormTriggerField.SetFHideTrigger(Value: Boolean);
 begin
   FHideTrigger := Value;
-  JSCodeBlock('hideTrigger:' + VarToJSON([Value]));
+  JSCode('hideTrigger:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormTriggerField._SetReadOnly(const AValue: Boolean);
@@ -3647,13 +3653,13 @@ end;
 procedure TExtFormTriggerField.SetFTriggerConfig(Value: string);
 begin
   FTriggerConfig := Value;
-  JSCodeBlock('triggerConfig:' + VarToJSON([Value]));
+  JSCode('triggerConfig:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormTriggerField.SetFWrapFocusClass(Value: string);
 begin
   FWrapFocusClass := Value;
-  JSCodeBlock('wrapFocusClass:' + VarToJSON([Value]));
+  JSCode('wrapFocusClass:' + VarToJSON([Value]));
 end;
 
 class function TExtFormTriggerField.JSClassName: string;
@@ -3692,7 +3698,7 @@ end;
 procedure TExtFormNumberField.SetFBaseChars(Value: string);
 begin
   FBaseChars := Value;
-  JSCodeBlock('baseChars:' + VarToJSON([Value]));
+  JSCode('baseChars:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormNumberField.SetDecimalPrecision(const AValue: Integer);
@@ -3710,7 +3716,7 @@ end;
 procedure TExtFormNumberField.SetFFieldClass(Value: string);
 begin
   FFieldClass := Value;
-  JSCodeBlock('fieldClass:' + VarToJSON([Value]));
+  JSCode('fieldClass:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormNumberField.SetMaxText(const AValue: string);
@@ -3789,25 +3795,25 @@ end;
 procedure TExtFormFieldSet.SetFAnimCollapse(Value: Boolean);
 begin
   FAnimCollapse := Value;
-  JSCodeBlock('animCollapse:' + VarToJSON([Value]));
+  JSCode('animCollapse:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormFieldSet.SetFBaseCls(Value: string);
 begin
   FBaseCls := Value;
-  JSCodeBlock('baseCls:' + VarToJSON([Value]));
+  JSCode('baseCls:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormFieldSet.SetFCheckboxName(Value: string);
 begin
   FCheckboxName := Value;
-  JSCodeBlock('checkboxName:' + VarToJSON([Value]));
+  JSCode('checkboxName:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormFieldSet.SetFCheckboxToggle(Value: string);
 begin
   FCheckboxToggle := Value;
-  JSCodeBlock('checkboxToggle:' + VarToJSON([Value]));
+  JSCode('checkboxToggle:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormFieldSet.SetCollapsible(const AValue: Boolean);
@@ -3819,7 +3825,7 @@ end;
 procedure TExtFormFieldSet.SetFItemCls(Value: string);
 begin
   FItemCls := Value;
-  JSCodeBlock('itemCls:' + VarToJSON([Value]));
+  JSCode('itemCls:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormFieldSet.SetLabelWidth(AValue: Integer);
@@ -3831,7 +3837,7 @@ end;
 procedure TExtFormFieldSet.SetFLayout(Value: string);
 begin
   FLayout := Value;
-  JSCodeBlock('layout:' + VarToJSON([Value]));
+  JSCode('layout:' + VarToJSON([Value]));
 end;
 
 class function TExtFormFieldSet.JSClassName: string;
@@ -3861,31 +3867,31 @@ end;
 procedure TExtFormFormPanel.SetFButtons(Value: TExtObjectList);
 begin
   FButtons := Value;
-  JSCodeBlock('buttons:' + VarToJSON([Value, false]));
+  JSCode('buttons:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtFormFormPanel.SetFFormId(Value: string);
 begin
   FFormId := Value;
-  JSCodeBlock('formId:' + VarToJSON([Value]));
+  JSCode('formId:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormFormPanel.SetFHideLabels(Value: Boolean);
 begin
   FHideLabels := Value;
-  JSCodeBlock('hideLabels:' + VarToJSON([Value]));
+  JSCode('hideLabels:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormFormPanel.SetFItemCls(Value: string);
 begin
   FItemCls := Value;
-  JSCodeBlock('itemCls:' + VarToJSON([Value]));
+  JSCode('itemCls:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormFormPanel.SetFLabelPad(Value: Integer);
 begin
   FLabelPad := Value;
-  JSCodeBlock('labelPad:' + VarToJSON([Value]));
+  JSCode('labelPad:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormFormPanel.SetLabelSeparator(const AValue: string);
@@ -3897,19 +3903,19 @@ end;
 procedure TExtFormFormPanel.SetFLayout(Value: string);
 begin
   FLayout := Value;
-  JSCodeBlock('layout:' + VarToJSON([Value]));
+  JSCode('layout:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormFormPanel.SetFMinButtonWidth(Value: Integer);
 begin
   FMinButtonWidth := Value;
-  JSCodeBlock('minButtonWidth:' + VarToJSON([Value]));
+  JSCode('minButtonWidth:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormFormPanel.SetFMonitorPoll(Value: Integer);
 begin
   FMonitorPoll := Value;
-  JSCodeBlock('monitorPoll:' + VarToJSON([Value]));
+  JSCode('monitorPoll:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormFormPanel.SetMonitorValid(const AValue: Boolean);
@@ -3928,7 +3934,7 @@ procedure TExtFormFormPanel.SetFOnClientvalidation
   (Value: TExtFormFormPanelOnClientvalidation);
 begin
   if Assigned(FOnClientvalidation) then
-    JSCodeBlock(JSName + '.events ["clientvalidation"].listeners=[];');
+    JSCode(JSName + '.events ["clientvalidation"].listeners=[];');
   if Assigned(Value) then
     on('clientvalidation', Ajax('clientvalidation', ['This', '%0.nm', 'Valid',
       '%1'], true));
@@ -3985,25 +3991,25 @@ end;
 procedure TExtFormRadioGroup.SetFAllowBlank(Value: Boolean);
 begin
   FAllowBlank := Value;
-  JSCodeBlock('allowBlank:' + VarToJSON([Value]));
+  JSCode('allowBlank:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormRadioGroup.SetFBlankText(Value: string);
 begin
   FBlankText := Value;
-  JSCodeBlock('blankText:' + VarToJSON([Value]));
+  JSCode('blankText:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormRadioGroup.SetFItems(Value: TExtObjectList);
 begin
   FItems := Value;
-  JSCodeBlock('items:' + VarToJSON([Value, false]));
+  JSCode('items:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtFormRadioGroup.SetFOnChange(Value: TExtFormRadioGroupOnChange);
 begin
   if Assigned(FOnChange) then
-    JSCodeBlock(JSName + '.events ["change"].listeners=[];');
+    JSCode(JSName + '.events ["change"].listeners=[];');
   if Assigned(Value) then
     on('change', Ajax('change', ['This', '%0.nm', 'Checked', '%1.nm'], true));
   FOnChange := Value;
@@ -4089,7 +4095,7 @@ end;
 procedure TExtFormDateField.SetFAutoCreate(Value: string);
 begin
   FAutoCreate := Value;
-  JSCodeBlock('autoCreate:' + VarToJSON([Value]));
+  JSCode('autoCreate:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormDateField._SetDisabledDates(const AValue: TExtObjectList);
@@ -4101,7 +4107,7 @@ end;
 procedure TExtFormDateField.SetFDisabledDatesText(Value: string);
 begin
   FDisabledDatesText := Value;
-  JSCodeBlock('disabledDatesText:' + VarToJSON([Value]));
+  JSCode('disabledDatesText:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormDateField._SetDisabledDays(const AValue: TExtObjectList);
@@ -4113,7 +4119,7 @@ end;
 procedure TExtFormDateField.SetFDisabledDaysText(Value: string);
 begin
   FDisabledDaysText := Value;
-  JSCodeBlock('disabledDaysText:' + VarToJSON([Value]));
+  JSCode('disabledDaysText:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormDateField.SetFormat(const AValue: string);
@@ -4125,13 +4131,13 @@ end;
 procedure TExtFormDateField.SetFInvalidText(Value: string);
 begin
   FInvalidText := Value;
-  JSCodeBlock('invalidText:' + VarToJSON([Value]));
+  JSCode('invalidText:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormDateField.SetFMaxText(Value: string);
 begin
   FMaxText := Value;
-  JSCodeBlock('maxText:' + VarToJSON([Value]));
+  JSCode('maxText:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormDateField._SetMaxValue(const AValue: TDateTime);
@@ -4143,13 +4149,13 @@ end;
 procedure TExtFormDateField.SetFMaxValueString(Value: string);
 begin
   FMaxValueString := Value;
-  JSCodeBlock('maxValue:' + VarToJSON([Value]));
+  JSCode('maxValue:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormDateField.SetFMinText(Value: string);
 begin
   FMinText := Value;
-  JSCodeBlock('minText:' + VarToJSON([Value]));
+  JSCode('minText:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormDateField._SetMinValue(const AValue: TDateTime);
@@ -4161,25 +4167,25 @@ end;
 procedure TExtFormDateField.SetFMinValueString(Value: string);
 begin
   FMinValueString := Value;
-  JSCodeBlock('minValue:' + VarToJSON([Value]));
+  JSCode('minValue:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormDateField.SetFShowToday(Value: Boolean);
 begin
   FShowToday := Value;
-  JSCodeBlock('showToday:' + VarToJSON([Value]));
+  JSCode('showToday:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormDateField.SetFTriggerClass(Value: string);
 begin
   FTriggerClass := Value;
-  JSCodeBlock('triggerClass:' + VarToJSON([Value]));
+  JSCode('triggerClass:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormDateField.SetFOnSelect(Value: TExtFormDateFieldOnSelect);
 begin
   if Assigned(FOnSelect) then
-    JSCodeBlock(JSName + '.events ["select"].listeners=[];');
+    JSCode(JSName + '.events ["select"].listeners=[];');
   if Assigned(Value) then
     on('select', Ajax('select', ['This', '%0.nm', 'Date', '%1'], true));
   FOnSelect := Value;
@@ -4272,13 +4278,13 @@ end;
 procedure TExtFormComboBox.SetFAllQuery(Value: string);
 begin
   FAllQuery := Value;
-  JSCodeBlock('allQuery:' + VarToJSON([Value]));
+  JSCode('allQuery:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormComboBox.SetFAutoCreate(Value: string);
 begin
   FAutoCreate := Value;
-  JSCodeBlock('autoCreate:' + VarToJSON([Value]));
+  JSCode('autoCreate:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormComboBox.SetAutoSelect(const AValue: Boolean);
@@ -4290,7 +4296,7 @@ end;
 procedure TExtFormComboBox.SetFClearFilterOnReset(Value: Boolean);
 begin
   FClearFilterOnReset := Value;
-  JSCodeBlock('clearFilterOnReset:' + VarToJSON([Value]));
+  JSCode('clearFilterOnReset:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormComboBox.SetDisplayField(const AValue: string);
@@ -4308,13 +4314,13 @@ end;
 procedure TExtFormComboBox.SetFHandleHeight(Value: Integer);
 begin
   FHandleHeight := Value;
-  JSCodeBlock('handleHeight:' + VarToJSON([Value]));
+  JSCode('handleHeight:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormComboBox.SetFHiddenId(Value: string);
 begin
   FHiddenId := Value;
-  JSCodeBlock('hiddenId:' + VarToJSON([Value]));
+  JSCode('hiddenId:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormComboBox.SetHiddenName(const AValue: string);
@@ -4331,13 +4337,13 @@ end;
 procedure TExtFormComboBox.SetFItemSelector(Value: string);
 begin
   FItemSelector := Value;
-  JSCodeBlock('itemSelector:' + VarToJSON([Value]));
+  JSCode('itemSelector:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormComboBox.SetFLazyInit(Value: Boolean);
 begin
   FLazyInit := Value;
-  JSCodeBlock('lazyInit:' + VarToJSON([Value]));
+  JSCode('lazyInit:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormComboBox.SetLazyRender(const AValue: Boolean);
@@ -4348,25 +4354,25 @@ end;
 procedure TExtFormComboBox.SetFListAlign(Value: string);
 begin
   FListAlign := Value;
-  JSCodeBlock('listAlign:' + VarToJSON([Value]));
+  JSCode('listAlign:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormComboBox.SetFListAlignArray(Value: TExtObjectList);
 begin
   FListAlignArray := Value;
-  JSCodeBlock('listAlign:' + VarToJSON([Value, false]));
+  JSCode('listAlign:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtFormComboBox.SetFListClass(Value: string);
 begin
   FListClass := Value;
-  JSCodeBlock('listClass:' + VarToJSON([Value]));
+  JSCode('listClass:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormComboBox.SetFListEmptyText(Value: string);
 begin
   FListEmptyText := Value;
-  JSCodeBlock('listEmptyText:' + VarToJSON([Value]));
+  JSCode('listEmptyText:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormComboBox.SetListWidth(const AValue: Integer);
@@ -4374,16 +4380,21 @@ begin
   FListWidth := SetConfigItem('listWidth', AValue);
 end;
 
+procedure TExtFormComboBox.SetListWidthFunc(const AValue: TExtFunction);
+begin
+  FListWidthFunc := SetFunctionConfigItem('listWidth', AValue);
+end;
+
 procedure TExtFormComboBox.SetFLoadingText(Value: string);
 begin
   FLoadingText := Value;
-  JSCodeBlock('loadingText:' + VarToJSON([Value]));
+  JSCode('loadingText:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormComboBox.SetFMaxHeight(Value: Integer);
 begin
   FMaxHeight := Value;
-  JSCodeBlock('maxHeight:' + VarToJSON([Value]));
+  JSCode('maxHeight:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormComboBox.SetMinChars(const AValue: Integer);
@@ -4394,6 +4405,11 @@ end;
 procedure TExtFormComboBox.SetMinHeight(const AValue: Integer);
 begin
   FMinHeight := SetConfigItem('minHeight', AValue);
+end;
+
+procedure TExtFormComboBox.SetMinHeightFunc(const AValue: TExtFunction);
+begin
+  FMinHeightFunc := SetFunctionConfigItem('minHeight', AValue);
 end;
 
 procedure TExtFormComboBox.SetMinListWidth(const AValue: Integer);
@@ -4441,13 +4457,13 @@ end;
 procedure TExtFormComboBox.SetFShadow(Value: Boolean);
 begin
   FShadow := Value;
-  JSCodeBlock('shadow:' + VarToJSON([Value]));
+  JSCode('shadow:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormComboBox.SetFShadowString(Value: string);
 begin
   FShadowString := Value;
-  JSCodeBlock('shadow:' + VarToJSON([Value]));
+  JSCode('shadow:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormComboBox.SetStore(const AValue: TExtDataStore);
@@ -4467,25 +4483,25 @@ end;
 procedure TExtFormComboBox.SetFTitle(Value: string);
 begin
   FTitle := Value;
-  JSCodeBlock('title:' + VarToJSON([Value]));
+  JSCode('title:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormComboBox.SetFTpl(Value: string);
 begin
   FTpl := Value;
-  JSCodeBlock('tpl:' + VarToJSON([Value]));
+  JSCode('tpl:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormComboBox.SetFTplExtXTemplate(Value: TExtXTemplate);
 begin
   FTplExtXTemplate := Value;
-  JSCodeBlock('tpl:' + VarToJSON([Value, false]));
+  JSCode('tpl:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtFormComboBox.SetFTransform(Value: string);
 begin
   FTransform := Value;
-  JSCodeBlock('transform:' + VarToJSON([Value]));
+  JSCode('transform:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormComboBox.SetTriggerAction(const AValue: string);
@@ -4497,7 +4513,7 @@ end;
 procedure TExtFormComboBox.SetFTriggerClass(Value: string);
 begin
   FTriggerClass := Value;
-  JSCodeBlock('triggerClass:' + VarToJSON([Value]));
+  JSCode('triggerClass:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormComboBox.SetTypeAhead(const AValue: Boolean);
@@ -4527,26 +4543,26 @@ end;
 procedure TExtFormComboBox.SetFKeyNav(Value: TExtKeyNav);
 begin
   FKeyNav := Value;
-  JSCodeBlock(JSName + '.keyNav=' + VarToJSON([Value, false]) + ';');
+  JSCode(JSName + '.keyNav=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtFormComboBox.SetFLastQuery(Value: string);
 begin
   FLastQuery := Value;
-  JSCodeBlock(JSName + '.lastQuery=' + VarToJSON([Value]) + ';');
+  JSCode(JSName + '.lastQuery=' + VarToJSON([Value]) + ';');
 end;
 
 procedure TExtFormComboBox.SetFView(Value: TExtDataView);
 begin
   FView := Value;
-  JSCodeBlock(JSName + '.view=' + VarToJSON([Value, false]) + ';');
+  JSCode(JSName + '.view=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtFormComboBox.SetFOnBeforequery
   (Value: TExtFormComboBoxOnBeforequery);
 begin
   if Assigned(FOnBeforequery) then
-    JSCodeBlock(JSName + '.events ["beforequery"].listeners=[];');
+    JSCode(JSName + '.events ["beforequery"].listeners=[];');
   if Assigned(Value) then
     on('beforequery', Ajax('beforequery', ['QueryEvent', '%0.nm'], true));
   FOnBeforequery := Value;
@@ -4556,7 +4572,7 @@ procedure TExtFormComboBox.SetFOnBeforeselect
   (Value: TExtFormComboBoxOnBeforeselect);
 begin
   if Assigned(FOnBeforeselect) then
-    JSCodeBlock(JSName + '.events ["beforeselect"].listeners=[];');
+    JSCode(JSName + '.events ["beforeselect"].listeners=[];');
   if Assigned(Value) then
     on('beforeselect', Ajax('beforeselect', ['Combo', '%0.nm', 'RecordJS',
       '%1.nm', 'Index', '%2'], true));
@@ -4566,7 +4582,7 @@ end;
 procedure TExtFormComboBox.SetFOnCollapse(Value: TExtFormComboBoxOnCollapse);
 begin
   if Assigned(FOnCollapse) then
-    JSCodeBlock(JSName + '.events ["collapse"].listeners=[];');
+    JSCode(JSName + '.events ["collapse"].listeners=[];');
   if Assigned(Value) then
     on('collapse', Ajax('collapse', ['Combo', '%0.nm'], true));
   FOnCollapse := Value;
@@ -4575,7 +4591,7 @@ end;
 procedure TExtFormComboBox.SetFOnExpand(Value: TExtFormComboBoxOnExpand);
 begin
   if Assigned(FOnExpand) then
-    JSCodeBlock(JSName + '.events ["expand"].listeners=[];');
+    JSCode(JSName + '.events ["expand"].listeners=[];');
   if Assigned(Value) then
     on('expand', Ajax('expand', ['Combo', '%0.nm'], true));
   FOnExpand := Value;
@@ -4584,7 +4600,7 @@ end;
 procedure TExtFormComboBox.SetFOnSelect(Value: TExtFormComboBoxOnSelect);
 begin
   if Assigned(FOnSelect) then
-    JSCodeBlock(JSName + '.events ["select"].listeners=[];');
+    JSCode(JSName + '.events ["select"].listeners=[];');
   if Assigned(Value) then
     on('select', Ajax('select', ['Combo', '%0.nm', 'RecordJS', '%1.nm', 'Index',
       '%2'], true));
@@ -4728,7 +4744,7 @@ end;
 procedure TExtFormTwinTriggerField.SetFTriggerConfig(Value: string);
 begin
   FTriggerConfig := Value;
-  JSCodeBlock('triggerConfig:' + VarToJSON([Value]));
+  JSCode('triggerConfig:' + VarToJSON([Value]));
 end;
 
 class function TExtFormTwinTriggerField.JSClassName: string;
@@ -4756,19 +4772,19 @@ end;
 procedure TExtFormTimeField.SetFIncrement(Value: Integer);
 begin
   FIncrement := Value;
-  JSCodeBlock('increment:' + VarToJSON([Value]));
+  JSCode('increment:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormTimeField.SetFInvalidText(Value: string);
 begin
   FInvalidText := Value;
-  JSCodeBlock('invalidText:' + VarToJSON([Value]));
+  JSCode('invalidText:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormTimeField.SetFMaxText(Value: string);
 begin
   FMaxText := Value;
-  JSCodeBlock('maxText:' + VarToJSON([Value]));
+  JSCode('maxText:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormTimeField._SetMaxValue(const AValue: TDateTime);
@@ -4780,13 +4796,13 @@ end;
 procedure TExtFormTimeField.SetFMaxValueString(Value: string);
 begin
   FMaxValueString := Value;
-  JSCodeBlock('maxValue:' + VarToJSON([Value]));
+  JSCode('maxValue:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormTimeField.SetFMinText(Value: string);
 begin
   FMinText := Value;
-  JSCodeBlock('minText:' + VarToJSON([Value]));
+  JSCode('minText:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormTimeField._SetMinValue(const AValue: TDateTime);
@@ -4798,7 +4814,7 @@ end;
 procedure TExtFormTimeField.SetFMinValueString(Value: string);
 begin
   FMinValueString := Value;
-  JSCodeBlock('minValue:' + VarToJSON([Value]));
+  JSCode('minValue:' + VarToJSON([Value]));
 end;
 
 class function TExtFormTimeField.JSClassName: string;
@@ -4852,7 +4868,7 @@ end;
 procedure TExtUxFormLovCombo.SetFSeparator(Value: string);
 begin
   FSeparator := Value;
-  JSCodeBlock('separator:' + VarToJSON([Value]));
+  JSCode('separator:' + VarToJSON([Value]));
 end;
 
 class function TExtUxFormLovCombo.JSClassName: string;

@@ -6,7 +6,6 @@ uses
   Classes, StrUtils, Ext.Util, Kitto.Ext, Kitto.JS.Types;
 
 type
-  TExtKeyMap = class;
   TExtFx = class;
   TExtLoaderSingleton = class;
   TExtKeyNav = class;
@@ -77,28 +76,6 @@ type
   TExtDataStore = TExtUtilObservable;
   TExtDataConnection = TExtUtilObservable;
   TExtDataRecord = TExtObject;
-
-  TExtKeyMap = class(TExtFunction)
-  private
-    FStopEvent: Boolean;
-    procedure SetFStopEvent(Value: Boolean);
-  public
-    class function JSClassName: string; override;
-
-    function AddBinding(Config: TExtObject = nil): TExtFunction; overload;
-    function AddBinding(Config: TExtObjectList): TExtFunction; overload;
-    function Disable: TExtFunction;
-    function Enable: TExtFunction;
-    function IsEnabled: TExtFunction;
-    function &On(Key: Integer; Fn: TExtFunction; Scope: TExtObject = nil)
-      : TExtFunction; overload;
-    function &On(Key: TExtObjectList; Fn: TExtFunction; Scope: TExtObject = nil)
-      : TExtFunction; overload;
-    function &On(Key: TExtObject; Fn: TExtFunction; Scope: TExtObject = nil)
-      : TExtFunction; overload;
-    function SetDisabled(Disabled: Boolean): TExtFunction;
-    property StopEvent: Boolean read FStopEvent write SetFStopEvent;
-  end;
 
   TExtFx = class(TExtFunction)
   private
@@ -1998,6 +1975,8 @@ type
     FOnResize: TExtBoxComponentOnResize;
     FWidthString: string;
     FHeightString: string;
+    FWidthFunc: TExtFunction;
+    FHeightFunc: TExtFunction;
     procedure SetAnchor(const AValue: string);
     procedure SetAutoHeight(const AValue: Boolean);
     procedure _SetAutoScroll(const AValue: Boolean);
@@ -2020,6 +1999,8 @@ type
     procedure SetFOnResize(Value: TExtBoxComponentOnResize);
     procedure SetHeightString(const AValue: string);
     procedure SetWidthString(const AValue: string);
+    procedure SetWidthFunc(const AValue: TExtFunction);
+    procedure SetHeightFunc(const AValue: TExtFunction);
   protected
     procedure InitDefaults; override;
     procedure HandleEvent(const AEvtName: string); override;
@@ -2049,6 +2030,7 @@ type
     property Flex: Integer read FFlex write SetFlex;
     property Height: Integer read FHeight write SetHeight;
     property HeightString: string read FHeightString write SetHeightString;
+    property HeightFunc: TExtFunction read FHeightFunc write SetHeightFunc;
     property Margins: string read FMargins write SetMargins;
     property PageX: Integer read FPageX write SetFPageX;
     property PageY: Integer read FPageY write SetFPageY;
@@ -2056,6 +2038,7 @@ type
     property TabTip: string read FTabTip write SetFTabTip;
     property Width: Integer read FWidth write SetWidth;
     property WidthString: string read FWidthString write SetWidthString;
+    property WidthFunc: TExtFunction read FWidthFunc write SetWidthFunc;
     property X: Integer read FX write SetFX;
     property Y: Integer read FY write SetFY;
     property OnMove: TExtBoxComponentOnMove read FOnMove write SetFOnMove;
@@ -3567,158 +3550,88 @@ begin
   end;
 end;
 
-procedure TExtKeyMap.SetFStopEvent(Value: Boolean);
-begin
-  FStopEvent := Value;
-  JSCodeBlock(JSName + '.stopEvent=' + VarToJSON([Value]) + ';');
-end;
-
-class function TExtKeyMap.JSClassName: string;
-begin
-  Result := 'Ext.KeyMap';
-end;
-
-function TExtKeyMap.AddBinding(Config: TExtObject = nil): TExtFunction;
-begin
-  JSCode(JSName + '.addBinding(' + VarToJSON([Config, false]) + ');', 'TExtKeyMap');
-  Result := Self;
-end;
-
-function TExtKeyMap.AddBinding(Config: TExtObjectList): TExtFunction;
-begin
-  JSCode(JSName + '.addBinding(' + VarToJSON(Config) + ');', 'TExtKeyMap');
-  Result := Self;
-end;
-
-function TExtKeyMap.Disable: TExtFunction;
-begin
-  JSCode(JSName + '.disable();', 'TExtKeyMap');
-  Result := Self;
-end;
-
-function TExtKeyMap.Enable: TExtFunction;
-begin
-  JSCode(JSName + '.enable();', 'TExtKeyMap');
-  Result := Self;
-end;
-
-function TExtKeyMap.IsEnabled: TExtFunction;
-begin
-  JSCode(JSName + '.isEnabled();', 'TExtKeyMap');
-  Result := Self;
-end;
-
-function TExtKeyMap.On(Key: Integer; Fn: TExtFunction; Scope: TExtObject = nil)
-  : TExtFunction;
-begin
-  JSCode(JSName + '.on(' + VarToJSON([Key, Fn, true, Scope, false]) + ');', 'TExtKeyMap');
-  Result := Self;
-end;
-
-function TExtKeyMap.On(Key: TExtObjectList; Fn: TExtFunction; Scope: TExtObject = nil)
-  : TExtFunction;
-begin
-  JSCode(JSName + '.on(' + VarToJSON(Key) + ',' + VarToJSON([Fn, true, Scope, false]) +
-    ');', 'TExtKeyMap');
-  Result := Self;
-end;
-
-function TExtKeyMap.On(Key: TExtObject; Fn: TExtFunction; Scope: TExtObject = nil)
-  : TExtFunction;
-begin
-  JSCode(JSName + '.on(' + VarToJSON([Key, false, Fn, true, Scope, false]) + ');',
-    'TExtKeyMap');
-  Result := Self;
-end;
-
-function TExtKeyMap.SetDisabled(Disabled: Boolean): TExtFunction;
-begin
-  JSCode(JSName + '.setDisabled(' + VarToJSON([Disabled]) + ');', 'TExtKeyMap');
-  Result := Self;
-end;
-
 procedure TExtFx.SetFAfterCls(Value: string);
 begin
   FAfterCls := Value;
-  JSCodeBlock('afterCls:' + VarToJSON([Value]));
+  JSCode('afterCls:' + VarToJSON([Value]));
 end;
 
 procedure TExtFx.SetFAfterStyle(Value: string);
 begin
   FAfterStyle := Value;
-  JSCodeBlock('afterStyle:' + VarToJSON([Value]));
+  JSCode('afterStyle:' + VarToJSON([Value]));
 end;
 
 procedure TExtFx.SetFAfterStyleObject(Value: TExtObject);
 begin
   FAfterStyleObject := Value;
-  JSCodeBlock('afterStyle:' + VarToJSON([Value, false]));
+  JSCode('afterStyle:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtFx.SetFAfterStyleFunction(Value: TExtFunction);
 begin
   FAfterStyleFunction := Value;
-  JSCodeBlock('afterStyle:' + VarToJSON([Value, true]));
+  JSCode('afterStyle:' + VarToJSON([Value, true]));
 end;
 
 procedure TExtFx.SetFBlock(Value: Boolean);
 begin
   FBlock := Value;
-  JSCodeBlock('block:' + VarToJSON([Value]));
+  JSCode('block:' + VarToJSON([Value]));
 end;
 
 procedure TExtFx.SetFCallback(Value: TExtFunction);
 begin
   FCallback := Value;
-  JSCodeBlock('callback:' + VarToJSON([Value, true]));
+  JSCode('callback:' + VarToJSON([Value, true]));
 end;
 
 procedure TExtFx.SetFConcurrent(Value: Boolean);
 begin
   FConcurrent := Value;
-  JSCodeBlock('concurrent:' + VarToJSON([Value]));
+  JSCode('concurrent:' + VarToJSON([Value]));
 end;
 
 procedure TExtFx.SetFDuration(Value: Integer);
 begin
   FDuration := Value;
-  JSCodeBlock('duration:' + VarToJSON([Value]));
+  JSCode('duration:' + VarToJSON([Value]));
 end;
 
 procedure TExtFx.SetFEasing(Value: string);
 begin
   FEasing := Value;
-  JSCodeBlock('easing:' + VarToJSON([Value]));
+  JSCode('easing:' + VarToJSON([Value]));
 end;
 
 procedure TExtFx.SetFEndOpacity(Value: Integer);
 begin
   FEndOpacity := Value;
-  JSCodeBlock('endOpacity:' + VarToJSON([Value]));
+  JSCode('endOpacity:' + VarToJSON([Value]));
 end;
 
 procedure TExtFx.SetFRemove(Value: Boolean);
 begin
   FRemove := Value;
-  JSCodeBlock('remove:' + VarToJSON([Value]));
+  JSCode('remove:' + VarToJSON([Value]));
 end;
 
 procedure TExtFx.SetFScope(Value: TExtObject);
 begin
   FScope := Value;
-  JSCodeBlock('scope:' + VarToJSON([Value, false]));
+  JSCode('scope:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtFx.SetFStopFx(Value: Boolean);
 begin
   FStopFx := Value;
-  JSCodeBlock('stopFx:' + VarToJSON([Value]));
+  JSCode('stopFx:' + VarToJSON([Value]));
 end;
 
 procedure TExtFx.SetFUseDisplay(Value: Boolean);
 begin
   FUseDisplay := Value;
-  JSCodeBlock('useDisplay:' + VarToJSON([Value]));
+  JSCode('useDisplay:' + VarToJSON([Value]));
 end;
 
 class function TExtFx.JSClassName: string;
@@ -3841,13 +3754,13 @@ end;
 procedure TExtLoaderSingleton.SetFVarJS(Value: TExtObject);
 begin
   FVarJS := Value;
-  JSCodeBlock(JSName + '.varJS=' + VarToJSON([Value, false]) + ';');
+  JSCode(JSName + '.varJS=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtLoaderSingleton.SetFVarJS_(Value: TExtObject);
 begin
   FVarJS_ := Value;
-  JSCodeBlock(JSName + '.varJS=' + VarToJSON([Value, false]) + ';');
+  JSCode(JSName + '.varJS=' + VarToJSON([Value, false]) + ';');
 end;
 
 class function TExtLoaderSingleton.JSClassName: string;
@@ -3873,7 +3786,7 @@ end;
 procedure TExtKeyNav.SetFDefaultEventAction(Value: string);
 begin
   FDefaultEventAction := Value;
-  JSCodeBlock('defaultEventAction:' + VarToJSON([Value]));
+  JSCode('defaultEventAction:' + VarToJSON([Value]));
 end;
 
 procedure TExtKeyNav._SetDisabled(const AValue: Boolean);
@@ -3884,7 +3797,7 @@ end;
 procedure TExtKeyNav.SetFForceKeyDown(Value: Boolean);
 begin
   FForceKeyDown := Value;
-  JSCodeBlock('forceKeyDown:' + VarToJSON([Value]));
+  JSCode('forceKeyDown:' + VarToJSON([Value]));
 end;
 
 class function TExtKeyNav.JSClassName: string;
@@ -3924,19 +3837,19 @@ end;
 procedure TExtEventManagerSingleton.SetFFireDocReady(Value: TExtObject);
 begin
   FFireDocReady := Value;
-  JSCodeBlock(JSName + '.fireDocReady=' + VarToJSON([Value, false]) + ';');
+  JSCode(JSName + '.fireDocReady=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtEventManagerSingleton.SetFIeDeferSrc(Value: TExtObject);
 begin
   FIeDeferSrc := Value;
-  JSCodeBlock(JSName + '.ieDeferSrc=' + VarToJSON([Value, false]) + ';');
+  JSCode(JSName + '.ieDeferSrc=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtEventManagerSingleton.SetFTextResizeInterval(Value: TExtObject);
 begin
   FTextResizeInterval := Value;
-  JSCodeBlock(JSName + '.textResizeInterval=' + VarToJSON([Value, false]) + ';');
+  JSCode(JSName + '.textResizeInterval=' + VarToJSON([Value, false]) + ';');
 end;
 
 class function TExtEventManagerSingleton.JSClassName: string;
@@ -4511,31 +4424,31 @@ end;
 procedure TExtProgressWaitConfig.SetFDuration(Value: Integer);
 begin
   FDuration := Value;
-  JSCodeBlock('duration:' + VarToJSON([Value]));
+  JSCode('duration:' + VarToJSON([Value]));
 end;
 
 procedure TExtProgressWaitConfig.SetFInterval(Value: Integer);
 begin
   FInterval := Value;
-  JSCodeBlock('interval:' + VarToJSON([Value]));
+  JSCode('interval:' + VarToJSON([Value]));
 end;
 
 procedure TExtProgressWaitConfig.SetFIncrement(Value: Integer);
 begin
   FIncrement := Value;
-  JSCodeBlock('increment:' + VarToJSON([Value]));
+  JSCode('increment:' + VarToJSON([Value]));
 end;
 
 procedure TExtProgressWaitConfig.SetFFn(Value: TExtFunction);
 begin
   FFn := Value;
-  JSCodeBlock('fn:' + VarToJSON([Value, true]));
+  JSCode('fn:' + VarToJSON([Value, true]));
 end;
 
 procedure TExtProgressWaitConfig.SetFScope(Value: TExtObject);
 begin
   FScope := Value;
-  JSCodeBlock('scope:' + VarToJSON([Value, false]));
+  JSCode('scope:' + VarToJSON([Value, false]));
 end;
 
 class function TExtProgressWaitConfig.JSClassName: string;
@@ -4635,31 +4548,31 @@ end;
 procedure TExtLoadMask.SetFMsg(Value: string);
 begin
   FMsg := Value;
-  JSCodeBlock('msg:' + VarToJSON([Value]));
+  JSCode('msg:' + VarToJSON([Value]));
 end;
 
 procedure TExtLoadMask.SetFMsgCls(Value: string);
 begin
   FMsgCls := Value;
-  JSCodeBlock('msgCls:' + VarToJSON([Value]));
+  JSCode('msgCls:' + VarToJSON([Value]));
 end;
 
 procedure TExtLoadMask.SetFRemoveMask(Value: Boolean);
 begin
   FRemoveMask := Value;
-  JSCodeBlock('removeMask:' + VarToJSON([Value]));
+  JSCode('removeMask:' + VarToJSON([Value]));
 end;
 
 procedure TExtLoadMask.SetFStore(Value: TExtDataStore);
 begin
   FStore := Value;
-  JSCodeBlock('store:' + VarToJSON([Value, false]));
+  JSCode('store:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtLoadMask.SetFDisabled(Value: Boolean);
 begin
   FDisabled := Value;
-  JSCodeBlock(JSName + '.disabled=' + VarToJSON([Value]) + ';');
+  JSCode(JSName + '.disabled=' + VarToJSON([Value]) + ';');
 end;
 
 class function TExtLoadMask.JSClassName: string;
@@ -4722,31 +4635,31 @@ end;
 procedure TExtTemplate.SetFCompiled(Value: Boolean);
 begin
   FCompiled := Value;
-  JSCodeBlock('compiled:' + VarToJSON([Value]));
+  JSCode('compiled:' + VarToJSON([Value]));
 end;
 
 procedure TExtTemplate.SetFDisableFormats(Value: Boolean);
 begin
   FDisableFormats := Value;
-  JSCodeBlock('disableFormats:' + VarToJSON([Value]));
+  JSCode('disableFormats:' + VarToJSON([Value]));
 end;
 
 procedure TExtTemplate.SetFRe(Value: string);
 begin
   FRe := Value;
-  JSCodeBlock('re:' + VarToJSON([#3 + Value]));
+  JSCode('re:' + VarToJSON([#3 + Value]));
 end;
 
 procedure TExtTemplate.SetFDisableFormats_(Value: Boolean);
 begin
   FDisableFormats_ := Value;
-  JSCodeBlock(JSName + '.disableFormats=' + VarToJSON([Value]) + ';');
+  JSCode(JSName + '.disableFormats=' + VarToJSON([Value]) + ';');
 end;
 
 procedure TExtTemplate.SetFRe_(Value: string);
 begin
   FRe_ := Value;
-  JSCodeBlock(JSName + '.re=' + VarToJSON([#3 + Value]) + ';');
+  JSCode(JSName + '.re=' + VarToJSON([#3 + Value]) + ';');
 end;
 
 class function TExtTemplate.JSClassName: string;
@@ -4875,13 +4788,13 @@ end;
 procedure TExtShadow.SetFMode(Value: string);
 begin
   FMode := Value;
-  JSCodeBlock('mode:' + VarToJSON([Value]));
+  JSCode('mode:' + VarToJSON([Value]));
 end;
 
 procedure TExtShadow.SetFOffset(Value: string);
 begin
   FOffset := Value;
-  JSCodeBlock('offset:' + VarToJSON([Value]));
+  JSCode('offset:' + VarToJSON([Value]));
 end;
 
 class function TExtShadow.JSClassName: string;
@@ -4924,67 +4837,67 @@ end;
 procedure TExtShowConfig.SetFAnimEl(Value: string);
 begin
   FAnimEl := Value;
-  JSCodeBlock('animEl:' + VarToJSON([Value]));
+  JSCode('animEl:' + VarToJSON([Value]));
 end;
 
 procedure TExtShowConfig.SetFButtons(Value: TExtObject);
 begin
   FButtons := Value;
-  JSCodeBlock('buttons:' + VarToJSON([Value, false]));
+  JSCode('buttons:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtShowConfig.SetFClosable(Value: Boolean);
 begin
   FClosable := Value;
-  JSCodeBlock('closable:' + VarToJSON([Value]));
+  JSCode('closable:' + VarToJSON([Value]));
 end;
 
 procedure TExtShowConfig.SetFCls(Value: string);
 begin
   FCls := Value;
-  JSCodeBlock('cls:' + VarToJSON([Value]));
+  JSCode('cls:' + VarToJSON([Value]));
 end;
 
 procedure TExtShowConfig.SetFDefaultTextHeight(Value: Integer);
 begin
   FDefaultTextHeight := Value;
-  JSCodeBlock('defaultTextHeight:' + VarToJSON([Value]));
+  JSCode('defaultTextHeight:' + VarToJSON([Value]));
 end;
 
 procedure TExtShowConfig.SetFFn(Value: TExtFunction);
 begin
   FFn := Value;
-  JSCodeBlock('fn:' + VarToJSON([Value, true]));
+  JSCode('fn:' + VarToJSON([Value, true]));
 end;
 
 procedure TExtShowConfig.SetFScope(Value: TExtObject);
 begin
   FScope := Value;
-  JSCodeBlock('scope:' + VarToJSON([Value, false]));
+  JSCode('scope:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtShowConfig.SetFIcon(Value: string);
 begin
   FIcon := Value;
-  JSCodeBlock('icon:' + VarToJSON([Value]));
+  JSCode('icon:' + VarToJSON([Value]));
 end;
 
 procedure TExtShowConfig.SetFIconCls(Value: string);
 begin
   FIconCls := Value;
-  JSCodeBlock('iconCls:' + VarToJSON([Value]));
+  JSCode('iconCls:' + VarToJSON([Value]));
 end;
 
 procedure TExtShowConfig.SetFMaxWidth(Value: Integer);
 begin
   FMaxWidth := Value;
-  JSCodeBlock('maxWidth:' + VarToJSON([Value]));
+  JSCode('maxWidth:' + VarToJSON([Value]));
 end;
 
 procedure TExtShowConfig.SetFMinWidth(Value: Integer);
 begin
   FMinWidth := Value;
-  JSCodeBlock('minWidth:' + VarToJSON([Value]));
+  JSCode('minWidth:' + VarToJSON([Value]));
 end;
 
 procedure TExtShowConfig.SetModal(const AValue: Boolean);
@@ -4995,67 +4908,67 @@ end;
 procedure TExtShowConfig.SetFMsg(Value: string);
 begin
   FMsg := Value;
-  JSCodeBlock('msg:' + VarToJSON([Value]));
+  JSCode('msg:' + VarToJSON([Value]));
 end;
 
 procedure TExtShowConfig.SetFMultiline(Value: Boolean);
 begin
   FMultiline := Value;
-  JSCodeBlock('multiline:' + VarToJSON([Value]));
+  JSCode('multiline:' + VarToJSON([Value]));
 end;
 
 procedure TExtShowConfig.SetFProgress(Value: Boolean);
 begin
   FProgress := Value;
-  JSCodeBlock('progress:' + VarToJSON([Value]));
+  JSCode('progress:' + VarToJSON([Value]));
 end;
 
 procedure TExtShowConfig.SetFProgressText(Value: string);
 begin
   FProgressText := Value;
-  JSCodeBlock('progressText:' + VarToJSON([Value]));
+  JSCode('progressText:' + VarToJSON([Value]));
 end;
 
 procedure TExtShowConfig.SetFPrompt(Value: Boolean);
 begin
   FPrompt := Value;
-  JSCodeBlock('prompt:' + VarToJSON([Value]));
+  JSCode('prompt:' + VarToJSON([Value]));
 end;
 
 procedure TExtShowConfig.SetFProxyDrag(Value: Boolean);
 begin
   FProxyDrag := Value;
-  JSCodeBlock('proxyDrag:' + VarToJSON([Value]));
+  JSCode('proxyDrag:' + VarToJSON([Value]));
 end;
 
 procedure TExtShowConfig.SetFTitle(Value: string);
 begin
   FTitle := Value;
-  JSCodeBlock('title:' + VarToJSON([Value]));
+  JSCode('title:' + VarToJSON([Value]));
 end;
 
 procedure TExtShowConfig.SetFValue(Value: string);
 begin
   FValue := Value;
-  JSCodeBlock('value:' + VarToJSON([Value]));
+  JSCode('value:' + VarToJSON([Value]));
 end;
 
 procedure TExtShowConfig.SetFWait(Value: Boolean);
 begin
   FWait := Value;
-  JSCodeBlock('wait:' + VarToJSON([Value]));
+  JSCode('wait:' + VarToJSON([Value]));
 end;
 
 procedure TExtShowConfig.SetFWaitConfig(Value: TExtProgressWaitConfig);
 begin
   FWaitConfig := Value;
-  JSCodeBlock('waitConfig:' + VarToJSON([Value, false]));
+  JSCode('waitConfig:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtShowConfig.SetFWidth(Value: Integer);
 begin
   FWidth := Value;
-  JSCodeBlock('width:' + VarToJSON([Value]));
+  JSCode('width:' + VarToJSON([Value]));
 end;
 
 class function TExtShowConfig.JSClassName: string;
@@ -5066,43 +4979,43 @@ end;
 procedure TExtMessageBoxSingleton.SetFMsg(Value: TExtObject);
 begin
   FMsg := Value;
-  JSCodeBlock(JSName + '.msg=' + VarToJSON([Value, false]) + ';');
+  JSCode(JSName + '.msg=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtMessageBoxSingleton.SetFButtonText(Value: TExtObject);
 begin
   FButtonText := Value;
-  JSCodeBlock(JSName + '.buttonText=' + VarToJSON([Value, false]) + ';');
+  JSCode(JSName + '.buttonText=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtMessageBoxSingleton.SetFDefaultTextHeight(Value: Integer);
 begin
   FDefaultTextHeight := Value;
-  JSCodeBlock(JSName + '.defaultTextHeight=' + VarToJSON([Value]) + ';');
+  JSCode(JSName + '.defaultTextHeight=' + VarToJSON([Value]) + ';');
 end;
 
 procedure TExtMessageBoxSingleton.SetFMaxWidth(Value: Integer);
 begin
   FMaxWidth := Value;
-  JSCodeBlock(JSName + '.maxWidth=' + VarToJSON([Value]) + ';');
+  JSCode(JSName + '.maxWidth=' + VarToJSON([Value]) + ';');
 end;
 
 procedure TExtMessageBoxSingleton.SetFMinProgressWidth(Value: Integer);
 begin
   FMinProgressWidth := Value;
-  JSCodeBlock(JSName + '.minProgressWidth=' + VarToJSON([Value]) + ';');
+  JSCode(JSName + '.minProgressWidth=' + VarToJSON([Value]) + ';');
 end;
 
 procedure TExtMessageBoxSingleton.SetFMinPromptWidth(Value: Integer);
 begin
   FMinPromptWidth := Value;
-  JSCodeBlock(JSName + '.minPromptWidth=' + VarToJSON([Value]) + ';');
+  JSCode(JSName + '.minPromptWidth=' + VarToJSON([Value]) + ';');
 end;
 
 procedure TExtMessageBoxSingleton.SetFMinWidth(Value: Integer);
 begin
   FMinWidth := Value;
-  JSCodeBlock(JSName + '.minWidth=' + VarToJSON([Value]) + ';');
+  JSCode(JSName + '.minWidth=' + VarToJSON([Value]) + ';');
 end;
 
 class function TExtMessageBoxSingleton.JSClassName: string;
@@ -5336,7 +5249,7 @@ end;
 procedure TExtWindowGroup.SetFZseed(Value: Integer);
 begin
   FZseed := Value;
-  JSCodeBlock(JSName + '.zseed=' + VarToJSON([Value]) + ';');
+  JSCode(JSName + '.zseed=' + VarToJSON([Value]) + ';');
 end;
 
 class function TExtWindowGroup.JSClassName: string;
@@ -5427,26 +5340,26 @@ end;
 procedure TExtElement.SetFAutoBoxAdjust(Value: TExtObject);
 begin
   FAutoBoxAdjust := Value;
-  JSCodeBlock(JSName + '.autoBoxAdjust=' + VarToJSON([Value, false]) + ';');
+  JSCode(JSName + '.autoBoxAdjust=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtElement.SetFDefaultUnit(Value: TCSSUnit);
 begin
   FDefaultUnit := Value;
-  JSCodeBlock(JSName + '.defaultUnit="' + TJS.EnumToJSString(TypeInfo(TCSSUnit),
+  JSCode(JSName + '.defaultUnit="' + TJS.EnumToJSString(TypeInfo(TCSSUnit),
     ord(Value)) + '";');
 end;
 
 procedure TExtElement.SetFId(Value: string);
 begin
   FId := Value;
-  JSCodeBlock(JSName + '.id=' + VarToJSON([Value]) + ';');
+  JSCode(JSName + '.id=' + VarToJSON([Value]) + ';');
 end;
 
 procedure TExtElement.SetFOriginalDisplay(Value: string);
 begin
   FOriginalDisplay := Value;
-  JSCodeBlock(JSName + '.originalDisplay=' + VarToJSON([Value]) + ';');
+  JSCode(JSName + '.originalDisplay=' + VarToJSON([Value]) + ';');
 end;
 
 class function TExtElement.JSClassName: string;
@@ -6751,13 +6664,13 @@ end;
 procedure TExtBackground.SetFColor(Value: string);
 begin
   FColor := Value;
-  JSCodeBlock('color:' + VarToJSON([Value]));
+  JSCode('color:' + VarToJSON([Value]));
 end;
 
 procedure TExtBackground.SetFAlpha(Value: Double);
 begin
   FAlpha := Value;
-  JSCodeBlock('alpha:' + VarToJSON([Value]));
+  JSCode('alpha:' + VarToJSON([Value]));
 end;
 
 class function TExtBackground.JSClassName: string;
@@ -6768,13 +6681,13 @@ end;
 procedure TExtBorder.SetFColor(Value: string);
 begin
   FColor := Value;
-  JSCodeBlock('color:' + VarToJSON([Value]));
+  JSCode('color:' + VarToJSON([Value]));
 end;
 
 procedure TExtBorder.SetFSize(Value: Integer);
 begin
   FSize := Value;
-  JSCodeBlock('size:' + VarToJSON([Value]));
+  JSCode('size:' + VarToJSON([Value]));
 end;
 
 class function TExtBorder.JSClassName: string;
@@ -6785,25 +6698,25 @@ end;
 procedure TExtFont.SetFName(Value: string);
 begin
   FName := Value;
-  JSCodeBlock('name:' + VarToJSON([Value]));
+  JSCode('name:' + VarToJSON([Value]));
 end;
 
 procedure TExtFont.SetFColor(Value: string);
 begin
   FColor := Value;
-  JSCodeBlock('color:' + VarToJSON([Value]));
+  JSCode('color:' + VarToJSON([Value]));
 end;
 
 procedure TExtFont.SetFSize(Value: Integer);
 begin
   FSize := Value;
-  JSCodeBlock('size:' + VarToJSON([Value]));
+  JSCode('size:' + VarToJSON([Value]));
 end;
 
 procedure TExtFont.SetFBold(Value: Boolean);
 begin
   FBold := Value;
-  JSCodeBlock('bold:' + VarToJSON([Value]));
+  JSCode('bold:' + VarToJSON([Value]));
 end;
 
 class function TExtFont.JSClassName: string;
@@ -6814,25 +6727,25 @@ end;
 procedure TExtDataTip.SetFPadding(Value: Integer);
 begin
   FPadding := Value;
-  JSCodeBlock('padding:' + VarToJSON([Value]));
+  JSCode('padding:' + VarToJSON([Value]));
 end;
 
 procedure TExtDataTip.SetFBorder(Value: TExtBorder);
 begin
   FBorder := Value;
-  JSCodeBlock('border:' + VarToJSON([Value, false]));
+  JSCode('border:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtDataTip.SetFBackground(Value: TExtBackground);
 begin
   FBackground := Value;
-  JSCodeBlock('background:' + VarToJSON([Value, false]));
+  JSCode('background:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtDataTip.SetFFont(Value: TExtFont);
 begin
   FFont := Value;
-  JSCodeBlock('font:' + VarToJSON([Value, false]));
+  JSCode('font:' + VarToJSON([Value, false]));
 end;
 
 class function TExtDataTip.JSClassName: string;
@@ -6843,7 +6756,7 @@ end;
 procedure TExtCompositeElementLite.SetFElements(Value: TExtObjectList);
 begin
   FElements := Value;
-  JSCodeBlock(JSName + '.elements=' + VarToJSON([Value, false]) + ';');
+  JSCode(JSName + '.elements=' + VarToJSON([Value, false]) + ';');
 end;
 
 class function TExtCompositeElementLite.JSClassName: string;
@@ -6968,7 +6881,7 @@ end;
 procedure TExtDomHelperSingleton.SetFUseDom(Value: Boolean);
 begin
   FUseDom := Value;
-  JSCodeBlock(JSName + '.useDom=' + VarToJSON([Value]) + ';');
+  JSCode(JSName + '.useDom=' + VarToJSON([Value]) + ';');
 end;
 
 class function TExtDomHelperSingleton.JSClassName: string;
@@ -7057,19 +6970,19 @@ end;
 procedure TExtAction.SetFIconCls(Value: string);
 begin
   FIconCls := Value;
-  JSCodeBlock('iconCls:' + VarToJSON([Value]));
+  JSCode('iconCls:' + VarToJSON([Value]));
 end;
 
 procedure TExtAction.SetFItemId(Value: string);
 begin
   FItemId := Value;
-  JSCodeBlock('itemId:' + VarToJSON([Value]));
+  JSCode('itemId:' + VarToJSON([Value]));
 end;
 
 procedure TExtAction.SetFScope(Value: TExtObject);
 begin
   FScope := Value;
-  JSCodeBlock('scope:' + VarToJSON([Value, false]));
+  JSCode('scope:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtAction._SetText(const AValue: string);
@@ -7186,37 +7099,37 @@ end;
 procedure TExtSplitBar.SetFAnimate(Value: Boolean);
 begin
   FAnimate := Value;
-  JSCodeBlock(JSName + '.animate=' + VarToJSON([Value]) + ';');
+  JSCode(JSName + '.animate=' + VarToJSON([Value]) + ';');
 end;
 
 procedure TExtSplitBar.SetFMaxSize(Value: Integer);
 begin
   FMaxSize := Value;
-  JSCodeBlock(JSName + '.maxSize=' + VarToJSON([Value]) + ';');
+  JSCode(JSName + '.maxSize=' + VarToJSON([Value]) + ';');
 end;
 
 procedure TExtSplitBar.SetFMinSize(Value: Integer);
 begin
   FMinSize := Value;
-  JSCodeBlock(JSName + '.minSize=' + VarToJSON([Value]) + ';');
+  JSCode(JSName + '.minSize=' + VarToJSON([Value]) + ';');
 end;
 
 procedure TExtSplitBar.SetFTickSize(Value: Integer);
 begin
   FTickSize := Value;
-  JSCodeBlock(JSName + '.tickSize=' + VarToJSON([Value]) + ';');
+  JSCode(JSName + '.tickSize=' + VarToJSON([Value]) + ';');
 end;
 
 procedure TExtSplitBar.SetFUseShim(Value: Boolean);
 begin
   FUseShim := Value;
-  JSCodeBlock(JSName + '.useShim=' + VarToJSON([Value]) + ';');
+  JSCode(JSName + '.useShim=' + VarToJSON([Value]) + ';');
 end;
 
 procedure TExtSplitBar.SetFOnBeforeresize(Value: TExtSplitBarOnBeforeresize);
 begin
   if Assigned(FOnBeforeresize) then
-    JSCodeBlock(JSName + '.events ["beforeresize"].listeners=[];');
+    JSCode(JSName + '.events ["beforeresize"].listeners=[];');
   if Assigned(Value) then
     on('beforeresize', Ajax('beforeresize', ['This', '%0.nm'], true));
   FOnBeforeresize := Value;
@@ -7225,7 +7138,7 @@ end;
 procedure TExtSplitBar.SetFOnMoved(Value: TExtSplitBarOnMoved);
 begin
   if Assigned(FOnMoved) then
-    JSCodeBlock(JSName + '.events ["moved"].listeners=[];');
+    JSCode(JSName + '.events ["moved"].listeners=[];');
   if Assigned(Value) then
     on('moved', Ajax('moved', ['This', '%0.nm', 'NewSize', '%1'], true));
   FOnMoved := Value;
@@ -7234,7 +7147,7 @@ end;
 procedure TExtSplitBar.SetFOnResize(Value: TExtSplitBarOnResize);
 begin
   if Assigned(FOnResize) then
-    JSCodeBlock(JSName + '.events ["resize"].listeners=[];');
+    JSCode(JSName + '.events ["resize"].listeners=[];');
   if Assigned(Value) then
     on('resize', Ajax('resize', ['This', '%0.nm', 'NewSize', '%1'], true));
   FOnResize := Value;
@@ -7301,199 +7214,199 @@ end;
 procedure TExtResizable.SetFAdjustments(Value: TExtObjectList);
 begin
   FAdjustments := Value;
-  JSCodeBlock('adjustments:' + VarToJSON([Value, false]));
+  JSCode('adjustments:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtResizable.SetFAdjustmentsString(Value: string);
 begin
   FAdjustmentsString := Value;
-  JSCodeBlock('adjustments:' + VarToJSON([Value]));
+  JSCode('adjustments:' + VarToJSON([Value]));
 end;
 
 procedure TExtResizable.SetFAnimate(Value: Boolean);
 begin
   FAnimate := Value;
-  JSCodeBlock('animate:' + VarToJSON([Value]));
+  JSCode('animate:' + VarToJSON([Value]));
 end;
 
 procedure TExtResizable.SetFConstrainTo(Value: string);
 begin
   FConstrainTo := Value;
-  JSCodeBlock('constrainTo:' + VarToJSON([Value]));
+  JSCode('constrainTo:' + VarToJSON([Value]));
 end;
 
 procedure TExtResizable.SetFDisableTrackOver(Value: Boolean);
 begin
   FDisableTrackOver := Value;
-  JSCodeBlock('disableTrackOver:' + VarToJSON([Value]));
+  JSCode('disableTrackOver:' + VarToJSON([Value]));
 end;
 
 procedure TExtResizable.SetFDraggable(Value: Boolean);
 begin
   FDraggable := Value;
-  JSCodeBlock('draggable:' + VarToJSON([Value]));
+  JSCode('draggable:' + VarToJSON([Value]));
 end;
 
 procedure TExtResizable.SetFDuration(Value: Integer);
 begin
   FDuration := Value;
-  JSCodeBlock('duration:' + VarToJSON([Value]));
+  JSCode('duration:' + VarToJSON([Value]));
 end;
 
 procedure TExtResizable.SetFDynamic(Value: Boolean);
 begin
   FDynamic := Value;
-  JSCodeBlock('dynamic:' + VarToJSON([Value]));
+  JSCode('dynamic:' + VarToJSON([Value]));
 end;
 
 procedure TExtResizable.SetFEasing(Value: string);
 begin
   FEasing := Value;
-  JSCodeBlock('easing:' + VarToJSON([Value]));
+  JSCode('easing:' + VarToJSON([Value]));
 end;
 
 procedure TExtResizable.SetFEnabled(Value: Boolean);
 begin
   FEnabled := Value;
-  JSCodeBlock('enabled:' + VarToJSON([Value]));
+  JSCode('enabled:' + VarToJSON([Value]));
 end;
 
 procedure TExtResizable.SetFHandleCls(Value: string);
 begin
   FHandleCls := Value;
-  JSCodeBlock('handleCls:' + VarToJSON([Value]));
+  JSCode('handleCls:' + VarToJSON([Value]));
 end;
 
 procedure TExtResizable.SetFHandles(Value: string);
 begin
   FHandles := Value;
-  JSCodeBlock('handles:' + VarToJSON([Value]));
+  JSCode('handles:' + VarToJSON([Value]));
 end;
 
 procedure TExtResizable.SetFHeight(Value: Integer);
 begin
   FHeight := Value;
-  JSCodeBlock('height:' + VarToJSON([Value]));
+  JSCode('height:' + VarToJSON([Value]));
 end;
 
 procedure TExtResizable.SetFHeightIncrement(Value: Integer);
 begin
   FHeightIncrement := Value;
-  JSCodeBlock('heightIncrement:' + VarToJSON([Value]));
+  JSCode('heightIncrement:' + VarToJSON([Value]));
 end;
 
 procedure TExtResizable.SetFMaxHeight(Value: Integer);
 begin
   FMaxHeight := Value;
-  JSCodeBlock('maxHeight:' + VarToJSON([Value]));
+  JSCode('maxHeight:' + VarToJSON([Value]));
 end;
 
 procedure TExtResizable.SetFMaxWidth(Value: Integer);
 begin
   FMaxWidth := Value;
-  JSCodeBlock('maxWidth:' + VarToJSON([Value]));
+  JSCode('maxWidth:' + VarToJSON([Value]));
 end;
 
 procedure TExtResizable.SetFMinHeight(Value: Integer);
 begin
   FMinHeight := Value;
-  JSCodeBlock('minHeight:' + VarToJSON([Value]));
+  JSCode('minHeight:' + VarToJSON([Value]));
 end;
 
 procedure TExtResizable.SetFMinWidth(Value: Integer);
 begin
   FMinWidth := Value;
-  JSCodeBlock('minWidth:' + VarToJSON([Value]));
+  JSCode('minWidth:' + VarToJSON([Value]));
 end;
 
 procedure TExtResizable.SetFMinX(Value: Integer);
 begin
   FMinX := Value;
-  JSCodeBlock('minX:' + VarToJSON([Value]));
+  JSCode('minX:' + VarToJSON([Value]));
 end;
 
 procedure TExtResizable.SetFMinY(Value: Integer);
 begin
   FMinY := Value;
-  JSCodeBlock('minY:' + VarToJSON([Value]));
+  JSCode('minY:' + VarToJSON([Value]));
 end;
 
 procedure TExtResizable.SetFMultiDirectional(Value: Boolean);
 begin
   FMultiDirectional := Value;
-  JSCodeBlock('multiDirectional:' + VarToJSON([Value]));
+  JSCode('multiDirectional:' + VarToJSON([Value]));
 end;
 
 procedure TExtResizable.SetFPinned(Value: Boolean);
 begin
   FPinned := Value;
-  JSCodeBlock('pinned:' + VarToJSON([Value]));
+  JSCode('pinned:' + VarToJSON([Value]));
 end;
 
 procedure TExtResizable.SetFPreserveRatio(Value: Boolean);
 begin
   FPreserveRatio := Value;
-  JSCodeBlock('preserveRatio:' + VarToJSON([Value]));
+  JSCode('preserveRatio:' + VarToJSON([Value]));
 end;
 
 procedure TExtResizable.SetFResizeChild(Value: Boolean);
 begin
   FResizeChild := Value;
-  JSCodeBlock('resizeChild:' + VarToJSON([Value]));
+  JSCode('resizeChild:' + VarToJSON([Value]));
 end;
 
 procedure TExtResizable.SetFResizeChildString(Value: string);
 begin
   FResizeChildString := Value;
-  JSCodeBlock('resizeChild:' + VarToJSON([Value]));
+  JSCode('resizeChild:' + VarToJSON([Value]));
 end;
 
 procedure TExtResizable.SetFResizeChildElement(Value: TExtElement);
 begin
   FResizeChildElement := Value;
-  JSCodeBlock('resizeChild:' + VarToJSON([Value, false]));
+  JSCode('resizeChild:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtResizable.SetFTransparent(Value: Boolean);
 begin
   FTransparent := Value;
-  JSCodeBlock('transparent:' + VarToJSON([Value]));
+  JSCode('transparent:' + VarToJSON([Value]));
 end;
 
 procedure TExtResizable.SetFWidth(Value: Integer);
 begin
   FWidth := Value;
-  JSCodeBlock('width:' + VarToJSON([Value]));
+  JSCode('width:' + VarToJSON([Value]));
 end;
 
 procedure TExtResizable.SetFWidthIncrement(Value: Integer);
 begin
   FWidthIncrement := Value;
-  JSCodeBlock('widthIncrement:' + VarToJSON([Value]));
+  JSCode('widthIncrement:' + VarToJSON([Value]));
 end;
 
 procedure TExtResizable.SetFWrap(Value: Boolean);
 begin
   FWrap := Value;
-  JSCodeBlock('wrap:' + VarToJSON([Value]));
+  JSCode('wrap:' + VarToJSON([Value]));
 end;
 
 procedure TExtResizable.SetFEnabled_(Value: Boolean);
 begin
   FEnabled_ := Value;
-  JSCodeBlock(JSName + '.enabled=' + VarToJSON([Value]) + ';');
+  JSCode(JSName + '.enabled=' + VarToJSON([Value]) + ';');
 end;
 
 procedure TExtResizable.SetFProxy(Value: TExtElement);
 begin
   FProxy := Value;
-  JSCodeBlock(JSName + '.proxy=' + VarToJSON([Value, false]) + ';');
+  JSCode(JSName + '.proxy=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtResizable.SetFOnBeforeresize(Value: TExtResizableOnBeforeresize);
 begin
   if Assigned(FOnBeforeresize) then
-    JSCodeBlock(JSName + '.events ["beforeresize"].listeners=[];');
+    JSCode(JSName + '.events ["beforeresize"].listeners=[];');
   if Assigned(Value) then
     on('beforeresize', Ajax('beforeresize', ['This', '%0.nm', 'E', '%1.nm'], true));
   FOnBeforeresize := Value;
@@ -7502,7 +7415,7 @@ end;
 procedure TExtResizable.SetFOnResize(Value: TExtResizableOnResize);
 begin
   if Assigned(FOnResize) then
-    JSCodeBlock(JSName + '.events ["resize"].listeners=[];');
+    JSCode(JSName + '.events ["resize"].listeners=[];');
   if Assigned(Value) then
     on('resize', Ajax('resize', ['This', '%0.nm', 'Width', '%1', 'Height', '%2', 'E',
       '%3.nm'], true));
@@ -7603,79 +7516,79 @@ end;
 procedure TExtUpdater.SetFDefaultUrl(Value: string);
 begin
   FDefaultUrl := Value;
-  JSCodeBlock(JSName + '.defaultUrl=' + VarToJSON([Value]) + ';');
+  JSCode(JSName + '.defaultUrl=' + VarToJSON([Value]) + ';');
 end;
 
 procedure TExtUpdater.SetFDisableCaching(Value: Boolean);
 begin
   FDisableCaching := Value;
-  JSCodeBlock(JSName + '.disableCaching=' + VarToJSON([Value]) + ';');
+  JSCode(JSName + '.disableCaching=' + VarToJSON([Value]) + ';');
 end;
 
 procedure TExtUpdater.SetFEl(Value: TExtElement);
 begin
   FEl := Value;
-  JSCodeBlock(JSName + '.el=' + VarToJSON([Value, false]) + ';');
+  JSCode(JSName + '.el=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtUpdater.SetFFormUpdateDelegate(Value: TExtFunction);
 begin
   FFormUpdateDelegate := Value;
-  JSCodeBlock(JSName + '.formUpdateDelegate=' + VarToJSON([Value, true]) + ';');
+  JSCode(JSName + '.formUpdateDelegate=' + VarToJSON([Value, true]) + ';');
 end;
 
 procedure TExtUpdater.SetFIndicatorText(Value: string);
 begin
   FIndicatorText := Value;
-  JSCodeBlock(JSName + '.indicatorText=' + VarToJSON([Value]) + ';');
+  JSCode(JSName + '.indicatorText=' + VarToJSON([Value]) + ';');
 end;
 
 procedure TExtUpdater.SetFLoadScripts(Value: Boolean);
 begin
   FLoadScripts := Value;
-  JSCodeBlock(JSName + '.loadScripts=' + VarToJSON([Value]) + ';');
+  JSCode(JSName + '.loadScripts=' + VarToJSON([Value]) + ';');
 end;
 
 procedure TExtUpdater.SetFRefreshDelegate(Value: TExtFunction);
 begin
   FRefreshDelegate := Value;
-  JSCodeBlock(JSName + '.refreshDelegate=' + VarToJSON([Value, true]) + ';');
+  JSCode(JSName + '.refreshDelegate=' + VarToJSON([Value, true]) + ';');
 end;
 
 procedure TExtUpdater.SetFShowLoadIndicator(Value: string);
 begin
   FShowLoadIndicator := Value;
-  JSCodeBlock(JSName + '.showLoadIndicator=' + VarToJSON([Value]) + ';');
+  JSCode(JSName + '.showLoadIndicator=' + VarToJSON([Value]) + ';');
 end;
 
 procedure TExtUpdater.SetFSslBlankUrl(Value: string);
 begin
   FSslBlankUrl := Value;
-  JSCodeBlock(JSName + '.sslBlankUrl=' + VarToJSON([Value]) + ';');
+  JSCode(JSName + '.sslBlankUrl=' + VarToJSON([Value]) + ';');
 end;
 
 procedure TExtUpdater.SetFTimeout(Value: Integer);
 begin
   FTimeout := Value;
-  JSCodeBlock(JSName + '.timeout=' + VarToJSON([Value]) + ';');
+  JSCode(JSName + '.timeout=' + VarToJSON([Value]) + ';');
 end;
 
 procedure TExtUpdater.SetFTransaction(Value: TExtObject);
 begin
   FTransaction := Value;
-  JSCodeBlock(JSName + '.transaction=' + VarToJSON([Value, false]) + ';');
+  JSCode(JSName + '.transaction=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtUpdater.SetFUpdateDelegate(Value: TExtFunction);
 begin
   FUpdateDelegate := Value;
-  JSCodeBlock(JSName + '.updateDelegate=' + VarToJSON([Value, true]) + ';');
+  JSCode(JSName + '.updateDelegate=' + VarToJSON([Value, true]) + ';');
 end;
 
 procedure TExtUpdater.SetFOnBeforeupdate(Value: TExtUpdaterOnBeforeupdate);
 begin
   if Assigned(FOnBeforeupdate) then
-    JSCodeBlock(JSName + '.events ["beforeupdate"].listeners=[];');
+    JSCode(JSName + '.events ["beforeupdate"].listeners=[];');
   if Assigned(Value) then
     on('beforeupdate', Ajax('beforeupdate', ['El', '%0.nm', 'Url', '%1', 'Params',
       '%2'], true));
@@ -7685,7 +7598,7 @@ end;
 procedure TExtUpdater.SetFOnFailure(Value: TExtUpdaterOnFailure);
 begin
   if Assigned(FOnFailure) then
-    JSCodeBlock(JSName + '.events ["failure"].listeners=[];');
+    JSCode(JSName + '.events ["failure"].listeners=[];');
   if Assigned(Value) then
     on('failure', Ajax('failure', ['El', '%0.nm', 'OResponseObject', '%1.nm'], true));
   FOnFailure := Value;
@@ -7694,7 +7607,7 @@ end;
 procedure TExtUpdater.SetFOnUpdate(Value: TExtUpdaterOnUpdate);
 begin
   if Assigned(FOnUpdate) then
-    JSCodeBlock(JSName + '.events ["update"].listeners=[];');
+    JSCode(JSName + '.events ["update"].listeners=[];');
   if Assigned(Value) then
     on('update', Ajax('update', ['El', '%0.nm', 'OResponseObject', '%1.nm'], true));
   FOnUpdate := Value;
@@ -7889,37 +7802,37 @@ end;
 procedure TExtComponent.SetFAllowDomMove(Value: Boolean);
 begin
   FAllowDomMove := Value;
-  JSCodeBlock('allowDomMove:' + VarToJSON([Value]));
+  JSCode('allowDomMove:' + VarToJSON([Value]));
 end;
 
 procedure TExtComponent.SetFApplyTo(Value: string);
 begin
   FApplyTo := Value;
-  JSCodeBlock('applyTo:' + VarToJSON([Value]));
+  JSCode('applyTo:' + VarToJSON([Value]));
 end;
 
 procedure TExtComponent.SetFAutoEl(Value: TExtObject);
 begin
   FAutoEl := Value;
-  JSCodeBlock('autoEl:' + VarToJSON([Value, false]));
+  JSCode('autoEl:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtComponent.SetFAutoShow(Value: Boolean);
 begin
   FAutoShow := Value;
-  JSCodeBlock('autoShow:' + VarToJSON([Value]));
+  JSCode('autoShow:' + VarToJSON([Value]));
 end;
 
 procedure TExtComponent.SetFBubbleEvents(Value: TExtObjectList);
 begin
   FBubbleEvents := Value;
-  JSCodeBlock('bubbleEvents:' + VarToJSON([Value, false]));
+  JSCode('bubbleEvents:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtComponent.SetFClearCls(Value: string);
 begin
   FClearCls := Value;
-  JSCodeBlock('clearCls:' + VarToJSON([Value]));
+  JSCode('clearCls:' + VarToJSON([Value]));
 end;
 
 procedure TExtComponent.SetCls(const AValue: string);
@@ -7930,19 +7843,19 @@ end;
 procedure TExtComponent.SetFContentEl(Value: string);
 begin
   FContentEl := Value;
-  JSCodeBlock('contentEl:' + VarToJSON([Value]));
+  JSCode('contentEl:' + VarToJSON([Value]));
 end;
 
 procedure TExtComponent.SetFCtCls(Value: string);
 begin
   FCtCls := Value;
-  JSCodeBlock('ctCls:' + VarToJSON([Value]));
+  JSCode('ctCls:' + VarToJSON([Value]));
 end;
 
 procedure TExtComponent.SetFData(Value: string);
 begin
   FData := Value;
-  JSCodeBlock('data:' + VarToJSON([Value]));
+  JSCode('data:' + VarToJSON([Value]));
 end;
 
 procedure TExtComponent._SetDisabled(const AValue: Boolean);
@@ -7953,7 +7866,7 @@ end;
 procedure TExtComponent.SetFDisabledClass(Value: string);
 begin
   FDisabledClass := Value;
-  JSCodeBlock('disabledClass:' + VarToJSON([Value]));
+  JSCode('disabledClass:' + VarToJSON([Value]));
 end;
 
 procedure TExtComponent.SetFieldLabel(const AValue: string);
@@ -7969,19 +7882,19 @@ end;
 procedure TExtComponent.SetFHideLabel(Value: Boolean);
 begin
   FHideLabel := Value;
-  JSCodeBlock('hideLabel:' + VarToJSON([Value]));
+  JSCode('hideLabel:' + VarToJSON([Value]));
 end;
 
 procedure TExtComponent.SetFHideMode(Value: string);
 begin
   FHideMode := Value;
-  JSCodeBlock('hideMode:' + VarToJSON([Value]));
+  JSCode('hideMode:' + VarToJSON([Value]));
 end;
 
 procedure TExtComponent.SetFHideParent(Value: Boolean);
 begin
   FHideParent := Value;
-  JSCodeBlock('hideParent:' + VarToJSON([Value]));
+  JSCode('hideParent:' + VarToJSON([Value]));
 end;
 
 procedure TExtComponent.SetHtml(const AValue: string);
@@ -7992,7 +7905,7 @@ end;
 procedure TExtComponent.SetFHtmlObject(Value: TExtObject);
 begin
   FHtmlObject := Value;
-  JSCodeBlock('html:' + VarToJSON([Value, false]));
+  JSCode('html:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtComponent.SetId(const AValue: string);
@@ -8033,37 +7946,37 @@ end;
 procedure TExtComponent.SetFPtype(Value: string);
 begin
   FPtype := Value;
-  JSCodeBlock('ptype:' + VarToJSON([Value]));
+  JSCode('ptype:' + VarToJSON([Value]));
 end;
 
 procedure TExtComponent.SetFRef(Value: string);
 begin
   FRef := Value;
-  JSCodeBlock('ref:' + VarToJSON([Value]));
+  JSCode('ref:' + VarToJSON([Value]));
 end;
 
 procedure TExtComponent.SetFRenderTo(Value: string);
 begin
   FRenderTo := Value;
-  JSCodeBlock('renderTo:' + VarToJSON([Value]));
+  JSCode('renderTo:' + VarToJSON([Value]));
 end;
 
 procedure TExtComponent.SetFStateEvents(Value: TExtObjectList);
 begin
   FStateEvents := Value;
-  JSCodeBlock('stateEvents:' + VarToJSON([Value, false]));
+  JSCode('stateEvents:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtComponent.SetFStateId(Value: string);
 begin
   FStateId := Value;
-  JSCodeBlock('stateId:' + VarToJSON([Value]));
+  JSCode('stateId:' + VarToJSON([Value]));
 end;
 
 procedure TExtComponent.SetFStateful(Value: Boolean);
 begin
   FStateful := Value;
-  JSCodeBlock('stateful:' + VarToJSON([Value]));
+  JSCode('stateful:' + VarToJSON([Value]));
 end;
 
 procedure TExtComponent.SetStyle(const AValue: string);
@@ -8079,31 +7992,31 @@ end;
 procedure TExtComponent.SetFTplWriteMode(Value: string);
 begin
   FTplWriteMode := Value;
-  JSCodeBlock('tplWriteMode:' + VarToJSON([Value]));
+  JSCode('tplWriteMode:' + VarToJSON([Value]));
 end;
 
 procedure TExtComponent.SetFXtype(Value: TExtComponentXtype);
 begin
   FXtype := Value;
-  JSCodeBlock('xtype:"' + TJS.EnumToJSString(TypeInfo(TExtComponentXtype), ord(Value)) + '"');
+  JSCode('xtype:"' + TJS.EnumToJSString(TypeInfo(TExtComponentXtype), ord(Value)) + '"');
 end;
 
 procedure TExtComponent.SetFDisabled_(Value: Boolean);
 begin
   FDisabled_ := Value;
-  JSCodeBlock(JSName + '.disabled=' + VarToJSON([Value]) + ';');
+  JSCode(JSName + '.disabled=' + VarToJSON([Value]) + ';');
 end;
 
 procedure TExtComponent.SetFEl(Value: string);
 begin
   FEl := Value;
-  JSCodeBlock('el:' + VarToJSON([Value]));
+  JSCode('el:' + VarToJSON([Value]));
 end;
 
 procedure TExtComponent.SetFHidden_(Value: Boolean);
 begin
   FHidden_ := Value;
-  JSCodeBlock(JSName + '.hidden=' + VarToJSON([Value]) + ';');
+  JSCode(JSName + '.hidden=' + VarToJSON([Value]) + ';');
 end;
 
 procedure TExtComponent.SetSplit(const AValue: Boolean);
@@ -8145,31 +8058,31 @@ end;
 procedure TExtComponent.SetFCmargins(Value: string);
 begin
   FCmargins := Value;
-  JSCodeBlock('cmargins:' + VarToJSON([Value]));
+  JSCode('cmargins:' + VarToJSON([Value]));
 end;
 
 procedure TExtComponent.SetFClosable(Value: Boolean);
 begin
   FClosable := Value;
-  JSCodeBlock('closable:' + VarToJSON([Value]));
+  JSCode('closable:' + VarToJSON([Value]));
 end;
 
 procedure TExtComponent.SetFAnchor(Value: string);
 begin
   FAnchor := Value;
-  JSCodeBlock('anchor:' + VarToJSON([Value]));
+  JSCode('anchor:' + VarToJSON([Value]));
 end;
 
 procedure TExtComponent.SetFStyleExtObject(Value: TExtObject);
 begin
   FStyleExtObject := Value;
-  JSCodeBlock('style:' + VarToJSON([Value, false]));
+  JSCode('style:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtComponent.SetFOnAdded(Value: TExtComponentOnAdded);
 begin
   if Assigned(FOnAdded) then
-    JSCodeBlock(JSName + '.events ["added"].listeners=[];');
+    JSCode(JSName + '.events ["added"].listeners=[];');
   if Assigned(Value) then
     on('added', Ajax('added', ['This', '%0.nm', 'OwnerCt', '%1.nm', 'Index',
       '%2'], true));
@@ -8179,7 +8092,7 @@ end;
 procedure TExtComponent.SetFOnAfterrender(Value: TExtComponentOnAfterrender);
 begin
   if Assigned(FOnAfterrender) then
-    JSCodeBlock(JSName + '.events ["afterrender"].listeners=[];');
+    JSCode(JSName + '.events ["afterrender"].listeners=[];');
   if Assigned(Value) then
     on('afterrender', Ajax('afterrender', ['This', '%0.nm'], true));
   FOnAfterrender := Value;
@@ -8188,7 +8101,7 @@ end;
 procedure TExtComponent.SetFOnBeforedestroy(Value: TExtComponentOnBeforedestroy);
 begin
   if Assigned(FOnBeforedestroy) then
-    JSCodeBlock(JSName + '.events ["beforedestroy"].listeners=[];');
+    JSCode(JSName + '.events ["beforedestroy"].listeners=[];');
   if Assigned(Value) then
     on('beforedestroy', Ajax('beforedestroy', ['This', '%0.nm'], true));
   FOnBeforedestroy := Value;
@@ -8197,7 +8110,7 @@ end;
 procedure TExtComponent.SetFOnBeforehide(Value: TExtComponentOnBeforehide);
 begin
   if Assigned(FOnBeforehide) then
-    JSCodeBlock(JSName + '.events ["beforehide"].listeners=[];');
+    JSCode(JSName + '.events ["beforehide"].listeners=[];');
   if Assigned(Value) then
     on('beforehide', Ajax('beforehide', ['This', '%0.nm'], true));
   FOnBeforehide := Value;
@@ -8206,7 +8119,7 @@ end;
 procedure TExtComponent.SetFOnBeforerender(Value: TExtComponentOnBeforerender);
 begin
   if Assigned(FOnBeforerender) then
-    JSCodeBlock(JSName + '.events ["beforerender"].listeners=[];');
+    JSCode(JSName + '.events ["beforerender"].listeners=[];');
   if Assigned(Value) then
     on('beforerender', Ajax('beforerender', ['This', '%0.nm'], true));
   FOnBeforerender := Value;
@@ -8215,7 +8128,7 @@ end;
 procedure TExtComponent.SetFOnBeforeshow(Value: TExtComponentOnBeforeshow);
 begin
   if Assigned(FOnBeforeshow) then
-    JSCodeBlock(JSName + '.events ["beforeshow"].listeners=[];');
+    JSCode(JSName + '.events ["beforeshow"].listeners=[];');
   if Assigned(Value) then
     on('beforeshow', Ajax('beforeshow', ['This', '%0.nm'], true));
   FOnBeforeshow := Value;
@@ -8225,7 +8138,7 @@ procedure TExtComponent.SetFOnBeforestaterestore
   (Value: TExtComponentOnBeforestaterestore);
 begin
   if Assigned(FOnBeforestaterestore) then
-    JSCodeBlock(JSName + '.events ["beforestaterestore"].listeners=[];');
+    JSCode(JSName + '.events ["beforestaterestore"].listeners=[];');
   if Assigned(Value) then
     on('beforestaterestore', Ajax('beforestaterestore', ['This', '%0.nm', 'State',
       '%1.nm'], true));
@@ -8235,7 +8148,7 @@ end;
 procedure TExtComponent.SetFOnBeforestatesave(Value: TExtComponentOnBeforestatesave);
 begin
   if Assigned(FOnBeforestatesave) then
-    JSCodeBlock(JSName + '.events ["beforestatesave"].listeners=[];');
+    JSCode(JSName + '.events ["beforestatesave"].listeners=[];');
   if Assigned(Value) then
     on('beforestatesave', Ajax('beforestatesave', ['This', '%0.nm', 'State',
       '%1.nm'], true));
@@ -8245,7 +8158,7 @@ end;
 procedure TExtComponent.SetFOnDestroyJS(Value: TExtComponentOnDestroyJS);
 begin
   if Assigned(FOnDestroyJS) then
-    JSCodeBlock(JSName + '.events ["destroy"].listeners=[];');
+    JSCode(JSName + '.events ["destroy"].listeners=[];');
   if Assigned(Value) then
     on('destroy', Ajax('destroy', ['This', '%0.nm'], true));
   FOnDestroyJS := Value;
@@ -8254,7 +8167,7 @@ end;
 procedure TExtComponent.SetFOnDisable(Value: TExtComponentOnDisable);
 begin
   if Assigned(FOnDisable) then
-    JSCodeBlock(JSName + '.events ["disable"].listeners=[];');
+    JSCode(JSName + '.events ["disable"].listeners=[];');
   if Assigned(Value) then
     on('disable', Ajax('disable', ['This', '%0.nm'], true));
   FOnDisable := Value;
@@ -8263,7 +8176,7 @@ end;
 procedure TExtComponent.SetFOnEnable(Value: TExtComponentOnEnable);
 begin
   if Assigned(FOnEnable) then
-    JSCodeBlock(JSName + '.events ["enable"].listeners=[];');
+    JSCode(JSName + '.events ["enable"].listeners=[];');
   if Assigned(Value) then
     on('enable', Ajax('enable', ['This', '%0.nm'], true));
   FOnEnable := Value;
@@ -8272,7 +8185,7 @@ end;
 procedure TExtComponent.SetFOnHide(Value: TExtComponentOnHide);
 begin
   if Assigned(FOnHide) then
-    JSCodeBlock(JSName + '.events ["hide"].listeners=[];');
+    JSCode(JSName + '.events ["hide"].listeners=[];');
   if Assigned(Value) then
     on('hide', Ajax('hide', ['This', '%0.nm'], true));
   FOnHide := Value;
@@ -8281,7 +8194,7 @@ end;
 procedure TExtComponent.SetFOnRemoved(Value: TExtComponentOnRemoved);
 begin
   if Assigned(FOnRemoved) then
-    JSCodeBlock(JSName + '.events ["removed"].listeners=[];');
+    JSCode(JSName + '.events ["removed"].listeners=[];');
   if Assigned(Value) then
     on('removed', Ajax('removed', ['This', '%0.nm', 'OwnerCt', '%1.nm'], true));
   FOnRemoved := Value;
@@ -8290,7 +8203,7 @@ end;
 procedure TExtComponent.SetFOnRender(Value: TExtComponentOnRender);
 begin
   if Assigned(FOnRender) then
-    JSCodeBlock(JSName + '.events ["render"].listeners=[];');
+    JSCode(JSName + '.events ["render"].listeners=[];');
   if Assigned(Value) then
     on('render', Ajax('render', ['This', '%0.nm'], true));
   FOnRender := Value;
@@ -8299,7 +8212,7 @@ end;
 procedure TExtComponent.SetFOnShow(Value: TExtComponentOnShow);
 begin
   if Assigned(FOnShow) then
-    JSCodeBlock(JSName + '.events ["show"].listeners=[];');
+    JSCode(JSName + '.events ["show"].listeners=[];');
   if Assigned(Value) then
     on('show', Ajax('show', ['This', '%0.nm'], true));
   FOnShow := Value;
@@ -8308,7 +8221,7 @@ end;
 procedure TExtComponent.SetFOnStaterestore(Value: TExtComponentOnStaterestore);
 begin
   if Assigned(FOnStaterestore) then
-    JSCodeBlock(JSName + '.events ["staterestore"].listeners=[];');
+    JSCode(JSName + '.events ["staterestore"].listeners=[];');
   if Assigned(Value) then
     on('staterestore', Ajax('staterestore', ['This', '%0.nm', 'State', '%1.nm'], true));
   FOnStaterestore := Value;
@@ -8317,7 +8230,7 @@ end;
 procedure TExtComponent.SetFOnStatesave(Value: TExtComponentOnStatesave);
 begin
   if Assigned(FOnStatesave) then
-    JSCodeBlock(JSName + '.events ["statesave"].listeners=[];');
+    JSCode(JSName + '.events ["statesave"].listeners=[];');
   if Assigned(Value) then
     on('statesave', Ajax('statesave', ['This', '%0.nm', 'State', '%1.nm'], true));
   FOnStatesave := Value;
@@ -8640,49 +8553,49 @@ end;
 procedure TExtLayer.SetFCls(Value: string);
 begin
   FCls := Value;
-  JSCodeBlock('cls:' + VarToJSON([Value]));
+  JSCode('cls:' + VarToJSON([Value]));
 end;
 
 procedure TExtLayer.SetFConstrain(Value: Boolean);
 begin
   FConstrain := Value;
-  JSCodeBlock('constrain:' + VarToJSON([Value]));
+  JSCode('constrain:' + VarToJSON([Value]));
 end;
 
 procedure TExtLayer.SetFDh(Value: TExtObject);
 begin
   FDh := Value;
-  JSCodeBlock('dh:' + VarToJSON([Value, false]));
+  JSCode('dh:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtLayer.SetFShadow(Value: string);
 begin
   FShadow := Value;
-  JSCodeBlock('shadow:' + VarToJSON([Value]));
+  JSCode('shadow:' + VarToJSON([Value]));
 end;
 
 procedure TExtLayer.SetFShadowBoolean(Value: Boolean);
 begin
   FShadowBoolean := Value;
-  JSCodeBlock('shadow:' + VarToJSON([Value]));
+  JSCode('shadow:' + VarToJSON([Value]));
 end;
 
 procedure TExtLayer.SetFShadowOffset(Value: Integer);
 begin
   FShadowOffset := Value;
-  JSCodeBlock('shadowOffset:' + VarToJSON([Value]));
+  JSCode('shadowOffset:' + VarToJSON([Value]));
 end;
 
 procedure TExtLayer.SetFShim(Value: Boolean);
 begin
   FShim := Value;
-  JSCodeBlock('shim:' + VarToJSON([Value]));
+  JSCode('shim:' + VarToJSON([Value]));
 end;
 
 procedure TExtLayer.SetFUseDisplay(Value: Boolean);
 begin
   FUseDisplay := Value;
-  JSCodeBlock('useDisplay:' + VarToJSON([Value]));
+  JSCode('useDisplay:' + VarToJSON([Value]));
 end;
 
 procedure TExtLayer._SetZindex(const AValue: Integer);
@@ -8764,97 +8677,97 @@ end;
 procedure TExtEditor.SetFAlignment(Value: string);
 begin
   FAlignment := Value;
-  JSCodeBlock('alignment:' + VarToJSON([Value]));
+  JSCode('alignment:' + VarToJSON([Value]));
 end;
 
 procedure TExtEditor.SetFAllowBlur(Value: Boolean);
 begin
   FAllowBlur := Value;
-  JSCodeBlock('allowBlur:' + VarToJSON([Value]));
+  JSCode('allowBlur:' + VarToJSON([Value]));
 end;
 
 procedure TExtEditor.SetFAutoSize(Value: Boolean);
 begin
   FAutoSize := Value;
-  JSCodeBlock('autoSize:' + VarToJSON([Value]));
+  JSCode('autoSize:' + VarToJSON([Value]));
 end;
 
 procedure TExtEditor.SetFAutoSizeString(Value: string);
 begin
   FAutoSizeString := Value;
-  JSCodeBlock('autoSize:' + VarToJSON([Value]));
+  JSCode('autoSize:' + VarToJSON([Value]));
 end;
 
 procedure TExtEditor.SetFCancelOnEsc(Value: Boolean);
 begin
   FCancelOnEsc := Value;
-  JSCodeBlock('cancelOnEsc:' + VarToJSON([Value]));
+  JSCode('cancelOnEsc:' + VarToJSON([Value]));
 end;
 
 procedure TExtEditor.SetFCompleteOnEnter(Value: Boolean);
 begin
   FCompleteOnEnter := Value;
-  JSCodeBlock('completeOnEnter:' + VarToJSON([Value]));
+  JSCode('completeOnEnter:' + VarToJSON([Value]));
 end;
 
 procedure TExtEditor.SetFConstrain(Value: Boolean);
 begin
   FConstrain := Value;
-  JSCodeBlock('constrain:' + VarToJSON([Value]));
+  JSCode('constrain:' + VarToJSON([Value]));
 end;
 
 procedure TExtEditor.SetFField(Value: TExtFormField);
 begin
   FField := Value;
-  JSCodeBlock('field:' + VarToJSON([Value, false]));
+  JSCode('field:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtEditor.SetFHideEl(Value: Boolean);
 begin
   FHideEl := Value;
-  JSCodeBlock('hideEl:' + VarToJSON([Value]));
+  JSCode('hideEl:' + VarToJSON([Value]));
 end;
 
 procedure TExtEditor.SetFIgnoreNoChange(Value: Boolean);
 begin
   FIgnoreNoChange := Value;
-  JSCodeBlock('ignoreNoChange:' + VarToJSON([Value]));
+  JSCode('ignoreNoChange:' + VarToJSON([Value]));
 end;
 
 procedure TExtEditor.SetFOffsets(Value: TExtObjectList);
 begin
   FOffsets := Value;
-  JSCodeBlock('offsets:' + VarToJSON([Value, false]));
+  JSCode('offsets:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtEditor.SetFRevertInvalid(Value: Boolean);
 begin
   FRevertInvalid := Value;
-  JSCodeBlock('revertInvalid:' + VarToJSON([Value]));
+  JSCode('revertInvalid:' + VarToJSON([Value]));
 end;
 
 procedure TExtEditor.SetFShadow(Value: Boolean);
 begin
   FShadow := Value;
-  JSCodeBlock('shadow:' + VarToJSON([Value]));
+  JSCode('shadow:' + VarToJSON([Value]));
 end;
 
 procedure TExtEditor.SetFShadowString(Value: string);
 begin
   FShadowString := Value;
-  JSCodeBlock('shadow:' + VarToJSON([Value]));
+  JSCode('shadow:' + VarToJSON([Value]));
 end;
 
 procedure TExtEditor.SetFSwallowKeys(Value: Boolean);
 begin
   FSwallowKeys := Value;
-  JSCodeBlock('swallowKeys:' + VarToJSON([Value]));
+  JSCode('swallowKeys:' + VarToJSON([Value]));
 end;
 
 procedure TExtEditor.SetFUpdateEl(Value: Boolean);
 begin
   FUpdateEl := Value;
-  JSCodeBlock('updateEl:' + VarToJSON([Value]));
+  JSCode('updateEl:' + VarToJSON([Value]));
 end;
 
 procedure TExtEditor._SetValue(const AValue: string);
@@ -8866,7 +8779,7 @@ end;
 procedure TExtEditor.SetFOnBeforecomplete(Value: TExtEditorOnBeforecomplete);
 begin
   if Assigned(FOnBeforecomplete) then
-    JSCodeBlock(JSName + '.events ["beforecomplete"].listeners=[];');
+    JSCode(JSName + '.events ["beforecomplete"].listeners=[];');
   if Assigned(Value) then
     on('beforecomplete', Ajax('beforecomplete', ['This', '%0.nm', 'Value', '%1',
       'StartValue', '%2'], true));
@@ -8876,7 +8789,7 @@ end;
 procedure TExtEditor.SetFOnBeforestartedit(Value: TExtEditorOnBeforestartedit);
 begin
   if Assigned(FOnBeforestartedit) then
-    JSCodeBlock(JSName + '.events ["beforestartedit"].listeners=[];');
+    JSCode(JSName + '.events ["beforestartedit"].listeners=[];');
   if Assigned(Value) then
     on('beforestartedit', Ajax('beforestartedit', ['This', '%0.nm', 'BoundEl', '%1.nm',
       'Value', '%2'], true));
@@ -8886,7 +8799,7 @@ end;
 procedure TExtEditor.SetFOnCanceledit(Value: TExtEditorOnCanceledit);
 begin
   if Assigned(FOnCanceledit) then
-    JSCodeBlock(JSName + '.events ["canceledit"].listeners=[];');
+    JSCode(JSName + '.events ["canceledit"].listeners=[];');
   if Assigned(Value) then
     on('canceledit', Ajax('canceledit', ['This', '%0.nm', 'Value', '%1', 'StartValue',
       '%2'], true));
@@ -8896,7 +8809,7 @@ end;
 procedure TExtEditor.SetFOnComplete(Value: TExtEditorOnComplete);
 begin
   if Assigned(FOnComplete) then
-    JSCodeBlock(JSName + '.events ["complete"].listeners=[];');
+    JSCode(JSName + '.events ["complete"].listeners=[];');
   if Assigned(Value) then
     on('complete', Ajax('complete', ['This', '%0.nm', 'Value', '%1', 'StartValue',
       '%2'], true));
@@ -8906,7 +8819,7 @@ end;
 procedure TExtEditor.SetFOnSpecialkey(Value: TExtEditorOnSpecialkey);
 begin
   if Assigned(FOnSpecialkey) then
-    JSCodeBlock(JSName + '.events ["specialkey"].listeners=[];');
+    JSCode(JSName + '.events ["specialkey"].listeners=[];');
   if Assigned(Value) then
     on('specialkey', Ajax('specialkey', ['This', '%0.nm', 'E', '%1.nm'], true));
   FOnSpecialkey := Value;
@@ -8915,7 +8828,7 @@ end;
 procedure TExtEditor.SetFOnStartedit(Value: TExtEditorOnStartedit);
 begin
   if Assigned(FOnStartedit) then
-    JSCodeBlock(JSName + '.events ["startedit"].listeners=[];');
+    JSCode(JSName + '.events ["startedit"].listeners=[];');
   if Assigned(Value) then
     on('startedit', Ajax('startedit', ['BoundEl', '%0.nm', 'Value', '%1'], true));
   FOnStartedit := Value;
@@ -9002,55 +8915,55 @@ end;
 procedure TExtColorPalette.SetFAllowReselect(Value: Boolean);
 begin
   FAllowReselect := Value;
-  JSCodeBlock('allowReselect:' + VarToJSON([Value]));
+  JSCode('allowReselect:' + VarToJSON([Value]));
 end;
 
 procedure TExtColorPalette.SetFClickEvent(Value: string);
 begin
   FClickEvent := Value;
-  JSCodeBlock('clickEvent:' + VarToJSON([Value]));
+  JSCode('clickEvent:' + VarToJSON([Value]));
 end;
 
 procedure TExtColorPalette.SetFHandler(Value: TExtFunction);
 begin
   FHandler := Value;
-  JSCodeBlock('handler:' + VarToJSON([Value, true]));
+  JSCode('handler:' + VarToJSON([Value, true]));
 end;
 
 procedure TExtColorPalette.SetFItemCls(Value: string);
 begin
   FItemCls := Value;
-  JSCodeBlock('itemCls:' + VarToJSON([Value]));
+  JSCode('itemCls:' + VarToJSON([Value]));
 end;
 
 procedure TExtColorPalette.SetFScope(Value: TExtObject);
 begin
   FScope := Value;
-  JSCodeBlock('scope:' + VarToJSON([Value, false]));
+  JSCode('scope:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtColorPalette.SetFTpl(Value: string);
 begin
   FTpl := Value;
-  JSCodeBlock('tpl:' + VarToJSON([Value]));
+  JSCode('tpl:' + VarToJSON([Value]));
 end;
 
 procedure TExtColorPalette.SetFValue(Value: string);
 begin
   FValue := Value;
-  JSCodeBlock('value:' + VarToJSON([Value]));
+  JSCode('value:' + VarToJSON([Value]));
 end;
 
 procedure TExtColorPalette.SetFColors(Value: TExtObjectList);
 begin
   FColors := Value;
-  JSCodeBlock(JSName + '.colors=' + VarToJSON([Value, false]) + ';');
+  JSCode(JSName + '.colors=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtColorPalette.SetFOnSelect(Value: TExtColorPaletteOnSelect);
 begin
   if Assigned(FOnSelect) then
-    JSCodeBlock(JSName + '.events ["select"].listeners=[];');
+    JSCode(JSName + '.events ["select"].listeners=[];');
   if Assigned(Value) then
     on('select', Ajax('select', ['This', '%0.nm', 'Color', '%1'], true));
   FOnSelect := Value;
@@ -9087,25 +9000,25 @@ end;
 procedure TExtDatePicker.SetFCancelText(Value: string);
 begin
   FCancelText := Value;
-  JSCodeBlock('cancelText:' + VarToJSON([Value]));
+  JSCode('cancelText:' + VarToJSON([Value]));
 end;
 
 procedure TExtDatePicker.SetFDayNames(Value: TExtObjectList);
 begin
   FDayNames := Value;
-  JSCodeBlock('dayNames:' + VarToJSON([Value, false]));
+  JSCode('dayNames:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtDatePicker.SetFFormat(Value: string);
 begin
   FFormat := Value;
-  JSCodeBlock('format:' + VarToJSON([Value]));
+  JSCode('format:' + VarToJSON([Value]));
 end;
 
 procedure TExtDatePicker.SetFHandler(Value: TExtFunction);
 begin
   FHandler := Value;
-  JSCodeBlock('handler:' + VarToJSON([Value, true]));
+  JSCode('handler:' + VarToJSON([Value, true]));
 end;
 
 procedure TExtDatePicker._SetMaxDate(const AValue: TDateTime);
@@ -9117,7 +9030,7 @@ end;
 procedure TExtDatePicker.SetFMaxText(Value: string);
 begin
   FMaxText := Value;
-  JSCodeBlock('maxText:' + VarToJSON([Value]));
+  JSCode('maxText:' + VarToJSON([Value]));
 end;
 
 procedure TExtDatePicker._SetMinDate(const AValue: TDateTime);
@@ -9129,73 +9042,73 @@ end;
 procedure TExtDatePicker.SetFMinText(Value: string);
 begin
   FMinText := Value;
-  JSCodeBlock('minText:' + VarToJSON([Value]));
+  JSCode('minText:' + VarToJSON([Value]));
 end;
 
 procedure TExtDatePicker.SetFMonthNames(Value: TExtObjectList);
 begin
   FMonthNames := Value;
-  JSCodeBlock('monthNames:' + VarToJSON([Value, false]));
+  JSCode('monthNames:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtDatePicker.SetFMonthYearText(Value: string);
 begin
   FMonthYearText := Value;
-  JSCodeBlock('monthYearText:' + VarToJSON([Value]));
+  JSCode('monthYearText:' + VarToJSON([Value]));
 end;
 
 procedure TExtDatePicker.SetFNextText(Value: string);
 begin
   FNextText := Value;
-  JSCodeBlock('nextText:' + VarToJSON([Value]));
+  JSCode('nextText:' + VarToJSON([Value]));
 end;
 
 procedure TExtDatePicker.SetFOkText(Value: string);
 begin
   FOkText := Value;
-  JSCodeBlock('okText:' + VarToJSON([Value]));
+  JSCode('okText:' + VarToJSON([Value]));
 end;
 
 procedure TExtDatePicker.SetFPrevText(Value: string);
 begin
   FPrevText := Value;
-  JSCodeBlock('prevText:' + VarToJSON([Value]));
+  JSCode('prevText:' + VarToJSON([Value]));
 end;
 
 procedure TExtDatePicker.SetFScope(Value: TExtObject);
 begin
   FScope := Value;
-  JSCodeBlock('scope:' + VarToJSON([Value, false]));
+  JSCode('scope:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtDatePicker.SetFShowToday(Value: Boolean);
 begin
   FShowToday := Value;
-  JSCodeBlock('showToday:' + VarToJSON([Value]));
+  JSCode('showToday:' + VarToJSON([Value]));
 end;
 
 procedure TExtDatePicker.SetFStartDay(Value: Integer);
 begin
   FStartDay := Value;
-  JSCodeBlock('startDay:' + VarToJSON([Value]));
+  JSCode('startDay:' + VarToJSON([Value]));
 end;
 
 procedure TExtDatePicker.SetFTodayText(Value: string);
 begin
   FTodayText := Value;
-  JSCodeBlock('todayText:' + VarToJSON([Value]));
+  JSCode('todayText:' + VarToJSON([Value]));
 end;
 
 procedure TExtDatePicker.SetFTodayTip(Value: string);
 begin
   FTodayTip := Value;
-  JSCodeBlock('todayTip:' + VarToJSON([Value]));
+  JSCode('todayTip:' + VarToJSON([Value]));
 end;
 
 procedure TExtDatePicker.SetFOnSelect(Value: TExtDatePickerOnSelect);
 begin
   if Assigned(FOnSelect) then
-    JSCodeBlock(JSName + '.events ["select"].listeners=[];');
+    JSCode(JSName + '.events ["select"].listeners=[];');
   if Assigned(Value) then
     on('select', Ajax('select', ['This', '%0.nm', 'Date', '%1'], true));
   FOnSelect := Value;
@@ -9280,25 +9193,25 @@ end;
 procedure TExtBoxComponent.SetFBoxMaxHeight(Value: Integer);
 begin
   FBoxMaxHeight := Value;
-  JSCodeBlock('boxMaxHeight:' + VarToJSON([Value]));
+  JSCode('boxMaxHeight:' + VarToJSON([Value]));
 end;
 
 procedure TExtBoxComponent.SetFBoxMaxWidth(Value: Integer);
 begin
   FBoxMaxWidth := Value;
-  JSCodeBlock('boxMaxWidth:' + VarToJSON([Value]));
+  JSCode('boxMaxWidth:' + VarToJSON([Value]));
 end;
 
 procedure TExtBoxComponent.SetFBoxMinHeight(Value: Integer);
 begin
   FBoxMinHeight := Value;
-  JSCodeBlock('boxMinHeight:' + VarToJSON([Value]));
+  JSCode('boxMinHeight:' + VarToJSON([Value]));
 end;
 
 procedure TExtBoxComponent.SetFBoxMinWidth(Value: Integer);
 begin
   FBoxMinWidth := Value;
-  JSCodeBlock('boxMinWidth:' + VarToJSON([Value]));
+  JSCode('boxMinWidth:' + VarToJSON([Value]));
 end;
 
 procedure TExtBoxComponent.SetFlex(const AValue: Integer);
@@ -9313,28 +9226,31 @@ begin
   SetConfigItem('height', 'setHeight', AValue);
 end;
 
+procedure TExtBoxComponent.SetHeightFunc(const AValue: TExtFunction);
+begin
+  FHeightFunc := SetFunctionConfigItem('height', AValue);
+end;
+
 procedure TExtBoxComponent.SetHeightString(const AValue: string);
 begin
-  FHeightString := AValue;
-  SetConfigItem('height', 'setHeight', AValue);
+  FHeightString := SetConfigItem('height', 'setHeight', AValue);
 end;
 
 procedure TExtBoxComponent.SetMargins(AValue: string);
 begin
-  FMargins := AValue;
-  SetConfigItem('margins', AValue);
+  FMargins := SetConfigItem('margins', AValue);
 end;
 
 procedure TExtBoxComponent.SetFPageX(Value: Integer);
 begin
   FPageX := Value;
-  JSCodeBlock('pageX:' + VarToJSON([Value]));
+  JSCode('pageX:' + VarToJSON([Value]));
 end;
 
 procedure TExtBoxComponent.SetFPageY(Value: Integer);
 begin
   FPageY := Value;
-  JSCodeBlock('pageY:' + VarToJSON([Value]));
+  JSCode('pageY:' + VarToJSON([Value]));
 end;
 
 procedure TExtBoxComponent.SetRegion(const AValue: TExtBoxComponentRegion);
@@ -9346,37 +9262,40 @@ end;
 procedure TExtBoxComponent.SetFTabTip(Value: string);
 begin
   FTabTip := Value;
-  JSCodeBlock('tabTip:' + VarToJSON([Value]));
+  JSCode('tabTip:' + VarToJSON([Value]));
 end;
 
 procedure TExtBoxComponent.SetWidth(const AValue: Integer);
 begin
-  FWidth := AValue;
-  SetConfigItem('width', 'setWidth', AValue);
+  FWidth := SetConfigItem('width', 'setWidth', AValue);
+end;
+
+procedure TExtBoxComponent.SetWidthFunc(const AValue: TExtFunction);
+begin
+  FWidthFunc := SetFunctionConfigItem('width', AValue);
 end;
 
 procedure TExtBoxComponent.SetWidthString(const AValue: string);
 begin
-  FWidthString := AValue;
-  SetConfigItem('width', 'setWidth', AValue);
+  FWidthString := SetConfigItem('width', 'setWidth', AValue);
 end;
 
 procedure TExtBoxComponent.SetFX(Value: Integer);
 begin
   FX := Value;
-  JSCodeBlock('x:' + VarToJSON([Value]));
+  JSCode('x:' + VarToJSON([Value]));
 end;
 
 procedure TExtBoxComponent.SetFY(Value: Integer);
 begin
   FY := Value;
-  JSCodeBlock('y:' + VarToJSON([Value]));
+  JSCode('y:' + VarToJSON([Value]));
 end;
 
 procedure TExtBoxComponent.SetFOnMove(Value: TExtBoxComponentOnMove);
 begin
   if Assigned(FOnMove) then
-    JSCodeBlock(JSName + '.events ["move"].listeners=[];');
+    JSCode(JSName + '.events ["move"].listeners=[];');
   if Assigned(Value) then
     on('move', Ajax('move', ['This', '%0.nm', 'X', '%1', 'Y', '%2'], true));
   FOnMove := Value;
@@ -9385,7 +9304,7 @@ end;
 procedure TExtBoxComponent.SetFOnResize(Value: TExtBoxComponentOnResize);
 begin
   if Assigned(FOnResize) then
-    JSCodeBlock(JSName + '.events ["resize"].listeners=[];');
+    JSCode(JSName + '.events ["resize"].listeners=[];');
   if Assigned(Value) then
     on('resize', Ajax('resize', ['This', '%0.nm', 'AdjWidth', '%1', 'AdjHeight', '%2',
       'RawWidth', '%3', 'RawHeight', '%4'], true));
@@ -9495,7 +9414,7 @@ end;
 procedure TExtToolbarItem.SetFOverflowText(Value: string);
 begin
   FOverflowText := Value;
-  JSCodeBlock('overflowText:' + VarToJSON([Value]));
+  JSCode('overflowText:' + VarToJSON([Value]));
 end;
 
 class function TExtToolbarItem.JSClassName: string;
@@ -9511,49 +9430,49 @@ end;
 procedure TExtFlashComponent.SetFBackgroundColor(Value: string);
 begin
   FBackgroundColor := Value;
-  JSCodeBlock('backgroundColor:' + VarToJSON([Value]));
+  JSCode('backgroundColor:' + VarToJSON([Value]));
 end;
 
 procedure TExtFlashComponent.SetFExpressInstall(Value: Boolean);
 begin
   FExpressInstall := Value;
-  JSCodeBlock('expressInstall:' + VarToJSON([Value]));
+  JSCode('expressInstall:' + VarToJSON([Value]));
 end;
 
 procedure TExtFlashComponent.SetFFlashParams(Value: TExtObject);
 begin
   FFlashParams := Value;
-  JSCodeBlock('flashParams:' + VarToJSON([Value, false]));
+  JSCode('flashParams:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtFlashComponent.SetFFlashVars(Value: TExtObject);
 begin
   FFlashVars := Value;
-  JSCodeBlock('flashVars:' + VarToJSON([Value, false]));
+  JSCode('flashVars:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtFlashComponent.SetFFlashVersion(Value: string);
 begin
   FFlashVersion := Value;
-  JSCodeBlock('flashVersion:' + VarToJSON([Value]));
+  JSCode('flashVersion:' + VarToJSON([Value]));
 end;
 
 procedure TExtFlashComponent.SetFUrl(Value: string);
 begin
   FUrl := Value;
-  JSCodeBlock('url:' + VarToJSON([Value]));
+  JSCode('url:' + VarToJSON([Value]));
 end;
 
 procedure TExtFlashComponent.SetFWmode(Value: string);
 begin
   FWmode := Value;
-  JSCodeBlock('wmode:' + VarToJSON([Value]));
+  JSCode('wmode:' + VarToJSON([Value]));
 end;
 
 procedure TExtFlashComponent.SetFOnInitialize(Value: TExtFlashComponentOnInitialize);
 begin
   if Assigned(FOnInitialize) then
-    JSCodeBlock(JSName + '.events ["initialize"].listeners=[];');
+    JSCode(JSName + '.events ["initialize"].listeners=[];');
   if Assigned(Value) then
     on('initialize', Ajax('initialize', ['This', '%0.nm'], true));
   FOnInitialize := Value;
@@ -9586,43 +9505,43 @@ end;
 procedure TExtProgressBar.SetFAnimate(Value: Boolean);
 begin
   FAnimate := Value;
-  JSCodeBlock('animate:' + VarToJSON([Value]));
+  JSCode('animate:' + VarToJSON([Value]));
 end;
 
 procedure TExtProgressBar.SetFBaseCls(Value: string);
 begin
   FBaseCls := Value;
-  JSCodeBlock('baseCls:' + VarToJSON([Value]));
+  JSCode('baseCls:' + VarToJSON([Value]));
 end;
 
 procedure TExtProgressBar.SetFId(Value: string);
 begin
   FId := Value;
-  JSCodeBlock('id:' + VarToJSON([Value]));
+  JSCode('id:' + VarToJSON([Value]));
 end;
 
 procedure TExtProgressBar.SetFText(Value: string);
 begin
   FText := Value;
-  JSCodeBlock('text:' + VarToJSON([Value]));
+  JSCode('text:' + VarToJSON([Value]));
 end;
 
 procedure TExtProgressBar.SetFTextEl(Value: string);
 begin
   FTextEl := Value;
-  JSCodeBlock('textEl:' + VarToJSON([Value]));
+  JSCode('textEl:' + VarToJSON([Value]));
 end;
 
 procedure TExtProgressBar.SetFValue(Value: Double);
 begin
   FValue := Value;
-  JSCodeBlock('value:' + VarToJSON([Value]));
+  JSCode('value:' + VarToJSON([Value]));
 end;
 
 procedure TExtProgressBar.SetFOnUpdate(Value: TExtProgressBarOnUpdate);
 begin
   if Assigned(FOnUpdate) then
-    JSCodeBlock(JSName + '.events ["update"].listeners=[];');
+    JSCode(JSName + '.events ["update"].listeners=[];');
   if Assigned(Value) then
     on('update', Ajax('update', ['This', '%0.nm', 'The', '%1', 'The_', '%2'], true));
   FOnUpdate := Value;
@@ -9714,44 +9633,44 @@ end;
 procedure TExtContainer.SetFAutoDestroy(Value: Boolean);
 begin
   FAutoDestroy := Value;
-  JSCodeBlock('autoDestroy:' + VarToJSON([Value]));
+  JSCode('autoDestroy:' + VarToJSON([Value]));
 end;
 
 procedure TExtContainer.SetFBufferResize(Value: Boolean);
 begin
   FBufferResize := Value;
-  JSCodeBlock('bufferResize:' + VarToJSON([Value]));
+  JSCode('bufferResize:' + VarToJSON([Value]));
 end;
 
 procedure TExtContainer.SetFBufferResizeNumber(Value: Integer);
 begin
   FBufferResizeNumber := Value;
-  JSCodeBlock('bufferResize:' + VarToJSON([Value]));
+  JSCode('bufferResize:' + VarToJSON([Value]));
 end;
 
 procedure TExtContainer.SetFDefaultType(Value: TExtComponentXtype);
 begin
   FDefaultType := Value;
-  JSCodeBlock('defaultType:"' + TJS.EnumToJSString(TypeInfo(TExtComponentXtype),
+  JSCode('defaultType:"' + TJS.EnumToJSString(TypeInfo(TExtComponentXtype),
     ord(Value)) + '"');
 end;
 
 procedure TExtContainer.SetFDefaultsFunction(Value: TExtFunction);
 begin
   FDefaultsFunction := Value;
-  JSCodeBlock('defaults:' + VarToJSON([Value, true]));
+  JSCode('defaults:' + VarToJSON([Value, true]));
 end;
 
 procedure TExtContainer.SetFForceLayout(Value: Boolean);
 begin
   FForceLayout := Value;
-  JSCodeBlock('forceLayout:' + VarToJSON([Value]));
+  JSCode('forceLayout:' + VarToJSON([Value]));
 end;
 
 procedure TExtContainer.SetFHideBorders(Value: Boolean);
 begin
   FHideBorders := Value;
-  JSCodeBlock('hideBorders:' + VarToJSON([Value]));
+  JSCode('hideBorders:' + VarToJSON([Value]));
 end;
 
 procedure TExtContainer.SetLabelAlign(const AValue: TExtContainerLabelAlign);
@@ -9775,44 +9694,44 @@ end;
 procedure TExtContainer.SetFLayoutObject(Value: TExtObject);
 begin
   FLayoutObject := Value;
-  JSCodeBlock('layout:' + VarToJSON([Value, false]));
+  JSCode('layout:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtContainer.SetFLayoutConfig(Value: TExtObject);
 begin
   FLayoutConfig.Free;
   FLayoutConfig := Value;
-  JSCodeBlock('layoutConfig:' + VarToJSON([Value, false]));
+  JSCode('layoutConfig:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtContainer.SetFMonitorResize(Value: Boolean);
 begin
   FMonitorResize := Value;
-  JSCodeBlock('monitorResize:' + VarToJSON([Value]));
+  JSCode('monitorResize:' + VarToJSON([Value]));
 end;
 
 procedure TExtContainer.SetFResizeEvent(Value: string);
 begin
   FResizeEvent := Value;
-  JSCodeBlock('resizeEvent:' + VarToJSON([Value]));
+  JSCode('resizeEvent:' + VarToJSON([Value]));
 end;
 
 procedure TExtContainer.SetFColspan(Value: Integer);
 begin
   FColspan := Value;
-  JSCodeBlock('colspan:' + VarToJSON([Value]));
+  JSCode('colspan:' + VarToJSON([Value]));
 end;
 
 procedure TExtContainer.SetFRowspan(Value: Integer);
 begin
   FRowspan := Value;
-  JSCodeBlock('rowspan:' + VarToJSON([Value]));
+  JSCode('rowspan:' + VarToJSON([Value]));
 end;
 
 procedure TExtContainer.SetFLayoutString(Value: string);
 begin
   FLayoutString := Value;
-  JSCodeBlock('layout:' + VarToJSON([Value]));
+  JSCode('layout:' + VarToJSON([Value]));
 end;
 
 procedure TExtContainer.SetColumnWidth(const AValue: Double);
@@ -9823,7 +9742,7 @@ end;
 procedure TExtContainer.SetFOnAdd(Value: TExtContainerOnAdd);
 begin
   if Assigned(FOnAdd) then
-    JSCodeBlock(JSName + '.events ["add"].listeners=[];');
+    JSCode(JSName + '.events ["add"].listeners=[];');
   if Assigned(Value) then
     on('add', Ajax('add', ['This', '%0.nm', 'Component', '%1.nm', 'Index', '%2'], true));
   FOnAdd := Value;
@@ -9832,7 +9751,7 @@ end;
 procedure TExtContainer.SetFOnAfterlayout(Value: TExtContainerOnAfterlayout);
 begin
   if Assigned(FOnAfterlayout) then
-    JSCodeBlock(JSName + '.events ["afterlayout"].listeners=[];');
+    JSCode(JSName + '.events ["afterlayout"].listeners=[];');
   if Assigned(Value) then
     on('afterlayout', Ajax('afterlayout', ['This', '%0.nm', 'Layout', '%1.nm'], true));
   FOnAfterlayout := Value;
@@ -9841,7 +9760,7 @@ end;
 procedure TExtContainer.SetFOnBeforeadd(Value: TExtContainerOnBeforeadd);
 begin
   if Assigned(FOnBeforeadd) then
-    JSCodeBlock(JSName + '.events ["beforeadd"].listeners=[];');
+    JSCode(JSName + '.events ["beforeadd"].listeners=[];');
   if Assigned(Value) then
     on('beforeadd', Ajax('beforeadd', ['This', '%0.nm', 'Component', '%1.nm', 'Index',
       '%2'], true));
@@ -9851,7 +9770,7 @@ end;
 procedure TExtContainer.SetFOnBeforeremove(Value: TExtContainerOnBeforeremove);
 begin
   if Assigned(FOnBeforeremove) then
-    JSCodeBlock(JSName + '.events ["beforeremove"].listeners=[];');
+    JSCode(JSName + '.events ["beforeremove"].listeners=[];');
   if Assigned(Value) then
     on('beforeremove', Ajax('beforeremove', ['This', '%0.nm', 'Component',
       '%1.nm'], true));
@@ -9861,7 +9780,7 @@ end;
 procedure TExtContainer.SetFOnRemove(Value: TExtContainerOnRemove);
 begin
   if Assigned(FOnRemove) then
-    JSCodeBlock(JSName + '.events ["remove"].listeners=[];');
+    JSCode(JSName + '.events ["remove"].listeners=[];');
   if Assigned(Value) then
     on('remove', Ajax('remove', ['This', '%0.nm', 'Component', '%1.nm'], true));
   FOnRemove := Value;
@@ -10043,31 +9962,31 @@ end;
 procedure TExtButton.SetFArrowAlign(Value: string);
 begin
   FArrowAlign := Value;
-  JSCodeBlock('arrowAlign:' + VarToJSON([Value]));
+  JSCode('arrowAlign:' + VarToJSON([Value]));
 end;
 
 procedure TExtButton.SetFAutoWidth(Value: Boolean);
 begin
   FAutoWidth := Value;
-  JSCodeBlock('autoWidth:' + VarToJSON([Value]));
+  JSCode('autoWidth:' + VarToJSON([Value]));
 end;
 
 procedure TExtButton.SetFButtonSelector(Value: string);
 begin
   FButtonSelector := Value;
-  JSCodeBlock('buttonSelector:' + VarToJSON([Value]));
+  JSCode('buttonSelector:' + VarToJSON([Value]));
 end;
 
 procedure TExtButton.SetFClickEvent(Value: string);
 begin
   FClickEvent := Value;
-  JSCodeBlock('clickEvent:' + VarToJSON([Value]));
+  JSCode('clickEvent:' + VarToJSON([Value]));
 end;
 
 procedure TExtButton.SetFCls(Value: string);
 begin
   FCls := Value;
-  JSCodeBlock('cls:' + VarToJSON([Value]));
+  JSCode('cls:' + VarToJSON([Value]));
 end;
 
 procedure TExtButton.SetDisabled(const AValue: Boolean);
@@ -10091,7 +10010,7 @@ end;
 procedure TExtButton.SetFHandleMouseEvents(Value: Boolean);
 begin
   FHandleMouseEvents := Value;
-  JSCodeBlock('handleMouseEvents:' + VarToJSON([Value]));
+  JSCode('handleMouseEvents:' + VarToJSON([Value]));
 end;
 
 procedure TExtButton._SetHandler(const AValue: TExtFunction);
@@ -10115,7 +10034,7 @@ end;
 procedure TExtButton.SetFIconAlign(Value: string);
 begin
   FIconAlign := Value;
-  JSCodeBlock('iconAlign:' + VarToJSON([Value]));
+  JSCode('iconAlign:' + VarToJSON([Value]));
 end;
 
 procedure TExtButton.SetIconCls(const AValue: string);
@@ -10134,7 +10053,7 @@ end;
 procedure TExtButton.SetFMenuAlign(Value: string);
 begin
   FMenuAlign := Value;
-  JSCodeBlock('menuAlign:' + VarToJSON([Value]));
+  JSCode('menuAlign:' + VarToJSON([Value]));
 end;
 
 procedure TExtButton.SetFMinWidth(const AValue: Integer);
@@ -10145,7 +10064,7 @@ end;
 procedure TExtButton.SetFOverflowText(Value: string);
 begin
   FOverflowText := Value;
-  JSCodeBlock('overflowText:' + VarToJSON([Value]));
+  JSCode('overflowText:' + VarToJSON([Value]));
 end;
 
 procedure TExtButton.SetPressed(const AValue: Boolean);
@@ -10156,13 +10075,13 @@ end;
 procedure TExtButton.SetFRepeatJS(Value: Boolean);
 begin
   FRepeatJS := Value;
-  JSCodeBlock('repeatJS:' + VarToJSON([Value]));
+  JSCode('repeatJS:' + VarToJSON([Value]));
 end;
 
 procedure TExtButton.SetFRepeatJSObject(Value: TExtObject);
 begin
   FRepeatJSObject := Value;
-  JSCodeBlock('repeatJS:' + VarToJSON([Value, false]));
+  JSCode('repeatJS:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtButton.SetScale(const AValue: string);
@@ -10174,19 +10093,19 @@ end;
 procedure TExtButton.SetFScope(Value: TExtObject);
 begin
   FScope := Value;
-  JSCodeBlock('scope:' + VarToJSON([Value, false]));
+  JSCode('scope:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtButton.SetFTabIndex(Value: Integer);
 begin
   FTabIndex := Value;
-  JSCodeBlock('tabIndex:' + VarToJSON([Value]));
+  JSCode('tabIndex:' + VarToJSON([Value]));
 end;
 
 procedure TExtButton.SetFTemplate(Value: TExtTemplate);
 begin
   FTemplate := Value;
-  JSCodeBlock('template:' + VarToJSON([Value, false]));
+  JSCode('template:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtButton._SetText(const AValue: string);
@@ -10204,7 +10123,7 @@ end;
 procedure TExtButton.SetFToggleHandler(Value: TExtFunction);
 begin
   FToggleHandler := Value;
-  JSCodeBlock('toggleHandler:' + VarToJSON([Value, true]));
+  JSCode('toggleHandler:' + VarToJSON([Value, true]));
 end;
 
 procedure TExtButton._SetTooltip(const AValue: string);
@@ -10216,49 +10135,49 @@ end;
 procedure TExtButton.SetFTooltipObject(Value: TExtObject);
 begin
   FTooltipObject := Value;
-  JSCodeBlock('tooltip:' + VarToJSON([Value, false]));
+  JSCode('tooltip:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtButton.SetFTooltipType(Value: string);
 begin
   FTooltipType := Value;
-  JSCodeBlock('tooltipType:' + VarToJSON([Value]));
+  JSCode('tooltipType:' + VarToJSON([Value]));
 end;
 
 procedure TExtButton.SetFTypeJS(Value: string);
 begin
   FTypeJS := Value;
-  JSCodeBlock('typeJS:' + VarToJSON([Value]));
+  JSCode('typeJS:' + VarToJSON([Value]));
 end;
 
 procedure TExtButton.SetFBtnEl(Value: TExtElement);
 begin
   FBtnEl := Value;
-  JSCodeBlock(JSName + '.btnEl=' + VarToJSON([Value, false]) + ';');
+  JSCode(JSName + '.btnEl=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtButton.SetFDisabled_(Value: Boolean);
 begin
   FDisabled_ := Value;
-  JSCodeBlock(JSName + '.disabled=' + VarToJSON([Value]) + ';');
+  JSCode(JSName + '.disabled=' + VarToJSON([Value]) + ';');
 end;
 
 procedure TExtButton.SetFHidden_(Value: Boolean);
 begin
   FHidden_ := Value;
-  JSCodeBlock(JSName + '.hidden=' + VarToJSON([Value]) + ';');
+  JSCode(JSName + '.hidden=' + VarToJSON([Value]) + ';');
 end;
 
 procedure TExtButton.SetFMenu_(Value: TExtMenuMenu);
 begin
   FMenu_ := Value;
-  JSCodeBlock(JSName + '.menu=' + VarToJSON([Value, false]) + ';');
+  JSCode(JSName + '.menu=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtButton.SetFOnClick(Value: TExtButtonOnClick);
 begin
   if Assigned(FOnClick) then
-    JSCodeBlock(JSName + '.events ["click"].listeners=[];');
+    JSCode(JSName + '.events ["click"].listeners=[];');
   if Assigned(Value) then
     on('click', Ajax('click', ['This', '%0.nm', 'E', '%1.nm'], true));
   FOnClick := Value;
@@ -10267,7 +10186,7 @@ end;
 procedure TExtButton.SetFOnMenuhide(Value: TExtButtonOnMenuhide);
 begin
   if Assigned(FOnMenuhide) then
-    JSCodeBlock(JSName + '.events ["menuhide"].listeners=[];');
+    JSCode(JSName + '.events ["menuhide"].listeners=[];');
   if Assigned(Value) then
     on('menuhide', Ajax('menuhide', ['This', '%0.nm', 'Menu', '%1.nm'], true));
   FOnMenuhide := Value;
@@ -10276,7 +10195,7 @@ end;
 procedure TExtButton.SetFOnMenushow(Value: TExtButtonOnMenushow);
 begin
   if Assigned(FOnMenushow) then
-    JSCodeBlock(JSName + '.events ["menushow"].listeners=[];');
+    JSCode(JSName + '.events ["menushow"].listeners=[];');
   if Assigned(Value) then
     on('menushow', Ajax('menushow', ['This', '%0.nm', 'Menu', '%1.nm'], true));
   FOnMenushow := Value;
@@ -10285,7 +10204,7 @@ end;
 procedure TExtButton.SetFOnMenutriggerout(Value: TExtButtonOnMenutriggerout);
 begin
   if Assigned(FOnMenutriggerout) then
-    JSCodeBlock(JSName + '.events ["menutriggerout"].listeners=[];');
+    JSCode(JSName + '.events ["menutriggerout"].listeners=[];');
   if Assigned(Value) then
     on('menutriggerout', Ajax('menutriggerout', ['This', '%0.nm', 'Menu', '%1.nm', 'E',
       '%2.nm'], true));
@@ -10295,7 +10214,7 @@ end;
 procedure TExtButton.SetFOnMenutriggerover(Value: TExtButtonOnMenutriggerover);
 begin
   if Assigned(FOnMenutriggerover) then
-    JSCodeBlock(JSName + '.events ["menutriggerover"].listeners=[];');
+    JSCode(JSName + '.events ["menutriggerover"].listeners=[];');
   if Assigned(Value) then
     on('menutriggerover', Ajax('menutriggerover', ['This', '%0.nm', 'Menu', '%1.nm', 'E',
       '%2.nm'], true));
@@ -10305,7 +10224,7 @@ end;
 procedure TExtButton.SetFOnToggle(Value: TExtButtonOnToggle);
 begin
   if Assigned(FOnToggle) then
-    JSCodeBlock(JSName + '.events ["toggle"].listeners=[];');
+    JSCode(JSName + '.events ["toggle"].listeners=[];');
   if Assigned(Value) then
     on('toggle', Ajax('toggle', ['This', '%0.nm', 'Pressed', '%1'], true));
   FOnToggle := Value;
@@ -10440,13 +10359,13 @@ end;
 procedure TExtDataView.SetFBlockRefresh(Value: Boolean);
 begin
   FBlockRefresh := Value;
-  JSCodeBlock('blockRefresh:' + VarToJSON([Value]));
+  JSCode('blockRefresh:' + VarToJSON([Value]));
 end;
 
 procedure TExtDataView.SetFDeferEmptyText(Value: Boolean);
 begin
   FDeferEmptyText := Value;
-  JSCodeBlock('deferEmptyText:' + VarToJSON([Value]));
+  JSCode('deferEmptyText:' + VarToJSON([Value]));
 end;
 
 procedure TExtDataView.SetEmptyText(AValue: string);
@@ -10463,7 +10382,7 @@ end;
 procedure TExtDataView.SetFLoadingText(Value: string);
 begin
   FLoadingText := Value;
-  JSCodeBlock('loadingText:' + VarToJSON([Value]));
+  JSCode('loadingText:' + VarToJSON([Value]));
 end;
 
 procedure TExtDataView.SetMultiSelect(const AValue: Boolean);
@@ -10480,13 +10399,13 @@ end;
 procedure TExtDataView.SetFSelectedClass(Value: string);
 begin
   FSelectedClass := Value;
-  JSCodeBlock('selectedClass:' + VarToJSON([Value]));
+  JSCode('selectedClass:' + VarToJSON([Value]));
 end;
 
 procedure TExtDataView.SetFSimpleSelect(Value: Boolean);
 begin
   FSimpleSelect := Value;
-  JSCodeBlock('simpleSelect:' + VarToJSON([Value]));
+  JSCode('simpleSelect:' + VarToJSON([Value]));
 end;
 
 procedure TExtDataView.SetSingleSelect(const AValue: Boolean);
@@ -10509,19 +10428,19 @@ end;
 procedure TExtDataView.SetFTplArray(Value: TExtObjectList);
 begin
   FTplArray := Value;
-  JSCodeBlock('tpl:' + VarToJSON([Value, false]));
+  JSCode('tpl:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtDataView.SetFTrackOver(Value: Boolean);
 begin
   FTrackOver := Value;
-  JSCodeBlock('trackOver:' + VarToJSON([Value]));
+  JSCode('trackOver:' + VarToJSON([Value]));
 end;
 
 procedure TExtDataView.SetFOnContainerclick(Value: TExtDataViewOnContainerclick);
 begin
   if Assigned(FOnContainerclick) then
-    JSCodeBlock(JSName + '.events ["containerclick"].listeners=[];');
+    JSCode(JSName + '.events ["containerclick"].listeners=[];');
   if Assigned(Value) then
     on('containerclick', Ajax('containerclick', ['This', '%0.nm', 'E', '%1.nm'], true));
   FOnContainerclick := Value;
@@ -10531,7 +10450,7 @@ procedure TExtDataView.SetFOnContainercontextmenu
   (Value: TExtDataViewOnContainercontextmenu);
 begin
   if Assigned(FOnContainercontextmenu) then
-    JSCodeBlock(JSName + '.events ["containercontextmenu"].listeners=[];');
+    JSCode(JSName + '.events ["containercontextmenu"].listeners=[];');
   if Assigned(Value) then
     on('containercontextmenu', Ajax('containercontextmenu', ['This', '%0.nm', 'E',
       '%1.nm'], true));
@@ -10541,7 +10460,7 @@ end;
 procedure TExtDataView.SetFOnSelectionchange(Value: TExtDataViewOnSelectionchange);
 begin
   if Assigned(FOnSelectionchange) then
-    JSCodeBlock(JSName + '.events ["selectionchange"].listeners=[];');
+    JSCode(JSName + '.events ["selectionchange"].listeners=[];');
   if Assigned(Value) then
     on('selectionchange', Ajax('selectionchange', ['This', '%0.nm', 'Selections',
       '%1.nm'], true));
@@ -10795,13 +10714,13 @@ end;
 procedure TExtPanel.SetFAnimCollapse(Value: Boolean);
 begin
   FAnimCollapse := Value;
-  JSCodeBlock('animCollapse:' + VarToJSON([Value]));
+  JSCode('animCollapse:' + VarToJSON([Value]));
 end;
 
 procedure TExtPanel.SetFApplyTo(Value: string);
 begin
   FApplyTo := Value;
-  JSCodeBlock('applyTo:' + VarToJSON([Value]));
+  JSCode('applyTo:' + VarToJSON([Value]));
 end;
 
 procedure TExtPanel.SetAutoHeight(const AValue: Boolean);
@@ -10813,7 +10732,7 @@ end;
 procedure TExtPanel.SetFAutoLoad(Value: TExtObject);
 begin
   FAutoLoad := Value;
-  JSCodeBlock('autoLoad:' + VarToJSON([Value, false]));
+  JSCode('autoLoad:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtPanel.SetAutoLoadString(AValue: string);
@@ -10831,13 +10750,13 @@ end;
 procedure TExtPanel.SetFAutoLoadFunction(Value: TExtFunction);
 begin
   FAutoLoadFunction := Value;
-  JSCodeBlock('autoLoad:' + VarToJSON([Value, true]));
+  JSCode('autoLoad:' + VarToJSON([Value, true]));
 end;
 
 procedure TExtPanel.SetFBaseCls(Value: string);
 begin
   FBaseCls := Value;
-  JSCodeBlock('baseCls:' + VarToJSON([Value]));
+  JSCode('baseCls:' + VarToJSON([Value]));
 end;
 
 procedure TExtPanel.SetBbar(const AValue: TExtObject);
@@ -10850,43 +10769,43 @@ end;
 procedure TExtPanel.SetFBbarArray(Value: TExtObjectList);
 begin
   FBbarArray := Value;
-  JSCodeBlock('bbar:' + VarToJSON([Value, false]));
+  JSCode('bbar:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtPanel.SetFBbarCfg(Value: TExtObject);
 begin
   FBbarCfg := Value;
-  JSCodeBlock('bbarCfg:' + VarToJSON([Value, false]));
+  JSCode('bbarCfg:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtPanel.SetFBodyBorder(Value: Boolean);
 begin
   FBodyBorder := Value;
-  JSCodeBlock('bodyBorder:' + VarToJSON([Value]));
+  JSCode('bodyBorder:' + VarToJSON([Value]));
 end;
 
 procedure TExtPanel.SetFBodyCfg(Value: TExtObject);
 begin
   FBodyCfg := Value;
-  JSCodeBlock('bodyCfg:' + VarToJSON([Value, false]));
+  JSCode('bodyCfg:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtPanel.SetFBodyCssClass(Value: string);
 begin
   FBodyCssClass := Value;
-  JSCodeBlock('bodyCssClass:' + VarToJSON([Value]));
+  JSCode('bodyCssClass:' + VarToJSON([Value]));
 end;
 
 procedure TExtPanel.SetFBodyCssClassObject(Value: TExtObject);
 begin
   FBodyCssClassObject := Value;
-  JSCodeBlock('bodyCssClass:' + VarToJSON([Value, false]));
+  JSCode('bodyCssClass:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtPanel.SetFBodyCssClassFunction(Value: TExtFunction);
 begin
   FBodyCssClassFunction := Value;
-  JSCodeBlock('bodyCssClass:' + VarToJSON([Value, true]));
+  JSCode('bodyCssClass:' + VarToJSON([Value, true]));
 end;
 
 procedure TExtPanel.SetBodyStyle(const AValue: string);
@@ -10898,13 +10817,13 @@ end;
 procedure TExtPanel.SetFBodyStyleObject(Value: TExtObject);
 begin
   FBodyStyleObject := Value;
-  JSCodeBlock('bodyStyle:' + VarToJSON([Value, false]));
+  JSCode('bodyStyle:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtPanel.SetFBodyStyleFunction(Value: TExtFunction);
 begin
   FBodyStyleFunction := Value;
-  JSCodeBlock('bodyStyle:' + VarToJSON([Value, true]));
+  JSCode('bodyStyle:' + VarToJSON([Value, true]));
 end;
 
 procedure TExtPanel.SetBorder(const AValue: Boolean);
@@ -10916,20 +10835,20 @@ end;
 procedure TExtPanel.SetFButtonAlign(Value: TExtPanelButtonAlign);
 begin
   FButtonAlign := Value;
-  JSCodeBlock('buttonAlign:"' + TJS.EnumToJSString(TypeInfo(TExtPanelButtonAlign),
+  JSCode('buttonAlign:"' + TJS.EnumToJSString(TypeInfo(TExtPanelButtonAlign),
     ord(Value)) + '"');
 end;
 
 procedure TExtPanel.SetFButtons(Value: TExtObjectList);
 begin
   FButtons := Value;
-  JSCodeBlock('buttons:' + VarToJSON([Value, false]));
+  JSCode('buttons:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtPanel.SetFBwrapCfg(Value: TExtObject);
 begin
   FBwrapCfg := Value;
-  JSCodeBlock('bwrapCfg:' + VarToJSON([Value, false]));
+  JSCode('bwrapCfg:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtPanel.SetClosable(const AValue: Boolean);
@@ -10941,13 +10860,13 @@ end;
 procedure TExtPanel.SetFCollapseFirst(Value: Boolean);
 begin
   FCollapseFirst := Value;
-  JSCodeBlock('collapseFirst:' + VarToJSON([Value]));
+  JSCode('collapseFirst:' + VarToJSON([Value]));
 end;
 
 procedure TExtPanel.SetFCollapsedCls(Value: string);
 begin
   FCollapsedCls := Value;
-  JSCodeBlock('collapsedCls:' + VarToJSON([Value]));
+  JSCode('collapsedCls:' + VarToJSON([Value]));
 end;
 
 procedure TExtPanel.SetCollapsible(const AValue: Boolean);
@@ -10959,31 +10878,31 @@ end;
 procedure TExtPanel.SetFDisabled(Value: Boolean);
 begin
   FDisabled := Value;
-  JSCodeBlock('disabled:' + VarToJSON([Value]));
+  JSCode('disabled:' + VarToJSON([Value]));
 end;
 
 procedure TExtPanel.SetFDraggable(Value: Boolean);
 begin
   FDraggable := Value;
-  JSCodeBlock('draggable:' + VarToJSON([Value]));
+  JSCode('draggable:' + VarToJSON([Value]));
 end;
 
 procedure TExtPanel.SetFDraggableObject(Value: TExtObject);
 begin
   FDraggableObject := Value;
-  JSCodeBlock('draggable:' + VarToJSON([Value, false]));
+  JSCode('draggable:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtPanel.SetFElements(Value: string);
 begin
   FElements := Value;
-  JSCodeBlock('elements:' + VarToJSON([Value]));
+  JSCode('elements:' + VarToJSON([Value]));
 end;
 
 procedure TExtPanel.SetFFloating(Value: string);
 begin
   FFloating := Value;
-  JSCodeBlock('floating:' + VarToJSON([Value]));
+  JSCode('floating:' + VarToJSON([Value]));
 end;
 
 procedure TExtPanel.SetFooter(const AValue: Boolean);
@@ -10995,7 +10914,7 @@ end;
 procedure TExtPanel.SetFFooterCfg(Value: TExtObject);
 begin
   FFooterCfg := Value;
-  JSCodeBlock('footerCfg:' + VarToJSON([Value, false]));
+  JSCode('footerCfg:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtPanel.SetFrame(const AValue: Boolean);
@@ -11013,19 +10932,19 @@ end;
 procedure TExtPanel.SetFHeaderAsText(Value: Boolean);
 begin
   FHeaderAsText := Value;
-  JSCodeBlock('headerAsText:' + VarToJSON([Value]));
+  JSCode('headerAsText:' + VarToJSON([Value]));
 end;
 
 procedure TExtPanel.SetFHeaderCfg(Value: TExtObject);
 begin
   FHeaderCfg := Value;
-  JSCodeBlock('headerCfg:' + VarToJSON([Value, false]));
+  JSCode('headerCfg:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtPanel.SetFHideCollapseTool(Value: Boolean);
 begin
   FHideCollapseTool := Value;
-  JSCodeBlock('hideCollapseTool:' + VarToJSON([Value]));
+  JSCode('hideCollapseTool:' + VarToJSON([Value]));
 end;
 
 procedure TExtPanel.SetIconCls(const AValue: string);
@@ -11037,7 +10956,7 @@ end;
 procedure TExtPanel.SetFMaskDisabled(Value: Boolean);
 begin
   FMaskDisabled := Value;
-  JSCodeBlock('maskDisabled:' + VarToJSON([Value]));
+  JSCode('maskDisabled:' + VarToJSON([Value]));
 end;
 
 procedure TExtPanel.SetFMinButtonWidth(const AValue: Integer);
@@ -11049,7 +10968,7 @@ end;
 procedure TExtPanel.SetFPadding(Value: Integer);
 begin
   FPadding := Value;
-  JSCodeBlock('padding:' + VarToJSON([Value]));
+  JSCode('padding:' + VarToJSON([Value]));
 end;
 
 procedure TExtPanel.SetPaddingString(const AValue: string);
@@ -11061,43 +10980,43 @@ end;
 procedure TExtPanel.SetFPreventBodyReset(Value: Boolean);
 begin
   FPreventBodyReset := Value;
-  JSCodeBlock('preventBodyReset:' + VarToJSON([Value]));
+  JSCode('preventBodyReset:' + VarToJSON([Value]));
 end;
 
 procedure TExtPanel.SetFResizeEvent(Value: string);
 begin
   FResizeEvent := Value;
-  JSCodeBlock('resizeEvent:' + VarToJSON([Value]));
+  JSCode('resizeEvent:' + VarToJSON([Value]));
 end;
 
 procedure TExtPanel.SetFShadow(Value: Boolean);
 begin
   FShadow := Value;
-  JSCodeBlock('shadow:' + VarToJSON([Value]));
+  JSCode('shadow:' + VarToJSON([Value]));
 end;
 
 procedure TExtPanel.SetFShadowString(Value: string);
 begin
   FShadowString := Value;
-  JSCodeBlock('shadow:' + VarToJSON([Value]));
+  JSCode('shadow:' + VarToJSON([Value]));
 end;
 
 procedure TExtPanel.SetFShadowOffset(Value: Integer);
 begin
   FShadowOffset := Value;
-  JSCodeBlock('shadowOffset:' + VarToJSON([Value]));
+  JSCode('shadowOffset:' + VarToJSON([Value]));
 end;
 
 procedure TExtPanel.SetFShim(Value: Boolean);
 begin
   FShim := Value;
-  JSCodeBlock('shim:' + VarToJSON([Value]));
+  JSCode('shim:' + VarToJSON([Value]));
 end;
 
 procedure TExtPanel.SetFTbarCfg(Value: TExtObject);
 begin
   FTbarCfg := Value;
-  JSCodeBlock('tbarCfg:' + VarToJSON([Value, false]));
+  JSCode('tbarCfg:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtPanel._SetTitle(AValue: string);
@@ -11109,43 +11028,43 @@ end;
 procedure TExtPanel.SetFTitleCollapse(Value: Boolean);
 begin
   FTitleCollapse := Value;
-  JSCodeBlock('titleCollapse:' + VarToJSON([Value]));
+  JSCode('titleCollapse:' + VarToJSON([Value]));
 end;
 
 procedure TExtPanel.SetFToolTemplate(Value: TExtTemplate);
 begin
   FToolTemplate := Value;
-  JSCodeBlock('toolTemplate:' + VarToJSON([Value, false]));
+  JSCode('toolTemplate:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtPanel.SetFToolTemplateExtXTemplate(Value: TExtXTemplate);
 begin
   FToolTemplateExtXTemplate := Value;
-  JSCodeBlock('toolTemplate:' + VarToJSON([Value, false]));
+  JSCode('toolTemplate:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtPanel.SetFTools(Value: TExtObjectList);
 begin
   FTools := Value;
-  JSCodeBlock('tools:' + VarToJSON([Value, false]));
+  JSCode('tools:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtPanel.SetFUnstyled(Value: Boolean);
 begin
   FUnstyled := Value;
-  JSCodeBlock('unstyled:' + VarToJSON([Value]));
+  JSCode('unstyled:' + VarToJSON([Value]));
 end;
 
 procedure TExtPanel.SetFBody(Value: TExtElement);
 begin
   FBody := Value;
-  JSCodeBlock(JSName + '.body=' + VarToJSON([Value, false]) + ';');
+  JSCode(JSName + '.body=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtPanel.SetFBwrap(Value: TExtElement);
 begin
   FBwrap := Value;
-  JSCodeBlock(JSName + '.bwrap=' + VarToJSON([Value, false]) + ';');
+  JSCode(JSName + '.bwrap=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtPanel.SetCollapsed(const AValue: Boolean);
@@ -11156,31 +11075,31 @@ end;
 procedure TExtPanel.SetFFooter_(Value: TExtElement);
 begin
   FFooter_ := Value;
-  JSCodeBlock(JSName + '.footer=' + VarToJSON([Value, false]) + ';');
+  JSCode(JSName + '.footer=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtPanel.SetFHeader_(Value: TExtElement);
 begin
   FHeader_ := Value;
-  JSCodeBlock(JSName + '.header=' + VarToJSON([Value, false]) + ';');
+  JSCode(JSName + '.header=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtPanel.SetFRowWidth(Value: Double);
 begin
   FRowWidth := Value;
-  JSCodeBlock('rowWidth:' + VarToJSON([Value]));
+  JSCode('rowWidth:' + VarToJSON([Value]));
 end;
 
 procedure TExtPanel.SetFRowHeight(Value: Double);
 begin
   FRowHeight := Value;
-  JSCodeBlock('rowHeight:' + VarToJSON([Value]));
+  JSCode('rowHeight:' + VarToJSON([Value]));
 end;
 
 procedure TExtPanel.SetFOnActivate(Value: TExtPanelOnActivate);
 begin
   if Assigned(FOnActivate) then
-    JSCodeBlock(JSName + '.events ["activate"].listeners=[];');
+    JSCode(JSName + '.events ["activate"].listeners=[];');
   if Assigned(Value) then
     on('activate', Ajax('activate', ['P', '%0.nm'], true));
   FOnActivate := Value;
@@ -11189,7 +11108,7 @@ end;
 procedure TExtPanel.SetFOnBeforeclose(Value: TExtPanelOnBeforeclose);
 begin
   if Assigned(FOnBeforeclose) then
-    JSCodeBlock(JSName + '.events ["beforeclose"].listeners=[];');
+    JSCode(JSName + '.events ["beforeclose"].listeners=[];');
   if Assigned(Value) then
     on('beforeclose', Ajax('beforeclose', ['P', '%0.nm'], true));
   FOnBeforeclose := Value;
@@ -11198,7 +11117,7 @@ end;
 procedure TExtPanel.SetFOnBeforecollapse(Value: TExtPanelOnBeforecollapse);
 begin
   if Assigned(FOnBeforecollapse) then
-    JSCodeBlock(JSName + '.events ["beforecollapse"].listeners=[];');
+    JSCode(JSName + '.events ["beforecollapse"].listeners=[];');
   if Assigned(Value) then
     on('beforecollapse', Ajax('beforecollapse', ['P', '%0.nm', 'Animate', '%1'], true));
   FOnBeforecollapse := Value;
@@ -11207,7 +11126,7 @@ end;
 procedure TExtPanel.SetFOnBeforeexpand(Value: TExtPanelOnBeforeexpand);
 begin
   if Assigned(FOnBeforeexpand) then
-    JSCodeBlock(JSName + '.events ["beforeexpand"].listeners=[];');
+    JSCode(JSName + '.events ["beforeexpand"].listeners=[];');
   if Assigned(Value) then
     on('beforeexpand', Ajax('beforeexpand', ['P', '%0.nm', 'Animate', '%1'], true));
   FOnBeforeexpand := Value;
@@ -11216,7 +11135,7 @@ end;
 procedure TExtPanel.SetFOnBodyresize(Value: TExtPanelOnBodyresize);
 begin
   if Assigned(FOnBodyresize) then
-    JSCodeBlock(JSName + '.events ["bodyresize"].listeners=[];');
+    JSCode(JSName + '.events ["bodyresize"].listeners=[];');
   if Assigned(Value) then
     on('bodyresize', Ajax('bodyresize', ['P', '%0.nm', 'Width', '%1', 'Height',
       '%2'], true));
@@ -11226,7 +11145,7 @@ end;
 procedure TExtPanel.SetFOnClose(Value: TExtPanelOnClose);
 begin
   if Assigned(FOnClose) then
-    JSCodeBlock(JSName + '.events ["close"].listeners=[];');
+    JSCode(JSName + '.events ["close"].listeners=[];');
   if Assigned(Value) then
     on('close', Ajax('close', ['P', '%0.nm'], true));
   FOnClose := Value;
@@ -11235,7 +11154,7 @@ end;
 procedure TExtPanel.SetFOnCollapse(Value: TExtPanelOnCollapse);
 begin
   if Assigned(FOnCollapse) then
-    JSCodeBlock(JSName + '.events ["collapse"].listeners=[];');
+    JSCode(JSName + '.events ["collapse"].listeners=[];');
   if Assigned(Value) then
     on('collapse', Ajax('collapse', ['P', '%0.nm'], true));
   FOnCollapse := Value;
@@ -11244,7 +11163,7 @@ end;
 procedure TExtPanel.SetFOnDeactivate(Value: TExtPanelOnDeactivate);
 begin
   if Assigned(FOnDeactivate) then
-    JSCodeBlock(JSName + '.events ["deactivate"].listeners=[];');
+    JSCode(JSName + '.events ["deactivate"].listeners=[];');
   if Assigned(Value) then
     on('deactivate', Ajax('deactivate', ['P', '%0.nm'], true));
   FOnDeactivate := Value;
@@ -11253,7 +11172,7 @@ end;
 procedure TExtPanel.SetFOnExpand(Value: TExtPanelOnExpand);
 begin
   if Assigned(FOnExpand) then
-    JSCodeBlock(JSName + '.events ["expand"].listeners=[];');
+    JSCode(JSName + '.events ["expand"].listeners=[];');
   if Assigned(Value) then
     on('expand', Ajax('expand', ['P', '%0.nm'], true));
   FOnExpand := Value;
@@ -11262,7 +11181,7 @@ end;
 procedure TExtPanel.SetFOnIconchange(Value: TExtPanelOnIconchange);
 begin
   if Assigned(FOnIconchange) then
-    JSCodeBlock(JSName + '.events ["iconchange"].listeners=[];');
+    JSCode(JSName + '.events ["iconchange"].listeners=[];');
   if Assigned(Value) then
     on('iconchange', Ajax('iconchange', ['P', '%0.nm', 'The', '%1', 'The_', '%2'], true));
   FOnIconchange := Value;
@@ -11271,7 +11190,7 @@ end;
 procedure TExtPanel.SetFOnTitlechange(Value: TExtPanelOnTitlechange);
 begin
   if Assigned(FOnTitlechange) then
-    JSCodeBlock(JSName + '.events ["titlechange"].listeners=[];');
+    JSCode(JSName + '.events ["titlechange"].listeners=[];');
   if Assigned(Value) then
     on('titlechange', Ajax('titlechange', ['P', '%0.nm', 'The', '%1'], true));
   FOnTitlechange := Value;
@@ -11467,13 +11386,13 @@ end;
 procedure TExtSplitButton.SetFArrowTooltip(Value: string);
 begin
   FArrowTooltip := Value;
-  JSCodeBlock('arrowTooltip:' + VarToJSON([Value]));
+  JSCode('arrowTooltip:' + VarToJSON([Value]));
 end;
 
 procedure TExtSplitButton.SetFOnArrowclick(Value: TExtSplitButtonOnArrowclick);
 begin
   if Assigned(FOnArrowclick) then
-    JSCodeBlock(JSName + '.events ["arrowclick"].listeners=[];');
+    JSCode(JSName + '.events ["arrowclick"].listeners=[];');
   if Assigned(Value) then
     on('arrowclick', Ajax('arrowclick', ['This', '%0.nm', 'E', '%1.nm'], true));
   FOnArrowclick := Value;
@@ -11505,7 +11424,7 @@ end;
 procedure TExtToolbarSpacer.SetFWidth(Value: Integer);
 begin
   FWidth := Value;
-  JSCodeBlock('width:' + VarToJSON([Value]));
+  JSCode('width:' + VarToJSON([Value]));
 end;
 
 class function TExtToolbarSpacer.JSClassName: string;
@@ -11549,31 +11468,31 @@ end;
 procedure TExtToolbar.SetFButtonAlign(Value: string);
 begin
   FButtonAlign := Value;
-  JSCodeBlock('buttonAlign:' + VarToJSON([Value]));
+  JSCode('buttonAlign:' + VarToJSON([Value]));
 end;
 
 procedure TExtToolbar.SetFEnableOverflow(Value: Boolean);
 begin
   FEnableOverflow := Value;
-  JSCodeBlock('enableOverflow:' + VarToJSON([Value]));
+  JSCode('enableOverflow:' + VarToJSON([Value]));
 end;
 
 procedure TExtToolbar.SetFLayout(Value: string);
 begin
   FLayout := Value;
-  JSCodeBlock('layout:' + VarToJSON([Value]));
+  JSCode('layout:' + VarToJSON([Value]));
 end;
 
 procedure TExtToolbar.SetFLayoutObject(Value: TExtObject);
 begin
   FLayoutObject := Value;
-  JSCodeBlock('layout:' + VarToJSON([Value, false]));
+  JSCode('layout:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtToolbar.SetFOnOverflowchange(Value: TExtToolbarOnOverflowchange);
 begin
   if Assigned(FOnOverflowchange) then
-    JSCodeBlock(JSName + '.events ["overflowchange"].listeners=[];');
+    JSCode(JSName + '.events ["overflowchange"].listeners=[];');
   if Assigned(Value) then
     on('overflowchange', Ajax('overflowchange', ['C', '%0.nm', 'LastOverflow',
       '%1'], true));
@@ -11710,43 +11629,43 @@ end;
 procedure TExtTip.SetFClosable(Value: Boolean);
 begin
   FClosable := Value;
-  JSCodeBlock('closable:' + VarToJSON([Value]));
+  JSCode('closable:' + VarToJSON([Value]));
 end;
 
 procedure TExtTip.SetFDefaultAlign(Value: string);
 begin
   FDefaultAlign := Value;
-  JSCodeBlock('defaultAlign:' + VarToJSON([Value]));
+  JSCode('defaultAlign:' + VarToJSON([Value]));
 end;
 
 procedure TExtTip.SetFMaxWidth(Value: Integer);
 begin
   FMaxWidth := Value;
-  JSCodeBlock('maxWidth:' + VarToJSON([Value]));
+  JSCode('maxWidth:' + VarToJSON([Value]));
 end;
 
 procedure TExtTip.SetFMinWidth(Value: Integer);
 begin
   FMinWidth := Value;
-  JSCodeBlock('minWidth:' + VarToJSON([Value]));
+  JSCode('minWidth:' + VarToJSON([Value]));
 end;
 
 procedure TExtTip.SetFShadow(Value: Boolean);
 begin
   FShadow := Value;
-  JSCodeBlock('shadow:' + VarToJSON([Value]));
+  JSCode('shadow:' + VarToJSON([Value]));
 end;
 
 procedure TExtTip.SetFShadowString(Value: string);
 begin
   FShadowString := Value;
-  JSCodeBlock('shadow:' + VarToJSON([Value]));
+  JSCode('shadow:' + VarToJSON([Value]));
 end;
 
 procedure TExtTip.SetFWidth(Value: Integer);
 begin
   FWidth := Value;
-  JSCodeBlock('width:' + VarToJSON([Value]));
+  JSCode('width:' + VarToJSON([Value]));
 end;
 
 class function TExtTip.JSClassName: string;
@@ -11787,25 +11706,25 @@ end;
 procedure TExtButtonGroup.SetFBaseCls(Value: string);
 begin
   FBaseCls := Value;
-  JSCodeBlock('baseCls:' + VarToJSON([Value]));
+  JSCode('baseCls:' + VarToJSON([Value]));
 end;
 
 procedure TExtButtonGroup.SetFColumns(Value: Integer);
 begin
   FColumns := Value;
-  JSCodeBlock('columns:' + VarToJSON([Value]));
+  JSCode('columns:' + VarToJSON([Value]));
 end;
 
 procedure TExtButtonGroup.SetFFrame(Value: Boolean);
 begin
   FFrame := Value;
-  JSCodeBlock('frame:' + VarToJSON([Value]));
+  JSCode('frame:' + VarToJSON([Value]));
 end;
 
 procedure TExtButtonGroup.SetFLayout(Value: string);
 begin
   FLayout := Value;
-  JSCodeBlock('layout:' + VarToJSON([Value]));
+  JSCode('layout:' + VarToJSON([Value]));
 end;
 
 class function TExtButtonGroup.JSClassName: string;
@@ -11821,43 +11740,43 @@ end;
 procedure TExtCycleButton.SetFChangeHandler(Value: TExtFunction);
 begin
   FChangeHandler := Value;
-  JSCodeBlock('changeHandler:' + VarToJSON([Value, true]));
+  JSCode('changeHandler:' + VarToJSON([Value, true]));
 end;
 
 procedure TExtCycleButton.SetFForceIcon(Value: string);
 begin
   FForceIcon := Value;
-  JSCodeBlock('forceIcon:' + VarToJSON([Value]));
+  JSCode('forceIcon:' + VarToJSON([Value]));
 end;
 
 procedure TExtCycleButton.SetFItems(Value: TExtObjectList);
 begin
   FItems := Value;
-  JSCodeBlock('items:' + VarToJSON([Value, false]));
+  JSCode('items:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtCycleButton.SetFPrependText(Value: string);
 begin
   FPrependText := Value;
-  JSCodeBlock('prependText:' + VarToJSON([Value]));
+  JSCode('prependText:' + VarToJSON([Value]));
 end;
 
 procedure TExtCycleButton.SetFShowText(Value: Boolean);
 begin
   FShowText := Value;
-  JSCodeBlock('showText:' + VarToJSON([Value]));
+  JSCode('showText:' + VarToJSON([Value]));
 end;
 
 procedure TExtCycleButton.SetFMenu(Value: TExtMenuMenu);
 begin
   FMenu := Value;
-  JSCodeBlock(JSName + '.menu=' + VarToJSON([Value, false]) + ';');
+  JSCode(JSName + '.menu=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtCycleButton.SetFOnChange(Value: TExtCycleButtonOnChange);
 begin
   if Assigned(FOnChange) then
-    JSCodeBlock(JSName + '.events ["change"].listeners=[];');
+    JSCode(JSName + '.events ["change"].listeners=[];');
   if Assigned(Value) then
     on('change', Ajax('change', ['This', '%0.nm', 'Item', '%1.nm'], true));
   FOnChange := Value;
@@ -11912,13 +11831,13 @@ end;
 procedure TExtWindow.SetFAnimateTargetElement(Value: TExtElement);
 begin
   FAnimateTargetElement := Value;
-  JSCodeBlock('animateTarget:' + VarToJSON([Value, false]));
+  JSCode('animateTarget:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtWindow.SetFBaseCls(Value: string);
 begin
   FBaseCls := Value;
-  JSCodeBlock('baseCls:' + VarToJSON([Value]));
+  JSCode('baseCls:' + VarToJSON([Value]));
 end;
 
 procedure TExtWindow.SetClosable(const AValue: Boolean);
@@ -11930,13 +11849,13 @@ end;
 procedure TExtWindow.SetFCloseAction(Value: string);
 begin
   FCloseAction := Value;
-  JSCodeBlock('closeAction:' + VarToJSON([Value]));
+  JSCode('closeAction:' + VarToJSON([Value]));
 end;
 
 procedure TExtWindow.SetFCollapsed(Value: Boolean);
 begin
   FCollapsed := Value;
-  JSCodeBlock('collapsed:' + VarToJSON([Value]));
+  JSCode('collapsed:' + VarToJSON([Value]));
 end;
 
 procedure TExtWindow.SetConstrain(const AValue: Boolean);
@@ -11948,25 +11867,25 @@ end;
 procedure TExtWindow.SetFConstrainHeader(Value: Boolean);
 begin
   FConstrainHeader := Value;
-  JSCodeBlock('constrainHeader:' + VarToJSON([Value]));
+  JSCode('constrainHeader:' + VarToJSON([Value]));
 end;
 
 procedure TExtWindow.SetFDefaultButton(Value: string);
 begin
   FDefaultButton := Value;
-  JSCodeBlock('defaultButton:' + VarToJSON([Value]));
+  JSCode('defaultButton:' + VarToJSON([Value]));
 end;
 
 procedure TExtWindow.SetFDefaultButtonNumber(Value: Integer);
 begin
   FDefaultButtonNumber := Value;
-  JSCodeBlock('defaultButton:' + VarToJSON([Value]));
+  JSCode('defaultButton:' + VarToJSON([Value]));
 end;
 
 procedure TExtWindow.SetFDefaultButtonComponent(Value: TExtComponent);
 begin
   FDefaultButtonComponent := Value;
-  JSCodeBlock('defaultButton:' + VarToJSON([Value, false]));
+  JSCode('defaultButton:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtWindow.SetDraggable(const AValue: Boolean);
@@ -11978,25 +11897,25 @@ end;
 procedure TExtWindow.SetFExpandOnShow(Value: Boolean);
 begin
   FExpandOnShow := Value;
-  JSCodeBlock('expandOnShow:' + VarToJSON([Value]));
+  JSCode('expandOnShow:' + VarToJSON([Value]));
 end;
 
 procedure TExtWindow.SetFHidden(Value: Boolean);
 begin
   FHidden := Value;
-  JSCodeBlock('hidden:' + VarToJSON([Value]));
+  JSCode('hidden:' + VarToJSON([Value]));
 end;
 
 procedure TExtWindow.SetFInitHidden(Value: Boolean);
 begin
   FInitHidden := Value;
-  JSCodeBlock('initHidden:' + VarToJSON([Value]));
+  JSCode('initHidden:' + VarToJSON([Value]));
 end;
 
 procedure TExtWindow.SetFManager(Value: TExtWindowGroup);
 begin
   FManager := Value;
-  JSCodeBlock('manager:' + VarToJSON([Value, false]));
+  JSCode('manager:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtWindow.SetMaximizable(const AValue: Boolean);
@@ -12013,19 +11932,19 @@ end;
 procedure TExtWindow.SetFMinHeight(Value: Integer);
 begin
   FMinHeight := Value;
-  JSCodeBlock('minHeight:' + VarToJSON([Value]));
+  JSCode('minHeight:' + VarToJSON([Value]));
 end;
 
 procedure TExtWindow.SetFMinWidth(Value: Integer);
 begin
   FMinWidth := Value;
-  JSCodeBlock('minWidth:' + VarToJSON([Value]));
+  JSCode('minWidth:' + VarToJSON([Value]));
 end;
 
 procedure TExtWindow.SetFMinimizable(Value: Boolean);
 begin
   FMinimizable := Value;
-  JSCodeBlock('minimizable:' + VarToJSON([Value]));
+  JSCode('minimizable:' + VarToJSON([Value]));
 end;
 
 procedure TExtWindow.SetModal(const AValue: Boolean);
@@ -12036,7 +11955,7 @@ end;
 procedure TExtWindow.SetFOnEsc(Value: TExtFunction);
 begin
   FOnEsc := Value;
-  JSCodeBlock('onEsc:' + VarToJSON([Value, true]));
+  JSCode('onEsc:' + VarToJSON([Value, true]));
 end;
 
 procedure TExtWindow.SetPlain(const AValue: Boolean);
@@ -12057,31 +11976,31 @@ end;
 procedure TExtWindow.SetFX(Value: Integer);
 begin
   FX := Value;
-  JSCodeBlock('x:' + VarToJSON([Value]));
+  JSCode('x:' + VarToJSON([Value]));
 end;
 
 procedure TExtWindow.SetFY(Value: Integer);
 begin
   FY := Value;
-  JSCodeBlock('y:' + VarToJSON([Value]));
+  JSCode('y:' + VarToJSON([Value]));
 end;
 
 procedure TExtWindow.SetFOnHide(Value: TExtObject);
 begin
   FOnHide := Value;
-  JSCodeBlock(JSName + '.onHide=' + VarToJSON([Value, false]) + ';');
+  JSCode(JSName + '.onHide=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtWindow.SetFOnShow(Value: TExtObject);
 begin
   FOnShow := Value;
-  JSCodeBlock(JSName + '.onShow=' + VarToJSON([Value, false]) + ';');
+  JSCode(JSName + '.onShow=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtWindow.SetFOnActivate(Value: TExtWindowOnActivate);
 begin
   if Assigned(FOnActivate) then
-    JSCodeBlock(JSName + '.events ["activate"].listeners=[];');
+    JSCode(JSName + '.events ["activate"].listeners=[];');
   if Assigned(Value) then
     on('activate', Ajax('activate', ['This', '%0.nm'], true));
   FOnActivate := Value;
@@ -12090,7 +12009,7 @@ end;
 procedure TExtWindow.SetFOnDeactivate(Value: TExtWindowOnDeactivate);
 begin
   if Assigned(FOnDeactivate) then
-    JSCodeBlock(JSName + '.events ["deactivate"].listeners=[];');
+    JSCode(JSName + '.events ["deactivate"].listeners=[];');
   if Assigned(Value) then
     on('deactivate', Ajax('deactivate', ['This', '%0.nm'], true));
   FOnDeactivate := Value;
@@ -12099,7 +12018,7 @@ end;
 procedure TExtWindow.SetFOnMaximize(Value: TExtWindowOnMaximize);
 begin
   if Assigned(FOnMaximize) then
-    JSCodeBlock(JSName + '.events ["maximize"].listeners=[];');
+    JSCode(JSName + '.events ["maximize"].listeners=[];');
   if Assigned(Value) then
     on('maximize', Ajax('maximize', ['This', '%0.nm'], true));
   FOnMaximize := Value;
@@ -12108,7 +12027,7 @@ end;
 procedure TExtWindow.SetFOnMinimize(Value: TExtWindowOnMinimize);
 begin
   if Assigned(FOnMinimize) then
-    JSCodeBlock(JSName + '.events ["minimize"].listeners=[];');
+    JSCode(JSName + '.events ["minimize"].listeners=[];');
   if Assigned(Value) then
     on('minimize', Ajax('minimize', ['This', '%0.nm'], true));
   FOnMinimize := Value;
@@ -12117,7 +12036,7 @@ end;
 procedure TExtWindow.SetFOnResize(Value: TExtWindowOnResize);
 begin
   if Assigned(FOnResize) then
-    JSCodeBlock(JSName + '.events ["resize"].listeners=[];');
+    JSCode(JSName + '.events ["resize"].listeners=[];');
   if Assigned(Value) then
     on('resize', Ajax('resize', ['This', '%0.nm', 'Width', '%1', 'Height', '%2'], true));
   FOnResize := Value;
@@ -12126,7 +12045,7 @@ end;
 procedure TExtWindow.SetFOnRestore(Value: TExtWindowOnRestore);
 begin
   if Assigned(FOnRestore) then
-    JSCodeBlock(JSName + '.events ["restore"].listeners=[];');
+    JSCode(JSName + '.events ["restore"].listeners=[];');
   if Assigned(Value) then
     on('restore', Ajax('restore', ['This', '%0.nm'], true));
   FOnRestore := Value;
@@ -12319,25 +12238,25 @@ end;
 procedure TExtTabPanel.SetFAnimScroll(Value: Boolean);
 begin
   FAnimScroll := Value;
-  JSCodeBlock('animScroll:' + VarToJSON([Value]));
+  JSCode('animScroll:' + VarToJSON([Value]));
 end;
 
 procedure TExtTabPanel.SetFAutoTabSelector(Value: string);
 begin
   FAutoTabSelector := Value;
-  JSCodeBlock('autoTabSelector:' + VarToJSON([Value]));
+  JSCode('autoTabSelector:' + VarToJSON([Value]));
 end;
 
 procedure TExtTabPanel.SetFAutoTabs(Value: Boolean);
 begin
   FAutoTabs := Value;
-  JSCodeBlock('autoTabs:' + VarToJSON([Value]));
+  JSCode('autoTabs:' + VarToJSON([Value]));
 end;
 
 procedure TExtTabPanel.SetFBaseCls(Value: string);
 begin
   FBaseCls := Value;
-  JSCodeBlock('baseCls:' + VarToJSON([Value]));
+  JSCode('baseCls:' + VarToJSON([Value]));
 end;
 
 procedure TExtTabPanel.SetDeferredRender(const AValue: Boolean);
@@ -12361,73 +12280,73 @@ end;
 procedure TExtTabPanel.SetFMinTabWidth(Value: Integer);
 begin
   FMinTabWidth := Value;
-  JSCodeBlock('minTabWidth:' + VarToJSON([Value]));
+  JSCode('minTabWidth:' + VarToJSON([Value]));
 end;
 
 procedure TExtTabPanel.SetFPlain(Value: Boolean);
 begin
   FPlain := Value;
-  JSCodeBlock('plain:' + VarToJSON([Value]));
+  JSCode('plain:' + VarToJSON([Value]));
 end;
 
 procedure TExtTabPanel.SetFResizeTabs(Value: Boolean);
 begin
   FResizeTabs := Value;
-  JSCodeBlock('resizeTabs:' + VarToJSON([Value]));
+  JSCode('resizeTabs:' + VarToJSON([Value]));
 end;
 
 procedure TExtTabPanel.SetFScrollDuration(Value: Double);
 begin
   FScrollDuration := Value;
-  JSCodeBlock('scrollDuration:' + VarToJSON([Value]));
+  JSCode('scrollDuration:' + VarToJSON([Value]));
 end;
 
 procedure TExtTabPanel.SetFScrollIncrement(Value: Integer);
 begin
   FScrollIncrement := Value;
-  JSCodeBlock('scrollIncrement:' + VarToJSON([Value]));
+  JSCode('scrollIncrement:' + VarToJSON([Value]));
 end;
 
 procedure TExtTabPanel.SetFScrollRepeatInterval(Value: Integer);
 begin
   FScrollRepeatInterval := Value;
-  JSCodeBlock('scrollRepeatInterval:' + VarToJSON([Value]));
+  JSCode('scrollRepeatInterval:' + VarToJSON([Value]));
 end;
 
 procedure TExtTabPanel.SetFTabCls(Value: string);
 begin
   FTabCls := Value;
-  JSCodeBlock('tabCls:' + VarToJSON([Value]));
+  JSCode('tabCls:' + VarToJSON([Value]));
 end;
 
 procedure TExtTabPanel.SetFTabMargin(Value: Integer);
 begin
   FTabMargin := Value;
-  JSCodeBlock('tabMargin:' + VarToJSON([Value]));
+  JSCode('tabMargin:' + VarToJSON([Value]));
 end;
 
 procedure TExtTabPanel.SetFTabPosition(Value: string);
 begin
   FTabPosition := Value;
-  JSCodeBlock('tabPosition:' + VarToJSON([Value]));
+  JSCode('tabPosition:' + VarToJSON([Value]));
 end;
 
 procedure TExtTabPanel.SetFTabWidth(Value: Integer);
 begin
   FTabWidth := Value;
-  JSCodeBlock('tabWidth:' + VarToJSON([Value]));
+  JSCode('tabWidth:' + VarToJSON([Value]));
 end;
 
 procedure TExtTabPanel.SetFWheelIncrement(Value: Integer);
 begin
   FWheelIncrement := Value;
-  JSCodeBlock('wheelIncrement:' + VarToJSON([Value]));
+  JSCode('wheelIncrement:' + VarToJSON([Value]));
 end;
 
 procedure TExtTabPanel.SetFOnBeforetabchange(Value: TExtTabPanelOnBeforetabchange);
 begin
   if Assigned(FOnBeforetabchange) then
-    JSCodeBlock(JSName + '.events ["beforetabchange"].listeners=[];');
+    JSCode(JSName + '.events ["beforetabchange"].listeners=[];');
   if Assigned(Value) then
     on('beforetabchange', Ajax('beforetabchange', ['This', '%0.nm', 'NewTab', '%1.nm',
       'CurrentTab', '%2.nm'], true));
@@ -12437,7 +12356,7 @@ end;
 procedure TExtTabPanel.SetFOnContextmenu(Value: TExtTabPanelOnContextmenu);
 begin
   if Assigned(FOnContextmenu) then
-    JSCodeBlock(JSName + '.events ["contextmenu"].listeners=[];');
+    JSCode(JSName + '.events ["contextmenu"].listeners=[];');
   if Assigned(Value) then
     on('contextmenu', Ajax('contextmenu', ['This', '%0.nm', 'Tab', '%1.nm', 'E',
       '%2.nm'], true));
@@ -12614,13 +12533,13 @@ end;
 procedure TExtPagingToolbar.SetFAfterPageText(Value: string);
 begin
   FAfterPageText := Value;
-  JSCodeBlock('afterPageText:' + VarToJSON([Value]));
+  JSCode('afterPageText:' + VarToJSON([Value]));
 end;
 
 procedure TExtPagingToolbar.SetFBeforePageText(Value: string);
 begin
   FBeforePageText := Value;
-  JSCodeBlock('beforePageText:' + VarToJSON([Value]));
+  JSCode('beforePageText:' + VarToJSON([Value]));
 end;
 
 procedure TExtPagingToolbar.SetDisplayInfo(const AValue: Boolean);
@@ -12632,31 +12551,31 @@ end;
 procedure TExtPagingToolbar.SetFDisplayMsg(Value: string);
 begin
   FDisplayMsg := Value;
-  JSCodeBlock('displayMsg:' + VarToJSON([Value]));
+  JSCode('displayMsg:' + VarToJSON([Value]));
 end;
 
 procedure TExtPagingToolbar.SetFEmptyMsg(Value: string);
 begin
   FEmptyMsg := Value;
-  JSCodeBlock('emptyMsg:' + VarToJSON([Value]));
+  JSCode('emptyMsg:' + VarToJSON([Value]));
 end;
 
 procedure TExtPagingToolbar.SetFFirstText(Value: string);
 begin
   FFirstText := Value;
-  JSCodeBlock('firstText:' + VarToJSON([Value]));
+  JSCode('firstText:' + VarToJSON([Value]));
 end;
 
 procedure TExtPagingToolbar.SetFLastText(Value: string);
 begin
   FLastText := Value;
-  JSCodeBlock('lastText:' + VarToJSON([Value]));
+  JSCode('lastText:' + VarToJSON([Value]));
 end;
 
 procedure TExtPagingToolbar.SetFNextText(Value: string);
 begin
   FNextText := Value;
-  JSCodeBlock('nextText:' + VarToJSON([Value]));
+  JSCode('nextText:' + VarToJSON([Value]));
 end;
 
 procedure TExtPagingToolbar.SetPageSize(const AValue: Integer);
@@ -12668,19 +12587,19 @@ end;
 procedure TExtPagingToolbar.SetFPrependButtons(Value: Boolean);
 begin
   FPrependButtons := Value;
-  JSCodeBlock('prependButtons:' + VarToJSON([Value]));
+  JSCode('prependButtons:' + VarToJSON([Value]));
 end;
 
 procedure TExtPagingToolbar.SetFPrevText(Value: string);
 begin
   FPrevText := Value;
-  JSCodeBlock('prevText:' + VarToJSON([Value]));
+  JSCode('prevText:' + VarToJSON([Value]));
 end;
 
 procedure TExtPagingToolbar.SetFRefreshText(Value: string);
 begin
   FRefreshText := Value;
-  JSCodeBlock('refreshText:' + VarToJSON([Value]));
+  JSCode('refreshText:' + VarToJSON([Value]));
 end;
 
 procedure TExtPagingToolbar.SetStore(const AValue: TExtDataStore);
@@ -12694,25 +12613,25 @@ end;
 procedure TExtPagingToolbar.SetFCursor(Value: Integer);
 begin
   FCursor := Value;
-  JSCodeBlock(JSName + '.cursor=' + VarToJSON([Value]) + ';');
+  JSCode(JSName + '.cursor=' + VarToJSON([Value]) + ';');
 end;
 
 procedure TExtPagingToolbar.SetFPageSize_(Value: Integer);
 begin
   FPageSize_ := Value;
-  JSCodeBlock(JSName + '.pageSize=' + VarToJSON([Value]) + ';');
+  JSCode(JSName + '.pageSize=' + VarToJSON([Value]) + ';');
 end;
 
 procedure TExtPagingToolbar.SetFParamNames(Value: TExtObject);
 begin
   FParamNames := Value;
-  JSCodeBlock(JSName + '.paramNames=' + VarToJSON([Value, false]) + ';');
+  JSCode(JSName + '.paramNames=' + VarToJSON([Value, false]) + ';');
 end;
 
 procedure TExtPagingToolbar.SetFOnBeforechange(Value: TExtPagingToolbarOnBeforechange);
 begin
   if Assigned(FOnBeforechange) then
-    JSCodeBlock(JSName + '.events ["beforechange"].listeners=[];');
+    JSCode(JSName + '.events ["beforechange"].listeners=[];');
   if Assigned(Value) then
     on('beforechange', Ajax('beforechange', ['This', '%0.nm', 'Params', '%1.nm'], true));
   FOnBeforechange := Value;
@@ -12721,7 +12640,7 @@ end;
 procedure TExtPagingToolbar.SetFOnChange(Value: TExtPagingToolbarOnChange);
 begin
   if Assigned(FOnChange) then
-    JSCodeBlock(JSName + '.events ["change"].listeners=[];');
+    JSCode(JSName + '.events ["change"].listeners=[];');
   if Assigned(Value) then
     on('change', Ajax('change', ['This', '%0.nm', 'PageData', '%1.nm'], true));
   FOnChange := Value;
@@ -12815,61 +12734,61 @@ end;
 procedure TExtToolTip.SetFAnchorOffset(Value: Integer);
 begin
   FAnchorOffset := Value;
-  JSCodeBlock('anchorOffset:' + VarToJSON([Value]));
+  JSCode('anchorOffset:' + VarToJSON([Value]));
 end;
 
 procedure TExtToolTip.SetFAnchorToTarget(Value: Boolean);
 begin
   FAnchorToTarget := Value;
-  JSCodeBlock('anchorToTarget:' + VarToJSON([Value]));
+  JSCode('anchorToTarget:' + VarToJSON([Value]));
 end;
 
 procedure TExtToolTip.SetFAutoHide(Value: Boolean);
 begin
   FAutoHide := Value;
-  JSCodeBlock('autoHide:' + VarToJSON([Value]));
+  JSCode('autoHide:' + VarToJSON([Value]));
 end;
 
 procedure TExtToolTip.SetFDelegate(Value: string);
 begin
   FDelegate := Value;
-  JSCodeBlock('delegate:' + VarToJSON([Value]));
+  JSCode('delegate:' + VarToJSON([Value]));
 end;
 
 procedure TExtToolTip.SetFDismissDelay(Value: Integer);
 begin
   FDismissDelay := Value;
-  JSCodeBlock('dismissDelay:' + VarToJSON([Value]));
+  JSCode('dismissDelay:' + VarToJSON([Value]));
 end;
 
 procedure TExtToolTip.SetFHideDelay(Value: Integer);
 begin
   FHideDelay := Value;
-  JSCodeBlock('hideDelay:' + VarToJSON([Value]));
+  JSCode('hideDelay:' + VarToJSON([Value]));
 end;
 
 procedure TExtToolTip.SetFMouseOffset(Value: TExtObjectList);
 begin
   FMouseOffset := Value;
-  JSCodeBlock('mouseOffset:' + VarToJSON([Value, false]));
+  JSCode('mouseOffset:' + VarToJSON([Value, false]));
 end;
 
 procedure TExtToolTip.SetFShowDelay(Value: Integer);
 begin
   FShowDelay := Value;
-  JSCodeBlock('showDelay:' + VarToJSON([Value]));
+  JSCode('showDelay:' + VarToJSON([Value]));
 end;
 
 procedure TExtToolTip.SetFTarget(Value: string);
 begin
   FTarget := Value;
-  JSCodeBlock('target:' + VarToJSON([Value]));
+  JSCode('target:' + VarToJSON([Value]));
 end;
 
 procedure TExtToolTip.SetFTrackMouse(Value: Boolean);
 begin
   FTrackMouse := Value;
-  JSCodeBlock('trackMouse:' + VarToJSON([Value]));
+  JSCode('trackMouse:' + VarToJSON([Value]));
 end;
 
 class function TExtToolTip.JSClassName: string;
@@ -12910,13 +12829,13 @@ end;
 procedure TExtQuickTip.SetFInterceptTitles(Value: Boolean);
 begin
   FInterceptTitles := Value;
-  JSCodeBlock('interceptTitles:' + VarToJSON([Value]));
+  JSCode('interceptTitles:' + VarToJSON([Value]));
 end;
 
 procedure TExtQuickTip.SetFTarget(Value: string);
 begin
   FTarget := Value;
-  JSCodeBlock('target:' + VarToJSON([Value]));
+  JSCode('target:' + VarToJSON([Value]));
 end;
 
 class function TExtQuickTip.JSClassName: string;

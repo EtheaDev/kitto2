@@ -277,7 +277,7 @@ var
       LCustomRenderer := AViewField.FindNode('JSRenderer');
       if Assigned(LCustomRenderer) and (LCustomRenderer.AsString <> '') then
       begin
-        AColumn.RendererExtFunction := AColumn.JSFunction('value, metaData, record, rowIndex, colIndex, store',
+        AColumn.RendererFunc := AColumn.JSFunction('value, metaData, record, rowIndex, colIndex, store',
           LCustomRenderer.AsExpandedString);
         Result := True;
         Exit;
@@ -302,7 +302,7 @@ var
             LTriples[I].Value3 := AViewField.DisplayTemplate;
         end;
         // Pass array to the client-side renderer.
-        AColumn.RendererExtFunction := AColumn.JSFunction('value',
+        AColumn.RendererFunc := AColumn.JSFunction('value',
           Format('return formatWithImage(value, [%s], %s);',
             [TriplesToJSON(LTriples), IfThen(AViewField.BlankValue, 'false', 'true')]));
         Result := True;
@@ -329,13 +329,13 @@ var
         // Pass array to the client-side renderer.
         LColorValueFieldName := AViewField.GetExpandedString('ColorValueFieldName');
         if LColorValueFieldName <> '' then
-          AColumn.RendererExtFunction := AColumn.JSFunction('value, metaData, record',
+          AColumn.RendererFunc := AColumn.JSFunction('value, metaData, record',
             Format(
               'metaData.css += getColorStyleRuleForRecordField(record, ''%s'', [%s]);' +
               'return %s ? null : formatWithDisplayTemplate(value, ''%s'');',
               [LColorValueFieldName, PairsToJSON(LColorPairs), IfThen(AViewField.BlankValue, 'true', 'false'), AViewField.DisplayTemplate]))
         else
-          AColumn.RendererExtFunction := AColumn.JSFunction('value, metaData',
+          AColumn.RendererFunc := AColumn.JSFunction('value, metaData',
             Format(
               'metaData.css += getColorStyleRuleForValue(value, [%s]);' +
               'return %s ? null : formatWithDisplayTemplate(value, ''%s'');',
@@ -354,7 +354,7 @@ var
           LJSCode := LJSCode + Format('if (v == "%s") return "%s";' + sLineBreak, [LAllowedValues[I].Key, LAllowedValues[I].Value]);
         end;
         LJSCode := LJSCode + 'return v;';
-        AColumn.RendererExtFunction := AColumn.JSFunction('v', LJSCode);
+        AColumn.RendererFunc := AColumn.JSFunction('v', LJSCode);
         Result := True;
         Exit;
       end;
@@ -434,7 +434,7 @@ var
           LFormat := GetDisplayFormat;
           if LFormat = '' then
             LFormat := Session.Config.UserFormatSettings.ShortTimeFormat;
-          Result.RendererExtFunction := Result.JSFunction('v',
+          Result.RendererFunc := Result.JSFunction('v',
             Format('return formatTime(v, "%s");', [TJS.DelphiTimeFormatToJSTimeFormat(LFormat)]));
         end;
       end
@@ -523,7 +523,7 @@ var
 
     if LColumnWidth = 0 then
       LColumnWidth := Min(IfThen(AViewField.Size = 0, 40, AViewField.Size), 40);
-    LColumn.Width := CharsToPixels(LColumnWidth);
+    LColumn.WidthFunc := CharsToPixels(LColumnWidth);
   end;
 
   function SupportedAsGridColumn(const AViewField: TKViewField): Boolean;
@@ -649,7 +649,7 @@ begin
 
   LRowClassProvider := ViewTable.GetExpandedString('Controller/RowClassProvider');
   if LRowClassProvider <> '' then
-    FGridPanel.ViewConfig.SetFunctionConfigItem('getRowClass', JSCodeBlock(LRowClassProvider))
+    FGridPanel.ViewConfig.SetFunctionConfigItem('getRowClass', JSFunctionFromCodeBlock(LRowClassProvider))
   else
   begin
     LRowColorPatterns := GetRowColorPatterns(LRowColorFieldName);

@@ -788,7 +788,7 @@ begin
   if SameText(ANode.Name, 'Anchor') then
     AFormField.Anchor := ANode.AsString
   else if SameText(ANode.Name, 'CharWidth') then
-    AFormField.Width := AFormField.CharsToPixels(ANode.AsInteger)
+    AFormField.WidthFunc := AFormField.CharsToPixels(ANode.AsInteger)
   else if SameText(ANode.Name, 'Width') then
     AFormField.WidthString := OptionAsIntegerOrPerc(ANode)
   else
@@ -1625,7 +1625,7 @@ begin
   if not SetExtFormFieldOption(AsExtFormField, ANode) then
   begin
     if SameText(ANode.Name, 'Lines') then
-      Height := LinesToPixels(ANode.AsInteger)
+      HeightFunc := LinesToPixels(ANode.AsInteger)
     else
       InvalidOption(ANode);
   end;
@@ -2030,7 +2030,7 @@ begin
         PageSize := 100;
       MinListWidth := 250; // Enough to accomodate all buttons.
       ListConfig.SetConfigItem('resizable', True);
-      MinHeight := LinesToPixels(5);
+      MinHeightFunc := LinesToPixels(5);
     end;
   end
   else
@@ -2134,7 +2134,7 @@ begin
   else if SameText(ANode.Name, 'ColumnWidth') then
     ColumnWidth := ANode.AsFloat
   else if SameText(ANode.Name, 'CharWidth') then
-    Width := CharsToPixels(ANode.AsInteger)
+    WidthFunc := CharsToPixels(ANode.AsInteger)
   else if SameText(ANode.Name, 'Width') then
     WidthString := OptionAsIntegerOrPerc(ANode)
   else if SameText(ANode.Name, 'Anchor') then
@@ -2275,16 +2275,16 @@ end;
 procedure TKExtFormRowField.SetCharWidth(const AValue: Integer);
 begin
   FCharWidth := AValue;
-  Width := CharsToPixels(FCharWidth, 5);
+  WidthFunc := CharsToPixels(FCharWidth, 5);
 end;
 
 procedure TKExtFormRowField.SetLabelWidth(const AValue: Integer);
 begin
   FLabelWidth := AValue;
   if AValue <> 0 then
-    Width := CharsToPixels(FCharWidth, FLabelWidth + 10)
+    WidthFunc := CharsToPixels(FCharWidth, FLabelWidth + 10)
   else
-    Width := CharsToPixels(FCharWidth, 5);
+    WidthFunc := CharsToPixels(FCharWidth, 5);
 end;
 
 procedure TKExtFormRowField.SetFieldName(const AValue: string);
@@ -2873,7 +2873,7 @@ begin
 
   if Assigned(FDescriptionField) then
     // Keep 3 characters per button, leave the rest to the text field.
-    FDescriptionField.Width := CharsToPixels(FTotalCharWidth - (3 * LButtonCount))
+    FDescriptionField.WidthFunc := CharsToPixels(FTotalCharWidth - (3 * LButtonCount))
   else if Assigned(FPictureView) then
   begin
     if FPictureView.Frame then
@@ -3380,7 +3380,7 @@ begin
       try
         LLookupEdit.Setup(AViewField, AIsReadOnly, AFieldCharWidth);
         if not Assigned(ARowField) then
-          LLookupEdit.Width := LLookupEdit.CharsToPixels(AFieldCharWidth + TRIGGER_WIDTH)
+          LLookupEdit.WidthFunc := LLookupEdit.CharsToPixels(AFieldCharWidth + TRIGGER_WIDTH)
         else
           ARowField.CharWidth := AFieldCharWidth + TRIGGER_WIDTH;
         Result := LLookupEdit;
@@ -3411,7 +3411,7 @@ begin
       try
         LComboBox.Setup(AViewField, AIsReadOnly, AFieldCharWidth);
         if not Assigned(ARowField) then
-          LComboBox.Width := LComboBox.CharsToPixels(AFieldCharWidth + TRIGGER_WIDTH)
+          LComboBox.WidthFunc := LComboBox.CharsToPixels(AFieldCharWidth + TRIGGER_WIDTH)
         else
           ARowField.CharWidth := AFieldCharWidth + TRIGGER_WIDTH;
         Result := LComboBox;
@@ -3438,10 +3438,10 @@ begin
     LTextArea := TKExtFormTextArea.Create(AOwner);
     try
       if not Assigned(ARowField) then
-        LTextArea.Width := LTextArea.CharsToPixels(AFieldCharWidth)
+        LTextArea.WidthFunc := LTextArea.CharsToPixels(AFieldCharWidth)
       else
         ARowField.CharWidth := AFieldCharWidth;
-      LTextArea.Height := LTextArea.LinesToPixels(AViewField.GetInteger('EditLines', 5));
+      LTextArea.HeightFunc := LTextArea.LinesToPixels(AViewField.GetInteger('EditLines', 5));
       LTextArea.AutoScroll := True;
       // Set this if it's the last field.
       //Anchor := '100%';
@@ -3502,7 +3502,7 @@ begin
     LDateField := TKExtFormDateField.Create(AOwner);
     try
       if not Assigned(ARowField) then
-        LDateField.Width := LDateField.CharsToPixels(AFieldCharWidth + TRIGGER_WIDTH)
+        LDateField.WidthFunc := LDateField.CharsToPixels(AFieldCharWidth + TRIGGER_WIDTH)
       else
         ARowField.CharWidth := AFieldCharWidth + TRIGGER_WIDTH;
       LFormat := AViewField.EditFormat;
@@ -3539,7 +3539,7 @@ begin
     LTimeField := TKExtFormTimeField.Create(AOwner);
     try
       if not Assigned(ARowField) then
-        LTimeField.Width := LTimeField.CharsToPixels(AFieldCharWidth + TRIGGER_WIDTH)
+        LTimeField.WidthFunc := LTimeField.CharsToPixels(AFieldCharWidth + TRIGGER_WIDTH)
       else
         ARowField.CharWidth := AFieldCharWidth + TRIGGER_WIDTH;
 
@@ -3581,7 +3581,7 @@ begin
     LDateTimeField := TKExtFormDateTimeField.Create(AOwner);
     try
       if not Assigned(ARowField) then
-        LDateTimeField.Width := LDateTimeField.CharsToPixels(AFieldCharWidth + (2 * TRIGGER_WIDTH) + SPACER_WIDTH)
+        LDateTimeField.WidthFunc := LDateTimeField.CharsToPixels(AFieldCharWidth + (2 * TRIGGER_WIDTH) + SPACER_WIDTH)
       else
         ARowField.CharWidth := AFieldCharWidth + (2 * TRIGGER_WIDTH) + SPACER_WIDTH;
       LFormats := Split(AViewField.EditFormat, ' ');
@@ -3655,7 +3655,7 @@ begin
     LNumericField := TKExtFormNumberField.Create(AOwner);
     try
       if not Assigned(ARowField) then
-        LNumericField.Width := LNumericField.CharsToPixels(AFieldCharWidth)
+        LNumericField.WidthFunc := LNumericField.CharsToPixels(AFieldCharWidth)
       else
         ARowField.CharWidth := AFieldCharWidth;
 
@@ -3693,7 +3693,7 @@ begin
   LTextField := TKExtFormTextField.Create(AOwner);
   try
     if not Assigned(ARowField) then
-      LTextField.Width := LTextField.CharsToPixels(AFieldCharWidth)
+      LTextField.WidthFunc := LTextField.CharsToPixels(AFieldCharWidth)
     else
       ARowField.CharWidth := AFieldCharWidth;
     if not AIsReadOnly then

@@ -630,11 +630,11 @@ begin
   DisplayField := 'Description';
 
   LWidth := FConfig.GetInteger('Width', DEFAULT_FILTER_WIDTH);
-  Width := CharsToPixels(LWidth);
+  WidthFunc := CharsToPixels(LWidth);
   LListWidth := FConfig.GetInteger('ListWidth', -1);
   if LListWidth = -1 then
     LListWidth := LWidth;
-  ListWidth := CharsToPixels(LListWidth);
+  ListWidthFunc := CharsToPixels(LListWidth);
   TypeAhead := True;
   MinChars := FConfig.GetInteger('AutoCompleteMinChars', 4);
 end;
@@ -842,7 +842,7 @@ begin
     On('keyup', JSFunction(Format('fireChangeAfterNChars(%s, %d);', [JSName, LAutoSearchAfterChars])));
   end;
   FieldLabel := _(AConfig.AsString);
-  Width := CharsToPixels(AConfig.GetInteger('Width', DEFAULT_FILTER_WIDTH));
+  WidthFunc := CharsToPixels(AConfig.GetInteger('Width', DEFAULT_FILTER_WIDTH));
   FCurrentValue := AConfig.GetExpandedString('DefaultValue');
   if FCurrentValue <> '' then
     SetValue(FCurrentValue);
@@ -905,7 +905,7 @@ begin
   Assert(Assigned(AConfig));
   FConfig := AConfig;
   FieldLabel := _(AConfig.AsString);
-  Width := CharsToPixels(AConfig.GetInteger('Width', 12));
+  WidthFunc := CharsToPixels(AConfig.GetInteger('Width', 12));
   LDefaultValue := AConfig.GetExpandedString('DefaultValue');
   if LDefaultValue <> '' then
   begin
@@ -1364,7 +1364,7 @@ var
 begin
   Assert(Assigned(AConfig));
 
-  Width := CharsToPixels(AConfig.GetInteger('Width', DEFAULT_FILTER_WIDTH));
+  WidthFunc := CharsToPixels(AConfig.GetInteger('Width', DEFAULT_FILTER_WIDTH));
   // Hide keeping set width.
   Title := '&nbsp;';
 
@@ -1440,7 +1440,7 @@ begin
 
   FConfig := AConfig;
   FieldLabel := _(FConfig.AsString);
-  Width := CharsToPixels(AConfig.GetInteger('Width', DEFAULT_FILTER_WIDTH));
+  WidthFunc := CharsToPixels(AConfig.GetInteger('Width', DEFAULT_FILTER_WIDTH));
   if FConfig.GetBoolean('Sys/IsReadOnly') then
     ReadOnly := True;
   SetViewField(FViewTable.FieldByAliasedName(FConfig.GetString('ReferenceFieldName')));

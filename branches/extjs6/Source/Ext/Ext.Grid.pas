@@ -57,8 +57,9 @@ type
     FSortable: Boolean;
     FTooltip: string;
     FWidth: Integer;
+    FWidthFunc: TExtFunction;
     FXtype: string;
-    FRendererExtFunction: TExtFunction;
+    FRendererFunc: TExtFunction;
     procedure SetAlign(const AValue: TExtGridColumnAlign);
     procedure SetCss(const AValue: string);
     procedure SetDataIndex(const AValue: string);
@@ -81,7 +82,8 @@ type
     procedure SetFTooltip(Value: string);
     procedure SetWidth(const AValue: Integer);
     procedure SetFXtype(Value: string);
-    procedure SetRendererExtFunction(const AValue: TExtFunction);
+    procedure SetRendererFunc(const AValue: TExtFunction);
+    procedure SetWidthFunc(const AValue: TExtFunction);
   protected
     procedure InitDefaults; override;
     function GetObjectNamePrefix: string; override;
@@ -109,9 +111,9 @@ type
     property Sortable: Boolean read FSortable write SetSortable;
     property Tooltip: string read FTooltip write SetFTooltip;
     property Width: Integer read FWidth write SetWidth;
+    property WidthFunc: TExtFunction read FWidthFunc write SetWidthFunc;
     property Xtype: string read FXtype write SetFXtype;
-    property RendererExtFunction: TExtFunction read FRendererExtFunction
-      write SetRendererExtFunction;
+    property RendererFunc: TExtFunction read FRendererFunc write SetRendererFunc;
   end;
 
   TExtGridPropertyRecord = class(TExtFunction)
@@ -1038,15 +1040,20 @@ begin
   FWidth := SetConfigItem('width', AValue);
 end;
 
+procedure TExtGridColumn.SetWidthFunc(const AValue: TExtFunction);
+begin
+  FWidthFunc := SetFunctionConfigItem('width', AValue);
+end;
+
 procedure TExtGridColumn.SetFXtype(Value: string);
 begin
   FXtype := Value;
   JSCode('xtype:' + VarToJSON([Value]));
 end;
 
-procedure TExtGridColumn.SetRendererExtFunction(const AValue: TExtFunction);
+procedure TExtGridColumn.SetRendererFunc(const AValue: TExtFunction);
 begin
-  FRendererExtFunction := SetFunctionConfigItem('renderer', AValue);
+  FRendererFunc := SetFunctionConfigItem('renderer', AValue);
 end;
 
 class function TExtGridColumn.JSClassName: string;

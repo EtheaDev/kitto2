@@ -15,11 +15,6 @@ type
   TExtUtilDelayedTask = class;
 
   TExtUtilObservable = class(TExtFunction)
-  private
-    FListeners: TExtObject;
-    procedure SetFListeners(Value: TExtObject);
-  protected
-    procedure InitDefaults; override;
   public
     class function JSClassName: string; override;
     function ObservableCapture(O: TExtUtilObservable; Fn: TExtFunction;
@@ -45,7 +40,6 @@ type
     function SuspendEvents(QueueSuspended: Boolean): TExtFunction;
     function Un(EventName: string; Handler: TExtFunction; Scope: TExtObject = nil)
       : TExtFunction;
-    property Listeners: TExtObject read FListeners write SetFListeners;
   end;
 
   TExtUtilJSONSingleton = class(TExtFunction)
@@ -187,22 +181,9 @@ begin
     Result := nil;
 end;
 
-procedure TExtUtilObservable.SetFListeners(Value: TExtObject);
-begin
-  FListeners.Free;
-  FListeners := Value;
-  JSCodeBlock('listeners:' + VarToJSON([Value, false]));
-end;
-
 class function TExtUtilObservable.JSClassName: string;
 begin
   Result := 'Ext.util.Observable';
-end;
-
-procedure TExtUtilObservable.InitDefaults;
-begin
-  inherited;
-  FListeners := TExtObject.CreateInternal(Self, 'listeners');
 end;
 
 function TExtUtilObservable.ObservableCapture(O: TExtUtilObservable; Fn: TExtFunction;
