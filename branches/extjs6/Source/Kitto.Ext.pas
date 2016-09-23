@@ -1,4 +1,4 @@
-{-------------------------------------------------------------------------------
+﻿{-------------------------------------------------------------------------------
    Copyright 2016 Ethea S.r.l.
 
    Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,7 +32,7 @@ type
   TExtFunction = TJSFunction;
   TExtObjectList = TJSObjectArray;
 
-  TExtSession = TJSSession;
+  TExtSession = class(TJSSession);
 
   TExtResponseItems = TJSResponseItems;
 
@@ -42,7 +42,8 @@ implementation
 
 function GetSession: TExtSession;
 begin
-  Result := Kitto.JS.GetSession;
+  Result := TExtSession(Kitto.JS.GetSession);
 end;
 
 end.
+
