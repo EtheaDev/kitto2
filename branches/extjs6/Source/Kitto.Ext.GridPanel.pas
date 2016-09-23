@@ -992,11 +992,12 @@ var
   I: Integer;
 begin
   //inherited;
-  // We only add key fields plus any fields used in the grid columns in order to
+  // We only add key fields plus captionfield plus any fields used in the grid columns in order to
   // send smaller JSON data packets. See additional calls to AddUsedViewField
   // elsewhere in this class.
   for I := 0 to ViewTable.FieldCount - 1 do
-    if ViewTable.Fields[I].IsKey then
+    if ViewTable.Fields[I].IsKey or
+        (ViewTable.Model.CaptionField = ViewTable.Fields[I].ModelField) then
       AddUsedViewField(ViewTable.Fields[I]);
 end;
 
