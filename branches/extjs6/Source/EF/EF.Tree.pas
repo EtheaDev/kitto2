@@ -218,6 +218,7 @@ type
       const AValue: string; const AUseJSDateFormat: Boolean;
       const AJSFormatSettings: TFormatSettings); override;
   public
+    class function NeedsQuotes: Boolean; override;
     class function GetFieldType: TFieldType; override;
     function GetDefaultDisplayWidth(const ASize: Integer): Integer; override;
     function InternalFormatNodeValue(const AForDisplay: Boolean;
@@ -3444,6 +3445,11 @@ procedure TEFBooleanDataType.InternalYamlValueToNode(const AYamlValue: string;
   const ANode: TEFNode; const AFormatSettings: TFormatSettings);
 begin
   ANode.AsBoolean := StrToBool(AYamlValue);
+end;
+
+class function TEFBooleanDataType.NeedsQuotes: Boolean;
+begin
+  Result := False;
 end;
 
 { TEFCurrencyDataType }
