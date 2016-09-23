@@ -848,8 +848,15 @@ begin
     LItem.CallName := AMethodName;
     AObject.VarToJSON(AParams,
       procedure(AParam: string; AObjectParam: TObject; AIsFunction: Boolean)
+      var
+        AParams: TArray<string>;
+        L: Integer;
       begin
-        LItem.CallParams := LItem.CallParams + [AParam];
+        AParams := LItem.CallParams;
+        L := Length(LItem.CallParams);
+        SetLength(AParams,L+1);
+        AParams[L] := AParam;
+        LItem.CallParams := AParams;
         if Assigned(AObjectParam) and (AObjectParam is TJSObject) and not AIsFunction then
           LItem.AddDependency(FindObjectCreateItem(TJSObject(AObjectParam)));
       end);
@@ -2215,7 +2222,7 @@ var
 begin
   LExpr := AExpr;
   for I := Low(AValues) to High(AValues) do
-    LExpr := LExpr.Replace('{func' + I.ToString + '}', AValues[I].ExtractJSCommand);
+    LExpr := LExpr.Replace('{func' + IntToStr(I) + '}', AValues[I].ExtractJSCommand);
   Result := JSFunctionFromCodeBlock(LExpr);
 end;
 
@@ -3145,12 +3152,6 @@ var
   I: Integer;
   LValue: TEFNode;
   LAdded: Boolean;
-
-  procedure AppendValue(var AArray: TArray<string>; const AValue: string);
-  begin
-    if AValue <> '' then
-      AArray := AArray + [AValue];
-  end;
 
   function FormatFunction(const ANode: TEFNode): Boolean;
   begin
