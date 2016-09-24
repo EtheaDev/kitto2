@@ -2568,8 +2568,13 @@ var
 begin
   if AValue <> '' then
   begin
-    LTime := TimeOf(JSDateToDateTime(AValue));
-    Result := TimeToStr(LTime, Session.Config.UserFormatSettings);
+    if Length(AValue) = 5 then
+      Result := AValue
+    else
+    begin
+      LTime := TimeOf(JSDateToDateTime(AValue));
+      Result := TimeToStr(LTime, Session.Config.UserFormatSettings);
+    end;
   end
   else
     Result := '';
