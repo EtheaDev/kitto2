@@ -337,10 +337,6 @@ type
     FFieldName: string;
     FRecordField: TKViewTableField;
     procedure FieldChange(This: TExtFormField; NewValue, OldValue: string);
-    // Converts a time from javascript's implicit format (the one used when
-    // firing the change handler) to the format expected by SetAsJSONValue
-    // (see FieldChange)
-    function ConvertTime(const AValue: string): string;
   public
     function AsObject: TObject; inline;
     function _AddRef: Integer; stdcall;
@@ -2563,23 +2559,10 @@ begin
   Result := Self;
 end;
 
-function TKExtFormTimeField.ConvertTime(const AValue: string): string;
-var
-  LTime: TTime;
-begin
-  if AValue <> '' then
-  begin
-    LTime := TimeOf(TJS.JSDateToDateTime(AValue));
-    Result := TimeToStr(LTime, Session.Config.UserFormatSettings);
-  end
-  else
-    Result := '';
-end;
-
 procedure TKExtFormTimeField.FieldChange(This: TExtFormField; NewValue,
   OldValue: string);
 begin
-  FRecordField.SetAsJSONValue(ConvertTime(NewValue), False, Session.Config.UserFormatSettings);
+  FRecordField.SetAsJSONValue(NewValue, False, Session.Config.UserFormatSettings);
 end;
 
 function TKExtFormTimeField.GetFieldName: string;
