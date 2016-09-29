@@ -543,7 +543,7 @@ begin
         begin
           LFormField.RemoveAllListeners('afterrender');
           LFormField.On('afterrender', LFormField.JSFunction(
-            procedure()
+            procedure
             begin
               AEditor.RefreshValue;
             end));

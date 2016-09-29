@@ -195,8 +195,6 @@ type
     procedure HandleEvent(const AEvtName: string); override;
   public
     class function JSClassName: string; override;
-    function AppendChild(const ANode: TExtDataNode): TExtFunction; overload;
-    function AppendChild(const ANodes: TExtObjectList): TExtFunction; overload;
     function Bubble(Fn: TExtFunction; Scope: TExtObject = nil; Args: TExtObjectList = nil)
       : TExtFunction;
     function Cascade(Fn: TExtFunction; Scope: TExtObject = nil;
@@ -1152,18 +1150,6 @@ begin
   FChildren := CreateConfigArray('children');
 end;
 
-function TExtDataNode.AppendChild(const ANode: TExtDataNode): TExtFunction;
-begin
-  FChildren.AddInternal(ANode);
-  Result := CallMethod('appendChild', ANode);
-end;
-
-function TExtDataNode.AppendChild(const ANodes: TExtObjectList): TExtFunction;
-begin
-  FChildren.AddInternal(ANodes);
-  Result := CallMethod('appendChild', ANodes);
-end;
-
 function TExtDataNode.Bubble(Fn: TExtFunction; Scope: TExtObject = nil;
   Args: TExtObjectList = nil): TExtFunction;
 begin
@@ -1314,7 +1300,9 @@ end;
 function TExtDataNode.SetId(const AId: string): TExtFunction;
 begin
   FId := AId;
-  Result := CallMethod('setId', AId);
+  Result := CallMethod('setId')
+    .AddParam(AId)
+    .AsFunction;
 end;
 
 function TExtDataNode.Sort(Fn: TExtFunction; Scope: TExtObject = nil): TExtFunction;
@@ -1792,7 +1780,9 @@ end;
 
 function TExtDataStore.Load(const AOptions: TExtObject): TExtFunction;
 begin
-  Result := CallMethod('load', AOptions);
+  Result := CallMethod('load')
+    .AddParam(AOptions)
+    .AsFunction;
 end;
 
 function TExtDataStore.LoadData(Data: TExtObject; Append: Boolean = false): TExtFunction;
@@ -1851,7 +1841,9 @@ end;
 
 procedure TExtDataStore.RemoveAll(const ASilent: Boolean);
 begin
-  CallMethod('removeAll', ASilent);
+  CallMethod('removeAll')
+    .AddParam(ASilent)
+    .AsFunction;
 end;
 
 function TExtDataStore.RemoveAt(Index: Integer): TExtFunction;
@@ -2224,7 +2216,10 @@ end;
 
 function TExtDataProxy.SetApi(const AApi: string; const AUrl: string): TExtFunction;
 begin
-  Result := CallMethod('setApi', [AApi, AUrl]);
+  Result := CallMethod('setApi')
+    .AddParam(AApi)
+    .AddParam(AUrl)
+    .AsFunction;
 end;
 
 function TExtDataProxy.SetApi(Api: TExtObject; Url: string): TExtFunction;

@@ -225,7 +225,12 @@ end;
 function TExtUtilObservable.AddListener(const AEventName: string; const AHandler: TExtFunction;
   const AScope: TExtObject = nil; const AOptions: TExtObject = nil): TExtFunction;
 begin
-  Result := CallMethod('addListener', [AEventName, AHandler, True, AScope, False, AOptions, False]);
+  Result := CallMethod('addListener')
+    .AddParam(AEventName)
+    .AddFunctionParam(AHandler)
+    .AddParam(AScope)
+    .AddParam(AOptions)
+    .AsFunction;
 end;
 
 function TExtUtilObservable.EnableBubble(Events: string): TExtFunction;
@@ -242,7 +247,10 @@ end;
 
 function TExtUtilObservable.FireEvent(const AEventName: string; const AArgs: TExtObjectList): TExtFunction;
 begin
-  Result := CallMethod('fireEvent', [AEventName, AArgs, False]);
+  Result := CallMethod('fireEvent')
+    .AddParam(AEventName)
+    .AddParam(AArgs)
+    .AsFunction;
 end;
 
 function TExtUtilObservable.HasListener(EventName: string): TExtFunction;
@@ -254,7 +262,12 @@ end;
 function TExtUtilObservable.&On(const AEventName: string; const AHandler: TExtFunction;
   const AScope: TExtObject; const AOptions: TExtObject): TExtFunction;
 begin
-  Result := CallMethod('on', [AEventName, AHandler, True, AScope, False, AOptions, False]);
+  Result := CallMethod('on')
+    .AddParam(AEventName)
+    .AddFunctionParam(AHandler)
+    .AddParam(AScope)
+    .AddParam(AOptions)
+    .AsFunction;
 end;
 
 function TExtUtilObservable.PurgeListeners: TExtFunction;
@@ -351,7 +364,9 @@ end;
 
 function TExtUtilTextMetricsSingleton.GetHeight(const AText: string): TExtFunction;
 begin
-  Result := CallMethod('getHeight', AText);
+  Result := CallMethod('getHeight')
+    .AddParam(AText)
+    .AsFunction;
 end;
 
 function TExtUtilTextMetricsSingleton.GetSize(Text: string): TExtFunction;
@@ -362,7 +377,9 @@ end;
 
 function TExtUtilTextMetricsSingleton.GetWidth(const AText: string): TExtFunction;
 begin
-  Result := CallMethod('getWidth', AText);
+  Result := CallMethod('getWidth')
+    .AddParam(AText)
+    .AsFunction;
 end;
 
 function TExtUtilTextMetricsSingleton.Measure(El: string; Text: string;

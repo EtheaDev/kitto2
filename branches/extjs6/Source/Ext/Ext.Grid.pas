@@ -390,8 +390,6 @@ type
     function GetCount: TExtFunction;
     function GetSelected: TExtFunction;
     function GetSelections: TExtFunction;
-    function HasNext: TExtFunction;
-    function HasPrevious: TExtFunction;
     function HasSelection: TExtFunction;
     function IsIdSelected(Id: string): TExtFunction;
     function IsSelected(Index: Integer): TExtFunction; overload;
@@ -1660,32 +1658,28 @@ end;
 
 function TExtSelectionRowModel.Each(const AFunction: TExtFunction; const AScope: TExtObject): TExtFunction;
 begin
-  Result := CallMethod('each', [AFunction, True, AScope, False]);
+  Result := CallMethod('each')
+    .AddFunctionParam(AFunction)
+    .AddParam(AScope)
+    .AsFunction;
 end;
 
 function TExtSelectionRowModel.GetCount: TExtFunction;
 begin
-  Result := CallMethod('getCount', []);
+  Result := CallMethod('getCount')
+    .AsFunction;
 end;
 
 function TExtSelectionRowModel.GetSelected: TExtFunction;
 begin
-  Result := CallMethod('getSelected', []);
+  Result := CallMethod('getSelected')
+    .AsFunction;
 end;
 
 function TExtSelectionRowModel.GetSelections: TExtFunction;
 begin
-  Result := CallMethod('getSelections', []);
-end;
-
-function TExtSelectionRowModel.HasNext: TExtFunction;
-begin
-  Result := CallMethod('hasNext', []);
-end;
-
-function TExtSelectionRowModel.HasPrevious: TExtFunction;
-begin
-  Result := CallMethod('hasPrevious', []);
+  Result := CallMethod('getSelections')
+    .AsFunction;
 end;
 
 function TExtSelectionRowModel.HasSelection: TExtFunction;
@@ -1722,7 +1716,10 @@ end;
 
 function TExtSelectionRowModel.Select(const AIndex: Integer; const AKeepExisting: Boolean): TExtFunction;
 begin
-  Result := CallMethod('select', [AIndex, AKeepExisting]);
+  Result := CallMethod('select')
+    .AddParam(AIndex)
+    .AddParam(AKeepExisting)
+    .AsFunction;
 end;
 
 function TExtSelectionRowModel.SelectAll: TExtFunction;
@@ -2749,7 +2746,9 @@ end;
 function TExtGridPropertyGrid.SetSource(const ASource: TExtObject): TExtFunction;
 begin
   FSource := ASource;
-  Result := CallMethod('setSource', ASource);
+  Result := CallMethod('setSource')
+    .AddParam(ASource)
+    .AsFunction;
 end;
 
 procedure TExtGridPropertyGrid.HandleEvent(const AEvtName: string);

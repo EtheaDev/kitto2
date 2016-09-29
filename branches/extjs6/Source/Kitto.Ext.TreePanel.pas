@@ -143,7 +143,7 @@ begin
     end,
     { TODO : remove these parameters }
     Self, nil);
-  On('itemclick', JSFunction('view, record, item, index',
+  &On('itemclick', JSFunction('view, record, item, index',
     GetAjaxCode(DisplayView, '', ['View', '%record.data.viewId'])));
 end;
 

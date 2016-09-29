@@ -104,6 +104,8 @@ type
     function CloseObject: TJSFormatter;
     function OpenArray: TJSFormatter;
     function CloseArray: TJSFormatter;
+    function OpenRound: TJSFormatter;
+    function CloseRound: TJSFormatter;
     function Add(const AString: string): TJSFormatter;
     function AddLine(const ALine: string): TJSFormatter;
     function AddIndent: TJSFormatter;
@@ -112,7 +114,8 @@ type
     function AddIndentedPairLine(const AName, AStrValue: string;
       const AQuoteValue: Boolean = True; const AAddComma: Boolean = True): TJSFormatter;
     function AddIndentedPair(const AName, AStrValue: string;
-      const AQuoteValue: Boolean = True; const AAddComma: Boolean = True): TJSFormatter;
+      const AQuoteValue: Boolean = True; const AAddComma: Boolean = True;
+      const AConnector: string = ': '): TJSFormatter;
     // Adds empty line
     function SkipLine: TJSFormatter;
     function AddIndentedList(const ALines: TArray<string>): TJSFormatter;
@@ -131,9 +134,7 @@ type
     FSession: TWebSession;
   public
     function FindObject(const AJSName: string): TObject;
-
     procedure FreeAllObjects;
-
     property Session: TWebSession read FSession;
   end;
 
@@ -144,20 +145,24 @@ type
 
   TVarToJSONProc = TProc<string, TObject, Boolean>;
 
-  TJSConfig = class(TComponent)
+  // Represents a config object or a set of method parameters.
+  TJSValues = class(TComponent)
   private
     FIsReadOnly: Boolean;
     FValues: TEFTree;
+    FNameValueConnector: string;
     function IsFunction(const AValue: TEFNode): Boolean;
     function IsObjectArray(const AValue: TEFNode): Boolean;
     function IsObject(const AValue: TEFNode): Boolean;
     function GetJSSession: TJSSession;
-    property JSSession: TJSSession read GetJSSession;
   public
     procedure AfterConstruction; override;
     destructor Destroy; override;
   public
+    property JSSession: TJSSession read GetJSSession;
     property Values: TEFTree read FValues;
+    // Can be ': ' or ' = '. Unused for empty or invalid names. Defaults to ': '.
+    property NameValueConnector: string read FNameValueConnector write FNameValueConnector;
 
     procedure SetFunctionValue(const AName: string; const AValue: TJSFunction);
 
@@ -173,6 +178,8 @@ type
     procedure FormatTo(const AFormatter: TJSFormatter);
   end;
 
+  TJSMethodCall = class;
+
   TJSObject = class(TComponent)
   private
     // Assigned if the object was created with CreateInternal or CreateInline.
@@ -180,11 +187,9 @@ type
     FAttributeName: string;
     FSession: TJSSession;
     FJSName: string;
-    FJSConfig: TJSConfig;
+    FJSConfig: TJSValues;
     function FormatParams(MethodName: string; Params: array of const): string;
-    procedure AjaxCode(const AMethodName, ARawParams: string; const AParams: array of const;
-      const AAdditionalDependencies: array of TJSObject);
-    function FindMethod(Method: TJSProcedure; var PascalName, ObjName: string): TJSFunction;
+    procedure FindMethod(const AMethod: TJSProcedure; out AMethodName, AObjectName: string);
     function GetDownloadJS(const AMethod: TJSProcedure; const AParams: array of const): string;
     function DoGetAjaxCode(const AMethodName, ARawParams: string; const AParams: array of const;
       const AExtraCode: string): string;
@@ -242,8 +247,6 @@ type
     procedure JSCode(JS: string; pJSName: string = ''; pOwner: string = '');
     procedure JSSleep(MiliSeconds: Integer);
 
-    function Ajax(const AMethod: TJSProcedure; const AParams: string): TJSFunction; overload;
-
     function Ajax(const AMethod: TJSProcedure; const AParams: string; const AAdditionalDependencies: array of TJSObject;
       const AIsEvent: Boolean = False): TJSFunction; overload;
 
@@ -277,14 +280,14 @@ type
     function GetPOSTAjaxCode(const AMethod: TJSProcedure; const AParams: array of const; const AJsonData: string)
       : string; overload;
 
-    function ExtractJSCommand: string;
+    function ExtractLastJSCode: string;
 
     function RequestDownload(Method: TJSProcedure): TJSFunction; overload;
     function RequestDownload(Method: TJSProcedure; Params: array of const): TJSFunction; overload;
     procedure Download(Method: TJSProcedure); overload;
     procedure Download(Method: TJSProcedure; Params: array of const); overload;
     function MethodURI(Method: TJSProcedure; Params: array of const): string; overload;
-    function MethodURI(Method: TJSProcedure): string; overload;
+    function MethodURI(const AMethod: TJSProcedure): string; overload;
     function MethodURI(const AMethodName: string; const AParams: array of const): string; overload;
     function MethodURI(const AMethodName: string): string; overload;
     {
@@ -323,15 +326,9 @@ type
     function SetProperty(const AName: string; const AValue: Boolean): Boolean; overload;
     function SetProperty(const AName: string; const AValue: TDateTime): TDateTime; overload;
 
-    function CallMethod(const AName: string; const AValue: Boolean): TJSFunction; overload;
-    function CallMethod(const AName, AValue: string): TJSFunction; overload;
-    function CallMethod(const AName: string; const AValue: TDateTime): TJSFunction; overload;
-    function CallMethod(const AName: string): TJSFunction; overload;
-    function CallMethod(const AName: string; const AValue: array of const): TJSFunction; overload;
-    function CallMethod(const AName: string; const AValue: TJSObject): TJSFunction; overload;
-    function CallFunctionMethod(const AName: string; const AValue: TJSFunction): TJSFunction;
+    function CallMethod(const AName: string): TJSMethodCall; overload;
 
-    property JSConfig: TJSConfig read FJSConfig;
+    property JSConfig: TJSValues read FJSConfig;
   end;
 
   TJSObjectClass = class of TJSObject;
@@ -418,8 +415,8 @@ type
   end;
 
   TJSResponseItem = class;
-
   TJSCreateObject = class;
+  TJSSetProperty = class;
 
   TJSResponseItems = class
   private
@@ -429,6 +426,7 @@ type
     // procedure SortByDependency;
     function GetCount: Integer;
     function GetItem(I: Integer): TJSResponseItem;
+    procedure DoSetProperty(const AObject: TJSObject; const ASetValueProc: TProc<TJSSetProperty>);
   public
     procedure AfterConstruction; override;
     destructor Destroy; override;
@@ -442,16 +440,16 @@ type
     // Use this method to have object creation statements in the correct order when emitting the response.
     procedure AddObjectDependency(const ADependentObject, ADependedUponObject: TJSObject);
 
-{ TODO :
-Progressively get rid of array of const and add explicit call(s) for calling a method
-passing one or more TJSFunctions }
-    procedure CallMethod(const AObject: TJSObject; const AMethodName: string; const AParams: array of const); overload;
+    function CallMethod(const AObject: TJSObject; const AMethodName: string): TJSMethodCall; overload;
 
     procedure GetProperty(const AObject: TJSObject; const APropertyName: string);
-{ TODO :
-Progressively get rid of array of const and add explicit call(s) for setting a function-valued property }
-    // AValues must be either a single value of any type or an object value followed by the IsFunction boolean flag.
-    procedure SetProperty(const AObject: TJSObject; const APropertyName: string; const AValues: array of const);
+
+    procedure SetProperty(const AObject: TJSObject; const AName, AValue: string); overload;
+    procedure SetProperty(const AObject: TJSObject; const AName: string; const AValue: TJSObject); overload;
+    procedure SetProperty(const AObject: TJSObject; const AName: string; const AValue: Boolean); overload;
+    procedure SetProperty(const AObject: TJSObject; const AName: string; const AValue: Integer); overload;
+    procedure SetProperty(const AObject: TJSObject; const AName: string; const AValue: TDateTime); overload;
+    procedure SetFunctionProperty(const AObject: TJSObject; const AName: string; const AValue: TJSFunction);
 
     procedure ExecuteJSCode(const AJSCode: string); overload;
     procedure ExecuteJSCode(const AObject: TJSObject; const AJSCode: string); overload;
@@ -465,8 +463,13 @@ Progressively get rid of array of const and add explicit call(s) for setting a f
     function AsFormattedString: string;
     function Consume: string;
 
-    // Remove any items sent by the specified object.
+    // Removes any items sent by the specified object.
     procedure RemoveAll(const AObject: TJSObject);
+
+    // Removes the last method call item (there should be only one) that reference the specified function.
+    // Called when a function has been assigned to a config, property or passed as
+    // a method argument.
+    procedure RemoveMethodCallByFunction(const AFunction: TJSFunction);
 
     procedure Remove(const AItem: TJSResponseItem);
 
@@ -483,7 +486,7 @@ Progressively get rid of array of const and add explicit call(s) for setting a f
     procedure Clear;
   end;
 
-  TJSResponseItem = class
+  TJSResponseItem = class(TComponent)
   private
     FSender: TJSObject;
     FDependencies: TList<TJSResponseItem>;
@@ -495,7 +498,7 @@ Progressively get rid of array of const and add explicit call(s) for setting a f
   strict protected
     FRoot: TJSResponseItems;
   public
-    constructor Create(const ASender: TJSObject; const ARoot: TJSResponseItems); virtual;
+    constructor Create(const ASender: TJSObject; const ARoot: TJSResponseItems); reintroduce; virtual;
     procedure AfterConstruction; override;
     destructor Destroy; override;
     property Sender: TJSObject read FSender;
@@ -535,37 +538,52 @@ Progressively get rid of array of const and add explicit call(s) for setting a f
     function FindObjectCreateItem(const ASender: TJSObject): TJSCreateObject;
   end;
 
-  TExtCallMethod = class(TJSResponseItem)
+  TJSMethodCall = class(TJSResponseItem)
   private
     FCallName: string;
-    FCallParams: TArray<string>;
+    FParams: TJSValues;
+    FJSFunction: TJSFunction;
+    function GetAsFunction: TJSFunction;
+    function GetFormattedCode: string;
+  public
+    procedure AfterConstruction; override;
+    destructor Destroy; override;
   public
     procedure FormatTo(const AFormatter: TJSFormatter); override;
     property CallName: string read FCallName write FCallName;
-    property CallParams: TArray<string> read FCallParams write FCallParams;
+
+    function AddParam(const AValue: string): TJSMethodCall; overload;
+    function AddParam(const AValue: Boolean): TJSMethodCall; overload;
+    function AddParam(const AValue: Integer): TJSMethodCall; overload;
+    function AddParam(const AValue: TJSObject): TJSMethodCall; overload;
+    function AddParam(const AValue: TDateTime): TJSMethodCall; overload;
+    function AddFunctionParam(const AValue: TJSFunction): TJSMethodCall;
+
+    property AsFunction: TJSFunction read GetAsFunction;
+
+    property Params: TJSValues read FParams;
   end;
 
-  TExtPropertyBase = class abstract(TJSResponseItem)
+  TJSGetProperty = class(TJSResponseItem)
   private
     FPropertyName: string;
   public
     property PropertyName: string read FPropertyName write FPropertyName;
-  end;
-
-  TExtGetProperty = class(TExtPropertyBase)
-  public
     procedure FormatTo(const AFormatter: TJSFormatter); override;
   end;
 
-  TExtSetProperty = class(TExtPropertyBase)
+  TJSSetProperty = class(TJSResponseItem)
   private
-    FPropertyValue: string;
+    FValue: TJSValues;
+  public
+    procedure AfterConstruction; override;
+    destructor Destroy; override;
   public
     procedure FormatTo(const AFormatter: TJSFormatter); override;
-    property PropertyValue: string read FPropertyValue write FPropertyValue;
+    property Value: TJSValues read FValue;
   end;
 
-  TExtTextBase = class(TJSResponseItem)
+  TJSTextBase = class(TJSResponseItem)
   protected
     FText: string;
   public
@@ -573,18 +591,18 @@ Progressively get rid of array of const and add explicit call(s) for setting a f
     procedure FormatTo(const AFormatter: TJSFormatter); override;
   end;
 
-  TExtJSCode = class(TExtTextBase)
+  TJSCode = class(TJSTextBase)
   public
     property JSCode: string read FText write FText;
     procedure FormatTo(const AFormatter: TJSFormatter); override;
   end;
 
-  TExtJSON = class(TExtTextBase)
+  TJSON = class(TJSTextBase)
   public
     property JSON: string read FText write FText;
   end;
 
-  TExtHTML = class(TExtTextBase)
+  THTML = class(TJSTextBase)
   public
     property HTML: string read FText write FText;
   end;
@@ -605,7 +623,12 @@ uses
 var
   _JSFormatSettings: TFormatSettings;
 
-  { TJSResponseItem }
+function GetSession: TJSSession;
+begin
+  Result := TJSSession(_CurrentWebSession);
+end;
+
+{ TJSResponseItem }
 
 procedure TJSResponseItem.AddDependency(const AItem: TJSResponseItem);
 begin
@@ -623,7 +646,7 @@ end;
 
 constructor TJSResponseItem.Create(const ASender: TJSObject; const ARoot: TJSResponseItems);
 begin
-  inherited Create;
+  inherited Create(ASender);
   FSender := ASender;
   FRoot := ARoot;
 end;
@@ -765,7 +788,6 @@ var
   LAddConstruction: Boolean;
 begin
   inherited;
-
   Assert(Assigned(Sender));
 
   LAddConstruction := not Sender.IsInline and not Sender.IsInternal;
@@ -774,7 +796,10 @@ begin
     AFormatter.AddIndentedLine(Sender.JSName + ' = ' + Sender.GetConstructionJS + '(');
     AFormatter.Indent.AddIndent;
   end;
+  { TODO : what if it's empty? }
+  AFormatter.OpenObject;
   Sender.JSConfig.FormatTo(AFormatter);
+  AFormatter.CloseObject;
   if LAddConstruction then
   begin
     AFormatter.SkipLine.Outdent;
@@ -785,7 +810,7 @@ end;
 
 { TExtJSCode }
 
-procedure TExtJSCode.FormatTo(const AFormatter: TJSFormatter);
+procedure TJSCode.FormatTo(const AFormatter: TJSFormatter);
 begin
   inherited;
   AFormatter.AddIndentedLine('');
@@ -795,9 +820,9 @@ end;
 
 procedure TJSResponseItems.AddHTML(const AHTML: string);
 var
-  LItem: TExtHTML;
+  LItem: THTML;
 begin
-  LItem := TExtHTML.Create(nil, Self);
+  LItem := THTML.Create(nil, Self);
   try
     LItem.HTML := AHTML;
     FList.Add(LItem);
@@ -809,9 +834,9 @@ end;
 
 procedure TJSResponseItems.AddJSON(const AJSON: string);
 var
-  LItem: TExtJSON;
+  LItem: TJSON;
 begin
-  LItem := TExtJSON.Create(nil, Self);
+  LItem := TJSON.Create(nil, Self);
   try
     LItem.JSON := AJSON;
     FList.Add(LItem);
@@ -835,36 +860,6 @@ begin
   inherited;
   FList := TList<TJSResponseItem>.Create;
   FEmittedItems := TList<TJSResponseItem>.Create;
-end;
-
-procedure TJSResponseItems.CallMethod(const AObject: TJSObject; const AMethodName: string;
-  const AParams: array of const);
-var
-  LItem: TExtCallMethod;
-begin
-  LItem := TExtCallMethod.Create(AObject, Self);
-  try
-    LItem.AddDependency(FindObjectCreateItem(TJSObject(AObject)));
-    LItem.CallName := AMethodName;
-    AObject.VarToJSON(AParams,
-      procedure(AParam: string; AObjectParam: TObject; AIsFunction: Boolean)
-      var
-        AParams: TArray<string>;
-        L: Integer;
-      begin
-        AParams := LItem.CallParams;
-        L := Length(LItem.CallParams);
-        SetLength(AParams,L+1);
-        AParams[L] := AParam;
-        LItem.CallParams := AParams;
-        if Assigned(AObjectParam) and (AObjectParam is TJSObject) and not AIsFunction then
-          LItem.AddDependency(FindObjectCreateItem(TJSObject(AObjectParam)));
-      end);
-    FList.Add(LItem);
-  except
-    FreeAndNil(LItem);
-    raise;
-  end;
 end;
 
 procedure TJSResponseItems.CreateInternalObject(const AObject: TJSObject; const AAttributeName: string);
@@ -906,12 +901,12 @@ end;
 procedure TJSResponseItems.ExecuteJSCode(const AObject: TJSObject; const AJSCode: string;
 const AAdditionalDependencies: array of TJSObject);
 var
-  LItem: TExtJSCode;
+  LItem: TJSCode;
   I: Integer;
 begin
   if AJSCode <> '' then
   begin
-    LItem := TExtJSCode.Create(AObject, Self);
+    LItem := TJSCode.Create(AObject, Self);
     try
       LItem.AddDependency(FindObjectCreateItem(AObject));
       LItem.JSCode := AJSCode;
@@ -954,6 +949,20 @@ function TJSResponseItems.Consume: string;
 begin
   Result := AsFormattedString;
   Clear;
+end;
+
+function TJSResponseItems.CallMethod(const AObject: TJSObject;
+  const AMethodName: string): TJSMethodCall;
+begin
+  Result := TJSMethodCall.Create(AObject, Self);
+  try
+    Result.AddDependency(FindObjectCreateItem(TJSObject(AObject)));
+    Result.CallName := AMethodName;
+    FList.Add(Result);
+  except
+    FreeAndNil(Result);
+    raise;
+  end;
 end;
 
 procedure TJSResponseItems.Clear;
@@ -1023,9 +1032,9 @@ end;
 
 procedure TJSResponseItems.GetProperty(const AObject: TJSObject; const APropertyName: string);
 var
-  LItem: TExtGetProperty;
+  LItem: TJSGetProperty;
 begin
-  LItem := TExtGetProperty.Create(AObject, Self);
+  LItem := TJSGetProperty.Create(AObject, Self);
   try
     LItem.PropertyName := APropertyName;
     LItem.AddDependency(FindObjectCreateItem(AObject));
@@ -1056,65 +1065,218 @@ begin
     end;
 end;
 
-procedure TJSResponseItems.SetProperty(const AObject: TJSObject; const APropertyName: string;
-const AValues: array of const);
+procedure TJSResponseItems.RemoveMethodCallByFunction(const AFunction: TJSFunction);
 var
-  LItem: TExtSetProperty;
+  I: Integer;
 begin
-  LItem := TExtSetProperty.Create(AObject, Self);
+  for I := FList.Count - 1 downto 0 do
+    if (FList[I] is TJSMethodCall) and (TJSMethodCall(FList[I]).AsFunction = AFunction) then
+    begin
+      FList[I].Free;
+      FList.Delete(I);
+      Break;
+    end;
+end;
+
+procedure TJSResponseItems.SetProperty(const AObject: TJSObject;
+  const AName: string; const AValue: TJSObject);
+begin
+  DoSetProperty(AObject,
+    procedure (AItem: TJSSetProperty)
+    begin
+      AItem.Value.Values.SetObject(AName, AValue);
+      AItem.AddDependency(FindObjectCreateItem(AValue));
+    end);
+end;
+
+procedure TJSResponseItems.DoSetProperty(const AObject: TJSObject; const ASetValueProc: TProc<TJSSetProperty>);
+var
+  LItem: TJSSetProperty;
+begin
+  Assert(Assigned(ASetValueProc));
+
+  LItem := TJSSetProperty.Create(AObject, Self);
   try
-    LItem.AddDependency(FindObjectCreateItem(AObject));
-    LItem.PropertyName := APropertyName;
-    LItem.PropertyValue := AObject.VarToJSON(AValues);
-    AObject.VarToJSON(AValues,
-      procedure(AParam: string; AObjectParam: TObject; AIsFunction: Boolean)
-      begin
-        if Assigned(AObjectParam) and (AObjectParam is TJSObject) and not AIsFunction then
-          LItem.AddDependency(FindObjectCreateItem(TJSObject(AObjectParam)));
-      end);
+    ASetValueProc(LItem);
+    Assert(LItem.Value.Values.ChildCount = 1);
+    // Qualify just added property name.
+    LItem.Value.Values.Children[0].Name := AObject.JSName + '.' +
+      LItem.Value.Values.Children[0].Name;
     FList.Add(LItem);
   except
     FreeAndNil(LItem);
+    raise;
   end;
 end;
 
-{ TExtCallMethod }
-
-procedure TExtCallMethod.FormatTo(const AFormatter: TJSFormatter);
+procedure TJSResponseItems.SetProperty(const AObject: TJSObject; const AName, AValue: string);
 begin
-  Assert(Assigned(Sender));
+  DoSetProperty(AObject,
+    procedure (AItem: TJSSetProperty)
+    begin
+      AItem.Value.Values.SetString(AName, AValue);
+    end);
+end;
+
+procedure TJSResponseItems.SetFunctionProperty(const AObject: TJSObject;
+  const AName: string; const AValue: TJSFunction);
+begin
+  DoSetProperty(AObject,
+    procedure (AItem: TJSSetProperty)
+    begin
+      AItem.Value.Values.SetObject(AName, AValue);
+    end);
+end;
+
+procedure TJSResponseItems.SetProperty(const AObject: TJSObject;
+  const AName: string; const AValue: TDateTime);
+begin
+  DoSetProperty(AObject,
+    procedure (AItem: TJSSetProperty)
+    begin
+      AItem.Value.Values.SetDateTime(AName, AValue);
+    end);
+end;
+
+procedure TJSResponseItems.SetProperty(const AObject: TJSObject;
+  const AName: string; const AValue: Boolean);
+begin
+  DoSetProperty(AObject,
+    procedure (AItem: TJSSetProperty)
+    begin
+      AItem.Value.Values.SetBoolean(AName, AValue);
+    end);
+end;
+
+procedure TJSResponseItems.SetProperty(const AObject: TJSObject;
+  const AName: string; const AValue: Integer);
+begin
+  DoSetProperty(AObject,
+    procedure (AItem: TJSSetProperty)
+    begin
+      AItem.Value.Values.SetInteger(AName, AValue);
+    end);
+end;
+
+{ TJSMethodCall }
+
+function TJSMethodCall.AddFunctionParam(const AValue: TJSFunction): TJSMethodCall;
+begin
+  FParams.SetFunctionValue(FParams.Values.ChildCount.ToString, AValue);
+  Result := Self;
+end;
+
+function TJSMethodCall.AddParam(const AValue: string): TJSMethodCall;
+begin
+  FParams.Values.SetString(FParams.Values.ChildCount.ToString, AValue);
+  Result := Self;
+end;
+
+function TJSMethodCall.AddParam(const AValue: Boolean): TJSMethodCall;
+begin
+  FParams.Values.SetBoolean(FParams.Values.ChildCount.ToString, AValue);
+  Result := Self;
+end;
+
+function TJSMethodCall.AddParam(const AValue: Integer): TJSMethodCall;
+begin
+  FParams.Values.SetInteger(FParams.Values.ChildCount.ToString, AValue);
+  Result := Self;
+end;
+
+function TJSMethodCall.AddParam(const AValue: TJSObject): TJSMethodCall;
+begin
+  FParams.Values.SetObject(FParams.Values.ChildCount.ToString, AValue);
+  Result := Self;
+end;
+
+function TJSMethodCall.AddParam(const AValue: TDateTime): TJSMethodCall;
+begin
+  FParams.Values.SetDateTime(FParams.Values.ChildCount.ToString, AValue);
+  Result := Self;
+end;
+
+procedure TJSMethodCall.AfterConstruction;
+begin
+  inherited;
+  FParams := TJSValues.Create(Self);
+  // Methid params are not named - connector is useless.
+  FParams.NameValueConnector := '';
+end;
+
+destructor TJSMethodCall.Destroy;
+begin
+  FreeAndNil(FParams);
+  FreeAndNil(FJSFunction);
+  inherited;
+end;
+
+procedure TJSMethodCall.FormatTo(const AFormatter: TJSFormatter);
+begin
+  inherited;
   Assert(FCallName <> '');
 
-  inherited;
-  AFormatter.AddIndentedLine(Sender.JSName + '.' + FCallName + '(' + string.Join(',', FCallParams) + ');');;
+  AFormatter.AddIndented(Sender.JSName + '.' + FCallName);
+  AFormatter.OpenRound;
+  Params.FormatTo(AFormatter);
+  AFormatter.CloseRound.AddLine(';');
+end;
+
+function TJSMethodCall.GetFormattedCode: string;
+var
+  LFormatter: TJSFormatter;
+begin
+  LFormatter := TJSFormatter.Create;
+  try
+    FormatTo(LFormatter);
+    Result := LFormatter.FormattedText;
+  finally
+    FreeAndNil(LFormatter);
+  end;
+end;
+
+function TJSMethodCall.GetAsFunction: TJSFunction;
+begin
+  if not Assigned(FJSFunction) then
+    FJSFunction := TJSFunction.CreateInline(Sender);
+  FJSFunction.FJSName := GetFormattedCode;
+  Result := FJSFunction;
 end;
 
 { TExtSetProperty }
 
-procedure TExtSetProperty.FormatTo(const AFormatter: TJSFormatter);
+procedure TJSSetProperty.AfterConstruction;
 begin
-  Assert(Assigned(Sender));
-  Assert(FPropertyName <> '');
-  Assert(FPropertyValue <> '');
-
   inherited;
-  AFormatter.AddIndentedLine(Sender.JSName + '.' + FPropertyName + ' = ' + FPropertyValue + ';');
+  FValue := TJSValues.Create(Self);
+  FValue.NameValueConnector := ' = ';
 end;
 
-{ TExtGetProperty }
+destructor TJSSetProperty.Destroy;
+begin
+  FreeAndNil(FValue);
+  inherited;
+end;
 
-procedure TExtGetProperty.FormatTo(const AFormatter: TJSFormatter);
+procedure TJSSetProperty.FormatTo(const AFormatter: TJSFormatter);
+begin
+  Assert(Assigned(Sender));
+  Assert(FValue.Values.ChildCount = 1);
+  inherited;
+
+  Value.FormatTo(AFormatter);
+  AFormatter.AddLine(';');
+end;
+
+{ TJSGetProperty }
+
+procedure TJSGetProperty.FormatTo(const AFormatter: TJSFormatter);
 begin
   Assert(Assigned(Sender));
   Assert(FPropertyName <> '');
 
   inherited;
   AFormatter.AddIndentedLine(Sender.JSName + '.' + FPropertyName + ';');
-end;
-
-function GetSession: TJSSession;
-begin
-  Result := TJSSession(_CurrentWebSession);
 end;
 
 { TJSSession }
@@ -1250,7 +1412,7 @@ end;
 
 procedure TJSSession.ErrorMessage(const AMessage: string; const AAction: TJSFunction);
 begin
-  ErrorMessage(AMessage, AAction.ExtractJSCommand);
+  ErrorMessage(AMessage, AAction.ExtractLastJSCode);
 end;
 
 procedure TJSSession.OnError(const AMessage, AMethodName, AParams: string);
@@ -1290,18 +1452,19 @@ begin
     Result := Result + '&' + FormatParams('TExtObject.MethodURI', Params);
 end;
 
-function TJSObject.MethodURI(Method: TJSProcedure): string;
+function TJSObject.MethodURI(const AMethod: TJSProcedure): string;
 var
-  MetName, ObjName: string;
+  LMethodName: string;
+  LObjectName: string;
 begin
-  FindMethod(Method, MetName, ObjName);
-  Result := JSSession.MethodURI(MetName);
-  if ObjName <> '' then
+  FindMethod(AMethod, LMethodName, LObjectName);
+  Result := JSSession.MethodURI(LMethodName);
+  if LObjectName <> '' then
   begin
-    if pos('?', Result) <> 0 then
-      Result := Result + '&Obj=' + ObjName
+    if Pos('?', Result) <> 0 then
+      Result := Result + '&Obj=' + LObjectName
     else
-      Result := Result + '?Obj=' + ObjName;
+      Result := Result + '?Obj=' + LObjectName;
   end;
 end;
 
@@ -1591,7 +1754,7 @@ begin
   end;
 end;
 
-{ ExtObjectList }
+{ TJSObjectArray }
 
 procedure TJSObjectArray.CreateJSName;
 begin
@@ -1676,36 +1839,6 @@ begin
   else
     FJSName := AAttributeName;
   InitDefaults;
-end;
-
-function TJSObject.CallMethod(const AName: string; const AValue: Boolean): TJSFunction;
-begin
-  GetSession.ResponseItems.CallMethod(Self, AName, [AValue]);
-  Result := TJSFunction(Self);
-end;
-
-function TJSObject.CallMethod(const AName: string): TJSFunction;
-begin
-  GetSession.ResponseItems.CallMethod(Self, AName, []);
-  Result := TJSFunction(Self);
-end;
-
-function TJSObject.CallMethod(const AName, AValue: string): TJSFunction;
-begin
-  GetSession.ResponseItems.CallMethod(Self, AName, [AValue]);
-  Result := TJSFunction(Self);
-end;
-
-function TJSObject.CallMethod(const AName: string; const AValue: TDateTime): TJSFunction;
-begin
-  GetSession.ResponseItems.CallMethod(Self, AName, [AValue]);
-  Result := TJSFunction(Self);
-end;
-
-function TJSObject.CallMethod(const AName: string; const AValue: array of const): TJSFunction;
-begin
-  GetSession.ResponseItems.CallMethod(Self, AName, AValue);
-  Result := TJSFunction(Self);
 end;
 
 function TJSObject.CharsToPixels(const AChars: Integer; const AOffset: Integer = 0): TJSFunction;
@@ -1846,7 +1979,7 @@ begin
   Assert(GetSession <> nil);
   Assert(Assigned(AOwner));
   inherited Create(AOwner);
-  FJSConfig := TJSConfig.Create(Self);
+  FJSConfig := TJSValues.Create(Self);
   CreateJSName;
   if AttributeName <> '' then
     GetSession.ResponseItems.CreateInternalObject(Self, AttributeName)
@@ -1861,7 +1994,7 @@ begin
 
   inherited Create(AOwner);
   FAttributeName := AAttributeName;
-  FJSConfig := TJSConfig.Create(Self);
+  FJSConfig := TJSValues.Create(Self);
   if FAttributeName <> '' then
     FJSName := AOwner.JSName + '.' + FAttributeName
   else
@@ -1921,191 +2054,14 @@ begin
   Result := AValue;
 end;
 
-{
-  Converts an array of const to JSON (JavaScript Object Notation) to be used in constructors, JS Arrays or JS Objects
-  @param A Array of anytype variables
-  @return JSON representation of array
-}
 function TJSObject.VarToJSON(const AVars: array of const; const ASession: TJSSession): string;
-var
-  I: Integer;
-  LCommand: string;
-  LObjectJSName: string;
-  LCodeItem: TJSResponseItem;
-  LSession: TJSSession;
 begin
-  Result := '';
-  I := 0;
-
-  LSession := ASession;
-  if LSession = nil then
-    LSession := JSSession;
-
-  while I <= High(AVars) do
-  begin
-    case AVars[I].VType of
-      vtObject:
-        begin
-          if AVars[I].VObject <> nil then
-          begin
-            LCodeItem := LSession.ResponseItems.FindLastCodeItem(TJSObject(AVars[I].VObject));
-            // Function
-            if Assigned(LCodeItem) and AVars[I + 1].VBoolean then
-            begin
-              Result := Result + TJS.GetJSFunction(LCodeItem.AsFormattedText);
-              LSession.ResponseItems.Remove(LCodeItem);
-            end
-            else
-            begin
-              // Object
-              LObjectJSName := TJSObject(AVars[I].VObject).JSName;
-              if Assigned(LCodeItem) then
-                LCommand := TJS.RemoveLastJSTerminator(LCodeItem.AsFormattedText)
-              else
-                LCommand := '';
-              Result := Result + LObjectJSName;
-            end;
-          end
-          else
-          begin
-            if Result = '' then
-              Result := 'null'
-            else
-            begin
-              Inc(I, 2);
-              Continue;
-            end;
-          end;
-          Inc(I);
-        end;
-      vtAnsiString:
-        Result := Result + TJS.StrToJS(string(AVars[I].VAnsiString));
-      vtString:
-        Result := Result + TJS.StrToJS(string(AVars[I].VString^));
-      vtWideString:
-        Result := Result + TJS.StrToJS(string(AVars[I].VWideString));
-{$IFDEF UNICODE}
-      vtUnicodeString:
-        Result := Result + TJS.StrToJS(string(AVars[I].VUnicodeString));
-{$ENDIF}
-      vtInteger:
-        Result := Result + IntToStr(AVars[I].VInteger);
-      vtBoolean:
-        Result := Result + IfThen(AVars[I].VBoolean, 'true', 'false');
-      vtExtended:
-        Result := Result + AnsiReplaceStr(FloatToStr(AVars[I].VExtended^), ',', '.');
-      vtCurrency:
-        Result := Result + CurrToStr(AVars[I].VCurrency^);
-      vtInt64:
-        Result := Result + IntToStr(AVars[I].VInt64^);
-      vtVariant:
-        Result := Result + string(AVars[I].VVariant^);
-      vtChar:
-        Result := Result + string(AVars[I].VChar);
-      vtWideChar:
-        Result := Result + AVars[I].VWideChar;
-    end;
-    if I < High(AVars) then
-      Result := Result + ',';
-    Inc(I);
-  end;
-  if (Result <> '') and (Result[Length(Result)] = ',') then
-    System.Delete(Result, Length(Result), 1);
+  Assert(False, 'Not implemented');
 end;
 
 function TJSObject.VarToJSON(const AVars: array of const; const AProc: TVarToJSONProc): string;
-var
-  I: Integer;
-  LCommand: string;
-  LCodeItem: TJSResponseItem;
-  LCurrentParam: string;
-  LProcCalled: Boolean;
 begin
-  Result := '';
-  I := 0;
-  while I <= High(AVars) do
-  begin
-    LProcCalled := False;
-    case AVars[I].VType of
-      vtObject:
-        begin
-          if AVars[I].VObject <> nil then
-          begin
-            LCodeItem := JSSession.ResponseItems.FindLastCodeItem(TJSObject(AVars[I].VObject));
-            if Assigned(LCodeItem) and AVars[I + 1].VBoolean then
-            begin
-              LCurrentParam := TJS.GetJSFunction(LCodeItem.AsFormattedText);
-              Result := Result + LCurrentParam;
-              GetSession.ResponseItems.Remove(LCodeItem);
-            end
-            else
-            begin
-              LCurrentParam := TJSObject(AVars[I].VObject).JSName;
-              if Assigned(LCodeItem) then
-                LCommand := TJS.RemoveLastJSTerminator(LCodeItem.AsFormattedText)
-              else
-                LCommand := '';
-              { TODO : Mind the spacing - maybe characterize this type of command with a special class. }
-              // if InJSFunction and (Pos(LCurrentParam, Trim(LCommand)) = 1) then
-              // ExtSession.ResponseItems.Remove(LCodeItem)
-              // else
-              Result := Result + LCurrentParam;
-            end;
-            if Assigned(AProc) then
-              AProc(LCurrentParam, AVars[I].VObject, AVars[I + 1].VBoolean);
-            LProcCalled := True;
-          end
-          else
-          begin
-            LProcCalled := True;
-            if Result = '' then
-              Result := 'null'
-            else
-            begin
-              Inc(I, 2);
-              Continue;
-            end;
-          end;
-          Inc(I);
-        end;
-      vtAnsiString:
-        LCurrentParam := TJS.StrToJS(string(AVars[I].VAnsiString));
-      vtString:
-        LCurrentParam := TJS.StrToJS(string(AVars[I].VString^));
-      vtWideString:
-        LCurrentParam := TJS.StrToJS(string(AVars[I].VWideString));
-{$IFDEF UNICODE}
-      vtUnicodeString:
-        LCurrentParam := TJS.StrToJS(string(AVars[I].VUnicodeString));
-{$ENDIF}
-      vtInteger:
-        LCurrentParam := IntToStr(AVars[I].VInteger);
-      vtBoolean:
-        LCurrentParam := IfThen(AVars[I].VBoolean, 'true', 'false');
-      vtExtended:
-        LCurrentParam := AnsiReplaceStr(FloatToStr(AVars[I].VExtended^), ',', '.');
-      vtCurrency:
-        LCurrentParam := CurrToStr(AVars[I].VCurrency^);
-      vtInt64:
-        LCurrentParam := IntToStr(AVars[I].VInt64^);
-      vtVariant:
-        LCurrentParam := string(AVars[I].VVariant^);
-      vtChar:
-        LCurrentParam := string(AVars[I].VChar);
-      vtWideChar:
-        LCurrentParam := AVars[I].VWideChar;
-    end;
-    if Assigned(AProc) and not LProcCalled then
-    begin
-      Result := Result + LCurrentParam;
-      AProc(LCurrentParam, nil, False);
-    end;
-    if I < High(AVars) then
-      Result := Result + ',';
-    Inc(I);
-  end;
-  if (Result <> '') and (Result[Length(Result)] = ',') then
-    System.Delete(Result, Length(Result), 1);
+  Assert(False, 'Not implemented');
 end;
 
 function TJSObject.RequestDownload(Method: TJSProcedure; Params: array of const): TJSFunction;
@@ -2116,7 +2072,7 @@ end;
 function TJSObject.SetConfigItem(const AName, AMethodName, AValue: string): string;
 begin
   if FJSConfig.IsReadOnly then
-    GetSession.ResponseItems.CallMethod(Self, AMethodName, [AValue])
+    CallMethod(AMethodName).AddParam(Avalue)
   else
     FJSConfig.Values.SetString(AName, AValue);
   Result := AValue;
@@ -2125,7 +2081,7 @@ end;
 function TJSObject.SetConfigItem(const AName, AMethodName: string; const AValue: Integer): Integer;
 begin
   if FJSConfig.IsReadOnly then
-    GetSession.ResponseItems.CallMethod(Self, AMethodName, [AValue])
+    CallMethod(AMethodName).AddParam(Avalue)
   else
     FJSConfig.Values.SetInteger(AName, AValue);
   Result := AValue;
@@ -2134,7 +2090,7 @@ end;
 function TJSObject.SetConfigItem(const AName, AMethodName: string; const AValue: Boolean): Boolean;
 begin
   if FJSConfig.IsReadOnly then
-    GetSession.ResponseItems.CallMethod(Self, AMethodName, [AValue])
+    CallMethod(AMethodName).AddParam(Avalue)
   else
     FJSConfig.Values.SetBoolean(AName, AValue);
   Result := AValue;
@@ -2222,7 +2178,7 @@ var
 begin
   LExpr := AExpr;
   for I := Low(AValues) to High(AValues) do
-    LExpr := LExpr.Replace('{func' + IntToStr(I) + '}', AValues[I].ExtractJSCommand);
+    LExpr := LExpr.Replace('{func' + IntToStr(I) + '}', AValues[I].ExtractLastJSCode);
   Result := JSFunctionFromCodeBlock(LExpr);
 end;
 
@@ -2274,10 +2230,9 @@ end;
 
 function TJSObject.JSFunction(const AMethod: TProc; const ASilent: Boolean): TJSFunction;
 begin
-  Result := JSFunction('function() { ' + GetJSFunctionCode(AMethod, ASilent) + ' }');
+  Result := JSFunction(GetJSFunctionCode(AMethod, ASilent));
 end;
 
-// Same as above but returns the code as a string instead of executing it.
 function TJSObject.GetJSFunctionCode(const AMethod: TProc; const ASilent: Boolean): string;
 var
   LResponseItemBranch: TJSResponseItems;
@@ -2287,7 +2242,8 @@ begin
     AMethod;
     Result := LResponseItemBranch.Consume;
     if ASilent then
-      Result := 'try { ' + Result + ' } catch(e) {};'
+      Result := 'try { ' + Result + ' } catch(e) {};';
+    Result := TJS.GetJSFunction(Result);
   finally
     JSSession.UnbranchResponseItems(LResponseItemBranch, False);
   end;
@@ -2417,26 +2373,32 @@ function TJSObject.Ajax(const AMethod: TJSProcedure; const AParams: array of con
 var
   LMethodName: string;
   LObjectName: string;
+  LRawParams: string;
+  LCode: string;
 begin
-  Result := FindMethod(AMethod, LMethodName, LObjectName);
-  AjaxCode(LMethodName, IfThen(LObjectName = '', '', 'Obj=' + LObjectName), AParams, []);
+  FindMethod(AMethod, LMethodName, LObjectName);
+  LRawParams := IfThen(LObjectName = '', '', 'Obj=' + LObjectName);
+  LCode := GetAjaxCode(LMethodName, LRawParams, AParams);
+  Result := JSFunction(LCode);
 end;
 
 function TJSObject.Ajax(const AMethod: TJSProcedure; const AParams: string;
-const AAdditionalDependencies: array of TJSObject; const AIsEvent: Boolean): TJSFunction;
+  const AAdditionalDependencies: array of TJSObject; const AIsEvent: Boolean): TJSFunction;
 var
   LMethodName: string;
   LObjectName: string;
-  LParams: string;
+  LRawParams: string;
+  LCode: string;
 begin
-  Result := FindMethod(AMethod, LMethodName, LObjectName);
-  LParams := AParams;
+  FindMethod(AMethod, LMethodName, LObjectName);
+  LRawParams := AParams + IfThen(LObjectName = '', '', '&Obj=' + LObjectName);
   if AIsEvent then
   begin
-    LParams := LParams + '&IsEvent=1&Evt=' + LMethodName;
+    LRawParams := LRawParams + '&IsEvent=1&Evt=' + LMethodName;
     LMethodName := 'HandleEvent';
   end;
-  AjaxCode(LMethodName, AParams + IfThen(LObjectName = '', '', '&Obj=' + LObjectName), [], AAdditionalDependencies);
+  LCode := GetAjaxCode(LMethodName, LRawParams, []);
+  Result := JSFunction(LCode);
 end;
 
 {
@@ -2444,31 +2406,21 @@ end;
   Raises an exception if method is not published
   @return Self
 }
-function TJSObject.FindMethod(Method: TJSProcedure; var PascalName, ObjName: string): TJSFunction;
+procedure TJSObject.FindMethod(const AMethod: TJSProcedure; out AMethodName, AObjectName: string);
 var
-  Obj: TObject;
+  LObject: TObject;
 begin
-  Obj := TMethod(Method).Data;
-  PascalName := Obj.MethodName(@Method);
-  if PascalName = '' then
+  LObject := TMethod(AMethod).Data;
+  AMethodName := LObject.MethodName(@AMethod);
+  if AMethodName = '' then
     raise Exception.Create('Ajax: Method is not published')
   else
   begin
-    if Obj is TJSObject then
-      ObjName := TJSObject(Obj).JSName
+    if LObject is TJSObject then
+      AObjectName := TJSObject(LObject).JSName
     else
-      ObjName := '';
-    Result := TJSFunction(Self);
+      AObjectName := '';
   end;
-end;
-
-// Ajax with raw string as params
-function TJSObject.Ajax(const AMethod: TJSProcedure; const AParams: string): TJSFunction;
-var
-  AMethodName, AObjectName: string;
-begin
-  Result := FindMethod(AMethod, AMethodName, AObjectName);
-  AjaxCode(AMethodName, '"+' + AParams + IfThen(AObjectName = '', '', '+"&Obj=' + AObjectName), [], []);
 end;
 
 function SurroundAjaxParam(Param: string): string;
@@ -2505,7 +2457,7 @@ begin
             Result := Result + SurroundAjaxParam(string(VUnicodeString));
 {$ENDIF}
           vtObject:
-            Result := Result + '"+' + TJSObject(VObject).ExtractJSCommand + '+"';
+            Result := Result + '"+' + TJSObject(VObject).ExtractLastJSCode + '+"';
           vtInteger:
             Result := Result + IntToStr(VInteger);
           vtBoolean:
@@ -2551,12 +2503,6 @@ begin
       end;
 end;
 
-procedure TJSObject.AjaxCode(const AMethodName, ARawParams: string; const AParams: array of const;
-const AAdditionalDependencies: array of TJSObject);
-begin
-  GetSession.ResponseItems.ExecuteJSCode(Self, GetAjaxCode(AMethodName, ARawParams, AParams), AAdditionalDependencies);
-end;
-
 function TJSObject.DoGetAjaxCode(const AMethodName, ARawParams: string; const AParams: array of const;
   const AExtraCode: string): string;
 var
@@ -2576,8 +2522,8 @@ begin
     LFormatter.AddIndentedPairLine('url', JSSession.MethodURI(AMethodName));
     LFormatter.AddIndentedPairLine('params', LParams);
     LFormatter.AddIndentedPairLine('success', 'AjaxSuccess', False);
-    LFormatter.AddIndentedPairLine('failure', 'AjaxFailure', False);
-    LFormatter.DeleteTrailing(',' + sLineBreak);
+    LFormatter.AddIndentedPair('failure', 'AjaxFailure', False);
+    LFormatter.DeleteTrailing(',');
     LFormatter.CloseObject.SkipLine.Outdent.AddIndentedLine(');');
     Result := LFormatter.FormattedText;
   finally
@@ -2600,25 +2546,28 @@ end;
 // Internal Ajax generation handler treating IsEvent, when is true HandleEvent will be invoked instead published methods
 function TJSObject.Ajax(const AMethodName: string; const AParams: array of const; const AIsEvent: Boolean): TJSFunction;
 var
-  LParams: string;
+  LRawParams: string;
   LMethodName: string;
+  LCode: string;
 begin
-  Result := TJSFunction(Self);
   LMethodName := AMethodName;
-  LParams := IfThen(JSName = '', '', 'Obj=' + JSName);
+  LRawParams := IfThen(JSName = '', '', 'Obj=' + JSName);
   if AIsEvent then
   begin
-    LParams := LParams + '&IsEvent=1&Evt=' + AMethodName;
+    LRawParams := LRawParams + '&IsEvent=1&Evt=' + AMethodName;
     LMethodName := 'HandleEvent';
   end;
-  AjaxCode(LMethodName, LParams, AParams, []);
+  LCode := GetAjaxCode(LMethodName, LRawParams, AParams);
+  Result := JSFunction(LCode);
 end;
 
 function TJSObject.Ajax(const AMethod: TJSProcedure; const AParams: array of const;
-const AAdditionalDependencies: array of TJSObject; const AIsEvent: Boolean): TJSFunction;
+  const AAdditionalDependencies: array of TJSObject; const AIsEvent: Boolean): TJSFunction;
+var
+  LCode: string;
 begin
-  GetSession.ResponseItems.ExecuteJSCode(Self, GetAjaxCode(AMethod, AParams, AIsEvent), AAdditionalDependencies);
-  Result := TJSFunction(Self);
+  LCode := GetAjaxCode(AMethod, AParams, AIsEvent);
+  Result := JSFunction(LCode);
 end;
 
 function TJSObject.GetAjaxCode(const AMethod: TJSProcedure; const AParams: array of const;
@@ -2639,23 +2588,24 @@ begin
 end;
 
 function TJSObject.Ajax(const AMethodName: string; const AParams: array of const;
-const AAdditionalDependencies: array of TJSObject; const AIsEvent: Boolean): TJSFunction;
+  const AAdditionalDependencies: array of TJSObject; const AIsEvent: Boolean): TJSFunction;
 var
-  LParams: string;
+  LRawParams: string;
   LMethodName: string;
+  LCode: string;
 begin
-  Result := TJSFunction(Self);
   LMethodName := AMethodName;
-  LParams := IfThen(JSName = '', '', 'Obj=' + JSName);
+  LRawParams := IfThen(JSName = '', '', 'Obj=' + JSName);
   if AIsEvent then
   begin
-    LParams := LParams + '&IsEvent=1&Evt=' + AMethodName;
+    LRawParams := LRawParams + '&IsEvent=1&Evt=' + AMethodName;
     LMethodName := 'HandleEvent';
   end;
-  AjaxCode(LMethodName, LParams, AParams, AAdditionalDependencies);
+  LCode := GetAjaxCode(LMethodName, LRawParams, AParams);
+  Result := JSFunction(LCode);
 end;
 
-function TJSObject.ExtractJSCommand: string;
+function TJSObject.ExtractLastJSCode: string;
 var
   LCodeItem: TJSResponseItem;
 begin
@@ -2767,7 +2717,7 @@ end;
 
 { TExtTextBase }
 
-procedure TExtTextBase.FormatTo(const AFormatter: TJSFormatter);
+procedure TJSTextBase.FormatTo(const AFormatter: TJSFormatter);
 begin
   inherited;
   AFormatter.Add(FText);
@@ -2797,7 +2747,7 @@ end;
 function TJSObject.SetFunctionConfigItem(const AName, AMethodName: string; const AValue: TJSFunction): TJSFunction;
 begin
   if FJSConfig.IsReadOnly then
-    GetSession.ResponseItems.CallMethod(Self, AMethodName, [AValue, True])
+    CallMethod(AMethodName).AddFunctionParam(Avalue)
   else
     FJSConfig.SetFunctionValue(AName, AValue);
   Result := AValue;
@@ -2806,7 +2756,7 @@ end;
 function TJSObject.SetConfigItem(const AName, AMethodName: string; const AValue: TJSObject): TJSObject;
 begin
   if FJSConfig.IsReadOnly then
-    GetSession.ResponseItems.CallMethod(Self, AMethodName, [AValue])
+    CallMethod(AMethodName).AddParam(Avalue)
   else
     FJSConfig.Values.SetObject(AName, AValue);
   Result := AValue;
@@ -2815,7 +2765,7 @@ end;
 function TJSObject.SetConfigItemOrProperty(const AName: string; const AValue: Boolean): Boolean;
 begin
   if FJSConfig.IsReadOnly then
-    GetSession.ResponseItems.SetProperty(Self, AName, [AValue])
+    GetSession.ResponseItems.SetProperty(Self, AName, AValue)
   else
     FJSConfig.Values.SetBoolean(AName, AValue);
   Result := AValue;
@@ -2823,38 +2773,38 @@ end;
 
 function TJSObject.SetProperty(const AName: string; const AValue: TJSFunction): TJSFunction;
 begin
-  GetSession.ResponseItems.SetProperty(Self, AName, [AValue, True]);
+  GetSession.ResponseItems.SetFunctionProperty(Self, AName, AValue);
   Result := AValue;
 end;
 
 function TJSObject.SetProperty(const AName: string; const AValue: TJSObject): TJSObject;
 begin
-  GetSession.ResponseItems.SetProperty(Self, AName, [AValue, False]);
+  GetSession.ResponseItems.SetProperty(Self, AName, AValue);
   Result := AValue;
 end;
 
 function TJSObject.SetProperty(const AName: string; const AValue: Boolean): Boolean;
 begin
-  GetSession.ResponseItems.SetProperty(Self, AName, [AValue]);
+  GetSession.ResponseItems.SetProperty(Self, AName, AValue);
   Result := AValue;
 end;
 
 function TJSObject.SetProperty(const AName, AValue: string): string;
 begin
-  GetSession.ResponseItems.SetProperty(Self, AName, [AValue]);
+  GetSession.ResponseItems.SetProperty(Self, AName, AValue);
   Result := AValue;
 end;
 
 function TJSObject.SetProperty(const AName: string; const AValue: Integer): Integer;
 begin
-  GetSession.ResponseItems.SetProperty(Self, AName, [AValue]);
+  GetSession.ResponseItems.SetProperty(Self, AName, AValue);
   Result := AValue;
 end;
 
 function TJSObject.SetConfigItemOrProperty(const AName, AValue: string): string;
 begin
   if FJSConfig.IsReadOnly then
-    GetSession.ResponseItems.SetProperty(Self, AName, [AValue])
+    GetSession.ResponseItems.SetProperty(Self, AName, AValue)
   else
     FJSConfig.Values.SetString(AName, AValue);
   Result := AValue;
@@ -2871,7 +2821,7 @@ end;
 function TJSObject.SetConfigItem(const AName, AMethodName: string; const AValue: TDateTime): TDateTime;
 begin
   if FJSConfig.IsReadOnly then
-    GetSession.ResponseItems.CallMethod(Self, AMethodName, [AValue])
+    CallMethod(AMethodName).AddParam(Avalue)
   else
     FJSConfig.Values.SetDateTime(AName, AValue);
   Result := AValue;
@@ -2879,20 +2829,13 @@ end;
 
 function TJSObject.SetProperty(const AName: string; const AValue: TDateTime): TDateTime;
 begin
-  GetSession.ResponseItems.SetProperty(Self, AName, [AValue]);
+  GetSession.ResponseItems.SetProperty(Self, AName, AValue);
   Result := AValue;
 end;
 
-function TJSObject.CallFunctionMethod(const AName: string; const AValue: TJSFunction): TJSFunction;
+function TJSObject.CallMethod(const AName: string): TJSMethodCall;
 begin
-  GetSession.ResponseItems.CallMethod(Self, AName, [AValue, True]);
-  Result := TJSFunction(Self);
-end;
-
-function TJSObject.CallMethod(const AName: string; const AValue: TJSObject): TJSFunction;
-begin
-  GetSession.ResponseItems.CallMethod(Self, AName, [AValue, False]);
-  Result := TJSFunction(Self);
+  Result := GetSession.ResponseItems.CallMethod(Self, AName);
 end;
 
 { TJSObjectCatalog }
@@ -3078,117 +3021,148 @@ begin
     if I <> J then
       LParams := LParams + ','
   end;
-  LCommandWithoutTerminator := TJS.RemoveLastJSTerminator(LCode);
+  LCommandWithoutTerminator := RemoveLastJSTerminator(LCode);
   I := LastDelimiter(';', LCommandWithoutTerminator);
-  if (I = 0) and (pos('return ', LCode) <> 1) then
+  if (I = 0) and (Pos('return ', LCode) <> 1) then
     LCode := 'return ' + LCode
   else
   begin
     Inc(I);
     while (Length(LCode) > I) and CharInSet(LCode[I], [#13, #10]) do
       Inc(I);
-    insert('return ', LCode, I);
+    Insert('return ', LCode, I);
   end;
   Result := 'function(' + LParams + '){' + LCode + '}';
 end;
 
 { TJSConfig }
 
-procedure TJSConfig.AfterConstruction;
+procedure TJSValues.AfterConstruction;
 begin
   inherited;
   FValues := TEFTree.Create;
+  FNameValueConnector := ': ';
   FIsReadOnly := False;
 end;
 
-procedure TJSConfig.CheckReadOnly(const AValueName: string);
+procedure TJSValues.CheckReadOnly(const AValueName: string);
 begin
   if FIsReadOnly then
     raise Exception.CreateFmt('Cannot set config value %s. Object was created in a different request.', [AValueName]);
 end;
 
-destructor TJSConfig.Destroy;
+destructor TJSValues.Destroy;
 begin
   FreeAndNil(FValues);
   inherited;
 end;
 
-function TJSConfig.IsFunction(const AValue: TEFNode): Boolean;
+function TJSValues.IsFunction(const AValue: TEFNode): Boolean;
 begin
   Result := AValue.GetBoolean('IsFunction');
 end;
 
-function TJSConfig.IsObject(const AValue: TEFNode): Boolean;
+function TJSValues.IsObject(const AValue: TEFNode): Boolean;
 begin
   Result := AValue.DataType is TEFObjectDataType;
 end;
 
-function TJSConfig.IsObjectArray(const AValue: TEFNode): Boolean;
+function TJSValues.IsObjectArray(const AValue: TEFNode): Boolean;
 begin
   Result := IsObject(AValue) and (AValue.AsObject is TJSObjectArray);
 end;
 
-procedure TJSConfig.SetFunctionValue(const AName: string; const AValue: TJSFunction);
+procedure TJSValues.SetFunctionValue(const AName: string; const AValue: TJSFunction);
 var
   LNode: TEFNode;
-  LCodeItem: TJSResponseItem;
+  LCode: string;
 begin
   CheckReadOnly(AName);
   LNode := FValues.GetNode(AName, True);
 
-{ TODO : If and when all function calls generate autonomous objects,
-  amend this code to extract the js code (perhaps in JSName) and then free the object }
-  LCodeItem := JSSession.ResponseItems.FindLastCodeItem(AValue);
-  if Assigned(LCodeItem) then
+  if Assigned(AValue) then
   begin
-    LNode.AsString := TJS.GetJSFunction(LCodeItem.AsFormattedText);
-    JSSession.ResponseItems.Remove(LCodeItem);
-  end;
+    LCode := AValue.JSName;
+    // Code already wrapped in an anonymous function does not want or need TJS.GetJSFunction.
+    { TODO : Find a way to do this that does not rely on string comparison }
+    if LCode.TrimLeft.StartsWith('function') then
+      LNode.AsString := LCode
+    else
+      LNode.AsString := TJS.GetJSFunction(LCode);
+  end
+  else
+    LNode.SetToNull;
   LNode.SetBoolean('IsFunction', True);
+
+  GetSession.ResponseItems.RemoveMethodCallByFunction(AValue);
 end;
 
-procedure TJSConfig.FormatTo(const AFormatter: TJSFormatter);
+procedure TJSValues.FormatTo(const AFormatter: TJSFormatter);
 var
   I: Integer;
   LValue: TEFNode;
   LAdded: Boolean;
 
+  function IsValidName(const AName: string): Boolean;
+  begin
+    // Nodes with number as names (such as method parameters) are considered unnamed.
+    Result := (AName <> '') and not IsNumeric(AName);
+  end;
+
   function FormatFunction(const ANode: TEFNode): Boolean;
   begin
-    AFormatter.AddIndentedPair(ANode.Name, ANode.AsString, False, False);
+    if IsValidName(ANode.Name) then
+      AFormatter.AddIndentedPair(ANode.Name, ANode.AsString, False, False, FNameValueConnector)
+    else
+      AFormatter.AddIndented(ANode.AsString);
     Result := True;
   end;
 
   function FormatObjectConfig(const AName: string; const AObject: TJSObject): Boolean;
   begin
-    Result := True;
-    if AObject.IsInline then
+    Result := False;
+    if Assigned(AObject) then
     begin
-      if AName <> '' then
-        AFormatter.AddIndented(AName + ': ');
-      AObject.JSConfig.FormatTo(AFormatter);
-    end
-    else if not AObject.IsInternal then
-    begin
-      if AName <> '' then
-        AFormatter.AddIndented(AName + ': ');
-      AFormatter.AddIndentedLine(AObject.JSName);
-    end
-    else
-      Result := False;
+      Result := True;
+
+      if AObject.IsInline then
+      begin
+        if IsValidName(AName) then
+          AFormatter.AddIndented(AName + FNameValueConnector)
+        else
+          AFormatter.AddIndent;
+        { TODO : what if it's empty? }
+        AFormatter.OpenObject;
+        AObject.JSConfig.FormatTo(AFormatter);
+        AFormatter.CloseObject;
+      end
+      else if not AObject.IsInternal then
+      begin
+        if IsValidName(AName) then
+          AFormatter.AddIndented(AName + FNameValueConnector)
+        else
+          AFormatter.AddIndent;
+        AFormatter.AddIndentedLine(AObject.JSName);
+      end
+      else
+        Result := False;
+    end;
   end;
 
-  function FormatObjectArrayConfig(const AName: string; const AObjectList: TJSObjectArray): Boolean;
+  function FormatObjectArrayConfig(const AName: string; const AObjectArray: TJSObjectArray): Boolean;
   var
     LObjectIndex: Integer;
   begin
-    if AObjectList.Count > 0 then
+    if AObjectArray.Count > 0 then
     begin
-      AFormatter.AddIndented(AName + ': ');
-      AFormatter.OpenArray.AddIndent;
-      for LObjectIndex := 0 to AObjectList.Count - 1 do
+      if IsValidName(AName) then
+        AFormatter.AddIndented(AName + FNameValueConnector)
+      else
+        AFormatter.AddIndent;
+      AFormatter.OpenArray;
+      for LObjectIndex := 0 to AObjectArray.Count - 1 do
       begin
-        if FormatObjectConfig('', AObjectList[LObjectIndex]) then
+        if FormatObjectConfig('', AObjectArray[LObjectIndex]) then
           AFormatter.Add(',');
       end;
       AFormatter.DeleteTrailing(',');
@@ -3207,13 +3181,15 @@ var
     LString := ANode.DataType.NodeToJSONValue(False, ANode, AFormatter.FormatSettings, ANode.DataType.NeedsQuotes, True);
     if LString <> '' then
     begin
-      AFormatter.AddIndented(ANode.Name + ': ' + LString);
+      if IsValidName(ANode.Name) then
+        AFormatter.AddIndented(ANode.Name + FNameValueConnector + LString)
+      else
+        AFormatter.AddIndented(LString);
       Result := True;
     end;
   end;
 
 begin
-  AFormatter.OpenObject;
   for I := 0 to Values.ChildCount - 1 do
   begin
     LValue := Values.Children[I];
@@ -3229,10 +3205,10 @@ begin
       AFormatter.Add(',').SkipLine;
   end;
   AFormatter.DeleteTrailing(',' + sLineBreak);
-  AFormatter.CloseObject;
+  AFormatter.DeleteTrailing(sLineBreak);
 end;
 
-function TJSConfig.GetJSSession: TJSSession;
+function TJSValues.GetJSSession: TJSSession;
 begin
   Assert(Assigned(Owner));
   Assert(Owner is TJSObject);
@@ -3278,9 +3254,9 @@ begin
 end;
 
 function TJSFormatter.AddIndentedPair(const AName, AStrValue: string;
-  const AQuoteValue, AAddComma: Boolean): TJSFormatter;
+  const AQuoteValue, AAddComma: Boolean; const AConnector: string): TJSFormatter;
 begin
-  Result := AddIndented(AName + ': ' + IfThen(AQuoteValue, '"', '') + AStrValue + IfThen(AQuoteValue, '"', '')
+  Result := AddIndented(AName + AConnector + IfThen(AQuoteValue, '"', '') + AStrValue + IfThen(AQuoteValue, '"', '')
     + IfThen(AAddComma, ',', ''));
 end;
 
@@ -3310,6 +3286,11 @@ end;
 function TJSFormatter.CloseObject: TJSFormatter;
 begin
   Result := SkipLine.Outdent.AddIndented('}');
+end;
+
+function TJSFormatter.CloseRound: TJSFormatter;
+begin
+  Result := SkipLine.Outdent.AddIndented(')');
 end;
 
 function TJSFormatter.DeleteTrailing(const AString: string): TJSFormatter;
@@ -3347,6 +3328,11 @@ end;
 function TJSFormatter.OpenObject: TJSFormatter;
 begin
   Result := Add('{').SkipLine.Indent;
+end;
+
+function TJSFormatter.OpenRound: TJSFormatter;
+begin
+  Result := Add('(').SkipLine.Indent;
 end;
 
 function TJSFormatter.Outdent: TJSFormatter;

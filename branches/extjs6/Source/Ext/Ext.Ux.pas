@@ -790,7 +790,9 @@ end;
 
 function TExtUxStatusBar.ClearStatus(const AConfig: TExtObject = nil): TExtFunction;
 begin
-  Result := CallMethod('clearStatus', AConfig);
+  Result := CallMethod('clearStatus')
+    .AddParam(AConfig)
+    .AsFunction;
 end;
 
 function TExtUxStatusBar.GetObjectNamePrefix: string;
@@ -800,37 +802,50 @@ end;
 
 function TExtUxStatusBar.GetText: TExtFunction;
 begin
-  Result := CallMethod('getText', []);
+  Result := CallMethod('getText')
+    .AsFunction;
 end;
 
 function TExtUxStatusBar.SetIcon(const AIconCls: string): TExtFunction;
 begin
-  Result := CallMethod('setIcon', AIconCls);
+  Result := CallMethod('setIcon')
+    .AddParam(AIconCls)
+    .AsFunction;
 end;
 
 function TExtUxStatusBar.SetStatus(const AConfig: TExtObject): TExtFunction;
 begin
-  Result := CallMethod('setStatus', AConfig);
+  Result := CallMethod('setStatus')
+    .AddParam(AConfig)
+    .AsFunction;
 end;
 
 function TExtUxStatusBar.SetStatus(const AConfig: string): TExtFunction;
 begin
-  Result := CallMethod('setStatus', AConfig);
+  Result := CallMethod('setStatus')
+    .AddParam(AConfig)
+    .AsFunction;
 end;
 
 function TExtUxStatusBar.SetText(const AText: string): TExtFunction;
 begin
-  Result := CallMethod('setText', AText);
+  Result := CallMethod('setText')
+    .AddParam(AText)
+    .AsFunction;
 end;
 
 function TExtUxStatusBar.ShowBusy(const AConfig: TExtObject): TExtFunction;
 begin
-  Result := CallMethod('showBusy', AConfig);
+  Result := CallMethod('showBusy')
+    .AddParam(AConfig)
+    .AsFunction;
 end;
 
 function TExtUxStatusBar.ShowBusy(const AConfig: string): TExtFunction;
 begin
-  Result := CallMethod('showBusy', AConfig);
+  Result := CallMethod('showBusy')
+    .AddParam(AConfig)
+    .AsFunction;
 end;
 
 class function TExtUxSliderTip.JSClassName: string;

@@ -1388,22 +1388,30 @@ end;
 function TExtTreeTreeNode.SetText(const AText: string): TExtFunction;
 begin
   FText := AText;
-  Result := CallMethod('setText', AText);
+  Result := CallMethod('setText')
+    .AddParam(AText)
+    .AsFunction;
 end;
 
 function TExtTreeTreeNode.SetTooltip(const ATip, ATitle: string): TExtFunction;
 begin
-  Result := CallMethod('setTooltip', [ATip, ATitle]);
+  Result := CallMethod('setTooltip')
+    .AddParam(ATip)
+    .AddParam(ATitle)
+    .AsFunction;
 end;
 
 function TExtTreeTreeNode.Toggle: TExtFunction;
 begin
-  Result := CallMethod('toggle', []);
+  Result := CallMethod('toggle')
+    .AsFunction;
 end;
 
 function TExtTreeTreeNode.Unselect(const ASilent: Boolean): TExtFunction;
 begin
-  Result := CallMethod('unselect', ASilent);
+  Result := CallMethod('unselect')
+    .AddParam(ASilent)
+    .AsFunction;
 end;
 
 procedure TExtTreeTreeNode.HandleEvent(const AEvtName: string);

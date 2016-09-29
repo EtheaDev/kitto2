@@ -294,6 +294,8 @@ function FormatByteSize(const AByteSize: Longint; const AFormatSettings: TFormat
 /// </summary>
 function FirstDelimiter(const ADelimiters, AString: string; AOffset: Integer = 1): Integer;
 
+function IsNumeric(const AString: string): Boolean;
+
 implementation
 
 uses
@@ -957,6 +959,16 @@ begin
       if ADelimiters[I] = AString[Result] then
         Exit;
   Result := 0;
+end;
+
+function IsNumeric(const AString: string): Boolean;
+var
+  C: Char;
+begin
+  Result := True;
+  for C in AString do
+    if not C.IsNumber then
+      Exit(False);
 end;
 
 initialization

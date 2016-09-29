@@ -452,7 +452,10 @@ function TExtMenuBaseItem.SetHandler(const AHandler: TExtFunction; const AScope:
 begin
   FHandler.Free;
   FHandler := AHandler;
-  Result := CallMethod('setHandler', [AHandler, True, AScope, False]);
+  Result := CallMethod('setHandler')
+    .AddFunctionParam(AHandler)
+    .AddParam(AScope)
+    .AsFunction;
 end;
 
 procedure TExtMenuBaseItem.HandleEvent(const AEvtName: string);
@@ -660,7 +663,10 @@ end;
 function TExtMenuCheckItem.SetChecked(const AChecked: Boolean; const ASuppressEvent: Boolean): TExtFunction;
 begin
   FChecked := AChecked;
-  Result := CallMethod('setChecked', [AChecked, ASuppressEvent]);
+  Result := CallMethod('setChecked')
+    .AddParam(AChecked)
+    .AddParam(ASuppressEvent)
+    .AsFunction;
 end;
 
 procedure TExtMenuCheckItem.HandleEvent(const AEvtName: string);

@@ -298,7 +298,7 @@ procedure TKExtTilePanel.AddBackTile;
 var
   LClickCode: string;
 begin
-  LClickCode := Ajax(DisplayPage, ['PageId', 0]).ExtractJSCommand;
+  LClickCode := Ajax(DisplayPage, ['PageId', 0]).ExtractLastJSCode;
 
   FTileBoxHtml := FTileBoxHtml + Format(
     '<a href="#" onclick="%s"><div class="k-tile k-tile-back" style="background-color:%s;width:%dpx;height:%dpx">' +
@@ -355,9 +355,9 @@ var
 
 begin
   if ANode is TKTreeViewFolder then
-    LClickCode := Ajax(DisplayPage, ['PageId', Integer(ANode)]).ExtractJSCommand
+    LClickCode := Ajax(DisplayPage, ['PageId', Integer(ANode)]).ExtractLastJSCode
   else
-    LClickCode := Ajax(DisplayView, ['View', Integer(Session.Config.Views.ViewByNode(ANode))]).ExtractJSCommand;
+    LClickCode := Ajax(DisplayView, ['View', Integer(Session.Config.Views.ViewByNode(ANode))]).ExtractLastJSCode;
 
   if GetCSS <> '' then
   begin
