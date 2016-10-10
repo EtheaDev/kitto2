@@ -61,7 +61,7 @@ Databases:
       Data Source: %COMPUTERNAME%
 
 Auth: DB
-  .Defaults:
+  Defaults:
     UserName: administrator
     Password: password
 
@@ -89,6 +89,12 @@ Login:
       AskUser: True
         .Default: False
       AutoLogin: False
+
+.HomeView:
+  Controller: Viewport
+    SubView:
+      Controller: TreePanel
+        TreeView: MainMenu
 
 HomeGirls:
   Controller: Viewport

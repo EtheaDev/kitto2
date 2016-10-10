@@ -51,11 +51,10 @@ type
     FRoot: TExtTreeTreeNode;
     FRootVisible: Boolean; // true
     procedure SetRootVisible(const AValue: Boolean);
-    function GetRoot: TExtTreeTreeNode;
     procedure SetRoot(const AValue: TExtTreeTreeNode);
   public
     class function JSClassName: string; override;
-    property Root: TExtTreeTreeNode read GetRoot write SetRoot;
+    property Root: TExtTreeTreeNode read FRoot write SetRoot;
     property RootVisible: Boolean read FRootVisible write SetRootVisible;
   end;
 
@@ -130,7 +129,7 @@ end;
 
 procedure TExtTreeTreePanel.SetRoot(const AValue: TExtTreeTreeNode);
 begin
-  FRoot := TExtTreeTreeNode(SetConfigItem('root', FRoot));
+  FRoot := TExtTreeTreeNode(SetConfigItem('root', AValue));
 end;
 
 procedure TExtTreeTreePanel.SetRootVisible(const AValue: Boolean);
@@ -141,11 +140,6 @@ end;
 class function TExtTreeTreePanel.JSClassName: string;
 begin
   Result := 'Ext.tree.TreePanel';
-end;
-
-function TExtTreeTreePanel.GetRoot: TExtTreeTreeNode;
-begin
-  Result := FRoot;
 end;
 
 end.
