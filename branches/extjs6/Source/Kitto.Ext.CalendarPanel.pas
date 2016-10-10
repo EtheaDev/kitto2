@@ -23,7 +23,7 @@ interface
 uses
   Ext.Base, Ext.Calendar, Ext.Data,
   EF.Tree,
-  Kitto.JS, Kitto.Metadata.DataView, Kitto.Ext.Base, Kitto.Ext.DataPanelLeaf;
+  Kitto.JS, Kitto.Metadata.DataView, Kitto.Ext, Kitto.Ext.Base, Kitto.Ext.DataPanelLeaf;
 
 type
   TKExtCalendarPanel = class(TKExtDataPanelLeafController)
@@ -72,7 +72,7 @@ procedure TKExtCalendarPanel.CreateAndInitCalendar;
 begin
   Assert(ClientStore <> nil);
 
-  FCalendarPanel := TExtensibleCalendarPanel.CreateAndAddTo(Items);
+  FCalendarPanel := TExtensibleCalendarPanel.CreateAndAddToArray(Items);
   FCalendarPanel.Region := rgCenter;
   FCalendarPanel.Border := False;
 
@@ -251,7 +251,7 @@ begin
 
   FCalendarStore := CreateCalendarStore;
   FCalendarReader := CreateCalendarReader;
-  FCalendarStore.Reader := FCalendarReader;
+  FCalendarStore.Proxy.Reader := FCalendarReader;
 
   CreateAndInitCalendar;
 end;
@@ -262,7 +262,7 @@ function TKExtCalendarPanel.CreateCalendarReader: TExtDataJsonReader;
   var
     LField: TExtDataField;
   begin
-    LField := TExtDataField.CreateAndAddTo(AReader.Fields);
+    LField := TExtDataField.CreateAndAddToArray(AReader.Fields);
     LField.Name := AName;
     LField.&Type := AType;
     LField.UseNull := AUseNull;
@@ -271,8 +271,8 @@ function TKExtCalendarPanel.CreateCalendarReader: TExtDataJsonReader;
 begin
   Assert(Assigned(ViewTable));
 
-  Result := TExtDataJsonReader.Create(Self, JSObject('')); // Must pass '' otherwise invalid code is generated.
-  Result.Root := 'Root';
+  Result := TExtDataJsonReader.Create(Self);
+  Result.RootProperty := 'Root';
   Result.TotalProperty := 'Total';
   Result.MessageProperty := 'Msg';
   Result.SuccessProperty := 'Success';
@@ -285,10 +285,14 @@ begin
 end;
 
 function TKExtCalendarPanel.CreateCalendarStore: TExtDataStore;
+var
+  LProxy: TExtDataAjaxProxy;
 begin
   Result := TExtDataStore.Create(Self);
   Result.RemoteSort := False;
-  Result.Url := MethodURI(GetCalendarRecords);
+  LProxy := TExtDataAjaxProxy.Create(Result);
+  LProxy.Url := MethodURI(GetCalendarRecords);
+  Result.Proxy := LProxy;
   Result.On('exception', JSFunction('proxy, type, action, options, response, arg', 'loadError(type, action, response);'));
 end;
 
