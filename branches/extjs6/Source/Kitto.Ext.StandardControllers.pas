@@ -590,7 +590,7 @@ begin
   LSubmitAction.WaitTitle := _('Please wait...');
   LSubmitAction.Success := Ajax(PostUpload);
   LSubmitAction.Failure := ExtMessageBox.Alert(_('File upload error'), '%1.result.message');
-  LUploadButton.Handler := TExtFormBasicForm(LFormPanel.GetForm).Submit(LSubmitAction);
+  LUploadButton.Handler := LFormPanel.Form.Submit(LSubmitAction);
 
   Session.MaxUploadSize := MaxUploadSize;
   FWindow.Show;

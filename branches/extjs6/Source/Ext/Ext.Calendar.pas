@@ -98,7 +98,6 @@ type
     function GetEventIdFromEl(El : String) : TExtFunction; overload;
     function GetEventSelectorCls(EventId : String; ForSelect : Boolean) : TExtFunction;
     function GetStartDate : TExtFunction;
-    function HighlightEvent(Els : TExtCompositeElement; Color : TExtObject = nil; O : TExtObject = nil) : TExtFunction;
     function IsToday : TExtFunction;
     function MoveDays(Value : Integer) : TExtFunction;
     function MoveMonths(Value : Integer) : TExtFunction;
@@ -414,7 +413,6 @@ type
     function GetStartDate : TExtFunction;
     function GetValue : TExtFunction;
     function HideEditForm : TExtFunction;
-    function HighlightEvent(Els : TExtCompositeElement; Color : TExtObject = nil; O : TExtObject = nil) : TExtFunction;
     function IsToday : TExtFunction;
     function MoveDays(Value : Integer) : TExtFunction;
     function MoveMonths(Value : Integer) : TExtFunction;
@@ -877,11 +875,6 @@ end;
 
 function TExtCalendarView.GetStartDate : TExtFunction; begin
   JSCode(JSName + '.getStartDate();', 'TExtCalendarView');
-  Result := Self;
-end;
-
-function TExtCalendarView.HighlightEvent(Els : TExtCompositeElement; Color : TExtObject = nil; O : TExtObject = nil) : TExtFunction; begin
-  JSCode(JSName + '.highlightEvent(' + VarToJSON([Els, false, Color, false, O, false]) + ');', 'TExtCalendarView');
   Result := Self;
 end;
 
@@ -1625,11 +1618,6 @@ end;
 
 function TExtCalendarDayHeaderTemplate.HideEditForm : TExtFunction; begin
   JSCode(JSName + '.hideEditForm();', 'TExtCalendarDayHeaderTemplate');
-  Result := Self;
-end;
-
-function TExtCalendarDayHeaderTemplate.HighlightEvent(Els : TExtCompositeElement; Color : TExtObject = nil; O : TExtObject = nil) : TExtFunction; begin
-  JSCode(JSName + '.highlightEvent(' + VarToJSON([Els, false, Color, false, O, false]) + ');', 'TExtCalendarDayHeaderTemplate');
   Result := Self;
 end;
 

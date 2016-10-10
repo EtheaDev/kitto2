@@ -359,7 +359,7 @@ type
     property Session: TKExtSession read GetSession;
   end;
 
-  TKExtDelayedHome = class(TExtFunction)
+  TKExtDelayedHome = class(TExtObject)
   public
     function GetViewportWidthInInches: TExtFunction;
   published
@@ -1470,8 +1470,7 @@ end;
 
 function TKExtDelayedHome.GetViewportWidthInInches: TExtFunction;
 begin
-  Session.ResponseItems.ExecuteJSCode(Self, 'getViewportWidthInInches()');
-  Result := Self;
+  Result := Session.ResponseItems.ExecuteJSCode(Self, 'getViewportWidthInInches()').AsFunction;
 end;
 
 initialization

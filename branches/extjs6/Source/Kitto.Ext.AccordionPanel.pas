@@ -39,7 +39,6 @@ implementation
 
 uses
   SysUtils,
-  Ext.Layout,
   EF.Tree, EF.Localization,
   Kitto.Types, Kitto.AccessControl, Kitto.Ext.Controller, Kitto.Ext.Session;
 
@@ -53,7 +52,7 @@ begin
   MinSize := 20;
   MaxSize := 400;
 
-  LayoutConfig := JSObject('animate:true');
+  LayoutConfig.SetConfigItem('animate', True);
   DisplaySubViewsAndControllers;
 end;
 

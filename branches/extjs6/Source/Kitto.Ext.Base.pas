@@ -437,7 +437,6 @@ type
   end;
 
 function OptionAsLabelAlign(const AAlign: string): TExtContainerLabelAlign;
-function OptionAsGridColumnAlign(const AAlign: string): TExtGridColumnAlign;
 
 implementation
 
@@ -445,19 +444,6 @@ uses
   StrUtils,
   EF.StrUtils, EF.Types, EF.Localization, EF.Macros,
   Kitto.AccessControl, Kitto.Ext.Utils, Kitto.Ext.Session;
-
-function OptionAsGridColumnAlign(const AAlign: string): TExtGridColumnAlign;
-begin
-  //alLeft, alRight, alCenter
-  if SameText(AAlign, 'Left') then
-    Result := caLeft
-  else if SameText(AAlign, 'Right') then
-    Result := caRight
-  else if SameText(AAlign, 'Center') then
-    Result := caCenter
-  else
-    raise EEFError.CreateFmt(_('Invalid value %s. Valid values: "Left", "Right", "Center".'), [AAlign]);
-end;
 
 function OptionAsLabelAlign(const AAlign: string): TExtContainerLabelAlign;
 begin
@@ -916,8 +902,7 @@ end;
 
 function TKExtFormComboBox.GetEncodedValue: TExtFunction;
 begin
-  Session.ResponseItems.ExecuteJSCode(Self, Format('encodeURI(%s.getValue())', [JSName]));
-  Result := Self;
+  Result := Session.ResponseItems.ExecuteJSCode(Self, Format('encodeURI(%s.getValue())', [JSName])).AsFunction;
 end;
 
 procedure TKExtFormComboBox.InitDefaults;
