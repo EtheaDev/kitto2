@@ -31,14 +31,14 @@ type
     function GetObjectNamePrefix: string; override;
   public
     class function JSClassName: string; override;
-    function ClearStatus(const AConfig: TExtObject = nil): TExtFunction;
-    function GetText: TExtFunction;
-    function SetIcon(const AIconCls: string = ''): TExtFunction;
-    function SetStatus(const AConfig: TExtObject = nil): TExtFunction; overload;
-    function SetStatus(const AConfig: string): TExtFunction; overload;
-    function SetText(const AText: string): TExtFunction;
-    function ShowBusy(const AConfig: TExtObject = nil): TExtFunction; overload;
-    function ShowBusy(const AConfig: string): TExtFunction; overload;
+    function ClearStatus(const AConfig: TExtObject = nil): TExtExpression;
+    function GetText: TExtExpression;
+    function SetIcon(const AIconCls: string = ''): TExtExpression;
+    function SetStatus(const AConfig: TExtObject = nil): TExtExpression; overload;
+    function SetStatus(const AConfig: string): TExtExpression; overload;
+    function SetText(const AText: string): TExtExpression;
+    function ShowBusy(const AConfig: TExtObject = nil): TExtExpression; overload;
+    function ShowBusy(const AConfig: string): TExtExpression; overload;
     property AutoClear: Integer read FAutoClear write SetAutoClear;
     property BusyIconCls: string read FBusyIconCls write SetBusyIconCls;
     property BusyText: string read FBusyText write SetBusyText;
@@ -119,11 +119,11 @@ begin
   FCls := 'x-statusbar';
 end;
 
-function TExtUxStatusBar.ClearStatus(const AConfig: TExtObject = nil): TExtFunction;
+function TExtUxStatusBar.ClearStatus(const AConfig: TExtObject = nil): TExtExpression;
 begin
   Result := CallMethod('clearStatus')
     .AddParam(AConfig)
-    .AsFunction;
+    .AsExpression;
 end;
 
 function TExtUxStatusBar.GetObjectNamePrefix: string;
@@ -131,52 +131,52 @@ begin
   Result := 'statusbar';
 end;
 
-function TExtUxStatusBar.GetText: TExtFunction;
+function TExtUxStatusBar.GetText: TExtExpression;
 begin
   Result := CallMethod('getText')
-    .AsFunction;
+    .AsExpression;
 end;
 
-function TExtUxStatusBar.SetIcon(const AIconCls: string): TExtFunction;
+function TExtUxStatusBar.SetIcon(const AIconCls: string): TExtExpression;
 begin
   Result := CallMethod('setIcon')
     .AddParam(AIconCls)
-    .AsFunction;
+    .AsExpression;
 end;
 
-function TExtUxStatusBar.SetStatus(const AConfig: TExtObject): TExtFunction;
+function TExtUxStatusBar.SetStatus(const AConfig: TExtObject): TExtExpression;
 begin
   Result := CallMethod('setStatus')
     .AddParam(AConfig)
-    .AsFunction;
+    .AsExpression;
 end;
 
-function TExtUxStatusBar.SetStatus(const AConfig: string): TExtFunction;
+function TExtUxStatusBar.SetStatus(const AConfig: string): TExtExpression;
 begin
   Result := CallMethod('setStatus')
     .AddParam(AConfig)
-    .AsFunction;
+    .AsExpression;
 end;
 
-function TExtUxStatusBar.SetText(const AText: string): TExtFunction;
+function TExtUxStatusBar.SetText(const AText: string): TExtExpression;
 begin
   Result := CallMethod('setText')
     .AddParam(AText)
-    .AsFunction;
+    .AsExpression;
 end;
 
-function TExtUxStatusBar.ShowBusy(const AConfig: TExtObject): TExtFunction;
+function TExtUxStatusBar.ShowBusy(const AConfig: TExtObject): TExtExpression;
 begin
   Result := CallMethod('showBusy')
     .AddParam(AConfig)
-    .AsFunction;
+    .AsExpression;
 end;
 
-function TExtUxStatusBar.ShowBusy(const AConfig: string): TExtFunction;
+function TExtUxStatusBar.ShowBusy(const AConfig: string): TExtExpression;
 begin
   Result := CallMethod('showBusy')
     .AddParam(AConfig)
-    .AsFunction;
+    .AsExpression;
 end;
 
 end.

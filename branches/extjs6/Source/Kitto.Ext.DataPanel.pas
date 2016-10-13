@@ -106,7 +106,7 @@ type
     function AddActionButton(const AUniqueId: string; const AView: TKView;
       const AToolbar: TKExtToolbar): TKExtActionButton; override;
     function GetSelectConfirmCall(const AMessage: string; const AMethod: TExtProcedure): string; virtual;
-    function GetSelectCall(const AMethod: TExtProcedure): TExtFunction; virtual;
+    function GetSelectCall(const AMethod: TExtProcedure): TExtExpression; virtual;
     function AutoLoadData: Boolean; virtual;
     function GetParentDataPanel: TKExtDataPanelController;
     function GetRootDataPanel: TKExtDataPanelController;
@@ -454,7 +454,7 @@ begin
   raise EKError.Create(_('Actions that require selection are not supported in this controller.'));
 end;
 
-function TKExtDataPanelController.GetSelectCall(const AMethod: TExtProcedure): TExtFunction;
+function TKExtDataPanelController.GetSelectCall(const AMethod: TExtProcedure): TExtExpression;
 begin
   raise EKError.Create(_('Actions that require selection are not supported in this controller.'));
 end;

@@ -22,7 +22,7 @@ type
     procedure InitDefaults; override;
   public
     class function JSClassName: string; override;
-    function SetApi(const AApi: string; const AUrl: string): TExtFunction; overload;
+    function SetApi(const AApi: string; const AUrl: string): TExtExpression; overload;
     property Reader: TExtDataDataReader read FReader write SetReader;
   end;
 
@@ -82,7 +82,7 @@ type
     procedure InitDefaults; override;
   public
     class function JSClassName: string; override;
-    function SetId(const AId: string): TExtFunction;
+    function SetId(const AId: string): TExtExpression;
     property Id: string read FId write _SetId;
     property Leaf: Boolean read FLeaf write SetLeaf;
     property Children: TExtObjectList read FChildren;
@@ -106,7 +106,7 @@ type
     function GetObjectNamePrefix: string; override;
   public
     class function JSClassName: string; override;
-    function Load(const AOptions: TExtObject): TExtFunction;
+    function Load(const AOptions: TExtObject): TExtExpression;
     procedure RemoveAll(const ASilent: Boolean = False);
     property AutoLoad: Boolean read FAutoLoad write SetAutoLoad;
     property GroupField: string read FGroupField write SetGroupField;
@@ -223,12 +223,12 @@ begin
   FChildren := CreateConfigArray('children');
 end;
 
-function TExtDataNode.SetId(const AId: string): TExtFunction;
+function TExtDataNode.SetId(const AId: string): TExtExpression;
 begin
   FId := AId;
   Result := CallMethod('setId')
     .AddParam(AId)
-    .AsFunction;
+    .AsExpression;
 end;
 
 procedure TExtDataStore.SetAutoLoad(const AValue: Boolean);
@@ -272,18 +272,18 @@ begin
   Result := 'store';
 end;
 
-function TExtDataStore.Load(const AOptions: TExtObject): TExtFunction;
+function TExtDataStore.Load(const AOptions: TExtObject): TExtExpression;
 begin
   Result := CallMethod('load')
     .AddParam(AOptions)
-    .AsFunction;
+    .AsExpression;
 end;
 
 procedure TExtDataStore.RemoveAll(const ASilent: Boolean);
 begin
   CallMethod('removeAll')
     .AddParam(ASilent)
-    .AsFunction;
+    .AsExpression;
 end;
 
 class function TExtDataTree.JSClassName: string;
@@ -308,12 +308,12 @@ begin
   FApi := TExtObject.CreateInternal(Self, 'api');
 end;
 
-function TExtDataProxy.SetApi(const AApi: string; const AUrl: string): TExtFunction;
+function TExtDataProxy.SetApi(const AApi: string; const AUrl: string): TExtExpression;
 begin
   Result := CallMethod('setApi')
     .AddParam(AApi)
     .AddParam(AUrl)
-    .AsFunction;
+    .AsExpression;
 end;
 
 procedure TExtDataJsonReader.SetRootProperty(const AValue: string);

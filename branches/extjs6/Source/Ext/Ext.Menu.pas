@@ -32,22 +32,22 @@ type
     FActiveClass: string; // 'x-menu-item-active'
     FCanActivate: Boolean;
     FClickHideDelay: Integer; // 1
-    FHandler: TExtFunction;
+    FHandler: TExtExpression;
     FHideOnClick: Boolean; // true
     FScope: TExtObject;
     FParentMenu: TExtMenuMenu;
     FOnActivate: TExtMenuBaseItemOnActivate;
     FOnClick: TExtMenuBaseItemOnClick;
     FOnDeactivate: TExtMenuBaseItemOnDeactivate;
-    procedure _SetHandler(const AValue: TExtFunction);
+    procedure _SetHandler(const AValue: TExtExpression);
     procedure SetOnClick(const AValue: TExtMenuBaseItemOnClick);
   protected
     procedure InitDefaults; override;
     procedure HandleEvent(const AEvtName: string); override;
   public
     class function JSClassName: string; override;
-    function SetHandler(const AHandler: TExtFunction; const AScope: TExtObject): TExtFunction;
-    property Handler: TExtFunction read FHandler write _SetHandler;
+    function SetHandler(const AHandler: TExtExpression; const AScope: TExtObject): TExtExpression;
+    property Handler: TExtExpression read FHandler write _SetHandler;
     property OnClick: TExtMenuBaseItemOnClick read FOnClick write SetOnClick;
   end;
 
@@ -84,7 +84,7 @@ type
     procedure _SetChecked(const AValue: Boolean);
   public
     class function JSClassName: string; override;
-    function SetChecked(const AChecked: Boolean; const ASuppressEvent: Boolean = False): TExtFunction;
+    function SetChecked(const AChecked: Boolean; const ASuppressEvent: Boolean = False): TExtExpression;
     property Checked: Boolean read FChecked write _SetChecked;
   end;
 
@@ -146,17 +146,23 @@ begin
   Result := 'Ext.menu.MenuMgr';
 end;
 
-procedure TExtMenuBaseItem._SetHandler(const AValue: TExtFunction);
+procedure TExtMenuBaseItem._SetHandler(const AValue: TExtExpression);
 begin
   FHandler.Free;
-  FHandler := SetFunctionConfigItem('handler', 'setHandler', AValue);
+  FHandler := SetConfigItem('handler', 'setHandler', AValue);
 end;
 
 procedure TExtMenuBaseItem.SetOnClick(const AValue: TExtMenuBaseItemOnClick);
 begin
   RemoveAllListeners('click');
   if Assigned(AValue) then
-    On('click', Ajax('click', ['This', '%0.nm', 'E', '%1.nm'], true));
+    //On('click', Ajax('click', ['This', '%0.nm', 'E', '%1.nm'], true));
+    &On('click', AjaxCallMethod('click')
+      .Event
+      .AddRawParam('This', 'sender.nm')
+      .AddRawParam('E', 'e.nm')
+      .FunctionArgs('sender, e')
+      .AsFunction);
   FOnClick := AValue;
 end;
 
@@ -175,14 +181,14 @@ begin
   FParentMenu := TExtMenuMenu.CreateInternal(Self, 'parentMenu');
 end;
 
-function TExtMenuBaseItem.SetHandler(const AHandler: TExtFunction; const AScope: TExtObject): TExtFunction;
+function TExtMenuBaseItem.SetHandler(const AHandler: TExtExpression; const AScope: TExtObject): TExtExpression;
 begin
   FHandler.Free;
   FHandler := AHandler;
   Result := CallMethod('setHandler')
-    .AddFunctionParam(AHandler)
+    .AddParam(AHandler)
     .AddParam(AScope)
-    .AsFunction;
+    .AsExpression;
 end;
 
 procedure TExtMenuBaseItem.HandleEvent(const AEvtName: string);
@@ -244,21 +250,27 @@ begin
   Result := 'Ext.menu.CheckItem';
 end;
 
-function TExtMenuCheckItem.SetChecked(const AChecked: Boolean; const ASuppressEvent: Boolean): TExtFunction;
+function TExtMenuCheckItem.SetChecked(const AChecked: Boolean; const ASuppressEvent: Boolean): TExtExpression;
 begin
   FChecked := AChecked;
   Result := CallMethod('setChecked')
     .AddParam(AChecked)
     .AddParam(ASuppressEvent)
-    .AsFunction;
+    .AsExpression;
 end;
 
 procedure TExtMenuMenu.SetOnClick(const AValue: TExtMenuMenuOnClick);
 begin
   RemoveAllListeners('click');
   if Assigned(AValue) then
-    On('click', Ajax('click', ['This', '%0.nm', 'MenuItem', '%1.nm', 'E',
-      '%2.nm'], true));
+    //On('click', Ajax('click', ['This', '%0.nm', 'MenuItem', '%1.nm', 'E', '%2.nm'], true));
+    &On('click', AjaxCallMethod('click')
+      .Event
+      .AddRawParam('This', 'sender.nm')
+      .AddRawParam('MenuItem', 'item.nm')
+      .AddRawParam('E', 'e.nm')
+      .FunctionArgs('sender, item, e')
+      .AsFunction);
   FOnClick := AValue;
 end;
 
@@ -266,7 +278,13 @@ procedure TExtMenuMenu.SetOnItemclick(const AValue: TExtMenuMenuOnItemclick);
 begin
   RemoveAllListeners('itemclick');
   if Assigned(AValue) then
-    On('itemclick', Ajax('itemclick', ['BaseItem', '%0.nm', 'E', '%1.nm'], true));
+    //On('itemclick', Ajax('itemclick', ['BaseItem', '%0.nm', 'E', '%1.nm'], true));
+    &On('itemclick', AjaxCallMethod('itemclick')
+      .Event
+      .AddRawParam('BaseItem', 'item.nm')
+      .AddRawParam('E', 'e.nm')
+      .FunctionArgs('item, e')
+      .AsFunction);
   FOnItemclick := AValue;
 end;
 

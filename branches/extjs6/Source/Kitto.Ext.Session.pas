@@ -361,7 +361,7 @@ type
 
   TKExtDelayedHome = class(TExtObject)
   public
-    function GetViewportWidthInInches: TExtFunction;
+    function GetViewportWidthInInches: TExtExpression;
   published
     procedure Execute;
   end;
@@ -1465,12 +1465,15 @@ end;
 
 procedure TKExtDelayedHome.Execute;
 begin
-  Session.ResponseItems.ExecuteJSCode(GetAjaxCode(Session.DelayedHome, ['vpWidthInches', GetViewportWidthInInches]));
+  AjaxCallMethod()
+    .SetMethod(Session.DelayedHome)
+    .AddParam('vpWidthInches', GetViewportWidthInInches);
+//  Session.ResponseItems.ExecuteJSCode(GetAjaxCode(Session.DelayedHome, ['vpWidthInches', GetViewportWidthInInches]));
 end;
 
-function TKExtDelayedHome.GetViewportWidthInInches: TExtFunction;
+function TKExtDelayedHome.GetViewportWidthInInches: TExtExpression;
 begin
-  Result := Session.ResponseItems.ExecuteJSCode(Self, 'getViewportWidthInInches()').AsFunction;
+  Result := Session.ResponseItems.ExecuteJSCode(Self, 'getViewportWidthInInches()').AsExpression;
 end;
 
 initialization

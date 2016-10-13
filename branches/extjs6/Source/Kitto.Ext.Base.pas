@@ -373,7 +373,7 @@ type
     FSubjObserverImpl: TEFSubjectAndObserver;
   protected
     procedure InitDefaults; override;
-    function GetEncodedValue: TExtFunction;
+    function GetEncodedValue: TExtExpression;
   public
     destructor Destroy; override;
     function AsObject: TObject; inline;
@@ -544,7 +544,10 @@ begin
   Border := False;
   Plain := True;
 
-  On('close', Ajax(WindowClosed, ['Window', JSName]));
+  //On('close', Ajax(WindowClosed, ['Window', JSName]));
+  &On('close',
+    AjaxCallMethod.SetMethod(WindowClosed)
+      .AddParam('Window', JSName).AsFunction);
 end;
 
 procedure TKExtWindowControllerBase.InitSubController(const AController: IKExtController);
@@ -860,7 +863,10 @@ procedure TKExtModalWindow.HookPanel(const APanel: TExtPanel);
 begin
   Assert(Assigned(APanel));
 
-  APanel.On('close', Ajax(PanelClosed, ['Panel', APanel.JSName]));
+  //APanel.On('close', Ajax(PanelClosed, ['Panel', APanel.JSName]));
+  APanel.&On('close',
+    AjaxCallMethod.SetMethod(PanelClosed)
+      .AddParam('Panel', APanel.JSName).AsFunction);
 end;
 
 procedure TKExtModalWindow.InitDefaults;
@@ -900,9 +906,9 @@ begin
   FSubjObserverImpl.DetachObserver(AObserver);
 end;
 
-function TKExtFormComboBox.GetEncodedValue: TExtFunction;
+function TKExtFormComboBox.GetEncodedValue: TExtExpression;
 begin
-  Result := Session.ResponseItems.ExecuteJSCode(Self, Format('encodeURI(%s.getValue())', [JSName])).AsFunction;
+  Result := Session.ResponseItems.ExecuteJSCode(Self, Format('encodeURI(%s.getValue())', [JSName])).AsExpression;
 end;
 
 procedure TKExtFormComboBox.InitDefaults;
@@ -941,7 +947,10 @@ begin
     if Config.GetBoolean('AllowClose', GetDefaultAllowClose) then
     begin
       Closable := True;
-      On('close', Container.Ajax('PanelClosed', ['Panel', JSName]));
+      //On('close', Container.Ajax('PanelClosed', ['Panel', JSName]));
+      &On('close',
+        Container.AjaxCallMethod('PanelClosed')
+          .AddParam('Panel', JSName).AsFunction);
     end
     else
       Closable := False;
@@ -1077,7 +1086,9 @@ begin
   if LConfirmationMessage <> '' then
     Result.On('click', JSFunction(LConfirmationJS))
   else
-    Result.On('click', Ajax(Result.ExecuteButtonAction, []));
+    //Result.On('click', Ajax(Result.ExecuteButtonAction, []));
+    Result.&On('click',
+      AjaxCallMethod('click').SetMethod(Result.ExecuteButtonAction).AsFunction);
 end;
 
 procedure TKExtPanelControllerBase.AddToolViewButtons(
@@ -1623,7 +1634,8 @@ begin
   FCancelButton.SetIconAndScale('cancel', Config.GetString('ButtonScale', 'medium'));
   FCancelButton.Text := _('Cancel');
   FCancelButton.Tooltip := _('Cancel changes');
-  FCancelButton.Handler := Ajax(Cancel);
+  //FCancelButton.Handler := Ajax(Cancel);
+  FCancelButton.Handler := AjaxCallMethod.SetMethod(Cancel).AsFunction;
 end;
 
 procedure TKExtWindowToolController.DoDisplay;

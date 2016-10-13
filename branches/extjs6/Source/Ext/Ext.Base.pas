@@ -85,20 +85,20 @@ type
   TExtQuickTipsSingleton = class(TExtObject)
   public
     class function JSClassName: string; override;
-    function Disable: TExtFunction;
-    function Enable: TExtFunction;
-    function Init(const AAutoRender: Boolean): TExtFunction;
+    function Disable: TExtExpression;
+    function Enable: TExtExpression;
+    function Init(const AAutoRender: Boolean): TExtExpression;
   end;
 
   TExtElement = class(TExtObject)
   public
     class function JSClassName: string; override;
-    function AddClass(const AClassName: string): TExtFunction;
+    function AddClass(const AClassName: string): TExtExpression;
   end;
 
   TExtAction = class(TExtObject)
   private
-    FHandler: TExtFunction;
+    FHandler: TExtExpression;
     FHidden: Boolean;
 
     FScope: TExtObject;
@@ -108,9 +108,9 @@ type
     procedure InitDefaults; override;
   public
     class function JSClassName: string; override;
-    function SetHandler(const AFn: TExtFunction; const AScope: TExtObject): TExtFunction;
-    function SetHidden(const AHidden: Boolean): TExtFunction;
-    function SetText(const AText: string): TExtFunction;
+    function SetHandler(const AFn: TExtExpression; const AScope: TExtObject): TExtExpression;
+    function SetHidden(const AHidden: Boolean): TExtExpression;
+    function SetText(const AText: string): TExtExpression;
     property Text: string read FText write _SetText;
   end;
 
@@ -190,13 +190,13 @@ type
     procedure HandleEvent(const AEvtName: string); override;
   public
     class function JSClassName: string; override;
-    function AddCls(const AClsName: string): TExtFunction;
-    function Focus(const ASelectText: Boolean = False; const ADelay: Boolean = False): TExtFunction; overload;
-    function Focus(const ASelectText: Boolean; const ADelay: Integer): TExtFunction; overload;
-    function Hide: TExtFunction;
-    function SetDisabled(const AValue: Boolean): TExtFunction;
-    function SetVisible(const AValue: Boolean): TExtFunction;
-    function Show: TExtFunction;
+    function AddCls(const AClsName: string): TExtExpression;
+    function Focus(const ASelectText: Boolean = False; const ADelay: Boolean = False): TExtExpression; overload;
+    function Focus(const ASelectText: Boolean; const ADelay: Integer): TExtExpression; overload;
+    function Hide: TExtExpression;
+    function SetDisabled(const AValue: Boolean): TExtExpression;
+    function SetVisible(const AValue: Boolean): TExtExpression;
+    function Show: TExtExpression;
     property Cls: string read FCls write SetCls;
     property Disabled: Boolean read FDisabled write _SetDisabled;
     property FieldLabel: string read FFieldLabel write SetFieldLabel;
@@ -230,7 +230,7 @@ type
     procedure InitDefaults; override;
   public
     class function JSClassName: string; override;
-    function SetZIndex(const AZindex: Integer): TExtFunction;
+    function SetZIndex(const AZindex: Integer): TExtExpression;
     property Zindex: Integer read FZindex write _SetZindex;
   end;
 
@@ -245,7 +245,7 @@ type
     procedure _SetValue(const AValue: string);
   public
     class function JSClassName: string; override;
-    function SetValue(const AValue: string): TExtFunction;
+    function SetValue(const AValue: string): TExtExpression;
     property Value: string read FValue write _SetValue;
   end;
 
@@ -262,8 +262,8 @@ type
     procedure _SetMinDate(const AValue: TDateTime);
   public
     class function JSClassName: string; override;
-    function SetMaxDate(const AValue: TDateTime): TExtFunction;
-    function SetMinDate(const AValue: TDateTime): TExtFunction;
+    function SetMaxDate(const AValue: TDateTime): TExtExpression;
+    function SetMinDate(const AValue: TDateTime): TExtExpression;
     property MaxDate: TDateTime read FMaxDate write _SetMaxDate;
     property MinDate: TDateTime read FMinDate write _SetMinDate;
   end;
@@ -277,7 +277,7 @@ type
     FWidthString: string;
     FWidth: Integer;
     FAutoScroll: Boolean;
-    FHeightFunc: TExtFunction;
+    FHeightFunc: TExtExpression;
     FFlex: Integer;
     FMargins: string;
     FAnchor: string;
@@ -285,7 +285,7 @@ type
     FHeightString: string;
     FRegion: TExtBoxComponentRegion;
     FHeight: Integer;
-    FWidthFunc: TExtFunction;
+    FWidthExpression: TExtExpression;
     procedure SetAnchor(const AValue: string);
     procedure SetAutoHeight(const AValue: Boolean);
     procedure _SetAutoScroll(const AValue: Boolean);
@@ -297,8 +297,8 @@ type
     procedure SetWidth(const AValue: Integer);
     procedure SetHeightString(const AValue: string);
     procedure SetWidthString(const AValue: string);
-    procedure SetWidthFunc(const AValue: TExtFunction);
-    procedure SetHeightFunc(const AValue: TExtFunction);
+    procedure SetWidthExpression(const AValue: TExtExpression);
+    procedure SetHeightFunc(const AValue: TExtExpression);
   protected
     procedure InitDefaults; override;
   public
@@ -310,12 +310,12 @@ type
     property Flex: Integer read FFlex write SetFlex;
     property Height: Integer read FHeight write SetHeight;
     property HeightString: string read FHeightString write SetHeightString;
-    property HeightFunc: TExtFunction read FHeightFunc write SetHeightFunc;
+    property HeightFunc: TExtExpression read FHeightFunc write SetHeightFunc;
     property Margins: string read FMargins write SetMargins;
     property Region: TExtBoxComponentRegion read FRegion write SetRegion;
     property Width: Integer read FWidth write SetWidth;
     property WidthString: string read FWidthString write SetWidthString;
-    property WidthFunc: TExtFunction read FWidthFunc write SetWidthFunc;
+    property WidthExpression: TExtExpression read FWidthExpression write SetWidthExpression;
   end;
 
   TExtToolbarItem = class(TExtBoxComponent)
@@ -368,9 +368,9 @@ type
     procedure InitDefaults; override;
   public
     class function JSClassName: string; override;
-    function UpdateLayout(const AShallow: Boolean; const AForce: Boolean): TExtFunction; overload;
-    function UpdateLayout: TExtFunction; overload;
-    function Remove(const AComponent: TExtComponent; const AAutoDestroy: Boolean = False): TExtFunction;
+    function UpdateLayout(const AShallow: Boolean; const AForce: Boolean): TExtExpression; overload;
+    function UpdateLayout: TExtExpression; overload;
+    function Remove(const AComponent: TExtComponent; const AAutoDestroy: Boolean = False): TExtExpression;
     property ActiveItem: string read FActiveItem write SetActiveItem;
     property ActiveItemNumber: Integer read FActiveItemNumber write SetActiveItemNumber;
     property Defaults: TExtObject read FDefaults;
@@ -390,7 +390,7 @@ type
     FEnableToggle: Boolean;
     FFormBind: Boolean;
     FHandleMouseEvents: Boolean; // true
-    FHandler: TExtFunction;
+    FHandler: TExtExpression;
     FHidden: Boolean;
     FIcon: string;
     FIconCls: string;
@@ -409,7 +409,7 @@ type
     procedure SetDisabled(const AValue: Boolean);
     procedure SetEnableToggle(const AValue: Boolean);
     procedure SetFormBind(const AValue: Boolean);
-    procedure _SetHandler(const AValue: TExtFunction);
+    procedure _SetHandler(const AValue: TExtExpression);
     procedure SetHidden(const AValue: Boolean);
     procedure _SetIcon(const AValue: string);
     procedure SetIconCls(const AValue: string);
@@ -425,22 +425,22 @@ type
     function GetObjectNamePrefix: string; override;
   public
     class function JSClassName: string; override;
-    function GetPressed(const AGroup: string): TExtFunction;
-    function Pressed_: TExtFunction;
-    function GetTemplateArgs: TExtFunction;
-    function GetText: TExtFunction;
-    function HasVisibleMenu: TExtFunction;
-    function HideMenu: TExtFunction;
-    function SetHandler(const AHandler: TExtFunction; const AScope: TExtObject = nil)
-      : TExtFunction;
-    function SetText(const AText: string): TExtFunction;
-    function SetTooltip(const ATooltip: string): TExtFunction; overload;
-    function SetTooltip(const ATooltip: TExtObject): TExtFunction; overload;
+    function GetPressed(const AGroup: string): TExtExpression;
+    function Pressed_: TExtExpression;
+    function GetTemplateArgs: TExtExpression;
+    function GetText: TExtExpression;
+    function HasVisibleMenu: TExtExpression;
+    function HideMenu: TExtExpression;
+    function SetHandler(const AHandler: TExtExpression; const AScope: TExtObject = nil)
+      : TExtExpression;
+    function SetText(const AText: string): TExtExpression;
+    function SetTooltip(const ATooltip: string): TExtExpression; overload;
+    function SetTooltip(const ATooltip: TExtObject): TExtExpression; overload;
     property AllowDepress: Boolean read FAllowDepress write SetAllowDepress;
     property Disabled: Boolean read FDisabled write SetDisabled;
     property EnableToggle: Boolean read FEnableToggle write SetEnableToggle;
     property FormBind: Boolean read FFormBind write SetFormBind;
-    property Handler: TExtFunction read FHandler write _SetHandler;
+    property Handler: TExtExpression read FHandler write _SetHandler;
     property Hidden: Boolean read FHidden write SetHidden;
     property Icon: string read FIcon write _SetIcon;
     property IconCls: string read FIconCls write SetIconCls;
@@ -481,7 +481,7 @@ type
     procedure InitDefaults; override;
   public
     class function JSClassName: string; override;
-    function SetStore(const AStore: TExtDataStore): TExtFunction;
+    function SetStore(const AStore: TExtDataStore): TExtExpression;
     property EmptyText: string read FEmptyText write SetEmptyText;
     property ItemSelector: string read FItemSelector write SetItemSelector;
     property MultiSelect: Boolean read FMultiSelect write SetMultiSelect;
@@ -546,9 +546,9 @@ type
     function GetObjectNamePrefix: string; override;
   public
     class function JSClassName: string; override;
-    function Collapse(const AAnimate: Boolean): TExtFunction;
-    function Expand(const AAnimate: Boolean): TExtFunction;
-    function SetTitle(const ATitle: string; const AIconCls: string = ''): TExtFunction;
+    function Collapse(const AAnimate: Boolean): TExtExpression;
+    function Expand(const AAnimate: Boolean): TExtExpression;
+    function SetTitle(const ATitle: string; const AIconCls: string = ''): TExtExpression;
     property AnimCollapse: Boolean read FAnimCollapse write SetAnimCollapse;
     property AutoLoad: TExtObject read FAutoLoad write SetAutoLoad;
     property AutoLoadString: string read FAutoLoadString write SetAutoLoadString;
@@ -573,12 +573,12 @@ type
 
   TExtSplitButton = class(TExtButton)
   private
-    FArrowHandler: TExtFunction;
-    procedure _SetArrowHandler(const AValue: TExtFunction);
+    FArrowHandler: TExtExpression;
+    procedure _SetArrowHandler(const AValue: TExtExpression);
   public
     class function JSClassName: string; override;
-    function SetArrowHandler(const AHandler: TExtFunction; const AScope: TExtObject = nil): TExtFunction;
-    property ArrowHandler: TExtFunction read FArrowHandler write _SetArrowHandler;
+    function SetArrowHandler(const AHandler: TExtExpression; const AScope: TExtObject = nil): TExtExpression;
+    property ArrowHandler: TExtExpression read FArrowHandler write _SetArrowHandler;
   end;
 
   TExtToolbarSpacer = class(TExtToolbarItem)
@@ -596,7 +596,7 @@ type
     procedure InitDefaults; override;
   public
     class function JSClassName: string; override;
-    function SetText(const AText: string): TExtFunction;
+    function SetText(const AText: string): TExtExpression;
     property Text: string read FText write _SetText;
   end;
 
@@ -670,12 +670,12 @@ type
     function GetObjectNamePrefix: string; override;
   public
     class function JSClassName: string; override;
-    function Close: TExtFunction;
+    function Close: TExtExpression;
     procedure SetAnimateTarget(const AElement: string);
-    function Show(const AAnimateTarget: string = ''; const ACallback: TExtFunction = nil;
-      const AScope: TExtObject = nil): TExtFunction; overload;
-    function Show(const AAnimateTarget: TExtElement; const ACallback: TExtFunction = nil;
-      const AScope: TExtObject = nil): TExtFunction; overload;
+    function Show(const AAnimateTarget: string = ''; const ACallback: TExtExpression = nil;
+      const AScope: TExtObject = nil): TExtExpression; overload;
+    function Show(const AAnimateTarget: TExtElement; const ACallback: TExtExpression = nil;
+      const AScope: TExtObject = nil): TExtExpression; overload;
     property AnimateTarget: string read FAnimateTarget write _SetAnimateTarget;
     property Buttons: TExtObjectList read FButtons;
     property Closable: Boolean read FClosable write SetClosable;
@@ -711,9 +711,9 @@ type
     function GetObjectNamePrefix: string; override;
   public
     class function JSClassName: string; override;
-    function GetActiveTab: TExtFunction;
-    function SetActiveTab(const AItem: string): TExtFunction; overload;
-    function SetActiveTab(const AItem: Integer): TExtFunction; overload;
+    function GetActiveTab: TExtExpression;
+    function SetActiveTab(const AItem: string): TExtExpression; overload;
+    function SetActiveTab(const AItem: Integer): TExtExpression; overload;
     property ActiveTab: string read FActiveTab write _SetActiveTab;
     property ActiveTabNumber: Integer read FActiveTabNumber write SetActiveTabNumber;
     property DeferredRender: Boolean read FDeferredRender write SetDeferredRender;
@@ -733,10 +733,10 @@ type
     procedure SetStore(const AValue: TExtDataStore);
   public
     class function JSClassName: string; override;
-    function MoveFirst: TExtFunction;
-    function MoveLast: TExtFunction;
-    function MoveNext: TExtFunction;
-    function MovePrevious: TExtFunction;
+    function MoveFirst: TExtExpression;
+    function MoveLast: TExtExpression;
+    function MoveNext: TExtExpression;
+    function MovePrevious: TExtExpression;
     property DisplayInfo: Boolean read FDisplayInfo write SetDisplayInfo;
     property PageSize: Integer read FPageSize write SetPageSize;
     property Store: TExtDataStore read FStore write SetStore;
@@ -759,7 +759,7 @@ type
   public
     class function JSClassName: string; override;
     function Alert(const ATitle: string; const AMsg: string;
-      const AFn: TExtFunction = nil; const AScope: TExtObject = nil): TExtFunction;
+      const AFn: TExtExpression = nil; const AScope: TExtObject = nil): TExtExpression;
   end;
 
 function ExtQuickTips: TExtQuickTipsSingleton;
@@ -832,19 +832,19 @@ begin
   Result := 'Ext.QuickTips';
 end;
 
-function TExtQuickTipsSingleton.Disable: TExtFunction;
+function TExtQuickTipsSingleton.Disable: TExtExpression;
 begin
-  Result := CallMethod('disable').AsFunction;
+  Result := CallMethod('disable').AsExpression;
 end;
 
-function TExtQuickTipsSingleton.Enable: TExtFunction;
+function TExtQuickTipsSingleton.Enable: TExtExpression;
 begin
-  Result := CallMethod('enable').AsFunction;
+  Result := CallMethod('enable').AsExpression;
 end;
 
-function TExtQuickTipsSingleton.Init(const AAutoRender: Boolean): TExtFunction;
+function TExtQuickTipsSingleton.Init(const AAutoRender: Boolean): TExtExpression;
 begin
-  Result := CallMethod('init').AddParam(AAutoRender).AsFunction;
+  Result := CallMethod('init').AddParam(AAutoRender).AsExpression;
 end;
 
 class function TExtElement.JSClassName: string;
@@ -852,9 +852,9 @@ begin
   Result := 'Ext.Element';
 end;
 
-function TExtElement.AddClass(const AClassName: string): TExtFunction;
+function TExtElement.AddClass(const AClassName: string): TExtExpression;
 begin
-  Result := CallMethod('addClass').AddParam(AClassName).AsFunction;
+  Result := CallMethod('addClass').AddParam(AClassName).AsExpression;
 end;
 
 procedure TExtAction._SetText(const AValue: string);
@@ -873,25 +873,25 @@ begin
   FScope := TExtObject.CreateInternal(Self, 'scope');
 end;
 
-function TExtAction.SetHandler(const AFn: TExtFunction; const AScope: TExtObject): TExtFunction;
+function TExtAction.SetHandler(const AFn: TExtExpression; const AScope: TExtObject): TExtExpression;
 begin
   FHandler := AFn;
   Result := CallMethod('setHandler')
-    .AddFunctionParam(AFn)
+    .AddParam(AFn)
     .AddParam(AScope)
-    .AsFunction;
+    .AsExpression;
 end;
 
-function TExtAction.SetHidden(const AHidden: Boolean): TExtFunction;
+function TExtAction.SetHidden(const AHidden: Boolean): TExtExpression;
 begin
   FHidden := AHidden;
-  Result := CallMethod('setHidden').AddParam(AHidden).AsFunction;
+  Result := CallMethod('setHidden').AddParam(AHidden).AsExpression;
 end;
 
-function TExtAction.SetText(const AText: string): TExtFunction;
+function TExtAction.SetText(const AText: string): TExtExpression;
 begin
   FText := AText;
-  Result := CallMethod('setText').AddParam(AText).AsFunction;
+  Result := CallMethod('setText').AddParam(AText).AsExpression;
 end;
 
 class function TExtDirectTransaction.JSClassName: string;
@@ -1023,56 +1023,61 @@ begin
   FLoader := TExtObject.CreateInternal(Self, 'loader');
 end;
 
-function TExtComponent.AddCls(const AClsName: string): TExtFunction;
+function TExtComponent.AddCls(const AClsName: string): TExtExpression;
 begin
-  Result := CallMethod('addCls').AddParam(AClsName).AsFunction;
+  Result := CallMethod('addCls').AddParam(AClsName).AsExpression;
 end;
 
-function TExtComponent.Focus(const ASelectText: Boolean; const ADelay: Boolean): TExtFunction;
-begin
-  Result := CallMethod('focus')
-    .AddParam(ASelectText)
-    .AddParam(ADelay)
-    .AsFunction;
-end;
-
-function TExtComponent.Focus(const ASelectText: Boolean; const ADelay: Integer): TExtFunction;
+function TExtComponent.Focus(const ASelectText: Boolean; const ADelay: Boolean): TExtExpression;
 begin
   Result := CallMethod('focus')
     .AddParam(ASelectText)
     .AddParam(ADelay)
-    .AsFunction;
+    .AsExpression;
 end;
 
-function TExtComponent.Hide: TExtFunction;
+function TExtComponent.Focus(const ASelectText: Boolean; const ADelay: Integer): TExtExpression;
 begin
-  Result := CallMethod('hide').AsFunction;
+  Result := CallMethod('focus')
+    .AddParam(ASelectText)
+    .AddParam(ADelay)
+    .AsExpression;
 end;
 
-function TExtComponent.SetDisabled(const AValue: Boolean): TExtFunction;
+function TExtComponent.Hide: TExtExpression;
+begin
+  Result := CallMethod('hide').AsExpression;
+end;
+
+function TExtComponent.SetDisabled(const AValue: Boolean): TExtExpression;
 begin
   Result := CallMethod('setDisabled')
     .AddParam(AValue)
-    .AsFunction;
+    .AsExpression;
 end;
 
-function TExtComponent.SetVisible(const AValue: Boolean): TExtFunction;
+function TExtComponent.SetVisible(const AValue: Boolean): TExtExpression;
 begin
   Result := CallMethod('setVisible')
     .AddParam(AValue)
-    .AsFunction;
+    .AsExpression;
 end;
 
-function TExtComponent.Show: TExtFunction;
+function TExtComponent.Show: TExtExpression;
 begin
-  Result := CallMethod('show').AsFunction;
+  Result := CallMethod('show').AsExpression;
 end;
 
 procedure TExtComponent.SetOnAfterrender(const AValue: TExtComponentOnAfterrender);
 begin
   RemoveAllListeners('afterrender');
   if Assigned(AValue) then
-    On('afterrender', Ajax('afterrender', ['This', '%0.nm'], true));
+    //On('afterrender', Ajax('afterrender', ['This', '%0.nm'], true));
+    &On('afterrender', AjaxCallMethod('afterrender')
+      .Event
+      .AddRawParam('This', 'sender.nm')
+      .FunctionArgs('sender')
+      .AsFunction);
   FOnAfterrender := AValue;
 end;
 
@@ -1099,11 +1104,11 @@ begin
   FZindex := 11000;
 end;
 
-function TExtLayer.SetZIndex(const AZindex: Integer): TExtFunction;
+function TExtLayer.SetZIndex(const AZindex: Integer): TExtExpression;
 begin
   Result := CallMethod('setZindex')
     .AddParam(AZindex)
-    .AsFunction;
+    .AsExpression;
 end;
 
 class function TExtXTemplate.JSClassName: string;
@@ -1122,12 +1127,12 @@ begin
   Result := 'Ext.Editor';
 end;
 
-function TExtEditor.SetValue(const AValue: string): TExtFunction;
+function TExtEditor.SetValue(const AValue: string): TExtExpression;
 begin
   FValue := AValue;
   Result := CallMethod('setValue')
     .AddParam(AValue)
-    .AsFunction;
+    .AsExpression;
 end;
 
 class function TExtColorPalette.JSClassName: string;
@@ -1152,20 +1157,20 @@ begin
   Result := 'Ext.DatePicker';
 end;
 
-function TExtDatePicker.SetMaxDate(const AValue: TDateTime): TExtFunction;
+function TExtDatePicker.SetMaxDate(const AValue: TDateTime): TExtExpression;
 begin
   FMaxDate := AValue;
   Result := CallMethod('setMaxDate')
     .AddParam(AValue)
-    .AsFunction;
+    .AsExpression;
 end;
 
-function TExtDatePicker.SetMinDate(const AValue: TDateTime): TExtFunction;
+function TExtDatePicker.SetMinDate(const AValue: TDateTime): TExtExpression;
 begin
   FMinDate := AValue;
   Result := CallMethod('setMinDate')
     .AddParam(AValue)
-    .AsFunction;
+    .AsExpression;
 end;
 
 procedure TExtBoxComponent.SetAnchor(const AValue: string);
@@ -1198,9 +1203,9 @@ begin
   FHeight := SetConfigItem('height', 'setHeight', AValue);
 end;
 
-procedure TExtBoxComponent.SetHeightFunc(const AValue: TExtFunction);
+procedure TExtBoxComponent.SetHeightFunc(const AValue: TExtExpression);
 begin
-  FHeightFunc := SetFunctionConfigItem('height', AValue);
+  FHeightFunc := SetConfigItem('height', AValue);
 end;
 
 procedure TExtBoxComponent.SetHeightString(const AValue: string);
@@ -1224,9 +1229,9 @@ begin
   FWidth := SetConfigItem('width', 'setWidth', AValue);
 end;
 
-procedure TExtBoxComponent.SetWidthFunc(const AValue: TExtFunction);
+procedure TExtBoxComponent.SetWidthExpression(const AValue: TExtExpression);
 begin
-  FWidthFunc := SetFunctionConfigItem('width', AValue);
+  FWidthExpression := SetConfigItem('width', AValue);
 end;
 
 procedure TExtBoxComponent.SetWidthString(const AValue: string);
@@ -1317,25 +1322,25 @@ begin
   FLayoutConfig := TExtObject.CreateInternal(Self, 'layoutConfig');
 end;
 
-function TExtContainer.UpdateLayout: TExtFunction;
+function TExtContainer.UpdateLayout: TExtExpression;
 begin
   Result := UpdateLayout(False, False);
 end;
 
-function TExtContainer.UpdateLayout(const AShallow: Boolean; const AForce: Boolean): TExtFunction;
+function TExtContainer.UpdateLayout(const AShallow: Boolean; const AForce: Boolean): TExtExpression;
 begin
   Result := CallMethod('updateLayout')
     .AddParam(AShallow)
     .AddParam(AForce)
-    .AsFunction;
+    .AsExpression;
 end;
 
-function TExtContainer.Remove(const AComponent: TExtComponent; const AAutoDestroy: Boolean): TExtFunction;
+function TExtContainer.Remove(const AComponent: TExtComponent; const AAutoDestroy: Boolean): TExtExpression;
 begin
   Result := CallMethod('remove')
     .AddParam(AComponent)
     .AddParam(AAutoDestroy)
-    .AsFunction;
+    .AsExpression;
 end;
 
 procedure TExtButton.SetAllowDepress(const AValue: Boolean);
@@ -1358,9 +1363,9 @@ begin
   FFormBind := SetConfigItem('formBind', AValue);
 end;
 
-procedure TExtButton._SetHandler(const AValue: TExtFunction);
+procedure TExtButton._SetHandler(const AValue: TExtExpression);
 begin
-  FHandler := SetFunctionConfigItem('handler', 'setHandler', AValue);
+  FHandler := SetConfigItem('handler', 'setHandler', AValue);
 end;
 
 procedure TExtButton.SetHidden(const AValue: Boolean);
@@ -1435,11 +1440,11 @@ begin
   Result := 'btn';
 end;
 
-function TExtButton.GetPressed(const AGroup: string): TExtFunction;
+function TExtButton.GetPressed(const AGroup: string): TExtExpression;
 begin
   Result := CallMethod('getPressed')
     .AddParam(AGroup)
-    .AsFunction;
+    .AsExpression;
 end;
 
 procedure TExtButton.PerformClick;
@@ -1447,65 +1452,65 @@ begin
   FireEvent('click', nil);
 end;
 
-function TExtButton.Pressed_: TExtFunction;
+function TExtButton.Pressed_: TExtExpression;
 begin
-  Result := GetSession.ResponseItems.GetProperty(Self, 'pressed').AsFunction;
+  Result := GetSession.ResponseItems.GetProperty(Self, 'pressed').AsExpression;
 end;
 
-function TExtButton.GetTemplateArgs: TExtFunction;
+function TExtButton.GetTemplateArgs: TExtExpression;
 begin
   Result := CallMethod('getTemplateArgs')
-    .AsFunction;
+    .AsExpression;
 end;
 
-function TExtButton.GetText: TExtFunction;
+function TExtButton.GetText: TExtExpression;
 begin
   Result := CallMethod('getText')
-    .AsFunction;
+    .AsExpression;
 end;
 
-function TExtButton.HasVisibleMenu: TExtFunction;
+function TExtButton.HasVisibleMenu: TExtExpression;
 begin
   Result := CallMethod('hasVisibleMenu')
-    .AsFunction;
+    .AsExpression;
 end;
 
-function TExtButton.HideMenu: TExtFunction;
+function TExtButton.HideMenu: TExtExpression;
 begin
   Result := CallMethod('hideMenu')
-    .AsFunction;
+    .AsExpression;
 end;
 
-function TExtButton.SetHandler(const AHandler: TExtFunction; const AScope: TExtObject): TExtFunction;
+function TExtButton.SetHandler(const AHandler: TExtExpression; const AScope: TExtObject): TExtExpression;
 begin
   FHandler := AHandler;
   Result := CallMethod('setHandler')
-    .AddFunctionParam(AHandler)
+    .AddParam(AHandler)
     .AddParam(AScope)
-    .AsFunction;
+    .AsExpression;
 end;
 
-function TExtButton.SetText(const AText: string): TExtFunction;
+function TExtButton.SetText(const AText: string): TExtExpression;
 begin
   FText := AText;
   Result := CallMethod('setText')
     .AddParam(AText)
-    .AsFunction;
+    .AsExpression;
 end;
 
-function TExtButton.SetTooltip(const ATooltip: string): TExtFunction;
+function TExtButton.SetTooltip(const ATooltip: string): TExtExpression;
 begin
   FTooltip := ATooltip;
   Result := CallMethod('setTooltip')
     .AddParam(ATooltip)
-    .AsFunction;
+    .AsExpression;
 end;
 
-function TExtButton.SetTooltip(const ATooltip: TExtObject): TExtFunction;
+function TExtButton.SetTooltip(const ATooltip: TExtObject): TExtExpression;
 begin
   Result := CallMethod('setTooltip')
     .AddParam(ATooltip)
-    .AsFunction;
+    .AsExpression;
 end;
 
 procedure TExtDataView.SetEmptyText(AValue: string);
@@ -1567,12 +1572,12 @@ begin
   FTplArray := CreateConfigArray('tpl');
 end;
 
-function TExtDataView.SetStore(const AStore: TExtDataStore): TExtFunction;
+function TExtDataView.SetStore(const AStore: TExtDataStore): TExtExpression;
 begin
   FStore := AStore;
   Result := CallMethod('setStore')
     .AddParam(AStore)
-    .AsFunction;
+    .AsExpression;
 end;
 
 procedure TExtDataView.SetStoreArray(const AValue: TExtObjectList);
@@ -1697,18 +1702,18 @@ begin
   FHeader := true;
 end;
 
-function TExtPanel.Collapse(const AAnimate: Boolean): TExtFunction;
+function TExtPanel.Collapse(const AAnimate: Boolean): TExtExpression;
 begin
   Result := CallMethod('collapse')
     .AddParam(AAnimate)
-    .AsFunction;
+    .AsExpression;
 end;
 
-function TExtPanel.Expand(const AAnimate: Boolean): TExtFunction;
+function TExtPanel.Expand(const AAnimate: Boolean): TExtExpression;
 begin
   Result := CallMethod('exand')
     .AddParam(AAnimate)
-    .AsFunction;
+    .AsExpression;
 end;
 
 function TExtPanel.GetObjectNamePrefix: string;
@@ -1722,19 +1727,19 @@ begin
   FTbar := AValue;
 end;
 
-function TExtPanel.SetTitle(const ATitle: string; const AIconCls: string): TExtFunction;
+function TExtPanel.SetTitle(const ATitle: string; const AIconCls: string): TExtExpression;
 begin
   FTitle := ATitle;
   FIconCls := AIconCls;
   Result := CallMethod('setTitle')
     .AddParam(ATitle)
     .AddParam(AIconCls)
-    .AsFunction;
+    .AsExpression;
 end;
 
-procedure TExtSplitButton._SetArrowHandler(const AValue: TExtFunction);
+procedure TExtSplitButton._SetArrowHandler(const AValue: TExtExpression);
 begin
-  FArrowHandler := SetFunctionConfigItem('arrowHandler', 'setArrowHandler', AValue);
+  FArrowHandler := SetConfigItem('arrowHandler', 'setArrowHandler', AValue);
 end;
 
 class function TExtSplitButton.JSClassName: string;
@@ -1742,13 +1747,13 @@ begin
   Result := 'Ext.SplitButton';
 end;
 
-function TExtSplitButton.SetArrowHandler(const AHandler: TExtFunction; const AScope: TExtObject): TExtFunction;
+function TExtSplitButton.SetArrowHandler(const AHandler: TExtExpression; const AScope: TExtObject): TExtExpression;
 begin
   FArrowHandler := AHandler;
   Result := CallMethod('setArrowHandler')
-    .AddFunctionParam(AHandler)
+    .AddParam(AHandler)
     .AddParam(AScope)
-    .AsFunction;
+    .AsExpression;
 end;
 
 class function TExtToolbarSpacer.JSClassName: string;
@@ -1776,10 +1781,10 @@ begin
   inherited;
 end;
 
-function TExtToolbarTextItem.SetText(const AText: string): TExtFunction;
+function TExtToolbarTextItem.SetText(const AText: string): TExtExpression;
 begin
   FText := AText;
-  Result := CallMethod('setText').AddParam(AText).AsFunction;
+  Result := CallMethod('setText').AddParam(AText).AsExpression;
 end;
 
 class function TExtToolbar.JSClassName: string;
@@ -1899,9 +1904,9 @@ begin
   FBbar := CreateConfigArray('bbar');
 end;
 
-function TExtWindow.Close: TExtFunction;
+function TExtWindow.Close: TExtExpression;
 begin
-  Result := CallMethod('close').AsFunction;
+  Result := CallMethod('close').AsExpression;
 end;
 
 procedure TExtWindow.SetAnimateTarget(const AElement: string);
@@ -1909,24 +1914,24 @@ begin
   FAnimateTarget := SetConfigItem('animateTarget', 'setAnimateTarget', AElement);
 end;
 
-function TExtWindow.Show(const AAnimateTarget: string; const ACallback: TExtFunction;
-  const AScope: TExtObject): TExtFunction;
+function TExtWindow.Show(const AAnimateTarget: string; const ACallback: TExtExpression;
+  const AScope: TExtObject): TExtExpression;
 begin
   Result := CallMethod('show')
     .AddParam(AAnimateTarget)
-    .AddFunctionParam(ACallback)
+    .AddParam(ACallback)
     .AddParam(AScope)
-    .AsFunction;
+    .AsExpression;
 end;
 
-function TExtWindow.Show(const AAnimateTarget: TExtElement; const ACallback: TExtFunction;
-  const AScope: TExtObject): TExtFunction;
+function TExtWindow.Show(const AAnimateTarget: TExtElement; const ACallback: TExtExpression;
+  const AScope: TExtObject): TExtExpression;
 begin
   Result := CallMethod('show')
     .AddParam(AAnimateTarget)
-    .AddFunctionParam(ACallback)
+    .AddParam(ACallback)
     .AddParam(AScope)
-    .AsFunction;
+    .AsExpression;
 end;
 
 function TExtWindow.GetObjectNamePrefix: string;
@@ -1963,7 +1968,13 @@ procedure TExtTabPanel.SetOnTabChange(const AValue: TExtTabPanelOnTabchange);
 begin
   RemoveAllListeners('tabchange');
   if Assigned(AValue) then
-    &On('tabchange', Ajax('tabchange', ['This', '%0.nm', 'Tab', '(%1 ? %1.nm : null)'], True));
+    //On('tabchange', Ajax('tabchange', ['This', '%0.nm', 'Tab', '(%1 ? %1.nm : null)'], True));
+    &On('tabchange', AjaxCallMethod('tabchange')
+      .Event
+      .AddRawParam('This', 'sender.nm')
+      .AddRawParam('Tab', '(tab ? tab.nm : null)')
+      .FunctionArgs('sender, tab')
+      .AsFunction);
   FOnTabChange := AValue;
 end;
 
@@ -1972,9 +1983,9 @@ begin
   Result := 'Ext.TabPanel';
 end;
 
-function TExtTabPanel.GetActiveTab: TExtFunction;
+function TExtTabPanel.GetActiveTab: TExtExpression;
 begin
-  Result := CallMethod('getActiveTab').AsFunction;
+  Result := CallMethod('getActiveTab').AsExpression;
 end;
 
 function TExtTabPanel.GetObjectNamePrefix: string;
@@ -1982,18 +1993,18 @@ begin
   Result := 'tabpnl';
 end;
 
-function TExtTabPanel.SetActiveTab(const AItem: string): TExtFunction;
+function TExtTabPanel.SetActiveTab(const AItem: string): TExtExpression;
 begin
   Result := CallMethod('setActiveTab')
     .AddParam(AItem)
-    .AsFunction;
+    .AsExpression;
 end;
 
-function TExtTabPanel.SetActiveTab(const AItem: Integer): TExtFunction;
+function TExtTabPanel.SetActiveTab(const AItem: Integer): TExtExpression;
 begin
   Result := CallMethod('setActiveTab')
     .AddParam(AItem)
-    .AsFunction;
+    .AsExpression;
 end;
 
 procedure TExtTabPanel.HandleEvent(const AEvtName: string);
@@ -2024,24 +2035,24 @@ begin
   Result := 'Ext.PagingToolbar';
 end;
 
-function TExtPagingToolbar.MoveFirst: TExtFunction;
+function TExtPagingToolbar.MoveFirst: TExtExpression;
 begin
-  Result := CallMethod('moveFirst').AsFunction;
+  Result := CallMethod('moveFirst').AsExpression;
 end;
 
-function TExtPagingToolbar.MoveLast: TExtFunction;
+function TExtPagingToolbar.MoveLast: TExtExpression;
 begin
-  Result := CallMethod('moveLast').AsFunction;
+  Result := CallMethod('moveLast').AsExpression;
 end;
 
-function TExtPagingToolbar.MoveNext: TExtFunction;
+function TExtPagingToolbar.MoveNext: TExtExpression;
 begin
-  Result := CallMethod('moveNext').AsFunction;
+  Result := CallMethod('moveNext').AsExpression;
 end;
 
-function TExtPagingToolbar.MovePrevious: TExtFunction;
+function TExtPagingToolbar.MovePrevious: TExtExpression;
 begin
-  Result := CallMethod('movePrevious').AsFunction;
+  Result := CallMethod('movePrevious').AsExpression;
 end;
 
 class function TExtToolTip.JSClassName: string;
@@ -2060,10 +2071,10 @@ begin
 end;
 
 function TExtMessageBoxSingleton.Alert(const ATitle: string; const AMsg: string;
-  const AFn: TExtFunction = nil; const AScope: TExtObject = nil): TExtFunction;
+  const AFn: TExtExpression = nil; const AScope: TExtObject = nil): TExtExpression;
 begin
   Result := CallMethod('alert').AddParam(ATitle).AddParam(AMsg)
-    .AddFunctionParam(AFn).AddParam(AScope).AsFunction;
+    .AddParam(AFn).AddParam(AScope).AsExpression;
 end;
 
 end.

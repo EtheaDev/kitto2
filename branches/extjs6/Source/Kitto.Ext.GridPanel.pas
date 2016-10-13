@@ -64,7 +64,7 @@ type
     function GetSelectConfirmCall(const AMessage: string; const AMethod: TExtProcedure): string; override;
     function AddActionButton(const AUniqueId: string; const AView: TKView;
       const AToolbar: TKExtToolbar): TKExtActionButton; override;
-    function GetSelectCall(const AMethod: TExtProcedure): TExtFunction; override;
+    function GetSelectCall(const AMethod: TExtProcedure): TExtExpression; override;
     function IsMultiSelect: Boolean; override;
     function GetDefaultRemoteSort: Boolean; override;
     function GetIsPaged: Boolean; override;
@@ -649,12 +649,12 @@ begin
 
   LRowClassProvider := ViewTable.GetExpandedString('Controller/RowClassProvider');
   if LRowClassProvider <> '' then
-    FGridPanel.ViewConfig.SetFunctionConfigItem('getRowClass', JSFunctionFromCodeBlock(LRowClassProvider))
+    FGridPanel.ViewConfig.SetConfigItem('getRowClass', JSFunctionFromCodeBlock(LRowClassProvider))
   else
   begin
     LRowColorPatterns := GetRowColorPatterns(LRowColorFieldName);
     if Length(LRowColorPatterns) > 0 then
-      FGridPanel.ViewConfig.SetFunctionConfigItem('getRowClass',
+      FGridPanel.ViewConfig.SetConfigItem('getRowClass',
         JSFunction('r', Format('return getColorStyleRuleForRecordField(r, ''%s'', [%s]);',
           [LRowColorFieldName, PairsToJSON(LRowColorPatterns)])));
   end;
@@ -1011,7 +1011,7 @@ begin
     MethodURI(AMethod), FSelectionModel.JSName, Join(ViewTable.GetKeyFieldAliasedNames, ',')]);
 end;
 
-function TKExtGridPanel.GetSelectCall(const AMethod: TExtProcedure): TExtFunction;
+function TKExtGridPanel.GetSelectCall(const AMethod: TExtProcedure): TExtExpression;
 begin
   Result := JSFunction(Format('ajaxSelection("yes", "", {params: {methodURL: "%s", selModel: %s, fieldNames: "%s"}});',
     [MethodURI(AMethod), FSelectionModel.JSName, Join(ViewTable.GetKeyFieldAliasedNames, ',')]));

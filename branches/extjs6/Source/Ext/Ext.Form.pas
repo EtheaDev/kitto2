@@ -36,14 +36,14 @@ type
 
   TExtFormAction = class(TExtObject)
   private
-    FFailure: TExtFunction;
-    FSuccess: TExtFunction;
+    FFailure: TExtExpression;
+    FSuccess: TExtExpression;
     FWaitMsg: string;
     FTimeout: Integer;
     FWaitTitle: string;
     FUrl: string;
-    procedure SetFailure(const AValue: TExtFunction);
-    procedure SetSuccess(const AValue: TExtFunction);
+    procedure SetFailure(const AValue: TExtExpression);
+    procedure SetSuccess(const AValue: TExtExpression);
     procedure SetTimeout(const AValue: Integer);
     procedure SetUrl(const AValue: string);
     procedure SetWaitMsg(const AValue: string);
@@ -54,8 +54,8 @@ type
     class function CONNECT_FAILURE: string;
     class function LOAD_FAILURE: string;
     class function SERVER_INVALID: string;
-    property Failure: TExtFunction read FFailure write SetFailure;
-    property Success: TExtFunction read FSuccess write SetSuccess;
+    property Failure: TExtExpression read FFailure write SetFailure;
+    property Success: TExtExpression read FSuccess write SetSuccess;
     property Timeout: Integer read FTimeout write SetTimeout;
     property Url: string read FUrl write SetUrl;
     property WaitMsg: string read FWaitMsg write SetWaitMsg;
@@ -73,10 +73,10 @@ type
     procedure InitDefaults; override;
   public
     class function JSClassName: string; override;
-    function GetFieldValues(const ADirtyOnly: Boolean = False): TExtFunction;
-    function GetValues(const AAsString: Boolean = False): TExtFunction;
-    function Load(const AOptions: TExtObject): TExtFunction;
-    function Submit(const AOptions: TExtObject): TExtFunction;
+    function GetFieldValues(const ADirtyOnly: Boolean = False): TExtExpression;
+    function GetValues(const AAsString: Boolean = False): TExtExpression;
+    function Load(const AOptions: TExtObject): TExtExpression;
+    function Submit(const AOptions: TExtObject): TExtExpression;
     property Url: string read FUrl write SetUrl;
   end;
 
@@ -141,11 +141,11 @@ type
     function GetObjectNamePrefix: string; override;
   public
     class function JSClassName: string; override;
-    function GetRawValue: TExtFunction;
-    function GetValue: TExtFunction;
-    function SetRawValue(const AValue: string): TExtFunction;
-    function SetReadOnly(const AReadOnly: Boolean): TExtFunction;
-    function SetValue(const AValue: string): TExtFunction;
+    function GetRawValue: TExtExpression;
+    function GetValue: TExtExpression;
+    function SetRawValue(const AValue: string): TExtExpression;
+    function SetReadOnly(const AReadOnly: Boolean): TExtExpression;
+    function SetValue(const AValue: string): TExtExpression;
     property AutoCreate: string read FAutoCreate write SetAutoCreate;
     property Cls: string read FCls write SetCls;
     property Disabled: Boolean read FDisabled write SetDisabled;
@@ -170,7 +170,7 @@ type
     procedure _SetText(const AValue: string);
   public
     class function JSClassName: string; override;
-    function SetText(const AText: string; const AEncode: Boolean = False): TExtFunction;
+    function SetText(const AText: string; const AEncode: Boolean = False): TExtExpression;
     property Html: string read FHtml write SetHtml;
     property Text: string read FText write _SetText;
   end;
@@ -198,7 +198,7 @@ type
     FBlankText: string;
     FEmptyText: string;
     FMaxLengthText: string;
-    FValidator: TExtFunction;
+    FValidator: TExtExpression;
     procedure SetAllowBlank(const AValue: Boolean);
     procedure SetBlankText(const AValue: string);
     procedure SetEmptyClass(const AValue: string);
@@ -212,7 +212,7 @@ type
     procedure SetSelectOnFocus(const AValue: Boolean);
     procedure SetVtype(const AValue: string);
     procedure SetVtypeText(const AValue: string);
-    procedure SetValidator(const AValue: TExtFunction);
+    procedure SetValidator(const AValue: TExtExpression);
     procedure SetMaskRe(const AValue: string);
   protected
     procedure InitDefaults; override;
@@ -231,7 +231,7 @@ type
     property MinLength: Integer read FMinLength write SetMinLength;
     property MinLengthText: string read FMinLengthText write SetMinLengthText;
     property SelectOnFocus: Boolean read FSelectOnFocus write SetSelectOnFocus;
-    property Validator: TExtFunction read FValidator write SetValidator;
+    property Validator: TExtExpression read FValidator write SetValidator;
     property Vtype: string read FVtype write SetVtype;
     property VtypeText: string read FVtypeText write SetVtypeText;
   end;
@@ -274,9 +274,9 @@ type
     function GetObjectNamePrefix: string; override;
   public
     class function JSClassName: string; override;
-    function GetValue: TExtFunction;
-    function SetValue(const AChecked: Boolean): TExtFunction; overload;
-    function SetValue(const AChecked: string): TExtFunction; overload;
+    function GetValue: TExtExpression;
+    function SetValue(const AChecked: Boolean): TExtExpression; overload;
+    function SetValue(const AChecked: string): TExtExpression; overload;
     property BoxLabel: string read FBoxLabel write SetBoxLabel;
     property Checked: Boolean read FChecked write SetChecked;
     property OnCheck: TExtFormCheckboxOnCheck read FOnCheck write SetOnCheck;
@@ -308,8 +308,8 @@ type
     procedure InitDefaults; override;
   public
     class function JSClassName: string; override;
-    function SetEditable(const AValue: Boolean): TExtFunction;
-    function SetReadOnly(const AValue: Boolean): TExtFunction;
+    function SetEditable(const AValue: Boolean): TExtExpression;
+    function SetReadOnly(const AValue: Boolean): TExtExpression;
     property Editable: Boolean read FEditable write _SetEditable;
     property TriggerClass: string read FTriggerClass write SetTriggerClass;
   end;
@@ -341,8 +341,8 @@ type
     function GetObjectNamePrefix: string; override;
   public
     class function JSClassName: string; override;
-    function SetMaxValue(const AValue: Integer): TExtFunction;
-    function SetMinValue(const AValue: Integer): TExtFunction;
+    function SetMaxValue(const AValue: Integer): TExtExpression;
+    function SetMinValue(const AValue: Integer): TExtExpression;
     property AllowDecimals: Boolean read FAllowDecimals write SetAllowDecimals;
     property AllowNegative: Boolean read FAllowNegative write SetAllowNegative;
     property DecimalPrecision: Integer read FDecimalPrecision write SetDecimalPrecision;
@@ -383,7 +383,7 @@ type
     procedure InitDefaults; override;
   public
     class function JSClassName: string; override;
-    function Load(const AOptions: TExtObject): TExtFunction;
+    function Load(const AOptions: TExtObject): TExtExpression;
     property Form: TExtFormBasicForm read FForm;
     property LabelPad: Integer read FLabelPad write SetLabelPad;
     property LabelSeparator: string read FLabelSeparator write SetLabelSeparator;
@@ -424,13 +424,13 @@ type
     function GetObjectNamePrefix: string; override;
   public
     class function JSClassName: string; override;
-    function GetValue: TExtFunction;
-    function SetDisabledDates(const ADisabledDates: TExtObjectList): TExtFunction;
-    function SetDisabledDays(const ADisabledDays: TExtObjectList): TExtFunction;
-    function SetMaxValue(const AValue: TDateTime): TExtFunction;
-    function SetMinValue(const AValue: TDateTime): TExtFunction;
-    function SetValue(const ADate: string): TExtFunction; overload;
-    function SetValue(const ADate: TDateTime): TExtFunction; overload;
+    function GetValue: TExtExpression;
+    function SetDisabledDates(const ADisabledDates: TExtObjectList): TExtExpression;
+    function SetDisabledDays(const ADisabledDays: TExtObjectList): TExtExpression;
+    function SetMaxValue(const AValue: TDateTime): TExtExpression;
+    function SetMinValue(const AValue: TDateTime): TExtExpression;
+    function SetValue(const ADate: string): TExtExpression; overload;
+    function SetValue(const ADate: TDateTime): TExtExpression; overload;
     property AltFormats: string read FAltFormats write SetAltFormats;
     property DisabledDates: TExtObjectList read FDisabledDates
       write _SetDisabledDates;
@@ -470,8 +470,8 @@ type
     FStoreArray: TExtObjectList;
     FPageSize: Integer;
     FQueryParam: string;
-    FListWidthFunc: TExtFunction;
-    FMinHeightFunc: TExtFunction;
+    FListWidthFunc: TExtExpression;
+    FMinHeightFunc: TExtExpression;
     FStore: TExtDataStore;
     procedure SetAutoSelect(const AValue: Boolean);
     procedure SetDisplayField(const AValue: string);
@@ -495,8 +495,8 @@ type
     procedure SetTypeAheadDelay(const AValue: Integer);
     procedure SetValueField(const AValue: string);
     procedure SetValueNotFoundText(const AValue: string);
-    procedure SetMinHeightFunc(const AValue: TExtFunction);
-    procedure SetListWidthFunc(const AValue: TExtFunction);
+    procedure SetMinHeightFunc(const AValue: TExtExpression);
+    procedure SetListWidthFunc(const AValue: TExtExpression);
     procedure SetOnSelect(const AValue: TExtFormComboBoxOnSelect);
   protected
     procedure InitDefaults; override;
@@ -504,13 +504,13 @@ type
     function GetObjectNamePrefix: string; override;
   public
     class function JSClassName: string; override;
-    function ClearValue: TExtFunction;
-    function Expand: TExtFunction;
-    function GetListParent: TExtFunction;
-    function GetStore: TExtFunction;
-    function GetValue: TExtFunction;
-    function IsExpanded: TExtFunction;
-    function SetValue(const AValue: string): TExtFunction;
+    function ClearValue: TExtExpression;
+    function Expand: TExtExpression;
+    function GetListParent: TExtExpression;
+    function GetStore: TExtExpression;
+    function GetValue: TExtExpression;
+    function IsExpanded: TExtExpression;
+    function SetValue(const AValue: string): TExtExpression;
     property AutoSelect: Boolean read FAutoSelect write SetAutoSelect;
     property DisplayField: string read FDisplayField write SetDisplayField;
     property ForceSelection: Boolean read FForceSelection write SetForceSelection;
@@ -519,10 +519,10 @@ type
     property LazyRender: Boolean read FLazyRender write SetLazyRender;
     property ListConfig: TExtObject read FListConfig;
     property ListWidth: Integer read FListWidth write SetListWidth;
-    property ListWidthFunc: TExtFunction read FListWidthFunc write SetListWidthFunc;
+    property ListWidthFunc: TExtExpression read FListWidthFunc write SetListWidthFunc;
     property MinChars: Integer read FMinChars write SetMinChars;
     property MinHeight: Integer read FMinHeight write SetMinHeight;
-    property MinHeightFunc: TExtFunction read FMinHeightFunc write SetMinHeightFunc;
+    property MinHeightFunc: TExtExpression read FMinHeightFunc write SetMinHeightFunc;
     property MinListWidth: Integer read FMinListWidth write SetMinListWidth;
     property Mode: string read FMode write SetMode;
     property PageSize: Integer read FPageSize write SetPageSize;
@@ -577,8 +577,8 @@ type
     function GetObjectNamePrefix: string; override;
   public
     class function JSClassName: string; override;
-    function SetMaxValue(const AValue: TDateTime): TExtFunction; overload;
-    function SetMinValue(const AValue: TDateTime): TExtFunction; overload;
+    function SetMaxValue(const AValue: TDateTime): TExtExpression; overload;
+    function SetMinValue(const AValue: TDateTime): TExtExpression; overload;
     property AltFormats: string read FAltFormats write SetAltFormats;
     property Format: string read FFormat write SetFormat;
     property MaxValue: TDateTime read FMaxValue write _SetMaxValue;
@@ -595,14 +595,14 @@ implementation
 uses
   Kitto.JS;
 
-procedure TExtFormAction.SetFailure(const AValue: TExtFunction);
+procedure TExtFormAction.SetFailure(const AValue: TExtExpression);
 begin
-  FFailure := SetFunctionConfigItem('failure', AValue);
+  FFailure := SetConfigItem('failure', AValue);
 end;
 
-procedure TExtFormAction.SetSuccess(const AValue: TExtFunction);
+procedure TExtFormAction.SetSuccess(const AValue: TExtExpression);
 begin
-  FSuccess := SetFunctionConfigItem('success', AValue);
+  FSuccess := SetConfigItem('success', AValue);
 end;
 
 procedure TExtFormAction.SetTimeout(const AValue: Integer);
@@ -668,32 +668,32 @@ begin
   FErrorReader := TExtDataDataReader.CreateInternal(Self, 'errorReader');
 end;
 
-function TExtFormBasicForm.GetFieldValues(const ADirtyOnly: Boolean): TExtFunction;
+function TExtFormBasicForm.GetFieldValues(const ADirtyOnly: Boolean): TExtExpression;
 begin
   Result := CallMethod('getFieldValues')
     .AddParam(ADirtyOnly)
-    .AsFunction;
+    .AsExpression;
 end;
 
-function TExtFormBasicForm.GetValues(const AAsString: Boolean): TExtFunction;
+function TExtFormBasicForm.GetValues(const AAsString: Boolean): TExtExpression;
 begin
   Result := CallMethod('getValues')
     .AddParam(AAsString)
-    .AsFunction;
+    .AsExpression;
 end;
 
-function TExtFormBasicForm.Load(const AOptions: TExtObject): TExtFunction;
+function TExtFormBasicForm.Load(const AOptions: TExtObject): TExtExpression;
 begin
   Result := CallMethod('load')
     .AddParam(AOptions)
-    .AsFunction;
+    .AsExpression;
 end;
 
-function TExtFormBasicForm.Submit(const AOptions: TExtObject): TExtFunction;
+function TExtFormBasicForm.Submit(const AOptions: TExtObject): TExtExpression;
 begin
   Result := CallMethod('submit')
     .AddParam(AOptions)
-    .AsFunction;
+    .AsExpression;
 end;
 
 class function TExtFormActionSubmit.JSClassName: string;
@@ -792,35 +792,35 @@ begin
   Result := 'ffld';
 end;
 
-function TExtFormField.GetRawValue: TExtFunction;
+function TExtFormField.GetRawValue: TExtExpression;
 begin
-  Result := CallMethod('getRawValue').AsFunction;
+  Result := CallMethod('getRawValue').AsExpression;
 end;
 
-function TExtFormField.GetValue: TExtFunction;
+function TExtFormField.GetValue: TExtExpression;
 begin
-  Result := CallMethod('getValue').AsFunction;
+  Result := CallMethod('getValue').AsExpression;
 end;
 
-function TExtFormField.SetRawValue(const AValue: string): TExtFunction;
+function TExtFormField.SetRawValue(const AValue: string): TExtExpression;
 begin
   Result := CallMethod('setRawValue')
     .AddParam(AValue)
-    .AsFunction;
+    .AsExpression;
 end;
 
-function TExtFormField.SetReadOnly(const AReadOnly: Boolean): TExtFunction;
+function TExtFormField.SetReadOnly(const AReadOnly: Boolean): TExtExpression;
 begin
   Result := CallMethod('setReadOnly')
     .AddParam(AReadOnly)
-    .AsFunction;
+    .AsExpression;
 end;
 
-function TExtFormField.SetValue(const AValue: string): TExtFunction;
+function TExtFormField.SetValue(const AValue: string): TExtExpression;
 begin
   Result := CallMethod('setValue')
     .AddParam(AValue)
-    .AsFunction;
+    .AsExpression;
 end;
 
 procedure TExtFormField.HandleEvent(const AEvtName: string);
@@ -835,7 +835,14 @@ procedure TExtFormField.SetOnChange(const AValue: TExtFormFieldOnChange);
 begin
   RemoveAllListeners('change');
   if Assigned(AValue) then
-    On('change', Ajax('change', ['This', '%0.nm', 'NewValue', '%1', 'OldValue', '%2'], True));
+    //On('change', Ajax('change', ['This', '%0.nm', 'NewValue', '%1', 'OldValue', '%2'], True));
+    &On('change', AjaxCallMethod('change')
+      .Event
+      .AddRawParam('This', 'sender.nm')
+      .AddRawParam('NewValue', 'new')
+      .AddRawParam('OldValue', 'old')
+      .FunctionArgs('sender, new, old')
+      .AsFunction);
   FOnChange := AValue;
 end;
 
@@ -854,13 +861,13 @@ begin
   Result := 'Ext.form.Label';
 end;
 
-function TExtFormLabel.SetText(const AText: string; const AEncode: Boolean): TExtFunction;
+function TExtFormLabel.SetText(const AText: string; const AEncode: Boolean): TExtExpression;
 begin
   FText := AText;
   Result := CallMethod('setText')
     .AddParam(AText)
     .AddParam(AEncode)
-    .AsFunction;
+    .AsExpression;
 end;
 
 class function TExtFormHidden.JSClassName: string;
@@ -934,9 +941,9 @@ begin
   FSelectOnFocus := SetConfigItem('selectOnFocus', AValue);
 end;
 
-procedure TExtFormTextField.SetValidator(const AValue: TExtFunction);
+procedure TExtFormTextField.SetValidator(const AValue: TExtExpression);
 begin
-  FValidator := SetFunctionConfigItem('validator', AValue);
+  FValidator := SetConfigItem('validator', AValue);
 end;
 
 procedure TExtFormTextField.SetVtype(const AValue: string);
@@ -1010,7 +1017,13 @@ procedure TExtFormCheckbox.SetOnCheck(Value: TExtFormCheckboxOnCheck);
 begin
   RemoveAllListeners('check');
   if Assigned(Value) then
-    On('check', Ajax('check', ['This', '%0.nm', 'Checked', '%1'], True));
+    //On('check', Ajax('check', ['This', '%0.nm', 'Checked', '%1'], True));
+    &On('check', AjaxCallMethod('check')
+      .Event
+      .AddRawParam('This', 'sender.nm')
+      .AddRawParam('Checked', 'checked')
+      .FunctionArgs('sender, checked')
+      .AsFunction);
   FOnCheck := Value;
 end;
 
@@ -1030,19 +1043,19 @@ begin
   Result := 'chkbox';
 end;
 
-function TExtFormCheckbox.GetValue: TExtFunction;
+function TExtFormCheckbox.GetValue: TExtExpression;
 begin
-  Result := CallMethod('getValue').AsFunction;
+  Result := CallMethod('getValue').AsExpression;
 end;
 
-function TExtFormCheckbox.SetValue(const AChecked: Boolean): TExtFunction;
+function TExtFormCheckbox.SetValue(const AChecked: Boolean): TExtExpression;
 begin
-  Result := CallMethod('setValue').AddParam(AChecked).AsFunction;
+  Result := CallMethod('setValue').AddParam(AChecked).AsExpression;
 end;
 
-function TExtFormCheckbox.SetValue(const AChecked: string): TExtFunction;
+function TExtFormCheckbox.SetValue(const AChecked: string): TExtExpression;
 begin
-  Result := CallMethod('setValue').AddParam(AChecked).AsFunction;
+  Result := CallMethod('setValue').AddParam(AChecked).AsExpression;
 end;
 
 procedure TExtFormCheckbox.HandleEvent(const AEvtName: string);
@@ -1089,14 +1102,14 @@ begin
   FEditable := true;
 end;
 
-function TExtFormTriggerField.SetEditable(const AValue: Boolean): TExtFunction;
+function TExtFormTriggerField.SetEditable(const AValue: Boolean): TExtExpression;
 begin
-  Result := CallMethod('setEditable').AddParam(AValue).AsFunction;
+  Result := CallMethod('setEditable').AddParam(AValue).AsExpression;
 end;
 
-function TExtFormTriggerField.SetReadOnly(const AValue: Boolean): TExtFunction;
+function TExtFormTriggerField.SetReadOnly(const AValue: Boolean): TExtExpression;
 begin
-  Result := CallMethod('setReadOnly').AddParam(AValue).AsFunction;
+  Result := CallMethod('setReadOnly').AddParam(AValue).AsExpression;
 end;
 
 procedure TExtFormNumberField.SetAllowDecimals(const AValue: Boolean);
@@ -1168,16 +1181,16 @@ begin
   FNanText := '{value} is not a valid number';
 end;
 
-function TExtFormNumberField.SetMaxValue(const AValue: Integer): TExtFunction;
+function TExtFormNumberField.SetMaxValue(const AValue: Integer): TExtExpression;
 begin
   FMaxValue := AValue;
-  Result := CallMethod('setMaxValue').AddParam(AValue).AsFunction;
+  Result := CallMethod('setMaxValue').AddParam(AValue).AsExpression;
 end;
 
-function TExtFormNumberField.SetMinValue(const AValue: Integer): TExtFunction;
+function TExtFormNumberField.SetMinValue(const AValue: Integer): TExtExpression;
 begin
   FMinValue := AValue;
-  Result := CallMethod('setMinValue').AddParam(AValue).AsFunction;
+  Result := CallMethod('setMinValue').AddParam(AValue).AsExpression;
 end;
 
 procedure TExtFormFieldSet.SetCollapsible(const AValue: Boolean);
@@ -1232,9 +1245,9 @@ begin
   FForm := TExtFormBasicForm.CreateInternal(Self, 'getForm()');
 end;
 
-function TExtFormFormPanel.Load(const AOptions: TExtObject): TExtFunction;
+function TExtFormFormPanel.Load(const AOptions: TExtObject): TExtExpression;
 begin
-  Result := CallMethod('load').AddParam(AOptions).AsFunction;
+  Result := CallMethod('load').AddParam(AOptions).AsExpression;
 end;
 
 class function TExtFormRadioGroup.JSClassName: string;
@@ -1299,45 +1312,45 @@ begin
   Result := 'datefld';
 end;
 
-function TExtFormDateField.GetValue: TExtFunction;
+function TExtFormDateField.GetValue: TExtExpression;
 begin
-  Result := CallMethod('getValue').AsFunction;
+  Result := CallMethod('getValue').AsExpression;
 end;
 
-function TExtFormDateField.SetDisabledDates(const ADisabledDates: TExtObjectList): TExtFunction;
+function TExtFormDateField.SetDisabledDates(const ADisabledDates: TExtObjectList): TExtExpression;
 begin
   FDisabledDates.Free;
   FDisabledDates := ADisabledDates;
-  Result := CallMethod('setDisabledDates').AddParam(ADisabledDates).AsFunction;
+  Result := CallMethod('setDisabledDates').AddParam(ADisabledDates).AsExpression;
 end;
 
-function TExtFormDateField.SetDisabledDays(const ADisabledDays: TExtObjectList): TExtFunction;
+function TExtFormDateField.SetDisabledDays(const ADisabledDays: TExtObjectList): TExtExpression;
 begin
   FDisabledDays.Free;
   FDisabledDays := ADisabledDays;
-  Result := CallMethod('setDisabledDays').AddParam(ADisabledDays).AsFunction;
+  Result := CallMethod('setDisabledDays').AddParam(ADisabledDays).AsExpression;
 end;
 
-function TExtFormDateField.SetMaxValue(const AValue: TDateTime): TExtFunction;
+function TExtFormDateField.SetMaxValue(const AValue: TDateTime): TExtExpression;
 begin
   FMaxValue := AValue;
-  Result := CallMethod('setMaxValue').AddParam(AValue).AsFunction;
+  Result := CallMethod('setMaxValue').AddParam(AValue).AsExpression;
 end;
 
-function TExtFormDateField.SetMinValue(const AValue: TDateTime): TExtFunction;
+function TExtFormDateField.SetMinValue(const AValue: TDateTime): TExtExpression;
 begin
   FMinValue := AValue;
-  Result := CallMethod('setMinValue').AddParam(AValue).AsFunction;
+  Result := CallMethod('setMinValue').AddParam(AValue).AsExpression;
 end;
 
-function TExtFormDateField.SetValue(const ADate: string): TExtFunction;
+function TExtFormDateField.SetValue(const ADate: string): TExtExpression;
 begin
-  Result := CallMethod('setValue').AddParam(ADate).AsFunction;
+  Result := CallMethod('setValue').AddParam(ADate).AsExpression;
 end;
 
-function TExtFormDateField.SetValue(const ADate: TDateTime): TExtFunction;
+function TExtFormDateField.SetValue(const ADate: TDateTime): TExtExpression;
 begin
-  Result := CallMethod('setValue').AddParam(ADate).AsFunction;
+  Result := CallMethod('setValue').AddParam(ADate).AsExpression;
 end;
 
 procedure TExtFormComboBox.SetAutoSelect(const AValue: Boolean);
@@ -1375,9 +1388,9 @@ begin
   FListWidth := SetConfigItem('listWidth', AValue);
 end;
 
-procedure TExtFormComboBox.SetListWidthFunc(const AValue: TExtFunction);
+procedure TExtFormComboBox.SetListWidthFunc(const AValue: TExtExpression);
 begin
-  FListWidthFunc := SetFunctionConfigItem('listWidth', AValue);
+  FListWidthFunc := SetConfigItem('listWidth', AValue);
 end;
 
 procedure TExtFormComboBox.SetMinChars(const AValue: Integer);
@@ -1390,9 +1403,9 @@ begin
   FMinHeight := SetConfigItem('minHeight', AValue);
 end;
 
-procedure TExtFormComboBox.SetMinHeightFunc(const AValue: TExtFunction);
+procedure TExtFormComboBox.SetMinHeightFunc(const AValue: TExtExpression);
 begin
-  FMinHeightFunc := SetFunctionConfigItem('minHeight', AValue);
+  FMinHeightFunc := SetConfigItem('minHeight', AValue);
 end;
 
 procedure TExtFormComboBox.SetMinListWidth(const AValue: Integer);
@@ -1488,28 +1501,34 @@ begin
   FValueField := 'output/Ext.form.ComboBox.html#Ext.form.ComboBox-mode';
 end;
 
-function TExtFormComboBox.ClearValue: TExtFunction;
+function TExtFormComboBox.ClearValue: TExtExpression;
 begin
-  Result := CallMethod('clearValue').AsFunction;
+  Result := CallMethod('clearValue').AsExpression;
 end;
 
-function TExtFormComboBox.Expand: TExtFunction;
+function TExtFormComboBox.Expand: TExtExpression;
 begin
-  Result := CallMethod('expand').AsFunction;
+  Result := CallMethod('expand').AsExpression;
 end;
 
 procedure TExtFormComboBox.SetOnSelect(const AValue: TExtFormComboBoxOnSelect);
 begin
   RemoveAllListeners('select');
   if Assigned(AValue) then
-    On('select', Ajax('select', ['Combo', '%0.nm', 'RecordJS', '%1.nm', 'Index',
-      '%2'], true));
+//    On('select', Ajax('select', ['Combo', '%0.nm', 'RecordJS', '%1.nm', 'Index', '%2'], true));
+    &On('select', AjaxCallMethod('select')
+      .Event
+      .AddRawParam('Combo', 'combo.nm')
+      .AddRawParam('RecordJS', 'record.nm') // should not work but it's not used.
+      .AddRawParam('Index', 'index')
+      .FunctionArgs('combo, record, index')
+      .AsFunction);
   FOnSelect := AValue;
 end;
 
-function TExtFormComboBox.GetListParent: TExtFunction;
+function TExtFormComboBox.GetListParent: TExtExpression;
 begin
-  Result := CallMethod('getListParent').AsFunction;
+  Result := CallMethod('getListParent').AsExpression;
 end;
 
 function TExtFormComboBox.GetObjectNamePrefix: string;
@@ -1517,24 +1536,24 @@ begin
   Result := 'combo';
 end;
 
-function TExtFormComboBox.GetStore: TExtFunction;
+function TExtFormComboBox.GetStore: TExtExpression;
 begin
-  Result := CallMethod('getStore').AsFunction;
+  Result := CallMethod('getStore').AsExpression;
 end;
 
-function TExtFormComboBox.GetValue: TExtFunction;
+function TExtFormComboBox.GetValue: TExtExpression;
 begin
-  Result := CallMethod('getValue').AsFunction;
+  Result := CallMethod('getValue').AsExpression;
 end;
 
-function TExtFormComboBox.IsExpanded: TExtFunction;
+function TExtFormComboBox.IsExpanded: TExtExpression;
 begin
-  Result := CallMethod('isExpanded').AsFunction;
+  Result := CallMethod('isExpanded').AsExpression;
 end;
 
-function TExtFormComboBox.SetValue(const AValue: string): TExtFunction;
+function TExtFormComboBox.SetValue(const AValue: string): TExtExpression;
 begin
-  Result := CallMethod('setValue').AddParam(AValue).AsFunction;
+  Result := CallMethod('setValue').AddParam(AValue).AsExpression;
 end;
 
 procedure TExtFormComboBox.HandleEvent(const AEvtName: string);
@@ -1608,16 +1627,16 @@ begin
   FMinText := 'The time in this field must be equal to or after {0}';
 end;
 
-function TExtFormTimeField.SetMaxValue(const AValue: TDateTime): TExtFunction;
+function TExtFormTimeField.SetMaxValue(const AValue: TDateTime): TExtExpression;
 begin
   FMaxValue := AValue;
-  Result := CallMethod('setMaxValue').AddParam(AValue).AsFunction;
+  Result := CallMethod('setMaxValue').AddParam(AValue).AsExpression;
 end;
 
-function TExtFormTimeField.SetMinValue(const AValue: TDateTime): TExtFunction;
+function TExtFormTimeField.SetMinValue(const AValue: TDateTime): TExtExpression;
 begin
   FMinValue := AValue;
-  Result := CallMethod('setMinValue').AddParam(AValue).AsFunction;
+  Result := CallMethod('setMinValue').AddParam(AValue).AsExpression;
 end;
 
 { TExtFormFieldContainer }

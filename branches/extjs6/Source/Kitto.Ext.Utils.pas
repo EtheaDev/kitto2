@@ -55,7 +55,7 @@ type
     FTreeView: TKTreeView;
     procedure AddButton(const ANode: TKTreeViewNode; const ADisplayLabel: string; const AContainer: TExtContainer);
     procedure AddMenuItem(const ANode: TKTreeViewNode; const AMenu: TExtMenuMenu);
-    function GetClickFunction(const AView: TKView): TExtFunction;
+    function GetClickFunction(const AView: TKView): TExtExpression;
 
     /// <summary>
     ///  Clones the specified tree view, filters all invisible items
@@ -168,7 +168,7 @@ end;
 
 { TKExtTreeViewRenderer }
 
-function TKExtTreeViewRenderer.GetClickFunction(const AView: TKView): TExtFunction;
+function TKExtTreeViewRenderer.GetClickFunction(const AView: TKView): TExtExpression;
 begin
   Assert(Assigned(FOwner));
   Assert(Assigned(FClickHandler));
@@ -176,9 +176,16 @@ begin
   if Assigned(AView) then
   begin
     if Session.StatusHost <> nil then
-      Result := FOwner.Ajax(FClickHandler, ['View', Integer(AView), 'Dummy', Session.StatusHost.ShowBusy])
+      //Result := FOwner.Ajax(FClickHandler, ['View', Integer(AView), 'Dummy', Session.StatusHost.ShowBusy])
+      Result := FOwner.AjaxCallMethod.SetMethod(FClickHandler)
+        .AddParam('View', Integer(AView))
+        .AddParam('Dummy', Session.StatusHost.ShowBusy)
+        .AsExpression
     else
-      Result := FOwner.Ajax(FClickHandler, ['View', Integer(AView)]);
+      //Result := FOwner.Ajax(FClickHandler, ['View', Integer(AView)]);
+      Result := FOwner.AjaxCallMethod.SetMethod(FClickHandler)
+        .AddParam('View', Integer(AView))
+        .AsExpression;
   end
   else
     Result := nil;

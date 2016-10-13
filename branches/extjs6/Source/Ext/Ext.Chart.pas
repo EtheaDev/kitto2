@@ -168,7 +168,7 @@ type
     FXField: String;
     FXAxis: TExtChartAxis;
     FYAxis: TExtChartAxis;
-    FTipRenderer: TExtFunction;
+    FTipRenderer: TExtExpression;
     FSeries: TExtObjectList;
     procedure SetChartStyle(const AValue: TExtObject);
     procedure SetUrl(const AValue: String);
@@ -177,7 +177,7 @@ type
     procedure SetXField(const AValue: String);
     procedure SetXAxis(const AValue: TExtChartAxis);
     procedure SetYAxis(const AValue: TExtChartAxis);
-    procedure SetTipRenderer(const AValue: TExtFunction);
+    procedure SetTipRenderer(const AValue: TExtExpression);
   protected
     procedure InitDefaults; override;
   public
@@ -190,7 +190,7 @@ type
     property XField: String read FXField write SetXField;
     property XAxis: TExtChartAxis read FXAxis write SetXAxis;
     property YAxis: TExtChartAxis read FYAxis write SetYAxis;
-    property TipRenderer: TExtFunction read FTipRenderer write SetTipRenderer;
+    property TipRenderer: TExtExpression read FTipRenderer write SetTipRenderer;
     property Series: TExtObjectList read FSeries;
   end;
 
@@ -458,9 +458,9 @@ begin
   FYAxis := TExtChartAxis(SetProperty('yAxis', AValue));
 end;
 
-procedure TExtChartChart.SetTipRenderer(const AValue: TExtFunction);
+procedure TExtChartChart.SetTipRenderer(const AValue: TExtExpression);
 begin
-  FTipRenderer := SetFunctionConfigItem('tipRenderer', 'setTipRenderer', AValue);
+  FTipRenderer := SetConfigItem('tipRenderer', 'setTipRenderer', AValue);
 end;
 
 class function TExtChartChart.JSClassName: string;

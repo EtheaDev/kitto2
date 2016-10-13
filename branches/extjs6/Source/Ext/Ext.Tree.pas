@@ -33,10 +33,10 @@ type
     function GetObjectNamePrefix: string; override;
   public
     class function JSClassName: string; override;
-    function SetText(const AText: string): TExtFunction;
-    function SetTooltip(const ATip: string; const ATitle: string = ''): TExtFunction;
-    function Toggle: TExtFunction;
-    function Unselect(const ASilent: Boolean = false): TExtFunction;
+    function SetText(const AText: string): TExtExpression;
+    function SetTooltip(const ATip: string; const ATitle: string = ''): TExtExpression;
+    function Toggle: TExtExpression;
+    function Unselect(const ASilent: Boolean = false): TExtExpression;
     property Disabled: Boolean read FDisabled write SetDisabled;
     property Expandable: Boolean read FExpandable write SetExpandable;
     property Expanded: Boolean read FExpanded write SetExpanded;
@@ -106,25 +106,25 @@ begin
   Result := 'treenode';
 end;
 
-function TExtTreeTreeNode.SetText(const AText: string): TExtFunction;
+function TExtTreeTreeNode.SetText(const AText: string): TExtExpression;
 begin
   FText := AText;
-  Result := CallMethod('setText').AddParam(AText).AsFunction;
+  Result := CallMethod('setText').AddParam(AText).AsExpression;
 end;
 
-function TExtTreeTreeNode.SetTooltip(const ATip, ATitle: string): TExtFunction;
+function TExtTreeTreeNode.SetTooltip(const ATip, ATitle: string): TExtExpression;
 begin
-  Result := CallMethod('setTooltip').AddParam(ATip).AddParam(ATitle).AsFunction;
+  Result := CallMethod('setTooltip').AddParam(ATip).AddParam(ATitle).AsExpression;
 end;
 
-function TExtTreeTreeNode.Toggle: TExtFunction;
+function TExtTreeTreeNode.Toggle: TExtExpression;
 begin
-  Result := CallMethod('toggle').AsFunction;
+  Result := CallMethod('toggle').AsExpression;
 end;
 
-function TExtTreeTreeNode.Unselect(const ASilent: Boolean): TExtFunction;
+function TExtTreeTreeNode.Unselect(const ASilent: Boolean): TExtExpression;
 begin
-  Result := CallMethod('unselect').AddParam(ASilent).AsFunction;
+  Result := CallMethod('unselect').AddParam(ASilent).AsExpression;
 end;
 
 procedure TExtTreeTreePanel.SetRoot(const AValue: TExtTreeTreeNode);

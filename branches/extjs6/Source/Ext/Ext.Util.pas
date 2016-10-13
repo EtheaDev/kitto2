@@ -12,20 +12,20 @@ type
   TExtUtilObservable = class(TExtObject)
   public
     class function JSClassName: string; override;
-    function AddListener(const AEventName: string; const AHandler: TExtFunction;
-      const AScope: TExtObject = nil; const AOptions: TExtObject = nil): TExtFunction;
-    function FireEvent(const AEventName: string; const AArgs: TExtObjectList): TExtFunction;
-    function &On(const AEventName: string; const AHandler: TExtFunction;
-      const AScope: TExtObject = nil; const AOptions: TExtObject = nil): TExtFunction;
-    function RemoveAllListeners(const AEventName: string): TExtFunction;
+    function AddListener(const AEventName: string; const AHandler: TExtExpression;
+      const AScope: TExtObject = nil; const AOptions: TExtObject = nil): TExtExpression;
+    function FireEvent(const AEventName: string; const AArgs: TExtObjectList): TExtExpression;
+    function &On(const AEventName: string; const AHandler: TExtExpression;
+      const AScope: TExtObject = nil; const AOptions: TExtObject = nil): TExtExpression;
+    function RemoveAllListeners(const AEventName: string): TExtExpression;
   end;
 
   TExtUtilTextMetricsSingleton = class(TExtObject)
   public
     class function JSClassName: string; override;
-    function GetHeight(const AText: string): TExtFunction;
-    function GetSize(const AText: string): TExtFunction;
-    function GetWidth(const AText: string): TExtFunction;
+    function GetHeight(const AText: string): TExtExpression;
+    function GetSize(const AText: string): TExtExpression;
+    function GetWidth(const AText: string): TExtExpression;
   end;
 
 function ExtUtilTextMetrics: TExtUtilTextMetricsSingleton;
@@ -50,40 +50,40 @@ begin
   Result := 'Ext.util.Observable';
 end;
 
-function TExtUtilObservable.AddListener(const AEventName: string; const AHandler: TExtFunction;
-  const AScope: TExtObject = nil; const AOptions: TExtObject = nil): TExtFunction;
+function TExtUtilObservable.AddListener(const AEventName: string; const AHandler: TExtExpression;
+  const AScope: TExtObject = nil; const AOptions: TExtObject = nil): TExtExpression;
 begin
   Result := CallMethod('addListener')
     .AddParam(AEventName)
-    .AddFunctionParam(AHandler)
+    .AddParam(AHandler)
     .AddParam(AScope)
     .AddParam(AOptions)
-    .AsFunction;
+    .AsExpression;
 end;
 
-function TExtUtilObservable.FireEvent(const AEventName: string; const AArgs: TExtObjectList): TExtFunction;
+function TExtUtilObservable.FireEvent(const AEventName: string; const AArgs: TExtObjectList): TExtExpression;
 begin
   Result := CallMethod('fireEvent')
     .AddParam(AEventName)
     .AddParam(AArgs)
-    .AsFunction;
+    .AsExpression;
 end;
 
-function TExtUtilObservable.&On(const AEventName: string; const AHandler: TExtFunction;
-  const AScope: TExtObject; const AOptions: TExtObject): TExtFunction;
+function TExtUtilObservable.&On(const AEventName: string; const AHandler: TExtExpression;
+  const AScope: TExtObject; const AOptions: TExtObject): TExtExpression;
 begin
   Result := CallMethod('on')
     .AddParam(AEventName)
-    .AddFunctionParam(AHandler)
+    .AddParam(AHandler)
     .AddParam(AScope)
     .AddParam(AOptions)
-    .AsFunction;
+    .AsExpression;
 end;
 
-function TExtUtilObservable.RemoveAllListeners(const AEventName: string): TExtFunction;
+function TExtUtilObservable.RemoveAllListeners(const AEventName: string): TExtExpression;
 begin
   Result := GetSession.ResponseItems.ExecuteJSCode(Self, Format('if (%s.events.%s) delete (%s.events.%s)',
-    [JSName, AEventName, JSName, AEventName])).AsFunction;
+    [JSName, AEventName, JSName, AEventName])).AsExpression;
 end;
 
 class function TExtUtilTextMetricsSingleton.JSClassName: string;
@@ -91,25 +91,25 @@ begin
   Result := 'Ext.util.TextMetrics';
 end;
 
-function TExtUtilTextMetricsSingleton.GetHeight(const AText: string): TExtFunction;
+function TExtUtilTextMetricsSingleton.GetHeight(const AText: string): TExtExpression;
 begin
   Result := CallMethod('getHeight')
     .AddParam(AText)
-    .AsFunction;
+    .AsExpression;
 end;
 
-function TExtUtilTextMetricsSingleton.GetSize(const AText: string): TExtFunction;
+function TExtUtilTextMetricsSingleton.GetSize(const AText: string): TExtExpression;
 begin
   Result := CallMethod('getSize')
     .AddParam(AText)
-    .AsFunction;
+    .AsExpression;
 end;
 
-function TExtUtilTextMetricsSingleton.GetWidth(const AText: string): TExtFunction;
+function TExtUtilTextMetricsSingleton.GetWidth(const AText: string): TExtExpression;
 begin
   Result := CallMethod('getWidth')
     .AddParam(AText)
-    .AsFunction;
+    .AsExpression;
 end;
 
 end.

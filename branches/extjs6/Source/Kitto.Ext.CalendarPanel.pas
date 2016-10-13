@@ -38,7 +38,7 @@ type
     function CreateCalendarReader: TExtDataJsonReader;
     function CreateCalendarStore: TExtDataStore;
   strict protected
-    function GetSelectCall(const AMethod: TExtProcedure): TExtFunction; override;
+    function GetSelectCall(const AMethod: TExtProcedure): TExtExpression; override;
     function GetSelectConfirmCall(const AMessage: string; const AMethod: TExtProcedure): string; override;
     property CalendarStore: TExtDataStore read FCalendarStore;
     procedure SetViewTable(const AValue: TKViewTable); override;
@@ -136,7 +136,7 @@ begin
   end;
 end;
 
-function TKExtCalendarPanel.GetSelectCall(const AMethod: TExtProcedure): TExtFunction;
+function TKExtCalendarPanel.GetSelectCall(const AMethod: TExtProcedure): TExtExpression;
 begin
   Result := JSFunction(Format('ajaxCalendarSelection("yes", "", {params: {methodURL: "%s", calendarPanel: %s, fieldNames: "%s"}});',
     [MethodURI(AMethod), FCalendarPanel.JSName, Join(ViewTable.GetKeyFieldAliasedNames, ',')]));
@@ -298,40 +298,6 @@ end;
 
 initialization
   TKExtControllerRegistry.Instance.RegisterClass('CalendarPanel', TKExtCalendarPanel);
-
-  TKExtSession.AddAdditionalRef('/extensible-1.0.2/resources/css/extensible-all', True);
-  TKExtSession.AddAdditionalRef('/extensible-1.0.2/lib/extensible-all' + {$IFDEF DebugExtJS}'-debug'{$ELSE}''{$ENDIF});
-
-//  TKExtSession.AddAdditionalRef('{ext}/examples/calendar/resources/css/calendar', True);
-//  TKExtSession.AddAdditionalRef('{ext}/examples/calendar/calendar-all' + {$IFDEF DebugExtJS}'-debug'{$ELSE}''{$ENDIF});
-
-(*
-  TKExtSession.AddAdditionalRef('{ext}/examples/calendar/src/Ext.calendar');
-  TKExtSession.AddAdditionalRef('{ext}/examples/calendar/src/templates/DayHeaderTemplate');
-  TKExtSession.AddAdditionalRef('{ext}/examples/calendar/src/templates/DayBodyTemplate');
-  TKExtSession.AddAdditionalRef('{ext}/examples/calendar/src/templates/DayViewTemplate');
-  TKExtSession.AddAdditionalRef('{ext}/examples/calendar/src/templates/BoxLayoutTemplate');
-  TKExtSession.AddAdditionalRef('{ext}/examples/calendar/src/templates/MonthViewTemplate');
-  TKExtSession.AddAdditionalRef('{ext}/examples/calendar/src/dd/CalendarScrollManager');
-  TKExtSession.AddAdditionalRef('{ext}/examples/calendar/src/dd/StatusProxy');
-  TKExtSession.AddAdditionalRef('{ext}/examples/calendar/src/dd/CalendarDD');
-  TKExtSession.AddAdditionalRef('{ext}/examples/calendar/src/dd/DayViewDD');
-  TKExtSession.AddAdditionalRef('{ext}/examples/calendar/src/EventRecord');
-  TKExtSession.AddAdditionalRef('{ext}/examples/calendar/src/widgets/CalendarPicker');
-  TKExtSession.AddAdditionalRef('{ext}/examples/calendar/src/WeekEventRenderer');
-  TKExtSession.AddAdditionalRef('{ext}/examples/calendar/src/views/CalendarView');
-  TKExtSession.AddAdditionalRef('{ext}/examples/calendar/src/views/DayHeaderView');
-  TKExtSession.AddAdditionalRef('{ext}/examples/calendar/src/views/DayBodyView');
-  TKExtSession.AddAdditionalRef('{ext}/examples/calendar/src/views/DayView');
-  TKExtSession.AddAdditionalRef('{ext}/examples/calendar/src/views/MonthDayDetailView');
-  TKExtSession.AddAdditionalRef('{ext}/examples/calendar/src/views/MonthView');
-  TKExtSession.AddAdditionalRef('{ext}/examples/calendar/src/views/WeekView');
-  TKExtSession.AddAdditionalRef('{ext}/examples/calendar/src/widgets/DateRangeField');
-  TKExtSession.AddAdditionalRef('{ext}/examples/calendar/src/widgets/ReminderField');
-  TKExtSession.AddAdditionalRef('{ext}/examples/calendar/src/EventEditForm');
-  TKExtSession.AddAdditionalRef('{ext}/examples/calendar/src/EventEditWindow');
-  TKExtSession.AddAdditionalRef('{ext}/examples/calendar/src/CalendarPanel');
-*)
 
 finalization
   TKExtControllerRegistry.Instance.UnregisterClass('CalendarPanel');

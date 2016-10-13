@@ -25,14 +25,14 @@ type
     FHeader: string;
     FHidden: Boolean;
     FDataIndex: string;
-    FRendererFunc: TExtFunction;
+    FRendererFunc: TExtExpression;
     FEmptyGroupText: string;
     FSortable: Boolean;
     FEditor: TExtFormField;
     FCss: string;
     FFixed: Boolean;
-    FWidthFunc: TExtFunction;
-    FGroupRenderer: TExtFunction;
+    FWidthFunc: TExtExpression;
+    FGroupRenderer: TExtExpression;
     FEditable: Boolean;
     FRenderer: string;
     FGroupName: string;
@@ -44,15 +44,15 @@ type
     procedure SetEmptyGroupText(const AValue: string);
     procedure SetFixed(const AValue: Boolean);
     procedure SetGroupName(const AValue: string);
-    procedure SetGroupRenderer(const AValue: TExtFunction);
+    procedure SetGroupRenderer(const AValue: TExtExpression);
     procedure SetHeader(const AValue: string);
     procedure SetHidden(const AValue: Boolean);
     procedure SetHideable(const AValue: Boolean);
     procedure SetRenderer(const AValue: string);
     procedure SetSortable(const AValue: Boolean);
     procedure SetWidth(const AValue: Integer);
-    procedure SetRendererFunc(const AValue: TExtFunction);
-    procedure SetWidthFunc(const AValue: TExtFunction);
+    procedure SetRendererFunc(const AValue: TExtExpression);
+    procedure SetWidthFunc(const AValue: TExtExpression);
   protected
     procedure InitDefaults; override;
     function GetObjectNamePrefix: string; override;
@@ -66,15 +66,15 @@ type
     property EmptyGroupText: string read FEmptyGroupText write SetEmptyGroupText;
     property Fixed: Boolean read FFixed write SetFixed;
     property GroupName: string read FGroupName write SetGroupName;
-    property GroupRenderer: TExtFunction read FGroupRenderer write SetGroupRenderer;
+    property GroupRenderer: TExtExpression read FGroupRenderer write SetGroupRenderer;
     property Header: string read FHeader write SetHeader;
     property Hidden: Boolean read FHidden write SetHidden;
     property Hideable: Boolean read FHideable write SetHideable;
     property Renderer: string read FRenderer write SetRenderer;
     property Sortable: Boolean read FSortable write SetSortable;
     property Width: Integer read FWidth write SetWidth;
-    property WidthFunc: TExtFunction read FWidthFunc write SetWidthFunc;
-    property RendererFunc: TExtFunction read FRendererFunc write SetRendererFunc;
+    property WidthFunc: TExtExpression read FWidthFunc write SetWidthFunc;
+    property RendererFunc: TExtExpression read FRendererFunc write SetRendererFunc;
   end;
 
   TExtGridNumberColumn = class(TExtGridColumn)
@@ -93,14 +93,14 @@ type
     FAutoFill: Boolean;
     FForceFit: Boolean;
     FDisableSelection: Boolean;
-    FGetRowClass: TExtFunction;
+    FGetRowClass: TExtExpression;
     FEmptyText: string;
     FEnableRowBody: Boolean;
     procedure SetAutoFill(const AValue: Boolean);
     procedure SetEmptyText(const AValue: string);
     procedure SetEnableRowBody(const AValue: Boolean);
     procedure SetForceFit(const AValue: Boolean);
-    procedure SetGetRowClass(const AValue: TExtFunction);
+    procedure SetGetRowClass(const AValue: TExtExpression);
     procedure SetDisableSelection(const AValue: Boolean);
   protected
     procedure InitDefaults; override;
@@ -112,7 +112,7 @@ type
     property EmptyText: string read FEmptyText write SetEmptyText;
     property EnableRowBody: Boolean read FEnableRowBody write SetEnableRowBody;
     property ForceFit: Boolean read FForceFit write SetForceFit;
-    property GetRowClass: TExtFunction read FGetRowClass write SetGetRowClass;
+    property GetRowClass: TExtExpression read FGetRowClass write SetGetRowClass;
   end;
 
   TExtGridView = class(TExtViewTable)
@@ -160,11 +160,11 @@ type
       SINGLE_SELECT = 'SINGLE';
       MULTI_SELECT = 'MULTI';
     class function JSClassName: string; override;
-    function Each(const AFunction: TExtFunction; const AScope: TExtObject = nil): TExtFunction;
-    function GetCount: TExtFunction;
-    function GetSelected: TExtFunction;
-    function GetSelections: TExtFunction;
-    function Select(const AIndex: Integer; const AKeepExisting: Boolean = False): TExtFunction;
+    function Each(const AFunction: TExtExpression; const AScope: TExtObject = nil): TExtExpression;
+    function GetCount: TExtExpression;
+    function GetSelected: TExtExpression;
+    function GetSelections: TExtExpression;
+    function Select(const AIndex: Integer; const AKeepExisting: Boolean = False): TExtExpression;
     property Mode: string read FMode write SetMode;
   end;
 
@@ -179,14 +179,14 @@ type
     FEmptyGroupText: string;
     FShowGroupName: Boolean;
     FEnableGroupingMenu: Boolean;
-    FGroupRenderer: TExtFunction;
+    FGroupRenderer: TExtExpression;
     FStartCollapsed: Boolean;
     procedure SetEmptyGroupText(const AValue: string);
     procedure SetEnableGrouping(const AValue: Boolean);
     procedure SetEnableGroupingMenu(const AValue: Boolean);
     procedure SetEnableNoGroups(const AValue: Boolean);
     procedure SetGroupMode(const AValue: string);
-    procedure SetGroupRenderer(const AValue: TExtFunction);
+    procedure SetGroupRenderer(const AValue: TExtExpression);
     procedure SetGroupTextTpl(const AValue: string);
     procedure SetHideGroupedColumn(const AValue: Boolean);
     procedure SetShowGroupName(const AValue: Boolean);
@@ -202,7 +202,7 @@ type
       write SetEnableGroupingMenu;
     property EnableNoGroups: Boolean read FEnableNoGroups write SetEnableNoGroups;
     property GroupMode: string read FGroupMode write SetGroupMode;
-    property GroupRenderer: TExtFunction read FGroupRenderer write SetGroupRenderer;
+    property GroupRenderer: TExtExpression read FGroupRenderer write SetGroupRenderer;
     property GroupTextTpl: string read FGroupTextTpl write SetGroupTextTpl;
     property HideGroupedColumn: Boolean read FHideGroupedColumn
       write SetHideGroupedColumn;
@@ -368,9 +368,9 @@ begin
   FGroupName := SetConfigItem('groupName', AValue);
 end;
 
-procedure TExtGridColumn.SetGroupRenderer(const AValue: TExtFunction);
+procedure TExtGridColumn.SetGroupRenderer(const AValue: TExtExpression);
 begin
-  FGroupRenderer := SetFunctionConfigItem('groupRenderer', AValue);
+  FGroupRenderer := SetConfigItem('groupRenderer', AValue);
 end;
 
 procedure TExtGridColumn.SetHeader(const AValue: string);
@@ -403,14 +403,14 @@ begin
   FWidth := SetConfigItem('width', AValue);
 end;
 
-procedure TExtGridColumn.SetWidthFunc(const AValue: TExtFunction);
+procedure TExtGridColumn.SetWidthFunc(const AValue: TExtExpression);
 begin
-  FWidthFunc := SetFunctionConfigItem('width', AValue);
+  FWidthFunc := SetConfigItem('width', AValue);
 end;
 
-procedure TExtGridColumn.SetRendererFunc(const AValue: TExtFunction);
+procedure TExtGridColumn.SetRendererFunc(const AValue: TExtExpression);
 begin
-  FRendererFunc := SetFunctionConfigItem('renderer', AValue);
+  FRendererFunc := SetConfigItem('renderer', AValue);
 end;
 
 class function TExtGridColumn.JSClassName: string;
@@ -471,9 +471,9 @@ begin
   FForceFit := SetConfigItem('forceFit', AValue);
 end;
 
-procedure TExtViewTable.SetGetRowClass(const AValue: TExtFunction);
+procedure TExtViewTable.SetGetRowClass(const AValue: TExtExpression);
 begin
-  FGetRowClass := SetFunctionConfigItem('getRowClass', AValue);
+  FGetRowClass := SetConfigItem('getRowClass', AValue);
 end;
 
 class function TExtViewTable.JSClassName: string;
@@ -545,27 +545,27 @@ begin
   Result := 'Ext.selection.RowModel';
 end;
 
-function TExtSelectionRowModel.Each(const AFunction: TExtFunction; const AScope: TExtObject): TExtFunction;
+function TExtSelectionRowModel.Each(const AFunction: TExtExpression; const AScope: TExtObject): TExtExpression;
 begin
   Result := CallMethod('each')
-    .AddFunctionParam(AFunction)
+    .AddParam(AFunction)
     .AddParam(AScope)
-    .AsFunction;
+    .AsExpression;
 end;
 
-function TExtSelectionRowModel.GetCount: TExtFunction;
+function TExtSelectionRowModel.GetCount: TExtExpression;
 begin
-  Result := CallMethod('getCount').AsFunction;
+  Result := CallMethod('getCount').AsExpression;
 end;
 
-function TExtSelectionRowModel.GetSelected: TExtFunction;
+function TExtSelectionRowModel.GetSelected: TExtExpression;
 begin
-  Result := CallMethod('getSelected').AsFunction;
+  Result := CallMethod('getSelected').AsExpression;
 end;
 
-function TExtSelectionRowModel.GetSelections: TExtFunction;
+function TExtSelectionRowModel.GetSelections: TExtExpression;
 begin
-  Result := CallMethod('getSelections').AsFunction;
+  Result := CallMethod('getSelections').AsExpression;
 end;
 
 procedure TExtSelectionRowModel.InitDefaults;
@@ -574,12 +574,12 @@ begin
   FMode := SINGLE_SELECT;
 end;
 
-function TExtSelectionRowModel.Select(const AIndex: Integer; const AKeepExisting: Boolean): TExtFunction;
+function TExtSelectionRowModel.Select(const AIndex: Integer; const AKeepExisting: Boolean): TExtExpression;
 begin
   Result := CallMethod('select')
     .AddParam(AIndex)
     .AddParam(AKeepExisting)
-    .AsFunction;
+    .AsExpression;
 end;
 
 procedure TExtGridGroupingView.SetEmptyGroupText(const AValue: string);
@@ -607,9 +607,9 @@ begin
   FGroupMode := SetConfigItem('groupMode', AValue);
 end;
 
-procedure TExtGridGroupingView.SetGroupRenderer(const AValue: TExtFunction);
+procedure TExtGridGroupingView.SetGroupRenderer(const AValue: TExtExpression);
 begin
-  FGroupRenderer := SetFunctionConfigItem('groupRenderer', AValue);
+  FGroupRenderer := SetConfigItem('groupRenderer', AValue);
 end;
 
 procedure TExtGridGroupingView.SetGroupTextTpl(const AValue: string);

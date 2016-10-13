@@ -37,7 +37,7 @@ type
     procedure SetViewTable(const AValue: TKViewTable); override;
     procedure AddTopToolbarToolViewButtons; override;
     function IsActionSupported(const AActionName: string): Boolean; override;
-    function GetSelectCall(const AMethod: TExtProcedure): TExtFunction; override;
+    function GetSelectCall(const AMethod: TExtProcedure): TExtExpression; override;
     function GetSelectConfirmCall(const AMessage: string; const AMethod: TExtProcedure): string; override;
   published
   end;
@@ -77,7 +77,7 @@ begin
   FDataView.Store := ClientStore;
 end;
 
-function TKExtTemplateDataPanel.GetSelectCall(const AMethod: TExtProcedure): TExtFunction;
+function TKExtTemplateDataPanel.GetSelectCall(const AMethod: TExtProcedure): TExtExpression;
 begin
   Result := JSFunction(Format('ajaxDataViewSelection("yes", "", {params: {methodURL: "%s", dataView: %s, fieldNames: "%s"}});',
     [MethodURI(AMethod), FDataView.JSName, Join(ViewTable.GetKeyFieldAliasedNames, ',')]));
