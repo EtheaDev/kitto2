@@ -661,12 +661,15 @@ begin
   if FAutoOpenViewName <> '' then
     Queries.Values['view'] := '';
 
-  with TKExtDelayedHome.Create(ObjectCatalog) do
+  { TODO: fix the problem with nil owner - we need to be able to create
+    short-lived invisible objects. Anyway maybe we can do without TKExtDelayedHome }
+  with TKExtDelayedHome.CreateInline(ExtQuickTips) do
   begin
     try
       Execute;
     finally
-      Free;
+      { TODO: restore once the problem with the response items is fixed somehow }
+      //Free;
     end;
   end;
 end;
@@ -674,8 +677,6 @@ end;
 procedure TKExtSession.DelayedHome;
 var
   LUserAgent: string;
-
-
 begin
   if IsMobileApple then
   begin

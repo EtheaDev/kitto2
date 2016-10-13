@@ -157,6 +157,8 @@ type
     FValues: TEFTree;
     FNameValueConnector: string;
     FParamConnector: string;
+    FParamValuePrefix: string;
+    FParamValueSuffix: string;
     function IsRaw(const AValue: TEFNode): Boolean;
     function IsObjectArray(const AValue: TEFNode): Boolean;
     function IsObject(const AValue: TEFNode): Boolean;
@@ -172,6 +174,9 @@ type
     // Can be ',' + sLineBreak, or '&'. Defaults to ',' + sLineBreak.
     property ParamConnector: string read FParamConnector write FParamConnector;
 
+    property ParamValuePrefix: string read FParamValuePrefix write FParamValuePrefix;
+    property ParamValueSuffix: string read FParamValueSuffix write FParamValueSuffix;
+
     procedure SetRawValue(const AName, AValue: string);
 
     // The config does not accept setting values anymore.
@@ -184,6 +189,7 @@ type
     procedure CheckReadOnly(const AValueName: string);
 
     procedure FormatTo(const AFormatter: TJSFormatter);
+    function AsFormattedText: string;
   end;
 
   TJSMethodCall = class;
@@ -239,7 +245,9 @@ type
     function IsInline: Boolean;
 
     procedure Delete;
+
     class function JSClassName: string; virtual;
+
     function JSArray(const AJSON: string; const ASquareBrackets: Boolean = True): TJSObjectArray;
     function JSObject(const AJSON: string; const AObjectConstructor: string = ''; const ACurlyBrackets: Boolean = True): TJSObject;
     function JSFunction(const AParams, ABody: string): TJSExpression; overload;
@@ -480,14 +488,14 @@ type
     function Consume: string;
 
     // Removes any items sent by the specified object.
-    procedure RemoveAll(const AObject: TJSObject);
+//    procedure RemoveAll(const AObject: TJSObject);
 
     // Removes the last method call item (there should be only one) that reference the specified function.
     // Called when a function has been assigned to a config, property or passed as
     // a method argument thus it shouldn't be output in response items anymore.
-    procedure RemoveMethodCallByFunction(const AFunction: TJSExpression);
+    procedure RemoveByExpression(const AExpression: TJSExpression);
 
-    procedure Remove(const AItem: TJSResponseItem);
+//    procedure Remove(const AItem: TJSResponseItem);
 
     function FindObjectCreateItem(const AObject: TJSObject): TJSCreateObject;
 
@@ -745,8 +753,9 @@ begin
   if FEmitted then
     Exit;
 
-  for LItem in FDependencies do
-    LItem.Emit(AEmittedItems);
+  if Assigned(FDependencies) then
+    for LItem in FDependencies do
+      LItem.Emit(AEmittedItems);
   if AllDependenciesEmitted(AEmittedItems) then
   begin
     AEmittedItems.Add(Self);
@@ -763,9 +772,10 @@ function TJSResponseItem.AllDependenciesEmitted(const AEmittedItems: TList<TJSRe
 var
   LItem: TJSResponseItem;
 begin
-  for LItem in FDependencies do
-    if not LItem.FEmitted then
-      Exit(False);
+  if Assigned(FDependencies) then
+    for LItem in FDependencies do
+      if not LItem.FEmitted then
+        Exit(False);
   Result := True;
 end;
 
@@ -1138,33 +1148,33 @@ begin
   end;
 end;
 
-procedure TJSResponseItems.Remove(const AItem: TJSResponseItem);
-begin
-  Assert(Assigned(AItem));
+//procedure TJSResponseItems.Remove(const AItem: TJSResponseItem);
+//begin
+//  Assert(Assigned(AItem));
+//
+//  if FList.Remove(AItem) < 0 then
+//    raise Exception.Create('No item found to remove.');
+//  AItem.Free;
+//end;
 
-  if FList.Remove(AItem) < 0 then
-    raise Exception.Create('No item found to remove.');
-  AItem.Free;
-end;
+//procedure TJSResponseItems.RemoveAll(const AObject: TJSObject);
+//var
+//  I: Integer;
+//begin
+//  for I := FList.Count - 1 downto 0 do
+//    if FList[I].Sender = AObject then
+//    begin
+//      FList[I].Free;
+//      FList.Delete(I);
+//    end;
+//end;
 
-procedure TJSResponseItems.RemoveAll(const AObject: TJSObject);
+procedure TJSResponseItems.RemoveByExpression(const AExpression: TJSExpression);
 var
   I: Integer;
 begin
   for I := FList.Count - 1 downto 0 do
-    if FList[I].Sender = AObject then
-    begin
-      FList[I].Free;
-      FList.Delete(I);
-    end;
-end;
-
-procedure TJSResponseItems.RemoveMethodCallByFunction(const AFunction: TJSExpression);
-var
-  I: Integer;
-begin
-  for I := FList.Count - 1 downto 0 do
-    if (FList[I] is TJSMethodCall) and TJSMethodCall(FList[I]).HasExpression and (TJSMethodCall(FList[I]).AsExpression = AFunction) then
+    if (FList[I] is TJSExpressionResponseItem) and TJSExpressionResponseItem(FList[I]).HasExpression and (TJSExpressionResponseItem(FList[I]).AsExpression = AExpression) then
     begin
       FList[I].Free;
       FList.Delete(I);
@@ -1311,6 +1321,7 @@ procedure TJSMethodCall.FormatTo(const AFormatter: TJSFormatter);
 begin
   inherited;
   Assert(FCallName <> '');
+  Assert(Assigned(Sender));
 
   AFormatter.AddIndented(Sender.JSName + '.' + FCallName);
   AFormatter.OpenRound;
@@ -1962,8 +1973,8 @@ end;
 destructor TJSObject.Destroy;
 begin
   // See Notification for details.
-  if Assigned(Owner) and (GetSession <> nil) and GetSession.HasResponseItems then
-    GetSession.ResponseItems.RemoveAll(Self);
+//  if Assigned(Owner) and (GetSession <> nil) and GetSession.HasResponseItems then
+//    GetSession.ResponseItems.RemoveAll(Self);
   inherited;
 end;
 
@@ -2091,7 +2102,7 @@ end;
 
 class function TJSObject.JSClassName: string;
 begin
-  Result := 'Ext.Base';
+  Result := 'Object';
 end;
 
 {
@@ -3123,6 +3134,19 @@ begin
   FIsReadOnly := False;
 end;
 
+function TJSValues.AsFormattedText: string;
+var
+  LFormatter: TJSFormatter;
+begin
+  LFormatter := TJSFormatter.Create;
+  try
+    FormatTo(LFormatter);
+    Result := LFormatter.FormattedText;
+  finally
+    FreeAndNil(LFormatter);
+  end;
+end;
+
 procedure TJSValues.CheckReadOnly(const AValueName: string);
 begin
   if FIsReadOnly then
@@ -3179,7 +3203,7 @@ var
   function FormatRaw(const ANode: TEFNode): Boolean;
   begin
     if IsValidName(ANode.Name) then
-      AFormatter.AddIndentedPair(ANode.Name, ANode.AsString, False, False, FNameValueConnector)
+      AFormatter.AddIndentedPair(ANode.Name, FParamValuePrefix + ANode.AsString + FParamValueSuffix, False, False, FNameValueConnector)
     else
       AFormatter.AddIndented(ANode.AsString);
     Result := True;
@@ -3424,7 +3448,7 @@ end;
 function TJSExpression.ExtractText: string;
 begin
   Result := TJS.RemoveLastJSTerminator(Text);
-  GetSession.ResponseItems.RemoveMethodCallByFunction(Self);
+  GetSession.ResponseItems.RemoveByExpression(Self);
 end;
 
 { TJSFunction }
@@ -3432,7 +3456,7 @@ end;
 function TJSFunction.ExtractText: string;
 begin
   Result := Text;//TJS.WrapInJSFunctionIfNeeded(Text);
-  GetSession.ResponseItems.RemoveMethodCallByFunction(Self);
+  GetSession.ResponseItems.RemoveByExpression(Self);
 end;
 
 { TJSFunctionResponseItem }
@@ -3536,6 +3560,8 @@ begin
   FHttpMethod := 'GET';
   Params.NameValueConnector := '=';
   Params.ParamConnector := '&';
+  Params.ParamValuePrefix := '" + encodeURIComponent(';
+  Params.ParamValueSuffix := ') + "';
 end;
 
 function TJSAjaxCall.Event: TJSAjaxCall;
@@ -3588,7 +3614,7 @@ end;
 procedure TJSAjaxCall.AddParams(const AFormatter: TJSFormatter);
 begin
 { TODO : expand markers and surround params }
-  Params.FormatTo(AFormatter);
+  AFormatter.AddIndentedPairLine('params', Params.AsFormattedText);
 end;
 
 function TJSAjaxCall.AddRawParam(const AName, AValue: string): TJSAjaxCall;
