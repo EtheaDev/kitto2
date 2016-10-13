@@ -42,7 +42,6 @@ type
     function UploadNeedUnknownBlock : Boolean; override;
   public
     constructor Create(AOwner: TObject); override;
-    destructor Destroy; override;
   end;
 
   TWebSession = class(TFCGISession);
@@ -228,7 +227,10 @@ begin
 end;
 
 // Destroys the TFCGIThread invoking the Thread Garbage Collector to free the associated objects
-destructor TFCGIThread.Destroy; begin
+destructor TFCGIThread.Destroy;
+begin
+  // Assign _CurrentWebSession to avoid AV destroying Ext Objects that uses _CurrentWebSession
+  _CurrentWebSession := FSession;
   AccessThread.Free;
   FSession.Free;
   FRequestHeader.Free;
@@ -830,7 +832,8 @@ begin
       begin
         repeat
           NewSocket := Accept(250);
-          if NewSocket <> 0 then TFCGIThread.Create(NewSocket);
+          if NewSocket <> 0 then
+            TFCGIThread.Create(NewSocket);
           if ((I mod 40) = 0) or GarbageNow then begin // A garbage for each 10 seconds
             GarbageThreads;
             GarbageNow := false;
@@ -868,16 +871,6 @@ end;
 
 function TFCGISession.CanHandleUrlPath : Boolean; begin
   Result := not IsUpload or (Pos('success:true', Response) <> 0);
-end;
-
-destructor TFCGISession.Destroy;
-begin
-  // Make sure objects find the session threadvar assigned when they are
-  // being garbage collected in case the session is being freed by a
-  // different thread. Otherwise objects don't mark themselves off the
-  // GC upon destruction and risk to be destroyed multiple times.
-  //_CurrentWebSession := Self;
-  inherited;
 end;
 
 procedure TFCGISession.DoLogout; begin
