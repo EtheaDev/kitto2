@@ -25,7 +25,7 @@ uses
   Ext.Base, Ext.Data, Ext.Form,
   superobject,
   EF.ObserverIntf, EF.Tree,
-  Kitto.Ext, Kitto.Metadata.Views, Kitto.Metadata.DataView, Kitto.Store,
+  Kitto.JS, Kitto.Ext, Kitto.Metadata.Views, Kitto.Metadata.DataView, Kitto.Store,
   Kitto.Ext.Controller, Kitto.Ext.Base, Kitto.Ext.DataPanel, Kitto.Ext.Editors,
   Kitto.Ext.GridPanel;
 
@@ -103,7 +103,7 @@ type
     procedure FieldChange(const AField: TKField; const AOldValue, ANewValue: Variant);
     procedure CreateFormPanel;
     function LayoutContainsPageBreaks: Boolean;
-    function GetConfirmJSCode(const AMethod: TExtProcedure): string;
+    function GetConfirmJSCode(const AMethod: TExtProcedure): TJSExpression;
     procedure InitFlags;
     function FindLayout: TKLayout;
     function IsViewMode: Boolean;
@@ -360,19 +360,19 @@ begin
   // Set button handlers (editors are needed by GetConfirmJSCode).
   if Assigned(FApplyButton) then
   begin
-    FApplyButton.Handler := JSFunction(GetConfirmJSCode(ApplyChanges));
+    FApplyButton.Handler := GetConfirmJSCode(ApplyChanges);
     FFormPanel.On('clientvalidation', JSFunction('form, valid', FApplyButton.JSName+'.setDisabled(!valid);'));
   end;
   if Assigned(FConfirmButton) then
   begin
-    FConfirmButton.Handler := JSFunction(GetConfirmJSCode(ConfirmChanges));
+    FConfirmButton.Handler := GetConfirmJSCode(ConfirmChanges);
     FFormPanel.On('clientvalidation', JSFunction('form, valid', FConfirmButton.JSName+'.setDisabled(!valid);'));
   end;
   if Assigned(FEditButton) then
-    FEditButton.Handler := JSFunction(GetConfirmJSCode(SwitchToEditMode));
+    FEditButton.Handler := GetConfirmJSCode(SwitchToEditMode);
   if Assigned(FCloneButton) then
   begin
-    FCloneButton.Handler := JSFunction(GetConfirmJSCode(ConfirmChangesAndClone));
+    FCloneButton.Handler := GetConfirmJSCode(ConfirmChangesAndClone);
     FFormPanel.On('clientvalidation', JSFunction('form, valid', FCloneButton.JSName+'.setDisabled(!valid);'));
   end;
 end;
@@ -741,7 +741,8 @@ begin
   FCancelButton.SetIconAndScale('cancel', Config.GetString('ButtonScale', 'medium'));
   FCancelButton.Text := Config.GetString('CancelButton/Caption', _('Cancel'));
   FCancelButton.Tooltip := Config.GetString('CancelButton/Tooltip', _('Cancel changes'));
-  FCancelButton.Handler := Ajax(CancelChanges);
+  //FCancelButton.Handler := Ajax(CancelChanges);
+  FCancelButton.Handler := AjaxCallMethod.SetMethod(CancelChanges).AsFunction;
   FCancelButton.Hidden := FIsReadOnly or IsViewMode;
 
   FCloseButton := TKExtButton.CreateAndAddToArray(Buttons);
@@ -1047,27 +1048,23 @@ begin
     Result := 'SecondaryController/' + Result;
 end;
 
-function TKExtFormPanelController.GetConfirmJSCode(const AMethod: TExtProcedure): string;
-var
-  LCode: string;
+function TKExtFormPanelController.GetConfirmJSCode(const AMethod: TExtProcedure): TJSExpression;
 begin
-  LCode :=
-    'var json = new Object;' + sLineBreak +
-    'json.new = new Object;' + sLineBreak;
-
-  LCode := LCode + GetJSFunctionCode(
+  Result := GenerateAnonymousFunction('', GetJSCode(
     procedure
     begin
+      Session.ResponseItems.ExecuteJSCode(
+        'var json = new Object;' + sLineBreak +
+        'json.new =  = new Object;');
       FEditItems.AllEditors(
         procedure (AEditor: IKExtEditor)
         begin
           AEditor.StoreValue('json.new');
         end);
-    end,
-    False) + sLineBreak;
-
-  LCode := LCode + GetPOSTAjaxCode(AMethod, [], 'json') + sLineBreak;
-  Result := LCode;
+      AjaxCallMethod().SetMethod(AMethod)
+        .Post('json')
+        .AsExpression;
+    end));
 end;
 
 { TKExtDetailFormButton }
@@ -1079,7 +1076,8 @@ begin
   begin
     Text := _(FViewTable.PluralDisplayLabel);
     Icon := Session.Config.GetImageURL(FViewTable.ImageName);
-    Handler := Ajax(ShowDetailWindow, []);
+    //Handler := Ajax(ShowDetailWindow, []);
+    Handler := AjaxCallMethod.SetMethod(ShowDetailWindow).AsFunction;
   end;
 end;
 

@@ -811,8 +811,12 @@ begin
     Disabled := True
   else
   begin
-    On('change', Ajax(ValueChanged, ['Value', GetEncodedValue()]));
-    On('select', Ajax(ValueChanged, ['Value', GetEncodedValue()]));
+    //On('change', Ajax(ValueChanged, ['Value', GetEncodedValue()]));
+    &On('change', AjaxCallMethod.SetMethod(ValueChanged)
+      .AddParam('Value', GetEncodedValue).AsFunction);
+    //On('select', Ajax(ValueChanged, ['Value', GetEncodedValue()]));
+    &On('select', AjaxCallMethod.SetMethod(ValueChanged)
+      .AddParam('Value', GetEncodedValue).AsFunction);
     On('blur', JSFunction(Format('fireChangeIfEmpty(%s);', [JSName])));
   end;
   FCurrentValue := AConfig.GetExpandedString('DefaultValue');
@@ -1112,7 +1116,10 @@ begin
       if FConfig.GetBoolean('Sys/IsReadOnly') then
         LButtons[I].Disabled := True
       else
-        LButtons[I].On('click', Ajax(ButtonClick, ['Index', I, 'Pressed', LButtons[I].Pressed_]));
+        //LButtons[I].On('click', Ajax(ButtonClick, ['Index', I, 'Pressed', LButtons[I].Pressed_]));
+        LButtons[I].On('click', AjaxCallMethod.SetMethod(ButtonClick)
+          .AddParam('Index', I)
+          .AddParam('Pressed', LButtons[I].Pressed_).AsFunction);
     end
     else
       LButtons[I].Hidden := True;
@@ -1322,7 +1329,8 @@ begin
     LText := _('Apply');
   Text := LText;
   SetIconAndScale(AConfig.GetString('ImageName'), AConfig.GetString('ButtonScale', 'small'));
-  Handler := Ajax(ButtonClick);
+  //Handler := Ajax(ButtonClick);
+  Handler := AjaxCallMethod.SetMethod(ButtonClick).AsFunction;
   // The click event is not always fired when the focus is on a text filter,
   // so we increase the probability that the button has the focus when it is clicked.
   On('mouseover', JSFunction(JSName + '.focus();'));

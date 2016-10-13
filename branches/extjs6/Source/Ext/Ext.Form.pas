@@ -546,8 +546,12 @@ type
     FTrigger1Class: string;
     FTrigger2Class: string;
     FTriggerConfig: TExtObject;
+    FOnTrigger2Click: TExtExpression;
+    FOnTrigger1Click: TExtExpression;
     procedure SetTrigger1Class(const AValue: string);
     procedure SetTrigger2Class(const AValue: string);
+    procedure SetOnTrigger1Click(const AValue: TExtExpression);
+    procedure SetOnTrigger2Click(const AValue: TExtExpression);
   protected
     procedure InitDefaults; override;
   public
@@ -555,6 +559,8 @@ type
     property Trigger1Class: string read FTrigger1Class write SetTrigger1Class;
     property Trigger2Class: string read FTrigger2Class write SetTrigger2Class;
     property TriggerConfig: TExtObject read FTriggerConfig;
+    property OnTrigger1Click: TExtExpression read FOnTrigger1Click write SetOnTrigger1Click;
+    property OnTrigger2Click: TExtExpression read FOnTrigger2Click write SetOnTrigger2Click;
   end;
 
   TExtFormTimeField = class(TExtFormComboBox)
@@ -1562,6 +1568,16 @@ begin
   if (AEvtName = 'select') and Assigned(FOnSelect) then
     FOnSelect(TExtFormComboBox(ParamAsObject('Combo')),
       TExtDataRecord(ParamAsObject('RecordJS')), ParamAsInteger('Index'));
+end;
+
+procedure TExtFormTwinTriggerField.SetOnTrigger1Click(const AValue: TExtExpression);
+begin
+  FOnTrigger1Click := SetConfigItem('onTrigger1Click', AValue);
+end;
+
+procedure TExtFormTwinTriggerField.SetOnTrigger2Click(const AValue: TExtExpression);
+begin
+  FOnTrigger2Click := SetConfigItem('onTrigger2Click', AValue);
 end;
 
 procedure TExtFormTwinTriggerField.SetTrigger1Class(const AValue: string);

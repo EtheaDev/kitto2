@@ -24,7 +24,7 @@ uses
   SysUtils, Classes, Generics.Collections,
   Ext.Base, Ext.Form, Ext.Ux,
   EF.Intf, EF.Tree, EF.ObserverIntf, EF.Classes,
-  Kitto.Ext, Kitto.JS.Types, Kitto.Ext.Controller, Kitto.Metadata.Views;
+  Kitto.Ext, Kitto.JS, Kitto.JS.Types, Kitto.Ext.Controller, Kitto.Metadata.Views;
 
 const
   DEFAULT_WINDOW_WIDTH = 800;
@@ -356,7 +356,7 @@ type
     procedure SetWindowSize; virtual;
     procedure InitDefaults; override;
     procedure DoDisplay; override;
-    function GetConfirmJSCode: string; virtual;
+    function GetConfirmJSFunction: TJSFunction; virtual;
     function GetConfirmJsonData: string; virtual;
     procedure AfterExecuteTool; virtual;
     procedure InitSubController(const AController: IKExtController); override;
@@ -1628,7 +1628,7 @@ begin
   FConfirmButton.FormBind := True;
   FConfirmButton.Text := Config.GetString('ConfirmButton/Caption', _('Confirm'));
   FConfirmButton.Tooltip := Config.GetString('ConfirmButton/Tooltip', _('Confirm action and close window'));
-  FConfirmButton.Handler := JSFunction(GetConfirmJSCode());
+  FConfirmButton.Handler := GetConfirmJSFunction();
 
   FCancelButton := TKExtButton.CreateAndAddToArray(Buttons);
   FCancelButton.SetIconAndScale('cancel', Config.GetString('ButtonScale', 'medium'));
@@ -1647,9 +1647,11 @@ begin
     CreateButtons;
 end;
 
-function TKExtWindowToolController.GetConfirmJSCode: string;
+function TKExtWindowToolController.GetConfirmJSFunction: TJSFunction;
 begin
-  Result := GetPOSTAjaxCode(Confirm, [], GetConfirmJsonData);
+  //Result := GetPOSTAjaxCode(Confirm, [], GetConfirmJsonData);
+  Result := AjaxCallMethod().SetMethod(Confirm)
+    .Post(GetConfirmJsonData).AsFunction;
 end;
 
 function TKExtWindowToolController.GetConfirmJsonData: string;

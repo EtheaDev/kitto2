@@ -143,8 +143,12 @@ begin
     end,
     { TODO : remove these parameters }
     Self, nil);
-  &On('itemclick', JSFunction('view, record, item, index',
-    GetAjaxCode(DisplayView, '', ['View', '%record.data.viewId'])));
+//  &On('itemclick', JSFunction('view, record, item, index',
+//    GetAjaxCode(DisplayView, '', ['View', '%record.data.viewId'])));
+  &On('itemclick', AjaxCallMethod.SetMethod(DisplayView)
+    .AddRawParam('View', 'record.data.viewId')
+    .FunctionArgs('view, record, item, index')
+    .AsFunction);
 end;
 
 procedure TKExtTreePanel.DisplayView;

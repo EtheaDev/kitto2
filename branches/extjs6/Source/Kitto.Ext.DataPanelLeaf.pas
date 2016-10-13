@@ -149,7 +149,8 @@ begin
   FRefreshButton := AddTopToolbarButton('Refresh', _('Refresh data'), 'refresh', False);
   if Assigned(FRefreshButton) then
   begin
-    FRefreshButton.On('click', Ajax(GetParentDataPanel.LoadData));
+    //FRefreshButton.On('click', Ajax(GetParentDataPanel.LoadData));
+    FRefreshButton.On('click', AjaxCallMethod.SetMethod(GetParentDataPanel.LoadData).AsFunction);
     if ViewTable.GetBoolean('Controller/PreventRefreshing') then
       FRefreshButton.Hidden := True;
   end;

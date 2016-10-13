@@ -30,6 +30,7 @@ type
   TExtObject = TJSObject;
   TExtObjectClass = TJSObjectClass;
   TExtExpression = TJSExpression;
+//  TExtFunction = TJSFunction;
   TExtObjectList = TJSObjectArray;
 
   TExtSession = class(TJSSession);

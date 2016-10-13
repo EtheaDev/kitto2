@@ -509,7 +509,8 @@ begin
   else if LRequireSelection then
     Result.On('click', GetSelectCall(TKExtDataActionButton(Result).ExecuteButtonAction))
   else
-    Result.On('click', Ajax(Result.ExecuteButtonAction, []));
+    //Result.On('click', Ajax(Result.ExecuteButtonAction, []));
+    Result.On('click', AjaxCallMethod.SetMethod(Result.ExecuteButtonAction).AsFunction);
 end;
 
 function TKExtDataPanelController.CreateClientReader: TExtDataJsonReader;
@@ -584,7 +585,7 @@ begin
       LViewTableField := ARecord.FieldByName(ViewTable.Fields[I].AliasedName);
       LImageField := ARecord.FieldByName(ViewTable.Fields[I].GetURLFieldName);
       if not LVIewTableField.IsNull then
-        LImageField.AsString := MethodURI(GetImage, ['fn', LViewTableField.FieldName, 'rn', ARecord.Index])
+        LImageField.AsString := MethodURI(GetImage) + '&fn=' + LViewTableField.FieldName + '&rn=' + ARecord.Index.ToString
       else
         LImageField.AsString := '';
       { TODO : handle null case? }
@@ -956,7 +957,8 @@ begin
   FNewButton := AddTopToolbarButton('Add', Format(_('Add %s'), [_(ViewTable.DisplayLabel)]), 'new_record', False);
   if Assigned(FNewButton) then
   begin
-    FNewButton.On('click', Ajax(NewRecord));
+    //FNewButton.On('click', Ajax(NewRecord));
+    FNewButton.On('click', AjaxCallMethod.SetMethod(NewRecord).AsFunction);
 //    TExtToolbarSpacer.CreateAndAddTo(TopToolbar.Items);
   end;
 

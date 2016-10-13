@@ -198,9 +198,15 @@ begin
   FNewPassword.On('specialkey', JSFunction('field, e', GetSubmitJS));
   FConfirmNewPassword.On('specialkey', JSFunction('field, e', GetSubmitJS));
 
-  FConfirmButton.Handler := Ajax(DoChangePassword, ['Dummy', FStatusBar.ShowBusy,
-    'OldPassword', FOldPassword.GetValue, 'NewPassword', FNewPassword.GetValue,
-    'ConfirmNewPassword', FConfirmNewPassword.GetValue]);
+//  FConfirmButton.Handler := Ajax(DoChangePassword, ['Dummy', FStatusBar.ShowBusy,
+//    'OldPassword', FOldPassword.GetValue, 'NewPassword', FNewPassword.GetValue,
+//    'ConfirmNewPassword', FConfirmNewPassword.GetValue]);
+  FConfirmButton.Handler := AjaxCallMethod.SetMethod(DoChangePassword)
+    .AddParam('Dummy', FStatusBar.ShowBusy)
+    .AddParam('OldPassword', FOldPassword.GetValue)
+    .AddParam('NewPassword', FNewPassword.GetValue)
+    .AddParam('ConfirmNewPassword', FConfirmNewPassword.GetValue)
+    .AsFunction;
 
   FConfirmButton.Disabled := True;
 

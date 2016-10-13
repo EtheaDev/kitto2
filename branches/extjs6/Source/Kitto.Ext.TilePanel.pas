@@ -85,7 +85,7 @@ uses
   SysUtils, StrUtils,
   Ext.Base,
   EF.StrUtils, EF.Macros, EF.Localization,
-  Kitto.Config, Kitto.Utils, Kitto.Ext.Utils;
+  Kitto.JS, Kitto.Config, Kitto.Utils, Kitto.Ext.Utils;
 
 { TKExtTilePanelController }
 
@@ -298,8 +298,13 @@ procedure TKExtTilePanel.AddBackTile;
 var
   LClickCode: string;
 begin
-  LClickCode := Ajax(DisplayPage, ['PageId', 0]).ExtractText;
-
+  //LClickCode := Ajax(DisplayPage, ['PageId', 0]).ExtractText;
+  LClickCode := TJS.WrapInJSFunctionIfNeeded(GetJSCode(
+    procedure
+    begin
+      AjaxCallMethod().SetMethod(DisplayPage)
+        .AddParam('PageId', 0);
+    end));
   FTileBoxHtml := FTileBoxHtml + Format(
     '<a href="#" onclick="%s"><div class="k-tile k-tile-back" style="background-color:%s;width:%dpx;height:%dpx">' +
     '<div class="k-tile-inner k-tile-back-inner">%s</div></div></a>',
@@ -355,9 +360,25 @@ var
 
 begin
   if ANode is TKTreeViewFolder then
-    LClickCode := Ajax(DisplayPage, ['PageId', Integer(ANode)]).ExtractText
+  begin
+    //LClickCode := Ajax(DisplayPage, ['PageId', Integer(ANode)]).ExtractText
+    LClickCode := TJS.WrapInJSFunctionIfNeeded(GetJSCode(
+      procedure
+      begin
+        AjaxCallMethod().SetMethod(DisplayPage)
+          .AddParam('PageId', Integer(ANode));
+      end));
+  end
   else
-    LClickCode := Ajax(DisplayView, ['View', Integer(Session.Config.Views.ViewByNode(ANode))]).ExtractText;
+  begin
+    //LClickCode := Ajax(DisplayView, ['View', Integer(Session.Config.Views.ViewByNode(ANode))]).ExtractText;
+    LClickCode := TJS.WrapInJSFunctionIfNeeded(GetJSCode(
+      procedure
+      begin
+        AjaxCallMethod().SetMethod(DisplayView)
+          .AddParam('View', Integer(Integer(Session.Config.Views.ViewByNode(ANode))));
+      end));
+  end;
 
   if GetCSS <> '' then
   begin

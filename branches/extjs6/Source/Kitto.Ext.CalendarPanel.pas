@@ -28,7 +28,7 @@ uses
 type
   TKExtCalendarPanel = class(TKExtDataPanelLeafController)
   strict private
-    FCalendarPanel: TExtensibleCalendarPanel;
+    FCalendarPanel: TExtCalendarPanel;
     FCalendarStore: TExtDataStore;
     FCalendarReader: TExtDataJsonReader;
     procedure CreateAndInitCalendar;
@@ -49,7 +49,7 @@ type
   published
     procedure GetCalendarRecords;
     procedure LoadData; override;
-    procedure CalendarDayClick(This : TExtensibleCalendarPanel; Dt : TDateTime; Allday : Boolean; El : TExtElement);
+    procedure CalendarDayClick(This: TExtCalendarPanel; Dt: TDateTime; Allday: Boolean; El: TExtElement);
   end;
 
 implementation
@@ -63,7 +63,7 @@ uses
 
 { TKExtCalendarPanel }
 
-procedure TKExtCalendarPanel.CalendarDayClick(This : TExtensibleCalendarPanel; Dt : TDateTime; Allday : Boolean; El : TExtElement);
+procedure TKExtCalendarPanel.CalendarDayClick(This: TExtCalendarPanel; Dt: TDateTime; Allday: Boolean; El: TExtElement);
 begin
   NewRecord;
 end;
@@ -72,7 +72,7 @@ procedure TKExtCalendarPanel.CreateAndInitCalendar;
 begin
   Assert(ClientStore <> nil);
 
-  FCalendarPanel := TExtensibleCalendarPanel.CreateAndAddToArray(Items);
+  FCalendarPanel := TExtCalendarPanel.CreateAndAddToArray(Items);
   FCalendarPanel.Region := rgCenter;
   FCalendarPanel.Border := False;
 
@@ -94,8 +94,17 @@ begin
   FCalendarPanel.ShowTodayText := True;
   FCalendarPanel.ShowTime := True;
 
-  FCalendarPanel.On('dayclick', JSFunction('cal, dt, allday, el',
-    GetAjaxCode(NewRecord, '', ['m', '%dt.getMonth() + 1', 'y', '%dt.getFullYear()', 'd', '%dt.getDate()', 'allday', '%allday']) + 'return false;'));
+//  FCalendarPanel.On('dayclick', JSFunction('cal, dt, allday, el',
+//    GetAjaxCode(NewRecord, '', ['m', '%dt.getMonth() + 1', 'y', '%dt.getFullYear()', 'd', '%dt.getDate()', 'allday', '%allday']) + 'return false;'));
+  FCalendarPanel.&On('dayclick',
+    AjaxCallMethod().SetMethod(NewRecord)
+      .AddRawParam('m', 'dt.getMonth() + 1')
+      .AddRawParam('y', 'dt.getFullYear()')
+      .AddRawParam('m', 'dt.getDate()')
+      .AddRawParam('allday', 'allday')
+      .FunctionArgs('cal, dt, allday, el')
+      .FunctionReturn('false')
+      .AsFunction);
 
   FCalendarPanel.EventStore := ClientStore;
   FCalendarPanel.CalendarStore := CalendarStore;

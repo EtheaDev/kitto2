@@ -11,7 +11,7 @@ uses
 
 type
   TExtCalendarBoxLayoutTemplate = class;
-  TExtensibleCalendarPanel = class;
+  TExtCalendarPanel = class;
   TExtCalendarPicker = class;
   TExtCalendarView = class;
   TExtCalendarDateRangeField = class;
@@ -43,11 +43,7 @@ type
     class function JSClassName: string; override;
   end;
 
-  // Procedural types for events TExtensibleCalendarPanel
-  TExtensibleCalendarPanelOnDayclick = procedure(This: TExtensibleCalendarPanel; Dt: TDateTime; Allday: Boolean;
-    El: TExtElement) of object;
-
-  TExtensibleCalendarPanel = class(TExtPanel)
+  TExtCalendarPanel = class(TExtPanel)
   private
     FDayText: String;
     FMonthText: String;
@@ -60,7 +56,6 @@ type
     FTodayText: String;
     FWeekText: String;
     FActiveItem: Integer;
-    FOnDayclick: TExtensibleCalendarPanelOnDayclick;
     FCalendarStore: TExtDataStore;
     FEventStore: TExtDataStore;
     FGoText: string;
@@ -78,7 +73,6 @@ type
     procedure SetShowWeekView(const AValue: Boolean);
     procedure SetTodayText(const AValue: string);
     procedure SetWeekText(const AValue: string);
-    procedure SetOnDayclick(const AValue: TExtensibleCalendarPanelOnDayclick);
     procedure SetActiveItem(const AValue: Integer);
     procedure SetCalendarStore(const AValue: TExtDataStore);
     procedure SetEventStore(const AValue: TExtDataStore);
@@ -87,8 +81,6 @@ type
     procedure SetReadOnly(const AValue: Boolean);
     procedure SetShowMultiDayView(const AValue: Boolean);
     procedure SetShowMultiWeekView(const AValue: Boolean);
-  protected
-    procedure HandleEvent(const AEvtName: string); override;
   public
     class function JSClassName: string; override;
     property ActiveItem: Integer read FActiveItem write SetActiveItem;
@@ -109,7 +101,6 @@ type
     property TodayText: String read FTodayText write SetTodayText;
     property WeekText: String read FWeekText write SetWeekText;
     property ReadOnly: Boolean read FReadOnly write SetReadOnly;
-    property OnDayclick: TExtensibleCalendarPanelOnDayclick read FOnDayclick write SetOnDayclick;
   end;
 
   TExtCalendarPicker = class(TExtUtilObservable)
@@ -204,117 +195,101 @@ begin
   Result := 'Ext.calendar.DateRangeField';
 end;
 
-procedure TExtensibleCalendarPanel.SetActiveItem(const AValue: Integer);
+procedure TExtCalendarPanel.SetActiveItem(const AValue: Integer);
 begin
   FActiveItem := SetConfigItem('activeItem', AValue);
 end;
 
-procedure TExtensibleCalendarPanel.SetCalendarStore(const AValue: TExtDataStore);
+procedure TExtCalendarPanel.SetCalendarStore(const AValue: TExtDataStore);
 begin
   FCalendarStore.Free;
   FCalendarStore := TExtDataStore(SetConfigItem('calendarStore', AValue));
 end;
 
-procedure TExtensibleCalendarPanel.SetDayText(const AValue: string);
+procedure TExtCalendarPanel.SetDayText(const AValue: string);
 begin
   FDayText := SetConfigItem('dayText', AValue);
 end;
 
-procedure TExtensibleCalendarPanel.SetEventStore(const AValue: TExtDataStore);
+procedure TExtCalendarPanel.SetEventStore(const AValue: TExtDataStore);
 begin
   FEventStore.Free;
   FEventStore := TExtDataStore(SetConfigItem('eventStore', AValue));
 end;
 
-procedure TExtensibleCalendarPanel.SetMonthText(const AValue: string);
+procedure TExtCalendarPanel.SetMonthText(const AValue: string);
 begin
   FMonthText := SetConfigItem('monthText', AValue);
 end;
 
-procedure TExtensibleCalendarPanel.SetReadOnly(const AValue: Boolean);
+procedure TExtCalendarPanel.SetReadOnly(const AValue: Boolean);
 begin
   FReadOnly := SetConfigItem('readOnly', AValue);
 end;
 
-procedure TExtensibleCalendarPanel.SetShowDayView(const AValue: Boolean);
+procedure TExtCalendarPanel.SetShowDayView(const AValue: Boolean);
 begin
   FShowDayView := SetConfigItem('showDayView', AValue);
 end;
 
-procedure TExtensibleCalendarPanel.SetShowMonthView(const AValue: Boolean);
+procedure TExtCalendarPanel.SetShowMonthView(const AValue: Boolean);
 begin
   FShowMonthView := SetConfigItem('showMonthView', AValue);
 end;
 
-procedure TExtensibleCalendarPanel.SetShowMultiDayView(const AValue: Boolean);
+procedure TExtCalendarPanel.SetShowMultiDayView(const AValue: Boolean);
 begin
   FShowMultiDayView := SetConfigItem('showMultiDayView', AValue);
 end;
 
-procedure TExtensibleCalendarPanel.SetShowMultiWeekView(const AValue: Boolean);
+procedure TExtCalendarPanel.SetShowMultiWeekView(const AValue: Boolean);
 begin
   FShowMultiWeekView := SetConfigItem('showMultiWeekView', AValue);
 end;
 
-procedure TExtensibleCalendarPanel.SetShowNavBar(const AValue: Boolean);
+procedure TExtCalendarPanel.SetShowNavBar(const AValue: Boolean);
 begin
   FShowNavBar := SetConfigItem('showNavBar', AValue);
 end;
 
-procedure TExtensibleCalendarPanel.SetShowTime(const AValue: Boolean);
+procedure TExtCalendarPanel.SetShowTime(const AValue: Boolean);
 begin
   FShowTime := SetConfigItem('showTime', AValue);
 end;
 
-procedure TExtensibleCalendarPanel.SetShowTodayText(const AValue: Boolean);
+procedure TExtCalendarPanel.SetShowTodayText(const AValue: Boolean);
 begin
   FShowTodayText := SetConfigItem('showTodayText', AValue);
 end;
 
-procedure TExtensibleCalendarPanel.SetShowWeekView(const AValue: Boolean);
+procedure TExtCalendarPanel.SetShowWeekView(const AValue: Boolean);
 begin
   FShowWeekView := SetConfigItem('showWeekView', AValue);
 end;
 
-procedure TExtensibleCalendarPanel.SetTodayText(const AValue: string);
+procedure TExtCalendarPanel.SetTodayText(const AValue: string);
 begin
   FTodayText := SetConfigItem('todayText', AValue);
 end;
 
-procedure TExtensibleCalendarPanel.SetWeekText(const AValue: string);
+procedure TExtCalendarPanel.SetWeekText(const AValue: string);
 begin
   FWeekText := SetConfigItem('weekText', AValue);
 end;
 
-procedure TExtensibleCalendarPanel.SetOnDayclick(const AValue: TExtensibleCalendarPanelOnDayclick);
-begin
-  RemoveAllListeners('dayclick');
-  if Assigned(AValue) then
-    AddListener('dayclick', Ajax('dayclick', ['This', '%0.nm', 'Dt', '%1', 'Allday', '%2', 'El', '%3.nm'], true));
-  FOnDayclick := AValue;
-end;
-
-procedure TExtensibleCalendarPanel.SetGoText(const AValue: string);
+procedure TExtCalendarPanel.SetGoText(const AValue: string);
 begin
   FGoText := SetConfigItem('goText', AValue);
 end;
 
-procedure TExtensibleCalendarPanel.SetJumpToText(const AValue: string);
+procedure TExtCalendarPanel.SetJumpToText(const AValue: string);
 begin
   FJumpToText := SetConfigItem('jumpToText', AValue);
 end;
 
-class function TExtensibleCalendarPanel.JSClassName: string;
+class function TExtCalendarPanel.JSClassName: string;
 begin
-  Result := 'Ext.ensible.cal.CalendarPanel';
-end;
-
-procedure TExtensibleCalendarPanel.HandleEvent(const AEvtName: string);
-begin
-  inherited;
-  if (AEvtName = 'dayclick') and Assigned(FOnDayclick) then
-    FOnDayclick(TExtensibleCalendarPanel(ParamAsObject('This')), ParamAsDateTime('Dt'), ParamAsBoolean('Allday'),
-      TExtElement(ParamAsObject('El')));
+  Result := 'Ext.calendar.CalendarPanel';
 end;
 
 class function TExtCalendarPicker.JSClassName: string;

@@ -60,7 +60,7 @@ implementation
 uses
   SysUtils, Math,
   EF.Classes, EF.Localization, EF.Tree, EF.Macros,
-  Kitto.Types,
+  Kitto.JS, Kitto.Types,
   Kitto.Ext.Session, Kitto.Ext.Controller;
 
 { TKExtLoginWindow }
@@ -75,6 +75,7 @@ var
   LUseLanguageSelector: Boolean;
   LFormPanelBodyStyle: string;
   LLocalStorageMode: string;
+  LLoginHandler: TJSAjaxCall;
 
   function GetEnableButtonJS: string;
   begin
@@ -223,26 +224,16 @@ Or maybe skip the object list altogether and use the ownership. }
   else
     FLocalStorageEnabled := nil;
 
+  LLoginHandler := AjaxCallMethod.SetMethod(DoLogin)
+    .AddParam('Dummy', FStatusBar.ShowBusy)
+    .AddParam('UserName', FUserName.GetValue)
+    .AddParam('Password', FPassword.GetValue)
+    .AddParam('UserName', FUserName.GetValue);
   if Assigned(FLanguage) then
-  begin
-    if Assigned(FLocalStorageEnabled) then
-      FLoginButton.Handler := Ajax(DoLogin, ['Dummy', FStatusBar.ShowBusy,
-        'UserName', FUserName.GetValue, 'Password', FPassword.GetValue, 'Language', FLanguage.GetValue,
-        'LocalStorageEnabled', FLocalStorageEnabled.GetValue])
-    else
-      FLoginButton.Handler := Ajax(DoLogin, ['Dummy', FStatusBar.ShowBusy,
-        'UserName', FUserName.GetValue, 'Password', FPassword.GetValue, 'Language', FLanguage.GetValue]);
-  end
-  else
-  begin
-    if Assigned(FLocalStorageEnabled) then
-      FLoginButton.Handler := Ajax(DoLogin, ['Dummy', FStatusBar.ShowBusy,
-        'UserName', FUserName.GetValue, 'Password', FPassword.GetValue,
-        'LocalStorageEnabled', FLocalStorageEnabled.GetValue])
-    else
-      FLoginButton.Handler := Ajax(DoLogin, ['Dummy', FStatusBar.ShowBusy,
-        'UserName', FUserName.GetValue, 'Password', FPassword.GetValue]);
-  end;
+    LLoginHandler.AddParam('Language', FLanguage.GetValue);
+  if Assigned(FLocalStorageEnabled) then
+    LLoginHandler.AddParam('LocalStorageEnabled', FLocalStorageEnabled.GetValue);
+  FLoginButton.Handler := LLoginHandler.AsFunction;
 
   if Assigned(FLanguage) then
     FLoginButton.Disabled := (FUserName.Value = '') or (FPassword.Value = '') or (FLanguage.Value = '')

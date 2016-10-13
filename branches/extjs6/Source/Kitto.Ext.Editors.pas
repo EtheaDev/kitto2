@@ -437,7 +437,6 @@ type
     FServerStore: TKStore;
     FFieldName: string;
     FRecordField: TKViewTableField;
-    function GetChangeJSCode(const AMethod: TExtProcedure): string;
   protected
     procedure InitDefaults; override;
   public
@@ -1912,34 +1911,25 @@ begin
   Session.ResponseItems.ExecuteJSCode(JSName + '.kitto$isChanged = false;');
 end;
 
-function TKExtFormComboBoxEditor.GetChangeJSCode(const AMethod: TExtProcedure): string;
-var
-  LCode: string;
-begin
-  LCode :=
-    'var json = new Object;' + sLineBreak +
-    'json.new = new Object;' + sLineBreak;
-
-  LCode := LCode + GetJSFunctionCode(
-    procedure
-    begin
-      StoreValue('json.new');
-    end,
-    False) + sLineBreak;
-
-  LCode := LCode + GetPOSTAjaxCode(AMethod, [], 'json') + sLineBreak;
-  Result := LCode;
-end;
-
 procedure TKExtFormComboBoxEditor.SetRecordField(const AValue: TKViewTableField);
 begin
   FRecordField := AValue;
   if not ReadOnly then
   begin
     if IsChangeHandlerNeeded(FRecordField) then
-      On('change', JSFunction(GetChangeJSCode(ValueChanged)));
-    On('select', JSFunction(JSName + '.kitto$isChanged = true;'));
-    On('change', JSFunction('field, newValue, oldValue',
+      &On('change', GenerateAnonymousFunction('', GetJSCode(
+        procedure
+        begin
+          Session.ResponseItems.ExecuteJSCode(
+            'var json = new Object;' + sLineBreak +
+            'json.new = new Object;');
+          StoreValue('json.new');
+          AjaxCallMethod().SetMethod(ValueChanged)
+            .Post('json')
+            .AsExpression;
+        end)));
+    &On('select', JSFunction(JSName + '.kitto$isChanged = true;'));
+    &On('change', JSFunction('field, newValue, oldValue',
       'if (newValue!==oldValue) ' + JSName + '.kitto$isChanged = true;'));
   end;
 end;
@@ -2057,7 +2047,7 @@ begin
   if not ReadOnly then
   begin
     LCode :=
-      AObjectName + '["' + HiddenName + '"]=' + GetJSFunctionCode(
+      AObjectName + '["' + HiddenName + '"]=' + GetJSCode(
         procedure
         begin
           GetValue;
@@ -2065,7 +2055,7 @@ begin
 
     if (FListMode = Lookup) and (HiddenName <> Name) then
       LCode := LCode + sLineBreak +
-        AObjectName + '["' + Name + '"]=' + GetJSFunctionCode(
+        AObjectName + '["' + Name + '"]=' + GetJSCode(
           procedure
           begin
             GetRawValue;
@@ -2834,7 +2824,8 @@ begin
   FDownloadButton := TKExtButton.CreateAndAddToArray(LToolbar.Items);
   FDownloadButton.SetIconAndScale('download');
   FDownloadButton.Tooltip := _('Download file');
-  FDownloadButton.Handler := Ajax(StartDownload);
+  //FDownloadButton.Handler := Ajax(StartDownload);
+  FDownloadButton.Handler := AjaxCallMethod.SetMethod(StartDownload).AsFunction;
 
   LButtonCount := 1;
   if not FIsReadOnly then
@@ -2842,13 +2833,15 @@ begin
     LUploadButton := TKExtButton.CreateAndAddToArray(LToolbar.Items);
     LUploadButton.SetIconAndScale('upload');
     LUploadButton.Tooltip := _('Upload file');
-    LUploadButton.Handler := Ajax(ShowUploadFileDialog);
+    //LUploadButton.Handler := Ajax(ShowUploadFileDialog);
+    LUploadButton.Handler := AjaxCallMethod.SetMethod(ShowUploadFileDialog).AsFunction;
     Inc(LButtonCount);
 
     FClearButton := TKExtButton.CreateAndAddToArray(LToolbar.Items);
     FClearButton.SetIconAndScale('clear');
     FClearButton.Tooltip := _('Clear field');
-    FClearButton.Handler := Ajax(Clear);
+    //FClearButton.Handler := Ajax(Clear);
+    FClearButton.Handler := AjaxCallMethod.SetMethod(Clear).AsFunction;
     Inc(LButtonCount);
   end
   else
@@ -2897,7 +2890,7 @@ begin
     // Add dummy parameter to the URL to force the browser to refresh the image
     // after an upload.
     Session.ResponseItems.AddHTML(Format('<img src="%s">',
-      [MethodURI(GetImage, ['time', FormatDateTime('yyyymmddhhnnsszzz', Now())])]));
+      [MethodURI(GetImage) + '&time=' + FormatDateTime('yyyymmddhhnnsszzz', Now())]));
 end;
 
 function TKExtFormFileEditor.GetObjectNamePrefix: string;
@@ -2969,7 +2962,9 @@ begin
   LSubmitAction.Url := MethodURI(Upload);
   LSubmitAction.WaitMsg := _('File upload in progress...');
   LSubmitAction.WaitTitle := _('Please wait...');
-  LSubmitAction.Success := Ajax(PostUpload);
+  //LSubmitAction.Success := Ajax(PostUpload);
+  LSubmitAction.Success := AjaxCallMethod.SetMethod(PostUpload).AsFunction;
+  { TODO : wrap in function and declate param 1 }
   LSubmitAction.Failure := ExtMessageBox.Alert(_('File upload error'), '%1.result.message');
   LUploadButton.Handler := LFormPanel.Form.Submit(LSubmitAction);
 
@@ -3714,7 +3709,7 @@ procedure TExtFormFieldHelper.StoreValue(const AObjectName: string);
 begin
   if not ReadOnly then
     Session.ResponseItems.ExecuteJSCode(
-      AObjectName + '["' + Name + '"]=' + GetJSFunctionCode(
+      AObjectName + '["' + Name + '"]=' + GetJSCode(
         procedure
         begin
           GetRawValue;
@@ -3934,7 +3929,7 @@ begin
   if not ReadOnly then
   begin
     LCode :=
-      AObjectName + '["' + FHiddenName + '"]=' + GetJSFunctionCode(
+      AObjectName + '["' + FHiddenName + '"]=' + GetJSCode(
         procedure
         begin
           GetValue;
@@ -3942,7 +3937,7 @@ begin
 
     if FHiddenName <> Name then
       LCode := LCode + sLineBreak +
-        AObjectName + '["' + Name + '"]=' + GetJSFunctionCode(
+        AObjectName + '["' + Name + '"]=' + GetJSCode(
           procedure
           begin
             GetRawValue;

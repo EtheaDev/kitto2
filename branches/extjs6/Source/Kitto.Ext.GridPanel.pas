@@ -48,8 +48,6 @@ type
     procedure InitColumnEditors(const ARecord: TKViewTableRecord);
     procedure SetGridColumnEditor(const AEditorManager: TKExtEditorManager;
       const AViewField: TKViewField; const ALayoutNode: TEFNode; const AColumn: TExtGridColumn);
-    function GetAfterEditJSCode(const AMethod: TExtProcedure): string;
-    function GetBeforeEditJSCode(const AMethod: TExtProcedure): string;
     procedure ShowConfirmButtons(const AShow: Boolean);
     function GetSelectLastEditedRecordCode(const ARecord: TKViewTableRecord): string;
     procedure InitGroupingFeature;
@@ -649,7 +647,7 @@ begin
 
   LRowClassProvider := ViewTable.GetExpandedString('Controller/RowClassProvider');
   if LRowClassProvider <> '' then
-    FGridPanel.ViewConfig.SetConfigItem('getRowClass', JSFunctionFromCodeBlock(LRowClassProvider))
+    FGridPanel.ViewConfig.SetConfigItem('getRowClass', JSExpressionFromCodeBlock(LRowClassProvider))
   else
   begin
     LRowColorPatterns := GetRowColorPatterns(LRowColorFieldName);
@@ -701,7 +699,8 @@ begin
     FCancelButton.SetIconAndScale('cancel', Config.GetString('ButtonScale', 'medium'));
     FCancelButton.Text := _('Cancel');
     FCancelButton.Tooltip := _('Close the window without selecting a record');
-    FCancelButton.On('click', Ajax(CancelLookup));
+    //FCancelButton.On('click', Ajax(CancelLookup));
+    FCancelButton.On('click', AjaxCallMethod.SetMethod(CancelLookup).AsFunction);
   end
   else if FInplaceEditing then
   begin
@@ -710,17 +709,44 @@ begin
     FConfirmButton.Text := Config.GetString('ConfirmButton/Caption', _('Save'));
     FConfirmButton.Tooltip := Config.GetString('ConfirmButton/Tooltip', _('Save changes and finish editing'));
     FConfirmButton.Hidden := True;
-    FConfirmButton.On('click', Ajax(ConfirmInplaceChanges));
+    //FConfirmButton.On('click', Ajax(ConfirmInplaceChanges));
+    FConfirmButton.On('click', AjaxCallMethod.SetMethod(ConfirmInplaceChanges).AsFunction);
 
     FCancelButton := TKExtButton.CreateAndAddToArray(Buttons);
     FCancelButton.SetIconAndScale('cancel', Config.GetString('ButtonScale', 'medium'));
     FCancelButton.Text := _('Cancel');
     FCancelButton.Tooltip := _('Cancel changes');
     FCancelButton.Hidden := True;
-    FCancelButton.On('click', Ajax(CancelInplaceChanges));
-
-    FGridPanel.On('beforeedit', JSFunction('editor, context', GetBeforeEditJSCode(BeforeEdit)));
-    FGridPanel.On('edit', JSFunction('editor, context', GetAfterEditJSCode(UpdateField)));
+    //FCancelButton.On('click', Ajax(CancelInplaceChanges));
+    FCancelButton.On('click', AjaxCallMethod.SetMethod(CancelInplaceChanges).AsFunction);
+    FGridPanel.On('beforeedit',
+      GenerateAnonymousFunction('editor, context', GetJSCode(
+        procedure
+        begin
+          Session.ResponseItems.ExecuteJSCode(
+            'var json = new Object;' + sLineBreak +
+            'json.data = context.record.data;');
+          AjaxCallMethod().SetMethod(BeforeEdit)
+            .Post('json')
+            .AsExpression;
+        end)));
+    FGridPanel.On('edit',
+      GenerateAnonymousFunction('editor, context', GetJSCode(
+        procedure
+        begin
+          Session.ResponseItems.ExecuteJSCode(
+            'var json = new Object;' + sLineBreak +
+            'json.new = context.record.data;' + sLineBreak + // needed for the PK (see GetRecord).
+            'json.fieldName = context.field;');
+          FEditItems.AllEditors(
+            procedure (AEditor: IKExtEditor)
+            begin
+              AEditor.StoreValue('json.new');
+            end);
+          AjaxCallMethod().SetMethod(UpdateField)
+            .Post('json')
+            .AsExpression;
+        end)));
   end;
 end;
 
@@ -944,41 +970,6 @@ begin
 
   if AView.GetBoolean('Controller/RequireSelection', True) then
     FButtonsRequiringSelection.Add(Result);
-end;
-
-function TKExtGridPanel.GetBeforeEditJSCode(const AMethod: TExtProcedure): string;
-var
-  LCode: string;
-begin
-  LCode :=
-    'var json = new Object;' + sLineBreak +
-    'json.data = context.record.data;' + sLineBreak;  // needed for the PK (see GetRecord).
-  LCode := LCode + GetPOSTAjaxCode(AMethod, [], 'json') + sLineBreak;
-  Result := LCode;
-end;
-
-function TKExtGridPanel.GetAfterEditJSCode(const AMethod: TExtProcedure): string;
-var
-  LCode: string;
-begin
-  LCode :=
-    'var json = new Object;' + sLineBreak +
-    'json.new = context.record.data;' + sLineBreak + // needed for the PK (see GetRecord).
-    'json.fieldName = context.field;' + sLineBreak;
-
-  LCode := LCode + GetJSFunctionCode(
-    procedure
-    begin
-      FEditItems.AllEditors(
-        procedure (AEditor: IKExtEditor)
-        begin
-          AEditor.StoreValue('json.new');
-        end);
-    end,
-    False) + sLineBreak;
-
-  LCode := LCode + GetPOSTAjaxCode(AMethod, [], 'json') + sLineBreak;
-  Result := LCode;
 end;
 
 procedure TKExtGridPanel.AddTopToolbarToolViewButtons;

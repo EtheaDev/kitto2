@@ -588,7 +588,9 @@ begin
   LSubmitAction.Url := MethodURI(Upload);
   LSubmitAction.WaitMsg := _('File upload in progress...');
   LSubmitAction.WaitTitle := _('Please wait...');
-  LSubmitAction.Success := Ajax(PostUpload);
+  //LSubmitAction.Success := Ajax(PostUpload);
+  LSubmitAction.Success := AjaxCallMethod().SetMethod(PostUpload).AsFunction;
+  { TODO : wrap in function and declate param 1 }
   LSubmitAction.Failure := ExtMessageBox.Alert(_('File upload error'), '%1.result.message');
   LUploadButton.Handler := LFormPanel.Form.Submit(LSubmitAction);
 
