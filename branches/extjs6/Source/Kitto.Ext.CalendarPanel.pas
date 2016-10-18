@@ -94,8 +94,6 @@ begin
   FCalendarPanel.ShowTodayText := True;
   FCalendarPanel.ShowTime := True;
 
-//  FCalendarPanel.On('dayclick', JSFunction('cal, dt, allday, el',
-//    GetAjaxCode(NewRecord, '', ['m', '%dt.getMonth() + 1', 'y', '%dt.getFullYear()', 'd', '%dt.getDate()', 'allday', '%allday']) + 'return false;'));
   FCalendarPanel.&On('dayclick',
     AjaxCallMethod().SetMethod(NewRecord)
       .AddRawParam('m', 'dt.getMonth() + 1')
@@ -147,7 +145,7 @@ end;
 
 function TKExtCalendarPanel.GetSelectCall(const AMethod: TExtProcedure): TExtExpression;
 begin
-  Result := JSFunction(Format('ajaxCalendarSelection("yes", "", {params: {methodURL: "%s", calendarPanel: %s, fieldNames: "%s"}});',
+  Result := GenerateAnonymousFunction(Format('ajaxCalendarSelection("yes", "", {params: {methodURL: "%s", calendarPanel: %s, fieldNames: "%s"}});',
     [MethodURI(AMethod), FCalendarPanel.JSName, Join(ViewTable.GetKeyFieldAliasedNames, ',')]));
 end;
 
@@ -249,6 +247,7 @@ procedure TKExtCalendarPanel.LoadData;
 begin
   inherited;
   if Assigned(CalendarStore) then
+  { TODO : empty object argument still needed? }
     CalendarStore.Load(JSObject(''));
 end;
 
@@ -302,7 +301,7 @@ begin
   LProxy := TExtDataAjaxProxy.Create(Result);
   LProxy.Url := MethodURI(GetCalendarRecords);
   Result.Proxy := LProxy;
-  Result.On('exception', JSFunction('proxy, type, action, options, response, arg', 'loadError(type, action, response);'));
+  Result.On('exception', GenerateAnonymousFunction('proxy, type, action, options, response, arg', 'loadError(type, action, response);'));
 end;
 
 initialization

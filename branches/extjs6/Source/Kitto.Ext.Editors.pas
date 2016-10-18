@@ -661,33 +661,33 @@ type
   strict private
     FOnGetSession: TKExtSessionGetEvent;
     FOperation: TKExtEditOperation;
-    function TryCreateLookupEditor(const AOwner: TComponent;
+    function TryCreateLookupEditor(const AOwner: TJSBase;
       const AViewField: TKViewField; const ARowField: TKExtFormRowField;
       const AFieldCharWidth: Integer; const AIsReadOnly: Boolean): IKExtEditor;
-    function TryCreateComboBox(const AOwner: TComponent; const AViewField: TKViewField;
+    function TryCreateComboBox(const AOwner: TJSBase; const AViewField: TKViewField;
       const ARowField: TKExtFormRowField; const AFieldCharWidth: Integer;
       const AIsReadOnly: Boolean): IKExtEditor;
-    function TryCreateTextArea(const AOwner: TComponent; const AViewField: TKViewField;
+    function TryCreateTextArea(const AOwner: TJSBase; const AViewField: TKViewField;
       const ARowField: TKExtFormRowField; const AFieldCharWidth: Integer;
       const AIsReadOnly: Boolean): IKExtEditor;
-    function TryCreateCheckBox(const AOwner: TComponent; const AViewField: TKViewField;
+    function TryCreateCheckBox(const AOwner: TJSBase; const AViewField: TKViewField;
       const AIsReadOnly: Boolean): IKExtEditor;
-    function TryCreateDateField(const AOwner: TComponent; const AViewField: TKViewField;
+    function TryCreateDateField(const AOwner: TJSBase; const AViewField: TKViewField;
       const ARowField: TKExtFormRowField; const AFieldCharWidth: Integer;
       const AIsReadOnly: Boolean): IKExtEditor;
-    function TryCreateTimeField(const AOwner: TComponent; const AViewField: TKViewField;
+    function TryCreateTimeField(const AOwner: TJSBase; const AViewField: TKViewField;
       const ARowField: TKExtFormRowField; const AFieldCharWidth: Integer;
       const AIsReadOnly: Boolean): IKExtEditor;
-    function TryCreateDateTimeField(const AOwner: TComponent; const AViewField: TKViewField;
+    function TryCreateDateTimeField(const AOwner: TJSBase; const AViewField: TKViewField;
       const ARowField: TKExtFormRowField; const AFieldCharWidth: Integer;
       const AIsReadOnly: Boolean): IKExtEditor;
-    function TryCreateNumberField(const AOwner: TComponent; const AViewField: TKViewField;
+    function TryCreateNumberField(const AOwner: TJSBase; const AViewField: TKViewField;
       const ARowField: TKExtFormRowField; const AFieldCharWidth: Integer;
       const AIsReadOnly: Boolean): IKExtEditor;
-    function TryCreateFileEditor(const AOwner: TComponent; const AViewField: TKViewField;
+    function TryCreateFileEditor(const AOwner: TJSBase; const AViewField: TKViewField;
       const ARowField: TKExtFormRowField; const AFieldCharWidth: Integer;
       const AIsReadOnly: Boolean; const ALabel: string): IKExtEditor;
-    function CreateTextField(const AOwner: TComponent; const AViewField: TKViewField;
+    function CreateTextField(const AOwner: TJSBase; const AViewField: TKViewField;
       const ARowField: TKExtFormRowField; const AFieldCharWidth: Integer;
       const AIsReadOnly: Boolean): IKExtEditor;
     function GetSession: TKExtSession;
@@ -695,13 +695,13 @@ type
   public
     property Operation: TKExtEditOperation read FOperation write FOperation;
     property OnGetSession: TKExtSessionGetEvent read FOnGetSession write FOnGetSession;
-    function CreateEditor(const AOwner: TComponent; const AViewField: TKViewField;
+    function CreateEditor(const AOwner: TJSBase; const AViewField: TKViewField;
       const ARowField: TKExtFormRowField; const AFieldCharWidth: Integer;
       const AIsReadOnly: Boolean; const ALabel: string = ''): IKExtEditor;
     /// <summary>
     ///  Creates an in-place editor for the specified field.
     /// </summary>
-    function CreateGridCellEditor(const AOwner: TComponent;
+    function CreateGridCellEditor(const AOwner: TJSBase;
       const AViewField: TKViewField): TExtFormField;
   end;
 
@@ -979,7 +979,7 @@ begin
   Assert(Assigned(FCurrentEditPage));
 
   if Assigned(FFocusField) then
-    FCurrentEditPage.On('afterrender', FCurrentEditPage.JSFunction(FFocusField.JSName + '.focus(false, 1000);'));
+    FCurrentEditPage.On('afterrender', FCurrentEditPage.GenerateAnonymousFunction(FFocusField.JSName + '.focus(false, 1000);'));
   FFocusField := nil;
 end;
 
@@ -1333,24 +1333,7 @@ end;
 procedure TKExtFormFieldSet.InitDefaults;
 begin
   inherited;
-//  On('beforecollapse', JSFunction(
-//    'this.kPreviousHeight = this.getHeight();'
-//  ), Self);
-//
-//  On('collapse', JSFunction(
-//    'if ("kPreviousHeight" in this && this.getTopOwner() instanceof Ext.Window) ' +
-//    '  this.getTopOwner().setClippedHeight(this.getTopOwner().getHeight() - this.kPreviousHeight + this.getHeight());'
-//  ), Self);
-//
-//  On('beforeexpand', JSFunction(
-//    'this.kPreviousHeight = this.getHeight();'
-//  ), Self);
-//
-//  On('expand', JSFunction(
-//    'if ("kPreviousHeight" in this && this.getTopOwner() instanceof Ext.Window) ' +
-//    '  this.getTopOwner().setClippedHeight(this.getTopOwner().getHeight() - this.kPreviousHeight + this.getHeight());'
-//  ), Self);
-  On('expand', JSFunction('this.getTopOwner().updateLayout();'), Self);
+  &On('expand', GenerateAnonymousFunction('this.getTopOwner().updateLayout();'), Self);
 end;
 
 procedure TKExtFormFieldSet.RefreshValue;
@@ -1378,9 +1361,9 @@ begin
     // compound contained editors (such as the file editors) a chance to
     // layout correctly.
     if ANode.AsBoolean then
-      On('afterrender', JSFunction(JSName + '.collapse(true);'))
+      &On('afterrender', GenerateAnonymousFunction(Collapse(True)))
     else
-      On('afterrender', JSFunction(JSName + '.expand(true);'))
+      &On('afterrender', GenerateAnonymousFunction(Expand(True)));
   end
   else if SameText(ANode.Name, 'Title') then
     UnexpandedTitle := ANode.AsExpandedString
@@ -1928,8 +1911,8 @@ begin
             .Post('json')
             .AsExpression;
         end)));
-    &On('select', JSFunction(JSName + '.kitto$isChanged = true;'));
-    &On('change', JSFunction('field, newValue, oldValue',
+    &On('select', GenerateAnonymousFunction(JSName + '.kitto$isChanged = true;'));
+    &On('change', GenerateAnonymousFunction('field, newValue, oldValue',
       'if (newValue!==oldValue) ' + JSName + '.kitto$isChanged = true;'));
   end;
 end;
@@ -3281,13 +3264,13 @@ end;
 
 { TKExtEditorManager }
 
-function TKExtEditorManager.CreateGridCellEditor(const AOwner: TComponent;
+function TKExtEditorManager.CreateGridCellEditor(const AOwner: TJSBase;
   const AViewField: TKViewField): TExtFormField;
 begin
   Result := CreateEditor(AOwner, AViewField, nil, AViewField.DisplayWidth, False).AsExtFormField;
 end;
 
-function TKExtEditorManager.CreateEditor(const AOwner: TComponent;
+function TKExtEditorManager.CreateEditor(const AOwner: TJSBase;
   const AViewField: TKViewField; const ARowField: TKExtFormRowField;
   const AFieldCharWidth: Integer; const AIsReadOnly: Boolean;
   const ALabel: string): IKExtEditor;
@@ -3341,7 +3324,7 @@ begin
 end;
 
 function TKExtEditorManager.TryCreateLookupEditor(
-  const AOwner: TComponent; const AViewField: TKViewField;
+  const AOwner: TJSBase; const AViewField: TKViewField;
   const ARowField: TKExtFormRowField; const AFieldCharWidth: Integer;
   const AIsReadOnly: Boolean): IKExtEditor;
 var
@@ -3371,7 +3354,7 @@ begin
 end;
 
 function TKExtEditorManager.TryCreateComboBox(
-  const AOwner: TComponent; const AViewField: TKViewField;
+  const AOwner: TJSBase; const AViewField: TKViewField;
   const ARowField: TKExtFormRowField;
   const AFieldCharWidth: Integer;
   const AIsReadOnly: Boolean): IKExtEditor;
@@ -3402,7 +3385,7 @@ begin
 end;
 
 function TKExtEditorManager.TryCreateTextArea(
-  const AOwner: TComponent; const AViewField: TKViewField;
+  const AOwner: TJSBase; const AViewField: TKViewField;
   const ARowField: TKExtFormRowField; const AFieldCharWidth: Integer;
   const AIsReadOnly: Boolean): IKExtEditor;
 var
@@ -3441,7 +3424,7 @@ begin
 end;
 
 function TKExtEditorManager.TryCreateCheckBox(
-  const AOwner: TComponent; const AViewField: TKViewField;
+  const AOwner: TJSBase; const AViewField: TKViewField;
   const AIsReadOnly: Boolean): IKExtEditor;
 var
   LCheckbox: TKExtFormCheckbox;
@@ -3466,7 +3449,7 @@ begin
 end;
 
 function TKExtEditorManager.TryCreateDateField(
-  const AOwner: TComponent; const AViewField: TKViewField;
+  const AOwner: TJSBase; const AViewField: TKViewField;
   const ARowField: TKExtFormRowField; const AFieldCharWidth: Integer;
   const AIsReadOnly: Boolean): IKExtEditor;
 var
@@ -3503,7 +3486,7 @@ begin
 end;
 
 function TKExtEditorManager.TryCreateTimeField(
-  const AOwner: TComponent; const AViewField: TKViewField;
+  const AOwner: TJSBase; const AViewField: TKViewField;
   const ARowField: TKExtFormRowField; const AFieldCharWidth: Integer;
   const AIsReadOnly: Boolean): IKExtEditor;
 var
@@ -3541,7 +3524,7 @@ begin
 end;
 
 function TKExtEditorManager.TryCreateDateTimeField(
-  const AOwner: TComponent; const AViewField: TKViewField;
+  const AOwner: TJSBase; const AViewField: TKViewField;
   const ARowField: TKExtFormRowField; const AFieldCharWidth: Integer;
   const AIsReadOnly: Boolean): IKExtEditor;
 const
@@ -3588,7 +3571,7 @@ begin
 end;
 
 function TKExtEditorManager.TryCreateFileEditor(
-  const AOwner: TComponent; const AViewField: TKViewField;
+  const AOwner: TJSBase; const AViewField: TKViewField;
   const ARowField: TKExtFormRowField; const AFieldCharWidth: Integer;
   const AIsReadOnly: Boolean; const ALabel: string): IKExtEditor;
 var
@@ -3619,7 +3602,7 @@ begin
     Result := nil;
 end;
 
-function TKExtEditorManager.TryCreateNumberField(const AOwner: TComponent;
+function TKExtEditorManager.TryCreateNumberField(const AOwner: TJSBase;
   const AViewField: TKViewField;
   const ARowField: TKExtFormRowField; const AFieldCharWidth: Integer;
   const AIsReadOnly: Boolean): IKExtEditor;
@@ -3659,7 +3642,7 @@ begin
     Result := nil;
 end;
 
-function TKExtEditorManager.CreateTextField(const AOwner: TComponent;
+function TKExtEditorManager.CreateTextField(const AOwner: TJSBase;
   const AViewField: TKViewField;
   const ARowField: TKExtFormRowField; const AFieldCharWidth: Integer;
   const AIsReadOnly: Boolean): IKExtEditor;

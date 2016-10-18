@@ -505,11 +505,10 @@ begin
     LConfirmationJS := GetConfirmCall(LConfirmationMessage, Result.ExecuteButtonAction);
 
   if LConfirmationMessage <> '' then
-    Result.Handler := JSFunction(LConfirmationJS)
+    Result.Handler := GenerateAnonymousFunction(LConfirmationJS)
   else if LRequireSelection then
     Result.On('click', GetSelectCall(TKExtDataActionButton(Result).ExecuteButtonAction))
   else
-    //Result.On('click', Ajax(Result.ExecuteButtonAction, []));
     Result.On('click', AjaxCallMethod.SetMethod(Result.ExecuteButtonAction).AsFunction);
 end;
 
@@ -569,7 +568,7 @@ begin
   LProxy := TExtDataAjaxProxy.Create(Result);
   LProxy.Url := MethodURI(GetRecordPage);
   Result.Proxy := LProxy;
-  Result.On('exception', JSFunction('proxy, type, action, options, response, arg', 'loadError(type, action, response);'));
+  Result.On('exception', GenerateAnonymousFunction('proxy, type, action, options, response, arg', 'loadError(type, action, response);'));
 end;
 
 procedure TKExtDataPanelController.SetURLFieldValues(const ARecord: TKViewTableRecord);
@@ -978,7 +977,7 @@ begin
 
   FDeleteButton := AddTopToolbarButton('Delete', Format(_('Delete %s'), [_(ViewTable.DisplayLabel)]), 'delete_record', True);
   if Assigned(FDeleteButton) then
-    FDeleteButton.On('click', JSFunction(GetSelectConfirmCall(
+    FDeleteButton.On('click', GenerateAnonymousFunction(GetSelectConfirmCall(
       Format(_('Selected %s {caption} will be deleted. Are you sure?'), [_(ViewTable.DisplayLabel)]), DeleteCurrentRecord)));
 
   FViewButton := AddTopToolbarButton('View', Format(_('View %s'), [_(ViewTable.DisplayLabel)]), 'view_record', True);

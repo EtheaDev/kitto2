@@ -180,12 +180,12 @@ begin
       Result := FOwner.AjaxCallMethod.SetMethod(FClickHandler)
         .AddParam('View', Integer(AView))
         .AddParam('Dummy', Session.StatusHost.ShowBusy)
-        .AsExpression
+        .AsFunction
     else
       //Result := FOwner.Ajax(FClickHandler, ['View', Integer(AView)]);
       Result := FOwner.AjaxCallMethod.SetMethod(FClickHandler)
         .AddParam('View', Integer(AView))
-        .AsExpression;
+        .AsFunction;
   end
   else
     Result := nil;

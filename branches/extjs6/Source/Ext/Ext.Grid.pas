@@ -220,10 +220,10 @@ type
   private
     FAutoExpandColumn: string;
     FColumnLines: Boolean;
-    FColumns: TExtObjectList;
+    FColumns: TExtObjectArray;
     FDisableSelection: Boolean;
     FEnableHdMenu: Boolean;
-    FFeatures: TExtObjectList;
+    FFeatures: TExtObjectArray;
     FSelModel: TExtObject;
     FStore: TExtDataStore;
     FStripeRows: Boolean;
@@ -247,10 +247,10 @@ type
     class function JSClassName: string; override;
     property AutoExpandColumn: string read FAutoExpandColumn write SetAutoExpandColumn;
     property ColumnLines: Boolean read FColumnLines write SetColumnLines;
-    property Columns: TExtObjectList read FColumns;
+    property Columns: TExtObjectArray read FColumns;
     property DisableSelection: Boolean read FDisableSelection write SetDisableSelection;
     property EnableHdMenu: Boolean read FEnableHdMenu write SetEnableHdMenu;
-    property Features: TExtObjectList read FFeatures;
+    property Features: TExtObjectArray read FFeatures;
     property SelModel: TExtObject read FSelModel write SetSelModel;
     property Store: TExtDataStore read FStore write SetStore;
     property StripeRows: Boolean read FStripeRows write SetStripeRows;

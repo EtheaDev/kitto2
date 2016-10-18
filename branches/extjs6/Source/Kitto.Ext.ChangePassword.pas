@@ -191,12 +191,12 @@ begin
   FConfirmNewPassword.Width := 136;
   FConfirmNewPassword.EnableKeyEvents := True;
 
-  FOldPassword.On('keyup', JSFunction(GetEnableButtonJS));
-  FNewPassword.On('keyup', JSFunction(GetEnableButtonJS));
-  FConfirmNewPassword.On('keyup', JSFunction(GetEnableButtonJS));
-  FOldPassword.On('specialkey', JSFunction('field, e', GetSubmitJS));
-  FNewPassword.On('specialkey', JSFunction('field, e', GetSubmitJS));
-  FConfirmNewPassword.On('specialkey', JSFunction('field, e', GetSubmitJS));
+  FOldPassword.On('keyup', GenerateAnonymousFunction(GetEnableButtonJS));
+  FNewPassword.On('keyup', GenerateAnonymousFunction(GetEnableButtonJS));
+  FConfirmNewPassword.On('keyup', GenerateAnonymousFunction(GetEnableButtonJS));
+  FOldPassword.On('specialkey', GenerateAnonymousFunction('field, e', GetSubmitJS));
+  FNewPassword.On('specialkey', GenerateAnonymousFunction('field, e', GetSubmitJS));
+  FConfirmNewPassword.On('specialkey', GenerateAnonymousFunction('field, e', GetSubmitJS));
 
 //  FConfirmButton.Handler := Ajax(DoChangePassword, ['Dummy', FStatusBar.ShowBusy,
 //    'OldPassword', FOldPassword.GetValue, 'NewPassword', FNewPassword.GetValue,

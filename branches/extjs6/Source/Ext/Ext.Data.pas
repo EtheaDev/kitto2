@@ -39,13 +39,13 @@ type
 
   TExtDataDataReader = class(TExtObject)
   private
-    FFields: TExtObjectList;
+    FFields: TExtObjectArray;
   protected
     function GetObjectNamePrefix: string; override;
     procedure InitDefaults; override;
   public
     class function JSClassName: string; override;
-    property Fields: TExtObjectList read FFields;
+    property Fields: TExtObjectArray read FFields;
   end;
 
   TExtDataField = class(TExtObject)
@@ -73,7 +73,7 @@ type
 
   TExtDataNode = class(TExtUtilObservable)
   private
-    FChildren: TExtObjectList;
+    FChildren: TExtObjectArray;
     FLeaf: Boolean;
     FId: string;
     procedure _SetId(const AValue: string);
@@ -85,7 +85,7 @@ type
     function SetId(const AId: string): TExtExpression;
     property Id: string read FId write _SetId;
     property Leaf: Boolean read FLeaf write SetLeaf;
-    property Children: TExtObjectList read FChildren;
+    property Children: TExtObjectArray read FChildren;
   end;
 
   TExtDataStore = class(TExtUtilObservable)

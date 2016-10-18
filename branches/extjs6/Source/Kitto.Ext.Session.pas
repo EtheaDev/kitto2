@@ -25,7 +25,7 @@ uses
   gnugettext, superobject,
   Ext.Base, ExtPascalClasses,
   EF.Tree, EF.Macros, EF.Intf, EF.Localization, EF.ObserverIntf,
-  Kitto.Ext, Kitto.Ext.Base, Kitto.Config, Kitto.Metadata.Views,
+  Kitto.JS, Kitto.Ext, Kitto.Ext.Base, Kitto.Config, Kitto.Metadata.Views,
   Kitto.Ext.Controller;
 
 type
@@ -169,6 +169,7 @@ type
     procedure SetDisplayName(const AValue: string);
   private
     FGettextInstance: TGnuGettextInstance;
+    function GetViewportWidthInInches: TExtExpression;
   strict protected
     function BeforeHandleRequest: Boolean; override;
     procedure AfterHandleRequest; override;
@@ -372,7 +373,7 @@ uses
   StrUtils, ActiveX, ComObj, FmtBcd,
   Ext.Form,
   EF.SysUtils, EF.StrUtils, EF.Logger, EF.Types,
-  Kitto.JS, Kitto.Auth, Kitto.Types, Kitto.AccessControl,
+  Kitto.Auth, Kitto.Types, Kitto.AccessControl,
   Kitto.Ext.Utils;
 
 function GetExtSession: TKExtSession;
@@ -661,17 +662,26 @@ begin
   if FAutoOpenViewName <> '' then
     Queries.Values['view'] := '';
 
+  Global.AjaxCallMethod.SetMethod(DelayedHome)
+    .AddParam('vpWidthInches', GetViewportWidthInInches);
+//  Session.ResponseItems.ExecuteJSCode(GetAjaxCode(Session.DelayedHome, ['vpWidthInches', GetViewportWidthInInches]));
+
+
   { TODO: fix the problem with nil owner - we need to be able to create
     short-lived invisible objects. Anyway maybe we can do without TKExtDelayedHome }
-  with TKExtDelayedHome.CreateInline(ExtQuickTips) do
-  begin
-    try
-      Execute;
-    finally
-      { TODO: restore once the problem with the response items is fixed somehow }
-      //Free;
-    end;
-  end;
+//  with TKExtDelayedHome.CreateInline(ExtQuickTips) do
+//  begin
+//    try
+//      Execute;
+//    finally
+//      Free;
+//    end;
+//  end;
+end;
+
+function TKExtSession.GetViewportWidthInInches: TExtExpression;
+begin
+  Result := Global.JSExpressionFromCodeBlock('getViewportWidthInInches()');
 end;
 
 procedure TKExtSession.DelayedHome;
@@ -1466,15 +1476,14 @@ end;
 
 procedure TKExtDelayedHome.Execute;
 begin
-  AjaxCallMethod()
-    .SetMethod(Session.DelayedHome)
+  AjaxCallMethod.SetMethod(Session.DelayedHome)
     .AddParam('vpWidthInches', GetViewportWidthInInches);
 //  Session.ResponseItems.ExecuteJSCode(GetAjaxCode(Session.DelayedHome, ['vpWidthInches', GetViewportWidthInInches]));
 end;
 
 function TKExtDelayedHome.GetViewportWidthInInches: TExtExpression;
 begin
-  Result := Session.ResponseItems.ExecuteJSCode(Self, 'getViewportWidthInInches()').AsExpression;
+  Result := JSExpressionFromCodeBlock('getViewportWidthInInches()');
 end;
 
 initialization

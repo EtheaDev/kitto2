@@ -145,7 +145,7 @@ type
     FItemId: string;
     FLabelStyle: string;
     FCollapseMode: string;
-    FPlugins: TExtObjectList;
+    FPlugins: TExtObjectArray;
     FLoader: TExtObject;
     FCls: string;
     FOverCls: string;
@@ -210,7 +210,7 @@ type
     property Loader: TExtObject read FLoader;
     property OverCls: string read FOverCls write SetOverCls;
     property Padding: string read FPadding write SetPadding;
-    property Plugins: TExtObjectList read FPlugins;
+    property Plugins: TExtObjectArray read FPlugins;
     property Style: string read FStyle write SetStyle;
     property Tpl: string read FTpl write SetTpl;
     property Split: Boolean read FSplit write SetSplit;
@@ -349,7 +349,7 @@ type
     FActiveItemNumber: Integer;
     FAutoDestroy: Boolean; // true
     FDefaults: TExtObject;
-    FItems: TExtObjectList;
+    FItems: TExtObjectArray;
     FLayout: TExtContainerLayout;
     FLayoutObject: TExtObject;
     FLayoutConfig: TExtObject;
@@ -374,7 +374,7 @@ type
     property ActiveItem: string read FActiveItem write SetActiveItem;
     property ActiveItemNumber: Integer read FActiveItemNumber write SetActiveItemNumber;
     property Defaults: TExtObject read FDefaults;
-    property Items: TExtObjectList read FItems;
+    property Items: TExtObjectArray read FItems;
     property LabelAlign: TExtContainerLabelAlign read FLabelAlign write SetLabelAlign;
     property LabelWidth: Integer read FLabelWidth write SetLabelWidth;
     property Layout: TExtContainerLayout read FLayout write SetLayout;
@@ -431,8 +431,8 @@ type
     function GetText: TExtExpression;
     function HasVisibleMenu: TExtExpression;
     function HideMenu: TExtExpression;
-    function SetHandler(const AHandler: TExtExpression; const AScope: TExtObject = nil)
-      : TExtExpression;
+    function PerformClick: TExtExpression;
+    function SetHandler(const AHandler: TExtExpression; const AScope: TExtObject = nil): TExtExpression;
     function SetText(const AText: string): TExtExpression;
     function SetTooltip(const ATooltip: string): TExtExpression; overload;
     function SetTooltip(const ATooltip: TExtObject): TExtExpression; overload;
@@ -451,7 +451,6 @@ type
     property Text: string read FText write _SetText;
     property ToggleGroup: string read FToggleGroup write SetToggleGroup;
     property Tooltip: string read FTooltip write _SetTooltip;
-    procedure PerformClick;
   end;
 
   TExtDataView = class(TExtBoxComponent)
@@ -465,8 +464,8 @@ type
     FSingleSelect: Boolean;
     FStore: TExtDataStore;
     FTpl: string;
-    FTplArray: TExtObjectList;
-    FStoreArray: TExtObjectList;
+    FTplArray: TExtObjectArray;
+    FStoreArray: TExtObjectArray;
     procedure SetEmptyText(AValue: string);
     procedure SetItemSelector(const AValue: string);
     procedure SetMultiSelect(const AValue: Boolean);
@@ -475,7 +474,7 @@ type
     procedure SetSingleSelect(const AValue: Boolean);
     procedure _SetStore(const AValue: TExtDataStore);
     procedure SetTpl(AValue: string);
-    procedure SetStoreArray(const AValue: TExtObjectList);
+    procedure SetStoreArray(const AValue: TExtObjectArray);
     procedure SetSelectedClass(const AValue: string);
   protected
     procedure InitDefaults; override;
@@ -490,7 +489,7 @@ type
     property SimpleSelect: Boolean read FSimpleSelect write SetSimpleSelect;
     property SingleSelect: Boolean read FSingleSelect write SetSingleSelect;
     property Store: TExtDataStore read FStore write _SetStore;
-    property StoreArray: TExtObjectList read FStoreArray write SetStoreArray;
+    property StoreArray: TExtObjectArray read FStoreArray write SetStoreArray;
     property Tpl: string read FTpl write SetTpl;
   end;
 
@@ -515,13 +514,13 @@ type
     FClosable: Boolean;
     FTitle: string;
     FBbar: TExtObject;
-    FFbar: TExtObjectList;
+    FFbar: TExtObjectArray;
     FBorder: Boolean;
     FAnimCollapse: Boolean;
     FFooter: Boolean;
     FIconCls: string;
     FAutoLoadBoolean: Boolean;
-    FButtons: TExtObjectList;
+    FButtons: TExtObjectArray;
     FMinButtonWidth: Integer;
     procedure SetAnimCollapse(const AValue: Boolean);
     procedure SetAutoLoad(const AValue: TExtObject);
@@ -556,11 +555,11 @@ type
     property Bbar: TExtObject read FBbar write SetBbar;
     property BodyStyle: string read FBodyStyle write SetBodyStyle;
     property Border: Boolean read FBorder write SetBorder;
-    property Buttons: TExtObjectList read FButtons;
+    property Buttons: TExtObjectArray read FButtons;
     property Closable: Boolean read FClosable write SetClosable;
     property Collapsible: Boolean read FCollapsible write SetCollapsible;
     property Collapsed: Boolean read FCollapsed write SetCollapsed;
-    property Fbar: TExtObjectList read FFbar;
+    property Fbar: TExtObjectArray read FFbar;
     property Footer: Boolean read FFooter write SetFooter;
     property Frame: Boolean read FFrame write SetFrame;
     property Header: Boolean read FHeader write SetHeader;
@@ -641,7 +640,7 @@ type
     FAnimateTarget: string;
     FAnimateTargetElement: TExtElement;
     FBaseCls: string; // 'x-window'
-    FButtons: TExtObjectList;
+    FButtons: TExtObjectArray;
     FClosable: Boolean; // true
     FConstrain: Boolean;
     FDraggable: Boolean; // true
@@ -677,7 +676,7 @@ type
     function Show(const AAnimateTarget: TExtElement; const ACallback: TExtExpression = nil;
       const AScope: TExtObject = nil): TExtExpression; overload;
     property AnimateTarget: string read FAnimateTarget write _SetAnimateTarget;
-    property Buttons: TExtObjectList read FButtons;
+    property Buttons: TExtObjectArray read FButtons;
     property Closable: Boolean read FClosable write SetClosable;
     property Constrain: Boolean read FConstrain write SetConstrain;
     property Draggable: Boolean read FDraggable write SetDraggable;
@@ -1447,9 +1446,9 @@ begin
     .AsExpression;
 end;
 
-procedure TExtButton.PerformClick;
+function TExtButton.PerformClick: TExtExpression;
 begin
-  FireEvent('click', nil);
+  Result := FireEvent('click', nil);
 end;
 
 function TExtButton.Pressed_: TExtExpression;
@@ -1580,10 +1579,10 @@ begin
     .AsExpression;
 end;
 
-procedure TExtDataView.SetStoreArray(const AValue: TExtObjectList);
+procedure TExtDataView.SetStoreArray(const AValue: TExtObjectArray);
 begin
   FStoreArray.Free;
-  FStoreArray := TExtObjectList(SetConfigItem('store', AValue));
+  FStoreArray := TExtObjectArray(SetConfigItem('store', AValue));
 end;
 
 class function TExtViewport.JSClassName: string;
@@ -1724,7 +1723,7 @@ end;
 procedure TExtPanel.SetTbar(const AValue: TExtObject);
 begin
   FTbar.Free;
-  FTbar := AValue;
+  FTbar := SetConfigItem('tbar', AValue);
 end;
 
 function TExtPanel.SetTitle(const ATitle: string; const AIconCls: string): TExtExpression;

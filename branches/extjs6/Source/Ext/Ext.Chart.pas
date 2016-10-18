@@ -169,7 +169,7 @@ type
     FXAxis: TExtChartAxis;
     FYAxis: TExtChartAxis;
     FTipRenderer: TExtExpression;
-    FSeries: TExtObjectList;
+    FSeries: TExtObjectArray;
     procedure SetChartStyle(const AValue: TExtObject);
     procedure SetUrl(const AValue: String);
     procedure SetStore(const AValue: TExtDataStore);
@@ -191,7 +191,7 @@ type
     property XAxis: TExtChartAxis read FXAxis write SetXAxis;
     property YAxis: TExtChartAxis read FYAxis write SetYAxis;
     property TipRenderer: TExtExpression read FTipRenderer write SetTipRenderer;
-    property Series: TExtObjectList read FSeries;
+    property Series: TExtObjectArray read FSeries;
   end;
 
   TExtChartCartesianChart = class(TExtChartChart)

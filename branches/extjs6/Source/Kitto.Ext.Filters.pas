@@ -129,10 +129,10 @@ type
   /// </summary>
   TKExtFilterFactory = class(TEFFactory)
   private
-    FContainer: TExtObjectList;
+    FContainer: TExtObjectArray;
     class var FInstance: TKExtFilterFactory;
     class function GetInstance: TKExtFilterFactory; static;
-    function CreateObject(const AId: string; const AContainer: TExtObjectList): IKExtFilter;
+    function CreateObject(const AId: string; const AContainer: TExtObjectArray): IKExtFilter;
   protected
     function DoCreateObject(const AClass: TClass): TObject; override;
     class destructor Destroy;
@@ -140,7 +140,7 @@ type
     class property Instance: TKExtFilterFactory read GetInstance;
 
     function CreateFilter(const AFilterConfig: TEFNode; const AObserver: IEFObserver;
-      const AContainer: TExtObjectList; const AViewTable: TKViewTable): IKExtFilter;
+      const AContainer: TExtObjectArray; const AViewTable: TKViewTable): IKExtFilter;
   end;
 
   /// <summary>
@@ -482,7 +482,7 @@ begin
     Result := ADefaultDatabaseName;
 end;
 
-function ExpandFilterValues(const AList: TExtObjectList; const AString: string): string;
+function ExpandFilterValues(const AList: TExtObjectArray; const AString: string): string;
 var
   I: Integer;
   LFilter: IKExtFilter;
@@ -525,7 +525,7 @@ end;
 { TKExtFilterFactory }
 
 function TKExtFilterFactory.CreateFilter(const AFilterConfig: TEFNode;
-  const AObserver: IEFObserver; const AContainer: TExtObjectList;
+  const AObserver: IEFObserver; const AContainer: TExtObjectArray;
   const AViewTable: TKViewTable): IKExtFilter;
 begin
   Assert(AFilterConfig <> nil);
@@ -539,7 +539,7 @@ begin
 end;
 
 function TKExtFilterFactory.CreateObject(const AId: string;
-  const AContainer: TExtObjectList): IKExtFilter;
+  const AContainer: TExtObjectArray): IKExtFilter;
 var
   LObject: TObject;
 begin
@@ -775,7 +775,7 @@ begin
 
   LDBQuery := Session.Config.DBConnections[GetDatabaseName(FConfig, Self, FViewTable.DatabaseName)].CreateDBQuery;
   try
-    LCommandText := ExpandFilterValues(Owner as TExtObjectList, FConfig.GetExpandedString('CommandText'));
+    LCommandText := ExpandFilterValues(Owner as TExtObjectArray, FConfig.GetExpandedString('CommandText'));
     LQuery := Session.Query['query'];
     if LQuery <> '' then
       LQueryExpression := ReplaceStr(FConfig.GetExpandedString('QueryTemplate'), '{queryValue}', LQuery)
@@ -817,7 +817,7 @@ begin
     //On('select', Ajax(ValueChanged, ['Value', GetEncodedValue()]));
     &On('select', AjaxCallMethod.SetMethod(ValueChanged)
       .AddParam('Value', GetEncodedValue).AsFunction);
-    On('blur', JSFunction(Format('fireChangeIfEmpty(%s);', [JSName])));
+    On('blur', GenerateAnonymousFunction(Format('fireChangeIfEmpty(%s);', [JSName])));
   end;
   FCurrentValue := AConfig.GetExpandedString('DefaultValue');
   if FCurrentValue <> '' then
@@ -843,7 +843,7 @@ begin
   begin
     // Auto-fire change event when at least MinChars characters are typed.
     EnableKeyEvents := True;
-    On('keyup', JSFunction(Format('fireChangeAfterNChars(%s, %d);', [JSName, LAutoSearchAfterChars])));
+    On('keyup', GenerateAnonymousFunction(Format('fireChangeAfterNChars(%s, %d);', [JSName, LAutoSearchAfterChars])));
   end;
   FieldLabel := _(AConfig.AsString);
   WidthExpression := CharsToPixels(AConfig.GetInteger('Width', DEFAULT_FILTER_WIDTH));
@@ -1333,7 +1333,7 @@ begin
   Handler := AjaxCallMethod.SetMethod(ButtonClick).AsFunction;
   // The click event is not always fired when the focus is on a text filter,
   // so we increase the probability that the button has the focus when it is clicked.
-  On('mouseover', JSFunction(JSName + '.focus();'));
+  &On('mouseover', GenerateAnonymousFunction(JSName + '.focus();'));
 end;
 
 procedure TKFilterApplyButton.SetViewTable(const AViewTable: TKViewTable);
@@ -1377,7 +1377,7 @@ begin
   Title := '&nbsp;';
 
   LCode := 'var e = ' + JSName + '.getEl(); if (e) e.setOpacity(0);';
-  On('afterrender', JSFunction(LCode));
+  &On('afterrender', GenerateAnonymousFunction(LCode));
   Session.ResponseItems.ExecuteJSCode(Self, LCode);
 end;
 

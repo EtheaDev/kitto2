@@ -182,8 +182,8 @@ Or maybe skip the object list altogether and use the ownership. }
   FPassword.Width := LEditWidth + LLabelWidth;
   Inc(LHeight, CONTROL_HEIGHT);
 
-  FUserName.On('specialkey', JSFunction('field, e', GetSubmitJS));
-  FPassword.On('specialkey', JSFunction('field, e', GetSubmitJS));
+  FUserName.On('specialkey', GenerateAnonymousFunction('field, e', GetSubmitJS));
+  FPassword.On('specialkey', GenerateAnonymousFunction('field, e', GetSubmitJS));
 
   Session.ResponseItems.ExecuteJSCode(Format(
     '%s.enableTask = Ext.TaskManager.start({ ' + sLineBreak +
@@ -247,7 +247,7 @@ Or maybe skip the object list altogether and use the ownership. }
 
   Height := LHeight;
 
-  On('render', JSFunction(GetLocalStorageRetrieveJSCode(LocalStorageMode)));
+  &On('render', GenerateAnonymousFunction(GetLocalStorageRetrieveJSCode(LocalStorageMode)));
   inherited;
 end;
 

@@ -249,7 +249,7 @@ begin
     FDetailBottomPanel.Height := GetDetailBottomPanelHeight;
     FDetailBottomPanel.SetActiveTab(0);
     FDetailBottomPanel.OnTabChange := TabChange;
-    FDetailBottomPanel.On('tabchange', FDetailBottomPanel.JSFunction(FDetailBottomPanel.JSName + '.updateLayout();'));
+    FDetailBottomPanel.On('tabchange', FDetailBottomPanel.GenerateAnonymousFunction(FDetailBottomPanel.JSName + '.updateLayout();'));
     CreateDetailPanels(FDetailBottomPanel);
   end;
 end;
@@ -356,24 +356,24 @@ begin
     FreeAndNil(LLayoutProcessor);
   end;
   // Scroll back to top - can't do that until afterrender because body.dom is needed.
-  FMainPagePanel.On('afterrender', JSFunction(FMainPagePanel.JSName + '.body.dom.scrollTop = 0;'));
+  FMainPagePanel.On('afterrender', GenerateAnonymousFunction(FMainPagePanel.JSName + '.body.dom.scrollTop = 0;'));
   // Set button handlers (editors are needed by GetConfirmJSCode).
   if Assigned(FApplyButton) then
   begin
     FApplyButton.Handler := GetConfirmJSCode(ApplyChanges);
-    FFormPanel.On('clientvalidation', JSFunction('form, valid', FApplyButton.JSName+'.setDisabled(!valid);'));
+    FFormPanel.On('clientvalidation', GenerateAnonymousFunction('form, valid', FApplyButton.JSName + '.setDisabled(!valid);'));
   end;
   if Assigned(FConfirmButton) then
   begin
     FConfirmButton.Handler := GetConfirmJSCode(ConfirmChanges);
-    FFormPanel.On('clientvalidation', JSFunction('form, valid', FConfirmButton.JSName+'.setDisabled(!valid);'));
+    FFormPanel.On('clientvalidation', GenerateAnonymousFunction('form, valid', FConfirmButton.JSName+'.setDisabled(!valid);'));
   end;
   if Assigned(FEditButton) then
     FEditButton.Handler := GetConfirmJSCode(SwitchToEditMode);
   if Assigned(FCloneButton) then
   begin
     FCloneButton.Handler := GetConfirmJSCode(ConfirmChangesAndClone);
-    FFormPanel.On('clientvalidation', JSFunction('form, valid', FCloneButton.JSName+'.setDisabled(!valid);'));
+    FFormPanel.On('clientvalidation', GenerateAnonymousFunction('form, valid', FCloneButton.JSName+'.setDisabled(!valid);'));
   end;
 end;
 
@@ -405,7 +405,7 @@ begin
   begin
     LHostWindow := GetHostWindow;
     if Assigned(LHostWindow) and not LHostWindow.Maximized then
-      LHostWindow.On('afterrender', JSFunction(Format(
+      LHostWindow.On('afterrender', GenerateAnonymousFunction(Format(
         '%s.setOptimalSize(0, %d); %s.center();',
           [LHostWindow.JSName, GetExtraHeight, LHostWindow.JSName])));
   end;
@@ -752,7 +752,7 @@ begin
   // No need for an ajax call when we just close the client-side panel.
   LHostWindow := GetHostWindow;
   if Assigned(LHostWindow) then
-    FCloseButton.Handler := JSFunction(LHostWindow.JSName + '.close();');
+    FCloseButton.Handler := GenerateAnonymousFunction(LHostWindow.JSName + '.close();');
   FCloseButton.Hidden := not FIsReadOnly and not IsViewMode;
 end;
 
@@ -875,7 +875,7 @@ begin
     FMainPagePanel.LabelAlign := LabelAlign;
     FTabPanel.SetActiveTab(0);
     FTabPanel.OnTabChange := TabChange;
-    FTabPanel.On('tabchange', FTabPanel.JSFunction(FTabPanel.JSName + '.updateLayout();'));
+    FTabPanel.On('tabchange', FTabPanel.GenerateAnonymousFunction(FTabPanel.UpdateLayout));
   end
   else
   begin

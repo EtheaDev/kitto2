@@ -88,7 +88,7 @@ begin
         raise EKError.Create(_('AccordionPanel''s SubViews node may only contain View or Controller subnodes.'));
     end;
     if Items.Count > 0 then
-      On('afterrender', JSFunction(JSName + '.getLayout().setActiveItem(0);'));
+      &On('afterrender', GenerateAnonymousFunction(JSName + '.getLayout().setActiveItem(0);'));
   end;
 end;
 

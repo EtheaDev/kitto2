@@ -44,6 +44,7 @@ type
   protected
     procedure InitDefaults; override;
     procedure HandleEvent(const AEvtName: string); override;
+    function GetObjectNamePrefix: string; override;
   public
     class function JSClassName: string; override;
     function SetHandler(const AHandler: TExtExpression; const AScope: TExtObject): TExtExpression;
@@ -189,6 +190,11 @@ begin
     .AddParam(AHandler)
     .AddParam(AScope)
     .AsExpression;
+end;
+
+function TExtMenuBaseItem.GetObjectNamePrefix: string;
+begin
+  Result := 'mi';
 end;
 
 procedure TExtMenuBaseItem.HandleEvent(const AEvtName: string);

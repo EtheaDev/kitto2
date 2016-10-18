@@ -410,8 +410,8 @@ begin
   if AField is TExtFormTextField then
   begin
     TExtFormTextField(AField).Validator :=
-      TExtFormTextField(AField).JSFunction('value',
-      ReplaceStr(TEFMacroExpansionEngine.Instance.Expand(Rule.AsExpandedString), '{errorMessage}', TJS.StrToJS(GetErrorMessage)));
+      TExtFormTextField(AField).GenerateAnonymousFunction('value',
+        ReplaceStr(TEFMacroExpansionEngine.Instance.Expand(Rule.AsExpandedString), '{errorMessage}', TJS.StrToJS(GetErrorMessage)));
   end;
 end;
 
@@ -499,7 +499,7 @@ end;
 procedure TKExtForceUpperCase.SetEventListener(const AField: TExtFormTextField);
 begin
   // Filter control characters - don't use >= as it's not rendered correctly.
-  AField.On('keyup', AField.JSFunction('f, e', 'if (e.getCharCode() > 31) f.setValuePreservingCaretPos(f.getRawValue().toUpperCase());'));
+  AField.On('keyup', AField.GenerateAnonymousFunction('f, e', 'if (e.getCharCode() > 31) f.setValuePreservingCaretPos(f.getRawValue().toUpperCase());'));
 end;
 
 { TKExtForceLowerCase }
@@ -507,14 +507,14 @@ end;
 procedure TKExtForceLowerCase.SetEventListener(const AField: TExtFormTextField);
 begin
   // Filter control characters - don't use >= as it's not rendered correctly.
-  AField.On('keyup', AField.JSFunction('f, e', 'if (e.getCharCode() > 31) f.setValuePreservingCaretPos(f.getRawValue().toLowerCase());'));
+  AField.On('keyup', AField.GenerateAnonymousFunction('f, e', 'if (e.getCharCode() > 31) f.setValuePreservingCaretPos(f.getRawValue().toLowerCase());'));
 end;
 
 { TKExtForceCamelCaps }
 
 procedure TKExtForceCamelCaps.SetEventListener(const AField: TExtFormTextField);
 begin
-  AField.On('change', AField.JSFunction('f, newValue, oldValue', 'f.setValuePreservingCaretPos(newValue.capitalize());'));
+  AField.On('change', AField.GenerateAnonymousFunction('f, newValue, oldValue', 'f.setValuePreservingCaretPos(newValue.capitalize());'));
 end;
 
 initialization

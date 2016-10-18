@@ -144,8 +144,8 @@ begin
   // to account for the first row, which is selected by default.
   if LAnyButtonsRequiringSelection then
   begin
-    FSelectionModel.On('selectionchange', JSFunction('s', GetRowButtonsDisableJS));
-    On('afterrender', JSFunction(Format('var s = %s;', [FSelectionModel.JSName]) + GetRowButtonsDisableJS));
+    FSelectionModel.On('selectionchange', GenerateAnonymousFunction('s', GetRowButtonsDisableJS));
+    On('afterrender', GenerateAnonymousFunction(Format('var s = %s;', [FSelectionModel.JSName]) + GetRowButtonsDisableJS));
   end;
 
   if LServerSideSelectionChangeNeeded then
@@ -275,7 +275,7 @@ var
       LCustomRenderer := AViewField.FindNode('JSRenderer');
       if Assigned(LCustomRenderer) and (LCustomRenderer.AsString <> '') then
       begin
-        AColumn.RendererFunc := AColumn.JSFunction('value, metaData, record, rowIndex, colIndex, store',
+        AColumn.RendererFunc := AColumn.GenerateAnonymousFunction('value, metaData, record, rowIndex, colIndex, store',
           LCustomRenderer.AsExpandedString);
         Result := True;
         Exit;
@@ -300,7 +300,7 @@ var
             LTriples[I].Value3 := AViewField.DisplayTemplate;
         end;
         // Pass array to the client-side renderer.
-        AColumn.RendererFunc := AColumn.JSFunction('value',
+        AColumn.RendererFunc := AColumn.GenerateAnonymousFunction('value',
           Format('return formatWithImage(value, [%s], %s);',
             [TriplesToJSON(LTriples), IfThen(AViewField.BlankValue, 'false', 'true')]));
         Result := True;
@@ -327,13 +327,13 @@ var
         // Pass array to the client-side renderer.
         LColorValueFieldName := AViewField.GetExpandedString('ColorValueFieldName');
         if LColorValueFieldName <> '' then
-          AColumn.RendererFunc := AColumn.JSFunction('value, metaData, record',
+          AColumn.RendererFunc := AColumn.GenerateAnonymousFunction('value, metaData, record',
             Format(
               'metaData.css += getColorStyleRuleForRecordField(record, ''%s'', [%s]);' +
               'return %s ? null : formatWithDisplayTemplate(value, ''%s'');',
               [LColorValueFieldName, PairsToJSON(LColorPairs), IfThen(AViewField.BlankValue, 'true', 'false'), AViewField.DisplayTemplate]))
         else
-          AColumn.RendererFunc := AColumn.JSFunction('value, metaData',
+          AColumn.RendererFunc := AColumn.GenerateAnonymousFunction('value, metaData',
             Format(
               'metaData.css += getColorStyleRuleForValue(value, [%s]);' +
               'return %s ? null : formatWithDisplayTemplate(value, ''%s'');',
@@ -352,7 +352,7 @@ var
           LJSCode := LJSCode + Format('if (v == "%s") return "%s";' + sLineBreak, [LAllowedValues[I].Key, LAllowedValues[I].Value]);
         end;
         LJSCode := LJSCode + 'return v;';
-        AColumn.RendererFunc := AColumn.JSFunction('v', LJSCode);
+        AColumn.RendererFunc := AColumn.GenerateAnonymousFunction('v', LJSCode);
         Result := True;
         Exit;
       end;
@@ -412,13 +412,13 @@ var
       if LDataType is TEFBooleanDataType then
       begin
         // Don't use TExtGridBooleanColumn here, otherwise the renderer will be inneffective.
-        Result := TExtGridColumn.CreateAndAddToArray(FGridPanel.Columns);
+        Result := TExtGridColumn.CreateInlineAndAddToArray(FGridPanel.Columns);
         if not SetRenderer(Result) then
           Result.Renderer := 'checkboxRenderer';
       end
       else if LDataType is TEFDateDataType then
       begin
-        Result := TExtGridDateColumn.CreateAndAddToArray(FGridPanel.Columns);
+        Result := TExtGridDateColumn.CreateInlineAndAddToArray(FGridPanel.Columns);
         LFormat := GetDisplayFormat;
         if LFormat = '' then
           LFormat := Session.Config.UserFormatSettings.ShortDateFormat;
@@ -426,19 +426,19 @@ var
       end
       else if LDataType is TEFTimeDataType then
       begin
-        Result := TExtGridColumn.CreateAndAddToArray(FGridPanel.Columns);
+        Result := TExtGridColumn.CreateInlineAndAddToArray(FGridPanel.Columns);
         if not SetRenderer(Result) then
         begin
           LFormat := GetDisplayFormat;
           if LFormat = '' then
             LFormat := Session.Config.UserFormatSettings.ShortTimeFormat;
-          Result.RendererFunc := Result.JSFunction('v',
+          Result.RendererFunc := Result.GenerateAnonymousFunction('v',
             Format('return formatTime(v, "%s");', [TJS.DelphiTimeFormatToJSTimeFormat(LFormat)]));
         end;
       end
       else if LDataType is TEFDateTimeDataType then
       begin
-        Result := TExtGridDateColumn.CreateAndAddToArray(FGridPanel.Columns);
+        Result := TExtGridDateColumn.CreateInlineAndAddToArray(FGridPanel.Columns);
         LFormat := GetDisplayFormat;
         if LFormat = '' then
           LFormat := Session.Config.UserFormatSettings.ShortDateFormat + ' ' +
@@ -447,7 +447,7 @@ var
       end
       else if LDataType is TEFIntegerDataType then
       begin
-        Result := TExtGridNumberColumn.CreateAndAddToArray(FGridPanel.Columns);
+        Result := TExtGridNumberColumn.CreateInlineAndAddToArray(FGridPanel.Columns);
         if not SetRenderer(Result) then
         begin
           LFormat := GetDisplayFormat;
@@ -458,7 +458,7 @@ var
       end
       else if (LDataType is TEFFloatDataType) or (LDataType is TEFDecimalDataType) then
       begin
-        Result := TExtGridNumberColumn.CreateAndAddToArray(FGridPanel.Columns);
+        Result := TExtGridNumberColumn.CreateInlineAndAddToArray(FGridPanel.Columns);
         if not SetRenderer(Result) then
         begin
           LFormat := GetDisplayFormat;
@@ -469,7 +469,7 @@ var
       end
       else if LDataType is TEFCurrencyDataType then
       begin
-        Result := TExtGridNumberColumn.CreateAndAddToArray(FGridPanel.Columns);
+        Result := TExtGridNumberColumn.CreateInlineAndAddToArray(FGridPanel.Columns);
         if not SetRenderer(Result) then
         begin
           { TODO : format as money? }
@@ -481,7 +481,7 @@ var
       end
       else
       begin
-        Result := TExtGridColumn.CreateAndAddToArray(FGridPanel.Columns);
+        Result := TExtGridColumn.CreateInlineAndAddToArray(FGridPanel.Columns);
         SetRenderer(Result);
       end;
 
@@ -641,7 +641,7 @@ begin
 
   if FInplaceEditing then
   begin
-    LCellEditing := TExtGridPluginCellEditing.CreateAndAddToArray(FGridPanel.Plugins);
+    LCellEditing := TExtGridPluginCellEditing.CreateInlineAndAddToArray(FGridPanel.Plugins);
     LCellEditing.ClicksToEdit := 1;
   end;
 
@@ -653,7 +653,7 @@ begin
     LRowColorPatterns := GetRowColorPatterns(LRowColorFieldName);
     if Length(LRowColorPatterns) > 0 then
       FGridPanel.ViewConfig.SetConfigItem('getRowClass',
-        JSFunction('r', Format('return getColorStyleRuleForRecordField(r, ''%s'', [%s]);',
+        GenerateAnonymousFunction('r', Format('return getColorStyleRuleForRecordField(r, ''%s'', [%s]);',
           [LRowColorFieldName, PairsToJSON(LRowColorPatterns)])));
   end;
 
@@ -915,7 +915,7 @@ begin
   if Supports(ASubject.AsObject, IKExtController, LController) then
   begin
     if MatchText(AContext, ['Confirmed', 'Canceled']) then
-      ClientStore.On('load', JSFunction(GetSelectLastEditedRecordCode(LController.Config.GetObject('Sys/Record') as TKViewTableRecord)));
+      ClientStore.On('load', GenerateAnonymousFunction(GetSelectLastEditedRecordCode(LController.Config.GetObject('Sys/Record') as TKViewTableRecord)));
   end;
   inherited;
 end;
@@ -1004,7 +1004,7 @@ end;
 
 function TKExtGridPanel.GetSelectCall(const AMethod: TExtProcedure): TExtExpression;
 begin
-  Result := JSFunction(Format('ajaxSelection("yes", "", {params: {methodURL: "%s", selModel: %s, fieldNames: "%s"}});',
+  Result := GenerateAnonymousFunction(Format('ajaxSelection("yes", "", {params: {methodURL: "%s", selModel: %s, fieldNames: "%s"}});',
     [MethodURI(AMethod), FSelectionModel.JSName, Join(ViewTable.GetKeyFieldAliasedNames, ',')]));
 end;
 

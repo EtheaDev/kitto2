@@ -248,13 +248,13 @@ type
 
   TExtFormCompositeField = class(TExtFormField)
   private
-    FItems: TExtObjectList;
+    FItems: TExtObjectArray;
   protected
     function GetObjectNamePrefix: string; override;
     procedure InitDefaults; override;
   public
     class function JSClassName: string; override;
-    property Items: TExtObjectList read FItems;
+    property Items: TExtObjectArray read FItems;
   end;
 
   // Procedural types for events TExtFormCheckbox
@@ -284,7 +284,7 @@ type
 
   // Procedural types for events TExtFormCheckboxGroup
   TExtFormCheckboxGroupOnChange = procedure(This: TExtFormCheckboxGroup;
-    Checked: TExtObjectList) of object;
+    Checked: TExtObjectArray) of object;
 
   TExtFormCheckboxGroup = class(TExtFormField)
   public
@@ -408,14 +408,14 @@ type
   TExtFormDateField = class(TExtFormTriggerField)
   private
     FMinValue: TDateTime;
-    FDisabledDates: TExtObjectList;
+    FDisabledDates: TExtObjectArray;
     FFormat: string;
     FMaxValue: TDateTime;
     FAltFormats: string;
-    FDisabledDays: TExtObjectList;
+    FDisabledDays: TExtObjectArray;
     procedure SetAltFormats(const AValue: string);
-    procedure _SetDisabledDates(const AValue: TExtObjectList);
-    procedure _SetDisabledDays(const AValue: TExtObjectList);
+    procedure _SetDisabledDates(const AValue: TExtObjectArray);
+    procedure _SetDisabledDays(const AValue: TExtObjectArray);
     procedure SetFormat(const AValue: string);
     procedure _SetMaxValue(const AValue: TDateTime);
     procedure _SetMinValue(const AValue: TDateTime);
@@ -425,16 +425,16 @@ type
   public
     class function JSClassName: string; override;
     function GetValue: TExtExpression;
-    function SetDisabledDates(const ADisabledDates: TExtObjectList): TExtExpression;
-    function SetDisabledDays(const ADisabledDays: TExtObjectList): TExtExpression;
+    function SetDisabledDates(const ADisabledDates: TExtObjectArray): TExtExpression;
+    function SetDisabledDays(const ADisabledDays: TExtObjectArray): TExtExpression;
     function SetMaxValue(const AValue: TDateTime): TExtExpression;
     function SetMinValue(const AValue: TDateTime): TExtExpression;
     function SetValue(const ADate: string): TExtExpression; overload;
     function SetValue(const ADate: TDateTime): TExtExpression; overload;
     property AltFormats: string read FAltFormats write SetAltFormats;
-    property DisabledDates: TExtObjectList read FDisabledDates
+    property DisabledDates: TExtObjectArray read FDisabledDates
       write _SetDisabledDates;
-    property DisabledDays: TExtObjectList read FDisabledDays
+    property DisabledDays: TExtObjectArray read FDisabledDays
       write _SetDisabledDays;
     property Format: string read FFormat write SetFormat;
     property MaxValue: TDateTime read FMaxValue write _SetMaxValue;
@@ -467,7 +467,7 @@ type
     FHiddenName: string;
     FValueNotFoundText: string;
     FMinListWidth: Integer;
-    FStoreArray: TExtObjectList;
+    FStoreArray: TExtObjectArray;
     FPageSize: Integer;
     FQueryParam: string;
     FListWidthFunc: TExtExpression;
@@ -489,7 +489,7 @@ type
     procedure SetQueryParam(const AValue: string);
     procedure SetSelectedClass(const AValue: string);
     procedure SetStore(const AValue: TExtDataStore);
-    procedure SetStoreArray(const AValue: TExtObjectList);
+    procedure SetStoreArray(const AValue: TExtObjectArray);
     procedure SetTriggerAction(const AValue: string);
     procedure SetTypeAhead(const AValue: Boolean);
     procedure SetTypeAheadDelay(const AValue: Integer);
@@ -530,7 +530,7 @@ type
     property QueryParam: string read FQueryParam write SetQueryParam;
     property SelectedClass: string read FSelectedClass write SetSelectedClass;
     property Store: TExtDataStore read FStore write SetStore;
-    property StoreArray: TExtObjectList read FStoreArray write SetStoreArray;
+    property StoreArray: TExtObjectArray read FStoreArray write SetStoreArray;
     property TriggerAction: string read FTriggerAction write SetTriggerAction;
     property TypeAhead: Boolean read FTypeAhead write SetTypeAhead;
     property TypeAheadDelay: Integer read FTypeAheadDelay
@@ -1271,15 +1271,15 @@ begin
   FAltFormats := SetConfigItem('altFormats', AValue);
 end;
 
-procedure TExtFormDateField._SetDisabledDates(const AValue: TExtObjectList);
+procedure TExtFormDateField._SetDisabledDates(const AValue: TExtObjectArray);
 begin
-  FDisabledDates := TExtObjectList(SetConfigItem('disabledDates', 'setDisabledDates', AValue));
+  FDisabledDates := TExtObjectArray(SetConfigItem('disabledDates', 'setDisabledDates', AValue));
 end;
 
-procedure TExtFormDateField._SetDisabledDays(const AValue: TExtObjectList);
+procedure TExtFormDateField._SetDisabledDays(const AValue: TExtObjectArray);
 begin
   FDisabledDays.Free;
-  FDisabledDays := TExtObjectList(SetConfigItem('disabledDays', 'setDisabledDays', AValue));
+  FDisabledDays := TExtObjectArray(SetConfigItem('disabledDays', 'setDisabledDays', AValue));
 end;
 
 procedure TExtFormDateField.SetFormat(const AValue: string);
@@ -1323,14 +1323,14 @@ begin
   Result := CallMethod('getValue').AsExpression;
 end;
 
-function TExtFormDateField.SetDisabledDates(const ADisabledDates: TExtObjectList): TExtExpression;
+function TExtFormDateField.SetDisabledDates(const ADisabledDates: TExtObjectArray): TExtExpression;
 begin
   FDisabledDates.Free;
   FDisabledDates := ADisabledDates;
   Result := CallMethod('setDisabledDates').AddParam(ADisabledDates).AsExpression;
 end;
 
-function TExtFormDateField.SetDisabledDays(const ADisabledDays: TExtObjectList): TExtExpression;
+function TExtFormDateField.SetDisabledDays(const ADisabledDays: TExtObjectArray): TExtExpression;
 begin
   FDisabledDays.Free;
   FDisabledDays := ADisabledDays;
@@ -1450,10 +1450,10 @@ begin
   FStore := TExtDataStore(SetConfigItem('store', AValue));
 end;
 
-procedure TExtFormComboBox.SetStoreArray(const AValue: TExtObjectList);
+procedure TExtFormComboBox.SetStoreArray(const AValue: TExtObjectArray);
 begin
   FStoreArray.Free;
-  FStoreArray := TExtObjectList(SetConfigItem('store', AValue));
+  FStoreArray := TExtObjectArray(SetConfigItem('store', AValue));
 end;
 
 procedure TExtFormComboBox.SetTriggerAction(const AValue: string);

@@ -312,7 +312,7 @@ begin
     FChart.ChartStyle := JSObject(LOption, '', False);
   LOption := Config.GetExpandedString('Chart/TipRenderer');
   if LOption <> '' then
-    FChart.TipRenderer := JSFunction('chart, record, index, series', LOption);
+    FChart.TipRenderer := GenerateAnonymousFunction('chart, record, index, series', LOption);
   if FChart is TExtChartCartesianChart then
     CreateAndInitSeries(Config.FindNode('Chart/Series'));
 end;

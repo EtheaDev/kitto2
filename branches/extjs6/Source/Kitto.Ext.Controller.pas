@@ -24,7 +24,7 @@ uses
   SysUtils, Classes,
   Ext.Base,
   EF.Intf, EF.ObserverIntf, EF.Tree, EF.Types,
-  Kitto.Ext, Kitto.Types, Kitto.Metadata.Views;
+  Kitto.JS, Kitto.Ext, Kitto.Types, Kitto.Metadata.Views;
 
 type
   /// <summary>
@@ -135,7 +135,7 @@ de-registration gracefully. }
     /// <param name="ACustomType">
     ///  Custom controller type, used to override the one specified in the view.
     /// </param>
-    function CreateController(const AOwner: TComponent; const AView: TKView;
+    function CreateController(const AOwner: TJSBase; const AView: TKView;
       const AContainer: TExtContainer; const AConfig: TEFNode = nil;
       const AObserver: IEFObserver = nil; const ACustomType: string = ''): IKExtController;
   end;
@@ -202,7 +202,7 @@ begin
     Result := ADefaultResult;
 end;
 
-function TKExtControllerFactory.CreateController(const AOwner: TComponent;
+function TKExtControllerFactory.CreateController(const AOwner: TJSBase;
   const AView: TKView; const AContainer: TExtContainer; const AConfig: TEFNode;
   const AObserver: IEFObserver; const ACustomType: string): IKExtController;
 var

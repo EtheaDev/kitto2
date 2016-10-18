@@ -79,7 +79,7 @@ end;
 
 function TKExtTemplateDataPanel.GetSelectCall(const AMethod: TExtProcedure): TExtExpression;
 begin
-  Result := JSFunction(Format('ajaxDataViewSelection("yes", "", {params: {methodURL: "%s", dataView: %s, fieldNames: "%s"}});',
+  Result := GenerateAnonymousFunction(Format('ajaxDataViewSelection("yes", "", {params: {methodURL: "%s", dataView: %s, fieldNames: "%s"}});',
     [MethodURI(AMethod), FDataView.JSName, Join(ViewTable.GetKeyFieldAliasedNames, ',')]));
 end;
 
@@ -130,8 +130,6 @@ begin
     FDataView.MultiSelect := True
   else
     FDataView.SingleSelect := True;
-//  FDataView.On('dblclick', JSFunction('this, idx, node, e', GetAjaxCode(
-//    DefaultAction, )
   CreateTemplateView;
 end;
 

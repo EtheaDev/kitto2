@@ -154,6 +154,8 @@ type
   private
     function GetVisibleButtonCount: Integer;
   public
+    destructor Destroy; override;
+
     property ButtonScale: string read FButtonScale write FButtonScale;
     function FindButton(const AUniqueId: string): TKExtButton;
     property VisibleButtonCount: Integer read GetVisibleButtonCount;
@@ -506,7 +508,7 @@ end;
 procedure TKExtWindowControllerBase.Display;
 begin
   DoDisplay;
-  On('render', UpdateLayout);
+  &On('render', GenerateAnonymousFunction(UpdateLayout));
 end;
 
 procedure TKExtWindowControllerBase.DoDisplay;
@@ -759,7 +761,7 @@ end;
 procedure TKExtViewportControllerBase.Display;
 begin
   DoDisplay;
-  On('render', UpdateLayout);
+  &On('render', GenerateAnonymousFunction(UpdateLayout));
 end;
 
 procedure TKExtViewportControllerBase.DoDisplay;
@@ -1084,10 +1086,10 @@ begin
   LConfirmationMessage := StringReplace(LConfirmationMessage, sLineBreak, '<br>',[rfReplaceAll]);
   LConfirmationJS := GetConfirmCall(LConfirmationMessage, Result.ExecuteButtonAction);
   if LConfirmationMessage <> '' then
-    Result.On('click', JSFunction(LConfirmationJS))
+    Result.On('click', GenerateAnonymousFunction(LConfirmationJS))
   else
     //Result.On('click', Ajax(Result.ExecuteButtonAction, []));
-    Result.&On('click',
+    Result.On('click',
       AjaxCallMethod('click').SetMethod(Result.ExecuteButtonAction).AsFunction);
 end;
 
@@ -1136,7 +1138,7 @@ procedure TKExtPanelControllerBase.CreateTopToolbar;
 begin
   BeforeCreateTopToolbar;
 
-  FTopToolbar := TKExtToolbar.Create(Self);
+  FTopToolbar := TKExtToolbar.CreateInline(Self);
   try
     FTopToolbar.ButtonScale := Config.GetString('ToolButtonScale',
       IfThen(Session.IsMobileBrowser, 'large', 'small'));
@@ -1197,7 +1199,7 @@ end;
 procedure TKExtPanelControllerBase.PerformDelayedClick(const AButton: TExtButton);
 begin
   if Assigned(AButton) then
-    AButton.On('render', JSFunction(AButton.PerformClick));
+    AButton.On('render', GenerateAnonymousFunction(AButton.PerformClick));
 end;
 
 procedure TKExtPanelControllerBase.SetContainer(const AValue: TExtContainer);
@@ -1722,8 +1724,8 @@ end;
 
 function TKExtButton.FindOwnerToolbar: TKExtToolbar;
 begin
-  if (Owner is TExtObjectList) and (TExtObjectList(Owner).Owner is TKExtToolbar) then
-    Result := TKExtToolbar(TExtObjectList(Owner).Owner)
+  if (Owner is TExtObjectArray) and (TExtObjectArray(Owner).Owner is TKExtToolbar) then
+    Result := TKExtToolbar(TExtObjectArray(Owner).Owner)
   else
     Result := nil;
 end;
@@ -1776,6 +1778,11 @@ begin
 end;
 
 { TKExtToolbar }
+
+destructor TKExtToolbar.Destroy;
+begin
+  inherited;
+end;
 
 function TKExtToolbar.FindButton(const AUniqueId: string): TKExtButton;
 var

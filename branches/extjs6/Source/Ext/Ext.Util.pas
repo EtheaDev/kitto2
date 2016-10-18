@@ -14,7 +14,7 @@ type
     class function JSClassName: string; override;
     function AddListener(const AEventName: string; const AHandler: TExtExpression;
       const AScope: TExtObject = nil; const AOptions: TExtObject = nil): TExtExpression;
-    function FireEvent(const AEventName: string; const AArgs: TExtObjectList): TExtExpression;
+    function FireEvent(const AEventName: string; const AArgs: TExtObjectArray): TExtExpression;
     function &On(const AEventName: string; const AHandler: TExtExpression;
       const AScope: TExtObject = nil; const AOptions: TExtObject = nil): TExtExpression;
     function RemoveAllListeners(const AEventName: string): TExtExpression;
@@ -61,7 +61,7 @@ begin
     .AsExpression;
 end;
 
-function TExtUtilObservable.FireEvent(const AEventName: string; const AArgs: TExtObjectList): TExtExpression;
+function TExtUtilObservable.FireEvent(const AEventName: string; const AArgs: TExtObjectArray): TExtExpression;
 begin
   Result := CallMethod('fireEvent')
     .AddParam(AEventName)
