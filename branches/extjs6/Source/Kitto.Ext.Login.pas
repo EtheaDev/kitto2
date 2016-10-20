@@ -185,7 +185,7 @@ Or maybe skip the object list altogether and use the ownership. }
   FUserName.On('specialkey', GenerateAnonymousFunction('field, e', GetSubmitJS));
   FPassword.On('specialkey', GenerateAnonymousFunction('field, e', GetSubmitJS));
 
-  Session.ResponseItems.ExecuteJSCode(Format(
+  Session.ResponseItems.ExecuteJSCode(Self, Format(
     '%s.enableTask = Ext.TaskManager.start({ ' + sLineBreak +
     '  run: function() {' + GetEnableButtonJS + '},' + sLineBreak +
     '  interval: 500});', [JSName]));

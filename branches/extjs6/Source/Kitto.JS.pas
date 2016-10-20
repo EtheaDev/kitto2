@@ -218,6 +218,8 @@ type
     FJSConfig: TJSValues;
     procedure FindMethod(const AMethod: TJSProcedure; out AMethodName, AObjectName: string);
     function GetDownloadJS(const AMethod: TJSProcedure): string;
+    { TODO : Move to a different class? }
+    function AppendObjectURIParam(const AURI, AObjectName: string): string;
   protected
     function ParamAsInteger(ParamName: string): Integer;
     function ParamAsDouble(ParamName: string): double;
@@ -1347,9 +1349,14 @@ begin
     Assert(Assigned(Sender));
 
     AFormatter.AddIndented(Sender.JSName + '.' + FCallName);
-    AFormatter.OpenRound;
-    Params.FormatTo(AFormatter);
-    AFormatter.CloseRound.AddLine(';');
+    if Params.Values.ChildCount > 0 then
+    begin
+      AFormatter.OpenRound;
+      Params.FormatTo(AFormatter);
+      AFormatter.CloseRound.AddLine(';');
+    end
+    else
+      AFormatter.Add('();');
   end;
 end;
 
@@ -1546,19 +1553,24 @@ var
   LObjectName: string;
 begin
   FindMethod(AMethod, LMethodName, LObjectName);
-  Result := JSSession.MethodURI(LMethodName);
-  if LObjectName <> '' then
-  begin
-    if Pos('?', Result) <> 0 then
-      Result := Result + '&Object=' + LObjectName
-    else
-      Result := Result + '?Object=' + LObjectName;
-  end;
+  Result := AppendObjectURIParam(JSSession.MethodURI(LMethodName), LObjectName);
 end;
 
 function TJSObject.MethodURI(const AMethodName: string): string;
 begin
-  Result := JSSession.MethodURI(AMethodName);
+  Result := AppendObjectURIParam(JSSession.MethodURI(AMethodName), JSName);
+end;
+
+function TJSObject.AppendObjectURIParam(const AURI, AObjectName: string): string;
+begin
+  Result := AURI;
+  if AObjectName <> '' then
+  begin
+    if Pos('?', Result) <> 0 then
+      Result := Result + '&Object=' + AObjectName
+    else
+      Result := Result + '?Object=' + AObjectName;
+  end;
 end;
 
 function TJSObject.GetObjectNamePrefix: string;
@@ -1956,6 +1968,7 @@ function TJSObject.GetDownloadJS(const AMethod: TJSProcedure): string;
 var
   LParams, LMethodName, LObjectName: string;
 begin
+  { TODO: see if we can refactor this code to use MethodURI }
   FindMethod(AMethod, LMethodName, LObjectName);
   LParams := '';
   if LObjectName <> '' then
@@ -2894,7 +2907,7 @@ begin
 
     AFormatter.SkipLine.Indent;
     AFormatter.AddIndented('Ext.Ajax.request(').SkipLine.Indent.AddIndent.OpenObject;
-    AFormatter.AddIndentedPairLine('url', GetSession.MethodURI(CallName));
+    AFormatter.AddIndentedPairLine('url', Sender.MethodURI(CallName));
     if FHttpMethod <> 'GET' then
       AFormatter.AddIndentedPairLine('method', FHttpMethod);
     if (FHttpMethod = 'POST') and (FPostData <> '') then
