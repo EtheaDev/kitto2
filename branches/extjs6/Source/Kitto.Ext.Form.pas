@@ -542,11 +542,11 @@ begin
         if Assigned(LFormField) then
         begin
           LFormField.RemoveAllListeners('afterrender');
-          LFormField.On('afterrender', LFormField.JSFunction(
+          LFormField.On('afterrender', LFormField.GenerateAnonymousFunction(GetJSCode(
             procedure
             begin
               AEditor.RefreshValue;
-            end));
+            end)));
         end
         else
           AEditor.RefreshValue;
@@ -1050,7 +1050,7 @@ end;
 
 function TKExtFormPanelController.GetConfirmJSCode(const AMethod: TExtProcedure): TJSExpression;
 begin
-  Result := GenerateAnonymousFunction('', GetJSCode(
+  Result := GenerateAnonymousFunction(GetJSCode(
     procedure
     begin
       Session.ResponseItems.ExecuteJSCode(

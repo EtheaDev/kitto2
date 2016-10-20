@@ -360,13 +360,6 @@ type
     property Session: TKExtSession read GetSession;
   end;
 
-  TKExtDelayedHome = class(TExtObject)
-  public
-    function GetViewportWidthInInches: TExtExpression;
-  published
-    procedure Execute;
-  end;
-
 implementation
 
 uses
@@ -598,13 +591,15 @@ procedure TKExtSession.DisplayHomeView;
 var
   LHomeView: TKView;
   LIntf: IKExtController;
+  LHomeContainer: TExtObject;
 begin
   FreeAndNil(FHomeController);
   LHomeView := GetHomeView;
   FHomeController := TKExtControllerFactory.Instance.CreateController(ObjectCatalog, LHomeView, nil).AsObject;
   if Supports(FHomeController, IKExtController, LIntf) then
   begin
-    ResponseItems.ExecuteJSCode('var kittoHomeContainer = ' + (LIntf.AsObject as TExtObject).JSName + ';');
+    LHomeContainer := LIntf.AsObject as TExtObject;
+    ResponseItems.ExecuteJSCode(LHomeContainer, 'var kittoHomeContainer = ' + LHomeContainer.JSName + ';');
     LIntf.Display;
   end;
   if FAutoOpenViewName <> '' then
@@ -664,19 +659,6 @@ begin
 
   Global.AjaxCallMethod.SetMethod(DelayedHome)
     .AddParam('vpWidthInches', GetViewportWidthInInches);
-//  Session.ResponseItems.ExecuteJSCode(GetAjaxCode(Session.DelayedHome, ['vpWidthInches', GetViewportWidthInInches]));
-
-
-  { TODO: fix the problem with nil owner - we need to be able to create
-    short-lived invisible objects. Anyway maybe we can do without TKExtDelayedHome }
-//  with TKExtDelayedHome.CreateInline(ExtQuickTips) do
-//  begin
-//    try
-//      Execute;
-//    finally
-//      Free;
-//    end;
-//  end;
 end;
 
 function TKExtSession.GetViewportWidthInInches: TExtExpression;
@@ -1470,20 +1452,6 @@ begin
   Assert(Assigned(FHostedController));
 
   Result := FHostedController;
-end;
-
-{ TKExtDelayedHome }
-
-procedure TKExtDelayedHome.Execute;
-begin
-  AjaxCallMethod.SetMethod(Session.DelayedHome)
-    .AddParam('vpWidthInches', GetViewportWidthInInches);
-//  Session.ResponseItems.ExecuteJSCode(GetAjaxCode(Session.DelayedHome, ['vpWidthInches', GetViewportWidthInInches]));
-end;
-
-function TKExtDelayedHome.GetViewportWidthInInches: TExtExpression;
-begin
-  Result := JSExpressionFromCodeBlock('getViewportWidthInInches()');
 end;
 
 initialization

@@ -298,13 +298,12 @@ procedure TKExtTilePanel.AddBackTile;
 var
   LClickCode: string;
 begin
-  //LClickCode := Ajax(DisplayPage, ['PageId', 0]).ExtractText;
-  LClickCode := TJS.WrapInJSFunctionIfNeeded(GetJSCode(
+  LClickCode := GenerateAnonymousFunction(GetJSCode(
     procedure
     begin
       AjaxCallMethod().SetMethod(DisplayPage)
         .AddParam('PageId', 0);
-    end));
+    end)).ExtractText;
   FTileBoxHtml := FTileBoxHtml + Format(
     '<a href="#" onclick="%s"><div class="k-tile k-tile-back" style="background-color:%s;width:%dpx;height:%dpx">' +
     '<div class="k-tile-inner k-tile-back-inner">%s</div></div></a>',
@@ -361,23 +360,21 @@ var
 begin
   if ANode is TKTreeViewFolder then
   begin
-    //LClickCode := Ajax(DisplayPage, ['PageId', Integer(ANode)]).ExtractText
-    LClickCode := TJS.WrapInJSFunctionIfNeeded(GetJSCode(
+    LClickCode := GenerateAnonymousFunction(GetJSCode(
       procedure
       begin
         AjaxCallMethod().SetMethod(DisplayPage)
           .AddParam('PageId', Integer(ANode));
-      end));
+      end)).ExtractText;
   end
   else
   begin
-    //LClickCode := Ajax(DisplayView, ['View', Integer(Session.Config.Views.ViewByNode(ANode))]).ExtractText;
-    LClickCode := TJS.WrapInJSFunctionIfNeeded(GetJSCode(
+    LClickCode := GenerateAnonymousFunction(GetJSCode(
       procedure
       begin
         AjaxCallMethod().SetMethod(DisplayView)
           .AddParam('View', Integer(Integer(Session.Config.Views.ViewByNode(ANode))));
-      end));
+      end)).ExtractText;
   end;
 
   if GetCSS <> '' then

@@ -1071,7 +1071,6 @@ procedure TExtComponent.SetOnAfterrender(const AValue: TExtComponentOnAfterrende
 begin
   RemoveAllListeners('afterrender');
   if Assigned(AValue) then
-    //On('afterrender', Ajax('afterrender', ['This', '%0.nm'], true));
     &On('afterrender', AjaxCallMethod('afterrender')
       .Event
       .AddRawParam('This', 'sender.nm')

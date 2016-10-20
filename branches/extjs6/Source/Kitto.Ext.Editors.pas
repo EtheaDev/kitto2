@@ -1900,7 +1900,7 @@ begin
   if not ReadOnly then
   begin
     if IsChangeHandlerNeeded(FRecordField) then
-      &On('change', GenerateAnonymousFunction('', GetJSCode(
+      &On('change', GenerateAnonymousFunction(GetJSCode(
         procedure
         begin
           Session.ResponseItems.ExecuteJSCode(

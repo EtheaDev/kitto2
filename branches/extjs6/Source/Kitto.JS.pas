@@ -81,17 +81,7 @@ type
     class function DelphiDateFormatToJSDateFormat(const ADateFormat: string): string;
     class function DelphiTimeFormatToJSTimeFormat(const ATimeFormat: string): string;
 
-    /// <summary>
-    /// Encapsulates JS commands in an anonymous JS function, finds %0..%9 placeholders
-    /// and declares respective event parameters
-    /// </summary>
-    class function GetJSFunction(const ACode: string): string;
-
-    // Code already wrapped in an anonymous function does not want or need TJS.GetJSFunction.
-    class function WrapInJSFunctionIfNeeded(const ACode: string): string;
-
-    class function WrapInAnonymousFunction(const AArgs, ABody: string;
-      const AReturn: string = ''): string;
+    class function WrapInAnonymousFunction(const AArgs, ABody: string; const AReturn: string = ''): string;
   end;
 
   TJSFormatter = class
@@ -262,10 +252,6 @@ type
 
     function JSArray(const AJSON: string; const ASquareBrackets: Boolean = True): TJSObjectArray;
     function JSObject(const AJSON: string; const AObjectConstructor: string = ''; const ACurlyBrackets: Boolean = True): TJSObject;
-    function JSFunction(const AParams, ABody: string): TJSExpression; overload;
-    function JSFunction(const ABody: string): TJSExpression; overload;
-//    function JSFunction(const AMethod: TJSProcedure; const ASilent: Boolean = False): TJSExpression; overload;
-    function JSFunction(const AMethod: TProc; const ASilent: Boolean = False): TJSExpression; overload;
     function JSExpressionFromCodeBlock(const ACode: string): TJSExpression;
     function GetJSCode(const AMethod: TProc; const ASilent: Boolean = False): string;
     function JSExpressionFromExpr(const AExpr: string; const AValues: array of TJSExpression): TJSExpression;
@@ -367,6 +353,7 @@ type
     ExtBuild: string;
     procedure AfterConstruction; override;
     destructor Destroy; override;
+    procedure Alert(const AMessage: string); override;
     property Language: string read FLanguage write SetLanguage;
     // Actual language for this session, reads HTTP_ACCEPT_LANGUAGE header
     procedure InitDefaultValues; override;
@@ -375,7 +362,6 @@ type
       DisableExistenceCheck: Boolean = False);
     procedure SetCSS(pCSS: string; Check: Boolean = True);
     procedure ErrorMessage(const AMessage: string; const AAction: string = '');
-    procedure Alert(const Msg: string); override;
     procedure Refresh; override;
 
     property ResponseItems: TJSResponseItems read GetResponseItems;
@@ -1038,10 +1024,7 @@ var
     SetLength(Result, 0);
     for LItem in FList do
       if LItem.DependsOn(AItem) then
-      begin
-        SetLength(Result, Length(Result) + 1);
-        Result[High(Result)] := LItem;
-      end;
+        Result := Result + [LItem];
   end;
 
   function DependenciesExist: Boolean;
@@ -1085,16 +1068,16 @@ begin
     L ← Empty list that will contain the sorted elements
     S ← Set of all nodes with no incoming edges
     while S is non-empty do
-    remove a node n from S
-    insert n into L
-    for each node m with an edge e from n to m do
-    remove edge e from the graph
-    if m has no other incoming edges then
-    insert m into S
-    if graph has edges then
-    return error (graph has at least one cycle)
-    else
-    return L (a topologically sorted order)
+      remove a node n from S
+      insert n into L
+      for each node m with an edge e from n to m do
+        remove edge e from the graph
+      if m has no other incoming edges then
+        insert m into S
+      if graph has edges then
+        return error (graph has at least one cycle)
+      else
+        return L (a topologically sorted order)
     end;
   *)
   LList := TList<TJSResponseItem>.Create;
@@ -1117,7 +1100,9 @@ begin
       if DependenciesExist then
         raise Exception.CreateFmt('Cannot sort response items by dependency - Graph cycle detected.#13#10%s',
           [GetDebugString(FList)]);
-      FList.Clear;
+      // Clear the list without freeing the items.
+      while FList.Count > 0 do
+        FList.Extract(FLIst[0]);
       FList.AddRange(LList.ToArray);
     finally
       FreeAndNil(LTopLevelNodes);
@@ -1356,11 +1341,11 @@ end;
 procedure TJSMethodCall.FormatTo(const AFormatter: TJSFormatter);
 begin
   inherited;
-  Assert(FCallName <> '');
-  Assert(Assigned(Sender));
-
   if not IsExpressionExtracted then
   begin
+    Assert(FCallName <> '');
+    Assert(Assigned(Sender));
+
     AFormatter.AddIndented(Sender.JSName + '.' + FCallName);
     AFormatter.OpenRound;
     Params.FormatTo(AFormatter);
@@ -1513,7 +1498,7 @@ var
   LJSName: string;
 begin
   LJSName := Query['Object'];
-  if (LJSName = '') or (Query['IsEvent'] = '1') then
+  if (LJSName = '') or (Query['Event'] <> '') then
     Result := inherited GetUrlHandlerObject
   else
     Result := ObjectCatalog.FindChildByJSName(LJSName);
@@ -1541,9 +1526,9 @@ begin
 {$ENDIF}
 end;
 
-procedure TJSSession.Alert(const Msg: string);
+procedure TJSSession.Alert(const AMessage: string);
 begin
-  ErrorMessage(Msg)
+  ErrorMessage(AMessage);
 end;
 
 procedure TJSSession.Refresh;
@@ -1565,9 +1550,9 @@ begin
   if LObjectName <> '' then
   begin
     if Pos('?', Result) <> 0 then
-      Result := Result + '&Obj=' + LObjectName
+      Result := Result + '&Object=' + LObjectName
     else
-      Result := Result + '?Obj=' + LObjectName;
+      Result := Result + '?Object=' + LObjectName;
   end;
 end;
 
@@ -1681,7 +1666,7 @@ procedure TJSSession.HandleEvent;
 var
   LObject: TJSObject;
 begin
-  if Query['IsEvent'] = '1' then
+  if Query['Event'] <> '' then
   begin
     LObject := ObjectCatalog.FindChildByJSName(Query['Object']) as TJSObject;
     if not Assigned(LObject) then
@@ -1974,7 +1959,7 @@ begin
   FindMethod(AMethod, LMethodName, LObjectName);
   LParams := '';
   if LObjectName <> '' then
-    LParams := '?Obj=' + LObjectName;
+    LParams := '?Object=' + LObjectName;
   if GetSession.IsMobileApple then
     Result := 'window.open("' + GetSession.MethodURI(LMethodName) + LParams + '");'
   else
@@ -2171,37 +2156,10 @@ procedure TJSObject.HandleEvent(const AEventName: string);
 begin
 end;
 
-function TJSObject.JSFunction(const AParams, ABody: string): TJSExpression;
-var
-  LFormatter: TJSFormatter;
-begin
-  LFormatter := TJSFormatter.Create;
-  try
-    LFormatter.SkipLine.AddIndent
-      .AddIndented('function(').Add(AParams).AddLine(')')
-      .Indent.AddIndent.OpenObject
-        .AddIndentedLine(ABody)
-      .Outdent.AddIndent.CloseObject;
-    Result := JSExpressionFromCodeBlock(LFormatter.FormattedText);
-  finally
-    FreeAndNil(LFormatter);
-  end;
-end;
-
-function TJSObject.JSFunction(const ABody: string): TJSExpression;
-begin
-  Result := JSFunction('', ABody);
-end;
-
 function TJSObject.JSExpressionFromCodeBlock(const ACode: string): TJSExpression;
 begin
   Result := TJSExpression.Create(Self);
   Result.Text := ACode;
-end;
-
-function TJSObject.JSFunction(const AMethod: TProc; const ASilent: Boolean): TJSExpression;
-begin
-  Result := JSFunction(GetJSCode(AMethod, ASilent));
 end;
 
 function TJSObject.GetJSCode(const AMethod: TProc; const ASilent: Boolean): string;
@@ -2214,7 +2172,6 @@ begin
     Result := LResponseItemBranch.Consume;
     if ASilent then
       Result := 'try { ' + Result + ' } catch(e) {};';
-    Result := TJS.GetJSFunction(Result);
   finally
     JSSession.UnbranchResponseItems(LResponseItemBranch, False);
   end;
@@ -2531,8 +2488,7 @@ begin
   Result := ReplaceText(Result, 'ss', 's');
 end;
 
-class function TJS.WrapInAnonymousFunction(const AArgs, ABody: string;
-  const AReturn: string): string;
+class function TJS.WrapInAnonymousFunction(const AArgs, ABody: string; const AReturn: string): string;
 begin
   { TODO : formatting }
 { TODO : find the best place where to insert a return statement when not specified? }
@@ -2541,56 +2497,6 @@ begin
   if AReturn <> '' then
     Result := Result + 'return ' + AReturn + ';' + sLineBreak;
   Result := Result + '}' + sLineBreak;
-end;
-
-class function TJS.GetJSFunction(const ACode: string): string;
-var
-  I, J: Integer;
-  LParams: string;
-  LCommandWithoutTerminator: string;
-  LCode: string;
-begin
-  LCode := ACode;
-  LParams := '';
-  J := -1;
-  I := Pos('%', LCode);
-  while I <> 0 do
-  begin
-    if CharInSet(LCode[I + 1], ['0' .. '9']) then
-    begin
-      LCode[I] := 'P';
-      J := max(J, StrToInt(LCode[I + 1]));
-    end;
-    I := posex('%', LCode, I);
-  end;
-  for I := 0 to J do
-  begin
-    LParams := LParams + 'P' + IntToStr(I);
-    if I <> J then
-      LParams := LParams + ','
-  end;
-  LCommandWithoutTerminator := RemoveLastJSTerminator(LCode);
-  I := LastDelimiter(';', LCommandWithoutTerminator);
-  if (I = 0) and (Pos('return ', LCode) <> 1) then
-    LCode := 'return ' + LCode
-  else
-  begin
-    Inc(I);
-    while (Length(LCode) > I) and CharInSet(LCode[I], [#13, #10]) do
-      Inc(I);
-    Insert('return ', LCode, I);
-  end;
-  Result := 'function(' + LParams + '){' + LCode + '}';
-end;
-
-class function TJS.WrapInJSFunctionIfNeeded(const ACode: string): string;
-begin
-  { TODO : Find a way to do this that does not rely on string comparison }
-  if ACode.TrimLeft.StartsWith('function') then
-    Result := ACode
-  else
-{ TODO : get rid of %n markers and greatly simplify GetJSFunction }
-    Result := GetJSFunction(ACode);
 end;
 
 { TJSValues }
@@ -3026,6 +2932,7 @@ begin
   if (LObject is TJSObject) and (LObject <> Sender) then
     ChangeSender(TJSObject(LObject));
   CallName := LObject.MethodName(@AMethod);
+  Assert(CallName <> '');
   Result := Self;
 end;
 
@@ -3042,7 +2949,6 @@ end;
 function TJSAjaxCall.Event: TJSAjaxCall;
 begin
   Params.Values.SetString('Event', CallName);
-  Params.Values.SetInteger('IsEvent', 1);
   CallName := 'HandleEvent';
   Result := Self;
 end;
