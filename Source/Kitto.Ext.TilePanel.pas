@@ -83,9 +83,9 @@ implementation
 
 uses
   SysUtils, StrUtils,
-  Ext,
+  Ext.Base,
   EF.StrUtils, EF.Macros, EF.Localization,
-  Kitto.Config, Kitto.Utils, Kitto.Ext.Utils;
+  Kitto.JS, Kitto.Config, Kitto.Utils, Kitto.Ext.Utils;
 
 { TKExtTilePanelController }
 
@@ -124,7 +124,7 @@ end;
 procedure TKExtTileTabPanel.AddTileSubPanel;
 begin
   inherited;
-  FTilePanel := TKExtTilePanel.CreateAndAddTo(Items);
+  FTilePanel := TKExtTilePanel.CreateAndAddToArray(Items);
   FTilePanel.View := View;
   FTilePanel.Config := Config;
   FTilePanel.DoDisplay;
@@ -298,8 +298,12 @@ procedure TKExtTilePanel.AddBackTile;
 var
   LClickCode: string;
 begin
-  LClickCode := JSMethod(Ajax(DisplayPage, ['PageId', 0]));
-
+  LClickCode := GenerateAnonymousFunction(GetJSCode(
+    procedure
+    begin
+      AjaxCallMethod().SetMethod(DisplayPage)
+        .AddParam('PageId', 0);
+    end)).ExtractText;
   FTileBoxHtml := FTileBoxHtml + Format(
     '<a href="#" onclick="%s"><div class="k-tile k-tile-back" style="background-color:%s;width:%dpx;height:%dpx">' +
     '<div class="k-tile-inner k-tile-back-inner">%s</div></div></a>',
@@ -355,9 +359,23 @@ var
 
 begin
   if ANode is TKTreeViewFolder then
-    LClickCode := JSMethod(Ajax(DisplayPage, ['PageId', Integer(ANode)]))
+  begin
+    LClickCode := GenerateAnonymousFunction(GetJSCode(
+      procedure
+      begin
+        AjaxCallMethod().SetMethod(DisplayPage)
+          .AddParam('PageId', Integer(ANode));
+      end)).ExtractText;
+  end
   else
-    LClickCode := JSMethod(Ajax(DisplayView, ['View', Integer(Session.Config.Views.ViewByNode(ANode))]));
+  begin
+    LClickCode := GenerateAnonymousFunction(GetJSCode(
+      procedure
+      begin
+        AjaxCallMethod().SetMethod(DisplayView)
+          .AddParam('View', Integer(Integer(Session.Config.Views.ViewByNode(ANode))));
+      end)).ExtractText;
+  end;
 
   if GetCSS <> '' then
   begin

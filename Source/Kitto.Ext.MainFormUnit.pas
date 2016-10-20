@@ -171,7 +171,7 @@ end;
 
 procedure TKExtMainForm.DoLog(const AString: string);
 begin
-  LogMemo.Lines.Add(FormatDateTime('[yyyy-mm-dd hh:nn:ss.zzz] ', Now()) + AString);
+  LogMemo.Lines.Add(AString);
 end;
 
 procedure TKExtMainForm.StopActionExecute(Sender: TObject);

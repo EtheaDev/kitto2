@@ -22,9 +22,9 @@ interface
 
 uses
   Generics.Collections,
-  ExtPascal, Ext, ExtData, ExtForm, ExtGrid, ExtPascalUtils, ExtUxGrid,
+  Ext.Base, Ext.Data, Ext.Form, Ext.Grid,
   EF.ObserverIntf, EF.Types, EF.Tree,
-  Kitto.Metadata.Views, Kitto.Metadata.DataView, Kitto.Store, Kitto.Types,
+  Kitto.Ext, Kitto.Metadata.Views, Kitto.Metadata.DataView, Kitto.Store, Kitto.Types,
   Kitto.Ext.Base, Kitto.Ext.Controller, Kitto.Ext.DataPanelLeaf, Kitto.Ext.Editors;
 
 const
@@ -35,25 +35,22 @@ type
   strict private
     FConfirmButton: TKExtButton;
     FCancelButton: TKExtButton;
-    FEditorGridPanel: TExtGridEditorGridPanel;
-    FGridView: TExtGridGridView;
+    FGridPanel: TExtGridGridPanel;
     FPagingToolbar: TExtPagingToolbar;
     FPageRecordCount: Integer;
-    FSelectionModel: TExtGridRowSelectionModel;
+    FSelectionModel: TExtSelectionRowModel;
     FInplaceEditing: Boolean;
     function GetGroupingFieldName: string;
     function CreatePagingToolbar: TExtPagingToolbar;
     procedure InitGridColumns;
     function GetRowColorPatterns(out AFieldName: string): TEFPairs;
-    procedure CreateGridView;
     procedure CheckGroupColumn;
     procedure InitColumnEditors(const ARecord: TKViewTableRecord);
     procedure SetGridColumnEditor(const AEditorManager: TKExtEditorManager;
       const AViewField: TKViewField; const ALayoutNode: TEFNode; const AColumn: TExtGridColumn);
-    function GetAfterEditJSCode(const AMethod: TExtProcedure): string;
-    function GetBeforeEditJSCode(const AMethod: TExtProcedure): string;
     procedure ShowConfirmButtons(const AShow: Boolean);
     function GetSelectLastEditedRecordCode(const ARecord: TKViewTableRecord): string;
+    procedure InitGroupingFeature;
   strict protected
     procedure ExecuteNamedAction(const AActionName: string); override;
     function GetOrderByClause: string; override;
@@ -65,7 +62,7 @@ type
     function GetSelectConfirmCall(const AMessage: string; const AMethod: TExtProcedure): string; override;
     function AddActionButton(const AUniqueId: string; const AView: TKView;
       const AToolbar: TKExtToolbar): TKExtActionButton; override;
-    function GetSelectCall(const AMethod: TExtProcedure): TExtFunction; override;
+    function GetSelectCall(const AMethod: TExtProcedure): TExtExpression; override;
     function IsMultiSelect: Boolean; override;
     function GetDefaultRemoteSort: Boolean; override;
     function GetIsPaged: Boolean; override;
@@ -92,7 +89,7 @@ uses
   SysUtils, StrUtils, Math, Types,
   superobject,
   EF.StrUtils, EF.Localization, EF.JSON, EF.Macros,
-  Kitto.Metadata.Models, Kitto.Rules, Kitto.AccessControl, Kitto.Config,
+  Kitto.Metadata.Models, Kitto.Rules, Kitto.AccessControl, Kitto.Config, Kitto.JS,
   Kitto.Ext.Session, Kitto.Ext.Utils;
 
 { TKExtGridPanel }
@@ -147,8 +144,8 @@ begin
   // to account for the first row, which is selected by default.
   if LAnyButtonsRequiringSelection then
   begin
-    FSelectionModel.On('selectionchange', JSFunction('s', GetRowButtonsDisableJS));
-    On('afterrender', JSFunction(Format('var s = %s;', [FSelectionModel.JSName]) + GetRowButtonsDisableJS));
+    FSelectionModel.On('selectionchange', GenerateAnonymousFunction('s', GetRowButtonsDisableJS));
+    On('afterrender', GenerateAnonymousFunction(Format('var s = %s;', [FSelectionModel.JSName]) + GetRowButtonsDisableJS));
   end;
 
   if LServerSideSelectionChangeNeeded then
@@ -169,100 +166,28 @@ begin
 end;
 
 function TKExtGridPanel.CreateClientStore: TExtDataStore;
-var
-  LGroupingFieldName: string;
-  LGroupingMenu: Boolean;
 begin
-  LGroupingFieldName := GetGroupingFieldName;
-  LGroupingMenu := ViewTable.GetBoolean('Controller/Grouping/EnableMenu');
-  if (LGroupingFieldName <> '') or LGroupingMenu then
-  begin
-    if ViewTable.FindField(LGroupingFieldName) = nil then
-      raise Exception.CreateFmt('Field %s not found. Cannot group.', [LGroupingFieldName]);
-    Result := TExtDataGroupingStore.Create(Self);
-    Result.Url := MethodURI(GetRecordPage);
-    //TExtDataGroupingStore(Result).GroupOnSort := True;
-    if LGroupingFieldName <> '' then
-    begin
-      TExtDataGroupingStore(Result).GroupField := LGroupingFieldName;
-      Result.RemoteSort := True;
-    end;
-  end
-  else
-    Result := inherited CreateClientStore;
-  FEditorGridPanel.Store := Result;
-end;
-
-procedure TKExtGridPanel.CreateGridView;
-var
-  LGroupingMenu: Boolean;
-  LCountTemplate: string;
-  LGroupingFieldName: string;
-  LRowClassProvider: string;
-  LRowColorPatterns: TEFPairs;
-  LRowColorFieldName: string;
-begin
-  { TODO : investigate the row body feature }
-  LGroupingFieldName := GetGroupingFieldName;
-  LGroupingMenu := ViewTable.GetBoolean('Controller/Grouping/EnableMenu');
-  if (LGroupingFieldName <> '') or LGroupingMenu then
-  begin
-    FGridView := TExtGridGroupingView.Create(Self);
-    TExtGridGroupingView(FGridView).EmptyGroupText := _('Grouping value undefined.');
-    TExtGridGroupingView(FGridView).StartCollapsed := ViewTable.GetBoolean('Controller/Grouping/StartCollapsed');
-    TExtGridGroupingView(FGridView).EnableGroupingMenu := LGroupingMenu;
-    TExtGridGroupingView(FGridView).EnableNoGroups := LGroupingMenu;
-    TExtGridGroupingView(FGridView).HideGroupedColumn := True;
-    TExtGridGroupingView(FGridView).ShowGroupName := ViewTable.GetBoolean('Controller/Grouping/ShowName');
-    if ViewTable.GetBoolean('Controller/Grouping/ShowCount') then
-    begin
-      LCountTemplate := ViewTable.GetString('Controller/Grouping/ShowCount/Template',
-        '{text} ({[values.rs.length]} {[values.rs.length > 1 ? "%ITEMS%" : "%ITEM%"]})');
-      LCountTemplate := _(LCountTemplate);
-      LCountTemplate := ReplaceText(LCountTemplate, '%ITEMS%',
-        _(ViewTable.GetString('Controller/Grouping/ShowCount/PluralItemName', ViewTable.PluralDisplayLabel)));
-      LCountTemplate := ReplaceText(LCountTemplate, '%ITEM%',
-        _(ViewTable.GetString('Controller/Grouping/ShowCount/ItemName', ViewTable.DisplayLabel)));
-      TExtGridGroupingView(FGridView).GroupTextTpl := LCountTemplate;
-    end;
-  end
-  else
-    FGridView := TExtGridGridView.Create(Self);
-  FGridView.EmptyText := _('No data to display.');
-  FGridView.EnableRowBody := True;
-  { TODO : make ForceFit configurable? }
-  //FGridView.ForceFit := False;
-  LRowClassProvider := ViewTable.GetExpandedString('Controller/RowClassProvider');
-  if LRowClassProvider <> '' then
-    FGridView.GetRowClass :=  FGridView.JSFunctionInLine(LRowClassProvider)
-  else
-  begin
-    LRowColorPatterns := GetRowColorPatterns(LRowColorFieldName);
-    if Length(LRowColorPatterns) > 0 then
-      FGridView.SetCustomConfigItem('getRowClass',
-        [JSFunction('r', Format('return getColorStyleRuleForRecordField(r, ''%s'', [%s]);',
-          [LRowColorFieldName, PairsToJSON(LRowColorPatterns)])), True]);
-  end;
-  FEditorGridPanel.View := FGridView;
+  Result := inherited CreateClientStore;
+  FGridPanel.Store := Result;
 end;
 
 procedure TKExtGridPanel.InitDefaults;
 begin
   inherited;
-  FEditorGridPanel := TExtGridEditorGridPanel.CreateAndAddTo(Items);
-  FEditorGridPanel.Border := False;
-  FEditorGridPanel.Header := False;
-  FEditorGridPanel.Region := rgCenter;
-  FSelectionModel := TExtGridRowSelectionModel.Create(FEditorGridPanel);
-  FSelectionModel.Grid := FEditorGridPanel;
-  FEditorGridPanel.SelModel := FSelectionModel;
-  FEditorGridPanel.StripeRows := True;
-  FEditorGridPanel.Frame := False;
-  FEditorGridPanel.AutoScroll := True;
-  FEditorGridPanel.AutoWidth := True;
-  FEditorGridPanel.ColumnLines := True;
-  FEditorGridPanel.TrackMouseOver := True;
-  FEditorGridPanel.EnableHdMenu := False;
+  FGridPanel := TExtGridGridPanel.CreateAndAddToArray(Items);
+  FGridPanel.Border := False;
+  FGridPanel.Header := False;
+  FGridPanel.Region := rgCenter;
+  FSelectionModel := TExtSelectionRowModel.Create(FGridPanel);
+  FSelectionModel.Grid := FGridPanel;
+  FGridPanel.SelModel := FSelectionModel;
+  FGridPanel.StripeRows := True;
+  FGridPanel.Frame := False;
+  FGridPanel.AutoScroll := True;
+  FGridPanel.AutoWidth := True;
+  FGridPanel.ColumnLines := True;
+  FGridPanel.TrackMouseOver := True;
+  FGridPanel.EnableHdMenu := False;
 end;
 
 function TKExtGridPanel.IsActionSupported(const AActionName: string): Boolean;
@@ -281,7 +206,7 @@ function TKExtGridPanel.IsMultiSelect: Boolean;
 begin
   Assert(Assigned(FSelectionModel));
 
-  Result := not FSelectionModel.SingleSelect;
+  Result := FSelectionModel.Mode = TExtSelectionRowModel.MULTI_SELECT;
 end;
 
 procedure TKExtGridPanel.SetGridColumnEditor(const AEditorManager: TKExtEditorManager;
@@ -310,7 +235,7 @@ begin
   AColumn.Editable := LEditable;
   if LEditable then
   begin
-    LEditor := AEditorManager.CreateGridCellEditor(FEditorGridPanel, AViewField);
+    LEditor := AEditorManager.CreateGridCellEditor(FGridPanel, AViewField);
     if Supports(LEditor, IEFSubject, LSubject) then
       LSubject.AttachObserver(Self);
     FEditItems.Add(LEditor);
@@ -350,7 +275,7 @@ var
       LCustomRenderer := AViewField.FindNode('JSRenderer');
       if Assigned(LCustomRenderer) and (LCustomRenderer.AsString <> '') then
       begin
-        AColumn.RendererExtFunction := AColumn.JSFunction('value, metaData, record, rowIndex, colIndex, store',
+        AColumn.RendererFunc := AColumn.GenerateAnonymousFunction('value, metaData, record, rowIndex, colIndex, store',
           LCustomRenderer.AsExpandedString);
         Result := True;
         Exit;
@@ -375,7 +300,7 @@ var
             LTriples[I].Value3 := AViewField.DisplayTemplate;
         end;
         // Pass array to the client-side renderer.
-        AColumn.RendererExtFunction := AColumn.JSFunction('value',
+        AColumn.RendererFunc := AColumn.GenerateAnonymousFunction('value',
           Format('return formatWithImage(value, [%s], %s);',
             [TriplesToJSON(LTriples), IfThen(AViewField.BlankValue, 'false', 'true')]));
         Result := True;
@@ -402,13 +327,13 @@ var
         // Pass array to the client-side renderer.
         LColorValueFieldName := AViewField.GetExpandedString('ColorValueFieldName');
         if LColorValueFieldName <> '' then
-          AColumn.RendererExtFunction := AColumn.JSFunction('value, metaData, record',
+          AColumn.RendererFunc := AColumn.GenerateAnonymousFunction('value, metaData, record',
             Format(
               'metaData.css += getColorStyleRuleForRecordField(record, ''%s'', [%s]);' +
               'return %s ? null : formatWithDisplayTemplate(value, ''%s'');',
               [LColorValueFieldName, PairsToJSON(LColorPairs), IfThen(AViewField.BlankValue, 'true', 'false'), AViewField.DisplayTemplate]))
         else
-          AColumn.RendererExtFunction := AColumn.JSFunction('value, metaData',
+          AColumn.RendererFunc := AColumn.GenerateAnonymousFunction('value, metaData',
             Format(
               'metaData.css += getColorStyleRuleForValue(value, [%s]);' +
               'return %s ? null : formatWithDisplayTemplate(value, ''%s'');',
@@ -427,7 +352,7 @@ var
           LJSCode := LJSCode + Format('if (v == "%s") return "%s";' + sLineBreak, [LAllowedValues[I].Key, LAllowedValues[I].Value]);
         end;
         LJSCode := LJSCode + 'return v;';
-        AColumn.RendererExtFunction := AColumn.JSFunction('v', LJSCode);
+        AColumn.RendererFunc := AColumn.GenerateAnonymousFunction('v', LJSCode);
         Result := True;
         Exit;
       end;
@@ -487,42 +412,42 @@ var
       if LDataType is TEFBooleanDataType then
       begin
         // Don't use TExtGridBooleanColumn here, otherwise the renderer will be inneffective.
-        Result := TExtGridColumn.CreateAndAddTo(FEditorGridPanel.Columns);
+        Result := TExtGridColumn.CreateInlineAndAddToArray(FGridPanel.Columns);
         if not SetRenderer(Result) then
           Result.Renderer := 'checkboxRenderer';
       end
       else if LDataType is TEFDateDataType then
       begin
-        Result := TExtGridDateColumn.CreateAndAddTo(FEditorGridPanel.Columns);
+        Result := TExtGridDateColumn.CreateInlineAndAddToArray(FGridPanel.Columns);
         LFormat := GetDisplayFormat;
         if LFormat = '' then
           LFormat := Session.Config.UserFormatSettings.ShortDateFormat;
-        TExtGridDateColumn(Result).Format := DelphiDateFormatToJSDateFormat(LFormat);
+        TExtGridDateColumn(Result).Format := TJS.DelphiDateFormatToJSDateFormat(LFormat);
       end
       else if LDataType is TEFTimeDataType then
       begin
-        Result := TExtGridColumn.CreateAndAddTo(FEditorGridPanel.Columns);
+        Result := TExtGridColumn.CreateInlineAndAddToArray(FGridPanel.Columns);
         if not SetRenderer(Result) then
         begin
           LFormat := GetDisplayFormat;
           if LFormat = '' then
             LFormat := Session.Config.UserFormatSettings.ShortTimeFormat;
-          Result.RendererExtFunction := Result.JSFunction('v',
-            Format('return formatTime(v, "%s");', [DelphiTimeFormatToJSTimeFormat(LFormat)]));
+          Result.RendererFunc := Result.GenerateAnonymousFunction('v',
+            Format('return formatTime(v, "%s");', [TJS.DelphiTimeFormatToJSTimeFormat(LFormat)]));
         end;
       end
       else if LDataType is TEFDateTimeDataType then
       begin
-        Result := TExtGridDateColumn.CreateAndAddTo(FEditorGridPanel.Columns);
+        Result := TExtGridDateColumn.CreateInlineAndAddToArray(FGridPanel.Columns);
         LFormat := GetDisplayFormat;
         if LFormat = '' then
           LFormat := Session.Config.UserFormatSettings.ShortDateFormat + ' ' +
             Session.Config.UserFormatSettings.ShortTimeFormat;
-        TExtGridDateColumn(Result).Format := DelphiDateTimeFormatToJSDateTimeFormat(LFormat);
+        TExtGridDateColumn(Result).Format := TJS.DelphiDateTimeFormatToJSDateTimeFormat(LFormat);
       end
       else if LDataType is TEFIntegerDataType then
       begin
-        Result := TExtGridNumberColumn.CreateAndAddTo(FEditorGridPanel.Columns);
+        Result := TExtGridNumberColumn.CreateInlineAndAddToArray(FGridPanel.Columns);
         if not SetRenderer(Result) then
         begin
           LFormat := GetDisplayFormat;
@@ -533,7 +458,7 @@ var
       end
       else if (LDataType is TEFFloatDataType) or (LDataType is TEFDecimalDataType) then
       begin
-        Result := TExtGridNumberColumn.CreateAndAddTo(FEditorGridPanel.Columns);
+        Result := TExtGridNumberColumn.CreateInlineAndAddToArray(FGridPanel.Columns);
         if not SetRenderer(Result) then
         begin
           LFormat := GetDisplayFormat;
@@ -544,7 +469,7 @@ var
       end
       else if LDataType is TEFCurrencyDataType then
       begin
-        Result := TExtGridNumberColumn.CreateAndAddTo(FEditorGridPanel.Columns);
+        Result := TExtGridNumberColumn.CreateInlineAndAddToArray(FGridPanel.Columns);
         if not SetRenderer(Result) then
         begin
           { TODO : format as money? }
@@ -556,7 +481,7 @@ var
       end
       else
       begin
-        Result := TExtGridColumn.CreateAndAddTo(FEditorGridPanel.Columns);
+        Result := TExtGridColumn.CreateInlineAndAddToArray(FGridPanel.Columns);
         SetRenderer(Result);
       end;
 
@@ -570,7 +495,7 @@ var
       end;
 
       if not ViewTable.IsFieldVisible(AViewField) and not (AViewField.AliasedName = GetGroupingFieldName) then
-        FEditorGridPanel.ColModel.SetHidden(FEditorGridPanel.Columns.Count - 1, True);
+        Result.Hidden := True;
 
       //In-place editing
       SetGridColumnEditor(LEditorManager, AViewField, ALayoutNode, Result);
@@ -596,7 +521,7 @@ var
 
     if LColumnWidth = 0 then
       LColumnWidth := Min(IfThen(AViewField.Size = 0, 40, AViewField.Size), 40);
-    LColumn.Width := CharsToPixels(LColumnWidth);
+    LColumn.WidthFunc := CharsToPixels(LColumnWidth);
   end;
 
   function SupportedAsGridColumn(const AViewField: TKViewField): Boolean;
@@ -645,7 +570,7 @@ begin
     end;
     LAutoExpandColumn := ViewTable.GetString('Controller/AutoExpandFieldName');
     if LAutoExpandColumn <> '' then
-      FEditorGridPanel.AutoExpandColumn := LAutoExpandColumn;
+      FGridPanel.AutoExpandColumn := LAutoExpandColumn;
   finally
     FreeAndNil(LEditorManager);
   end;
@@ -690,13 +615,17 @@ var
   LView: TKDataView;
   LViewTable: TKViewTable;
   LEventName: string;
+  LCellEditing: TExtGridPluginCellEditing;
+  LRowClassProvider: string;
+  LRowColorPatterns: TEFPairs;
+  LRowColorFieldName: string;
 begin
   LView := View;
   LViewTable := AValue;
 
   Assert(Assigned(AValue));
   Assert(Assigned(LView));
-  Assert(Assigned(FEditorGridPanel));
+  Assert(Assigned(FGridPanel));
 
   FInplaceEditing := LView.GetBoolean('Controller/InplaceEditing');
 
@@ -711,12 +640,27 @@ begin
   end;
 
   if FInplaceEditing then
-    FEditorGridPanel.ClicksToEdit := 1;
+  begin
+    LCellEditing := TExtGridPluginCellEditing.CreateInlineAndAddToArray(FGridPanel.Plugins);
+    LCellEditing.ClicksToEdit := 1;
+  end;
 
-  CreateGridView;
+  LRowClassProvider := ViewTable.GetExpandedString('Controller/RowClassProvider');
+  if LRowClassProvider <> '' then
+    FGridPanel.ViewConfig.SetConfigItem('getRowClass', JSExpressionFromCodeBlock(LRowClassProvider))
+  else
+  begin
+    LRowColorPatterns := GetRowColorPatterns(LRowColorFieldName);
+    if Length(LRowColorPatterns) > 0 then
+      FGridPanel.ViewConfig.SetConfigItem('getRowClass',
+        GenerateAnonymousFunction('r', Format('return getColorStyleRuleForRecordField(r, ''%s'', [%s]);',
+          [LRowColorFieldName, PairsToJSON(LRowColorPatterns)])));
+  end;
 
-  if not LViewTable.GetBoolean('Controller/IsMultiSelect', False) then
-    FSelectionModel.SingleSelect := True;
+  if LViewTable.GetBoolean('Controller/IsMultiSelect', False) then
+    FSelectionModel.Mode := TExtSelectionRowModel.MULTI_SELECT
+  else
+    FSelectionModel.Mode := TExtSelectionRowModel.SINGLE_SELECT;
 
   if not FInplaceEditing and HasDefaultAction then
   begin
@@ -725,7 +669,7 @@ begin
     else
       LEventName := 'rowdblclick';
     if LEventName <> '' then
-      FEditorGridPanel.On(LEventName, GetSelectCall(DefaultAction));
+      FGridPanel.On(LEventName, GetSelectCall(DefaultAction));
   end;
 
   // By default show paging toolbar for large models.
@@ -733,46 +677,107 @@ begin
   begin
     FPageRecordCount := LViewTable.GetInteger('Controller/PageRecordCount',
       Session.Config.Config.GetInteger('Defaults/Grid/PageRecordCount', DEFAULT_PAGE_RECORD_COUNT));
-    FEditorGridPanel.Bbar := CreatePagingToolbar;
+    FGridPanel.Bbar := CreatePagingToolbar;
   end;
 
   InitGridColumns;
 
   CheckGroupColumn;
 
+  InitGroupingFeature;
+
   if IsLookupMode then
   begin
-    FConfirmButton := TKExtButton.CreateAndAddTo(Buttons);
+    FConfirmButton := TKExtButton.CreateAndAddToArray(Buttons);
     FConfirmButton.SetIconAndScale('accept', Config.GetString('ButtonScale', 'medium'));
     FConfirmButton.Text := Config.GetString('LookupConfirmButton/Caption', _('Select'));
     FConfirmButton.Tooltip := Config.GetString('LookupConfirmButton/Tooltip', _('Select the current record and close the window'));
     FConfirmButton.On('click', GetSelectCall(ConfirmLookup));
     FButtonsRequiringSelection.Add(FConfirmButton);
 
-    FCancelButton := TKExtButton.CreateAndAddTo(Buttons);
+    FCancelButton := TKExtButton.CreateAndAddToArray(Buttons);
     FCancelButton.SetIconAndScale('cancel', Config.GetString('ButtonScale', 'medium'));
     FCancelButton.Text := _('Cancel');
     FCancelButton.Tooltip := _('Close the window without selecting a record');
-    FCancelButton.On('click', Ajax(CancelLookup));
+    //FCancelButton.On('click', Ajax(CancelLookup));
+    FCancelButton.On('click', AjaxCallMethod.SetMethod(CancelLookup).AsFunction);
   end
   else if FInplaceEditing then
   begin
-    FConfirmButton := TKExtButton.CreateAndAddTo(Buttons);
+    FConfirmButton := TKExtButton.CreateAndAddToArray(Buttons);
     FConfirmButton.SetIconAndScale('accept', Config.GetString('ButtonScale', 'medium'));
     FConfirmButton.Text := Config.GetString('ConfirmButton/Caption', _('Save'));
     FConfirmButton.Tooltip := Config.GetString('ConfirmButton/Tooltip', _('Save changes and finish editing'));
     FConfirmButton.Hidden := True;
-    FConfirmButton.On('click', Ajax(ConfirmInplaceChanges));
+    //FConfirmButton.On('click', Ajax(ConfirmInplaceChanges));
+    FConfirmButton.On('click', AjaxCallMethod.SetMethod(ConfirmInplaceChanges).AsFunction);
 
-    FCancelButton := TKExtButton.CreateAndAddTo(Buttons);
+    FCancelButton := TKExtButton.CreateAndAddToArray(Buttons);
     FCancelButton.SetIconAndScale('cancel', Config.GetString('ButtonScale', 'medium'));
     FCancelButton.Text := _('Cancel');
     FCancelButton.Tooltip := _('Cancel changes');
     FCancelButton.Hidden := True;
-    FCancelButton.On('click', Ajax(CancelInplaceChanges));
+    //FCancelButton.On('click', Ajax(CancelInplaceChanges));
+    FCancelButton.On('click', AjaxCallMethod.SetMethod(CancelInplaceChanges).AsFunction);
+    FGridPanel.On('beforeedit',
+      GenerateAnonymousFunction('editor, context', GetJSCode(
+        procedure
+        begin
+          Session.ResponseItems.ExecuteJSCode(
+            'var json = new Object;' + sLineBreak +
+            'json.data = context.record.data;');
+          AjaxCallMethod().SetMethod(BeforeEdit)
+            .Post('json')
+            .AsExpression;
+        end)));
+    FGridPanel.On('edit',
+      GenerateAnonymousFunction('editor, context', GetJSCode(
+        procedure
+        begin
+          Session.ResponseItems.ExecuteJSCode(
+            'var json = new Object;' + sLineBreak +
+            'json.new = context.record.data;' + sLineBreak + // needed for the PK (see GetRecord).
+            'json.fieldName = context.field;');
+          FEditItems.AllEditors(
+            procedure (AEditor: IKExtEditor)
+            begin
+              AEditor.StoreValue('json.new');
+            end);
+          AjaxCallMethod().SetMethod(UpdateField)
+            .Post('json')
+            .AsExpression;
+        end)));
+  end;
+end;
 
-    FEditorGridPanel.On('beforeedit', JSFunction('e', GetBeforeEditJSCode(BeforeEdit)));
-    FEditorGridPanel.On('afteredit', JSFunction('e', GetAfterEditJSCode(UpdateField)));
+procedure TKExtGridPanel.InitGroupingFeature;
+var
+  LGroupingFieldName: string;
+  LGroupingMenu: Boolean;
+  LGroupingFeature: TExtGridGroupingFeature;
+begin
+  LGroupingFieldName := GetGroupingFieldName;
+  LGroupingMenu := ViewTable.GetBoolean('Controller/Grouping/EnableMenu');
+
+  if (LGroupingFieldName <> '') or LGroupingMenu then
+  begin
+    if ViewTable.FindField(LGroupingFieldName) = nil then
+      raise Exception.CreateFmt('Field %s not found. Cannot group.', [LGroupingFieldName]);
+    if LGroupingFieldName <> '' then
+    begin
+      LGroupingFeature := TExtGridGroupingFeature.Create(FGridPanel);
+      LGroupingFeature.StartCollapsed := ViewTable.GetBoolean('Controller/Grouping/StartCollapsed');
+      LGroupingFeature.EnableGroupingMenu := LGroupingMenu;
+      LGroupingFeature.EnableNoGroups := LGroupingMenu;
+      LGroupingFeature.HideGroupedHeader := True;
+{ TODO : Set to true if at least one column has a summaryType - see also features Summary/GroupingSummary }
+      LGroupingFeature.ShowSummaryRow := False;
+{ TODO : use groupHeaderTpl }
+//    LGroupingFeature.ShowGroupName := ViewTable.GetBoolean('Controller/Grouping/ShowName');
+      FGridPanel.Features.Add(LGroupingFeature);
+      ClientStore.GroupField := LGroupingFieldName;
+      ClientStore.RemoteSort := True;
+    end;
   end;
 end;
 
@@ -792,9 +797,9 @@ begin
   if LGroupingFieldName <> '' then
   begin
     LFound := False;
-    for I := 0 to FEditorGridPanel.Columns.Count - 1 do
+    for I := 0 to FGridPanel.Columns.Count - 1 do
     begin
-      if SameText(TExtGridColumn(FEditorGridPanel.Columns[I]).DataIndex, LGroupingFieldName) then
+      if SameText(TExtGridColumn(FGridPanel.Columns[I]).DataIndex, LGroupingFieldName) then
       begin
         LFound := True;
         Break;
@@ -845,7 +850,7 @@ begin
     FConfirmButton.Hide;
     FCancelButton.Hide;
   end;
-  DoLayout();
+  UpdateLayout();
 end;
 
 procedure TKExtGridPanel.UpdateField;
@@ -861,7 +866,7 @@ begin
   else
   begin
     // go back in edit mode.
-    //FEditorGridPanel.StartEditing(LReqBody.I['rowIndex'], 0);
+    //FGridPanel.StartEditing(LReqBody.I['rowIndex'], 0);
   end;
 end;
 
@@ -896,8 +901,8 @@ begin
     //   getAt() returns the corresponding Record object to be passed to the selection model.
     Result :=
       Format('var idx = %s.findBy(%s);', [ClientStore.JSName, LFunction]) + sLineBreak +
-      Format('%s.selectRecords([%s.getAt(idx)]);', [FSelectionModel.JSName, ClientStore.JSName]) + sLineBreak +
-      Format('%s.getRow(idx).scrollIntoView();', [FGridView.JSName]);
+      Format('%s.selectRecords([%s.getAt(idx)]);', [FSelectionModel.JSName, ClientStore.JSName]);// + sLineBreak +
+//      Format('%s.getRow(idx).scrollIntoView();', [FExtGridView.JSName]);
   end
   else
     Result := 'return false;'
@@ -910,7 +915,7 @@ begin
   if Supports(ASubject.AsObject, IKExtController, LController) then
   begin
     if MatchText(AContext, ['Confirmed', 'Canceled']) then
-      ClientStore.On('load', JSFunction(GetSelectLastEditedRecordCode(LController.Config.GetObject('Sys/Record') as TKViewTableRecord)));
+      ClientStore.On('load', GenerateAnonymousFunction(GetSelectLastEditedRecordCode(LController.Config.GetObject('Sys/Record') as TKViewTableRecord)));
   end;
   inherited;
 end;
@@ -943,7 +948,7 @@ begin
   Assert(ViewTable <> nil);
 
   FPagingToolbar := TExtPagingToolbar.Create(Self);
-  FPagingToolbar.Store := FEditorGridPanel.Store;
+  FPagingToolbar.Store := FGridPanel.Store;
   FPagingToolbar.DisplayInfo := False;
   FPagingToolbar.PageSize := FPageRecordCount;
   FPagingToolbar.Cls := 'k-bbar';
@@ -955,7 +960,7 @@ procedure TKExtGridPanel.Activate;
 begin
   inherited;
   if Assigned(FSelectionModel) then
-    FSelectionModel.SelectFirstRow;
+    FSelectionModel.Select(0);
 end;
 
 function TKExtGridPanel.AddActionButton(const AUniqueId: string;
@@ -965,41 +970,6 @@ begin
 
   if AView.GetBoolean('Controller/RequireSelection', True) then
     FButtonsRequiringSelection.Add(Result);
-end;
-
-function TKExtGridPanel.GetBeforeEditJSCode(const AMethod: TExtProcedure): string;
-var
-  LCode: string;
-begin
-  LCode :=
-    'var json = new Object;' + sLineBreak +
-    'json.data = e.record.data;' + sLineBreak;  // needed for the PK (see GetRecord).
-  LCode := LCode + GetPOSTAjaxCode(AMethod, [], 'json') + sLineBreak;
-  Result := LCode;
-end;
-
-function TKExtGridPanel.GetAfterEditJSCode(const AMethod: TExtProcedure): string;
-var
-  LCode: string;
-begin
-  LCode :=
-    'var json = new Object;' + sLineBreak +
-    'json.new = e.record.data;' + sLineBreak + // needed for the PK (see GetRecord).
-    'json.fieldName = e.field;' + sLineBreak;
-
-  LCode := LCode + GetJSFunctionCode(
-    procedure
-    begin
-      FEditItems.AllEditors(
-        procedure (AEditor: IKExtEditor)
-        begin
-          AEditor.StoreValue('json.new');
-        end);
-    end,
-    False) + sLineBreak;
-
-  LCode := LCode + GetPOSTAjaxCode(AMethod, [], 'json') + sLineBreak;
-  Result := LCode;
 end;
 
 procedure TKExtGridPanel.AddTopToolbarToolViewButtons;
@@ -1032,9 +1002,9 @@ begin
     MethodURI(AMethod), FSelectionModel.JSName, Join(ViewTable.GetKeyFieldAliasedNames, ',')]);
 end;
 
-function TKExtGridPanel.GetSelectCall(const AMethod: TExtProcedure): TExtFunction;
+function TKExtGridPanel.GetSelectCall(const AMethod: TExtProcedure): TExtExpression;
 begin
-  Result := JSFunction(Format('ajaxSelection("yes", "", {params: {methodURL: "%s", selModel: %s, fieldNames: "%s"}});',
+  Result := GenerateAnonymousFunction(Format('ajaxSelection("yes", "", {params: {methodURL: "%s", selModel: %s, fieldNames: "%s"}});',
     [MethodURI(AMethod), FSelectionModel.JSName, Join(ViewTable.GetKeyFieldAliasedNames, ',')]));
 end;
 

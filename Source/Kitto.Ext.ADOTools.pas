@@ -94,7 +94,7 @@ implementation
 
 uses
   Math,
-  Ext, EF.DB, EF.SysUtils, EF.StrUtils,
+  Ext.Base, EF.DB, EF.SysUtils, EF.StrUtils,
   Kitto.Metadata.Models, Kitto.Ext.Session, Kitto.Config;
 
 function DefaultExcelWildcards: string;

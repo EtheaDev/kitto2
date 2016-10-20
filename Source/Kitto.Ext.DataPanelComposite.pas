@@ -43,9 +43,8 @@ type
 implementation
 
 uses
-  ExtPascal,
   EF.StrUtils,
-  Kitto.Ext.Base;
+  Kitto.Ext, Kitto.Ext.Base;
 
 { TKExtDataPanelCompositeController }
 

@@ -6,14 +6,14 @@ Controller: List
   EastView:
     Controller: HtmlPanel
       Html: |
-        <div class="x-grid3-row x-grid3-cell-inner">Age under 12</div>
-        <div class="x-grid3-row x-grid3-cell-inner semi-important-row">Age between 12 and 15</div>
-        <div class="x-grid3-row x-grid3-cell-inner important-row">Age over 15</div>
+        <div class="x-grid-cell-inner">Age under 12</div>
+        <div class="x-grid-cell-inner semi-important-row">Age between 12 and 15</div>
+        <div class="x-grid-cell-inner important-row">Age over 15</div>
       Border: True
       Collapsible: True
       Header: True
       Title: _(Legend)
-      Width: 150
+      Width: 180
   Filters:
     LabelWidth: 76
     DisplayLabel: Girls Filter

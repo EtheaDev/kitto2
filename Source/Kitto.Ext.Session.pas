@@ -23,9 +23,9 @@ interface
 uses
   SysUtils, Classes, Generics.Collections, Types,
   gnugettext, superobject,
-  ExtPascal, Ext, ExtPascalClasses,
+  Ext.Base, ExtPascalClasses,
   EF.Tree, EF.Macros, EF.Intf, EF.Localization, EF.ObserverIntf,
-  Kitto.Ext.Base, Kitto.Config, Kitto.Metadata.Views,
+  Kitto.JS, Kitto.Ext, Kitto.Ext.Base, Kitto.Config, Kitto.Metadata.Views,
   Kitto.Ext.Controller;
 
 type
@@ -169,6 +169,7 @@ type
     procedure SetDisplayName(const AValue: string);
   private
     FGettextInstance: TGnuGettextInstance;
+    function GetViewportWidthInInches: TExtExpression;
   strict protected
     function BeforeHandleRequest: Boolean; override;
     procedure AfterHandleRequest; override;
@@ -247,9 +248,6 @@ type
       const ACustomPrefix: string = ''; const ACustomRules: string = ''): string;
     function SetIconStyle(const ADefaultImageName: string; const AImageName: string = '';
       const ACustomPrefix: string = ''; const ACustomRules: string = ''): string;
-
-    // Test
-    function GetGCObjectCount: Integer;
 
     procedure Flash(const AMessage: string);
 
@@ -362,25 +360,18 @@ type
     property Session: TKExtSession read GetSession;
   end;
 
-  TKExtDelayedHome = class(TExtFunction)
-  public
-    function GetViewportWidthInInches: TExtFunction;
-  published
-    procedure Execute;
-  end;
-
 implementation
 
 uses
   StrUtils, ActiveX, ComObj, FmtBcd,
-  ExtPascalUtils, ExtForm,
+  Ext.Form,
   EF.SysUtils, EF.StrUtils, EF.Logger, EF.Types,
   Kitto.Auth, Kitto.Types, Kitto.AccessControl,
   Kitto.Ext.Utils;
 
-function Session: TKExtSession;
+function GetExtSession: TKExtSession;
 begin
-  Result := TKExtSession(ExtPascal.Session);
+  Result := TKExtSession(Kitto.Ext.GetSession);
 end;
 
 { TKExtSession }
@@ -401,28 +392,6 @@ begin
     '  if (w != defWidth)' + sLineBreak +
     '    mvp.setAttribute("content", "' + ReplaceStr(FViewportContent, '{width}', '" + w + "') + '");' + sLineBreak +
     '}';
-end;
-
-type
-  PGarbage = ^TGarbage;
-
-  TGarbage = record
-    Garbage: TObject;
-    Persistent: Boolean;
-  end;
-
-function TKExtSession.GetGCObjectCount: Integer;
-var
-  I: Integer;
-  LObject: TObject;
-begin
-  Result := 0;
-  for I := 0 to FGarbageCollector.Count - 1 do
-  begin
-    LObject := FGarbageCollector.Objects[I];
-    if (LObject <> nil) and (PGarbage(LObject)^.Garbage <> nil) then
-      Inc(Result);
-  end;
 end;
 
 function TKExtSession.GetMainPageTemplate: string;
@@ -622,19 +591,24 @@ procedure TKExtSession.DisplayHomeView;
 var
   LHomeView: TKView;
   LIntf: IKExtController;
+  LHomeContainer: TExtObject;
 begin
   FreeAndNil(FHomeController);
   LHomeView := GetHomeView;
   FHomeController := TKExtControllerFactory.Instance.CreateController(ObjectCatalog, LHomeView, nil).AsObject;
   if Supports(FHomeController, IKExtController, LIntf) then
+  begin
+    LHomeContainer := LIntf.AsObject as TExtObject;
+    ResponseItems.ExecuteJSCode(LHomeContainer, 'var kittoHomeContainer = ' + LHomeContainer.JSName + ';');
     LIntf.Display;
+  end;
   if FAutoOpenViewName <> '' then
   begin
     DisplayView(FAutoOpenViewName);
     FAutoOpenViewName := '';
   end;
   if FHomeController is TExtContainer then
-    TExtContainer(FHomeController).DoLayout;
+    TExtContainer(FHomeController).UpdateLayout;
 end;
 
 procedure TKExtSession.Home;
@@ -645,7 +619,7 @@ procedure TKExtSession.Home;
   begin
     LTimeout := Config.Config.FindNode('Ext/AjaxTimeout');
     if Assigned(LTimeout) then
-      ExtAjax.Timeout := LTimeout.AsInteger;
+      ResponseItems.ExecuteJSCode(Format('Ext.Ajax.setTimeout(%d);', [LTimeout.AsInteger]));
   end;
 
 begin
@@ -683,21 +657,18 @@ begin
   if FAutoOpenViewName <> '' then
     Queries.Values['view'] := '';
 
-  with TKExtDelayedHome.Create(ObjectCatalog) do
-  begin
-    try
-      Execute;
-    finally
-      Free;
-    end;
-  end;
+  Global.AjaxCallMethod.SetMethod(DelayedHome)
+    .AddParam('vpWidthInches', GetViewportWidthInInches);
+end;
+
+function TKExtSession.GetViewportWidthInInches: TExtExpression;
+begin
+  Result := Global.JSExpressionFromCodeBlock('getViewportWidthInInches()');
 end;
 
 procedure TKExtSession.DelayedHome;
 var
   LUserAgent: string;
-
-
 begin
   if IsMobileApple then
   begin
@@ -791,7 +762,7 @@ begin
   if Supports(FLoginController, IKExtController, LIntf) then
     LIntf.Display;
   if FLoginController is TExtContainer then
-    TExtContainer(FLoginController).DoLayout;
+    TExtContainer(FLoginController).UpdateLayout;
 end;
 
 function TKExtSession.FindUploadedFile(const AContext: TObject): TKExtUploadedFile;
@@ -848,19 +819,19 @@ begin
 Find a way to reference optional libraries only if the controllers that need
 them are linked in; maybe a global repository fed by initialization sections.
 Duplicates must be handled/ignored. }
-  SetLibrary('{ext}/examples/ux/statusbar/StatusBar');
-  SetCSS('{ext}/examples/ux/statusbar/css/statusbar');
+//  SetLibrary('{ext}/packages/ux/classic/src/statusbar/StatusBar');
+//  SetCSS('{ext}/examples/ux/statusbar/css/statusbar');
 
-  SetLibrary('{ext}/examples/ux/fileuploadfield/FileUploadField');
-  SetCSS('{ext}/examples/ux/fileuploadfield/css/fileuploadfield');
+//  SetLibrary('{ext}/examples/ux/fileuploadfield/FileUploadField');
+//  SetCSS('{ext}/examples/ux/fileuploadfield/css/fileuploadfield');
 
-  SetLibrary('{ext}/examples/shared/examples'); // For Ext.msg.
-  SetCSS('{ext}/examples/shared/examples');
-  SetRequiredLibrary('DateTimeField');
-  SetRequiredLibrary('NumericField');
-  SetRequiredLibrary('DefaultButton');
+//  SetLibrary('{ext}/examples/shared/examples'); // For Ext.msg.
+//  SetCSS('{ext}/examples/shared/examples');
+//  SetRequiredLibrary('DateTimeField');
+//  SetRequiredLibrary('NumericField');
+//  SetRequiredLibrary('DefaultButton');
   SetRequiredLibrary('kitto-core', True);
-  if Session.IsMobileBrowser then
+  if GetExtSession.IsMobileBrowser then
     SetRequiredLibrary('kitto-core-mobile', True)
   else
     SetRequiredLibrary('kitto-core-desktop', True);
@@ -943,8 +914,8 @@ begin
   LIsModal := AForceModal or not Assigned(FViewHost) or AView.GetBoolean('Controller/IsModal');
   if Assigned(FControllerHostWindow) then
   begin
-    FControllerHostWindow.Free(True);
-    FControllerHostWindow := nil;
+    FControllerHostWindow.Delete;
+    FreeAndNil(FControllerHostWindow);
   end;
   if LIsModal then
   begin
@@ -1192,9 +1163,9 @@ begin
   TEFLogger.Instance.LogFmt('New session %s.', [FSessionId],
     TEFLogger.LOG_MEDIUM);
   UploadPath := '/uploads/' + Config.AppName + '/' + SessionGUID;
-  ExtPath := Config.Config.GetString('Ext/URL', '/ext');
+  ExtPath := Config.Config.GetString('Ext/URL', '/ext6');
   Charset := Config.Config.GetString('Charset', 'utf-8');
-  Theme := Config.Config.GetString('Ext/Theme');
+  Theme := Config.Config.GetString('Ext/Theme', 'classic');
 end;
 
 function TKExtSession.AsObject: TObject;
@@ -1256,16 +1227,16 @@ begin
   TEFMacroExpansionEngine.OnGetInstance :=
     function: TEFMacroExpansionEngine
     begin
-      if Session <> nil then
-        Result := Session.Config.MacroExpansionEngine
+      if GetExtSession <> nil then
+        Result := GetExtSession.Config.MacroExpansionEngine
       else
         Result := nil;
     end;
   TKConfig.OnGetInstance :=
     function: TKConfig
     begin
-      if Session <> nil then
-        Result := Session.Config
+      if GetSession <> nil then
+        Result := GetExtSession.Config
       else
         Result := nil;
     end;
@@ -1392,7 +1363,7 @@ end;
 
 function TKExtObjectHelper.GetSession: TKExtSession;
 begin
-  Result := ExtSession as TKExtSession;
+  Result := GetExtSession;
 end;
 
 { TKExtSessionMacroExpander }
@@ -1447,8 +1418,8 @@ end;
 
 function TKExtSessionLocalizationTool.GetGnuGettextInstance: TGnuGettextInstance;
 begin
-  if Session <> nil then
-    Result := Session.FGettextInstance
+  if GetExtSession <> nil then
+    Result := GetExtSession.FGettextInstance
   else
     Result := gnugettext.DefaultInstance;
 end;
@@ -1481,19 +1452,6 @@ begin
   Assert(Assigned(FHostedController));
 
   Result := FHostedController;
-end;
-
-{ TKExtDelayedHome }
-
-procedure TKExtDelayedHome.Execute;
-begin
-  Session.ResponseItems.ExecuteJSCode(GetAjaxCode(Session.DelayedHome, ['vpWidthInches', GetViewportWidthInInches]));
-end;
-
-function TKExtDelayedHome.GetViewportWidthInInches: TExtFunction;
-begin
-  Session.ResponseItems.ExecuteJSCode(Self, 'getViewportWidthInInches()');
-  Result := Self;
 end;
 
 initialization

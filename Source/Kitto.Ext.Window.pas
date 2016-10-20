@@ -33,7 +33,7 @@ type
 implementation
 
 uses
-  Ext,
+  Ext.Base,
   EF.Localization,
   Kitto.Ext.Session, Kitto.Metadata.Views;
 

@@ -27,10 +27,10 @@ interface
 
 uses
   Types, DB,
-  Ext, ExtPascal, ExtPascalUtils, ExtForm, ExtData,
+  Ext.Base, Ext.Form, Ext.Data,
   EF.Types, EF.Tree, EF.ObserverIntf,
-  Kitto.DatabaseRouter, Kitto.Store, Kitto.Metadata.Views, Kitto.Metadata.DataView,
-  Kitto.Ext.Base, Kitto.Ext.Controller, Kitto.Ext.LookupField;
+  Kitto.JS, Kitto.DatabaseRouter, Kitto.Store, Kitto.Metadata.Views, Kitto.Metadata.DataView,
+  Kitto.Ext, Kitto.Ext.Base, Kitto.Ext.Controller, Kitto.Ext.LookupField;
 
 const
   DEFAULT_FILTER_WIDTH = 20;
@@ -129,10 +129,10 @@ type
   /// </summary>
   TKExtFilterFactory = class(TEFFactory)
   private
-    FContainer: TExtObjectList;
+    FContainer: TExtObjectArray;
     class var FInstance: TKExtFilterFactory;
     class function GetInstance: TKExtFilterFactory; static;
-    function CreateObject(const AId: string; const AContainer: TExtObjectList): IKExtFilter;
+    function CreateObject(const AId: string; const AContainer: TExtObjectArray): IKExtFilter;
   protected
     function DoCreateObject(const AClass: TClass): TObject; override;
     class destructor Destroy;
@@ -140,7 +140,7 @@ type
     class property Instance: TKExtFilterFactory read GetInstance;
 
     function CreateFilter(const AFilterConfig: TEFNode; const AObserver: IEFObserver;
-      const AContainer: TExtObjectList; const AViewTable: TKViewTable): IKExtFilter;
+      const AContainer: TExtObjectArray; const AViewTable: TKViewTable): IKExtFilter;
   end;
 
   /// <summary>
@@ -448,7 +448,8 @@ implementation
 uses
   SysUtils, Math, StrUtils,
   EF.Localization,  EF.DB, EF.StrUtils, EF.JSON, EF.SQL,
-  Kitto.Types, Kitto.Config, KItto.AccessControl, Kitto.Ext.Session, Kitto.Ext.Utils;
+  Kitto.Types, Kitto.Config, KItto.AccessControl,
+  Kitto.Ext.Session, Kitto.Ext.Utils;
 
 function GetDefaultFilter(const AItems: TEFNode): TEFNode;
 var
@@ -481,7 +482,7 @@ begin
     Result := ADefaultDatabaseName;
 end;
 
-function ExpandFilterValues(const AList: TExtObjectList; const AString: string): string;
+function ExpandFilterValues(const AList: TExtObjectArray; const AString: string): string;
 var
   I: Integer;
   LFilter: IKExtFilter;
@@ -524,7 +525,7 @@ end;
 { TKExtFilterFactory }
 
 function TKExtFilterFactory.CreateFilter(const AFilterConfig: TEFNode;
-  const AObserver: IEFObserver; const AContainer: TExtObjectList;
+  const AObserver: IEFObserver; const AContainer: TExtObjectArray;
   const AViewTable: TKViewTable): IKExtFilter;
 begin
   Assert(AFilterConfig <> nil);
@@ -538,7 +539,7 @@ begin
 end;
 
 function TKExtFilterFactory.CreateObject(const AId: string;
-  const AContainer: TExtObjectList): IKExtFilter;
+  const AContainer: TExtObjectArray): IKExtFilter;
 var
   LObject: TObject;
 begin
@@ -555,7 +556,7 @@ end;
 
 function TKExtFilterFactory.DoCreateObject(const AClass: TClass): TObject;
 begin
-  Result := TExtObjectClass(AClass).CreateAndAddTo(FContainer);
+  Result := TExtObjectClass(AClass).CreateAndAddToArray(FContainer);
 end;
 
 class function TKExtFilterFactory.GetInstance: TKExtFilterFactory;
@@ -594,6 +595,8 @@ var
   LFieldNames: TStringDynArray;
   LWidth: Integer;
   LListWidth: Integer;
+  LProxy: TExtDataAjaxProxy;
+  LReader: TExtDataJsonReader;
 begin
   Assert(Assigned(AConfig));
 
@@ -613,22 +616,25 @@ begin
   SetLength(LFieldNames,1);
   LFieldNames[0] := 'Id';
   FServerStore.Key.SetFieldNames(LFieldNames);
-  Store.Url := MethodURI(GetRecordPage);
-  Store.Reader := TExtDataJsonReader.Create(Self, JSObject('')); // Must pass '' otherwise invalid code is generated.
-  TExtDataJsonReader(Store.Reader).Root := 'Root';
-  TExtDataJsonReader(Store.Reader).TotalProperty := 'Total';
+  LProxy := TExtDataAjaxProxy.Create(Store);
+  LProxy.Url := MethodURI(GetRecordPage);
+  Store.Proxy := LProxy;
+  LReader := TExtDataJsonReader.Create(Self);
+  LReader.RootProperty := 'Root';
+  LReader.TotalProperty := 'Total';
+  LProxy.Reader := LReader;
   for I := 0 to FServerStore.Header.FieldCount - 1 do
-    with TExtDataField.CreateAndAddTo(Store.Reader.Fields) do
+    with TExtDataField.CreateAndAddToArray(Store.Proxy.Reader.Fields) do
       Name := FServerStore.Header.Fields[I].FieldName;
   ValueField := 'Id';
   DisplayField := 'Description';
 
   LWidth := FConfig.GetInteger('Width', DEFAULT_FILTER_WIDTH);
-  Width := CharsToPixels(LWidth);
+  WidthExpression := CharsToPixels(LWidth);
   LListWidth := FConfig.GetInteger('ListWidth', -1);
   if LListWidth = -1 then
     LListWidth := LWidth;
-  ListWidth := CharsToPixels(LListWidth);
+  ListWidthFunc := CharsToPixels(LListWidth);
   TypeAhead := True;
   MinChars := FConfig.GetInteger('AutoCompleteMinChars', 4);
 end;
@@ -719,7 +725,7 @@ begin
   inherited;
   Assert(Assigned(FServerStore));
 
-  ExtSession.ResponseItems.AddJSON('{Total: ' + IntToStr(FServerStore.RecordCount)
+  Session.ResponseItems.AddJSON('{Total: ' + IntToStr(FServerStore.RecordCount)
     + ', Root: ' + FServerStore.GetAsJSON(False) + '}');
 end;
 
@@ -769,7 +775,7 @@ begin
 
   LDBQuery := Session.Config.DBConnections[GetDatabaseName(FConfig, Self, FViewTable.DatabaseName)].CreateDBQuery;
   try
-    LCommandText := ExpandFilterValues(Owner as TExtObjectList, FConfig.GetExpandedString('CommandText'));
+    LCommandText := ExpandFilterValues(Owner as TExtObjectArray, FConfig.GetExpandedString('CommandText'));
     LQuery := Session.Query['query'];
     if LQuery <> '' then
       LQueryExpression := ReplaceStr(FConfig.GetExpandedString('QueryTemplate'), '{queryValue}', LQuery)
@@ -791,7 +797,7 @@ begin
   LLimit := Session.QueryAsInteger['limit'];
   LPageRecordCount := Min(LLimit, FServerStore.RecordCount - LStart);
 
-  ExtSession.ResponseItems.AddJSON('{Total: ' + IntToStr(FServerStore.RecordCount)
+  Session.ResponseItems.AddJSON('{Total: ' + IntToStr(FServerStore.RecordCount)
     + ', Root: ' + FServerStore.GetAsJSON(False, LStart, LPageRecordCount) + '}');
 end;
 
@@ -805,9 +811,13 @@ begin
     Disabled := True
   else
   begin
-    On('change', Ajax(ValueChanged, ['Value', GetEncodedValue()]));
-    On('select', Ajax(ValueChanged, ['Value', GetEncodedValue()]));
-    On('blur', JSFunction(Format('fireChangeIfEmpty(%s);', [JSName])));
+    //On('change', Ajax(ValueChanged, ['Value', GetEncodedValue()]));
+    &On('change', AjaxCallMethod.SetMethod(ValueChanged)
+      .AddParam('Value', GetEncodedValue).AsFunction);
+    //On('select', Ajax(ValueChanged, ['Value', GetEncodedValue()]));
+    &On('select', AjaxCallMethod.SetMethod(ValueChanged)
+      .AddParam('Value', GetEncodedValue).AsFunction);
+    On('blur', GenerateAnonymousFunction(Format('fireChangeIfEmpty(%s);', [JSName])));
   end;
   FCurrentValue := AConfig.GetExpandedString('DefaultValue');
   if FCurrentValue <> '' then
@@ -833,10 +843,10 @@ begin
   begin
     // Auto-fire change event when at least MinChars characters are typed.
     EnableKeyEvents := True;
-    On('keyup', JSFunction(Format('fireChangeAfterNChars(%s, %d);', [JSName, LAutoSearchAfterChars])));
+    On('keyup', GenerateAnonymousFunction(Format('fireChangeAfterNChars(%s, %d);', [JSName, LAutoSearchAfterChars])));
   end;
   FieldLabel := _(AConfig.AsString);
-  Width := CharsToPixels(AConfig.GetInteger('Width', DEFAULT_FILTER_WIDTH));
+  WidthExpression := CharsToPixels(AConfig.GetInteger('Width', DEFAULT_FILTER_WIDTH));
   FCurrentValue := AConfig.GetExpandedString('DefaultValue');
   if FCurrentValue <> '' then
     SetValue(FCurrentValue);
@@ -899,7 +909,7 @@ begin
   Assert(Assigned(AConfig));
   FConfig := AConfig;
   FieldLabel := _(AConfig.AsString);
-  Width := CharsToPixels(AConfig.GetInteger('Width', 12));
+  WidthExpression := CharsToPixels(AConfig.GetInteger('Width', 12));
   LDefaultValue := AConfig.GetExpandedString('DefaultValue');
   if LDefaultValue <> '' then
   begin
@@ -909,8 +919,8 @@ begin
   else
     FCurrentValue := 0;
   LFormat := Session.Config.UserFormatSettings.ShortDateFormat;
-  Format := DelphiDateFormatToJSDateFormat(LFormat);
-  AltFormats := DelphiDateFormatToJSDateFormat(Session.Config.JSFormatSettings.ShortDateFormat);
+  Format := TJS.DelphiDateFormatToJSDateFormat(LFormat);
+  AltFormats := TJS.DelphiDateFormatToJSDateFormat(Session.Config.JSFormatSettings.ShortDateFormat);
 
   if Session.IsMobileBrowser then
     Editable := False;
@@ -936,7 +946,7 @@ var
   LNewValue: TDateTime;
 begin
   if NewValue <> '' then
-    LNewValue := JSDateToDateTime(NewValue)
+    LNewValue := TJS.JSDateToDateTime(NewValue)
   else
     LNewValue := 0;
   if FCurrentValue <> LNewValue then
@@ -1084,7 +1094,7 @@ begin
   LIsDefaultSet := False;
   for I := 0 to FItems.ChildCount - 1 do
   begin
-    LButtons[I] := TKExtButton.CreateAndAddTo(Items);
+    LButtons[I] := TKExtButton.CreateAndAddToArray(Items);
     LButtons[I].Scale := Config.GetString('ButtonScale', 'small');
     LButtons[I].Text := _(FItems.Children[I].AsString);
     LButtons[I].AllowDepress := not IsSingleSelect;
@@ -1106,7 +1116,10 @@ begin
       if FConfig.GetBoolean('Sys/IsReadOnly') then
         LButtons[I].Disabled := True
       else
-        LButtons[I].On('click', Ajax(ButtonClick, ['Index', I, 'Pressed', LButtons[I].Pressed_]));
+        //LButtons[I].On('click', Ajax(ButtonClick, ['Index', I, 'Pressed', LButtons[I].Pressed_]));
+        LButtons[I].On('click', AjaxCallMethod.SetMethod(ButtonClick)
+          .AddParam('Index', I)
+          .AddParam('Pressed', LButtons[I].Pressed_).AsFunction);
     end
     else
       LButtons[I].Hidden := True;
@@ -1316,10 +1329,11 @@ begin
     LText := _('Apply');
   Text := LText;
   SetIconAndScale(AConfig.GetString('ImageName'), AConfig.GetString('ButtonScale', 'small'));
-  Handler := Ajax(ButtonClick);
+  //Handler := Ajax(ButtonClick);
+  Handler := AjaxCallMethod.SetMethod(ButtonClick).AsFunction;
   // The click event is not always fired when the focus is on a text filter,
   // so we increase the probability that the button has the focus when it is clicked.
-  On('mouseover', JSFunction(JSName + '.focus();'));
+  &On('mouseover', GenerateAnonymousFunction(JSName + '.focus();'));
 end;
 
 procedure TKFilterApplyButton.SetViewTable(const AViewTable: TKViewTable);
@@ -1358,12 +1372,12 @@ var
 begin
   Assert(Assigned(AConfig));
 
-  Width := CharsToPixels(AConfig.GetInteger('Width', DEFAULT_FILTER_WIDTH));
+  WidthExpression := CharsToPixels(AConfig.GetInteger('Width', DEFAULT_FILTER_WIDTH));
   // Hide keeping set width.
   Title := '&nbsp;';
 
   LCode := 'var e = ' + JSName + '.getEl(); if (e) e.setOpacity(0);';
-  On('afterrender', JSFunction(LCode));
+  &On('afterrender', GenerateAnonymousFunction(LCode));
   Session.ResponseItems.ExecuteJSCode(Self, LCode);
 end;
 
@@ -1434,7 +1448,7 @@ begin
 
   FConfig := AConfig;
   FieldLabel := _(FConfig.AsString);
-  Width := CharsToPixels(AConfig.GetInteger('Width', DEFAULT_FILTER_WIDTH));
+  WidthExpression := CharsToPixels(AConfig.GetInteger('Width', DEFAULT_FILTER_WIDTH));
   if FConfig.GetBoolean('Sys/IsReadOnly') then
     ReadOnly := True;
   SetViewField(FViewTable.FieldByAliasedName(FConfig.GetString('ReferenceFieldName')));

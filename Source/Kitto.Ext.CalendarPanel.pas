@@ -21,14 +21,14 @@ unit Kitto.Ext.CalendarPanel;
 interface
 
 uses
-  Ext, ExtPascal, ExtPascalUtils, ExtensibleCalendar, ExtData,
+  Ext.Base, Ext.Calendar, Ext.Data,
   EF.Tree,
-  Kitto.Metadata.DataView, Kitto.Ext.Base, Kitto.Ext.DataPanelLeaf;
+  Kitto.JS, Kitto.Metadata.DataView, Kitto.Ext, Kitto.Ext.Base, Kitto.Ext.DataPanelLeaf;
 
 type
   TKExtCalendarPanel = class(TKExtDataPanelLeafController)
   strict private
-    FCalendarPanel: TExtensibleCalendarPanel;
+    FCalendarPanel: TExtCalendarPanel;
     FCalendarStore: TExtDataStore;
     FCalendarReader: TExtDataJsonReader;
     procedure CreateAndInitCalendar;
@@ -38,7 +38,7 @@ type
     function CreateCalendarReader: TExtDataJsonReader;
     function CreateCalendarStore: TExtDataStore;
   strict protected
-    function GetSelectCall(const AMethod: TExtProcedure): TExtFunction; override;
+    function GetSelectCall(const AMethod: TExtProcedure): TExtExpression; override;
     function GetSelectConfirmCall(const AMessage: string; const AMethod: TExtProcedure): string; override;
     property CalendarStore: TExtDataStore read FCalendarStore;
     procedure SetViewTable(const AValue: TKViewTable); override;
@@ -49,7 +49,7 @@ type
   published
     procedure GetCalendarRecords;
     procedure LoadData; override;
-    procedure CalendarDayClick(This : TExtensibleCalendarPanel; Dt : TDateTime; Allday : Boolean; El : TExtElement);
+    procedure CalendarDayClick(This: TExtCalendarPanel; Dt: TDateTime; Allday: Boolean; El: TExtElement);
   end;
 
 implementation
@@ -63,7 +63,7 @@ uses
 
 { TKExtCalendarPanel }
 
-procedure TKExtCalendarPanel.CalendarDayClick(This : TExtensibleCalendarPanel; Dt : TDateTime; Allday : Boolean; El : TExtElement);
+procedure TKExtCalendarPanel.CalendarDayClick(This: TExtCalendarPanel; Dt: TDateTime; Allday: Boolean; El: TExtElement);
 begin
   NewRecord;
 end;
@@ -72,7 +72,7 @@ procedure TKExtCalendarPanel.CreateAndInitCalendar;
 begin
   Assert(ClientStore <> nil);
 
-  FCalendarPanel := TExtensibleCalendarPanel.CreateAndAddTo(Items);
+  FCalendarPanel := TExtCalendarPanel.CreateAndAddToArray(Items);
   FCalendarPanel.Region := rgCenter;
   FCalendarPanel.Border := False;
 
@@ -94,8 +94,15 @@ begin
   FCalendarPanel.ShowTodayText := True;
   FCalendarPanel.ShowTime := True;
 
-  FCalendarPanel.On('dayclick', JSFunction('cal, dt, allday, el',
-    GetAjaxCode(NewRecord, '', ['m', '%dt.getMonth() + 1', 'y', '%dt.getFullYear()', 'd', '%dt.getDate()', 'allday', '%allday']) + 'return false;'));
+  FCalendarPanel.&On('dayclick',
+    AjaxCallMethod().SetMethod(NewRecord)
+      .AddRawParam('m', 'dt.getMonth() + 1')
+      .AddRawParam('y', 'dt.getFullYear()')
+      .AddRawParam('m', 'dt.getDate()')
+      .AddRawParam('allday', 'allday')
+      .FunctionArgs('cal, dt, allday, el')
+      .FunctionReturn('false')
+      .AsFunction);
 
   FCalendarPanel.EventStore := ClientStore;
   FCalendarPanel.CalendarStore := CalendarStore;
@@ -136,9 +143,9 @@ begin
   end;
 end;
 
-function TKExtCalendarPanel.GetSelectCall(const AMethod: TExtProcedure): TExtFunction;
+function TKExtCalendarPanel.GetSelectCall(const AMethod: TExtProcedure): TExtExpression;
 begin
-  Result := JSFunction(Format('ajaxCalendarSelection("yes", "", {params: {methodURL: "%s", calendarPanel: %s, fieldNames: "%s"}});',
+  Result := GenerateAnonymousFunction(Format('ajaxCalendarSelection("yes", "", {params: {methodURL: "%s", calendarPanel: %s, fieldNames: "%s"}});',
     [MethodURI(AMethod), FCalendarPanel.JSName, Join(ViewTable.GetKeyFieldAliasedNames, ',')]));
 end;
 
@@ -240,6 +247,7 @@ procedure TKExtCalendarPanel.LoadData;
 begin
   inherited;
   if Assigned(CalendarStore) then
+  { TODO : empty object argument still needed? }
     CalendarStore.Load(JSObject(''));
 end;
 
@@ -251,7 +259,7 @@ begin
 
   FCalendarStore := CreateCalendarStore;
   FCalendarReader := CreateCalendarReader;
-  FCalendarStore.Reader := FCalendarReader;
+  FCalendarStore.Proxy.Reader := FCalendarReader;
 
   CreateAndInitCalendar;
 end;
@@ -262,7 +270,7 @@ function TKExtCalendarPanel.CreateCalendarReader: TExtDataJsonReader;
   var
     LField: TExtDataField;
   begin
-    LField := TExtDataField.CreateAndAddTo(AReader.Fields);
+    LField := TExtDataField.CreateAndAddToArray(AReader.Fields);
     LField.Name := AName;
     LField.&Type := AType;
     LField.UseNull := AUseNull;
@@ -271,8 +279,8 @@ function TKExtCalendarPanel.CreateCalendarReader: TExtDataJsonReader;
 begin
   Assert(Assigned(ViewTable));
 
-  Result := TExtDataJsonReader.Create(Self, JSObject('')); // Must pass '' otherwise invalid code is generated.
-  Result.Root := 'Root';
+  Result := TExtDataJsonReader.Create(Self);
+  Result.RootProperty := 'Root';
   Result.TotalProperty := 'Total';
   Result.MessageProperty := 'Msg';
   Result.SuccessProperty := 'Success';
@@ -285,49 +293,19 @@ begin
 end;
 
 function TKExtCalendarPanel.CreateCalendarStore: TExtDataStore;
+var
+  LProxy: TExtDataAjaxProxy;
 begin
   Result := TExtDataStore.Create(Self);
   Result.RemoteSort := False;
-  Result.Url := MethodURI(GetCalendarRecords);
-  Result.On('exception', JSFunction('proxy, type, action, options, response, arg', 'loadError(type, action, response);'));
+  LProxy := TExtDataAjaxProxy.Create(Result);
+  LProxy.Url := MethodURI(GetCalendarRecords);
+  Result.Proxy := LProxy;
+  Result.On('exception', GenerateAnonymousFunction('proxy, type, action, options, response, arg', 'loadError(type, action, response);'));
 end;
 
 initialization
   TKExtControllerRegistry.Instance.RegisterClass('CalendarPanel', TKExtCalendarPanel);
-
-  TKExtSession.AddAdditionalRef('/extensible-1.0.2/resources/css/extensible-all', True);
-  TKExtSession.AddAdditionalRef('/extensible-1.0.2/lib/extensible-all' + {$IFDEF DebugExtJS}'-debug'{$ELSE}''{$ENDIF});
-
-//  TKExtSession.AddAdditionalRef('{ext}/examples/calendar/resources/css/calendar', True);
-//  TKExtSession.AddAdditionalRef('{ext}/examples/calendar/calendar-all' + {$IFDEF DebugExtJS}'-debug'{$ELSE}''{$ENDIF});
-
-(*
-  TKExtSession.AddAdditionalRef('{ext}/examples/calendar/src/Ext.calendar');
-  TKExtSession.AddAdditionalRef('{ext}/examples/calendar/src/templates/DayHeaderTemplate');
-  TKExtSession.AddAdditionalRef('{ext}/examples/calendar/src/templates/DayBodyTemplate');
-  TKExtSession.AddAdditionalRef('{ext}/examples/calendar/src/templates/DayViewTemplate');
-  TKExtSession.AddAdditionalRef('{ext}/examples/calendar/src/templates/BoxLayoutTemplate');
-  TKExtSession.AddAdditionalRef('{ext}/examples/calendar/src/templates/MonthViewTemplate');
-  TKExtSession.AddAdditionalRef('{ext}/examples/calendar/src/dd/CalendarScrollManager');
-  TKExtSession.AddAdditionalRef('{ext}/examples/calendar/src/dd/StatusProxy');
-  TKExtSession.AddAdditionalRef('{ext}/examples/calendar/src/dd/CalendarDD');
-  TKExtSession.AddAdditionalRef('{ext}/examples/calendar/src/dd/DayViewDD');
-  TKExtSession.AddAdditionalRef('{ext}/examples/calendar/src/EventRecord');
-  TKExtSession.AddAdditionalRef('{ext}/examples/calendar/src/widgets/CalendarPicker');
-  TKExtSession.AddAdditionalRef('{ext}/examples/calendar/src/WeekEventRenderer');
-  TKExtSession.AddAdditionalRef('{ext}/examples/calendar/src/views/CalendarView');
-  TKExtSession.AddAdditionalRef('{ext}/examples/calendar/src/views/DayHeaderView');
-  TKExtSession.AddAdditionalRef('{ext}/examples/calendar/src/views/DayBodyView');
-  TKExtSession.AddAdditionalRef('{ext}/examples/calendar/src/views/DayView');
-  TKExtSession.AddAdditionalRef('{ext}/examples/calendar/src/views/MonthDayDetailView');
-  TKExtSession.AddAdditionalRef('{ext}/examples/calendar/src/views/MonthView');
-  TKExtSession.AddAdditionalRef('{ext}/examples/calendar/src/views/WeekView');
-  TKExtSession.AddAdditionalRef('{ext}/examples/calendar/src/widgets/DateRangeField');
-  TKExtSession.AddAdditionalRef('{ext}/examples/calendar/src/widgets/ReminderField');
-  TKExtSession.AddAdditionalRef('{ext}/examples/calendar/src/EventEditForm');
-  TKExtSession.AddAdditionalRef('{ext}/examples/calendar/src/EventEditWindow');
-  TKExtSession.AddAdditionalRef('{ext}/examples/calendar/src/CalendarPanel');
-*)
 
 finalization
   TKExtControllerRegistry.Instance.UnregisterClass('CalendarPanel');

@@ -32,6 +32,7 @@ Fields:
     PhysicalName: INTEG_61
     Fields:
       Country:
+    DefaultValue: "01"
 DetailReferences:
   Orders: Sales
 ImageName: report_user

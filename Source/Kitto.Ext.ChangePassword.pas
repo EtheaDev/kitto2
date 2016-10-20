@@ -21,7 +21,7 @@ unit Kitto.Ext.ChangePassword;
 interface
 
 uses
-  Ext, ExtForm,
+  Ext.Base, Ext.Form,
   Kitto.Ext.Base;
 
 type
@@ -53,9 +53,8 @@ implementation
 
 uses
   SysUtils, StrUtils, Math,
-  ExtPascalUtils,
   EF.Classes, EF.Localization, EF.Tree, EF.StrUtils,
-  Kitto.Types, Kitto.Config,
+  Kitto.Types, Kitto.Config, Kitto.JS,
   Kitto.Ext.Controller, Kitto.Ext.Session;
 
 { TKExtChangePasswordWindow }
@@ -151,21 +150,21 @@ begin
   FStatusBar.DefaultText := '';
   FStatusBar.BusyText := _('Changing password...');
 
-  FFormPanel := TExtFormFormPanel.CreateAndAddTo(Items);
+  FFormPanel := TExtFormFormPanel.CreateAndAddToArray(Items);
   FFormPanel.Region := rgCenter;
   FFormPanel.LabelWidth := 150;
   FFormPanel.LabelAlign := laRight;
   FFormPanel.Border := False;
-  FFormPanel.BodyStyle := SetPaddings(5, 5);
+  FFormPanel.BodyStyle := TJS.GetPadding(5, 5);
   FFormPanel.Frame := False;
   FFormPanel.MonitorValid := True;
   FFormPanel.Bbar := FStatusBar;
 
-  FConfirmButton := TKExtButton.CreateAndAddTo(FStatusBar.Items);
+  FConfirmButton := TKExtButton.CreateAndAddToArray(FStatusBar.Items);
   FConfirmButton.SetIconAndScale('password', 'medium');
   FConfirmButton.Text := _('Change password');
 
-  FOldPassword := TExtFormTextField.CreateAndAddTo(FFormPanel.Items);
+  FOldPassword := TExtFormTextField.CreateAndAddToArray(FFormPanel.Items);
   FOldPassword.Name := 'OldPassword';
   //FOldPassword.Value := ...
   FOldPassword.FieldLabel := _('Old Password');
@@ -174,7 +173,7 @@ begin
   FOldPassword.Width := 136;
   FOldPassword.EnableKeyEvents := True;
 
-  FNewPassword := TExtFormTextField.CreateAndAddTo(FFormPanel.Items);
+  FNewPassword := TExtFormTextField.CreateAndAddToArray(FFormPanel.Items);
   FNewPassword.Name := 'NewPassword';
   //FNewPassword.Value := ...
   FNewPassword.FieldLabel := _('New Password');
@@ -183,7 +182,7 @@ begin
   FNewPassword.Width := 136;
   FNewPassword.EnableKeyEvents := True;
 
-  FConfirmNewPassword := TExtFormTextField.CreateAndAddTo(FFormPanel.Items);
+  FConfirmNewPassword := TExtFormTextField.CreateAndAddToArray(FFormPanel.Items);
   FConfirmNewPassword.Name := 'ConfirmNewPassword';
   //FConfirmNewPassword.Value := ...
   FConfirmNewPassword.FieldLabel := _('Confirm New Password');
@@ -192,16 +191,22 @@ begin
   FConfirmNewPassword.Width := 136;
   FConfirmNewPassword.EnableKeyEvents := True;
 
-  FOldPassword.On('keyup', JSFunction(GetEnableButtonJS));
-  FNewPassword.On('keyup', JSFunction(GetEnableButtonJS));
-  FConfirmNewPassword.On('keyup', JSFunction(GetEnableButtonJS));
-  FOldPassword.On('specialkey', JSFunction('field, e', GetSubmitJS));
-  FNewPassword.On('specialkey', JSFunction('field, e', GetSubmitJS));
-  FConfirmNewPassword.On('specialkey', JSFunction('field, e', GetSubmitJS));
+  FOldPassword.On('keyup', GenerateAnonymousFunction(GetEnableButtonJS));
+  FNewPassword.On('keyup', GenerateAnonymousFunction(GetEnableButtonJS));
+  FConfirmNewPassword.On('keyup', GenerateAnonymousFunction(GetEnableButtonJS));
+  FOldPassword.On('specialkey', GenerateAnonymousFunction('field, e', GetSubmitJS));
+  FNewPassword.On('specialkey', GenerateAnonymousFunction('field, e', GetSubmitJS));
+  FConfirmNewPassword.On('specialkey', GenerateAnonymousFunction('field, e', GetSubmitJS));
 
-  FConfirmButton.Handler := Ajax(DoChangePassword, ['Dummy', FStatusBar.ShowBusy,
-    'OldPassword', FOldPassword.GetValue, 'NewPassword', FNewPassword.GetValue,
-    'ConfirmNewPassword', FConfirmNewPassword.GetValue]);
+//  FConfirmButton.Handler := Ajax(DoChangePassword, ['Dummy', FStatusBar.ShowBusy,
+//    'OldPassword', FOldPassword.GetValue, 'NewPassword', FNewPassword.GetValue,
+//    'ConfirmNewPassword', FConfirmNewPassword.GetValue]);
+  FConfirmButton.Handler := AjaxCallMethod.SetMethod(DoChangePassword)
+    .AddParam('Dummy', FStatusBar.ShowBusy)
+    .AddParam('OldPassword', FOldPassword.GetValue)
+    .AddParam('NewPassword', FNewPassword.GetValue)
+    .AddParam('ConfirmNewPassword', FConfirmNewPassword.GetValue)
+    .AsFunction;
 
   FConfirmButton.Disabled := True;
 

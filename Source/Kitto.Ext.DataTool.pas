@@ -92,12 +92,6 @@ uses
   EF.Tree, EF.DB, EF.StrUtils, EF.SysUtils, EF.Localization,
   Kitto.Config, Kitto.Ext.Session;
 
-procedure LoadRecordDetails(const ARecord: TKViewTableRecord);
-begin
-  if Assigned(ARecord) then
-    ARecord.LoadDetailStores;
-end;
-
 { TKExtDataToolController }
 
 procedure TKExtDataToolController.AfterExecuteTool;
@@ -163,8 +157,8 @@ end;
 procedure TKExtDataToolController.ExecuteTool;
 begin
   inherited;
-  if Config.GetBoolean('RequireDetails') then
-    LoadRecordDetails(ServerRecord);
+  if Config.GetBoolean('RequireDetails') and Assigned(ServerRecord) then
+    ServerRecord.LoadDetailStores;
 end;
 
 function TKExtDataToolController.GetServerRecord: TKViewTableRecord;
@@ -243,8 +237,8 @@ procedure TKExtDataWindowToolController.DoDisplay;
 begin
   inherited;
   StoreSelectedRecords;
-  if Config.GetBoolean('RequireDetails') then
-    LoadRecordDetails(ServerRecord);
+  if Config.GetBoolean('RequireDetails') and Assigned(ServerRecord) then
+    ServerRecord.LoadDetailStores;
 end;
 
 function TKExtDataWindowToolController.GetServerRecord: TKViewTableRecord;

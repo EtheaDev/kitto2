@@ -23,8 +23,7 @@ unit FCGIApp;
 interface
 
 uses
-  {$IFNDEF MSWINDOWS}cthreads,{$ENDIF}
-  BlockSocket, SysUtils, SyncObjs, Classes, ExtPascalClasses, ExtPascalUtils;
+  BlockSocket, SysUtils, SyncObjs, Classes, ExtPascalClasses, Kitto.JS.Types;
 
 type
   TFCGISession = class(TCustomWebSession)
@@ -100,7 +99,7 @@ function CreateWebApplication(const ATitle : string; ASessionClass : TCustomWebS
 implementation
 
 uses
-  StrUtils, Math;
+  StrUtils, Math, Kitto.Utils;
 
 function CreateWebApplication(const ATitle : string; ASessionClass : TCustomWebSessionClass; APort : Word = 2014;
                               AMaxIdleMinutes : Word = 30; AShutdownAfterLastThreadDown : Boolean = False;
@@ -129,8 +128,7 @@ type
     FRole : TRole; // FastCGI Thread role
     FRequestMethod : TRequestMethod; // Current HTTP request method
     FSocket : TBlockSocket; // Current socket for current FastCGI request
-    FGarbage,
-    FKeepConn : boolean; // Not used
+    FGarbage: Boolean;
     FRequest: RawByteString;
     FRequestHeader : TStringList;
     FSession : TFCGISession;
@@ -237,7 +235,7 @@ begin
   FSession.Free;
   FRequestHeader.Free;
   dec(Application.FThreadsCount);
-  {$IFDEF MSWINDOWS}inherited;{$ENDIF} // Collateral effect of Unix RTL FPC bug
+  inherited;
 end;
 
 {
@@ -325,7 +323,6 @@ begin
   if BeginRequest.Role in [rResponder..rFilter] then begin
     FRequestID := BeginRequest.Header.ID;
     FRole      := BeginRequest.Role;
-    FKeepConn  := BeginRequest.KeepConn; // can't close socket if true
   end
   else
     SendEndRequest(psUnknownRole);
@@ -532,8 +529,13 @@ begin
 end;
 
 procedure TFCGIThread.CopyContextFrom(const AThread: TFCGIThread);
+//var
+//  I: Integer;
 begin
-  StrToTStrings(AThread.FRequestHeader.DelimitedText, FRequestHeader);
+  FRequestHeader.Assign(AThread.FRequestHeader);
+  // Not sure why trimming would be needed here.
+//  for I := 0 to FRequestHeader.Count - 1 do
+//    FRequestHeader[I] := Trim(FRequestHeader[I]);
   FSession.CopyContextFrom(AThread.FSession);
 end;
 
@@ -662,7 +664,6 @@ begin
     FLastAccess := 0;
     Application.GarbageNow := true;
   end;
-  {$IFNDEF MSWINDOWS}EndThread(0){$ENDIF} // Unix RTL FPC bug
 end;
 
 {
@@ -715,7 +716,7 @@ begin
   Assert(Assigned(ASessionClass) and ASessionClass.InheritsFrom(TFCGISession));
   FThreads := TStringList.Create;
   AccessThreads := TCriticalSection.Create;
-  MaxIdleTime := EncodeTime(pMaxIdleMinutes div 60, pMaxIdleMinutes mod 60, 0, 0);//EncodeTime(0, 0, 3, 0); // EncodeTime(pMaxIdleMinutes div 60, pMaxIdleMinutes mod 60, 0, 0);
+  MaxIdleTime := EncodeTime(pMaxIdleMinutes div 60, pMaxIdleMinutes mod 60, 0, 0);
   Shutdown := pShutdownAfterLastThreadDown;
   WServers := GetEnvironmentVariable('FCGI_WEB_SERVER_ADDRS');
   if WServers <> '' then begin

@@ -1,4 +1,5 @@
-﻿AppTitle: _(Peoria Girls and their Dolls)
+﻿AppName: HelloKitto6
+AppTitle: _(Peoria Girls and their Dolls)
 AppIcon: HelloKittoIcon
 
 BlobPath: %HOME_PATH%UploadedFiles\
@@ -60,9 +61,9 @@ Databases:
       Data Source: %COMPUTERNAME%
 
 Auth: DB
-  .Defaults:
+  Defaults:
     UserName: administrator
-    Password: password
+    .Password: password
 
 AccessControl: Null
 
@@ -89,6 +90,12 @@ Login:
         .Default: False
       AutoLogin: False
 
+.HomeView:
+  Controller: Viewport
+    SubView:
+      Controller: TreePanel
+        TreeView: MainMenu
+
 HomeGirls:
   Controller: Viewport
     SubView: Girls
@@ -104,7 +111,7 @@ HelloWorld:
         Html: <h1>Hello World!</h1>
 
 Ext:
-  Theme: blue
+  Theme: triton
 
 LanguageId: it
 # Either utf-8 or a SBCS corresponding to the system code page
@@ -112,4 +119,4 @@ LanguageId: it
 Charset: utf-8
 
 FastCGI:
-  TCPPort: 2201
+  TCPPort: 2601

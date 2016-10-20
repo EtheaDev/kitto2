@@ -1,4 +1,5 @@
-﻿AppTitle: Employee demo
+﻿AppName: KEmployee6
+AppTitle: Employee demo
 AppIcon: FireBirdSql_120
 
 
@@ -49,11 +50,11 @@ Login:
 #HomeView: Home
 
 Ext:
-  Theme: access
+  Theme: crisp
 # Either utf-8 or a SBCS corresponding to the system code page
 # (such as iso-8859-1 for Western Europe). Defaults to utf-8.
 Charset: utf-8
 
 FastCGI:
-  TCPPort: 2203
+  TCPPort: 2603
 LanguageId: en

@@ -47,9 +47,24 @@ type
 implementation
 
 uses
-  System.Math , System.TypInfo, System.UIConsts, System.UITypes,
-  Ext, EF.Classes, EF.StrUtils, EF.Localization, EF.DB, EF.SysUtils, EF.Macros, EF.XML,
-  Kitto.Metadata.Models, Kitto.Ext.Session, Kitto.Config;
+  System.Math
+  , System.TypInfo
+  , System.UIConsts
+  , System.UITypes
+
+  , Ext.Base
+
+  , EF.Classes
+  , EF.StrUtils
+  , EF.Localization
+  , EF.DB
+  , EF.SysUtils
+  , EF.Macros
+  , EF.XML
+
+  , Kitto.Metadata.Models
+  , Kitto.Config
+  , Kitto.Ext.Session;
 
 function TransformXMLText(const AXMLText, AXSLText: string): string;
 var

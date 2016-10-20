@@ -21,7 +21,7 @@ unit Kitto.Ext.AccordionPanel;
 interface
 
 uses
-  Ext,
+  Ext.Base,
   Kitto.Ext.Base, Kitto.Metadata.Views;
 
 type
@@ -39,7 +39,6 @@ implementation
 
 uses
   SysUtils,
-  ExtPascal, ExtLayout,
   EF.Tree, EF.Localization,
   Kitto.Types, Kitto.AccessControl, Kitto.Ext.Controller, Kitto.Ext.Session;
 
@@ -53,7 +52,7 @@ begin
   MinSize := 20;
   MaxSize := 400;
 
-  LayoutConfig := JSObject('animate:true');
+  LayoutConfig.SetConfigItem('animate', True);
   DisplaySubViewsAndControllers;
 end;
 
@@ -89,7 +88,7 @@ begin
         raise EKError.Create(_('AccordionPanel''s SubViews node may only contain View or Controller subnodes.'));
     end;
     if Items.Count > 0 then
-      On('afterrender', JSFunction(JSName + '.getLayout().setActiveItem(0);'));
+      &On('afterrender', GenerateAnonymousFunction(JSName + '.getLayout().setActiveItem(0);'));
   end;
 end;
 

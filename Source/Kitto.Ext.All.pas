@@ -23,6 +23,7 @@ interface
 uses
   Kitto.Ext.AccordionPanel
   , Kitto.Ext.BorderPanel
+  , Kitto.Ext.CalendarPanel
   , Kitto.Ext.ChangePassword
   , Kitto.Ext.ChartPanel
   , Kitto.Ext.Filters

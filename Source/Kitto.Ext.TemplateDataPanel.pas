@@ -21,9 +21,10 @@ unit Kitto.Ext.TemplateDataPanel;
 interface
 
 uses
-  Ext, ExtChart, ExtData, ExtPascal, ExtPascalUtils,
+  Ext.Base, Ext.Chart, Ext.Data,
   EF.Tree,
-  Kitto.Metadata.DataView, Kitto.Ext.Base, Kitto.Ext.DataPanelLeaf;
+  Kitto.Metadata.DataView,
+  Kitto.Ext, Kitto.Ext.Base, Kitto.Ext.DataPanelLeaf;
 
 type
   TKExtTemplateDataPanel = class(TKExtDataPanelLeafController)
@@ -36,7 +37,7 @@ type
     procedure SetViewTable(const AValue: TKViewTable); override;
     procedure AddTopToolbarToolViewButtons; override;
     function IsActionSupported(const AActionName: string): Boolean; override;
-    function GetSelectCall(const AMethod: TExtProcedure): TExtFunction; override;
+    function GetSelectCall(const AMethod: TExtProcedure): TExtExpression; override;
     function GetSelectConfirmCall(const AMessage: string; const AMethod: TExtProcedure): string; override;
   published
   end;
@@ -76,9 +77,9 @@ begin
   FDataView.Store := ClientStore;
 end;
 
-function TKExtTemplateDataPanel.GetSelectCall(const AMethod: TExtProcedure): TExtFunction;
+function TKExtTemplateDataPanel.GetSelectCall(const AMethod: TExtProcedure): TExtExpression;
 begin
-  Result := JSFunction(Format('ajaxDataViewSelection("yes", "", {params: {methodURL: "%s", dataView: %s, fieldNames: "%s"}});',
+  Result := GenerateAnonymousFunction(Format('ajaxDataViewSelection("yes", "", {params: {methodURL: "%s", dataView: %s, fieldNames: "%s"}});',
     [MethodURI(AMethod), FDataView.JSName, Join(ViewTable.GetKeyFieldAliasedNames, ',')]));
 end;
 
@@ -107,7 +108,7 @@ end;
 procedure TKExtTemplateDataPanel.InitDefaults;
 begin
   inherited;
-  FDataView := TExtDataView.CreateAndAddTo(Items);
+  FDataView := TExtDataView.CreateAndAddToArray(Items);
   FDataView.EmptyText := _('No data to display.');
   FDataView.Region := rgCenter;
   FDataView.AutoScroll := True;
@@ -129,8 +130,6 @@ begin
     FDataView.MultiSelect := True
   else
     FDataView.SingleSelect := True;
-//  FDataView.On('dblclick', JSFunction('this, idx, node, e', GetAjaxCode(
-//    DefaultAction, )
   CreateTemplateView;
 end;
 

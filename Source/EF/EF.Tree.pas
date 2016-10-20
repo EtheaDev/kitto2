@@ -218,6 +218,7 @@ type
       const AValue: string; const AUseJSDateFormat: Boolean;
       const AJSFormatSettings: TFormatSettings); override;
   public
+    class function NeedsQuotes: Boolean; override;
     class function GetFieldType: TFieldType; override;
     function GetDefaultDisplayWidth(const ASize: Integer): Integer; override;
     function InternalFormatNodeValue(const AForDisplay: Boolean;
@@ -741,6 +742,12 @@ type
     ///   yet.
     /// </summary>
     procedure SetBoolean(const APath: string; const AValue: Boolean);
+
+    /// <summary>
+    ///   Sets a node value by path. The node is created if it doesn't exist
+    ///   yet.
+    /// </summary>
+    procedure SetDateTime(const APath: string; const AValue: TDateTime);
 
     /// <summary>
     ///   Creates a children for each field in AField and sets its value to the
@@ -1817,6 +1824,9 @@ begin
   if not IsDataTypeLocked then
     FDataType := TEFDataTypeFactory.Instance.GetDataType('Object');
   Value := DataType.ObjectToValue(AValue);
+  // Setting Value will revert the data type to integer.
+  if not IsDataTypeLocked then
+    FDataType := TEFDataTypeFactory.Instance.GetDataType('Object');
 end;
 
 procedure TEFNode.SetAsPair(const AValue: TEFPair);
@@ -2540,6 +2550,11 @@ end;
 procedure TEFTree.SetChildrenAsStrings(const APath: string; const AStrings: TStrings);
 begin
   GetNode(APath, True).SetChildStrings(AStrings);
+end;
+
+procedure TEFTree.SetDateTime(const APath: string; const AValue: TDateTime);
+begin
+  GetNode(APath, True).AsDateTime := AValue;
 end;
 
 function TEFTree.SetFloat(const APath: string; const AValue: Double): TEFNode;
@@ -3430,6 +3445,11 @@ procedure TEFBooleanDataType.InternalYamlValueToNode(const AYamlValue: string;
   const ANode: TEFNode; const AFormatSettings: TFormatSettings);
 begin
   ANode.AsBoolean := StrToBool(AYamlValue);
+end;
+
+class function TEFBooleanDataType.NeedsQuotes: Boolean;
+begin
+  Result := False;
 end;
 
 { TEFCurrencyDataType }

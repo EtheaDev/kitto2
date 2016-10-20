@@ -22,9 +22,9 @@ interface
 
 uses
   SysUtils, Classes,
-  Ext, ExtPascal,
+  Ext.Base,
   EF.Intf, EF.ObserverIntf, EF.Tree, EF.Types,
-  Kitto.Types, Kitto.Metadata.Views;
+  Kitto.JS, Kitto.Ext, Kitto.Types, Kitto.Metadata.Views;
 
 type
   /// <summary>
@@ -135,7 +135,7 @@ de-registration gracefully. }
     /// <param name="ACustomType">
     ///  Custom controller type, used to override the one specified in the view.
     /// </param>
-    function CreateController(const AOwner: TComponent; const AView: TKView;
+    function CreateController(const AOwner: TJSBase; const AView: TKView;
       const AContainer: TExtContainer; const AConfig: TEFNode = nil;
       const AObserver: IEFObserver = nil; const ACustomType: string = ''): IKExtController;
   end;
@@ -202,7 +202,7 @@ begin
     Result := ADefaultResult;
 end;
 
-function TKExtControllerFactory.CreateController(const AOwner: TComponent;
+function TKExtControllerFactory.CreateController(const AOwner: TJSBase;
   const AView: TKView; const AContainer: TExtContainer; const AConfig: TEFNode;
   const AObserver: IEFObserver; const ACustomType: string): IKExtController;
 var
@@ -238,10 +238,7 @@ begin
     raise EKError.Create('Object does not support IKController.');
 
   if Assigned(AContainer) and LSupportsContainer then
-  begin
-    LObject.AddTo(AContainer.Items);
-    AContainer.DoLayout;
-  end;
+    AContainer.Items.Add(LObject);
 
   if AConfig <> nil then
     Result.Config.Assign(AConfig)

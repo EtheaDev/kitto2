@@ -1,3 +1,35 @@
+function AjaxError(m) {
+  showMessage({
+    title: "Ajax Error",
+    msg: m,
+    icon: Ext.Msg.ERROR,
+    buttons: Ext.Msg.OK
+  });
+};
+
+function AjaxSuccess(response) {
+  try {
+    eval(response.responseText);
+  } catch (err) {
+    console.log(err.stack);
+    if (err.message)
+      AjaxError(err.message);
+    else
+      AjaxError(err);
+  }
+};
+
+function sleep(ms) {
+  var start = new Date().getTime();
+  for (var i = 0; i < 1e7; i++)
+    if ((new Date().getTime() - start) > ms)
+      break;
+};
+
+function AjaxFailure() {
+  AjaxError("Server unavailable, try later.");
+};
+
 // Returns the specified object with its x and y properties
 // clipped to the window's client size.
 function clipToClientArea(size) {
@@ -133,13 +165,13 @@ function ajaxSelection(buttonId, text, obj)
   {
     var
       selValues = [],
-      selRecords = obj.params.selModel.getSelections(),
+      selModels = obj.params.selModel.getSelection(),
       fieldNames = obj.params.fieldNames.split(',');
     for (var i = 0; i < fieldNames.length; i++)
     {
       var fieldValues = [];
-      for (var j = 0; j < selRecords.length; j++)
-        fieldValues.push(selRecords[j].get(fieldNames[i]));
+      for (var j = 0; j < selModels.length; j++)
+        fieldValues.push(selModels[j].data[fieldNames[i]]);
       selValues.push(fieldNames[i] + "=" + fieldValues.toString());
     }
     return Ext.Ajax.request({
@@ -404,7 +436,6 @@ function objectToParams(object)
 };
 
 window.kittoLoadMaskShowCount = 0;
-window.kittoLoadMask = null;
 
 // shows (1) or hides (-1) the loading mask.
 // The mask is shown as long as the current sum of show calls
@@ -416,13 +447,10 @@ function showKittoLoadMask(amount)
     window.kittoLoadMaskShowCount = 0;
   else
     window.kittoLoadMaskShowCount += amount;
-  if (window.kittoLoadMaskShowCount > 0) {
-    if (window.kittoLoadMask === null)
-      window.kittoLoadMask = new Ext.LoadMask(Ext.getBody());
-    window.kittoLoadMask.show();
-  }
+  if (window.kittoLoadMaskShowCount > 0)
+    Ext.getBody().mask();
   else
-    window.kittoLoadMask.hide();
+    Ext.getBody().unmask();
 }
 
 function isMobileBrowser()

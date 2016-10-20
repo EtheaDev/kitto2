@@ -22,10 +22,10 @@ interface
 
 uses
   SysUtils, Generics.Collections,
-  Ext, ExtPascal, ExtPascalUtils, ExtData,
+  Ext.Base, Ext.Data,
   superobject,
   EF.Classes, EF.ObserverIntf, EF.Tree,
-  Kitto.Metadata.Views, Kitto.Metadata.DataView, Kitto.Store, Kitto.Types,
+  Kitto.Ext, Kitto.Metadata.Views, Kitto.Metadata.DataView, Kitto.Store, Kitto.Types,
   Kitto.Ext.Base, Kitto.Ext.Controller, Kitto.Ext.BorderPanel, Kitto.Ext.Editors;
 
 type
@@ -106,7 +106,7 @@ type
     function AddActionButton(const AUniqueId: string; const AView: TKView;
       const AToolbar: TKExtToolbar): TKExtActionButton; override;
     function GetSelectConfirmCall(const AMessage: string; const AMethod: TExtProcedure): string; virtual;
-    function GetSelectCall(const AMethod: TExtProcedure): TExtFunction; virtual;
+    function GetSelectCall(const AMethod: TExtProcedure): TExtExpression; virtual;
     function AutoLoadData: Boolean; virtual;
     function GetParentDataPanel: TKExtDataPanelController;
     function GetRootDataPanel: TKExtDataPanelController;
@@ -136,6 +136,7 @@ type
     function IsViewFieldIncludedInClientStore(const AViewField: TKViewField): Boolean; virtual;
     procedure AddUsedViewFields; virtual;
     procedure AddUsedViewField(const AViewField: TKViewField);
+    function GetDefaultAllowClose: Boolean; override;
   public
     procedure AfterConstruction; override;
     destructor Destroy; override;
@@ -369,7 +370,10 @@ begin
   Assert(ViewTable <> nil);
 
   if Assigned(FEditHostWindow) then
-    FEditHostWindow.Free(True);
+  begin
+    FEditHostWindow.Delete;
+    FreeAndNil(FEditHostWindow);
+  end;
   FEditHostWindow := TKExtModalWindow.Create(Self);
 
   //FEditHostWindow.ResizeHandles := 'n s';
@@ -450,7 +454,7 @@ begin
   raise EKError.Create(_('Actions that require selection are not supported in this controller.'));
 end;
 
-function TKExtDataPanelController.GetSelectCall(const AMethod: TExtProcedure): TExtFunction;
+function TKExtDataPanelController.GetSelectCall(const AMethod: TExtProcedure): TExtExpression;
 begin
   raise EKError.Create(_('Actions that require selection are not supported in this controller.'));
 end;
@@ -468,7 +472,7 @@ begin
   Assert(Assigned(ViewTable));
   Assert(Assigned(ServerStore));
 
-  Result := TKExtDataActionButton.CreateAndAddTo(AToolbar.Items);
+  Result := TKExtDataActionButton.CreateAndAddToArray(AToolbar.Items);
   Result.Hidden := not AView.GetBoolean('IsVisible', True);
   Result.UniqueId := AUniqueId;
   Result.View := AView;
@@ -501,19 +505,19 @@ begin
     LConfirmationJS := GetConfirmCall(LConfirmationMessage, Result.ExecuteButtonAction);
 
   if LConfirmationMessage <> '' then
-    Result.Handler := JSFunction(LConfirmationJS)
+    Result.Handler := GenerateAnonymousFunction(LConfirmationJS)
   else if LRequireSelection then
     Result.On('click', GetSelectCall(TKExtDataActionButton(Result).ExecuteButtonAction))
   else
-    Result.On('click', Ajax(Result.ExecuteButtonAction, []));
+    Result.On('click', AjaxCallMethod.SetMethod(Result.ExecuteButtonAction).AsFunction);
 end;
 
 function TKExtDataPanelController.CreateClientReader: TExtDataJsonReader;
 begin
   Assert(Assigned(ViewTable));
 
-  Result := TExtDataJsonReader.Create(Self, JSObject('')); // Must pass '' otherwise invalid code is generated.
-  Result.Root := 'Root';
+  Result := TExtDataJsonReader.Create(Self);
+  Result.RootProperty := 'Root';
   Result.TotalProperty := 'Total';
   Result.MessageProperty := 'Msg';
   Result.SuccessProperty := 'Success';
@@ -527,7 +531,7 @@ var
   var
     LField: TExtDataField;
   begin
-    LField := TExtDataField.CreateAndAddTo(AReader.Fields);
+    LField := TExtDataField.CreateAndAddToArray(AReader.Fields);
     LField.Name := AName;
     LField.&Type := AType;
     LField.UseNull := AUseNull;
@@ -556,11 +560,15 @@ begin
 end;
 
 function TKExtDataPanelController.CreateClientStore: TExtDataStore;
+var
+  LProxy: TExtDataAjaxProxy;
 begin
   Result := TExtDataStore.Create(Self);
   Result.RemoteSort := ViewTable.GetBoolean('Controller/RemoteSort', GetDefaultRemoteSort);
-  Result.Url := MethodURI(GetRecordPage);
-  Result.On('exception', JSFunction('proxy, type, action, options, response, arg', 'loadError(type, action, response);'));
+  LProxy := TExtDataAjaxProxy.Create(Result);
+  LProxy.Url := MethodURI(GetRecordPage);
+  Result.Proxy := LProxy;
+  Result.On('exception', GenerateAnonymousFunction('proxy, type, action, options, response, arg', 'loadError(type, action, response);'));
 end;
 
 procedure TKExtDataPanelController.SetURLFieldValues(const ARecord: TKViewTableRecord);
@@ -576,7 +584,7 @@ begin
       LViewTableField := ARecord.FieldByName(ViewTable.Fields[I].AliasedName);
       LImageField := ARecord.FieldByName(ViewTable.Fields[I].GetURLFieldName);
       if not LVIewTableField.IsNull then
-        LImageField.AsString := MethodURI(GetImage, ['fn', LViewTableField.FieldName, 'rn', ARecord.Index])
+        LImageField.AsString := MethodURI(GetImage) + '&fn=' + LViewTableField.FieldName + '&rn=' + ARecord.Index.ToString
       else
         LImageField.AsString := '';
       { TODO : handle null case? }
@@ -687,6 +695,11 @@ procedure TKExtDataPanelController.SetNewRecordDefaultValues(const ANode: TEFNod
 begin
 end;
 
+function TKExtDataPanelController.GetDefaultAllowClose: Boolean;
+begin
+  Result := True;
+end;
+
 function TKExtDataPanelController.GetDefaultAutoOpen: Boolean;
 begin
   Assert(Assigned(ViewTable));
@@ -749,12 +762,12 @@ begin
     LConfigDefaultAction := Session.Config.Config.GetString('Defaults/Grid/DefaultAction');
     if (LConfigDefaultAction <> '') and IsActionAllowed(LConfigDefaultAction) then
       Result := LConfigDefaultAction
-    else if IsActionAllowed('View') then
-      Result := 'View'
-    else if IsActionAllowed('Edit') then
-      Result := 'Edit'
-    else
-      Result := '';
+  else if IsActionAllowed('View') then
+    Result := 'View'
+  else if IsActionAllowed('Edit') then
+    Result := 'Edit'
+  else
+    Result := '';
   end;
 end;
 
@@ -861,7 +874,7 @@ begin
 
   FClientStore := CreateClientStore;
   FClientReader := CreateClientReader;
-  FClientStore.Reader := FClientReader;
+  FClientStore.Proxy.Reader := FClientReader;
 
   FVisibleActions.AddOrSetValue('View', IsActionSupported('View') and (FViewTable.GetBoolean('Controller/AllowViewing') or Config.GetBoolean('AllowViewing')));
   FAllowedActions.AddOrSetValue('View', FVisibleActions['View'] and FViewTable.IsAccessGranted(ACM_VIEW));
@@ -921,7 +934,7 @@ function TKExtDataPanelController.AddTopToolbarButton(const AActionName, AToolti
 begin
   if (AActionName <> '') and IsActionSupported(AActionName) then
   begin
-    Result := TKExtButton.CreateAndAddTo(TopToolbar.Items);
+    Result := TKExtButton.CreateAndAddToArray(TopToolbar.Items);
     Result.Tooltip := ATooltip;
     Result.SetIconAndScale(AImageName);
     if (AActionName <> '') and not IsActionVisible(AActionName) then
@@ -942,22 +955,29 @@ begin
 
   FNewButton := AddTopToolbarButton('Add', Format(_('Add %s'), [_(ViewTable.DisplayLabel)]), 'new_record', False);
   if Assigned(FNewButton) then
-    FNewButton.On('click', Ajax(NewRecord));
-  TExtToolbarSpacer.CreateAndAddTo(TopToolbar.Items);
+  begin
+    //FNewButton.On('click', Ajax(NewRecord));
+    FNewButton.On('click', AjaxCallMethod.SetMethod(NewRecord).AsFunction);
+//    TExtToolbarSpacer.CreateAndAddTo(TopToolbar.Items);
+  end;
 
   FDupButton := AddTopToolbarButton('Dup', Format(_('Duplicate %s'), [_(ViewTable.DisplayLabel)]), 'dup_record', True);
   if Assigned(FDupButton) then
+  begin
     FDupButton.On('click', GetSelectCall(DuplicateRecord));
-  TExtToolbarSpacer.CreateAndAddTo(TopToolbar.Items);
+//    TExtToolbarSpacer.CreateAndAddTo(TopToolbar.Items);
+  end;
 
   FEditButton := AddTopToolbarButton('Edit', Format(_('Edit %s'), [_(ViewTable.DisplayLabel)]), 'edit_record', True);
   if Assigned(FEditButton) then
+  begin
     FEditButton.On('click', GetSelectCall(EditRecord));
-  TExtToolbarSpacer.CreateAndAddTo(TopToolbar.Items);
+//    TExtToolbarSpacer.CreateAndAddTo(TopToolbar.Items);
+  end;
 
   FDeleteButton := AddTopToolbarButton('Delete', Format(_('Delete %s'), [_(ViewTable.DisplayLabel)]), 'delete_record', True);
   if Assigned(FDeleteButton) then
-    FDeleteButton.On('click', JSFunction(GetSelectConfirmCall(
+    FDeleteButton.On('click', GenerateAnonymousFunction(GetSelectConfirmCall(
       Format(_('Selected %s {caption} will be deleted. Are you sure?'), [_(ViewTable.DisplayLabel)]), DeleteCurrentRecord)));
 
   FViewButton := AddTopToolbarButton('View', Format(_('View %s'), [_(ViewTable.DisplayLabel)]), 'view_record', True);
@@ -979,7 +999,7 @@ function TKExtDataPanelController.GetRowButtonsDisableJS: string;
 var
   I: Integer;
 begin
-  Result := 'var disabled = s.getCount() == 0;';
+  Result := 'var disabled = s.getCount() === 0;';
   for I := 0 to FButtonsRequiringSelection.Count - 1 do
     Result := Result + Format('%s.setDisabled(disabled);', [FButtonsRequiringSelection[I].JSName]);
 end;

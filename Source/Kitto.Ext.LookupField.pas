@@ -23,9 +23,9 @@ interface
 
 uses
   SysUtils,
-  ExtPascal, ExtPascalUtils, ExtForm,
+  Ext.Form,
   EF.Intf, EF.ObserverIntf,
-  Kitto.Metadata.Views, Kitto.Metadata.DataView,
+  Kitto.Ext, Kitto.Metadata.Views, Kitto.Metadata.DataView,
   Kitto.Ext.Controller;
 
 type
@@ -34,7 +34,7 @@ type
     FSubjObserverImpl: TEFSubjectAndObserver;
     FLookupController: IKExtController;
     FViewField: TKViewField;
-    function GetClickJSCode(const AMethod: TExtProcedure): string;
+//    function GetClickJSCode(const AMethod: TExtProcedure): string;
   protected
     procedure InitDefaults; override;
   strict protected
@@ -187,17 +187,20 @@ begin
   FViewField := AValue;
   if not ReadOnly then
   begin
-    Session.ResponseItems.ExecuteJSCode(Self,
-      JSName + '.onTrigger1Click = function(e) { ' + GetClickJSCode(TriggerClick) + '};');
-    Session.ResponseItems.ExecuteJSCode(Self,
-      JSName + '.onTrigger2Click = function(e) { ' + GetClickJSCode(ClearClick) + '};');
+{ TODO : check whether POST is still needed or not }
+    OnTrigger1Click := AjaxCallMethod().SetMethod(TriggerClick).Post('null').AsFunction;
+    OnTrigger2Click := AjaxCallMethod().SetMethod(ClearClick).Post('null').AsFunction;
+//    Session.ResponseItems.ExecuteJSCode(Self,
+//      JSName + '.onTrigger1Click = function(e) { ' + GetClickJSCode(TriggerClick) + '};');
+//    Session.ResponseItems.ExecuteJSCode(Self,
+//      JSName + '.onTrigger2Click = function(e) { ' + GetClickJSCode(ClearClick) + '};');
   end;
 end;
 
-function TKExtLookupField.GetClickJSCode(const AMethod: TExtProcedure): string;
-begin
-  Result := GetPOSTAjaxCode(AMethod, [], 'null');
-end;
+//function TKExtLookupField.GetClickJSCode(const AMethod: TExtProcedure): string;
+//begin
+//  Result := GetPOSTAjaxCode(AMethod, [], 'null');
+//end;
 
 class function TKExtLookupField.SupportsViewField(const AViewField: TKViewField): Boolean;
 begin

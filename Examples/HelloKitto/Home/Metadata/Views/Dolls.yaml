@@ -23,8 +23,8 @@ MainTable:
     PageRecordCount: 2
     AllowViewing: True
     PopupWindow:
-      Height: 500
-      Width: 400
+      Width: 680
+      Height: 680
 
     Grouping:
       FieldName: Hair
@@ -41,8 +41,3 @@ MainTable:
           RequireSelection: False
           ClientFileName:
         ImageName: download
-      DownloadCSV:
-        DisplayLabel: _(Download in CSV)
-        ImageName: download
-        Controller: ExportCSVTool
-          RequireSelection: False

@@ -20,8 +20,10 @@ interface
 
 uses
   SysUtils, Classes,
-  DB, ADODB, ADOX_TypeLibrary,
-  Kitto.Metadata.DataView, EF.Tree;
+  DB, ADODB, ADOX_TypeLibrary
+  , EF.Tree
+  , Kitto.JS, Kitto.Metadata.DataView
+  ;
 
 const
   EXCEL_FILE_EXT = '.xls';
@@ -36,7 +38,7 @@ type
   TAcceptViewFieldEvent = procedure(AViewField: TKViewField; var AAccept: boolean) of object;
   TAcceptDataFieldEvent = procedure(AField: TField; var AAccept: boolean) of object;
 
-  TKExcelEngine = class(TComponent)
+  TKExcelEngine = class(TJSBase)
   protected
     function ValidColumnName(Field: TField): string;
     function GetConnectionString(const ExcelFileName: string): string;

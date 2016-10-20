@@ -787,10 +787,27 @@ begin
 end;
 
 class function TKConfig.GetAppName: string;
+var
+  LConfig: TKConfig;
 begin
+  Result := '';
   if Assigned(FOnGetAppName) then
-    FOnGetAppName(Result)
-  else
+    FOnGetAppName(Result);
+
+  if Result = '' then
+    Result := GetCmdLineParamValue('appname');
+
+  if Result = '' then
+  begin
+    LConfig := TKConfig.Create;
+    try
+      Result := LConfig.Config.GetString('AppName', '');
+    finally
+      FreeAndNil(LConfig);
+    end;
+  end;
+
+  if Result = '' then
     Result := ChangeFileExt(ExtractFileName(ParamStr(0)), '');
 end;
 
@@ -851,7 +868,11 @@ var
   LName: string;
 begin
   Result := inherited InternalExpand(AString);
-  Result := ExpandMacros(Result, '%HOME_PATH%', TKConfig.AppHomePath);
+  Result := ExpandMacros(Result, '%HOME_PATH%', FConfig.AppHomePath); // Backward compatibility.
+  Result := ExpandMacros(Result, '%Config.AppName%', FConfig.AppName);
+  Result := ExpandMacros(Result, '%Config.AppHomePath%', FConfig.AppHomePath);
+  Result := ExpandMacros(Result, '%Config.AppTitle%', FConfig.Instance.AppTitle);
+  Result := ExpandMacros(Result, '%Config.AppIcon%', FConfig.AppIcon);
 
   LPosHead := Pos(IMAGE_MACRO_HEAD, Result);
   if LPosHead > 0 then

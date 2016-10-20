@@ -22,7 +22,7 @@ interface
 
 uses
   SysUtils,
-  Ext,
+  Ext.Base,
   EF.ObserverIntf,
   Kitto.Ext.Base, Kitto.Ext.Controller, Kitto.Ext.DataPanel;
 
@@ -50,7 +50,7 @@ type
 implementation
 
 uses
-  ExtPascal, StrUtils,
+  StrUtils,
   EF.Localization,
   Kitto.Metadata.Views,
   Kitto.AccessControl, Kitto.Ext.Session;
@@ -145,11 +145,12 @@ end;
 procedure TKExtDataPanelLeafController.AddTopToolbarButtons;
 begin
   inherited;
-  TExtToolbarSpacer.CreateAndAddTo(TopToolbar.Items);
+//  TExtToolbarSpacer.CreateAndAddTo(TopToolbar.Items);
   FRefreshButton := AddTopToolbarButton('Refresh', _('Refresh data'), 'refresh', False);
   if Assigned(FRefreshButton) then
   begin
-    FRefreshButton.On('click', Ajax(GetParentDataPanel.LoadData));
+    //FRefreshButton.On('click', Ajax(GetParentDataPanel.LoadData));
+    FRefreshButton.On('click', AjaxCallMethod.SetMethod(GetParentDataPanel.LoadData).AsFunction);
     if ViewTable.GetBoolean('Controller/PreventRefreshing') then
       FRefreshButton.Hidden := True;
   end;

@@ -9,7 +9,7 @@ unit BlockSocket;
 interface
 
 uses
-  {$IFDEF FPC}Sockets{$ELSE}SocketsDelphi{$ENDIF};
+  SocketsDelphi;
 
 type
   // Implements a block <extlink http://en.wikipedia.org/wiki/Internet_socket>socket</extlink> as a class

@@ -22,15 +22,15 @@ interface
 
 uses
   SysUtils, Classes, Generics.Collections,
-  ExtPascal, ExtPascalUtils, Ext, ExtForm, ExtUx,
+  Ext.Base, Ext.Form, Ext.Ux,
   EF.Intf, EF.Tree, EF.ObserverIntf, EF.Classes,
-  Kitto.Ext.Controller, Kitto.Metadata.Views;
+  Kitto.Ext, Kitto.JS, Kitto.JS.Types, Kitto.Ext.Controller, Kitto.Metadata.Views;
 
 const
-  DEFAULT_WINDOW_WIDTH = 600;
-  DEFAULT_WINDOW_HEIGHT = 400;
-  DEFAULT_WINDOW_TOOL_WIDTH = 400;
-  DEFAULT_WINDOW_TOOL_HEIGHT = 200;
+  DEFAULT_WINDOW_WIDTH = 800;
+  DEFAULT_WINDOW_HEIGHT = 600;
+  DEFAULT_WINDOW_TOOL_WIDTH = 600;
+  DEFAULT_WINDOW_TOOL_HEIGHT = 400;
 
 type
   TKExtContainerHelper = class helper for TExtContainer
@@ -154,13 +154,15 @@ type
   private
     function GetVisibleButtonCount: Integer;
   public
+    destructor Destroy; override;
+
     property ButtonScale: string read FButtonScale write FButtonScale;
     function FindButton(const AUniqueId: string): TKExtButton;
     property VisibleButtonCount: Integer read GetVisibleButtonCount;
   end;
 
   /// <summary>
-  ///   Base Ext panel with subject and observer capabilities.
+  ///  Base Ext panel with subject and observer capabilities.
   /// </summary>
   TKExtPanelBase = class(TExtPanel, IInterface, IEFInterface, IEFSubject, IEFObserver, IKExtActivable)
   strict private
@@ -251,6 +253,7 @@ type
     property TopToolbar: TKExtToolbar read FTopToolbar;
     procedure BeforeCreateTopToolbar; virtual;
     procedure AfterCreateTopToolbar; virtual;
+    function GetDefaultAllowClose: Boolean; virtual;
 
     /// <summary>
     ///  Adds built-in buttons to the top toolbar.
@@ -355,7 +358,7 @@ type
     procedure SetWindowSize; virtual;
     procedure InitDefaults; override;
     procedure DoDisplay; override;
-    function GetConfirmJSCode: string; virtual;
+    function GetConfirmJSFunction: TJSFunction; virtual;
     function GetConfirmJsonData: string; virtual;
     procedure AfterExecuteTool; virtual;
     procedure InitSubController(const AController: IKExtController); override;
@@ -372,7 +375,7 @@ type
     FSubjObserverImpl: TEFSubjectAndObserver;
   protected
     procedure InitDefaults; override;
-    function GetEncodedValue: TExtFunction;
+    function GetEncodedValue: TExtExpression;
   public
     destructor Destroy; override;
     function AsObject: TObject; inline;
@@ -435,8 +438,7 @@ type
     procedure ClearStatus; virtual;
   end;
 
-function OptionAsLabelAlign(const AAlign: string): TExtFormFormPanelLabelAlign;
-function OptionAsGridColumnAlign(const AAlign: string): TExtGridColumnAlign;
+function OptionAsLabelAlign(const AAlign: string): TExtContainerLabelAlign;
 
 implementation
 
@@ -445,20 +447,7 @@ uses
   EF.StrUtils, EF.Types, EF.Localization, EF.Macros,
   Kitto.AccessControl, Kitto.Ext.Utils, Kitto.Ext.Session;
 
-function OptionAsGridColumnAlign(const AAlign: string): TExtGridColumnAlign;
-begin
-  //alLeft, alRight, alCenter
-  if SameText(AAlign, 'Left') then
-    Result := caLeft
-  else if SameText(AAlign, 'Right') then
-    Result := caRight
-  else if SameText(AAlign, 'Center') then
-    Result := caCenter
-  else
-    raise EEFError.CreateFmt(_('Invalid value %s. Valid values: "Left", "Right", "Center".'), [AAlign]);
-end;
-
-function OptionAsLabelAlign(const AAlign: string): TExtFormFormPanelLabelAlign;
+function OptionAsLabelAlign(const AAlign: string): TExtContainerLabelAlign;
 begin
   if SameText(AAlign, 'Left') then
     Result := laLeft
@@ -519,7 +508,7 @@ end;
 procedure TKExtWindowControllerBase.Display;
 begin
   DoDisplay;
-  On('render', DoLayout);
+  &On('render', GenerateAnonymousFunction(UpdateLayout));
 end;
 
 procedure TKExtWindowControllerBase.DoDisplay;
@@ -557,7 +546,10 @@ begin
   Border := False;
   Plain := True;
 
-  On('close', Ajax(WindowClosed, ['Window', JSName]));
+  //On('close', Ajax(WindowClosed, ['Window', JSName]));
+  &On('close',
+    AjaxCallMethod.SetMethod(WindowClosed)
+      .AddParam('Window', JSName).AsFunction);
 end;
 
 procedure TKExtWindowControllerBase.InitSubController(const AController: IKExtController);
@@ -709,6 +701,7 @@ begin
   inherited;
   FSubjObserverImpl := TEFSubjectAndObserver.Create;
   Region := rgCenter;
+  Border := False;
 end;
 
 procedure TKExtPanelBase.LoadHtml(const AFileName: string;
@@ -768,7 +761,7 @@ end;
 procedure TKExtViewportControllerBase.Display;
 begin
   DoDisplay;
-  On('render', DoLayout);
+  &On('render', GenerateAnonymousFunction(UpdateLayout));
 end;
 
 procedure TKExtViewportControllerBase.DoDisplay;
@@ -801,6 +794,9 @@ begin
   inherited;
   FSubjObserverImpl := TEFSubjectAndObserver.Create;
   Layout := lyBorder;
+
+  { TODO: Testing }
+  Defaults.SetConfigItem('test', 1);
 end;
 
 function TKExtViewportControllerBase.IsSynchronous: Boolean;
@@ -869,7 +865,10 @@ procedure TKExtModalWindow.HookPanel(const APanel: TExtPanel);
 begin
   Assert(Assigned(APanel));
 
-  APanel.On('close', Ajax(PanelClosed, ['Panel', APanel.JSName]));
+  //APanel.On('close', Ajax(PanelClosed, ['Panel', APanel.JSName]));
+  APanel.&On('close',
+    AjaxCallMethod.SetMethod(PanelClosed)
+      .AddParam('Panel', APanel.JSName).AsFunction);
 end;
 
 procedure TKExtModalWindow.InitDefaults;
@@ -909,10 +908,9 @@ begin
   FSubjObserverImpl.DetachObserver(AObserver);
 end;
 
-function TKExtFormComboBox.GetEncodedValue: TExtFunction;
+function TKExtFormComboBox.GetEncodedValue: TExtExpression;
 begin
-  ExtSession.ResponseItems.ExecuteJSCode(Self, Format('encodeURI(%s.getValue())', [JSName]));
-  Result := Self;
+  Result := Session.ResponseItems.ExecuteJSCode(Self, Format('encodeURI(%s.getValue())', [JSName])).AsExpression;
 end;
 
 procedure TKExtFormComboBox.InitDefaults;
@@ -948,10 +946,13 @@ procedure TKExtPanelControllerBase.Display;
 begin
   if Container <> nil then
   begin
-    if Config.GetBoolean('AllowClose', True) then
+    if Config.GetBoolean('AllowClose', GetDefaultAllowClose) then
     begin
       Closable := True;
-      On('close', Container.Ajax('PanelClosed', ['Panel', JSName]));
+      //On('close', Container.Ajax('PanelClosed', ['Panel', JSName]));
+      &On('close',
+        Container.AjaxCallMethod('PanelClosed')
+          .AddParam('Panel', JSName).AsFunction);
     end
     else
       Closable := False;
@@ -1073,7 +1074,7 @@ begin
   Assert(Assigned(AView));
   Assert(Assigned(AToolbar));
 
-  Result := TKExtActionButton.CreateAndAddTo(AToolbar.Items);
+  Result := TKExtActionButton.CreateAndAddToArray(AToolbar.Items);
   Result.Hidden := not AView.GetBoolean('IsVisible', True);
   Result.UniqueId := AUniqueId;
   Result.View := AView;
@@ -1085,9 +1086,11 @@ begin
   LConfirmationMessage := StringReplace(LConfirmationMessage, sLineBreak, '<br>',[rfReplaceAll]);
   LConfirmationJS := GetConfirmCall(LConfirmationMessage, Result.ExecuteButtonAction);
   if LConfirmationMessage <> '' then
-    Result.On('click', JSFunction(LConfirmationJS))
+    Result.On('click', GenerateAnonymousFunction(LConfirmationJS))
   else
-    Result.On('click', Ajax(Result.ExecuteButtonAction, []));
+    //Result.On('click', Ajax(Result.ExecuteButtonAction, []));
+    Result.On('click',
+      AjaxCallMethod('click').SetMethod(Result.ExecuteButtonAction).AsFunction);
 end;
 
 procedure TKExtPanelControllerBase.AddToolViewButtons(
@@ -1101,7 +1104,7 @@ begin
 
   if Assigned(AConfigNode) and (AConfigNode.ChildCount > 0) then
   begin
-    TExtToolbarSeparator.CreateAndAddTo(AToolbar.Items);
+    TExtToolbarSeparator.CreateAndAddToArray(AToolbar.Items);
     for I := 0 to AConfigNode.ChildCount - 1 do
     begin
       LNode := AConfigNode.Children[I];
@@ -1135,7 +1138,7 @@ procedure TKExtPanelControllerBase.CreateTopToolbar;
 begin
   BeforeCreateTopToolbar;
 
-  FTopToolbar := TKExtToolbar.Create(Self);
+  FTopToolbar := TKExtToolbar.CreateInline(Self);
   try
     FTopToolbar.ButtonScale := Config.GetString('ToolButtonScale',
       IfThen(Session.IsMobileBrowser, 'large', 'small'));
@@ -1155,6 +1158,11 @@ begin
     Tbar := FTopToolbar;
   end;
   AfterCreateTopToolbar;
+end;
+
+function TKExtPanelControllerBase.GetDefaultAllowClose: Boolean;
+begin
+  Result := False;
 end;
 
 function TKExtPanelControllerBase.GetDefaultSplit: Boolean;
@@ -1191,7 +1199,7 @@ end;
 procedure TKExtPanelControllerBase.PerformDelayedClick(const AButton: TExtButton);
 begin
   if Assigned(AButton) then
-    AButton.On('render', JSFunction(AButton.PerformClick));
+    AButton.On('render', GenerateAnonymousFunction(AButton.PerformClick));
 end;
 
 procedure TKExtPanelControllerBase.SetContainer(const AValue: TExtContainer);
@@ -1617,18 +1625,19 @@ end;
 
 procedure TKExtWindowToolController.CreateButtons;
 begin
-  FConfirmButton := TKExtButton.CreateAndAddTo(Buttons);
+  FConfirmButton := TKExtButton.CreateAndAddToArray(Buttons);
   FConfirmButton.SetIconAndScale('accept', Config.GetString('ButtonScale', 'medium'));
   FConfirmButton.FormBind := True;
   FConfirmButton.Text := Config.GetString('ConfirmButton/Caption', _('Confirm'));
   FConfirmButton.Tooltip := Config.GetString('ConfirmButton/Tooltip', _('Confirm action and close window'));
-  FConfirmButton.Handler := JSFunction(GetConfirmJSCode());
+  FConfirmButton.Handler := GetConfirmJSFunction();
 
-  FCancelButton := TKExtButton.CreateAndAddTo(Buttons);
+  FCancelButton := TKExtButton.CreateAndAddToArray(Buttons);
   FCancelButton.SetIconAndScale('cancel', Config.GetString('ButtonScale', 'medium'));
   FCancelButton.Text := _('Cancel');
   FCancelButton.Tooltip := _('Cancel changes');
-  FCancelButton.Handler := Ajax(Cancel);
+  //FCancelButton.Handler := Ajax(Cancel);
+  FCancelButton.Handler := AjaxCallMethod.SetMethod(Cancel).AsFunction;
 end;
 
 procedure TKExtWindowToolController.DoDisplay;
@@ -1640,9 +1649,11 @@ begin
     CreateButtons;
 end;
 
-function TKExtWindowToolController.GetConfirmJSCode: string;
+function TKExtWindowToolController.GetConfirmJSFunction: TJSFunction;
 begin
-  Result := GetPOSTAjaxCode(Confirm, [], GetConfirmJsonData);
+  //Result := GetPOSTAjaxCode(Confirm, [], GetConfirmJsonData);
+  Result := AjaxCallMethod().SetMethod(Confirm)
+    .Post(GetConfirmJsonData).AsFunction;
 end;
 
 function TKExtWindowToolController.GetConfirmJsonData: string;
@@ -1713,8 +1724,8 @@ end;
 
 function TKExtButton.FindOwnerToolbar: TKExtToolbar;
 begin
-  if (Owner is TExtObjectList) and (TExtObjectList(Owner).Owner is TKExtToolbar) then
-    Result := TKExtToolbar(TExtObjectList(Owner).Owner)
+  if (Owner is TExtObjectArray) and (TExtObjectArray(Owner).Owner is TKExtToolbar) then
+    Result := TKExtToolbar(TExtObjectArray(Owner).Owner)
   else
     Result := nil;
 end;
@@ -1767,6 +1778,11 @@ begin
 end;
 
 { TKExtToolbar }
+
+destructor TKExtToolbar.Destroy;
+begin
+  inherited;
+end;
 
 function TKExtToolbar.FindButton(const AUniqueId: string): TKExtButton;
 var

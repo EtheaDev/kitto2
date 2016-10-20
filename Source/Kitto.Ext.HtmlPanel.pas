@@ -25,7 +25,7 @@ uses
 
 type
   TKExtHtmlPanelController = class(TKExtPanelControllerBase)
-  protected
+  strict protected
     procedure DoDisplay; override;
   end;
 
@@ -33,7 +33,7 @@ implementation
 
 uses
   SysUtils,
-  Ext,
+  Ext.Base,
   EF.StrUtils, EF.Macros, EF.Localization,
   Kitto.Ext.Session, Kitto.Metadata.Views;
 

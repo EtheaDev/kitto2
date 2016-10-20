@@ -21,7 +21,7 @@ unit Kitto.Ext.TabPanel;
 interface
 
 uses
-  Ext,
+  Ext.Base,
   EF.Tree,
   Kitto.Metadata.Views, Kitto.Ext.Base, Kitto.Ext.Controller, Kitto.Ext.Session;
 
@@ -105,7 +105,7 @@ procedure TKExtTabPanelController.InitDefaults;
 begin
   inherited;
   Layout := lyFit;
-  FTabPanel := GetTabPanelClass.CreateAndAddTo(Items);
+  FTabPanel := GetTabPanelClass.CreateAndAddToArray(Items);
 end;
 
 procedure TKExtTabPanelController.InitSubController(const AController: IKExtController);
@@ -133,7 +133,7 @@ begin
   inherited;
   Border := False;
   { TODO : remove this once all controllers set it by themselves. }
-  Defaults := JSObject('autoscroll: true');
+  Defaults.SetConfigItem('autoscroll', True);
   // Layout problems in tabbed views if DeferredRender=False.
   DeferredRender := True;
 end;
@@ -188,7 +188,7 @@ begin
     EnableTabScroll := True;
   end
   else
-    AddClass('tab-strip-hidden');
+    AddCls('tab-strip-hidden');
 
   LViews := Config.FindNode('SubViews');
   if Assigned(LViews) then
@@ -236,7 +236,7 @@ end;
 
 procedure TKExtTabPanel.ApplyTabSize;
 begin
-  AddClass('tab-strip-' + Config.GetString('TabSize', GetDefaultTabSize));
+  AddCls('tab-strip-' + Config.GetString('TabSize', GetDefaultTabSize));
 end;
 
 function TKExtTabPanel.GetDefaultTabSize: string;

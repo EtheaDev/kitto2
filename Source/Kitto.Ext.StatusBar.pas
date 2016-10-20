@@ -21,7 +21,7 @@ unit Kitto.Ext.StatusBar;
 interface
 
 uses
-  Ext,
+  Ext.Base,
   Kitto.Ext.Base, Kitto.Metadata.Views;
 
 type
@@ -45,7 +45,6 @@ type
 implementation
 
 uses
-  ExtPascal,
   EF.Tree,
   Kitto.Ext.Controller, Kitto.Ext.Session;
 
@@ -69,7 +68,7 @@ begin
   Layout := lyFit;
   AutoHeight := True;
 
-  FStatusBar := TKExtDefaultStatusBar.CreateAndAddTo(Items);
+  FStatusBar := TKExtDefaultStatusBar.CreateAndAddToArray(Items);
 end;
 
 { TKExtDefaultStatusBar }

@@ -257,7 +257,7 @@ implementation
 
 uses
   Types, StrUtils, Masks,
-  Ext, ExtForm, ExtUxForm,
+  Ext.Base, Ext.Form, Ext.Ux.Form,
   EF.SysUtils, EF.Tree, EF.RegEx, EF.Localization,
   Kitto.Ext.Session, Kitto.Ext.Controller, Kitto.Metadata.DataView;
 
@@ -566,13 +566,13 @@ begin
   FWindow.Closable := True;
   FWindow.Title := _('File upload');
 
-  LFormPanel := TExtFormFormPanel.CreateAndAddTo(FWindow.Items);
+  LFormPanel := TExtFormFormPanel.CreateAndAddToArray(FWindow.Items);
   LFormPanel.Region := rgCenter;
   LFormPanel.Frame := True;
   LFormPanel.FileUpload := True;
   LFormPanel.LabelAlign := laRight;
   LFormPanel.LabelWidth := 100;
-  LUploadFormField := TExtUxFormFileUploadField.CreateAndAddTo(LFormPanel.Items);
+  LUploadFormField := TExtUxFormFileUploadField.CreateAndAddToArray(LFormPanel.Items);
   LUploadFormField.FieldLabel := _(Self.DisplayLabel);
   if LAcceptedWildcards <> '' then
     LUploadFormField.EmptyText := Format(_('File matching %s'), [LAcceptedWildcards])
@@ -580,7 +580,7 @@ begin
     LUploadFormField.EmptyText := _('Select a file to upload');
   LUploadFormField.AllowBlank := False;
   LUploadFormField.Anchor := '0 5 0 0';
-  LUploadButton := TKExtButton.CreateAndAddTo(LFormPanel.Buttons);
+  LUploadButton := TKExtButton.CreateAndAddToArray(LFormPanel.Buttons);
   LUploadButton.Text := _('Upload');
   LUploadButton.SetIconAndScale('Upload', IfThen(Session.IsMobileBrowser,'medium', 'small'));
 
@@ -588,9 +588,11 @@ begin
   LSubmitAction.Url := MethodURI(Upload);
   LSubmitAction.WaitMsg := _('File upload in progress...');
   LSubmitAction.WaitTitle := _('Please wait...');
-  LSubmitAction.Success := Ajax(PostUpload);
+  //LSubmitAction.Success := Ajax(PostUpload);
+  LSubmitAction.Success := AjaxCallMethod().SetMethod(PostUpload).AsFunction;
+  { TODO : wrap in function and declate param 1 }
   LSubmitAction.Failure := ExtMessageBox.Alert(_('File upload error'), '%1.result.message');
-  LUploadButton.Handler := TExtFormBasicForm(LFormPanel.GetForm).Submit(LSubmitAction);
+  LUploadButton.Handler := LFormPanel.Form.Submit(LSubmitAction);
 
   Session.MaxUploadSize := MaxUploadSize;
   FWindow.Show;
