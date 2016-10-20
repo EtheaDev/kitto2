@@ -1,0 +1,251 @@
+# #-#-#-#-#  C:\Users\Carlo\AppData\Local\Temp\ML55HUW4.po (PACKAGE VERSION)  #-#-#-#-#
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+# #-#-#-#-#  C:\ETHEA\Kitto\Examples\HelloKitto\Home\Locale\it\LC_MESSAGES\default.po  #-#-#-#-#
+# #-#-#-#-#  C:\Users\Carlo\AppData\Local\Temp\73520MD8.po (PACKAGE VERSION)  #-#-#-#-#
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"#-#-#-#-#  C: \\Users\\Carlo\\AppData\\Local\\Temp\\3P5Z2031.po (PACKAGE VERSION)  #-#-#-#-#\n"
+"Project-Id-Version: \n"
+"POT-Creation-Date: 2015-03-05 16.17\n"
+"PO-Revision-Date: 2015-06-30 14:21+0100\n"
+"Last-Translator: Somebody <your.email@address.com>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 1.8\n"
+"#-#-#-#-#  C: \\ETHEA\\Kitto\\Examples\\HelloKitto\\Home\\Locale\\it\\LC_MESSAGES\\default."
+"po  #-#-#-#-#\n"
+"#-#-#-#-#  C: \\Users\\Carlo\\AppData\\Local\\Temp\\73520MD8.po (PACKAGE VERSION)  #-#-#-#-#\n"
+"Project-Id-Version: \n"
+"POT-Creation-Date: 2015-03-05 16.13\n"
+"PO-Revision-Date: 2015-03-05 16:15+0100\n"
+"Last-Translator: Somebody <your.email@address.com>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 1.7.4\n"
+"#-#-#-#-#  C: \\ETHEA\\Kitto\\Examples\\HelloKitto\\Home\\Locale\\it\\LC_MESSAGES\\default."
+"po  #-#-#-#-#\n"
+"Project-Id-Version: \n"
+"POT-Creation-Date: \n"
+"PO-Revision-Date: \n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: it\n"
+"X-Generator: Poedit 1.7.3\n"
+
+#: Rules.pas:25
+msgid "Cannot invite the same girl twice."
+msgstr "Impossibile invitare la stessa bambina due volte."
+
+msgid "Choose Mom"
+msgstr "Scegli la mamma"
+
+msgid "Address"
+msgstr "Indirizzo"
+
+msgid "Age"
+msgstr "Età"
+
+msgid "Aspect"
+msgstr "Aspetto"
+
+msgid "Birth Date"
+msgstr "Data di nascita"
+
+msgid "Black"
+msgstr "Nero"
+
+msgid "Blond"
+msgstr "Biondo"
+
+msgid "Doll"
+msgstr "Bambola"
+
+msgid "Dolls"
+msgstr "Bambole"
+
+msgid "Girl"
+msgstr "Bambina"
+
+msgid "Girls"
+msgstr "Bambine"
+
+msgid "Dress Size"
+msgstr "Taglia"
+
+msgid "Enter a catchy name"
+msgstr "Inserisci un nome accattivante"
+
+msgid "Girls Filter"
+msgstr "Filtra bambine"
+
+msgid "Hair"
+msgstr "Capelli"
+
+msgid "Hair Color"
+msgstr "Colore capelli"
+
+msgid "Hair Types"
+msgstr "Tipo capelli"
+
+msgid "Mom"
+msgstr "Mamma"
+
+msgid "Name"
+msgstr "Nome"
+
+msgid "Name/Address"
+msgstr "Nome/Indirizzo"
+
+msgid "Other options (samples)"
+msgstr "Altre opzioni (esempi)"
+
+msgid "Parties"
+msgstr "Feste"
+
+msgid "Party"
+msgstr "Festa"
+
+msgid "Party Date"
+msgstr "Data festa"
+
+msgid "Party Name"
+msgstr "Nome festa"
+
+msgid "Party Time"
+msgstr "Ora festa"
+
+msgid "Peoria Dolls"
+msgstr "Le bambole di Peoria"
+
+msgid "Phone"
+msgstr "Telefono"
+
+msgid "Red"
+msgstr "Rosso"
+
+msgid "Search Parties"
+msgstr "Ricerca feste"
+
+msgid "Silver"
+msgstr "Argento"
+
+msgid "Walnut"
+msgstr "Noce"
+
+#: Doll.yaml
+msgid "Extra Small"
+msgstr "Molto piccola"
+
+#: Doll.yaml
+msgid "Small"
+msgstr "Piccola"
+
+#: Doll.yaml
+msgid "Medium"
+msgstr "Media"
+
+#: Doll.yaml
+msgid "Large"
+msgstr "Grande"
+
+#: Doll.yaml
+msgid "Extra Large"
+msgstr "Molto grande"
+
+#: Invitation.yaml
+msgid "Invitation"
+msgstr "Invito"
+
+#: Invitation.yaml
+msgid "Invitations"
+msgstr "Inviti"
+
+#: Doll.yaml
+msgid "Photo"
+msgstr "Foto"
+
+#: Doll.yaml
+msgid "Select a picture"
+msgstr "Seleziona un'immagine"
+
+#: Dolls.yaml
+msgid "Mom's Phone"
+msgstr "Tel. di mamma"
+
+#: Home.yaml
+msgid "Main menu"
+msgstr "Menù principale"
+
+#: MainMenu.yaml
+msgid "Options"
+msgstr "Opzioni"
+
+#: MainMenu.yaml
+msgid "Lookup tables"
+msgstr "Tabelle"
+
+#: MainMenu.yaml
+msgid "User"
+msgstr "Utente"
+
+#: Parties.yaml
+msgid "Download in CSV"
+msgstr "Scarica in CSV"
+
+#: Parties.yaml
+msgid "Download in Excel"
+msgstr "Scarica in Excel"
+
+#: Home.yaml
+msgid "User: %Auth:UserName%"
+msgstr "Utente: %Auth:UserName%"
+
+#: Dolls.yaml
+msgid "Download in TXT"
+msgstr "Scarica in TXT"
+
+#: Dolls.yaml
+msgid "{[values.rs.length]} Dolls have {text} hair"
+msgstr "{[values.rs.length]} Bambole hanno la testa {text}"
+
+#: Girls.yaml
+msgid "Platinum"
+msgstr "Platino"
+
+#: DollForm.yaml
+msgid "New Doll"
+msgstr "Nuova Bambola"
+
+#: GirlForm.yaml
+msgid "New Girl"
+msgstr "Nuova Bambina"
+
+#: MainMenu.yaml
+msgid "Girl list"
+msgstr "Elenco Bambine"
+
+#: MainMenu.yaml
+msgid "Doll list"
+msgstr "Elenco Bambole"
+
+#: Girls.yaml
+msgid "Legend"
+msgstr "Legenda"
+
+#: MainMenu.yaml
+msgid "Dolls Card"
+msgstr "Figure bambole"

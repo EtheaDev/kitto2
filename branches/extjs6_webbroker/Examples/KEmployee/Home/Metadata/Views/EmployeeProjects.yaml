@@ -1,0 +1,13 @@
+Type: Data
+Controller: List
+  Filters:
+    DisplayLabel: Search Employee Projects
+    Items:
+      FreeSearch: Free Search
+        ExpressionTemplate:
+MainTable:
+  Model: EmployeeProject
+  Fields:
+    EmpNoRef:
+    ProjRef:
+  Controller:

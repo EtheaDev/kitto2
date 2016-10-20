@@ -1,0 +1,223 @@
+{-------------------------------------------------------------------------------
+   Copyright 2012 Ethea S.r.l.
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-------------------------------------------------------------------------------}
+
+unit Kitto.Ext.TreePanel;
+
+{$I Kitto.Defines.inc}
+
+interface
+
+uses
+  Ext.Tree,
+  EF.Tree,
+  Kitto.Metadata.Views, Kitto.Ext.Base, Kitto.Ext.Controller, Kitto.Ext.Utils;
+
+type
+  TKExtTreeTreeNode = class(TExtTreeTreeNode)
+  private
+    FView: TKView;
+    procedure SetView(const AValue: TKView);
+  public
+    property View: TKView read FView write SetView;
+  end;
+
+  ///	<summary>
+  ///	 A tree panel that can display a tree view with clickable nodes. Used
+  ///  by the TreePanel controller.
+  ///	</summary>
+  TKExtTreePanel = class(TExtTreeTreePanel)
+  private
+    FView: TKView;
+    FTreeViewRenderer: TKExtTreeViewRenderer;
+    FConfig: TEFNode;
+    FTreeView: TKTreeView;
+    procedure SetView(const AValue: TKView);
+    procedure AddNode(const ANode: TKTreeViewNode; const ADisplayLabel: string;
+      const AParent: TExtTreeTreeNode);
+  protected
+    procedure InitDefaults; override;
+  public
+    destructor Destroy; override;
+    property View: TKView read FView write SetView;
+  published
+    procedure DisplayView;
+  end;
+
+  TKExtTreePanelController = class(TKExtPanelControllerBase)
+  private
+    FTreePanel: TKExtTreePanel;
+  protected
+    procedure DoDisplay; override;
+    procedure InitDefaults; override;
+  end;
+
+implementation
+
+uses
+  SysUtils,
+  Ext.Base,
+  EF.Localization,
+  Kitto.Config, Kitto.Utils, Kitto.AccessControl, Kitto.Ext.Session;
+
+{ TKExtTreeTreeNode }
+
+procedure TKExtTreeTreeNode.SetView(const AValue: TKView);
+begin
+  FView := AValue;
+  if Assigned(FView) then
+  begin
+    Expandable := False;
+    Expanded := False;
+    Leaf := True;
+    SetConfigItem('viewId', IntToStr(Integer(FView)));
+  end;
+end;
+
+{ TKExtTreePanelController }
+
+procedure TKExtTreePanelController.DoDisplay;
+begin
+  inherited;
+  Title := _(View.DisplayLabel);
+  FTreePanel.FConfig := Config;
+  FTreePanel.View := View;
+end;
+
+procedure TKExtTreePanelController.InitDefaults;
+begin
+  inherited;
+  Layout := lyFit;
+
+  FTreePanel := TKExtTreePanel.CreateAndAddToArray(Items);
+end;
+
+{ TKExtTreePanel }
+
+destructor TKExtTreePanel.Destroy;
+begin
+  FreeAndNil(FTreeViewRenderer);
+  inherited;
+end;
+
+procedure TKExtTreePanel.InitDefaults;
+begin
+  inherited;
+  Root := TExtTreeTreeNode.CreateInline(Self);
+  RootVisible := False;
+  AutoScroll := True;
+  Border := False;
+end;
+
+procedure TKExtTreePanel.SetView(const AValue: TKView);
+var
+  LViewNode: TEFNode;
+begin
+  Assert(Assigned(AValue));
+
+  FView := AValue;
+  if not Assigned(FTreeViewRenderer) then
+  begin
+    FTreeViewRenderer := TKExtTreeViewRenderer.Create;
+    FTreeViewrenderer.Session := Session;
+  end;
+  LViewNode := FConfig.GetNode('TreeView');
+  FTreeView := Session.Config.Views.ViewByNode(LViewNode) as TKTreeView;
+  Assert(Assigned(FTreeView));
+  FTreeViewRenderer.Render(FTreeView,
+    procedure (ANode: TKTreeViewNode; ADisplayLabel: string)
+    begin
+      AddNode(ANode, ADisplayLabel, Root);
+    end,
+    { TODO : remove these parameters }
+    Self, nil);
+  &On('itemclick', AjaxCallMethod.SetMethod(DisplayView)
+    .AddRawParam('View', 'record.data.viewId')
+    .FunctionArgs('view, record, item, index')
+    .AsFunction);
+end;
+
+procedure TKExtTreePanel.DisplayView;
+var
+  LViewId: string;
+begin
+  LViewId := Session.Query['View'];
+  if LViewId <> '' then
+    Session.DisplayView(TKView(StrToInt(LViewId)));
+end;
+
+procedure TKExtTreePanel.AddNode(const ANode: TKTreeViewNode;
+  const ADisplayLabel: string; const AParent: TExtTreeTreeNode);
+var
+  LExtNode: TKExtTreeTreeNode;
+  I: Integer;
+  LIsEnabled: Boolean;
+  LView: TKView;
+  LSubNode: TKTreeViewNode;
+  LDisplayLabel: string;
+  LOriginalNode: TKTreeViewNode;
+begin
+  Assert(Assigned(ANode));
+  Assert(Assigned(AParent));
+
+  LOriginalNode := TKTreeViewNode(ANode.GetObject('Sys/SourceNode'));
+  if LOriginalNode = nil then
+    LOriginalNode := ANode;
+
+  LView := LOriginalNode.FindView(Session.Config.Views);
+  if Assigned(LView) then
+    LIsEnabled := LView.IsAccessGranted(ACM_RUN)
+  else
+    LIsEnabled := TKConfig.Instance.IsAccessGranted(LOriginalNode.GetACURI(FTreeView), ACM_RUN);
+  LExtNode := TKExtTreeTreeNode.CreateInlineAndAddToArray(AParent.Children);
+  try
+    LExtNode.View := LView;
+    if Assigned(LExtNode.View) then
+    begin
+      LExtNode.IconCls := Session.SetViewIconStyle(LExtNode.View, GetTreeViewNodeImageName(LOriginalNode, LExtNode.View));
+      LExtNode.Disabled := not LIsEnabled;
+    end;
+    LExtNode.Text := HTMLEncode(ADisplayLabel);
+    if Session.TooltipsEnabled then
+      LExtNode.Qtip := LExtNode.Text;
+    if LOriginalNode.TreeViewNodeCount > 0 then
+    begin
+      for I := 0 to LOriginalNode.TreeViewNodeCount - 1 do
+      begin
+        LSubNode := LOriginalNode.TreeViewNodes[I];
+        LDisplayLabel := _(LSubNode.GetString('DisplayLabel', GetDisplayLabelFromNode(LSubNode, Session.Config.Views)));
+        AddNode(LSubNode, LDisplayLabel, LExtNode);
+      end;
+      LExtNode.Expandable := True;
+      if LOriginalNode is TKTreeViewFolder then
+        LExtNode.Expanded := not TKTreeViewFolder(LOriginalNode).IsInitiallyCollapsed
+      else
+        LExtNode.Expanded := True;
+      LExtNode.Leaf := False;
+    end;
+  except
+    FreeAndNil(LExtNode);
+    raise;
+  end;
+end;
+
+initialization
+  TKExtControllerRegistry.Instance.RegisterClass('TreePanel', TKExtTreePanelController);
+
+finalization
+  TKExtControllerRegistry.Instance.UnregisterClass('TreePanel');
+
+end.
+

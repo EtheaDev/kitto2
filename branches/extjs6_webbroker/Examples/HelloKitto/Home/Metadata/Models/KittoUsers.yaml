@@ -1,0 +1,9 @@
+﻿ModelName: KittoUsers
+PhysicalName: KITTO_USERS
+Fields:
+  UserName: String(32) not null primary key
+    PhysicalName: USER_NAME
+  PasswordHash: String(32)
+    PhysicalName: PASSWORD_HASH
+  IsActive: Integer
+    PhysicalName: IS_ACTIVE

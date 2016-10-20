@@ -1,0 +1,30 @@
+﻿Type: Tree
+Folder: Tables
+  View: Employees
+  View: Build AutoList
+    Model: OPERATOR_ROLE
+    DisplayLabel: Operator roles
+  View:
+    Type: Data
+    Controller: List
+    MainTable:
+      Model: ACTIVITY_TYPE
+Folder: Customers
+  View: Customers
+  View: Projects
+Folder: Activities
+  View: ActivityInput
+  View: ActivityReport
+  View: ActivityTemplate
+  .View: ActivityCalendar
+Folder: Statistics
+  View: ActivityPieChart
+  View: ActivityBarChart
+Folder: Maintenance
+  View: Users
+    ImageName: user
+  View: UserForm
+  View:
+    Controller: Logout
+    DisplayLabel: Logout
+    ImageName: logout

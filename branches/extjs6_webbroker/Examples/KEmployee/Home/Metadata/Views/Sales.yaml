@@ -1,0 +1,24 @@
+﻿Type: Data
+Controller: List
+  Filters:
+    DisplayLabel: Search Sales
+    Items:
+      FreeSearch: Free Search
+        ExpressionTemplate: (Sales.PO_NUMBER like '%{value}%') or (Sales.ORDER_STATUS like '%{value}%') or (Sales.Paid like '%{value}%') or (Sales.ITEM_TYPE like '%{value}%')
+MainTable:
+  Model: Sales
+  Fields:
+    PoNumber:
+    OrderStatus:
+    OrderDate:
+    ShipDate:
+    DateNeeded:
+    Paid:
+    QtyOrdered:
+    TotalValue:
+    Discount:
+    ItemType:
+    Aged:
+    CustNoRef:
+    SalesRepRef:
+  Controller:

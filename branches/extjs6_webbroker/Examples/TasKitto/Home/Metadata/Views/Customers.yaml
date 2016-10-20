@@ -1,0 +1,45 @@
+﻿Type: Data
+
+Controller: List
+  Filters:
+    DisplayLabel: Customer Filter
+    Items:
+      FreeSearch: Search Name
+        # ExpressionTemplate should contain a {value} placeholder for the search term.
+        ExpressionTemplate: >
+          upper(CUSTOMER_NAME) like upper('%{value}%')
+
+MainTable:
+  Model: CUSTOMER
+  Controller:
+    PreventAdding: True
+    PreventDeleting: True
+    AllowViewing: True
+  Fields:
+    CUSTOMER_ID:
+      IsReadOnly: True
+    CUSTOMER_NAME:
+      IsReadOnly: True
+    ADDRESS:
+      IsReadOnly: True
+    CITY:
+      IsReadOnly: True
+    PHONE:
+      IsReadOnly: True
+    EMAIL:
+      IsReadOnly: True
+    STATUS:
+      IsReadOnly: True
+  DetailTables:
+    Table:
+      Model: PROJECT
+      DetailTables:
+        Table:
+          Model: PHASE
+          Controller:
+            Form:
+              Layout: Phases_Form
+      Controller:
+        PreventAdding: False
+        PreventDeleting: False
+        AllowDuplicating: True

@@ -1,0 +1,22 @@
+﻿FirstNode:
+  SubNode1:
+
+  # Here comes the second subnode.
+  SubNode2: Foo
+  BooleanSubNode3: True
+  MultiLineNode1: |
+    First line, then a break
+    Second line.
+"A:Node:With:Colons": A:Value:With:Colons
+ANodeWithoutColons: A value with "s
+OtherNode:
+  Item: Europe
+  Item: America
+  Item: Asia
+  Item: "Australia"
+# No way to preserve lines. > nodes are always written back word-wrapped
+# to 45 chars. In the future we might preserve lines for unchanged >
+# values only, but that's the best we can do. Use | nodes when you can.
+MultiLineNode2: >
+  Excuse me while I kiss the sky.
+Html: <div><span style="float:left;margin:5px;text-align:center"><img width="65px" src="%IMAGE(kitto_logo_150)%"></img></span><span style="float:left;margin:1px;font-size:10pt"><p>TEST<br/>KDataCenter</p></span></div>

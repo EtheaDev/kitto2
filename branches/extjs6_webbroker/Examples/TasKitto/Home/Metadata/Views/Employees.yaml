@@ -1,0 +1,18 @@
+﻿Type: Data
+IsLookup: True
+Controller: List
+  Filters:
+    DisplayLabel: Employee Filter
+    Items:
+      FreeSearch: Search Name
+        # ExpressionTemplate should contain a {value} placeholder for the search term.
+        ExpressionTemplate: >
+          upper(EMPLOYEE_NAME) like upper('%{value}%')
+MainTable:
+  Model: EMPLOYEE
+  Fields:
+    EMPLOYEE_ID:
+    EMPLOYEE_NAME:
+    EMPLOYEE_TYPE:
+  Controller:
+    AutoOpen: True
