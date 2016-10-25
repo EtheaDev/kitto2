@@ -2,23 +2,23 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: 1.0\n"
-"POT-Creation-Date: 2015-11-10 15:03+0100\n"
-"PO-Revision-Date: 2015-11-10 15:06+0100\n"
+"POT-Creation-Date: 2016-10-25 10:37+0200\n"
+"PO-Revision-Date: 2016-10-25 10:39+0200\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: it\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 1.7.3\n"
-"X-Poedit-Basepath: ..\\..\\..\\..\\Source\\\n"
+"X-Generator: Poedit 1.8.11\n"
+"X-Poedit-Basepath: ../../../../Source\n"
 "X-Poedit-SearchPath-0: .\n"
 
-#: EF/EF.DB.ADO.pas:322 EF/EF.DB.DBX.pas:274 EF/EF.DB.FD.pas:357
+#: EF/EF.DB.ADO.pas:322 EF/EF.DB.DBX.pas:276 EF/EF.DB.FD.pas:357
 msgid "Unspecified Statement text."
 msgstr "Testo del comando non specificato."
 
-#: EF/EF.DB.DBX.pas:323
+#: EF/EF.DB.DBX.pas:325
 msgid "Unspecified Sequence name."
 msgstr "Nome di sequenza non specificato."
 
@@ -93,11 +93,11 @@ msgstr ""
 "Errore \"%s\" durante la copia da \"%s\" a \"%s\". Il file di destinazione "
 "potrebbe essere in uso."
 
-#: EF/EF.Tree.pas:2205 EF/EF.Tree.pas:2275
+#: EF/EF.Tree.pas:2222 EF/EF.Tree.pas:2310
 msgid "Node %s not found."
 msgstr "Nodo %s non trovato."
 
-#: EF/EF.Types.pas:378
+#: EF/EF.Types.pas:393
 msgid "%s: Unknown class \"%s\"."
 msgstr "%s: Classe sconosciuta \"%s\"."
 
@@ -117,22 +117,22 @@ msgstr "Errore durante la modifica della password."
 msgid "File %s not found."
 msgstr "File %s non trovato."
 
-#: Kitto.Config.pas:486
+#: Kitto.Config.pas:485
 msgid "DB connection type \"%s\" for database \"%s\" not available"
 msgstr ""
 "T\n"
 "ipo di connessione DB \"%s\" per il database \"%s\" non disponibile"
 
-#: Kitto.Config.pas:550 Kitto.Config.pas:589
+#: Kitto.Config.pas:549 Kitto.Config.pas:588
 msgid "Resource %s not found."
 msgstr "Risorsa %s non trovata."
 
-#: Kitto.Config.pas:620
+#: Kitto.Config.pas:619
 msgid "Access denied. The user is not allowed to perform this operation."
 msgstr ""
 "Accesso negato. L'utente non ha il permesso di effettuare questa operazione."
 
-#: Kitto.Config.pas:623
+#: Kitto.Config.pas:622
 msgid "Resource URI: %s; access mode: %s."
 msgstr "URI della risorsa: %s; modalità di accesso: %s."
 
@@ -144,30 +144,46 @@ msgstr ""
 "Controller."
 
 #. alLeft, alRight, alCenter
-#: Kitto.Ext.Base.pas:442
+#: Kitto.Ext.Base.pas:458
 msgid "Invalid value %s. Valid values: \"Left\", \"Right\", \"Center\"."
 msgstr "Valore %s non valido. Deve essere  \"Left\", \"Right\", \"Center\""
 
-#: Kitto.Ext.Base.pas:454
+#: Kitto.Ext.Base.pas:470
 msgid "Invalid value %s. Valid values: \"Left\", \"Top\", \"Right\"."
 msgstr "Valore %s non valido. Deve essere \"Left\", \"Top\" o \"Right\"."
 
-#: Kitto.Ext.Base.pas:1535
+#: Kitto.Ext.Base.pas:1623
 msgid "Confirm"
 msgstr "Conferma"
 
-#: Kitto.Ext.Base.pas:1536
+#: Kitto.Ext.Base.pas:1624
 msgid "Confirm action and close window"
 msgstr "Conferma l'azione e chiude la finestra"
 
-#: Kitto.Ext.Base.pas:1541 Kitto.Ext.Form.pas:690 Kitto.Ext.GridPanel.pas:739
-#: Kitto.Ext.GridPanel.pas:754
+#: Kitto.Ext.Base.pas:1629 Kitto.Ext.Form.pas:743 Kitto.Ext.GridPanel.pas:754
+#: Kitto.Ext.GridPanel.pas:769
 msgid "Cancel"
 msgstr "Annulla"
 
-#: Kitto.Ext.Base.pas:1542 Kitto.Ext.Form.pas:691 Kitto.Ext.GridPanel.pas:755
+#: Kitto.Ext.Base.pas:1630 Kitto.Ext.Form.pas:744 Kitto.Ext.GridPanel.pas:770
 msgid "Cancel changes"
 msgstr "Annulla modifiche"
+
+#: Kitto.Ext.CalendarPanel.pas:79
+msgid "Day"
+msgstr "Giorno"
+
+#: Kitto.Ext.CalendarPanel.pas:80
+msgid "Month"
+msgstr "Mese"
+
+#: Kitto.Ext.CalendarPanel.pas:81
+msgid "Go"
+msgstr "Vai"
+
+#: Kitto.Ext.CalendarPanel.pas:82
+msgid "Jump to:"
+msgstr "Vai a:"
 
 #: Kitto.Ext.ChangePassword.pas:75
 msgid "Old Password is wrong."
@@ -212,54 +228,55 @@ msgstr "Conferma nuova password"
 msgid "Unknown chart type %s."
 msgstr "Tipo di grafico %s sconosciuto."
 
-#: Kitto.Ext.DataPanel.pas:256
+#. when we save master/detail changes to the database.
+#: Kitto.Ext.DataPanel.pas:265
 msgid "%s deleted."
 msgstr "%s cancellato."
 
-#: Kitto.Ext.DataPanel.pas:362 Kitto.Ext.DataPanel.pas:897
+#: Kitto.Ext.DataPanel.pas:379 Kitto.Ext.DataPanel.pas:943
 msgid "Add %s"
 msgstr "Aggiungi %s"
 
-#: Kitto.Ext.DataPanel.pas:364 Kitto.Ext.DataPanel.pas:907
-#: Kitto.Ext.Form.pas:538
+#: Kitto.Ext.DataPanel.pas:381 Kitto.Ext.DataPanel.pas:953
+#: Kitto.Ext.Form.pas:585
 msgid "Edit %s"
 msgstr "Modifica %s"
 
-#: Kitto.Ext.DataPanel.pas:366 Kitto.Ext.DataPanel.pas:917
+#: Kitto.Ext.DataPanel.pas:383 Kitto.Ext.DataPanel.pas:963
 msgid "View %s"
 msgstr "Mostra %s"
 
-#: Kitto.Ext.DataPanel.pas:447 Kitto.Ext.DataPanel.pas:452
+#: Kitto.Ext.DataPanel.pas:450 Kitto.Ext.DataPanel.pas:455
 msgid "Actions that require selection are not supported in this controller."
 msgstr "Questo controller non supporta azioni con RequireSelection=True."
 
-#: Kitto.Ext.DataPanel.pas:902
+#: Kitto.Ext.DataPanel.pas:948
 msgid "Duplicate %s"
 msgstr "%s duplicato"
 
-#: Kitto.Ext.DataPanel.pas:912
+#: Kitto.Ext.DataPanel.pas:958
 msgid "Delete %s"
 msgstr "Elimina %s"
 
-#: Kitto.Ext.DataPanel.pas:915
+#: Kitto.Ext.DataPanel.pas:961
 msgid "Selected %s {caption} will be deleted. Are you sure?"
 msgstr "Il record {caption} di tipo %s sarà eliminato. Continuo?"
 
 #. Get uploaded files.
-#: Kitto.Ext.DataPanel.pas:1028
+#: Kitto.Ext.DataPanel.pas:1098
 msgid "Data type %s does not support file upload."
 msgstr "Il tipo di dato %s non supporta l'upload di file."
 
 #. Save record.
-#: Kitto.Ext.DataPanel.pas:1037 Kitto.Ext.GridPanel.pas:797
+#: Kitto.Ext.DataPanel.pas:1107 Kitto.Ext.GridPanel.pas:812
 msgid "Changes saved succesfully."
 msgstr "Modifica memorizzate correttamente."
 
-#: Kitto.Ext.DataPanelLeaf.pas:138
+#: Kitto.Ext.DataPanelLeaf.pas:149
 msgid "Refresh data"
 msgstr "Aggiorna i dati"
 
-#: Kitto.Ext.DataTool.pas:275
+#: Kitto.Ext.DataTool.pas:278
 msgid "Command executed succesfully."
 msgstr "Comando eseguito con successo."
 
@@ -377,182 +394,186 @@ msgstr "Errore \"%s nel file \"%s\"."
 msgid "Error using DebenuPDFLibraryLite1012.dll library: %s"
 msgstr "Errore usando DebenuPDFLibraryLite1012.dll library: %s"
 
-#: Kitto.Ext.Editors.pas:742
+#: Kitto.Ext.Editors.pas:743
 msgid "Unknown or misplaced option %s: %s."
 msgstr "Opzione sconosciuta o errata %s: %s."
 
-#: Kitto.Ext.Editors.pas:753 Kitto.Ext.Editors.pas:758
+#: Kitto.Ext.Editors.pas:754 Kitto.Ext.Editors.pas:759
 msgid "Invalid value %s. Valid values: whole numbers or percentages."
 msgstr "Valore %s non valido. Deve essere un numero intero o una percentuale."
 
-#: Kitto.Ext.Editors.pas:755
+#: Kitto.Ext.Editors.pas:756
 msgid "Invalid percentage %s. Valid percentages are 0% to 100%."
 msgstr "Percentuale %s non valida. Deve essere compresa tra 0% e 100%."
 
-#: Kitto.Ext.Editors.pas:776
+#: Kitto.Ext.Editors.pas:777
 msgid "Invalid value %s. Valid values: %s"
 msgstr "Valore %s non valido. Valori ammessi: %s"
 
-#: Kitto.Ext.Editors.pas:821
+#: Kitto.Ext.Editors.pas:822
 msgid "Unknown transient property: %s = %s."
 msgstr "Operazione transiente sconosciuta:%s: %s."
 
-#: Kitto.Ext.Editors.pas:838
+#: Kitto.Ext.Editors.pas:839
 msgid "Layout parsing error. %s."
 msgstr "Errore durante l'elaborazione del layout. %s."
 
 #. DisplayLabel is handled earlier by CreateEditItem, so we just ignore it here.
-#: Kitto.Ext.Editors.pas:928
+#: Kitto.Ext.Editors.pas:929
 msgid "Option %s must have a value."
 msgstr "L'opzione %s deve avere un valore."
 
-#: Kitto.Ext.Editors.pas:930
+#: Kitto.Ext.Editors.pas:931
 msgid "Option node %s cannot have child nodes."
 msgstr "Il nodo dell'opzione %s non può contenere sotto-nodi."
 
-#: Kitto.Ext.Editors.pas:995
+#: Kitto.Ext.Editors.pas:996
 msgid "Unknown edit item type %s."
 msgstr "Elemento %s sconosciuto."
 
-#: Kitto.Ext.Editors.pas:2808
+#: Kitto.Ext.Editors.pas:2834
 msgid "Download file"
 msgstr "Scarica file"
 
-#: Kitto.Ext.Editors.pas:2816
+#: Kitto.Ext.Editors.pas:2842
 msgid "Upload file"
 msgstr "Carica file"
 
-#: Kitto.Ext.Editors.pas:2822
+#: Kitto.Ext.Editors.pas:2848
 msgid "Clear field"
 msgstr "Cancella campo"
 
-#: Kitto.Ext.Editors.pas:2867 Kitto.Ext.Editors.pas:2969
-#: Kitto.Ext.Editors.pas:2997
+#: Kitto.Ext.Editors.pas:2893 Kitto.Ext.Editors.pas:2995
+#: Kitto.Ext.Editors.pas:3023
 msgid "Empty"
 msgstr "Vuoto"
 
-#: Kitto.Ext.Editors.pas:2923 Kitto.Ext.StandardControllers.pas:561
+#: Kitto.Ext.Editors.pas:2949 Kitto.Ext.StandardControllers.pas:567
 msgid "File upload"
 msgstr "Caricamento file"
 
-#: Kitto.Ext.Editors.pas:2933 Kitto.Ext.StandardControllers.pas:574
+#: Kitto.Ext.Editors.pas:2959 Kitto.Ext.StandardControllers.pas:580
 msgid "Select a file to upload"
 msgstr "Seleziona un file da caricare"
 
-#: Kitto.Ext.Editors.pas:2937 Kitto.Ext.StandardControllers.pas:578
+#: Kitto.Ext.Editors.pas:2963 Kitto.Ext.StandardControllers.pas:584
 msgid "Upload"
 msgstr "Carica"
 
-#: Kitto.Ext.Editors.pas:2942 Kitto.Ext.StandardControllers.pas:583
+#: Kitto.Ext.Editors.pas:2968 Kitto.Ext.StandardControllers.pas:589
 msgid "File upload in progress..."
 msgstr "Caricamento in corso..."
 
-#: Kitto.Ext.Editors.pas:2943 Kitto.Ext.StandardControllers.pas:584
+#: Kitto.Ext.Editors.pas:2969 Kitto.Ext.StandardControllers.pas:590
 msgid "Please wait..."
 msgstr "Attendere, prego..."
 
-#: Kitto.Ext.Editors.pas:2945 Kitto.Ext.StandardControllers.pas:586
+#: Kitto.Ext.Editors.pas:2971 Kitto.Ext.StandardControllers.pas:592
 msgid "File upload error"
 msgstr "Errore durante il caricamento"
 
-#: Kitto.Ext.Editors.pas:2965
+#: Kitto.Ext.Editors.pas:2991
 msgid "Field %s is required. Please upload a file."
 msgstr "Il campo %s è obbligatorio. Si prega di caricare il file."
 
-#: Kitto.Ext.Editors.pas:2993
+#: Kitto.Ext.Editors.pas:3019
 msgid "%s file (%s)"
 msgstr "File %s (%s)"
 
-#: Kitto.Ext.Filters.pas:1254 Kitto.Ext.Form.pas:635
+#: Kitto.Ext.Filters.pas:1316 Kitto.Ext.Form.pas:688
 msgid "Apply"
 msgstr "Applica"
 
-#: Kitto.Ext.Form.pas:633
+#: Kitto.Ext.Form.pas:686
 msgid "Apply all"
 msgstr "Applica tutto"
 
-#: Kitto.Ext.Form.pas:636
+#: Kitto.Ext.Form.pas:689
 msgid "Apply changes and keep editing"
 msgstr "Applica le modifiche e continua"
 
 #. Clone button
-#: Kitto.Ext.Form.pas:648
+#: Kitto.Ext.Form.pas:701
 msgid "Save & Clone"
 msgstr "Salva e duplica"
 
-#: Kitto.Ext.Form.pas:649
+#: Kitto.Ext.Form.pas:702
 msgid "Save changes and create a new clone record"
 msgstr "Salva e crea un nuovo record duplicato"
 
-#: Kitto.Ext.Form.pas:666
+#: Kitto.Ext.Form.pas:719
 msgid "OK"
 msgstr "OK"
 
-#: Kitto.Ext.Form.pas:668
+#: Kitto.Ext.Form.pas:721
 msgid "Save all"
 msgstr "Salva tutto"
 
-#: Kitto.Ext.Form.pas:670 Kitto.Ext.GridPanel.pas:747
+#: Kitto.Ext.Form.pas:723 Kitto.Ext.GridPanel.pas:762
 msgid "Save"
 msgstr "Salva"
 
-#: Kitto.Ext.Form.pas:673
+#: Kitto.Ext.Form.pas:726
 msgid "Confirm changes and finish editing"
 msgstr "Conferma le modifiche e termina"
 
-#: Kitto.Ext.Form.pas:675 Kitto.Ext.GridPanel.pas:748
+#: Kitto.Ext.Form.pas:728 Kitto.Ext.GridPanel.pas:763
 msgid "Save changes and finish editing"
 msgstr "Salva le modifiche"
 
-#: Kitto.Ext.Form.pas:683
+#: Kitto.Ext.Form.pas:736
 msgid "Edit"
 msgstr "Modifica"
 
-#: Kitto.Ext.Form.pas:684
+#: Kitto.Ext.Form.pas:737
 msgid "Switch to edit mode"
 msgstr "Abilita modifica"
 
-#: Kitto.Ext.Form.pas:697
+#: Kitto.Ext.Form.pas:750
 msgid "Close"
 msgstr "Chiudi"
 
-#: Kitto.Ext.Form.pas:698
+#: Kitto.Ext.Form.pas:751
 msgid "Close this panel"
 msgstr "Chiudi il pannello"
 
-#: Kitto.Ext.Form.pas:772
+#: Kitto.Ext.Form.pas:825
 msgid "Operation Add not supported on read-only data."
 msgstr "Aggiunta non consentita su dati a sola lettura."
 
-#: Kitto.Ext.Form.pas:774
+#: Kitto.Ext.Form.pas:827
 msgid "Operation Edit not supported on read-only data."
 msgstr "Operazione di modifica non consentita su dati a sola lettura."
 
-#: Kitto.Ext.Form.pas:776
+#: Kitto.Ext.Form.pas:829
 msgid "Operation Duplicate not supported on read-only data."
 msgstr "Operazione Duplicazione non consentita su dati a sola lettura."
 
-#: Kitto.Ext.GridPanel.pas:208
+#: Kitto.Ext.GridPanel.pas:211
 msgid "Grouping value undefined."
 msgstr "Valore di gruppo non definito."
 
-#: Kitto.Ext.GridPanel.pas:228 Kitto.Ext.TemplateDataPanel.pas:129
+#: Kitto.Ext.GridPanel.pas:231 Kitto.Ext.TemplateDataPanel.pas:111
 msgid "No data to display."
 msgstr "Nessun dato da mostrare."
 
-#: Kitto.Ext.GridPanel.pas:732
+#: Kitto.Ext.GridPanel.pas:708 Kitto.Ext.LookupField.pas:170
+msgid "Choose %s"
+msgstr "Scegli %s"
+
+#: Kitto.Ext.GridPanel.pas:747
 msgid "Select"
 msgstr "Seleziona"
 
-#: Kitto.Ext.GridPanel.pas:733
+#: Kitto.Ext.GridPanel.pas:748
 msgid "Select the current record and close the window"
 msgstr "Seleziona il record corrente e chiudi la finestra"
 
-#: Kitto.Ext.GridPanel.pas:740
+#: Kitto.Ext.GridPanel.pas:755
 msgid "Close the window without selecting a record"
 msgstr "Chiudi la finestra senza selezionare un record"
 
-#: Kitto.Ext.IndyTools.pas:255
+#: Kitto.Ext.IndyTools.pas:367
 msgid "E-mail message sent successfully."
 msgstr "Messaggio E-mail inviato con successo."
 
@@ -650,15 +671,15 @@ msgstr "Comando %s eseguito correttamente!"
 msgid "Error executing command %s!"
 msgstr "Errore in esecuzione comando %s!"
 
-#: Kitto.Ext.StandardControllers.pas:504
+#: Kitto.Ext.StandardControllers.pas:510
 msgid "Logout"
 msgstr "Chiudi sessione"
 
-#: Kitto.Ext.StandardControllers.pas:572
+#: Kitto.Ext.StandardControllers.pas:578
 msgid "File matching %s"
 msgstr "File di tipo %s"
 
-#: Kitto.Ext.StandardControllers.pas:616
+#: Kitto.Ext.StandardControllers.pas:622
 msgid "Error: uploaded file don't match Wildcard (%s)"
 msgstr "Errore: il file caricato non è del tipo corretto (%s)"
 
@@ -669,19 +690,23 @@ msgstr ""
 "Controller."
 
 #. KExtMainForm..PageControl..HomeTabSheet..Caption
-#: Kitto.Ext.TilePanel.pas:153 Kitto.Ext.MainFormUnit.dfm:433
+#: Kitto.Ext.TilePanel.pas:143 Kitto.Ext.MainFormUnit.dfm:433
 msgid "Home"
 msgstr "Home"
 
-#: Kitto.Metadata.DataView.pas:2840
+#: Kitto.Ext.TilePanel.pas:306
+msgid "Back"
+msgstr "Indietro"
+
+#: Kitto.Metadata.DataView.pas:2892
 msgid "DetailStore %s not found."
 msgstr "DetailStore %s non trovato."
 
-#: Kitto.Metadata.pas:300
+#: Kitto.Metadata.pas:347
 msgid "Duplicate object %s."
 msgstr "Oggetto %s duplicato."
 
-#: Kitto.Metadata.pas:586
+#: Kitto.Metadata.pas:659
 msgid "Object %s not found."
 msgstr "Oggetto %s non trovato."
 
@@ -701,11 +726,11 @@ msgstr "Regola %s violata."
 msgid "%s must be greater than or equal to %s."
 msgstr "%s deve essere maggiore o uguale a %s."
 
-#: Kitto.Store.pas:867
+#: Kitto.Store.pas:922
 msgid "Record not found for predicate {%s}."
 msgstr "Record non trovato per la condizione {%s}."
 
-#: Kitto.Store.pas:1046 Kitto.Store.pas:1518
+#: Kitto.Store.pas:1104 Kitto.Store.pas:1610
 msgid "Field %s not found."
 msgstr "Campo %s non trovato."
 

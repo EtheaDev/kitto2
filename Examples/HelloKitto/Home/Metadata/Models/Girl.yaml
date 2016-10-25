@@ -1,5 +1,7 @@
 ﻿ModelName: Girl
 ImageName: Girl
+DisplayLabel: _(Girl)
+PluralDisplayLabel: _(Girls)
 Fields:
   Girl_Id: String(32) not null primary key
     DefaultValue: %COMPACT_GUID%

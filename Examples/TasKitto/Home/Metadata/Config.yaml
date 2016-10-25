@@ -7,9 +7,6 @@ Defaults:
   Window:
     Width: 800
     Height: 600
-  WindowTool:
-    Width: 800
-    Height: 600
   
 Databases:
   Main: DBX
