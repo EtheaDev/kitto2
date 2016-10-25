@@ -278,8 +278,7 @@ begin
   ADBQuery.Params.BeginUpdate;
   try
     ADBQuery.Params.Clear;
-    LCommandText :=
-      'select ' +  FSelectTerms +
+    LCommandText := 'select ' +  ExpandQualification(FSelectTerms, AModel.DBTableName) +
       ' from ' + AModel.DBTableName + ' where ' + ExpandQualification(GetModelKeyWhereClause(AModel, ADBQuery), AModel.DBTableName);
     ADBQuery.CommandText := TEFMacroExpansionEngine.Instance.Expand(LCommandText);
   finally
@@ -736,7 +735,7 @@ begin
     LQueryText := AddToSQLWhereClause(LQueryText, '(' + ExpandQualification(ARecord.ExpandExpression(LLookupFilter), '')  + ')');
 
   if ASearchString <> '' then
-    LQueryText := AddToSQLWhereClause(LQueryText, '(' + AViewField.ModelField.ReferencedModel.CaptionField.DBColumnName + ' like ''%' + ASearchString + '%'')');
+    LQueryText := AddToSQLWhereClause(LQueryText, '(' + ExpandQualification(LLookupModel.CaptionField.DBColumnNameOrExpression, '') + ' like ''%' + ASearchString + '%'')');
 
   LQueryText := LQueryText + ' order by ' + ExpandQualification(LLookupModel.CaptionField.DBColumnNameOrExpression, '');
 
