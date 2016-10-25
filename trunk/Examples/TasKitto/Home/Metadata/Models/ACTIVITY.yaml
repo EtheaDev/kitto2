@@ -19,7 +19,9 @@ Fields:
     Fields:
       TYPE_ID:
   ACTIVITY_DATE: Date not null
+    NotifyChange: True  
   START_TIME: Time
+    NotifyChange: True  
   END_TIME: Time
   STATUS: String(12)
     DisplayWidth: 6

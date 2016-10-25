@@ -705,7 +705,7 @@ begin
   if Title = '' then
   begin
     if IsLookupMode then
-      Title := _(Format('Choose %s', [LViewTable.DisplayLabel]))
+      Title := Format(_('Choose %s'), [LViewTable.DisplayLabel])
     else
       Title := _(LViewTable.PluralDisplayLabel);
   end;
