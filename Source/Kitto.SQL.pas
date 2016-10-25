@@ -735,7 +735,7 @@ begin
     LQueryText := AddToSQLWhereClause(LQueryText, '(' + ExpandQualification(ARecord.ExpandExpression(LLookupFilter), '')  + ')');
 
   if ASearchString <> '' then
-    LQueryText := AddToSQLWhereClause(LQueryText, '(' + AViewField.ModelField.ReferencedModel.CaptionField.DBColumnName + ' like ''%' + ASearchString + '%'')');
+    LQueryText := AddToSQLWhereClause(LQueryText, '(' + ExpandQualification(LLookupModel.CaptionField.DBColumnNameOrExpression, '') + ' like ''%' + ASearchString + '%'')');
 
   LQueryText := LQueryText + ' order by ' + ExpandQualification(LLookupModel.CaptionField.DBColumnNameOrExpression, '');
 
