@@ -187,8 +187,8 @@ type
     procedure SetOnAfterrender(const AValue: TExtComponentOnAfterrender);
   protected
     procedure InitDefaults; override;
-    procedure HandleEvent(const AEvtName: string); override;
   public
+    procedure HandleEvent(const AEvtName: string); override;
     class function JSClassName: string; override;
     function AddCls(const AClsName: string): TExtExpression;
     function Focus(const ASelectText: Boolean = False; const ADelay: Boolean = False): TExtExpression; overload;
@@ -706,9 +706,9 @@ type
     procedure SetLayoutOnTabChange(const AValue: Boolean);
     procedure SetOnTabChange(const AValue: TExtTabPanelOnTabchange);
   protected
-    procedure HandleEvent(const AEvtName: string); override;
     function GetObjectNamePrefix: string; override;
   public
+    procedure HandleEvent(const AEvtName: string); override;
     class function JSClassName: string; override;
     function GetActiveTab: TExtExpression;
     function SetActiveTab(const AItem: string): TExtExpression; overload;
@@ -768,20 +768,23 @@ function LabelAlignAsOption(const AValue: TExtContainerLabelAlign): string;
 implementation
 
 uses
-  SysUtils, KItto.JS;
+  SysUtils
+  , Kitto.JS
+  , KItto.JS.Formatting
+  ;
 
 function ExtQuickTips: TExtQuickTipsSingleton;
 begin
-  if (GetSession <> nil) then
-    Result := GetSession.GetSingleton<TExtQuickTipsSingleton>(TExtQuickTipsSingleton.JSClassName)
+  if Session <> nil then
+    Result := Session.GetSingleton<TExtQuickTipsSingleton>(TExtQuickTipsSingleton.JSClassName)
   else
     Result := nil;
 end;
 
 function ExtMessageBox: TExtMessageBoxSingleton;
 begin
-  if (GetSession <> nil) then
-    Result := GetSession.GetSingleton<TExtMessageBoxSingleton>(TExtMessageBoxSingleton.JSClassName)
+  if Session <> nil then
+    Result := Session.GetSingleton<TExtMessageBoxSingleton>(TExtMessageBoxSingleton.JSClassName)
   else
     Result := nil;
 end;
@@ -1452,7 +1455,7 @@ end;
 
 function TExtButton.Pressed_: TExtExpression;
 begin
-  Result := GetSession.ResponseItems.GetProperty(Self, 'pressed').AsExpression;
+  Result := Session.ResponseItems.GetProperty(Self, 'pressed').AsExpression;
 end;
 
 function TExtButton.GetTemplateArgs: TExtExpression;

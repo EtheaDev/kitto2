@@ -32,19 +32,9 @@ type
   TExtExpression = TJSExpression;
 //  TExtFunction = TJSFunction;
   TExtObjectArray = TJSObjectArray;
-
-  TExtSession = class(TJSSession);
-
   TExtResponseItems = TJSResponseItems;
 
-function GetSession: TExtSession;
-
 implementation
-
-function GetSession: TExtSession;
-begin
-  Result := TExtSession(Kitto.JS.GetSession);
-end;
 
 end.
 

@@ -86,11 +86,24 @@ type
 implementation
 
 uses
-  SysUtils, StrUtils, Math, Types,
-  superobject,
-  EF.StrUtils, EF.Localization, EF.JSON, EF.Macros,
-  Kitto.Metadata.Models, Kitto.Rules, Kitto.AccessControl, Kitto.Config, Kitto.JS,
-  Kitto.Ext.Session, Kitto.Ext.Utils;
+  SysUtils
+  , StrUtils
+  , Math
+  , Types
+  , superobject
+  , EF.StrUtils
+  , EF.Localization
+  , EF.JSON
+  , EF.Macros
+  , Kitto.Metadata.Models
+  , Kitto.Rules
+  , Kitto.AccessControl
+  , Kitto.Config
+  , Kitto.JS
+  , Kitto.JS.Formatting
+  , Kitto.Web
+  , Kitto.Ext.Utils
+  ;
 
 { TKExtGridPanel }
 
@@ -159,8 +172,9 @@ procedure TKExtGridPanel.BeforeEdit;
 var
   LReqBody: ISuperObject;
 begin
-  LReqBody := SO(Session.RequestBody);
-  InitColumnEditors(ServerStore.GetRecord(LReqBody.O['data'], Session.Config.UserFormatSettings));
+{ TODO : reimplement inline edit }
+//  LReqBody := SO(Session.RequestBody);
+  InitColumnEditors(ServerStore.GetRecord(LReqBody.O['data'], TKWebApplication.Current.Config.UserFormatSettings));
 
   ShowConfirmButtons(True);
 end;
@@ -293,7 +307,7 @@ var
         SetLength(LTriples, LImages.ChildCount);
         for I := 0 to LImages.ChildCount - 1 do
         begin
-          LTriples[I].Value1 := Session.Config.GetImageURL(LImages.Children[I].Name);
+          LTriples[I].Value1 := TKWebApplication.Current.Config.GetImageURL(LImages.Children[I].Name);
           LTriples[I].Value2 := LImages.Children[I].AsExpandedString;
           LTriples[I].Value3 := LImages.Children[I].GetExpandedString('DisplayTemplate');
           if LTriples[I].Value3 = '' then
@@ -421,7 +435,7 @@ var
         Result := TExtGridDateColumn.CreateInlineAndAddToArray(FGridPanel.Columns);
         LFormat := GetDisplayFormat;
         if LFormat = '' then
-          LFormat := Session.Config.UserFormatSettings.ShortDateFormat;
+          LFormat := TKWebApplication.Current.Config.UserFormatSettings.ShortDateFormat;
         TExtGridDateColumn(Result).Format := TJS.DelphiDateFormatToJSDateFormat(LFormat);
       end
       else if LDataType is TEFTimeDataType then
@@ -431,7 +445,7 @@ var
         begin
           LFormat := GetDisplayFormat;
           if LFormat = '' then
-            LFormat := Session.Config.UserFormatSettings.ShortTimeFormat;
+            LFormat := TKWebApplication.Current.Config.UserFormatSettings.ShortTimeFormat;
           Result.RendererFunc := Result.GenerateAnonymousFunction('v',
             Format('return formatTime(v, "%s");', [TJS.DelphiTimeFormatToJSTimeFormat(LFormat)]));
         end;
@@ -441,8 +455,8 @@ var
         Result := TExtGridDateColumn.CreateInlineAndAddToArray(FGridPanel.Columns);
         LFormat := GetDisplayFormat;
         if LFormat = '' then
-          LFormat := Session.Config.UserFormatSettings.ShortDateFormat + ' ' +
-            Session.Config.UserFormatSettings.ShortTimeFormat;
+          LFormat := TKWebApplication.Current.Config.UserFormatSettings.ShortDateFormat + ' ' +
+            TKWebApplication.Current.Config.UserFormatSettings.ShortTimeFormat;
         TExtGridDateColumn(Result).Format := TJS.DelphiDateTimeFormatToJSDateTimeFormat(LFormat);
       end
       else if LDataType is TEFIntegerDataType then
@@ -453,7 +467,7 @@ var
           LFormat := GetDisplayFormat;
           if LFormat = '' then
             LFormat := '0,000'; // '0';
-          TExtGridNumberColumn(Result).Format := AdaptExtNumberFormat(LFormat, Session.Config.UserFormatSettings);
+          TExtGridNumberColumn(Result).Format := AdaptExtNumberFormat(LFormat, TKWebApplication.Current.Config.UserFormatSettings);
         end;
       end
       else if (LDataType is TEFFloatDataType) or (LDataType is TEFDecimalDataType) then
@@ -464,7 +478,7 @@ var
           LFormat := GetDisplayFormat;
           if LFormat = '' then
             LFormat := '0,000.' + DupeString('0', AViewField.DecimalPrecision);
-          TExtGridNumberColumn(Result).Format := AdaptExtNumberFormat(LFormat, Session.Config.UserFormatSettings);
+          TExtGridNumberColumn(Result).Format := AdaptExtNumberFormat(LFormat, TKWebApplication.Current.Config.UserFormatSettings);
         end;
       end
       else if LDataType is TEFCurrencyDataType then
@@ -476,7 +490,7 @@ var
           LFormat := GetDisplayFormat;
           if LFormat = '' then
             LFormat := '0,000.00';
-          TExtGridNumberColumn(Result).Format := AdaptExtNumberFormat(LFormat, Session.Config.UserFormatSettings);
+          TExtGridNumberColumn(Result).Format := AdaptExtNumberFormat(LFormat, TKWebApplication.Current.Config.UserFormatSettings);
         end;
       end
       else
@@ -548,11 +562,6 @@ begin
     FEditItems := TKEditItemList.Create;
     // Only in-place editing supported ATM, not inserting.
     LEditorManager.Operation := eoUpdate;
-    LEditorManager.OnGetSession :=
-      procedure (out ASession: TKExtSession)
-      begin
-        ASession := Session;
-      end;
     LLayout := FindViewLayout('Grid');
     if LLayout <> nil then
     begin
@@ -676,7 +685,7 @@ begin
   if GetIsPaged then
   begin
     FPageRecordCount := LViewTable.GetInteger('Controller/PageRecordCount',
-      Session.Config.Config.GetInteger('Defaults/Grid/PageRecordCount', DEFAULT_PAGE_RECORD_COUNT));
+      TKWebApplication.Current.Config.Config.GetInteger('Defaults/Grid/PageRecordCount', DEFAULT_PAGE_RECORD_COUNT));
     FGridPanel.Bbar := CreatePagingToolbar;
   end;
 
@@ -814,7 +823,7 @@ procedure TKExtGridPanel.ConfirmInplaceChanges;
 begin
   ShowConfirmButtons(False);
   ViewTable.Model.SaveRecords(ServerStore, not ViewTable.IsDetail, nil);
-  Session.Flash(_('Changes saved succesfully.'));
+  TKWebApplication.Current.Flash(_('Changes saved succesfully.'));
   LoadData;
 end;
 
@@ -858,8 +867,9 @@ var
   LReqBody: ISuperObject;
   LError: string;
 begin
-  LReqBody := SO(Session.RequestBody);
-  LError := UpdateRecord(ServerStore.GetRecord(LReqBody.O['new'], Session.Config.UserFormatSettings),
+{ TODO : reimplement inline edit }
+//  LReqBody := SO(Session.RequestBody);
+  LError := UpdateRecord(ServerStore.GetRecord(LReqBody.O['new'], TKWebApplication.Current.Config.UserFormatSettings),
     LReqBody.O['new'], LReqBody.S['fieldName'], False);
   if LError = '' then
     // ok - nothing
@@ -998,7 +1008,7 @@ begin
     Add CaptionField to ViewTable for cases when the model's CaptionField
     is not part of the ViewTable or is aliased. }
   Result := Format('selectConfirmCall("%s", "%s", %s, "%s", {methodURL: "%s", selModel: %s, fieldNames: "%s"});',
-    [_(Session.Config.AppTitle), AMessage, FSelectionModel.JSName, ViewTable.Model.CaptionField.FieldName,
+    [_(TKWebApplication.Current.Config.AppTitle), AMessage, FSelectionModel.JSName, ViewTable.Model.CaptionField.FieldName,
     MethodURI(AMethod), FSelectionModel.JSName, Join(ViewTable.GetKeyFieldAliasedNames, ',')]);
 end;
 

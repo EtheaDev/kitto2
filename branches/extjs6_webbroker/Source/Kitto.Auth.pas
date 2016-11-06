@@ -40,10 +40,8 @@ type
   /// </summary>
   TKAuthenticator = class(TEFComponent)
   private
-    FAuthData: TEFNode;
-    FMacroExpander: TEFMacroExpander;
-    FIsAuthenticated: Boolean;
     procedure ClearAuthData;
+    function GetMacroExpander: TEFMacroExpander;
   strict protected
     function GetIsAuthenticated: Boolean; virtual;
 
@@ -90,7 +88,6 @@ type
     procedure SetPassword(const AValue: string); virtual;
   public
     procedure AfterConstruction; override;
-    destructor Destroy; override;
   public
     /// <summary>
     ///   <para>Receives an empty node which it should fill with the
@@ -105,14 +102,11 @@ type
     /// </summary>
     procedure DefineAuthData(const AAuthData: TEFNode);
 
-    /// <summary>Checks whether the specified auth data designates a valid user
-    /// or not, and returns False if the authentication fails.</summary>
+    /// <summary>
+    ///  Checks whether the specified auth data designates a valid user
+    ///  or not, and returns False if the authentication fails.
+    /// </summary>
     function Authenticate(const AAuthData: TEFNode): Boolean;
-
-    /// <summary>Gives access to a copy of the auth data that was last passed
-    /// to Authenticate (and possibly modified by the object during
-    /// authentication).</summary>
-    property AuthData: TEFNode read FAuthData;
 
     /// <summary>Clears AuthData and turns off IsAuthenticated.</summary>
     procedure Logout;
@@ -139,7 +133,7 @@ type
     /// <summary>
     ///   Access to the authenticator macro expander, that expands auth data.
     /// </summary>
-    property MacroExpander: TEFMacroExpander read FMacroExpander;
+    property MacroExpander: TEFMacroExpander read GetMacroExpander;
   end;
   TKAuthenticatorClass = class of TKAuthenticator;
 
@@ -155,7 +149,6 @@ type
     procedure InternalDefineAuthData(const AAuthData: TEFNode); override;
     function GetUserName: string; override;
     function GetPassword: string; override;
-    procedure SetPassword(const AValue: string); override;
   end;
 
   /// <summary>The Null authenticator does not require authentication data and
@@ -200,8 +193,11 @@ type
 implementation
 
 uses
-  SysUtils,
-  EF.StrUtils, EF.Localization;
+  SysUtils
+  , EF.StrUtils
+  , EF.Localization
+  , Kitto.JS
+  ;
 
 { TKNullAuthenticator }
 
@@ -263,17 +259,8 @@ end;
 procedure TKAuthenticator.AfterConstruction;
 begin
   inherited;
-  FAuthData := TEFNode.Create;
-  DefineAuthData(FAuthData);
-  FMacroExpander := TEFTreeMacroExpander.Create(FAuthData, 'Auth');
-  FIsAuthenticated := False;
-end;
-
-destructor TKAuthenticator.Destroy;
-begin
-  FreeAndNil(FMacroExpander);
-  FreeAndNil(FAuthData);
-  inherited;
+  DefineAuthData(Session.AuthData);
+  Session.IsAuthenticated := False;
 end;
 
 procedure TKAuthenticator.DefineAuthData(const AAuthData: TEFNode);
@@ -290,12 +277,17 @@ end;
 
 function TKAuthenticator.GetIsAuthenticated: Boolean;
 begin
-  Result := FIsAuthenticated;
+  Result := Session.IsAuthenticated;
 end;
 
 function TKAuthenticator.GetIsClearPassword: Boolean;
 begin
   Result := True;
+end;
+
+function TKAuthenticator.GetMacroExpander: TEFMacroExpander;
+begin
+  Result := Session.AuthMacroExpander;
 end;
 
 function TKAuthenticator.GetPassword: string;
@@ -315,7 +307,7 @@ end;
 procedure TKAuthenticator.Logout;
 begin
   ClearAuthData;
-  FIsAuthenticated := False;
+  Session.IsAuthenticated := False;
 end;
 
 procedure TKAuthenticator.SetPassword(const AValue: string);
@@ -324,12 +316,11 @@ end;
 
 procedure TKAuthenticator.ClearAuthData;
 begin
-  AuthData.Clear;
-  DefineAuthData(AuthData);
+  Session.AuthData.Clear;
+  DefineAuthData(Session.AuthData);
 end;
 
-procedure TKAuthenticator.InternalAfterAuthenticate(
-  const AAuthData: TEFNode);
+procedure TKAuthenticator.InternalAfterAuthenticate(const AAuthData: TEFNode);
 begin
 end;
 
@@ -339,16 +330,16 @@ begin
 
   Result := False;
   // Make sure the macros are enabled while authenticating.
-  AuthData.Assign(AAuthData);
+  Session.AuthData.Assign(AAuthData);
   try
     InternalBeforeAuthenticate(AAuthData);
     Result := InternalAuthenticate(AAuthData);
-    FIsAuthenticated := Result;
+    Session.IsAuthenticated := Result;
     if Result then
     begin
       InternalAfterAuthenticate(AAuthData);
       // Pick up any data changed by InternalAfterAuthenticate.
-      AuthData.Assign(AAuthData);
+      Session.AuthData.Assign(AAuthData);
     end;
   finally
     if not Result then
@@ -362,12 +353,12 @@ end;
 
 function TKClassicAuthenticator.GetPassword: string;
 begin
-  Result := AuthData.GetString('Password');
+  Result := Session.AuthData.GetString('Password');
 end;
 
 function TKClassicAuthenticator.GetUserName: string;
 begin
-  Result := AuthData.GetString('UserName');
+  Result := Session.AuthData.GetString('UserName');
 end;
 
 procedure TKClassicAuthenticator.InternalDefineAuthData(const AAuthData: TEFNode);
@@ -376,11 +367,6 @@ begin
   AAuthData.SetString('UserName', '');
   AAuthData.SetString('Password', '');
   AAuthData.SetString('Language', '');
-end;
-
-procedure TKClassicAuthenticator.SetPassword(const AValue: string);
-begin
-  inherited;
 end;
 
 initialization

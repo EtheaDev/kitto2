@@ -43,10 +43,18 @@ type
 implementation
 
 uses
-  SysUtils, StrUtils,
-  EF.Localization, EF.Macros,
-  Kitto.Types, Kitto.Metadata.Models, Kitto.JS,
-  Kitto.Ext.Utils, Kitto.Ext.Session, Kitto.Ext.Controller;
+  SysUtils
+  , StrUtils
+  , EF.Localization
+  , EF.Macros
+  , Kitto.Types
+  , Kitto.Metadata.Models
+  , Kitto.JS
+  , Kitto.JS.Formatting
+  , Kitto.Web
+  , Kitto.Ext.Utils
+  , Kitto.Ext.Controller
+  ;
 
 { TKExtChartPanel }
 
@@ -65,40 +73,40 @@ begin
   begin
     if LFormat = '' then
       LFormat := '0,000'; // '0';
-    Result := Format('Ext.util.Format.numberRenderer("%s")', [AdaptExtNumberFormat(LFormat, Session.Config.UserFormatSettings)]);
+    Result := Format('Ext.util.Format.numberRenderer("%s")', [AdaptExtNumberFormat(LFormat, TKWebApplication.Current.Config.UserFormatSettings)]);
   end
   else if (LDataType is TEFFloatDataType) or (LDataType is TEFDecimalDataType) then
   begin
     if LFormat = '' then
       LFormat := '0,000.' + DupeString('0', LViewField.DecimalPrecision);
-    Result := Format('Ext.util.Format.numberRenderer("%s")', [AdaptExtNumberFormat(LFormat, Session.Config.UserFormatSettings)]);
+    Result := Format('Ext.util.Format.numberRenderer("%s")', [AdaptExtNumberFormat(LFormat, TKWebApplication.Current.Config.UserFormatSettings)]);
   end
   else if LDataType is TEFCurrencyDataType then
   begin
     if LFormat = '' then
       LFormat := '0,000.00';
-    Result := Format('Ext.util.Format.numberRenderer("%s")', [AdaptExtNumberFormat(LFormat, Session.Config.UserFormatSettings)]);
+    Result := Format('Ext.util.Format.numberRenderer("%s")', [AdaptExtNumberFormat(LFormat, TKWebApplication.Current.Config.UserFormatSettings)]);
   end
   else if LDataType is TEFDateDataType then
   begin
     LFormat := LViewField.DisplayFormat;
     if LFormat = '' then
-      LFormat := Session.Config.UserFormatSettings.ShortDateFormat;
+      LFormat := TKWebApplication.Current.Config.UserFormatSettings.ShortDateFormat;
     Result := Format('Ext.util.Format.dateRenderer("%s")', [TJS.DelphiDateFormatToJSDateFormat(LFormat)]);
   end
   else if LDataType is TEFTimeDataType then
   begin
     LFormat := LViewField.DisplayFormat;
     if LFormat = '' then
-      LFormat := Session.Config.UserFormatSettings.ShortTimeFormat;
+      LFormat := TKWebApplication.Current.Config.UserFormatSettings.ShortTimeFormat;
     Result := Format('function (v) { return formatTime(v, "%s"); }', [TJS.DelphiTimeFormatToJSTimeFormat(LFormat)]);
   end
   else if LDataType is TEFDateTimeDataType then
   begin
     LFormat := LViewField.DisplayFormat;
     if LFormat = '' then
-      LFormat := Session.Config.UserFormatSettings.ShortDateFormat + ' ' +
-        Session.Config.UserFormatSettings.ShortTimeFormat;
+      LFormat := TKWebApplication.Current.Config.UserFormatSettings.ShortDateFormat + ' ' +
+        TKWebApplication.Current.Config.UserFormatSettings.ShortTimeFormat;
     Result := Format('Ext.util.Format.dateRenderer("%s")', [TJS.DelphiDateTimeFormatToJSDateTimeFormat(LFormat)])+
       Format('function (v) { return formatTime(v, "%s"); }', [TJS.DelphiTimeFormatToJSTimeFormat(LFormat)]);
   end
@@ -305,7 +313,8 @@ begin
   else
     raise EKError.CreateFmt(_('Unknown chart type %s.'), [AChartType]);
   FChart.Store := ClientStore;
-  FChart.Url := Format('%s/resources/charts.swf', [Session.ExtPath]);
+{ TODO : port to extjs 6 }
+//  FChart.Url := Format('%s/resources/charts.swf', [Session.ExtPath]);
   FChart.Region := rgCenter;
   LOption := Config.GetExpandedString('Chart/ChartStyle');
   if LOption <> '' then

@@ -111,10 +111,21 @@ type
 implementation
 
 uses
-  Windows,
-  System.Math , System.TypInfo, System.UIConsts,
-  Ext.Base, EF.Classes, EF.StrUtils, EF.Localization, EF.DB, EF.SysUtils, EF.Macros,
-  Kitto.Metadata.Models, Kitto.Ext.Session, Kitto.Config;
+  Windows
+  , Math
+  , TypInfo
+  , UIConsts
+  , Ext.Base
+  , EF.Classes
+  , EF.StrUtils
+  , EF.Localization
+  , EF.DB
+  , EF.SysUtils
+  , EF.Macros
+  , Kitto.Metadata.Models
+  , Kitto.Config
+  , Kitto.Web
+  ;
 
 { TMergePDFToolController }
 
@@ -394,7 +405,7 @@ begin
         LWidth := LNode.GetInteger('Width');
         LHeight := LNode.GetInteger('Height');
         //Add an image
-        LImageFileName := Session.Config.FindResourcePathName(LImageFileName);
+        LImageFileName := TKWebApplication.Current.Config.FindResourcePathName(LImageFileName);
         AddImage(LImageFileName,LLeft,LTop,LWidth,LHeight);
       end
       else if SameText(LNode.Name,'Text') then

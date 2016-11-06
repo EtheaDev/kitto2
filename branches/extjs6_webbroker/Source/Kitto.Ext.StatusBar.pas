@@ -45,8 +45,11 @@ type
 implementation
 
 uses
-  EF.Tree,
-  Kitto.Ext.Controller, Kitto.Ext.Session;
+  EF.Tree
+  , Kitto.Web
+  , Kitto.JS
+  , Kitto.Ext.Controller
+  ;
 
 { TKExtStatusBarController }
 
@@ -54,7 +57,7 @@ procedure TKExtStatusBarController.DoDisplay;
 begin
   inherited;
   FStatusBar.DefaultText := Config.GetExpandedString('Text');
-  FStatusBar.DefaultIconCls := Session.SetViewIconStyle(View, '', 'sb_', 'padding-left: 25px !important;');
+  FStatusBar.DefaultIconCls := TKWebApplication.Current.SetViewIconStyle(View, '', 'sb_', 'padding-left: 25px !important;');
 end;
 
 function TKExtStatusBarController.GetDefaultSplit: Boolean;

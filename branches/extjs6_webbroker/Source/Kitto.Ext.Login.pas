@@ -58,10 +58,17 @@ type
 implementation
 
 uses
-  SysUtils, Math,
-  EF.Classes, EF.Localization, EF.Tree, EF.Macros,
-  Kitto.JS, Kitto.Types,
-  Kitto.Ext.Session, Kitto.Ext.Controller;
+  SysUtils
+  , Math
+  , EF.Classes
+  , EF.Localization
+  , EF.Tree
+  , EF.Macros
+  , Kitto.JS
+  , Kitto.Types
+  , Kitto.Web
+  , Kitto.Ext.Controller
+  ;
 
 { TKExtLoginWindow }
 
@@ -121,9 +128,9 @@ begin
   end;
   if not Maximized then
     Width := LWidth;
-  LUseLanguageSelector := Session.Config.LanguagePerSession;
+  LUseLanguageSelector := TKWebApplication.Current.Config.LanguagePerSession;
 
-  Title := _(Session.Config.AppTitle);
+  Title := _(TKWebApplication.Current.Config.AppTitle);
   Closable := False;
   Resizable := False;
 
@@ -163,7 +170,7 @@ Or maybe skip the object list altogether and use the ownership. }
 
   FUserName := TExtFormTextField.CreateAndAddToArray(FFormPanel.Items);
   FUserName.Name := 'UserName';
-  FUserName.Value := Session.Config.Authenticator.AuthData.GetExpandedString('UserName');
+  FUserName.Value := Session.AuthData.GetExpandedString('UserName');
   FUserName.FieldLabel := _('User Name');
   FUserName.AllowBlank := False;
   FUserName.EnableKeyEvents := True;
@@ -173,7 +180,7 @@ Or maybe skip the object list altogether and use the ownership. }
 
   FPassword := TExtFormTextField.CreateAndAddToArray(FFormPanel.Items);
   FPassword.Name := 'Password';
-  FPassword.Value := Session.Config.Authenticator.AuthData.GetExpandedString('Password');
+  FPassword.Value := Session.AuthData.GetExpandedString('Password');
   FPassword.FieldLabel := _('Password');
   FPassword.InputType := itPassword;
   FPassword.AllowBlank := False;
@@ -195,9 +202,9 @@ Or maybe skip the object list altogether and use the ownership. }
     FLanguage := TExtFormComboBox.CreateAndAddToArray(FFormPanel.Items);
     FLanguage.StoreArray := JSArray('["it", "Italiano"], ["en", "English"]');
     FLanguage.HiddenName := 'Language';
-    FLanguage.Value := Session.Config.Authenticator.AuthData.GetExpandedString('Language');
+    FLanguage.Value := Session.AuthData.GetExpandedString('Language');
     if FLanguage.Value = '' then
-      FLanguage.Value := Session.Config.Config.GetString('LanguageId');
+      FLanguage.Value := TKWebApplication.Current.Config.Config.GetString('LanguageId');
     FLanguage.FieldLabel := _('Language');
     //FLanguage.EnableKeyEvents := True;
     //FLanguage.SelectOnFocus := True;
@@ -263,9 +270,9 @@ function TKExtLoginWindow.GetLocalStorageSaveJSCode(const ALocalStorageMode: str
 
   function GetDeleteCode: string;
   begin
-    Result := 'delete localStorage.' + Session.Config.AppName + '_UserName;' + sLineBreak;
-    Result := Result + 'delete localStorage.' + Session.Config.AppName + '_Password;' + sLineBreak;
-    Result := Result + 'delete localStorage.' + Session.Config.AppName + '_LocalStorageEnabled;' + sLineBreak;
+    Result := 'delete localStorage.' + TKWebApplication.Current.Config.AppName + '_UserName;' + sLineBreak;
+    Result := Result + 'delete localStorage.' + TKWebApplication.Current.Config.AppName + '_Password;' + sLineBreak;
+    Result := Result + 'delete localStorage.' + TKWebApplication.Current.Config.AppName + '_LocalStorageEnabled;' + sLineBreak;
   end;
 
 begin
@@ -274,11 +281,11 @@ begin
   begin
     Result := Result + IfChecked + '{';
     if SameText(ALocalStorageMode, 'UserName') or SameText(ALocalStorageMode, 'Password') then
-      Result := Result + 'localStorage.' + Session.Config.AppName + '_UserName = "' + Session.Query['UserName'] + '";';
+      Result := Result + 'localStorage.' + TKWebApplication.Current.Config.AppName + '_UserName = "' + ParamAsString('UserName') + '";';
     if SameText(ALocalStorageMode, 'Password') then
-      Result := Result + 'localStorage.' + Session.Config.AppName + '_Password = "' + Session.Query['Password'] + '";';
+      Result := Result + 'localStorage.' + TKWebApplication.Current.Config.AppName + '_Password = "' + ParamAsString('Password') + '";';
     if GetLocalStorageAskUser then
-      Result := Result + 'localStorage.' + Session.Config.AppName + '_LocalStorageEnabled = "' + Session.Query['LocalStorageEnabled'] + '";';
+      Result := Result + 'localStorage.' + TKWebApplication.Current.Config.AppName + '_LocalStorageEnabled = "' + ParamAsString('LocalStorageEnabled') + '";';
     Result := Result + '} else {' + GetDeleteCode + '};';
   end
   else
@@ -308,18 +315,18 @@ end;
 function TKExtLoginWindow.GetLocalStorageRetrieveJSCode(const ALocalStorageMode: string): string;
 begin
   if SameText(ALocalStorageMode, 'UserName') or SameText(ALocalStorageMode, 'Password') then
-    Result := Result + 'var u = localStorage.' + Session.Config.AppName + '_UserName; if (u) ' + FUserName.JSName + '.setValue(u);';
+    Result := Result + 'var u = localStorage.' + TKWebApplication.Current.Config.AppName + '_UserName; if (u) ' + FUserName.JSName + '.setValue(u);';
   if SameText(ALocalStorageMode, 'Password') then
-    Result := Result + 'var p = localStorage.' + Session.Config.AppName + '_Password; if (p) ' + FPassword.JSName + '.setValue(p);';
+    Result := Result + 'var p = localStorage.' + TKWebApplication.Current.Config.AppName + '_Password; if (p) ' + FPassword.JSName + '.setValue(p);';
   if Assigned(FLocalStorageEnabled) then
-    Result := Result + 'var l = localStorage.' + Session.Config.AppName + '_LocalStorageEnabled; if (l) ' + FLocalStorageEnabled.JSName + '.setValue(l);';
+    Result := Result + 'var l = localStorage.' + TKWebApplication.Current.Config.AppName + '_LocalStorageEnabled; if (l) ' + FLocalStorageEnabled.JSName + '.setValue(l);';
   if GetLocalStorageAutoLogin then
     Result := Result + Format('setTimeout(function(){ %s.getEl().dom.click(); }, 100);', [FLoginButton.JSName]);
 end;
 
 procedure TKExtLoginWindow.DoLogin;
 begin
-  if Session.Authenticate then
+  if TKWebApplication.Current.Authenticate then
   begin
     Session.ResponseItems.ExecuteJSCode(Format('Ext.TaskManager.stop(%s.enableTask);', [JSName]));
     Session.ResponseItems.ExecuteJSCode(GetLocalStorageSaveJSCode(LocalStorageMode));

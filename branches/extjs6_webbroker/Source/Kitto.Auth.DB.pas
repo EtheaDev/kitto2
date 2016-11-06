@@ -14,8 +14,10 @@
    limitations under the License.
 -------------------------------------------------------------------------------}
 
-/// <summary>Defines the DB authenticator, an authenticator that uses a custom
-/// table on the database to store users and passwords.</summary>
+/// <summary>
+///  Defines the DB authenticator, an authenticator that uses a custom
+///  table on the database to store users and passwords.
+/// </summary>
 unit Kitto.Auth.DB;
 
 {$I Kitto.Defines.inc}
@@ -230,9 +232,18 @@ type
 implementation
 
 uses
-  SysUtils, Classes, Variants, DB,
-  EF.Localization,  EF.Types, EF.StrUtils,
-  Kitto.Types, Kitto.Config, Kitto.DatabaseRouter;
+  SysUtils
+  , Classes
+  , Variants
+  , DB
+  , EF.Localization
+  , EF.Types
+  , EF.StrUtils
+  , Kitto.Types
+  , Kitto.Config
+  , Kitto.DatabaseRouter
+  , Kitto.JS
+  ;
 
 { TKDBAuthenticator }
 
@@ -461,9 +472,9 @@ begin
         raise EKError.Create(_('Error changing password.'));
       LCommand.Connection.CommitTransaction;
       if IsClearPassword then
-        AuthData.SetString('Password', AValue)
+        Session.AuthData.SetString('Password', AValue)
       else
-        AuthData.SetString('Password', GetStringHash(AValue));
+        Session.AuthData.SetString('Password', GetStringHash(AValue));
     except
       LCommand.Connection.RollbackTransaction;
       raise;

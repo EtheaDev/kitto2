@@ -67,10 +67,17 @@ type
 implementation
 
 uses
-  SysUtils, StrUtils,
-  EF.Localization, EF.StrUtils,
-  Kitto.Types, Kitto.Config, Kitto.AccessControl,
-  Kitto.Ext, Kitto.Ext.Session, Kitto.Ext.Filters;
+  SysUtils
+  , StrUtils
+  , EF.Localization
+  , EF.StrUtils
+  , Kitto.Types
+  , Kitto.Config
+  , Kitto.AccessControl
+  , Kitto.Web
+  , Kitto.Ext
+  , Kitto.Ext.Filters
+  ;
 
 { TKExtFilterPanel }
 
@@ -292,7 +299,7 @@ procedure TKExtListPanelController.InitComponents;
 begin
   inherited;
   if Title = '' then
-    Title := _(Session.Config.MacroExpansionEngine.Expand(ViewTable.PluralDisplayLabel));
+    Title := _(TKWebApplication.Current.Config.MacroExpansionEngine.Expand(ViewTable.PluralDisplayLabel));
 end;
 
 function TKExtListPanelController.GetRegionDefaultControllerClass(const ARegion: TExtBoxComponentRegion): string;

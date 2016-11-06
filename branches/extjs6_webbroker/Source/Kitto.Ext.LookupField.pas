@@ -29,7 +29,7 @@ uses
   Kitto.Ext.Controller;
 
 type
-  TKExtLookupField = class(TExtFormTwinTriggerField,  IInterface, IEFInterface, IEFSubject, IEFObserver)
+  TKExtLookupField = class(TExtFormTwinTriggerField,  IInterface, IEFInterface)
   private
     FSubjObserverImpl: TEFSubjectAndObserver;
     FLookupController: IKExtController;
@@ -51,7 +51,7 @@ type
     procedure AttachObserver(const AObserver: IEFObserver); virtual;
     procedure DetachObserver(const AObserver: IEFObserver); virtual;
     procedure NotifyObservers(const AContext: string = ''); virtual;
-    procedure UpdateObserver(const ASubject: IEFSubject; const AContext: string); virtual;
+    procedure UpdateObserver(const ASubject: IEFSubject; const AContext: string); override;
     function AsExtObject: TExtObject;
     class function SupportsViewField(const AViewField: TKViewField): Boolean; static;
   published
@@ -62,10 +62,13 @@ type
 implementation
 
 uses
-  StrUtils,
-  EF.StrUtils, EF.Localization,
-  Kitto.Metadata, Kitto.Config,
-  Kitto.Ext.Session;
+  StrUtils
+  , EF.StrUtils
+  , EF.Localization
+  , Kitto.Metadata
+  , Kitto.Config
+  , Kitto.Web
+  ;
 
 { TKExtLookupField }
 
@@ -164,7 +167,7 @@ begin
   LView := FindLookupView(FViewField);
   Assert(Assigned(LView));
 
-  FLookupController := Session.DisplayNewController(LView, True,
+  FLookupController := TKWebApplication.Current.DisplayNewController(LView, True,
     procedure (AWindow: TKExtControllerHostWindow)
     begin
       AWindow.Title := _(Format('Choose %s', [FViewField.DisplayLabel]));

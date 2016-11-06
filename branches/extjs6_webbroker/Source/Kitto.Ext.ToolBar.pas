@@ -41,9 +41,11 @@ type
 implementation
 
 uses
-  SysUtils,
-  EF.Tree,
-  Kitto.Ext.Controller, Kitto.Ext.Session;
+  SysUtils
+  , EF.Tree
+  , Kitto.Web
+  , Kitto.Ext.Controller
+  ;
 
 { TKExtToolBarController }
 
@@ -55,7 +57,7 @@ end;
 
 procedure TKExtToolBarController.DisplayView;
 begin
-  Session.DisplayView(TKView(Session.QueryAsInteger['View']));
+  TKWebApplication.Current.DisplayView(TKView(ParamAsInteger('View')));
 end;
 
 procedure TKExtToolBarController.DoDisplay;
@@ -65,12 +67,9 @@ var
 begin
   inherited;
   if not Assigned(FTreeViewRenderer) then
-  begin
     FTreeViewRenderer := TKExtTreeViewRenderer.Create;
-    FTreeViewrenderer.Session := Session;
-  end;
   LNode := Config.GetNode('TreeView');
-  LTreeView := Session.Config.Views.ViewByNode(LNode) as TKTreeView;
+  LTreeView := TKWebApplication.Current.Config.Views.ViewByNode(LNode) as TKTreeView;
   FTreeViewRenderer.RenderAsButtons(LTreeView, FToolBar, Self, DisplayView);
 end;
 

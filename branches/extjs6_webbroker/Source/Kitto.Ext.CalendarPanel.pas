@@ -55,11 +55,20 @@ type
 implementation
 
 uses
-  SysUtils, StrUtils, Types,
-  {$IFDEF D21+}JSON, {$ELSE}DBXJSON,{$ENDIF}
-  EF.Localization, EF.Macros, EF.StrUtils, EF.SQL,
-  Kitto.Types, Kitto.Ext.Utils, Kitto.Metadata.Models, Kitto.Ext.Session,
-  Kitto.Ext.Controller;
+  SysUtils
+  , StrUtils
+  , Types
+  , {$IFDEF D21+}JSON{$ELSE}DBXJSON{$ENDIF}
+  , EF.Localization
+  , EF.Macros
+  , EF.StrUtils
+  , EF.SQL
+  , Kitto.Types
+  , Kitto.Metadata.Models
+  , Kitto.Web
+  , Kitto.Ext.Utils
+  , Kitto.Ext.Controller
+  ;
 
 { TKExtCalendarPanel }
 
@@ -128,12 +137,12 @@ var
 begin
   Result := inherited GetRecordPageFilter;
 
-  LStartDateStr := Session.Query['start'];
-  LEndDateStr := Session.Query['end'];
+  LStartDateStr := ParamAsString('start');
+  LEndDateStr := ParamAsString('end');
   if (LStartDateStr <> '') and (LEndDateStr <> '') then
   begin
-    LStartDateStr := Session.Config.DBConnections[ViewTable.DatabaseName].DBEngineType.FormatDateTime(ParseJSDate(LStartDateStr));
-    LEndDateStr := Session.Config.DBConnections[ViewTable.DatabaseName].DBEngineType.FormatDateTime(ParseJSDate(LEndDateStr));
+    LStartDateStr := TKWebApplication.Current.Config.DBConnections[ViewTable.DatabaseName].DBEngineType.FormatDateTime(ParseJSDate(LStartDateStr));
+    LEndDateStr := TKWebApplication.Current.Config.DBConnections[ViewTable.DatabaseName].DBEngineType.FormatDateTime(ParseJSDate(LEndDateStr));
     LFilter := GetStartDateDBName + ' between ' + SQLQuotedStr(LStartDateStr) + ' and ' + SQLQuotedStr(LEndDateStr) +
       ' or ' + SQLQuotedStr(LStartDateStr) + ' between ' + GetStartDateDBName + ' and ' + GetEndDateDBName;
     if Result = '' then
@@ -153,7 +162,7 @@ function TKExtCalendarPanel.GetSelectConfirmCall(const AMessage: string;
   const AMethod: TExtProcedure): string;
 begin
   Result := Format('selectCalendarConfirmCall("%s", "%s", %s, "%s", {methodURL: "%s", calendarPanel: %s, fieldNames: "%s"});',
-    [_(Session.Config.AppTitle), AMessage, FCalendarPanel.JSName, ViewTable.Model.CaptionField.FieldName, MethodURI(AMethod),
+    [_(TKWebApplication.Current.Config.AppTitle), AMessage, FCalendarPanel.JSName, ViewTable.Model.CaptionField.FieldName, MethodURI(AMethod),
     FCalendarPanel.JSName, Join(ViewTable.GetKeyFieldAliasedNames, ',')]);
 end;
 
@@ -173,9 +182,9 @@ var
   LMonth: Integer;
   LYear: Integer;
 begin
-  LDay := Session.QueryAsInteger['d'];
-  LMonth := Session.QueryAsInteger['m'];
-  LYear := Session.QueryAsInteger['y'];
+  LDay := ParamAsInteger('d');
+  LMonth := ParamAsInteger('m');
+  LYear := ParamAsInteger('y');
 
   ANode.GetNode('Sys/DefaultValues/' + GetDateFieldNameForNewRecords, True).AsDateTime :=  EncodeDate(LYear, LMonth, LDay);
 end;

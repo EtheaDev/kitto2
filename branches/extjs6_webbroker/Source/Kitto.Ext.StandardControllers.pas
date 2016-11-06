@@ -256,10 +256,22 @@ type
 implementation
 
 uses
-  Types, StrUtils, Masks,
-  Ext.Base, Ext.Form, Ext.Ux.Form,
-  EF.SysUtils, EF.Tree, EF.RegEx, EF.Localization,
-  Kitto.Ext.Session, Kitto.Ext.Controller, Kitto.Metadata.DataView;
+  Types
+  , StrUtils
+  , Masks
+  , EF.SysUtils
+  , EF.Tree
+  , EF.RegEx
+  , EF.Localization
+  , Ext.Base
+  , Ext.Form
+  , Ext.Ux.Form
+  , Kitto.Metadata.DataView
+  , Kitto.JS
+  , Kitto.Web
+  , Kitto.Web.Request
+  , Kitto.Ext.Controller
+  ;
 
 { TKExtURLControllerBase }
 
@@ -270,7 +282,7 @@ begin
   inherited;
   LURL := GetURL;
   if LURL <> '' then
-    Session.Navigate(LURL);
+    TKWebApplication.Current.Navigate(LURL);
 end;
 
 { TKExtURLController }
@@ -296,7 +308,7 @@ begin
   begin
     for I := 0 to LFilters.ChildCount - 1 do
     begin
-      LHeader := Session.RequestHeader[LFilters.Children[I].GetExpandedString('Header')];
+      LHeader := TKWebRequest.Current.GetFieldByName(LFilters.Children[I].GetExpandedString('Header'));
       LPattern := LFilters.Children[I].GetExpandedString('Pattern');
       LTargetURL := LFilters.Children[I].GetExpandedString('TargetURL');
       if StrMatchesPatternOrRegex(LHeader, LPattern) then
@@ -376,7 +388,7 @@ end;
 procedure TKExtDownloadFileController.DoDownloadStream(const AStream: TStream;
   const AFileName, AContentType: string);
 begin
-  Session.DownloadStream(AStream, AFileName, AContentType);
+  TKWebApplication.Current.DownloadStream(AStream, AFileName, AContentType);
   AfterExecuteTool;
 end;
 
@@ -502,7 +514,7 @@ end;
 procedure TKExtLogoutController.ExecuteTool;
 begin
   inherited;
-  Session.Logout;
+  TKWebApplication.Current.Logout;
 end;
 
 class function TKExtLogoutController.GetDefaultDisplayLabel: string;

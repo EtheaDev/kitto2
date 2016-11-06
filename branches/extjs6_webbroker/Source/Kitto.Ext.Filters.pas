@@ -446,10 +446,20 @@ type
 implementation
 
 uses
-  SysUtils, Math, StrUtils,
-  EF.Localization,  EF.DB, EF.StrUtils, EF.JSON, EF.SQL,
-  Kitto.Types, Kitto.Config, KItto.AccessControl,
-  Kitto.Ext.Session, Kitto.Ext.Utils;
+  SysUtils
+  , Math
+  , StrUtils
+  , EF.Localization
+  , EF.DB
+  , EF.StrUtils
+  , EF.JSON
+  , EF.SQL
+  , Kitto.Types
+  , Kitto.Config
+  , Kitto.AccessControl
+  , Kitto.JS.Formatting
+  , Kitto.Web
+  , Kitto.Ext.Utils;
 
 function GetDefaultFilter(const AItems: TEFNode): TEFNode;
 var
@@ -773,10 +783,10 @@ begin
 
   Assert(Assigned(FServerStore));
 
-  LDBQuery := Session.Config.DBConnections[GetDatabaseName(FConfig, Self, FViewTable.DatabaseName)].CreateDBQuery;
+  LDBQuery := TKWebApplication.Current.Config.DBConnections[GetDatabaseName(FConfig, Self, FViewTable.DatabaseName)].CreateDBQuery;
   try
     LCommandText := ExpandFilterValues(Owner as TExtObjectArray, FConfig.GetExpandedString('CommandText'));
-    LQuery := Session.Query['query'];
+    LQuery := ParamAsString('query');
     if LQuery <> '' then
       LQueryExpression := ReplaceStr(FConfig.GetExpandedString('QueryTemplate'), '{queryValue}', LQuery)
     else
@@ -793,8 +803,8 @@ begin
     FreeAndNil(LDBQuery);
   end;
 
-  LStart := Session.QueryAsInteger['start'];
-  LLimit := Session.QueryAsInteger['limit'];
+  LStart := ParamAsInteger('start');
+  LLimit := ParamAsInteger('limit');
   LPageRecordCount := Min(LLimit, FServerStore.RecordCount - LStart);
 
   Session.ResponseItems.AddJSON('{Total: ' + IntToStr(FServerStore.RecordCount)
@@ -913,14 +923,14 @@ begin
   LDefaultValue := AConfig.GetExpandedString('DefaultValue');
   if LDefaultValue <> '' then
   begin
-    FCurrentValue := StrToDate(LDefaultValue, Session.Config.UserFormatSettings);
-    SetValue(DateToStr(FCurrentValue, Session.Config.UserFormatSettings));
+    FCurrentValue := StrToDate(LDefaultValue, TKWebApplication.Current.Config.UserFormatSettings);
+    SetValue(DateToStr(FCurrentValue, TKWebApplication.Current.Config.UserFormatSettings));
   end
   else
     FCurrentValue := 0;
-  LFormat := Session.Config.UserFormatSettings.ShortDateFormat;
+  LFormat := TKWebApplication.Current.Config.UserFormatSettings.ShortDateFormat;
   Format := TJS.DelphiDateFormatToJSDateFormat(LFormat);
-  AltFormats := TJS.DelphiDateFormatToJSDateFormat(Session.Config.JSFormatSettings.ShortDateFormat);
+  AltFormats := TJS.DelphiDateFormatToJSDateFormat(TKWebApplication.Current.Config.JSFormatSettings.ShortDateFormat);
 
   if Session.IsMobileBrowser then
     Editable := False;
@@ -963,7 +973,7 @@ begin
   //A zero date is considered blank
   if FCurrentValue <> 0 then
   begin
-    LDateTimeValue := Session.Config.DBConnections[GetDatabaseName(FConfig, Self, FViewTable.DatabaseName)].DBEngineType.FormatDateTime(FCurrentValue);
+    LDateTimeValue := TKWebApplication.Current.Config.DBConnections[GetDatabaseName(FConfig, Self, FViewTable.DatabaseName)].DBEngineType.FormatDateTime(FCurrentValue);
     Result := ReplaceText(FConfig.GetExpandedString('ExpressionTemplate'), '{value}', LDateTimeValue);
   end
   else
@@ -1262,7 +1272,7 @@ var
 begin
   Result := TEFNode.Create('Items');
   try
-    LDBQuery := Session.Config.DBConnections[GetDatabaseName(FConfig, Self, FViewTable.DatabaseName)].CreateDBQuery;
+    LDBQuery := TKWebApplication.Current.Config.DBConnections[GetDatabaseName(FConfig, Self, FViewTable.DatabaseName)].CreateDBQuery;
     try
       LDBQuery.CommandText := FConfig.GetExpandedString('CommandText');
       LDBQuery.Open;

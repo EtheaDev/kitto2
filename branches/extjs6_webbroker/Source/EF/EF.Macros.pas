@@ -96,8 +96,7 @@ type
   public
     class property Instance: TEFMacroExpansionEngine read GetInstance;
 
-    class property OnGetInstance: TEFGetMacroExpansionEngine
-      read FOnGetInstance write FOnGetInstance;
+    class property OnGetInstance: TEFGetMacroExpansionEngine read FOnGetInstance write FOnGetInstance;
 
     /// <summary>
     ///   Expands all recognized macros in AString and returns the resulting

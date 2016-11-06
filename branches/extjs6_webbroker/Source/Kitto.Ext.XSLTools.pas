@@ -64,7 +64,7 @@ uses
 
   , Kitto.Metadata.Models
   , Kitto.Config
-  , Kitto.Ext.Session;
+  ;
 
 function TransformXMLText(const AXMLText, AXSLText: string): string;
 var

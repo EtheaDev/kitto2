@@ -43,9 +43,9 @@ type
     procedure SetOnClick(const AValue: TExtMenuBaseItemOnClick);
   protected
     procedure InitDefaults; override;
-    procedure HandleEvent(const AEvtName: string); override;
     function GetObjectNamePrefix: string; override;
   public
+    procedure HandleEvent(const AEvtName: string); override;
     class function JSClassName: string; override;
     function SetHandler(const AHandler: TExtExpression; const AScope: TExtObject): TExtExpression;
     property Handler: TExtExpression read FHandler write _SetHandler;
@@ -105,9 +105,8 @@ type
     FOnItemclick: TExtMenuMenuOnItemclick;
     procedure SetOnClick(const AValue: TExtMenuMenuOnClick);
     procedure SetOnItemclick(const AValue: TExtMenuMenuOnItemclick);
-  protected
-    procedure HandleEvent(const AEvtName: string); override;
   public
+    procedure HandleEvent(const AEvtName: string); override;
     class function JSClassName: string; override;
     property OnClick: TExtMenuMenuOnClick read FOnClick write SetOnClick;
     property OnItemclick: TExtMenuMenuOnItemclick read FOnItemclick write SetOnItemclick;
@@ -134,10 +133,14 @@ function ExtMenuMenuMgr: TExtMenuMenuMgrSingleton;
 
 implementation
 
+uses
+  Kitto.JS
+  ;
+
 function ExtMenuMenuMgr: TExtMenuMenuMgrSingleton;
 begin
-  if GetSession <> nil then
-    Result := GetSession.GetSingleton<TExtMenuMenuMgrSingleton>(TExtMenuMenuMgrSingleton.JSClassName)
+  if Session <> nil then
+    Result := Session.GetSingleton<TExtMenuMenuMgrSingleton>(TExtMenuMenuMgrSingleton.JSClassName)
   else
     Result := nil;
 end;

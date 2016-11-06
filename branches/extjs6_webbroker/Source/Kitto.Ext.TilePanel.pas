@@ -21,10 +21,13 @@ unit Kitto.Ext.TilePanel;
 interface
 
 uses
-  Types,
-  EF.Tree,
-  Kitto.Metadata.Views,
-  Kitto.Ext.Base, Kitto.Ext.Controller, Kitto.Ext.Session, Kitto.Ext.TabPanel;
+  Types
+  , EF.Tree
+  , Kitto.Metadata.Views
+  , Kitto.Ext.Base
+  , Kitto.Ext.Controller
+  , Kitto.Ext.TabPanel
+  ;
 
 const
   DEFAULT_TILE_HEIGHT = 50;
@@ -82,10 +85,18 @@ type
 implementation
 
 uses
-  SysUtils, StrUtils,
-  Ext.Base,
-  EF.StrUtils, EF.Macros, EF.Localization,
-  Kitto.JS, Kitto.Config, Kitto.Utils, Kitto.Ext.Utils;
+  SysUtils
+  , StrUtils
+  , Ext.Base
+  , EF.StrUtils
+  , EF.Macros
+  , EF.Localization
+  , Kitto.JS
+  , Kitto.Config
+  , Kitto.Utils
+  , Kitto.Web
+  , Kitto.Ext.Utils
+  ;
 
 { TKExtTilePanelController }
 
@@ -149,12 +160,12 @@ end;
 
 procedure TKExtTilePanel.DisplayPage;
 begin
-  BuildTileBoxHtml(TKTreeViewNode(Session.QueryAsInteger['PageId']));
+  BuildTileBoxHtml(TKTreeViewNode(ParamAsInteger('PageId')));
 end;
 
 procedure TKExtTilePanel.DisplayView;
 begin
-  Session.DisplayView(TKView(Session.QueryAsInteger['View']));
+  TKWebApplication.Current.DisplayView(TKView(ParamAsInteger('View')));
 end;
 
 function TKExtTilePanel.GetColors(const AColorSetName: string): TStringDynArray;
@@ -263,7 +274,7 @@ var
         if Assigned(LDisplayLabelNode) then
           LDisplayLabel := _(LDisplayLabelNode.AsString)
         else
-          LDisplayLabel := GetDisplayLabelFromNode(LOriginalSubNode, Session.Config.Views);
+          LDisplayLabel := GetDisplayLabelFromNode(LOriginalSubNode, TKWebApplication.Current.Config.Views);
         // Render folders as rows not tiles in second level.
         if not (LOriginalSubNode is TKTreeViewFolder) or not Assigned(FRootNode) then
         begin
@@ -373,7 +384,7 @@ begin
       procedure
       begin
         AjaxCallMethod().SetMethod(DisplayView)
-          .AddParam('View', Integer(Integer(Session.Config.Views.ViewByNode(ANode))));
+          .AddParam('View', Integer(TKWebApplication.Current.Config.Views.ViewByNode(ANode)));
       end)).ExtractText;
   end;
 
@@ -411,9 +422,8 @@ begin
 
   LTreeViewRenderer := TKExtTreeViewRenderer.Create;
   try
-    LTreeViewRenderer.Session := Session;
     LNode := Config.GetNode('TreeView');
-    LTreeView := Session.Config.Views.ViewByNode(LNode) as TKTreeView;
+    LTreeView := TKWebApplication.Current.Config.Views.ViewByNode(LNode) as TKTreeView;
     LTreeViewRenderer.Render(LTreeView,
       procedure (ANode: TKTreeViewNode; ADisplayLabel: string)
       begin

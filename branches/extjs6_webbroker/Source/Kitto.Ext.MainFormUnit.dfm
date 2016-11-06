@@ -432,6 +432,10 @@ object KExtMainForm: TKExtMainForm
     object HomeTabSheet: TTabSheet
       Caption = 'Home'
       ImageIndex = 1
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object LogMemo: TMemo
         Left = 0
         Top = 81
@@ -606,16 +610,15 @@ object KExtMainForm: TKExtMainForm
           Align = alTop
           BevelOuter = bvNone
           TabOrder = 0
-          ExplicitLeft = 0
         end
-        object Button1: TButton
+        object RefreshButton: TButton
           Left = 4
           Top = 6
           Width = 75
           Height = 25
           Caption = 'Refresh'
           TabOrder = 1
-          OnClick = Button1Click
+          OnClick = RefreshButtonClick
         end
         object SessionListView: TListView
           Left = 4
@@ -682,7 +685,7 @@ object KExtMainForm: TKExtMainForm
     Left = 320
     Top = 65528
     Bitmap = {
-      494C010103004C00C00010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C010103004C00CC0010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000001000000001002000000000000010
       0000000000000000000000000000000000000000000000000000000000000000
       00000000001E00000031000000330000003300000033000000310000001E0000

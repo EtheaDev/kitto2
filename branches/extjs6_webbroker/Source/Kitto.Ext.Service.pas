@@ -19,8 +19,7 @@ unit Kitto.Ext.Service;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, SvcMgr,
-  Kitto.Ext.Application;
+  Windows, Messages, SysUtils, Classes, SvcMgr;
 
 type
   TKExtService = class(TService)
@@ -28,8 +27,8 @@ type
     procedure ServiceStop(Sender: TService; var Stopped: Boolean);
     procedure ServiceShutdown(Sender: TService);
   private
-    FThread: TKExtAppThread;
-    function CreateThread: TKExtAppThread;
+//    FThread: TKExtAppThread;
+//    function CreateThread: TKExtAppThread;
     procedure StopAndFreeThread;
   public
     function GetServiceController: TServiceController; override;
@@ -54,19 +53,19 @@ end;
 
 procedure TKExtService.StopAndFreeThread;
 begin
-  if Assigned(FThread) then
-  begin
-    FThread.Terminate;
-    FThread.WaitFor;
-    FreeAndNil(FThread);
-  end;
+//  if Assigned(FThread) then
+//  begin
+//    FThread.Terminate;
+//    FThread.WaitFor;
+//    FreeAndNil(FThread);
+//  end;
 end;
 
-function TKExtService.CreateThread: TKExtAppThread;
-begin
-  Result := TKExtAppThread.Create(True);
-  Result.Configure;
-end;
+//function TKExtService.CreateThread: TKExtAppThread;
+//begin
+//  Result := TKExtAppThread.Create(True);
+//  Result.Configure;
+//end;
 
 function TKExtService.GetServiceController: TServiceController;
 begin
@@ -81,10 +80,10 @@ end;
 
 procedure TKExtService.ServiceStart(Sender: TService; var Started: Boolean);
 begin
-  TEFLogger.Instance.Log('Service start. Creating thread...');
-  FThread := CreateThread;
-  TEFLogger.Instance.Log('Starting thread...');
-  FThread.Start;
+//  TEFLogger.Instance.Log('Service start. Creating thread...');
+//  FThread := CreateThread;
+//  TEFLogger.Instance.Log('Starting thread...');
+//  FThread.Start;
 end;
 
 procedure TKExtService.ServiceStop(Sender: TService; var Stopped: Boolean);

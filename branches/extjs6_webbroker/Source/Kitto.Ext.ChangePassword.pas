@@ -52,10 +52,20 @@ type
 implementation
 
 uses
-  SysUtils, StrUtils, Math,
-  EF.Classes, EF.Localization, EF.Tree, EF.StrUtils,
-  Kitto.Types, Kitto.Config, Kitto.JS,
-  Kitto.Ext.Controller, Kitto.Ext.Session;
+  SysUtils
+  , StrUtils
+  , Math
+  , EF.Classes
+  , EF.Localization
+  , EF.Tree
+  , EF.StrUtils
+  , Kitto.Types
+  , Kitto.Config
+  , Kitto.JS
+  , Kitto.JS.Formatting
+  , Kitto.Web
+  , Kitto.Ext.Controller
+  ;
 
 { TKExtChangePasswordWindow }
 
@@ -69,17 +79,17 @@ end;
 
 procedure TKExtChangePasswordWindow.DoChangePassword;
 begin
-  if GetPasswordHash(Session.Query['OldPassword']) <> FOldPasswordHash then
+  if GetPasswordHash(ParamAsString('OldPassword')) <> FOldPasswordHash then
   begin
     FStatusBar.SetErrorStatus(_('Old Password is wrong.'));
     FOldPassword.Focus(False, 500);
   end
-  else if GetPasswordHash(Session.Query['NewPassword']) = FOldPasswordHash then
+  else if GetPasswordHash(ParamAsString('NewPassword')) = FOldPasswordHash then
   begin
     FStatusBar.SetErrorStatus(_('New Password must be different than old password.'));
     FNewPassword.Focus(False, 500);
   end
-  else if Session.Query['NewPassword'] <> Session.Query['ConfirmNewPassword'] then
+  else if ParamAsString('NewPassword') <> ParamAsString('ConfirmNewPassword') then
   begin
     FStatusBar.SetErrorStatus(_('Confirm New Password is wrong.'));
     FConfirmNewPassword.Focus(False, 500);
@@ -87,7 +97,7 @@ begin
   else
   begin
     try
-      TKConfig.Instance.Authenticator.Password := Session.Query['ConfirmNewPassword'];
+      TKConfig.Instance.Authenticator.Password := ParamAsString('ConfirmNewPassword');
       Close;
     except
       on E: Exception do
@@ -138,7 +148,7 @@ begin
   FOldPasswordHash := TKConfig.Instance.Authenticator.Password;
 
   Modal := True;
-  Title := _(Session.Config.AppTitle);
+  Title := _(TKWebApplication.Current.Config.AppTitle);
   Width := 316;
   Height := 162;
   Maximized := Session.IsMobileBrowser;

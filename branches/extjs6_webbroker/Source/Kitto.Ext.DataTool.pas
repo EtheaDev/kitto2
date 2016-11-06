@@ -88,9 +88,16 @@ type
 implementation
 
 uses
-  StrUtils,
-  EF.Tree, EF.DB, EF.StrUtils, EF.SysUtils, EF.Localization,
-  Kitto.Config, Kitto.Ext.Session;
+  StrUtils
+  , EF.Tree
+  , EF.DB
+  , EF.StrUtils
+  , EF.SysUtils
+  , EF.Localization
+  , Kitto.Config
+  , Kitto.Web
+  , Kitto.Web.Request
+  ;
 
 { TKExtDataToolController }
 
@@ -117,9 +124,9 @@ begin
   try
     LKey.Assign(ServerStore.Key);
     Assert(LKey.ChildCount > 0);
-    LRecordCount := Length(Split(Session.Queries.Values[LKey[0].Name], ','));
+    LRecordCount := Length(Split(ParamAsString(LKey[0].Name), ','));
     for I := 0 to LRecordCount - 1 do
-      AProc(ServerStore.GetRecord(Session.GetQueries, Session.Config.JSFormatSettings, I));
+      AProc(ServerStore.GetRecord(TKWebRequest.Current.GetQueryFields, TKWebApplication.Current.Config.JSFormatSettings, I));
   finally
     FreeAndNil(LKey);
   end;
@@ -224,10 +231,10 @@ begin
   try
     LKey.Assign(ServerStore.Key);
     Assert(LKey.ChildCount > 0);
-    LRecordCount := Length(EF.StrUtils.Split(Session.Queries.Values[LKey[0].Name], ','));
+    LRecordCount := Length(EF.StrUtils.Split(TKWebRequest.Current.QueryFields.Values[LKey[0].Name], ','));
     SetLength(FSelectedRecords, LRecordCount);
     for I := 0 to LRecordCount - 1 do
-      FSelectedRecords[I] := ServerStore.GetRecord(Session.GetQueries, Session.Config.JSFormatSettings, I);
+      FSelectedRecords[I] := ServerStore.GetRecord(TKWebRequest.Current.GetQueryFields, TKWebApplication.Current.Config.JSFormatSettings, I);
   finally
     FreeAndNil(LKey);
   end;
@@ -269,7 +276,7 @@ end;
 procedure TKExtDataCmdToolController.AfterExecuteTool;
 begin
   inherited;
-  Session.Flash(_('Command executed succesfully.'));
+  TKWebApplication.Current.Flash(_('Command executed succesfully.'));
 end;
 
 procedure TKExtDataCmdToolController.ExecuteTool;

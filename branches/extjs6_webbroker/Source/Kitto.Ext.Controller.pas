@@ -21,10 +21,18 @@ unit Kitto.Ext.Controller;
 interface
 
 uses
-  SysUtils, Classes,
-  Ext.Base,
-  EF.Intf, EF.ObserverIntf, EF.Tree, EF.Types,
-  Kitto.JS, Kitto.Ext, Kitto.Types, Kitto.Metadata.Views;
+  SysUtils
+  , Classes
+  , EF.Intf
+  , EF.ObserverIntf
+  , EF.Tree
+  , EF.Types
+  , Kitto.JS
+  , Ext.Base
+  , Kitto.Ext
+  , Kitto.Types
+  , Kitto.Metadata.Views
+  ;
 
 type
   /// <summary>
