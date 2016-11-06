@@ -162,6 +162,7 @@ type
 
     procedure DeactivateInstance;
     procedure Reload;
+    function GetObjectFromURL(const AURL: TKURL): TObject;
   public
     const DEFAULT_VIEWPORT_WIDTH = 480;
     class constructor Create;
@@ -309,19 +310,18 @@ uses
   , Kitto.Web.Types
   ;
 
-{ TODO : temporary }
-function GetObjectFromURL(const ASession: TJSSession; const AURL: TKURL): TObject;
+{ TWebKApplication }
+
+function TKWebApplication.GetObjectFromURL(const AURL: TKURL): TObject;
 var
   LJSName: string;
 begin
   LJSName := AURL.ParamByName('Object');
   if (LJSName = '') or (AURL.ParamByName('Event') <> '') then
-    Result := ASession
+    Result := Self
   else
-    Result := ASession.FindChildByJSName(LJSName);
+    Result := Session.FindChildByJSName(LJSName);
 end;
-
-{ TWebKApplication }
 
 constructor TKWebApplication.Create(const AEngine: TKEngine; const AName: string);
 begin
@@ -766,7 +766,7 @@ begin
           LDocument := AURL.Document;
 
           // Try to execute method.
-          LHandlerObject := GetObjectFromURL(LSession, AURL);
+          LHandlerObject := GetObjectFromURL(AURL);
           if not Assigned(LHandlerObject) then
             raise Exception.CreateFmt('Handler object for method %s not found in session.', [AURL.Path]);
           if (LPath = LSession.NameSpace) and (LDocument = '') then
