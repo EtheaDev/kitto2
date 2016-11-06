@@ -276,9 +276,15 @@ type
 implementation
 
 uses
-  SysUtils, StrUtils,
-  EF.Tree, EF.Localization, EF.StrUtils, EF.Macros,
-  Kitto.JS;
+  SysUtils
+  , StrUtils
+  , EF.Tree
+  , EF.Localization
+  , EF.StrUtils
+  , EF.Macros
+  , Kitto.JS
+  , Kitto.JS.Formatting
+  ;
 
 { TKExtRuleImpl }
 

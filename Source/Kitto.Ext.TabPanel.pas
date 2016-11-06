@@ -21,9 +21,13 @@ unit Kitto.Ext.TabPanel;
 interface
 
 uses
-  Ext.Base,
-  EF.Tree,
-  Kitto.Metadata.Views, Kitto.Ext.Base, Kitto.Ext.Controller, Kitto.Ext.Session;
+  Ext.Base
+  , EF.Tree
+  , Kitto.Metadata.Views
+  , Kitto.Web
+  , Kitto.Ext.Base
+  , Kitto.Ext.Controller
+  ;
 
 type
   TKExtTabPanelController = class;
@@ -75,9 +79,12 @@ type
 implementation
 
 uses
-  SysUtils,
-  EF.Localization,
-  Kitto.AccessControl, Kitto.Types;
+  SysUtils
+  , EF.Localization
+  , Kitto.AccessControl
+  , Kitto.Types
+  , Kitto.JS
+  ;
 
 { TKExtTabPanelController }
 
@@ -166,7 +173,7 @@ end;
 
 destructor TKExtTabPanel.Destroy;
 begin
-  if (Session.ViewHost <> nil) and (Session.ViewHost.AsObject = Self) then
+  if (Session.ViewHost <> nil) and (Session.ViewHost = Self) then
     Session.ViewHost := nil;
   inherited;
 end;
@@ -198,7 +205,7 @@ begin
     begin
       if SameText(LViews.Children[I].Name, 'View') then
       begin
-        LView := Session.Config.Views.ViewByNode(LViews.Children[I]);
+        LView := TKWebApplication.Current.Config.Views.ViewByNode(LViews.Children[I]);
         if LView.IsAccessGranted(ACM_VIEW) then
         begin
           LController := TKExtControllerFactory.Instance.CreateController(Self, LView, Self);

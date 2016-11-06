@@ -86,7 +86,6 @@ type
     function GetDefaultDatabaseName: string;
     function GetDatabaseName: string;
     function GetLanguagePerSession: Boolean;
-    function GetFOPEnginePath: string;
     class function AdaptImageName(const AResourceName: string; const ASuffix: string = ''): string;
     function GetDefaultDBConnection: TEFDBConnection;
   strict protected
@@ -287,11 +286,6 @@ type
     property MultiFieldSeparator: string read GetMultiFieldSeparator;
 
     property LanguagePerSession: Boolean read GetLanguagePerSession;
-
-    /// <summary>
-    ///   <para>Returns or changes the home path for FOP engine.</para>
-    /// </summary>
-    property FOPEnginePath: string read GetFOPEnginePath;
   end;
 
   /// <summary>
@@ -462,11 +456,6 @@ end;
 function TKConfig.GetDefaultDBConnection: TEFDBConnection;
 begin
   Result := DBConnections[DatabaseName];
-end;
-
-function TKConfig.GetFOPEnginePath: string;
-begin
-  Result := Config.GetExpandedString('FOPEnginePath');
 end;
 
 function TKConfig.GetHomeURL: string;

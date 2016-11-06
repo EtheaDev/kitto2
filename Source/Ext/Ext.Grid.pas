@@ -310,7 +310,7 @@ uses
   SysUtils
   , EF.Types
   , EF.Localization
-  , Kitto.JS
+  , Kitto.JS.Formatting
   ;
 
 function OptionAsGridColumnAlign(const AAlign: string): TExtGridColumnAlign;

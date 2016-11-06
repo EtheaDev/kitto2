@@ -137,9 +137,9 @@ type
     procedure SetStartValue(const AValue: string);
     procedure SetOnChange(const AValue: TExtFormFieldOnChange);
   protected
-    procedure HandleEvent(const AEvtName: string); override;
     function GetObjectNamePrefix: string; override;
   public
+    procedure HandleEvent(const AEvtName: string); override;
     class function JSClassName: string; override;
     function GetRawValue: TExtExpression;
     function GetValue: TExtExpression;
@@ -270,9 +270,9 @@ type
     procedure SetOnCheck(Value: TExtFormCheckboxOnCheck);
   protected
     procedure InitDefaults; override;
-    procedure HandleEvent(const AEvtName: string); override;
     function GetObjectNamePrefix: string; override;
   public
+    procedure HandleEvent(const AEvtName: string); override;
     class function JSClassName: string; override;
     function GetValue: TExtExpression;
     function SetValue(const AChecked: Boolean): TExtExpression; overload;
@@ -500,9 +500,9 @@ type
     procedure SetOnSelect(const AValue: TExtFormComboBoxOnSelect);
   protected
     procedure InitDefaults; override;
-    procedure HandleEvent(const AEvtName: string); override;
     function GetObjectNamePrefix: string; override;
   public
+    procedure HandleEvent(const AEvtName: string); override;
     class function JSClassName: string; override;
     function ClearValue: TExtExpression;
     function Expand: TExtExpression;
@@ -599,7 +599,9 @@ type
 implementation
 
 uses
-  Kitto.JS;
+  Kitto.JS
+  , Kitto.JS.Formatting
+  ;
 
 procedure TExtFormAction.SetFailure(const AValue: TExtExpression);
 begin

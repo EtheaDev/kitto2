@@ -138,10 +138,26 @@ type
 implementation
 
 uses
-  StrUtils, Classes, Variants, Types,
-  EF.Localization, EF.Types, EF.Intf, EF.DB, EF.JSON, EF.VariantUtils, EF.StrUtils,
-  Kitto.Types, Kitto.AccessControl, Kitto.Rules, Kitto.SQL, Kitto.Config,
-  Kitto.Ext.Session, Kitto.Ext.Utils;
+  StrUtils
+  , Classes
+  , Variants
+  , Types
+  , EF.Localization
+  , EF.Types
+  , EF.Intf
+  , EF.DB
+  , EF.JSON
+  , EF.VariantUtils
+  , EF.StrUtils
+  , Kitto.Types
+  , Kitto.AccessControl
+  , Kitto.Rules
+  , Kitto.SQL
+  , Kitto.Config
+  , Kitto.Web
+  , Kitto.Web.Request
+  , Kitto.Ext.Utils
+  ;
 
 { TKExtFormPanelController }
 
@@ -523,7 +539,7 @@ begin
   except
     on E: EKValidationError do
     begin
-      ExtMessageBox.Alert(_(Session.Config.AppTitle), E.Message);
+      ExtMessageBox.Alert(_(TKWebApplication.Current.Config.AppTitle), E.Message);
       CancelChanges;
     end;
   end;
@@ -603,7 +619,7 @@ var
   LError: string;
 begin
   AssignFieldChangeEvent(False);
-  LError := UpdateRecord(StoreRecord, SO(Session.RequestBody).O['new'], '', True);
+  LError := UpdateRecord(StoreRecord, SO(TKWebRequest.Current.Content).O['new'], '', True);
   FreeAndNil(FCloneValues);
   if LError = '' then
   begin
@@ -627,7 +643,7 @@ var
   LError: string;
 begin
   AssignFieldChangeEvent(False);
-  LError := UpdateRecord(StoreRecord, SO(Session.RequestBody).O['new'], '', True);
+  LError := UpdateRecord(StoreRecord, SO(TKWebRequest.Current.Content).O['new'], '', True);
   if LError = '' then
   begin
     FChangesApplied := True;
@@ -640,7 +656,7 @@ procedure TKExtFormPanelController.ConfirmChangesAndClone;
 var
   LError: string;
 begin
-  LError := UpdateRecord(StoreRecord, SO(Session.RequestBody).O['new'], '', True);
+  LError := UpdateRecord(StoreRecord, SO(TKWebRequest.Current.Content).O['new'], '', True);
   if LError = '' then
   begin
     FCloneValues := TEFNode.Clone(StoreRecord);
@@ -870,7 +886,7 @@ begin
     FMainPagePanel := TKExtEditPage.CreateAndAddToArray(FTabPanel.Items);
     FMainPagePanel.Title := _(ViewTable.DisplayLabel);
     if Config.GetBoolean('Sys/ShowIcon', True) then
-      FMainPagePanel.IconCls := Session.SetViewIconStyle(ViewTable.View);
+      FMainPagePanel.IconCls := TKWebApplication.Current.SetViewIconStyle(ViewTable.View);
     FMainPagePanel.EditPanel := FFormPanel;
     FMainPagePanel.LabelAlign := LabelAlign;
     FTabPanel.SetActiveTab(0);
@@ -1075,7 +1091,7 @@ begin
   if Assigned(FViewTable) then
   begin
     Text := _(FViewTable.PluralDisplayLabel);
-    Icon := Session.Config.GetImageURL(FViewTable.ImageName);
+    Icon := TKWebApplication.Current.Config.GetImageURL(FViewTable.ImageName);
     //Handler := Ajax(ShowDetailWindow, []);
     Handler := AjaxCallMethod.SetMethod(ShowDetailWindow).AsFunction;
   end;
@@ -1122,7 +1138,7 @@ begin
   if Assigned(FViewTable) then
   begin
     Title := _(FViewTable.PluralDisplayLabel);
-    IconCls := Session.SetIconStyle(FViewTable.ImageName);
+    IconCls := TKWebApplication.Current.SetIconStyle(FViewTable.ImageName);
   end;
 end;
 

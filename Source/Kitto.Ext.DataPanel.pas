@@ -161,10 +161,23 @@ type
 implementation
 
 uses
-  StrUtils, Math, Types, Classes,
-  EF.StrUtils, EF.SysUtils, EF.Localization, EF.Types,
-  Kitto.AccessControl, Kitto.Config, Kitto.Rules, Kitto.SQL,
-  Kitto.Ext.Session, KItto.Ext.Utils;
+  StrUtils
+  , Math
+  , Types
+  , Classes
+  , EF.StrUtils
+  , EF.SysUtils
+  , EF.Localization
+  , EF.Types
+  , Kitto.AccessControl
+  , Kitto.Config
+  , Kitto.Rules
+  , Kitto.SQL
+  , Kitto.JS
+  , Kitto.Web
+  , Kitto.Web.Request
+  , Kitto.Ext.Utils
+  ;
 
 { TKExtDataActionButton }
 
@@ -179,9 +192,9 @@ begin
 
   PerformBeforeExecute;
   LController := TKExtControllerFactory.Instance.CreateController(
-    Session.ObjectCatalog, View, nil, nil, ActionObserver);
+    Session, View, nil, nil, ActionObserver);
   if LController.Config.GetBoolean('RequireSelection', True) then
-    FServerRecord := ServerStore.GetRecord(Session.GetQueries, Session.Config.JSFormatSettings, 0)
+    FServerRecord := ServerStore.GetRecord(TKWebRequest.Current.GetQueryFields, TKWebApplication.Current.Config.JSFormatSettings, 0)
   else
     FServerRecord := nil;
   InitController(LController);
@@ -263,12 +276,12 @@ begin
     if not LPersistIt and (LOldState = rsNew) then
       LRecord.MarkAsClean;
     if LPersistIt then
-      Session.Flash(Format(_('%s deleted.'), [_(ViewTable.DisplayLabel)]));
+      TKWebApplication.Current.Flash(Format(_('%s deleted.'), [_(ViewTable.DisplayLabel)]));
   except
     on E: EKValidationError do
     begin
       LRecord.RestorePreviousState;
-      ExtMessageBox.Alert(_(Session.Config.AppTitle), E.Message);
+      ExtMessageBox.Alert(_(TKWebApplication.Current.Config.AppTitle), E.Message);
       Exit;
     end;
   end;
@@ -322,7 +335,7 @@ begin
   Assert(Assigned(LViewTable));
 
   if Config.GetBoolean('Sys/ShowIcon', True) then
-    IconCls := Session.SetViewIconStyle(View, LViewTable.Model.ImageName);
+    IconCls := TKWebApplication.Current.SetViewIconStyle(View, LViewTable.Model.ImageName);
 
   FServerStore := Config.GetObject('Sys/ServerStore') as TKViewTableStore;
   if FServerStore = nil then
@@ -427,7 +440,8 @@ end;
 
 function TKExtDataPanelController.GetCurrentViewRecord: TKViewTableRecord;
 begin
-  Result := ServerStore.GetRecord(Session.GetQueries, Session.Config.JSFormatSettings, IfThen(IsMultiSelect, 0, -1));
+  Result := ServerStore.GetRecord(TKWebRequest.Current.GetQueryFields,
+    TKWebApplication.Current.Config.JSFormatSettings, IfThen(IsMultiSelect, 0, -1));
 end;
 
 function TKExtDataPanelController.FindViewLayout(
@@ -594,7 +608,7 @@ end;
 
 procedure TKExtDataPanelController.GetRecordPage;
 begin
-  DoGetRecordPage(Session.QueryAsInteger['start'], Session.QueryAsInteger['limit'], True);
+  DoGetRecordPage(ParamAsInteger('start'), ParamAsInteger('limit'), True);
 end;
 
 function TKExtDataPanelController.GetRecordPageFilter: string;
@@ -735,7 +749,7 @@ var
   LStream: TStream;
 begin
   { TODO : Use PK to locate record instead? }
-  LImageField := ServerStore.Records[Session.QueryAsInteger['rn']].FieldByName(Session.Query['fn']);
+  LImageField := ServerStore.Records[ParamAsInteger('rn')].FieldByName(ParamAsString('fn'));
 
   if not LImageField.IsNull then
   begin
@@ -759,7 +773,7 @@ begin
     Result := 'LookupConfirm'
   else
   begin
-    LConfigDefaultAction := Session.Config.Config.GetString('Defaults/Grid/DefaultAction');
+    LConfigDefaultAction := TKWebApplication.Current.Config.Config.GetString('Defaults/Grid/DefaultAction');
     if (LConfigDefaultAction <> '') and IsActionAllowed(LConfigDefaultAction) then
       Result := LConfigDefaultAction
   else if IsActionAllowed('View') then
@@ -781,8 +795,8 @@ var
   LFieldName: string;
   LDirection: string;
 begin
-  LFieldName := Session.Query['sort'];
-  LDirection := Session.Query['dir'];
+  LFieldName := ParamAsString('sort');
+  LDirection := ParamAsString('dir');
 
   if LFieldName <> '' then
     Result := ServerStore.Header.FieldByName(LFieldName).ViewField.BuildSortClause(SameText(LDirection, 'desc'))
@@ -1021,7 +1035,7 @@ procedure TKExtDataPanelController.CheckCanRead;
 begin
   Assert(ViewTable <> nil);
 
-  Session.Config.CheckAccessGranted(ViewTable.GetResourceURI, ACM_READ);
+  TKWebApplication.Current.Config.CheckAccessGranted(ViewTable.GetResourceURI, ACM_READ);
 end;
 
 procedure TKExtDataPanelController.SetFieldValue(const AField: TKViewTableField;
@@ -1037,7 +1051,7 @@ begin
   if Assigned(AValue) then
   begin
     LValue := AValue.Value.AsString;
-    AField.SetAsJSONValue(LValue, False, Session.Config.UserFormatSettings);
+    AField.SetAsJSONValue(LValue, False, TKWebApplication.Current.Config.UserFormatSettings);
 
     LSep := TKConfig.Instance.MultiFieldSeparator;
     if AValue.Name.Contains(LSep) then
@@ -1052,7 +1066,7 @@ begin
       end;
       Assert(Length(LNames) = Length(LValues));
       for I := Low(LNames) to High(LNames) do
-        AField.ParentRecord.FieldByName(LNames[I]).SetAsJSONValue(LValues[I], False, Session.Config.UserFormatSettings);
+        AField.ParentRecord.FieldByName(LNames[I]).SetAsJSONValue(LValues[I], False, TKWebApplication.Current.Config.UserFormatSettings);
     end;
   end;
 end;
@@ -1106,7 +1120,7 @@ begin
       end;
       // Get uploaded files.
       Session.EnumUploadedFiles(
-        procedure (AFile: TKExtUploadedFile)
+        procedure (AFile: TJSUploadedFile)
         begin
           if (AFile.Context is TKViewField) and (TKViewField(AFile.Context).Table = ViewTable) then
           begin
@@ -1124,14 +1138,14 @@ begin
       ViewTable.Model.SaveRecord(ARecord, APersist and not ViewTable.IsDetail,
         procedure
         begin
-          Session.Flash(_('Changes saved succesfully.'));
+          TKWebApplication.Current.Flash(_('Changes saved succesfully.'));
         end);
       Config.SetObject('Sys/Record', ARecord);
       Result := '';
     except
       on E: EKValidationError do
       begin
-        ExtMessageBox.Alert(_(Session.Config.AppTitle), E.Message);
+        ExtMessageBox.Alert(_(TKWebApplication.Current.Config.AppTitle), E.Message);
         Result := E.Message;
         ARecord.Assign(LOldRecord);
         Exit;

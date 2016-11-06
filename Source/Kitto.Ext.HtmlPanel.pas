@@ -32,10 +32,13 @@ type
 implementation
 
 uses
-  SysUtils,
-  Ext.Base,
-  EF.StrUtils, EF.Macros, EF.Localization,
-  Kitto.Ext.Session, Kitto.Metadata.Views;
+  SysUtils
+  , Ext.Base
+  , EF.StrUtils
+  , EF.Macros
+  , EF.Localization
+  , Kitto.Metadata.Views
+  ;
 
 { TKExtHtmlPanelController }
 

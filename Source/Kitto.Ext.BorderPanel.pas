@@ -49,9 +49,12 @@ type
 implementation
 
 uses
-  TypInfo,
-  EF.Intf, EF.StrUtils,
-  Kitto.Ext.Session, Kitto.Metadata.Views;
+  TypInfo
+  , EF.Intf
+  , EF.StrUtils
+  , Kitto.Web
+  , Kitto.Metadata.Views
+  ;
 
 { TKExtBorderPanelController }
 
@@ -113,7 +116,7 @@ begin
     LSubView := View;
   end
   else
-    LSubView := Session.Config.Views.FindViewByNode(Config.FindNode(GetRegionViewNodeName(ARegion)));
+    LSubView := TKWebApplication.Current.Config.Views.FindViewByNode(Config.FindNode(GetRegionViewNodeName(ARegion)));
   if LSubView <> nil then
   begin
     FControllers[ARegion] := TKExtControllerFactory.Instance.CreateController(Self, LSubView, Self, LControllerConfig).AsObject;

@@ -22,9 +22,13 @@ type
 implementation
 
 uses
-  SysUtils, Classes,
-  Ext.Base,
-  Kitto.Ext.Session;
+  SysUtils
+  , Classes
+  , Ext.Base
+  , Kitto.JS
+  , Kitto.Web
+  , Kitto.Web.Request
+  ;
 
 { TTestToolController }
 
@@ -46,7 +50,7 @@ var
 begin
   LStream := TFileStream.Create('c:\temp\test2.pdf', fmOpenRead);
   try
-    Session.DownloadStream(LStream, 'customfile.pdf');
+    TKWebApplication.Current.DownloadStream(LStream, 'customfile.pdf');
   finally
     FreeAndNil(LStream);
   end;
@@ -60,11 +64,11 @@ var
   LAddr: string;
 begin
   inherited;
-  LAddr := Session.RequestHeader['REMOTE_ADDR'];
+  LAddr := TKWebRequest.Current.RemoteAddr;
   if LAddr = '127.0.0.1' then
-    Session.Navigate('http://www.ethea.it')
+    TKWebApplication.Current.Navigate('http://www.ethea.it')
   else
-    Session.Navigate('http://www.sencha.com');
+    TKWebApplication.Current.Navigate('http://www.sencha.com');
 end;
 
 initialization

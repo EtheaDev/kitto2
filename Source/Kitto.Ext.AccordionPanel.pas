@@ -38,9 +38,14 @@ type
 implementation
 
 uses
-  SysUtils,
-  EF.Tree, EF.Localization,
-  Kitto.Types, Kitto.AccessControl, Kitto.Ext.Controller, Kitto.Ext.Session;
+  SysUtils
+  , EF.Tree
+  , EF.Localization
+  , Kitto.Types
+  , Kitto.AccessControl
+  , Kitto.Web
+  , Kitto.Ext.Controller
+  ;
 
 { TKExtAccordionPanelController }
 
@@ -70,7 +75,7 @@ begin
     begin
       if SameText(LViews.Children[I].Name, 'View') then
       begin
-        LView := Session.Config.Views.ViewByNode(LViews.Children[I]);
+        LView := TKWebApplication.Current.Config.Views.ViewByNode(LViews.Children[I]);
         if LView.IsAccessGranted(ACM_VIEW) then
         begin
           LController := TKExtControllerFactory.Instance.CreateController(Self, LView, Self);

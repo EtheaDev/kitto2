@@ -705,7 +705,8 @@ type
     ///   Finds a node by path and, if found, returns its value as an object,
     ///   otherwise returns ADefaultValue.
     /// </summary>
-    function GetObject(const APath: string; const ADefaultValue: TObject = nil): TObject;
+    function GetObject(const APath: string; const ADefaultValue: TObject = nil): TObject; overload;
+    function GetObject<T: class>(const APath: string): T; overload;
 
     /// <summary>
     ///   Sets a node value by path. The node is created if it doesn't exist
@@ -2352,8 +2353,7 @@ begin
     Result := ADefaultValue;
 end;
 
-function TEFTree.GetObject(const APath: string;
-  const ADefaultValue: TObject): TObject;
+function TEFTree.GetObject(const APath: string; const ADefaultValue: TObject): TObject;
 var
   LNode: TEFNode;
 begin
@@ -2362,6 +2362,11 @@ begin
     Result := LNode.AsObject
   else
     Result := ADefaultValue;
+end;
+
+function TEFTree.GetObject<T>(const APath: string): T;
+begin
+  Result := T(GetObject(APath, nil));
 end;
 
 function TEFTree.GetPairs(const APath: string;

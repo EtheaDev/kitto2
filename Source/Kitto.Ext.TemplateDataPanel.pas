@@ -45,11 +45,20 @@ type
 implementation
 
 uses
-  Classes,
-  SysUtils, StrUtils,
-  EF.Localization, EF.Macros, EF.StrUtils,
-  Kitto.Types, Kitto.Ext.Utils, Kitto.Metadata.Models, Kitto.Metadata.Views,
-  Kitto.Ext.Session, Kitto.Ext.Controller, Kitto.Ext.XSLTools;
+  Classes
+  , SysUtils
+  , StrUtils
+  , EF.Localization
+  , EF.Macros
+  , EF.StrUtils
+  , Kitto.Types
+  , Kitto.Web
+  , Kitto.Ext.Utils
+  , Kitto.Metadata.Models
+  , Kitto.Metadata.Views
+  , Kitto.Ext.Controller
+  , Kitto.Ext.XSLTools
+  ;
 
 { TKExtTemplateDataPanel }
 
@@ -63,7 +72,7 @@ var
   LFileName: string;
   LTemplate: string;
 begin
-  LFileName := Session.Config.FindResourcePathName(Config.GetExpandedString('TemplateFileName'));
+  LFileName := TKWebApplication.Current.Config.FindResourcePathName(Config.GetExpandedString('TemplateFileName'));
   if LFileName <> '' then
     FDataView.Tpl := ProcessTemplate(TEFMacroExpansionEngine.Instance.Expand(TextFileToString(LFileName, TEncoding.UTF8)))
   else
@@ -86,7 +95,7 @@ end;
 function TKExtTemplateDataPanel.GetSelectConfirmCall(const AMessage: string; const AMethod: TExtProcedure): string;
 begin
   Result := Format('selectDataViewConfirmCall("%s", "%s", %s, "%s", {methodURL: "%s", dataView: %s, fieldNames: "%s"});',
-    [_(Session.Config.AppTitle), AMessage, FDataView.JSName, ViewTable.Model.CaptionField.FieldName, MethodURI(AMethod),
+    [_(TKWebApplication.Current.Config.AppTitle), AMessage, FDataView.JSName, ViewTable.Model.CaptionField.FieldName, MethodURI(AMethod),
     FDataView.JSName, Join(ViewTable.GetKeyFieldAliasedNames, ',')]);
 end;
 

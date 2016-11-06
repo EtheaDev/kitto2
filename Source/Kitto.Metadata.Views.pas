@@ -68,7 +68,7 @@ type
   TKLayoutClass = class of TKLayout;
 
   /// <summary>
-  ///   A catalog of views.
+  ///  A catalog of views.
   /// </summary>
   TKViews = class(TKMetadataCatalog)
   strict private
@@ -264,9 +264,14 @@ uses
 
 procedure TKViews.Close;
 begin
-  inherited;
-  if Assigned(FLayouts) then
-    FLayouts.Close;
+  Synchronize(
+    procedure
+    begin
+      inherited;
+      if Assigned(FLayouts) then
+        FLayouts.Close;
+    end
+  );
 end;
 
 constructor TKViews.Create(const AModels: TKModels);
@@ -288,26 +293,34 @@ end;
 
 function TKViews.FindViewByNode(const ANode: TEFNode): TKView;
 var
-  LWords: TStringDynArray;
+  LResult: TKView;
 begin
-  if Assigned(ANode) then
-  begin
-    Result := FindNonpersistentObject(ANode) as TKView;
-    if not Assigned(Result) then
+  Synchronize(
+    procedure
+    var
+      LWords: TStringDynArray;
     begin
-      LWords := Split(ANode.AsExpandedString);
-      if Length(LWords) >= 2 then
+      if Assigned(ANode) then
       begin
-        // Two words: the first one is the verb.
-        if SameText(LWords[0], 'Build') then
+        LResult := FindNonpersistentObject(ANode) as TKView;
+        if not Assigned(LResult) then
         begin
-          Result := BuildView(ANode, LWords[1]);
-          Exit;
+          LWords := Split(ANode.AsExpandedString);
+          if Length(LWords) >= 2 then
+          begin
+            // Two words: the first one is the verb.
+            if SameText(LWords[0], 'Build') then
+            begin
+              LResult := BuildView(ANode, LWords[1]);
+              Exit;
+            end;
+          end;
         end;
       end;
-    end;
-  end;
-  Result := FindObjectByNode(ANode) as TKView;
+      LResult := FindObjectByNode(ANode) as TKView;
+    end
+  );
+  Result := LResult;
 end;
 
 function TKViews.BuildView(const ANode: TEFNode; const AViewBuilderName: string): TKView;
@@ -329,8 +342,13 @@ end;
 
 function TKViews.GetLayouts: TKLayouts;
 begin
-  if not Assigned(FLayouts) then
-    FLayouts := TKLayouts.Create;
+  Synchronize(
+    procedure
+    begin
+      if not Assigned(FLayouts) then
+        FLayouts := TKLayouts.Create;
+    end
+  );
   Result := FLayouts;
 end;
 
@@ -356,8 +374,13 @@ end;
 
 procedure TKViews.Open;
 begin
-  inherited;
-  Layouts.Open;
+  Synchronize(
+    procedure
+    begin
+      inherited;
+      Layouts.Open;
+    end
+  );
 end;
 
 procedure TKViews.SetPath(const AValue: string);

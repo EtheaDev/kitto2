@@ -44,10 +44,23 @@ type
 implementation
 
 uses
-  System.Math , System.TypInfo, System.UIConsts, System.UITypes,
-  Ext.Base, EF.Classes, EF.StrUtils, EF.Localization, EF.DB, EF.SysUtils, EF.Macros,
-  EF.XML, EF.FOP,
-  Kitto.Metadata.Models, Kitto.Ext.Session, Kitto.Config;
+  Math
+  , TypInfo
+  , UIConsts
+  , UITypes
+  , Ext.Base
+  , EF.Classes
+  , EF.StrUtils
+  , EF.Localization
+  , EF.DB
+  , EF.SysUtils
+  , EF.Macros
+  , EF.XML
+  , EF.FOP
+  , Kitto.Metadata.Models
+  , Kitto.Config
+  , Kitto.Web
+  ;
 
 { TFOPToolController }
 
@@ -141,7 +154,7 @@ begin
       LFOPReport.FOPOutputType := otRtf
     else
       LFOPReport.FOPOutputType := otPdf;
-    LFOPReport.FOPPath := Session.Config.FOPEnginePath;
+    LFOPReport.FOPPath := TKWebApplication.Current.Config.Config.GetExpandedString('FOPEnginePath');
     LFOPReport.XSLReportFile := LXSLFileName;
     LFOPReport.XMLDataFile := LXMLFileName;
     LFOPReport.OutputFile := AFileName;

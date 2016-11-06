@@ -3,7 +3,8 @@ unit Ext.Util;
 interface
 
 uses
-  Kitto.Ext;
+  Kitto.Ext
+  ;
 
 type
   TExtUtilObservable = class;
@@ -33,14 +34,16 @@ function ExtUtilTextMetrics: TExtUtilTextMetricsSingleton;
 implementation
 
 uses
-  SysUtils;
+  SysUtils
+  , Kitto.JS
+  ;
 
 function ExtUtilTextMetrics: TExtUtilTextMetricsSingleton;
 begin
-  if (GetSession <> nil) then
+  if (Session <> nil) then
     // 'TextMetrics' is the name of the custom instance we create and bind
     // to the <body> element.
-    Result := GetSession.GetSingleton<TExtUtilTextMetricsSingleton>('TextMetrics')
+    Result := Session.GetSingleton<TExtUtilTextMetricsSingleton>('TextMetrics')
   else
     Result := nil;
 end;
@@ -82,7 +85,7 @@ end;
 
 function TExtUtilObservable.RemoveAllListeners(const AEventName: string): TExtExpression;
 begin
-  Result := GetSession.ResponseItems.ExecuteJSCode(Self, Format('if (%s.events.%s) delete (%s.events.%s)',
+  Result := Session.ResponseItems.ExecuteJSCode(Self, Format('if (%s.events.%s) delete (%s.events.%s)',
     [JSName, AEventName, JSName, AEventName])).AsExpression;
 end;
 
@@ -113,3 +116,4 @@ begin
 end;
 
 end.
+

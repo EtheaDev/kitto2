@@ -77,8 +77,7 @@ type
   public
     procedure AfterConstruction; override;
     destructor Destroy; override;
-    procedure UpdateObserver(const ASubject: IEFSubject;
-      const AContext: string = ''); override;
+    procedure UpdateObserver(const ASubject: IEFSubject; const AContext: string = ''); override;
   end;
 
 implementation
@@ -195,8 +194,7 @@ begin
   inherited;
 end;
 
-procedure TEFLogEndpoint.UpdateObserver(const ASubject: IEFSubject;
-  const AContext: string);
+procedure TEFLogEndpoint.UpdateObserver(const ASubject: IEFSubject; const AContext: string);
 begin
   inherited;
   if SameText(AContext, '{ConfigChanged}') then

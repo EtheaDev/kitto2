@@ -67,10 +67,15 @@ type
 implementation
 
 uses
-  SysUtils,
-  Ext.Base,
-  EF.Localization,
-  Kitto.Config, Kitto.Utils, Kitto.AccessControl, Kitto.Ext.Session;
+  SysUtils
+  , Ext.Base
+  , EF.Localization
+  , Kitto.Config
+  , Kitto.Utils
+  , Kitto.AccessControl
+  , Kitto.Web
+  , Kitto.JS
+  ;
 
 { TKExtTreeTreeNode }
 
@@ -129,12 +134,9 @@ begin
 
   FView := AValue;
   if not Assigned(FTreeViewRenderer) then
-  begin
     FTreeViewRenderer := TKExtTreeViewRenderer.Create;
-    FTreeViewrenderer.Session := Session;
-  end;
   LViewNode := FConfig.GetNode('TreeView');
-  FTreeView := Session.Config.Views.ViewByNode(LViewNode) as TKTreeView;
+  FTreeView := TKWebApplication.Current.Config.Views.ViewByNode(LViewNode) as TKTreeView;
   Assert(Assigned(FTreeView));
   FTreeViewRenderer.Render(FTreeView,
     procedure (ANode: TKTreeViewNode; ADisplayLabel: string)
@@ -153,9 +155,9 @@ procedure TKExtTreePanel.DisplayView;
 var
   LViewId: string;
 begin
-  LViewId := Session.Query['View'];
+  LViewId := ParamAsString('View');
   if LViewId <> '' then
-    Session.DisplayView(TKView(StrToInt(LViewId)));
+    TKWebApplication.Current.DisplayView(TKView(StrToInt(LViewId)));
 end;
 
 procedure TKExtTreePanel.AddNode(const ANode: TKTreeViewNode;
@@ -176,7 +178,7 @@ begin
   if LOriginalNode = nil then
     LOriginalNode := ANode;
 
-  LView := LOriginalNode.FindView(Session.Config.Views);
+  LView := LOriginalNode.FindView(TKWebApplication.Current.Config.Views);
   if Assigned(LView) then
     LIsEnabled := LView.IsAccessGranted(ACM_RUN)
   else
@@ -186,7 +188,7 @@ begin
     LExtNode.View := LView;
     if Assigned(LExtNode.View) then
     begin
-      LExtNode.IconCls := Session.SetViewIconStyle(LExtNode.View, GetTreeViewNodeImageName(LOriginalNode, LExtNode.View));
+      LExtNode.IconCls := TKWebApplication.Current.SetViewIconStyle(LExtNode.View, GetTreeViewNodeImageName(LOriginalNode, LExtNode.View));
       LExtNode.Disabled := not LIsEnabled;
     end;
     LExtNode.Text := HTMLEncode(ADisplayLabel);
@@ -197,7 +199,7 @@ begin
       for I := 0 to LOriginalNode.TreeViewNodeCount - 1 do
       begin
         LSubNode := LOriginalNode.TreeViewNodes[I];
-        LDisplayLabel := _(LSubNode.GetString('DisplayLabel', GetDisplayLabelFromNode(LSubNode, Session.Config.Views)));
+        LDisplayLabel := _(LSubNode.GetString('DisplayLabel', GetDisplayLabelFromNode(LSubNode, TKWebApplication.Current.Config.Views)));
         AddNode(LSubNode, LDisplayLabel, LExtNode);
       end;
       LExtNode.Expandable := True;

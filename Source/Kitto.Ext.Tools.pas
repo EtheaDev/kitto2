@@ -76,9 +76,14 @@ type
 implementation
 
 uses
-  StrUtils,
-  Ext.Base, EF.XML, EF.Tree, EF.StrUtils,
-  Kitto.Ext.Session, Kitto.Config, Kitto.Utils;
+  StrUtils
+  , Ext.Base
+  , EF.XML
+  , EF.Tree
+  , EF.StrUtils
+  , Kitto.Config
+  , Kitto.Utils
+  ;
 
 { TExportCSVToolController }
 

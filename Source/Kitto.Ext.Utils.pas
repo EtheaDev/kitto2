@@ -21,10 +21,18 @@ unit Kitto.Ext.Utils;
 interface
 
 uses
-  SysUtils, Classes,
-  Ext.Base, Ext.Menu,
-  EF.ObserverIntf, EF.Tree,
-  Kitto.Ext, Kitto.JS.Types, Kitto.Ext.Base, Kitto.Ext.Controller, Kitto.Metadata.Views, Kitto.Ext.Session;
+  SysUtils
+  , Classes
+  , Ext.Base
+  , Ext.Menu
+  , EF.ObserverIntf
+  , EF.Tree
+  , Kitto.Ext
+  , Kitto.JS.Types
+  , Kitto.Ext.Base
+  , Kitto.Ext.Controller
+  , Kitto.Metadata.Views
+  ;
 
 type
   TKExtViewButton = class(TKExtButton)
@@ -51,7 +59,6 @@ type
   private
     FOwner: TExtObject;
     FClickHandler: TExtProcedure;
-    FSession: TKExtSession;
     FTreeView: TKTreeView;
     procedure AddButton(const ANode: TKTreeViewNode; const ADisplayLabel: string; const AContainer: TExtContainer);
     procedure AddMenuItem(const ANode: TKTreeViewNode; const AMenu: TExtMenuMenu);
@@ -68,8 +75,6 @@ type
     function CloneAndFilter(const ATreeView: TKTreeView): TKTreeView;
     procedure Filter(const ANode: TKTreeViewNode);
   public
-    property Session: TKExtSession read FSession write FSession;
-
     /// <summary>
     ///  Attaches to the container a set of buttons, one for each top-level
     ///  element of the specified tree view. Each button has a submenu tree
@@ -116,9 +121,21 @@ procedure DownloadThumbnailedStream(const AStream: TStream; const AFileName: str
 implementation
 
 uses
-  Types, StrUtils, RTTI, Graphics, jpeg, pngimage,
-  EF.SysUtils, EF.StrUtils, EF.Classes, EF.Localization,
-  Kitto.AccessControl, Kitto.Utils, Kitto.Config;
+  Types
+  , StrUtils
+  , RTTI
+  , Graphics
+  , jpeg
+  , pngimage
+  , EF.SysUtils
+  , EF.StrUtils
+  , EF.Classes
+  , EF.Localization
+  , Kitto.Web
+  , Kitto.JS
+  , Kitto.AccessControl
+  , Kitto.Utils
+  , Kitto.Config;
 
 function CallViewControllerStringMethod(const AView: TKView;
   const AMethodName: string; const ADefaultValue: string): string;
@@ -179,7 +196,7 @@ begin
       //Result := FOwner.Ajax(FClickHandler, ['View', Integer(AView), 'Dummy', Session.StatusHost.ShowBusy])
       Result := FOwner.AjaxCallMethod.SetMethod(FClickHandler)
         .AddParam('View', Integer(AView))
-        .AddParam('Dummy', Session.StatusHost.ShowBusy)
+        .AddParam('Dummy', TKExtStatusBar(Session.StatusHost).ShowBusy)
         .AsFunction
     else
       //Result := FOwner.Ajax(FClickHandler, ['View', Integer(AView)]);
@@ -208,7 +225,7 @@ begin
   for I := 0 to ANode.TreeViewNodeCount - 1 do
   begin
     LNode := ANode.TreeViewNodes[I];
-    LView := LNode.FindView(Session.Config.Views);
+    LView := LNode.FindView(TKWebApplication.Current.Config.Views);
 
     if Assigned(LView) then
       LIsEnabled := LView.IsAccessGranted(ACM_RUN)
@@ -221,7 +238,7 @@ begin
       LMenuItem.View := LView;
       if Assigned(LMenuItem.View) then
       begin
-        LMenuItem.IconCls := Session.SetViewIconStyle(LMenuItem.View,
+        LMenuItem.IconCls := TKWebApplication.Current.SetViewIconStyle(LMenuItem.View,
           GetTreeViewNodeImageName(LNode, LMenuItem.View));
         LMenuItem.On('click', GetClickFunction(LMenuItem.View));
 
@@ -237,7 +254,7 @@ begin
         begin
           LDisplayLabel := _(LNode.GetString('DisplayLabel', LNode.AsString));
           LMenuItem.Text := HTMLEncode(LDisplayLabel);
-          LMenuItem.IconCls := Session.SetIconStyle('Folder', LNode.GetString('ImageName'));
+          LMenuItem.IconCls := TKWebApplication.Current.SetIconStyle('Folder', LNode.GetString('ImageName'));
           LSubMenu := TExtMenuMenu.Create(AMenu.Items);
           LMenuItem.Menu := LSubMenu;
           AddMenuItem(ANode.TreeViewNodes[I], LSubMenu);
@@ -261,7 +278,7 @@ begin
   Assert(Assigned(ANode));
   Assert(Assigned(AContainer));
 
-  LView := ANode.FindView(Session.Config.Views);
+  LView := ANode.FindView(TKWebApplication.Current.Config.Views);
   if Assigned(LView) then
     LIsEnabled := LView.IsAccessGranted(ACM_RUN)
   else
@@ -272,7 +289,7 @@ begin
     LButton.View := LView;
     if Assigned(LButton.View) then
     begin
-      LButton.IconCls := Session.SetViewIconStyle(LButton.View, GetTreeViewNodeImageName(ANode, LButton.View));
+      LButton.IconCls := TKWebApplication.Current.SetViewIconStyle(LButton.View, GetTreeViewNodeImageName(ANode, LButton.View));
       LButton.On('click', GetClickFunction(LButton.View));
       LButton.Disabled := not LIsEnabled;
     end;
@@ -322,7 +339,7 @@ var
 begin
   Assert(Assigned(ANode));
 
-  LView := ANode.FindView(Session.Config.Views);
+  LView := ANode.FindView(TKWebApplication.Current.Config.Views);
   if Assigned(LView) then
     LIsVisible := LView.IsAccessGranted(ACM_VIEW)
   else
@@ -361,7 +378,7 @@ begin
     for I := 0 to LTreeView.TreeViewNodeCount - 1 do
     begin
       LNode := LTreeView.TreeViewNodes[I];
-      AProc(LNode, GetDisplayLabelFromNode(LNode, Session.Config.Views));
+      AProc(LNode, GetDisplayLabelFromNode(LNode, TKWebApplication.Current.Config.Views));
     end;
   finally
     FreeAndNil(LTreeView);
@@ -484,7 +501,7 @@ begin
 
       LStream := TFileStream.Create(LTempFileName, fmOpenRead + fmShareDenyWrite);
       try
-        GetSession.DownloadStream(LStream, AFileName);
+        TKWebApplication.Current.DownloadStream(LStream, AFileName);
       finally
         FreeAndNil(LStream);
       end;
@@ -494,7 +511,7 @@ begin
     end;
   end
   else
-    GetSession.DownloadStream(AStream, AFileName);
+    TKWebApplication.Current.DownloadStream(AStream, AFileName);
 end;
 
 end.

@@ -50,10 +50,11 @@ type
 implementation
 
 uses
-  StrUtils,
-  EF.Localization,
-  Kitto.Metadata.Views,
-  Kitto.AccessControl, Kitto.Ext.Session;
+  StrUtils
+  , EF.Localization
+  , Kitto.Metadata.Views
+  , Kitto.AccessControl
+  ;
 
 { TKExtDataPanelLeafController }
 
@@ -62,7 +63,7 @@ var
   LActionCommand: string;
 begin
   inherited;
-  LActionCommand := Session.Queries.Values['action'];
+  LActionCommand := ParamAsString('action');
 (* TODO multiple actions separated by comma: actually don't work
   while LActionCommand <> '' do
   begin
@@ -82,7 +83,8 @@ begin
 *)
   if LActionCommand <> '' then
   begin
-    Session.Queries.Values['action'] := '';
+{ TODO : cannot change query fields - put mutable data elsewhere }
+//    Session.Query['action'] := '';
     ExecuteNamedAction(LActionCommand);
   end;
 end;

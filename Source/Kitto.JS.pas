@@ -32,105 +32,47 @@ uses
   , Generics.Collections
   , TypInfo
   , Rtti
+  , HTTPApp
 
   , EF.Tree
   , EF.Intf
+  , EF.ObserverIntf
+  , EF.Localization
+  , EF.Macros
 
-  , {$IFNDEF WebServer}FCGIApp{$ELSE}IdExtHTTPServer{$ENDIF}
+  , gnugettext
+
+  , Kitto.Config
+  , Kitto.Metadata.Views
   , Kitto.JS.Types
-
+  , Kitto.JS.Formatting
   ;
 
 type
-  TJS = class
-  private
-  public
-    /// <summary>
-    /// Converts a string with param placeholders to a JavaScript string.
-    /// Converts a string representing a regular expression to a JavaScript RegExp.
-    /// Replaces " to ', #13#10 to <br/> and isolated #13 or #10 to <br/>.
-    /// Surrounds the string with " and inserts %0..%9 placeholders.
-    /// </summary>
-    class function StrToJS(const AString: string; AUseBR: Boolean = False): string;
-
-    /// <summary>
-    /// Converts a Pascal enumerated type constant into a JS name, by removing
-    /// the lowercase prefix and returning the rest, converted to lowercase.
-    /// </summary>
-    class function EnumToJSString(const ATypeInfo: PTypeInfo; const AValue: Integer): string;
-
-    /// <summary>
-    ///  Generates a padding style declaration with the provided data and returns
-    ///  it as a string.
-    /// </summary>
-    class function GetPadding(const ATop: Integer; const ARight: Integer = 0; const ABottom: Integer = -1;
-      const ALeft: Integer = 0; const ACSSUnit: TCSSUnit = cssPX; const AHeader: Boolean = True): string;
-
-    /// <summary>
-    ///  Generates a margins style declaration with the provided data and returns
-    ///  it as a string.
-    /// </summary>
-    class function GetMargins(const ATop: Integer; const ARight: Integer = 0; const ABottom: Integer = -1;
-      const ALeft: Integer = 0; const ACSSUnit: TCSSUnit = cssPX; const AHeader: Boolean = True): string;
-
-    class function JSDateToDateTime(const AJSDate: string): TDateTime;
-
-    class function RemoveLastJSTerminator(const AJSCode: string): string;
-
-    class function DelphiDateTimeFormatToJSDateTimeFormat(const ADateTimeFormat: string): string;
-    class function DelphiDateFormatToJSDateFormat(const ADateFormat: string): string;
-    class function DelphiTimeFormatToJSTimeFormat(const ATimeFormat: string): string;
-
-    class function WrapInAnonymousFunction(const AArgs, ABody: string; const AReturn: string = ''): string;
-  end;
-
-  TJSFormatter = class
-  private
-    FCurrentIndent: Integer;
-    FFormattedText: string;
-    FFormatSettings: TFormatSettings;
-    function IndentStr: string; inline;
-  public
-    procedure AfterConstruction; override;
-  public
-    property FormatSettings: TFormatSettings read FFormatSettings;
-
-    function Indent: TJSFormatter;
-    function Outdent: TJSFormatter;
-
-    function OpenObject: TJSFormatter;
-    function CloseObject: TJSFormatter;
-    function OpenArray: TJSFormatter;
-    function CloseArray: TJSFormatter;
-    function OpenRound: TJSFormatter;
-    function CloseRound: TJSFormatter;
-    function Add(const AString: string): TJSFormatter;
-    function AddLine(const ALine: string): TJSFormatter;
-    function AddIndent: TJSFormatter;
-    function AddIndented(const AString: string): TJSFormatter;
-    function AddIndentedLine(const ALine: string): TJSFormatter;
-    function AddIndentedPairLine(const AName, AStrValue: string;
-      const AQuoteValue: Boolean = True; const AAddComma: Boolean = True): TJSFormatter;
-    function AddIndentedPair(const AName, AStrValue: string;
-      const AQuoteValue: Boolean = True; const AAddComma: Boolean = True;
-      const AConnector: string = ': '): TJSFormatter;
-    // Adds empty line
-    function SkipLine: TJSFormatter;
-    function AddIndentedList(const ALines: TArray<string>): TJSFormatter;
-    // Shortcut for OpenObject + AddLines + CloseObject
-    function FormatObject(const ALines: TArray<string>): TJSFormatter;
-    // Shortcut for OpenArray + AddLines + CloseArray
-    function FormatArray(const ALines: TArray<string>): TJSFormatter;
-
-    function DeleteTrailing(const AString: string): TJSFormatter;
-
-    property FormattedText: string read FFormattedText;
-  end;
-
   TJSSession = class;
 
+  TJSUploadedFile = class
+  strict private
+    FContext: TObject;
+    FFullFileName: string;
+    FFileName: string;
+    FStream: TBytesStream;
+    FOriginalFileName: string;
+    function GetBytes: TBytes;
+  public
+    constructor Create(const AFileName, AFullFileName: string;
+      const AContext: TObject; const AOriginalFileName: string = '');
+    destructor Destroy; override;
+    property FileName: string read FFileName;
+    property FullFileName: string read FFullFileName;
+    property OriginalFileName: string read FOriginalFileName;
+    property Context: TObject read FContext;
+
+    property Bytes: TBytes read GetBytes;
+  end;
+
   {$M+}
-  TJSBase = class(TEFNoRefCountObject)
+  TJSBase = class(TEFSubjectAndObserver)
   private
     FJSSession: TJSSession;
     FOwner: TJSBase;
@@ -138,8 +80,7 @@ type
     FJSName: string;
     FDestroying: Boolean;
     FDestroyingChildren: Boolean;
-    function GetJSSession(const AOwner: TJSBase): TJSSession; overload;
-    function GetJSSession: TJSSession; overload;
+    function GetJSSession: TJSSession;
     procedure SetOwner(const AValue: TJSBase);
   strict protected
     procedure AddChild(const AChild: TJSBase);
@@ -157,9 +98,6 @@ type
     procedure FreeAllChildren;
   end;
   {$M-}
-
-  TJSObjectCatalog = class(TJSBase)
-  end;
 
   TJSExpression = class;
   TJSObjectArray = class;
@@ -221,16 +159,9 @@ type
     { TODO : Move to a different class? }
     function AppendObjectURIParam(const AURI, AObjectName: string): string;
   protected
-    function ParamAsInteger(ParamName: string): Integer;
-    function ParamAsDouble(ParamName: string): double;
-    function ParamAsBoolean(ParamName: string): Boolean;
-    function ParamAsString(ParamName: string): string;
-    function ParamAsDateTime(ParamName: string): TDateTime;
-    function ParamAsObject(ParamName: string): TJSObject;
     procedure CreateJSName;
     function GetObjectNamePrefix: string; virtual;
     procedure InitDefaults; virtual;
-    procedure HandleEvent(const AEventName: string); virtual;
     function CreateConfigArray(const AAttributeName: string): TJSObjectArray;
     procedure DependsUpon(const AObject: TJSObject);
   public
@@ -297,6 +228,14 @@ type
     function CallMethod(const AName: string): TJSMethodCall; overload;
 
     function AjaxCallMethod(const AName: string = ''): TJSAjaxCall; overload;
+
+    { TODO : move to request? }
+    function ParamAsInteger(const AParamName: string): Integer;
+    function ParamAsBoolean(const AParamName: string): Boolean;
+    function ParamAsString(const AParamName: string): string;
+    function ParamAsObject(const AParamName: string): TJSObject;
+
+    procedure HandleEvent(const AEventName: string); virtual;
   end;
 
   TJSObjectClass = class of TJSObject;
@@ -320,51 +259,161 @@ type
   end;
 
   /// <summary>
-  /// Represents the server side of a user client session.
-  /// Holds all objects pertaining to the user session.
+  ///  This class serves two purposes: redirects localization calls to a
+  ///  per-session instance of dxgettext so we can have per-session language
+  ///  selection, and configures Kitto's localization scheme based on two text
+  ///  domains (the application's default.mo and Kitto's own Kitto.mo). The
+  ///  former is located under the application home directory, the latter
+  ///  under the system home directory.
   /// </summary>
-  TJSSession = class(TWebSession)
+  TKExtSessionLocalizationTool = class(TEFNoRefCountObject, IInterface,
+    IEFInterface, IEFLocalizationTool)
+  private const
+    KITTO_TEXT_DOMAIN = 'Kitto';
   private
-    FObjectCatalog: TJSObjectCatalog;
+    function GetGnuGettextInstance: TGnuGettextInstance;
+  public
+    function AsObject: TObject;
+    function TranslateString(const AString: string;
+      const AIdString: string = ''): string;
+    procedure TranslateComponent(const AComponent: TComponent);
+    procedure ForceLanguage(const ALanguageId: string);
+    function GetCurrentLanguageId: string;
+    procedure AfterConstruction; override;
+  end;
+
+  TJSRequestInfo = class
+    UserAgent: string;
+    ClientAddress: string;
+  end;
+
+  /// <summary>
+  ///  Represents the server side of a user client session.
+  ///  Holds all objects pertaining to the user session.
+  /// </summary>
+  TJSSession = class(TJSBase)
+  private
+    FSessionId: string;
     FObjectSequences: TDictionary<string, Cardinal>;
-    FStyles, FLibraries, FLanguage: string;
+    FLibraries, FLanguage: string;
     FResponseItemsStack: TStack<TJSResponseItems>;
     FSingletons: TDictionary<string, TJSObject>;
     FMobileBrowserDetectionDone: Boolean;
     FIsMobileApple: Boolean;
     FGlobal: TJSObject;
-    function GetStyleTag: string;
+    FIsDownload: Boolean;
+    FIsUpload: Boolean;
+    FUploadPath: string;
+    FNameSpace: string;
+    FContentType: string;
+    FMaxUploadSize: Integer;
+    FFileUploadedFullName: string;
+    FFileUploaded: string;
+    FLastRequestDateTime: TDateTime;
+    FRefreshingLanguage: Boolean;
+    FHomeController: TObject;
+    FLoginController: TObject;
+    FViewportWidthInInches: Integer;
+    FAutoOpenViewName: string;
+    FAuthData: TEFNode;
+    FIsAuthenticated: Boolean;
+    FAuthMacroExpander: TEFTreeMacroExpander;
+    FOpenControllers: TObjectList<TObject>;
+    FControllerHostWindow: TJSObject;
+    FViewHost: TObject;
+    FStatusHost: TObject;
+    FUploadedFiles: TObjectList<TJSUploadedFile>;
+    FHomeViewNodeName: string;
+    FViewportContent: string;
+    FIsMobileBrowser: Boolean;
+    FViewportWidth: Integer;
+    FGettextInstance: TGnuGettextInstance;
+    FDynamicScripts: TStringList;
+    FDynamicStyles: TStringList;
+    FDisplayName: string;
+    FLastRequestInfo: TJSRequestInfo;
+    function GetDisplayName: string;
     function GetResponseItems: TJSResponseItems;
     function GetGlobal: TJSObject;
+    procedure SetNameSpace(const AValue: string);
+    procedure SetLanguage(const AValue: string);
+    /// <summary>
+    ///  If the specifield css file name exists, generates code that
+    ///  adds it to the page and adds that code to the current response.
+    ///  If called multiple times, only the first time the file is added.
+    /// </summary>
+    procedure EnsureDynamicStyle(const AStyleBaseName: string);
+    /// <summary>
+    ///  If the specifield script file name exists, generates code that
+    ///  adds it to the page and adds that code to the current response.
+    ///  If called multiple times, only the first time the file is added.
+    /// </summary>
+    procedure EnsureDynamicScript(const AScriptBaseName: string);
+  strict protected
+    { TODO : temporary - refactoring due }
+    procedure AfterNewSession; virtual;
   protected
-    function BeforeHandleRequest: Boolean; override;
-    procedure AfterHandleRequest; override;
-    procedure OnError(const AMessage, AMethodName, AParams: string); override;
     function GetNextJSName(const AObjectType: string): string;
-    function GetUrlHandlerObject: TObject; override;
-    function GetMainPageTemplate: string; virtual;
-    procedure SetLanguage(const AValue: string); virtual;
     function GetViewportContent: string; virtual;
     function GetManifestFileName: string; virtual;
     function GetCustomJS: string; virtual;
   public
-    Theme: string;
-    // Sets or gets Ext JS installed theme, default '' that is Ext Blue theme
-    ExtPath: string;
-    // Installation path of Ext JS framework, below the your Web server document root. Default value is '/ext'
-    ExtBuild: string;
+    /// <summary>
+    ///  Calls AProc for each uploaded file in list.
+    /// </summary>
+    procedure EnumUploadedFiles(const AProc: TProc<TJSUploadedFile>);
+    /// <summary>
+    ///  Called to signal that a new file has been uploaded. The
+    ///  descriptor holds information about the file and its context
+    ///  (for example which view is going to use it).
+    /// </summary>
+    /// <remarks>
+    ///  The session acquires ownership of the descriptor object.
+    /// </remarks>
+    procedure AddUploadedFile(const AFileDescriptor: TJSUploadedFile);
+    /// <summary>
+    ///  Removes a previously added file descriptor. To be called once
+    ///  the uploaded file has been processed.
+    /// </summary>
+    procedure RemoveUploadedFile(const AFileDescriptor: TJSUploadedFile);
+    /// <summary>
+    ///  Returns the first uploaded file descriptor matching the
+    ///  specified context, or nil if no descriptor is found.
+    /// </summary>
+    function FindUploadedFile(const AContext: TObject): TJSUploadedFile;
+    procedure SetLanguageFromQueriesOrConfig(const AConfig: TKConfig);
+    property RefreshingLanguage: Boolean read FRefreshingLanguage write FRefreshingLanguage;
+    property UploadPath: string read FUploadPath write FUploadPath;
+    function BeforeHandleRequest: Boolean; virtual;
+    procedure OnError(const AMessage, AMethodName, AParams: string);
+
+    function MethodURI(const AMethodName: string): string; overload;
+    function MethodURI(const AMethod: TJSProcedure): string; overload;
+
+    property IsDownload: Boolean read FIsDownload write FIsDownload;
+    property IsUpload: Boolean read FIsUpload write FIsUpload;
+
+    // Optional namespace to allow more sessions of the same application
+    // in the same web page. It is set as an additional $<namespace> path in the initial URL
+    // and then it is a) added as part of the URL to all requests from the session and
+    // b) used with the session GUID to locate a request's session.
+    // A valid namespace must begin with $.
+    property NameSpace: string read FNameSpace write SetNameSpace;
+
+    procedure OnNotFoundError(const AMethodName: string);
+    property ContentType: string read FContentType write FContentType;
+    property MaxUploadSize: Integer read FMaxUploadSize write FMaxUploadSize;
+    property FileUploaded: string read FFileUploaded;
+    property FileUploadedFullName: string read FFileUploadedFullName;
+    function GetViewportWidthInInches: TJSExpression;
+    function GetDefaultViewportWidth: Integer;
+  public
     procedure AfterConstruction; override;
     destructor Destroy; override;
-    procedure Alert(const AMessage: string); override;
+    procedure Alert(const AMessage: string);
     property Language: string read FLanguage write SetLanguage;
-    // Actual language for this session, reads HTTP_ACCEPT_LANGUAGE header
-    procedure InitDefaultValues; override;
-    procedure SetStyle(const AStyle: string = '');
-    procedure SetLibrary(pLibrary: string = ''; CSS: Boolean = False; HasDebug: Boolean = False;
-      DisableExistenceCheck: Boolean = False);
-    procedure SetCSS(pCSS: string; Check: Boolean = True);
     procedure ErrorMessage(const AMessage: string; const AAction: string = '');
-    procedure Refresh; override;
+    procedure Refresh; virtual;
 
     property ResponseItems: TJSResponseItems read GetResponseItems;
     function HasResponseItems: Boolean;
@@ -372,11 +421,84 @@ type
     procedure UnbranchResponseItems(const AResponseItems: TJSResponseItems; const AConsolidate: Boolean = True);
 
     function GetSingleton<T: TJSObject>(const AName: string): T;
+    { TODO : move to request }
     function IsMobileApple: Boolean;
-    property ObjectCatalog: TJSObjectCatalog read FObjectCatalog;
     property Global: TJSObject read GetGlobal;
-  published
-    procedure HandleEvent; virtual;
+
+    /// <summary>
+    ///  Gives access to a copy of the auth data that was last passed
+    ///  to Authenticate (and possibly modified by the object during
+    ///  authentication).
+    /// </summary>
+    property AuthData: TEFNode read FAuthData;
+    /// <summary>
+    ///  Returns True if authentication has successfully taken
+    ///  place.
+    /// </summary>
+    property IsAuthenticated: Boolean read FIsAuthenticated write FIsAuthenticated;
+    property AuthMacroExpander: TEFTreeMacroExpander read FAuthMacroExpander;
+    /// <summary>
+    ///  A reference to the main view container. Implements IKExtViewHost.
+    /// </summary>
+    property ViewHost: TObject read FViewHost write FViewHost;
+    /// <summary>
+    ///  A reference to the status bar to be used for wait messages.
+    ///  It is of type TKExtStatusBar.
+    /// </summary>
+    property StatusHost: TObject read FStatusHost write FStatusHost;
+    property ControllerHostWindow: TJSObject read FControllerHostWindow write FControllerHostWindow;
+    /// <summary>
+    ///  The current session's UUID.
+    /// </summary>
+    property SessionId: string read FSessionId {temporary} write FSessionId;
+    property OpenControllers: TObjectList<TObject> read FOpenControllers;
+    property HomeController: TObject read FHomeController write FHomeController;
+    property LoginController: TObject read FLoginController write FLoginController;
+    property ViewportWidthInInches: Integer read FViewportWidthInInches write FViewportWidthInInches;
+    property AutoOpenViewName: string read FAutoOpenViewName write FAutoOpenViewName;
+    property HomeViewNodeName: string read FHomeViewNodeName write FHomeViewNodeName;
+    property Libraries: string read FLibraries write FLibraries;
+    property ViewportContent: string read FViewportContent write FViewportContent;
+    /// <summary>
+    ///  True if the last request came from a mobile browser.
+    ///  The user agent detection is performed once per session and then cached.
+    /// </summary>
+    function IsMobileBrowser: Boolean;
+    /// <summary>
+    ///  Viewport width in mobile applications.
+    /// </summary>
+    property ViewportWidth: Integer read FViewportWidth write FViewportWidth;
+    /// <summary>
+    ///  True if tooltips are enabled for the session. By default, tooltips
+    ///  are enabled for desktop browsers and disabled for mobile browsers.
+    /// </summary>
+    function TooltipsEnabled: Boolean;
+    /// <summary>
+    ///  Ensures that existing js and css files with the specified base name
+    ///  are dynamically added to the page. If the specified files don't exist
+    ///  or were already added, nothing is done.
+    /// </summary>
+    procedure EnsureSupportFiles(const ABaseName: string);
+
+    /// <summary>
+    ///  Ensures that existing js and css files with a base name that depends
+    ///  on the specified view are dynamically added to the page.
+    ///  If the view has a 'SupportBaseName' attribute, then it is used as the
+    //   base name for the support files, otherwise the view's name (if any)
+    ///  is used.
+    ///  If the specified files don't exist or were already added, nothing is done.
+    /// </summary>
+    procedure EnsureViewSupportFiles(const AView: TKView);
+
+    /// <summary>
+    ///  If the specified object is found in the list of open controllers,
+    ///  it is removed from the list. Otherwise nothing happens.
+    ///  Used by view hosts to notify the session that a controller was closed.
+    /// </summary>
+    procedure RemoveController(const AObject: TObject);
+    property DisplayName: string read GetDisplayName write FDisplayName;
+
+    property LastRequestInfo: TJSRequestInfo read FLastRequestInfo;
   end;
 
   TJSObjectArray = class(TJSObject)
@@ -437,8 +559,6 @@ type
 { TODO : replace with single fluent call }
     function ExecuteJSCode(const AJSCode: string): TJSCode; overload;
     function ExecuteJSCode(const AObject: TJSObject; const AJSCode: string): TJSCode; overload;
-    function ExecuteJSCode(const AObject: TJSObject; const AJSCode: string;
-      const AAdditionalDependencies: array of TJSObject): TJSCode; overload;
 
     procedure AddJSON(const AJSON: string);
 
@@ -449,6 +569,8 @@ type
 
     function FindObjectCreateItem(const AObject: TJSObject): TJSCreateObject;
 
+    procedure ForEach(const AProc: TProc<TJSResponseItem>);
+
     property Items[I: Integer]: TJSResponseItem read GetItem; default;
     property Count: Integer read GetCount;
     procedure Clear;
@@ -457,34 +579,45 @@ type
   TJSResponseItem = class(TJSBase)
   private
     FSender: TJSObject;
-    FDependencies: TList<TJSResponseItem>;
+    FDependencies: TList<TJSCreateObject>;
     FEmitted: Boolean;
     FCreationDateTime: TDateTime;
+    FCachedText: string;
     function GetDependencyCount: Integer;
-    function GetDependency(I: Integer): TJSResponseItem;
+    function GetDependency(I: Integer): TJSCreateObject;
     function AllDependenciesEmitted(const AEmittedItems: TList<TJSResponseItem>): Boolean;
     function GetFormattedCode: string;
   strict protected
     FRoot: TJSResponseItems;
     procedure ChangeSender(const ASender: TJSObject);
+    procedure InternalFormatTo(const AFormatter: TJSFormatter); virtual;
   public
     constructor Create(const ASender: TJSObject; const ARoot: TJSResponseItems); reintroduce; virtual;
     procedure AfterConstruction; override;
     destructor Destroy; override;
     property Sender: TJSObject read FSender;
-    procedure AddDependency(const AItem: TJSResponseItem);
-    procedure RemoveDependency(const AItem: TJSResponseItem);
-    function GetDependencies: TArray<TJSResponseItem>;
+    procedure AddDependency(const AItem: TJSCreateObject);
+    procedure RemoveDependency(const AItem: TJSCreateObject);
+    function GetDependencies: TArray<TJSCreateObject>;
     property DependencyCount: Integer read GetDependencyCount;
-    property Dependencies[I: Integer]: TJSResponseItem read GetDependency;
-    function DependsOn(const AItem: TJSResponseItem): Boolean;
+    property Dependencies[I: Integer]: TJSCreateObject read GetDependency;
+    function DependsOn(const AItem: TJSCreateObject): Boolean;
     function IsCode: Boolean; virtual;
 
     procedure Emit(const AEmittedItems: TList<TJSResponseItem>);
     procedure UnEmit;
 
-    procedure FormatTo(const AFormatter: TJSFormatter); virtual;
+    procedure FormatTo(const AFormatter: TJSFormatter);
     function AsFormattedText: string;
+
+    // Allows the text to be emitted even if the sender is being
+    // destroyed. Works by caching the text and clearing the reference to the
+    // Sender, effectively inhibiting any further changes to the sender to be
+    // reflected in the response. Call this method only when the sender is
+    // being destroyed or anyway no longer used.
+    procedure UnlinkFromSender;
+
+    function GetDebugDescription: string; virtual;
   end;
 
   TJSNamedCreateObject = record
@@ -492,34 +625,29 @@ type
     CreateObject: TJSCreateObject;
   end;
 
-  TJSCreateObjectParams = record
-    JSConfig: TJSValues;
-    IsInline: Boolean;
-    IsInternal: Boolean;
-    JSName: string;
-    JSClassName: string;
-  end;
+//  TJSCreateObjectParams = record
+//    JSConfig: TJSValues;
+//    IsInline: Boolean;
+//    IsInternal: Boolean;
+//    JSName: string;
+//    JSClassName: string;
+//  end;
 
   TJSCreateObject = class(TJSResponseItem)
   private
-    FCreateParams: TJSCreateObjectParams;
+//    FCreateParams: TJSCreateObjectParams;
     FItems: TList<TJSNamedCreateObject>;
+  strict protected
+    procedure InternalFormatTo(const AFormatter: TJSFormatter); override;
   public
     procedure AfterConstruction; override;
     destructor Destroy; override;
-
-    procedure FormatTo(const AFormatter: TJSFormatter); override;
 
     function IsCode: Boolean; override;
 
     procedure CreateInternalObject(const AAttributeName: string; const ASender: TJSObject);
 
     function FindObjectCreateItem(const ASender: TJSObject): TJSCreateObject;
-
-    // Allows the creation statement to be emitted even if the sender is being
-    // destroyed. Takes hold of the sender's config object. As such, this method
-    // should be only called by the sender when it's being destroyed.
-    procedure UnlinkFromSender(const AConfig: TJSValues);
   end;
 
   // Base class for response items that can generate a TJSExpression.
@@ -549,10 +677,11 @@ type
   private
     FCallName: string;
     FParams: TJSValues;
+  strict protected
+    procedure InternalFormatTo(const AFormatter: TJSFormatter); override;
   public
     procedure AfterConstruction; override;
   public
-    procedure FormatTo(const AFormatter: TJSFormatter); override;
     property CallName: string read FCallName write FCallName;
 
     function AddParam(const AValue: string): TJSMethodCall; overload;
@@ -563,6 +692,8 @@ type
     function AddParam(const AValue: TJSExpression): TJSMethodCall; overload;
 
     property Params: TJSValues read FParams;
+
+    function GetDebugDescription: string; override;
   end;
 
   TJSAjaxCall = class(TJSMethodCall)
@@ -570,10 +701,11 @@ type
     FHttpMethod: string;
     FPostData: string;
     procedure AddParams(const AFormatter: TJSFormatter);
+  strict protected
+    procedure InternalFormatTo(const AFormatter: TJSFormatter); override;
   public
     procedure AfterConstruction; override;
   public
-    procedure FormatTo(const AFormatter: TJSFormatter); override;
 
     function SetMethod(const AMethod: TJSProcedure): TJSAjaxCall;
     function Get: TJSAjaxCall;
@@ -592,33 +724,38 @@ type
   TJSGetProperty = class(TJSExpressionResponseItem)
   private
     FPropertyName: string;
+  strict protected
+    procedure InternalFormatTo(const AFormatter: TJSFormatter); override;
   public
     property PropertyName: string read FPropertyName write FPropertyName;
-    procedure FormatTo(const AFormatter: TJSFormatter); override;
   end;
 
   TJSSetProperty = class(TJSResponseItem)
   private
     FNameValue: TJSValues;
+  strict protected
+    procedure InternalFormatTo(const AFormatter: TJSFormatter); override;
   public
     procedure AfterConstruction; override;
   public
-    procedure FormatTo(const AFormatter: TJSFormatter); override;
     property NameValue: TJSValues read FNameValue;
   end;
 
   TJSTextBase = class(TJSExpressionResponseItem)
-  protected
+  strict protected
     FText: string;
+    procedure InternalFormatTo(const AFormatter: TJSFormatter); override;
   public
     property Text: string read FText write FText;
-    procedure FormatTo(const AFormatter: TJSFormatter); override;
+
+    function GetDebugDescription: string; override;
   end;
 
   TJSCode = class(TJSTextBase)
+  strict protected
+    procedure InternalFormatTo(const AFormatter: TJSFormatter); override;
   public
     property JSCode: string read FText write FText;
-    procedure FormatTo(const AFormatter: TJSFormatter); override;
   end;
 
   TJSON = class(TJSTextBase)
@@ -631,7 +768,7 @@ type
     property HTML: string read FText write FText;
   end;
 
-function GetSession: TJSSession;
+function Session: TJSSession;
 
 implementation
 
@@ -641,21 +778,34 @@ uses
   , Math
   , Types
   , Character
-  , Ext.Util // for ExtUtilTextMetrics. Switch to pure JS?
+  , REST.Utils
   , EF.StrUtils
+  , EF.SysUtils
+  , EF.Logger
+  , Ext.Util // for ExtUtilTextMetrics. Switch to pure JS?
+  , Ext.Base
+  , Kitto.AccessControl
+  , Kitto.Web
+  , Kitto.Web.Request
+  , Kitto.Ext.Controller
   ;
 
 var
   _JSFormatSettings: TFormatSettings;
 
-function GetSession: TJSSession;
+function Session: TJSSession;
 begin
-  Result := TJSSession(_CurrentWebSession);
+  if Assigned(TKWebServer.CurrentSession) then
+    Result := TKWebServer.CurrentSession.Content.Objects[
+      TKWebServer.CurrentSession.Content.IndexOf(TKWebServer.SESSION_OBJECT)] as TJSSession
+  else
+    Result := nil;
 end;
+
 
 { TJSResponseItem }
 
-procedure TJSResponseItem.AddDependency(const AItem: TJSResponseItem);
+procedure TJSResponseItem.AddDependency(const AItem: TJSCreateObject);
 begin
   if Assigned(AItem) and (AItem <> Self) and not FDependencies.Contains(AItem) then
     FDependencies.Add(AItem);
@@ -664,7 +814,7 @@ end;
 procedure TJSResponseItem.AfterConstruction;
 begin
   inherited;
-  FDependencies := TList<TJSResponseItem>.Create;
+  FDependencies := TList<TJSCreateObject>.Create;
   FEmitted := False;
   FCreationDateTime := Now;
 end;
@@ -681,7 +831,7 @@ begin
   FRoot := ARoot;
 end;
 
-function TJSResponseItem.DependsOn(const AItem: TJSResponseItem): Boolean;
+function TJSResponseItem.DependsOn(const AItem: TJSCreateObject): Boolean;
 var
   LItem: TJSResponseItem;
 begin
@@ -717,6 +867,11 @@ end;
 procedure TJSResponseItem.FormatTo(const AFormatter: TJSFormatter);
 begin
   Assert(Assigned(AFormatter));
+
+  if FCachedText <> '' then
+    AFormatter.Add(FCachedText)
+  else
+    InternalFormatTo(AFormatter);
 end;
 
 function TJSResponseItem.AllDependenciesEmitted(const AEmittedItems: TList<TJSResponseItem>): Boolean;
@@ -743,12 +898,20 @@ begin
   end;
 end;
 
-function TJSResponseItem.GetDependencies: TArray<TJSResponseItem>;
+function TJSResponseItem.GetDebugDescription: string;
+begin
+  if Assigned(FSender) then
+    Result := FSender.JSName + ': ' + ClassName
+  else
+    Result := 'nil: ' + ClassName;
+end;
+
+function TJSResponseItem.GetDependencies: TArray<TJSCreateObject>;
 begin
   Result := FDependencies.ToArray;
 end;
 
-function TJSResponseItem.GetDependency(I: Integer): TJSResponseItem;
+function TJSResponseItem.GetDependency(I: Integer): TJSCreateObject;
 begin
   Result := FDependencies[I];
 end;
@@ -771,12 +934,16 @@ begin
   end;
 end;
 
+procedure TJSResponseItem.InternalFormatTo(const AFormatter: TJSFormatter);
+begin
+end;
+
 function TJSResponseItem.IsCode: Boolean;
 begin
   Result := True;
 end;
 
-procedure TJSResponseItem.RemoveDependency(const AItem: TJSResponseItem);
+procedure TJSResponseItem.RemoveDependency(const AItem: TJSCreateObject);
 begin
   Assert(FDependencies.Remove(AItem) >= 0);
 end;
@@ -784,6 +951,15 @@ end;
 procedure TJSResponseItem.UnEmit;
 begin
   FEmitted := False;
+end;
+
+procedure TJSResponseItem.UnlinkFromSender;
+begin
+  Assert(Assigned(Sender));
+  Assert(FCachedText = '');
+
+  FCachedText := AsFormattedText;
+  ChangeSender(nil);
 end;
 
 { TJSCreateObject }
@@ -819,20 +995,20 @@ begin
   Result := False;
 end;
 
-procedure TJSCreateObject.UnlinkFromSender(const AConfig: TJSValues);
-begin
-  Assert(Assigned(Sender));
-  Assert(Assigned(AConfig));
-
-  AConfig.Owner := Self;
-  FCreateParams.JSConfig := AConfig;
-  FCreateParams.IsInline := Sender.IsInline;
-  FCreateParams.IsInternal := Sender.IsInternal;
-  FCreateParams.JSName := Sender.JSName;
-  FCreateParams.JSClassName := Sender.JSClassName;
-
-  ChangeSender(nil);
-end;
+//procedure TJSCreateObject.UnlinkFromSender(const AConfig: TJSValues);
+//begin
+//  Assert(Assigned(Sender));
+//  Assert(Assigned(AConfig));
+//
+//  AConfig.Owner := Self;
+//  FCreateParams.JSConfig := AConfig;
+//  FCreateParams.IsInline := Sender.IsInline;
+//  FCreateParams.IsInternal := Sender.IsInternal;
+//  FCreateParams.JSName := Sender.JSName;
+//  FCreateParams.JSClassName := Sender.JSClassName;
+//
+//  ChangeSender(nil);
+//end;
 
 procedure TJSCreateObject.CreateInternalObject(const AAttributeName: string; const ASender: TJSObject);
 var
@@ -843,40 +1019,24 @@ begin
   FItems.Add(LItem);
 end;
 
-procedure TJSCreateObject.FormatTo(const AFormatter: TJSFormatter);
+procedure TJSCreateObject.InternalFormatTo(const AFormatter: TJSFormatter);
 var
   LJSName: string;
   LConstructionAdded: Boolean;
 begin
   inherited;
   LConstructionAdded := False;
-  if Assigned(Sender) then
+  if not Sender.IsInline and not Sender.IsInternal then
   begin
-    if not Sender.IsInline and not Sender.IsInternal then
-    begin
-      LJSName := Sender.JSName;
-      AFormatter.AddIndentedLine(LJSName + ' = new ' + Sender.JSClassName + '(');
-      AFormatter.Indent.AddIndent;
-      LConstructionAdded := True;
-    end;
-  end
-  else
-  begin
-    if not FCreateParams.IsInline and not FCreateParams.IsInternal then
-    begin
-      LJSName := FCreateParams.JSName;
-      AFormatter.AddIndentedLine(LJSName + ' = new ' + FCreateParams.JSClassName + '(');
-      AFormatter.Indent.AddIndent;
-      LConstructionAdded := True;
-    end;
+    LJSName := Sender.JSName;
+    AFormatter.AddIndentedLine(LJSName + ' = new ' + Sender.JSClassName + '(');
+    AFormatter.Indent.AddIndent;
+    LConstructionAdded := True;
   end;
 
   { TODO : what if it's empty? }
   AFormatter.OpenObject;
-  if Assigned(Sender) then
-    Sender.JSConfig.FormatTo(AFormatter)
-  else
-    FCreateParams.JSConfig.FormatTo(AFormatter);
+  Sender.JSConfig.FormatTo(AFormatter);
   AFormatter.CloseObject;
   if LConstructionAdded then
   begin
@@ -888,7 +1048,7 @@ end;
 
 { TExtJSCode }
 
-procedure TJSCode.FormatTo(const AFormatter: TJSFormatter);
+procedure TJSCode.InternalFormatTo(const AFormatter: TJSFormatter);
 begin
   inherited;
   AFormatter.AddIndentedLine('');
@@ -928,9 +1088,12 @@ procedure TJSResponseItems.AddObjectDependency(const ADependentObject, ADepended
 var
   LDependentObjectCreateItem: TJSCreateObject;
 begin
-  LDependentObjectCreateItem := FindObjectCreateItem(ADependentObject);
-  if Assigned(LDependentObjectCreateItem) then
-    LDependentObjectCreateItem.AddDependency(FindObjectCreateItem(ADependedUponObject));
+  if Assigned(ADependentObject) and Assigned(ADependedUponObject) then
+  begin
+    LDependentObjectCreateItem := FindObjectCreateItem(ADependentObject);
+    if Assigned(LDependentObjectCreateItem) then
+      LDependentObjectCreateItem.AddDependency(FindObjectCreateItem(ADependedUponObject));
+  end;
 end;
 
 procedure TJSResponseItems.AfterConstruction;
@@ -975,22 +1138,12 @@ end;
 
 function TJSResponseItems.ExecuteJSCode(const AObject: TJSObject; const AJSCode: string): TJSCode;
 begin
-  Result := ExecuteJSCode(AObject, AJSCode, []);
-end;
-
-function TJSResponseItems.ExecuteJSCode(const AObject: TJSObject; const AJSCode: string;
-  const AAdditionalDependencies: array of TJSObject): TJSCode;
-var
-  I: Integer;
-begin
   if AJSCode <> '' then
   begin
     Result := TJSCode.Create(AObject, Self);
     try
       Result.AddDependency(FindObjectCreateItem(AObject));
       Result.JSCode := AJSCode;
-      for I := Low(AAdditionalDependencies) to High(AAdditionalDependencies) do
-        Result.AddDependency(FindObjectCreateItem(AAdditionalDependencies[I]));
       FList.Add(Result);
     except
       FreeAndNil(Result);
@@ -1019,14 +1172,16 @@ var
         LTopLevelNodes.Enqueue(LItem);
   end;
 
-  function GetDependentNodes(const AItem: TJSResponseItem): TArray<TJSResponseItem>;
+  function GetDependentNodes(const AItem: TJSCreateObject): TArray<TJSResponseItem>;
   var
     LItem: TJSResponseItem;
   begin
     SetLength(Result, 0);
     for LItem in FList do
+    begin
       if LItem.DependsOn(AItem) then
         Result := Result + [LItem];
+    end;
   end;
 
   function DependenciesExist: Boolean;
@@ -1043,21 +1198,15 @@ var
   var
     LItem: TJSResponseItem;
     I: Integer;
-
-    function GetItemDescription(const AItem: TJSResponseItem): string;
-    begin
-      Result := AItem.Sender.JSName + '-' + AItem.ClassName;
-    end;
-
   begin
     Result := '';
     for LItem in AList do
     begin
       if LItem.DependencyCount > 0 then
       begin
-        Result := Result + GetItemDescription(LItem) + '  DEPENDS ON  ';
+        Result := Result + LItem.GetDebugDescription + '  DEPENDS ON  ';
         for I := 0 to LItem.DependencyCount - 1 do
-          Result := Result + ' ' + GetItemDescription(LItem.Dependencies[I]);
+          Result := Result + ' ' + LItem.Dependencies[I].GetDebugDescription;
         Result := Result + sLinebreak;
       end;
     end;
@@ -1091,12 +1240,15 @@ begin
       begin
         LItem := LTopLevelNodes.Dequeue;
         LList.Add(LItem);
-        LDependents := GetDependentNodes(LItem);
-        for LDependent in LDependents do
+        if LItem is TJSCreateObject then
         begin
-          LDependent.RemoveDependency(LItem);
-          if LDependent.DependencyCount = 0 then
-            LTopLevelNodes.Enqueue(LDependent);
+          LDependents := GetDependentNodes(TJSCreateObject(LItem));
+          for LDependent in LDependents do
+          begin
+            LDependent.RemoveDependency(TJSCreateObject(LItem));
+            if LDependent.DependencyCount = 0 then
+              LTopLevelNodes.Enqueue(LDependent);
+          end;
         end;
       end;
       if DependenciesExist then
@@ -1186,6 +1338,16 @@ begin
   end;
 end;
 
+procedure TJSResponseItems.ForEach(const AProc: TProc<TJSResponseItem>);
+var
+  LItem: TJSResponseItem;
+begin
+  Assert(Assigned(AProc));
+  
+  for LItem in FList do
+    AProc(LItem);
+end;
+
 function TJSResponseItems.GetCount: Integer;
 begin
   Result := FList.Count;
@@ -1200,8 +1362,8 @@ function TJSResponseItems.GetProperty(const AObject: TJSObject; const APropertyN
 begin
   Result := TJSGetProperty.Create(AObject, Self);
   try
-    Result.PropertyName := APropertyName;
     Result.AddDependency(FindObjectCreateItem(AObject));
+    Result.PropertyName := APropertyName;
     FList.Add(Result);
   except
     FreeAndNil(Result);
@@ -1214,8 +1376,8 @@ begin
   DoSetProperty(AObject,
     procedure (AItem: TJSSetProperty)
     begin
-      AItem.NameValue.Values.SetObject(AName, AValue);
       AItem.AddDependency(FindObjectCreateItem(AValue));
+      AItem.NameValue.Values.SetObject(AName, AValue);
     end);
 end;
 
@@ -1340,7 +1502,12 @@ begin
   FParams.NameValueConnector := '';
 end;
 
-procedure TJSMethodCall.FormatTo(const AFormatter: TJSFormatter);
+function TJSMethodCall.GetDebugDescription: string;
+begin
+  Result := inherited GetDebugDescription + '.' + CallName;
+end;
+
+procedure TJSMethodCall.InternalFormatTo(const AFormatter: TJSFormatter);
 begin
   inherited;
   if not IsExpressionExtracted then
@@ -1369,7 +1536,7 @@ begin
   FNameValue.NameValueConnector := ' = ';
 end;
 
-procedure TJSSetProperty.FormatTo(const AFormatter: TJSFormatter);
+procedure TJSSetProperty.InternalFormatTo(const AFormatter: TJSFormatter);
 begin
   Assert(Assigned(Sender));
   Assert(FNameValue.Values.ChildCount = 1);
@@ -1381,7 +1548,7 @@ end;
 
 { TJSGetProperty }
 
-procedure TJSGetProperty.FormatTo(const AFormatter: TJSFormatter);
+procedure TJSGetProperty.InternalFormatTo(const AFormatter: TJSFormatter);
 begin
   Assert(Assigned(Sender));
   Assert(FPropertyName <> '');
@@ -1393,76 +1560,9 @@ end;
 
 { TJSSession }
 
-procedure TJSSession.SetLanguage(const AValue: string);
+procedure TJSSession.SetNameSpace(const AValue: string);
 begin
-  FLanguage := AValue;
-end;
-
-procedure TJSSession.SetLibrary(pLibrary: string = ''; CSS: Boolean = False; HasDebug: Boolean = False;
-  DisableExistenceCheck: Boolean = False);
-var
-  Root: string;
-begin
-  pLibrary := pLibrary.Replace('{ext}', ExtPath);
-  if pos(pLibrary + '.js', FLibraries) = 0 then
-    if pLibrary = '' then
-      FLibraries := '' // Clear FLibraries
-    else
-    begin
-      if DisableExistenceCheck then
-        Root := ''
-      else
-        Root := RequestHeader['DOCUMENT_ROOT'];
-      if (Root = '') or ((Root <> '') and FileExists(Root + pLibrary + '.js')) then
-      begin
-        FLibraries := FLibraries + '<script src="' + pLibrary{$IFDEF DEBUGJS} + IfThen(HasDebug, '-debug', ''){$ENDIF} +
-          '.js"></script>'^M^J;
-        if CSS then
-        begin
-          if not DisableExistenceCheck and not FileExists(Root + pLibrary + '.css') then
-            // Assume in /css like ux
-            pLibrary := ExtractFilePath(pLibrary) + 'css/' + ExtractFileName(pLibrary);
-          FLibraries := FLibraries + '<link rel=stylesheet href="' + pLibrary + '.css" />';
-        end;
-      end
-      else
-        raise Exception.Create('Library: ' + Root + pLibrary + '.js not found');
-    end;
-end;
-
-{
-  Adds/Removes an user CSS (cascade style sheet) to be used in current response.
-  If the WebServer is Apache tests if the CSS file exists.
-  Repeated CSS's are ignored.
-  @param pCSS CSS file name without extension (.css), but with Path based on Web server document root.
-  @param Check Checks if the CSS file exists, default is true.
-  If pCSS is '' then all user CSS AND JS libraries to this session will be removed from response.
-}
-procedure TJSSession.SetCSS(pCSS: string; Check: Boolean = True);
-var
-  Root: string;
-begin
-  pCSS := pCSS.Replace('{ext}', ExtPath);
-  if pos(pCSS + '.css', FLibraries) = 0 then
-    if pCSS = '' then
-      FLibraries := '' // Clear FLibraries
-    else
-    begin
-      Root := RequestHeader['DOCUMENT_ROOT'];
-      if Check and (Root <> '') and not FileExists(Root + pCSS + '.css') then
-        raise Exception.Create('Stylesheet: ' + Root + pCSS + '.css not found')
-      else
-        FLibraries := FLibraries + '<link rel=stylesheet href="' + pCSS + '.css" />';
-    end;
-end;
-
-procedure TJSSession.SetStyle(const AStyle: string);
-begin
-  if Pos(AStyle, FStyles) = 0 then
-    if AStyle = '' then
-      FStyles := ''
-    else
-      FStyles := FStyles + AStyle;
+  FNameSpace := StripSuffix(AValue, '/');
 end;
 
 procedure TJSSession.UnbranchResponseItems(const AResponseItems: TJSResponseItems; const AConsolidate: Boolean);
@@ -1488,27 +1588,6 @@ begin
   FreeAndNil(LBranch);
 
   Assert(FResponseItemsStack.Count = LInitialCount - 1);
-end;
-
-// Returns all styles in use in current response
-function TJSSession.GetStyleTag: string;
-begin
-  if FStyles = '' then
-    Result := ''
-  else
-    Result := '<style>' + FStyles + '</style>';
-end;
-
-// Returns a object which will be used to handle the page method. We will call it's published method based on PathInfo.
-function TJSSession.GetUrlHandlerObject: TObject;
-var
-  LJSName: string;
-begin
-  LJSName := Query['Object'];
-  if (LJSName = '') or (Query['Event'] <> '') then
-    Result := inherited GetUrlHandlerObject
-  else
-    Result := ObjectCatalog.FindChildByJSName(LJSName);
 end;
 
 function TJSSession.GetViewportContent: string;
@@ -1541,10 +1620,20 @@ end;
 procedure TJSSession.Refresh;
 begin
   inherited;
-  ObjectCatalog.FreeAllChildren;
   ResponseItems.Clear;
+  FGlobal := nil;
+  FreeAllChildren;
   FObjectSequences.Clear;
   FSingletons.Clear;
+
+  FHomeController := nil;
+  FLoginController := nil;
+  FOpenControllers.Clear;
+  FViewHost := nil;
+  FStatusHost := nil;
+  FDynamicScripts.Clear;
+  FDynamicStyles.Clear;
+  FreeAndNil(FControllerHostWindow);
 end;
 
 function TJSObject.MethodURI(const AMethod: TJSProcedure): string;
@@ -1592,72 +1681,84 @@ function TJSSession.BeforeHandleRequest: Boolean;
 var
   I: Integer;
 begin
+  FLastRequestDateTime := Now;
   Result := True;
   if FLanguage = '' then
   begin // Set language
-    FLanguage := RequestHeader['HTTP_ACCEPT_LANGUAGE'];
+    FLanguage := TKWebRequest.Current.GetFieldByName('Accept-Language');
     I := pos('-', FLanguage);
     if I <> 0 then
     begin
       FLanguage := Copy(FLanguage, I - 2, 2) + '_' + Uppercase(Copy(FLanguage, I + 1, 2));
-      if not FileExists(RequestHeader['DOCUMENT_ROOT'] + ExtPath + '/build/classic/locale/locale-' + FLanguage + '.js')
-      then
-        FLanguage := Copy(FLanguage, 1, 2)
+{ TODO : extjs path? }
+//      if not FileExists(RequestHeader['DOCUMENT_ROOT'] + ExtPath + '/build/classic/locale/locale-' + FLanguage + '.js') then
+//        FLanguage := Copy(FLanguage, 1, 2)
     end;
   end;
-  IsAjax := (RequestHeader['HTTP_X_REQUESTED_WITH'] = 'XMLHttpRequest') or IsUpload;
-  if IsAjax then
-  begin
-    if SessionCookie = '' then
-    begin
-      ErrorMessage('This web application requires Cookies enabled to AJAX works.');
-      Result := False;
-    end
-    else if NewThread or RequiresReload then
-    begin
-      ErrorMessage('Session expired or lost.<br/>A new session will be created now.', 'window.location.reload()');
-      RequiresReload := True;
-      Result := False;
-    end
-  end
-  else
-    RequiresReload := False;
+//  if IsAjax then
+//  begin
+//    if NewThread or RequiresReload then
+//    begin
+//      ErrorMessage('Session expired or lost.<br/>A new session will be created now.', 'window.location.reload()');
+//      RequiresReload := True;
+//      Result := False;
+//    end
+//  end
+//  else
+//    RequiresReload := False;
 end;
 
 function TJSSession.GetGlobal: TJSObject;
 begin
   if not Assigned(FGlobal) then
-    FGlobal := TJSObject.CreateInline(ObjectCatalog);
+    FGlobal := TJSObject.CreateInline(Self);
   Result := FGlobal;
 end;
 
 function TJSSession.BranchResponseItems: TJSResponseItems;
 begin
-  Result := TJSResponseItems.Create(ObjectCatalog);
+  Result := TJSResponseItems.Create(nil);
   FResponseItemsStack.Push(Result);
 
   Assert(FResponseItemsStack.Count > 0);
 end;
 
 destructor TJSSession.Destroy;
+var
+  LUploadDirectory: string;
 begin
+  // Delete upload folder only for valid sessions.
+  if FSessionId <> '' then
+  begin
+{ TODO : figure out our document root }
+//    LUploadDirectory := ReplaceStr(DocumentRoot + UploadPath, '/', '\');
+    if DirectoryExists(LUploadDirectory) then
+      DeleteTree(LUploadDirectory);
+  end;
   Assert(FResponseItemsStack.Count = 1);
   FResponseItemsStack.Pop.Free;
   FreeAndNil(FResponseItemsStack);
   FreeAndNil(FObjectSequences);
   FreeAndNil(FSingletons);
   FreeAndNil(FGlobal);
-  FreeAndNil(FObjectCatalog);
+  FreeAndNil(FAuthMacroExpander);
+  FreeAndNil(FAuthData);
+  FreeAndNil(FUploadedFiles);
+  FreeAndNil(FHomeController);
+  FreeAndNil(FLoginController);
+  FreeAndNil(FGettextInstance);
+  FreeAndNil(FDynamicScripts);
+  FreeAndNil(FDynamicStyles);
+  FreeAndNil(FLastRequestInfo);
   inherited;
+  // Keep it alive as the inherited call might trigger calls to
+  // RemoveController from objects being destroyed.
+  FreeAndNil(FOpenControllers);
 end;
 
-procedure TJSSession.InitDefaultValues;
+procedure TJSSession.OnNotFoundError(const AMethodName: string);
 begin
-  inherited;
-  ExtPath := '/ext6';
-  ExtBuild := 'ext-all';
-  Charset := 'utf-8'; // 'iso-8859-1'
-  UpLoadPath := '/uploads';
+  Alert(Format('Method: ''%s'' not found', [AMethodName]));
 end;
 
 function TJSSession.IsMobileApple: Boolean;
@@ -1666,26 +1767,123 @@ var
 begin
   if not FMobileBrowserDetectionDone then
   begin
-    LUserAgent := RequestHeader['HTTP_USER_AGENT'];
+    LUserAgent := TKWebRequest.Current.GetFieldByName('User-Agent');
     FIsMobileApple := LUserAgent.Contains('iPhone') or LUserAgent.Contains('iPad');
     FMobileBrowserDetectionDone := True;
   end;
   Result := FIsMobileApple;
 end;
 
-// Calls events using Delphi style
-procedure TJSSession.HandleEvent;
-var
-  LObject: TJSObject;
+function TJSSession.TooltipsEnabled: Boolean;
 begin
-  if Query['Event'] <> '' then
+  Result := not Session.IsMobileBrowser;
+end;
+
+function TJSSession.IsMobileBrowser: Boolean;
+var
+  LUserAgent: string;
+begin
+  if not FMobileBrowserDetectionDone then
   begin
-    LObject := ObjectCatalog.FindChildByJSName(Query['Object']) as TJSObject;
-    if not Assigned(LObject) then
-      OnError('Object not found in session list. It could be timed out, refresh page and try again', 'HandleEvent', '')
-    else
-      LObject.HandleEvent(Query['Event']);
+    LUserAgent := TKWebRequest.Current.UserAgent;
+    TEFLogger.Instance.Log('UserAgent: ' + LUserAgent);
+    FIsMobileBrowser := LUserAgent.Contains('Windows Phone') or
+      LUserAgent.Contains('iPhone') or
+      LUserAgent.Contains('iPad') or
+      LUserAgent.Contains('Android');
+    FMobileBrowserDetectionDone := True;
+    TEFLogger.Instance.Log('IsMobileBrowser: ' + BoolToStr(FIsMobileBrowser, True));
   end;
+  Result := FIsMobileBrowser;
+end;
+
+function TJSSession.GetViewportWidthInInches: TJSExpression;
+begin
+  Result := Global.JSExpressionFromCodeBlock('getViewportWidthInInches()');
+end;
+
+function TJSSession.GetDefaultViewportWidth: Integer;
+begin
+  Result := FViewportWidthInInches * 96;
+//  case FViewportWidthInInches of
+//    0..4: Result := 320;
+//    5..7: Result := 480;
+//    8..10: Result := 640;
+//  else
+//    Result := 0;
+//  end;
+end;
+
+function TJSSession.MethodURI(const AMethodName: string): string;
+begin
+  //Assert(Assigned(FApplication));
+
+  Result := '/';//FApplication.BasePath;
+  if NameSpace <> '' then
+    Result := Result + NameSpace + '/';
+  Result := Result + AMethodName;
+end;
+
+function TJSSession.MethodURI(const AMethod: TJSProcedure): string;
+begin
+  { TODO : switch to new-style Rtti. }
+  Result := MethodName(@AMethod);
+  if Result <> '' then
+    Result := MethodURI(Result)
+  else
+    raise Exception.Create('MethodURI: Method is not published');
+end;
+
+procedure TJSSession.EnumUploadedFiles(const AProc: TProc<TJSUploadedFile>);
+var
+  I: Integer;
+begin
+  if Assigned(AProc) then
+  begin
+    for I := FUploadedFiles.Count - 1 downto 0 do
+      AProc(FUploadedFiles[I]);
+  end;
+end;
+
+procedure TJSSession.RemoveUploadedFile(const AFileDescriptor: TJSUploadedFile);
+begin
+  FUploadedFiles.Remove(AFileDescriptor);
+end;
+
+procedure TJSSession.RemoveController(const AObject: TObject);
+begin
+  FOpenControllers.Remove(AObject);
+end;
+
+procedure TJSSession.SetLanguage(const AValue: string);
+begin
+  FLanguage := AValue;
+  TEFLocalizationToolRegistry.CurrentTool.ForceLanguage(FLanguage);
+  TEFLogger.Instance.LogFmt('Language %s set.', [FLanguage], TEFLogger.LOG_MEDIUM);
+  //Config.Config.SetString('LanguageId', AValue);
+end;
+
+procedure TJSSession.SetLanguageFromQueriesOrConfig(const AConfig: TKConfig);
+var
+  LLanguageId: string;
+begin
+  LLanguageId := Global.ParamAsString('lang');
+  if LLanguageId = '' then
+    LLanguageId := AConfig.Config.GetString('LanguageId');
+  if LLanguageId <> '' then
+    Language := LLanguageId;
+end;
+
+procedure TJSSession.AddUploadedFile(const AFileDescriptor: TJSUploadedFile);
+begin
+  FUploadedFiles.Add(AFileDescriptor);
+end;
+
+function TJSSession.GetDisplayName: string;
+begin
+  Result := FDisplayName;
+  if Result = '' then
+    Result := SessionId;
 end;
 
 function TJSSession.HasResponseItems: Boolean;
@@ -1696,14 +1894,32 @@ end;
 procedure TJSSession.AfterConstruction;
 begin
   inherited;
+  FLastRequestInfo := TJSRequestInfo.Create;
+
+  FMobileBrowserDetectionDone := False;
+
+  FDynamicScripts := TStringList.Create;
+  FDynamicScripts.Sorted := True;
+  FDynamicScripts.Duplicates := dupError;
+  FDynamicStyles := TStringList.Create;
+  FDynamicStyles.Sorted := True;
+  FDynamicStyles.Duplicates := dupError;
+
   FResponseItemsStack := TStack<TJSResponseItems>.Create;
-  FResponseItemsStack.Push(TJSResponseItems.Create(ObjectCatalog));
+  FResponseItemsStack.Push(TJSResponseItems.Create(nil));
 
   FObjectSequences := TDictionary<string, Cardinal>.Create;
   FSingletons := TDictionary<string, TJSObject>.Create;
 
-  FObjectCatalog := TJSObjectCatalog.Create(nil);
-  FObjectCatalog.FJSSession := Self;
+  FAuthData := TEFNode.Create;
+  FAuthMacroExpander := TEFTreeMacroExpander.Create(FAuthData, 'Auth');
+
+  FGettextInstance := TGnuGettextInstance.Create;
+
+  FUploadedFiles := TObjectList<TJSUploadedFile>.Create;
+  FOpenControllers := TObjectList<TObject>.Create(False);
+
+  AfterNewSession;
 end;
 
 function TJSSession.GetCustomJS: string;
@@ -1711,46 +1927,63 @@ begin
   Result := '';
 end;
 
-function TJSSession.GetMainPageTemplate: string;
+procedure TJSSession.EnsureDynamicScript(const AScriptBaseName: string);
+var
+  LIndex: Integer;
+  LURL: string;
 begin
-  Result := '<%HTMLDeclaration%>' + sLineBreak + '<head>' + sLineBreak + '  <title><%ApplicationTitle%></title>' +
-    sLineBreak + '  <%ApplicationIconLink%>' + sLineBreak + '  <%AppleIconLink%>' + sLineBreak +
-    '  <meta http-equiv="content-type" content="charset=<%CharSet%>" />' + sLineBreak +
-    '  <meta name="viewport=" content="<%ViewportContent%>" />' + sLineBreak +
-    '  <meta name="mobile-web-app-capable" content="yes" />' + sLineBreak +
-    '  <meta name="apple-mobile-web-app-capable" content="yes" />' + sLineBreak +
-    '  <link rel=stylesheet href="<%ExtPath%>/resources/css/<%ExtBuild%>.css" />' + sLineBreak +
-    '  <script src="<%ExtPath%>/adapter/ext/ext-base<%DebugSuffix%>.js"></script>' + sLineBreak +
-    '  <script src="<%ExtPath%>/<%ExtBuild%><%DebugSuffix%>.js"></script>' + sLineBreak +
-{$IFDEF DEBUGJS}
-    '  <script src="/codepress/Ext.ux.CodePress.js"></script>' + sLineBreak +
-{$ENDIF}
-    '  <%ThemeLink%>' + sLineBreak + '  <%LanguageLink%>' + sLineBreak + '  <%StyleTag%>' + sLineBreak +
-    '  <%LibraryTags%>' + sLineBreak + '</head>' + sLineBreak + '<body>' + sLineBreak + '<div id="body">' + sLineBreak +
-    '  <div id="loading" style="position:absolute;font-family:verdana;top:40%;left:40%">' + sLineBreak +
-    '    <img src="<%ExtPath%>/classic/theme-classic/resources/images/shared/loading-balls.gif"/>Loading <%ApplicationTitle%>...'
-    + sLineBreak + '  </div>' + sLineBreak + '</div>' + sLineBreak +
-    '<noscript>This web application requires JavaScript enabled</noscript>' + sLineBreak + '</body>' + sLineBreak +
-    '  <script>' + sLineBreak + '<%CustomJS%>' + sLineBreak +
-    'function AjaxError(m){Ext.Msg.show({title:"Ajax Error",msg:m,icon:Ext.Msg.ERROR,buttons:Ext.Msg.OK});};' +
-{$IFDEF DEBUGJS}
-    'function AjaxSource(t,l,s){var w=new Ext.Window({title:"Ajax error: "+t+", Line: "+' +
-    IfThen(Browser = brFirefox, '(l-%%)', '"Use Firefox to debug"') +
-    ',width:600,height:400,modal:true,items:[new Ext.ux.CodePress({language:"javascript",readOnly:true,code:s})]});w.show();'
-    + 'w.on("resize",function(){w.items.get(0).resize();});};' +
-    'function AjaxSuccess(response){try{eval(response.responseText);}catch(err){AjaxSource(err.message,err.lineNumber,response.responseText);}};'
-    +
-{$ELSE}
-    'function AjaxSuccess(response){try{eval(response.responseText);}catch(err){AjaxError(err.message+"<br/>Use DebugJS define to enhance debugging<br/>"+response.responseText);}};'
-    +
-{$ENDIF}
-    'function sleep(ms){var start=new Date().getTime();for(var i=0;i<1e7;i++)if((new Date().getTime()-start)>ms)break;};'
-    + sLineBreak + 'function AjaxFailure(){AjaxError("Server unavailable, try later.");};' + sLineBreak +
-    'Ext.onReady(function(){' + sLineBreak + 'Ext.get("loading").remove();' + sLineBreak +
-    'Ext.BLANK_IMAGE_URL="<%ExtPath%>/resources/images/default/s.gif";' + sLineBreak +
-    'TextMetrics=Ext.util.TextMetrics.createInstance("body");' + sLineBreak +
-    'Download=Ext.DomHelper.append(document.body,{tag:"iframe",cls:"x-hidden"});' + '<%Response%>});' + sLineBreak +
-    '  </script>' + sLineBreak + '</html>';
+  if not FDynamicScripts.Find(AScriptBaseName, LIndex) then
+  begin
+    LURL := TKWebApplication.Current.Config.FindResourceURL(IncludeTrailingPathDelimiter('js') + AScriptBaseName + '.js');
+    if LURL <> '' then
+    begin
+      ResponseItems.ExecuteJSCode(Format('addScriptRef("%s");', [LURL]));
+      FDynamicScripts.Add(AScriptBaseName);
+    end;
+  end;
+end;
+
+procedure TJSSession.EnsureDynamicStyle(const AStyleBaseName: string);
+var
+  LIndex: Integer;
+  LURL: string;
+begin
+  if not FDynamicStyles.Find(AStyleBaseName, LIndex) then
+  begin
+    LURL := TKWebApplication.Current.Config.FindResourceURL(IncludeTrailingPathDelimiter('js') + AStyleBaseName + '.css');
+    if LURL <> '' then
+    begin
+      ResponseItems.ExecuteJSCode(Format('addLinkRef("%s");', [LURL]));
+      FDynamicStyles.Add(AStyleBaseName);
+    end;
+  end;
+end;
+
+procedure TJSSession.EnsureSupportFiles(const ABaseName: string);
+begin
+  if ABaseName <> '' then
+  begin
+    EnsureDynamicStyle(ABaseName);
+    EnsureDynamicScript(ABaseName);
+  end;
+end;
+
+procedure TJSSession.EnsureViewSupportFiles(const AView: TKView);
+var
+  LBaseName: string;
+  LBaseNameNode: TEFNode;
+begin
+  LBaseName := '';
+  if Assigned(AView) then
+  begin
+    LBaseNameNode := AView.FindNode('SupportBaseName');
+    if Assigned(LBaseNameNode) then
+      LBaseName := LBaseNameNode.AsString
+    else
+      LBaseName := AView.PersistentName;
+  end;
+  if LBaseName <> '' then
+    EnsureSupportFiles(LBaseName);
 end;
 
 function TJSSession.GetManifestFileName: string;
@@ -1758,62 +1991,11 @@ begin
   Result := '';
 end;
 
-procedure TJSSession.AfterHandleRequest;
-var
-  LMainPageCode: string;
+procedure TJSSession.AfterNewSession;
 begin
-  if IsDownLoad or IsUpload then
-    Exit;
-
-  Response := ResponseItems.Consume;
-
-  if not IsAjax then
-  begin
-    ContentType := 'text/html; charset=' + Charset;
-    LMainPageCode := GetMainPageTemplate;
-
-    // Replace template macros in main page code.
-    LMainPageCode := ReplaceText(LMainPageCode, '<%HTMLDeclaration%>', '<?xml version=1.0?>' + sLineBreak +
-      '<!doctype html public "-//W3C//DTD XHTML 1.0 Strict//EN">' + sLineBreak +
-      '<html xmlns=http://www.w3org/1999/xthml>' + sLineBreak);
-    LMainPageCode := ReplaceText(LMainPageCode, '<%ViewportContent%>', GetViewportContent);
-    LMainPageCode := ReplaceText(LMainPageCode, '<%ApplicationTitle%>', Application.Title);
-    LMainPageCode := ReplaceText(LMainPageCode, '<%ApplicationIconLink%>',
-      IfThen(Application.Icon = '', '', '<link rel="shortcut icon" href="' + Application.Icon + '"/>'));
-    LMainPageCode := ReplaceText(LMainPageCode, '<%AppleIconLink%>',
-      IfThen(Application.Icon = '', '', '<link rel="apple-touch-icon" sizes="120x120" href="' + Application.Icon
-      + '"/>'));
-    LMainPageCode := ReplaceText(LMainPageCode, '<%CharSet%>', Charset);
-    LMainPageCode := ReplaceText(LMainPageCode, '<%ExtPath%>', ExtPath);
-    LMainPageCode := ReplaceText(LMainPageCode, '<%ExtBuild%>', ExtBuild);
-    LMainPageCode := ReplaceText(LMainPageCode, '<%DebugSuffix%>',
-{$IFDEF DebugExtJS}'-debug'{$ELSE}''{$ENDIF});
-    LMainPageCode := ReplaceText(LMainPageCode, '<%ManifestLink%>', IfThen(GetManifestFileName = '', '',
-      Format('<link rel="manifest" href="%s"/>', [GetManifestFileName])));
-    LMainPageCode := ReplaceText(LMainPageCode, '<%ThemeLink%>',
-      IfThen(Theme = '', '', '<link rel=stylesheet href="' + ExtPath + '/build/classic/theme-' + Theme +
-      '/resources/theme-' + Theme + '-all.css" />'));
-    LMainPageCode := ReplaceText(LMainPageCode, '<%LanguageLink%>',
-      IfThen(FLanguage = 'en', '', '<script src="' + ExtPath + '/build/classic/locale/locale-' + FLanguage +
-      '.js"></script>'));
-    LMainPageCode := ReplaceText(LMainPageCode, '<%StyleTag%>', GetStyleTag);
-    LMainPageCode := ReplaceText(LMainPageCode, '<%LibraryTags%>', FLibraries);
-    LMainPageCode := ReplaceText(LMainPageCode, '<%CustomJS%>', GetCustomJS);
-    LMainPageCode := ReplaceText(LMainPageCode, '<%Response%>', Response);
-    Response := LMainPageCode;
-{$IFDEF DEBUGJS}
-    Response := AnsiReplaceStr(Response, '%%', IntToStr(CountStr(^M^J, Response, 'eval('))); // eval() line number
-{$ENDIF}
-  end
-  else
-  begin
-    if (Response <> '') and (Response[1] = '<') then
-      ContentType := 'text/html; charset=' + Charset
-    else if (Response <> '') and CharInSet(Response[1], ['{', '[']) then
-      ContentType := 'application/json; charset=' + Charset
-    else
-      ContentType := 'text/javascript; charset=' + Charset;
-  end;
+  FUpLoadPath := '/uploads';
+{ TODO : implement }
+//  UploadPath := '/uploads/' + Config.AppName + '/' + SessionGUID;
 end;
 
 function TJSSession.GetNextJSName(const AObjectType: string): string;
@@ -1840,8 +2022,23 @@ begin
     Result := T(FSingletons[AName])
   else
   begin
-    Result := TJSObjectClass(T).CreateSingleton(ObjectCatalog, AName) as T;
+    Result := TJSObjectClass(T).CreateSingleton(Self, AName) as T;
     FSingletons.Add(AName, Result);
+  end;
+end;
+
+function TJSSession.FindUploadedFile(const AContext: TObject): TJSUploadedFile;
+var
+  I: Integer;
+begin
+  Result := nil;
+  for I := 0 to FUploadedFiles.Count - 1 do
+  begin
+    if FUploadedFiles[I].Context = AContext then
+    begin
+      Result := FUploadedFiles[I];
+      Break;
+    end;
   end;
 end;
 
@@ -1930,7 +2127,7 @@ end;
 procedure TJSObject.Delete;
 begin
   if Self <> nil then
-    GetSession.ResponseItems.ExecuteJSCode(JSName + '.destroy(); delete ' + JSName + ';');
+    Session.ResponseItems.ExecuteJSCode(JSName + '.destroy(); delete ' + JSName + ';');
 end;
 
 procedure TJSObject.DependsUpon(const AObject: TJSObject);
@@ -1939,18 +2136,15 @@ begin
 end;
 
 destructor TJSObject.Destroy;
-var
-  LCreateItem: TJSCreateObject;
 begin
-  if (GetSession <> nil) and GetSession.HasResponseItems then
-  begin
-    LCreateItem := GetSession.ResponseItems.FindObjectCreateItem(Self);
-    if Assigned(LCreateItem) then
-    begin
-      LCreateItem.UnlinkFromSender(FJSConfig);
-      FJSConfig := nil;
-    end;
-  end;
+  if (Session <> nil) and Session.HasResponseItems then
+    Session.ResponseItems.ForEach(
+      procedure (AItem: TJSResponseItem)
+      begin
+        if AItem.Sender = Self then
+          AItem.UnlinkFromSender;
+      end
+    );
   inherited;
 end;
 
@@ -1973,25 +2167,25 @@ begin
   LParams := '';
   if LObjectName <> '' then
     LParams := '?Object=' + LObjectName;
-  if GetSession.IsMobileApple then
-    Result := 'window.open("' + GetSession.MethodURI(LMethodName) + LParams + '");'
+  if Session.IsMobileApple then
+    Result := 'window.open("' + Session.MethodURI(LMethodName) + LParams + '");'
   else
-    Result := 'Download.src="' + GetSession.MethodURI(LMethodName) + LParams + '";';
+    Result := 'Download.src="' + Session.MethodURI(LMethodName) + LParams + '";';
 end;
 
 procedure TJSObject.Download(Method: TJSProcedure);
 begin
-  GetSession.ResponseItems.ExecuteJSCode(Self, GetDownloadJS(Method));
+  Session.ResponseItems.ExecuteJSCode(Self, GetDownloadJS(Method));
 end;
 
 constructor TJSObject.Create(const AOwner: TJSBase);
 begin
-  Assert(GetSession <> nil);
+  Assert(Session <> nil);
   Assert(Assigned(AOwner));
   inherited Create(AOwner);
   FJSConfig := TJSValues.Create(Self);
   CreateJSName;
-  GetSession.ResponseItems.CreateObject(Self);
+  Session.ResponseItems.CreateObject(Self);
   InitDefaults;
 end;
 
@@ -2192,7 +2386,7 @@ end;
 
 function TJSObject.AjaxCallMethod(const AName: string): TJSAjaxCall;
 begin
-  Result := GetSession.ResponseItems.AjaxCallMethod(Self, AName);
+  Result := Session.ResponseItems.AjaxCallMethod(Self, AName);
 end;
 
 procedure TJSObject.FindMethod(const AMethod: TJSProcedure; out AMethodName, AObjectName: string);
@@ -2212,39 +2406,35 @@ begin
   end;
 end;
 
-function TJSObject.ParamAsInteger(ParamName: string): Integer;
+function TJSObject.ParamAsBoolean(const AParamName: string): Boolean;
 begin
-  Result := StrToIntDef(JSSession.Query[ParamName], 0);
+  Result := TKWebRequest.Current.ContentFields.Values[AParamName] = 'true';
 end;
 
-function TJSObject.ParamAsDouble(ParamName: string): double;
+function TJSObject.ParamAsInteger(const AParamName: string): Integer;
 begin
-  Result := StrToFloatDef(JSSession.Query[ParamName], 0);
+  Result := StrToIntDef(TKWebRequest.Current.ContentFields.Values[AParamName], 0);
 end;
 
-function TJSObject.ParamAsBoolean(ParamName: string): Boolean;
+function TJSObject.ParamAsObject(const AParamName: string): TJSObject;
 begin
-  Result := JSSession.Query[ParamName] = 'true';
+  Result := TJSObject(JSSession.FindChildByJSName(
+    TKWebRequest.Current.ContentFields.Values[AParamName]));
 end;
 
-function TJSObject.ParamAsString(ParamName: string): string;
+function TJSObject.ParamAsString(const AParamName: string): string;
 begin
-  Result := JSSession.Query[ParamName];
-end;
-
-function TJSObject.ParamAsDateTime(ParamName: string): TDateTime;
-begin
-  Result := ParamAsDouble(ParamName);
-end;
-
-function TJSObject.ParamAsObject(ParamName: string): TJSObject;
-begin
-  Result := TJSObject(JSSession.ObjectCatalog.FindChildByJSName(JSSession.Query[ParamName]));
+  Result := TKWebRequest.Current.ContentFields.Values[AParamName];
 end;
 
 { TJSTextBase }
 
-procedure TJSTextBase.FormatTo(const AFormatter: TJSFormatter);
+function TJSTextBase.GetDebugDescription: string;
+begin
+  Result := inherited GetDebugDescription + '.' + Text;
+end;
+
+procedure TJSTextBase.InternalFormatTo(const AFormatter: TJSFormatter);
 begin
   inherited;
   if not IsExpressionExtracted then
@@ -2295,7 +2485,7 @@ end;
 function TJSObject.SetConfigItemOrProperty(const AName: string; const AValue: Boolean): Boolean;
 begin
   if FJSConfig.IsReadOnly then
-    GetSession.ResponseItems.SetProperty(Self, AName, AValue)
+    Session.ResponseItems.SetProperty(Self, AName, AValue)
   else
     FJSConfig.Values.SetBoolean(AName, AValue);
   Result := AValue;
@@ -2303,38 +2493,38 @@ end;
 
 function TJSObject.SetProperty(const AName: string; const AValue: TJSExpression): TJSExpression;
 begin
-  GetSession.ResponseItems.SetProperty(Self, AName, AValue);
+  Session.ResponseItems.SetProperty(Self, AName, AValue);
   Result := AValue;
 end;
 
 function TJSObject.SetProperty(const AName: string; const AValue: TJSObject): TJSObject;
 begin
-  GetSession.ResponseItems.SetProperty(Self, AName, AValue);
+  Session.ResponseItems.SetProperty(Self, AName, AValue);
   Result := AValue;
 end;
 
 function TJSObject.SetProperty(const AName: string; const AValue: Boolean): Boolean;
 begin
-  GetSession.ResponseItems.SetProperty(Self, AName, AValue);
+  Session.ResponseItems.SetProperty(Self, AName, AValue);
   Result := AValue;
 end;
 
 function TJSObject.SetProperty(const AName, AValue: string): string;
 begin
-  GetSession.ResponseItems.SetProperty(Self, AName, AValue);
+  Session.ResponseItems.SetProperty(Self, AName, AValue);
   Result := AValue;
 end;
 
 function TJSObject.SetProperty(const AName: string; const AValue: Integer): Integer;
 begin
-  GetSession.ResponseItems.SetProperty(Self, AName, AValue);
+  Session.ResponseItems.SetProperty(Self, AName, AValue);
   Result := AValue;
 end;
 
 function TJSObject.SetConfigItemOrProperty(const AName, AValue: string): string;
 begin
   if FJSConfig.IsReadOnly then
-    GetSession.ResponseItems.SetProperty(Self, AName, AValue)
+    Session.ResponseItems.SetProperty(Self, AName, AValue)
   else
     FJSConfig.Values.SetString(AName, AValue);
   Result := AValue;
@@ -2359,13 +2549,13 @@ end;
 
 function TJSObject.SetProperty(const AName: string; const AValue: TDateTime): TDateTime;
 begin
-  GetSession.ResponseItems.SetProperty(Self, AName, AValue);
+  Session.ResponseItems.SetProperty(Self, AName, AValue);
   Result := AValue;
 end;
 
 function TJSObject.CallMethod(const AName: string): TJSMethodCall;
 begin
-  Result := GetSession.ResponseItems.CallMethod(Self, AName);
+  Result := Session.ResponseItems.CallMethod(Self, AName);
 end;
 
 function TJSObject.GenerateAnonymousFunction(const AExpression: TJSExpression): TJSExpression;
@@ -2376,140 +2566,6 @@ end;
 function TJSObject.GenerateAnonymousFunction(const ABody: string): TJSExpression;
 begin
   Result := GenerateAnonymousFunction('', ABody, '');
-end;
-
-{ TJS }
-
-class function TJS.StrToJS(const AString: string; AUseBR: Boolean): string;
-var
-  I, J: Integer;
-  BR: string;
-begin
-  BR := IfThen(AUseBR, '<br/>', '\n');
-  Result := AnsiReplaceStr(AString, '"', '\"');
-  Result := AnsiReplaceStr(Result, ^M^J, BR);
-  Result := AnsiReplaceStr(Result, ^M, BR);
-  Result := AnsiReplaceStr(Result, ^J, BR);
-  if (Result <> '') and (Result[1] = #3) then
-  begin // Is RegEx
-    Delete(Result, 1, 1);
-    if pos('/', Result) <> 1 then
-      Result := '/' + Result + '/';
-  end
-  else
-  begin
-    I := pos('%', Result);
-    if (pos(';', Result) = 0) and (I <> 0) and ((Length(Result) > 1) and (I < Length(Result)) and
-      CharInSet(Result[I + 1], ['0' .. '9'])) then
-    begin // Has param place holder, ";" disable place holder
-      J := FirstDelimiter(' "''[]{}><=!*-+/,', Result, I + 2);
-      if J = 0 then
-        J := Length(Result) + 1;
-      if J <> (Length(Result) + 1) then
-      begin
-        insert('+"', Result, J);
-        Result := Result + '"';
-      end;
-      if I <> 1 then
-      begin
-        insert('"+', Result, I);
-        Result := '"' + Result;
-      end;
-    end
-    else if (I = 1) and (Length(Result) > 1) and CharInSet(Result[2], ['a' .. 'z', 'A' .. 'Z']) then
-      Result := Copy(Result, 2, Length(Result))
-    else
-      Result := '"' + Result + '"'
-  end;
-end;
-
-class function TJS.EnumToJSString(const ATypeInfo: PTypeInfo; const AValue: Integer): string;
-var
-  I: Integer;
-  JS: string;
-begin
-  Result := '';
-  JS := GetEnumName(ATypeInfo, AValue);
-  for I := 1 to Length(JS) do
-  begin
-    if CharInSet(JS[I], ['A' .. 'Z']) then
-    begin
-      Result := LowerCase(Copy(JS, I, 100));
-      if Result = 'perc' then
-        Result := '%';
-      Exit;
-    end;
-  end;
-end;
-
-class function TJS.GetPadding(const ATop: Integer; const ARight: Integer; const ABottom: Integer; const ALeft: Integer;
-const ACSSUnit: TCSSUnit; const AHeader: Boolean): string;
-begin
-  Result := Format('%s%d%3:s %2:d%3:s', [IfThen(AHeader, 'padding: ', ''), ATop, ARight,
-    EnumToJSString(TypeInfo(TCSSUnit), Ord(ACSSUnit))]);
-  if ABottom <> -1 then
-    Result := Result + Format(' %d%2:s %1:d%2:s', [ABottom, ALeft, EnumToJSString(TypeInfo(TCSSUnit), Ord(ACSSUnit))]);
-end;
-
-class function TJS.JSDateToDateTime(const AJSDate: string): TDateTime;
-begin
-  Result := EncodeDateTime(StrToInt(Copy(AJSDate, 12, 4)), AnsiIndexStr(Copy(AJSDate, 5, 3),
-    ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']) + 1,
-    StrToInt(Copy(AJSDate, 9, 2)), StrToInt(Copy(AJSDate, 17, 2)), StrToInt(Copy(AJSDate, 20, 2)),
-    StrToInt(Copy(AJSDate, 23, 2)), 0);
-end;
-
-class function TJS.RemoveLastJSTerminator(const AJSCode: string): string;
-begin
-  Result := AJSCode;
-  while EndsStr(sLineBreak, Result) do
-    Result := Copy(Result, 1, Length(Result) - Length(sLineBreak));
-  if (Result <> '') and (Result[Length(Result)] = ';') then
-    Delete(Result, Length(Result), 1);
-end;
-
-class function TJS.GetMargins(const ATop: Integer; const ARight: Integer; const ABottom: Integer; const ALeft: Integer;
-const ACSSUnit: TCSSUnit; const AHeader: Boolean): string;
-begin
-  Result := Format('%s%d%5:s %2:d%5:s %3:d%5:s %4:d%s', [IfThen(AHeader, 'margin: ', ''), ATop, ARight, ABottom, ALeft,
-    EnumToJSString(TypeInfo(TCSSUnit), Ord(ACSSUnit))])
-end;
-
-class function TJS.DelphiDateTimeFormatToJSDateTimeFormat(const ADateTimeFormat: string): string;
-var
-  LFormats: TStringDynArray;
-begin
-  LFormats := Split(ADateTimeFormat);
-  Assert(Length(LFormats) = 2);
-
-  Result := DelphiDateFormatToJSDateFormat(LFormats[0]) + ' ' + DelphiTimeFormatToJSTimeFormat(LFormats[1]);
-end;
-
-class function TJS.DelphiDateFormatToJSDateFormat(const ADateFormat: string): string;
-begin
-  Result := ReplaceText(ADateFormat, 'yyyy', 'Y');
-  Result := ReplaceText(Result, 'yy', 'y');
-  Result := ReplaceText(Result, 'dd', 'd');
-  Result := ReplaceText(Result, 'mm', 'm');
-end;
-
-class function TJS.DelphiTimeFormatToJSTimeFormat(const ATimeFormat: string): string;
-begin
-  Result := ReplaceText(ATimeFormat, 'hh', 'H');
-  Result := ReplaceText(Result, 'mm', 'i');
-  Result := ReplaceText(Result, 'nn', 'i');
-  Result := ReplaceText(Result, 'ss', 's');
-end;
-
-class function TJS.WrapInAnonymousFunction(const AArgs, ABody: string; const AReturn: string): string;
-begin
-  { TODO : formatting }
-{ TODO : find the best place where to insert a return statement when not specified? }
-  Result := 'function(' + AArgs + ') {' + sLineBreak +
-    ABody + ';' + sLineBreak;
-  if AReturn <> '' then
-    Result := Result + 'return ' + AReturn + ';' + sLineBreak;
-  Result := Result + '}' + sLineBreak;
 end;
 
 { TJSValues }
@@ -2688,136 +2744,6 @@ begin
   AFormatter.DeleteTrailing(sLineBreak);
 end;
 
-{ TJSFormatter }
-
-function TJSFormatter.Add(const AString: string): TJSFormatter;
-begin
-  FFormattedText := FFormattedText + AString;
-  Result := Self;
-end;
-
-function TJSFormatter.AddIndent: TJSFormatter;
-begin
-  Result := Add(IndentStr);
-end;
-
-function TJSFormatter.AddIndented(const AString: string): TJSFormatter;
-begin
-  Result := Add(IndentStr + AString.Replace(sLineBreak, sLineBreak + IndentStr));
-end;
-
-function TJSFormatter.AddIndentedLine(const ALine: string): TJSFormatter;
-begin
-  Result := AddIndented(ALine + sLineBreak);
-end;
-
-function TJSFormatter.AddIndentedList(const ALines: TArray<string>): TJSFormatter;
-var
-  I: Integer;
-begin
-  for I := Low(ALines) to High(ALines) do
-  begin
-    if I < High(ALines) then
-      AddIndentedLine(ALines[I] + ',')
-    else
-      AddIndentedLine(ALines[I]);
-  end;
-  Result := Self;
-end;
-
-function TJSFormatter.AddIndentedPair(const AName, AStrValue: string;
-  const AQuoteValue, AAddComma: Boolean; const AConnector: string): TJSFormatter;
-begin
-  Result := AddIndented(AName + AConnector + IfThen(AQuoteValue, '"', '') + AStrValue + IfThen(AQuoteValue, '"', '')
-    + IfThen(AAddComma, ',', ''));
-end;
-
-function TJSFormatter.AddIndentedPairLine(const AName, AStrValue: string;
-  const AQuoteValue: Boolean; const AAddComma: Boolean): TJSFormatter;
-begin
-  Result := AddIndentedLine(AName + ': ' + IfThen(AQuoteValue, '"', '') + AStrValue + IfThen(AQuoteValue, '"', '')
-    + IfThen(AAddComma, ',', ''));
-end;
-
-function TJSFormatter.AddLine(const ALine: string): TJSFormatter;
-begin
-  Result := Add(ALine + sLineBreak);
-end;
-
-procedure TJSFormatter.AfterConstruction;
-begin
-  inherited;
-  FFormatSettings := TFormatSettings.Create;
-end;
-
-function TJSFormatter.CloseArray: TJSFormatter;
-begin
-  Result := SkipLine.Outdent.AddIndented(']');
-end;
-
-function TJSFormatter.CloseObject: TJSFormatter;
-begin
-  Result := SkipLine.Outdent.AddIndented('}');
-end;
-
-function TJSFormatter.CloseRound: TJSFormatter;
-begin
-  Result := SkipLine.Outdent.AddIndented(')');
-end;
-
-function TJSFormatter.DeleteTrailing(const AString: string): TJSFormatter;
-begin
-  FFormattedText := StripSuffix(FFormattedText, AString);
-  Result := Self;
-end;
-
-function TJSFormatter.FormatArray(const ALines: TArray<string>): TJSFormatter;
-begin
-  Result := OpenArray.AddIndentedList(ALines).CloseArray;
-end;
-
-function TJSFormatter.FormatObject(const ALines: TArray<string>): TJSFormatter;
-begin
-  Result := OpenObject.AddIndentedList(ALines).CloseObject;
-end;
-
-function TJSFormatter.Indent: TJSFormatter;
-begin
-  Inc(FCurrentIndent);
-  Result := Self;
-end;
-
-function TJSFormatter.IndentStr: string;
-begin
-  Result := DupeString('  ', FCurrentIndent);
-end;
-
-function TJSFormatter.OpenArray: TJSFormatter;
-begin
-  Result := Add('[').SkipLine.Indent;
-end;
-
-function TJSFormatter.OpenObject: TJSFormatter;
-begin
-  Result := Add('{').SkipLine.Indent;
-end;
-
-function TJSFormatter.OpenRound: TJSFormatter;
-begin
-  Result := Add('(').SkipLine.Indent;
-end;
-
-function TJSFormatter.Outdent: TJSFormatter;
-begin
-  Dec(FCurrentIndent);
-  Result := Self;
-end;
-
-function TJSFormatter.SkipLine: TJSFormatter;
-begin
-  Result := Add(sLineBreak);
-end;
-
 { TJSExpression }
 
 procedure TJSExpression.SetText(const AValue: string);
@@ -2898,7 +2824,7 @@ end;
 
 { TJSAjaxCall }
 
-procedure TJSAjaxCall.FormatTo(const AFormatter: TJSFormatter);
+procedure TJSAjaxCall.InternalFormatTo(const AFormatter: TJSFormatter);
 begin
   //inherited;
   if not IsExpressionExtracted then
@@ -2915,6 +2841,8 @@ begin
     AddParams(AFormatter);
     AFormatter.AddIndentedPairLine('success', 'AjaxSuccess', False);
     AFormatter.AddIndentedPair('failure', 'AjaxFailure', False);
+    // Automatically done by ExtJS. Add it as required when using other Ajax implementations.
+    //AFormatter.AddIndentedPair('headers', '{"X-Requested-With": "XMLHttpRequest"}', False);
     AFormatter.DeleteTrailing(',');
     AFormatter.CloseObject.SkipLine.Outdent.AddIndentedLine(');');
   end;
@@ -3055,23 +2983,10 @@ end;
 
 function TJSBase.GetJSSession: TJSSession;
 begin
-  Result := GetJSSession(Owner);
-end;
-
-function TJSBase.GetJSSession(const AOwner: TJSBase): TJSSession;
-var
-  LOwner: TJSBase;
-begin
   if FJSSession = nil then
-  begin
-    LOwner := AOwner;
-    while (LOwner <> nil) and (LOwner.Owner <> nil) do
-      LOwner := LOwner.Owner;
-    if LOwner is TJSObjectCatalog then
-      FJSSession := TJSObjectCatalog(LOwner).JSSession as TJSSession;
-    if FJSSession = nil then
-      raise Exception.CreateFmt('Session not found for object %s of type %s.', [JSName, ClassName]);
-  end;
+    FJSSession := Kitto.JS.Session;
+  if FJSSession = nil then
+    raise Exception.CreateFmt('Session not found for object %s of type %s.', [JSName, ClassName]);
   Result := FJSSession;
 end;
 
@@ -3101,7 +3016,7 @@ end;
 procedure TJSBase.RemoveChild(const AChild: TJSBase);
 begin
   if not FDestroyingChildren then
-    FChildren.Extract(Self); // don't free it
+    FChildren.Extract(AChild); // don't free it
 end;
 
 procedure TJSBase.SetOwner(const AValue: TJSBase);
@@ -3116,8 +3031,104 @@ begin
   end;
 end;
 
+{ TKExtSessionLocalizationTool }
+
+procedure TKExtSessionLocalizationTool.AfterConstruction;
+begin
+  inherited;
+  // Configure the global dxgettext instance.
+  GetGnuGettextInstance.bindtextdomain(KITTO_TEXT_DOMAIN,
+    TKConfig.SystemHomePath + 'locale');
+end;
+
+function TKExtSessionLocalizationTool.AsObject: TObject;
+begin
+  Result := Self;
+end;
+
+procedure TKExtSessionLocalizationTool.ForceLanguage(const ALanguageId: string);
+var
+  LInstance: TGnuGettextInstance;
+begin
+  LInstance := GetGnuGettextInstance;
+  // Configure the per-session dxgettext instance.
+  LInstance.bindtextdomain(KITTO_TEXT_DOMAIN,
+    TKConfig.SystemHomePath + 'locale');
+  LInstance.UseLanguage(ALanguageId);
+end;
+
+function TKExtSessionLocalizationTool.GetCurrentLanguageId: string;
+begin
+  Result := GetGnuGettextInstance.GetCurrentLanguage;
+end;
+
+function TKExtSessionLocalizationTool.GetGnuGettextInstance: TGnuGettextInstance;
+begin
+  if Session <> nil then
+    Result := Session.FGettextInstance
+  else
+    Result := gnugettext.DefaultInstance;
+end;
+
+procedure TKExtSessionLocalizationTool.TranslateComponent(const AComponent: TComponent);
+var
+  LInstance: TGnuGettextInstance;
+begin
+  LInstance := GetGnuGettextInstance;
+  LInstance.TranslateComponent(AComponent, KITTO_TEXT_DOMAIN);
+  LInstance.TranslateComponent(AComponent, 'default');
+end;
+
+function TKExtSessionLocalizationTool.TranslateString(const AString,
+  AIdString: string): string;
+var
+  LInstance: TGnuGettextInstance;
+begin
+  // Look in the Kitto text domain first, then in the application domain.
+  LInstance := GetGnuGettextInstance;
+  Result := LInstance.dgettext(KITTO_TEXT_DOMAIN, AString);
+  if Result = AString then
+    Result := LInstance.dgettext('default', AString);
+end;
+
+{ TJSUploadedFile }
+
+constructor TJSUploadedFile.Create(const AFileName, AFullFileName: string;
+  const AContext: TObject; const AOriginalFileName: string = '');
+begin
+  inherited Create;
+  FFileName := AFileName;
+  FFullFileName := AFullFileName;
+  FContext := AContext;
+  FOriginalFileName := AOriginalFileName;
+end;
+
+destructor TJSUploadedFile.Destroy;
+begin
+  FreeAndNil(FStream);
+  inherited;
+end;
+
+function TJSUploadedFile.GetBytes: TBytes;
+begin
+  if not Assigned(FStream) then
+  begin
+    FStream := TBytesStream.Create;
+    FStream.LoadFromFile(FFullFileName);
+  end;
+  Result := FStream.Bytes;
+  // Reset length, as FStream.Bytes for some reason is rounded up.
+  SetLength(Result, FStream.Size);
+  Assert(FStream.Size = Length(Result));
+end;
+
 initialization
   _JSFormatSettings := TFormatSettings.Create;
   _JSFormatSettings.DecimalSeparator := '.';
+
+  TEFLocalizationToolRegistry.RegisterTool(TKExtSessionLocalizationTool.Create);
+
+finalization
+  TEFLocalizationToolRegistry.UnregisterTool;
 
 end.
