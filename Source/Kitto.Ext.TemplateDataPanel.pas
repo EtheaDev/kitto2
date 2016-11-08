@@ -21,10 +21,15 @@ unit Kitto.Ext.TemplateDataPanel;
 interface
 
 uses
-  Ext.Base, Ext.Chart, Ext.Data,
-  EF.Tree,
-  Kitto.Metadata.DataView,
-  Kitto.Ext, Kitto.Ext.Base, Kitto.Ext.DataPanelLeaf;
+  Ext.Base
+  , Ext.Chart
+  , Ext.Data
+  , EF.Tree
+  , Kitto.Metadata.DataView
+  , Kitto.JS.Types
+  , Kitto.Ext.Base
+  , Kitto.Ext.DataPanelLeaf
+  ;
 
 type
   TKExtTemplateDataPanel = class(TKExtDataPanelLeafController)
@@ -37,8 +42,8 @@ type
     procedure SetViewTable(const AValue: TKViewTable); override;
     procedure AddTopToolbarToolViewButtons; override;
     function IsActionSupported(const AActionName: string): Boolean; override;
-    function GetSelectCall(const AMethod: TExtProcedure): TExtExpression; override;
-    function GetSelectConfirmCall(const AMessage: string; const AMethod: TExtProcedure): string; override;
+    function GetSelectCall(const AMethod: TJSProcedure): TExtExpression; override;
+    function GetSelectConfirmCall(const AMessage: string; const AMethod: TJSProcedure): string; override;
   published
   end;
 
@@ -86,16 +91,16 @@ begin
   FDataView.Store := ClientStore;
 end;
 
-function TKExtTemplateDataPanel.GetSelectCall(const AMethod: TExtProcedure): TExtExpression;
+function TKExtTemplateDataPanel.GetSelectCall(const AMethod: TJSProcedure): TExtExpression;
 begin
   Result := GenerateAnonymousFunction(Format('ajaxDataViewSelection("yes", "", {params: {methodURL: "%s", dataView: %s, fieldNames: "%s"}});',
-    [MethodURI(AMethod), FDataView.JSName, Join(ViewTable.GetKeyFieldAliasedNames, ',')]));
+    [GetMethodURL(AMethod), FDataView.JSName, Join(ViewTable.GetKeyFieldAliasedNames, ',')]));
 end;
 
-function TKExtTemplateDataPanel.GetSelectConfirmCall(const AMessage: string; const AMethod: TExtProcedure): string;
+function TKExtTemplateDataPanel.GetSelectConfirmCall(const AMessage: string; const AMethod: TJSProcedure): string;
 begin
   Result := Format('selectDataViewConfirmCall("%s", "%s", %s, "%s", {methodURL: "%s", dataView: %s, fieldNames: "%s"});',
-    [_(TKWebApplication.Current.Config.AppTitle), AMessage, FDataView.JSName, ViewTable.Model.CaptionField.FieldName, MethodURI(AMethod),
+    [_(TKWebApplication.Current.Config.AppTitle), AMessage, FDataView.JSName, ViewTable.Model.CaptionField.FieldName, GetMethodURL(AMethod),
     FDataView.JSName, Join(ViewTable.GetKeyFieldAliasedNames, ',')]);
 end;
 

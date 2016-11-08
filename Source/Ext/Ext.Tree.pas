@@ -3,11 +3,10 @@ unit Ext.Tree;
 interface
 
 uses
-  StrUtils,
-  Kitto.Ext,
-  Ext.Util,
-  Ext.Base,
-  Ext.Data;
+  StrUtils
+  , Ext.Base
+  , Ext.Data
+  ;
 
 type
   TExtTreeTreeNode = class;
@@ -60,6 +59,10 @@ type
 
 implementation
 
+uses
+  Kitto.Web.Response
+  ;
+
 procedure TExtTreeTreeNode.SetDisabled(const AValue: Boolean);
 begin
   FDisabled := SetConfigItem('disabled', AValue);
@@ -109,22 +112,22 @@ end;
 function TExtTreeTreeNode.SetText(const AText: string): TExtExpression;
 begin
   FText := AText;
-  Result := CallMethod('setText').AddParam(AText).AsExpression;
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'setText').AddParam(AText).AsExpression;
 end;
 
 function TExtTreeTreeNode.SetTooltip(const ATip, ATitle: string): TExtExpression;
 begin
-  Result := CallMethod('setTooltip').AddParam(ATip).AddParam(ATitle).AsExpression;
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'setTooltip').AddParam(ATip).AddParam(ATitle).AsExpression;
 end;
 
 function TExtTreeTreeNode.Toggle: TExtExpression;
 begin
-  Result := CallMethod('toggle').AsExpression;
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'toggle').AsExpression;
 end;
 
 function TExtTreeTreeNode.Unselect(const ASilent: Boolean): TExtExpression;
 begin
-  Result := CallMethod('unselect').AddParam(ASilent).AsExpression;
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'unselect').AddParam(ASilent).AsExpression;
 end;
 
 procedure TExtTreeTreePanel.SetRoot(const AValue: TExtTreeTreeNode);

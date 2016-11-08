@@ -3,11 +3,10 @@ unit Ext.Calendar;
 interface
 
 uses
-  StrUtils,
-  Ext.Util,
-  Ext.Base,
-  Ext.Data,
-  Kitto.Ext;
+  StrUtils
+  , Ext.Base
+  , Ext.Data
+  ;
 
 type
   TExtCalendarBoxLayoutTemplate = class;

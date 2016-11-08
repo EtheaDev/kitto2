@@ -21,10 +21,21 @@ unit Kitto.Ext.Base;
 interface
 
 uses
-  SysUtils, Classes, Generics.Collections,
-  Ext.Base, Ext.Form, Ext.Ux,
-  EF.Intf, EF.Tree, EF.ObserverIntf, EF.Classes,
-  Kitto.Ext, Kitto.JS, Kitto.JS.Types, Kitto.Ext.Controller, Kitto.Metadata.Views;
+  SysUtils
+  , Classes
+  , Generics.Collections
+  , Ext.Base
+  , Ext.Form
+  , Ext.Ux
+  , EF.Intf
+  , EF.Tree
+  , EF.ObserverIntf
+  , EF.Classes
+  , Kitto.JS
+  , Kitto.JS.Types
+  , Kitto.Ext.Controller
+  , Kitto.Metadata.Views
+  ;
 
 const
   DEFAULT_WINDOW_WIDTH = 800;
@@ -208,7 +219,7 @@ type
   strict protected
     procedure PerformDelayedClick(const AButton: TExtButton);
     procedure ExecuteNamedAction(const AActionName: string); virtual;
-    function GetConfirmCall(const AMessage: string; const AMethod: TExtProcedure): string;
+    function GetConfirmCall(const AMessage: string; const AMethod: TJSProcedure): string;
     function GetDefaultSplit: Boolean; virtual;
     function GetView: TKView;
     procedure SetView(const AValue: TKView);
@@ -357,6 +368,7 @@ uses
   , EF.Macros
   , Kitto.AccessControl
   , Kitto.Web
+  , Kitto.Web.Response
   , Kitto.Ext.Utils
   ;
 
@@ -443,7 +455,7 @@ begin
   Plain := True;
 
   &On('close',
-    AjaxCallMethod.SetMethod(WindowClosed)
+    TKWebResponse.Current.Items.AjaxCallMethod(Self).SetMethod(WindowClosed)
       .AddParam('Window', JSName).AsFunction);
 end;
 
@@ -668,7 +680,7 @@ begin
 
   //APanel.On('close', Ajax(PanelClosed, ['Panel', APanel.JSName]));
   APanel.&On('close',
-    AjaxCallMethod.SetMethod(PanelClosed)
+    TKWebResponse.Current.Items.AjaxCallMethod(Self).SetMethod(PanelClosed)
       .AddParam('Panel', APanel.JSName).AsFunction);
 end;
 
@@ -690,7 +702,7 @@ end;
 
 function TKExtFormComboBox.GetEncodedValue: TExtExpression;
 begin
-  Result := Session.ResponseItems.ExecuteJSCode(Self, Format('encodeURI(%s.getValue())', [JSName])).AsExpression;
+  Result := TKWebResponse.Current.Items.ExecuteJSCode(Self, Format('encodeURI(%s.getValue())', [JSName])).AsExpression;
 end;
 
 { TKExtPanelControllerBase }
@@ -710,7 +722,7 @@ begin
       Closable := True;
       //On('close', Container.Ajax('PanelClosed', ['Panel', JSName]));
       &On('close',
-        Container.AjaxCallMethod('PanelClosed')
+        TKWebResponse.Current.Items.AjaxCallMethod(Container, 'PanelClosed')
           .AddParam('Panel', JSName).AsFunction);
     end
     else
@@ -849,7 +861,7 @@ begin
   else
     //Result.On('click', Ajax(Result.ExecuteButtonAction, []));
     Result.On('click',
-      AjaxCallMethod('click').SetMethod(Result.ExecuteButtonAction).AsFunction);
+      TKWebResponse.Current.Items.AjaxCallMethod(Self, 'click').SetMethod(Result.ExecuteButtonAction).AsFunction);
 end;
 
 procedure TKExtPanelControllerBase.AddToolViewButtons(
@@ -874,10 +886,10 @@ begin
   end;
 end;
 
-function TKExtPanelControllerBase.GetConfirmCall(const AMessage: string; const AMethod: TExtProcedure): string;
+function TKExtPanelControllerBase.GetConfirmCall(const AMessage: string; const AMethod: TJSProcedure): string;
 begin
   Result := Format('confirmCall("%s", "%s", ajaxSimple, {methodURL: "%s"});',
-    [_(TKWebApplication.Current.Config.AppTitle), AMessage, MethodURI(AMethod)]);
+    [_(TKWebApplication.Current.Config.AppTitle), AMessage, GetMethodURL(AMethod)]);
 end;
 
 procedure TKExtPanelControllerBase.AfterCreateTopToolbar;
@@ -1120,15 +1132,16 @@ end;
 
 class procedure TKExtActionButton.ExecuteHandler(const AButton: TKExtButton);
 var
-  LResponseItemBranch: TExtResponseItems;
+  LResponseItemBranch: TJSResponseItems;
 begin
+  { TODO : does this code produce any client-side effect? }
   if AButton is TKExtActionButton then
   begin
-    LResponseItemBranch := Session.BranchResponseItems;
+    LResponseItemBranch := TKWebResponse.Current.BranchResponseItems;
     try
       TKExtActionButton(AButton).ExecuteButtonAction;
     finally
-      Session.UnbranchResponseItems(LResponseItemBranch, False); // throw away
+      TKWebResponse.Current.UnbranchResponseItems(LResponseItemBranch, False); // throw away
     end;
   end;
 end;
@@ -1221,7 +1234,7 @@ begin
   FCancelButton.Text := _('Cancel');
   FCancelButton.Tooltip := _('Cancel changes');
   //FCancelButton.Handler := Ajax(Cancel);
-  FCancelButton.Handler := AjaxCallMethod.SetMethod(Cancel).AsFunction;
+  FCancelButton.Handler := TKWebResponse.Current.Items.AjaxCallMethod(Self).SetMethod(Cancel).AsFunction;
 end;
 
 procedure TKExtWindowToolController.DoDisplay;
@@ -1236,7 +1249,7 @@ end;
 function TKExtWindowToolController.GetConfirmJSFunction: TJSFunction;
 begin
   //Result := GetPOSTAjaxCode(Confirm, [], GetConfirmJsonData);
-  Result := AjaxCallMethod().SetMethod(Confirm)
+  Result := TKWebResponse.Current.Items.AjaxCallMethod(Self).SetMethod(Confirm)
     .Post(GetConfirmJsonData).AsFunction;
 end;
 
@@ -1287,8 +1300,8 @@ end;
 
 function TKExtButton.FindOwnerToolbar: TKExtToolbar;
 begin
-  if (Owner is TExtObjectArray) and (TExtObjectArray(Owner).Owner is TKExtToolbar) then
-    Result := TKExtToolbar(TExtObjectArray(Owner).Owner)
+  if (Owner is TJSObjectArray) and (TJSObjectArray(Owner).Owner is TKExtToolbar) then
+    Result := TKExtToolbar(TJSObjectArray(Owner).Owner)
   else
     Result := nil;
 end;

@@ -27,7 +27,6 @@ uses
   , Ext.Menu
   , EF.ObserverIntf
   , EF.Tree
-  , Kitto.Ext
   , Kitto.JS.Types
   , Kitto.Ext.Base
   , Kitto.Ext.Controller
@@ -58,7 +57,7 @@ type
   TKExtTreeViewRenderer = class
   private
     FOwner: TExtObject;
-    FClickHandler: TExtProcedure;
+    FClickHandler: TJSProcedure;
     FTreeView: TKTreeView;
     procedure AddButton(const ANode: TKTreeViewNode; const ADisplayLabel: string; const AContainer: TExtContainer);
     procedure AddMenuItem(const ANode: TKTreeViewNode; const AMenu: TExtMenuMenu);
@@ -84,13 +83,13 @@ type
     { TODO : move elsewhere, like in Kitto.Ext.ToolBar }
     procedure RenderAsButtons(const ATreeView: TKTreeView;
       const AContainer: TExtContainer; const AOwner: TExtObject;
-      const AClickHandler: TExtProcedure);
+      const AClickHandler: TJSProcedure);
 
     /// <summary>
     ///  Renders a tree view by calling AProc for each top-level element in the tree view.
     /// </summary>
     procedure Render(const ATreeView: TKTreeView; const AProc: TProc<TKTreeViewNode, string>;
-      const AOwner: TExtObject; const AClickHandler: TExtProcedure);
+      const AOwner: TExtObject; const AClickHandler: TJSProcedure);
   end;
 
 function GetTreeViewNodeImageName(const ANode: TKTreeViewNode; const AView: TKView): string;
@@ -131,8 +130,9 @@ uses
   , EF.StrUtils
   , EF.Classes
   , EF.Localization
-  , Kitto.Web
   , Kitto.JS
+  , Kitto.Web
+  , Kitto.Web.Response
   , Kitto.AccessControl
   , Kitto.Utils
   , Kitto.Config;
@@ -194,13 +194,13 @@ begin
   begin
     if Session.StatusHost <> nil then
       //Result := FOwner.Ajax(FClickHandler, ['View', Integer(AView), 'Dummy', Session.StatusHost.ShowBusy])
-      Result := FOwner.AjaxCallMethod.SetMethod(FClickHandler)
+      Result := TKWebResponse.Current.Items.AjaxCallMethod(FOwner).SetMethod(FClickHandler)
         .AddParam('View', Integer(AView))
         .AddParam('Dummy', TKExtStatusBar(Session.StatusHost).ShowBusy)
         .AsFunction
     else
       //Result := FOwner.Ajax(FClickHandler, ['View', Integer(AView)]);
-      Result := FOwner.AjaxCallMethod.SetMethod(FClickHandler)
+      Result := TKWebResponse.Current.Items.AjaxCallMethod(FOwner).SetMethod(FClickHandler)
         .AddParam('View', Integer(AView))
         .AsFunction;
   end
@@ -359,7 +359,7 @@ end;
 
 procedure TKExtTreeViewRenderer.Render(const ATreeView: TKTreeView;
   const AProc: TProc<TKTreeViewNode, string>; const AOwner: TExtObject;
-  const AClickHandler: TExtProcedure);
+  const AClickHandler: TJSProcedure);
 var
   I: Integer;
   LNode: TKTreeViewNode;
@@ -388,7 +388,7 @@ end;
 procedure TKExtTreeViewRenderer.RenderAsButtons(
   const ATreeView: TKTreeView; const AContainer: TExtContainer;
   const AOwner: TExtObject;
-  const AClickHandler: TExtProcedure);
+  const AClickHandler: TJSProcedure);
 begin
   Assert(Assigned(AContainer));
 

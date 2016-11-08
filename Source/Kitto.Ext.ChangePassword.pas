@@ -64,6 +64,7 @@ uses
   , Kitto.JS
   , Kitto.JS.Formatting
   , Kitto.Web
+  , Kitto.Web.Response
   , Kitto.Ext.Controller
   ;
 
@@ -211,7 +212,7 @@ begin
 //  FConfirmButton.Handler := Ajax(DoChangePassword, ['Dummy', FStatusBar.ShowBusy,
 //    'OldPassword', FOldPassword.GetValue, 'NewPassword', FNewPassword.GetValue,
 //    'ConfirmNewPassword', FConfirmNewPassword.GetValue]);
-  FConfirmButton.Handler := AjaxCallMethod.SetMethod(DoChangePassword)
+  FConfirmButton.Handler := TKWebResponse.Current.Items.AjaxCallMethod(Self).SetMethod(DoChangePassword)
     .AddParam('Dummy', FStatusBar.ShowBusy)
     .AddParam('OldPassword', FOldPassword.GetValue)
     .AddParam('NewPassword', FNewPassword.GetValue)

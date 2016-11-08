@@ -34,11 +34,10 @@ uses
   , EF.Classes
   , EF.Tree
   , EF.ObserverIntf
-  , Kitto.JS
   , Kitto.Metadata.Views
   , Kitto.Metadata.DataView
   , Kitto.Store
-  , Kitto.Ext
+  , Kitto.JS.Base
   , Kitto.Ext.Base
   , Kitto.Ext.Controller
   , Kitto.Ext.LookupField
@@ -763,9 +762,11 @@ uses
   , Kitto.Types
   , Kitto.AccessControl
   , Kitto.Rules
+  , Kitto.JS
   , Kitto.JS.Formatting
   , Kitto.Web
   , Kitto.Web.Request
+  , Kitto.Web.Response
   , Kitto.Ext.Form
   , Kitto.Ext.Utils
   , Kitto.Ext.Rules
@@ -1699,7 +1700,7 @@ end;
 procedure TKExtFormCheckbox.StoreValue(const AObjectName: string);
 begin
   if not ReadOnly then
-    Session.ResponseItems.ExecuteJSCode(
+    TKWebResponse.Current.Items.ExecuteJSCode(
       AObjectName + '["' + Name + '"]=' + JSName + '.checked;');
 end;
 
@@ -1876,7 +1877,7 @@ begin
   LLimit := ParamAsInteger('limit');
   LPageRecordCount := Min(LLimit, FServerStore.RecordCount - LStart);
 
-  Session.ResponseItems.AddJSON('{Total: ' + IntToStr(FServerStore.RecordCount)
+  TKWebResponse.Current.Items.AddJSON('{Total: ' + IntToStr(FServerStore.RecordCount)
     + ', Root: ' + FServerStore.GetAsJSON(False, LStart, LPageRecordCount) + '}');
 end;
 
@@ -1907,13 +1908,13 @@ begin
     // Force the combo to refresh its list at next drop down.
     Store.RemoveAll();
     Store.TotalLength := 0;
-    Session.ResponseItems.ExecuteJSCode(Format('%s.lastQuery = null;', [JSName]));
+    TKWebResponse.Current.Items.ExecuteJSCode(Format('%s.lastQuery = null;', [JSName]));
 
     // Provide the display value to set when the user types an invalid value
     // and the store is not loaded yet.
-    Session.ResponseItems.ExecuteJSCode(Format('%s.lastSelectionText = %s.getRawValue();', [JSName, JSName]));
+    TKWebResponse.Current.Items.ExecuteJSCode(Format('%s.lastSelectionText = %s.getRawValue();', [JSName, JSName]));
   end;
-  Session.ResponseItems.ExecuteJSCode(JSName + '.kitto$isChanged = false;');
+  TKWebResponse.Current.Items.ExecuteJSCode(JSName + '.kitto$isChanged = false;');
 end;
 
 procedure TKExtFormComboBoxEditor.SetRecordField(const AValue: TKViewTableField);
@@ -1925,11 +1926,11 @@ begin
       &On('change', GenerateAnonymousFunction(GetJSCode(
         procedure
         begin
-          Session.ResponseItems.ExecuteJSCode(
+          TKWebResponse.Current.Items.ExecuteJSCode(
             'var json = new Object;' + sLineBreak +
             'json.new = new Object;');
           StoreValue('json.new');
-          AjaxCallMethod().SetMethod(ValueChanged)
+          TKWebResponse.Current.Items.AjaxCallMethod(Self).SetMethod(ValueChanged)
             .Post('json')
             .AsExpression;
         end)));
@@ -2006,7 +2007,7 @@ begin
       FServerStore := AViewField.CreateReferenceStore;
       Store := TExtDataStore.Create(Self);
       LProxy := TExtDataAjaxProxy.Create(Store);
-      LProxy.Url := MethodURI(GetRecordPage);
+      LProxy.Url := GetMethodURL(GetRecordPage);
       Store.Proxy := LProxy;
       LReader := TExtDataJsonReader.Create(Self);
       LProxy.Reader := LReader;
@@ -2066,7 +2067,7 @@ begin
             GetRawValue;
           end) + ';';
 
-    Session.ResponseItems.ExecuteJSCode(
+    TKWebResponse.Current.Items.ExecuteJSCode(
       'if (' + JSName + '.kitto$isChanged == true) {' + sLineBreak +
       LCode + sLineBreak +
       '}');
@@ -2782,7 +2783,7 @@ procedure TKExtFormFileEditor.PictureViewAfterRender(This: TExtComponent);
 begin
   Assert(Assigned(FPictureView));
 
-  Session.ResponseItems.ExecuteJSCode(FPictureView.JSName + '.getLoader().load()');
+  TKWebResponse.Current.Items.ExecuteJSCode(FPictureView.JSName + '.getLoader().load()');
 end;
 
 procedure TKExtFormFileEditor.CreateGUI(const AViewField: TKViewField);
@@ -2806,7 +2807,7 @@ begin
     LPanel.Layout := lyColumn;
     FPictureView := TExtPanel.CreateAndAddToArray(LPanel.Items);
     FPictureView.Frame := True;
-    FPictureView.Loader.SetConfigItem('url', MethodURI(GetImageContent));
+    FPictureView.Loader.SetConfigItem('url', GetMethodURL(GetImageContent));
     FPictureView.OnAfterrender := PictureViewAfterRender;
 
     LToolbar := TKExtToolbar.CreateAndAddToArray(LPanel.Items);
@@ -2830,7 +2831,7 @@ begin
   FDownloadButton.SetIconAndScale('download');
   FDownloadButton.Tooltip := _('Download file');
   //FDownloadButton.Handler := Ajax(StartDownload);
-  FDownloadButton.Handler := AjaxCallMethod.SetMethod(StartDownload).AsFunction;
+  FDownloadButton.Handler := TKWebResponse.Current.Items.AjaxCallMethod(Self).SetMethod(StartDownload).AsFunction;
 
   LButtonCount := 1;
   if not FIsReadOnly then
@@ -2839,14 +2840,14 @@ begin
     LUploadButton.SetIconAndScale('upload');
     LUploadButton.Tooltip := _('Upload file');
     //LUploadButton.Handler := Ajax(ShowUploadFileDialog);
-    LUploadButton.Handler := AjaxCallMethod.SetMethod(ShowUploadFileDialog).AsFunction;
+    LUploadButton.Handler := TKWebResponse.Current.Items.AjaxCallMethod(Self).SetMethod(ShowUploadFileDialog).AsFunction;
     Inc(LButtonCount);
 
     FClearButton := TKExtButton.CreateAndAddToArray(LToolbar.Items);
     FClearButton.SetIconAndScale('clear');
     FClearButton.Tooltip := _('Clear field');
     //FClearButton.Handler := Ajax(Clear);
-    FClearButton.Handler := AjaxCallMethod.SetMethod(Clear).AsFunction;
+    FClearButton.Handler := TKWebResponse.Current.Items.AjaxCallMethod(Self).SetMethod(Clear).AsFunction;
     Inc(LButtonCount);
   end
   else
@@ -2890,12 +2891,12 @@ end;
 procedure TKExtFormFileEditor.GetImageContent;
 begin
   if GetCurrentServerFileName = '' then
-    Session.ResponseItems.AddHTML('<p>' + _(EMPTY_DESCRIPTION) + '</p>')
+    TKWebResponse.Current.Items.AddHTML('<p>' + _(EMPTY_DESCRIPTION) + '</p>')
   else
     // Add dummy parameter to the URL to force the browser to refresh the image
     // after an upload.
-    Session.ResponseItems.AddHTML(Format('<img src="%s">',
-      [MethodURI(GetImage) + '&time=' + FormatDateTime('yyyymmddhhnnsszzz', Now())]));
+    TKWebResponse.Current.Items.AddHTML(Format('<img src="%s">',
+      [GetMethodURL(GetImage) + '&time=' + FormatDateTime('yyyymmddhhnnsszzz', Now())]));
 end;
 
 function TKExtFormFileEditor.GetObjectNamePrefix: string;
@@ -2964,11 +2965,11 @@ begin
   LUploadButton.SetIconAndScale('Upload', IfThen(Session.IsMobileBrowser,'medium', 'small'));
 
   LSubmitAction := TExtFormActionSubmit.Create(FWindow);
-  LSubmitAction.Url := MethodURI(Upload);
+  LSubmitAction.Url := GetMethodURL(Upload);
   LSubmitAction.WaitMsg := _('File upload in progress...');
   LSubmitAction.WaitTitle := _('Please wait...');
   //LSubmitAction.Success := Ajax(PostUpload);
-  LSubmitAction.Success := AjaxCallMethod.SetMethod(PostUpload).AsFunction;
+  LSubmitAction.Success := TKWebResponse.Current.Items.AjaxCallMethod(Self).SetMethod(PostUpload).AsFunction;
   { TODO : wrap in function and declate param 1 }
   LSubmitAction.Failure := ExtMessageBox.Alert(_('File upload error'), '%1.result.message');
   LUploadButton.Handler := LFormPanel.Form.Submit(LSubmitAction);
@@ -2992,11 +2993,11 @@ begin
   begin
     LMsg := Format(_('Field %s is required. Please upload a file.'), [FRecordField.ViewField.DisplayLabel]);
     if Assigned(FDescriptionField) then
-      Session.ResponseItems.ExecuteJSCode(Self,
+      TKWebResponse.Current.Items.ExecuteJSCode(Self,
         Format('if (%s.getValue() == "%s") { alert("%s"); throw "validation error"; }',
         [FDescriptionField.JSName, _(EMPTY_DESCRIPTION), LMsg]))
     else if Assigned(FPictureView) then
-      Session.ResponseItems.ExecuteJSCode(Self,
+      TKWebResponse.Current.Items.ExecuteJSCode(Self,
         Format('if (%s.html.indexOf("<img" = -1) { alert("%s"); throw "validation error"; }', [FDescriptionField.JSName, LMsg]));
   end;
 end;
@@ -3704,7 +3705,7 @@ end;
 procedure TExtFormFieldHelper.StoreValue(const AObjectName: string);
 begin
   if not ReadOnly then
-    Session.ResponseItems.ExecuteJSCode(
+    TKWebResponse.Current.Items.ExecuteJSCode(
       AObjectName + '["' + Name + '"]=' + GetJSCode(
         procedure
         begin

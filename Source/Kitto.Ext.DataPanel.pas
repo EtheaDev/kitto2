@@ -21,12 +21,25 @@ unit Kitto.Ext.DataPanel;
 interface
 
 uses
-  SysUtils, Generics.Collections,
-  Ext.Base, Ext.Data,
-  superobject,
-  EF.Classes, EF.ObserverIntf, EF.Tree,
-  Kitto.Ext, Kitto.Metadata.Views, Kitto.Metadata.DataView, Kitto.Store, Kitto.Types,
-  Kitto.Ext.Base, Kitto.Ext.Controller, Kitto.Ext.BorderPanel, Kitto.Ext.Editors;
+  SysUtils
+  , Generics.Collections
+  , Ext.Base
+  , Ext.Data
+  , superobject
+  , EF.Classes
+  , EF.ObserverIntf
+  , EF.Tree
+  , Kitto.JS
+  , Kitto.JS.Types
+  , Kitto.Metadata.Views
+  , Kitto.Metadata.DataView
+  , Kitto.Store
+  , Kitto.Types
+  , Kitto.Ext.Base
+  , Kitto.Ext.Controller
+  , Kitto.Ext.BorderPanel
+  , Kitto.Ext.Editors
+  ;
 
 type
   TKExtGetServerRecordEvent = reference to function: TKViewTableRecord;
@@ -105,8 +118,8 @@ type
     procedure CreateClientReaderFields;
     function AddActionButton(const AUniqueId: string; const AView: TKView;
       const AToolbar: TKExtToolbar): TKExtActionButton; override;
-    function GetSelectConfirmCall(const AMessage: string; const AMethod: TExtProcedure): string; virtual;
-    function GetSelectCall(const AMethod: TExtProcedure): TExtExpression; virtual;
+    function GetSelectConfirmCall(const AMessage: string; const AMethod: TJSProcedure): string; virtual;
+    function GetSelectCall(const AMethod: TJSProcedure): TExtExpression; virtual;
     function AutoLoadData: Boolean; virtual;
     function GetParentDataPanel: TKExtDataPanelController;
     function GetRootDataPanel: TKExtDataPanelController;
@@ -173,9 +186,9 @@ uses
   , Kitto.Config
   , Kitto.Rules
   , Kitto.SQL
-  , Kitto.JS
   , Kitto.Web
   , Kitto.Web.Request
+  , Kitto.Web.Response
   , Kitto.Ext.Utils
   ;
 
@@ -463,12 +476,12 @@ begin
     Result := ViewTable.FindLayout(ALayoutName);
 end;
 
-function TKExtDataPanelController.GetSelectConfirmCall(const AMessage: string; const AMethod: TExtProcedure): string;
+function TKExtDataPanelController.GetSelectConfirmCall(const AMessage: string; const AMethod: TJSProcedure): string;
 begin
   raise EKError.Create(_('Actions that require selection are not supported in this controller.'));
 end;
 
-function TKExtDataPanelController.GetSelectCall(const AMethod: TExtProcedure): TExtExpression;
+function TKExtDataPanelController.GetSelectCall(const AMethod: TJSProcedure): TExtExpression;
 begin
   raise EKError.Create(_('Actions that require selection are not supported in this controller.'));
 end;
@@ -523,7 +536,7 @@ begin
   else if LRequireSelection then
     Result.On('click', GetSelectCall(TKExtDataActionButton(Result).ExecuteButtonAction))
   else
-    Result.On('click', AjaxCallMethod.SetMethod(Result.ExecuteButtonAction).AsFunction);
+    Result.On('click', TKWebResponse.Current.Items.AjaxCallMethod(Self).SetMethod(Result.ExecuteButtonAction).AsFunction);
 end;
 
 function TKExtDataPanelController.CreateClientReader: TExtDataJsonReader;
@@ -580,7 +593,7 @@ begin
   Result := TExtDataStore.Create(Self);
   Result.RemoteSort := ViewTable.GetBoolean('Controller/RemoteSort', GetDefaultRemoteSort);
   LProxy := TExtDataAjaxProxy.Create(Result);
-  LProxy.Url := MethodURI(GetRecordPage);
+  LProxy.Url := GetMethodURL(GetRecordPage);
   Result.Proxy := LProxy;
   Result.On('exception', GenerateAnonymousFunction('proxy, type, action, options, response, arg', 'loadError(type, action, response);'));
 end;
@@ -598,7 +611,7 @@ begin
       LViewTableField := ARecord.FieldByName(ViewTable.Fields[I].AliasedName);
       LImageField := ARecord.FieldByName(ViewTable.Fields[I].GetURLFieldName);
       if not LVIewTableField.IsNull then
-        LImageField.AsString := MethodURI(GetImage) + '&fn=' + LViewTableField.FieldName + '&rn=' + ARecord.Index.ToString
+        LImageField.AsString := GetMethodURL(GetImage) + '&fn=' + LViewTableField.FieldName + '&rn=' + ARecord.Index.ToString
       else
         LImageField.AsString := '';
       { TODO : handle null case? }
@@ -668,14 +681,14 @@ begin
       end;
     end;
     if AFillResponse then
-      Session.ResponseItems.AddJSON(Format('{Success: true, Total: %d, Root: %s}', [LTotal, LData]));
+      TKWebResponse.Current.Items.AddJSON(Format('{Success: true, Total: %d, Root: %s}', [LTotal, LData]));
   except
     on E: Exception do
     begin
       if AFillResponse then
       begin
-        Session.ResponseItems.Clear;
-        Session.ResponseItems.AddJSON(Format('{Success: false, Msg: "%s", Root: []}', [E.Message]));
+        TKWebResponse.Current.Items.Clear;
+        TKWebResponse.Current.Items.AddJSON(Format('{Success: false, Msg: "%s", Root: []}', [E.Message]));
       end
       else
         raise;
@@ -971,7 +984,7 @@ begin
   if Assigned(FNewButton) then
   begin
     //FNewButton.On('click', Ajax(NewRecord));
-    FNewButton.On('click', AjaxCallMethod.SetMethod(NewRecord).AsFunction);
+    FNewButton.On('click', TKWebResponse.Current.Items.AjaxCallMethod(Self).SetMethod(NewRecord).AsFunction);
 //    TExtToolbarSpacer.CreateAndAddTo(TopToolbar.Items);
   end;
 

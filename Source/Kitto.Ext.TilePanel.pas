@@ -95,6 +95,7 @@ uses
   , Kitto.Config
   , Kitto.Utils
   , Kitto.Web
+  , Kitto.Web.Response
   , Kitto.Ext.Utils
   ;
 
@@ -312,8 +313,7 @@ begin
   LClickCode := GenerateAnonymousFunction(GetJSCode(
     procedure
     begin
-      AjaxCallMethod().SetMethod(DisplayPage)
-        .AddParam('PageId', 0);
+      TKWebResponse.Current.Items.AjaxCallMethod(Self).SetMethod(DisplayPage).AddParam('PageId', 0);
     end)).ExtractText;
   FTileBoxHtml := FTileBoxHtml + Format(
     '<a href="#" onclick="%s"><div class="k-tile k-tile-back" style="background-color:%s;width:%dpx;height:%dpx">' +
@@ -374,8 +374,7 @@ begin
     LClickCode := GenerateAnonymousFunction(GetJSCode(
       procedure
       begin
-        AjaxCallMethod().SetMethod(DisplayPage)
-          .AddParam('PageId', Integer(ANode));
+        TKWebResponse.Current.Items.AjaxCallMethod(Self).SetMethod(DisplayPage).AddParam('PageId', Integer(ANode));
       end)).ExtractText;
   end
   else
@@ -383,7 +382,7 @@ begin
     LClickCode := GenerateAnonymousFunction(GetJSCode(
       procedure
       begin
-        AjaxCallMethod().SetMethod(DisplayView)
+        TKWebResponse.Current.Items.AjaxCallMethod(Self).SetMethod(DisplayView)
           .AddParam('View', Integer(TKWebApplication.Current.Config.Views.ViewByNode(ANode)));
       end)).ExtractText;
   end;

@@ -3,7 +3,11 @@ unit Ext.Data;
 interface
 
 uses
-  Classes, StrUtils, Kitto.Ext, Ext.Base, Ext.Util;
+  Classes
+  , StrUtils
+  , Kitto.JS
+  , Ext.Base
+  ;
 
 type
   TExtDataDataReader = class;
@@ -39,13 +43,13 @@ type
 
   TExtDataDataReader = class(TExtObject)
   private
-    FFields: TExtObjectArray;
+    FFields: TJSObjectArray;
   protected
     function GetObjectNamePrefix: string; override;
     procedure InitDefaults; override;
   public
     class function JSClassName: string; override;
-    property Fields: TExtObjectArray read FFields;
+    property Fields: TJSObjectArray read FFields;
   end;
 
   TExtDataField = class(TExtObject)
@@ -73,7 +77,7 @@ type
 
   TExtDataNode = class(TExtUtilObservable)
   private
-    FChildren: TExtObjectArray;
+    FChildren: TJSObjectArray;
     FLeaf: Boolean;
     FId: string;
     procedure _SetId(const AValue: string);
@@ -85,7 +89,7 @@ type
     function SetId(const AId: string): TExtExpression;
     property Id: string read FId write _SetId;
     property Leaf: Boolean read FLeaf write SetLeaf;
-    property Children: TExtObjectArray read FChildren;
+    property Children: TJSObjectArray read FChildren;
   end;
 
   TExtDataStore = class(TExtUtilObservable)
@@ -149,7 +153,9 @@ type
 implementation
 
 uses
-  Math;
+  Math
+  , Kitto.Web.Response
+  ;
 
 procedure TExtDataDataReader.InitDefaults;
 begin
@@ -226,7 +232,7 @@ end;
 function TExtDataNode.SetId(const AId: string): TExtExpression;
 begin
   FId := AId;
-  Result := CallMethod('setId')
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'setId')
     .AddParam(AId)
     .AsExpression;
 end;
@@ -274,14 +280,14 @@ end;
 
 function TExtDataStore.Load(const AOptions: TExtObject): TExtExpression;
 begin
-  Result := CallMethod('load')
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'load')
     .AddParam(AOptions)
     .AsExpression;
 end;
 
 procedure TExtDataStore.RemoveAll(const ASilent: Boolean);
 begin
-  CallMethod('removeAll')
+  TKWebResponse.Current.Items.CallMethod(Self, 'removeAll')
     .AddParam(ASilent)
     .AsExpression;
 end;
@@ -310,7 +316,7 @@ end;
 
 function TExtDataProxy.SetApi(const AApi: string; const AUrl: string): TExtExpression;
 begin
-  Result := CallMethod('setApi')
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'setApi')
     .AddParam(AApi)
     .AddParam(AUrl)
     .AsExpression;

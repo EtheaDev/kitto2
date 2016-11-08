@@ -3,7 +3,11 @@ unit Ext.Form;
 interface
 
 uses
-  StrUtils, Kitto.Ext, Ext.Util, Ext.Base, Ext.Data;
+  StrUtils
+  , Kitto.JS
+  , Ext.Base
+  , Ext.Data
+  ;
 
 type
   TExtFormAction = class;
@@ -248,13 +252,13 @@ type
 
   TExtFormCompositeField = class(TExtFormField)
   private
-    FItems: TExtObjectArray;
+    FItems: TJSObjectArray;
   protected
     function GetObjectNamePrefix: string; override;
     procedure InitDefaults; override;
   public
     class function JSClassName: string; override;
-    property Items: TExtObjectArray read FItems;
+    property Items: TJSObjectArray read FItems;
   end;
 
   // Procedural types for events TExtFormCheckbox
@@ -284,7 +288,7 @@ type
 
   // Procedural types for events TExtFormCheckboxGroup
   TExtFormCheckboxGroupOnChange = procedure(This: TExtFormCheckboxGroup;
-    Checked: TExtObjectArray) of object;
+    Checked: TJSObjectArray) of object;
 
   TExtFormCheckboxGroup = class(TExtFormField)
   public
@@ -408,14 +412,14 @@ type
   TExtFormDateField = class(TExtFormTriggerField)
   private
     FMinValue: TDateTime;
-    FDisabledDates: TExtObjectArray;
+    FDisabledDates: TJSObjectArray;
     FFormat: string;
     FMaxValue: TDateTime;
     FAltFormats: string;
-    FDisabledDays: TExtObjectArray;
+    FDisabledDays: TJSObjectArray;
     procedure SetAltFormats(const AValue: string);
-    procedure _SetDisabledDates(const AValue: TExtObjectArray);
-    procedure _SetDisabledDays(const AValue: TExtObjectArray);
+    procedure _SetDisabledDates(const AValue: TJSObjectArray);
+    procedure _SetDisabledDays(const AValue: TJSObjectArray);
     procedure SetFormat(const AValue: string);
     procedure _SetMaxValue(const AValue: TDateTime);
     procedure _SetMinValue(const AValue: TDateTime);
@@ -425,16 +429,16 @@ type
   public
     class function JSClassName: string; override;
     function GetValue: TExtExpression;
-    function SetDisabledDates(const ADisabledDates: TExtObjectArray): TExtExpression;
-    function SetDisabledDays(const ADisabledDays: TExtObjectArray): TExtExpression;
+    function SetDisabledDates(const ADisabledDates: TJSObjectArray): TExtExpression;
+    function SetDisabledDays(const ADisabledDays: TJSObjectArray): TExtExpression;
     function SetMaxValue(const AValue: TDateTime): TExtExpression;
     function SetMinValue(const AValue: TDateTime): TExtExpression;
     function SetValue(const ADate: string): TExtExpression; overload;
     function SetValue(const ADate: TDateTime): TExtExpression; overload;
     property AltFormats: string read FAltFormats write SetAltFormats;
-    property DisabledDates: TExtObjectArray read FDisabledDates
+    property DisabledDates: TJSObjectArray read FDisabledDates
       write _SetDisabledDates;
-    property DisabledDays: TExtObjectArray read FDisabledDays
+    property DisabledDays: TJSObjectArray read FDisabledDays
       write _SetDisabledDays;
     property Format: string read FFormat write SetFormat;
     property MaxValue: TDateTime read FMaxValue write _SetMaxValue;
@@ -467,7 +471,7 @@ type
     FHiddenName: string;
     FValueNotFoundText: string;
     FMinListWidth: Integer;
-    FStoreArray: TExtObjectArray;
+    FStoreArray: TJSObjectArray;
     FPageSize: Integer;
     FQueryParam: string;
     FListWidthFunc: TExtExpression;
@@ -489,7 +493,7 @@ type
     procedure SetQueryParam(const AValue: string);
     procedure SetSelectedClass(const AValue: string);
     procedure SetStore(const AValue: TExtDataStore);
-    procedure SetStoreArray(const AValue: TExtObjectArray);
+    procedure SetStoreArray(const AValue: TJSObjectArray);
     procedure SetTriggerAction(const AValue: string);
     procedure SetTypeAhead(const AValue: Boolean);
     procedure SetTypeAheadDelay(const AValue: Integer);
@@ -530,7 +534,7 @@ type
     property QueryParam: string read FQueryParam write SetQueryParam;
     property SelectedClass: string read FSelectedClass write SetSelectedClass;
     property Store: TExtDataStore read FStore write SetStore;
-    property StoreArray: TExtObjectArray read FStoreArray write SetStoreArray;
+    property StoreArray: TJSObjectArray read FStoreArray write SetStoreArray;
     property TriggerAction: string read FTriggerAction write SetTriggerAction;
     property TypeAhead: Boolean read FTypeAhead write SetTypeAhead;
     property TypeAheadDelay: Integer read FTypeAheadDelay
@@ -599,8 +603,8 @@ type
 implementation
 
 uses
-  Kitto.JS
-  , Kitto.JS.Formatting
+  Kitto.JS.Formatting
+  , Kitto.Web.Response
   ;
 
 procedure TExtFormAction.SetFailure(const AValue: TExtExpression);
@@ -678,28 +682,28 @@ end;
 
 function TExtFormBasicForm.GetFieldValues(const ADirtyOnly: Boolean): TExtExpression;
 begin
-  Result := CallMethod('getFieldValues')
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'getFieldValues')
     .AddParam(ADirtyOnly)
     .AsExpression;
 end;
 
 function TExtFormBasicForm.GetValues(const AAsString: Boolean): TExtExpression;
 begin
-  Result := CallMethod('getValues')
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'getValues')
     .AddParam(AAsString)
     .AsExpression;
 end;
 
 function TExtFormBasicForm.Load(const AOptions: TExtObject): TExtExpression;
 begin
-  Result := CallMethod('load')
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'load')
     .AddParam(AOptions)
     .AsExpression;
 end;
 
 function TExtFormBasicForm.Submit(const AOptions: TExtObject): TExtExpression;
 begin
-  Result := CallMethod('submit')
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'submit')
     .AddParam(AOptions)
     .AsExpression;
 end;
@@ -802,31 +806,31 @@ end;
 
 function TExtFormField.GetRawValue: TExtExpression;
 begin
-  Result := CallMethod('getRawValue').AsExpression;
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'getRawValue').AsExpression;
 end;
 
 function TExtFormField.GetValue: TExtExpression;
 begin
-  Result := CallMethod('getValue').AsExpression;
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'getValue').AsExpression;
 end;
 
 function TExtFormField.SetRawValue(const AValue: string): TExtExpression;
 begin
-  Result := CallMethod('setRawValue')
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'setRawValue')
     .AddParam(AValue)
     .AsExpression;
 end;
 
 function TExtFormField.SetReadOnly(const AReadOnly: Boolean): TExtExpression;
 begin
-  Result := CallMethod('setReadOnly')
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'setReadOnly')
     .AddParam(AReadOnly)
     .AsExpression;
 end;
 
 function TExtFormField.SetValue(const AValue: string): TExtExpression;
 begin
-  Result := CallMethod('setValue')
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'setValue')
     .AddParam(AValue)
     .AsExpression;
 end;
@@ -844,7 +848,7 @@ begin
   RemoveAllListeners('change');
   if Assigned(AValue) then
     //On('change', Ajax('change', ['This', '%0.nm', 'NewValue', '%1', 'OldValue', '%2'], True));
-    &On('change', AjaxCallMethod('change')
+    &On('change', TKWebResponse.Current.Items.AjaxCallMethod(Self, 'change')
       .Event
       .AddRawParam('This', 'sender.nm')
       .AddRawParam('NewValue', 'new')
@@ -872,7 +876,7 @@ end;
 function TExtFormLabel.SetText(const AText: string; const AEncode: Boolean): TExtExpression;
 begin
   FText := AText;
-  Result := CallMethod('setText')
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'setText')
     .AddParam(AText)
     .AddParam(AEncode)
     .AsExpression;
@@ -1026,7 +1030,7 @@ begin
   RemoveAllListeners('check');
   if Assigned(Value) then
     //On('check', Ajax('check', ['This', '%0.nm', 'Checked', '%1'], True));
-    &On('check', AjaxCallMethod('check')
+    &On('check', TKWebResponse.Current.Items.AjaxCallMethod(Self, 'check')
       .Event
       .AddRawParam('This', 'sender.nm')
       .AddRawParam('Checked', 'checked')
@@ -1053,17 +1057,17 @@ end;
 
 function TExtFormCheckbox.GetValue: TExtExpression;
 begin
-  Result := CallMethod('getValue').AsExpression;
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'getValue').AsExpression;
 end;
 
 function TExtFormCheckbox.SetValue(const AChecked: Boolean): TExtExpression;
 begin
-  Result := CallMethod('setValue').AddParam(AChecked).AsExpression;
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'setValue').AddParam(AChecked).AsExpression;
 end;
 
 function TExtFormCheckbox.SetValue(const AChecked: string): TExtExpression;
 begin
-  Result := CallMethod('setValue').AddParam(AChecked).AsExpression;
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'setValue').AddParam(AChecked).AsExpression;
 end;
 
 procedure TExtFormCheckbox.HandleEvent(const AEvtName: string);
@@ -1112,12 +1116,12 @@ end;
 
 function TExtFormTriggerField.SetEditable(const AValue: Boolean): TExtExpression;
 begin
-  Result := CallMethod('setEditable').AddParam(AValue).AsExpression;
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'setEditable').AddParam(AValue).AsExpression;
 end;
 
 function TExtFormTriggerField.SetReadOnly(const AValue: Boolean): TExtExpression;
 begin
-  Result := CallMethod('setReadOnly').AddParam(AValue).AsExpression;
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'setReadOnly').AddParam(AValue).AsExpression;
 end;
 
 procedure TExtFormNumberField.SetAllowDecimals(const AValue: Boolean);
@@ -1192,13 +1196,13 @@ end;
 function TExtFormNumberField.SetMaxValue(const AValue: Integer): TExtExpression;
 begin
   FMaxValue := AValue;
-  Result := CallMethod('setMaxValue').AddParam(AValue).AsExpression;
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'setMaxValue').AddParam(AValue).AsExpression;
 end;
 
 function TExtFormNumberField.SetMinValue(const AValue: Integer): TExtExpression;
 begin
   FMinValue := AValue;
-  Result := CallMethod('setMinValue').AddParam(AValue).AsExpression;
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'setMinValue').AddParam(AValue).AsExpression;
 end;
 
 procedure TExtFormFieldSet.SetCollapsible(const AValue: Boolean);
@@ -1255,7 +1259,7 @@ end;
 
 function TExtFormFormPanel.Load(const AOptions: TExtObject): TExtExpression;
 begin
-  Result := CallMethod('load').AddParam(AOptions).AsExpression;
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'load').AddParam(AOptions).AsExpression;
 end;
 
 class function TExtFormRadioGroup.JSClassName: string;
@@ -1273,15 +1277,15 @@ begin
   FAltFormats := SetConfigItem('altFormats', AValue);
 end;
 
-procedure TExtFormDateField._SetDisabledDates(const AValue: TExtObjectArray);
+procedure TExtFormDateField._SetDisabledDates(const AValue: TJSObjectArray);
 begin
-  FDisabledDates := TExtObjectArray(SetConfigItem('disabledDates', 'setDisabledDates', AValue));
+  FDisabledDates := TJSObjectArray(SetConfigItem('disabledDates', 'setDisabledDates', AValue));
 end;
 
-procedure TExtFormDateField._SetDisabledDays(const AValue: TExtObjectArray);
+procedure TExtFormDateField._SetDisabledDays(const AValue: TJSObjectArray);
 begin
   FDisabledDays.Free;
-  FDisabledDays := TExtObjectArray(SetConfigItem('disabledDays', 'setDisabledDays', AValue));
+  FDisabledDays := TJSObjectArray(SetConfigItem('disabledDays', 'setDisabledDays', AValue));
 end;
 
 procedure TExtFormDateField.SetFormat(const AValue: string);
@@ -1322,43 +1326,43 @@ end;
 
 function TExtFormDateField.GetValue: TExtExpression;
 begin
-  Result := CallMethod('getValue').AsExpression;
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'getValue').AsExpression;
 end;
 
-function TExtFormDateField.SetDisabledDates(const ADisabledDates: TExtObjectArray): TExtExpression;
+function TExtFormDateField.SetDisabledDates(const ADisabledDates: TJSObjectArray): TExtExpression;
 begin
   FDisabledDates.Free;
   FDisabledDates := ADisabledDates;
-  Result := CallMethod('setDisabledDates').AddParam(ADisabledDates).AsExpression;
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'setDisabledDates').AddParam(ADisabledDates).AsExpression;
 end;
 
-function TExtFormDateField.SetDisabledDays(const ADisabledDays: TExtObjectArray): TExtExpression;
+function TExtFormDateField.SetDisabledDays(const ADisabledDays: TJSObjectArray): TExtExpression;
 begin
   FDisabledDays.Free;
   FDisabledDays := ADisabledDays;
-  Result := CallMethod('setDisabledDays').AddParam(ADisabledDays).AsExpression;
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'setDisabledDays').AddParam(ADisabledDays).AsExpression;
 end;
 
 function TExtFormDateField.SetMaxValue(const AValue: TDateTime): TExtExpression;
 begin
   FMaxValue := AValue;
-  Result := CallMethod('setMaxValue').AddParam(AValue).AsExpression;
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'setMaxValue').AddParam(AValue).AsExpression;
 end;
 
 function TExtFormDateField.SetMinValue(const AValue: TDateTime): TExtExpression;
 begin
   FMinValue := AValue;
-  Result := CallMethod('setMinValue').AddParam(AValue).AsExpression;
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'setMinValue').AddParam(AValue).AsExpression;
 end;
 
 function TExtFormDateField.SetValue(const ADate: string): TExtExpression;
 begin
-  Result := CallMethod('setValue').AddParam(ADate).AsExpression;
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'setValue').AddParam(ADate).AsExpression;
 end;
 
 function TExtFormDateField.SetValue(const ADate: TDateTime): TExtExpression;
 begin
-  Result := CallMethod('setValue').AddParam(ADate).AsExpression;
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'setValue').AddParam(ADate).AsExpression;
 end;
 
 procedure TExtFormComboBox.SetAutoSelect(const AValue: Boolean);
@@ -1452,10 +1456,10 @@ begin
   FStore := TExtDataStore(SetConfigItem('store', AValue));
 end;
 
-procedure TExtFormComboBox.SetStoreArray(const AValue: TExtObjectArray);
+procedure TExtFormComboBox.SetStoreArray(const AValue: TJSObjectArray);
 begin
   FStoreArray.Free;
-  FStoreArray := TExtObjectArray(SetConfigItem('store', AValue));
+  FStoreArray := TJSObjectArray(SetConfigItem('store', AValue));
 end;
 
 procedure TExtFormComboBox.SetTriggerAction(const AValue: string);
@@ -1511,12 +1515,12 @@ end;
 
 function TExtFormComboBox.ClearValue: TExtExpression;
 begin
-  Result := CallMethod('clearValue').AsExpression;
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'clearValue').AsExpression;
 end;
 
 function TExtFormComboBox.Expand: TExtExpression;
 begin
-  Result := CallMethod('expand').AsExpression;
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'expand').AsExpression;
 end;
 
 procedure TExtFormComboBox.SetOnSelect(const AValue: TExtFormComboBoxOnSelect);
@@ -1524,7 +1528,7 @@ begin
   RemoveAllListeners('select');
   if Assigned(AValue) then
 //    On('select', Ajax('select', ['Combo', '%0.nm', 'RecordJS', '%1.nm', 'Index', '%2'], true));
-    &On('select', AjaxCallMethod('select')
+    &On('select', TKWebResponse.Current.Items.AjaxCallMethod(Self, 'select')
       .Event
       .AddRawParam('Combo', 'combo.nm')
       .AddRawParam('RecordJS', 'record.nm') // should not work but it's not used.
@@ -1536,7 +1540,7 @@ end;
 
 function TExtFormComboBox.GetListParent: TExtExpression;
 begin
-  Result := CallMethod('getListParent').AsExpression;
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'getListParent').AsExpression;
 end;
 
 function TExtFormComboBox.GetObjectNamePrefix: string;
@@ -1546,22 +1550,22 @@ end;
 
 function TExtFormComboBox.GetStore: TExtExpression;
 begin
-  Result := CallMethod('getStore').AsExpression;
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'getStore').AsExpression;
 end;
 
 function TExtFormComboBox.GetValue: TExtExpression;
 begin
-  Result := CallMethod('getValue').AsExpression;
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'getValue').AsExpression;
 end;
 
 function TExtFormComboBox.IsExpanded: TExtExpression;
 begin
-  Result := CallMethod('isExpanded').AsExpression;
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'isExpanded').AsExpression;
 end;
 
 function TExtFormComboBox.SetValue(const AValue: string): TExtExpression;
 begin
-  Result := CallMethod('setValue').AddParam(AValue).AsExpression;
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'setValue').AddParam(AValue).AsExpression;
 end;
 
 procedure TExtFormComboBox.HandleEvent(const AEvtName: string);
@@ -1648,13 +1652,13 @@ end;
 function TExtFormTimeField.SetMaxValue(const AValue: TDateTime): TExtExpression;
 begin
   FMaxValue := AValue;
-  Result := CallMethod('setMaxValue').AddParam(AValue).AsExpression;
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'setMaxValue').AddParam(AValue).AsExpression;
 end;
 
 function TExtFormTimeField.SetMinValue(const AValue: TDateTime): TExtExpression;
 begin
   FMinValue := AValue;
-  Result := CallMethod('setMinValue').AddParam(AValue).AsExpression;
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'setMinValue').AddParam(AValue).AsExpression;
 end;
 
 { TExtFormFieldContainer }

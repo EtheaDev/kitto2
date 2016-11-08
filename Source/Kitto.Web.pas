@@ -4,19 +4,16 @@ interface
 
 uses
   SysUtils
+  , Rtti
   , Types
   , Classes
   , HTTPApp
-  , Rtti
   , Generics.Collections
   , SyncObjs
   , System.Diagnostics
-  , IdURI
   , IdCustomHTTPServer
   , IdContext
   , IdHTTPWebBrokerBridge
-  , IdException
-  , IdTCPServer
   , IdIOHandlerSocket
   , IdSchedulerOfThreadPool
   , EF.Intf
@@ -27,13 +24,12 @@ uses
   , Kitto.Metadata.Views
   , Kitto.Web.Request
   , Kitto.Web.Response
+  , Kitto.Web.URL
   , Kitto.Ext.Base
+  , Kitto.JS.Types
   , Ext.Base
   , Kitto.Ext.Controller
   ;
-
-const
-  DEFAULT_ENGINE_NAME = 'DefaultEngine';
 
 type
   { TODO : move away? Need TKExtApplication? }
@@ -54,66 +50,7 @@ type
     function AsExtContainer: TExtContainer;
   end;
 
-  TKURL = class(TIdURI)
-  private
-    FParsedParams: TStrings;
-    procedure ParseParams;
-  public
-    function ParamByName(const AName: string): string;
-    destructor Destroy; override;
-  end;
-
-  TKEngine = class;
-  TKWebApplication = class;
-
-  EKWebEngineException = class(Exception);
-
-  IKWebHandleRequestEventListener = interface
-    procedure BeforeHandleRequest(const ASender: TKEngine; const AApplication: TKWebApplication; var AIsAllowed: Boolean);
-    procedure AfterHandleRequest(const ASender: TKEngine; const AApplication: TKWebApplication; const AStopWatch: TStopWatch);
-  end;
-
-  TKEngineBeforeHandleRequestEvent = TFunc<TKEngine, TKWebRequest, TKURL, Boolean>;
-
-  TKWebApplicationDictionary = class(TObjectDictionary<string, TKWebApplication>);
-
-  TKEngine = class
-  private
-    FApplications: TKWebApplicationDictionary;
-    FSubscribers: TList<IKWebHandleRequestEventListener>;
-    FCriticalSection: TCriticalSection;
-    FName: string;
-    FPort: Integer;
-    FThreadPoolSize: Integer;
-    FBasePath: string;
-    FOnBeforeHandleRequest: TKEngineBeforeHandleRequestEvent;
-  protected
-    function DoBeforeHandleRequest(const AApplication: TKWebApplication): Boolean; virtual;
-    procedure DoAfterHandleRequest(const AApplication: TKWebApplication; const AStopWatch: TStopWatch); virtual;
-  public
-    constructor Create(const AName: string = DEFAULT_ENGINE_NAME); virtual;
-    destructor Destroy; override;
-
-    function HandleRequest(const ARequest: TKWebRequest; const AResponse: TKWebResponse; const AURL: TKURL): Boolean;
-
-    function AddApplication(const AName, ABasePath: string): TKWebApplication;
-    procedure AddSubscriber(const ASubscriber: IKWebHandleRequestEventListener);
-    procedure RemoveSubscriber(const ASubscriber: IKWebHandleRequestEventListener);
-
-    procedure EnumerateApplications(const AProc: TProc<string, TKWebApplication>);
-
-    property Applications: TKWebApplicationDictionary read FApplications;
-
-    property BasePath: string read FBasePath write FBasePath;
-    property Name: string read FName;
-    property Port: Integer read FPort write FPort;
-    property ThreadPoolSize: Integer read FThreadPoolSize write FThreadPoolSize;
-
-    property OnBeforeHandleRequest: TKEngineBeforeHandleRequestEvent read FOnBeforeHandleRequest write FOnBeforeHandleRequest;
-  end;
-
-  EKWebApplicationException = class(Exception);
-  EKWebAuthorizationException = class(EKWebApplicationException);
+  EKWebException = class(Exception);
 
   TLibraryRef = record
     IsCSS: Boolean;
@@ -125,13 +62,29 @@ type
     function InternalExpand(const AString: string): string; override;
   end;
 
-  TKWebApplication = class(TEFSubjectAndObserver)
+  TKWebRoute = class(TEFSubjectAndObserver)
+  public
+    function HandleRequest(const ARequest: TKWebRequest; const AResponse: TKWebResponse;
+      const AURL: TKURL): Boolean; virtual; abstract;
+  end;
+
+  TKStaticWebRoute = class(TKWebRoute)
+  private
+    FPattern: string;
+    FPath: string;
+  public
+    property Pattern: string read FPattern write FPattern;
+    function HandleRequest(const ARequest: TKWebRequest; const AResponse: TKWebResponse;
+      const AURL: TKURL): Boolean; override;
+    constructor Create(const APattern, APath: string);
+  end;
+
+  TKWebApplication = class(TKWebRoute)
   private
     FConfig: TKConfig;
     FRttiContext: TRttiContext;
     FBasePath: string;
     FName: string;
-    FEngine: TKEngine;
     FTitle: string;
     FIcon: string;
     FLoginNode: TEFNode;
@@ -139,9 +92,8 @@ type
     FTheme: string;
     FExtPath: string;
     FAdditionalRefs: TList<TLibraryRef>;
-    FCharset: string;
     FSessionMacroExpander: TKWebApplicationSessionMacroExpander;
-    class var FCurrent: TKWebApplication;
+    class threadvar FCurrent: TKWebApplication;
     function GetDefaultHomeViewNodeNames(const AViewportWidthInInches: Integer; const ASuffix: string): TStringDynArray;
     procedure Home;
     procedure FreeLoginNode;
@@ -149,7 +101,6 @@ type
     function FindOpenController(const AView: TKView): IKExtController;
     procedure SetActiveViewInViewHost(const AObject: TObject);
     function GetMainPageTemplate: string;
-
     function GetManifestFileName: string;
     procedure ClearStatus;
     procedure LoadLibraries;
@@ -163,23 +114,24 @@ type
     procedure DeactivateInstance;
     procedure Reload;
     function GetObjectFromURL(const AURL: TKURL): TObject;
+    class function GetCurrent: TKWebApplication; static;
+    class procedure SetCurrent(const AValue: TKWebApplication); static;
+    function CallObjectMethod(const AObject: TObject; const AMethodName: string): Boolean;
   public
     const DEFAULT_VIEWPORT_WIDTH = 480;
     class constructor Create;
     class destructor Destroy;
-    constructor Create(const AEngine: TKEngine; const AName: string);
+    constructor Create(const AName: string);
     destructor Destroy; override;
 
-    function HandleRequest(const ARequest: TWebRequest; const AResponse: TWebResponse; const AURL: TKURL): Boolean;
+    function HandleRequest(const ARequest: TKWebRequest; const AResponse: TKWebResponse; const AURL: TKURL): Boolean; override;
     procedure UpdateObserver(const ASubject: IEFSubject; const AContext: string = ''); override;
 
-    property Engine: TKEngine read FEngine;
     property Name: string read FName;
     property BasePath: string read FBasePath write FBasePath;
     { TODO : implement }
     property Title: string read FTitle write FTitle;
     property Icon: string read FIcon write FIcon;
-    property Charset: string read FCharset;
 
     property Config: TKConfig read FConfig;
     function GetHomeView(const AViewportWidthInInches: Integer): TKView;
@@ -193,7 +145,7 @@ type
     property Theme: string read FTheme write FTheme;
     property ExtPath: string read FExtPath write FExtPath;
 
-    class property Current: TKWebApplication read FCurrent write FCurrent;
+    class property Current: TKWebApplication read GetCurrent write SetCurrent;
     procedure ReloadOrDisplayHomeView;
     function GetLoginView: TKView;
     procedure DisplayHomeView;
@@ -233,36 +185,34 @@ type
     ///  to ensure that additional javascript or css files are included.
     /// </summary>
     procedure AddAdditionalRef(const APath: string; const AIsCSS: Boolean);
-  published
+    procedure Alert(const AMessage: string);
+    procedure Error(const AMessage, AMethodName, AParams: string);
+    procedure NotFoundError(const AMethodName: string);
+    procedure ErrorMessage(const AMessage: string; const AAction: string = '');
+    function GetMethodURL(const AMethodName: string): string;
+
     procedure HandleEvent;
     { TODO : move to application once it gains the ability to execute ajax methods }
     procedure DelayedHome;
     procedure Logout;
   end;
 
-type
-  TKWebRoute = class
-  private
-    FPattern: string;
-    FPath: string;  public
-    property Pattern: string read FPattern write FPattern;
-  public
-    function HandleRequest(const ARequest: TWebRequest; const AResponse: TWebResponse;
-      const AURL: TKURL): Boolean; virtual; abstract;
-    constructor Create(const APattern: string);
+  TKWebServer = class;
+
+  IKWebHandleRequestEventListener = interface
+    procedure BeforeHandleRequest(const ASender: TKWebServer; const ARequest: TKWebRequest; const AResponse: TKWebResponse; var AIsAllowed: Boolean);
+    procedure AfterHandleRequest(const ASender: TKWebServer; const ARequest: TKWebRequest; const AResponse: TKWebResponse; const AStopWatch: TStopWatch);
   end;
 
-  TKStaticWebRoute = class(TKWebRoute)
-  public
-    function HandleRequest(const ARequest: TWebRequest; const AResponse: TWebResponse;
-      const AURL: TKURL): Boolean; override;
-    constructor Create(const APattern, APath: string);
-  end;
+  TKWebApplicationDictionary = class(TObjectDictionary<string, TKWebApplication>);
 
   TKWebServer = class(TIdCustomHTTPServer)
   private
-    FEngine: TKEngine;
+    FThreadPoolSize: Integer;
+    FBasePath: string;
     FRoutes: TObjectList<TKWebRoute>;
+    FSubscribers: TList<IKWebHandleRequestEventListener>;
+    FCharset: string;
 //    procedure ParseAuthenticationHandler(AContext: TIdContext;
 //      const AAuthType, AAuthData: String; var VUsername, VPassword: String;
 //      var VHandled: Boolean); virtual;
@@ -270,6 +220,8 @@ type
     procedure DeleteSession(const ASession: TIdHTTPSession);
     class function GetCurrentSession: TIdHTTPSession; static;
     class procedure SetCurrentSession(const AValue: TIdHTTPSession); static;
+    function DoBeforeHandleRequest(const ARequest: TKWebRequest; const AResponse: TKWebResponse): Boolean;
+    procedure DoAfterHandleRequest(const ARequest: TKWebRequest; const AResponse: TKWebResponse; const AStopWatch: TStopWatch);
   protected
     procedure Startup; override;
     procedure Shutdown; override;
@@ -279,23 +231,26 @@ type
     procedure DoSessionStart(Sender: TIdHTTPSession); override;
     procedure DoSessionEnd(Sender: TIdHTTPSession); override;
 
-    procedure SetupThreadPooling(const APoolSize: Integer = 25);
+    procedure SetupThreadPooling;
   public
     procedure AfterConstruction; override;
     destructor Destroy; override;
   public
     const SESSION_OBJECT = 'KittoSession';
-    constructor Create(AEngine: TKEngine); virtual;
-    property Engine: TKEngine read FEngine;
     procedure AddRoute(const ARoute: TKWebRoute);
     class property CurrentSession: TIdHTTPSession read GetCurrentSession write SetCurrentSession;
+
+    property BasePath: string read FBasePath write FBasePath;
+    property ThreadPoolSize: Integer read FThreadPoolSize write FThreadPoolSize;
+
+    procedure AddSubscriber(const ASubscriber: IKWebHandleRequestEventListener);
+    procedure RemoveSubscriber(const ASubscriber: IKWebHandleRequestEventListener);
   end;
 
 implementation
 
 uses
   StrUtils
-  , TypInfo
   , ComObj
   , ActiveX
   , IOUtils
@@ -306,6 +261,7 @@ uses
   , EF.StrUtils
   , EF.Localization
   , Kitto.JS
+  , Kitto.JS.Formatting
   , Kitto.AccessControl
   , Kitto.Web.Types
   ;
@@ -323,20 +279,17 @@ begin
     Result := Session.FindChildByJSName(LJSName);
 end;
 
-constructor TKWebApplication.Create(const AEngine: TKEngine; const AName: string);
+constructor TKWebApplication.Create(const AName: string);
 begin
-  Assert(Assigned(AEngine));
   Assert(AName <> '');
 
   inherited Create;
   FOwnsLoginNode := False;
   FName := AName;
-  FEngine := AEngine;
   FRttiContext := TRttiContext.Create;
   FConfig := TKConfig.Create;
   FAdditionalRefs := TList<TLibraryRef>.Create;
   FExtPath := '/ext';
-  FCharset := Config.Config.GetString('Charset', 'utf-8');
   FTheme := Config.Config.GetString('Ext/Theme', 'triton');
   FSessionMacroExpander := TKWebApplicationSessionMacroExpander.Create;
   Config.MacroExpansionEngine.AddExpander(FSessionMacroExpander);
@@ -559,6 +512,18 @@ begin
   end;
 end;
 
+function TKWebApplication.CallObjectMethod(const AObject: TObject; const AMethodName: string): Boolean;
+var
+  LInfo : TRttiType;
+  LMethod : TRttiMethod;
+begin
+  LInfo := FRttiContext.GetType(AObject.ClassType);
+  LMethod := LInfo.GetMethod(AMethodName);
+  Result := Assigned(LMethod);
+  if Result then
+    LMethod.Invoke(AObject, []);
+end;
+
 procedure TKWebApplication.ClearStatus;
 begin
   if Assigned(Session.StatusHost) then
@@ -607,6 +572,11 @@ begin
     Session.Libraries := Session.Libraries + '<link rel=stylesheet href="' + LCSS + '.css" />';
 end;
 
+class procedure TKWebApplication.SetCurrent(const AValue: TKWebApplication);
+begin
+  FCurrent := AValue;
+end;
+
 procedure TKWebApplication.SetLibrary(const AURL: string; const AIsCSS, AHasDebug: Boolean);
 var
   LURL: string;
@@ -643,7 +613,7 @@ begin
   // (others, such as menu items and tree nodes, don't).
   LSelector := '.' + Result;
   LRule := '{background: url(' + LIconURL + ') no-repeat left !important;' + ACustomRules + '}';
-  Session.ResponseItems.ExecuteJSCode(Format('addStyleRule("%s", "%s");', [LSelector, LRule]));
+  TKWebResponse.Current.Items.ExecuteJSCode(Format('addStyleRule("%s", "%s");', [LSelector, LRule]));
 end;
 
 function TKWebApplication.SetViewIconStyle(const AView: TKView; const AImageName, ACustomPrefix, ACustomRules: string): string;
@@ -689,59 +659,15 @@ begin
   end;
 end;
 
-{ TKURI }
-
-destructor TKURL.Destroy;
-begin
-  FreeAndNil(FParsedParams);
-  inherited;
-end;
-
-function TKURL.ParamByName(const AName: string): string;
-begin
-  if not Assigned(FParsedParams) then
-    ParseParams;
-  Result := FParsedParams.Values[AName];
-end;
-
-procedure TKURL.ParseParams;
-var
-  I: Integer;
-begin
-  Assert(not Assigned(FParsedParams));
-
-  FParsedParams := TStringList.Create;
-  FParsedParams.Delimiter := '&';
-  FParsedParams.StrictDelimiter := True;
-
-  FParsedParams.DelimitedText := Params;
-
-  for I := 0 to FParsedParams.Count - 1 do
-  begin
-    FParsedParams[I] := ReplaceStr(FParsedParams[I], '+', ' ');
-    FParsedParams[I] := URLDecode(FParsedParams[I], IndyTextEncoding_UTF8);
-  end;
-end;
-
 { TKWebApplication }
 
-function TKWebApplication.HandleRequest(const ARequest: TWebRequest; const AResponse: TWebResponse; const AURL: TKURL): Boolean;
-type
-  TMethodCall = procedure of object;
+function TKWebApplication.HandleRequest(const ARequest: TKWebRequest; const AResponse: TKWebResponse; const AURL: TKURL): Boolean;
 var
   LSession: TJSSession;
   LPath: string;
   LMethod: TMethod;
   LHandlerObject: TObject;
   LDocument: string;
-
-  function CanHandleRequest: Boolean;
-  begin
-    Assert(Assigned(LSession));
-
-    Result := True;//not LSession.IsUpload{ or (Pos('success:true', TKWebServer.CurrentResponse.Content) <> 0)};
-  end;
-
 begin
   Assert(Assigned(ARequest));
   Assert(Assigned(AResponse));
@@ -755,37 +681,30 @@ begin
       Assert(Assigned(LSession));
   { TODO : still needed? }
   //    LSession.Application := Self;
-  { TODO : refactor - move application, engine and server code out of the session }
   //    if Browser = brUnknown then
-  //      DetectBrowser(RequestHeader['HTTP_USER_AGENT']);
+  //      DetectBrowser(RequestHeader['HTTP_USER_AGENT']);
   { TODO : handle favicon.ico }
-      if CanHandleRequest and LSession.BeforeHandleRequest then
-      begin
-        try
-          LPath := StripPrefix('/', AURL.Path);
-          LDocument := AURL.Document;
+      LSession.BeforeHandleRequest;
+      try
+        LPath := StripPrefix('/', AURL.Path);
+        LDocument := AURL.Document;
 
-          // Try to execute method.
-          LHandlerObject := GetObjectFromURL(AURL);
-          if not Assigned(LHandlerObject) then
-            raise Exception.CreateFmt('Handler object for method %s not found in session.', [AURL.Path]);
-          if (LPath = LSession.NameSpace) and (LDocument = '') then
-            Home
-          else
-          begin
-            LMethod.Code := LHandlerObject.MethodAddress(LDocument);
-            if Assigned(LMethod.Code) then
-            begin
-              LMethod.Data := LHandlerObject;
-              TMethodCall(LMethod); // Call published method
-            end
-            else
-              LSession.OnNotFoundError(AURL.Path);
-          end;
-        except
-          on E: Exception do
-            LSession.OnError(E.Message, AURL.Path, AURL.Params);
-        end;
+        // Try to execute method.
+        LHandlerObject := GetObjectFromURL(AURL);
+        if not Assigned(LHandlerObject) then
+          raise Exception.CreateFmt('Handler object for method %s not found in session.', [AURL.Path]);
+        if (LPath = FName) and (LDocument = '') then
+        begin
+          Home;
+          Result := True;
+        end
+        else if CallObjectMethod(LHAndlerObject, LDocument) then
+          Result := True
+        else
+          NotFoundError(LPath + '/' + LDocument);
+      except
+        on E: Exception do
+          Error(E.Message, AURL.Path, AURL.Params);
       end;
     except
       on E: Exception do
@@ -799,6 +718,14 @@ begin
   finally
     DeactivateInstance;
   end;
+end;
+
+function TKWebApplication.GetMethodURL(const AMethodName: string): string;
+begin
+  Result := '/';
+  if FName <> '' then
+    Result := Result + FName + '/';
+  Result := Result + AMethodName;
 end;
 
 procedure TKWebApplication.ActivateInstance;
@@ -833,7 +760,7 @@ begin
     Session.ViewportWidthInInches := Session.Global.ParamAsInteger('vpWidthInches');
 
   Session.ViewportWidth := Session.GetDefaultViewportWidth();
-  Session.ResponseItems.ExecuteJSCode(Session.Global, 'setViewportWidth(' + IntToStr(Session.ViewportWidth) + ');');
+  TKWebResponse.Current.Items.ExecuteJSCode(Session.Global, 'setViewportWidth(' + IntToStr(Session.ViewportWidth) + ');');
   // Try authentication with default credentials, if any, and skip login
   // window if it succeeds.
   if Authenticate then
@@ -900,7 +827,7 @@ begin
   if Supports(Session.HomeController, IKExtController, LHomeController) then
   begin
     LHomeContainer := LHomeController.AsObject as TJSObject;
-    Session.ResponseItems.ExecuteJSCode(LHomeContainer, 'var kittoHomeContainer = ' + LHomeContainer.JSName + ';');
+    TKWebResponse.Current.Items.ExecuteJSCode(LHomeContainer, 'var kittoHomeContainer = ' + LHomeContainer.JSName + ';');
     LHomeController.Display;
   end;
   if Session.AutoOpenViewName <> '' then
@@ -940,10 +867,13 @@ procedure TKWebApplication.Home;
   begin
     LTimeout := Config.Config.FindNode('Ext/AjaxTimeout');
     if Assigned(LTimeout) then
-      Session.ResponseItems.ExecuteJSCode(Session.Global, Format('Ext.Ajax.setTimeout(%d);', [LTimeout.AsInteger]));
+      TKWebResponse.Current.Items.ExecuteJSCode(Session.Global, Format('Ext.Ajax.setTimeout(%d);', [LTimeout.AsInteger]));
   end;
 
 begin
+  if TKWebRequest.Current.IsAjax then
+    raise Exception.Create('Cannot call Home page in an Ajax request.');
+
   { TODO : doesn't work with Chrome - probably leaks }
 //  if TKWebRequest.Current.IsRefresh then
   Session.Refresh;
@@ -954,7 +884,7 @@ begin
 
   Session.HomeViewNodeName := TKWebRequest.Current.QueryFields.Values['home'];
   SetViewportContent;
-  Session.ResponseItems.ExecuteJSCode(Session.Global, 'kittoInit();');
+  TKWebResponse.Current.Items.ExecuteJSCode(Session.Global, 'kittoInit();');
   SetAjaxTimeout;
   if Session.TooltipsEnabled then
     ExtQuickTips.Init(True)
@@ -968,7 +898,7 @@ begin
 //  if FAutoOpenViewName <> '' then
 //    Query['view'] := '';
 
-  Session.Global.AjaxCallMethod.SetMethod(DelayedHome)
+  TKWebResponse.Current.Items.AjaxCallMethod(Session.Global).SetMethod(DelayedHome)
     .AddParam('vpWidthInches', Session.GetViewportWidthInInches);
 
   ServeHomePage;
@@ -984,10 +914,37 @@ begin
   begin
     LObject := Session.FindChildByJSName(TKWebRequest.Current.QueryFields.Values['Object']) as TJSObject;
     if not Assigned(LObject) then
-      Session.OnError('Object not found in session list. It could be timed out, refresh page and try again', 'HandleEvent', '')
+      Error('Object not found in session list. It could be timed out, refresh page and try again', 'HandleEvent', '')
     else
       LObject.HandleEvent(LEvent);
   end;
+end;
+
+procedure TKWebApplication.ErrorMessage(const AMessage: string; const AAction: string);
+begin
+  TKWebResponse.Current.Items.ExecuteJSCode('Ext.Msg.show({title:"Error",msg:' + TJS.StrToJS(AMessage, True) +
+    ',icon:Ext.Msg.ERROR,buttons:Ext.Msg.OK' + IfThen(AAction = '', '', ',fn:function(){' + AAction + '}') + '});');
+end;
+
+procedure TKWebApplication.Error(const AMessage, AMethodName, AParams: string);
+begin
+  TKWebResponse.Current.Items.Clear;
+{$IFDEF DEBUG}
+  ErrorMessage(AMessage + '<br/>Method: ' + IfThen(AMethodName = '', 'Home', AMethodName) + IfThen(AParams = '', '',
+    '<br/>Params:<br/>' + AnsiReplaceStr(AParams, '&', '<br/>')));
+{$ELSE}
+  ErrorMessage(AMessage);
+{$ENDIF}
+end;
+
+procedure TKWebApplication.NotFoundError(const AMethodName: string);
+begin
+  Alert(Format('Method: ''%s'' not found', [AMethodName]));
+end;
+
+procedure TKWebApplication.Alert(const AMessage: string);
+begin
+  ErrorMessage(AMessage);
 end;
 
 procedure TKWebApplication.LoadLibraries;
@@ -1056,6 +1013,11 @@ Duplicates must be handled/ignored. }
     SetRequiredLibrary(LLibName);
 end;
 
+class function TKWebApplication.GetCurrent: TKWebApplication;
+begin
+  Result := FCurrent;
+end;
+
 function TKWebApplication.GetCustomJS: string;
 begin
   Result :=
@@ -1071,7 +1033,6 @@ function TKWebApplication.GetViewportContent: string;
 begin
   Result := ReplaceStr(Session.ViewportContent, '{width}', IntToStr(DEFAULT_VIEWPORT_WIDTH));
 end;
-
 
 procedure TKWebApplication.SetViewportContent;
 var
@@ -1111,61 +1072,40 @@ end;
 
 procedure TKWebApplication.ServeHomePage;
 var
-  LMainPageCode: string;
-  LResponse: string;
+  LHtml: string;
 begin
-  if Session.IsDownLoad or Session.IsUpload then
+  if Session.IsDownload or Session.IsUpload then
     Exit;
 
-  LResponse := Session.ResponseItems.Consume;
-
-  if not TKWebRequest.Current.IsAjax then
-  begin
-    { TODO : move to response }
-    Session.ContentType := 'text/html; charset=' + Charset;
-    LMainPageCode := GetMainPageTemplate;
-
-    // Replace template macros in main page code.
-    LMainPageCode := ReplaceText(LMainPageCode, '<%HTMLDeclaration%>', '<?xml version=1.0?>' + sLineBreak +
-      '<!doctype html public "-//W3C//DTD XHTML 1.0 Strict//EN">' + sLineBreak +
-      '<html xmlns=http://www.w3org/1999/xthml>' + sLineBreak);
-    LMainPageCode := ReplaceText(LMainPageCode, '<%ViewportContent%>', GetViewportContent);
-    LMainPageCode := ReplaceText(LMainPageCode, '<%ApplicationTitle%>', Title);
-    LMainPageCode := ReplaceText(LMainPageCode, '<%ApplicationIconLink%>',
-      IfThen(Icon = '', '', '<link rel="shortcut icon" href="' + Icon + '"/>'));
-    LMainPageCode := ReplaceText(LMainPageCode, '<%AppleIconLink%>',
-      IfThen(Icon = '', '', '<link rel="apple-touch-icon" sizes="120x120" href="' + Icon + '"/>'));
-    LMainPageCode := ReplaceText(LMainPageCode, '<%CharSet%>', Charset);
-    LMainPageCode := ReplaceText(LMainPageCode, '<%ExtPath%>', ExtPath);
-    LMainPageCode := ReplaceText(LMainPageCode, '<%DebugSuffix%>',
-{$IFDEF DebugExtJS}'-debug'{$ELSE}''{$ENDIF});
-    LMainPageCode := ReplaceText(LMainPageCode, '<%ManifestLink%>', IfThen(GetManifestFileName = '', '',
-      Format('<link rel="manifest" href="%s"/>', [GetManifestFileName])));
-    LMainPageCode := ReplaceText(LMainPageCode, '<%ThemeLink%>',
-      IfThen(Theme = '', '', '<link rel=stylesheet href="' + ExtPath + '/build/classic/theme-' + Theme +
+  LHtml := GetMainPageTemplate;
+  // Replace template macros in main page code.
+  LHtml := ReplaceText(LHtml, '<%HTMLDeclaration%>', '<?xml version=1.0?>' + sLineBreak +
+    '<!doctype html public "-//W3C//DTD XHTML 1.0 Strict//EN">' + sLineBreak +
+    '<html xmlns=http://www.w3org/1999/xthml>' + sLineBreak);
+  LHtml := ReplaceText(LHtml, '<%ViewportContent%>', GetViewportContent);
+  LHtml := ReplaceText(LHtml, '<%ApplicationTitle%>', Title);
+  LHtml := ReplaceText(LHtml, '<%ApplicationIconLink%>',
+    IfThen(Icon = '', '', '<link rel="shortcut icon" href="' + Icon + '"/>'));
+  LHtml := ReplaceText(LHtml, '<%AppleIconLink%>',
+    IfThen(Icon = '', '', '<link rel="apple-touch-icon" sizes="120x120" href="' + Icon + '"/>'));
+  LHtml := ReplaceText(LHtml, '<%CharSet%>', TKWebResponse.Current.Items.Charset);
+  LHtml := ReplaceText(LHtml, '<%ExtPath%>', ExtPath);
+  LHtml := ReplaceText(LHtml, '<%DebugSuffix%>', {$IFDEF DebugExtJS}'-debug'{$ELSE}''{$ENDIF});
+  LHtml := ReplaceText(LHtml, '<%ManifestLink%>', IfThen(GetManifestFileName = '', '',
+    Format('<link rel="manifest" href="%s"/>', [GetManifestFileName])));
+  LHtml := ReplaceText(LHtml, '<%ThemeLink%>',
+    IfThen(Theme = '', '', '<link rel=stylesheet href="' + ExtPath + '/build/classic/theme-' + Theme +
       '/resources/theme-' + Theme + '-all.css" />'));
-    LMainPageCode := ReplaceText(LMainPageCode, '<%LanguageLink%>',
-      IfThen((Session.Language = 'en') or (Session.Language = ''), '',
-        '<script src="' + ExtPath + '/build/classic/locale/locale-' + Session.Language + '.js"></script>'));
-    LMainPageCode := ReplaceText(LMainPageCode, '<%LibraryTags%>', Session.Libraries);
-    LMainPageCode := ReplaceText(LMainPageCode, '<%CustomJS%>', GetCustomJS);
-    LMainPageCode := ReplaceText(LMainPageCode, '<%Response%>', LResponse);
-    LResponse := LMainPageCode;
-{$IFDEF DEBUGJS}
-    LResponse := AnsiReplaceStr(LResponse, '%%', IntToStr(CountStr(sLineBreak, LResponse, 'eval('))); // eval() line number
-{$ENDIF}
-  end
-  else
-  begin
-    if (LResponse <> '') and (LResponse[1] = '<') then
-      Session.ContentType := 'text/html; charset=' + Charset
-    else if (LResponse <> '') and CharInSet(LResponse[1], ['{', '[']) then
-      Session.ContentType := 'application/json; charset=' + Charset
-    else
-      Session.ContentType := 'text/javascript; charset=' + Charset;
-  end;
-  TKWebResponse.Current.ContentType := Session.ContentType;
-  TKWebResponse.Current.Content := LResponse;
+  LHtml := ReplaceText(LHtml, '<%LanguageLink%>',
+    IfThen((Session.Language = 'en') or (Session.Language = ''), '',
+      '<script src="' + ExtPath + '/build/classic/locale/locale-' + Session.Language + '.js"></script>'));
+  LHtml := ReplaceText(LHtml, '<%LibraryTags%>', Session.Libraries);
+  LHtml := ReplaceText(LHtml, '<%CustomJS%>', GetCustomJS);
+  LHtml := ReplaceText(LHtml, '<%Response%>', TKWebResponse.Current.Items.Consume);
+
+  TKWebResponse.Current.Items.Clear;
+  TKWebResponse.Current.Items.AddHTML(LHtml);
+  TKWebResponse.Current.Render;
 end;
 
 function TKWebApplication.GetMainPageTemplate: string;
@@ -1191,7 +1131,7 @@ var
 
   function GetEncoding: TEncoding;
   begin
-    if Charset = 'utf-8' then
+    if TKWebResponse.Current.Items.Charset = 'utf-8' then
       Result := TEncoding.UTF8
     else
       Result := TEncoding.ANSI;
@@ -1208,12 +1148,12 @@ end;
 
 procedure TKWebApplication.Flash(const AMessage: string);
 begin
-  Session.ResponseItems.ExecuteJSCode('Ext.example.msg("' + _(Config.AppTitle) + '", "' + AMessage + '");');
+  TKWebResponse.Current.Items.ExecuteJSCode('Ext.example.msg("' + _(Config.AppTitle) + '", "' + AMessage + '");');
 end;
 
 procedure TKWebApplication.Navigate(const AURL: string);
 begin
-  Session.ResponseItems.ExecuteJSCode(Format('window.open("%s", "_blank");', [AURL]));
+  TKWebResponse.Current.Items.ExecuteJSCode(Format('window.open("%s", "_blank");', [AURL]));
 end;
 
 function TKWebApplication.GetPageTemplate(const APageName: string): string;
@@ -1233,123 +1173,8 @@ procedure TKWebApplication.Reload;
 begin
   // Ajax calls are useless since we're reloading, so let's make sure
   // the response doesn't contain any.
-  Session.ResponseItems.Clear;
-  Session.ResponseItems.ExecuteJSCode('window.location.reload();');
-end;
-
-{ TKWebEngine }
-
-function TKEngine.AddApplication(const AName, ABasePath: string): TKWebApplication;
-begin
-  Result := TKWebApplication.Create(Self, AName);
-  try
-    Result.BasePath := ABasePath;
-
-    Applications.Add(BasePath + '/' + ABasePath, Result);
-  except
-    Result.Free;
-    raise
-  end;
-end;
-
-procedure TKEngine.AddSubscriber(const ASubscriber: IKWebHandleRequestEventListener);
-begin
-  FSubscribers.Add(ASubscriber);
-end;
-
-constructor TKEngine.Create(const AName: string);
-begin
-  inherited Create;
-
-  FName := AName;
-
-  FApplications := TKWebApplicationDictionary.Create([doOwnsValues]);
-  FCriticalSection := TCriticalSection.Create;
-  FSubscribers := TList<IKWebHandleRequestEventListener>.Create;
-
-  // default parameters
-  FPort := 8080;
-  FThreadPoolSize := 75;
-  FBasePath := '/';
-end;
-
-destructor TKEngine.Destroy;
-begin
-  FCriticalSection.Free;
-  FApplications.Free;
-  FSubscribers.Free;
-  inherited;
-end;
-
-procedure TKEngine.DoAfterHandleRequest(const AApplication: TKWebApplication; const AStopWatch: TStopWatch);
-var
-  LSubscriber: IKWebHandleRequestEventListener;
-begin
-  for LSubscriber in FSubscribers do
-    LSubscriber.AfterHandleRequest(Self, AApplication, AStopWatch);
-  { TODO : only do this when ADO is used }
-  CoUninitialize;
-end;
-
-function TKEngine.DoBeforeHandleRequest(const AApplication: TKWebApplication): Boolean;
-var
-  LSubscriber: IKWebHandleRequestEventListener;
-begin
-  { TODO : only do this when ADO is used }
-  OleCheck(CoInitialize(nil));
-  Result := True;
-  for LSubscriber in FSubscribers do
-    LSubscriber.BeforeHandleRequest(Self, AApplication, Result);
-end;
-
-procedure TKEngine.EnumerateApplications(const AProc: TProc<string, TKWebApplication>);
-var
-  LPair: TPair<string, TKWebApplication>;
-begin
-  if Assigned(AProc) then
-  begin
-    FCriticalSection.Enter;
-    try
-      for LPair in FApplications do
-        AProc(LPair.Key, LPair.Value);
-    finally
-      FCriticalSection.Leave;
-    end;
-  end;
-end;
-
-function TKEngine.HandleRequest(const ARequest: TKWebRequest; const AResponse: TKWebResponse; const AURL: TKURL): Boolean;
-var
-  LApplication: TKWebApplication;
-  LStopWatch: TStopWatch;
-begin
-  Result := False;
-
-  if Assigned(FOnBeforeHandleRequest) and not FOnBeforeHandleRequest(Self, ARequest, AURL) then
-    Exit;
-
-  { TODO : Select application based on path }
-  if FApplications.Count > 0 then
-  begin
-    LApplication := FApplications.Values.ToArray[0];
-
-    if DoBeforeHandleRequest(LApplication) then
-    begin
-      LStopWatch := TStopwatch.StartNew;
-      LApplication.HandleRequest(ARequest, AResponse, AURL);
-      LStopWatch.Stop;
-      DoAfterHandleRequest(LApplication, LStopWatch);
-    end;
-    Result := True;
-  end
-  else
-    { TODO : Status 404 }
-    raise EKWebEngineException.CreateFmt('Bad request [%s]: unknown application', [AURL.URI]);
-end;
-
-procedure TKEngine.RemoveSubscriber(const ASubscriber: IKWebHandleRequestEventListener);
-begin
-  FSubscribers.Remove(ASubscriber);
+  TKWebResponse.Current.Items.Clear;
+  TKWebResponse.Current.Items.ExecuteJSCode('window.location.reload();');
 end;
 
 { TKExtControllerHostWindow }
@@ -1384,19 +1209,27 @@ end;
 procedure TKWebServer.AfterConstruction;
 begin
   inherited;
-  FRoutes := TObjectList<TKWebRoute>.Create;
-end;
-
-constructor TKWebServer.Create(AEngine: TKEngine);
-begin
-  inherited Create(nil);
 //  OnParseAuthentication := ParseAuthenticationHandler;
-  FEngine := AEngine;
+  FSubscribers := TList<IKWebHandleRequestEventListener>.Create;
+  FRoutes := TObjectList<TKWebRoute>.Create;
+  // default parameters
+  DefaultPort := 8080;
+  { TODO : increase in production }
+  FThreadPoolSize := 5;
+  FBasePath := '/';
+  AutoStartSession := True;
+  SessionTimeOut := 10 * MSecsPerSec * SecsPerMin; // 10 minutes.
+  SessionState := True;
+  { TODO : Get from application somehow - difficult since the session exists before the applications }
+  SessionIDCookieName := 'kitto6';
+  { TODO : parameterize }
+  FCharset := 'utf-8';
 end;
 
 destructor TKWebServer.Destroy;
 begin
   FreeAndNil(FRoutes);
+  FreeAndNil(FSubscribers);
   inherited;
 end;
 
@@ -1406,6 +1239,7 @@ var
   LHandled: Boolean;
   LRoute: TKWebRoute;
   LURL: TKURL;
+  LStopWatch: TStopWatch;
 begin
   inherited;
 
@@ -1421,6 +1255,7 @@ begin
 
       TKWebResponse.Current := TKWebResponse.Create(TKWebRequest.Current, AContext, ARequestInfo, AResponseInfo);
       try
+        TKWebResponse.Current.Items.Charset := FCharset;
         // Switch stream ownership so that we have it still alive in AResponseInfo
         // which will destroy it later.
         TKWebResponse.Current.FreeContentStream := False;
@@ -1428,25 +1263,27 @@ begin
 
         TEFLogger.Instance.LogStrings('DoCommand', TKWebRequest.Current.QueryFields, TEFLogger.LOG_DETAILED);
 
-        LHandled := False;
-        for LRoute in FRoutes do
-        begin
-          LHandled := LRoute.HandleRequest(TKWebRequest.Current, TKWebResponse.Current, LURL);
-          if LHandled then
-            Break;
-        end;
-        { TODO : make the engine a route? collapse engine and application into a route? }
+        LStopWatch := TStopWatch.StartNew;
+        if DoBeforeHandleRequest(TKWebRequest.Current, TKWebResponse.Current) then begin
+          LHandled := False;
 
-        if not LHandled then
-          LHandled := FEngine.HandleRequest(TKWebRequest.Current, TKWebResponse.Current, LURL);
+          for LRoute in FRoutes do
+          begin
+            LHandled := LRoute.HandleRequest(TKWebRequest.Current, TKWebResponse.Current, LURL);
+            if LHandled then
+              Break;
+          end;
 
-        if not LHandled then
-        begin
-          { TODO : use a template }
-          TKWebResponse.Current.ContentType := 'text/html';
-          TKWebResponse.Current.Content := '<html><body>Unknown request</body></html>';
+          if not LHandled then
+          begin
+            { TODO : use a template }
+            TKWebResponse.Current.Items.Clear;
+            TKWebResponse.Current.Items.AddHTML('<html><body>Unknown request</body></html>');
+            TKWebResponse.Current.Render;
+          end;
+          DoAfterHandleRequest(TKWebRequest.Current, TKWebResponse.Current, LStopWatch);
+          AResponseInfo.CustomHeaders.AddStrings(TKWebResponse.Current.CustomHeaders);
         end;
-        AResponseInfo.CustomHeaders.AddStrings(TKWebResponse.Current.CustomHeaders);
       finally
         TKWebResponse.ClearCurrent;
       end;
@@ -1512,7 +1349,7 @@ begin
   FCurrentSession := AValue;
 end;
 
-procedure TKWebServer.SetupThreadPooling(const APoolSize: Integer);
+procedure TKWebServer.SetupThreadPooling;
 var
   LScheduler: TIdSchedulerOfThreadPool;
 begin
@@ -1523,7 +1360,7 @@ begin
   end;
 
   LScheduler := TIdSchedulerOfThreadPool.Create(Self);
-  LScheduler.PoolSize := APoolSize;
+  LScheduler.PoolSize := FThreadPoolSize;
   Scheduler := LScheduler;
   MaxConnections := LScheduler.PoolSize;
 end;
@@ -1531,41 +1368,62 @@ end;
 procedure TKWebServer.Shutdown;
 begin
   inherited;
-  Bindings.Clear;
+//  Bindings.Clear;
 end;
 
 procedure TKWebServer.Startup;
 begin
-  Bindings.Clear;
-  DefaultPort := FEngine.Port;
-  AutoStartSession := True;
-  SessionTimeOut := 10 * MSecsPerSec * SecsPerMin; // 10 minutes.
-  SessionState := True;
-  { TODO : Get from application somehow - difficult since the session exists before the applications }
-  SessionIDCookieName := 'kitto6';
-  { TODO : increase in production }
-  SetupThreadPooling(5);
   inherited;
+//  Bindings.Clear;
+  SetupThreadPooling;
 end;
 
-{ TKWebRoute }
+procedure TKWebServer.AddSubscriber(const ASubscriber: IKWebHandleRequestEventListener);
+begin
+  FSubscribers.Add(ASubscriber);
+end;
 
-constructor TKWebRoute.Create(const APattern: string);
+procedure TKWebServer.RemoveSubscriber(const ASubscriber: IKWebHandleRequestEventListener);
+begin
+  FSubscribers.Remove(ASubscriber);
+end;
+
+procedure TKWebServer.DoAfterHandleRequest(const ARequest: TKWebRequest; const AResponse: TKWebResponse; const AStopWatch: TStopWatch);
+var
+  LSubscriber: IKWebHandleRequestEventListener;
 begin
-  inherited Create;
-  FPattern := APattern;
+  for LSubscriber in FSubscribers do
+    LSubscriber.AfterHandleRequest(Self, ARequest, AResponse, AStopWatch);
+  { TODO : only do this when ADO is used }
+  CoUninitialize;
 end;
 
-{ TKStaticWebRoute }
+function TKWebServer.DoBeforeHandleRequest(const ARequest: TKWebRequest; const AResponse: TKWebResponse): Boolean;
+var
+  LSubscriber: IKWebHandleRequestEventListener;
+begin
+  { TODO : only do this when ADO is used }
+  OleCheck(CoInitialize(nil));
+  Result := True;
+  for LSubscriber in FSubscribers do
+  begin
+    LSubscriber.BeforeHandleRequest(Self, ARequest, AResponse, Result);
+    if not Result then
+      Break;
+  end;
+end;
+
+{ TKStaticWebRoute }
 
 constructor TKStaticWebRoute.Create(const APattern, APath: string);
 begin
-  inherited Create(APattern);
+  inherited Create;
+  FPattern := APattern;
   FPath := APath;
 end;
 
-function TKStaticWebRoute.HandleRequest(const ARequest: TWebRequest;
-  const AResponse: TWebResponse; const AURL: TKURL): Boolean;
+function TKStaticWebRoute.HandleRequest(const ARequest: TKWebRequest;
+  const AResponse: TKWebResponse; const AURL: TKURL): Boolean;
 var
   LFileName: string;
   LPath: string;

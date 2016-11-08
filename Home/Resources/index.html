@@ -26,17 +26,10 @@
     <%CustomJS%>
     Ext.onReady(
       function() {
-        Ext.BLANK_IMAGE_URL = "<%ExtPath%>/resources/images/default/s.gif";
-        TextMetrics = new Ext.util.TextMetrics("body");
-        Download = Ext.DomHelper.append(document.body, {tag: "iframe", cls: "x-hidden"});
-
-        //kittoLoadMask = new Ext.LoadMask({msg: "Kitto is starting...", target: Ext.getBody()});
-        Ext.Ajax.on("beforerequest", function() { showKittoLoadMask(1); });
-        Ext.Ajax.on("requestcomplete", function() { showKittoLoadMask(-1); });
-        Ext.Ajax.on("requestexception", function() { showKittoLoadMask(0); });
-
+        <!--Ext.BLANK_IMAGE_URL = "<%ExtPath%>/resources/images/default/s.gif";-->
         <%Response%>
-        Ext.get("loading").remove();
+        <!-- TODO: Move after the home Ajax call returns-->
+		Ext.get("loading").remove();
       }
     );
   </script>

@@ -21,11 +21,24 @@ unit Kitto.Ext.GridPanel;
 interface
 
 uses
-  Generics.Collections,
-  Ext.Base, Ext.Data, Ext.Form, Ext.Grid,
-  EF.ObserverIntf, EF.Types, EF.Tree,
-  Kitto.Ext, Kitto.Metadata.Views, Kitto.Metadata.DataView, Kitto.Store, Kitto.Types,
-  Kitto.Ext.Base, Kitto.Ext.Controller, Kitto.Ext.DataPanelLeaf, Kitto.Ext.Editors;
+  Generics.Collections
+  , Ext.Base
+  , Ext.Data
+  , Ext.Form
+  , Ext.Grid
+  , EF.ObserverIntf
+  , EF.Types
+  , EF.Tree
+  , Kitto.JS.Types
+  , Kitto.Metadata.Views
+  , Kitto.Metadata.DataView
+  , Kitto.Store
+  , Kitto.Types
+  , Kitto.Ext.Base
+  , Kitto.Ext.Controller
+  , Kitto.Ext.DataPanelLeaf
+  , Kitto.Ext.Editors
+  ;
 
 const
   DEFAULT_PAGE_RECORD_COUNT = 100;
@@ -59,10 +72,10 @@ type
     function CreateClientStore: TExtDataStore; override;
     procedure AfterCreateTopToolbar; override;
     procedure AddTopToolbarToolViewButtons; override;
-    function GetSelectConfirmCall(const AMessage: string; const AMethod: TExtProcedure): string; override;
+    function GetSelectConfirmCall(const AMessage: string; const AMethod: TJSProcedure): string; override;
     function AddActionButton(const AUniqueId: string; const AView: TKView;
       const AToolbar: TKExtToolbar): TKExtActionButton; override;
-    function GetSelectCall(const AMethod: TExtProcedure): TExtExpression; override;
+    function GetSelectCall(const AMethod: TJSProcedure): TExtExpression; override;
     function IsMultiSelect: Boolean; override;
     function GetDefaultRemoteSort: Boolean; override;
     function GetIsPaged: Boolean; override;
@@ -102,6 +115,7 @@ uses
   , Kitto.JS
   , Kitto.JS.Formatting
   , Kitto.Web
+  , Kitto.Web.Response
   , Kitto.Ext.Utils
   ;
 
@@ -709,7 +723,7 @@ begin
     FCancelButton.Text := _('Cancel');
     FCancelButton.Tooltip := _('Close the window without selecting a record');
     //FCancelButton.On('click', Ajax(CancelLookup));
-    FCancelButton.On('click', AjaxCallMethod.SetMethod(CancelLookup).AsFunction);
+    FCancelButton.On('click', TKWebResponse.Current.Items.AjaxCallMethod(Self).SetMethod(CancelLookup).AsFunction);
   end
   else if FInplaceEditing then
   begin
@@ -719,7 +733,7 @@ begin
     FConfirmButton.Tooltip := Config.GetString('ConfirmButton/Tooltip', _('Save changes and finish editing'));
     FConfirmButton.Hidden := True;
     //FConfirmButton.On('click', Ajax(ConfirmInplaceChanges));
-    FConfirmButton.On('click', AjaxCallMethod.SetMethod(ConfirmInplaceChanges).AsFunction);
+    FConfirmButton.On('click', TKWebResponse.Current.Items.AjaxCallMethod(Self).SetMethod(ConfirmInplaceChanges).AsFunction);
 
     FCancelButton := TKExtButton.CreateAndAddToArray(Buttons);
     FCancelButton.SetIconAndScale('cancel', Config.GetString('ButtonScale', 'medium'));
@@ -727,15 +741,15 @@ begin
     FCancelButton.Tooltip := _('Cancel changes');
     FCancelButton.Hidden := True;
     //FCancelButton.On('click', Ajax(CancelInplaceChanges));
-    FCancelButton.On('click', AjaxCallMethod.SetMethod(CancelInplaceChanges).AsFunction);
+    FCancelButton.On('click', TKWebResponse.Current.Items.AjaxCallMethod(Self).SetMethod(CancelInplaceChanges).AsFunction);
     FGridPanel.On('beforeedit',
       GenerateAnonymousFunction('editor, context', GetJSCode(
         procedure
         begin
-          Session.ResponseItems.ExecuteJSCode(
+          TKWebResponse.Current.Items.ExecuteJSCode(
             'var json = new Object;' + sLineBreak +
             'json.data = context.record.data;');
-          AjaxCallMethod().SetMethod(BeforeEdit)
+          TKWebResponse.Current.Items.AjaxCallMethod(Self).SetMethod(BeforeEdit)
             .Post('json')
             .AsExpression;
         end)));
@@ -743,7 +757,7 @@ begin
       GenerateAnonymousFunction('editor, context', GetJSCode(
         procedure
         begin
-          Session.ResponseItems.ExecuteJSCode(
+          TKWebResponse.Current.Items.ExecuteJSCode(
             'var json = new Object;' + sLineBreak +
             'json.new = context.record.data;' + sLineBreak + // needed for the PK (see GetRecord).
             'json.fieldName = context.field;');
@@ -752,7 +766,7 @@ begin
             begin
               AEditor.StoreValue('json.new');
             end);
-          AjaxCallMethod().SetMethod(UpdateField)
+          TKWebResponse.Current.Items.AjaxCallMethod(Self).SetMethod(UpdateField)
             .Post('json')
             .AsExpression;
         end)));
@@ -1002,20 +1016,20 @@ begin
       AddUsedViewField(ViewTable.Fields[I]);
 end;
 
-function TKExtGridPanel.GetSelectConfirmCall(const AMessage: string; const AMethod: TExtProcedure): string;
+function TKExtGridPanel.GetSelectConfirmCall(const AMessage: string; const AMethod: TJSProcedure): string;
 begin
   { TODO :
     Add CaptionField to ViewTable for cases when the model's CaptionField
     is not part of the ViewTable or is aliased. }
   Result := Format('selectConfirmCall("%s", "%s", %s, "%s", {methodURL: "%s", selModel: %s, fieldNames: "%s"});',
     [_(TKWebApplication.Current.Config.AppTitle), AMessage, FSelectionModel.JSName, ViewTable.Model.CaptionField.FieldName,
-    MethodURI(AMethod), FSelectionModel.JSName, Join(ViewTable.GetKeyFieldAliasedNames, ',')]);
+    GetMethodURL(AMethod), FSelectionModel.JSName, Join(ViewTable.GetKeyFieldAliasedNames, ',')]);
 end;
 
-function TKExtGridPanel.GetSelectCall(const AMethod: TExtProcedure): TExtExpression;
+function TKExtGridPanel.GetSelectCall(const AMethod: TJSProcedure): TExtExpression;
 begin
   Result := GenerateAnonymousFunction(Format('ajaxSelection("yes", "", {params: {methodURL: "%s", selModel: %s, fieldNames: "%s"}});',
-    [MethodURI(AMethod), FSelectionModel.JSName, Join(ViewTable.GetKeyFieldAliasedNames, ',')]));
+    [GetMethodURL(AMethod), FSelectionModel.JSName, Join(ViewTable.GetKeyFieldAliasedNames, ',')]));
 end;
 
 initialization

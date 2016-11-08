@@ -21,13 +21,25 @@ unit Kitto.Ext.Form;
 interface
 
 uses
-  Generics.Collections, SysUtils,
-  Ext.Base, Ext.Data, Ext.Form,
-  superobject,
-  EF.ObserverIntf, EF.Tree,
-  Kitto.JS, Kitto.Ext, Kitto.Metadata.Views, Kitto.Metadata.DataView, Kitto.Store,
-  Kitto.Ext.Controller, Kitto.Ext.Base, Kitto.Ext.DataPanel, Kitto.Ext.Editors,
-  Kitto.Ext.GridPanel;
+  Generics.Collections
+  , SysUtils
+  , Ext.Base
+  , Ext.Data
+  , Ext.Form
+  , superobject
+  , EF.ObserverIntf
+  , EF.Tree
+  , Kitto.JS
+  , Kitto.JS.Types
+  , Kitto.Metadata.Views
+  , Kitto.Metadata.DataView
+  , Kitto.Store
+  , Kitto.Ext.Controller
+  , Kitto.Ext.Base
+  , Kitto.Ext.DataPanel
+  , Kitto.Ext.Editors
+  , Kitto.Ext.GridPanel
+  ;
 
 const
   FORM_LABELWIDTH = 120;
@@ -103,7 +115,7 @@ type
     procedure FieldChange(const AField: TKField; const AOldValue, ANewValue: Variant);
     procedure CreateFormPanel;
     function LayoutContainsPageBreaks: Boolean;
-    function GetConfirmJSCode(const AMethod: TExtProcedure): TJSExpression;
+    function GetConfirmJSCode(const AMethod: TJSProcedure): TJSExpression;
     procedure InitFlags;
     function FindLayout: TKLayout;
     function IsViewMode: Boolean;
@@ -156,6 +168,7 @@ uses
   , Kitto.Config
   , Kitto.Web
   , Kitto.Web.Request
+  , Kitto.Web.Response
   , Kitto.Ext.Utils
   ;
 
@@ -611,7 +624,7 @@ procedure TKExtFormPanelController.GetRecord;
 begin
   Assert(Assigned(StoreRecord));
 
-  Session.ResponseItems.AddJSON('{success:true,data:' + StoreRecord.GetAsJSON(False) + '}');
+  TKWebResponse.Current.Items.AddJSON('{success:true,data:' + StoreRecord.GetAsJSON(False) + '}');
 end;
 
 procedure TKExtFormPanelController.ConfirmChanges;
@@ -758,7 +771,7 @@ begin
   FCancelButton.Text := Config.GetString('CancelButton/Caption', _('Cancel'));
   FCancelButton.Tooltip := Config.GetString('CancelButton/Tooltip', _('Cancel changes'));
   //FCancelButton.Handler := Ajax(CancelChanges);
-  FCancelButton.Handler := AjaxCallMethod.SetMethod(CancelChanges).AsFunction;
+  FCancelButton.Handler := TKWebResponse.Current.Items.AjaxCallMethod(Self).SetMethod(CancelChanges).AsFunction;
   FCancelButton.Hidden := FIsReadOnly or IsViewMode;
 
   FCloseButton := TKExtButton.CreateAndAddToArray(Buttons);
@@ -901,7 +914,7 @@ begin
     FMainPagePanel.EditPanel := FFormPanel;
     FMainPagePanel.LabelAlign := LabelAlign;
   end;
-  //Session.ResponseItems.ExecuteJSCode(Format('%s.getForm().url = "%s";', [FFormPanel.JSName, MethodURI(ConfirmChanges)]));
+  //TKWebResponse.Current.Items.ExecuteJSCode(Format('%s.getForm().url = "%s";', [FFormPanel.JSName, GetMethodURL(ConfirmChanges)]));
 end;
 
 procedure TKExtFormPanelController.TabChange(AThis: TExtTabPanel; ATab: TExtPanel);
@@ -1064,12 +1077,12 @@ begin
     Result := 'SecondaryController/' + Result;
 end;
 
-function TKExtFormPanelController.GetConfirmJSCode(const AMethod: TExtProcedure): TJSExpression;
+function TKExtFormPanelController.GetConfirmJSCode(const AMethod: TJSProcedure): TJSExpression;
 begin
   Result := GenerateAnonymousFunction(GetJSCode(
     procedure
     begin
-      Session.ResponseItems.ExecuteJSCode(
+      TKWebResponse.Current.Items.ExecuteJSCode(
         'var json = new Object;' + sLineBreak +
         'json.new =  = new Object;');
       FEditItems.AllEditors(
@@ -1077,7 +1090,7 @@ begin
         begin
           AEditor.StoreValue('json.new');
         end);
-      AjaxCallMethod().SetMethod(AMethod)
+      TKWebResponse.Current.Items.AjaxCallMethod(Self).SetMethod(AMethod)
         .Post('json')
         .AsExpression;
     end));
@@ -1093,7 +1106,7 @@ begin
     Text := _(FViewTable.PluralDisplayLabel);
     Icon := TKWebApplication.Current.Config.GetImageURL(FViewTable.ImageName);
     //Handler := Ajax(ShowDetailWindow, []);
-    Handler := AjaxCallMethod.SetMethod(ShowDetailWindow).AsFunction;
+    Handler := TKWebResponse.Current.Items.AjaxCallMethod(Self).SetMethod(ShowDetailWindow).AsFunction;
   end;
 end;
 

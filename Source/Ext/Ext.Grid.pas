@@ -3,7 +3,12 @@ unit Ext.Grid;
 interface
 
 uses
-  Classes, StrUtils, Kitto.Ext, Ext.Util, Ext.Base, Ext.Data;
+  Classes
+  , StrUtils
+  , Kitto.JS
+  , Ext.Base
+  , Ext.Data
+  ;
 
 type
   TExtGridColumn = class;
@@ -220,10 +225,10 @@ type
   private
     FAutoExpandColumn: string;
     FColumnLines: Boolean;
-    FColumns: TExtObjectArray;
+    FColumns: TJSObjectArray;
     FDisableSelection: Boolean;
     FEnableHdMenu: Boolean;
-    FFeatures: TExtObjectArray;
+    FFeatures: TJSObjectArray;
     FSelModel: TExtObject;
     FStore: TExtDataStore;
     FStripeRows: Boolean;
@@ -247,10 +252,10 @@ type
     class function JSClassName: string; override;
     property AutoExpandColumn: string read FAutoExpandColumn write SetAutoExpandColumn;
     property ColumnLines: Boolean read FColumnLines write SetColumnLines;
-    property Columns: TExtObjectArray read FColumns;
+    property Columns: TJSObjectArray read FColumns;
     property DisableSelection: Boolean read FDisableSelection write SetDisableSelection;
     property EnableHdMenu: Boolean read FEnableHdMenu write SetEnableHdMenu;
-    property Features: TExtObjectArray read FFeatures;
+    property Features: TJSObjectArray read FFeatures;
     property SelModel: TExtObject read FSelModel write SetSelModel;
     property Store: TExtDataStore read FStore write SetStore;
     property StripeRows: Boolean read FStripeRows write SetStripeRows;
@@ -311,6 +316,7 @@ uses
   , EF.Types
   , EF.Localization
   , Kitto.JS.Formatting
+  , Kitto.Web.Response
   ;
 
 function OptionAsGridColumnAlign(const AAlign: string): TExtGridColumnAlign;
@@ -547,7 +553,7 @@ end;
 
 function TExtSelectionRowModel.Each(const AFunction: TExtExpression; const AScope: TExtObject): TExtExpression;
 begin
-  Result := CallMethod('each')
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'each')
     .AddParam(AFunction)
     .AddParam(AScope)
     .AsExpression;
@@ -555,17 +561,17 @@ end;
 
 function TExtSelectionRowModel.GetCount: TExtExpression;
 begin
-  Result := CallMethod('getCount').AsExpression;
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'getCount').AsExpression;
 end;
 
 function TExtSelectionRowModel.GetSelected: TExtExpression;
 begin
-  Result := CallMethod('getSelected').AsExpression;
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'getSelected').AsExpression;
 end;
 
 function TExtSelectionRowModel.GetSelections: TExtExpression;
 begin
-  Result := CallMethod('getSelections').AsExpression;
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'getSelections').AsExpression;
 end;
 
 procedure TExtSelectionRowModel.InitDefaults;
@@ -576,7 +582,7 @@ end;
 
 function TExtSelectionRowModel.Select(const AIndex: Integer; const AKeepExisting: Boolean): TExtExpression;
 begin
-  Result := CallMethod('select')
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'select')
     .AddParam(AIndex)
     .AddParam(AKeepExisting)
     .AsExpression;
