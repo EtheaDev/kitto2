@@ -43,7 +43,7 @@ implementation
 uses
   SysUtils
   , EF.Tree
-  , Kitto.Web
+  , Kitto.Web.Application
   , Kitto.Ext.Controller
   ;
 

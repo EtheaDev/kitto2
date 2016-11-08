@@ -55,34 +55,34 @@ type
     procedure SortByDependency;
     function GetCount: Integer;
     function GetItem(I: Integer): TJSResponseItem;
-    procedure DoSetProperty(const AObject: TJSObject; const ASetValueProc: TProc<TJSSetProperty>);
+    procedure DoSetProperty(const AObject: TJSBase; const ASetValueProc: TProc<TJSSetProperty>);
   public
     procedure AfterConstruction; override;
     destructor Destroy; override;
   public
     // Create an object.
-    procedure CreateObject(const AObject: TJSObject);
+    procedure CreateObject(const AObject: TJSBase);
 
     // Use this method to have object creation statements in the correct order when emitting the response.
-    procedure AddObjectDependency(const ADependentObject, ADependedUponObject: TJSObject);
+    procedure AddObjectDependency(const ADependentObject, ADependedUponObject: TJSBase);
 
-    function CallMethod(const AObject: TJSObject; const AMethodName: string): TJSMethodCall;
+    function CallMethod(const AObject: TJSBase; const AMethodName: string): TJSMethodCall;
 
-    function AjaxCallMethod(const AObject: TJSObject; const AMethodName: string = ''): TJSAjaxCall;
+    function AjaxCallMethod(const AObject: TJSBase; const AMethodName: string = ''): TJSAjaxCall;
 
-    function GetProperty(const AObject: TJSObject; const APropertyName: string): TJSGetProperty;
+    function GetProperty(const AObject: TJSBase; const APropertyName: string): TJSGetProperty;
 
 { TODO : replace with single fluent call }
-    procedure SetProperty(const AObject: TJSObject; const AName, AValue: string); overload;
-    procedure SetProperty(const AObject: TJSObject; const AName: string; const AValue: TJSObject); overload;
-    procedure SetProperty(const AObject: TJSObject; const AName: string; const AValue: Boolean); overload;
-    procedure SetProperty(const AObject: TJSObject; const AName: string; const AValue: Integer); overload;
-    procedure SetProperty(const AObject: TJSObject; const AName: string; const AValue: TDateTime); overload;
-    procedure SetProperty(const AObject: TJSObject; const AName: string; const AValue: TJSExpression); overload;
+    procedure SetProperty(const AObject: TJSBase; const AName, AValue: string); overload;
+    procedure SetProperty(const AObject: TJSBase; const AName: string; const AValue: TJSBase); overload;
+    procedure SetProperty(const AObject: TJSBase; const AName: string; const AValue: Boolean); overload;
+    procedure SetProperty(const AObject: TJSBase; const AName: string; const AValue: Integer); overload;
+    procedure SetProperty(const AObject: TJSBase; const AName: string; const AValue: TDateTime); overload;
+    procedure SetProperty(const AObject: TJSBase; const AName: string; const AValue: TJSExpression); overload;
 
 { TODO : replace with single fluent call }
     function ExecuteJSCode(const AJSCode: string): TJSCode; overload;
-    function ExecuteJSCode(const AObject: TJSObject; const AJSCode: string): TJSCode; overload;
+    function ExecuteJSCode(const AObject: TJSBase; const AJSCode: string): TJSCode; overload;
 
     procedure AddJSON(const AJSON: string);
 
@@ -91,7 +91,7 @@ type
     function AsFormattedString: string;
     function Consume: string;
 
-    function FindObjectCreateItem(const AObject: TJSObject): TJSCreateObject;
+    function FindObjectCreateItem(const AObject: TJSBase): TJSCreateObject;
 
     procedure ForEach(const AProc: TProc<TJSResponseItem>);
 
@@ -106,7 +106,7 @@ type
 
   TJSResponseItem = class(TJSBase)
   private
-    FSender: TJSObject;
+    FSender: TJSBase;
     FDependencies: TList<TJSCreateObject>;
     FEmitted: Boolean;
     FCreationDateTime: TDateTime;
@@ -117,13 +117,13 @@ type
     function GetFormattedCode: string;
   strict protected
     FRoot: TJSResponseItems;
-    procedure ChangeSender(const ASender: TJSObject);
+    procedure ChangeSender(const ASender: TJSBase);
     procedure InternalFormatTo(const AFormatter: TJSFormatter); virtual;
   public
-    constructor Create(const ASender: TJSObject; const ARoot: TJSResponseItems); reintroduce; virtual;
+    constructor Create(const ASender: TJSBase; const ARoot: TJSResponseItems); reintroduce; virtual;
     procedure AfterConstruction; override;
     destructor Destroy; override;
-    property Sender: TJSObject read FSender;
+    property Sender: TJSBase read FSender;
     procedure AddDependency(const AItem: TJSCreateObject);
     procedure RemoveDependency(const AItem: TJSCreateObject);
     function GetDependencies: TArray<TJSCreateObject>;
@@ -166,9 +166,9 @@ type
 
     function IsCode: Boolean; override;
 
-    procedure CreateInternalObject(const AAttributeName: string; const ASender: TJSObject);
+    procedure CreateInternalObject(const AAttributeName: string; const ASender: TJSBase);
 
-    function FindObjectCreateItem(const ASender: TJSObject): TJSCreateObject;
+    function FindObjectCreateItem(const ASender: TJSBase): TJSCreateObject;
   end;
 
   // Base class for response items that can generate a TJSExpression.
@@ -208,7 +208,7 @@ type
     function AddParam(const AValue: string): TJSMethodCall; overload;
     function AddParam(const AValue: Boolean): TJSMethodCall; overload;
     function AddParam(const AValue: Integer): TJSMethodCall; overload;
-    function AddParam(const AValue: TJSObject): TJSMethodCall; overload;
+    function AddParam(const AValue: TJSBase): TJSMethodCall; overload;
     function AddParam(const AValue: TDateTime): TJSMethodCall; overload;
     function AddParam(const AValue: TJSExpression): TJSMethodCall; overload;
 
@@ -237,7 +237,7 @@ type
     function AddParam(const AName, AValue: string): TJSAjaxCall; overload;
     function AddParam(const AName: string; const AValue: Boolean): TJSAjaxCall; overload;
     function AddParam(const AName: string; const AValue: Integer): TJSAjaxCall; overload;
-    function AddParam(const AName: string; const AValue: TJSObject): TJSAjaxCall; overload;
+    function AddParam(const AName: string; const AValue: TJSBase): TJSAjaxCall; overload;
     function AddParam(const AName: string; const AValue: TDateTime): TJSAjaxCall; overload;
     function AddParam(const AName: string; const AValue: TJSExpression): TJSAjaxCall; overload;
   end;
@@ -292,6 +292,10 @@ type
   end;
 
 implementation
+
+uses
+  Kitto.Web.Application
+  ;
 
 { TKWebResponse }
 
@@ -354,7 +358,7 @@ end;
 
 procedure TKWebResponse.UnbranchResponseItems(const AResponseItems: TJSResponseItems; const AConsolidate: Boolean);
 var
-  LSender: TJSObject;
+  LSender: TJSBase;
   LBranch: TJSResponseItems;
   LInitialCount: Integer;
 begin
@@ -408,12 +412,12 @@ begin
   FCreationDateTime := Now;
 end;
 
-procedure TJSResponseItem.ChangeSender(const ASender: TJSObject);
+procedure TJSResponseItem.ChangeSender(const ASender: TJSBase);
 begin
   FSender := ASender;
 end;
 
-constructor TJSResponseItem.Create(const ASender: TJSObject; const ARoot: TJSResponseItems);
+constructor TJSResponseItem.Create(const ASender: TJSBase; const ARoot: TJSResponseItems);
 begin
   inherited Create(nil);
   FSender := ASender;
@@ -561,6 +565,8 @@ end;
 procedure TJSCreateObject.AfterConstruction;
 begin
   inherited;
+  Assert(Sender is TJSObject);
+
   FItems := TList<TJSNamedCreateObject>.Create;
 end;
 
@@ -574,7 +580,7 @@ begin
   inherited;
 end;
 
-function TJSCreateObject.FindObjectCreateItem(const ASender: TJSObject): TJSCreateObject;
+function TJSCreateObject.FindObjectCreateItem(const ASender: TJSBase): TJSCreateObject;
 var
   LItem: TJSNamedCreateObject;
 begin
@@ -589,7 +595,7 @@ begin
   Result := False;
 end;
 
-procedure TJSCreateObject.CreateInternalObject(const AAttributeName: string; const ASender: TJSObject);
+procedure TJSCreateObject.CreateInternalObject(const AAttributeName: string; const ASender: TJSBase);
 var
   LItem: TJSNamedCreateObject;
 begin
@@ -605,7 +611,7 @@ var
 begin
   inherited;
   LConstructionAdded := False;
-  if not Sender.IsInline and not Sender.IsInternal then
+  if not TJSObject(Sender).IsInline and not TJSObject(Sender).IsInternal then
   begin
     LJSName := Sender.JSName;
     AFormatter.AddIndentedLine(LJSName + ' = new ' + Sender.JSClassName + '(');
@@ -615,7 +621,7 @@ begin
 
   { TODO : what if it's empty? }
   AFormatter.OpenObject;
-  Sender.JSConfig.FormatTo(AFormatter);
+  TJSObject(Sender).JSConfig.FormatTo(AFormatter);
   AFormatter.CloseObject;
   if LConstructionAdded then
   begin
@@ -663,7 +669,7 @@ begin
   end;
 end;
 
-procedure TJSResponseItems.AddObjectDependency(const ADependentObject, ADependedUponObject: TJSObject);
+procedure TJSResponseItems.AddObjectDependency(const ADependentObject, ADependedUponObject: TJSBase);
 var
   LDependentObjectCreateItem: TJSCreateObject;
 begin
@@ -682,7 +688,7 @@ begin
   FEmittedItems := TList<TJSResponseItem>.Create;
 end;
 
-function TJSResponseItems.AjaxCallMethod(const AObject: TJSObject; const AMethodName: string): TJSAjaxCall;
+function TJSResponseItems.AjaxCallMethod(const AObject: TJSBase; const AMethodName: string): TJSAjaxCall;
 begin
   Result := TJSAjaxCall.Create(AObject, Self);
   try
@@ -695,7 +701,7 @@ begin
   end;
 end;
 
-procedure TJSResponseItems.CreateObject(const AObject: TJSObject);
+procedure TJSResponseItems.CreateObject(const AObject: TJSBase);
 begin
   Assert(Assigned(AObject));
 
@@ -715,7 +721,7 @@ begin
   Result := ExecuteJSCode(nil, AJSCode);
 end;
 
-function TJSResponseItems.ExecuteJSCode(const AObject: TJSObject; const AJSCode: string): TJSCode;
+function TJSResponseItems.ExecuteJSCode(const AObject: TJSBase; const AJSCode: string): TJSCode;
 begin
   if AJSCode <> '' then
   begin
@@ -876,7 +882,7 @@ begin
   Clear;
 end;
 
-function TJSResponseItems.CallMethod(const AObject: TJSObject; const AMethodName: string): TJSMethodCall;
+function TJSResponseItems.CallMethod(const AObject: TJSBase; const AMethodName: string): TJSMethodCall;
 begin
   Result := TJSMethodCall.Create(AObject, Self);
   try
@@ -894,7 +900,7 @@ begin
   FList.Clear;
 end;
 
-function TJSResponseItems.FindObjectCreateItem(const AObject: TJSObject): TJSCreateObject;
+function TJSResponseItems.FindObjectCreateItem(const AObject: TJSBase): TJSCreateObject;
 var
   LResponseItem: TJSResponseItem;
 begin
@@ -946,7 +952,7 @@ begin
   Result := FList[I];
 end;
 
-function TJSResponseItems.GetProperty(const AObject: TJSObject; const APropertyName: string): TJSGetProperty;
+function TJSResponseItems.GetProperty(const AObject: TJSBase; const APropertyName: string): TJSGetProperty;
 begin
   Result := TJSGetProperty.Create(AObject, Self);
   try
@@ -958,8 +964,7 @@ begin
   end;
 end;
 
-procedure TJSResponseItems.SetProperty(const AObject: TJSObject;
-  const AName: string; const AValue: TJSObject);
+procedure TJSResponseItems.SetProperty(const AObject: TJSBase; const AName: string; const AValue: TJSBase);
 begin
   DoSetProperty(AObject,
     procedure (AItem: TJSSetProperty)
@@ -969,7 +974,7 @@ begin
     end);
 end;
 
-procedure TJSResponseItems.DoSetProperty(const AObject: TJSObject; const ASetValueProc: TProc<TJSSetProperty>);
+procedure TJSResponseItems.DoSetProperty(const AObject: TJSBase; const ASetValueProc: TProc<TJSSetProperty>);
 var
   LItem: TJSSetProperty;
 begin
@@ -989,7 +994,7 @@ begin
   end;
 end;
 
-procedure TJSResponseItems.SetProperty(const AObject: TJSObject; const AName, AValue: string);
+procedure TJSResponseItems.SetProperty(const AObject: TJSBase; const AName, AValue: string);
 begin
   DoSetProperty(AObject,
     procedure (AItem: TJSSetProperty)
@@ -998,8 +1003,7 @@ begin
     end);
 end;
 
-procedure TJSResponseItems.SetProperty(const AObject: TJSObject;
-  const AName: string; const AValue: TJSExpression);
+procedure TJSResponseItems.SetProperty(const AObject: TJSBase; const AName: string; const AValue: TJSExpression);
 begin
   DoSetProperty(AObject,
     procedure (AItem: TJSSetProperty)
@@ -1008,8 +1012,7 @@ begin
     end);
 end;
 
-procedure TJSResponseItems.SetProperty(const AObject: TJSObject;
-  const AName: string; const AValue: TDateTime);
+procedure TJSResponseItems.SetProperty(const AObject: TJSBase; const AName: string; const AValue: TDateTime);
 begin
   DoSetProperty(AObject,
     procedure (AItem: TJSSetProperty)
@@ -1018,8 +1021,7 @@ begin
     end);
 end;
 
-procedure TJSResponseItems.SetProperty(const AObject: TJSObject;
-  const AName: string; const AValue: Boolean);
+procedure TJSResponseItems.SetProperty(const AObject: TJSBase; const AName: string; const AValue: Boolean);
 begin
   DoSetProperty(AObject,
     procedure (AItem: TJSSetProperty)
@@ -1028,8 +1030,7 @@ begin
     end);
 end;
 
-procedure TJSResponseItems.SetProperty(const AObject: TJSObject;
-  const AName: string; const AValue: Integer);
+procedure TJSResponseItems.SetProperty(const AObject: TJSBase; const AName: string; const AValue: Integer);
 begin
   DoSetProperty(AObject,
     procedure (AItem: TJSSetProperty)
@@ -1067,7 +1068,7 @@ begin
   Result := Self;
 end;
 
-function TJSMethodCall.AddParam(const AValue: TJSObject): TJSMethodCall;
+function TJSMethodCall.AddParam(const AValue: TJSBase): TJSMethodCall;
 begin
   if Assigned(AValue) then
     FParams.Values.SetObject(FParams.Values.ChildCount.ToString, AValue)
@@ -1115,7 +1116,7 @@ begin
   end;
 end;
 
-{ TExtSetProperty }
+{ TJSSetProperty }
 
 procedure TJSSetProperty.AfterConstruction;
 begin
@@ -1208,7 +1209,7 @@ begin
 
     AFormatter.SkipLine.Indent;
     AFormatter.AddIndented('Ext.Ajax.request(').SkipLine.Indent.AddIndent.OpenObject;
-    AFormatter.AddIndentedPairLine('url', Sender.GetMethodURL(CallName));
+    AFormatter.AddIndentedPairLine('url', Sender.AppendObjectURLParam(TKWebApplication.Current.GetMethodURL(CallName)));
     if FHttpMethod <> 'GET' then
       AFormatter.AddIndentedPairLine('method', FHttpMethod);
     if (FHttpMethod = 'POST') and (FPostData <> '') then
@@ -1240,15 +1241,14 @@ end;
 
 function TJSAjaxCall.SetMethod(const AMethod: TJSProcedure): TJSAjaxCall;
 var
-  LObject: TObject;
+  LObject: TJSBase;
 begin
   Assert(Assigned(Sender));
 
-  LObject := TObject(TMethod(AMethod).Data);
-  if (LObject is TJSObject) and (LObject <> Sender) then
-    ChangeSender(TJSObject(LObject));
-  CallName := LObject.MethodName(@AMethod);
-  Assert(CallName <> '');
+  LObject := TJSBase(TMethod(AMethod).Data);
+  if (LObject <> Sender) then
+    ChangeSender(TJSBase(LObject));
+  CallName := LObject.GetMethodName(AMethod);
   Result := Self;
 end;
 
@@ -1302,7 +1302,7 @@ begin
   Result := Self;
 end;
 
-function TJSAjaxCall.AddParam(const AName: string; const AValue: TJSObject): TJSAjaxCall;
+function TJSAjaxCall.AddParam(const AName: string; const AValue: TJSBase): TJSAjaxCall;
 begin
   FParams.Values.SetObject(AName, AValue);
   Result := Self;

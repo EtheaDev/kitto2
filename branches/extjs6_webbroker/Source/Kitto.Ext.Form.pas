@@ -166,7 +166,7 @@ uses
   , Kitto.Rules
   , Kitto.SQL
   , Kitto.Config
-  , Kitto.Web
+  , Kitto.Web.Application
   , Kitto.Web.Request
   , Kitto.Web.Response
   , Kitto.Ext.Utils

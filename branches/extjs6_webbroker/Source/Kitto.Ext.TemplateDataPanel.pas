@@ -57,10 +57,10 @@ uses
   , EF.Macros
   , EF.StrUtils
   , Kitto.Types
-  , Kitto.Web
-  , Kitto.Ext.Utils
   , Kitto.Metadata.Models
   , Kitto.Metadata.Views
+  , Kitto.Web.Application
+  , Kitto.Ext.Utils
   , Kitto.Ext.Controller
   , Kitto.Ext.XSLTools
   ;

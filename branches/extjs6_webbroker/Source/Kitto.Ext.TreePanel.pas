@@ -73,7 +73,7 @@ uses
   , Kitto.Config
   , Kitto.Utils
   , Kitto.AccessControl
-  , Kitto.Web
+  , Kitto.Web.Application
   , Kitto.Web.Response
   , Kitto.JS
   ;

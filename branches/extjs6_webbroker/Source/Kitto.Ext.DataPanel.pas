@@ -186,7 +186,7 @@ uses
   , Kitto.Config
   , Kitto.Rules
   , Kitto.SQL
-  , Kitto.Web
+  , Kitto.Web.Application
   , Kitto.Web.Request
   , Kitto.Web.Response
   , Kitto.Ext.Utils
@@ -529,7 +529,7 @@ begin
   if LRequireSelection then
     LConfirmationJS := GetSelectConfirmCall(LConfirmationMessage, TKExtDataActionButton(Result).ExecuteButtonAction)
   else
-    LConfirmationJS := GetConfirmCall(LConfirmationMessage, Result.ExecuteButtonAction);
+    LConfirmationJS := Result.GetConfirmCall(LConfirmationMessage);
 
   if LConfirmationMessage <> '' then
     Result.Handler := GenerateAnonymousFunction(LConfirmationJS)

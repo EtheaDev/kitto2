@@ -268,7 +268,7 @@ uses
   , Ext.Ux.Form
   , Kitto.Metadata.DataView
   , Kitto.JS
-  , Kitto.Web
+  , Kitto.Web.Application
   , Kitto.Web.Request
   , Kitto.Web.Response
   , Kitto.Ext.Controller

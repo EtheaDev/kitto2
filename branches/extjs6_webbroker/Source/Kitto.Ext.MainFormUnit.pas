@@ -25,7 +25,7 @@ uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics,
   Controls, Forms, Dialogs, ComCtrls, ToolWin,
   ActnList, Kitto.Config, StdCtrls, Buttons, ExtCtrls, ImgList, EF.Logger,
-  Actions, Vcl.Tabs, Vcl.Grids, System.ImageList, Kitto.Web;
+  Actions, Vcl.Tabs, Vcl.Grids, System.ImageList, Kitto.Web, Kitto.Web.Application;
 
 type
   TKExtLogEvent = procedure (const AString: string) of object;
@@ -80,13 +80,11 @@ type
     procedure HomeURLLabelClick(Sender: TObject);
     procedure MainTabSetChange(Sender: TObject; NewTab: Integer; var AllowChange: Boolean);
     procedure RefreshButtonClick(Sender: TObject);
-    procedure SessionListViewEdited(Sender: TObject; Item: TListItem;
-      var S: string);
-    procedure SessionListViewInfoTip(Sender: TObject; Item: TListItem;
-      var InfoTip: string);
+    procedure SessionListViewEdited(Sender: TObject; Item: TListItem; var S: string);
+    procedure SessionListViewInfoTip(Sender: TObject; Item: TListItem; var InfoTip: string);
   private
     FServer: TKWebServer;
-
+    FApplication: TKWebApplication;
     FRestart: Boolean;
     FLogEndPoint: TKExtMainFormLogEndpoint;
     procedure ShowTabGUI(const AIndex: Integer);
@@ -174,6 +172,8 @@ begin
   if IsStarted then
   begin
     DoLog(_('Stopping listener...'));
+    FServer.Active := False;
+    DoLog(_('Listener stopped'));
     HomeURLLabel.Visible := False;
     while IsStarted do
       Forms.Application.ProcessMessages;
@@ -330,7 +330,7 @@ end;
 procedure TKExtMainForm.FormCreate(Sender: TObject);
 begin
   FServer := TKWebServer.Create(nil);
-  FServer.AddRoute(TKWebApplication.Create('app'));
+  FApplication := FServer.AddRoute(TKWebApplication.Create('/app')) as TKWebApplication;
   FServer.AddRoute(TKStaticWebRoute.Create('/ext/*', 'C:\Apache\htdocs\ext6'));
   FServer.AddRoute(TKStaticWebRoute.Create('/HelloKitto6/*', 'C:\Users\nandod\Work\Kitto\Examples\HelloKitto\Home\Resources'));
   FServer.AddRoute(TKStaticWebRoute.Create('/HelloKitto6-Kitto/*', 'C:\Users\nandod\Work\Kitto\Home\Resources'));
@@ -411,12 +411,15 @@ procedure TKExtMainForm.StartActionExecute(Sender: TObject);
 var
   LConfig: TKConfig;
 begin
+  Assert(Assigned(FServer));
+  Assert(Assigned(FApplication));
+
   FServer.Active := True;
   SessionCountLabel.Visible := True;
   DoLog(_('Listener started'));
   LConfig := TKConfig.Create;
   try
-    DisplayHomeURL(LConfig.GetHomeURL);
+    DisplayHomeURL(FApplication.GetHomeURL(FServer.DefaultPort));
   finally
     FreeAndNil(LConfig);
   end;

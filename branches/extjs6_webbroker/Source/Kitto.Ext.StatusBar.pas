@@ -46,8 +46,8 @@ implementation
 
 uses
   EF.Tree
-  , Kitto.Web
   , Kitto.JS
+  , Kitto.Web.Application
   , Kitto.Ext.Controller
   ;
 

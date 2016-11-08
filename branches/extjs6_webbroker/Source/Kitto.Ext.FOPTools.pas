@@ -59,7 +59,7 @@ uses
   , EF.FOP
   , Kitto.Metadata.Models
   , Kitto.Config
-  , Kitto.Web
+  , Kitto.Web.Application
   ;
 
 { TFOPToolController }

@@ -63,7 +63,7 @@ uses
   , Kitto.Config
   , Kitto.JS
   , Kitto.JS.Formatting
-  , Kitto.Web
+  , Kitto.Web.Application
   , Kitto.Web.Response
   , Kitto.Ext.Controller
   ;

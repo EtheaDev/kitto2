@@ -24,7 +24,6 @@ uses
   Ext.Base
   , EF.Tree
   , Kitto.Metadata.Views
-  , Kitto.Web
   , Kitto.Ext.Base
   , Kitto.Ext.Controller
   ;
@@ -84,6 +83,7 @@ uses
   , Kitto.AccessControl
   , Kitto.Types
   , Kitto.JS
+  , Kitto.Web.Application
   ;
 
 { TKExtTabPanelController }
