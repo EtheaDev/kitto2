@@ -95,7 +95,7 @@ uses
   , EF.SysUtils
   , EF.Localization
   , Kitto.Config
-  , Kitto.Web
+  , Kitto.Web.Application
   , Kitto.Web.Request
   ;
 

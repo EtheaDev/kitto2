@@ -44,6 +44,12 @@ const
   DEFAULT_WINDOW_TOOL_HEIGHT = 400;
 
 type
+  IKExtViewHost = interface(IEFInterface)
+    ['{F073B258-1D46-4553-9FF4-3697DFE5197D}']
+    procedure SetActiveView(const AIndex: Integer);
+    function AsExtContainer: TExtContainer;
+  end;
+
   TKExtContainerHelper = class helper for TExtContainer
   public
     procedure Apply(const AProc: TProc<TExtObject>);
@@ -203,7 +209,7 @@ type
     property View: TKView read FView write SetView;
     property ActionObserver: IEFObserver read FActionObserver write FActionObserver;
     property OnInitController: TProc<IKExtController> read FOnInitController write FOnInitController;
-  published
+    function GetConfirmCall(const AMessage: string): string;
     procedure ExecuteButtonAction; virtual;
   end;
 
@@ -219,7 +225,6 @@ type
   strict protected
     procedure PerformDelayedClick(const AButton: TExtButton);
     procedure ExecuteNamedAction(const AActionName: string); virtual;
-    function GetConfirmCall(const AMessage: string; const AMethod: TJSProcedure): string;
     function GetDefaultSplit: Boolean; virtual;
     function GetView: TKView;
     procedure SetView(const AValue: TKView);
@@ -367,7 +372,7 @@ uses
   , EF.Localization
   , EF.Macros
   , Kitto.AccessControl
-  , Kitto.Web
+  , Kitto.Web.Application
   , Kitto.Web.Response
   , Kitto.Ext.Utils
   ;
@@ -855,7 +860,7 @@ begin
   LConfirmationMessage := AView.GetExpandedString('Controller/ConfirmationMessage');
   // Cleanup Linebreaks with <br> tag
   LConfirmationMessage := StringReplace(LConfirmationMessage, sLineBreak, '<br>',[rfReplaceAll]);
-  LConfirmationJS := GetConfirmCall(LConfirmationMessage, Result.ExecuteButtonAction);
+  LConfirmationJS := Result.GetConfirmCall(LConfirmationMessage);
   if LConfirmationMessage <> '' then
     Result.On('click', GenerateAnonymousFunction(LConfirmationJS))
   else
@@ -884,12 +889,6 @@ begin
         AddActionButton(LNode.Name, LView, AToolbar);
     end;
   end;
-end;
-
-function TKExtPanelControllerBase.GetConfirmCall(const AMessage: string; const AMethod: TJSProcedure): string;
-begin
-  Result := Format('confirmCall("%s", "%s", ajaxSimple, {methodURL: "%s"});',
-    [_(TKWebApplication.Current.Config.AppTitle), AMessage, GetMethodURL(AMethod)]);
 end;
 
 procedure TKExtPanelControllerBase.AfterCreateTopToolbar;
@@ -1144,6 +1143,12 @@ begin
       TKWebResponse.Current.UnbranchResponseItems(LResponseItemBranch, False); // throw away
     end;
   end;
+end;
+
+function TKExtActionButton.GetConfirmCall(const AMessage: string): string;
+begin
+  Result := Format('confirmCall("%s", "%s", ajaxSimple, {methodURL: "%s"});',
+    [_(TKWebApplication.Current.Config.AppTitle), AMessage, GetMethodURL(ExecuteButtonAction)]);
 end;
 
 procedure TKExtActionButton.InitController(const AController: IKExtController);

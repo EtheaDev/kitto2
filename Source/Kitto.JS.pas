@@ -30,9 +30,6 @@ uses
   SysUtils
   , Classes
   , Generics.Collections
-  , TypInfo
-  , Rtti
-  , HTTPApp
 
   , EF.Tree
   , EF.Intf
@@ -50,41 +47,16 @@ uses
   ;
 
 type
-  TJSUploadedFile = class
-  strict private
-    FContext: TObject;
-    FFullFileName: string;
-    FFileName: string;
-    FStream: TBytesStream;
-    FOriginalFileName: string;
-    function GetBytes: TBytes;
-  public
-    constructor Create(const AFileName, AFullFileName: string;
-      const AContext: TObject; const AOriginalFileName: string = '');
-    destructor Destroy; override;
-    property FileName: string read FFileName;
-    property FullFileName: string read FFullFileName;
-    property OriginalFileName: string read FOriginalFileName;
-    property Context: TObject read FContext;
-
-    property Bytes: TBytes read GetBytes;
-  end;
-
   TJSExpression = class;
   TJSObjectArray = class;
   TJSFunction = class;
 
   TJSObject = class(TJSBase)
   private
-    FRttiContext: TRttiContext;
     { TODO : Maybe we could replace it with an extraction from JSName }
     FAttributeName: string;
-    FJSName: string;
     FJSConfig: TJSValues;
-    function GetMethodName(const AMethod: TJSProcedure): string;
     function GetDownloadJS(const AMethod: TJSProcedure): string;
-    { TODO : Move to a different class? }
-    function AppendObjectURIParam(const AURI, AObjectName: string): string;
   protected
     procedure CreateJSName;
     function GetObjectNamePrefix: string; virtual;
@@ -104,10 +76,7 @@ type
 
     function IsInternal: Boolean;
     function IsInline: Boolean;
-    procedure AfterConstruction; override;
 
-    property JSName: string read FJSName;
-    class function JSClassName: string; virtual;
     property JSConfig: TJSValues read FJSConfig;
     // Assigned if the object was created with CreateInternal.
     property AttributeName: string read FAttributeName;
@@ -185,6 +154,23 @@ type
     function InternalExtractText: string; override;
   end;
 
+  TJSObjectArray = class(TJSObject)
+  private
+    FObjects: TObjectList<TJSObject>;
+    function GetObject(I: Integer): TJSObject;
+    function GetCount: Integer;
+  public
+    procedure AfterConstruction; override;
+    destructor Destroy; override;
+
+    property Objects[I: Integer]: TJSObject read GetObject; default;
+    function Add(const AObject: TJSObject): Integer;
+    function AddInternal(const AObject: TJSObject): Integer;
+    function Remove(const AObject: TJSObject): Integer;
+    function IndexOf(const AObject: TJSObject): Integer;
+    property Count: Integer read GetCount;
+  end;
+
   /// <summary>
   ///  This class serves two purposes: redirects localization calls to a
   ///  per-session instance of dxgettext so we can have per-session language
@@ -214,6 +200,26 @@ type
   TJSRequestInfo = class
     UserAgent: string;
     ClientAddress: string;
+  end;
+
+  TJSUploadedFile = class
+  strict private
+    FContext: TObject;
+    FFullFileName: string;
+    FFileName: string;
+    FStream: TBytesStream;
+    FOriginalFileName: string;
+    function GetBytes: TBytes;
+  public
+    constructor Create(const AFileName, AFullFileName: string;
+      const AContext: TObject; const AOriginalFileName: string = '');
+    destructor Destroy; override;
+    property FileName: string read FFileName;
+    property FullFileName: string read FFullFileName;
+    property OriginalFileName: string read FOriginalFileName;
+    property Context: TObject read FContext;
+
+    property Bytes: TBytes read GetBytes;
   end;
 
   /// <summary>
@@ -406,23 +412,6 @@ type
     property LastRequestInfo: TJSRequestInfo read FLastRequestInfo;
   end;
 
-  TJSObjectArray = class(TJSObject)
-  private
-    FObjects: TObjectList<TJSObject>;
-    function GetObject(I: Integer): TJSObject;
-    function GetCount: Integer;
-  public
-    procedure AfterConstruction; override;
-    destructor Destroy; override;
-
-    property Objects[I: Integer]: TJSObject read GetObject; default;
-    function Add(const AObject: TJSObject): Integer;
-    function AddInternal(const AObject: TJSObject): Integer;
-    function Remove(const AObject: TJSObject): Integer;
-    function IndexOf(const AObject: TJSObject): Integer;
-    property Count: Integer read GetCount;
-  end;
-
 function Session: TJSSession;
 
 implementation
@@ -438,6 +427,7 @@ uses
   , EF.SysUtils
   , EF.Logger
   , Kitto.AccessControl
+  , Kitto.Web.Application
   , Kitto.Web
   , Kitto.Web.Request
   , Kitto.Web.Response
@@ -449,11 +439,7 @@ var
 
 function Session: TJSSession;
 begin
-  if Assigned(TKWebServer.CurrentSession) then
-    Result := TKWebServer.CurrentSession.Content.Objects[
-      TKWebServer.CurrentSession.Content.IndexOf(TKWebServer.SESSION_OBJECT)] as TJSSession
-  else
-    Result := nil;
+  Result := TKWebServer.CurrentKittoSession as TJSSession;
 end;
 
 { TJSSession }
@@ -489,25 +475,7 @@ end;
 
 function TJSObject.GetMethodURL(const AMethodName: string): string;
 begin
-  Result := AppendObjectURIParam(TKWebApplication.Current.GetMethodURL(AMethodName), JSName);
-end;
-
-procedure TJSObject.AfterConstruction;
-begin
-  inherited;
-  FRttiContext := TRttiContext.Create;
-end;
-
-function TJSObject.AppendObjectURIParam(const AURI, AObjectName: string): string;
-begin
-  Result := AURI;
-  if AObjectName <> '' then
-  begin
-    if Pos('?', Result) <> 0 then
-      Result := Result + '&Object=' + AObjectName
-    else
-      Result := Result + '?Object=' + AObjectName;
-  end;
+  Result := AppendObjectURLParam(TKWebApplication.Current.GetMethodURL(AMethodName));
 end;
 
 function TJSObject.GetObjectNamePrefix: string;
@@ -876,9 +844,9 @@ end;
 procedure TJSObject.CreateJSName;
 begin
   if Assigned(Owner) and (Owner is TJSObject) and (FAttributeName <> '') then
-    FJSName := TJSObject(Owner).JSName + '.' + FAttributeName
+    JSName := TJSObject(Owner).JSName + '.' + FAttributeName
   else
-    FJSName := Session.GetNextJSName(GetObjectNamePrefix);
+    JSName := Session.GetNextJSName(GetObjectNamePrefix);
 end;
 
 function TJSObject.CharsToPixels(const AChars: Integer; const AOffset: Integer = 0): TJSExpression;
@@ -957,7 +925,6 @@ begin
   inherited Create(AOwner);
   FJSConfig := TJSValues.Create(Self);
   FAttributeName := AAttributeName;
-  FJSName := '';
   InitDefaults;
 end;
 
@@ -971,9 +938,9 @@ begin
   Assert(Assigned(AOwner));
   inherited Create(AOwner);
   if AAttributeName = '' then
-    FJSName := JSClassName
+    JSName := JSClassName
   else
-    FJSName := AAttributeName;
+    JSName := AAttributeName;
   InitDefaults;
 end;
 
@@ -983,11 +950,6 @@ begin
 
   CreateInline(AArray);
   AArray.Add(Self);
-end;
-
-class function TJSObject.JSClassName: string;
-begin
-  Result := 'Object';
 end;
 
 function TJSObject.IsInline: Boolean;
@@ -1072,9 +1034,9 @@ function TJSObject.JSArray(const AJSON: string; const ASquareBrackets: Boolean):
 begin
   Result := TJSObjectArray.CreateInline(Self);
   If ASquareBrackets then
-    Result.FJSName := '[' + AJSON + ']'
+    Result.JSName := '[' + AJSON + ']'
   else
-    Result.FJSName := AJSON;
+    Result.JSName := AJSON;
 end;
 
 function TJSObject.JSObject(const AJSON: string; const AObjectConstructor: string; const ACurlyBrackets: Boolean): TJSObject;
@@ -1082,11 +1044,11 @@ begin
   Result := TJSObject.CreateInline(Self);
   try
     if ACurlyBrackets then
-      Result.FJSName := '{' + AJSON + '}'
+      Result.JSName := '{' + AJSON + '}'
     else
-      Result.FJSName := AJSON;
+      Result.JSName := AJSON;
     if AObjectConstructor <> '' then
-      Result.FJSName := 'new ' + AObjectConstructor + '(' + Result.FJSName + ')';
+      Result.JSName := 'new ' + AObjectConstructor + '(' + Result.JSName + ')';
   except
     FreeAndNil(Result);
     raise;
@@ -1117,31 +1079,6 @@ end;
 function TJSObject.GetJSCode(const AMethod: TProc; const ASilent: Boolean): string;
 begin
   Result := TKWebResponse.Current.GetJSCode(AMethod, ASilent);
-end;
-
-function TJSObject.GetMethodName(const AMethod: TJSProcedure): string;
-var
-  LInfo: TRttiType;
-  LMethod: TMethod;
-  LRttiMethod: TRttiMethod;
-  LObject: TObject;
-begin
-  LMethod := TMethod(AMethod);
-  LObject := LMethod.Data;
-
-  if LObject <> Self then
-    raise Exception.Create('FindMethod: wrong object');
-
-  LInfo := FRttiContext.GetType(LObject.ClassType);
-  for LRttiMethod in LInfo.GetMethods do
-  begin
-    Result := LRttiMethod.Name;
-    if LRttiMethod.CodeAddress = LMethod.Code then
-      Break;
-  end;
-
-  if Result = '' then
-    raise Exception.Create('Method not found')
 end;
 
 function TJSObject.ParamAsBoolean(const AParamName: string): Boolean;

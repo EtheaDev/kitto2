@@ -52,7 +52,7 @@ uses
   TypInfo
   , EF.Intf
   , EF.StrUtils
-  , Kitto.Web
+  , Kitto.Web.Application
   , Kitto.Metadata.Views
   ;
 

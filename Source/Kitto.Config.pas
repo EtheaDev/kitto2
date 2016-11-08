@@ -225,9 +225,6 @@ type
     /// <summary>Makes sure catalogs are recreated upon next access.</summary>
     procedure InvalidateCatalogs;
 
-    /// <summary>Returns the Home URL of the Kitto application (lowercase of AppName)</summary>
-    function GetHomeURL: string;
-
     /// <summary>Gives access to a database connection by name, created on
     /// demand.</summary>
     property DBConnections[const AName: string]: TEFDBConnection read GetDBConnection;
@@ -246,12 +243,16 @@ type
     /// </summary>
     property DefaultDBConnection: TEFDBConnection read GetDefaultDBConnection;
 
-    /// <summary>Returns the application title, to be used for captions, about
-    /// boxes, etc.</summary>
+    /// <summary>
+    ///  Returns the application title, to be used for captions, about
+    ///  boxes, etc.
+    /// </summary>
     property AppTitle: string read GetAppTitle;
 
-    /// <summary>Returns the application Icon, to be used mobile apps
-    /// and Browser</summary>
+    /// <summary>
+    ///  Returns the application Icon, to be used mobile apps
+    ///  and Browser
+    /// </summary>
     property AppIcon: string read GetAppIcon;
 
     /// <summary>
@@ -456,11 +457,6 @@ end;
 function TKConfig.GetDefaultDBConnection: TEFDBConnection;
 begin
   Result := DBConnections[DatabaseName];
-end;
-
-function TKConfig.GetHomeURL: string;
-begin
-  Result := LowerCase(Format('http://localhost/kitto/%s', [Self.AppName]));
 end;
 
 function TKConfig.GetDBAdapter(const ADatabaseName: string): TEFDBAdapter;

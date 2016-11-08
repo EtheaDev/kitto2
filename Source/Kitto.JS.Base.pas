@@ -3,9 +3,11 @@ unit Kitto.JS.Base;
 interface
 
 uses
-  Generics.Collections
+  Rtti
+  , Generics.Collections
   , EF.ObserverIntf
   , EF.Tree
+  , Kitto.JS.Types
   , Kitto.JS.Formatting
   ;
 
@@ -18,20 +20,26 @@ type
     FJSName: string;
     FDestroying: Boolean;
     FDestroyingChildren: Boolean;
+    class var FRttiContext: TRttiContext;
     procedure SetOwner(const AValue: TJSBase);
   strict protected
     procedure AddChild(const AChild: TJSBase);
     procedure RemoveChild(const AChild: TJSBase);
   public
+    class constructor Create;
     constructor Create(const AOwner: TJSBase); virtual;
     destructor Destroy; override;
     procedure BeforeDestruction; override;
 
     property Owner: TJSBase read FOwner write SetOwner;
     property JSName: string read FJSName write FJSName;
+    class function JSClassName: string; virtual;
 
     function FindChildByJSName(const AJSName: string): TJSBase;
     procedure FreeAllChildren;
+
+    function GetMethodName(const AMethod: TJSProcedure): string;
+    function AppendObjectURLParam(const AURL: string): string;
   end;
   {$M-}
 
@@ -96,11 +104,17 @@ begin
   FDestroying := True;
 end;
 
+class constructor TJSBase.Create;
+begin
+  FRttiContext := TRttiContext.Create;
+end;
+
 constructor TJSBase.Create(const AOwner: TJSBase);
 begin
   inherited Create;
   FChildren := TObjectList<TJSBase>.Create;
   FOwner := AOwner;
+  FJSName := '';
   if Assigned(FOwner) then
     FOwner.AddChild(Self);
 end;
@@ -157,6 +171,48 @@ begin
     FOwner := AValue;
     if Assigned(FOwner) then
       FOwner.AddChild(Self);
+  end;
+end;
+
+function TJSBase.GetMethodName(const AMethod: TJSProcedure): string;
+var
+  LInfo: TRttiType;
+  LMethod: TMethod;
+  LRttiMethod: TRttiMethod;
+  LObject: TObject;
+begin
+  LMethod := TMethod(AMethod);
+  LObject := LMethod.Data;
+
+  if LObject <> Self then
+    raise Exception.Create('GetMethodName: wrong object');
+
+  LInfo := FRttiContext.GetType(LObject.ClassType);
+  for LRttiMethod in LInfo.GetMethods do
+  begin
+    Result := LRttiMethod.Name;
+    if LRttiMethod.CodeAddress = LMethod.Code then
+      Break;
+  end;
+
+  if Result = '' then
+    raise Exception.Create('Method not found')
+end;
+
+class function TJSBase.JSClassName: string;
+begin
+  Result := 'Object';
+end;
+
+function TJSBase.AppendObjectURLParam(const AURL: string): string;
+begin
+  Result := AURL;
+  if JSName <> '' then
+  begin
+    if Pos('?', Result) <> 0 then
+      Result := Result + '&Object=' + JSName
+    else
+      Result := Result + '?Object=' + JSName;
   end;
 end;
 

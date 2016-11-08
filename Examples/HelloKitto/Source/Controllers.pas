@@ -26,7 +26,7 @@ uses
   , Classes
   , Ext.Base
   , Kitto.JS
-  , Kitto.Web
+  , Kitto.Web.Application
   , Kitto.Web.Request
   ;
 

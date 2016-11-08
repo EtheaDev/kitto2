@@ -72,7 +72,7 @@ uses
   , EF.SQL
   , Kitto.Types
   , Kitto.Metadata.Models
-  , Kitto.Web
+  , Kitto.Web.Application
   , Kitto.Web.Response
   , Kitto.Ext.Utils
   , Kitto.Ext.Controller

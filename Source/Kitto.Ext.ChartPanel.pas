@@ -51,7 +51,7 @@ uses
   , Kitto.Metadata.Models
   , Kitto.JS
   , Kitto.JS.Formatting
-  , Kitto.Web
+  , Kitto.Web.Application
   , Kitto.Ext.Utils
   , Kitto.Ext.Controller
   ;

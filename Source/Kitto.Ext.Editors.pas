@@ -764,7 +764,7 @@ uses
   , Kitto.Rules
   , Kitto.JS
   , Kitto.JS.Formatting
-  , Kitto.Web
+  , Kitto.Web.Application
   , Kitto.Web.Request
   , Kitto.Web.Response
   , Kitto.Ext.Form

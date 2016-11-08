@@ -94,7 +94,7 @@ uses
   , Kitto.JS
   , Kitto.Config
   , Kitto.Utils
-  , Kitto.Web
+  , Kitto.Web.Application
   , Kitto.Web.Response
   , Kitto.Ext.Utils
   ;

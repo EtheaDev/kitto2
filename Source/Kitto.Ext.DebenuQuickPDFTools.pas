@@ -124,7 +124,7 @@ uses
   , EF.Macros
   , Kitto.Metadata.Models
   , Kitto.Config
-  , Kitto.Web
+  , Kitto.Web.Application
   ;
 
 { TMergePDFToolController }

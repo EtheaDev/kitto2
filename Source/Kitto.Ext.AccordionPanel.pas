@@ -43,7 +43,7 @@ uses
   , EF.Localization
   , Kitto.Types
   , Kitto.AccessControl
-  , Kitto.Web
+  , Kitto.Web.Application
   , Kitto.Ext.Controller
   ;
 

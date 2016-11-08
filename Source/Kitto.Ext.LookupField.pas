@@ -71,7 +71,7 @@ uses
   , EF.Localization
   , Kitto.Metadata
   , Kitto.Config
-  , Kitto.Web
+  , Kitto.Web.Application
   , Kitto.Web.Response
   ;
 

@@ -74,7 +74,7 @@ uses
   , Kitto.Types
   , Kitto.Config
   , Kitto.AccessControl
-  , Kitto.Web
+  , Kitto.Web.Application
   , Kitto.Ext.Filters
   ;
 

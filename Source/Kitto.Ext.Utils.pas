@@ -131,7 +131,7 @@ uses
   , EF.Classes
   , EF.Localization
   , Kitto.JS
-  , Kitto.Web
+  , Kitto.Web.Application
   , Kitto.Web.Response
   , Kitto.AccessControl
   , Kitto.Utils
