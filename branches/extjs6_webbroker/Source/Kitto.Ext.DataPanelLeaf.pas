@@ -54,6 +54,7 @@ uses
   , EF.Localization
   , Kitto.Metadata.Views
   , Kitto.AccessControl
+  , Kitto.Web.Response
   ;
 
 { TKExtDataPanelLeafController }
@@ -152,7 +153,7 @@ begin
   if Assigned(FRefreshButton) then
   begin
     //FRefreshButton.On('click', Ajax(GetParentDataPanel.LoadData));
-    FRefreshButton.On('click', AjaxCallMethod.SetMethod(GetParentDataPanel.LoadData).AsFunction);
+    FRefreshButton.On('click', TKWebResponse.Current.Items.AjaxCallMethod(Self).SetMethod(GetParentDataPanel.LoadData).AsFunction);
     if ViewTable.GetBoolean('Controller/PreventRefreshing') then
       FRefreshButton.Hidden := True;
   end;

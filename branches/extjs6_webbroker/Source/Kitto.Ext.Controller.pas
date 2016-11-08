@@ -27,9 +27,8 @@ uses
   , EF.ObserverIntf
   , EF.Tree
   , EF.Types
-  , Kitto.JS
+  , Kitto.JS.Base
   , Ext.Base
-  , Kitto.Ext
   , Kitto.Types
   , Kitto.Metadata.Views
   ;

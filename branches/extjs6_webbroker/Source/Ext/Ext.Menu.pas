@@ -3,7 +3,9 @@ unit Ext.Menu;
 interface
 
 uses
-  StrUtils, Kitto.Ext, Ext.Base;
+  StrUtils
+  , Ext.Base
+  ;
 
 type
   TExtMenuMenuMgrSingleton = class;
@@ -135,6 +137,7 @@ implementation
 
 uses
   Kitto.JS
+  , Kitto.Web.Response
   ;
 
 function ExtMenuMenuMgr: TExtMenuMenuMgrSingleton;
@@ -161,7 +164,7 @@ begin
   RemoveAllListeners('click');
   if Assigned(AValue) then
     //On('click', Ajax('click', ['This', '%0.nm', 'E', '%1.nm'], true));
-    &On('click', AjaxCallMethod('click')
+    &On('click', TKWebResponse.Current.Items.AjaxCallMethod(Self, 'click')
       .Event
       .AddRawParam('This', 'sender.nm')
       .AddRawParam('E', 'e.nm')
@@ -189,7 +192,7 @@ function TExtMenuBaseItem.SetHandler(const AHandler: TExtExpression; const AScop
 begin
   FHandler.Free;
   FHandler := AHandler;
-  Result := CallMethod('setHandler')
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'setHandler')
     .AddParam(AHandler)
     .AddParam(AScope)
     .AsExpression;
@@ -262,7 +265,7 @@ end;
 function TExtMenuCheckItem.SetChecked(const AChecked: Boolean; const ASuppressEvent: Boolean): TExtExpression;
 begin
   FChecked := AChecked;
-  Result := CallMethod('setChecked')
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'setChecked')
     .AddParam(AChecked)
     .AddParam(ASuppressEvent)
     .AsExpression;
@@ -273,7 +276,7 @@ begin
   RemoveAllListeners('click');
   if Assigned(AValue) then
     //On('click', Ajax('click', ['This', '%0.nm', 'MenuItem', '%1.nm', 'E', '%2.nm'], true));
-    &On('click', AjaxCallMethod('click')
+    &On('click', TKWebResponse.Current.Items.AjaxCallMethod(Self, 'click')
       .Event
       .AddRawParam('This', 'sender.nm')
       .AddRawParam('MenuItem', 'item.nm')
@@ -288,7 +291,7 @@ begin
   RemoveAllListeners('itemclick');
   if Assigned(AValue) then
     //On('itemclick', Ajax('itemclick', ['BaseItem', '%0.nm', 'E', '%1.nm'], true));
-    &On('itemclick', AjaxCallMethod('itemclick')
+    &On('itemclick', TKWebResponse.Current.Items.AjaxCallMethod(Self, 'itemclick')
       .Event
       .AddRawParam('BaseItem', 'item.nm')
       .AddRawParam('E', 'e.nm')

@@ -74,6 +74,7 @@ uses
   , Kitto.Utils
   , Kitto.AccessControl
   , Kitto.Web
+  , Kitto.Web.Response
   , Kitto.JS
   ;
 
@@ -145,7 +146,7 @@ begin
     end,
     { TODO : remove these parameters }
     Self, nil);
-  &On('itemclick', AjaxCallMethod.SetMethod(DisplayView)
+  &On('itemclick', TKWebResponse.Current.Items.AjaxCallMethod(Self).SetMethod(DisplayView)
     .AddRawParam('View', 'record.data.viewId')
     .FunctionArgs('view, record, item, index')
     .AsFunction);

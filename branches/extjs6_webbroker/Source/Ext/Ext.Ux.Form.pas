@@ -3,10 +3,10 @@ unit Ext.Ux.Form;
 interface
 
 uses
-  StrUtils,
-  Kitto.Ext,
-  Ext.Base,
-  Ext.Form;
+  StrUtils
+  , Ext.Base
+  , Ext.Form
+  ;
 
 type
   TExtUxFormFileUploadField = class(TExtFormTextField)

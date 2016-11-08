@@ -21,9 +21,16 @@ unit Kitto.Ext.CalendarPanel;
 interface
 
 uses
-  Ext.Base, Ext.Calendar, Ext.Data,
-  EF.Tree,
-  Kitto.JS, Kitto.Metadata.DataView, Kitto.Ext, Kitto.Ext.Base, Kitto.Ext.DataPanelLeaf;
+  Ext.Base
+  , Ext.Calendar
+  , Ext.Data
+  , EF.Tree
+  , Kitto.JS
+  , Kitto.JS.Types
+  , Kitto.Metadata.DataView
+  , Kitto.Ext.Base
+  , Kitto.Ext.DataPanelLeaf
+  ;
 
 type
   TKExtCalendarPanel = class(TKExtDataPanelLeafController)
@@ -38,8 +45,8 @@ type
     function CreateCalendarReader: TExtDataJsonReader;
     function CreateCalendarStore: TExtDataStore;
   strict protected
-    function GetSelectCall(const AMethod: TExtProcedure): TExtExpression; override;
-    function GetSelectConfirmCall(const AMessage: string; const AMethod: TExtProcedure): string; override;
+    function GetSelectCall(const AMethod: TJSProcedure): TExtExpression; override;
+    function GetSelectConfirmCall(const AMessage: string; const AMethod: TJSProcedure): string; override;
     property CalendarStore: TExtDataStore read FCalendarStore;
     procedure SetViewTable(const AValue: TKViewTable); override;
     function IsClientStoreAutoLoadEnabled: Boolean; override;
@@ -66,6 +73,7 @@ uses
   , Kitto.Types
   , Kitto.Metadata.Models
   , Kitto.Web
+  , Kitto.Web.Response
   , Kitto.Ext.Utils
   , Kitto.Ext.Controller
   ;
@@ -104,7 +112,7 @@ begin
   FCalendarPanel.ShowTime := True;
 
   FCalendarPanel.&On('dayclick',
-    AjaxCallMethod().SetMethod(NewRecord)
+    TKWebResponse.Current.Items.AjaxCallMethod(Self).SetMethod(NewRecord)
       .AddRawParam('m', 'dt.getMonth() + 1')
       .AddRawParam('y', 'dt.getFullYear()')
       .AddRawParam('m', 'dt.getDate()')
@@ -152,18 +160,18 @@ begin
   end;
 end;
 
-function TKExtCalendarPanel.GetSelectCall(const AMethod: TExtProcedure): TExtExpression;
+function TKExtCalendarPanel.GetSelectCall(const AMethod: TJSProcedure): TExtExpression;
 begin
   Result := GenerateAnonymousFunction(Format('ajaxCalendarSelection("yes", "", {params: {methodURL: "%s", calendarPanel: %s, fieldNames: "%s"}});',
-    [MethodURI(AMethod), FCalendarPanel.JSName, Join(ViewTable.GetKeyFieldAliasedNames, ',')]));
+    [GetMethodURL(AMethod), FCalendarPanel.JSName, Join(ViewTable.GetKeyFieldAliasedNames, ',')]));
 end;
 
 function TKExtCalendarPanel.GetSelectConfirmCall(const AMessage: string;
-  const AMethod: TExtProcedure): string;
+  const AMethod: TJSProcedure): string;
 begin
   Result := Format('selectCalendarConfirmCall("%s", "%s", %s, "%s", {methodURL: "%s", calendarPanel: %s, fieldNames: "%s"});',
-    [_(TKWebApplication.Current.Config.AppTitle), AMessage, FCalendarPanel.JSName, ViewTable.Model.CaptionField.FieldName, MethodURI(AMethod),
-    FCalendarPanel.JSName, Join(ViewTable.GetKeyFieldAliasedNames, ',')]);
+    [_(TKWebApplication.Current.Config.AppTitle), AMessage, FCalendarPanel.JSName, ViewTable.Model.CaptionField.FieldName,
+      GetMethodURL(AMethod), FCalendarPanel.JSName, Join(ViewTable.GetKeyFieldAliasedNames, ',')]);
 end;
 
 function TKExtCalendarPanel.GetStartDateDBName: string;
@@ -228,7 +236,7 @@ begin
     AddItem(8, 'Eighth', 'Eighth Calendar', 65280, False);
     AddItem(9, 'Ninth', 'Ninth Calendar', 255, False);
     AddItem(10, 'Tenth', 'Tenth Calendar', 65280, False);
-    Session.ResponseItems.AddJSON(Format('{Success: true, Total: %d, Root: %s}',
+    TKWebResponse.Current.Items.AddJSON(Format('{Success: true, Total: %d, Root: %s}',
       [3, {$IFDEF D21+}LJSONArray.ToJSON{$ELSE}LJSONArray.ToString{$ENDIF}]));
   finally
     FreeAndNil(LJSONArray);
@@ -308,7 +316,7 @@ begin
   Result := TExtDataStore.Create(Self);
   Result.RemoteSort := False;
   LProxy := TExtDataAjaxProxy.Create(Result);
-  LProxy.Url := MethodURI(GetCalendarRecords);
+  LProxy.Url := GetMethodURL(GetCalendarRecords);
   Result.Proxy := LProxy;
   Result.On('exception', GenerateAnonymousFunction('proxy, type, action, options, response, arg', 'loadError(type, action, response);'));
 end;

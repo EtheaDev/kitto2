@@ -86,7 +86,6 @@ type
       var InfoTip: string);
   private
     FServer: TKWebServer;
-    FEngine: TKEngine;
 
     FRestart: Boolean;
     FLogEndPoint: TKExtMainFormLogEndpoint;
@@ -330,9 +329,8 @@ end;
 
 procedure TKExtMainForm.FormCreate(Sender: TObject);
 begin
-  FEngine := TKEngine.Create;
-  FEngine.AddApplication('DefaultApp', '/default');
-  FServer := TKWebServer.Create(FEngine);
+  FServer := TKWebServer.Create(nil);
+  FServer.AddRoute(TKWebApplication.Create('app'));
   FServer.AddRoute(TKStaticWebRoute.Create('/ext/*', 'C:\Apache\htdocs\ext6'));
   FServer.AddRoute(TKStaticWebRoute.Create('/HelloKitto6/*', 'C:\Users\nandod\Work\Kitto\Examples\HelloKitto\Home\Resources'));
   FServer.AddRoute(TKStaticWebRoute.Create('/HelloKitto6-Kitto/*', 'C:\Users\nandod\Work\Kitto\Home\Resources'));
@@ -345,7 +343,6 @@ procedure TKExtMainForm.FormDestroy(Sender: TObject);
 begin
   FServer.Active := False;
   FreeAndNil(FServer);
-  FreeAndNil(FEngine);
   FreeAndNil(FLogEndPoint);
 end;
 

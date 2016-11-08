@@ -3,7 +3,10 @@ unit Ext.Ux;
 interface
 
 uses
-  StrUtils, Kitto.Ext, Ext.Base, Ext.Util, Ext.Menu;
+  StrUtils
+  , Ext.Base
+  , Ext.Menu
+  ;
 
 type
   TExtUxStatusBar = class(TExtToolbar)
@@ -51,6 +54,10 @@ type
   end;
 
 implementation
+
+uses
+  Kitto.Web.Response
+  ;
 
 procedure TExtUxStatusBar.SetAutoClear(const AValue: Integer);
 begin
@@ -121,7 +128,7 @@ end;
 
 function TExtUxStatusBar.ClearStatus(const AConfig: TExtObject = nil): TExtExpression;
 begin
-  Result := CallMethod('clearStatus')
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'clearStatus')
     .AddParam(AConfig)
     .AsExpression;
 end;
@@ -133,48 +140,48 @@ end;
 
 function TExtUxStatusBar.GetText: TExtExpression;
 begin
-  Result := CallMethod('getText')
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'getText')
     .AsExpression;
 end;
 
 function TExtUxStatusBar.SetIcon(const AIconCls: string): TExtExpression;
 begin
-  Result := CallMethod('setIcon')
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'setIcon')
     .AddParam(AIconCls)
     .AsExpression;
 end;
 
 function TExtUxStatusBar.SetStatus(const AConfig: TExtObject): TExtExpression;
 begin
-  Result := CallMethod('setStatus')
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'setStatus')
     .AddParam(AConfig)
     .AsExpression;
 end;
 
 function TExtUxStatusBar.SetStatus(const AConfig: string): TExtExpression;
 begin
-  Result := CallMethod('setStatus')
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'setStatus')
     .AddParam(AConfig)
     .AsExpression;
 end;
 
 function TExtUxStatusBar.SetText(const AText: string): TExtExpression;
 begin
-  Result := CallMethod('setText')
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'setText')
     .AddParam(AText)
     .AsExpression;
 end;
 
 function TExtUxStatusBar.ShowBusy(const AConfig: TExtObject): TExtExpression;
 begin
-  Result := CallMethod('showBusy')
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'showBusy')
     .AddParam(AConfig)
     .AsExpression;
 end;
 
 function TExtUxStatusBar.ShowBusy(const AConfig: string): TExtExpression;
 begin
-  Result := CallMethod('showBusy')
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'showBusy')
     .AddParam(AConfig)
     .AsExpression;
 end;

@@ -112,7 +112,7 @@ end;
 procedure TExportExcelToolController.AfterConstruction;
 begin
   inherited;
-  FExportExcelEngine := TKExcelExportEngine.Create(self);
+  FExportExcelEngine := TKExcelExportEngine.Create;
 end;
 
 destructor TExportExcelToolController.Destroy;
@@ -196,7 +196,7 @@ end;
 procedure TUploadExcelToolController.AfterConstruction;
 begin
   inherited;
-  FImportExcelEngine := TKExcelImportEngine.Create(self);
+  FImportExcelEngine := TKExcelImportEngine.Create;
 end;
 
 destructor TUploadExcelToolController.Destroy;
@@ -245,7 +245,7 @@ end;
 procedure TImportExcelToolController.AfterConstruction;
 begin
   inherited;
-  FImportExcelEngine := TKExcelImportEngine.Create(self);
+  FImportExcelEngine := TKExcelImportEngine.Create;
 end;
 
 destructor TImportExcelToolController.Destroy;

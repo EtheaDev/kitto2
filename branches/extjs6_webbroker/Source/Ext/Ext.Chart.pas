@@ -3,10 +3,11 @@ unit Ext.Chart;
 interface
 
 uses
-  StrUtils,
-  Kitto.Ext,
-  Ext.Base,
-  Ext.Data;
+  StrUtils
+  , Kitto.JS
+  , Ext.Base
+  , Ext.Data
+  ;
 
 type
   TExtChartStyle = class;
@@ -169,7 +170,7 @@ type
     FXAxis: TExtChartAxis;
     FYAxis: TExtChartAxis;
     FTipRenderer: TExtExpression;
-    FSeries: TExtObjectArray;
+    FSeries: TJSObjectArray;
     procedure SetChartStyle(const AValue: TExtObject);
     procedure SetUrl(const AValue: String);
     procedure SetStore(const AValue: TExtDataStore);
@@ -191,7 +192,7 @@ type
     property XAxis: TExtChartAxis read FXAxis write SetXAxis;
     property YAxis: TExtChartAxis read FYAxis write SetYAxis;
     property TipRenderer: TExtExpression read FTipRenderer write SetTipRenderer;
-    property Series: TExtObjectArray read FSeries;
+    property Series: TJSObjectArray read FSeries;
   end;
 
   TExtChartCartesianChart = class(TExtChartChart)

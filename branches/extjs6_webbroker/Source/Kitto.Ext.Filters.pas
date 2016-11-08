@@ -26,11 +26,23 @@ unit Kitto.Ext.Filters;
 interface
 
 uses
-  Types, DB,
-  Ext.Base, Ext.Form, Ext.Data,
-  EF.Types, EF.Tree, EF.ObserverIntf,
-  Kitto.JS, Kitto.DatabaseRouter, Kitto.Store, Kitto.Metadata.Views, Kitto.Metadata.DataView,
-  Kitto.Ext, Kitto.Ext.Base, Kitto.Ext.Controller, Kitto.Ext.LookupField;
+  Types
+  , DB
+  , Ext.Base
+  , Ext.Form
+  , Ext.Data
+  , EF.Types
+  , EF.Tree
+  , EF.ObserverIntf
+  , Kitto.JS
+  , Kitto.DatabaseRouter
+  , Kitto.Store
+  , Kitto.Metadata.Views
+  , Kitto.Metadata.DataView
+  , Kitto.Ext.Base
+  , Kitto.Ext.Controller
+  , Kitto.Ext.LookupField
+  ;
 
 const
   DEFAULT_FILTER_WIDTH = 20;
@@ -129,10 +141,10 @@ type
   /// </summary>
   TKExtFilterFactory = class(TEFFactory)
   private
-    FContainer: TExtObjectArray;
+    FContainer: TJSObjectArray;
     class var FInstance: TKExtFilterFactory;
     class function GetInstance: TKExtFilterFactory; static;
-    function CreateObject(const AId: string; const AContainer: TExtObjectArray): IKExtFilter;
+    function CreateObject(const AId: string; const AContainer: TJSObjectArray): IKExtFilter;
   protected
     function DoCreateObject(const AClass: TClass): TObject; override;
     class destructor Destroy;
@@ -140,7 +152,7 @@ type
     class property Instance: TKExtFilterFactory read GetInstance;
 
     function CreateFilter(const AFilterConfig: TEFNode; const AObserver: IEFObserver;
-      const AContainer: TExtObjectArray; const AViewTable: TKViewTable): IKExtFilter;
+      const AContainer: TJSObjectArray; const AViewTable: TKViewTable): IKExtFilter;
   end;
 
   /// <summary>
@@ -459,7 +471,9 @@ uses
   , Kitto.AccessControl
   , Kitto.JS.Formatting
   , Kitto.Web
-  , Kitto.Ext.Utils;
+  , Kitto.Web.Response
+  , Kitto.Ext.Utils
+  ;
 
 function GetDefaultFilter(const AItems: TEFNode): TEFNode;
 var
@@ -492,7 +506,7 @@ begin
     Result := ADefaultDatabaseName;
 end;
 
-function ExpandFilterValues(const AList: TExtObjectArray; const AString: string): string;
+function ExpandFilterValues(const AList: TJSObjectArray; const AString: string): string;
 var
   I: Integer;
   LFilter: IKExtFilter;
@@ -535,7 +549,7 @@ end;
 { TKExtFilterFactory }
 
 function TKExtFilterFactory.CreateFilter(const AFilterConfig: TEFNode;
-  const AObserver: IEFObserver; const AContainer: TExtObjectArray;
+  const AObserver: IEFObserver; const AContainer: TJSObjectArray;
   const AViewTable: TKViewTable): IKExtFilter;
 begin
   Assert(AFilterConfig <> nil);
@@ -549,7 +563,7 @@ begin
 end;
 
 function TKExtFilterFactory.CreateObject(const AId: string;
-  const AContainer: TExtObjectArray): IKExtFilter;
+  const AContainer: TJSObjectArray): IKExtFilter;
 var
   LObject: TObject;
 begin
@@ -596,7 +610,7 @@ begin
   // Force the combo to refresh its list at next drop down.
   Store.RemoveAll();
   Store.TotalLength := 0;
-  Session.ResponseItems.ExecuteJSCode(Format('%s.lastQuery = null;', [JSName]));
+  TKWebResponse.Current.Items.ExecuteJSCode(Format('%s.lastQuery = null;', [JSName]));
 end;
 
 procedure TKListFilterBase.SetConfig(const AConfig: TEFNode);
@@ -627,7 +641,7 @@ begin
   LFieldNames[0] := 'Id';
   FServerStore.Key.SetFieldNames(LFieldNames);
   LProxy := TExtDataAjaxProxy.Create(Store);
-  LProxy.Url := MethodURI(GetRecordPage);
+  LProxy.Url := GetMethodURL(GetRecordPage);
   Store.Proxy := LProxy;
   LReader := TExtDataJsonReader.Create(Self);
   LReader.RootProperty := 'Root';
@@ -735,7 +749,7 @@ begin
   inherited;
   Assert(Assigned(FServerStore));
 
-  Session.ResponseItems.AddJSON('{Total: ' + IntToStr(FServerStore.RecordCount)
+  TKWebResponse.Current.Items.AddJSON('{Total: ' + IntToStr(FServerStore.RecordCount)
     + ', Root: ' + FServerStore.GetAsJSON(False) + '}');
 end;
 
@@ -785,7 +799,7 @@ begin
 
   LDBQuery := TKWebApplication.Current.Config.DBConnections[GetDatabaseName(FConfig, Self, FViewTable.DatabaseName)].CreateDBQuery;
   try
-    LCommandText := ExpandFilterValues(Owner as TExtObjectArray, FConfig.GetExpandedString('CommandText'));
+    LCommandText := ExpandFilterValues(Owner as TJSObjectArray, FConfig.GetExpandedString('CommandText'));
     LQuery := ParamAsString('query');
     if LQuery <> '' then
       LQueryExpression := ReplaceStr(FConfig.GetExpandedString('QueryTemplate'), '{queryValue}', LQuery)
@@ -807,7 +821,7 @@ begin
   LLimit := ParamAsInteger('limit');
   LPageRecordCount := Min(LLimit, FServerStore.RecordCount - LStart);
 
-  Session.ResponseItems.AddJSON('{Total: ' + IntToStr(FServerStore.RecordCount)
+  TKWebResponse.Current.Items.AddJSON('{Total: ' + IntToStr(FServerStore.RecordCount)
     + ', Root: ' + FServerStore.GetAsJSON(False, LStart, LPageRecordCount) + '}');
 end;
 
@@ -822,10 +836,10 @@ begin
   else
   begin
     //On('change', Ajax(ValueChanged, ['Value', GetEncodedValue()]));
-    &On('change', AjaxCallMethod.SetMethod(ValueChanged)
+    &On('change', TKWebResponse.Current.Items.AjaxCallMethod(Self).SetMethod(ValueChanged)
       .AddParam('Value', GetEncodedValue).AsFunction);
     //On('select', Ajax(ValueChanged, ['Value', GetEncodedValue()]));
-    &On('select', AjaxCallMethod.SetMethod(ValueChanged)
+    &On('select', TKWebResponse.Current.Items.AjaxCallMethod(Self).SetMethod(ValueChanged)
       .AddParam('Value', GetEncodedValue).AsFunction);
     On('blur', GenerateAnonymousFunction(Format('fireChangeIfEmpty(%s);', [JSName])));
   end;
@@ -1127,7 +1141,7 @@ begin
         LButtons[I].Disabled := True
       else
         //LButtons[I].On('click', Ajax(ButtonClick, ['Index', I, 'Pressed', LButtons[I].Pressed_]));
-        LButtons[I].On('click', AjaxCallMethod.SetMethod(ButtonClick)
+        LButtons[I].On('click', TKWebResponse.Current.Items.AjaxCallMethod(Self).SetMethod(ButtonClick)
           .AddParam('Index', I)
           .AddParam('Pressed', LButtons[I].Pressed_).AsFunction);
     end
@@ -1340,7 +1354,7 @@ begin
   Text := LText;
   SetIconAndScale(AConfig.GetString('ImageName'), AConfig.GetString('ButtonScale', 'small'));
   //Handler := Ajax(ButtonClick);
-  Handler := AjaxCallMethod.SetMethod(ButtonClick).AsFunction;
+  Handler := TKWebResponse.Current.Items.AjaxCallMethod(Self).SetMethod(ButtonClick).AsFunction;
   // The click event is not always fired when the focus is on a text filter,
   // so we increase the probability that the button has the focus when it is clicked.
   &On('mouseover', GenerateAnonymousFunction(JSName + '.focus();'));
@@ -1388,7 +1402,7 @@ begin
 
   LCode := 'var e = ' + JSName + '.getEl(); if (e) e.setOpacity(0);';
   &On('afterrender', GenerateAnonymousFunction(LCode));
-  Session.ResponseItems.ExecuteJSCode(Self, LCode);
+  TKWebResponse.Current.Items.ExecuteJSCode(Self, LCode);
 end;
 
 procedure TKFilterSpacer.SetViewTable(const AViewTable: TKViewTable);

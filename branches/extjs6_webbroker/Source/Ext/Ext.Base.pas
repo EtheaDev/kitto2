@@ -3,9 +3,16 @@ unit Ext.Base;
 interface
 
 uses
-  Classes, StrUtils, Ext.Util, Kitto.Ext, Kitto.JS.Types;
+  Classes
+  , StrUtils
+  , Kitto.JS
+  , Kitto.JS.Types
+  ;
 
 type
+  TExtObject = TJSObject;
+  TExtObjectClass = TJSObjectClass;
+  TExtExpression = TJSExpression;
   TExtProgressWaitConfig = class;
   TExtEventObjectSingleton = class;
   TExtSplitBarBasicLayoutAdapter = class;
@@ -49,10 +56,20 @@ type
   TExtFormField = TExtBoxComponent;
   TExtMenuCheckItem = TExtComponent;
   TExtMenuMenu = TExtContainer;
-  TExtDirectProvider = TExtUtilObservable;
-  TExtDataStore = TExtUtilObservable;
-  TExtDataConnection = TExtUtilObservable;
   TExtDataRecord = TExtObject;
+
+  TExtUtilObservable = class(TExtObject)
+  public
+    class function JSClassName: string; override;
+    function AddListener(const AEventName: string; const AHandler: TExtExpression;
+      const AScope: TExtObject = nil; const AOptions: TExtObject = nil): TExtExpression;
+    function FireEvent(const AEventName: string; const AArgs: TJSObjectArray): TExtExpression;
+    function &On(const AEventName: string; const AHandler: TExtExpression;
+      const AScope: TExtObject = nil; const AOptions: TExtObject = nil): TExtExpression;
+    function RemoveAllListeners(const AEventName: string): TExtExpression;
+  end;
+
+  TExtDataStore = TExtUtilObservable;
 
   TExtProgressWaitConfig = class(TExtObject)
   private
@@ -145,7 +162,7 @@ type
     FItemId: string;
     FLabelStyle: string;
     FCollapseMode: string;
-    FPlugins: TExtObjectArray;
+    FPlugins: TJSObjectArray;
     FLoader: TExtObject;
     FCls: string;
     FOverCls: string;
@@ -210,7 +227,7 @@ type
     property Loader: TExtObject read FLoader;
     property OverCls: string read FOverCls write SetOverCls;
     property Padding: string read FPadding write SetPadding;
-    property Plugins: TExtObjectArray read FPlugins;
+    property Plugins: TJSObjectArray read FPlugins;
     property Style: string read FStyle write SetStyle;
     property Tpl: string read FTpl write SetTpl;
     property Split: Boolean read FSplit write SetSplit;
@@ -349,7 +366,7 @@ type
     FActiveItemNumber: Integer;
     FAutoDestroy: Boolean; // true
     FDefaults: TExtObject;
-    FItems: TExtObjectArray;
+    FItems: TJSObjectArray;
     FLayout: TExtContainerLayout;
     FLayoutObject: TExtObject;
     FLayoutConfig: TExtObject;
@@ -374,7 +391,7 @@ type
     property ActiveItem: string read FActiveItem write SetActiveItem;
     property ActiveItemNumber: Integer read FActiveItemNumber write SetActiveItemNumber;
     property Defaults: TExtObject read FDefaults;
-    property Items: TExtObjectArray read FItems;
+    property Items: TJSObjectArray read FItems;
     property LabelAlign: TExtContainerLabelAlign read FLabelAlign write SetLabelAlign;
     property LabelWidth: Integer read FLabelWidth write SetLabelWidth;
     property Layout: TExtContainerLayout read FLayout write SetLayout;
@@ -464,8 +481,8 @@ type
     FSingleSelect: Boolean;
     FStore: TExtDataStore;
     FTpl: string;
-    FTplArray: TExtObjectArray;
-    FStoreArray: TExtObjectArray;
+    FTplArray: TJSObjectArray;
+    FStoreArray: TJSObjectArray;
     procedure SetEmptyText(AValue: string);
     procedure SetItemSelector(const AValue: string);
     procedure SetMultiSelect(const AValue: Boolean);
@@ -474,7 +491,7 @@ type
     procedure SetSingleSelect(const AValue: Boolean);
     procedure _SetStore(const AValue: TExtDataStore);
     procedure SetTpl(AValue: string);
-    procedure SetStoreArray(const AValue: TExtObjectArray);
+    procedure SetStoreArray(const AValue: TJSObjectArray);
     procedure SetSelectedClass(const AValue: string);
   protected
     procedure InitDefaults; override;
@@ -489,7 +506,7 @@ type
     property SimpleSelect: Boolean read FSimpleSelect write SetSimpleSelect;
     property SingleSelect: Boolean read FSingleSelect write SetSingleSelect;
     property Store: TExtDataStore read FStore write _SetStore;
-    property StoreArray: TExtObjectArray read FStoreArray write SetStoreArray;
+    property StoreArray: TJSObjectArray read FStoreArray write SetStoreArray;
     property Tpl: string read FTpl write SetTpl;
   end;
 
@@ -514,13 +531,13 @@ type
     FClosable: Boolean;
     FTitle: string;
     FBbar: TExtObject;
-    FFbar: TExtObjectArray;
+    FFbar: TJSObjectArray;
     FBorder: Boolean;
     FAnimCollapse: Boolean;
     FFooter: Boolean;
     FIconCls: string;
     FAutoLoadBoolean: Boolean;
-    FButtons: TExtObjectArray;
+    FButtons: TJSObjectArray;
     FMinButtonWidth: Integer;
     procedure SetAnimCollapse(const AValue: Boolean);
     procedure SetAutoLoad(const AValue: TExtObject);
@@ -555,11 +572,11 @@ type
     property Bbar: TExtObject read FBbar write SetBbar;
     property BodyStyle: string read FBodyStyle write SetBodyStyle;
     property Border: Boolean read FBorder write SetBorder;
-    property Buttons: TExtObjectArray read FButtons;
+    property Buttons: TJSObjectArray read FButtons;
     property Closable: Boolean read FClosable write SetClosable;
     property Collapsible: Boolean read FCollapsible write SetCollapsible;
     property Collapsed: Boolean read FCollapsed write SetCollapsed;
-    property Fbar: TExtObjectArray read FFbar;
+    property Fbar: TJSObjectArray read FFbar;
     property Footer: Boolean read FFooter write SetFooter;
     property Frame: Boolean read FFrame write SetFrame;
     property Header: Boolean read FHeader write SetHeader;
@@ -640,7 +657,7 @@ type
     FAnimateTarget: string;
     FAnimateTargetElement: TExtElement;
     FBaseCls: string; // 'x-window'
-    FButtons: TExtObjectArray;
+    FButtons: TJSObjectArray;
     FClosable: Boolean; // true
     FConstrain: Boolean;
     FDraggable: Boolean; // true
@@ -676,7 +693,7 @@ type
     function Show(const AAnimateTarget: TExtElement; const ACallback: TExtExpression = nil;
       const AScope: TExtObject = nil): TExtExpression; overload;
     property AnimateTarget: string read FAnimateTarget write _SetAnimateTarget;
-    property Buttons: TExtObjectArray read FButtons;
+    property Buttons: TJSObjectArray read FButtons;
     property Closable: Boolean read FClosable write SetClosable;
     property Constrain: Boolean read FConstrain write SetConstrain;
     property Draggable: Boolean read FDraggable write SetDraggable;
@@ -769,8 +786,8 @@ implementation
 
 uses
   SysUtils
-  , Kitto.JS
   , KItto.JS.Formatting
+  , Kitto.Web.Response
   ;
 
 function ExtQuickTips: TExtQuickTipsSingleton;
@@ -796,6 +813,47 @@ begin
     laTop : Result := 'top';
     laRight : Result := 'right';
   end;
+end;
+
+class function TExtUtilObservable.JSClassName: string;
+begin
+  Result := 'Ext.util.Observable';
+end;
+
+function TExtUtilObservable.AddListener(const AEventName: string; const AHandler: TExtExpression;
+  const AScope: TExtObject = nil; const AOptions: TExtObject = nil): TExtExpression;
+begin
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'addListener')
+    .AddParam(AEventName)
+    .AddParam(AHandler)
+    .AddParam(AScope)
+    .AddParam(AOptions)
+    .AsExpression;
+end;
+
+function TExtUtilObservable.FireEvent(const AEventName: string; const AArgs: TJSObjectArray): TExtExpression;
+begin
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'fireEvent')
+    .AddParam(AEventName)
+    .AddParam(AArgs)
+    .AsExpression;
+end;
+
+function TExtUtilObservable.&On(const AEventName: string; const AHandler: TExtExpression;
+  const AScope: TExtObject; const AOptions: TExtObject): TExtExpression;
+begin
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'on')
+    .AddParam(AEventName)
+    .AddParam(AHandler)
+    .AddParam(AScope)
+    .AddParam(AOptions)
+    .AsExpression;
+end;
+
+function TExtUtilObservable.RemoveAllListeners(const AEventName: string): TExtExpression;
+begin
+  Result := TKWebResponse.Current.Items.ExecuteJSCode(Self, Format('if (%s.events.%s) delete (%s.events.%s)',
+    [JSName, AEventName, JSName, AEventName])).AsExpression;
 end;
 
 procedure TExtProgressWaitConfig.SetDuration(const AValue: Integer);
@@ -836,17 +894,17 @@ end;
 
 function TExtQuickTipsSingleton.Disable: TExtExpression;
 begin
-  Result := CallMethod('disable').AsExpression;
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'disable').AsExpression;
 end;
 
 function TExtQuickTipsSingleton.Enable: TExtExpression;
 begin
-  Result := CallMethod('enable').AsExpression;
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'enable').AsExpression;
 end;
 
 function TExtQuickTipsSingleton.Init(const AAutoRender: Boolean): TExtExpression;
 begin
-  Result := CallMethod('init').AddParam(AAutoRender).AsExpression;
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'init').AddParam(AAutoRender).AsExpression;
 end;
 
 class function TExtElement.JSClassName: string;
@@ -856,7 +914,7 @@ end;
 
 function TExtElement.AddClass(const AClassName: string): TExtExpression;
 begin
-  Result := CallMethod('addClass').AddParam(AClassName).AsExpression;
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'addClass').AddParam(AClassName).AsExpression;
 end;
 
 procedure TExtAction._SetText(const AValue: string);
@@ -878,7 +936,7 @@ end;
 function TExtAction.SetHandler(const AFn: TExtExpression; const AScope: TExtObject): TExtExpression;
 begin
   FHandler := AFn;
-  Result := CallMethod('setHandler')
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'setHandler')
     .AddParam(AFn)
     .AddParam(AScope)
     .AsExpression;
@@ -887,13 +945,13 @@ end;
 function TExtAction.SetHidden(const AHidden: Boolean): TExtExpression;
 begin
   FHidden := AHidden;
-  Result := CallMethod('setHidden').AddParam(AHidden).AsExpression;
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'setHidden').AddParam(AHidden).AsExpression;
 end;
 
 function TExtAction.SetText(const AText: string): TExtExpression;
 begin
   FText := AText;
-  Result := CallMethod('setText').AddParam(AText).AsExpression;
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'setText').AddParam(AText).AsExpression;
 end;
 
 class function TExtDirectTransaction.JSClassName: string;
@@ -1027,12 +1085,12 @@ end;
 
 function TExtComponent.AddCls(const AClsName: string): TExtExpression;
 begin
-  Result := CallMethod('addCls').AddParam(AClsName).AsExpression;
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'addCls').AddParam(AClsName).AsExpression;
 end;
 
 function TExtComponent.Focus(const ASelectText: Boolean; const ADelay: Boolean): TExtExpression;
 begin
-  Result := CallMethod('focus')
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'focus')
     .AddParam(ASelectText)
     .AddParam(ADelay)
     .AsExpression;
@@ -1040,7 +1098,7 @@ end;
 
 function TExtComponent.Focus(const ASelectText: Boolean; const ADelay: Integer): TExtExpression;
 begin
-  Result := CallMethod('focus')
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'focus')
     .AddParam(ASelectText)
     .AddParam(ADelay)
     .AsExpression;
@@ -1048,33 +1106,33 @@ end;
 
 function TExtComponent.Hide: TExtExpression;
 begin
-  Result := CallMethod('hide').AsExpression;
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'hide').AsExpression;
 end;
 
 function TExtComponent.SetDisabled(const AValue: Boolean): TExtExpression;
 begin
-  Result := CallMethod('setDisabled')
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'setDisabled')
     .AddParam(AValue)
     .AsExpression;
 end;
 
 function TExtComponent.SetVisible(const AValue: Boolean): TExtExpression;
 begin
-  Result := CallMethod('setVisible')
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'setVisible')
     .AddParam(AValue)
     .AsExpression;
 end;
 
 function TExtComponent.Show: TExtExpression;
 begin
-  Result := CallMethod('show').AsExpression;
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'show').AsExpression;
 end;
 
 procedure TExtComponent.SetOnAfterrender(const AValue: TExtComponentOnAfterrender);
 begin
   RemoveAllListeners('afterrender');
   if Assigned(AValue) then
-    &On('afterrender', AjaxCallMethod('afterrender')
+    &On('afterrender', TKWebResponse.Current.Items.AjaxCallMethod(Self, 'afterrender')
       .Event
       .AddRawParam('This', 'sender.nm')
       .FunctionArgs('sender')
@@ -1107,7 +1165,7 @@ end;
 
 function TExtLayer.SetZIndex(const AZindex: Integer): TExtExpression;
 begin
-  Result := CallMethod('setZindex')
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'setZindex')
     .AddParam(AZindex)
     .AsExpression;
 end;
@@ -1131,7 +1189,7 @@ end;
 function TExtEditor.SetValue(const AValue: string): TExtExpression;
 begin
   FValue := AValue;
-  Result := CallMethod('setValue')
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'setValue')
     .AddParam(AValue)
     .AsExpression;
 end;
@@ -1161,7 +1219,7 @@ end;
 function TExtDatePicker.SetMaxDate(const AValue: TDateTime): TExtExpression;
 begin
   FMaxDate := AValue;
-  Result := CallMethod('setMaxDate')
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'setMaxDate')
     .AddParam(AValue)
     .AsExpression;
 end;
@@ -1169,7 +1227,7 @@ end;
 function TExtDatePicker.SetMinDate(const AValue: TDateTime): TExtExpression;
 begin
   FMinDate := AValue;
-  Result := CallMethod('setMinDate')
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'setMinDate')
     .AddParam(AValue)
     .AsExpression;
 end;
@@ -1330,7 +1388,7 @@ end;
 
 function TExtContainer.UpdateLayout(const AShallow: Boolean; const AForce: Boolean): TExtExpression;
 begin
-  Result := CallMethod('updateLayout')
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'updateLayout')
     .AddParam(AShallow)
     .AddParam(AForce)
     .AsExpression;
@@ -1338,7 +1396,7 @@ end;
 
 function TExtContainer.Remove(const AComponent: TExtComponent; const AAutoDestroy: Boolean): TExtExpression;
 begin
-  Result := CallMethod('remove')
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'remove')
     .AddParam(AComponent)
     .AddParam(AAutoDestroy)
     .AsExpression;
@@ -1443,7 +1501,7 @@ end;
 
 function TExtButton.GetPressed(const AGroup: string): TExtExpression;
 begin
-  Result := CallMethod('getPressed')
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'getPressed')
     .AddParam(AGroup)
     .AsExpression;
 end;
@@ -1455,37 +1513,37 @@ end;
 
 function TExtButton.Pressed_: TExtExpression;
 begin
-  Result := Session.ResponseItems.GetProperty(Self, 'pressed').AsExpression;
+  Result := TKWebResponse.Current.Items.GetProperty(Self, 'pressed').AsExpression;
 end;
 
 function TExtButton.GetTemplateArgs: TExtExpression;
 begin
-  Result := CallMethod('getTemplateArgs')
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'getTemplateArgs')
     .AsExpression;
 end;
 
 function TExtButton.GetText: TExtExpression;
 begin
-  Result := CallMethod('getText')
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'getText')
     .AsExpression;
 end;
 
 function TExtButton.HasVisibleMenu: TExtExpression;
 begin
-  Result := CallMethod('hasVisibleMenu')
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'hasVisibleMenu')
     .AsExpression;
 end;
 
 function TExtButton.HideMenu: TExtExpression;
 begin
-  Result := CallMethod('hideMenu')
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'hideMenu')
     .AsExpression;
 end;
 
 function TExtButton.SetHandler(const AHandler: TExtExpression; const AScope: TExtObject): TExtExpression;
 begin
   FHandler := AHandler;
-  Result := CallMethod('setHandler')
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'setHandler')
     .AddParam(AHandler)
     .AddParam(AScope)
     .AsExpression;
@@ -1494,7 +1552,7 @@ end;
 function TExtButton.SetText(const AText: string): TExtExpression;
 begin
   FText := AText;
-  Result := CallMethod('setText')
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'setText')
     .AddParam(AText)
     .AsExpression;
 end;
@@ -1502,14 +1560,14 @@ end;
 function TExtButton.SetTooltip(const ATooltip: string): TExtExpression;
 begin
   FTooltip := ATooltip;
-  Result := CallMethod('setTooltip')
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'setTooltip')
     .AddParam(ATooltip)
     .AsExpression;
 end;
 
 function TExtButton.SetTooltip(const ATooltip: TExtObject): TExtExpression;
 begin
-  Result := CallMethod('setTooltip')
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'setTooltip')
     .AddParam(ATooltip)
     .AsExpression;
 end;
@@ -1576,15 +1634,15 @@ end;
 function TExtDataView.SetStore(const AStore: TExtDataStore): TExtExpression;
 begin
   FStore := AStore;
-  Result := CallMethod('setStore')
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'setStore')
     .AddParam(AStore)
     .AsExpression;
 end;
 
-procedure TExtDataView.SetStoreArray(const AValue: TExtObjectArray);
+procedure TExtDataView.SetStoreArray(const AValue: TJSObjectArray);
 begin
   FStoreArray.Free;
-  FStoreArray := TExtObjectArray(SetConfigItem('store', AValue));
+  FStoreArray := TJSObjectArray(SetConfigItem('store', AValue));
 end;
 
 class function TExtViewport.JSClassName: string;
@@ -1705,14 +1763,14 @@ end;
 
 function TExtPanel.Collapse(const AAnimate: Boolean): TExtExpression;
 begin
-  Result := CallMethod('collapse')
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'collapse')
     .AddParam(AAnimate)
     .AsExpression;
 end;
 
 function TExtPanel.Expand(const AAnimate: Boolean): TExtExpression;
 begin
-  Result := CallMethod('exand')
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'exand')
     .AddParam(AAnimate)
     .AsExpression;
 end;
@@ -1732,7 +1790,7 @@ function TExtPanel.SetTitle(const ATitle: string; const AIconCls: string): TExtE
 begin
   FTitle := ATitle;
   FIconCls := AIconCls;
-  Result := CallMethod('setTitle')
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'setTitle')
     .AddParam(ATitle)
     .AddParam(AIconCls)
     .AsExpression;
@@ -1751,7 +1809,7 @@ end;
 function TExtSplitButton.SetArrowHandler(const AHandler: TExtExpression; const AScope: TExtObject): TExtExpression;
 begin
   FArrowHandler := AHandler;
-  Result := CallMethod('setArrowHandler')
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'setArrowHandler')
     .AddParam(AHandler)
     .AddParam(AScope)
     .AsExpression;
@@ -1785,7 +1843,7 @@ end;
 function TExtToolbarTextItem.SetText(const AText: string): TExtExpression;
 begin
   FText := AText;
-  Result := CallMethod('setText').AddParam(AText).AsExpression;
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'setText').AddParam(AText).AsExpression;
 end;
 
 class function TExtToolbar.JSClassName: string;
@@ -1907,7 +1965,7 @@ end;
 
 function TExtWindow.Close: TExtExpression;
 begin
-  Result := CallMethod('close').AsExpression;
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'close').AsExpression;
 end;
 
 procedure TExtWindow.SetAnimateTarget(const AElement: string);
@@ -1918,7 +1976,7 @@ end;
 function TExtWindow.Show(const AAnimateTarget: string; const ACallback: TExtExpression;
   const AScope: TExtObject): TExtExpression;
 begin
-  Result := CallMethod('show')
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'show')
     .AddParam(AAnimateTarget)
     .AddParam(ACallback)
     .AddParam(AScope)
@@ -1928,7 +1986,7 @@ end;
 function TExtWindow.Show(const AAnimateTarget: TExtElement; const ACallback: TExtExpression;
   const AScope: TExtObject): TExtExpression;
 begin
-  Result := CallMethod('show')
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'show')
     .AddParam(AAnimateTarget)
     .AddParam(ACallback)
     .AddParam(AScope)
@@ -1970,7 +2028,7 @@ begin
   RemoveAllListeners('tabchange');
   if Assigned(AValue) then
     //On('tabchange', Ajax('tabchange', ['This', '%0.nm', 'Tab', '(%1 ? %1.nm : null)'], True));
-    &On('tabchange', AjaxCallMethod('tabchange')
+    &On('tabchange', TKWebResponse.Current.Items.AjaxCallMethod(Self, 'tabchange')
       .Event
       .AddRawParam('This', 'sender.nm')
       .AddRawParam('Tab', '(tab ? tab.nm : null)')
@@ -1986,7 +2044,7 @@ end;
 
 function TExtTabPanel.GetActiveTab: TExtExpression;
 begin
-  Result := CallMethod('getActiveTab').AsExpression;
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'getActiveTab').AsExpression;
 end;
 
 function TExtTabPanel.GetObjectNamePrefix: string;
@@ -1996,14 +2054,14 @@ end;
 
 function TExtTabPanel.SetActiveTab(const AItem: string): TExtExpression;
 begin
-  Result := CallMethod('setActiveTab')
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'setActiveTab')
     .AddParam(AItem)
     .AsExpression;
 end;
 
 function TExtTabPanel.SetActiveTab(const AItem: Integer): TExtExpression;
 begin
-  Result := CallMethod('setActiveTab')
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'setActiveTab')
     .AddParam(AItem)
     .AsExpression;
 end;
@@ -2038,22 +2096,22 @@ end;
 
 function TExtPagingToolbar.MoveFirst: TExtExpression;
 begin
-  Result := CallMethod('moveFirst').AsExpression;
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'moveFirst').AsExpression;
 end;
 
 function TExtPagingToolbar.MoveLast: TExtExpression;
 begin
-  Result := CallMethod('moveLast').AsExpression;
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'moveLast').AsExpression;
 end;
 
 function TExtPagingToolbar.MoveNext: TExtExpression;
 begin
-  Result := CallMethod('moveNext').AsExpression;
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'moveNext').AsExpression;
 end;
 
 function TExtPagingToolbar.MovePrevious: TExtExpression;
 begin
-  Result := CallMethod('movePrevious').AsExpression;
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'movePrevious').AsExpression;
 end;
 
 class function TExtToolTip.JSClassName: string;
@@ -2074,7 +2132,7 @@ end;
 function TExtMessageBoxSingleton.Alert(const ATitle: string; const AMsg: string;
   const AFn: TExtExpression = nil; const AScope: TExtObject = nil): TExtExpression;
 begin
-  Result := CallMethod('alert').AddParam(ATitle).AddParam(AMsg)
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'alert').AddParam(ATitle).AddParam(AMsg)
     .AddParam(AFn).AddParam(AScope).AsExpression;
 end;
 

@@ -270,6 +270,7 @@ uses
   , Kitto.JS
   , Kitto.Web
   , Kitto.Web.Request
+  , Kitto.Web.Response
   , Kitto.Ext.Controller
   ;
 
@@ -597,11 +598,11 @@ begin
   LUploadButton.SetIconAndScale('Upload', IfThen(Session.IsMobileBrowser,'medium', 'small'));
 
   LSubmitAction := TExtFormActionSubmit.Create(FWindow);
-  LSubmitAction.Url := MethodURI(Upload);
+  LSubmitAction.Url := GetMethodURL(Upload);
   LSubmitAction.WaitMsg := _('File upload in progress...');
   LSubmitAction.WaitTitle := _('Please wait...');
   //LSubmitAction.Success := Ajax(PostUpload);
-  LSubmitAction.Success := AjaxCallMethod().SetMethod(PostUpload).AsFunction;
+  LSubmitAction.Success := TKWebResponse.Current.Items.AjaxCallMethod(Self).SetMethod(PostUpload).AsFunction;
   { TODO : wrap in function and declate param 1 }
   LSubmitAction.Failure := ExtMessageBox.Alert(_('File upload error'), '%1.result.message');
   LUploadButton.Handler := LFormPanel.Form.Submit(LSubmitAction);

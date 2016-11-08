@@ -67,6 +67,7 @@ uses
   , Kitto.JS
   , Kitto.Types
   , Kitto.Web
+  , Kitto.Web.Response
   , Kitto.Ext.Controller
   ;
 
@@ -192,7 +193,7 @@ Or maybe skip the object list altogether and use the ownership. }
   FUserName.On('specialkey', GenerateAnonymousFunction('field, e', GetSubmitJS));
   FPassword.On('specialkey', GenerateAnonymousFunction('field, e', GetSubmitJS));
 
-  Session.ResponseItems.ExecuteJSCode(Self, Format(
+  TKWebResponse.Current.Items.ExecuteJSCode(Self, Format(
     '%s.enableTask = Ext.TaskManager.start({ ' + sLineBreak +
     '  run: function() {' + GetEnableButtonJS + '},' + sLineBreak +
     '  interval: 500});', [JSName]));
@@ -231,7 +232,7 @@ Or maybe skip the object list altogether and use the ownership. }
   else
     FLocalStorageEnabled := nil;
 
-  LLoginHandler := AjaxCallMethod.SetMethod(DoLogin)
+  LLoginHandler := TKWebResponse.Current.Items.AjaxCallMethod(Self).SetMethod(DoLogin)
     .AddParam('Dummy', FStatusBar.ShowBusy)
     .AddParam('UserName', FUserName.GetValue)
     .AddParam('Password', FPassword.GetValue)
@@ -328,8 +329,8 @@ procedure TKExtLoginWindow.DoLogin;
 begin
   if TKWebApplication.Current.Authenticate then
   begin
-    Session.ResponseItems.ExecuteJSCode(Format('Ext.TaskManager.stop(%s.enableTask);', [JSName]));
-    Session.ResponseItems.ExecuteJSCode(GetLocalStorageSaveJSCode(LocalStorageMode));
+    TKWebResponse.Current.Items.ExecuteJSCode(Format('Ext.TaskManager.stop(%s.enableTask);', [JSName]));
+    TKWebResponse.Current.Items.ExecuteJSCode(GetLocalStorageSaveJSCode(LocalStorageMode));
     Close;
     NotifyObservers('LoggedIn');
   end

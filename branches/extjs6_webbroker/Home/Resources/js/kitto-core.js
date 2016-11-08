@@ -465,3 +465,15 @@ function showMessage(config)
   config.minWidth = getMinMsgWidth();
   return Ext.Msg.show(config);
 }
+
+function charsToPixels(chars, offset)
+{
+  // + 16 sort of compensates for text-to-border left and right margins.
+  return (TextMetrics.getWidth("g") * chars * 1.2) + 16 + offset;
+}
+
+function linesToPixels(lines)
+{
+  // + 16 sort of compensates for text-to-border left and right margins.
+  return (TextMetrics.getHeight("W") * lines * 1.3);
+}
