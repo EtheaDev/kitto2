@@ -1899,6 +1899,7 @@ begin
     LValue := JSONNullToEmptyStr(FRecordField.ParentRecord.FieldByName(LKeyFieldNames).GetAsJSONValue(False, False));
     SetValue(LValue);
     SetRawValue(JSONNullToEmptyStr(FRecordField.GetAsJSONValue(False, False)));
+    ApplyEmptyText;
 
     // Force the combo to refresh its list at next drop down.
     Store.RemoveAll();
@@ -1908,6 +1909,7 @@ begin
     // Provide the display value to set when the user types an invalid value
     // and the store is not loaded yet.
     Session.ResponseItems.ExecuteJSCode(Format('%s.lastSelectionText = %s.getRawValue();', [JSName, JSName]));
+
   end;
   Session.ResponseItems.ExecuteJSCode(JSName + '.kitto$isChanged = false;');
 end;
@@ -3892,6 +3894,7 @@ begin
   LValue := JSONNullToEmptyStr(FRecordField.ParentRecord.FieldByName(LKeyFieldNames).GetAsJSONValue(False, False));
   SetValue(LValue);
   SetRawValue(JSONNullToEmptyStr(FRecordField.GetAsJSONValue(False, False)));
+  ApplyEmptyText;
 end;
 
 procedure TKExtLookupEditor.SetFieldName(const AValue: string);
