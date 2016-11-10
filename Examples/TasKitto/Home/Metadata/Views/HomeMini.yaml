@@ -7,5 +7,7 @@ Controller: Viewport
       # List of views to be auto-opened in tabs.
       SubViews:
         View: UserAddForm
-        View: ActivityInput
+        View: Build AutoList
+          Model: KITTO_USERS
+          DisplayLabel: Users
 
