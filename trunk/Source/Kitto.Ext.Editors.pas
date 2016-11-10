@@ -1058,14 +1058,12 @@ begin
   if Assigned(AOptions) then
   begin
     LLabel := _(AOptions.GetString('DisplayLabel'));
-    LEmptyText := _(AOptions.GetString('EmptyText'));
+    LEmptyText := _(AOptions.GetString('Hint'));
   end;
   if LLabel = '' then
     LLabel := _(LViewField.DisplayLabel);
   if LEmptyText = '' then
-    LEmptyText := _(LViewField.EmptyText);
-  if not LIsReadOnly and LViewField.IsRequired then
-    LLabel := ReplaceText(FDefaults.RequiredLabelTemplate, '{label}', LLabel);
+    LEmptyText := _(LViewField.Hint);
 
   if AContainer is TKExtFormRow then
   begin
@@ -1087,7 +1085,12 @@ begin
   LFormField := Result.AsExtFormField;
   if Assigned(LFormField) then
   begin
+    if FCurrentEditPage.HideLabels and (LEmptyText = '') then
+      LEmptyText := LLabel;
+    if not LIsReadOnly and LViewField.IsRequired then
+      LLabel := ReplaceText(FDefaults.RequiredLabelTemplate, '{label}', LLabel);
     LFormField.FieldLabel := LLabel;
+
     if (LEmptyText <> '') and (LFormField is TExtFormTextField) then
       TExtFormTextField(LFormField).EmptyText := LEmptyText;
     //LFormField.SubmitValue := not LIsReadOnly;
@@ -3334,12 +3337,6 @@ begin
   LFormField := Result.AsExtFormField;
   if Assigned(LFormField) then
   begin
-    if LFormField is TExtFormTextField then
-    begin
-      if AViewField.Hint <> '' then
-        TExtFormTextField(LFormField).EmptyText := _(AViewField.Hint);
-    end;
-
     if not AIsReadOnly then
       AViewField.ApplyRules(
         procedure (ARuleImpl: TKRuleImpl)

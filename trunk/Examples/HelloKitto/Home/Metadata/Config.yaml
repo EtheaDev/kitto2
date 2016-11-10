@@ -1,6 +1,6 @@
 ﻿AppTitle: _(Peoria Girls and their Dolls)
 AppIcon: HelloKittoIcon
-
+# HomeUrl: http://localhost:81/kitto/hellokitto/
 BlobPath: %HOME_PATH%UploadedFiles\
 
 # Change this to switch databases.
