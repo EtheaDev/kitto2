@@ -882,6 +882,7 @@ begin
     FMainPagePanel.EditPanel := FFormPanel;
     FMainPagePanel.LabelAlign := FLabelAlign;
   end;
+  FMainPagePanel.HideLabels := Config.GetBoolean('HideLabels');
   //Session.ResponseItems.ExecuteJSCode(Format('%s.getForm().url = "%s";', [FFormPanel.JSName, MethodURI(ConfirmChanges)]));
 end;
 

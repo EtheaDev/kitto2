@@ -1070,6 +1070,7 @@ begin
   if AContainer is TKExtFormRow then
   begin
     LRowField := TKExtFormRowField.Create(FCurrentEditPage);
+    LRowField.HideLabels := TKExtFormRow(AContainer).HideLabels;
     LRowField.SetRecordField(LRecordField);
   end
   else
@@ -1108,6 +1109,7 @@ begin
   Assert(Assigned(FDataRecord));
 
   LFieldSet := TKExtFormFieldSet.Create(FCurrentEditPage);
+  LFieldSet.HideLabels := FCurrentEditPage.HideLabels;
   LFieldSet.EditItemId := AId;
   LFieldSet.Collapsible := False;
   LFieldSet.DataRecord := FDataRecord;
@@ -1168,6 +1170,7 @@ begin
 
   LRow := TKExtFormRow.Create(FCurrentEditPage);
   LRow.EditItemId := AId;
+  LRow.HideLabels := FCurrentEditPage.HideLabels;
   Result := LRow;
 end;
 

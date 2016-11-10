@@ -2618,6 +2618,7 @@ type
     FOnBeforeadd: TExtContainerOnBeforeadd;
     FOnBeforeremove: TExtContainerOnBeforeremove;
     FOnRemove: TExtContainerOnRemove;
+    FHideLabels: Boolean;
     procedure SetFActiveItem(Value: string);
     procedure SetFActiveItemNumber(Value: Integer);
     procedure SetFAutoDestroy(Value: Boolean);
@@ -2645,6 +2646,7 @@ type
     procedure SetFOnBeforeadd(Value: TExtContainerOnBeforeadd);
     procedure SetFOnBeforeremove(Value: TExtContainerOnBeforeremove);
     procedure SetFOnRemove(Value: TExtContainerOnRemove);
+    procedure SetHideLabels(const AValue: Boolean);
   protected
     procedure InitDefaults; override;
     procedure HandleEvent(const AEvtName: string); override;
@@ -2686,6 +2688,7 @@ type
       write SetFDefaultsFunction;
     property ForceLayout: Boolean read FForceLayout write SetFForceLayout;
     property HideBorders: Boolean read FHideBorders write SetFHideBorders;
+    property HideLabels: Boolean read FHideLabels write SetHideLabels;
     property Items: TExtObjectList read FItems write SetFItems;
     property ItemsArray: TExtObjectList read FItemsArray write SetFItemsArray;
     property Layout: TExtContainerLayout read FLayout write SetLayout;
@@ -11535,6 +11538,12 @@ procedure TExtContainer.SetFRowspan(Value: Integer);
 begin
   FRowspan := Value;
   JSCode('rowspan:' + VarToJSON([Value]));
+end;
+
+procedure TExtContainer.SetHideLabels(const AValue: Boolean);
+begin
+  FHideLabels := AValue;
+  ExtSession.ResponseItems.SetConfigItem(Self, 'hideLabels', [AValue]);
 end;
 
 procedure TExtContainer.SetFLayoutString(Value: string);
