@@ -1,0 +1,17 @@
+﻿DisplayLabel: Modify Account
+Type: Data
+Controller: Form
+  Operation: Add
+  IsModal: True
+  CloneButton: True
+  KeepOpenAfterOperation: True
+MainTable:
+  Model: KITTO_USERS
+  DefaultFilter: {Q}USER_NAME = '%Auth:USER_NAME%'
+  Fields:
+    USER_NAME:
+    PASSWORD_HASH:
+    FIRST_NAME:
+    LAST_NAME:
+  Controller:
+    AllowDuplicating: True
