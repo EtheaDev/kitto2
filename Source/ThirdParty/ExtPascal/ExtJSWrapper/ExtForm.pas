@@ -1068,7 +1068,6 @@ type
     FButtons: TExtObjectList;
     FForm: TExtFormBasicForm;
     FFormId: string;
-    FHideLabels: Boolean;
     FItemCls: string;
     FLabelAlign: TExtFormFormPanelLabelAlign; // 'right'
     FLabelPad: Integer; // 5
@@ -1082,7 +1081,6 @@ type
     FOnClientvalidation: TExtFormFormPanelOnClientvalidation;
     procedure SetFButtons(Value: TExtObjectList);
     procedure SetFFormId(Value: string);
-    procedure SetFHideLabels(Value: Boolean);
     procedure SetFItemCls(Value: string);
     procedure SetLabelAlign(const AValue: TExtFormFormPanelLabelAlign);
     procedure SetFLabelPad(Value: Integer);
@@ -1107,7 +1105,6 @@ type
     property Buttons: TExtObjectList read FButtons write SetFButtons;
     property Form: TExtFormBasicForm read FForm;
     property FormId: string read FFormId write SetFFormId;
-    property HideLabels: Boolean read FHideLabels write SetFHideLabels;
     property ItemCls: string read FItemCls write SetFItemCls;
     property LabelAlign: TExtFormFormPanelLabelAlign read FLabelAlign
       write SetLabelAlign;
@@ -3957,12 +3954,6 @@ procedure TExtFormFormPanel.SetFFormId(Value: string);
 begin
   FFormId := Value;
   JSCode('formId:' + VarToJSON([Value]));
-end;
-
-procedure TExtFormFormPanel.SetFHideLabels(Value: Boolean);
-begin
-  FHideLabels := Value;
-  JSCode('hideLabels:' + VarToJSON([Value]));
 end;
 
 procedure TExtFormFormPanel.SetFItemCls(Value: string);
