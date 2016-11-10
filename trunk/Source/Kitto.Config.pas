@@ -471,7 +471,7 @@ end;
 
 function TKConfig.GetHomeURL: string;
 begin
-  Result := LowerCase(Format('http://localhost/kitto/%s', [Self.AppName]));
+  Result := Config.GetString('HomeUrl', LowerCase(Format('http://localhost/kitto/%s', [Self.AppName])));
 end;
 
 function TKConfig.GetDBAdapter(const ADatabaseName: string): TEFDBAdapter;
