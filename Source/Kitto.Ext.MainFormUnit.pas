@@ -392,12 +392,26 @@ begin
 end;
 
 procedure TKExtMainForm.FillConfigFileNameCombo;
+var
+  LDefaultConfig: string;
+  LConfigIndex: Integer;
 begin
   FindAllFiles('yaml', TKConfig.GetMetadataPath, ConfigFileNameComboBox.Items, False, False);
   if ConfigFileNameComboBox.Items.Count > 0 then
   begin
-    ConfigFileNameComboBox.ItemIndex := 0;
-    ConfigFileNameComboBoxChange(ConfigFileNameComboBox);
+    //Read command line param -config
+    LDefaultConfig := ChangeFileExt(GetCmdLineParamValue('Config', TKConfig.BaseConfigFileName),'.yaml');
+    LConfigIndex := ConfigFileNameComboBox.Items.IndexOf(LDefaultConfig);
+    if LConfigIndex <> -1 then
+    begin
+      ConfigFileNameComboBox.ItemIndex := LConfigIndex;
+      ConfigFileNameComboBoxChange(ConfigFileNameComboBox);
+    end
+    else
+    begin
+      ConfigFileNameComboBox.ItemIndex := 0;
+      ConfigFileNameComboBoxChange(ConfigFileNameComboBox);
+    end;
   end;
 end;
 
