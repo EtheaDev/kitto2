@@ -712,6 +712,7 @@ type
     function GetObjectNamePrefix: string; override;
   public
     class function JSClassName: string; override;
+    function ApplyEmptyText: TExtFunction;
     function AutoSize: TExtFunction;
     function GetErrors(Value: string): TExtFunction;
     function Reset: TExtFunction;
@@ -3172,6 +3173,12 @@ begin
   FMaxLengthText := 'The maximum length for this field is {maxLength}';
   FMinLength := 0;
   FMinLengthText := 'The minimum length for this field is {minLength}';
+end;
+
+function TExtFormTextField.ApplyEmptyText: TExtFunction;
+begin
+  ExtSession.ResponseItems.CallMethod(Self, 'applyEmptyText', []);
+  Result := Self;
 end;
 
 function TExtFormTextField.AutoSize: TExtFunction;
