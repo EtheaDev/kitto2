@@ -576,9 +576,8 @@ begin
             begin
               AEditor.RefreshValue;
             end)));
-        end
-        else
-          AEditor.RefreshValue;
+        end;
+        AEditor.RefreshValue;
       end);
 end;
 
@@ -638,7 +637,11 @@ begin
   begin
     FChangesApplied := True;
     if Config.GetBoolean('KeepOpenAfterOperation') then
-      StartOperation
+    begin
+      if SameText(FOperation, 'Add') then
+        StoreRecord := ServerStore.AppendRecord(nil);
+      StartOperation;
+    end
     else
       CloseHostContainer;
   end;
@@ -914,6 +917,7 @@ begin
     FMainPagePanel.EditPanel := FFormPanel;
     FMainPagePanel.LabelAlign := LabelAlign;
   end;
+  FMainPagePanel.HideLabels := Config.GetBoolean('HideLabels');
   //TKWebResponse.Current.Items.ExecuteJSCode(Format('%s.getForm().url = "%s";', [FFormPanel.JSName, GetMethodURL(ConfirmChanges)]));
 end;
 
@@ -978,10 +982,7 @@ begin
   if LKeepOpen then
   begin
     if SameText(FOperation, 'Add') then
-    begin
-      StoreRecord := ServerStore.AppendRecord(nil);
-      RecreateEditors;
-    end
+      StoreRecord := ServerStore.AppendRecord(nil)
     else
     begin
       { TODO: implement Dup + KeepOpenAfterOperation }

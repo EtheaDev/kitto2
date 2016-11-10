@@ -1050,6 +1050,7 @@ var
   LFieldCharWidth: Integer;
   LIsReadOnly: Boolean;
   LLabel: string;
+  LEmptyText: string;
   LViewField: TKViewField;
   LRowField: TKExtFormRowField;
   LFormField: TExtFormField;
@@ -1085,15 +1086,19 @@ begin
 
   LLabel := '';
   if Assigned(AOptions) then
+  begin
     LLabel := _(AOptions.GetString('DisplayLabel'));
+    LEmptyText := _(AOptions.GetString('Hint'));
+  end;
   if LLabel = '' then
     LLabel := _(LViewField.DisplayLabel);
-  if not LIsReadOnly and LViewField.IsRequired then
-    LLabel := ReplaceText(FDefaults.RequiredLabelTemplate, '{label}', LLabel);
+  if LEmptyText = '' then
+    LEmptyText := _(LViewField.Hint);
 
   if AContainer is TKExtFormRow then
   begin
     LRowField := TKExtFormRowField.Create(FCurrentEditPage);
+    LRowField.HideLabels := TKExtFormRow(AContainer).HideLabels;
     LRowField.SetRecordField(LRecordField);
   end
   else
@@ -1110,14 +1115,18 @@ begin
   LFormField := Result.AsExtFormField;
   if Assigned(LFormField) then
   begin
+    if FCurrentEditPage.HideLabels and (LEmptyText = '') then
+      LEmptyText := LLabel;
+    if not LIsReadOnly and LViewField.IsRequired then
+      LLabel := ReplaceText(FDefaults.RequiredLabelTemplate, '{label}', LLabel);
     LFormField.FieldLabel := LLabel;
-    LFormField.LabelAlign := FCurrentLabelAlign;
-    LFormField.LabelWidth := FCurrentLabelWidth;
 
+    if (LEmptyText <> '') and (LFormField is TExtFormTextField) then
+      TExtFormTextField(LFormField).EmptyText := LEmptyText;
     //LFormField.SubmitValue := not LIsReadOnly;
     LFormField.MsgTarget := LowerCase(FDefaults.MsgTarget);
 
-    if (FFocusField = nil) and not LFormField.ReadOnly and not LFormField.Disabled then
+    if not FCurrentEditPage.HideLabels and (FFocusField = nil) and not LFormField.ReadOnly and not LFormField.Disabled then
       FFocusField := LFormField;
   end;
 
@@ -1133,6 +1142,7 @@ begin
   Assert(Assigned(FDataRecord));
 
   LFieldSet := TKExtFormFieldSet.Create(FCurrentEditPage);
+  LFieldSet.HideLabels := FCurrentEditPage.HideLabels;
   LFieldSet.EditItemId := AId;
   LFieldSet.Collapsible := False;
   LFieldSet.DataRecord := FDataRecord;
@@ -1190,6 +1200,7 @@ begin
   LRow.EditItemId := AId;
   LRow.LabelAlign := FCurrentLabelAlign;
   LRow.LabelWidth := FCurrentLabelWidth;
+  LRow.HideLabels := FCurrentEditPage.HideLabels;
   Result := LRow;
 end;
 
@@ -1904,6 +1915,7 @@ begin
     LValue := JSONNullToEmptyStr(FRecordField.ParentRecord.FieldByName(LKeyFieldNames).GetAsJSONValue(False, False));
     SetValue(LValue);
     SetRawValue(JSONNullToEmptyStr(FRecordField.GetAsJSONValue(False, False)));
+    ApplyEmptyText;
 
     // Force the combo to refresh its list at next drop down.
     Store.RemoveAll();
@@ -3878,6 +3890,7 @@ begin
   LValue := JSONNullToEmptyStr(FRecordField.ParentRecord.FieldByName(LKeyFieldNames).GetAsJSONValue(False, False));
   SetValue(LValue);
   SetRawValue(JSONNullToEmptyStr(FRecordField.GetAsJSONValue(False, False)));
+  ApplyEmptyText;
 end;
 
 procedure TKExtLookupEditor.SetFieldName(const AValue: string);

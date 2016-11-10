@@ -374,6 +374,7 @@ type
     FColumnWidth: Double;
     FLabelWidth: Integer;
     FLabelAlign: TExtContainerLabelAlign;
+    FHideLabels: Boolean;
     procedure SetActiveItem(const AValue: string);
     procedure SetActiveItemNumber(const AValue: Integer);
     procedure SetLayout(const AValue: TExtContainerLayout);
@@ -381,6 +382,7 @@ type
     procedure SetLabelWidth(const AValue: Integer);
     procedure SetLabelAlign(const AValue: TExtContainerLabelAlign);
     procedure SetLayoutString(const AValue: string);
+    procedure SetHideLabels(const AValue: Boolean);
   protected
     procedure InitDefaults; override;
   public
@@ -391,6 +393,7 @@ type
     property ActiveItem: string read FActiveItem write SetActiveItem;
     property ActiveItemNumber: Integer read FActiveItemNumber write SetActiveItemNumber;
     property Defaults: TExtObject read FDefaults;
+    property HideLabels: Boolean read FHideLabels write SetHideLabels;
     property Items: TJSObjectArray read FItems;
     property LabelAlign: TExtContainerLabelAlign read FLabelAlign write SetLabelAlign;
     property LabelWidth: Integer read FLabelWidth write SetLabelWidth;
@@ -1364,6 +1367,11 @@ end;
 procedure TExtContainer.SetColumnWidth(const AValue: Double);
 begin
   FColumnWidth := SetConfigItem('columnWidth', AValue);
+end;
+
+procedure TExtContainer.SetHideLabels(const AValue: Boolean);
+begin
+  FHideLabels := SetConfigItem('hideLabels', AValue);
 end;
 
 class function TExtContainer.JSClassName: string;
