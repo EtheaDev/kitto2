@@ -60,6 +60,7 @@ type
     function GetIsVisible: Boolean;
     function GetModelField: TKModelField;
     function GetDisplayLabel: string;
+    function GetEmptyText: string;
     function GetDisplayWidth: Integer;
     function GetIsRequired: Boolean;
     function GetIsReadOnly: Boolean;
@@ -253,6 +254,7 @@ type
     property Expression: string read GetExpression;
 
     property DisplayLabel: string read GetDisplayLabel;
+    property EmptyText: string read GetEmptyText;
     property Hint: string read GetHint;
     property DisplayWidth: Integer read GetDisplayWidth;
     property DecimalPrecision: Integer read GetDecimalPrecision;
@@ -1931,6 +1933,13 @@ begin
   Result := GetString('DisplayLabel');
   if Result = '' then
     Result := ModelField.DisplayLabel;
+end;
+
+function TKViewField.GetEmptyText: string;
+begin
+  Result := GetString('EmptyText');
+  if Result = '' then
+    Result := ModelField.EmptyText;
 end;
 
 function TKViewField.GetDisplayTemplate: string;
