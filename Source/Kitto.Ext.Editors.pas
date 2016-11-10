@@ -1020,6 +1020,7 @@ var
   LFieldCharWidth: Integer;
   LIsReadOnly: Boolean;
   LLabel: string;
+  LEmptyText: string;
   LViewField: TKViewField;
   LRowField: TKExtFormRowField;
   LFormField: TExtFormField;
@@ -1055,9 +1056,14 @@ begin
 
   LLabel := '';
   if Assigned(AOptions) then
+  begin
     LLabel := _(AOptions.GetString('DisplayLabel'));
+    LEmptyText := _(AOptions.GetString('EmptyText'));
+  end;
   if LLabel = '' then
     LLabel := _(LViewField.DisplayLabel);
+  if LEmptyText = '' then
+    LEmptyText := _(LViewField.EmptyText);
   if not LIsReadOnly and LViewField.IsRequired then
     LLabel := ReplaceText(FDefaults.RequiredLabelTemplate, '{label}', LLabel);
 
@@ -1081,6 +1087,8 @@ begin
   if Assigned(LFormField) then
   begin
     LFormField.FieldLabel := LLabel;
+    if (LEmptyText <> '') and (LFormField is TExtFormTextField) then
+      TExtFormTextField(LFormField).EmptyText := LEmptyText;
     //LFormField.SubmitValue := not LIsReadOnly;
     LFormField.MsgTarget := LowerCase(FDefaults.MsgTarget);
 
