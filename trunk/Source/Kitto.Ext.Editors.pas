@@ -1096,7 +1096,7 @@ begin
     //LFormField.SubmitValue := not LIsReadOnly;
     LFormField.MsgTarget := LowerCase(FDefaults.MsgTarget);
 
-    if (FFocusField = nil) and not LFormField.ReadOnly and not LFormField.Disabled then
+    if not FCurrentEditPage.HideLabels and (FFocusField = nil) and not LFormField.ReadOnly and not LFormField.Disabled then
       FFocusField := LFormField;
   end;
 
