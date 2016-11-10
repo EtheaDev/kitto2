@@ -548,9 +548,8 @@ begin
             begin
               AEditor.RefreshValue;
             end));
-        end
-        else
-          AEditor.RefreshValue;
+        end;
+        AEditor.RefreshValue;
       end);
 end;
 
@@ -610,7 +609,11 @@ begin
   begin
     FChangesApplied := True;
     if Config.GetBoolean('KeepOpenAfterOperation') then
-      StartOperation
+    begin
+      if SameText(FOperation, 'Add') then
+        StoreRecord := ServerStore.AppendRecord(nil);
+      StartOperation;
+    end
     else
       CloseHostContainer;
   end;
@@ -947,10 +950,7 @@ begin
   if LKeepOpen then
   begin
     if SameText(FOperation, 'Add') then
-    begin
-      StoreRecord := ServerStore.AppendRecord(nil);
-      RecreateEditors;
-    end
+      StoreRecord := ServerStore.AppendRecord(nil)
     else
     begin
       { TODO: implement Dup + KeepOpenAfterOperation }
