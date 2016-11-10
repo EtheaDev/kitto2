@@ -114,9 +114,10 @@ type
     function UpdateRecord(const ARecord: TKVIewTableRecord; const ANewValues: ISuperObject;
       const AFieldName: string; const APersist: Boolean): string;
     function GetDefaultRemoteSort: Boolean; virtual;
+    function FindCurrentViewRecord: TKViewTableRecord;
     function GetCurrentViewRecord: TKViewTableRecord;
     procedure ShowEditWindow(const ARecord: TKViewTableRecord; const AEditMode: TKEditMode);
-    function GetEditWindowDefaultControllerType: string; virtual;
+    function GetDefaultEditControllerType: string; virtual;
     function IsMultiSelect: Boolean; virtual;
     function HasDefaultAction: Boolean;
     function GetExplicitDefaultAction: string;
@@ -136,6 +137,8 @@ type
     function IsViewFieldIncludedInClientStore(const AViewField: TKViewField): Boolean; virtual;
     procedure AddUsedViewFields; virtual;
     procedure AddUsedViewField(const AViewField: TKViewField);
+    function InitEditController(const AContainer: TExtContainer; const ARecord: TKViewTableRecord;
+      const AEditMode: TKEditMode): IKExtController;
   public
     procedure AfterConstruction; override;
     destructor Destroy; override;
@@ -361,8 +364,6 @@ end;
 procedure TKExtDataPanelController.ShowEditWindow(const ARecord: TKViewTableRecord;
   const AEditMode: TKEditMode);
 var
-  LFormControllerType: string;
-  LFormControllerNode: TEFNode;
   LFormController: IKExtController;
 begin
   Assert((AEditMode = emNewrecord) or Assigned(ARecord));
@@ -384,41 +385,46 @@ begin
   else
     FEditHostWindow.Title := _(ViewTable.DisplayLabel);
 
+  LFormController := InitEditController(FEditHostWindow, ARecord, AEditMode);
+  LFormController.Config.SetObject('Sys/HostWindow', FEditHostWindow);
+  LFormController.Config.SetBoolean('Sys/HostWindow/AutoSize',
+    FEditHostWindow.SetSizeFromTree(ViewTable, 'Controller/PopupWindow/'));
+  LFormController.Display;
+  FEditHostWindow.Show;
+end;
+
+function TKExtDataPanelController.InitEditController(const AContainer: TExtContainer;
+  const ARecord: TKViewTableRecord; const AEditMode: TKEditMode): IKExtController;
+var
+  LFormControllerType: string;
+  LFormControllerNode: TEFNode;
+begin
   LFormControllerNode := ViewTable.FindNode('Controller/FormController');
   if Assigned(LFormControllerNode) then
     LFormControllerType := LFormControllerNode.AsString;
   if LFormControllerType = '' then
-    LFormControllerType := GetEditWindowDefaultControllerType;
-  if LFormControllerType = '' then
-    LFormControllerType := GetEditWindowDefaultControllerType;
-  LFormController := TKExtControllerFactory.Instance.CreateController(
-    FEditHostWindow, ViewTable.View, FEditHostWindow, LFormControllerNode, Self, LFormControllerType);
-  LFormController.Config.SetObject('Sys/ServerStore', ServerStore);
+    LFormControllerType := GetDefaultEditControllerType;
+  Result := TKExtControllerFactory.Instance.CreateController(
+    AContainer, ViewTable.View, AContainer, LFormControllerNode, Self, LFormControllerType);
+  Result.Config.SetObject('Sys/ServerStore', ServerStore);
   if Assigned(ARecord) then
-    LFormController.Config.SetObject('Sys/Record', ARecord)
+    Result.Config.SetObject('Sys/Record', ARecord)
   else
-    SetNewRecordDefaultValues(LFormController.Config);
-  LFormController.Config.SetObject('Sys/ViewTable', ViewTable);
-  LFormController.Config.SetObject('Sys/HostWindow', FEditHostWindow);
-  LFormController.Config.SetObject('Sys/CallingController', Self);
-  LFormController.Config.SetBoolean('Sys/HostWindow/AutoSize',
-    FEditHostWindow.SetSizeFromTree(ViewTable, 'Controller/PopupWindow/'));
+    SetNewRecordDefaultValues(Result.Config);
+  Result.Config.SetObject('Sys/ViewTable', ViewTable);
+  Result.Config.SetObject('Sys/CallingController', Self);
 
   case AEditMode of
-    emNewRecord : LFormController.Config.SetString('Sys/Operation', 'Add');
-    emDupCurrentRecord : LFormController.Config.SetString('Sys/Operation', 'Dup');
-    emEditCurrentRecord : LFormController.Config.SetString('Sys/Operation', 'Edit');
+    emNewRecord : Result.Config.SetString('Sys/Operation', 'Add');
+    emDupCurrentRecord : Result.Config.SetString('Sys/Operation', 'Dup');
+    emEditCurrentRecord : Result.Config.SetString('Sys/Operation', 'Edit');
     emViewCurrentRecord :
     begin
       if not IsActionAllowed('Edit') then
-        LFormController.Config.SetBoolean('PreventEditing', True);
-      LFormController.Config.SetString('Sys/Operation', 'View');
+        Result.Config.SetBoolean('PreventEditing', True);
+      Result.Config.SetString('Sys/Operation', 'View');
     end;
   end;
-
-  LFormController.Display;
-
-  FEditHostWindow.Show;
 end;
 
 function TKExtDataPanelController.GetCurrentViewRecord: TKViewTableRecord;
@@ -699,7 +705,7 @@ begin
   Result := False;
 end;
 
-function TKExtDataPanelController.GetEditWindowDefaultControllerType: string;
+function TKExtDataPanelController.GetDefaultEditControllerType: string;
 begin
   Result := 'Form';
 end;
@@ -1035,6 +1041,11 @@ begin
         AField.ParentRecord.FieldByName(LNames[I]).SetAsJSONValue(LValues[I], False, Session.Config.UserFormatSettings);
     end;
   end;
+end;
+
+function TKExtDataPanelController.FindCurrentViewRecord: TKViewTableRecord;
+begin
+  Result := ServerStore.FindRecord(Session.GetQueries, Session.Config.JSFormatSettings, IfThen(IsMultiSelect, 0, -1));
 end;
 
 function TKExtDataPanelController.FindValueByName(const AValues: ISuperObject; const AName: string): TSuperAvlEntry;

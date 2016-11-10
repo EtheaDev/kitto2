@@ -89,7 +89,6 @@ type
     FDetailBottomPanel: TExtTabPanel;
     FChangesApplied: Boolean;
     procedure CreateEditors;
-    procedure RecreateEditors;
     procedure CreateButtons;
     procedure ChangeEditorsState;
     procedure StartOperation;
@@ -114,19 +113,20 @@ type
   strict protected
     procedure DoDisplay; override;
     procedure InitComponents; override;
-    property StoreRecord: TKViewTableRecord read FStoreRecord write SetStoreRecord;
     function AddActionButton(const AUniqueId: string; const AView: TKView;
       const AToolbar: TKExtToolbar): TKExtActionButton; override;
     procedure TabChange(AThis: TExtTabPanel; ATab: TExtPanel); virtual;
     procedure RefreshEditorValues;
     procedure RefreshEditorFields;
     procedure CloseHostContainer; override;
+    property StoreRecord: TKViewTableRecord read FStoreRecord write SetStoreRecord;
   public
     procedure LoadData; override;
     destructor Destroy; override;
     function GetFilterExpression: string; override;
     function GetRegionName(const ARegion: TExtBoxComponentRegion): string; override;
     procedure AfterConstruction; override;
+    procedure ChangeRecord(const ARecord: TKViewTableRecord);
   published
     procedure GetRecord;
     procedure SwitchToEditMode;
@@ -173,6 +173,12 @@ begin
             FFocusField := LFormField;
       end;
     end);
+end;
+
+procedure TKExtFormPanelController.ChangeRecord(const ARecord: TKViewTableRecord);
+begin
+  StoreRecord := ARecord;
+  StartOperation;
 end;
 
 procedure TKExtFormPanelController.CloseHostContainer;
@@ -316,13 +322,6 @@ begin
   end;
 end;
 
-procedure TKExtFormPanelController.RecreateEditors;
-begin
-  FFormPanel.Free(True);
-  CreateFormPanel;
-  CreateEditors;
-end;
-
 procedure TKExtFormPanelController.CreateEditors;
 var
   LLayoutProcessor: TKExtLayoutProcessor;
@@ -404,7 +403,7 @@ begin
   // know the exact extra height needed.
   if Config.GetBoolean('Sys/HostWindow/AutoSize') then
   begin
-    LHostWindow := GetHostWindow;
+    LHostWindow := FindHostWindow;
     if Assigned(LHostWindow) and not LHostWindow.Maximized then
       LHostWindow.On('afterrender', JSFunction(Format(
         '%s.setOptimalSize(0, %d); %s.center();',
@@ -579,7 +578,7 @@ begin
   FOperation := 'Edit';
   InitFlags;
   ChangeEditorsState;
-  LHostWindow := GetHostWindow;
+  LHostWindow := FindHostWindow;
   if Assigned(LHostWindow) then
     LHostWindow.Title := Format(_('Edit %s'), [_(ViewTable.DisplayLabel)]);
   StartOperation;
@@ -694,6 +693,7 @@ begin
   end;
 
   // Clone button
+  FCloneButton := nil;
   if not FIsReadOnly then
   begin
     LCloneButtonNode := Config.FindNode('CloneButton');
@@ -704,9 +704,7 @@ begin
       FCloneButton.Text := LCloneButtonNode.GetString('Caption', _('Save & Clone'));
       FCloneButton.Tooltip := LCloneButtonNode.GetString('Tooltip', _('Save changes and create a new clone record'));
       FCloneButton.Hidden := FIsReadOnly or IsViewMode;
-    end
-    else
-      FCloneButton := nil;
+    end;
   end;
 
   // Confirm button
@@ -753,7 +751,7 @@ begin
   FCloseButton.Text := Config.GetString('CloseButton/Caption', _('Close'));
   FCloseButton.Tooltip := Config.GetString('CloseButton/Tooltip', _('Close this panel'));
   // No need for an ajax call when we just close the client-side panel.
-  LHostWindow := GetHostWindow;
+  LHostWindow := FindHostWindow;
   if Assigned(LHostWindow) then
     FCloseButton.Handler := JSFunction(LHostWindow.JSName + '.close();');
   FCloseButton.Hidden := not FIsReadOnly and not IsViewMode;
@@ -767,7 +765,8 @@ begin
     FOperation := Config.GetString('Operation');
   InitFlags;
   CreateFormPanel;
-  CreateButtons;
+  if not Config.GetBoolean('HideButtons') then
+    CreateButtons;
 end;
 
 function TKExtFormPanelController.GetFilterExpression: string;

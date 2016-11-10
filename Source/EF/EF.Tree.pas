@@ -2957,10 +2957,7 @@ end;
 
 function TEFDataType.ValueToBoolean(const AValue: Variant): Boolean;
 begin
-  if VarIsNull(AValue) then
-    Result := False
-  else
-    Result := AValue;
+  Result := EFVarToBoolean(AValue);
 end;
 
 function TEFDataType.ValueToBytes(const AValue: Variant): TBytes;
@@ -2981,10 +2978,7 @@ end;
 
 function TEFDataType.ValueToCurrency(const AValue: Variant): Currency;
 begin
-  if VarIsNull(AValue) then
-    Result := 0
-  else
-    Result := AValue;
+  Result := EFVarToCurrency(AValue);
 end;
 
 function TEFDataType.ValueToDate(const AValue: Variant): TDate;
@@ -3026,10 +3020,7 @@ end;
 
 function TEFDataType.ValueToFloat(const AValue: Variant): Double;
 begin
-  if not VarIsNull(AValue) then
-    Result := AValue
-  else
-    Result := 0;
+  Result := EFVarToFloat(AValue);
 end;
 
 function TEFDataType.ValueToInteger(const AValue: Variant): Integer;
@@ -3042,12 +3033,15 @@ begin
   else if EndsStr('KB', AValue) then
     Result := KB * StrToInt(StripSuffix(AValue, 'KB'))
   else
-    Result := AValue;
+    Result := EFVarToInt(AValue);
 end;
 
 function TEFDataType.ValueToObject(const AValue: Variant): TObject;
 begin
-  Result := TObject(NativeInt(AValue));
+  if VarIsNull(AValue) or VarIsEmpty(AValue) then
+    Result := nil
+  else
+    Result := TObject(NativeInt(AValue));
 end;
 
 function TEFDataType.ValueToPairs(const AValue: Variant): TEFPairs;
