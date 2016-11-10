@@ -29,6 +29,8 @@ uses
 
 const
   DEFAULT_PAGE_RECORD_COUNT = 100;
+  DEFAULT_AUTOFORM_WIDTH = 600;
+  DEFAULT_AUTOFORM_HEIGHT = 300;
 
 type
   TKExtGridPanel = class(TKExtDataPanelLeafController)
@@ -41,6 +43,8 @@ type
     FPageRecordCount: Integer;
     FSelectionModel: TExtGridRowSelectionModel;
     FInplaceEditing: Boolean;
+    FAutoFormContainer: TKExtPanelBase;
+    FAutoFormController: IKExtController;
     function GetGroupingFieldName: string;
     function CreatePagingToolbar: TExtPagingToolbar;
     procedure InitGridColumns;
@@ -54,6 +58,7 @@ type
     function GetBeforeEditJSCode(const AMethod: TExtProcedure): string;
     procedure ShowConfirmButtons(const AShow: Boolean);
     function GetSelectLastEditedRecordCode(const ARecord: TKViewTableRecord): string;
+    function GetAutoFormPlacement: string;
   strict protected
     procedure ExecuteNamedAction(const AActionName: string); override;
     function GetOrderByClause: string; override;
@@ -93,7 +98,7 @@ uses
   superobject,
   EF.StrUtils, EF.Localization, EF.JSON, EF.Macros,
   Kitto.Metadata.Models, Kitto.Rules, Kitto.AccessControl, Kitto.Config,
-  Kitto.Ext.Session, Kitto.Ext.Utils;
+  Kitto.Ext.Session, Kitto.Ext.Utils, Kitto.Ext.Form {temporary};
 
 { TKExtGridPanel }
 
@@ -132,6 +137,11 @@ begin
   Result := not ViewTable.IsDetail and ViewTable.GetBoolean('Controller/PagingTools', ViewTable.IsLarge);
 end;
 
+function TKExtGridPanel.GetAutoFormPlacement: string;
+begin
+  Result := Config.GetString('AutoFormPlacement');
+end;
+
 procedure TKExtGridPanel.AfterCreateTopToolbar;
 var
   LAnyButtonsRequiringSelection: Boolean;
@@ -141,7 +151,7 @@ begin
   LAnyButtonsRequiringSelection := FButtonsRequiringSelection.Count > 0;
   // Server-side selectionchange notifcation is expensive - enable only if
   // strictly necessary.
-  LServerSideSelectionChangeNeeded := False;//FInplaceEditing;
+  LServerSideSelectionChangeNeeded := GetAutoFormPlacement <> '';
 
   // Note: the selectionchange handler must be called in afterrender as well
   // to account for the first row, which is selected by default.
@@ -263,6 +273,7 @@ begin
   FEditorGridPanel.ColumnLines := True;
   FEditorGridPanel.TrackMouseOver := True;
   FEditorGridPanel.EnableHdMenu := False;
+//  FEditorGridPanel.On('viewready', JSFunction(FSelectionModel.JSName + '.selectFirstRow();'));
 end;
 
 function TKExtGridPanel.IsActionSupported(const AActionName: string): Boolean;
@@ -669,7 +680,30 @@ begin
 end;
 
 procedure TKExtGridPanel.SelectionChanged;
+var
+  LRecord: TKViewTableRecord;
 begin
+  if GetAutoFormPlacement <> '' then
+  begin
+    LRecord := FindCurrentViewRecord;
+    if Assigned(LRecord) then
+    begin
+      if not Assigned(FAutoFormController) then
+      begin
+        FAutoFormController := InitEditController(FAutoFormContainer, FindCurrentViewRecord, emViewCurrentRecord);
+        FAutoFormController.Config.SetBoolean('HideButtons', True);
+        FAutoFormController.Display;
+      end
+      else
+      begin
+        (FAutoFormController.AsObject as TKExtFormPanelController).ChangeRecord(LRecord);
+      end;
+      FAutoFormContainer.Show;
+    end
+    else
+      FAutoFormContainer.Hide;
+    DoLayout;
+  end;
 end;
 
 procedure TKExtGridPanel.InitColumnEditors(const ARecord: TKViewTableRecord);
@@ -690,6 +724,7 @@ var
   LView: TKDataView;
   LViewTable: TKViewTable;
   LEventName: string;
+  LAutoFormPlacement: string;
 begin
   LView := View;
   LViewTable := AValue;
@@ -774,6 +809,31 @@ begin
     FEditorGridPanel.On('beforeedit', JSFunction('e', GetBeforeEditJSCode(BeforeEdit)));
     FEditorGridPanel.On('afteredit', JSFunction('e', GetAfterEditJSCode(UpdateField)));
   end;
+
+  LAutoFormPlacement := GetAutoFormPlacement;
+  if LAutoFormPlacement <> '' then
+  begin
+    FAutoFormContainer := TKExtPanelBase.CreateAndAddTo(Items);
+    FAutoFormContainer.Border := False;
+    FAutoFormContainer.Header := False;
+    FAutoFormContainer.Layout := lyFit;
+    FAutoFormContainer.Split := True;
+    if SameText(LAutoFormPlacement, 'Right') then
+    begin
+      FAutoFormContainer.Region := rgEast;
+      FAutoFormContainer.Width := Config.GetInteger('AutoFormPlacement/Size', DEFAULT_AUTOFORM_WIDTH);
+    end
+    else if SameText(LAutoFormPlacement, 'Bottom') then
+    begin
+      FAutoFormContainer.Region := rgSouth;
+      FAutoFormContainer.Height := Config.GetInteger('AutoFormPlacement/Size', DEFAULT_AUTOFORM_HEIGHT);
+    end
+    else
+      raise Exception.CreateFmt('Unsupported AutoFormPlacement value: %s', [LAutoFormPlacement]);
+    FAutoFormContainer.Hide;
+  end
+  else
+    FAutoFormContainer := nil;
 end;
 
 function TKExtGridPanel.GetDefaultRemoteSort: Boolean;
@@ -910,7 +970,14 @@ begin
   if Supports(ASubject.AsObject, IKExtController, LController) then
   begin
     if MatchText(AContext, ['Confirmed', 'Canceled']) then
+    begin
+      if Assigned(FAutoFormController) and (FAutoFormController.AsObject = ASubject.AsObject) then
+      begin
+        FAutoFormContainer.Hide;
+        DoLayout;
+      end;
       ClientStore.On('load', JSFunction(GetSelectLastEditedRecordCode(LController.Config.GetObject('Sys/Record') as TKViewTableRecord)));
+    end;
   end;
   inherited;
 end;

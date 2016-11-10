@@ -8,6 +8,10 @@ Controller: List
         # ExpressionTemplate should contain a {value} placeholder for the search term.
         ExpressionTemplate: >
           upper(EMPLOYEE_NAME) like upper('%{value}%')
+  CenterController:
+    AutoFormPlacement: Right
+      Size: 1000
+
 MainTable:
   Model: EMPLOYEE
   Fields:

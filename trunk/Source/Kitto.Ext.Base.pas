@@ -170,7 +170,7 @@ type
     function GetConfig: TEFNode;
     // Closes the hosting window or tab.
     procedure CloseHostContainer; virtual;
-    function GetHostWindow: TExtWindow;
+    function FindHostWindow: TExtWindow;
     procedure InitDefaults; override;
     procedure LoadHtml(const AFileName: string; const APostProcessor: TFunc<string, string> = nil);
   public
@@ -699,7 +699,9 @@ begin
   Result := -1;
 end;
 
-function TKExtPanelBase.GetHostWindow: TExtWindow;
+function TKExtPanelBase.FindHostWindow: TExtWindow;
+var
+  LHostWindow: TObject;
 begin
   Result := Config.GetObject('Sys/HostWindow') as TExtWindow;
 end;
@@ -733,7 +735,7 @@ var
   LIntf: IKExtPanelHost;
 begin
   { TODO : Perhaps we could unify the behaviour here by implementing IKExtPanelHost in a custom window class. }
-  LHostWindow := GetHostWindow;
+  LHostWindow := FindHostWindow;
   if Assigned(LHostWindow) then
     LHostWindow.Close
   else if Supports(Owner, IKExtPanelHost, LIntf) then
