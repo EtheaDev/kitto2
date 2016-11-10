@@ -1,13 +1,11 @@
-﻿DisplayLabel: Modify Account
+﻿DisplayLabel: Quick Add Activity
 Type: Data
 Controller: Form
   Operation: Add
-  IsModal: True
   HideLabels: True
   CloneButton: True
   KeepOpenAfterOperation: True
 MainTable:
-  Model: KITTO_USERS
-  DefaultFilter: {Q}USER_NAME = '%Auth:USER_NAME%'
+  Model: ACTIVITY
   Controller:
     AllowDuplicating: True

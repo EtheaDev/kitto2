@@ -6,8 +6,5 @@ Controller: Viewport
     Controller: TabPanel
       # List of views to be auto-opened in tabs.
       SubViews:
-        View: UserAddForm
-        View: Build AutoList
-          Model: KITTO_USERS
-          DisplayLabel: Users
-
+        View: ActivityAddForm
+        View: ActivityInput

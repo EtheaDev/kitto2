@@ -75,7 +75,6 @@ type
     function GetQualifiedDBColumnName: string;
     function GetModel: TKModel;
     function GetDisplayLabel: string;
-    function GetEmptyText: string;
     function GetIsVisible: Boolean;
     function GetDisplayWidth: Integer;
     function GetIsComputed: Boolean;
@@ -323,8 +322,6 @@ type
     /// <summary>
     ///   Default label for this field into editing control when the value is missing
     /// </summary>
-    property EmptyText: string read GetEmptyText;
-
     property Hint: string read GetHint;
 
     /// <summary>
@@ -1747,11 +1744,6 @@ begin
   Result := GetString('DisplayLabel');
   if Result = '' then
     Result := GetDefaultDisplayLabel;
-end;
-
-function TKModelField.GetEmptyText: string;
-begin
-  Result := GetString('EmptyText');
 end;
 
 function TKModelField.GetDisplayTemplate: string;
