@@ -149,7 +149,7 @@ begin
   Assert(Assigned(ARequestInfo.Session));
   CurrentSession := ARequestInfo.Session;
 
-  LURL := TKURL.Create(ARequestInfo.URI);
+  LURL := TKURL.Create(ARequestInfo.URI, ARequestInfo.Params);
   try
     TKWebRequest.Current := TKWebRequest.Create(AContext, ARequestInfo, AResponseInfo);
     try
@@ -170,7 +170,6 @@ begin
         if DoBeforeHandleRequest(TKWebRequest.Current, TKWebResponse.Current) then begin
           LHandled := False;
 
-          { TODO : handle favicon.ico }
           for LRoute in FRoutes do
           begin
             LHandled := LRoute.HandleRequest(TKWebRequest.Current, TKWebResponse.Current, LURL);
@@ -215,12 +214,14 @@ end;
 procedure TKWebServer.DeleteSession(const ASession: TIdHTTPSession);
 var
   LIndex: Integer;
+  LSession: TObject;
 begin
   LIndex := ASession.Content.IndexOf(SESSION_OBJECT);
   if LIndex >= 0 then
   begin
-    ASession.Content.Objects[LIndex].Free;
+    LSession := ASession.Content.Objects[LIndex];
     ASession.Content.Delete(LIndex);
+    LSession.Free;
   end;
 end;
 
@@ -354,7 +355,7 @@ begin
     LFileName := TPath.Combine(TPath.Combine(FPath, LPath), AURL.Document);
     if FileExists(LFileName) then
     begin
-      AResponse.ContentStream := TFileStream.Create(LFileName, fmOpenRead or fmShareDenyWrite);
+      AResponse.ContentStream := TFileStream.Create(LFileName, fmOpenRead or fmShareDenyNone);
       AResponse.ContentType := GetFileMimeType(LFileName, 'application/octet-stream');
       Result := True;
     end;

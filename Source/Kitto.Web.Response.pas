@@ -706,6 +706,8 @@ begin
   Assert(Assigned(AObject));
 
   FList.Add(TJSCreateObject.Create(AObject, Self));
+//  if Assigned(AObject.Owner) then
+//    AddObjectDependency(AObject, AObject.Owner);
 end;
 
 destructor TJSResponseItems.Destroy;
@@ -1209,7 +1211,7 @@ begin
 
     AFormatter.SkipLine.Indent;
     AFormatter.AddIndented('Ext.Ajax.request(').SkipLine.Indent.AddIndent.OpenObject;
-    AFormatter.AddIndentedPairLine('url', Sender.AppendObjectURLParam(TKWebApplication.Current.GetMethodURL(CallName)));
+    AFormatter.AddIndentedPairLine('url', TKWebApplication.Current.GetMethodURL(Sender.JSName, CallName));
     if FHttpMethod <> 'GET' then
       AFormatter.AddIndentedPairLine('method', FHttpMethod);
     if (FHttpMethod = 'POST') and (FPostData <> '') then

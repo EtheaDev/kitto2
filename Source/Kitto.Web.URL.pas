@@ -11,10 +11,13 @@ type
   TKURL = class(TIdURI)
   private
     FParsedParams: TStrings;
-    procedure ParseParams;
   public
+    constructor Create(const AURI: string; const AParams: TStrings); reintroduce;
     function ParamByName(const AName: string): string;
     destructor Destroy; override;
+
+    // Returns the last path segment. If the path has only one segment, returns ''.
+    function ExtractObjectName: string;
   end;
 
 implementation
@@ -23,9 +26,17 @@ uses
   SysUtils
   , StrUtils
   , IdGlobal
+  , EF.StrUtils
   ;
 
 { TKURL }
+
+constructor TKURL.Create(const AURI: string; const AParams: TStrings);
+begin
+  inherited Create(AURI);
+  FParsedParams := TStringList.Create;
+  FParsedParams.Assign(AParams);
+end;
 
 destructor TKURL.Destroy;
 begin
@@ -33,30 +44,20 @@ begin
   inherited;
 end;
 
-function TKURL.ParamByName(const AName: string): string;
+function TKURL.ExtractObjectName: string;
+var
+  LPathSegments: TArray<string>;
 begin
-  if not Assigned(FParsedParams) then
-    ParseParams;
-  Result := FParsedParams.Values[AName];
+  LPathSegments := StripPrefix(Path, '/').Split(['/']);
+  if Length(LPathSegments) > 1 then
+    Result := LPathSegments[High(LPathSegments)]
+  else
+    Result := '';
 end;
 
-procedure TKURL.ParseParams;
-var
-  I: Integer;
+function TKURL.ParamByName(const AName: string): string;
 begin
-  Assert(not Assigned(FParsedParams));
-
-  FParsedParams := TStringList.Create;
-  FParsedParams.Delimiter := '&';
-  FParsedParams.StrictDelimiter := True;
-
-  FParsedParams.DelimitedText := Params;
-
-  for I := 0 to FParsedParams.Count - 1 do
-  begin
-    FParsedParams[I] := ReplaceStr(FParsedParams[I], '+', ' ');
-    FParsedParams[I] := URLDecode(FParsedParams[I], IndyTextEncoding_UTF8);
-  end;
+  Result := FParsedParams.Values[AName];
 end;
 
 end.

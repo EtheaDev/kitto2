@@ -150,7 +150,7 @@ type
     procedure Error(const AMessage, AMethodName, AParams: string);
     procedure NotFoundError(const AMethodName: string);
     procedure ErrorMessage(const AMessage: string; const AAction: string = '');
-    function GetMethodURL(const AMethodName: string): string;
+    function GetMethodURL(const AObjectName, AMethodName: string): string;
     /// <summary>
     ///  Returns the Home URL of the Kitto application assuming the URL is
     ///  visited from localhost.
@@ -204,7 +204,8 @@ function TKWebApplication.GetObjectFromURL(const AURL: TKURL): TObject;
 var
   LJSName: string;
 begin
-  LJSName := AURL.ParamByName('Object');
+//  LJSName := AURL.ParamByName('Object');
+  LJSName := AURL.ExtractObjectName;
   if (LJSName = '') or (AURL.ParamByName('Event') <> '') then
     Result := Self
   else
@@ -655,9 +656,9 @@ begin
   end;
 end;
 
-function TKWebApplication.GetMethodURL(const AMethodName: string): string;
+function TKWebApplication.GetMethodURL(const AObjectName, AMethodName: string): string;
 begin
-  Result := FPath + '/' + AMethodName;
+  Result := FPath + '/' + IfThen(AObjectName <> '',  AObjectName + '/', '') + AMethodName;
 end;
 
 procedure TKWebApplication.ActivateInstance;

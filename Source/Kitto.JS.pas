@@ -250,7 +250,7 @@ type
     FAuthData: TEFNode;
     FIsAuthenticated: Boolean;
     FAuthMacroExpander: TEFTreeMacroExpander;
-    FOpenControllers: TObjectList<TObject>;
+    FOpenControllers: TList<TObject>;
     FControllerHostWindow: TJSObject;
     FViewHost: TObject;
     FStatusHost: TObject;
@@ -362,7 +362,7 @@ type
     ///  The current session's UUID.
     /// </summary>
     property SessionId: string read FSessionId {temporary} write FSessionId;
-    property OpenControllers: TObjectList<TObject> read FOpenControllers;
+    property OpenControllers: TList<TObject> read FOpenControllers;
     property HomeController: TObject read FHomeController write FHomeController;
     property LoginController: TObject read FLoginController write FLoginController;
     property ViewportWidthInInches: Integer read FViewportWidthInInches write FViewportWidthInInches;
@@ -475,7 +475,7 @@ end;
 
 function TJSObject.GetMethodURL(const AMethodName: string): string;
 begin
-  Result := AppendObjectURLParam(TKWebApplication.Current.GetMethodURL(AMethodName));
+  Result := TKWebApplication.Current.GetMethodURL(JSName, AMethodName);
 end;
 
 function TJSObject.GetObjectNamePrefix: string;
@@ -521,6 +521,7 @@ begin
     if DirectoryExists(LUploadDirectory) then
       DeleteTree(LUploadDirectory);
   end;
+  FreeAndNil(FOpenControllers);
   FreeAndNil(FObjectSequences);
   FreeAndNil(FSingletons);
   FreeAndNil(FGlobal);
@@ -534,9 +535,6 @@ begin
   FreeAndNil(FDynamicStyles);
   FreeAndNil(FLastRequestInfo);
   inherited;
-  // Keep it alive as the inherited call might trigger calls to
-  // RemoveController from objects being destroyed.
-  FreeAndNil(FOpenControllers);
 end;
 
 function TJSSession.IsMobileApple: Boolean;
@@ -610,7 +608,8 @@ end;
 
 procedure TJSSession.RemoveController(const AObject: TObject);
 begin
-  FOpenControllers.Remove(AObject);
+  if Assigned(FOpenControllers) then
+    FOpenControllers.Remove(AObject);
 end;
 
 procedure TJSSession.SetLanguage(const AValue: string);
@@ -667,7 +666,7 @@ begin
   FGettextInstance := TGnuGettextInstance.Create;
 
   FUploadedFiles := TObjectList<TJSUploadedFile>.Create;
-  FOpenControllers := TObjectList<TObject>.Create(False);
+  FOpenControllers := TList<TObject>.Create;
 
   AfterNewSession;
 end;

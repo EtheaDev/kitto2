@@ -415,7 +415,8 @@ end;
 destructor TKExtWindowControllerBase.Destroy;
 begin
   FreeAndNil(FConfig);
-  Session.RemoveController(Self);
+  if Session <> nil then
+    Session.RemoveController(Self);
   inherited;
 end;
 
@@ -456,7 +457,7 @@ begin
   Layout := lyFit;
   if Session.IsMobileBrowser then
     Maximized := True;
-  Border := False;
+  Border := True;
   Plain := True;
 
   &On('close',

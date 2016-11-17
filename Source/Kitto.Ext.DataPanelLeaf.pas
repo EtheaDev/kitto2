@@ -128,7 +128,7 @@ begin
   begin
     Assert(Assigned(ClientStore));
 
-    ClientStore.Load(JSObject('params:{start:0,limit:0,Obj:"' + JSName + '"}'));
+    ClientStore.Load(JSObject('params:{start: 0, limit: 0}'));
   end;
 end;
 

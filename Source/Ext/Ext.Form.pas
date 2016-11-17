@@ -223,7 +223,6 @@ type
     function GetObjectNamePrefix: string; override;
   public
     class function JSClassName: string; override;
-    procedure ApplyEmptyText;
     property AllowBlank: Boolean read FAllowBlank write SetAllowBlank;
     property BlankText: string read FBlankText write SetBlankText;
     property EmptyClass: string read FEmptyClass write SetEmptyClass;
@@ -852,9 +851,9 @@ begin
     &On('change', TKWebResponse.Current.Items.AjaxCallMethod(Self, 'change')
       .Event
       .AddRawParam('This', 'sender.nm')
-      .AddRawParam('NewValue', 'new')
-      .AddRawParam('OldValue', 'old')
-      .FunctionArgs('sender, new, old')
+      .AddRawParam('NewValue', 'newValue')
+      .AddRawParam('OldValue', 'oldValue')
+      .FunctionArgs('sender, newValue, oldValue')
       .AsFunction);
   FOnChange := AValue;
 end;
@@ -983,11 +982,6 @@ begin
   FMaxLengthText := 'The maximum length for this field is {maxLength}';
   FMinLength := 0;
   FMinLengthText := 'The minimum length for this field is {minLength}';
-end;
-
-procedure TExtFormTextField.ApplyEmptyText;
-begin
-  TKWebResponse.Current.Items.CallMethod(Self, 'applyEmptyText');
 end;
 
 function TExtFormTextField.GetObjectNamePrefix: string;

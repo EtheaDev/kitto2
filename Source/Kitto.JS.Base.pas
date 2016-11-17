@@ -39,7 +39,6 @@ type
     procedure FreeAllChildren;
 
     function GetMethodName(const AMethod: TJSProcedure): string;
-    function AppendObjectURLParam(const AURL: string): string;
   end;
   {$M-}
 
@@ -202,18 +201,6 @@ end;
 class function TJSBase.JSClassName: string;
 begin
   Result := 'Object';
-end;
-
-function TJSBase.AppendObjectURLParam(const AURL: string): string;
-begin
-  Result := AURL;
-  if JSName <> '' then
-  begin
-    if Pos('?', Result) <> 0 then
-      Result := Result + '&Object=' + JSName
-    else
-      Result := Result + '?Object=' + JSName;
-  end;
 end;
 
 { TJSValues }

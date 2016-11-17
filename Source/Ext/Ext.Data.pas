@@ -36,6 +36,7 @@ type
     procedure SetUrl(const AValue: string);
   protected
     procedure InitDefaults; override;
+    function GetObjectNamePrefix: string; override;
   public
     class function JSClassName: string; override;
     property Url: string read FUrl write SetUrl;
@@ -365,6 +366,11 @@ end;
 class function TExtDataAjaxProxy.JSClassName: string;
 begin
   Result := 'Ext.data.proxy.Ajax';
+end;
+
+function TExtDataAjaxProxy.GetObjectNamePrefix: string;
+begin
+  Result := 'proxy';
 end;
 
 procedure TExtDataAjaxProxy.InitDefaults;

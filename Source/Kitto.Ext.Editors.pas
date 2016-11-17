@@ -1915,7 +1915,8 @@ begin
     LValue := JSONNullToEmptyStr(FRecordField.ParentRecord.FieldByName(LKeyFieldNames).GetAsJSONValue(False, False));
     SetValue(LValue);
     SetRawValue(JSONNullToEmptyStr(FRecordField.GetAsJSONValue(False, False)));
-    ApplyEmptyText;
+{ TODO : needed? }
+//    ApplyEmptyText;
 
     // Force the combo to refresh its list at next drop down.
     Store.RemoveAll();
@@ -2026,7 +2027,7 @@ begin
       LReader.RootProperty := 'Root';
       LReader.TotalProperty := 'Total';
       for I := 0 to FServerStore.Header.FieldCount - 1 do
-        with TExtDataField.CreateAndAddToArray(Store.Proxy.Reader.Fields) do
+        with TExtDataField.CreateInlineAndAddToArray(Store.Proxy.Reader.Fields) do
           Name := FServerStore.Header.Fields[I].FieldName;
       ValueField := Join(FServerStore.Key.GetFieldNames, TKConfig.Instance.MultiFieldSeparator);
       DisplayField := AViewField.ModelField.ReferencedModel.CaptionField.FieldName;
@@ -3890,7 +3891,8 @@ begin
   LValue := JSONNullToEmptyStr(FRecordField.ParentRecord.FieldByName(LKeyFieldNames).GetAsJSONValue(False, False));
   SetValue(LValue);
   SetRawValue(JSONNullToEmptyStr(FRecordField.GetAsJSONValue(False, False)));
-  ApplyEmptyText;
+{ TODO : needed? }
+//  ApplyEmptyText;
 end;
 
 procedure TKExtLookupEditor.SetFieldName(const AValue: string);
