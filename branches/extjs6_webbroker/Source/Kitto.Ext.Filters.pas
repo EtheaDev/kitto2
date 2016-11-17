@@ -634,7 +634,7 @@ begin
   AllowBlank := True;
   Mode := 'remote';
   FServerStore := TKStore.Create;
-  Store := TExtDataStore.Create(Self);
+  Store := TExtDataStore.Create(Owner);
   FServerStore.Header.AddField('Id');
   FServerStore.Header.AddField('Description');
   SetLength(LFieldNames,1);
@@ -648,7 +648,7 @@ begin
   LReader.TotalProperty := 'Total';
   LProxy.Reader := LReader;
   for I := 0 to FServerStore.Header.FieldCount - 1 do
-    with TExtDataField.CreateAndAddToArray(Store.Proxy.Reader.Fields) do
+    with TExtDataField.CreateInlineAndAddToArray(Store.Proxy.Reader.Fields) do
       Name := FServerStore.Header.Fields[I].FieldName;
   ValueField := 'Id';
   DisplayField := 'Description';

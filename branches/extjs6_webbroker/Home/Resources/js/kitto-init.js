@@ -199,4 +199,6 @@ function kittoInit()
   Ext.Ajax.on("beforerequest", function() { showKittoLoadMask(1); });
   Ext.Ajax.on("requestcomplete", function() { showKittoLoadMask(-1); });
   Ext.Ajax.on("requestexception", function() { showKittoLoadMask(0); });
+
+  Ext.ariaWarn = Ext.emptyFn;
 }

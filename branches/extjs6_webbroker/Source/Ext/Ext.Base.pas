@@ -303,6 +303,7 @@ type
     FRegion: TExtBoxComponentRegion;
     FHeight: Integer;
     FWidthExpression: TExtExpression;
+    FOwnerCt: TExtContainer;
     procedure SetAnchor(const AValue: string);
     procedure SetAutoHeight(const AValue: Boolean);
     procedure _SetAutoScroll(const AValue: Boolean);
@@ -316,6 +317,7 @@ type
     procedure SetWidthString(const AValue: string);
     procedure SetWidthExpression(const AValue: TExtExpression);
     procedure SetHeightFunc(const AValue: TExtExpression);
+    procedure SetOwnerCt(const AValue: TExtContainer);
   protected
     procedure InitDefaults; override;
   public
@@ -329,6 +331,7 @@ type
     property HeightString: string read FHeightString write SetHeightString;
     property HeightFunc: TExtExpression read FHeightFunc write SetHeightFunc;
     property Margins: string read FMargins write SetMargins;
+    property OwnerCt: TExtContainer read FOwnerCt write SetOwnerCt;
     property Region: TExtBoxComponentRegion read FRegion write SetRegion;
     property Width: Integer read FWidth write SetWidth;
     property WidthString: string read FWidthString write SetWidthString;
@@ -1278,6 +1281,11 @@ end;
 procedure TExtBoxComponent.SetMargins(AValue: string);
 begin
   FMargins := SetConfigItem('margins', AValue);
+end;
+
+procedure TExtBoxComponent.SetOwnerCt(const AValue: TExtContainer);
+begin
+  FOwnerCt := TExtContainer(SetConfigItem('ownerCt', AValue));
 end;
 
 procedure TExtBoxComponent.SetRegion(const AValue: TExtBoxComponentRegion);

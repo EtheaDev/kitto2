@@ -287,7 +287,7 @@ function TKExtCalendarPanel.CreateCalendarReader: TExtDataJsonReader;
   var
     LField: TExtDataField;
   begin
-    LField := TExtDataField.CreateAndAddToArray(AReader.Fields);
+    LField := TExtDataField.CreateInlineAndAddToArray(AReader.Fields);
     LField.Name := AName;
     LField.&Type := AType;
     LField.UseNull := AUseNull;

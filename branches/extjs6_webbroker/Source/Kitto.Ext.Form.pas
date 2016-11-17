@@ -100,7 +100,6 @@ type
     FDetailBottomPanel: TExtTabPanel;
     FChangesApplied: Boolean;
     procedure CreateEditors;
-    procedure RecreateEditors;
     procedure CreateButtons;
     procedure ChangeEditorsState;
     procedure StartOperation;
@@ -343,14 +342,6 @@ begin
   end;
 end;
 
-procedure TKExtFormPanelController.RecreateEditors;
-begin
-  FFormPanel.Delete;
-  FreeAndNil(FFormPanel);
-  CreateFormPanel;
-  CreateEditors;
-end;
-
 procedure TKExtFormPanelController.CreateEditors;
 var
   LLayoutProcessor: TKExtLayoutProcessor;
@@ -570,14 +561,23 @@ begin
         LFormField := AEditor.AsExtFormField;
         if Assigned(LFormField) then
         begin
+          // Already rendered - call RefreshValue directly; otherwise postpone it.
+
+
+
+
+
+
           LFormField.RemoveAllListeners('afterrender');
           LFormField.On('afterrender', LFormField.GenerateAnonymousFunction(GetJSCode(
             procedure
             begin
               AEditor.RefreshValue;
             end)));
-        end;
-        AEditor.RefreshValue;
+        end
+
+        else
+          AEditor.RefreshValue;
       end);
 end;
 
@@ -1085,7 +1085,7 @@ begin
     begin
       TKWebResponse.Current.Items.ExecuteJSCode(
         'var json = new Object;' + sLineBreak +
-        'json.new =  = new Object;');
+        'json.new = new Object;');
       FEditItems.AllEditors(
         procedure (AEditor: IKExtEditor)
         begin
