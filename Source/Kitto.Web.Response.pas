@@ -332,8 +332,13 @@ end;
 
 procedure TKWebResponse.Render;
 begin
-  ContentType := Items.GetContentType;
-  Content := Items.Consume;
+  // Don't overwrite custom responses.
+{ TODO : tunnel all responses (including downloads) through the response items? }
+  if Items.Count > 0 then
+  begin
+    ContentType := Items.GetContentType;
+    Content := Items.Consume;
+  end;
 end;
 
 class procedure TKWebResponse.SetCurrent(const AValue: TKWebResponse);

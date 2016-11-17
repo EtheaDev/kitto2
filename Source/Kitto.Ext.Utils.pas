@@ -436,33 +436,19 @@ procedure DownloadThumbnailedStream(const AStream: TStream; const AFileName: str
   const AThumbnailWidth, AThumbnailHeight: Integer);
 var
   LFileExt: string;
-  LTempFileName: string;
-  LStream: TFileStream;
+  LBytes: TBytes;
 
-  procedure WriteTempFile;
-  var
-    LFileStream: TFileStream;
-  begin
-    LFileStream := TFileStream.Create(LTempFileName, fmCreate);
-    try
-      AStream.Position := 0;
-      LFileStream.CopyFrom(AStream, AStream.Size);
-      AStream.Position := 0;
-    finally
-      FreeAndNil(LFileStream);
-    end;
-  end;
-
-  procedure TransformTempFileToThumbnail(const AMaxWidth, AMaxHeight: Integer;
-    const AImageClass: TGraphicClass);
+  function CreateThumbnail(const AMaxWidth, AMaxHeight: Integer;
+    const AImageClass: TGraphicClass): TBytes;
   var
     LImage: TGraphic;
     LScale: Extended;
     LBitmap: TBitmap;
+    LStream: TBytesStream;
   begin
     LImage := AImageClass.Create;
     try
-      LImage.LoadFromFile(LTempFileName);
+      LImage.LoadFromStream(AStream);
       if (LImage.Height <= AMaxHeight) and (LImage.Width <= AMaxWidth) then
         Exit;
       if LImage.Height > LImage.Width then
@@ -476,7 +462,14 @@ var
         LBitmap.Canvas.StretchDraw(LBitmap.Canvas.ClipRect, LImage);
 
         LImage.Assign(LBitmap);
-        LImage.SaveToFile(LTempFileName);
+
+        LStream := TBytesStream.Create;
+        try
+          LImage.SaveToStream(LStream);
+          Result := Copy(LStream.Bytes, 0, LStream.Size);
+        finally
+          FreeAndNil(LStream);
+        end;
       finally
         LBitmap.Free;
       end;
@@ -491,24 +484,15 @@ begin
   LFileExt := ExtractFileExt(AFileName);
   if MatchText(LFileExt, ['.jpg', '.jpeg', '.png']) then
   begin
-    LTempFileName := GetTempFileName(LFileExt);
     try
-      WriteTempFile;
       if MatchText(LFileExt, ['.jpg', '.jpeg']) then
-        TransformTempFileToThumbnail(AThumbnailWidth, AThumbnailHeight, TJPEGImage)
+        LBytes := CreateThumbnail(AThumbnailWidth, AThumbnailHeight, TJPEGImage)
       else
-        TransformTempFileToThumbnail(AThumbnailWidth, AThumbnailHeight, TPngImage);
-
-      LStream := TFileStream.Create(LTempFileName, fmOpenRead + fmShareDenyWrite);
-      try
-        TKWebApplication.Current.DownloadStream(LStream, AFileName);
-      finally
-        FreeAndNil(LStream);
-      end;
+        LBytes := CreateThumbnail(AThumbnailWidth, AThumbnailHeight, TPngImage);
     finally
-      if FileExists(LTempFileName) then
-        DeleteFile(LTempFileName);
+      AStream.Free;
     end;
+    TKWebApplication.Current.DownloadBytes(LBytes, AFileName);
   end
   else
     TKWebApplication.Current.DownloadStream(AStream, AFileName);

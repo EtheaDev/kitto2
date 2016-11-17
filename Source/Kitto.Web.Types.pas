@@ -2,7 +2,7 @@ unit Kitto.Web.Types;
 
 interface
 
-function GetFileMimeType(const AFileName, ADefaultType: string): string;
+function GetFileMimeType(const AFileName: string; const ADefaultType: string = 'application/octet-stream'): string;
 
 implementation
 

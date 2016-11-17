@@ -3128,23 +3128,15 @@ begin
 end;
 
 procedure TKExtFormFileBlobEditor.DownloadFile(const AServerFileName, AClientFileName: string);
-var
-  LStream: TStream;
 begin
   inherited;
   if FileExists(AServerFileName) then
-    LStream := TFileStream.Create(AServerFileName, fmOpenRead + fmShareDenyWrite)
+    TKWebApplication.Current.DownloadFile(AServerFileName)
   else if not FRecordField.IsNull then
-    LStream := TBytesStream.Create(FRecordField.AsBytes);
-  try
-    TKWebApplication.Current.DownloadStream(LStream, AClientFileName);
-  finally
-    FreeAndNil(LStream);
-  end;
+    TKWebApplication.Current.DownloadStream(TBytesStream.Create(FRecordField.AsBytes), AClientFileName);
 end;
 
-procedure TKExtFormFileBlobEditor.DownloadThumbnailedFile(
-  const AServerFileName, AClientFileName: string);
+procedure TKExtFormFileBlobEditor.DownloadThumbnailedFile(const AServerFileName, AClientFileName: string);
 var
   LStream: TStream;
 begin
@@ -3152,12 +3144,10 @@ begin
   if FileExists(AServerFileName) then
     LStream := TFileStream.Create(AServerFileName, fmOpenRead + fmShareDenyWrite)
   else if not FRecordField.IsNull then
-    LStream := TBytesStream.Create(FRecordField.AsBytes);
-  try
-    DownloadThumbnailedStream(LStream, AClientFileName, FImageWidth, FImageHeight);
-  finally
-    FreeAndNil(LStream);
-  end;
+    LStream := TBytesStream.Create(FRecordField.AsBytes)
+  else
+    Exit;
+  DownloadThumbnailedStream(LStream, AClientFileName, FImageWidth, FImageHeight);
 end;
 
 procedure TKExtFormFileBlobEditor.FileUploaded(const AFileName: string);
@@ -3209,30 +3199,16 @@ begin
 end;
 
 procedure TKExtFormFileReferenceEditor.DownloadFile(const AServerFileName, AClientFileName: string);
-var
-  LStream: TFileStream;
 begin
   inherited;
-  LStream := TFileStream.Create(AServerFileName, fmOpenRead + fmShareDenyWrite);
-  try
-    TKWebApplication.Current.DownloadStream(LStream, AClientFileName);
-  finally
-    FreeAndNil(LStream);
-  end;
+  TKWebApplication.Current.DownloadFile(AServerFileName);
 end;
 
-procedure TKExtFormFileReferenceEditor.DownloadThumbnailedFile(
-  const AServerFileName, AClientFileName: string);
-var
-  LStream: TFileStream;
+procedure TKExtFormFileReferenceEditor.DownloadThumbnailedFile(const AServerFileName, AClientFileName: string);
 begin
   inherited;
-  LStream := TFileStream.Create(AServerFileName, fmOpenRead + fmShareDenyWrite);
-  try
-    DownloadThumbnailedStream(LStream, AClientFileName, FImageWidth, FImageHeight);
-  finally
-    FreeAndNil(LStream);
-  end;
+  DownloadThumbnailedStream(TFileStream.Create(AServerFileName, fmOpenRead + fmShareDenyNone),
+    AClientFileName, FImageWidth, FImageHeight);
 end;
 
 procedure TKExtFormFileReferenceEditor.FileUploaded(const AFileName: string);
