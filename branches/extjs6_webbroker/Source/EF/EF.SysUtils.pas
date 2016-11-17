@@ -1555,7 +1555,7 @@ begin
   begin
     LastError := GetLastError();
     if LastError <> 0 then
-      ErrorMsg := Format(SOSError, [LastError, SysErrorMessage(LastError)])
+      ErrorMsg := Format(SOSError, [LastError, SysErrorMessage(LastError), ''])
     else
       ErrorMsg := SUnkOSError;
     raise Exception.CreateFmt(_('Error "%s" while removing file "%s". The file might be in use.'),

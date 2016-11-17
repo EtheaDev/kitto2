@@ -133,8 +133,9 @@ type
     function SetIconStyle(const ADefaultImageName: string; const AImageName: string = '';
       const ACustomPrefix: string = ''; const ACustomRules: string = ''): string;
 
-    procedure DownloadFile(const FileName: string; AContentType: string = '');
-    procedure DownloadStream(const AStream: TStream; const AFileName: string; AContentType: string = '');
+    procedure DownloadFile(const AFileName: string; const AContentType: string = '');
+    procedure DownloadStream(const AStream: TStream; const AFileName: string; const AContentType: string = '');
+    procedure DownloadBytes(const ABytes: TBytes; const AFileName: string; const AContentType: string = '');
     /// <summary>
     ///  Checks user credentials (fetched from Query parameters UserName and Passwords)
     ///  and returns True if the current authenticator allows them, or if the
@@ -173,6 +174,7 @@ uses
   , Kitto.AccessControl
   , Kitto.JS
   , Kitto.JS.Formatting
+  , Kitto.Web.Types
   ;
 
 { TKExtControllerHostWindow }
@@ -564,39 +566,28 @@ begin
   Result := SetIconStyle(AView.ImageName, AImageName, ACustomPrefix, ACustomRules);
 end;
 
-procedure TKWebApplication.DownloadFile(const FileName: string; AContentType: string);
-var
-  F: file;
-  Buffer: AnsiString;
-  Size: Longint;
+procedure TKWebApplication.DownloadBytes(const ABytes: TBytes; const AFileName, AContentType: string);
 begin
-  if FileExists(FileName) then
-  begin
-    System.Assign(F, FileName);
-    Reset(F, 1);
-    Size := FileSize(F);
-    SetLength(Buffer, Size);
-    BlockRead(F, Buffer[1], Length(Buffer));
-    Close(F);
-{ TODO : find out the best way to download files with Indy HTTP }
-//    DownloadBuffer(FileName, Size, Buffer, AContentType);
-  end;
+  if Length(ABytes) > 0 then
+    DownloadStream(TBytesStream.Create(ABytes), AFileName, AContentType);
 end;
 
-procedure TKWebApplication.DownloadStream(const AStream: TStream;
-  const AFileName: string; AContentType: string);
-var
-  LBuffer: TBytes;
-  LSize: Longint;
+procedure TKWebApplication.DownloadFile(const AFileName, AContentType: string);
 begin
+  if FileExists(AFileName) then
+    DownloadStream(TFileStream.Create(AFileName, fmOpenRead, fmShareDenyNone), AFileName, AContentType);
+end;
+
+procedure TKWebApplication.DownloadStream(const AStream: TStream; const AFileName, AContentType: string);
+begin
+  { TODO : how to use AFileName as client-side file name? }
   if Assigned(AStream) then
   begin
-    LSize := AStream.Size;
-    SetLength(LBuffer, LSize);
-    AStream.Position := 0;
-    AStream.Read(LBuffer[0], Length(LBuffer));
-{ TODO : find out the best way to download files with Indy HTTP }
-//    DownloadBuffer(AFileName, LSize, LBuffer, AContentType);
+    TKWebResponse.Current.ContentStream := AStream;
+    if AContentType <> '' then
+      TKWebResponse.Current.ContentType := AContentType
+    else
+      TKWebResponse.Current.ContentType := GetFileMimeType(AFileName);
   end;
 end;
 
