@@ -1219,7 +1219,7 @@ begin
     AFormatter.AddIndentedPairLine('url', TKWebApplication.Current.GetMethodURL(Sender.JSName, CallName));
     AFormatter.AddIndentedPairLine('method', FHttpMethod);
     if (FHttpMethod = 'POST') and (FPostData <> '') then
-      AFormatter.AddIndentedPairLine('jsonData', FPostData);
+      AFormatter.AddIndentedPairLine('jsonData', FPostData, False);
     AddParams(AFormatter);
     AFormatter.AddIndentedPairLine('success', 'AjaxSuccess', False);
     AFormatter.AddIndentedPair('failure', 'AjaxFailure', False);
