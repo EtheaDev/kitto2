@@ -36,7 +36,6 @@ type
     FClickHideDelay: Integer; // 1
     FHandler: TExtExpression;
     FHideOnClick: Boolean; // true
-    FScope: TExtObject;
     FParentMenu: TExtMenuMenu;
     FOnActivate: TExtMenuBaseItemOnActivate;
     FOnClick: TExtMenuBaseItemOnClick;
@@ -47,7 +46,7 @@ type
     procedure InitDefaults; override;
     function GetObjectNamePrefix: string; override;
   public
-    procedure HandleEvent(const AEvtName: string); override;
+    procedure DoHandleEvent(const AEvtName: string); override;
     class function JSClassName: string; override;
     function SetHandler(const AHandler: TExtExpression; const AScope: TExtObject): TExtExpression;
     property Handler: TExtExpression read FHandler write _SetHandler;
@@ -108,7 +107,7 @@ type
     procedure SetOnClick(const AValue: TExtMenuMenuOnClick);
     procedure SetOnItemclick(const AValue: TExtMenuMenuOnItemclick);
   public
-    procedure HandleEvent(const AEvtName: string); override;
+    procedure DoHandleEvent(const AEvtName: string); override;
     class function JSClassName: string; override;
     property OnClick: TExtMenuMenuOnClick read FOnClick write SetOnClick;
     property OnItemclick: TExtMenuMenuOnItemclick read FOnItemclick write SetOnItemclick;
@@ -184,7 +183,6 @@ begin
   FActiveClass := 'x-menu-item-active';
   FClickHideDelay := 1;
   FHideOnClick := true;
-  FScope := TExtObject.CreateInternal(Self, 'scope');
   FParentMenu := TExtMenuMenu.CreateInternal(Self, 'parentMenu');
 end;
 
@@ -203,7 +201,7 @@ begin
   Result := 'mi';
 end;
 
-procedure TExtMenuBaseItem.HandleEvent(const AEvtName: string);
+procedure TExtMenuBaseItem.DoHandleEvent(const AEvtName: string);
 begin
   inherited;
   if (AEvtName = 'activate') and Assigned(FOnActivate) then
@@ -305,7 +303,7 @@ begin
   Result := 'Ext.menu.Menu';
 end;
 
-procedure TExtMenuMenu.HandleEvent(const AEvtName: string);
+procedure TExtMenuMenu.DoHandleEvent(const AEvtName: string);
 begin
   inherited;
   if (AEvtName = 'click') and Assigned(FOnClick) then

@@ -2909,7 +2909,7 @@ begin
     // Add dummy parameter to the URL to force the browser to refresh the image
     // after an upload.
     TKWebResponse.Current.Items.AddHTML(Format('<img src="%s">',
-      [GetMethodURL(GetImage) + '&time=' + FormatDateTime('yyyymmddhhnnsszzz', Now())]));
+      [GetMethodURL(GetImage) + '?_dc=' + FormatDateTime('yyyymmddhhnnsszzz', Now())]));
 end;
 
 function TKExtFormFileEditor.GetObjectNamePrefix: string;

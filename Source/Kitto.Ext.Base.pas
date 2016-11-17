@@ -521,7 +521,8 @@ end;
 
 procedure TKExtWindowControllerBase.WindowClosed;
 begin
-  Session.RemoveController(GetControllerToRemove);
+  if Session <> nil then
+    Session.RemoveController(GetControllerToRemove);
 end;
 
 function TKExtWindowControllerBase.GetControllerToRemove: TObject;
@@ -594,7 +595,8 @@ end;
 destructor TKExtViewportControllerBase.Destroy;
 begin
   FreeAndNil(FConfig);
-  Session.RemoveController(Self);
+  if Session <> nil then
+    Session.RemoveController(Self);
   inherited;
 end;
 
@@ -633,9 +635,6 @@ procedure TKExtViewportControllerBase.InitDefaults;
 begin
   inherited;
   Layout := lyBorder;
-
-  { TODO: Testing }
-  Defaults.SetConfigItem('test', 1);
 end;
 
 function TKExtViewportControllerBase.IsSynchronous: Boolean;
@@ -715,7 +714,8 @@ end;
 
 destructor TKExtPanelControllerBase.Destroy;
 begin
-  Session.RemoveController(Self);
+  if Session <> nil then
+    Session.RemoveController(Self);
   inherited;
 end;
 
@@ -1007,7 +1007,8 @@ end;
 destructor TKExtControllerBase.Destroy;
 begin
   FreeAndNil(FConfig);
-  Session.RemoveController(Self);
+  if Session <> nil then
+    Session.RemoveController(Self);
   inherited;
 end;
 

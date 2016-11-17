@@ -52,16 +52,19 @@ type
   TJSFunction = class;
 
   TJSObject = class(TJSBase)
-  private
+  strict private
     { TODO : Maybe we could replace it with an extraction from JSName }
     FAttributeName: string;
     FJSConfig: TJSValues;
     function GetDownloadJS(const AMethod: TJSProcedure): string;
-  protected
+  strict protected
     procedure CreateJSName;
     function GetObjectNamePrefix: string; virtual;
     procedure InitDefaults; virtual;
+    function CreateConfigObject(const AAttributeName: string): TJSObject;
     function CreateConfigArray(const AAttributeName: string): TJSObjectArray;
+    procedure DoHandleEvent(const AEventName: string); virtual;
+  protected
     procedure DependsUpon(const AObject: TJSObject);
   public
     constructor Create(const AOwner: TJSBase); override;
@@ -130,7 +133,7 @@ type
     function ParamAsString(const AParamName: string): string;
     function ParamAsObject(const AParamName: string): TJSObject;
 
-    procedure HandleEvent(const AEventName: string); virtual;
+    procedure HandleEvent;
   end;
 
   TJSObjectClass = class of TJSObject;
@@ -481,6 +484,11 @@ end;
 function TJSObject.GetObjectNamePrefix: string;
 begin
   Result := 'o';
+end;
+
+procedure TJSObject.HandleEvent;
+begin
+  DoHandleEvent(ParamAsString('Event'));
 end;
 
 procedure TJSSession.BeforeHandleRequest;
@@ -1019,6 +1027,12 @@ begin
   SetConfigItem(AAttributeName, Result);
 end;
 
+function TJSObject.CreateConfigObject(const AAttributeName: string): TJSObject;
+begin
+  Result := TJSObject.CreateInternal(FJSConfig, AAttributeName);
+  SetConfigItem(AAttributeName, Result);
+end;
+
 procedure TJSObject.InitDefaults;
 begin
 end;
@@ -1065,7 +1079,7 @@ begin
   Result := JSExpressionFromCodeBlock(LExpr);
 end;
 
-procedure TJSObject.HandleEvent(const AEventName: string);
+procedure TJSObject.DoHandleEvent(const AEventName: string);
 begin
 end;
 
@@ -1082,23 +1096,23 @@ end;
 
 function TJSObject.ParamAsBoolean(const AParamName: string): Boolean;
 begin
-  Result := TKWebRequest.Current.ContentFields.Values[AParamName] = 'true';
+  Result := TKWebRequest.Current.QueryFields.Values[AParamName] = 'true';
 end;
 
 function TJSObject.ParamAsInteger(const AParamName: string): Integer;
 begin
-  Result := StrToIntDef(TKWebRequest.Current.ContentFields.Values[AParamName], 0);
+  Result := StrToIntDef(TKWebRequest.Current.QueryFields.Values[AParamName], 0);
 end;
 
 function TJSObject.ParamAsObject(const AParamName: string): TJSObject;
 begin
   Result := TJSObject(Session.FindChildByJSName(
-    TKWebRequest.Current.ContentFields.Values[AParamName]));
+    TKWebRequest.Current.QueryFields.Values[AParamName]));
 end;
 
 function TJSObject.ParamAsString(const AParamName: string): string;
 begin
-  Result := TKWebRequest.Current.ContentFields.Values[AParamName];
+  Result := TKWebRequest.Current.QueryFields.Values[AParamName];
 end;
 
 function TJSObject.SetConfigItem(const AName: string; const AValue: Integer): Integer;

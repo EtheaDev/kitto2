@@ -1212,8 +1212,7 @@ begin
     AFormatter.SkipLine.Indent;
     AFormatter.AddIndented('Ext.Ajax.request(').SkipLine.Indent.AddIndent.OpenObject;
     AFormatter.AddIndentedPairLine('url', TKWebApplication.Current.GetMethodURL(Sender.JSName, CallName));
-    if FHttpMethod <> 'GET' then
-      AFormatter.AddIndentedPairLine('method', FHttpMethod);
+    AFormatter.AddIndentedPairLine('method', FHttpMethod);
     if (FHttpMethod = 'POST') and (FPostData <> '') then
       AFormatter.AddIndentedPairLine('jsonData', FPostData);
     AddParams(AFormatter);
@@ -1258,10 +1257,10 @@ procedure TJSAjaxCall.AfterConstruction;
 begin
   inherited;
   FHttpMethod := 'GET';
-  Params.NameValueConnector := '=';
-  Params.ParamConnector := '&';
-  Params.ParamValuePrefix := '" + encodeURIComponent(';
-  Params.ParamValueSuffix := ') + "';
+  Params.ParamConnector := ', ';
+  Params.ParamValuePrefix := 'encodeURIComponent(';
+  Params.ParamValueSuffix := ')';
+  Params.NameValueConnector := ': ';
 end;
 
 function TJSAjaxCall.Event: TJSAjaxCall;
@@ -1313,7 +1312,7 @@ end;
 procedure TJSAjaxCall.AddParams(const AFormatter: TJSFormatter);
 begin
 { TODO : expand markers and surround params }
-  AFormatter.AddIndentedPairLine('params', Params.AsFormattedText);
+  AFormatter.AddIndentedPairLine('params', '{' + Params.AsFormattedText + '}', False);
 end;
 
 function TJSAjaxCall.AddRawParam(const AName, AValue: string): TJSAjaxCall;

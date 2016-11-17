@@ -19,11 +19,8 @@ type
 
   TExtDataProxy = class(TExtUtilObservable)
   private
-    FApi: TExtObject;
     FReader: TExtDataDataReader;
     procedure SetReader(const AValue: TExtDataDataReader);
-  protected
-    procedure InitDefaults; override;
   public
     class function JSClassName: string; override;
     function SetApi(const AApi: string; const AUrl: string): TExtExpression; overload;
@@ -307,12 +304,6 @@ end;
 class function TExtDataProxy.JSClassName: string;
 begin
   Result := 'Ext.data.proxy.Proxy';
-end;
-
-procedure TExtDataProxy.InitDefaults;
-begin
-  inherited;
-  FApi := TExtObject.CreateInternal(Self, 'api');
 end;
 
 function TExtDataProxy.SetApi(const AApi: string; const AUrl: string): TExtExpression;
