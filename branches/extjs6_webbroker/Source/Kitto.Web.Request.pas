@@ -22,16 +22,22 @@ type
     property IsRefresh: Boolean read GetIsRefresh;
 
     /// <summary>
-    ///  Returns all request query param name and values as an ISuperObject.
+    ///  Returns all request query fields (names and decoded values) as an ISuperObject.
     ///  Note: All values are treated as strings.
     /// </summary>
     function GetQueryFields: ISuperObject;
+
+    /// <summary>
+    ///  Decodes and returns the value of the query field with the given name.
+    /// </summary>
+    function GetQueryField(const AName: string): string;
   end;
 
 implementation
 
 uses
   SysUtils
+  , NetEncoding
   ;
 
 { TKWebRequest }
@@ -56,13 +62,18 @@ begin
   Result := not IsAjax and (GetFieldByName('Cache-Control') = 'max-age=0');
 end;
 
+function TKWebRequest.GetQueryField(const AName: string): string;
+begin
+  Result := TNetEncoding.URL.Decode(QueryFields.Values[AName], [TURLEncoding.TDecodeOption.PlusAsSpaces]);
+end;
+
 function TKWebRequest.GetQueryFields: ISuperObject;
 var
   I: Integer;
 begin
   Result := SO();
   for I := 0 to QueryFields.Count - 1 do
-    Result.S[QueryFields.Names[I]] := QueryFields.ValueFromIndex[I];
+    Result.S[QueryFields.Names[I]] := GetQueryField(QueryFields.Names[I]);
 end;
 
 class procedure TKWebRequest.SetCurrent(const AValue: TKWebRequest);

@@ -426,6 +426,7 @@ uses
   , Types
   , Character
   , REST.Utils
+  , System.NetEncoding
   , EF.StrUtils
   , EF.SysUtils
   , EF.Logger
@@ -1096,23 +1097,22 @@ end;
 
 function TJSObject.ParamAsBoolean(const AParamName: string): Boolean;
 begin
-  Result := TKWebRequest.Current.QueryFields.Values[AParamName] = 'true';
+  Result := SameText(TKWebRequest.Current.GetQueryField(AParamName), 'true');
 end;
 
 function TJSObject.ParamAsInteger(const AParamName: string): Integer;
 begin
-  Result := StrToIntDef(TKWebRequest.Current.QueryFields.Values[AParamName], 0);
+  Result := StrToIntDef(TKWebRequest.Current.GetQueryField(AParamName), 0);
 end;
 
 function TJSObject.ParamAsObject(const AParamName: string): TJSObject;
 begin
-  Result := TJSObject(Session.FindChildByJSName(
-    TKWebRequest.Current.QueryFields.Values[AParamName]));
+  Result := TJSObject(Session.FindChildByJSName(TKWebRequest.Current.GetQueryField(AParamName)));
 end;
 
 function TJSObject.ParamAsString(const AParamName: string): string;
 begin
-  Result := TKWebRequest.Current.QueryFields.Values[AParamName];
+  Result := TKWebRequest.Current.GetQueryField(AParamName);
 end;
 
 function TJSObject.SetConfigItem(const AName: string; const AValue: Integer): Integer;
