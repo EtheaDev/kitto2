@@ -145,8 +145,7 @@ type
   private
     FGrid: TExtObject;
     procedure SetGrid(const AValue: TExtObject);
-  protected
-    procedure InitDefaults; override;
+  strict protected
     function GetObjectNamePrefix: string; override;
   public
     class function JSClassName: string; override;
@@ -535,12 +534,6 @@ begin
   Result := 'selmodel';
 end;
 
-procedure TExtGridAbstractSelectionModel.InitDefaults;
-begin
-  inherited;
-  FGrid := TExtObject.CreateInternal(Self, 'grid');
-end;
-
 procedure TExtSelectionRowModel.SetMode(const AValue: string);
 begin
   FMode := SetConfigItem('mode', AValue);
@@ -727,10 +720,6 @@ begin
   inherited;
   FColumns := CreateConfigArray('columns');
   FFeatures := CreateConfigArray('features');
-  FSelModel := TExtObject.CreateInternal(Self, 'selModel');
-  FStore := TExtDataStore.CreateInternal(Self, 'store');
-  FView := TExtObject.CreateInternal(Self, 'view');
-  FViewConfig := TExtObject.CreateInternal(Self, 'viewConfig');
 end;
 
 function TExtGridGridPanel.GetObjectNamePrefix: string;

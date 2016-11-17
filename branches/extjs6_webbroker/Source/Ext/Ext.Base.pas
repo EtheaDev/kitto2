@@ -117,12 +117,8 @@ type
   private
     FHandler: TExtExpression;
     FHidden: Boolean;
-
-    FScope: TExtObject;
     FText: string;
     procedure _SetText(const AValue: string);
-  protected
-    procedure InitDefaults; override;
   public
     class function JSClassName: string; override;
     function SetHandler(const AFn: TExtExpression; const AScope: TExtObject): TExtExpression;
@@ -202,10 +198,12 @@ type
     procedure SetPadding(const AValue: string);
     procedure SetCls(const AValue: string);
     procedure SetOnAfterrender(const AValue: TExtComponentOnAfterrender);
+    function GetLoader: TExtObject;
+    function GetPlugins: TJSObjectArray;
   protected
     procedure InitDefaults; override;
   public
-    procedure HandleEvent(const AEvtName: string); override;
+    procedure DoHandleEvent(const AEvtName: string); override;
     class function JSClassName: string; override;
     function AddCls(const AClsName: string): TExtExpression;
     function Focus(const ASelectText: Boolean = False; const ADelay: Boolean = False): TExtExpression; overload;
@@ -224,10 +222,10 @@ type
     property ItemId: string read FItemId write SetItemId;
     property LabelSeparator: string read FLabelSeparator write SetLabelSeparator;
     property LabelStyle: string read FLabelStyle write SetLabelStyle;
-    property Loader: TExtObject read FLoader;
+    property Loader: TExtObject read GetLoader;
     property OverCls: string read FOverCls write SetOverCls;
     property Padding: string read FPadding write SetPadding;
-    property Plugins: TJSObjectArray read FPlugins;
+    property Plugins: TJSObjectArray read GetPlugins;
     property Style: string read FStyle write SetStyle;
     property Tpl: string read FTpl write SetTpl;
     property Split: Boolean read FSplit write SetSplit;
@@ -371,7 +369,6 @@ type
     FDefaults: TExtObject;
     FItems: TJSObjectArray;
     FLayout: TExtContainerLayout;
-    FLayoutObject: TExtObject;
     FLayoutConfig: TExtObject;
     FLayoutString: string;
     FColumnWidth: Double;
@@ -386,6 +383,8 @@ type
     procedure SetLabelAlign(const AValue: TExtContainerLabelAlign);
     procedure SetLayoutString(const AValue: string);
     procedure SetHideLabels(const AValue: Boolean);
+    function GetDefaults: TExtObject;
+    function GetLayoutConfig: TExtObject;
   protected
     procedure InitDefaults; override;
   public
@@ -395,13 +394,13 @@ type
     function Remove(const AComponent: TExtComponent; const AAutoDestroy: Boolean = False): TExtExpression;
     property ActiveItem: string read FActiveItem write SetActiveItem;
     property ActiveItemNumber: Integer read FActiveItemNumber write SetActiveItemNumber;
-    property Defaults: TExtObject read FDefaults;
+    property Defaults: TExtObject read GetDefaults;
     property HideLabels: Boolean read FHideLabels write SetHideLabels;
     property Items: TJSObjectArray read FItems;
     property LabelAlign: TExtContainerLabelAlign read FLabelAlign write SetLabelAlign;
     property LabelWidth: Integer read FLabelWidth write SetLabelWidth;
     property Layout: TExtContainerLayout read FLayout write SetLayout;
-    property LayoutConfig: TExtObject read FLayoutConfig;
+    property LayoutConfig: TExtObject read GetLayoutConfig;
     property LayoutString: string read FLayoutString write SetLayoutString;
     property ColumnWidth: Double read FColumnWidth write SetColumnWidth;
   end;
@@ -421,12 +420,10 @@ type
     FMinWidth: Integer;
     FPressed: Boolean;
     FScale: string;
-    FScope: TExtObject;
     FTemplate: TExtTemplate;
     FText: string;
     FToggleGroup: string;
     FTooltip: string;
-    FTooltipObject: TExtObject;
     FBtnEl: TExtElement;
     procedure SetAllowDepress(const AValue: Boolean);
     procedure SetDisabled(const AValue: Boolean);
@@ -546,7 +543,6 @@ type
     FButtons: TJSObjectArray;
     FMinButtonWidth: Integer;
     procedure SetAnimCollapse(const AValue: Boolean);
-    procedure SetAutoLoad(const AValue: TExtObject);
     procedure SetAutoLoadString(const AValue: string);
     procedure SetAutoLoadBoolean(const AValue: Boolean);
     procedure SetBbar(const AValue: TExtObject);
@@ -563,6 +559,7 @@ type
     procedure SetCollapsed(const AValue: Boolean);
     procedure SetTbar(const AValue: TExtObject);
     procedure SetMinButtonWidth(const AValue: Integer);
+    function GetAutoLoad: TExtObject;
   protected
     procedure InitDefaults; override;
     function GetObjectNamePrefix: string; override;
@@ -572,7 +569,7 @@ type
     function Expand(const AAnimate: Boolean): TExtExpression;
     function SetTitle(const ATitle: string; const AIconCls: string = ''): TExtExpression;
     property AnimCollapse: Boolean read FAnimCollapse write SetAnimCollapse;
-    property AutoLoad: TExtObject read FAutoLoad write SetAutoLoad;
+    property AutoLoad: TExtObject read GetAutoLoad;
     property AutoLoadString: string read FAutoLoadString write SetAutoLoadString;
     property AutoLoadBoolean: Boolean read FAutoLoadBoolean write SetAutoLoadBoolean;
     property Bbar: TExtObject read FBbar write SetBbar;
@@ -731,7 +728,7 @@ type
   protected
     function GetObjectNamePrefix: string; override;
   public
-    procedure HandleEvent(const AEvtName: string); override;
+    procedure DoHandleEvent(const AEvtName: string); override;
     class function JSClassName: string; override;
     function GetActiveTab: TExtExpression;
     function SetActiveTab(const AItem: string): TExtExpression; overload;
@@ -933,12 +930,6 @@ begin
   Result := 'Ext.Action';
 end;
 
-procedure TExtAction.InitDefaults;
-begin
-  inherited;
-  FScope := TExtObject.CreateInternal(Self, 'scope');
-end;
-
 function TExtAction.SetHandler(const AFn: TExtExpression; const AScope: TExtObject): TExtExpression;
 begin
   FHandler := AFn;
@@ -1085,8 +1076,6 @@ procedure TExtComponent.InitDefaults;
 begin
   inherited;
   FLabelSeparator := ':';
-  FPlugins := CreateConfigArray('plugins');
-  FLoader := TExtObject.CreateInternal(Self, 'loader');
 end;
 
 function TExtComponent.AddCls(const AClsName: string): TExtExpression;
@@ -1108,6 +1097,20 @@ begin
     .AddParam(ASelectText)
     .AddParam(ADelay)
     .AsExpression;
+end;
+
+function TExtComponent.GetLoader: TExtObject;
+begin
+  if not Assigned(FLoader) then
+    FLoader := CreateConfigObject('loader');
+  Result := FLoader;
+end;
+
+function TExtComponent.GetPlugins: TJSObjectArray;
+begin
+  if not Assigned(FPlugins) then
+    FPlugins := CreateConfigArray('plugins');
+  Result := FPlugins;
 end;
 
 function TExtComponent.Hide: TExtExpression;
@@ -1146,7 +1149,7 @@ begin
   FOnAfterrender := AValue;
 end;
 
-procedure TExtComponent.HandleEvent(const AEvtName: string);
+procedure TExtComponent.DoHandleEvent(const AEvtName: string);
 begin
   inherited;
   if (AEvtName = 'afterrender') and Assigned(FOnAfterrender) then
@@ -1387,14 +1390,25 @@ begin
   Result := 'Ext.Container';
 end;
 
+function TExtContainer.GetDefaults: TExtObject;
+begin
+  if not Assigned(FDefaults) then
+    FDefaults := CreateConfigObject('defaults');
+  Result := FDefaults;
+end;
+
+function TExtContainer.GetLayoutConfig: TExtObject;
+begin
+  if not Assigned(FLayoutConfig) then
+    FLayoutConfig := CreateConfigObject('layoutConfig');
+  Result := FLayoutConfig;
+end;
+
 procedure TExtContainer.InitDefaults;
 begin
   inherited;
   FAutoDestroy := True;
-  FDefaults := TExtObject.CreateInternal(Self, 'defaults');
   FItems := CreateConfigArray('items');
-  FLayoutObject := TExtObject.CreateInternal(Self, 'layout');
-  FLayoutConfig := TExtObject.CreateInternal(Self, 'layoutConfig');
 end;
 
 function TExtContainer.UpdateLayout: TExtExpression;
@@ -1504,9 +1518,7 @@ begin
   inherited;
   FHandleMouseEvents := true;
   FMenu := TExtUtilObservable.CreateInternal(Self, 'menu');
-  FScope := TExtObject.CreateInternal(Self, 'scope');
   FTemplate := TExtTemplate.CreateInternal(Self, 'template');
-  FTooltipObject := TExtObject.CreateInternal(Self, 'tooltip');
   FBtnEl := TExtElement.CreateInternal(Self, 'btnEl');
 end;
 
@@ -1676,11 +1688,6 @@ begin
   FAnimCollapse := SetConfigItem('animCollapse', AValue);
 end;
 
-procedure TExtPanel.SetAutoLoad(const AValue: TExtObject);
-begin
-  FAutoLoad := SetConfigItem('autoLoad', AValue);
-end;
-
 procedure TExtPanel.SetAutoLoadString(const AValue: string);
 begin
   FAutoLoadString := SetConfigItem('autoLoad', AValue);
@@ -1768,7 +1775,6 @@ procedure TExtPanel.InitDefaults;
 begin
   inherited;
   FAnimCollapse := true;
-  FAutoLoad := TExtObject.CreateInternal(Self, 'autoLoad');
   FBbar := CreateConfigArray('bbar');
   FBorder := true;
   FButtons := CreateConfigArray('buttons');
@@ -1789,6 +1795,13 @@ begin
   Result := TKWebResponse.Current.Items.CallMethod(Self, 'exand')
     .AddParam(AAnimate)
     .AsExpression;
+end;
+
+function TExtPanel.GetAutoLoad: TExtObject;
+begin
+  if not Assigned(FAutoLoad) then
+    FAutoLoad := CreateConfigObject('autoLoad');
+  Result := FAutoLoad;
 end;
 
 function TExtPanel.GetObjectNamePrefix: string;
@@ -2082,7 +2095,7 @@ begin
     .AsExpression;
 end;
 
-procedure TExtTabPanel.HandleEvent(const AEvtName: string);
+procedure TExtTabPanel.DoHandleEvent(const AEvtName: string);
 begin
   inherited;
   if (AEvtName = 'tabchange') and Assigned(FOnTabChange) then

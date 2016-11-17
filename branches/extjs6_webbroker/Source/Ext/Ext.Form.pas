@@ -68,13 +68,8 @@ type
 
   TExtFormBasicForm = class(TExtUtilObservable)
   private
-    FApi: TExtObject;
-    FBaseParams: TExtObject;
-    FErrorReader: TExtDataDataReader;
     FUrl: string;
     procedure SetUrl(const AValue: string);
-  protected
-    procedure InitDefaults; override;
   public
     class function JSClassName: string; override;
     function GetFieldValues(const ADirtyOnly: Boolean = False): TExtExpression;
@@ -143,7 +138,7 @@ type
   protected
     function GetObjectNamePrefix: string; override;
   public
-    procedure HandleEvent(const AEvtName: string); override;
+    procedure DoHandleEvent(const AEvtName: string); override;
     class function JSClassName: string; override;
     function GetRawValue: TExtExpression;
     function GetValue: TExtExpression;
@@ -276,7 +271,7 @@ type
     procedure InitDefaults; override;
     function GetObjectNamePrefix: string; override;
   public
-    procedure HandleEvent(const AEvtName: string); override;
+    procedure DoHandleEvent(const AEvtName: string); override;
     class function JSClassName: string; override;
     function GetValue: TExtExpression;
     function SetValue(const AChecked: Boolean): TExtExpression; overload;
@@ -502,11 +497,12 @@ type
     procedure SetMinHeightFunc(const AValue: TExtExpression);
     procedure SetListWidthFunc(const AValue: TExtExpression);
     procedure SetOnSelect(const AValue: TExtFormComboBoxOnSelect);
+    function GetListConfig: TExtObject;
   protected
     procedure InitDefaults; override;
     function GetObjectNamePrefix: string; override;
   public
-    procedure HandleEvent(const AEvtName: string); override;
+    procedure DoHandleEvent(const AEvtName: string); override;
     class function JSClassName: string; override;
     function ClearValue: TExtExpression;
     function Expand: TExtExpression;
@@ -521,7 +517,7 @@ type
     property HiddenName: string read FHiddenName write SetHiddenName;
     property HiddenValue: string read FHiddenValue write SetHiddenValue;
     property LazyRender: Boolean read FLazyRender write SetLazyRender;
-    property ListConfig: TExtObject read FListConfig;
+    property ListConfig: TExtObject read GetListConfig;
     property ListWidth: Integer read FListWidth write SetListWidth;
     property ListWidthFunc: TExtExpression read FListWidthFunc write SetListWidthFunc;
     property MinChars: Integer read FMinChars write SetMinChars;
@@ -556,13 +552,12 @@ type
     procedure SetTrigger2Class(const AValue: string);
     procedure SetOnTrigger1Click(const AValue: TExtExpression);
     procedure SetOnTrigger2Click(const AValue: TExtExpression);
-  protected
-    procedure InitDefaults; override;
+    function GetTriggerConfig: TExtObject;
   public
     class function JSClassName: string; override;
     property Trigger1Class: string read FTrigger1Class write SetTrigger1Class;
     property Trigger2Class: string read FTrigger2Class write SetTrigger2Class;
-    property TriggerConfig: TExtObject read FTriggerConfig;
+    property TriggerConfig: TExtObject read GetTriggerConfig;
     property OnTrigger1Click: TExtExpression read FOnTrigger1Click write SetOnTrigger1Click;
     property OnTrigger2Click: TExtExpression read FOnTrigger2Click write SetOnTrigger2Click;
   end;
@@ -670,14 +665,6 @@ end;
 class function TExtFormBasicForm.JSClassName: string;
 begin
   Result := 'Ext.form.BasicForm';
-end;
-
-procedure TExtFormBasicForm.InitDefaults;
-begin
-  inherited;
-  FApi := TExtObject.CreateInternal(Self, 'api');
-  FBaseParams := TExtObject.CreateInternal(Self, 'baseParams');
-  FErrorReader := TExtDataDataReader.CreateInternal(Self, 'errorReader');
 end;
 
 function TExtFormBasicForm.GetFieldValues(const ADirtyOnly: Boolean): TExtExpression;
@@ -835,7 +822,7 @@ begin
     .AsExpression;
 end;
 
-procedure TExtFormField.HandleEvent(const AEvtName: string);
+procedure TExtFormField.DoHandleEvent(const AEvtName: string);
 begin
   inherited;
   if (AEvtName = 'change') and Assigned(FOnChange) then
@@ -1070,7 +1057,7 @@ begin
   Result := TKWebResponse.Current.Items.CallMethod(Self, 'setValue').AddParam(AChecked).AsExpression;
 end;
 
-procedure TExtFormCheckbox.HandleEvent(const AEvtName: string);
+procedure TExtFormCheckbox.DoHandleEvent(const AEvtName: string);
 begin
   inherited;
   if (AEvtName = 'check') and Assigned(FOnCheck) then
@@ -1497,7 +1484,6 @@ begin
   inherited;
   FAutoSelect := true;
   FDisplayField := 'output/Ext.form.ComboBox.html#Ext.form.ComboBox-mode';
-  FListConfig := TExtObject.CreateInternal(Self, 'listConfig');
   FMinChars := 4;
   FMinHeight := 90;
   FMinListWidth := 70;
@@ -1538,6 +1524,13 @@ begin
   FOnSelect := AValue;
 end;
 
+function TExtFormComboBox.GetListConfig: TExtObject;
+begin
+  if not Assigned(FListConfig) then
+    FListConfig := CreateConfigObject('listConfig');
+  Result := FListConfig;
+end;
+
 function TExtFormComboBox.GetListParent: TExtExpression;
 begin
   Result := TKWebResponse.Current.Items.CallMethod(Self, 'getListParent').AsExpression;
@@ -1568,7 +1561,7 @@ begin
   Result := TKWebResponse.Current.Items.CallMethod(Self, 'setValue').AddParam(AValue).AsExpression;
 end;
 
-procedure TExtFormComboBox.HandleEvent(const AEvtName: string);
+procedure TExtFormComboBox.DoHandleEvent(const AEvtName: string);
 begin
   inherited;
   if (AEvtName = 'select') and Assigned(FOnSelect) then
@@ -1596,15 +1589,16 @@ begin
   FTrigger2Class := SetConfigItem('trigger2Class', AValue);
 end;
 
+function TExtFormTwinTriggerField.GetTriggerConfig: TExtObject;
+begin
+  if not Assigned(FTriggerConfig) then
+    FTriggerConfig := CreateConfigObject('triggerConfig');
+  Result := FTriggerConfig;
+end;
+
 class function TExtFormTwinTriggerField.JSClassName: string;
 begin
   Result := 'Ext.form.TwinTriggerField';
-end;
-
-procedure TExtFormTwinTriggerField.InitDefaults;
-begin
-  inherited;
-  FTriggerConfig := TExtObject.CreateInternal(Self, 'triggerConfig');
 end;
 
 procedure TExtFormTimeField.SetAltFormats(const AValue: string);

@@ -164,7 +164,7 @@ function ajaxSelection(buttonId, text, obj)
   if (buttonId == "yes")
   {
     var
-      selValues = [],
+      ajaxParams = {Ajax: 1},
       selModels = obj.params.selModel.getSelection(),
       fieldNames = obj.params.fieldNames.split(',');
     for (var i = 0; i < fieldNames.length; i++)
@@ -172,11 +172,12 @@ function ajaxSelection(buttonId, text, obj)
       var fieldValues = [];
       for (var j = 0; j < selModels.length; j++)
         fieldValues.push(selModels[j].data[fieldNames[i]]);
-      selValues.push(fieldNames[i] + "=" + fieldValues.toString());
+      ajaxParams[fieldNames[i]] = fieldValues.toString();
     }
     return Ext.Ajax.request({
       url: obj.params.methodURL,
-      params: "Ajax=1&" + selValues.join('&'),
+      method: "GET",
+      params: ajaxParams,
       success: AjaxSuccess,
       failure: AjaxFailure
     });
@@ -196,7 +197,7 @@ function ajaxDataViewSelection(buttonId, text, obj)
   if (buttonId == "yes")
   {
     var
-      selValues = [],
+      ajaxParams = {Ajax: 1},
       selRecords = obj.params.dataView.getSelectedRecords(),
       fieldNames = obj.params.fieldNames.split(',');
     for (var i = 0; i < fieldNames.length; i++)
@@ -204,11 +205,12 @@ function ajaxDataViewSelection(buttonId, text, obj)
       var fieldValues = [];
       for (var j = 0; j < selRecords.length; j++)
         fieldValues.push(selRecords[j].get(fieldNames[i]));
-      selValues.push(fieldNames[i] + "=" + fieldValues.toString());
+      ajaxParams[fieldNames[i]] = fieldValues.toString();
     }
     return Ext.Ajax.request({
       url: obj.params.methodURL,
-      params: "Ajax=1&" + selValues.toString(),
+      method: "GET",
+      params: ajaxParams,
       success: AjaxSuccess,
       failure: AjaxFailure
     });
@@ -226,7 +228,8 @@ function ajaxSimple(buttonId, text, obj)
   {
     return Ext.Ajax.request({
       url: obj.params.methodURL,
-      params: "Ajax=1",
+      method: "GET",
+      params: {Ajax: 1},
       success: AjaxSuccess,
       failure: AjaxFailure
     });

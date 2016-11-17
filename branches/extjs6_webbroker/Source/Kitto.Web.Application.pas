@@ -157,7 +157,6 @@ type
     /// </summary>
     function GetHomeURL(const ATCPPort: Integer): string;
 
-    procedure HandleEvent;
     { TODO : move to application once it gains the ability to execute ajax methods }
     procedure DelayedHome;
     procedure Logout;
@@ -204,12 +203,13 @@ function TKWebApplication.GetObjectFromURL(const AURL: TKURL): TObject;
 var
   LJSName: string;
 begin
-//  LJSName := AURL.ParamByName('Object');
   LJSName := AURL.ExtractObjectName;
-  if (LJSName = '') or (AURL.ParamByName('Event') <> '') then
+  if LJSName = '' then
     Result := Self
   else
     Result := Session.FindChildByJSName(LJSName);
+  if not Assigned(Result) then
+    raise Exception.CreateFmt('Handler object %s for method %s not found in session.', [LJSName, AURL.Document]);
 end;
 
 constructor TKWebApplication.Create(const APath: string);
@@ -623,8 +623,6 @@ begin
         try
           // Try to execute method.
           LHandlerObject := GetObjectFromURL(AURL);
-          if not Assigned(LHandlerObject) then
-            raise Exception.CreateFmt('Handler object for method %s not found in session.', [AURL.Path]);
           if (AURL.Document = '') or (AURL.Document = 'home') then
           begin
             Home;
@@ -835,22 +833,6 @@ begin
     .AddParam('vpWidthInches', Session.GetViewportWidthInInches);
 
   ServeHomePage;
-end;
-
-procedure TKWebApplication.HandleEvent;
-var
-  LObject: TJSObject;
-  LEvent: string;
-begin
-  LEvent := TKWebRequest.Current.QueryFields.Values['Event'];
-  if LEvent <> '' then
-  begin
-    LObject := Session.FindChildByJSName(TKWebRequest.Current.QueryFields.Values['Object']) as TJSObject;
-    if not Assigned(LObject) then
-      Error('Object not found in session list. It could be timed out, refresh page and try again', 'HandleEvent', '')
-    else
-      LObject.HandleEvent(LEvent);
-  end;
 end;
 
 procedure TKWebApplication.ErrorMessage(const AMessage: string; const AAction: string);
