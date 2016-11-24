@@ -169,7 +169,7 @@ type
     procedure SetViewTable(const AViewTable: TKViewTable);
     function GetId: string;
     procedure Invalidate;
-  published
+  //published
     procedure GetRecordPage; virtual; abstract;
   end;
 
@@ -209,7 +209,7 @@ type
     function GetExpression: string;
     procedure SetConfig(const AConfig: TEFNode); override;
     function ExpandValues(const AString: string): string;
-  published
+  //published
     procedure GetRecordPage; override;
   end;
 
@@ -237,7 +237,7 @@ type
     function GetExpression: string;
     procedure SetConfig(const AConfig: TEFNode); override;
     function ExpandValues(const AString: string): string;
-  published
+  //published
     procedure ValueChanged;
     procedure GetRecordPage; override;
   end;
@@ -331,7 +331,7 @@ type
     function ExpandValues(const AString: string): string;
     function GetId: string;
     procedure Invalidate;
-  published
+  //published
     procedure ButtonClick;
   end;
 
@@ -399,7 +399,7 @@ type
     function ExpandValues(const AString: string): string;
     function  GetId: string;
     procedure Invalidate;
-  published
+  //published
     procedure ButtonClick;
   end;
 
@@ -451,7 +451,7 @@ type
     function GetId: string;
     procedure Invalidate;
     function AsExtObject: TExtObject;
-  published
+  //published
     procedure ClearClick; override;
   end;
 
@@ -471,6 +471,7 @@ uses
   , Kitto.AccessControl
   , Kitto.JS.Formatting
   , Kitto.Web.Application
+  , Kitto.Web.Request
   , Kitto.Web.Response
   , Kitto.Ext.Utils
   ;
@@ -946,7 +947,7 @@ begin
   Format := TJS.DelphiDateFormatToJSDateFormat(LFormat);
   AltFormats := TJS.DelphiDateFormatToJSDateFormat(TKWebApplication.Current.Config.JSFormatSettings.ShortDateFormat);
 
-  if Session.IsMobileBrowser then
+  if TKWebRequest.Current.IsMobileBrowser then
     Editable := False;
 
   if FConfig.GetBoolean('Sys/IsReadOnly') then

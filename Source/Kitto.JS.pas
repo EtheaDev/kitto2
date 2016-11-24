@@ -135,8 +135,54 @@ type
 
     procedure HandleEvent;
   end;
-
   TJSObjectClass = class of TJSObject;
+
+  IJSContainer = interface(IEFInterface)
+    ['{170D8F2B-60A2-4C40-A31F-29C7A9AED295}']
+    function AsJSObject: TJSObject;
+    procedure AddItem(const AItem: TJSObject);
+  end;
+
+  /// <summary>
+  ///  Interface for controllers. Controllers manage views to build
+  ///  the user interface.
+  /// </summary>
+  IJSController = interface(IEFInterface)
+    ['{FCDFC7CC-E202-4C20-961C-11255CABE497}']
+
+    /// <summary>
+    ///  Renders AView according to the Config.
+    /// </summary>
+    procedure Display;
+
+    function GetConfig: TEFNode;
+    property Config: TEFNode read GetConfig;
+
+    function GetView: TKView;
+    procedure SetView(const AValue: TKView);
+    property View: TKView read GetView write SetView;
+
+    function GetContainer: IJSContainer;
+    procedure SetContainer(const AValue: IJSContainer);
+    property Container: IJSContainer read GetContainer write SetContainer;
+
+    /// <summary>
+    ///  Returns True if the controller should be freed right after
+    ///  calling Display because it does all its job inside that method, and
+    ///  False if the controller stays on screen and is interactive instead.
+    /// </summary>
+    function IsSynchronous: Boolean;
+  end;
+
+  IJSFloatingHost = interface(IJSContainer)
+    ['{170D8F2B-60A2-4C40-A31F-29C7A9AED295}']
+    procedure SetHostedController(const AController: IJSController);
+  end;
+
+  IJSControllerHost = interface(IJSContainer)
+    ['{37EA31CA-544F-4DBD-8C04-D08E30517C99}']
+    procedure InitController(const AController: IJSController);
+  end;
 
   TJSExpression = class(TJSBase)
   private
@@ -203,6 +249,7 @@ type
   TJSRequestInfo = class
     UserAgent: string;
     ClientAddress: string;
+    DateTime: TDateTime;
   end;
 
   TJSUploadedFile = class
@@ -235,16 +282,12 @@ type
     FObjectSequences: TDictionary<string, Cardinal>;
     FLibraries, FLanguage: string;
     FSingletons: TDictionary<string, TJSObject>;
-    FMobileBrowserDetectionDone: Boolean;
-    FIsMobileApple: Boolean;
-    FGlobal: TJSObject;
     FIsDownload: Boolean;
     FIsUpload: Boolean;
     FUploadPath: string;
     FMaxUploadSize: Integer;
     FFileUploadedFullName: string;
     FFileUploaded: string;
-    FLastRequestDateTime: TDateTime;
     FRefreshingLanguage: Boolean;
     FHomeController: TObject;
     FLoginController: TObject;
@@ -253,14 +296,13 @@ type
     FAuthData: TEFNode;
     FIsAuthenticated: Boolean;
     FAuthMacroExpander: TEFTreeMacroExpander;
-    FOpenControllers: TList<TObject>;
-    FControllerHostWindow: TJSObject;
+    FOpenControllers: TList<IJSController>;
+    FControllerHostWindow: IJSContainer;
     FViewHost: TObject;
     FStatusHost: TObject;
     FUploadedFiles: TObjectList<TJSUploadedFile>;
     FHomeViewNodeName: string;
     FViewportContent: string;
-    FIsMobileBrowser: Boolean;
     FViewportWidth: Integer;
     FGettextInstance: TGnuGettextInstance;
     FDynamicScripts: TStringList;
@@ -268,7 +310,6 @@ type
     FDisplayName: string;
     FLastRequestInfo: TJSRequestInfo;
     function GetDisplayName: string;
-    function GetGlobal: TJSObject;
     procedure SetLanguage(const AValue: string);
     /// <summary>
     ///  If the specifield css file name exists, generates code that
@@ -283,13 +324,11 @@ type
     /// </summary>
     procedure EnsureDynamicScript(const AScriptBaseName: string);
   strict protected
-    { TODO : temporary - refactoring due }
-    procedure AfterNewSession; virtual;
-  protected
-    function GetNextJSName(const AObjectType: string): string;
     function GetViewportContent: string; virtual;
     function GetManifestFileName: string; virtual;
     function GetCustomJS: string; virtual;
+  protected
+    function GetNextJSName(const AObjectType: string): string;
   public
     /// <summary>
     ///  Calls AProc for each uploaded file in list.
@@ -325,9 +364,9 @@ type
     property MaxUploadSize: Integer read FMaxUploadSize write FMaxUploadSize;
     property FileUploaded: string read FFileUploaded;
     property FileUploadedFullName: string read FFileUploadedFullName;
-    function GetViewportWidthInInches: TJSExpression;
     function GetDefaultViewportWidth: Integer;
   public
+    constructor Create(const ASessionId: string); reintroduce;
     procedure AfterConstruction; override;
     destructor Destroy; override;
 
@@ -335,9 +374,6 @@ type
     procedure Refresh;
 
     function GetSingleton<T: TJSObject>(const AName: string): T;
-    { TODO : move to request }
-    function IsMobileApple: Boolean;
-    property Global: TJSObject read GetGlobal;
 
     /// <summary>
     ///  Gives access to a copy of the auth data that was last passed
@@ -360,12 +396,12 @@ type
     ///  It is of type TKExtStatusBar.
     /// </summary>
     property StatusHost: TObject read FStatusHost write FStatusHost;
-    property ControllerHostWindow: TJSObject read FControllerHostWindow write FControllerHostWindow;
+    property ControllerHostWindow: IJSContainer read FControllerHostWindow write FControllerHostWindow;
     /// <summary>
     ///  The current session's UUID.
     /// </summary>
-    property SessionId: string read FSessionId {temporary} write FSessionId;
-    property OpenControllers: TList<TObject> read FOpenControllers;
+    property SessionId: string read FSessionId;
+    property OpenControllers: TList<IJSController> read FOpenControllers;
     property HomeController: TObject read FHomeController write FHomeController;
     property LoginController: TObject read FLoginController write FLoginController;
     property ViewportWidthInInches: Integer read FViewportWidthInInches write FViewportWidthInInches;
@@ -374,19 +410,9 @@ type
     property Libraries: string read FLibraries write FLibraries;
     property ViewportContent: string read FViewportContent write FViewportContent;
     /// <summary>
-    ///  True if the last request came from a mobile browser.
-    ///  The user agent detection is performed once per session and then cached.
-    /// </summary>
-    function IsMobileBrowser: Boolean;
-    /// <summary>
     ///  Viewport width in mobile applications.
     /// </summary>
     property ViewportWidth: Integer read FViewportWidth write FViewportWidth;
-    /// <summary>
-    ///  True if tooltips are enabled for the session. By default, tooltips
-    ///  are enabled for desktop browsers and disabled for mobile browsers.
-    /// </summary>
-    function TooltipsEnabled: Boolean;
     /// <summary>
     ///  Ensures that existing js and css files with the specified base name
     ///  are dynamically added to the page. If the specified files don't exist
@@ -409,7 +435,7 @@ type
     ///  it is removed from the list. Otherwise nothing happens.
     ///  Used by view hosts to notify the session that a controller was closed.
     /// </summary>
-    procedure RemoveController(const AObject: TObject);
+    procedure RemoveController(const AController: IJSController);
     property DisplayName: string read GetDisplayName write FDisplayName;
 
     property LastRequestInfo: TJSRequestInfo read FLastRequestInfo;
@@ -457,7 +483,6 @@ procedure TJSSession.Refresh;
 begin
   inherited;
   TKWebResponse.Current.Items.Clear;
-  FGlobal := nil;
   FreeAllChildren;
   FObjectSequences.Clear;
   FSingletons.Clear;
@@ -496,7 +521,6 @@ procedure TJSSession.BeforeHandleRequest;
 var
   I: Integer;
 begin
-  FLastRequestDateTime := Now;
   if FLanguage = '' then
   begin // Set language
     FLanguage := TKWebRequest.Current.GetFieldByName('Accept-Language');
@@ -511,11 +535,13 @@ begin
   end;
 end;
 
-function TJSSession.GetGlobal: TJSObject;
+constructor TJSSession.Create(const ASessionId: string);
 begin
-  if not Assigned(FGlobal) then
-    FGlobal := TJSObject.CreateInline(Self);
-  Result := FGlobal;
+  Assert(ASessionId <> '');
+
+  inherited Create(nil);
+  FSessionId := ASessionId;
+  FUploadPath := '/uploads/' + FSessionId;
 end;
 
 destructor TJSSession.Destroy;
@@ -533,7 +559,6 @@ begin
   FreeAndNil(FOpenControllers);
   FreeAndNil(FObjectSequences);
   FreeAndNil(FSingletons);
-  FreeAndNil(FGlobal);
   FreeAndNil(FAuthMacroExpander);
   FreeAndNil(FAuthData);
   FreeAndNil(FUploadedFiles);
@@ -544,47 +569,6 @@ begin
   FreeAndNil(FDynamicStyles);
   FreeAndNil(FLastRequestInfo);
   inherited;
-end;
-
-function TJSSession.IsMobileApple: Boolean;
-var
-  LUserAgent: string;
-begin
-  if not FMobileBrowserDetectionDone then
-  begin
-    LUserAgent := TKWebRequest.Current.GetFieldByName('User-Agent');
-    FIsMobileApple := LUserAgent.Contains('iPhone') or LUserAgent.Contains('iPad');
-    FMobileBrowserDetectionDone := True;
-  end;
-  Result := FIsMobileApple;
-end;
-
-function TJSSession.TooltipsEnabled: Boolean;
-begin
-  Result := not Session.IsMobileBrowser;
-end;
-
-function TJSSession.IsMobileBrowser: Boolean;
-var
-  LUserAgent: string;
-begin
-  if not FMobileBrowserDetectionDone then
-  begin
-    LUserAgent := TKWebRequest.Current.UserAgent;
-    TEFLogger.Instance.Log('UserAgent: ' + LUserAgent);
-    FIsMobileBrowser := LUserAgent.Contains('Windows Phone') or
-      LUserAgent.Contains('iPhone') or
-      LUserAgent.Contains('iPad') or
-      LUserAgent.Contains('Android');
-    FMobileBrowserDetectionDone := True;
-    TEFLogger.Instance.Log('IsMobileBrowser: ' + BoolToStr(FIsMobileBrowser, True));
-  end;
-  Result := FIsMobileBrowser;
-end;
-
-function TJSSession.GetViewportWidthInInches: TJSExpression;
-begin
-  Result := Global.JSExpressionFromCodeBlock('getViewportWidthInInches()');
 end;
 
 function TJSSession.GetDefaultViewportWidth: Integer;
@@ -615,10 +599,10 @@ begin
   FUploadedFiles.Remove(AFileDescriptor);
 end;
 
-procedure TJSSession.RemoveController(const AObject: TObject);
+procedure TJSSession.RemoveController(const AController: IJSController);
 begin
   if Assigned(FOpenControllers) then
-    FOpenControllers.Remove(AObject);
+    FOpenControllers.Remove(AController);
 end;
 
 procedure TJSSession.SetLanguage(const AValue: string);
@@ -633,7 +617,7 @@ procedure TJSSession.SetLanguageFromQueriesOrConfig(const AConfig: TKConfig);
 var
   LLanguageId: string;
 begin
-  LLanguageId := Global.ParamAsString('lang');
+  LLanguageId := TKWebRequest.Current.GetQueryField('lang');
   if LLanguageId = '' then
     LLanguageId := AConfig.Config.GetString('LanguageId');
   if LLanguageId <> '' then
@@ -657,8 +641,6 @@ begin
   inherited;
   FLastRequestInfo := TJSRequestInfo.Create;
 
-  FMobileBrowserDetectionDone := False;
-
   FDynamicScripts := TStringList.Create;
   FDynamicScripts.Sorted := True;
   FDynamicScripts.Duplicates := dupError;
@@ -675,9 +657,7 @@ begin
   FGettextInstance := TGnuGettextInstance.Create;
 
   FUploadedFiles := TObjectList<TJSUploadedFile>.Create;
-  FOpenControllers := TList<TObject>.Create;
-
-  AfterNewSession;
+  FOpenControllers := TList<IJSController>.Create;
 end;
 
 function TJSSession.GetCustomJS: string;
@@ -689,12 +669,16 @@ procedure TJSSession.EnsureDynamicScript(const AScriptBaseName: string);
 var
   LIndex: Integer;
   LURL: string;
+  LResourceName: string;
+  LPathName: string;
 begin
   if not FDynamicScripts.Find(AScriptBaseName, LIndex) then
   begin
-    LURL := TKWebApplication.Current.Config.FindResourceURL(IncludeTrailingPathDelimiter('js') + AScriptBaseName + '.js');
-    if LURL <> '' then
+    LResourceName := IncludeTrailingPathDelimiter('js') + AScriptBaseName + '.js';
+    LPathName := TKWebApplication.Current.Config.FindResourcePathName(LResourceName);
+    if LPathName <> '' then
     begin
+      LURL := TKWebApplication.Current.Config.FindResourceURL(LResourceName);
       TKWebResponse.Current.Items.ExecuteJSCode(Format('addScriptRef("%s");', [LURL]));
       FDynamicScripts.Add(AScriptBaseName);
     end;
@@ -705,12 +689,16 @@ procedure TJSSession.EnsureDynamicStyle(const AStyleBaseName: string);
 var
   LIndex: Integer;
   LURL: string;
+  LResourceName: string;
+  LPathName: string;
 begin
   if not FDynamicStyles.Find(AStyleBaseName, LIndex) then
   begin
-    LURL := TKWebApplication.Current.Config.FindResourceURL(IncludeTrailingPathDelimiter('js') + AStyleBaseName + '.css');
-    if LURL <> '' then
+    LResourceName := IncludeTrailingPathDelimiter('js') + AStyleBaseName + '.css';
+    LPathName := TKWebApplication.Current.Config.FindResourcePathName(LResourceName);
+    if LPathName <> '' then
     begin
+      LURL := TKWebApplication.Current.Config.FindResourceURL(LResourceName);
       TKWebResponse.Current.Items.ExecuteJSCode(Format('addLinkRef("%s");', [LURL]));
       FDynamicStyles.Add(AStyleBaseName);
     end;
@@ -747,13 +735,6 @@ end;
 function TJSSession.GetManifestFileName: string;
 begin
   Result := '';
-end;
-
-procedure TJSSession.AfterNewSession;
-begin
-  FUpLoadPath := '/uploads';
-{ TODO : implement }
-//  UploadPath := '/uploads/' + Config.AppName + '/' + SessionGUID;
 end;
 
 function TJSSession.GetNextJSName(const AObjectType: string): string;
@@ -904,7 +885,7 @@ end;
 
 function TJSObject.GetDownloadJS(const AMethod: TJSProcedure): string;
 begin
-  if Session.IsMobileApple then
+  if TKWebRequest.Current.IsBrowserIPhone or TKWebRequest.Current.IsBrowserIPad then
     Result := 'window.open("' + GetMethodURL(AMethod) + '");'
   else
     Result := 'Download.src="' + GetMethodURL(AMethod) + '";';

@@ -51,7 +51,7 @@ type
     property ExtraHeight: Integer read GetExtraHeight;
     property LabelWidth: Integer read GetLabelWidth;
     property LocalStorageMode: string read GetLocalStorageMode;
-  published
+  //published
     procedure DoLogin;
   end;
 
@@ -67,6 +67,7 @@ uses
   , Kitto.JS
   , Kitto.Types
   , Kitto.Web.Application
+  , Kitto.Web.Request
   , Kitto.Web.Response
   , Kitto.Ext.Controller
   ;
@@ -109,7 +110,7 @@ var
   end;
 
 begin
-  Maximized := Session.IsMobileBrowser;
+  Maximized := TKWebRequest.Current.IsMobileBrowser;
   Border := not Maximized;
   if Maximized then
     LWidth := Session.ViewportWidth

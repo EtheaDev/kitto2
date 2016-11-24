@@ -24,6 +24,7 @@ uses
   Ext.Base
   , EF.Tree
   , Kitto.Metadata.Views
+  , Kitto.JS
   , Kitto.Ext.Base
   , Kitto.Ext.Controller
   ;
@@ -35,7 +36,7 @@ type
   ///  A tab panel that knows when its hosted panels are closed. Used
   ///  by the TabPanel controller.
   /// </summary>
-  TKExtTabPanel = class(TExtTabPanel, IKExtPanelHost, IKExtViewHost, IKExtControllerHost)
+  TKExtTabPanel = class(TExtTabPanel, IKExtPanelHost, IKExtViewHost, IJSControllerHost)
   private
     FConfig: TEFTree;
     FView: TKView;
@@ -52,12 +53,12 @@ type
     procedure SetAsViewHost; virtual;
     procedure SetActiveView(const AIndex: Integer);
     function AsExtContainer: TExtContainer;
-    procedure InitController(const AController: IKExtController);
+    procedure InitController(const AController: IJSController);
     procedure DisplaySubViewsAndControllers; virtual;
     destructor Destroy; override;
     procedure ClosePanel(const APanel: TExtComponent);
     function AsObject: TObject;
-  published
+  //published
     procedure PanelClosed;
   end;
   TKExtTabPanelClass = class of TKExtTabPanel;
@@ -72,7 +73,7 @@ type
     function GetDefaultTabIconsVisible: Boolean; virtual;
   protected
     function TabIconsVisible: Boolean;
-    procedure InitSubController(const AController: IKExtController); override;
+    procedure InitSubController(const AController: IJSController); override;
   end;
 
 implementation
@@ -82,7 +83,6 @@ uses
   , EF.Localization
   , Kitto.AccessControl
   , Kitto.Types
-  , Kitto.JS
   , Kitto.Web.Application
   ;
 
@@ -115,7 +115,7 @@ begin
   FTabPanel := GetTabPanelClass.CreateAndAddToArray(Items);
 end;
 
-procedure TKExtTabPanelController.InitSubController(const AController: IKExtController);
+procedure TKExtTabPanelController.InitSubController(const AController: IJSController);
 begin
   inherited;
   AController.Config.SetBoolean('Sys/ShowIcon', TabIconsVisible);
@@ -128,7 +128,7 @@ end;
 
 { TKExtTabPanel }
 
-procedure TKExtTabPanel.InitController(const AController: IKExtController);
+procedure TKExtTabPanel.InitController(const AController: IJSController);
 begin
   Assert(Assigned(FOwner));
 
@@ -148,6 +148,7 @@ end;
 procedure TKExtTabPanel.SetAsViewHost;
 begin
   Assert(Assigned(Config));
+  Assert(Session <> nil);
 
   if Config.GetBoolean('IsViewHost', True) then
     if (Session.ViewHost = nil) then
@@ -173,14 +174,14 @@ end;
 
 destructor TKExtTabPanel.Destroy;
 begin
-  if (Session.ViewHost <> nil) and (Session.ViewHost = Self) then
+  if (Session <> nil) and (Session.ViewHost = Self) then
     Session.ViewHost := nil;
   inherited;
 end;
 
 procedure TKExtTabPanel.DisplaySubViewsAndControllers;
 var
-  LController: IKExtController;
+  LController: IJSController;
   LViews: TEFNode;
   I: Integer;
   LView: TKView;

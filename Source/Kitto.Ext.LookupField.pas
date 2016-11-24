@@ -29,6 +29,7 @@ uses
   , Ext.Base
   , Kitto.Metadata.Views
   , Kitto.Metadata.DataView
+  , Kitto.JS
   , Kitto.Ext.Controller
   ;
 
@@ -36,7 +37,7 @@ type
   TKExtLookupField = class(TExtFormTwinTriggerField,  IInterface, IEFInterface)
   private
     FSubjObserverImpl: TEFSubjectAndObserver;
-    FLookupController: IKExtController;
+    FLookupController: IJSController;
     FViewField: TKViewField;
 //    function GetClickJSCode(const AMethod: TJSProcedure): string;
   protected
@@ -58,7 +59,7 @@ type
     procedure UpdateObserver(const ASubject: IEFSubject; const AContext: string); override;
     function AsExtObject: TExtObject;
     class function SupportsViewField(const AViewField: TKViewField): Boolean; static;
-  published
+  //published
     procedure TriggerClick;
     procedure ClearClick; virtual;
   end;
@@ -173,11 +174,11 @@ begin
   Assert(Assigned(LView));
 
   FLookupController := TKWebApplication.Current.DisplayNewController(LView, True,
-    procedure (AWindow: TKExtControllerHostWindow)
+    procedure (AHostWindow: IJSContainer)
     begin
-      AWindow.Title := _(Format('Choose %s', [FViewField.DisplayLabel]));
+      (AHostWindow as TExtWindow).Title := _(Format('Choose %s', [FViewField.DisplayLabel]));
     end,
-    procedure (AController: IKExtController)
+    procedure (AController: IJSController)
     begin
       AController.Config.SetBoolean('Sys/LookupMode', True);
       AController.Config.SetString('Sys/LookupFilter', FViewField.LookupFilter);

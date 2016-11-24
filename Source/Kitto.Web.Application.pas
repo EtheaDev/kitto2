@@ -14,6 +14,8 @@ uses
   , EF.ObserverIntf
   , Kitto.Config
   , Kitto.Metadata.Views
+  , Kitto.JS.Base
+  , Kitto.JS
   , Kitto.Web
   , Kitto.Web.URL
   , Kitto.Web.Request
@@ -23,18 +25,6 @@ uses
   ;
 
 type
-  { TODO : move away? Need TKExtApplication? }
-  /// <summary>
-  ///  A modal window that hosts a controller and removes the controller
-  ///  (instead of itself) from the session when it's closed.
-  /// </summary>
-  TKExtControllerHostWindow = class(TKExtModalWindow)
-  private
-    FHostedController: TObject;
-  strict protected
-    function GetControllerToRemove: TObject; override;
-  end;
-
   TLibraryRef = record
     IsCSS: Boolean;
     Path: string;
@@ -49,7 +39,6 @@ type
   private
     FConfig: TKConfig;
     FRttiContext: TRttiContext;
-    FBasePath: string;
     FPath: string;
     FLoginNode: TEFNode;
     FOwnsLoginNode: Boolean;
@@ -58,11 +47,12 @@ type
     FAdditionalRefs: TList<TLibraryRef>;
     FSessionMacroExpander: TKWebApplicationSessionMacroExpander;
     class threadvar FCurrent: TKWebApplication;
+    class var FOnCreateHostWindow: TFunc<TJSBase, IJSFloatingHost>;
     function GetDefaultHomeViewNodeNames(const AViewportWidthInInches: Integer; const ASuffix: string): TStringDynArray;
     procedure Home;
     procedure FreeLoginNode;
     procedure ServeHomePage;
-    function FindOpenController(const AView: TKView): IKExtController;
+    function FindOpenController(const AView: TKView): IJSController;
     procedure SetActiveViewInViewHost(const AObject: TObject);
     function GetMainPageTemplate: string;
     function GetManifestFileName: string;
@@ -81,18 +71,19 @@ type
     class function GetCurrent: TKWebApplication; static;
     class procedure SetCurrent(const AValue: TKWebApplication); static;
     function CallObjectMethod(const AObject: TObject; const AMethodName: string): Boolean;
+    procedure AddConfigRoutes(const AServer: TKWebServer);
+    function GetViewportWidthInInches: TJSExpression;
+    class function CreateHostWindow(const AOwner: TJSBase): IJSFloatingHost; static;
   public
     const DEFAULT_VIEWPORT_WIDTH = 480;
     class constructor Create;
     class destructor Destroy;
-    constructor Create(const APath: string);
+    procedure AfterConstruction; override;
     destructor Destroy; override;
 
     function HandleRequest(const ARequest: TKWebRequest; const AResponse: TKWebResponse; const AURL: TKURL): Boolean; override;
     procedure UpdateObserver(const ASubject: IEFSubject; const AContext: string = ''); override;
-
-    property Name: string read FPath;
-    property BasePath: string read FBasePath write FBasePath;
+    procedure AddedToServer(const AServer: TKWebServer); override;
 
     property Config: TKConfig read FConfig;
     function GetHomeView(const AViewportWidthInInches: Integer): TKView;
@@ -101,12 +92,15 @@ type
     function FindPageTemplate(const APageName: string): string;
     function GetPageTemplate(const APageName: string): string;
     function DisplayNewController(const AView: TKView; const AForceModal: Boolean = False;
-      const AAfterCreateWindow: TProc<TKExtControllerHostWindow> = nil;
-      const AAfterCreate: TProc<IKExtController> = nil): IKExtController;
+      const AAfterCreateWindow: TProc<IJSContainer> = nil;
+      const AAfterCreate: TProc<IJSController> = nil): IJSController;
     property Theme: string read FTheme write FTheme;
     property ExtPath: string read FExtPath write FExtPath;
 
     class property Current: TKWebApplication read GetCurrent write SetCurrent;
+
+    class property OnCreateHostWindow: TFunc<TJSBase, IJSFloatingHost> read FOnCreateHostWindow write FOnCreateHostWindow;
+
     procedure ReloadOrDisplayHomeView;
     function GetLoginView: TKView;
     procedure DisplayHomeView;
@@ -157,6 +151,11 @@ type
     ///  visited from localhost.
     /// </summary>
     function GetHomeURL(const ATCPPort: Integer): string;
+    /// <summary>
+    ///  True if tooltips are enabled for the application. By default, tooltips
+    ///  are enabled for desktop browsers and disabled for mobile browsers.
+    /// </summary>
+    function TooltipsEnabled: Boolean;
 
     { TODO : move to application once it gains the ability to execute ajax methods }
     procedure DelayedHome;
@@ -167,24 +166,15 @@ implementation
 
 uses
   StrUtils
+  , IOUtils
   , EF.StrUtils
   , EF.Localization
   , EF.Types
   , Ext.Base
   , Kitto.AccessControl
-  , Kitto.JS
   , Kitto.JS.Formatting
   , Kitto.Web.Types
   ;
-
-{ TKExtControllerHostWindow }
-
-function TKExtControllerHostWindow.GetControllerToRemove: TObject;
-begin
-  Assert(Assigned(FHostedController));
-
-  Result := FHostedController;
-end;
 
 { TKWebApplicationSessionMacroExpander }
 
@@ -214,20 +204,18 @@ begin
     raise Exception.CreateFmt('Handler object %s for method %s not found in session.', [LJSName, AURL.Document]);
 end;
 
-constructor TKWebApplication.Create(const APath: string);
+procedure TKWebApplication.AfterConstruction;
 begin
-  Assert(APath <> '');
-
-  inherited Create;
+  inherited;
   FOwnsLoginNode := False;
-  FPath := APath;
   FRttiContext := TRttiContext.Create;
   FConfig := TKConfig.Create;
   FAdditionalRefs := TList<TLibraryRef>.Create;
   FExtPath := '/ext';
   FTheme := Config.Config.GetString('Ext/Theme', 'triton');
   FSessionMacroExpander := TKWebApplicationSessionMacroExpander.Create;
-  Config.MacroExpansionEngine.AddExpander(FSessionMacroExpander);
+  FConfig.MacroExpansionEngine.AddExpander(FSessionMacroExpander);
+  FPath := FConfig.Config.GetString('AppPath', '/' + Config.AppName.ToLower);
 end;
 
 destructor TKWebApplication.Destroy;
@@ -245,6 +233,19 @@ begin
   LValue.Path := APath;
   LValue.IsCSS := AIsCSS;
   FAdditionalRefs.Add(LValue);
+end;
+
+procedure TKWebApplication.AddedToServer(const AServer: TKWebServer);
+begin
+  inherited;
+  AddConfigRoutes(AServer);
+end;
+
+procedure TKWebApplication.AddConfigRoutes(const AServer: TKWebServer);
+begin
+  AServer.AddRoute(TKStaticWebRoute.Create(ExtPath + '/*', Config.Config.GetString('Ext/Path', 'C:\Apache\htdocs\ext6')));
+  AServer.AddRoute(TKMultipleStaticWebRoute.Create('/res/',
+    [TPath.Combine(Config.AppHomePath, 'Resources'), TPath.Combine(Config.SystemHomePath, 'Resources')]));
 end;
 
 procedure TKWebApplication.FreeLoginNode;
@@ -335,12 +336,12 @@ begin
 end;
 
 function TKWebApplication.DisplayNewController(const AView: TKView; const AForceModal: Boolean;
-  const AAfterCreateWindow: TProc<TKExtControllerHostWindow>;
-  const AAfterCreate: TProc<IKExtController>): IKExtController;
+  const AAfterCreateWindow: TProc<IJSContainer>;
+  const AAfterCreate: TProc<IJSController>): IJSController;
 var
   LIsSynchronous: Boolean;
   LIsModal: Boolean;
-  LWindow: TKExtControllerHostWindow;
+  LWindow: IJSFloatingHost;
   LViewHost: IKExtViewHost;
 begin
   Assert(Assigned(AView));
@@ -349,13 +350,13 @@ begin
   LIsModal := AForceModal or not Assigned(Session.ViewHost) or AView.GetBoolean('Controller/IsModal');
   if Assigned(Session.ControllerHostWindow) then
   begin
-    Session.ControllerHostWindow.Delete;
-    Session.ControllerHostWindow.Free;
+    Session.ControllerHostWindow.AsJSObject.Delete;
+    Session.ControllerHostWindow.AsObject.Free;
     Session.ControllerHostWindow := nil;
   end;
   if LIsModal then
   begin
-    LWindow := TKExtControllerHostWindow.Create(Session);
+    LWindow := CreateHostWindow(Session);
     Session.ControllerHostWindow := LWindow;
     if Assigned(AAfterCreateWindow) then
       AAfterCreateWindow(LWindow);
@@ -364,19 +365,22 @@ begin
       AAfterCreate(Result);
     if not Result.Config.GetBoolean('Sys/SupportsContainer') then
     begin
-      Session.ControllerHostWindow.Free;
+      Session.ControllerHostWindow.AsJSObject.Delete;
+      Session.ControllerHostWindow.AsJSObject.Free;
       Session.ControllerHostWindow := nil;
     end
     else
     begin
-      LWindow.Layout := lyFit;
-      if LWindow.Title = '' then
-        LWindow.Title := _(AView.DisplayLabel);
-      LWindow.Closable := AView.GetBoolean('Controller/AllowClose', True);
-      LWindow.FHostedController := Result.AsObject;
-      Result.Config.SetObject('Sys/HostWindow', LWindow);
+      { TODO : remove dependency }
+//      set view
+//      is autosize
+      LWindow.SetHostedController(Result);
+      if TKExtWindowControllerBase(LWindow).Title = '' then
+        TKExtWindowControllerBase(LWindow).Title := _(AView.DisplayLabel);
+      TKExtWindowControllerBase(LWindow).Closable := AView.GetBoolean('Controller/AllowClose', True);
+      Result.Config.SetObject('Sys/HostWindow', LWindow.AsObject);
       Result.Config.SetBoolean('Sys/HostWindow/AutoSize',
-        LWindow.SetSizeFromTree(AView, 'Controller/PopupWindow/'));
+        TKExtWindowControllerBase(LWindow).SetSizeFromTree(AView, 'Controller/PopupWindow/'));
     end;
   end
   else
@@ -389,7 +393,7 @@ begin
   end;
   LIsSynchronous := Result.IsSynchronous;
   if not LIsSynchronous then
-    Session.OpenControllers.Add(Result.AsObject);
+    Session.OpenControllers.Add(Result);
   try
     Result.Display;
     if Assigned(Session.ControllerHostWindow) and not LIsSynchronous then
@@ -397,7 +401,7 @@ begin
   except
     if Assigned(Session.ControllerHostWindow) and not LIsSynchronous then
       TKExtControllerHostWindow(Session.ControllerHostWindow).Hide;
-    Session.OpenControllers.Remove(Result.AsObject);
+    Session.OpenControllers.Remove(Result);
     FreeAndNilEFIntf(Result);
     raise;
   end;
@@ -406,12 +410,20 @@ begin
     NilEFIntf(Result);
 end;
 
+class function TKWebApplication.CreateHostWindow(const AOwner: TJSBase): IJSFloatingHost;
+begin
+  if Assigned(FOnCreateHostWindow) then
+    Result := FOnCreateHostWindow(AOwner)
+  else
+    raise Exception.Create('Couldn''t create host window');
+end;
+
 procedure TKWebApplication.DisplayView(const AName: string);
 begin
 
 end;
 
-function TKWebApplication.FindOpenController(const AView: TKView): IKExtController;
+function TKWebApplication.FindOpenController(const AView: TKView): IJSController;
 var
   I: Integer;
 begin
@@ -420,7 +432,7 @@ begin
   Result := nil;
   for I := 0 to Session.OpenControllers.Count - 1 do
   begin
-    if Supports(Session.OpenControllers[I], IKExtController, Result) then
+    if Supports(Session.OpenControllers[I], IJSController, Result) then
     begin
       if Result.View = AView then
         Break
@@ -432,7 +444,7 @@ end;
 
 procedure TKWebApplication.DisplayView(const AView: TKView);
 var
-  LController: IKExtController;
+  LController: IJSController;
 begin
   Assert(Assigned(AView));
 
@@ -667,22 +679,16 @@ begin
 end;
 
 procedure TKWebApplication.DelayedHome;
-var
-  LUserAgent: string;
 begin
-  if Session.IsMobileApple then
-  begin
-    LUserAgent := TKWebRequest.Current.UserAgent;
-    if LUserAgent.Contains('iPhone') then
-      Session.ViewportWidthInInches := 4
-    else
-      Session.ViewportWidthInInches := 8;
-  end
+  if TKWebRequest.Current.IsBrowserIPhone then
+    Session.ViewportWidthInInches := 4
+  else if TKWebRequest.Current.IsBrowserIPad then
+    Session.ViewportWidthInInches := 8
   else
-    Session.ViewportWidthInInches := Session.Global.ParamAsInteger('vpWidthInches');
+    Session.ViewportWidthInInches := StrToIntDef(TKWebRequest.Current.GetQueryField('vpWidthInches'), 0);
 
   Session.ViewportWidth := Session.GetDefaultViewportWidth();
-  TKWebResponse.Current.Items.ExecuteJSCode(Session.Global, 'setViewportWidth(' + IntToStr(Session.ViewportWidth) + ');');
+  TKWebResponse.Current.Items.ExecuteJSCode(Session, 'setViewportWidth(' + IntToStr(Session.ViewportWidth) + ');');
   // Try authentication with default credentials, if any, and skip login
   // window if it succeeds.
   if Authenticate then
@@ -705,10 +711,10 @@ begin
     LAuthData := TEFNode.Create;
     try
       Config.Authenticator.DefineAuthData(LAuthData);
-      LUserName := Session.Global.ParamAsString('UserName');
+      LUserName := TKWebRequest.Current.GetQueryField('UserName');
       if LUserName <> '' then
         LAuthData.SetString('UserName', LUserName);
-      LPassword := Session.Global.ParamAsString('Password');
+      LPassword := TKWebRequest.Current.GetQueryField('Password');
       if LPassword <> '' then
         LAuthData.SetString('Password', LPassword);
       Result := Config.Authenticator.Authenticate(LAuthData);
@@ -739,14 +745,14 @@ end;
 procedure TKWebApplication.DisplayHomeView;
 var
   LHomeView: TKView;
-  LHomeController: IKExtController;
+  LHomeController: IJSController;
   LHomeContainer: TJSObject;
 begin
   Session.HomeController.Free;
   Session.HomeController := nil;
   LHomeView := GetHomeView(Session.ViewportWidthInInches);
   Session.HomeController := TKExtControllerFactory.Instance.CreateController(Session, LHomeView, nil).AsObject;
-  if Supports(Session.HomeController, IKExtController, LHomeController) then
+  if Supports(Session.HomeController, IJSController, LHomeController) then
   begin
     LHomeContainer := LHomeController.AsObject as TJSObject;
     TKWebResponse.Current.Items.ExecuteJSCode(LHomeContainer, 'var kittoHomeContainer = ' + LHomeContainer.JSName + ';');
@@ -764,7 +770,7 @@ end;
 procedure TKWebApplication.DisplayLoginView;
 var
   LLoginView: TKView;
-  LIntf: IKExtController;
+  LIntf: IJSController;
   LType: string;
 begin
   Session.LoginController.Free;
@@ -775,7 +781,7 @@ begin
   else
     LType := '';
   Session.LoginController := TKExtControllerFactory.Instance.CreateController(Session, LLoginView, nil, nil, Self, LType).AsObject;
-  if Supports(Session.LoginController, IKExtController, LIntf) then
+  if Supports(Session.LoginController, IJSController, LIntf) then
     LIntf.Display;
   if Session.LoginController is TExtContainer then
     TExtContainer(Session.LoginController).UpdateLayout;
@@ -789,7 +795,7 @@ procedure TKWebApplication.Home;
   begin
     LTimeout := Config.Config.FindNode('Ext/AjaxTimeout');
     if Assigned(LTimeout) then
-      TKWebResponse.Current.Items.ExecuteJSCode(Session.Global, Format('Ext.Ajax.setTimeout(%d);', [LTimeout.AsInteger]));
+      TKWebResponse.Current.Items.ExecuteJSCode(Session, Format('Ext.Ajax.setTimeout(%d);', [LTimeout.AsInteger]));
   end;
 
 begin
@@ -806,9 +812,9 @@ begin
 
   Session.HomeViewNodeName := TKWebRequest.Current.QueryFields.Values['home'];
   SetViewportContent;
-  TKWebResponse.Current.Items.ExecuteJSCode(Session.Global, 'kittoInit();');
+  TKWebResponse.Current.Items.ExecuteJSCode(Session, 'kittoInit();');
   SetAjaxTimeout;
-  if Session.TooltipsEnabled then
+  if TooltipsEnabled then
     ExtQuickTips.Init(True)
   else
     ExtQuickTips.Disable;
@@ -820,10 +826,16 @@ begin
 //  if FAutoOpenViewName <> '' then
 //    Query['view'] := '';
 
-  TKWebResponse.Current.Items.AjaxCallMethod(Session.Global).SetMethod(DelayedHome)
-    .AddParam('vpWidthInches', Session.GetViewportWidthInInches);
+  TKWebResponse.Current.Items.AjaxCallMethod(Session).SetMethod(DelayedHome)
+    .AddParam('vpWidthInches', GetViewportWidthInInches);
 
   ServeHomePage;
+end;
+
+function TKWebApplication.GetViewportWidthInInches: TJSExpression;
+begin
+  Result := TJSExpression.Create(Session);
+  Result.Text := 'getViewportWidthInInches()';
 end;
 
 procedure TKWebApplication.ErrorMessage(const AMessage: string; const AAction: string);
@@ -901,7 +913,7 @@ Duplicates must be handled/ignored. }
 //  SetRequiredLibrary('NumericField');
 //  SetRequiredLibrary('DefaultButton');
   SetRequiredLibrary('kitto-core', True);
-  if Session.IsMobileBrowser then
+  if TKWebRequest.Current.IsMobileBrowser then
     SetRequiredLibrary('kitto-core-mobile', True)
   else
     SetRequiredLibrary('kitto-core-desktop', True);
@@ -969,6 +981,11 @@ begin
     else
       Session.ViewportContent := Session.ViewportContent + GetSeparator + LPair.Key + '=' + LPair.Value;
   end;
+end;
+
+function TKWebApplication.TooltipsEnabled: Boolean;
+begin
+  Result := not TKWebRequest.Current.IsMobileBrowser;
 end;
 
 procedure TKWebApplication.UpdateObserver(const ASubject: IEFSubject; const AContext: string);

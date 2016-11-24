@@ -58,7 +58,7 @@ type
     property Config: TEFTree read FConfig write FConfig;
     property View: TKView read FView write FView;
     procedure DoDisplay;
-  published
+  //published
     procedure DisplayView;
     procedure DisplayPage;
   end;
@@ -95,6 +95,7 @@ uses
   , Kitto.Config
   , Kitto.Utils
   , Kitto.Web.Application
+  , Kitto.Web.Request
   , Kitto.Web.Response
   , Kitto.Ext.Utils
   ;
@@ -124,13 +125,13 @@ end;
 procedure TKExtTileTabPanel.SetAsViewHost;
 begin
   // Don't act as view host on mobile - we want modal views there.
-  if not Session.IsMobileBrowser then
+  if not TKWebRequest.Current.IsMobileBrowser then
     inherited;
 end;
 
 function TKExtTileTabPanel.TabsVisible: Boolean;
 begin
-  Result := Config.GetBoolean('TabsVisible', not Session.IsMobileBrowser);
+  Result := Config.GetBoolean('TabsVisible', not TKWebRequest.Current.IsMobileBrowser);
 end;
 
 procedure TKExtTileTabPanel.AddTileSubPanel;

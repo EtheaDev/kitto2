@@ -12,7 +12,6 @@ uses
   ;
 
 type
-  {$M+}
   TJSBase = class(TEFSubjectAndObserver)
   private
     FOwner: TJSBase;
@@ -20,13 +19,11 @@ type
     FJSName: string;
     FDestroying: Boolean;
     FDestroyingChildren: Boolean;
-    class var FRttiContext: TRttiContext;
     procedure SetOwner(const AValue: TJSBase);
   strict protected
     procedure AddChild(const AChild: TJSBase);
     procedure RemoveChild(const AChild: TJSBase);
   public
-    class constructor Create;
     constructor Create(const AOwner: TJSBase); virtual;
     destructor Destroy; override;
     procedure BeforeDestruction; override;
@@ -37,10 +34,7 @@ type
 
     function FindChildByJSName(const AJSName: string): TJSBase;
     procedure FreeAllChildren;
-
-    function GetMethodName(const AMethod: TJSProcedure): string;
   end;
-  {$M-}
 
   // Represents a config object or a set of method parameters.
   TJSValues = class(TJSBase)
@@ -82,6 +76,8 @@ type
     function AsFormattedText: string;
   end;
 
+function GetMethodName(const AMethod: TJSProcedure): string;
+
 implementation
 
 uses
@@ -89,6 +85,28 @@ uses
   , EF.StrUtils
   , Kitto.JS
   ;
+
+function GetMethodName(const AMethod: TJSProcedure): string;
+var
+  LInfo: TRttiType;
+  LMethod: TMethod;
+  LRttiMethod: TRttiMethod;
+  LObject: TObject;
+begin
+  LMethod := TMethod(AMethod);
+  LObject := LMethod.Data;
+
+  LInfo := TRttiContext.Create.GetType(LObject.ClassType);
+  for LRttiMethod in LInfo.GetMethods do
+  begin
+    Result := LRttiMethod.Name;
+    if LRttiMethod.CodeAddress = LMethod.Code then
+      Break;
+  end;
+
+  if Result = '' then
+    raise Exception.Create('Method not found')
+end;
 
 { TJSBase }
 
@@ -101,11 +119,6 @@ procedure TJSBase.BeforeDestruction;
 begin
   inherited;
   FDestroying := True;
-end;
-
-class constructor TJSBase.Create;
-begin
-  FRttiContext := TRttiContext.Create;
 end;
 
 constructor TJSBase.Create(const AOwner: TJSBase);
@@ -171,31 +184,6 @@ begin
     if Assigned(FOwner) then
       FOwner.AddChild(Self);
   end;
-end;
-
-function TJSBase.GetMethodName(const AMethod: TJSProcedure): string;
-var
-  LInfo: TRttiType;
-  LMethod: TMethod;
-  LRttiMethod: TRttiMethod;
-  LObject: TObject;
-begin
-  LMethod := TMethod(AMethod);
-  LObject := LMethod.Data;
-
-  if LObject <> Self then
-    raise Exception.Create('GetMethodName: wrong object');
-
-  LInfo := FRttiContext.GetType(LObject.ClassType);
-  for LRttiMethod in LInfo.GetMethods do
-  begin
-    Result := LRttiMethod.Name;
-    if LRttiMethod.CodeAddress = LMethod.Code then
-      Break;
-  end;
-
-  if Result = '' then
-    raise Exception.Create('Method not found')
 end;
 
 class function TJSBase.JSClassName: string;

@@ -158,7 +158,8 @@ begin
     LSession := TJSSession(Item.Data);
     InfoTip :=
       'User Agent: ' + LSession.LastRequestInfo.UserAgent + sLineBreak +
-      'Client Address: ' + LSession.LastRequestInfo.ClientAddress;
+      'Client Address: ' + LSession.LastRequestInfo.ClientAddress + sLineBreak +
+      'Last Request: ' + DateTimeToStr(LSession.LastRequestInfo.DateTime);
   end;
 end;
 
@@ -330,10 +331,7 @@ end;
 procedure TKExtMainForm.FormCreate(Sender: TObject);
 begin
   FServer := TKWebServer.Create(nil);
-  FApplication := FServer.AddRoute(TKWebApplication.Create('/app')) as TKWebApplication;
-  FServer.AddRoute(TKStaticWebRoute.Create('/ext/*', 'C:\Apache\htdocs\ext6'));
-  FServer.AddRoute(TKStaticWebRoute.Create('/HelloKitto6/*', 'C:\Users\nandod\Work\Kitto\Examples\HelloKitto\Home\Resources'));
-  FServer.AddRoute(TKStaticWebRoute.Create('/HelloKitto6-Kitto/*', 'C:\Users\nandod\Work\Kitto\Home\Resources'));
+  FApplication := FServer.AddRoute(TKWebApplication.Create) as TKWebApplication;
 
   FLogEndPoint := TKExtMainFormLogEndpoint.Create;
   FLogEndPoint.OnLog := DoLog;
@@ -377,8 +375,8 @@ begin
   LConfig := TKConfig.Create;
   try
     AppTitleLabel.Caption := Format(_('Application: %s'), [_(LConfig.AppTitle)]);
-    LAppIconFileName := LConfig.FindResourcePathName(LConfig.AppIcon+'.png');
-    if FileExists(LAppIconFileName) then
+    LAppIconFileName := LConfig.FindResourcePathName(LConfig.AppIcon + '.png');
+    if LAppIconFileName <> '' then
       AppIcon.Picture.LoadFromFile(LAppIconFileName)
     else
       AppIcon.Picture.Bitmap := nil;

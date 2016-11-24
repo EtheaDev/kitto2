@@ -14,7 +14,7 @@ type
   TTestToolController = class(TKExtDataToolController)
   protected
     procedure ExecuteTool; override;
-  published
+  //published
     procedure Callback;
     procedure DownloadFile;
   end;

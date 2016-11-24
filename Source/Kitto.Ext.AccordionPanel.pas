@@ -43,6 +43,7 @@ uses
   , EF.Localization
   , Kitto.Types
   , Kitto.AccessControl
+  , Kitto.JS
   , Kitto.Web.Application
   , Kitto.Ext.Controller
   ;
@@ -63,7 +64,7 @@ end;
 
 procedure TKExtAccordionPanelController.DisplaySubViewsAndControllers;
 var
-  LController: IKExtController;
+  LController: IJSController;
   LViews: TEFNode;
   I: Integer;
   LView: TKView;

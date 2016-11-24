@@ -31,6 +31,10 @@ type
     ///  Decodes and returns the value of the query field with the given name.
     /// </summary>
     function GetQueryField(const AName: string): string;
+
+    function IsBrowserIPhone: Boolean;
+    function IsBrowserIPad: Boolean;
+    function IsMobileBrowser: Boolean;
   end;
 
 implementation
@@ -38,6 +42,7 @@ implementation
 uses
   SysUtils
   , NetEncoding
+  , EF.Logger
   ;
 
 { TKWebRequest }
@@ -74,6 +79,28 @@ begin
   Result := SO();
   for I := 0 to QueryFields.Count - 1 do
     Result.S[QueryFields.Names[I]] := GetQueryField(QueryFields.Names[I]);
+end;
+
+function TKWebRequest.IsBrowserIPhone: Boolean;
+begin
+  Result := UserAgent.Contains('iPhone');
+end;
+
+function TKWebRequest.IsBrowserIPad: Boolean;
+begin
+  Result := UserAgent.Contains('iPad');
+end;
+
+function TKWebRequest.IsMobileBrowser: Boolean;
+var
+  LUserAgent: string;
+begin
+  LUserAgent := UserAgent;
+  TEFLogger.Instance.Log('UserAgent: ' + LUserAgent);
+  Result := LUserAgent.Contains('Windows Phone') or
+    LUserAgent.Contains('iPhone') or
+    LUserAgent.Contains('iPad') or
+    LUserAgent.Contains('Android');
 end;
 
 class procedure TKWebRequest.SetCurrent(const AValue: TKWebRequest);

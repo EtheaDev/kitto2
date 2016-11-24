@@ -294,7 +294,7 @@ begin
       LButton.Disabled := not LIsEnabled;
     end;
     LButton.Text := HTMLEncode(ADisplayLabel);
-    if Session.TooltipsEnabled then
+    if TKWebApplication.Current.TooltipsEnabled then
       LButton.Tooltip := LButton.Text;
 
     if ANode.ChildCount > 0 then

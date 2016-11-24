@@ -45,7 +45,7 @@ type
     ///	<summary>Returns the image name to use by default when not specified at
     ///	the view or other level. Called through RTTI.</summary>
     class function GetDefaultImageName: string;
-  published
+  //published
     procedure DoChangePassword;
   end;
 
@@ -64,6 +64,7 @@ uses
   , Kitto.JS
   , Kitto.JS.Formatting
   , Kitto.Web.Application
+  , Kitto.Web.Request
   , Kitto.Web.Response
   , Kitto.Ext.Controller
   ;
@@ -152,7 +153,7 @@ begin
   Title := _(TKWebApplication.Current.Config.AppTitle);
   Width := 316;
   Height := 162;
-  Maximized := Session.IsMobileBrowser;
+  Maximized := TKWebRequest.Current.IsMobileBrowser;
   Border := not Maximized;
   Closable := True;
   Resizable := False;

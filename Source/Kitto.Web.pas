@@ -18,26 +18,59 @@ uses
   ;
 
 type
-  EKWebException = class(Exception);
+  TKWebServer = class;
 
+  /// <summary>
+  ///  Abstract route. Handles requests for a class of paths.
+  /// </summary>
   TKWebRoute = class(TEFSubjectAndObserver)
   public
+    /// <summary>
+    ///  Handles a request; if handled, returns True (and sets the reponse up) if handled.
+    /// </summary>
     function HandleRequest(const ARequest: TKWebRequest; const AResponse: TKWebResponse;
       const AURL: TKURL): Boolean; virtual; abstract;
+    /// <summary>
+    ///  Called when the route is added to the server. May be used to add dependant routes.
+    ///  The predefined implementation does nothing.
+    /// </summary>
+    procedure AddedToServer(const AServer: TKWebServer); virtual;
   end;
 
-  TKStaticWebRoute = class(TKWebRoute)
+  /// <summary>
+  ///  A route that serves requests for paths matching a specified pattern,
+  ///  providing local files from the file system.
+  /// </summary>
+  TKBaseStaticWebRoute = class(TKWebRoute)
+  protected
+    function ComputeLocalFileName(const ALocalPath, AURLPath, AURLDocument: string): string;
+    function ServeLocalFile(const AFileName: string; const AResponse: TKWebResponse): Boolean;
+  end;
+
+  TKStaticWebRoute = class(TKBaseStaticWebRoute)
   private
     FPattern: string;
     FPath: string;
   public
-    property Pattern: string read FPattern write FPattern;
+    constructor Create(const APattern, APath: string);
     function HandleRequest(const ARequest: TKWebRequest; const AResponse: TKWebResponse;
       const AURL: TKURL): Boolean; override;
-    constructor Create(const APattern, APath: string);
   end;
 
-  TKWebServer = class;
+  /// <summary>
+  ///  A route that serves requests for paths matching a specified pattern,
+  ///  looking through an ordered list of local paths and serving the first file
+  ///  it finds.
+  /// </summary>
+  TKMultipleStaticWebRoute = class(TKBaseStaticWebRoute)
+  private
+    FBasePath: string;
+    FLocalPaths: TArray<string>;
+  public
+    function HandleRequest(const ARequest: TKWebRequest;
+      const AResponse: TKWebResponse; const AURL: TKURL): Boolean; override;
+    constructor Create(const ABasePath: string; const ALocalPaths: TArray<string>);
+  end;
 
   IKWebHandleRequestEventListener = interface
     procedure BeforeHandleRequest(const ASender: TKWebServer; const ARequest: TKWebRequest; const AResponse: TKWebResponse; var AIsAllowed: Boolean);
@@ -106,6 +139,7 @@ uses
 function TKWebServer.AddRoute(const ARoute: TKWebRoute): TKWebRoute;
 begin
   FRoutes.Add(ARoute);
+  ARoute.AddedToServer(Self);
   Result := ARoute;
 end;
 
@@ -117,8 +151,8 @@ begin
   FRoutes := TObjectList<TKWebRoute>.Create;
   // default parameters
   DefaultPort := 8080;
-  { TODO : increase in production }
-  FThreadPoolSize := 5;
+  { TODO : make it configurable; increase in production }
+  FThreadPoolSize := 20;
   FBasePath := '/';
   AutoStartSession := True;
   SessionTimeOut := 10 * MSecsPerSec * SecsPerMin; // 10 minutes.
@@ -155,6 +189,7 @@ begin
     try
       Session.LastRequestInfo.UserAgent := TKWebRequest.Current.UserAgent;
       Session.LastRequestInfo.ClientAddress := TKWebRequest.Current.RemoteAddr;
+      Session.LastRequestInfo.DateTime := Now;
 
       TKWebResponse.Current := TKWebResponse.Create(TKWebRequest.Current, AContext, ARequestInfo, AResponseInfo);
       try
@@ -231,8 +266,7 @@ var
 begin
   inherited;
   TEFLogger.Instance.LogFmt('New session %s.', [Sender.SessionID], TEFLogger.LOG_MEDIUM);
-  LSession := TJSSession.Create(nil);
-  LSession.SessionId := Sender.SessionID;
+  LSession := TJSSession.Create(Sender.SessionID);
   Sender.Content.AddObject(SESSION_OBJECT, LSession);
 end;
 
@@ -327,38 +361,84 @@ begin
   end;
 end;
 
-{ TKStaticWebRoute }
+{ TKBaseStaticWebRoute }
+
+function TKBaseStaticWebRoute.ComputeLocalFileName(const ALocalPath, AURLPath, AURLDocument: string): string;
+var
+  LURLPath: string;
+  I: Integer;
+begin
+  LURLPath := StripPrefix(AURLPath, '/');
+  I := FirstDelimiter('/', LURLPath);
+  if I <> 0 then
+    Delete(LURLPath, 1, I);
+  LURLPath := ReplaceStr(LURLPath, '/', PathDelim);
+  Result := TPath.Combine(TPath.Combine(ALocalPath, LURLPath), AURLDocument);
+end;
+
+function TKBaseStaticWebRoute.ServeLocalFile(const AFileName: string; const AResponse: TKWebResponse): Boolean;
+begin
+  if FileExists(AFileName) then
+  begin
+    AResponse.ContentStream := TFileStream.Create(AFileName, fmOpenRead or fmShareDenyNone);
+    AResponse.ContentType := GetFileMimeType(AFileName, 'application/octet-stream');
+    Result := True;
+  end
+  else
+    Result := False;
+end;
+
+{ TKStaticWebRoute }
 
 constructor TKStaticWebRoute.Create(const APattern, APath: string);
-begin
+begin
   inherited Create;
   FPattern := APattern;
   FPath := APath;
 end;
 
 function TKStaticWebRoute.HandleRequest(const ARequest: TKWebRequest;
-  const AResponse: TKWebResponse; const AURL: TKURL): Boolean;
+  const AResponse: TKWebResponse; const AURL: TKURL): Boolean;
 var
   LFileName: string;
-  LPath: string;
-  I: Integer;
 begin
   Result := False;
   if StrMatchesEx(AURL.Path, FPattern) then
   begin
-    LPath := StripPrefix(AURL.Path, '/');
-    I := FirstDelimiter('/', LPath);
-    if I <> 0 then
-      Delete(LPath, 1, I);
-    LFileName := ReplaceStr(LFileName, '/', PathDelim);
-    LPath := ReplaceStr(LPath, '/', PathDelim);
-    LFileName := TPath.Combine(TPath.Combine(FPath, LPath), AURL.Document);
-    if FileExists(LFileName) then
-    begin
-      AResponse.ContentStream := TFileStream.Create(LFileName, fmOpenRead or fmShareDenyNone);
-      AResponse.ContentType := GetFileMimeType(LFileName, 'application/octet-stream');
-      Result := True;
-    end;
+    LFileName := ComputeLocalFileName(FPath, AURL.Path, AURL.Document);
+    Result := ServeLocalFile(LFileName, AResponse);
+  end;
+end;
+
+{ TKWebRoute }
+
+procedure TKWebRoute.AddedToServer(const AServer: TKWebServer);
+begin
+end;
+
+{ TKMultipleStaticWebRoute }
+
+constructor TKMultipleStaticWebRoute.Create(const ABasePath: string;
+  const ALocalPaths: TArray<string>);
+begin
+  inherited Create;
+  FBasePath := ABasePath;
+  FLocalPaths := RemoveDuplicates(ALocalPaths);
+end;
+
+function TKMultipleStaticWebRoute.HandleRequest(const ARequest: TKWebRequest;
+  const AResponse: TKWebResponse; const AURL: TKURL): Boolean;
+var
+  LLocalPath: string;
+  LFileName: string;
+begin
+  Result := False;
+  for LLocalPath in FLocalPaths do
+  begin
+    LFileName := ComputeLocalFileName(LLocalPath, AURL.Path, AURL.Document);
+    Result := ServeLocalFile(LFileName, AResponse);
+    if Result then
+      Break;
   end;
 end;
 

@@ -53,10 +53,11 @@ type
     function GetRecordPageFilter: string; override;
     function IsActionSupported(const AActionName: string): Boolean; override;
     procedure SetNewRecordDefaultValues(const ANode: TEFNode); override;
-  published
+  //published
     procedure GetCalendarRecords;
-    procedure LoadData; override;
     procedure CalendarDayClick(This: TExtCalendarPanel; Dt: TDateTime; Allday: Boolean; El: TExtElement);
+  public
+    procedure LoadData; override;
   end;
 
 implementation

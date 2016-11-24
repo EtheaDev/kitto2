@@ -59,7 +59,7 @@ type
   public
     property ViewTable: TKViewTable read FViewTable write SetViewTable;
     property ServerStore: TKViewTableStore read FServerStore write FServerStore;
-  published
+  //published
     procedure ShowDetailWindow;
   end;
 
@@ -137,7 +137,7 @@ type
     function GetFilterExpression: string; override;
     function GetRegionName(const ARegion: TExtBoxComponentRegion): string; override;
     procedure AfterConstruction; override;
-  published
+  //published
     procedure GetRecord;
     procedure SwitchToEditMode;
     procedure ConfirmChanges;
@@ -309,7 +309,7 @@ end;
 procedure TKExtFormPanelController.EnsureDetailController(const AContainer: TExtPanel;
   const ADetailIndex: Integer);
 var
-  LController: IKExtController;
+  LController: IJSController;
   LControllerType: string;
 begin
   Assert(FDetailControllers.Count > ADetailIndex);
@@ -866,7 +866,7 @@ begin
     LLabelAlign := laTop
   else if Assigned(LLabelAlignNode) then
     LLabelAlign := OptionAsLabelAlign(LLabelAlignNode.AsString)
-  else if Session.IsMobileBrowser then
+  else if TKWebRequest.Current.IsMobileBrowser then
     LLabelAlign := laTop
   else
     LLabelAlign := laRight;
@@ -1113,7 +1113,7 @@ end;
 
 procedure TKExtDetailFormButton.ShowDetailWindow;
 var
-  LController: IKExtController;
+  LController: IJSController;
 begin
   Assert(Assigned(FViewTable));
 

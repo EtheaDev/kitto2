@@ -52,6 +52,7 @@ uses
   TypInfo
   , EF.Intf
   , EF.StrUtils
+  , Kitto.JS
   , Kitto.Web.Application
   , Kitto.Metadata.Views
   ;
@@ -104,7 +105,7 @@ procedure TKExtBorderPanelController.CreateController(const ARegion: TExtBoxComp
 var
   LSubView: TKView;
   LControllerConfig: TEFNode;
-  LIntf: IKExtController;
+  LIntf: IJSController;
 begin
   Assert(Assigned(View));
 
@@ -122,7 +123,7 @@ begin
     FControllers[ARegion] := TKExtControllerFactory.Instance.CreateController(Self, LSubView, Self, LControllerConfig).AsObject;
     Assert(FControllers[ARegion] is TExtBoxComponent);
     TExtBoxComponent(FControllers[ARegion]).Region := ARegion;
-    if Supports(FControllers[ARegion], IKExtController, LIntf) then
+    if Supports(FControllers[ARegion], IJSController, LIntf) then
       InitSubController(LIntf);
     LIntf.Display;
   end;

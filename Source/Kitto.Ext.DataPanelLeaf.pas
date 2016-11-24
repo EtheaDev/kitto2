@@ -21,10 +21,14 @@ unit Kitto.Ext.DataPanelLeaf;
 interface
 
 uses
-  SysUtils,
-  Ext.Base,
-  EF.ObserverIntf,
-  Kitto.Ext.Base, Kitto.Ext.Controller, Kitto.Ext.DataPanel;
+  SysUtils
+  , Ext.Base
+  , EF.ObserverIntf
+  , Kitto.JS
+  , Kitto.Ext.Base
+  , Kitto.Ext.Controller
+  , Kitto.Ext.DataPanel
+  ;
 
 type
   /// <summary>
@@ -40,9 +44,9 @@ type
     function GetParentDataPanel: TKExtDataPanelController;
     function IsActionSupported(const AActionName: string): Boolean; override;
   public
-    procedure InitActionController(const AAction: TKExtActionButton; const AController: IKExtController); override;
+    procedure InitActionController(const AAction: TKExtActionButton; const AController: IJSController); override;
     procedure UpdateObserver(const ASubject: IEFSubject; const AContext: string = ''); override;
-  published
+  //published
     procedure LoadData; override;
     procedure DoDisplay; override;
   end;
@@ -106,7 +110,7 @@ begin
 end;
 
 procedure TKExtDataPanelLeafController.InitActionController(
-  const AAction: TKExtActionButton; const AController: IKExtController);
+  const AAction: TKExtActionButton; const AController: IJSController);
 var
   LParentDataPanel: TKExtDataPanelController;
 begin

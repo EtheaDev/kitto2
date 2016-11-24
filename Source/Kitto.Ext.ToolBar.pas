@@ -34,7 +34,7 @@ type
     procedure DoDisplay; override;
   public
     destructor Destroy; override;
-  published
+  //published
     procedure DisplayView;
   end;
 

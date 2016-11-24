@@ -38,19 +38,12 @@ type
 
   TKConfig = class(TEFComponent)
   strict private
-  type
-    TPathURL = record
-      Path: string;        
-      URL: string;
-      constructor Create(const APath, AURL: string);
-    end;
   class var
     FAppHomePath: string;
     FJSFormatSettings: TFormatSettings;
     FBaseConfigFileName: string;
     FOnGetInstance: TKGetConfig;
     FInstance: TKConfig;
-    FResourcePathsURLs: TList<TPathURL>;
     FSystemHomePath: string;
     FConfigClass: TKConfigClass;
     FOnGetAppName: TKConfigGetAppNameEvent;
@@ -65,7 +58,6 @@ type
 
     class function GetInstance: TKConfig; static;
     class function GetAppName: string; static;
-    class procedure SetupResourcePathsURLs;
     class function GetAppHomePath: string; static;
     class procedure SetAppHomePath(const AValue: string); static;
     class function GetSystemHomePath: string; static;
@@ -209,7 +201,7 @@ type
     /// </param>
     function GetResourcePathName(const AResourceFileName: string): string;
 
-    function FindImagePath(const AResourceName: string; const ASuffix: string = ''): string;
+    function FindImagePathName(const AResourceName: string; const ASuffix: string = ''): string;
 
     function FindImageURL(const AResourceName: string; const ASuffix: string = ''): string;
     function GetImageURL(const AResourceName: string; const ASuffix: string = ''): string;
@@ -318,9 +310,15 @@ type
 implementation
 
 uses
-  StrUtils, Variants,
-  EF.SysUtils, EF.YAML, EF.Localization,
-  Kitto.Types, Kitto.DatabaseRouter;
+  StrUtils
+  , Variants
+  , IOUtils
+  , EF.SysUtils
+  , EF.YAML
+  , EF.Localization
+  , Kitto.Types
+  , Kitto.DatabaseRouter
+  ;
 
 procedure TKConfig.AfterConstruction;
 begin
@@ -356,30 +354,6 @@ begin
   FreeAndNil(FAC);
   FinalizeDBConnections;
   FreeAndNil(FMacroExpansionEngine);
-end;
-
-class procedure TKConfig.SetupResourcePathsURLs;
-var
-  LPath: string;
-
-  function PathInList(const APath: string): Boolean;
-  var
-    LPathURL: TPathURL;
-  begin
-    Result := False;
-    for LPathURL in FResourcePathsURLs do
-      if SameText(LPathURL.Path, APath) then
-        Exit(True);      
-  end;
-  
-begin
-  FResourcePathsURLs.Clear;
-  LPath := GetAppHomePath + 'Resources';
-  if DirectoryExists(LPath) then
-    FResourcePathsURLs.Add(TPathURL.Create(IncludeTrailingPathDelimiter(LPath), '/' + GetAppName + '/'));
-  LPath := FindSystemHomePath + 'Resources';
-  if DirectoryExists(LPath) and not PathInList(IncludeTrailingPathDelimiter(LPath)) then
-    FResourcePathsURLs.Add(TPathURL.Create(IncludeTrailingPathDelimiter(LPath), '/' + GetAppName + '-Kitto/'));
 end;
 
 procedure TKConfig.UpdateObserver(const ASubject: IEFSubject;
@@ -511,20 +485,12 @@ begin
 end;
 
 function TKConfig.FindResourcePathName(const AResourceFileName: string): string;
-var
-  LPathURL: TPathURL;
-  LPath: string;
 begin
-  Result := '';
-  for LPathURL in FResourcePathsURLs do
-  begin
-    LPath := LPathURL.Path + AResourceFileName;
-    if FileExists(LPath) then
-    begin
-      Result := LPath;
-      Break;
-    end;
-  end;
+  Result := TPath.Combine(AppHomePath, 'Resources') + PathDelim + AResourceFileName;
+  if not FileExists(Result) then
+    Result := TPath.Combine(SystemHomePath, 'Resources') + PathDelim + AResourceFileName;
+  if not FileExists(Result) then
+    Result := '';
 end;
 
 function TKConfig.GetResourcePathName(const AResourceFileName: string): string;
@@ -535,35 +501,12 @@ begin
 end;
 
 function TKConfig.FindResourceURL(const AResourceFileName: string): string;
-
-  function TryFind(const AName: string): string;
-  var
-    LURL: TPathURL;
-    LPath: string;
-  begin
-    Result := '';
-    for LURL in FResourcePathsURLs do
-    begin
-      LPath := LURL.Path + AName;
-      if FileExists(LPath) then
-      begin
-        Result := LURL.URL + ReplaceStr(AName, '\', '/');
-        Break;
-      end;
-    end;
-  end;
-
-var
-  LLocalizedName: string;
 begin
-  if SameText(Config.GetString('LanguageId'), 'en') or SameText(Config.GetString('LanguageId'), '') then
-    Result := TryFind(AResourceFileName)
-  else begin
-    LLocalizedName := ChangeFileExt(AResourceFileName, '_' + Config.GetString('LanguageId') + ExtractFileExt(AResourceFileName));
-    Result := TryFind(LLocalizedName);
-    if Result = '' then
-      Result := TryFind(AResourceFileName);
-  end;
+  if FindResourcePathName(AResourceFileName) = '' then
+    // File not found: no URL.
+    Result := ''
+  else
+    Result := '/res/' + ReplaceStr(AResourceFileName, PathDelim, '/');
 end;
 
 function TKConfig.GetResourceURL(const AResourceFileName: string): string;
@@ -615,9 +558,6 @@ begin
   FConfigClass := TKConfig;
   FBaseConfigFileName := 'Config.yaml';
 
-  FResourcePathsURLs := TList<TPathURL>.Create;
-  SetupResourcePathsURLs;
-
   FJSFormatSettings := GetFormatSettings;
   FJSFormatSettings.DecimalSeparator := '.';
   FJSFormatSettings.ThousandSeparator := ',';
@@ -630,7 +570,6 @@ end;
 
 class destructor TKConfig.Destroy;
 begin
-  FreeAndNil(FResourcePathsURLs);
   FreeAndNil(FInstance);
 end;
 
@@ -720,7 +659,7 @@ begin
   Result := GetResourceURL(AdaptImageName(AResourceName, ASuffix));
 end;
 
-function TKConfig.FindImagePath(const AResourceName: string; const ASuffix: string = ''): string;
+function TKConfig.FindImagePathName(const AResourceName: string; const ASuffix: string = ''): string;
 begin
   Result := FindResourcePathName(AdaptImageName(AResourceName, ASuffix));
 end;
@@ -750,11 +689,7 @@ end;
 
 class procedure TKConfig.SetAppHomePath(const AValue: string);
 begin
-  if FAppHomePath <> AValue then
-  begin
-    FAppHomePath := AValue;
-    SetupResourcePathsURLs;
-  end;
+  FAppHomePath := AValue;
 end;
 
 class procedure TKConfig.SetConfigClass(const AValue: TKConfigClass);
@@ -764,11 +699,7 @@ end;
 
 class procedure TKConfig.SetSystemHomePath(const AValue: string);
 begin
-  if AValue <> SystemHomePath then
-  begin
-    FSystemHomePath := AValue;
-    SetupResourcePathsURLs;
-  end;
+  FSystemHomePath := AValue;
 end;
 
 class function TKConfig.GetAppName: string;
@@ -871,14 +802,6 @@ begin
         + InternalExpand(Copy(Result, LPosTail + Length(MACRO_TAIL), MaxInt));
     end;
   end;
-end;
-
-{ TKConfig.TResourcePathURL }
-
-constructor TKConfig.TPathURL.Create(const APath, AURL: string);
-begin
-  Path := APath;
-  URL := AURL;
 end;
 
 end.
