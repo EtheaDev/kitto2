@@ -21,8 +21,13 @@ unit EF.StrUtils;
 interface
 
 uses
-  SysUtils, Types, Classes, DB,
-  EF.Types;
+  SysUtils
+  , Types
+  , Classes
+  , DB
+  , Generics.Collections
+  , EF.Types
+  ;
 
 ///	<summary>
 ///	  Returns the index of the last occurrence of ASubString in AString.
@@ -296,11 +301,19 @@ function FirstDelimiter(const ADelimiters, AString: string; AOffset: Integer = 1
 
 function IsNumeric(const AString: string): Boolean;
 
+function IndexOf(const AArray: TArray<string>; const AValue: string): Integer;
+
+function RemoveDuplicates(const AArray: TArray<string>): TArray<string>;
+
 implementation
 
 uses
-  StrUtils, Character,
-  IdHashMessageDigest, IdHash;
+  StrUtils
+  , Character
+  , Generics.Defaults
+  , IdHashMessageDigest
+  , IdHash
+  ;
 
 function RightPos(const ASubString, AString: string): Integer;
 var
@@ -969,6 +982,26 @@ begin
   for C in AString do
     if not C.IsNumber then
       Exit(False);
+end;
+
+function IndexOf(const AArray: TArray<string>; const AValue: string): Integer;
+var
+  I: Integer;
+begin
+  Result := -1;
+  for I := Low(AArray) to High(AArray) do
+    if AArray[I] = AValue then
+      Exit(I);
+end;
+
+function RemoveDuplicates(const AArray: TArray<string>): TArray<string>;
+var
+  LValue: string;
+begin
+  Result := [];
+  for LValue in AArray do
+    if IndexOf(Result, LValue) = -1 then
+      Result := Result + [LValue];
 end;
 
 initialization

@@ -44,7 +44,6 @@ type
     function IsActionSupported(const AActionName: string): Boolean; override;
     function GetSelectCall(const AMethod: TJSProcedure): TExtExpression; override;
     function GetSelectConfirmCall(const AMessage: string; const AMethod: TJSProcedure): string; override;
-  published
   end;
 
 implementation

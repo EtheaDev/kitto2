@@ -85,7 +85,7 @@ type
   public
     procedure UpdateObserver(const ASubject: IEFSubject; const AContext: string = ''); override;
     procedure Activate; override;
-  published
+  //published
     procedure LoadData; override;
     procedure SelectionChanged;
     procedure UpdateField;
@@ -115,6 +115,7 @@ uses
   , Kitto.JS
   , Kitto.JS.Formatting
   , Kitto.Web.Application
+  , Kitto.Web.Request
   , Kitto.Web.Response
   , Kitto.Ext.Utils
   ;
@@ -687,7 +688,7 @@ begin
 
   if not FInplaceEditing and HasDefaultAction then
   begin
-    if Session.IsMobileBrowser then
+    if TKWebRequest.Current.IsMobileBrowser then
       LEventName := IfThen(HasExplicitDefaultAction, 'rowclick', '')
     else
       LEventName := 'rowdblclick';
@@ -934,9 +935,9 @@ end;
 
 procedure TKExtGridPanel.UpdateObserver(const ASubject: IEFSubject; const AContext: string);
 var
-  LController: IKExtController;
+  LController: IJSController;
 begin
-  if Supports(ASubject.AsObject, IKExtController, LController) then
+  if Supports(ASubject.AsObject, IJSController, LController) then
   begin
     if MatchText(AContext, ['Confirmed', 'Canceled']) then
       ClientStore.On('load', GenerateAnonymousFunction(GetSelectLastEditedRecordCode(LController.Config.GetObject('Sys/Record') as TKViewTableRecord)));

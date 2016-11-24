@@ -440,7 +440,7 @@ type
     procedure SetTransientProperty(const APropertyName: string; const AValue: Variant);
     function GetEditItemId: string;
     function AsObject: TObject;
-  published
+  //published
     procedure ClearClick; override;
   end;
 
@@ -470,7 +470,7 @@ type
     procedure StoreValue(const AObjectName: string);
     procedure SetTransientProperty(const APropertyName: string; const AValue: Variant);
     function GetEditItemId: string;
-  published
+  //published
     procedure GetRecordPage;
     procedure ValueChanged;
   end;
@@ -546,7 +546,7 @@ type
     property TotalCharWidth: Integer read FTotalCharWidth write SetTotalCharWidth;
     procedure SetTransientProperty(const APropertyName: string; const AValue: Variant);
     function GetEditItemId: string;
-  published
+  //published
     procedure ShowUploadFileDialog;
     procedure Upload;
     procedure Clear;
@@ -2957,7 +2957,7 @@ begin
   FWindow := TKExtModalWindow.Create(Self);
   FWindow.Width := 400;
   FWindow.Height := 120;
-  FWindow.Maximized := Session.IsMobileBrowser;
+  FWindow.Maximized := TKWebRequest.Current.IsMobileBrowser;
   FWindow.Border := not FWindow.Maximized;
   FWindow.Closable := True;
   FWindow.Title := _('File upload');
@@ -2975,7 +2975,7 @@ begin
   LUploadFormField.Anchor := '0 5 0 0';
   LUploadButton := TKExtButton.CreateAndAddToArray(LFormPanel.Buttons);
   LUploadButton.Text := _('Upload');
-  LUploadButton.SetIconAndScale('Upload', IfThen(Session.IsMobileBrowser,'medium', 'small'));
+  LUploadButton.SetIconAndScale('Upload', IfThen(TKWebRequest.Current.IsMobileBrowser,'medium', 'small'));
 
   LSubmitAction := TExtFormActionSubmit.Create(FWindow);
   LSubmitAction.Url := GetMethodURL(Upload);
@@ -3485,7 +3485,7 @@ begin
       LDateField.AltFormats := TJS.DelphiDateFormatToJSDateFormat(TKWebApplication.Current.Config.JSFormatSettings.ShortDateFormat);
       if not AIsReadOnly then
         LDateField.AllowBlank := not AViewField.IsRequired;
-      if Session.IsMobileBrowser then
+      if TKWebRequest.Current.IsMobileBrowser then
         LDateField.Editable := False;
       Result := LDateField;
     except
@@ -3523,7 +3523,7 @@ begin
       LTimeField.AltFormats := TJS.DelphiTimeFormatToJSTimeFormat(TKWebApplication.Current.Config.JSFormatSettings.ShortTimeFormat);
       if not AIsReadOnly then
         LTimeField.AllowBlank := not AViewField.IsRequired;
-      if Session.IsMobileBrowser then
+      if TKWebRequest.Current.IsMobileBrowser then
         LTimeField.Editable := False;
       Result := LTimeField;
     except

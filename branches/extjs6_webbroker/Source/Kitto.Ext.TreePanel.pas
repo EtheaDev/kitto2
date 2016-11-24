@@ -52,7 +52,7 @@ type
   public
     destructor Destroy; override;
     property View: TKView read FView write SetView;
-  published
+  //published
     procedure DisplayView;
   end;
 
@@ -193,7 +193,7 @@ begin
       LExtNode.Disabled := not LIsEnabled;
     end;
     LExtNode.Text := HTMLEncode(ADisplayLabel);
-    if Session.TooltipsEnabled then
+    if TKWebApplication.Current.TooltipsEnabled then
       LExtNode.Qtip := LExtNode.Text;
     if LOriginalNode.TreeViewNodeCount > 0 then
     begin

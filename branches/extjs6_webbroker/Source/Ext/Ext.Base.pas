@@ -361,7 +361,7 @@ type
     lyResponsivecolumn, lySegmentedbutton, lyTable, lyTableview, lyVbox);
   TExtContainerLabelAlign = (laLeft, laRight, laTop);
 
-  TExtContainer = class(TExtBoxComponent)
+  TExtContainer = class(TExtBoxComponent, IJSContainer)
   private
     FActiveItem: string;
     FActiveItemNumber: Integer;
@@ -403,6 +403,9 @@ type
     property LayoutConfig: TExtObject read GetLayoutConfig;
     property LayoutString: string read FLayoutString write SetLayoutString;
     property ColumnWidth: Double read FColumnWidth write SetColumnWidth;
+    // IJSContainer
+    function AsJSObject: TJSObject;
+    procedure AddItem(const AItem: TJSObject);
   end;
 
   TExtButton = class(TExtBoxComponent)
@@ -1388,6 +1391,16 @@ end;
 class function TExtContainer.JSClassName: string;
 begin
   Result := 'Ext.Container';
+end;
+
+procedure TExtContainer.AddItem(const AItem: TJSObject);
+begin
+  Items.Add(AItem);
+end;
+
+function TExtContainer.AsJSObject: TJSObject;
+begin
+  Result := Self;
 end;
 
 function TExtContainer.GetDefaults: TExtObject;

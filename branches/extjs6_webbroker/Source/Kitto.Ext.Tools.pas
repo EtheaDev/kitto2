@@ -44,7 +44,7 @@ type
   public
     class function GetDefaultIncludeHeader: boolean; virtual;
     class function GetDefaultImageName: string; override;
-  published
+  //published
     property IncludeHeader: boolean read GetIncludeHeader;
     property FixedLength: boolean read GetFixedLength;
     property Delimiter: char read GetDelimiter;
@@ -69,7 +69,7 @@ type
   public
     class function GetDefaultIncludeHeader: boolean; virtual;
     class function GetDefaultImageName: string; override;
-  published
+  //published
     property IncludeHeader: boolean read GetIncludeHeader;
   end;
 

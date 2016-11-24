@@ -1247,14 +1247,14 @@ end;
 
 function TJSAjaxCall.SetMethod(const AMethod: TJSProcedure): TJSAjaxCall;
 var
-  LObject: TJSBase;
+  LObject: TObject;
 begin
   Assert(Assigned(Sender));
 
-  LObject := TJSBase(TMethod(AMethod).Data);
-  if (LObject <> Sender) then
+  LObject := TObject(TMethod(AMethod).Data);
+  if Assigned(LObject) and (LObject is TJSBase) and (LObject <> Sender) then
     ChangeSender(TJSBase(LObject));
-  CallName := LObject.GetMethodName(AMethod);
+  CallName := GetMethodName(AMethod);
   Result := Self;
 end;
 

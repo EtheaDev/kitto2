@@ -103,7 +103,7 @@ type
     function GetDefaultFileExtension: string; override;
   public
     class function GetDefaultImageName: string; override;
-  published
+  //published
     property LayoutFileName: string read GetLayoutFileName;
     property BaseFileName: string read GetBaseFileName;
   end;

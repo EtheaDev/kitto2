@@ -55,14 +55,14 @@ type
     function GetServerRecord: TKViewTableRecord;
     function GetServerStore: TKViewTableStore;
   strict protected
-    procedure InitController(const AController: IKExtController); override;
+    procedure InitController(const AController: IJSController); override;
   public
     property ViewTable: TKViewTable read FViewTable write FViewTable;
     property ServerStore: TKViewTableStore read GetServerStore;
     property OnGetServerStore: TKExtGetServerStoreEvent read FOnGetServerStore write FOnGetServerStore;
     property ServerRecord: TKViewTableRecord read GetServerRecord;
     property OnGetServerRecord: TKExtGetServerRecordEvent read FOnGetServerRecord write FOnGetServerRecord;
-  published
+  //published
     procedure ExecuteButtonAction; override;
   end;
 
@@ -105,7 +105,7 @@ type
     procedure DoDisplay; override;
     procedure InitComponents; virtual;
     procedure InitDefaults; override;
-    procedure InitSubController(const AController: IKExtController); override;
+    procedure InitSubController(const AController: IJSController); override;
     procedure AddTopToolbarButtons; override;
     function AddTopToolbarButton(const AActionName, ATooltip, AImageName: string;
       const ARequiresSelection: Boolean): TKExtButton;
@@ -158,8 +158,8 @@ type
     property DefaultAutoOpen: Boolean read GetDefaultAutoOpen;
     function GetFilterExpression: string; virtual;
     procedure UpdateObserver(const ASubject: IEFSubject; const AContext: string = ''); override;
-    procedure InitActionController(const AAction: TKExtActionButton; const AController: IKExtController); virtual;
-  published
+    procedure InitActionController(const AAction: TKExtActionButton; const AController: IJSController); virtual;
+  //published
     procedure GetRecordPage;
     procedure GetImage;
     procedure LoadData; virtual; abstract;
@@ -196,7 +196,7 @@ uses
 
 procedure TKExtDataActionButton.ExecuteButtonAction;
 var
-  LController: IKExtController;
+  LController: IJSController;
 begin
   //inherited;
   Assert(Assigned(View));
@@ -228,7 +228,7 @@ begin
   Result := FServerStore;
 end;
 
-procedure TKExtDataActionButton.InitController(const AController: IKExtController);
+procedure TKExtDataActionButton.InitController(const AController: IJSController);
 begin
   inherited;
   Assert(Assigned(FViewTable));
@@ -390,7 +390,7 @@ procedure TKExtDataPanelController.ShowEditWindow(const ARecord: TKViewTableReco
 var
   LFormControllerType: string;
   LFormControllerNode: TEFNode;
-  LFormController: IKExtController;
+  LFormController: IJSController;
 begin
   Assert((AEditMode = emNewrecord) or Assigned(ARecord));
   Assert(ViewTable <> nil);
@@ -515,7 +515,7 @@ begin
     end;
   LResult := Result;
   TKExtDataActionButton(Result).OnInitController :=
-    procedure (AController: IKExtController)
+    procedure (AController: IJSController)
     begin
       InitActionController(LResult, AController);
     end;
@@ -828,7 +828,7 @@ begin
 end;
 
 procedure TKExtDataPanelController.InitActionController(const AAction: TKExtActionButton;
-  const AController: IKExtController);
+  const AController: IJSController);
 begin
   AController.Config.SetString('Sys/FilterExpression', GetFilterExpression);
 end;
@@ -843,7 +843,7 @@ begin
 end;
 
 procedure TKExtDataPanelController.InitSubController(
-  const AController: IKExtController);
+  const AController: IJSController);
 begin
   inherited;
   Assert(Assigned(AController));
@@ -1178,7 +1178,7 @@ end;
 procedure TKExtDataPanelController.UpdateObserver(const ASubject: IEFSubject; const AContext: string);
 begin
   inherited;
-  if (AContext = 'Confirmed') and Supports(ASubject.AsObject, IKExtController) then
+  if (AContext = 'Confirmed') and Supports(ASubject.AsObject, IJSController) then
     LoadData;
 end;
 

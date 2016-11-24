@@ -42,7 +42,7 @@ type
     destructor Destroy; override;
     class function GetDefaultImageName: string; override;
     property ExportEngine: TKExcelExportEngine read FExportExcelEngine;
-  published
+  //published
     property ExcelRangeName: string read GetExcelRangeName;
     property TemplateFileName: string read GetTemplateFileName;
     property UseDisplayLabels: boolean read GetUseDisplayLabels;
@@ -63,7 +63,7 @@ type
     destructor Destroy; override;
     class function GetDefaultImageName: string; override;
     property ImportEngine: TKExcelImportEngine read FImportExcelEngine;
-  published
+  //published
     property ExcelRangeName: string read GetExcelRangeName;
     property FieldMappings: TStringList read GetFieldMappings;
   end;
@@ -83,7 +83,7 @@ type
     destructor Destroy; override;
     class function GetDefaultImageName: string; override;
     property ImportEngine: TKExcelImportEngine read FImportExcelEngine;
-  published
+  //published
     property ExcelRangeName: string read GetExcelRangeName;
     property FieldMappings: TStringList read GetFieldMappings;
   end;

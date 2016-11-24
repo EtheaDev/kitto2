@@ -183,7 +183,7 @@ type
     /// <summary>Returns the image name to use by default when not specified at
     /// the view or other level. Called through RTTI.</summary>
     class function GetDefaultImageName: string; override;
-  published
+  //published
     procedure DownloadFile;
     procedure DownloadStream;
     property FileName: string read GetFileName;
@@ -243,7 +243,7 @@ type
     /// <summary>Returns the image name to use by default when not specified at
     /// the view or other level. Called through RTTI.</summary>
     class function GetDefaultImageName: string; override;
-  published
+  //published
     property Path: string read GetPath;
     property AcceptedWildcards: string read GetAcceptedWildcards;
     property ContentType: string read GetContentType;
@@ -574,7 +574,7 @@ begin
   FWindow := TKExtModalWindow.Create(Self);
   FWindow.Width := 400;
   FWindow.Height := 120;
-  FWindow.Maximized := Session.IsMobileBrowser;
+  FWindow.Maximized := TKWebRequest.Current.IsMobileBrowser;
   FWindow.Border := not FWindow.Maximized;
   FWindow.Closable := True;
   FWindow.Title := _('File upload');
@@ -595,7 +595,7 @@ begin
   LUploadFormField.Anchor := '0 5 0 0';
   LUploadButton := TKExtButton.CreateAndAddToArray(LFormPanel.Buttons);
   LUploadButton.Text := _('Upload');
-  LUploadButton.SetIconAndScale('Upload', IfThen(Session.IsMobileBrowser,'medium', 'small'));
+  LUploadButton.SetIconAndScale('Upload', IfThen(TKWebRequest.Current.IsMobileBrowser,'medium', 'small'));
 
   LSubmitAction := TExtFormActionSubmit.Create(FWindow);
   LSubmitAction.Url := GetMethodURL(Upload);
