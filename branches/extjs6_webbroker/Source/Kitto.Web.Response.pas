@@ -1316,7 +1316,6 @@ end;
 
 procedure TJSAjaxCall.AddParams(const AFormatter: TJSFormatter);
 begin
-{ TODO : expand markers and surround params }
   AFormatter.AddIndentedPairLine('params', '{' + Params.AsFormattedText + '}', False);
 end;
 

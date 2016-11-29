@@ -63,7 +63,7 @@ type
     procedure ShowDetailWindow;
   end;
 
-  TKExtDetailPanel = class(TExtPanel)
+  TKExtDetailPanel = class(TKExtPanelControllerBase)
   private
     FViewTable: TKViewTable;
     FServerStore: TKViewTableStore;
@@ -119,7 +119,7 @@ type
     function FindLayout: TKLayout;
     function IsViewMode: Boolean;
     procedure SetStoreRecord(const AValue: TKViewTableRecord);
-    procedure EnsureDetailController(const AContainer: TExtPanel;
+    procedure EnsureDetailController(const AContainer: IJSControllerContainer;
       const ADetailIndex: Integer);
   strict protected
     procedure DoDisplay; override;
@@ -306,7 +306,7 @@ begin
   end;
 end;
 
-procedure TKExtFormPanelController.EnsureDetailController(const AContainer: TExtPanel;
+procedure TKExtFormPanelController.EnsureDetailController(const AContainer: IJSControllerContainer;
   const ADetailIndex: Integer);
 var
   LController: IJSController;
@@ -320,7 +320,7 @@ begin
     // The node may exist and be '', which does not return the default value.
     if LControllerType = '' then
       LControllerType := 'GridPanel';
-    LController := TKExtControllerFactory.Instance.CreateController(AContainer,
+    LController := TKExtControllerFactory.Instance.CreateController(AContainer.AsJSObject,
       View, AContainer, ViewTable.FindNode('Controller'), Self, LControllerType);
     LController.Config.SetObject('Sys/ViewTable', ViewTable.DetailTables[ADetailIndex]);
     LController.Config.SetObject('Sys/ServerStore', StoreRecord.DetailStores[ADetailIndex]);
@@ -933,7 +933,7 @@ begin
     Assert(Assigned(LViewTable));
     LDetailIndex := ViewTable.GetDetailTableIndex(LViewTable);
     Assert(LDetailIndex >= 0);
-    EnsureDetailController(ATab, LDetailIndex);
+    EnsureDetailController(TKExtDetailPanel(ATab), LDetailIndex);
     if Supports(FDetailControllers[LDetailIndex], IKExtActivable, LActivableIntf) then
       LActivableIntf.Activate;
   end;

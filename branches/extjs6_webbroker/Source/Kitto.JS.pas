@@ -137,6 +137,9 @@ type
   end;
   TJSObjectClass = class of TJSObject;
 
+  /// <summary>
+  ///  A container for JS objects.
+  /// </summary>
   IJSContainer = interface(IEFInterface)
     ['{170D8F2B-60A2-4C40-A31F-29C7A9AED295}']
     function AsJSObject: TJSObject;
@@ -174,14 +177,31 @@ type
     function IsSynchronous: Boolean;
   end;
 
-  IJSFloatingHost = interface(IJSContainer)
-    ['{170D8F2B-60A2-4C40-A31F-29C7A9AED295}']
-    procedure SetHostedController(const AController: IJSController);
+  /// <summary>
+  ///  A container for one or more controllers.
+  /// </summary>
+  IJSControllerContainer = interface(IJSContainer)
+    ['{37EA31CA-544F-4DBD-8C04-D08E30517C99}']
+
+    /// <summary>
+    ///  Called after creating a subcontroller to give this container a chance to
+    ///  initialize some of its configs or settings.
+    /// </summary>
+    procedure InitSubController(const ASubController: IJSController);
+
+    /// <summary>
+    ///  If the container supports the concept of active controller, this
+    ///  method sets the specified controller as the visually active one
+    ///  (such as the active page of a tab panel). Otherwise this method does
+    ///  nothing.
+    /// </summary>
+    procedure SetActiveSubController(const ASubController: IJSController);
   end;
 
-  IJSControllerHost = interface(IJSContainer)
-    ['{37EA31CA-544F-4DBD-8C04-D08E30517C99}']
-    procedure InitController(const AController: IJSController);
+  IJSStatusHost = interface(IEFInterface)
+    ['{90737203-A4D9-4C31-AFD7-FDBCF5A7B7D2}']
+    function ShowBusy: TJSExpression;
+    function ClearStatus: TJSExpression;
   end;
 
   TJSExpression = class(TJSBase)
@@ -280,11 +300,10 @@ type
   private
     FSessionId: string;
     FObjectSequences: TDictionary<string, Cardinal>;
-    FLibraries, FLanguage: string;
+    FLanguage: string;
     FSingletons: TDictionary<string, TJSObject>;
-    FIsDownload: Boolean;
-    FIsUpload: Boolean;
     FUploadPath: string;
+    FUploadLocalPath: string;
     FMaxUploadSize: Integer;
     FFileUploadedFullName: string;
     FFileUploaded: string;
@@ -295,11 +314,10 @@ type
     FAutoOpenViewName: string;
     FAuthData: TEFNode;
     FIsAuthenticated: Boolean;
-    FAuthMacroExpander: TEFTreeMacroExpander;
     FOpenControllers: TList<IJSController>;
     FControllerHostWindow: IJSContainer;
-    FViewHost: TObject;
-    FStatusHost: TObject;
+    FControllerContainer: IJSControllerContainer;
+    FStatusHost: IJSStatusHost;
     FUploadedFiles: TObjectList<TJSUploadedFile>;
     FHomeViewNodeName: string;
     FViewportContent: string;
@@ -309,6 +327,7 @@ type
     FDynamicStyles: TStringList;
     FDisplayName: string;
     FLastRequestInfo: TJSRequestInfo;
+    FCreationDateTime: TDateTime;
     function GetDisplayName: string;
     procedure SetLanguage(const AValue: string);
     /// <summary>
@@ -326,7 +345,6 @@ type
   strict protected
     function GetViewportContent: string; virtual;
     function GetManifestFileName: string; virtual;
-    function GetCustomJS: string; virtual;
   protected
     function GetNextJSName(const AObjectType: string): string;
   public
@@ -358,9 +376,6 @@ type
     property UploadPath: string read FUploadPath write FUploadPath;
     procedure BeforeHandleRequest;
 
-    property IsDownload: Boolean read FIsDownload write FIsDownload;
-    property IsUpload: Boolean read FIsUpload write FIsUpload;
-
     property MaxUploadSize: Integer read FMaxUploadSize write FMaxUploadSize;
     property FileUploaded: string read FFileUploaded;
     property FileUploadedFullName: string read FFileUploadedFullName;
@@ -370,6 +385,7 @@ type
     procedure AfterConstruction; override;
     destructor Destroy; override;
 
+    property CreationDateTime: TDateTime read FCreationDateTime;
     property Language: string read FLanguage write SetLanguage;
     procedure Refresh;
 
@@ -386,16 +402,16 @@ type
     ///  place.
     /// </summary>
     property IsAuthenticated: Boolean read FIsAuthenticated write FIsAuthenticated;
-    property AuthMacroExpander: TEFTreeMacroExpander read FAuthMacroExpander;
+
     /// <summary>
-    ///  A reference to the main view container. Implements IKExtViewHost.
+    ///  A reference to the main container of controllers.
     /// </summary>
-    property ViewHost: TObject read FViewHost write FViewHost;
+    property ControllerContainer: IJSControllerContainer read FControllerContainer write FControllerContainer;
     /// <summary>
     ///  A reference to the status bar to be used for wait messages.
     ///  It is of type TKExtStatusBar.
     /// </summary>
-    property StatusHost: TObject read FStatusHost write FStatusHost;
+    property StatusHost: IJSStatusHost read FStatusHost write FStatusHost;
     property ControllerHostWindow: IJSContainer read FControllerHostWindow write FControllerHostWindow;
     /// <summary>
     ///  The current session's UUID.
@@ -407,7 +423,6 @@ type
     property ViewportWidthInInches: Integer read FViewportWidthInInches write FViewportWidthInInches;
     property AutoOpenViewName: string read FAutoOpenViewName write FAutoOpenViewName;
     property HomeViewNodeName: string read FHomeViewNodeName write FHomeViewNodeName;
-    property Libraries: string read FLibraries write FLibraries;
     property ViewportContent: string read FViewportContent write FViewportContent;
     /// <summary>
     ///  Viewport width in mobile applications.
@@ -451,6 +466,7 @@ uses
   , Math
   , Types
   , Character
+  , IOUtils
   , REST.Utils
   , System.NetEncoding
   , EF.StrUtils
@@ -458,7 +474,7 @@ uses
   , EF.Logger
   , Kitto.AccessControl
   , Kitto.Web.Application
-  , Kitto.Web
+  , Kitto.Web.Server
   , Kitto.Web.Request
   , Kitto.Web.Response
   , Kitto.Ext.Controller
@@ -490,7 +506,7 @@ begin
   FHomeController := nil;
   FLoginController := nil;
   FOpenControllers.Clear;
-  FViewHost := nil;
+  FControllerContainer := nil;
   FStatusHost := nil;
   FDynamicScripts.Clear;
   FDynamicStyles.Clear;
@@ -522,11 +538,12 @@ var
   I: Integer;
 begin
   if FLanguage = '' then
-  begin // Set language
+  begin
     FLanguage := TKWebRequest.Current.GetFieldByName('Accept-Language');
-    I := pos('-', FLanguage);
+    I := Pos('-', FLanguage);
     if I <> 0 then
     begin
+      // Convert language code
       FLanguage := Copy(FLanguage, I - 2, 2) + '_' + Uppercase(Copy(FLanguage, I + 1, 2));
 { TODO : extjs path? }
 //      if not FileExists(RequestHeader['DOCUMENT_ROOT'] + ExtPath + '/build/classic/locale/locale-' + FLanguage + '.js') then
@@ -542,24 +559,18 @@ begin
   inherited Create(nil);
   FSessionId := ASessionId;
   FUploadPath := '/uploads/' + FSessionId;
+  FUploadLocalPath := TPath.Combine(TKWebApplication.Current.Config.AppHomePath,
+    TPath.Combine('Uploads', FSessionId));
 end;
 
 destructor TJSSession.Destroy;
-var
-  LUploadDirectory: string;
 begin
   // Delete upload folder only for valid sessions.
-  if FSessionId <> '' then
-  begin
-{ TODO : figure out our document root }
-//    LUploadDirectory := ReplaceStr(DocumentRoot + UploadPath, '/', '\');
-    if DirectoryExists(LUploadDirectory) then
-      DeleteTree(LUploadDirectory);
-  end;
+  if DirectoryExists(FUploadLocalPath) then
+    DeleteTree(FUploadLocalPath);
   FreeAndNil(FOpenControllers);
   FreeAndNil(FObjectSequences);
   FreeAndNil(FSingletons);
-  FreeAndNil(FAuthMacroExpander);
   FreeAndNil(FAuthData);
   FreeAndNil(FUploadedFiles);
   FreeAndNil(FHomeController);
@@ -640,6 +651,7 @@ procedure TJSSession.AfterConstruction;
 begin
   inherited;
   FLastRequestInfo := TJSRequestInfo.Create;
+  FCreationDateTime := Now;
 
   FDynamicScripts := TStringList.Create;
   FDynamicScripts.Sorted := True;
@@ -652,17 +664,11 @@ begin
   FSingletons := TDictionary<string, TJSObject>.Create;
 
   FAuthData := TEFNode.Create;
-  FAuthMacroExpander := TEFTreeMacroExpander.Create(FAuthData, 'Auth');
 
   FGettextInstance := TGnuGettextInstance.Create;
 
   FUploadedFiles := TObjectList<TJSUploadedFile>.Create;
   FOpenControllers := TList<IJSController>.Create;
-end;
-
-function TJSSession.GetCustomJS: string;
-begin
-  Result := '';
 end;
 
 procedure TJSSession.EnsureDynamicScript(const AScriptBaseName: string);

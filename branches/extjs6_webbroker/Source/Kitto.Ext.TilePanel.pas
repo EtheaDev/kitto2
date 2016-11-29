@@ -71,7 +71,7 @@ type
   strict protected
     function TabsVisible: Boolean; override;
   public
-    procedure SetAsViewHost; override;
+    procedure SetAsControllerContainer; override;
     procedure DisplaySubViewsAndControllers; override;
   end;
 
@@ -122,7 +122,7 @@ begin
     SetActiveTab(0);
 end;
 
-procedure TKExtTileTabPanel.SetAsViewHost;
+procedure TKExtTileTabPanel.SetAsControllerContainer;
 begin
   // Don't act as view host on mobile - we want modal views there.
   if not TKWebRequest.Current.IsMobileBrowser then

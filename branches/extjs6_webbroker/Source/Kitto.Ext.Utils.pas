@@ -196,7 +196,7 @@ begin
       //Result := FOwner.Ajax(FClickHandler, ['View', Integer(AView), 'Dummy', Session.StatusHost.ShowBusy])
       Result := TKWebResponse.Current.Items.AjaxCallMethod(FOwner).SetMethod(FClickHandler)
         .AddParam('View', Integer(AView))
-        .AddParam('Dummy', TKExtStatusBar(Session.StatusHost).ShowBusy)
+        .AddParam('Dummy', Session.StatusHost.ShowBusy)
         .AsFunction
     else
       //Result := FOwner.Ajax(FClickHandler, ['View', Integer(AView)]);

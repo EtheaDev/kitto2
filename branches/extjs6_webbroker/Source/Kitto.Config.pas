@@ -314,6 +314,7 @@ uses
   , Variants
   , IOUtils
   , EF.SysUtils
+  , EF.StrUtils
   , EF.YAML
   , EF.Localization
   , Kitto.Types
@@ -323,7 +324,7 @@ uses
 procedure TKConfig.AfterConstruction;
 begin
   inherited;
-  { TODO : read default user format settings from config and allow to change them on a per-user basis. }
+  { TODO : allow to change format settings on a per-user basis. }
   FUserFormatSettings := GetFormatSettings;
 
   FUserFormatSettings.ShortTimeFormat := Config.GetString('UserFormats/Time', FUserFormatSettings.ShortTimeFormat);
@@ -486,9 +487,9 @@ end;
 
 function TKConfig.FindResourcePathName(const AResourceFileName: string): string;
 begin
-  Result := TPath.Combine(AppHomePath, 'Resources') + PathDelim + AResourceFileName;
+  Result := TPath.Combine(AppHomePath, 'Resources') + PathDelim + StripPrefix(AResourceFileName, PathDelim);
   if not FileExists(Result) then
-    Result := TPath.Combine(SystemHomePath, 'Resources') + PathDelim + AResourceFileName;
+    Result := TPath.Combine(SystemHomePath, 'Resources') + PathDelim + StripPrefix(AResourceFileName, PathDelim);
   if not FileExists(Result) then
     Result := '';
 end;
@@ -506,7 +507,7 @@ begin
     // File not found: no URL.
     Result := ''
   else
-    Result := '/res/' + ReplaceStr(AResourceFileName, PathDelim, '/');
+    Result := '/res/' + ReplaceStr(StripPrefix(AResourceFileName, PathDelim), PathDelim, '/');
 end;
 
 function TKConfig.GetResourceURL(const AResourceFileName: string): string;

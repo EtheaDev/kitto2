@@ -44,12 +44,6 @@ const
   DEFAULT_WINDOW_TOOL_HEIGHT = 400;
 
 type
-  IKExtViewHost = interface(IEFInterface)
-    ['{F073B258-1D46-4553-9FF4-3697DFE5197D}']
-    procedure SetActiveView(const AIndex: Integer);
-    function AsExtContainer: TExtContainer;
-  end;
-
   { TODO : move to TExtContainer }
   TKExtContainerHelper = class helper for TExtContainer
   public
@@ -59,7 +53,7 @@ type
   /// <summary>
   ///  Base Ext window with subject, observer and controller capabilities.
   /// </summary>
-  TKExtWindowControllerBase = class(TExtWindow, IJSController)
+  TKExtWindowControllerBase = class(TExtWindow, IJSController, IJSControllerContainer)
   strict private
     FView: TKView;
     FConfig: TEFNode;
@@ -74,7 +68,8 @@ type
     procedure InitDefaults; override;
     function GetControllerToRemove: IJSController; virtual;
     function CreateSubController: IJSController; virtual;
-    procedure InitSubController(const AController: IJSController); virtual;
+    procedure InitSubController(const ASubController: IJSController); virtual;
+    procedure SetActiveSubController(const ASubController: IJSController); virtual;
   public
     destructor Destroy; override;
 
@@ -116,20 +111,21 @@ type
   ///  A modal window that hosts a controller and removes the controller
   ///  (instead of itself) from the session when it's closed.
   /// </summary>
-  TKExtControllerHostWindow = class(TKExtModalWindow, IJSFloatingHost)
+  TKExtControllerHostWindow = class(TKExtModalWindow, IJSControllerContainer)
   private
-    FHostedController: IJSController;
+    FController: IJSController;
   strict protected
     function GetControllerToRemove: IJSController; override;
     procedure InitDefaults; override;
   public
-    procedure SetHostedController(const AController: IJSController);
+    procedure SetActiveSubController(const ASubController: IJSController); override;
+    procedure InitSubController(const ASubController: IJSController); override;
   end;
 
   /// <summary>
   ///  Base ext viewport with subject, observer and controller capabilities.
   /// </summary>
-  TKExtViewportControllerBase = class(TExtViewport, IJSController)
+  TKExtViewportControllerBase = class(TExtViewport, IJSController, IJSControllerContainer)
   private
     FView: TKView;
     FConfig: TEFNode;
@@ -144,6 +140,9 @@ type
     procedure SetContainer(const AValue: IJSContainer);
     procedure InitDefaults; override;
   public
+    procedure InitSubController(const ASubController: IJSController); virtual;
+    procedure SetActiveSubController(const ASubController: IJSController); virtual;
+
     destructor Destroy; override;
 
     class function SupportsContainer: Boolean;
@@ -230,7 +229,7 @@ type
 
   TKExtActionButtonClass = class of TKExtActionButton;
 
-  TKExtPanelControllerBase = class(TKExtPanelBase, IJSController)
+  TKExtPanelControllerBase = class(TKExtPanelBase, IJSController, IJSControllerContainer)
   strict private
     FView: TKView;
     FContainer: IJSContainer;
@@ -247,7 +246,6 @@ type
     function GetContainer: IJSContainer;
     procedure SetContainer(const AValue: IJSContainer);
     property Container: IJSContainer read GetContainer write SetContainer;
-    procedure InitSubController(const AController: IJSController); virtual;
     property TopToolbar: TKExtToolbar read FTopToolbar;
     procedure BeforeCreateTopToolbar; virtual;
     procedure AfterCreateTopToolbar; virtual;
@@ -276,6 +274,9 @@ type
     /// </summary>
     function AddActionButton(const AUniqueId: string; const AView: TKView;
       const AToolbar: TKExtToolbar): TKExtActionButton; virtual;
+
+    procedure InitSubController(const ASubController: IJSController); virtual;
+    procedure SetActiveSubController(const ASubController: IJSController); virtual;
   public
     destructor Destroy; override;
     function IsSynchronous: Boolean;
@@ -373,7 +374,7 @@ type
   public
     procedure SetErrorStatus(const AText: string);
 
-    procedure ClearStatus; virtual;
+    function ClearStatus: TJSExpression; virtual;
   end;
 
 function OptionAsLabelAlign(const AAlign: string): TExtContainerLabelAlign;
@@ -481,7 +482,7 @@ begin
       .AddParam('Window', JSName).AsFunction);
 end;
 
-procedure TKExtWindowControllerBase.InitSubController(const AController: IJSController);
+procedure TKExtWindowControllerBase.InitSubController(const ASubController: IJSController);
 begin
 end;
 
@@ -493,6 +494,11 @@ end;
 procedure TKExtWindowControllerBase.PanelClosed;
 begin
   NotifyObservers('Closed');
+end;
+
+procedure TKExtWindowControllerBase.SetActiveSubController(const ASubController: IJSController);
+begin
+  // This container does not support the concept of an active subcontroller.
 end;
 
 procedure TKExtWindowControllerBase.SetContainer(const AValue: IJSContainer);
@@ -653,9 +659,18 @@ begin
   Layout := lyBorder;
 end;
 
+procedure TKExtViewportControllerBase.InitSubController(const ASubController: IJSController);
+begin
+end;
+
 function TKExtViewportControllerBase.IsSynchronous: Boolean;
 begin
   Result := False;
+end;
+
+procedure TKExtViewportControllerBase.SetActiveSubController(const ASubController: IJSController);
+begin
+  // This container does not support the concept of an active subcontroller.
 end;
 
 procedure TKExtViewportControllerBase.SetContainer(const AValue: IJSContainer);
@@ -967,15 +982,15 @@ begin
   Result := FView;
 end;
 
-procedure TKExtPanelControllerBase.InitSubController(const AController: IJSController);
+procedure TKExtPanelControllerBase.InitSubController(const ASubController: IJSController);
 var
   LSysConfigNode: TEFNode;
 begin
-  Assert(Assigned(AController));
+  Assert(Assigned(ASubController));
 
   LSysConfigNode := Config.FindNode('Sys');
   if Assigned(LSysConfigNode) then
-    AController.Config.GetNode('Sys', True).Assign(LSysConfigNode);
+    ASubController.Config.GetNode('Sys', True).Assign(LSysConfigNode);
 end;
 
 function TKExtPanelControllerBase.IsSynchronous: Boolean;
@@ -987,6 +1002,10 @@ procedure TKExtPanelControllerBase.PerformDelayedClick(const AButton: TExtButton
 begin
   if Assigned(AButton) then
     AButton.On('render', GenerateAnonymousFunction(AButton.PerformClick));
+end;
+
+procedure TKExtPanelControllerBase.SetActiveSubController(const ASubController: IJSController);
+begin
 end;
 
 procedure TKExtPanelControllerBase.SetContainer(const AValue: IJSContainer);
@@ -1001,9 +1020,9 @@ end;
 
 { TKExtStatusBar }
 
-procedure TKExtStatusBar.ClearStatus;
+function TKExtStatusBar.ClearStatus: TJSExpression;
 begin
-  inherited ClearStatus;
+  Result := inherited ClearStatus;
 end;
 
 procedure TKExtStatusBar.SetErrorStatus(const AText: string);
@@ -1401,9 +1420,13 @@ end;
 
 function TKExtControllerHostWindow.GetControllerToRemove: IJSController;
 begin
-  Assert(Assigned(FHostedController));
+  Assert(Assigned(FController));
 
-  Result := FHostedController;
+  Result := FController;
+end;
+
+procedure TKExtControllerHostWindow.InitSubController(const ASubController: IJSController);
+begin
 end;
 
 procedure TKExtControllerHostWindow.InitDefaults;
@@ -1412,9 +1435,9 @@ begin
   Layout := lyFit;
 end;
 
-procedure TKExtControllerHostWindow.SetHostedController(const AController: IJSController);
+procedure TKExtControllerHostWindow.SetActiveSubController(const ASubController: IJSController);
 begin
-  FHostedController := AController;
+  FController := ASubController;
 end;
 
 end.

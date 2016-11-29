@@ -736,6 +736,7 @@ type
     function GetActiveTab: TExtExpression;
     function SetActiveTab(const AItem: string): TExtExpression; overload;
     function SetActiveTab(const AItem: Integer): TExtExpression; overload;
+    function SetActiveTab(const AItem: TExtComponent): TExtExpression; overload;
     property ActiveTab: string read FActiveTab write _SetActiveTab;
     property ActiveTabNumber: Integer read FActiveTabNumber write SetActiveTabNumber;
     property DeferredRender: Boolean read FDeferredRender write SetDeferredRender;
@@ -2176,6 +2177,13 @@ function TExtMessageBoxSingleton.Alert(const ATitle: string; const AMsg: string;
 begin
   Result := TKWebResponse.Current.Items.CallMethod(Self, 'alert').AddParam(ATitle).AddParam(AMsg)
     .AddParam(AFn).AddParam(AScope).AsExpression;
+end;
+
+function TExtTabPanel.SetActiveTab(const AItem: TExtComponent): TExtExpression;
+begin
+  Result := TKWebResponse.Current.Items.CallMethod(Self, 'setActiveTab')
+    .AddParam(AItem)
+    .AsExpression;
 end;
 
 end.

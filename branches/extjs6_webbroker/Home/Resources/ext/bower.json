@@ -1,0 +1,14 @@
+{
+  "name": "extjs",
+  "version": "6.2.0-981",
+  "homepage": "http://www.sencha.com/products/extjs",
+  "authors": [
+    "Sencha"
+  ],
+  "main": "build/ext-all.js",
+  "keywords": [
+    "extjs"
+  ],
+  "license": "GPL",
+  "ignore": []
+}

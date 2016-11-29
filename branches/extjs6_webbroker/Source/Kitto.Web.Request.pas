@@ -96,7 +96,6 @@ var
   LUserAgent: string;
 begin
   LUserAgent := UserAgent;
-  TEFLogger.Instance.Log('UserAgent: ' + LUserAgent);
   Result := LUserAgent.Contains('Windows Phone') or
     LUserAgent.Contains('iPhone') or
     LUserAgent.Contains('iPad') or
