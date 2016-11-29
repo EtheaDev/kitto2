@@ -1,0 +1,61 @@
+.wizards .x-panel{
+    background: #fff;
+}
+
+.wizardthree .wizardprogressbar {
+    background-color: $wizard-three-button-background-color;
+}
+
+@include extjs-button-small-ui(
+    $ui: 'wizard-blue',
+    $color: $button-toolbar-color,
+    $color-pressed: $wizard-primary-background-color,
+    $background-color: transparent,
+    $opacity-disabled: 1,
+    $glyph-color: $button-toolbar-glyph-color,
+    $border-width: 0
+);
+
+@include extjs-button-small-ui(
+    $ui: 'wizard-soft-purple',
+    $color: $button-toolbar-color,
+    $color-pressed: #fff,
+    $background-color: transparent,
+    $background-color-pressed: $wizard-two-button-background-color,
+    $opacity-disabled: 1,
+    $glyph-color: $button-toolbar-glyph-color,
+    $border-width: 0
+);
+
+@include extjs-button-small-ui(
+    $ui: 'wizard-soft-green',
+    $color: #fff,
+    $color-pressed: $color,
+    $background-color: transparent,
+    $opacity-disabled: 1,
+    $glyph-color: #fff,
+    $border-width: 0
+);
+
+// This rule is required because the button mixin does not currently support
+// separate icon colors for each state
+.x-btn-pressed {
+    .x-btn-icon-el-wizard-blue-small {
+        color: $wizard-primary-background-color;
+    }
+
+    &.x-btn-disabled {
+        &.x-btn-wizard-soft-purple-small,
+        .x-btn-wizard-soft-purple-small-mc {
+            background-color: $wizard-two-button-background-color;
+        }
+    }
+
+    .x-btn-icon-el-wizard-soft-purple-small {
+        color: #fff;
+    }
+
+    .x-btn-icon-el-wizard-soft-green-small {
+        color: $color;
+    }
+}

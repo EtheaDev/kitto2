@@ -16,7 +16,7 @@ uses
   , Kitto.Metadata.Views
   , Kitto.JS.Base
   , Kitto.JS
-  , Kitto.Web
+  , Kitto.Web.Server
   , Kitto.Web.URL
   , Kitto.Web.Request
   , Kitto.Web.Response
@@ -26,7 +26,7 @@ uses
 
 type
   TLibraryRef = record
-    IsCSS: Boolean;
+    IncludeCSS: Boolean;
     Path: string;
   end;
 
@@ -43,23 +43,24 @@ type
     FLoginNode: TEFNode;
     FOwnsLoginNode: Boolean;
     FTheme: string;
-    FExtPath: string;
+    FExtJSPath: string;
+    FExtJSLocalPath: string;
     FAdditionalRefs: TList<TLibraryRef>;
     FSessionMacroExpander: TKWebApplicationSessionMacroExpander;
+    FResourcePath: string;
+    FResourceLocalPath1: string;
+    FResourceLocalPath2: string;
     class threadvar FCurrent: TKWebApplication;
-    class var FOnCreateHostWindow: TFunc<TJSBase, IJSFloatingHost>;
+    class var FOnCreateHostWindow: TFunc<TJSBase, IJSControllerContainer>;
     function GetDefaultHomeViewNodeNames(const AViewportWidthInInches: Integer; const ASuffix: string): TStringDynArray;
     procedure Home;
     procedure FreeLoginNode;
     procedure ServeHomePage;
     function FindOpenController(const AView: TKView): IJSController;
-    procedure SetActiveViewInViewHost(const AObject: TObject);
     function GetMainPageTemplate: string;
     function GetManifestFileName: string;
     procedure ClearStatus;
-    procedure LoadLibraries;
-    procedure SetLibrary(const AURL: string; const AIsCSS: Boolean = False; const AHasDebug: Boolean = False);
-    procedure SetCSS(const ACSS: string; const ACheck: Boolean = True);
+    function GetLibraryTags: string;
     procedure SetViewportContent;
     function GetCustomJS: string;
     function GetViewportContent: string;
@@ -73,7 +74,7 @@ type
     function CallObjectMethod(const AObject: TObject; const AMethodName: string): Boolean;
     procedure AddConfigRoutes(const AServer: TKWebServer);
     function GetViewportWidthInInches: TJSExpression;
-    class function CreateHostWindow(const AOwner: TJSBase): IJSFloatingHost; static;
+    class function CreateHostWindow(const AOwner: TJSBase): IJSControllerContainer; static;
   public
     const DEFAULT_VIEWPORT_WIDTH = 480;
     class constructor Create;
@@ -95,11 +96,11 @@ type
       const AAfterCreateWindow: TProc<IJSContainer> = nil;
       const AAfterCreate: TProc<IJSController> = nil): IJSController;
     property Theme: string read FTheme write FTheme;
-    property ExtPath: string read FExtPath write FExtPath;
+    property ExtJSPath: string read FExtJSPath write FExtJSPath;
 
     class property Current: TKWebApplication read GetCurrent write SetCurrent;
 
-    class property OnCreateHostWindow: TFunc<TJSBase, IJSFloatingHost> read FOnCreateHostWindow write FOnCreateHostWindow;
+    class property OnCreateHostWindow: TFunc<TJSBase, IJSControllerContainer> read FOnCreateHostWindow write FOnCreateHostWindow;
 
     procedure ReloadOrDisplayHomeView;
     function GetLoginView: TKView;
@@ -140,7 +141,7 @@ type
     ///  Call this in the initialization section of a unit defining a controller
     ///  to ensure that additional javascript or css files are included.
     /// </summary>
-    procedure AddAdditionalRef(const APath: string; const AIsCSS: Boolean);
+    procedure AddAdditionalRef(const APath: string; const AIncludeCSS: Boolean);
     procedure Alert(const AMessage: string);
     procedure Error(const AMessage, AMethodName, AParams: string);
     procedure NotFoundError(const AMethodName: string);
@@ -211,8 +212,12 @@ begin
   FRttiContext := TRttiContext.Create;
   FConfig := TKConfig.Create;
   FAdditionalRefs := TList<TLibraryRef>.Create;
-  FExtPath := '/ext';
-  FTheme := Config.Config.GetString('Ext/Theme', 'triton');
+  FExtJSPath := '/ext';
+  FExtJSLocalPath := Config.Config.GetString('ExtJS/Path', TPath.Combine(Config.SystemHomePath, TPath.Combine('Resources', 'ext')));
+  FResourcePath := '/res';
+  FResourceLocalPath1 := TPath.Combine(Config.AppHomePath, 'Resources');
+  FResourceLocalPath2 := TPath.Combine(Config.SystemHomePath, 'Resources');
+  FTheme := Config.Config.GetString('ExtJS/Theme', 'triton');
   FSessionMacroExpander := TKWebApplicationSessionMacroExpander.Create;
   FConfig.MacroExpansionEngine.AddExpander(FSessionMacroExpander);
   FPath := FConfig.Config.GetString('AppPath', '/' + Config.AppName.ToLower);
@@ -226,12 +231,12 @@ begin
   inherited;
 end;
 
-procedure TKWebApplication.AddAdditionalRef(const APath: string; const AIsCSS: Boolean);
+procedure TKWebApplication.AddAdditionalRef(const APath: string; const AIncludeCSS: Boolean);
 var
   LValue: TLibraryRef;
 begin
   LValue.Path := APath;
-  LValue.IsCSS := AIsCSS;
+  LValue.IncludeCSS := AIncludeCSS;
   FAdditionalRefs.Add(LValue);
 end;
 
@@ -243,9 +248,8 @@ end;
 
 procedure TKWebApplication.AddConfigRoutes(const AServer: TKWebServer);
 begin
-  AServer.AddRoute(TKStaticWebRoute.Create(ExtPath + '/*', Config.Config.GetString('Ext/Path', 'C:\Apache\htdocs\ext6')));
-  AServer.AddRoute(TKMultipleStaticWebRoute.Create('/res/',
-    [TPath.Combine(Config.AppHomePath, 'Resources'), TPath.Combine(Config.SystemHomePath, 'Resources')]));
+  AServer.AddRoute(TKStaticWebRoute.Create(FExtJSPath + '/*', FExtJSLocalPath));
+  AServer.AddRoute(TKMultipleStaticWebRoute.Create(FResourcePath + '/', [FResourceLocalPath1, FResourceLocalPath2]));
 end;
 
 procedure TKWebApplication.FreeLoginNode;
@@ -341,19 +345,21 @@ function TKWebApplication.DisplayNewController(const AView: TKView; const AForce
 var
   LIsSynchronous: Boolean;
   LIsModal: Boolean;
-  LWindow: IJSFloatingHost;
-  LViewHost: IKExtViewHost;
+  LWindow: IJSControllerContainer;
 begin
   Assert(Assigned(AView));
 
   // If there's no view host, we treat all views as windows.
-  LIsModal := AForceModal or not Assigned(Session.ViewHost) or AView.GetBoolean('Controller/IsModal');
+  LIsModal := AForceModal or not Assigned(Session.ControllerContainer) or AView.GetBoolean('Controller/IsModal');
   if Assigned(Session.ControllerHostWindow) then
   begin
     Session.ControllerHostWindow.AsJSObject.Delete;
     Session.ControllerHostWindow.AsObject.Free;
     Session.ControllerHostWindow := nil;
   end;
+  { TODO :
+  If we added the ability to change owner after object creation,
+  this code could be simplified a lot by only creating the window if needed. }
   if LIsModal then
   begin
     LWindow := CreateHostWindow(Session);
@@ -371,10 +377,10 @@ begin
     end
     else
     begin
-      { TODO : remove dependency }
+      { TODO : remove dependency from TKExtWindowControllerBase }
 //      set view
 //      is autosize
-      LWindow.SetHostedController(Result);
+      LWindow.SetActiveSubController(Result);
       if TKExtWindowControllerBase(LWindow).Title = '' then
         TKExtWindowControllerBase(LWindow).Title := _(AView.DisplayLabel);
       TKExtWindowControllerBase(LWindow).Closable := AView.GetBoolean('Controller/AllowClose', True);
@@ -385,10 +391,8 @@ begin
   end
   else
   begin
-    Assert(Assigned(Session.ViewHost));
-    if not Supports(Session.ViewHost, IKExtViewHost, LViewHost) then
-      raise Exception.Create('ViewHost does not support interface IKExtViewHost');
-    Result := TKExtControllerFactory.Instance.CreateController(Session, AView, LViewHost.AsExtContainer);
+    Assert(Assigned(Session.ControllerContainer));
+    Result := TKExtControllerFactory.Instance.CreateController(Session, AView, Session.ControllerContainer);
     Assert(Result.Config.GetBoolean('Sys/SupportsContainer'));
   end;
   LIsSynchronous := Result.IsSynchronous;
@@ -410,7 +414,7 @@ begin
     NilEFIntf(Result);
 end;
 
-class function TKWebApplication.CreateHostWindow(const AOwner: TJSBase): IJSFloatingHost;
+class function TKWebApplication.CreateHostWindow(const AOwner: TJSBase): IJSControllerContainer;
 begin
   if Assigned(FOnCreateHostWindow) then
     Result := FOnCreateHostWindow(AOwner)
@@ -459,8 +463,8 @@ begin
         if not Assigned(LController) then
           LController := DisplayNewController(AView);
       end;
-      if Assigned(LController) and Assigned(Session.ViewHost) and LController.Config.GetBoolean('Sys/SupportsContainer') then
-        SetActiveViewInViewHost(LController.AsObject);
+      if Assigned(LController) and Assigned(Session.ControllerContainer) and LController.Config.GetBoolean('Sys/SupportsContainer') then
+        Session.ControllerContainer.SetActiveSubController(LController);
     finally
       ClearStatus;
     end;
@@ -482,7 +486,7 @@ end;
 procedure TKWebApplication.ClearStatus;
 begin
   if Assigned(Session.StatusHost) then
-    TKExtStatusBar(Session.StatusHost).ClearStatus;
+    Session.StatusHost.ClearStatus;
 end;
 
 class constructor TKWebApplication.Create;
@@ -497,56 +501,9 @@ begin
     end;
 end;
 
-procedure TKWebApplication.SetActiveViewInViewHost(const AObject: TObject);
-var
-  I: Integer;
-  LViewHost: IKExtViewHost;
-begin
-  Assert(Assigned(Session.ViewHost));
-  Assert(Assigned(AObject));
-
-  if Supports(Session.ViewHost, IKExtViewHost, LViewHost) then
-  begin
-    for I := 0 to LViewHost.AsExtContainer.Items.Count - 1 do
-    begin
-      if LViewHost.AsExtContainer.Items[I] = AObject then
-      begin
-        LViewHost.SetActiveView(I);
-        Break;
-      end;
-    end;
-  end;
-end;
-
-procedure TKWebApplication.SetCSS(const ACSS: string; const ACheck: Boolean);
-var
-  LCSS: string;
-begin
-  LCSS := ACSS.Replace('{ext}', ExtPath);
-  if Pos(LCSS + '.css', Session.Libraries) = 0 then
-    Session.Libraries := Session.Libraries + '<link rel=stylesheet href="' + LCSS + '.css" />';
-end;
-
 class procedure TKWebApplication.SetCurrent(const AValue: TKWebApplication);
 begin
   FCurrent := AValue;
-end;
-
-procedure TKWebApplication.SetLibrary(const AURL: string; const AIsCSS, AHasDebug: Boolean);
-var
-  LURL: string;
-begin
-  Assert(AURL <> '');
-  { TODO : refactor }
-  LURL := AURL.Replace('{ext}', ExtPath);
-  if Pos(LURL + '.js', Session.Libraries) = 0 then
-  begin
-    Session.Libraries := Session.Libraries + '<script src="' + LURL{$IFDEF DEBUGJS} + IfThen(HasDebug, '-debug', ''){$ENDIF} +
-      '.js"></script>' + sLineBreak;
-    { TODO : remove. use SetCSS }
-    if AIsCSS then
-      Session.Libraries := Session.Libraries + '<link rel=stylesheet href="' + LURL + '.css" />' + sLineBreak;
-  end;
 end;
 
 function TKWebApplication.SetIconStyle(const ADefaultImageName: string;
@@ -808,8 +765,6 @@ begin
   if not Session.RefreshingLanguage then
     Config.Authenticator.Logout;
 
-  LoadLibraries;
-
   Session.HomeViewNodeName := TKWebRequest.Current.QueryFields.Values['home'];
   SetViewportContent;
   TKWebResponse.Current.Items.ExecuteJSCode(Session, 'kittoInit();');
@@ -867,28 +822,53 @@ begin
   ErrorMessage(AMessage);
 end;
 
-procedure TKWebApplication.LoadLibraries;
+function TKWebApplication.GetLibraryTags: string;
+var
+  LResult: string;
 
-  procedure SetRequiredLibrary(const ALibName: string; const AIncludeCSS: Boolean = False);
-  var
-    LLibURL: string;
+  procedure AddCSSLink(const AURL: string);
   begin
-    LLibURL := Config.GetResourceURL(IncludeTrailingPathDelimiter('js') + ALibName + '.js');
-    SetLibrary(StripSuffix(LLibURL, '.js'), AIncludeCSS);
+    Assert(AURL <> '');
+
+    LResult := LResult + '<link rel="stylesheet" href="' + AURL + '" />' + sLineBreak;
   end;
 
-  procedure SetOptionalLibrary(const ALibName: string; const AIncludeCSS: Boolean = False);
-  var
-    LLibURL: string;
+  procedure AddScriptLink(const AURL: string; const AHasDebug: Boolean = False);
   begin
-    LLibURL := Config.FindResourceURL(IncludeTrailingPathDelimiter('js') + ALibName + '.js');
-    if LLibURL <> '' then
-      SetLibrary(StripSuffix(LLibURL, '.js'));
+    Assert(AURL <> '');
+
+    LResult := LResult + '<script src="' + AURL + '"></script>' + sLineBreak;
+  end;
+
+  procedure AddRequiredLibrary(const ALibPathName: string; const AIncludeCSS: Boolean = False);
+  var
+    LURL: string;
+    LLibPathName: string;
+  begin
+    LLibPathName := ALibPathName.Replace('{ext}', FExtJSPath.Replace('/', PathDelim));
+    LURL := Config.GetResourceURL(LLibPathName + '.js');
+    AddScriptLink(LURL);
     if AIncludeCSS then
     begin
-      LLibURL := Config.FindResourceURL(IncludeTrailingPathDelimiter('js') + ALibName + '.css');
-      if LLibURL <> '' then
-        SetCSS(StripSuffix(LLibURL, '.css'), False);
+      LURL := Config.GetResourceURL(LLibPathName + '.css');
+      AddCSSLink(LURL);
+    end;
+  end;
+
+  procedure AddOptionalLibrary(const ALibPathName: string; const AIncludeCSS: Boolean = False);
+  var
+    LURL: string;
+    LLibPathName: string;
+  begin
+    LLibPathName := ALibPathName.Replace('{ext}', FExtJSPath.Replace('/', PathDelim));
+    LURL := Config.FindResourceURL(LLibPathName + '.js');
+    if LURL <> '' then
+      AddScriptLink(LURL);
+    if AIncludeCSS then
+    begin
+      LURL := Config.FindResourceURL(LLibPathName + '.css');
+      if LURL <> '' then
+        AddCSSLink(LURL);
     end;
   end;
 
@@ -897,11 +877,12 @@ var
   LLibName: string;
   LRef: TLibraryRef;
 begin
+  LResult := '';
 { TODO :
 Find a way to reference optional libraries only if the controllers that need
 them are linked in; maybe a global repository fed by initialization sections.
 Duplicates must be handled/ignored. }
-//  SetLibrary('{ext}/packages/ux/classic/src/statusbar/StatusBar');
+  AddRequiredLibrary('{ext}\packages\ux\classic\src\statusbar\StatusBar');
 //  SetCSS('{ext}/examples/ux/statusbar/css/statusbar');
 
 //  SetLibrary('{ext}/examples/ux/fileuploadfield/FileUploadField');
@@ -912,25 +893,22 @@ Duplicates must be handled/ignored. }
 //  SetRequiredLibrary('DateTimeField');
 //  SetRequiredLibrary('NumericField');
 //  SetRequiredLibrary('DefaultButton');
-  SetRequiredLibrary('kitto-core', True);
+  AddRequiredLibrary('js\kitto-core', True);
   if TKWebRequest.Current.IsMobileBrowser then
-    SetRequiredLibrary('kitto-core-mobile', True)
+    AddRequiredLibrary('js\kitto-core-mobile', True)
   else
-    SetRequiredLibrary('kitto-core-desktop', True);
-  SetRequiredLibrary('kitto-init');
-  SetOptionalLibrary('application', True);
+    AddRequiredLibrary('js\kitto-core-desktop', True);
+  AddRequiredLibrary('js\kitto-init');
+  AddOptionalLibrary('js\application', True);
 
   for LRef in FAdditionalRefs do
-  begin
-    if LRef.IsCSS then
-      SetCSS(LRef.Path)
-    else
-      SetLibrary(LRef.Path);
-  end;
+    AddRequiredLibrary(LRef.Path, LRef.IncludeCSS);
 
   LLibraries := Config.Config.GetStringArray('JavaScriptLibraries');
   for LLibName in LLibraries do
-    SetRequiredLibrary(LLibName);
+    AddRequiredLibrary(LLibName);
+
+  Result := LResult;
 end;
 
 class function TKWebApplication.GetCurrent: TKWebApplication;
@@ -999,9 +977,6 @@ procedure TKWebApplication.ServeHomePage;
 var
   LHtml: string;
 begin
-  if Session.IsDownload or Session.IsUpload then
-    Exit;
-
   LHtml := GetMainPageTemplate;
   // Replace template macros in main page code.
   LHtml := ReplaceText(LHtml, '<%HTMLDeclaration%>', '<?xml version=1.0?>' + sLineBreak +
@@ -1014,17 +989,17 @@ begin
   LHtml := ReplaceText(LHtml, '<%AppleIconLink%>',
     IfThen(Config.AppIcon = '', '', '<link rel="apple-touch-icon" sizes="120x120" href="' + Config.GetImageURL(Config.AppIcon) + '"/>'));
   LHtml := ReplaceText(LHtml, '<%CharSet%>', TKWebResponse.Current.Items.Charset);
-  LHtml := ReplaceText(LHtml, '<%ExtPath%>', ExtPath);
+  LHtml := ReplaceText(LHtml, '<%ExtJSPath%>', FExtJSPath);
   LHtml := ReplaceText(LHtml, '<%DebugSuffix%>', {$IFDEF DebugExtJS}'-debug'{$ELSE}''{$ENDIF});
   LHtml := ReplaceText(LHtml, '<%ManifestLink%>', IfThen(GetManifestFileName = '', '',
     Format('<link rel="manifest" href="%s"/>', [GetManifestFileName])));
   LHtml := ReplaceText(LHtml, '<%ThemeLink%>',
-    IfThen(Theme = '', '', '<link rel=stylesheet href="' + ExtPath + '/build/classic/theme-' + Theme +
+    IfThen(Theme = '', '', '<link rel=stylesheet href="' + ExtJSPath + '/build/classic/theme-' + Theme +
       '/resources/theme-' + Theme + '-all.css" />'));
   LHtml := ReplaceText(LHtml, '<%LanguageLink%>',
     IfThen((Session.Language = 'en') or (Session.Language = ''), '',
-      '<script src="' + ExtPath + '/build/classic/locale/locale-' + Session.Language + '.js"></script>'));
-  LHtml := ReplaceText(LHtml, '<%LibraryTags%>', Session.Libraries);
+      '<script src="' + ExtJSPath + '/build/classic/locale/locale-' + Session.Language + '.js"></script>'));
+  LHtml := ReplaceText(LHtml, '<%LibraryTags%>', GetLibraryTags);
   LHtml := ReplaceText(LHtml, '<%CustomJS%>', GetCustomJS);
   LHtml := ReplaceText(LHtml, '<%Response%>', TKWebResponse.Current.Items.Consume);
 

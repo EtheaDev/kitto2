@@ -432,10 +432,6 @@ object KExtMainForm: TKExtMainForm
     object HomeTabSheet: TTabSheet
       Caption = 'Home'
       ImageIndex = 1
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object LogMemo: TMemo
         Left = 0
         Top = 81
@@ -646,13 +642,14 @@ object KExtMainForm: TKExtMainForm
               Width = 100
             end
             item
-              Caption = 'Origin'
+              Caption = 'Client Address'
               Width = 100
             end>
           TabOrder = 2
           ViewStyle = vsReport
           OnEdited = SessionListViewEdited
           OnInfoTip = SessionListViewInfoTip
+          ExplicitTop = 35
         end
       end
     end
@@ -685,7 +682,7 @@ object KExtMainForm: TKExtMainForm
     Left = 320
     Top = 65528
     Bitmap = {
-      494C010103004C00E00010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C010103004C00E40010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000001000000001002000000000000010
       0000000000000000000000000000000000000000000000000000000000000000
       00000000001E00000031000000330000003300000033000000310000001E0000
@@ -831,5 +828,11 @@ object KExtMainForm: TKExtMainForm
     Title = 'Select Config file'
     Left = 152
     Top = 65528
+  end
+  object SessionListRefreshTimer: TTimer
+    Interval = 5000
+    OnTimer = SessionListRefreshTimerTimer
+    Left = 328
+    Top = 176
   end
 end

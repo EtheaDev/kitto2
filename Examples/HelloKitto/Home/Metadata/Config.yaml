@@ -106,11 +106,17 @@ HelloWorld:
       Controller: HtmlPanel
         Html: <h1>Hello World!</h1>
 
-Ext:
+ExtJS:
   Theme: triton
-  Path: C:\Apache\htdocs\ext6
+  #Path: C:\Apache\htdocs\ext6
 
 LanguageId: it
 # Either utf-8 or a SBCS corresponding to the system code page
 # (such as iso-8859-1 for Western Europe). Defaults to utf-8.
-Charset: utf-8
+#Charset: utf-8
+
+Server:
+  #Port: 8080
+  #ThreadPoolSize: 20
+  # In minutes.
+  SessionTimeOut: 1

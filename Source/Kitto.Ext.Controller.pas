@@ -108,7 +108,7 @@ de-registration gracefully. }
     ///  Custom controller type, used to override the one specified in the view.
     /// </param>
     function CreateController(const AOwner: TJSBase; const AView: TKView;
-      const AContainer: IJSContainer; const AConfig: TEFNode = nil;
+      const AContainer: IJSControllerContainer; const AConfig: TEFNode = nil;
       const AObserver: IEFObserver = nil; const ACustomType: string = ''): IJSController;
   end;
 
@@ -175,14 +175,13 @@ begin
 end;
 
 function TKExtControllerFactory.CreateController(const AOwner: TJSBase;
-  const AView: TKView; const AContainer: IJSContainer; const AConfig: TEFNode;
+  const AView: TKView; const AContainer: IJSControllerContainer; const AConfig: TEFNode;
   const AObserver: IEFObserver; const ACustomType: string): IJSController;
 var
   LClass: TExtObjectClass;
   LSubject: IEFSubject;
   LObject: TExtObject;
   LType: string;
-  LControllerHost: IJSControllerHost;
   LSupportsContainer: Boolean;
 begin
   Assert(AView <> nil);
@@ -219,8 +218,8 @@ begin
   // Keep track of the SupportsContainer info fetched from the class for later use.
   Result.Config.SetBoolean('Sys/SupportsContainer', LSupportsContainer);
   Result.View := AView;
-  if Assigned(AContainer) and Supports(AContainer, IJSControllerHost, LControllerHost) then
-    LControllerHost.InitController(Result);
+  if Assigned(AContainer) then
+    AContainer.InitSubController(Result);
   if LSupportsContainer then
     Result.Container := AContainer;
   if Assigned(AObserver) and Supports(Result.AsObject, IEFSubject, LSubject) then

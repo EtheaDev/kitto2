@@ -36,7 +36,7 @@ type
   ///  A tab panel that knows when its hosted panels are closed. Used
   ///  by the TabPanel controller.
   /// </summary>
-  TKExtTabPanel = class(TExtTabPanel, IKExtPanelHost, IKExtViewHost, IJSControllerHost)
+  TKExtTabPanel = class(TExtTabPanel, IKExtPanelHost, IJSControllerContainer)
   private
     FConfig: TEFTree;
     FView: TKView;
@@ -49,11 +49,11 @@ type
     procedure ApplyTabSize;
     function GetDefaultTabSize: string; virtual;
     procedure TabChange(AThis: TExtTabPanel; ATab: TExtPanel); virtual;
+    procedure InitSubController(const ASubController: IJSController);
+    procedure SetActiveSubController(const ASubController: IJSController);
   public
-    procedure SetAsViewHost; virtual;
-    procedure SetActiveView(const AIndex: Integer);
+    procedure SetAsControllerContainer; virtual;
     function AsExtContainer: TExtContainer;
-    procedure InitController(const AController: IJSController);
     procedure DisplaySubViewsAndControllers; virtual;
     destructor Destroy; override;
     procedure ClosePanel(const APanel: TExtComponent);
@@ -73,7 +73,8 @@ type
     function GetDefaultTabIconsVisible: Boolean; virtual;
   protected
     function TabIconsVisible: Boolean;
-    procedure InitSubController(const AController: IJSController); override;
+    procedure InitSubController(const ASubController: IJSController); override;
+    procedure SetActiveSubController(const ASubController: IJSController); override;
   end;
 
 implementation
@@ -94,7 +95,7 @@ begin
   FTabPanel.FConfig := Config;
   FTabPanel.FOwner := Self;
   FTabPanel.FView := View;
-  FTabPanel.SetAsViewHost;
+  FTabPanel.SetAsControllerContainer;
   FTabPanel.DisplaySubViewsAndControllers;
 end;
 
@@ -115,10 +116,15 @@ begin
   FTabPanel := GetTabPanelClass.CreateAndAddToArray(Items);
 end;
 
-procedure TKExtTabPanelController.InitSubController(const AController: IJSController);
+procedure TKExtTabPanelController.InitSubController(const ASubController: IJSController);
 begin
   inherited;
-  AController.Config.SetBoolean('Sys/ShowIcon', TabIconsVisible);
+  ASubController.Config.SetBoolean('Sys/ShowIcon', TabIconsVisible);
+end;
+
+procedure TKExtTabPanelController.SetActiveSubController(const ASubController: IJSController);
+begin
+
 end;
 
 function TKExtTabPanelController.TabIconsVisible: Boolean;
@@ -127,13 +133,6 @@ begin
 end;
 
 { TKExtTabPanel }
-
-procedure TKExtTabPanel.InitController(const AController: IJSController);
-begin
-  Assert(Assigned(FOwner));
-
-  FOwner.InitSubController(AController);
-end;
 
 procedure TKExtTabPanel.InitDefaults;
 begin
@@ -145,14 +144,19 @@ begin
   DeferredRender := True;
 end;
 
-procedure TKExtTabPanel.SetAsViewHost;
+procedure TKExtTabPanel.InitSubController(const ASubController: IJSController);
+begin
+  inherited;
+end;
+
+procedure TKExtTabPanel.SetAsControllerContainer;
 begin
   Assert(Assigned(Config));
   Assert(Session <> nil);
 
-  if Config.GetBoolean('IsViewHost', True) then
-    if (Session.ViewHost = nil) then
-      Session.ViewHost := Self;
+  if Config.GetBoolean('IsControllerContainer', True) then
+    if (Session.ControllerContainer = nil) then
+      Session.ControllerContainer := Self;
 end;
 
 function TKExtTabPanel.AsExtContainer: TExtContainer;
@@ -174,8 +178,8 @@ end;
 
 destructor TKExtTabPanel.Destroy;
 begin
-  if (Session <> nil) and (Session.ViewHost = Self) then
-    Session.ViewHost := nil;
+  if (Session <> nil) and Assigned(Session.ControllerContainer) and (Session.ControllerContainer.AsJSObject = Self) then
+    Session.ControllerContainer := nil;
   inherited;
 end;
 
@@ -237,9 +241,9 @@ begin
   LPanel.Free;
 end;
 
-procedure TKExtTabPanel.SetActiveView(const AIndex: Integer);
+procedure TKExtTabPanel.SetActiveSubController(const ASubController: IJSController);
 begin
-  SetActiveTab(AIndex);
+  SetActiveTab(ASubController.AsObject as TExtComponent);
 end;
 
 procedure TKExtTabPanel.ApplyTabSize;

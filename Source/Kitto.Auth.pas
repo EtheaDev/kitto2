@@ -40,6 +40,7 @@ type
   /// </summary>
   TKAuthenticator = class(TEFComponent)
   private
+    FMacroExpander: TEFTreeMacroExpander;
     procedure ClearAuthData;
     function GetMacroExpander: TEFMacroExpander;
   strict protected
@@ -88,6 +89,7 @@ type
     procedure SetPassword(const AValue: string); virtual;
   public
     procedure AfterConstruction; override;
+    destructor Destroy; override;
   public
     /// <summary>
     ///   <para>Receives an empty node which it should fill with the
@@ -131,7 +133,7 @@ type
     property IsAuthenticated: Boolean read GetIsAuthenticated;
 
     /// <summary>
-    ///   Access to the authenticator macro expander, that expands auth data.
+    ///  Access to the authenticator macro expander, that expands auth data.
     /// </summary>
     property MacroExpander: TEFMacroExpander read GetMacroExpander;
   end;
@@ -275,6 +277,12 @@ begin
     AAuthData.Children[I].AssignValue(Config.FindNode('Defaults/' + AAuthData.Children[I].Name));
 end;
 
+destructor TKAuthenticator.Destroy;
+begin
+  FreeAndNil(FMacroExpander);
+  inherited;
+end;
+
 function TKAuthenticator.GetIsAuthenticated: Boolean;
 begin
   Result := Session.IsAuthenticated;
@@ -287,7 +295,9 @@ end;
 
 function TKAuthenticator.GetMacroExpander: TEFMacroExpander;
 begin
-  Result := Session.AuthMacroExpander;
+  if not Assigned(FMacroExpander) then
+    FMacroExpander := TEFTreeMacroExpander.Create(Session.AuthData, 'Auth');
+  Result := FMacroExpander;
 end;
 
 function TKAuthenticator.GetPassword: string;

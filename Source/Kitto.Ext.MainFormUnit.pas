@@ -22,10 +22,11 @@ interface
 
 uses
   {$IF RTLVersion >= 23.0}Themes, Styles,{$IFEND}
-  Windows, Messages, SysUtils, Variants, Classes, Graphics,
-  Controls, Forms, Dialogs, ComCtrls, ToolWin,
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, IdCustomHTTPServer,
+  Controls, Forms, Dialogs, ComCtrls, ToolWin, Generics.Collections,
   ActnList, Kitto.Config, StdCtrls, Buttons, ExtCtrls, ImgList, EF.Logger,
-  Actions, Vcl.Tabs, Vcl.Grids, System.ImageList, Kitto.Web, Kitto.Web.Application;
+  Actions, Vcl.Tabs, Vcl.Grids, System.ImageList, Kitto.Web.Server,
+  Kitto.Web.Application, Kitto.JS;
 
 type
   TKExtLogEvent = procedure (const AString: string) of object;
@@ -64,6 +65,7 @@ type
     SessionToolPanel: TPanel;
     RefreshButton: TButton;
     SessionListView: TListView;
+    SessionListRefreshTimer: TTimer;
     procedure StartActionUpdate(Sender: TObject);
     procedure StopActionUpdate(Sender: TObject);
     procedure StartActionExecute(Sender: TObject);
@@ -82,13 +84,17 @@ type
     procedure RefreshButtonClick(Sender: TObject);
     procedure SessionListViewEdited(Sender: TObject; Item: TListItem; var S: string);
     procedure SessionListViewInfoTip(Sender: TObject; Item: TListItem; var InfoTip: string);
+    procedure SessionListRefreshTimerTimer(Sender: TObject);
   private
     FServer: TKWebServer;
     FApplication: TKWebApplication;
     FRestart: Boolean;
     FLogEndPoint: TKExtMainFormLogEndpoint;
+    FSessions: TThreadList<TJSSession>;
     procedure ShowTabGUI(const AIndex: Integer);
     procedure UpdateSessionInfo;
+    procedure ServerSessionEnd(Sender: TIdHTTPSession);
+    procedure ServerSessionStart(Sender: TIdHTTPSession);
     const
       TAB_LOG = 0;
       TAB_SESSIONS = 1;
@@ -112,11 +118,12 @@ implementation
 
 uses
   Math
+  , StrUtils
+  , DateUtils
   , SyncObjs
   , EF.SysUtils
   , EF.Shell
   , EF.Localization
-  , Kitto.JS
   ;
 
 procedure TKExtMainForm.RefreshButtonClick(Sender: TObject);
@@ -140,6 +147,11 @@ begin
     FillConfigFileNameCombo;
     SetConfig(ExtractFileName(OpenConfigDialog.FileName));
   end;
+end;
+
+procedure TKExtMainForm.SessionListRefreshTimerTimer(Sender: TObject);
+begin
+  UpdateSessionInfo;
 end;
 
 procedure TKExtMainForm.SessionListViewEdited(Sender: TObject; Item: TListItem;
@@ -196,6 +208,7 @@ procedure TKExtMainForm.MainTabSetChange(Sender: TObject; NewTab: Integer;
   var AllowChange: Boolean);
 begin
   ShowTabGUI(NewTab);
+  SessionListRefreshTimer.Enabled := MainTabSet.TabIndex = TAB_SESSIONS;
 end;
 
 procedure TKExtMainForm.ShowTabGUI(const AIndex: Integer);
@@ -236,62 +249,53 @@ end;
 
 procedure TKExtMainForm.UpdateSessionInfo;
 
-//  procedure AddItem(const AThreadData: TFCGIThreadData);
-//  var
-//    LItem: TListItem;
-//    LSession: TKExtSession;
-//  begin
-//    LItem := SessionListView.Items.Add;
-//    if Assigned(AThreadData.Session) and (AThreadData.Session is TKExtSession) then
-//    begin
-//      LSession := TKExtSession(AThreadData.Session);
-//      LItem.Data := LSession;
-//      LItem.Caption := LSession.DisplayName;
-//      // Start Time.
-//      LItem.SubItems.Add(DateTimeToStr(LSession.CreationDateTime));
-//      // Last Req.
-//      LItem.SubItems.Add(DateTimeToStr(LSession.LastRequestDateTime));
-//      // User.
-//      LItem.SubItems.Add(LSession.GetLoggedInUserName);
-//      // Origin.
-//      LItem.SubItems.Add(LSession.GetOrigin);
-//    end
-//    else
-//    begin
-//      LItem.Caption := _('None');
-//    end;
-//  end;
+  procedure AddItem(const ACaption: string; const ASession: TJSSession = nil);
+  var
+    LItem: TListItem;
+  begin
+    LItem := SessionListView.Items.Add;
+    LItem.Caption := ACaption;
+    if Assigned(ASession) then
+    begin
+      LItem.Data := ASession;
+      // Start Time.
+      LItem.SubItems.Add(IfThen(DateOf(ASession.CreationDateTime) = Date,
+        TimeToStr(TimeOf(ASession.CreationDateTime)), DateTimeToStr(ASession.CreationDateTime)));
+      // Last Req.
+      LItem.SubItems.Add(DateTimeToStr(ASession.LastRequestInfo.DateTime));
+      // User.
+      LItem.SubItems.Add(ASession.AuthData.GetString('UserName'));
+      // Origin.
+      LItem.SubItems.Add(ASession.LastRequestInfo.ClientAddress);
+    end;
+  end;
 
-//var
-//  I: Integer;
-//  LThreadData: TFCGIThreadData;
+var
+  I: Integer;
+  LSessions: TList<TJSSession>;
 begin
-  SessionListView.Clear;
-  if FServer.Active then
+  if MainTabSet.TabIndex = TAB_SESSIONS then
   begin
-//    FCGIApp.Application.AccessThreads.Enter;
-//    try
-//      if FCGIApp.Application.ThreadsCount <= 0 then
-//      begin
-//        LThreadData.Session := nil;
-//        AddItem(LThreadData);
-//      end
-//      else
-//      begin
-//        for I := 0 to FCGIApp.Application.ThreadsCount - 1 do
-//        begin
-//          LThreadData := FCGIApp.Application.GetThreadData(I);
-//          AddItem(LThreadData);
-//        end;
-//      end;
-//    finally
-//      FCGIApp.Application.AccessThreads.Leave;
-//    end;
-  end
-  else
-  begin
-//    LThreadData.Session := nil;
-//    AddItem(LThreadData);
+    SessionListView.Clear;
+    if FServer.Active then
+    begin
+      LSessions := FSessions.LockList;
+      try
+        if LSessions.Count = 0 then
+          AddItem(_('None'))
+        else
+        begin
+          for I := 0 to LSessions.Count - 1 do
+          begin
+            AddItem(LSessions[I].DisplayName, LSessions[I]);
+          end;
+        end;
+      finally
+        FSessions.UnlockList;
+      end;
+    end
+    else
+      AddItem(_('Inactive'));
   end;
 end;
 
@@ -328,9 +332,28 @@ begin
   //Sleep(100); // Apparently avoids a finalization problem in DBXCommon.
 end;
 
+procedure TKExtMainForm.ServerSessionStart(Sender: TIdHTTPSession);
+var
+  LJSSession: TJSSession;
+begin
+  LJSSession := Sender.Content.Objects[Sender.Content.IndexOf(TKWebServer.SESSION_OBJECT)] as TJSSession;
+  FSessions.Add(LJSSession);
+end;
+
+procedure TKExtMainForm.ServerSessionEnd(Sender: TIdHTTPSession);
+var
+  LJSSession: TJSSession;
+begin
+  LJSSession := Sender.Content.Objects[Sender.Content.IndexOf(TKWebServer.SESSION_OBJECT)] as TJSSession;
+  FSessions.Remove(LJSSession);
+end;
+
 procedure TKExtMainForm.FormCreate(Sender: TObject);
 begin
+  FSessions := TThreadList<TJSSession>.Create;
   FServer := TKWebServer.Create(nil);
+  FServer.OnSessionStart := ServerSessionStart;
+  FServer.OnSessionEnd := ServerSessionEnd;
   FApplication := FServer.AddRoute(TKWebApplication.Create) as TKWebApplication;
 
   FLogEndPoint := TKExtMainFormLogEndpoint.Create;
@@ -340,6 +363,7 @@ end;
 procedure TKExtMainForm.FormDestroy(Sender: TObject);
 begin
   FServer.Active := False;
+  FreeAndNil(FSessions);
   FreeAndNil(FServer);
   FreeAndNil(FLogEndPoint);
 end;
@@ -406,8 +430,6 @@ begin
 end;
 
 procedure TKExtMainForm.StartActionExecute(Sender: TObject);
-var
-  LConfig: TKConfig;
 begin
   Assert(Assigned(FServer));
   Assert(Assigned(FApplication));
@@ -415,12 +437,8 @@ begin
   FServer.Active := True;
   SessionCountLabel.Visible := True;
   DoLog(_('Listener started'));
-  LConfig := TKConfig.Create;
-  try
-    DisplayHomeURL(FApplication.GetHomeURL(FServer.DefaultPort));
-  finally
-    FreeAndNil(LConfig);
-  end;
+  DisplayHomeURL(FApplication.GetHomeURL(FServer.DefaultPort));
+  UpdateSessionInfo;
 end;
 
 procedure TKExtMainForm.StartActionUpdate(Sender: TObject);
