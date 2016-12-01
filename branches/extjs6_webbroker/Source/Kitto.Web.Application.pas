@@ -424,7 +424,9 @@ end;
 
 procedure TKWebApplication.DisplayView(const AName: string);
 begin
+  Assert(AName <> '');
 
+  DisplayView(Config.Views.ViewByName(AName));
 end;
 
 function TKWebApplication.FindOpenController(const AView: TKView): IJSController;
@@ -436,13 +438,8 @@ begin
   Result := nil;
   for I := 0 to Session.OpenControllers.Count - 1 do
   begin
-    if Supports(Session.OpenControllers[I], IJSController, Result) then
-    begin
-      if Result.View = AView then
-        Break
-      else
-        Result := nil;
-    end;
+    if Session.OpenControllers[I].View = AView then
+      Exit(Session.OpenControllers[I]);
   end;
 end;
 
@@ -702,24 +699,25 @@ end;
 procedure TKWebApplication.DisplayHomeView;
 var
   LHomeView: TKView;
-  LHomeController: IJSController;
-  LHomeContainer: TJSObject;
 begin
-  Session.HomeController.Free;
-  Session.HomeController := nil;
-  LHomeView := GetHomeView(Session.ViewportWidthInInches);
-  Session.HomeController := TKExtControllerFactory.Instance.CreateController(Session, LHomeView, nil).AsObject;
-  if Supports(Session.HomeController, IJSController, LHomeController) then
+  if Assigned(Session.HomeController) then
   begin
-    LHomeContainer := LHomeController.AsObject as TJSObject;
-    TKWebResponse.Current.Items.ExecuteJSCode(LHomeContainer, 'var kittoHomeContainer = ' + LHomeContainer.JSName + ';');
-    LHomeController.Display;
+    Session.HomeController.AsObject.Free;
+    Session.HomeController := nil;
   end;
+  LHomeView := GetHomeView(Session.ViewportWidthInInches);
+
+  Session.HomeController := TKExtControllerFactory.Instance.CreateController(Session, LHomeView, nil);
+  TKWebResponse.Current.Items.ExecuteJSCode(Session.HomeController.AsJSObject, 'var kittoHomeContainer = ' + Session.HomeController.AsJSObject.JSName + ';');
+  Session.HomeController.Display;
+
   if Session.AutoOpenViewName <> '' then
   begin
     DisplayView(Session.AutoOpenViewName);
     Session.AutoOpenViewName := '';
   end;
+
+  { TODO : remove dependency }
   if Session.HomeController is TExtContainer then
     TExtContainer(Session.HomeController).UpdateLayout;
 end;
@@ -727,19 +725,22 @@ end;
 procedure TKWebApplication.DisplayLoginView;
 var
   LLoginView: TKView;
-  LIntf: IJSController;
   LType: string;
 begin
-  Session.LoginController.Free;
-  Session.LoginController := nil;
+  if Assigned(Session.LoginController) then
+  begin
+    Session.LoginController.AsObject.Free;
+    Session.LoginController := nil;
+  end;
   LLoginView := TKWebApplication.Current.GetLoginView;
   if LLoginView.ControllerType = '' then
     LType := 'Login'
   else
     LType := '';
-  Session.LoginController := TKExtControllerFactory.Instance.CreateController(Session, LLoginView, nil, nil, Self, LType).AsObject;
-  if Supports(Session.LoginController, IJSController, LIntf) then
-    LIntf.Display;
+  Session.LoginController := TKExtControllerFactory.Instance.CreateController(Session, LLoginView, nil, nil, Self, LType);
+  Session.LoginController.Display;
+
+  { TODO : remove dependency }
   if Session.LoginController is TExtContainer then
     TExtContainer(Session.LoginController).UpdateLayout;
 end;
@@ -759,9 +760,6 @@ begin
   if TKWebRequest.Current.IsAjax then
     raise Exception.Create('Cannot call Home page in an Ajax request.');
 
-  { TODO : doesn't work with Chrome - probably leaks }
-//  if TKWebRequest.Current.IsRefresh then
-  Session.Refresh;
   if not Session.RefreshingLanguage then
     Config.Authenticator.Logout;
 
@@ -969,7 +967,7 @@ end;
 procedure TKWebApplication.UpdateObserver(const ASubject: IEFSubject; const AContext: string);
 begin
   inherited;
-  if (ASubject.AsObject = Session.LoginController) and SameText(AContext, 'LoggedIn') then
+  if (ASubject.AsObject = Session.LoginController.AsObject) and SameText(AContext, 'LoggedIn') then
     ReloadOrDisplayHomeView;
 end;
 

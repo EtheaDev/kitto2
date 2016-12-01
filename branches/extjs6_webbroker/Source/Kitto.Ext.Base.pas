@@ -87,7 +87,7 @@ type
     property View: TKView read GetView write SetView;
     procedure Display;
   //published
-    procedure PanelClosed;
+    procedure PanelClosed; virtual;
     procedure WindowClosed;
   end;
 
@@ -104,7 +104,7 @@ type
     /// <summary>
     procedure HookPanel(const APanel: TExtPanel);
   //published
-    procedure PanelClosed;
+    procedure PanelClosed; override;
   end;
 
   /// <summary>
@@ -731,6 +731,7 @@ end;
 
 procedure TKExtModalWindow.PanelClosed;
 begin
+  inherited;
   Close;
 end;
 

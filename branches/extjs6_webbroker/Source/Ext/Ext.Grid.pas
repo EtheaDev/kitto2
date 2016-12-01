@@ -243,7 +243,6 @@ type
     procedure SetStripeRows(const AValue: Boolean);
     procedure SetTrackMouseOver(const AValue: Boolean);
     procedure SetView(const AValue: TExtObject);
-    procedure SetViewConfig(const AValue: TExtObject);
   protected
     procedure InitDefaults; override;
     function GetObjectNamePrefix: string; override;
@@ -260,7 +259,7 @@ type
     property StripeRows: Boolean read FStripeRows write SetStripeRows;
     property TrackMouseOver: Boolean read FTrackMouseOver write SetTrackMouseOver;
     property View: TExtObject read FView write SetView;
-    property ViewConfig: TExtObject read FViewConfig write SetViewConfig;
+    property ViewConfig: TExtObject read FViewConfig;
   end;
 
   TExtGridFeatureFeature = class(TExtUtilObservable)
@@ -704,12 +703,6 @@ begin
   FView := SetConfigItem('view', AValue);
 end;
 
-procedure TExtGridGridPanel.SetViewConfig(const AValue: TExtObject);
-begin
-  FViewConfig.Free;
-  FViewConfig := SetConfigItem('viewConfig', AValue);
-end;
-
 class function TExtGridGridPanel.JSClassName: string;
 begin
   Result := 'Ext.grid.Panel';
@@ -720,6 +713,7 @@ begin
   inherited;
   FColumns := CreateConfigArray('columns');
   FFeatures := CreateConfigArray('features');
+  FViewConfig := CreateConfigObject('viewConfig');
 end;
 
 function TExtGridGridPanel.GetObjectNamePrefix: string;

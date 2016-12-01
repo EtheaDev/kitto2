@@ -401,7 +401,7 @@ begin
     FreeAndNil(FEditHostWindow);
   end;
   FEditHostWindow := TKExtModalWindow.Create(Self);
-  FEditHostWindow.OwnerCt := Session.HomeController as TExtContainer;
+//  FEditHostWindow.OwnerCt := Session.HomeController.AsJSObject as TExtContainer;
 
   //FEditHostWindow.ResizeHandles := 'n s';
   FEditHostWindow.Layout := lyFit;
