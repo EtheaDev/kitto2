@@ -75,6 +75,8 @@ type
     constructor CreateInlineAndAddToArray(const AArray: TJSObjectArray);
     destructor Destroy; override;
 
+    function AsJSObject: TJSObject;
+
     procedure Delete;
 
     function IsInternal: Boolean;
@@ -175,6 +177,8 @@ type
     ///  False if the controller stays on screen and is interactive instead.
     /// </summary>
     function IsSynchronous: Boolean;
+
+    function AsJSObject: TJSObject;
   end;
 
   /// <summary>
@@ -308,8 +312,8 @@ type
     FFileUploadedFullName: string;
     FFileUploaded: string;
     FRefreshingLanguage: Boolean;
-    FHomeController: TObject;
-    FLoginController: TObject;
+    FHomeController: IJSController;
+    FLoginController: IJSController;
     FViewportWidthInInches: Integer;
     FAutoOpenViewName: string;
     FAuthData: TEFNode;
@@ -387,7 +391,7 @@ type
 
     property CreationDateTime: TDateTime read FCreationDateTime;
     property Language: string read FLanguage write SetLanguage;
-    procedure Refresh;
+//    procedure Refresh;
 
     function GetSingleton<T: TJSObject>(const AName: string): T;
 
@@ -418,8 +422,8 @@ type
     /// </summary>
     property SessionId: string read FSessionId;
     property OpenControllers: TList<IJSController> read FOpenControllers;
-    property HomeController: TObject read FHomeController write FHomeController;
-    property LoginController: TObject read FLoginController write FLoginController;
+    property HomeController: IJSController read FHomeController write FHomeController;
+    property LoginController: IJSController read FLoginController write FLoginController;
     property ViewportWidthInInches: Integer read FViewportWidthInInches write FViewportWidthInInches;
     property AutoOpenViewName: string read FAutoOpenViewName write FAutoOpenViewName;
     property HomeViewNodeName: string read FHomeViewNodeName write FHomeViewNodeName;
@@ -495,23 +499,23 @@ begin
   Result := '';
 end;
 
-procedure TJSSession.Refresh;
-begin
-  inherited;
-  TKWebResponse.Current.Items.Clear;
-  FreeAllChildren;
-  FObjectSequences.Clear;
-  FSingletons.Clear;
-
-  FHomeController := nil;
-  FLoginController := nil;
-  FOpenControllers.Clear;
-  FControllerContainer := nil;
-  FStatusHost := nil;
-  FDynamicScripts.Clear;
-  FDynamicStyles.Clear;
-  FreeAndNil(FControllerHostWindow);
-end;
+//procedure TJSSession.Refresh;
+//begin
+//  inherited;
+//  TKWebResponse.Current.Items.Clear;
+//  FreeAllChildren;
+//  FObjectSequences.Clear;
+//  FSingletons.Clear;
+//
+//  FHomeController := nil;
+//  FLoginController := nil;
+//  FOpenControllers.Clear;
+//  FControllerContainer := nil;
+//  FStatusHost := nil;
+//  FDynamicScripts.Clear;
+//  FDynamicStyles.Clear;
+//  FreeAndNilEFIntf(FControllerHostWindow);
+//end;
 
 function TJSObject.GetMethodURL(const AMethod: TJSProcedure): string;
 begin
@@ -573,8 +577,8 @@ begin
   FreeAndNil(FSingletons);
   FreeAndNil(FAuthData);
   FreeAndNil(FUploadedFiles);
-  FreeAndNil(FHomeController);
-  FreeAndNil(FLoginController);
+  FreeAndNilEFIntf(FHomeController);
+  FreeAndNilEFIntf(FLoginController);
   FreeAndNil(FGettextInstance);
   FreeAndNil(FDynamicScripts);
   FreeAndNil(FDynamicStyles);
@@ -842,6 +846,11 @@ begin
     JSName := TJSObject(Owner).JSName + '.' + FAttributeName
   else
     JSName := Session.GetNextJSName(GetObjectNamePrefix);
+end;
+
+function TJSObject.AsJSObject: TJSObject;
+begin
+  Result := Self;
 end;
 
 function TJSObject.CharsToPixels(const AChars: Integer; const AOffset: Integer = 0): TJSExpression;

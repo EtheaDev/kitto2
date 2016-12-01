@@ -208,6 +208,7 @@ procedure TKExtMainForm.MainTabSetChange(Sender: TObject; NewTab: Integer;
   var AllowChange: Boolean);
 begin
   ShowTabGUI(NewTab);
+  UpdateSessionInfo;
   SessionListRefreshTimer.Enabled := MainTabSet.TabIndex = TAB_SESSIONS;
 end;
 
@@ -274,29 +275,26 @@ var
   I: Integer;
   LSessions: TList<TJSSession>;
 begin
-  if MainTabSet.TabIndex = TAB_SESSIONS then
+  SessionListView.Clear;
+  if FServer.Active then
   begin
-    SessionListView.Clear;
-    if FServer.Active then
-    begin
-      LSessions := FSessions.LockList;
-      try
-        if LSessions.Count = 0 then
-          AddItem(_('None'))
-        else
+    LSessions := FSessions.LockList;
+    try
+      if LSessions.Count = 0 then
+        AddItem(_('None'))
+      else
+      begin
+        for I := 0 to LSessions.Count - 1 do
         begin
-          for I := 0 to LSessions.Count - 1 do
-          begin
-            AddItem(LSessions[I].DisplayName, LSessions[I]);
-          end;
+          AddItem(LSessions[I].DisplayName, LSessions[I]);
         end;
-      finally
-        FSessions.UnlockList;
       end;
-    end
-    else
-      AddItem(_('Inactive'));
-  end;
+    finally
+      FSessions.UnlockList;
+    end;
+  end
+  else
+    AddItem(_('Inactive'));
 end;
 
 function TKExtMainForm.GetSessionCount: Integer;
