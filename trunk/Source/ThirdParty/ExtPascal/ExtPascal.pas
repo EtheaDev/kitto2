@@ -1187,12 +1187,12 @@ begin
 
   Response := ResponseItems.Consume;
 
-  I := pos('/*', Response);
-  while I <> 0 do begin // Extracts comments
-    J := PosEx('*/', Response, I);
-    delete(Response, I, J - I + 2);
-    I := PosEx('/*', Response, I);
-  end;
+//  I := pos('/*', Response);
+//  while I <> 0 do begin // Extracts comments
+//    J := PosEx('*/', Response, I);
+//    delete(Response, I, J - I + 2);
+//    I := PosEx('/*', Response, I);
+//  end;
   HandleJSReturns;
   Response := AnsiReplaceStr(AnsiReplaceStr(Response, CommandDelim, ''), IdentDelim, ''); // Extracts aux delimiters
   if not IsAjax then
