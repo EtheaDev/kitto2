@@ -577,8 +577,8 @@ begin
   FreeAndNil(FSingletons);
   FreeAndNil(FAuthData);
   FreeAndNil(FUploadedFiles);
-  FreeAndNilEFIntf(FHomeController);
-  FreeAndNilEFIntf(FLoginController);
+  NilEFIntf(FHomeController);
+  NilEFIntf(FLoginController);
   FreeAndNil(FGettextInstance);
   FreeAndNil(FDynamicScripts);
   FreeAndNil(FDynamicStyles);
