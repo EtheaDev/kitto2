@@ -142,7 +142,6 @@ type
     ///  to ensure that additional javascript or css files are included.
     /// </summary>
     procedure AddAdditionalRef(const APath: string; const AIncludeCSS: Boolean);
-    procedure Alert(const AMessage: string);
     procedure Error(const AMessage, AMethodName, AParams: string);
     procedure NotFoundError(const AMethodName: string);
     procedure ErrorMessage(const AMessage: string; const AAction: string = '');
@@ -594,7 +593,10 @@ begin
             NotFoundError(AURL.Path + '/' + AURL.Document);
         except
           on E: Exception do
+          begin
             Error(E.Message, AURL.Document, AURL.Params);
+            Result := True;
+          end;
         end;
       except
         on E: Exception do
@@ -603,6 +605,7 @@ begin
           AResponse.StatusCode := 500;
           AResponse.Content := E.Message;
           AResponse.ContentType := 'text/html';
+          Result := True;
         end;
       end;
     finally
@@ -806,18 +809,11 @@ begin
 {$ELSE}
   ErrorMessage(AMessage);
 {$ENDIF}
-  Abort;
 end;
 
 procedure TKWebApplication.NotFoundError(const AMethodName: string);
 begin
-  Alert(Format('Method: ''%s'' not found', [AMethodName]));
-  Abort;
-end;
-
-procedure TKWebApplication.Alert(const AMessage: string);
-begin
-  ErrorMessage(AMessage);
+  ErrorMessage(Format('Method: ''%s'' not found', [AMethodName]));
 end;
 
 function TKWebApplication.GetLibraryTags: string;
