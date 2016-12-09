@@ -119,4 +119,4 @@ Server:
   #Port: 8080
   #ThreadPoolSize: 20
   # In minutes.
-  SessionTimeOut: 1
+  SessionTimeOut: 10

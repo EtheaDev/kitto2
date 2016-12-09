@@ -655,7 +655,6 @@ object KExtMainForm: TKExtMainForm
   end
   object ActionList: TActionList
     Images = ImageList
-    OnUpdate = ActionListUpdate
     Left = 256
     Top = 65528
     object StartAction: TAction

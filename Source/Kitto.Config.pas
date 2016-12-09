@@ -349,8 +349,6 @@ begin
   inherited;
   FreeAndNil(FViews);
   FreeAndNil(FModels);
-  if Assigned(FAuthenticator) then
-    FMacroExpansionEngine.RemoveExpander(FAuthenticator.MacroExpander);
   FreeAndNil(FAuthenticator);
   FreeAndNil(FAC);
   FinalizeDBConnections;
@@ -589,7 +587,6 @@ begin
   begin
     LType := Config.GetExpandedString('Auth', NODE_NULL_VALUE);
     FAuthenticator := TKAuthenticatorFactory.Instance.CreateObject(LType);
-    MacroExpansionEngine.AddExpander(FAuthenticator.MacroExpander);
     LConfig := Config.FindNode('Auth');
     if Assigned(LConfig) then
       for I := 0 to LConfig.ChildCount - 1 do

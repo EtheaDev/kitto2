@@ -71,7 +71,6 @@ type
     procedure StartActionExecute(Sender: TObject);
     procedure StopActionExecute(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
-    procedure ActionListUpdate(Action: TBasicAction; var Handled: Boolean);
     procedure RestartActionUpdate(Sender: TObject);
     procedure RestartActionExecute(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -99,8 +98,6 @@ type
       TAB_LOG = 0;
       TAB_SESSIONS = 1;
     function IsStarted: Boolean;
-    procedure UpdateSessionCountlabel;
-    function GetSessionCount: Integer;
     procedure FillConfigFileNameCombo;
     procedure SetConfig(const AFileName: string);
     procedure SelectConfigFile;
@@ -237,17 +234,6 @@ begin
   (Sender as TAction).Enabled := IsStarted;
 end;
 
-procedure TKExtMainForm.ActionListUpdate(Action: TBasicAction;
-  var Handled: Boolean);
-begin
-  UpdateSessionCountlabel;
-end;
-
-procedure TKExtMainForm.UpdateSessionCountlabel;
-begin
-  SessionCountLabel.Caption := Format('Active Sessions: %d', [GetSessionCount]);
-end;
-
 procedure TKExtMainForm.UpdateSessionInfo;
 
   procedure AddItem(const ACaption: string; const ASession: TJSSession = nil);
@@ -280,6 +266,8 @@ begin
   begin
     LSessions := FSessions.LockList;
     try
+      SessionCountLabel.Caption := Format('Active Sessions: %d', [LSessions.Count]);
+
       if LSessions.Count = 0 then
         AddItem(_('None'))
       else
@@ -295,18 +283,6 @@ begin
   end
   else
     AddItem(_('Inactive'));
-end;
-
-function TKExtMainForm.GetSessionCount: Integer;
-var
-  LContexts: TList;
-begin
-  LContexts := FServer.Contexts.LockList;
-  try
-    Result := LContexts.Count;
-  finally
-    FServer.Contexts.UnlockList;
-  end;
 end;
 
 function TKExtMainForm.HasConfigFileName: Boolean;
@@ -327,7 +303,6 @@ end;
 procedure TKExtMainForm.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
   StopAction.Execute;
-  //Sleep(100); // Apparently avoids a finalization problem in DBXCommon.
 end;
 
 procedure TKExtMainForm.ServerSessionStart(Sender: TIdHTTPSession);
@@ -336,6 +311,7 @@ var
 begin
   LJSSession := Sender.Content.Objects[Sender.Content.IndexOf(TKWebServer.SESSION_OBJECT)] as TJSSession;
   FSessions.Add(LJSSession);
+  UpdateSessionInfo;
 end;
 
 procedure TKExtMainForm.ServerSessionEnd(Sender: TIdHTTPSession);
@@ -344,6 +320,7 @@ var
 begin
   LJSSession := Sender.Content.Objects[Sender.Content.IndexOf(TKWebServer.SESSION_OBJECT)] as TJSSession;
   FSessions.Remove(LJSSession);
+  UpdateSessionInfo;
 end;
 
 procedure TKExtMainForm.FormCreate(Sender: TObject);
@@ -356,6 +333,8 @@ begin
 
   FLogEndPoint := TKExtMainFormLogEndpoint.Create;
   FLogEndPoint.OnLog := DoLog;
+
+  UpdateSessionInfo;
 end;
 
 procedure TKExtMainForm.FormDestroy(Sender: TObject);
