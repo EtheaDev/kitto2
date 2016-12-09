@@ -30,7 +30,7 @@ type
     Path: string;
   end;
 
-  TKWebApplicationSessionMacroExpander = class(TEFMacroExpander)
+  TKSessionMacroExpander = class(TEFTreeMacroExpander)
   strict protected
     function InternalExpand(const AString: string): string; override;
   end;
@@ -46,7 +46,7 @@ type
     FExtJSPath: string;
     FExtJSLocalPath: string;
     FAdditionalRefs: TList<TLibraryRef>;
-    FSessionMacroExpander: TKWebApplicationSessionMacroExpander;
+    FSessionMacroExpander: TKSessionMacroExpander;
     FResourcePath: string;
     FResourceLocalPath1: string;
     FResourceLocalPath2: string;
@@ -176,16 +176,17 @@ uses
   , Kitto.Web.Types
   ;
 
-{ TKWebApplicationSessionMacroExpander }
+{ TKSessionMacroExpander }
 
-function TKWebApplicationSessionMacroExpander.InternalExpand(
-  const AString: string): string;
-begin
+function TKSessionMacroExpander.InternalExpand(const AString: string): string;
+begin
   Result := inherited InternalExpand(AString);
   if Session <> nil then
   begin
     Result := ExpandMacros(Result, '%SESSION_ID%', Session.SessionId);
     Result := ExpandMacros(Result, '%LANGUAGE_ID%', Session.Language);
+    // Expand %Auth:*%.
+    Result := ExpandTreeMacros(Result, Session.AuthData);
   end;
 end;
 
@@ -217,7 +218,10 @@ begin
   FResourceLocalPath1 := TPath.Combine(Config.AppHomePath, 'Resources');
   FResourceLocalPath2 := TPath.Combine(Config.SystemHomePath, 'Resources');
   FTheme := Config.Config.GetString('ExtJS/Theme', 'triton');
-  FSessionMacroExpander := TKWebApplicationSessionMacroExpander.Create;
+  // We will pass Session.AuthData dynamically as needed, so we initialize the
+  // expander with nil. It is inherited from TEFTreeExpander only to inherit its
+  // functionality.
+  FSessionMacroExpander := TKSessionMacroExpander.Create(nil, 'Auth');
   FConfig.MacroExpansionEngine.AddExpander(FSessionMacroExpander);
   FPath := FConfig.Config.GetString('AppPath', '/' + Config.AppName.ToLower);
 end;

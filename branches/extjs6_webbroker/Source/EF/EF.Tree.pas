@@ -1230,6 +1230,7 @@ type
     FTree: TEFTree;
     FPrefix: string;
   strict protected
+    function ExpandTreeMacros(const AString: string; const ATree: TEFTree): string;
     property Tree: TEFTree read FTree;
     function InternalExpand(const AString: string): string; override;
   public
@@ -2668,6 +2669,14 @@ begin
 end;
 
 function TEFTreeMacroExpander.InternalExpand(const AString: string): string;
+begin
+  Result := inherited InternalExpand(AString);
+
+  if Assigned(FTree) then
+    Result := ExpandTreeMacros(Result, FTree);
+end;
+
+function TEFTreeMacroExpander.ExpandTreeMacros(const AString: string; const ATree: TEFTree): string;
 var
   LIndex: Integer;
   LStart: Integer;
@@ -2677,8 +2686,9 @@ var
   LNodeValue: string;
   LNode: TEFNode;
 begin
-  Result := inherited InternalExpand(AString);
+  Assert(Assigned(ATree));
 
+  Result := AString;
   LIndex := 1;
   repeat
     LStart := PosEx('%' + FPrefix, Result, LIndex);
@@ -2689,7 +2699,7 @@ begin
     if LEnd = 0 then
       Exit;
     LNodePath := Copy(Result, LPathStart, LEnd - LPathStart);
-    LNode := FTree.FindNode(StripPrefixAndSuffix(LNodePath, '%', '%'));
+    LNode := ATree.FindNode(StripPrefixAndSuffix(LNodePath, '%', '%'));
     if Assigned(LNode) then
     begin
       LNodeValue := LNode.AsExpandedString;
