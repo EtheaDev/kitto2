@@ -72,6 +72,7 @@ uses
   , EF.Localization
   , Kitto.Config
   , Kitto.Utils
+  , Kitto.Auth
   , Kitto.AccessControl
   , Kitto.Web.Application
   , Kitto.Web.Response
@@ -183,7 +184,7 @@ begin
   if Assigned(LView) then
     LIsEnabled := LView.IsAccessGranted(ACM_RUN)
   else
-    LIsEnabled := TKConfig.Instance.IsAccessGranted(LOriginalNode.GetACURI(FTreeView), ACM_RUN);
+    LIsEnabled := TKAccessController.Current.IsAccessGranted(TKAuthenticator.Current.UserName, LOriginalNode.GetACURI(FTreeView), ACM_RUN);
   LExtNode := TKExtTreeTreeNode.CreateInlineAndAddToArray(AParent.Children);
   try
     LExtNode.View := LView;

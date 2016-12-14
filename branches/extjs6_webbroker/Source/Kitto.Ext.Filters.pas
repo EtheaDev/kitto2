@@ -468,6 +468,7 @@ uses
   , EF.SQL
   , Kitto.Types
   , Kitto.Config
+  , Kitto.Auth
   , Kitto.AccessControl
   , Kitto.JS.Formatting
   , Kitto.Web.Application
@@ -1082,7 +1083,7 @@ begin
   if Assigned(FViewTable) and Assigned(FConfig) then
   begin
     LACURI := FViewTable.View.GetACURI + '/Filters/' +  GetACName + '/' + AACName;
-    Result := TKConfig.Instance.IsAccessGranted(LACURI, ACM_VIEW);
+    Result := TKAccessController.Current.IsAccessGranted(TKAuthenticator.Current.UserName, LACURI, ACM_VIEW);
   end;
 end;
 

@@ -133,6 +133,7 @@ uses
   , Kitto.JS
   , Kitto.Web.Application
   , Kitto.Web.Response
+  , Kitto.Auth
   , Kitto.AccessControl
   , Kitto.Utils
   , Kitto.Config;
@@ -230,7 +231,8 @@ begin
     if Assigned(LView) then
       LIsEnabled := LView.IsAccessGranted(ACM_RUN)
     else
-      LIsEnabled := TKConfig.Instance.IsAccessGranted(ANode.GetACURI(FTreeView), ACM_RUN);
+      LIsEnabled := TKAccessController.Current.IsAccessGranted(
+        TKAuthenticator.Current.UserName, ANode.GetACURI(FTreeView), ACM_RUN);
 
     LMenuItem := TKExtViewMenuItem.CreateAndAddToArray(AMenu.Items);
     try
@@ -282,7 +284,8 @@ begin
   if Assigned(LView) then
     LIsEnabled := LView.IsAccessGranted(ACM_RUN)
   else
-    LIsEnabled := TKConfig.Instance.IsAccessGranted(ANode.GetACURI(FTreeView), ACM_RUN);
+    LIsEnabled := TKAccessController.Current.IsAccessGranted(
+      TKAuthenticator.Current.UserName, ANode.GetACURI(FTreeView), ACM_RUN);
 
   LButton := TKExtViewButton.CreateAndAddToArray(AContainer.Items);
   try
@@ -343,7 +346,8 @@ begin
   if Assigned(LView) then
     LIsVisible := LView.IsAccessGranted(ACM_VIEW)
   else
-    LIsVisible := TKConfig.Instance.IsAccessGranted(ANode.GetACURI(FTreeView), ACM_VIEW);
+    LIsVisible := TKAccessController.Current.IsAccessGranted(
+      TKAuthenticator.Current.UserName, ANode.GetACURI(FTreeView), ACM_VIEW);
 
   if not LIsVisible then
     ANode.Delete

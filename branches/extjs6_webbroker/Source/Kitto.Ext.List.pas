@@ -73,6 +73,7 @@ uses
   , EF.StrUtils
   , Kitto.Types
   , Kitto.Config
+  , Kitto.Auth
   , Kitto.AccessControl
   , Kitto.Web.Application
   , Kitto.Ext.Filters
@@ -92,7 +93,7 @@ begin
   if AACName = '' then
     Result := True
   else
-    Result := TKConfig.Instance.IsAccessGranted(GetFilterACURI(AACName), ACM_VIEW);
+    Result := TKAccessController.Current.IsAccessGranted(TKAuthenticator.Current.UserName, GetFilterACURI(AACName), ACM_VIEW);
 end;
 
 function TKExtFilterPanel.IsFilterReadOnly(const AACName: string): Boolean;
@@ -100,7 +101,7 @@ begin
   if AACName = '' then
     Result := False
   else
-    Result := not TKConfig.Instance.IsAccessGranted(GetFilterACURI(AACName), ACM_MODIFY);
+    Result := not TKAccessController.Current.IsAccessGranted(TKAuthenticator.Current.UserName, GetFilterACURI(AACName), ACM_MODIFY);
 end;
 
 procedure TKExtFilterPanel.Configure(const AViewTable: TKViewTable; const AConfig: TEFNode);

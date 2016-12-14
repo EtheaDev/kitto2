@@ -182,6 +182,7 @@ uses
   , EF.SysUtils
   , EF.Localization
   , EF.Types
+  , Kitto.Auth
   , Kitto.AccessControl
   , Kitto.Config
   , Kitto.Rules
@@ -1049,7 +1050,7 @@ procedure TKExtDataPanelController.CheckCanRead;
 begin
   Assert(ViewTable <> nil);
 
-  TKWebApplication.Current.Config.CheckAccessGranted(ViewTable.GetResourceURI, ACM_READ);
+  TKAccessController.Current.CheckAccessGranted(TKAuthenticator.Current.UserName, ViewTable.GetResourceURI, ACM_READ);
 end;
 
 procedure TKExtDataPanelController.SetFieldValue(const AField: TKViewTableField;
