@@ -421,14 +421,14 @@ begin
     CreateDetailBottomPanel;
   // Resize the window after setting up toolbars and tabs, so that we
   // know the exact extra height needed.
-  if Config.GetBoolean('Sys/HostWindow/AutoSize') then
-  begin
-    LHostWindow := GetHostWindow;
-    if Assigned(LHostWindow) and not LHostWindow.Maximized then
-      LHostWindow.On('afterrender', GenerateAnonymousFunction(Format(
-        '%s.setOptimalSize(0, %d); %s.center();',
-          [LHostWindow.JSName, GetExtraHeight, LHostWindow.JSName])));
-  end;
+//  if Config.GetBoolean('Sys/HostWindow/AutoSize') then
+//  begin
+//    LHostWindow := GetHostWindow;
+//    if Assigned(LHostWindow) and not LHostWindow.Maximized then
+//      LHostWindow.On('afterrender', GenerateAnonymousFunction(Format(
+//        '%s.setOptimalSize(0, %d); %s.center();',
+//          [LHostWindow.JSName, GetExtraHeight, LHostWindow.JSName])));
+//  end;
   StartOperation;
 end;
 
@@ -945,11 +945,11 @@ function TKExtFormPanelController.GetExtraHeight: Integer;
 begin
   Result := 10; // 5px padding * 2.
   if Assigned(FDetailToolbar) then
-    Result := Result + 30;
+    Result := Result + 50;
   if Assigned(TopToolbar) then
-    Result := Result + 30;
+    Result := Result + 50;
   if Assigned(FDetailBottomPanel) then
-    Result := Result + GetDetailBottomPanelHeight + 120;
+    Result := Result + GetDetailBottomPanelHeight + 200;
 end;
 
 function TKExtFormPanelController.IsViewMode: Boolean;
@@ -1132,8 +1132,8 @@ begin
   LController.Config.SetObject('Sys/ServerStore', ServerStore);
   LController.Config.SetObject('Sys/ViewTable', ViewTable);
   LController.Config.SetObject('Sys/HostWindow', FDetailHostWindow);
-  LController.Config.SetBoolean('Sys/HostWindow/AutoSize',
-    FDetailHostWindow.SetSizeFromTree(FViewTable, 'Controller/PopupWindow/'));
+//  LController.Config.SetBoolean('Sys/HostWindow/AutoSize',
+  FDetailHostWindow.SetSizeFromTree(FViewTable, 'Controller/PopupWindow/');
   LController.Display;
   FDetailHostWindow.Show;
 end;

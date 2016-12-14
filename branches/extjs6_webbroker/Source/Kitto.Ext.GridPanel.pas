@@ -838,7 +838,7 @@ procedure TKExtGridPanel.ConfirmInplaceChanges;
 begin
   ShowConfirmButtons(False);
   ViewTable.Model.SaveRecords(ServerStore, not ViewTable.IsDetail, nil);
-  TKWebApplication.Current.Flash(_('Changes saved succesfully.'));
+  TKWebApplication.Current.Toast(_('Changes saved succesfully.'));
   LoadData;
 end;
 

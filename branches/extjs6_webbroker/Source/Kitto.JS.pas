@@ -119,6 +119,8 @@ type
     function SetConfigItem(const AName: string; const AValue: Double): Double; overload;
     function SetConfigItem(const AName: string; const AValue: TJSExpression): TJSExpression; overload;
 
+    procedure AddItem(const AItems: TJSObjectArray; const AItem: TJSObject); overload;
+
     function SetConfigItemOrProperty(const AName, AValue: string): string; overload;
     function SetConfigItemOrProperty(const AName: string; const AValue: Boolean): Boolean; overload;
 
@@ -232,6 +234,7 @@ type
     FObjects: TObjectList<TJSObject>;
     function GetObject(I: Integer): TJSObject;
     function GetCount: Integer;
+    function OwnerJSObject: TJSObject;
   public
     procedure AfterConstruction; override;
     destructor Destroy; override;
@@ -815,6 +818,21 @@ begin
   Result := FObjects.IndexOf(AObject);
 end;
 
+function TJSObjectArray.OwnerJSObject: TJSObject;
+var
+  LOwner: TJSBase;
+begin
+  Result := nil;
+  LOwner := Owner;
+  while Assigned(LOwner) do
+  begin
+    if LOwner is TJSObject then
+      Exit(TJSObject(LOwner));
+    LOwner := LOwner.Owner;
+  end;
+  Assert(Assigned(Result), 'Object array has no JSObject owner');
+end;
+
 function TJSObjectArray.Remove(const AObject: TJSObject): Integer;
 begin
   Result := FObjects.Remove(AObject);
@@ -825,11 +843,7 @@ begin
   Assert(Assigned(AObject));
 
   Result := FObjects.Add(AObject);
-
-  if Assigned(Owner) and (Owner is TJSObject) then
-    TJSObject(Owner).DependsUpon(AObject)
-  else if Assigned(Owner) and Assigned(Owner.Owner) and (Owner.Owner is TJSObject) then
-    TJSObject(Owner.Owner).DependsUpon(AObject);
+  OwnerJSObject.DependsUpon(AObject);
 end;
 
 procedure TJSObjectArray.AfterConstruction;
@@ -846,6 +860,13 @@ begin
     JSName := TJSObject(Owner).JSName + '.' + FAttributeName
   else
     JSName := Session.GetNextJSName(GetObjectNamePrefix);
+end;
+
+procedure TJSObject.AddItem(const AItems: TJSObjectArray; const AItem: TJSObject);
+begin
+  AItems.Add(AItem);
+  if FJSConfig.IsReadOnly then
+    TKWebResponse.Current.Items.CallMethod(Self, 'add').AddParam(AItem);
 end;
 
 function TJSObject.AsJSObject: TJSObject;

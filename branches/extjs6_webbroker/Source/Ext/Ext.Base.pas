@@ -405,7 +405,7 @@ type
     property ColumnWidth: Double read FColumnWidth write SetColumnWidth;
     // IJSContainer
     function AsJSObject: TJSObject;
-    procedure AddItem(const AItem: TJSObject);
+    procedure AddItem(const AItem: TJSObject); overload;
   end;
 
   TExtButton = class(TExtBoxComponent)
@@ -1396,7 +1396,7 @@ end;
 
 procedure TExtContainer.AddItem(const AItem: TJSObject);
 begin
-  Items.Add(AItem);
+  AddItem(Items, AItem);
 end;
 
 function TExtContainer.AsJSObject: TJSObject;

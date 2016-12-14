@@ -365,6 +365,7 @@ begin
   end;
   AFormatter.DeleteTrailing(FParamConnector);
   AFormatter.DeleteTrailing(sLineBreak);
+  FIsReadOnly := True;
 end;
 
 end.

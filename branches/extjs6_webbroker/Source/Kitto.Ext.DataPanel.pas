@@ -290,7 +290,7 @@ begin
     if not LPersistIt and (LOldState = rsNew) then
       LRecord.MarkAsClean;
     if LPersistIt then
-      TKWebApplication.Current.Flash(Format(_('%s deleted.'), [_(ViewTable.DisplayLabel)]));
+      TKWebApplication.Current.Toast(Format(_('%s deleted.'), [_(ViewTable.DisplayLabel)]));
   except
     on E: EKValidationError do
     begin
@@ -433,8 +433,8 @@ begin
   LFormController.Config.SetObject('Sys/ViewTable', ViewTable);
   LFormController.Config.SetObject('Sys/HostWindow', FEditHostWindow);
   LFormController.Config.SetObject('Sys/CallingController', Self);
-  LFormController.Config.SetBoolean('Sys/HostWindow/AutoSize',
-    FEditHostWindow.SetSizeFromTree(ViewTable, 'Controller/PopupWindow/'));
+//  LFormController.Config.SetBoolean('Sys/HostWindow/AutoSize',
+  FEditHostWindow.SetSizeFromTree(ViewTable, 'Controller/PopupWindow/');
 
   case AEditMode of
     emNewRecord : LFormController.Config.SetString('Sys/Operation', 'Add');
@@ -1153,7 +1153,7 @@ begin
       ViewTable.Model.SaveRecord(ARecord, APersist and not ViewTable.IsDetail,
         procedure
         begin
-          TKWebApplication.Current.Flash(_('Changes saved succesfully.'));
+          TKWebApplication.Current.Toast(_('Changes saved succesfully.'));
         end);
       Config.SetObject('Sys/Record', ARecord);
       Result := '';
