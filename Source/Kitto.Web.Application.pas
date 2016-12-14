@@ -12,6 +12,8 @@ uses
   , EF.Tree
   , EF.Intf
   , EF.ObserverIntf
+  , Kitto.Auth
+  , Kitto.AccessControl
   , Kitto.Config
   , Kitto.Metadata.Views
   , Kitto.JS.Base
@@ -50,6 +52,8 @@ type
     FResourcePath: string;
     FResourceLocalPath1: string;
     FResourceLocalPath2: string;
+    FAuthenticator: TKAuthenticator;
+    FAccessController: TKAccessController;
     class threadvar FCurrent: TKWebApplication;
     class var FOnCreateHostWindow: TFunc<TJSBase, IJSControllerContainer>;
     function GetDefaultHomeViewNodeNames(const AViewportWidthInInches: Integer; const ASuffix: string): TStringDynArray;
@@ -75,6 +79,8 @@ type
     procedure AddConfigRoutes(const AServer: TKWebServer);
     function GetViewportWidthInInches: TJSExpression;
     class function CreateHostWindow(const AOwner: TJSBase): IJSControllerContainer; static;
+    function GetAuthenticator: TKAuthenticator;
+    function GetAccessController: TKAccessController;
   public
     const DEFAULT_VIEWPORT_WIDTH = 480;
     class constructor Create;
@@ -137,6 +143,7 @@ type
     ///  user was already authenticated in this session.
     /// </summary>
     function Authenticate: Boolean;
+
     /// <summary>
     ///  Call this in the initialization section of a unit defining a controller
     ///  to ensure that additional javascript or css files are included.
@@ -167,11 +174,11 @@ implementation
 uses
   StrUtils
   , IOUtils
+  , Variants
   , EF.StrUtils
   , EF.Localization
   , EF.Types
   , Ext.Base
-  , Kitto.AccessControl
   , Kitto.JS.Formatting
   , Kitto.Web.Types
   ;
@@ -229,6 +236,8 @@ end;
 destructor TKWebApplication.Destroy;
 begin
   FreeLoginNode;
+  FreeAndNil(FAuthenticator);
+  FreeAndNil(FAccessController);
   FreeAndNil(FConfig);
   FreeAndNil(FAdditionalRefs);
   inherited;
@@ -631,12 +640,16 @@ begin
     begin
       Result := Config.MacroExpansionEngine
     end;
+  TKAuthenticator.Current := GetAuthenticator;
+  TKAccessController.Current := GetAccessController;
 end;
 
 procedure TKWebApplication.DeactivateInstance;
 begin
   FCurrent := nil;
   TEFMacroExpansionEngine.OnGetInstance := nil;
+  TKAuthenticator.Current := nil;
+  TKAccessController.Current := nil;
 end;
 
 procedure TKWebApplication.DelayedHome;
@@ -664,21 +677,24 @@ var
   LAuthData: TEFNode;
   LUserName: string;
   LPassword: string;
+  LAuthenticator: TKAuthenticator;
 begin
-  if Config.Authenticator.IsAuthenticated then
+  LAuthenticator := GetAuthenticator;
+
+  if LAuthenticator.IsAuthenticated then
     Result := True
   else
   begin
     LAuthData := TEFNode.Create;
     try
-      Config.Authenticator.DefineAuthData(LAuthData);
+      LAuthenticator.DefineAuthData(LAuthData);
       LUserName := TKWebRequest.Current.GetQueryField('UserName');
       if LUserName <> '' then
         LAuthData.SetString('UserName', LUserName);
       LPassword := TKWebRequest.Current.GetQueryField('Password');
       if LPassword <> '' then
         LAuthData.SetString('Password', LPassword);
-      Result := Config.Authenticator.Authenticate(LAuthData);
+      Result := LAuthenticator.Authenticate(LAuthData);
     finally
       LAuthData.Free;
     end;
@@ -768,7 +784,7 @@ begin
     raise Exception.Create('Cannot call Home page in an Ajax request.');
 
   if not Session.RefreshingLanguage then
-    Config.Authenticator.Logout;
+    GetAuthenticator.Logout;
 
   Session.HomeViewNodeName := TKWebRequest.Current.QueryFields.Values['home'];
   SetViewportContent;
@@ -907,6 +923,45 @@ Duplicates must be handled/ignored. }
     AddRequiredLibrary(LLibName);
 
   Result := LResult;
+end;
+
+function TKWebApplication.GetAccessController: TKAccessController;
+var
+  LType: string;
+  LConfig: TEFNode;
+  I: Integer;
+begin
+  if not Assigned(FAccessController) then
+  begin
+    LType := Config.Config.GetExpandedString('AccessControl', NODE_NULL_VALUE);
+    FAccessController := TKAccessControllerFactory.Instance.CreateObject(LType);
+    LConfig := Config.Config.FindNode('AccessControl');
+    if Assigned(LConfig) then
+    begin
+      for I := 0 to LConfig.ChildCount - 1 do
+        FAccessController.Config.AddChild(TEFNode.Clone(LConfig.Children[I]));
+      FAccessController.Init;
+    end;
+  end;
+  Result := FAccessController;
+end;
+
+function TKWebApplication.GetAuthenticator: TKAuthenticator;
+var
+  LType: string;
+  LConfig: TEFNode;
+  I: Integer;
+begin
+  if not Assigned(FAuthenticator) then
+  begin
+    LType := Config.Config.GetExpandedString('Auth', NODE_NULL_VALUE);
+    FAuthenticator := TKAuthenticatorFactory.Instance.CreateObject(LType);
+    LConfig := Config.Config.FindNode('Auth');
+    if Assigned(LConfig) then
+      for I := 0 to LConfig.ChildCount - 1 do
+        FAuthenticator.Config.AddChild(TEFNode.Clone(LConfig.Children[I]));
+  end;
+  Result := FAuthenticator;
 end;
 
 class function TKWebApplication.GetCurrent: TKWebApplication;
@@ -1062,7 +1117,7 @@ end;
 
 procedure TKWebApplication.Logout;
 begin
-  Config.Authenticator.Logout;
+  GetAuthenticator.Logout;
   Reload;
 end;
 

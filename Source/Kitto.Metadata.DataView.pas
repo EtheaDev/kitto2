@@ -759,10 +759,23 @@ type
 implementation
 
 uses
-  StrUtils, Variants, TypInfo, Math,
-  EF.Localization, EF.DB, EF.StrUtils, EF.VariantUtils, EF.Macros, EF.JSON,
-  Kitto.SQL, Kitto.Types, Kitto.Config, Kitto.AccessControl,
-  Kitto.DatabaseRouter;
+  StrUtils
+  , Variants
+  , TypInfo
+  , Math
+  , EF.Localization
+  , EF.DB
+  , EF.StrUtils
+  , EF.VariantUtils
+  , EF.Macros
+  , EF.JSON
+  , Kitto.SQL
+  , Kitto.Types
+  , Kitto.Config
+  , KItto.Auth
+  , Kitto.AccessControl
+  , Kitto.DatabaseRouter
+  ;
 
 { TKDataView }
 
@@ -1335,11 +1348,11 @@ end;
 
 function TKViewTable.IsAccessGranted(const AMode: string): Boolean;
 begin
-  Result := TKConfig.Instance.IsAccessGranted(GetResourceURI, AMode)
+  Result := TKAccessController.Current.IsAccessGranted(TKAuthenticator.Current.UserName, GetResourceURI, AMode)
     // A dataview and its main table currently share the same resource URI,
     // so it's useless to test it twice.
     //and TKConfig.Instance.IsAccessGranted(View.GetResourceURI, AMode)
-    and TKConfig.Instance.IsAccessGranted(Model.GetResourceURI, AMode);
+    and TKAccessController.Current.IsAccessGranted(TKAuthenticator.Current.UserName, Model.GetResourceURI, AMode);
 end;
 
 function TKViewTable.IsFieldVisible(const AField: TKViewField): Boolean;
@@ -2144,8 +2157,8 @@ end;
 
 function TKViewField.IsAccessGranted(const AMode: string): Boolean;
 begin
-  Result := TKConfig.Instance.IsAccessGranted(GetResourceURI, AMode)
-    and TKConfig.Instance.IsAccessGranted(ModelField.GetResourceURI, AMode);
+  Result := TKAccessController.Current.IsAccessGranted(TKAuthenticator.Current.UserName, GetResourceURI, AMode)
+    and TKAccessController.Current.IsAccessGranted(TKAuthenticator.Current.UserName, ModelField.GetResourceURI, AMode);
 end;
 
 class function TKViewField.IsURLFieldName(const AFieldName: string): Boolean;

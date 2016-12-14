@@ -26,8 +26,11 @@ unit Kitto.Auth;
 interface
 
 uses
-  Classes,
-  EF.Types, EF.Classes, EF.Tree;
+  Classes
+  , EF.Types
+  , EF.Classes
+  , EF.Tree
+  ;
 
 type
   /// <summary>
@@ -39,9 +42,13 @@ type
   ///   the configuration.</para>
   /// </summary>
   TKAuthenticator = class(TEFComponent)
-  private
+  strict private
+    class threadvar FCurrent: TKAuthenticator;
     procedure ClearAuthData;
-  strict protected
+  strict
+  private
+    class function GetCurrent: TKAuthenticator; static;
+    class procedure SetCurrent(const AValue: TKAuthenticator); static; protected
     function GetIsAuthenticated: Boolean; virtual;
 
     /// <summary>
@@ -128,6 +135,8 @@ type
     /// <summary>Returns True if authentication has successfully taken
     /// place.</summary>
     property IsAuthenticated: Boolean read GetIsAuthenticated;
+
+    class property Current: TKAuthenticator read GetCurrent write SetCurrent;
   end;
   TKAuthenticatorClass = class of TKAuthenticator;
 
@@ -269,6 +278,11 @@ begin
     AAuthData.Children[I].AssignValue(Config.FindNode('Defaults/' + AAuthData.Children[I].Name));
 end;
 
+class function TKAuthenticator.GetCurrent: TKAuthenticator;
+begin
+  Result := FCurrent;
+end;
+
 function TKAuthenticator.GetIsAuthenticated: Boolean;
 begin
   Result := Session.IsAuthenticated;
@@ -297,6 +311,11 @@ procedure TKAuthenticator.Logout;
 begin
   ClearAuthData;
   Session.IsAuthenticated := False;
+end;
+
+class procedure TKAuthenticator.SetCurrent(const AValue: TKAuthenticator);
+begin
+  FCurrent := AValue;
 end;
 
 procedure TKAuthenticator.SetPassword(const AValue: string);

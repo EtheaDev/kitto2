@@ -21,9 +21,17 @@ unit Kitto.Config;
 interface
 
 uses
-  SysUtils, Types, Generics.Collections,
-  EF.Tree, EF.Macros, EF.Classes, EF.DB, EF.ObserverIntf,
-  Kitto.Metadata.Models, Kitto.Metadata.Views, Kitto.Auth, Kitto.AccessControl;
+  SysUtils
+  , Types
+  , Generics.Collections
+  , EF.Tree
+  , EF.Macros
+  , EF.Classes
+  , EF.DB
+  , EF.ObserverIntf
+  , Kitto.Metadata.Models
+  , Kitto.Metadata.Views
+  ;
 
 type
   TKConfigMacroExpander = class;
@@ -52,8 +60,6 @@ type
     FMacroExpansionEngine: TEFMacroExpansionEngine;
     FModels: TKModels;
     FViews: TKViews;
-    FAuthenticator: TKAuthenticator;
-    FAC: TKAccessController;
     FUserFormatSettings: TFormatSettings;
 
     class function GetInstance: TKConfig; static;
@@ -65,9 +71,7 @@ type
 
     function GetDBConnectionNames: TStringDynArray;
     function GetMultiFieldSeparator: string;
-    function GetAC: TKAccessController;
     function GetDBConnection(const ADatabaseName: string): TEFDBConnection;
-    function GetAuthenticator: TKAuthenticator;
     function GetDBAdapter(const ADatabaseName: string): TEFDBAdapter;
     function GetMacroExpansionEngine: TEFMacroExpansionEngine;
     function GetAppTitle: string;
@@ -206,15 +210,17 @@ type
     function FindImageURL(const AResourceName: string; const ASuffix: string = ''): string;
     function GetImageURL(const AResourceName: string; const ASuffix: string = ''): string;
 
-    /// <summary>A reference to the model catalog, opened on first
-    /// access.</summary>
+    /// <summary>
+    ///  A reference to the model catalog, opened on first access.
+    /// </summary>
     property Models: TKModels read GetModels;
 
-    /// <summary>A reference to the model catalog, opened on first
-    /// access.</summary>
+    /// <summary>
+    ///  A reference to the view catalog, opened on first access.
+    /// </summary>
     property Views: TKViews read GetViews;
 
-    /// <summary>Makes sure catalogs are recreated upon next access.</summary>
+    /// <summary>Makes sure catalogs are recreated at next access.</summary>
     procedure InvalidateCatalogs;
 
     /// <summary>Gives access to a database connection by name, created on
@@ -248,31 +254,11 @@ type
     property AppIcon: string read GetAppIcon;
 
     /// <summary>
-    ///   Global expansion engine. Kitto-specific macro expanders should be
-    ///   added here at run time. This engine is chained to the default engine,
-    ///   so all default EF macros are supported.
+    ///  Global expansion engine. Kitto-specific macro expanders should be
+    ///  added here at run time. This engine is chained to the default engine,
+    ///  so all default EF macros are supported.
     /// </summary>
     property MacroExpansionEngine: TEFMacroExpansionEngine read GetMacroExpansionEngine;
-
-    /// <summary>Access to the current authenticator.</summary>
-    property Authenticator: TKAuthenticator read GetAuthenticator;
-
-    /// <summary>The current Access Controller.</summary>
-    property AC: TKAccessController read GetAC;
-
-    /// <summary>Calls AC.GetAccessGrantValue passing the current user and
-    /// returns the result.</summary>
-    function GetAccessGrantValue(const AACURI, AMode: string;
-      const ADefaultValue: Variant): Variant; virtual;
-
-    /// <summary>Shortcut for GetAccessGrantValue for Boolean
-    /// values. Returns True if a value is granted and it equals
-    /// ACV_TRUE.</summary>
-    function IsAccessGranted(const AACURI, AMode: string): Boolean;
-
-    /// <summary>Calls IsAccessGranted and raises an "access denied" exception
-    /// if the return value is not True.</summary>
-    procedure CheckAccessGranted(const AResourceURI, AMode: string);
 
     property UserFormatSettings: TFormatSettings read FUserFormatSettings;
 
@@ -349,8 +335,6 @@ begin
   inherited;
   FreeAndNil(FViews);
   FreeAndNil(FModels);
-  FreeAndNil(FAuthenticator);
-  FreeAndNil(FAC);
   FinalizeDBConnections;
   FreeAndNil(FMacroExpansionEngine);
 end;
@@ -375,11 +359,6 @@ procedure TKConfig.InvalidateCatalogs;
 begin
   FreeAndNil(FViews);
   FreeAndNil(FModels);
-end;
-
-function TKConfig.IsAccessGranted(const AACURI, AMode: string): Boolean;
-begin
-  Result := GetAccessGrantValue(AACURI, AMode, Null) = ACV_TRUE;
 end;
 
 function TKConfig.GetDBConnection(const ADatabaseName: string): TEFDBConnection;
@@ -537,21 +516,6 @@ begin
   Result := FViews;
 end;
 
-procedure TKConfig.CheckAccessGranted(const AResourceURI, AMode: string);
-var
-  LErrorMsg: string;
-begin
-  if not IsAccessGranted(AResourceURI, AMode) then
-  begin
-    LErrorMsg := _('Access denied. The user is not allowed to perform this operation.');
-    {$IFDEF DEBUG}
-    LErrorMsg := LErrorMsg + sLineBreak +
-      Format(_('Resource URI: %s; access mode: %s.'), [AResourceURI, AMode]);
-    {$ENDIF}
-    raise EKAccessDeniedError.Create(LErrorMsg);
-  end;
-end;
-
 class constructor TKConfig.Create;
 begin
   FConfigClass := TKConfig;
@@ -577,53 +541,9 @@ begin
   Result := Config.GetString('AppTitle', 'Kitto');
 end;
 
-function TKConfig.GetAuthenticator: TKAuthenticator;
-var
-  LType: string;
-  LConfig: TEFNode;
-  I: Integer;
-begin
-  if not Assigned(FAuthenticator) then
-  begin
-    LType := Config.GetExpandedString('Auth', NODE_NULL_VALUE);
-    FAuthenticator := TKAuthenticatorFactory.Instance.CreateObject(LType);
-    LConfig := Config.FindNode('Auth');
-    if Assigned(LConfig) then
-      for I := 0 to LConfig.ChildCount - 1 do
-        FAuthenticator.Config.AddChild(TEFNode.Clone(LConfig.Children[I]));
-  end;
-  Result := FAuthenticator;
-end;
-
-function TKConfig.GetAC: TKAccessController;
-var
-  LType: string;
-  LConfig: TEFNode;
-  I: Integer;
-begin
-  if not Assigned(FAC) then
-  begin
-    LType := Config.GetExpandedString('AccessControl', NODE_NULL_VALUE);
-    FAC := TKAccessControllerFactory.Instance.CreateObject(LType);
-    LConfig := Config.FindNode('AccessControl');
-    if Assigned(LConfig) then
-    begin
-      for I := 0 to LConfig.ChildCount - 1 do
-        FAC.Config.AddChild(TEFNode.Clone(LConfig.Children[I]));
-      FAC.Init;
-    end;
-  end;
-  Result := FAC;
-end;
-
 function TKConfig.GetConfigFileName: string;
 begin
   Result := GetMetadataPath + FBaseConfigFileName;
-end;
-
-function TKConfig.GetAccessGrantValue(const AACURI, AMode: string; const ADefaultValue: Variant): Variant;
-begin
-  Result := AC.GetAccessGrantValue(Authenticator.UserName, AACURI, AMode, ADefaultValue);
 end;
 
 // Adds a .png extension to the resource name.

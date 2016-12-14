@@ -287,7 +287,8 @@ uses
   , EF.Localization
   , EF.StrUtils
   , Kitto.Types
-  , Kitto.Config
+  , Kitto.Auth
+  , Kitto.AccessControl
   ;
 
 { TKMetadataCatalog<T> }
@@ -1022,7 +1023,7 @@ end;
 
 function TKMetadata.IsAccessGranted(const AMode: string): Boolean;
 begin
-  Result := TKConfig.Instance.IsAccessGranted(GetACURI, AMode);
+  Result := TKAccessController.Current.IsAccessGranted(TKAuthenticator.Current.UserName, GetACURI, AMode);
 end;
 
 procedure TKMetadata.Assign(const ASource: TEFTree; const AProc: TEFTree.TAssignNodeProc);
@@ -1034,7 +1035,7 @@ end;
 
 procedure TKMetadata.CheckAccessGranted(const AMode: string);
 begin
-  TKConfig.Instance.CheckAccessGranted(GetACURI, AMode);
+  TKAccessController.Current.CheckAccessGranted(TKAuthenticator.Current.UserName, GetACURI, AMode);
 end;
 
 function TKMetadata.GetACURI: string;
@@ -1067,7 +1068,7 @@ end;
 
 procedure TKMetadataItem.CheckAccessGranted(const AMode: string);
 begin
-  TKConfig.Instance.CheckAccessGranted(GetACURI, AMode);
+  TKAccessController.Current.CheckAccessGranted(TKAuthenticator.Current.UserName, GetACURI, AMode);
 end;
 
 function TKMetadataItem.GetACURI: string;
@@ -1090,7 +1091,7 @@ end;
 
 function TKMetadataItem.IsAccessGranted(const AMode: string): Boolean;
 begin
-  Result := TKConfig.Instance.IsAccessGranted(GetACURI, AMode);
+  Result := TKAccessController.Current.IsAccessGranted(TKAuthenticator.Current.UserName, GetACURI, AMode);
 end;
 
 end.

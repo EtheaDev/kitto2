@@ -61,6 +61,7 @@ uses
   , EF.StrUtils
   , Kitto.Types
   , Kitto.Config
+  , Kitto.Auth
   , Kitto.JS
   , Kitto.JS.Formatting
   , Kitto.Web.Application
@@ -73,7 +74,7 @@ uses
 
 function TKExtChangePasswordWindow.GetPasswordHash(const AClearPassword: string): string;
 begin
-  if TKConfig.Instance.Authenticator.IsClearPassword then
+  if TKAuthenticator.Current.IsClearPassword then
     Result := AClearPassword
   else
     Result := GetStringHash(AClearPassword);
@@ -99,7 +100,7 @@ begin
   else
   begin
     try
-      TKConfig.Instance.Authenticator.Password := ParamAsString('ConfirmNewPassword');
+      TKAuthenticator.Current.Password := ParamAsString('ConfirmNewPassword');
       Close;
     except
       on E: Exception do
@@ -147,7 +148,7 @@ procedure TKExtChangePasswordWindow.InitDefaults;
 
 begin
   inherited;
-  FOldPasswordHash := TKConfig.Instance.Authenticator.Password;
+  FOldPasswordHash := TKAuthenticator.Current.Password;
 
   Modal := True;
   Title := _(TKWebApplication.Current.Config.AppTitle);
