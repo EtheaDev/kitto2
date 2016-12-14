@@ -35,9 +35,14 @@ type
 implementation
 
 uses
-  IdAttachmentFile, IdExplicitTLSClientServerBase, IdSSLOpenSSL, IdText,
-  EF.Localization,
-  Kitto.Ext.Controller, KItto.Ext.Session;
+  IdAttachmentFile
+  , IdExplicitTLSClientServerBase
+  , IdSSLOpenSSL
+  , IdText
+  , EF.Localization
+  , Kitto.Web.Application
+  , Kitto.Ext.Controller
+  ;
 
 { TSendEmailToolController }
 
@@ -364,7 +369,7 @@ begin
       finally
         LSMTP.Disconnect;
       end;
-      Session.Flash(_('E-mail message sent successfully.'));
+      TKWebApplication.Current.Toast(_('E-mail message sent successfully.'));
     finally
       FreeAndNil(LMessage);
     end;

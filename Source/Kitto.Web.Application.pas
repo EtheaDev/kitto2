@@ -112,7 +112,7 @@ type
     function GetLoginView: TKView;
     procedure DisplayHomeView;
     procedure DisplayLoginView;
-    procedure Flash(const AMessage: string);
+    procedure Toast(const AMessage: string);
     procedure Navigate(const AURL: string);
     /// <summary>
     ///  <para>
@@ -397,8 +397,8 @@ begin
         TKExtWindowControllerBase(LWindow).Title := _(AView.DisplayLabel);
       TKExtWindowControllerBase(LWindow).Closable := AView.GetBoolean('Controller/AllowClose', True);
       Result.Config.SetObject('Sys/HostWindow', LWindow.AsObject);
-      Result.Config.SetBoolean('Sys/HostWindow/AutoSize',
-        TKExtWindowControllerBase(LWindow).SetSizeFromTree(AView, 'Controller/PopupWindow/'));
+//      Result.Config.SetBoolean('Sys/HostWindow/AutoSize',
+      TKExtWindowControllerBase(LWindow).SetSizeFromTree(AView, 'Controller/PopupWindow/');
     end;
   end
   else
@@ -774,7 +774,7 @@ procedure TKWebApplication.Home;
   var
     LTimeout: TEFNode;
   begin
-    LTimeout := Config.Config.FindNode('Ext/AjaxTimeout');
+    LTimeout := Config.Config.FindNode('ExtJS/AjaxTimeout');
     if Assigned(LTimeout) then
       TKWebResponse.Current.Items.ExecuteJSCode(Session, Format('Ext.Ajax.setTimeout(%d);', [LTimeout.AsInteger]));
   end;
@@ -1089,9 +1089,9 @@ begin
   end;
 end;
 
-procedure TKWebApplication.Flash(const AMessage: string);
+procedure TKWebApplication.Toast(const AMessage: string);
 begin
-  TKWebResponse.Current.Items.ExecuteJSCode('Ext.example.msg("' + _(Config.AppTitle) + '", "' + AMessage + '");');
+  TKWebResponse.Current.Items.ExecuteJSCode('Ext.toast(' + TJS.StrToJS(AMessage) + ');');
 end;
 
 procedure TKWebApplication.Navigate(const AURL: string);

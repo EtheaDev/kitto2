@@ -79,10 +79,10 @@ type
 
     /// <summary>
     ///  Reads the Width, Height, FullScreen properties under <APath> from ATree
-    ///  and sets its size accordingly. Returns True if auto-sizing is in effect
-    ///  (no explicit width and height) and False otherwise.
+    ///  and sets its size accordingly. Applies defaults if properties are not
+    ///  specified.
     /// </summry>
-    function SetSizeFromTree(const ATree: TEFTree; const APath: string): Boolean;
+    procedure SetSizeFromTree(const ATree: TEFTree; const APath: string);
 
     property View: TKView read GetView write SetView;
     procedure Display;
@@ -506,29 +506,26 @@ begin
   FContainer := AValue;
 end;
 
-function TKExtWindowControllerBase.SetSizeFromTree(const ATree: TEFTree; const APath: string): Boolean;
+procedure TKExtWindowControllerBase.SetSizeFromTree(const ATree: TEFTree; const APath: string);
 var
   LWidth: Integer;
   LHeight: Integer;
   LFullScreen: Boolean;
 begin
-  LWidth := ATree.GetInteger(APath + 'Width');
-  LHeight := ATree.GetInteger(APath + 'Height');
+  LWidth := ATree.GetInteger(APath + 'Width', DEFAULT_WINDOW_WIDTH);
+  LHeight := ATree.GetInteger(APath + 'Height', DEFAULT_WINDOW_HEIGHT);
   LFullScreen := ATree.GetBoolean(APath + 'FullScreen', TKWebRequest.Current.IsMobileBrowser);
 
-  Result := False;
   if LFullScreen then
   begin
     Maximized := True;
     Border := not Maximized;
   end
-  else if (LWidth > 0) and (LHeight > 0) then
+  else
   begin
     Width := LWidth;
     Height := LHeight;
-  end
-  else
-    Result := True;
+  end;
 end;
 
 procedure TKExtWindowControllerBase.SetView(const AValue: TKView);

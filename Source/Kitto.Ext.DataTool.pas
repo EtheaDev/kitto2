@@ -276,7 +276,7 @@ end;
 procedure TKExtDataCmdToolController.AfterExecuteTool;
 begin
   inherited;
-  TKWebApplication.Current.Flash(_('Command executed succesfully.'));
+  TKWebApplication.Current.Toast(_('Command executed succesfully.'));
 end;
 
 procedure TKExtDataCmdToolController.ExecuteTool;
