@@ -1078,7 +1078,10 @@ end;
 function TJSMethodCall.AddParam(const AValue: TJSBase): TJSMethodCall;
 begin
   if Assigned(AValue) then
-    FParams.Values.SetObject(FParams.Values.ChildCount.ToString, AValue)
+  begin
+    AddDependency(FRoot.FindObjectCreateItem(AValue));
+    FParams.Values.SetObject(FParams.Values.ChildCount.ToString, AValue);
+  end
   else
     FParams.SetRawValue(FParams.Values.ChildCount.ToString, 'null');
   Result := Self;
