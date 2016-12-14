@@ -1080,20 +1080,11 @@ end;
 function TKWebApplication.FindPageTemplate(const APageName: string): string;
 var
   LFileName: string;
-
-  function GetEncoding: TEncoding;
-  begin
-    if TKWebResponse.Current.Items.Charset = 'utf-8' then
-      Result := TEncoding.UTF8
-    else
-      Result := TEncoding.ANSI;
-  end;
-
 begin
   LFileName := Config.FindResourcePathName(APageName + '.html');
   if LFileName <> '' then
   begin
-    Result := TextFileToString(LFileName, GetEncoding);
+    Result := TextFileToString(LFileName, TKWebResponse.Current.Items.Encoding);
     Result := TEFMacroExpansionEngine.Instance.Expand(Result);
   end;
 end;
