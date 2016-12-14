@@ -33,7 +33,7 @@ type
     function BranchResponseItems: TJSResponseItems;
     procedure UnbranchResponseItems(const AResponseItems: TJSResponseItems; const AConsolidate: Boolean);
     property Items: TJSResponseItems read GetItems;
-    // Generates code for all the Items and sets Content and ContentType accordingly.
+    // Generates code for all the Items and sets Content/ContentStream and ContentType accordingly.
     procedure Render;
 
     function GetJSCode(const AMethod: TProc; const ASilent: Boolean = False): string;
@@ -56,6 +56,7 @@ type
     function GetCount: Integer;
     function GetItem(I: Integer): TJSResponseItem;
     procedure DoSetProperty(const AObject: TJSBase; const ASetValueProc: TProc<TJSSetProperty>);
+    function GetEncoding: TEncoding;
   public
     procedure AfterConstruction; override;
     destructor Destroy; override;
@@ -102,6 +103,7 @@ type
     function GetContentType: string;
 
     property Charset: string read FCharset write FCharset;
+    property Encoding: TEncoding read GetEncoding;
   end;
 
   TJSResponseItem = class(TJSBase)
@@ -294,7 +296,8 @@ type
 implementation
 
 uses
-  Kitto.Web.Application
+  Classes
+  , Kitto.Web.Application
   ;
 
 { TKWebResponse }
@@ -329,7 +332,6 @@ begin
   Result := Assigned(FResponseItemsStack);
 end;
 
-
 procedure TKWebResponse.Render;
 begin
   // Don't overwrite custom responses.
@@ -337,7 +339,8 @@ begin
   if Items.Count > 0 then
   begin
     ContentType := Items.GetContentType;
-    Content := Items.Consume;
+    //Content := Items.Consume;
+    ContentStream := TStringStream.Create(Items.Consume, Items.Encoding);
   end;
 end;
 
@@ -952,6 +955,14 @@ end;
 function TJSResponseItems.GetCount: Integer;
 begin
   Result := FList.Count;
+end;
+
+function TJSResponseItems.GetEncoding: TEncoding;
+begin
+  if FCharset = 'utf-8' then
+    Result := TEncoding.UTF8
+  else
+    Result := TEncoding.ANSI;
 end;
 
 function TJSResponseItems.GetItem(I: Integer): TJSResponseItem;
