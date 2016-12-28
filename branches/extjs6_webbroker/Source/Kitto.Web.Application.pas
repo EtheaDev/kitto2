@@ -558,9 +558,10 @@ end;
 
 procedure TKWebApplication.DownloadStream(const AStream: TStream; const AFileName, AContentType: string);
 begin
-  { TODO : how to use AFileName as client-side file name? }
   if Assigned(AStream) then
   begin
+    TKWebResponse.Current.SetCustomHeader('Content-Disposition',
+      Format('inline; filename="%s"', [ExtractFileName(AFileName)]));
     TKWebResponse.Current.ContentStream := AStream;
     if AContentType <> '' then
       TKWebResponse.Current.ContentType := AContentType

@@ -379,6 +379,7 @@ begin
   inherited;
   Cleanup;
   FTempFileNames.Free;
+  FreeAndNil(FStream);
 end;
 
 procedure TKExtDownloadFileController.DoAfterExecuteTool;
@@ -448,7 +449,7 @@ begin
     try
       DoDownloadStream(FStream, ClientFileName, ContentType);
     finally
-      FreeAndNil(FStream);
+      FStream := nil;
     end;
   finally
     Cleanup;
