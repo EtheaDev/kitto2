@@ -340,6 +340,7 @@ end;
 procedure TKExtMainForm.FormDestroy(Sender: TObject);
 begin
   FServer.Active := False;
+  SessionListView.Clear;
   FreeAndNil(FSessions);
   FreeAndNil(FServer);
   FreeAndNil(FLogEndPoint);
