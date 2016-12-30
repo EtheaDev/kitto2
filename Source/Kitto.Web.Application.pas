@@ -134,9 +134,9 @@ type
     function SetIconStyle(const ADefaultImageName: string; const AImageName: string = '';
       const ACustomPrefix: string = ''; const ACustomRules: string = ''): string;
 
-    procedure DownloadFile(const AFileName: string; const AContentType: string = '');
-    procedure DownloadStream(const AStream: TStream; const AFileName: string; const AContentType: string = '');
-    procedure DownloadBytes(const ABytes: TBytes; const AFileName: string; const AContentType: string = '');
+    procedure DownloadFile(const AServerFileName, AFileName: string; const AContentType: string = ''; const AInline: Boolean = True);
+    procedure DownloadStream(const AStream: TStream; const AFileName: string; const AContentType: string = ''; const AInline: Boolean = True);
+    procedure DownloadBytes(const ABytes: TBytes; const AFileName: string; const AContentType: string = ''; const AInline: Boolean = True);
     /// <summary>
     ///  Checks user credentials (fetched from Query parameters UserName and Passwords)
     ///  and returns True if the current authenticator allows them, or if the
@@ -544,24 +544,22 @@ begin
   Result := SetIconStyle(AView.ImageName, AImageName, ACustomPrefix, ACustomRules);
 end;
 
-procedure TKWebApplication.DownloadBytes(const ABytes: TBytes; const AFileName, AContentType: string);
+procedure TKWebApplication.DownloadBytes(const ABytes: TBytes; const AFileName, AContentType: string; const AInline: Boolean);
 begin
-  if Length(ABytes) > 0 then
-    DownloadStream(TBytesStream.Create(ABytes), AFileName, AContentType);
+  DownloadStream(TBytesStream.Create(ABytes), AFileName, AContentType, AInline);
 end;
 
-procedure TKWebApplication.DownloadFile(const AFileName, AContentType: string);
+procedure TKWebApplication.DownloadFile(const AServerFileName, AFileName, AContentType: string; const AInline: Boolean);
 begin
-  if FileExists(AFileName) then
-    DownloadStream(TFileStream.Create(AFileName, fmOpenRead, fmShareDenyNone), AFileName, AContentType);
+  DownloadStream(TFileStream.Create(AServerFileName, fmOpenRead, fmShareDenyNone), AFileName, AContentType, AInline);
 end;
 
-procedure TKWebApplication.DownloadStream(const AStream: TStream; const AFileName, AContentType: string);
+procedure TKWebApplication.DownloadStream(const AStream: TStream; const AFileName, AContentType: string; const AInline: Boolean);
 begin
   if Assigned(AStream) then
   begin
     TKWebResponse.Current.SetCustomHeader('Content-Disposition',
-      Format('inline; filename="%s"', [ExtractFileName(AFileName)]));
+      Format('%s; filename="%s"', [IfThen(AInline, 'inline', 'attachment'), ExtractFileName(AFileName)]));
     TKWebResponse.Current.ContentStream := AStream;
     if AContentType <> '' then
       TKWebResponse.Current.ContentType := AContentType

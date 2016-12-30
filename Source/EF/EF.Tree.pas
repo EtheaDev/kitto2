@@ -1045,6 +1045,7 @@ type
     property AsDecimal: TBcd read GetAsDecimal write SetAsDecimal;
 
     property AsBytes: TBytes read GetAsBytes write SetAsBytes;
+    procedure LoadBytesFromStream(const AStream: TStream);
 
     /// <summary>
     ///  Parses AValue trying to guess its data type and sets Value and
@@ -1740,6 +1741,19 @@ end;
 function TEFNode.IsDataTypeLocked: Boolean;
 begin
   Result := (FDataTypeLockCount > 0) and (FDataType <> nil);
+end;
+
+procedure TEFNode.LoadBytesFromStream(const AStream: TStream);
+var
+  LBytesStream: TBytesStream;
+begin
+  LBytesStream := TBytesStream.Create;
+  try
+    LBytesStream.CopyFrom(AStream, AStream.Size);
+    AsBytes := Copy(LBytesStream.Bytes, 0, LBytesStream.Size);
+  finally
+    FreeAndNil(LBytesStream);
+  end;
 end;
 
 function TEFNode.LockDataType: Integer;

@@ -930,6 +930,8 @@ begin
           Break;
       end;
     end;
+    if Result = nil then
+      Result := FindObjectCreateItem(AObject.Owner);
   end;
 end;
 

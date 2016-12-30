@@ -448,13 +448,27 @@ var
     LImage: TGraphic;
     LScale: Extended;
     LBitmap: TBitmap;
-    LStream: TBytesStream;
+
+    function GetImageBytes: TBytes;
+    var
+      LStream: TBytesStream;
+    begin
+      LStream := TBytesStream.Create;
+      try
+        LImage.SaveToStream(LStream);
+        Result := Copy(LStream.Bytes, 0, LStream.Size);
+      finally
+        FreeAndNil(LStream);
+      end;
+    end;
+
   begin
     LImage := AImageClass.Create;
     try
       LImage.LoadFromStream(AStream);
       if (LImage.Height <= AMaxHeight) and (LImage.Width <= AMaxWidth) then
-        Exit;
+        Exit(GetImageBytes);
+
       if LImage.Height > LImage.Width then
         LScale := AMaxHeight / LImage.Height
       else
@@ -467,13 +481,7 @@ var
 
         LImage.Assign(LBitmap);
 
-        LStream := TBytesStream.Create;
-        try
-          LImage.SaveToStream(LStream);
-          Result := Copy(LStream.Bytes, 0, LStream.Size);
-        finally
-          FreeAndNil(LStream);
-        end;
+        Exit(GetImageBytes);
       finally
         LBitmap.Free;
       end;

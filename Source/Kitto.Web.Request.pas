@@ -4,6 +4,7 @@ interface
 
 uses
   IdHttpWebBrokerBridge
+  , ReqMulti
   , superobject
   ;
 

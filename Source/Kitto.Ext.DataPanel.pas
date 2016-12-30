@@ -95,6 +95,7 @@ type
     procedure SetFieldValue(const AField: TKViewTableField; const AValue: TSuperAvlEntry);
     function FindValueByName(const AValues: ISuperObject; const AName: string): TSuperAvlEntry;
     function GetFieldFilterFunc: TKFieldFilterFunc;
+    procedure ExecuteDeferredFileOps(const ARecord: TKViewTableRecord; const AEvent: TKFileOpEvent);
   strict protected
     FButtonsRequiringSelection: TList<TExtObject>;
     FEditItems: TKEditItemList;
@@ -150,6 +151,9 @@ type
     procedure AddUsedViewFields; virtual;
     procedure AddUsedViewField(const AViewField: TKViewField);
     function GetDefaultAllowClose: Boolean; override;
+    // Inherited classes should call UpdateRecord when changes are confirmed/applied
+    // and this method when changes are canceled. This class manages housekeeping.
+    procedure ChangesCanceled(const ARecord: TKViewTableRecord);
   public
     procedure AfterConstruction; override;
     destructor Destroy; override;
@@ -1046,6 +1050,12 @@ begin
   FButtonsRequiringSelection.Clear;
 end;
 
+procedure TKExtDataPanelController.ChangesCanceled(const ARecord: TKViewTableRecord);
+begin
+  NotifyObservers('Canceled');
+  ExecuteDeferredFileOps(ARecord, oeCancel);
+end;
+
 procedure TKExtDataPanelController.CheckCanRead;
 begin
   Assert(ViewTable <> nil);
@@ -1133,28 +1143,13 @@ begin
       finally
         ARecord.Store.EnableChangeNotifications;
       end;
-      // Get uploaded files.
-      Session.EnumUploadedFiles(
-        procedure (AFile: TJSUploadedFile)
-        begin
-          if (AFile.Context is TKViewField) and (TKViewField(AFile.Context).Table = ViewTable) then
-          begin
-            if TKViewField(AFile.Context).DataType is TEFBlobDataType then
-              ARecord.FieldByName(TKViewField(AFile.Context).AliasedName).AsBytes := AFile.Bytes
-            else if TKViewField(AFile.Context).DataType is TKFileReferenceDataType then
-              ARecord.FieldByName(TKViewField(AFile.Context).AliasedName).AsString := AFile.FileName
-            else
-              raise Exception.CreateFmt(_('Data type %s does not support file upload.'), [TKViewField(AFile.Context).DataType.GetTypeName]);
-            Session.RemoveUploadedFile(AFile);
-          end;
-        end);
-
       // Save record.
       ViewTable.Model.SaveRecord(ARecord, APersist and not ViewTable.IsDetail,
         procedure
         begin
           TKWebApplication.Current.Toast(_('Changes saved succesfully.'));
         end);
+      ExecuteDeferredFileOps(ARecord, oePost);
       Config.SetObject('Sys/Record', ARecord);
       Result := '';
     except
@@ -1189,6 +1184,32 @@ begin
   begin
     SetLength(FUsedViewFields, Length(FUsedViewFields) + 1);
     FUsedViewFields[High(FUsedViewFields)] := AViewField;
+  end;
+end;
+
+procedure TKExtDataPanelController.ExecuteDeferredFileOps(const ARecord: TKViewTableRecord; const AEvent: TKFileOpEvent);
+var
+  LFileOp: TKFileOp;
+  LField: TKViewTableField;
+  I: Integer;
+  LDeferredFileOps: TEFNode;
+  J: Integer;
+begin
+  for I := 0 to ARecord.FieldCount - 1 do
+  begin
+    LDeferredFileOps := ARecord.Fields[I].FindNode('DeferredFileOps');
+    if Assigned(LDeferredFileOps) then
+    begin
+      for J := 0 to LDeferredFileOps.ChildCount - 1 do
+      begin
+        LFileOp := LDeferredFileOps.Children[J].AsStringArray;
+        if LFileOp.Kind = okDelete then
+        begin
+          if FileExists(LFileOp.PathName) then
+            DeleteFile(LFileOp.PathName);
+        end;
+      end;
+    end;
   end;
 end;
 
