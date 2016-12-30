@@ -108,7 +108,7 @@ type
     procedure CreateDetailToolbar;
     procedure CreateDetailBottomPanel;
     function GetDetailStyle: string;
-    function GetExtraHeight: Integer;
+//    function GetExtraHeight: Integer;
     function GetDetailBottomPanelHeight: Integer;
     procedure AssignFieldChangeEvent(const AAssign: Boolean);
     procedure FieldChange(const AField: TKField; const AOldValue, ANewValue: Variant);
@@ -410,7 +410,7 @@ end;
 procedure TKExtFormPanelController.LoadData;
 var
   LDetailStyle: string;
-  LHostWindow: TExtWindow;
+//  LHostWindow: TExtWindow;
 begin
   LDetailStyle := GetDetailStyle;
   if SameText(LDetailStyle, 'Tabs') then
@@ -562,12 +562,6 @@ begin
         if Assigned(LFormField) then
         begin
           // Already rendered - call RefreshValue directly; otherwise postpone it.
-
-
-
-
-
-
           LFormField.RemoveAllListeners('afterrender');
           LFormField.On('afterrender', LFormField.GenerateAnonymousFunction(GetJSCode(
             procedure
@@ -833,7 +827,7 @@ begin
       // the single record contained.
       if ServerStore.RecordCount = 0 then
         ViewTable.Model.LoadRecords(ServerStore, GetFilterExpression, '', 0, 0);
-      Assert(ServerStore.RecordCount=1);
+      Assert(ServerStore.RecordCount = 1);
       StoreRecord := ServerStore.Records[0];
     end;
   end;
@@ -941,16 +935,16 @@ begin
     LActivableIntf.Activate;
 end;
 
-function TKExtFormPanelController.GetExtraHeight: Integer;
-begin
-  Result := 10; // 5px padding * 2.
-  if Assigned(FDetailToolbar) then
-    Result := Result + 50;
-  if Assigned(TopToolbar) then
-    Result := Result + 50;
-  if Assigned(FDetailBottomPanel) then
-    Result := Result + GetDetailBottomPanelHeight + 200;
-end;
+//function TKExtFormPanelController.GetExtraHeight: Integer;
+//begin
+//  Result := 10; // 5px padding * 2.
+//  if Assigned(FDetailToolbar) then
+//    Result := Result + 50;
+//  if Assigned(TopToolbar) then
+//    Result := Result + 50;
+//  if Assigned(FDetailBottomPanel) then
+//    Result := Result + GetDetailBottomPanelHeight + 200;
+//end;
 
 function TKExtFormPanelController.IsViewMode: Boolean;
 begin
@@ -962,6 +956,8 @@ var
   LKeepOpen: Boolean;
 begin
   LKeepOpen := Config.GetBoolean('KeepOpenAfterOperation');
+
+  ChangesCanceled(StoreRecord);
 
   if MatchText(FOperation, ['Add', 'Dup']) then
   begin
@@ -978,7 +974,6 @@ begin
     end;
   end;
 
-  NotifyObservers('Canceled');
   if LKeepOpen then
   begin
     if SameText(FOperation, 'Add') then

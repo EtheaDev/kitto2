@@ -58,7 +58,6 @@ type
     FJSConfig: TJSValues;
     function GetDownloadJS(const AMethod: TJSProcedure): string;
   strict protected
-    procedure CreateJSName;
     function GetObjectNamePrefix: string; virtual;
     procedure InitDefaults; virtual;
     function CreateConfigObject(const AAttributeName: string): TJSObject;
@@ -279,25 +278,25 @@ type
     DateTime: TDateTime;
   end;
 
-  TJSUploadedFile = class
-  strict private
-    FContext: TObject;
-    FFullFileName: string;
-    FFileName: string;
-    FStream: TBytesStream;
-    FOriginalFileName: string;
-    function GetBytes: TBytes;
-  public
-    constructor Create(const AFileName, AFullFileName: string;
-      const AContext: TObject; const AOriginalFileName: string = '');
-    destructor Destroy; override;
-    property FileName: string read FFileName;
-    property FullFileName: string read FFullFileName;
-    property OriginalFileName: string read FOriginalFileName;
-    property Context: TObject read FContext;
-
-    property Bytes: TBytes read GetBytes;
-  end;
+//  TJSUploadedFile = class
+//  strict private
+//    FContext: TObject;
+//    FFullFileName: string;
+//    FFileName: string;
+//    FStream: TBytesStream;
+//    FOriginalFileName: string;
+//    function GetBytes: TBytes;
+//  public
+//    constructor Create(const AFileName, AFullFileName: string;
+//      const AContext: TObject; const AOriginalFileName: string = '');
+//    destructor Destroy; override;
+//    property FileName: string read FFileName;
+//    property FullFileName: string read FFullFileName;
+//    property OriginalFileName: string read FOriginalFileName;
+//    property Context: TObject read FContext;
+//
+//    property Bytes: TBytes read GetBytes;
+//  end;
 
   /// <summary>
   ///  Represents the server side of a user client session.
@@ -309,11 +308,11 @@ type
     FObjectSequences: TDictionary<string, Cardinal>;
     FLanguage: string;
     FSingletons: TDictionary<string, TJSObject>;
-    FUploadPath: string;
-    FUploadLocalPath: string;
-    FMaxUploadSize: Integer;
-    FFileUploadedFullName: string;
-    FFileUploaded: string;
+//    FUploadPath: string;
+//    FUploadLocalPath: string;
+//    FMaxUploadSize: Integer;
+//    FFileUploadedFullName: string;
+//    FFileUploaded: string;
     FRefreshingLanguage: Boolean;
     FHomeController: IJSController;
     FLoginController: IJSController;
@@ -325,7 +324,7 @@ type
     FControllerHostWindow: IJSContainer;
     FControllerContainer: IJSControllerContainer;
     FStatusHost: IJSStatusHost;
-    FUploadedFiles: TObjectList<TJSUploadedFile>;
+//    FUploadedFiles: TObjectList<TJSUploadedFile>;
     FHomeViewNodeName: string;
     FViewportContent: string;
     FViewportWidth: Integer;
@@ -358,7 +357,7 @@ type
     /// <summary>
     ///  Calls AProc for each uploaded file in list.
     /// </summary>
-    procedure EnumUploadedFiles(const AProc: TProc<TJSUploadedFile>);
+//    procedure EnumUploadedFiles(const AProc: TProc<TJSUploadedFile>);
     /// <summary>
     ///  Called to signal that a new file has been uploaded. The
     ///  descriptor holds information about the file and its context
@@ -367,25 +366,25 @@ type
     /// <remarks>
     ///  The session acquires ownership of the descriptor object.
     /// </remarks>
-    procedure AddUploadedFile(const AFileDescriptor: TJSUploadedFile);
+//    procedure AddUploadedFile(const AFileDescriptor: TJSUploadedFile);
     /// <summary>
     ///  Removes a previously added file descriptor. To be called once
     ///  the uploaded file has been processed.
     /// </summary>
-    procedure RemoveUploadedFile(const AFileDescriptor: TJSUploadedFile);
+//    procedure RemoveUploadedFile(const AFileDescriptor: TJSUploadedFile);
     /// <summary>
     ///  Returns the first uploaded file descriptor matching the
     ///  specified context, or nil if no descriptor is found.
     /// </summary>
-    function FindUploadedFile(const AContext: TObject): TJSUploadedFile;
+//    function FindUploadedFile(const AContext: TObject): TJSUploadedFile;
     procedure SetLanguageFromQueriesOrConfig(const AConfig: TKConfig);
     property RefreshingLanguage: Boolean read FRefreshingLanguage write FRefreshingLanguage;
-    property UploadPath: string read FUploadPath write FUploadPath;
+//    property UploadPath: string read FUploadPath write FUploadPath;
     procedure BeforeHandleRequest;
 
-    property MaxUploadSize: Integer read FMaxUploadSize write FMaxUploadSize;
-    property FileUploaded: string read FFileUploaded;
-    property FileUploadedFullName: string read FFileUploadedFullName;
+//    property MaxUploadSize: Integer read FMaxUploadSize write FMaxUploadSize;
+//    property FileUploaded: string read FFileUploaded;
+//    property FileUploadedFullName: string read FFileUploadedFullName;
     function GetDefaultViewportWidth: Integer;
   public
     constructor Create(const ASessionId: string); reintroduce;
@@ -565,21 +564,21 @@ begin
 
   inherited Create(nil);
   FSessionId := ASessionId;
-  FUploadPath := '/uploads/' + FSessionId;
-  FUploadLocalPath := TPath.Combine(TKWebApplication.Current.Config.AppHomePath,
-    TPath.Combine('Uploads', FSessionId));
+//  FUploadPath := '/uploads/' + FSessionId;
+//  FUploadLocalPath := TPath.Combine(TKWebApplication.Current.Config.AppHomePath,
+//    TPath.Combine('Uploads', FSessionId));
 end;
 
 destructor TJSSession.Destroy;
 begin
   // Delete upload folder only for valid sessions.
-  if DirectoryExists(FUploadLocalPath) then
-    DeleteTree(FUploadLocalPath);
+//  if DirectoryExists(FUploadLocalPath) then
+//    DeleteTree(FUploadLocalPath);
   FreeAndNil(FOpenControllers);
   FreeAndNil(FObjectSequences);
   FreeAndNil(FSingletons);
   FreeAndNil(FAuthData);
-  FreeAndNil(FUploadedFiles);
+//  FreeAndNil(FUploadedFiles);
   NilEFIntf(FHomeController);
   NilEFIntf(FLoginController);
   FreeAndNil(FGettextInstance);
@@ -601,21 +600,41 @@ begin
 //  end;
 end;
 
-procedure TJSSession.EnumUploadedFiles(const AProc: TProc<TJSUploadedFile>);
-var
-  I: Integer;
-begin
-  if Assigned(AProc) then
-  begin
-    for I := FUploadedFiles.Count - 1 downto 0 do
-      AProc(FUploadedFiles[I]);
-  end;
-end;
-
-procedure TJSSession.RemoveUploadedFile(const AFileDescriptor: TJSUploadedFile);
-begin
-  FUploadedFiles.Remove(AFileDescriptor);
-end;
+//procedure TJSSession.EnumUploadedFiles(const AProc: TProc<TJSUploadedFile>);
+//var
+//  I: Integer;
+//begin
+//  if Assigned(AProc) then
+//  begin
+//    for I := FUploadedFiles.Count - 1 downto 0 do
+//      AProc(FUploadedFiles[I]);
+//  end;
+//end;
+//
+//procedure TJSSession.RemoveUploadedFile(const AFileDescriptor: TJSUploadedFile);
+//begin
+//  FUploadedFiles.Remove(AFileDescriptor);
+//end;
+//
+//procedure TJSSession.AddUploadedFile(const AFileDescriptor: TJSUploadedFile);
+//begin
+//  FUploadedFiles.Add(AFileDescriptor);
+//end;
+//
+//function TJSSession.FindUploadedFile(const AContext: TObject): TJSUploadedFile;
+//var
+//  I: Integer;
+//begin
+//  Result := nil;
+//  for I := 0 to FUploadedFiles.Count - 1 do
+//  begin
+//    if FUploadedFiles[I].Context = AContext then
+//    begin
+//      Result := FUploadedFiles[I];
+//      Break;
+//    end;
+//  end;
+//end;
 
 procedure TJSSession.RemoveController(const AController: IJSController);
 begin
@@ -640,11 +659,6 @@ begin
     LLanguageId := AConfig.Config.GetString('LanguageId');
   if LLanguageId <> '' then
     Language := LLanguageId;
-end;
-
-procedure TJSSession.AddUploadedFile(const AFileDescriptor: TJSUploadedFile);
-begin
-  FUploadedFiles.Add(AFileDescriptor);
 end;
 
 function TJSSession.GetDisplayName: string;
@@ -674,7 +688,7 @@ begin
 
   FGettextInstance := TGnuGettextInstance.Create;
 
-  FUploadedFiles := TObjectList<TJSUploadedFile>.Create;
+//  FUploadedFiles := TObjectList<TJSUploadedFile>.Create;
   FOpenControllers := TList<IJSController>.Create;
 end;
 
@@ -772,21 +786,6 @@ begin
   end;
 end;
 
-function TJSSession.FindUploadedFile(const AContext: TObject): TJSUploadedFile;
-var
-  I: Integer;
-begin
-  Result := nil;
-  for I := 0 to FUploadedFiles.Count - 1 do
-  begin
-    if FUploadedFiles[I].Context = AContext then
-    begin
-      Result := FUploadedFiles[I];
-      Break;
-    end;
-  end;
-end;
-
 { TJSObjectArray }
 
 destructor TJSObjectArray.Destroy;
@@ -853,14 +852,6 @@ begin
 end;
 
 { TJSObject }
-
-procedure TJSObject.CreateJSName;
-begin
-  if Assigned(Owner) and (Owner is TJSObject) and (FAttributeName <> '') then
-    JSName := TJSObject(Owner).JSName + '.' + FAttributeName
-  else
-    JSName := Session.GetNextJSName(GetObjectNamePrefix);
-end;
 
 procedure TJSObject.AddItem(const AItems: TJSObjectArray; const AItem: TJSObject);
 begin
@@ -938,7 +929,7 @@ begin
   Assert(Assigned(AOwner));
   inherited Create(AOwner);
   FJSConfig := TJSValues.Create(Self);
-  CreateJSName;
+  JSName := Session.GetNextJSName(GetObjectNamePrefix);
   TKWebResponse.Current.Items.CreateObject(Self);
   InitDefaults;
 end;
@@ -950,12 +941,19 @@ begin
   inherited Create(AOwner);
   FJSConfig := TJSValues.Create(Self);
   FAttributeName := AAttributeName;
+  if (Owner.JSName <> '') and (FAttributeName <> '') then
+    JSName := Owner.JSName + '.' + FAttributeName;
   InitDefaults;
 end;
 
 constructor TJSObject.CreateInline(const AOwner: TJSBase);
+var
+  LXType: string;
 begin
   CreateInternal(AOwner, '');
+  LXType := JSXType;
+  if LXType <> '' then
+    SetConfigItem('xtype', LXType);
 end;
 
 constructor TJSObject.CreateSingleton(const AOwner: TJSBase; const AAttributeName: string);
@@ -1343,34 +1341,34 @@ end;
 
 { TJSUploadedFile }
 
-constructor TJSUploadedFile.Create(const AFileName, AFullFileName: string;
-  const AContext: TObject; const AOriginalFileName: string = '');
-begin
-  inherited Create;
-  FFileName := AFileName;
-  FFullFileName := AFullFileName;
-  FContext := AContext;
-  FOriginalFileName := AOriginalFileName;
-end;
-
-destructor TJSUploadedFile.Destroy;
-begin
-  FreeAndNil(FStream);
-  inherited;
-end;
-
-function TJSUploadedFile.GetBytes: TBytes;
-begin
-  if not Assigned(FStream) then
-  begin
-    FStream := TBytesStream.Create;
-    FStream.LoadFromFile(FFullFileName);
-  end;
-  Result := FStream.Bytes;
-  // Reset length, as FStream.Bytes for some reason is rounded up.
-  SetLength(Result, FStream.Size);
-  Assert(FStream.Size = Length(Result));
-end;
+//constructor TJSUploadedFile.Create(const AFileName, AFullFileName: string;
+//  const AContext: TObject; const AOriginalFileName: string = '');
+//begin
+//  inherited Create;
+//  FFileName := AFileName;
+//  FFullFileName := AFullFileName;
+//  FContext := AContext;
+//  FOriginalFileName := AOriginalFileName;
+//end;
+//
+//destructor TJSUploadedFile.Destroy;
+//begin
+//  FreeAndNil(FStream);
+//  inherited;
+//end;
+//
+//function TJSUploadedFile.GetBytes: TBytes;
+//begin
+//  if not Assigned(FStream) then
+//  begin
+//    FStream := TBytesStream.Create;
+//    FStream.LoadFromFile(FFullFileName);
+//  end;
+//  Result := FStream.Bytes;
+//  // Reset length, as FStream.Bytes for some reason is rounded up.
+//  SetLength(Result, FStream.Size);
+//  Assert(FStream.Size = Length(Result));
+//end;
 
 initialization
   _JSFormatSettings := TFormatSettings.Create;

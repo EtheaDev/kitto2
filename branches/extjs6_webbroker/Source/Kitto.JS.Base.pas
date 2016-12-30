@@ -31,6 +31,7 @@ type
     property Owner: TJSBase read FOwner write SetOwner;
     property JSName: string read FJSName write FJSName;
     class function JSClassName: string; virtual;
+    class function JSXType: string; virtual;
 
     function FindChildByJSName(const AJSName: string): TJSBase;
     procedure FreeAllChildren;
@@ -189,6 +190,11 @@ end;
 class function TJSBase.JSClassName: string;
 begin
   Result := 'Object';
+end;
+
+class function TJSBase.JSXType: string;
+begin
+  Result := '';
 end;
 
 { TJSValues }

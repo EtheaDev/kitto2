@@ -235,6 +235,14 @@ type
     property VtypeText: string read FVtypeText write SetVtypeText;
   end;
 
+  TExtFormFileField = class(TExtFormTextField)
+  protected
+    function GetObjectNamePrefix: string; override;
+  public
+    class function JSClassName: string; override;
+    class function JSXType: string; override;
+  end;
+
   TExtFormSliderField = class(TExtFormField)
   public
     class function JSClassName: string; override;
@@ -957,7 +965,7 @@ end;
 
 class function TExtFormTextField.JSClassName: string;
 begin
-  Result := 'Ext.form.TextField';
+  Result := 'Ext.form.field.Text';
 end;
 
 procedure TExtFormTextField.InitDefaults;
@@ -1660,6 +1668,23 @@ end;
 class function TExtFormFieldContainer.JSClassName: string;
 begin
   Result := 'Ext.form.FieldContainer';
+end;
+
+{ TExtFormFileField }
+
+function TExtFormFileField.GetObjectNamePrefix: string;
+begin
+  Result := 'filefld';
+end;
+
+class function TExtFormFileField.JSClassName: string;
+begin
+  Result := 'Ext.form.field.File';
+end;
+
+class function TExtFormFileField.JSXType: string;
+begin
+  Result := 'filefield';
 end;
 
 end.

@@ -474,7 +474,7 @@ begin
   Layout := lyFit;
   if TKWebRequest.Current.IsMobileBrowser then
     Maximized := True;
-  Border := True;
+  Border := not Maximized;
   Plain := True;
 
   &On('close',
