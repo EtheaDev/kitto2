@@ -764,7 +764,7 @@ uses
   , Variants
   , DateUtils
   , System.JSON
-  , TypInfo
+  , Rtti
   , superobject
   , EF.SysUtils
   , EF.StrUtils
@@ -3214,18 +3214,18 @@ begin
   Assert(Length(AOther) = 3);
 
   Result := TKFIleOp.Create(
-    TKFileOpKind(AOther[0].ToInteger)
+    TRttiEnumerationType.GetValue<TKFileOpKind>(AOther[0])
     , AOther[1]
-    , TKFileOpEvent(AOther[2].ToInteger)
+    , TRttiEnumerationType.GetValue<TKFileOpEvent>(AOther[2])
   );
 end;
 
 class operator TKFileOp.Implicit(const AOther: TKFileOp): TStringDynArray;
 begin
   Result := [
-    GetEnumName(TypeInfo(TKFileOpKind), Ord(AOther.Kind))
+    TRttiEnumerationType.GetName<TKFileOpKind>(AOther.Kind)
     , AOther.PathName
-    , GetEnumName(TypeInfo(TKFileOpEvent), Ord(AOther.Event))
+    , TRttiEnumerationType.GetName<TKFileOpEvent>(AOther.Event)
   ];
 end;
 
@@ -3243,7 +3243,7 @@ function TKExtFormFileReferenceEditor.GetFieldPath: string;
 begin
   inherited;
   Result := IncludeTrailingPathDelimiter(FRecordField.ViewField.GetExpandedString('Path'));
-  if Result = '' then
+  if (Result = '') or (Result = PathDelim) then
     raise Exception.CreateFmt('Path not specified for file reference field %s.', [FRecordField.ViewField.FieldName]);
   if not DirectoryExists(Result) then
     raise Exception.CreateFmt('Directory %s not found for file reference field %s.', [Result, FRecordField.ViewField.FieldName]);
@@ -3314,7 +3314,7 @@ begin
     DeferredFileDelete(oePost, LCurrentFileName);
 
   // Save data to file with auto-generated name.
-  LNewFileName := GetUniqueFileName(GetFieldPath, ExtractFileExt(AFile.FieldName));
+  LNewFileName := GetUniqueFileName(GetFieldPath, ExtractFileExt(AFile.FileName));
   StreamToFile(AFile.Stream, LNewFileName);
 
   FRecordField.AsString := ExtractFileName(LNewFileName);
