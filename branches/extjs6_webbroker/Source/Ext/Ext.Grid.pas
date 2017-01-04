@@ -149,7 +149,7 @@ type
   private
 //    FGrid: TExtObject;
     FStore: TExtDataStore;
-    procedure SetGrid(const AValue: TExtObject);
+//    procedure SetGrid(const AValue: TExtObject);
     procedure SetStore(const AValue: TExtDataStore);
   strict protected
     function GetObjectNamePrefix: string; override;
@@ -539,11 +539,11 @@ begin
   FFormat := 'm/d/Y';
 end;
 
-procedure TExtGridAbstractSelectionModel.SetGrid(const AValue: TExtObject);
-begin
-  FGrid.Free;
-  FGrid := SetProperty('grid', AValue);
-end;
+//procedure TExtGridAbstractSelectionModel.SetGrid(const AValue: TExtObject);
+//begin
+//  FGrid.Free;
+//  FGrid := SetProperty('grid', AValue);
+//end;
 
 procedure TExtGridAbstractSelectionModel.SetStore(const AValue: TExtDataStore);
 begin
