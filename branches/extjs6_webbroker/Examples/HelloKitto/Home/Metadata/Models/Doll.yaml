@@ -50,6 +50,6 @@ Fields:
     Path: c:\temp\hellokitto
     IsPicture: True
       Thumbnail:
-        Width: 150
-        Height: 150
+        Width: 100
+        Height: 100
 DefaultSorting: {Q}Doll_Name

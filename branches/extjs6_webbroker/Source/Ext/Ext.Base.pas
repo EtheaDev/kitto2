@@ -63,7 +63,7 @@ type
     class function JSClassName: string; override;
     function AddListener(const AEventName: string; const AHandler: TExtExpression;
       const AScope: TExtObject = nil; const AOptions: TExtObject = nil): TExtExpression;
-    function FireEvent(const AEventName: string; const AArgs: TJSObjectArray): TExtExpression;
+    function FireEvent(const AEventName: string; const AArgs: TArray<TExtObject>): TExtExpression;
     function &On(const AEventName: string; const AHandler: TExtExpression;
       const AScope: TExtObject = nil; const AOptions: TExtObject = nil): TExtExpression;
     function RemoveAllListeners(const AEventName: string): TExtExpression;
@@ -165,6 +165,7 @@ type
     FDisabled: Boolean;
     FStyle: string;
     FTpl: string;
+    FFlex: Integer;
     procedure _SetDisabled(const AValue: Boolean);
     procedure SetFieldLabel(const AValue: string);
     procedure SetHidden(const AValue: Boolean);
@@ -188,6 +189,7 @@ type
     procedure SetAfterRender(const AValue: TExtComponentAfterRender);
     function GetLoader: TExtObject;
     function GetPlugins: TJSObjectArray;
+    procedure SetFlex(const AValue: Integer);
   protected
     procedure InitDefaults; override;
   public
@@ -203,6 +205,7 @@ type
     property Cls: string read FCls write SetCls;
     property Disabled: Boolean read FDisabled write _SetDisabled;
     property FieldLabel: string read FFieldLabel write SetFieldLabel;
+    property Flex: Integer read FFlex write SetFlex;
     property Hidden: Boolean read FHidden write SetHidden;
     property Html: string read FHtml write SetHtml;
     property Id: string read FId write SetId;
@@ -281,7 +284,6 @@ type
     FWidth: Integer;
     FAutoScroll: Boolean;
     FHeightFunc: TExtExpression;
-    FFlex: Integer;
     FMargins: string;
     FAnchor: string;
     FAutoWidth: Boolean;
@@ -294,7 +296,6 @@ type
     procedure SetAutoHeight(const AValue: Boolean);
     procedure _SetAutoScroll(const AValue: Boolean);
     procedure SetAutoWidth(const AValue: Boolean);
-    procedure SetFlex(const AValue: Integer);
     procedure SetHeight(const AValue: Integer);
     procedure SetMargins(AValue: string);
     procedure SetRegion(const AValue: TExtBoxComponentRegion);
@@ -304,15 +305,12 @@ type
     procedure SetWidthExpression(const AValue: TExtExpression);
     procedure SetHeightFunc(const AValue: TExtExpression);
     procedure SetOwnerCt(const AValue: TExtContainer);
-  protected
-    procedure InitDefaults; override;
   public
     class function JSClassName: string; override;
     property Anchor: string read FAnchor write SetAnchor;
     property AutoHeight: Boolean read FAutoHeight write SetAutoHeight;
     property AutoScroll: Boolean read FAutoScroll write _SetAutoScroll;
     property AutoWidth: Boolean read FAutoWidth write SetAutoWidth;
-    property Flex: Integer read FFlex write SetFlex;
     property Height: Integer read FHeight write SetHeight;
     property HeightString: string read FHeightString write SetHeightString;
     property HeightFunc: TExtExpression read FHeightFunc write SetHeightFunc;
@@ -525,7 +523,7 @@ type
     FClosable: Boolean;
     FTitle: string;
     FBbar: TExtObject;
-    FFbar: TJSObjectArray;
+    FFbar: TExtObject;
     FBorder: Boolean;
     FAnimCollapse: Boolean;
     FFooter: Boolean;
@@ -551,6 +549,7 @@ type
     procedure SetTbar(const AValue: TExtObject);
     procedure SetMinButtonWidth(const AValue: Integer);
     function GetAutoLoad: TExtObject;
+    procedure SetFbar(const AValue: TExtObject);
   protected
     procedure InitDefaults; override;
     function GetObjectNamePrefix: string; override;
@@ -571,7 +570,7 @@ type
     property Closable: Boolean read FClosable write SetClosable;
     property Collapsible: Boolean read FCollapsible write SetCollapsible;
     property Collapsed: Boolean read FCollapsed write SetCollapsed;
-    property Fbar: TJSObjectArray read FFbar;
+    property Fbar: TExtObject read FFbar write SetFbar;
     property Footer: Boolean read FFooter write SetFooter;
     property Frame: Boolean read FFrame write SetFrame;
     property Header: Boolean read FHeader write SetHeader;
@@ -616,6 +615,7 @@ type
     function GetObjectNamePrefix: string; override;
   public
     class function JSClassName: string; override;
+    class function JSXType: string; override;
   end;
 
   TExtToolbarSeparator = class(TExtToolbarItem)
@@ -632,9 +632,10 @@ type
 
   TExtToolbarFill = class(TExtToolbarSpacer)
   protected
-    procedure InitDefaults; override;
+    function GetObjectNamePrefix: string; override;
   public
     class function JSClassName: string; override;
+    class function JSXType: string; override;
   end;
 
   TExtButtonGroup = class(TExtPanel)
@@ -701,11 +702,11 @@ type
   end;
 
   // Procedural types for events TExtTabPanel
-  TExtTabPanelOnTabchange = procedure(This: TExtTabPanel; Tab: TExtPanel) of object;
+  TExtTabPanelOnTabChange = procedure(ATabPanel: TExtTabPanel; ANewTab, AOldTab: TExtComponent) of object;
 
   TExtTabPanel = class(TExtPanel)
   private
-    FOnTabChange: TExtTabPanelOnTabchange;
+    FOnTabChange: TExtTabPanelOnTabChange;
     FLayoutOnTabChange: Boolean;
     FEnableTabScroll: Boolean;
     FActiveTab: string;
@@ -827,12 +828,15 @@ begin
     .AsExpression;
 end;
 
-function TExtUtilObservable.FireEvent(const AEventName: string; const AArgs: TJSObjectArray): TExtExpression;
+function TExtUtilObservable.FireEvent(const AEventName: string; const AArgs: TArray<TExtObject>): TExtExpression;
+var
+  LMethod: TJSMethodCall;
+  LObject: TExtObject;
 begin
-  Result := TKWebResponse.Current.Items.CallMethod(Self, 'fireEvent')
-    .AddParam(AEventName)
-    .AddParam(AArgs)
-    .AsExpression;
+  LMethod := TKWebResponse.Current.Items.CallMethod(Self, 'fireEvent').AddParam(AEventName);
+  for LObject in AArgs do
+    LMethod.AddParam(LObject);
+  Result := LMethod.AsExpression;
 end;
 
 function TExtUtilObservable.&On(const AEventName: string; const AHandler: TExtExpression;
@@ -962,6 +966,11 @@ end;
 procedure TExtComponent.SetFieldLabel(const AValue: string);
 begin
   FFieldLabel := SetConfigItem('fieldLabel', AValue);
+end;
+
+procedure TExtComponent.SetFlex(const AValue: Integer);
+begin
+  FFlex := SetConfigItem('flex', AValue);
 end;
 
 procedure TExtComponent.SetHidden(const AValue: Boolean);
@@ -1254,11 +1263,6 @@ begin
   FAutoWidth := SetConfigItem('autoWidth', AValue);
 end;
 
-procedure TExtBoxComponent.SetFlex(const AValue: Integer);
-begin
-  FFlex := SetConfigItem('flex', AValue);
-end;
-
 procedure TExtBoxComponent.SetHeight(const AValue: Integer);
 begin
   FHeight := SetConfigItem('height', 'setHeight', AValue);
@@ -1308,11 +1312,6 @@ end;
 class function TExtBoxComponent.JSClassName: string;
 begin
   Result := 'Ext.Component';
-end;
-
-procedure TExtBoxComponent.InitDefaults;
-begin
-  inherited;
 end;
 
 class function TExtToolbarItem.JSClassName: string;
@@ -1728,6 +1727,12 @@ begin
   FCollapsible := SetConfigItem('collapsible', AValue);
 end;
 
+procedure TExtPanel.SetFbar(const AValue: TExtObject);
+begin
+  FFbar.Free;
+  FFbar := SetConfigItem('fbar', AValue);
+end;
+
 procedure TExtPanel.SetFooter(const AValue: Boolean);
 begin
   FFooter := SetConfigItem('footer', AValue);
@@ -1888,6 +1893,11 @@ begin
   Result := 'Ext.Toolbar';
 end;
 
+class function TExtToolbar.JSXType: string;
+begin
+  Result := 'toolbar';
+end;
+
 function TExtToolbar.GetObjectNamePrefix: string;
 begin
   Result := 'tb';
@@ -1908,14 +1918,19 @@ begin
   Result := 'Ext.Tip';
 end;
 
+function TExtToolbarFill.GetObjectNamePrefix: string;
+begin
+  Result := 'fill';
+end;
+
 class function TExtToolbarFill.JSClassName: string;
 begin
   Result := 'Ext.Toolbar.Fill';
 end;
 
-procedure TExtToolbarFill.InitDefaults;
+class function TExtToolbarFill.JSXType: string;
 begin
-  inherited;
+  Result := 'tbfill';
 end;
 
 class function TExtButtonGroup.JSClassName: string;
@@ -2067,9 +2082,10 @@ begin
     //On('tabchange', Ajax('tabchange', ['This', '%0.nm', 'Tab', '(%1 ? %1.nm : null)'], True));
     &On('tabchange', TKWebResponse.Current.Items.AjaxCallMethod(Self, 'tabchange')
       .Event
-      .AddRawParam('This', 'sender.nm')
-      .AddRawParam('Tab', '(tab ? tab.nm : null)')
-      .FunctionArgs('sender, tab')
+      .AddRawParam('TabPanel', 'tabPanel.nm')
+      .AddRawParam('NewTab', '(newCard ? newCard.nm : null)')
+      .AddRawParam('OldTab', '(oldCard ? oldCard.nm : null)')
+      .FunctionArgs('tabPanel, newCard, oldCard')
       .AsFunction);
   FOnTabChange := AValue;
 end;
@@ -2107,7 +2123,7 @@ procedure TExtTabPanel.DoHandleEvent(const AEvtName: string);
 begin
   inherited;
   if (AEvtName = 'tabchange') and Assigned(FOnTabChange) then
-    FOnTabChange(TExtTabPanel(ParamAsObject('This')), TExtPanel(ParamAsObject('Tab')));
+    FOnTabChange(TExtTabPanel(ParamAsObject('TabPanel')), TExtComponent(ParamAsObject('NewTab')), TExtComponent(ParamAsObject('OldTab')));
 end;
 
 procedure TExtPagingToolbar.SetDisplayInfo(const AValue: Boolean);

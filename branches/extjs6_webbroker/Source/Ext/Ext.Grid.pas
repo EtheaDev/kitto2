@@ -147,13 +147,16 @@ type
 
   TExtGridAbstractSelectionModel = class(TExtUtilObservable)
   private
-    FGrid: TExtObject;
+//    FGrid: TExtObject;
+    FStore: TExtDataStore;
     procedure SetGrid(const AValue: TExtObject);
+    procedure SetStore(const AValue: TExtDataStore);
   strict protected
     function GetObjectNamePrefix: string; override;
   public
     class function JSClassName: string; override;
-    property Grid: TExtObject read FGrid write SetGrid;
+//    property Grid: TExtObject read FGrid write SetGrid;
+    property Store: TExtDataStore read FStore write SetStore;
   end;
 
   TExtSelectionRowModel = class(TExtGridAbstractSelectionModel)
@@ -540,6 +543,12 @@ procedure TExtGridAbstractSelectionModel.SetGrid(const AValue: TExtObject);
 begin
   FGrid.Free;
   FGrid := SetProperty('grid', AValue);
+end;
+
+procedure TExtGridAbstractSelectionModel.SetStore(const AValue: TExtDataStore);
+begin
+  FStore.Free;
+  FStore := TExtDataStore(SetConfigItem('store', AValue));
 end;
 
 class function TExtGridAbstractSelectionModel.JSClassName: string;

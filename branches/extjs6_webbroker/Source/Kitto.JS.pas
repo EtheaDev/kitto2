@@ -238,6 +238,8 @@ type
     procedure AfterConstruction; override;
     destructor Destroy; override;
 
+    class function From(const AOwner: TJSBase; const AArray: TArray<TJSObject>): TJSObjectArray;
+
     property Objects[I: Integer]: TJSObject read GetObject; default;
     function Add(const AObject: TJSObject): Integer;
     function AddInternal(const AObject: TJSObject): Integer;
@@ -794,10 +796,20 @@ begin
   inherited;
 end;
 
+class function TJSObjectArray.From(const AOwner: TJSBase;
+  const AArray: TArray<TJSObject>): TJSObjectArray;
+var
+  LObject: TJSObject;
+begin
+  Result := TJSObjectArray.Create(AOwner);
+  for LObject in AArray do
+    Result.Add(LObject);
+end;
+
 function TJSObjectArray.Add(const AObject: TJSObject): Integer;
 begin
   Assert(Assigned(AObject));
-  Assert(AttributeName <> '');
+//  Assert(AttributeName <> '');
 
   Result := AddInternal(AObject);
 end;

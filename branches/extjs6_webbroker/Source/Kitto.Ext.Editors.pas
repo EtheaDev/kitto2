@@ -89,6 +89,9 @@ type
     // Generates and executes JS code to store the displayed value(s) into the specified
     // JS object variable (as a property named after the editor's Name).
     procedure StoreValue(const AObjectName: string);
+
+    // Generates and executes JS code to set the field read-only or editable.
+    procedure SetReadOnly(const AValue: Boolean);
   end;
 
   TKExtEditPage = class;
@@ -219,6 +222,7 @@ type
     procedure StoreValue(const AObjectName: string);
     procedure SetTransientProperty(const APropertyName: string; const AValue: Variant);
     function GetEditItemId: string;
+    procedure SetReadOnly(const AValue: Boolean);
   end;
 
 { TODO : support the CheckboxGroup and Radiogroup containers? }
@@ -253,6 +257,7 @@ type
     procedure StoreValue(const AObjectName: string);
     procedure SetTransientProperty(const APropertyName: string; const AValue: Variant);
     function GetEditItemId: string;
+    procedure SetReadOnly(const AValue: Boolean);
   end;
 
   TKExtFormTextField = class(TExtFormTextField, IKExtEditItem, IKExtEditor)
@@ -275,6 +280,7 @@ type
     procedure StoreValue(const AObjectName: string);
     procedure SetTransientProperty(const APropertyName: string; const AValue: Variant);
     function GetEditItemId: string;
+    procedure SetReadOnly(const AValue: Boolean);
   end;
 
   TKExtFormTextArea = class(TExtFormTextArea, IKExtEditItem, IKExtEditor)
@@ -297,6 +303,7 @@ type
     procedure StoreValue(const AObjectName: string);
     procedure SetTransientProperty(const APropertyName: string; const AValue: Variant);
     function GetEditItemId: string;
+    procedure SetReadOnly(const AValue: Boolean);
   end;
 
   TKExtFormCheckbox = class(TExtFormCheckbox, IKExtEditItem, IKExtEditor)
@@ -319,6 +326,7 @@ type
     procedure StoreValue(const AObjectName: string);
     procedure SetTransientProperty(const APropertyName: string; const AValue: Variant);
     function GetEditItemId: string;
+    procedure SetReadOnly(const AValue: Boolean);    
   end;
 
   TKExtFormDateField = class(TExtFormDateField, IKExtEditItem, IKExtEditor)
@@ -345,6 +353,7 @@ type
     procedure StoreValue(const AObjectName: string);
     procedure SetTransientProperty(const APropertyName: string; const AValue: Variant);
     function GetEditItemId: string;
+    procedure SetReadOnly(const AValue: Boolean);
   end;
 
   TKExtFormTimeField = class(TExtFormTimeField, IKExtEditItem, IKExtEditor)
@@ -367,6 +376,7 @@ type
     procedure StoreValue(const AObjectName: string);
     procedure SetTransientProperty(const APropertyName: string; const AValue: Variant);
     function GetEditItemId: string;
+    procedure SetReadOnly(const AValue: Boolean);
   end;
 
   TKExtFormDateTimeField = class(TExtFormField, IKExtEditItem, IKExtEditor)
@@ -418,6 +428,7 @@ type
     property AllowBlank: Boolean read FAllowBlank write SetAllowBlank;
     procedure SetTransientProperty(const APropertyName: string; const AValue: Variant);
     function GetEditItemId: string;
+    procedure SetReadOnly(const AValue: Boolean);
   end;
 
   TKExtLookupEditor = class(TKExtLookupField, IKExtEditItem, IKExtEditor)
@@ -440,6 +451,7 @@ type
     procedure SetTransientProperty(const APropertyName: string; const AValue: Variant);
     function GetEditItemId: string;
     function AsObject: TObject;
+    procedure SetReadOnly(const AValue: Boolean);
   //published
     procedure ClearClick; override;
   end;
@@ -470,6 +482,7 @@ type
     procedure StoreValue(const AObjectName: string);
     procedure SetTransientProperty(const APropertyName: string; const AValue: Variant);
     function GetEditItemId: string;
+    procedure SetReadOnly(const AValue: Boolean);
   //published
     procedure GetRecordPage;
     procedure ValueChanged;
@@ -494,6 +507,7 @@ type
     procedure StoreValue(const AObjectName: string);
     procedure SetTransientProperty(const APropertyName: string; const AValue: Variant);
     function GetEditItemId: string;
+    procedure SetReadOnly(const AValue: Boolean);
   end;
 
   TKExtFormFileEditor = class(TExtFormFieldContainer, IKExtEditItem, IKExtEditor)
@@ -505,6 +519,7 @@ type
     FClearButton: TKExtButton;
     FTotalCharWidth: Integer;
     FPictureView: TExtPanel;
+    FUploadButton: TKExtButton;
     function GetContentDescription: string;
     procedure UpdateGUI(const AUpdatePicture: Boolean);
     procedure PictureViewAfterRender(This: TExtComponent);
@@ -544,10 +559,10 @@ type
     procedure SetFieldName(const AValue: string);
     procedure RefreshValue;
     procedure StoreValue(const AObjectName: string);
-    property IsReadOnly: Boolean read FIsReadOnly write FIsReadOnly;
     property TotalCharWidth: Integer read FTotalCharWidth write SetTotalCharWidth;
     procedure SetTransientProperty(const APropertyName: string; const AValue: Variant);
     function GetEditItemId: string;
+    procedure SetReadOnly(const AValue: Boolean);
   //published
     procedure ShowUploadFileDialog;
     procedure Upload;
@@ -1545,6 +1560,11 @@ begin
   SetValue(LJSONValue);
 end;
 
+procedure TKExtFormTextField.SetReadOnly(const AValue: Boolean);
+begin
+  ReadOnly := AValue;
+end;
+
 procedure TKExtFormTextField.SetRecordField(const AValue: TKViewTableField);
 begin
   FRecordField := AValue;
@@ -1632,6 +1652,11 @@ begin
   SetValue(JSONNullToEmptyStr(FRecordField.GetAsJSONValue(False, False)));
 end;
 
+procedure TKExtFormTextArea.SetReadOnly(const AValue: Boolean);
+begin
+  ReadOnly := AValue;
+end;
+
 procedure TKExtFormTextArea.SetRecordField(const AValue: TKViewTableField);
 begin
   FRecordField := AValue;
@@ -1716,6 +1741,11 @@ end;
 procedure TKExtFormCheckbox.RefreshValue;
 begin
   SetValue(JSONNullToEmptyStr(FRecordField.GetAsJSONValue(False, False)));
+end;
+
+procedure TKExtFormCheckbox.SetReadOnly(const AValue: Boolean);
+begin
+  ReadOnly := AValue;
 end;
 
 procedure TKExtFormCheckbox.SetRecordField(const AValue: TKViewTableField);
@@ -1811,6 +1841,11 @@ end;
 procedure TKExtFormDateField.RefreshValue;
 begin
   SetValue(JSONNullToEmptyStr(FRecordField.GetAsJSONValue(False, False)));
+end;
+
+procedure TKExtFormDateField.SetReadOnly(const AValue: Boolean);
+begin
+  ReadOnly := AValue;
 end;
 
 procedure TKExtFormDateField.SetRecordField(const AValue: TKViewTableField);
@@ -1950,6 +1985,11 @@ begin
     TKWebResponse.Current.Items.ExecuteJSCode(Format('%s.lastSelectionText = %s.getRawValue();', [JSName, JSName]));
   end;
   TKWebResponse.Current.Items.ExecuteJSCode(JSName + '.kitto$isChanged = false;');
+end;
+
+procedure TKExtFormComboBoxEditor.SetReadOnly(const AValue: Boolean);
+begin
+  ReadOnly := AValue;
 end;
 
 procedure TKExtFormComboBoxEditor.SetRecordField(const AValue: TKViewTableField);
@@ -2321,6 +2361,13 @@ begin
   FEditor.FieldName := AValue;
 end;
 
+procedure TKExtFormRowField.SetReadOnly(const AValue: Boolean);
+begin
+  Assert(Assigned(FEditor));
+
+  FEditor.SetReadOnly(AValue);
+end;
+
 procedure TKExtFormRowField.SetRecordField(const AValue: TKViewTableField);
 begin
   FRecordField := AValue;
@@ -2382,6 +2429,11 @@ end;
 procedure TKExtFormNumberField.RefreshValue;
 begin
   SetValue(JSONNullToEmptyStr(FRecordField.GetAsJSONValue(False, False)));
+end;
+
+procedure TKExtFormNumberField.SetReadOnly(const AValue: Boolean);
+begin
+  ReadOnly := AValue;
 end;
 
 procedure TKExtFormNumberField.SetRecordField(const AValue: TKViewTableField);
@@ -2551,6 +2603,11 @@ begin
   FFieldName := AValue;
 end;
 
+procedure TKExtFormDateTimeField.SetReadOnly(const AValue: Boolean);
+begin
+  ReadOnly := AValue;
+end;
+
 procedure TKExtFormDateTimeField.SetRecordField(const AValue: TKViewTableField);
 begin
   FRecordField := AValue;
@@ -2614,6 +2671,11 @@ end;
 procedure TKExtFormTimeField.RefreshValue;
 begin
   SetValue(JSONNullToEmptyStr(FRecordField.GetAsJSONValue(False, False)));
+end;
+
+procedure TKExtFormTimeField.SetReadOnly(const AValue: Boolean);
+begin
+  ReadOnly := AValue;
 end;
 
 procedure TKExtFormTimeField.SetRecordField(const AValue: TKViewTableField);
@@ -2689,6 +2751,11 @@ end;
 procedure TKExtFormFileUploadField.RefreshValue;
 begin
   SetValue(JSONNullToEmptyStr(FRecordField.GetAsJSONValue(False, False)));
+end;
+
+procedure TKExtFormFileUploadField.SetReadOnly(const AValue: Boolean);
+begin
+  ReadOnly := AValue;
 end;
 
 procedure TKExtFormFileUploadField.SetRecordField(const AValue: TKViewTableField);
@@ -2862,7 +2929,6 @@ end;
 procedure TKExtFormFileEditor.CreateGUI(const AViewField: TKViewField);
 var
   LPanel: TExtPanel;
-  LUploadButton: TKExtButton;
   LToolbar: TKExtToolbar;
   LButtonCount: Integer;
   LIsPicture: Boolean;
@@ -2894,7 +2960,7 @@ begin
     FDescriptionField.ReadOnly := True;
     FDescriptionField.Cls := 'x-form-readonly';
 
-    LToolbar := TKExtToolbar.CreateAndAddToArray(LPanel.Items);
+    LToolbar := TKExtToolbar.CreateInlineAndAddToArray(LPanel.Items);
   end;
 
   LToolbar.Style := 'background: none; border: none;';
@@ -2906,24 +2972,23 @@ begin
   FDownloadButton.Handler := TKWebResponse.Current.Items.AjaxCallMethod(Self).SetMethod(StartDownload).AsFunction;
 
   LButtonCount := 1;
-  if not FIsReadOnly then
-  begin
-    LUploadButton := TKExtButton.CreateAndAddToArray(LToolbar.Items);
-    LUploadButton.SetIconAndScale('upload');
-    LUploadButton.Tooltip := _('Upload file');
-    //LUploadButton.Handler := Ajax(ShowUploadFileDialog);
-    LUploadButton.Handler := TKWebResponse.Current.Items.AjaxCallMethod(Self).SetMethod(ShowUploadFileDialog).AsFunction;
-    Inc(LButtonCount);
+  FUploadButton := TKExtButton.CreateAndAddToArray(LToolbar.Items);
+  FUploadButton.SetIconAndScale('upload');
+  FUploadButton.Tooltip := _('Upload file');
+  //FUploadButton.Handler := Ajax(ShowUploadFileDialog);
+  FUploadButton.Handler := TKWebResponse.Current.Items.AjaxCallMethod(Self).SetMethod(ShowUploadFileDialog).AsFunction;
+  if FIsReadOnly then
+    FUploadButton.SetDisabled(True);
+  Inc(LButtonCount);
 
-    FClearButton := TKExtButton.CreateAndAddToArray(LToolbar.Items);
-    FClearButton.SetIconAndScale('clear');
-    FClearButton.Tooltip := _('Clear field');
-    //FClearButton.Handler := Ajax(Clear);
-    FClearButton.Handler := TKWebResponse.Current.Items.AjaxCallMethod(Self).SetMethod(Clear).AsFunction;
-    Inc(LButtonCount);
-  end
-  else
-    FClearButton := nil;
+  FClearButton := TKExtButton.CreateAndAddToArray(LToolbar.Items);
+  FClearButton.SetIconAndScale('clear');
+  FClearButton.Tooltip := _('Clear field');
+  //FClearButton.Handler := Ajax(Clear);
+  FClearButton.Handler := TKWebResponse.Current.Items.AjaxCallMethod(Self).SetMethod(Clear).AsFunction;
+  if FIsReadOnly then
+    FClearButton.SetDisabled(True);
+  Inc(LButtonCount);
 
   if Assigned(FDescriptionField) then
     // Keep 3 characters per button, leave the rest to the text field.
@@ -2942,6 +3007,12 @@ begin
     end;
     Width := FPictureView.Width + (22 * LButtonCount);
   end;
+end;
+
+procedure TKExtFormFileEditor.SetReadOnly(const AValue: Boolean);
+begin
+  FIsReadOnly := AValue;
+  UpdateGUI(False);
 end;
 
 procedure TKExtFormFileEditor.SetRecordField(const AValue: TKViewTableField);
@@ -2982,15 +3053,18 @@ procedure TKExtFormFileEditor.UpdateGUI(const AUpdatePicture: Boolean);
 var
   LIsEmpty: Boolean;
 begin
-  LIsEmpty := IsEmpty;
-  if Assigned(FDescriptionField) then
-    FDescriptionField.Value := GetContentDescription;
-  if AUpdatePicture and Assigned(FPictureView) then
-    PictureViewAfterRender(FPictureView);
-  FDownloadButton.SetDisabled(LIsEmpty);
-  if Assigned(FClearButton) then
-    FClearButton.SetDisabled(LIsEmpty);
-  { TODO : disable upload button when not editing. Need to store a class-level reference }
+  // Only if GUI already created.
+  if Items.Count > 0 then
+  begin
+    LIsEmpty := IsEmpty;
+    if Assigned(FDescriptionField) then
+      FDescriptionField.Value := GetContentDescription;
+    if AUpdatePicture and Assigned(FPictureView) then
+      PictureViewAfterRender(FPictureView);
+    FDownloadButton.SetDisabled(LIsEmpty);
+    FClearButton.SetDisabled(LIsEmpty or FIsReadOnly);
+    FUploadButton.SetDisabled(FIsReadOnly);
+  end;
 end;
 
 procedure TKExtFormFileEditor.SetFieldName(const AValue: string);
@@ -3665,7 +3739,7 @@ begin
     else
       LFileEditor := TKExtFormFileReferenceEditor.Create(AOwner);
     try
-      LFileEditor.IsReadOnly := AIsReadOnly;
+      LFileEditor.SetReadOnly(AIsReadOnly);
       LFileEditor.FieldLabel := ALabel;
       LFileEditor.TotalCharWidth := AFieldCharWidth - 1;
       if Assigned(ARowField) then
@@ -3947,6 +4021,11 @@ procedure TKExtLookupEditor.SetOption(const ANode: TEFNode);
 begin
   if not SetExtFormFieldOption(AsExtFormField, ANode) then
     InvalidOption(ANode);
+end;
+
+procedure TKExtLookupEditor.SetReadOnly(const AValue: Boolean);
+begin
+  ReadOnly := AValue;
 end;
 
 procedure TKExtLookupEditor.SetRecordField(const AValue: TKViewTableField);

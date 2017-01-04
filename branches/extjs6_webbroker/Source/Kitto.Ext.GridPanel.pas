@@ -198,6 +198,7 @@ function TKExtGridPanel.CreateClientStore: TExtDataStore;
 begin
   Result := inherited CreateClientStore;
   FGridPanel.Store := Result;
+  FSelectionModel.Store := Result;
 end;
 
 procedure TKExtGridPanel.InitDefaults;
@@ -208,7 +209,7 @@ begin
   FGridPanel.Header := False;
   FGridPanel.Region := rgCenter;
   FSelectionModel := TExtSelectionRowModel.Create(FGridPanel);
-  FSelectionModel.Grid := FGridPanel;
+//  FSelectionModel.Grid := FGridPanel;
   FGridPanel.SelModel := FSelectionModel;
   FGridPanel.StripeRows := True;
   FGridPanel.Frame := False;

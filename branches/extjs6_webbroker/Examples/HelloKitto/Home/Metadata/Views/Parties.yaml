@@ -16,8 +16,8 @@ MainTable:
 
   Controller:
     PopupWindow:
-      Height: 500
-      Width: 500
+      Width: 600
+      Height: 580
     ToolViews:
       DownloadCSV:
         DisplayLabel: _(Download in CSV)

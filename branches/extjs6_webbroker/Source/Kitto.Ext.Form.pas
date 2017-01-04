@@ -70,6 +70,7 @@ type
     procedure SetViewTable(const AValue: TKViewTable);
   protected
     procedure InitDefaults; override;
+    function GetObjectNamePrefix: string; override;
   public
     property ViewTable: TKViewTable read FViewTable write SetViewTable;
     property ServerStore: TKViewTableStore read FServerStore write FServerStore;
@@ -127,7 +128,7 @@ type
     property StoreRecord: TKViewTableRecord read FStoreRecord write SetStoreRecord;
     function AddActionButton(const AUniqueId: string; const AView: TKView;
       const AToolbar: TKExtToolbar): TKExtActionButton; override;
-    procedure TabChange(AThis: TExtTabPanel; ATab: TExtPanel); virtual;
+    procedure TabChange(ATabPanel: TExtTabPanel; ANewTab, AOldTab: TExtComponent); virtual;
     procedure RefreshEditorValues;
     procedure RefreshEditorFields;
     procedure CloseHostContainer; override;
@@ -175,29 +176,27 @@ uses
 
 procedure TKExtFormPanelController.ChangeEditorsState;
 var
-  LViewMode: Boolean;
-  LInsertOperation: Boolean;
+  LIsViewMode: Boolean;
+  LIsInsertOperation: Boolean;
 begin
-  LViewMode := IsViewMode;
-  LInsertOperation := FOperation = 'Add';
+  LIsViewMode := IsViewMode;
+  LIsInsertOperation := FOperation = 'Add';
   FEditItems.AllEditors(
     procedure (AEditor: IKExtEditor)
     var
       LFormField: TExtFormField;
       LViewField: TKViewField;
+      LIsReadOnly: Boolean;
     begin
+      LViewField := ViewTable.FieldByAliasedName(AEditor.FieldName);
+      if Assigned(LViewField) then
+        LIsReadOnly := LIsViewMode or not LViewField.CanEditField(LIsInsertOperation)
+      else
+        LIsReadOnly := LIsViewMode;
+      AEditor.SetReadOnly(LIsReadOnly);
       LFormField := AEditor.AsExtFormField;
-      if Assigned(LFormField) then
-      begin
-        LViewField := ViewTable.FieldByAliasedName(AEditor.FieldName);
-        if Assigned(LViewField) then
-          LFormField.ReadOnly := LViewMode or not LViewField.CanEditField(LInsertOperation)
-        else
-          LFormField.ReadOnly := LViewMode;
-
-          if not LFormField.ReadOnly and (FFocusField = nil) then
-            FFocusField := LFormField;
-      end;
+      if not LIsReadOnly and (FFocusField = nil) and Assigned(LFormField) then
+        FFocusField := LFormField;
     end);
 end;
 
@@ -275,10 +274,12 @@ begin
     FDetailBottomPanel.DeferredRender := False;
     FDetailBottomPanel.EnableTabScroll := True;
     FDetailBottomPanel.Height := GetDetailBottomPanelHeight;
-    FDetailBottomPanel.SetActiveTab(0);
     FDetailBottomPanel.OnTabChange := TabChange;
     FDetailBottomPanel.On('tabchange', FDetailBottomPanel.GenerateAnonymousFunction(FDetailBottomPanel.JSName + '.updateLayout();'));
     CreateDetailPanels(FDetailBottomPanel);
+    FDetailBottomPanel.SetActiveTab(0);
+    // Workaround for missing tabchange event when activating the first tab.
+    FDetailBottomPanel.FireEvent('tabchange', [FDetailBottomPanel, FDetailBottomPanel.Items[0]]);
   end;
 end;
 
@@ -698,13 +699,18 @@ var
   LCloneButtonNode: TEFNode;
   LHostWindow: TExtWindow;
   LApplyButtonNode: TEFNode;
+  LToolbar: TKExtToolbar;
 begin
+  LToolbar := TKExtToolbar.Create(Self);
+  TExtToolbarFill.CreateInlineAndAddToArray(LToolbar.Items);
+  Fbar := LToolbar;
+
   // Apply button
   FApplyButton := nil;
   LApplyButtonNode := ViewTable.FindNode('Controller/FormController/ApplyButton');
   if Assigned(LApplyButtonNode) and not ViewTable.IsDetail then
   begin
-    FApplyButton := TKExtButton.CreateAndAddToArray(Buttons);
+    FApplyButton := TKExtButton.CreateAndAddToArray(LToolbar.Items);
     FApplyButton.SetIconAndScale('accept', Config.GetString('ButtonScale', 'medium'));
 
     if ViewTable.DetailTableCount > 0 then
@@ -721,7 +727,7 @@ begin
     LCloneButtonNode := Config.FindNode('CloneButton');
     if Assigned(LCloneButtonNode) then
     begin
-      FCloneButton := TKExtButton.CreateAndAddToArray(Buttons);
+      FCloneButton := TKExtButton.CreateAndAddToArray(LToolbar.Items);
       FCloneButton.SetIconAndScale('accept_clone', Config.GetString('ButtonScale', 'medium'));
       FCloneButton.Text := LCloneButtonNode.GetString('Caption', _('Save & Clone'));
       FCloneButton.Tooltip := LCloneButtonNode.GetString('Tooltip', _('Save changes and create a new clone record'));
@@ -732,7 +738,7 @@ begin
   end;
 
   // Confirm button
-  FConfirmButton := TKExtButton.CreateAndAddToArray(Buttons);
+  FConfirmButton := TKExtButton.CreateAndAddToArray(LToolbar.Items);
   if ViewTable.IsDetail then
     FConfirmButton.SetIconAndScale('accept', Config.GetString('ButtonScale', 'medium'))
   else if ViewTable.DetailTableCount = 0 then
@@ -756,14 +762,14 @@ begin
 
   if IsViewMode then
   begin
-    FEditButton := TKExtButton.CreateAndAddToArray(Buttons);
+    FEditButton := TKExtButton.CreateAndAddToArray(LToolbar.Items);
     FEditButton.SetIconAndScale('edit_record', Config.GetString('ButtonScale', 'medium'));
     FEditButton.Text := Config.GetString('ConfirmButton/Caption', _('Edit'));
     FEditButton.Tooltip := Config.GetString('ConfirmButton/Tooltip', _('Switch to edit mode'));
     FEditButton.Hidden := FIsReadOnly;
   end;
 
-  FCancelButton := TKExtButton.CreateAndAddToArray(Buttons);
+  FCancelButton := TKExtButton.CreateAndAddToArray(LToolbar.Items);
   FCancelButton.SetIconAndScale('cancel', Config.GetString('ButtonScale', 'medium'));
   FCancelButton.Text := Config.GetString('CancelButton/Caption', _('Cancel'));
   FCancelButton.Tooltip := Config.GetString('CancelButton/Tooltip', _('Cancel changes'));
@@ -771,7 +777,7 @@ begin
   FCancelButton.Handler := TKWebResponse.Current.Items.AjaxCallMethod(Self).SetMethod(CancelChanges).AsFunction;
   FCancelButton.Hidden := FIsReadOnly or IsViewMode;
 
-  FCloseButton := TKExtButton.CreateAndAddToArray(Buttons);
+  FCloseButton := TKExtButton.CreateAndAddToArray(LToolbar.Items);
   FCloseButton.SetIconAndScale('close', Config.GetString('ButtonScale', 'medium'));
   FCloseButton.Text := Config.GetString('CloseButton/Caption', _('Close'));
   FCloseButton.Tooltip := Config.GetString('CloseButton/Tooltip', _('Close this panel'));
@@ -899,9 +905,11 @@ begin
       FMainPagePanel.IconCls := TKWebApplication.Current.SetViewIconStyle(ViewTable.View);
     FMainPagePanel.EditPanel := FFormPanel;
     FMainPagePanel.LabelAlign := LabelAlign;
-    FTabPanel.SetActiveTab(0);
     FTabPanel.OnTabChange := TabChange;
     FTabPanel.On('tabchange', FTabPanel.GenerateAnonymousFunction(FTabPanel.UpdateLayout));
+    FTabPanel.SetActiveTab(0);
+    // Workaround for missing tabchange event when activating the first tab.
+    FTabPanel.FireEvent('tabchange', [FTabPanel, FTabPanel.Items[0]]);
   end
   else
   begin
@@ -915,23 +923,23 @@ begin
   //TKWebResponse.Current.Items.ExecuteJSCode(Format('%s.getForm().url = "%s";', [FFormPanel.JSName, GetMethodURL(ConfirmChanges)]));
 end;
 
-procedure TKExtFormPanelController.TabChange(AThis: TExtTabPanel; ATab: TExtPanel);
+procedure TKExtFormPanelController.TabChange(ATabPanel: TExtTabPanel; ANewTab, AOldTab: TExtComponent);
 var
   LViewTable: TKViewTable;
   LDetailIndex: Integer;
   LActivableIntf: IKExtActivable;
 begin
-  if Assigned(ATab) and (ATab is TKExtDetailPanel) and (ATab.Items.Count = 0) then
+  if Assigned(ANewTab) and (ANewTab is TKExtDetailPanel) and (TKExtDetailPanel(ANewTab).Items.Count = 0) then
   begin
-    LViewTable := TKExtDetailPanel(ATab).ViewTable;
+    LViewTable := TKExtDetailPanel(ANewTab).ViewTable;
     Assert(Assigned(LViewTable));
     LDetailIndex := ViewTable.GetDetailTableIndex(LViewTable);
     Assert(LDetailIndex >= 0);
-    EnsureDetailController(TKExtDetailPanel(ATab), LDetailIndex);
+    EnsureDetailController(TKExtDetailPanel(ANewTab), LDetailIndex);
     if Supports(FDetailControllers[LDetailIndex], IKExtActivable, LActivableIntf) then
       LActivableIntf.Activate;
   end;
-  if Supports(ATab, IKExtActivable, LActivableIntf) then
+  if Supports(ANewTab, IKExtActivable, LActivableIntf) then
     LActivableIntf.Activate;
 end;
 
@@ -1134,6 +1142,11 @@ begin
 end;
 
 { TKExtDetailPanel }
+
+function TKExtDetailPanel.GetObjectNamePrefix: string;
+begin
+  Result := 'detailpnl';
+end;
 
 procedure TKExtDetailPanel.InitDefaults;
 begin
