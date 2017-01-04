@@ -1,4 +1,4 @@
-<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
         <ProjectGuid>{1FBC6B9D-04F2-4238-A7C5-07DEC4D673BB}</ProjectGuid>
         <MainSource>TasKitto.dpr</MainSource>
@@ -64,7 +64,7 @@
         <Icon_MainIcon>..\TasKitto_Icon.ico</Icon_MainIcon>
         <DCC_ExeOutput>..\..\Home</DCC_ExeOutput>
         <DCC_DcuOutput>..\..\Lib\$(ProductVersion)\$(Config)\$(Platform)</DCC_DcuOutput>
-        <DCC_UnitSearchPath>..\..\..\..\Source;..\..\..\..\Source\EF;..\..\..\..\Source\ThirdParty;..\..\..\..\Source\ThirdParty\ExtPascal;..\..\..\..\Source\ThirdParty\ExtPascal\ExtJSWrapper;..\..\..\..\Source\ThirdParty\SuperObject;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
+        <DCC_UnitSearchPath>..\..\..\..\Source;..\..\..\..\Source\EF;..\..\..\..\Source\Ext;..\..\..\..\Source\ThirdParty;..\..\..\..\Source\ThirdParty\SuperObject;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
         <DCC_WriteableConstants>true</DCC_WriteableConstants>
         <DCC_E>false</DCC_E>
         <DCC_ImageBase>00400000</DCC_ImageBase>
@@ -105,6 +105,7 @@
         <DCC_GenerateStackFrames>true</DCC_GenerateStackFrames>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2_Win32)'!=''">
+        <BT_BuildType>Debug</BT_BuildType>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
         <VerInfo_Locale>1033</VerInfo_Locale>
     </PropertyGroup>
@@ -167,8 +168,8 @@
                     <VersionInfoKeys Name="Comments"/>
                 </VersionInfoKeys>
                 <Excluded_Packages>
+                    <Excluded_Packages Name="$(BDS)\RBuilder\Lib\Win32\dclRBIBE1724.bpl">ReportBuilder Data Access for Interbase Express</Excluded_Packages>
                     <Excluded_Packages Name="$(BDSBIN)\dcloffice2k240.bpl">Microsoft Office 2000 Sample Automation Server Wrapper Components</Excluded_Packages>
-                    <Excluded_Packages Name="$(BDSBIN)\dclofficexp240.bpl">Microsoft Office XP Sample Automation Server Wrapper Components</Excluded_Packages>
                 </Excluded_Packages>
             </Delphi.Personality>
             <Platforms>
