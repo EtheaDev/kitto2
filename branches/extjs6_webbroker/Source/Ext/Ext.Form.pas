@@ -601,6 +601,7 @@ type
   TExtFormFieldContainer = class(TExtContainer)
   public
     class function JSClassName: string; override;
+    class function JSXType: string; override;
   end;
 
 implementation
@@ -1668,6 +1669,11 @@ end;
 class function TExtFormFieldContainer.JSClassName: string;
 begin
   Result := 'Ext.form.FieldContainer';
+end;
+
+class function TExtFormFieldContainer.JSXType: string;
+begin
+  Result := 'fieldcontainer';
 end;
 
 { TExtFormFileField }

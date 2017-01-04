@@ -138,19 +138,7 @@ type
   end;
 
   // Procedural types for events TExtComponent
-  TExtComponentOnAfterrender = procedure(This: TExtComponent) of object;
-
-  // Enumerated types for properties
-  TExtComponentXtype = (xtBox, xtButton, xtButtonGroup, xtColorPalette, xtComponent,
-    xtContainer, xtCycle, xtDataView, xtDatePicker, xtEditor, xtEditorGrid, xtFlash,
-    xtGrid, xtListView, xtPaging, xtPanel, xtProgress, xtPropertyGrid, xtSlider, xtSpacer,
-    xtSplitButton, xtStatusBar, xtTabPanel, xtTreePanel, xtViewPort, xtWindow, xtToolbar,
-    xtTBButton, xtTBFill, xtTBItem, xtTBSeparator, xtTBSpacer, xtTBSplit, xtTBText,
-    xtMenu, xtColorMenu, xtDateMenu, xtMenuBaseItem, xtMenuCheckItem, xtMenuItem,
-    xtMenuSeparator, xtMenuTextItem, xtForm, xtCheckBox, xtCheckBoxGroup, xtCombo,
-    xtDateField, xtDisplayField, xtField, xtFieldSet, xtHidden, xtHTMLEditor, xtLabel,
-    xtNumberField, xtRadio, xtRadioGroup, xtTextArea, xtTextField, xtTimeField, xtTrigger,
-    xtChart, xtBarChart, xtCartesianChart, xtColumnChart, xtLineChart, xtPieChart);
+  TExtComponentAfterRender = procedure(AThis: TExtComponent) of object;
 
   TExtComponent = class(TExtUtilObservable)
   private
@@ -171,7 +159,7 @@ type
     FMinWidth: Integer;
     FSplit: Boolean;
     FFieldLabel: string;
-    FOnAfterrender: TExtComponentOnAfterrender;
+    FAfterRender: TExtComponentAfterRender;
     FMaxSize: Integer;
     FItemCls: string;
     FDisabled: Boolean;
@@ -197,7 +185,7 @@ type
     procedure SetMaxSize(const AValue: Integer);
     procedure SetPadding(const AValue: string);
     procedure SetCls(const AValue: string);
-    procedure SetOnAfterrender(const AValue: TExtComponentOnAfterrender);
+    procedure SetAfterRender(const AValue: TExtComponentAfterRender);
     function GetLoader: TExtObject;
     function GetPlugins: TJSObjectArray;
   protected
@@ -234,7 +222,7 @@ type
     property MaxWidth: Integer read FMaxWidth write SetMaxWidth;
     property MinSize: Integer read FMinSize write SetMinSize;
     property MaxSize: Integer read FMaxSize write SetMaxSize;
-    property OnAfterrender: TExtComponentOnAfterrender read FOnAfterrender write SetOnAfterrender;
+    property AfterRender: TExtComponentAfterRender read FAfterRender write SetAfterRender;
   end;
 
   TExtLayer = class(TExtElement)
@@ -568,6 +556,7 @@ type
     function GetObjectNamePrefix: string; override;
   public
     class function JSClassName: string; override;
+    class function JSXType: string; override;
     function Collapse(const AAnimate: Boolean): TExtExpression;
     function Expand(const AAnimate: Boolean): TExtExpression;
     function SetTitle(const ATitle: string; const AIconCls: string = ''): TExtExpression;
@@ -1141,7 +1130,7 @@ begin
   Result := TKWebResponse.Current.Items.CallMethod(Self, 'show').AsExpression;
 end;
 
-procedure TExtComponent.SetOnAfterrender(const AValue: TExtComponentOnAfterrender);
+procedure TExtComponent.SetAfterRender(const AValue: TExtComponentAfterRender);
 begin
   RemoveAllListeners('afterrender');
   if Assigned(AValue) then
@@ -1150,14 +1139,14 @@ begin
       .AddRawParam('This', 'sender.nm')
       .FunctionArgs('sender')
       .AsFunction);
-  FOnAfterrender := AValue;
+  FAfterRender := AValue;
 end;
 
 procedure TExtComponent.DoHandleEvent(const AEvtName: string);
 begin
   inherited;
-  if (AEvtName = 'afterrender') and Assigned(FOnAfterrender) then
-    FOnAfterrender(TExtComponent(ParamAsObject('This')));
+  if (AEvtName = 'afterrender') and Assigned(FAfterRender) then
+    FAfterRender(TExtComponent(ParamAsObject('This')));
 end;
 
 procedure TExtLayer._SetZindex(const AValue: Integer);
@@ -1783,6 +1772,11 @@ end;
 class function TExtPanel.JSClassName: string;
 begin
   Result := 'Ext.Panel';
+end;
+
+class function TExtPanel.JSXType: string;
+begin
+  Result := 'panel';
 end;
 
 procedure TExtPanel.InitDefaults;

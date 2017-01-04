@@ -1302,10 +1302,11 @@ end;
 procedure TKExtEditPage.InitDefaults;
 begin
   inherited;
-  BodyStyle := 'background:none';
-  Layout := lyForm;
+  Border := False;
+//  BodyStyle := 'background:none';
+//  Layout := lyForm;
   // Leave room for the scroll bar on the right.
-  PaddingString := '5px 20px 5px 5px';
+  PaddingString := '5px';
   AutoScroll := True;
 end;
 
@@ -2056,7 +2057,7 @@ begin
         PageSize := 100;
       MinListWidth := 250; // Enough to accomodate all buttons.
       ListConfig.SetConfigItem('resizable', True);
-      MinHeightFunc := LinesToPixels(5);
+//      MinHeightFunc := LinesToPixels(5);
     end;
   end
   else
@@ -2866,11 +2867,9 @@ var
   LButtonCount: Integer;
   LIsPicture: Boolean;
 begin
-  Layout := lyForm;
-
   LIsPicture := AViewField.IsPicture;
 
-  LPanel := TExtPanel.CreateAndAddToArray(Items);
+  LPanel := TExtPanel.CreateInlineAndAddToArray(Items);
   FImageWidth := AViewField.GetInteger('IsPicture/Thumbnail/Width', 100);
   FImageHeight := AViewField.GetInteger('IsPicture/Thumbnail/Height', 100);
 
@@ -2878,9 +2877,10 @@ begin
   begin
     LPanel.Layout := lyColumn;
     FPictureView := TExtPanel.CreateAndAddToArray(LPanel.Items);
-    FPictureView.Frame := True;
+    //FPictureView.Frame := True;
+    FPictureView.Border := False;
     FPictureView.Loader.SetConfigItem('url', GetMethodURL(GetImageMarkup));
-    FPictureView.OnAfterrender := PictureViewAfterRender;
+    FPictureView.AfterRender := PictureViewAfterRender;
 
     LToolbar := TKExtToolbar.CreateAndAddToArray(LPanel.Items);
     // Version below puts the toolbar at the bottom (in which case we should adjust the height as well)
