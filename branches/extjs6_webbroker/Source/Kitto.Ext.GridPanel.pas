@@ -926,7 +926,7 @@ begin
     //   getAt() returns the corresponding Record object to be passed to the selection model.
     Result :=
       Format('var idx = %s.findBy(%s);', [ClientStore.JSName, LFunction]) + sLineBreak +
-      Format('%s.selectRecords([%s.getAt(idx)]);', [FSelectionModel.JSName, ClientStore.JSName]);// + sLineBreak +
+      Format('%s.select([%s.getAt(idx)]);', [FSelectionModel.JSName, ClientStore.JSName]);// + sLineBreak +
 //      Format('%s.getRow(idx).scrollIntoView();', [FExtGridView.JSName]);
   end
   else
