@@ -63,6 +63,7 @@ type
     function GetObjectNamePrefix: string; override;
   public
     class function JSClassName: string; override;
+    class function JSXType: string; override;
     property Align: TExtGridColumnAlign read FAlign write SetAlign;
     property Css: string read FCss write SetCss;
     property DataIndex: string read FDataIndex write SetDataIndex;
@@ -90,6 +91,7 @@ type
     procedure InitDefaults; override;
   public
     class function JSClassName: string; override;
+    class function JSXType: string; override;
     property Format: string read FFormat write SetFormat;
   end;
 
@@ -128,6 +130,7 @@ type
   TExtGridBooleanColumn = class(TExtGridColumn)
   public
     class function JSClassName: string; override;
+    class function JSXType: string; override;
   end;
 
   TExtGridDateColumn = class(TExtGridColumn)
@@ -138,6 +141,7 @@ type
     procedure InitDefaults; override;
   public
     class function JSClassName: string; override;
+    class function JSXType: string; override;
     property Format: string read FFormat write SetFormat;
   end;
 
@@ -422,6 +426,11 @@ begin
   Result := 'Ext.grid.Column';
 end;
 
+class function TExtGridColumn.JSXType: string;
+begin
+  Result := 'gridcolumn';
+end;
+
 function TExtGridColumn.GetObjectNamePrefix: string;
 begin
   Result := 'col';
@@ -442,6 +451,11 @@ end;
 class function TExtGridNumberColumn.JSClassName: string;
 begin
   Result := 'Ext.grid.NumberColumn';
+end;
+
+class function TExtGridNumberColumn.JSXType: string;
+begin
+  Result := 'numbercolumn';
 end;
 
 procedure TExtGridNumberColumn.InitDefaults;
@@ -509,6 +523,11 @@ end;
 class function TExtGridDateColumn.JSClassName: string;
 begin
   Result := 'Ext.grid.DateColumn';
+end;
+
+class function TExtGridDateColumn.JSXType: string;
+begin
+  Result := 'datecolumn';
 end;
 
 procedure TExtGridDateColumn.InitDefaults;
@@ -793,6 +812,11 @@ end;
 class function TExtGridPluginRowEditing.JSClassName: string;
 begin
   Result := 'Ext.grid.plugin.RowEditing';
+end;
+
+class function TExtGridBooleanColumn.JSXType: string;
+begin
+  Result := 'booleancolumn';
 end;
 
 end.
