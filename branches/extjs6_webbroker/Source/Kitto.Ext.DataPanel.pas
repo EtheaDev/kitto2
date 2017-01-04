@@ -1203,7 +1203,7 @@ begin
       for J := 0 to LDeferredFileOps.ChildCount - 1 do
       begin
         LFileOp := LDeferredFileOps.Children[J].AsStringArray;
-        if LFileOp.Kind = okDelete then
+        if (LFileOp.Event = AEvent) and (LFileOp.Kind = okDelete) then
         begin
           if FileExists(LFileOp.PathName) then
             DeleteFile(LFileOp.PathName);

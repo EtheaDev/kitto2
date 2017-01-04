@@ -42,4 +42,14 @@ Fields:
       Thumbnail:
         Width: 150
         Height: 150
+  Picture_File: FileReference
+    DisplayLabel: _(Photo)
+    Hint: _(Select a picture)
+    MaxUploadSize: 100KB
+    .DefaultFileName: test.gif
+    Path: c:\temp\hellokitto
+    IsPicture: True
+      Thumbnail:
+        Width: 150
+        Height: 150
 DefaultSorting: {Q}Doll_Name
