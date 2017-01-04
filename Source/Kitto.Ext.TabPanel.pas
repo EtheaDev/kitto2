@@ -48,7 +48,7 @@ type
     function TabsVisible: Boolean; virtual;
     procedure ApplyTabSize;
     function GetDefaultTabSize: string; virtual;
-    procedure TabChange(AThis: TExtTabPanel; ATab: TExtPanel); virtual;
+    procedure TabChange(ATabPanel: TExtTabPanel; ANewTab, AOldTab: TExtComponent); virtual;
     procedure InitSubController(const ASubController: IJSController);
     procedure SetActiveSubController(const ASubController: IJSController);
   public
@@ -256,11 +256,11 @@ begin
   Result := 'normal';
 end;
 
-procedure TKExtTabPanel.TabChange(AThis: TExtTabPanel; ATab: TExtPanel);
+procedure TKExtTabPanel.TabChange(ATabPanel: TExtTabPanel; ANewTab, AOldTab: TExtComponent);
 var
   LIntf: IKExtActivable;
 begin
-  if Assigned(ATab) and Supports(ATab, IKExtActivable, LIntf) then
+  if Assigned(ANewTab) and Supports(ANewTab, IKExtActivable, LIntf) then
     LIntf.Activate;
 end;
 

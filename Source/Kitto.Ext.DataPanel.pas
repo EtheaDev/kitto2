@@ -1190,7 +1190,6 @@ end;
 procedure TKExtDataPanelController.ExecuteDeferredFileOps(const ARecord: TKViewTableRecord; const AEvent: TKFileOpEvent);
 var
   LFileOp: TKFileOp;
-  LField: TKViewTableField;
   I: Integer;
   LDeferredFileOps: TEFNode;
   J: Integer;

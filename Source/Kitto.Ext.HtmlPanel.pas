@@ -49,6 +49,7 @@ var
   LView: TKView;
 begin
   inherited;
+  Border := False;
   if (Title = '') then
   begin
     LView := View;
