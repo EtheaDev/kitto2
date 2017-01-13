@@ -884,7 +884,8 @@ begin
     FMainPagePanel.EditPanel := FFormPanel;
     FMainPagePanel.LabelAlign := FLabelAlign;
   end;
-  FMainPagePanel.HideLabels := Config.GetBoolean('HideLabels');
+  FMainPagePanel.HideLabels := Config.GetBoolean('HideLabels',
+    Session.Config.Config.GetBoolean('Defaults/FormPanel/HideLabels'));
   //Session.ResponseItems.ExecuteJSCode(Format('%s.getForm().url = "%s";', [FFormPanel.JSName, MethodURI(ConfirmChanges)]));
 end;
 
@@ -1035,7 +1036,7 @@ end;
 
 function TKExtFormPanelController.FindLayout: TKLayout;
 begin
-  Result := FindViewLayout('Form');
+  Result := FindViewLayout(Config.GetString('Layout', 'Form'));
 end;
 
 function TKExtFormPanelController.GetRegionName(const ARegion: TExtBoxComponentRegion): string;

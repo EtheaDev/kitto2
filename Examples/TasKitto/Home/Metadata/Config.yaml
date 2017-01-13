@@ -4,6 +4,8 @@ Defaults:
   Grid:
     PageRecordCount: 50
     DefaultAction: Edit
+  FormPanel:
+    HideLabels: False
   Window:
     Width: 800
     Height: 600
