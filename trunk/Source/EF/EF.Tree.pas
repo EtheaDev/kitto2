@@ -3073,7 +3073,7 @@ begin
     Result := LDateTime;
   end
   else
-    Result := AValue;
+    Result := TimeOf(EFVarToDateTime(AValue));
 end;
 
 function TEFDataType.StringArrayToValue(const AStringArray: TStringDynArray): Variant;
