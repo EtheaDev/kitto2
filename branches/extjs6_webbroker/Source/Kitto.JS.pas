@@ -1071,6 +1071,8 @@ begin
   begin
     if LXType.StartsWith('plugin.') then
       SetConfigItem('ptype', LXType.Substring(7))
+    else if LXType.StartsWith('proxy.') then
+      SetConfigItem('type', LXType.Substring(6))
     else
       SetConfigItem('xtype', LXType);
   end;
