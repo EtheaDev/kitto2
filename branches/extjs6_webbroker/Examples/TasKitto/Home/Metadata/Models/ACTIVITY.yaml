@@ -6,23 +6,34 @@ Fields:
     DefaultValue: %COMPACT_GUID%
   DESCRIPTION: String(80) not null
     DisplayWidth: 50
+    Hint: Insert the activity description
   PHASE: Reference(PHASE) not null
     Fields:
       PHASE_ID:
+    Hint: Select Phase
   EMPLOYEE: Reference(EMPLOYEE) not null
     Fields:
       EMPLOYEE_ID:
+    Hint: Search and select the Employee
   ROLE: Reference(OPERATOR_ROLE) not null
     Fields:
       ROLE_ID:
+    Hint: Select the Role
   TYPE: Reference(ACTIVITY_TYPE) not null
     Fields:
       TYPE_ID:
+    Hint: Select the Activity Type
   ACTIVITY_DATE: Date not null
+    NotifyChange: True  
+    Hint: Date
   START_TIME: Time
+    NotifyChange: True  
+    Hint: Start
   END_TIME: Time
+    Hint: End
   STATUS: String(12)
     DisplayWidth: 6
+    Hint: Select status
     AllowedValues:
       Inserted: Inserted
       Approved: Approved
