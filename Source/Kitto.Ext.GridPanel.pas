@@ -187,8 +187,7 @@ procedure TKExtGridPanel.BeforeEdit;
 var
   LReqBody: ISuperObject;
 begin
-{ TODO : reimplement inline edit }
-//  LReqBody := SO(Session.RequestBody);
+  LReqBody := SO(TKWebRequest.Current.Content);
   InitColumnEditors(ServerStore.GetRecord(LReqBody.O['data'], TKWebApplication.Current.Config.UserFormatSettings));
 
   ShowConfirmButtons(True);
@@ -883,8 +882,7 @@ var
   LReqBody: ISuperObject;
   LError: string;
 begin
-{ TODO : reimplement inline edit }
-//  LReqBody := SO(Session.RequestBody);
+  LReqBody := SO(TKWebRequest.Current.Content);
   LError := UpdateRecord(ServerStore.GetRecord(LReqBody.O['new'], TKWebApplication.Current.Config.UserFormatSettings),
     LReqBody.O['new'], LReqBody.S['fieldName'], False);
   if LError = '' then

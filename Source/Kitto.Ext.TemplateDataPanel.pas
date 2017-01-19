@@ -35,10 +35,11 @@ type
   TKExtTemplateDataPanel = class(TKExtDataPanelLeafController)
   strict private
     FDataView: TExtDataView;
-    procedure CreateTemplateView;
+    procedure SetupTemplate;
     function ProcessTemplate(const ATemplate: string): string;
   strict protected
     procedure InitDefaults; override;
+    function CreateClientStore: TExtDataStore; override;
     procedure SetViewTable(const AValue: TKViewTable); override;
     procedure AddTopToolbarToolViewButtons; override;
     function IsActionSupported(const AActionName: string): Boolean; override;
@@ -71,7 +72,13 @@ begin
   inherited AddToolViewButtons(ViewTable.FindNode('Controller/ToolViews'), TopToolbar);
 end;
 
-procedure TKExtTemplateDataPanel.CreateTemplateView;
+function TKExtTemplateDataPanel.CreateClientStore: TExtDataStore;
+begin
+  Result := inherited CreateClientStore;
+  FDataView.Store := Result;
+end;
+
+procedure TKExtTemplateDataPanel.SetupTemplate;
 var
   LFileName: string;
   LTemplate: string;
@@ -83,11 +90,10 @@ begin
   begin
     LTemplate := Config.GetExpandedString('Template');
     if LTemplate = '' then
-      FDataView.Tpl := 'TemplateFileName or Template parameters not specified.'
+      FDataView.Tpl := _('TemplateFileName or Template parameters not specified.')
     else
       FDataView.Tpl := ProcessTemplate(LTemplate);
   end;
-  FDataView.Store := ClientStore;
 end;
 
 function TKExtTemplateDataPanel.GetSelectCall(const AMethod: TJSProcedure): TExtExpression;
@@ -135,6 +141,8 @@ end;
 procedure TKExtTemplateDataPanel.SetViewTable(const AValue: TKViewTable);
 begin
   Assert(Assigned(AValue));
+  Assert(Assigned(FDataView));
+
   inherited;
   FDataView.Id := Config.GetString('TemplateView/Id');
   FDataView.ItemSelector := Config.GetString('TemplateView/SelectorClass');
@@ -143,7 +151,7 @@ begin
     FDataView.MultiSelect := True
   else
     FDataView.SingleSelect := True;
-  CreateTemplateView;
+  SetupTemplate;
 end;
 
 initialization

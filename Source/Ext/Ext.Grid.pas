@@ -147,15 +147,12 @@ type
 
   TExtGridAbstractSelectionModel = class(TExtUtilObservable)
   private
-//    FGrid: TExtObject;
     FStore: TExtDataStore;
-//    procedure SetGrid(const AValue: TExtObject);
     procedure SetStore(const AValue: TExtDataStore);
   strict protected
     function GetObjectNamePrefix: string; override;
   public
     class function JSClassName: string; override;
-//    property Grid: TExtObject read FGrid write SetGrid;
     property Store: TExtDataStore read FStore write SetStore;
   end;
 
@@ -304,6 +301,7 @@ type
     procedure SetClicksToEdit(const AValue: Integer);
   public
     class function JSClassName: string; override;
+    class function JSXType: string; override;
     property ClicksToEdit: Integer read FClicksToEdit write SetClicksToEdit;
   end;
 
@@ -538,12 +536,6 @@ begin
   inherited;
   FFormat := 'm/d/Y';
 end;
-
-//procedure TExtGridAbstractSelectionModel.SetGrid(const AValue: TExtObject);
-//begin
-//  FGrid.Free;
-//  FGrid := SetProperty('grid', AValue);
-//end;
 
 procedure TExtGridAbstractSelectionModel.SetStore(const AValue: TExtDataStore);
 begin
@@ -808,6 +800,11 @@ end;
 class function TExtGridPluginCellEditing.JSClassName: string;
 begin
   Result := 'Ext.grid.plugin.CellEditing';
+end;
+
+class function TExtGridPluginCellEditing.JSXType: string;
+begin
+  Result := 'plugin.cellediting';
 end;
 
 procedure TExtGridPluginCellEditing.SetClicksToEdit(const AValue: Integer);

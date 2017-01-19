@@ -485,6 +485,8 @@ type
     procedure SetTpl(AValue: string);
     procedure SetStoreArray(const AValue: TJSObjectArray);
     procedure SetSelectedClass(const AValue: string);
+  strict protected
+    function GetObjectNamePrefix: string; override;
   protected
     procedure InitDefaults; override;
   public
@@ -1653,11 +1655,15 @@ begin
   Result := 'Ext.DataView';
 end;
 
+function TExtDataView.GetObjectNamePrefix: string;
+begin
+  Result := 'dv';
+end;
+
 procedure TExtDataView.InitDefaults;
 begin
   inherited;
   FSelectedClass := 'x-view-selected';
-  FStore := TExtDataStore.CreateInternal(Self, 'store');
   FTplArray := CreateConfigArray('tpl');
 end;
 

@@ -60,6 +60,7 @@ type
   strict protected
     function GetObjectNamePrefix: string; virtual;
     procedure InitDefaults; virtual;
+    procedure InitInlineDefaults; virtual;
     function CreateConfigObject(const AAttributeName: string): TJSObject;
     function CreateConfigArray(const AAttributeName: string): TJSObjectArray;
     procedure DoHandleEvent(const AEventName: string); virtual;
@@ -959,13 +960,9 @@ begin
 end;
 
 constructor TJSObject.CreateInline(const AOwner: TJSBase);
-var
-  LXType: string;
 begin
   CreateInternal(AOwner, '');
-  LXType := JSXType;
-  if LXType <> '' then
-    SetConfigItem('xtype', LXType);
+  InitInlineDefaults;
 end;
 
 constructor TJSObject.CreateSingleton(const AOwner: TJSBase; const AAttributeName: string);
@@ -1063,6 +1060,20 @@ end;
 
 procedure TJSObject.InitDefaults;
 begin
+end;
+
+procedure TJSObject.InitInlineDefaults;
+var
+  LXType: string;
+begin
+  LXType := JSXType;
+  if LXType <> '' then
+  begin
+    if LXType.StartsWith('plugin.') then
+      SetConfigItem('ptype', LXType.Substring(7))
+    else
+      SetConfigItem('xtype', LXType);
+  end;
 end;
 
 {

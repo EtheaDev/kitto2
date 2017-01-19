@@ -76,7 +76,6 @@ type
   strict private
     FServerStore: TKViewTableStore;
     FClientStore: TExtDataStore;
-    FClientReader: TExtDataJsonReader;
     FViewTable: TKViewTable;
     FOwnsServerStore: Boolean;
     FVisibleActions: TDictionary<string, Boolean>;
@@ -112,10 +111,8 @@ type
       const ARequiresSelection: Boolean): TKExtButton;
     property View: TKDataView read GetView;
     property ClientStore: TExtDataStore read FClientStore;
-    property ClientReader: TExtDataJsonReader read FClientReader;
     function CreateClientStore: TExtDataStore; virtual;
-    function CreateClientReader: TExtDataJsonReader; virtual;
-    procedure AddClientReaderField(const AReader: TExtDataJsonReader; const AViewField: TKViewField);
+    procedure AddClientReaderField(const AReader: TExtDataDataReader; const AViewField: TKViewField);
     procedure CreateClientReaderFields;
     function AddActionButton(const AUniqueId: string; const AView: TKView;
       const AToolbar: TKExtToolbar): TKExtActionButton; override;
@@ -545,22 +542,11 @@ begin
     Result.On('click', TKWebResponse.Current.Items.AjaxCallMethod(Self).SetMethod(Result.ExecuteButtonAction).AsFunction);
 end;
 
-function TKExtDataPanelController.CreateClientReader: TExtDataJsonReader;
-begin
-  Assert(Assigned(ViewTable));
-
-  Result := TExtDataJsonReader.Create(Self);
-  Result.RootProperty := 'Root';
-  Result.TotalProperty := 'Total';
-  Result.MessageProperty := 'Msg';
-  Result.SuccessProperty := 'Success';
-end;
-
-procedure TKExtDataPanelController.AddClientReaderField(const AReader: TExtDataJsonReader; const AViewField: TKViewField);
+procedure TKExtDataPanelController.AddClientReaderField(const AReader: TExtDataDataReader; const AViewField: TKViewField);
 var
   I: Integer;
 
-  procedure DoAddReaderField(const AReader: TExtDataJsonReader; const AName, AType: string; const AUseNull: Boolean);
+  procedure DoAddReaderField(const AReader: TExtDataDataReader; const AName, AType: string; const AUseNull: Boolean);
   var
     LField: TExtDataField;
   begin
@@ -589,17 +575,24 @@ var
 begin
   for I := 0 to ViewTable.FieldCount - 1 do
     if IsViewFieldIncludedInClientStore(ViewTable.Fields[I]) then
-      AddClientReaderField(ClientReader, ViewTable.Fields[I]);
+      AddClientReaderField(FClientStore.Proxy.Reader, ViewTable.Fields[I]);
 end;
 
 function TKExtDataPanelController.CreateClientStore: TExtDataStore;
 var
   LProxy: TExtDataAjaxProxy;
+  LReader: TExtDataJsonReader;
 begin
   Result := TExtDataStore.Create(Self);
   Result.RemoteSort := ViewTable.GetBoolean('Controller/RemoteSort', GetDefaultRemoteSort);
-  LProxy := TExtDataAjaxProxy.Create(Result);
+  LProxy := TExtDataAjaxProxy.CreateInline(Result);
   LProxy.Url := GetMethodURL(GetRecordPage);
+  LReader := TExtDataJsonReader.CreateInline(Result);
+  LReader.RootProperty := 'Root';
+  LReader.TotalProperty := 'Total';
+  LReader.MessageProperty := 'Msg';
+  LReader.SuccessProperty := 'Success';
+  LProxy.Reader := LReader;
   Result.Proxy := LProxy;
   Result.On('exception', GenerateAnonymousFunction('proxy, type, action, options, response, arg', 'loadError(type, action, response);'));
 end;
@@ -906,8 +899,6 @@ begin
   AddUsedViewFields;
 
   FClientStore := CreateClientStore;
-  FClientReader := CreateClientReader;
-  FClientStore.Proxy.Reader := FClientReader;
 
   FVisibleActions.AddOrSetValue('View', IsActionSupported('View') and (FViewTable.GetBoolean('Controller/AllowViewing') or Config.GetBoolean('AllowViewing')));
   FAllowedActions.AddOrSetValue('View', FVisibleActions['View'] and FViewTable.IsAccessGranted(ACM_VIEW));
