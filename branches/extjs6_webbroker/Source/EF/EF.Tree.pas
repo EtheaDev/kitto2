@@ -1749,7 +1749,7 @@ var
 begin
   LBytesStream := TBytesStream.Create;
   try
-    LBytesStream.CopyFrom(AStream, AStream.Size);
+    LBytesStream.CopyFrom(AStream, 0);
     AsBytes := Copy(LBytesStream.Bytes, 0, LBytesStream.Size);
   finally
     FreeAndNil(LBytesStream);

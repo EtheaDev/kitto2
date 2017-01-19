@@ -234,7 +234,7 @@ begin
   try
     LFileStream := TFileStream.Create(LFileName, fmCreate or fmShareExclusive);
     try
-      LFileStream.CopyFrom(AFile.Stream, AFile.Stream.Size);
+      LFileStream.CopyFrom(AFile.Stream, 0);
     finally
       FreeAndNil(LFileStream);
     end;

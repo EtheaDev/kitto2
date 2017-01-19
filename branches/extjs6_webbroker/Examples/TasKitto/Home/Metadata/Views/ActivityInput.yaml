@@ -103,7 +103,7 @@ MainTable:
             <b>download</b> the file?
           RequireSelection: False
           FileName: %APP_PATH%\Resources\taskitto_logo_150.png
-          ClientFileName: takitto_logo.png
+          ClientFileName: taskitto_logo.png
           ContentType: image/png
       UploadFile:
         DisplayLabel: Upload image
