@@ -1,4 +1,4 @@
-﻿AppName: Taskitto6
+﻿AppName: TasKitto
 AppTitle: Tasks & Activities
 
 Databases:
@@ -15,7 +15,7 @@ Databases:
 
 Auth: DB
   IsClearPassword: True
-  .Defaults:
+  Defaults:
     UserName: admin
     Password: admin
   ReadUserCommandText: select USER_NAME, PASSWORD_HASH, FIRST_NAME, LAST_NAME from KITTO_USERS where IS_ACTIVE = 1 and UPPER(USER_NAME) = UPPER(:USER_NAME)
@@ -30,7 +30,7 @@ Login: LoginView
 #HomeView: Home
 
 Ext:
-  Theme: neptune
+  Theme: crisp
   
 LanguageId: en
 # Either utf-8 or a SBCS corresponding to the system code page
@@ -39,9 +39,13 @@ Charset: utf-8
 
 FOPEnginePath: %FOP1_1%
 
-FastCGI:
-  TCPPort: 2602
-
 UserFormats:
   Date: dd/mm/yyyy
   Time: hh:nn
+
+Server:
+  Port: 8081
+  # default 20
+  ThreadPoolSize: 15
+  # In minutes.
+  SessionTimeOut: 10

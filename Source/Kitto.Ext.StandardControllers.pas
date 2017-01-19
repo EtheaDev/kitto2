@@ -398,7 +398,7 @@ end;
 procedure TKExtDownloadFileController.DoDownloadStream(const AStream: TStream;
   const AFileName, AContentType: string);
 begin
-  TKWebApplication.Current.DownloadStream(AStream, AFileName, AContentType);
+  TKWebApplication.Current.DownloadStream(AStream, AFileName, AContentType, False);
   AfterExecuteTool;
 end;
 
@@ -422,7 +422,7 @@ begin
     LFileStream := TFileStream.Create(LPersistentFileName, fmCreate or fmShareExclusive);
     try
       AStream.Position := 0;
-      LFileStream.CopyFrom(AStream, AStream.Size);
+      LFileStream.CopyFrom(AStream, 0);
     finally
       FreeAndNil(LFileStream);
       AStream.Position := 0;
@@ -431,21 +431,12 @@ begin
 end;
 
 procedure TKExtDownloadFileController.DownloadFile;
-var
-  LStream: TStream;
 begin
   try
     // The file might not exist if the browser has sent multiple request and
     // it was served before and then deleted (see Cleanup).
     if FileExists(FFileName) then
-    begin
-      LStream := TFileStream.Create(FFileName, fmOpenRead);
-      try
-        DoDownloadStream(LStream, ClientFileName, ContentType);
-      finally
-        FreeAndNil(LStream);
-      end;
-    end;
+      DoDownloadStream(TFileStream.Create(FFileName, fmOpenRead), ClientFileName, ContentType);
   finally
 //    Cleanup;
   end;
@@ -720,7 +711,7 @@ var
 begin
   LFileStream := TFileStream.Create(TPath.Combine(Path, AFile.FileName), fmCreate or fmShareExclusive);
   try
-    LFileStream.CopyFrom(AFile.Stream, AFile.Stream.Size);
+    LFileStream.CopyFrom(AFile.Stream, 0);
   finally
     FreeAndNil(LFileStream);
   end;

@@ -1798,7 +1798,7 @@ begin
 
   LFileStream := TFileStream.Create(AFileName, fmCreate or fmShareExclusive);
   try
-    LFileStream.CopyFrom(AStream, AStream.Size);
+    LFileStream.CopyFrom(AStream, 0);
   finally
     FreeAndNil(LFileStream);
   end;
