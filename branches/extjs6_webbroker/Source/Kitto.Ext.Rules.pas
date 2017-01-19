@@ -504,16 +504,15 @@ end;
 
 procedure TKExtForceUpperCase.SetEventListener(const AField: TExtFormTextField);
 begin
-  // Filter control characters - don't use >= as it's not rendered correctly.
-  AField.On('keyup', AField.GenerateAnonymousFunction('f, e', 'if (e.getCharCode() > 31) f.setValuePreservingCaretPos(f.getRawValue().toUpperCase());'));
+  AField.FieldStyle := 'text-transform: uppercase';
+  AField.On('change', AField.GenerateAnonymousFunction('f, newValue, oldValue', 'f.setValue(newValue.toUpperCase());'));
 end;
 
 { TKExtForceLowerCase }
 
 procedure TKExtForceLowerCase.SetEventListener(const AField: TExtFormTextField);
 begin
-  // Filter control characters - don't use >= as it's not rendered correctly.
-  AField.On('keyup', AField.GenerateAnonymousFunction('f, e', 'if (e.getCharCode() > 31) f.setValuePreservingCaretPos(f.getRawValue().toLowerCase());'));
+  AField.FieldStyle := 'text-transform: lowercase';
 end;
 
 { TKExtForceCamelCaps }

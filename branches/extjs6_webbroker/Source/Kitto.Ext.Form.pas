@@ -411,7 +411,6 @@ end;
 procedure TKExtFormPanelController.LoadData;
 var
   LDetailStyle: string;
-//  LHostWindow: TExtWindow;
 begin
   LDetailStyle := GetDetailStyle;
   if SameText(LDetailStyle, 'Tabs') then
@@ -420,16 +419,7 @@ begin
     CreateDetailToolbar
   else if SameText(LDetailStyle, 'Bottom') then
     CreateDetailBottomPanel;
-  // Resize the window after setting up toolbars and tabs, so that we
-  // know the exact extra height needed.
-//  if Config.GetBoolean('Sys/HostWindow/AutoSize') then
-//  begin
-//    LHostWindow := GetHostWindow;
-//    if Assigned(LHostWindow) and not LHostWindow.Maximized then
-//      LHostWindow.On('afterrender', GenerateAnonymousFunction(Format(
-//        '%s.setOptimalSize(0, %d); %s.center();',
-//          [LHostWindow.JSName, GetExtraHeight, LHostWindow.JSName])));
-//  end;
+
   StartOperation;
 end;
 
@@ -920,7 +910,6 @@ begin
     FMainPagePanel.LabelAlign := LabelAlign;
   end;
   FMainPagePanel.HideLabels := Config.GetBoolean('HideLabels');
-  //TKWebResponse.Current.Items.ExecuteJSCode(Format('%s.getForm().url = "%s";', [FFormPanel.JSName, GetMethodURL(ConfirmChanges)]));
 end;
 
 procedure TKExtFormPanelController.TabChange(ATabPanel: TExtTabPanel; ANewTab, AOldTab: TExtComponent);
@@ -942,17 +931,6 @@ begin
   if Supports(ANewTab, IKExtActivable, LActivableIntf) then
     LActivableIntf.Activate;
 end;
-
-//function TKExtFormPanelController.GetExtraHeight: Integer;
-//begin
-//  Result := 10; // 5px padding * 2.
-//  if Assigned(FDetailToolbar) then
-//    Result := Result + 50;
-//  if Assigned(TopToolbar) then
-//    Result := Result + 50;
-//  if Assigned(FDetailBottomPanel) then
-//    Result := Result + GetDetailBottomPanelHeight + 200;
-//end;
 
 function TKExtFormPanelController.IsViewMode: Boolean;
 begin
@@ -1135,7 +1113,6 @@ begin
   LController.Config.SetObject('Sys/ServerStore', ServerStore);
   LController.Config.SetObject('Sys/ViewTable', ViewTable);
   LController.Config.SetObject('Sys/HostWindow', FDetailHostWindow);
-//  LController.Config.SetBoolean('Sys/HostWindow/AutoSize',
   FDetailHostWindow.SetSizeFromTree(FViewTable, 'Controller/PopupWindow/');
   LController.Display;
   FDetailHostWindow.Show;

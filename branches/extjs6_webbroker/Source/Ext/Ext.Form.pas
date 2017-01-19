@@ -122,6 +122,7 @@ type
     FReadOnly: Boolean;
     FMsgTarget: string;
     FStartValue: string;
+    FFieldStyle: string;
     procedure SetAutoCreate(const AValue: string);
     procedure SetCls(const AValue: string);
     procedure SetDisabled(const AValue: Boolean);
@@ -135,6 +136,7 @@ type
     procedure SetLabelWidth(const AValue: Integer);
     procedure SetStartValue(const AValue: string);
     procedure SetOnChange(const AValue: TExtFormFieldOnChange);
+    procedure SetFieldStyle(const AValue: string);
   protected
     function GetObjectNamePrefix: string; override;
   public
@@ -148,6 +150,7 @@ type
     property AutoCreate: string read FAutoCreate write SetAutoCreate;
     property Cls: string read FCls write SetCls;
     property Disabled: Boolean read FDisabled write SetDisabled;
+    property FieldStyle: string read FFieldStyle write SetFieldStyle;
     property InputType: TExtFormFieldInputType read FInputType
       write SetInputType;
     property LabelAlign: TExtContainerLabelAlign read FLabelAlign write SetLabelAlign;
@@ -736,6 +739,11 @@ end;
 procedure TExtFormField.SetDisabled(const AValue: Boolean);
 begin
   FDisabled := SetConfigItem('disabled', 'setDisabled', AValue);
+end;
+
+procedure TExtFormField.SetFieldStyle(const AValue: string);
+begin
+  FFieldStyle := SetConfigItem('fieldStyle', 'setFieldStyle', AValue);
 end;
 
 procedure TExtFormField.SetAutoCreate(const AValue: string);

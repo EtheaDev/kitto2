@@ -36,6 +36,7 @@ type
     function GetObjectNamePrefix: string; override;
   public
     class function JSClassName: string; override;
+    class function JSXType: string; override;
     property Url: string read FUrl write SetUrl;
   end;
 
@@ -135,6 +136,7 @@ type
     procedure SetMessageProperty(const AValue: string);
   public
     class function JSClassName: string; override;
+    class function JSXType: string; override;
     property RootProperty: string read FRootProperty write SetRootProperty;
     property SuccessProperty: string read FSuccessProperty write SetSuccessProperty;
     property MessageProperty: string read FMessageProperty write SetMessageProperty;
@@ -329,6 +331,11 @@ begin
   FTotalProperty := SetConfigItem('totalProperty', AValue);
 end;
 
+class function TExtDataJsonReader.JSXType: string;
+begin
+  Result := 'reader.json';
+end;
+
 procedure TExtDataJsonReader.SetMessageProperty(const AValue: string);
 begin
   FMessageProperty := SetConfigItem('messageProperty', AValue);
@@ -357,6 +364,11 @@ end;
 class function TExtDataAjaxProxy.JSClassName: string;
 begin
   Result := 'Ext.data.proxy.Ajax';
+end;
+
+class function TExtDataAjaxProxy.JSXType: string;
+begin
+  Result := 'proxy.ajax';
 end;
 
 function TExtDataAjaxProxy.GetObjectNamePrefix: string;

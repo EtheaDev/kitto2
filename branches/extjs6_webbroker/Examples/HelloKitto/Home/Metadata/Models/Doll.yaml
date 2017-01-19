@@ -47,7 +47,7 @@ Fields:
     Hint: _(Select a picture)
     MaxUploadSize: 100KB
     .DefaultFileName: test.gif
-    Path: c:\temp\hellokitto
+    Path: %Config:BlobPath%
     IsPicture: True
       Thumbnail:
         Width: 100
