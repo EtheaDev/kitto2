@@ -520,9 +520,7 @@ begin
         finally
           SwitchChangeNotifications(True);
         end;
-        ViewTable.Model.BeforeNewRecord(StoreRecord, IsCloned);
-        StoreRecord.ApplyNewRecordRules;
-        ViewTable.Model.AfterNewRecord(StoreRecord);
+        StoreRecord.ApplyNewRecordRulesAndFireEvents(ViewTable, IsCloned);
       finally
         FreeAndNil(LDefaultValues);
       end;
@@ -952,12 +950,11 @@ begin
   end
   else if SameText(FOperation, 'Edit') then
   begin
-    StoreRecord.Store.DisableChangeNotifications;
-    try
-      StoreRecord.Refresh;
-    finally
-      StoreRecord.Store.EnableChangeNotifications;
-    end;
+    StoreRecord.Store.DoWithChangeNotificationsDisabled(
+      procedure
+      begin
+        StoreRecord.Refresh;
+      end);
   end;
 
   if LKeepOpen then

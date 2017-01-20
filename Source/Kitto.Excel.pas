@@ -730,19 +730,14 @@ begin
         //Create a new record into ViewTable
         LAddedRecord := LStore.Records.AppendAndInitialize;
 
-        {TODO: copied from TKExtFormPanelController.StartOperation: need refactoring }
-        LDefaultValues := nil;
+        LDefaultValues := AViewTable.GetDefaultValues;
         try
-          LDefaultValues := AViewTable.GetDefaultValues;
-          LAddedRecord.Store.DisableChangeNotifications;
-          try
-            LAddedRecord.ReadFromNode(LDefaultValues);
-          finally
-            LAddedRecord.Store.EnableChangeNotifications;
-          end;
-          AViewTable.Model.BeforeNewRecord(LAddedRecord, False);
-          LAddedRecord.ApplyNewRecordRules;
-          AViewTable.Model.AfterNewRecord(LAddedRecord);
+          LAddedRecord.Store.DoWithChangeNotificationsDisabled(
+            procedure
+            begin
+              LAddedRecord.ReadFromNode(LDefaultValues);
+            end);
+          LAddedRecord.ApplyNewRecordRulesAndFireEvents(AViewTable, False);
         finally
           FreeAndNil(LDefaultValues);
         end;
