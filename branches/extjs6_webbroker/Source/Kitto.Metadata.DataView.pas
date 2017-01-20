@@ -508,6 +508,8 @@ type
     procedure HandleDeleteFileInstructions;
 
     procedure ApplyNewRecordRules;
+    // Same as above but fires the view table's model's Before/AfterNewRecord events.
+    procedure ApplyNewRecordRulesAndFireEvents(const AViewTable: TKViewTable; const AIsCloned: Boolean);
     procedure ApplyEditRecordRules;
     procedure ApplyBeforeRules;
     procedure ApplyAfterRules;
@@ -1540,38 +1542,40 @@ end;
 function TKViewField.CreateDerivedFieldsStore(const AKeyValues: string): TKStore;
 var
   LDerivedFields: TArray<TKViewField>;
-  LDerivedField: TKViewField;
-  LDBQuery: TEFDBQuery;
-  LHasDerivedFields: Boolean;
+  LStore: TKStore;
 begin
   Assert(IsReference);
 
-  Result := TKStore.Create;
+  LStore := TKStore.Create;
   try
     // Set header.
     LDerivedFields := GetDerivedFields;
     Assert(Length(LDerivedFields) > 0);
 
-    Result.DisableChangeNotifications;
-    try
-      for LDerivedField in LDerivedFields do
-        Result.Header.AddField(LDerivedField.AliasedName).DataType := LDerivedField.DataType;
-      // Get data.
-      LDBQuery := TKConfig.Instance.DBConnections[Table.DatabaseName].CreateDBQuery;
-      try
-        TKSQLBuilder.CreateAndExecute(
-          procedure (ASQLBuilder: TKSQLBuilder)
-          begin
-            LHasDerivedFields := ASQLBuilder.BuildDerivedSelectQuery(Self, LDBQuery, AKeyValues);
-          end);
-        if LHasDerivedFields then
-          Result.Load(LDBQuery, False, True);
-      finally
-        FreeAndNil(LDBQuery);
-      end;
-    finally
-      Result.EnableChangeNotifications;
-    end;
+    LStore.DoWithChangeNotificationsDisabled(
+      procedure
+      var
+        LDerivedField: TKViewField;
+        LDBQuery: TEFDBQuery;
+        LHasDerivedFields: Boolean;
+      begin
+        for LDerivedField in LDerivedFields do
+          LStore.Header.AddField(LDerivedField.AliasedName).DataType := LDerivedField.DataType;
+        // Get data.
+        LDBQuery := TKConfig.Instance.DBConnections[Table.DatabaseName].CreateDBQuery;
+        try
+          TKSQLBuilder.CreateAndExecute(
+            procedure (ASQLBuilder: TKSQLBuilder)
+            begin
+              LHasDerivedFields := ASQLBuilder.BuildDerivedSelectQuery(Self, LDBQuery, AKeyValues);
+            end);
+          if LHasDerivedFields then
+            LStore.Load(LDBQuery, False, True);
+        finally
+          FreeAndNil(LDBQuery);
+        end;
+      end);
+    Result := LStore;
   except
     FreeAndNil(Result);
     raise;
@@ -2548,6 +2552,15 @@ begin
   MarkAsNew;
 end;
 
+procedure TKViewTableRecord.ApplyNewRecordRulesAndFireEvents(const AViewTable: TKViewTable; const AIsCloned: Boolean);
+begin
+  Assert(Assigned(AViewTable));
+
+  AViewTable.Model.BeforeNewRecord(Self, AIsCloned);
+  Self.ApplyNewRecordRules;
+  AViewTable.Model.AfterNewRecord(Self);
+end;
+
 procedure TKViewTableRecord.LoadDetailStores;
 var
   I: Integer;
@@ -2830,8 +2843,7 @@ begin
   end;
 end;
 
-procedure TKViewTableRecord.SetDetailFieldValues(
-  const AMasterRecord: TKViewTableRecord);
+procedure TKViewTableRecord.SetDetailFieldValues(const AMasterRecord: TKViewTableRecord);
 var
   LMasterFieldNames: TStringDynArray;
   LDetailFieldNames: TStringDynArray;
@@ -2844,18 +2856,14 @@ begin
   Assert(Length(LMasterFieldNames) > 0);
   LDetailFieldNames := Records.Store.ViewTable.ModelDetailReference.ReferenceField.GetFieldNames;
   Assert(Length(LDetailFieldNames) = Length(LMasterFieldNames));
-  //Store.DisableChangeNotifications;
-  try
-    for I := 0 to High(LDetailFieldNames) do
-    begin
-      // ...alias them...
-      LMasterFieldNames[I] := Records.Store.ViewTable.MasterTable.ApplyFieldAliasedName(LMasterFieldNames[I]);
-      LDetailFieldNames[I] := Records.Store.ViewTable.ApplyFieldAliasedName(LDetailFieldNames[I]);
-      // ... and copy values.
-      GetNode(LDetailFieldNames[I]).AssignValue(AMasterRecord.GetNode(LMasterFieldNames[I]));
-    end;
-  finally
-    //Store.EnableChangeNotifications;
+
+  for I := 0 to High(LDetailFieldNames) do
+  begin
+    // ...alias them...
+    LMasterFieldNames[I] := Records.Store.ViewTable.MasterTable.ApplyFieldAliasedName(LMasterFieldNames[I]);
+    LDetailFieldNames[I] := Records.Store.ViewTable.ApplyFieldAliasedName(LDetailFieldNames[I]);
+    // ... and copy values.
+    GetNode(LDetailFieldNames[I]).AssignValue(AMasterRecord.GetNode(LMasterFieldNames[I]));
   end;
 end;
 

@@ -1103,37 +1103,37 @@ function TKExtDataPanelController.UpdateRecord(const ARecord: TKVIewTableRecord;
   const AFieldName: string; const APersist: Boolean): string;
 var
   LOldRecord: TKViewTableRecord;
-  LField: TKViewTableField;
-  LValue: TSuperAvlEntry;
 begin
   LOldRecord := TKViewTableRecord.Clone(ARecord);
   try
     try
-      ARecord.Store.DisableChangeNotifications;
-      try
-        // Modify record value(s).
-        if AFieldName <> '' then
+      ARecord.Store.DoWithChangeNotificationsDisabled(
+        procedure
+        var
+          LValue: TSuperAvlEntry;
+          LField: TKViewTableField;
         begin
-          FEditItems.EditorsByFieldName(AFieldName,
-            procedure (AEditor: IKExtEditor)
-            begin
-              LField := ARecord.FieldByName(AEditor.FieldName);
-              LValue := FindValueByName(ANewValues, LField.FieldName);
-              Assert(Assigned(LValue));
-              SetFieldValue(LField, LValue);
-            end);
-        end
-        else
-        begin
-          for LValue in ANewValues.AsObject do
+          // Modify record value(s).
+          if AFieldName <> '' then
           begin
-            LField := ARecord.FieldByName(LValue.Name);
-            SetFieldValue(LField, LValue);
+            FEditItems.EditorsByFieldName(AFieldName,
+              procedure (AEditor: IKExtEditor)
+              begin
+                LField := ARecord.FieldByName(AEditor.FieldName);
+                LValue := FindValueByName(ANewValues, LField.FieldName);
+                Assert(Assigned(LValue));
+                SetFieldValue(LField, LValue);
+              end);
+          end
+          else
+          begin
+            for LValue in ANewValues.AsObject do
+            begin
+              LField := ARecord.FieldByName(LValue.Name);
+              SetFieldValue(LField, LValue);
+            end;
           end;
-        end;
-      finally
-        ARecord.Store.EnableChangeNotifications;
-      end;
+        end);
       // Save record.
       ViewTable.Model.SaveRecord(ARecord, APersist and not ViewTable.IsDetail,
         procedure

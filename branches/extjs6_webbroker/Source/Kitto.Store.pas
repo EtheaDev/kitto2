@@ -344,6 +344,7 @@ type
     procedure DisableChangeNotifications;
     procedure EnableChangeNotifications;
     function ChangeNotificationsEnabled: Boolean;
+    procedure DoWithChangeNotificationsDisabled(const AProc: TProc);
 
     property Key: TKKey read GetKey write SetKey;
     property Header: TKHeader read GetHeader;
@@ -467,15 +468,17 @@ uses
 { TKStore }
 
 function TKStore.AppendRecord(const AValues: TEFNode): TKRecord;
+var
+  LRecord: TKRecord;
 begin
-  DisableChangeNotifications;
-  try
-    Result := Records.AppendAndInitialize;
-    if Assigned(AValues) then
-      Result.ReadFromNode(AValues);
-  finally
-    EnableChangeNotifications;
-  end;
+  DoWithChangeNotificationsDisabled(
+    procedure
+    begin
+      LRecord := Records.AppendAndInitialize;
+      if Assigned(AValues) then
+        LRecord.ReadFromNode(AValues);
+    end);
+  Result := LRecord;
 end;
 
 function TKStore.Avg(const AFieldName: string): Variant;
@@ -633,6 +636,19 @@ begin
   Inc(FChangeNotificationsDisabledCount);
 end;
 
+procedure TKStore.DoWithChangeNotificationsDisabled(const AProc: TProc);
+begin
+  if Assigned(AProc) then
+  begin
+    DisableChangeNotifications;
+    try
+      AProc;
+    finally
+      EnableChangeNotifications;
+    end;
+  end;
+end;
+
 function TKStore.GetAsJSON(const AForDisplay: Boolean; const AFrom: Integer;
   const AFor: Integer; const AFieldFilterFunc: TKFieldFilterFunc): string;
 begin
@@ -704,23 +720,22 @@ var
 begin
   Assert(Assigned(ADBQuery));
 
-  DisableChangeNotifications;
-  try
-    if not AAppend then
-      Records.Clear;
-    if not ADBQuery.IsOpen then
-      ADBQuery.Open;
-    while not ADBQuery.DataSet.Eof do
+  DoWithChangeNotificationsDisabled(
+    procedure
     begin
-      LRecord := Records.AppendAndInitialize;
-      LRecord.ReadFromFields(ADBQuery.DataSet.Fields, AFieldsByIndex);
-      if Assigned(AForEachRecord) then
-        AForEachRecord(LRecord);
-      ADBQuery.DataSet.Next;
-    end;
-  finally
-    EnableChangeNotifications;
-  end;
+      if not AAppend then
+        Records.Clear;
+      if not ADBQuery.IsOpen then
+        ADBQuery.Open;
+      while not ADBQuery.DataSet.Eof do
+      begin
+        LRecord := Records.AppendAndInitialize;
+        LRecord.ReadFromFields(ADBQuery.DataSet.Fields, AFieldsByIndex);
+        if Assigned(AForEachRecord) then
+          AForEachRecord(LRecord);
+        ADBQuery.DataSet.Next;
+      end;
+    end);
 end;
 
 procedure TKStore.Load(const ADBConnection: TEFDBConnection;
@@ -1383,12 +1398,11 @@ begin
     if FState = rsClean then
       SetState(rsDirty);
   except
-    Store.DisableChangeNotifications;
-    try
-      Restore;
-    finally
-      Store.EnableChangeNotifications;
-    end;
+    Store.DoWithChangeNotificationsDisabled(
+      procedure
+      begin
+        Restore;
+      end);
     raise;
   end;
 end;
