@@ -324,14 +324,8 @@ var
   LClickCode: string;
 
   function GetCSS: string;
-  var
-    LCSS: string;
   begin
-    LCSS := ANode.GetString('CSS');
-    if LCSS <> '' then
-      Result := ' ' + LCSS
-    else
-      Result := '';
+    Result := ANode.GetString('CSS');
   end;
 
   function GetDisplayLabel: string;
@@ -362,7 +356,7 @@ begin
   if GetCSS <> '' then
   begin
     FTileBoxHtml := FTileBoxHtml + Format(
-      '<a href="#" onclick="%s"><div class="k-tile%s">' +
+      '<a href="#" onclick="%s"><div class="k-tile" style="%s">' +
       '<div class="k-tile-inner">%s</div></div></a>',
       [HTMLEncode(LClickCode), GetCSS, GetDisplayLabel]);
   end
