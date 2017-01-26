@@ -1120,14 +1120,22 @@ begin
 end;
 
 procedure TJSMethodCall.InternalFormatTo(const AFormatter: TJSFormatter);
+var
+  LName: string;
 begin
   inherited;
   if not IsExpressionExtracted then
   begin
     Assert(FCallName <> '');
     Assert(Assigned(Sender));
+    Assert(Sender.JSName <> '');
 
-    AFormatter.AddIndented(Sender.JSName + '.' + FCallName);
+    if (Sender is TJSObject) and TJSObject(Sender).IsInline then
+      LName := 'getObject("' + Sender.JSName + '")'
+    else
+      LName := Sender.JSName;
+
+    AFormatter.AddIndented(LName + '.' + FCallName);
     if Params.Values.ChildCount > 0 then
     begin
       AFormatter.OpenRound;

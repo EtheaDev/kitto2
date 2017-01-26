@@ -154,8 +154,6 @@ begin
   Title := _(TKWebApplication.Current.Config.AppTitle);
   Width := 316;
   Height := 162;
-  Maximized := TKWebRequest.Current.IsMobileBrowser;
-  Border := not Maximized;
   Closable := True;
   Resizable := False;
 

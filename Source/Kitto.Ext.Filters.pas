@@ -611,8 +611,7 @@ begin
   SetRawValue('');
   // Force the combo to refresh its list at next drop down.
   Store.RemoveAll();
-  Store.TotalLength := 0;
-  TKWebResponse.Current.Items.ExecuteJSCode(Format('%s.lastQuery = null;', [JSName]));
+  TKWebResponse.Current.Items.ExecuteJSCode(Format('delete %s.lastQuery;', [JSName]));
 end;
 
 procedure TKListFilterBase.SetConfig(const AConfig: TEFNode);

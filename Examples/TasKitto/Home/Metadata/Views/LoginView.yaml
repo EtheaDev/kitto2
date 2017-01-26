@@ -1,4 +1,5 @@
 ﻿Controller:
+  Movable: False
   BorderPanel:
     NorthView:
       Controller: HtmlPanel

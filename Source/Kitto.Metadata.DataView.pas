@@ -407,8 +407,6 @@ type
     /// </param>
     function GetRecord(const AKey: ISuperObject; const AFormatSettings: TFormatSettings;
       const AValueIndex: Integer = -1): TKViewTableRecord;
-    function FindRecord(const AKey: ISuperObject; const AFormatSettings: TFormatSettings;
-      const AValueIndex: Integer = -1): TKViewTableRecord;
   end;
 
   TKViewTableHeaderField = class;
@@ -2248,24 +2246,6 @@ begin
   inherited Create;
   FViewTable := AViewTable;
   SetupFields;
-end;
-
-function TKViewTableStore.FindRecord(const AKey: ISuperObject;
-  const AFormatSettings: TFormatSettings;
-  const AValueIndex: Integer): TKViewTableRecord;
-begin
-  Result := inherited FindRecord(AKey, AFormatSettings,
-    function(const AName: string): string
-    var
-      LField: TKViewField;
-    begin
-      LField := ViewTable.FindField(AName);
-      if Assigned(LField) then
-        Result := LField.AliasedName
-      else
-        Result := AName;
-    end,
-    AValueIndex) as TKViewTableRecord;
 end;
 
 procedure TKViewTableStore.SetupFields;

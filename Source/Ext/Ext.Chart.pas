@@ -481,7 +481,7 @@ begin
   FStore := TExtDataStore.CreateInternal(Self, 'store');
   FXAxis := TExtChartAxis.CreateInternal(Self, 'xAxis');
   FYAxis := TExtChartAxis.CreateInternal(Self, 'yAxis');
-  FSeries := CreateConfigArray('series');
+  FSeries := CreateConfigObjectArray('series');
 end;
 
 class function TExtChartCartesianChart.JSClassName: string;

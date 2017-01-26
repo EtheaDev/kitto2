@@ -1,3 +1,10 @@
+function getObject(id) {
+  x = Ext.getCmp(id);
+  if (x === undefined)
+    x = Ext.getStore(id);
+  return x;
+}
+
 function AjaxError(m) {
   showMessage({
     title: "Ajax Error",

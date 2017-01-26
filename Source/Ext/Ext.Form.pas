@@ -477,7 +477,7 @@ type
     FHiddenName: string;
     FValueNotFoundText: string;
     FMinListWidth: Integer;
-    FStoreArray: TJSObjectArray;
+    FStoreArray: TJSObject;
     FPageSize: Integer;
     FQueryParam: string;
     FListWidthFunc: TExtExpression;
@@ -499,7 +499,7 @@ type
     procedure SetQueryParam(const AValue: string);
     procedure SetSelectedClass(const AValue: string);
     procedure SetStore(const AValue: TExtDataStore);
-    procedure SetStoreArray(const AValue: TJSObjectArray);
+    procedure SetStoreArray(const AValue: TJSObject);
     procedure SetTriggerAction(const AValue: string);
     procedure SetTypeAhead(const AValue: Boolean);
     procedure SetTypeAheadDelay(const AValue: Integer);
@@ -541,7 +541,7 @@ type
     property QueryParam: string read FQueryParam write SetQueryParam;
     property SelectedClass: string read FSelectedClass write SetSelectedClass;
     property Store: TExtDataStore read FStore write SetStore;
-    property StoreArray: TJSObjectArray read FStoreArray write SetStoreArray;
+    property StoreArray: TJSObject read FStoreArray write SetStoreArray;
     property TriggerAction: string read FTriggerAction write SetTriggerAction;
     property TypeAhead: Boolean read FTypeAhead write SetTypeAhead;
     property TypeAheadDelay: Integer read FTypeAheadDelay
@@ -1006,7 +1006,7 @@ end;
 procedure TExtFormCompositeField.InitDefaults;
 begin
   inherited;
-  FItems := CreateConfigArray('items');
+  FItems := CreateConfigObjectArray('items');
 end;
 
 class function TExtFormCompositeField.JSClassName: string;
@@ -1317,8 +1317,8 @@ begin
   inherited;
   FAltFormats :=
     'm/d/Y|n/j/Y|n/j/y|m/j/y|n/d/y|m/j/Y|n/d/Y|m-d-y|m-d-Y|m/d|m-d|md|mdy|mdY|d|Y-m-d';
-  FDisabledDates := CreateConfigArray('disabledDates');
-  FDisabledDays := CreateConfigArray('disabledDays');
+  FDisabledDates := CreateConfigObjectArray('disabledDates');
+  FDisabledDays := CreateConfigObjectArray('disabledDays');
   FFormat := 'm/d/Y';
   FTriggerClass := 'x-form-date-trigger';
 end;
@@ -1460,10 +1460,10 @@ begin
   FStore := TExtDataStore(SetConfigItem('store', AValue));
 end;
 
-procedure TExtFormComboBox.SetStoreArray(const AValue: TJSObjectArray);
+procedure TExtFormComboBox.SetStoreArray(const AValue: TJSObject);
 begin
   FStoreArray.Free;
-  FStoreArray := TJSObjectArray(SetConfigItem('store', AValue));
+  FStoreArray := SetConfigItem('store', AValue);
 end;
 
 procedure TExtFormComboBox.SetTriggerAction(const AValue: string);
@@ -1510,7 +1510,7 @@ begin
   FSelectOnFocus := true;
   FSelectedClass := 'x-combo-selected';
   FStore := TExtDataStore.CreateInternal(Self, 'store');
-  FStoreArray := CreateConfigArray('store');
+  //FStoreArray := CreateConfigObject('store');
   FTriggerClass := 'x-form-arrow-trigger';
   FTypeAheadDelay := 250;
   FValueField := 'output/Ext.form.ComboBox.html#Ext.form.ComboBox-mode';

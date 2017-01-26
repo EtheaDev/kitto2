@@ -96,17 +96,16 @@ type
     FAutoLoad: Boolean;
     FRemoteSort: Boolean;
     FGroupField: string;
-    FTotalLength: Integer;
     FStoreId: string;
     FProxy: TExtDataProxy;
     procedure SetAutoLoad(const AValue: Boolean);
     procedure SetProxy(const AValue: TExtDataProxy);
     procedure SetRemoteSort(const AValue: Boolean);
     procedure SetStoreId(AValue: string);
-    procedure SetTotalLength(const AValue: Integer);
     procedure SetGroupField(const AValue: string);
   protected
     function GetObjectNamePrefix: string; override;
+    function GetJSIdConfigName: string; override;
   public
     class function JSClassName: string; override;
     function Load(const AOptions: TExtObject): TExtExpression;
@@ -116,7 +115,6 @@ type
     property Proxy: TExtDataProxy read FProxy write SetProxy;
     property RemoteSort: Boolean read FRemoteSort write SetRemoteSort;
     property StoreId: string read FStoreId write SetStoreId;
-    property TotalLength: Integer  read FTotalLength write SetTotalLength;
   end;
 
   TExtDataTree = class(TExtUtilObservable)
@@ -160,7 +158,7 @@ uses
 procedure TExtDataDataReader.InitDefaults;
 begin
   inherited;
-  FFields := CreateConfigArray('fields');
+  FFields := CreateConfigObjectArray('fields');
 end;
 
 class function TExtDataDataReader.JSClassName: string;
@@ -226,7 +224,7 @@ end;
 procedure TExtDataNode.InitDefaults;
 begin
   inherited;
-  FChildren := CreateConfigArray('children');
+  FChildren := CreateConfigObjectArray('children');
 end;
 
 function TExtDataNode.SetId(const AId: string): TExtExpression;
@@ -253,11 +251,6 @@ begin
   FRemoteSort := SetConfigItem('remoteSort', AValue);
 end;
 
-procedure TExtDataStore.SetTotalLength(const AValue: Integer);
-begin
-  FTotalLength := SetProperty('totalLength', AValue);
-end;
-
 procedure TExtDataStore.SetGroupField(const AValue: string);
 begin
   FGroupField := SetConfigItem('groupField', AValue);
@@ -271,6 +264,11 @@ end;
 class function TExtDataStore.JSClassName: string;
 begin
   Result := 'Ext.data.Store';
+end;
+
+function TExtDataStore.GetJSIdConfigName: string;
+begin
+  Result := 'storeId';
 end;
 
 function TExtDataStore.GetObjectNamePrefix: string;

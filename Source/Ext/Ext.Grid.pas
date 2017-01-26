@@ -731,8 +731,8 @@ end;
 procedure TExtGridGridPanel.InitDefaults;
 begin
   inherited;
-  FColumns := CreateConfigArray('columns');
-  FFeatures := CreateConfigArray('features');
+  FColumns := CreateConfigObjectArray('columns');
+  FFeatures := CreateConfigObjectArray('features');
   FViewConfig := CreateConfigObject('viewConfig');
 end;
 

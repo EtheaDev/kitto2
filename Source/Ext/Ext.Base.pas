@@ -1113,7 +1113,7 @@ end;
 function TExtComponent.GetPlugins: TJSObjectArray;
 begin
   if not Assigned(FPlugins) then
-    FPlugins := CreateConfigArray('plugins');
+    FPlugins := CreateConfigObjectArray('plugins');
   Result := FPlugins;
 end;
 
@@ -1412,7 +1412,7 @@ procedure TExtContainer.InitDefaults;
 begin
   inherited;
   FAutoDestroy := True;
-  FItems := CreateConfigArray('items');
+  FItems := CreateConfigObjectArray('items');
 end;
 
 function TExtContainer.UpdateLayout: TExtExpression;
@@ -1664,7 +1664,7 @@ procedure TExtDataView.InitDefaults;
 begin
   inherited;
   FSelectedClass := 'x-view-selected';
-  FTplArray := CreateConfigArray('tpl');
+  FTplArray := CreateConfigObjectArray('tpl');
 end;
 
 function TExtDataView.SetStore(const AStore: TExtDataStore): TExtExpression;
@@ -1794,10 +1794,10 @@ procedure TExtPanel.InitDefaults;
 begin
   inherited;
   FAnimCollapse := true;
-  FBbar := CreateConfigArray('bbar');
+  FBbar := CreateConfigObjectArray('bbar');
   FBorder := true;
-  FButtons := CreateConfigArray('buttons');
-  FFbar := CreateConfigArray('fbar');
+  FButtons := CreateConfigObjectArray('buttons');
+  FFbar := CreateConfigObjectArray('fbar');
   FMinButtonWidth := 75;
   FHeader := true;
 end;
@@ -2009,7 +2009,7 @@ begin
   inherited;
   FAnimateTargetElement := TExtElement.CreateInternal(Self, 'animateTarget');
   FBaseCls := 'x-window';
-  FButtons := CreateConfigArray('buttons');
+  FButtons := CreateConfigObjectArray('buttons');
   FClosable := true;
   FDraggable := true;
   FExpandOnShow := true;
@@ -2018,7 +2018,7 @@ begin
   FMinWidth := 200;
   FResizable := true;
   FResizeHandles := 'all';
-  FBbar := CreateConfigArray('bbar');
+  FBbar := CreateConfigObjectArray('bbar');
 end;
 
 function TExtWindow.Close: TExtExpression;

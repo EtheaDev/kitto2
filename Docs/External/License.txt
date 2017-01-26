@@ -1,4 +1,4 @@
-Kitto 6 is licensed under the terms of the Apache License, version 2.0.
+Kitto is licensed under the terms of the Apache License, version 2.0.
 
 See: http://www.apache.org/licenses/LICENSE-2.0.html
 
@@ -7,3 +7,7 @@ Icons included in Kitto are licensed under the terms of the Creative Commons Att
 See: http://creativecommons.org/licenses/by/3.0/
 See: http://www.fatcow.com/free-icons
 
+The version of ExtPascal included in Kitto is based on ExtPascal, licensed under the terms of the BSD 2-Clause License.
+
+See: http://www.opensource.org/licenses/bsd-license.php
+See: http://code.google.com/p/extpascal/

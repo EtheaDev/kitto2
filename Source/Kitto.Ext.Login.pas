@@ -85,6 +85,7 @@ var
   LFormPanelBodyStyle: string;
   LLocalStorageMode: string;
   LLoginHandler: TJSAjaxCall;
+  LTitle: TEFNode;
 
   function GetEnableButtonJS: string;
   begin
@@ -110,8 +111,7 @@ var
   end;
 
 begin
-  Maximized := TKWebRequest.Current.IsMobileBrowser;
-  Border := not Maximized;
+  Draggable := View.GetBoolean('Controller/Movable', False);
   if Maximized then
     LWidth := Session.ViewportWidth
   else
@@ -132,7 +132,11 @@ begin
     Width := LWidth;
   LUseLanguageSelector := TKWebApplication.Current.Config.LanguagePerSession;
 
-  Title := _(TKWebApplication.Current.Config.AppTitle);
+  LTitle := Config.FindNode('Title');
+  if Assigned(LTitle) then
+    Title := _(LTitle.AsExpandedString)
+  else
+    Title := _(TKWebApplication.Current.Config.AppTitle);
   Closable := False;
   Resizable := False;
 

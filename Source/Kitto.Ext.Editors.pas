@@ -361,6 +361,10 @@ type
     FFieldName: string;
     FRecordField: TKViewTableField;
     procedure FieldChange(This: TExtFormField; NewValue, OldValue: string);
+    // Converts a time from javascript's implicit format (the one used when
+    // firing the change handler) to the format expected by SetAsJSONValue
+    // (see FieldChange)
+    function ConvertTime(const AValue: string): string;
   public
     function AsObject: TObject; inline;
     function _AddRef: Integer; stdcall;
@@ -1977,8 +1981,7 @@ begin
 
     // Force the combo to refresh its list at next drop down.
     Store.RemoveAll();
-    Store.TotalLength := 0;
-    TKWebResponse.Current.Items.ExecuteJSCode(Format('%s.lastQuery = null;', [JSName]));
+    TKWebResponse.Current.Items.ExecuteJSCode(Format('delete %s.lastQuery;', [JSName]));
 
     // Provide the display value to set when the user types an invalid value
     // and the store is not loaded yet.
@@ -2080,11 +2083,11 @@ begin
       Mode := 'remote';
       FreeAndNil(FServerStore);
       FServerStore := AViewField.CreateReferenceStore;
-      Store := TExtDataStore.Create(Self);
-      LProxy := TExtDataAjaxProxy.Create(Store);
+      Store := TExtDataStore.CreateInline(Self);
+      LProxy := TExtDataAjaxProxy.CreateInline(Store);
       LProxy.Url := GetMethodURL(GetRecordPage);
       Store.Proxy := LProxy;
-      LReader := TExtDataJsonReader.Create(Self);
+      LReader := TExtDataJsonReader.CreateInline(Store);
       LProxy.Reader := LReader;
       LReader.RootProperty := 'Root';
       LReader.TotalProperty := 'Total';
@@ -2512,7 +2515,7 @@ var
 begin
   if AValue <> '' then
   begin
-    LDateTime := Trunc(TJS.JSDateToDateTime(AValue));
+    LDateTime := DateOf(TJS.JSDateToDateTime(AValue));
     Result := DateTimeToStr(LDateTime, TKWebApplication.Current.Config.UserFormatSettings);
   end
   else
@@ -2647,10 +2650,23 @@ begin
   Result := Self;
 end;
 
+function TKExtFormTimeField.ConvertTime(const AValue: string): string;
+var
+  LTime: TTime;
+begin
+  if AValue <> '' then
+  begin
+    LTime := TimeOf(TJS.JSDateToDateTime(AValue));
+    Result := TimeToStr(LTime, TKWebApplication.Current.Config.UserFormatSettings);
+  end
+  else
+    Result := '';
+end;
+
 procedure TKExtFormTimeField.FieldChange(This: TExtFormField; NewValue,
   OldValue: string);
 begin
-  FRecordField.SetAsJSONValue(NewValue, False, TKWebApplication.Current.Config.UserFormatSettings);
+  FRecordField.SetAsJSONValue(ConvertTime(NewValue), False, TKWebApplication.Current.Config.UserFormatSettings);
 end;
 
 function TKExtFormTimeField.GetFieldName: string;

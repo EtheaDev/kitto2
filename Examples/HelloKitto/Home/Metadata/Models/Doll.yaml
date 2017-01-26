@@ -1,7 +1,5 @@
 ﻿ModelName: Doll
 ImageName: Doll
-DisplayLabel: _(Doll)
-PluralDisplayLabel: _(Dolls)
 Fields:
   Doll_Id: String(32) not null primary key
     IsVisible: False
@@ -26,7 +24,6 @@ Fields:
       L: _(Large)
       XL: _(Extra Large)
   Mom: Reference(Girl) not null
-    DisplayLabel: _(Mom)
     Fields:
       Mom_Id:
     AutoAddFields:

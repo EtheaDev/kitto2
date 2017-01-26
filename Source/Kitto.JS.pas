@@ -56,13 +56,15 @@ type
     { TODO : Maybe we could replace it with an extraction from JSName }
     FAttributeName: string;
     FJSConfig: TJSValues;
+    FIsInline: Boolean;
     function GetDownloadJS(const AMethod: TJSProcedure): string;
   strict protected
     function GetObjectNamePrefix: string; virtual;
+    function GetJSIdConfigName: string; virtual;
     procedure InitDefaults; virtual;
     procedure InitInlineDefaults; virtual;
     function CreateConfigObject(const AAttributeName: string): TJSObject;
-    function CreateConfigArray(const AAttributeName: string): TJSObjectArray;
+    function CreateConfigObjectArray(const AAttributeName: string): TJSObjectArray;
     procedure DoHandleEvent(const AEventName: string); virtual;
   protected
     procedure DependsUpon(const AObject: TJSObject);
@@ -80,13 +82,16 @@ type
     procedure Delete;
 
     function IsInternal: Boolean;
-    function IsInline: Boolean;
+    property IsInline: Boolean read FIsInline;
 
     property JSConfig: TJSValues read FJSConfig;
     // Assigned if the object was created with CreateInternal.
     property AttributeName: string read FAttributeName;
 
-    function JSArray(const AJSON: string; const ASquareBrackets: Boolean = True): TJSObjectArray;
+    /// <summary>
+    ///  Returns a JS array with the passed JSON content.
+    /// </summary>
+    function JSArray(const AJSON: string): TJSObject;
     function JSObject(const AJSON: string; const AObjectConstructor: string = ''; const ACurlyBrackets: Boolean = True): TJSObject;
     function JSExpressionFromCodeBlock(const ACode: string): TJSExpression;
     function GetJSCode(const AMethod: TProc; const ASilent: Boolean = False): string;
@@ -534,7 +539,7 @@ end;
 
 function TJSObject.GetObjectNamePrefix: string;
 begin
-  Result := 'o';
+  Result := 'obj';
 end;
 
 procedure TJSObject.HandleEvent;
@@ -892,7 +897,7 @@ end;
 procedure TJSObject.Delete;
 begin
   if Self <> nil then
-    TKWebResponse.Current.Items.ExecuteJSCode(JSName + '.destroy(); delete ' + JSName + ';');
+    TKWebResponse.Current.Items.ExecuteJSCode('try {' + JSName + '.destroy(); delete ' + JSName + ';} catch(e) {};');
 end;
 
 procedure TJSObject.DependsUpon(const AObject: TJSObject);
@@ -950,12 +955,15 @@ end;
 constructor TJSObject.CreateInternal(const AOwner: TJSBase; const AAttributeName: string);
 begin
   Assert(Assigned(AOwner));
+  FIsInline := True;
 
   inherited Create(AOwner);
   FJSConfig := TJSValues.Create(Self);
   FAttributeName := AAttributeName;
   if (Owner.JSName <> '') and (FAttributeName <> '') then
-    JSName := Owner.JSName + '.' + FAttributeName;
+    JSName := Owner.JSName + '.' + FAttributeName
+  else
+    JSName := Session.GetNextJSName(GetObjectNamePrefix);
   InitDefaults;
 end;
 
@@ -982,11 +990,6 @@ begin
 
   CreateInline(AArray);
   AArray.Add(Self);
-end;
-
-function TJSObject.IsInline: Boolean;
-begin
-  Result := JSName = '';
 end;
 
 function TJSObject.IsInternal: Boolean;
@@ -1046,7 +1049,7 @@ begin
   AArray.Add(Self);
 end;
 
-function TJSObject.CreateConfigArray(const AAttributeName: string): TJSObjectArray;
+function TJSObject.CreateConfigObjectArray(const AAttributeName: string): TJSObjectArray;
 begin
   Result := TJSObjectArray.CreateInternal(FJSConfig, AAttributeName);
   SetConfigItem(AAttributeName, Result);
@@ -1060,6 +1063,16 @@ end;
 
 procedure TJSObject.InitDefaults;
 begin
+  { TODO per gli store è storeId; virtuale? Sì, ma poi però ci liberiamo di JSName tout court e teniamo id.
+  forse in qualche caso ci dobbiamo tenere le var globali }
+
+  if (JSName <> '') and not JSName.Contains('.') then
+    SetConfigItem(GetJSIdConfigName, JSName);
+end;
+
+function TJSObject.GetJSIdConfigName: string;
+begin
+  Result := 'id';
 end;
 
 procedure TJSObject.InitInlineDefaults;
@@ -1071,26 +1084,17 @@ begin
   begin
     if LXType.StartsWith('plugin.') then
       SetConfigItem('ptype', LXType.Substring(7))
-    else if LXType.StartsWith('proxy.') then
-      SetConfigItem('type', LXType.Substring(6))
+    else if LXType.Contains('.') then
+      SetConfigItem('type', LXType.Split(['.'])[1])
     else
       SetConfigItem('xtype', LXType);
   end;
 end;
 
-{
-  Generates JS code to declare an inline JS Array.
-  @param JSON JavaScript Object Notation, the body of Array declaration
-  @param SquareBracket If true surrounds the array with []. Default is true.
-  @return <link TJSObjectList> to be used in assigns
-}
-function TJSObject.JSArray(const AJSON: string; const ASquareBrackets: Boolean): TJSObjectArray;
+function TJSObject.JSArray(const AJSON: string): TJSObject;
 begin
-  Result := TJSObjectArray.CreateInline(Self);
-  If ASquareBrackets then
-    Result.JSName := '[' + AJSON + ']'
-  else
-    Result.JSName := AJSON;
+  Result := TJSObject.CreateInline(Self);
+  Result.JSName := '[' + AJSON + ']';
 end;
 
 function TJSObject.JSObject(const AJSON: string; const AObjectConstructor: string; const ACurlyBrackets: Boolean): TJSObject;
