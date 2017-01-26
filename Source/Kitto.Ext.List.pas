@@ -22,7 +22,7 @@ interface
 
 uses
   Classes,
-  Ext, ExtPascal,
+  Ext.Base,
   EF.Tree, EF.ObserverIntf,
   Kitto.Ext.Controller, Kitto.Metadata.DataView, Kitto.Ext.Base,
   Kitto.Ext.DataPanelComposite;
@@ -67,10 +67,17 @@ type
 implementation
 
 uses
-  SysUtils, StrUtils,
-  EF.Localization, EF.StrUtils,
-  Kitto.Types, Kitto.Config, Kitto.AccessControl,
-  Kitto.Ext.Session, Kitto.Ext.Filters;
+  SysUtils
+  , StrUtils
+  , EF.Localization
+  , EF.StrUtils
+  , Kitto.Types
+  , Kitto.Config
+  , Kitto.Auth
+  , Kitto.AccessControl
+  , Kitto.Web.Application
+  , Kitto.Ext.Filters
+  ;
 
 { TKExtFilterPanel }
 
@@ -86,7 +93,7 @@ begin
   if AACName = '' then
     Result := True
   else
-    Result := TKConfig.Instance.IsAccessGranted(GetFilterACURI(AACName), ACM_VIEW);
+    Result := TKAccessController.Current.IsAccessGranted(TKAuthenticator.Current.UserName, GetFilterACURI(AACName), ACM_VIEW);
 end;
 
 function TKExtFilterPanel.IsFilterReadOnly(const AACName: string): Boolean;
@@ -94,7 +101,7 @@ begin
   if AACName = '' then
     Result := False
   else
-    Result := not TKConfig.Instance.IsAccessGranted(GetFilterACURI(AACName), ACM_MODIFY);
+    Result := not TKAccessController.Current.IsAccessGranted(TKAuthenticator.Current.UserName, GetFilterACURI(AACName), ACM_MODIFY);
 end;
 
 procedure TKExtFilterPanel.Configure(const AViewTable: TKViewTable; const AConfig: TEFNode);
@@ -109,7 +116,7 @@ var
   var
     LColumnWidth: Double;
   begin
-    Result := TKExtFilterPanel.CreateAndAddTo(Items);
+    Result := TKExtFilterPanel.CreateAndAddToArray(Items);
     try
       Result.Border := False;
       Result.Layout := lyForm;
@@ -129,7 +136,7 @@ var
     end;
   end;
 
-  procedure SetLabelWidthAndAlign(const ANode: TEFNode; const ADefaultLabelAlign: TExtFormFormPanelLabelAlign);
+  procedure SetLabelWidthAndAlign(const ANode: TEFNode; const ADefaultLabelAlign: TExtContainerLabelAlign);
   var
     LLabelNode: TEFNode;
     LWidth: Integer;
@@ -274,11 +281,11 @@ begin
     LItems := Config.FindNode('Filters/Items');
     if Assigned(LItems) and (LItems.ChildCount > 0) then
     begin
-      FFilterPanel := TKExtFilterPanel.CreateAndAddTo(Items);
+      FFilterPanel := TKExtFilterPanel.CreateAndAddToArray(Items);
       FFilterPanel.Region := rgNorth;
       FFilterPanel.OnChange := FilterPanelChange;
       FFilterPanel.Configure(ViewTable, LItems.Parent as TEFNode);
-      FFilterPanel.On('afterrender', DoLayout);
+      FFilterPanel.On('afterrender', GenerateAnonymousFunction(UpdateLayout));
     end;
   end;
 end;
@@ -292,7 +299,7 @@ procedure TKExtListPanelController.InitComponents;
 begin
   inherited;
   if Title = '' then
-    Title := _(Session.Config.MacroExpansionEngine.Expand(ViewTable.PluralDisplayLabel));
+    Title := _(TKWebApplication.Current.Config.MacroExpansionEngine.Expand(ViewTable.PluralDisplayLabel));
 end;
 
 function TKExtListPanelController.GetRegionDefaultControllerClass(const ARegion: TExtBoxComponentRegion): string;

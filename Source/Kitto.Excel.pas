@@ -19,9 +19,14 @@ unit Kitto.Excel;
 interface
 
 uses
-  SysUtils, Classes,
-  DB, ADODB, ADOX_TypeLibrary,
-  Kitto.Metadata.DataView, EF.Tree;
+  SysUtils
+  , Classes
+  , DB
+  , ADODB
+  , ADOX_TypeLibrary
+  , EF.Tree
+  , Kitto.Metadata.DataView
+  ;
 
 const
   EXCEL_FILE_EXT = '.xls';
@@ -33,10 +38,10 @@ const
 type
   TExcelVersion = (ex2000, ex2007);
 
-  TAcceptViewFieldEvent = procedure(AViewField: TKViewField; var AAccept: boolean) of object;
-  TAcceptDataFieldEvent = procedure(AField: TField; var AAccept: boolean) of object;
+  TAcceptViewFieldEvent = procedure(AViewField: TKViewField; var AAccept: Boolean) of object;
+  TAcceptDataFieldEvent = procedure(AField: TField; var AAccept: Boolean) of object;
 
-  TKExcelEngine = class(TComponent)
+  TKExcelEngine = class
   protected
     function ValidColumnName(Field: TField): string;
     function GetConnectionString(const ExcelFileName: string): string;
@@ -48,8 +53,8 @@ type
       AAcceptFieldEvent: TAcceptDataFieldEvent = nil): Boolean; overload;
   end;
 
-  TAcceptExportRecordEvent = procedure(ARecord: TKViewTableRecord; var AAccept: boolean) of object;
-  TAcceptExportDataRecordEvent = procedure(ADataSet: TDataSet; var AAccept: boolean) of object;
+  TAcceptExportRecordEvent = procedure(ARecord: TKViewTableRecord; var AAccept: Boolean) of object;
+  TAcceptExportDataRecordEvent = procedure(ADataSet: TDataSet; var AAccept: Boolean) of object;
 
   TKExcelExportEngine = class(TKExcelEngine)
   strict private
@@ -93,14 +98,14 @@ type
       AUseDisplayLabels: Boolean = false);
   end;
 
-  TAcceptImportRecordEvent = procedure(const ADataSet: TDataSet; var AAccept: boolean) of object;
+  TAcceptImportRecordEvent = procedure(const ADataSet: TDataSet; var AAccept: Boolean) of object;
   TImportSetFieldValue = procedure(const ADestFieldName: string; const AValue : Variant) of object;
 
   TImportBeforePostRecordEvent = procedure(const AAdoTable: TAdoTable;
     const ANewRecord: TKViewTableRecord) of object;
 
   TImportDatabaseErrorEvent = procedure(E : Exception; RecordNumber : integer;
-    var IgnoreError : boolean) of object;
+    var IgnoreError : Boolean) of object;
 
   TKExcelImportEngine = class(TKExcelEngine)
   strict private
@@ -124,9 +129,15 @@ type
 implementation
 
 uses
-  Math, Variants,
-  EF.StrUtils, EF.DB, EF.SysUtils,
-  Kitto.Metadata.Models, Kitto.Config, Kitto.Utils;
+  Math
+  , Variants
+  , EF.StrUtils
+  , EF.DB
+  , EF.SysUtils
+  , Kitto.Metadata.Models
+  , Kitto.Config
+  , Kitto.Utils
+  ;
 
 const
   ADO_EXCEL_2000 = 'Excel 8.0';
@@ -693,8 +704,8 @@ var
   LAdoTable: TAdoTable;
   LAddedRecord: TKViewTableRecord;
   LDefaultValues: TEFNode;
-  LAccept : boolean;
-  LIgnoreError : boolean;
+  LAccept : Boolean;
+  LIgnoreError : Boolean;
   J : integer;
   LSourceField : TField;
   LDestFieldName: string;
@@ -719,19 +730,14 @@ begin
         //Create a new record into ViewTable
         LAddedRecord := LStore.Records.AppendAndInitialize;
 
-        {TODO: copied from TKExtFormPanelController.StartOperation: need refactoring }
-        LDefaultValues := nil;
+        LDefaultValues := AViewTable.GetDefaultValues;
         try
-          LDefaultValues := AViewTable.GetDefaultValues;
-          LAddedRecord.Store.DisableChangeNotifications;
-          try
-            LAddedRecord.ReadFromNode(LDefaultValues);
-          finally
-            LAddedRecord.Store.EnableChangeNotifications;
-          end;
-          AViewTable.Model.BeforeNewRecord(LAddedRecord, False);
-          LAddedRecord.ApplyNewRecordRules;
-          AViewTable.Model.AfterNewRecord(LAddedRecord);
+          LAddedRecord.Store.DoWithChangeNotificationsDisabled(
+            procedure
+            begin
+              LAddedRecord.ReadFromNode(LDefaultValues);
+            end);
+          LAddedRecord.ApplyNewRecordRulesAndFireEvents(AViewTable, False);
         finally
           FreeAndNil(LDefaultValues);
         end;

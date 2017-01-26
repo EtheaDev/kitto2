@@ -9,7 +9,7 @@ Controller: Viewport
         DisplayLabel: Main Menu
         Controller: TreePanel
           TreeView: MainMenu
-          Width: 150
+          Width: 220
           Collapsible: True
           Border: True
           Header: True
@@ -28,10 +28,10 @@ Controller: Viewport
           Split: False
           Html: |
             <center>
-              <p><img src="%IMAGE(taskitto_logo_150)%"></img></p>
+              <img src="%IMAGE(taskitto_logo_150)%"></img>
               <p style="font: 11px arial,tahoma,verdana,helvetica;">An example activity tracking application.</p>
             </center>
-          Height: 50
+          Height: 100
 
       SouthView:
         Controller: StatusBar

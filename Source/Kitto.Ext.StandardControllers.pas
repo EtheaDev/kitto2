@@ -21,8 +21,12 @@ unit Kitto.Ext.StandardControllers;
 interface
 
 uses
-  Classes, SysUtils,
-  Kitto.Ext.Base, Kitto.Ext.DataTool;
+  Classes
+  , SysUtils
+  , HTTPApp
+  , Kitto.Ext.Base
+  , Kitto.Ext.DataTool
+  ;
 
 type
   /// <summary>Logs the current user out ending the current session. Only
@@ -183,7 +187,7 @@ type
     /// <summary>Returns the image name to use by default when not specified at
     /// the view or other level. Called through RTTI.</summary>
     class function GetDefaultImageName: string; override;
-  published
+  //published
     procedure DownloadFile;
     procedure DownloadStream;
     property FileName: string read GetFileName;
@@ -202,8 +206,8 @@ type
   ///       <description>Description</description>
   ///     </listheader>
   ///     <item>
-  ///       <term>FileName</term>
-  ///       <description>Name of the server file to save (complete with full path).
+  ///       <term>Path</term>
+  ///       <description>Full path in which to save the uploaded file.
   ///       May contain macros.</description>
   ///     </item>
   ///     <item>
@@ -233,9 +237,12 @@ type
     procedure Cleanup;
     procedure DoAfterExecuteTool; override;
   protected
-    /// <summary>This method is called when the file was uploaded to the server.</summary>
-    /// <param name="AUploadedFileName">File name uploaded</param>
-    procedure ProcessUploadedFile(const AUploadedFileName: string); virtual;
+    /// <summary>
+    ///  This method takes care of processing the uploaded file. The default
+    ///  implementation just stores the file in the Path directory (no duplicate
+    ///  name check).
+    /// </summary>
+    procedure ProcessUploadedFile(const AFile: TAbstractWebRequestFile); virtual;
 
     procedure InitDefaults; override;
   public
@@ -243,7 +250,7 @@ type
     /// <summary>Returns the image name to use by default when not specified at
     /// the view or other level. Called through RTTI.</summary>
     class function GetDefaultImageName: string; override;
-  published
+  //published
     property Path: string read GetPath;
     property AcceptedWildcards: string read GetAcceptedWildcards;
     property ContentType: string read GetContentType;
@@ -256,10 +263,24 @@ type
 implementation
 
 uses
-  Types, StrUtils, Masks,
-  Ext, ExtForm, ExtUxForm,
-  EF.SysUtils, EF.Tree, EF.RegEx, EF.Localization,
-  Kitto.Ext.Session, Kitto.Ext.Controller, Kitto.Metadata.DataView;
+  Types
+  , StrUtils
+  , Masks
+  , System.JSON
+  , IOUtils
+  , EF.SysUtils
+  , EF.Tree
+  , EF.RegEx
+  , EF.Localization
+  , Ext.Base
+  , Ext.Form
+  , Kitto.Metadata.DataView
+  , Kitto.JS
+  , Kitto.Web.Application
+  , Kitto.Web.Request
+  , Kitto.Web.Response
+  , Kitto.Ext.Controller
+  ;
 
 { TKExtURLControllerBase }
 
@@ -270,7 +291,7 @@ begin
   inherited;
   LURL := GetURL;
   if LURL <> '' then
-    Session.Navigate(LURL);
+    TKWebApplication.Current.Navigate(LURL);
 end;
 
 { TKExtURLController }
@@ -296,7 +317,7 @@ begin
   begin
     for I := 0 to LFilters.ChildCount - 1 do
     begin
-      LHeader := Session.RequestHeader[LFilters.Children[I].GetExpandedString('Header')];
+      LHeader := TKWebRequest.Current.GetFieldByName(LFilters.Children[I].GetExpandedString('Header'));
       LPattern := LFilters.Children[I].GetExpandedString('Pattern');
       LTargetURL := LFilters.Children[I].GetExpandedString('TargetURL');
       if StrMatchesPatternOrRegex(LHeader, LPattern) then
@@ -366,6 +387,7 @@ begin
   inherited;
   Cleanup;
   FTempFileNames.Free;
+  FreeAndNil(FStream);
 end;
 
 procedure TKExtDownloadFileController.DoAfterExecuteTool;
@@ -376,7 +398,7 @@ end;
 procedure TKExtDownloadFileController.DoDownloadStream(const AStream: TStream;
   const AFileName, AContentType: string);
 begin
-  Session.DownloadStream(AStream, AFileName, AContentType);
+  TKWebApplication.Current.DownloadStream(AStream, AFileName, AContentType, False);
   AfterExecuteTool;
 end;
 
@@ -400,7 +422,7 @@ begin
     LFileStream := TFileStream.Create(LPersistentFileName, fmCreate or fmShareExclusive);
     try
       AStream.Position := 0;
-      LFileStream.CopyFrom(AStream, AStream.Size);
+      LFileStream.CopyFrom(AStream, 0);
     finally
       FreeAndNil(LFileStream);
       AStream.Position := 0;
@@ -409,21 +431,12 @@ begin
 end;
 
 procedure TKExtDownloadFileController.DownloadFile;
-var
-  LStream: TStream;
 begin
   try
     // The file might not exist if the browser has sent multiple request and
     // it was served before and then deleted (see Cleanup).
     if FileExists(FFileName) then
-    begin
-      LStream := TFileStream.Create(FFileName, fmOpenRead);
-      try
-        DoDownloadStream(LStream, ClientFileName, ContentType);
-      finally
-        FreeAndNil(LStream);
-      end;
-    end;
+      DoDownloadStream(TFileStream.Create(FFileName, fmOpenRead), ClientFileName, ContentType);
   finally
 //    Cleanup;
   end;
@@ -435,7 +448,7 @@ begin
     try
       DoDownloadStream(FStream, ClientFileName, ContentType);
     finally
-      FreeAndNil(FStream);
+      FStream := nil;
     end;
   finally
     Cleanup;
@@ -502,7 +515,7 @@ end;
 procedure TKExtLogoutController.ExecuteTool;
 begin
   inherited;
-  Session.Logout;
+  TKWebApplication.Current.Logout;
 end;
 
 class function TKExtLogoutController.GetDefaultDisplayLabel: string;
@@ -553,26 +566,26 @@ var
   LUploadButton: TKExtButton;
   LFormPanel: TExtFormFormPanel;
   LSubmitAction: TExtFormActionSubmit;
-  LUploadFormField: TExtUxFormFileUploadField;
+  LUploadFormField: TExtFormFileField;
   LAcceptedWildcards: string;
 begin
+  if Assigned(FWindow) then
+    FWindow.Delete;
   FreeAndNil(FWindow);
   LAcceptedWildcards := AcceptedWildcards;
   FWindow := TKExtModalWindow.Create(Self);
-  FWindow.Width := 400;
-  FWindow.Height := 120;
-  FWindow.Maximized := Session.IsMobileBrowser;
-  FWindow.Border := not FWindow.Maximized;
+  FWindow.Width := 500;
+  FWindow.Height := 200;
   FWindow.Closable := True;
   FWindow.Title := _('File upload');
 
-  LFormPanel := TExtFormFormPanel.CreateAndAddTo(FWindow.Items);
+  LFormPanel := TExtFormFormPanel.CreateAndAddToArray(FWindow.Items);
   LFormPanel.Region := rgCenter;
   LFormPanel.Frame := True;
   LFormPanel.FileUpload := True;
   LFormPanel.LabelAlign := laRight;
   LFormPanel.LabelWidth := 100;
-  LUploadFormField := TExtUxFormFileUploadField.CreateAndAddTo(LFormPanel.Items);
+  LUploadFormField := TExtFormFileField.CreateInlineAndAddToArray(LFormPanel.Items);
   LUploadFormField.FieldLabel := _(Self.DisplayLabel);
   if LAcceptedWildcards <> '' then
     LUploadFormField.EmptyText := Format(_('File matching %s'), [LAcceptedWildcards])
@@ -580,19 +593,22 @@ begin
     LUploadFormField.EmptyText := _('Select a file to upload');
   LUploadFormField.AllowBlank := False;
   LUploadFormField.Anchor := '0 5 0 0';
-  LUploadButton := TKExtButton.CreateAndAddTo(LFormPanel.Buttons);
+  LUploadButton := TKExtButton.CreateInlineAndAddToArray(LFormPanel.Buttons);
   LUploadButton.Text := _('Upload');
-  LUploadButton.SetIconAndScale('Upload', IfThen(Session.IsMobileBrowser,'medium', 'small'));
+  LUploadButton.SetIconAndScale('Upload', IfThen(TKWebRequest.Current.IsMobileBrowser,'medium', 'small'));
 
-  LSubmitAction := TExtFormActionSubmit.Create(FWindow);
-  LSubmitAction.Url := MethodURI(Upload);
+  LSubmitAction := TExtFormActionSubmit.CreateInline(FWindow);
+  LSubmitAction.Url := GetMethodURL(Upload);
   LSubmitAction.WaitMsg := _('File upload in progress...');
   LSubmitAction.WaitTitle := _('Please wait...');
-  LSubmitAction.Success := Ajax(PostUpload);
-  LSubmitAction.Failure := ExtMessageBox.Alert(_('File upload error'), '%1.result.message');
-  LUploadButton.Handler := TExtFormBasicForm(LFormPanel.GetForm).Submit(LSubmitAction);
+  //LSubmitAction.Success := Ajax(PostUpload);
+  LSubmitAction.Success := TKWebResponse.Current.Items.AjaxCallMethod(Self).SetMethod(PostUpload).AsFunction;
+  { TODO : find a way to substitute action.result.msg }
+  LSubmitAction.Failure := GenerateAnonymousFunction('form, action', ExtMessageBox.Alert(_('File upload error'), 'action.result.msg'));
 
-  Session.MaxUploadSize := MaxUploadSize;
+  LUploadButton.Handler := GenerateAnonymousFunction(Format(
+    'var form = this.up("form"); if (form.isValid()) form.submit({%s});',
+    [LSubmitAction.JSConfig.AsFormattedText]));
   FWindow.Show;
 end;
 
@@ -602,37 +618,50 @@ var
   LWildcards: TStringDynArray;
   I: Integer;
   LAccepted: Boolean;
+  LResult: TJSONObject;
 begin
-  LFileName := Session.FileUploadedFullName;
-  LAcceptedWildcards := AcceptedWildcards;
-  if LAcceptedWildcards <> '' then
-  begin
-    LWildcards := SplitString(LAcceptedWildcards, ' ');
-    LAccepted := False;
-    for I := 0 to High(LWildcards) do
+  LResult := TJSONObject.Create;
+  try
+    if TKWebRequest.Current.Files.Count = 0 then
     begin
-      LWildcard := LWildcards[I];
-      if (LWildcard <> '') and MatchesMask(LFileName, LWildcard) then
+      LResult.AddPair('success', TJSONFalse.Create);
+      LResult.AddPair('msg', _('No file uploaded'));
+      TKWebResponse.Current.Items.AddJSON(LResult.ToJSON);
+      Exit;
+    end;
+
+    LFileName := TKWebRequest.Current.Files[0].FileName;
+    LAcceptedWildcards := AcceptedWildcards;
+    if LAcceptedWildcards <> '' then
+    begin
+      LWildcards := SplitString(LAcceptedWildcards, ' ');
+      LAccepted := False;
+      for I := 0 to High(LWildcards) do
       begin
-        LAccepted := True;
-        Break;
+        LWildcard := LWildcards[I];
+        if (LWildcard <> '') and MatchesMask(LFileName, LWildcard) then
+        begin
+          LAccepted := True;
+          Break;
+        end;
+      end;
+      if not LAccepted then
+      begin
+        LResult.AddPair('success', TJSONFalse.Create);
+        LResult.AddPair('msg', Format(_('Error: uploaded file name doesn''t match wildcards (%s)'), [LAcceptedWildcards]));
+        TKWebResponse.Current.Items.AddJSON(LResult.ToJSON);
+        Exit;
       end;
     end;
-    if not LAccepted then
-      raise Exception.Create(Format(_('Error: uploaded file don''t match Wildcard (%s)'),
-        [LAcceptedWildcards]));
+
+    { TODO : Check the file against limitations such as type and size}
+    ProcessUploadedFile(TKWebRequest.Current.Files[0]);
+    LResult.AddPair('success', TJSONTrue.Create);
+    TKWebResponse.Current.Items.AddJSON(LResult.ToJSON);
+    AfterExecuteTool;
+  finally
+    FreeAndNil(LResult);
   end;
-  { TODO : Check the file against limitations such as size}
-  if (LFileName <> '') and FileExists(LFileName) then
-  begin
-    AddTempFilename(LFileName);
-    try
-      ProcessUploadedFile(LFileName);
-    finally
-      Cleanup;
-    end;
-  end;
-  AfterExecuteTool;
 end;
 
 function TKExtUploadFileController.GetContentType: string;
@@ -676,8 +705,16 @@ begin
   FWindow.Close;
 end;
 
-procedure TKExtUploadFileController.ProcessUploadedFile(const AUploadedFileName: string);
+procedure TKExtUploadFileController.ProcessUploadedFile(const AFile: TAbstractWebRequestFile);
+var
+  LFileStream: TFileStream;
 begin
+  LFileStream := TFileStream.Create(TPath.Combine(Path, AFile.FileName), fmCreate or fmShareExclusive);
+  try
+    LFileStream.CopyFrom(AFile.Stream, 0);
+  finally
+    FreeAndNil(LFileStream);
+  end;
 end;
 
 initialization

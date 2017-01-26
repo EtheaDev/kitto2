@@ -606,16 +606,15 @@ object KExtMainForm: TKExtMainForm
           Align = alTop
           BevelOuter = bvNone
           TabOrder = 0
-          ExplicitLeft = 0
         end
-        object Button1: TButton
+        object RefreshButton: TButton
           Left = 4
           Top = 6
           Width = 75
           Height = 25
           Caption = 'Refresh'
           TabOrder = 1
-          OnClick = Button1Click
+          OnClick = RefreshButtonClick
         end
         object SessionListView: TListView
           Left = 4
@@ -643,20 +642,20 @@ object KExtMainForm: TKExtMainForm
               Width = 100
             end
             item
-              Caption = 'Origin'
+              Caption = 'Client Address'
               Width = 100
             end>
           TabOrder = 2
           ViewStyle = vsReport
           OnEdited = SessionListViewEdited
           OnInfoTip = SessionListViewInfoTip
+          ExplicitTop = 37
         end
       end
     end
   end
   object ActionList: TActionList
     Images = ImageList
-    OnUpdate = ActionListUpdate
     Left = 256
     Top = 65528
     object StartAction: TAction
@@ -682,7 +681,7 @@ object KExtMainForm: TKExtMainForm
     Left = 320
     Top = 65528
     Bitmap = {
-      494C010103004C00C00010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C010103004C00EC0010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000001000000001002000000000000010
       0000000000000000000000000000000000000000000000000000000000000000
       00000000001E00000031000000330000003300000033000000310000001E0000
@@ -828,5 +827,11 @@ object KExtMainForm: TKExtMainForm
     Title = 'Select Config file'
     Left = 152
     Top = 65528
+  end
+  object SessionListRefreshTimer: TTimer
+    Interval = 5000
+    OnTimer = SessionListRefreshTimerTimer
+    Left = 328
+    Top = 176
   end
 end

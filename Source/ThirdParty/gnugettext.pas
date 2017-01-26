@@ -183,6 +183,20 @@ interface
   {$DEFINE dx_StringList_has_OwnsObjects}
   {$DEFINE dx_GetStrProp_reads_unicode}
 {$endif}
+{$ifdef VER300}
+  // Delphi 10 Seattle with Unicode
+  {$DEFINE dx_has_Unsafe_Warnings}
+  {$DEFINE dx_has_WideStrings}
+  {$DEFINE dx_StringList_has_OwnsObjects}
+  {$DEFINE dx_GetStrProp_reads_unicode}
+{$endif}
+{$ifdef VER310}
+  // Delphi 10.1 Berlin with Unicode
+  {$DEFINE dx_has_Unsafe_Warnings}
+  {$DEFINE dx_has_WideStrings}
+  {$DEFINE dx_StringList_has_OwnsObjects}
+  {$DEFINE dx_GetStrProp_reads_unicode}
+{$endif}
 
 {$ifdef dx_has_Unsafe_Warnings}
   {$WARN UNSAFE_TYPE OFF}

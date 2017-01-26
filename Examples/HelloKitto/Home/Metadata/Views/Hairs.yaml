@@ -13,3 +13,6 @@ MainTable:
   Controller:
     PreventAdding: True
     PreventDeleting: True
+    PopupWindow:
+      Width: 400
+      Height: 200

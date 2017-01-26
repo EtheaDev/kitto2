@@ -1,0 +1,16 @@
+.auth-locked-inner {
+    background-image:url('images/lock-screen-background.jpg');
+    background-size:cover;
+    .x-panel-inner.auth-locked-inner {
+        background-color: transparent;
+    }
+}
+
+.lockscreen-header{
+    background-color:$base-color;
+    color:white;
+}
+
+.x-unsized .x-field-input{
+    min-width:2em;
+}

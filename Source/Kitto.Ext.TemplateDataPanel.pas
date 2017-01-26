@@ -21,34 +21,49 @@ unit Kitto.Ext.TemplateDataPanel;
 interface
 
 uses
-  Ext, ExtChart, ExtData, ExtPascal, ExtPascalUtils,
-  EF.Tree,
-  Kitto.Metadata.DataView, Kitto.Ext.Base, Kitto.Ext.DataPanelLeaf;
+  Ext.Base
+  , Ext.Chart
+  , Ext.Data
+  , EF.Tree
+  , Kitto.Metadata.DataView
+  , Kitto.JS.Types
+  , Kitto.Ext.Base
+  , Kitto.Ext.DataPanelLeaf
+  ;
 
 type
   TKExtTemplateDataPanel = class(TKExtDataPanelLeafController)
   strict private
     FDataView: TExtDataView;
-    procedure CreateTemplateView;
+    procedure SetupTemplate;
     function ProcessTemplate(const ATemplate: string): string;
   strict protected
     procedure InitDefaults; override;
+    function CreateClientStore: TExtDataStore; override;
     procedure SetViewTable(const AValue: TKViewTable); override;
     procedure AddTopToolbarToolViewButtons; override;
     function IsActionSupported(const AActionName: string): Boolean; override;
-    function GetSelectCall(const AMethod: TExtProcedure): TExtFunction; override;
-    function GetSelectConfirmCall(const AMessage: string; const AMethod: TExtProcedure): string; override;
-  published
+    function GetSelectCall(const AMethod: TJSProcedure): TExtExpression; override;
+    function GetSelectConfirmCall(const AMessage: string; const AMethod: TJSProcedure): string; override;
   end;
 
 implementation
 
 uses
-  Classes,
-  SysUtils, StrUtils,
-  EF.Localization, EF.Macros, EF.StrUtils,
-  Kitto.Types, Kitto.Ext.Utils, Kitto.Metadata.Models, Kitto.Metadata.Views,
-  Kitto.Ext.Session, Kitto.Ext.Controller, Kitto.Ext.XSLTools;
+  Classes
+  , SysUtils
+  , StrUtils
+  , EF.Localization
+  , EF.Macros
+  , EF.StrUtils
+  , Kitto.Types
+  , Kitto.Metadata.Models
+  , Kitto.Metadata.Views
+  , Kitto.Web.Application
+  , Kitto.Ext.Utils
+  , Kitto.Ext.Controller
+  , Kitto.Ext.XSLTools
+  ;
 
 { TKExtTemplateDataPanel }
 
@@ -57,35 +72,40 @@ begin
   inherited AddToolViewButtons(ViewTable.FindNode('Controller/ToolViews'), TopToolbar);
 end;
 
-procedure TKExtTemplateDataPanel.CreateTemplateView;
+function TKExtTemplateDataPanel.CreateClientStore: TExtDataStore;
+begin
+  Result := inherited CreateClientStore;
+  FDataView.Store := Result;
+end;
+
+procedure TKExtTemplateDataPanel.SetupTemplate;
 var
   LFileName: string;
   LTemplate: string;
 begin
-  LFileName := Session.Config.FindResourcePathName(Config.GetExpandedString('TemplateFileName'));
+  LFileName := TKWebApplication.Current.Config.FindResourcePathName(Config.GetExpandedString('TemplateFileName'));
   if LFileName <> '' then
     FDataView.Tpl := ProcessTemplate(TEFMacroExpansionEngine.Instance.Expand(TextFileToString(LFileName, TEncoding.UTF8)))
   else
   begin
     LTemplate := Config.GetExpandedString('Template');
     if LTemplate = '' then
-      FDataView.Tpl := 'TemplateFileName or Template parameters not specified.'
+      FDataView.Tpl := _('TemplateFileName or Template parameters not specified.')
     else
       FDataView.Tpl := ProcessTemplate(LTemplate);
   end;
-  FDataView.Store := ClientStore;
 end;
 
-function TKExtTemplateDataPanel.GetSelectCall(const AMethod: TExtProcedure): TExtFunction;
+function TKExtTemplateDataPanel.GetSelectCall(const AMethod: TJSProcedure): TExtExpression;
 begin
-  Result := JSFunction(Format('ajaxDataViewSelection("yes", "", {params: {methodURL: "%s", dataView: %s, fieldNames: "%s"}});',
-    [MethodURI(AMethod), FDataView.JSName, Join(ViewTable.GetKeyFieldAliasedNames, ',')]));
+  Result := GenerateAnonymousFunction(Format('ajaxDataViewSelection("yes", "", {params: {methodURL: "%s", dataView: %s, fieldNames: "%s"}});',
+    [GetMethodURL(AMethod), FDataView.JSName, Join(ViewTable.GetKeyFieldAliasedNames, ',')]));
 end;
 
-function TKExtTemplateDataPanel.GetSelectConfirmCall(const AMessage: string; const AMethod: TExtProcedure): string;
+function TKExtTemplateDataPanel.GetSelectConfirmCall(const AMessage: string; const AMethod: TJSProcedure): string;
 begin
   Result := Format('selectDataViewConfirmCall("%s", "%s", %s, "%s", {methodURL: "%s", dataView: %s, fieldNames: "%s"});',
-    [_(Session.Config.AppTitle), AMessage, FDataView.JSName, ViewTable.Model.CaptionField.FieldName, MethodURI(AMethod),
+    [_(TKWebApplication.Current.Config.AppTitle), AMessage, FDataView.JSName, ViewTable.Model.CaptionField.FieldName, GetMethodURL(AMethod),
     FDataView.JSName, Join(ViewTable.GetKeyFieldAliasedNames, ',')]);
 end;
 
@@ -107,7 +127,7 @@ end;
 procedure TKExtTemplateDataPanel.InitDefaults;
 begin
   inherited;
-  FDataView := TExtDataView.CreateAndAddTo(Items);
+  FDataView := TExtDataView.CreateAndAddToArray(Items);
   FDataView.EmptyText := _('No data to display.');
   FDataView.Region := rgCenter;
   FDataView.AutoScroll := True;
@@ -121,6 +141,8 @@ end;
 procedure TKExtTemplateDataPanel.SetViewTable(const AValue: TKViewTable);
 begin
   Assert(Assigned(AValue));
+  Assert(Assigned(FDataView));
+
   inherited;
   FDataView.Id := Config.GetString('TemplateView/Id');
   FDataView.ItemSelector := Config.GetString('TemplateView/SelectorClass');
@@ -129,9 +151,7 @@ begin
     FDataView.MultiSelect := True
   else
     FDataView.SingleSelect := True;
-//  FDataView.On('dblclick', JSFunction('this, idx, node, e', GetAjaxCode(
-//    DefaultAction, )
-  CreateTemplateView;
+  SetupTemplate;
 end;
 
 initialization

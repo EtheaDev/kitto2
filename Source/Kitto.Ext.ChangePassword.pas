@@ -21,7 +21,7 @@ unit Kitto.Ext.ChangePassword;
 interface
 
 uses
-  Ext, ExtForm,
+  Ext.Base, Ext.Form,
   Kitto.Ext.Base;
 
 type
@@ -45,24 +45,36 @@ type
     ///	<summary>Returns the image name to use by default when not specified at
     ///	the view or other level. Called through RTTI.</summary>
     class function GetDefaultImageName: string;
-  published
+  //published
     procedure DoChangePassword;
   end;
 
 implementation
 
 uses
-  SysUtils, StrUtils, Math,
-  ExtPascalUtils,
-  EF.Classes, EF.Localization, EF.Tree, EF.StrUtils,
-  Kitto.Types, Kitto.Config,
-  Kitto.Ext.Controller, Kitto.Ext.Session;
+  SysUtils
+  , StrUtils
+  , Math
+  , EF.Classes
+  , EF.Localization
+  , EF.Tree
+  , EF.StrUtils
+  , Kitto.Types
+  , Kitto.Config
+  , Kitto.Auth
+  , Kitto.JS
+  , Kitto.JS.Formatting
+  , Kitto.Web.Application
+  , Kitto.Web.Request
+  , Kitto.Web.Response
+  , Kitto.Ext.Controller
+  ;
 
 { TKExtChangePasswordWindow }
 
 function TKExtChangePasswordWindow.GetPasswordHash(const AClearPassword: string): string;
 begin
-  if TKConfig.Instance.Authenticator.IsClearPassword then
+  if TKAuthenticator.Current.IsClearPassword then
     Result := AClearPassword
   else
     Result := GetStringHash(AClearPassword);
@@ -70,17 +82,17 @@ end;
 
 procedure TKExtChangePasswordWindow.DoChangePassword;
 begin
-  if GetPasswordHash(Session.Query['OldPassword']) <> FOldPasswordHash then
+  if GetPasswordHash(ParamAsString('OldPassword')) <> FOldPasswordHash then
   begin
     FStatusBar.SetErrorStatus(_('Old Password is wrong.'));
     FOldPassword.Focus(False, 500);
   end
-  else if GetPasswordHash(Session.Query['NewPassword']) = FOldPasswordHash then
+  else if GetPasswordHash(ParamAsString('NewPassword')) = FOldPasswordHash then
   begin
     FStatusBar.SetErrorStatus(_('New Password must be different than old password.'));
     FNewPassword.Focus(False, 500);
   end
-  else if Session.Query['NewPassword'] <> Session.Query['ConfirmNewPassword'] then
+  else if ParamAsString('NewPassword') <> ParamAsString('ConfirmNewPassword') then
   begin
     FStatusBar.SetErrorStatus(_('Confirm New Password is wrong.'));
     FConfirmNewPassword.Focus(False, 500);
@@ -88,7 +100,7 @@ begin
   else
   begin
     try
-      TKConfig.Instance.Authenticator.Password := Session.Query['ConfirmNewPassword'];
+      TKAuthenticator.Current.Password := ParamAsString('ConfirmNewPassword');
       Close;
     except
       on E: Exception do
@@ -136,13 +148,13 @@ procedure TKExtChangePasswordWindow.InitDefaults;
 
 begin
   inherited;
-  FOldPasswordHash := TKConfig.Instance.Authenticator.Password;
+  FOldPasswordHash := TKAuthenticator.Current.Password;
 
   Modal := True;
-  Title := _(Session.Config.AppTitle);
+  Title := _(TKWebApplication.Current.Config.AppTitle);
   Width := 316;
   Height := 162;
-  Maximized := Session.IsMobileBrowser;
+  Maximized := TKWebRequest.Current.IsMobileBrowser;
   Border := not Maximized;
   Closable := True;
   Resizable := False;
@@ -151,21 +163,21 @@ begin
   FStatusBar.DefaultText := '';
   FStatusBar.BusyText := _('Changing password...');
 
-  FFormPanel := TExtFormFormPanel.CreateAndAddTo(Items);
+  FFormPanel := TExtFormFormPanel.CreateAndAddToArray(Items);
   FFormPanel.Region := rgCenter;
   FFormPanel.LabelWidth := 150;
   FFormPanel.LabelAlign := laRight;
   FFormPanel.Border := False;
-  FFormPanel.BodyStyle := SetPaddings(5, 5);
+  FFormPanel.BodyStyle := TJS.GetPadding(5, 5);
   FFormPanel.Frame := False;
   FFormPanel.MonitorValid := True;
   FFormPanel.Bbar := FStatusBar;
 
-  FConfirmButton := TKExtButton.CreateAndAddTo(FStatusBar.Items);
+  FConfirmButton := TKExtButton.CreateAndAddToArray(FStatusBar.Items);
   FConfirmButton.SetIconAndScale('password', 'medium');
   FConfirmButton.Text := _('Change password');
 
-  FOldPassword := TExtFormTextField.CreateAndAddTo(FFormPanel.Items);
+  FOldPassword := TExtFormTextField.CreateAndAddToArray(FFormPanel.Items);
   FOldPassword.Name := 'OldPassword';
   //FOldPassword.Value := ...
   FOldPassword.FieldLabel := _('Old Password');
@@ -174,7 +186,7 @@ begin
   FOldPassword.Width := 136;
   FOldPassword.EnableKeyEvents := True;
 
-  FNewPassword := TExtFormTextField.CreateAndAddTo(FFormPanel.Items);
+  FNewPassword := TExtFormTextField.CreateAndAddToArray(FFormPanel.Items);
   FNewPassword.Name := 'NewPassword';
   //FNewPassword.Value := ...
   FNewPassword.FieldLabel := _('New Password');
@@ -183,7 +195,7 @@ begin
   FNewPassword.Width := 136;
   FNewPassword.EnableKeyEvents := True;
 
-  FConfirmNewPassword := TExtFormTextField.CreateAndAddTo(FFormPanel.Items);
+  FConfirmNewPassword := TExtFormTextField.CreateAndAddToArray(FFormPanel.Items);
   FConfirmNewPassword.Name := 'ConfirmNewPassword';
   //FConfirmNewPassword.Value := ...
   FConfirmNewPassword.FieldLabel := _('Confirm New Password');
@@ -192,16 +204,22 @@ begin
   FConfirmNewPassword.Width := 136;
   FConfirmNewPassword.EnableKeyEvents := True;
 
-  FOldPassword.On('keyup', JSFunction(GetEnableButtonJS));
-  FNewPassword.On('keyup', JSFunction(GetEnableButtonJS));
-  FConfirmNewPassword.On('keyup', JSFunction(GetEnableButtonJS));
-  FOldPassword.On('specialkey', JSFunction('field, e', GetSubmitJS));
-  FNewPassword.On('specialkey', JSFunction('field, e', GetSubmitJS));
-  FConfirmNewPassword.On('specialkey', JSFunction('field, e', GetSubmitJS));
+  FOldPassword.On('keyup', GenerateAnonymousFunction(GetEnableButtonJS));
+  FNewPassword.On('keyup', GenerateAnonymousFunction(GetEnableButtonJS));
+  FConfirmNewPassword.On('keyup', GenerateAnonymousFunction(GetEnableButtonJS));
+  FOldPassword.On('specialkey', GenerateAnonymousFunction('field, e', GetSubmitJS));
+  FNewPassword.On('specialkey', GenerateAnonymousFunction('field, e', GetSubmitJS));
+  FConfirmNewPassword.On('specialkey', GenerateAnonymousFunction('field, e', GetSubmitJS));
 
-  FConfirmButton.Handler := Ajax(DoChangePassword, ['Dummy', FStatusBar.ShowBusy,
-    'OldPassword', FOldPassword.GetValue, 'NewPassword', FNewPassword.GetValue,
-    'ConfirmNewPassword', FConfirmNewPassword.GetValue]);
+//  FConfirmButton.Handler := Ajax(DoChangePassword, ['Dummy', FStatusBar.ShowBusy,
+//    'OldPassword', FOldPassword.GetValue, 'NewPassword', FNewPassword.GetValue,
+//    'ConfirmNewPassword', FConfirmNewPassword.GetValue]);
+  FConfirmButton.Handler := TKWebResponse.Current.Items.AjaxCallMethod(Self).SetMethod(DoChangePassword)
+    .AddParam('Dummy', FStatusBar.ShowBusy)
+    .AddParam('OldPassword', FOldPassword.GetValue)
+    .AddParam('NewPassword', FNewPassword.GetValue)
+    .AddParam('ConfirmNewPassword', FConfirmNewPassword.GetValue)
+    .AsFunction;
 
   FConfirmButton.Disabled := True;
 

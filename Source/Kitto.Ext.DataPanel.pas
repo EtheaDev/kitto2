@@ -21,12 +21,25 @@ unit Kitto.Ext.DataPanel;
 interface
 
 uses
-  SysUtils, Generics.Collections,
-  Ext, ExtPascal, ExtPascalUtils, ExtData,
-  superobject,
-  EF.Classes, EF.ObserverIntf, EF.Tree,
-  Kitto.Metadata.Views, Kitto.Metadata.DataView, Kitto.Store, Kitto.Types,
-  Kitto.Ext.Base, Kitto.Ext.Controller, Kitto.Ext.BorderPanel, Kitto.Ext.Editors;
+  SysUtils
+  , Generics.Collections
+  , Ext.Base
+  , Ext.Data
+  , superobject
+  , EF.Classes
+  , EF.ObserverIntf
+  , EF.Tree
+  , Kitto.JS
+  , Kitto.JS.Types
+  , Kitto.Metadata.Views
+  , Kitto.Metadata.DataView
+  , Kitto.Store
+  , Kitto.Types
+  , Kitto.Ext.Base
+  , Kitto.Ext.Controller
+  , Kitto.Ext.BorderPanel
+  , Kitto.Ext.Editors
+  ;
 
 type
   TKExtGetServerRecordEvent = reference to function: TKViewTableRecord;
@@ -42,14 +55,14 @@ type
     function GetServerRecord: TKViewTableRecord;
     function GetServerStore: TKViewTableStore;
   strict protected
-    procedure InitController(const AController: IKExtController); override;
+    procedure InitController(const AController: IJSController); override;
   public
     property ViewTable: TKViewTable read FViewTable write FViewTable;
     property ServerStore: TKViewTableStore read GetServerStore;
     property OnGetServerStore: TKExtGetServerStoreEvent read FOnGetServerStore write FOnGetServerStore;
     property ServerRecord: TKViewTableRecord read GetServerRecord;
     property OnGetServerRecord: TKExtGetServerRecordEvent read FOnGetServerRecord write FOnGetServerRecord;
-  published
+  //published
     procedure ExecuteButtonAction; override;
   end;
 
@@ -63,7 +76,6 @@ type
   strict private
     FServerStore: TKViewTableStore;
     FClientStore: TExtDataStore;
-    FClientReader: TExtDataJsonReader;
     FViewTable: TKViewTable;
     FOwnsServerStore: Boolean;
     FVisibleActions: TDictionary<string, Boolean>;
@@ -82,6 +94,7 @@ type
     procedure SetFieldValue(const AField: TKViewTableField; const AValue: TSuperAvlEntry);
     function FindValueByName(const AValues: ISuperObject; const AName: string): TSuperAvlEntry;
     function GetFieldFilterFunc: TKFieldFilterFunc;
+    procedure ExecuteDeferredFileOps(const ARecord: TKViewTableRecord; const AEvent: TKFileOpEvent);
   strict protected
     FButtonsRequiringSelection: TList<TExtObject>;
     FEditItems: TKEditItemList;
@@ -92,21 +105,19 @@ type
     procedure DoDisplay; override;
     procedure InitComponents; virtual;
     procedure InitDefaults; override;
-    procedure InitSubController(const AController: IKExtController); override;
+    procedure InitSubController(const AController: IJSController); override;
     procedure AddTopToolbarButtons; override;
     function AddTopToolbarButton(const AActionName, ATooltip, AImageName: string;
       const ARequiresSelection: Boolean): TKExtButton;
     property View: TKDataView read GetView;
     property ClientStore: TExtDataStore read FClientStore;
-    property ClientReader: TExtDataJsonReader read FClientReader;
     function CreateClientStore: TExtDataStore; virtual;
-    function CreateClientReader: TExtDataJsonReader; virtual;
-    procedure AddClientReaderField(const AReader: TExtDataJsonReader; const AViewField: TKViewField);
+    procedure AddClientReaderField(const AReader: TExtDataDataReader; const AViewField: TKViewField);
     procedure CreateClientReaderFields;
     function AddActionButton(const AUniqueId: string; const AView: TKView;
       const AToolbar: TKExtToolbar): TKExtActionButton; override;
-    function GetSelectConfirmCall(const AMessage: string; const AMethod: TExtProcedure): string; virtual;
-    function GetSelectCall(const AMethod: TExtProcedure): TExtFunction; virtual;
+    function GetSelectConfirmCall(const AMessage: string; const AMethod: TJSProcedure): string; virtual;
+    function GetSelectCall(const AMethod: TJSProcedure): TExtExpression; virtual;
     function AutoLoadData: Boolean; virtual;
     function GetParentDataPanel: TKExtDataPanelController;
     function GetRootDataPanel: TKExtDataPanelController;
@@ -114,10 +125,9 @@ type
     function UpdateRecord(const ARecord: TKVIewTableRecord; const ANewValues: ISuperObject;
       const AFieldName: string; const APersist: Boolean): string;
     function GetDefaultRemoteSort: Boolean; virtual;
-    function FindCurrentViewRecord: TKViewTableRecord;
     function GetCurrentViewRecord: TKViewTableRecord;
     procedure ShowEditWindow(const ARecord: TKViewTableRecord; const AEditMode: TKEditMode);
-    function GetDefaultEditControllerType: string; virtual;
+    function GetEditWindowDefaultControllerType: string; virtual;
     function IsMultiSelect: Boolean; virtual;
     function HasDefaultAction: Boolean;
     function GetExplicitDefaultAction: string;
@@ -137,8 +147,10 @@ type
     function IsViewFieldIncludedInClientStore(const AViewField: TKViewField): Boolean; virtual;
     procedure AddUsedViewFields; virtual;
     procedure AddUsedViewField(const AViewField: TKViewField);
-    function InitEditController(const AContainer: TExtContainer; const ARecord: TKViewTableRecord;
-      const AEditMode: TKEditMode): IKExtController;
+    function GetDefaultAllowClose: Boolean; override;
+    // Inherited classes should call UpdateRecord when changes are confirmed/applied
+    // and this method when changes are canceled. This class manages housekeeping.
+    procedure ChangesCanceled(const ARecord: TKViewTableRecord);
   public
     procedure AfterConstruction; override;
     destructor Destroy; override;
@@ -147,8 +159,8 @@ type
     property DefaultAutoOpen: Boolean read GetDefaultAutoOpen;
     function GetFilterExpression: string; virtual;
     procedure UpdateObserver(const ASubject: IEFSubject; const AContext: string = ''); override;
-    procedure InitActionController(const AAction: TKExtActionButton; const AController: IKExtController); virtual;
-  published
+    procedure InitActionController(const AAction: TKExtActionButton; const AController: IJSController); virtual;
+  //published
     procedure GetRecordPage;
     procedure GetImage;
     procedure LoadData; virtual; abstract;
@@ -163,16 +175,30 @@ type
 implementation
 
 uses
-  StrUtils, Math, Types, Classes,
-  EF.StrUtils, EF.SysUtils, EF.Localization, EF.Types,
-  Kitto.AccessControl, Kitto.Config, Kitto.Rules, Kitto.SQL,
-  Kitto.Ext.Session, KItto.Ext.Utils;
+  StrUtils
+  , Math
+  , Types
+  , Classes
+  , EF.StrUtils
+  , EF.SysUtils
+  , EF.Localization
+  , EF.Types
+  , Kitto.Auth
+  , Kitto.AccessControl
+  , Kitto.Config
+  , Kitto.Rules
+  , Kitto.SQL
+  , Kitto.Web.Application
+  , Kitto.Web.Request
+  , Kitto.Web.Response
+  , Kitto.Ext.Utils
+  ;
 
 { TKExtDataActionButton }
 
 procedure TKExtDataActionButton.ExecuteButtonAction;
 var
-  LController: IKExtController;
+  LController: IJSController;
 begin
   //inherited;
   Assert(Assigned(View));
@@ -181,9 +207,9 @@ begin
 
   PerformBeforeExecute;
   LController := TKExtControllerFactory.Instance.CreateController(
-    Session.ObjectCatalog, View, nil, nil, ActionObserver);
+    Session, View, nil, nil, ActionObserver);
   if LController.Config.GetBoolean('RequireSelection', True) then
-    FServerRecord := ServerStore.GetRecord(Session.GetQueries, Session.Config.JSFormatSettings, 0)
+    FServerRecord := ServerStore.GetRecord(TKWebRequest.Current.GetQueryFields, TKWebApplication.Current.Config.JSFormatSettings, 0)
   else
     FServerRecord := nil;
   InitController(LController);
@@ -204,7 +230,7 @@ begin
   Result := FServerStore;
 end;
 
-procedure TKExtDataActionButton.InitController(const AController: IKExtController);
+procedure TKExtDataActionButton.InitController(const AController: IJSController);
 begin
   inherited;
   Assert(Assigned(FViewTable));
@@ -265,12 +291,12 @@ begin
     if not LPersistIt and (LOldState = rsNew) then
       LRecord.MarkAsClean;
     if LPersistIt then
-      Session.Flash(Format(_('%s deleted.'), [_(ViewTable.DisplayLabel)]));
+      TKWebApplication.Current.Toast(Format(_('%s deleted.'), [_(ViewTable.DisplayLabel)]));
   except
     on E: EKValidationError do
     begin
       LRecord.RestorePreviousState;
-      ExtMessageBox.Alert(_(Session.Config.AppTitle), E.Message);
+      ExtMessageBox.Alert(_(TKWebApplication.Current.Config.AppTitle), E.Message);
       Exit;
     end;
   end;
@@ -324,7 +350,7 @@ begin
   Assert(Assigned(LViewTable));
 
   if Config.GetBoolean('Sys/ShowIcon', True) then
-    IconCls := Session.SetViewIconStyle(View, LViewTable.Model.ImageName);
+    IconCls := TKWebApplication.Current.SetViewIconStyle(View, LViewTable.Model.ImageName);
 
   FServerStore := Config.GetObject('Sys/ServerStore') as TKViewTableStore;
   if FServerStore = nil then
@@ -364,14 +390,20 @@ end;
 procedure TKExtDataPanelController.ShowEditWindow(const ARecord: TKViewTableRecord;
   const AEditMode: TKEditMode);
 var
-  LFormController: IKExtController;
+  LFormControllerType: string;
+  LFormControllerNode: TEFNode;
+  LFormController: IJSController;
 begin
   Assert((AEditMode = emNewrecord) or Assigned(ARecord));
   Assert(ViewTable <> nil);
 
   if Assigned(FEditHostWindow) then
-    FEditHostWindow.Free(True);
+  begin
+    FEditHostWindow.Delete;
+    FreeAndNil(FEditHostWindow);
+  end;
   FEditHostWindow := TKExtModalWindow.Create(Self);
+//  FEditHostWindow.OwnerCt := Session.HomeController.AsJSObject as TExtContainer;
 
   //FEditHostWindow.ResizeHandles := 'n s';
   FEditHostWindow.Layout := lyFit;
@@ -385,51 +417,47 @@ begin
   else
     FEditHostWindow.Title := _(ViewTable.DisplayLabel);
 
-  LFormController := InitEditController(FEditHostWindow, ARecord, AEditMode);
-  LFormController.Config.SetObject('Sys/HostWindow', FEditHostWindow);
-  LFormController.Config.SetBoolean('Sys/HostWindow/AutoSize',
-    FEditHostWindow.SetSizeFromTree(ViewTable, 'Controller/PopupWindow/'));
-  LFormController.Display;
-  FEditHostWindow.Show;
-end;
-
-function TKExtDataPanelController.InitEditController(const AContainer: TExtContainer;
-  const ARecord: TKViewTableRecord; const AEditMode: TKEditMode): IKExtController;
-var
-  LFormControllerType: string;
-  LFormControllerNode: TEFNode;
-begin
   LFormControllerNode := ViewTable.FindNode('Controller/FormController');
   if Assigned(LFormControllerNode) then
     LFormControllerType := LFormControllerNode.AsString;
   if LFormControllerType = '' then
-    LFormControllerType := GetDefaultEditControllerType;
-  Result := TKExtControllerFactory.Instance.CreateController(
-    AContainer, ViewTable.View, AContainer, LFormControllerNode, Self, LFormControllerType);
-  Result.Config.SetObject('Sys/ServerStore', ServerStore);
+    LFormControllerType := GetEditWindowDefaultControllerType;
+  if LFormControllerType = '' then
+    LFormControllerType := GetEditWindowDefaultControllerType;
+  LFormController := TKExtControllerFactory.Instance.CreateController(
+    FEditHostWindow, ViewTable.View, FEditHostWindow, LFormControllerNode, Self, LFormControllerType);
+  LFormController.Config.SetObject('Sys/ServerStore', ServerStore);
   if Assigned(ARecord) then
-    Result.Config.SetObject('Sys/Record', ARecord)
+    LFormController.Config.SetObject('Sys/Record', ARecord)
   else
-    SetNewRecordDefaultValues(Result.Config);
-  Result.Config.SetObject('Sys/ViewTable', ViewTable);
-  Result.Config.SetObject('Sys/CallingController', Self);
+    SetNewRecordDefaultValues(LFormController.Config);
+  LFormController.Config.SetObject('Sys/ViewTable', ViewTable);
+  LFormController.Config.SetObject('Sys/HostWindow', FEditHostWindow);
+  LFormController.Config.SetObject('Sys/CallingController', Self);
+//  LFormController.Config.SetBoolean('Sys/HostWindow/AutoSize',
+  FEditHostWindow.SetSizeFromTree(ViewTable, 'Controller/PopupWindow/');
 
   case AEditMode of
-    emNewRecord : Result.Config.SetString('Sys/Operation', 'Add');
-    emDupCurrentRecord : Result.Config.SetString('Sys/Operation', 'Dup');
-    emEditCurrentRecord : Result.Config.SetString('Sys/Operation', 'Edit');
+    emNewRecord : LFormController.Config.SetString('Sys/Operation', 'Add');
+    emDupCurrentRecord : LFormController.Config.SetString('Sys/Operation', 'Dup');
+    emEditCurrentRecord : LFormController.Config.SetString('Sys/Operation', 'Edit');
     emViewCurrentRecord :
     begin
       if not IsActionAllowed('Edit') then
-        Result.Config.SetBoolean('PreventEditing', True);
-      Result.Config.SetString('Sys/Operation', 'View');
+        LFormController.Config.SetBoolean('PreventEditing', True);
+      LFormController.Config.SetString('Sys/Operation', 'View');
     end;
   end;
+
+  LFormController.Display;
+
+  FEditHostWindow.Show;
 end;
 
 function TKExtDataPanelController.GetCurrentViewRecord: TKViewTableRecord;
 begin
-  Result := ServerStore.GetRecord(Session.GetQueries, Session.Config.JSFormatSettings, IfThen(IsMultiSelect, 0, -1));
+  Result := ServerStore.GetRecord(TKWebRequest.Current.GetQueryFields,
+    TKWebApplication.Current.Config.JSFormatSettings, IfThen(IsMultiSelect, 0, -1));
 end;
 
 function TKExtDataPanelController.FindViewLayout(
@@ -451,12 +479,12 @@ begin
     Result := ViewTable.FindLayout(ALayoutName);
 end;
 
-function TKExtDataPanelController.GetSelectConfirmCall(const AMessage: string; const AMethod: TExtProcedure): string;
+function TKExtDataPanelController.GetSelectConfirmCall(const AMessage: string; const AMethod: TJSProcedure): string;
 begin
   raise EKError.Create(_('Actions that require selection are not supported in this controller.'));
 end;
 
-function TKExtDataPanelController.GetSelectCall(const AMethod: TExtProcedure): TExtFunction;
+function TKExtDataPanelController.GetSelectCall(const AMethod: TJSProcedure): TExtExpression;
 begin
   raise EKError.Create(_('Actions that require selection are not supported in this controller.'));
 end;
@@ -474,7 +502,7 @@ begin
   Assert(Assigned(ViewTable));
   Assert(Assigned(ServerStore));
 
-  Result := TKExtDataActionButton.CreateAndAddTo(AToolbar.Items);
+  Result := TKExtDataActionButton.CreateAndAddToArray(AToolbar.Items);
   Result.Hidden := not AView.GetBoolean('IsVisible', True);
   Result.UniqueId := AUniqueId;
   Result.View := AView;
@@ -489,7 +517,7 @@ begin
     end;
   LResult := Result;
   TKExtDataActionButton(Result).OnInitController :=
-    procedure (AController: IKExtController)
+    procedure (AController: IJSController)
     begin
       InitActionController(LResult, AController);
     end;
@@ -504,36 +532,25 @@ begin
   if LRequireSelection then
     LConfirmationJS := GetSelectConfirmCall(LConfirmationMessage, TKExtDataActionButton(Result).ExecuteButtonAction)
   else
-    LConfirmationJS := GetConfirmCall(LConfirmationMessage, Result.ExecuteButtonAction);
+    LConfirmationJS := Result.GetConfirmCall(LConfirmationMessage);
 
   if LConfirmationMessage <> '' then
-    Result.Handler := JSFunction(LConfirmationJS)
+    Result.Handler := GenerateAnonymousFunction(LConfirmationJS)
   else if LRequireSelection then
     Result.On('click', GetSelectCall(TKExtDataActionButton(Result).ExecuteButtonAction))
   else
-    Result.On('click', Ajax(Result.ExecuteButtonAction, []));
+    Result.On('click', TKWebResponse.Current.Items.AjaxCallMethod(Self).SetMethod(Result.ExecuteButtonAction).AsFunction);
 end;
 
-function TKExtDataPanelController.CreateClientReader: TExtDataJsonReader;
-begin
-  Assert(Assigned(ViewTable));
-
-  Result := TExtDataJsonReader.Create(Self, JSObject('')); // Must pass '' otherwise invalid code is generated.
-  Result.Root := 'Root';
-  Result.TotalProperty := 'Total';
-  Result.MessageProperty := 'Msg';
-  Result.SuccessProperty := 'Success';
-end;
-
-procedure TKExtDataPanelController.AddClientReaderField(const AReader: TExtDataJsonReader; const AViewField: TKViewField);
+procedure TKExtDataPanelController.AddClientReaderField(const AReader: TExtDataDataReader; const AViewField: TKViewField);
 var
   I: Integer;
 
-  procedure DoAddReaderField(const AReader: TExtDataJsonReader; const AName, AType: string; const AUseNull: Boolean);
+  procedure DoAddReaderField(const AReader: TExtDataDataReader; const AName, AType: string; const AUseNull: Boolean);
   var
     LField: TExtDataField;
   begin
-    LField := TExtDataField.CreateAndAddTo(AReader.Fields);
+    LField := TExtDataField.CreateInlineAndAddToArray(AReader.Fields);
     LField.Name := AName;
     LField.&Type := AType;
     LField.UseNull := AUseNull;
@@ -558,15 +575,26 @@ var
 begin
   for I := 0 to ViewTable.FieldCount - 1 do
     if IsViewFieldIncludedInClientStore(ViewTable.Fields[I]) then
-      AddClientReaderField(ClientReader, ViewTable.Fields[I]);
+      AddClientReaderField(FClientStore.Proxy.Reader, ViewTable.Fields[I]);
 end;
 
 function TKExtDataPanelController.CreateClientStore: TExtDataStore;
+var
+  LProxy: TExtDataAjaxProxy;
+  LReader: TExtDataJsonReader;
 begin
   Result := TExtDataStore.Create(Self);
   Result.RemoteSort := ViewTable.GetBoolean('Controller/RemoteSort', GetDefaultRemoteSort);
-  Result.Url := MethodURI(GetRecordPage);
-  Result.On('exception', JSFunction('proxy, type, action, options, response, arg', 'loadError(type, action, response);'));
+  LProxy := TExtDataAjaxProxy.CreateInline(Result);
+  LProxy.Url := GetMethodURL(GetRecordPage);
+  LReader := TExtDataJsonReader.CreateInline(Result);
+  LReader.RootProperty := 'Root';
+  LReader.TotalProperty := 'Total';
+  LReader.MessageProperty := 'Msg';
+  LReader.SuccessProperty := 'Success';
+  LProxy.Reader := LReader;
+  Result.Proxy := LProxy;
+  Result.On('exception', GenerateAnonymousFunction('proxy, type, action, options, response, arg', 'loadError(type, action, response);'));
 end;
 
 procedure TKExtDataPanelController.SetURLFieldValues(const ARecord: TKViewTableRecord);
@@ -582,7 +610,7 @@ begin
       LViewTableField := ARecord.FieldByName(ViewTable.Fields[I].AliasedName);
       LImageField := ARecord.FieldByName(ViewTable.Fields[I].GetURLFieldName);
       if not LVIewTableField.IsNull then
-        LImageField.AsString := MethodURI(GetImage, ['fn', LViewTableField.FieldName, 'rn', ARecord.Index])
+        LImageField.AsString := GetMethodURL(GetImage) + '&fn=' + LViewTableField.FieldName + '&rn=' + ARecord.Index.ToString
       else
         LImageField.AsString := '';
       { TODO : handle null case? }
@@ -592,7 +620,7 @@ end;
 
 procedure TKExtDataPanelController.GetRecordPage;
 begin
-  DoGetRecordPage(Session.QueryAsInteger['start'], Session.QueryAsInteger['limit'], True);
+  DoGetRecordPage(ParamAsInteger('start'), ParamAsInteger('limit'), True);
 end;
 
 function TKExtDataPanelController.GetRecordPageFilter: string;
@@ -652,14 +680,14 @@ begin
       end;
     end;
     if AFillResponse then
-      Session.ResponseItems.AddJSON(Format('{Success: true, Total: %d, Root: %s}', [LTotal, LData]));
+      TKWebResponse.Current.Items.AddJSON(Format('{Success: true, Total: %d, Root: %s}', [LTotal, LData]));
   except
     on E: Exception do
     begin
       if AFillResponse then
       begin
-        Session.ResponseItems.Clear;
-        Session.ResponseItems.AddJSON(Format('{Success: false, Msg: "%s", Root: []}', [E.Message]));
+        TKWebResponse.Current.Items.Clear;
+        TKWebResponse.Current.Items.AddJSON(Format('{Success: false, Msg: "%s", Root: []}', [E.Message]));
       end
       else
         raise;
@@ -693,6 +721,11 @@ procedure TKExtDataPanelController.SetNewRecordDefaultValues(const ANode: TEFNod
 begin
 end;
 
+function TKExtDataPanelController.GetDefaultAllowClose: Boolean;
+begin
+  Result := True;
+end;
+
 function TKExtDataPanelController.GetDefaultAutoOpen: Boolean;
 begin
   Assert(Assigned(ViewTable));
@@ -705,7 +738,7 @@ begin
   Result := False;
 end;
 
-function TKExtDataPanelController.GetDefaultEditControllerType: string;
+function TKExtDataPanelController.GetEditWindowDefaultControllerType: string;
 begin
   Result := 'Form';
 end;
@@ -728,7 +761,7 @@ var
   LStream: TStream;
 begin
   { TODO : Use PK to locate record instead? }
-  LImageField := ServerStore.Records[Session.QueryAsInteger['rn']].FieldByName(Session.Query['fn']);
+  LImageField := ServerStore.Records[ParamAsInteger('rn')].FieldByName(ParamAsString('fn'));
 
   if not LImageField.IsNull then
   begin
@@ -752,15 +785,15 @@ begin
     Result := 'LookupConfirm'
   else
   begin
-    LConfigDefaultAction := Session.Config.Config.GetString('Defaults/Grid/DefaultAction');
+    LConfigDefaultAction := TKWebApplication.Current.Config.Config.GetString('Defaults/Grid/DefaultAction');
     if (LConfigDefaultAction <> '') and IsActionAllowed(LConfigDefaultAction) then
       Result := LConfigDefaultAction
-    else if IsActionAllowed('View') then
-      Result := 'View'
-    else if IsActionAllowed('Edit') then
-      Result := 'Edit'
-    else
-      Result := '';
+  else if IsActionAllowed('View') then
+    Result := 'View'
+  else if IsActionAllowed('Edit') then
+    Result := 'Edit'
+  else
+    Result := '';
   end;
 end;
 
@@ -774,8 +807,8 @@ var
   LFieldName: string;
   LDirection: string;
 begin
-  LFieldName := Session.Query['sort'];
-  LDirection := Session.Query['dir'];
+  LFieldName := ParamAsString('sort');
+  LDirection := ParamAsString('dir');
 
   if LFieldName <> '' then
     Result := ServerStore.Header.FieldByName(LFieldName).ViewField.BuildSortClause(SameText(LDirection, 'desc'))
@@ -793,7 +826,7 @@ begin
 end;
 
 procedure TKExtDataPanelController.InitActionController(const AAction: TKExtActionButton;
-  const AController: IKExtController);
+  const AController: IJSController);
 begin
   AController.Config.SetString('Sys/FilterExpression', GetFilterExpression);
 end;
@@ -808,7 +841,7 @@ begin
 end;
 
 procedure TKExtDataPanelController.InitSubController(
-  const AController: IKExtController);
+  const AController: IJSController);
 begin
   inherited;
   Assert(Assigned(AController));
@@ -866,8 +899,6 @@ begin
   AddUsedViewFields;
 
   FClientStore := CreateClientStore;
-  FClientReader := CreateClientReader;
-  FClientStore.Reader := FClientReader;
 
   FVisibleActions.AddOrSetValue('View', IsActionSupported('View') and (FViewTable.GetBoolean('Controller/AllowViewing') or Config.GetBoolean('AllowViewing')));
   FAllowedActions.AddOrSetValue('View', FVisibleActions['View'] and FViewTable.IsAccessGranted(ACM_VIEW));
@@ -927,7 +958,7 @@ function TKExtDataPanelController.AddTopToolbarButton(const AActionName, AToolti
 begin
   if (AActionName <> '') and IsActionSupported(AActionName) then
   begin
-    Result := TKExtButton.CreateAndAddTo(TopToolbar.Items);
+    Result := TKExtButton.CreateAndAddToArray(TopToolbar.Items);
     Result.Tooltip := ATooltip;
     Result.SetIconAndScale(AImageName);
     if (AActionName <> '') and not IsActionVisible(AActionName) then
@@ -948,22 +979,29 @@ begin
 
   FNewButton := AddTopToolbarButton('Add', Format(_('Add %s'), [_(ViewTable.DisplayLabel)]), 'new_record', False);
   if Assigned(FNewButton) then
-    FNewButton.On('click', Ajax(NewRecord));
-  TExtToolbarSpacer.CreateAndAddTo(TopToolbar.Items);
+  begin
+    //FNewButton.On('click', Ajax(NewRecord));
+    FNewButton.On('click', TKWebResponse.Current.Items.AjaxCallMethod(Self).SetMethod(NewRecord).AsFunction);
+//    TExtToolbarSpacer.CreateAndAddTo(TopToolbar.Items);
+  end;
 
   FDupButton := AddTopToolbarButton('Dup', Format(_('Duplicate %s'), [_(ViewTable.DisplayLabel)]), 'dup_record', True);
   if Assigned(FDupButton) then
+  begin
     FDupButton.On('click', GetSelectCall(DuplicateRecord));
-  TExtToolbarSpacer.CreateAndAddTo(TopToolbar.Items);
+//    TExtToolbarSpacer.CreateAndAddTo(TopToolbar.Items);
+  end;
 
   FEditButton := AddTopToolbarButton('Edit', Format(_('Edit %s'), [_(ViewTable.DisplayLabel)]), 'edit_record', True);
   if Assigned(FEditButton) then
+  begin
     FEditButton.On('click', GetSelectCall(EditRecord));
-  TExtToolbarSpacer.CreateAndAddTo(TopToolbar.Items);
+//    TExtToolbarSpacer.CreateAndAddTo(TopToolbar.Items);
+  end;
 
   FDeleteButton := AddTopToolbarButton('Delete', Format(_('Delete %s'), [_(ViewTable.DisplayLabel)]), 'delete_record', True);
   if Assigned(FDeleteButton) then
-    FDeleteButton.On('click', JSFunction(GetSelectConfirmCall(
+    FDeleteButton.On('click', GenerateAnonymousFunction(GetSelectConfirmCall(
       Format(_('Selected %s {caption} will be deleted. Are you sure?'), [_(ViewTable.DisplayLabel)]), DeleteCurrentRecord)));
 
   FViewButton := AddTopToolbarButton('View', Format(_('View %s'), [_(ViewTable.DisplayLabel)]), 'view_record', True);
@@ -985,7 +1023,7 @@ function TKExtDataPanelController.GetRowButtonsDisableJS: string;
 var
   I: Integer;
 begin
-  Result := 'var disabled = s.getCount() == 0;';
+  Result := 'var disabled = s.getCount() === 0;';
   for I := 0 to FButtonsRequiringSelection.Count - 1 do
     Result := Result + Format('%s.setDisabled(disabled);', [FButtonsRequiringSelection[I].JSName]);
 end;
@@ -1003,11 +1041,17 @@ begin
   FButtonsRequiringSelection.Clear;
 end;
 
+procedure TKExtDataPanelController.ChangesCanceled(const ARecord: TKViewTableRecord);
+begin
+  NotifyObservers('Canceled');
+  ExecuteDeferredFileOps(ARecord, oeCancel);
+end;
+
 procedure TKExtDataPanelController.CheckCanRead;
 begin
   Assert(ViewTable <> nil);
 
-  Session.Config.CheckAccessGranted(ViewTable.GetResourceURI, ACM_READ);
+  TKAccessController.Current.CheckAccessGranted(TKAuthenticator.Current.UserName, ViewTable.GetResourceURI, ACM_READ);
 end;
 
 procedure TKExtDataPanelController.SetFieldValue(const AField: TKViewTableField;
@@ -1023,7 +1067,7 @@ begin
   if Assigned(AValue) then
   begin
     LValue := AValue.Value.AsString;
-    AField.SetAsJSONValue(LValue, False, Session.Config.UserFormatSettings);
+    AField.SetAsJSONValue(LValue, False, TKWebApplication.Current.Config.UserFormatSettings);
 
     LSep := TKConfig.Instance.MultiFieldSeparator;
     if AValue.Name.Contains(LSep) then
@@ -1038,14 +1082,9 @@ begin
       end;
       Assert(Length(LNames) = Length(LValues));
       for I := Low(LNames) to High(LNames) do
-        AField.ParentRecord.FieldByName(LNames[I]).SetAsJSONValue(LValues[I], False, Session.Config.UserFormatSettings);
+        AField.ParentRecord.FieldByName(LNames[I]).SetAsJSONValue(LValues[I], False, TKWebApplication.Current.Config.UserFormatSettings);
     end;
   end;
-end;
-
-function TKExtDataPanelController.FindCurrentViewRecord: TKViewTableRecord;
-begin
-  Result := ServerStore.FindRecord(Session.GetQueries, Session.Config.JSFormatSettings, IfThen(IsMultiSelect, 0, -1));
 end;
 
 function TKExtDataPanelController.FindValueByName(const AValues: ISuperObject; const AName: string): TSuperAvlEntry;
@@ -1064,65 +1103,50 @@ function TKExtDataPanelController.UpdateRecord(const ARecord: TKVIewTableRecord;
   const AFieldName: string; const APersist: Boolean): string;
 var
   LOldRecord: TKViewTableRecord;
-  LField: TKViewTableField;
-  LValue: TSuperAvlEntry;
 begin
   LOldRecord := TKViewTableRecord.Clone(ARecord);
   try
     try
-      ARecord.Store.DisableChangeNotifications;
-      try
-        // Modify record value(s).
-        if AFieldName <> '' then
+      ARecord.Store.DoWithChangeNotificationsDisabled(
+        procedure
+        var
+          LValue: TSuperAvlEntry;
+          LField: TKViewTableField;
         begin
-          FEditItems.EditorsByFieldName(AFieldName,
-            procedure (AEditor: IKExtEditor)
+          // Modify record value(s).
+          if AFieldName <> '' then
+          begin
+            FEditItems.EditorsByFieldName(AFieldName,
+              procedure (AEditor: IKExtEditor)
+              begin
+                LField := ARecord.FieldByName(AEditor.FieldName);
+                LValue := FindValueByName(ANewValues, LField.FieldName);
+                Assert(Assigned(LValue));
+                SetFieldValue(LField, LValue);
+              end);
+          end
+          else
+          begin
+            for LValue in ANewValues.AsObject do
             begin
-              LField := ARecord.FieldByName(AEditor.FieldName);
-              LValue := FindValueByName(ANewValues, LField.FieldName);
-              Assert(Assigned(LValue));
+              LField := ARecord.FieldByName(LValue.Name);
               SetFieldValue(LField, LValue);
-            end);
-        end
-        else
-        begin
-          for LValue in ANewValues.AsObject do
-          begin
-            LField := ARecord.FieldByName(LValue.Name);
-            SetFieldValue(LField, LValue);
-          end;
-        end;
-      finally
-        ARecord.Store.EnableChangeNotifications;
-      end;
-      // Get uploaded files.
-      Session.EnumUploadedFiles(
-        procedure (AFile: TKExtUploadedFile)
-        begin
-          if (AFile.Context is TKViewField) and (TKViewField(AFile.Context).Table = ViewTable) then
-          begin
-            if TKViewField(AFile.Context).DataType is TEFBlobDataType then
-              ARecord.FieldByName(TKViewField(AFile.Context).AliasedName).AsBytes := AFile.Bytes
-            else if TKViewField(AFile.Context).DataType is TKFileReferenceDataType then
-              ARecord.FieldByName(TKViewField(AFile.Context).AliasedName).AsString := AFile.FileName
-            else
-              raise Exception.CreateFmt(_('Data type %s does not support file upload.'), [TKViewField(AFile.Context).DataType.GetTypeName]);
-            Session.RemoveUploadedFile(AFile);
+            end;
           end;
         end);
-
       // Save record.
       ViewTable.Model.SaveRecord(ARecord, APersist and not ViewTable.IsDetail,
         procedure
         begin
-          Session.Flash(_('Changes saved succesfully.'));
+          TKWebApplication.Current.Toast(_('Changes saved succesfully.'));
         end);
+      ExecuteDeferredFileOps(ARecord, oePost);
       Config.SetObject('Sys/Record', ARecord);
       Result := '';
     except
       on E: EKValidationError do
       begin
-        ExtMessageBox.Alert(_(Session.Config.AppTitle), E.Message);
+        ExtMessageBox.Alert(_(TKWebApplication.Current.Config.AppTitle), E.Message);
         Result := E.Message;
         ARecord.Assign(LOldRecord);
         Exit;
@@ -1141,7 +1165,7 @@ end;
 procedure TKExtDataPanelController.UpdateObserver(const ASubject: IEFSubject; const AContext: string);
 begin
   inherited;
-  if (AContext = 'Confirmed') and Supports(ASubject.AsObject, IKExtController) then
+  if (AContext = 'Confirmed') and Supports(ASubject.AsObject, IJSController) then
     LoadData;
 end;
 
@@ -1151,6 +1175,31 @@ begin
   begin
     SetLength(FUsedViewFields, Length(FUsedViewFields) + 1);
     FUsedViewFields[High(FUsedViewFields)] := AViewField;
+  end;
+end;
+
+procedure TKExtDataPanelController.ExecuteDeferredFileOps(const ARecord: TKViewTableRecord; const AEvent: TKFileOpEvent);
+var
+  LFileOp: TKFileOp;
+  I: Integer;
+  LDeferredFileOps: TEFNode;
+  J: Integer;
+begin
+  for I := 0 to ARecord.FieldCount - 1 do
+  begin
+    LDeferredFileOps := ARecord.Fields[I].FindNode('DeferredFileOps');
+    if Assigned(LDeferredFileOps) then
+    begin
+      for J := 0 to LDeferredFileOps.ChildCount - 1 do
+      begin
+        LFileOp := LDeferredFileOps.Children[J].AsStringArray;
+        if (LFileOp.Event = AEvent) and (LFileOp.Kind = okDelete) then
+        begin
+          if FileExists(LFileOp.PathName) then
+            DeleteFile(LFileOp.PathName);
+        end;
+      end;
+    end;
   end;
 end;
 

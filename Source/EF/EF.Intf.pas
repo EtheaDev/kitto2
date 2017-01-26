@@ -98,8 +98,7 @@ begin
   Result := Self;
 end;
 
-function TEFNoRefCountObject.QueryInterface(const IID: TGUID;
-  out Obj): HRESULT;
+function TEFNoRefCountObject.QueryInterface(const IID: TGUID; out Obj): HRESULT;
 begin
   if GetInterface(IID, Obj) then
     Result := 0

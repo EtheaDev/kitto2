@@ -21,7 +21,7 @@ unit Kitto.Ext.AccordionPanel;
 interface
 
 uses
-  Ext,
+  Ext.Base,
   Kitto.Ext.Base, Kitto.Metadata.Views;
 
 type
@@ -38,10 +38,15 @@ type
 implementation
 
 uses
-  SysUtils,
-  ExtPascal, ExtLayout,
-  EF.Tree, EF.Localization,
-  Kitto.Types, Kitto.AccessControl, Kitto.Ext.Controller, Kitto.Ext.Session;
+  SysUtils
+  , EF.Tree
+  , EF.Localization
+  , Kitto.Types
+  , Kitto.AccessControl
+  , Kitto.JS
+  , Kitto.Web.Application
+  , Kitto.Ext.Controller
+  ;
 
 { TKExtAccordionPanelController }
 
@@ -53,13 +58,13 @@ begin
   MinSize := 20;
   MaxSize := 400;
 
-  LayoutConfig := JSObject('animate:true');
+  LayoutConfig.SetConfigItem('animate', True);
   DisplaySubViewsAndControllers;
 end;
 
 procedure TKExtAccordionPanelController.DisplaySubViewsAndControllers;
 var
-  LController: IKExtController;
+  LController: IJSController;
   LViews: TEFNode;
   I: Integer;
   LView: TKView;
@@ -71,7 +76,7 @@ begin
     begin
       if SameText(LViews.Children[I].Name, 'View') then
       begin
-        LView := Session.Config.Views.ViewByNode(LViews.Children[I]);
+        LView := TKWebApplication.Current.Config.Views.ViewByNode(LViews.Children[I]);
         if LView.IsAccessGranted(ACM_VIEW) then
         begin
           LController := TKExtControllerFactory.Instance.CreateController(Self, LView, Self);
@@ -89,7 +94,7 @@ begin
         raise EKError.Create(_('AccordionPanel''s SubViews node may only contain View or Controller subnodes.'));
     end;
     if Items.Count > 0 then
-      On('afterrender', JSFunction(JSName + '.getLayout().setActiveItem(0);'));
+      &On('afterrender', GenerateAnonymousFunction(JSName + '.getLayout().setActiveItem(0);'));
   end;
 end;
 

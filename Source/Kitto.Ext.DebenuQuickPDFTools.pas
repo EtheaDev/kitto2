@@ -103,7 +103,7 @@ type
     function GetDefaultFileExtension: string; override;
   public
     class function GetDefaultImageName: string; override;
-  published
+  //published
     property LayoutFileName: string read GetLayoutFileName;
     property BaseFileName: string read GetBaseFileName;
   end;
@@ -111,10 +111,21 @@ type
 implementation
 
 uses
-  Windows,
-  System.Math , System.TypInfo, System.UIConsts,
-  Ext, EF.Classes, EF.StrUtils, EF.Localization, EF.DB, EF.SysUtils, EF.Macros,
-  Kitto.Metadata.Models, Kitto.Ext.Session, Kitto.Config;
+  Windows
+  , Math
+  , TypInfo
+  , UIConsts
+  , Ext.Base
+  , EF.Classes
+  , EF.StrUtils
+  , EF.Localization
+  , EF.DB
+  , EF.SysUtils
+  , EF.Macros
+  , Kitto.Metadata.Models
+  , Kitto.Config
+  , Kitto.Web.Application
+  ;
 
 { TMergePDFToolController }
 
@@ -394,7 +405,7 @@ begin
         LWidth := LNode.GetInteger('Width');
         LHeight := LNode.GetInteger('Height');
         //Add an image
-        LImageFileName := Session.Config.FindResourcePathName(LImageFileName);
+        LImageFileName := TKWebApplication.Current.Config.FindResourcePathName(LImageFileName);
         AddImage(LImageFileName,LLeft,LTop,LWidth,LHeight);
       end
       else if SameText(LNode.Name,'Text') then

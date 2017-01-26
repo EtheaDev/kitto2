@@ -37,7 +37,7 @@ Charset: utf-8
 FOPEnginePath: %FOP1_1%
 
 FastCGI:
-  TCPPort: 2202
+  TCPPort: 2602
 
 UserFormats:
   Date: dd/mm/yyyy

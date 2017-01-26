@@ -1,28 +1,5 @@
 function kittoInit()
 {
-  // Not used yet.
-  Ext.override(Ext.Panel, {
-    hideTbar: function() {
-      this.tbar.setVisibilityMode(Ext.Element.DISPLAY);
-      if (this.tbar.isVisible())
-        this.tbar.fadeOut();
-      //this.tbar.hide();
-      //this.syncSize();
-      //if (this.ownerCt)
-      //  this.ownerCt.doLayout();
-    },
-
-    showTbar: function() {
-      this.tbar.setVisibilityMode(Ext.Element.DISPLAY);
-      if (!this.tbar.isVisible())
-        this.tbar.fadeIn();
-      //this.tbar.show();
-      //this.syncSize();
-      //if (this.ownerCt)
-      //    this.ownerCt.doLayout();
-    }
-  });
-
   Ext.override(Ext.Component, {
     getTopOwner: function() {
       var o = this.ownerCt;
@@ -30,82 +7,6 @@ function kittoInit()
         return this;
       else
         return o.getTopOwner();
-    },
-
-    getFormPanelOptimalSize: function() {
-      var s;
-      if (this.items)
-      {
-        for (var i = 0; i < this.items.getCount(); i++)
-        {
-          var item = this.items.get(i);
-          if (item instanceof Ext.form.FormPanel)
-            s = item.getOptimalSize();
-          else
-            s = item.getFormPanelOptimalSize();
-          if (s)
-            break;
-        }
-      }
-      return s;
-    }
-  });
-
-  Ext.override(Ext.form.FormPanel, {
-    getOptimalSize: function() {
-      var s = new Object;
-      s.x = 0;
-      s.y = 0;
-      for (var i = 0; i < this.items.getCount(); i++)
-      {
-        var item = this.items.get(i);
-        var w = 0;
-        var h = 0;
-
-        if (item instanceof Ext.Container && item.items && item.initialConfig.layout == "column")
-        {
-          for (var j = 0; j < item.items.getCount(); j++)
-            w += item.items.get(j).getWidth();
-          w += 24;
-        }
-        else
-        {
-          w = item.getEl().getRight() - this.getEl().getLeft();
-        }
-        h = item.getEl().getBottom() - this.getEl().getTop();
-        if (w > s.x)
-          s.x = w;
-        if (h > s.y)
-          s.y = h;
-      }
-      if (this.fbar)
-      {
-        s.y += this.fbar.getEl().getHeight();
-      }
-      return s;
-    }
-  });
-
-  Ext.override(Ext.Window, {
-    setClippedHeight: function(y) {
-      ws = getWindowClientSize();
-      if (y > ws.y)
-        y = ws.y;
-      this.setHeight(y);
-      p = this.getPosition();
-      this.setPosition(p[0], (ws.y / 2) - (y / 2));
-    },
-
-    setOptimalSize: function(extraWidth, extraHeight) {
-      s = this.getFormPanelOptimalSize();
-      if (s) {
-        // Add space for borders and caption bar.
-        // TODO: Calculate them automatically.
-        s.x += 50 + extraWidth;
-        s.y += extraHeight;
-        s = clipToClientArea(s);
-        this.setSize(s.x, s.y);
-      }
     }
   });
 
@@ -191,4 +92,14 @@ function kittoInit()
       return String.format('<div class="x-grid3-check-col{0}"></div>', val ? "-on" : '');
     }
   });
+  
+  TextMetrics = new Ext.util.TextMetrics("body");
+  Download = Ext.DomHelper.append(document.body, {tag: "iframe", cls: "x-hidden"});
+
+  //kittoLoadMask = new Ext.LoadMask({msg: "Kitto is starting...", target: Ext.getBody()});
+  Ext.Ajax.on("beforerequest", function() { showKittoLoadMask(1); });
+  Ext.Ajax.on("requestcomplete", function() { showKittoLoadMask(-1); });
+  Ext.Ajax.on("requestexception", function() { showKittoLoadMask(0); });
+
+  Ext.ariaWarn = Ext.emptyFn;
 }

@@ -21,48 +21,20 @@ unit Kitto.Ext.Controller;
 interface
 
 uses
-  SysUtils, Classes,
-  Ext, ExtPascal,
-  EF.Intf, EF.ObserverIntf, EF.Tree, EF.Types,
-  Kitto.Types, Kitto.Metadata.Views;
+  SysUtils
+  , Classes
+  , EF.Intf
+  , EF.ObserverIntf
+  , EF.Tree
+  , EF.Types
+  , Kitto.JS.Base
+  , Ext.Base
+  , Kitto.Types
+  , Kitto.Metadata.Views
+  , Kitto.JS
+  ;
 
 type
-  /// <summary>
-  ///  Base interface for controllers. Controllers manages views to build
-  ///  the user interface.
-  /// </summary>
-  IKExtController = interface(IEFInterface)
-    ['{FCDFC7CC-E202-4C20-961C-11255CABE497}']
-
-    /// <summary>
-    ///   Renders AView according to the Config.
-    /// </summary>
-    procedure Display;
-
-    function GetConfig: TEFNode;
-    property Config: TEFNode read GetConfig;
-
-    function GetView: TKView;
-    procedure SetView(const AValue: TKView);
-    property View: TKView read GetView write SetView;
-
-    function GetContainer: TExtContainer;
-    procedure SetContainer(const AValue: TExtContainer);
-    property Container: TExtContainer read GetContainer write SetContainer;
-
-    /// <summary>
-    ///  Returns True if the controller should be freed right after
-    ///  calling Display because it does all its job inside that method, and
-    ///  False if the controller stays on screen and is interactive instead.
-    /// </summary>
-    function IsSynchronous: Boolean;
-  end;
-
-  IKExtControllerHost = interface(IEFInterface)
-    ['{67DA8FF9-23ED-41ED-A773-5D09AEEE2D80}']
-    procedure InitController(const AController: IKExtController);
-  end;
-
   /// <summary>
   ///  Interface implemented by objects that can be activated in some way,
   ///  for example put into tab pages.
@@ -135,9 +107,9 @@ de-registration gracefully. }
     /// <param name="ACustomType">
     ///  Custom controller type, used to override the one specified in the view.
     /// </param>
-    function CreateController(const AOwner: TComponent; const AView: TKView;
-      const AContainer: TExtContainer; const AConfig: TEFNode = nil;
-      const AObserver: IEFObserver = nil; const ACustomType: string = ''): IKExtController;
+    function CreateController(const AOwner: TJSBase; const AView: TKView;
+      const AContainer: IJSControllerContainer; const AConfig: TEFNode = nil;
+      const AObserver: IEFObserver = nil; const ACustomType: string = ''): IJSController;
   end;
 
 implementation
@@ -150,7 +122,7 @@ uses
 procedure TKExtControllerRegistry.BeforeRegisterClass(const AId: string;
   const AClass: TClass);
 begin
-  if not AClass.InheritsFrom(TExtObject) or not Supports(AClass, IKExtController) then
+  if not AClass.InheritsFrom(TExtObject) or not Supports(AClass, IJSController) then
     raise EKError.CreateFmt('Cannot register class %s (Id %s). Class is not a TExtObject descendant or does not support IKController.', [AClass.ClassName, AId]);
   inherited;
 end;
@@ -202,15 +174,14 @@ begin
     Result := ADefaultResult;
 end;
 
-function TKExtControllerFactory.CreateController(const AOwner: TComponent;
-  const AView: TKView; const AContainer: TExtContainer; const AConfig: TEFNode;
-  const AObserver: IEFObserver; const ACustomType: string): IKExtController;
+function TKExtControllerFactory.CreateController(const AOwner: TJSBase;
+  const AView: TKView; const AContainer: IJSControllerContainer; const AConfig: TEFNode;
+  const AObserver: IEFObserver; const ACustomType: string): IJSController;
 var
   LClass: TExtObjectClass;
   LSubject: IEFSubject;
   LObject: TExtObject;
   LType: string;
-  LControllerHost: IKExtControllerHost;
   LSupportsContainer: Boolean;
 begin
   Assert(AView <> nil);
@@ -230,18 +201,15 @@ begin
   LSupportsContainer := InvokeBooleanStaticMethod(LClass, 'SupportsContainer', True);
 
   if Assigned(AContainer) and LSupportsContainer then
-    LObject := LClass.Create(AContainer)
+    LObject := LClass.Create(AContainer.AsJSObject)
   else
     LObject := LClass.Create(AOwner);
 
-  if not Supports(LObject, IKExtController, Result) then
+  if not Supports(LObject, IJSController, Result) then
     raise EKError.Create('Object does not support IKController.');
 
   if Assigned(AContainer) and LSupportsContainer then
-  begin
-    LObject.AddTo(AContainer.Items);
-    AContainer.DoLayout;
-  end;
+    AContainer.AddItem(LObject);
 
   if AConfig <> nil then
     Result.Config.Assign(AConfig)
@@ -250,8 +218,8 @@ begin
   // Keep track of the SupportsContainer info fetched from the class for later use.
   Result.Config.SetBoolean('Sys/SupportsContainer', LSupportsContainer);
   Result.View := AView;
-  if Assigned(AContainer) and Supports(AContainer, IKExtControllerHost, LControllerHost) then
-    LControllerHost.InitController(Result);
+  if Assigned(AContainer) then
+    AContainer.InitSubController(Result);
   if LSupportsContainer then
     Result.Container := AContainer;
   if Assigned(AObserver) and Supports(Result.AsObject, IEFSubject, LSubject) then

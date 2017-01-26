@@ -701,6 +701,8 @@ function GetCurrentProcessMemory: Cardinal;
 /// extension (without the dot).</returns>
 function GetDataType(const ABytes: TBytes; const ADefault: string): string;
 
+procedure StreamToFile(const AStream: TStream; const AFileName: string);
+
 implementation
 
 uses
@@ -1555,7 +1557,7 @@ begin
   begin
     LastError := GetLastError();
     if LastError <> 0 then
-      ErrorMsg := Format(SOSError, [LastError, SysErrorMessage(LastError)])
+      ErrorMsg := Format(SOSError, [LastError, SysErrorMessage(LastError), ''])
     else
       ErrorMsg := SUnkOSError;
     raise Exception.CreateFmt(_('Error "%s" while removing file "%s". The file might be in use.'),
@@ -1785,6 +1787,20 @@ begin
       Result := 'ico'
     else if (ABytes[0] = $25) and (ABytes[1] = $50) and (ABytes[2] = $44) and (ABytes[3] = $46) then
       Result := 'pdf';
+  end;
+end;
+
+procedure StreamToFile(const AStream: TStream; const AFileName: string);
+var
+  LFileStream: TFileStream;
+begin
+  Assert(Assigned(AStream));
+
+  LFileStream := TFileStream.Create(AFileName, fmCreate or fmShareExclusive);
+  try
+    LFileStream.CopyFrom(AStream, 0);
+  finally
+    FreeAndNil(LFileStream);
   end;
 end;
 

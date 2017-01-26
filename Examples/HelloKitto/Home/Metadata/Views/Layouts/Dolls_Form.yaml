@@ -14,5 +14,6 @@ Row:
 Row:
   Field: Aspect
     CharWidth: 16
-    Lines: 14
-  Field: Picture
+    Lines: 8
+  Field: Picture_File
+    CharWidth: 16

@@ -21,8 +21,13 @@ unit EF.StrUtils;
 interface
 
 uses
-  SysUtils, Types, Classes, DB,
-  EF.Types;
+  SysUtils
+  , Types
+  , Classes
+  , DB
+  , Generics.Collections
+  , EF.Types
+  ;
 
 ///	<summary>
 ///	  Returns the index of the last occurrence of ASubString in AString.
@@ -273,21 +278,42 @@ function Join(const AStrings: TStringDynArray; const ASeparator: string = ''): s
 function SplitPairs(const AString: string; const ASeparators: string = ' '): TEFPairs;
 
 ///	<summary>
-///	  Joins the pairs producing a string with a list of name=value pairs
-///	  separated by the specified separator.
+///	 Joins the pairs producing a string with a list of name=value pairs
+///	 separated by the specified separator.
 ///	</summary>
 function JoinPairs(const APairs: TEFPairs; const ASeparator: string = ''): string;
 
-///	<summary>Formats the specified number of bytes in GBs, MBs, KBs or bytes
-///	according to the size.</summary>
-///	<example>FormatByteSize(2560) yields '2.5 KBs'</example>
+///	<summary>
+///  Formats the specified number of bytes in GBs, MBs, KBs or bytes
+///	 according to the size.
+/// </summary>
+///	<example>
+///  FormatByteSize(2560) yields '2.5 KBs'
+/// </example>
 function FormatByteSize(const AByteSize: Longint; const AFormatSettings: TFormatSettings): string;
+
+///	<summary>
+///  The opposite of RTL's LastDelimiter function.
+///  Returns the index of the first occurence in a string of one of the specified characters.
+///  If none of the characters in ADelimiters appear in the string S, the function returns 0.
+/// </summary>
+function FirstDelimiter(const ADelimiters, AString: string; AOffset: Integer = 1): Integer;
+
+function IsNumeric(const AString: string): Boolean;
+
+function IndexOf(const AArray: TArray<string>; const AValue: string): Integer;
+
+function RemoveDuplicates(const AArray: TArray<string>): TArray<string>;
 
 implementation
 
 uses
-  StrUtils, Character,
-  IdHashMessageDigest, IdHash;
+  StrUtils
+  , Character
+  , Generics.Defaults
+  , IdHashMessageDigest
+  , IdHash
+  ;
 
 function RightPos(const ASubString, AString: string): Integer;
 var
@@ -935,6 +961,47 @@ begin
     Result := FormatFloat('0.## KBs', AByteSize / KB, AFormatSettings)
   else
     Result := FormatFloat('0 bytes', AByteSize, AFormatSettings);
+end;
+
+function FirstDelimiter(const ADelimiters, AString: string; AOffset: Integer): Integer;
+var
+  I : integer;
+begin
+  for Result := AOffset to Length(AString) do
+    for I := 1 to Length(ADelimiters) do
+      if ADelimiters[I] = AString[Result] then
+        Exit;
+  Result := 0;
+end;
+
+function IsNumeric(const AString: string): Boolean;
+var
+  C: Char;
+begin
+  Result := True;
+  for C in AString do
+    if not C.IsNumber then
+      Exit(False);
+end;
+
+function IndexOf(const AArray: TArray<string>; const AValue: string): Integer;
+var
+  I: Integer;
+begin
+  Result := -1;
+  for I := Low(AArray) to High(AArray) do
+    if AArray[I] = AValue then
+      Exit(I);
+end;
+
+function RemoveDuplicates(const AArray: TArray<string>): TArray<string>;
+var
+  LValue: string;
+begin
+  Result := [];
+  for LValue in AArray do
+    if IndexOf(Result, LValue) = -1 then
+      Result := Result + [LValue];
 end;
 
 initialization

@@ -1,3 +1,35 @@
+function AjaxError(m) {
+  showMessage({
+    title: "Ajax Error",
+    msg: m,
+    icon: Ext.Msg.ERROR,
+    buttons: Ext.Msg.OK
+  });
+};
+
+function AjaxSuccess(response) {
+  try {
+    eval(response.responseText);
+  } catch (err) {
+    console.log(err.stack);
+    if (err.message)
+      AjaxError(err.message);
+    else
+      AjaxError(err);
+  }
+};
+
+function sleep(ms) {
+  var start = new Date().getTime();
+  for (var i = 0; i < 1e7; i++)
+    if ((new Date().getTime() - start) > ms)
+      break;
+};
+
+function AjaxFailure() {
+  AjaxError("Server unavailable, try later.");
+};
+
 // Returns the specified object with its x and y properties
 // clipped to the window's client size.
 function clipToClientArea(size) {
@@ -132,19 +164,20 @@ function ajaxSelection(buttonId, text, obj)
   if (buttonId == "yes")
   {
     var
-      selValues = [],
-      selRecords = obj.params.selModel.getSelections(),
+      ajaxParams = {Ajax: 1},
+      selModels = obj.params.selModel.getSelection(),
       fieldNames = obj.params.fieldNames.split(',');
     for (var i = 0; i < fieldNames.length; i++)
     {
       var fieldValues = [];
-      for (var j = 0; j < selRecords.length; j++)
-        fieldValues.push(selRecords[j].get(fieldNames[i]));
-      selValues.push(fieldNames[i] + "=" + fieldValues.toString());
+      for (var j = 0; j < selModels.length; j++)
+        fieldValues.push(selModels[j].data[fieldNames[i]]);
+      ajaxParams[fieldNames[i]] = fieldValues.toString();
     }
     return Ext.Ajax.request({
       url: obj.params.methodURL,
-      params: "Ajax=1&" + selValues.join('&'),
+      method: "GET",
+      params: ajaxParams,
       success: AjaxSuccess,
       failure: AjaxFailure
     });
@@ -164,7 +197,7 @@ function ajaxDataViewSelection(buttonId, text, obj)
   if (buttonId == "yes")
   {
     var
-      selValues = [],
+      ajaxParams = {Ajax: 1},
       selRecords = obj.params.dataView.getSelectedRecords(),
       fieldNames = obj.params.fieldNames.split(',');
     for (var i = 0; i < fieldNames.length; i++)
@@ -172,11 +205,12 @@ function ajaxDataViewSelection(buttonId, text, obj)
       var fieldValues = [];
       for (var j = 0; j < selRecords.length; j++)
         fieldValues.push(selRecords[j].get(fieldNames[i]));
-      selValues.push(fieldNames[i] + "=" + fieldValues.toString());
+      ajaxParams[fieldNames[i]] = fieldValues.toString();
     }
     return Ext.Ajax.request({
       url: obj.params.methodURL,
-      params: "Ajax=1&" + selValues.toString(),
+      method: "GET",
+      params: ajaxParams,
       success: AjaxSuccess,
       failure: AjaxFailure
     });
@@ -194,7 +228,8 @@ function ajaxSimple(buttonId, text, obj)
   {
     return Ext.Ajax.request({
       url: obj.params.methodURL,
-      params: "Ajax=1",
+      method: "GET",
+      params: {Ajax: 1},
       success: AjaxSuccess,
       failure: AjaxFailure
     });
@@ -404,7 +439,6 @@ function objectToParams(object)
 };
 
 window.kittoLoadMaskShowCount = 0;
-window.kittoLoadMask = null;
 
 // shows (1) or hides (-1) the loading mask.
 // The mask is shown as long as the current sum of show calls
@@ -416,13 +450,10 @@ function showKittoLoadMask(amount)
     window.kittoLoadMaskShowCount = 0;
   else
     window.kittoLoadMaskShowCount += amount;
-  if (window.kittoLoadMaskShowCount > 0) {
-    if (window.kittoLoadMask === null)
-      window.kittoLoadMask = new Ext.LoadMask(Ext.getBody());
-    window.kittoLoadMask.show();
-  }
+  if (window.kittoLoadMaskShowCount > 0)
+    Ext.getBody().mask();
   else
-    window.kittoLoadMask.hide();
+    Ext.getBody().unmask();
 }
 
 function isMobileBrowser()
@@ -436,4 +467,16 @@ function showMessage(config)
   config.maxWidth = getMaxMsgWidth();
   config.minWidth = getMinMsgWidth();
   return Ext.Msg.show(config);
+}
+
+function charsToPixels(chars, offset)
+{
+  // + 16 sort of compensates for text-to-border left and right margins.
+  return (TextMetrics.getWidth("g") * chars * 1.2) + 16 + offset;
+}
+
+function linesToPixels(lines)
+{
+  // + 16 sort of compensates for text-to-border left and right margins.
+  return (TextMetrics.getHeight("W") * lines * 1.3);
 }

@@ -21,16 +21,21 @@ unit Kitto.Ext.StatusBar;
 interface
 
 uses
-  Ext,
-  Kitto.Ext.Base, Kitto.Metadata.Views;
+  Ext.Base
+  , Kitto.JS
+  , Kitto.Ext.Base
+  , Kitto.Metadata.Views
+  ;
 
 type
-  TKExtDefaultStatusBar = class(TKExtStatusBar)
+  TKExtDefaultStatusBar = class(TKExtStatusBar, IJSStatusHost)
   strict protected
     procedure InitDefaults; override;
   public
-    procedure ClearStatus; override;
     destructor Destroy; override;
+
+    function ShowBusy: TJSExpression;
+    function ClearStatus: TJSExpression; override;
   end;
 
   TKExtStatusBarController = class(TKExtPanelControllerBase)
@@ -45,9 +50,10 @@ type
 implementation
 
 uses
-  ExtPascal,
-  EF.Tree,
-  Kitto.Ext.Controller, Kitto.Ext.Session;
+  EF.Tree
+  , Kitto.Web.Application
+  , Kitto.Ext.Controller
+  ;
 
 { TKExtStatusBarController }
 
@@ -55,7 +61,7 @@ procedure TKExtStatusBarController.DoDisplay;
 begin
   inherited;
   FStatusBar.DefaultText := Config.GetExpandedString('Text');
-  FStatusBar.DefaultIconCls := Session.SetViewIconStyle(View, '', 'sb_', 'padding-left: 25px !important;');
+  FStatusBar.DefaultIconCls := TKWebApplication.Current.SetViewIconStyle(View, '', 'sb_', 'padding-left: 25px !important;');
 end;
 
 function TKExtStatusBarController.GetDefaultSplit: Boolean;
@@ -69,21 +75,21 @@ begin
   Layout := lyFit;
   AutoHeight := True;
 
-  FStatusBar := TKExtDefaultStatusBar.CreateAndAddTo(Items);
+  FStatusBar := TKExtDefaultStatusBar.CreateAndAddToArray(Items);
 end;
 
 { TKExtDefaultStatusBar }
 
-procedure TKExtDefaultStatusBar.ClearStatus;
+function TKExtDefaultStatusBar.ClearStatus: TJSExpression;
 begin
-  inherited;
+  Result := inherited ClearStatus;
   SetText(DefaultText);
   SetIcon(DefaultIconCls);
 end;
 
 destructor TKExtDefaultStatusBar.Destroy;
 begin
-  if Session.StatusHost = Self then
+  if (Session <> nil) and Assigned(Session.StatusHost) and (Session.StatusHost.AsObject = Self) then
     Session.StatusHost := nil;
   inherited;
 end;
@@ -93,6 +99,11 @@ begin
   inherited;
   if Session.StatusHost = nil then
     Session.StatusHost := Self;
+end;
+
+function TKExtDefaultStatusBar.ShowBusy: TJSExpression;
+begin
+  Result := inherited ShowBusy;
 end;
 
 initialization

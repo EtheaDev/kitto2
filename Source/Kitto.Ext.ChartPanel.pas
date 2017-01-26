@@ -21,7 +21,7 @@ unit Kitto.Ext.ChartPanel;
 interface
 
 uses
-  Ext, ExtChart, ExtData,
+  Ext.Base, Ext.Chart, Ext.Data,
   EF.Tree,
   Kitto.Metadata.DataView, Kitto.Ext.Base, Kitto.Ext.DataPanelLeaf;
 
@@ -43,10 +43,18 @@ type
 implementation
 
 uses
-  SysUtils, StrUtils,
-  EF.Localization, EF.Macros,
-  Kitto.Types, Kitto.Ext.Utils, Kitto.Metadata.Models, Kitto.Ext.Session,
-  Kitto.Ext.Controller;
+  SysUtils
+  , StrUtils
+  , EF.Localization
+  , EF.Macros
+  , Kitto.Types
+  , Kitto.Metadata.Models
+  , Kitto.JS
+  , Kitto.JS.Formatting
+  , Kitto.Web.Application
+  , Kitto.Ext.Utils
+  , Kitto.Ext.Controller
+  ;
 
 { TKExtChartPanel }
 
@@ -65,42 +73,42 @@ begin
   begin
     if LFormat = '' then
       LFormat := '0,000'; // '0';
-    Result := Format('Ext.util.Format.numberRenderer("%s")', [AdaptExtNumberFormat(LFormat, Session.Config.UserFormatSettings)]);
+    Result := Format('Ext.util.Format.numberRenderer("%s")', [AdaptExtNumberFormat(LFormat, TKWebApplication.Current.Config.UserFormatSettings)]);
   end
   else if (LDataType is TEFFloatDataType) or (LDataType is TEFDecimalDataType) then
   begin
     if LFormat = '' then
       LFormat := '0,000.' + DupeString('0', LViewField.DecimalPrecision);
-    Result := Format('Ext.util.Format.numberRenderer("%s")', [AdaptExtNumberFormat(LFormat, Session.Config.UserFormatSettings)]);
+    Result := Format('Ext.util.Format.numberRenderer("%s")', [AdaptExtNumberFormat(LFormat, TKWebApplication.Current.Config.UserFormatSettings)]);
   end
   else if LDataType is TEFCurrencyDataType then
   begin
     if LFormat = '' then
       LFormat := '0,000.00';
-    Result := Format('Ext.util.Format.numberRenderer("%s")', [AdaptExtNumberFormat(LFormat, Session.Config.UserFormatSettings)]);
+    Result := Format('Ext.util.Format.numberRenderer("%s")', [AdaptExtNumberFormat(LFormat, TKWebApplication.Current.Config.UserFormatSettings)]);
   end
   else if LDataType is TEFDateDataType then
   begin
     LFormat := LViewField.DisplayFormat;
     if LFormat = '' then
-      LFormat := Session.Config.UserFormatSettings.ShortDateFormat;
-    Result := Format('Ext.util.Format.dateRenderer("%s")', [DelphiDateFormatToJSDateFormat(LFormat)]);
+      LFormat := TKWebApplication.Current.Config.UserFormatSettings.ShortDateFormat;
+    Result := Format('Ext.util.Format.dateRenderer("%s")', [TJS.DelphiDateFormatToJSDateFormat(LFormat)]);
   end
   else if LDataType is TEFTimeDataType then
   begin
     LFormat := LViewField.DisplayFormat;
     if LFormat = '' then
-      LFormat := Session.Config.UserFormatSettings.ShortTimeFormat;
-    Result := Format('function (v) { return formatTime(v, "%s"); }', [DelphiTimeFormatToJSTimeFormat(LFormat)]);
+      LFormat := TKWebApplication.Current.Config.UserFormatSettings.ShortTimeFormat;
+    Result := Format('function (v) { return formatTime(v, "%s"); }', [TJS.DelphiTimeFormatToJSTimeFormat(LFormat)]);
   end
   else if LDataType is TEFDateTimeDataType then
   begin
     LFormat := LViewField.DisplayFormat;
     if LFormat = '' then
-      LFormat := Session.Config.UserFormatSettings.ShortDateFormat + ' ' +
-        Session.Config.UserFormatSettings.ShortTimeFormat;
-    Result := Format('Ext.util.Format.dateRenderer("%s")', [DelphiDateTimeFormatToJSDateTimeFormat(LFormat)])+
-      Format('function (v) { return formatTime(v, "%s"); }', [DelphiTimeFormatToJSTimeFormat(LFormat)]);
+      LFormat := TKWebApplication.Current.Config.UserFormatSettings.ShortDateFormat + ' ' +
+        TKWebApplication.Current.Config.UserFormatSettings.ShortTimeFormat;
+    Result := Format('Ext.util.Format.dateRenderer("%s")', [TJS.DelphiDateTimeFormatToJSDateTimeFormat(LFormat)])+
+      Format('function (v) { return formatTime(v, "%s"); }', [TJS.DelphiTimeFormatToJSTimeFormat(LFormat)]);
   end
   else
     Result := '';
@@ -173,11 +181,11 @@ var
 
     if FChart is TExtChartPieChart then
     begin
-      LSeries := TExtChartPieSeries.CreateAndAddTo(FChart.Series);
+      LSeries := TExtChartPieSeries.CreateAndAddToArray(FChart.Series);
     end
     else
     begin
-      LSeries := TExtChartCartesianSeries.CreateAndAddTo(FChart.Series);
+      LSeries := TExtChartCartesianSeries.CreateAndAddToArray(FChart.Series);
       LOption := AConfigNode.GetString('XField');
       if LOption <> '' then
         TExtChartCartesianSeries(LSeries).XField := LOption;
@@ -271,32 +279,32 @@ begin
 
   if SameText(AChartType, 'Line') then
   begin
-    FChart := TExtChartLineChart.CreateAndAddTo(Items);
+    FChart := TExtChartLineChart.CreateAndAddToArray(Items);
     CreateDefaultXYAxes;
   end
   else if SameText(AChartType, 'Bar') then
   begin
-    FChart := TExtChartBarChart.CreateAndAddTo(Items);
+    FChart := TExtChartBarChart.CreateAndAddToArray(Items);
     CreateDefaultXYAxes;
   end
   else if SameText(AChartType, 'Column') then
   begin
-    FChart := TExtChartColumnChart.CreateAndAddTo(Items);
+    FChart := TExtChartColumnChart.CreateAndAddToArray(Items);
     CreateDefaultXYAxes;
   end
   else if SameText(AChartType, 'StackedBar') then
   begin
-    FChart := TExtChartStackedBarChart.CreateAndAddTo(Items);
+    FChart := TExtChartStackedBarChart.CreateAndAddToArray(Items);
     CreateDefaultXYAxes;
   end
   else if SameText(AChartType, 'StackedColumn') then
   begin
-    FChart := TExtChartStackedColumnChart.CreateAndAddTo(Items);
+    FChart := TExtChartStackedColumnChart.CreateAndAddToArray(Items);
     CreateDefaultXYAxes;
   end
   else if SameText(AChartType, 'Pie') then
   begin
-    FChart := TExtChartPieChart.CreateAndAddTo(Items);
+    FChart := TExtChartPieChart.CreateAndAddToArray(Items);
     LFieldName := Config.GetString('Chart/DataField');
     TExtChartPieChart(FChart).DataField := LFieldName;
     LFieldName := Config.GetString('Chart/CategoryField');
@@ -305,14 +313,15 @@ begin
   else
     raise EKError.CreateFmt(_('Unknown chart type %s.'), [AChartType]);
   FChart.Store := ClientStore;
-  FChart.Url := Format('%s/resources/charts.swf', [Session.ExtPath]);
+{ TODO : port to extjs 6 }
+//  FChart.Url := Format('%s/resources/charts.swf', [Session.ExtPath]);
   FChart.Region := rgCenter;
   LOption := Config.GetExpandedString('Chart/ChartStyle');
   if LOption <> '' then
     FChart.ChartStyle := JSObject(LOption, '', False);
   LOption := Config.GetExpandedString('Chart/TipRenderer');
   if LOption <> '' then
-    FChart.TipRenderer := JSFunction('chart, record, index, series', LOption);
+    FChart.TipRenderer := GenerateAnonymousFunction('chart, record, index, series', LOption);
   if FChart is TExtChartCartesianChart then
     CreateAndInitSeries(Config.FindNode('Chart/Series'));
 end;

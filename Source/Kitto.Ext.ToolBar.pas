@@ -21,8 +21,8 @@ unit Kitto.Ext.ToolBar;
 interface
 
 uses
-  Ext, ExtUx,
-  Kitto.Ext.Base, Kitto.Metadata.Views, Kitto.Ext.Utils;
+  Ext.Base, Ext.Ux,
+  Kitto.Metadata.Views, Kitto.Ext.Base, Kitto.Ext.Utils;
 
 type
   TKExtToolBarController = class(TKExtPanelControllerBase)
@@ -34,17 +34,18 @@ type
     procedure DoDisplay; override;
   public
     destructor Destroy; override;
-  published
+  //published
     procedure DisplayView;
   end;
 
 implementation
 
 uses
-  SysUtils,
-  ExtPascal,
-  EF.Tree,
-  Kitto.Ext.Controller, Kitto.Ext.Session;
+  SysUtils
+  , EF.Tree
+  , Kitto.Web.Application
+  , Kitto.Ext.Controller
+  ;
 
 { TKExtToolBarController }
 
@@ -56,7 +57,7 @@ end;
 
 procedure TKExtToolBarController.DisplayView;
 begin
-  Session.DisplayView(TKView(Session.QueryAsInteger['View']));
+  TKWebApplication.Current.DisplayView(TKView(ParamAsInteger('View')));
 end;
 
 procedure TKExtToolBarController.DoDisplay;
@@ -66,12 +67,9 @@ var
 begin
   inherited;
   if not Assigned(FTreeViewRenderer) then
-  begin
     FTreeViewRenderer := TKExtTreeViewRenderer.Create;
-    FTreeViewrenderer.Session := Session;
-  end;
   LNode := Config.GetNode('TreeView');
-  LTreeView := Session.Config.Views.ViewByNode(LNode) as TKTreeView;
+  LTreeView := TKWebApplication.Current.Config.Views.ViewByNode(LNode) as TKTreeView;
   FTreeViewRenderer.RenderAsButtons(LTreeView, FToolBar, Self, DisplayView);
 end;
 
@@ -79,9 +77,9 @@ procedure TKExtToolBarController.InitDefaults;
 begin
   inherited;
   Layout := lyFit;
-  Height := 28;
+//  Height := 28;
 
-  FToolBar := TExtToolbar.CreateAndAddTo(Items);
+  FToolBar := TExtToolbar.CreateAndAddToArray(Items);
 end;
 
 initialization

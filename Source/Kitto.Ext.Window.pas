@@ -33,9 +33,10 @@ type
 implementation
 
 uses
-  Ext,
-  EF.Localization,
-  Kitto.Ext.Session, Kitto.Metadata.Views;
+  Ext.Base
+  , EF.Localization
+  , Kitto.Metadata.Views
+  ;
 
 { TKExtWindowController }
 

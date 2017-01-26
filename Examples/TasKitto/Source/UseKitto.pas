@@ -13,7 +13,6 @@ uses
   // Kitto.Auth.DBServer,
   // Kitto.Auth.OSDB,
   // Kitto.Auth.TextFile,
-  EF.Logger.TextFile,
   Kitto.Ext.ADOTools, //For Excel import/export
   Kitto.Ext.DebenuQuickPDFTools, //For PDF Merge
   Kitto.Ext.FOPTools, //For FOP Engine

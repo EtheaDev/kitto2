@@ -45,4 +45,14 @@ Fields:
       Thumbnail:
         Width: 150
         Height: 150
+  Picture_File: FileReference
+    DisplayLabel: _(Photo)
+    Hint: _(Select a picture)
+    MaxUploadSize: 100KB
+    .DefaultFileName: test.gif
+    Path: %Config:BlobPath%
+    IsPicture: True
+      Thumbnail:
+        Width: 100
+        Height: 100
 DefaultSorting: {Q}Doll_Name

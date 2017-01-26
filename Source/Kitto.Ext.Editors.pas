@@ -21,11 +21,27 @@ unit Kitto.Ext.Editors;
 interface
 
 uses
-  SysUtils, Classes, Generics.Collections, Types,
-  Ext, ExtPascal, ExtPascalUtils, ExtForm, ExtGrid, ExtData, ExtUxForm,
-  EF.Intf, EF.Classes, EF.Tree, EF.ObserverIntf,
-  Kitto.Ext.Base, Kitto.Metadata.Views, Kitto.Metadata.DataView, Kitto.Store,
-  Kitto.Ext.Session, Kitto.Ext.Controller, KItto.Ext.LookupField;
+  SysUtils
+  , Classes
+  , Generics.Collections
+  , Types
+  , Web.HTTPApp
+  , Ext.Base
+  , Ext.Form
+  , Ext.Grid
+  , Ext.Data
+  , EF.Intf
+  , EF.Classes
+  , EF.Tree
+  , EF.ObserverIntf
+  , Kitto.Metadata.Views
+  , Kitto.Metadata.DataView
+  , Kitto.Store
+  , Kitto.JS.Base
+  , Kitto.Ext.Base
+  , Kitto.Ext.Controller
+  , Kitto.Ext.LookupField
+  ;
 
 const
   // String fields of this size or longer are represented by multiline edit
@@ -73,6 +89,9 @@ type
     // Generates and executes JS code to store the displayed value(s) into the specified
     // JS object variable (as a property named after the editor's Name).
     procedure StoreValue(const AObjectName: string);
+
+    // Generates and executes JS code to set the field read-only or editable.
+    procedure SetReadOnly(const AValue: Boolean);
   end;
 
   TKExtEditPage = class;
@@ -172,8 +191,8 @@ type
   end;
 
   /// <summary>
-  ///   Encapsulates a field in a row. Does NOT implement the container
-  ///   interface, as it is a commodity class only.
+  ///  Encapsulates a field in a row. Does NOT implement the container
+  ///  interface, as it is a commodity class only.
   /// </summary>
   TKExtFormRowField = class(TKExtFormContainer, IKExtEditor)
   strict private
@@ -203,11 +222,12 @@ type
     procedure StoreValue(const AObjectName: string);
     procedure SetTransientProperty(const APropertyName: string; const AValue: Variant);
     function GetEditItemId: string;
+    procedure SetReadOnly(const AValue: Boolean);
   end;
 
 { TODO : support the CheckboxGroup and Radiogroup containers? }
 
-  TKExtFormNumericField = class(TExtFormNumberField, IKExtEditItem, IKExtEditor)
+  TKExtFormNumberField = class(TExtFormNumberField, IKExtEditItem, IKExtEditor)
   private
     FFieldName: string;
     FRecordField: TKViewTableField;
@@ -219,7 +239,6 @@ type
     procedure SetAlwaysDisplayDecimals(const AValue: Boolean);
     procedure SetUseThousandSeparator(const AValue: Boolean);
   public
-    class function JSClassName: string; override;
     property ThousandSeparator: string read FThousandSeparator write SetThousandSeparator;
     property AlwaysDisplayDecimals: Boolean read FAlwaysDisplayDecimals write SetAlwaysDisplayDecimals;
     property UseThousandSeparator: Boolean read FUseThousandSeparator write SetUseThousandSeparator;
@@ -238,6 +257,7 @@ type
     procedure StoreValue(const AObjectName: string);
     procedure SetTransientProperty(const APropertyName: string; const AValue: Variant);
     function GetEditItemId: string;
+    procedure SetReadOnly(const AValue: Boolean);
   end;
 
   TKExtFormTextField = class(TExtFormTextField, IKExtEditItem, IKExtEditor)
@@ -260,6 +280,7 @@ type
     procedure StoreValue(const AObjectName: string);
     procedure SetTransientProperty(const APropertyName: string; const AValue: Variant);
     function GetEditItemId: string;
+    procedure SetReadOnly(const AValue: Boolean);
   end;
 
   TKExtFormTextArea = class(TExtFormTextArea, IKExtEditItem, IKExtEditor)
@@ -282,6 +303,7 @@ type
     procedure StoreValue(const AObjectName: string);
     procedure SetTransientProperty(const APropertyName: string; const AValue: Variant);
     function GetEditItemId: string;
+    procedure SetReadOnly(const AValue: Boolean);
   end;
 
   TKExtFormCheckbox = class(TExtFormCheckbox, IKExtEditItem, IKExtEditor)
@@ -304,6 +326,7 @@ type
     procedure StoreValue(const AObjectName: string);
     procedure SetTransientProperty(const APropertyName: string; const AValue: Variant);
     function GetEditItemId: string;
+    procedure SetReadOnly(const AValue: Boolean);    
   end;
 
   TKExtFormDateField = class(TExtFormDateField, IKExtEditItem, IKExtEditor)
@@ -330,6 +353,7 @@ type
     procedure StoreValue(const AObjectName: string);
     procedure SetTransientProperty(const APropertyName: string; const AValue: Variant);
     function GetEditItemId: string;
+    procedure SetReadOnly(const AValue: Boolean);
   end;
 
   TKExtFormTimeField = class(TExtFormTimeField, IKExtEditItem, IKExtEditor)
@@ -352,6 +376,7 @@ type
     procedure StoreValue(const AObjectName: string);
     procedure SetTransientProperty(const APropertyName: string; const AValue: Variant);
     function GetEditItemId: string;
+    procedure SetReadOnly(const AValue: Boolean);
   end;
 
   TKExtFormDateTimeField = class(TExtFormField, IKExtEditItem, IKExtEditor)
@@ -403,6 +428,7 @@ type
     property AllowBlank: Boolean read FAllowBlank write SetAllowBlank;
     procedure SetTransientProperty(const APropertyName: string; const AValue: Variant);
     function GetEditItemId: string;
+    procedure SetReadOnly(const AValue: Boolean);
   end;
 
   TKExtLookupEditor = class(TKExtLookupField, IKExtEditItem, IKExtEditor)
@@ -425,7 +451,8 @@ type
     procedure SetTransientProperty(const APropertyName: string; const AValue: Variant);
     function GetEditItemId: string;
     function AsObject: TObject;
-  published
+    procedure SetReadOnly(const AValue: Boolean);
+  //published
     procedure ClearClick; override;
   end;
 
@@ -437,7 +464,6 @@ type
     FServerStore: TKStore;
     FFieldName: string;
     FRecordField: TKViewTableField;
-    function GetChangeJSCode(const AMethod: TExtProcedure): string;
   protected
     procedure InitDefaults; override;
   public
@@ -456,12 +482,13 @@ type
     procedure StoreValue(const AObjectName: string);
     procedure SetTransientProperty(const APropertyName: string; const AValue: Variant);
     function GetEditItemId: string;
-  published
+    procedure SetReadOnly(const AValue: Boolean);
+  //published
     procedure GetRecordPage;
     procedure ValueChanged;
   end;
 
-  TKExtFormFileUploadField = class(TExtUxFormFileUploadField, IKExtEditItem, IKExtEditor)
+  TKExtFormFileUploadField = class(TExtFormFileField, IKExtEditItem, IKExtEditor)
   private
     FFieldName: string;
     FRecordField: TKViewTableField;
@@ -480,9 +507,10 @@ type
     procedure StoreValue(const AObjectName: string);
     procedure SetTransientProperty(const APropertyName: string; const AValue: Variant);
     function GetEditItemId: string;
+    procedure SetReadOnly(const AValue: Boolean);
   end;
 
-  TKExtFormFileEditor = class(TKExtPanelBase, IKExtEditItem, IKExtEditor)
+  TKExtFormFileEditor = class(TExtFormFieldContainer, IKExtEditItem, IKExtEditor)
   strict private
     FDescriptionField: TExtFormTextField;
     FWindow: TKExtModalWindow;
@@ -491,6 +519,7 @@ type
     FClearButton: TKExtButton;
     FTotalCharWidth: Integer;
     FPictureView: TExtPanel;
+    FUploadButton: TKExtButton;
     function GetContentDescription: string;
     procedure UpdateGUI(const AUpdatePicture: Boolean);
     procedure PictureViewAfterRender(This: TExtComponent);
@@ -499,19 +528,21 @@ type
   strict protected
     FFieldName: string;
     FRecordField: TKViewTableField;
-    FLastUploadedFullFileName: string;
-    FLastUploadedOriginalFileName: string;
+    FLastUploadedClientFileName: string;
     FImageWidth: Integer;
     FImageHeight: Integer;
-    function GetCurrentServerFileName: string; virtual; abstract;
-    function GetCurrentClientFileName: string; virtual; abstract;
     function GetCurrentContentSize: Integer; virtual; abstract;
-    procedure FileUploaded(const AFileName: string); virtual;
-    procedure DownloadFile(const AServerFileName, AClientFileName: string); virtual; abstract;
-    procedure DownloadThumbnailedFile(const AServerFileName, AClientFileName: string); virtual; abstract;
+    procedure ProcessUploadedFile(const AFile: TAbstractWebRequestFile); virtual;
     procedure ClearContents; virtual;
     function IsEmpty: Boolean;
     function IsPicture: Boolean;
+
+    function GetDownloadFileName: string;
+    function GetStoredFileName: string;
+    function GetDefaultFileName: string;
+    function GetDownloadFileExtFromFieldData: string; virtual; abstract;
+    procedure DoDownloadFieldData(const AFileName: string); virtual; abstract;
+    function CreateImageDataStream: TStream; virtual; abstract;
   protected
     procedure CreateGUI(const AViewField: TKViewField);
     function GetObjectNamePrefix: string; override;
@@ -528,43 +559,59 @@ type
     procedure SetFieldName(const AValue: string);
     procedure RefreshValue;
     procedure StoreValue(const AObjectName: string);
-    property IsReadOnly: Boolean read FIsReadOnly write FIsReadOnly;
     property TotalCharWidth: Integer read FTotalCharWidth write SetTotalCharWidth;
     procedure SetTransientProperty(const APropertyName: string; const AValue: Variant);
     function GetEditItemId: string;
-  published
+    procedure SetReadOnly(const AValue: Boolean);
+  //published
     procedure ShowUploadFileDialog;
     procedure Upload;
     procedure Clear;
     procedure PostUpload;
     procedure StartDownload;
     procedure DownloadFieldData;
-    procedure GetImage;
-    procedure GetImageContent;
+    procedure GetImageData;
+    procedure GetImageMarkup;
+  end;
+
+  TKFileOpKind = (okDelete);
+  TKFileOpEvent = (oePost, oeCancel);
+  /// <summary>
+  ///  Used to keep track of file operations to be performed after editing
+  ///  or inserting a record containing file reference fields.
+  /// </summary>
+  TKFileOp = record
+    Kind: TKFileOpKind;
+    PathName: string;
+    Event: TKFileOpEvent;
+    Done: Boolean;
+    constructor Create(const AKind: TKFileOpKind; const APathName: string; const AEvent: TKFileOpEvent);
+    class operator Implicit(const AOther: TStringDynArray): TKFileOp;
+    class operator Implicit(const AOther: TKFileOp): TStringDynArray;
   end;
 
   TKExtFormFileReferenceEditor = class(TKExtFormFileEditor)
   strict private
     function GetFieldPath: string;
+    function GetServerFileName: string;
+    procedure DeferredFileDelete(const AEvent: TKFileOpEvent; const APathName: string);
   strict protected
     procedure ClearContents; override;
-    procedure DownloadFile(const AServerFileName, AClientFileName: string); override;
-    procedure DownloadThumbnailedFile(const AServerFileName, AClientFileName: string); override;
-    procedure FileUploaded(const AFileName: string); override;
-    function GetCurrentClientFileName: string; override;
+    procedure ProcessUploadedFile(const AFile: TAbstractWebRequestFile); override;
     function GetCurrentContentSize: Integer; override;
-    function GetCurrentServerFileName: string; override;
+    function GetDownloadFileExtFromFieldData: string; override;
+    procedure DoDownloadFieldData(const AFileName: string); override;
+    function CreateImageDataStream: TStream; override;
   end;
 
   TKExtFormFileBlobEditor = class(TKExtFormFileEditor)
   strict protected
     procedure ClearContents; override;
-    procedure DownloadFile(const AServerFileName, AClientFileName: string); override;
-    procedure DownloadThumbnailedFile(const AServerFileName, AClientFileName: string); override;
-    procedure FileUploaded(const AFileName: string); override;
-    function GetCurrentClientFileName: string; override;
+    procedure ProcessUploadedFile(const AFile: TAbstractWebRequestFile); override;
     function GetCurrentContentSize: Integer; override;
-    function GetCurrentServerFileName: string; override;
+    function GetDownloadFileExtFromFieldData: string; override;
+    procedure DoDownloadFieldData(const AFileName: string); override;
+    function CreateImageDataStream: TStream; override;
   end;
 
   TKExtLayoutDefaults = record
@@ -596,13 +643,12 @@ type
     FDefaults: TKExtLayoutDefaults;
     FCurrentEditItem: IKExtEditItem;
     FCurrentLabelWidth: Integer;
-    FCurrentLabelAlign: TExtFormFormPanelLabelAlign;
+    FCurrentLabelAlign: TExtContainerLabelAlign;
     FEditContainers: TStack<IKExtEditContainer>;
     FOnNewEditItem: TProc<IKExtEditItem>;
     FOperation: TKExtEditOperation;
     FTabPanel: TExtTabPanel;
     FEditorManager: TKExtEditorManager;
-    function GetSession: TKExtSession;
     procedure SetMainEditPage(const AValue: TKExtEditPage);
     procedure FinalizeCurrentEditPage;
     function CreatePageBreak(const ATitle: string): IKExtEditItem;
@@ -619,7 +665,6 @@ type
     function CreateRow(const AId: string): IKExtEditItem;
     procedure CreateEditorsFromLayout(const ALayout: TKLayout);
     procedure ProcessLayoutNode(const ANode: TEFNode);
-    property Session: TKExtSession read GetSession;
   public
     procedure AfterConstruction; override;
     destructor Destroy; override;
@@ -660,49 +705,45 @@ type
   /// </summary>
   TKExtEditorManager = class
   strict private
-    FOnGetSession: TKExtSessionGetEvent;
     FOperation: TKExtEditOperation;
-    function TryCreateLookupEditor(const AOwner: TComponent;
+    function TryCreateLookupEditor(const AOwner: TJSBase;
       const AViewField: TKViewField; const ARowField: TKExtFormRowField;
       const AFieldCharWidth: Integer; const AIsReadOnly: Boolean): IKExtEditor;
-    function TryCreateComboBox(const AOwner: TComponent; const AViewField: TKViewField;
+    function TryCreateComboBox(const AOwner: TJSBase; const AViewField: TKViewField;
       const ARowField: TKExtFormRowField; const AFieldCharWidth: Integer;
       const AIsReadOnly: Boolean): IKExtEditor;
-    function TryCreateTextArea(const AOwner: TComponent; const AViewField: TKViewField;
+    function TryCreateTextArea(const AOwner: TJSBase; const AViewField: TKViewField;
       const ARowField: TKExtFormRowField; const AFieldCharWidth: Integer;
       const AIsReadOnly: Boolean): IKExtEditor;
-    function TryCreateCheckBox(const AOwner: TComponent; const AViewField: TKViewField;
+    function TryCreateCheckBox(const AOwner: TJSBase; const AViewField: TKViewField;
       const AIsReadOnly: Boolean): IKExtEditor;
-    function TryCreateDateField(const AOwner: TComponent; const AViewField: TKViewField;
+    function TryCreateDateField(const AOwner: TJSBase; const AViewField: TKViewField;
       const ARowField: TKExtFormRowField; const AFieldCharWidth: Integer;
       const AIsReadOnly: Boolean): IKExtEditor;
-    function TryCreateTimeField(const AOwner: TComponent; const AViewField: TKViewField;
+    function TryCreateTimeField(const AOwner: TJSBase; const AViewField: TKViewField;
       const ARowField: TKExtFormRowField; const AFieldCharWidth: Integer;
       const AIsReadOnly: Boolean): IKExtEditor;
-    function TryCreateDateTimeField(const AOwner: TComponent; const AViewField: TKViewField;
+    function TryCreateDateTimeField(const AOwner: TJSBase; const AViewField: TKViewField;
       const ARowField: TKExtFormRowField; const AFieldCharWidth: Integer;
       const AIsReadOnly: Boolean): IKExtEditor;
-    function TryCreateNumericField(const AOwner: TComponent; const AViewField: TKViewField;
+    function TryCreateNumberField(const AOwner: TJSBase; const AViewField: TKViewField;
       const ARowField: TKExtFormRowField; const AFieldCharWidth: Integer;
       const AIsReadOnly: Boolean): IKExtEditor;
-    function TryCreateFileEditor(const AOwner: TComponent; const AViewField: TKViewField;
+    function TryCreateFileEditor(const AOwner: TJSBase; const AViewField: TKViewField;
       const ARowField: TKExtFormRowField; const AFieldCharWidth: Integer;
       const AIsReadOnly: Boolean; const ALabel: string): IKExtEditor;
-    function CreateTextField(const AOwner: TComponent; const AViewField: TKViewField;
+    function CreateTextField(const AOwner: TJSBase; const AViewField: TKViewField;
       const ARowField: TKExtFormRowField; const AFieldCharWidth: Integer;
       const AIsReadOnly: Boolean): IKExtEditor;
-    function GetSession: TKExtSession;
-    property Session: TKExtSession read GetSession;
   public
     property Operation: TKExtEditOperation read FOperation write FOperation;
-    property OnGetSession: TKExtSessionGetEvent read FOnGetSession write FOnGetSession;
-    function CreateEditor(const AOwner: TComponent; const AViewField: TKViewField;
+    function CreateEditor(const AOwner: TJSBase; const AViewField: TKViewField;
       const ARowField: TKExtFormRowField; const AFieldCharWidth: Integer;
       const AIsReadOnly: Boolean; const ALabel: string = ''): IKExtEditor;
     /// <summary>
     ///  Creates an in-place editor for the specified field.
     /// </summary>
-    function CreateGridCellEditor(const AOwner: TComponent;
+    function CreateGridCellEditor(const AOwner: TJSBase;
       const AViewField: TKViewField): TExtFormField;
   end;
 
@@ -730,13 +771,42 @@ type
 implementation
 
 uses
-  Math, StrUtils, Windows, Graphics, Variants, DateUtils,
-  superobject,
-  EF.SysUtils, EF.StrUtils, EF.Localization, EF.YAML, EF.Types, EF.SQL, EF.JSON,
-  EF.DB, EF.Macros, EF.VariantUtils,
-  Kitto.Config, Kitto.SQL, Kitto.Metadata, Kitto.Metadata.Models, Kitto.Types,
-  Kitto.AccessControl, Kitto.Rules, Kitto.Ext.Form,
-  Kitto.Ext.Utils, Kitto.Ext.Rules;
+  Math
+  , IOUtils
+  , StrUtils
+  , Windows
+  , Graphics
+  , Variants
+  , DateUtils
+  , System.JSON
+  , Rtti
+  , superobject
+  , EF.SysUtils
+  , EF.StrUtils
+  , EF.Localization
+  , EF.YAML
+  , EF.Types
+  , EF.SQL
+  , EF.JSON
+  , EF.DB
+  , EF.Macros
+  , EF.VariantUtils
+  , Kitto.Config
+  , Kitto.SQL
+  , Kitto.Metadata
+  , Kitto.Metadata.Models
+  , Kitto.Types
+  , Kitto.AccessControl
+  , Kitto.Rules
+  , Kitto.JS
+  , Kitto.JS.Formatting
+  , Kitto.Web.Application
+  , Kitto.Web.Request
+  , Kitto.Web.Response
+  , Kitto.Ext.Form
+  , Kitto.Ext.Utils
+  , Kitto.Ext.Rules
+  ;
 
 procedure InvalidOption(const ANode: TEFNode);
 begin
@@ -784,7 +854,7 @@ begin
   if SameText(ANode.Name, 'Anchor') then
     AFormField.Anchor := ANode.AsString
   else if SameText(ANode.Name, 'CharWidth') then
-    AFormField.Width := AFormField.CharsToPixels(ANode.AsInteger)
+    AFormField.WidthExpression := AFormField.CharsToPixels(ANode.AsInteger)
   else if SameText(ANode.Name, 'Width') then
     AFormField.WidthString := OptionAsIntegerOrPerc(ANode)
   else
@@ -936,8 +1006,11 @@ begin
       FCurrentEditItem.SetOption(ANode);
   end;
 
-  if (FCurrentEditItem is TKExtFormRowField) and (FCurrentLabelAlign <> laTop) then
+  if FCurrentEditItem is TKExtFormRowField then
+  begin
+    TKExtFormRowField(FCurrentEditItem).LabelAlign := FCurrentLabelAlign;
     TKExtFormRowField(FCurrentEditItem).LabelWidth := FCurrentLabelWidth;
+  end;
 
   ProcessChildNodes;
 
@@ -977,7 +1050,7 @@ begin
   Assert(Assigned(FCurrentEditPage));
 
   if Assigned(FFocusField) then
-    FCurrentEditPage.On('afterrender', FCurrentEditPage.JSFunction(FFocusField.JSName + '.focus(false, 1000);'));
+    FCurrentEditPage.On('afterrender', FCurrentEditPage.GenerateAnonymousFunction(FFocusField.JSName + '.focus(false, 1000);'));
   FFocusField := nil;
 end;
 
@@ -998,13 +1071,6 @@ begin
     AContainer.AddChild(Result);
   if Assigned(FOnNewEditItem) then
     FOnNewEditItem(Result);
-end;
-
-function TKExtLayoutProcessor.GetSession: TKExtSession;
-begin
-  Assert(Assigned(FCurrentEditPage));
-
-  Result := FCurrentEditPage.Session;
 end;
 
 function TKExtLayoutProcessor.GetViewTable: TKViewTable;
@@ -1130,7 +1196,7 @@ begin
 
   FinalizeCurrentEditPage;
 
-  LPageBreak := TKExtEditPage.CreateAndAddTo(FTabPanel.Items);
+  LPageBreak := TKExtEditPage.CreateAndAddToArray(FTabPanel.Items);
   LPageBreak.EditPanel := FFormPanel;
   LPageBreak.DataRecord := FDataRecord;
   LPageBreak.UnexpandedTitle := ATitle;
@@ -1146,11 +1212,6 @@ begin
   FDefaults.Init;
   FEditContainers := TStack<IKExtEditContainer>.Create;
   FEditorManager := TKExtEditorManager.Create;
-  FEditorManager.OnGetSession :=
-    procedure(out ASession: TKExtSession)
-    begin
-      ASession := Session;
-    end;
 end;
 
 function TKExtLayoutProcessor.CreateCompositeField(const AId: string): IKExtEditItem;
@@ -1173,6 +1234,8 @@ begin
 
   LRow := TKExtFormRow.Create(FCurrentEditPage);
   LRow.EditItemId := AId;
+  LRow.LabelAlign := FCurrentLabelAlign;
+  LRow.LabelWidth := FCurrentLabelWidth;
   LRow.HideLabels := FCurrentEditPage.HideLabels;
   Result := LRow;
 end;
@@ -1254,10 +1317,11 @@ end;
 procedure TKExtEditPage.InitDefaults;
 begin
   inherited;
-  BodyStyle := 'background:none';
-  Layout := lyForm;
+  Border := False;
+//  BodyStyle := 'background:none';
+//  Layout := lyForm;
   // Leave room for the scroll bar on the right.
-  PaddingString := '5px 20px 5px 5px';
+  PaddingString := '5px';
   AutoScroll := True;
 end;
 
@@ -1286,10 +1350,10 @@ begin
   else if SameText(ANode.Name, 'LabelPad') then
   begin
     Assert(Assigned(FEditPanel));
-    FEditPanel.LabelPad := Anode.AsInteger;
+    FEditPanel.LabelPad := ANode.AsInteger;
   end
   else if SameText(ANode.Name, 'ImageName') then
-    IconCls := Session.SetIconStyle('', ANode.AsString)
+    IconCls := TKWebApplication.Current.SetIconStyle('', ANode.AsString)
   else
     InvalidOption(ANode);
 end;
@@ -1340,24 +1404,7 @@ end;
 procedure TKExtFormFieldSet.InitDefaults;
 begin
   inherited;
-//  On('beforecollapse', JSFunction(
-//    'this.kPreviousHeight = this.getHeight();'
-//  ), Self);
-//
-//  On('collapse', JSFunction(
-//    'if ("kPreviousHeight" in this && this.getTopOwner() instanceof Ext.Window) ' +
-//    '  this.getTopOwner().setClippedHeight(this.getTopOwner().getHeight() - this.kPreviousHeight + this.getHeight());'
-//  ), Self);
-//
-//  On('beforeexpand', JSFunction(
-//    'this.kPreviousHeight = this.getHeight();'
-//  ), Self);
-//
-//  On('expand', JSFunction(
-//    'if ("kPreviousHeight" in this && this.getTopOwner() instanceof Ext.Window) ' +
-//    '  this.getTopOwner().setClippedHeight(this.getTopOwner().getHeight() - this.kPreviousHeight + this.getHeight());'
-//  ), Self);
-  On('expand', JSFunction('this.getTopOwner().doLayout();'), Self);
+  &On('expand', GenerateAnonymousFunction('this.getTopOwner().updateLayout();'), Self);
 end;
 
 procedure TKExtFormFieldSet.RefreshValue;
@@ -1385,9 +1432,9 @@ begin
     // compound contained editors (such as the file editors) a chance to
     // layout correctly.
     if ANode.AsBoolean then
-      On('afterrender', JSFunction(JSName + '.collapse(true);'))
+      &On('afterrender', GenerateAnonymousFunction(Collapse(True)))
     else
-      On('afterrender', JSFunction(JSName + '.expand(true);'))
+      &On('afterrender', GenerateAnonymousFunction(Expand(True)));
   end
   else if SameText(ANode.Name, 'Title') then
     UnexpandedTitle := ANode.AsExpandedString
@@ -1513,6 +1560,11 @@ begin
   SetValue(LJSONValue);
 end;
 
+procedure TKExtFormTextField.SetReadOnly(const AValue: Boolean);
+begin
+  ReadOnly := AValue;
+end;
+
 procedure TKExtFormTextField.SetRecordField(const AValue: TKViewTableField);
 begin
   FRecordField := AValue;
@@ -1533,7 +1585,7 @@ end;
 procedure TKExtFormTextField.FieldChange(This: TExtFormField; NewValue: string;
   OldValue: string);
 begin
-  FRecordField.SetAsJSONValue(NewValue, False, Session.Config.UserFormatSettings);
+  FRecordField.SetAsJSONValue(NewValue, False, TKWebApplication.Current.Config.UserFormatSettings);
 end;
 
 procedure TKExtFormTextField.SetFieldName(const AValue: string);
@@ -1577,7 +1629,7 @@ end;
 procedure TKExtFormTextArea.FieldChange(This: TExtFormField; NewValue,
   OldValue: string);
 begin
-  FRecordField.SetAsJSONValue(NewValue, False, Session.Config.UserFormatSettings);
+  FRecordField.SetAsJSONValue(NewValue, False, TKWebApplication.Current.Config.UserFormatSettings);
 end;
 
 function TKExtFormTextArea.GetFieldName: string;
@@ -1598,6 +1650,11 @@ end;
 procedure TKExtFormTextArea.RefreshValue;
 begin
   SetValue(JSONNullToEmptyStr(FRecordField.GetAsJSONValue(False, False)));
+end;
+
+procedure TKExtFormTextArea.SetReadOnly(const AValue: Boolean);
+begin
+  ReadOnly := AValue;
 end;
 
 procedure TKExtFormTextArea.SetRecordField(const AValue: TKViewTableField);
@@ -1627,7 +1684,7 @@ begin
   if not SetExtFormFieldOption(AsExtFormField, ANode) then
   begin
     if SameText(ANode.Name, 'Lines') then
-      Height := LinesToPixels(ANode.AsInteger)
+      HeightFunc := LinesToPixels(ANode.AsInteger)
     else
       InvalidOption(ANode);
   end;
@@ -1663,7 +1720,7 @@ end;
 procedure TKExtFormCheckbox.FieldChange(This: TExtFormField; NewValue,
   OldValue: string);
 begin
-  FRecordField.SetAsJSONValue(NewValue, False, Session.Config.UserFormatSettings);
+  FRecordField.SetAsJSONValue(NewValue, False, TKWebApplication.Current.Config.UserFormatSettings);
 end;
 
 function TKExtFormCheckbox.GetFieldName: string;
@@ -1686,6 +1743,11 @@ begin
   SetValue(JSONNullToEmptyStr(FRecordField.GetAsJSONValue(False, False)));
 end;
 
+procedure TKExtFormCheckbox.SetReadOnly(const AValue: Boolean);
+begin
+  ReadOnly := AValue;
+end;
+
 procedure TKExtFormCheckbox.SetRecordField(const AValue: TKViewTableField);
 begin
   FRecordField := AValue;
@@ -1701,7 +1763,7 @@ end;
 procedure TKExtFormCheckbox.StoreValue(const AObjectName: string);
 begin
   if not ReadOnly then
-    Session.ResponseItems.ExecuteJSCode(
+    TKWebResponse.Current.Items.ExecuteJSCode(
       AObjectName + '["' + Name + '"]=' + JSName + '.checked;');
 end;
 
@@ -1749,8 +1811,8 @@ var
 begin
   if AValue <> '' then
   begin
-    LDate := DateOf(JSDateToDateTime(AValue));
-    Result := DateToStr(LDate, Session.Config.UserFormatSettings);
+    LDate := DateOf(TJS.JSDateToDateTime(AValue));
+    Result := DateToStr(LDate, TKWebApplication.Current.Config.UserFormatSettings);
   end
   else
     Result := '';
@@ -1758,7 +1820,7 @@ end;
 
 procedure TKExtFormDateField.FieldChange(This: TExtFormField; NewValue, OldValue: string);
 begin
-  FRecordField.SetAsJSONValue(ConvertDate(NewValue), False, Session.Config.UserFormatSettings);
+  FRecordField.SetAsJSONValue(ConvertDate(NewValue), False, TKWebApplication.Current.Config.UserFormatSettings);
 end;
 
 function TKExtFormDateField.GetFieldName: string;
@@ -1779,6 +1841,11 @@ end;
 procedure TKExtFormDateField.RefreshValue;
 begin
   SetValue(JSONNullToEmptyStr(FRecordField.GetAsJSONValue(False, False)));
+end;
+
+procedure TKExtFormDateField.SetReadOnly(const AValue: Boolean);
+begin
+  ReadOnly := AValue;
 end;
 
 procedure TKExtFormDateField.SetRecordField(const AValue: TKViewTableField);
@@ -1861,24 +1928,24 @@ var
 begin
   Assert(Assigned(FServerStore));
 
-  LDBQuery := Session.Config.DBConnections[FRecordField.ViewField.Table.DatabaseName].CreateDBQuery;
+  LDBQuery := TKWebApplication.Current.Config.DBConnections[FRecordField.ViewField.Table.DatabaseName].CreateDBQuery;
   try
     TKSQLBuilder.CreateAndExecute(
       procedure (ASQLBuilder: TKSQLBuilder)
       begin
         ASQLBuilder.BuildLookupSelectStatement(FRecordField.ViewField, LDBQuery,
-          ReplaceStr(Session.Query['query'], '''', ''''''), FRecordField.ParentRecord);
+          ReplaceStr(ParamAsString('query'), '''', ''''''), FRecordField.ParentRecord);
       end);
     FServerStore.Load(LDBQuery);
   finally
     FreeAndNil(LDBQuery);
   end;
 
-  LStart := Session.QueryAsInteger['start'];
-  LLimit := Session.QueryAsInteger['limit'];
+  LStart := ParamAsInteger('start');
+  LLimit := ParamAsInteger('limit');
   LPageRecordCount := Min(LLimit, FServerStore.RecordCount - LStart);
 
-  ExtSession.ResponseItems.AddJSON('{Total: ' + IntToStr(FServerStore.RecordCount)
+  TKWebResponse.Current.Items.AddJSON('{Total: ' + IntToStr(FServerStore.RecordCount)
     + ', Root: ' + FServerStore.GetAsJSON(False, LStart, LPageRecordCount) + '}');
 end;
 
@@ -1905,38 +1972,24 @@ begin
     LValue := JSONNullToEmptyStr(FRecordField.ParentRecord.FieldByName(LKeyFieldNames).GetAsJSONValue(False, False));
     SetValue(LValue);
     SetRawValue(JSONNullToEmptyStr(FRecordField.GetAsJSONValue(False, False)));
-    ApplyEmptyText;
+{ TODO : needed? }
+//    ApplyEmptyText;
 
     // Force the combo to refresh its list at next drop down.
     Store.RemoveAll();
     Store.TotalLength := 0;
-    Session.ResponseItems.ExecuteJSCode(Format('%s.lastQuery = null;', [JSName]));
+    TKWebResponse.Current.Items.ExecuteJSCode(Format('%s.lastQuery = null;', [JSName]));
 
     // Provide the display value to set when the user types an invalid value
     // and the store is not loaded yet.
-    Session.ResponseItems.ExecuteJSCode(Format('%s.lastSelectionText = %s.getRawValue();', [JSName, JSName]));
-
+    TKWebResponse.Current.Items.ExecuteJSCode(Format('%s.lastSelectionText = %s.getRawValue();', [JSName, JSName]));
   end;
-  Session.ResponseItems.ExecuteJSCode(JSName + '.kitto$isChanged = false;');
+  TKWebResponse.Current.Items.ExecuteJSCode(JSName + '.kitto$isChanged = false;');
 end;
 
-function TKExtFormComboBoxEditor.GetChangeJSCode(const AMethod: TExtProcedure): string;
-var
-  LCode: string;
+procedure TKExtFormComboBoxEditor.SetReadOnly(const AValue: Boolean);
 begin
-  LCode :=
-    'var json = new Object;' + sLineBreak +
-    'json.new = new Object;' + sLineBreak;
-
-  LCode := LCode + GetJSFunctionCode(
-    procedure
-    begin
-      StoreValue('json.new');
-    end,
-    False) + sLineBreak;
-
-  LCode := LCode + GetPOSTAjaxCode(AMethod, [], 'json') + sLineBreak;
-  Result := LCode;
+  ReadOnly := AValue;
 end;
 
 procedure TKExtFormComboBoxEditor.SetRecordField(const AValue: TKViewTableField);
@@ -1945,9 +1998,19 @@ begin
   if not ReadOnly then
   begin
     if IsChangeHandlerNeeded(FRecordField) then
-      On('change', JSFunction(GetChangeJSCode(ValueChanged)));
-    On('select', JSFunction(JSName + '.kitto$isChanged = true;'));
-    On('change', JSFunction('field, newValue, oldValue',
+      &On('change', GenerateAnonymousFunction(GetJSCode(
+        procedure
+        begin
+          TKWebResponse.Current.Items.ExecuteJSCode(
+            'var json = new Object;' + sLineBreak +
+            'json.new = new Object;');
+          StoreValue('json.new');
+          TKWebResponse.Current.Items.AjaxCallMethod(Self).SetMethod(ValueChanged)
+            .Post('json')
+            .AsExpression;
+        end)));
+    &On('select', GenerateAnonymousFunction(JSName + '.kitto$isChanged = true;'));
+    &On('change', GenerateAnonymousFunction('field, newValue, oldValue',
       'if (newValue!==oldValue) ' + JSName + '.kitto$isChanged = true;'));
   end;
 end;
@@ -1962,15 +2025,15 @@ var
   LNewValues: ISuperObject;
   LKeyFieldNames: string;
 begin
-  LNewValues := SO(Session.RequestBody).O['new'];
+  LNewValues := SO(TKWebRequest.Current.Content).O['new'];
   if LNewValues.AsObject.Count > 0 then
   begin
     if Mode = 'local' then
-      FRecordField.SetAsJSONValue(LNewValues.S[HiddenName], False, Session.Config.UserFormatSettings)
+      FRecordField.SetAsJSONValue(LNewValues.S[HiddenName], False, TKWebApplication.Current.Config.UserFormatSettings)
     else
     begin
       LKeyFieldNames := Join(FRecordField.ViewField.ModelField.GetFieldNames, TKConfig.Instance.MultiFieldSeparator);
-      FRecordField.ParentRecord.FieldByName(LKeyFieldNames).SetAsJSONValue(LNewValues.S[HiddenName], False, Session.Config.UserFormatSettings);
+      FRecordField.ParentRecord.FieldByName(LKeyFieldNames).SetAsJSONValue(LNewValues.S[HiddenName], False, TKWebApplication.Current.Config.UserFormatSettings);
     end;
   end;
 end;
@@ -1985,7 +2048,7 @@ begin
   if not SetExtFormFieldOption(AsExtFormField, ANode) then
   begin
     if SameText(ANode.Name, 'Resizable') then
-      Resizable := ANode.AsBoolean
+      ListConfig.SetConfigItem('resizable', ANode.AsBoolean)
     else
       InvalidOption(ANode);
   end;
@@ -1996,6 +2059,8 @@ procedure TKExtFormComboBoxEditor.Setup(const AViewField: TKVIewField; const AIs
 var
   LAllowedValues: TEFPairs;
   I: Integer;
+  LProxy: TExtDataAjaxProxy;
+  LReader: TExtDataJsonReader;
 begin
   Assert(Assigned(AViewField));
 
@@ -2016,20 +2081,23 @@ begin
       FreeAndNil(FServerStore);
       FServerStore := AViewField.CreateReferenceStore;
       Store := TExtDataStore.Create(Self);
-      Store.Url := MethodURI(GetRecordPage);
-      Store.Reader := TExtDataJsonReader.Create(Self, JSObject('')); // Must pass '' otherwise invalid code is generated.
-      TExtDataJsonReader(Store.Reader).Root := 'Root';
-      TExtDataJsonReader(Store.Reader).TotalProperty := 'Total';
+      LProxy := TExtDataAjaxProxy.Create(Store);
+      LProxy.Url := GetMethodURL(GetRecordPage);
+      Store.Proxy := LProxy;
+      LReader := TExtDataJsonReader.Create(Self);
+      LProxy.Reader := LReader;
+      LReader.RootProperty := 'Root';
+      LReader.TotalProperty := 'Total';
       for I := 0 to FServerStore.Header.FieldCount - 1 do
-        with TExtDataField.CreateAndAddTo(Store.Reader.Fields) do
+        with TExtDataField.CreateInlineAndAddToArray(Store.Proxy.Reader.Fields) do
           Name := FServerStore.Header.Fields[I].FieldName;
       ValueField := Join(FServerStore.Key.GetFieldNames, TKConfig.Instance.MultiFieldSeparator);
       DisplayField := AViewField.ModelField.ReferencedModel.CaptionField.FieldName;
       if AViewField.ModelField.ReferencedModel.IsLarge then
         PageSize := 100;
       MinListWidth := 250; // Enough to accomodate all buttons.
-      Resizable := True;
-      MinHeight := LinesToPixels(5);
+      ListConfig.SetConfigItem('resizable', True);
+//      MinHeightFunc := LinesToPixels(5);
     end;
   end
   else
@@ -2060,7 +2128,7 @@ begin
   if not ReadOnly then
   begin
     LCode :=
-      AObjectName + '["' + HiddenName + '"]=' + GetJSFunctionCode(
+      AObjectName + '["' + HiddenName + '"]=' + GetJSCode(
         procedure
         begin
           GetValue;
@@ -2068,13 +2136,13 @@ begin
 
     if (FListMode = Lookup) and (HiddenName <> Name) then
       LCode := LCode + sLineBreak +
-        AObjectName + '["' + Name + '"]=' + GetJSFunctionCode(
+        AObjectName + '["' + Name + '"]=' + GetJSCode(
           procedure
           begin
             GetRawValue;
           end) + ';';
 
-    Session.ResponseItems.ExecuteJSCode(
+    TKWebResponse.Current.Items.ExecuteJSCode(
       'if (' + JSName + '.kitto$isChanged == true) {' + sLineBreak +
       LCode + sLineBreak +
       '}');
@@ -2133,7 +2201,7 @@ begin
   else if SameText(ANode.Name, 'ColumnWidth') then
     ColumnWidth := ANode.AsFloat
   else if SameText(ANode.Name, 'CharWidth') then
-    Width := CharsToPixels(ANode.AsInteger)
+    WidthExpression := CharsToPixels(ANode.AsInteger)
   else if SameText(ANode.Name, 'Width') then
     WidthString := OptionAsIntegerOrPerc(ANode)
   else if SameText(ANode.Name, 'Anchor') then
@@ -2192,7 +2260,8 @@ end;
 procedure TKExtFormRowField.InitDefaults;
 begin
   inherited;
-  Layout := lyForm;
+  Layout := lyFit;
+  Padding := '0 10 0 0';
 end;
 
 function TKExtFormRowField.InternalSetOption(const ANode: TEFNode): Boolean;
@@ -2273,16 +2342,16 @@ end;
 procedure TKExtFormRowField.SetCharWidth(const AValue: Integer);
 begin
   FCharWidth := AValue;
-  Width := CharsToPixels(FCharWidth, 5);
+  WidthExpression := CharsToPixels(FCharWidth, 5);
 end;
 
 procedure TKExtFormRowField.SetLabelWidth(const AValue: Integer);
 begin
   FLabelWidth := AValue;
   if AValue <> 0 then
-    Width := CharsToPixels(FCharWidth, FLabelWidth + 10)
+    WidthExpression := CharsToPixels(FCharWidth, FLabelWidth + 10)
   else
-    Width := CharsToPixels(FCharWidth, 5);
+    WidthExpression := CharsToPixels(FCharWidth, 5);
 end;
 
 procedure TKExtFormRowField.SetFieldName(const AValue: string);
@@ -2290,6 +2359,13 @@ begin
   Assert(Assigned(FEditor));
 
   FEditor.FieldName := AValue;
+end;
+
+procedure TKExtFormRowField.SetReadOnly(const AValue: Boolean);
+begin
+  Assert(Assigned(FEditor));
+
+  FEditor.SetReadOnly(AValue);
 end;
 
 procedure TKExtFormRowField.SetRecordField(const AValue: TKViewTableField);
@@ -2314,104 +2390,101 @@ end;
 
 { TKExtFormNumericField }
 
-function TKExtFormNumericField.AsExtFormField: TExtFormField;
+function TKExtFormNumberField.AsExtFormField: TExtFormField;
 begin
   Result := Self;
 end;
 
-function TKExtFormNumericField.AsExtObject: TExtObject;
+function TKExtFormNumberField.AsExtObject: TExtObject;
 begin
   Result := Self;
 end;
 
-function TKExtFormNumericField.AsObject: TObject;
+function TKExtFormNumberField.AsObject: TObject;
 begin
   Result := Self;
 end;
 
-procedure TKExtFormNumericField.FieldChange(This: TExtFormField; NewValue,
+procedure TKExtFormNumberField.FieldChange(This: TExtFormField; NewValue,
   OldValue: string);
 begin
-  FRecordField.SetAsJSONValue(NewValue, False, Session.Config.JSFormatSettings);
+  FRecordField.SetAsJSONValue(NewValue, False, TKWebApplication.Current.Config.JSFormatSettings);
 end;
 
-function TKExtFormNumericField.GetFieldName: string;
+function TKExtFormNumberField.GetFieldName: string;
 begin
   Result := FFieldName;
 end;
 
-function TKExtFormNumericField.GetEditItemId: string;
+function TKExtFormNumberField.GetEditItemId: string;
 begin
   Result := FRecordField.FieldName;
 end;
 
-function TKExtFormNumericField.GetRecordField: TKViewTableField;
+function TKExtFormNumberField.GetRecordField: TKViewTableField;
 begin
   Result := FRecordField;
 end;
 
-class function TKExtFormNumericField.JSClassName: string;
-begin
-  Result := 'Ext.ux.NumericField';
-end;
-
-procedure TKExtFormNumericField.RefreshValue;
+procedure TKExtFormNumberField.RefreshValue;
 begin
   SetValue(JSONNullToEmptyStr(FRecordField.GetAsJSONValue(False, False)));
 end;
 
-procedure TKExtFormNumericField.SetRecordField(const AValue: TKViewTableField);
+procedure TKExtFormNumberField.SetReadOnly(const AValue: Boolean);
+begin
+  ReadOnly := AValue;
+end;
+
+procedure TKExtFormNumberField.SetRecordField(const AValue: TKViewTableField);
 begin
   FRecordField := AValue;
   if not ReadOnly and IsChangeHandlerNeeded(FRecordField) then
     OnChange := FieldChange;
 end;
 
-procedure TKExtFormNumericField.SetThousandSeparator(const AValue: string);
+procedure TKExtFormNumberField.SetThousandSeparator(const AValue: string);
 begin
-  FThousandSeparator := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'thousandSeparator', [AValue]);
+  FThousandSeparator := SetConfigItem('thousandSeparator', AValue);
 end;
 
-procedure TKExtFormNumericField.SetTransientProperty(const APropertyName: string; const AValue: Variant);
+procedure TKExtFormNumberField.SetTransientProperty(const APropertyName: string; const AValue: Variant);
 begin
   AsExtFormField.SetTransientProperty(APropertyName, AValue);
 end;
 
-procedure TKExtFormNumericField.SetUseThousandSeparator(const AValue: Boolean);
+procedure TKExtFormNumberField.SetUseThousandSeparator(const AValue: Boolean);
 begin
-  FUseThousandSeparator := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'useThousandSeparator', [AValue]);
+  FUseThousandSeparator := SetConfigItem('useThousandSeparator', AValue);
 end;
 
-procedure TKExtFormNumericField.StoreValue(const AObjectName: string);
+procedure TKExtFormNumberField.StoreValue(const AObjectName: string);
 begin
   AsExtFormField.StoreValue(AObjectName);
 end;
 
-procedure TKExtFormNumericField.SetAlwaysDisplayDecimals(const AValue: Boolean);
+procedure TKExtFormNumberField.SetAlwaysDisplayDecimals(const AValue: Boolean);
 begin
-  FAlwaysDisplayDecimals := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'alwaysDisplayDecimals', [AValue]);
+  FAlwaysDisplayDecimals := SetConfigItem('alwaysDisplayDecimals', AValue);
 end;
 
-procedure TKExtFormNumericField.SetFieldName(const AValue: string);
+procedure TKExtFormNumberField.SetFieldName(const AValue: string);
 begin
   FFieldName := AValue;
 end;
 
-procedure TKExtFormNumericField.SetOption(const ANode: TEFNode);
+procedure TKExtFormNumberField.SetOption(const ANode: TEFNode);
 begin
   if not SetExtFormFieldOption(AsExtFormField, ANode) then
     InvalidOption(ANode);
 end;
 
-function TKExtFormNumericField._AddRef: Integer;
+function TKExtFormNumberField._AddRef: Integer;
 begin
   Result := -1;
 end;
 
-function TKExtFormNumericField._Release: Integer;
+function TKExtFormNumberField._Release: Integer;
 begin
   Result := -1;
 end;
@@ -2439,8 +2512,8 @@ var
 begin
   if AValue <> '' then
   begin
-    LDateTime := Trunc(JSDateToDateTime(AValue));
-    Result := DateTimeToStr(LDateTime, Session.Config.UserFormatSettings);
+    LDateTime := Trunc(TJS.JSDateToDateTime(AValue));
+    Result := DateTimeToStr(LDateTime, TKWebApplication.Current.Config.UserFormatSettings);
   end
   else
     Result := '';
@@ -2456,7 +2529,7 @@ end;
 procedure TKExtFormDateTimeField.FieldChange(This: TExtFormField; NewValue,
   OldValue: string);
 begin
-  FRecordField.SetAsJSONValue(ConvertDateTime(NewValue), False, Session.Config.UserFormatSettings);
+  FRecordField.SetAsJSONValue(ConvertDateTime(NewValue), False, TKWebApplication.Current.Config.UserFormatSettings);
 end;
 
 function TKExtFormDateTimeField.GetFieldName: string;
@@ -2507,31 +2580,32 @@ end;
 
 procedure TKExtFormDateTimeField.SetAllowBlank(const AValue: Boolean);
 begin
-  FAllowBlank := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'allowBlank', [AValue]);
+  FAllowBlank := SetConfigItem('allowBlank', AValue);
 end;
 
 procedure TKExtFormDateTimeField.SetAltDateFormats(const AValue: string);
 begin
-  FAltDateFormats := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'altDateFormats', [AValue]);
+  FAltDateFormats := SetConfigItem('altDateFormats', AValue);
 end;
 
 procedure TKExtFormDateTimeField.SetAltTimeFormats(const AValue: string);
 begin
-  FAltTimeFormats := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'altTimeFormats', [AValue]);
+  FAltTimeFormats := SetConfigItem('altTimeFormats', AValue);
 end;
 
 procedure TKExtFormDateTimeField.SetDateFormat(const AValue: string);
 begin
-  FTimeFormat := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'dateFormat', [AValue]);
+  FTimeFormat := SetConfigItem('dateFormat', AValue);
 end;
 
 procedure TKExtFormDateTimeField.SetFieldName(const AValue: string);
 begin
   FFieldName := AValue;
+end;
+
+procedure TKExtFormDateTimeField.SetReadOnly(const AValue: Boolean);
+begin
+  ReadOnly := AValue;
 end;
 
 procedure TKExtFormDateTimeField.SetRecordField(const AValue: TKViewTableField);
@@ -2543,8 +2617,7 @@ end;
 
 procedure TKExtFormDateTimeField.SetTimeFormat(const AValue: string);
 begin
-  FTimeFormat := AValue;
-  ExtSession.ResponseItems.SetConfigItem(Self, 'timeFormat', [AValue]);
+  FTimeFormat := SetConfigItem('timeFormat', AValue);
 end;
 
 procedure TKExtFormDateTimeField.SetTransientProperty(const APropertyName: string; const AValue: Variant);
@@ -2577,7 +2650,7 @@ end;
 procedure TKExtFormTimeField.FieldChange(This: TExtFormField; NewValue,
   OldValue: string);
 begin
-  FRecordField.SetAsJSONValue(NewValue, False, Session.Config.UserFormatSettings);
+  FRecordField.SetAsJSONValue(NewValue, False, TKWebApplication.Current.Config.UserFormatSettings);
 end;
 
 function TKExtFormTimeField.GetFieldName: string;
@@ -2598,6 +2671,11 @@ end;
 procedure TKExtFormTimeField.RefreshValue;
 begin
   SetValue(JSONNullToEmptyStr(FRecordField.GetAsJSONValue(False, False)));
+end;
+
+procedure TKExtFormTimeField.SetReadOnly(const AValue: Boolean);
+begin
+  ReadOnly := AValue;
 end;
 
 procedure TKExtFormTimeField.SetRecordField(const AValue: TKViewTableField);
@@ -2675,6 +2753,11 @@ begin
   SetValue(JSONNullToEmptyStr(FRecordField.GetAsJSONValue(False, False)));
 end;
 
+procedure TKExtFormFileUploadField.SetReadOnly(const AValue: Boolean);
+begin
+  ReadOnly := AValue;
+end;
+
 procedure TKExtFormFileUploadField.SetRecordField(const AValue: TKViewTableField);
 begin
   FRecordField := AValue;
@@ -2739,41 +2822,37 @@ var
   LFileNameField: string;
   LFileNameFieldReference: TKViewTableField;
 begin
-  FLastUploadedFullFileName := '';
-  FLastUploadedOriginalFileName := '';
+  FLastUploadedClientFileName := '';
 
   LFileNameField := FRecordField.ViewField.FileNameField;
   if LFileNameField <> ''then
   begin
     LFileNameFieldReference := FRecordField.ParentRecord.FieldByName(LFileNameField);
     // Must clear the field both now, to have an exact picture in real time, and later
-    // (through the SetToNull directive), when the form is submitted.
-    LFileNameFieldReference.SetBoolean('Sys/SetToNull', True);
+    // (through the SetToNull directive), when the record is persisted.
+    //LFileNameFieldReference.SetBoolean('Sys/SetToNull', True);
     LFileNameFieldReference.SetToNull;
   end;
 end;
 
 procedure TKExtFormFileEditor.DownloadFieldData;
-var
-  LServerFileName: string;
 begin
   inherited;
-  LServerFileName := GetCurrentServerFileName;
-  if LServerFileName <> '' then
-    DownloadFile(LServerFileName, GetCurrentClientFileName);
+  DoDownloadFieldData(GetDownloadFileName);
 end;
 
-procedure TKExtFormFileEditor.FileUploaded(const AFileName: string);
+procedure TKExtFormFileEditor.ProcessUploadedFile(const AFile: TAbstractWebRequestFile);
 var
   LFileNameField: string;
   LFileNameFieldReference: TKViewTableField;
 begin
+  FLastUploadedClientFileName := AFile.FileName;
   LFileNameField := FRecordField.ViewField.FileNameField;
-  if LFileNameField <> ''then
+  if LFileNameField <> '' then
   begin
     LFileNameFieldReference := FRecordField.ParentRecord.FieldByName(LFileNameField);
-    LFileNameFieldReference.DeleteNode('Sys/SetToNull');
-    LFileNameFieldReference.AsString := Session.FileUploaded;
+    //LFileNameFieldReference.DeleteNode('Sys/SetToNull');
+    LFileNameFieldReference.AsString := AFile.FileName;
   end;
 end;
 
@@ -2782,9 +2861,51 @@ begin
   Result := FRecordField;
 end;
 
+function TKExtFormFileEditor.GetStoredFileName: string;
+var
+  LFileNameField: string;
+begin
+  Assert(Assigned(FRecordField));
+
+  LFileNameField := FRecordField.ViewField.FileNameField;
+  if LFileNameField <> '' then
+    Result := FRecordField.ParentRecord.FieldByName(LFileNameField).AsString
+  else
+    Result := '';
+end;
+
+function TKExtFormFileEditor.GetDefaultFileName: string;
+var
+  LCaptionField: TKViewTableField;
+begin
+  Assert(Assigned(FRecordField));
+
+  Result := FRecordField.ViewField.GetExpandedString('DefaultFileName');
+  if Result = '' then
+  begin
+    LCaptionField := FRecordField.ParentRecord.FindField(FRecordField.ViewField.ModelField.Model.CaptionField.FieldName);
+    if Assigned(LCaptionField) then
+      Result := LCaptionField.AsString + GetDownloadFileExtFromFieldData
+    else
+      Result := FRecordField.FieldName + GetDownloadFileExtFromFieldData;
+  end;
+end;
+
+function TKExtFormFileEditor.GetDownloadFileName: string;
+begin
+  if FLastUploadedClientFileName <> '' then
+    Result := ExtractFileName(FLastUploadedClientFileName)
+  else
+  begin
+    Result := GetStoredFileName;
+    if Result = '' then
+      Result := GetDefaultFileName;
+  end;
+end;
+
 function TKExtFormFileEditor.IsEmpty: Boolean;
 begin
-  Result := GetCurrentServerFileName = '';
+  Result := GetCurrentContentSize = 0;
 end;
 
 function TKExtFormFileEditor.IsPicture: Boolean;
@@ -2802,33 +2923,32 @@ procedure TKExtFormFileEditor.PictureViewAfterRender(This: TExtComponent);
 begin
   Assert(Assigned(FPictureView));
 
-  FPictureView.Load(JSObject(Format('url:"%s"', [MethodURI(GetImageContent)])));
+  TKWebResponse.Current.Items.ExecuteJSCode(FPictureView.JSName + '.getLoader().load()');
 end;
 
 procedure TKExtFormFileEditor.CreateGUI(const AViewField: TKViewField);
 var
   LPanel: TExtPanel;
-  LUploadButton: TKExtButton;
   LToolbar: TKExtToolbar;
   LButtonCount: Integer;
   LIsPicture: Boolean;
 begin
-  Layout := lyForm;
-
   LIsPicture := AViewField.IsPicture;
 
-  LPanel := TExtPanel.CreateAndAddTo(Items);
+  LPanel := TExtPanel.CreateInlineAndAddToArray(Items);
   FImageWidth := AViewField.GetInteger('IsPicture/Thumbnail/Width', 100);
   FImageHeight := AViewField.GetInteger('IsPicture/Thumbnail/Height', 100);
 
   if LIsPicture then
   begin
     LPanel.Layout := lyColumn;
-    FPictureView := TExtPanel.CreateAndAddTo(LPanel.Items);
-    FPictureView.Frame := True;
-    FPictureView.OnAfterrender := PictureViewAfterRender;
+    FPictureView := TExtPanel.CreateAndAddToArray(LPanel.Items);
+    //FPictureView.Frame := True;
+    FPictureView.Border := False;
+    FPictureView.Loader.SetConfigItem('url', GetMethodURL(GetImageMarkup));
+    FPictureView.AfterRender := PictureViewAfterRender;
 
-    LToolbar := TKExtToolbar.CreateAndAddTo(LPanel.Items);
+    LToolbar := TKExtToolbar.CreateAndAddToArray(LPanel.Items);
     // Version below puts the toolbar at the bottom (in which case we should adjust the height as well)
     //LToolbar := TKExtToolbar.Create;
     //FPictureView.Bbar := LToolbar;
@@ -2836,41 +2956,43 @@ begin
   else
   begin
     LPanel.Layout := lyHbox;
-    FDescriptionField := TExtFormTextField.CreateAndAddTo(LPanel.Items);
+    FDescriptionField := TExtFormTextField.CreateAndAddToArray(LPanel.Items);
     FDescriptionField.ReadOnly := True;
     FDescriptionField.Cls := 'x-form-readonly';
 
-    LToolbar := TKExtToolbar.CreateAndAddTo(LPanel.Items);
+    LToolbar := TKExtToolbar.CreateInlineAndAddToArray(LPanel.Items);
   end;
 
   LToolbar.Style := 'background: none; border: none;';
 
-  FDownloadButton := TKExtButton.CreateAndAddTo(LToolbar.Items);
-  FDownloadButton.SetIconAndScale('download', Config.GetString('ButtonScale', 'small'));
+  FDownloadButton := TKExtButton.CreateAndAddToArray(LToolbar.Items);
+  FDownloadButton.SetIconAndScale('download');
   FDownloadButton.Tooltip := _('Download file');
-  FDownloadButton.Handler := Ajax(StartDownload);
+  //FDownloadButton.Handler := Ajax(StartDownload);
+  FDownloadButton.Handler := TKWebResponse.Current.Items.AjaxCallMethod(Self).SetMethod(StartDownload).AsFunction;
 
   LButtonCount := 1;
-  if not FIsReadOnly then
-  begin
-    LUploadButton := TKExtButton.CreateAndAddTo(LToolbar.Items);
-    LUploadButton.SetIconAndScale('upload', Config.GetString('ButtonScale', 'small'));
-    LUploadButton.Tooltip := _('Upload file');
-    LUploadButton.Handler := Ajax(ShowUploadFileDialog);
-    Inc(LButtonCount);
+  FUploadButton := TKExtButton.CreateAndAddToArray(LToolbar.Items);
+  FUploadButton.SetIconAndScale('upload');
+  FUploadButton.Tooltip := _('Upload file');
+  //FUploadButton.Handler := Ajax(ShowUploadFileDialog);
+  FUploadButton.Handler := TKWebResponse.Current.Items.AjaxCallMethod(Self).SetMethod(ShowUploadFileDialog).AsFunction;
+  if FIsReadOnly then
+    FUploadButton.SetDisabled(True);
+  Inc(LButtonCount);
 
-    FClearButton := TKExtButton.CreateAndAddTo(LToolbar.Items);
-    FClearButton.SetIconAndScale('clear', Config.GetString('ButtonScale', 'small'));
-    FClearButton.Tooltip := _('Clear field');
-    FClearButton.Handler := Ajax(Clear);
-    Inc(LButtonCount);
-  end
-  else
-    FClearButton := nil;
+  FClearButton := TKExtButton.CreateAndAddToArray(LToolbar.Items);
+  FClearButton.SetIconAndScale('clear');
+  FClearButton.Tooltip := _('Clear field');
+  //FClearButton.Handler := Ajax(Clear);
+  FClearButton.Handler := TKWebResponse.Current.Items.AjaxCallMethod(Self).SetMethod(Clear).AsFunction;
+  if FIsReadOnly then
+    FClearButton.SetDisabled(True);
+  Inc(LButtonCount);
 
   if Assigned(FDescriptionField) then
     // Keep 3 characters per button, leave the rest to the text field.
-    FDescriptionField.Width := CharsToPixels(FTotalCharWidth - (3 * LButtonCount))
+    FDescriptionField.WidthExpression := CharsToPixels(FTotalCharWidth - (3 * LButtonCount))
   else if Assigned(FPictureView) then
   begin
     if FPictureView.Frame then
@@ -2885,6 +3007,12 @@ begin
     end;
     Width := FPictureView.Width + (22 * LButtonCount);
   end;
+end;
+
+procedure TKExtFormFileEditor.SetReadOnly(const AValue: Boolean);
+begin
+  FIsReadOnly := AValue;
+  UpdateGUI(False);
 end;
 
 procedure TKExtFormFileEditor.SetRecordField(const AValue: TKViewTableField);
@@ -2903,15 +3031,17 @@ begin
   SetComponentTransientProperty(Self, APropertyName, AValue);
 end;
 
-procedure TKExtFormFileEditor.GetImageContent;
+procedure TKExtFormFileEditor.GetImageMarkup;
 begin
-  if GetCurrentServerFileName = '' then
-    ExtSession.ResponseItems.AddHTML('<p>' + _(EMPTY_DESCRIPTION) + '</p>')
+  Assert(Assigned(FRecordField));
+
+  if FRecordField.IsNull then
+    TKWebResponse.Current.Items.AddHTML('<p>' + _(EMPTY_DESCRIPTION) + '</p>')
   else
     // Add dummy parameter to the URL to force the browser to refresh the image
     // after an upload.
-    ExtSession.ResponseItems.AddHTML(Format('<img src="%s">',
-      [MethodURI(GetImage, ['time', FormatDateTime('yyyymmddhhnnsszzz', Now())])]));
+    TKWebResponse.Current.Items.AddHTML(Format('<img src="%s">',
+      [GetMethodURL(GetImageData) + '?_dc=' + FormatDateTime('yyyymmddhhnnsszzz', Now())]));
 end;
 
 function TKExtFormFileEditor.GetObjectNamePrefix: string;
@@ -2923,14 +3053,18 @@ procedure TKExtFormFileEditor.UpdateGUI(const AUpdatePicture: Boolean);
 var
   LIsEmpty: Boolean;
 begin
-  LIsEmpty := IsEmpty;
-  if Assigned(FDescriptionField) then
-    FDescriptionField.Value := GetContentDescription;
-  if AUpdatePicture and Assigned(FPictureView) then
-    PictureViewAfterRender(FPictureView);
-  FDownloadButton.SetDisabled(LIsEmpty);
-  if Assigned(FClearButton) then
-    FClearButton.SetDisabled(LIsEmpty);
+  // Only if GUI already created.
+  if Items.Count > 0 then
+  begin
+    LIsEmpty := IsEmpty;
+    if Assigned(FDescriptionField) then
+      FDescriptionField.Value := GetContentDescription;
+    if AUpdatePicture and Assigned(FPictureView) then
+      PictureViewAfterRender(FPictureView);
+    FDownloadButton.SetDisabled(LIsEmpty);
+    FClearButton.SetDisabled(LIsEmpty or FIsReadOnly);
+    FUploadButton.SetDisabled(FIsReadOnly);
+  end;
 end;
 
 procedure TKExtFormFileEditor.SetFieldName(const AValue: string);
@@ -2941,7 +3075,7 @@ end;
 procedure TKExtFormFileEditor.SetOption(const ANode: TEFNode);
 begin
   if SameText(ANode.Name, 'CharWidth') then
-    TotalCharWidth := Anode.AsInteger
+    TotalCharWidth := ANode.AsInteger
   else if SameText(ANode.Name, 'Anchor') then
     Anchor := ANode.AsString
   else
@@ -2955,39 +3089,42 @@ var
   LSubmitAction: TExtFormActionSubmit;
   LUploadFormField: TKExtFormFileUploadField;
 begin
+  if Assigned(FWindow) then
+    FWindow.Delete;
   FreeAndNil(FWindow);
   FWindow := TKExtModalWindow.Create(Self);
-  FWindow.Width := 400;
-  FWindow.Height := 120;
-  FWindow.Maximized := Session.IsMobileBrowser;
-  FWindow.Border := not FWindow.Maximized;
+  FWindow.Width := 500;
+  FWindow.Height := 200;
   FWindow.Closable := True;
   FWindow.Title := _('File upload');
 
-  LFormPanel := TExtFormFormPanel.CreateAndAddTo(FWindow.Items);
+  LFormPanel := TExtFormFormPanel.CreateAndAddToArray(FWindow.Items);
   LFormPanel.Region := rgCenter;
   LFormPanel.Frame := True;
   LFormPanel.FileUpload := True;
   LFormPanel.LabelAlign := laRight;
   LFormPanel.LabelWidth := 50;
-  LUploadFormField := TKExtFormFileUploadField.CreateAndAddTo(LFormPanel.Items);
+  LUploadFormField := TKExtFormFileUploadField.CreateInlineAndAddToArray(LFormPanel.Items);
   LUploadFormField.FieldLabel := _(FRecordField.ViewField.DisplayLabel);
   LUploadFormField.EmptyText := _('Select a file to upload');
   LUploadFormField.AllowBlank := False;
   LUploadFormField.Anchor := '0 5 0 0';
-  LUploadButton := TKExtButton.CreateAndAddTo(LFormPanel.Buttons);
+  LUploadButton := TKExtButton.CreateInlineAndAddToArray(LFormPanel.Buttons);
   LUploadButton.Text := _('Upload');
-  LUploadButton.SetIconAndScale('Upload', IfThen(Session.IsMobileBrowser,'medium', 'small'));
+  LUploadButton.SetIconAndScale('Upload', IfThen(TKWebRequest.Current.IsMobileBrowser,'medium', 'small'));
 
-  LSubmitAction := TExtFormActionSubmit.Create(FWindow);
-  LSubmitAction.Url := MethodURI(Upload);
+  LSubmitAction := TExtFormActionSubmit.CreateInline(FWindow);
+  LSubmitAction.Url := GetMethodURL(Upload);
   LSubmitAction.WaitMsg := _('File upload in progress...');
   LSubmitAction.WaitTitle := _('Please wait...');
-  LSubmitAction.Success := Ajax(PostUpload);
-  LSubmitAction.Failure := ExtMessageBox.Alert(_('File upload error'), '%1.result.message');
-  LUploadButton.Handler := TExtFormBasicForm(LFormPanel.GetForm).Submit(LSubmitAction);
+  //LSubmitAction.Success := Ajax(PostUpload);
+  LSubmitAction.Success := TKWebResponse.Current.Items.AjaxCallMethod(Self).SetMethod(PostUpload).AsFunction;
+  { TODO : find a way to substitute action.result.msg }
+  LSubmitAction.Failure := GenerateAnonymousFunction('form, action', ExtMessageBox.Alert(_('File upload error'), 'action.result.msg'));
 
-  Session.MaxUploadSize := FRecordField.ViewField.GetInteger('MaxUploadSize', MaxLongint);
+  LUploadButton.Handler := GenerateAnonymousFunction(Format(
+    'var form = this.up("form"); if (form.isValid()) form.submit({%s});',
+    [LSubmitAction.JSConfig.AsFormattedText]));
   FWindow.Show;
 end;
 
@@ -3006,35 +3143,65 @@ begin
   begin
     LMsg := Format(_('Field %s is required. Please upload a file.'), [FRecordField.ViewField.DisplayLabel]);
     if Assigned(FDescriptionField) then
-      Session.ResponseItems.ExecuteJSCode(Self,
+      TKWebResponse.Current.Items.ExecuteJSCode(Self,
         Format('if (%s.getValue() == "%s") { alert("%s"); throw "validation error"; }',
         [FDescriptionField.JSName, _(EMPTY_DESCRIPTION), LMsg]))
     else if Assigned(FPictureView) then
-      Session.ResponseItems.ExecuteJSCode(Self,
+      TKWebResponse.Current.Items.ExecuteJSCode(Self,
         Format('if (%s.html.indexOf("<img" = -1) { alert("%s"); throw "validation error"; }', [FDescriptionField.JSName, LMsg]));
   end;
 end;
 
 procedure TKExtFormFileEditor.Upload;
 var
-  LFileName: string;
+  LResult: TJSONObject;
+  LMaxUploadSize: Integer;
 begin
-  LFileName := Session.FileUploadedFullName;
-  { TODO : Check the file against limitations such as type and size}
-  if (LFileName <> '') and FileExists(LFileName) then
-    FileUploaded(LFileName);
-  { success:true or success:false + errors }
+  LResult := TJSONObject.Create;
+  try
+    if TKWebRequest.Current.Files.Count = 0 then
+    begin
+      LResult.AddPair('success', TJSONFalse.Create);
+      LResult.AddPair('msg', _('No file uploaded'));
+    end
+    else
+    begin
+      LMaxUploadSize := FRecordField.ViewField.GetInteger('MaxUploadSize', MaxLongint);
+      if TKWebRequest.Current.Files[0].Stream.Size > LMaxUploadSize then
+      begin
+        LResult.AddPair('success', TJSONFalse.Create);
+        LResult.AddPair('msg', Format(_('File too large. Maximum size is %s.'),
+          [FormatByteSize(LMaxUploadSize, TKWebApplication.Current.Config.UserFormatSettings)]));
+      end
+      else
+      begin
+        try
+          ProcessUploadedFile(TKWebRequest.Current.Files[0]);
+          LResult.AddPair('success', TJSONTrue.Create);
+        except
+          on E: Exception do
+          begin
+            LResult.AddPair('success', TJSONFalse.Create);
+            LResult.AddPair('msg', E.Message);
+          end;
+        end;
+      end;
+    end;
+  finally
+    TKWebResponse.Current.Items.AddJSON(LResult.ToJSON);
+    FreeAndNil(LResult);
+  end;
 end;
 
 function TKExtFormFileEditor.GetContentDescription: string;
 var
   LFileName: string;
 begin
-  LFileName := ExtractFileName(GetCurrentServerFileName);
+  LFileName := ExtractFileName(GetDownloadFileName);
   if LFileName <> '' then
     Result := Format(_('%s file (%s)'),
       [StripPrefix(ExtractFileExt(LFileName), '.'),
-      FormatByteSize(GetCurrentContentSize, Session.Config.UserFormatSettings)])
+      FormatByteSize(GetCurrentContentSize, TKWebApplication.Current.Config.UserFormatSettings)])
   else
     Result := _(EMPTY_DESCRIPTION);
 end;
@@ -3049,15 +3216,9 @@ begin
   Result := FRecordField.FieldName;
 end;
 
-procedure TKExtFormFileEditor.GetImage;
-var
-  LFileName: string;
+procedure TKExtFormFileEditor.GetImageData;
 begin
-  inherited;
-  LFileName := GetCurrentServerFileName;
-  if LFileName <> '' then
-    DownloadThumbnailedFile(LFileName,
-      IfThen(FLastUploadedOriginalFileName <> '', FLastUploadedOriginalFileName, ExtractFileName(LFileName)));
+  DownloadThumbnailedStream(CreateImageDataStream, GetDownloadFileName, FImageWidth, FImageHeight);
 end;
 
 procedure TKExtFormFileEditor.PostUpload;
@@ -3078,112 +3239,76 @@ end;
 
 { TKExtFormFileBlobEditor }
 
-function TKExtFormFileBlobEditor.GetCurrentServerFileName: string;
-var
-  LCaptionField: TKViewTableField;
-  LFileNameField: string;
+function TKExtFormFileBlobEditor.GetDownloadFileExtFromFieldData: string;
 begin
-  if FLastUploadedFullFileName <> '' then
-    Result := FLastUploadedFullFileName
-  else if FRecordField.IsNull then
-    Result := ''
-  else
-  begin
-    LFileNameField := FRecordField.ViewField.FileNameField;
-    if LFileNameField <> '' then
-      Result := FRecordField.ParentRecord.FieldByName(LFileNameField).AsString;
-    if Result = '' then
-      Result := FRecordField.ViewField.GetExpandedString('DefaultFileName');
-    if Result = '' then
-    begin
-      LCaptionField := FRecordField.ParentRecord.FindField(FRecordField.ViewField.ModelField.Model.CaptionField.FieldName);
-      if Assigned(LCaptionField) then
-        Result := LCaptionField.AsString
-      else
-        Result := FRecordField.FieldName;
-    end;
-    Result := ChangeFileExt(Result, '.' + GetDataType(FRecordField.AsBytes, ExtractFileFormat(Result)));
-  end;
-end;
+  Assert(Assigned(FRecordField));
 
-function TKExtFormFileBlobEditor.GetCurrentClientFileName: string;
-begin
-  Result := FLastUploadedOriginalFileName;
-  if Result = '' then
-    Result := ExtractFileName(GetCurrentServerFileName);
+  Result := '.' + GetDataType(FRecordField.AsBytes, 'dat');
 end;
 
 procedure TKExtFormFileBlobEditor.ClearContents;
-var
-  LUploadedFile: TKExtUploadedFile;
 begin
   inherited;
   FRecordField.SetToNull;
-  LUploadedFile := Session.FindUploadedFile(FRecordField.ViewField);
-  while Assigned(LUploadedFile) do
-  begin
-    Session.RemoveUploadedFile(LUploadedFile);
-    LUploadedFile := Session.FindUploadedFile(FRecordField.ViewField);
-  end;
 end;
 
-procedure TKExtFormFileBlobEditor.DownloadFile(const AServerFileName, AClientFileName: string);
-var
-  LStream: TStream;
+function TKExtFormFileBlobEditor.CreateImageDataStream: TStream;
 begin
-  inherited;
-  if FileExists(AServerFileName) then
-    LStream := TFileStream.Create(AServerFileName, fmOpenRead + fmShareDenyWrite)
-  else if not FRecordField.IsNull then
-    LStream := TBytesStream.Create(FRecordField.AsBytes);
-  try
-    Session.DownloadStream(LStream, AClientFileName);
-  finally
-    FreeAndNil(LStream);
-  end;
+  Assert(Assigned(FRecordField));
+  Assert(not FRecordField.IsNull);
+
+  Result := TBytesStream.Create(FRecordField.AsBytes);
 end;
 
-procedure TKExtFormFileBlobEditor.DownloadThumbnailedFile(
-  const AServerFileName, AClientFileName: string);
-var
-  LStream: TStream;
+procedure TKExtFormFileBlobEditor.DoDownloadFieldData(const AFileName: string);
 begin
-  inherited;
-  if FileExists(AServerFileName) then
-    LStream := TFileStream.Create(AServerFileName, fmOpenRead + fmShareDenyWrite)
-  else if not FRecordField.IsNull then
-    LStream := TBytesStream.Create(FRecordField.AsBytes);
-  try
-    DownloadThumbnailedStream(LStream, AClientFileName, FImageWidth, FImageHeight);
-  finally
-    FreeAndNil(LStream);
-  end;
+  Assert(Assigned(FRecordField));
+
+  TKWebApplication.Current.DownloadBytes(FRecordField.AsBytes, AFileName, '', False);
 end;
 
-procedure TKExtFormFileBlobEditor.FileUploaded(const AFileName: string);
-var
-  LUploadedFile: TKExtUploadedFile;
+procedure TKExtFormFileBlobEditor.ProcessUploadedFile(const AFile: TAbstractWebRequestFile);
 begin
   inherited;
-  FLastUploadedOriginalFileName := ExtractFileName(AFileName);
-  FLastUploadedFullFileName := GetUniqueFileName(ExtractFilePath(AFileName),
-    ExtractFileExt(AFileName));
-  // Don't rename: move, since the files could be on different drives.
-  CopyFile(AFileName, FLastUploadedFullFileName);
-  DeleteFile(AFileName);
-  LUploadedFile := TKExtUploadedFile.Create(
-    Session.FileUploaded, FLastUploadedFullFileName, FRecordField.ViewField,
-    Session.FileUploaded);
-  Session.AddUploadedFile(LUploadedFile);
-  FRecordField.AsBytes := LUploadedFile.Bytes;
+  FRecordField.LoadBytesFromStream(AFile.Stream);
 end;
 
 function TKExtFormFileBlobEditor.GetCurrentContentSize: Integer;
 begin
-  if FLastUploadedFullFileName <> '' then
-    Result := GetFileSize(FLastUploadedFullFileName)
+  if FRecordField.IsNull then
+    Result := 0
   else
     Result := Length(FRecordField.AsBytes);
+end;
+
+{ TKFileOp }
+
+class operator TKFileOp.Implicit(const AOther: TStringDynArray): TKFileOp;
+begin
+  Assert(Length(AOther) = 3);
+
+  Result := TKFIleOp.Create(
+    TRttiEnumerationType.GetValue<TKFileOpKind>(AOther[0])
+    , AOther[1]
+    , TRttiEnumerationType.GetValue<TKFileOpEvent>(AOther[2])
+  );
+end;
+
+class operator TKFileOp.Implicit(const AOther: TKFileOp): TStringDynArray;
+begin
+  Result := [
+    TRttiEnumerationType.GetName<TKFileOpKind>(AOther.Kind)
+    , AOther.PathName
+    , TRttiEnumerationType.GetName<TKFileOpEvent>(AOther.Event)
+  ];
+end;
+
+constructor TKFileOp.Create(const AKind: TKFileOpKind; const APathName: string; const AEvent: TKFileOpEvent);
+begin
+  Kind := AKind;
+  PathName := APathName;
+  Event := AEvent;
+  Done := False;
 end;
 
 { TKExtFormFileReferenceEditor }
@@ -3192,10 +3317,20 @@ function TKExtFormFileReferenceEditor.GetFieldPath: string;
 begin
   inherited;
   Result := IncludeTrailingPathDelimiter(FRecordField.ViewField.GetExpandedString('Path'));
-  if Result = '' then
+  if (Result = '') or (Result = PathDelim) then
     raise Exception.CreateFmt('Path not specified for file reference field %s.', [FRecordField.ViewField.FieldName]);
   if not DirectoryExists(Result) then
     raise Exception.CreateFmt('Directory %s not found for file reference field %s.', [Result, FRecordField.ViewField.FieldName]);
+end;
+
+function TKExtFormFileReferenceEditor.GetServerFileName: string;
+begin
+  Assert(Assigned(FRecordField));
+
+  if FRecordField.AsString <> '' then
+    Result := TPath.Combine(GetFieldPath, FRecordField.AsString)
+  else
+    Result := '';
 end;
 
 procedure TKExtFormFileReferenceEditor.ClearContents;
@@ -3203,110 +3338,92 @@ begin
   inherited;
   if FRecordField.AsString <> '' then
   begin
-    FRecordField.SetString('Sys/DeleteFile', IncludeTrailingPathDelimiter(GetFieldPath) + FRecordField.AsString);
+    DeferredFileDelete(oePost, GetServerFileName);
     FRecordField.SetToNull;
   end;
 end;
 
-procedure TKExtFormFileReferenceEditor.DownloadFile(const AServerFileName, AClientFileName: string);
+procedure TKExtFormFileReferenceEditor.DoDownloadFieldData(const AFileName: string);
 var
-  LStream: TFileStream;
+  LServerFileName: string;
 begin
-  inherited;
-  LStream := TFileStream.Create(AServerFileName, fmOpenRead + fmShareDenyWrite);
-  try
-    Session.DownloadStream(LStream, AClientFileName);
-  finally
-    FreeAndNil(LStream);
-  end;
+  Assert(Assigned(FRecordField));
+
+  LServerFileName := GetServerFileName;
+  Assert(FileExists(LServerFileName));
+
+  TKWebApplication.Current.DownloadFile(LServerFileName, AFileName, '', False);
 end;
 
-procedure TKExtFormFileReferenceEditor.DownloadThumbnailedFile(
-  const AServerFileName, AClientFileName: string);
+function TKExtFormFileReferenceEditor.CreateImageDataStream: TStream;
 var
-  LStream: TFileStream;
+  LServerFileName: string;
 begin
-  inherited;
-  LStream := TFileStream.Create(AServerFileName, fmOpenRead + fmShareDenyWrite);
-  try
-    DownloadThumbnailedStream(LStream, AClientFileName, FImageWidth, FImageHeight);
-  finally
-    FreeAndNil(LStream);
-  end;
+  Assert(Assigned(FRecordField));
+
+  LServerFileName := GetServerFileName;
+  Assert(FileExists(LServerFileName));
+
+  Result := TFileStream.Create(LServerFileName, fmOpenRead or fmShareDenyNone);
 end;
 
-procedure TKExtFormFileReferenceEditor.FileUploaded(const AFileName: string);
+procedure TKExtFormFileReferenceEditor.DeferredFileDelete(const AEvent: TKFileOpEvent; const APathName: string);
 var
-  LFileName: string;
+  LNode: TEFNode;
 begin
-  inherited;
-  FLastUploadedFullFileName := GetUniqueFileName(GetFieldPath, ExtractFileExt(AFileName));
-  // Don't rename: move, since the files could be on different drives.
-  CopyFile(AFileName, FLastUploadedFullFileName);
-  DeleteFile(AFileName);
+  Assert(Assigned(FRecordField));
 
-  LFileName := ExtractFileName(FLastUploadedFullFileName);
-  Session.AddUploadedFile(TKExtUploadedFile.Create(LFileName,
-    FLastUploadedFullFileName, FRecordField.ViewField, Session.FileUploaded));
-  FRecordField.AsString := LFileName;
-  FRecordField.DeleteNode('Sys/DeleteFile');
+  LNode := FRecordField.GetNode('DeferredFileOps', True);
+  LNode.AddChild('Item').AsStringArray := TKFileOp.Create(okDelete, APathName, AEvent);
 end;
 
-function TKExtFormFileReferenceEditor.GetCurrentClientFileName: string;
+procedure TKExtFormFileReferenceEditor.ProcessUploadedFile(const AFile: TAbstractWebRequestFile);
 var
-  LFileNameField: string;
-  LCaptionField: TKViewTableField;
+  LCurrentFileName: string;
+  LNewFileName: string;
 begin
-  if FLastUploadedOriginalFileName <> '' then
-    Result := FLastUploadedOriginalFileName
-  else
-  begin
-    LFileNameField := FRecordField.ViewField.FileNameField;
-    if LFileNameField <> '' then
-      Result := FRecordField.ParentRecord.FieldByName(LFileNameField).AsString;
-    if Result = '' then
-    begin
-      Result := FRecordField.ViewField.GetExpandedString('DefaultFileName');
-      if Result = '' then
-      begin
-        LCaptionField := FRecordField.ParentRecord.FindField(FRecordField.ViewField.ModelField.Model.CaptionField.FieldName);
-        if Assigned(LCaptionField) then
-          Result := LCaptionField.AsString + ExtractFileExt(GetCurrentServerFileName)
-        else
-          Result := FRecordField.FieldName;
-      end;
-    end;
-  end;
+  inherited;
+  LCurrentFileName := GetServerFileName;
+  if FileExists(LCurrentFileName) then
+    DeferredFileDelete(oePost, LCurrentFileName);
+
+  // Save data to file with auto-generated name.
+  LNewFileName := GetUniqueFileName(GetFieldPath, ExtractFileExt(AFile.FileName));
+  StreamToFile(AFile.Stream, LNewFileName);
+
+  FRecordField.AsString := ExtractFileName(LNewFileName);
+  DeferredFileDelete(oeCancel, LNewFileName);
 end;
 
 function TKExtFormFileReferenceEditor.GetCurrentContentSize: Integer;
 var
   LFileName: string;
 begin
-  LFileName := GetCurrentServerFileName;
+  LFileName := GetServerFileName;
   if FileExists(LFileName) then
     Result := GetFileSize(LFileName)
   else
     Result := 0;
 end;
 
-function TKExtFormFileReferenceEditor.GetCurrentServerFileName: string;
+function TKExtFormFileReferenceEditor.GetDownloadFileExtFromFieldData: string;
 begin
-  if FLastUploadedFullFileName <> '' then
-    Result := FLastUploadedFullFileName
-  else
-    Result := IncludeTrailingPathDelimiter(GetFieldPath) + FRecordField.AsString;
+  Assert(Assigned(FRecordField));
+
+  Result := ExtractFileExt(FRecordField.AsString);
+  if Result = '' then
+    Result := '.dat';
 end;
 
 { TKExtEditorManager }
 
-function TKExtEditorManager.CreateGridCellEditor(const AOwner: TComponent;
+function TKExtEditorManager.CreateGridCellEditor(const AOwner: TJSBase;
   const AViewField: TKViewField): TExtFormField;
 begin
   Result := CreateEditor(AOwner, AViewField, nil, AViewField.DisplayWidth, False).AsExtFormField;
 end;
 
-function TKExtEditorManager.CreateEditor(const AOwner: TComponent;
+function TKExtEditorManager.CreateEditor(const AOwner: TJSBase;
   const AViewField: TKViewField; const ARowField: TKExtFormRowField;
   const AFieldCharWidth: Integer; const AIsReadOnly: Boolean;
   const ALabel: string): IKExtEditor;
@@ -3329,7 +3446,7 @@ begin
   if Result = nil then
     Result := TryCreateDateTimeField(AOwner, AViewField, ARowField, AFieldCharWidth, AIsReadOnly);
   if Result = nil then
-    Result := TryCreateNumericField(AOwner, AViewField, ARowField, AFieldCharWidth, AIsReadOnly);
+    Result := TryCreateNumberField(AOwner, AViewField, ARowField, AFieldCharWidth, AIsReadOnly);
   if Result = nil then
     Result := CreateTextField(AOwner, AViewField, ARowField, AFieldCharWidth, AIsReadOnly);
   Result.FieldName := AViewField.AliasedName;
@@ -3337,6 +3454,12 @@ begin
   LFormField := Result.AsExtFormField;
   if Assigned(LFormField) then
   begin
+    if LFormField is TExtFormTextField then
+    begin
+      if AViewField.Hint <> '' then
+        TExtFormTextField(LFormField).EmptyText := _(AViewField.Hint);
+    end;
+
     if not AIsReadOnly then
       AViewField.ApplyRules(
         procedure (ARuleImpl: TKRuleImpl)
@@ -3354,7 +3477,7 @@ begin
 end;
 
 function TKExtEditorManager.TryCreateLookupEditor(
-  const AOwner: TComponent; const AViewField: TKViewField;
+  const AOwner: TJSBase; const AViewField: TKViewField;
   const ARowField: TKExtFormRowField; const AFieldCharWidth: Integer;
   const AIsReadOnly: Boolean): IKExtEditor;
 var
@@ -3371,7 +3494,7 @@ begin
       try
         LLookupEdit.Setup(AViewField, AIsReadOnly, AFieldCharWidth);
         if not Assigned(ARowField) then
-          LLookupEdit.Width := LLookupEdit.CharsToPixels(AFieldCharWidth + TRIGGER_WIDTH)
+          LLookupEdit.WidthExpression := LLookupEdit.CharsToPixels(AFieldCharWidth + TRIGGER_WIDTH)
         else
           ARowField.CharWidth := AFieldCharWidth + TRIGGER_WIDTH;
         Result := LLookupEdit;
@@ -3384,7 +3507,7 @@ begin
 end;
 
 function TKExtEditorManager.TryCreateComboBox(
-  const AOwner: TComponent; const AViewField: TKViewField;
+  const AOwner: TJSBase; const AViewField: TKViewField;
   const ARowField: TKExtFormRowField;
   const AFieldCharWidth: Integer;
   const AIsReadOnly: Boolean): IKExtEditor;
@@ -3402,7 +3525,7 @@ begin
       try
         LComboBox.Setup(AViewField, AIsReadOnly, AFieldCharWidth);
         if not Assigned(ARowField) then
-          LComboBox.Width := LComboBox.CharsToPixels(AFieldCharWidth + TRIGGER_WIDTH)
+          LComboBox.WidthExpression := LComboBox.CharsToPixels(AFieldCharWidth + TRIGGER_WIDTH)
         else
           ARowField.CharWidth := AFieldCharWidth + TRIGGER_WIDTH;
         Result := LComboBox;
@@ -3415,7 +3538,7 @@ begin
 end;
 
 function TKExtEditorManager.TryCreateTextArea(
-  const AOwner: TComponent; const AViewField: TKViewField;
+  const AOwner: TJSBase; const AViewField: TKViewField;
   const ARowField: TKExtFormRowField; const AFieldCharWidth: Integer;
   const AIsReadOnly: Boolean): IKExtEditor;
 var
@@ -3429,10 +3552,10 @@ begin
     LTextArea := TKExtFormTextArea.Create(AOwner);
     try
       if not Assigned(ARowField) then
-        LTextArea.Width := LTextArea.CharsToPixels(AFieldCharWidth)
+        LTextArea.WidthExpression := LTextArea.CharsToPixels(AFieldCharWidth)
       else
         ARowField.CharWidth := AFieldCharWidth;
-      LTextArea.Height := LTextArea.LinesToPixels(AViewField.GetInteger('EditLines', 5));
+      LTextArea.HeightFunc := LTextArea.LinesToPixels(AViewField.GetInteger('EditLines', 5));
       LTextArea.AutoScroll := True;
       // Set this if it's the last field.
       //Anchor := '100%';
@@ -3454,7 +3577,7 @@ begin
 end;
 
 function TKExtEditorManager.TryCreateCheckBox(
-  const AOwner: TComponent; const AViewField: TKViewField;
+  const AOwner: TJSBase; const AViewField: TKViewField;
   const AIsReadOnly: Boolean): IKExtEditor;
 var
   LCheckbox: TKExtFormCheckbox;
@@ -3479,7 +3602,7 @@ begin
 end;
 
 function TKExtEditorManager.TryCreateDateField(
-  const AOwner: TComponent; const AViewField: TKViewField;
+  const AOwner: TJSBase; const AViewField: TKViewField;
   const ARowField: TKExtFormRowField; const AFieldCharWidth: Integer;
   const AIsReadOnly: Boolean): IKExtEditor;
 var
@@ -3493,17 +3616,17 @@ begin
     LDateField := TKExtFormDateField.Create(AOwner);
     try
       if not Assigned(ARowField) then
-        LDateField.Width := LDateField.CharsToPixels(AFieldCharWidth + TRIGGER_WIDTH)
+        LDateField.WidthExpression := LDateField.CharsToPixels(AFieldCharWidth + TRIGGER_WIDTH)
       else
         ARowField.CharWidth := AFieldCharWidth + TRIGGER_WIDTH;
       LFormat := AViewField.EditFormat;
       if LFormat = '' then
-        LFormat := Session.Config.UserFormatSettings.ShortDateFormat;
-      LDateField.Format := DelphiDateFormatToJSDateFormat(LFormat);
-      LDateField.AltFormats := DelphiDateFormatToJSDateFormat(Session.Config.JSFormatSettings.ShortDateFormat);
+        LFormat := TKWebApplication.Current.Config.UserFormatSettings.ShortDateFormat;
+      LDateField.Format := TJS.DelphiDateFormatToJSDateFormat(LFormat);
+      LDateField.AltFormats := TJS.DelphiDateFormatToJSDateFormat(TKWebApplication.Current.Config.JSFormatSettings.ShortDateFormat);
       if not AIsReadOnly then
         LDateField.AllowBlank := not AViewField.IsRequired;
-      if Session.IsMobileBrowser then
+      if TKWebRequest.Current.IsMobileBrowser then
         LDateField.Editable := False;
       Result := LDateField;
     except
@@ -3516,7 +3639,7 @@ begin
 end;
 
 function TKExtEditorManager.TryCreateTimeField(
-  const AOwner: TComponent; const AViewField: TKViewField;
+  const AOwner: TJSBase; const AViewField: TKViewField;
   const ARowField: TKExtFormRowField; const AFieldCharWidth: Integer;
   const AIsReadOnly: Boolean): IKExtEditor;
 var
@@ -3530,18 +3653,18 @@ begin
     LTimeField := TKExtFormTimeField.Create(AOwner);
     try
       if not Assigned(ARowField) then
-        LTimeField.Width := LTimeField.CharsToPixels(AFieldCharWidth + TRIGGER_WIDTH)
+        LTimeField.WidthExpression := LTimeField.CharsToPixels(AFieldCharWidth + TRIGGER_WIDTH)
       else
         ARowField.CharWidth := AFieldCharWidth + TRIGGER_WIDTH;
 
       LFormat := AViewField.EditFormat;
       if LFormat = '' then
-        LFormat := Session.Config.UserFormatSettings.ShortTimeFormat;
-      LTimeField.Format := DelphiTimeFormatToJSTimeFormat(LFormat);
-      LTimeField.AltFormats := DelphiTimeFormatToJSTimeFormat(Session.Config.JSFormatSettings.ShortTimeFormat);
+        LFormat := TKWebApplication.Current.Config.UserFormatSettings.ShortTimeFormat;
+      LTimeField.Format := TJS.DelphiTimeFormatToJSTimeFormat(LFormat);
+      LTimeField.AltFormats := TJS.DelphiTimeFormatToJSTimeFormat(TKWebApplication.Current.Config.JSFormatSettings.ShortTimeFormat);
       if not AIsReadOnly then
         LTimeField.AllowBlank := not AViewField.IsRequired;
-      if Session.IsMobileBrowser then
+      if TKWebRequest.Current.IsMobileBrowser then
         LTimeField.Editable := False;
       Result := LTimeField;
     except
@@ -3554,7 +3677,7 @@ begin
 end;
 
 function TKExtEditorManager.TryCreateDateTimeField(
-  const AOwner: TComponent; const AViewField: TKViewField;
+  const AOwner: TJSBase; const AViewField: TKViewField;
   const ARowField: TKExtFormRowField; const AFieldCharWidth: Integer;
   const AIsReadOnly: Boolean): IKExtEditor;
 const
@@ -3572,22 +3695,22 @@ begin
     LDateTimeField := TKExtFormDateTimeField.Create(AOwner);
     try
       if not Assigned(ARowField) then
-        LDateTimeField.Width := LDateTimeField.CharsToPixels(AFieldCharWidth + (2 * TRIGGER_WIDTH) + SPACER_WIDTH)
+        LDateTimeField.WidthExpression := LDateTimeField.CharsToPixels(AFieldCharWidth + (2 * TRIGGER_WIDTH) + SPACER_WIDTH)
       else
         ARowField.CharWidth := AFieldCharWidth + (2 * TRIGGER_WIDTH) + SPACER_WIDTH;
       LFormats := Split(AViewField.EditFormat, ' ');
       if Length(LFormats) > 0 then
         LDateFormat := LFormats[0]
       else
-        LDateFormat := Session.Config.UserFormatSettings.ShortDateFormat;
+        LDateFormat := TKWebApplication.Current.Config.UserFormatSettings.ShortDateFormat;
       if Length(LFormats) > 1 then
         LTimeFormat := LFormats[1]
       else
-        LTimeFormat := Session.Config.UserFormatSettings.ShortTimeFormat;
-      LDateTimeField.DateFormat := DelphiDateFormatToJSDateFormat(LDateFormat);
-      LDateTimeField.AltDateFormats := DelphiDateFormatToJSDateFormat(Session.Config.JSFormatSettings.ShortDateFormat);
-      LDateTimeField.TimeFormat := DelphiTimeFormatToJSTimeFormat(Session.Config.UserFormatSettings.ShortTimeFormat);
-      LDateTimeField.AltTimeFormats := DelphiTimeFormatToJSTimeFormat(Session.Config.JSFormatSettings.ShortTimeFormat);
+        LTimeFormat := TKWebApplication.Current.Config.UserFormatSettings.ShortTimeFormat;
+      LDateTimeField.DateFormat := TJS.DelphiDateFormatToJSDateFormat(LDateFormat);
+      LDateTimeField.AltDateFormats := TJS.DelphiDateFormatToJSDateFormat(TKWebApplication.Current.Config.JSFormatSettings.ShortDateFormat);
+      LDateTimeField.TimeFormat := TJS.DelphiTimeFormatToJSTimeFormat(TKWebApplication.Current.Config.UserFormatSettings.ShortTimeFormat);
+      LDateTimeField.AltTimeFormats := TJS.DelphiTimeFormatToJSTimeFormat(TKWebApplication.Current.Config.JSFormatSettings.ShortTimeFormat);
       if not AIsReadOnly then
         LDateTimeField.AllowBlank := not AViewField.IsRequired;
       Result := LDateTimeField;
@@ -3601,7 +3724,7 @@ begin
 end;
 
 function TKExtEditorManager.TryCreateFileEditor(
-  const AOwner: TComponent; const AViewField: TKViewField;
+  const AOwner: TJSBase; const AViewField: TKViewField;
   const ARowField: TKExtFormRowField; const AFieldCharWidth: Integer;
   const AIsReadOnly: Boolean; const ALabel: string): IKExtEditor;
 var
@@ -3616,7 +3739,7 @@ begin
     else
       LFileEditor := TKExtFormFileReferenceEditor.Create(AOwner);
     try
-      LFileEditor.IsReadOnly := AIsReadOnly;
+      LFileEditor.SetReadOnly(AIsReadOnly);
       LFileEditor.FieldLabel := ALabel;
       LFileEditor.TotalCharWidth := AFieldCharWidth - 1;
       if Assigned(ARowField) then
@@ -3632,21 +3755,21 @@ begin
     Result := nil;
 end;
 
-function TKExtEditorManager.TryCreateNumericField(const AOwner: TComponent;
+function TKExtEditorManager.TryCreateNumberField(const AOwner: TJSBase;
   const AViewField: TKViewField;
   const ARowField: TKExtFormRowField; const AFieldCharWidth: Integer;
   const AIsReadOnly: Boolean): IKExtEditor;
 var
-  LNumericField: TKExtFormNumericField;
+  LNumericField: TKExtFormNumberField;
 begin
   Assert(Assigned(AOwner));
 
   if AViewField.DataType is TEFNumericDataTypeBase then
   begin
-    LNumericField := TKExtFormNumericField.Create(AOwner);
+    LNumericField := TKExtFormNumberField.Create(AOwner);
     try
       if not Assigned(ARowField) then
-        LNumericField.Width := LNumericField.CharsToPixels(AFieldCharWidth)
+        LNumericField.WidthExpression := LNumericField.CharsToPixels(AFieldCharWidth)
       else
         ARowField.CharWidth := AFieldCharWidth;
 
@@ -3655,9 +3778,9 @@ begin
       if LNumericField.AllowDecimals then
         LNumericField.DecimalPrecision := AViewField.DecimalPrecision;
       LNumericField.AllowBlank := not AViewField.IsRequired;
-      LNumericField.DecimalSeparator := Session.Config.UserFormatSettings.DecimalSeparator;
-      LNumericField.ThousandSeparator := Session.Config.UserFormatSettings.ThousandSeparator;
-      if (AViewField.EditFormat = '') or (Pos(AViewField.EditFormat, Session.Config.UserFormatSettings.ThousandSeparator) >= 1) then
+      LNumericField.DecimalSeparator := TKWebApplication.Current.Config.UserFormatSettings.DecimalSeparator;
+      LNumericField.ThousandSeparator := TKWebApplication.Current.Config.UserFormatSettings.ThousandSeparator;
+      if (AViewField.EditFormat = '') or (Pos(AViewField.EditFormat, TKWebApplication.Current.Config.UserFormatSettings.ThousandSeparator) >= 1) then
         LNumericField.UseThousandSeparator := True
       else
         LNumericField.UseThousandSeparator := False;
@@ -3672,7 +3795,7 @@ begin
     Result := nil;
 end;
 
-function TKExtEditorManager.CreateTextField(const AOwner: TComponent;
+function TKExtEditorManager.CreateTextField(const AOwner: TJSBase;
   const AViewField: TKViewField;
   const ARowField: TKExtFormRowField; const AFieldCharWidth: Integer;
   const AIsReadOnly: Boolean): IKExtEditor;
@@ -3684,7 +3807,7 @@ begin
   LTextField := TKExtFormTextField.Create(AOwner);
   try
     if not Assigned(ARowField) then
-      LTextField.Width := LTextField.CharsToPixels(AFieldCharWidth)
+      LTextField.WidthExpression := LTextField.CharsToPixels(AFieldCharWidth)
     else
       ARowField.CharWidth := AFieldCharWidth;
     if not AIsReadOnly then
@@ -3702,15 +3825,6 @@ begin
   end;
 end;
 
-function TKExtEditorManager.GetSession: TKExtSession;
-begin
-  Result := nil;
-  if Assigned(FOnGetSession) then
-    FOnGetSession(Result);
-  if not Assigned(Result) then
-    raise EKError.Create('Session not assigned');
-end;
-
 { TExtFormFieldHelper }
 
 procedure TExtFormFieldHelper.SetTransientProperty(const APropertyName: string; const AValue: Variant);
@@ -3721,8 +3835,8 @@ end;
 procedure TExtFormFieldHelper.StoreValue(const AObjectName: string);
 begin
   if not ReadOnly then
-    Session.ResponseItems.ExecuteJSCode(
-      AObjectName + '["' + Name + '"]=' + GetJSFunctionCode(
+    TKWebResponse.Current.Items.ExecuteJSCode(
+      AObjectName + '["' + Name + '"]=' + GetJSCode(
         procedure
         begin
           GetRawValue;
@@ -3894,7 +4008,8 @@ begin
   LValue := JSONNullToEmptyStr(FRecordField.ParentRecord.FieldByName(LKeyFieldNames).GetAsJSONValue(False, False));
   SetValue(LValue);
   SetRawValue(JSONNullToEmptyStr(FRecordField.GetAsJSONValue(False, False)));
-  ApplyEmptyText;
+{ TODO : needed? }
+//  ApplyEmptyText;
 end;
 
 procedure TKExtLookupEditor.SetFieldName(const AValue: string);
@@ -3906,6 +4021,11 @@ procedure TKExtLookupEditor.SetOption(const ANode: TEFNode);
 begin
   if not SetExtFormFieldOption(AsExtFormField, ANode) then
     InvalidOption(ANode);
+end;
+
+procedure TKExtLookupEditor.SetReadOnly(const AValue: Boolean);
+begin
+  ReadOnly := AValue;
 end;
 
 procedure TKExtLookupEditor.SetRecordField(const AValue: TKViewTableField);
@@ -3943,7 +4063,7 @@ begin
   if not ReadOnly then
   begin
     LCode :=
-      AObjectName + '["' + FHiddenName + '"]=' + GetJSFunctionCode(
+      AObjectName + '["' + FHiddenName + '"]=' + GetJSCode(
         procedure
         begin
           GetValue;
@@ -3951,7 +4071,7 @@ begin
 
     if FHiddenName <> Name then
       LCode := LCode + sLineBreak +
-        AObjectName + '["' + Name + '"]=' + GetJSFunctionCode(
+        AObjectName + '["' + Name + '"]=' + GetJSCode(
           procedure
           begin
             GetRawValue;

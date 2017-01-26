@@ -21,20 +21,19 @@ unit Kitto.Ext.Utils;
 interface
 
 uses
-  SysUtils, Classes,
-  Ext, ExtPascal, ExtPascalUtils, ExtMenu, ExtTree,
-  EF.ObserverIntf, EF.Tree,
-  Kitto.Ext.Base, Kitto.Ext.Controller, Kitto.Metadata.Views, Kitto.Ext.Session;
+  SysUtils
+  , Classes
+  , Ext.Base
+  , Ext.Menu
+  , EF.ObserverIntf
+  , EF.Tree
+  , Kitto.JS.Types
+  , Kitto.Ext.Base
+  , Kitto.Ext.Controller
+  , Kitto.Metadata.Views
+  ;
 
 type
-  TKExtTreeTreeNode = class(TExtTreeTreeNode)
-  private
-    FView: TKView;
-    procedure SetView(const AValue: TKView);
-  public
-    property View: TKView read FView write SetView;
-  end;
-
   TKExtViewButton = class(TKExtButton)
   private
     FView: TKView;
@@ -43,7 +42,7 @@ type
     property View: TKView read FView write SetView;
   end;
 
-  TKExtMenuItem = class(TExtMenuItem)
+  TKExtViewMenuItem = class(TExtMenuItem)
   private
     FView: TKView;
     procedure SetView(const AValue: TKView);
@@ -58,14 +57,11 @@ type
   TKExtTreeViewRenderer = class
   private
     FOwner: TExtObject;
-    FClickHandler: TExtProcedure;
-    FAddedItems: Integer;
-    FSession: TKExtSession;
+    FClickHandler: TJSProcedure;
     FTreeView: TKTreeView;
     procedure AddButton(const ANode: TKTreeViewNode; const ADisplayLabel: string; const AContainer: TExtContainer);
     procedure AddMenuItem(const ANode: TKTreeViewNode; const AMenu: TExtMenuMenu);
-    procedure AddNode(const ANode: TKTreeViewNode; const ADisplayLabel: string; const AParent: TExtTreeTreeNode);
-    function GetClickFunction(const AView: TKView): TExtFunction;
+    function GetClickFunction(const AView: TKView): TExtExpression;
 
     /// <summary>
     ///  Clones the specified tree view, filters all invisible items
@@ -78,35 +74,25 @@ type
     function CloneAndFilter(const ATreeView: TKTreeView): TKTreeView;
     procedure Filter(const ANode: TKTreeViewNode);
   public
-    property Session: TKExtSession read FSession write FSession;
-
     /// <summary>
     ///  Attaches to the container a set of buttons, one for each top-level
     ///  element of the specified tree view. Each button has a submenu tree
     ///  with the child views. Returns the total number of effectively added
     ///  items.
     /// </summary>
-    function RenderAsButtons(const ATreeView: TKTreeView;
+    { TODO : move elsewhere, like in Kitto.Ext.ToolBar }
+    procedure RenderAsButtons(const ATreeView: TKTreeView;
       const AContainer: TExtContainer; const AOwner: TExtObject;
-      const AClickHandler: TExtProcedure): Integer;
+      const AClickHandler: TJSProcedure);
 
     /// <summary>
-    ///  Renders a tree under ARoot with all views in the tree view. Returns
-    ///  the total number of effectively added items.
+    ///  Renders a tree view by calling AProc for each top-level element in the tree view.
     /// </summary>
-    function RenderAsTree(const ATreeView: TKTreeView; const ARoot: TExtTreeTreeNode;
-      const AOwner: TExtObject; const AClickHandler: TExtProcedure): Integer;
-
-    /// <summary>
-    ///  Renders a tree by calling AProc for each top-level element in the tree view.
-    /// </summary>
-    function Render(const ATreeView: TKTreeView; const AProc: TProc<TKTreeViewNode, string>;
-      const AOwner: TExtObject; const AClickHandler: TExtProcedure): Integer;
+    procedure Render(const ATreeView: TKTreeView; const AProc: TProc<TKTreeViewNode, string>;
+      const AOwner: TExtObject; const AClickHandler: TJSProcedure);
   end;
 
-function DelphiDateTimeFormatToJSDateTimeFormat(const ADateTimeFormat: string): string;
-function DelphiDateFormatToJSDateFormat(const ADateFormat: string): string;
-function DelphiTimeFormatToJSTimeFormat(const ATimeFormat: string): string;
+function GetTreeViewNodeImageName(const ANode: TKTreeViewNode; const AView: TKView): string;
 
 /// <summary>
 ///  Adapts a standard number format string (with , as thousand
@@ -134,9 +120,23 @@ procedure DownloadThumbnailedStream(const AStream: TStream; const AFileName: str
 implementation
 
 uses
-  Types, StrUtils, RTTI, Graphics, jpeg, pngimage,
-  EF.SysUtils, EF.StrUtils, EF.Classes, EF.Localization,
-  Kitto.AccessControl, Kitto.Utils, Kitto.Config;
+  Types
+  , StrUtils
+  , RTTI
+  , Graphics
+  , jpeg
+  , pngimage
+  , EF.SysUtils
+  , EF.StrUtils
+  , EF.Classes
+  , EF.Localization
+  , Kitto.JS
+  , Kitto.Web.Application
+  , Kitto.Web.Response
+  , Kitto.Auth
+  , Kitto.AccessControl
+  , Kitto.Utils
+  , Kitto.Config;
 
 function CallViewControllerStringMethod(const AView: TKView;
   const AMethodName: string; const ADefaultValue: string): string;
@@ -174,7 +174,7 @@ begin
   Result := Result;
 end;
 
-function GetImageName(const ANode: TKTreeViewNode; const AView: TKView): string;
+function GetTreeViewNodeImageName(const ANode: TKTreeViewNode; const AView: TKView): string;
 begin
   Assert(Assigned(ANode));
   Assert(Assigned(AView));
@@ -186,8 +186,7 @@ end;
 
 { TKExtTreeViewRenderer }
 
-function TKExtTreeViewRenderer.GetClickFunction(
-  const AView: TKView): TExtFunction;
+function TKExtTreeViewRenderer.GetClickFunction(const AView: TKView): TExtExpression;
 begin
   Assert(Assigned(FOwner));
   Assert(Assigned(FClickHandler));
@@ -195,9 +194,16 @@ begin
   if Assigned(AView) then
   begin
     if Session.StatusHost <> nil then
-      Result := FOwner.Ajax(FClickHandler, ['View', Integer(AView), 'Dummy', Session.StatusHost.ShowBusy])
+      //Result := FOwner.Ajax(FClickHandler, ['View', Integer(AView), 'Dummy', Session.StatusHost.ShowBusy])
+      Result := TKWebResponse.Current.Items.AjaxCallMethod(FOwner).SetMethod(FClickHandler)
+        .AddParam('View', Integer(AView))
+        .AddParam('Dummy', Session.StatusHost.ShowBusy)
+        .AsFunction
     else
-      Result := FOwner.Ajax(FClickHandler, ['View', Integer(AView)]);
+      //Result := FOwner.Ajax(FClickHandler, ['View', Integer(AView)]);
+      Result := TKWebResponse.Current.Items.AjaxCallMethod(FOwner).SetMethod(FClickHandler)
+        .AddParam('View', Integer(AView))
+        .AsFunction;
   end
   else
     Result := nil;
@@ -207,7 +213,7 @@ procedure TKExtTreeViewRenderer.AddMenuItem(const ANode: TKTreeViewNode;
   const AMenu: TExtMenuMenu);
 var
   I: Integer;
-  LMenuItem: TKExtMenuItem;
+  LMenuItem: TKExtViewMenuItem;
   LSubMenu: TExtMenuMenu;
   LIsEnabled: Boolean;
   LView: TKView;
@@ -220,22 +226,22 @@ begin
   for I := 0 to ANode.TreeViewNodeCount - 1 do
   begin
     LNode := ANode.TreeViewNodes[I];
-    LView := LNode.FindView(Session.Config.Views);
+    LView := LNode.FindView(TKWebApplication.Current.Config.Views);
 
     if Assigned(LView) then
       LIsEnabled := LView.IsAccessGranted(ACM_RUN)
     else
-      LIsEnabled := TKConfig.Instance.IsAccessGranted(ANode.GetACURI(FTreeView), ACM_RUN);
+      LIsEnabled := TKAccessController.Current.IsAccessGranted(
+        TKAuthenticator.Current.UserName, ANode.GetACURI(FTreeView), ACM_RUN);
 
-    LMenuItem := TKExtMenuItem.CreateAndAddTo(AMenu.Items);
+    LMenuItem := TKExtViewMenuItem.CreateAndAddToArray(AMenu.Items);
     try
-      Inc(FAddedItems);
       LMenuItem.Disabled := not LIsEnabled;
       LMenuItem.View := LView;
       if Assigned(LMenuItem.View) then
       begin
-        LMenuItem.IconCls := Session.SetViewIconStyle(LMenuItem.View,
-          GetImageName(LNode, LMenuItem.View));
+        LMenuItem.IconCls := TKWebApplication.Current.SetViewIconStyle(LMenuItem.View,
+          GetTreeViewNodeImageName(LNode, LMenuItem.View));
         LMenuItem.On('click', GetClickFunction(LMenuItem.View));
 
         LDisplayLabel := _(LNode.GetString('DisplayLabel', LMenuItem.View.DisplayLabel));
@@ -250,7 +256,7 @@ begin
         begin
           LDisplayLabel := _(LNode.GetString('DisplayLabel', LNode.AsString));
           LMenuItem.Text := HTMLEncode(LDisplayLabel);
-          LMenuItem.IconCls := Session.SetIconStyle('Folder', LNode.GetString('ImageName'));
+          LMenuItem.IconCls := TKWebApplication.Current.SetIconStyle('Folder', LNode.GetString('ImageName'));
           LSubMenu := TExtMenuMenu.Create(AMenu.Items);
           LMenuItem.Menu := LSubMenu;
           AddMenuItem(ANode.TreeViewNodes[I], LSubMenu);
@@ -274,24 +280,24 @@ begin
   Assert(Assigned(ANode));
   Assert(Assigned(AContainer));
 
-  LView := ANode.FindView(Session.Config.Views);
+  LView := ANode.FindView(TKWebApplication.Current.Config.Views);
   if Assigned(LView) then
     LIsEnabled := LView.IsAccessGranted(ACM_RUN)
   else
-    LIsEnabled := TKConfig.Instance.IsAccessGranted(ANode.GetACURI(FTreeView), ACM_RUN);
+    LIsEnabled := TKAccessController.Current.IsAccessGranted(
+      TKAuthenticator.Current.UserName, ANode.GetACURI(FTreeView), ACM_RUN);
 
-  LButton := TKExtViewButton.CreateAndAddTo(AContainer.Items);
+  LButton := TKExtViewButton.CreateAndAddToArray(AContainer.Items);
   try
-    Inc(FAddedItems);
     LButton.View := LView;
     if Assigned(LButton.View) then
     begin
-      LButton.IconCls := Session.SetViewIconStyle(LButton.View, GetImageName(ANode, LButton.View));
+      LButton.IconCls := TKWebApplication.Current.SetViewIconStyle(LButton.View, GetTreeViewNodeImageName(ANode, LButton.View));
       LButton.On('click', GetClickFunction(LButton.View));
       LButton.Disabled := not LIsEnabled;
     end;
     LButton.Text := HTMLEncode(ADisplayLabel);
-    if Session.TooltipsEnabled then
+    if TKWebApplication.Current.TooltipsEnabled then
       LButton.Tooltip := LButton.Text;
 
     if ANode.ChildCount > 0 then
@@ -307,59 +313,6 @@ begin
     end;
   except
     FreeAndNil(LButton);
-    raise;
-  end;
-end;
-
-procedure TKExtTreeViewRenderer.AddNode(const ANode: TKTreeViewNode;
-  const ADisplayLabel: string; const AParent: TExtTreeTreeNode);
-var
-  LNode: TKExtTreeTreeNode;
-  I: Integer;
-  LIsEnabled: Boolean;
-  LView: TKView;
-  LSubNode: TKTreeViewNode;
-  LDisplayLabel: string;
-begin
-  Assert(Assigned(ANode));
-  Assert(Assigned(AParent));
-
-  LView := ANode.FindView(Session.Config.Views);
-  if Assigned(LView) then
-    LIsEnabled := LView.IsAccessGranted(ACM_RUN)
-  else
-    LIsEnabled := TKConfig.Instance.IsAccessGranted(ANode.GetACURI(FTreeView), ACM_RUN);
-  LNode := TKExtTreeTreeNode.Create(AParent.ChildNodes);
-  try
-    Inc(FAddedItems);
-    LNode.View := LView;
-    if Assigned(LNode.View) then
-    begin
-      LNode.IconCls := Session.SetViewIconStyle(LNode.View, GetImageName(ANode, LNode.View));
-      LNode.On('click', GetClickFunction(LNode.View));
-      LNode.Disabled := not LIsEnabled;
-    end;
-    LNode.Text := HTMLEncode(ADisplayLabel);
-    if Session.TooltipsEnabled then
-      LNode.Qtip := LNode.Text;
-    if ANode.TreeViewNodeCount > 0 then
-    begin
-      for I := 0 to ANode.TreeViewNodeCount - 1 do
-      begin
-        LSubNode := ANode.TreeViewNodes[I];
-        LDisplayLabel := _(LSubNode.GetString('DisplayLabel', GetDisplayLabelFromNode(LSubNode, Session.Config.Views)));
-        AddNode(LSubNode, LDisplayLabel, LNode);
-      end;
-      LNode.Expandable := True;
-      if ANode is TKTreeViewFolder then
-        LNode.Expanded := not TKTreeViewFolder(ANode).IsInitiallyCollapsed
-      else
-        LNode.Expanded := True;
-      LNode.Leaf := False;
-    end;
-    AParent.AppendChild(LNode);
-  except
-    FreeAndNil(LNode);
     raise;
   end;
 end;
@@ -389,11 +342,12 @@ var
 begin
   Assert(Assigned(ANode));
 
-  LView := ANode.FindView(Session.Config.Views);
+  LView := ANode.FindView(TKWebApplication.Current.Config.Views);
   if Assigned(LView) then
     LIsVisible := LView.IsAccessGranted(ACM_VIEW)
   else
-    LIsVisible := TKConfig.Instance.IsAccessGranted(ANode.GetACURI(FTreeView), ACM_VIEW);
+    LIsVisible := TKAccessController.Current.IsAccessGranted(
+      TKAuthenticator.Current.UserName, ANode.GetACURI(FTreeView), ACM_VIEW);
 
   if not LIsVisible then
     ANode.Delete
@@ -407,9 +361,9 @@ begin
   end;
 end;
 
-function TKExtTreeViewRenderer.Render(const ATreeView: TKTreeView;
+procedure TKExtTreeViewRenderer.Render(const ATreeView: TKTreeView;
   const AProc: TProc<TKTreeViewNode, string>; const AOwner: TExtObject;
-  const AClickHandler: TExtProcedure): Integer;
+  const AClickHandler: TJSProcedure);
 var
   I: Integer;
   LNode: TKTreeViewNode;
@@ -418,80 +372,36 @@ begin
   Assert(Assigned(ATreeView));
   Assert(Assigned(AProc));
   Assert(Assigned(AOwner));
-  Assert(Assigned(AClickHandler));
 
   FOwner := AOwner;
   FTreeView := ATreeView;
   FClickHandler := AClickHandler;
-  FAddedItems := 0;
 
   LTreeView := CloneAndFilter(ATreeView);
   try
     for I := 0 to LTreeView.TreeViewNodeCount - 1 do
     begin
       LNode := LTreeView.TreeViewNodes[I];
-      AProc(LNode, GetDisplayLabelFromNode(LNode, Session.Config.Views));
+      AProc(LNode, GetDisplayLabelFromNode(LNode, TKWebApplication.Current.Config.Views));
     end;
   finally
     FreeAndNil(LTreeView);
   end;
-  Result := FAddedItems;
 end;
 
-function TKExtTreeViewRenderer.RenderAsButtons(
+procedure TKExtTreeViewRenderer.RenderAsButtons(
   const ATreeView: TKTreeView; const AContainer: TExtContainer;
   const AOwner: TExtObject;
-  const AClickHandler: TExtProcedure): Integer;
+  const AClickHandler: TJSProcedure);
 begin
   Assert(Assigned(AContainer));
 
-  Result := Render(ATreeView,
+  Render(ATreeView,
     procedure (ANode: TKTreeViewNode; ADisplayLabel: string)
     begin
       AddButton(ANode, ADisplayLabel, AContainer);
     end,
     AOwner, AClickHandler);
-end;
-
-function TKExtTreeViewRenderer.RenderAsTree(
-  const ATreeView: TKTreeView; const ARoot: TExtTreeTreeNode;
-  const AOwner: TExtObject;  const AClickHandler: TExtProcedure): Integer;
-begin
-  Assert(Assigned(ARoot));
-
-  Result := Render(ATreeView,
-    procedure (ANode: TKTreeViewNode; ADisplayLabel: string)
-    begin
-      AddNode(ANode, ADisplayLabel, ARoot);
-    end,
-    AOwner, AClickHandler);
-end;
-
-function DelphiDateTimeFormatToJSDateTimeFormat(const ADateTimeFormat: string): string;
-var
-  LFormats: TStringDynArray;
-begin
-  LFormats := Split(ADateTimeFormat);
-  Assert(Length(LFormats) = 2);
-
-  Result := DelphiDateFormatToJSDateFormat(LFormats[0]) + ' ' +
-    DelphiTimeFormatToJSTimeFormat(LFormats[1]);
-end;
-
-function DelphiDateFormatToJSDateFormat(const ADateFormat: string): string;
-begin
-  Result := ReplaceText(ADateFormat, 'yyyy', 'Y');
-  Result := ReplaceText(Result, 'yy', 'y');
-  Result := ReplaceText(Result, 'dd', 'd');
-  Result := ReplaceText(Result, 'mm', 'm');
-end;
-
-function DelphiTimeFormatToJSTimeFormat(const ATimeFormat: string): string;
-begin
-  Result := ReplaceText(ATimeFormat, 'hh', 'H');
-  Result := ReplaceText(Result, 'mm', 'i');
-  Result := ReplaceText(Result, 'nn', 'i');
-  Result := ReplaceText(Result, 'ss', 's');
 end;
 
 function AdaptExtNumberFormat(const AFormat: string; const AFormatSettings: TFormatSettings): string;
@@ -512,19 +422,6 @@ begin
   end;
 end;
 
-{ TKExtTreeTreeNode }
-
-procedure TKExtTreeTreeNode.SetView(const AValue: TKView);
-begin
-  FView := AValue;
-  if Assigned(FView) then
-  begin
-    Expandable := False;
-    Expanded := False;
-    Leaf := True;
-  end;
-end;
-
 { TKExtViewButton }
 
 procedure TKExtViewButton.SetView(const AValue: TKView);
@@ -532,9 +429,9 @@ begin
   FView := AValue;
 end;
 
-{ TKExtMenuItem }
+{ TKExtViewMenuItem }
 
-procedure TKExtMenuItem.SetView(const AValue: TKView);
+procedure TKExtViewMenuItem.SetView(const AValue: TKView);
 begin
   FView := AValue;
 end;
@@ -543,35 +440,35 @@ procedure DownloadThumbnailedStream(const AStream: TStream; const AFileName: str
   const AThumbnailWidth, AThumbnailHeight: Integer);
 var
   LFileExt: string;
-  LTempFileName: string;
-  LStream: TFileStream;
+  LBytes: TBytes;
 
-  procedure WriteTempFile;
-  var
-    LFileStream: TFileStream;
-  begin
-    LFileStream := TFileStream.Create(LTempFileName, fmCreate);
-    try
-      AStream.Position := 0;
-      LFileStream.CopyFrom(AStream, AStream.Size);
-      AStream.Position := 0;
-    finally
-      FreeAndNil(LFileStream);
-    end;
-  end;
-
-  procedure TransformTempFileToThumbnail(const AMaxWidth, AMaxHeight: Integer;
-    const AImageClass: TGraphicClass);
+  function CreateThumbnail(const AMaxWidth, AMaxHeight: Integer;
+    const AImageClass: TGraphicClass): TBytes;
   var
     LImage: TGraphic;
     LScale: Extended;
     LBitmap: TBitmap;
+
+    function GetImageBytes: TBytes;
+    var
+      LStream: TBytesStream;
+    begin
+      LStream := TBytesStream.Create;
+      try
+        LImage.SaveToStream(LStream);
+        Result := Copy(LStream.Bytes, 0, LStream.Size);
+      finally
+        FreeAndNil(LStream);
+      end;
+    end;
+
   begin
     LImage := AImageClass.Create;
     try
-      LImage.LoadFromFile(LTempFileName);
+      LImage.LoadFromStream(AStream);
       if (LImage.Height <= AMaxHeight) and (LImage.Width <= AMaxWidth) then
-        Exit;
+        Exit(GetImageBytes);
+
       if LImage.Height > LImage.Width then
         LScale := AMaxHeight / LImage.Height
       else
@@ -583,7 +480,8 @@ var
         LBitmap.Canvas.StretchDraw(LBitmap.Canvas.ClipRect, LImage);
 
         LImage.Assign(LBitmap);
-        LImage.SaveToFile(LTempFileName);
+
+        Exit(GetImageBytes);
       finally
         LBitmap.Free;
       end;
@@ -598,27 +496,18 @@ begin
   LFileExt := ExtractFileExt(AFileName);
   if MatchText(LFileExt, ['.jpg', '.jpeg', '.png']) then
   begin
-    LTempFileName := GetTempFileName(LFileExt);
     try
-      WriteTempFile;
       if MatchText(LFileExt, ['.jpg', '.jpeg']) then
-        TransformTempFileToThumbnail(AThumbnailWidth, AThumbnailHeight, TJPEGImage)
+        LBytes := CreateThumbnail(AThumbnailWidth, AThumbnailHeight, TJPEGImage)
       else
-        TransformTempFileToThumbnail(AThumbnailWidth, AThumbnailHeight, TPngImage);
-
-      LStream := TFileStream.Create(LTempFileName, fmOpenRead + fmShareDenyWrite);
-      try
-        Session.DownloadStream(LStream, AFileName);
-      finally
-        FreeAndNil(LStream);
-      end;
+        LBytes := CreateThumbnail(AThumbnailWidth, AThumbnailHeight, TPngImage);
     finally
-      if FileExists(LTempFileName) then
-        DeleteFile(LTempFileName);
+      AStream.Free;
     end;
+    TKWebApplication.Current.DownloadBytes(LBytes, AFileName);
   end
   else
-    Session.DownloadStream(AStream, AFileName);
+    TKWebApplication.Current.DownloadStream(AStream, AFileName);
 end;
 
 end.

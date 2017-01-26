@@ -22,19 +22,24 @@ unit Kitto.Ext.LookupField;
 interface
 
 uses
-  SysUtils,
-  ExtPascal, ExtPascalUtils, ExtForm,
-  EF.Intf, EF.ObserverIntf,
-  Kitto.Metadata.Views, Kitto.Metadata.DataView,
-  Kitto.Ext.Controller;
+  SysUtils
+  , Ext.Form
+  , EF.Intf
+  , EF.ObserverIntf
+  , Ext.Base
+  , Kitto.Metadata.Views
+  , Kitto.Metadata.DataView
+  , Kitto.JS
+  , Kitto.Ext.Controller
+  ;
 
 type
-  TKExtLookupField = class(TExtFormTwinTriggerField,  IInterface, IEFInterface, IEFSubject, IEFObserver)
+  TKExtLookupField = class(TExtFormTwinTriggerField,  IInterface, IEFInterface)
   private
     FSubjObserverImpl: TEFSubjectAndObserver;
-    FLookupController: IKExtController;
+    FLookupController: IJSController;
     FViewField: TKViewField;
-    function GetClickJSCode(const AMethod: TExtProcedure): string;
+//    function GetClickJSCode(const AMethod: TJSProcedure): string;
   protected
     procedure InitDefaults; override;
   strict protected
@@ -51,10 +56,10 @@ type
     procedure AttachObserver(const AObserver: IEFObserver); virtual;
     procedure DetachObserver(const AObserver: IEFObserver); virtual;
     procedure NotifyObservers(const AContext: string = ''); virtual;
-    procedure UpdateObserver(const ASubject: IEFSubject; const AContext: string); virtual;
+    procedure UpdateObserver(const ASubject: IEFSubject; const AContext: string); override;
     function AsExtObject: TExtObject;
     class function SupportsViewField(const AViewField: TKViewField): Boolean; static;
-  published
+  //published
     procedure TriggerClick;
     procedure ClearClick; virtual;
   end;
@@ -62,10 +67,14 @@ type
 implementation
 
 uses
-  StrUtils,
-  EF.StrUtils, EF.Localization,
-  Kitto.Metadata, Kitto.Config,
-  Kitto.Ext.Session;
+  StrUtils
+  , EF.StrUtils
+  , EF.Localization
+  , Kitto.Metadata
+  , Kitto.Config
+  , Kitto.Web.Application
+  , Kitto.Web.Response
+  ;
 
 { TKExtLookupField }
 
@@ -164,12 +173,12 @@ begin
   LView := FindLookupView(FViewField);
   Assert(Assigned(LView));
 
-  FLookupController := Session.DisplayNewController(LView, True,
-    procedure (AWindow: TKExtControllerHostWindow)
+  FLookupController := TKWebApplication.Current.DisplayNewController(LView, True,
+    procedure (AHostWindow: IJSContainer)
     begin
-      AWindow.Title := Format(_('Choose %s'), [FViewField.DisplayLabel]);
+      (AHostWindow as TExtWindow).Title := _(Format('Choose %s', [FViewField.DisplayLabel]));
     end,
-    procedure (AController: IKExtController)
+    procedure (AController: IJSController)
     begin
       AController.Config.SetBoolean('Sys/LookupMode', True);
       AController.Config.SetString('Sys/LookupFilter', FViewField.LookupFilter);
@@ -187,17 +196,20 @@ begin
   FViewField := AValue;
   if not ReadOnly then
   begin
-    Session.ResponseItems.ExecuteJSCode(Self,
-      JSName + '.onTrigger1Click = function(e) { ' + GetClickJSCode(TriggerClick) + '};');
-    Session.ResponseItems.ExecuteJSCode(Self,
-      JSName + '.onTrigger2Click = function(e) { ' + GetClickJSCode(ClearClick) + '};');
+{ TODO : check whether POST is still needed or not }
+    OnTrigger1Click := TKWebResponse.Current.Items.AjaxCallMethod(Self).SetMethod(TriggerClick).Post('null').AsFunction;
+    OnTrigger2Click := TKWebResponse.Current.Items.AjaxCallMethod(Self).SetMethod(ClearClick).Post('null').AsFunction;
+//    TKWebResponse.Current.Items.ExecuteJSCode(Self,
+//      JSName + '.onTrigger1Click = function(e) { ' + GetClickJSCode(TriggerClick) + '};');
+//    TKWebResponse.Current.Items.ExecuteJSCode(Self,
+//      JSName + '.onTrigger2Click = function(e) { ' + GetClickJSCode(ClearClick) + '};');
   end;
 end;
 
-function TKExtLookupField.GetClickJSCode(const AMethod: TExtProcedure): string;
-begin
-  Result := GetPOSTAjaxCode(AMethod, [], 'null');
-end;
+//function TKExtLookupField.GetClickJSCode(const AMethod: TJSProcedure): string;
+//begin
+//  Result := GetPOSTAjaxCode(AMethod, [], 'null');
+//end;
 
 class function TKExtLookupField.SupportsViewField(const AViewField: TKViewField): Boolean;
 begin

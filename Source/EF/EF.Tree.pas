@@ -218,6 +218,7 @@ type
       const AValue: string; const AUseJSDateFormat: Boolean;
       const AJSFormatSettings: TFormatSettings); override;
   public
+    class function NeedsQuotes: Boolean; override;
     class function GetFieldType: TFieldType; override;
     function GetDefaultDisplayWidth(const ASize: Integer): Integer; override;
     function InternalFormatNodeValue(const AForDisplay: Boolean;
@@ -704,7 +705,8 @@ type
     ///   Finds a node by path and, if found, returns its value as an object,
     ///   otherwise returns ADefaultValue.
     /// </summary>
-    function GetObject(const APath: string; const ADefaultValue: TObject = nil): TObject;
+    function GetObject(const APath: string; const ADefaultValue: TObject = nil): TObject; overload;
+    function GetObject<T: class>(const APath: string): T; overload;
 
     /// <summary>
     ///   Sets a node value by path. The node is created if it doesn't exist
@@ -741,6 +743,12 @@ type
     ///   yet.
     /// </summary>
     procedure SetBoolean(const APath: string; const AValue: Boolean);
+
+    /// <summary>
+    ///   Sets a node value by path. The node is created if it doesn't exist
+    ///   yet.
+    /// </summary>
+    procedure SetDateTime(const APath: string; const AValue: TDateTime);
 
     /// <summary>
     ///   Creates a children for each field in AField and sets its value to the
@@ -1037,6 +1045,7 @@ type
     property AsDecimal: TBcd read GetAsDecimal write SetAsDecimal;
 
     property AsBytes: TBytes read GetAsBytes write SetAsBytes;
+    procedure LoadBytesFromStream(const AStream: TStream);
 
     /// <summary>
     ///  Parses AValue trying to guess its data type and sets Value and
@@ -1222,6 +1231,7 @@ type
     FTree: TEFTree;
     FPrefix: string;
   strict protected
+    function ExpandTreeMacros(const AString: string; const ATree: TEFTree): string;
     property Tree: TEFTree read FTree;
     function InternalExpand(const AString: string): string; override;
   public
@@ -1733,6 +1743,19 @@ begin
   Result := (FDataTypeLockCount > 0) and (FDataType <> nil);
 end;
 
+procedure TEFNode.LoadBytesFromStream(const AStream: TStream);
+var
+  LBytesStream: TBytesStream;
+begin
+  LBytesStream := TBytesStream.Create;
+  try
+    LBytesStream.CopyFrom(AStream, 0);
+    AsBytes := Copy(LBytesStream.Bytes, 0, LBytesStream.Size);
+  finally
+    FreeAndNil(LBytesStream);
+  end;
+end;
+
 function TEFNode.LockDataType: Integer;
 begin
   Inc(FDataTypeLockCount);
@@ -1817,6 +1840,9 @@ begin
   if not IsDataTypeLocked then
     FDataType := TEFDataTypeFactory.Instance.GetDataType('Object');
   Value := DataType.ObjectToValue(AValue);
+  // Setting Value will revert the data type to integer.
+  if not IsDataTypeLocked then
+    FDataType := TEFDataTypeFactory.Instance.GetDataType('Object');
 end;
 
 procedure TEFNode.SetAsPair(const AValue: TEFPair);
@@ -2342,8 +2368,7 @@ begin
     Result := ADefaultValue;
 end;
 
-function TEFTree.GetObject(const APath: string;
-  const ADefaultValue: TObject): TObject;
+function TEFTree.GetObject(const APath: string; const ADefaultValue: TObject): TObject;
 var
   LNode: TEFNode;
 begin
@@ -2352,6 +2377,11 @@ begin
     Result := LNode.AsObject
   else
     Result := ADefaultValue;
+end;
+
+function TEFTree.GetObject<T>(const APath: string): T;
+begin
+  Result := T(GetObject(APath, nil));
 end;
 
 function TEFTree.GetPairs(const APath: string;
@@ -2542,6 +2572,11 @@ begin
   GetNode(APath, True).SetChildStrings(AStrings);
 end;
 
+procedure TEFTree.SetDateTime(const APath: string; const AValue: TDateTime);
+begin
+  GetNode(APath, True).AsDateTime := AValue;
+end;
+
 function TEFTree.SetFloat(const APath: string; const AValue: Double): TEFNode;
 begin
   Result := GetNode(APath, True);
@@ -2648,6 +2683,14 @@ begin
 end;
 
 function TEFTreeMacroExpander.InternalExpand(const AString: string): string;
+begin
+  Result := inherited InternalExpand(AString);
+
+  if Assigned(FTree) then
+    Result := ExpandTreeMacros(Result, FTree);
+end;
+
+function TEFTreeMacroExpander.ExpandTreeMacros(const AString: string; const ATree: TEFTree): string;
 var
   LIndex: Integer;
   LStart: Integer;
@@ -2657,8 +2700,9 @@ var
   LNodeValue: string;
   LNode: TEFNode;
 begin
-  Result := inherited InternalExpand(AString);
+  Assert(Assigned(ATree));
 
+  Result := AString;
   LIndex := 1;
   repeat
     LStart := PosEx('%' + FPrefix, Result, LIndex);
@@ -2669,7 +2713,7 @@ begin
     if LEnd = 0 then
       Exit;
     LNodePath := Copy(Result, LPathStart, LEnd - LPathStart);
-    LNode := FTree.FindNode(StripPrefixAndSuffix(LNodePath, '%', '%'));
+    LNode := ATree.FindNode(StripPrefixAndSuffix(LNodePath, '%', '%'));
     if Assigned(LNode) then
     begin
       LNodeValue := LNode.AsExpandedString;
@@ -3424,6 +3468,11 @@ procedure TEFBooleanDataType.InternalYamlValueToNode(const AYamlValue: string;
   const ANode: TEFNode; const AFormatSettings: TFormatSettings);
 begin
   ANode.AsBoolean := StrToBool(AYamlValue);
+end;
+
+class function TEFBooleanDataType.NeedsQuotes: Boolean;
+begin
+  Result := False;
 end;
 
 { TEFCurrencyDataType }

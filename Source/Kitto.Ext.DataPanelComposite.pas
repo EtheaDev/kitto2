@@ -21,7 +21,10 @@ unit Kitto.Ext.DataPanelComposite;
 interface
 
 uses
-  Kitto.Ext.DataPanel, Kitto.Ext.Controller;
+  Kitto.JS
+  , Kitto.Ext.DataPanel
+  , Kitto.Ext.Controller
+  ;
 
 type
   /// <summary>
@@ -32,20 +35,21 @@ type
   public
     function GetFilterExpression: string; override;
   strict protected
-    procedure InitSubController(const AController: IKExtController); override;
+    procedure InitSubController(const AController: IJSController); override;
     procedure DoDisplay; override;
   public
     procedure Activate; override;
-  published
+  //published
     procedure LoadData; override;
   end;
 
 implementation
 
 uses
-  ExtPascal,
-  EF.StrUtils,
-  Kitto.Ext.Base;
+  EF.StrUtils
+  , Ext.Base
+  , Kitto.Ext.Base
+  ;
 
 { TKExtDataPanelCompositeController }
 
@@ -82,8 +86,7 @@ begin
   Result := LResult;
 end;
 
-procedure TKExtDataPanelCompositeController.InitSubController(
-  const AController: IKExtController);
+procedure TKExtDataPanelCompositeController.InitSubController(const AController: IJSController);
 begin
   inherited;
   Assert(Assigned(AController));

@@ -21,10 +21,13 @@ unit Kitto.Ext.TilePanel;
 interface
 
 uses
-  Types,
-  EF.Tree,
-  Kitto.Metadata.Views,
-  Kitto.Ext.Base, Kitto.Ext.Controller, Kitto.Ext.Session, Kitto.Ext.TabPanel;
+  Types
+  , EF.Tree
+  , Kitto.Metadata.Views
+  , Kitto.Ext.Base
+  , Kitto.Ext.Controller
+  , Kitto.Ext.TabPanel
+  ;
 
 const
   DEFAULT_TILE_HEIGHT = 50;
@@ -55,7 +58,7 @@ type
     property Config: TEFTree read FConfig write FConfig;
     property View: TKView read FView write FView;
     procedure DoDisplay;
-  published
+  //published
     procedure DisplayView;
     procedure DisplayPage;
   end;
@@ -68,7 +71,7 @@ type
   strict protected
     function TabsVisible: Boolean; override;
   public
-    procedure SetAsViewHost; override;
+    procedure SetAsControllerContainer; override;
     procedure DisplaySubViewsAndControllers; override;
   end;
 
@@ -82,10 +85,20 @@ type
 implementation
 
 uses
-  SysUtils, StrUtils,
-  Ext,
-  EF.StrUtils, EF.Macros, EF.Localization,
-  Kitto.Config, Kitto.Utils, Kitto.Ext.Utils;
+  SysUtils
+  , StrUtils
+  , Ext.Base
+  , EF.StrUtils
+  , EF.Macros
+  , EF.Localization
+  , Kitto.JS
+  , Kitto.Config
+  , Kitto.Utils
+  , Kitto.Web.Application
+  , Kitto.Web.Request
+  , Kitto.Web.Response
+  , Kitto.Ext.Utils
+  ;
 
 { TKExtTilePanelController }
 
@@ -109,22 +122,22 @@ begin
     SetActiveTab(0);
 end;
 
-procedure TKExtTileTabPanel.SetAsViewHost;
+procedure TKExtTileTabPanel.SetAsControllerContainer;
 begin
   // Don't act as view host on mobile - we want modal views there.
-  if not Session.IsMobileBrowser then
+  if not TKWebRequest.Current.IsMobileBrowser then
     inherited;
 end;
 
 function TKExtTileTabPanel.TabsVisible: Boolean;
 begin
-  Result := Config.GetBoolean('TabsVisible', not Session.IsMobileBrowser);
+  Result := Config.GetBoolean('TabsVisible', not TKWebRequest.Current.IsMobileBrowser);
 end;
 
 procedure TKExtTileTabPanel.AddTileSubPanel;
 begin
   inherited;
-  FTilePanel := TKExtTilePanel.CreateAndAddTo(Items);
+  FTilePanel := TKExtTilePanel.CreateAndAddToArray(Items);
   FTilePanel.View := View;
   FTilePanel.Config := Config;
   FTilePanel.DoDisplay;
@@ -149,12 +162,12 @@ end;
 
 procedure TKExtTilePanel.DisplayPage;
 begin
-  BuildTileBoxHtml(TKTreeViewNode(Session.QueryAsInteger['PageId']));
+  BuildTileBoxHtml(TKTreeViewNode(ParamAsInteger('PageId')));
 end;
 
 procedure TKExtTilePanel.DisplayView;
 begin
-  Session.DisplayView(TKView(Session.QueryAsInteger['View']));
+  TKWebApplication.Current.DisplayView(TKView(ParamAsInteger('View')));
 end;
 
 function TKExtTilePanel.GetColors(const AColorSetName: string): TStringDynArray;
@@ -263,7 +276,7 @@ var
         if Assigned(LDisplayLabelNode) then
           LDisplayLabel := _(LDisplayLabelNode.AsString)
         else
-          LDisplayLabel := GetDisplayLabelFromNode(LOriginalSubNode, Session.Config.Views);
+          LDisplayLabel := GetDisplayLabelFromNode(LOriginalSubNode, TKWebApplication.Current.Config.Views);
         // Render folders as rows not tiles in second level.
         if not (LOriginalSubNode is TKTreeViewFolder) or not Assigned(FRootNode) then
         begin
@@ -298,8 +311,11 @@ procedure TKExtTilePanel.AddBackTile;
 var
   LClickCode: string;
 begin
-  LClickCode := JSMethod(Ajax(DisplayPage, ['PageId', 0]));
-
+  LClickCode := GenerateAnonymousFunction(GetJSCode(
+    procedure
+    begin
+      TKWebResponse.Current.Items.AjaxCallMethod(Self).SetMethod(DisplayPage).AddParam('PageId', 0);
+    end)).ExtractText;
   FTileBoxHtml := FTileBoxHtml + Format(
     '<a href="#" onclick="%s"><div class="k-tile k-tile-back" style="background-color:%s;width:%dpx;height:%dpx">' +
     '<div class="k-tile-inner k-tile-back-inner">%s</div></div></a>',
@@ -349,9 +365,22 @@ var
 
 begin
   if ANode is TKTreeViewFolder then
-    LClickCode := JSMethod(Ajax(DisplayPage, ['PageId', Integer(ANode)]))
+  begin
+    LClickCode := GenerateAnonymousFunction(GetJSCode(
+      procedure
+      begin
+        TKWebResponse.Current.Items.AjaxCallMethod(Self).SetMethod(DisplayPage).AddParam('PageId', Integer(ANode));
+      end)).ExtractText;
+  end
   else
-    LClickCode := JSMethod(Ajax(DisplayView, ['View', Integer(Session.Config.Views.ViewByNode(ANode))]));
+  begin
+    LClickCode := GenerateAnonymousFunction(GetJSCode(
+      procedure
+      begin
+        TKWebResponse.Current.Items.AjaxCallMethod(Self).SetMethod(DisplayView)
+          .AddParam('View', Integer(TKWebApplication.Current.Config.Views.ViewByNode(ANode)));
+      end)).ExtractText;
+  end;
 
   if GetCSS <> '' then
   begin
@@ -387,9 +416,8 @@ begin
 
   LTreeViewRenderer := TKExtTreeViewRenderer.Create;
   try
-    LTreeViewRenderer.Session := Session;
     LNode := Config.GetNode('TreeView');
-    LTreeView := Session.Config.Views.ViewByNode(LNode) as TKTreeView;
+    LTreeView := TKWebApplication.Current.Config.Views.ViewByNode(LNode) as TKTreeView;
     LTreeViewRenderer.Render(LTreeView,
       procedure (ANode: TKTreeViewNode; ADisplayLabel: string)
       begin

@@ -46,8 +46,10 @@ type
     FLogHeader: Boolean;
     FLogSeparator: string;
     FLogDelimiter: string;
-    procedure WriteLog(const AUserId, AResourceURI, AMode, ADefaultValue,
-      AResult: string);
+    class threadvar FCurrent: TKAccessController;
+    procedure WriteLog(const AUserId, AResourceURI, AMode, ADefaultValue, AResult: string);
+    class function GetCurrent: TKAccessController; static;
+    class procedure SetCurrent(const AValue: TKAccessController); static;
   strict protected
     class function InternalGetClassId: string; override;
 
@@ -75,17 +77,29 @@ type
     function GetAccessGrantValue(const AUserId, AResourceURI, AMode: string;
       const ADefaultValue: Variant): Variant;
 
-    /// <summary>Shortcut for GetAccessGrantValue for Boolean values. Returns
-    /// True if a value is granted and it equals ACV_TRUE.</summary>
+    /// <summary>
+    ///  Shortcut for GetAccessGrantValue for Boolean values. Returns
+    ///  True if a value is granted and it equals ACV_TRUE.
+    /// </summary>
     function IsAccessGranted(const AUserId, AResourceURI, AMode: string): Boolean;
 
-    /// <summary>Returns True if the specified access mode is a standard mode,
-    /// that is one of the ACM_* constants (except ACM_ALL).</summary>
+    /// <summary>
+    ///  Calls IsAccessGranted and raises an "access denied" exception
+    ///  if the return value is not True.
+    /// </summary>
+    procedure CheckAccessGranted(const AUserId, AResourceURI, AMode: string);
+
+    /// <summary>
+    ///  Returns True if the specified access mode is a standard mode,
+    ///  that is one of the ACM_* constants (except ACM_ALL).
+    /// </summary>
     class function IsStandardMode(const AMode: string): Boolean;
 
     /// <summary>Called by the system after setting all config
     /// values.</summary>
     procedure Init;
+
+    class property Current: TKAccessController read GetCurrent write SetCurrent;
   end;
   TKAccessControllerClass = class of TKAccessController;
 
@@ -168,9 +182,16 @@ type
 implementation
 
 uses
-  SysUtils, StrUtils, Variants,
-  {$IFDEF KITTO_ENABLE_CODESITE}CodeSiteLogging,{$ENDIF}
-  EF.SysUtils, EF.StrUtils, EF.VariantUtils, EF.Tree;
+  SysUtils
+  , StrUtils
+  , Variants
+  {$IFDEF KITTO_ENABLE_CODESITE}, CodeSiteLogging{$ENDIF}
+  , EF.SysUtils
+  , EF.StrUtils
+  , EF.VariantUtils
+  , EF.Tree
+  , EF.Localization
+  ;
 
 { TKAccessControllerRegistry }
 
@@ -216,6 +237,26 @@ class function TKAccessController.IsStandardMode(const AMode: string): Boolean;
 begin
   Result := MatchStr(AMode, [ACM_VIEW, ACM_RUN, ACM_READ, ACM_ADD, ACM_MODIFY,
     ACM_DELETE]);
+end;
+
+class procedure TKAccessController.SetCurrent(const AValue: TKAccessController);
+begin
+  FCurrent := AValue;
+end;
+
+procedure TKAccessController.CheckAccessGranted(const AUserId, AResourceURI, AMode: string);
+var
+  LErrorMsg: string;
+begin
+  if not IsAccessGranted(AUserId, AResourceURI, AMode) then
+  begin
+    LErrorMsg := _('Access denied. The user is not allowed to perform this operation.');
+    {$IFDEF DEBUG}
+    LErrorMsg := LErrorMsg + sLineBreak +
+      Format(_('Resource URI: %s; access mode: %s.'), [AResourceURI, AMode]);
+    {$ENDIF}
+    raise EKAccessDeniedError.Create(LErrorMsg);
+  end;
 end;
 
 function TKAccessController.GetAccessGrantValue(const AUserId, AResourceURI,
@@ -289,6 +330,11 @@ begin
   {$IFDEF KITTO_ENABLE_CODESITE}
   CodeSite.Send(LLine);
   {$ENDIF}
+end;
+
+class function TKAccessController.GetCurrent: TKAccessController;
+begin
+  Result := FCurrent;
 end;
 
 procedure TKAccessController.Init;

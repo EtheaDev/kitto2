@@ -21,10 +21,14 @@ unit Kitto.Ext.DataPanelLeaf;
 interface
 
 uses
-  SysUtils,
-  Ext,
-  EF.ObserverIntf,
-  Kitto.Ext.Base, Kitto.Ext.Controller, Kitto.Ext.DataPanel;
+  SysUtils
+  , Ext.Base
+  , EF.ObserverIntf
+  , Kitto.JS
+  , Kitto.Ext.Base
+  , Kitto.Ext.Controller
+  , Kitto.Ext.DataPanel
+  ;
 
 type
   /// <summary>
@@ -40,9 +44,9 @@ type
     function GetParentDataPanel: TKExtDataPanelController;
     function IsActionSupported(const AActionName: string): Boolean; override;
   public
-    procedure InitActionController(const AAction: TKExtActionButton; const AController: IKExtController); override;
+    procedure InitActionController(const AAction: TKExtActionButton; const AController: IJSController); override;
     procedure UpdateObserver(const ASubject: IEFSubject; const AContext: string = ''); override;
-  published
+  //published
     procedure LoadData; override;
     procedure DoDisplay; override;
   end;
@@ -50,10 +54,12 @@ type
 implementation
 
 uses
-  ExtPascal, StrUtils,
-  EF.Localization,
-  Kitto.Metadata.Views,
-  Kitto.AccessControl, Kitto.Ext.Session;
+  StrUtils
+  , EF.Localization
+  , Kitto.Metadata.Views
+  , Kitto.AccessControl
+  , Kitto.Web.Response
+  ;
 
 { TKExtDataPanelLeafController }
 
@@ -62,7 +68,7 @@ var
   LActionCommand: string;
 begin
   inherited;
-  LActionCommand := Session.Queries.Values['action'];
+  LActionCommand := ParamAsString('action');
 (* TODO multiple actions separated by comma: actually don't work
   while LActionCommand <> '' do
   begin
@@ -82,7 +88,8 @@ begin
 *)
   if LActionCommand <> '' then
   begin
-    Session.Queries.Values['action'] := '';
+{ TODO : cannot change query fields - put mutable data elsewhere }
+//    Session.Query['action'] := '';
     ExecuteNamedAction(LActionCommand);
   end;
 end;
@@ -103,7 +110,7 @@ begin
 end;
 
 procedure TKExtDataPanelLeafController.InitActionController(
-  const AAction: TKExtActionButton; const AController: IKExtController);
+  const AAction: TKExtActionButton; const AController: IJSController);
 var
   LParentDataPanel: TKExtDataPanelController;
 begin
@@ -125,7 +132,7 @@ begin
   begin
     Assert(Assigned(ClientStore));
 
-    ClientStore.Load(JSObject('params:{start:0,limit:0,Obj:"' + JSName + '"}'));
+    ClientStore.Load(JSObject('params:{start: 0, limit: 0}'));
   end;
 end;
 
@@ -145,11 +152,12 @@ end;
 procedure TKExtDataPanelLeafController.AddTopToolbarButtons;
 begin
   inherited;
-  TExtToolbarSpacer.CreateAndAddTo(TopToolbar.Items);
+//  TExtToolbarSpacer.CreateAndAddTo(TopToolbar.Items);
   FRefreshButton := AddTopToolbarButton('Refresh', _('Refresh data'), 'refresh', False);
   if Assigned(FRefreshButton) then
   begin
-    FRefreshButton.On('click', Ajax(GetParentDataPanel.LoadData));
+    //FRefreshButton.On('click', Ajax(GetParentDataPanel.LoadData));
+    FRefreshButton.On('click', TKWebResponse.Current.Items.AjaxCallMethod(Self).SetMethod(GetParentDataPanel.LoadData).AsFunction);
     if ViewTable.GetBoolean('Controller/PreventRefreshing') then
       FRefreshButton.Hidden := True;
   end;

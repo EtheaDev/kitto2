@@ -80,7 +80,7 @@ type
     procedure AfterExecuteTool; override;
   public
     class function GetDefaultImageName: string; override;
-  published
+  //published
     property BatchFileName: string read GetBatchFileName;
     property Parameters: string read GetParameters;
   end;
@@ -88,15 +88,16 @@ type
 implementation
 
 uses
-  StrUtils,
-  EF.Tree, EF.DB, EF.StrUtils, EF.SysUtils, EF.Localization,
-  Kitto.Config, Kitto.Ext.Session;
-
-procedure LoadRecordDetails(const ARecord: TKViewTableRecord);
-begin
-  if Assigned(ARecord) then
-    ARecord.LoadDetailStores;
-end;
+  StrUtils
+  , EF.Tree
+  , EF.DB
+  , EF.StrUtils
+  , EF.SysUtils
+  , EF.Localization
+  , Kitto.Config
+  , Kitto.Web.Application
+  , Kitto.Web.Request
+  ;
 
 { TKExtDataToolController }
 
@@ -123,9 +124,9 @@ begin
   try
     LKey.Assign(ServerStore.Key);
     Assert(LKey.ChildCount > 0);
-    LRecordCount := Length(Split(Session.Queries.Values[LKey[0].Name], ','));
+    LRecordCount := Length(Split(ParamAsString(LKey[0].Name), ','));
     for I := 0 to LRecordCount - 1 do
-      AProc(ServerStore.GetRecord(Session.GetQueries, Session.Config.JSFormatSettings, I));
+      AProc(ServerStore.GetRecord(TKWebRequest.Current.GetQueryFields, TKWebApplication.Current.Config.JSFormatSettings, I));
   finally
     FreeAndNil(LKey);
   end;
@@ -163,8 +164,8 @@ end;
 procedure TKExtDataToolController.ExecuteTool;
 begin
   inherited;
-  if Config.GetBoolean('RequireDetails') then
-    LoadRecordDetails(ServerRecord);
+  if Config.GetBoolean('RequireDetails') and Assigned(ServerRecord) then
+    ServerRecord.LoadDetailStores;
 end;
 
 function TKExtDataToolController.GetServerRecord: TKViewTableRecord;
@@ -230,10 +231,10 @@ begin
   try
     LKey.Assign(ServerStore.Key);
     Assert(LKey.ChildCount > 0);
-    LRecordCount := Length(EF.StrUtils.Split(Session.Queries.Values[LKey[0].Name], ','));
+    LRecordCount := Length(EF.StrUtils.Split(TKWebRequest.Current.QueryFields.Values[LKey[0].Name], ','));
     SetLength(FSelectedRecords, LRecordCount);
     for I := 0 to LRecordCount - 1 do
-      FSelectedRecords[I] := ServerStore.GetRecord(Session.GetQueries, Session.Config.JSFormatSettings, I);
+      FSelectedRecords[I] := ServerStore.GetRecord(TKWebRequest.Current.GetQueryFields, TKWebApplication.Current.Config.JSFormatSettings, I);
   finally
     FreeAndNil(LKey);
   end;
@@ -243,8 +244,8 @@ procedure TKExtDataWindowToolController.DoDisplay;
 begin
   inherited;
   StoreSelectedRecords;
-  if Config.GetBoolean('RequireDetails') then
-    LoadRecordDetails(ServerRecord);
+  if Config.GetBoolean('RequireDetails') and Assigned(ServerRecord) then
+    ServerRecord.LoadDetailStores;
 end;
 
 function TKExtDataWindowToolController.GetServerRecord: TKViewTableRecord;
@@ -275,7 +276,7 @@ end;
 procedure TKExtDataCmdToolController.AfterExecuteTool;
 begin
   inherited;
-  Session.Flash(_('Command executed succesfully.'));
+  TKWebApplication.Current.Toast(_('Command executed succesfully.'));
 end;
 
 procedure TKExtDataCmdToolController.ExecuteTool;

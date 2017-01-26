@@ -278,7 +278,8 @@ begin
   ADBQuery.Params.BeginUpdate;
   try
     ADBQuery.Params.Clear;
-    LCommandText := 'select ' +  ExpandQualification(FSelectTerms, AModel.DBTableName) +
+    LCommandText :=
+      'select ' +  FSelectTerms +
       ' from ' + AModel.DBTableName + ' where ' + ExpandQualification(GetModelKeyWhereClause(AModel, ADBQuery), AModel.DBTableName);
     ADBQuery.CommandText := TEFMacroExpansionEngine.Instance.Expand(LCommandText);
   finally
