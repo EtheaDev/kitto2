@@ -1,4 +1,4 @@
-![kitto_logo_200.png]!(https://github.com/EtheaDev/kitto2/wiki/images/kitto_logo_200.png)
+![kitto_logo_200.png](https://github.com/EtheaDev/kitto2/wiki/images/kitto_logo_200.png)
 
 Kitto allows to create **Rich Internet Applications** based on a data model that can be mapped onto any database. The client-side part uses **ExtJS** (through the ExtPascal library) to create a fully **AJAX** application, allowing you to build standard and advanced data-manipulating forms in a fraction of the time.
 
