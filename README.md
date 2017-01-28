@@ -1,6 +1,6 @@
 ![kitto_logo_200.png](https://github.com/EtheaDev/kitto2/wiki/images/kitto_logo_200.png)
 
-Kitto allows to create **Rich Internet Applications** based on a data model that can be mapped onto any database. The client-side part uses **ExtJS** (through the ExtPascal library) to create a fully **AJAX** application, allowing you to build standard and advanced data-manipulating forms in a fraction of the time.
+Kitto allows to create **Rich Internet Applications** based on a data model that can be mapped onto any database. The client-side part uses **ExtJS 6** (through the WebBroker technology) to create a fully **AJAX** application, allowing you to build standard and advanced data-manipulating forms in a fraction of the time.
 
 Kitto is aimed at **Delphi** developers that need to create web application without delving into the intricacies of HTML, CSS, Javascript or learning to use a particular library such as ExtJS, yet it allows access to the bare metal if required.
 
@@ -13,7 +13,5 @@ Kitto was designed by Nando Dessena and its development is sponsored by [Ethea](
 Start [here](https://github.com/EtheaDev/kitto2/wiki/Kitto-at-a-glance) for further information.
 
 Visit [this site](http://kitto.ethea.it) for online demos.
-
-If you feel like discussing Kitto, you can join the [discussion group](https://groups.google.com/forum/#!forum/kitto-discuss) or follow the [blog](http://kittoing.blogspot.it/).
 
 Happy Kittoing!
