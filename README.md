@@ -1,6 +1,14 @@
-![kitto_logo_200.png](https://github.com/EtheaDev/kitto2/wiki/images/kitto_logo_200.png)
+![https://github.com/EtheaDev/kitto2/wiki/images/kitto_logo_200.png](https://github.com/EtheaDev/kitto2/wiki/images/kitto_logo_200.png)
 
-Kitto allows to create **Rich Internet Applications** based on a data model that can be mapped onto any database. The client-side part uses **ExtJS 6** (through the WebBroker technology) to create a fully **AJAX** application, allowing you to build standard and advanced data-manipulating forms in a fraction of the time.
+Kitto allows to create **Rich Internet Applications** based on a data model that can be mapped onto any database. The client-side part uses **ExtJS 6** (through webbroker technology) to create a fully **AJAX** application, allowing you to build standard and advanced data-manipulating forms in a fraction of the time.
+
+The major differences of Kitto 2, compared to the first version are:
+
+- ExtPascal library has been removed
+
+- Replacement of Apache + FastCGI with WebBroker technology.
+
+- Replacement of ExtJS 3 with ExtJS 6
 
 Kitto is aimed at **Delphi** developers that need to create web application without delving into the intricacies of HTML, CSS, Javascript or learning to use a particular library such as ExtJS, yet it allows access to the bare metal if required.
 
