@@ -1,4 +1,4 @@
-﻿AppName: KEmployee6
+﻿AppName: KEmployee
 AppTitle: Employee demo
 AppIcon: FireBirdSql_120
 
@@ -55,6 +55,11 @@ Ext:
 # (such as iso-8859-1 for Western Europe). Defaults to utf-8.
 Charset: utf-8
 
-FastCGI:
-  TCPPort: 2603
 LanguageId: en
+
+Server:
+  Port: 2603
+  # default 20
+  ThreadPoolSize: 15
+  # In minutes.
+  SessionTimeOut: 10

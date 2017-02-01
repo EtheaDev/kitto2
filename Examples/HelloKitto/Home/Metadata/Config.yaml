@@ -63,7 +63,7 @@ Databases:
       Data Source: %COMPUTERNAME%
 
 Auth: DB
-  Defaults:
+  .Defaults:
     UserName: administrator
     Password: password
 
@@ -114,10 +114,10 @@ ExtJS:
 LanguageId: it
 # Either utf-8 or a SBCS corresponding to the system code page
 # (such as iso-8859-1 for Western Europe). Defaults to utf-8.
-#Charset: utf-8
+Charset: utf-8
 
 Server:
-  #Port: 8080
+  Port: 2601
   # default 20
   ThreadPoolSize: 15
   # In minutes.

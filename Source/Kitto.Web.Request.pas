@@ -1,5 +1,7 @@
 unit Kitto.Web.Request;
 
+{$I Kitto.Defines.inc}
+
 interface
 
 uses
@@ -70,7 +72,11 @@ end;
 
 function TKWebRequest.GetQueryField(const AName: string): string;
 begin
+{$IFDEF D24+}
   Result := TNetEncoding.URL.Decode(QueryFields.Values[AName], [TURLEncoding.TDecodeOption.PlusAsSpaces]);
+{$ELSE}
+  Result := TNetEncoding.URL.Decode(QueryFields.Values[AName]);
+{$ENDIF}
 end;
 
 function TKWebRequest.GetQueryFields: ISuperObject;
@@ -84,12 +90,12 @@ end;
 
 function TKWebRequest.IsBrowserIPhone: Boolean;
 begin
-  Result := UserAgent.Contains('iPhone');
+  Result := string(UserAgent).Contains('iPhone');
 end;
 
 function TKWebRequest.IsBrowserIPad: Boolean;
 begin
-  Result := UserAgent.Contains('iPad');
+  Result := string(UserAgent).Contains('iPad');
 end;
 
 function TKWebRequest.IsMobileBrowser: Boolean;

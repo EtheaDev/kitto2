@@ -992,7 +992,7 @@ var
   function GetSeparator: string;
   begin
     // IE on Windows Phone wants comma, others want space.
-    if TKWebRequest.Current.UserAgent.Contains('Windows Phone') then
+    if string(TKWebRequest.Current.UserAgent).Contains('Windows Phone') then
       Result := ', '
     else
       Result := ' ';

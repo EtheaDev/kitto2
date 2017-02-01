@@ -212,7 +212,7 @@ var
     LObject.AddPair('Title', ATitle);
     LObject.AddPair('Description', ADescription);
     LObject.AddPair('ColorId', TJSONNumber.Create(AColorId));
-    {$IFDEF D22+}
+    {$IFDEF D23+}
     LObject.AddPair('IsHidden', TJSONBool.Create(AIsHidden));
     {$ELSE}
     if AIsHidden then

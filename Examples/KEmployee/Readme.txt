@@ -6,4 +6,4 @@ To use the KEmployee demo you need to:
 
 URL to launch demo
 ------------------
-http://localhost/kitto/kemployee
+http://localhost:2603/kitto/kemployee
