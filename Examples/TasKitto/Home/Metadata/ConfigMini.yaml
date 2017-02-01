@@ -14,7 +14,7 @@ Databases:
 
 Auth: DB
   IsClearPassword: True
-  Defaults:
+  .Defaults:
     UserName: admin
     Password: admin
   ReadUserCommandText: select USER_NAME, PASSWORD_HASH, FIRST_NAME, LAST_NAME from KITTO_USERS where IS_ACTIVE = 1 and UPPER(USER_NAME) = UPPER(:USER_NAME)
@@ -36,9 +36,6 @@ Charset: utf-8
 
 FOPEnginePath: %FOP1_1%
 
-FastCGI:
-  TCPPort: 2602
-
 UserFormats:
   Date: dd/mm/yyyy
   Time: hh:nn
@@ -51,3 +48,9 @@ Log:
     # Set this to false to disable this logger without deleting its configuration.
     IsEnabled: True
 
+Server:
+  Port: 2602
+  # default 20
+  ThreadPoolSize: 15
+  # In minutes.
+  SessionTimeOut: 10
