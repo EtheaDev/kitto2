@@ -388,6 +388,7 @@ uses
   , EF.Localization
   , EF.Macros
   , Kitto.AccessControl
+  , Kitto.JS.Base
   , Kitto.Web.Application
   , Kitto.Web.Request
   , Kitto.Web.Response
@@ -1261,15 +1262,21 @@ begin
 end;
 
 procedure TKExtWindowToolController.CreateButtons;
+var
+  LToolbar: TKExtToolbar;
 begin
-  FConfirmButton := TKExtButton.CreateAndAddToArray(Buttons);
+  LToolbar := TKExtToolbar.Create(Self);
+  TExtToolbarFill.CreateInlineAndAddToArray(LToolbar.Items);
+  Fbar := LToolbar;
+
+  FConfirmButton := TKExtButton.CreateAndAddToArray(LToolbar.Items);
   FConfirmButton.SetIconAndScale('accept', Config.GetString('ButtonScale', 'medium'));
   FConfirmButton.FormBind := True;
   FConfirmButton.Text := Config.GetString('ConfirmButton/Caption', _('Confirm'));
   FConfirmButton.Tooltip := Config.GetString('ConfirmButton/Tooltip', _('Confirm action and close window'));
   FConfirmButton.Handler := GetConfirmJSFunction();
 
-  FCancelButton := TKExtButton.CreateAndAddToArray(Buttons);
+  FCancelButton := TKExtButton.CreateAndAddToArray(LToolbar.Items);
   FCancelButton.SetIconAndScale('cancel', Config.GetString('ButtonScale', 'medium'));
   FCancelButton.Text := _('Cancel');
   FCancelButton.Tooltip := _('Cancel changes');
@@ -1437,6 +1444,16 @@ procedure TKExtControllerHostWindow.SetActiveSubController(const ASubController:
 begin
   FController := ASubController;
 end;
+
+initialization
+  TKWebApplication.OnCreateHostWindow :=
+    function (AOwner: TJSBase): IJSControllerContainer
+    begin
+      Result := TKExtControllerHostWindow.Create(AOwner);
+    end;
+
+finalization
+  TKWebApplication.OnCreateHostWindow := nil;
 
 end.
 

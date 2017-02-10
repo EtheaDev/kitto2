@@ -643,6 +643,7 @@ var
   LRowClassProvider: string;
   LRowColorPatterns: TEFPairs;
   LRowColorFieldName: string;
+  LToolbar: TKExtToolbar;
 begin
   LView := View;
   LViewTable := AValue;
@@ -712,14 +713,18 @@ begin
 
   if IsLookupMode then
   begin
-    FConfirmButton := TKExtButton.CreateAndAddToArray(Buttons);
+    LToolbar := TKExtToolbar.Create(Self);
+    TExtToolbarFill.CreateInlineAndAddToArray(LToolbar.Items);
+    Fbar := LToolbar;
+
+    FConfirmButton := TKExtButton.CreateAndAddToArray(LToolbar.Items);
     FConfirmButton.SetIconAndScale('accept', Config.GetString('ButtonScale', 'medium'));
     FConfirmButton.Text := Config.GetString('LookupConfirmButton/Caption', _('Select'));
     FConfirmButton.Tooltip := Config.GetString('LookupConfirmButton/Tooltip', _('Select the current record and close the window'));
     FConfirmButton.On('click', GetSelectCall(ConfirmLookup));
     FButtonsRequiringSelection.Add(FConfirmButton);
 
-    FCancelButton := TKExtButton.CreateAndAddToArray(Buttons);
+    FCancelButton := TKExtButton.CreateAndAddToArray(LToolbar.Items);
     FCancelButton.SetIconAndScale('cancel', Config.GetString('ButtonScale', 'medium'));
     FCancelButton.Text := _('Cancel');
     FCancelButton.Tooltip := _('Close the window without selecting a record');
@@ -728,7 +733,11 @@ begin
   end
   else if FInplaceEditing then
   begin
-    FConfirmButton := TKExtButton.CreateAndAddToArray(Buttons);
+    LToolbar := TKExtToolbar.Create(Self);
+    TExtToolbarFill.CreateInlineAndAddToArray(LToolbar.Items);
+    Fbar := LToolbar;
+
+    FConfirmButton := TKExtButton.CreateAndAddToArray(LToolbar.Items);
     FConfirmButton.SetIconAndScale('accept', Config.GetString('ButtonScale', 'medium'));
     FConfirmButton.Text := Config.GetString('ConfirmButton/Caption', _('Save'));
     FConfirmButton.Tooltip := Config.GetString('ConfirmButton/Tooltip', _('Save changes and finish editing'));
@@ -736,7 +745,7 @@ begin
     //FConfirmButton.On('click', Ajax(ConfirmInplaceChanges));
     FConfirmButton.On('click', TKWebResponse.Current.Items.AjaxCallMethod(Self).SetMethod(ConfirmInplaceChanges).AsFunction);
 
-    FCancelButton := TKExtButton.CreateAndAddToArray(Buttons);
+    FCancelButton := TKExtButton.CreateAndAddToArray(LToolbar.Items);
     FCancelButton.SetIconAndScale('cancel', Config.GetString('ButtonScale', 'medium'));
     FCancelButton.Text := _('Cancel');
     FCancelButton.Tooltip := _('Cancel changes');

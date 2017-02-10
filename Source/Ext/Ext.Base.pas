@@ -531,7 +531,6 @@ type
     FFooter: Boolean;
     FIconCls: string;
     FAutoLoadBoolean: Boolean;
-    FButtons: TJSObjectArray;
     FMinButtonWidth: Integer;
     procedure SetAnimCollapse(const AValue: Boolean);
     procedure SetAutoLoadString(const AValue: string);
@@ -568,7 +567,6 @@ type
     property Bbar: TExtObject read FBbar write SetBbar;
     property BodyStyle: string read FBodyStyle write SetBodyStyle;
     property Border: Boolean read FBorder write SetBorder;
-    property Buttons: TJSObjectArray read FButtons;
     property Closable: Boolean read FClosable write SetClosable;
     property Collapsible: Boolean read FCollapsible write SetCollapsible;
     property Collapsed: Boolean read FCollapsed write SetCollapsed;
@@ -655,7 +653,6 @@ type
     FAnimateTarget: string;
     FAnimateTargetElement: TExtElement;
     FBaseCls: string; // 'x-window'
-    FButtons: TJSObjectArray;
     FClosable: Boolean; // true
     FConstrain: Boolean;
     FDraggable: Boolean; // true
@@ -691,7 +688,6 @@ type
     function Show(const AAnimateTarget: TExtElement; const ACallback: TExtExpression = nil;
       const AScope: TExtObject = nil): TExtExpression; overload;
     property AnimateTarget: string read FAnimateTarget write _SetAnimateTarget;
-    property Buttons: TJSObjectArray read FButtons;
     property Closable: Boolean read FClosable write SetClosable;
     property Constrain: Boolean read FConstrain write SetConstrain;
     property Draggable: Boolean read FDraggable write SetDraggable;
@@ -1796,7 +1792,6 @@ begin
   FAnimCollapse := true;
   FBbar := CreateConfigObjectArray('bbar');
   FBorder := true;
-  FButtons := CreateConfigObjectArray('buttons');
   FFbar := CreateConfigObjectArray('fbar');
   FMinButtonWidth := 75;
   FHeader := true;
@@ -2009,7 +2004,6 @@ begin
   inherited;
   FAnimateTargetElement := TExtElement.CreateInternal(Self, 'animateTarget');
   FBaseCls := 'x-window';
-  FButtons := CreateConfigObjectArray('buttons');
   FClosable := true;
   FDraggable := true;
   FExpandOnShow := true;

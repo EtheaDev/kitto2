@@ -149,9 +149,9 @@ type
     ///  to ensure that additional javascript or css files are included.
     /// </summary>
     procedure AddAdditionalRef(const APath: string; const AIncludeCSS: Boolean);
-    procedure Error(const AMessage, AMethodName, AParams: string);
-    procedure NotFoundError(const AMethodName: string);
-    procedure ErrorMessage(const AMessage: string; const AAction: string = '');
+    procedure MethodCallError(const AMessage, AMethodName, AParams: string);
+    procedure MethodNotFoundError(const AMethodName: string);
+    procedure Error(const AMessage: string);
     function GetMethodURL(const AObjectName, AMethodName: string): string;
     /// <summary>
     ///  Returns the Home URL of the Kitto application assuming the URL is
@@ -598,18 +598,16 @@ begin
           end
           else
             Result := CallObjectMethod(LHandlerObject, AURL.Document);
-
-          if Result then
-            AResponse.Render
-          else
-            NotFoundError(AURL.Path + '/' + AURL.Document);
         except
           on E: Exception do
           begin
-            Error(E.Message, AURL.Document, AURL.Params);
+            MethodCallError(E.Message, AURL.Document, AURL.Params);
             Result := True;
           end;
         end;
+        if not Result then
+          MethodNotFoundError(AURL.Path + '/' + AURL.Document);
+        AResponse.Render;
       except
         on E: Exception do
         begin
@@ -813,26 +811,31 @@ begin
   Result.Text := 'getViewportWidthInInches()';
 end;
 
-procedure TKWebApplication.ErrorMessage(const AMessage: string; const AAction: string);
+procedure TKWebApplication.Error(const AMessage: string);
 begin
-  TKWebResponse.Current.Items.ExecuteJSCode('Ext.Msg.show({title:"Error",msg:' + TJS.StrToJS(AMessage, True) +
-    ',icon:Ext.Msg.ERROR,buttons:Ext.Msg.OK' + IfThen(AAction = '', '', ',fn:function(){' + AAction + '}') + '});');
+  TKWebResponse.Current.Items.ExecuteJSCode(Format(
+    'showMessage({title: "%s", msg: %s, icon: Ext.Msg.ERROR, buttons: Ext.Msg.OK});'
+    , [_('Error'), TJS.StrToJS(AMessage, True)]));
 end;
 
-procedure TKWebApplication.Error(const AMessage, AMethodName, AParams: string);
+procedure TKWebApplication.MethodCallError(const AMessage, AMethodName, AParams: string);
+var
+  LMessage: string;
 begin
   TKWebResponse.Current.Items.Clear;
-{$IFDEF DEBUG}
-  ErrorMessage(AMessage + '<br/>Method: ' + IfThen(AMethodName = '', 'Home', AMethodName) + IfThen(AParams = '', '',
-    '<br/>Params:<br/>' + AnsiReplaceStr(AParams, '&', '<br/>')));
-{$ELSE}
-  ErrorMessage(AMessage);
-{$ENDIF}
+  {$IFDEF DEBUG}
+    LMessage := AMessage +
+      '<br/>Method: ' + IfThen(AMethodName = '', 'Home', AMethodName)
+      + IfThen(AParams = '', '', '<br/>Params:<br/>' + AnsiReplaceStr(AParams, '&', '<br/>'));
+  {$ELSE}
+    LMessage := AMessage;
+  {$ENDIF}
+  Error(LMessage);
 end;
 
-procedure TKWebApplication.NotFoundError(const AMethodName: string);
+procedure TKWebApplication.MethodNotFoundError(const AMethodName: string);
 begin
-  ErrorMessage(Format('Method: ''%s'' not found', [AMethodName]));
+  Error(Format('Method: ''%s'' not found', [AMethodName]));
 end;
 
 function TKWebApplication.GetLibraryTags: string;

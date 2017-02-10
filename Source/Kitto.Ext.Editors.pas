@@ -3104,6 +3104,7 @@ var
   LFormPanel: TExtFormFormPanel;
   LSubmitAction: TExtFormActionSubmit;
   LUploadFormField: TKExtFormFileUploadField;
+  LToolbar: TKExtToolbar;
 begin
   if Assigned(FWindow) then
     FWindow.Delete;
@@ -3120,12 +3121,16 @@ begin
   LFormPanel.FileUpload := True;
   LFormPanel.LabelAlign := laRight;
   LFormPanel.LabelWidth := 50;
+
   LUploadFormField := TKExtFormFileUploadField.CreateInlineAndAddToArray(LFormPanel.Items);
   LUploadFormField.FieldLabel := _(FRecordField.ViewField.DisplayLabel);
   LUploadFormField.EmptyText := _('Select a file to upload');
   LUploadFormField.AllowBlank := False;
   LUploadFormField.Anchor := '0 5 0 0';
-  LUploadButton := TKExtButton.CreateInlineAndAddToArray(LFormPanel.Buttons);
+  LToolbar := TKExtToolbar.Create(Self);
+  TExtToolbarFill.CreateInlineAndAddToArray(LToolbar.Items);
+  LFormPanel.Fbar := LToolbar;
+  LUploadButton := TKExtButton.CreateInlineAndAddToArray(LToolbar.Items);
   LUploadButton.Text := _('Upload');
   LUploadButton.SetIconAndScale('Upload', IfThen(TKWebRequest.Current.IsMobileBrowser,'medium', 'small'));
 
