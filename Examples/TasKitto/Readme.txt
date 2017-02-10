@@ -10,4 +10,4 @@ To see the application in a different mode, use ConfigMini.yaml.
 
 URL to launch demo
 ------------------
-http://localhost/kitto/taskitto
+http://localhost:2602/taskitto/home

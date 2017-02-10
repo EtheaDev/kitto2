@@ -6,8 +6,8 @@ Icons included in Kitto are licensed under the terms of the Creative Commons Att
 
 See: http://creativecommons.org/licenses/by/3.0/
 See: http://www.fatcow.com/free-icons
+See: https://github.com/google/material-design-icons/blob/master/LICENSE
 
-The version of ExtPascal included in Kitto is based on ExtPascal, licensed under the terms of the BSD 2-Clause License.
+Ext-JS 6 is licensed under GNU General Public License version 3 (GPL v3) Terms & Conditions
 
-See: http://www.opensource.org/licenses/bsd-license.php
-See: http://code.google.com/p/extpascal/
+See: https://www.sencha.com/legal/gpl/

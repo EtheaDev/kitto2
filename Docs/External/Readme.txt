@@ -1,3 +1,3 @@
 Kitto documentation is available online at:
 
-https://github.com/nandod/kitto/wiki/
+https://github.com/EtheaDev/kitto2/wiki

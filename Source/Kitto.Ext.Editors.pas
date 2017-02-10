@@ -56,6 +56,7 @@ const
   LAYOUT_MINFIELDWIDTH = 5;
   LAYOUT_REQUIREDLABELTEMPLATE = '<b>{label}*</b>';
   LAYOUT_MSGTARGET = 'Qtip';
+  DEFAULT_LABEL_SEPARATOR = ':';
 
 type
   IKExtEditItem = interface(IEFInterface)
@@ -624,6 +625,7 @@ type
     MinFieldWidth: Integer;
     RequiredLabelTemplate: string;
     MsgTarget: string;
+    LabelSeparator : string;
     procedure Init;
   end;
 
@@ -1160,6 +1162,8 @@ begin
     if not LIsReadOnly and LViewField.IsRequired then
       LLabel := ReplaceText(FDefaults.RequiredLabelTemplate, '{label}', LLabel);
     LFormField.FieldLabel := LLabel;
+    if FDefaults.LabelSeparator <> DEFAULT_LABEL_SEPARATOR then
+      LFormField.LabelSeparator := FDefaults.LabelSeparator;
 
     if (LEmptyText <> '') and (LFormField is TExtFormTextField) then
       TExtFormTextField(LFormField).EmptyText := LEmptyText;
@@ -1261,6 +1265,8 @@ begin
     FDefaults.MinFieldWidth := ANode.AsInteger
   else if SameText(ANode.Name, 'RequiredLabelTemplate') then
     FDefaults.RequiredLabelTemplate := ANode.AsString
+  else if SameText(ANode.Name, 'LabelSeparator') then
+    FDefaults.LabelSeparator := ANode.AsString
   else if SameText(ANode.Name, 'MsgTarget') then
     FDefaults.MsgTarget := OptionAsString(ANode, ['Qtip', 'Title', 'Under', 'Side'])
   else
@@ -1283,12 +1289,28 @@ end;
 { TKExtLayoutDefaults }
 
 procedure TKExtLayoutDefaults.Init;
+var
+  LConfigDefaultLayoutNode: TEFNode;
 begin
-  MemoWidth := LAYOUT_MEMOWIDTH;
-  MaxFieldWidth := LAYOUT_MAXFIELDWIDTH;
-  MinFieldWidth := LAYOUT_MINFIELDWIDTH;
-  MsgTarget := LAYOUT_MSGTARGET; // qtip title under side
-  RequiredLabelTemplate := LAYOUT_REQUIREDLABELTEMPLATE;
+  LConfigDefaultLayoutNode := TKWebApplication.Current.Config.Config.FindNode('Defaults/Layout');
+  if Assigned(LConfigDefaultLayoutNode) then
+  begin
+    MemoWidth := LConfigDefaultLayoutNode.GetInteger('MemoWidth', LAYOUT_MEMOWIDTH);
+    MaxFieldWidth := LConfigDefaultLayoutNode.GetInteger('MaxFieldWidth', LAYOUT_MAXFIELDWIDTH);
+    MinFieldWidth := LConfigDefaultLayoutNode.GetInteger('MinFieldWidth', LAYOUT_MINFIELDWIDTH);
+    MsgTarget := LAYOUT_MSGTARGET; // qtip title under side
+    RequiredLabelTemplate := LConfigDefaultLayoutNode.GetString('RequiredLabelTemplate', LAYOUT_REQUIREDLABELTEMPLATE);
+    LabelSeparator := LConfigDefaultLayoutNode.GetString('LabelSeparator', DEFAULT_LABEL_SEPARATOR);
+  end
+  else
+  begin
+    MemoWidth := LAYOUT_MEMOWIDTH;
+    MaxFieldWidth := LAYOUT_MAXFIELDWIDTH;
+    MinFieldWidth := LAYOUT_MINFIELDWIDTH;
+    MsgTarget := LAYOUT_MSGTARGET;
+    RequiredLabelTemplate := LAYOUT_REQUIREDLABELTEMPLATE;
+    LabelSeparator := DEFAULT_LABEL_SEPARATOR;
+  end;
 end;
 
 { TKExtEditPage }
