@@ -174,6 +174,7 @@ implementation
 uses
   StrUtils
   , IOUtils
+  , NetEncoding
   , Variants
   , EF.StrUtils
   , EF.Localization
@@ -611,10 +612,8 @@ begin
       except
         on E: Exception do
         begin
-          { TODO : define and use status codes. }
-          AResponse.StatusCode := 500;
-          AResponse.Content := E.Message;
-          AResponse.ContentType := 'text/html';
+          Error(E.Message);
+          AResponse.Render;
           Result := True;
         end;
       end;
@@ -813,20 +812,23 @@ end;
 
 procedure TKWebApplication.Error(const AMessage: string);
 begin
-  TKWebResponse.Current.Items.ExecuteJSCode(Format(
-    'showMessage({title: "%s", msg: %s, icon: Ext.Msg.ERROR, buttons: Ext.Msg.OK});'
-    , [_('Error'), TJS.StrToJS(AMessage, True)]));
+  TKWebResponse.Current.Items.Clear;
+  if TKWebRequest.Current.IsAjax then
+    TKWebResponse.Current.Items.ExecuteJSCode(Format(
+      'showErrorMessage({title: "%s", msg: %s});'
+      , [_('Error'), TJS.StrToJS(AMessage, True)]))
+  else
+    TKWebResponse.Current.Items.AddHTML(TNetEncoding.HTML.Encode(AMessage).Replace(sLineBreak, '<br/>'));
 end;
 
 procedure TKWebApplication.MethodCallError(const AMessage, AMethodName, AParams: string);
 var
   LMessage: string;
 begin
-  TKWebResponse.Current.Items.Clear;
   {$IFDEF DEBUG}
     LMessage := AMessage +
-      '<br/>Method: ' + IfThen(AMethodName = '', 'Home', AMethodName)
-      + IfThen(AParams = '', '', '<br/>Params:<br/>' + AnsiReplaceStr(AParams, '&', '<br/>'));
+      sLineBreak + 'Method: ' + IfThen(AMethodName = '', 'Home', AMethodName)
+      + IfThen(AParams = '', '', sLineBreak + 'Params:' + sLineBreak + AnsiReplaceStr(AParams, '&', sLineBreak));
   {$ELSE}
     LMessage := AMessage;
   {$ENDIF}

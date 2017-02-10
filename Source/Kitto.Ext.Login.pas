@@ -206,7 +206,8 @@ Or maybe skip the object list altogether and use the ownership. }
   if LUseLanguageSelector then
   begin
     FLanguage := TExtFormComboBox.CreateAndAddToArray(FFormPanel.Items);
-    FLanguage.StoreArray := JSArray('["it", "Italiano"], ["en", "English"]');
+    // Don't call JSArray on the windows, as it will generate a dependency cycle.
+    FLanguage.StoreArray := FLanguage.JSArray('["it", "Italiano"], ["en", "English"]');
     FLanguage.HiddenName := 'Language';
     FLanguage.Value := Session.AuthData.GetExpandedString('Language');
     if FLanguage.Value = '' then

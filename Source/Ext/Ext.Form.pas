@@ -1510,7 +1510,6 @@ begin
   FSelectOnFocus := true;
   FSelectedClass := 'x-combo-selected';
   FStore := TExtDataStore.CreateInternal(Self, 'store');
-  //FStoreArray := CreateConfigObject('store');
   FTriggerClass := 'x-form-arrow-trigger';
   FTypeAheadDelay := 250;
   FValueField := 'output/Ext.form.ComboBox.html#Ext.form.ComboBox-mode';

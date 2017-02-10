@@ -296,10 +296,15 @@ var
           AFormatter.AddIndented(AName + FNameValueConnector)
         else
           AFormatter.AddIndent;
-        { TODO : what if it's empty? }
-        AFormatter.OpenObject;
-        AObject.JSConfig.FormatTo(AFormatter);
-        AFormatter.CloseObject;
+        if AObject is TJSRaw then
+          AFormatter.Add(AObject.JSName)
+        else
+        begin
+          { TODO : what if it's empty? }
+          AFormatter.OpenObject;
+          AObject.JSConfig.FormatTo(AFormatter);
+          AFormatter.CloseObject;
+        end;
       end
       else if not AObject.IsInternal then
       begin

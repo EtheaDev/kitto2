@@ -147,6 +147,12 @@ type
   TJSObjectClass = class of TJSObject;
 
   /// <summary>
+  ///  An object that is rendered as the plain contents of its JSName property,
+  ///  such as an inline array.
+  /// </summary>
+  TJSRaw = class(TJSObject);
+
+  /// <summary>
   ///  A container for JS objects.
   /// </summary>
   IJSContainer = interface(IEFInterface)
@@ -1093,13 +1099,13 @@ end;
 
 function TJSObject.JSArray(const AJSON: string): TJSObject;
 begin
-  Result := TJSObject.CreateInline(Self);
+  Result := TJSRaw.CreateInline(Self);
   Result.JSName := '[' + AJSON + ']';
 end;
 
 function TJSObject.JSObject(const AJSON: string; const AObjectConstructor: string; const ACurlyBrackets: Boolean): TJSObject;
 begin
-  Result := TJSObject.CreateInline(Self);
+  Result := TJSRaw.CreateInline(Self);
   try
     if ACurlyBrackets then
       Result.JSName := '{' + AJSON + '}'
@@ -1194,10 +1200,12 @@ end;
 function TJSObject.SetConfigItem(const AName, AMethodName: string; const AValue: TJSObject): TJSObject;
 begin
   if FJSConfig.IsReadOnly then
-    TKWebResponse.Current.Items.CallMethod(Self, AMethodName).AddParam(Avalue)
+  begin
+    TKWebResponse.Current.Items.CallMethod(Self, AMethodName).AddParam(Avalue);
+    Result := AValue;
+  end
   else
-    FJSConfig.Values.SetObject(AName, AValue);
-  Result := AValue;
+    Result := SetConfigItem(AName, AValue);
 end;
 
 function TJSObject.SetConfigItemOrProperty(const AName: string; const AValue: Boolean): Boolean;

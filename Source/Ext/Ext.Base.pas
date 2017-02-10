@@ -474,7 +474,6 @@ type
     FStore: TExtDataStore;
     FTpl: string;
     FTplArray: TJSObjectArray;
-    FStoreArray: TJSObjectArray;
     procedure SetEmptyText(AValue: string);
     procedure SetItemSelector(const AValue: string);
     procedure SetMultiSelect(const AValue: Boolean);
@@ -483,7 +482,6 @@ type
     procedure SetSingleSelect(const AValue: Boolean);
     procedure _SetStore(const AValue: TExtDataStore);
     procedure SetTpl(AValue: string);
-    procedure SetStoreArray(const AValue: TJSObjectArray);
     procedure SetSelectedClass(const AValue: string);
   strict protected
     function GetObjectNamePrefix: string; override;
@@ -500,7 +498,6 @@ type
     property SimpleSelect: Boolean read FSimpleSelect write SetSimpleSelect;
     property SingleSelect: Boolean read FSingleSelect write SetSingleSelect;
     property Store: TExtDataStore read FStore write _SetStore;
-    property StoreArray: TJSObjectArray read FStoreArray write SetStoreArray;
     property Tpl: string read FTpl write SetTpl;
   end;
 
@@ -1665,16 +1662,11 @@ end;
 
 function TExtDataView.SetStore(const AStore: TExtDataStore): TExtExpression;
 begin
+  FreeAndNil(FStore);
   FStore := AStore;
   Result := TKWebResponse.Current.Items.CallMethod(Self, 'setStore')
     .AddParam(AStore)
     .AsExpression;
-end;
-
-procedure TExtDataView.SetStoreArray(const AValue: TJSObjectArray);
-begin
-  FStoreArray.Free;
-  FStoreArray := TJSObjectArray(SetConfigItem('store', AValue));
 end;
 
 class function TExtViewport.JSClassName: string;

@@ -481,6 +481,13 @@ function showMessage(config)
   return messageBox;
 }
 
+function showErrorMessage(config)
+{
+  config.icon = Ext.Msg.ERROR;
+  config.buttons = Ext.Msg.OK;
+  return showMessage(config);
+}
+
 function charsToPixels(chars, offset)
 {
   // + 16 sort of compensates for text-to-border left and right margins.
