@@ -166,6 +166,7 @@ type
     FStyle: string;
     FTpl: string;
     FFlex: Integer;
+    FRenderTo: string;
     procedure _SetDisabled(const AValue: Boolean);
     procedure SetFieldLabel(const AValue: string);
     procedure SetHidden(const AValue: Boolean);
@@ -190,6 +191,7 @@ type
     function GetLoader: TExtObject;
     function GetPlugins: TJSObjectArray;
     procedure SetFlex(const AValue: Integer);
+    procedure SetRenderTo(const AValue: string);
   protected
     procedure InitDefaults; override;
   public
@@ -203,6 +205,7 @@ type
     function SetVisible(const AValue: Boolean): TExtExpression;
     function Show: TExtExpression;
     property Cls: string read FCls write SetCls;
+    property CollapseMode: string read FCollapseMode write SetCollapseMode;
     property Disabled: Boolean read FDisabled write _SetDisabled;
     property FieldLabel: string read FFieldLabel write SetFieldLabel;
     property Flex: Integer read FFlex write SetFlex;
@@ -214,17 +217,17 @@ type
     property LabelSeparator: string read FLabelSeparator write SetLabelSeparator;
     property LabelStyle: string read FLabelStyle write SetLabelStyle;
     property Loader: TExtObject read GetLoader;
-    property OverCls: string read FOverCls write SetOverCls;
-    property Padding: string read FPadding write SetPadding;
-    property Plugins: TJSObjectArray read GetPlugins;
-    property Style: string read FStyle write SetStyle;
-    property Tpl: string read FTpl write SetTpl;
-    property Split: Boolean read FSplit write SetSplit;
-    property CollapseMode: string read FCollapseMode write SetCollapseMode;
     property MinWidth: Integer read FMinWidth write SetMinWidth;
     property MaxWidth: Integer read FMaxWidth write SetMaxWidth;
     property MinSize: Integer read FMinSize write SetMinSize;
     property MaxSize: Integer read FMaxSize write SetMaxSize;
+    property OverCls: string read FOverCls write SetOverCls;
+    property Padding: string read FPadding write SetPadding;
+    property Plugins: TJSObjectArray read GetPlugins;
+    property renderTo: string read FRenderTo write SetRenderTo;
+    property Style: string read FStyle write SetStyle;
+    property Split: Boolean read FSplit write SetSplit;
+    property Tpl: string read FTpl write SetTpl;
     property AfterRender: TExtComponentAfterRender read FAfterRender write SetAfterRender;
   end;
 
@@ -1011,6 +1014,11 @@ end;
 procedure TExtComponent.SetPadding(const AValue: string);
 begin
   FPadding := SetConfigItem('padding', AValue);
+end;
+
+procedure TExtComponent.SetRenderTo(const AValue: string);
+begin
+  FRenderTo := SetConfigItem('renderTo', AValue);
 end;
 
 procedure TExtComponent.SetStyle(const AValue: string);
