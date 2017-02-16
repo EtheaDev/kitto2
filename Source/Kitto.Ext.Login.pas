@@ -243,7 +243,7 @@ begin
   FUserName.AllowBlank := False;
   FUserName.EnableKeyEvents := True;
   FUserName.SelectOnFocus := True;
-  FUserName.Width := AEditWidth;
+  FUserName.Width := AEditWidth + LabelWidth;
   Inc(ACurrentHeight, CONTROL_HEIGHT);
 
   FPassword := TExtFormTextField.CreateAndAddToArray(Items);
@@ -254,13 +254,13 @@ begin
   FPassword.AllowBlank := False;
   FPassword.EnableKeyEvents := True;
   FPassword.SelectOnFocus := True;
-  FPassword.Width := AEditWidth;
+  FPassword.Width := AEditWidth + LabelWidth;
   Inc(ACurrentHeight, CONTROL_HEIGHT);
 
   FUserName.On('specialkey', GenerateAnonymousFunction('field, e', GetSubmitJS));
   FPassword.On('specialkey', GenerateAnonymousFunction('field, e', GetSubmitJS));
 
-  TKWebResponse.Current.Items.ExecuteJSCode(Format(
+  TKWebResponse.Current.Items.ExecuteJSCode(Self, Format(
     '%s.enableTask = Ext.TaskManager.start({ ' + sLineBreak +
     '  run: function() {' + GetEnableButtonJS + '},' + sLineBreak +
     '  interval: 500});', [JSName]));
@@ -279,7 +279,7 @@ begin
     //FLanguage.SelectOnFocus := True;
     FLanguage.ForceSelection := True;
     FLanguage.TriggerAction := 'all'; // Disable filtering list items based on current value.
-    FLanguage.Width := AEditWidth;
+    FLanguage.Width := AEditWidth + LabelWidth;
     Inc(ACurrentHeight, CONTROL_HEIGHT);
   end
   else

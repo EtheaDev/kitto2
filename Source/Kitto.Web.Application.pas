@@ -38,7 +38,7 @@ type
   end;
 
   TKWebApplication = class(TKWebRoute)
-  private
+  strict private
     FConfig: TKConfig;
     FRttiContext: TRttiContext;
     FPath: string;
@@ -81,6 +81,7 @@ type
     class function CreateHostWindow(const AOwner: TJSBase): IJSControllerContainer; static;
     function GetAuthenticator: TKAuthenticator;
     function GetAccessController: TKAccessController;
+    procedure InitConfig;
   public
     const DEFAULT_VIEWPORT_WIDTH = 480;
     class constructor Create;
@@ -93,6 +94,8 @@ type
     procedure AddedToServer(const AServer: TKWebServer); override;
 
     property Config: TKConfig read FConfig;
+    procedure ReloadConfig;
+
     function GetHomeView(const AViewportWidthInInches: Integer): TKView;
     procedure DisplayView(const AName: string); overload;
     procedure DisplayView(const AView: TKView); overload;
@@ -218,20 +221,10 @@ begin
   inherited;
   FOwnsLoginNode := False;
   FRttiContext := TRttiContext.Create;
-  FConfig := TKConfig.Create;
   FAdditionalRefs := TList<TLibraryRef>.Create;
   FExtJSPath := '/ext';
-  FExtJSLocalPath := Config.Config.GetString('ExtJS/Path', TPath.Combine(Config.SystemHomePath, TPath.Combine('Resources', 'ext')));
   FResourcePath := '/res';
-  FResourceLocalPath1 := TPath.Combine(Config.AppHomePath, 'Resources');
-  FResourceLocalPath2 := TPath.Combine(Config.SystemHomePath, 'Resources');
-  FTheme := Config.Config.GetString('ExtJS/Theme', 'triton');
-  // We will pass Session.AuthData dynamically as needed, so we initialize the
-  // expander with nil. It is inherited from TEFTreeExpander only to inherit its
-  // functionality.
-  FSessionMacroExpander := TKSessionMacroExpander.Create(nil, 'Auth');
-  FConfig.MacroExpansionEngine.AddExpander(FSessionMacroExpander);
-  FPath := FConfig.Config.GetString('AppPath', '/' + Config.AppName.ToLower);
+  InitConfig;
 end;
 
 destructor TKWebApplication.Destroy;
@@ -242,6 +235,30 @@ begin
   FreeAndNil(FConfig);
   FreeAndNil(FAdditionalRefs);
   inherited;
+end;
+
+procedure TKWebApplication.InitConfig;
+begin
+  FConfig := TKConfig.Create;
+  // We will pass Session.AuthData dynamically as needed, so we initialize the
+  // expander with nil. It is inherited from TEFTreeExpander only to inherit its
+  // functionality.
+  FSessionMacroExpander := TKSessionMacroExpander.Create(nil, 'Auth');
+  FConfig.MacroExpansionEngine.AddExpander(FSessionMacroExpander);
+  FPath := FConfig.Config.GetString('AppPath', '/' + Config.AppName.ToLower);
+  FTheme := FConfig.Config.GetString('ExtJS/Theme', 'triton');
+  FExtJSLocalPath := FConfig.Config.GetString('ExtJS/Path', TPath.Combine(FConfig.SystemHomePath, TPath.Combine('Resources', 'ext')));
+  FResourceLocalPath1 := TPath.Combine(FConfig.AppHomePath, 'Resources');
+  FResourceLocalPath2 := TPath.Combine(FConfig.SystemHomePath, 'Resources');
+end;
+
+procedure TKWebApplication.ReloadConfig;
+begin
+  FreeLoginNode;
+  FreeAndNil(FAuthenticator);
+  FreeAndNil(FAccessController);
+  FreeAndNil(FConfig);
+  InitConfig;
 end;
 
 procedure TKWebApplication.AddAdditionalRef(const APath: string; const AIncludeCSS: Boolean);
@@ -273,6 +290,7 @@ begin
     Config.Views.DeleteNonpersistentObject(FLoginNode);
     FreeAndNil(FLoginNode);
   end;
+  FLoginNode := nil;
 end;
 
 function TKWebApplication.GetHomeURL(const ATCPPort: Integer): string;
