@@ -183,6 +183,7 @@ begin
   begin
     DoLog(_('Stopping listener...'));
     FServer.Active := False;
+    FApplication.ReloadConfig;
     DoLog(_('Listener stopped'));
     HomeURLLabel.Visible := False;
     while IsStarted do

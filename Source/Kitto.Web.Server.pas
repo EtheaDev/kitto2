@@ -203,8 +203,6 @@ begin
         TKWebResponse.Current.FreeContentStream := False;
         AResponseInfo.FreeContentStream := True;
 
-        TEFLogger.Instance.LogStrings('DoCommand', TKWebRequest.Current.QueryFields, TEFLogger.LOG_DETAILED);
-
         LStopWatch := TStopWatch.StartNew;
         if DoBeforeHandleRequest(TKWebRequest.Current, TKWebResponse.Current) then begin
           LHandled := False;

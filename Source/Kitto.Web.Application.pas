@@ -38,7 +38,7 @@ type
   end;
 
   TKWebApplication = class(TKWebRoute)
-  private
+  strict private
     FConfig: TKConfig;
     FRttiContext: TRttiContext;
     FPath: string;
@@ -81,6 +81,7 @@ type
     class function CreateHostWindow(const AOwner: TJSBase): IJSControllerContainer; static;
     function GetAuthenticator: TKAuthenticator;
     function GetAccessController: TKAccessController;
+    procedure InitConfig;
   public
     const DEFAULT_VIEWPORT_WIDTH = 480;
     class constructor Create;
@@ -93,6 +94,8 @@ type
     procedure AddedToServer(const AServer: TKWebServer); override;
 
     property Config: TKConfig read FConfig;
+    procedure ReloadConfig;
+
     function GetHomeView(const AViewportWidthInInches: Integer): TKView;
     procedure DisplayView(const AName: string); overload;
     procedure DisplayView(const AView: TKView); overload;
@@ -149,9 +152,9 @@ type
     ///  to ensure that additional javascript or css files are included.
     /// </summary>
     procedure AddAdditionalRef(const APath: string; const AIncludeCSS: Boolean);
-    procedure Error(const AMessage, AMethodName, AParams: string);
-    procedure NotFoundError(const AMethodName: string);
-    procedure ErrorMessage(const AMessage: string; const AAction: string = '');
+    procedure MethodCallError(const AMessage, AMethodName, AParams: string);
+    procedure MethodNotFoundError(const AMethodName: string);
+    procedure Error(const AMessage: string);
     function GetMethodURL(const AObjectName, AMethodName: string): string;
     /// <summary>
     ///  Returns the Home URL of the Kitto application assuming the URL is
@@ -174,6 +177,7 @@ implementation
 uses
   StrUtils
   , IOUtils
+  , NetEncoding
   , Variants
   , EF.StrUtils
   , EF.Localization
@@ -217,20 +221,10 @@ begin
   inherited;
   FOwnsLoginNode := False;
   FRttiContext := TRttiContext.Create;
-  FConfig := TKConfig.Create;
   FAdditionalRefs := TList<TLibraryRef>.Create;
   FExtJSPath := '/ext';
-  FExtJSLocalPath := Config.Config.GetString('ExtJS/Path', TPath.Combine(Config.SystemHomePath, TPath.Combine('Resources', 'ext')));
   FResourcePath := '/res';
-  FResourceLocalPath1 := TPath.Combine(Config.AppHomePath, 'Resources');
-  FResourceLocalPath2 := TPath.Combine(Config.SystemHomePath, 'Resources');
-  FTheme := Config.Config.GetString('ExtJS/Theme', 'triton');
-  // We will pass Session.AuthData dynamically as needed, so we initialize the
-  // expander with nil. It is inherited from TEFTreeExpander only to inherit its
-  // functionality.
-  FSessionMacroExpander := TKSessionMacroExpander.Create(nil, 'Auth');
-  FConfig.MacroExpansionEngine.AddExpander(FSessionMacroExpander);
-  FPath := FConfig.Config.GetString('AppPath', '/' + Config.AppName.ToLower);
+  InitConfig;
 end;
 
 destructor TKWebApplication.Destroy;
@@ -241,6 +235,30 @@ begin
   FreeAndNil(FConfig);
   FreeAndNil(FAdditionalRefs);
   inherited;
+end;
+
+procedure TKWebApplication.InitConfig;
+begin
+  FConfig := TKConfig.Create;
+  // We will pass Session.AuthData dynamically as needed, so we initialize the
+  // expander with nil. It is inherited from TEFTreeExpander only to inherit its
+  // functionality.
+  FSessionMacroExpander := TKSessionMacroExpander.Create(nil, 'Auth');
+  FConfig.MacroExpansionEngine.AddExpander(FSessionMacroExpander);
+  FPath := FConfig.Config.GetString('AppPath', '/' + Config.AppName.ToLower);
+  FTheme := FConfig.Config.GetString('ExtJS/Theme', 'triton');
+  FExtJSLocalPath := FConfig.Config.GetString('ExtJS/Path', TPath.Combine(FConfig.SystemHomePath, TPath.Combine('Resources', 'ext')));
+  FResourceLocalPath1 := TPath.Combine(FConfig.AppHomePath, 'Resources');
+  FResourceLocalPath2 := TPath.Combine(FConfig.SystemHomePath, 'Resources');
+end;
+
+procedure TKWebApplication.ReloadConfig;
+begin
+  FreeLoginNode;
+  FreeAndNil(FAuthenticator);
+  FreeAndNil(FAccessController);
+  FreeAndNil(FConfig);
+  InitConfig;
 end;
 
 procedure TKWebApplication.AddAdditionalRef(const APath: string; const AIncludeCSS: Boolean);
@@ -272,6 +290,7 @@ begin
     Config.Views.DeleteNonpersistentObject(FLoginNode);
     FreeAndNil(FLoginNode);
   end;
+  FLoginNode := nil;
 end;
 
 function TKWebApplication.GetHomeURL(const ATCPPort: Integer): string;
@@ -598,25 +617,21 @@ begin
           end
           else
             Result := CallObjectMethod(LHandlerObject, AURL.Document);
-
-          if Result then
-            AResponse.Render
-          else
-            NotFoundError(AURL.Path + '/' + AURL.Document);
         except
           on E: Exception do
           begin
-            Error(E.Message, AURL.Document, AURL.Params);
+            MethodCallError(E.Message, AURL.Document, AURL.Params);
             Result := True;
           end;
         end;
+        if not Result then
+          MethodNotFoundError(AURL.Path + '/' + AURL.Document);
+        AResponse.Render;
       except
         on E: Exception do
         begin
-          { TODO : define and use status codes. }
-          AResponse.StatusCode := 500;
-          AResponse.Content := E.Message;
-          AResponse.ContentType := 'text/html';
+          Error(E.Message);
+          AResponse.Render;
           Result := True;
         end;
       end;
@@ -813,26 +828,34 @@ begin
   Result.Text := 'getViewportWidthInInches()';
 end;
 
-procedure TKWebApplication.ErrorMessage(const AMessage: string; const AAction: string);
-begin
-  TKWebResponse.Current.Items.ExecuteJSCode('Ext.Msg.show({title:"Error",msg:' + TJS.StrToJS(AMessage, True) +
-    ',icon:Ext.Msg.ERROR,buttons:Ext.Msg.OK' + IfThen(AAction = '', '', ',fn:function(){' + AAction + '}') + '});');
-end;
-
-procedure TKWebApplication.Error(const AMessage, AMethodName, AParams: string);
+procedure TKWebApplication.Error(const AMessage: string);
 begin
   TKWebResponse.Current.Items.Clear;
-{$IFDEF DEBUG}
-  ErrorMessage(AMessage + '<br/>Method: ' + IfThen(AMethodName = '', 'Home', AMethodName) + IfThen(AParams = '', '',
-    '<br/>Params:<br/>' + AnsiReplaceStr(AParams, '&', '<br/>')));
-{$ELSE}
-  ErrorMessage(AMessage);
-{$ENDIF}
+  if TKWebRequest.Current.IsAjax then
+    TKWebResponse.Current.Items.ExecuteJSCode(Format(
+      'showErrorMessage({title: "%s", msg: %s});'
+      , [_('Error'), TJS.StrToJS(AMessage, True)]))
+  else
+    TKWebResponse.Current.Items.AddHTML(TNetEncoding.HTML.Encode(AMessage).Replace(sLineBreak, '<br/>'));
 end;
 
-procedure TKWebApplication.NotFoundError(const AMethodName: string);
+procedure TKWebApplication.MethodCallError(const AMessage, AMethodName, AParams: string);
+var
+  LMessage: string;
 begin
-  ErrorMessage(Format('Method: ''%s'' not found', [AMethodName]));
+  {$IFDEF DEBUG}
+    LMessage := AMessage +
+      sLineBreak + 'Method: ' + IfThen(AMethodName = '', 'Home', AMethodName)
+      + IfThen(AParams = '', '', sLineBreak + 'Params:' + sLineBreak + AnsiReplaceStr(AParams, '&', sLineBreak));
+  {$ELSE}
+    LMessage := AMessage;
+  {$ENDIF}
+  Error(LMessage);
+end;
+
+procedure TKWebApplication.MethodNotFoundError(const AMethodName: string);
+begin
+  Error(Format('Method: ''%s'' not found', [AMethodName]));
 end;
 
 function TKWebApplication.GetLibraryTags: string;

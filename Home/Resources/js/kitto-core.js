@@ -473,7 +473,19 @@ function showMessage(config)
 {
   config.maxWidth = getMaxMsgWidth();
   config.minWidth = getMinMsgWidth();
-  return Ext.Msg.show(config);
+  var messageBox = Ext.Msg.show(config);
+  Ext.Function.defer(
+    function () {
+      messageBox.zIndexManager.bringToFront(messageBox);                
+    }, 250);
+  return messageBox;
+}
+
+function showErrorMessage(config)
+{
+  config.icon = Ext.Msg.ERROR;
+  config.buttons = Ext.Msg.OK;
+  return showMessage(config);
 }
 
 function charsToPixels(chars, offset)

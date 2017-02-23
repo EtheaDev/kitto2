@@ -166,6 +166,7 @@ type
     FStyle: string;
     FTpl: string;
     FFlex: Integer;
+    FRenderTo: string;
     procedure _SetDisabled(const AValue: Boolean);
     procedure SetFieldLabel(const AValue: string);
     procedure SetHidden(const AValue: Boolean);
@@ -190,6 +191,7 @@ type
     function GetLoader: TExtObject;
     function GetPlugins: TJSObjectArray;
     procedure SetFlex(const AValue: Integer);
+    procedure SetRenderTo(const AValue: string);
   protected
     procedure InitDefaults; override;
   public
@@ -203,6 +205,7 @@ type
     function SetVisible(const AValue: Boolean): TExtExpression;
     function Show: TExtExpression;
     property Cls: string read FCls write SetCls;
+    property CollapseMode: string read FCollapseMode write SetCollapseMode;
     property Disabled: Boolean read FDisabled write _SetDisabled;
     property FieldLabel: string read FFieldLabel write SetFieldLabel;
     property Flex: Integer read FFlex write SetFlex;
@@ -214,17 +217,17 @@ type
     property LabelSeparator: string read FLabelSeparator write SetLabelSeparator;
     property LabelStyle: string read FLabelStyle write SetLabelStyle;
     property Loader: TExtObject read GetLoader;
-    property OverCls: string read FOverCls write SetOverCls;
-    property Padding: string read FPadding write SetPadding;
-    property Plugins: TJSObjectArray read GetPlugins;
-    property Style: string read FStyle write SetStyle;
-    property Tpl: string read FTpl write SetTpl;
-    property Split: Boolean read FSplit write SetSplit;
-    property CollapseMode: string read FCollapseMode write SetCollapseMode;
     property MinWidth: Integer read FMinWidth write SetMinWidth;
     property MaxWidth: Integer read FMaxWidth write SetMaxWidth;
     property MinSize: Integer read FMinSize write SetMinSize;
     property MaxSize: Integer read FMaxSize write SetMaxSize;
+    property OverCls: string read FOverCls write SetOverCls;
+    property Padding: string read FPadding write SetPadding;
+    property Plugins: TJSObjectArray read GetPlugins;
+    property renderTo: string read FRenderTo write SetRenderTo;
+    property Style: string read FStyle write SetStyle;
+    property Split: Boolean read FSplit write SetSplit;
+    property Tpl: string read FTpl write SetTpl;
     property AfterRender: TExtComponentAfterRender read FAfterRender write SetAfterRender;
   end;
 
@@ -474,7 +477,6 @@ type
     FStore: TExtDataStore;
     FTpl: string;
     FTplArray: TJSObjectArray;
-    FStoreArray: TJSObjectArray;
     procedure SetEmptyText(AValue: string);
     procedure SetItemSelector(const AValue: string);
     procedure SetMultiSelect(const AValue: Boolean);
@@ -483,7 +485,6 @@ type
     procedure SetSingleSelect(const AValue: Boolean);
     procedure _SetStore(const AValue: TExtDataStore);
     procedure SetTpl(AValue: string);
-    procedure SetStoreArray(const AValue: TJSObjectArray);
     procedure SetSelectedClass(const AValue: string);
   strict protected
     function GetObjectNamePrefix: string; override;
@@ -500,7 +501,6 @@ type
     property SimpleSelect: Boolean read FSimpleSelect write SetSimpleSelect;
     property SingleSelect: Boolean read FSingleSelect write SetSingleSelect;
     property Store: TExtDataStore read FStore write _SetStore;
-    property StoreArray: TJSObjectArray read FStoreArray write SetStoreArray;
     property Tpl: string read FTpl write SetTpl;
   end;
 
@@ -531,7 +531,6 @@ type
     FFooter: Boolean;
     FIconCls: string;
     FAutoLoadBoolean: Boolean;
-    FButtons: TJSObjectArray;
     FMinButtonWidth: Integer;
     procedure SetAnimCollapse(const AValue: Boolean);
     procedure SetAutoLoadString(const AValue: string);
@@ -568,7 +567,6 @@ type
     property Bbar: TExtObject read FBbar write SetBbar;
     property BodyStyle: string read FBodyStyle write SetBodyStyle;
     property Border: Boolean read FBorder write SetBorder;
-    property Buttons: TJSObjectArray read FButtons;
     property Closable: Boolean read FClosable write SetClosable;
     property Collapsible: Boolean read FCollapsible write SetCollapsible;
     property Collapsed: Boolean read FCollapsed write SetCollapsed;
@@ -655,7 +653,6 @@ type
     FAnimateTarget: string;
     FAnimateTargetElement: TExtElement;
     FBaseCls: string; // 'x-window'
-    FButtons: TJSObjectArray;
     FClosable: Boolean; // true
     FConstrain: Boolean;
     FDraggable: Boolean; // true
@@ -691,7 +688,6 @@ type
     function Show(const AAnimateTarget: TExtElement; const ACallback: TExtExpression = nil;
       const AScope: TExtObject = nil): TExtExpression; overload;
     property AnimateTarget: string read FAnimateTarget write _SetAnimateTarget;
-    property Buttons: TJSObjectArray read FButtons;
     property Closable: Boolean read FClosable write SetClosable;
     property Constrain: Boolean read FConstrain write SetConstrain;
     property Draggable: Boolean read FDraggable write SetDraggable;
@@ -1018,6 +1014,11 @@ end;
 procedure TExtComponent.SetPadding(const AValue: string);
 begin
   FPadding := SetConfigItem('padding', AValue);
+end;
+
+procedure TExtComponent.SetRenderTo(const AValue: string);
+begin
+  FRenderTo := SetConfigItem('renderTo', AValue);
 end;
 
 procedure TExtComponent.SetStyle(const AValue: string);
@@ -1669,16 +1670,11 @@ end;
 
 function TExtDataView.SetStore(const AStore: TExtDataStore): TExtExpression;
 begin
+  FreeAndNil(FStore);
   FStore := AStore;
   Result := TKWebResponse.Current.Items.CallMethod(Self, 'setStore')
     .AddParam(AStore)
     .AsExpression;
-end;
-
-procedure TExtDataView.SetStoreArray(const AValue: TJSObjectArray);
-begin
-  FStoreArray.Free;
-  FStoreArray := TJSObjectArray(SetConfigItem('store', AValue));
 end;
 
 class function TExtViewport.JSClassName: string;
@@ -1796,7 +1792,6 @@ begin
   FAnimCollapse := true;
   FBbar := CreateConfigObjectArray('bbar');
   FBorder := true;
-  FButtons := CreateConfigObjectArray('buttons');
   FFbar := CreateConfigObjectArray('fbar');
   FMinButtonWidth := 75;
   FHeader := true;
@@ -2009,7 +2004,6 @@ begin
   inherited;
   FAnimateTargetElement := TExtElement.CreateInternal(Self, 'animateTarget');
   FBaseCls := 'x-window';
-  FButtons := CreateConfigObjectArray('buttons');
   FClosable := true;
   FDraggable := true;
   FExpandOnShow := true;
