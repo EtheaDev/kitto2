@@ -8,8 +8,9 @@ Controller: Viewport
       CenterView:
         Controller: TilePanel
           Border: True
-          TileHeight: 70
+          TileHeight: 80
           TileWidth: 120
+          ShowImage: False
           TreeView: MainMenuSmall
 
       SouthView:
