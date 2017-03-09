@@ -9,8 +9,10 @@ Controller: Viewport
         Controller: TilePanel
           ColorSet: Red
           Border: True
-          TileHeight: 50
+          TileHeight: 70
           TileWidth: 100
+          ShowImage: True
+            Position: 5px 5px
           TreeView: MainMenuTiny
 
       SouthView:
