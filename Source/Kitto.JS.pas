@@ -50,6 +50,8 @@ type
   TJSExpression = class;
   TJSObjectArray = class;
   TJSFunction = class;
+  TJSObject = class;
+  TJSObjectClass = class of TJSObject;
 
   TJSObject = class(TJSBase)
   strict private
@@ -63,7 +65,9 @@ type
     function GetJSIdConfigName: string; virtual;
     procedure InitDefaults; virtual;
     procedure InitInlineDefaults; virtual;
-    function CreateConfigObject(const AAttributeName: string): TJSObject;
+    function CreateConfigObject(const AAttributeName: string): TJSObject; overload;
+    // Cannot use a generic here a TJSObject is not completely defined yet.
+    function CreateConfigObject(const AClass: TJSObjectClass; const AAttributeName: string): TJSObject; overload;
     function CreateConfigObjectArray(const AAttributeName: string): TJSObjectArray;
     procedure DoHandleEvent(const AEventName: string); virtual;
   protected
@@ -144,7 +148,6 @@ type
 
     procedure HandleEvent;
   end;
-  TJSObjectClass = class of TJSObject;
 
   /// <summary>
   ///  An object that is rendered as the plain contents of its JSName property,
@@ -1063,7 +1066,12 @@ end;
 
 function TJSObject.CreateConfigObject(const AAttributeName: string): TJSObject;
 begin
-  Result := TJSObject.CreateInternal(FJSConfig, AAttributeName);
+  Result := CreateConfigObject(TJSObject, AAttributeName);
+end;
+
+function TJSObject.CreateConfigObject(const AClass: TJSObjectClass; const AAttributeName: string): TJSObject;
+begin
+  Result := AClass.CreateInternal(FJSConfig, AAttributeName);
   SetConfigItem(AAttributeName, Result);
 end;
 

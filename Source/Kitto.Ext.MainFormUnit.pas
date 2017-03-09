@@ -307,21 +307,31 @@ begin
 end;
 
 procedure TKExtMainForm.ServerSessionStart(Sender: TIdHTTPSession);
-var
-  LJSSession: TJSSession;
 begin
-  LJSSession := Sender.Content.Objects[Sender.Content.IndexOf(TKWebServer.SESSION_OBJECT)] as TJSSession;
-  FSessions.Add(LJSSession);
-  UpdateSessionInfo;
+  TThread.Synchronize(nil,
+    procedure
+    var
+      LJSSession: TJSSession;
+    begin
+      LJSSession := Sender.Content.Objects[Sender.Content.IndexOf(TKWebServer.SESSION_OBJECT)] as TJSSession;
+      FSessions.Add(LJSSession);
+      UpdateSessionInfo;
+    end
+  );
 end;
 
 procedure TKExtMainForm.ServerSessionEnd(Sender: TIdHTTPSession);
-var
-  LJSSession: TJSSession;
 begin
-  LJSSession := Sender.Content.Objects[Sender.Content.IndexOf(TKWebServer.SESSION_OBJECT)] as TJSSession;
-  FSessions.Remove(LJSSession);
-  UpdateSessionInfo;
+  TThread.Synchronize(nil,
+    procedure
+    var
+      LJSSession: TJSSession;
+    begin
+      LJSSession := Sender.Content.Objects[Sender.Content.IndexOf(TKWebServer.SESSION_OBJECT)] as TJSSession;
+      FSessions.Remove(LJSSession);
+      UpdateSessionInfo;
+    end
+  );
 end;
 
 procedure TKExtMainForm.FormCreate(Sender: TObject);

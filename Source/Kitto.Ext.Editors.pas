@@ -2413,7 +2413,7 @@ begin
   FEditor.StoreValue(AObjectName);
 end;
 
-{ TKExtFormNumericField }
+{ TKExtFormNumberField }
 
 function TKExtFormNumberField.AsExtFormField: TExtFormField;
 begin
@@ -2579,7 +2579,7 @@ end;
 
 class function TKExtFormDateTimeField.JSClassName: string;
 begin
-  Result := 'Ext.ux.form.DateTimeField';
+  Result := 'Ext.ux.DateTimeField';
 end;
 
 procedure TKExtFormDateTimeField.RefreshValue;
@@ -3803,34 +3803,34 @@ function TKExtEditorManager.TryCreateNumberField(const AOwner: TJSBase;
   const ARowField: TKExtFormRowField; const AFieldCharWidth: Integer;
   const AIsReadOnly: Boolean): IKExtEditor;
 var
-  LNumericField: TKExtFormNumberField;
+  LNumberField: TKExtFormNumberField;
 begin
   Assert(Assigned(AOwner));
 
   if AViewField.DataType is TEFNumericDataTypeBase then
   begin
-    LNumericField := TKExtFormNumberField.Create(AOwner);
+    LNumberField := TKExtFormNumberField.Create(AOwner);
     try
       if not Assigned(ARowField) then
-        LNumericField.WidthExpression := LNumericField.CharsToPixels(AFieldCharWidth)
+        LNumberField.WidthExpression := LNumberField.CharsToPixels(AFieldCharWidth)
       else
         ARowField.CharWidth := AFieldCharWidth;
 
-      LNumericField.AllowDecimals := AViewField.DataType is TEFDecimalNumericDataTypeBase;
-      LNumericField.AllowNegative := True;
-      if LNumericField.AllowDecimals then
-        LNumericField.DecimalPrecision := AViewField.DecimalPrecision;
-      LNumericField.AllowBlank := not AViewField.IsRequired;
-      LNumericField.DecimalSeparator := TKWebApplication.Current.Config.UserFormatSettings.DecimalSeparator;
-      LNumericField.ThousandSeparator := TKWebApplication.Current.Config.UserFormatSettings.ThousandSeparator;
+      LNumberField.AllowDecimals := AViewField.DataType is TEFDecimalNumericDataTypeBase;
+      LNumberField.AllowNegative := True;
+      if LNumberField.AllowDecimals then
+        LNumberField.DecimalPrecision := AViewField.DecimalPrecision;
+      LNumberField.AllowBlank := not AViewField.IsRequired;
+      LNumberField.DecimalSeparator := TKWebApplication.Current.Config.UserFormatSettings.DecimalSeparator;
+      LNumberField.ThousandSeparator := TKWebApplication.Current.Config.UserFormatSettings.ThousandSeparator;
       if (AViewField.EditFormat = '') or (Pos(AViewField.EditFormat, TKWebApplication.Current.Config.UserFormatSettings.ThousandSeparator) >= 1) then
-        LNumericField.UseThousandSeparator := True
+        LNumberField.UseThousandSeparator := True
       else
-        LNumericField.UseThousandSeparator := False;
-      LNumericField.AlwaysDisplayDecimals := AViewField.DecimalPrecision <> 0;
-      Result := LNumericField;
+        LNumberField.UseThousandSeparator := False;
+      LNumberField.AlwaysDisplayDecimals := AViewField.DecimalPrecision <> 0;
+      Result := LNumberField;
     except
-      LNumericField.Free;
+      LNumberField.Free;
       raise;
     end;
   end

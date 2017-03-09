@@ -77,10 +77,10 @@ type
     property Hidden: Boolean read FHidden write SetHidden;
     property Hideable: Boolean read FHideable write SetHideable;
     property Renderer: string read FRenderer write SetRenderer;
+    property RendererFunc: TExtExpression read FRendererFunc write SetRendererFunc;
     property Sortable: Boolean read FSortable write SetSortable;
     property Width: Integer read FWidth write SetWidth;
     property WidthFunc: TExtExpression read FWidthFunc write SetWidthFunc;
-    property RendererFunc: TExtExpression read FRendererFunc write SetRendererFunc;
   end;
 
   TExtGridNumberColumn = class(TExtGridColumn)

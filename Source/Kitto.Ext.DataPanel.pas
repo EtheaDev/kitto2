@@ -186,6 +186,7 @@ uses
   , Kitto.Auth
   , Kitto.AccessControl
   , Kitto.Config
+  , Kitto.JS.Formatting
   , Kitto.Rules
   , Kitto.SQL
   , Kitto.Web.Application
@@ -687,7 +688,7 @@ begin
       if AFillResponse then
       begin
         TKWebResponse.Current.Items.Clear;
-        TKWebResponse.Current.Items.AddJSON(Format('{Success: false, Msg: "%s", Root: []}', [E.Message]));
+        TKWebResponse.Current.Items.AddJSON(Format('{Success: false, Msg: "%s", Root: []}', [TJS.StrToJS(E.Message)]));
       end
       else
         raise;

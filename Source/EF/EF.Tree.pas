@@ -76,6 +76,7 @@ type
     function SupportsXML: Boolean; virtual;
     function IsBlob(const ASize: Integer): Boolean; virtual;
     function IsText: Boolean; virtual;
+    function IsBoolean: Boolean; virtual;
     function NodeToJSONValue(const AForDisplay: Boolean; const ANode: TEFNode;
       const AJSFormatSettings: TFormatSettings; const AQuote: Boolean = True;
       const AEmptyNulls: Boolean = False): string;
@@ -224,6 +225,7 @@ type
     function InternalFormatNodeValue(const AForDisplay: Boolean;
       const ANode: TEFNode; const AFormatSettings: TFormatSettings): string; override;
     function GetJSTypeName: string; override;
+    function IsBoolean: Boolean; override;
   end;
 
   TEFNumericDataTypeBase = class(TEFDataType)
@@ -2848,6 +2850,11 @@ begin
   Result := False;
 end;
 
+function TEFDataType.IsBoolean: Boolean;
+begin
+  Result := False;
+end;
+
 function TEFDataType.IsText: Boolean;
 begin
   Result := False;
@@ -3468,6 +3475,11 @@ procedure TEFBooleanDataType.InternalYamlValueToNode(const AYamlValue: string;
   const ANode: TEFNode; const AFormatSettings: TFormatSettings);
 begin
   ANode.AsBoolean := StrToBool(AYamlValue);
+end;
+
+function TEFBooleanDataType.IsBoolean: Boolean;
+begin
+  Result := True;
 end;
 
 class function TEFBooleanDataType.NeedsQuotes: Boolean;

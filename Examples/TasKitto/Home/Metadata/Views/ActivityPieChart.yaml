@@ -2,18 +2,23 @@
 DisplayLabel: Pie Chart
 Controller: List
   EastController: GridPanel
-    Width: 250
+    Width: 350
   CenterController: ChartPanel
     Chart:
-      Type: Pie
-      DataField: DURATION
-      CategoryField: ACTIVITY_DATE
-      ChartStyle: |
-        {
-          legend: {
-            display: 'bottom'
-          }
-        }
+      Type: Polar
+      Series:
+        Series:
+          #Type: Pie
+          AngleField: DURATION
+          Label:
+            Field: ACTIVITY_DATE
+          Title: _(Duration)
+      Legend:
+        Docked: left
+        Padding: 10
+        Toggleable: True
+      InnerPadding: 20
+      InsetPadding: 50
 
 MainTable:
   IsReadOnly: True

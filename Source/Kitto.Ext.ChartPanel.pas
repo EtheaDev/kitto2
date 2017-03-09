@@ -28,14 +28,16 @@ uses
 type
   TKExtChartPanel = class(TKExtDataPanelLeafController)
   strict private
-    FChart: TExtChartChart;
-    procedure CreateAndInitChart(const AChartType: string);
+    FChart: TExtChartAbstractChart;
+    FCHartType: string;
+    procedure CreateAndInitChart;
     procedure CreateAndInitSeries(const AConfigNode: TEFNode);
     function GetLabelRenderer(const AFieldName: string): string;
     function CreateAndInitChartAxis(const AFieldName: string;
       const AConfigNode: TEFNode): TExtChartAxis;
-    function CreateAndInitAxis(const AFieldName: string;
-      const AConfigNode: TEFNode): TExtChartAxis;
+    function CreateAndInitAxis(const AConfigNode: TEFNode): TExtChartAxis;
+    function GetDefaultSeriesType(const AChartType: string): string;
+    procedure InitLegend(const AConfigNode: TEFNode);
   strict protected
     procedure SetViewTable(const AValue: TKViewTable); override;
   end;
@@ -45,6 +47,7 @@ implementation
 uses
   SysUtils
   , StrUtils
+  , Generics.Collections
   , EF.Localization
   , EF.Macros
   , Kitto.Types
@@ -161,75 +164,82 @@ begin
     Result := TExtChartCategoryAxis.Create(Self);
 end;
 
-procedure TKExtChartPanel.CreateAndInitSeries(const AConfigNode: TEFNode);
-var
-  I: Integer;
-
-  procedure CreateAndInitASeries(const AConfigNode: TEFNode);
-  var
-    LOption: string;
-    LStyle: TEFNode;
-    LSeries: TExtChartSeries;
-
-    function TranslateSeriesType(const ASeriesType: string): string;
-    begin
-      Result := AnsiLowerCase(ASeriesType);
-    end;
-
-  begin
-    Assert(Assigned(AConfigNode));
-
-    if FChart is TExtChartPieChart then
-    begin
-      LSeries := TExtChartPieSeries.CreateAndAddToArray(FChart.Series);
-    end
-    else
-    begin
-      LSeries := TExtChartCartesianSeries.CreateAndAddToArray(FChart.Series);
-      LOption := AConfigNode.GetString('XField');
-      if LOption <> '' then
-        TExtChartCartesianSeries(LSeries).XField := LOption;
-      LOption := AConfigNode.GetString('YField');
-      if LOption <> '' then
-        TExtChartCartesianSeries(LSeries).YField := LOption;
-    end;
-    LOption := TranslateSeriesType(AConfigNode.GetString('Type'));
-    if LOption <> '' then
-      LSeries.TypeJS := LOption;
-    LOption := _(AConfigNode.GetString('DisplayName'));
-    if LOption <> '' then
-      LSeries.DisplayName := LOption;
-    LStyle := AConfigNode.FindNode('Style');
-    if Assigned(LStyle) then
-    begin
-      LSeries.Style := TExtChartSeriesStyle.Create(Self);
-      LOption := LStyle.GetString('Color');
-      if LOption <> '' then
-        LSeries.Style.Color := LOption;
-      LOption := LStyle.GetString('Image');
-      if LOption <> '' then
-        LSeries.Style.Image := TEFMacroExpansionEngine.Instance.Expand(LOption);
-      LOption := LStyle.GetString('Mode');
-      if LOption <> '' then
-        LSeries.Style.Mode := LOption;
-    end;
-  end;
-
+function TKExtChartPanel.GetDefaultSeriesType(const AChartType: string): string;
 begin
-  if Assigned(AConfigNode) then
-  begin
-    for I := 0 to AConfigNode.ChildCount - 1 do
-      CreateAndInitASeries(AConfigNode.Children[I]);
-  end;
+  if AChartType = 'Polar' then
+    Result := 'Pie' // Polar(Pie3D, Radar)
+  else if AChartType = 'Cartesian' then
+    Result := 'Line' // StackedCartesian (Area, Bar), CandleStick, Scatter
+  else if AChartType = 'SpaceFilling' then
+    Result := 'Gauge';
 end;
 
-function TKExtChartPanel.CreateAndInitAxis(const AFieldName: string;
-  const AConfigNode: TEFNode): TExtChartAxis;
+procedure TKExtChartPanel.CreateAndInitSeries(const AConfigNode: TEFNode);
 var
   LOption: string;
+//    LStyle: TEFNode;
+  LSeries: TExtChartSeries;
+  LType: string;
 begin
-  Result := CreateAndInitChartAxis(AFieldName, AConfigNode);
-  LOption := GetLabelRenderer(AFieldName);
+  Assert(Assigned(AConfigNode));
+
+  LType := AConfigNode.GetString('Type', GetDefaultSeriesType(FChartType));
+  LSeries := TExtChartSeries.CreateInlineByType(LType, FChart);
+
+  LOption := AConfigNode.GetString('Label/Field');
+  if LOption <> '' then
+  begin
+    LSeries.&Label.SetConfigItem('field', LOption);
+    LSeries.&Label.CalloutLine.SetConfigItem('length', 60);
+    LSeries.&Label.CalloutLine.SetConfigItem('width', 3);
+  end;
+  //LSeries.ToolTip.TrackMouse := True;
+  //LSeries.ToolTip.Renderer := ...
+
+  if LSeries is TExtChartPolarSeries then
+  begin
+    LOption := AConfigNode.GetString('AngleField');
+    if LOption <> '' then
+      TExtChartPolarSeries(LSeries).AngleField := LOption;
+  end
+  else if LSeries is TExtChartCartesianSeries then
+  begin
+    LOption := AConfigNode.GetString('XField');
+    if LOption <> '' then
+      TExtChartCartesianSeries(LSeries).XField := LOption;
+    LOption := AConfigNode.GetString('YField');
+    if LOption <> '' then
+      TExtChartCartesianSeries(LSeries).YField := LOption;
+  end;
+
+  LOption := _(AConfigNode.GetString('Title'));
+  if LOption <> '' then
+    LSeries.Title := LOption;
+//    LStyle := AConfigNode.FindNode('Style');
+//    if Assigned(LStyle) then
+//    begin
+//      LSeries.Style := TExtChartSeriesStyle.Create(Self);
+//      LOption := LStyle.GetString('Color');
+//      if LOption <> '' then
+//        LSeries.Style.Color := LOption;
+//      LOption := LStyle.GetString('Image');
+//      if LOption <> '' then
+//        LSeries.Style.Image := TEFMacroExpansionEngine.Instance.Expand(LOption);
+//      LOption := LStyle.GetString('Mode');
+//      if LOption <> '' then
+//        LSeries.Style.Mode := LOption;
+//    end;
+//    LSeries.Highlight := AConfigNode.GetBoolean('Highlight');
+end;
+
+function TKExtChartPanel.CreateAndInitAxis(const AConfigNode: TEFNode): TExtChartAxis;
+var
+  LFieldName: string;
+  LOption: string;
+begin
+  LFieldName := AConfigNode.GetString('FieldName'); // temporary
+  Result := CreateAndInitChartAxis(LFieldName, AConfigNode);
+  LOption := GetLabelRenderer(LFieldName);
   if LOption <> '' then
     Result.LabelFunction := LOption;
   if Assigned(AConfigNode) then
@@ -240,90 +250,95 @@ begin
   end;
 end;
 
-procedure TKExtChartPanel.CreateAndInitChart(const AChartType: string);
-
-  function GetAxisField(const AAxis: string): string;
-  var
-    LSeries: TEFNode;
-    I: Integer;
-  begin
-    Result := Config.GetString(Format('Chart/Axes/%s/Field', [AAxis]));
-    if Result = '' then
-    begin
-      LSeries := Config.FindNode('Chart/Series');
-      if not Assigned(LSeries) then
-        raise EKError.CreateFmt('A chart''s %s axis must either have a Field or one or more Series.', [AAxis]);
-      for I := 0 to LSeries.ChildCount - 1 do
-      begin
-        Result := LSeries.Children[I].GetString(Format('%sField', [AAxis]));
-        if Result <> '' then
-          Break;
-      end;
-      if Result = '' then
-        raise EKError.CreateFmt('No valid series found for chart''s %s axis. At least one series with a %sField specification needed.', [AAxis, AAxis]);
-    end;
-  end;
-
-  procedure CreateDefaultXYAxes;
-  begin
-    FChart.XField := GetAxisField('X');
-    FChart.XAxis := CreateAndInitAxis(FChart.XField, Config.FindNode('Chart/Axes/X'));
-    FChart.YField := GetAxisField('Y');
-    FChart.YAxis := CreateAndInitAxis(FChart.YField, Config.FindNode('Chart/Axes/Y'));
-  end;
-
+procedure TKExtChartPanel.CreateAndInitChart;
 var
-  LOption, LFieldName: string;
+  LNode: TEFNode;
+  I: Integer;
+  LOption: TEFNode;
+
+//  function GetAxisField(const AAxis: string): string;
+//  var
+//    LSeries: TEFNode;
+//    I: Integer;
+//  begin
+//    Result := Config.GetString(Format('Chart/Axes/%s/Field', [AAxis]));
+//    if Result = '' then
+//    begin
+//      LSeries := Config.FindNode('Chart/Series');
+//      if not Assigned(LSeries) then
+//        raise EKError.CreateFmt('A chart''s %s axis must either have a Field or one or more Series.', [AAxis]);
+//      for I := 0 to LSeries.ChildCount - 1 do
+//      begin
+//        Result := LSeries.Children[I].GetString(Format('%sField', [AAxis]));
+//        if Result <> '' then
+//          Break;
+//      end;
+//      if Result = '' then
+//        raise EKError.CreateFmt('No valid series found for chart''s %s axis. At least one series with a %sField specification needed.', [AAxis, AAxis]);
+//    end;
+//  end;
+
 begin
   Assert(ClientStore <> nil);
 
-  if SameText(AChartType, 'Line') then
-  begin
-    FChart := TExtChartLineChart.CreateAndAddToArray(Items);
-    CreateDefaultXYAxes;
-  end
-  else if SameText(AChartType, 'Bar') then
-  begin
-    FChart := TExtChartBarChart.CreateAndAddToArray(Items);
-    CreateDefaultXYAxes;
-  end
-  else if SameText(AChartType, 'Column') then
-  begin
-    FChart := TExtChartColumnChart.CreateAndAddToArray(Items);
-    CreateDefaultXYAxes;
-  end
-  else if SameText(AChartType, 'StackedBar') then
-  begin
-    FChart := TExtChartStackedBarChart.CreateAndAddToArray(Items);
-    CreateDefaultXYAxes;
-  end
-  else if SameText(AChartType, 'StackedColumn') then
-  begin
-    FChart := TExtChartStackedColumnChart.CreateAndAddToArray(Items);
-    CreateDefaultXYAxes;
-  end
-  else if SameText(AChartType, 'Pie') then
-  begin
-    FChart := TExtChartPieChart.CreateAndAddToArray(Items);
-    LFieldName := Config.GetString('Chart/DataField');
-    TExtChartPieChart(FChart).DataField := LFieldName;
-    LFieldName := Config.GetString('Chart/CategoryField');
-    TExtChartPieChart(FChart).CategoryField := LFieldName;
-  end
-  else
-    raise EKError.CreateFmt(_('Unknown chart type %s.'), [AChartType]);
+  FChart := TExtChartAbstractChart.CreateByType(FChartType, Items);
   FChart.Store := ClientStore;
-{ TODO : port to extjs 6 }
-//  FChart.Url := Format('%s/resources/charts.swf', [Session.ExtPath]);
   FChart.Region := rgCenter;
-  LOption := Config.GetExpandedString('Chart/ChartStyle');
-  if LOption <> '' then
-    FChart.ChartStyle := JSObject(LOption, '', False);
-  LOption := Config.GetExpandedString('Chart/TipRenderer');
-  if LOption <> '' then
-    FChart.TipRenderer := GenerateAnonymousFunction('chart, record, index, series', LOption);
-  if FChart is TExtChartCartesianChart then
-    CreateAndInitSeries(Config.FindNode('Chart/Series'));
+
+  LOption := Config.FindNode('Chart/InnerPadding');
+  if Assigned(LOption) then
+    FChart.InnerPadding := LOption.AsInteger;
+
+  LOption := Config.FindNode('Chart/InsetPadding');
+  if Assigned(LOption) then
+    FChart.InsetPadding := LOption.AsInteger;
+
+  FChart.Theme := Config.GetString('Chart/Theme', 'default-gradients');
+
+  LNode := Config.FindNode('Chart/Axes');
+  if Assigned(LNode) then
+  begin
+    for I := 0 to LNode.ChildCount - 1 do
+      CreateAndInitAxis(LNode.Children[I]);
+  end;
+
+  LNode := Config.FindNode('Chart/Series');
+  if Assigned(LNode) then
+  begin
+    for I := 0 to LNode.ChildCount - 1 do
+      CreateAndInitSeries(LNode.Children[I]);
+  end;
+
+  InitLegend(Config.FindNode('Chart/Legend'));
+//  LOption := Config.GetExpandedString('Chart/TipRenderer');
+//  if LOption <> '' then
+//    FChart.TipRenderer := GenerateAnonymousFunction('chart, record, index, series', LOption);
+  { TODO : Provide a way to hook clicks to ajax calls }
+  //  FChart.Listeners := JSObject(Format('itemclick: function(o){ var rec = %s.getAt(o.index); ' +
+  //    'alert("You chose {0}.", rec.get("%s"));}', [FChart.Store.JSName, FChart.XField]));
+end;
+
+procedure TKExtChartPanel.InitLegend(const AConfigNode: TEFNode);
+var
+  LOption: TEFNode;
+begin
+  if Assigned(AConfigNode) then
+  begin
+    if AConfigNode.DataType.IsBoolean then
+      FChart.LegendBool := AConfigNode.AsBoolean
+    else
+    begin
+      LOption := AConfigNode.FindChild('Docked');
+      if Assigned(LOption) then
+        FChart.Legend.Docked := LOption.AsString.ToLower;
+      LOption := AConfigNode.FindChild('Padding');
+      if Assigned(LOption) then
+        FChart.Legend.Padding := LOption.AsInteger;
+      LOption := AConfigNode.FindChild('Toggleable');
+      if Assigned(LOption) then
+        FChart.Legend.Toggleable := LOption.AsBoolean;
+    end;
+  end;
 end;
 
 procedure TKExtChartPanel.SetViewTable(const AValue: TKViewTable);
@@ -332,11 +347,8 @@ begin
 
   Assert(Assigned(AValue));
 
-  CreateAndInitChart(Config.GetString('Chart/Type'));
-
-  { TODO : Provide a way to hook clicks to ajax calls }
-  //  FChart.Listeners := JSObject(Format('itemclick: function(o){ var rec = %s.getAt(o.index); ' +
-  //    'alert("You chose {0}.", rec.get("%s"));}', [FChart.Store.JSName, FChart.XField]));
+  FChartType := Config.GetString('Chart/Type');
+  CreateAndInitChart;
 end;
 
 initialization

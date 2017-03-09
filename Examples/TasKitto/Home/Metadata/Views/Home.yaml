@@ -19,9 +19,10 @@ Controller: Viewport
           Border: True
           # List of views to be auto-opened in tabs.
           SubViews:
-            View: ActivityInput
-            View: ActivityReport
-            View: Projects
+            #View: ActivityInput
+            #View: ActivityReport
+            #View: Projects
+            View: ActivityPieChart
 
       NorthView:
         Controller: HtmlPanel
@@ -29,7 +30,7 @@ Controller: Viewport
           Html: |
             <center>
               <img src="%IMAGE(taskitto_logo_150)%"></img>
-              <p style="font: 11px arial,tahoma,verdana,helvetica;">An example activity tracking application.</p>
+              <h3>An example activity tracking application.</h3>
             </center>
           Height: 100
 

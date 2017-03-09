@@ -10,45 +10,32 @@ uses
   ;
 
 type
-  TExtChartStyle = class;
-  TExtChartSeries = class;
-  TExtChartSeriesStyle = class;
-  TExtChartAxis = class;
-  TExtChartNumericAxis = class;
-  TExtChartTimeAxis = class;
-  TExtChartPieSeries = class;
-  TExtChartCartesianSeries = class;
-  TExtChartCategoryAxis = class;
-  TExtChartLineSeries = class;
-  TExtChartBarSeries = class;
-  TExtChartColumnSeries = class;
-  TExtChartChart = class;
-  TExtChartCartesianChart = class;
-  TExtChartPieChart = class;
-  TExtChartStackedColumnChart = class;
-  TExtChartColumnChart = class;
-  TExtChartBarChart = class;
-  TExtChartStackedBarChart = class;
-  TExtChartLineChart = class;
-
-  TExtChartStyle = class(TExtObject)
+  TExtChartLegendSpriteLegend = class(TExtObject)
+  private
+    FDocked: string;
+    FPadding: Integer;
+    FToggleable: Boolean;
+    procedure SetDocked(const AValue: string);
+    procedure SetPadding(const AValue: Integer);
+    procedure SetToggleable(const AValue: Boolean);
+  strict protected
+    procedure InitDefaults; override;
   public
     class function JSClassName: string; override;
+    property Docked: string read FDocked write SetDocked;
+    property Padding: Integer read FPadding write SetPadding;
+    property Toggleable: Boolean read FToggleable write SetToggleable;
   end;
 
-  TExtChartSeries = class(TExtObject)
+  TExtChartToolTip = class(TExtToolTip)
   private
-    FDisplayName: String;
-    FTypeJS: String;
-    FStyle: TExtChartSeriesStyle;
-    procedure SetDisplayName(const AValue: String);
-    procedure SetTypeJS(const AValue: String);
-    procedure SetStyle(const AValue: TExtChartSeriesStyle);
+    FRendererFunc: TExtExpression;
+    FRenderer: string;
+    procedure SetRenderer(const AValue: string);
+    procedure SetRendererFunc(const AValue: TExtExpression);
   public
-    class function JSClassName: string; override;
-    property DisplayName: String read FDisplayName write SetDisplayName;
-    property TypeJS: String read FTypeJS write SetTypeJS;
-    property Style: TExtChartSeriesStyle read FStyle write SetStyle;
+    property Renderer: string read FRenderer write SetRenderer;
+    property RendererFunc: TExtExpression read FRendererFunc write SetRendererFunc;
   end;
 
   TExtChartSeriesStyle = class(TExtObject)
@@ -66,6 +53,8 @@ type
     property Color: String read FColor write SetColor;
   end;
 
+  TExtChartAbstractChart = class;
+
   TExtChartAxis = class(TExtObject)
   private
     FLabelFunction: String;
@@ -74,8 +63,15 @@ type
     procedure SetTitle(const AValue: String);
   public
     class function JSClassName: string; override;
+    class function JSXType: string; override;
     property LabelFunction: String read FLabelFunction write SetLabelFunction;
     property Title: String read FTitle write SetTitle;
+  end;
+
+  TExtChartCategoryAxis = class(TExtChartAxis)
+  public
+    class function JSClassName: string; override;
+    class function JSXType: string; override;
   end;
 
   TExtChartNumericAxis = class(TExtChartAxis)
@@ -92,6 +88,7 @@ type
     procedure SetStackingEnabled(const AValue: Boolean);
   public
     class function JSClassName: string; override;
+    class function JSXType: string; override;
     property MajorUnit: Integer read FMajorUnit write SetMajorUnit;
     property MinorUnit: Integer read FMinorUnit write SetMinorUnit;
     property Maximum: Integer read FMaximum write SetMaximum;
@@ -115,6 +112,7 @@ type
     procedure SetStackingEnabled(const AValue: Boolean);
   public
     class function JSClassName: string; override;
+    class function JSXType: string; override;
     property MajorTimeUnit: String read FMajorTimeUnit write SetMajorTimeUnit;
     property MajorUnit: Integer read FMajorUnit write SetMajorUnit;
     property MinorUnit: Integer read FMinorUnit write SetMinorUnit;
@@ -123,149 +121,206 @@ type
     property StackingEnabled: Boolean read FStackingEnabled write SetStackingEnabled;
   end;
 
-  TExtChartPieSeries = class(TExtChartSeries)
+  TExtChartAxis3D = class(TExtChartAxis)
   public
     class function JSClassName: string; override;
+    class function JSXType: string; override;
+  end;
+
+  TExtChartCategory3DAxis = class(TExtChartAxis3D)
+  public
+    class function JSClassName: string; override;
+    class function JSXType: string; override;
+  end;
+
+  TExtChartNumeric3DAxis = class(TExtChartAxis3D)
+  public
+    class function JSClassName: string; override;
+    class function JSXType: string; override;
+  end;
+
+  TExtChartTime3DAxis = class(TExtChartAxis3D)
+  public
+    class function JSClassName: string; override;
+    class function JSXType: string; override;
+  end;
+
+  TExtChartLabel = class(TExtObject)
+  private
+    FCalloutLine: TExtObject;
+    function GetCalloutLine: TExtObject;
+  public
+    property CalloutLine: TExtObject read GetCalloutLine;
+  end;
+
+  TExtChartSeries = class(TExtObject)
+  private
+    FTitle: String;
+    FStyle: TExtChartSeriesStyle;
+    FHighlight: Boolean;
+    FToolTip: TExtChartToolTip;
+    FLabel: TExtChartLabel;
+    procedure SetTitle(const AValue: String);
+    procedure SetStyle(const AValue: TExtChartSeriesStyle);
+    procedure SetHighlight(const AValue: Boolean);
+    function GetToolTip: TExtChartToolTip;
+  strict protected
+    procedure InitDefaults; override;
+  public
+    class function JSClassName: string; override;
+    property Title: String read FTitle write SetTitle;
+    property Highlight: Boolean read FHighlight write SetHighlight;
+    property &Label: TExtChartLabel read FLabel;
+    property Style: TExtChartSeriesStyle read FStyle write SetStyle;
+    property ToolTip: TExtChartToolTip read GetToolTip;
+
+    class function CreateInlineByType(const AType: string; AChart: TExtChartAbstractChart): TExtChartSeries;
+  end;
+
+  TExtChartPolarSeries = class(TExtChartSeries)
+  private
+    FAngleField: string;
+    procedure SetAngleField(const AValue: string);
+  public
+    property AngleField: string read FAngleField write SetAngleField;
+  end;
+
+  TExtChartPieSeries = class(TExtChartPolarSeries)
+  public
+    class function JSClassName: string; override;
+    class function JSXType: string; override;
+  end;
+
+  TExtChartPie3DSeries = class(TExtChartPolarSeries)
+  public
+    class function JSClassName: string; override;
+    class function JSXType: string; override;
+  end;
+
+  TExtChartRadarSeries = class(TExtChartPolarSeries)
+  public
+    class function JSClassName: string; override;
+    class function JSXType: string; override;
+  end;
+
+  TExtChartGaugeSeries = class(TExtChartPolarSeries)
+  public
+    class function JSClassName: string; override;
+    class function JSXType: string; override;
   end;
 
   TExtChartCartesianSeries = class(TExtChartSeries)
   private
-    FXField: String;
-    FYField: String;
-    procedure SetXField(const AValue: String);
-    procedure SetYField(const AValue: String);
+    FXField: string;
+    FYField: string;
+    procedure SetXField(const AValue: string);
+    procedure SetYField(const AValue: string);
   public
     class function JSClassName: string; override;
-    property XField: String read FXField write SetXField;
-    property YField: String read FYField write SetYField;
+    property XField: string read FXField write SetXField;
+    property YField: string read FYField write SetYField;
   end;
 
-  TExtChartCategoryAxis = class(TExtChartAxis)
+  TExtChartCandleStickSeries = class(TExtChartCartesianSeries)
   public
     class function JSClassName: string; override;
+    class function JSXType: string; override;
+  end;
+
+  TExtChartScatterSeries = class(TExtChartCartesianSeries)
+  public
+    class function JSClassName: string; override;
+    class function JSXType: string; override;
   end;
 
   TExtChartLineSeries = class(TExtChartCartesianSeries)
   public
     class function JSClassName: string; override;
+    class function JSXType: string; override;
   end;
 
-  TExtChartBarSeries = class(TExtChartCartesianSeries)
+  TExtChartStackedCartesianSeries = class(TExtChartCartesianSeries)
+  end;
+
+  TExtChartBarSeries = class(TExtChartStackedCartesianSeries)
   public
     class function JSClassName: string; override;
+    class function JSXType: string; override;
   end;
 
-  TExtChartColumnSeries = class(TExtChartCartesianSeries)
+  TExtChartAreaSeries = class(TExtChartStackedCartesianSeries)
   public
     class function JSClassName: string; override;
+    class function JSXType: string; override;
   end;
 
-  TExtChartChart = class(TExtBoxComponent)
+  TExtChartAbstractChart = class(TExtBoxComponent)
   private
-    FChartStyle: TExtObject;
-    FUrl: String;
     FStore: TExtDataStore;
-    FYField: String;
-    FXField: String;
-    FXAxis: TExtChartAxis;
-    FYAxis: TExtChartAxis;
-    FTipRenderer: TExtExpression;
     FSeries: TJSObjectArray;
-    procedure SetChartStyle(const AValue: TExtObject);
-    procedure SetUrl(const AValue: String);
+    FLegend: TExtChartLegendSpriteLegend;
+    FLegendBool: Boolean;
+    FInteractions: TJSObjectArray;
+    FInsetPadding: Integer;
+    FInnerPadding: Integer;
+    FTheme: string;
     procedure SetStore(const AValue: TExtDataStore);
-    procedure SetYField(const AValue: String);
-    procedure SetXField(const AValue: String);
-    procedure SetXAxis(const AValue: TExtChartAxis);
-    procedure SetYAxis(const AValue: TExtChartAxis);
-    procedure SetTipRenderer(const AValue: TExtExpression);
+    procedure SetLegendBool(const AValue: Boolean);
+    function GetLegend: TExtChartLegendSpriteLegend;
+    function GetInteractions: TJSObjectArray;
+    procedure SetInnerPadding(const AValue: Integer);
+    procedure SetInsetPadding(const AValue: Integer);
+    procedure SetTheme(const AValue: string);
   protected
     procedure InitDefaults; override;
   public
     class function JSClassName: string; override;
-    class function CHART_URL: String;
-    property ChartStyle: TExtObject read FChartStyle write SetChartStyle;
-    property Url: String read FUrl write SetUrl;
+    property InnerPadding: Integer read FInnerPadding write SetInnerPadding;
+    property InsetPadding: Integer read FInsetPadding write SetInsetPadding;
+    property Legend: TExtChartLegendSpriteLegend read GetLegend;
+    property LegendBool: Boolean read FLegendBool write SetLegendBool;
     property Store: TExtDataStore read FStore write SetStore;
-    property YField: String read FYField write SetYField;
-    property XField: String read FXField write SetXField;
-    property XAxis: TExtChartAxis read FXAxis write SetXAxis;
-    property YAxis: TExtChartAxis read FYAxis write SetYAxis;
-    property TipRenderer: TExtExpression read FTipRenderer write SetTipRenderer;
     property Series: TJSObjectArray read FSeries;
+    property Theme: string read FTheme write SetTheme;
+    property Interactions: TJSObjectArray read GetInteractions;
+
+    class function CreateByType(const AType: string; const AAddTo: TJSObjectArray): TExtChartAbstractChart;
   end;
 
-  TExtChartCartesianChart = class(TExtChartChart)
-  protected
-    procedure InitDefaults; override;
-  public
-    class function JSClassName: string; override;
-  end;
-
-  TExtChartPieChart = class(TExtChartChart)
+  TExtChartCartesianChart = class(TExtChartAbstractChart)
   private
-    FDataField: String;
-    FCategoryField: String;
-    procedure SetDataField(const AValue: String);
-    procedure SetCategoryField(const AValue: String);
-  protected
+    FAxes: TJSObjectArray;
+  strict protected
     procedure InitDefaults; override;
   public
     class function JSClassName: string; override;
-    property DataField: String read FDataField write SetDataField;
-    property CategoryField: String read FCategoryField write SetCategoryField;
+    property Axes: TJSObjectArray read FAxes;
   end;
 
-  TExtChartStackedColumnChart = class(TExtChartCartesianChart)
-  protected
-    procedure InitDefaults; override;
+  TExtChartPolarChart = class(TExtChartAbstractChart)
   public
     class function JSClassName: string; override;
   end;
 
-  TExtChartColumnChart = class(TExtChartCartesianChart)
-  protected
-    procedure InitDefaults; override;
-  public
-    class function JSClassName: string; override;
-  end;
-
-  TExtChartBarChart = class(TExtChartCartesianChart)
-  protected
-    procedure InitDefaults; override;
-  public
-    class function JSClassName: string; override;
-  end;
-
-  TExtChartStackedBarChart = class(TExtChartCartesianChart)
-  protected
-    procedure InitDefaults; override;
-  public
-    class function JSClassName: string; override;
-  end;
-
-  TExtChartLineChart = class(TExtChartCartesianChart)
-  protected
-    procedure InitDefaults; override;
+  TExtChartSpaceFillingChart = class(TExtChartCartesianChart)
   public
     class function JSClassName: string; override;
   end;
 
 implementation
 
-class function TExtChartStyle.JSClassName: string;
+uses
+  SysUtils
+  ;
+
+procedure TExtChartSeries.SetTitle(const AValue: String);
 begin
-  Result := 'Object';
+  FTitle := SetConfigItem('title', AValue);
 end;
 
-procedure TExtChartSeries.SetDisplayName(const AValue: String);
+procedure TExtChartSeries.SetHighlight(const AValue: Boolean);
 begin
-  FDisplayName := SetConfigItem('displayName', AValue);
-end;
-
-procedure TExtChartSeries.SetTypeJS(const AValue: String);
-begin
-  FTypeJS := SetConfigItem('type', AValue);
+  FHighlight := SetConfigItem('highlight', AValue);
 end;
 
 procedure TExtChartSeries.SetStyle(const AValue: TExtChartSeriesStyle);
@@ -274,9 +329,53 @@ begin
   FStyle := TExtChartSeriesStyle(SetProperty('style', AValue));
 end;
 
+class function TExtChartSeries.CreateInlineByType(const AType: string;
+  AChart: TExtChartAbstractChart): TExtChartSeries;
+begin
+  Assert(Assigned(AChart));
+  Assert(AType <> '');
+
+  // Polar
+  if AType = 'Pie' then
+    Result := TExtChartPieSeries.CreateInlineAndAddToArray(AChart.Series)
+  else if AType = 'Pie3D' then
+    Result := TExtChartPie3DSeries.CreateInlineAndAddToArray(AChart.Series)
+  else if AType = 'Radar' then
+    Result := TExtChartRadarSeries.CreateInlineAndAddToArray(AChart.Series)
+  // Cartesian
+  else if AType = 'Line' then
+    Result := TExtChartLineSeries.CreateInlineAndAddToArray(AChart.Series)
+  else if AType = 'Area' then
+    Result := TExtChartAreaSeries.CreateInlineAndAddToArray(AChart.Series)
+  else if AType = 'Bar' then
+    Result := TExtChartBarSeries.CreateInlineAndAddToArray(AChart.Series)
+  else if AType = 'CandleStick' then
+    Result := TExtChartCandleStickSeries.CreateInlineAndAddToArray(AChart.Series)
+  else if AType = 'Scatter' then
+    Result := TExtChartScatterSeries.CreateInlineAndAddToArray(AChart.Series)
+  // SpaceFilling
+  else if AType = 'Gauge' then
+    Result := TExtChartGaugeSeries.CreateInlineAndAddToArray(AChart.Series)
+  else
+    raise Exception.CreateFmt('Unknown chart series type %s', [AType]);
+end;
+
+function TExtChartSeries.GetToolTip: TExtChartToolTip;
+begin
+  if not Assigned(FToolTip) then
+    FToolTip := TExtChartToolTip(CreateConfigObject(TExtChartToolTip, 'tooltip'));
+  Result := FToolTip;
+end;
+
+procedure TExtChartSeries.InitDefaults;
+begin
+  inherited;
+  FLabel := TExtChartLabel(CreateConfigObject(TExtChartLabel, 'label'));
+end;
+
 class function TExtChartSeries.JSClassName: string;
 begin
-  Result := 'Ext.chart.Series';
+  Result := 'Ext.chart.series.Series';
 end;
 
 procedure TExtChartSeriesStyle.SetImage(const AValue: String);
@@ -299,6 +398,11 @@ begin
   Result := 'Object';
 end;
 
+class function TExtChartAxis.JSXType: string;
+begin
+  Result := 'axis';
+end;
+
 procedure TExtChartAxis.SetLabelFunction(const AValue: String);
 begin
   FLabelFunction := SetProperty('labelFunction', AValue);
@@ -311,7 +415,12 @@ end;
 
 class function TExtChartAxis.JSClassName: string;
 begin
-  Result := 'Ext.chart.Axis';
+  Result := 'Ext.chart.axis.Axis';
+end;
+
+class function TExtChartNumericAxis.JSXType: string;
+begin
+  Result := 'axis.numeric';
 end;
 
 procedure TExtChartNumericAxis.SetMajorUnit(const AValue: Integer);
@@ -341,7 +450,12 @@ end;
 
 class function TExtChartNumericAxis.JSClassName: string;
 begin
-  Result := 'Ext.chart.NumericAxis';
+  Result := 'Ext.chart.axis.Numeric';
+end;
+
+class function TExtChartTimeAxis.JSXType: string;
+begin
+  Result := 'axis.time';
 end;
 
 procedure TExtChartTimeAxis.SetMajorTimeUnit(const AValue: String);
@@ -376,12 +490,12 @@ end;
 
 class function TExtChartTimeAxis.JSClassName: string;
 begin
-  Result := 'Ext.chart.TimeAxis';
+  Result := 'Ext.chart.axis.Time';
 end;
 
 class function TExtChartPieSeries.JSClassName: string;
 begin
-  Result := 'Ext.chart.PieSeries';
+  Result := 'Ext.chart.series.Pie';
 end;
 
 procedure TExtChartCartesianSeries.SetXField(const AValue: String);
@@ -396,92 +510,96 @@ end;
 
 class function TExtChartCartesianSeries.JSClassName: string;
 begin
-  Result := 'Ext.chart.CartesianSeries';
+  Result := 'Ext.chart.series.Cartesian';
 end;
 
 class function TExtChartCategoryAxis.JSClassName: string;
 begin
-  Result := 'Ext.chart.CategoryAxis';
+  Result := 'Ext.chart.axis.Category';
 end;
 
 class function TExtChartLineSeries.JSClassName: string;
 begin
-  Result := 'Ext.chart.LineSeries';
+  Result := 'Ext.chart.series.Line';
 end;
 
 class function TExtChartBarSeries.JSClassName: string;
 begin
-  Result := 'Ext.chart.BarSeries';
+  Result := 'Ext.chart.series.Bar';
 end;
 
-class function TExtChartColumnSeries.JSClassName: string;
+procedure TExtChartAbstractChart.SetInnerPadding(const AValue: Integer);
 begin
-  Result := 'Ext.chart.ColumnSeries';
+  FInnerPadding := SetConfigItem('innerPadding', AValue);
 end;
 
-procedure TExtChartChart.SetChartStyle(const AValue: TExtObject);
+procedure TExtChartAbstractChart.SetInsetPadding(const AValue: Integer);
 begin
-  FChartStyle.Free;
-  FChartStyle := SetConfigItem('chartStyle', AValue);
+  FInsetPadding := SetConfigItem('insetPadding', AValue);
 end;
 
-procedure TExtChartChart.SetUrl(const AValue: String);
+procedure TExtChartAbstractChart.SetLegendBool(const AValue: Boolean);
 begin
-  FUrl := SetConfigItem('url', AValue);
+  FLegendBool := SetConfigItem('legend', AValue);
 end;
 
-procedure TExtChartChart.SetStore(const AValue: TExtDataStore);
+procedure TExtChartAbstractChart.SetStore(const AValue: TExtDataStore);
 begin
   FStore.Free;
-  FStore := AValue;
-  SetConfigItem('store', AValue);
+  FStore := TExtDataStore(SetConfigItem('store', AValue));
 end;
 
-procedure TExtChartChart.SetYField(const AValue: String);
+procedure TExtChartAbstractChart.SetTheme(const AValue: string);
 begin
-  FYField := SetConfigItem('yField', AValue);
+  FTheme := SetConfigItem('theme', AValue);
 end;
 
-procedure TExtChartChart.SetXField(const AValue: String);
+class function TExtChartAbstractChart.JSClassName: string;
 begin
-  FXField := SetConfigItem('xField', AValue);
+  Result := 'Ext.chart.AbstractChart';
 end;
 
-procedure TExtChartChart.SetXAxis(const AValue: TExtChartAxis);
+class function TExtChartAbstractChart.CreateByType(const AType: string;
+  const AAddTo: TJSObjectArray): TExtChartAbstractChart;
 begin
-  FXAxis.Free;
-  FXAxis := TExtChartAxis(SetProperty('xAxis', AValue));
+  Assert(AType <> '');
+  Assert(Assigned(AAddTo));
+
+  if AType = 'Polar' then
+    Result := TExtChartPolarChart.CreateAndAddToArray(AAddTo)
+  else if AType = 'Cartesian' then
+    Result := TExtChartCartesianChart.CreateAndAddToArray(AAddTo)
+  else if AType = 'SpaceFilling' then
+    Result := TExtChartSpaceFillingChart.CreateAndAddToArray(AAddTo)
+  else
+    raise Exception.CreateFmt('Unknown chart type %s', [AType]);
 end;
 
-procedure TExtChartChart.SetYAxis(const AValue: TExtChartAxis);
+function TExtChartAbstractChart.GetInteractions: TJSObjectArray;
 begin
-  FYAxis.Free;
-  FYAxis := TExtChartAxis(SetProperty('yAxis', AValue));
+  if not Assigned(FInteractions) then
+    FInteractions := CreateConfigObjectArray('interactions');
+  Result := FInteractions;
 end;
 
-procedure TExtChartChart.SetTipRenderer(const AValue: TExtExpression);
+function TExtChartAbstractChart.GetLegend: TExtChartLegendSpriteLegend;
 begin
-  FTipRenderer := SetConfigItem('tipRenderer', 'setTipRenderer', AValue);
+  if not Assigned(FLegend) then
+    FLegend := TExtChartLegendSpriteLegend(CreateConfigObject(TExtChartLegendSpriteLegend, 'legend'));
+  Result := FLegend;
 end;
 
-class function TExtChartChart.JSClassName: string;
-begin
-  Result := 'Ext.chart.Chart';
-end;
-
-class function TExtChartChart.CHART_URL: String;
-begin
-  Result := ''
-end;
-
-procedure TExtChartChart.InitDefaults;
+procedure TExtChartAbstractChart.InitDefaults;
 begin
   inherited;
-  FChartStyle := TExtChartStyle.CreateInternal(Self, 'chartStyle');
-  FStore := TExtDataStore.CreateInternal(Self, 'store');
-  FXAxis := TExtChartAxis.CreateInternal(Self, 'xAxis');
-  FYAxis := TExtChartAxis.CreateInternal(Self, 'yAxis');
   FSeries := CreateConfigObjectArray('series');
+  FTheme := 'default';
+end;
+
+procedure TExtChartCartesianChart.InitDefaults;
+begin
+  inherited;
+  FAxes := CreateConfigObjectArray('axes');
 end;
 
 class function TExtChartCartesianChart.JSClassName: string;
@@ -489,79 +607,211 @@ begin
   Result := 'Ext.chart.CartesianChart';
 end;
 
-procedure TExtChartCartesianChart.InitDefaults;
+class function TExtChartPolarChart.JSClassName: string;
+begin
+  Result := 'Ext.chart.PolarChart';
+end;
+
+class function TExtChartSpaceFillingChart.JSClassName: string;
+begin
+  Result := 'Ext.chart.SpaceFillingChart';
+end;
+
+{ TExtChartToolTip }
+
+procedure TExtChartToolTip.SetRenderer(const AValue: string);
+begin
+  FRenderer := SetConfigItem('renderer', AValue);
+end;
+
+procedure TExtChartToolTip.SetRendererFunc(const AValue: TExtExpression);
+begin
+  FRendererFunc := SetConfigItem('renderer', AValue);
+end;
+
+{ TExtChartLegendLegend }
+
+procedure TExtChartLegendSpriteLegend.InitDefaults;
 begin
   inherited;
+  FDocked := 'bottom';
+  FPadding := 10;
 end;
 
-procedure TExtChartPieChart.SetDataField(const AValue: String);
+class function TExtChartLegendSpriteLegend.JSClassName: string;
 begin
-  FDataField := SetConfigItem('dataField', AValue);
+  Result := 'Ext.chart.legend.SpriteLegend';
 end;
 
-procedure TExtChartPieChart.SetCategoryField(const AValue: String);
+procedure TExtChartLegendSpriteLegend.SetDocked(const AValue: string);
 begin
-  FCategoryField := SetConfigItem('categoryField', AValue);
+  FDocked := SetConfigItem('docked', AValue);
 end;
 
-class function TExtChartPieChart.JSClassName: string;
+procedure TExtChartLegendSpriteLegend.SetPadding(const AValue: Integer);
 begin
-  Result := 'Ext.chart.PieChart';
+  FPadding := SetConfigItem('padding', AValue);
 end;
 
-procedure TExtChartPieChart.InitDefaults;
+procedure TExtChartLegendSpriteLegend.SetToggleable(const AValue: Boolean);
 begin
-  inherited;
+  FToggleable := SetConfigItem('toggleable', AValue);
 end;
 
-class function TExtChartStackedColumnChart.JSClassName: string;
+{ TExtChartAreaSeries }
+
+class function TExtChartAreaSeries.JSClassName: string;
 begin
-  Result := 'Ext.chart.StackedColumnChart';
+  Result := 'Ext.chart.series.Area';
 end;
 
-procedure TExtChartStackedColumnChart.InitDefaults;
+class function TExtChartAreaSeries.JSXType: string;
 begin
-  inherited;
+  Result := 'series.area';
 end;
 
-class function TExtChartColumnChart.JSClassName: string;
+{ TExtChartCandleStickSeries }
+
+class function TExtChartCandleStickSeries.JSClassName: string;
 begin
-  Result := 'Ext.chart.ColumnChart';
+  Result := 'Ext.chart.series.CandleStick';
 end;
 
-procedure TExtChartColumnChart.InitDefaults;
+class function TExtChartCandleStickSeries.JSXType: string;
 begin
-  inherited;
+  Result := 'series.candlestick';
 end;
 
-class function TExtChartBarChart.JSClassName: string;
+{ TExtChartScatterSeries }
+
+class function TExtChartScatterSeries.JSClassName: string;
 begin
-  Result := 'Ext.chart.BarChart';
+  Result := 'Ext.chart.series.Scatter';
 end;
 
-procedure TExtChartBarChart.InitDefaults;
+class function TExtChartScatterSeries.JSXType: string;
 begin
-  inherited;
+  Result := 'series.scatter';
 end;
 
-class function TExtChartStackedBarChart.JSClassName: string;
+{ TExtChartPie3DSeries }
+
+class function TExtChartPie3DSeries.JSClassName: string;
 begin
-  Result := 'Ext.chart.StackedBarChart';
+  Result := 'Ext.chart.series.Pie3D';
 end;
 
-procedure TExtChartStackedBarChart.InitDefaults;
+class function TExtChartPie3DSeries.JSXType: string;
 begin
-  inherited;
+  Result := 'series.pie3d';
 end;
 
-class function TExtChartLineChart.JSClassName: string;
+{ TExtChartRadarSeries }
+
+class function TExtChartRadarSeries.JSClassName: string;
 begin
-  Result := 'Ext.chart.LineChart';
+  Result := 'Ext.chart.series.Radar';
 end;
 
-procedure TExtChartLineChart.InitDefaults;
+class function TExtChartRadarSeries.JSXType: string;
 begin
-  inherited;
+  Result := 'series.radar';
+end;
+
+{ TExtChartGaugeSeries }
+
+class function TExtChartGaugeSeries.JSClassName: string;
+begin
+  Result := 'Ext.chart.series.Gauge';
+end;
+
+class function TExtChartGaugeSeries.JSXType: string;
+begin
+  Result := 'series.gauge';
+end;
+
+{ TExtChartPolarSeries }
+
+procedure TExtChartPolarSeries.SetAngleField(const AValue: string);
+begin
+  FAngleField := SetConfigItem('angleField', AValue);
+end;
+
+class function TExtChartPieSeries.JSXType: string;
+begin
+  Result := 'series.pie';
+end;
+
+class function TExtChartLineSeries.JSXType: string;
+begin
+  Result := 'series.line';
+end;
+
+class function TExtChartBarSeries.JSXType: string;
+begin
+  Result := 'series.bar';
+end;
+
+class function TExtChartCategoryAxis.JSXType: string;
+begin
+  Result := 'axis.category';
+end;
+
+{ TExtChartAxis3D }
+
+class function TExtChartAxis3D.JSClassName: string;
+begin
+  Result := 'Ext.chart.axis.Axis3D';
+end;
+
+class function TExtChartAxis3D.JSXType: string;
+begin
+  Result := 'axis3d';
+end;
+
+{ TExtChartCategory3DAxis }
+
+class function TExtChartCategory3DAxis.JSClassName: string;
+begin
+  Result := 'Ext.chart.axis.Category3D';
+end;
+
+class function TExtChartCategory3DAxis.JSXType: string;
+begin
+  Result := 'axis.category3d';
+end;
+
+{ TExtChartNumeric3DAxis }
+
+class function TExtChartNumeric3DAxis.JSClassName: string;
+begin
+  Result := 'Ext.chart.axis.Numeric3D';
+end;
+
+class function TExtChartNumeric3DAxis.JSXType: string;
+begin
+  Result := 'axis.numeric3d';
+end;
+
+{ TExtChartTime3DAxis }
+
+class function TExtChartTime3DAxis.JSClassName: string;
+begin
+  Result := 'Ext.chart.axis.Time3D';
+end;
+
+class function TExtChartTime3DAxis.JSXType: string;
+begin
+  Result := 'axis.time3d';
+end;
+
+{ TExtChartLabel }
+
+function TExtChartLabel.GetCalloutLine: TExtObject;
+begin
+  if not Assigned(FCalloutLine) then
+    FCalloutLine := CreateConfigObject('calloutLine');
+  Result := FCalloutLine;
 end;
 
 end.

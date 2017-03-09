@@ -108,7 +108,7 @@ type
     destructor Destroy; override;
   public
     const SESSION_OBJECT = 'KittoSession';
-    function AddRoute(const ARoute: TKWebRoute): TKWebRoute;
+    function AddRoute(const ARoute: TKWebRoute; const AIndex: Integer = -1): TKWebRoute;
     class property CurrentSession: TIdHTTPSession read GetCurrentSession write SetCurrentSession;
     class property CurrentKittoSession: TObject read GetCurrentKittoSession;
 
@@ -133,9 +133,12 @@ uses
 
 { TKWebServer }
 
-function TKWebServer.AddRoute(const ARoute: TKWebRoute): TKWebRoute;
+function TKWebServer.AddRoute(const ARoute: TKWebRoute; const AIndex: Integer): TKWebRoute;
 begin
-  FRoutes.Add(ARoute);
+  if AIndex = -1 then
+    FRoutes.Add(ARoute)
+  else
+    FRoutes.Insert(AIndex, ARoute);
   ARoute.AddedToServer(Self);
   Result := ARoute;
 end;

@@ -13,14 +13,12 @@ type
   TExtObject = TJSObject;
   TExtObjectClass = TJSObjectClass;
   TExtExpression = TJSExpression;
-  TExtProgressWaitConfig = class;
+
   TExtEventObjectSingleton = class;
-  TExtSplitBarBasicLayoutAdapter = class;
   TExtTemplate = class;
   TExtQuickTipsSingleton = class;
   TExtElement = class;
   TExtAction = class;
-  TExtDirectTransaction = class;
   TExtSplitBar = class;
   TExtComponent = class;
   TExtLayer = class;
@@ -71,27 +69,7 @@ type
 
   TExtDataStore = TExtUtilObservable;
 
-  TExtProgressWaitConfig = class(TExtObject)
-  private
-    FDuration: Integer;
-    FInterval: Integer; // 1000
-    FIncrement: Integer; // 10
-    procedure SetDuration(const AValue: Integer);
-    procedure SetInterval(const AValue: Integer);
-    procedure SetIncrement(const AValue: Integer);
-  public
-    class function JSClassName: string; override;
-    property Duration: Integer read FDuration write SetDuration;
-    property Interval: Integer read FInterval write SetInterval;
-    property Increment: Integer read FIncrement write SetIncrement;
-  end;
-
   TExtEventObjectSingleton = class(TExtObject)
-  end;
-
-  TExtSplitBarBasicLayoutAdapter = class(TExtObject)
-  public
-    class function JSClassName: string; override;
   end;
 
   TExtTemplate = class(TExtObject)
@@ -754,8 +732,12 @@ type
   end;
 
   TExtToolTip = class(TExtTip)
+  private
+    FTRackMouse: Boolean;
+    procedure SetTrackMouse(const AValue: Boolean);
   public
     class function JSClassName: string; override;
+    property TrackMouse: Boolean read FTRackMouse write SetTrackMouse;
   end;
 
   TExtQuickTip = class(TExtToolTip)
@@ -853,32 +835,6 @@ begin
   Result := TKWebResponse.Current.Items.ExecuteJSCode(Self, Format('if (%s.events.%s) delete (%s.events.%s)',
     [JSName, AEventName, JSName, AEventName])).AsExpression;
 end;
-
-procedure TExtProgressWaitConfig.SetDuration(const AValue: Integer);
-begin
-  FDuration := SetConfigItem('duration', AValue);
-end;
-
-procedure TExtProgressWaitConfig.SetInterval(const AValue: Integer);
-begin
-  FInterval := SetConfigItem('interval', AValue);
-end;
-
-procedure TExtProgressWaitConfig.SetIncrement(const AValue: Integer);
-begin
-  FIncrement := SetConfigItem('increment', AValue);
-end;
-
-class function TExtProgressWaitConfig.JSClassName: string;
-begin
-  Result := 'Object';
-end;
-
-class function TExtSplitBarBasicLayoutAdapter.JSClassName: string;
-begin
-  Result := 'Ext.SplitBar.BasicLayoutAdapter';
-end;
-
 
 class function TExtTemplate.JSClassName: string;
 begin
@@ -2169,12 +2125,12 @@ end;
 
 class function TExtToolTip.JSClassName: string;
 begin
-  Result := 'Ext.ToolTip';
+  Result := 'Ext.tip.ToolTip';
 end;
 
 class function TExtQuickTip.JSClassName: string;
 begin
-  Result := 'Ext.QuickTip';
+  Result := 'Ext.tip.QuickTip';
 end;
 
 class function TExtMessageBoxSingleton.JSClassName: string;
@@ -2194,6 +2150,11 @@ begin
   Result := TKWebResponse.Current.Items.CallMethod(Self, 'setActiveTab')
     .AddParam(AItem)
     .AsExpression;
+end;
+
+procedure TExtToolTip.SetTrackMouse(const AValue: Boolean);
+begin
+  FTrackMouse := SetConfigItem('trackMouse', AValue);
 end;
 
 end.
