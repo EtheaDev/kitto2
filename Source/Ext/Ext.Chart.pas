@@ -10,6 +10,30 @@ uses
   ;
 
 type
+  TExtChartInteractionsPanZoom = class(TExtObject)
+  public
+    class function JSClassName: string; override;
+    class function JSXType: string; override;
+  end;
+
+  TExtChartInteractionsItemHighlight = class(TExtObject)
+  public
+    class function JSClassName: string; override;
+    class function JSXType: string; override;
+  end;
+
+  TExtChartInteractionsItemInfo = class(TExtObject)
+  public
+    class function JSClassName: string; override;
+    class function JSXType: string; override;
+  end;
+
+  TExtChartInteractionsRotate = class(TExtObject)
+  public
+    class function JSClassName: string; override;
+    class function JSXType: string; override;
+  end;
+
   TExtChartLegendSpriteLegend = class(TExtObject)
   private
     FDocked: string;
@@ -566,11 +590,22 @@ begin
   Assert(Assigned(AAddTo));
 
   if AType = 'Polar' then
-    Result := TExtChartPolarChart.CreateAndAddToArray(AAddTo)
+  begin
+    Result := TExtChartPolarChart.CreateAndAddToArray(AAddTo);
+    TExtChartInteractionsRotate.CreateInlineAndAddToArray(Result.Interactions);
+  end
   else if AType = 'Cartesian' then
-    Result := TExtChartCartesianChart.CreateAndAddToArray(AAddTo)
+  begin
+    Result := TExtChartCartesianChart.CreateAndAddToArray(AAddTo);
+    TExtChartInteractionsPanZoom.CreateInlineAndAddToArray(Result.Interactions);
+    TExtChartInteractionsItemHighlight.CreateInlineAndAddToArray(Result.Interactions);
+    TExtChartInteractionsItemInfo.CreateInlineAndAddToArray(Result.Interactions);
+  end
   else if AType = 'SpaceFilling' then
-    Result := TExtChartSpaceFillingChart.CreateAndAddToArray(AAddTo)
+  begin
+    Result := TExtChartSpaceFillingChart.CreateAndAddToArray(AAddTo);
+    TExtChartInteractionsPanZoom.CreateInlineAndAddToArray(Result.Interactions);
+  end
   else
     raise Exception.CreateFmt('Unknown chart type %s', [AType]);
 end;
@@ -812,6 +847,54 @@ begin
   if not Assigned(FCalloutLine) then
     FCalloutLine := CreateConfigObject('calloutLine');
   Result := FCalloutLine;
+end;
+
+{ TExtChartInteractionsPanZoom }
+
+class function TExtChartInteractionsPanZoom.JSClassName: string;
+begin
+  Result := 'Ext.chart.interactions.PanZoom';
+end;
+
+class function TExtChartInteractionsPanZoom.JSXType: string;
+begin
+  Result := 'interaction.panzoom';
+end;
+
+{ TExtChartInteractionsItemHighlight }
+
+class function TExtChartInteractionsItemHighlight.JSClassName: string;
+begin
+  Result := 'Ext.chart.interactions.ItemHighlight';
+end;
+
+class function TExtChartInteractionsItemHighlight.JSXType: string;
+begin
+  Result := 'interaction.itemhighlight';
+end;
+
+{ TExtChartInteractionsItemInfo }
+
+class function TExtChartInteractionsItemInfo.JSClassName: string;
+begin
+  Result := 'Ext.chart.interactions.ItemInfo';
+end;
+
+class function TExtChartInteractionsItemInfo.JSXType: string;
+begin
+  Result := 'interaction.iteminfo';
+end;
+
+{ TExtChartInteractionsRotate }
+
+class function TExtChartInteractionsRotate.JSClassName: string;
+begin
+  Result := 'Ext.chart.interactions.Rotate';
+end;
+
+class function TExtChartInteractionsRotate.JSXType: string;
+begin
+  Result := 'interaction.rotate';
 end;
 
 end.

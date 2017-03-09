@@ -190,6 +190,8 @@ begin
   if LOption <> '' then
   begin
     LSeries.&Label.SetConfigItem('field', LOption);
+    LSeries.&Label.SetConfigItem('renderer', JSExpressionFromCodeBlock(GetLabelRenderer(LOption)));
+
     LSeries.&Label.CalloutLine.SetConfigItem('length', 60);
     LSeries.&Label.CalloutLine.SetConfigItem('width', 3);
   end;
