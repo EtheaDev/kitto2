@@ -118,6 +118,7 @@ type
     function SetConfigItem(const AName, AMethodName: string; const AValue: Boolean): Boolean; overload;
     function SetConfigItem(const AName, AMethodName: string; const AValue: Integer): Integer; overload;
     function SetConfigItem(const AName, AMethodName: string; const AValue: TDateTime): TDateTime; overload;
+    function SetConfigItem(const AName, AMethodName: string; const AValue: Double): Double; overload;
     function SetConfigItem(const AName, AMethodName: string; const AValue: TJSObject): TJSObject; overload;
     function SetConfigItem(const AName, AMethodName: string; const AValue: TJSExpression): TJSExpression; overload;
 
@@ -1020,6 +1021,16 @@ begin
     FJSConfig.SetRawValue(AName, AValue.ExtractText)
   else
     FJSConfig.SetRawValue(AName, '');
+  Result := AValue;
+end;
+
+function TJSObject.SetConfigItem(const AName, AMethodName: string;
+  const AValue: Double): Double;
+begin
+  if FJSConfig.IsReadOnly then
+    TKWebResponse.Current.Items.CallMethod(Self, AMethodName).AddParam(Avalue)
+  else
+    FJSConfig.Values.SetFloat(AName, AValue);
   Result := AValue;
 end;
 

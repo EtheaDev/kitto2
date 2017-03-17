@@ -21,9 +21,14 @@ unit Kitto.Ext.ChartPanel;
 interface
 
 uses
-  Ext.Base, Ext.Chart, Ext.Data,
-  EF.Tree,
-  Kitto.Metadata.DataView, Kitto.Ext.Base, Kitto.Ext.DataPanelLeaf;
+  Ext.Base
+  , Ext.Chart
+  , Ext.Data
+  , EF.Tree
+  , Kitto.Metadata.DataView
+  , Kitto.Ext.Base
+  , Kitto.Ext.DataPanelLeaf
+  ;
 
 type
   TKExtChartPanel = class(TKExtDataPanelLeafController)
@@ -181,11 +186,34 @@ var
   LSeries: TExtChartSeries;
   LType: string;
   LRenderer: string;
+  LOptionNode: TEFNode;
 begin
   Assert(Assigned(AConfigNode));
 
   LType := AConfigNode.GetString('Type', GetDefaultSeriesType(FChartType));
   LSeries := TExtChartSeries.CreateInlineByType(LType, FChart);
+
+  if LSeries is TExtChartPie3DSeries then
+  begin
+    LOptionNode := AConfigNode.FindNode('Thickness');
+    if Assigned(LOptionNode) then
+      TExtChartPie3DSeries(LSeries).Thickness := LOptionNode.AsInteger;
+    LOptionNode := AConfigNode.FindNode('Distortion');
+    if Assigned(LOptionNode) then
+      TExtChartPie3DSeries(LSeries).Distortion := LOptionNode.AsInteger / 100;
+    LOptionNode := AConfigNode.FindNode('Bevel');
+    if Assigned(LOptionNode) then
+      TExtChartPie3DSeries(LSeries).Bevel := LOptionNode.AsInteger;
+  end;
+
+  if LSeries is TExtChartPolarSeries then
+  begin
+    LOptionNode := AConfigNode.FindNode('Donut');
+    if Assigned(LOptionNode) then
+      TExtChartPolarSeries(LSeries).Donut := LOptionNode.AsInteger;
+  end;
+
+       
 
   LOption := AConfigNode.GetString('Label/Field');
   if LOption <> '' then
@@ -265,6 +293,14 @@ var
   I: Integer;
   LOption: TEFNode;
 
+  function GetChartDefaultTheme: string;
+  begin
+    if FChartType.EndsWith('3D') then
+      Result := 'Muted'
+    else
+      Result := 'default-gradients';
+  end;
+
 //  function GetAxisField(const AAxis: string): string;
 //  var
 //    LSeries: TEFNode;
@@ -302,7 +338,7 @@ begin
   if Assigned(LOption) then
     FChart.InsetPadding := LOption.AsInteger;
 
-  FChart.Theme := Config.GetString('Chart/Theme', 'default-gradients');
+  FChart.Theme := Config.GetString('Chart/Theme', GetChartDefaultTheme);
 
   LNode := Config.FindNode('Chart/Axes');
   if Assigned(LNode) then

@@ -296,6 +296,7 @@ procedure TJSFormatter.AfterConstruction;
 begin
   inherited;
   FFormatSettings := TFormatSettings.Create;
+  FFormatSettings.DecimalSeparator := '.';
 end;
 
 function TJSFormatter.CloseArray: TJSFormatter;
