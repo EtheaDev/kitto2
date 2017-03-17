@@ -11,7 +11,8 @@ Controller: List
           #Type: Pie
           AngleField: DURATION
           Label:
-            Field: ACTIVITY_DATE
+            Field: TYPE_NAME
+            CalloutLine: True
           Title: _(Duration)
       Legend:
         Docked: left
@@ -22,5 +23,5 @@ Controller: List
 
 MainTable:
   IsReadOnly: True
-  Model: ACTIVITY_BY_DATE
+  Model: ACTIVITY_BY_TYPE
 ImageName: chart_pie

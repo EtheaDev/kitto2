@@ -180,6 +180,7 @@ var
 //    LStyle: TEFNode;
   LSeries: TExtChartSeries;
   LType: string;
+  LRenderer: string;
 begin
   Assert(Assigned(AConfigNode));
 
@@ -190,11 +191,17 @@ begin
   if LOption <> '' then
   begin
     LSeries.&Label.SetConfigItem('field', LOption);
-    LSeries.&Label.SetConfigItem('renderer', JSExpressionFromCodeBlock(GetLabelRenderer(LOption)));
+    LRenderer := GetLabelRenderer(LOption);
+    if LRenderer <> '' then
+      LSeries.&Label.SetConfigItem('renderer', JSExpressionFromCodeBlock(LRenderer));
 
-    LSeries.&Label.CalloutLine.SetConfigItem('length', 60);
-    LSeries.&Label.CalloutLine.SetConfigItem('width', 3);
+    if AConfigNode.GetBoolean('Label/Field/CalloutLine') then
+    begin
+      LSeries.&Label.CalloutLine.SetConfigItem('length', 60);
+      LSeries.&Label.CalloutLine.SetConfigItem('width', 2);
+    end;
   end;
+  LSeries.Highlight := True;
   //LSeries.ToolTip.TrackMouse := True;
   //LSeries.ToolTip.Renderer := ...
 

@@ -456,6 +456,8 @@ type
     /// </param>
     function GetRecord(const AKey: ISuperObject; const AFormatSettings: TFormatSettings;
       const ATranslator: TNameTranslator = nil; const AValueIndex: Integer = -1): TKRecord;
+    function FindRecord(const AKey: ISuperObject; const AFormatSettings: TFormatSettings;
+      const ATranslator: TNameTranslator = nil; const AValueIndex: Integer = -1): TKRecord;
   end;
 
 implementation
@@ -540,6 +542,24 @@ begin
             begin
               Result := not ARecord.IsDeleted;
             end;
+end;
+
+function TKStore.FindRecord(const AKey: ISuperObject;
+  const AFormatSettings: TFormatSettings; const ATranslator: TNameTranslator;
+  const AValueIndex: Integer): TKRecord;
+var
+  LKeyNode: TEFNode;
+begin
+  Assert(Assigned(AKey));
+
+  LKeyNode := TEFNode.Create;
+  try
+    LKeyNode.Assign(Key);
+    LKeyNode.SetChildValuesfromSuperObject(AKey, True, AFormatSettings, ATranslator, AValueIndex);
+    Result := Records.FindRecord(LKeyNode);
+  finally
+    FreeAndNil(LKeyNode);
+  end;
 end;
 
 procedure TKStore.Iterate(const AProc: TProc<TKRecord>;

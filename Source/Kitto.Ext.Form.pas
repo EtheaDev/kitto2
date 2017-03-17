@@ -138,6 +138,7 @@ type
     function GetFilterExpression: string; override;
     function GetRegionName(const ARegion: TExtBoxComponentRegion): string; override;
     procedure AfterConstruction; override;
+    procedure ChangeRecord(const ARecord: TKViewTableRecord);
   //published
     procedure GetRecord;
     procedure SwitchToEditMode;
@@ -180,7 +181,7 @@ var
   LIsInsertOperation: Boolean;
 begin
   LIsViewMode := IsViewMode;
-  LIsInsertOperation := FOperation = 'Add';
+  LIsInsertOperation := MatchStr(FOperation, ['Add', 'Dup']);
   FEditItems.AllEditors(
     procedure (AEditor: IKExtEditor)
     var
@@ -198,6 +199,12 @@ begin
       if not LIsReadOnly and (FFocusField = nil) and Assigned(LFormField) then
         FFocusField := LFormField;
     end);
+end;
+
+procedure TKExtFormPanelController.ChangeRecord(const ARecord: TKViewTableRecord);
+begin
+  StoreRecord := ARecord;
+  StartOperation;
 end;
 
 procedure TKExtFormPanelController.CloseHostContainer;
@@ -405,7 +412,9 @@ end;
 
 function TKExtFormPanelController.GetDetailStyle: string;
 begin
-  Result := ViewTable.GetString('DetailTables/Controller/Style', DEFAULT_DETAIL_STYLE);
+  Result := Config.GetString('DetailStyle');
+  if Result = '' then
+    Result := ViewTable.GetString('DetailTables/Controller/Style', DEFAULT_DETAIL_STYLE);
 end;
 
 procedure TKExtFormPanelController.LoadData;
@@ -486,7 +495,7 @@ var
     Result := SameText(FOperation, 'Add') and Assigned(FCloneValues);
   end;
 
-  procedure SwitchChangeNotifications(const AOn: Boolean);
+  procedure SwitchChangeNotificationsForDupAndClone(const AOn: Boolean);
   begin
     if SameText(FOperation, 'Dup') or IsCloned then
     begin
@@ -508,17 +517,27 @@ begin
       try
         if Assigned(FCloneValues) then
         begin
-          LDefaultValues := TEFNode.Clone(FCloneValues);
+          LDefaultValues := TEFNode.Clone(FCloneValues,
+            // Don't copy PK values.
+            procedure (const ASource, ADestination: TEFNode)
+            var
+              LViewField: TKViewField;
+            begin
+              LViewField := ViewTable.FindField(ASource.Name);
+              if Assigned(LViewField) and LViewField.IsKey then
+                ADestination.Value := Null;
+            end
+          );
           MergeKeyDefaultValues;
         end
         else
           LDefaultValues := ViewTable.GetDefaultValues;
         MergeCallerDefaultValues;
-        SwitchChangeNotifications(False);
+        SwitchChangeNotificationsForDupAndClone(False);
         try
           StoreRecord.ReadFromNode(LDefaultValues);
         finally
-          SwitchChangeNotifications(True);
+          SwitchChangeNotificationsForDupAndClone(True);
         end;
         StoreRecord.ApplyNewRecordRulesAndFireEvents(ViewTable, IsCloned);
       finally
@@ -867,7 +886,6 @@ var
   LDetailStyle: string;
 begin
   Cls := 'x-panel-mc'; // Sets correct theme background color same as panel
-  LDetailStyle := GetDetailStyle;
 
   FFormPanel := TKExtEditPanel.CreateAndAddToArray(Items);
   FFormPanel.Region := rgCenter;
@@ -879,6 +897,8 @@ begin
   FFormPanel.MonitorValid := True;
   FFormPanel.Cls := 'x-panel-mc'; // Sets correct theme background color.
   FFormPanel.LabelAlign := LabelAlign;
+
+  LDetailStyle := GetDetailStyle;
   if ((ViewTable.DetailTableCount > 0) and SameText(LDetailStyle, 'Tabs')) or LayoutContainsPageBreaks then
   begin
     FTabPanel := TExtTabPanel.CreateAndAddToArray(FFormPanel.Items);
@@ -1045,8 +1065,14 @@ begin
 end;
 
 function TKExtFormPanelController.FindLayout: TKLayout;
+var
+  LPrefix: string;
 begin
-  Result := FindViewLayout('Form');
+  LPrefix := Config.GetString('LayoutNamePrefix');
+  Result := FindViewLayout(Config.GetString('Layout', LPrefix + 'Form'));
+  // Fallback to standard layout if no prefixed layout is available.
+  if (Result = nil) and (LPrefix <> '') then
+    Result := FindViewLayout(Config.GetString('Layout', 'Form'));
 end;
 
 function TKExtFormPanelController.GetRegionName(const ARegion: TExtBoxComponentRegion): string;

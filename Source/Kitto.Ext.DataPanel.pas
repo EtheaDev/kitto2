@@ -112,7 +112,7 @@ type
     property View: TKDataView read GetView;
     property ClientStore: TExtDataStore read FClientStore;
     function CreateClientStore: TExtDataStore; virtual;
-    procedure AddClientReaderField(const AReader: TExtDataDataReader; const AViewField: TKViewField);
+    procedure AddClientReaderField(const AStore: TExtDataStore; const AViewField: TKViewField);
     procedure CreateClientReaderFields;
     function AddActionButton(const AUniqueId: string; const AView: TKView;
       const AToolbar: TKExtToolbar): TKExtActionButton; override;
@@ -125,9 +125,9 @@ type
     function UpdateRecord(const ARecord: TKVIewTableRecord; const ANewValues: ISuperObject;
       const AFieldName: string; const APersist: Boolean): string;
     function GetDefaultRemoteSort: Boolean; virtual;
+    function FindCurrentViewRecord: TKViewTableRecord;
     function GetCurrentViewRecord: TKViewTableRecord;
     procedure ShowEditWindow(const ARecord: TKViewTableRecord; const AEditMode: TKEditMode);
-    function GetEditWindowDefaultControllerType: string; virtual;
     function IsMultiSelect: Boolean; virtual;
     function HasDefaultAction: Boolean;
     function GetExplicitDefaultAction: string;
@@ -151,6 +151,9 @@ type
     // Inherited classes should call UpdateRecord when changes are confirmed/applied
     // and this method when changes are canceled. This class manages housekeeping.
     procedure ChangesCanceled(const ARecord: TKViewTableRecord);
+    function InitEditController(const AContainer: IJSControllerContainer;
+      const ARecord: TKViewTableRecord; const AEditMode: TKEditMode): IJSController;
+    function GetDefaultEditControllerType: string; virtual;
   public
     procedure AfterConstruction; override;
     destructor Destroy; override;
@@ -418,41 +421,46 @@ begin
   else
     FEditHostWindow.Title := _(ViewTable.DisplayLabel);
 
+  LFormController := InitEditController(FEditHostWindow, ARecord, AEditMode);
+  LFormController.Config.SetObject('Sys/HostWindow', FEditHostWindow);
+  //LFormController.Config.SetBoolean('Sys/HostWindow/AutoSize',
+  FEditHostWindow.SetSizeFromTree(ViewTable, 'Controller/PopupWindow/');
+  LFormController.Display;
+  FEditHostWindow.Show;
+end;
+
+function TKExtDataPanelController.InitEditController(const AContainer: IJSControllerContainer;
+  const ARecord: TKViewTableRecord; const AEditMode: TKEditMode): IJSController;
+var
+  LFormControllerType: string;
+  LFormControllerNode: TEFNode;
+begin
   LFormControllerNode := ViewTable.FindNode('Controller/FormController');
   if Assigned(LFormControllerNode) then
     LFormControllerType := LFormControllerNode.AsString;
   if LFormControllerType = '' then
-    LFormControllerType := GetEditWindowDefaultControllerType;
-  if LFormControllerType = '' then
-    LFormControllerType := GetEditWindowDefaultControllerType;
-  LFormController := TKExtControllerFactory.Instance.CreateController(
-    FEditHostWindow, ViewTable.View, FEditHostWindow, LFormControllerNode, Self, LFormControllerType);
-  LFormController.Config.SetObject('Sys/ServerStore', ServerStore);
+    LFormControllerType := GetDefaultEditControllerType;
+  Result := TKExtControllerFactory.Instance.CreateController(
+    AContainer.AsJSObject, ViewTable.View, AContainer, LFormControllerNode, Self, LFormControllerType);
+  Result.Config.SetObject('Sys/ServerStore', ServerStore);
   if Assigned(ARecord) then
-    LFormController.Config.SetObject('Sys/Record', ARecord)
+    Result.Config.SetObject('Sys/Record', ARecord)
   else
-    SetNewRecordDefaultValues(LFormController.Config);
-  LFormController.Config.SetObject('Sys/ViewTable', ViewTable);
-  LFormController.Config.SetObject('Sys/HostWindow', FEditHostWindow);
-  LFormController.Config.SetObject('Sys/CallingController', Self);
-//  LFormController.Config.SetBoolean('Sys/HostWindow/AutoSize',
-  FEditHostWindow.SetSizeFromTree(ViewTable, 'Controller/PopupWindow/');
+    SetNewRecordDefaultValues(Result.Config);
+  Result.Config.SetObject('Sys/ViewTable', ViewTable);
+  Result.Config.SetObject('Sys/CallingController', Self);
 
   case AEditMode of
-    emNewRecord : LFormController.Config.SetString('Sys/Operation', 'Add');
-    emDupCurrentRecord : LFormController.Config.SetString('Sys/Operation', 'Dup');
-    emEditCurrentRecord : LFormController.Config.SetString('Sys/Operation', 'Edit');
+    emNewRecord : Result.Config.SetString('Sys/Operation', 'Add');
+    emDupCurrentRecord : Result.Config.SetString('Sys/Operation', 'Dup');
+    emEditCurrentRecord : Result.Config.SetString('Sys/Operation', 'Edit');
     emViewCurrentRecord :
     begin
       if not IsActionAllowed('Edit') then
-        LFormController.Config.SetBoolean('PreventEditing', True);
-      LFormController.Config.SetString('Sys/Operation', 'View');
+        Result.Config.SetBoolean('PreventEditing', True);
+      Result.Config.SetString('Sys/Operation', 'View');
     end;
   end;
-
-  LFormController.Display;
-
-  FEditHostWindow.Show;
 end;
 
 function TKExtDataPanelController.GetCurrentViewRecord: TKViewTableRecord;
@@ -543,29 +551,38 @@ begin
     Result.On('click', TKWebResponse.Current.Items.AjaxCallMethod(Self).SetMethod(Result.ExecuteButtonAction).AsFunction);
 end;
 
-procedure TKExtDataPanelController.AddClientReaderField(const AReader: TExtDataDataReader; const AViewField: TKViewField);
+procedure TKExtDataPanelController.AddClientReaderField(const AStore: TExtDataStore; const AViewField: TKViewField);
 var
   I: Integer;
 
-  procedure DoAddReaderField(const AReader: TExtDataDataReader; const AName, AType: string; const AUseNull: Boolean);
+  procedure DoAddReaderField(const AStore: TExtDataStore; const AName, AType: string; const AUseNull: Boolean);
   var
     LField: TExtDataField;
+    LFormat: string;
   begin
-    LField := TExtDataField.CreateInlineAndAddToArray(AReader.Fields);
+    LField := TExtDataField.CreateInlineAndAddToArray(AStore.Fields);
     LField.Name := AName;
     LField.&Type := AType;
     LField.UseNull := AUseNull;
+    {TODO : Refactor; also see GridPanel}
+    if LField.&Type = 'date' then
+    begin
+      LFormat := AViewField.DisplayFormat;
+      if LFormat = '' then
+        LFormat := TKWebApplication.Current.Config.UserFormatSettings.ShortDateFormat;
+      LField.SetConfigItem('dateFormat', TJS.DelphiDateFormatToJSDateFormat(LFormat));
+    end;
   end;
 
 begin
-  DoAddReaderField(AReader, AViewField.AliasedName, AViewField.ActualDataType.GetJSTypeName, not AViewField.IsRequired);
+  DoAddReaderField(AStore, AViewField.AliasedName, AViewField.ActualDataType.GetJSTypeName, not AViewField.IsRequired);
   if AViewField.IsPicture then
-    DoAddReaderField(AReader, AViewField.GetURLFieldName,
+    DoAddReaderField(AStore, AViewField.GetURLFieldName,
       TEFDataTypeFactory.Instance.GetDataType('String').GetJSTypeName, not AViewField.IsRequired);
   if AViewField.IsReference then
   begin
     for I := 0 to AViewField.ModelField.FieldCount - 1 do
-      DoAddReaderField(AReader, AViewField.ModelField.Fields[I].FieldName,
+      DoAddReaderField(AStore, AViewField.ModelField.Fields[I].FieldName,
         AViewField.ModelField.Fields[I].DataType.GetJSTypeName, not AViewField.ModelField.Fields[I].IsRequired);
   end;
 end;
@@ -576,7 +593,7 @@ var
 begin
   for I := 0 to ViewTable.FieldCount - 1 do
     if IsViewFieldIncludedInClientStore(ViewTable.Fields[I]) then
-      AddClientReaderField(FClientStore.Proxy.Reader, ViewTable.Fields[I]);
+      AddClientReaderField(FClientStore{.Proxy.Reader}, ViewTable.Fields[I]);
 end;
 
 function TKExtDataPanelController.CreateClientStore: TExtDataStore;
@@ -734,14 +751,14 @@ begin
   Result := not ViewTable.IsLarge;
 end;
 
+function TKExtDataPanelController.GetDefaultEditControllerType: string;
+begin
+  Result := 'Form';
+end;
+
 function TKExtDataPanelController.GetDefaultRemoteSort: Boolean;
 begin
   Result := False;
-end;
-
-function TKExtDataPanelController.GetEditWindowDefaultControllerType: string;
-begin
-  Result := 'Form';
 end;
 
 function TKExtDataPanelController.GetExplicitDefaultAction: string;
@@ -1086,6 +1103,12 @@ begin
         AField.ParentRecord.FieldByName(LNames[I]).SetAsJSONValue(LValues[I], False, TKWebApplication.Current.Config.UserFormatSettings);
     end;
   end;
+end;
+
+function TKExtDataPanelController.FindCurrentViewRecord: TKViewTableRecord;
+begin
+  Result := ServerStore.FindRecord(TKWebRequest.Current.GetQueryFields,
+    TKWebApplication.Current.Config.JSFormatSettings, IfThen(IsMultiSelect, 0, -1));
 end;
 
 function TKExtDataPanelController.FindValueByName(const AValues: ISuperObject; const AName: string): TSuperAvlEntry;

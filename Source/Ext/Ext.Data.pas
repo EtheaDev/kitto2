@@ -98,11 +98,14 @@ type
     FGroupField: string;
     FStoreId: string;
     FProxy: TExtDataProxy;
+    FFields: TJSObjectArray;
     procedure SetAutoLoad(const AValue: Boolean);
     procedure SetProxy(const AValue: TExtDataProxy);
     procedure SetRemoteSort(const AValue: Boolean);
     procedure SetStoreId(AValue: string);
     procedure SetGroupField(const AValue: string);
+  strict protected
+    procedure InitDefaults; override;
   protected
     function GetObjectNamePrefix: string; override;
     function GetJSIdConfigName: string; override;
@@ -111,6 +114,7 @@ type
     function Load(const AOptions: TExtObject): TExtExpression;
     procedure RemoveAll(const ASilent: Boolean = False);
     property AutoLoad: Boolean read FAutoLoad write SetAutoLoad;
+    property Fields: TJSObjectArray read FFields;
     property GroupField: string read FGroupField write SetGroupField;
     property Proxy: TExtDataProxy read FProxy write SetProxy;
     property RemoteSort: Boolean read FRemoteSort write SetRemoteSort;
@@ -274,6 +278,12 @@ end;
 function TExtDataStore.GetObjectNamePrefix: string;
 begin
   Result := 'store';
+end;
+
+procedure TExtDataStore.InitDefaults;
+begin
+  inherited;
+  FFields := CreateConfigObjectArray('fields');
 end;
 
 function TExtDataStore.Load(const AOptions: TExtObject): TExtExpression;
