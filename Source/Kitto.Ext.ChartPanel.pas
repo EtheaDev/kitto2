@@ -43,6 +43,7 @@ type
     function CreateAndInitAxis(const AConfigNode: TEFNode): TExtChartAxis;
     function GetDefaultSeriesType(const AChartType: string): string;
     procedure InitLegend(const AConfigNode: TEFNode);
+    procedure CreateAndInitSprite(const AConfigNode: TEFNode);
   strict protected
     procedure SetViewTable(const AValue: TKViewTable); override;
   end;
@@ -55,6 +56,7 @@ uses
   , Generics.Collections
   , EF.Localization
   , EF.Macros
+  , Ext.Draw
   , Kitto.Types
   , Kitto.Metadata.Models
   , Kitto.JS
@@ -269,6 +271,23 @@ begin
 //    LSeries.Highlight := AConfigNode.GetBoolean('Highlight');
 end;
 
+procedure TKExtChartPanel.CreateAndInitSprite(const AConfigNode: TEFNode);
+var
+  LType: string;
+  LTextSprite: TExtDrawSpriteText;
+begin
+  Assert(Assigned(FChart));
+  Assert(Assigned(AConfigNode));
+
+  LType := AConfigNode.GetString('Type', 'Text');
+  if LType = 'Text' then
+  begin
+    LTextSprite := TExtDrawSpriteText.CreateInlineAndAddToArray(FChart.Sprites);
+    AConfigNode.SetPropertiesFromChildNodes(LTextSprite);
+  end;
+  { TODO : more sprite types }
+end;
+
 function TKExtChartPanel.CreateAndInitAxis(const AConfigNode: TEFNode): TExtChartAxis;
 var
   LFieldName: string;
@@ -352,6 +371,13 @@ begin
   begin
     for I := 0 to LNode.ChildCount - 1 do
       CreateAndInitSeries(LNode.Children[I]);
+  end;
+
+  LNode := Config.FindNode('Chart/Sprites');
+  if Assigned(LNode) then
+  begin
+    for I := 0 to LNode.ChildCount - 1 do
+      CreateAndInitSprite(LNode.Children[I]);
   end;
 
   InitLegend(Config.FindNode('Chart/Legend'));

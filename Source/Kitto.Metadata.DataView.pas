@@ -2721,18 +2721,18 @@ begin
           Result := AFilterByViewField.SourceField = LViewField;
           if Result then
           begin
+            // Select all destination fields and clear them, forcing the change
+            // event since we need it to update the UI.
             EnumChildren(
-              // Select all destination fields...
-              function (const ANode: TEFNode): Boolean
-              begin
-                Result := TKVIewTableField(ANode).ViewField = AFilterByViewField.DestinationField;
-              end,
-              // ...and clear them, forcing change event since we need it
-              // to update the UI.
               procedure (const ANode: TEFNode)
               begin
                 ANode.SetToNull(True);
-              end);
+              end,
+              function (const ANode: TEFNode): Boolean
+              begin
+                Result := TKVIewTableField(ANode).ViewField = AFilterByViewField.DestinationField;
+              end
+            );
           end;
         end);
     end;

@@ -215,11 +215,17 @@ type
   private
     FAngleField: string;
     FDonut: Integer;
+    FRadiusField: string;
+    FClockwise: Boolean;
     procedure SetAngleField(const AValue: string);
     procedure SetDonut(const AValue: Integer);
+    procedure SetClockwise(const AValue: Boolean);
+    procedure SetRadiusField(const AValue: string);
   public
     property AngleField: string read FAngleField write SetAngleField;
+    property Clockwise: Boolean read FClockwise write SetClockwise;
     property Donut: Integer read FDonut write SetDonut;
+    property RadiusField: string read FRadiusField write SetRadiusField;
   end;
 
   TExtChartPieSeries = class(TExtChartPolarSeries)
@@ -305,6 +311,7 @@ type
   private
     FStore: TExtDataStore;
     FSeries: TJSObjectArray;
+    FSprites: TJSObjectArray;
     FLegend: TExtChartLegendSpriteLegend;
     FLegendBool: Boolean;
     FInteractions: TJSObjectArray;
@@ -318,6 +325,8 @@ type
     procedure SetInnerPadding(const AValue: Integer);
     procedure SetInsetPadding(const AValue: Integer);
     procedure SetTheme(const AValue: string);
+    function GetSeries: TJSObjectArray;
+    function GetSprites: TJSObjectArray;
   protected
     procedure InitDefaults; override;
   public
@@ -327,7 +336,8 @@ type
     property Legend: TExtChartLegendSpriteLegend read GetLegend;
     property LegendBool: Boolean read FLegendBool write SetLegendBool;
     property Store: TExtDataStore read FStore write SetStore;
-    property Series: TJSObjectArray read FSeries;
+    property Series: TJSObjectArray read GetSeries;
+    property Sprites: TJSObjectArray read GetSprites;
     property Theme: string read FTheme write SetTheme;
     property Interactions: TJSObjectArray read GetInteractions;
 
@@ -665,10 +675,23 @@ begin
   Result := FLegend;
 end;
 
+function TExtChartAbstractChart.GetSeries: TJSObjectArray;
+begin
+  if not Assigned(FSeries) then
+    FSeries := CreateConfigObjectArray('series');
+  Result := FSeries;
+end;
+
+function TExtChartAbstractChart.GetSprites: TJSObjectArray;
+begin
+  if not Assigned(FSprites) then
+    FSprites := CreateConfigObjectArray('sprites');
+  Result := FSprites;
+end;
+
 procedure TExtChartAbstractChart.InitDefaults;
 begin
   inherited;
-  FSeries := CreateConfigObjectArray('series');
   FTheme := 'default';
 end;
 
@@ -825,7 +848,7 @@ end;
 
 procedure TExtChartPolarSeries.SetAngleField(const AValue: string);
 begin
-  FAngleField := SetConfigItem('angleField', AValue);
+  FAngleField := SetConfigItem('angleField', 'setAngleField', AValue);
 end;
 
 class function TExtChartPieSeries.JSXType: string;
@@ -848,9 +871,19 @@ begin
   Result := 'axis.category';
 end;
 
+procedure TExtChartPolarSeries.SetClockwise(const AValue: Boolean);
+begin
+  FClockwise := SetConfigItem('clockwise', 'setClockwise', AValue);
+end;
+
 procedure TExtChartPolarSeries.SetDonut(const AValue: Integer);
 begin
   FDonut := SetConfigItem('donut', 'setDonut', AValue);
+end;
+
+procedure TExtChartPolarSeries.SetRadiusField(const AValue: string);
+begin
+  FRadiusField := SetConfigItem('radiusField', 'setRadiusField', AValue);
 end;
 
 { TExtChartAxis3D }

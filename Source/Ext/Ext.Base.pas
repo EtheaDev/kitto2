@@ -59,8 +59,6 @@ type
   TExtUtilObservable = class(TExtObject)
   public
     class function JSClassName: string; override;
-    function AddListener(const AEventName: string; const AHandler: TExtExpression;
-      const AScope: TExtObject = nil; const AOptions: TExtObject = nil): TExtExpression;
     function FireEvent(const AEventName: string; const AArgs: TArray<TExtObject>): TExtExpression;
     function &On(const AEventName: string; const AHandler: TExtExpression;
       const AScope: TExtObject = nil; const AOptions: TExtObject = nil): TExtExpression;
@@ -795,17 +793,6 @@ end;
 class function TExtUtilObservable.JSClassName: string;
 begin
   Result := 'Ext.util.Observable';
-end;
-
-function TExtUtilObservable.AddListener(const AEventName: string; const AHandler: TExtExpression;
-  const AScope: TExtObject = nil; const AOptions: TExtObject = nil): TExtExpression;
-begin
-  Result := TKWebResponse.Current.Items.CallMethod(Self, 'addListener')
-    .AddParam(AEventName)
-    .AddParam(AHandler)
-    .AddParam(AScope)
-    .AddParam(AOptions)
-    .AsExpression;
 end;
 
 function TExtUtilObservable.FireEvent(const AEventName: string; const AArgs: TArray<TExtObject>): TExtExpression;
