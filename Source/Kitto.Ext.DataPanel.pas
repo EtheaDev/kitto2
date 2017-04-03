@@ -394,8 +394,6 @@ end;
 procedure TKExtDataPanelController.ShowEditWindow(const ARecord: TKViewTableRecord;
   const AEditMode: TKEditMode);
 var
-  LFormControllerType: string;
-  LFormControllerNode: TEFNode;
   LFormController: IJSController;
 begin
   Assert((AEditMode = emNewrecord) or Assigned(ARecord));

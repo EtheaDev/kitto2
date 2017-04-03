@@ -1895,7 +1895,7 @@ function TKModelFields.FindFieldByPredicate(
   const APredicate: TKModelFieldPredicate): TKModelField;
 var
   I: Integer;
-  LPredicate: TEFTree.TPredicate;
+  LPredicate: TEFTree.TNodePredicate;
 begin
   LPredicate :=
     function (const ANode: TEFNode): Boolean

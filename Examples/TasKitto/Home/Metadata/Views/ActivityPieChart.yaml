@@ -6,14 +6,26 @@ Controller: List
   CenterController: ChartPanel
     Chart:
       Type: Polar
+      Theme: Muted
+      Sprites:
+        Sprite:
+          #Type: Text
+          X: 20
+          Y: 35
+          Text: _(Activities By Type)
+          FontSize: 22
       Series:
         Series:
-          #Type: Pie
+          Type: Pie3D
           AngleField: DURATION
           Label:
             Field: TYPE_NAME
             CalloutLine: True
           Title: _(Duration)
+          Thickness: 50
+          Distortion: 60
+          Bevel: 20
+          Donut: 50
       Legend:
         Docked: left
         Padding: 10

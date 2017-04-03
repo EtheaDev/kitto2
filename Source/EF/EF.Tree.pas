@@ -25,9 +25,19 @@ unit EF.Tree;
 interface
 
 uses
-  SysUtils, Types, Classes, Variants, DB, FmtBcd, Generics.Collections,
-  Generics.Defaults, SyncObjs,
-  EF.Types, EF.Macros;
+  SysUtils
+  , Types
+  , Classes
+  , Variants
+  , DB
+  , FmtBcd
+  , Generics.Collections
+  , Generics.Defaults
+  , SyncObjs
+  , Rtti
+  , EF.Types
+  , EF.Macros
+  ;
 
 const
   NODE_NULL_VALUE = 'Null';
@@ -340,12 +350,16 @@ type
     FCriticalSection: TCriticalSection;
     FNodes: TEFNodes;
     FAnnotations: TStrings;
+    class var FRttiContext: TRttiContext;
     function GetChild(I: Integer): TEFNode; overload;
     function GetChildCount: Integer; overload;
     function GetAnnotations: TStrings;
     function GetAnnotation(const AIndex: Integer): string;
     function GetAnnotationCount: Integer;
     procedure SetAnnotation(const AIndex: Integer; const AValue: string);
+    procedure DoSetPropertyFromNode(const AType: TRttiType; const AInstance: TObject;
+      const ANode: TEFNode; const APath: string; const APathIsName: Boolean = False);
+    function GetRttiType(const AClassType: TClass): TRttiType;
   strict protected
     type
       TComparer = class(TComparer<TEFNode>, IComparer<TEFNode>)
@@ -461,7 +475,7 @@ type
       /// <summary>
       ///  Type used by FindChildByPredicate and EnumChildren.
       /// </summary>
-      TPredicate = reference to function (const ANode: TEFNode): Boolean;
+      TNodePredicate = reference to function (const ANode: TEFNode): Boolean;
 
     /// <summary>
     ///  Finds a child node by predicate. The predicate function is called
@@ -472,7 +486,7 @@ type
     ///   <param name="APredicate">Function for testing purpose</param>
     ///   <param name="ARecursively">If true, searches also in child nodes recursively</param>
     /// </summary>
-    function FindChildByPredicate(const APredicate: TPredicate;
+    function FindChildByPredicate(const APredicate: TNodePredicate;
       const ARecursively: Boolean = False): TEFNode;
 
     type
@@ -485,7 +499,7 @@ type
     ///  Calls APredicate for each direct child node. If APredicate returns True,
     ///  calls AProc passing the qualifying child node.
     /// </summary>
-    procedure EnumChildren(const APredicate: TPredicate; const AProc: TNodeProc);
+    procedure EnumChildren(const AProc: TNodeProc; const APredicate: TNodePredicate = nil);
 
     /// <summary>
     ///   Finds a child node by name. Raises an exception if not found.
@@ -775,6 +789,24 @@ type
     property Root: TEFTree read GetRoot;
 
     procedure Sort(const ACompareFunc: TEFNodeCompareFunc);
+
+    /// <summary>
+    ///  Looks for the node specified by APath and, if found, sets the same-named
+    ///  property of AInstance to the node's value. If APath is a compound path
+    ///  (such as Path/To/Property) then only the last part is used.
+    ///  If ApathIsName is True, then the path is assumed not to be compound and
+    ///  the code is more efficient.
+    /// </summary>
+    procedure SetPropertyFromNode(const AInstance: TObject; const APath: string; const APathIsName: Boolean = False);
+    /// <summary>
+    ///  Same as SetPropertyFromNode but for an array of nodes/properties.
+    /// </summary>
+    procedure SetPropertiesFromNode(const AInstance: TObject; const APaths: TArray<string>; const APathIsName: Boolean = False);
+    /// <summary>
+    ///  Calls SetPropertyFromNode for all direct children. If any children don't
+    ///  have corresponding properties, then an exception is raised.
+    /// </summary>
+    procedure SetPropertiesFromChildNodes(const AInstance: TObject);
   end;
 
   TEFTreeClass = class of TEFTree;
@@ -1564,6 +1596,10 @@ begin
   // (limited to string values) for a while.
   //Result := DataType.ValueToString(FValue);
   Result := EFVarToStr(FValue);
+  {$IFNDEF KIDE}
+  if Result.StartsWith('_(') then
+    Result := _(Result);
+  {$ENDIF}
 end;
 
 function TEFNode.GetAsStringArray: TStringDynArray;
@@ -2204,7 +2240,7 @@ begin
     ARecursively);
 end;
 
-function TEFTree.FindChildByPredicate(const APredicate: TPredicate;
+function TEFTree.FindChildByPredicate(const APredicate: TNodePredicate;
   const ARecursively: Boolean): TEFNode;
 var
   I: Integer;
@@ -2411,19 +2447,10 @@ end;
 function TEFTree.GetString(const APath, ADefaultValue: string): string;
 var
   LNode: TEFNode;
-  LValue: string;
 begin
   LNode := FindNode(APath);
   if Assigned(LNode) then
-  begin
-    LValue := LNode.AsString;
-{$IFNDEF KIDE}
-    if Pos('_(',LValue) = 1 then
-      Result := _(LValue)
-    else
-{$ENDIF}
-      Result := LValue;
-  end
+    Result := LNode.AsString
   else
     Result := ADefaultValue;
 end;
@@ -2595,6 +2622,68 @@ begin
   GetNode(APath, True).AsObject := AValue;
 end;
 
+procedure TEFTree.DoSetPropertyFromNode(const AType: TRttiType; const AInstance: TObject;
+  const ANode: TEFNode; const APath: string; const APathIsName: Boolean);
+var
+  LParts: TArray<string>;
+  LPropertyName: string;
+  LProperty: TRttiProperty;
+begin
+  Assert(Assigned(AType));
+  Assert(Assigned(AInstance));
+  Assert(not APath.IsEmpty);
+
+  if Assigned(ANode) then
+  begin
+    if APathIsName or not APath.Contains('/') then
+      LPropertyName := APath
+    else
+    begin
+      LParts := APath.Split(['/']);
+      LPropertyName := LParts[High(LParts)];
+    end;
+    LProperty := AType.GetProperty(LPropertyName);
+    if not Assigned(LProperty) then
+      raise Exception.CreateFmt('Property %s not found', [LPropertyName]);
+    LProperty.SetValue(AInstance, TValue.FromVariant(ANode.Value));
+  end;
+end;
+
+function TEFTree.GetRttiType(const AClassType: TClass): TRttiType;
+begin
+  Result := FRttiContext.GetType(AClassType);
+  if not Assigned(Result) then
+    raise Exception.Create('RTTI not available');
+end;
+
+procedure TEFTree.SetPropertiesFromChildNodes(const AInstance: TObject);
+var
+  LType: TRttiType;
+begin
+  LType := GetRttiType(AInstance.ClassType);
+  EnumChildren(
+    procedure (const ANode: TEFNode)
+    begin
+      DoSetPropertyFromNode(LType, AInstance, ANode, ANode.Name, True);
+    end
+  );
+end;
+
+procedure TEFTree.SetPropertiesFromNode(const AInstance: TObject; const APaths: TArray<string>; const APathIsName: Boolean);
+var
+  LType: TRttiType;
+  LPath: string;
+begin
+  LType := GetRttiType(AInstance.ClassType);
+  for LPath in APaths do
+    DoSetPropertyFromNode(LType, AInstance, FindNode(LPath), LPath, APathIsName);
+end;
+
+procedure TEFTree.SetPropertyFromNode(const AInstance: TObject; const APath: string; const APathIsName: Boolean);
+begin
+  DoSetPropertyFromNode(GetRttiType(AInstance.ClassType), AInstance, FindNode(APath), APath, APathIsName);
+end;
+
 function TEFTree.SetString(const APath, AValue: string): TEFNode;
 begin
   Result := GetNode(APath, True);
@@ -2629,15 +2718,15 @@ begin
   FCriticalSection.Enter;
 end;
 
-procedure TEFTree.EnumChildren(const APredicate: TPredicate; const AProc: TNodeProc);
+procedure TEFTree.EnumChildren(const AProc: TNodeProc; const APredicate: TNodePredicate);
 var
   I: Integer;
 begin
-  Assert(Assigned(APredicate));
+  Assert(Assigned(AProc));
 
   for I := 0 to ChildCount - 1 do
   begin
-    if APredicate(Children[I]) then
+    if not Assigned(APredicate) or APredicate(Children[I]) then
       AProc(Children[I]);
   end;
 end;

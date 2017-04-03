@@ -21,9 +21,14 @@ unit Kitto.Ext.ChartPanel;
 interface
 
 uses
-  Ext.Base, Ext.Chart, Ext.Data,
-  EF.Tree,
-  Kitto.Metadata.DataView, Kitto.Ext.Base, Kitto.Ext.DataPanelLeaf;
+  Ext.Base
+  , Ext.Chart
+  , Ext.Data
+  , EF.Tree
+  , Kitto.Metadata.DataView
+  , Kitto.Ext.Base
+  , Kitto.Ext.DataPanelLeaf
+  ;
 
 type
   TKExtChartPanel = class(TKExtDataPanelLeafController)
@@ -38,6 +43,7 @@ type
     function CreateAndInitAxis(const AConfigNode: TEFNode): TExtChartAxis;
     function GetDefaultSeriesType(const AChartType: string): string;
     procedure InitLegend(const AConfigNode: TEFNode);
+    procedure CreateAndInitSprite(const AConfigNode: TEFNode);
   strict protected
     procedure SetViewTable(const AValue: TKViewTable); override;
   end;
@@ -50,6 +56,7 @@ uses
   , Generics.Collections
   , EF.Localization
   , EF.Macros
+  , Ext.Draw
   , Kitto.Types
   , Kitto.Metadata.Models
   , Kitto.JS
@@ -181,11 +188,34 @@ var
   LSeries: TExtChartSeries;
   LType: string;
   LRenderer: string;
+  LOptionNode: TEFNode;
 begin
   Assert(Assigned(AConfigNode));
 
   LType := AConfigNode.GetString('Type', GetDefaultSeriesType(FChartType));
   LSeries := TExtChartSeries.CreateInlineByType(LType, FChart);
+
+  if LSeries is TExtChartPie3DSeries then
+  begin
+    LOptionNode := AConfigNode.FindNode('Thickness');
+    if Assigned(LOptionNode) then
+      TExtChartPie3DSeries(LSeries).Thickness := LOptionNode.AsInteger;
+    LOptionNode := AConfigNode.FindNode('Distortion');
+    if Assigned(LOptionNode) then
+      TExtChartPie3DSeries(LSeries).Distortion := LOptionNode.AsInteger / 100;
+    LOptionNode := AConfigNode.FindNode('Bevel');
+    if Assigned(LOptionNode) then
+      TExtChartPie3DSeries(LSeries).Bevel := LOptionNode.AsInteger;
+  end;
+
+  if LSeries is TExtChartPolarSeries then
+  begin
+    LOptionNode := AConfigNode.FindNode('Donut');
+    if Assigned(LOptionNode) then
+      TExtChartPolarSeries(LSeries).Donut := LOptionNode.AsInteger;
+  end;
+
+       
 
   LOption := AConfigNode.GetString('Label/Field');
   if LOption <> '' then
@@ -241,6 +271,23 @@ begin
 //    LSeries.Highlight := AConfigNode.GetBoolean('Highlight');
 end;
 
+procedure TKExtChartPanel.CreateAndInitSprite(const AConfigNode: TEFNode);
+var
+  LType: string;
+  LTextSprite: TExtDrawSpriteText;
+begin
+  Assert(Assigned(FChart));
+  Assert(Assigned(AConfigNode));
+
+  LType := AConfigNode.GetString('Type', 'Text');
+  if LType = 'Text' then
+  begin
+    LTextSprite := TExtDrawSpriteText.CreateInlineAndAddToArray(FChart.Sprites);
+    AConfigNode.SetPropertiesFromChildNodes(LTextSprite);
+  end;
+  { TODO : more sprite types }
+end;
+
 function TKExtChartPanel.CreateAndInitAxis(const AConfigNode: TEFNode): TExtChartAxis;
 var
   LFieldName: string;
@@ -264,6 +311,14 @@ var
   LNode: TEFNode;
   I: Integer;
   LOption: TEFNode;
+
+  function GetChartDefaultTheme: string;
+  begin
+    if FChartType.EndsWith('3D') then
+      Result := 'Muted'
+    else
+      Result := 'default-gradients';
+  end;
 
 //  function GetAxisField(const AAxis: string): string;
 //  var
@@ -302,7 +357,7 @@ begin
   if Assigned(LOption) then
     FChart.InsetPadding := LOption.AsInteger;
 
-  FChart.Theme := Config.GetString('Chart/Theme', 'default-gradients');
+  FChart.Theme := Config.GetString('Chart/Theme', GetChartDefaultTheme);
 
   LNode := Config.FindNode('Chart/Axes');
   if Assigned(LNode) then
@@ -316,6 +371,13 @@ begin
   begin
     for I := 0 to LNode.ChildCount - 1 do
       CreateAndInitSeries(LNode.Children[I]);
+  end;
+
+  LNode := Config.FindNode('Chart/Sprites');
+  if Assigned(LNode) then
+  begin
+    for I := 0 to LNode.ChildCount - 1 do
+      CreateAndInitSprite(LNode.Children[I]);
   end;
 
   InitLegend(Config.FindNode('Chart/Legend'));
