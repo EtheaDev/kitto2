@@ -789,6 +789,7 @@ var
   LStart: Integer;
   LLimit: Integer;
   LPageRecordCount: Integer;
+  LDBConnection: TEFDBConnection;
   LDBQuery: TEFDBQuery;
   LCommandText: string;
   LQuery: string;
@@ -798,24 +799,29 @@ begin
 
   Assert(Assigned(FServerStore));
 
-  LDBQuery := TKWebApplication.Current.Config.DBConnections[GetDatabaseName(FConfig, Self, FViewTable.DatabaseName)].CreateDBQuery;
+  LDBConnection := TKConfig.Instance.CreateDBConnection(GetDatabaseName(FConfig, Self, FViewTable.DatabaseName));
   try
-    LCommandText := ExpandFilterValues(Owner as TJSObjectArray, FConfig.GetExpandedString('CommandText'));
-    LQuery := ParamAsString('query');
-    if LQuery <> '' then
-      LQueryExpression := ReplaceStr(FConfig.GetExpandedString('QueryTemplate'), '{queryValue}', LQuery)
-    else
-      LQueryExpression := '';
-    LDBQuery.CommandText := ReplaceStr(LCommandText, '{query}', LQueryExpression);
-    LDBQuery.Open;
+    LDBQuery := LDBConnection.CreateDBQuery;
     try
-      Assert(LDBQuery.DataSet.FieldCount = 2);
-      FServerStore.Load(LDBQuery, False, True);
+      LCommandText := ExpandFilterValues(Owner as TJSObjectArray, FConfig.GetExpandedString('CommandText'));
+      LQuery := ParamAsString('query');
+      if LQuery <> '' then
+        LQueryExpression := ReplaceStr(FConfig.GetExpandedString('QueryTemplate'), '{queryValue}', LQuery)
+      else
+        LQueryExpression := '';
+      LDBQuery.CommandText := ReplaceStr(LCommandText, '{query}', LQueryExpression);
+      LDBQuery.Open;
+      try
+        Assert(LDBQuery.DataSet.FieldCount = 2);
+        FServerStore.Load(LDBQuery, False, True);
+      finally
+        LDBQuery.Close;
+      end;
     finally
-      LDBQuery.Close;
+      FreeAndNil(LDBQuery);
     end;
   finally
-    FreeAndNil(LDBQuery);
+    FreeAndNil(LDBConnection);
   end;
 
   LStart := ParamAsInteger('start');
@@ -983,12 +989,18 @@ end;
 
 function TKDateSearchFilter.GetExpression: string;
 var
+  LDBConnection: TEFDBConnection;
   LDateTimeValue: string;
 begin
   //A zero date is considered blank
   if FCurrentValue <> 0 then
   begin
-    LDateTimeValue := TKWebApplication.Current.Config.DBConnections[GetDatabaseName(FConfig, Self, FViewTable.DatabaseName)].DBEngineType.FormatDateTime(FCurrentValue);
+    LDBConnection := TKConfig.Instance.CreateDBConnection(GetDatabaseName(FConfig, Self, FViewTable.DatabaseName));
+    try
+      LDateTimeValue := LDBConnection.DBEngineType.FormatDateTime(FCurrentValue);
+    finally
+      FreeAndNil(LDBConnection);
+    end;
     Result := ReplaceText(FConfig.GetExpandedString('ExpressionTemplate'), '{value}', LDateTimeValue);
   end
   else
@@ -1127,7 +1139,7 @@ begin
     if IsButtonVisible(GetACName(I)) then
     begin
       if IsSingleSelect then
-        LButtons[I].ToggleGroup := IntToStr(Integer(Pointer(Self)));
+        LButtons[I].ToggleGroup := IntToStr(NativeInt(Pointer(Self)));
       // In single select mode, only press the first default button.
       if not IsSingleSelect or not LIsDefaultSet then
       begin
@@ -1282,29 +1294,35 @@ end;
 
 function TKDynaButtonListFilter.RetrieveItems: TEFNode;
 var
+  LDBConnection: TEFDBConnection;
   LDBQuery: TEFDBQuery;
   LItem: TEFNode;
 begin
   Result := TEFNode.Create('Items');
   try
-    LDBQuery := TKWebApplication.Current.Config.DBConnections[GetDatabaseName(FConfig, Self, FViewTable.DatabaseName)].CreateDBQuery;
+    LDBConnection := TKConfig.Instance.CreateDBConnection(GetDatabaseName(FConfig, Self, FViewTable.DatabaseName));
     try
-      LDBQuery.CommandText := FConfig.GetExpandedString('CommandText');
-      LDBQuery.Open;
+      LDBQuery := LDBConnection.CreateDBQuery;
       try
-        Assert(LDBQuery.DataSet.FieldCount = 2);
-        while not LDBQuery.DataSet.Eof do
-        begin
-          LItem := Result.AddChild('Item', LDBQuery.DataSet.Fields[DISPLAY_FIELD].DisplayText);
-          LItem.SetValue('Value', LDBQuery.DataSet.Fields[VALUE_FIELD].Value);
-          //LItem.SetInteger('Width', CharsToPixels(AConfig.GetInteger('Width', GetLargestFieldWidth(LDBQuery.DataSet.Fields[DISPLAY_FIELD]) + TRIGGER_WIDTH)));
-          LDBQuery.DataSet.Next;
+        LDBQuery.CommandText := FConfig.GetExpandedString('CommandText');
+        LDBQuery.Open;
+        try
+          Assert(LDBQuery.DataSet.FieldCount = 2);
+          while not LDBQuery.DataSet.Eof do
+          begin
+            LItem := Result.AddChild('Item', LDBQuery.DataSet.Fields[DISPLAY_FIELD].DisplayText);
+            LItem.SetValue('Value', LDBQuery.DataSet.Fields[VALUE_FIELD].Value);
+            //LItem.SetInteger('Width', CharsToPixels(AConfig.GetInteger('Width', GetLargestFieldWidth(LDBQuery.DataSet.Fields[DISPLAY_FIELD]) + TRIGGER_WIDTH)));
+            LDBQuery.DataSet.Next;
+          end;
+        finally
+          LDBQuery.Close;
         end;
       finally
-        LDBQuery.Close;
+        FreeAndNil(LDBQuery);
       end;
     finally
-      FreeAndNil(LDBQuery);
+      FreeAndNil(LDBConnection);
     end;
   except
     FreeAndNil(Result);

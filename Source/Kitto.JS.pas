@@ -1436,3 +1436,4 @@ finalization
   TEFLocalizationToolRegistry.UnregisterTool;
 
 end.
+

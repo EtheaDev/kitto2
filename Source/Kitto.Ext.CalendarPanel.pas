@@ -70,8 +70,10 @@ uses
   , EF.Localization
   , EF.Macros
   , EF.StrUtils
+  , EF.DB
   , EF.SQL
   , Kitto.Types
+  , Kitto.Config
   , Kitto.Metadata.Models
   , Kitto.Web.Application
   , Kitto.Web.Response
@@ -131,6 +133,7 @@ var
   LStartDateStr: string;
   LEndDateStr: string;
   LFilter: string;
+  LDBConnection: TEFDBConnection;
 
   function ParseJSDate(const ADateYMD: string): TDateTime;
   var
@@ -150,8 +153,13 @@ begin
   LEndDateStr := ParamAsString('end');
   if (LStartDateStr <> '') and (LEndDateStr <> '') then
   begin
-    LStartDateStr := TKWebApplication.Current.Config.DBConnections[ViewTable.DatabaseName].DBEngineType.FormatDateTime(ParseJSDate(LStartDateStr));
-    LEndDateStr := TKWebApplication.Current.Config.DBConnections[ViewTable.DatabaseName].DBEngineType.FormatDateTime(ParseJSDate(LEndDateStr));
+    LDBConnection := TKConfig.Instance.CreateDBConnection(ViewTable.DatabaseName);
+    try
+      LStartDateStr := LDBConnection.DBEngineType.FormatDateTime(ParseJSDate(LStartDateStr));
+      LEndDateStr := LDBConnection.DBEngineType.FormatDateTime(ParseJSDate(LEndDateStr));
+    finally
+      FreeAndNil(LDBConnection);
+    end;
     LFilter := GetStartDateDBName + ' between ' + SQLQuotedStr(LStartDateStr) + ' and ' + SQLQuotedStr(LEndDateStr) +
       ' or ' + SQLQuotedStr(LStartDateStr) + ' between ' + GetStartDateDBName + ' and ' + GetEndDateDBName;
     if Result = '' then

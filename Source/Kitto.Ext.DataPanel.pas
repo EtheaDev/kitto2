@@ -865,7 +865,10 @@ begin
   Assert(Assigned(FServerStore));
 
   AController.Config.SetObject('Sys/ViewTable', FViewTable);
-  AController.Config.SetObject('Sys/ServerStore', FServerStore);
+  // Let each subcontroller create its own store (although it's less efficient),
+  // as sharing the store means several GetRecordPage requests may come to the
+  // same store simultaneously from different threads -> havoc.
+  //AController.Config.SetObject('Sys/ServerStore', FServerStore);
 end;
 
 function TKExtDataPanelController.IsActionAllowed(const AActionName: string): Boolean;

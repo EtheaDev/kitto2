@@ -2,7 +2,7 @@
 DisplayLabel: Pie Chart
 Controller: List
   EastController: GridPanel
-    Width: 350
+    Width: 400
   CenterController: ChartPanel
     Chart:
       Type: Polar

@@ -35,6 +35,7 @@ uses
   , Kitto.Ext.Rules
   , Kitto.Ext.StandardControllers
   , Kitto.Ext.StatusBar
+  , Kitto.Ext.SQLTool
   , Kitto.Ext.TabPanel
   , Kitto.Ext.TemplateDataPanel
   , Kitto.Ext.ToolBar

@@ -1950,21 +1950,27 @@ var
   LStart: Integer;
   LLimit: Integer;
   LPageRecordCount: Integer;
+  LDBConnection: TEFDBConnection;
   LDBQuery: TEFDBQuery;
 begin
   Assert(Assigned(FServerStore));
 
-  LDBQuery := TKWebApplication.Current.Config.DBConnections[FRecordField.ViewField.Table.DatabaseName].CreateDBQuery;
+  LDBConnection := TKConfig.Instance.CreateDBConnection(FRecordField.ViewField.Table.DatabaseName);
   try
-    TKSQLBuilder.CreateAndExecute(
-      procedure (ASQLBuilder: TKSQLBuilder)
-      begin
-        ASQLBuilder.BuildLookupSelectStatement(FRecordField.ViewField, LDBQuery,
-          ReplaceStr(ParamAsString('query'), '''', ''''''), FRecordField.ParentRecord);
-      end);
-    FServerStore.Load(LDBQuery);
+    LDBQuery := LDBConnection.CreateDBQuery;
+    try
+      TKSQLBuilder.CreateAndExecute(
+        procedure (ASQLBuilder: TKSQLBuilder)
+        begin
+          ASQLBuilder.BuildLookupSelectStatement(FRecordField.ViewField, LDBQuery,
+            ReplaceStr(ParamAsString('query'), '''', ''''''), FRecordField.ParentRecord);
+        end);
+      FServerStore.Load(LDBQuery);
+    finally
+      FreeAndNil(LDBQuery);
+    end;
   finally
-    FreeAndNil(LDBQuery);
+    FreeAndNil(LDBConnection);
   end;
 
   LStart := ParamAsInteger('start');

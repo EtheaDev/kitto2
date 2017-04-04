@@ -19,7 +19,8 @@ Defaults:
     LabelSeparator:
 
 Databases:
-  Main: DBX
+
+  Old: DBX
     Connection:
       DriverName: Firebird
       DataBase: localhost:TASKITTO
@@ -30,9 +31,19 @@ Databases:
       IsolationLevel: ReadCommitted
       Trim Char: False
 
+  Main: FD
+    Connection:
+      DriverID: FB
+      Database: TASKITTO
+      User_Name: SYSDBA
+      Password: masterkey
+      Server: localhost
+      CharacterSet: UTF8
+      Protocol: TCPIP
+
 Auth: DB
   IsClearPassword: True
-  .Defaults:
+  Defaults:
     UserName: admin
     Password: admin
   ReadUserCommandText: select USER_NAME, PASSWORD_HASH, FIRST_NAME, LAST_NAME from KITTO_USERS where IS_ACTIVE = 1 and UPPER(USER_NAME) = UPPER(:USER_NAME)

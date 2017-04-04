@@ -6,8 +6,9 @@ interface
 
 uses
   DBXFirebird,
-  EF.DB.ADO,
+  // EF.DB.ADO,
   EF.DB.DBX,
+  EF.DB.FD,
   // Kitto.AccessControl.DB,
   Kitto.Auth.DB,
   // Kitto.Auth.DBServer,

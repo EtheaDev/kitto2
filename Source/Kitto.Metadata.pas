@@ -189,7 +189,7 @@ type
     ///  invalidates all objects.
     /// </summary>
     /// <remarks>
-    ///  Upon calling this method, any pointer to an object loaded by
+    ///  Upon calling this method, any reference to an object loaded by
     ///  the catalog is no longer valid.
     /// </remarks>
     procedure Open; virtual;

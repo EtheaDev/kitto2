@@ -342,43 +342,47 @@ begin
   ARecord.HandleSetToNullInstructions;
 
   // BEFORE rules are applied before calling this method.
-  LDBConnection := TKConfig.Instance.DBConnections[ARecord.Store.ViewTable.DatabaseName];
-  if AUseTransactions then
-    LDBConnection.StartTransaction;
+  LDBConnection := TKConfig.Instance.CreateDBConnection(ARecord.Store.ViewTable.DatabaseName);
   try
-    LDBCommand := LDBConnection.CreateDBCommand;
-    try
-      TKSQLBuilder.CreateAndExecute(
-        procedure (ASQLBuilder: TKSQLBuilder)
-        begin
-          case ARecord.State of
-            rsNew: ASQLBuilder.BuildInsertCommand(LDBCommand, ARecord);
-            rsDirty: ASQLBuilder.BuildUpdateCommand(LDBCommand, ARecord);
-            rsDeleted: ASQLBuilder.BuildDeleteCommand(LDBCommand, ARecord);
-          else
-            raise EKError.CreateFmt('Unexpected record state %s.', [GetEnumName(TypeInfo(TKRecordState), Ord(ARecord.State))]);
-          end;
-        end);
-      if LDBCommand.CommandText <> '' then
-      begin
-        LRowsAffected := LDBCommand.Execute;
-        if LRowsAffected <> 1 then
-          raise EKError.CreateFmt('Update error. Rows affected: %d.', [LRowsAffected]);
-      end;
-      PersistDetailStores;
-      ARecord.ApplyAfterRules;
-      if AUseTransactions then
-        LDBConnection.CommitTransaction;
-      // Take care of any cleared external files.
-      ARecord.HandleDeleteFileInstructions;
-      ARecord.MarkAsClean;
-    finally
-      FreeAndNil(LDBCommand);
-    end;
-  except
     if AUseTransactions then
-      LDBConnection.RollbackTransaction;
-    raise;
+      LDBConnection.StartTransaction;
+    try
+      LDBCommand := LDBConnection.CreateDBCommand;
+      try
+        TKSQLBuilder.CreateAndExecute(
+          procedure (ASQLBuilder: TKSQLBuilder)
+          begin
+            case ARecord.State of
+              rsNew: ASQLBuilder.BuildInsertCommand(LDBCommand, ARecord);
+              rsDirty: ASQLBuilder.BuildUpdateCommand(LDBCommand, ARecord);
+              rsDeleted: ASQLBuilder.BuildDeleteCommand(LDBCommand, ARecord);
+            else
+              raise EKError.CreateFmt('Unexpected record state %s.', [GetEnumName(TypeInfo(TKRecordState), Ord(ARecord.State))]);
+            end;
+          end);
+        if LDBCommand.CommandText <> '' then
+        begin
+          LRowsAffected := LDBCommand.Execute;
+          if LRowsAffected <> 1 then
+            raise EKError.CreateFmt('Update error. Rows affected: %d.', [LRowsAffected]);
+        end;
+        PersistDetailStores;
+        ARecord.ApplyAfterRules;
+        if AUseTransactions then
+          LDBConnection.CommitTransaction;
+        // Take care of any cleared external files.
+        ARecord.HandleDeleteFileInstructions;
+        ARecord.MarkAsClean;
+      finally
+        FreeAndNil(LDBCommand);
+      end;
+    except
+      if AUseTransactions then
+        LDBConnection.RollbackTransaction;
+      raise;
+    end;
+  finally
+    FreeAndNil(LDBConnection);
   end;
 end;
 
@@ -441,23 +445,27 @@ procedure TKDefaultModel.InternalSaveRecords(const AStore: TKViewTableStore;
   const APersist: Boolean; const AUseTransaction: Boolean; const AAfterPersist: TProc);
 var
   I: Integer;
-  LConnection: TEFDBConnection;
+  LDBConnection: TEFDBConnection;
   LUseTransaction: Boolean;
 begin
-  LConnection := TKConfig.Instance.DBConnections[AStore.ViewTable.DatabaseName];
-  if AUseTransaction then
-    LConnection.StartTransaction;
+  LDBConnection := TKConfig.Instance.CreateDBConnection(AStore.ViewTable.DatabaseName);
   try
-    //Save any record in a single transaction only if the connection is not is transaction
-    LUseTransaction := not LConnection.IsInTransaction;
-    for I := 0 to AStore.RecordCount - 1 do
-      SaveRecord(AStore.Records[I], APersist, AAfterPersist, LUseTransaction);
     if AUseTransaction then
-      LConnection.CommitTransaction;
-  except
-    if AUseTransaction then
-      LConnection.RollbackTransaction;
-    raise;
+      LDBConnection.StartTransaction;
+    try
+      //Save any record in a single transaction only if the connection is not is transaction
+      LUseTransaction := not LDBConnection.IsInTransaction;
+      for I := 0 to AStore.RecordCount - 1 do
+        SaveRecord(AStore.Records[I], APersist, AAfterPersist, LUseTransaction);
+      if AUseTransaction then
+        LDBConnection.CommitTransaction;
+    except
+      if AUseTransaction then
+        LDBConnection.RollbackTransaction;
+      raise;
+    end;
+  finally
+    FreeAndNil(LDBConnection);
   end;
 end;
 

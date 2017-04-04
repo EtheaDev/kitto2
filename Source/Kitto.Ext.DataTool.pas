@@ -138,14 +138,18 @@ var
 begin
   Assert(Assigned(AProc));
 
-  LDBConnection := TKConfig.Instance.DBConnections[ViewTable.DatabaseName];
-  LDBConnection.StartTransaction;
+  LDBConnection := TKConfig.Instance.CreateDBConnection(ViewTable.DatabaseName);
   try
-    AProc;
-    LDBConnection.CommitTransaction;
-  except
-    LDBConnection.RollbackTransaction;
-    raise;
+    LDBConnection.StartTransaction;
+    try
+      AProc;
+      LDBConnection.CommitTransaction;
+    except
+      LDBConnection.RollbackTransaction;
+      raise;
+    end;
+  finally
+    FreeAndNil(LDBConnection);
   end;
 end;
 
@@ -209,14 +213,18 @@ var
 begin
   Assert(Assigned(AProc));
 
-  LDBConnection := TKConfig.Instance.DBConnections[ViewTable.DatabaseName];
-  LDBConnection.StartTransaction;
+  LDBConnection := TKConfig.Instance.CreateDBConnection(ViewTable.DatabaseName);
   try
-    AProc;
-    LDBConnection.CommitTransaction;
-  except
-    LDBConnection.RollbackTransaction;
-    raise;
+    LDBConnection.StartTransaction;
+    try
+      AProc;
+      LDBConnection.CommitTransaction;
+    except
+      LDBConnection.RollbackTransaction;
+      raise;
+    end;
+  finally
+    FreeAndNil(LDBConnection);
   end;
 end;
 

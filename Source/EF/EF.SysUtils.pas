@@ -758,7 +758,6 @@ var
   LOutputTempFileSecurityAttributes: TSecurityAttributes;
   LUseOutputTempFile: Boolean;
 begin
-  Result := 0;
   LOutputTempFileName := '';
   LUseOutputTempFile := Assigned(AOutput) and AWait;
   LOutputTempFileHandle := 0;

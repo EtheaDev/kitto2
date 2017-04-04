@@ -1,4 +1,4 @@
 ﻿Fields:
   TYPE_NAME: String(20) primary key
-  DURATION: Integer
+  DURATION: Float
 ImageName: calendar

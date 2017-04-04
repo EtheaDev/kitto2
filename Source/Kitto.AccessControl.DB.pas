@@ -201,9 +201,13 @@ type
 implementation
 
 uses
-  SysUtils, Variants,
-  EF.DB, EF.RegEx,
-  Kitto.Config, Kitto.DatabaseRouter;
+  SysUtils
+  , Variants
+  , EF.DB
+  , EF.RegEx
+  , Kitto.Config
+  , Kitto.DatabaseRouter
+  ;
   
 { TKDBAccessController }
 
@@ -306,23 +310,29 @@ end;
 procedure TKUserPermissionStorage.LoadGranteePermissions(
   const AGranteeId: string);
 var
-  LPermissionQuery: TEFDBQuery;
+  LDBConnection: TEFDBConnection;
+  LPermissionDBQuery: TEFDBQuery;
 begin
   Assert(AGranteeId <> '');
   Assert(FReadPermissionsCommandText <> '');
 
-  LPermissionQuery := TKConfig.Instance.DBConnections[GetDatabaseName].CreateDBQuery;
+  LDBConnection := TKConfig.Instance.CreateDBConnection(GetDatabaseName);
   try
-    LPermissionQuery.CommandText := FReadPermissionsCommandText;
-    LPermissionQuery.Params[0].AsString := AGranteeId;
-    LPermissionQuery.Open;
+    LPermissionDBQuery := LDBConnection.CreateDBQuery;
     try
-      FPermissions.Load(LPermissionQuery, True);
+      LPermissionDBQuery.CommandText := FReadPermissionsCommandText;
+      LPermissionDBQuery.Params[0].AsString := AGranteeId;
+      LPermissionDBQuery.Open;
+      try
+        FPermissions.Load(LPermissionDBQuery, True);
+      finally
+        LPermissionDBQuery.Close;
+      end;
     finally
-      LPermissionQuery.Close;
+      FreeAndNil(LPermissionDBQuery);
     end;
   finally
-    FreeAndNil(LPermissionQuery);
+    FreeAndNil(LDBConnection);
   end;
 end;
 
@@ -377,28 +387,34 @@ end;
 procedure TKUserPermissionStorage.GetUserRoles(
   const AUserId: string; const ARoleList: TStrings);
 var
-  LRoleQuery: TEFDBQuery;
+  LDBConnection: TEFDBConnection;
+  LRoleDBQuery: TEFDBQuery;
 begin
   Assert(AUserId <> '');
   Assert(Assigned(ARoleList));
   Assert(FReadRolesCommandText <> '');
 
-  LRoleQuery := TKConfig.Instance.DBConnections[GetDatabaseName].CreateDBQuery;
+  LDBConnection := TKConfig.Instance.CreateDBConnection(GetDatabaseName);
   try
-    LRoleQuery.CommandText := FReadRolesCommandText;
-    LRoleQuery.Params[0].AsString := AUserId;
-    LRoleQuery.Open;
+    LRoleDBQuery := LDBConnection.CreateDBQuery;
     try
-      while not LRoleQuery.DataSet.Eof do
-      begin
-        ARoleList.Add(LRoleQuery.DataSet.Fields[0].AsString);
-        LRoleQuery.DataSet.Next;
+      LRoleDBQuery.CommandText := FReadRolesCommandText;
+      LRoleDBQuery.Params[0].AsString := AUserId;
+      LRoleDBQuery.Open;
+      try
+        while not LRoleDBQuery.DataSet.Eof do
+        begin
+          ARoleList.Add(LRoleDBQuery.DataSet.Fields[0].AsString);
+          LRoleDBQuery.DataSet.Next;
+        end;
+      finally
+        LRoleDBQuery.Close;
       end;
     finally
-      LRoleQuery.Close;
+      FreeAndNil(LRoleDBQuery);
     end;
   finally
-    FreeAndNil(LRoleQuery);
+    FreeAndNil(LDBConnection);
   end;
 end;
 

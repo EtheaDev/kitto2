@@ -56,7 +56,6 @@ type
     FConfigClass: TKConfigClass;
     FOnGetAppName: TKConfigGetAppNameEvent;
   var
-    FDBConnections: TDictionary<string, TEFDBConnection>;
     FMacroExpansionEngine: TEFMacroExpansionEngine;
     FModels: TKModels;
     FViews: TKViews;
@@ -71,19 +70,16 @@ type
 
     function GetDBConnectionNames: TStringDynArray;
     function GetMultiFieldSeparator: string;
-    function GetDBConnection(const ADatabaseName: string): TEFDBConnection;
     function GetDBAdapter(const ADatabaseName: string): TEFDBAdapter;
     function GetMacroExpansionEngine: TEFMacroExpansionEngine;
     function GetAppTitle: string;
     function GetAppIcon: string;
     function GetModels: TKModels;
     function GetViews: TKViews;
-    procedure FinalizeDBConnections;
     function GetDefaultDatabaseName: string;
     function GetDatabaseName: string;
     function GetLanguagePerSession: Boolean;
     class function AdaptImageName(const AResourceName: string; const ASuffix: string = ''): string;
-    function GetDefaultDBConnection: TEFDBConnection;
   strict protected
     function GetConfigFileName: string; override;
     class function FindSystemHomePath: string;
@@ -223,23 +219,16 @@ type
     /// <summary>Makes sure catalogs are recreated at next access.</summary>
     procedure InvalidateCatalogs;
 
-    /// <summary>Gives access to a database connection by name, created on
-    /// demand.</summary>
-    property DBConnections[const AName: string]: TEFDBConnection read GetDBConnection;
-
     /// <summary>Returns the names of all defined database
     /// connections.</summary>
     property DBConnectionNames: TStringDynArray read GetDBConnectionNames;
+
+    function CreateDBConnection(const ADatabaseName: string): TEFDBConnection;
 
     /// <summary>Default DatabaseName to use when not specified elsewhere. Can
     /// be set through the DatabaseRouter/DatabaseName node or through the
     /// DefaultDatabaseName node.</summary>
     property DatabaseName: string read GetDatabaseName;
-
-    /// <summary>
-    ///  Returns a reference to the default database connection, if any.
-    /// </summary>
-    property DefaultDBConnection: TEFDBConnection read GetDefaultDBConnection;
 
     /// <summary>
     ///  Returns the application title, to be used for captions, about
@@ -326,8 +315,6 @@ begin
     FUserFormatSettings.DateSeparator := '-'
   else
     FUserFormatSettings.DateSeparator := '/';
-
-  FDBConnections := TDictionary<string, TEFDBConnection>.Create;
 end;
 
 destructor TKConfig.Destroy;
@@ -335,7 +322,6 @@ begin
   inherited;
   FreeAndNil(FViews);
   FreeAndNil(FModels);
-  FinalizeDBConnections;
   FreeAndNil(FMacroExpansionEngine);
 end;
 
@@ -346,36 +332,26 @@ begin
   NotifyObservers(AContext);
 end;
 
-procedure TKConfig.FinalizeDBConnections;
-var
-  LDBConnection: TEFDBConnection;
-begin
-  for LDBConnection in FDBConnections.Values do
-    LDBConnection.Free;
-  FreeAndNil(FDBConnections);
-end;
-
 procedure TKConfig.InvalidateCatalogs;
 begin
   FreeAndNil(FViews);
   FreeAndNil(FModels);
 end;
 
-function TKConfig.GetDBConnection(const ADatabaseName: string): TEFDBConnection;
+function TKConfig.CreateDBConnection(const ADatabaseName: string): TEFDBConnection;
 var
   LConfig: TEFNode;
 begin
-  if not FDBConnections.ContainsKey(ADatabaseName) then
-  begin
-    Result := GetDBAdapter(ADatabaseName).CreateDBConnection;
+  Result := GetDBAdapter(ADatabaseName).CreateDBConnection;
+  try
     Result.Config.AddChild(TEFNode.Clone(Config.GetNode('Databases/' + ADatabaseName + '/Connection')));
     LConfig := Config.FindNode('Databases/' + ADatabaseName + '/Config');
     if Assigned(LConfig) then
       Result.Config.AddChild(TEFNode.Clone(LConfig));
-    FDBConnections.Add(ADatabaseName, Result);
-  end
-  else
-    Result := FDBConnections[ADatabaseName];
+  except
+    FreeAndNil(Result);
+    raise;
+  end;
 end;
 
 function TKConfig.GetDBConnectionNames: TStringDynArray;
@@ -404,11 +380,6 @@ end;
 function TKConfig.GetDefaultDatabaseName: string;
 begin
   Result := Config.GetExpandedString('DefaultDatabaseName', 'Main');
-end;
-
-function TKConfig.GetDefaultDBConnection: TEFDBConnection;
-begin
-  Result := DBConnections[DatabaseName];
 end;
 
 function TKConfig.GetDBAdapter(const ADatabaseName: string): TEFDBAdapter;

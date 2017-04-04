@@ -250,32 +250,38 @@ uses
 function TKDBAuthenticator.CreateAndReadUser(
   const AUserName: string; const AAuthData: TEFNode): TKAuthUser;
 var
-  LQuery: TEFDBQuery;
+  LDBConnection: TEFDBConnection;
+  LDBQuery: TEFDBQuery;
 begin
   Result := nil;
-  LQuery := TKConfig.Instance.DBConnections[GetDatabaseName].CreateDBQuery;
+  LDBConnection := TKConfig.Instance.CreateDBConnection(GetDatabaseName);
   try
-    LQuery.CommandText := GetReadUserCommandText(AUserName);
-    if LQuery.Params.Count <> 1 then
-      raise EKError.CreateFmt(_('Wrong authentication query text: %s'), [LQuery.CommandText]);
-    LQuery.Params[0].AsString := AUserName;
-    LQuery.Open;
+    LDBQuery := LDBConnection.CreateDBQuery;
     try
-      if not LQuery.DataSet.IsEmpty then
-      begin
-        Result := TKAuthUser.Create;
-        try
-          ReadUserFromRecord(Result, LQuery, AAuthData);
-        except
-          Result.Free;
-          raise;
+      LDBQuery.CommandText := GetReadUserCommandText(AUserName);
+      if LDBQuery.Params.Count <> 1 then
+        raise EKError.CreateFmt(_('Wrong authentication query text: %s'), [LDBQuery.CommandText]);
+      LDBQuery.Params[0].AsString := AUserName;
+      LDBQuery.Open;
+      try
+        if not LDBQuery.DataSet.IsEmpty then
+        begin
+          Result := TKAuthUser.Create;
+          try
+            ReadUserFromRecord(Result, LDBQuery, AAuthData);
+          except
+            Result.Free;
+            raise;
+          end;
         end;
+      finally
+        LDBQuery.Close;
       end;
     finally
-      LQuery.Close;
+      FreeAndNil(LDBQuery);
     end;
   finally
-    FreeAndNil(LQuery);
+    FreeAndNil(LDBQuery);
   end;
 end;
 
@@ -346,7 +352,7 @@ procedure TKDBAuthenticator.InternalAfterAuthenticate(const AAuthData: TEFNode);
   end;
 
 var
-  LCommand: TEFDBCommand;
+  LDBConnection: TEFDBConnection;
   LAfterAuthenticateCommandText: string;
 begin
   inherited;
@@ -354,12 +360,11 @@ begin
 
   if LAfterAuthenticateCommandText <> '' then
   begin
-    LCommand := TKConfig.Instance.DBConnections[GetLocalDatabaseName].CreateDBCommand;
+    LDBConnection := TKConfig.Instance.CreateDBConnection(GetLocalDatabaseName);
     try
-      LCommand.CommandText := LAfterAuthenticateCommandText;
-      LCommand.Execute;
+      LDBConnection.ExecuteImmediate(LAfterAuthenticateCommandText);
     finally
-      FreeAndNil(LCommand);
+      FreeAndNil(LDBConnection);
     end;
   end;
 end;
@@ -408,27 +413,28 @@ end;
 
 function TKDBAuthenticator.IsValidUserName(const AUserName: string): Boolean;
 var
-  LQuery: TEFDBQuery;
+  LDBConnection: TEFDBConnection;
+  LDBQuery: TEFDBQuery;
 begin
-  Result := False;
-
-  LQuery := TKConfig.Instance.DBConnections[GetDatabaseName].CreateDBQuery;
+  LDBConnection := TKConfig.Instance.CreateDBConnection(GetDatabaseName);
   try
-    LQuery.CommandText := GetReadUserCommandText(AUserName);
-    if LQuery.Params.Count <> 1 then
-      raise EKError.CreateFmt(_('Wrong authentication query text: %s'), [LQuery.CommandText]);
-    LQuery.Params[0].AsString := AUserName;
-    LQuery.Open;
+    LDBQuery := LDBConnection.CreateDBQuery;
     try
-      if LQuery.DataSet.IsEmpty then
-        Result := False
-      else
-        Result := True;
+      LDBQuery.CommandText := GetReadUserCommandText(AUserName);
+      if LDBQuery.Params.Count <> 1 then
+        raise EKError.CreateFmt(_('Wrong authentication query text: %s'), [LDBQuery.CommandText]);
+      LDBQuery.Params[0].AsString := AUserName;
+      LDBQuery.Open;
+      try
+        Result := not LDBQuery.DataSet.IsEmpty;
+      finally
+        LDBQuery.Close;
+      end;
     finally
-      LQuery.Close;
+      FreeAndNil(LDBQuery);
     end;
   finally
-    FreeAndNil(LQuery);
+    FreeAndNil(LDBConnection);
   end;
 end;
 
@@ -451,7 +457,8 @@ end;
 procedure TKDBAuthenticator.SetPassword(const AValue: string);
 var
   LPasswordHash: string;
-  LCommand: TEFDBCommand;
+  LDBConnection: TEFDBConnection;
+  LDBCommand: TEFDBCommand;
   LCommandText: string;
 begin
   inherited;
@@ -461,26 +468,32 @@ begin
     LPasswordHash := GetStringHash(AValue);
 
   LCommandText := GetSetPasswordCommandText;
-  LCommand := TKConfig.Instance.DBConnections[GetDatabaseName].CreateDBCommand;
+
+  LDBConnection := TKConfig.Instance.CreateDBConnection(GetDatabaseName);
   try
-    LCommand.CommandText := LCommandText;
-    LCommand.Params.ParamByName('USER_NAME').AsString := UserName;
-    LCommand.Params.ParamByName('PASSWORD_HASH').AsString := LPasswordHash;
-    LCommand.Connection.StartTransaction;
+    LDBCommand := LDBConnection.CreateDBCommand;
     try
-      if LCommand.Execute <> 1 then
-        raise EKError.Create(_('Error changing password.'));
-      LCommand.Connection.CommitTransaction;
-      if IsClearPassword then
-        Session.AuthData.SetString('Password', AValue)
-      else
-        Session.AuthData.SetString('Password', GetStringHash(AValue));
-    except
-      LCommand.Connection.RollbackTransaction;
-      raise;
+      LDBCommand.CommandText := LCommandText;
+      LDBCommand.Params.ParamByName('USER_NAME').AsString := UserName;
+      LDBCommand.Params.ParamByName('PASSWORD_HASH').AsString := LPasswordHash;
+      LDBCommand.Connection.StartTransaction;
+      try
+        if LDBCommand.Execute <> 1 then
+          raise EKError.Create(_('Error changing password.'));
+        LDBCommand.Connection.CommitTransaction;
+        if IsClearPassword then
+          Session.AuthData.SetString('Password', AValue)
+        else
+          Session.AuthData.SetString('Password', GetStringHash(AValue));
+      except
+        LDBCommand.Connection.RollbackTransaction;
+        raise;
+      end;
+    finally
+      FreeAndNil(LDBCommand);
     end;
   finally
-    FreeAndNil(LCommand);
+    FreeAndNil(LDBConnection);
   end;
 end;
 

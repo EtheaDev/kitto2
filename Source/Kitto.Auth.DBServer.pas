@@ -53,7 +53,11 @@ type
 implementation
 
 uses
-  Kitto.Config, Kitto.DatabaseRouter;
+  SysUtils
+  , EF.DB
+  , Kitto.Config
+  , Kitto.DatabaseRouter
+  ;
 
 { TKDBServerAuthenticator }
 
@@ -70,10 +74,17 @@ begin
 end;
 
 function TKDBServerAuthenticator.InternalAuthenticate(const AAuthData: TEFNode): Boolean;
+var
+  LDBConnection: TEFDBConnection;
 begin
   try
-    TKConfig.Instance.DBConnections[GetDatabaseName].Open;
-    Result := True;
+    LDBConnection := TKConfig.Instance.CreateDBConnection(GetDatabaseName);
+    try
+      LDBConnection.Open;
+      Result := True;
+    finally
+      FreeAndNil(LDBConnection);
+    end;
   except
     Result := False;
   end;
