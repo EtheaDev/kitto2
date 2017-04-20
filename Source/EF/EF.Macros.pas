@@ -26,7 +26,10 @@ unit EF.Macros;
 interface
 
 uses
-  SysUtils, Generics.Collections, Classes, Contnrs;
+  SysUtils
+  , Generics.Collections
+  , Classes
+  ;
 
 type
   TEFMacroExpansionEngine = class;
@@ -236,11 +239,13 @@ type
     function InternalExpand(const AString: string): string; override;
   end;
 
-  /// <summary>A macro expander that expands all environment variables. See
-  /// EF.SysUtils.ExpandEnvironmentVariables for details on format and case
-  /// sensitivity.</summary>
+  /// <summary>
+  ///  A macro expander that expands all environment variables. See
+  ///  EF.Sys.ExpandEnvironmentVariables for details on format and case
+  ///  sensitivity.
+  /// </summary>
   /// <example>%COMPUTERNAME% expands to the current computer's name.</example>
-  /// <seealso cref="EF.SysUtils.ExpandEnvironmentVariables"></seealso>
+  /// <seealso cref="EF.Sys.ExpandEnvironmentVariables"></seealso>
   TEFEnvironmentVariableMacroExpander = class(TEFMacroExpander)
   strict protected
     function InternalExpand(const AString: string): string; override;
@@ -254,7 +259,7 @@ type
   ///   <para><c>app.exe /p1 value -p2 value2</c></para>
   ///   <para>the sequence '%Cmd:p1%' expands to 'value'.</para>
   /// </example>
-  /// <seealso cref="EF.SysUtils.GetCmdLineParamValue"></seealso>
+  /// <seealso cref="EF.Sys.GetCmdLineParamValue"></seealso>
   TEFCmdLineParamMacroExpander = class(TEFMacroExpander)
   strict private
     FParams: TStringList;
@@ -503,8 +508,12 @@ procedure AddStandardMacroExpanders(const AMacroExpansionEngine: TEFMacroExpansi
 implementation
 
 uses
-  Windows, DateUtils, StrUtils, Types,
-  EF.Localization, EF.StrUtils, EF.SysUtils;
+  DateUtils
+  , StrUtils
+  , Types
+  , EF.Localization
+  , EF.StrUtils
+  , EF.Sys;
 
 procedure AddStandardMacroExpanders(const AMacroExpansionEngine: TEFMacroExpansionEngine);
 begin
@@ -699,8 +708,10 @@ begin
   Result := ExpandMacros(Result, '%APP_NAME%', ParamStr(0));
   Result := ExpandMacros(Result, '%APP_FILENAME%', ExtractFileName(ParamStr(0)));
   Result := ExpandMacros(Result, '%APP_BASENAME%', ChangeFileExt(ExtractFileName(ParamStr(0)), ''));
+  {$IFDEF WINDOWS}
   Result := ExpandMacros(Result, '%WIN_DIR%', IncludeTrailingPathDelimiter(SafeGetWindowsDirectory));
   Result := ExpandMacros(Result, '%SYS_DIR%', IncludeTrailingPathDelimiter(SafeGetSystemDirectory));
+  {$ENDIF}
 end;
 
 { TEFSysMacroExpander }
@@ -716,8 +727,10 @@ begin
   Result := ExpandMacros(Result, '%TOMORROW%', FormatDateTime(LFormatSettings.ShortDateFormat, Date + 1));
   Result := ExpandMacros(Result, '%TIME%', FormatDateTime(LFormatSettings.ShortTimeFormat, Now));
   Result := ExpandMacros(Result, '%DATETIME%', FormatDateTime(LFormatSettings.ShortDateFormat, Now)+' '+ FormatDateTime(LFormatSettings.ShortTimeFormat, Now));
+  {$IFDEF WINDOWS}
   Result := ExpandMacros(Result, '%PROCESS_ID%', IntToStr(GetCurrentProcessId));
   Result := ExpandMacros(Result, '%THREAD_ID%', IntToStr(GetCurrentThreadId));
+  {$ENDIF}
 end;
 
 { TEFEnvironmentVariableMacroExpander }
@@ -725,6 +738,7 @@ end;
 function TEFEnvironmentVariableMacroExpander.InternalExpand(const AString: string): string;
 begin
   Result := inherited InternalExpand(AString);
+  { TODO : Implement for linux? }
   Result := ExpandEnvironmentVariables(Result);
 end;
 

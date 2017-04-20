@@ -19,11 +19,20 @@ unit Kitto.Ext.XSLTools;
 interface
 
 uses
-  msxml, ActiveX, windows, SysUtils, Classes,
-  DB,
-  EF.Tree,
-  Kitto.Ext.Controller, Kitto.Ext.DataTool, Kitto.Ext.Base, Kitto.Ext.Tools,
-  Kitto.Metadata.DataView, Kitto.Ext.StandardControllers;
+  msxml
+  , ActiveX
+  , Windows
+  , SysUtils
+  , Classes
+  , DB
+  , EF.Tree
+  , Kitto.Ext.Controller
+  , Kitto.Ext.DataTool
+  , Kitto.Ext.Base
+  , Kitto.Ext.Tools
+  , Kitto.Metadata.DataView
+  , Kitto.Ext.StandardControllers
+  ;
 
 type
   TXSLTransformer = class(TObject)
@@ -58,7 +67,7 @@ uses
   , EF.StrUtils
   , EF.Localization
   , EF.DB
-  , EF.SysUtils
+  , EF.Sys
   , EF.Macros
   , EF.XML
 
@@ -102,7 +111,7 @@ begin
   LFileExtension := ExtractFileExt(ClientFileName);
   if LFileExtension = '' then
     LFileExtension := GetDefaultFileExtension;
-  Result := EF.SysUtils.GetTempFileName(LFileExtension);
+  Result := GetTempFileName(LFileExtension);
   AddTempFilename(Result);
 end;
 

@@ -650,7 +650,7 @@ begin
   begin
     LStream := TFileStream.Create(AFileName, fmOpenWrite);
     try
-      LStream.Seek(0, soFromEnd);
+      LStream.Seek(0, soEnd);
       AppendStringToStream(AString, LStream, AEncoding);
     finally
       LStream.Free;

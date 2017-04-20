@@ -15,10 +15,10 @@
 -------------------------------------------------------------------------------}
 
 ///	<summary>
-///	  Support for reading and writing data in JSON format.
+///	 Support for reading and writing data in JSON format.
 ///	</summary>
 ///	<seealso href="http://www.json.org/">
-///	  JSON web site
+///	 JSON web site
 ///	</seealso>
 unit EF.JSON;
 
@@ -27,52 +27,61 @@ unit EF.JSON;
 interface
 
 uses
-  SysUtils, StrUtils, DB,
-  EF.Types, EF.DB;
+  SysUtils
+  , StrUtils
+  , JSON
+  , DB
+  , EF.Types
+  , EF.DB
+  , EF.Tree
+  ;
 
 ///	<summary>
-///	  <para>
-///	    Builds a JSON representation of the pairs.
-///	  </para>
-///	  <para>
-///	    Example: Param1='Foo', Param2=20
-///	  </para>
-///	  <para>
-///	    Result: '["Param1", "Foo"], ["Param2", "20"]'
-///	  </para>
-///	  <para>
-///     Set AReversed to True to switch keys and values.
-///	  </para>
+///	 <para>
+///	  Builds a JSON representation of the pairs.
+///	 </para>
+///	 <para>
+///	  Example: Param1='Foo', Param2=20
+///	 </para>
+///	 <para>
+///	  Result: '["Param1", "Foo"], ["Param2", "20"]'
+///	 </para>
+///	 <para>
+///   Set AReversed to True to switch keys and values.
+///	 </para>
 ///	</summary>
 function PairsToJSON(const APairs: TEFPairs; const AReversed: Boolean = False): string;
 
 ///	<summary>
-///	  <para>
-///	    Builds a JSON representation of the triples.
-///	  </para>
-///	  <para>
-///	    Example: A B C, One Two Three
-///	  </para>
-///	  <para>
-///	    Result: '["A", "B", "C"], ["One", "Two", '"Three"]'
-///	  </para>
+///	 <para>
+///	  Builds a JSON representation of the triples.
+///	 </para>
+///	 <para>
+///	  Example: A B C, One Two Three
+///	 </para>
+///	 <para>
+///	  Result: '["A", "B", "C"], ["One", "Two", '"Three"]'
+///	 </para>
 ///	</summary>
 function TriplesToJSON(const ATriples: TEFTriples): string;
 
-///	<summary>Builds a JSON representation of a dataset's fields values. Creates
-///	the dataset by executing the specified command text against the specified
-///	DB connection. Each record is enclosed in []s and each value is
-///	double-quoted.</summary>
+///	<summary>
+///  Builds a JSON representation of a dataset's fields values. Creates
+///	 the dataset by executing the specified command text against the specified
+///	 DB connection. Each record is enclosed in []s and each value is double-quoted.
+///	</summary>
 ///	<example>
-///	  <para><c>'["IT", "ITALY"], ["UK", "UNITED KINGDOM"]'</c></para>
+///	 <para><c>'["IT", "ITALY"], ["UK", "UNITED KINGDOM"]'</c></para>
 ///	</example>
 function DataSetToJSON(const ADBConnection: TEFDBConnection; const ACommandText: string;
   const AKeyFieldsToAggregate: integer = 0): string; overload;
 
-///	<summary>Builds a JSON representation of a dataset's fields values. Each
-/// record is enclosed in []s and each value is double-quoted.</summary>
+///	<summary>
+///  Builds a JSON representation of a dataset's fields values. Each
+///  record is enclosed in []s and each value is double-quoted.
+/// </summary>
 ///	<example>
-///	  <para><c>'["IT", "ITALY"], ["UK", "UNITED KINGDOM"]'</c></para>
+///	 <para><c>'["IT", "ITALY"], ["UK", "UNITED KINGDOM"]'</c></para>
 ///	</example>
 function DataSetToJSON(const ADataSet: TDataSet;
   const AKeyFieldsToAggregate: integer = 0): string; overload;
@@ -82,14 +91,23 @@ function QuoteJSONStr(const AString: string): string; inline;
 function JSONNullToEmptyStr(const AJSONValue: string): string; inline;
 
 /// <summary>
-///   Escapes control characters in the JSON string.
+///  Escapes control characters in the JSON string.
 /// </summary>
 function JSONEscape(const AString: string): string;
+
+/// <summary>
+///  Adds to ATree all pairs in AJSONObject, recursively.
+///  All values are treated as strings.
+///  Arrays are not supported. If a JSON array is found, an exception is raised.
+/// </summary>
+procedure LoadJSONObjectInTree(const AJSONObject: TJSONObject; const ATree: TEFTree);
 
 implementation
 
 uses
-  EF.StrUtils;
+  Generics.Collections
+  , EF.StrUtils
+  ;
 
 function PairsToJSON(const APairs: TEFPairs; const AReversed: Boolean): string;
 var
@@ -215,6 +233,34 @@ begin
   Result := ReplaceStr(AString, sLineBreak, '\n');
   Result := ReplaceStr(Result, #10, '\n');
   Result := ReplaceStr(Result, #13, '\n');
+end;
+
+procedure AddJSONPair(const AJSONPair: TJSONPair; const ATree: TEFTree);
+var
+  LNode: TEFNode;
+  LJSONPair: TJSONPair;
+begin
+  if AJSONPair.JsonValue is TJSONArray then
+    raise Exception.Create('JSON arrays not supported in TEFTree.');
+  LNode := ATree.AddChild(AJSONPair.JsonString.Value);
+  if AJSONPair.JsonValue is TJSONObject then
+  begin
+    for LJSONPair in TJSONObject(AJSONPair.JsonValue) do
+      AddJSONPair(LJSONPair, LNode);
+  end
+  else
+    LNode.AsString := AJSONPair.JsonValue.Value;
+end;
+
+procedure LoadJSONObjectInTree(const AJSONObject: TJSONObject; const ATree: TEFTree);
+var
+  LJSONPair: TJSONPair;
+begin
+  Assert(Assigned(AJSONObject));
+  Assert(Assigned(ATree));
+
+  for LJSONPair in AJSONObject do
+    AddJSONPair(LJSONPair, ATree);
 end;
 
 end.

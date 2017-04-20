@@ -780,14 +780,17 @@ uses
   Math
   , IOUtils
   , StrUtils
+  {$IFDEF MSWINDOWS}
   , Windows
+  {$ENDIF}
+  {$IFDEF WINDOWS}
   , Graphics
+  {$ENDIF}
   , Variants
   , DateUtils
   , System.JSON
   , Rtti
-  , superobject
-  , EF.SysUtils
+  , EF.Sys
   , EF.StrUtils
   , EF.Localization
   , EF.YAML
@@ -2053,18 +2056,18 @@ end;
 
 procedure TKExtFormComboBoxEditor.ValueChanged;
 var
-  LNewValues: ISuperObject;
+  LNewValues: TEFNode;
   LKeyFieldNames: string;
 begin
-  LNewValues := SO(TKWebRequest.Current.Content).O['new'];
-  if LNewValues.AsObject.Count > 0 then
+  LNewValues := TKWebRequest.Current.JSONContentTree.ChildByName('new');
+  if LNewValues.ChildCount > 0 then
   begin
     if Mode = 'local' then
-      FRecordField.SetAsJSONValue(LNewValues.S[HiddenName], False, TKWebApplication.Current.Config.UserFormatSettings)
+      FRecordField.SetAsJSONValue(LNewValues.GetString(HiddenName), False, TKWebApplication.Current.Config.UserFormatSettings)
     else
     begin
       LKeyFieldNames := Join(FRecordField.ViewField.ModelField.GetFieldNames, TKConfig.Instance.MultiFieldSeparator);
-      FRecordField.ParentRecord.FieldByName(LKeyFieldNames).SetAsJSONValue(LNewValues.S[HiddenName], False, TKWebApplication.Current.Config.UserFormatSettings);
+      FRecordField.ParentRecord.FieldByName(LKeyFieldNames).SetAsJSONValue(LNewValues.GetString(HiddenName), False, TKWebApplication.Current.Config.UserFormatSettings);
     end;
   end;
 end;

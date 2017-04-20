@@ -62,8 +62,13 @@ type
 implementation
 
 uses
-  SysUtils, Classes,
-  EF.Intf, EF.Localization, EF.SysUtils, EF.Types;
+  SysUtils
+  , Classes
+  , EF.Intf
+  , EF.Localization
+  , EF.SysUtils
+  , EF.Types
+  ;
 
 { TKOSDBAuthenticator }
 
@@ -85,7 +90,7 @@ begin
   if IsUsingSystemUserName then
   begin
     // Load auth data from OS (password not needed, see IsPasswordMatching).
-    AAuthData.SetString('UserName', EF.SysUtils.GetUserName);
+    AAuthData.SetString('UserName', EF.Sys.GetUserName);
     AAuthData.SetString('Password', '');
   end;
 end;

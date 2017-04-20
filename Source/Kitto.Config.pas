@@ -288,7 +288,7 @@ uses
   StrUtils
   , Variants
   , IOUtils
-  , EF.SysUtils
+  , EF.Sys
   , EF.StrUtils
   , EF.YAML
   , EF.Localization
@@ -300,7 +300,7 @@ procedure TKConfig.AfterConstruction;
 begin
   inherited;
   { TODO : allow to change format settings on a per-user basis. }
-  FUserFormatSettings := GetFormatSettings;
+  FUserFormatSettings := FormatSettings.Create;
 
   FUserFormatSettings.ShortTimeFormat := Config.GetString('UserFormats/Time', FUserFormatSettings.ShortTimeFormat);
   if Pos('.', FUserFormatSettings.ShortTimeFormat) > 0 then
@@ -492,7 +492,7 @@ begin
   FConfigClass := TKConfig;
   FBaseConfigFileName := 'Config.yaml';
 
-  FJSFormatSettings := GetFormatSettings;
+  FJSFormatSettings := TFormatSettings.Create;
   FJSFormatSettings.DecimalSeparator := '.';
   FJSFormatSettings.ThousandSeparator := ',';
   FJSFormatSettings.ShortDateFormat := 'yyyy/mm/dd';

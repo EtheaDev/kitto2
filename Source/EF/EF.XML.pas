@@ -15,7 +15,7 @@
 -------------------------------------------------------------------------------}
 
 ///	<summary>
-///	  Support for XML format.
+///	 Support for XML format.
 ///	</summary>
 unit EF.XML;
 
@@ -24,8 +24,10 @@ unit EF.XML;
 interface
 
 uses
-  SysUtils, StrUtils,
-  EF.Types;
+  SysUtils
+  , StrUtils
+  , EF.Types
+  ;
 
 const
   XMLHeader = '<?xml version="1.0" encoding="UTF-8" ?>';
@@ -34,24 +36,24 @@ const
   XmlNameSpace = 'xmlns="';
 
 /// <summary>
-///   Escapes control characters in the XML string.
+///  Escapes control characters in the XML string.
 /// </summary>
 function XMLEscape(const AString: string): string;
 
 /// <summary>
-///   Clear the XMLHeader from an XML string.
-///   Returns true if the header was found and cleared
+///  Clear the XMLHeader from an XML string.
+///  Returns true if the header was found and cleared
 /// </summary>
 function ClearXMLHeader(var AText: string): Boolean;
 
 /// <summary>
-///   Returns the position of the XMLHeader if found
+///  Returns the position of the XMLHeader if found
 /// </summary>
 function XMLHeaderPos(const AText: string): Integer;
 
 /// <summary>
-///   Clear the DOCTYPE node from an XML string.
-///   Returns true if the DOCTYPE node was found and cleared
+///  Clear the DOCTYPE node from an XML string.
+///  Returns true if the DOCTYPE node was found and cleared
 /// </summary>
 function ClearDOCTYPE(var Text: string): boolean;
 
@@ -60,41 +62,13 @@ function ClearXmlNameSpaces(var Text: string): boolean;
 implementation
 
 uses
-  EF.StrUtils;
-
+  System.NetEncoding
+  , EF.StrUtils
+  ;
 
 function XMLEscape(const AString: string): string;
-const
-  EscStr = '&%s;';
-var
-  I: Integer;
-  Esc: string;
-  C: Char;
 begin
-  Result := '';
-  for I := 1 to Length(AString) do
-  begin
-    C := AString[I];
-    if CharInSet(C, [#34, #38, #39, #60, #62]) then
-    begin
-      case C of
-        #34:
-          Esc := 'quot';
-        #38:
-          Esc := 'amp';
-        #39:
-          Esc := 'apos';
-        #60:
-          Esc := 'lt';
-        #62:
-          Esc := 'gt';
-      end;
-      Esc := Format(EscStr, [Esc]);
-      Result := Result + Esc;
-    end
-    else
-      Result := Result + C;
-  end;
+  Result := TNetEncoding.HTML.Encode(AString);
 end;
 
 function XMLHeaderPos(const AText: string): Integer;

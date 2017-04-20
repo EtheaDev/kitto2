@@ -26,7 +26,6 @@ uses
   , Ext.Base
   , Ext.Data
   , Ext.Form
-  , superobject
   , EF.ObserverIntf
   , EF.Tree
   , Kitto.JS
@@ -155,6 +154,7 @@ uses
   , Classes
   , Variants
   , Types
+  , JSON
   , EF.Localization
   , EF.Types
   , EF.Intf
@@ -633,7 +633,7 @@ var
   LError: string;
 begin
   AssignFieldChangeEvent(False);
-  LError := UpdateRecord(StoreRecord, SO(TKWebRequest.Current.Content).O['new'], '', True);
+  LError := UpdateRecord(StoreRecord, TKWebRequest.Current.JSONContentTree.ChildByName('new'), '', True);
   FreeAndNil(FCloneValues);
   if LError = '' then
   begin
@@ -661,7 +661,7 @@ var
   LError: string;
 begin
   AssignFieldChangeEvent(False);
-  LError := UpdateRecord(StoreRecord, SO(TKWebRequest.Current.Content).O['new'], '', True);
+  LError := UpdateRecord(StoreRecord, TKWebRequest.Current.JSONContentTree.ChildByName('new'), '', True);
   if LError = '' then
   begin
     FChangesApplied := True;
@@ -674,7 +674,7 @@ procedure TKExtFormPanelController.ConfirmChangesAndClone;
 var
   LError: string;
 begin
-  LError := UpdateRecord(StoreRecord, SO(TKWebRequest.Current.Content).O['new'], '', True);
+  LError := UpdateRecord(StoreRecord, TKWebRequest.Current.JSONContentTree.ChildByName('new'), '', True);
   if LError = '' then
   begin
     FCloneValues := TEFNode.Clone(StoreRecord);

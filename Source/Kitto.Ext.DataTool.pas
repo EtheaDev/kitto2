@@ -66,8 +66,8 @@ type
   end;
 
   ///	<summary>
-  ///  Executes a command or executable file.
-  ///  Params: WaitForCompletion: Boolean (default True).
+  ///  Executes a command or executable file and waits for its completion
+  ///  before returning.
   /// </summary>
   TKExtDataCmdToolController = class(TKExtDataToolController)
   strict private
@@ -92,7 +92,7 @@ uses
   , EF.Tree
   , EF.DB
   , EF.StrUtils
-  , EF.SysUtils
+  , EF.Sys
   , EF.Localization
   , Kitto.Config
   , Kitto.Web.Application
@@ -126,7 +126,7 @@ begin
     Assert(LKey.ChildCount > 0);
     LRecordCount := Length(Split(ParamAsString(LKey[0].Name), ','));
     for I := 0 to LRecordCount - 1 do
-      AProc(ServerStore.GetRecord(TKWebRequest.Current.GetQueryFields, TKWebApplication.Current.Config.JSFormatSettings, I));
+      AProc(ServerStore.GetRecord(TKWebRequest.Current.QueryTree, TKWebApplication.Current.Config.JSFormatSettings, I));
   finally
     FreeAndNil(LKey);
   end;
@@ -242,7 +242,7 @@ begin
     LRecordCount := Length(EF.StrUtils.Split(TKWebRequest.Current.QueryFields.Values[LKey[0].Name], ','));
     SetLength(FSelectedRecords, LRecordCount);
     for I := 0 to LRecordCount - 1 do
-      FSelectedRecords[I] := ServerStore.GetRecord(TKWebRequest.Current.GetQueryFields, TKWebApplication.Current.Config.JSFormatSettings, I);
+      FSelectedRecords[I] := ServerStore.GetRecord(TKWebRequest.Current.QueryTree, TKWebApplication.Current.Config.JSFormatSettings, I);
   finally
     FreeAndNil(LKey);
   end;
@@ -303,8 +303,7 @@ begin
   else
     LBatchCommand := LBatchFileName;
 
-  //Execute file
-  if ExecuteApplication(LBatchCommand, Config.GetBoolean('WaitForCompletion', True)) <> 0 then
+  if EFSys.ExecuteCommand(LBatchCommand) <> 0 then
     raise Exception.CreateFmt('Error executing %s', [ExtractFileName(LBatchFileName)]);
 end;
 

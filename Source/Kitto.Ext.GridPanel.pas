@@ -109,7 +109,6 @@ uses
   , StrUtils
   , Math
   , Types
-  , superobject
   , EF.StrUtils
   , EF.Localization
   , EF.JSON
@@ -195,12 +194,8 @@ begin
 end;
 
 procedure TKExtGridPanel.BeforeEdit;
-var
-  LReqBody: ISuperObject;
 begin
-  LReqBody := SO(TKWebRequest.Current.Content);
-  InitColumnEditors(ServerStore.GetRecord(LReqBody.O['data'], TKWebApplication.Current.Config.UserFormatSettings));
-
+  InitColumnEditors(ServerStore.GetRecord(TKWebRequest.Current.JSONContentTree.ChildByName('data'), TKWebApplication.Current.Config.UserFormatSettings));
   ShowConfirmButtons(True);
 end;
 
@@ -950,12 +945,12 @@ end;
 
 procedure TKExtGridPanel.UpdateField;
 var
-  LReqBody: ISuperObject;
   LError: string;
+  LNewValues: TEFNode;
 begin
-  LReqBody := SO(TKWebRequest.Current.Content);
-  LError := UpdateRecord(ServerStore.GetRecord(LReqBody.O['new'], TKWebApplication.Current.Config.UserFormatSettings),
-    LReqBody.O['new'], LReqBody.S['fieldName'], False);
+  LNewValues := TKWebRequest.Current.JSONContentTree.ChildByName('new');
+  LError := UpdateRecord(ServerStore.GetRecord(LNewValues, TKWebApplication.Current.Config.UserFormatSettings),
+    LNewValues, TKWebRequest.Current.JSONContentTree.GetString('fieldName'), False);
   if LError = '' then
     // ok - nothing
   else

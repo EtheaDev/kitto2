@@ -22,10 +22,10 @@ interface
 
 uses
   SysUtils
+  , JSON
   , Generics.Collections
   , Ext.Base
   , Ext.Data
-  , superobject
   , EF.Classes
   , EF.ObserverIntf
   , EF.Tree
@@ -91,8 +91,7 @@ type
     function GetMaxRecords: Integer;
     function GetDefaultAutoOpen: Boolean;
     procedure SetURLFieldValues(const ARecord: TKViewTableRecord);
-    procedure SetFieldValue(const AField: TKViewTableField; const AValue: TSuperAvlEntry);
-    function FindValueByName(const AValues: ISuperObject; const AName: string): TSuperAvlEntry;
+    procedure SetFieldValue(const AField: TKViewTableField; const ANode: TEFNode);
     function GetFieldFilterFunc: TKFieldFilterFunc;
     procedure ExecuteDeferredFileOps(const ARecord: TKViewTableRecord; const AEvent: TKFileOpEvent);
   strict protected
@@ -122,7 +121,7 @@ type
     function GetParentDataPanel: TKExtDataPanelController;
     function GetRootDataPanel: TKExtDataPanelController;
     function FindViewLayout(const ALayoutName: string): TKLayout;
-    function UpdateRecord(const ARecord: TKVIewTableRecord; const ANewValues: ISuperObject;
+    function UpdateRecord(const ARecord: TKVIewTableRecord; const ANewValues: TEFTree;
       const AFieldName: string; const APersist: Boolean): string;
     function GetDefaultRemoteSort: Boolean; virtual;
     function FindCurrentViewRecord: TKViewTableRecord;
@@ -183,7 +182,7 @@ uses
   , Types
   , Classes
   , EF.StrUtils
-  , EF.SysUtils
+  , EF.Sys
   , EF.Localization
   , EF.Types
   , Kitto.Auth
@@ -213,7 +212,7 @@ begin
   LController := TKExtControllerFactory.Instance.CreateController(
     Session, View, nil, nil, ActionObserver);
   if LController.Config.GetBoolean('RequireSelection', True) then
-    FServerRecord := ServerStore.GetRecord(TKWebRequest.Current.GetQueryFields, TKWebApplication.Current.Config.JSFormatSettings, 0)
+    FServerRecord := ServerStore.GetRecord(TKWebRequest.Current.QueryTree, TKWebApplication.Current.Config.JSFormatSettings, 0)
   else
     FServerRecord := nil;
   InitController(LController);
@@ -463,12 +462,11 @@ end;
 
 function TKExtDataPanelController.GetCurrentViewRecord: TKViewTableRecord;
 begin
-  Result := ServerStore.GetRecord(TKWebRequest.Current.GetQueryFields,
+  Result := ServerStore.GetRecord(TKWebRequest.Current.QueryTree,
     TKWebApplication.Current.Config.JSFormatSettings, IfThen(IsMultiSelect, 0, -1));
 end;
 
-function TKExtDataPanelController.FindViewLayout(
-  const ALayoutName: string): TKLayout;
+function TKExtDataPanelController.FindViewLayout(const ALayoutName: string): TKLayout;
 var
   LLayoutName: string;
   LLayoutNode: TEFNode;
@@ -1073,26 +1071,26 @@ begin
   TKAccessController.Current.CheckAccessGranted(TKAuthenticator.Current.UserName, ViewTable.GetResourceURI, ACM_READ);
 end;
 
-procedure TKExtDataPanelController.SetFieldValue(const AField: TKViewTableField;
-  const AValue: TSuperAvlEntry);
+procedure TKExtDataPanelController.SetFieldValue(const AField: TKViewTableField; const ANode: TEFNode);
 var
   LNames: TStringDynArray;
   LValues: TStringDynArray;
-  LSep, LValue: string;
+  LValue: string;
+  LSep: string;
   I: Integer;
 begin
   Assert(Assigned(AField));
 
-  if Assigned(AValue) then
+  if Assigned(ANode) then
   begin
-    LValue := AValue.Value.AsString;
+    LValue := ANode.AsString;
     AField.SetAsJSONValue(LValue, False, TKWebApplication.Current.Config.UserFormatSettings);
 
     LSep := TKConfig.Instance.MultiFieldSeparator;
-    if AValue.Name.Contains(LSep) then
+    if ANode.Name.Contains(LSep) then
     begin
-      LNames := EF.StrUtils.Split(AValue.Name, LSep);
-      LValues := EF.StrUtils.Split(AValue.Value.AsString, LSep);
+      LNames := EF.StrUtils.Split(ANode.Name, LSep);
+      LValues := EF.StrUtils.Split(LValue, LSep);
       if Length(LValues) = 0 then
       begin
         SetLength(LValues, Length(LNames));
@@ -1108,23 +1106,11 @@ end;
 
 function TKExtDataPanelController.FindCurrentViewRecord: TKViewTableRecord;
 begin
-  Result := ServerStore.FindRecord(TKWebRequest.Current.GetQueryFields,
+  Result := ServerStore.FindRecord(TKWebRequest.Current.QueryTree,
     TKWebApplication.Current.Config.JSFormatSettings, IfThen(IsMultiSelect, 0, -1));
 end;
 
-function TKExtDataPanelController.FindValueByName(const AValues: ISuperObject; const AName: string): TSuperAvlEntry;
-var
-  LValue: TSuperAvlEntry;
-begin
-  Result := nil;
-  for LValue in AValues.AsObject do
-  begin
-    if SameText(LValue.Name, AName) then
-      Exit(LValue);
-  end;
-end;
-
-function TKExtDataPanelController.UpdateRecord(const ARecord: TKVIewTableRecord; const ANewValues: ISuperObject;
+function TKExtDataPanelController.UpdateRecord(const ARecord: TKVIewTableRecord; const ANewValues: TEFTree;
   const AFieldName: string; const APersist: Boolean): string;
 var
   LOldRecord: TKViewTableRecord;
@@ -1135,8 +1121,9 @@ begin
       ARecord.Store.DoWithChangeNotificationsDisabled(
         procedure
         var
-          LValue: TSuperAvlEntry;
+          LNode: TEFNode;
           LField: TKViewTableField;
+    I: Integer;
         begin
           // Modify record value(s).
           if AFieldName <> '' then
@@ -1145,17 +1132,18 @@ begin
               procedure (AEditor: IKExtEditor)
               begin
                 LField := ARecord.FieldByName(AEditor.FieldName);
-                LValue := FindValueByName(ANewValues, LField.FieldName);
-                Assert(Assigned(LValue));
-                SetFieldValue(LField, LValue);
+                LNode := ANewValues.FindNode(LField.FieldName);
+                Assert(Assigned(LNode));
+                SetFieldValue(LField, LNode);
               end);
           end
           else
           begin
-            for LValue in ANewValues.AsObject do
+            for I := 0 to ANewValues.ChildCount - 1 do
             begin
-              LField := ARecord.FieldByName(LValue.Name);
-              SetFieldValue(LField, LValue);
+              LNode := ANewValues.Children[I];
+              LField := ARecord.FieldByName(LNode.Name);
+              SetFieldValue(LField, LNode);
             end;
           end;
         end);

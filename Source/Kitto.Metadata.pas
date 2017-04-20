@@ -283,8 +283,7 @@ type
 implementation
 
 uses
-  Windows
-  , EF.Localization
+  EF.Localization
   , EF.StrUtils
   , Kitto.Types
   , Kitto.Auth

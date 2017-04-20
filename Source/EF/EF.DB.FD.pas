@@ -24,18 +24,28 @@ unit EF.DB.FD;
 interface
 
 uses
-  Classes, DB, Contnrs,
-  FireDAC.Comp.Client,
-  {$IFDEF IBFB_SUPPORT}FireDAC.Phys.IBBase, FireDAC.Phys.FB, FireDAC.Phys.IB,{$ENDIF}
-  {$IFDEF MSSQL_SUPPORT}FireDAC.Phys.MSSQL, FireDAC.Phys.MSSQLMeta,{$ENDIF}
-  {$IFDEF SYBASE_SUPPORT}FireDAC.Phys.ASA, FireDAC.Phys.ASAWrapper,{$ENDIF}
-  {$IFDEF ORACLE_SUPPORT}FireDAC.Phys.ORACLE, FireDAC.Phys.ORACLEMeta,{$ENDIF}
-  {$IFDEF PGSQL_SUPPORT}FireDAC.Phys.PG, FireDAC.Phys.PGWrapper,{$ENDIF}
-  {$IFDEF MYSQL_SUPPORT}FireDAC.Phys.MYSQL, FireDAC.Phys.MYSQLWrapper,{$ENDIF}
-  {$IFDEF SQLITE_SUPPORT}FireDAC.Phys.SQLite, FireDAC.Phys.SQLiteWrapper,{$ENDIF}
-  FireDAC.Stan.Def, FireDAC.Stan.Option, FireDAC.Stan.Param, FireDAC.Stan.Intf, FireDAC.Phys.Intf,
-  FireDAC.DApt.Intf, FireDAC.Stan.Async, FireDAC.DApt, FireDAC.Comp.DataSet,
-  EF.Tree, EF.DB;
+  Classes
+  , DB
+  , FireDAC.Comp.Client
+  {$IFDEF IBFB_SUPPORT}, FireDAC.Phys.IBBase, FireDAC.Phys.FB, FireDAC.Phys.IB{$ENDIF}
+  {$IFDEF MSSQL_SUPPORT}, FireDAC.Phys.MSSQL, FireDAC.Phys.MSSQLMeta{$ENDIF}
+  {$IFDEF SYBASE_SUPPORT}, FireDAC.Phys.ASA, FireDAC.Phys.ASAWrapper{$ENDIF}
+  {$IFDEF ORACLE_SUPPORT}, FireDAC.Phys.ORACLE, FireDAC.Phys.ORACLEMeta{$ENDIF}
+  {$IFDEF PGSQL_SUPPORT}, FireDAC.Phys.PG, FireDAC.Phys.PGWrapper{$ENDIF}
+  {$IFDEF MYSQL_SUPPORT}, FireDAC.Phys.MYSQL, FireDAC.Phys.MYSQLWrapper{$ENDIF}
+  {$IFDEF SQLITE_SUPPORT}, FireDAC.Phys.SQLite, FireDAC.Phys.SQLiteWrapper{$ENDIF}
+  , FireDAC.Stan.Def
+  , FireDAC.Stan.Option
+  , FireDAC.Stan.Param
+  , FireDAC.Stan.Intf
+  , FireDAC.Phys.Intf
+  , FireDAC.Stan.Async
+  , FireDAC.DApt.Intf
+  , FireDAC.DApt
+  , FireDAC.Comp.DataSet
+  , EF.Tree
+  , EF.DB
+  ;
 
 type
   ///	<summary>

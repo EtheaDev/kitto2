@@ -6,18 +6,27 @@ interface
 
 uses
   IdHttpWebBrokerBridge
+  { TODO : Not available yet }
+  {$IFNDEF LINUX}
   , ReqMulti
-  , superobject
+  {$ENDIF}
+  , EF.Tree
   ;
 
 type
   TKWebRequest = class(TIdHTTPAppRequest)
   private
+    FQueryTree: TEFTree;
+    FJSONContentTree: TEFTree;
     class threadvar FCurrent: TKWebRequest;
     function GetIsAjax: Boolean;
     class function GetCurrent: TKWebRequest; static;
     class procedure SetCurrent(const AValue: TKWebRequest); static;
     function GetIsRefresh: Boolean;
+    function GetQueryTree: TEFTree;
+    function GetJSONContentTree: TEFTree;
+  public
+    destructor Destroy; override;
   public
     class property Current: TKWebRequest read GetCurrent write SetCurrent;
     class procedure ClearCurrent;
@@ -25,15 +34,25 @@ type
     property IsRefresh: Boolean read GetIsRefresh;
 
     /// <summary>
-    ///  Returns all request query fields (names and decoded values) as an ISuperObject.
+    ///  Returns all request query fields (names and decoded values) as a tree
+    ///  object, which is only alive as long as the request object is.
     ///  Note: All values are treated as strings.
     /// </summary>
-    function GetQueryFields: ISuperObject;
+    property QueryTree: TEFTree read GetQueryTree;
+
+    /// <summary>
+    ///  Parses the request content as a JSON object and returns the data as a
+    ///  tree object, which is only alive as long as the request object is.
+    ///  Note: All values are treated as strings.
+    /// </summary>
+    property JSONContentTree: TEFTree read GetJSONContentTree;
 
     /// <summary>
     ///  Decodes and returns the value of the query field with the given name.
     /// </summary>
     function GetQueryField(const AName: string): string;
+
+
 
     function IsBrowserIPhone: Boolean;
     function IsBrowserIPad: Boolean;
@@ -44,7 +63,9 @@ implementation
 
 uses
   SysUtils
+  , JSON
   , NetEncoding
+  , EF.JSON
   , EF.Logger
   ;
 
@@ -53,6 +74,13 @@ uses
 class procedure TKWebRequest.ClearCurrent;
 begin
   FreeAndNil(FCurrent);
+end;
+
+destructor TKWebRequest.Destroy;
+begin
+  FreeAndNil(FQueryTree);
+  FreeAndNil(FJSONContentTree);
+  inherited;
 end;
 
 class function TKWebRequest.GetCurrent: TKWebRequest;
@@ -70,6 +98,25 @@ begin
   Result := not IsAjax and (GetFieldByName('Cache-Control') = 'max-age=0');
 end;
 
+function TKWebRequest.GetJSONContentTree: TEFTree;
+var
+  LJSON: TJSONValue;
+begin
+  if not Assigned(FJSONContentTree) then
+  begin
+    FJSONContentTree := TEFTree.Create;
+    LJSON := TJSONObject.ParseJSONValue(Content);
+    try
+      Assert(Assigned(LJSON));
+      Assert(LJSON is TJSONObject);
+      LoadJSONObjectInTree(TJSONObject(LJSON), FJSONContentTree);
+    finally
+      FreeAndNil(LJSON);
+    end;
+  end;
+  Result := FJSONContentTree;
+end;
+
 function TKWebRequest.GetQueryField(const AName: string): string;
 begin
 {$IFDEF D24+}
@@ -79,13 +126,17 @@ begin
 {$ENDIF}
 end;
 
-function TKWebRequest.GetQueryFields: ISuperObject;
+function TKWebRequest.GetQueryTree: TEFTree;
 var
   I: Integer;
 begin
-  Result := SO();
-  for I := 0 to QueryFields.Count - 1 do
-    Result.S[QueryFields.Names[I]] := GetQueryField(QueryFields.Names[I]);
+  if not Assigned(FQueryTree) then
+  begin
+    FQueryTree := TEFTree.Create;
+    for I := 0 to QueryFields.Count - 1 do
+      FQueryTree.AddChild(QueryFields.Names[I], GetQueryField(QueryFields.Names[I]));
+  end;
+  Result := FQueryTree;
 end;
 
 function TKWebRequest.IsBrowserIPhone: Boolean;

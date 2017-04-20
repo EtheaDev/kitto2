@@ -126,7 +126,16 @@ Type
 implementation
 
 uses
-  EF.SysUtils, EF.Localization, EF.Shell;
+  IOUtils
+  , EF.Sys
+  , EF.Localization
+  {$IFDEF POSIX}
+  , Posix.Unistd
+  {$ENDIF}
+  {$IFDEF MSWINDOWS}
+  , EF.Shell
+  {$ENDIF}
+  ;
 
 function PDF_FILE_NOT_BUILT: string; begin Result := _('Error. Cannot generate file by FOP engine: %s'); end;
 function ERR_PDF_FILE_ACCESS_DENIED: string; begin Result := _('Error. Cannot create file %s by FOP engine: access denied'); end;
@@ -177,7 +186,6 @@ var
   FileName : string;
   BatchFileName : string;
   BatchCommand : string;
-  Visibility : integer;
 begin
   if Assigned(BeforeGenerateXML) then
     BeforeGenerateXML(Self);
@@ -229,12 +237,8 @@ begin
 
   //run batch command
   BatchCommand := '"'+BatchFileName+'" '+StrParams;
-  if FDebugMode then
-    Visibility := Ord(FDebugMode)
-  else
-    Visibility := Ord(FShowCommand);
 
-  if ExecuteApplication(BatchCommand, FFopPath, True, Visibility) <> 0 then
+  if EFSys.ExecuteCommand(TPath.Combine(FFopPath, BatchCommand)) <> 0 then
     raise Exception.Create(ERR_FOP);
 
   // verify if the file PDF/PCL/PS/RTF was generated
@@ -334,8 +338,10 @@ begin
     if LDeleteAfterShow then
       DeleteFile(AFileName);
   end
+  {$IFDEF MSWINDOWS}
   else
-    OpenDocument(AFileName, False );
+    OpenDocument(AFileName, False);
+  {$ENDIF}
 end;
 
 procedure TEFFopReport.PrintDocument(const AFileName : string);

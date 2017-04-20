@@ -186,7 +186,7 @@ uses
   , StrUtils
   , Variants
   {$IFDEF KITTO_ENABLE_CODESITE}, CodeSiteLogging{$ENDIF}
-  , EF.SysUtils
+  , EF.Sys
   , EF.StrUtils
   , EF.VariantUtils
   , EF.Tree

@@ -84,9 +84,10 @@ function DefaultExcelWildcards: string;
 implementation
 
 uses
-  Math
+  IOUtils
+  , Math
   , EF.DB
-  , EF.SysUtils
+  , EF.Sys
   , EF.StrUtils
   , Ext.Base
   , Kitto.Metadata.Models
@@ -163,7 +164,7 @@ begin
     Assert(FileExists(TemplateFileName),
       Format('Excel template file "%s" not found!',[TemplateFileName]));
     //Save the template file as the output file
-    CopyFile(TemplateFileName, AFileName);
+    TFile.Copy(TemplateFileName, AFileName);
   end;
 
   //Now the output file is ready: filling data
@@ -178,7 +179,7 @@ begin
   LFileExtension := ExtractFileExt(ClientFileName);
   if LFileExtension = '' then
     LFileExtension := GetDefaultFileExtension;
-  Result := EF.SysUtils.GetTempFileName(LFileExtension);
+  Result := GetTempFileName(LFileExtension);
   AddTempFilename(Result);
 end;
 

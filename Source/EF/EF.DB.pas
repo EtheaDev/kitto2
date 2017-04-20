@@ -25,8 +25,15 @@ unit EF.DB;
 interface
 
 uses
-  Types, SysUtils, DB, Classes, Generics.Collections,
-  EF.Intf, EF.Classes, EF.Tree;
+  Types
+  , SysUtils
+  , DB
+  , Classes
+  , Generics.Collections
+  , EF.Intf
+  , EF.Classes
+  , EF.Tree
+  ;
 
 type
   TEFDBSchemaInfo = class;
@@ -572,9 +579,18 @@ type
 implementation
 
 uses
-  Variants, Contnrs, FMTBcd, StrUtils, Math,
-  EF.SysUtils, EF.VariantUtils, EF.Localization, EF.Types, EF.SQL, EF.StrUtils,
-  EF.Logger;
+  Variants
+  , FMTBcd
+  , StrUtils
+  , Math
+  , EF.Sys
+  , EF.VariantUtils
+  , EF.Localization
+  , EF.Types
+  , EF.SQL
+  , EF.StrUtils
+  , EF.Logger
+  ;
 
 { TEFDBAdapterRegistry }
 
@@ -679,7 +695,7 @@ end;
 procedure TEFDBConnection.AfterConstruction;
 begin
   inherited;
-  FStandardFormatSettings := GetFormatSettings;
+  FStandardFormatSettings := TFormatSettings.Create;
   FStandardFormatSettings.DecimalSeparator := '.';
   FStandardFormatSettings.DateSeparator := '-';
   FStandardFormatSettings.TimeSeparator := ':';

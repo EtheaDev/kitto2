@@ -53,7 +53,7 @@ uses
   , EF.StrUtils
   , EF.Localization
   , EF.DB
-  , EF.SysUtils
+  , EF.Sys
   , EF.Macros
   , EF.XML
   , EF.FOP
@@ -86,7 +86,7 @@ begin
   LFileExtension := ExtractFileExt(ClientFileName);
   if LFileExtension = '' then
     LFileExtension := GetDefaultFileExtension;
-  Result := EF.SysUtils.GetTempFileName(LFileExtension);
+  Result := GetTempFileName(LFileExtension);
   AddTempFilename(Result);
 end;
 

@@ -22,7 +22,6 @@ interface
 
 uses
   SysUtils, Types, Classes, DB, Generics.Collections, Generics.Defaults,
-  superobject,
   EF.Tree, EF.DB, EF.Types,
   Kitto.Metadata.Models;
 
@@ -454,18 +453,26 @@ type
     ///  an index >=0 to consider that value. Normally each pair contains a
     ///  single value, so you just don't pass this param.
     /// </param>
-    function GetRecord(const AKey: ISuperObject; const AFormatSettings: TFormatSettings;
+    function GetRecord(const AKey: TEFTree; const AFormatSettings: TFormatSettings;
       const ATranslator: TNameTranslator = nil; const AValueIndex: Integer = -1): TKRecord;
-    function FindRecord(const AKey: ISuperObject; const AFormatSettings: TFormatSettings;
+    function FindRecord(const AKey: TEFTree; const AFormatSettings: TFormatSettings;
       const ATranslator: TNameTranslator = nil; const AValueIndex: Integer = -1): TKRecord;
   end;
 
 implementation
 
 uses
-  Math, FmtBcd, Variants, StrUtils,
-  EF.StrUtils, EF.Localization, EF.JSON, EF.XML, EF.superobject,
-  Kitto.Types, Kitto.Config;
+  Math
+  , FmtBcd
+  , Variants
+  , StrUtils
+  , EF.StrUtils
+  , EF.Localization
+  , EF.JSON
+  , EF.XML
+  , Kitto.Types
+  , Kitto.Config
+  ;
 
 { TKStore }
 
@@ -544,7 +551,7 @@ begin
             end;
 end;
 
-function TKStore.FindRecord(const AKey: ISuperObject;
+function TKStore.FindRecord(const AKey: TEFTree;
   const AFormatSettings: TFormatSettings; const ATranslator: TNameTranslator;
   const AValueIndex: Integer): TKRecord;
 var
@@ -555,7 +562,7 @@ begin
   LKeyNode := TEFNode.Create;
   try
     LKeyNode.Assign(Key);
-    LKeyNode.SetChildValuesfromSuperObject(AKey, True, AFormatSettings, ATranslator, AValueIndex);
+    LKeyNode.CopyChildValues(AKey, True, AFormatSettings, ATranslator, AValueIndex);
     Result := Records.FindRecord(LKeyNode);
   finally
     FreeAndNil(LKeyNode);
@@ -706,7 +713,7 @@ begin
   Result := Records.Key;
 end;
 
-function TKStore.GetRecord(const AKey: ISuperObject; const AFormatSettings: TFormatSettings;
+function TKStore.GetRecord(const AKey: TEFTree; const AFormatSettings: TFormatSettings;
   const ATranslator: TNameTranslator; const AValueIndex: Integer): TKRecord;
 var
   LKeyNode: TEFNode;
@@ -716,7 +723,7 @@ begin
   LKeyNode := TEFNode.Create;
   try
     LKeyNode.Assign(Key);
-    LKeyNode.SetChildValuesfromSuperObject(AKey, True, AFormatSettings, ATranslator, AValueIndex);
+    LKeyNode.CopyChildValues(AKey, True, AFormatSettings, ATranslator, AValueIndex);
     Result := Records.GetRecord(LKeyNode);
   finally
     FreeAndNil(LKeyNode);

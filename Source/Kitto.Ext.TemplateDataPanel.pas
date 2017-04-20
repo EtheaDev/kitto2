@@ -62,7 +62,6 @@ uses
   , Kitto.Web.Application
   , Kitto.Ext.Utils
   , Kitto.Ext.Controller
-  , Kitto.Ext.XSLTools
   ;
 
 { TKExtTemplateDataPanel }

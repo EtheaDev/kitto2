@@ -141,8 +141,12 @@ type
 implementation
 
 uses
-  StrUtils,
-  EF.Types, EF.StrUtils, EF.SysUtils, EF.Localization;
+  StrUtils
+  , EF.Types
+  , EF.StrUtils
+  , EF.Sys
+  , EF.Localization
+  ;
 
 { TEFYAMLParser }
 
@@ -299,7 +303,7 @@ end;
 
 class constructor TEFYAMLReader.Create;
 begin
-  FFormatSettings := GetFormatSettings;
+  FFormatSettings := TFormatSettings.Create;
 end;
 
 destructor TEFYAMLReader.Destroy;

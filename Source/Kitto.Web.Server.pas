@@ -121,8 +121,10 @@ implementation
 uses
   StrUtils
   , Classes
+  {$IFDEF MSWINDOWS}
   , ComObj
   , ActiveX
+  {$ENDIF}
   , IOUtils
   , EF.Logger
   , EF.StrUtils
@@ -348,16 +350,20 @@ begin
   for LSubscriber in FSubscribers do
     LSubscriber.AfterHandleRequest(Self, ARequest, AResponse, AStopWatch);
 
+  {$IFDEF MSWINDOWS}
   { TODO : only do this when ADO is used }
   CoUninitialize;
+  {$ENDIF}
 end;
 
 function TKWebServer.DoBeforeHandleRequest(const ARequest: TKWebRequest; const AResponse: TKWebResponse): Boolean;
 var
   LSubscriber: IKWebHandleRequestEventListener;
 begin
+  {$IFDEF MSWINDOWS}
   { TODO : only do this when ADO is used }
   OleCheck(CoInitialize(nil));
+  {$ENDIF}
 
   Result := True;
   for LSubscriber in FSubscribers do

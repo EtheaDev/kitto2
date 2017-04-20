@@ -21,11 +21,18 @@ unit Kitto.Metadata.DataView;
 interface
 
 uses
-  Types, SysUtils, DB, Generics.Collections,
-  superobject,
-  EF.Types, EF.Tree,
-  Kitto.Metadata, Kitto.Metadata.Models, Kitto.Metadata.Views, Kitto.Store,
-  Kitto.Rules;
+  Types
+  , SysUtils
+  , DB
+  , Generics.Collections
+  , EF.Types
+  , EF.Tree
+  , Kitto.Metadata
+  , Kitto.Metadata.Models
+  , Kitto.Metadata.Views
+  , Kitto.Store
+  , Kitto.Rules
+  ;
 
 type
   TKDataView = class;
@@ -405,9 +412,9 @@ type
     ///  an index >=0 to consider that value. Normally each pair contains a
     ///  single value, so you just don't pass this param.
     /// </param>
-    function GetRecord(const AKey: ISuperObject; const AFormatSettings: TFormatSettings;
+    function GetRecord(const AKey: TEFTree; const AFormatSettings: TFormatSettings;
       const AValueIndex: Integer = -1): TKViewTableRecord;
-    function FindRecord(const AKey: ISuperObject; const AFormatSettings: TFormatSettings;
+    function FindRecord(const AKey: TEFTree; const AFormatSettings: TFormatSettings;
       const AValueIndex: Integer = -1): TKViewTableRecord;
   end;
 
@@ -2262,7 +2269,7 @@ begin
   SetupFields;
 end;
 
-function TKViewTableStore.FindRecord(const AKey: ISuperObject;
+function TKViewTableStore.FindRecord(const AKey: TEFTree;
   const AFormatSettings: TFormatSettings;
   const AValueIndex: Integer): TKViewTableRecord;
 begin
@@ -2358,7 +2365,7 @@ begin
   Result := inherited Header as TKViewTableHeader;
 end;
 
-function TKViewTableStore.GetRecord(const AKey: ISuperObject; const AFormatSettings: TFormatSettings;
+function TKViewTableStore.GetRecord(const AKey: TEFTree; const AFormatSettings: TFormatSettings;
   const AValueIndex: Integer): TKViewTableRecord;
 begin
   Result := inherited GetRecord(AKey, AFormatSettings,

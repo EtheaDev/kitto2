@@ -34,10 +34,23 @@ type
 implementation
 
 uses
-  SysUtils, Forms, Classes, SvcMgr, ShlObj, Themes, Styles,
-  EF.SysUtils, EF.Logger, EF.Localization,
-  Kitto.Config,
-  Kitto.Ext.MainFormUnit, Kitto.Ext.Service;
+  SysUtils
+  , Classes
+  {$IFDEF WINDOWS}
+  , Forms
+  , SvcMgr
+  , ShlObj
+  , Themes
+  , Styles
+  {$ENDIF}
+  , EF.Logger
+  , EF.Localization
+  , Kitto.Config
+  {$IFDEF WINDOWS}
+  , Kitto.Ext.MainFormUnit
+  , Kitto.Ext.Service
+  {$ENDIF}
+  ;
 
 { TKExtStart }
 
@@ -61,6 +74,7 @@ begin
 
   if not FindCmdLineSwitch('a') then
   begin
+    {$IFDEF WINDOWS}
     TEFLogger.Instance.Log('Starting as service.');
     if not SvcMgr.Application.DelayInitialize or SvcMgr.Application.Installing then
       SvcMgr.Application.Initialize;
@@ -68,18 +82,25 @@ begin
     KExtService.Name := FServiceName;
     KExtService.DisplayName := FServiceDisplayName;
     SvcMgr.Application.Run;
+    {$ELSE}
+    TEFLogger.Instance.Log('Services not yet supported on this platform.');
+    {$ENDIF}
   end
   else
   begin
+    {$IFDEF WINDOWS}
     TEFLogger.Instance.Log('Starting as application.');
     Forms.Application.Initialize;
     Forms.Application.CreateForm(TKExtMainForm, KExtMainForm);
     Forms.Application.Run;
+    {$ELSE}
+    TEFLogger.Instance.Log('GUI applications not yet supported on this platform.');
+    {$ENDIF}
   end;
 end;
 
 initialization
-  {$IFDEF WIN32}
+  {$IFDEF WINDOWS}
   ReportMemoryLeaksOnShutdown := DebugHook <> 0;
   {$ENDIF}
 
