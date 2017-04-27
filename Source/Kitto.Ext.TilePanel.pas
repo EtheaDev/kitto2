@@ -311,11 +311,11 @@ procedure TKExtTilePanel.AddBackTile;
 var
   LClickCode: string;
 begin
-  LClickCode := GenerateAnonymousFunction(GetJSCode(
+  LClickCode := GetJSCode(
     procedure
     begin
       TKWebResponse.Current.Items.AjaxCallMethod(Self).SetMethod(DisplayPage).AddParam('PageId', 0);
-    end)).ExtractText;
+    end);
   FTileBoxHtml := FTileBoxHtml + Format(
     '<a href="#" onclick="%s"><div class="k-tile k-tile-back" style="background-color:%s;width:%dpx;height:%dpx">' +
     '<div class="k-tile-inner k-tile-back-inner">%s</div></div></a>',
@@ -366,20 +366,20 @@ var
 begin
   if ANode is TKTreeViewFolder then
   begin
-    LClickCode := GenerateAnonymousFunction(GetJSCode(
+    LClickCode := GetJSCode(
       procedure
       begin
         TKWebResponse.Current.Items.AjaxCallMethod(Self).SetMethod(DisplayPage).AddParam('PageId', Integer(ANode));
-      end)).ExtractText;
+      end);
   end
   else
   begin
-    LClickCode := GenerateAnonymousFunction(GetJSCode(
+    LClickCode := GetJSCode(
       procedure
       begin
         TKWebResponse.Current.Items.AjaxCallMethod(Self).SetMethod(DisplayView)
           .AddParam('View', Integer(TKWebApplication.Current.Config.Views.ViewByNode(ANode)));
-      end)).ExtractText;
+      end);
   end;
 
   if GetCSS <> '' then
