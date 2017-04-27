@@ -36,17 +36,17 @@ implementation
 uses
   SysUtils
   , Classes
-  {$IFDEF WINDOWS}
-  , Forms
-  , SvcMgr
+  {$IFDEF MSWINDOWS}
+  , Vcl.Forms
+  , Vcl.SvcMgr
   , ShlObj
-  , Themes
-  , Styles
+  , Vcl.Themes
+  , Vcl.Styles
   {$ENDIF}
   , EF.Logger
   , EF.Localization
   , Kitto.Config
-  {$IFDEF WINDOWS}
+  {$IFDEF MSWINDOWS}
   , Kitto.Ext.MainFormUnit
   , Kitto.Ext.Service
   {$ENDIF}
@@ -74,25 +74,25 @@ begin
 
   if not FindCmdLineSwitch('a') then
   begin
-    {$IFDEF WINDOWS}
+    {$IFDEF MSWINDOWS}
     TEFLogger.Instance.Log('Starting as service.');
-    if not SvcMgr.Application.DelayInitialize or SvcMgr.Application.Installing then
-      SvcMgr.Application.Initialize;
-    SvcMgr.Application.CreateForm(TKExtService, KExtService);
+    if not Vcl.SvcMgr.Application.DelayInitialize or Vcl.SvcMgr.Application.Installing then
+      Vcl.SvcMgr.Application.Initialize;
+    Vcl.SvcMgr.Application.CreateForm(TKExtService, KExtService);
     KExtService.Name := FServiceName;
     KExtService.DisplayName := FServiceDisplayName;
-    SvcMgr.Application.Run;
+    Vcl.SvcMgr.Application.Run;
     {$ELSE}
     TEFLogger.Instance.Log('Services not yet supported on this platform.');
     {$ENDIF}
   end
   else
   begin
-    {$IFDEF WINDOWS}
+    {$IFDEF MSWINDOWS}
     TEFLogger.Instance.Log('Starting as application.');
-    Forms.Application.Initialize;
-    Forms.Application.CreateForm(TKExtMainForm, KExtMainForm);
-    Forms.Application.Run;
+    Vcl.Forms.Application.Initialize;
+    Vcl.Forms.Application.CreateForm(TKExtMainForm, KExtMainForm);
+    Vcl.Forms.Application.Run;
     {$ELSE}
     TEFLogger.Instance.Log('GUI applications not yet supported on this platform.');
     {$ENDIF}
@@ -100,7 +100,8 @@ begin
 end;
 
 initialization
-  {$IFDEF WINDOWS}
+  {$IFDEF MSWINDOWS}
+  {$WARN SYMBOL_PLATFORM OFF}
   ReportMemoryLeaksOnShutdown := DebugHook <> 0;
   {$ENDIF}
 

@@ -773,6 +773,7 @@ uses
   StrUtils
   , Variants
   , TypInfo
+  , IOUtils
   , Math
   , EF.Localization
   , EF.DB
@@ -2847,7 +2848,7 @@ begin
       begin
         LFileToDelete := AField.GetString('Sys/DeleteFile');
         if FileExists(LFileToDelete) then
-          DeleteFile(LFileToDelete);
+          TFile.Delete(LFileToDelete);
       end;
       Result := True;
     end

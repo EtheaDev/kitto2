@@ -283,7 +283,8 @@ type
 implementation
 
 uses
-  EF.Localization
+  IOUtils
+  , EF.Localization
   , EF.StrUtils
   , Kitto.Types
   , Kitto.Auth
@@ -380,7 +381,7 @@ begin
   begin
     LFileName := GetFullFileName(AObject.PersistentName);
     if FileExists(LFileName) then
-      SysUtils.DeleteFile(LFileName);
+      TFile.Delete(LFileName);
   end;
   AObject.Free;
 end;

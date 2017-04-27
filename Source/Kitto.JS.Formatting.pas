@@ -96,7 +96,8 @@ type
 implementation
 
 uses
-  StrUtils
+  Character
+  , StrUtils
   , DateUtils
   , Types
   , EF.StrUtils
@@ -123,8 +124,7 @@ begin
   else
   begin
     I := pos('%', Result);
-    if (pos(';', Result) = 0) and (I <> 0) and ((Length(Result) > 1) and (I < Length(Result)) and
-      CharInSet(Result[I + 1], ['0' .. '9'])) then
+    if (pos(';', Result) = 0) and (I <> 0) and ((Length(Result) > 1) and (I < Length(Result)) and Result[I + 1].IsNumber) then
     begin // Has param place holder, ";" disable place holder
       J := FirstDelimiter(' "''[]{}><=!*-+/,', Result, I + 2);
       if J = 0 then
@@ -140,7 +140,7 @@ begin
         Result := '"' + Result;
       end;
     end
-    else if (I = 1) and (Length(Result) > 1) and CharInSet(Result[2], ['a' .. 'z', 'A' .. 'Z']) then
+    else if (I = 1) and (Length(Result) > 1) and Result[2].IsLetter then
       Result := Copy(Result, 2, Length(Result))
     else
       Result := '"' + Result + '"'
@@ -156,7 +156,7 @@ begin
   JS := GetEnumName(ATypeInfo, AValue);
   for I := 1 to Length(JS) do
   begin
-    if CharInSet(JS[I], ['A' .. 'Z']) then
+    if JS[I].IsLetter and JS[I].IsUpper then
     begin
       Result := LowerCase(Copy(JS, I, 100));
       if Result = 'perc' then

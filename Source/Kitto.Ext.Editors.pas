@@ -783,8 +783,8 @@ uses
   {$IFDEF MSWINDOWS}
   , Windows
   {$ENDIF}
-  {$IFDEF WINDOWS}
-  , Graphics
+  {$IFDEF MSWINDOWS}
+  , Vcl.Graphics
   {$ENDIF}
   , Variants
   , DateUtils
@@ -3218,7 +3218,7 @@ begin
     end
     else
     begin
-      LMaxUploadSize := FRecordField.ViewField.GetInteger('MaxUploadSize', MaxLongint);
+      LMaxUploadSize := FRecordField.ViewField.GetInteger('MaxUploadSize', MaxInt);
       if TKWebRequest.Current.Files[0].Stream.Size > LMaxUploadSize then
       begin
         LResult.AddPair('success', TJSONFalse.Create);

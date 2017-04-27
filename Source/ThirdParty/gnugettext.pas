@@ -390,8 +390,10 @@ type
       N, O, T: Cardinal; /// Values defined at http://www.linuxselfhelp.com/gnu/gettext/html_chapter/gettext_6.html
       startindex,startstep:integer;
       FUseMemoryMappedFiles: Boolean;
+      {$ifndef LINUX}
       mo: THandle;
       momapping: THandle;
+      {$endif}
       momemoryHandle:PAnsiChar;
       momemory: PAnsiChar;
       function autoswap32(i: cardinal): cardinal;
@@ -3638,8 +3640,10 @@ begin
 end;
 {$endif dx_German_Delphi_fix}
 
+{$ifdef dx_has_Resource_Strings}
 var
   param0:string;
+{$endif}
 
 {$IFDEF dx_SupportsResources}
 { TResourceFileInfo }

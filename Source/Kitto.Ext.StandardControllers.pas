@@ -343,7 +343,7 @@ var
   I: Integer;
 begin
   for I := 0 to FTempFileNames.Count - 1 do
-    DeleteFile(FTempFileNames[I]);
+    TFile.Delete(FTempFileNames[I]);
   FTempFileNames.Clear;
 end;
 
@@ -418,7 +418,7 @@ begin
   if LPersistentFileName <> '' then
   begin
     if FileExists(LPersistentFileName) then
-      DeleteFile(LPersistentFileName);
+      TFile.Delete(LPersistentFileName);
     LFileStream := TFileStream.Create(LPersistentFileName, fmCreate or fmShareExclusive);
     try
       AStream.Position := 0;
@@ -540,7 +540,7 @@ var
   I: Integer;
 begin
   for I := 0 to FTempFileNames.Count - 1 do
-    DeleteFile(FTempFileNames[I]);
+    TFile.Delete(FTempFileNames[I]);
   FTempFileNames.Clear;
 end;
 
@@ -680,7 +680,7 @@ end;
 
 function TKExtUploadFileController.GetMaxUploadSize: Integer;
 begin
-  Result := Config.GetInteger('MaxUploadSize', MaxLongint);
+  Result := Config.GetInteger('MaxUploadSize', MaxInt);
 end;
 
 class function TKExtUploadFileController.GetDefaultImageName: string;

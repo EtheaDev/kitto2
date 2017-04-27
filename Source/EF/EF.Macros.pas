@@ -509,11 +509,18 @@ implementation
 
 uses
   DateUtils
+  {$IFDEF MSWINDOWS}
+  , Windows
+  {$ENDIF}
   , StrUtils
   , Types
   , EF.Localization
   , EF.StrUtils
-  , EF.Sys;
+  , EF.Sys
+  {$IFDEF MSWINDOWS}
+  , EF.Sys.Windows
+  {$ENDIF}
+  ;
 
 procedure AddStandardMacroExpanders(const AMacroExpansionEngine: TEFMacroExpansionEngine);
 begin
@@ -708,7 +715,7 @@ begin
   Result := ExpandMacros(Result, '%APP_NAME%', ParamStr(0));
   Result := ExpandMacros(Result, '%APP_FILENAME%', ExtractFileName(ParamStr(0)));
   Result := ExpandMacros(Result, '%APP_BASENAME%', ChangeFileExt(ExtractFileName(ParamStr(0)), ''));
-  {$IFDEF WINDOWS}
+  {$IFDEF MSWINDOWS}
   Result := ExpandMacros(Result, '%WIN_DIR%', IncludeTrailingPathDelimiter(SafeGetWindowsDirectory));
   Result := ExpandMacros(Result, '%SYS_DIR%', IncludeTrailingPathDelimiter(SafeGetSystemDirectory));
   {$ENDIF}
@@ -727,7 +734,7 @@ begin
   Result := ExpandMacros(Result, '%TOMORROW%', FormatDateTime(LFormatSettings.ShortDateFormat, Date + 1));
   Result := ExpandMacros(Result, '%TIME%', FormatDateTime(LFormatSettings.ShortTimeFormat, Now));
   Result := ExpandMacros(Result, '%DATETIME%', FormatDateTime(LFormatSettings.ShortDateFormat, Now)+' '+ FormatDateTime(LFormatSettings.ShortTimeFormat, Now));
-  {$IFDEF WINDOWS}
+  {$IFDEF MSWINDOWS}
   Result := ExpandMacros(Result, '%PROCESS_ID%', IntToStr(GetCurrentProcessId));
   Result := ExpandMacros(Result, '%THREAD_ID%', IntToStr(GetCurrentThreadId));
   {$ENDIF}

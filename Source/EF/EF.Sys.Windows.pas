@@ -629,53 +629,28 @@ type
   TEFSysWindows = class(TEFSys)
   public
     function GetUserName: string; override;
+    function ExecuteCommand(const AFileName: string): Integer; override;
   end;
 
-{ TEFSysWindows }
-
-function TEFSysWindows.GetUserName: string;
-var
-  LBuffer: array[0..255] of Char;
-  LSize: LongWord;
-begin
-  LSize := SizeOf(LBuffer);
-  if Windows.GetUserName(LBuffer, LSize) then
-    Result := LBuffer
-  else
-    Result := '';
-end;
-
-function IsFileInUse(const AFileName: string): Boolean;
-begin
-  try
-    TFileStream.Create(AFileName, fmOpenWrite or fmShareExclusive).Free;
-    Result := False;
-  except
-    on E: EFOpenError do
-      Result := True;
-  end;
-end;
-
-{
-  Executes an application.
-  AFileName is the executable name, optionally complete with full path.
-  AVisibility is one of the SW_* constants defined in the unit Windows.
-  If AWait is True, the function waits that the launched process finishes,
-  and returns the process' exit code (or -1 in case of errors).
-  If AWait is False, the function returns 0 if the call succeeds or -1 in case
-  of errors.
-  If ARetainProcessHandle is True, AProcessHandle contains the launched process'
-  handle. CAUTION: in this case, the caller is responsible for freeing the
-  handle (by passing it to the CloseHandle() Win32 API function) when it is no
-  longer required.
-  The application is started from the current folder, unless a different one is
-  specified in ACurrentDirectory.
-  If you pass a string list in AOutput, and True in AWait, then the
-  application's console output is redirected to a temporary file which is
-  later loaded into AOutput and deleted. Use this mode for console applications
-  and batch files only.
-}
-
+/// <summary>
+///  Executes an application.
+///  AFileName is the executable name, optionally complete with full path.
+///  AVisibility is one of the SW_* constants defined in the unit Windows.
+///  If AWait is True, the function waits that the launched process finishes,
+///  and returns the process' exit code (or -1 in case of errors).
+///  If AWait is False, the function returns 0 if the call succeeds or -1 in case
+///  of errors.
+///  If ARetainProcessHandle is True, AProcessHandle contains the launched process'
+///  handle. CAUTION: in this case, the caller is responsible for freeing the
+///  handle (by passing it to the CloseHandle() Win32 API function) when it is no
+///  longer required.
+///  The application is started from the current folder, unless a different one is
+///  specified in ACurrentDirectory.
+///  If you pass a string list in AOutput, and True in AWait, then the
+///  application's console output is redirected to a temporary file which is
+///  later loaded into AOutput and deleted. Use this mode for console applications
+///  and batch files only.
+/// </summary>
 function InternalExecuteApplication(const AFileName: string;
   const AVisibility: Integer; const AWait: Boolean;
   const ARetainProcessHandle: Boolean; out AProcessHandle: Cardinal;
@@ -763,18 +738,43 @@ begin
       if FileExists(LOutputTempFileName) then
         AOutput.LoadFromFile(LOutputTempFileName);
     end;
-    
+
   finally
     if (LOutputTempFileName <> '') and FileExists(LOutputTempFileName) then
       DeleteFile(LOutputTempFileName);
   end;
 end;
 
-function ExecuteApplication(const AFileName: string; const AWait: Boolean = False): Integer;
+{ TEFSysWindows }
+
+function TEFSysWindows.ExecuteCommand(const AFileName: string): Integer;
 var
   LDummy: Cardinal;
 begin
-  Result := InternalExecuteApplication(AFileName, SW_NORMAL, AWait, False, LDummy);
+  Result := InternalExecuteApplication(AFileName, SW_NORMAL, False, False, LDummy);
+end;
+
+function TEFSysWindows.GetUserName: string;
+var
+  LBuffer: array[0..255] of Char;
+  LSize: LongWord;
+begin
+  LSize := SizeOf(LBuffer);
+  if Windows.GetUserName(LBuffer, LSize) then
+    Result := LBuffer
+  else
+    Result := '';
+end;
+
+function IsFileInUse(const AFileName: string): Boolean;
+begin
+  try
+    TFileStream.Create(AFileName, fmOpenWrite or fmShareExclusive).Free;
+    Result := False;
+  except
+    on E: EFOpenError do
+      Result := True;
+  end;
 end;
 
 function ExecuteApplication(const AFileName: string; const AOutput: TStrings): Integer;
@@ -785,7 +785,7 @@ begin
 end;
 
 function ExecuteApplication(const AFileName, AWorkingDirectory: string;
-  const AWait: Boolean = False; const AVisibility: Integer = SW_NORMAL): Integer; overload;
+  const AWait: Boolean = False; const AVisibility: Integer = SW_NORMAL): Integer;
 var
   LDummy: Cardinal;
 begin
@@ -910,25 +910,6 @@ begin
   SetLength(Result, MAX_PATH + 1);
   SetLength(Result, GetTempPath(MAX_PATH + 1, (PChar(Result))));
   Result := IncludeTrailingPathDelimiter(Result);
-end;
-
-function GetUniqueFileName(const APath, AExtension: string): string;
-begin
-  repeat
-    Result := APath + GetRandomString(8) + AExtension;
-  until not FileExists(Result);
-end;
-
-function GetUniqueFileName(const ADefaultFileName: string): string;
-var
-  LExtension: string;
-begin
-  Result := ADefaultFileName;
-  while FileExists(Result) do
-  begin
-    LExtension := ExtractFileExt(ADefaultFileName);
-    Result := ChangeFileExt(ADefaultFileName, '_' + GetRandomString(8) + LExtension);
-  end;
 end;
 
 function ExtractFileFormat(const AFileName: string): string;

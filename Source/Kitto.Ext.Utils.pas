@@ -123,10 +123,10 @@ uses
   Types
   , StrUtils
   , RTTI
-  {$IFDEF WINDOWS}
-  , Graphics
-  , jpeg
-  , pngimage
+  {$IFDEF MSWINDOWS}
+  , Vcl.Graphics
+  , Vcl.Imaging.jpeg
+  , Vcl.Imaging.pngimage
   {$ENDIF}
   , EF.Sys
   , EF.StrUtils
@@ -440,7 +440,7 @@ end;
 
 procedure DownloadThumbnailedStream(const AStream: TStream; const AFileName: string;
   const AThumbnailWidth, AThumbnailHeight: Integer);
-{$IFDEF WINDOWS}
+{$IFDEF MSWINDOWS}
 var
   LFileExt: string;
   LBytes: TBytes;
@@ -497,7 +497,7 @@ var
 begin
   Assert(Assigned(AStream));
 
-  {$IFDEF WINDOWS}
+  {$IFDEF MSWINDOWS}
   LFileExt := ExtractFileExt(AFileName);
   if MatchText(LFileExt, ['.jpg', '.jpeg', '.png']) then
   begin

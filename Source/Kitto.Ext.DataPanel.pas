@@ -178,6 +178,7 @@ implementation
 
 uses
   StrUtils
+  , IOUtils
   , Math
   , Types
   , Classes
@@ -1209,7 +1210,7 @@ begin
         if (LFileOp.Event = AEvent) and (LFileOp.Kind = okDelete) then
         begin
           if FileExists(LFileOp.PathName) then
-            DeleteFile(LFileOp.PathName);
+            TFile.Delete(LFileOp.PathName);
         end;
       end;
     end;

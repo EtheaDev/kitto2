@@ -19,7 +19,12 @@ unit Kitto.Ext.Service;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, SvcMgr;
+  Windows
+  , Messages
+  , SysUtils
+  , Classes
+  , Vcl.SvcMgr
+  ;
 
 type
   TKExtService = class(TService)

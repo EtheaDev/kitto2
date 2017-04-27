@@ -1,4 +1,4 @@
 {$I EF\EF.Defines.inc}
 
-{.$DEFINE KITTO_MINIFY}
+{$WARN DUPLICATE_CTOR_DTOR OFF}
 

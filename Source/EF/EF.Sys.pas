@@ -120,7 +120,7 @@ implementation
 uses
   StrUtils
   , IOUtils
-  {$IFDEF WINDOWS}
+  {$IFDEF MSWINDOWS}
   , EF.Sys.Windows
   {$ENDIF}
   {$IFDEF LINUX}

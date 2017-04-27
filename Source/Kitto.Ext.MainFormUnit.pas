@@ -21,10 +21,10 @@ unit Kitto.Ext.MainFormUnit;
 interface
 
 uses
-  {$IF RTLVersion >= 23.0}Themes, Styles,{$IFEND}
-  Windows, Messages, SysUtils, Variants, Classes, Graphics, IdCustomHTTPServer,
-  Controls, Forms, Dialogs, ComCtrls, ToolWin, Generics.Collections,
-  ActnList, Kitto.Config, StdCtrls, Buttons, ExtCtrls, ImgList, EF.Logger,
+  {$IF RTLVersion >= 23.0}Vcl.Themes, Vcl.Styles,{$IFEND}
+  Windows, Messages, SysUtils, Variants, Classes, Vcl.Graphics, IdCustomHTTPServer,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ComCtrls, Vcl.ToolWin, Generics.Collections,
+  Vcl.ActnList, Kitto.Config, Vcl.StdCtrls, Vcl.Buttons, Vcl.ExtCtrls, Vcl.ImgList, EF.Logger,
   Actions, Vcl.Tabs, Vcl.Grids, System.ImageList, Kitto.Web.Server,
   Kitto.Web.Application, Kitto.JS;
 
@@ -118,7 +118,8 @@ uses
   , StrUtils
   , DateUtils
   , SyncObjs
-  , EF.SysUtils
+  , EF.Sys
+  , EF.Sys.Windows
   , EF.Shell
   , EF.Localization
   ;
@@ -187,7 +188,7 @@ begin
     DoLog(_('Listener stopped'));
     HomeURLLabel.Visible := False;
     while IsStarted do
-      Forms.Application.ProcessMessages;
+      Vcl.Forms.Application.ProcessMessages;
     if FRestart then
     begin
       FRestart := False;
