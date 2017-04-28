@@ -490,12 +490,16 @@ function showErrorMessage(config)
 
 function charsToPixels(chars, offset)
 {
+  // Adjust for small themes
   // + 16 sort of compensates for text-to-border left and right margins.
-  return (TextMetrics.getWidth("g") * chars * 1.6) + 16 + offset; // 1.2 for small themes
+  return (TextMetrics.getWidth("W") * chars) + 16 + offset;
+  //return (TextMetrics.getWidth("W") * chars) + offset;
 }
 
 function linesToPixels(lines)
 {
+  // Adjust for small themes
   // + 16 sort of compensates for text-to-border left and right margins.
-  return (TextMetrics.getHeight("W") * lines * 1.7); // 1.3 for small themes
+  return (TextMetrics.getHeight("g") * lines);
+  //return TextMetrics.getHeight("g") * lines;
 }

@@ -198,12 +198,9 @@ type
   TKExtFormRowField = class(TKExtFormContainer, IKExtEditor)
   strict private
     FEditor: IKExtEditor;
-    FCharWidth: Integer;
     FLabelWidth: Integer;
     FRecordField: TKViewTableField;
     FEditItemId: string;
-    procedure SetCharWidth(const AValue: Integer);
-    procedure SetLabelWidth(const AValue: Integer);
   protected
     procedure InitDefaults; override;
     function InternalSetOption(const ANode: TEFNode): Boolean; override;
@@ -212,8 +209,8 @@ type
     destructor Destroy; override;
   public
     function Encapsulate(const AValue: IKExtEditor): IKExtEditor;
-    property CharWidth: Integer read FCharWidth write SetCharWidth;
-    property LabelWidth: Integer read FLabelWidth write SetLabelWidth;
+    procedure SetCharWidth(const ACharWidth, AAdditionalWidth: Integer);
+    //property LabelWidth: Integer read FLabelWidth write SetLabelWidth;
     function AsExtFormField: TExtFormField;
     function GetRecordField: TKViewTableField;
     procedure SetRecordField(const AValue: TKViewTableField);
@@ -235,6 +232,7 @@ type
     FThousandSeparator: string;
     FAlwaysDisplayDecimals: Boolean;
     FUseThousandSeparator: Boolean;
+    FAdditionalWidth: Integer;
     procedure FieldChange(This: TExtFormField; NewValue, OldValue: string);
     procedure SetThousandSeparator(const AValue: string);
     procedure SetAlwaysDisplayDecimals(const AValue: Boolean);
@@ -263,6 +261,7 @@ type
 
   TKExtFormTextField = class(TExtFormTextField, IKExtEditItem, IKExtEditor)
   private
+    FAdditionalWidth: Integer;
     FFieldName: string;
     FRecordField: TKViewTableField;
     procedure FieldChange(This: TExtFormField; NewValue, OldValue: string);
@@ -288,6 +287,7 @@ type
   private
     FFieldName: string;
     FRecordField: TKViewTableField;
+    FAdditionalWidth: Integer;
     procedure FieldChange(This: TExtFormField; NewValue, OldValue: string);
   public
     function AsObject: TObject; inline;
@@ -334,6 +334,7 @@ type
   private
     FFieldName: string;
     FRecordField: TKViewTableField;
+    FAdditionalWidth: Integer;
     procedure FieldChange(This: TExtFormField; NewValue, OldValue: string);
     // Converts a date from javascript's implicit format (the one used when
     // firing the change handler) to the format expected by SetAsJSONValue
@@ -361,6 +362,7 @@ type
   private
     FFieldName: string;
     FRecordField: TKViewTableField;
+    FAdditionalWidth: Integer;
     procedure FieldChange(This: TExtFormField; NewValue, OldValue: string);
     // Converts a time from javascript's implicit format (the one used when
     // firing the change handler) to the format expected by SetAsJSONValue
@@ -395,6 +397,7 @@ type
     FAltTimeFormats: string;
     FFieldName: string;
     FRecordField: TKViewTableField;
+    FAdditionalWidth: Integer;
     procedure SetDateFormat(const AValue: string);
     procedure SetTimeFormat(const AValue: string);
     procedure SetAltDateFormats(const AValue: string);
@@ -441,10 +444,11 @@ type
     FFieldName: string;
     FHiddenName: string;
     FRecordField: TKViewTableField;
+    FAdditionalWidth: Integer;
   strict protected
     procedure LookupConfirmed(const ARecord: TKViewTableRecord); override;
   public
-    procedure Setup(const AViewField: TKVIewField; const AIsReadOnly: Boolean; const AFieldCharWidth: Integer);
+    procedure Setup(const AViewField: TKVIewField; const AIsReadOnly: Boolean);
     function AsExtFormField: TExtFormField;
     function GetRecordField: TKViewTableField;
     procedure SetRecordField(const AValue: TKViewTableField);
@@ -469,6 +473,7 @@ type
     FServerStore: TKStore;
     FFieldName: string;
     FRecordField: TKViewTableField;
+    FAdditionalWidth: Integer;
   protected
     procedure InitDefaults; override;
   public
@@ -497,6 +502,7 @@ type
   private
     FFieldName: string;
     FRecordField: TKViewTableField;
+    FAdditionalWidth: Integer;
   public
     function AsObject: TObject; inline;
     function _AddRef: Integer; stdcall;
@@ -528,8 +534,9 @@ type
     function GetContentDescription: string;
     procedure UpdateGUI(const AUpdatePicture: Boolean);
     procedure PictureViewAfterRender(This: TExtComponent);
-    procedure SetTotalCharWidth(const AValue: Integer);
     const EMPTY_DESCRIPTION = 'Empty';
+  private
+    FAdditionalWidth: Integer;
   strict protected
     FFieldName: string;
     FRecordField: TKViewTableField;
@@ -564,7 +571,7 @@ type
     procedure SetFieldName(const AValue: string);
     procedure RefreshValue;
     procedure StoreValue(const AObjectName: string);
-    property TotalCharWidth: Integer read FTotalCharWidth write SetTotalCharWidth;
+    property TotalCharWidth: Integer read FTotalCharWidth write FTotalCharWidth;
     procedure SetTransientProperty(const APropertyName: string; const AValue: Variant);
     function GetEditItemId: string;
     procedure SetReadOnly(const AValue: Boolean);
@@ -676,7 +683,7 @@ type
     destructor Destroy; override;
   private
     procedure SetOperation(const AValue: TKExtEditOperation);
-    procedure InitLabelPosAndWidth(const ANode: TEfTree);
+    procedure InitLabelPosAndWidth(const ANode: TEFTree);
   public
     // Set all properties before calling the CreateEditors methods.
     property DataRecord: TKViewTableRecord read FDataRecord write FDataRecord;
@@ -714,38 +721,41 @@ type
     FOperation: TKExtEditOperation;
     function TryCreateLookupEditor(const AOwner: TJSBase;
       const AViewField: TKViewField; const ARowField: TKExtFormRowField;
-      const AFieldCharWidth: Integer; const AIsReadOnly: Boolean): IKExtEditor;
+      const AFieldCharWidth: Integer; const AFieldAdditionalWidth: Integer;
+      const AIsReadOnly: Boolean): IKExtEditor;
     function TryCreateComboBox(const AOwner: TJSBase; const AViewField: TKViewField;
       const ARowField: TKExtFormRowField; const AFieldCharWidth: Integer;
-      const AIsReadOnly: Boolean): IKExtEditor;
+      const AFieldAdditionalWidth: Integer; const AIsReadOnly: Boolean): IKExtEditor;
     function TryCreateTextArea(const AOwner: TJSBase; const AViewField: TKViewField;
       const ARowField: TKExtFormRowField; const AFieldCharWidth: Integer;
-      const AIsReadOnly: Boolean): IKExtEditor;
+      const AFieldAdditionalWidth: Integer; const AIsReadOnly: Boolean): IKExtEditor;
     function TryCreateCheckBox(const AOwner: TJSBase; const AViewField: TKViewField;
       const AIsReadOnly: Boolean): IKExtEditor;
     function TryCreateDateField(const AOwner: TJSBase; const AViewField: TKViewField;
       const ARowField: TKExtFormRowField; const AFieldCharWidth: Integer;
-      const AIsReadOnly: Boolean): IKExtEditor;
+      const AFieldAdditionalWidth: Integer; const AIsReadOnly: Boolean): IKExtEditor;
     function TryCreateTimeField(const AOwner: TJSBase; const AViewField: TKViewField;
       const ARowField: TKExtFormRowField; const AFieldCharWidth: Integer;
-      const AIsReadOnly: Boolean): IKExtEditor;
+      const AFieldAdditionalWidth: Integer; const AIsReadOnly: Boolean): IKExtEditor;
     function TryCreateDateTimeField(const AOwner: TJSBase; const AViewField: TKViewField;
       const ARowField: TKExtFormRowField; const AFieldCharWidth: Integer;
-      const AIsReadOnly: Boolean): IKExtEditor;
+      const AFieldAdditionalWidth: Integer; const AIsReadOnly: Boolean): IKExtEditor;
     function TryCreateNumberField(const AOwner: TJSBase; const AViewField: TKViewField;
       const ARowField: TKExtFormRowField; const AFieldCharWidth: Integer;
-      const AIsReadOnly: Boolean): IKExtEditor;
+      const AFieldAdditionalWidth: Integer; const AIsReadOnly: Boolean): IKExtEditor;
     function TryCreateFileEditor(const AOwner: TJSBase; const AViewField: TKViewField;
       const ARowField: TKExtFormRowField; const AFieldCharWidth: Integer;
-      const AIsReadOnly: Boolean; const ALabel: string): IKExtEditor;
+      const AFieldAdditionalWidth: Integer; const AIsReadOnly: Boolean;
+      const ALabel: string): IKExtEditor;
     function CreateTextField(const AOwner: TJSBase; const AViewField: TKViewField;
       const ARowField: TKExtFormRowField; const AFieldCharWidth: Integer;
-      const AIsReadOnly: Boolean): IKExtEditor;
+      const AFieldAdditionalWidth: Integer; const AIsReadOnly: Boolean): IKExtEditor;
   public
     property Operation: TKExtEditOperation read FOperation write FOperation;
     function CreateEditor(const AOwner: TJSBase; const AViewField: TKViewField;
       const ARowField: TKExtFormRowField; const AFieldCharWidth: Integer;
-      const AIsReadOnly: Boolean; const ALabel: string = ''): IKExtEditor;
+      const AFieldAdditionalWidth: Integer; const AIsReadOnly: Boolean;
+      const ALabel: string = ''): IKExtEditor;
     /// <summary>
     ///  Creates an in-place editor for the specified field.
     /// </summary>
@@ -782,8 +792,6 @@ uses
   , StrUtils
   {$IFDEF MSWINDOWS}
   , Windows
-  {$ENDIF}
-  {$IFDEF MSWINDOWS}
   , Vcl.Graphics
   {$ENDIF}
   , Variants
@@ -857,13 +865,13 @@ begin
   Result := ANode.AsString;
 end;
 
-function SetExtFormFieldOption(const AFormField: TExtFormField; const ANode: TEFNode): Boolean;
+function SetExtFormFieldOption(const AFormField: TExtFormField; const ANode: TEFNode; const ALabelWidth: Integer): Boolean;
 begin
   Result := True;
   if SameText(ANode.Name, 'Anchor') then
     AFormField.Anchor := ANode.AsString
   else if SameText(ANode.Name, 'CharWidth') then
-    AFormField.WidthExpression := AFormField.CharsToPixels(ANode.AsInteger)
+    AFormField.WidthExpression := AFormField.CharsToPixels(ANode.AsInteger, ALabelWidth)
   else if SameText(ANode.Name, 'Width') then
     AFormField.WidthString := OptionAsIntegerOrPerc(ANode)
   else
@@ -918,7 +926,7 @@ begin
   raise EEFError.CreateFmt(_('Layout parsing error. %s.'), [AErrorMessage]);
 end;
 
-procedure TKExtLayoutProcessor.InitLabelPosAndWidth(const ANode: TEfTree);
+procedure TKExtLayoutProcessor.InitLabelPosAndWidth(const ANode: TEFTree);
 var
   LNode: TEFNode;
 begin
@@ -938,13 +946,7 @@ procedure TKExtLayoutProcessor.CreateEditorsFromLayout(const ALayout: TKLayout);
 var
   I: Integer;
 begin
-  Assert(Assigned(FCurrentEditPage));
   Assert(Assigned(ALayout));
-
-  FCurrentEditItem := nil;
-  FCurrentLabelWidth := FORM_LABELWIDTH;
-  FCurrentLabelAlign := FCurrentEditPage.LabelAlign;
-  FEditContainers.Clear;
 
   InitLabelPosAndWidth(ALayout);
 
@@ -1035,6 +1037,10 @@ begin
   Assert(Assigned(FCurrentEditPage));
 
   FFocusField := nil;
+  FCurrentEditItem := nil;
+  FCurrentLabelWidth := FORM_LABELWIDTH;
+  FCurrentLabelAlign := FCurrentEditPage.LabelAlign;
+  FEditContainers.Clear;
 
   if Assigned(ALayout) then
     CreateEditorsFromLayout(ALayout)
@@ -1076,6 +1082,7 @@ begin
     Result := CreateRow(ANode.AsExpandedString)
   else
     raise EEFError.CreateFmt(_('Unknown edit item type %s.'), [ANode.Name]);
+
   if Assigned(AContainer) then
     AContainer.AddChild(Result);
   if Assigned(FOnNewEditItem) then
@@ -1150,7 +1157,7 @@ begin
     LRowField := nil;
 
   Result := FEditorManager.CreateEditor(FCurrentEditPage,
-    LViewField, LRowField, LFieldCharWidth, LIsReadOnly, LLabel);
+    LViewField, LRowField, LFieldCharWidth, FCurrentLabelWidth, LIsReadOnly, LLabel);
 
   if Assigned(LRowField) then
     LRowField.Encapsulate(Result);
@@ -1246,7 +1253,6 @@ begin
   LRow := TKExtFormRow.Create(FCurrentEditPage);
   LRow.EditItemId := AId;
   LRow.LabelAlign := FCurrentLabelAlign;
-  LRow.LabelWidth := FCurrentLabelWidth;
   LRow.HideLabels := FCurrentEditPage.HideLabels;
   Result := LRow;
 end;
@@ -1624,7 +1630,7 @@ end;
 
 procedure TKExtFormTextField.SetOption(const ANode: TEFNode);
 begin
-  if not SetExtFormFieldOption(AsExtFormField, ANode) then
+  if not SetExtFormFieldOption(AsExtFormField, ANode, FAdditionalWidth) then
     InvalidOption(ANode);
 end;
 
@@ -1710,7 +1716,7 @@ end;
 
 procedure TKExtFormTextArea.SetOption(const ANode: TEFNode);
 begin
-  if not SetExtFormFieldOption(AsExtFormField, ANode) then
+  if not SetExtFormFieldOption(AsExtFormField, ANode, FAdditionalWidth) then
   begin
     if SameText(ANode.Name, 'Lines') then
       HeightFunc := LinesToPixels(ANode.AsInteger)
@@ -1803,7 +1809,7 @@ end;
 
 procedure TKExtFormCheckbox.SetOption(const ANode: TEFNode);
 begin
-  if not SetExtFormFieldOption(AsExtFormField, ANode) then
+  if not SetExtFormFieldOption(AsExtFormField, ANode, 0) then
     InvalidOption(ANode);
 end;
 
@@ -1901,7 +1907,7 @@ end;
 
 procedure TKExtFormDateField.SetOption(const ANode: TEFNode);
 begin
-  if not SetExtFormFieldOption(AsExtFormField, ANode) then
+  if not SetExtFormFieldOption(AsExtFormField, ANode, FAdditionalWidth) then
     InvalidOption(ANode);
 end;
 
@@ -2079,7 +2085,7 @@ end;
 
 procedure TKExtFormComboBoxEditor.SetOption(const ANode: TEFNode);
 begin
-  if not SetExtFormFieldOption(AsExtFormField, ANode) then
+  if not SetExtFormFieldOption(AsExtFormField, ANode, FAdditionalWidth) then
   begin
     if SameText(ANode.Name, 'Resizable') then
       ListConfig.SetConfigItem('resizable', ANode.AsBoolean)
@@ -2309,7 +2315,7 @@ begin
     FEditor.SetOption(ANode);
   end
   else if SameText(ANode.Name, 'CharWidth') then
-    CharWidth := ANode.AsInteger
+    SetCharWidth(ANode.AsInteger, FLabelWidth)
   else if SameText(ANode.Name, 'Width') then
     WidthString := OptionAsIntegerOrPerc(ANode)
   else
@@ -2373,19 +2379,9 @@ begin
   Result := FRecordField;
 end;
 
-procedure TKExtFormRowField.SetCharWidth(const AValue: Integer);
+procedure TKExtFormRowField.SetCharWidth(const ACharWidth, AAdditionalWidth: Integer);
 begin
-  FCharWidth := AValue;
-  WidthExpression := CharsToPixels(FCharWidth, 5);
-end;
-
-procedure TKExtFormRowField.SetLabelWidth(const AValue: Integer);
-begin
-  FLabelWidth := AValue;
-  if AValue <> 0 then
-    WidthExpression := CharsToPixels(FCharWidth, FLabelWidth + 10)
-  else
-    WidthExpression := CharsToPixels(FCharWidth, 5);
+  WidthExpression := CharsToPixels(ACharWidth, 5 + AAdditionalWidth);
 end;
 
 procedure TKExtFormRowField.SetFieldName(const AValue: string);
@@ -2509,7 +2505,7 @@ end;
 
 procedure TKExtFormNumberField.SetOption(const ANode: TEFNode);
 begin
-  if not SetExtFormFieldOption(AsExtFormField, ANode) then
+  if not SetExtFormFieldOption(AsExtFormField, ANode, FAdditionalWidth) then
     InvalidOption(ANode);
 end;
 
@@ -2598,7 +2594,7 @@ end;
 
 procedure TKExtFormDateTimeField.SetOption(const ANode: TEFNode);
 begin
-  if not SetExtFormFieldOption(AsExtFormField, ANode) then
+  if not SetExtFormFieldOption(AsExtFormField, ANode, FAdditionalWidth) then
     InvalidOption(ANode);
 end;
 
@@ -2749,7 +2745,7 @@ end;
 
 procedure TKExtFormTimeField.SetOption(const ANode: TEFNode);
 begin
-  if not SetExtFormFieldOption(AsExtFormField, ANode) then
+  if not SetExtFormFieldOption(AsExtFormField, ANode, FAdditionalWidth) then
     InvalidOption(ANode);
 end;
 
@@ -2827,7 +2823,7 @@ end;
 
 procedure TKExtFormFileUploadField.SetOption(const ANode: TEFNode);
 begin
-  if not SetExtFormFieldOption(AsExtFormField, ANode) then
+  if not SetExtFormFieldOption(AsExtFormField, ANode, FAdditionalWidth) then
     InvalidOption(ANode);
 end;
 
@@ -3039,7 +3035,7 @@ begin
 
   if Assigned(FDescriptionField) then
     // Keep 3 characters per button, leave the rest to the text field.
-    FDescriptionField.WidthExpression := CharsToPixels(FTotalCharWidth - (3 * LButtonCount))
+    FDescriptionField.WidthExpression := CharsToPixels(FTotalCharWidth - (3 * LButtonCount), FAdditionalWidth)
   else if Assigned(FPictureView) then
   begin
     if FPictureView.Frame then
@@ -3066,11 +3062,6 @@ procedure TKExtFormFileEditor.SetRecordField(const AValue: TKViewTableField);
 begin
   FRecordField := AValue;
   UpdateGUI(False);
-end;
-
-procedure TKExtFormFileEditor.SetTotalCharWidth(const AValue: Integer);
-begin
-  FTotalCharWidth := AValue;
 end;
 
 procedure TKExtFormFileEditor.SetTransientProperty(const APropertyName: string; const AValue: Variant);
@@ -3472,35 +3463,35 @@ end;
 function TKExtEditorManager.CreateGridCellEditor(const AOwner: TJSBase;
   const AViewField: TKViewField): TExtFormField;
 begin
-  Result := CreateEditor(AOwner, AViewField, nil, AViewField.DisplayWidth, False).AsExtFormField;
+  Result := CreateEditor(AOwner, AViewField, nil, AViewField.DisplayWidth, 0, False).AsExtFormField;
 end;
 
 function TKExtEditorManager.CreateEditor(const AOwner: TJSBase;
   const AViewField: TKViewField; const ARowField: TKExtFormRowField;
-  const AFieldCharWidth: Integer; const AIsReadOnly: Boolean;
-  const ALabel: string): IKExtEditor;
+  const AFieldCharWidth: Integer; const AFieldAdditionalWidth: Integer;
+  const AIsReadOnly: Boolean; const ALabel: string): IKExtEditor;
 var
   LFormField: TExtFormField;
 begin
-  Result := TryCreateFileEditor(AOwner, AViewField, ARowField, AFieldCharWidth, AIsReadOnly, ALabel);
+  Result := TryCreateFileEditor(AOwner, AViewField, ARowField, AFieldCharWidth, AFieldAdditionalWidth, AIsReadOnly, ALabel);
   if Result = nil then
-    Result := TryCreateLookupEditor(AOwner, AViewField, ARowField, AFieldCharWidth, AIsReadOnly);
+    Result := TryCreateLookupEditor(AOwner, AViewField, ARowField, AFieldCharWidth, AFieldAdditionalWidth, AIsReadOnly);
   if Result = nil then
-    Result := TryCreateComboBox(AOwner, AViewField, ARowField, AFieldCharWidth, AIsReadOnly);
+    Result := TryCreateComboBox(AOwner, AViewField, ARowField, AFieldCharWidth, AFieldAdditionalWidth, AIsReadOnly);
   if Result = nil then
-    Result := TryCreateTextArea(AOwner, AViewField, ARowField, AFieldCharWidth, AIsReadOnly);
+    Result := TryCreateTextArea(AOwner, AViewField, ARowField, AFieldCharWidth, AFieldAdditionalWidth, AIsReadOnly);
   if Result = nil then
     Result := TryCreateCheckBox(AOwner, AViewField, AIsReadOnly);
   if Result = nil then
-    Result := TryCreateDateField(AOwner, AViewField, ARowField, AFieldCharWidth, AIsReadOnly);
+    Result := TryCreateDateField(AOwner, AViewField, ARowField, AFieldCharWidth, AFieldAdditionalWidth, AIsReadOnly);
   if Result = nil then
-    Result := TryCreateTimeField(AOwner, AViewField, ARowField, AFieldCharWidth, AIsReadOnly);
+    Result := TryCreateTimeField(AOwner, AViewField, ARowField, AFieldCharWidth, AFieldAdditionalWidth, AIsReadOnly);
   if Result = nil then
-    Result := TryCreateDateTimeField(AOwner, AViewField, ARowField, AFieldCharWidth, AIsReadOnly);
+    Result := TryCreateDateTimeField(AOwner, AViewField, ARowField, AFieldCharWidth, AFieldAdditionalWidth, AIsReadOnly);
   if Result = nil then
-    Result := TryCreateNumberField(AOwner, AViewField, ARowField, AFieldCharWidth, AIsReadOnly);
+    Result := TryCreateNumberField(AOwner, AViewField, ARowField, AFieldCharWidth, AFieldAdditionalWidth, AIsReadOnly);
   if Result = nil then
-    Result := CreateTextField(AOwner, AViewField, ARowField, AFieldCharWidth, AIsReadOnly);
+    Result := CreateTextField(AOwner, AViewField, ARowField, AFieldCharWidth, AFieldAdditionalWidth, AIsReadOnly);
   Result.FieldName := AViewField.AliasedName;
 
   LFormField := Result.AsExtFormField;
@@ -3531,7 +3522,7 @@ end;
 function TKExtEditorManager.TryCreateLookupEditor(
   const AOwner: TJSBase; const AViewField: TKViewField;
   const ARowField: TKExtFormRowField; const AFieldCharWidth: Integer;
-  const AIsReadOnly: Boolean): IKExtEditor;
+  const AFieldAdditionalWidth: Integer; const AIsReadOnly: Boolean): IKExtEditor;
 var
   LLookupEdit: TKExtLookupEditor;
 begin
@@ -3544,11 +3535,12 @@ begin
     begin
       LLookupEdit := TKExtLookupEditor.Create(AOwner);
       try
-        LLookupEdit.Setup(AViewField, AIsReadOnly, AFieldCharWidth);
+        LLookupEdit.FAdditionalWidth := AFieldAdditionalWidth;
+        LLookupEdit.Setup(AViewField, AIsReadOnly);
         if not Assigned(ARowField) then
-          LLookupEdit.WidthExpression := LLookupEdit.CharsToPixels(AFieldCharWidth + TRIGGER_WIDTH)
+          LLookupEdit.WidthExpression := LLookupEdit.CharsToPixels(AFieldCharWidth + TRIGGER_WIDTH, AFieldAdditionalWidth)
         else
-          ARowField.CharWidth := AFieldCharWidth + TRIGGER_WIDTH;
+          ARowField.SetCharWidth(AFieldCharWidth + TRIGGER_WIDTH, AFieldAdditionalWidth);
         Result := LLookupEdit;
       except
         LLookupEdit.Free;
@@ -3559,9 +3551,8 @@ begin
 end;
 
 function TKExtEditorManager.TryCreateComboBox(
-  const AOwner: TJSBase; const AViewField: TKViewField;
-  const ARowField: TKExtFormRowField;
-  const AFieldCharWidth: Integer;
+  const AOwner: TJSBase; const AViewField: TKViewField; const ARowField: TKExtFormRowField;
+  const AFieldCharWidth: Integer; const AFieldAdditionalWidth: Integer;
   const AIsReadOnly: Boolean): IKExtEditor;
 var
   LComboBox: TKExtFormComboBoxEditor;
@@ -3575,11 +3566,13 @@ begin
     begin
       LComboBox := TKExtFormComboBoxEditor.Create(AOwner);
       try
+        // Set this field to be used inside TKExtFormComboBoxEditor.SetOption.
+        LComboBox.FAdditionalWidth := AFieldAdditionalWidth;
         LComboBox.Setup(AViewField, AIsReadOnly, AFieldCharWidth);
         if not Assigned(ARowField) then
-          LComboBox.WidthExpression := LComboBox.CharsToPixels(AFieldCharWidth + TRIGGER_WIDTH)
+          LComboBox.WidthExpression := LComboBox.CharsToPixels(AFieldCharWidth + TRIGGER_WIDTH, AFieldAdditionalWidth)
         else
-          ARowField.CharWidth := AFieldCharWidth + TRIGGER_WIDTH;
+          ARowField.SetCharWidth(AFieldCharWidth + TRIGGER_WIDTH, AFieldAdditionalWidth);
         Result := LComboBox;
       except
         LComboBox.Free;
@@ -3592,7 +3585,7 @@ end;
 function TKExtEditorManager.TryCreateTextArea(
   const AOwner: TJSBase; const AViewField: TKViewField;
   const ARowField: TKExtFormRowField; const AFieldCharWidth: Integer;
-  const AIsReadOnly: Boolean): IKExtEditor;
+  const AFieldAdditionalWidth: Integer; const AIsReadOnly: Boolean): IKExtEditor;
 var
   LTextArea: TKExtFormTextArea;
 begin
@@ -3603,10 +3596,12 @@ begin
   begin
     LTextArea := TKExtFormTextArea.Create(AOwner);
     try
+      // Set this field to be used inside TKExtFormTextArea.SetOption.
+      LTextArea.FAdditionalWidth := AFieldAdditionalWidth;
       if not Assigned(ARowField) then
-        LTextArea.WidthExpression := LTextArea.CharsToPixels(AFieldCharWidth)
+        LTextArea.WidthExpression := LTextArea.CharsToPixels(AFieldCharWidth, AFieldAdditionalWidth)
       else
-        ARowField.CharWidth := AFieldCharWidth;
+        ARowField.SetCharWidth(AFieldCharWidth, AFieldAdditionalWidth);
       LTextArea.HeightFunc := LTextArea.LinesToPixels(AViewField.GetInteger('EditLines', 5));
       LTextArea.AutoScroll := True;
       // Set this if it's the last field.
@@ -3656,7 +3651,7 @@ end;
 function TKExtEditorManager.TryCreateDateField(
   const AOwner: TJSBase; const AViewField: TKViewField;
   const ARowField: TKExtFormRowField; const AFieldCharWidth: Integer;
-  const AIsReadOnly: Boolean): IKExtEditor;
+  const AFieldAdditionalWidth: Integer; const AIsReadOnly: Boolean): IKExtEditor;
 var
   LDateField: TKExtFormDateField;
   LFormat: string;
@@ -3667,10 +3662,12 @@ begin
   begin
     LDateField := TKExtFormDateField.Create(AOwner);
     try
+      // Set this field to be used inside TKExtFormDateField.SetOption.
+      LDateField.FAdditionalWidth := AFieldAdditionalWidth;
       if not Assigned(ARowField) then
-        LDateField.WidthExpression := LDateField.CharsToPixels(AFieldCharWidth + TRIGGER_WIDTH)
+        LDateField.WidthExpression := LDateField.CharsToPixels(AFieldCharWidth + TRIGGER_WIDTH, AFieldAdditionalWidth)
       else
-        ARowField.CharWidth := AFieldCharWidth + TRIGGER_WIDTH;
+        ARowField.SetCharWidth(AFieldCharWidth + TRIGGER_WIDTH, AFieldAdditionalWidth);
       LFormat := AViewField.EditFormat;
       if LFormat = '' then
         LFormat := TKWebApplication.Current.Config.UserFormatSettings.ShortDateFormat;
@@ -3693,7 +3690,7 @@ end;
 function TKExtEditorManager.TryCreateTimeField(
   const AOwner: TJSBase; const AViewField: TKViewField;
   const ARowField: TKExtFormRowField; const AFieldCharWidth: Integer;
-  const AIsReadOnly: Boolean): IKExtEditor;
+  const AFieldAdditionalWidth: Integer; const AIsReadOnly: Boolean): IKExtEditor;
 var
   LTimeField: TKExtFormTimeField;
   LFormat: string;
@@ -3704,10 +3701,12 @@ begin
   begin
     LTimeField := TKExtFormTimeField.Create(AOwner);
     try
+      // Set this field to be used inside TKExtFormTimeField.SetOption.
+      LTimeField.FAdditionalWidth := AFieldAdditionalWidth;
       if not Assigned(ARowField) then
-        LTimeField.WidthExpression := LTimeField.CharsToPixels(AFieldCharWidth + TRIGGER_WIDTH)
+        LTimeField.WidthExpression := LTimeField.CharsToPixels(AFieldCharWidth + TRIGGER_WIDTH, AFieldAdditionalWidth)
       else
-        ARowField.CharWidth := AFieldCharWidth + TRIGGER_WIDTH;
+        ARowField.SetCharWidth(AFieldCharWidth + TRIGGER_WIDTH, AFieldAdditionalWidth);
 
       LFormat := AViewField.EditFormat;
       if LFormat = '' then
@@ -3731,7 +3730,7 @@ end;
 function TKExtEditorManager.TryCreateDateTimeField(
   const AOwner: TJSBase; const AViewField: TKViewField;
   const ARowField: TKExtFormRowField; const AFieldCharWidth: Integer;
-  const AIsReadOnly: Boolean): IKExtEditor;
+  const AFieldAdditionalWidth: Integer; const AIsReadOnly: Boolean): IKExtEditor;
 const
   SPACER_WIDTH = 1;
 var
@@ -3746,10 +3745,12 @@ begin
   begin
     LDateTimeField := TKExtFormDateTimeField.Create(AOwner);
     try
+      // Set this field to be used inside TKExtFormTimeField.SetOption.
+      LDateTimeField.FAdditionalWidth := AFieldAdditionalWidth;
       if not Assigned(ARowField) then
-        LDateTimeField.WidthExpression := LDateTimeField.CharsToPixels(AFieldCharWidth + (2 * TRIGGER_WIDTH) + SPACER_WIDTH)
+        LDateTimeField.WidthExpression := LDateTimeField.CharsToPixels(AFieldCharWidth + (2 * TRIGGER_WIDTH) + SPACER_WIDTH, AFieldAdditionalWidth)
       else
-        ARowField.CharWidth := AFieldCharWidth + (2 * TRIGGER_WIDTH) + SPACER_WIDTH;
+        ARowField.SetCharWidth(AFieldCharWidth + (2 * TRIGGER_WIDTH) + SPACER_WIDTH, AFieldAdditionalWidth);
       LFormats := Split(AViewField.EditFormat, ' ');
       if Length(LFormats) > 0 then
         LDateFormat := LFormats[0]
@@ -3778,7 +3779,8 @@ end;
 function TKExtEditorManager.TryCreateFileEditor(
   const AOwner: TJSBase; const AViewField: TKViewField;
   const ARowField: TKExtFormRowField; const AFieldCharWidth: Integer;
-  const AIsReadOnly: Boolean; const ALabel: string): IKExtEditor;
+  const AFieldAdditionalWidth: Integer; const AIsReadOnly: Boolean;
+  const ALabel: string): IKExtEditor;
 var
   LFileEditor: TKExtFormFileEditor;
 begin
@@ -3791,11 +3793,12 @@ begin
     else
       LFileEditor := TKExtFormFileReferenceEditor.Create(AOwner);
     try
+      LFileEditor.FAdditionalWidth := AFieldAdditionalWidth;
       LFileEditor.SetReadOnly(AIsReadOnly);
       LFileEditor.FieldLabel := ALabel;
       LFileEditor.TotalCharWidth := AFieldCharWidth - 1;
       if Assigned(ARowField) then
-        ARowField.CharWidth := AFieldCharWidth;
+        ARowField.SetCharWidth(AFieldCharWidth, AFieldAdditionalWidth);
       LFileEditor.CreateGUI(AViewField);
       Result := LFileEditor;
     except
@@ -3810,7 +3813,7 @@ end;
 function TKExtEditorManager.TryCreateNumberField(const AOwner: TJSBase;
   const AViewField: TKViewField;
   const ARowField: TKExtFormRowField; const AFieldCharWidth: Integer;
-  const AIsReadOnly: Boolean): IKExtEditor;
+  const AFieldAdditionalWidth: Integer; const AIsReadOnly: Boolean): IKExtEditor;
 var
   LNumberField: TKExtFormNumberField;
 begin
@@ -3820,11 +3823,12 @@ begin
   begin
     LNumberField := TKExtFormNumberField.Create(AOwner);
     try
+      // Set this field to be used inside TKExtFormNumberField.SetOption.
+      LNumberField.FAdditionalWidth := AFieldAdditionalWidth;
       if not Assigned(ARowField) then
-        LNumberField.WidthExpression := LNumberField.CharsToPixels(AFieldCharWidth)
+        LNumberField.WidthExpression := LNumberField.CharsToPixels(AFieldCharWidth, AFieldAdditionalWidth)
       else
-        ARowField.CharWidth := AFieldCharWidth;
-
+        ARowField.SetCharWidth(AFieldCharWidth, AFieldAdditionalWidth);
       LNumberField.AllowDecimals := AViewField.DataType is TEFDecimalNumericDataTypeBase;
       LNumberField.AllowNegative := True;
       if LNumberField.AllowDecimals then
@@ -3850,7 +3854,7 @@ end;
 function TKExtEditorManager.CreateTextField(const AOwner: TJSBase;
   const AViewField: TKViewField;
   const ARowField: TKExtFormRowField; const AFieldCharWidth: Integer;
-  const AIsReadOnly: Boolean): IKExtEditor;
+  const AFieldAdditionalWidth: Integer; const AIsReadOnly: Boolean): IKExtEditor;
 var
   LTextField: TKExtFormTextField;
 begin
@@ -3858,10 +3862,12 @@ begin
 
   LTextField := TKExtFormTextField.Create(AOwner);
   try
+    // Set this field to be used inside TKExtFormTextField.SetOption.
+    LTextField.FAdditionalWidth := AFieldAdditionalWidth;
     if not Assigned(ARowField) then
-      LTextField.WidthExpression := LTextField.CharsToPixels(AFieldCharWidth)
+      LTextField.WidthExpression := LTextField.CharsToPixels(AFieldCharWidth, AFieldAdditionalWidth)
     else
-      ARowField.CharWidth := AFieldCharWidth;
+      ARowField.SetCharWidth(AFieldCharWidth, AFieldAdditionalWidth);
     if not AIsReadOnly then
     begin
       if AViewField.Size <> 0 then
@@ -4071,7 +4077,7 @@ end;
 
 procedure TKExtLookupEditor.SetOption(const ANode: TEFNode);
 begin
-  if not SetExtFormFieldOption(AsExtFormField, ANode) then
+  if not SetExtFormFieldOption(AsExtFormField, ANode, FAdditionalWidth) then
     InvalidOption(ANode);
 end;
 
@@ -4094,8 +4100,7 @@ begin
   AsExtFormField.SetTransientProperty(APropertyName, AValue);
 end;
 
-procedure TKExtLookupEditor.Setup(const AViewField: TKVIewField;
-  const AIsReadOnly: Boolean; const AFieldCharWidth: Integer);
+procedure TKExtLookupEditor.Setup(const AViewField: TKVIewField; const AIsReadOnly: Boolean);
 begin
   Assert(Assigned(AViewField));
 
