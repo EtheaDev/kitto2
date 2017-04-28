@@ -1355,8 +1355,8 @@ begin
   Border := False;
 //  BodyStyle := 'background:none';
 //  Layout := lyForm;
-  // Leave room for the scroll bar on the right.
-  PaddingString := '5px';
+  // Leave room for the scroll bar on the right and a small space on top before the first editor.
+  PaddingString := '20px 5px 0px 0px';
   AutoScroll := True;
 end;
 
