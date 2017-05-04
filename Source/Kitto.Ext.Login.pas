@@ -234,7 +234,7 @@ begin
   FLoginButton.Text := _('Login');
 
   with TExtBoxComponent.CreateAndAddToArray(Items) do
-    Height := 10;
+    Height := 20;
 
   FUserName := TExtFormTextField.CreateAndAddToArray(Items);
   FUserName.Name := 'UserName';

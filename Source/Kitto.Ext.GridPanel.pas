@@ -446,10 +446,11 @@ var
 
       if LDataType is TEFBooleanDataType then
       begin
-        // Don't use TExtGridBooleanColumn here, otherwise the renderer will be inneffective.
-        Result := TExtGridColumn.CreateInlineAndAddToArray(FGridPanel.Columns);
-        if not SetRenderer(Result) then
-          Result.Renderer := 'checkboxRenderer';
+        Result := TExtGridCheckColumn.CreateInlineAndAddToArray(FGridPanel.Columns);
+        { TODO :  mind inline editing }
+        Result.Disabled := True;
+        Result.DisabledCls := ''; // make it look enabled.
+        SetRenderer(Result);
       end
       else if LDataType is TEFDateDataType then
       begin

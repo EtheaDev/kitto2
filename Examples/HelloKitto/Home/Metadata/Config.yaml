@@ -108,7 +108,6 @@ HelloWorld:
 
 ExtJS:
   Theme: crisp
-  #Path: C:\Apache\htdocs\ext6
   AjaxTimeout: 100000
 
 LanguageId: it

@@ -175,6 +175,9 @@ begin
   FConfirmButton.SetIconAndScale('password', 'medium');
   FConfirmButton.Text := _('Change password');
 
+  with TExtBoxComponent.CreateAndAddToArray(FFormPanel.Items) do
+    Height := 20;
+
   FOldPassword := TExtFormTextField.CreateAndAddToArray(FFormPanel.Items);
   FOldPassword.Name := 'OldPassword';
   //FOldPassword.Value := ...

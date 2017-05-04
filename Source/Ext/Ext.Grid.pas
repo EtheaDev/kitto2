@@ -41,6 +41,8 @@ type
     FEditable: Boolean;
     FRenderer: string;
     FGroupName: string;
+    FDisabled: Boolean;
+    FDisabledCls: string;
     procedure SetAlign(const AValue: TExtGridColumnAlign);
     procedure SetCss(const AValue: string);
     procedure SetDataIndex(const AValue: string);
@@ -58,6 +60,8 @@ type
     procedure SetWidth(const AValue: Integer);
     procedure SetRendererFunc(const AValue: TExtExpression);
     procedure SetWidthFunc(const AValue: TExtExpression);
+    procedure SetDisabled(const AValue: Boolean);
+    procedure SetDisabledCls(const AValue: string);
   protected
     procedure InitDefaults; override;
     function GetObjectNamePrefix: string; override;
@@ -67,6 +71,8 @@ type
     property Align: TExtGridColumnAlign read FAlign write SetAlign;
     property Css: string read FCss write SetCss;
     property DataIndex: string read FDataIndex write SetDataIndex;
+    property Disabled: Boolean read FDisabled write SetDisabled;
+    property DisabledCls: string read FDisabledCls write SetDisabledCls;
     property Editable: Boolean read FEditable write SetEditable;
     property Editor: TExtFormField read FEditor write SetEditor;
     property EmptyGroupText: string read FEmptyGroupText write SetEmptyGroupText;
@@ -143,6 +149,12 @@ type
     class function JSClassName: string; override;
     class function JSXType: string; override;
     property Format: string read FFormat write SetFormat;
+  end;
+
+  TExtGridCheckColumn = class(TExtGridColumn)
+  public
+    class function JSClassName: string; override;
+    class function JSXType: string; override;
   end;
 
   TExtGridAbstractSelectionModel = class(TExtUtilObservable)
@@ -351,6 +363,16 @@ begin
   FDataIndex := SetConfigItem('dataIndex', AValue);
 end;
 
+procedure TExtGridColumn.SetDisabled(const AValue: Boolean);
+begin
+  FDisabled := SetConfigItem('disabled', 'setDisabled', AValue);
+end;
+
+procedure TExtGridColumn.SetDisabledCls(const AValue: string);
+begin
+  FDisabledCls := SetConfigItem('disabledCls', AValue);
+end;
+
 procedure TExtGridColumn.SetEditable(const AValue: Boolean);
 begin
   FEditable := SetConfigItem('editable', AValue);
@@ -424,7 +446,7 @@ end;
 
 class function TExtGridColumn.JSClassName: string;
 begin
-  Result := 'Ext.grid.Column';
+  Result := 'Ext.grid.column.Column';
 end;
 
 class function TExtGridColumn.JSXType: string;
@@ -451,7 +473,7 @@ end;
 
 class function TExtGridNumberColumn.JSClassName: string;
 begin
-  Result := 'Ext.grid.NumberColumn';
+  Result := 'Ext.grid.column.Number';
 end;
 
 class function TExtGridNumberColumn.JSXType: string;
@@ -513,7 +535,7 @@ end;
 
 class function TExtGridBooleanColumn.JSClassName: string;
 begin
-  Result := 'Ext.grid.BooleanColumn';
+  Result := 'Ext.grid.column.Boolean';
 end;
 
 procedure TExtGridDateColumn.SetFormat(const AValue: string);
@@ -523,7 +545,7 @@ end;
 
 class function TExtGridDateColumn.JSClassName: string;
 begin
-  Result := 'Ext.grid.DateColumn';
+  Result := 'Ext.grid.column.Date';
 end;
 
 class function TExtGridDateColumn.JSXType: string;
@@ -823,6 +845,18 @@ end;
 class function TExtGridBooleanColumn.JSXType: string;
 begin
   Result := 'booleancolumn';
+end;
+
+{ TExtGridCheckColumn }
+
+class function TExtGridCheckColumn.JSClassName: string;
+begin
+  Result := 'Ext.grid.column.Check';
+end;
+
+class function TExtGridCheckColumn.JSXType: string;
+begin
+  Result := 'checkcolumn';
 end;
 
 end.

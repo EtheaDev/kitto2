@@ -219,11 +219,40 @@ type
     /// <summary>Makes sure catalogs are recreated at next access.</summary>
     procedure InvalidateCatalogs;
 
-    /// <summary>Returns the names of all defined database
-    /// connections.</summary>
+    /// <summary>
+    ///  Returns the names of all defined database
+    ///  connections.
+    /// </summary>
     property DBConnectionNames: TStringDynArray read GetDBConnectionNames;
 
+    /// <summary>
+    ///  Creates a DB connection for the specified configured database.
+    ///  The caller is responsible for the life cycle of the object.
+    /// </summary>
     function CreateDBConnection(const ADatabaseName: string): TEFDBConnection;
+    /// <summary>
+    ///  Helper function that creates a DB connection, passes it to an anonymous method
+    ///  then destroys it. Use it for DB read access and single update instructions.
+    ///  For multiple update instructions please use <seealso>InDBTransaction</seealso>.
+    /// </summary>
+    procedure InDBConnection(const ADatabaseName: string; const AProc: TProc<TEFDBConnection>);
+    /// <summary>
+    ///  Helper function that creates a DB connection, starts a transaction and calls
+    ///  the specified anonymous method. If the method raises an exception, then the
+    ///  transaction is rolled back (and the exception is propagated), otherwise
+    ///  it's committed after the method returns.
+    ///  Finally, the connection object is destroyed. Use this method for multiple
+    ///  update statements that need to be enclosed in a single database transaction.
+    ///  For read operations or single update operations, please use <seealso>InDBConnection</seealso>.
+    ///  then destroys it. Use it for DB read access and single update instructions.
+    ///  For multiple update instructions please use <seealso>InDBTransaction</seealso>.
+    /// </summary>
+    procedure InDBTransaction(const ADatabaseName: string; const AProc: TProc<TEFDBConnection>);
+    /// <summary>
+    ///  Helper function that creates a DB connection, returns the value of the
+    ///  connection's GetSingletonValue method, then destroys it.
+    /// </summary>
+    function GetDBSingletonValue(const ADatabaseName, ASQLStatement: string): Variant;
 
     /// <summary>Default DatabaseName to use when not specified elsewhere. Can
     /// be set through the DatabaseRouter/DatabaseName node or through the
@@ -332,6 +361,36 @@ begin
   NotifyObservers(AContext);
 end;
 
+procedure TKConfig.InDBConnection(const ADatabaseName: string; const AProc: TProc<TEFDBConnection>);
+var
+  LDBConnection: TEFDBConnection;
+begin
+  Assert(Assigned(AProc));
+
+  LDBConnection := CreateDBConnection(ADatabaseName);
+  try
+    AProc(LDBConnection);
+  finally
+    FreeAndNil(LDBConnection);
+  end;
+end;
+
+procedure TKConfig.InDBTransaction(const ADatabaseName: string; const AProc: TProc<TEFDBConnection>);
+begin
+  InDBConnection(ADatabaseName,
+    procedure (ADBConnection: TEFDBConnection)
+    begin
+      ADBConnection.StartTransaction;
+      try
+        AProc(ADBConnection);
+        ADBConnection.CommitTransaction;
+      except
+        ADBConnection.RollbackTransaction;
+        raise;
+      end;
+    end);
+end;
+
 procedure TKConfig.InvalidateCatalogs;
 begin
   FreeAndNil(FViews);
@@ -363,6 +422,18 @@ begin
     Result := LNode.GetChildNames
   else
     Result := nil;
+end;
+
+function TKConfig.GetDBSingletonValue(const ADatabaseName, ASQLStatement: string): Variant;
+var
+  LResult: Variant;
+begin
+  InDBConnection(ADatabaseName,
+    procedure (ADBConnection: TEFDBConnection)
+    begin
+      LResult := ADBConnection.GetSingletonValue(ASQLStatement);
+    end);
+  Result := LResult;
 end;
 
 function TKConfig.GetDatabaseName: string;
