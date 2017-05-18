@@ -50,13 +50,13 @@ type
     FLanguage: string;
     FSingletons: TDictionary<string, TJSObject>;
     FRefreshingLanguage: Boolean;
-    FHomeController: IJSController;
-    FLoginController: IJSController;
     FViewportWidthInInches: Integer;
     FAutoOpenViewName: string;
     FAuthData: TEFNode;
     FIsAuthenticated: Boolean;
     FOpenControllers: TList<IJSController>;
+    FHomeController: IJSController;
+    FLoginController: IJSController;
     FControllerHostWindow: IJSContainer;
     FControllerContainer: IJSControllerContainer;
     FStatusHost: IJSStatusHost;
@@ -250,12 +250,16 @@ end;
 
 destructor TKWebSession.Destroy;
 begin
+  NilEFIntf(FHomeController);
+  NilEFIntf(FLoginController);
+  NilEFIntf(FControllerHostWindow);
+  NilEFIntf(FControllerContainer);
+  NilEFIntf(FStatusHost);
+
   FreeAndNil(FOpenControllers);
   FreeAndNil(FObjectSequences);
   FreeAndNil(FSingletons);
   FreeAndNil(FAuthData);
-  NilEFIntf(FHomeController);
-  NilEFIntf(FLoginController);
   FreeAndNil(FGettextInstance);
   FreeAndNil(FDynamicScripts);
   FreeAndNil(FDynamicStyles);
@@ -417,7 +421,7 @@ end;
 function TKWebSession.GetObjectSpace: TJSBase;
 begin
   if not Assigned(FObjectSpace) then
-    FObjectSpace := TJSBAse.Create(nil);
+    FObjectSpace := TJSBase.Create(nil);
   Result := FObjectSpace;
 end;
 
