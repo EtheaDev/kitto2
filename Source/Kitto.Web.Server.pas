@@ -92,7 +92,8 @@ type
     class procedure SetCurrentSession(const AValue: TIdHTTPSession); static;
     function DoBeforeHandleRequest(const ARequest: TKWebRequest; const AResponse: TKWebResponse): Boolean;
     procedure DoAfterHandleRequest(const ARequest: TKWebRequest; const AResponse: TKWebResponse; const AStopWatch: TStopWatch);
-    class function GetCurrentKittoSession: TObject; static;
+    class function GetCurrentKSession: TObject; static;
+    class procedure SetCurrentKSession(const AValue: TObject); static;
   protected
     procedure Startup; override;
     procedure Shutdown; override;
@@ -110,7 +111,7 @@ type
     const SESSION_OBJECT = 'KittoSession';
     function AddRoute(const ARoute: TKWebRoute; const AIndex: Integer = -1): TKWebRoute;
     class property CurrentSession: TIdHTTPSession read GetCurrentSession write SetCurrentSession;
-    class property CurrentKittoSession: TObject read GetCurrentKittoSession;
+    class property CurrentKSession: TObject read GetCurrentKSession write SetCurrentKSession;
 
     procedure AddSubscriber(const ASubscriber: IKWebHandleRequestEventListener);
     procedure RemoveSubscriber(const ASubscriber: IKWebHandleRequestEventListener);
@@ -129,9 +130,14 @@ uses
   , EF.Logger
   , EF.StrUtils
   , Kitto.Config
-  , Kitto.JS
+  , Kitto.Web.Session
   , Kitto.Web.Types
   ;
+
+function CreateKSession(const ASessionId: string): TKWebSession;
+begin
+  Result := TKWebSession.Create(ASessionId);
+end;
 
 { TKWebServer }
 
@@ -186,6 +192,29 @@ var
   LRoute: TKWebRoute;
   LURL: TKURL;
   LStopWatch: TStopWatch;
+
+  function IsPageRefresh: Boolean;
+  begin
+    Result := not TKWebRequest.Current.IsAjax and ((LURL.Document = '') or (LURL.Document = 'home'));
+  end;
+
+  procedure RefreshSession;
+  var
+    LSession: TKWebSession;
+    LSessionId: string;
+  begin
+    LSession := TKWebSession(CurrentKSession);
+    Assert(Assigned(LSession));
+
+    if IsPageRefresh then
+    begin
+      LSessionId := LSession.SessionId;
+      FreeAndNil(LSession);
+      LSession := CreateKSession(LSessionId);
+      CurrentKSession := LSession;
+    end;
+  end;
+
 begin
   inherited;
 
@@ -211,6 +240,11 @@ begin
         LStopWatch := TStopWatch.StartNew;
         if DoBeforeHandleRequest(TKWebRequest.Current, TKWebResponse.Current) then begin
           LHandled := False;
+
+          // Recreate Kitto session each time the page is refreshed.
+          RefreshSession;
+
+          Session.BeforeHandleRequest;
 
           for LRoute in FRoutes do
           begin
@@ -269,15 +303,15 @@ end;
 
 procedure TKWebServer.DoSessionStart(Sender: TIdHTTPSession);
 var
-  LSession: TJSSession;
+  LSession: TKWebSession;
 begin
   TEFLogger.Instance.LogFmt('New session %s.', [Sender.SessionID], TEFLogger.LOG_MEDIUM);
-  LSession := TJSSession.Create(Sender.SessionID);
+  LSession := CreateKSession(Sender.SessionID);
   Sender.Content.AddObject(SESSION_OBJECT, LSession);
   inherited;
 end;
 
-class function TKWebServer.GetCurrentKittoSession: TObject;
+class function TKWebServer.GetCurrentKSession: TObject;
 begin
   if Assigned(CurrentSession) then
     Result := CurrentSession.Content.Objects[
@@ -298,6 +332,13 @@ end;
 //  if SameText(AAuthType, 'Bearer') then
 //    VHandled := True;
 //end;
+
+class procedure TKWebServer.SetCurrentKSession(const AValue: TObject);
+begin
+  Assert(Assigned(CurrentSession));
+
+  CurrentSession.Content.Objects[CurrentSession.Content.IndexOf(SESSION_OBJECT)] := AValue;
+end;
 
 class procedure TKWebServer.SetCurrentSession(const AValue: TIdHTTPSession);
 begin

@@ -26,7 +26,7 @@ uses
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ComCtrls, Vcl.ToolWin, Generics.Collections,
   Vcl.ActnList, Kitto.Config, Vcl.StdCtrls, Vcl.Buttons, Vcl.ExtCtrls, Vcl.ImgList, EF.Logger,
   Actions, Vcl.Tabs, Vcl.Grids, System.ImageList, Kitto.Web.Server,
-  Kitto.Web.Application, Kitto.JS;
+  Kitto.Web.Application, Kitto.Web.Session;
 
 type
   TKExtLogEvent = procedure (const AString: string) of object;
@@ -89,7 +89,7 @@ type
     FApplication: TKWebApplication;
     FRestart: Boolean;
     FLogEndPoint: TKExtMainFormLogEndpoint;
-    FSessions: TThreadList<TJSSession>;
+    FSessions: TThreadList<TKWebSession>;
     procedure ShowTabGUI(const AIndex: Integer);
     procedure UpdateSessionInfo;
     procedure ServerSessionEnd(Sender: TIdHTTPSession);
@@ -155,17 +155,17 @@ end;
 procedure TKExtMainForm.SessionListViewEdited(Sender: TObject; Item: TListItem;
   var S: string);
 begin
-  if TObject(Item.Data) is TJSSession then
-    TJSSession(Item.Data).DisplayName := S;
+  if TObject(Item.Data) is TKWebSession then
+    TKWebSession(Item.Data).DisplayName := S;
 end;
 
 procedure TKExtMainForm.SessionListViewInfoTip(Sender: TObject; Item: TListItem; var InfoTip: string);
 var
-  LSession: TJSSession;
+  LSession: TKWebSession;
 begin
-  if Assigned(Item) and  (TObject(Item.Data) is TJSSession) then
+  if Assigned(Item) and  (TObject(Item.Data) is TKWebSession) then
   begin
-    LSession := TJSSession(Item.Data);
+    LSession := TKWebSession(Item.Data);
     InfoTip :=
       'User Agent: ' + LSession.LastRequestInfo.UserAgent + sLineBreak +
       'Client Address: ' + LSession.LastRequestInfo.ClientAddress + sLineBreak +
@@ -238,7 +238,7 @@ end;
 
 procedure TKExtMainForm.UpdateSessionInfo;
 
-  procedure AddItem(const ACaption: string; const ASession: TJSSession = nil);
+  procedure AddItem(const ACaption: string; const ASession: TKWebSession = nil);
   var
     LItem: TListItem;
   begin
@@ -261,7 +261,7 @@ procedure TKExtMainForm.UpdateSessionInfo;
 
 var
   I: Integer;
-  LSessions: TList<TJSSession>;
+  LSessions: TList<TKWebSession>;
 begin
   SessionListView.Clear;
   if FServer.Active then
@@ -312,9 +312,9 @@ begin
   TThread.Synchronize(nil,
     procedure
     var
-      LJSSession: TJSSession;
+      LJSSession: TKWebSession;
     begin
-      LJSSession := Sender.Content.Objects[Sender.Content.IndexOf(TKWebServer.SESSION_OBJECT)] as TJSSession;
+      LJSSession := Sender.Content.Objects[Sender.Content.IndexOf(TKWebServer.SESSION_OBJECT)] as TKWebSession;
       FSessions.Add(LJSSession);
       UpdateSessionInfo;
     end
@@ -326,9 +326,9 @@ begin
   TThread.Synchronize(nil,
     procedure
     var
-      LJSSession: TJSSession;
+      LJSSession: TKWebSession;
     begin
-      LJSSession := Sender.Content.Objects[Sender.Content.IndexOf(TKWebServer.SESSION_OBJECT)] as TJSSession;
+      LJSSession := Sender.Content.Objects[Sender.Content.IndexOf(TKWebServer.SESSION_OBJECT)] as TKWebSession;
       FSessions.Remove(LJSSession);
       UpdateSessionInfo;
     end
@@ -337,7 +337,7 @@ end;
 
 procedure TKExtMainForm.FormCreate(Sender: TObject);
 begin
-  FSessions := TThreadList<TJSSession>.Create;
+  FSessions := TThreadList<TKWebSession>.Create;
   FServer := TKWebServer.Create(nil);
   FServer.OnSessionStart := ServerSessionStart;
   FServer.OnSessionEnd := ServerSessionEnd;

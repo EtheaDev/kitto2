@@ -199,7 +199,8 @@ uses
   SysUtils
   , EF.StrUtils
   , EF.Localization
-  , Kitto.JS
+  , Kitto.Web.Application
+  , Kitto.Web.Session
   ;
 
 { TKNullAuthenticator }

@@ -763,6 +763,8 @@ uses
   SysUtils
   , KItto.JS.Formatting
   , Kitto.Web.Response
+  , Kitto.Web.Application
+  , Kitto.Web.Session
   ;
 
 function ExtQuickTips: TExtQuickTipsSingleton;

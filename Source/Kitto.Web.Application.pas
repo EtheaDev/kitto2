@@ -180,12 +180,14 @@ uses
   , Ext.Base
   , Kitto.JS.Formatting
   , Kitto.Web.Types
+  , Kitto.Web.Session
   ;
 
 { TKSessionMacroExpander }
 
 function TKSessionMacroExpander.InternalExpand(const AString: string): string;
-begin
+
+begin
   Result := inherited InternalExpand(AString);
   if Session <> nil then
   begin
@@ -206,7 +208,7 @@ begin
   if LJSName = '' then
     Result := Self
   else
-    Result := Session.FindChildByJSName(LJSName);
+    Result := Session.ObjectSpace.FindChildByJSName(LJSName);
   if not Assigned(Result) then
     raise Exception.CreateFmt('Handler object %s for method %s not found in session.', [LJSName, AURL.Document]);
 end;
@@ -371,7 +373,8 @@ begin
 end;
 
 function TKWebApplication.DisplayNewController(const AView: TKView; const AForceModal: Boolean;
-  const AAfterCreateWindow: TProc<IJSContainer>;
+
+  const AAfterCreateWindow: TProc<IJSContainer>;
   const AAfterCreate: TProc<IJSController>): IJSController;
 var
   LIsSynchronous: Boolean;
@@ -393,11 +396,11 @@ begin
   this code could be simplified a lot by only creating the window if needed. }
   if LIsModal then
   begin
-    LWindow := CreateHostWindow(Session);
+    LWindow := CreateHostWindow(Session.ObjectSpace);
     Session.ControllerHostWindow := LWindow;
     if Assigned(AAfterCreateWindow) then
       AAfterCreateWindow(LWindow);
-    Result := TKExtControllerFactory.Instance.CreateController(Session, AView, LWindow);
+    Result := TKExtControllerFactory.Instance.CreateController(Session.ObjectSpace, AView, LWindow);
     if Assigned(AAfterCreate) then
       AAfterCreate(Result);
     if not Result.Config.GetBoolean('Sys/SupportsContainer') then
@@ -423,7 +426,7 @@ begin
   else
   begin
     Assert(Assigned(Session.ControllerContainer));
-    Result := TKExtControllerFactory.Instance.CreateController(Session, AView, Session.ControllerContainer);
+    Result := TKExtControllerFactory.Instance.CreateController(Session.ObjectSpace, AView, Session.ControllerContainer);
     Assert(Result.Config.GetBoolean('Sys/SupportsContainer'));
   end;
   LIsSynchronous := Result.IsSynchronous;
@@ -591,8 +594,13 @@ end;
 
 function TKWebApplication.HandleRequest(const ARequest: TKWebRequest; const AResponse: TKWebResponse; const AURL: TKURL): Boolean;
 var
-  LSession: TJSSession;
   LHandlerObject: TObject;
+
+  function IsHomeRequest: Boolean;
+  begin
+    Result := not TKWebRequest.Current.IsAjax and ((AURL.Document = '') or (AURL.Document = 'home'));
+  end;
+
 begin
   Assert(Assigned(ARequest));
   Assert(Assigned(AResponse));
@@ -603,20 +611,18 @@ begin
     ActivateInstance;
     try
       try
-        // Set session.
-        LSession := TKWebServer.CurrentSession.Content.Objects[TKWebServer.CurrentSession.Content.IndexOf(TKWebServer.SESSION_OBJECT)] as TJSSession;
-        Assert(Assigned(LSession));
-        LSession.BeforeHandleRequest;
-        try
-          // Try to execute method.
-          LHandlerObject := GetObjectFromURL(AURL);
-          if (AURL.Document = '') or (AURL.Document = 'home') then
+        try
+          if IsHomeRequest then
           begin
             Home;
             Result := True;
           end
           else
+          begin
+            // Try to execute method.
+            LHandlerObject := GetObjectFromURL(AURL);
             Result := CallObjectMethod(LHandlerObject, AURL.Document);
+          end;
         except
           on E: Exception do
           begin
@@ -676,7 +682,7 @@ begin
     Session.ViewportWidthInInches := StrToIntDef(TKWebRequest.Current.GetQueryField('vpWidthInches'), 0);
 
   Session.ViewportWidth := Session.GetDefaultViewportWidth();
-  TKWebResponse.Current.Items.ExecuteJSCode(Session, 'setViewportWidth(' + IntToStr(Session.ViewportWidth) + ');');
+  TKWebResponse.Current.Items.ExecuteJSCode(Session.ObjectSpace, 'setViewportWidth(' + IntToStr(Session.ViewportWidth) + ');');
   // Try authentication with default credentials, if any, and skip login
   // window if it succeeds.
   if Authenticate then
@@ -744,7 +750,7 @@ begin
   end;
   LHomeView := GetHomeView(Session.ViewportWidthInInches);
 
-  Session.HomeController := TKExtControllerFactory.Instance.CreateController(Session, LHomeView, nil);
+  Session.HomeController := TKExtControllerFactory.Instance.CreateController(Session.ObjectSpace, LHomeView, nil);
   TKWebResponse.Current.Items.ExecuteJSCode(Session.HomeController.AsJSObject, 'var kittoHomeContainer = ' + Session.HomeController.AsJSObject.JSName + ';');
   Session.HomeController.Display;
 
@@ -774,7 +780,7 @@ begin
     LType := 'Login'
   else
     LType := '';
-  Session.LoginController := TKExtControllerFactory.Instance.CreateController(Session, LLoginView, nil, nil, Self, LType);
+  Session.LoginController := TKExtControllerFactory.Instance.CreateController(Session.ObjectSpace, LLoginView, nil, nil, Self, LType);
   Session.LoginController.Display;
 
   { TODO : remove dependency }
@@ -790,7 +796,7 @@ procedure TKWebApplication.Home;
   begin
     LTimeout := Config.Config.FindNode('ExtJS/AjaxTimeout');
     if Assigned(LTimeout) then
-      TKWebResponse.Current.Items.ExecuteJSCode(Session, Format('Ext.Ajax.setTimeout(%d);', [LTimeout.AsInteger]));
+      TKWebResponse.Current.Items.ExecuteJSCode(Session.ObjectSpace, Format('Ext.Ajax.setTimeout(%d);', [LTimeout.AsInteger]));
   end;
 
 begin
@@ -802,7 +808,7 @@ begin
 
   Session.HomeViewNodeName := TKWebRequest.Current.QueryFields.Values['home'];
   SetViewportContent;
-  TKWebResponse.Current.Items.ExecuteJSCode(Session, 'kittoInit();');
+  TKWebResponse.Current.Items.ExecuteJSCode(Session.ObjectSpace, 'kittoInit();');
   SetAjaxTimeout;
   if TooltipsEnabled then
     ExtQuickTips.Init(True)
@@ -816,7 +822,7 @@ begin
 //  if FAutoOpenViewName <> '' then
 //    Query['view'] := '';
 
-  TKWebResponse.Current.Items.AjaxCallMethod(Session).SetMethod(DelayedHome)
+  TKWebResponse.Current.Items.AjaxCallMethod(Session.ObjectSpace).SetMethod(DelayedHome)
     .AddParam('vpWidthInches', GetViewportWidthInInches);
 
   ServeHomePage;
@@ -824,7 +830,7 @@ end;
 
 function TKWebApplication.GetViewportWidthInInches: TJSExpression;
 begin
-  Result := TJSExpression.Create(Session);
+  Result := TJSExpression.Create(Session.ObjectSpace);
   Result.Text := 'getViewportWidthInInches()';
 end;
 

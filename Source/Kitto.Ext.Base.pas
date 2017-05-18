@@ -390,6 +390,7 @@ uses
   , Kitto.AccessControl
   , Kitto.JS.Base
   , Kitto.Web.Application
+  , Kitto.Web.Session
   , Kitto.Web.Request
   , Kitto.Web.Response
   , Kitto.Ext.Utils
@@ -1160,7 +1161,7 @@ begin
   Assert(Assigned(FView));
   Assert(Assigned(FActionObserver));
 
-  LController := TKExtControllerFactory.Instance.CreateController(Session, FView, nil, nil, FActionObserver);
+  LController := TKExtControllerFactory.Instance.CreateController(Session.ObjectSpace, FView, nil, nil, FActionObserver);
   InitController(LController);
   LController.Display;
 end;

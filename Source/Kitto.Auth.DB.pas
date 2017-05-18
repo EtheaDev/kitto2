@@ -242,7 +242,7 @@ uses
   , Kitto.Types
   , Kitto.Config
   , Kitto.DatabaseRouter
-  , Kitto.JS
+  , Kitto.Web.Session
   ;
 
 { TKDBAuthenticator }

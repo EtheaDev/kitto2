@@ -84,6 +84,7 @@ uses
   , Kitto.Web.Application
   , Kitto.Web.Request
   , Kitto.Web.Response
+  , Kitto.Web.Session
   , Kitto.Ext.Controller
   ;
 

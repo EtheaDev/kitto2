@@ -85,6 +85,7 @@ uses
   , Kitto.AccessControl
   , Kitto.Types
   , Kitto.Web.Application
+  , Kitto.Web.Session
   ;
 
 { TKExtTabPanelController }

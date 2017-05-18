@@ -132,7 +132,7 @@ uses
   , EF.StrUtils
   , EF.Classes
   , EF.Localization
-  , Kitto.JS
+  , Kitto.Web.Session
   , Kitto.Web.Application
   , Kitto.Web.Response
   , Kitto.Auth

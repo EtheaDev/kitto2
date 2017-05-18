@@ -135,8 +135,8 @@ function ExtMenuMenuMgr: TExtMenuMenuMgrSingleton;
 implementation
 
 uses
-  Kitto.JS
-  , Kitto.Web.Response
+  Kitto.Web.Response
+  , Kitto.Web.Session
   ;
 
 function ExtMenuMenuMgr: TExtMenuMenuMgrSingleton;

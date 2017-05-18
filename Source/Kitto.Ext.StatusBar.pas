@@ -52,6 +52,7 @@ implementation
 uses
   EF.Tree
   , Kitto.Web.Application
+  , Kitto.Web.Session
   , Kitto.Ext.Controller
   ;
 

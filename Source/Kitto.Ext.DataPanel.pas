@@ -195,6 +195,7 @@ uses
   , Kitto.Web.Application
   , Kitto.Web.Request
   , Kitto.Web.Response
+  , Kitto.Web.Session
   , Kitto.Ext.Utils
   ;
 
@@ -211,7 +212,7 @@ begin
 
   PerformBeforeExecute;
   LController := TKExtControllerFactory.Instance.CreateController(
-    Session, View, nil, nil, ActionObserver);
+    Session.ObjectSpace, View, nil, nil, ActionObserver);
   if LController.Config.GetBoolean('RequireSelection', True) then
     FServerRecord := ServerStore.GetRecord(TKWebRequest.Current.QueryTree, TKWebApplication.Current.Config.JSFormatSettings, 0)
   else
