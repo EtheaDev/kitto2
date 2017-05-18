@@ -281,7 +281,7 @@ begin
       FreeAndNil(LDBQuery);
     end;
   finally
-    FreeAndNil(LDBQuery);
+    FreeAndNil(LDBConnection);
   end;
 end;
 
