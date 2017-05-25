@@ -210,7 +210,8 @@ begin
     LFromClause := 'from ' + GetFromClause;
     LWhereClause := GetSelectWhereClause(AFilter, ADBQuery);
     if (AOrderBy <> '') or (FViewTable.DefaultSorting <> '') then
-      LOrderByClause := 'order by ' + IfThen(AOrderBy <> '', AOrderBy,
+      LOrderByClause := 'order by ' + IfThen(AOrderBy <> '',
+        ExpandQualification(AOrderBy, AViewTable.Model.DBTableName),
         ExpandQualification(FViewTable.DefaultSorting, AViewTable.Model.DBTableName));
     LCommandText := ADBQuery.Connection.DBEngineType.AddLimitClause(
       LSelectClause, LFromClause, LWhereClause, LOrderByClause, AFrom, AFor);
@@ -919,6 +920,8 @@ function TKSQLBuilder.GetSortClause(const AViewField: TKViewField; const AIsDesc
 begin
   if AViewField.Expression <> '' then
     Result := ExpandQualification(AViewField.Expression, AViewField.Table.Model.DBTableName)
+  else if AViewField.IsReference then
+    Result := ExpandQualification(AViewField.DBNameOrExpression, AViewField.DBName)
   else
     Result := AViewField.QualifiedDBNameOrExpression;
   if AIsDescending then
