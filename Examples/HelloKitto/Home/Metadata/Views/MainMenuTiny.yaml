@@ -1,11 +1,15 @@
 ﻿Type: Tree
 Folder: _(Options)
   View: Girls
-    BackgroundColor: orange
+    BackgroundColor: black
   View: Dolls
 Folder:
   View: Parties
+    Width: 230
+    ImagePosition: center 10px
+    Style: font-size: 200%
 Folder: _(Lookup tables)
   View: Hairs
   View:
     Controller: ChangePassword
+    ImageName: Login

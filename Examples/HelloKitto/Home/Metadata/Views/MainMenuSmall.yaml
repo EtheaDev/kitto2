@@ -1,16 +1,26 @@
 ﻿Type: Tree
-Folder: _(Girls)
-  View: GirlForm
-  View: Girls
-    BackgroundColor: black
-Folder: _(Dolls)
-  View: Dolls
-  View: Hairs
+Folder:
+  Folder: _(Girls)
+    ImageName: girl
+    View: GirlForm
+    View: Girls
+      BackgroundColor: black
+    Back:
+      ImageName: cancel
+      DisplayLabel: _(menu)
+      BackgroundColor: blue
+Folder:
+  Folder: _(Dolls)
+    ImageName: doll
+    View: Dolls
+    View: Hairs
 Folder: _(Parties)
   View: Parties
 Folder: _(User)
   IsInitiallyCollapsed: True
   View:
     Controller: ChangePassword
+    ImageName: Password
   View:
     Controller: Logout
+    ImageName: Logout
