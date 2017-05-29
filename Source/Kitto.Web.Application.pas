@@ -427,7 +427,7 @@ begin
   begin
     Assert(Assigned(Session.ControllerContainer));
     Result := TKExtControllerFactory.Instance.CreateController(Session.ObjectSpace, AView, Session.ControllerContainer);
-    Assert(Result.Config.GetBoolean('Sys/SupportsContainer'));
+    //Assert(Result.Config.GetBoolean('Sys/SupportsContainer'));
   end;
   LIsSynchronous := Result.IsSynchronous;
   if not LIsSynchronous then

@@ -153,7 +153,7 @@ begin
   Modal := True;
   Title := _(TKWebApplication.Current.Config.AppTitle);
   Width := 316;
-  Height := 162;
+  Height := 202;
   Closable := True;
   Resizable := False;
 
@@ -184,7 +184,7 @@ begin
   FOldPassword.FieldLabel := _('Old Password');
   FOldPassword.InputType := itPassword;
   FOldPassword.AllowBlank := False;
-  FOldPassword.Width := 136;
+  FOldPassword.Width := 286;
   FOldPassword.EnableKeyEvents := True;
 
   FNewPassword := TExtFormTextField.CreateAndAddToArray(FFormPanel.Items);
@@ -193,7 +193,7 @@ begin
   FNewPassword.FieldLabel := _('New Password');
   FNewPassword.InputType := itPassword;
   FNewPassword.AllowBlank := False;
-  FNewPassword.Width := 136;
+  FNewPassword.Width := 286;
   FNewPassword.EnableKeyEvents := True;
 
   FConfirmNewPassword := TExtFormTextField.CreateAndAddToArray(FFormPanel.Items);
@@ -202,7 +202,7 @@ begin
   FConfirmNewPassword.FieldLabel := _('Confirm New Password');
   FConfirmNewPassword.InputType := itPassword;
   FConfirmNewPassword.AllowBlank := False;
-  FConfirmNewPassword.Width := 136;
+  FConfirmNewPassword.Width := 286;
   FConfirmNewPassword.EnableKeyEvents := True;
 
   FOldPassword.On('keyup', GenerateAnonymousFunction(GetEnableButtonJS));

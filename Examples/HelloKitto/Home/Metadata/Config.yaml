@@ -110,7 +110,7 @@ ExtJS:
   Theme: crisp
   AjaxTimeout: 100000
 
-LanguageId: it
+LanguageId: en
 # Either utf-8 or a SBCS corresponding to the system code page
 # (such as iso-8859-1 for Western Europe). Defaults to utf-8.
 Charset: utf-8
