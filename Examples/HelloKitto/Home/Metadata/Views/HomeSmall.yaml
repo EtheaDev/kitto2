@@ -10,7 +10,7 @@ Controller: Viewport
           Border: True
           TileHeight: 80
           TileWidth: 120
-          ShowImage: False
+          ShowImage: True
           TreeView: MainMenuSmall
 
       SouthView:
