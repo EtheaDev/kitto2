@@ -205,14 +205,15 @@ function ajaxDataViewSelection(buttonId, text, obj)
   {
     var
       ajaxParams = {Ajax: 1},
-      selRecords = obj.params.dataView.getSelectedRecords(),
+      selNodes = obj.params.dataView.getSelectedNodes(),
       fieldNames = obj.params.fieldNames.split(',');
     for (var i = 0; i < fieldNames.length; i++)
     {
-      var fieldValues = [];
-      for (var j = 0; j < selRecords.length; j++)
-        fieldValues.push(selRecords[j].get(fieldNames[i]));
-      ajaxParams[fieldNames[i]] = fieldValues.toString();
+      for (var j = 0; j < selNodes.length; j++)
+	  {
+        var fieldValues = selNodes[j].id.split(',');
+        ajaxParams[fieldNames[i]] = fieldValues[i];
+	  }
     }
     return Ext.Ajax.request({
       url: obj.params.methodURL,

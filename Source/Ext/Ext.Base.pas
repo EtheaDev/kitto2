@@ -32,7 +32,7 @@ type
   TExtSpacer = class;
   TExtContainer = class;
   TExtButton = class;
-  TExtDataView = class;
+  TExtViewView = class;
   TExtViewport = class;
   TExtPanel = class;
   TExtSplitButton = class;
@@ -441,12 +441,12 @@ type
     property Tooltip: string read FTooltip write _SetTooltip;
   end;
 
-  TExtDataView = class(TExtBoxComponent)
+  TExtViewView = class(TExtBoxComponent)
   private
     FEmptyText: string;
     FItemSelector: string;
     FMultiSelect: Boolean;
-    FOverClass: string;
+    FOverItemCls: string;
     FSelectedClass: string; // 'x-view-selected'
     FSimpleSelect: Boolean;
     FSingleSelect: Boolean;
@@ -456,7 +456,7 @@ type
     procedure SetEmptyText(AValue: string);
     procedure SetItemSelector(const AValue: string);
     procedure SetMultiSelect(const AValue: Boolean);
-    procedure SetOverClass(const AValue: string);
+    procedure SetOverItemCls(const AValue: string);
     procedure SetSimpleSelect(const AValue: Boolean);
     procedure SetSingleSelect(const AValue: Boolean);
     procedure _SetStore(const AValue: TExtDataStore);
@@ -472,7 +472,7 @@ type
     property EmptyText: string read FEmptyText write SetEmptyText;
     property ItemSelector: string read FItemSelector write SetItemSelector;
     property MultiSelect: Boolean read FMultiSelect write SetMultiSelect;
-    property OverClass: string read FOverClass write SetOverClass;
+    property OverItemCls: string read FOverItemCls write SetOverItemCls;
     property SelectedClass: string read FSelectedClass write SetSelectedClass;
     property SimpleSelect: Boolean read FSimpleSelect write SetSimpleSelect;
     property SingleSelect: Boolean read FSingleSelect write SetSingleSelect;
@@ -1550,70 +1550,70 @@ begin
     .AsExpression;
 end;
 
-procedure TExtDataView.SetEmptyText(AValue: string);
+procedure TExtViewView.SetEmptyText(AValue: string);
 begin
   FEmptyText := SetConfigItem('emptyText', AValue);
 end;
 
-procedure TExtDataView.SetItemSelector(const AValue: string);
+procedure TExtViewView.SetItemSelector(const AValue: string);
 begin
   FItemSelector := SetConfigItem('itemSelector', AValue);
 end;
 
-procedure TExtDataView.SetMultiSelect(const AValue: Boolean);
+procedure TExtViewView.SetMultiSelect(const AValue: Boolean);
 begin
   FMultiSelect := SetConfigItem('multiSelect', AValue);
 end;
 
-procedure TExtDataView.SetOverClass(const AValue: string);
+procedure TExtViewView.SetOverItemCls(const AValue: string);
 begin
-  FOverClass := SetConfigItem('overClass', AValue);
+  FOverItemCls := SetConfigItem('overItemCls', AValue);
 end;
 
-procedure TExtDataView.SetSelectedClass(const AValue: string);
+procedure TExtViewView.SetSelectedClass(const AValue: string);
 begin
   FSelectedClass := SetConfigItem('selectedClass', AValue);
 end;
 
-procedure TExtDataView.SetSimpleSelect(const AValue: Boolean);
+procedure TExtViewView.SetSimpleSelect(const AValue: Boolean);
 begin
   FSimpleSelect := SetConfigItem('simpleSelect', AValue);
 end;
 
-procedure TExtDataView.SetSingleSelect(const AValue: Boolean);
+procedure TExtViewView.SetSingleSelect(const AValue: Boolean);
 begin
   FSingleSelect := SetConfigItem('singleSelect', AValue);
 end;
 
-procedure TExtDataView._SetStore(const AValue: TExtDataStore);
+procedure TExtViewView._SetStore(const AValue: TExtDataStore);
 begin
   FStore.Free;
   FStore := TExtDataStore(SetConfigItem('store', 'setStore', AValue));
 end;
 
-procedure TExtDataView.SetTpl(AValue: string);
+procedure TExtViewView.SetTpl(AValue: string);
 begin
   FTpl := SetConfigItem('tpl', AValue);
 end;
 
-class function TExtDataView.JSClassName: string;
+class function TExtViewView.JSClassName: string;
 begin
-  Result := 'Ext.DataView';
+  Result := 'Ext.view.View';
 end;
 
-function TExtDataView.GetObjectNamePrefix: string;
+function TExtViewView.GetObjectNamePrefix: string;
 begin
   Result := 'dv';
 end;
 
-procedure TExtDataView.InitDefaults;
+procedure TExtViewView.InitDefaults;
 begin
   inherited;
   FSelectedClass := 'x-view-selected';
   FTplArray := CreateConfigObjectArray('tpl');
 end;
 
-function TExtDataView.SetStore(const AStore: TExtDataStore): TExtExpression;
+function TExtViewView.SetStore(const AStore: TExtDataStore): TExtExpression;
 begin
   FreeAndNil(FStore);
   FStore := AStore;

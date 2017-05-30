@@ -34,7 +34,7 @@ uses
 type
   TKExtTemplateDataPanel = class(TKExtDataPanelLeafController)
   strict private
-    FDataView: TExtDataView;
+    FView: TExtViewView;
     procedure SetupTemplate;
     function ProcessTemplate(const ATemplate: string): string;
   strict protected
@@ -74,7 +74,7 @@ end;
 function TKExtTemplateDataPanel.CreateClientStore: TExtDataStore;
 begin
   Result := inherited CreateClientStore;
-  FDataView.Store := Result;
+  FView.Store := Result;
 end;
 
 procedure TKExtTemplateDataPanel.SetupTemplate;
@@ -84,28 +84,28 @@ var
 begin
   LFileName := TKWebApplication.Current.Config.FindResourcePathName(Config.GetExpandedString('TemplateFileName'));
   if LFileName <> '' then
-    FDataView.Tpl := ProcessTemplate(TEFMacroExpansionEngine.Instance.Expand(TextFileToString(LFileName, TEncoding.UTF8)))
+    FView.Tpl := ProcessTemplate(TEFMacroExpansionEngine.Instance.Expand(TextFileToString(LFileName, TEncoding.UTF8)))
   else
   begin
     LTemplate := Config.GetExpandedString('Template');
     if LTemplate = '' then
-      FDataView.Tpl := _('TemplateFileName or Template parameters not specified.')
+      FView.Tpl := _('TemplateFileName or Template parameters not specified.')
     else
-      FDataView.Tpl := ProcessTemplate(LTemplate);
+      FView.Tpl := ProcessTemplate(LTemplate);
   end;
 end;
 
 function TKExtTemplateDataPanel.GetSelectCall(const AMethod: TJSProcedure): TExtExpression;
 begin
   Result := GenerateAnonymousFunction(Format('ajaxDataViewSelection("yes", "", {params: {methodURL: "%s", dataView: %s, fieldNames: "%s"}});',
-    [GetMethodURL(AMethod), FDataView.JSName, Join(ViewTable.GetKeyFieldAliasedNames, ',')]));
+    [GetMethodURL(AMethod), FView.JSName, Join(ViewTable.GetKeyFieldAliasedNames, ',')]));
 end;
 
 function TKExtTemplateDataPanel.GetSelectConfirmCall(const AMessage: string; const AMethod: TJSProcedure): string;
 begin
   Result := Format('selectDataViewConfirmCall("%s", "%s", %s, "%s", {methodURL: "%s", dataView: %s, fieldNames: "%s"});',
-    [_(TKWebApplication.Current.Config.AppTitle), AMessage, FDataView.JSName, ViewTable.Model.CaptionField.FieldName, GetMethodURL(AMethod),
-    FDataView.JSName, Join(ViewTable.GetKeyFieldAliasedNames, ',')]);
+    [_(TKWebApplication.Current.Config.AppTitle), AMessage, FView.JSName, ViewTable.Model.CaptionField.FieldName, GetMethodURL(AMethod),
+    FView.JSName, Join(ViewTable.GetKeyFieldAliasedNames, ',')]);
 end;
 
 function TKExtTemplateDataPanel.ProcessTemplate(const ATemplate: string): string;
@@ -126,10 +126,10 @@ end;
 procedure TKExtTemplateDataPanel.InitDefaults;
 begin
   inherited;
-  FDataView := TExtDataView.CreateAndAddToArray(Items);
-  FDataView.EmptyText := _('No data to display.');
-  FDataView.Region := rgCenter;
-  FDataView.AutoScroll := True;
+  FView := TExtViewView.CreateAndAddToArray(Items);
+  FView.EmptyText := _('No data to display.');
+  FView.Region := rgCenter;
+  FView.AutoScroll := True;
 end;
 
 function TKExtTemplateDataPanel.IsActionSupported(const AActionName: string): Boolean;
@@ -140,16 +140,16 @@ end;
 procedure TKExtTemplateDataPanel.SetViewTable(const AValue: TKViewTable);
 begin
   Assert(Assigned(AValue));
-  Assert(Assigned(FDataView));
+  Assert(Assigned(FView));
 
   inherited;
-  FDataView.Id := Config.GetString('TemplateView/Id');
-  FDataView.ItemSelector := Config.GetString('TemplateView/SelectorClass');
-  FDataView.OverClass := Config.GetString('TemplateView/OverClass');
+  FView.Id := Config.GetString('TemplateView/Id');
+  FView.ItemSelector := Config.GetString('TemplateView/SelectorClass');
+  FView.OverItemCls := Config.GetString('TemplateView/OverClass');
   if ViewTable.GetBoolean('Controller/IsMultiSelect', False) then
-    FDataView.MultiSelect := True
+    FView.MultiSelect := True
   else
-    FDataView.SingleSelect := True;
+    FView.SingleSelect := True;
   SetupTemplate;
 end;
 
