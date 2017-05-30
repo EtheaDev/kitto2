@@ -180,17 +180,6 @@ type
     function FindResourceURL(const AResourceFileName: string): string;
 
     /// <summary>
-    ///   Returns the full pathname for the specified resource, based on
-    ///   the first existing file in the ordered list of resource folders. If no
-    ///   existing file is found, returns ''.
-    /// </summary>
-    /// <param name="AResourceFileName">
-    ///   Resource file name relative to the resource folder.
-    ///   Examples: some_image.png, js\some_library.js.
-    /// </param>
-    function FindResourcePathName(const AResourceFileName: string): string;
-
-    /// <summary>
     ///   Returns the full pathname for the specified resource, based on the first
     ///   existing file in the ordered list of resource folders. If no existing
     ///   file is found, an exception is raised.
@@ -201,10 +190,22 @@ type
     /// </param>
     function GetResourcePathName(const AResourceFileName: string): string;
 
-    function FindImagePathName(const AResourceName: string; const ASuffix: string = ''): string;
+    /// <summary>
+    ///   Returns the full pathname for the specified resource, based on
+    ///   the first existing file in the ordered list of resource folders. If no
+    ///   existing file is found, returns ''.
+    /// </summary>
+    /// <param name="AResourceFileName">
+    ///   Resource file name relative to the resource folder.
+    ///   Examples: some_image.png, js\some_library.js.
+    /// </param>
+    function FindResourcePathName(const AResourceFileName: string): string;
 
-    function FindImageURL(const AResourceName: string; const ASuffix: string = ''): string;
     function GetImageURL(const AResourceName: string; const ASuffix: string = ''): string;
+    function FindImageURL(const AResourceName: string; const ASuffix: string = ''): string;
+
+    function GetImagePathName(const AResourceName: string; const ASuffix: string = ''): string;
+    function FindImagePathName(const AResourceName: string; const ASuffix: string = ''): string;
 
     /// <summary>
     ///  A reference to the model catalog, opened on first access.
@@ -612,6 +613,11 @@ end;
 function TKConfig.GetAppIcon: string;
 begin
   Result := Config.GetString('AppIcon', 'kitto_128');
+end;
+
+function TKConfig.GetImagePathName(const AResourceName, ASuffix: string): string;
+begin
+  Result := GetResourcePathName(AdaptImageName(AResourceName, ASuffix));
 end;
 
 function TKConfig.GetImageURL(const AResourceName: string; const ASuffix: string = ''): string;

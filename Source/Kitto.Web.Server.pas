@@ -434,8 +434,8 @@ function TKBaseStaticWebRoute.ServeLocalFile(const AFileName: string; const ARes
 begin
   if FileExists(AFileName) then
   begin
-    AResponse.ContentStream := TFileStream.Create(AFileName, fmOpenRead or fmShareDenyNone);
     AResponse.ContentType := GetFileMimeType(AFileName, 'application/octet-stream');
+    AResponse.ReplaceContentStream(TFileStream.Create(AFileName, fmOpenRead or fmShareDenyNone));
     Result := True;
   end
   else

@@ -110,6 +110,7 @@ type
 
     function GetMethodURL(const AMethod: TJSProcedure): string; overload;
     function GetMethodURL(const AMethodName: string): string; overload;
+    class function AddParamsToURL(const AURL, AParams: string): string;
 
     function CharsToPixels(const AChars: Integer; const AOffset: Integer = 0): TJSExpression;
     function LinesToPixels(const ALines: Integer): TJSExpression;
@@ -401,6 +402,14 @@ begin
   AItems.Add(AItem);
   if FJSConfig.IsReadOnly then
     TKWebResponse.Current.Items.CallMethod(Self, 'add').AddParam(AItem);
+end;
+
+class function TJSObject.AddParamsToURL(const AURL, AParams: string): string;
+begin
+  if AURL.Contains('?') then
+    Result := AURL + '&' + AParams
+  else
+    Result := AURL + '?' + AParams;
 end;
 
 function TJSObject.AsJSObject: TJSObject;

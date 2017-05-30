@@ -626,10 +626,10 @@ begin
       LViewTableField := ARecord.FieldByName(ViewTable.Fields[I].AliasedName);
       LImageField := ARecord.FieldByName(ViewTable.Fields[I].GetURLFieldName);
       if not LVIewTableField.IsNull then
-        LImageField.AsString := GetMethodURL(GetImage) + '&fn=' + LViewTableField.FieldName + '&rn=' + ARecord.Index.ToString
+        LImageField.AsString := AddParamsToURL(GetMethodURL(GetImage), 'fn=' + LViewTableField.FieldName + '&rn=' + ARecord.Index.ToString)
       else
-        LImageField.AsString := '';
-      { TODO : handle null case? }
+        LImageField.AsString := TKWebApplication.Current.Config.GetImageURL(
+          LImageField.ViewField.GetString('EmptyImageName', 'empty'));
     end;
   end;
 end;
@@ -774,23 +774,19 @@ end;
 procedure TKExtDataPanelController.GetImage;
 var
   LImageField: TKViewTableField;
-  LStream: TStream;
 begin
   { TODO : Use PK to locate record instead? }
   LImageField := ServerStore.Records[ParamAsInteger('rn')].FieldByName(ParamAsString('fn'));
 
   if not LImageField.IsNull then
   begin
-    LStream := TBytesStream.Create(LImageField.AsBytes);
-    try
-      DownloadThumbnailedStream(LStream, 'test.' + GetDataType(LImageField.AsBytes, '.png'),
-        LImageField.ViewField.GetInteger('IsPicture/Thumbnail/Width', 100),
-        LImageField.ViewField.GetInteger('IsPicture/Thumbnail/Height', 100));
-    finally
-      FreeAndNil(LStream);
-    end;
-  end;
-  { TODO : handle null case. Empty image, default image, nothing? }
+    DownloadThumbnailedStream(TBytesStream.Create(LImageField.AsBytes), 'test.' + GetDataType(LImageField.AsBytes, '.png'),
+      LImageField.ViewField.GetInteger('IsPicture/Thumbnail/Width', 100),
+      LImageField.ViewField.GetInteger('IsPicture/Thumbnail/Height', 100));
+  end
+  else
+    TKWebApplication.Current.DownloadFile(TKWebApplication.Current.Config.GetImagePathName(
+      LImageField.ViewField.GetString('EmptyImageName', 'empty')), 'test.png');
 end;
 
 function TKExtDataPanelController.GetImplicitDefaultAction: string;

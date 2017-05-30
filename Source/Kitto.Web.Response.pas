@@ -3,7 +3,8 @@
 interface
 
 uses
-  Generics.Collections
+  Classes
+  , Generics.Collections
   , SysUtils
   , IdHTTPWebBrokerBridge
   , Kitto.JS.Types
@@ -35,6 +36,9 @@ type
     property Items: TJSResponseItems read GetItems;
     // Generates code for all the Items and sets Content/ContentStream and ContentType accordingly.
     procedure Render;
+
+    // Takes care of freeing a previous content stream, if any, before assigning a new one.
+    procedure ReplaceContentStream(const AStream: TStream);
 
     function GetJSCode(const AMethod: TProc; const ASilent: Boolean = False): string;
   end;
@@ -296,8 +300,7 @@ type
 implementation
 
 uses
-  Classes
-  , Kitto.Web.Application
+  Kitto.Web.Application
   ;
 
 { TKWebResponse }
@@ -338,10 +341,23 @@ begin
 { TODO : tunnel all responses (including downloads) through the response items? }
   if Items.Count > 0 then
   begin
-    ContentType := Items.GetContentType;
     //Content := Items.Consume;
-    ContentStream := TStringStream.Create(Items.Consume, Items.Encoding);
+    ReplaceContentStream(TStringStream.Create(Items.Consume, Items.Encoding));
+    ContentType := Items.GetContentType;
   end;
+end;
+
+procedure TKWebResponse.ReplaceContentStream(const AStream: TStream);
+var
+  LContentStream: TStream;
+begin
+  if Assigned(ContentStream) then
+  begin
+    LContentStream := ContentStream;
+    ContentStream := nil; // propagates to response info object.
+    FreeAndNil(LContentStream);
+  end;
+  ContentStream := AStream;
 end;
 
 class procedure TKWebResponse.SetCurrent(const AValue: TKWebResponse);

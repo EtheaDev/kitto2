@@ -582,7 +582,7 @@ begin
   begin
     TKWebResponse.Current.SetCustomHeader('Content-Disposition',
       Format('%s; filename="%s"', [IfThen(AInline, 'inline', 'attachment'), ExtractFileName(AFileName)]));
-    TKWebResponse.Current.ContentStream := AStream;
+    TKWebResponse.Current.ReplaceContentStream(AStream);
     if AContentType <> '' then
       TKWebResponse.Current.ContentType := AContentType
     else
