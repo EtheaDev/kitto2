@@ -230,11 +230,6 @@ begin
   Result := (Pos(':', APath) <> 0) or (Pos('\\', APath) = 1) or (Pos('/', APath) = 1);
 end;
 
-function GetUserName: string;
-begin
-
-end;
-
 function GetCmdLineParamValue(const AParamName: string; const ADefaultValue: string = ''): string;
 var
   LParamIndex: Integer;
