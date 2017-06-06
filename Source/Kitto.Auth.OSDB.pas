@@ -66,7 +66,7 @@ uses
   , Classes
   , EF.Intf
   , EF.Localization
-  , EF.SysUtils
+  , EF.Sys
   , EF.Types
   ;
 
@@ -90,7 +90,7 @@ begin
   if IsUsingSystemUserName then
   begin
     // Load auth data from OS (password not needed, see IsPasswordMatching).
-    AAuthData.SetString('UserName', EF.Sys.GetUserName);
+    AAuthData.SetString('UserName', EF.Sys.EFSys.GetUserName);
     AAuthData.SetString('Password', '');
   end;
 end;
@@ -98,7 +98,7 @@ end;
 procedure TKOSDBAuthenticator.InternalDefineAuthData(
   const AAuthenticationData: TEFNode);
 begin
-  if not IsValidUserName(EF.SysUtils.GetUserName) then
+  if not IsValidUserName(EF.Sys.EFSys.GetUserName) then
   begin
     FIsUsingSystemUserName := False;
     inherited;
