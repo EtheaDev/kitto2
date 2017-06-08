@@ -513,6 +513,20 @@ type
     procedure ValueChanged;
   end;
 
+  TKExtSpacer = class(TExtBoxComponent, IKExtEditItem)
+  private
+    FEditItemId: string;
+  public
+    procedure SetOption(const ANode: TEFNode);
+    function AsExtObject: TExtObject;
+    procedure RefreshValue;
+
+    procedure SetTransientProperty(const APropertyName: string; const AValue: Variant);
+
+    function GetEditItemId: string;
+    property EditItemId: string read FEditItemId write FEditItemId;
+  end;
+
   TKExtLayoutDefaults = record
     MemoWidth: Integer;
     MaxFieldWidth: Integer;
@@ -563,6 +577,7 @@ type
     procedure SetGlobalOption(const ANode: TEFNode);
     procedure LayoutError(const AErrorMessage: string);
     function CreateRow(const AId: string): IKExtEditItem;
+    function CreateSpacer(const AId: string): IKExtEditItem;
     procedure CreateEditorsFromLayout(const ALayout: TKLayout);
     procedure ProcessLayoutNode(const ANode: TEFNode);
   public
@@ -892,7 +907,7 @@ begin
   end;
 
   //Process Specific Nodes of Layout
-  if MatchText(ANode.Name, ['Field', 'FieldSet', 'CompositeField', 'Row']) then
+  if MatchText(ANode.Name, ['Field', 'FieldSet', 'CompositeField', 'Row', 'Spacer']) then
   begin
     if FEditContainers.Count > 0 then
       FCurrentEditItem := CreateEditItem(ANode, FEditContainers.Peek)
@@ -991,6 +1006,8 @@ begin
     Result := CreateCompositeField(ANode.AsExpandedString)
   else if SameText(ANode.Name, 'Row') then
     Result := CreateRow(ANode.AsExpandedString)
+  else if SameText(ANode.Name, 'Spacer') then
+    Result := CreateSpacer(ANode.AsExpandedString)
   else
     raise EEFError.CreateFmt(_('Unknown edit item type %s.'), [ANode.Name]);
 
@@ -1068,7 +1085,9 @@ begin
     LRowField := nil;
 
   Result := FEditorManager.CreateEditor(FCurrentEditPage,
-    LViewField, LRowField, LFieldCharWidth, FCurrentLabelWidth, LIsReadOnly, LLabel);
+    LViewField, LRowField, LFieldCharWidth,
+    IfThen(FCurrentLabelAlign = laTop, 0, FCurrentLabelWidth),
+    LIsReadOnly, LLabel);
 
   if Assigned(LRowField) then
     LRowField.Encapsulate(Result);
@@ -1166,6 +1185,17 @@ begin
   LRow.LabelAlign := FCurrentLabelAlign;
   LRow.HideLabels := FCurrentEditPage.HideLabels;
   Result := LRow;
+end;
+
+function TKExtLayoutProcessor.CreateSpacer(const AId: string): IKExtEditItem;
+var
+  LSpacer: TKExtSpacer;
+begin
+  Assert(Assigned(FCurrentEditPage));
+
+  LSpacer := TKExtSpacer.Create(FCurrentEditPage);
+  LSpacer.Height := 30;
+  Result := LSpacer;
 end;
 
 destructor TKExtLayoutProcessor.Destroy;
@@ -1267,7 +1297,7 @@ begin
 //  BodyStyle := 'background:none';
 //  Layout := lyForm;
   // Leave room for the scroll bar on the right and a small space on top before the first editor.
-  PaddingString := '20px 5px 0px 0px';
+  PaddingString := '15px 15px 15px 5px'; // top right bottom left
   AutoScroll := True;
 end;
 
@@ -3317,6 +3347,32 @@ begin
             GetRawValue;
           end) + ';';
   end;
+end;
+
+{ TKExtSpacer }
+
+function TKExtSpacer.AsExtObject: TExtObject;
+begin
+  Result := Self;
+end;
+
+function TKExtSpacer.GetEditItemId: string;
+begin
+  Result := FEditItemId;
+end;
+
+procedure TKExtSpacer.RefreshValue;
+begin
+end;
+
+procedure TKExtSpacer.SetOption(const ANode: TEFNode);
+begin
+  if SameText(ANode.Name, 'Height') then
+    Height := ANode.AsInteger;
+end;
+
+procedure TKExtSpacer.SetTransientProperty(const APropertyName: string; const AValue: Variant);
+begin
 end;
 
 end.

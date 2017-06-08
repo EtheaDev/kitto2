@@ -25,8 +25,8 @@ MainTable:
   Controller:
     AllowViewing: True
     PopupWindow:
-      Height: 500
-      Width: 400
+      Width: 474
+      Height: 480
     Form:
       Layout: Dolls_Form
     ToolViews:
