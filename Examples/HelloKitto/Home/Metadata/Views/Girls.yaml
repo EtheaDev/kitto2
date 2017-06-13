@@ -14,6 +14,7 @@ Controller: List
       Header: True
       Title: _(Legend)
       Width: 180
+      Split: True
   Filters:
     LabelWidth: 76
     DisplayLabel: Girls Filter
