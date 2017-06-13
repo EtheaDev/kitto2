@@ -1,4 +1,5 @@
 ﻿Type: Data
+DisplayLabel: _(Doll Catalog)
 
 Controller: List
   CenterController: TemplateDataPanel

@@ -13,8 +13,8 @@
 }
 
 #templatedataview .thumb img{
-    height: 60px;
-    width: 80px;
+    height: 90px;
+    width: 120px;
 }
 #templatedataview .thumb-wrap{
     float: left;
@@ -27,7 +27,7 @@
     display: block;
     overflow: hidden;
     text-align: center;
-    width: 86px; /* for ie to ensure that the text is centered */
+    width: 126px; /* for ie to ensure that the text is centered */
 }
 
 #templatedataview .x-item-over{

@@ -568,14 +568,14 @@ var
   LSubmitAction: TExtFormActionSubmit;
   LUploadFormField: TKExtFormFileUploadField;
   LToolbar: TKExtToolbar;
+  LCancelButton: TKExtButton;
 begin
   if Assigned(FWindow) then
     FWindow.Delete;
   FreeAndNil(FWindow);
   FWindow := TKExtModalWindow.Create(Self);
-  FWindow.Width := 500;
-  FWindow.Height := 200;
-  FWindow.Closable := True;
+  FWindow.Width := 550;
+  FWindow.Height := 150;
   FWindow.Title := _('File upload');
 
   LFormPanel := TExtFormFormPanel.CreateAndAddToArray(FWindow.Items);
@@ -584,6 +584,7 @@ begin
   LFormPanel.FileUpload := True;
   LFormPanel.LabelAlign := laRight;
   LFormPanel.LabelWidth := 50;
+  LFormPanel.PaddingString := '15px 15px 15px 5px'; // top right bottom left
 
   LUploadFormField := TKExtFormFileUploadField.CreateInlineAndAddToArray(LFormPanel.Items);
   LUploadFormField.FieldLabel := _(FRecordField.ViewField.DisplayLabel);
@@ -592,10 +593,16 @@ begin
   LUploadFormField.Anchor := '0 5 0 0';
   LToolbar := TKExtToolbar.Create(Self);
   TExtToolbarFill.CreateInlineAndAddToArray(LToolbar.Items);
-  LFormPanel.Fbar := LToolbar;
+  FWindow.Fbar := LToolbar;
+
   LUploadButton := TKExtButton.CreateInlineAndAddToArray(LToolbar.Items);
   LUploadButton.Text := _('Upload');
-  LUploadButton.SetIconAndScale('Upload', IfThen(TKWebRequest.Current.IsMobileBrowser,'medium', 'small'));
+  LUploadButton.SetIconAndScale('Upload', IfThen(TKWebRequest.Current.IsMobileBrowser, 'medium', 'small'));
+
+  LCancelButton := TKExtButton.CreateInlineAndAddToArray(LToolbar.Items);
+  LCancelButton.Text := _('Cancel');
+  LCancelButton.SetIconAndScale('Cancel', IfThen(TKWebRequest.Current.IsMobileBrowser, 'medium', 'small'));
+  LCancelButton.Handler := GenerateAnonymousFunction(FWindow.Close);
 
   LSubmitAction := TExtFormActionSubmit.CreateInline(FWindow);
   LSubmitAction.Url := GetMethodURL(Upload);
@@ -607,8 +614,10 @@ begin
   LSubmitAction.Failure := GenerateAnonymousFunction('form, action', ExtMessageBox.Alert(_('File upload error'), 'action.result.msg'));
 
   LUploadButton.Handler := GenerateAnonymousFunction(Format(
-    'var form = this.up("form"); if (form.isValid()) form.submit({%s});',
-    [LSubmitAction.JSConfig.AsFormattedText]));
+    'if (%s.isValid()) %s.submit({%s});',
+    [LFormPanel.JSName,
+     LFormPanel.JSName,
+     LSubmitAction.JSConfig.AsFormattedText]));
   FWindow.Show;
 end;
 
