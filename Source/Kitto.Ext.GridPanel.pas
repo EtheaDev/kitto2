@@ -489,7 +489,7 @@ var
           LFormat := GetDisplayFormat;
           if LFormat = '' then
             LFormat := '0,000'; // '0';
-          TExtGridNumberColumn(Result).Format := AdaptExtNumberFormat(LFormat, TKWebApplication.Current.Config.UserFormatSettings);
+          TExtGridNumberColumn(Result).Format := LFormat;
         end;
       end
       else if (LDataType is TEFFloatDataType) or (LDataType is TEFDecimalDataType) then
@@ -500,7 +500,7 @@ var
           LFormat := GetDisplayFormat;
           if LFormat = '' then
             LFormat := '0,000.' + DupeString('0', AViewField.DecimalPrecision);
-          TExtGridNumberColumn(Result).Format := AdaptExtNumberFormat(LFormat, TKWebApplication.Current.Config.UserFormatSettings);
+          TExtGridNumberColumn(Result).Format := LFormat;
         end;
       end
       else if LDataType is TEFCurrencyDataType then
@@ -512,7 +512,7 @@ var
           LFormat := GetDisplayFormat;
           if LFormat = '' then
             LFormat := '0,000.00';
-          TExtGridNumberColumn(Result).Format := AdaptExtNumberFormat(LFormat, TKWebApplication.Current.Config.UserFormatSettings);
+          TExtGridNumberColumn(Result).Format := LFormat;
         end;
       end
       else

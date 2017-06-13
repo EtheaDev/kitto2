@@ -87,18 +87,30 @@ type
   end;
 
   TExtChartAbstractChart = class;
+  TExtChartCartesianChart = class;
 
   TExtChartAxis = class(TExtObject)
   private
     FLabelFunction: string;
     FTitle: string;
+    FPosition: string;
+    FMinimum: Integer;
+    FTitleMargin: Integer;
     procedure SetLabelFunction(const AValue: string);
     procedure SetTitle(const AValue: string);
+    procedure SetPosition(const AValue: string);
+    procedure SetMinimum(const AValue: Integer);
+    procedure SetTitleMargin(const AValue: Integer);
   public
     class function JSClassName: string; override;
     class function JSXType: string; override;
     property LabelFunction: string read FLabelFunction write SetLabelFunction;
+    property Minimum: Integer read FMinimum write SetMinimum;
+    property Position: string read FPosition write SetPosition;
+    property TitleMargin: Integer read FTitleMargin write SetTitleMargin;
     property Title: string read FTitle write SetTitle;
+
+    class function CreateInlineByType(const AType: string; AChart: TExtChartCartesianChart): TExtChartAxis;
   end;
 
   TExtChartCategoryAxis = class(TExtChartAxis)
@@ -178,33 +190,24 @@ type
     class function JSXType: string; override;
   end;
 
-  TExtChartLabel = class(TExtObject)
-  private
-    FCalloutLine: TExtObject;
-    function GetCalloutLine: TExtObject;
-  public
-    property CalloutLine: TExtObject read GetCalloutLine;
-  end;
-
   TExtChartSeries = class(TExtObject)
   private
     FTitle: string;
     FStyle: TExtChartSeriesStyle;
-    FHighlight: Boolean;
+    FHighlight: TExtObject;
     FToolTip: TExtChartToolTip;
-    FLabel: TExtChartLabel;
+    FLabel: TExtObject;
     procedure SetTitle(const AValue: string);
     procedure SetStyle(const AValue: TExtChartSeriesStyle);
-    procedure SetHighlight(const AValue: Boolean);
     function GetToolTip: TExtChartToolTip;
     function GetStyle: TExtChartSeriesStyle;
-  strict protected
-    procedure InitDefaults; override;
+    function GetHighlight: TExtObject;
+    function GetLabel: TExtObject;
   public
     class function JSClassName: string; override;
     property Title: string read FTitle write SetTitle;
-    property Highlight: Boolean read FHighlight write SetHighlight;
-    property &Label: TExtChartLabel read FLabel;
+    property Highlight: TExtObject read GetHighlight;
+    property &Label: TExtObject read GetLabel;
     property Style: TExtChartSeriesStyle read GetStyle write SetStyle;
     property ToolTip: TExtChartToolTip read GetToolTip;
 
@@ -318,6 +321,7 @@ type
     FInsetPadding: Integer;
     FInnerPadding: Integer;
     FTheme: string;
+    FAnimation: Boolean;
     procedure SetStore(const AValue: TExtDataStore);
     procedure SetLegendBool(const AValue: Boolean);
     function GetLegend: TExtChartLegendSpriteLegend;
@@ -327,10 +331,12 @@ type
     procedure SetTheme(const AValue: string);
     function GetSeries: TJSObjectArray;
     function GetSprites: TJSObjectArray;
+    procedure SetAnimation(const AValue: Boolean);
   protected
     procedure InitDefaults; override;
   public
     class function JSClassName: string; override;
+    property Animation: Boolean read FAnimation write SetAnimation;
     property InnerPadding: Integer read FInnerPadding write SetInnerPadding;
     property InsetPadding: Integer read FInsetPadding write SetInsetPadding;
     property Legend: TExtChartLegendSpriteLegend read GetLegend;
@@ -375,11 +381,6 @@ begin
   FTitle := SetConfigItem('title', AValue);
 end;
 
-procedure TExtChartSeries.SetHighlight(const AValue: Boolean);
-begin
-  FHighlight := SetConfigItem('highlight', AValue);
-end;
-
 procedure TExtChartSeries.SetStyle(const AValue: TExtChartSeriesStyle);
 begin
   FStyle.Free;
@@ -397,11 +398,13 @@ begin
   begin
     Result := TExtChartPieSeries.CreateInlineAndAddToArray(AChart.Series);
     TExtChartInteractionsRotate.CreateInlineAndAddToArray(AChart.Interactions);
+    TExtChartInteractionsItemHighlight.CreateInlineAndAddToArray(AChart.Interactions);
   end
   else if AType = 'Pie3D' then
   begin
     Result := TExtChartPie3DSeries.CreateInlineAndAddToArray(AChart.Series);
     TExtChartInteractionsRotatePie3D.CreateInlineAndAddToArray(AChart.Interactions);
+    TExtChartInteractionsItemHighlight.CreateInlineAndAddToArray(AChart.Interactions);
     Result.Style.ColorSpread := 1.0;
   end
   else if AType = 'Radar' then
@@ -424,6 +427,20 @@ begin
     raise Exception.CreateFmt('Unknown chart series type %s', [AType]);
 end;
 
+function TExtChartSeries.GetHighlight: TExtObject;
+begin
+  if not Assigned(FHighlight) then
+    FHighlight := CreateConfigObject('highlight');
+  Result := FHighlight;
+end;
+
+function TExtChartSeries.GetLabel: TExtObject;
+begin
+  if not Assigned(FLabel) then
+    FLabel := CreateConfigObject('label');
+  Result := FLabel;
+end;
+
 function TExtChartSeries.GetStyle: TExtChartSeriesStyle;
 begin
   if not Assigned(FStyle) then
@@ -436,12 +453,6 @@ begin
   if not Assigned(FToolTip) then
     FToolTip := TExtChartToolTip(CreateConfigObject(TExtChartToolTip, 'tooltip'));
   Result := FToolTip;
-end;
-
-procedure TExtChartSeries.InitDefaults;
-begin
-  inherited;
-  FLabel := TExtChartLabel(CreateConfigObject(TExtChartLabel, 'label'));
 end;
 
 class function TExtChartSeries.JSClassName: string;
@@ -484,9 +495,63 @@ begin
   FLabelFunction := SetProperty('labelFunction', AValue);
 end;
 
+procedure TExtChartAxis.SetMinimum(const AValue: Integer);
+begin
+  FMinimum := SetConfigItem('minimum', AValue);
+end;
+
+procedure TExtChartAxis.SetPosition(const AValue: string);
+begin
+  FPosition := SetConfigItem('position', AValue);
+end;
+
 procedure TExtChartAxis.SetTitle(const AValue: string);
 begin
   FTitle := SetConfigItem('title', AValue);
+end;
+
+procedure TExtChartAxis.SetTitleMargin(const AValue: Integer);
+begin
+  FTitleMargin := SetConfigItem('titleMargin', AValue);
+end;
+
+class function TExtChartAxis.CreateInlineByType(const AType: string; AChart: TExtChartCartesianChart): TExtChartAxis;
+begin
+  Assert(Assigned(AChart));
+  Assert(AType <> '');
+
+  if AType = 'Category' then
+  begin
+    Result := TExtChartCategoryAxis.CreateInlineAndAddToArray(AChart.Axes);
+    // TODO interactions?
+  end
+  else if AType = 'Numeric' then
+  begin
+    Result := TExtChartNumericAxis.CreateInlineAndAddToArray(AChart.Axes);
+    // TODO interactions?
+  end
+  else if AType = 'Time' then
+  begin
+    Result := TExtChartTimeAxis.CreateInlineAndAddToArray(AChart.Axes);
+    // TODO interactions?
+  end
+  else if AType = 'Category3D' then
+  begin
+    Result := TExtChartCategory3DAxis.CreateInlineAndAddToArray(AChart.Axes);
+    // TODO interactions?
+  end
+  else if AType = 'Numeric3D' then
+  begin
+    Result := TExtChartNumeric3DAxis.CreateInlineAndAddToArray(AChart.Axes);
+    // TODO interactions?
+  end
+  else if AType = 'Time3D' then
+  begin
+    Result := TExtChartTime3DAxis.CreateInlineAndAddToArray(AChart.Axes);
+    // TODO interactions?
+  end
+  else
+    raise Exception.CreateFmt('Unknown chart axis type %s', [AType]);
 end;
 
 class function TExtChartAxis.JSClassName: string;
@@ -602,6 +667,11 @@ end;
 class function TExtChartBarSeries.JSClassName: string;
 begin
   Result := 'Ext.chart.series.Bar';
+end;
+
+procedure TExtChartAbstractChart.SetAnimation(const AValue: Boolean);
+begin
+  FAnimation := SetConfigItem('animation', AValue);
 end;
 
 procedure TExtChartAbstractChart.SetInnerPadding(const AValue: Integer);
@@ -932,15 +1002,6 @@ end;
 class function TExtChartTime3DAxis.JSXType: string;
 begin
   Result := 'axis.time3d';
-end;
-
-{ TExtChartLabel }
-
-function TExtChartLabel.GetCalloutLine: TExtObject;
-begin
-  if not Assigned(FCalloutLine) then
-    FCalloutLine := CreateConfigObject('calloutLine');
-  Result := FCalloutLine;
 end;
 
 { TExtChartInteractionsPanZoom }

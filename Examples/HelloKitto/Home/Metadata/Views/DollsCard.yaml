@@ -3,10 +3,10 @@
 Controller: List
   CenterController: TemplateDataPanel
     TemplateFileName: DollsCard.html
-    TemplateView:
+    .TemplateView:
       Id: images-view
       SelectorClass: div.thumb-wrap
-      OverClass: x-view-over
+      OverClass: x-item-over
 
 MainTable:
   Model: Doll

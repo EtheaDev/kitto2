@@ -556,20 +556,20 @@ var
   procedure DoAddReaderField(const AStore: TExtDataStore; const AName, AType: string; const AUseNull: Boolean);
   var
     LField: TExtDataField;
-    LFormat: string;
+    //LFormat: string;
   begin
     LField := TExtDataField.CreateInlineAndAddToArray(AStore.Fields);
     LField.Name := AName;
     LField.&Type := AType;
     LField.UseNull := AUseNull;
     {TODO : Refactor; also see GridPanel}
-    if LField.&Type = 'date' then
-    begin
-      LFormat := AViewField.DisplayFormat;
-      if LFormat = '' then
-        LFormat := TKWebApplication.Current.Config.UserFormatSettings.ShortDateFormat;
-      LField.SetConfigItem('dateFormat', TJS.DelphiDateFormatToJSDateFormat(LFormat));
-    end;
+    //if LField.&Type = 'date' then
+    //begin
+    //  LFormat := AViewField.DisplayFormat;
+    //  if LFormat = '' then
+    //    LFormat := TKWebApplication.Current.Config.UserFormatSettings.ShortDateFormat;
+    //  LField.SetConfigItem('dateFormat', TJS.DelphiDateFormatToJSDateFormat(LFormat));
+    //end;
   end;
 
 begin

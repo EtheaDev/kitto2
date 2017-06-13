@@ -34,7 +34,7 @@ type
   TKExtChartPanel = class(TKExtDataPanelLeafController)
   strict private
     FChart: TExtChartAbstractChart;
-    FCHartType: string;
+    FChartType: string;
     procedure CreateAndInitChart;
     procedure CreateAndInitSeries(const AConfigNode: TEFNode);
     function GetLabelRenderer(const AFieldName: string): string;
@@ -83,19 +83,19 @@ begin
   begin
     if LFormat = '' then
       LFormat := '0,000'; // '0';
-    Result := Format('Ext.util.Format.numberRenderer("%s")', [AdaptExtNumberFormat(LFormat, TKWebApplication.Current.Config.UserFormatSettings)]);
+    Result := Format('Ext.util.Format.numberRenderer("%s")', [LFormat]);
   end
   else if (LDataType is TEFFloatDataType) or (LDataType is TEFDecimalDataType) then
   begin
     if LFormat = '' then
       LFormat := '0,000.' + DupeString('0', LViewField.DecimalPrecision);
-    Result := Format('Ext.util.Format.numberRenderer("%s")', [AdaptExtNumberFormat(LFormat, TKWebApplication.Current.Config.UserFormatSettings)]);
+    Result := Format('Ext.util.Format.numberRenderer("%s")', [LFormat]);
   end
   else if LDataType is TEFCurrencyDataType then
   begin
     if LFormat = '' then
       LFormat := '0,000.00';
-    Result := Format('Ext.util.Format.numberRenderer("%s")', [AdaptExtNumberFormat(LFormat, TKWebApplication.Current.Config.UserFormatSettings)]);
+    Result := Format('Ext.util.Format.numberRenderer("%s")', [LFormat]);
   end
   else if LDataType is TEFDateDataType then
   begin
@@ -215,23 +215,24 @@ begin
       TExtChartPolarSeries(LSeries).Donut := LOptionNode.AsInteger;
   end;
 
-       
-
-  LOption := AConfigNode.GetString('Label/Field');
-  if LOption <> '' then
+  LOptionNode := AConfigNode.FindNode('Label');
+  if Assigned(LOptionNode) then
   begin
-    LSeries.&Label.SetConfigItem('field', LOption);
-    LRenderer := GetLabelRenderer(LOption);
-    if LRenderer <> '' then
-      LSeries.&Label.SetConfigItem('renderer', JSExpressionFromCodeBlock(LRenderer));
+    LSeries.&Label.ApplyTreeToConfig(LOptionNode);
 
-    if AConfigNode.GetBoolean('Label/Field/CalloutLine') then
+    LOption := AConfigNode.GetString('Label/Field');
+    if LOption <> '' then
     begin
-      LSeries.&Label.CalloutLine.SetConfigItem('length', 60);
-      LSeries.&Label.CalloutLine.SetConfigItem('width', 2);
+      LRenderer := GetLabelRenderer(LOption);
+      if LRenderer <> '' then
+        LSeries.&Label.SetConfigItem('renderer', JSExpressionFromCodeBlock(LRenderer));
     end;
   end;
-  LSeries.Highlight := True;
+
+  LOptionNode := AConfigNode.FindNode('Highlight');
+  if Assigned(LOptionNode) then
+    LSeries.Highlight.ApplyTreeToConfig(LOptionNode);
+
   //LSeries.ToolTip.TrackMouse := True;
   //LSeries.ToolTip.Renderer := ...
 
@@ -290,27 +291,36 @@ end;
 
 function TKExtChartPanel.CreateAndInitAxis(const AConfigNode: TEFNode): TExtChartAxis;
 var
-  LFieldName: string;
-  LOption: string;
+  LOptionNode: TEFNode;
+  LType: string;
 begin
-  LFieldName := AConfigNode.GetString('FieldName'); // temporary
-  Result := CreateAndInitChartAxis(LFieldName, AConfigNode);
-  LOption := GetLabelRenderer(LFieldName);
-  if LOption <> '' then
-    Result.LabelFunction := LOption;
-  if Assigned(AConfigNode) then
-  begin
-    LOption := _(AConfigNode.GetString('Title'));
-    if LOption <> '' then
-      Result.Title := LOption;
-  end;
+  Assert(FChart is TExtChartCartesianChart);
+  Assert(Assigned(AConfigNode));
+
+  LType := AConfigNode.GetString('Type', 'Numeric');
+
+  Result := TExtChartAxis.CreateInlineByType(LType, TExtChartCartesianChart(FChart));
+
+  Result.Position := AConfigNode.GetString('Position', 'Left').ToLower;
+
+  LOptionNode := AConfigNode.FindNode('Minimum');
+  if Assigned(LOptionNode) then
+    Result.Minimum := LOptionNode.AsInteger;
+
+  LOptionNode := AConfigNode.FindNode('TitleMargin');
+  if Assigned(LOptionNode) then
+    Result.TitleMargin := LOptionNode.AsInteger;
+
+  LOptionNode := AConfigNode.FindNode('Title');
+  if Assigned(LOptionNode) then
+    Result.Title := _(LOptionNode.AsString);
 end;
 
 procedure TKExtChartPanel.CreateAndInitChart;
 var
   LNode: TEFNode;
   I: Integer;
-  LOption: TEFNode;
+  LOptionNode: TEFNode;
 
   function GetChartDefaultTheme: string;
   begin
@@ -320,28 +330,6 @@ var
       Result := 'default-gradients';
   end;
 
-//  function GetAxisField(const AAxis: string): string;
-//  var
-//    LSeries: TEFNode;
-//    I: Integer;
-//  begin
-//    Result := Config.GetString(Format('Chart/Axes/%s/Field', [AAxis]));
-//    if Result = '' then
-//    begin
-//      LSeries := Config.FindNode('Chart/Series');
-//      if not Assigned(LSeries) then
-//        raise EKError.CreateFmt('A chart''s %s axis must either have a Field or one or more Series.', [AAxis]);
-//      for I := 0 to LSeries.ChildCount - 1 do
-//      begin
-//        Result := LSeries.Children[I].GetString(Format('%sField', [AAxis]));
-//        if Result <> '' then
-//          Break;
-//      end;
-//      if Result = '' then
-//        raise EKError.CreateFmt('No valid series found for chart''s %s axis. At least one series with a %sField specification needed.', [AAxis, AAxis]);
-//    end;
-//  end;
-
 begin
   Assert(ClientStore <> nil);
 
@@ -349,15 +337,17 @@ begin
   FChart.Store := ClientStore;
   FChart.Region := rgCenter;
 
-  LOption := Config.FindNode('Chart/InnerPadding');
-  if Assigned(LOption) then
-    FChart.InnerPadding := LOption.AsInteger;
+  LOptionNode := Config.FindNode('Chart/InnerPadding');
+  if Assigned(LOptionNode) then
+    FChart.InnerPadding := LOptionNode.AsInteger;
 
-  LOption := Config.FindNode('Chart/InsetPadding');
-  if Assigned(LOption) then
-    FChart.InsetPadding := LOption.AsInteger;
+  LOptionNode := Config.FindNode('Chart/InsetPadding');
+  if Assigned(LOptionNode) then
+    FChart.InsetPadding := LOptionNode.AsInteger;
 
   FChart.Theme := Config.GetString('Chart/Theme', GetChartDefaultTheme);
+
+  FChart.Animation := Config.GetBoolean('Chart/Animation', True);
 
   LNode := Config.FindNode('Chart/Axes');
   if Assigned(LNode) then

@@ -20,7 +20,11 @@ Controller: List
           AngleField: DURATION
           Label:
             Field: TYPE_NAME
-            CalloutLine: True
+            CalloutLine:
+              Length: 60
+              Width: 2
+          Highlight:
+            Margin: 40
           Title: _(Duration)
           Thickness: 50
           Distortion: 60

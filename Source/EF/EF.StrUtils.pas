@@ -198,6 +198,11 @@ function CamelToUpperUnderscore(const AString: string): string;
 function CamelToSpaced(const AString: string): string;
 
 ///	<summary>
+///	 Converts the first character of AString to lower case.
+///	</summary>
+function FirstLowerCase(const AString: string): string;
+
+///	<summary>
 ///	  Tries to make the plural form of a specified singular name acoording to
 ///	  the rules of the english language.
 ///	</summary>
@@ -684,6 +689,13 @@ begin
         Result := Result + ' ';
     Result := Result + AString[I];
   end;
+end;
+
+function FirstLowerCase(const AString: string): string;
+begin
+  Result := AString;
+  if not Result.IsEmpty then
+    Result[1] := Result[1].ToLower;
 end;
 
 function UpperUnderscoreToSpaced(const AString: string): string;

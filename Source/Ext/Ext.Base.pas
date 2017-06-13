@@ -453,6 +453,7 @@ type
     FStore: TExtDataStore;
     FTpl: string;
     FTplArray: TJSObjectArray;
+    FTrackOver: Boolean;
     procedure SetEmptyText(AValue: string);
     procedure SetItemSelector(const AValue: string);
     procedure SetMultiSelect(const AValue: Boolean);
@@ -462,6 +463,7 @@ type
     procedure _SetStore(const AValue: TExtDataStore);
     procedure SetTpl(AValue: string);
     procedure SetSelectedClass(const AValue: string);
+    procedure SetTrackOver(const AValue: Boolean);
   strict protected
     function GetObjectNamePrefix: string; override;
   protected
@@ -478,6 +480,7 @@ type
     property SingleSelect: Boolean read FSingleSelect write SetSingleSelect;
     property Store: TExtDataStore read FStore write _SetStore;
     property Tpl: string read FTpl write SetTpl;
+    property TrackOver: Boolean read FTrackOver write SetTrackOver;
   end;
 
   TExtViewport = class(TExtContainer)
@@ -1594,6 +1597,11 @@ end;
 procedure TExtViewView.SetTpl(AValue: string);
 begin
   FTpl := SetConfigItem('tpl', AValue);
+end;
+
+procedure TExtViewView.SetTrackOver(const AValue: Boolean);
+begin
+  FTrackOver := SetConfigItem('trackOver', AValue);
 end;
 
 class function TExtViewView.JSClassName: string;

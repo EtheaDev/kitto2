@@ -143,9 +143,10 @@ begin
   Assert(Assigned(FView));
 
   inherited;
-  FView.Id := Config.GetString('TemplateView/Id');
-  FView.ItemSelector := Config.GetString('TemplateView/SelectorClass');
-  FView.OverItemCls := Config.GetString('TemplateView/OverClass');
+  FView.Id := Config.GetString('TemplateView/Id', 'templatedataview');
+  FView.ItemSelector := Config.GetString('TemplateView/SelectorClass', 'div.thumb-wrap');
+  FView.OverItemCls := Config.GetString('TemplateView/OverClass', 'x-item-over');
+  FView.TrackOver := True;
   if ViewTable.GetBoolean('Controller/IsMultiSelect', False) then
     FView.MultiSelect := True
   else

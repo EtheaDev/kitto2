@@ -1,39 +1,35 @@
 ﻿Type: Data
-DisplayLabel: Line Chart
+DisplayLabel: Bar Chart
 Controller: List
 
   CenterController: ChartPanel
     Chart:
-      Type: Line
+      Type: Cartesian
       Axes:
-        X:
-          Field: ACTIVITY_DATE
-          Title: _(Days of activities)
-          .MajorTimeUnit: days
-          MajorUnit: 1
-        Y:
-          Min: 0
-          Max: 15
-          MajorUnit: 1
+        Axis:
+          Position: Left
+          Title: _(Duration in minutes)
+        Axis:
+          Type: Category
+          Position: Bottom
       Series:
         Series:
-          Type: Line
-          XField: ACTIVITY_DATE
+          Type: Bar
+          XField: TYPE_NAME
           YField: DURATION
-          DisplayName: _(Date)
-          Style:
+          .DisplayName: _(Date)
+          .Style:
             Color: 6709248
-        Series:
-          Type: Column
-          YField: DURATION
-          DisplayName: _(Duration)
-          Style:
-            Mode: stretch
-            image: %IMAGE(chart_column_bar)%
+          Highlight:
+            StrokeStyle: black
+            FillStyle: gold
+          Label:
+            Field: DURATION
+            Display: insideEnd
   WestController: GridPanel
-    Width: 250
+    Width: 500
 
 MainTable:
   IsReadOnly: True
-  Model: ACTIVITY_BY_DATE
+  Model: ACTIVITY_BY_TYPE
 ImageName: chart_bar

@@ -148,6 +148,13 @@ type
     function ParamAsString(const AParamName: string): string;
     function ParamAsObject(const AParamName: string): TJSObject;
 
+    /// <summary>
+    ///  Applies all children of the specified tree to the current object's config,
+    ///  matching them by name except for the first letter which is converted to lower case.
+    ///  Currently only direct children values are copied.
+    /// </summary>
+    procedure ApplyTreeToConfig(const ATree: TEFTree);
+
     procedure HandleEvent;
   end;
 
@@ -283,6 +290,7 @@ uses
   , Types
   , Character
   , IOUtils
+  , Variants
   , REST.Utils
   , System.NetEncoding
   , EF.StrUtils
@@ -410,6 +418,43 @@ begin
     Result := AURL + '&' + AParams
   else
     Result := AURL + '?' + AParams;
+end;
+
+procedure TJSObject.ApplyTreeToConfig(const ATree: TEFTree);
+var
+  I: Integer;
+  LNode: TEFNode;
+  LDataType: TEFDataType;
+  LConfigItemName: string;
+  LObject: TJSObject;
+begin
+  Assert(Assigned(ATree));
+
+  for I := 0 to ATree.ChildCount - 1 do
+  begin
+    LNode := ATree.Children[I];
+    LConfigItemName := FirstLowerCase(LNode.Name);
+    // Nodes without values and with children are conventionally subobjects.
+    if not VarIsNull(LNode.Value) and (LNode.ChildCount > 0) then
+    begin
+      LObject := SetConfigItem(LConfigItemName, TJSObject.CreateInline(Self));
+      LObject.ApplyTreeToConfig(LNode);
+    end
+    else
+    begin
+      LDataType := LNode.DataType;
+      if LDataType is TEFIntegerDataType then
+        SetConfigItem(LConfigItemName, LNode.AsInteger)
+      else if LDataType is TEFBooleanDataType then
+        SetConfigItem(LConfigItemName, LNode.AsBoolean)
+      else if LDataType is TEFBooleanDataType then
+        SetConfigItem(LConfigItemName, LNode.AsBoolean)
+      else if LDataType is TEFFloatDataType then
+        SetConfigItem(LConfigItemName, LNode.AsFloat)
+      else if LDataType is TEFStringDataType then
+        SetConfigItem(LConfigItemName, LNode.AsString);
+    end;
+  end;
 end;
 
 function TJSObject.AsJSObject: TJSObject;

@@ -22,6 +22,7 @@ Controller: Viewport
             #View: ActivityInput
             #View: ActivityReport
             #View: Projects
+            View: ActivityBarChart
             View: ActivityPieChart
 
       NorthView:

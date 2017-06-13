@@ -95,14 +95,6 @@ type
 function GetTreeViewNodeImageName(const ANode: TKTreeViewNode; const AView: TKView): string;
 
 /// <summary>
-///  Adapts a standard number format string (with , as thousand
-///  separator and . as decimal separator) according to the
-///  specificed format settings for displaying to the user.
-/// </summary>
-function AdaptExtNumberFormat(const AFormat: string; const AFormatSettings: TFormatSettings): string;
-
-
-/// <summary>
 ///  Computes and returns a display label based on the underlying view,
 ///  if any, or the node itself (if no view is found).
 /// </summary>
@@ -404,24 +396,6 @@ begin
       AddButton(ANode, ADisplayLabel, AContainer);
     end,
     AOwner, AClickHandler);
-end;
-
-function AdaptExtNumberFormat(const AFormat: string; const AFormatSettings: TFormatSettings): string;
-var
-  I: Integer;
-begin
-  Result := AFormat;
-  if AFormatSettings.DecimalSeparator = ',' then
-  begin
-    for I := 1 to Length(Result) do
-    begin
-      if Result[I] = '.' then
-        Result[I] := ','
-      else if Result[I] = ',' then
-        Result[I] := '.';
-    end;
-    Result := Result + '/i';
-  end;
 end;
 
 { TKExtViewButton }

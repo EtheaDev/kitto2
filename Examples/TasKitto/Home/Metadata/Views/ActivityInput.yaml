@@ -56,8 +56,8 @@ MainTable:
     FormController:
       CloneButton:
     PopupWindow:
-      Width: 800
-      Height: 600
+      Width: 1220
+      Height: 460
     ToolViews:
       DownloadText:
         DisplayLabel: Download in TXT
