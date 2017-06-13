@@ -288,12 +288,12 @@ end;
 
 class function TExtCalendarPanel.JSClassName: string;
 begin
-  Result := 'Ext.calendar.CalendarPanel';
+  Result := 'Ext.calendar.panel.Panel';
 end;
 
 class function TExtCalendarPicker.JSClassName: string;
 begin
-  Result := 'Ext.calendar.CalendarPicker';
+  Result := 'Ext.calendar.form.CalendarPicker';
 end;
 
 class function TExtCalendarDayHeaderTemplate.JSClassName: string;
