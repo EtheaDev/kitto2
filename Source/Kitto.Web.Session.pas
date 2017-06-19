@@ -165,6 +165,7 @@ type
     property DisplayName: string read GetDisplayName write FDisplayName;
 
     property LastRequestInfo: TJSRequestInfo read FLastRequestInfo;
+    procedure SetDefaultLanguage(const AValue: string);
   end;
 
   /// <summary>
@@ -253,6 +254,22 @@ begin
   FreeAndNil(FLastRequestInfo);
   FreeAndNil(FObjectSpace);
   inherited;
+end;
+
+procedure TKWebSession.SetDefaultLanguage(const AValue: string);
+var
+  I: Integer;
+  LNewLanguage: string;
+begin
+  if Language = '' then
+  begin
+    LNewLanguage := AValue;
+    I := Pos('-', LNewLanguage);
+    if I <> 0 then
+      // Convert language code
+      LNewLanguage := Copy(LNewLanguage, I - 2, 2) + '_' + Uppercase(Copy(LNewLanguage, I + 1, 2));
+    Language := LNewLanguage;
+  end;
 end;
 
 function TKWebSession.GetDefaultViewportWidth: Integer;

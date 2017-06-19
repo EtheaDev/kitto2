@@ -162,7 +162,6 @@ type
     /// </summary>
     function TooltipsEnabled: Boolean;
 
-    { TODO : move to application once it gains the ability to execute ajax methods }
     procedure DelayedHome;
     procedure Logout;
   end;

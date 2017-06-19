@@ -1288,7 +1288,7 @@ end;
 procedure TKExtWindowToolController.DoDisplay;
 begin
   inherited;
-  Title := View.DisplayLabel;
+  Title := _(View.DisplayLabel);
   SetWindowSize;
   if not Config.GetBoolean('HideButtons') then
     CreateButtons;

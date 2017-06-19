@@ -25,6 +25,7 @@ type
     function GetIsRefresh: Boolean;
     function GetQueryTree: TEFTree;
     function GetJSONContentTree: TEFTree;
+    function GetAcceptLanguage: string;
   public
     destructor Destroy; override;
   public
@@ -52,11 +53,11 @@ type
     /// </summary>
     function GetQueryField(const AName: string): string;
 
-
-
     function IsBrowserIPhone: Boolean;
     function IsBrowserIPad: Boolean;
     function IsMobileBrowser: Boolean;
+
+    property AcceptLanguage: string read GetAcceptLanguage;
   end;
 
 implementation
@@ -81,6 +82,11 @@ begin
   FreeAndNil(FQueryTree);
   FreeAndNil(FJSONContentTree);
   inherited;
+end;
+
+function TKWebRequest.GetAcceptLanguage: string;
+begin
+  Result := GetFieldByName('Accept-Language');
 end;
 
 class function TKWebRequest.GetCurrent: TKWebRequest;
