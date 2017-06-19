@@ -46,9 +46,7 @@ type
   TKWebSession = class(TEFSubjectAndObserver)
   private
     FSessionId: string;
-    FObjectSequences: TDictionary<string, Cardinal>;
     FLanguage: string;
-    FSingletons: TDictionary<string, TJSObject>;
     FRefreshingLanguage: Boolean;
     FViewportWidthInInches: Integer;
     FAutoOpenViewName: string;
@@ -69,7 +67,7 @@ type
     FDisplayName: string;
     FLastRequestInfo: TJSRequestInfo;
     FCreationDateTime: TDateTime;
-    FObjectSpace: TJSBase;
+    FObjectSpace: TJSObjectSpace;
     function GetDisplayName: string;
     procedure SetLanguage(const AValue: string);
     /// <summary>
@@ -84,13 +82,11 @@ type
     ///  If called multiple times, only the first time the file is added.
     /// </summary>
     procedure EnsureDynamicScript(const AScriptBaseName: string);
-    function GetObjectSpace: TJSBase;
+    function GetObjectSpace: TJSObjectSpace;
   strict protected
     function GetViewportContent: string; virtual;
     function GetManifestFileName: string; virtual;
   public
-    { TODO : Move to ObjectSpace? }
-    function GetNextJSName(const AObjectType: string): string;
     procedure SetLanguageFromQueriesOrConfig(const AConfig: TKConfig);
     property RefreshingLanguage: Boolean read FRefreshingLanguage write FRefreshingLanguage;
     procedure BeforeHandleRequest;
@@ -104,9 +100,7 @@ type
     property CreationDateTime: TDateTime read FCreationDateTime;
     property Language: string read FLanguage write SetLanguage;
 
-    function GetSingleton<T: TJSObject>(const AName: string): T;
-
-    property ObjectSpace: TJSBase read GetObjectSpace;
+    property ObjectSpace: TJSObjectSpace read GetObjectSpace;
 
     /// <summary>
     ///  Gives access to a copy of the auth data that was last passed
@@ -230,13 +224,8 @@ begin
     FLanguage := TKWebRequest.Current.GetFieldByName('Accept-Language');
     I := Pos('-', FLanguage);
     if I <> 0 then
-    begin
       // Convert language code
       FLanguage := Copy(FLanguage, I - 2, 2) + '_' + Uppercase(Copy(FLanguage, I + 1, 2));
-{ TODO : extjs path? }
-//      if not FileExists(RequestHeader['DOCUMENT_ROOT'] + ExtPath + '/build/classic/locale/locale-' + FLanguage + '.js') then
-//        FLanguage := Copy(FLanguage, 1, 2)
-    end;
   end;
 end;
 
@@ -257,8 +246,6 @@ begin
   NilEFIntf(FStatusHost);
 
   FreeAndNil(FOpenControllers);
-  FreeAndNil(FObjectSequences);
-  FreeAndNil(FSingletons);
   FreeAndNil(FAuthData);
   FreeAndNil(FGettextInstance);
   FreeAndNil(FDynamicScripts);
@@ -290,8 +277,7 @@ procedure TKWebSession.SetLanguage(const AValue: string);
 begin
   FLanguage := AValue;
   TEFLocalizationToolRegistry.CurrentTool.ForceLanguage(FLanguage);
-  TEFLogger.Instance.LogFmt('Language %s set.', [FLanguage], TEFLogger.LOG_MEDIUM);
-  //Config.Config.SetString('LanguageId', AValue);
+  TEFLogger.Instance.LogFmt('Language %s set.', [FLanguage], TEFLogger.LOG_DETAILED);
 end;
 
 procedure TKWebSession.SetLanguageFromQueriesOrConfig(const AConfig: TKConfig);
@@ -324,9 +310,6 @@ begin
   FDynamicStyles := TStringList.Create;
   FDynamicStyles.Sorted := True;
   FDynamicStyles.Duplicates := dupError;
-
-  FObjectSequences := TDictionary<string, Cardinal>.Create;
-  FSingletons := TDictionary<string, TJSObject>.Create;
 
   FAuthData := TEFNode.Create;
 
@@ -407,33 +390,11 @@ begin
   Result := '';
 end;
 
-function TKWebSession.GetNextJSName(const AObjectType: string): string;
-var
-  LResult: Cardinal;
-begin
-  if not FObjectSequences.ContainsKey(AObjectType) then
-    FObjectSequences.Add(AObjectType, 0);
-  LResult := FObjectSequences[AObjectType] + 1;
-  FObjectSequences[AObjectType] := LResult;
-  Result := AObjectType + IntToStr(LResult);
-end;
-
-function TKWebSession.GetObjectSpace: TJSBase;
+function TKWebSession.GetObjectSpace: TJSObjectSpace;
 begin
   if not Assigned(FObjectSpace) then
-    FObjectSpace := TJSBase.Create(nil);
+    FObjectSpace := TJSObjectSpace.Create(nil);
   Result := FObjectSpace;
-end;
-
-function TKWebSession.GetSingleton<T>(const AName: string): T;
-begin
-  if FSingletons.ContainsKey(AName) then
-    Result := T(FSingletons[AName])
-  else
-  begin
-    Result := TJSObjectClass(T).CreateSingleton(ObjectSpace, AName) as T;
-    FSingletons.Add(AName, Result);
-  end;
 end;
 
 { TKSessionLocalizationTool }

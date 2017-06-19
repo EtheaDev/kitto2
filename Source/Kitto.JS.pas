@@ -63,7 +63,7 @@ type
   strict protected
     function GetObjectNamePrefix: string; virtual;
     function GetJSIdConfigName: string; virtual;
-    procedure InitDefaults; virtual;
+    procedure InitDefaults; override;
     procedure InitInlineDefaults; virtual;
     function CreateConfigObject(const AAttributeName: string): TJSObject; overload;
     // Cannot use a generic here a TJSObject is not completely defined yet.
@@ -76,7 +76,6 @@ type
     constructor Create(const AOwner: TJSBase); override;
     constructor CreateInternal(const AOwner: TJSBase; const AAttributeName: string);
     constructor CreateInline(const AOwner: TJSBase);
-    constructor CreateSingleton(const AOwner: TJSBase; const AAttributeName: string);
     constructor CreateAndAddToArray(const AArray: TJSObjectArray);
     constructor CreateInlineAndAddToArray(const AArray: TJSObjectArray);
     destructor Destroy; override;
@@ -526,7 +525,7 @@ begin
   Assert(Assigned(AOwner));
   inherited Create(AOwner);
   FJSConfig := TJSValues.Create(Self);
-  JSName := Session.GetNextJSName(GetObjectNamePrefix);
+  JSName := Session.ObjectSpace.GetNextJSName(GetObjectNamePrefix);
   TKWebResponse.Current.Items.CreateObject(Self);
   InitDefaults;
 end;
@@ -542,7 +541,7 @@ begin
   if (Owner.JSName <> '') and (FAttributeName <> '') then
     JSName := Owner.JSName + '.' + FAttributeName
   else
-    JSName := Session.GetNextJSName(GetObjectNamePrefix);
+    JSName := Session.ObjectSpace.GetNextJSName(GetObjectNamePrefix);
   InitDefaults;
 end;
 
@@ -550,17 +549,6 @@ constructor TJSObject.CreateInline(const AOwner: TJSBase);
 begin
   CreateInternal(AOwner, '');
   InitInlineDefaults;
-end;
-
-constructor TJSObject.CreateSingleton(const AOwner: TJSBase; const AAttributeName: string);
-begin
-  Assert(Assigned(AOwner));
-  inherited Create(AOwner);
-  if AAttributeName = '' then
-    JSName := JSClassName
-  else
-    JSName := AAttributeName;
-  InitDefaults;
 end;
 
 constructor TJSObject.CreateInlineAndAddToArray(const AArray: TJSObjectArray);
@@ -657,6 +645,7 @@ end;
 
 procedure TJSObject.InitDefaults;
 begin
+  inherited;
   { TODO per gli store è storeId; virtuale? Sì, ma poi però ci liberiamo di JSName tout court e teniamo id.
   forse in qualche caso ci dobbiamo tenere le var globali }
 

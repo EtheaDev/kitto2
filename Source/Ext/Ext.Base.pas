@@ -773,7 +773,7 @@ uses
 function ExtQuickTips: TExtQuickTipsSingleton;
 begin
   if Session <> nil then
-    Result := Session.GetSingleton<TExtQuickTipsSingleton>(TExtQuickTipsSingleton.JSClassName)
+    Result := Session.ObjectSpace.GetSingleton<TExtQuickTipsSingleton>(TExtQuickTipsSingleton.JSClassName)
   else
     Result := nil;
 end;
@@ -781,7 +781,7 @@ end;
 function ExtMessageBox: TExtMessageBoxSingleton;
 begin
   if Session <> nil then
-    Result := Session.GetSingleton<TExtMessageBoxSingleton>(TExtMessageBoxSingleton.JSClassName)
+    Result := Session.ObjectSpace.GetSingleton<TExtMessageBoxSingleton>(TExtMessageBoxSingleton.JSClassName)
   else
     Result := nil;
 end;

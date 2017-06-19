@@ -142,7 +142,7 @@ uses
 function ExtMenuMenuMgr: TExtMenuMenuMgrSingleton;
 begin
   if Session <> nil then
-    Result := Session.GetSingleton<TExtMenuMenuMgrSingleton>(TExtMenuMenuMgrSingleton.JSClassName)
+    Result := Session.ObjectSpace.GetSingleton<TExtMenuMenuMgrSingleton>(TExtMenuMenuMgrSingleton.JSClassName)
   else
     Result := nil;
 end;
