@@ -23,18 +23,34 @@ type
   strict protected
     procedure AddChild(const AChild: TJSBase);
     procedure RemoveChild(const AChild: TJSBase);
+    procedure InitDefaults; virtual;
   public
-    constructor Create(const AOwner: TJSBase); virtual;
     destructor Destroy; override;
     procedure BeforeDestruction; override;
-
+  public
+    constructor Create(const AOwner: TJSBase); virtual;
+    constructor CreateSingleton(const AOwner: TJSBase; const AAttributeName: string);
     property Owner: TJSBase read FOwner write SetOwner;
+
     property JSName: string read FJSName write FJSName;
     class function JSClassName: string; virtual;
     class function JSXType: string; virtual;
 
     function FindChildByJSName(const AJSName: string): TJSBase;
     procedure FreeAllChildren;
+  end;
+  TJSBaseClass = class of TJSBase;
+
+  TJSObjectSpace = class(TJSBase)
+  private
+    FObjectSequences: TDictionary<string, Cardinal>;
+    FSingletons: TDictionary<string, TJSBase>;
+  public
+    procedure AfterConstruction; override;
+    destructor Destroy; override;
+  public
+    function GetNextJSName(const AObjectType: string): string;
+    function GetSingleton<T: TJSBase>(const AName: string): T;
   end;
 
   // Represents a config object or a set of method parameters.
@@ -132,6 +148,18 @@ begin
     FOwner.AddChild(Self);
 end;
 
+constructor TJSBase.CreateSingleton(const AOwner: TJSBase;
+  const AAttributeName: string);
+begin
+  Assert(Assigned(AOwner));
+  Create(AOwner);
+  if AAttributeName = '' then
+    JSName := JSClassName
+  else
+    JSName := AAttributeName;
+  InitDefaults;
+end;
+
 destructor TJSBase.Destroy;
 begin
   if Assigned(FOwner) and not FOwner.FDestroying then
@@ -167,6 +195,10 @@ end;
 procedure TJSBase.FreeAllChildren;
 begin
   FChildren.Clear;
+end;
+
+procedure TJSBase.InitDefaults;
+begin
 end;
 
 procedure TJSBase.RemoveChild(const AChild: TJSBase);
@@ -377,6 +409,44 @@ begin
   AFormatter.DeleteTrailing(FParamConnector);
   AFormatter.DeleteTrailing(sLineBreak);
   FIsReadOnly := True;
+end;
+
+{ TJSObjectSpace }
+
+procedure TJSObjectSpace.AfterConstruction;
+begin
+  inherited;
+  FObjectSequences := TDictionary<string, Cardinal>.Create;
+  FSingletons := TDictionary<string, TJSBase>.Create;
+end;
+
+destructor TJSObjectSpace.Destroy;
+begin
+  FreeAndNil(FSingletons);
+  FreeAndNil(FObjectSequences);
+  inherited;
+end;
+
+function TJSObjectSpace.GetNextJSName(const AObjectType: string): string;
+var
+  LResult: Cardinal;
+begin
+  if not FObjectSequences.ContainsKey(AObjectType) then
+    FObjectSequences.Add(AObjectType, 0);
+  LResult := FObjectSequences[AObjectType] + 1;
+  FObjectSequences[AObjectType] := LResult;
+  Result := AObjectType + IntToStr(LResult);
+end;
+
+function TJSObjectSpace.GetSingleton<T>(const AName: string): T;
+begin
+  if FSingletons.ContainsKey(AName) then
+    Result := T(FSingletons[AName])
+  else
+  begin
+    Result := TJSObjectClass(T).CreateSingleton(Self, AName) as T;
+    FSingletons.Add(AName, Result);
+  end;
 end;
 
 end.

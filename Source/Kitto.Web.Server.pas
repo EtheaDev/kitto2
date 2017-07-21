@@ -211,6 +211,7 @@ var
       LSessionId := LSession.SessionId;
       FreeAndNil(LSession);
       LSession := CreateKSession(LSessionId);
+      LSession.SetDefaultLanguage(TKWebRequest.Current.AcceptLanguage);
       CurrentKSession := LSession;
     end;
   end;
@@ -225,6 +226,7 @@ begin
   try
     TKWebRequest.Current := TKWebRequest.Create(AContext, ARequestInfo, AResponseInfo);
     try
+      Session.SetDefaultLanguage(TKWebRequest.Current.AcceptLanguage);
       Session.LastRequestInfo.UserAgent := TKWebRequest.Current.UserAgent;
       Session.LastRequestInfo.ClientAddress := TKWebRequest.Current.RemoteAddr;
       Session.LastRequestInfo.DateTime := Now;
@@ -243,8 +245,6 @@ begin
 
           // Recreate Kitto session each time the page is refreshed.
           RefreshSession;
-
-          Session.BeforeHandleRequest;
 
           for LRoute in FRoutes do
           begin
