@@ -1,7 +1,6 @@
 program HelloKitto;
 
 uses
-  FastMM4,
   Kitto.Ext.Start,
   Controllers in '..\..\Source\Controllers.pas',
   Rules in '..\..\Source\Rules.pas',

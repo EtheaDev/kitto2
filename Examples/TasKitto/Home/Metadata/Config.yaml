@@ -43,7 +43,7 @@ Databases:
 
 Auth: DB
   IsClearPassword: True
-  Defaults:
+  .Defaults:
     UserName: admin
     Password: admin
   ReadUserCommandText: select USER_NAME, PASSWORD_HASH, FIRST_NAME, LAST_NAME from KITTO_USERS where IS_ACTIVE = 1 and UPPER(USER_NAME) = UPPER(:USER_NAME)
@@ -57,9 +57,10 @@ Login: LoginView
 # Default: Home.
 #HomeView: Home
 
-Ext:
-  Theme: crisp
-  
+ExtJS:
+  Theme: triton
+  AjaxTimeout: 100000
+
 LanguageId: en
 # Either utf-8 or a SBCS corresponding to the system code page
 # (such as iso-8859-1 for Western Europe). Defaults to utf-8.

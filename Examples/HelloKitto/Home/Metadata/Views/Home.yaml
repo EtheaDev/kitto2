@@ -27,9 +27,9 @@ Controller: Window
         Controller: TabPanel
           Border: True
           SubViews:
-            #View: Girls
-            #View: Dolls
-            View: DollsCard
+            View: Girls
+            View: Dolls
+            #View: DollsCard
 
       NorthView:
         Controller: ToolBar

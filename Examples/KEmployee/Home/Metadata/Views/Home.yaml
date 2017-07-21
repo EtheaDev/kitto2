@@ -24,7 +24,7 @@ Controller: Viewport
 
       NorthView:
         Controller: BorderPanel
-          Height: 60
+          Height: 80
 
           WestView:
             Controller: HtmlPanel
