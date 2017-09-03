@@ -1,0 +1,2 @@
+inherited EFTreeFrame: TEFTreeFrame
+end

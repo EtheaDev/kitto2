@@ -1,0 +1,4 @@
+﻿TCPPort:
+  Default: 2014
+SessionTimeOut:
+  Default: 30

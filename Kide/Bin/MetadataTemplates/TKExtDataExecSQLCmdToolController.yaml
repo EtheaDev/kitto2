@@ -1,0 +1,7 @@
+﻿RequireSelection: False
+  Default: True
+AutoRefresh: All
+ConfirmationMessage:
+  Localizable: True
+SQLCommandText:
+InputParams:

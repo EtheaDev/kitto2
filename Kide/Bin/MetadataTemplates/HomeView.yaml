@@ -1,0 +1,29 @@
+﻿DisplayLabel: %Config:AppTitle%
+  Localizable: True
+# Valid top-level controllers are Window and Viewport
+Controller: Viewport
+  # A HomeView often contains a BorderPanel controller
+  SubView:
+    Controller: BorderPanel
+      # WestView region often contains the MainMenu
+      WestView:
+        DisplayLabel: Main Menu
+        Controller: TreePanel
+          TreeView: MainMenu
+          Width: 150
+          Collapsible: True
+          Border: True
+          Header: True
+
+      CenterView:
+        Controller: TabPanel
+          Border: True
+          # List of views to be auto-opened in tabs: remove dot and 
+          .SubViews:
+            .View: ChangeMe
+            .View: ChangeMe
+
+      SouthView:
+        Controller: StatusBar
+          Text: User: %Auth:USER_NAME%
+        ImageName: user

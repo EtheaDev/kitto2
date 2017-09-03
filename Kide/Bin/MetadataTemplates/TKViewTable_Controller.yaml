@@ -1,0 +1,21 @@
+﻿AutoOpen: True
+AutoOpen: False
+PageRecordCount:
+RowClassProvider:
+Grouping:
+PopupWindow:
+ToolViews:
+FormController:
+Grid:
+Form:
+AllowViewing: True
+  Default: False
+PreventEditing: True
+  Default: False
+PreventAdding: True
+  Default: False
+PreventDeleting: True
+  Default: False
+AllowDuplicating: True
+  Default: False
+PagingTools: False

@@ -1,0 +1,6 @@
+﻿Controller: ExecuteSQLCommand
+DisplayLabel: Execute command
+ImageName:
+IsVisible: False
+  Default: True
+BeforeExecute:

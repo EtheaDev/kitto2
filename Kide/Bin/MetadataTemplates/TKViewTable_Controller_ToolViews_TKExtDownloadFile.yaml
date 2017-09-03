@@ -1,0 +1,6 @@
+﻿Controller: DownloadFile
+DisplayLabel: Download file
+ImageName:
+IsVisible: False
+  Default: True
+BeforeExecute:

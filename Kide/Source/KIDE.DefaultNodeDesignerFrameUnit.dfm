@@ -1,0 +1,2 @@
+inherited DefaultNodeDesignerFrame: TDefaultNodeDesignerFrame
+end

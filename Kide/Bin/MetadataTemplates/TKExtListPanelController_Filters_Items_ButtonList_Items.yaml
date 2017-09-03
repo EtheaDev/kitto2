@@ -1,0 +1,4 @@
+﻿ButtonListItem:
+  Multiple: True
+  Template: DisplayLabel
+      Expression: SQLExpression

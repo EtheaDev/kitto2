@@ -1,0 +1,2 @@
+inherited ModelEditorFrame: TModelEditorFrame
+end

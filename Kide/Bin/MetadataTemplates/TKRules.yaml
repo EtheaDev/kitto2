@@ -1,0 +1,13 @@
+﻿ForceUpperCase:
+SubType: alpha_space
+MinLength:
+MaxLength:
+MaxUploadSize:
+DefaultFileName:
+MinValue:
+MaxValue:
+ForceCamelCaps:
+EnforceRange:
+Template:
+CharFilter:
+ForceCase:

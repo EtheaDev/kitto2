@@ -1,0 +1,2 @@
+inherited ConfigEditorFrame: TConfigEditorFrame
+end

@@ -1,0 +1,6 @@
+﻿Theme:
+  Default: default
+URL:
+  Default: /ext
+AjaxTimeOut:
+  Default: 30000

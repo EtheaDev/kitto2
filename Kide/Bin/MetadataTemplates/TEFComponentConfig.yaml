@@ -1,0 +1,21 @@
+﻿AppTitle:
+AppIcon:
+HomeView:
+LanguageId:
+CharSet:
+LanguagePerSession:
+FOPEnginePath:
+JavascriptLibraries:
+DefaultDatabaseName:
+  Default: Main
+DatabaseRouter:  
+Databases:
+Auth:
+AccessControl: DB
+Login:
+Ext:
+FastCGI:
+UserFormats:
+Email:
+Log:
+Defaults:

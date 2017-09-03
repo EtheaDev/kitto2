@@ -1,0 +1,2 @@
+inherited MetadataItemDesignerFrame: TMetadataItemDesignerFrame
+end
