@@ -1,49 +1,18 @@
-{*******************************************************************}
-{                                                                   }
-{   Kide2 Editor: GUI for Kitto2                                    }
-{                                                                   }
-{   Copyright (c) 2012-2017 Ethea S.r.l.                            }
-{   ALL RIGHTS RESERVED / TUTTI I DIRITTI RISERVATI                 }
-{                                                                   }
-{*******************************************************************}
-{                                                                   }
-{   The entire contents of this file is protected by                }
-{   International Copyright Laws. Unauthorized reproduction,        }
-{   reverse-engineering, and distribution of all or any portion of  }
-{   the code contained in this file is strictly prohibited and may  }
-{   result in severe civil and criminal penalties and will be       }
-{   prosecuted to the maximum extent possible under the law.        }
-{                                                                   }
-{   RESTRICTIONS                                                    }
-{                                                                   }
-{   THE SOURCE CODE CONTAINED WITHIN THIS FILE AND ALL RELATED      }
-{   FILES OR ANY PORTION OF ITS CONTENTS SHALL AT NO TIME BE        }
-{   COPIED, TRANSFERRED, SOLD, DISTRIBUTED, OR OTHERWISE MADE       }
-{   AVAILABLE TO OTHER INDIVIDUALS WITHOUT EXPRESS WRITTEN CONSENT  }
-{   AND PERMISSION FROM ETHEA S.R.L.                                }
-{                                                                   }
-{   CONSULT THE END USER LICENSE AGREEMENT FOR INFORMATION ON       }
-{   ADDITIONAL RESTRICTIONS.                                        }
-{                                                                   }
-{*******************************************************************}
-{                                                                   }
-{   Il contenuto di questo file è protetto dalle leggi              }
-{   internazionali sul Copyright. Sono vietate la riproduzione, il  }
-{   reverse-engineering e la distribuzione non autorizzate di tutto }
-{   o parte del codice contenuto in questo file. Ogni infrazione    }
-{   sarà perseguita civilmente e penalmente a termini di legge.     }
-{                                                                   }
-{   RESTRIZIONI                                                     }
-{                                                                   }
-{   SONO VIETATE, SENZA IL CONSENSO SCRITTO DA PARTE DI             }
-{   ETHEA S.R.L., LA COPIA, LA VENDITA, LA DISTRIBUZIONE E IL       }
-{   TRASFERIMENTO A TERZI, A QUALUNQUE TITOLO, DEL CODICE SORGENTE  }
-{   CONTENUTO IN QUESTO FILE E ALTRI FILE AD ESSO COLLEGATI.        }
-{                                                                   }
-{   SI FACCIA RIFERIMENTO ALLA LICENZA D'USO PER INFORMAZIONI SU    }
-{   EVENTUALI RESTRIZIONI ULTERIORI.                                }
-{                                                                   }
-{*******************************************************************}
+{-------------------------------------------------------------------------------
+   Copyright 2012-2017 Ethea S.r.l.
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-------------------------------------------------------------------------------}
 unit KIDE.TreeValidator;
 
 interface
