@@ -1,16 +1,16 @@
 ![https://github.com/EtheaDev/kitto2/wiki/images/kitto2_logo_200.png](https://github.com/EtheaDev/kitto2/wiki/images/kitto2_logo_200.png)
 
-Kitto<sup>2</sup> allows to create **Rich Internet Applications** based on a data model that can be mapped onto any database. The client-side part uses **ExtJS 6.2** (through webbroker technology) to create a fully **AJAX** application, allowing you to build standard and advanced data-manipulating forms in a fraction of the time.
+Kitto<sup>2</sup> allows to create **Rich Internet Applications** based on a data model that can be mapped onto any database. The client-side part uses **ExtJS 6** (through webbroker technology) to create a fully **AJAX** application, allowing you to build standard and advanced data-manipulating forms in a fraction of the time.
+
 
 The major differences of Kitto<sup>2</sup>, compared to the first version are:
 
 - ExtPascal library has been removed
+- Replacement of Apache + FastCGI with WebBroker technology.
+- Replacement of ExtJS 3 with ExtJS 6
+- Kide editor also released under Open-Source license.
 
-- Replacement of Apache + FastCGI with WebBroker technology
-
-- Replacement of ExtJS 3.4 with ExtJS 6.2
-
-Kitto<sup>2</sup> is aimed at **Delphi** developers that need to create web application without delving into the intricacies of HTML, CSS, Javascript or learning to use a particular library such as ExtJS, yet it allows access to the bare metal if required.
+Kitto<sup>2</sup> is aimed at **Delphi** developers that need to create web or mobile applications without delving into the intricacies of HTML, CSS, Javascript or learning to use a particular library such as ExtJS6, yet it allows access to the bare metal if required.
 
 Kitto<sup>2</sup> includes a **database-agnostic** data-access layer, allowing to create applications that work on any database engine and port applications between database engines.
 
@@ -20,6 +20,6 @@ Kitto<sup>2</sup> was designed by Nando Dessena and its development is sponsored
 
 Start [here](https://github.com/EtheaDev/kitto2/wiki/Kitto-at-a-glance) for further information.
 
-Visit [this site](http://kitto.ethea.it) for online demos.
+Visit [this site](http://www.ethea.it/kitto_demo.html) for online demos.
 
 Happy Kittoing!
