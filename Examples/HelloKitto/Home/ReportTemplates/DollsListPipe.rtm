@@ -1,0 +1,246 @@
+object ppReport: TppReport
+  AutoStop = False
+  DataPipeline = Doll
+  NoDataBehaviors = [ndBlankReport]
+  PrinterSetup.BinName = 'Default'
+  PrinterSetup.DocumentName = 'Report'
+  PrinterSetup.Duplex = dpNone
+  PrinterSetup.Orientation = poLandscape
+  PrinterSetup.PaperName = 'Lettera'
+  PrinterSetup.PrinterName = 'Default'
+  PrinterSetup.SaveDeviceSettings = False
+  PrinterSetup.mmMarginBottom = 6350
+  PrinterSetup.mmMarginLeft = 6350
+  PrinterSetup.mmMarginRight = 6350
+  PrinterSetup.mmMarginTop = 6350
+  PrinterSetup.mmPaperHeight = 215900
+  PrinterSetup.mmPaperWidth = 279401
+  PrinterSetup.PaperSize = 1
+  SaveAsTemplate = True
+  Template.FileName = 
+    'D:\ETHEA\GitHub_EtheaDev\Kitto2\kittoent2\Examples\ReportBuilder' +
+    'Demo\Home\ReportTemplates\DollsListPipe.rtm'
+  Template.Format = ftASCII
+  AllowPrintToFile = True
+  ArchiveFileName = '($MyDocuments)\ReportArchive.raf'
+  DeviceType = 'PDF'
+  DefaultFileDeviceType = 'PDF'
+  EmailSettings.ReportFormat = 'PDF'
+  LanguageID = 'Default'
+  OpenFile = False
+  OutlineSettings.CreateNode = True
+  OutlineSettings.CreatePageNodes = True
+  OutlineSettings.Enabled = False
+  OutlineSettings.Visible = False
+  ThumbnailSettings.Enabled = True
+  ThumbnailSettings.Visible = True
+  ThumbnailSettings.DeadSpace = 30
+  PDFSettings.EmbedFontOptions = [efUseSubset]
+  PDFSettings.EncryptSettings.AllowCopy = True
+  PDFSettings.EncryptSettings.AllowInteract = True
+  PDFSettings.EncryptSettings.AllowModify = True
+  PDFSettings.EncryptSettings.AllowPrint = True
+  PDFSettings.EncryptSettings.AllowExtract = True
+  PDFSettings.EncryptSettings.AllowAssemble = True
+  PDFSettings.EncryptSettings.AllowQualityPrint = True
+  PDFSettings.EncryptSettings.Enabled = False
+  PDFSettings.EncryptSettings.KeyLength = kl40Bit
+  PDFSettings.EncryptSettings.EncryptionType = etRC4
+  PDFSettings.FontEncoding = feAnsi
+  PDFSettings.ImageCompressionLevel = 25
+  RTFSettings.DefaultFont.Charset = DEFAULT_CHARSET
+  RTFSettings.DefaultFont.Color = clWindowText
+  RTFSettings.DefaultFont.Height = -13
+  RTFSettings.DefaultFont.Name = 'Arial'
+  RTFSettings.DefaultFont.Style = []
+  ShowPrintDialog = False
+  TextFileName = 'C:\Users\carlo\AppData\Local\Temp\7B69O092.pdf'
+  TextSearchSettings.DefaultString = '<TestoCercato>'
+  TextSearchSettings.Enabled = False
+  XLSSettings.AppName = 'ReportBuilder'
+  XLSSettings.Author = 'ReportBuilder'
+  XLSSettings.Subject = 'Report'
+  XLSSettings.Title = 'Report'
+  XLSSettings.WorksheetName = 'Report'
+  Version = '17.02'
+  mmColumnWidth = 0
+  DataPipelineName = 'Doll'
+  object ppHeaderBand1: TppHeaderBand
+    Background.Brush.Style = bsClear
+    mmBottomOffset = 0
+    mmHeight = 22754
+    mmPrintPosition = 0
+    object ppLabel1: TppLabel
+      DesignLayer = ppDesignLayer1
+      UserName = 'Label1'
+      AutoSize = False
+      Caption = 'Name'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clBlack
+      Font.Name = 'Arial'
+      Font.Size = 12
+      Font.Style = [fsBold]
+      Transparent = True
+      mmHeight = 4995
+      mmLeft = 10583
+      mmTop = 17198
+      mmWidth = 128059
+      BandType = 0
+      LayerName = Foreground
+    end
+    object ppLabel2: TppLabel
+      DesignLayer = ppDesignLayer1
+      UserName = 'Label2'
+      AutoSize = False
+      Caption = 'Dress size'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clBlack
+      Font.Name = 'Arial'
+      Font.Size = 12
+      Font.Style = [fsBold]
+      Transparent = True
+      mmHeight = 4995
+      mmLeft = 139700
+      mmTop = 17198
+      mmWidth = 27252
+      BandType = 0
+      LayerName = Foreground
+    end
+    object ppLabel4: TppLabel
+      DesignLayer = ppDesignLayer1
+      UserName = 'Label4'
+      AutoSize = False
+      Caption = 'DOLLS'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clBlack
+      Font.Name = 'Arial'
+      Font.Size = 12
+      Font.Style = [fsBold]
+      TextAlignment = taCentered
+      Transparent = True
+      mmHeight = 5027
+      mmLeft = 64029
+      mmTop = 2117
+      mmWidth = 137848
+      BandType = 0
+      LayerName = Foreground
+    end
+    object ppImage1: TppImage
+      DesignLayer = ppDesignLayer1
+      UserName = 'KittoImage'
+      AlignHorizontal = ahCenter
+      AlignVertical = avCenter
+      MaintainAspectRatio = False
+      mmHeight = 13229
+      mmLeft = 1323
+      mmTop = 1058
+      mmWidth = 48419
+      BandType = 0
+      LayerName = Foreground
+    end
+    object ppImage2: TppImage
+      DesignLayer = ppDesignLayer1
+      UserName = 'HelloKittoImage'
+      AlignHorizontal = ahCenter
+      AlignVertical = avCenter
+      MaintainAspectRatio = False
+      mmHeight = 13229
+      mmLeft = 209286
+      mmTop = 1058
+      mmWidth = 55298
+      BandType = 0
+      LayerName = Foreground
+    end
+  end
+  object ppDetailBand1: TppDetailBand
+    Background1.Brush.Style = bsClear
+    Background2.Brush.Style = bsClear
+    mmBottomOffset = 0
+    mmHeight = 19844
+    mmPrintPosition = 0
+    object ppDBText1: TppDBText
+      DesignLayer = ppDesignLayer1
+      UserName = 'DBText1'
+      DataField = 'Doll_Name'
+      DataPipeline = Doll
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clBlack
+      Font.Name = 'Arial'
+      Font.Size = 12
+      Font.Style = []
+      Transparent = True
+      DataPipelineName = 'Doll'
+      mmHeight = 4763
+      mmLeft = 10583
+      mmTop = 529
+      mmWidth = 128059
+      BandType = 4
+      LayerName = Foreground
+    end
+    object ppDBText2: TppDBText
+      DesignLayer = ppDesignLayer1
+      UserName = 'DBText2'
+      DataField = 'Dress_Size'
+      DataPipeline = Doll
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clBlack
+      Font.Name = 'Arial'
+      Font.Size = 12
+      Font.Style = []
+      Transparent = True
+      DataPipelineName = 'Doll'
+      mmHeight = 4763
+      mmLeft = 139700
+      mmTop = 529
+      mmWidth = 27252
+      BandType = 4
+      LayerName = Foreground
+    end
+  end
+  object ppFooterBand1: TppFooterBand
+    Background.Brush.Style = bsClear
+    mmBottomOffset = 0
+    mmHeight = 2381
+    mmPrintPosition = 0
+  end
+  object raCodeModule1: TraCodeModule
+    object raProgramInfo1: TraProgramInfo
+      raClassName = 'TraEventHandler'
+      raProgram.ProgramName = 'KittoImageOnPrint'
+      raProgram.ProgramType = ttProcedure
+      raProgram.Source = 
+        'procedure KittoImageOnPrint;'#13#10'begin'#13#10'  KittoImage.picture.LoadFr' +
+        'omFile(ExpandImageFilePath('#39'kitto_logo_150.png'#39'));'#13#10'end;'#13#10
+      raProgram.ComponentName = 'KittoImage'
+      raProgram.EventName = 'OnPrint'
+      raProgram.EventID = 32
+      raProgram.CaretPos = (
+        3
+        3)
+    end
+    object raProgramInfo2: TraProgramInfo
+      raClassName = 'TraEventHandler'
+      raProgram.ProgramName = 'HelloKittoImageOnPrint'
+      raProgram.ProgramType = ttProcedure
+      raProgram.Source = 
+        'procedure HelloKittoImageOnPrint;'#13#10'begin'#13#10'  HelloKittoImage.pict' +
+        'ure.LoadFromFile(ExpandImageFilePath('#39'hello_kitto_150.png'#39'));'#13#10'e' +
+        'nd;'#13#10
+      raProgram.ComponentName = 'HelloKittoImage'
+      raProgram.EventName = 'OnPrint'
+      raProgram.EventID = 32
+      raProgram.CaretPos = (
+        3
+        3)
+    end
+  end
+  object ppDesignLayers1: TppDesignLayers
+    object ppDesignLayer1: TppDesignLayer
+      UserName = 'Foreground'
+      LayerType = ltBanded
+      Index = 0
+    end
+  end
+  object ppParameterList1: TppParameterList
+  end
+end

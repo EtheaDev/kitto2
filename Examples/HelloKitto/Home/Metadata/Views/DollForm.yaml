@@ -5,8 +5,8 @@ Controller: Form
   IsModal: True
   Operation: Add
   PopupWindow:
-    Width: 474
-    Height: 480
+    Height: 600
+    Width: 500
 
 MainTable:
   Model: Doll

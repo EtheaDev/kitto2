@@ -23,7 +23,7 @@ MainTable:
     PageRecordCount: 2
     AllowViewing: True
     PopupWindow:
-      Width: 474
+      Width: 580
       Height: 480
 
     Grouping:

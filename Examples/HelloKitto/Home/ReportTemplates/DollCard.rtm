@@ -1,0 +1,487 @@
+object ppReport: TppReport
+  AutoStop = False
+  DataPipeline = daSQLQueryDataView1.DOLL
+  PrinterSetup.BinName = 'Default'
+  PrinterSetup.DocumentName = 'Report'
+  PrinterSetup.PaperName = 'Lettera'
+  PrinterSetup.PrinterName = 'Default'
+  PrinterSetup.SaveDeviceSettings = False
+  PrinterSetup.mmMarginBottom = 6350
+  PrinterSetup.mmMarginLeft = 6350
+  PrinterSetup.mmMarginRight = 6350
+  PrinterSetup.mmMarginTop = 6350
+  PrinterSetup.mmPaperHeight = 279401
+  PrinterSetup.mmPaperWidth = 215900
+  PrinterSetup.PaperSize = 1
+  SaveAsTemplate = True
+  Template.FileName = 
+    'C:\ETHEA\KittoEnt\Examples\ReportBuilderDemo\Home\ReportTemplate' +
+    's\DollCard.rtm'
+  Template.Format = ftASCII
+  ArchiveFileName = '($MyDocuments)\ReportArchive.raf'
+  DeviceType = 'Screen'
+  DefaultFileDeviceType = 'PDF'
+  EmailSettings.ReportFormat = 'PDF'
+  LanguageID = 'English (United States)'
+  OutlineSettings.CreateNode = True
+  OutlineSettings.CreatePageNodes = True
+  OutlineSettings.Enabled = False
+  OutlineSettings.Visible = False
+  PDFSettings.EmbedFontOptions = [efUseSubset]
+  PDFSettings.EncryptSettings.AllowCopy = True
+  PDFSettings.EncryptSettings.AllowInteract = True
+  PDFSettings.EncryptSettings.AllowModify = True
+  PDFSettings.EncryptSettings.AllowPrint = True
+  PDFSettings.EncryptSettings.Enabled = False
+  PDFSettings.FontEncoding = feAnsi
+  PDFSettings.ImageCompressionLevel = 25
+  RTFSettings.DefaultFont.Charset = DEFAULT_CHARSET
+  RTFSettings.DefaultFont.Color = clWindowText
+  RTFSettings.DefaultFont.Height = -13
+  RTFSettings.DefaultFont.Name = 'Arial'
+  RTFSettings.DefaultFont.Style = []
+  ShowAutoSearchDialog = True
+  TextFileName = '($MyDocuments)\Report.pdf'
+  TextSearchSettings.DefaultString = '<FindText>'
+  TextSearchSettings.Enabled = False
+  XLSSettings.AppName = 'ReportBuilder'
+  XLSSettings.Author = 'ReportBuilder'
+  XLSSettings.Subject = 'Report'
+  XLSSettings.Title = 'Report'
+  Left = 249
+  Top = 26
+  Version = '14.06'
+  mmColumnWidth = 0
+  DataPipelineName = 'DOLL'
+  object ppHeaderBand1: TppHeaderBand
+    Background.Brush.Style = bsClear
+    mmBottomOffset = 0
+    mmHeight = 22754
+    mmPrintPosition = 0
+    object ppLabel4: TppLabel
+      UserName = 'Label4'
+      AutoSize = False
+      Caption = 'DOLL CARD'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clBlack
+      Font.Name = 'Arial'
+      Font.Size = 12
+      Font.Style = [fsBold]
+      TextAlignment = taCentered
+      Transparent = True
+      mmHeight = 5027
+      mmLeft = 51858
+      mmTop = 9260
+      mmWidth = 91017
+      BandType = 0
+      LayerName = Foreground
+    end
+    object ppImage1: TppImage
+      UserName = 'KittoImage'
+      AlignHorizontal = ahCenter
+      AlignVertical = avCenter
+      MaintainAspectRatio = False
+      mmHeight = 13229
+      mmLeft = 1323
+      mmTop = 1058
+      mmWidth = 48419
+      BandType = 0
+      LayerName = Foreground
+    end
+    object ppImage2: TppImage
+      UserName = 'HelloKittoImage'
+      AlignHorizontal = ahCenter
+      AlignVertical = avCenter
+      MaintainAspectRatio = False
+      mmHeight = 13229
+      mmLeft = 145786
+      mmTop = 1058
+      mmWidth = 55563
+      BandType = 0
+      LayerName = Foreground
+    end
+  end
+  object ppDetailBand1: TppDetailBand
+    Background1.Brush.Style = bsClear
+    Background2.Brush.Style = bsClear
+    mmBottomOffset = 0
+    mmHeight = 57679
+    mmPrintPosition = 0
+    object ppDBText1: TppDBText
+      UserName = 'DBText1'
+      DataField = 'DOLL_NAME'
+      DataPipeline = daSQLQueryDataView1.DOLL
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clBlack
+      Font.Name = 'Arial'
+      Font.Size = 12
+      Font.Style = []
+      Transparent = True
+      DataPipelineName = 'DOLL'
+      mmHeight = 4763
+      mmLeft = 12700
+      mmTop = 9525
+      mmWidth = 66146
+      BandType = 4
+      LayerName = Foreground
+    end
+    object ppDBText2: TppDBText
+      UserName = 'DBText2'
+      DataField = 'DRESS_SIZE'
+      DataPipeline = daSQLQueryDataView1.DOLL
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clBlack
+      Font.Name = 'Arial'
+      Font.Size = 12
+      Font.Style = []
+      Transparent = True
+      DataPipelineName = 'DOLL'
+      mmHeight = 4763
+      mmLeft = 12700
+      mmTop = 41540
+      mmWidth = 27252
+      BandType = 4
+      LayerName = Foreground
+    end
+    object ppDBImage1: TppDBImage
+      UserName = 'DBImage1'
+      AlignHorizontal = ahCenter
+      AlignVertical = avCenter
+      MaintainAspectRatio = False
+      Stretch = True
+      DataField = 'PICTURE'
+      DataPipeline = daSQLQueryDataView1.DOLL
+      GraphicType = 'AutoDetect'
+      DataPipelineName = 'DOLL'
+      mmHeight = 50271
+      mmLeft = 83079
+      mmTop = 4233
+      mmWidth = 36248
+      BandType = 4
+      LayerName = Foreground
+    end
+    object ppLabel1: TppLabel
+      UserName = 'Label1'
+      AutoSize = False
+      Caption = 'Name'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clBlack
+      Font.Name = 'Arial'
+      Font.Size = 12
+      Font.Style = [fsBold]
+      Transparent = True
+      mmHeight = 5027
+      mmLeft = 12700
+      mmTop = 4233
+      mmWidth = 66146
+      BandType = 4
+      LayerName = Foreground
+    end
+    object ppLabel2: TppLabel
+      UserName = 'Label2'
+      AutoSize = False
+      Caption = 'Dress size'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clBlack
+      Font.Name = 'Arial'
+      Font.Size = 12
+      Font.Style = [fsBold]
+      Transparent = True
+      mmHeight = 5027
+      mmLeft = 12700
+      mmTop = 35983
+      mmWidth = 27252
+      BandType = 4
+      LayerName = Foreground
+    end
+    object ppLabel5: TppLabel
+      UserName = 'Label5'
+      AutoSize = False
+      Caption = 'Birth date'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clBlack
+      Font.Name = 'Arial'
+      Font.Size = 12
+      Font.Style = [fsBold]
+      Transparent = True
+      mmHeight = 5027
+      mmLeft = 12700
+      mmTop = 20902
+      mmWidth = 32808
+      BandType = 4
+      LayerName = Foreground
+    end
+    object ppDBText3: TppDBText
+      UserName = 'DBText3'
+      DataField = 'DATE_BOUGHT'
+      DataPipeline = daSQLQueryDataView1.DOLL
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clBlack
+      Font.Name = 'Arial'
+      Font.Size = 12
+      Font.Style = []
+      Transparent = True
+      DataPipelineName = 'DOLL'
+      mmHeight = 4763
+      mmLeft = 12700
+      mmTop = 25929
+      mmWidth = 32808
+      BandType = 4
+      LayerName = Foreground
+    end
+  end
+  object ppFooterBand1: TppFooterBand
+    Background.Brush.Style = bsClear
+    mmBottomOffset = 0
+    mmHeight = 32544
+    mmPrintPosition = 0
+  end
+  object raCodeModule1: TraCodeModule
+    ProgramStream = {
+      01060F5472614576656E7448616E646C65720B50726F6772616D4E616D650611
+      4B6974746F496D6167654F6E5072696E740B50726F6772616D54797065070B74
+      7450726F63656475726506536F75726365067A70726F636564757265204B6974
+      746F496D6167654F6E5072696E743B0D0A626567696E0D0A20204B6974746F49
+      6D6167652E706963747572652E4C6F616446726F6D46696C6528457870616E64
+      496D61676546696C655061746828276B6974746F5F6C6F676F5F3135302E706E
+      672729293B0D0A656E643B0D0A0D436F6D706F6E656E744E616D65060A4B6974
+      746F496D616765094576656E744E616D6506074F6E5072696E74074576656E74
+      494402200001060F5472614576656E7448616E646C65720B50726F6772616D4E
+      616D65061648656C6C6F4B6974746F496D6167654F6E5072696E740B50726F67
+      72616D54797065070B747450726F63656475726506536F75726365068570726F
+      6365647572652048656C6C6F4B6974746F496D6167654F6E5072696E743B0D0A
+      626567696E0D0A202048656C6C6F4B6974746F496D6167652E70696374757265
+      2E4C6F616446726F6D46696C6528457870616E64496D61676546696C65506174
+      68282768656C6C6F5F6B6974746F5F3135302E706E672729293B0D0A656E643B
+      0D0A0D436F6D706F6E656E744E616D65060F48656C6C6F4B6974746F496D6167
+      65094576656E744E616D6506074F6E5072696E74074576656E74494402200000}
+  end
+  object daDataModule1: TdaDataModule
+    object daSQLQueryDataView1: TdaSQLQueryDataView
+      UserName = 'Query_DOLL'
+      Height = 363
+      Left = 10
+      NameColumnWidth = 105
+      SizeColumnWidth = 35
+      SortMode = 0
+      Top = 10
+      TypeColumnWidth = 52
+      Width = 224
+      AutoSearchTabOrder = 0
+      object DOLL: TppChildDBPipeline
+        AutoCreateFields = False
+        UserName = 'DOLL'
+        object ppField1: TppField
+          FieldAlias = 'ASPECT'
+          FieldName = 'ASPECT'
+          FieldLength = 4096
+          DisplayWidth = 4096
+          Position = 0
+          TableName = 'DOLL_1'
+        end
+        object ppField2: TppField
+          FieldAlias = 'DATE_BOUGHT'
+          FieldName = 'DATE_BOUGHT'
+          FieldLength = 0
+          DataType = dtDate
+          DisplayWidth = 10
+          Position = 1
+          TableName = 'DOLL_1'
+        end
+        object ppField3: TppField
+          FieldAlias = 'DOLL_ID'
+          FieldName = 'DOLL_ID'
+          FieldLength = 128
+          DisplayWidth = 128
+          Position = 2
+          TableName = 'DOLL_1'
+        end
+        object ppField4: TppField
+          FieldAlias = 'DOLL_NAME'
+          FieldName = 'DOLL_NAME'
+          FieldLength = 160
+          DisplayWidth = 160
+          Position = 3
+          TableName = 'DOLL_1'
+        end
+        object ppField5: TppField
+          FieldAlias = 'DRESS_SIZE'
+          FieldName = 'DRESS_SIZE'
+          FieldLength = 16
+          DisplayWidth = 16
+          Position = 4
+          TableName = 'DOLL_1'
+        end
+        object ppField6: TppField
+          FieldAlias = 'HAIR_ID'
+          FieldName = 'HAIR_ID'
+          FieldLength = 128
+          DisplayWidth = 128
+          Position = 5
+          TableName = 'DOLL_1'
+        end
+        object ppField7: TppField
+          FieldAlias = 'MOM_ID'
+          FieldName = 'MOM_ID'
+          FieldLength = 128
+          DisplayWidth = 128
+          Position = 6
+          TableName = 'DOLL_1'
+        end
+        object ppField8: TppField
+          FieldAlias = 'PICTURE'
+          FieldName = 'PICTURE'
+          FieldLength = 1
+          Linkable = False
+          DataType = dtBLOB
+          DisplayWidth = 10
+          Position = 7
+          TableName = 'DOLL_1'
+        end
+      end
+      object daSQL1: TdaSQL
+        DatabaseName = 'DBXFb'
+        DatabaseType = dtFirebird
+        DataPipelineName = 'DOLL'
+        LinkColor = clMaroon
+        LinkType = ltMagicSQL
+        MaxSQLFieldAliasLength = 25
+        SQLText.Strings = (
+          'SELECT DOLL_1.ASPECT, DOLL_1.DATE_BOUGHT, '
+          '       DOLL_1.DOLL_ID, DOLL_1.DOLL_NAME, '
+          '       DOLL_1.DRESS_SIZE, DOLL_1.HAIR_ID, '
+          '       DOLL_1.MOM_ID, DOLL_1.PICTURE'
+          'FROM DOLL DOLL_1'
+          'WHERE ('#39'c'#39' <> '#39'c'#39' ) AND (( DOLL_1.DOLL_ID = '#39'3325'#39' )'
+          '      )')
+        SQLType = sqSQL2
+        object daCriteria1: TdaCriteria
+          ChildType = 7
+          Level = 0
+          Value = '3325'
+          object TdaField
+            Alias = 'DOLL_ID'
+            AutoSearch = True
+            DisplayWidth = 32
+            FieldAlias = 'DOLL_ID'
+            FieldLength = 32
+            FieldName = 'DOLL_ID'
+            Mandatory = True
+            SQLFieldName = 'DOLL_ID'
+            TableAlias = 'DOLL_1'
+            TableName = 'DOLL'
+            TableSQLAlias = 'DOLL_1'
+          end
+        end
+        object daField1: TdaField
+          Alias = 'ASPECT'
+          DisplayWidth = 4096
+          FieldAlias = 'ASPECT'
+          FieldLength = 4096
+          FieldName = 'ASPECT'
+          SQLFieldName = 'ASPECT'
+          TableAlias = 'DOLL'
+          TableName = 'DOLL'
+          TableSQLAlias = 'DOLL_1'
+        end
+        object daField2: TdaField
+          Alias = 'DATE_BOUGHT'
+          DataType = dtDate
+          DisplayWidth = 10
+          FieldAlias = 'DATE_BOUGHT'
+          FieldLength = 0
+          FieldName = 'DATE_BOUGHT'
+          SQLFieldName = 'DATE_BOUGHT'
+          TableAlias = 'DOLL'
+          TableName = 'DOLL'
+          TableSQLAlias = 'DOLL_1'
+        end
+        object daField3: TdaField
+          Alias = 'DOLL_ID'
+          DisplayWidth = 128
+          FieldAlias = 'DOLL_ID'
+          FieldLength = 128
+          FieldName = 'DOLL_ID'
+          SQLFieldName = 'DOLL_ID'
+          TableAlias = 'DOLL'
+          TableName = 'DOLL'
+          TableSQLAlias = 'DOLL_1'
+        end
+        object daField4: TdaField
+          Alias = 'DOLL_NAME'
+          DisplayWidth = 160
+          FieldAlias = 'DOLL_NAME'
+          FieldLength = 160
+          FieldName = 'DOLL_NAME'
+          SQLFieldName = 'DOLL_NAME'
+          TableAlias = 'DOLL'
+          TableName = 'DOLL'
+          TableSQLAlias = 'DOLL_1'
+        end
+        object daField5: TdaField
+          Alias = 'DRESS_SIZE'
+          DisplayWidth = 16
+          FieldAlias = 'DRESS_SIZE'
+          FieldLength = 16
+          FieldName = 'DRESS_SIZE'
+          SQLFieldName = 'DRESS_SIZE'
+          TableAlias = 'DOLL'
+          TableName = 'DOLL'
+          TableSQLAlias = 'DOLL_1'
+        end
+        object daField6: TdaField
+          Alias = 'HAIR_ID'
+          DisplayWidth = 128
+          FieldAlias = 'HAIR_ID'
+          FieldLength = 128
+          FieldName = 'HAIR_ID'
+          SQLFieldName = 'HAIR_ID'
+          TableAlias = 'DOLL'
+          TableName = 'DOLL'
+          TableSQLAlias = 'DOLL_1'
+        end
+        object daField7: TdaField
+          Alias = 'MOM_ID'
+          DisplayWidth = 128
+          FieldAlias = 'MOM_ID'
+          FieldLength = 128
+          FieldName = 'MOM_ID'
+          SQLFieldName = 'MOM_ID'
+          TableAlias = 'DOLL'
+          TableName = 'DOLL'
+          TableSQLAlias = 'DOLL_1'
+        end
+        object daField8: TdaField
+          Alias = 'PICTURE'
+          DataType = dtBLOB
+          DisplayWidth = 10
+          FieldAlias = 'PICTURE'
+          FieldLength = 1
+          FieldName = 'PICTURE'
+          Linkable = False
+          SQLFieldName = 'PICTURE'
+          TableAlias = 'DOLL'
+          TableName = 'DOLL'
+          TableSQLAlias = 'DOLL_1'
+        end
+        object daTable1: TdaTable
+          ChildType = 5
+          Alias = 'DOLL'
+          JoinType = dajtNone
+          SQLAlias = 'DOLL_1'
+          TableAlias = 'DOLL'
+          TableName = 'DOLL'
+        end
+      end
+    end
+  end
+  object ppDesignLayers1: TppDesignLayers
+    object ppDesignLayer1: TppDesignLayer
+      UserName = 'Foreground'
+      LayerType = ltBanded
+      Index = 0
+    end
+  end
+  object ppParameterList1: TppParameterList
+  end
+end
