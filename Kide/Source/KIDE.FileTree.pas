@@ -833,7 +833,7 @@ begin
         LDialog.DefaultExt := '.yaml';
         if LDialog.Execute then
         begin
-          LModel := TKModel.Create;
+          LModel := TKModels.DefaultModelClassType.Create;
           try
             LModel.PersistentName := ChangeFileExt(ExtractFileName(LDialog.FileName), '');
             LModel.SetString('ModelName', LModel.PersistentName);

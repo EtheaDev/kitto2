@@ -998,7 +998,7 @@ begin
 
   LModelName := Metadata.GetString('ModelName');
   DoLog(Format(_('Adding model %s.'), [LModelName]));
-  Model := TKModel.Create;
+  Model := TKModels.DefaultModelClassType.Create;
   try
     Model.SetModelName(LModelName);
     LPhysicalName := Metadata.GetString('PhysicalName');

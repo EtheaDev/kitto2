@@ -1,4 +1,4 @@
-program Kide2;
+program KIDE2;
 
 {$R *.dres}
 
