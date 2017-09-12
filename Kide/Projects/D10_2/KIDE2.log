@@ -1,4 +1,4 @@
-Compilazione avviata 03/09/2017 22:43:56.
+Compilazione avviata 12/09/2017 10:40:47.
 Ambiente all'inizio della compilazione:
 ALLUSERSPROFILE = C:\ProgramData
 APPDATA = C:\Users\carlo\AppData\Roaming
@@ -28,7 +28,7 @@ NUMBER_OF_PROCESSORS = 8
 OneDrive = D:\Users\carlo\OneDrive
 OnlineServices = Online Services
 OS = Windows_NT
-Path = C:\WINDOWS\Microsoft.NET\Framework\v4.0.30319;;D:\Program Files (x86)\Embarcadero\Studio\14.0\bin;C:\Users\Public\Documents\Embarcadero\Studio\14.0\Bpl;D:\Program Files (x86)\Embarcadero\Studio\14.0\bin64;C:\Users\Public\Documents\Embarcadero\Studio\14.0\Bpl\Win64;D:\Program Files (x86)\Embarcadero\Studio\16.0\bin;C:\Users\Public\Documents\Embarcadero\Studio\16.0\Bpl;D:\Program Files (x86)\Embarcadero\Studio\16.0\bin64;C:\Users\Public\Documents\Embarcadero\Studio\16.0\Bpl\Win64;D:\Program Files (x86)\Embarcadero\Studio\19.0\bin;C:\Users\Public\Documents\Embarcadero\Studio\19.0\Bpl;D:\Program Files (x86)\Embarcadero\Studio\19.0\bin64;C:\Users\Public\Documents\Embarcadero\Studio\19.0\Bpl\Win64;D:\Program Files (x86)\Embarcadero\Studio\18.0\bin;C:\Users\Public\Documents\Embarcadero\Studio\18.0\Bpl;D:\Program Files (x86)\Embarcadero\Studio\18.0\bin64;C:\Users\Public\Documents\Embarcadero\Studio\18.0\Bpl\Win64;D:\Program Files (x86)\Embarcadero\RAD Studio\10.0\bin;C:\Users\Public\Documents\RAD Studio\10.0\Bpl;D:\Program Files (x86)\Embarcadero\RAD Studio\10.0\bin64;C:\Users\Public\Documents\RAD Studio\10.0\Bpl\Win64;C:\ProgramData\Oracle\Java\javapath;D:\Program Files (x86)\Embarcadero\RAD Studio\7.0\bin;C:\Users\Public\Documents\RAD Studio\7.0\Bpl;D:\Program Files (x86)\Borland\Delphi7\Bin;D:\Program Files (x86)\Borland\Delphi7\Projects\Bpl\;C:\Program Files (x86)\Intel\iCLS Client\;C:\Program Files\Intel\iCLS Client\;C:\windows\system32;C:\windows;C:\windows\System32\Wbem;C:\windows\System32\WindowsPowerShell\v1.0\;C:\Program Files (x86)\Intel\Intel(R) Management Engine Components\DAL;C:\Program Files\Intel\Intel(R) Management Engine Components\DAL;C:\Program Files (x86)\Intel\Intel(R) Management Engine Components\IPT;C:\Program Files\Intel\Intel(R) Management Engine Components\IPT;C:\Program Files (x86)\NVIDIA Corporation\PhysX\Common;c:\Program Files\Intel\WiFi\bin\;c:\Program Files\Common Files\Intel\WirelessCommon\;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;D:\Program Files\TortoiseSVN\bin;d:\Program Files (x86)\Microsoft SQL Server\100\Tools\Binn\;d:\Program Files\Microsoft SQL Server\100\Tools\Binn\;d:\Program Files\Microsoft SQL Server\100\DTS\Binn\;d:\Program Files (x86)\Microsoft SQL Server\110\Tools\Binn\;d:\Program Files\Microsoft SQL Server\110\Tools\Binn\;d:\Program Files\Microsoft SQL Server\110\DTS\Binn\;d:\Program Files (x86)\Microsoft SQL Server\110\Tools\Binn\ManagementStudio\;d:\Program Files (x86)\Microsoft SQL Server\110\DTS\Binn\;C:\Program Files (x86)\Skype\Phone\;D:\Program Files\Git\cmd;D:\Program Files\TortoiseGit\bin;D:\Program Files (x86)\Windows Kits\10\Windows Performance Toolkit\;D:\CIBISOFT\AndreaGiorgi\TMSComponents\bpl\;d:\Program Files\Microsoft SQL Server\130\Tools\Binn\;C:\Users\carlo\AppData\Local\Microsoft\WindowsApps;C:\Program Files (x86)\CVSNT\;D:\Program Files (x86)\Sophos\Sophos SSL VPN Client\bin
+Path = C:\WINDOWS\Microsoft.NET\Framework\v4.0.30319;;D:\Program Files (x86)\Embarcadero\Studio\14.0\bin;C:\Users\Public\Documents\Embarcadero\Studio\14.0\Bpl;D:\Program Files (x86)\Embarcadero\Studio\14.0\bin64;C:\Users\Public\Documents\Embarcadero\Studio\14.0\Bpl\Win64;D:\Program Files (x86)\Embarcadero\Studio\16.0\bin;C:\Users\Public\Documents\Embarcadero\Studio\16.0\Bpl;D:\Program Files (x86)\Embarcadero\Studio\16.0\bin64;C:\Users\Public\Documents\Embarcadero\Studio\16.0\Bpl\Win64;D:\Program Files (x86)\Embarcadero\Studio\19.0\bin;C:\Users\Public\Documents\Embarcadero\Studio\19.0\Bpl;D:\Program Files (x86)\Embarcadero\Studio\19.0\bin64;C:\Users\Public\Documents\Embarcadero\Studio\19.0\Bpl\Win64;D:\Program Files (x86)\Embarcadero\Studio\18.0\bin;C:\Users\Public\Documents\Embarcadero\Studio\18.0\Bpl;D:\Program Files (x86)\Embarcadero\Studio\18.0\bin64;C:\Users\Public\Documents\Embarcadero\Studio\18.0\Bpl\Win64;D:\Program Files (x86)\Embarcadero\RAD Studio\10.0\bin;C:\Users\Public\Documents\RAD Studio\10.0\Bpl;D:\Program Files (x86)\Embarcadero\RAD Studio\10.0\bin64;C:\Users\Public\Documents\RAD Studio\10.0\Bpl\Win64;C:\ProgramData\Oracle\Java\javapath;D:\Program Files (x86)\Embarcadero\RAD Studio\7.0\bin;C:\Users\Public\Documents\RAD Studio\7.0\Bpl;D:\Program Files (x86)\Borland\Delphi7\Bin;D:\Program Files (x86)\Borland\Delphi7\Projects\Bpl\;C:\Program Files (x86)\Intel\iCLS Client\;C:\Program Files\Intel\iCLS Client\;C:\windows\system32;C:\windows;C:\windows\System32\Wbem;C:\windows\System32\WindowsPowerShell\v1.0\;C:\Program Files (x86)\Intel\Intel(R) Management Engine Components\DAL;C:\Program Files\Intel\Intel(R) Management Engine Components\DAL;C:\Program Files (x86)\Intel\Intel(R) Management Engine Components\IPT;C:\Program Files\Intel\Intel(R) Management Engine Components\IPT;C:\Program Files (x86)\NVIDIA Corporation\PhysX\Common;c:\Program Files\Intel\WiFi\bin\;c:\Program Files\Common Files\Intel\WirelessCommon\;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;D:\Program Files\TortoiseSVN\bin;d:\Program Files (x86)\Microsoft SQL Server\100\Tools\Binn\;d:\Program Files\Microsoft SQL Server\100\Tools\Binn\;d:\Program Files\Microsoft SQL Server\100\DTS\Binn\;d:\Program Files (x86)\Microsoft SQL Server\110\Tools\Binn\;d:\Program Files\Microsoft SQL Server\110\Tools\Binn\;d:\Program Files\Microsoft SQL Server\110\DTS\Binn\;d:\Program Files (x86)\Microsoft SQL Server\110\Tools\Binn\ManagementStudio\;d:\Program Files (x86)\Microsoft SQL Server\110\DTS\Binn\;C:\Program Files (x86)\Skype\Phone\;D:\Program Files\Git\cmd;D:\Program Files (x86)\Windows Kits\10\Windows Performance Toolkit\;D:\CIBISOFT\AndreaGiorgi\TMSComponents\bpl\;d:\Program Files\Microsoft SQL Server\130\Tools\Binn\;D:\Program Files\TortoiseGit\bin;C:\Users\carlo\AppData\Local\Microsoft\WindowsApps;C:\Program Files (x86)\CVSNT\;D:\Program Files (x86)\Sophos\Sophos SSL VPN Client\bin
 PATHEXT = .COM;.EXE;.BAT;.CMD;.VBS;.VBE;.JS;.JSE;.WSF;.WSH;.MSC
 PF = D:\Program Files (x86)\
 platformcode = KV
@@ -322,7 +322,7 @@ OutputExt = .exe
 OutputFilename = KIDE2.exe
 OutputName = KIDE2
 OutputPath = @(OutputFile->'%(FullPath)')
-Path = C:\WINDOWS\Microsoft.NET\Framework\v4.0.30319;;D:\Program Files (x86)\Embarcadero\Studio\14.0\bin;C:\Users\Public\Documents\Embarcadero\Studio\14.0\Bpl;D:\Program Files (x86)\Embarcadero\Studio\14.0\bin64;C:\Users\Public\Documents\Embarcadero\Studio\14.0\Bpl\Win64;D:\Program Files (x86)\Embarcadero\Studio\16.0\bin;C:\Users\Public\Documents\Embarcadero\Studio\16.0\Bpl;D:\Program Files (x86)\Embarcadero\Studio\16.0\bin64;C:\Users\Public\Documents\Embarcadero\Studio\16.0\Bpl\Win64;D:\Program Files (x86)\Embarcadero\Studio\19.0\bin;C:\Users\Public\Documents\Embarcadero\Studio\19.0\Bpl;D:\Program Files (x86)\Embarcadero\Studio\19.0\bin64;C:\Users\Public\Documents\Embarcadero\Studio\19.0\Bpl\Win64;D:\Program Files (x86)\Embarcadero\Studio\18.0\bin;C:\Users\Public\Documents\Embarcadero\Studio\18.0\Bpl;D:\Program Files (x86)\Embarcadero\Studio\18.0\bin64;C:\Users\Public\Documents\Embarcadero\Studio\18.0\Bpl\Win64;D:\Program Files (x86)\Embarcadero\RAD Studio\10.0\bin;C:\Users\Public\Documents\RAD Studio\10.0\Bpl;D:\Program Files (x86)\Embarcadero\RAD Studio\10.0\bin64;C:\Users\Public\Documents\RAD Studio\10.0\Bpl\Win64;C:\ProgramData\Oracle\Java\javapath;D:\Program Files (x86)\Embarcadero\RAD Studio\7.0\bin;C:\Users\Public\Documents\RAD Studio\7.0\Bpl;D:\Program Files (x86)\Borland\Delphi7\Bin;D:\Program Files (x86)\Borland\Delphi7\Projects\Bpl\;C:\Program Files (x86)\Intel\iCLS Client\;C:\Program Files\Intel\iCLS Client\;C:\windows\system32;C:\windows;C:\windows\System32\Wbem;C:\windows\System32\WindowsPowerShell\v1.0\;C:\Program Files (x86)\Intel\Intel(R) Management Engine Components\DAL;C:\Program Files\Intel\Intel(R) Management Engine Components\DAL;C:\Program Files (x86)\Intel\Intel(R) Management Engine Components\IPT;C:\Program Files\Intel\Intel(R) Management Engine Components\IPT;C:\Program Files (x86)\NVIDIA Corporation\PhysX\Common;c:\Program Files\Intel\WiFi\bin\;c:\Program Files\Common Files\Intel\WirelessCommon\;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;D:\Program Files\TortoiseSVN\bin;d:\Program Files (x86)\Microsoft SQL Server\100\Tools\Binn\;d:\Program Files\Microsoft SQL Server\100\Tools\Binn\;d:\Program Files\Microsoft SQL Server\100\DTS\Binn\;d:\Program Files (x86)\Microsoft SQL Server\110\Tools\Binn\;d:\Program Files\Microsoft SQL Server\110\Tools\Binn\;d:\Program Files\Microsoft SQL Server\110\DTS\Binn\;d:\Program Files (x86)\Microsoft SQL Server\110\Tools\Binn\ManagementStudio\;d:\Program Files (x86)\Microsoft SQL Server\110\DTS\Binn\;C:\Program Files (x86)\Skype\Phone\;D:\Program Files\Git\cmd;D:\Program Files\TortoiseGit\bin;D:\Program Files (x86)\Windows Kits\10\Windows Performance Toolkit\;D:\CIBISOFT\AndreaGiorgi\TMSComponents\bpl\;d:\Program Files\Microsoft SQL Server\130\Tools\Binn\;C:\Users\carlo\AppData\Local\Microsoft\WindowsApps;C:\Program Files (x86)\CVSNT\;D:\Program Files (x86)\Sophos\Sophos SSL VPN Client\bin
+Path = C:\WINDOWS\Microsoft.NET\Framework\v4.0.30319;;D:\Program Files (x86)\Embarcadero\Studio\14.0\bin;C:\Users\Public\Documents\Embarcadero\Studio\14.0\Bpl;D:\Program Files (x86)\Embarcadero\Studio\14.0\bin64;C:\Users\Public\Documents\Embarcadero\Studio\14.0\Bpl\Win64;D:\Program Files (x86)\Embarcadero\Studio\16.0\bin;C:\Users\Public\Documents\Embarcadero\Studio\16.0\Bpl;D:\Program Files (x86)\Embarcadero\Studio\16.0\bin64;C:\Users\Public\Documents\Embarcadero\Studio\16.0\Bpl\Win64;D:\Program Files (x86)\Embarcadero\Studio\19.0\bin;C:\Users\Public\Documents\Embarcadero\Studio\19.0\Bpl;D:\Program Files (x86)\Embarcadero\Studio\19.0\bin64;C:\Users\Public\Documents\Embarcadero\Studio\19.0\Bpl\Win64;D:\Program Files (x86)\Embarcadero\Studio\18.0\bin;C:\Users\Public\Documents\Embarcadero\Studio\18.0\Bpl;D:\Program Files (x86)\Embarcadero\Studio\18.0\bin64;C:\Users\Public\Documents\Embarcadero\Studio\18.0\Bpl\Win64;D:\Program Files (x86)\Embarcadero\RAD Studio\10.0\bin;C:\Users\Public\Documents\RAD Studio\10.0\Bpl;D:\Program Files (x86)\Embarcadero\RAD Studio\10.0\bin64;C:\Users\Public\Documents\RAD Studio\10.0\Bpl\Win64;C:\ProgramData\Oracle\Java\javapath;D:\Program Files (x86)\Embarcadero\RAD Studio\7.0\bin;C:\Users\Public\Documents\RAD Studio\7.0\Bpl;D:\Program Files (x86)\Borland\Delphi7\Bin;D:\Program Files (x86)\Borland\Delphi7\Projects\Bpl\;C:\Program Files (x86)\Intel\iCLS Client\;C:\Program Files\Intel\iCLS Client\;C:\windows\system32;C:\windows;C:\windows\System32\Wbem;C:\windows\System32\WindowsPowerShell\v1.0\;C:\Program Files (x86)\Intel\Intel(R) Management Engine Components\DAL;C:\Program Files\Intel\Intel(R) Management Engine Components\DAL;C:\Program Files (x86)\Intel\Intel(R) Management Engine Components\IPT;C:\Program Files\Intel\Intel(R) Management Engine Components\IPT;C:\Program Files (x86)\NVIDIA Corporation\PhysX\Common;c:\Program Files\Intel\WiFi\bin\;c:\Program Files\Common Files\Intel\WirelessCommon\;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;D:\Program Files\TortoiseSVN\bin;d:\Program Files (x86)\Microsoft SQL Server\100\Tools\Binn\;d:\Program Files\Microsoft SQL Server\100\Tools\Binn\;d:\Program Files\Microsoft SQL Server\100\DTS\Binn\;d:\Program Files (x86)\Microsoft SQL Server\110\Tools\Binn\;d:\Program Files\Microsoft SQL Server\110\Tools\Binn\;d:\Program Files\Microsoft SQL Server\110\DTS\Binn\;d:\Program Files (x86)\Microsoft SQL Server\110\Tools\Binn\ManagementStudio\;d:\Program Files (x86)\Microsoft SQL Server\110\DTS\Binn\;C:\Program Files (x86)\Skype\Phone\;D:\Program Files\Git\cmd;D:\Program Files (x86)\Windows Kits\10\Windows Performance Toolkit\;D:\CIBISOFT\AndreaGiorgi\TMSComponents\bpl\;d:\Program Files\Microsoft SQL Server\130\Tools\Binn\;D:\Program Files\TortoiseGit\bin;C:\Users\carlo\AppData\Local\Microsoft\WindowsApps;C:\Program Files (x86)\CVSNT\;D:\Program Files (x86)\Sophos\Sophos SSL VPN Client\bin
 PATHEXT = .COM;.EXE;.BAT;.CMD;.VBS;.VBE;.JS;.JSE;.WSF;.WSH;.MSC
 PF = D:\Program Files (x86)\
 Platform = Win32
@@ -4026,23 +4026,23 @@ Attività "DCC" (ID attività:160)
   The "DCC" task is using "dcc" from "D:\Program Files (x86)\\Embarcadero\Studio\19.0\bin\dcc32.exe". (ID attività:160)
   Embarcadero Delphi for Win32 compiler version 32.0 (ID attività:160)
   Copyright (c) 1983,2017 Embarcadero Technologies, Inc. (ID attività:160)
-D:\ETHEA\GitHub_EtheaDev\Kitto2\kitto\Kide\Source\KIDE.ModelCreator.pas(1032): warning W1020: Constructing instance of 'TKModel' containing abstract method 'TKModel.LoadRecords' [D:\ETHEA\GitHub_EtheaDev\Kitto2\kitto\Kide\Projects\D10_2\KIDE2.dproj]
-D:\ETHEA\GitHub_EtheaDev\Kitto2\kitto\Kide\Source\KIDE.ModelCreator.pas(1032): warning W1020: Constructing instance of 'TKModel' containing abstract method 'TKModel.SaveRecords' [D:\ETHEA\GitHub_EtheaDev\Kitto2\kitto\Kide\Projects\D10_2\KIDE2.dproj]
-D:\ETHEA\GitHub_EtheaDev\Kitto2\kitto\Kide\Source\KIDE.ModelCreator.pas(1032): warning W1020: Constructing instance of 'TKModel' containing abstract method 'TKModel.SaveRecord' [D:\ETHEA\GitHub_EtheaDev\Kitto2\kitto\Kide\Projects\D10_2\KIDE2.dproj]
-D:\ETHEA\GitHub_EtheaDev\Kitto2\kitto\Kide\Source\KIDE.FileTree.pas(867): warning W1020: Constructing instance of 'TKModel' containing abstract method 'TKModel.LoadRecords' [D:\ETHEA\GitHub_EtheaDev\Kitto2\kitto\Kide\Projects\D10_2\KIDE2.dproj]
-D:\ETHEA\GitHub_EtheaDev\Kitto2\kitto\Kide\Source\KIDE.FileTree.pas(867): warning W1020: Constructing instance of 'TKModel' containing abstract method 'TKModel.SaveRecords' [D:\ETHEA\GitHub_EtheaDev\Kitto2\kitto\Kide\Projects\D10_2\KIDE2.dproj]
-D:\ETHEA\GitHub_EtheaDev\Kitto2\kitto\Kide\Source\KIDE.FileTree.pas(867): warning W1020: Constructing instance of 'TKModel' containing abstract method 'TKModel.SaveRecord' [D:\ETHEA\GitHub_EtheaDev\Kitto2\kitto\Kide\Projects\D10_2\KIDE2.dproj]
-  288381 lines, 3.05 seconds, 11137740 bytes code, 300204 bytes data. (ID attività:160)
+D:\ETHEA\GitHub_EtheaDev\Kitto2\kitto\Kide\Source\KIDE.ModelCreator.pas(1001): warning W1020: Constructing instance of 'TKModel' containing abstract method 'TKModel.LoadRecords' [D:\ETHEA\GitHub_EtheaDev\Kitto2\kitto\Kide\Projects\D10_2\KIDE2.dproj]
+D:\ETHEA\GitHub_EtheaDev\Kitto2\kitto\Kide\Source\KIDE.ModelCreator.pas(1001): warning W1020: Constructing instance of 'TKModel' containing abstract method 'TKModel.SaveRecords' [D:\ETHEA\GitHub_EtheaDev\Kitto2\kitto\Kide\Projects\D10_2\KIDE2.dproj]
+D:\ETHEA\GitHub_EtheaDev\Kitto2\kitto\Kide\Source\KIDE.ModelCreator.pas(1001): warning W1020: Constructing instance of 'TKModel' containing abstract method 'TKModel.SaveRecord' [D:\ETHEA\GitHub_EtheaDev\Kitto2\kitto\Kide\Projects\D10_2\KIDE2.dproj]
+D:\ETHEA\GitHub_EtheaDev\Kitto2\kitto\Kide\Source\KIDE.FileTree.pas(836): warning W1020: Constructing instance of 'TKModel' containing abstract method 'TKModel.LoadRecords' [D:\ETHEA\GitHub_EtheaDev\Kitto2\kitto\Kide\Projects\D10_2\KIDE2.dproj]
+D:\ETHEA\GitHub_EtheaDev\Kitto2\kitto\Kide\Source\KIDE.FileTree.pas(836): warning W1020: Constructing instance of 'TKModel' containing abstract method 'TKModel.SaveRecords' [D:\ETHEA\GitHub_EtheaDev\Kitto2\kitto\Kide\Projects\D10_2\KIDE2.dproj]
+D:\ETHEA\GitHub_EtheaDev\Kitto2\kitto\Kide\Source\KIDE.FileTree.pas(836): warning W1020: Constructing instance of 'TKModel' containing abstract method 'TKModel.SaveRecord' [D:\ETHEA\GitHub_EtheaDev\Kitto2\kitto\Kide\Projects\D10_2\KIDE2.dproj]
+  285391 lines, 7.92 seconds, 11384000 bytes code, 316204 bytes data. (ID attività:160)
 Esecuzione attività "DCC" completata. (ID attività:160)
 Compilazione destinazione "_PasCoreCompile" nel progetto "KIDE2.dproj" completata.: (ID destinazione: 42)
 Destinazione "_PostOutputTimeStamp: (ID destinazione: 43)" nel file "D:\Program Files (x86)\Embarcadero\Studio\19.0\bin\CodeGear.Common.Targets" dal progetto "D:\ETHEA\GitHub_EtheaDev\Kitto2\kitto\Kide\Projects\D10_2\KIDE2.dproj" (la destinazione "CoreBuild" dipende da essa):
 Attività "CreateItem" (ID attività:161)
-  Parametro attività:Include=2017-09-03 22:44:00.2881784 (ID attività:161)
+  Parametro attività:Include=2017-09-12 10:40:56.9773139 (ID attività:161)
 Esecuzione attività "CreateItem" completata. (ID attività:161)
 Compilazione destinazione "_PostOutputTimeStamp" nel progetto "KIDE2.dproj" completata.: (ID destinazione: 43)
 Destinazione"PostBuildEvent" ignorata. Condizione false. ( '$(PostBuildEvent)'!=''  And '$(KibitzCompile)'==''
       and ( '$(PostBuildEventExecuteWhen)'=='Always' or '$(PostBuildEventExecuteWhen)'=='' or '$(PreOutputTimeStamp)'!='$(PostOutputTimeStamp)' )) ha restituito ( ''!=''  And ''==''
-      and ( ''=='Always' or ''=='' or ''!='2017-09-03 22:44:00.2881784' )).
+      and ( ''=='Always' or ''=='' or ''!='2017-09-12 10:40:56.9773139' )).
 Destinazione "_DeleteLnkFile: (ID destinazione: 44)" nel file "D:\Program Files (x86)\Embarcadero\Studio\19.0\Bin\CodeGear.Delphi.Targets" dal progetto "D:\ETHEA\GitHub_EtheaDev\Kitto2\kitto\Kide\Projects\D10_2\KIDE2.dproj" (la destinazione "CoreBuild" dipende da essa):
 Attività "Delete" (ID attività:162)
 Esecuzione attività "Delete" completata. (ID attività:162)
@@ -4057,80 +4057,80 @@ Compilazione progetto "D:\ETHEA\GitHub_EtheaDev\Kitto2\kitto\Kide\Projects\D10_2
 
 
 Riepilogo prestazioni progetto:
-     3817 ms  D:\ETHEA\GitHub_EtheaDev\Kitto2\kitto\Kide\Projects\D10_2\KIDE2.dproj   1 chiamate
-               3817 ms  Build                                      1 chiamate
+     9916 ms  D:\ETHEA\GitHub_EtheaDev\Kitto2\kitto\Kide\Projects\D10_2\KIDE2.dproj   1 chiamate
+               9916 ms  Build                                      1 chiamate
 
 Riepilogo prestazioni destinazione:
-        0 ms  ResolveReferences                          1 chiamate
-        0 ms  ResolveLocalResources                      1 chiamate
-        0 ms  _ResolveResources                          1 chiamate
-        0 ms  ResourceBuild                              1 chiamate
-        0 ms  Build                                      1 chiamate
-        0 ms  _CheckBuildEnvironment                     1 chiamate
-        0 ms  __CreateVerOutputName                      1 chiamate
-        0 ms  _ResolveUserTool                           1 chiamate
-        0 ms  _ResolveGENTLBBindings                     1 chiamate
-        0 ms  _CheckPlatformVariable                     1 chiamate
-        0 ms  ResolvePaths                               1 chiamate
         0 ms  CoreBuild                                  1 chiamate
+        0 ms  _PreOutputTimeStamp                        1 chiamate
         0 ms  _RidlCoreCompile                           1 chiamate
+        0 ms  ResolveLocalResources                      1 chiamate
+        0 ms  __CreateVerOutputName                      1 chiamate
+        0 ms  ResourceBuild                              1 chiamate
+        0 ms  ResolveReferences                          1 chiamate
         0 ms  _ResolveReferences                         1 chiamate
-        0 ms  BuildAndroidManifestList                   1 chiamate
-        0 ms  _VerifyPlatformSDKFile                     1 chiamate
-        0 ms  _DeleteLnkFile                             1 chiamate
-        0 ms  ResolveFiles                               1 chiamate
-        0 ms  CreateLocalDirectories                     1 chiamate
-        0 ms  __BuildShouldBuildVersion                  1 chiamate
-        0 ms  _RunUserTools                              1 chiamate
-        0 ms  _CheckPlatformSDK                          1 chiamate
+        0 ms  __SetVersionResourceFileName               1 chiamate
+        0 ms  _CheckPlatformVariable                     1 chiamate
+        0 ms  __SetAndroidManifestSettings               1 chiamate
+        0 ms  _ResolveInput                              1 chiamate
+        0 ms  ResolvePaths                               1 chiamate
+        0 ms  _ResolveIcons                              1 chiamate
+        0 ms  _ResolveGENTLBBindings                     1 chiamate
         0 ms  CreateDirectories                          1 chiamate
-        1 ms  CreateProjectDirectories                   1 chiamate
-        1 ms  _PreOutputTimeStamp                        1 chiamate
-        1 ms  _ResolveInput                              1 chiamate
-        1 ms  _RidlDepCheck                              1 chiamate
-        1 ms  __SetAndroidManifestSettings               1 chiamate
-        1 ms  __SetVersionResourceFileName               1 chiamate
-        1 ms  _ResolveIcons                              1 chiamate
-        1 ms  ResolveResources                           1 chiamate
-        1 ms  RidlCompile                                1 chiamate
+        0 ms  BuildAndroidManifestList                   1 chiamate
+        0 ms  _DeleteLnkFile                             1 chiamate
+        0 ms  ResolveResources                           1 chiamate
+        0 ms  ResolveFiles                               1 chiamate
+        0 ms  _VerifyPlatformSDKFile                     1 chiamate
+        0 ms  CreateLocalDirectories                     1 chiamate
+        0 ms  Build                                      1 chiamate
+        1 ms  _ResolveUserTool                           1 chiamate
+        1 ms  _CheckBuildEnvironment                     1 chiamate
+        1 ms  _CheckPlatformSDK                          1 chiamate
+        1 ms  _RunUserTools                              1 chiamate
         1 ms  __SetProjectResourceFileName               1 chiamate
-        2 ms  _PostOutputTimeStamp                       1 chiamate
-        2 ms  __ResourceItemDepCheck                     1 chiamate
-        5 ms  ResolveSources                             1 chiamate
-        8 ms  _BuildRCFile                               1 chiamate
-        9 ms  __BuildRCFile                              1 chiamate
-        9 ms  __ResourceVersionResDepCheck               1 chiamate
-       11 ms  SetBuildOptions                            1 chiamate
-       18 ms  ResolveOutputs                             1 chiamate
-       43 ms  ResolveInputs                              1 chiamate
-      131 ms  BuildProjectResourceFile                   1 chiamate
-      270 ms  BuildVersionResource                       1 chiamate
-     3272 ms  _PasCoreCompile                            1 chiamate
+        1 ms  _RidlDepCheck                              1 chiamate
+        1 ms  _ResolveResources                          1 chiamate
+        1 ms  __BuildShouldBuildVersion                  1 chiamate
+        1 ms  RidlCompile                                1 chiamate
+        2 ms  CreateProjectDirectories                   1 chiamate
+        3 ms  __ResourceItemDepCheck                     1 chiamate
+        4 ms  ResolveSources                             1 chiamate
+        7 ms  _PostOutputTimeStamp                       1 chiamate
+       18 ms  SetBuildOptions                            1 chiamate
+       19 ms  ResolveOutputs                             1 chiamate
+       42 ms  _BuildRCFile                               1 chiamate
+       44 ms  ResolveInputs                              1 chiamate
+       44 ms  __BuildRCFile                              1 chiamate
+       80 ms  BuildProjectResourceFile                   1 chiamate
+       94 ms  __ResourceVersionResDepCheck               1 chiamate
+      934 ms  BuildVersionResource                       1 chiamate
+     8624 ms  _PasCoreCompile                            1 chiamate
 
 Riepilogo prestazioni attività:
-        1 ms  MakeDir                                    1 chiamate
-        2 ms  ResourceItemDependencyCheck                1 chiamate
-        3 ms  CreateProperty                             3 chiamate
-        3 ms  DependencyCheck                            2 chiamate
-        6 ms  CreateRcFile                               1 chiamate
-        7 ms  Delete                                     3 chiamate
-        9 ms  CallTarget                                 2 chiamate
-       43 ms  CreateItem                               145 chiamate
-      392 ms  BRCC32                                     2 chiamate
-     3270 ms  DCC                                        1 chiamate
+        2 ms  MakeDir                                    1 chiamate
+        2 ms  CreateProperty                             3 chiamate
+        3 ms  ResourceItemDependencyCheck                1 chiamate
+        4 ms  DependencyCheck                            2 chiamate
+        8 ms  Delete                                     3 chiamate
+       42 ms  CreateRcFile                               1 chiamate
+       44 ms  CallTarget                                 2 chiamate
+       51 ms  CreateItem                               145 chiamate
+     1004 ms  BRCC32                                     2 chiamate
+     8606 ms  DCC                                        1 chiamate
 
 Compilazione completata.
 
 "D:\ETHEA\GitHub_EtheaDev\Kitto2\kitto\Kide\Projects\D10_2\KIDE2.dproj" (destinazione: Build) (1) ->
 (destinazione: _PasCoreCompile) -> 
-  D:\ETHEA\GitHub_EtheaDev\Kitto2\kitto\Kide\Source\KIDE.ModelCreator.pas(1032): warning W1020: Constructing instance of 'TKModel' containing abstract method 'TKModel.LoadRecords' [D:\ETHEA\GitHub_EtheaDev\Kitto2\kitto\Kide\Projects\D10_2\KIDE2.dproj]
-  D:\ETHEA\GitHub_EtheaDev\Kitto2\kitto\Kide\Source\KIDE.ModelCreator.pas(1032): warning W1020: Constructing instance of 'TKModel' containing abstract method 'TKModel.SaveRecords' [D:\ETHEA\GitHub_EtheaDev\Kitto2\kitto\Kide\Projects\D10_2\KIDE2.dproj]
-  D:\ETHEA\GitHub_EtheaDev\Kitto2\kitto\Kide\Source\KIDE.ModelCreator.pas(1032): warning W1020: Constructing instance of 'TKModel' containing abstract method 'TKModel.SaveRecord' [D:\ETHEA\GitHub_EtheaDev\Kitto2\kitto\Kide\Projects\D10_2\KIDE2.dproj]
-  D:\ETHEA\GitHub_EtheaDev\Kitto2\kitto\Kide\Source\KIDE.FileTree.pas(867): warning W1020: Constructing instance of 'TKModel' containing abstract method 'TKModel.LoadRecords' [D:\ETHEA\GitHub_EtheaDev\Kitto2\kitto\Kide\Projects\D10_2\KIDE2.dproj]
-  D:\ETHEA\GitHub_EtheaDev\Kitto2\kitto\Kide\Source\KIDE.FileTree.pas(867): warning W1020: Constructing instance of 'TKModel' containing abstract method 'TKModel.SaveRecords' [D:\ETHEA\GitHub_EtheaDev\Kitto2\kitto\Kide\Projects\D10_2\KIDE2.dproj]
-  D:\ETHEA\GitHub_EtheaDev\Kitto2\kitto\Kide\Source\KIDE.FileTree.pas(867): warning W1020: Constructing instance of 'TKModel' containing abstract method 'TKModel.SaveRecord' [D:\ETHEA\GitHub_EtheaDev\Kitto2\kitto\Kide\Projects\D10_2\KIDE2.dproj]
+  D:\ETHEA\GitHub_EtheaDev\Kitto2\kitto\Kide\Source\KIDE.ModelCreator.pas(1001): warning W1020: Constructing instance of 'TKModel' containing abstract method 'TKModel.LoadRecords' [D:\ETHEA\GitHub_EtheaDev\Kitto2\kitto\Kide\Projects\D10_2\KIDE2.dproj]
+  D:\ETHEA\GitHub_EtheaDev\Kitto2\kitto\Kide\Source\KIDE.ModelCreator.pas(1001): warning W1020: Constructing instance of 'TKModel' containing abstract method 'TKModel.SaveRecords' [D:\ETHEA\GitHub_EtheaDev\Kitto2\kitto\Kide\Projects\D10_2\KIDE2.dproj]
+  D:\ETHEA\GitHub_EtheaDev\Kitto2\kitto\Kide\Source\KIDE.ModelCreator.pas(1001): warning W1020: Constructing instance of 'TKModel' containing abstract method 'TKModel.SaveRecord' [D:\ETHEA\GitHub_EtheaDev\Kitto2\kitto\Kide\Projects\D10_2\KIDE2.dproj]
+  D:\ETHEA\GitHub_EtheaDev\Kitto2\kitto\Kide\Source\KIDE.FileTree.pas(836): warning W1020: Constructing instance of 'TKModel' containing abstract method 'TKModel.LoadRecords' [D:\ETHEA\GitHub_EtheaDev\Kitto2\kitto\Kide\Projects\D10_2\KIDE2.dproj]
+  D:\ETHEA\GitHub_EtheaDev\Kitto2\kitto\Kide\Source\KIDE.FileTree.pas(836): warning W1020: Constructing instance of 'TKModel' containing abstract method 'TKModel.SaveRecords' [D:\ETHEA\GitHub_EtheaDev\Kitto2\kitto\Kide\Projects\D10_2\KIDE2.dproj]
+  D:\ETHEA\GitHub_EtheaDev\Kitto2\kitto\Kide\Source\KIDE.FileTree.pas(836): warning W1020: Constructing instance of 'TKModel' containing abstract method 'TKModel.SaveRecord' [D:\ETHEA\GitHub_EtheaDev\Kitto2\kitto\Kide\Projects\D10_2\KIDE2.dproj]
 
     Avvisi: 6
     Errori: 0
 
-Tempo trascorso 00:00:03.96
+Tempo trascorso 00:00:10.22

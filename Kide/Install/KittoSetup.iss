@@ -6,11 +6,11 @@
 #define MyCopyRight "Copyright (c) 2012-2017 Ethea S.r.l."
 #define MyCompany "Ethea S.r.l."
 
-#define KITTO "..\..\..\Kitto"
+#define KITTO "..\.."
 
 [Setup]
 AppId={{052FA381-75D0-4B82-B6AD-FB9EF1967663}
-DefaultDirName={sd}\Dev\Kitto2Ent_{#KittoVersion}
+DefaultDirName={sd}\Dev\Kitto_{#KittoVersion}
 OutputBaseFilename=Kitto2Setup
 
 AppName={#MyAppName}
@@ -47,120 +47,133 @@ Name: desktopicon; Description: {cm:CreateDesktopIcon}; GroupDescription: {cm:Ad
 Name: quicklaunchicon; Description: {cm:CreateQuickLaunchIcon}; GroupDescription: {cm:AdditionalIcons}; Flags: unchecked; OnlyBelowVersion: 0,6.1
 
 [Files]
-Source: ..\Bin\Kide2.exe; DestDir: {app}\Kide2\Bin; Flags: ignoreversion; Components: Kide2
-Source: ..\Bin\Config.yaml; DestDir: {app}\Kide2\Bin; Flags: ignoreversion; Components: Kide2
-Source: ..\Bin\logo.png; DestDir: {app}\Kide2\Bin; Flags: ignoreversion; Components: Kide2
-Source: ..\Bin\background.jpg; DestDir: {app}\Kide2\Bin; Flags: ignoreversion; Components: Kide2
-Source: ..\Bin\ProjectTemplates\*; DestDir: {app}\Kide2\Bin\ProjectTemplates; Flags: ignoreversion recursesubdirs createallsubdirs; Components: Kide2
-Source: ..\Bin\MetadataTemplates\*; DestDir: {app}\Kide2\Bin\MetadataTemplates; Flags: ignoreversion recursesubdirs createallsubdirs; Components: Kide2
+;KIDE SECTION
+Source: {#KITTO}\Kide\Bin\Kide2.exe; DestDir: {app}\kitto\Kide\Bin; Flags: ignoreversion; Components: Kide2
+Source: {#KITTO}\Kide\Bin\Config.yaml; DestDir: {app}\kitto\Kide\Bin; Flags: ignoreversion; Components: Kide2
+Source: {#KITTO}\Kide\Bin\*.png; DestDir: {app}\kitto\Kide\Bin; Flags: ignoreversion; Components: Kide2
+Source: {#KITTO}\Kide\Bin\*.wav; DestDir: {app}\kitto\Kide\Bin; Flags: ignoreversion; Components: Kide2
+Source: {#KITTO}\Kide\Bin\*.jpg; DestDir: {app}\kitto\Kide\Bin; Flags: ignoreversion; Components: Kide2
+Source: {#KITTO}\Kide\Bin\ProjectTemplates\*; DestDir: {app}\kitto\Kide\Bin\ProjectTemplates; Flags: ignoreversion recursesubdirs createallsubdirs; Components: Kide2
+Source: {#KITTO}\Kide\Bin\MetadataTemplates\*; DestDir: {app}\kitto\Kide\Bin\MetadataTemplates; Flags: ignoreversion recursesubdirs createallsubdirs; Components: Kide2
+Source: {#KITTO}\Kide\Docs\*; DestDir: {app}\kitto\Kide\Docs; Flags: ignoreversion recursesubdirs createallsubdirs; Components: Kide2
+Source: {#KITTO}\Kide\Ext\*; DestDir: {app}\kitto\Kide\Ext; Flags: ignoreversion recursesubdirs createallsubdirs; Components: Kide2
+Source: {#KITTO}\Kide\Help\*; DestDir: {app}\kitto\Kide\Help; Flags: ignoreversion recursesubdirs createallsubdirs; Components: Kide2
+Source: {#KITTO}\Kide\Projects\*.ico; DestDir: {app}\kitto\Kide\Projects; Flags: ignoreversion recursesubdirs createallsubdirs; Components: Kide2
+Source: {#KITTO}\Kide\Projects\*.dpr; DestDir: {app}\kitto\Kide\Projects; Flags: ignoreversion recursesubdirs createallsubdirs; Components: Kide2
+Source: {#KITTO}\Kide\Projects\*.dproj; DestDir: {app}\kitto\Kide\Projects; Flags: ignoreversion recursesubdirs createallsubdirs; Components: Kide2
+Source: {#KITTO}\Kide\Projects\*.res; DestDir: {app}\kitto\Kide\Projects; Flags: ignoreversion recursesubdirs createallsubdirs; Components: Kide2
+Source: {#KITTO}\Kide\Source\*.pas; DestDir: {app}\kitto\Kide\Source; Flags: ignoreversion recursesubdirs createallsubdirs; Components: Kide2
+Source: {#KITTO}\Kide\Source\*.dfm; DestDir: {app}\kitto\Kide\Source; Flags: ignoreversion recursesubdirs createallsubdirs; Components: Kide2
+Source: {#KITTO}\Kide\Source\*.inc; DestDir: {app}\kitto\Kide\Source; Flags: ignoreversion recursesubdirs createallsubdirs; Components: Kide2
+Source: {#KITTO}\Kide\Source\*.rc; DestDir: {app}\kitto\Kide\Source; Flags: ignoreversion recursesubdirs createallsubdirs; Components: Kide2
 
-Source: {#KITTO}\Source\*; DestDir: {app}\Kitto\Source; Flags: ignoreversion recursesubdirs createallsubdirs; Components: Kitto2
-;Source: {#KITTO}\Bin\*.yaml; DestDir: {app}\Kitto\Bin; Flags: ignoreversion; Components: Kitto2
-Source: {#KITTO}\Docs\External\*.txt; DestDir: {app}\Kitto\Docs\External; Flags: ignoreversion; Components: Kitto2
-Source: {#KITTO}\Home\*; DestDir: {app}\Kitto\Home; Flags: ignoreversion recursesubdirs createallsubdirs; Components: Kitto2
-Source: .\MyProjectsFolder.txt; DestDir: {app}\Kitto\MyProjects; Flags: ignoreversion; Components: Kitto2
+;KITTO SECTION
+Source: {#KITTO}\Source\*; DestDir: {app}\kitto\Source; Flags: ignoreversion recursesubdirs createallsubdirs; Components: Kitto2
+;Source: {#KITTO}\Bin\*.yaml; DestDir: {app}\kitto\Bin; Flags: ignoreversion; Components: Kitto2
+Source: {#KITTO}\Docs\External\*.txt; DestDir: {app}\kitto\Docs\External; Flags: ignoreversion; Components: Kitto2
+Source: {#KITTO}\Docs\External\*.png; DestDir: {app}\kitto\Docs\External; Flags: ignoreversion; Components: Kitto2Docs
+Source: {#KITTO}\Home\*; DestDir: {app}\kitto\Home; Flags: ignoreversion recursesubdirs createallsubdirs; Components: Kitto2
+Source: .\MyProjectsFolder.txt; DestDir: {app}\kitto\MyProjects; Flags: ignoreversion; Components: Kitto2
+;Source: {#KITTO}\Docs\External\Reference\Html\*; DestDir: {app}\kitto\Docs\Reference; Flags: ignoreversion recursesubdirs createallsubdirs; Components: Kitto2Docs
 
-;Source: {#KITTO}\Docs\External\Reference\Html\*; DestDir: {app}\Kitto\Docs\Reference; Flags: ignoreversion recursesubdirs createallsubdirs; Components: Kitto2Docs
-Source: {#KITTO}\Docs\External\*.png; DestDir: {app}\Kitto\Docs; Flags: ignoreversion; Components: Kitto2Docs
+;KITTO EXAMPLES SECTION
+Source: {#KITTO}\Examples\HelloKitto\DB\*.sql; DestDir: {app}\kitto\Examples\HelloKitto\DB; Flags: ignoreversion; Components: HelloKittoExamples
+Source: {#KITTO}\Examples\HelloKitto\DB\*.fbk; DestDir: {app}\kitto\Examples\HelloKitto\DB; Flags: ignoreversion; Components: HelloKittoExamples
+Source: {#KITTO}\Examples\HelloKitto\Home\HelloKitto.exe; DestDir: {app}\kitto\Examples\HelloKitto\Home; Flags: ignoreversion; Components: HelloKittoExamples
+Source: {#KITTO}\Examples\HelloKitto\Home\HelloKitto.kproj; DestDir: {app}\kitto\Examples\HelloKitto\Home; Flags: ignoreversion; Components: HelloKittoExamples
+Source: {#KITTO}\Examples\HelloKitto\Home\Locale\*; DestDir: {app}\kitto\Examples\HelloKitto\Home\Locale; Flags: ignoreversion recursesubdirs createallsubdirs; Components: HelloKittoExamples
+Source: {#KITTO}\Examples\HelloKitto\Home\Metadata\*; DestDir: {app}\kitto\Examples\HelloKitto\Home\Metadata; Flags: ignoreversion recursesubdirs createallsubdirs; Components: HelloKittoExamples
+Source: {#KITTO}\Examples\HelloKitto\Home\Resources\*; DestDir: {app}\kitto\Examples\HelloKitto\Home\Resources; Flags: ignoreversion recursesubdirs createallsubdirs; Components: HelloKittoExamples
+Source: {#KITTO}\Examples\HelloKitto\Home\ReportTemplates\*; DestDir: {app}\kitto\Examples\HelloKitto\Home\ReportTemplates; Flags: ignoreversion recursesubdirs createallsubdirs; Components: HelloKittoExamples
+Source: {#KITTO}\Examples\HelloKitto\Projects\*.ico; DestDir: {app}\kitto\Examples\HelloKitto\Projects; Flags: ignoreversion recursesubdirs createallsubdirs; Components: HelloKittoExamples
+Source: {#KITTO}\Examples\HelloKitto\Projects\DXE7\*.dpr; DestDir: {app}\kitto\Examples\HelloKitto\Projects\DXE7; Flags: ignoreversion recursesubdirs createallsubdirs; Components: HelloKittoExamples
+Source: {#KITTO}\Examples\HelloKitto\Projects\DXE7\*.dproj; DestDir: {app}\kitto\Examples\HelloKitto\Projects\DXE7; Flags: ignoreversion recursesubdirs createallsubdirs; Components: HelloKittoExamples
+Source: {#KITTO}\Examples\HelloKitto\Projects\DXE7\*.res; DestDir: {app}\kitto\Examples\HelloKitto\Projects\DXE7; Flags: ignoreversion recursesubdirs createallsubdirs; Components: HelloKittoExamples
+Source: {#KITTO}\Examples\HelloKitto\Projects\DXE8\*.dpr; DestDir: {app}\kitto\Examples\HelloKitto\Projects\DXE8; Flags: ignoreversion recursesubdirs createallsubdirs; Components: HelloKittoExamples
+Source: {#KITTO}\Examples\HelloKitto\Projects\DXE8\*.dproj; DestDir: {app}\kitto\Examples\HelloKitto\Projects\DXE8; Flags: ignoreversion recursesubdirs createallsubdirs; Components: HelloKittoExamples
+Source: {#KITTO}\Examples\HelloKitto\Projects\DXE8\*.res; DestDir: {app}\kitto\Examples\HelloKitto\Projects\DXE8; Flags: ignoreversion recursesubdirs createallsubdirs; Components: HelloKittoExamples
+Source: {#KITTO}\Examples\HelloKitto\Projects\D10\*.dpr; DestDir: {app}\kitto\Examples\HelloKitto\Projects\D10; Flags: ignoreversion recursesubdirs createallsubdirs; Components: HelloKittoExamples
+Source: {#KITTO}\Examples\HelloKitto\Projects\D10\*.dproj; DestDir: {app}\kitto\Examples\HelloKitto\Projects\D10; Flags: ignoreversion recursesubdirs createallsubdirs; Components: HelloKittoExamples
+Source: {#KITTO}\Examples\HelloKitto\Projects\D10\*.res; DestDir: {app}\kitto\Examples\HelloKitto\Projects\D10; Flags: ignoreversion recursesubdirs createallsubdirs; Components: HelloKittoExamples
+Source: {#KITTO}\Examples\HelloKitto\Projects\D10_1\*.dpr; DestDir: {app}\kitto\Examples\HelloKitto\Projects\D10_1; Flags: ignoreversion recursesubdirs createallsubdirs; Components: HelloKittoExamples
+Source: {#KITTO}\Examples\HelloKitto\Projects\D10_1\*.dproj; DestDir: {app}\kitto\Examples\HelloKitto\Projects\D10_1; Flags: ignoreversion recursesubdirs createallsubdirs; Components: HelloKittoExamples
+Source: {#KITTO}\Examples\HelloKitto\Projects\D10_1\*.res; DestDir: {app}\kitto\Examples\HelloKitto\Projects\D10_1; Flags: ignoreversion recursesubdirs createallsubdirs; Components: HelloKittoExamples
+Source: {#KITTO}\Examples\HelloKitto\Projects\D10_2\*.dpr; DestDir: {app}\kitto\Examples\HelloKitto\Projects\D10_2; Flags: ignoreversion recursesubdirs createallsubdirs; Components: HelloKittoExamples
+Source: {#KITTO}\Examples\HelloKitto\Projects\D10_2\*.dproj; DestDir: {app}\kitto\Examples\HelloKitto\Projects\D10_2; Flags: ignoreversion recursesubdirs createallsubdirs; Components: HelloKittoExamples
+Source: {#KITTO}\Examples\HelloKitto\Projects\D10_2\*.res; DestDir: {app}\kitto\Examples\HelloKitto\Projects\D10_2; Flags: ignoreversion recursesubdirs createallsubdirs; Components: HelloKittoExamples
+Source: {#KITTO}\Examples\HelloKitto\Source\*; DestDir: {app}\kitto\Examples\HelloKitto\Source; Flags: ignoreversion recursesubdirs createallsubdirs; Components: HelloKittoExamples
+Source: {#KITTO}\Examples\HelloKitto\Readme.txt; DestDir: {app}\kitto\Examples\HelloKitto; Flags: ignoreversion; Components: HelloKittoExamples
 
-Source: {#KITTO}\Examples\HelloKitto\DB\*.sql; DestDir: {app}\Kitto2\Examples\HelloKitto\DB; Flags: ignoreversion; Components: HelloKittoExamples
-Source: {#KITTO}\Examples\HelloKitto\DB\*.fbk; DestDir: {app}\Kitto2\Examples\HelloKitto\DB; Flags: ignoreversion; Components: HelloKittoExamples
-Source: {#KITTO}\Examples\HelloKitto\Home\HelloKitto.exe; DestDir: {app}\Kitto2\Examples\HelloKitto\Home; Flags: ignoreversion; Components: HelloKittoExamples
-Source: {#KITTO}\Examples\HelloKitto\Home\HelloKitto.kproj; DestDir: {app}\Kitto2\Examples\HelloKitto\Home; Flags: ignoreversion; Components: HelloKittoExamples
-Source: {#KITTO}\Examples\HelloKitto\Home\Locale\*; DestDir: {app}\Kitto2\Examples\HelloKitto\Home\Locale; Flags: ignoreversion recursesubdirs createallsubdirs; Components: HelloKittoExamples
-Source: {#KITTO}\Examples\HelloKitto\Home\Metadata\*; DestDir: {app}\Kitto2\Examples\HelloKitto\Home\Metadata; Flags: ignoreversion recursesubdirs createallsubdirs; Components: HelloKittoExamples
-Source: {#KITTO}\Examples\HelloKitto\Home\Resources\*; DestDir: {app}\Kitto2\Examples\HelloKitto\Home\Resources; Flags: ignoreversion recursesubdirs createallsubdirs; Components: HelloKittoExamples
-Source: {#KITTO}\Examples\HelloKitto\Home\ReportTemplates\*; DestDir: {app}\Kitto2\Examples\HelloKitto\Home\ReportTemplates; Flags: ignoreversion recursesubdirs createallsubdirs; Components: HelloKittoExamples
-Source: {#KITTO}\Examples\HelloKitto\Projects\*.ico; DestDir: {app}\Kitto2\Examples\HelloKitto\Projects; Flags: ignoreversion recursesubdirs createallsubdirs; Components: HelloKittoExamples
-Source: {#KITTO}\Examples\HelloKitto\Projects\DXE7\*.dpr; DestDir: {app}\Kitto2\Examples\HelloKitto\Projects\DXE7; Flags: ignoreversion recursesubdirs createallsubdirs; Components: HelloKittoExamples
-Source: {#KITTO}\Examples\HelloKitto\Projects\DXE7\*.dproj; DestDir: {app}\Kitto2\Examples\HelloKitto\Projects\DXE7; Flags: ignoreversion recursesubdirs createallsubdirs; Components: HelloKittoExamples
-Source: {#KITTO}\Examples\HelloKitto\Projects\DXE7\*.res; DestDir: {app}\Kitto2\Examples\HelloKitto\Projects\DXE7; Flags: ignoreversion recursesubdirs createallsubdirs; Components: HelloKittoExamples
-Source: {#KITTO}\Examples\HelloKitto\Projects\DXE8\*.dpr; DestDir: {app}\Kitto2\Examples\HelloKitto\Projects\DXE8; Flags: ignoreversion recursesubdirs createallsubdirs; Components: HelloKittoExamples
-Source: {#KITTO}\Examples\HelloKitto\Projects\DXE8\*.dproj; DestDir: {app}\Kitto2\Examples\HelloKitto\Projects\DXE8; Flags: ignoreversion recursesubdirs createallsubdirs; Components: HelloKittoExamples
-Source: {#KITTO}\Examples\HelloKitto\Projects\DXE8\*.res; DestDir: {app}\Kitto2\Examples\HelloKitto\Projects\DXE8; Flags: ignoreversion recursesubdirs createallsubdirs; Components: HelloKittoExamples
-Source: {#KITTO}\Examples\HelloKitto\Projects\D10\*.dpr; DestDir: {app}\Kitto2\Examples\HelloKitto\Projects\D10; Flags: ignoreversion recursesubdirs createallsubdirs; Components: HelloKittoExamples
-Source: {#KITTO}\Examples\HelloKitto\Projects\D10\*.dproj; DestDir: {app}\Kitto2\Examples\HelloKitto\Projects\D10; Flags: ignoreversion recursesubdirs createallsubdirs; Components: HelloKittoExamples
-Source: {#KITTO}\Examples\HelloKitto\Projects\D10\*.res; DestDir: {app}\Kitto2\Examples\HelloKitto\Projects\D10; Flags: ignoreversion recursesubdirs createallsubdirs; Components: HelloKittoExamples
-Source: {#KITTO}\Examples\HelloKitto\Projects\D10_1\*.dpr; DestDir: {app}\Kitto2\Examples\HelloKitto\Projects\D10_1; Flags: ignoreversion recursesubdirs createallsubdirs; Components: HelloKittoExamples
-Source: {#KITTO}\Examples\HelloKitto\Projects\D10_1\*.dproj; DestDir: {app}\Kitto2\Examples\HelloKitto\Projects\D10_1; Flags: ignoreversion recursesubdirs createallsubdirs; Components: HelloKittoExamples
-Source: {#KITTO}\Examples\HelloKitto\Projects\D10_1\*.res; DestDir: {app}\Kitto2\Examples\HelloKitto\Projects\D10_1; Flags: ignoreversion recursesubdirs createallsubdirs; Components: HelloKittoExamples
-Source: {#KITTO}\Examples\HelloKitto\Projects\D10_2\*.dpr; DestDir: {app}\Kitto2\Examples\HelloKitto\Projects\D10_2; Flags: ignoreversion recursesubdirs createallsubdirs; Components: HelloKittoExamples
-Source: {#KITTO}\Examples\HelloKitto\Projects\D10_2\*.dproj; DestDir: {app}\Kitto2\Examples\HelloKitto\Projects\D10_2; Flags: ignoreversion recursesubdirs createallsubdirs; Components: HelloKittoExamples
-Source: {#KITTO}\Examples\HelloKitto\Projects\D10_2\*.res; DestDir: {app}\Kitto2\Examples\HelloKitto\Projects\D10_2; Flags: ignoreversion recursesubdirs createallsubdirs; Components: HelloKittoExamples
-Source: {#KITTO}\Examples\HelloKitto\Source\*; DestDir: {app}\Kitto2\Examples\HelloKitto\Source; Flags: ignoreversion recursesubdirs createallsubdirs; Components: HelloKittoExamples
-Source: {#KITTO}\Examples\HelloKitto\Readme.txt; DestDir: {app}\Kitto2\Examples\HelloKitto; Flags: ignoreversion; Components: HelloKittoExamples
+Source: {#KITTO}\Examples\TasKitto\DB\*.sql; DestDir: {app}\kitto\Examples\TasKitto\DB; Flags: ignoreversion; Components: TasKittoExamples
+Source: {#KITTO}\Examples\TasKitto\DB\*.fbk; DestDir: {app}\kitto\Examples\TasKitto\DB; Flags: ignoreversion; Components: TasKittoExamples
+Source: {#KITTO}\Examples\TasKitto\Home\TasKitto.exe; DestDir: {app}\kitto\Examples\TasKitto\Home; Flags: ignoreversion; Components: TasKittoExamples
+Source: {#KITTO}\Examples\TasKitto\Home\TasKitto.kproj; DestDir: {app}\kitto\Examples\TasKitto\Home; Flags: ignoreversion; Components: TasKittoExamples
+Source: {#KITTO}\Examples\TasKitto\Home\Metadata\*; DestDir: {app}\kitto\Examples\TasKitto\Home\Metadata; Flags: ignoreversion recursesubdirs createallsubdirs; Components: TasKittoExamples
+Source: {#KITTO}\Examples\TasKitto\Home\Resources\*; DestDir: {app}\kitto\Examples\TasKitto\Home\Resources; Flags: ignoreversion recursesubdirs createallsubdirs; Components: TasKittoExamples
+Source: {#KITTO}\Examples\TasKitto\Home\ReportTemplates\*; DestDir: {app}\kitto\Examples\TasKitto\Home\ReportTemplates; Flags: ignoreversion recursesubdirs createallsubdirs; Components: TasKittoExamples
+Source: {#KITTO}\Examples\TasKitto\Projects\*.ico; DestDir: {app}\kitto\Examples\TasKitto\Projects; Flags: ignoreversion recursesubdirs createallsubdirs; Components: TasKittoExamples
+Source: {#KITTO}\Examples\TasKitto\Projects\DXE7\*.dpr; DestDir: {app}\kitto\Examples\TasKitto\Projects\DXE7; Flags: ignoreversion recursesubdirs createallsubdirs; Components: TasKittoExamples
+Source: {#KITTO}\Examples\TasKitto\Projects\DXE7\*.dproj; DestDir: {app}\kitto\Examples\TasKitto\Projects\DXE7; Flags: ignoreversion recursesubdirs createallsubdirs; Components: TasKittoExamples
+Source: {#KITTO}\Examples\TasKitto\Projects\DXE7\*.res; DestDir: {app}\kitto\Examples\TasKitto\Projects\DXE7; Flags: ignoreversion recursesubdirs createallsubdirs; Components: TasKittoExamples
+Source: {#KITTO}\Examples\TasKitto\Projects\DXE8\*.dpr; DestDir: {app}\kitto\Examples\TasKitto\Projects\DXE8; Flags: ignoreversion recursesubdirs createallsubdirs; Components: TasKittoExamples
+Source: {#KITTO}\Examples\TasKitto\Projects\DXE8\*.dproj; DestDir: {app}\kitto\Examples\TasKitto\Projects\DXE8; Flags: ignoreversion recursesubdirs createallsubdirs; Components: TasKittoExamples
+Source: {#KITTO}\Examples\TasKitto\Projects\DXE8\*.res; DestDir: {app}\kitto\Examples\TasKitto\Projects\DXE8; Flags: ignoreversion recursesubdirs createallsubdirs; Components: TasKittoExamples
+Source: {#KITTO}\Examples\TasKitto\Projects\D10\*.dpr; DestDir: {app}\kitto\Examples\TasKitto\Projects\D10; Flags: ignoreversion recursesubdirs createallsubdirs; Components: TasKittoExamples
+Source: {#KITTO}\Examples\TasKitto\Projects\D10\*.dproj; DestDir: {app}\kitto\Examples\TasKitto\Projects\D10; Flags: ignoreversion recursesubdirs createallsubdirs; Components: TasKittoExamples
+Source: {#KITTO}\Examples\TasKitto\Projects\D10\*.res; DestDir: {app}\kitto\Examples\TasKitto\Projects\D10; Flags: ignoreversion recursesubdirs createallsubdirs; Components: TasKittoExamples
+Source: {#KITTO}\Examples\TasKitto\Projects\D10_1\*.dpr; DestDir: {app}\kitto\Examples\TasKitto\Projects\D10_1; Flags: ignoreversion recursesubdirs createallsubdirs; Components: TasKittoExamples
+Source: {#KITTO}\Examples\TasKitto\Projects\D10_1\*.dproj; DestDir: {app}\kitto\Examples\TasKitto\Projects\D10_1; Flags: ignoreversion recursesubdirs createallsubdirs; Components: TasKittoExamples
+Source: {#KITTO}\Examples\TasKitto\Projects\D10_1\*.res; DestDir: {app}\kitto\Examples\TasKitto\Projects\D10_1; Flags: ignoreversion recursesubdirs createallsubdirs; Components: TasKittoExamples
+Source: {#KITTO}\Examples\TasKitto\Projects\D10_2\*.dpr; DestDir: {app}\kitto\Examples\TasKitto\Projects\D10_2; Flags: ignoreversion recursesubdirs createallsubdirs; Components: TasKittoExamples
+Source: {#KITTO}\Examples\TasKitto\Projects\D10_2\*.dproj; DestDir: {app}\kitto\Examples\TasKitto\Projects\D10_2; Flags: ignoreversion recursesubdirs createallsubdirs; Components: TasKittoExamples
+Source: {#KITTO}\Examples\TasKitto\Projects\D10_2\*.res; DestDir: {app}\kitto\Examples\TasKitto\Projects\D10_2; Flags: ignoreversion recursesubdirs createallsubdirs; Components: TasKittoExamples
+Source: {#KITTO}\Examples\TasKitto\Source\*; DestDir: {app}\kitto\Examples\TasKitto\Source; Flags: ignoreversion recursesubdirs createallsubdirs; Components: TasKittoExamples
+Source: {#KITTO}\Examples\TasKitto\Readme.txt; DestDir: {app}\kitto\Examples\TasKitto; Flags: ignoreversion; Components: TasKittoExamples
 
-Source: {#KITTO}\Examples\TasKitto\DB\*.sql; DestDir: {app}\Kitto2\Examples\TasKitto\DB; Flags: ignoreversion; Components: TasKittoExamples
-Source: {#KITTO}\Examples\TasKitto\DB\*.fbk; DestDir: {app}\Kitto2\Examples\TasKitto\DB; Flags: ignoreversion; Components: TasKittoExamples
-Source: {#KITTO}\Examples\TasKitto\Home\TasKitto.exe; DestDir: {app}\Kitto2\Examples\TasKitto\Home; Flags: ignoreversion; Components: TasKittoExamples
-Source: {#KITTO}\Examples\TasKitto\Home\TasKitto.kproj; DestDir: {app}\Kitto2\Examples\TasKitto\Home; Flags: ignoreversion; Components: TasKittoExamples
-Source: {#KITTO}\Examples\TasKitto\Home\Metadata\*; DestDir: {app}\Kitto2\Examples\TasKitto\Home\Metadata; Flags: ignoreversion recursesubdirs createallsubdirs; Components: TasKittoExamples
-Source: {#KITTO}\Examples\TasKitto\Home\Resources\*; DestDir: {app}\Kitto2\Examples\TasKitto\Home\Resources; Flags: ignoreversion recursesubdirs createallsubdirs; Components: TasKittoExamples
-Source: {#KITTO}\Examples\TasKitto\Home\ReportTemplates\*; DestDir: {app}\Kitto2\Examples\TasKitto\Home\ReportTemplates; Flags: ignoreversion recursesubdirs createallsubdirs; Components: TasKittoExamples
-Source: {#KITTO}\Examples\TasKitto\Projects\*.ico; DestDir: {app}\Kitto2\Examples\TasKitto\Projects; Flags: ignoreversion recursesubdirs createallsubdirs; Components: TasKittoExamples
-Source: {#KITTO}\Examples\TasKitto\Projects\DXE7\*.dpr; DestDir: {app}\Kitto2\Examples\TasKitto\Projects\DXE7; Flags: ignoreversion recursesubdirs createallsubdirs; Components: TasKittoExamples
-Source: {#KITTO}\Examples\TasKitto\Projects\DXE7\*.dproj; DestDir: {app}\Kitto2\Examples\TasKitto\Projects\DXE7; Flags: ignoreversion recursesubdirs createallsubdirs; Components: TasKittoExamples
-Source: {#KITTO}\Examples\TasKitto\Projects\DXE7\*.res; DestDir: {app}\Kitto2\Examples\TasKitto\Projects\DXE7; Flags: ignoreversion recursesubdirs createallsubdirs; Components: TasKittoExamples
-Source: {#KITTO}\Examples\TasKitto\Projects\DXE8\*.dpr; DestDir: {app}\Kitto2\Examples\TasKitto\Projects\DXE8; Flags: ignoreversion recursesubdirs createallsubdirs; Components: TasKittoExamples
-Source: {#KITTO}\Examples\TasKitto\Projects\DXE8\*.dproj; DestDir: {app}\Kitto2\Examples\TasKitto\Projects\DXE8; Flags: ignoreversion recursesubdirs createallsubdirs; Components: TasKittoExamples
-Source: {#KITTO}\Examples\TasKitto\Projects\DXE8\*.res; DestDir: {app}\Kitto2\Examples\TasKitto\Projects\DXE8; Flags: ignoreversion recursesubdirs createallsubdirs; Components: TasKittoExamples
-Source: {#KITTO}\Examples\TasKitto\Projects\D10\*.dpr; DestDir: {app}\Kitto2\Examples\TasKitto\Projects\D10; Flags: ignoreversion recursesubdirs createallsubdirs; Components: TasKittoExamples
-Source: {#KITTO}\Examples\TasKitto\Projects\D10\*.dproj; DestDir: {app}\Kitto2\Examples\TasKitto\Projects\D10; Flags: ignoreversion recursesubdirs createallsubdirs; Components: TasKittoExamples
-Source: {#KITTO}\Examples\TasKitto\Projects\D10\*.res; DestDir: {app}\Kitto2\Examples\TasKitto\Projects\D10; Flags: ignoreversion recursesubdirs createallsubdirs; Components: TasKittoExamples
-Source: {#KITTO}\Examples\TasKitto\Projects\D10_1\*.dpr; DestDir: {app}\Kitto2\Examples\TasKitto\Projects\D10_1; Flags: ignoreversion recursesubdirs createallsubdirs; Components: TasKittoExamples
-Source: {#KITTO}\Examples\TasKitto\Projects\D10_1\*.dproj; DestDir: {app}\Kitto2\Examples\TasKitto\Projects\D10_1; Flags: ignoreversion recursesubdirs createallsubdirs; Components: TasKittoExamples
-Source: {#KITTO}\Examples\TasKitto\Projects\D10_1\*.res; DestDir: {app}\Kitto2\Examples\TasKitto\Projects\D10_1; Flags: ignoreversion recursesubdirs createallsubdirs; Components: TasKittoExamples
-Source: {#KITTO}\Examples\TasKitto\Projects\D10_2\*.dpr; DestDir: {app}\Kitto2\Examples\TasKitto\Projects\D10_2; Flags: ignoreversion recursesubdirs createallsubdirs; Components: TasKittoExamples
-Source: {#KITTO}\Examples\TasKitto\Projects\D10_2\*.dproj; DestDir: {app}\Kitto2\Examples\TasKitto\Projects\D10_2; Flags: ignoreversion recursesubdirs createallsubdirs; Components: TasKittoExamples
-Source: {#KITTO}\Examples\TasKitto\Projects\D10_2\*.res; DestDir: {app}\Kitto2\Examples\TasKitto\Projects\D10_2; Flags: ignoreversion recursesubdirs createallsubdirs; Components: TasKittoExamples
-Source: {#KITTO}\Examples\TasKitto\Source\*; DestDir: {app}\Kitto2\Examples\TasKitto\Source; Flags: ignoreversion recursesubdirs createallsubdirs; Components: TasKittoExamples
-Source: {#KITTO}\Examples\TasKitto\Readme.txt; DestDir: {app}\Kitto2\Examples\TasKitto; Flags: ignoreversion; Components: TasKittoExamples
-
-Source: {#KITTO}\Examples\KEmployee\Home\KEmployee.kproj; DestDir: {app}\Kitto2\Examples\KEmployee\Home; Flags: ignoreversion; Components: KEmployeeExamples
-Source: {#KITTO}\Examples\KEmployee\Home\KEmployee.exe; DestDir: {app}\Kitto2\Examples\KEmployee\Home; Flags: ignoreversion; Components: KEmployeeExamples
-Source: {#KITTO}\Examples\KEmployee\Home\*.txt; DestDir: {app}\Kitto2\Examples\KEmployee\Home; Flags: ignoreversion recursesubdirs createallsubdirs; Components: KEmployeeExamples
-Source: {#KITTO}\Examples\KEmployee\Home\Metadata\*; DestDir: {app}\Kitto2\Examples\KEmployee\Home\Metadata; Flags: ignoreversion recursesubdirs createallsubdirs; Components: KEmployeeExamples
-Source: {#KITTO}\Examples\KEmployee\Home\Resources\*; DestDir: {app}\Kitto2\Examples\KEmployee\Home\Resources; Flags: ignoreversion recursesubdirs createallsubdirs; Components: KEmployeeExamples
-Source: {#KITTO}\Examples\KEmployee\Projects\*.ico; DestDir: {app}\Kitto2\Examples\KEmployee\Projects; Flags: ignoreversion recursesubdirs createallsubdirs; Components: KEmployeeExamples
-Source: {#KITTO}\Examples\KEmployee\Projects\DXE7\*.dpr; DestDir: {app}\Kitto2\Examples\KEmployee\Projects\DXE7; Flags: ignoreversion recursesubdirs createallsubdirs; Components: KEmployeeExamples
-Source: {#KITTO}\Examples\KEmployee\Projects\DXE7\*.dproj; DestDir: {app}\Kitto2\Examples\KEmployee\Projects\DXE7; Flags: ignoreversion recursesubdirs createallsubdirs; Components: KEmployeeExamples
-Source: {#KITTO}\Examples\KEmployee\Projects\DXE7\*.res; DestDir: {app}\Kitto2\Examples\KEmployee\Projects\DXE7; Flags: ignoreversion recursesubdirs createallsubdirs; Components: KEmployeeExamples
-Source: {#KITTO}\Examples\KEmployee\Projects\DXE8\*.dpr; DestDir: {app}\Kitto2\Examples\KEmployee\Projects\DXE8; Flags: ignoreversion recursesubdirs createallsubdirs; Components: KEmployeeExamples
-Source: {#KITTO}\Examples\KEmployee\Projects\DXE8\*.dproj; DestDir: {app}\Kitto2\Examples\KEmployee\Projects\DXE8; Flags: ignoreversion recursesubdirs createallsubdirs; Components: KEmployeeExamples
-Source: {#KITTO}\Examples\KEmployee\Projects\DXE8\*.res; DestDir: {app}\Kitto2\Examples\KEmployee\Projects\DXE8; Flags: ignoreversion recursesubdirs createallsubdirs; Components: KEmployeeExamples
-Source: {#KITTO}\Examples\KEmployee\Projects\D10\*.dpr; DestDir: {app}\Kitto2\Examples\KEmployee\Projects\D10; Flags: ignoreversion recursesubdirs createallsubdirs; Components: KEmployeeExamples
-Source: {#KITTO}\Examples\KEmployee\Projects\D10\*.dproj; DestDir: {app}\Kitto2\Examples\KEmployee\Projects\D10; Flags: ignoreversion recursesubdirs createallsubdirs; Components: KEmployeeExamples
-Source: {#KITTO}\Examples\KEmployee\Projects\D10\*.res; DestDir: {app}\Kitto2\Examples\KEmployee\Projects\D10; Flags: ignoreversion recursesubdirs createallsubdirs; Components: KEmployeeExamples
-Source: {#KITTO}\Examples\KEmployee\Projects\D10_1\*.dpr; DestDir: {app}\Kitto2\Examples\KEmployee\Projects\D10_1; Flags: ignoreversion recursesubdirs createallsubdirs; Components: KEmployeeExamples
-Source: {#KITTO}\Examples\KEmployee\Projects\D10_1\*.dproj; DestDir: {app}\Kitto2\Examples\KEmployee\Projects\D10_1; Flags: ignoreversion recursesubdirs createallsubdirs; Components: KEmployeeExamples
-Source: {#KITTO}\Examples\KEmployee\Projects\D10_1\*.res; DestDir: {app}\Kitto2\Examples\KEmployee\Projects\D10_1; Flags: ignoreversion recursesubdirs createallsubdirs; Components: KEmployeeExamples
-Source: {#KITTO}\Examples\KEmployee\Projects\D10_2\*.dpr; DestDir: {app}\Kitto2\Examples\KEmployee\Projects\D10_2; Flags: ignoreversion recursesubdirs createallsubdirs; Components: KEmployeeExamples
-Source: {#KITTO}\Examples\KEmployee\Projects\D10_2\*.dproj; DestDir: {app}\Kitto2\Examples\KEmployee\Projects\D10_2; Flags: ignoreversion recursesubdirs createallsubdirs; Components: KEmployeeExamples
-Source: {#KITTO}\Examples\KEmployee\Projects\D10_2\*.res; DestDir: {app}\Kitto2\Examples\KEmployee\Projects\D10_2; Flags: ignoreversion recursesubdirs createallsubdirs; Components: KEmployeeExamples
-Source: {#KITTO}\Examples\KEmployee\Source\*; DestDir: {app}\Kitto2\Examples\KEmployee\Source; Flags: ignoreversion recursesubdirs createallsubdirs; Components: KEmployeeExamples
-Source: {#KITTO}\Examples\KEmployee\Readme.txt; DestDir: {app}\Kitto2\Examples\KEmployee; Flags: ignoreversion; Components: KEmployeeExamples
-
+Source: {#KITTO}\Examples\KEmployee\Home\KEmployee.kproj; DestDir: {app}\kitto\Examples\KEmployee\Home; Flags: ignoreversion; Components: KEmployeeExamples
+Source: {#KITTO}\Examples\KEmployee\Home\KEmployee.exe; DestDir: {app}\kitto\Examples\KEmployee\Home; Flags: ignoreversion; Components: KEmployeeExamples
+Source: {#KITTO}\Examples\KEmployee\Home\*.txt; DestDir: {app}\kitto\Examples\KEmployee\Home; Flags: ignoreversion recursesubdirs createallsubdirs; Components: KEmployeeExamples
+Source: {#KITTO}\Examples\KEmployee\Home\Metadata\*; DestDir: {app}\kitto\Examples\KEmployee\Home\Metadata; Flags: ignoreversion recursesubdirs createallsubdirs; Components: KEmployeeExamples
+Source: {#KITTO}\Examples\KEmployee\Home\Resources\*; DestDir: {app}\kitto\Examples\KEmployee\Home\Resources; Flags: ignoreversion recursesubdirs createallsubdirs; Components: KEmployeeExamples
+Source: {#KITTO}\Examples\KEmployee\Projects\*.ico; DestDir: {app}\kitto\Examples\KEmployee\Projects; Flags: ignoreversion recursesubdirs createallsubdirs; Components: KEmployeeExamples
+Source: {#KITTO}\Examples\KEmployee\Projects\DXE7\*.dpr; DestDir: {app}\kitto\Examples\KEmployee\Projects\DXE7; Flags: ignoreversion recursesubdirs createallsubdirs; Components: KEmployeeExamples
+Source: {#KITTO}\Examples\KEmployee\Projects\DXE7\*.dproj; DestDir: {app}\kitto\Examples\KEmployee\Projects\DXE7; Flags: ignoreversion recursesubdirs createallsubdirs; Components: KEmployeeExamples
+Source: {#KITTO}\Examples\KEmployee\Projects\DXE7\*.res; DestDir: {app}\kitto\Examples\KEmployee\Projects\DXE7; Flags: ignoreversion recursesubdirs createallsubdirs; Components: KEmployeeExamples
+Source: {#KITTO}\Examples\KEmployee\Projects\DXE8\*.dpr; DestDir: {app}\kitto\Examples\KEmployee\Projects\DXE8; Flags: ignoreversion recursesubdirs createallsubdirs; Components: KEmployeeExamples
+Source: {#KITTO}\Examples\KEmployee\Projects\DXE8\*.dproj; DestDir: {app}\kitto\Examples\KEmployee\Projects\DXE8; Flags: ignoreversion recursesubdirs createallsubdirs; Components: KEmployeeExamples
+Source: {#KITTO}\Examples\KEmployee\Projects\DXE8\*.res; DestDir: {app}\kitto\Examples\KEmployee\Projects\DXE8; Flags: ignoreversion recursesubdirs createallsubdirs; Components: KEmployeeExamples
+Source: {#KITTO}\Examples\KEmployee\Projects\D10\*.dpr; DestDir: {app}\kitto\Examples\KEmployee\Projects\D10; Flags: ignoreversion recursesubdirs createallsubdirs; Components: KEmployeeExamples
+Source: {#KITTO}\Examples\KEmployee\Projects\D10\*.dproj; DestDir: {app}\kitto\Examples\KEmployee\Projects\D10; Flags: ignoreversion recursesubdirs createallsubdirs; Components: KEmployeeExamples
+Source: {#KITTO}\Examples\KEmployee\Projects\D10\*.res; DestDir: {app}\kitto\Examples\KEmployee\Projects\D10; Flags: ignoreversion recursesubdirs createallsubdirs; Components: KEmployeeExamples
+Source: {#KITTO}\Examples\KEmployee\Projects\D10_1\*.dpr; DestDir: {app}\kitto\Examples\KEmployee\Projects\D10_1; Flags: ignoreversion recursesubdirs createallsubdirs; Components: KEmployeeExamples
+Source: {#KITTO}\Examples\KEmployee\Projects\D10_1\*.dproj; DestDir: {app}\kitto\Examples\KEmployee\Projects\D10_1; Flags: ignoreversion recursesubdirs createallsubdirs; Components: KEmployeeExamples
+Source: {#KITTO}\Examples\KEmployee\Projects\D10_1\*.res; DestDir: {app}\kitto\Examples\KEmployee\Projects\D10_1; Flags: ignoreversion recursesubdirs createallsubdirs; Components: KEmployeeExamples
+Source: {#KITTO}\Examples\KEmployee\Projects\D10_2\*.dpr; DestDir: {app}\kitto\Examples\KEmployee\Projects\D10_2; Flags: ignoreversion recursesubdirs createallsubdirs; Components: KEmployeeExamples
+Source: {#KITTO}\Examples\KEmployee\Projects\D10_2\*.dproj; DestDir: {app}\kitto\Examples\KEmployee\Projects\D10_2; Flags: ignoreversion recursesubdirs createallsubdirs; Components: KEmployeeExamples
+Source: {#KITTO}\Examples\KEmployee\Projects\D10_2\*.res; DestDir: {app}\kitto\Examples\KEmployee\Projects\D10_2; Flags: ignoreversion recursesubdirs createallsubdirs; Components: KEmployeeExamples
+Source: {#KITTO}\Examples\KEmployee\Source\*; DestDir: {app}\kitto\Examples\KEmployee\Source; Flags: ignoreversion recursesubdirs createallsubdirs; Components: KEmployeeExamples
+Source: {#KITTO}\Examples\KEmployee\Readme.txt; DestDir: {app}\kitto\Examples\KEmployee; Flags: ignoreversion; Components: KEmployeeExamples
 
 [Dirs]
 Name: "{app}"; Permissions: users-full
 
 [Icons]
-Name: {group}\Kitto2; Filename: {app}\Kide2\Bin\{#MyAppExeName}; Components: Kide2
-Name: {commondesktop}\Kide2; Filename: {app}\Kide2\Bin\{#MyAppExeName}; Tasks: desktopicon; Components: Kide2
-Name: {userappdata}\Microsoft\Internet Explorer\Quick Launch\Kide2; Filename: {app}\Kide2\Bin\{#MyAppExeName}; Tasks: quicklaunchicon; Components: Kide2
+Name: {group}\Kitto2; Filename: {app}\kitto\Kide\Bin\{#MyAppExeName}; Components: Kide2
+Name: {commondesktop}\Kide2; Filename: {app}\kitto\Kide\Bin\{#MyAppExeName}; Tasks: desktopicon; Components: Kide2
+Name: {userappdata}\Microsoft\Internet Explorer\Quick Launch\Kide2; Filename: {app}\kitto\Kide\Bin\{#MyAppExeName}; Tasks: quicklaunchicon; Components: Kide2
 
-Name: {app}\Kitto2\Examples\HelloKitto\Home\HelloKitto - Install as service; Filename: {app}\Kitto2\Examples\HelloKitto\Home\HelloKitto.exe; Parameters: -install; Components: HelloKittoExamples
-Name: {app}\Kitto2\Examples\HelloKitto\Home\HelloKitto - Uninstall service; Filename: {app}\Kitto2\Examples\HelloKitto\Home\HelloKitto.exe; Parameters: -uninstall; Components: HelloKittoExamples
-Name: {app}\Kitto2\Examples\HelloKitto\Home\HelloKitto - Run as application; Filename: {app}\Kitto2\Examples\HelloKitto\Home\HelloKitto.exe; Parameters: -a; Components: HelloKittoExamples
-Name: {app}\Kitto2\Examples\TasKitto\Home\TasKitto - Install as service; Filename: {app}\Kitto2\Examples\TasKitto\Home\TasKitto.exe; Parameters: -install; Components: TasKittoExamples
-Name: {app}\Kitto2\Examples\TasKitto\Home\TasKitto - Uninstall service; Filename: {app}\Kitto2\Examples\TasKitto\Home\TasKitto.exe; Parameters: -uninstall; Components: TasKittoExamples
-Name: {app}\Kitto2\Examples\TasKitto\Home\TasKitto - Run as application; Filename: {app}\Kitto2\Examples\TasKitto\Home\TasKitto.exe; Parameters: -a; Components: TasKittoExamples
-Name: {app}\Kitto2\Examples\KEmployee\Home\KEmployee - Install as service; Filename: {app}\Kitto2\Examples\KEmployee\Home\KEmployee.exe; Parameters: -install; Components: KEmployeeExamples
-Name: {app}\Kitto2\Examples\KEmployee\Home\KEmployee - Uninstall service; Filename: {app}\Kitto2\Examples\KEmployee\Home\KEmployee.exe; Parameters: -uninstall; Components: KEmployeeExamples
-Name: {app}\Kitto2\Examples\KEmployee\Home\KEmployee - Run as application; Filename: {app}\Kitto2\Examples\KEmployee\Home\KEmployee.exe; Parameters: -a; Components: KEmployeeExamples
+Name: {app}\kitto\Examples\HelloKitto\Home\HelloKitto - Install as service; Filename: {app}\kitto\Examples\HelloKitto\Home\HelloKitto.exe; Parameters: -install; Components: HelloKittoExamples
+Name: {app}\kitto\Examples\HelloKitto\Home\HelloKitto - Uninstall service; Filename: {app}\kitto\Examples\HelloKitto\Home\HelloKitto.exe; Parameters: -uninstall; Components: HelloKittoExamples
+Name: {app}\kitto\Examples\HelloKitto\Home\HelloKitto - Run as application; Filename: {app}\kitto\Examples\HelloKitto\Home\HelloKitto.exe; Parameters: -a; Components: HelloKittoExamples
+Name: {app}\kitto\Examples\TasKitto\Home\TasKitto - Install as service; Filename: {app}\kitto\Examples\TasKitto\Home\TasKitto.exe; Parameters: -install; Components: TasKittoExamples
+Name: {app}\kitto\Examples\TasKitto\Home\TasKitto - Uninstall service; Filename: {app}\kitto\Examples\TasKitto\Home\TasKitto.exe; Parameters: -uninstall; Components: TasKittoExamples
+Name: {app}\kitto\Examples\TasKitto\Home\TasKitto - Run as application; Filename: {app}\kitto\Examples\TasKitto\Home\TasKitto.exe; Parameters: -a; Components: TasKittoExamples
+Name: {app}\kitto\Examples\KEmployee\Home\KEmployee - Install as service; Filename: {app}\kitto\Examples\KEmployee\Home\KEmployee.exe; Parameters: -install; Components: KEmployeeExamples
+Name: {app}\kitto\Examples\KEmployee\Home\KEmployee - Uninstall service; Filename: {app}\kitto\Examples\KEmployee\Home\KEmployee.exe; Parameters: -uninstall; Components: KEmployeeExamples
+Name: {app}\kitto\Examples\KEmployee\Home\KEmployee - Run as application; Filename: {app}\kitto\Examples\KEmployee\Home\KEmployee.exe; Parameters: -a; Components: KEmployeeExamples
 
 [Run]
-Filename: {app}\Kide2\Bin\{#MyAppExeName}; Description: {cm:LaunchProgram, Kide}; Flags: nowait postinstall skipifsilent
+Filename: {app}\kitto\Kide\Bin\{#MyAppExeName}; Description: {cm:LaunchProgram, Kide}; Flags: nowait postinstall skipifsilent
 
 [Components]
 Name: Kitto2; Description: Kitto2 source code; Types: full compact
@@ -174,8 +187,8 @@ Name: Kitto2Docs; Description: Kitto2 reference documentation; Types: custom ful
 ;kproj extension opened by KIDE
 Root: HKCR; SubKey: .kproj; ValueType: string; ValueData: Open; Flags: uninsdeletekey;
 Root: HKCR; SubKey: Open; ValueType: string; ValueData: Kide project file; Flags: uninsdeletekey;
-Root: HKCR; SubKey: Open\Shell\Open\Command; ValueType: string; ValueData: """{app}\Kide2\Bin\{#MyAppExeName}"" ""%1"""; Flags: uninsdeletevalue;
-Root: HKCR; Subkey: Open\DefaultIcon; ValueType: string; ValueData: {app}\Kide2\Bin\{#MyAppExeName},0; Flags: uninsdeletevalue;
+Root: HKCR; SubKey: Open\Shell\Open\Command; ValueType: string; ValueData: """{app}\kitto\Kide\Bin\{#MyAppExeName}"" ""%1"""; Flags: uninsdeletevalue;
+Root: HKCR; Subkey: Open\DefaultIcon; ValueType: string; ValueData: {app}\kitto\Kide\Bin\{#MyAppExeName},0; Flags: uninsdeletevalue;
 
 [UninstallDelete]
 Name: {app}; Type: filesandordirs

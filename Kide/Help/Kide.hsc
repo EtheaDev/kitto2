@@ -70,7 +70,7 @@ FALSE
 \par 
 \par What is Kitto2?
 \par \b0\fs20 Kitto2  is a development tool to create data-driven RIAs (Rich Internet Applications) withAjax features and a MVC structure. Project files are written using the Yaml notation, while the engine is fully developed in Delphi by Ethea and is fully extensible. Applications created with Kitto2 work with all databases supported by Delphi through ADO, DBExpress or FireDAC. The user interface is made with the ExtJS 6.2 library.
-\par Visit \cf1\strike ethea.it/eng_kitto.asp\cf3\strike0\f3\{link=*! ExecFile("http://ethea.it/eng_kitto.asp")\}\cf2\f0  to find more information about Kitto2.
+\par Visit \cf1\strike ethea.it/eng_kitto.htm\cf3\strike0\f3\{link=*! ExecFile("http://ethea.it/eng_kitto.\f4 htm\f3 ")\}\cf2\f0  to find more information about Kitto2.
 \par \b\fs22 
 \par Open Source
 \par \b0\fs20 Kitto2 and Kide2 are Open-Source and free! They are released under \cf1\strike\f3 Apache.org License 2.0\cf3\strike0\{link=*! ExecFile("http://www.apache.org/licenses/LICENSE-2.0")\}\cf2\f0 

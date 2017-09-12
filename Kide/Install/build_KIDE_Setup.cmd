@@ -1,4 +1,4 @@
-@echo on
+@echo off
 
 @set FrameworkDir=C:\WINDOWS\Microsoft.NET\Framework\
 @set FrameworkVersion=v4.0.30319
@@ -62,7 +62,7 @@ cd ..\..\..\..\Kide\Install
 :BuildInstaller
 echo.
 @echo ================================
-CHOICE /C YN /M "Buil Standard Setup?"
+CHOICE /C YN /M "Build Setup?"
 IF ERRORLEVEL == 2 goto exit
 IF ERRORLEVEL == 1 goto BuildStdSetup
 goto exit
