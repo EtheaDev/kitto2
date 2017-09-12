@@ -1,4 +1,4 @@
-program KIDE2;
+program Kide2;
 
 {$R *.dres}
 
@@ -25,7 +25,6 @@ uses
   Vcl.Styles,
   Vcl.Themes,
   Kitto.Config,
-  Kitto.Metadata.ModelImplementation,
   KIDE.BaseFormUnit in '..\..\Source\KIDE.BaseFormUnit.pas' {BaseForm},
   KIDE.UseKitto in '..\..\Source\KIDE.UseKitto.pas',
   MD_Label in '..\..\Ext\MDlabel\Source\MD_Label.pas',

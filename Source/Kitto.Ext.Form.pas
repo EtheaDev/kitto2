@@ -633,11 +633,7 @@ var
   LError: string;
 begin
   AssignFieldChangeEvent(False);
-  try
-    LError := UpdateRecord(StoreRecord, TKWebRequest.Current.JSONContentTree.ChildByName('new'), '', True);
-  finally
-    AssignFieldChangeEvent(True);
-  end;
+  LError := UpdateRecord(StoreRecord, TKWebRequest.Current.JSONContentTree.ChildByName('new'), '', True);
 
   FreeAndNil(FCloneValues);
   if LError = '' then
@@ -651,7 +647,9 @@ begin
     end
     else
       CloseHostContainer;
-  end;
+  end
+  else
+    AssignFieldChangeEvent(True);
 end;
 
 procedure TKExtFormPanelController.AfterConstruction;
@@ -666,18 +664,16 @@ var
   LError: string;
 begin
   AssignFieldChangeEvent(False);
-  try
-    LError := UpdateRecord(StoreRecord, TKWebRequest.Current.JSONContentTree.ChildByName('new'), '', True);
-  finally
-    AssignFieldChangeEvent(True);
-  end;
+  LError := UpdateRecord(StoreRecord, TKWebRequest.Current.JSONContentTree.ChildByName('new'), '', True);
 
   if LError = '' then
   begin
     FChangesApplied := True;
     FOperation := 'Edit';
     StartOperation;
-  end;
+  end
+  else
+    AssignFieldChangeEvent(True);
 end;
 
 procedure TKExtFormPanelController.ConfirmChangesAndClone;
@@ -685,11 +681,7 @@ var
   LError: string;
 begin
   AssignFieldChangeEvent(False);
-  try
-    LError := UpdateRecord(StoreRecord, TKWebRequest.Current.JSONContentTree.ChildByName('new'), '', True);
-  finally
-    AssignFieldChangeEvent(True);
-  end;
+  LError := UpdateRecord(StoreRecord, TKWebRequest.Current.JSONContentTree.ChildByName('new'), '', True);
 
   if LError = '' then
   begin
@@ -698,7 +690,9 @@ begin
     FOperation := 'Add';
     // recupera dati record
     StartOperation;
-  end;
+  end
+  else
+    AssignFieldChangeEvent(True);
 end;
 
 function TKExtFormPanelController.LayoutContainsPageBreaks: Boolean;

@@ -543,7 +543,8 @@ type
     procedure EnumPhysicalFields(const AProc: TProc<TKModelField>);
 
     /// <summary>
-    ///  Returns an array of key field names.
+    ///  Returns an array of key field names. Throws an exception if no
+    ///  primary key is defined.
     /// </summary>
     function GetKeyFieldNames: TStringDynArray;
     /// <summary>Returns an array of key physical field names.</summary>
@@ -1111,6 +1112,8 @@ begin
     else
       AppendToResult(Fields[I]);
   end;
+  if Length(Result) = 0 then
+    raise Exception.CreateFmt(_('Model %s has no primary key.'), [ModelName]);
 end;
 
 function TKModel.GetKeyDBColumnNames(const AQualify: Boolean; const AAlias: Boolean): TStringDynArray;

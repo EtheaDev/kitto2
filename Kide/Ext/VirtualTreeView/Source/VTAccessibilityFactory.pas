@@ -1,5 +1,28 @@
 unit VTAccessibilityFactory;
 
+// The contents of this file are subject to the Mozilla Public License
+// Version 1.1 (the "License"); you may not use this file except in compliance
+// with the License. You may obtain a copy of the License at http://www.mozilla.org/MPL/
+//
+// Alternatively, you may redistribute this library, use and/or modify it under the terms of the
+// GNU Lesser General Public License as published by the Free Software Foundation;
+// either version 2.1 of the License, or (at your option) any later version.
+// You may obtain a copy of the LGPL at http://www.gnu.org/copyleft/.
+//
+// Software distributed under the License is distributed on an "AS IS" basis,
+// WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for the
+// specific language governing rights and limitations under the License.
+//
+// The original code is VirtualTrees.pas, released September 30, 2000.
+//
+// The initial developer of the original code is digital publishing AG (Munich, Germany, www.digitalpublishing.de),
+// written by Mike Lischke (public@soft-gems.net, www.soft-gems.net).
+//
+// Portions created by digital publishing AG are Copyright
+// (C) 1999-2001 digital publishing AG. All Rights Reserved.
+//----------------------------------------------------------------------------------------------------------------------
+
+
 // class to create IAccessibles for the tree passed into it.
 // If not already assigned, creates IAccessibles for the tree itself
 // and the focused item
@@ -14,10 +37,7 @@ unit VTAccessibilityFactory;
 interface
 
 uses
-  {$if CompilerVersion >= 18}
-    oleacc, // MSAA support in Delphi 2006 or higher
-  {$ifend}
-  Classes, VirtualTrees;
+  System.Classes, Winapi.oleacc, VirtualTrees;
 
 type
   IVTAccessibleProvider = interface
@@ -25,23 +45,24 @@ type
   end;
 
   TVTAccessibilityFactory = class(TObject)
-  private
+  strict private class var
+    FAccessibilityAvailable: Boolean;
+    FVTAccessibleFactory: TVTAccessibilityFactory;
+  strict private
     FAccessibleProviders: TInterfaceList;
+  private
+    class procedure FreeFactory;
   public
     constructor Create;
     destructor Destroy; override;
     function CreateIAccessible(ATree: TBaseVirtualTree): IAccessible;
-    procedure RegisterAccessibleProvider(AProvider: IVTAccessibleProvider);
-    procedure UnRegisterAccessibleProvider(AProvider: IVTAccessibleProvider);
+    class function GetAccessibilityFactory: TVTAccessibilityFactory; static;
+    procedure RegisterAccessibleProvider(const AProvider: IVTAccessibleProvider);
+    procedure UnRegisterAccessibleProvider(const AProvider: IVTAccessibleProvider);
   end;
 
-function GetAccessibilityFactory: TVTAccessibilityFactory;
-
+  
 implementation
-
-var
-  VTAccessibleFactory: TVTAccessibilityFactory = nil;
-  AccessibilityAvailable: Boolean = False;
 
 { TVTAccessibilityFactory }
 
@@ -109,37 +130,39 @@ begin
   inherited Destroy;
 end;
 
-procedure TVTAccessibilityFactory.RegisterAccessibleProvider(
-  AProvider: IVTAccessibleProvider);
+class procedure TVTAccessibilityFactory.FreeFactory;
+begin
+  FVTAccessibleFactory.Free;
+end;
+
+procedure TVTAccessibilityFactory.RegisterAccessibleProvider(const AProvider: IVTAccessibleProvider);
 // Ads a provider if it is not already registered
 begin
   if FAccessibleProviders.IndexOf(AProvider) < 0 then
     FAccessibleProviders.Add(AProvider)
 end;
 
-procedure TVTAccessibilityFactory.UnRegisterAccessibleProvider(
-  AProvider: IVTAccessibleProvider);
+procedure TVTAccessibilityFactory.UnRegisterAccessibleProvider(const AProvider: IVTAccessibleProvider);
 // Unregisters/removes an IAccessible provider if it is present
 begin
   if FAccessibleProviders.IndexOf(AProvider) >= 0 then
     FAccessibleProviders.Remove(AProvider);
 end;
 
-function GetAccessibilityFactory: TVTAccessibilityFactory;
-
+class function TVTAccessibilityFactory.GetAccessibilityFactory: TVTAccessibilityFactory;
 // Accessibility helper function to create a singleton class that will create or return
 // the IAccessible interface for the tree and the focused node.
 
 begin
   // first, check if we've loaded the library already
-  if not AccessibilityAvailable then
-    AccessibilityAvailable := True;
-  if AccessibilityAvailable then
+  if not FAccessibilityAvailable then
+    FAccessibilityAvailable := True;
+  if FAccessibilityAvailable then
   begin
     // Check to see if the class has already been created.
-    if VTAccessibleFactory = nil then
-      VTAccessibleFactory := TVTAccessibilityFactory.Create;
-    Result := VTAccessibleFactory;
+    if FVTAccessibleFactory = nil then
+      FVTAccessibleFactory := TVTAccessibilityFactory.Create;
+    Result := FVTAccessibleFactory;
   end
   else
     Result := nil;
@@ -148,6 +171,8 @@ end;
 initialization
 
 finalization
-  VTAccessibleFactory.Free;
+  TVTAccessibilityFactory.FreeFactory;
 
 end.
+
+

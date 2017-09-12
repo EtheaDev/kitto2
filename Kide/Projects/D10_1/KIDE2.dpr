@@ -5,6 +5,7 @@ program KIDE2;
 uses
   {$IFDEF MADEXCEPT}
   {$ENDIF }
+  MidasLib,
   EF.DB.ADO,
   EF.DB.DBX,
   Data.DBXFirebird,
