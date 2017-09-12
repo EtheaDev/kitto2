@@ -65,7 +65,7 @@ type
       var Allowed: Boolean);
     procedure TreeGetImageIndex(Sender: TBaseVirtualTree; Node: PVirtualNode;
       Kind: TVTImageKind; Column: TColumnIndex; var Ghosted: Boolean;
-      var ImageIndex: Integer);
+      var ImageIndex: TImageIndex);
     procedure TreeGetText(Sender: TBaseVirtualTree; Node: PVirtualNode;
       Column: TColumnIndex; TextType: TVSTTextType; var CellText: string);
     procedure TreeInitChildren(Sender: TBaseVirtualTree; Node: PVirtualNode;
@@ -534,18 +534,21 @@ end;
 
 procedure TEFTreeFrame.TreeGetImageIndex(Sender: TBaseVirtualTree;
   Node: PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex;
-  var Ghosted: Boolean; var ImageIndex: Integer);
+  var Ghosted: Boolean; var ImageIndex: TImageIndex);
 var
   LData: PEFVirtualTreeNode;
 begin
   inherited;
   ImageIndex := -1;
-  if Assigned(Node) and Assigned(Sender.GetNodeData(Node)) then
+  if Kind <> ikState then
   begin
-    LData := Sender.GetNodeData(Node);
-    Assert(LData.Node <> nil);
-    if (Column = 0) and (Kind <> ikOverlay) and (LData.Node is TEFNode) then
-      ImageIndex := TEFNode(LData.Node).GetDesignImageIndex;
+    if Assigned(Node) and Assigned(Sender.GetNodeData(Node)) then
+    begin
+      LData := Sender.GetNodeData(Node);
+      Assert(LData.Node <> nil);
+      if (Column = 0) and (Kind <> ikOverlay) and (LData.Node is TEFNode) then
+        ImageIndex := TEFNode(LData.Node).GetDesignImageIndex;
+    end;
   end;
 end;
 
