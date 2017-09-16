@@ -218,7 +218,7 @@ procedure TEFDBFDConnection.InternalOpen;
 var
   LDriverId: string;
   LIsolation: Integer;
-  LServer, LPort: string;
+  LServer, LPort, LProtocol: string;
 begin
   inherited;
   FConnection.Params.Clear;
@@ -242,22 +242,24 @@ begin
     FConnection.Params.Values['Password'] := Config.GetExpandedString('Connection/Password');
     FConnection.Params.Values['Network'] := Config.GetExpandedString('Connection/Network');
     FConnection.Params.Values['Address'] := Config.GetExpandedString('Connection/Address');
-    FConnection.Params.Values['Language'] := Config.GetExpandedString('Connection/Language');    
+    FConnection.Params.Values['Language'] := Config.GetExpandedString('Connection/Language');
     FConnection.Params.Values['ApplicationName'] := Config.GetExpandedString('Connection/ApplicationName');
     FConnection.Params.Values['Database'] := Config.GetExpandedString('Connection/Database');
     FConnection.Params.Values['OSAuthent'] := Config.GetString('Connection/OSAuthent', 'No');
     FConnection.Params.Values['MARS'] := 'Yes';
   end
-  else if SameText(LDriverID, 'FB') then
+  else if SameText(LDriverID, 'FB') or SameText(LDriverID, 'IB') then
   begin
+    LProtocol := Config.GetExpandedString('Connection/Protocol');
     // Use Specific parameters for Firebird
     FConnection.Params.Values['Database'] := Config.GetExpandedString('Connection/Database');
     FConnection.Params.Values['OSAuthent'] := Config.GetString('Connection/OSAuthent', 'No');
     FConnection.Params.Values['User_Name'] := Config.GetExpandedString('Connection/User_Name');
     FConnection.Params.Values['Password'] := Config.GetExpandedString('Connection/Password');
     FConnection.Params.Values['CharacterSet'] := Config.GetExpandedString('Connection/CharacterSet');
-    FConnection.Params.Values['Port'] := Config.GetString('Connection/Port', '3050');
-    FConnection.Params.Values['Protocol'] := Config.GetExpandedString('Connection/Protocol');
+    FConnection.Params.Values['Protocol'] := LProtocol;
+    if not SameText(LProtocol, 'Local') then
+      FConnection.Params.Values['Port'] := Config.GetString('Connection/Port', '3050');
     FConnection.Params.Values['Server'] := Config.GetExpandedString('Connection/Server');
     FConnection.Params.Values['SQLDialect'] := Config.GetExpandedString('Connection/SQLDialect');
     FConnection.Params.Values['RoleName'] := Config.GetExpandedString('Connection/RoleName');
@@ -737,10 +739,6 @@ begin
     LPrimaryKeyDataSet.Open;
     while not LPrimaryKeyDataSet.Eof do
     begin
-      if ATable.PrimaryKey.Name = '' then
-        ATable.PrimaryKey.Name := LPrimaryKeyDataSet.FieldByName('PKEY_NAME').AsString
-      else if ATable.PrimaryKey.Name <> LPrimaryKeyDataSet.FieldByName('PKEY_NAME').AsString then
-        raise EEFError.Create('Error fetching primary key data for table ' + ATable.Name);
       LIndexName := LPrimaryKeyDataSet.FieldByName('INDEX_NAME').AsString;
       FetchTableIndexColumns(ATable, LIndexName, ATable.PrimaryKey.ColumnNames);
       LPrimaryKeyDataSet.Next;
