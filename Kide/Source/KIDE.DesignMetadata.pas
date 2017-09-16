@@ -175,6 +175,8 @@ begin
   begin
     if TKModelField(Self).IsReference then
       Result := FIELD_REF_PICTURE
+    else if TKModelField(Self).IsKey then
+      Result := FIELD_PK_PICTURE
     else
       Result := FIELD_PICTURE;
   end
