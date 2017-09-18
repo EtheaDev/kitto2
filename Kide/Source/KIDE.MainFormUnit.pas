@@ -765,6 +765,7 @@ var
   I: Integer;
   LItem: TActionClientItem;
   LAction: TAction;
+  LFileName: string;
 begin
   for I := ActionManager.ActionCount - 1 downto 0 do
     if ActionManager.Actions[I].Category = RECENT_PROJECTS_CAT then
@@ -779,15 +780,32 @@ begin
   LItems := TStringList.Create;
   try
     TMRUOptions.Instance.GetChildrenAsStrings('RecentProjects', LItems);
+    //Add existing projects
     for I := 0 to LItems.Count - 1 do
     begin
-      LAction := TAction.Create(Self);
-      LAction.Category := RECENT_PROJECTS_CAT;
-      LAction.Caption := LItems.ValueFromIndex[I];
-      LAction.OnExecute := OpenRecentProjectActionExecute;
+      LFileName := LItems.ValueFromIndex[I];
+      if FileExists(LFileName) then
+      begin
+        LAction := TAction.Create(Self);
+        LAction.Category := RECENT_PROJECTS_CAT;
+        LAction.Caption := LItems.ValueFromIndex[I];
+        LAction.OnExecute := OpenRecentProjectActionExecute;
 
-      LItem := LParentItem.Items.Add;
-      LItem.Action := LAction;
+        LItem := LParentItem.Items.Add;
+        LItem.Action := LAction;
+      end;
+    end;
+    //Remove missing projects
+    I := LItems.Count;
+    while I > 0 do
+    begin
+      LFileName := LItems.ValueFromIndex[I-1];
+      if not FileExists(LFileName) then
+      begin
+        LItems.Delete(I-1);
+        Dec(I);
+      end;
+      Dec(I);
     end;
   finally
     FreeAndNil(LItems);
