@@ -29,6 +29,12 @@
         <CfgParent>Base</CfgParent>
         <Base>true</Base>
     </PropertyGroup>
+    <PropertyGroup Condition="('$(Platform)'=='Win32' and '$(Cfg_1)'=='true') or '$(Cfg_1_Win32)'!=''">
+        <Cfg_1_Win32>true</Cfg_1_Win32>
+        <CfgParent>Cfg_1</CfgParent>
+        <Cfg_1>true</Cfg_1>
+        <Base>true</Base>
+    </PropertyGroup>
     <PropertyGroup Condition="'$(Config)'=='Debug' or '$(Cfg_2)'!=''">
         <Cfg_2>true</Cfg_2>
         <CfgParent>Base</CfgParent>
@@ -57,7 +63,7 @@
         <Icon_MainIcon>..\TasKitto_Icon.ico</Icon_MainIcon>
         <DCC_ExeOutput>..\..\Home</DCC_ExeOutput>
         <DCC_DcuOutput>..\..\Lib\$(ProductVersion)\$(Config)\$(Platform)</DCC_DcuOutput>
-        <DCC_UnitSearchPath>..\..\..\..\Source;..\..\..\..\Source\EF;..\..\..\..\Source\ThirdParty;..\..\..\..\Source\ThirdParty\ExtPascal;..\..\..\..\Source\ThirdParty\ExtPascal\ExtJSWrapper;..\..\..\..\Source\ThirdParty\SuperObject;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
+        <DCC_UnitSearchPath>..\..\..\..\Source;..\..\..\..\Source\EF;..\..\..\..\Source\Ext;..\..\..\..\Source\ThirdParty;..\..\..\..\Source\ThirdParty\SuperObject;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
         <DCC_WriteableConstants>true</DCC_WriteableConstants>
         <DCC_E>false</DCC_E>
         <DCC_ImageBase>00400000</DCC_ImageBase>
@@ -65,6 +71,7 @@
         <DCC_S>false</DCC_S>
         <DCC_F>false</DCC_F>
         <DCC_K>false</DCC_K>
+        <DCC_Define>IBFB_SUPPORT;$(DCC_Define)</DCC_Define>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Win32)'!=''">
         <Debugger_RunParams>-a</Debugger_RunParams>
@@ -85,6 +92,10 @@
         <DCC_SymbolReferenceInfo>0</DCC_SymbolReferenceInfo>
         <DCC_DebugInformation>0</DCC_DebugInformation>
     </PropertyGroup>
+    <PropertyGroup Condition="'$(Cfg_1_Win32)'!=''">
+        <VerInfo_Locale>1033</VerInfo_Locale>
+        <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
+    </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2)'!=''">
         <DCC_StrictVarStrings>false</DCC_StrictVarStrings>
         <DCC_DebugDCUs>true</DCC_DebugDCUs>
@@ -95,6 +106,8 @@
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2_Win32)'!=''">
         <Icon_MainIcon>..\TasKitto_Icon.ico</Icon_MainIcon>
+        <Debugger_RunParams>-a</Debugger_RunParams>
+        <BT_BuildType>Debug</BT_BuildType>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
         <VerInfo_Locale>1033</VerInfo_Locale>
     </PropertyGroup>

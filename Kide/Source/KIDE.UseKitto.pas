@@ -20,11 +20,11 @@ interface
 uses
   EF.DB.ADO,
   EF.DB.DBX,
-{$IFDEF D20+}
   EF.DB.FD, //FireDac support
+  FireDAC.Phys,
+  FireDAC.Phys.Intf,
   FireDAC.Phys.MSSQL, FireDAC.Phys.MSSQLMeta, //FireDac support for MS-SQL
-  FireDAC.Phys.IBBase, FireDAC.Phys.FB, //FireDac support for Firebird
-{$ENDIF}
+  FireDAC.Phys.IBMeta, FireDAC.Phys.IBBase, FireDAC.Phys.IBDef, FireDAC.Phys.IB, FireDAC.Phys.FB, //FireDac support for Interbase and Firebird
   Kitto.AccessControl.DB,
   Kitto.Auth.DB,
   Kitto.Auth.DBServer,

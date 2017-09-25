@@ -64,3 +64,6 @@ __recovery/
 
 # Castalia statistics file (since XE7 Castalia is distributed with Delphi)
 *.stat
+/Examples/HelloKitto/Projects/D10_2/*.log
+/Examples/KEmployee/Projects/D10_2/*.log
+/Examples/TasKitto/Projects/D10_2/*.log
