@@ -273,7 +273,7 @@ function expandObjectProperties(template, object)
 // Any {fieldname} tokens are also replaced with values from the same record.
 function selectConfirmCall(title, questionTpl, selModel, captionFieldName, functionParams)
 {
-  var lastRecord = selModel.getSelections().slice(-1)[0];
+  var lastRecord = selModel.getSelection().slice(-1)[0];
   var processedMsg = (captionFieldName !== "") && (questionTpl.indexOf("{caption}") !== -1) ? questionTpl.replace("{caption}", lastRecord.get(captionFieldName).toString()) : questionTpl;
   processedMsg = expandObjectProperties(processedMsg, lastRecord.data);
 
