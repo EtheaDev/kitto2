@@ -1,0 +1,7 @@
+﻿ModelName: Nextitem
+PhysicalName: NEXTITEM
+DatabaseRouter: Static
+  DatabaseName: Main
+Fields:
+  Newkey: Float primary key
+    PhysicalName: NEWKEY

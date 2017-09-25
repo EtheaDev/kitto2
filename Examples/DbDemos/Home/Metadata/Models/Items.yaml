@@ -1,0 +1,19 @@
+﻿ModelName: Items
+PhysicalName: ITEMS
+DatabaseRouter: Static
+  DatabaseName: Main
+Fields:
+  Itemno: Float primary key
+    PhysicalName: ITEMNO
+  Qty: Integer
+    PhysicalName: QTY
+  Discount: Float
+    PhysicalName: DISCOUNT
+  OrdernoRef: Reference(Orders)
+    PhysicalName: INTEG_11
+    Fields:
+      Orderno:
+  PartnoRef: Reference(Parts)
+    PhysicalName: INTEG_12
+    Fields:
+      Partno:

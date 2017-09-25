@@ -1,0 +1,26 @@
+﻿ModelName: Biolife
+DatabaseRouter: Static
+  DatabaseName: Main
+Fields:
+  SpeciesNo: Float primary key
+    PhysicalName: SPECIES_NO
+  Category: String(15)
+    PhysicalName: CATEGORY
+  CommonName: String(30)
+    PhysicalName: COMMON_NAME
+  SpeciesName: String(40)
+    PhysicalName: SPECIES_NAME
+  LengthCm: Float
+    PhysicalName: LENGTH__CM_
+  LengthIn: Float
+    PhysicalName: LENGTH_IN
+  Notes: Memo
+    PhysicalName: NOTES
+    DisplayWidth: 40
+  Graphic: Blob
+    PhysicalName: GRAPHIC
+    IsPicture: True
+      Thumbnail:
+        Width: 300
+        Height: 150
+DefaultSorting: Biolife.SPECIES_NO

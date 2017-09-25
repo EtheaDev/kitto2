@@ -1,0 +1,39 @@
+﻿ModelName: Master
+PhysicalName: MASTER
+DatabaseRouter: Static
+  DatabaseName: Main
+Fields:
+  Symbol: String(7) primary key
+    PhysicalName: SYMBOL
+  CoName: String(20)
+    PhysicalName: CO_NAME
+  Exchange: String(8)
+    PhysicalName: EXCHANGE
+  CurPrice: Float
+    PhysicalName: CUR_PRICE
+  YrlHigh: Float
+    PhysicalName: YRL_HIGH
+  YrlLow: Float
+    PhysicalName: YRL_LOW
+  PERatio: Float
+    PhysicalName: P_E_RATIO
+  Beta: Float
+    PhysicalName: BETA
+  ProjGrth: Float
+    PhysicalName: PROJ_GRTH
+  Industry: Integer
+    PhysicalName: INDUSTRY
+  PriceChg: Integer
+    PhysicalName: PRICE_CHG
+  Safety: Integer
+    PhysicalName: SAFETY
+  Rating: String(4)
+    PhysicalName: RATING
+  Rank: Float
+    PhysicalName: RANK
+  Outlook: Integer
+    PhysicalName: OUTLOOK
+  Rcmndation: String(5)
+    PhysicalName: RCMNDATION
+  Risk: String(4)
+    PhysicalName: RISK

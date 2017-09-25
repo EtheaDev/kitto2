@@ -1,0 +1,15 @@
+﻿ModelName: Animals
+PhysicalName: ANIMALS
+DatabaseRouter: Static
+  DatabaseName: Main
+Fields:
+  Name: String(10) primary key
+    PhysicalName: NAME
+  Siz: Integer
+    PhysicalName: SIZ_
+  Weight: Integer
+    PhysicalName: WEIGHT
+  Area: String(20)
+    PhysicalName: AREA
+  Bmp: Blob
+    PhysicalName: BMP

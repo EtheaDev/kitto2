@@ -1,0 +1,31 @@
+﻿ModelName: Customer
+PhysicalName: CUSTOMER
+DatabaseRouter: Static
+  DatabaseName: Main
+Fields:
+  Custno: Float not null primary key
+    PhysicalName: CUSTNO
+  Company: String(30)
+    PhysicalName: COMPANY
+  Addr1: String(30)
+    PhysicalName: ADDR1
+  Addr2: String(30)
+    PhysicalName: ADDR2
+  City: String(15)
+    PhysicalName: CITY
+  State: String(20)
+    PhysicalName: STATE
+  Zip: String(10)
+    PhysicalName: ZIP
+  Country: String(20)
+    PhysicalName: COUNTRY
+  Phone: String(15)
+    PhysicalName: PHONE
+  Fax: String(15)
+    PhysicalName: FAX
+  Taxrate: Float
+    PhysicalName: TAXRATE
+  Contact: String(20)
+    PhysicalName: CONTACT
+  Lastinvoicedate: Date
+    PhysicalName: LASTINVOICEDATE

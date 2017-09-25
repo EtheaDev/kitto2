@@ -1,0 +1,27 @@
+﻿ModelName: Vendors
+PhysicalName: VENDORS
+DatabaseRouter: Static
+  DatabaseName: Main
+Fields:
+  Vendorno: Float not null primary key
+    PhysicalName: VENDORNO
+  Vendorname: String(30)
+    PhysicalName: VENDORNAME
+  Address1: String(30)
+    PhysicalName: ADDRESS1
+  Address2: String(30)
+    PhysicalName: ADDRESS2
+  City: String(20)
+    PhysicalName: CITY
+  State: String(20)
+    PhysicalName: STATE
+  Zip: String(10)
+    PhysicalName: ZIP
+  Country: String(15)
+    PhysicalName: COUNTRY
+  Phone: String(15)
+    PhysicalName: PHONE
+  Fax: String(15)
+    PhysicalName: FAX
+  Preferred: String(1)
+    PhysicalName: PREFERRED

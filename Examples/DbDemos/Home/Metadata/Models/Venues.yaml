@@ -1,0 +1,15 @@
+﻿ModelName: Venues
+PhysicalName: VENUES
+DatabaseRouter: Static
+  DatabaseName: Main
+Fields:
+  Venueno: Integer primary key
+    PhysicalName: VENUENO
+  Venue: String(30)
+    PhysicalName: VENUE
+  Capacity: Integer
+    PhysicalName: CAPACITY
+  VenueMap: Blob
+    PhysicalName: VENUE_MAP
+  Remarks: Memo
+    PhysicalName: REMARKS

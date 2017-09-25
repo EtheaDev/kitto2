@@ -1,0 +1,25 @@
+﻿Type: Data
+Controller: List
+  Filters:
+    DisplayLabel: Search Biolifes
+    Items:
+      FreeSearch: Free Search
+        ExpressionTemplate: (BIOLIFE.CATEGORY like '%{value}%') or (BIOLIFE.COMMON_NAME like '%{value}%') or (BIOLIFE.SPECIES_NAME like '%{value}%') or (BIOLIFE.NOTES like '%{value}%')
+  CenterController:
+    AutoFormPlacement: Right
+      Size: 800
+MainTable:
+  Model: Biolife
+  Controller:
+    PopUpWindow:
+      Width: 600
+      Height: 600
+  Fields:
+    SpeciesNo:
+    Category:
+    CommonName:
+    SpeciesName:
+    LengthCm:
+    LengthIn:
+    Notes:
+    Graphic:

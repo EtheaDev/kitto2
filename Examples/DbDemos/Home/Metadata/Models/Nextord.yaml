@@ -1,0 +1,7 @@
+﻿ModelName: Nextord
+PhysicalName: NEXTORD
+DatabaseRouter: Static
+  DatabaseName: Main
+Fields:
+  Newkey: Float primary key
+    PhysicalName: NEWKEY

@@ -1,0 +1,7 @@
+﻿ModelName: Nextcust
+PhysicalName: NEXTCUST
+DatabaseRouter: Static
+  DatabaseName: Main
+Fields:
+  Newcust: Float primary key
+    PhysicalName: NEWCUST

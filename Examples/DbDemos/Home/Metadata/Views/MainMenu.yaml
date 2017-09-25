@@ -1,0 +1,39 @@
+﻿Type: Tree
+Folder: Menu
+  View: Build AutoList
+    Model: Animals
+  View: Biolifes
+  View: Build AutoList
+    Model: Country
+  View: Build AutoList
+    Model: Custoly
+  View: Build AutoList
+    Model: Customer
+  View: Build AutoList
+    Model: Employee
+  View: Build AutoList
+    Model: Industry
+  View: Build AutoList
+    Model: Items
+  View: Build AutoList
+    Model: Master
+  View: Build AutoList
+    Model: Nextcust
+  View: Build AutoList
+    Model: Nextitem
+  View: Build AutoList
+    Model: Nextord
+  View: Build AutoList
+    Model: Orders
+  View: Build AutoList
+    Model: Parts
+  View: Build AutoList
+    Model: Vendors
+  View: Build AutoList
+    Model: Venues
+Folder: User
+  IsInitiallyCollapsed: True
+  View:
+    Controller: ChangePassword
+  View:
+    Controller: Logout

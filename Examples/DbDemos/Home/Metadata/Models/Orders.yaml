@@ -1,0 +1,49 @@
+﻿ModelName: Orders
+PhysicalName: ORDERS
+DatabaseRouter: Static
+  DatabaseName: Main
+Fields:
+  Orderno: Float not null primary key
+    PhysicalName: ORDERNO
+  Saledate: Date
+    PhysicalName: SALEDATE
+  Shipdate: Date
+    PhysicalName: SHIPDATE
+  Empno: Integer not null
+    PhysicalName: EMPNO
+  Shiptocontact: String(20)
+    PhysicalName: SHIPTOCONTACT
+  Shiptoaddr1: String(30)
+    PhysicalName: SHIPTOADDR1
+  Shiptoaddr2: String(30)
+    PhysicalName: SHIPTOADDR2
+  Shiptocity: String(15)
+    PhysicalName: SHIPTOCITY
+  Shiptostate: String(20)
+    PhysicalName: SHIPTOSTATE
+  Shiptozip: String(10)
+    PhysicalName: SHIPTOZIP
+  Shiptocountry: String(20)
+    PhysicalName: SHIPTOCOUNTRY
+  Shiptophone: String(15)
+    PhysicalName: SHIPTOPHONE
+  Shipvia: String(7)
+    PhysicalName: SHIPVIA
+  Po: String(15)
+    PhysicalName: PO
+  Terms: String(6)
+    PhysicalName: TERMS
+  Paymentmethod: String(7)
+    PhysicalName: PAYMENTMETHOD
+  Itemstotal: Float
+    PhysicalName: ITEMSTOTAL
+  Taxrate: Float
+    PhysicalName: TAXRATE
+  Freight: Float
+    PhysicalName: FREIGHT
+  Amountpaid: Float
+    PhysicalName: AMOUNTPAID
+  CustnoRef: Reference(Customer) not null
+    PhysicalName: INTEG_13
+    Fields:
+      Custno:

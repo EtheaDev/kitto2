@@ -1,0 +1,37 @@
+﻿AppTitle: DbDemos
+
+Databases:
+  Main: FD
+    Connection:
+      # Example for FireDAC
+      DriverID: IB
+      Database: D:\Users\Public\Documents\Embarcadero\Studio\19.0\Samples\Data\dbdemos.gdb
+      User_Name: sysdba
+      Password: masterkey
+      Server: localhost
+      CharacterSet: UTF8
+      Isolation: ReadCommitted
+      Protocol: Local
+
+Auth: TextFile
+  IsClearPassword: True
+  Defaults:
+    UserName: guest
+    .Password: password
+
+AccessControl: Null
+
+ExtJS:
+  Theme: crisp
+  AjaxTimeout: 100000
+
+LanguageId: en
+# Either utf-8 or a SBCS corresponding to the system code page
+# (such as iso-8859-1 for Western Europe). Defaults to utf-8.
+Charset: utf-8
+
+Server:
+  Port: 8080
+  ThreadPoolSize: 20
+  # In minutes.
+  SessionTimeOut: 10

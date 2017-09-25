@@ -1,0 +1,15 @@
+﻿ModelName: Country
+PhysicalName: COUNTRY
+DatabaseRouter: Static
+  DatabaseName: Main
+Fields:
+  Name: String(24) primary key
+    PhysicalName: NAME
+  Capital: String(24)
+    PhysicalName: CAPITAL
+  Continent: String(24)
+    PhysicalName: CONTINENT
+  Area: Float
+    PhysicalName: AREA
+  Population: Float
+    PhysicalName: POPULATION

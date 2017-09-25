@@ -1,0 +1,17 @@
+﻿ModelName: Employee
+PhysicalName: EMPLOYEE
+DatabaseRouter: Static
+  DatabaseName: Main
+Fields:
+  Empno: Integer primary key
+    PhysicalName: EMPNO
+  Lastname: String(20)
+    PhysicalName: LASTNAME
+  Firstname: String(15)
+    PhysicalName: FIRSTNAME
+  Phoneext: String(4)
+    PhysicalName: PHONEEXT
+  Hiredate: Date
+    PhysicalName: HIREDATE
+  Salary: Float
+    PhysicalName: SALARY

@@ -1,0 +1,21 @@
+﻿ModelName: Parts
+PhysicalName: PARTS
+DatabaseRouter: Static
+  DatabaseName: Main
+Fields:
+  Partno: Float not null primary key
+    PhysicalName: PARTNO
+  Description: String(30)
+    PhysicalName: DESCRIPTION
+  Onhand: Float
+    PhysicalName: ONHAND
+  Onorder: Float
+    PhysicalName: ONORDER
+  Cost: Float
+    PhysicalName: COST
+  Listprice: Float
+    PhysicalName: LISTPRICE
+  VendornoRef: Reference(Vendors)
+    PhysicalName: INTEG_14
+    Fields:
+      Vendorno:

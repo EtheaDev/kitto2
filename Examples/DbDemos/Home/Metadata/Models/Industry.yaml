@@ -1,0 +1,11 @@
+﻿ModelName: Industry
+PhysicalName: INDUSTRY
+DatabaseRouter: Static
+  DatabaseName: Main
+Fields:
+  IndCode: Integer primary key
+    PhysicalName: IND_CODE
+  IndName: String(5)
+    PhysicalName: IND_NAME
+  LongName: String(20)
+    PhysicalName: LONG_NAME

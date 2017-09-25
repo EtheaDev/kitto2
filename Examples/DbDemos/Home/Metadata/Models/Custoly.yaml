@@ -1,0 +1,33 @@
+﻿ModelName: Custoly
+PhysicalName: CUSTOLY
+DatabaseRouter: Static
+  DatabaseName: Main
+Fields:
+  Custno: Integer primary key
+    PhysicalName: CUSTNO
+  LastName: String(30)
+    PhysicalName: LAST_NAME
+  FirstName: String(30)
+    PhysicalName: FIRST_NAME
+  VipStatus: String(10)
+    PhysicalName: VIP_STATUS
+  Address1: String(40)
+    PhysicalName: ADDRESS1
+  Address2: String(40)
+    PhysicalName: ADDRESS2
+  City: String(20)
+    PhysicalName: CITY
+  StateProv: String(10)
+    PhysicalName: STATE_PROV
+  PostCode: String(10)
+    PhysicalName: POST_CODE
+  Country: String(10)
+    PhysicalName: COUNTRY
+  Phone: String(18)
+    PhysicalName: PHONE
+  Fax: String(18)
+    PhysicalName: FAX
+  Email: String(40)
+    PhysicalName: EMAIL
+  Remarks: Memo
+    PhysicalName: REMARKS
