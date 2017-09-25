@@ -710,8 +710,13 @@ begin
 end;
 
 procedure TKExtFormFileEditor.GetImageData;
+var
+  LDownloadFileName: string;
+  LImageDataStream: TStream;
 begin
-  DownloadThumbnailedStream(CreateImageDataStream, GetDownloadFileName, FImageWidth, FImageHeight);
+  LImageDataStream := CreateImageDataStream;
+  LDownloadFileName := GetDownloadFileName;
+  DownloadThumbnailedStream(LImageDataStream, LDownloadFileName, FImageWidth, FImageHeight);
 end;
 
 procedure TKExtFormFileEditor.PostUpload;

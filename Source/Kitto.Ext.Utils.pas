@@ -415,9 +415,21 @@ end;
 procedure DownloadThumbnailedStream(const AStream: TStream; const AFileName: string;
   const AThumbnailWidth, AThumbnailHeight: Integer);
 {$IFDEF MSWINDOWS}
+{ Paradox graphic BLOB header }
+
+type
+  TPDoxGraphicHeader = record
+    Count: Word;                { Fixed at 1 }
+    HType: Word;                { Fixed at $0100 }
+    Size: Integer              { Size not including header }
+  end;
+
 var
   LFileExt: string;
   LBytes: TBytes;
+  Size: Longint;
+  Header: TBytes;
+  GraphicHeader: TPDoxGraphicHeader;
 
   function CreateThumbnail(const AMaxWidth, AMaxHeight: Integer;
     const AImageClass: TGraphicClass): TBytes;
@@ -442,6 +454,16 @@ var
   begin
     LImage := AImageClass.Create;
     try
+      Size := AStream.Size;
+      if Size >= SizeOf(TPDoxGraphicHeader) then
+      begin
+        SetLength(Header, SizeOf(TPDoxGraphicHeader));
+        AStream.Read(Header, 0, Length(Header));
+        Move(Header[0], GraphicHeader, SizeOf(TPDoxGraphicHeader));
+        if (GraphicHeader.Count <> 1) or (GraphicHeader.HType <> $0100) or
+          (GraphicHeader.Size <> Size - SizeOf(GraphicHeader)) then
+          AStream.Position := 0;
+      end;
       LImage.LoadFromStream(AStream);
       if (LImage.Height <= AMaxHeight) and (LImage.Width <= AMaxWidth) then
         Exit(GetImageBytes);
@@ -480,6 +502,15 @@ begin
         LBytes := CreateThumbnail(AThumbnailWidth, AThumbnailHeight, TJPEGImage)
       else
         LBytes := CreateThumbnail(AThumbnailWidth, AThumbnailHeight, TPngImage);
+    finally
+      AStream.Free;
+    end;
+    TKWebApplication.Current.DownloadBytes(LBytes, AFileName);
+  end
+  else if MatchText(LFileExt, ['.bmp']) then
+  begin
+    try
+      LBytes := CreateThumbnail(AThumbnailWidth, AThumbnailHeight, TBitmap);
     finally
       AStream.Free;
     end;
