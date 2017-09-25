@@ -25,5 +25,5 @@ Controller: Viewport
 
       SouthView:
         Controller: StatusBar
-          Text: User: %Auth:USER_NAME%
+          Text: User: %Auth:UserName%
         ImageName: user

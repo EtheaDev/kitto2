@@ -5,10 +5,10 @@ Databases:
     Connection:
       # Example for FireDAC
       DriverID: IB
-      Database: D:\Users\Public\Documents\Embarcadero\Studio\19.0\Samples\Data\dbdemos.gdb
+      Database: C:\Users\Public\Documents\Embarcadero\Studio\19.0\Samples\Data\dbdemos.gdb
       User_Name: sysdba
       Password: masterkey
-      Server: localhost
+      Server:
       CharacterSet: UTF8
       Isolation: ReadCommitted
       Protocol: Local
