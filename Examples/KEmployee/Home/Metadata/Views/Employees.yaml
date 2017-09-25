@@ -11,6 +11,10 @@ Controller: List
         ExpressionTemplate: ({Q}JOB_CODE = '{JobCode}') and ({Q}JOB_GRADE = '{JobGrade}') and ({Q}JOB_COUNTRY = '{JobCountry}')
 MainTable:
   Model: Employee
+  Controller:
+    PopuWindow:
+      Width: 600
+      Height: 300
   Fields:
     EmpNo:
     FirstName:
@@ -24,9 +28,6 @@ MainTable:
   Controller:
     PageRecordCount: 20
     IsMultiSelect: True
-    PopuWindow:
-      Width: 600
-      Height: 500
     ToolViews:
       DownloadText:
         DisplayLabel: Download in TXT

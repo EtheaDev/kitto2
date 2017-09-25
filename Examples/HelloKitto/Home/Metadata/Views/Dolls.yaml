@@ -24,7 +24,7 @@ MainTable:
     AllowViewing: True
     PopupWindow:
       Width: 580
-      Height: 480
+      Height: 500
 
     Grouping:
       FieldName: Hair

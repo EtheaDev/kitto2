@@ -29,7 +29,7 @@ MainTable:
     PageRecordCount: 20
     ToolViews:
       DownloadText:
-        DisplayLabel: Download n Excel
+        DisplayLabel: Download in Excel
         Controller: ExportExcelTool
           ClientFileName: Jobs_%YYYYMMDD_DATE%_%HHMM_TIME%.xls
           TemplateFileName: %APP_PATH%ReportTemplates\Jobs.xlt

@@ -29,13 +29,13 @@ Controller: Window
           SubViews:
             View: Girls
             View: Dolls
-            #View: DollsCard
+      #View: DollsCard
 
       NorthView:
         Controller: ToolBar
           TreeView: MainMenu
 
-      SouthView:
+      .SouthView:
         Controller: StatusBar
           Text: _(User: %Auth:UserName%)
         ImageName: user

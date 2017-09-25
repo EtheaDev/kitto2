@@ -13,7 +13,7 @@ Controller: Viewport
           ShowImage: True
           TreeView: MainMenuSmall
 
-      SouthView:
+      .SouthView:
         Controller: StatusBar
           Text: _(User: %Auth:UserName%)
         ImageName: user
