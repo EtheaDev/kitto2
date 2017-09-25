@@ -9,15 +9,16 @@ Controller: List
       FreeSearch: Name/Address
         ExpressionTemplate: >
           upper(PARTY.ADDRESS) like upper('%{value}%') 
-          or upper(PARTY.PARTY_NAME) like upper('%{value}%')
+            or upper(PARTY.PARTY_NAME) like  
+          upper('%{value}%')
 
 MainTable:
   Model: Party
 
   Controller:
     PopupWindow:
-      Width: 600
-      Height: 580
+      Width: 700
+      Height: 640
     ToolViews:
       DownloadCSV:
         DisplayLabel: _(Download in CSV)

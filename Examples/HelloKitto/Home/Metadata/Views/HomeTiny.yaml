@@ -15,7 +15,7 @@ Controller: Viewport
             Position: 5px 5px
           TreeView: MainMenuTiny
 
-      SouthView:
+      .SouthView:
         Controller: StatusBar
           Text: _(User: %Auth:UserName%)
         ImageName: user

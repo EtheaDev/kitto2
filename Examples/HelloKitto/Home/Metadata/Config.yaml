@@ -62,8 +62,8 @@ Databases:
       Initial Catalog: HelloKitto
       Data Source: %COMPUTERNAME%
 
-Auth: DB
-  .Defaults:
+.Auth: DB
+  Defaults:
     UserName: administrator
     Password: password
 
@@ -107,11 +107,11 @@ HelloWorld:
         Html: <h1>Hello World!</h1>
 
 ExtJS:
-  Theme: crisp
+  Theme: triton
   AjaxTimeout: 100000
 
 # No language Id specified means try to use the language requested by the browser.
-#LanguageId: en
+LanguageId: en
 # Either utf-8 or a SBCS corresponding to the system code page
 # (such as iso-8859-1 for Western Europe). Defaults to utf-8.
 Charset: utf-8
