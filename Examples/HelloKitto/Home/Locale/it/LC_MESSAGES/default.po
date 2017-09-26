@@ -251,3 +251,31 @@ msgstr "Legenda"
 #: MainMenu.yaml
 msgid "Doll Catalog"
 msgstr "Catalogo bambole"
+
+#: Hair.yaml
+msgid "Hair Type"
+msgstr ""
+
+#: Hairs.yaml
+msgid "Cerca Hair Types"
+msgstr ""
+
+#: Home.yaml
+msgid "%Config:AppTitle%"
+msgstr ""
+
+#: MainMenu.yaml
+msgid "Dolls Card"
+msgstr ""
+
+#: MainMenuSmall.yaml
+msgid "menu"
+msgstr ""
+
+#: Party.yaml
+msgid "Period"
+msgstr ""
+
+#: Hairs.yaml
+msgid "Ricerca libera"
+msgstr ""

@@ -4,7 +4,7 @@ Controller: List
   Filters:
     DisplayLabel: _(Choose Mom)
     Items:
-      DynaList: Mom
+      DynaList: _(Mom)
         # CommandText must select the value field and the display field as the first two fields.
         CommandText: |
           select GIRL_ID, GIRL_NAME

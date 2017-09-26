@@ -7,7 +7,7 @@ Fields:
     IsVisible: False
     DefaultValue: %COMPACT_GUID%
   Party_Name: String(40) not null
-    Hint: Enter a catchy name
+    Hint: _(Enter a catchy name)
     Rules:
       ForceCamelCaps:
   Party_Date: Date not null
@@ -17,7 +17,7 @@ Fields:
   Address: String(256) not null
     DisplayWidth: 80
   Party_Period: String(20)
-    DisplayLabel: Period
+    DisplayLabel: _(Period)
     DisplayWidth: 10
     Expression: |
       case

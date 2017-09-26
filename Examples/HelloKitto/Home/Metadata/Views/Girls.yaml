@@ -17,10 +17,10 @@ Controller: List
       Split: True
   Filters:
     LabelWidth: 76
-    DisplayLabel: Girls Filter
+    DisplayLabel: _(Girls Filter)
     Connector: and
     Items:
-      ButtonList: Hair Color
+      ButtonList: _(Hair Color)
         Items:
           Blond: _(Blond)
             Expression: HAIR.HAIR_COLOR = 'Blond'

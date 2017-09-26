@@ -7,7 +7,7 @@ Fields:
     DefaultValue: %COMPACT_GUID%
     IsVisible: False
   Girl_Name: String(40) not null
-    DisplayLabel: Name
+    DisplayLabel: _(Name)
     Rules:
       ForceUpperCase:
       SubType: alpha_space

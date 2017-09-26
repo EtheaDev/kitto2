@@ -1,9 +1,9 @@
 ﻿Type: Data
 Controller: List
   Filters:
-    DisplayLabel: Cerca Hair Types
+    DisplayLabel: _(Cerca Hair Types)
     Items:
-      FreeSearch: Ricerca libera
+      FreeSearch: _(Ricerca libera)
         ExpressionTemplate: (Hair.Hair_Color like '%{value}%')
 MainTable:
   Model: Hair

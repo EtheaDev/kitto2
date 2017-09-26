@@ -4,12 +4,12 @@ Controller: List
   AllowClose: True
   AllowMultipleInstances: True
   Filters:
-    DisplayLabel: Search Parties
+    DisplayLabel: _(Search Parties)
     Items:
-      FreeSearch: Name/Address
+      FreeSearch: _(Name/Address)
         ExpressionTemplate: >
           upper(PARTY.ADDRESS) like upper('%{value}%') 
-            or upper(PARTY.PARTY_NAME) like  
+             or upper(PARTY.PARTY_NAME) like   
           upper('%{value}%')
 
 MainTable:

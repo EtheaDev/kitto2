@@ -15,6 +15,7 @@ uses
   FireDAC.Phys.MSSQL,
   FireDAC.Phys.MSSQLMeta,
   FireDAC.Phys.IBBase,
+  FireDAC.Phys.IB,
   FireDAC.Phys.FB,
   FireDAC.UI.Intf,
   FireDAC.VCLUI.Wait,
