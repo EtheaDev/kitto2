@@ -13,8 +13,8 @@ Databases:
 Auth:
 AccessControl: DB
 Login:
-Ext:
-FastCGI:
+ExtJS:
+Server:
 UserFormats:
 Email:
 Log:

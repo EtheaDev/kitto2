@@ -32,6 +32,10 @@ inherited ConfigDesignerFrame: TConfigDesignerFrame
         OnChange = EditorPageControlChange
         object MainTabSheet: TTabSheet
           Caption = 'Configuration'
+          ExplicitLeft = 0
+          ExplicitTop = 0
+          ExplicitWidth = 0
+          ExplicitHeight = 0
           object ControllerScrollBox: TScrollBox
             Left = 0
             Top = 0
@@ -175,29 +179,36 @@ inherited ConfigDesignerFrame: TConfigDesignerFrame
                 TabOrder = 0
               end
             end
-            object FastCGIGroupBox: TGroupBox
+            object ServerGroupBox: TGroupBox
               Left = 0
               Top = 242
               Width = 626
               Height = 60
               Align = alTop
-              Caption = 'FastCGI'
+              Caption = 'Server'
               TabOrder = 3
               object SessionTimeoutLabel: TLabel
-                Left = 90
+                Left = 173
                 Top = 18
                 Width = 122
                 Height = 13
                 Caption = 'SessionTimeout (minutes)'
               end
-              object TCPPortLabel: TLabel
+              object PortLabel: TLabel
                 Left = 5
                 Top = 18
-                Width = 39
+                Width = 20
                 Height = 13
-                Caption = 'TCPPort'
+                Caption = 'Port'
               end
-              object _FastCGI_TCPPort: TSpinEdit
+              object ThreadPoolSizeLabel: TLabel
+                Left = 89
+                Top = 18
+                Width = 73
+                Height = 13
+                Caption = 'ThreadPoolSize'
+              end
+              object _Server_Port: TSpinEdit
                 Left = 5
                 Top = 33
                 Width = 79
@@ -207,8 +218,18 @@ inherited ConfigDesignerFrame: TConfigDesignerFrame
                 TabOrder = 0
                 Value = 0
               end
-              object _FastCGI_SessionTimeout: TSpinEdit
-                Left = 90
+              object _Server_SessionTimeout: TSpinEdit
+                Left = 173
+                Top = 33
+                Width = 73
+                Height = 22
+                MaxValue = 0
+                MinValue = 0
+                TabOrder = 2
+                Value = 0
+              end
+              object _Server_ThreadPoolSize: TSpinEdit
+                Left = 89
                 Top = 33
                 Width = 73
                 Height = 22
@@ -224,8 +245,11 @@ inherited ConfigDesignerFrame: TConfigDesignerFrame
               Width = 626
               Height = 60
               Align = alTop
-              Caption = 'Ext'
+              Caption = 'ExtJS'
               TabOrder = 4
+              DesignSize = (
+                626
+                60)
               object ThemeLabel: TLabel
                 Left = 5
                 Top = 15
@@ -234,23 +258,24 @@ inherited ConfigDesignerFrame: TConfigDesignerFrame
                 Caption = 'Theme'
               end
               object AjaxTimeoutLabel: TLabel
-                Left = 193
+                Left = 132
                 Top = 15
                 Width = 126
                 Height = 13
                 Caption = 'AjaxTimeout (milliseconds)'
               end
-              object _Ext_URL: TLabeledEdit
-                Left = 132
+              object _ExtJS_Path: TLabeledEdit
+                Left = 264
                 Top = 30
-                Width = 53
+                Width = 358
                 Height = 21
-                EditLabel.Width = 19
+                Anchors = [akLeft, akTop, akRight]
+                EditLabel.Width = 22
                 EditLabel.Height = 13
-                EditLabel.Caption = 'URL'
+                EditLabel.Caption = 'Path'
                 TabOrder = 1
               end
-              object _Ext_Theme: TComboBox
+              object _ExtJS_Theme: TComboBox
                 Left = 5
                 Top = 30
                 Width = 121
@@ -267,10 +292,10 @@ inherited ConfigDesignerFrame: TConfigDesignerFrame
                   'gray'
                   'peppermint')
               end
-              object _Ext_AjaxTimeout: TSpinEdit
-                Left = 192
+              object _ExtJS_AjaxTimeout: TSpinEdit
+                Left = 132
                 Top = 30
-                Width = 73
+                Width = 126
                 Height = 22
                 Increment = 1000
                 MaxValue = 0
@@ -286,6 +311,10 @@ inherited ConfigDesignerFrame: TConfigDesignerFrame
           HelpKeyword = 'Config_Databases'
           Caption = 'Databases'
           ImageIndex = 2
+          ExplicitLeft = 0
+          ExplicitTop = 0
+          ExplicitWidth = 0
+          ExplicitHeight = 0
           object TopPanel: TPanel
             Left = 0
             Top = 0
@@ -343,22 +372,38 @@ inherited ConfigDesignerFrame: TConfigDesignerFrame
           HelpKeyword = 'Config_Auth'
           Caption = 'Auth'
           ImageIndex = 3
+          ExplicitLeft = 0
+          ExplicitTop = 0
+          ExplicitWidth = 0
+          ExplicitHeight = 0
         end
         object LoginTabSheet: TTabSheet
           Caption = 'Login'
           ImageIndex = 6
+          ExplicitLeft = 0
+          ExplicitTop = 0
+          ExplicitWidth = 0
+          ExplicitHeight = 0
         end
         object AccessControlTabSheet: TTabSheet
           HelpType = htKeyword
           HelpKeyword = 'Config_AccessControl'
           Caption = 'AccessControl'
           ImageIndex = 5
+          ExplicitLeft = 0
+          ExplicitTop = 0
+          ExplicitWidth = 0
+          ExplicitHeight = 0
         end
         object LogTabSheet: TTabSheet
           HelpType = htKeyword
           HelpKeyword = 'Config_Logging'
           Caption = 'Log'
           ImageIndex = 4
+          ExplicitLeft = 0
+          ExplicitTop = 0
+          ExplicitWidth = 0
+          ExplicitHeight = 0
           object TextFileGroupBox: TGroupBox
             Left = 0
             Top = 44
@@ -420,16 +465,23 @@ inherited ConfigDesignerFrame: TConfigDesignerFrame
         object EmailTabSheet: TTabSheet
           Caption = 'Email'
           ImageIndex = 5
+          ExplicitLeft = 0
+          ExplicitTop = 0
+          ExplicitWidth = 0
+          ExplicitHeight = 0
         end
         object DefaultsTabSheet: TTabSheet
           Caption = 'Defaults'
           ImageIndex = 7
+          ExplicitLeft = 0
+          ExplicitTop = 0
+          ExplicitWidth = 0
+          ExplicitHeight = 0
         end
       end
     end
     inherited PathPanel: TStaticText
       Width = 634
-      ExplicitWidth = 634
     end
     inherited CodeEditorFrame: TCodeEditorFrame
       Top = 508

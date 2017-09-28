@@ -50,17 +50,17 @@ type
     UserFormatsGroupBox: TGroupBox;
     _UserFormats_Time: TLabeledEdit;
     _UserFormats_Date: TLabeledEdit;
-    FastCGIGroupBox: TGroupBox;
+    ServerGroupBox: TGroupBox;
     SessionTimeoutLabel: TLabel;
-    TCPPortLabel: TLabel;
-    _FastCGI_TCPPort: TSpinEdit;
-    _FastCGI_SessionTimeout: TSpinEdit;
+    PortLabel: TLabel;
+    _Server_Port: TSpinEdit;
+    _Server_SessionTimeout: TSpinEdit;
     ExtGroupBox: TGroupBox;
     ThemeLabel: TLabel;
     AjaxTimeoutLabel: TLabel;
-    _Ext_URL: TLabeledEdit;
-    _Ext_Theme: TComboBox;
-    _Ext_AjaxTimeout: TSpinEdit;
+    _ExtJS_Path: TLabeledEdit;
+    _ExtJS_Theme: TComboBox;
+    _ExtJS_AjaxTimeout: TSpinEdit;
     _FOPEnginePath: TLabeledEdit;
     _JavascriptLibraries: TLabeledEdit;
     _LanguagePerSession: TCheckBox;
@@ -73,6 +73,8 @@ type
     LoginTabSheet: TTabSheet;
     _Log_TextFile_IsEnabled: TCheckBox;
     DefaultsTabSheet: TTabSheet;
+    ThreadPoolSizeLabel: TLabel;
+    _Server_ThreadPoolSize: TSpinEdit;
     procedure EditorPageControlChange(Sender: TObject);
   private
   protected
@@ -107,12 +109,14 @@ begin
   CleanupTextNode('UserFormats/Time');
   CleanupTextNode('UserFormats/Date');
   CleanupOrphanNode('UserFormats');
-  CleanupIntegerNode('FastCGI/TCPPort', 2014);
-  CleanupIntegerNode('FastCGI/SessionTimeout', 30);
-  CleanupTextNode('Ext/Theme', 'default');
-  CleanupTextNode('Ext/URL', '/ext');
-  CleanupIntegerNode('Ext/AjaxTimeout', 30000);
-  CleanupOrphanNode('FastCGI');
+  CleanupIntegerNode('Server/Port', 8080);
+  CleanupIntegerNode('Server/SessionTimeout', 10);
+  CleanupIntegerNode('Server/ThreadPoolSize', 20);
+  CleanupOrphanNode('Server');
+  CleanupTextNode('ExtJS/Theme', 'triton');
+  CleanupIntegerNode('ExtJS/AjaxTimeout', 30000);
+  CleanupTextNode('ExtJS/Path');
+  CleanupOrphanNode('ExtJS');
   CleanupBooleanNode('Log/TextFile/IsEnabled');
   CleanupIntegerNode('Log/Level');
   CleanupTextNode('Log/TextFile/FileName');
@@ -139,7 +143,7 @@ end;
 constructor TConfigDesignerFrame.Create(AOwner: TComponent);
 begin
   inherited;
-  TKideConfig.Instance.Config.GetNode('ExtThemes').GetChildValues(_Ext_Theme.Items);
+  TKideConfig.Instance.Config.GetNode('ExtThemes').GetChildValues(_ExtJS_Theme.Items);
   TKideConfig.Instance.Config.GetNode('LanguageIds').GetChildValues(LanguageIdComboBox.Items);
   TKideConfig.Instance.Config.GetNode('Charsets').GetChildValues(CharsetComboBox.Items);
   //TConfig.Instance.Config.GetNode('KittoSearchPaths').GetChildValues(SearchPathComboBox.Items);
@@ -196,13 +200,13 @@ begin
   inherited;
   EditorPageControl.ActivePageIndex := 0;
 
-  _FastCGI_TCPPort.Value := EditNode.GetInteger('FastCGI/TCPPort', 2014);
-  _FastCGI_SessionTimeout.Value := EditNode.GetInteger('FastCGI/SessionTimeout', 30);
+  _Server_Port.Value := EditNode.GetInteger('Server/Port', 8080);
+  _Server_SessionTimeout.Value := EditNode.GetInteger('Server/SessionTimeout', 10);
 
-  LTheme := EditNode.GetString('Ext/Theme', 'default');
-  _Ext_Theme.ItemIndex := _Ext_Theme.Items.IndexOf(LTheme);
-  _Ext_URL.Text := EditNode.GetString('Ext/URL', '/ext');
-  _Ext_AjaxTimeout.Value := EditNode.GetInteger('Ext/AjaxTimeout', 30000);
+  LTheme := EditNode.GetString('ExtJS/Theme', 'default');
+  _ExtJS_Theme.ItemIndex := _ExtJS_Theme.Items.IndexOf(LTheme);
+  _ExtJS_Path.Text := EditNode.GetString('ExtJS/Path', '');
+  _ExtJS_AjaxTimeout.Value := EditNode.GetInteger('ExtJS/AjaxTimeout', 30000);
   _HomeView.Text := EditNode.GetString('HomeView', 'Home');
 
   _DefaultDatabaseName.Text := EditNode.GetString('DefaultDatabaseName', 'Main');

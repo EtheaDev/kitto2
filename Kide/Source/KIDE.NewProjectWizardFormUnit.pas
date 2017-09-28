@@ -45,8 +45,6 @@ type
     ExtJSLabel: TLabel;
     ExtThemeComboBox: TComboBox;
     ThemeLabel: TLabel;
-    URLLabel: TLabel;
-    ExtURLEdit: TEdit;
     LanguagEEncodingLabel: TLabel;
     LanguageLabel: TLabel;
     LanguageIdComboBox: TComboBox;
@@ -183,8 +181,7 @@ begin
     FTemplate.Options.SetBoolean('DB/FD', DBFDCheckBox.Checked);
     FTemplate.Options.SetString('Auth', AuthComboBox.Text);
     FTemplate.Options.SetString('AC', ACComboBox.Text);
-    FTemplate.Options.SetString('Ext/Theme', ExtThemeComboBox.Text);
-    FTemplate.Options.SetString('Ext/URL', ExtURLEdit.Text);
+    FTemplate.Options.SetString('ExtJS/Theme', ExtThemeComboBox.Text);
     FTemplate.Options.SetString('LanguageId', LanguageIdComboBox.Text);
     FTemplate.Options.SetString('Charset', CharsetComboBox.Text);
     FTemplate.Options.SetInteger('Server/Port', ServerPortEdit.Value);
@@ -242,8 +239,7 @@ begin
   DBFDCheckBox.Checked := TMRUOptions.Instance.GetBoolean(LKeyBase + 'DB/FD', True);
   AuthComboBox.Text := TMRUOptions.Instance.GetString(LKeyBase + 'Auth');
   ACComboBox.Text := TMRUOptions.Instance.GetString(LKeyBase + 'AC');
-  ExtThemeComboBox.Text := TMRUOptions.Instance.GetString(LKeyBase + 'Ext/Theme', 'blue');
-  ExtURLEdit.Text := TMRUOptions.Instance.GetString(LKeyBase + 'Ext/URL', '/ext');
+  ExtThemeComboBox.Text := TMRUOptions.Instance.GetString(LKeyBase + 'ExtJS/Theme', 'triton');
   LanguageIdComboBox.Text := TMRUOptions.Instance.GetString(LKeyBase + 'LanguageId', 'en');
   CharsetComboBox.Text := TMRUOptions.Instance.GetString(LKeyBase + 'Charset', 'utf-8');
   ServerPortEdit.Value := TMRUOptions.Instance.GetInteger(LKeyBase + 'Server/Port', 8080);
@@ -267,8 +263,7 @@ begin
   TMRUOptions.Instance.SetBoolean(LKeyBase + 'DB/FD', DBFDCheckBox.Checked);
   TMRUOptions.Instance.SetString(LKeyBase + 'Auth', AuthComboBox.Text);
   TMRUOptions.Instance.SetString(LKeyBase + 'AC', ACComboBox.Text);
-  TMRUOptions.Instance.SetString(LKeyBase + 'Ext/Theme', ExtThemeComboBox.Text);
-  TMRUOptions.Instance.SetString(LKeyBase + 'Ext/URL', ExtURLEdit.Text);
+  TMRUOptions.Instance.SetString(LKeyBase + 'ExtJS/Theme', ExtThemeComboBox.Text);
   TMRUOptions.Instance.SetString(LKeyBase + 'LanguageId', LanguageIdComboBox.Text);
   TMRUOptions.Instance.SetString(LKeyBase + 'Charset', CharsetComboBox.Text);
   TMRUOptions.Instance.SetInteger(LKeyBase + 'Server/Port', ServerPortEdit.Value);

@@ -2,24 +2,25 @@ inherited NewProjectWizardForm: TNewProjectWizardForm
   HelpContext = 120
   BorderStyle = bsDialog
   Caption = 'New Project'
-  ClientHeight = 418
+  ClientHeight = 425
   ClientWidth = 562
   OnCreate = FormCreate
   ExplicitWidth = 568
+  ExplicitHeight = 454
   PixelsPerInch = 96
   TextHeight = 13
   inherited PageControl: TPageControl
     Width = 562
-    Height = 357
+    Height = 364
     ActivePage = OptionsTabSheet
     ExplicitWidth = 562
-    ExplicitHeight = 357
+    ExplicitHeight = 364
     object SelectTabSheet: TTabSheet
       Caption = 'SelectTabSheet'
       object TemplateSplitter: TSplitter
         Left = 270
         Top = 0
-        Height = 326
+        Height = 333
         Align = alRight
         AutoSnap = False
         MinSize = 50
@@ -31,22 +32,22 @@ inherited NewProjectWizardForm: TNewProjectWizardForm
         Left = 0
         Top = 0
         Width = 270
-        Height = 326
+        Height = 333
         Align = alClient
         ParentShowHint = False
         ShowHint = True
         TabOrder = 0
         ExplicitWidth = 270
-        ExplicitHeight = 326
+        ExplicitHeight = 333
         inherited ListView: TListView
           Width = 270
-          Height = 326
+          Height = 333
           ExplicitWidth = 270
-          ExplicitHeight = 326
+          ExplicitHeight = 333
         end
         inherited ImageList: TImageList
           Bitmap = {
-            494C0101010005001C0020002000FFFFFFFF2110FFFFFFFFFFFFFFFF424D3600
+            494C010101000500280020002000FFFFFFFF2110FFFFFFFFFFFFFFFF424D3600
             0000000000003600000028000000800000002000000001002000000000000040
             0000000000000000000000000000000000000000000000000000000000000000
             0000000000000000000000000000000000000000000000000000000000000000
@@ -586,7 +587,7 @@ inherited NewProjectWizardForm: TNewProjectWizardForm
         Left = 273
         Top = 0
         Width = 281
-        Height = 326
+        Height = 333
         Align = alRight
         BevelOuter = bvNone
         TabOrder = 1
@@ -594,7 +595,7 @@ inherited NewProjectWizardForm: TNewProjectWizardForm
           Left = 0
           Top = 0
           Width = 281
-          Height = 326
+          Height = 333
           Align = alClient
           Color = clBtnFace
           Font.Charset = ANSI_CHARSET
@@ -614,8 +615,8 @@ inherited NewProjectWizardForm: TNewProjectWizardForm
       Caption = 'OptionsTabSheet'
       ImageIndex = 1
       object AuthenticationtypeLabel: TLabel
-        Left = 3
-        Top = 144
+        Left = 8
+        Top = 137
         Width = 113
         Height = 13
         Caption = 'Authentication type'
@@ -627,8 +628,8 @@ inherited NewProjectWizardForm: TNewProjectWizardForm
         ParentFont = False
       end
       object AccessControltypeLabel: TLabel
-        Left = 3
-        Top = 186
+        Left = 8
+        Top = 179
         Width = 112
         Height = 13
         Caption = 'Access Control type'
@@ -640,8 +641,8 @@ inherited NewProjectWizardForm: TNewProjectWizardForm
         ParentFont = False
       end
       object ExtJSLabel: TLabel
-        Left = 176
-        Top = 145
+        Left = 181
+        Top = 138
         Width = 51
         Height = 13
         Caption = 'ExtJS 6.2'
@@ -653,24 +654,16 @@ inherited NewProjectWizardForm: TNewProjectWizardForm
         ParentFont = False
       end
       object ThemeLabel: TLabel
-        Left = 195
-        Top = 164
+        Left = 200
+        Top = 157
         Width = 32
         Height = 13
         Alignment = taRightJustify
         Caption = 'Theme'
       end
-      object URLLabel: TLabel
-        Left = 208
-        Top = 187
-        Width = 19
-        Height = 13
-        Alignment = taRightJustify
-        Caption = 'URL'
-      end
       object LanguagEEncodingLabel: TLabel
-        Left = 3
-        Top = 228
+        Left = 8
+        Top = 221
         Width = 120
         Height = 13
         Caption = 'Language && Encoding'
@@ -698,16 +691,16 @@ inherited NewProjectWizardForm: TNewProjectWizardForm
         Caption = 'Charset'
       end
       object PortLabel: TLabel
-        Left = 207
-        Top = 248
+        Left = 212
+        Top = 241
         Width = 20
         Height = 13
         Alignment = taRightJustify
         Caption = 'Port'
       end
       object ServerLabel: TLabel
-        Left = 184
-        Top = 229
+        Left = 189
+        Top = 222
         Width = 41
         Height = 13
         Caption = 'Server:'
@@ -719,91 +712,83 @@ inherited NewProjectWizardForm: TNewProjectWizardForm
         ParentFont = False
       end
       object ThreadPoolSizeLabel: TLabel
-        Left = 154
-        Top = 272
+        Left = 159
+        Top = 265
         Width = 73
         Height = 13
         Alignment = taRightJustify
         Caption = 'ThreadPoolSize'
       end
       object SessionTimeOutLabel: TLabel
-        Left = 151
-        Top = 296
+        Left = 156
+        Top = 289
         Width = 76
         Height = 13
         Alignment = taRightJustify
         Caption = 'SessionTimeOut'
       end
       object AuthComboBox: TComboBox
-        Left = 13
-        Top = 161
+        Left = 18
+        Top = 154
         Width = 116
         Height = 21
         TabOrder = 2
       end
       object ACComboBox: TComboBox
-        Left = 13
-        Top = 202
+        Left = 18
+        Top = 195
         Width = 116
         Height = 21
         TabOrder = 3
       end
       object ExtThemeComboBox: TComboBox
-        Left = 231
-        Top = 161
+        Left = 236
+        Top = 154
         Width = 79
         Height = 21
         TabOrder = 4
-        Text = 'classic'
+        Text = 'triton'
         Items.Strings = (
           'classic')
       end
-      object ExtURLEdit: TEdit
-        Left = 231
-        Top = 184
-        Width = 79
-        Height = 21
-        TabOrder = 5
-        Text = '/ext'
-      end
       object LanguageIdComboBox: TComboBox
-        Left = 53
-        Top = 245
+        Left = 58
+        Top = 238
         Width = 82
         Height = 21
         ItemIndex = 0
-        TabOrder = 6
+        TabOrder = 5
         Text = 'en'
         Items.Strings = (
           'en'
           'it')
       end
       object CharsetComboBox: TComboBox
-        Left = 53
-        Top = 268
+        Left = 58
+        Top = 261
         Width = 82
         Height = 21
         ItemIndex = 0
-        TabOrder = 7
+        TabOrder = 6
         Text = 'utf-8'
         Items.Strings = (
           'utf-8'
           'iso-8859-1')
       end
       object ServerPortEdit: TSpinEdit
-        Left = 231
-        Top = 245
+        Left = 236
+        Top = 238
         Width = 79
         Height = 22
         MaxValue = 0
         MinValue = 0
-        TabOrder = 8
+        TabOrder = 7
         Value = 8080
       end
       object DatabasesGroupBox: TGroupBox
         Left = 343
         Top = -1
-        Width = 120
+        Width = 130
         Height = 89
         Caption = 'Database Adapters'
         TabOrder = 1
@@ -896,23 +881,23 @@ inherited NewProjectWizardForm: TNewProjectWizardForm
         end
       end
       object ServerThreadPoolSizeEdit: TSpinEdit
-        Left = 231
-        Top = 269
+        Left = 236
+        Top = 262
+        Width = 79
+        Height = 22
+        MaxValue = 0
+        MinValue = 0
+        TabOrder = 8
+        Value = 20
+      end
+      object ServerSessionTimeOutEdit: TSpinEdit
+        Left = 236
+        Top = 286
         Width = 79
         Height = 22
         MaxValue = 0
         MinValue = 0
         TabOrder = 9
-        Value = 20
-      end
-      object ServerSessionTimeOutEdit: TSpinEdit
-        Left = 231
-        Top = 293
-        Width = 79
-        Height = 22
-        MaxValue = 0
-        MinValue = 0
-        TabOrder = 10
         Value = 10
       end
     end
@@ -921,7 +906,7 @@ inherited NewProjectWizardForm: TNewProjectWizardForm
       ImageIndex = 2
       DesignSize = (
         554
-        326)
+        333)
       object ProjectPathButton: TSpeedButton
         Left = 517
         Top = 32
@@ -973,7 +958,7 @@ inherited NewProjectWizardForm: TNewProjectWizardForm
         Left = 0
         Top = 0
         Width = 554
-        Height = 326
+        Height = 333
         Align = alClient
         Color = clBtnFace
         Font.Charset = ANSI_CHARSET
@@ -990,9 +975,9 @@ inherited NewProjectWizardForm: TNewProjectWizardForm
     end
   end
   inherited ButtonPanel: TPanel
-    Top = 382
+    Top = 389
     Width = 562
-    ExplicitTop = 382
+    ExplicitTop = 389
     ExplicitWidth = 562
     inherited BackButton: TButton
       Left = 402
@@ -1006,5 +991,8 @@ inherited NewProjectWizardForm: TNewProjectWizardForm
   inherited TitlePanel: TPanel
     Width = 552
     ExplicitWidth = 552
+  end
+  inherited ActionList: TActionList
+    Left = 496
   end
 end
