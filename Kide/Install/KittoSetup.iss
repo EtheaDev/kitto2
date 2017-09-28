@@ -1,7 +1,7 @@
 #define MyAppName "Kitto2 and Kide2 IDE"
 
 #define KittoVersion "2.0"
-#define MyAppVersion "2.0.0"
+#define MyAppVersion "2.0.1"
 #define MyAppExeName "Kide2.exe"
 #define MyCopyRight "Copyright (c) 2012-2017 Ethea S.r.l."
 #define MyCompany "Ethea S.r.l."
@@ -154,6 +154,21 @@ Source: {#KITTO}\Examples\KEmployee\Projects\D10_2\*.res; DestDir: {app}\kitto\E
 Source: {#KITTO}\Examples\KEmployee\Source\*; DestDir: {app}\kitto\Examples\KEmployee\Source; Flags: ignoreversion recursesubdirs createallsubdirs; Components: KEmployeeExamples
 Source: {#KITTO}\Examples\KEmployee\Readme.txt; DestDir: {app}\kitto\Examples\KEmployee; Flags: ignoreversion; Components: KEmployeeExamples
 
+Source: {#KITTO}\Examples\DbDemos\Home\DbDemos.kproj; DestDir: {app}\kitto\Examples\DbDemos\Home; Flags: ignoreversion; Components: DbDemosExamples
+Source: {#KITTO}\Examples\DbDemos\Home\DbDemos.exe; DestDir: {app}\kitto\Examples\DbDemos\Home; Flags: ignoreversion; Components: DbDemosExamples
+Source: {#KITTO}\Examples\DbDemos\Home\*.txt; DestDir: {app}\kitto\Examples\DbDemos\Home; Flags: ignoreversion recursesubdirs createallsubdirs; Components: DbDemosExamples
+Source: {#KITTO}\Examples\DbDemos\Home\Metadata\*; DestDir: {app}\kitto\Examples\DbDemos\Home\Metadata; Flags: ignoreversion recursesubdirs createallsubdirs; Components: DbDemosExamples
+Source: {#KITTO}\Examples\DbDemos\Home\Resources\*; DestDir: {app}\kitto\Examples\DbDemos\Home\Resources; Flags: ignoreversion recursesubdirs createallsubdirs; Components: DbDemosExamples
+Source: {#KITTO}\Examples\DbDemos\Projects\*.ico; DestDir: {app}\kitto\Examples\DbDemos\Projects; Flags: ignoreversion recursesubdirs createallsubdirs; Components: DbDemosExamples
+Source: {#KITTO}\Examples\DbDemos\Projects\D10_1\*.dpr; DestDir: {app}\kitto\Examples\DbDemos\Projects\D10_1; Flags: ignoreversion recursesubdirs createallsubdirs; Components: DbDemosExamples
+Source: {#KITTO}\Examples\DbDemos\Projects\D10_1\*.dproj; DestDir: {app}\kitto\Examples\DbDemos\Projects\D10_1; Flags: ignoreversion recursesubdirs createallsubdirs; Components: DbDemosExamples
+Source: {#KITTO}\Examples\DbDemos\Projects\D10_1\*.res; DestDir: {app}\kitto\Examples\DbDemos\Projects\D10_1; Flags: ignoreversion recursesubdirs createallsubdirs; Components: DbDemosExamples
+Source: {#KITTO}\Examples\DbDemos\Projects\D10_2\*.dpr; DestDir: {app}\kitto\Examples\DbDemos\Projects\D10_2; Flags: ignoreversion recursesubdirs createallsubdirs; Components: DbDemosExamples
+Source: {#KITTO}\Examples\DbDemos\Projects\D10_2\*.dproj; DestDir: {app}\kitto\Examples\DbDemos\Projects\D10_2; Flags: ignoreversion recursesubdirs createallsubdirs; Components: DbDemosExamples
+Source: {#KITTO}\Examples\DbDemos\Projects\D10_2\*.res; DestDir: {app}\kitto\Examples\DbDemos\Projects\D10_2; Flags: ignoreversion recursesubdirs createallsubdirs; Components: DbDemosExamples
+Source: {#KITTO}\Examples\DbDemos\Source\*; DestDir: {app}\kitto\Examples\DbDemos\Source; Flags: ignoreversion recursesubdirs createallsubdirs; Components: DbDemosExamples
+Source: {#KITTO}\Examples\DbDemos\Readme.txt; DestDir: {app}\kitto\Examples\DbDemos; Flags: ignoreversion; Components: DbDemosExamples
+
 [Dirs]
 Name: "{app}"; Permissions: users-full
 
@@ -171,6 +186,9 @@ Name: {app}\kitto\Examples\TasKitto\Home\TasKitto - Run as application; Filename
 Name: {app}\kitto\Examples\KEmployee\Home\KEmployee - Install as service; Filename: {app}\kitto\Examples\KEmployee\Home\KEmployee.exe; Parameters: -install; Components: KEmployeeExamples
 Name: {app}\kitto\Examples\KEmployee\Home\KEmployee - Uninstall service; Filename: {app}\kitto\Examples\KEmployee\Home\KEmployee.exe; Parameters: -uninstall; Components: KEmployeeExamples
 Name: {app}\kitto\Examples\KEmployee\Home\KEmployee - Run as application; Filename: {app}\kitto\Examples\KEmployee\Home\KEmployee.exe; Parameters: -a; Components: KEmployeeExamples
+Name: {app}\kitto\Examples\DbDemos\Home\DbDemos - Install as service; Filename: {app}\kitto\Examples\DbDemos\Home\DbDemos.exe; Parameters: -install; Components: DbDemosExamples
+Name: {app}\kitto\Examples\DbDemos\Home\DbDemos - Uninstall service; Filename: {app}\kitto\Examples\DbDemos\Home\DbDemos.exe; Parameters: -uninstall; Components: DbDemosExamples
+Name: {app}\kitto\Examples\DbDemos\Home\DbDemos - Run as application; Filename: {app}\kitto\Examples\DbDemos\Home\DbDemos.exe; Parameters: -a; Components: DbDemosExamples
 
 [Run]
 Filename: {app}\kitto\Kide\Bin\{#MyAppExeName}; Description: {cm:LaunchProgram, Kide}; Flags: nowait postinstall skipifsilent
@@ -181,6 +199,7 @@ Name: Kide2; Description: KIDE2 - Kitto2 IDE; Types: custom compact full
 Name: HelloKittoExamples; Description: HelloKitto example; Types: custom full
 Name: TasKittoExamples; Description: TasKitto example; Types: custom full
 Name: KEmployeeExamples; Description: KEmployee example; Types: custom full
+Name: DbDemosExamples; Description: DbDemos example; Types: custom full
 Name: Kitto2Docs; Description: Kitto2 reference documentation; Types: custom full
 
 [Registry]

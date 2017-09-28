@@ -57,6 +57,13 @@ msbuild /t:Build /p:config=Release /nologo TasKitto.dproj /fl /flp:logfile=TasKi
 cd ..\..\..\KEmployee\Projects\D%dver%
 msbuild /t:Build /p:config=Release /nologo KEmployee.dproj /fl /flp:logfile=KEmployee.log;verbosity=diagnostic
 
+@echo 
+@echo ============================
+@echo Bulding DbDemos example...
+@echo ============================
+cd ..\..\..\DbDemos\Projects\D%dver%
+msbuild /t:Build /p:config=Release /nologo DbDemos.dproj /fl /flp:logfile=DbDemos.log;verbosity=diagnostic
+
 cd ..\..\..\..\Kide\Install
 
 :BuildInstaller
