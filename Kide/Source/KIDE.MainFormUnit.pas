@@ -113,6 +113,7 @@ type
     HelpKideAction: TAction;
     HelpKittoAction: TAction;
     Messages1: TMenuItem;
+    KittoRefAction: TAction;
     ViewProjectFilesAction: TAction;
     ClientImage: TImage;
     ChangeIconsAction: TAction;
@@ -170,6 +171,7 @@ type
     procedure ReloadActionExecute(Sender: TObject);
     procedure ReloadActionUpdate(Sender: TObject);
     procedure HelpKittoActionExecute(Sender: TObject);
+    procedure KittoRefActionExecute(Sender: TObject);
     procedure HelpKideActionExecute(Sender: TObject);
     procedure ViewProjectFilesActionExecute(Sender: TObject);
   private
@@ -951,6 +953,12 @@ procedure TMainForm.HelpKittoActionExecute(Sender: TObject);
 begin
   inherited;
   ShowKittoWiki('home');
+end;
+
+procedure TMainForm.KittoRefActionExecute(Sender: TObject);
+begin
+  inherited;
+  ShellExecute(0, 'open' , PChar('http://www.ethea.it/docs/kitto/en/ref/index.html'), nil, nil, SW_SHOW );
 end;
 
 procedure TMainForm.Log(const AString: string);

@@ -342,6 +342,11 @@ inherited MainForm: TMainForm
             Action = HelpKittoAction
             Caption = 'On&line Kitto Wiki...'
             ImageIndex = 77
+          end
+          item
+            Action = KittoRefAction
+            Caption = '&Kitto2 library reference...'
+            ImageIndex = 21
           end>
         ActionBar = MainActionToolBar
       end
@@ -482,6 +487,11 @@ inherited MainForm: TMainForm
                 Action = HelpKittoAction
                 Caption = '&Online Kitto Wiki...'
                 ImageIndex = 77
+              end
+              item
+                Action = KittoRefAction
+                Caption = 'K&itto library reference...'
+                ImageIndex = 21
               end
               item
                 Caption = '-'
@@ -710,6 +720,13 @@ inherited MainForm: TMainForm
       ImageIndex = 76
       OnExecute = HelpKideActionExecute
     end
+    object KittoRefAction: TAction
+      Category = 'Help'
+      Caption = 'Kitto library reference...'
+      Hint = 'Online Kitto library reference'
+      ImageIndex = 21
+      OnExecute = KittoRefActionExecute
+    end
   end
   object OpenProjectDialog: TOpenDialog
     DefaultExt = '.kproj'
@@ -745,7 +762,7 @@ inherited MainForm: TMainForm
     Left = 448
     Top = 240
     Bitmap = {
-      494C010103000500440010001000FFFFFFFF2110FFFFFFFFFFFFFFFF424D3600
+      494C010103000500480010001000FFFFFFFF2110FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000001000000001002000000000000010
       0000000000000000000000000000000000000000003300000033000000330000
       0000000000000000000000000000000000000000000000000000000000000000
