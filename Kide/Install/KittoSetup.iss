@@ -35,7 +35,10 @@ VersionInfoProductTextVersion={#KittoVersion}
 VersionInfoVersion={#MyAppVersion}
 ChangesAssociations=Yes
 DisableWelcomePage=False
-ShowLanguageDialog=auto
+ShowLanguageDialog=Auto
+DirExistsWarning=yes
+DisableDirPage=False
+PrivilegesRequired=admin
 
 [Languages]
 Name: eng; MessagesFile: compiler:Default.isl; LicenseFile: .\License_ENG.rtf
