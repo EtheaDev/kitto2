@@ -95,7 +95,7 @@
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
         <VerInfo_Locale>1033</VerInfo_Locale>
         <BT_BuildType>Debug</BT_BuildType>
-        <Icon_MainIcon>..\DbDemos.ico</Icon_MainIcon>
+        <Icon_MainIcon>..\DbDemos_icon.ico</Icon_MainIcon>
     </PropertyGroup>
     <ItemGroup>
         <DelphiCompile Include="$(MainSource)">
