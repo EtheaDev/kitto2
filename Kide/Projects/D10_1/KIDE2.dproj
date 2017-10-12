@@ -52,12 +52,12 @@
         <DCC_Hints>false</DCC_Hints>
         <DCC_IMPLICIT_STRING_CAST>false</DCC_IMPLICIT_STRING_CAST>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
-        <DCC_Define>KIDE;NO_REPORTBUILDER;NO_MADEXCEPT;$(DCC_Define)</DCC_Define>
+        <DCC_Define>KIDE;NO_REPORTBUILDER;NO_MADEXCEPT;IBFB_SUPPORT;MSSQL_SUPPORT;SYBASE_SUPPORT;ORACLE_SUPPORT;PGSQL_SUPPORT;MYSQL_SUPPORT;SQLITE_SUPPORT;$(DCC_Define)</DCC_Define>
         <SanitizedProjectName>KIDE2</SanitizedProjectName>
         <DCC_SYMBOL_PLATFORM>false</DCC_SYMBOL_PLATFORM>
         <DCC_UNIT_PLATFORM>false</DCC_UNIT_PLATFORM>
         <DCC_UsePackage>bindcompfmx;fmx;rtl;dbrtl;IndySystem;DbxClientDriver;bindcomp;inetdb;DBXInterBaseDriver;DataSnapCommon;DataSnapClient;DataSnapServer;DataSnapProviderClient;xmlrtl;DbxCommonDriver;IndyProtocols;DBXMySQLDriver;dbxcds;soaprtl;bindengine;DBXOracleDriver;dsnap;DBXInformixDriver;IndyCore;fmxase;DBXFirebirdDriver;inet;fmxobj;inetdbxpress;DBXSybaseASADriver;fmxdae;dbexpress;DataSnapIndy10ServerTransport;IPIndyImpl;$(DCC_UsePackage)</DCC_UsePackage>
-        <VerInfo_Keys>CompanyName=Ethea S.r.l.;FileDescription=KIDE2 Editor for Kitto2;FileVersion=2.0.1.0;InternalName=;LegalCopyright=Copyright © Ethea S.r.l.;LegalTrademarks=;OriginalFilename=;ProductName=;ProductVersion=2.0;Comments=</VerInfo_Keys>
+        <VerInfo_Keys>CompanyName=Ethea S.r.l.;FileDescription=KIDE2 Editor for Kitto2;FileVersion=2.0.2.0;InternalName=;LegalCopyright=Copyright © Ethea S.r.l.;LegalTrademarks=;OriginalFilename=;ProductName=;ProductVersion=2.0;Comments=</VerInfo_Keys>
         <Manifest_File>$(BDS)\bin\default_app.manifest</Manifest_File>
         <Custom_Styles>Amakrits|VCLSTYLE|$(BDSCOMMONDIR)\Styles\Amakrits.vsf;&quot;Amethyst Kamri|VCLSTYLE|$(BDSCOMMONDIR)\Styles\AmethystKamri.vsf&quot;;&quot;Aqua Graphite|VCLSTYLE|$(BDSCOMMONDIR)\Styles\AquaGraphite.vsf&quot;;&quot;Aqua Light Slate|VCLSTYLE|$(BDSCOMMONDIR)\Styles\AquaLightSlate.vsf&quot;;Auric|VCLSTYLE|$(BDSCOMMONDIR)\Styles\Auric.vsf;Carbon|VCLSTYLE|$(BDSCOMMONDIR)\Styles\Carbon.vsf;&quot;Charcoal Dark Slate|VCLSTYLE|$(BDSCOMMONDIR)\Styles\CharcoalDarkSlate.vsf&quot;;&quot;Cobalt XEMedia|VCLSTYLE|$(BDSCOMMONDIR)\Styles\CobaltXEMedia.vsf&quot;;&quot;Cyan Dusk|VCLSTYLE|$(BDSCOMMONDIR)\Styles\CyanDusk.vsf&quot;;&quot;Cyan Night|VCLSTYLE|$(BDSCOMMONDIR)\Styles\CyanNight.vsf&quot;;&quot;Emerald Light Slate|VCLSTYLE|$(BDSCOMMONDIR)\Styles\EmeraldLightSlate.vsf&quot;;Glossy|VCLSTYLE|$(BDSCOMMONDIR)\Styles\Glossy.vsf;Glow|VCLSTYLE|$(BDSCOMMONDIR)\Styles\Glow.vsf;&quot;Golden Graphite|VCLSTYLE|$(BDSCOMMONDIR)\Styles\GoldenGraphite.vsf&quot;;&quot;Iceberg Classico|VCLSTYLE|$(BDSCOMMONDIR)\Styles\IcebergClassico.vsf&quot;;&quot;Lavender Classico|VCLSTYLE|$(BDSCOMMONDIR)\Styles\LavenderClassico.vsf&quot;;Light|VCLSTYLE|$(BDSCOMMONDIR)\Styles\Light.vsf;Luna|VCLSTYLE|$(BDSCOMMONDIR)\Styles\Luna.vsf;&quot;Metropolis UI Black|VCLSTYLE|$(BDSCOMMONDIR)\Styles\MetropolisUIBlack.vsf&quot;;&quot;Metropolis UI Blue|VCLSTYLE|$(BDSCOMMONDIR)\Styles\MetropolisUIBlue.vsf&quot;;&quot;Metropolis UI Dark|VCLSTYLE|$(BDSCOMMONDIR)\Styles\MetropolisUIDark.vsf&quot;;&quot;Metropolis UI Green|VCLSTYLE|$(BDSCOMMONDIR)\Styles\MetropolisUIGreen.vsf&quot;;Obsidian|VCLSTYLE|$(BDSCOMMONDIR)\Styles\Obsidian.vsf;&quot;Onyx Blue|VCLSTYLE|$(BDSCOMMONDIR)\Styles\OnyxBlue.vsf&quot;;&quot;Ruby Graphite|VCLSTYLE|$(BDSCOMMONDIR)\Styles\RubyGraphite.vsf&quot;;&quot;Sapphire Kamri|VCLSTYLE|$(BDSCOMMONDIR)\Styles\SapphireKamri.vsf&quot;;Silver|VCLSTYLE|$(BDSCOMMONDIR)\Styles\Silver.vsf;Sky|VCLSTYLE|$(BDSCOMMONDIR)\Styles\Sky.vsf;&quot;Slate Classico|VCLSTYLE|$(BDSCOMMONDIR)\Styles\SlateClassico.vsf&quot;;&quot;Smokey Quartz Kamri|VCLSTYLE|$(BDSCOMMONDIR)\Styles\SmokeyQuartzKamri.vsf&quot;;&quot;Tablet Light|VCLSTYLE|$(BDSCOMMONDIR)\Styles\TabletLight.vsf&quot;;TabletDark|VCLSTYLE|$(BDSCOMMONDIR)\Styles\TabletDark.vsf;&quot;Turquoise Gray|VCLSTYLE|$(BDSCOMMONDIR)\Styles\TurquoiseGray.vsf&quot;</Custom_Styles>
         <DCC_Namespace>System;Xml;Data;Datasnap;Web;Soap;Vcl;Vcl.Imaging;Vcl.Touch;Vcl.Samples;Vcl.Shell;$(DCC_Namespace)</DCC_Namespace>
@@ -655,12 +655,27 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployClass Name="ProjectiOSDeviceResourceRules">
+                <DeployClass Name="DependencyModule">
+                    <Platform Name="Win32">
+                        <Operation>0</Operation>
+                        <Extensions>.dll;.bpl</Extensions>
+                    </Platform>
                     <Platform Name="iOSDevice64">
                         <Operation>1</Operation>
+                        <Extensions>.dylib</Extensions>
+                    </Platform>
+                    <Platform Name="OSX32">
+                        <RemoteDir>Contents\MacOS</RemoteDir>
+                        <Operation>1</Operation>
+                        <Extensions>.dylib</Extensions>
                     </Platform>
                     <Platform Name="iOSDevice32">
                         <Operation>1</Operation>
+                        <Extensions>.dylib</Extensions>
+                    </Platform>
+                    <Platform Name="iOSSimulator">
+                        <Operation>1</Operation>
+                        <Extensions>.dylib</Extensions>
                     </Platform>
                 </DeployClass>
                 <DeployClass Name="ProjectOSXResource">
@@ -1040,27 +1055,12 @@
                         <Operation>1</Operation>
                     </Platform>
                 </DeployClass>
-                <DeployClass Name="DependencyModule">
-                    <Platform Name="Win32">
-                        <Operation>0</Operation>
-                        <Extensions>.dll;.bpl</Extensions>
-                    </Platform>
+                <DeployClass Name="ProjectiOSDeviceResourceRules">
                     <Platform Name="iOSDevice64">
                         <Operation>1</Operation>
-                        <Extensions>.dylib</Extensions>
-                    </Platform>
-                    <Platform Name="OSX32">
-                        <RemoteDir>Contents\MacOS</RemoteDir>
-                        <Operation>1</Operation>
-                        <Extensions>.dylib</Extensions>
                     </Platform>
                     <Platform Name="iOSDevice32">
                         <Operation>1</Operation>
-                        <Extensions>.dylib</Extensions>
-                    </Platform>
-                    <Platform Name="iOSSimulator">
-                        <Operation>1</Operation>
-                        <Extensions>.dylib</Extensions>
                     </Platform>
                 </DeployClass>
                 <ProjectRoot Platform="iOSDevice64" Name="$(PROJECTNAME).app"/>

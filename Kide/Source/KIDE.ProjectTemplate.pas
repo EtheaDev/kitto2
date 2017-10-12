@@ -130,6 +130,7 @@ var
   LDBNameIndex: Integer;
   LAuth: string;
   LAC: string;
+  I: Integer;
 
   procedure AddDatabaseNode(const AProviderName: string);
   var
@@ -169,11 +170,12 @@ begin
       LTree.SetString('AccessControl', LAC).LoadFromYamlFile(
         GetSupportFileName('AC.' + LAC + '.yaml'));
 
-    LTree.SetString('Ext/Theme', Options.GetString('Ext/Theme'));
-    LTree.SetString('Ext/URL', Options.GetString('Ext/URL'));
+    LTree.SetString('ExtJS/Theme', Options.GetString('ExtJS/Theme'));
     LTree.SetString('LanguageId', Options.GetString('LanguageId'));
     LTree.SetString('Charset', Options.GetString('Charset'));
-    LTree.SetInteger('FastCGI/TCPPort', Options.GetInteger('FastCGI/TCPPort'));
+    LTree.SetString('Server/Port', Options.GetString('Server/Port'));
+    LTree.SetString('Server/ThreadPoolSize', Options.GetString('Server/ThreadPoolSize'));
+    LTree.SetString('Server/SessionTimeOut', Options.GetString('Server/SessionTimeOut'));
 
     TEFYAMLWriter.SaveTree(LTree, AFileName);
     ExpandMacros(AFileName, TEncoding.UTF8);
