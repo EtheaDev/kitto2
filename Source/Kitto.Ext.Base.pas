@@ -588,7 +588,7 @@ var
   LFullFileName: string;
   LHtml: string;
 begin
-  LFullFileName := TKWebApplication.Current.Config.FindResourcePathName(AFileName);
+  LFullFileName := TKWebApplication.Current.FindResourcePathName(AFileName);
   if LFullFileName <> '' then
     LHtml := TEFMacroExpansionEngine.Instance.Expand(TextFileToString(LFullFileName, TEncoding.UTF8))
   else
@@ -1380,10 +1380,10 @@ begin
   if AIconName <> '' then
   begin
     LIconName := SmartConcat(AIconName, '_', Scale);
-    LIconURL := TKWebApplication.Current.Config.FindImageURL(LIconName);
-    LIconFileName := TKWebApplication.Current.Config.FindImagePathName(LIconName);
+    LIconURL := TKWebApplication.Current.FindImageURL(LIconName);
+    LIconFileName := TKWebApplication.Current.FindImagePathName(LIconName);
     if LIconFileName = '' then
-      LIconURL := TKWebApplication.Current.Config.FindImageURL(AIconName);
+      LIconURL := TKWebApplication.Current.FindImageURL(AIconName);
     Icon := LIconURL;
   end;
 end;

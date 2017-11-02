@@ -628,7 +628,7 @@ begin
       if not LVIewTableField.IsNull then
         LImageField.AsString := AddParamsToURL(GetMethodURL(GetImage), 'fn=' + LViewTableField.FieldName + '&rn=' + ARecord.Index.ToString)
       else
-        LImageField.AsString := TKWebApplication.Current.Config.GetImageURL(
+        LImageField.AsString := TKWebApplication.Current.GetImageURL(
           LImageField.ViewField.GetString('EmptyImageName', 'empty'));
     end;
   end;
@@ -785,7 +785,7 @@ begin
       LImageField.ViewField.GetInteger('IsPicture/Thumbnail/Height', 100));
   end
   else
-    TKWebApplication.Current.DownloadFile(TKWebApplication.Current.Config.GetImagePathName(
+    TKWebApplication.Current.DownloadFile(TKWebApplication.Current.GetImagePathName(
       LImageField.ViewField.GetString('EmptyImageName', 'empty')), 'test.png');
 end;
 

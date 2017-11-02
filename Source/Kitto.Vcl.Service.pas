@@ -14,7 +14,7 @@
    limitations under the License.
 -------------------------------------------------------------------------------}
 
-unit Kitto.Ext.Service;
+unit Kitto.Vcl.Service;
 
 interface
 
@@ -27,7 +27,7 @@ uses
   ;
 
 type
-  TKExtService = class(TService)
+  TKService = class(TService)
     procedure ServiceStart(Sender: TService; var Started: Boolean);
     procedure ServiceStop(Sender: TService; var Stopped: Boolean);
     procedure ServiceShutdown(Sender: TService);
@@ -40,7 +40,7 @@ type
   end;
 
 var
-  KExtService: TKExtService;
+  KService: TKService;
 
 implementation
 
@@ -51,12 +51,12 @@ uses
 
 procedure ServiceController(CtrlCode: DWord); stdcall;
 begin
-  KExtService.Controller(CtrlCode);
+  KService.Controller(CtrlCode);
 end;
 
-{ TKExtService }
+{ TKService }
 
-procedure TKExtService.StopAndFreeThread;
+procedure TKService.StopAndFreeThread;
 begin
 //  if Assigned(FThread) then
 //  begin
@@ -72,18 +72,18 @@ end;
 //  Result.Configure;
 //end;
 
-function TKExtService.GetServiceController: TServiceController;
+function TKService.GetServiceController: TServiceController;
 begin
   Result := ServiceController;
 end;
 
-procedure TKExtService.ServiceShutdown(Sender: TService);
+procedure TKService.ServiceShutdown(Sender: TService);
 begin
   TEFLogger.Instance.Log('Service shutdown.');
   StopAndFreeThread;
 end;
 
-procedure TKExtService.ServiceStart(Sender: TService; var Started: Boolean);
+procedure TKService.ServiceStart(Sender: TService; var Started: Boolean);
 begin
 //  TEFLogger.Instance.Log('Service start. Creating thread...');
 //  FThread := CreateThread;
@@ -91,7 +91,7 @@ begin
 //  FThread.Start;
 end;
 
-procedure TKExtService.ServiceStop(Sender: TService; var Stopped: Boolean);
+procedure TKService.ServiceStop(Sender: TService; var Stopped: Boolean);
 begin
   StopAndFreeThread;
 end;

@@ -1,4 +1,4 @@
-object KExtService: TKExtService
+object KService: TKService
   OldCreateOrder = False
   AllowPause = False
   DisplayName = 'KittoService'

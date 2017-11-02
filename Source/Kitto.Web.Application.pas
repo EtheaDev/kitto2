@@ -1,3 +1,19 @@
+{-------------------------------------------------------------------------------
+   Copyright 2012-2017 Ethea S.r.l.
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-------------------------------------------------------------------------------}
+
 unit Kitto.Web.Application;
 
 interface
@@ -27,9 +43,15 @@ uses
   ;
 
 type
-  TKSessionMacroExpander = class(TEFTreeMacroExpander)
+  TKWebApplication = class;
+
+  TKApplicationMacroExpander = class(TEFTreeMacroExpander)
+  private
+    FApplication: TKWebApplication;
   strict protected
     function InternalExpand(const AString: string): string; override;
+  public
+    constructor Create(const AApplication: TKWebApplication); reintroduce;
   end;
 
   TKWebApplication = class(TKWebRoute)
@@ -41,9 +63,9 @@ type
     FOwnsLoginNode: Boolean;
     FTheme: string;
     FExtJSPath: string;
-    FExtJSLocalPath: string;
+//    FExtJSLocalPath: string;
     FAdditionalRefs: TList<string>;
-    FSessionMacroExpander: TKSessionMacroExpander;
+    FMacroExpander: TKApplicationMacroExpander;
     FResourcePath: string;
     FResourceLocalPath1: string;
     FResourceLocalPath2: string;
@@ -71,12 +93,18 @@ type
     class function GetCurrent: TKWebApplication; static;
     class procedure SetCurrent(const AValue: TKWebApplication); static;
     function CallObjectMethod(const AObject: TObject; const AMethodName: string): Boolean;
-    procedure AddConfigRoutes(const AServer: TKWebServer);
     function GetViewportWidthInInches: TJSExpression;
     class function CreateHostWindow(const AOwner: TJSBase): IJSControllerContainer; static;
     function GetAuthenticator: TKAuthenticator;
     function GetAccessController: TKAccessController;
     procedure InitConfig;
+    /// <summary>
+    ///  Adds a .png extension to the resource name.
+    ///  ASuffix, if specified, is added before the file extension.
+    ///  If the image name ends with _ and a two-digit number among 16, 24, 32, and 48,
+    ///  then the suffix is added before the _.
+    /// </summary>
+    class function AdaptImageName(const AResourceName: string; const ASuffix: string = ''): string;
   public
     const DEFAULT_VIEWPORT_WIDTH = 480;
     class constructor Create;
@@ -86,7 +114,7 @@ type
 
     function HandleRequest(const ARequest: TKWebRequest; const AResponse: TKWebResponse; const AURL: TKURL): Boolean; override;
     procedure UpdateObserver(const ASubject: IEFSubject; const AContext: string = ''); override;
-    procedure AddedToServer(const AServer: TKWebServer); override;
+    procedure AddedToServer(const AServer: TKWebServer; const AIndex: Integer); override;
 
     property Config: TKConfig read FConfig;
     procedure ReloadConfig;
@@ -99,12 +127,59 @@ type
     function DisplayNewController(const AView: TKView; const AForceModal: Boolean = False;
       const AAfterCreateWindow: TProc<IJSContainer> = nil;
       const AAfterCreate: TProc<IJSController> = nil): IJSController;
-    property Theme: string read FTheme write FTheme;
-    property ExtJSPath: string read FExtJSPath write FExtJSPath;
+    property Path: string read FPath;
+    property Theme: string read FTheme;
+    property ExtJSPath: string read FExtJSPath;
 
     class property Current: TKWebApplication read GetCurrent write SetCurrent;
 
     class property OnCreateHostWindow: TFunc<TJSBase, IJSControllerContainer> read FOnCreateHostWindow write FOnCreateHostWindow;
+
+    /// <summary>
+    ///  Returns the URL for the specified resource, based on the first
+    ///  existing file in the ordered list of resource folders. If no existing
+    ///  file is found, an exception is raised.
+    /// </summary>
+    /// <param name="AResourceFileName">
+    ///  Resource file name relative to the resource folder. Examples:
+    ///  some_image.png, js\some_library.js.
+    /// </param>
+    function GetResourceURL(const AResourceFileName: string): string;
+
+    /// <summary>Returns the URL for the specified resource, based on the first
+    /// existing file in the ordered list of resource folders. If no existing
+    /// file is found, returns ''.</summary>
+    /// <param name="AResourceFileName">Resource file name relative to the
+    /// resource folder. Examples: some_image.png, js\some_library.js.</param>
+    function FindResourceURL(const AResourceFileName: string): string;
+
+    /// <summary>
+    ///   Returns the full pathname for the specified resource, based on the first
+    ///   existing file in the ordered list of resource folders. If no existing
+    ///   file is found, an exception is raised.
+    /// </summary>
+    /// <param name="AResourceFileName">
+    ///   Resource file name relative to the resource folder. Examples:
+    ///   some_image.png, js\some_library.js.
+    /// </param>
+    function GetResourcePathName(const AResourceFileName: string): string;
+
+    /// <summary>
+    ///  Returns the full pathname for the specified resource, based on
+    ///  the first existing file in the ordered list of resource folders. If no
+    ///  existing file is found, returns ''.
+    /// </summary>
+    /// <param name="AResourceFileName">
+    ///  Resource file name relative to the resource folder.
+    ///  Examples: some_image.png, js\some_library.js.
+    /// </param>
+    function FindResourcePathName(const AResourceFileName: string): string;
+
+    function GetImageURL(const AResourceName: string; const ASuffix: string = ''): string;
+    function FindImageURL(const AResourceName: string; const ASuffix: string = ''): string;
+
+    function GetImagePathName(const AResourceName: string; const ASuffix: string = ''): string;
+    function FindImagePathName(const AResourceName: string; const ASuffix: string = ''): string;
 
     procedure ReloadOrDisplayHomeView;
     function GetLoginView: TKView;
@@ -177,15 +252,33 @@ uses
   , EF.Localization
   , EF.Types
   , Ext.Base
+  , Kitto.Types
   , Kitto.JS.Formatting
   , Kitto.Web.Types
   , Kitto.Web.Session
   ;
 
-{ TKSessionMacroExpander }
+{ TKApplicationMacroExpander }
 
-function TKSessionMacroExpander.InternalExpand(const AString: string): string;
+constructor TKApplicationMacroExpander.Create(const AApplication: TKWebApplication);
+begin
+  Assert(Assigned(AApplication));
 
+  // We will pass Session.AuthData dynamically as needed, so we initialize the
+  // expander with nil. We inherit from TEFTreeExpander only to inherit its
+  // functionality.
+  inherited Create(nil, 'Auth');
+  FApplication := AApplication;
+end;
+
+function TKApplicationMacroExpander.InternalExpand(const AString: string): string;
+const
+  IMAGE_MACRO_HEAD = '%IMAGE(';
+  MACRO_TAIL = ')%';
+var
+  LPosHead: Integer;
+  LPosTail: Integer;
+  LName: string;
 begin
   Result := inherited InternalExpand(AString);
   if Session <> nil then
@@ -194,6 +287,22 @@ begin
     Result := ExpandMacros(Result, '%LANGUAGE_ID%', Session.Language);
     // Expand %Auth:*%.
     Result := ExpandTreeMacros(Result, Session.AuthData);
+  end;
+
+  if FApplication <> nil then
+  begin
+    LPosHead := Pos(IMAGE_MACRO_HEAD, Result);
+    if LPosHead > 0 then
+    begin
+      LPosTail := PosEx(MACRO_TAIL, Result, LPosHead + 1);
+      if LPosTail > 0 then
+      begin
+        LName := Copy(Result, LPosHead + Length(IMAGE_MACRO_HEAD),
+          LPosTail - (LPosHead + Length(IMAGE_MACRO_HEAD)));
+        Result := Copy(Result, 1, LPosHead - 1) + FApplication.GetImageURL(LName)
+          + InternalExpand(Copy(Result, LPosTail + Length(MACRO_TAIL), MaxInt));
+      end;
+    end;
   end;
 end;
 
@@ -218,8 +327,6 @@ begin
   FOwnsLoginNode := False;
   FRttiContext := TRttiContext.Create;
   FAdditionalRefs := TList<string>.Create;
-  FExtJSPath := '/ext';
-  FResourcePath := '/res';
   InitConfig;
 end;
 
@@ -236,14 +343,13 @@ end;
 procedure TKWebApplication.InitConfig;
 begin
   FConfig := TKConfig.Create;
-  // We will pass Session.AuthData dynamically as needed, so we initialize the
-  // expander with nil. It is inherited from TEFTreeExpander only to inherit its
-  // functionality.
-  FSessionMacroExpander := TKSessionMacroExpander.Create(nil, 'Auth');
-  FConfig.MacroExpansionEngine.AddExpander(FSessionMacroExpander);
-  FPath := FConfig.Config.GetString('AppPath', '/' + Config.AppName.ToLower);
+  FMacroExpander := TKApplicationMacroExpander.Create(Self);
+  FConfig.MacroExpansionEngine.AddExpander(FMacroExpander);
   FTheme := FConfig.Config.GetString('ExtJS/Theme', 'triton');
-  FExtJSLocalPath := FConfig.Config.GetString('ExtJS/Path', TPath.Combine(FConfig.SystemHomePath, TPath.Combine('Resources', 'ext')));
+  FPath := FConfig.Config.GetString('AppPath', '/' + Config.AppName.ToLower);
+  FResourcePath := FPath + '/res';
+  FExtJSPath := FResourcePath + '/ext';
+//  FExtJSLocalPath := FConfig.Config.GetString('ExtJS/Path', TPath.Combine(FConfig.SystemHomePath, TPath.Combine('Resources', 'ext')));
   FResourceLocalPath1 := TPath.Combine(FConfig.AppHomePath, 'Resources');
   FResourceLocalPath2 := TPath.Combine(FConfig.SystemHomePath, 'Resources');
 end;
@@ -262,25 +368,28 @@ begin
   FAdditionalRefs.Add(APath);
 end;
 
-procedure TKWebApplication.AddedToServer(const AServer: TKWebServer);
+procedure TKWebApplication.AddedToServer(const AServer: TKWebServer; const AIndex: Integer);
 begin
   inherited;
-  AddConfigRoutes(AServer);
-end;
-
-procedure TKWebApplication.AddConfigRoutes(const AServer: TKWebServer);
-begin
-  // This route needs to be added before all others, as some URLs generated by
-  // ExtJS's "requires" system may be misinterpreted by the application as method calls.
-  AServer.AddRoute(TKStaticWebRoute.Create(
-    FPath + '/Ext/ux/*',
-    TPath.Combine(FConfig.SystemHomePath, TPath.Combine('Resources', 'js'))), 0);
-  AServer.AddRoute(TKStaticWebRoute.Create(
-    FExtJSPath + '/*',
-    FExtJSLocalPath));
+  // Resources now share the application's path, so they must be resolved before application calls.
   AServer.AddRoute(TKMultipleStaticWebRoute.Create(
     FResourcePath + '/',
-    [FResourceLocalPath1, FResourceLocalPath2]));
+    [FResourceLocalPath1, FResourceLocalPath2]), AIndex);
+
+  // This route needs to be added before all others, as some URLs generated by
+  // Ext.Loader may be misinterpreted by the application as method calls.
+  // Case in point: the DateTimeField.js has a Ext.define() call that includes
+  // requires: ['Ext.ux.DateTimePicker']. Since they are using the Ext namespace,
+  // and Ext.Loader does not appear to support remapping sub-namespaces, we can
+  // only resort to this hack in order to serve the file correctly for the time being.
+  // Reusing AIndex means we add the routes in reverse order.
+  AServer.AddRoute(TKStaticWebRoute.Create(
+    FPath + '/Ext/ux/*',
+    TPath.Combine(FConfig.SystemHomePath, TPath.Combine('Resources', 'js\Ext\ux'))), AIndex);
+
+//  AServer.AddRoute(TKStaticWebRoute.Create(
+//    FExtJSPath + '/*',
+//    FExtJSLocalPath));
 end;
 
 procedure TKWebApplication.FreeLoginNode;
@@ -547,7 +656,7 @@ begin
   Assert(TKWebRequest.Current.IsAjax);
 
   Result := IfThen(AImageName <> '', AImageName, ADefaultImageName);
-  LIconURL := Config.GetImageURL(Result);
+  LIconURL := GetImageURL(Result);
   Result := ACustomPrefix + Result + '_img';
   // The !important rule allows to use a non-specific selector, so that the icon
   // can be shared by different components.
@@ -870,13 +979,13 @@ var
   procedure AddReference(const APathName: string; const AIsRequired: Boolean = False);
   var
     LURL: string;
-    LPathName: string;
+    LLocalPathName: string;
   begin
-    LPathName := APathName.Replace('{ext}', FExtJSPath.Replace('/', PathDelim));
+    LLocalPathName := APathName.Replace('/', PathDelim);
     if AIsRequired then
-      LURL := Config.GetResourceURL(LPathName)
+      LURL := GetResourceURL(LLocalPathName)
     else
-      LURL := Config.FindResourceURL(LPathName);
+      LURL := FindResourceURL(LLocalPathName);
     if LURL <> '' then
     begin
       if LURL.EndsWith('.js', True) then
@@ -894,27 +1003,27 @@ begin
 Find a way to reference optional libraries only if the controllers that need
 them are linked in; maybe a global repository fed by initialization sections.
 Duplicates must be handled/ignored. }
-  AddReference('{ext}\build\packages\ux\classic\ux'{$IFDEF DebugExtJS} + '-debug'{$ENDIF} + '.js', True);
-  AddReference('{ext}\build\packages\ux\classic\' + FTheme + '\resources\ux-all'{$IFDEF DebugExtJS} + '-debug'{$ENDIF} + '.css');
-  AddReference('{ext}\build\packages\charts\classic\charts'{$IFDEF DebugExtJS} + '-debug'{$ENDIF} + '.js', True);
-  AddReference('{ext}\build\packages\charts\classic\' + FTheme + '\resources\charts-all'{$IFDEF DebugExtJS} + '-debug'{$ENDIF} + '.css');
-  AddReference('js\DateTimeField.js', True);
+  AddReference('ext/build/packages/ux/classic/ux'{$IFDEF DebugExtJS} + '-debug'{$ENDIF} + '.js', True);
+  AddReference('ext/build/packages/ux/classic/' + FTheme + '/resources/ux-all'{$IFDEF DebugExtJS} + '-debug'{$ENDIF} + '.css');
+  AddReference('ext/build/packages/charts/classic/charts'{$IFDEF DebugExtJS} + '-debug'{$ENDIF} + '.js', True);
+  AddReference('ext/build/packages/charts/classic/' + FTheme + '/resources/charts-all'{$IFDEF DebugExtJS} + '-debug'{$ENDIF} + '.css');
+  AddReference('js/DateTimeField.js', True);
 
-  AddReference('js\kitto-core.js', True);
-  AddReference('js\kitto-core.css', True);
+  AddReference('js/kitto-core.js', True);
+  AddReference('js/kitto-core.css', True);
   if TKWebRequest.Current.IsMobileBrowser then
   begin
-    AddReference('js\kitto-core-mobile.js', True);
-    AddReference('js\kitto-core-mobile.css', True);
+    AddReference('js/kitto-core-mobile.js', True);
+    AddReference('js/kitto-core-mobile.css', True);
   end
   else
   begin
-    AddReference('js\kitto-core-desktop.js', True);
-    AddReference('js\kitto-core-desktop.css', True);
+    AddReference('js/kitto-core-desktop.js', True);
+    AddReference('js/kitto-core-desktop.css', True);
   end;
-  AddReference('js\kitto-init.js', True);
-  AddReference('js\application.js');
-  AddReference('js\application.css');
+  AddReference('js/kitto-init.js', True);
+  AddReference('js/application.js');
+  AddReference('js/application.css');
 
   for LRef in FAdditionalRefs do
     AddReference(LRef, True);
@@ -1038,20 +1147,20 @@ begin
   LHtml := ReplaceText(LHtml, '<%ViewportContent%>', GetViewportContent);
   LHtml := ReplaceText(LHtml, '<%ApplicationTitle%>', Config.AppTitle);
   LHtml := ReplaceText(LHtml, '<%ApplicationIconLink%>',
-    IfThen(Config.AppIcon = '', '', '<link rel="shortcut icon" href="' + Config.GetImageURL(Config.AppIcon) + '"/>'));
+    IfThen(Config.AppIcon = '', '', '<link rel="shortcut icon" href="' + GetImageURL(Config.AppIcon) + '"/>'));
   LHtml := ReplaceText(LHtml, '<%AppleIconLink%>',
-    IfThen(Config.AppIcon = '', '', '<link rel="apple-touch-icon" sizes="120x120" href="' + Config.GetImageURL(Config.AppIcon) + '"/>'));
+    IfThen(Config.AppIcon = '', '', '<link rel="apple-touch-icon" sizes="120x120" href="' + GetImageURL(Config.AppIcon) + '"/>'));
   LHtml := ReplaceText(LHtml, '<%CharSet%>', TKWebResponse.Current.Items.Charset);
   LHtml := ReplaceText(LHtml, '<%ExtJSPath%>', FExtJSPath);
-  LHtml := ReplaceText(LHtml, '<%DebugSuffix%>', {$IFDEF DebugExtJS}'-debug'{$ELSE}''{$ENDIF});
+  LHtml := ReplaceText(LHtml, '<%ResourcePath%>', FResourcePath);
   LHtml := ReplaceText(LHtml, '<%ManifestLink%>', IfThen(GetManifestFileName = '', '',
     Format('<link rel="manifest" href="%s"/>', [GetManifestFileName])));
   LHtml := ReplaceText(LHtml, '<%ThemeLink%>',
-    IfThen(Theme = '', '', '<link rel=stylesheet href="' + ExtJSPath + '/build/classic/theme-' + Theme +
+    IfThen(Theme = '', '', '<link rel=stylesheet href="' + FExtJSPath + '/build/classic/theme-' + Theme +
       '/resources/theme-' + Theme + '-all.css" />'));
   LHtml := ReplaceText(LHtml, '<%LanguageLink%>',
     IfThen((Session.Language = 'en') or (Session.Language = ''), '',
-      '<script src="' + ExtJSPath + '/build/classic/locale/locale-' + Session.Language + '.js"></script>'));
+      '<script src="' + FExtJSPath + '/build/classic/locale/locale-' + Session.Language + '.js"></script>'));
   LHtml := ReplaceText(LHtml, '<%LibraryTags%>', GetLibraryTags);
   LHtml := ReplaceText(LHtml, '<%CustomJS%>', GetCustomJS);
   LHtml := ReplaceText(LHtml, '<%Response%>', TKWebResponse.Current.Items.Consume);
@@ -1070,7 +1179,7 @@ var
   LManifestFile, LURL: string;
 begin
   LManifestFile := GetHomeView(Session.ViewportWidthInInches).GetString('MobileSettings/Android/Manifest', 'Manifest.json');
-  LURL := Config.FindResourceURL(LManifestFile);
+  LURL := FindResourceURL(LManifestFile);
   if LURL <> '' then
     Result := LURL
   else
@@ -1081,7 +1190,7 @@ function TKWebApplication.FindPageTemplate(const APageName: string): string;
 var
   LFileName: string;
 begin
-  LFileName := Config.FindResourcePathName(APageName + '.html');
+  LFileName := FindResourcePathName(APageName + '.html');
   if LFileName <> '' then
   begin
     Result := TextFileToString(LFileName, TKWebResponse.Current.Items.Encoding);
@@ -1118,6 +1227,75 @@ begin
   // the response doesn't contain any.
   TKWebResponse.Current.Items.Clear;
   TKWebResponse.Current.Items.ExecuteJSCode('window.location.reload();');
+end;
+
+function TKWebApplication.FindResourcePathName(const AResourceFileName: string): string;
+begin
+  Result := TPath.Combine(Config.AppHomePath, 'Resources') + PathDelim + StripPrefix(AResourceFileName, PathDelim);
+  if not FileExists(Result) then
+    Result := TPath.Combine(Config.SystemHomePath, 'Resources') + PathDelim + StripPrefix(AResourceFileName, PathDelim);
+  if not FileExists(Result) then
+    Result := '';
+end;
+
+function TKWebApplication.GetResourcePathName(const AResourceFileName: string): string;
+begin
+  Result := FindResourcePathName(AResourceFileName);
+  if Result = '' then
+    raise EKError.CreateFmt(_('Resource %s not found.'), [AResourceFileName]);
+end;
+
+function TKWebApplication.FindResourceURL(const AResourceFileName: string): string;
+begin
+  if FindResourcePathName(AResourceFileName) = '' then
+    // File not found: no URL.
+    Result := ''
+  else
+    Result := FResourcePath + '/' + StripPrefix(AResourceFileName, PathDelim).Replace(PathDelim, '/');
+end;
+
+function TKWebApplication.GetResourceURL(const AResourceFileName: string): string;
+begin
+  Result := FindResourceURL(AResourceFileName);
+  if Result = '' then
+    raise EKError.CreateFmt(_('Resource %s not found.'), [AResourceFileName]);
+end;
+
+function TKWebApplication.GetImagePathName(const AResourceName, ASuffix: string): string;
+begin
+  Result := GetResourcePathName(AdaptImageName(AResourceName, ASuffix));
+end;
+
+function TKWebApplication.GetImageURL(const AResourceName: string; const ASuffix: string = ''): string;
+begin
+  Result := GetResourceURL(AdaptImageName(AResourceName, ASuffix));
+end;
+
+function TKWebApplication.FindImagePathName(const AResourceName: string; const ASuffix: string = ''): string;
+begin
+  Result := FindResourcePathName(AdaptImageName(AResourceName, ASuffix));
+end;
+
+function TKWebApplication.FindImageURL(const AResourceName, ASuffix: string): string;
+begin
+  Result := FindResourceURL(AdaptImageName(AResourceName, ASuffix));
+end;
+
+class function TKWebApplication.AdaptImageName(const AResourceName: string; const ASuffix: string = ''): string;
+
+  function HasSize(const AName: string): Boolean;
+  begin
+    Result := EndsStr('_16', AName) or EndsStr('_24', AName)
+      or EndsStr('_32', AName) or EndsStr('_48', AName);
+  end;
+
+begin
+  Result := AResourceName;
+  if HasSize(Result) then
+    Insert(ASuffix, Result, Length(Result) - 2)
+  else
+    Result := Result + ASuffix;
+  Result := Result + '.png';
 end;
 
 end.

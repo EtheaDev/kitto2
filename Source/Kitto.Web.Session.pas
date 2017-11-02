@@ -339,16 +339,16 @@ procedure TKWebSession.EnsureDynamicScript(const AScriptBaseName: string);
 var
   LIndex: Integer;
   LURL: string;
-  LResourceName: string;
-  LPathName: string;
+  LResourceFileName: string;
+  LResourcePathName: string;
 begin
   if not FDynamicScripts.Find(AScriptBaseName, LIndex) then
   begin
-    LResourceName := IncludeTrailingPathDelimiter('js') + AScriptBaseName + '.js';
-    LPathName := TKWebApplication.Current.Config.FindResourcePathName(LResourceName);
-    if LPathName <> '' then
+    LResourceFileName := IncludeTrailingPathDelimiter('js') + AScriptBaseName + '.js';
+    LResourcePathName := TKWebApplication.Current.FindResourcePathName(LResourceFileName);
+    if LResourcePathName <> '' then
     begin
-      LURL := TKWebApplication.Current.Config.FindResourceURL(LResourceName);
+      LURL := TKWebApplication.Current.FindResourceURL(LResourceFileName);
       TKWebResponse.Current.Items.ExecuteJSCode(Format('addScriptRef("%s");', [LURL]));
       FDynamicScripts.Add(AScriptBaseName);
     end;
@@ -359,16 +359,16 @@ procedure TKWebSession.EnsureDynamicStyle(const AStyleBaseName: string);
 var
   LIndex: Integer;
   LURL: string;
-  LResourceName: string;
-  LPathName: string;
+  LResourceFileName: string;
+  LResourcePathName: string;
 begin
   if not FDynamicStyles.Find(AStyleBaseName, LIndex) then
   begin
-    LResourceName := IncludeTrailingPathDelimiter('js') + AStyleBaseName + '.css';
-    LPathName := TKWebApplication.Current.Config.FindResourcePathName(LResourceName);
-    if LPathName <> '' then
+    LResourceFileName := IncludeTrailingPathDelimiter('js') + AStyleBaseName + '.css';
+    LResourcePathName := TKWebApplication.Current.FindResourcePathName(LResourceFileName);
+    if LResourcePathName <> '' then
     begin
-      LURL := TKWebApplication.Current.Config.FindResourceURL(LResourceName);
+      LURL := TKWebApplication.Current.FindResourceURL(LResourceFileName);
       TKWebResponse.Current.Items.ExecuteJSCode(Format('addLinkRef("%s");', [LURL]));
       FDynamicStyles.Add(AStyleBaseName);
     end;

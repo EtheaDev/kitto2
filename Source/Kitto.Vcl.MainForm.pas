@@ -14,7 +14,7 @@
    limitations under the License.
 -------------------------------------------------------------------------------}
 
-unit Kitto.Ext.MainFormUnit;
+unit Kitto.Vcl.MainForm;
 
 {$I Kitto.Defines.inc}
 
@@ -29,18 +29,18 @@ uses
   Kitto.Web.Application, Kitto.Web.Session;
 
 type
-  TKExtLogEvent = procedure (const AString: string) of object;
+  TKLogEvent = procedure (const AString: string) of object;
 
-  TKExtMainFormLogEndpoint = class(TEFLogEndpoint)
+  TKMainFormLogEndpoint = class(TEFLogEndpoint)
   private
-    FOnLog: TKExtLogEvent;
+    FOnLog: TKLogEvent;
   protected
     procedure DoLog(const AString: string); override;
   public
-    property OnLog: TKExtLogEvent read FOnLog write FOnLog;
+    property OnLog: TKLogEvent read FOnLog write FOnLog;
   end;
 
-  TKExtMainForm = class(TForm)
+  TKMainForm = class(TForm)
     ActionList: TActionList;
     StartAction: TAction;
     StopAction: TAction;
@@ -88,7 +88,7 @@ type
     FServer: TKWebServer;
     FApplication: TKWebApplication;
     FRestart: Boolean;
-    FLogEndPoint: TKExtMainFormLogEndpoint;
+    FLogEndPoint: TKMainFormLogEndpoint;
     FSessions: TThreadList<TKWebSession>;
     procedure ShowTabGUI(const AIndex: Integer);
     procedure UpdateSessionInfo;
@@ -107,7 +107,7 @@ type
   end;
 
 var
-  KExtMainForm: TKExtMainForm;
+  KMainForm: TKMainForm;
 
 implementation
 
@@ -124,17 +124,19 @@ uses
   , EF.Localization
   ;
 
-procedure TKExtMainForm.RefreshButtonClick(Sender: TObject);
+{ TKMainForm }
+
+procedure TKMainForm.RefreshButtonClick(Sender: TObject);
 begin
   UpdateSessionInfo;
 end;
 
-procedure TKExtMainForm.ConfigLinkLabelClick(Sender: TObject);
+procedure TKMainForm.ConfigLinkLabelClick(Sender: TObject);
 begin
   SelectConfigFile;
 end;
 
-procedure TKExtMainForm.SelectConfigFile;
+procedure TKMainForm.SelectConfigFile;
 begin
   OpenConfigDialog.InitialDir := TKConfig.AppHomePath;
   if OpenConfigDialog.Execute then
@@ -147,19 +149,19 @@ begin
   end;
 end;
 
-procedure TKExtMainForm.SessionListRefreshTimerTimer(Sender: TObject);
+procedure TKMainForm.SessionListRefreshTimerTimer(Sender: TObject);
 begin
   UpdateSessionInfo;
 end;
 
-procedure TKExtMainForm.SessionListViewEdited(Sender: TObject; Item: TListItem;
+procedure TKMainForm.SessionListViewEdited(Sender: TObject; Item: TListItem;
   var S: string);
 begin
   if TObject(Item.Data) is TKWebSession then
     TKWebSession(Item.Data).DisplayName := S;
 end;
 
-procedure TKExtMainForm.SessionListViewInfoTip(Sender: TObject; Item: TListItem; var InfoTip: string);
+procedure TKMainForm.SessionListViewInfoTip(Sender: TObject; Item: TListItem; var InfoTip: string);
 var
   LSession: TKWebSession;
 begin
@@ -173,12 +175,12 @@ begin
   end;
 end;
 
-procedure TKExtMainForm.DoLog(const AString: string);
+procedure TKMainForm.DoLog(const AString: string);
 begin
   LogMemo.Lines.Add(AString);
 end;
 
-procedure TKExtMainForm.StopActionExecute(Sender: TObject);
+procedure TKMainForm.StopActionExecute(Sender: TObject);
 begin
   if IsStarted then
   begin
@@ -198,12 +200,12 @@ begin
   UpdateSessionInfo;
 end;
 
-procedure TKExtMainForm.StopActionUpdate(Sender: TObject);
+procedure TKMainForm.StopActionUpdate(Sender: TObject);
 begin
   (Sender as TAction).Enabled := IsStarted;
 end;
 
-procedure TKExtMainForm.MainTabSetChange(Sender: TObject; NewTab: Integer;
+procedure TKMainForm.MainTabSetChange(Sender: TObject; NewTab: Integer;
   var AllowChange: Boolean);
 begin
   ShowTabGUI(NewTab);
@@ -211,7 +213,7 @@ begin
   SessionListRefreshTimer.Enabled := MainTabSet.TabIndex = TAB_SESSIONS;
 end;
 
-procedure TKExtMainForm.ShowTabGUI(const AIndex: Integer);
+procedure TKMainForm.ShowTabGUI(const AIndex: Integer);
 begin
   case AIndex of
     TAB_LOG:
@@ -225,18 +227,18 @@ begin
   end;
 end;
 
-procedure TKExtMainForm.RestartActionExecute(Sender: TObject);
+procedure TKMainForm.RestartActionExecute(Sender: TObject);
 begin
   FRestart := True;
   StopAction.Execute;
 end;
 
-procedure TKExtMainForm.RestartActionUpdate(Sender: TObject);
+procedure TKMainForm.RestartActionUpdate(Sender: TObject);
 begin
   (Sender as TAction).Enabled := IsStarted;
 end;
 
-procedure TKExtMainForm.UpdateSessionInfo;
+procedure TKMainForm.UpdateSessionInfo;
 
   procedure AddItem(const ACaption: string; const ASession: TKWebSession = nil);
   var
@@ -287,55 +289,55 @@ begin
     AddItem(_('Inactive'));
 end;
 
-function TKExtMainForm.HasConfigFileName: Boolean;
+function TKMainForm.HasConfigFileName: Boolean;
 begin
   Result := ConfigFileNameComboBox.Text <> '';
 end;
 
-procedure TKExtMainForm.HomeURLLabelClick(Sender: TObject);
+procedure TKMainForm.HomeURLLabelClick(Sender: TObject);
 begin
   OpenDocument(HomeURLLabel.Caption);
 end;
 
-function TKExtMainForm.IsStarted: Boolean;
+function TKMainForm.IsStarted: Boolean;
 begin
   Result := FServer.Active;
 end;
 
-procedure TKExtMainForm.FormClose(Sender: TObject; var Action: TCloseAction);
+procedure TKMainForm.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
   StopAction.Execute;
 end;
 
-procedure TKExtMainForm.ServerSessionStart(Sender: TIdHTTPSession);
+procedure TKMainForm.ServerSessionStart(Sender: TIdHTTPSession);
 begin
   TThread.Synchronize(nil,
     procedure
     var
-      LJSSession: TKWebSession;
+      LSession: TKWebSession;
     begin
-      LJSSession := Sender.Content.Objects[Sender.Content.IndexOf(TKWebServer.SESSION_OBJECT)] as TKWebSession;
-      FSessions.Add(LJSSession);
+      LSession := Sender.Content.Objects[Sender.Content.IndexOf(TKWebServer.SESSION_OBJECT)] as TKWebSession;
+      FSessions.Add(LSession);
       UpdateSessionInfo;
     end
   );
 end;
 
-procedure TKExtMainForm.ServerSessionEnd(Sender: TIdHTTPSession);
+procedure TKMainForm.ServerSessionEnd(Sender: TIdHTTPSession);
 begin
   TThread.Synchronize(nil,
     procedure
     var
-      LJSSession: TKWebSession;
+      LSession: TKWebSession;
     begin
-      LJSSession := Sender.Content.Objects[Sender.Content.IndexOf(TKWebServer.SESSION_OBJECT)] as TKWebSession;
-      FSessions.Remove(LJSSession);
+      LSession := Sender.Content.Objects[Sender.Content.IndexOf(TKWebServer.SESSION_OBJECT)] as TKWebSession;
+      FSessions.Remove(LSession);
       UpdateSessionInfo;
     end
   );
 end;
 
-procedure TKExtMainForm.FormCreate(Sender: TObject);
+procedure TKMainForm.FormCreate(Sender: TObject);
 begin
   FSessions := TThreadList<TKWebSession>.Create;
   FServer := TKWebServer.Create(nil);
@@ -343,13 +345,13 @@ begin
   FServer.OnSessionEnd := ServerSessionEnd;
   FApplication := FServer.AddRoute(TKWebApplication.Create) as TKWebApplication;
 
-  FLogEndPoint := TKExtMainFormLogEndpoint.Create;
+  FLogEndPoint := TKMainFormLogEndpoint.Create;
   FLogEndPoint.OnLog := DoLog;
 
   UpdateSessionInfo;
 end;
 
-procedure TKExtMainForm.FormDestroy(Sender: TObject);
+procedure TKMainForm.FormDestroy(Sender: TObject);
 begin
   FServer.Active := False;
   SessionListView.Clear;
@@ -358,7 +360,7 @@ begin
   FreeAndNil(FLogEndPoint);
 end;
 
-procedure TKExtMainForm.FormShow(Sender: TObject);
+procedure TKMainForm.FormShow(Sender: TObject);
 begin
   ShowTabGUI(TAB_LOG);
   Caption := TKConfig.AppHomePath;
@@ -370,14 +372,13 @@ begin
     SelectConfigFile;
 end;
 
-procedure TKExtMainForm.ConfigFileNameComboBoxChange(Sender: TObject);
+procedure TKMainForm.ConfigFileNameComboBoxChange(Sender: TObject);
 begin
   SetConfig(ConfigFileNameComboBox.Text);
 end;
 
-procedure TKExtMainForm.SetConfig(const AFileName: string);
+procedure TKMainForm.SetConfig(const AFileName: string);
 var
-  LConfig: TKConfig;
   LWasStarted: Boolean;
   LAppIconFileName: string;
 begin
@@ -386,30 +387,26 @@ begin
     StopAction.Execute;
   ConfigFileNameComboBox.ItemIndex := ConfigFileNameComboBox.Items.IndexOf(AFileName);
   TKConfig.BaseConfigFileName := AFileName;
-  LConfig := TKConfig.Create;
-  try
-    AppTitleLabel.Caption := Format(_('Application: %s'), [_(LConfig.AppTitle)]);
-    LAppIconFileName := LConfig.FindResourcePathName(LConfig.AppIcon + '.png');
-    if LAppIconFileName <> '' then
-      AppIcon.Picture.LoadFromFile(LAppIconFileName)
-    else
-      AppIcon.Picture.Bitmap := nil;
-  finally
-    FreeAndNil(LConfig);
-  end;
+  FApplication.ReloadConfig;
+  AppTitleLabel.Caption := Format(_('Application: %s'), [_(FApplication.Config.AppTitle)]);
+  LAppIconFileName := FApplication.FindResourcePathName(FApplication.Config.AppIcon + '.png');
+  if LAppIconFileName <> '' then
+    AppIcon.Picture.LoadFromFile(LAppIconFileName)
+  else
+    AppIcon.Picture.Bitmap := nil;
   StartAction.Update;
   if LWasStarted then
     StartAction.Execute;
 end;
 
-procedure TKExtMainForm.DisplayHomeURL(const AHomeURL: string);
+procedure TKMainForm.DisplayHomeURL(const AHomeURL: string);
 begin
   DoLog(Format(_('Home URL: %s'), [AHomeURL]));
   HomeURLLabel.Caption := AHomeURL;
   HomeURLLabel.Visible := True;
 end;
 
-procedure TKExtMainForm.FillConfigFileNameCombo;
+procedure TKMainForm.FillConfigFileNameCombo;
 var
   LDefaultConfig: string;
   LConfigIndex: Integer;
@@ -433,7 +430,7 @@ begin
   end;
 end;
 
-procedure TKExtMainForm.StartActionExecute(Sender: TObject);
+procedure TKMainForm.StartActionExecute(Sender: TObject);
 begin
   Assert(Assigned(FServer));
   Assert(Assigned(FApplication));
@@ -445,14 +442,14 @@ begin
   UpdateSessionInfo;
 end;
 
-procedure TKExtMainForm.StartActionUpdate(Sender: TObject);
+procedure TKMainForm.StartActionUpdate(Sender: TObject);
 begin
   (Sender as TAction).Enabled := HasConfigFileName and not IsStarted;
 end;
 
-{ TKExtMainFormLogEndpoint }
+{ TKMainFormLogEndpoint }
 
-procedure TKExtMainFormLogEndpoint.DoLog(const AString: string);
+procedure TKMainFormLogEndpoint.DoLog(const AString: string);
 begin
   if Assigned(FOnLog) then
     FOnLog(AString);

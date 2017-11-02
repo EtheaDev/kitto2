@@ -79,7 +79,6 @@ type
     function GetDefaultDatabaseName: string;
     function GetDatabaseName: string;
     function GetLanguagePerSession: Boolean;
-    class function AdaptImageName(const AResourceName: string; const ASuffix: string = ''): string;
   strict protected
     function GetConfigFileName: string; override;
     class function FindSystemHomePath: string;
@@ -139,73 +138,27 @@ type
     class function GetMetadataPath: string;
 
     /// <summary>
-    ///   Format settings for Javascript/JSON data encoded in text format. use
-    ///   it, don't change it.
+    ///  Format settings for Javascript/JSON data encoded in text format. use
+    ///  it, don't change it.
     /// </summary>
     class property JSFormatSettings: TFormatSettings read FJSFormatSettings;
 
     /// <summary>
-    ///   Name of the config file. Defaults to Config.yaml. Changing this
-    ///   property only affects instances created afterwards.
+    ///  Name of the config file. Defaults to Config.yaml. Changing this
+    ///  property only affects instances created afterwards.
     /// </summary>
     class property BaseConfigFileName: string read FBaseConfigFileName write FBaseConfigFileName;
 
     /// <summary>
-    ///   Sets a global function that returns the global config object. In web
-    ///   applications there will be a config object per session.
+    ///  Sets a global function that returns the global config object. In web
+    ///  applications there will be a config object per session.
     /// </summary>
     class property OnGetInstance: TKGetConfig read FOnGetInstance write FOnGetInstance;
 
     /// <summary>
-    ///   Returns a singleton instance.
+    ///  Returns a singleton instance.
     /// </summary>
     class property Instance: TKConfig read GetInstance;
-
-    /// <summary>
-    ///   Returns the URL for the specified resource, based on the first
-    ///   existing file in the ordered list of resource folders. If no existing
-    ///   file is found, an exception is raised.
-    /// </summary>
-    /// <param name="AResourceFileName">
-    ///   Resource file name relative to the resource folder. Examples:
-    ///   some_image.png, js\some_library.js.
-    /// </param>
-    function GetResourceURL(const AResourceFileName: string): string;
-
-    /// <summary>Returns the URL for the specified resource, based on the first
-    /// existing file in the ordered list of resource folders. If no existing
-    /// file is found, returns ''.</summary>
-    /// <param name="AResourceFileName">Resource file name relative to the
-    /// resource folder. Examples: some_image.png, js\some_library.js.</param>
-    function FindResourceURL(const AResourceFileName: string): string;
-
-    /// <summary>
-    ///   Returns the full pathname for the specified resource, based on the first
-    ///   existing file in the ordered list of resource folders. If no existing
-    ///   file is found, an exception is raised.
-    /// </summary>
-    /// <param name="AResourceFileName">
-    ///   Resource file name relative to the resource folder. Examples:
-    ///   some_image.png, js\some_library.js.
-    /// </param>
-    function GetResourcePathName(const AResourceFileName: string): string;
-
-    /// <summary>
-    ///   Returns the full pathname for the specified resource, based on
-    ///   the first existing file in the ordered list of resource folders. If no
-    ///   existing file is found, returns ''.
-    /// </summary>
-    /// <param name="AResourceFileName">
-    ///   Resource file name relative to the resource folder.
-    ///   Examples: some_image.png, js\some_library.js.
-    /// </param>
-    function FindResourcePathName(const AResourceFileName: string): string;
-
-    function GetImageURL(const AResourceName: string; const ASuffix: string = ''): string;
-    function FindImageURL(const AResourceName: string; const ASuffix: string = ''): string;
-
-    function GetImagePathName(const AResourceName: string; const ASuffix: string = ''): string;
-    function FindImagePathName(const AResourceName: string; const ASuffix: string = ''): string;
 
     /// <summary>
     ///  A reference to the model catalog, opened on first access.
@@ -505,38 +458,6 @@ begin
   Result := Config.GetString('MultiFieldSeparator', '~');
 end;
 
-function TKConfig.FindResourcePathName(const AResourceFileName: string): string;
-begin
-  Result := TPath.Combine(AppHomePath, 'Resources') + PathDelim + StripPrefix(AResourceFileName, PathDelim);
-  if not FileExists(Result) then
-    Result := TPath.Combine(SystemHomePath, 'Resources') + PathDelim + StripPrefix(AResourceFileName, PathDelim);
-  if not FileExists(Result) then
-    Result := '';
-end;
-
-function TKConfig.GetResourcePathName(const AResourceFileName: string): string;
-begin
-  Result := FindResourcePathName(AResourceFileName);
-  if Result = '' then
-    raise EKError.CreateFmt(_('Resource %s not found.'), [AResourceFileName]);
-end;
-
-function TKConfig.FindResourceURL(const AResourceFileName: string): string;
-begin
-  if FindResourcePathName(AResourceFileName) = '' then
-    // File not found: no URL.
-    Result := ''
-  else
-    Result := '/res/' + ReplaceStr(StripPrefix(AResourceFileName, PathDelim), PathDelim, '/');
-end;
-
-function TKConfig.GetResourceURL(const AResourceFileName: string): string;
-begin
-  Result := FindResourceURL(AResourceFileName);
-  if Result = '' then
-    raise EKError.CreateFmt(_('Resource %s not found.'), [AResourceFileName]);
-end;
-
 class function TKConfig.GetSystemHomePath: string;
 begin
   if FSystemHomePath <> '' then
@@ -586,53 +507,12 @@ end;
 
 function TKConfig.GetConfigFileName: string;
 begin
-  Result := GetMetadataPath + FBaseConfigFileName;
-end;
-
-// Adds a .png extension to the resource name.
-// ASuffix, if specified, is added before the file extension.
-// If the image name ends with _ and a two-digit number among 16, 24, 32, and 48,
-// then the suffix is added before the _.
-class function TKConfig.AdaptImageName(const AResourceName: string; const ASuffix: string = ''): string;
-
-  function HasSize(const AName: string): Boolean;
-  begin
-    Result := EndsStr('_16', AName) or EndsStr('_24', AName)
-      or EndsStr('_32', AName) or EndsStr('_48', AName);
-  end;
-
-begin
-  Result := AResourceName;
-  if HasSize(Result) then
-    Insert(ASuffix, Result, Length(Result) - 2)
-  else
-    Result := Result + ASuffix;
-  Result := Result + '.png';
+  Result := TPath.Combine(GetMetadataPath, FBaseConfigFileName);
 end;
 
 function TKConfig.GetAppIcon: string;
 begin
   Result := Config.GetString('AppIcon', 'kitto_128');
-end;
-
-function TKConfig.GetImagePathName(const AResourceName, ASuffix: string): string;
-begin
-  Result := GetResourcePathName(AdaptImageName(AResourceName, ASuffix));
-end;
-
-function TKConfig.GetImageURL(const AResourceName: string; const ASuffix: string = ''): string;
-begin
-  Result := GetResourceURL(AdaptImageName(AResourceName, ASuffix));
-end;
-
-function TKConfig.FindImagePathName(const AResourceName: string; const ASuffix: string = ''): string;
-begin
-  Result := FindResourcePathName(AdaptImageName(AResourceName, ASuffix));
-end;
-
-function TKConfig.FindImageURL(const AResourceName, ASuffix: string): string;
-begin
-  Result := FindResourceURL(AdaptImageName(AResourceName, ASuffix));
 end;
 
 class function TKConfig.GetInstance: TKConfig;
@@ -741,13 +621,6 @@ begin
 end;
 
 function TKConfigMacroExpander.InternalExpand(const AString: string): string;
-const
-  IMAGE_MACRO_HEAD = '%IMAGE(';
-  MACRO_TAIL = ')%';
-var
-  LPosHead: Integer;
-  LPosTail: Integer;
-  LName: string;
 begin
   Result := inherited InternalExpand(AString);
   Result := ExpandMacros(Result, '%HOME_PATH%', FConfig.AppHomePath); // Backward compatibility.
@@ -755,19 +628,6 @@ begin
   Result := ExpandMacros(Result, '%Config.AppHomePath%', FConfig.AppHomePath);
   Result := ExpandMacros(Result, '%Config.AppTitle%', FConfig.Instance.AppTitle);
   Result := ExpandMacros(Result, '%Config.AppIcon%', FConfig.AppIcon);
-
-  LPosHead := Pos(IMAGE_MACRO_HEAD, Result);
-  if LPosHead > 0 then
-  begin
-    LPosTail := PosEx(MACRO_TAIL, Result, LPosHead + 1);
-    if LPosTail > 0 then
-    begin
-      LName := Copy(Result, LPosHead + Length(IMAGE_MACRO_HEAD),
-        LPosTail - (LPosHead + Length(IMAGE_MACRO_HEAD)));
-      Result := Copy(Result, 1, LPosHead - 1) + Config.GetImageURL(LName)
-        + InternalExpand(Copy(Result, LPosTail + Length(MACRO_TAIL), MaxInt));
-    end;
-  end;
 end;
 
 end.

@@ -82,7 +82,7 @@ var
   LFileName: string;
   LTemplate: string;
 begin
-  LFileName := TKWebApplication.Current.Config.FindResourcePathName(Config.GetExpandedString('TemplateFileName'));
+  LFileName := TKWebApplication.Current.FindResourcePathName(Config.GetExpandedString('TemplateFileName'));
   if LFileName <> '' then
     FView.Tpl := ProcessTemplate(TEFMacroExpansionEngine.Instance.Expand(TextFileToString(LFileName, TEncoding.UTF8)))
   else

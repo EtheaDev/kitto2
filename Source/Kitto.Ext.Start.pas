@@ -42,14 +42,12 @@ uses
   , ShlObj
   , Vcl.Themes
   , Vcl.Styles
+  , Kitto.Vcl.MainForm
+  , Kitto.Vcl.Service
   {$ENDIF}
   , EF.Logger
   , EF.Localization
   , Kitto.Config
-  {$IFDEF MSWINDOWS}
-  , Kitto.Ext.MainFormUnit
-  , Kitto.Ext.Service
-  {$ENDIF}
   ;
 
 { TKExtStart }
@@ -78,9 +76,9 @@ begin
     TEFLogger.Instance.Log('Starting as service.');
     if not Vcl.SvcMgr.Application.DelayInitialize or Vcl.SvcMgr.Application.Installing then
       Vcl.SvcMgr.Application.Initialize;
-    Vcl.SvcMgr.Application.CreateForm(TKExtService, KExtService);
-    KExtService.Name := FServiceName;
-    KExtService.DisplayName := FServiceDisplayName;
+    Vcl.SvcMgr.Application.CreateForm(TKService, KService);
+    KService.Name := FServiceName;
+    KService.DisplayName := FServiceDisplayName;
     Vcl.SvcMgr.Application.Run;
     {$ELSE}
     TEFLogger.Instance.Log('Services not yet supported on this platform.');
@@ -91,7 +89,7 @@ begin
     {$IFDEF MSWINDOWS}
     TEFLogger.Instance.Log('Starting as application.');
     Vcl.Forms.Application.Initialize;
-    Vcl.Forms.Application.CreateForm(TKExtMainForm, KExtMainForm);
+    Vcl.Forms.Application.CreateForm(TKMainForm, KMainForm);
     Vcl.Forms.Application.Run;
     {$ELSE}
     TEFLogger.Instance.Log('GUI applications not yet supported on this platform.');

@@ -1,3 +1,19 @@
+{-------------------------------------------------------------------------------
+   Copyright 2012-2017 Ethea S.r.l.
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-------------------------------------------------------------------------------}
+
 unit Kitto.Web.Server;
 
 interface
@@ -34,12 +50,11 @@ type
     ///  Called when the route is added to the server. May be used to add dependant routes.
     ///  The predefined implementation does nothing.
     /// </summary>
-    procedure AddedToServer(const AServer: TKWebServer); virtual;
+    procedure AddedToServer(const AServer: TKWebServer; const AIndex: Integer); virtual;
   end;
 
   /// <summary>
-  ///  A route that serves requests for paths matching a specified pattern,
-  ///  providing local files from the file system.
+  ///  Base class for routes that serve local files from the file system.
   /// </summary>
   TKBaseStaticWebRoute = class(TKWebRoute)
   protected
@@ -47,10 +62,15 @@ type
     function ServeLocalFile(const AFileName: string; const AResponse: TKWebResponse): Boolean;
   end;
 
+  /// <summary>
+  ///  A route that serves requests for paths matching a specified pattern,
+  ///  providing local files from the file system.
+  /// </summary>
   TKStaticWebRoute = class(TKBaseStaticWebRoute)
   private
     FPattern: string;
     FPath: string;
+    function StripBasePath(const AURLPath: string): string;
   public
     constructor Create(const APattern, APath: string);
     function HandleRequest(const ARequest: TKWebRequest; const AResponse: TKWebResponse;
@@ -66,6 +86,7 @@ type
   private
     FBasePath: string;
     FLocalPaths: TArray<string>;
+    function StripBasePath(const AURLPath: string): string;
   public
     function HandleRequest(const ARequest: TKWebRequest;
       const AResponse: TKWebResponse; const AURL: TKURL): Boolean; override;
@@ -83,9 +104,6 @@ type
     FRoutes: TObjectList<TKWebRoute>;
     FSubscribers: TList<IKWebHandleRequestEventListener>;
     FCharset: string;
-//    procedure ParseAuthenticationHandler(AContext: TIdContext;
-//      const AAuthType, AAuthData: String; var VUsername, VPassword: String;
-//      var VHandled: Boolean); virtual;
     class threadvar FCurrentSession: TIdHTTPSession;
     procedure DeleteSession(const ASession: TIdHTTPSession);
     class function GetCurrentSession: TIdHTTPSession; static;
@@ -142,12 +160,17 @@ end;
 { TKWebServer }
 
 function TKWebServer.AddRoute(const ARoute: TKWebRoute; const AIndex: Integer): TKWebRoute;
+var
+  LIndex: Integer;
 begin
   if AIndex = -1 then
-    FRoutes.Add(ARoute)
+    LIndex := FRoutes.Add(ARoute)
   else
+  begin
     FRoutes.Insert(AIndex, ARoute);
-  ARoute.AddedToServer(Self);
+    LIndex := AIndex;
+  end;
+  ARoute.AddedToServer(Self, LIndex);
   Result := ARoute;
 end;
 
@@ -156,7 +179,6 @@ var
   LConfig: TKConfig;
 begin
   inherited;
-//  OnParseAuthentication := ParseAuthenticationHandler;
   FSubscribers := TList<IKWebHandleRequestEventListener>.Create;
   FRoutes := TObjectList<TKWebRoute>.Create;
 
@@ -325,14 +347,6 @@ begin
   Result := FCurrentSession;
 end;
 
-//procedure TKWebServer.ParseAuthenticationHandler(AContext: TIdContext;
-//  const AAuthType, AAuthData: String; var VUsername, VPassword: String;
-//  var VHandled: Boolean);
-//begin
-//  if SameText(AAuthType, 'Bearer') then
-//    VHandled := True;
-//end;
-
 class procedure TKWebServer.SetCurrentKSession(const AValue: TObject);
 begin
   Assert(Assigned(CurrentSession));
@@ -375,17 +389,17 @@ begin
 end;
 
 procedure TKWebServer.AddSubscriber(const ASubscriber: IKWebHandleRequestEventListener);
-begin
+begin
   FSubscribers.Add(ASubscriber);
 end;
 
 procedure TKWebServer.RemoveSubscriber(const ASubscriber: IKWebHandleRequestEventListener);
-begin
+begin
   FSubscribers.Remove(ASubscriber);
 end;
 
 procedure TKWebServer.DoAfterHandleRequest(const ARequest: TKWebRequest; const AResponse: TKWebResponse; const AStopWatch: TStopWatch);
-var
+var
   LSubscriber: IKWebHandleRequestEventListener;
 begin
   for LSubscriber in FSubscribers do
@@ -415,18 +429,14 @@ begin
   end;
 end;
 
-{ TKBaseStaticWebRoute }
+{ TKBaseStaticWebRoute }
 
 function TKBaseStaticWebRoute.ComputeLocalFileName(const ALocalPath, AURLPath, AURLDocument: string): string;
 var
   LURLPath: string;
   I: Integer;
 begin
-  LURLPath := StripPrefix(AURLPath, '/');
-  I := FirstDelimiter('/', LURLPath);
-  if I <> 0 then
-    Delete(LURLPath, 1, I);
-  LURLPath := ReplaceStr(LURLPath, '/', PathDelim);
+  LURLPath := AURLPath.Replace('/', PathDelim);
   Result := TPath.Combine(TPath.Combine(ALocalPath, LURLPath), AURLDocument);
 end;
 
@@ -445,39 +455,52 @@ end;
 { TKStaticWebRoute }
 
 constructor TKStaticWebRoute.Create(const APattern, APath: string);
-begin
+begin
   inherited Create;
   FPattern := APattern;
   FPath := APath;
 end;
 
+function TKStaticWebRoute.StripBasePath(const AURLPath: string): string;
+var
+  LBasePath: string;
+begin
+  // This only works reliably in the basic case of path/*, which is all we need ATM.
+  LBasePath := StripJollyCharacters(FPattern);
+  Result := StripPrefix(AURLPath, LBasePath);
+end;
+
 function TKStaticWebRoute.HandleRequest(const ARequest: TKWebRequest;
-  const AResponse: TKWebResponse; const AURL: TKURL): Boolean;
+  const AResponse: TKWebResponse; const AURL: TKURL): Boolean;
 var
   LFileName: string;
 begin
   Result := False;
-  if StrMatchesEx(AURL.Path, FPattern) then
+  if StrMatches(AURL.Path, FPattern) then
   begin
-    LFileName := ComputeLocalFileName(FPath, AURL.Path, AURL.Document);
+    LFileName := ComputeLocalFileName(FPath, StripBasePath(AURL.Path), AURL.Document);
     Result := ServeLocalFile(LFileName, AResponse);
   end;
 end;
 
 { TKWebRoute }
-
-procedure TKWebRoute.AddedToServer(const AServer: TKWebServer);
-begin
+
+procedure TKWebRoute.AddedToServer(const AServer: TKWebServer; const AIndex: Integer);
+begin
 end;
 
 { TKMultipleStaticWebRoute }
-
-constructor TKMultipleStaticWebRoute.Create(const ABasePath: string;
-  const ALocalPaths: TArray<string>);
+
+constructor TKMultipleStaticWebRoute.Create(const ABasePath: string; const ALocalPaths: TArray<string>);
 begin
   inherited Create;
   FBasePath := ABasePath;
   FLocalPaths := RemoveDuplicates(ALocalPaths);
+end;
+
+function TKMultipleStaticWebRoute.StripBasePath(const AURLPath: string): string;
+begin
+  Result := StripPrefix(AURLPath, FBasePath);
 end;
 
 function TKMultipleStaticWebRoute.HandleRequest(const ARequest: TKWebRequest;
@@ -487,14 +510,17 @@ var
   LFileName: string;
 begin
   Result := False;
-  for LLocalPath in FLocalPaths do
+  if AURL.Path.StartsWith(FBasePath) then
   begin
-    LFileName := ComputeLocalFileName(LLocalPath, AURL.Path, AURL.Document);
-    Result := ServeLocalFile(LFileName, AResponse);
-    if Result then
-      Break;
+    for LLocalPath in FLocalPaths do
+    begin
+      LFileName := ComputeLocalFileName(LLocalPath, StripBasePath(AURL.Path), AURL.Document);
+      Result := ServeLocalFile(LFileName, AResponse);
+      if Result then
+        Break;
+    end;
   end;
 end;
 
 end.
-
+
