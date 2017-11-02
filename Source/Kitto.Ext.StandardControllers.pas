@@ -164,11 +164,15 @@ type
     /// </summary>
     function GetDefaultFileName: string; virtual;
 
-    /// <summary>If you are creating a file on demand, do it in this method. If
-    /// you are using streams, don't override this method and use CreateStream
-    /// instead.</summary>
-    /// <param name="AFileName">File name as read from the FileName param or
-    /// returned by GetDefaultFileName.</param>
+    /// <summary>
+    ///  If you are creating a file on demand, do it in this method. If
+    ///  you are using streams, don't override this method and use CreateStream
+    ///  instead.
+    /// </summary>
+    /// <param name="AFileName">
+    ///  File name as read from the FileName param or
+    ///  returned by GetDefaultFileName.
+    /// </param>
     procedure PrepareFile(const AFileName: string); virtual;
 
     /// <summary>
@@ -184,8 +188,10 @@ type
     procedure InitDefaults; override;
   public
     destructor Destroy; override;
-    /// <summary>Returns the image name to use by default when not specified at
-    /// the view or other level. Called through RTTI.</summary>
+    /// <summary>
+    ///  Returns the image name to use by default when not specified at
+    ///  the view or other level. Called through RTTI.
+    /// </summary>
     class function GetDefaultImageName: string; override;
   //published
     procedure DownloadFile;
@@ -247,8 +253,10 @@ type
     procedure InitDefaults; override;
   public
     destructor Destroy; override;
-    /// <summary>Returns the image name to use by default when not specified at
-    /// the view or other level. Called through RTTI.</summary>
+    /// <summary>
+    ///  Returns the image name to use by default when not specified at
+    ///  the view or other level. Called through RTTI.
+    /// </summary>
     class function GetDefaultImageName: string; override;
   //published
     property Path: string read GetPath;
