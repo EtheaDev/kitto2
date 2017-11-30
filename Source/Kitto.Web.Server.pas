@@ -30,6 +30,7 @@ uses
   , EF.ObserverIntf
   , Kitto.Web.Request
   , Kitto.Web.Response
+  , Kitto.Web.Session
   , Kitto.Web.URL
   ;
 
@@ -100,6 +101,7 @@ type
 
   TKWebServer = class(TIdCustomHTTPServer)
   private
+    FSessions: TThreadList<TKWebSession>;
     FThreadPoolSize: Integer;
     FRoutes: TObjectList<TKWebRoute>;
     FSubscribers: TList<IKWebHandleRequestEventListener>;
@@ -112,6 +114,7 @@ type
     procedure DoAfterHandleRequest(const ARequest: TKWebRequest; const AResponse: TKWebResponse; const AStopWatch: TStopWatch);
     class function GetCurrentKSession: TObject; static;
     class procedure SetCurrentKSession(const AValue: TObject); static;
+    const SESSION_OBJECT = 'KittoSession';
   protected
     procedure Startup; override;
     procedure Shutdown; override;
@@ -126,10 +129,12 @@ type
     procedure AfterConstruction; override;
     destructor Destroy; override;
   public
-    const SESSION_OBJECT = 'KittoSession';
     function AddRoute(const ARoute: TKWebRoute; const AIndex: Integer = -1): TKWebRoute;
     class property CurrentSession: TIdHTTPSession read GetCurrentSession write SetCurrentSession;
     class property CurrentKSession: TObject read GetCurrentKSession write SetCurrentKSession;
+
+    function LockSessionList: TList<TKWebSession>;
+    procedure UnlockSessionList;
 
     procedure AddSubscriber(const ASubscriber: IKWebHandleRequestEventListener);
     procedure RemoveSubscriber(const ASubscriber: IKWebHandleRequestEventListener);
@@ -148,7 +153,6 @@ uses
   , EF.Logger
   , EF.StrUtils
   , Kitto.Config
-  , Kitto.Web.Session
   , Kitto.Web.Types
   ;
 
@@ -179,8 +183,9 @@ var
   LConfig: TKConfig;
 begin
   inherited;
-  FSubscribers := TList<IKWebHandleRequestEventListener>.Create;
+  FSessions := TThreadList<TKWebSession>.Create;
   FRoutes := TObjectList<TKWebRoute>.Create;
+  FSubscribers := TList<IKWebHandleRequestEventListener>.Create;
 
   AutoStartSession := True;
   SessionState := True;
@@ -202,8 +207,9 @@ end;
 
 destructor TKWebServer.Destroy;
 begin
-  FreeAndNil(FRoutes);
   FreeAndNil(FSubscribers);
+  FreeAndNil(FRoutes);
+  FreeAndNil(FSessions);
   inherited;
 end;
 
@@ -319,6 +325,8 @@ begin
   begin
     LSession := ASession.Content.Objects[LIndex];
     ASession.Content.Delete(LIndex);
+    if LSession is TKWebSession then
+      FSessions.Remove(TKWebSession(LSession));
     LSession.Free;
   end;
 end;
@@ -330,6 +338,7 @@ begin
   TEFLogger.Instance.LogFmt('New session %s.', [Sender.SessionID], TEFLogger.LOG_MEDIUM);
   LSession := CreateKSession(Sender.SessionID);
   Sender.Content.AddObject(SESSION_OBJECT, LSession);
+  FSessions.Add(LSession);
   inherited;
 end;
 
@@ -345,6 +354,11 @@ end;
 class function TKWebServer.GetCurrentSession: TIdHTTPSession;
 begin
   Result := FCurrentSession;
+end;
+
+function TKWebServer.LockSessionList: TList<TKWebSession>;
+begin
+  Result := FSessions.LockList;
 end;
 
 class procedure TKWebServer.SetCurrentKSession(const AValue: TObject);
@@ -386,6 +400,11 @@ begin
   Bindings.Clear;
   SetupThreadPooling;
   inherited;
+end;
+
+procedure TKWebServer.UnlockSessionList;
+begin
+  FSessions.UnlockList;
 end;
 
 procedure TKWebServer.AddSubscriber(const ASubscriber: IKWebHandleRequestEventListener);
@@ -434,7 +453,6 @@ end;
 function TKBaseStaticWebRoute.ComputeLocalFileName(const ALocalPath, AURLPath, AURLDocument: string): string;
 var
   LURLPath: string;
-  I: Integer;
 begin
   LURLPath := AURLPath.Replace('/', PathDelim);
   Result := TPath.Combine(TPath.Combine(ALocalPath, LURLPath), AURLDocument);

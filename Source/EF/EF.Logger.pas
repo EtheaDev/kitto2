@@ -34,8 +34,9 @@ type
     FLogLevel: Integer;
     FConfig: TEFNode;
     FMacroExpansionEngine: TEFMacroExpansionEngine;
-  class var
-    FInstance: TEFLogger;
+    class var
+      FInstance: TEFLogger;
+    procedure SetLogLevelFromConfig(const ALogLevelNode: TEFNode);
   protected
     procedure EnterCS;
     procedure LeaveCS;
@@ -59,6 +60,13 @@ type
     property LogLevel: Integer read FLogLevel write FLogLevel;
 
     procedure Log(const AString: string; const ALogLevel: Integer = DEFAULT_LOG_LEVEL);
+
+    procedure LogLow(const AString: string); inline;
+    procedure LogMedium(const AString: string); inline;
+    procedure LogHigh(const AString: string); inline;
+    procedure LogDetailed(const AString: string); inline;
+    procedure LogDebug(const AString: string); inline;
+
     procedure LogStrings(const ATitle: string; const AStrings: TStrings; const ALogLevel: Integer = DEFAULT_LOG_LEVEL);
     procedure LogFmt(const AString: string; const AParams: array of const;
       const ALogLevel: Integer = DEFAULT_LOG_LEVEL);
@@ -127,10 +135,35 @@ begin
     end);
 end;
 
+procedure TEFLogger.LogDebug(const AString: string);
+begin
+  Log(AString, LOG_DEBUG);
+end;
+
+procedure TEFLogger.LogDetailed(const AString: string);
+begin
+  Log(AString, LOG_DETAILED);
+end;
+
 procedure TEFLogger.LogFmt(const AString: string; const AParams: array of const;
   const ALogLevel: Integer);
 begin
   Log(Format(AString, AParams), ALogLevel);
+end;
+
+procedure TEFLogger.LogHigh(const AString: string);
+begin
+  Log(AString, LOG_HIGH);
+end;
+
+procedure TEFLogger.LogLow(const AString: string);
+begin
+  Log(AString, LOG_LOW);
+end;
+
+procedure TEFLogger.LogMedium(const AString: string);
+begin
+  Log(AString, LOG_MEDIUM);
 end;
 
 procedure TEFLogger.LogStrings(const ATitle: string;
@@ -142,11 +175,36 @@ begin
   Log(AStrings.Text, ALogLevel);
 end;
 
+procedure TEFLogger.SetLogLevelFromConfig(const ALogLevelNode: TEFNode);
+var
+  LValue: string;
+begin
+  if Assigned(ALogLevelNode) then
+  begin
+    LValue := ALogLevelNode.AsString.ToLower;
+    if LValue <> '' then
+    begin
+      if LValue = 'low' then
+        LogLevel := LOG_LOW
+      else if LValue = 'medium' then
+        LogLevel := LOG_MEDIUM
+      else if LValue = 'high' then
+        LogLevel := LOG_HIGH
+      else if LValue = 'detailed' then
+        LogLevel := LOG_DETAILED
+      else if LValue = 'debug' then
+        LogLevel := LOG_DEBUG
+      else
+        LogLevel := ALogLevelNode.AsInteger;
+    end;
+  end;
+end;
+
 procedure TEFLogger.Configure(const AConfig: TEFNode;
   const AMacroExpansionEngine: TEFMacroExpansionEngine);
 begin
   if Assigned(AConfig) then
-    LogLevel := AConfig.GetInteger('Level', LogLevel);
+    SetLogLevelFromConfig(AConfig.FindNode('Level'));
   try
     FConfig := AConfig;
     FMacroExpansionEngine := AMacroExpansionEngine;

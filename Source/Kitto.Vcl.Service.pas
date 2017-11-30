@@ -24,17 +24,35 @@ uses
   , SysUtils
   , Classes
   , Vcl.SvcMgr
+  , EF.Logger
+  , Kitto.Types
+  , Kitto.Web.Server
+  , Kitto.Web.Application
   ;
 
 type
+  TKServiceLogEndpoint = class(TEFLogEndpoint)
+  private
+    FOnLog: TKLogEvent;
+  protected
+    procedure DoLog(const AString: string); override;
+  public
+    property OnLog: TKLogEvent read FOnLog write FOnLog;
+  end;
+
   TKService = class(TService)
     procedure ServiceStart(Sender: TService; var Started: Boolean);
-    procedure ServiceStop(Sender: TService; var Stopped: Boolean);
     procedure ServiceShutdown(Sender: TService);
+    procedure ServiceCreate(Sender: TObject);
+    procedure ServiceDestroy(Sender: TObject);
+    procedure ServiceStop(Sender: TService; var Stopped: Boolean);
+    procedure ServiceAfterInstall(Sender: TService);
   private
-//    FThread: TKExtAppThread;
-//    function CreateThread: TKExtAppThread;
-    procedure StopAndFreeThread;
+    FServer: TKWebServer;
+    FApplication: TKWebApplication;
+    FLogEndPoint: TKServiceLogEndpoint;
+    procedure DoLog(const AString: string);
+    procedure SetDescription(const ADescription: string);
   public
     function GetServiceController: TServiceController; override;
   end;
@@ -47,7 +65,9 @@ implementation
 {$R *.dfm}
 
 uses
-  EF.Logger;
+  Winapi.WinSvc
+  , Kitto.Vcl.Start
+  ;
 
 procedure ServiceController(CtrlCode: DWord); stdcall;
 begin
@@ -56,44 +76,88 @@ end;
 
 { TKService }
 
-procedure TKService.StopAndFreeThread;
+procedure TKService.SetDescription(const ADescription: string);
+var
+  LSCManager: SC_HANDLE;
+  LService: SC_HANDLE;
+  LDescription: SERVICE_DESCRIPTION;
 begin
-//  if Assigned(FThread) then
-//  begin
-//    FThread.Terminate;
-//    FThread.WaitFor;
-//    FreeAndNil(FThread);
-//  end;
+  LSCManager := OpenSCManager(nil, nil, SC_MANAGER_ALL_ACCESS);
+  if LSCManager <> 0 then
+  begin
+    LService := OpenService(LSCManager, PChar(Name), STANDARD_RIGHTS_REQUIRED or SERVICE_CHANGE_CONFIG);
+    if LService <> 0 then
+    begin
+      LDescription.lpDescription := PChar(ADescription);
+      ChangeServiceConfig2(LService, SERVICE_CONFIG_DESCRIPTION, @LDescription);
+      CloseServiceHandle(LService);
+    end;
+    CloseServiceHandle(LSCManager);
+  end;
 end;
-
-//function TKExtService.CreateThread: TKExtAppThread;
-//begin
-//  Result := TKExtAppThread.Create(True);
-//  Result.Configure;
-//end;
 
 function TKService.GetServiceController: TServiceController;
 begin
   Result := ServiceController;
 end;
 
+procedure TKService.ServiceAfterInstall(Sender: TService);
+begin
+  SetDescription(TKStart.ServiceDescription);
+end;
+
+procedure TKService.ServiceCreate(Sender: TObject);
+begin
+  FServer := TKWebServer.Create(nil);
+  //FServer.OnSessionStart := ServerSessionStart;
+  //FServer.OnSessionEnd := ServerSessionEnd;
+  FApplication := FServer.AddRoute(TKWebApplication.Create) as TKWebApplication;
+
+  FLogEndPoint := TKServiceLogEndpoint.Create;
+  FLogEndPoint.OnLog := DoLog;
+end;
+
+procedure TKService.ServiceDestroy(Sender: TObject);
+begin
+  FServer.Active := False;
+  FreeAndNil(FServer);
+  FreeAndNil(FLogEndPoint);
+end;
+
 procedure TKService.ServiceShutdown(Sender: TService);
 begin
-  TEFLogger.Instance.Log('Service shutdown.');
-  StopAndFreeThread;
+  TEFLogger.Instance.LogDetailed('Service shutdown. Turning off web server...');
+  FServer.Active := False;
+  TEFLogger.Instance.LogDetailed('Service shutdown. Web server off.');
 end;
 
 procedure TKService.ServiceStart(Sender: TService; var Started: Boolean);
 begin
-//  TEFLogger.Instance.Log('Service start. Creating thread...');
-//  FThread := CreateThread;
-//  TEFLogger.Instance.Log('Starting thread...');
-//  FThread.Start;
+  TEFLogger.Instance.LogDetailed('Service start. Updating description...');
+  SetDescription(TKStart.ServiceDescription);
+  TEFLogger.Instance.LogDetailed('Service start. Turning on web server...');
+  FServer.Active := True;
+  TEFLogger.Instance.LogDetailed('Service start. Web server on.');
 end;
 
 procedure TKService.ServiceStop(Sender: TService; var Stopped: Boolean);
 begin
-  StopAndFreeThread;
+  TEFLogger.Instance.LogDetailed('Service stop. Turning off web server...');
+  FServer.Active := False;
+  TEFLogger.Instance.LogDetailed('Service stop. Web server off.');
+end;
+
+procedure TKService.DoLog(const AString: string);
+begin
+  LogMessage(AString);
+end;
+
+{ TKServiceLogEndpoint }
+
+procedure TKServiceLogEndpoint.DoLog(const AString: string);
+begin
+  if Assigned(FOnLog) then
+    FOnLog(AString);
 end;
 
 end.

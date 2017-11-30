@@ -25,12 +25,10 @@ uses
   Windows, Messages, SysUtils, Variants, Classes, Vcl.Graphics, IdCustomHTTPServer,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ComCtrls, Vcl.ToolWin, Generics.Collections,
   Vcl.ActnList, Kitto.Config, Vcl.StdCtrls, Vcl.Buttons, Vcl.ExtCtrls, Vcl.ImgList, EF.Logger,
-  Actions, Vcl.Tabs, Vcl.Grids, System.ImageList, Kitto.Web.Server,
+  Actions, Vcl.Tabs, Vcl.Grids, System.ImageList, Kitto.Types, Kitto.Web.Server,
   Kitto.Web.Application, Kitto.Web.Session;
 
 type
-  TKLogEvent = procedure (const AString: string) of object;
-
   TKMainFormLogEndpoint = class(TEFLogEndpoint)
   private
     FOnLog: TKLogEvent;
@@ -89,7 +87,6 @@ type
     FApplication: TKWebApplication;
     FRestart: Boolean;
     FLogEndPoint: TKMainFormLogEndpoint;
-    FSessions: TThreadList<TKWebSession>;
     procedure ShowTabGUI(const AIndex: Integer);
     procedure UpdateSessionInfo;
     procedure ServerSessionEnd(Sender: TIdHTTPSession);
@@ -122,6 +119,7 @@ uses
   , EF.Sys.Windows
   , EF.Shell
   , EF.Localization
+  , Kitto.Ext.Start
   ;
 
 { TKMainForm }
@@ -268,7 +266,7 @@ begin
   SessionListView.Clear;
   if FServer.Active then
   begin
-    LSessions := FSessions.LockList;
+    LSessions := FServer.LockSessionList;
     try
       SessionCountLabel.Caption := Format('Active Sessions: %d', [LSessions.Count]);
 
@@ -282,7 +280,7 @@ begin
         end;
       end;
     finally
-      FSessions.UnlockList;
+      FServer.UnlockSessionList;
     end;
   end
   else
@@ -313,11 +311,7 @@ procedure TKMainForm.ServerSessionStart(Sender: TIdHTTPSession);
 begin
   TThread.Synchronize(nil,
     procedure
-    var
-      LSession: TKWebSession;
     begin
-      LSession := Sender.Content.Objects[Sender.Content.IndexOf(TKWebServer.SESSION_OBJECT)] as TKWebSession;
-      FSessions.Add(LSession);
       UpdateSessionInfo;
     end
   );
@@ -327,11 +321,7 @@ procedure TKMainForm.ServerSessionEnd(Sender: TIdHTTPSession);
 begin
   TThread.Synchronize(nil,
     procedure
-    var
-      LSession: TKWebSession;
     begin
-      LSession := Sender.Content.Objects[Sender.Content.IndexOf(TKWebServer.SESSION_OBJECT)] as TKWebSession;
-      FSessions.Remove(LSession);
       UpdateSessionInfo;
     end
   );
@@ -339,7 +329,10 @@ end;
 
 procedure TKMainForm.FormCreate(Sender: TObject);
 begin
-  FSessions := TThreadList<TKWebSession>.Create;
+{$IF RTLVersion >= 23.0}
+  TStyleManager.TrySetStyle('Aqua Light Slate');
+{$IFEND}
+
   FServer := TKWebServer.Create(nil);
   FServer.OnSessionStart := ServerSessionStart;
   FServer.OnSessionEnd := ServerSessionEnd;
@@ -355,7 +348,6 @@ procedure TKMainForm.FormDestroy(Sender: TObject);
 begin
   FServer.Active := False;
   SessionListView.Clear;
-  FreeAndNil(FSessions);
   FreeAndNil(FServer);
   FreeAndNil(FLogEndPoint);
 end;
@@ -454,10 +446,5 @@ begin
   if Assigned(FOnLog) then
     FOnLog(AString);
 end;
-
-{$IF RTLVersion >= 23.0}
-initialization
-  TStyleManager.TrySetStyle('Aqua Light Slate');
-{$IFEND}
 
 end.

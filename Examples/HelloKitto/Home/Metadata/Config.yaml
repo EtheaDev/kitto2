@@ -122,3 +122,6 @@ Server:
   ThreadPoolSize: 15
   # In minutes.
   SessionTimeOut: 10
+
+Log:
+  Level: detailed

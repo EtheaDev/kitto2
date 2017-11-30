@@ -14,21 +14,23 @@
    limitations under the License.
 -------------------------------------------------------------------------------}
 
-unit Kitto.Ext.Start;
+unit Kitto.Vcl.Start;
 
 interface
 
 type
-  TKExtStart = class
+  TKStart = class
   private
   class var
-    FServiceName: string;
     FServiceDisplayName: string;
+    FIsService: Boolean;
+    FServiceDescription: string;
     class procedure Configure;
   public
-    class property ServiceName: string read FServiceName write FServiceName;
     class property ServiceDisplayName: string read FServiceDisplayName write FServiceDisplayName;
+    class property ServiceDescription: string read FServiceDescription write FServiceDescription;
     class procedure Start;
+    class property IsService: Boolean read FIsService;
   end;
 
 implementation
@@ -50,34 +52,34 @@ uses
   , Kitto.Config
   ;
 
-{ TKExtStart }
+{ TKStart }
 
-class procedure TKExtStart.Configure;
+class procedure TKStart.Configure;
 var
   LConfig: TKConfig;
 begin
   LConfig := TKConfig.Create;
   try
     TEFLogger.Instance.Configure(LConfig.Config.FindNode('Log'), LConfig.MacroExpansionEngine);
-    FServiceName := TKConfig.AppName;
-    FServiceDisplayName := _(LConfig.AppTitle);
+    FServiceDisplayName := TKConfig.AppName;
+    FServiceDescription := _(LConfig.AppTitle);
   finally
     FreeAndNil(LConfig);
   end;
 end;
 
-class procedure TKExtStart.Start;
+class procedure TKStart.Start;
 begin
+  FIsService := not FindCmdLineSwitch('a');
   Configure;
 
-  if not FindCmdLineSwitch('a') then
+  if FIsService then
   begin
     {$IFDEF MSWINDOWS}
     TEFLogger.Instance.Log('Starting as service.');
     if not Vcl.SvcMgr.Application.DelayInitialize or Vcl.SvcMgr.Application.Installing then
       Vcl.SvcMgr.Application.Initialize;
     Vcl.SvcMgr.Application.CreateForm(TKService, KService);
-    KService.Name := FServiceName;
     KService.DisplayName := FServiceDisplayName;
     Vcl.SvcMgr.Application.Run;
     {$ELSE}
